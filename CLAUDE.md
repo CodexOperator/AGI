@@ -35,6 +35,7 @@ fantasia/                   any other project: its own .agi/; agi/ cloned in (gi
 | `.agi/context/schemas/` | node-type schemas; `schema_registry` reads `[name].md` |
 | `.agi/config.json` | project marker + loop tuning |
 | `refs/grid/*` | per-node version history |
+| `.github/workflows/seal.yml` | on `master` ONLY (GitHub runs schedule + dispatch from the default branch): the §AB.6 outward sealer, attesting block digests to the public Sigstore log every 30 min, never a key (owner 2026-10-03: "Could we have GitHub actions be the sealer for us as proof of concept? ... Just have it retry gracefully"; "Merge it in": master stays merges-only). `.github/*` is a RULES path |
 | `COMPLETE.md` | post-loop report (`goal:g1.13`), **replaced whole at each loop close** (owner 2026-09-05, reaffirmed 09-11: "Complete should be a whole replacement as it's already versioned anyway"); appended only when the owner asks. Shape in `skills/agi/SKILL.md` |
 | `HANDOFF.md` | symlink to the Prime's card (`doc:card-belam`); every post's card = `.agi/sessions/quorum/<post>.md` → its doc node |
 | `QUICKSTART.md` | standing bootstrap: clone, deps, install, safety rail, one iteration |
@@ -114,7 +115,7 @@ It versions `node.md` + its payload as ONE version, independent of the rest of t
 | `python3 extensions/agi/bin/viewport.py --verify` | goal:g2.19 — one render, two readers |
 | `python3 extensions/agi/bin/grid.py commit --all` | version every changed node and its payload |
 | `python3 extensions/agi/bin/links.py links` | every link resolves; broken must be 0 |
-| `python3 extensions/agi/bin/links.py schema` | goal:s31 — nodes violating their type's required list (dry) |
+| `python3 extensions/agi/bin/links.py schema` | goal:g7.33.10.1 — nodes violating their type's required list (dry) |
 | `python3 extensions/agi/bin/spawn_budget.py status` | goal:g4.8 — live agents vs the tree-wide bound |
 | `python3 extensions/agi/bin/provisioning.py status` | goal:g1.11 — per-spawn keys |
 | `python3 extensions/agi/bin/envfile.py --check` | goal:g1.8 — required keys present, forbidden absent |

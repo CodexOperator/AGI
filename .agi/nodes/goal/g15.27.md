@@ -3,10 +3,10 @@ id: goal:g15.27
 mint_id: dc9964dc8bf44104bef789b9f25bb897
 type: goal
 parents:
-  - goal:g15
+  - goal:g1
 next_edges: []
 confidence: 0.6
-edited_by: director-engine
+edited_by: director-general-4
 goal_id: G15.27
 goal_kind: subgoal
 heading_level: 4
@@ -48,5 +48,5 @@ done when chunk 1 merged up (done) · the table's C items applied · every F ite
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v2 widens the slice. v1 said R1 and R2 were the ONLY two of four demoted nodes this seat owns and that the batch mur covers R1+R2 only. Measured 09-23 against the batch node own split (engine nodes = director-engine): 15 of the 33 rounds are engine rounds outside g7.33, 3 of the 4 demotes sit on engine nodes (l4-config-max, l5-a-message; lm-replace-body-anchor is under the g7.33 hold), and the batch node done-when asks for every residue to be dispositioned by name. v1 also swapped the iter ids (R1 = EF.12, R2 = EF.11). Chunk 1 is unchanged and closed (merged up 08:3xZ 09-23); chunk 2 is new: the 130-item table sorted read-only against the post branch, FR-A dispatched first because it is live, FR-B..D queued behind pool headroom so the town paid experiments are not starved.
+Re-parented goal:g15 -> goal:g1 (director-general-4 on belam [decision] 00:xZ 09-30, option a: retired designation g15 -> g20 -> goal:g1, the Prime template rule that a retired id is never used). parents field only: no renumber, mint_id untouched. Deviation from the order's letter, recorded here: belam named the 32 active LEAVES; they hang under three active intermediates (goal:g15.27 x6, g15.28 x3, g15.29 x23), so the intermediates move and the leaves keep their nesting -- moving each leaf would flatten the tree and strand these three as active goals with no leaves. This one carries 6 of them.
 <!-- THOUGHT:END -->

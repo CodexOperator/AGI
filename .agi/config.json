@@ -48,61 +48,26 @@
     "pi": {
       "adapter": "pi",
       "bin": "~/.npm-global/bin/pi",
-      "provider": "openrouter",
-      "thinking": "medium",
-      "models": {
-        "kid": "deepseek/deepseek-v4.1-flash",
-        "parent": "deepseek/deepseek-v4.1-flash"
-      },
-      "allowed_extra": [
-        "deepseek/deepseek-v4.1-flash",
-        "~z-ai/glm-flash-latest",
-        "anthropic/claude-opus-5"
+      "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"],
+      "rows": [
+        {"name": "free", "default": true, "zero_usd": true, "provider": "openrouter", "thinking": "medium", "models": {"kid": "stealth/space-bunny-alpha", "parent": "stealth/space-bunny-alpha"}, "allowed_extra": ["stealth/space-bunny-alpha"]},
+        {"name": "paid", "provider": "openrouter", "thinking": "medium", "models": {"kid": "deepseek/deepseek-v4.1-flash", "parent": "deepseek/deepseek-v4.1-flash"}, "allowed_extra": ["deepseek/deepseek-v4.1-flash", "~z-ai/glm-flash-latest", "anthropic/claude-opus-5"]},
+        {"name": "local", "zero_usd": true, "provider": "local-town", "credential": "none", "max_live": 1, "models": {"kid": "OrcaBonsai-27B-C2", "parent": "OrcaBonsai-27B-C2"}, "allowed_extra": ["OrcaBonsai-27B-C2"]}
       ],
-      "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
-    },
-    "pi-local": {
-      "zero_usd": true,
-      "adapter": "pi",
-      "bin": "~/.npm-global/bin/pi",
-      "provider": "local-town",
-      "credential": "none",
-      "max_live": 1,
-      "models": {
-        "kid": "OrcaBonsai-27B-C2",
-        "parent": "OrcaBonsai-27B-C2"
-      },
-      "allowed_extra": [
-        "OrcaBonsai-27B-C2"
-      ],
-      "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
-    },
-    "pi-free": {
-      "zero_usd": true,
-      "adapter": "pi",
-      "bin": "~/.npm-global/bin/pi",
-      "provider": "openrouter",
-      "thinking": "medium",
-      "models": {
-        "kid": "stealth/space-bunny-alpha",
-        "parent": "stealth/space-bunny-alpha"
-      },
-      "allowed_extra": [
-        "stealth/space-bunny-alpha"
-      ],
-      "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
+      "aliases": {"pi-free": "free", "pi-local": "local"}
     },
     "claude-code": {
       "adapter": "claude_code",
       "models": {
-        "kid": "claude-opus-5-5",
-        "parent": "claude-opus-5-5",
-        "director": "claude-fable-5-1"
+        "kid": "claude-sonnet-5-5",
+        "parent": "claude-sonnet-5-5",
+        "director": "claude-sonnet-5-5"
       },
       "effort": {
         "director": "max"
       },
       "allowed_models": [
+        "claude-sonnet-5-5",
         "claude-sonnet-5",
         "claude-opus-5",
         "claude-opus-5-5",
@@ -150,9 +115,9 @@
     "memory_max": "2G",
     "tasks_max": 150,
     "post_scope": {
-      "live": false,
-      "slice": "agi.slice",
-      "why": "goal:g6.41.1 P6 (director-general-3, bundle 3 R1): true = every post launch in its OWN scope under slice. OFF until the owner's word after PASS B3 (doc:card-belam s6) and the slice decision (agi.slice shares MemoryHigh 9.26G / MemoryMax 10.29G with agi-work + agi-engine on local-town)."
+      "live": true,
+      "slice": "app.slice",
+      "why": "goal:g6.41.1 P6 (director-general-3, bundle 3 R1): true = every post launch in its OWN scope under slice. ON 2026-09-30 01:5xZ by belam-S2-L5-XIX on the owner's word ('go ahead and install them and finish applying them', reboot window). Slice = app.slice, where the posts already run under user@: each post gets its OWN scope (one oomd kill = one post) and the budget is unchanged; agi.slice would have put the posts under agi-work's MemoryMax with the PASS rounds. The dummy test (test_r1_cutover_dummy_one_kill_is_one_post) uses app.slice too."
     }
   },
   "provisioning": {
@@ -190,6 +155,7 @@
     "undelivered_after_minutes": 10
   },
   "locations": {
+    "stream": {"stub": "{home}/work/streamer-stub", "bin": "{home}/bin", "xvfb": "{home}/xvfb/root/usr/bin/Xvfb", "kiosk_profile": "{home}/snap/firefox/common/stream-profile", "feed": "{home}/classfeed/feed.py"},
     "comms_root": "comms/season-2",
     "pi_home": "/home/ubuntu/.pi/agent",
     "claude_home": "/home/ubuntu/.claude"
@@ -205,11 +171,14 @@
     }
   },
   "box": {
-    "root": "/home/ubuntu/work/agi",
+    "alias": "local-town", "hub": "",
+    "repo": "/data/work/agi",
+    "root": "/data/work/agi",
     "logs_dir": "/home/ubuntu/logs",
     "tmux_session": "agi-rc",
     "user": "ubuntu",
-    "allow": []
+    "allow": [],
+    "scan": ["extensions/", "skills/", "src/", ".claude/", ".agi/context/", ".agi/nodes/.geometry/"]
   },
   "workflows": {
     "review": {
@@ -228,12 +197,30 @@
       "note": "defaults for the deep-search workflow; question, facts, lenses and refute_n arrive via --args, never here or in either workflow file (hypothesis:l3-deep-search-workflow-harness-agnostic), 2026-09-07. No 'model' here on purpose, same reason as workflows.review: provider is pi, model comes from harnesses.pi.models by role (hypothesis:l3-workflow-model-crosses-harness-namespace, 2026-09-08)."
     }
   },
+  "anonymize": {
+    "home_roots": ["/data/home-"],
+    "hardware": {
+      "sources": [["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+                  ["lscpu"],
+                  ["@/sys/class/dmi/id/board_name", "Board Name"]],
+      "min_words": 2,
+      "core_digits": 3
+    },
+    "user_roots": ["/tmp/pytest-of-"],
+    "email_allow": [
+      "agi-[a-z0-9-]+@[A-Za-z0-9_%-]*\\.(?:path|service|timer|socket)",
+      "[^@]+@(?:[A-Za-z0-9-]+\\.)*example\\.(?:com|org|net)",
+      "[^@]+@openssh\\.com",
+      "[^@]+@(?:[0-9]+|UID)\\.service"
+    ]
+  },
   "reaper": {
     "max_restarts": 0,
     "late_reap_wait_max_s": 1800,
     "recovery_psi_max_pct": 40,
+    "recovery_defer_alert_after": 3,
     "term_grace_s": 15,
-    "chain_deadline_s": 20
+    "chain_deadline_s": 20, "worktree_archive_per_pass": 25, "sweep_mem_psi_max_pct": 40, "sweep_io_psi_max_pct": 40, "sweep_reclaim_every": 50, "sweep_reclaim_max_mib": 512
   },
   "logs": {
     "cap_mb": 16,
@@ -242,6 +229,11 @@
     "alerts_file": "memory-alarm-alerts.log",
     "also_manage": ["agi-reaper-agi-2f118e6f.log"],
     "non_append": "skip"
+  },
+  "write": {
+    "commit_message": "write.py: {node_id}{actor}",
+    "commit_actor": " ({actor})",
+    "_doc": "goal:g4.18.5.2.2 -- the ONE write-commit message template; write.py _commit_message reads it (project first, then the engine repo); {actor} renders commit_actor, or nothing when no actor"
   },
   "grid": {
     "storage_trunk": "refs/grid/local-maxxing",
@@ -267,6 +259,7 @@
       "fixtures_dir": "extensions/agi/tests/fixtures/boxkit"
     },
     "local_maxxing": {
+      "scrub_commit_map": "/data/agi-maps/scrub-2026-09-30.commit-map",
       "worktree_a00_2f819956": ".agi/worktrees/a00-2f819956",
       "worktree_a00_48ed5e56_nodes": ".agi/worktrees/a00-48ed5e56/.agi/nodes",
       "sessions_dir": ".agi/sessions",
@@ -285,6 +278,19 @@
       "osc_band_q4_dir": "datasets/osc-band/2026-09-24-q4",
       "osc_band_kquant_0924_dir": "datasets/osc-band/2026-09-24-kquant",
       "osc_band_qknorm_dir": "datasets/osc-band/2026-09-24-qknorm",
+      "osc_band_l4_dir": "datasets/osc-band/2026-09-30-l4",
+      "osc_band_l4_distance_dir": "datasets/osc-band/2026-10-01-l4-distance",
+      "osc_band_l4_mass_dir": "datasets/osc-band/2026-10-01-l4-mass",
+      "osc_band_l4_direct_dir": "datasets/osc-band/2026-10-01-l4-direct",
+      "osc_l4_9b_dir": "datasets/osc-band/2026-10-01-l4-9b",
+      "osc_neuron_period_dir": "datasets/osc-band/2026-10-01-neuron-period",
+      "osc_neuron_period2_dir": "datasets/osc-band/2026-10-01-neuron-period-2",
+      "osc_neuron_period_pc_dir": "datasets/osc-band/2026-10-01-neuron-period-pc",
+      "osc_neuron_period_seeds_dir": "datasets/osc-band/2026-10-01-neuron-period-seeds",
+      "osc_neuron_period_p4fair_dir": "datasets/osc-band/2026-10-01-neuron-period-p4fair",
+      "osc_neuron_period_freqabl_dir": "datasets/osc-band/2026-10-01-neuron-period-freqabl",
+      "osc_self_poke_toy_dir": "datasets/osc-band/2026-10-01-self-poke-toy",
+      "osc_self_poke_toy_dh1_dir": "datasets/osc-band/2026-10-01-self-poke-toy-dh1",
       "model_slot_lock": ".agi/sessions/locks/model-slot.lock",
       "humaneval_file": "datasets/humaneval-abc/data/HumanEval.jsonl.gz",
       "kv_format_out_dir": "datasets/kv-format/2026-09-23",
@@ -328,27 +334,10 @@
       ]
     },
     "boxkit": {
-      "user_high_ratio": 0.9,
-      "swap_ratio": 0.5,
-      "agi_high_ratio": 0.63,
-      "agi_max_ratio": 0.7,
-      "work_high_ratio": 0.5673,
-      "work_max_ratio": 0.6305,
-      "MEM_LOW": "1024M",
       "USER_TASKS": "16384",
-      "USER_OOM_PCT": "50",
-      "SYSTEM_MIN": "128M",
-      "SSH_MIN": "64M",
       "SSH_CPU_WEIGHT": "1000",
-      "OOMD_SWAP_PCT": "90",
-      "OOMD_PRESSURE_PCT": "60",
-      "OOMD_PRESSURE_SEC": "20s",
       "AGI_TASKS": "4096",
       "AGI_CPU_WEIGHT": "50",
-      "AGI_OOM_PCT": "40",
-      "ENGINE_HIGH": "384M",
-      "ENGINE_MAX": "512M",
-      "ENGINE_SWAP": "0",
       "ENGINE_TASKS": "128",
       "ENGINE_CPU_WEIGHT": "20",
       "WORK_TASKS": "2048",
@@ -364,8 +353,6 @@
       "WD_REPAIR_MAX": "1",
       "WD_PRIORITY": "1",
       "WD_LOG_DIR": "/var/log/watchdog",
-      "HEALTH_LIMIT": "40",
-      "HEALTH_GRACE": "900",
       "HEALTH_ENV": "/etc/sanctuary-guard/health.env",
       "HEALTH_DISABLE": "/etc/sanctuary-guard/watchdog.disable",
       "HEALTH_LOG": "/var/log/sanctuary-health.log",
@@ -374,6 +361,11 @@
       "PROTECT_OOM_ADJ": "-900",
       "PROTECT_NICE": "-5",
       "PI_OOM_ADJ": "500",
+      "PI_CMD": "\\.npm-global/(bin/pi\\b|lib/node_modules/\\S*pi)",
+      "PROTECT_CMD": "streamer-stub|rotate\\.py launch-wrapper|agi-memguard",
+      "PROTECT_COMM": "{'claude', 'tmux: server', 'ffmpeg', 'tmux'}",
+      "POST_CGROUP_RE": "^0::/agi\\.slice/agi-post@[^/\\n]+\\.service(/|$)",
+      "POST_PI_COMM": "pi",
       "SUSPEND_RATIO": "0.70",
       "SUSPEND_PCT": "70",
       "SPIKE_BYTES": "3",
@@ -385,11 +377,13 @@
     },
     "core": {
       "model_load_allowed_max_bytes": 67108864,
-      "stale_index_lock_s": 900
+      "stale_index_lock_s": 900,
+      "write_commit_wait_s": 30
     },
     "local_maxxing": {
       "osc_band_seeds": [7, 21, 99],
       "de_live_parents": {"arm": 10, "arms": [10, 5, 15], "ceiling": 16, "ceiling_if": {"loadavg1_lt": 16, "io_psi_some_avg60_lt": 50}, "hypothesis": "hypothesis:swarm-size-5-10-15-parents-fixes-per-hour"},
+      "agi_boot": {"poll_s": 20, "wait_max_s": 600, "space_s": 120},
       "model_slot_min_avail_gib": 3,
       "lowpeak_head_rows": 64,
       "osc_band_row_contract": {

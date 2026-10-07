@@ -95,15 +95,22 @@ def test_rotate_first_key_mints_through_send_writer(tmp_path, monkeypatch):
     assert send_pkg._seat_key_path(tmp_path, "s2").is_file()
 
 
-def test_rotate_first_key_leaves_keyed_and_throwaway_alone(tmp_path):
+def test_rotate_first_key_leaves_keyed_and_throwaway_alone(tmp_path, monkeypatch):
     # already-keyed row, a throwaway (empty) row, and an idempotent re-rotate
     # (key file already exists) all mint nothing -> ''.
+    # a keyed row that HOLDS its key file (goal:g7.16.1.7.1.4: a keyed row
+    # with NO key file is the missing-key rule, test_stand_up.py)
+    _mk_seat_key(tmp_path, "s1")
     assert rotate._rotate_first_key(tmp_path, tmp_path, "s1",
                                     {"pubkey": "deadbeef", "role": "parent"}) == ""
     assert rotate._rotate_first_key(tmp_path, tmp_path, "s1", {}) == ""
     assert rotate._rotate_first_key(tmp_path, tmp_path, "s1", None) == ""
     from agi.bin import send
     _mk_seat_key(tmp_path, "s3")
+    # an existing key file on an unkeyed row: left alone only under the
+    # template's `existing_key: leave` (the default ADOPTS it, test_stand_up)
+    monkeypatch.setattr(rotate, "key_template", lambda root: dict(
+        rotate.KEY_TEMPLATE_DEFAULT, existing_key="leave"))
     assert rotate._rotate_first_key(tmp_path, tmp_path, "s3",
                                     {"role": "parent"}) == ""
 
@@ -4716,8 +4723,9 @@ def test_launch_window_hands_tmux_a_short_argv_for_a_long_command(monkeypatch):
     assert rc == 0
     passed = seen["argv"][-1]
     assert len(passed) < 512, f"tmux still handed {len(passed)} bytes"
-    assert passed.startswith("bash ")
-    script = Path(passed.split(" ", 1)[1].strip("'"))
+    # goal:g7.16.1.7.1.1: the ONE launcher keeps the cd on the tmux line
+    assert passed.startswith(f"cd {os.getcwd()} && bash ")
+    script = Path(passed.rsplit(" ", 1)[1].strip("'"))
     assert script.exists(), "the script must outlive the launch call"
     assert long_cmd in script.read_text()
     script.unlink()
@@ -8472,16 +8480,19 @@ def test_spawn_window_agi_seat_export_and_byte_identical_absent(monkeypatch, tmp
         settings=None, tmux_session="agi-rc", root=None,
         dry_run=True, seat=None,
     )[1]
+    # the seat IS the post the render reads (goal:g7.16.1.7.1.2.1), so the
+    # seated launch names the same post as the window: only the export prefix
+    # and the wrapper may differ.
     seated = rotate.spawn_window(
         name="adv", tier="prime_director", prompt_file=None,
         settings=None, tmux_session="agi-rc", root=None,
-        dry_run=True, seat="sanctuary-director",
+        dry_run=True, seat="adv",
     )[1]
     assert "AGI_SEAT=" not in base
     # a seat exports BOTH AGI_POST (primary) and AGI_SEAT (deprecated alias)
     # so either spelling resolves downstream (hypothesis:l4-a-seat-is-a-post-
     # everywhere).
-    _q = rotate.shlex.quote('sanctuary-director')
+    _q = rotate.shlex.quote('adv')
     assert f"export AGI_POST={_q} AGI_SEAT={_q} && " in seated
     # amendment e: a seat inserts BOTH identity and the launch-wrapper. The
     # wrapper is the direct parent of claude, so the ONLY thing that changes
@@ -10328,6 +10339,7 @@ def test_r1_every_post_argv_is_scoped_even_when_cap_is_none(monkeypatch, seat):
 def test_r1_launch_window_ensures_agi_rc_in_its_own_scope_first(monkeypatch, cell):
     import mem_cap  # residue 68: the ensure's slice follows spawn.post_scope; off = own scope, NO slice
     monkeypatch.setattr(mem_cap, "resolve_post_scope", lambda cfg: cell)
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda *a, **k: True)  # C3: the probe is the builder's now
     calls = []  # agi-rc absent: has-session rc 1
     monkeypatch.setattr(rotate.subprocess, "run", lambda a, **k: calls.append(list(a)) or subprocess.CompletedProcess(a, int("has-session" in a), stdout="@9\n", stderr=""))
     assert rotate._launch_window("agi-rc", "p1", "echo hi") == 0
@@ -10335,6 +10347,25 @@ def test_r1_launch_window_ensures_agi_rc_in_its_own_scope_first(monkeypatch, cel
     assert len(new) == 1 and win and new[0] < win[0], calls
     assert calls[new[0]][:3] == ["systemd-run", "--user", "--scope"]
     assert ("--slice=agi.slice" in calls[new[0]]) is (cell is not None), calls[new[0]]
+
+
+# goal:g7.16.1.7.1.1 C3: ONE scope builder -- no usable systemd-run = a plain tmux server, never a failed scope
+def test_c3_ensure_falls_back_to_plain_tmux_without_systemd_run(monkeypatch):
+    import mem_cap
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda *a, **k: False)
+    calls = []
+    monkeypatch.setattr(rotate.subprocess, "run", lambda a, **k: calls.append(list(a)) or subprocess.CompletedProcess(a, int("has-session" in a), stdout="", stderr=""))
+    rotate.ensure_tmux_session("agi-rc", root=None)
+    assert calls[-1] == ["tmux", "new-session", "-d", "-s", "agi-rc"], calls
+
+
+# goal:g7.16.1.7.1.1 SM rotate candidate: two launches of one name in the same second get distinct units
+def test_unit_names_never_collide_within_one_second(monkeypatch):
+    import mem_cap
+    monkeypatch.setattr(rotate.time, "time", lambda: 1_000_000.0)  # the old int(time.time()) suffix collided here
+    a, b = rotate._post_unit("p1"), rotate._post_unit("p1")
+    assert a != b and a.startswith("agi-post-p1-") and b.startswith("agi-post-p1-"), (a, b)
+    assert mem_cap.unit_name("agi-tmux", "agi rc").startswith("agi-tmux-agi_rc-")
 
 
 # residue 70: the one switch -- resolve_post_scope and spawn_window threading it
@@ -10423,10 +10454,575 @@ def test_b4_w1b2_no_second_posts_parser_in_rotate():
     assert "def _row_names" not in src and "_posts_load_error(" not in src
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 4 W1 B2: RED until DG3 re-points "
-                   "the 4 config:posts commit paths at the one row write")
-def test_b4_w1b2_the_four_posts_paths_own_no_commit_plumbing():
-    import inspect
-    own = [n for n in _W1B2_PATHS
-           if "hash-object" in inspect.getsource(getattr(rotate, n))]
-    assert own == [], f"still stage+commit posts.md by hand: {own}"
+# The ONE row write (goal:g4.18.5.2's commit -- one gate, one write, one
+# `git commit -- <path>`) is a MODULE-LEVEL function, so the spy is a
+# `monkeypatch.setattr` on the module attribute: a path that reaches it by
+# attribute lookup at call time (as every rotate function does, via its local
+# `import write as _w`) is caught.
+#
+# Its NAME is a CONTRACT, not a guess. goal:g4.18.5.3 Falsifier 1 declares it:
+# `write.ONE_ROW_WRITE`. The guard's FIRST assertion is that the attribute
+# exists, so a re-point published under any other name fails LOUDLY, naming
+# itself, instead of leaving behind a strict-xfail that can never go green.
+#
+# Why this replaced a list of seven plausible names (measured 10-01 by
+# director-general-5; the review's verdict was a function of the NAME, not of
+# the code). Routing one of the 4 paths through the seam and changing ONLY the
+# seam's name, everything else byte-identical:
+#
+#   seam `_write_row`    (in the old list) -> guard counts 1, guard live
+#   seam `_write_one_row`(not in it)       -> `seams present: NONE`, 0, BLIND
+#
+# So a fully correct re-point under any unlisted name left the strict-xfail
+# permanently xfailed -- permanently GREEN-LOOKING, while guarding nothing.
+# The list was the defect; this is the fix. The count assertion and the 2x
+# negative probe below are kept unchanged: with the name contracted they
+# measure the thing itself.
+_ONE_ROW_WRITE = "ONE_ROW_WRITE"
+
+
+def _one_row_write_module():
+    """The module object that OWNS the seam -- the same one rotate resolves at
+    call time through its local `import write as _w`. Asserts it is a sibling
+    of rotate in ONE tree: the suite can end up with two module objects for one
+    file (the tests import `from agi.bin import rotate` while rotate imports
+    bare `write`), and patching the wrong copy measures nothing at all."""
+    mod = sys.modules.get("write")
+    if mod is None:
+        import write as mod_          # noqa: PLC0415 -- the import IS the test
+        mod = mod_
+    assert Path(mod.__file__).parent == Path(rotate.__file__).parent, (
+        f"write is loaded from {mod.__file__} but rotate from "
+        f"{rotate.__file__} -- two trees; the spy would patch the wrong one")
+    return mod
+
+
+def _spy_row_writes(monkeypatch, calls, digest_fn):
+    """Patch the ONE row write with a spy that records, AFTER calling through,
+    `digest_fn()` -- the state of committed config:posts that ONE call left
+    behind. Returns the seam names patched (0 or 1: the contract is one name)."""
+    mod = _one_row_write_module()
+    names = [n for n in (_ONE_ROW_WRITE,)
+             if callable(getattr(mod, n, None))]
+    for n in names:
+        real = getattr(mod, n)
+
+        def spy(*a, _r=real, _n=n, **kw):
+            out = _r(*a, **kw)
+            calls.append((_n, digest_fn()))
+            return out
+        monkeypatch.setattr(mod, n, spy)
+    return names
+
+
+def _posts_digest(top, rel, ref="HEAD"):
+    """sha256 of COMMITTED config:posts (`<ref>:<rel>`), '' when unreadable.
+    The commit IS the write for these paths (they stage index-only), so the
+    committed blob -- not the shared working tree -- is what 'config:posts
+    changed' means here. `ref` is `HEAD` for the three local paths and the
+    authority branch for the publish path (which PUSHES and never moves the
+    local tip -- reading it off HEAD would fail a CORRECT path)."""
+    import hashlib
+    out = subprocess.run(["git", "-C", str(top), "show", f"{ref}:{rel}"],
+                         capture_output=True, text=True)
+    if out.returncode != 0:
+        return ""
+    return hashlib.sha256(out.stdout.encode("utf-8")).hexdigest()
+
+
+def _git_rev(top, ref="HEAD"):
+    return subprocess.run(["git", "-C", str(top), "rev-parse", ref],
+                          capture_output=True, text=True).stdout.strip()
+
+
+def _dirty_own_row(root, seat="belam"):
+    """A real one-cell change on the seat's OWN row, made by hand (never
+    through the writer, which would be a second call of the seam under
+    test) so the commit path has something to own. The cell is
+    ROTATION-OWNED (`session_ref`), so the authority-publish path carries it
+    too instead of compositing a no-op."""
+    seats = rotate._ack_seats_path(root)
+    text = seats.read_text(encoding="utf-8")
+    assert '"session_ref": ""' in text
+    seats.write_text(text.replace('"session_ref": ""',
+                                  '"session_ref": "f52a4c"'),
+                     encoding="utf-8")
+    return seats
+
+
+def _ack_root_with_dirty_row(tmp_path, monkeypatch):
+    root, top = _ack_seed_git(tmp_path)
+    _dirty_own_row(root)
+    return root, top
+
+
+def _authoritative_root_with_dirty_row(tmp_path, monkeypatch):
+    """Same fixture plus a REAL bare `origin` carrying the authority branch,
+    and the veto gate forced open -- `_publish_row_to_authority` refuses
+    before the write otherwise, and a refusal would make the call-count
+    meaningless."""
+    root, top = _ack_seed_git(tmp_path)
+    origin = tmp_path.parent / f"{tmp_path.name}-origin.git"
+    subprocess.run(["git", "init", "-q", "--bare", str(origin)], check=True)
+    subprocess.run(["git", "-C", str(top), "remote", "add", "origin",
+                    str(origin)], check=True)
+    subprocess.run(["git", "-C", str(top), "push", "-q", "origin",
+                    "HEAD:refs/heads/key-authority"], check=True)
+    import send as _send           # the module rotate imports by name
+    monkeypatch.setattr(_send, "authority_ref", lambda *a, **k:
+                        "origin/key-authority")
+    try:
+        import seatsig.veto as _veto        # the module rotate imports by name
+    except ImportError:          # veto not installed: the ImportError branch
+        _veto = None             # in rotate leaves the gate open anyway
+    if _veto is not None:
+        monkeypatch.setattr(_veto, "read", lambda *a, **k: object())
+        monkeypatch.setattr(_veto, "is_frozen", lambda *a, **k: (False, ""))
+    _dirty_own_row(root)
+    return root, top
+
+
+def _stops_root_with_dirty_row(tmp_path, monkeypatch):
+    root, top = _ack_seed_git(tmp_path)
+    _dirty_own_row(root)
+    card = top / "card-belam.md"
+    card.write_text("---\nid: card:belam\n---\nstopped\n", encoding="utf-8")
+    return root, top, card
+
+
+def _drive_ack(root, top):
+    return rotate._ack_commit_seats(root, "belam",
+                                    SimpleNamespace(gen=7), "f52a4c")
+
+
+def _drive_publish(root, top):
+    seats = rotate._ack_seats_path(root)
+    return rotate._publish_row_to_authority(root, "belam",
+                                            seats.read_text(encoding="utf-8"))
+
+
+def _drive_spawn(root, top):
+    return rotate._commit_spawn_row(root, seat="belam", generation=7,
+                                    window="@7")
+
+
+def _drive_stops(root, top):
+    card = top / "card-belam.md"
+    return rotate._commit_stops_row(root, "belam", card, "belam stop")
+
+
+# (path name, fixture builder, invoker, paths the ONE commit may touch BEYOND
+# config:posts -- the rotate-out commit carries the seat's own card too)
+_W1B2_DRIVERS = {
+    "_ack_commit_seats": (_ack_root_with_dirty_row, _drive_ack, ()),
+    "_publish_row_to_authority": (_authoritative_root_with_dirty_row,
+                                  _drive_publish, ()),
+    "_commit_spawn_row": (_ack_root_with_dirty_row, _drive_spawn, ()),
+    "_commit_stops_row": (_stops_root_with_dirty_row, _drive_stops,
+                          ("card-belam.md",)),
+}
+
+# The ref the COMMITTED config:posts is read from: HEAD for the three local
+# commits, the authority branch for the publish path (it fast-forward PUSHES
+# and never moves the local tip).
+_W1B2_REFS = {"_publish_row_to_authority": "origin/key-authority"}
+
+
+@pytest.mark.xfail(strict=True, reason="goal:g4.18.5.3: RED until the 4 "
+                   "config:posts commit paths are re-pointed at the one row "
+                   "write (goal:g4.18.5.2's commit)")
+@pytest.mark.parametrize("path_name", _W1B2_PATHS)
+def test_each_posts_commit_path_calls_the_one_row_write(
+        path_name, tmp_path, monkeypatch):
+    """goal:g1.31.4.6.2 -- each of rotate's 4 config:posts commit paths
+    drives the ONE row write EXACTLY ONCE against a tmp repo, and
+    config:posts changes ONLY through that one call.
+
+    Counted on a tmp repo (never the live box), on COMMITTED config:posts:
+    the single call's post-state digest must equal the state the path left
+    behind (no second writer after it), it must differ from the pre-state
+    (a skip is not a call), and the path's commit must touch config:posts
+    and nothing but its own declared sibling."""
+    build, drive, extra = _W1B2_DRIVERS[path_name]
+    ref = _W1B2_REFS.get(path_name, "HEAD")
+    root, top = build(tmp_path, monkeypatch)[:2]
+
+    # FIRST, and by NAME: the seam this goal contracts. A re-point that lands
+    # under a different name stops here, loudly, instead of xfailing forever.
+    seam_mod = _one_row_write_module()
+    assert hasattr(seam_mod, _ONE_ROW_WRITE), (
+        f"{path_name}: the one row write must be `{_ONE_ROW_WRITE}` on "
+        f"{seam_mod.__name__} (goal:g4.18.5.3 Falsifier 1) -- this seam is "
+        f"absent, so the guard below would be counting nothing")
+
+    seats = rotate._ack_seats_path(root)
+    rel = _rel(top, seats)
+    before = _posts_digest(top, rel, ref)
+    assert before, f"{path_name}: fixture has no committed config:posts"
+
+    calls = []
+    seams = _spy_row_writes(monkeypatch, calls,
+                            lambda: _posts_digest(top, rel, ref))
+    rev_before = _git_rev(top, ref)
+
+    out = drive(root, top)
+    after = _posts_digest(top, rel, ref)
+
+    assert calls and len(calls) == 1, (
+        f"{path_name} called the one row write {len(calls)}x (seam "
+        f"{_ONE_ROW_WRITE!r} present: "
+        f"{seams or 'NO -- the one row write is never reached from this path'}, "
+        f"outcome: {str(out)[:160]!r}) -- exactly one is the claim")
+    assert calls[0][1] == after, (
+        f"{path_name}: config:posts changed AFTER the one row write "
+        f"({calls[0][1][:12]} -> {after[:12]}) -- it is not the only writer")
+    assert after != before, f"{path_name}: config:posts never moved"
+
+    rev_after = _git_rev(top, ref)
+    assert rev_after != rev_before, f"{path_name}: no commit landed on {ref}"
+    changed = subprocess.run(
+        ["git", "-C", str(top), "diff", "--name-only",
+         f"{rev_before}", f"{rev_after}"], capture_output=True, text=True
+    ).stdout.split()
+    assert set(changed) <= {rel, *extra}, (
+        f"{path_name}: its one commit touched {changed} -- only {rel} and "
+        f"{list(extra)} may ride along")
+
+
+# the guard is a COUNT, so it must REJECT a double write, not just a missing
+# one: the path that calls the seam twice says 2x and never says nothing
+def test_w1b2_guard_names_a_double_row_write(tmp_path, monkeypatch):
+    tr = sys.modules[__name__]     # this very module, however pytest named it
+    seam_mod = tr._one_row_write_module()
+    monkeypatch.setattr(seam_mod, tr._ONE_ROW_WRITE,
+                        lambda *a, **k: "posted", raising=False)
+    monkeypatch.setattr(tr, "_W1B2_DRIVERS", {
+        "_ack_commit_seats": (tr._ack_root_with_dirty_row,
+                              lambda root, top: (
+                                  getattr(seam_mod, tr._ONE_ROW_WRITE)(root),
+                                  getattr(seam_mod, tr._ONE_ROW_WRITE)(root),
+                                  "posted twice")[2],
+                              ())})
+    with pytest.raises(AssertionError) as exc:
+        tr.test_each_posts_commit_path_calls_the_one_row_write(
+            "_ack_commit_seats", tmp_path, monkeypatch)
+    assert "called the one row write 2x" in str(exc.value), str(exc.value)
+
+
+# ---------------------------------------------------------------- the CONTRACT
+# These two are NOT xfail and NOT inside the strict-xfail guard, on purpose.
+# Inside it, a wrong-named re-point and a correct one both print `xxxx` in an
+# ordinary suite run, and the name only shows under `--runxfail` -- so the
+# refusal was real but invisible exactly when it mattered (measured 10-01:
+# mur `review_c2.json` marked that conjunct NOT_MET for this reason). A refusal
+# nobody can see in the normal run is not a refusal.
+
+
+def test_the_one_row_write_seam_is_one_contracted_name_not_a_guess_list():
+    """The seam is a CONTRACT: one name, declared, on one module. A future edit
+    that reinstates a list of plausible names -- the defect this replaced --
+    fails HERE, in an ordinary run, rather than restoring a guard that reads the
+    same either way."""
+    tr = sys.modules[__name__]
+    assert tr._ONE_ROW_WRITE == "ONE_ROW_WRITE", (
+        f"the contracted seam name moved: {tr._ONE_ROW_WRITE!r}")
+    assert not hasattr(tr, "_ROW_WRITE_SEAMS"), (
+        "_ROW_WRITE_SEAMS is back -- the guard must spy ONE name, and the name "
+        "must be a falsifier of goal:g4.18.5.3, not a guess inside a test")
+
+
+def test_a_wrong_named_seam_is_refused_by_the_contract(tmp_path, monkeypatch):
+    """The world the seven-name list could not tell apart: a re-point that is
+    perfectly correct, routes the path, and is published under a name nobody
+    guessed. The guard must refuse it AND SAY WHICH NAME it wanted -- asserted
+    here, outside the xfail, so it is visible in a normal run.
+
+    HERMETIC ON PURPOSE. The contract seam is deleted first, so this test's world
+    is the same before and after goal:g4.18.5.3 lands. Without that it was green
+    ONLY while `ONE_ROW_WRITE` was absent: once the re-point ships, the hasattr
+    passes, the spy counts 0, and the refusal arrives via the COUNT -- so the
+    assertion below fails and the test goes RED the day the work succeeds. That
+    is not a test that breaks, it is a test that punishes the fix. Measured
+    17:0xZ with the seam simulated present; the pair below holds in both worlds.
+    """
+    tr = sys.modules[__name__]
+    mod = tr._one_row_write_module()
+    monkeypatch.delattr(mod, tr._ONE_ROW_WRITE, raising=False)
+    wrong = "write_row"                       # a correct, uncontracted name
+    monkeypatch.setattr(mod, wrong, lambda *a, **k: "posted", raising=False)
+
+    def drive(root, top):
+        getattr(mod, wrong)(root, top)        # the path DOES reach the seam
+        return "posted"
+
+    monkeypatch.setattr(tr, "_W1B2_DRIVERS", {
+        "_ack_commit_seats": (tr._ack_root_with_dirty_row, drive, ())})
+    with pytest.raises(AssertionError) as exc:
+        tr.test_each_posts_commit_path_calls_the_one_row_write(
+            "_ack_commit_seats", tmp_path, monkeypatch)
+    # The phrase below appears ONLY in the contract refusal. Asserting the bare
+    # name instead would be satisfied by the count assert's message too -- which
+    # mentions the name while refusing for an unrelated reason -- so this test
+    # would have passed with the hasattr DELETED. Measured: it did.
+    assert "goal:g4.18.5.3 Falsifier 1" in str(exc.value), (
+        f"refused, but not BY the contract: {exc.value}")
+
+
+def test_a_path_that_bypasses_the_contract_still_fails_after_the_re_point(
+        tmp_path, monkeypatch):
+    """The other half, and the one that must survive the landing. ONCE
+    `write.ONE_ROW_WRITE` exists, a path that keeps its own hand-rolled
+    `_write_row`-style commit is no longer stopped by the missing attribute --
+    the contract exists and is simply bypassed. It must still be caught, and
+    caught on the COUNT (0 calls), which is the assertion that means something
+    here.
+
+    Together with the test above this pins the asymmetry: the contract's NAME is
+    what stops a wrong-name re-point, and the count is what stops a bypassing one
+    after the contract has landed. Neither test depends on the other world.
+    """
+    tr = sys.modules[__name__]
+    mod = tr._one_row_write_module()
+    monkeypatch.setattr(mod, tr._ONE_ROW_WRITE, lambda *a, **k: "posted",
+                        raising=False)          # the re-point HAS landed
+    wrong = "write_row"                          # and this path bypasses it
+    monkeypatch.setattr(mod, wrong, lambda *a, **k: "posted", raising=False)
+
+    def drive(root, top):
+        getattr(mod, wrong)(root, top)
+        return "posted"
+
+    monkeypatch.setattr(tr, "_W1B2_DRIVERS", {
+        "_ack_commit_seats": (tr._ack_root_with_dirty_row, drive, ())})
+    with pytest.raises(AssertionError) as exc:
+        tr.test_each_posts_commit_path_calls_the_one_row_write(
+            "_ack_commit_seats", tmp_path, monkeypatch)
+    assert "called the one row write 0x" in str(exc.value), (
+        f"a bypassing path was not caught on the count: {exc.value}")
+
+
+# C1 -- "config:posts changes ONLY through that one call". Those five
+# assertions (`digest at the call == digest after`, `moved`, `rev moved`,
+# `committed file set`) sat unreachable in the strict-xfail guard: with no seam
+# installed the count assert fails first, so nothing after it ever ran. This
+# runs them against a FAITHFUL seam -- a real `git add` + `git commit` of
+# config:posts, which is what the re-point will do -- and drives one path body
+# through it. It proves the assertions are satisfiable and not dead code; it does
+# NOT claim the production paths are re-pointed (that is the strict-xfail
+# guard's job, and it is still RED).
+def test_c1_config_posts_moves_only_through_the_one_call(tmp_path, monkeypatch):
+    tr = sys.modules[__name__]
+    mod = tr._one_row_write_module()
+
+    def one_row_write(root, top, *_a, **_k):
+        rel = tr._rel(top, rotate._ack_seats_path(root))
+        subprocess.run(["git", "-C", str(top), "add", "--", rel], check=True)
+        subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
+                        "the one row write", "--", rel], check=True)
+
+    monkeypatch.setattr(mod, tr._ONE_ROW_WRITE, one_row_write, raising=False)
+    monkeypatch.setattr(tr, "_W1B2_DRIVERS", {
+        "_ack_commit_seats": (
+            tr._ack_root_with_dirty_row,
+            lambda root, top: mod.ONE_ROW_WRITE(root, top),
+            ())})
+    # no xfail, no try: every assertion below MUST hold, or this is a red
+    tr.test_each_posts_commit_path_calls_the_one_row_write(
+        "_ack_commit_seats", tmp_path, monkeypatch)
+
+
+# goal:g7.16.1.7.1.1 SM rotate candidate: the announced handoff path is tree-relative, never the box's absolute layout
+def test_announcement_handoff_path_is_tree_relative(tmp_path):
+    g = tmp_path / "proj" / ".agi"
+    g.mkdir(parents=True)
+    assert rotate._tree_rel(g, g / "sessions" / "seats" / "s.handoff.md") == ".agi/sessions/seats/s.handoff.md"
+    assert rotate._tree_rel(g, tmp_path / "elsewhere" / "h.md") == "h.md"
+    assert str(tmp_path) not in rotate._tree_rel(g, g / "x.md")
+
+
+# goal:g7.16.1.7.1.1.2 (goal:g6.41.1 P4): ONE launch lock per post -- no double spawn
+def test_post_launch_lock_one_holder_per_post(tmp_path):
+    g = tmp_path / ".agi"
+    g.mkdir()
+    with rotate.post_launch_lock(g, "p1") as a:
+        with rotate.post_launch_lock(g, "p1") as b, rotate.post_launch_lock(g, "p2") as c:
+            assert a is True and b is False and c is True
+    with rotate.post_launch_lock(g, "p1") as again:
+        assert again is True, "released on exit"
+
+
+def test_cmd_spawn_refuses_a_second_stand_up_of_the_same_post(tmp_path, capsys):
+    from types import SimpleNamespace as NS
+    g = tmp_path / ".agi"
+    g.mkdir()
+    with rotate.post_launch_lock(g, "p1"):
+        assert rotate.cmd_spawn(NS(seat="p1", dry_run=False), g) == 1
+    assert "launch lock held" in capsys.readouterr().err
+
+
+# hypothesis:an-unreadable-meter-pin-is-unknown-never-a-traceback (goal:g1.31.4.2.1):
+# a pin target this uid cannot read is UNKNOWN, never a crash. MEASURED 10-01
+# 17:45Z: every .meter pin on this box names a transcript under another uid's
+# home, so `rotate.py status` died with PermissionError on the FIRST row and
+# metered no seat at all. FOUR tests, two seams: the STAT (a mode-000 parent
+# dir) and the READ (a mode-000 file, which a stat guard cannot see -- the
+# first version of this file passed the suite while that read still raised).
+def _pin_naming(tmp_path, seat, target):
+    """A seat-stable meter pin (`<graph>/sessions/<seat>.meter`) naming target."""
+    g = tmp_path / ".agi"
+    sessions = g / "sessions"
+    sessions.mkdir(parents=True, exist_ok=True)
+    pin = sessions / f"{seat}.meter"
+    pin.write_text(f"4\t{target}\n", encoding="utf-8")
+    return g, pin
+
+
+def test_an_unreadable_pin_target_is_unknown_not_a_crash(tmp_path, monkeypatch):
+    # The STAT is what fails (EACCES on a tree this uid cannot enter); pin
+    # TEXT is readable, so _parse_pin_record is happy and the crash lands on
+    # the exists() call -- the traceback measured on this box.
+    sealed = tmp_path / "sealed.jsonl"
+    sealed.write_text("{}\n", encoding="utf-8")
+    _g, pin = _pin_naming(tmp_path, "sealed-seat", sealed)
+    real_exists = Path.exists
+
+    def denied(self, *a, **k):
+        if self.name == "sealed.jsonl":
+            raise PermissionError(13, "Permission denied", str(self))
+        return real_exists(self, *a, **k)
+
+    monkeypatch.setattr(Path, "exists", denied)
+    assert rotate._read_pin_target(pin) is None, (
+        "an unreadable pin target is UNKNOWN, not an exception")
+
+
+def test_seat_fraction_is_none_when_the_pin_target_is_unreadable(tmp_path):
+    # The box shape: a mode-000 PARENT DIR, so the stat fails.
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
+    blocked = tmp_path / "other-uid-home"
+    blocked.mkdir()
+    target = blocked / "transcript.jsonl"
+    target.write_text("{}\n", encoding="utf-8")
+    blocked.chmod(0o000)  # sealed AFTER the write: the pin, not the fixture, is blocked
+    try:
+        g, _pin = _pin_naming(tmp_path, "sealed-seat", target)
+        assert rotate._seat_fraction(g, {"name": "sealed-seat"}) is None, (
+            "None == UNKNOWN, the caller's documented skip -- never a raise")
+    finally:
+        blocked.chmod(0o755)  # tmp_path cleanup cannot descend into a 000 dir
+
+
+def test_seat_fraction_is_none_when_the_transcript_stats_but_cannot_be_opened(tmp_path):
+    # THE SEAM A STAT GUARD CANNOT SEE: mode 000 on the FILE inside a
+    # readable dir. exists() succeeds, _read_pin_target returns the path, and
+    # the raise happens on the READ. Red before the _seat_fraction guard --
+    # this is mur residue (1), and it is why the first two tests were not
+    # enough: they only ever provoked the stat.
+    if os.geteuid() == 0:
+        pytest.skip("root opens a mode-000 file; the defect cannot be provoked")
+    target = tmp_path / "transcript.jsonl"
+    target.write_text('{"usage": {"input_tokens": 1}}\n', encoding="utf-8")
+    target.chmod(0o000)
+    try:
+        assert target.exists(), "precondition: the transcript MUST stat cleanly"
+        g, _pin = _pin_naming(tmp_path, "sealed-seat", target)
+        pin = rotate.find_pin_log(g, "sealed-seat")
+        assert pin is not None, "precondition: the seat-stable pin must resolve"
+        assert rotate._read_pin_target(pin) == target, (
+            "precondition: the stat seam passes it through, which is why the "
+            "guard has to live at the READ")
+        assert rotate._seat_fraction(g, {"name": "sealed-seat"}) is None, (
+            "a transcript we may stat but not open is UNKNOWN, never a raise")
+    finally:
+        target.chmod(0o644)
+
+
+def test_status_walks_past_an_unreadable_seat_to_the_next_row(tmp_path, monkeypatch, capsys):
+    # Command level, on the READ seam. TWO rows, UNREADABLE FIRST, so that
+    # "keeps going" is actually proven rather than asserted: before both
+    # guards this raised PermissionError out of cmd_status on row one and the
+    # readable seat was never printed at all.
+    #
+    # What `status` prints for an UNKNOWN seat is `frac=?` (rotate.py:3798)
+    # and NO warning -- the warn-and-skip line lives in cmd_alarms, a
+    # different command. So the assertion below is on the FRACTION and on
+    # BOTH names, not on a warning string that status never emits.
+    import argparse
+    if os.geteuid() == 0:
+        pytest.skip("root opens a mode-000 file; the defect cannot be provoked")
+    sealed = tmp_path / "sealed.jsonl"
+    sealed.write_text('{"usage": {"input_tokens": 1}}\n', encoding="utf-8")
+    sealed.chmod(0o000)
+    readable = tmp_path / "readable.jsonl"
+    # a REAL assistant usage line, so the readable row prints a NUMBER and the
+    # `frac=?` assertion actually discriminates the two rows (SM's pin3 note:
+    # with a usage-less fixture both rows read frac=? and the assert was blind)
+    readable.write_text(
+        json.dumps({"message": {"role": "assistant",
+                               "usage": {"input_tokens": 4, "output_tokens": 2}}}) + "\n",
+        encoding="utf-8")
+    g, _p1 = _pin_naming(tmp_path, "aaa-sealed-seat", sealed)
+    # the readable seat's pin goes in the SAME graph, via the same helper, so
+    # cmd_status resolves both the way it resolves in production
+    (g / "sessions" / "zzz-readable-seat.meter").write_text(
+        f"4\t{readable}\n", encoding="utf-8")
+    rows = [{"name": "aaa-sealed-seat"}, {"name": "zzz-readable-seat"}]
+    monkeypatch.setattr(rotate, "_load_seats", lambda r: rows)
+    monkeypatch.setattr(rotate, "_read_generation", lambda r, s: 1)
+    try:
+        rc = rotate.cmd_status(argparse.Namespace(seats=True, record=None), g)
+    finally:
+        sealed.chmod(0o644)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "aaa-sealed-seat" in out, out
+    assert "zzz-readable-seat" in out, (
+        "the seat AFTER the unreadable one must still be reached -- that is "
+        "the 'keeps going' this test exists to prove")
+    # DISCRIMINATING: the unreadable row reads frac=?, the readable one a
+    # number. Asserting frac=? alone passed for both rows and proved nothing.
+    sealed_line = next(l for l in out.splitlines() if "aaa-sealed-seat" in l)
+    readable_line = next(l for l in out.splitlines() if "zzz-readable-seat" in l)
+    assert "frac=?" in sealed_line, sealed_line
+    assert "frac=?" not in readable_line, (
+        "the readable row must print a real fraction, or the frac=? assert "
+        "cannot tell the two rows apart: " + readable_line)
+
+
+# hypothesis:an-unreadable-meter-pin-is-unknown-never-a-traceback, mur pin3
+# residues 1-2: a symlink loop and an unreadable sessions dir are UNKNOWN
+# like any other unreadable pin. Both were MEASURED first, not assumed.
+def test_a_symlink_loop_in_the_pin_is_unknown_not_a_traceback(tmp_path):
+    # MEASURED py3.12.3: Path.resolve() on a loop raises RuntimeError
+    # ('Symlink loop'), NOT OSError -- so `except OSError` alone still let a
+    # loop escape as a traceback out of `status`.
+    if os.geteuid() == 0:
+        pytest.skip("root still resolves loops to ELOOP; skip with a reason")
+    a = tmp_path / "a"
+    b = tmp_path / "b"
+    a.symlink_to(b)
+    b.symlink_to(a)
+    g, _pin = _pin_naming(tmp_path, "loop-seat", a)
+    assert rotate._read_pin_target(g / "sessions" / "loop-seat.meter") is None, (
+        "a symlink loop is UNKNOWN, not a RuntimeError")
+    assert rotate._seat_fraction(g, {"name": "loop-seat"}) is None, (
+        "and it never reaches the fraction as a raise")
+
+
+def test_find_pin_log_is_none_when_the_sessions_dir_is_unreadable(tmp_path):
+    # An unreadable sessions DIR made sp.is_file() raise PermissionError,
+    # which escaped every meter caller before the guard.
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
+    target = tmp_path / "t.jsonl"
+    target.write_text("{}\n", encoding="utf-8")
+    g, _pin = _pin_naming(tmp_path, "sealed-seat", target)
+    sessions = g / "sessions"
+    sessions.chmod(0o000)
+    try:
+        assert rotate.find_pin_log(g, "sealed-seat") is None, (
+            "a pin under an unreadable sessions dir is UNKNOWN, not a raise")
+        assert rotate._seat_fraction(g, {"name": "sealed-seat"}) is None
+    finally:
+        sessions.chmod(0o755)

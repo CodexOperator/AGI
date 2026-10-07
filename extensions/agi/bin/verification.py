@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """verification.py — ONE command replaces the four-tool rotation ritual.
 
-This is NOT `verify_unified.py`. `verify_unified.py` is the `goal:g11`
-migration checker — it proves the old staged-checkout repo collapsed into one
-tree, and it has nothing to do with rotation. `verification.py` is the
-rotation/health-check round; the two names are one keystroke apart and must
-never be merged or shared. `hypothesis:l4-unified-verification`, for
+`verify_unified.py`, the `goal:g11` one-repo migration checker, is retired
+(goal:g7.16.1.4.1.1; its bytes at deprecated/build/bin-verify-unified). This
+file never was it: `verification.py` is the rotation/health-check round,
+nothing to do with the migration. `hypothesis:l4-unified-verification`, for
 `goal:g1.10`: a successor runs ONE command at rotation and spends tokens on one
 summary block, not four scrollbacks, and every check it runs is resolved
 THROUGH `commands.py` from `command:commands`
@@ -32,6 +31,7 @@ tool exists to catch (H0/H0b: 29k nodes lost).
 from __future__ import annotations
 
 import argparse
+import atexit
 import hashlib
 import json
 import os
@@ -89,7 +89,77 @@ STATE_FILE = "verify-count.json"        # under <groot>/sessions/
 #: Where a pid's cwd/cmdline/ppid are read (a test seam: non-Linux has none).
 PROC = Path("/proc")
 
-SUITE_LOCK = "verify-suite.lock"        # under <groot>/sessions/
+#: STOPGAP fallback of the suite lock's file name, read instead from
+#: `values.core.suite_lock.file` (hypothesis:a-suite-lock-refused-write-
+#: exits-3-from-one-lock-policy-block) until the Prime lands the block.
+#: Under <groot>/sessions/ either way. Deleted with the block's cutover.
+_DEFAULT_SUITE_LOCK_FILE = "verify-suite.lock"
+#: STOPGAP fallback of the HOLD RULE, read instead from
+#: `values.core.suite_lock.hold` until the Prime lands the block: HELD by a
+#: live pid that is not this process (stale-breaking: `acquire_suite_lock`).
+DEFAULT_SUITE_LOCK_HOLD = "live-foreign-pid"
+_SUITE_LOCK_REFUSED: set = set()   # refused cells, warned ONCE per process
+
+
+def _refuse_suite_lock_cell(cell: str, value, why: str) -> None:
+    """ONE warning naming the REFUSED value (a cell is not a path; a rule this
+    build does not implement is not a rule), once per process per cell."""
+    key = f"{cell}={value!r}"
+    if key in _SUITE_LOCK_REFUSED:
+        return
+    _SUITE_LOCK_REFUSED.add(key)
+    print(f"WARN: values.core.suite_lock.{cell} {value!r} {why} -- refusing it", file=sys.stderr)
+
+def suite_lock_policy(groot) -> dict:
+    """`values.core.suite_lock` = {file, write_commit_wait_s, hold, hold_wait_s} -- the ONE
+    resolver over the lock policy: the NAME, the WRITE WAIT and the HOLD RULE,
+    so the rule travels with the name
+    (hypothesis:a-suite-lock-refused-write-exits-3-from-one-lock-policy-block).
+    Absent cells = the fallbacks above, inside this function only."""
+    root = Path(groot)
+    cell: dict = {}
+    for base in (root, root / locations.GRAPH_DIR_NAME):   # graph dir OR repo root
+        path = locations.config_path(base)
+        if path is None:
+            continue
+        try:
+            cell = (((json.loads(path.read_text(encoding="utf-8"))
+                      .get("values") or {}).get("core") or {}).get("suite_lock") or {})
+        except (OSError, TypeError, ValueError, AttributeError):
+            continue
+        if not isinstance(cell, dict):    # a bad block is no block
+            cell = {}
+        if cell:
+            break
+    file_name = _DEFAULT_SUITE_LOCK_FILE
+    name = cell.get("file")
+    if isinstance(name, str) and name:
+        if ".." not in name and Path(name).name == name:
+            file_name = name          # a bare FILE name; a cell is not a path
+        else:
+            _refuse_suite_lock_cell("file", name, "is not a bare FILE name (no '/', no '..')")
+    hold = cell.get("hold")
+    if isinstance(hold, str) and hold != DEFAULT_SUITE_LOCK_HOLD:
+        _refuse_suite_lock_cell("hold", hold, "is not a rule this build implements")
+    if not isinstance(hold, str) or hold != DEFAULT_SUITE_LOCK_HOLD:
+        hold = DEFAULT_SUITE_LOCK_HOLD
+    raw = cell.get("hold_wait_s")   # STOPGAP 90 s (callers time out at 120 s); finite and >= 0, else the default
+    try:
+        hold_wait = float(raw)
+    except (TypeError, ValueError):
+        hold_wait = -1.0
+    if not 0 <= hold_wait < float("inf"):
+        raw is None or _refuse_suite_lock_cell("hold_wait_s", raw, "is not a finite number >= 0")
+        hold_wait = 90.0
+    return {"file": file_name, "write_commit_wait_s": cell.get("write_commit_wait_s"),
+            "hold": hold, "hold_wait_s": hold_wait}
+
+
+def suite_lock_name(groot) -> str:
+    """`values.core.suite_lock.file` -- the ONE name write.py, heal.py,
+    rotation_alert.py and this module all read."""
+    return suite_lock_policy(groot)["file"]
+
 #: The env marker a caller that ALREADY holds the suite lock exports into the
 #: suite it spawns, naming its own live pid. `_suite_lock_guard` reads it so
 #: the spawned runner PROCEEDS against a lock its own caller holds, instead of
@@ -129,6 +199,45 @@ class CheckResult:
     #: The suite's slowest tests, parsed from pytest's --durations table.
     #: [] means the table was absent or unparsable -- never a fabricated one.
     durations: list = field(default_factory=list)
+
+
+#: goal:g7.16.1.11.19 -- a v5 uid cannot read another uid's files: such a read is a
+#: SKIP that names the path and the reason, never a crash and never a pass.
+_PERM_RE = re.compile(r"PermissionError: \[Errno 13\] Permission denied: '([^']+)'")
+NO_PYTEST_NOTE = "no pytest for this uid (skipped)"
+
+
+def _perm_skip(output: str) -> str | None:
+    """The SKIP note for a subprocess that died on a path THIS uid cannot read and
+    write, else None (D2: a PermissionError line naming a path the uid owns and can
+    use is the writer uid's own failure -- it stays a FAIL). N2: a path that is GONE
+    (os.stat: FileNotFoundError / NotADirectoryError) is no permission problem, it
+    stays a FAIL; a path that cannot even be stat'ed (PermissionError: it sits under
+    another uid's private dir, the core v5 case) is a SKIP."""
+    for m in _PERM_RE.finditer(output):
+        path = m.group(1)
+        try:
+            os.stat(path)
+        except (FileNotFoundError, NotADirectoryError):
+            continue
+        except PermissionError:   # unstattable: the path is behind another uid's wall
+            return f"unreadable {path}: permission denied (skipped)"
+        except OSError:           # a symlink loop, a name too long ...: no permission problem, FAIL like gone
+            continue
+        if not (os.access(path, os.R_OK) and os.access(path, os.W_OK)):
+            return f"unreadable {path}: permission denied (skipped)"
+    return None
+
+
+_NO_PYTEST_LINE = re.compile(r".+: No module named pytest")
+
+
+def _is_no_pytest(output: str) -> bool:
+    """True only for the import failure of pytest itself (D3): every non-empty
+    line of the output is `<python>: No module named pytest`. A suite that ran
+    and failed may QUOTE the phrase; that is a FAIL, never a SKIP."""
+    lines = [ln.strip() for ln in output.splitlines() if ln.strip()]
+    return bool(lines) and all(_NO_PYTEST_LINE.fullmatch(ln) for ln in lines)
 
 
 def _cleanup_basetemp(path: Path | None) -> None:
@@ -774,7 +883,6 @@ def _write_state(groot: Path, current: dict, sha: str | None,
     byte-for-byte as before; the manifest is named by `manifest_sha256`.
     """
     path = _state_path(groot)
-    path.parent.mkdir(parents=True, exist_ok=True)
     doc = {
         "active": int(current.get("active", -1)),
         "deprecated": int(current.get("deprecated", -1)),
@@ -788,7 +896,11 @@ def _write_state(groot: Path, current: dict, sha: str | None,
         keys = sorted(manifest) if isinstance(manifest, dict) else manifest
         doc["manifest_sha256"] = hashlib.sha256(
             "\n".join(keys).encode("utf-8")).hexdigest()
-    path.write_text(json.dumps(doc), encoding="utf-8")
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)   # R2: inside the try, a missing dir is the same named outcome
+        path.write_text(json.dumps(doc), encoding="utf-8")
+    except OSError as exc:   # goal:g7.16.1.11.19: the baseline lives in MAIN's sessions dir
+        _io_failed(path, "write", exc)   # R1: another uid's dir = the named skip; THIS uid's = ERROR + rc 2
 
 
 #: The two top-level directories under `nodes/` that are structural rather
@@ -852,20 +964,64 @@ def _pid_alive(pid: int) -> bool:
     return True
 
 
+def _lock_held_by(groot: Path, holder: int) -> bool:
+    """The HOLD RULE (`suite_lock_policy(groot)["hold"]`): only `live-foreign-pid`
+    is implemented -- held iff the holder is alive and not this process."""
+    if suite_lock_policy(groot)["hold"] == DEFAULT_SUITE_LOCK_HOLD:
+        return holder != os.getpid() and _pid_alive(holder)
+    return False
+
+
 def suite_lock_holder(groot: Path) -> int | None:
     """READ-ONLY: the suite lock's LIVE FOREIGN holder pid, else None. Never
     creates, never unlinks, never plants a probe pid (closes the SM.88
     acquire-then-unlink window). Dead/absent/corrupt read as None: a probe
     refuses only on a LIVE foreign owner; stale-breaking stays in
     acquire_suite_lock, the single WRITER."""
-    path = Path(groot) / "sessions" / SUITE_LOCK
+    path = Path(groot) / "sessions" / suite_lock_name(groot)
     try:
         holder = int(path.read_text(encoding="utf-8").strip())
     except (OSError, ValueError):
         return None
-    if holder == os.getpid() or not _pid_alive(holder):
+    if not _lock_held_by(groot, holder):
         return None
     return holder
+
+
+_INFLIGHT: list = []   # g1315131: this process's write.py in-flight markers, sessions/write-inflight/<sha1(path)[:16]>.<pid>.<rand>
+
+
+def inflight_clear(only=None) -> None:
+    """Remove `only` (one call's markers) or, by default, every marker this process holds."""
+    for f in list(_INFLIGHT if only is None else only):
+        f.unlink(missing_ok=True)
+        _INFLIGHT.remove(f)
+
+
+atexit.register(inflight_clear)
+
+
+def inflight_mark(groot, paths) -> list:
+    """Record `paths` BEFORE their bytes move; return THIS call's markers."""
+    d = Path(groot) / "sessions" / "write-inflight"
+    d.mkdir(parents=True, exist_ok=True)
+    mine = [d / f"{k}.{os.getpid()}.{os.urandom(3).hex()}"
+            for k in {hashlib.sha1(p.encode()).hexdigest()[:16] for p in paths}]
+    for f in mine:
+        f.write_text("")
+    _INFLIGHT.extend(mine)
+    return mine
+
+
+def inflight_peers(groot, paths) -> list:
+    """The LIVE peer pids with a write in flight on `paths`; a pid that is not an int > 0, or is dead, is stale: removed."""
+    ks, live = {hashlib.sha1(p.encode()).hexdigest()[:16] for p in paths}, []
+    for f in (Path(groot) / "sessions" / "write-inflight").glob("*.*"):
+        k, pid = (f.name.split(".") + [""])[:2]
+        pid = int(pid) if pid.isdecimal() else 0
+        if k in ks and pid != os.getpid():
+            live.append(pid) if 0 < pid < 2**31 and _pid_alive(pid) else f.unlink(missing_ok=True)
+    return live
 
 
 def acquire_suite_lock(groot: Path) -> tuple[Path | None, int | None]:
@@ -880,18 +1036,31 @@ def acquire_suite_lock(groot: Path) -> tuple[Path | None, int | None]:
     Keeping `--suite` opt-in is what rules today; the lock is the mechanism
     that rules when L4.10 folds the suite into `full`.
     """
-    path = Path(groot) / "sessions" / SUITE_LOCK
-    path.parent.mkdir(parents=True, exist_ok=True)
+    path = Path(groot) / "sessions" / suite_lock_name(groot)
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+    except OSError:   # R2: the sessions dir cannot be made: the documented "could not be written at all"
+        return None, None
     for _ in range(2):
-        if path.exists():
+        try:
+            present = path.exists()   # R8: re-raises EACCES behind a wall on py 3.12
+        except OSError:
+            return None, None
+        if present:
             try:
                 holder = int(path.read_text(encoding="utf-8").strip())
             except (OSError, ValueError):
-                path.unlink(missing_ok=True)
+                try:
+                    path.unlink(missing_ok=True)
+                except OSError:   # R8: an unreadable/corrupt lock we may not remove: nothing is held
+                    return None, None
                 continue
-            if _pid_alive(holder) and holder != os.getpid():
+            if _lock_held_by(groot, holder):
                 return None, holder  # another live runner owns the window
-            path.unlink(missing_ok=True)  # stale: dead pid
+            try:
+                path.unlink(missing_ok=True)  # stale: dead pid
+            except OSError:       # R8
+                return None, None
         try:
             path.write_text(str(os.getpid()), encoding="utf-8")
             return path, None
@@ -935,7 +1104,7 @@ def _suite_lock_guard(groot: Path) -> str | None:
         except ValueError:
             _mpid = None
         if _mpid is not None and _pid_alive(_mpid):
-            path = Path(groot) / "sessions" / SUITE_LOCK
+            path = Path(groot) / "sessions" / suite_lock_name(groot)
             try:
                 _holder = int(path.read_text(encoding="utf-8").strip())
             except (OSError, ValueError):
@@ -947,7 +1116,7 @@ def _suite_lock_guard(groot: Path) -> str | None:
         try:
             since = time.strftime(
                 "%H:%M:%SZ",
-                time.gmtime((Path(groot) / "sessions" / SUITE_LOCK)
+                time.gmtime((Path(groot) / "sessions" / suite_lock_name(groot))
                             .stat().st_mtime))
         except OSError:
             since = "?"
@@ -955,13 +1124,13 @@ def _suite_lock_guard(groot: Path) -> str | None:
                 " — refusing, not spawning")
     # Dead pid broken here (pinned stale test) so conftest starts clean.
     try:
-        pid = int((Path(groot) / "sessions" / SUITE_LOCK)
+        pid = int((Path(groot) / "sessions" / suite_lock_name(groot))
                   .read_text(encoding="utf-8").strip())
     except (OSError, ValueError):
         pid = None
     if pid is not None and not _pid_alive(pid):
         try:
-            (Path(groot) / "sessions" / SUITE_LOCK).unlink(missing_ok=True)
+            (Path(groot) / "sessions" / suite_lock_name(groot)).unlink(missing_ok=True)
         except OSError:
             pass
     return None
@@ -1034,6 +1203,37 @@ def _verified_stamp_paths(groot: Path) -> list[Path]:
     return out
 
 
+#: goal:g7.16.1.11.19 D6: the stamp / state writes that failed on a dir THIS uid owns.
+_IO_ERRORS: list[str] = []
+
+
+def _io_failed(path: Path, verb: str, exc: OSError) -> None:
+    """A write the run depends on failed. On a dir another uid owns it is the named
+    skip (a v5 uid cannot write MAIN's sessions); on a dir THIS uid owns it is an
+    ERROR line and the run is not PASS (main returns 2), never a swallowed OSError."""
+    why = exc.strerror or exc
+    # The dir may be MISSING (R2: the mkdir failed): its nearest existing ancestor decides.
+    # os.stat in a try, never Path.exists()/stat() bare: both re-raise PermissionError for a
+    # path behind a mode-000 dir (the v5-uid case), which would be a traceback out of this
+    # very handler. A wall (PermissionError or any other OSError) = not provably ours.
+    anc, mine = path.parent, False
+    while True:
+        try:
+            mine = os.stat(anc).st_uid == os.geteuid()
+            break
+        except (FileNotFoundError, NotADirectoryError):
+            if anc == anc.parent:
+                break
+            anc = anc.parent
+        except OSError:
+            break
+    if mine:
+        _IO_ERRORS.append(str(path))
+        print(f"ERROR: cannot {verb} {path}: {why}", file=sys.stderr)
+    else:
+        print(f"skip: cannot {verb} {path}: {why}", file=sys.stderr)
+
+
 def _write_verified_stamp(groot: Path, *, ran_at: float | None,
                           ran_on: str | None) -> None:
     """Certify an all-green `--suite` run where the freshness gate looks.
@@ -1045,8 +1245,11 @@ def _write_verified_stamp(groot: Path, *, ran_at: float | None,
     stamp_utc = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ts))
     body = f"green suite {stamp_utc} on {ran_on or 'unknown'}\n"
     for path in _verified_stamp_paths(groot):
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(body, encoding="utf-8")
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(body, encoding="utf-8")
+        except OSError as exc:   # goal:g7.16.1.11.19: a v5 uid cannot write MAIN's sessions
+            _io_failed(path, "write", exc)
 
 
 def _retract_verified_stamp(groot: Path) -> None:
@@ -1061,7 +1264,10 @@ def _retract_verified_stamp(groot: Path) -> None:
     nothing).
     """
     for path in _verified_stamp_paths(groot):
-        path.unlink(missing_ok=True)
+        try:
+            path.unlink(missing_ok=True)
+        except OSError as exc:
+            _io_failed(path, "retract", exc)
 
 
 def _read_suite_ts(groot: Path) -> float | None:
@@ -1098,7 +1304,6 @@ def _record_suite_ts(groot: Path, decision: dict | None = None, *,
     ledger -- so a later reader loads it from disk and re-verifies m-of-n
     WITHOUT argv, and a tampered record reads short-of-m by name."""
     path = _suite_ts_path(groot)
-    path.parent.mkdir(parents=True, exist_ok=True)
     doc = {"suite_ran_at": ran_at if ran_at is not None else time.time()}
     if ran_on is not None:
         doc["suite_ran_on"] = ran_on
@@ -1120,7 +1325,11 @@ def _record_suite_ts(groot: Path, decision: dict | None = None, *,
             doc = {**existing, **doc}
     except (OSError, ValueError, TypeError):
         pass
-    path.write_text(json.dumps(doc), encoding="utf-8")
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)   # R2: inside the try
+        path.write_text(json.dumps(doc), encoding="utf-8")
+    except OSError as exc:   # goal:g7.16.1.11.19
+        _io_failed(path, "write", exc)
 
 
 def check_bin_freshness(groot: Path, *, bin_dir: Path | None = None,
@@ -1202,8 +1411,9 @@ def _scan_seat_transcript(path: Path, declared: str) -> dict:
           "fallback_request_id": None}
     try:
         fh = open(path, encoding="utf-8", errors="replace")
-    except OSError:
-        return {"live": None, "first_drift": None, **fb}
+    except OSError as exc:
+        return {"live": None, "first_drift": None, **fb,
+                "unreadable": (exc.strerror or str(exc)).lower()}
     with fh:
         for line in fh:
             line = line.strip()
@@ -1258,9 +1468,18 @@ def _seat_transcript(groot: Path, seat: str) -> tuple[Path | None, str]:
         if written_gen != cur_gen:
             return None, (f"stale-pin (gen {written_gen} vs current "
                           f"{cur_gen}), skipped")
-    lp = Path(target).expanduser().resolve()
-    if not lp.exists():
-        return None, reason
+    raw = Path(target).expanduser()
+    lp = raw.resolve()
+    try:
+        if not lp.exists():
+            if raw.is_symlink():
+                return None, f"unreadable transcript {raw}: dangling symlink (skipped)"
+            return None, reason
+        if not lp.is_file():
+            return None, f"unreadable transcript {lp}: not a regular file (skipped)"
+    except OSError as exc:   # goal:g7.16.1.11.19: another uid's dir is not ours to stat
+        return None, (f"unreadable transcript {lp}: "
+                      f"{(exc.strerror or str(exc)).lower()} (skipped)")
     return lp, ""
 
 
@@ -1276,6 +1495,9 @@ def check_anonymize(groot: Path) -> CheckResult:
         return CheckResult("anonymize", "FAIL", time.monotonic() - start,
                            note=f"could not execute: {exc}")
     tail = (proc.stdout + proc.stderr).strip().splitlines()
+    skip = _perm_skip(proc.stdout + proc.stderr) if proc.returncode else None
+    if skip:
+        return CheckResult("anonymize", "SKIP", time.monotonic() - start, note=skip)
     return CheckResult("anonymize", "PASS" if proc.returncode == 0 else "FAIL",
                        time.monotonic() - start,
                        note="" if proc.returncode == 0 else (tail[-1] if tail else ""))
@@ -1337,6 +1559,99 @@ def check_formation(groot: Path) -> CheckResult:
                        message="\n".join(f"wake {w}" for w in wake))
 
 
+def _census_rows(cen) -> tuple[list, list, dict] | str:
+    """(scanned, exclude, rules) of a config:census `census` value, or the
+    reason it is unusable (a row the check cannot run fails closed)."""
+    if not isinstance(cen, dict):
+        return "`census` is not a mapping"
+    scanned, exclude, rules = cen.get("scanned"), cen.get("exclude") or [], cen.get("rules")
+    for key, val in (("scanned", scanned), ("exclude", exclude)):
+        if not isinstance(val, list) or not all(isinstance(v, str) and v for v in val):
+            return f"census.{key} is not a list of repo-relative strings"
+    if not scanned or not isinstance(rules, dict) or not rules:
+        return "census.scanned or census.rules is empty"
+    for name, row in rules.items():
+        if not (isinstance(row, dict) and all(isinstance(row.get(k), str) and row.get(k)
+                                             for k in ("home", "pattern"))):
+            return f"rule {name!r}: wants a mapping with a home and a pattern"
+    return [str(s) for s in scanned], [str(e) for e in exclude], rules
+
+
+def _census_hits(base: Path, pattern: str, scanned: list, skip) -> list[tuple[str, int]]:
+    """(repo-relative file, line) of every match of the ERE `pattern` over the
+    scanned pathspecs, ONE `git grep --no-index` (untracked copies count, no
+    rglob), minus what `skip(file)` drops. Raises rotation_record.GrepError
+    when the grep cannot look: a bad pattern, an unreadable file, no git."""
+    try:
+        r = subprocess.run(["git", "grep", "--no-index", "--exclude-standard", "-I", "-nE",
+                            "-e", pattern, "--", *scanned],
+                           cwd=base, capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise rotation_record.GrepError(f"git grep could not run: {exc}") from None
+    if r.returncode >= 2 or (r.returncode == 1 and r.stderr.strip()):
+        raise rotation_record.GrepError(f"git grep exit {r.returncode}: {r.stderr.strip()}")
+    hits = []
+    for ln in r.stdout.splitlines():
+        rel, _, rest = ln.partition(":")
+        num = rest.partition(":")[0]
+        if rel and num.isdigit() and not skip(rel):
+            hits.append((rel, int(num)))
+    return hits
+
+
+def check_census(groot: Path) -> CheckResult:
+    """goal:g7.16.1.1.6.1 -- the one-source census. config:census names the
+    `scanned` pathspecs, the `exclude` prefixes and one `rules` row per rule
+    (`home`, `pattern`); per row exactly ONE hit in its home is ok. A second
+    hit FAILs naming each file:line; none, or one outside the home, FAILs; a
+    bad row or a grep that cannot look FAILs naming the rule (closed). No cell
+    = SKIP. The cell's own file is never counted (it quotes every pattern).
+    The next rule is a cell row, never code."""
+    import yaml
+    import node_writer
+    t0 = time.monotonic()
+
+    def _res(status, **kw):
+        return CheckResult("census", status, time.monotonic() - t0, **kw)
+    cell = node_writer.find_node_file(groot, "config:census")
+    if cell is None:
+        return _res("SKIP", note="no config:census cell")
+    try:
+        split = node_writer.split_frontmatter(cell.read_text("utf-8"))
+        rows = _census_rows((yaml.safe_load(split[0]) or {}).get("census")
+                            if split else None)
+    except (OSError, yaml.YAMLError) as exc:
+        rows = f"the cell does not load: {exc}"
+    if isinstance(rows, str):
+        return _res("FAIL", note="config:census is unusable", message=rows)
+    scanned, exclude, rules = rows
+    base = groot.parent if groot.name == ".agi" else locations.source_root(groot)
+    try:
+        own = cell.resolve().relative_to(base.resolve()).as_posix()
+    except ValueError:
+        own = ""
+    prefixes = tuple(e.strip("/").removeprefix("./") + "/" for e in exclude)
+    skip = lambda rel: rel == own or rel.startswith(prefixes) or rel in exclude   # noqa: E731
+    bad = []
+    for name, row in rules.items():
+        home = row["home"].removeprefix("./")
+        try:
+            hits = _census_hits(base, row["pattern"], scanned, skip)
+        except rotation_record.GrepError as exc:
+            bad.append(f"{name}: the grep cannot look: {exc}")
+            continue
+        if len(hits) == 1 and hits[0][0] == home:
+            continue
+        where = ", ".join(f"{f}:{n}" + (" (home)" if f == home else "") for f, n in hits)
+        bad.append(f"{name}: {len(hits)} definition(s), want ONE in {home}" +
+                   (f" -- {where}" if hits else " -- none (the home moved without its row?)"))
+    if bad:
+        return _res("FAIL", note=f"{len(bad)} of {len(rules)} census rule(s) broken",
+                    message="\n".join(bad))
+    return _res("PASS", number={"rules": len(rules)},
+                note=f"{len(rules)} rule(s), one definition each")
+
+
 def check_seat_model(groot: Path) -> CheckResult:
     """FAIL when any config:seats row's live transcript model drifted from its
     declared model; PASS otherwise. Detect, never repair. (Surface 2 of
@@ -1347,19 +1662,26 @@ def check_seat_model(groot: Path) -> CheckResult:
     lines: list[str] = []
     drifted: list[str] = []
     skipped = 0
+    unreadable = 0
     for row in candidate:
         seat = row.get("name") or "?"
         declared = (row.get("model") or "").strip()
         tp, reason = _seat_transcript(groot, seat)
         if tp is None:
             skipped += 1
+            unreadable += reason.startswith("unreadable")
             lines.append(f"{seat}: {reason}")
             continue
         scan = _scan_seat_transcript(tp, declared)
         live = scan["live"]
         if live is None:
             skipped += 1
-            lines.append(f"{seat}: no assistant turns with a model (skipped)")
+            if scan.get("unreadable"):
+                unreadable += 1
+                lines.append(f"{seat}: unreadable transcript {tp}: "
+                             f"{scan['unreadable']} (skipped)")
+            else:
+                lines.append(f"{seat}: no assistant turns with a model (skipped)")
             continue
         # The last model_refusal_fallback event is surfaced on BOTH branches
         # (Prime merge-up 24 residue b): a seat that is clean NOW but had a
@@ -1379,11 +1701,15 @@ def check_seat_model(groot: Path) -> CheckResult:
     note = ("; ".join(lines) if lines else "no seated rows to check")
     if drifted:
         note = ("DRIFTED SEAT(S): " + ", ".join(drifted) + " -- " + note)
-    return CheckResult(
-        "seat-model", "FAIL" if drifted else "PASS",
-        time.monotonic() - start,
-        {"seats": n_cand, "drifted": len(drifted), "skipped": skipped},
-        note=note)
+    # goal:g7.16.1.11.19: a check whose EVERY seat was skipped for an unreadable
+    # path measured nothing: SKIP, never PASS (a plain missing or stale pin stays PASS)
+    status = "FAIL" if drifted else (
+        "SKIP" if unreadable and skipped == n_cand else "PASS")
+    number = {"seats": n_cand, "drifted": len(drifted), "skipped": skipped}
+    if unreadable:
+        number["unreadable"] = unreadable
+    return CheckResult("seat-model", status, time.monotonic() - start,
+                       number, note=note)
 
 
 # --- the merge-up window reply (step 3: print-only, never send) -----------
@@ -1455,7 +1781,7 @@ def render_window(groot: Path, grant: str | None = None) -> str:
     """
     lines: list[str] = []
     # lock
-    lock_path = Path(groot) / "sessions" / SUITE_LOCK
+    lock_path = Path(groot) / "sessions" / suite_lock_name(groot)
     holder: int | None = None
     try:
         holder = int(lock_path.read_text(encoding="utf-8").strip())
@@ -1575,7 +1901,13 @@ def check_extra_suite(groot: Path) -> CheckResult:
     collection ERROR is a FAIL with the failing tail -- a context module that
     cannot import is skipped BY NAME (`pytest.importorskip`), not dropped."""
     start = time.monotonic()
-    import suite_guards  # noqa: PLC0415 -- lazy: suite_guards imports THIS module
+    try:
+        import suite_guards  # noqa: PLC0415 -- lazy: suite_guards imports THIS module
+    except ModuleNotFoundError as exc:   # goal:g7.16.1.11.19: suite_guards imports pytest
+        if exc.name != "pytest":
+            raise
+        return CheckResult(EXTRA_SUITE_CMD, "SKIP", time.monotonic() - start,
+                           note=NO_PYTEST_NOTE)
     roots, cell = _declared_suite_roots(groot)
     if not roots:
         declared, value, _ = _suite_cell_state(groot)
@@ -1613,6 +1945,9 @@ def check_extra_suite(groot: Path) -> CheckResult:
                               timeout=SUITE_TIMEOUT, cwd=groot,
                               env=suite_guards.spawn_env())
         out = (proc.stdout or "") + (proc.stderr or "")
+        if proc.returncode and _is_no_pytest(out):
+            return CheckResult(EXTRA_SUITE_CMD, "SKIP", time.monotonic() - start,
+                               note=NO_PYTEST_NOTE)
         counts.update(_parse_pytest_counts(out))
         if proc.returncode:
             ok = False
@@ -1685,6 +2020,14 @@ def run_check(groot: Path, name: str, verbose: bool) -> CheckResult:
     finally:
         _cleanup_basetemp(basetemp)
     output = (proc.stdout or "") + (proc.stderr or "")
+    if proc.returncode:
+        # goal:g7.16.1.11.19: the suite on a uid with no pytest, or any other check
+        # that died reading another uid's file, SKIPs (a failing SUITE is never
+        # re-read as a permission problem: its output may quote PermissionError)
+        skip = (NO_PYTEST_NOTE if _is_no_pytest(output) else None) \
+            if name == SUITE_CMD else _perm_skip(output)
+        if skip:
+            return CheckResult(name, "SKIP", time.monotonic() - start, note=skip)
     durations = _parse_pytest_durations(output) if name == SUITE_CMD else []
     number = _parse_number(name, proc.returncode, output)
     ok = _passed(name, proc.returncode, number)
@@ -1759,6 +2102,7 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool,
     if level in ("rotation", "full"):
         results.append(check_node_dirs(groot))
         results.append(check_formation(groot))   # goal:g7.16.1.1.5
+        results.append(check_census(groot))      # goal:g7.16.1.1.6.1
     smoke = next((r for r in results if r.name == "smoke"), None)
     current = smoke.number if smoke is not None else None
     # --stamp FORCED smoke above, so `current` is this run's fresh count and a
@@ -1798,9 +2142,17 @@ def render_summary(level: str, suite: bool, results: list[CheckResult],
     for r in results:
         lines.append(_one_line(r))
     failed = [r for r in results if r.status == "FAIL"]
+    skipped = [r for r in results if r.status == "SKIP"]
+    names = ", ".join(r.name for r in skipped)
     lines.append("")
     if failed:
         lines.append(f"RESULT: FAIL ({len(failed)} of {len(results)} checks failed)")
+    elif skipped and len(skipped) == len(results):
+        # goal:g7.16.1.11.19: a run that only skipped measured nothing
+        lines.append(f"RESULT: SKIPPED (all {len(results)} checks skipped: {names})")
+    elif skipped:
+        lines.append(f"RESULT: PASS ({len(results) - len(skipped)} of {len(results)} "
+                     f"checks green, {len(skipped)} skipped: {names})")
     else:
         lines.append(f"RESULT: PASS (all {len(results)} checks green)")
     return "\n".join(lines)
@@ -1815,7 +2167,9 @@ def render_json(level: str, suite: bool, results: list[CheckResult],
         "stamp": stamp,
         "graph_root": graph_root,
         "engine_root": engine_root,
-        "result": "FAIL" if any(r.status == "FAIL" for r in results) else "PASS",
+        "result": ("FAIL" if any(r.status == "FAIL" for r in results) else
+                   "SKIPPED" if results and all(r.status == "SKIP" for r in results)
+                   else "PASS"),
         "checks": [{
             "name": r.name,
             "status": r.status,
@@ -2056,31 +2410,40 @@ def main(argv: list[str] | None = None) -> int:
     if args.suite or args.stamp:
         _run_ts = time.time()
         _run_sha = _git(groot, ["rev-parse", "HEAD"])
+    _IO_ERRORS.clear()   # BEFORE the run: the baseline write happens inside run_level
     results = run_level(groot, args.level, args.suite, args.verbose,
                         stamp=args.stamp, run_ts=_run_ts, run_sha=_run_sha)
+    _suite_skipped = False
     if args.suite:
         # A COMPLETED suite run records its timestamp, pass or fail. The
         # freshness check answers "has the suite run since this file
         # changed", not "did it pass" -- pass/fail is the suite's own
         # business (THOUGHT on hypothesis:l4-bin-suite-freshness-check).
         _suite_res = next((r for r in results if r.name == SUITE_CMD), None)
-        _record_suite_ts(groot, _suite_decision, ran_at=_run_ts,
-                         ran_on=_run_sha,
-                         wall_s=_suite_res.elapsed if _suite_res else None,
-                         slowest_15=(_suite_res.durations
-                                     if _suite_res else None))
+        # goal:g7.16.1.11.19: a SKIPPED suite (no pytest for this uid) never ran:
+        # it records no completion and certifies nothing (a skip is never a pass)
+        _suite_skipped = _suite_res is not None and _suite_res.status == "SKIP"
+        if not _suite_skipped:
+            _record_suite_ts(groot, _suite_decision, ran_at=_run_ts,
+                             ran_on=_run_sha,
+                             wall_s=_suite_res.elapsed if _suite_res else None,
+                             slowest_15=(_suite_res.durations
+                                         if _suite_res else None))
         # An ALL-GREEN suite run certifies itself at the exact path
         # `cli.py --delete-old` reads. The predicate is the SAME one the return
         # code uses, so "green" and rc==0 can never disagree. A red run writes
         # NOTHING -- the stamp is a pass marker, and absence is the correct
         # state on FAIL (never a stale marker claiming a green run that did
         # not happen).
-        if not any(r.status == "FAIL" for r in results):
+        if not _suite_skipped and not _IO_ERRORS and not any(r.status == "FAIL" for r in results):
             _write_verified_stamp(groot, ran_at=_run_ts, ran_on=_run_sha)
         else:
             # A RED run RETRACTS any earlier certification at every path the
             # gate can read, so the stamp can never outlive the green run it
-            # recorded (cli.py:5336 tests existence only).
+            # recorded (cli.py:5336 tests existence only). So does a SKIPPED
+            # suite (D4, DG1 16:39Z): it never ran, so it certifies nothing and
+            # an older green stamp must not stand in for it. So does a run that
+            # exits non-zero from an IO error (N4, DG1 18:09Z): fail closed.
             _retract_verified_stamp(groot)
 
     if args.json:
@@ -2095,7 +2458,17 @@ def main(argv: list[str] | None = None) -> int:
                              engine_root=str(engine_root),
                              stamp=args.stamp))
 
-    return 1 if any(r.status == "FAIL" for r in results) else 0
+    if any(r.status == "FAIL" for r in results):
+        return 1
+    if _IO_ERRORS:   # goal:g7.16.1.11.19 D6: the writer uid's own stamp/state write failed
+        return 2
+    # goal:g7.16.1.11.19 D1 (DG1 ruling 16:39Z): a SKIPPED suite never ran, so a
+    # --suite run is not green (rc 3, no stamp): the merge-up reads rc 0 as
+    # "suite passed", and a uid with no pytest merges nothing. A run whose every
+    # check skipped is not "all pass" either.
+    if _suite_skipped or (results and all(r.status == "SKIP" for r in results)):
+        return 3
+    return 0
 
 
 if __name__ == "__main__":

@@ -1002,7 +1002,7 @@ def _resolve_pi_model(cfg: dict, stage: dict, args: dict,
         # the ladder row IS the one source: a write.py on the ladder changes
         # this stage's model without touching harnesses.pi.models.
         return row["model"].strip()
-    pi_models = ((cfg.get("harnesses") or {}).get("pi") or {}).get("models") or {}
+    pi_models = adapters.harness_block(cfg, "pi").get("models") or {}
     model = pi_models.get(role) or pi_models.get("kid")
     if not model:
         raise ValueError(
@@ -1500,7 +1500,7 @@ def _pi_harness_cfg(cfg: dict) -> dict:
     Fallbacks are the engine defaults, so a project that omits the row still
     resolves — matching the config-maxxed contract (never a hard literal that
     skips the config, but a config row with sane defaults)."""
-    h = (cfg.get("harnesses") or {}).get("pi") or {}
+    h = adapters.harness_block(cfg, "pi")
     return {
         # The ONE shared resolver: $PI_BIN first, then the `~`/{home}-expanded
         # config cell, then PATH for the built-in default. Round 1 of
@@ -1538,7 +1538,7 @@ def _credential_decision(root, cfg: dict, harness: str) -> tuple[bool, str | Non
     choice is the trap this exists to close)."""
     if not provisioning.available(root):
         return False, "provisioning unavailable"
-    row = (cfg.get("harnesses") or {}).get(harness) or {}
+    row = adapters.harness_block(cfg, harness)
     if not adapters.needs_credential(row):
         return False, f"harness {harness} needs no credential"
     return True, None
@@ -1596,7 +1596,7 @@ def _resolve_workflow_spawn_env(root, cfg: dict, run_key: str, harness: str,
             tier=_workflow_credential_tier(stages),
             limit_usd=limit_usd, ttl_minutes=ttl_minutes,
             workspace_id=provisioning.workspace(cfg), root=root,
-            zero_usd=((cfg.get("harnesses") or {}).get(harness) or {}).get("zero_usd") is True)
+            zero_usd=adapters.harness_block(cfg, harness).get("zero_usd") is True)
     except provisioning.ProvisioningError as exc:
         print(f"ERR: could not mint a workflow credential: {exc}",
               file=sys.stderr)
@@ -1857,9 +1857,29 @@ def _stage_is_producing(stage: dict) -> bool:
     return (time.time() - mtime) <= stage.get("silence_s", 300)
 
 
+#: bounded read of a killed stage's pipes: an orphan's pipe never blocks forever.
+_WALL_STOP_GRACE_S = 30.0
+
+
+def _stop_stage_unit(unit: str) -> None:
+    """Stop ONE stage's OWN scope by name, so no child it left behind outlives
+    it (hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit). A stop
+    that exits non-zero (rc 5, already collected, is silent) or cannot run is ONE
+    stderr line, never a raise."""
+    try:
+        r = subprocess.run(["systemctl", "--user", "stop", mem_cap.scope_unit(unit)],
+                           capture_output=True, timeout=30, text=True)
+        if r.returncode not in (0, 5):   # 5: unit not loaded = scope already collected
+            raise subprocess.CalledProcessError(r.returncode, r.args)
+    except (OSError, subprocess.SubprocessError) as exc:
+        print(f"workflow.py: could not stop stage scope {unit}: {exc}",
+              file=sys.stderr)
+
+
 def _run_stage_proc(cmd, *, budget: float, stage: dict,
                     spawn_env: dict | None, view: "RunView | None",
-                    cap: "str | None" = None, cfg: "dict | None" = None):
+                    cap: "str | None" = None, cfg: "dict | None" = None,
+                    run_key: "str | None" = None):
     """Run ONE stage command with the SM.105 optional wall extension, on a
     live `Popen` so an extension is the SAME process and the SAME output file.
 
@@ -1869,40 +1889,68 @@ def _run_stage_proc(cmd, *, budget: float, stage: dict,
     is killed at the wall and raises TimeoutExpired, the exact contract
     `subprocess.run` had. A caller that injected only `subprocess.run` (the
     legacy test seam) owns dispatch and cannot hand back a resumable child, so
-    it gets the single deadline it was given."""
+    it gets the single deadline it was given. A REAL capped launch names its
+    scope (`mem_cap.unit_name`) and stops it in the `finally` below, so no
+    orphan outlives its stage on ANY of the three exit paths."""
+    # SM.112 -- one cap for the stage child, in a NAMED scope, only on a REAL
+    # launch: a test that injected the Popen seam owns its own child, and the
+    # legacy run seam launches nothing this function can stop (ANONYMOUS wrap).
+    # `cfg` is the graph the CALLER holds (`values.memcap.*`, as dispatch.py).
+    unit = None
     env = spawn_env if spawn_env is not None else _pi_env()
-    # SM.112 -- one cap for the stage child. Only on a REAL launch: a test
-    # that injected the Popen seam owns its own child. `cfg` is the graph the
-    # CALLER already holds, passed so the seam reads the declared
-    # `values.memcap.*` cells (hypothesis:a00-50b210d5-b85ee2) exactly as
-    # `dispatch.py` does; None keeps the shipped defaults, so a caller with
-    # no config in hand is byte-unchanged.
-    if cap is not None and subprocess.Popen is _REAL_POPEN:
-        cmd = mem_cap.wrap_argv(cmd, cap, cfg)
-    if subprocess.Popen is _REAL_POPEN and subprocess.run is not _REAL_RUN:
-        return subprocess.run(cmd, capture_output=True, text=True, env=env,
-                              timeout=budget)
-    grants = max(0, int(stage.get("max_extensions", 1) or 0))
-    n = 0
-    deadline = time.monotonic() + budget
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE, text=True, env=env)
-    while True:
-        try:
-            out, err = proc.communicate(
-                timeout=max(0.0, deadline - time.monotonic()))
-            return subprocess.CompletedProcess(cmd, proc.returncode, out, err)
-        except subprocess.TimeoutExpired:
-            if n >= grants or not _stage_is_producing(stage):
-                proc.kill()
-                out, err = proc.communicate()
-                raise subprocess.TimeoutExpired(cmd, deadline, output=out,
-                                                stderr=err)
-            n += 1
-            budget = stage.get("extension_s") or budget
-            deadline = time.monotonic() + budget
-            if view is not None:
-                view.stage_extension(stage["label"], budget, n, pid=proc.pid)
+    legacy = (subprocess.Popen is _REAL_POPEN
+              and subprocess.run is not _REAL_RUN)
+    try:
+        if cap is not None and subprocess.Popen is _REAL_POPEN:
+            if not legacy:
+                unit = mem_cap.unit_name(
+                    "agi-stage",
+                    f"{run_key or 'run'}/{stage.get('label') or 'stage'}")
+            cmd = mem_cap.wrap_argv(cmd, cap, cfg, unit=unit)
+            unit = unit if mem_cap.is_wrapped(cmd) else None  # no scope, no stop
+        if legacy:
+            return subprocess.run(cmd, capture_output=True, text=True, env=env,
+                                  timeout=budget)
+        grants = max(0, int(stage.get("max_extensions", 1) or 0))
+        n = 0
+        deadline = time.monotonic() + budget
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, text=True, env=env)
+        while True:
+            try:
+                out, err = proc.communicate(
+                    timeout=max(0.0, deadline - time.monotonic()))
+                return subprocess.CompletedProcess(cmd, proc.returncode,
+                                                   out, err)
+            except subprocess.TimeoutExpired:
+                if n >= grants or not _stage_is_producing(stage):
+                    # Whether the stage ALREADY exited (an orphan holds its
+                    # pipe) is read ONCE, BEFORE the stop and the kill: only
+                    # that stage returns its own rc + whatever the bounded read
+                    # got; every other wall path raises TimeoutExpired, so the
+                    # caller's timeout handling runs. The stop goes first: it
+                    # kills the orphan, so the read returns (g7.33.19 row 60).
+                    already_done = proc.poll() is not None
+                    if unit:
+                        _stop_stage_unit(unit); unit = None
+                    proc.kill()
+                    try:
+                        out, err = proc.communicate(timeout=_WALL_STOP_GRACE_S)
+                    except subprocess.TimeoutExpired:
+                        out = err = None   # an orphan still holds the pipe
+                    if already_done:
+                        return subprocess.CompletedProcess(cmd, proc.returncode,
+                                                           out, err)
+                    raise subprocess.TimeoutExpired(cmd, deadline, output=out,
+                                                    stderr=err)
+                n += 1
+                budget = stage.get("extension_s") or budget
+                deadline = time.monotonic() + budget
+                if view is not None:
+                    view.stage_extension(stage["label"], budget, n, pid=proc.pid)
+    finally:
+        if unit:
+            _stop_stage_unit(unit)
 
 
 def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
@@ -1910,6 +1958,7 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
                   prior: dict | None = None,
                   spawn_env: dict | None = None,
                   context_text: str | None = None,
+                  run_key: "str | None" = None,
                   timeout_s: float | None = None) -> tuple[int, "dict | None"]:
     """Execute ONE stage on the pi harness: spin the pi binary headlessly with
     the resolved provider/model/thinking and the rendered prompt, capture its
@@ -1965,7 +2014,7 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
         try:
             proc = _run_stage_proc(
                 cmd, budget=budget, stage=stage, spawn_env=spawn_env,
-                view=view, cap=cap, cfg=cfg)
+                view=view, cap=cap, cfg=cfg, run_key=run_key)
         except subprocess.TimeoutExpired:
             # A timeout is reported as ELAPSED TIME FIRST, never as "could not
             # start": TimeoutExpired IS a SubprocessError and the string it
@@ -2735,6 +2784,7 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                       _run_stage_pi(cfg, st, knobs, args, out=out, view=view,
                                     prior=prior, spawn_env=spawn_env,
                                     context_text=context_text,
+                                    run_key=run_key,
                                     timeout_s=stage_timeout))
             rc, value = runner
             if rc == 0 and st.get("kind") == "round":

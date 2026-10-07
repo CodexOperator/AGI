@@ -3,17 +3,18 @@ id: hypothesis:a00-edae0fba-940d3a
 mint_id: f92d3a2537d14e7b9f11d4732bda767d
 type: hypothesis
 parents:
-  - goal:s31
+  - goal:g7.33.10.1
 confidence: 0.0
-edited_by: season.py
+edited_by: belam
+evidence_runs:
+  - experiment:dg2close-a00-edae0fba-940d3a-check
 scaffold_hash: 19458dca89a121d7
 season: 1
 testable_claim: If node_writer.write_node seeds the schema-required title and testable_claim from dispatch-time context, the scaffolded hypothesis passes [hypothesis] required-field validation at birth, and completion.is_complete still returns False on the untouched scaffold and True once the body is filled.
 thought_session: season
 title: Seeding title+testable_claim at scaffold time makes hypothesis nodes schema-valid at birth
-verdict: pending
+verdict: disproved
 ---
-
 # hypothesis:a00-edae0fba-940d3a
 
 ## Hypothesis
@@ -32,34 +33,7 @@ verdict: pending
 - Kid reports the seeded `title`/`testable_claim` interfered with their writing (e.g., their instructions said "fill the body" but they infer frontmatter is now editable too).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Two versions on top of the kid's: the parent's review edit, then the director's
-correction of one claim in that review.
-
-**The parent's substantive work stands.** It backfilled `title` and
-`testable_claim`, whose absence on this very file reproduces the defect the
-file hypothesizes about (`goal:s31`) — and it established the fact that makes
-S31's first candidate fix viable: `scaffold_hash` hashes the **body**, not the
-frontmatter (`completion.py`), so seeding required frontmatter fields cannot
-break completion detection. That was the open constraint in S31 and it is now
-answered.
-
-**One claim in that review was wrong and is removed rather than softened.** The
-parent wrote that "dispatch pre-wrote the claim, the kid changed no body text."
-It did not. `BODY_PROMPTS['hypothesis']` is three lines of prompt — *"What is
-the testable claim? What would prove it? What would disprove it?"* — and the
-kid's testable claim, four proof criteria and three disproof criteria appear
-nowhere in its `context.md` (checked: zero matches in 3,805 bytes). The kid
-authored this body.
-
-Recorded rather than quietly deleted, because the error is instructive in a
-session that leaned hard on parents' `struggles:` lines. That field found
-`goal:s27`, `goal:s28` and `goal:s31` — three real defects the reviews they
-came attached to had missed — so the standing advice to read it first is
-right. This is the counter-example that keeps it advice rather than a rule: it
-is the cheapest signal in the system and it is still a claim, not a finding.
-Left unchecked here it would have written "the kids are not really working"
-into the graph as provenance, which is the one thing a THOUGHT block must
-never carry.
+Moved from goal:s31 to goal:g7.33.10.1 because its disproved claim (seed testable_claim at scaffold) is the evidence g7.33.10.1 cites that the fix is the lift at done, not seeding, which leaves only the pre-gate corpus open. goal:g7.33.10.1 is the live leaf the council re-homed retired s31 into, and its body cites this node by id. Owner, verbatim: "Move all hypotheses under all retired s goals to be patented by appropriate nested g-goals". Parenthood only (owner: "The regime doesn't need a goal. We're just adjusting parenthood"): mint_id, body and verdict unchanged.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

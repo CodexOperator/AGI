@@ -4,16 +4,20 @@ hypothesis:l4-every-launched-kid-parent-and-workflow-stage-runs-under-a-memory-
 cap-so-a-runaway-dies-alone-and-by-name-never-a-global-oom)."""
 from __future__ import annotations
 
+import itertools
 import os
 import pathlib
+import re
 import shutil
 import signal
 import stat
 import subprocess
 import sys
 import tempfile
+import time
 
 _PROBE: "bool | None" = None
+_UMR: "bool | None" = None
 _SUFFIX = {"K": 1024, "M": 1024 ** 2, "G": 1024 ** 3, "T": 1024 ** 4}
 
 #: The probe's scope carries a FIXED unit name so its failed unit can be
@@ -264,9 +268,8 @@ def _reset_probe_unit() -> None:
     SIGKILL, so the unit ALWAYS ends up failed -- leaving it resident is the
     leak, not the kill."""
     try:
-        subprocess.run(
-            ["systemctl", "--user", "reset-failed", f"{_PROBE_UNIT}.scope"],
-            capture_output=True, timeout=10)
+        subprocess.run(["systemctl", "--user", "reset-failed", scope_unit(_PROBE_UNIT)],
+                       capture_output=True, timeout=10)
     except (OSError, subprocess.SubprocessError):
         pass
 
@@ -323,30 +326,53 @@ def resolve_post_scope(cfg: "dict | None") -> "str | None":
     return str(cell.get("slice") or POST_SCOPE_SLICE)
 
 
+_UNIT_SEQ = itertools.count()
+
+
+def unit_name(prefix: str, name: str) -> str:
+    """THE one spelling of a transient unit name (goal:g7.16.1.7.1.1, SM rotate
+    candidate): `<prefix>-<name>-<ns>-<seq>`. The old `int(time.time())` suffix let
+    two launches of one name in the same second collide on the unit; a
+    per-process sequence covers a clock too coarse to tick between calls."""
+    return f"{prefix}-{re.sub(r'[^\w.-]', '_', name)}-{time.time_ns()}-{next(_UNIT_SEQ)}"
+
+
+def scope_unit(unit: str) -> str:
+    """THE one `.scope` spelling: `systemd-run --scope --unit=X` creates `X.scope`."""
+    return f"{unit}.scope"
+
+
 def scope_argv(argv: list, slice_: "str | None", unit: "str | None" = None,
-               cfg: "dict | None" = None) -> list:
-    """A POST's launch argv in its OWN scope under `slice_`, cap-free (the slice
-    holds the cap), so an oomd kill takes one post, never tmux and every post
-    (goal:g6.41.1 P6). `slice_` None or no usable systemd-run -> the SAME argv.
-    wrap_argv's shared `cap None -> argv` contract is untouched."""
-    if not slice_ or not systemd_run_usable(cfg):
+               cfg: "dict | None" = None, *, own_scope: bool = False) -> list:
+    """THE one scope-argv builder (goal:g7.16.1.7.1.1, C3). A POST's launch
+    argv in its OWN scope under `slice_`, cap-free (the slice holds the cap),
+    so an oomd kill takes one post, never tmux and every post (goal:g6.41.1
+    P6). `own_scope=True` (the tmux server) scopes it even with no slice.
+    Nothing to scope, or no usable systemd-run -> the SAME argv object, so the
+    caller runs it plain. wrap_argv's shared `cap None -> argv` contract is
+    untouched."""
+    if not (slice_ or own_scope) or not systemd_run_usable(cfg):
         return argv
-    return ["systemd-run", "--user", "--scope", "-q", f"--slice={slice_}",
+    return ["systemd-run", "--user", "--scope", "-q",
+            *([f"--slice={slice_}"] if slice_ else []),
             *([f"--unit={unit}"] if unit else []), "--", *argv]
 
 
 def wrap_argv(argv: list, cap: "str | None",
-              cfg: "dict | None" = None) -> list:
+              cfg: "dict | None" = None, unit: "str | None" = None) -> list:
     """`cap is None` -> the SAME argv object, unwrapped; else systemd-run when
     usable, else the prlimit fallback. `cfg` is OPTIONAL and read only for the
     cache's `values.memcap` cells and for `spawn.tasks_max` (via
     `resolve_tasks_max`, which defaults when `cfg` is None) -- a caller with
     no config on hand gets the shipped defaults, so the hot path never has to
-    resolve the graph itself."""
+    resolve the graph itself. `unit` (mem_cap.unit_name) NAMES the scope so
+    its owner can stop it by name on exit; no unit -> the SAME argv, so every
+    existing caller is byte-unchanged."""
     if cap is None:
         return argv
     if systemd_run_usable(cfg):
         return ["systemd-run", "--user", "--scope", "-q",
+                *([f"--unit={unit}"] if unit else []),
                 f"--property=MemoryMax={cap}",
                 f"--property=TasksMax={resolve_tasks_max(cfg)}",
                 "--property=MemorySwapMax=0", "--", *argv]
@@ -356,6 +382,12 @@ def wrap_argv(argv: list, cap: "str | None",
     # usable systemd-run still fans out unbounded; the fix is the systemd
     # path, not a second limit here.
     return ["prlimit", f"--as={_as_bytes(cap)}", "--", *argv]
+
+
+def is_wrapped(argv) -> bool:
+    """True when `wrap_argv` put `argv` in a systemd scope (so a NAMED unit
+    exists to stop); the prlimit fallback and an unwrapped argv are False."""
+    return bool(argv) and argv[0] == "systemd-run"
 
 
 def is_cap_death(returncode, cap, output: str = "") -> bool:
@@ -380,6 +412,87 @@ def reaped_cap_death(pid: int, cap: "str | None") -> bool:
         return False
     return os.WIFSIGNALED(status) and os.WTERMSIG(status) == signal.SIGKILL
 
+def fstype_at(path: str) -> str:
+    """The FILESYSTEM holding `path`, asked of the mount table -- never of a path
+    prefix (the RAM tree is an rbind overmount AT MAIN). A path that does not
+    exist yet is answered by its nearest existing parent; the table is
+    overridable (AGI_MEMCAP_MOUNTINFO) so a row can name a tmpfs without one. Octal escapes are DECODED before comparing (a space would never match); an unreadable table returns '' (fails OPEN), never a traceback."""
+    p = os.path.realpath(os.path.abspath(path))
+    while not os.path.isdir(p):
+        n = os.path.dirname(p)
+        if n == p:
+            break
+        p = n
+    table = os.environ.get("AGI_MEMCAP_MOUNTINFO", "/proc/self/mountinfo")
+    best, kind = "", ""
+    try:
+        with open(table) as fh:
+            for line in fh:
+                f = line.split()
+                mp = re.sub(r"\\([0-7]{3})", lambda m: chr(int(m[1], 8)), f[4].rstrip("/") or "/") if len(f) > 9 and "-" in f[:-1] else None
+                if mp and len(mp) > len(best) and (p == mp or p.startswith(mp.rstrip("/") + "/")):
+                    best, kind = mp, f[f.index("-") + 1]
+    except OSError:     # fails OPEN; ram-exec says so, once
+        return ""
+    return kind
+
+
+def user_manager_reachable() -> bool:
+    """LIVENESS, not presence: the manager is ASKED, once per process -- a set-but-dead bus address is not one (systemd-run behind it exits 1 and the argv never runs, C2)."""
+    global _UMR
+    if _UMR is None:
+        try:
+            _UMR = subprocess.run(
+                ["systemctl", "--user", "show", "-p", "Version", "--value"],
+                capture_output=True, timeout=10).returncode == 0
+        except (OSError, subprocess.SubprocessError):
+            _UMR = False
+    return _UMR
+
+
+def ram_argv(argv: list) -> list:
+    """`argv` as the ONE transient unit under `locations.RAM_SLICE`, or argv
+    itself when systemd-run is unusable -- the shell-reachable way in, since a
+    guard script cannot import Python (hypothesis:g7556-...)."""
+    import locations  # local, as locations imports this module in turn
+    return list(locations.ram_write_argv(list(argv)))
+
+
+def _verb_ram_exec(argv: list, to: str | None = None) -> int:
+    """exec the argv after `--` in the RAM scope. No argv -> usage, 2.
+
+    `--to PATH` is THE rule for "this write lands on the tmpfs", asked of the
+    filesystem: a disk-bound destination runs argv plain, untouched, and its
+    exit code is argv's. No usable scope -> fail open, argv UNWRAPPED, said once
+    on stderr (ram-main.sh `up` runs before the user manager)."""
+    if not argv:
+        sys.stderr.write("mem_cap.py ram-exec [--to PATH] -- <argv...>\n")
+        return 2
+    fs = fstype_at(to) if to is not None else "tmpfs"
+    if fs != "tmpfs":
+        if not fs:
+            sys.stderr.write("mem_cap.py ram-exec: mount table unreadable -- write ran UNCHARGED\n")
+        return subprocess.run(argv).returncode
+    scoped, why = (ram_argv(argv), "") if user_manager_reachable() else ([], "user manager UNREACHABLE")
+    if why or list(scoped) == list(argv):
+        sys.stderr.write(f"mem_cap.py ram-exec: {why or 'no usable scope'} -- argv ran UNWRAPPED\n")
+        return subprocess.run(argv).returncode
+    try:
+        os.execvp(scoped[0], scoped)
+    except OSError as exc:      # fail OPEN, never a traceback off a write
+        sys.stderr.write(f"mem_cap.py ram-exec: {exc} -- argv ran UNWRAPPED\n")
+        return subprocess.run(argv).returncode
+
+
 if __name__ == "__main__":
     import argparse
+    # ram-exec carries a FOREIGN argv after `--`: argparse never sees it.
+    if sys.argv[1:2] == ["ram-exec"]:
+        _h = sys.argv[2:]
+        if "--" not in _h:
+            sys.stderr.write("mem_cap.py ram-exec: '--' is required\n")
+            sys.exit(2)
+        _i = _h.index("--")
+        _to = _h[1] if _h[:1] == ["--to"] and len(_h) > 1 else None
+        sys.exit(_verb_ram_exec(_h[_i + 1:], to=_to))
     argparse.ArgumentParser(description=__doc__.splitlines()[0]).parse_args()

@@ -357,6 +357,14 @@ def git(root: Path, *args: str, input_text: str | None = None, check: bool = Tru
     return res.stdout.strip()
 
 
+def git_try(root: Path, *args: str, input_text: str | None = None) -> "subprocess.CompletedProcess[str]":
+    """`git` that never exits: the caller reads returncode and stderr (goal:g4.13.1)."""
+    return subprocess.run(
+        ["git", *GIT_IDENT, "-C", str(repo_root(root)), *args],
+        capture_output=True, text=True, input=input_text,
+    )
+
+
 def _encode_component(s: str) -> str:
     """Percent-encode `s` into a single git-ref-safe, injective path component.
 
@@ -657,7 +665,7 @@ def build_id_index(root: Path) -> dict[str, Path]:
     return index
 
 
-def build_parent_mint_trailer(path: Path, id_index: dict[str, Path]) -> str | None:
+def build_parent_mint_trailer(path: Path, id_index: dict[str, Path], resolve=None) -> str | None:
     """Commit-message body for goal:g2.7: one `Parent-Mint-Id: <mint-id> <parent-node-id>`
     line per entry in `path`'s `parents:`, so a renderer can traverse disk
     nodes and grid commits as one hypergraph without a separate edge store —
@@ -669,8 +677,11 @@ def build_parent_mint_trailer(path: Path, id_index: dict[str, Path]) -> str | No
     on disk, or was found but has no `mint_id` of its own yet.
 
     Returns None (no body to add) if the node has no parents at all.
+    `resolve` = the caller's ONE links.address_resolver: a parent written as a
+    mint id is named by its address, exactly as its address twin
+    (hypothesis:grid-parent-trailer-reads-a-mint-parent-through-the-resolver).
     """
-    parents = parse_parents(path)
+    parents = [(resolve and resolve(p)) or p for p in parse_parents(path)]
     if not parents:
         return None
     lines = []
@@ -846,6 +857,11 @@ def cmd_init(root: Path) -> None:
     print(f"grid ready: {count} existing version ref(s) under {REF_NS}/")
 
 
+#: refs whose update-ref failed for a reason other than a CAS miss (goal:g4.13.1 N1):
+#: the run goes on, then `cmd_commit` exits 1 after its summary line.
+UPDATE_REF_FAILURES: list[str] = []
+
+
 def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
                 *, trailer: str | None = None,
                 payload: Path | None = None) -> str | None:
@@ -874,20 +890,92 @@ def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
     tree = build_tree(root, path, payload)
     tip = ref_tip(root, ref)
     if tip:
+        # goal:g4.13.1: carry a collapse's nest/ forward (unedited = unchanged), but only
+        # a non-empty tree of trees; anything else skips THIS node and the run goes on
+        er = git_try(root, "ls-tree", tip, "--", "nest")  # a failing read is a skip, never "no nest"
+        ent = er.stdout.strip()
+        built = None
+        if er.returncode == 0 and ent:
+            head = ent.split("\t")[0].split()
+            kids = git_try(root, "ls-tree", head[2]) if head[:2] == ["040000", "tree"] else None
+            rows = kids.stdout.split("\n")[:-1] if kids is not None and kids.returncode == 0 else []
+            if rows and all(r.split()[1] == "tree" for r in rows):
+                lines = git(root, "ls-tree", tree) + "\n" + f"040000 tree {head[2]}\tnest\n"
+                built = git_try(root, "mktree", input_text=lines.lstrip("\n"))
+        if er.returncode != 0 or (ent and (built is None or built.returncode != 0)):
+            print(f"skip (the nest entry of {node_id} is unreadable or not a non-empty tree of "
+                  f"trees; the ref is untouched): {ref}", file=sys.stderr)
+            return None
+        if ent:
+            tree = built.stdout.strip()
         old_tree = git(root, "rev-parse", f"{tip}^{{tree}}", check=False)
         if old_tree == tree:
             return None  # unchanged — versions record change, not time
-    n = int(git(root, "rev-list", "--count", tip)) + 1 if tip else 1
+    # --first-parent: a collapse's members are extra parents, not versions
+    n = int(git(root, "rev-list", "--count", "--first-parent", tip)) + 1 if tip else 1
     parent = ["-p", tip] if tip else []
     subject = f"{msg_prefix}v{n} {node_id}"
     message = f"{subject}\n\n{trailer}\n" if trailer else subject
     commit = git(root, "commit-tree", tree, *parent, "-m", message)
-    git(root, "update-ref", ref, commit)
+    # CAS (goal:g4.13.1): "" = the ref must not exist; a refusal skips this node only
+    res = git_try(root, "update-ref", ref, commit, tip or "")
+    if res.returncode != 0:
+        # ONE line whatever git said: a held ref lock is 7 lines (the lock path, a blank,
+        # a 5-line "Another git process" hint); the join keeps the hint, drops the blanks
+        why = " | ".join(ln.strip() for ln in res.stderr.splitlines() if ln.strip())
+        if "but expected" in why or "reference already exists" in why:
+            print(f"skip (ref moved since read; the next tick re-versions it): {ref}: "
+                  f"{why}", file=sys.stderr)
+        else:   # not a CAS miss (a stale lock, a permission error, a full disk)
+            print(f"ERROR: update-ref {ref} failed (not a CAS miss): {why}", file=sys.stderr)
+            UPDATE_REF_FAILURES.append(ref)
+        return None
     return f"v{n}"
 
 
 def iter_node_files(root: Path):
     yield from sorted((root / "nodes").rglob("*.md"))
+
+
+def payload_args_to_nodes(root: Path, paths: list[Path],
+                          engine_root: Path) -> tuple[list[Path], list[str]]:
+    """goal:g7.33.19.1 -- translate explicit `commit <path>` arguments: a node
+    file stays; a path some LIVE node names as its `payload_ref` becomes that
+    node's file (one version per node, whichever of its two paths was named);
+    anything else comes back in `unowned`, by name. Nothing is written here."""
+    nodes: list[Path] = []
+    unowned: list[str] = []
+    owners: dict[str, Path] | None = None
+    for p in paths:
+        try:
+            is_node = p.is_file() and parse_node_id(p) is not None
+        except UnicodeDecodeError:
+            is_node = False
+        if is_node:
+            found = p
+        else:
+            if owners is None:
+                owners = {}
+                for n in iter_node_files(root):
+                    if is_retired_node_file(root, n):
+                        continue
+                    try:
+                        ref = parse_payload_ref(n)
+                    except UnicodeDecodeError:
+                        continue
+                    if ref:
+                        owners.setdefault(ref.removeprefix("./"), n)
+            keys = [str(p).removeprefix("./")]
+            try:
+                keys.append(p.resolve().relative_to(engine_root.resolve()).as_posix())
+            except ValueError:
+                pass
+            found = next((owners[k] for k in keys if k in owners), None)
+        if found is None:
+            unowned.append(str(p))
+        elif found not in nodes:
+            nodes.append(found)
+    return nodes, unowned
 
 
 def is_retired_node_file(root: Path, path: Path) -> bool:
@@ -1093,6 +1181,14 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
     paths = list(iter_node_files(root)) if do_all else [Path(f) for f in files]
     if not paths:
         sys.exit("ERR: give node files or --all")
+    if not do_all and not session:
+        # goal:g7.33.19.1 -- a payload path versions the node that carries it;
+        # a path no node owns is refused by name BEFORE any ref is written.
+        paths, unowned = payload_args_to_nodes(root, paths,
+                                               engine_root or default_engine_root())
+        if unowned:
+            sys.exit("ERR: no build node carries payload_ref "
+                     + ", ".join(unowned))
 
     # hypothesis:l3w0-grid-flock — commit --all serializes with any other
     # commit --all on the same box (incl. the 5-min grid_sync cron) via an
@@ -1132,9 +1228,12 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
                 demoted = sum(1 for d in evidence_gate.enforce_on_disk(root, paths)
                               if d.written)
         id_index = None if session else build_id_index(root)
+        import links   # ONE resolver per command, lazy: an address-only graph builds no index
+        resolve = None if session else links.address_resolver(root)
         engine_root = engine_root or default_engine_root()
         written = 0
         errors = 0
+        UPDATE_REF_FAILURES.clear()
         payloads = 0
         payload_missing = 0
         payload_retired = 0
@@ -1159,7 +1258,7 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
                     errors += 1
                     continue
                 msg_prefix = prefix
-                trailer = build_parent_mint_trailer(p, id_index)
+                trailer = build_parent_mint_trailer(p, id_index, resolve)
                 payload_ref = parse_payload_ref(p)
                 if payload_ref:
                     found = resolve_payload(root, payload_ref, engine_root,
@@ -1186,6 +1285,8 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
               f"{payloads} with payload, {payload_missing} payload(s) unresolved, "
               f"{payload_retired} retired with their node, "
               f"{demoted} demoted by the evidence gate")
+        if UPDATE_REF_FAILURES:   # goal:g4.13.1 N1: the run went on; it is not clean
+            sys.exit(1)
     finally:
         if lock is not None:
             lock.release()
@@ -1230,7 +1331,7 @@ def resolve_ref(root: Path, node_id: str) -> str:
 
 def cmd_log(root: Path, node_id: str, n: int) -> None:
     ref = resolve_ref(root, node_id)
-    print(git(root, "log", f"-{n}", "--format=%h %ad %s", "--date=short", ref))
+    print(git(root, "log", f"-{n}", "--first-parent", "--format=%h %ad %s", "--date=short", ref))
 
 
 def cmd_diff(root: Path, node_id: str, back: int) -> None:
@@ -1245,7 +1346,7 @@ def cmd_diff(root: Path, node_id: str, back: int) -> None:
     printed an empty diff and exited 0 for a node with three real versions.
     """
     ref = resolve_ref(root, node_id)
-    count = int(git(root, "rev-list", "--count", ref))
+    count = int(git(root, "rev-list", "--count", "--first-parent", ref))
     if count < back + 1:
         sys.exit(f"ERR: only {count} version(s); cannot go back {back}")
     print(git(root, "diff", f"{ref}~{back}", ref, "--", f":(top){NODE_ENTRY}"))
@@ -1262,7 +1363,7 @@ def cmd_versions(root: Path, node_id: str) -> None:
         legacy_ref = node_ref(node_id)
         ref = legacy_ref if ref_tip(root, legacy_ref) is not None else None
     tip = ref_tip(root, ref) if ref else None
-    print(int(git(root, "rev-list", "--count", tip)) if tip else 0)
+    print(int(git(root, "rev-list", "--count", "--first-parent", tip)) if tip else 0)
 
 
 # --- payload read side (goal:g6.3 / goal:g6.1) -------------------------------
@@ -1271,7 +1372,7 @@ def cmd_versions(root: Path, node_id: str) -> None:
 def version_rev(root: Path, ref: str, node_id: str, version: int | None) -> str:
     """The revision holding version `v<version>` of `node_id`, or the tip.
 
-    Versions count forward from 1 (`commit_file`'s `rev-list --count` + 1), so
+    Versions count forward from 1 (`commit_file`'s `rev-list --count --first-parent` + 1), so
     v(count) is the tip and v1 is `tip~(count-1)`. An out-of-range version is a
     hard error naming the range: silently serving the tip for a version that
     does not exist is the "partial answer served as a complete one" failure G7
@@ -1279,7 +1380,7 @@ def version_rev(root: Path, ref: str, node_id: str, version: int | None) -> str:
     """
     if version is None:
         return ref
-    count = int(git(root, "rev-list", "--count", ref))
+    count = int(git(root, "rev-list", "--count", "--first-parent", ref))
     if not 1 <= version <= count:
         sys.exit(f"ERR: {node_id} has {count} version(s); v{version} does not exist")
     return f"{ref}~{count - version}"
@@ -1456,7 +1557,8 @@ def cmd_status(root: Path, engine_root: Path | None = None) -> None:
         found = resolve_payload(root, payload_ref, engine_root,
                                 parse_location(p)) if payload_ref else None
         fresh = tree_entries(root, p, found[0] if found else None, write=False)
-        if fresh == read_tree(root, ref):
+        # goal:g4.13.1: a collapse's nest/ entry is carried, not drift
+        if fresh == [e for e in read_tree(root, ref) if e[0] != "nest"]:
             clean += 1
         else:
             changed += 1
@@ -1509,7 +1611,8 @@ def _rename_ref(root: Path, old_ref: str, new_ref: str, write: bool) -> str:
     if new_tip is not None:
         return "unchanged" if new_tip == old_tip else "conflict"
     if write:
-        git(root, "update-ref", new_ref, old_tip)
+        if git_try(root, "update-ref", new_ref, old_tip, "").returncode != 0:  # CAS (goal:g4.13.1)
+            return "conflict"
         git(root, "update-ref", "-d", old_ref, old_tip)
     return "moved"
 
@@ -1785,8 +1888,7 @@ def cron_log(root: Path) -> Path:
     return Path.home() / "logs" / f"grid-sync-{repo_root(root).name}.log"
 
 
-def cron_lines(root: Path, branch: str, mins: int, log: Path,
-               publish_engine: bool = False) -> list[str]:
+def cron_lines(root: Path, branch: str, mins: int, log: Path) -> list[str]:
     """The cadence entries. The `cd` is load-bearing: cron runs from $HOME
     and find_project_root walks up from cwd — a cd-less line fails silently.
 
@@ -1800,30 +1902,9 @@ def cron_lines(root: Path, branch: str, mins: int, log: Path,
 
     Two cadences always: snapshot+grid-push every `mins`, branch push hourly.
 
-    A third, **only** with `publish_engine` (goal:g6.5 step 2): rebuild the
-    engine repo from the graph and commit it. Opt-in and off by default on
-    purpose — G6.5's own sequencing says a cron that writes the engine before
-    the version layer is trusted is a data-loss defect waiting to happen, and
-    `cron install` runs on projects where it is not yet trusted. Deciding that
-    for a project is the project's call, not the installer's.
-
-    It runs at :37, after the :07 branch push, so a publish is never racing the
-    push of the graph commit it cites.
-
-    A **fourth**, also gated on `publish_engine`: push the engine repo at :47,
-    ten minutes after the publish that writes it. `publish-engine.sh` commits
-    the engine and deliberately does not push — "pushing is the hourly cron's
-    job" — but for the engine repo that cron did not exist, so its commits
-    accumulated locally and the remote went 3 days and 25 commits stale before
-    anyone noticed. A design that hands a job to a cron has to install that
-    cron; the two halves shipped apart and the gap was invisible from both
-    sides.
-
-    It pushes `HEAD`, not a branch captured at install time. That is the
-    lesson of the `iter24-extend-300hop` incident from the other direction:
-    work accumulated on a feature branch while a cron pushed `master` and
-    published nothing. Pushing whatever is checked out cannot silently push
-    the wrong branch — at worst it creates a remote branch, which is visible.
+    (A third and fourth, gated on `--publish-engine`, ran `publish-engine.sh` at
+    :37 and pushed the engine repo at :47 -- retired with that script, goal:g11's
+    two-repo carry, by goal:g7.16.1.4.1.1.)
     """
     script = Path(__file__).resolve()
     repo = repo_root(root)
@@ -1831,14 +1912,7 @@ def cron_lines(root: Path, branch: str, mins: int, log: Path,
             f"python3 {script} commit --all --prefix 'cron: ' >> {log} 2>&1 && "
             f"git push -q origin '{PUSH_SPEC}' >> {log} 2>&1")
     d1 = f"7 * * * * git -C {repo} push -q origin {branch} >> {log} 2>&1"
-    lines = [snap, d1]
-    if publish_engine:
-        publisher = script.parent / "publish-engine.sh"
-        engine_root = script.parents[3]
-        lines.append(f"37 * * * * cd {repo} && bash {publisher} >> {log} 2>&1")
-        lines.append(
-            f"47 * * * * git -C {engine_root} push -q origin HEAD >> {log} 2>&1")
-    return lines
+    return [snap, d1]
 
 
 def read_crontab() -> list[str]:
@@ -1854,8 +1928,7 @@ def write_crontab(lines: list[str]) -> None:
         sys.exit(f"ERR: crontab install failed: {res.stderr.strip()}")
 
 
-def cmd_cron(root: Path, action: str, mins: int,
-             publish_engine: bool = False) -> None:
+def cmd_cron(root: Path, action: str, mins: int) -> None:
     ensure_repo(root)
     log = cron_log(root)
     marker = str(log)  # unique per project; filters our entries only
@@ -1874,10 +1947,9 @@ def cmd_cron(root: Path, action: str, mins: int,
     if "origin" not in git(root, "remote").splitlines():
         sys.exit("ERR: no origin remote — `grid.py sync <remote-url>` first")
     log.parent.mkdir(parents=True, exist_ok=True)
-    new = cron_lines(root, branch, mins, log, publish_engine)
+    new = cron_lines(root, branch, mins, log)
     write_crontab(keep + new)
-    extra = ", engine published hourly" if publish_engine else ""
-    print(f"grid cron: installed (snapshot every {mins}m, {branch} hourly{extra}):")
+    print(f"grid cron: installed (snapshot every {mins}m, {branch} hourly):")
     print("\n".join(new))
 
 
@@ -1963,11 +2035,6 @@ def main() -> None:
     cr = sub.add_parser("cron")
     cr.add_argument("action", choices=["install", "show", "remove"])
     cr.add_argument("--snapshot-mins", type=int, default=5)
-    cr.add_argument("--publish-engine", action="store_true",
-                    help="goal:g6.5 step 2 — also install an hourly entry that "
-                         "rebuilds the engine repo from the graph and commits "
-                         "it. Off by default: only a project whose version "
-                         "layer is trusted should enable this.")
     args = ap.parse_args()
     root = find_project_root()
     apply_storage_trunk(root)
@@ -2007,7 +2074,7 @@ def main() -> None:
     elif args.cmd == "push-changed":
         cmd_push_changed(root)
     elif args.cmd == "cron":
-        cmd_cron(root, args.action, args.snapshot_mins, args.publish_engine)
+        cmd_cron(root, args.action, args.snapshot_mins)
 
 
 if __name__ == "__main__":

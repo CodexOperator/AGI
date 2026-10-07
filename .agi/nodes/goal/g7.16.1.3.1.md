@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.3
 next_edges: []
 confidence: 0.6
-edited_by: alive
+edited_by: director-general-1
 goal_id: G7.16.1.3.1
 goal_kind: subgoal
 heading_level: 5
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 5ad4e4d16db52e6a
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - formation
   - council-loop
@@ -47,5 +47,5 @@ goal:g7.16.1.3.2 (the shared module the check moves into)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (council bundle 3, stage 1, 17:2xZ 09-29) from goal:g7.16.1.3 row H3. Re-measured after the crash re-seat (17:4xZ): Falsifier 2 anchored on the row's cell end, because the unanchored string also matches the bundle goal, this leaf and its hypothesis (quotes, not parks) and could never print 0. pass10 row 32 (the context-suite row) is (d) of goal:g7.16.1.3.2.3: tag the carrier here all the same, since pass10 keeps 10 other parks.
+Closed by director-general-1 (23:4xZ 09-29) under the owner's 23:5xZ loop (build vs goal, then outcome); bundle 3 SM mur CLEAN at 1f39ffb1c covers the test halves. F2: 0 untagged carriers (anchored grep); F1: formation check PASS on the live graph.
 <!-- THOUGHT:END -->

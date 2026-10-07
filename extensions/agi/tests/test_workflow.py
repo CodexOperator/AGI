@@ -94,13 +94,14 @@ def test_missing_row_falls_back_to_hint_then_raises_on_no_model():
 
 
 def _live_pi_kid_model() -> str:
-    """The model the LIVE config dispatches for a pi kid (`harnesses.pi.models`
-    kid cell, aligned with the ladder rows by the owner's one-write rule).
+    """The model the LIVE config dispatches for a pi kid (the pi template's
+    default row, read through adapters.harness_block -- goal:g7.16.1.7.1.3.2; aligned with the ladder rows by the owner's one-write rule).
     Read, never pinned: the literal alias here went red the day the owner moved
     both tiers to `deepseek/deepseek-v4.1-flash` (55699759b, 09-17) and a test
     that pins a config cell is a config edit's hidden second suite run."""
+    import adapters
     cfg = workflow._load_config(REPO / ".agi") or {}
-    return ((cfg.get("harnesses") or {}).get("pi") or {})["models"]["kid"]
+    return adapters.harness_block(cfg, "pi")["models"]["kid"]
 
 def test_config_flip_changes_dispatched_model():
     """The pi harness resolves its model from harnesses.pi.models, NOT from
@@ -1913,7 +1914,7 @@ def test_mint_run_key_collision_appends_suffix(tmp_path_factory):
 # `File name too long`, the broad except swallowed it, and the stage's
 # structured return was never written to disk -- the chained stage then read
 # back only the 200-char in-process preview and failed schema validation
-# (director gen 6, commit 453445d60: both brainstorm stages "recorded
+# (director gen 6, commit e727ec45f: both brainstorm stages "recorded
 # unstructured"). hypothesis: the fix bounds the PATH COMPONENT only, and
 # leaves the descriptive run_key (used for reporting/citing) untouched.
 

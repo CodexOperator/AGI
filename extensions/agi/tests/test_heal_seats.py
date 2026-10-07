@@ -35,6 +35,19 @@ def _load(name):
 heal = _load("heal")
 
 
+def _seed_recovery_ack(gdir):
+    """config:rotations `recovery_ack` -- the recovered-seat ack wording
+    (hypothesis:heal-ack-line-comes-from-config-rotations-by-role)."""
+    geo = Path(gdir) / "nodes" / ".geometry"
+    geo.mkdir(parents=True, exist_ok=True)
+    (geo / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\nrecovery_ack:\n"
+        "  prime_director: {recovered: \"RECOVERED SEAT {seat} --gen {gen}\","
+        " resumed: \"RESUMED SEAT {seat} --gen {gen}\"}\n"
+        "  default: {recovered: \"RECOVERED SEAT {seat}\","
+        " resumed: \"RESUMED SEAT {seat}\"}\n---\n")
+
+
 @pytest.fixture
 def graph(tmp_path: Path) -> Path:
     """A fixture graph root whose seats row + sessions dir are all ours."""
@@ -42,6 +55,7 @@ def graph(tmp_path: Path) -> Path:
     g.mkdir(parents=True, exist_ok=True)
     (g / "config.json").write_text(json.dumps({"metric_primary": "x"}))
     (g / "sessions").mkdir(parents=True, exist_ok=True)
+    _seed_recovery_ack(g)
     return g
 
 
@@ -198,20 +212,71 @@ def test_row_window_id_present_nothing(graph):
     assert acted == []
 
 
-def test_rotation_started_3min_ago_nothing(graph):
-    """(1d) a `started` rotation record within 10 min means in-flight, not a
-    crash -> nothing."""
-    _write_seats(graph, [{"name": "seat-a", "pid": 424242,
-                          "window": "@50"}])
-    _write_record(
-        graph, "seat-a",
-        {"rotation": "rotate-self", "seat": "seat-a", "result": "started",
+def _started_3min_ago(graph: Path, seat: str = "seat-a") -> Path:
+    return _write_record(
+        graph, seat,
+        {"rotation": "rotate-self", "seat": seat, "result": "started",
          "recorded_at": time.strftime(
              "%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - 180)),
          "steps_reached": ["spawn"]},
         time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(time.time() - 180)))
-    acted = _scan(graph, dead=True, window_names=("", "@1 other"))
+
+
+def test_rotation_started_3min_ago_nothing(graph, capsys):
+    """(1d) a `started` rotation record within 10 min whose successor window
+    is open means in-flight, not a crash -> nothing, and the skip is logged."""
+    _write_seats(graph, [{"name": "seat-a", "pid": 424242,
+                          "window": "@50"}])
+    rec = _started_3min_ago(graph)
+    acted = _scan(graph, dead=True, window_names=("", "@1 other", "@2 seat-a"))
     assert acted == []
+    assert json.loads(rec.read_text())["result"] == "started"
+    assert "in-flight seat seat-a" in capsys.readouterr().err
+
+
+def test_aborted_rotation_is_rewritten_and_recovered(graph, capsys):
+    """goal:g7.16.1.7.1.1.3 P3: a `started` record with a dead row pid and NO
+    successor window is ABORTED: rewritten in place `aborted-by-crash`, no
+    record left `started`, and the seat is recovered."""
+    _write_seats(graph, [{"name": "seat-a", "pid": 424242,
+                          "window": "@50"}])
+    rec = _started_3min_ago(graph)
+    launched: list = []
+    acted = _scan(graph, dead=True, window_names=("", "@1 other"),
+                  records=launched)
+    assert len(acted) == 1 and len(launched) == 1, (acted, launched)
+    got = json.loads(rec.read_text())
+    assert got["result"] == "aborted-by-crash" and got["aborted_at"], got
+    assert not [p for p in _crash_records(graph, "seat-a")
+                if json.loads(p.read_text()).get("result") == "started"]
+    assert "aborted rotation seat seat-a" in capsys.readouterr().err
+
+
+def test_aborted_rotation_resumes_the_predecessor(graph, monkeypatch):
+    """P3 + P2: the aborted rotation's predecessor (the row's session_id with
+    a transcript) comes back by `--resume`, same generation."""
+    import rotate
+    sid = "0f0f0f0f-1111-2222-3333-555555555555"
+    monkeypatch.setattr(rotate, "CC_PROJECTS_DIR", graph.parent / "projects")
+    tp = Path(rotate.transcript_from_registry_dict(
+        {"cwd": str(heal._seat_tree_dir(graph, {"worktree": ""})),
+         "session_id": sid}))
+    tp.parent.mkdir(parents=True, exist_ok=True)
+    tp.write_text("{}\n")
+    _write_seats(graph, [{"name": "seat-a", "pid": 424242, "window": "@50",
+                          "session_id": sid, "generation": 3,
+                          "model": "m-1"}])
+    _started_3min_ago(graph)
+    cmds: list = []
+
+    def launch(root, name, shell_cmd, window_path=None, cwd=None):
+        cmds.append(shell_cmd or "")
+        return 424243, "@556"
+
+    acted = _scan(graph, dead=True, window_names=("", "@1 other"),
+                  launcher=launch)
+    assert len(acted) == 1 and len(cmds) == 1, (acted, cmds)
+    assert f"--resume {sid}" in cmds[0], cmds[0]
 
 
 def test_old_started_rotation_is_no_guard(graph):
@@ -411,6 +476,98 @@ def test_pinned_session_pid_gone_still_dead_respawns(graph):
     assert len(acted) == 1 and acted[0]["respawned"] is True
     assert len(spawns) == 1, "a genuinely dead seat is still respawned"
     assert _crash_records(graph, "seat-a"), "recorded as respawned"
+
+
+def test_live_session_without_a_pin_is_skipped(graph, capsys):
+    """goal:g7.16.1.7.1.1.2.1: NO meter pin, but the row's own session_id is
+    open in a live pid in the registry -> skipped by name, nothing launches."""
+    registry = graph / "registry"
+    registry.mkdir(parents=True, exist_ok=True)
+    sid = "livesid3"
+    _write_seats(graph, [{"name": "seat-a", "pid": 999999, "window": "@50",
+                          "generation": 3, "session_id": sid}])
+    _write_registry_sess(registry, 434345, sid, "75")
+    wf = graph / "windows.live.txt"
+    wf.write_text("@75 other-sess\n@1 other\n", encoding="utf-8")
+    spawns: list = []
+    acted = heal._watch_seats(
+        graph, pid_alive=(lambda pid: pid == 434345),
+        window_path=str(wf), launcher=_fake_launcher(spawns),
+        registry_dir=str(registry))
+    assert spawns == [] and _crash_records(graph, "seat-a") == []
+    assert len(acted) == 1 and acted[0]["stale_row"] is True, acted
+    err = capsys.readouterr().err
+    assert "stale-row seat seat-a" in err and "434345" in err, err
+
+
+# --- goal:g6.41.1.1: a session resumed after this boot OUTSIDE heal's recovery
+#     (the tmux path after a reboot) gets ONE boot-resume record, so the
+#     after_join service wakes it exactly once. Boot and start times injected.
+
+
+def _boot_resume_pass(graph, monkeypatch, started: float, boot: float = 1000.0):
+    registry = graph / "registry"
+    registry.mkdir(parents=True, exist_ok=True)
+    sid = "resumedsid"
+    _write_seats(graph, [{"name": "seat-a", "pid": 999999, "window": "@50",
+                          "generation": 3, "session_id": sid}])
+    _write_registry_sess(registry, 434346, sid, "75")
+    wf = graph / "windows.live.txt"
+    wf.write_text("@75 other-sess\n@1 other\n", encoding="utf-8")
+    monkeypatch.setattr(heal, "_boot_epoch", lambda: boot)
+    monkeypatch.setattr(heal, "_proc_start_epoch", lambda pid: started)
+    return lambda: heal._watch_seats(
+        graph, pid_alive=(lambda pid: pid == 434346), window_path=str(wf),
+        launcher=_fake_launcher([]), registry_dir=str(registry))
+
+
+def _boot_resume_records(graph):
+    return [p for p in _crash_records(graph, "seat-a")
+            if json.loads(p.read_text()).get("rotation") == "boot-resume"]
+
+
+def test_a_session_resumed_after_boot_gets_one_boot_resume_record(
+        graph, monkeypatch):
+    run = _boot_resume_pass(graph, monkeypatch, started=2000.0)
+    first = run()
+    run()
+    recs = _boot_resume_records(graph)
+    assert len(recs) == 1, "two passes -> exactly ONE boot-resume record"
+    assert first[0]["recorded"] is True and first[0]["stale_row"] is True
+    rec = json.loads(recs[0].read_text())
+    assert rec["result"] == "resumed" and rec["boot_at"].startswith("1970")
+    assert rec["window_id"] == "@75" and rec["gen_after"] == 3
+    assert _load("rotate")._record_accepted(rec), "the after_join service admits it"
+
+
+def test_a_session_started_before_boot_gets_no_boot_resume_record(
+        graph, monkeypatch):
+    run = _boot_resume_pass(graph, monkeypatch, started=500.0)
+    assert run()[0]["recorded"] is False
+    assert _boot_resume_records(graph) == []
+
+
+def test_an_accepted_record_newer_than_boot_blocks_the_boot_resume(
+        graph, monkeypatch):
+    """A seat already woken after this boot (any accepted record newer than the
+    boot, e.g. heal's own recovery or a rotation) gets no second wake."""
+    run = _boot_resume_pass(graph, monkeypatch, started=2000.0)
+    _rotations(graph).mkdir(parents=True, exist_ok=True)
+    _write_record(graph, "seat-a", {"rotation": "rotate-self", "seat": "seat-a",
+                                    "result": "started",
+                                    "recorded_at": "2026-01-01T00:00:00Z"},
+                  "20260101T000000Z")
+    assert run()[0]["recorded"] is False
+    assert _boot_resume_records(graph) == []
+
+
+def test_the_suite_never_reads_the_live_registry(tmp_path):
+    """Negative: under the suite the registry default heal falls back to is a
+    per-test dir (tests/conftest.py), never the live `~/.claude/sessions`."""
+    import rotate
+    reg = Path(rotate.REGISTRY_DEFAULT_DIR).expanduser()
+    assert tmp_path in reg.parents, reg
+    assert reg != Path("~/.claude/sessions").expanduser()
 
 
 # ---------------------------------------------------------------------------

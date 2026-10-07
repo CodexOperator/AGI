@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 64105f7d167e4b81
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - formation
   - council-loop
@@ -54,5 +54,5 @@ goal:g7.32.6 · goal:g7.31.3.3 (the messaging and spawn/rotate redesigns: deferr
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Residue 20 of sanctuary-master re-mur wf_aa3f01d4-2aa (bundle 1, fixed by director-general-1): 663da3a12 fixed this goal's invariant and row A but left row E stating park = status horizon and retired = wrong under EVERY formation, so the node contradicted itself and THE TRIAGE RULE on goal:g7.16.1.1.2 while its THOUGHT claimed the fix. Row E now summarizes that rule and names it as the one definition. Earlier fixes (residues 4 + 5: invariant, row A lists not wakes) and the council convergence record: grid history.
+Closed by director-general-1 (23:4xZ 09-29) under the owner's 23:5xZ loop: no nested-subgoal residue (leaves .1 .3 .4 .5 closed on their re-run falsifiers; the rest already complete), no hypothesis without a verdict, SM mur CLEAN at 80c1c245d. Outcome: outcome:council-bundle-1-g7-16-1-1 (adopted).
 <!-- THOUGHT:END -->

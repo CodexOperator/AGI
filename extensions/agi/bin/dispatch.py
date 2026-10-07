@@ -53,6 +53,7 @@ import geometry_config  # noqa: E402
 import branches  # noqa: E402 -- the ONE branch-name grammar (g15 round I)
 import spawn_gate  # noqa: E402  -- read_ladder_season (L2.06 stamps used it without importing it)
 import node_writer  # noqa: E402
+import zoom  # noqa: E402 -- goal:g1.31.4.1 conj 2: the ONE target resolver
 import provisioning  # noqa: E402
 import spawn_budget  # noqa: E402
 import stall_detect  # noqa: E402 -- hyp:l4-stalled-is-a-state-the-harness-can-see (record, don't repair)
@@ -172,7 +173,8 @@ def _death_class(worktree, agent_id, runtime_s, agent_dir=None) -> dict:
                 krec = json.loads(ap.read_text())
             except (OSError, ValueError):
                 continue
-            # The SPAWNING agent is `spawned_by_agent` (dispatch.py:2368);
+            # The SPAWNING agent is `spawned_by_agent` (the manifest row
+            # `main` writes);
             # `dispatched_by` names the SEAT to alarm. Match the real field
             # first, and keep `dispatched_by` as a fallback for any record
             # written before spawned_by_agent existed -- an agent id never
@@ -466,6 +468,15 @@ def zoom_command(root: Path, iter_n: int, agent_id: str,
     return cmd
 
 
+def _no_context_refusal(target, level, detail: str) -> str:
+    """goal:g1.31.4.1 conjunct 2 — ONE refusal line, printed by the LIVE
+    spawn when `zoom_command` fails and by `--dry-run` when the same target
+    fails to resolve, so a dry run is a faithful preview of the refusal and
+    not a second wording of it.
+    """
+    return f"ERR: no context for target {target!r} at level {level}: {detail}"
+
+
 # hypothesis:l3w4-parent-branch-merge-up — per-parent git worktree on a
 # `loop/<slug>-<agent8>@s<N>` branch. The four helpers below are the
 # dispatch side of the claim: `--branch` cuts each spawn its own worktree
@@ -737,6 +748,51 @@ def loop_branch_name(target: str | None, agent_id: str, season: int) -> str:
     return branches.loop_branch(season, slug, agent_id)
 
 
+def ram_worktrees_dir(root: Path) -> Path | None:
+    """goal:g7.16.1.5.4 -- the tmpfs dir a new round worktree checks out
+    under: the config:guard cell `GUARD_RAM_WORKTREES_<box>`; empty/absent,
+    or a parent dir that does not exist, = off (today's disk path)."""
+    cell = locations.guard_cell(root, "RAM_WORKTREES")
+    if not cell:
+        return None
+    d = Path(os.path.expanduser(cell))
+    return d if d.parent.is_dir() else None
+
+
+def ram_worktree_hold(root: Path) -> str | None:
+    """The HOLD reason when the RAM disk is at or over the guard's line
+    (`GUARD_RAM_WT_HOLD_PCT_<box>`, default 80), else None; None when the
+    RAM worktrees are off."""
+    d = ram_worktrees_dir(root)
+    if d is None:
+        return None
+    try:
+        line = float(locations.guard_cell(root, "RAM_WT_HOLD_PCT", "80") or 80)
+        u = shutil.disk_usage(d if d.is_dir() else d.parent)
+    except (OSError, ValueError):
+        return None
+    pct = 100.0 * u.used / u.total if u.total else 0.0
+    return (f"RAM disk {pct:.0f}% used >= hold line {line:g}% "
+            f"(GUARD_RAM_WT_HOLD_PCT)") if pct >= line else None
+
+
+def branch_worktree_link(root: Path, agent_id: str,
+                         main: Path | None = None) -> Path:
+    """Where a `--branch` spawn's checkout WOULD live — WITHOUT creating it.
+
+    goal:g1.31.4.1 conjunct 1: the dry report must name the worktree a live
+    spawn would take, and the only honest way to name it is to ask the same
+    helper the live path asks, so the path grammar stays ONE resolver shared
+    by the spawner and the report (no second copy of the `main/.agi/worktrees`
+    or RAM spelling). Returns the reader-visible link (RAM-backed parents get
+    the symlink path, the dir itself on the tmpfs), and touches no disk. `main`
+    lets a caller that already resolved `git_common_root` pass it in, so one
+    spawn resolves the main checkout ONCE.
+    """
+    main = main or locations.git_common_root(root)  # main checkout, from any depth
+    return main / ".agi" / "worktrees" / agent_id
+
+
 def branch_worktree_for_spawn(root: Path, branch: str, agent_id: str,
                               base_branch: str) -> Path:
     """`git worktree add <main>/.agi/worktrees/<agent> -b <branch> <base>`.
@@ -750,18 +806,29 @@ def branch_worktree_for_spawn(root: Path, branch: str, agent_id: str,
     RuntimeError naming the branch and base when the worktree cannot be
     created.
     """
-    main = locations.git_common_root(root)  # main checkout, from any depth
-    wt = main / ".agi" / "worktrees" / agent_id
+    main = locations.git_common_root(root)  # main checkout, for `git -C`
+    link = branch_worktree_link(root, agent_id, main=main)
+    # goal:g7.16.1.5.4: with the RAM cell set the checkout lives on the tmpfs
+    # and `.agi/worktrees/<agent>` is a symlink to it, so every reader that
+    # globs .agi/worktrees is unchanged; the objects stay in MAIN's .git.
+    ram = ram_worktrees_dir(root)
+    wt = ram / agent_id if ram is not None else link
     wt.parent.mkdir(parents=True, exist_ok=True)
+    argv = ["git", "-C", str(main), "worktree", "add", "-b", branch,
+            str(wt), base_branch]
+    # goal:g7.16.1.5.5.1: a RAM checkout is written from the RAM disk's own
+    # slice, so its pages never park on the dispatcher's slice.
     out = subprocess.run(
-        ["git", "-C", str(main), "worktree", "add", "-b", branch,
-         str(wt), base_branch],
+        locations.ram_write_argv(argv) if ram is not None else argv,
         capture_output=True, text=True,
     )
     if out.returncode != 0:
         raise RuntimeError(f"git worktree add -b {branch} from {base_branch}: "
                            f"{out.stderr.strip()}")
-    return wt
+    if ram is not None:
+        link.parent.mkdir(parents=True, exist_ok=True)
+        link.symlink_to(wt)
+    return link
 
 
 def drop_branch_worktree(root: Path, worktree: Path) -> None:
@@ -778,9 +845,11 @@ def drop_branch_worktree(root: Path, worktree: Path) -> None:
         main = locations.git_common_root(root)
         subprocess.run(
             ["git", "-C", str(main), "worktree", "remove", "--force",
-             str(worktree)],
+             str(Path(worktree).resolve())],
             capture_output=True, text=True,
         )
+        if Path(worktree).is_symlink():  # goal:g7.16.1.5.4: the RAM checkout's link
+            Path(worktree).unlink()
     except (OSError, subprocess.SubprocessError):
         pass
 
@@ -1318,6 +1387,34 @@ def apply_orders_env(args) -> str | None:
     return text
 
 
+# The ONE wording of "a --branch spawn has no branch to cut a child from" —
+# the live spawn and the dry report's `base=` line say the same words.
+DETACHED_HEAD_REFUSAL = ("--branch requires a checked-out branch (detached "
+                         "HEAD?) to cut a child from")
+
+
+def resolve_auto_level(level: str, big_split: float, target: str | None,
+                       draw=random.random) -> str:
+    """`auto` -> the concrete level, for the live loop AND `--dry-run`.
+
+    goal:g1.31.4.1: the dry path used to force `auto` to `big`, so a target
+    the live loop refuses at its `small` draw passed dry. Both paths resolve
+    through THIS function. A slot with no target falls back to `big` because
+    a small zoom has nothing to bind to.
+    """
+    if level != "auto":
+        return level
+    resolved = "big" if draw() < big_split else "small"
+    return "big" if resolved == "small" and target is None else resolved
+
+
+def big_split_threshold(cfg: dict) -> float:
+    """`big_idea_vs_small_idea_split` through ONE resolver: the dry report and
+    the live loop each carried their own `float(cfg.get(..., 0.3))`, and the
+    default could drift. goal:g1.31.4.1 corrective."""
+    return float(cfg.get("big_idea_vs_small_idea_split", 0.3))
+
+
 def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                     dispatch_harness: dict, adapter: object, args,
                     targets, tier_eff: int) -> int:
@@ -1361,6 +1458,7 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
         root / "nodes" if root else None)
     if current_season is None:
         current_season = 1
+    big_split = big_split_threshold(cfg)
     cap = spawn_budget.max_live(cfg)
     parallel = adapters.parallelism(cfg)
     # hypothesis:l3-parent-never-told-to-iterate -- the per-dispatch kid
@@ -1382,10 +1480,26 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
             level, target, strategy, _role = target_entry
         else:
             level, target, strategy = target_entry
-        if level == "auto":
-            # Resolution-only: we need one deterministic level for the report.
-            level = "big"
-        agent_id = f"dry{slot:02d}-{uuid.uuid4().hex[:8]}"
+        # goal:g1.31.4.1 — the dry id is spelled the way a LIVE id is
+        # (`a<NN>-<hex>`): the retired `dry<NN>-<hex>` nonce was a dialect no
+        # live spawn produces, and the report says `dry-run` in its own words.
+        agent_id = f"a{slot:02d}-{uuid.uuid4().hex[:8]}"
+        # ONE level resolver, shared with the live loop, so `--level auto` in
+        # dry IS a level the round can take. An `auto` slot is target-checked
+        # either way: the small draw is reachable, so a target the round may
+        # refuse must not pass dry because THIS draw rolled big.
+        auto = level == "auto"
+        level = resolve_auto_level(level, big_split, target)
+        if level == "small" or auto:
+            # The dry check reads the checkout the dispatcher RUNS IN; the
+            # re-point at the --branch worktree flipped this verdict both ways
+            # (a --branch dry run cuts no worktree) and is gone.
+            _refused = zoom.target_resolves(root, target)
+            if _refused is not None:
+                print(_no_context_refusal(
+                    target, level, zoom.unavailable_stderr(_refused)),
+                    file=sys.stderr)
+                return 1
         brief_tier = _brief_tier_for(args.tier, tier_eff, target)
         with tempfile.TemporaryDirectory() as td:
             sess_dir = Path(td)
@@ -1488,7 +1602,8 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
 
         print(f"[dry-run] slot={slot} harness={harness_name} "
               f"tier={args.tier} role={args.role} ladder_tier={tier_eff} "
-              f"level={level} target={target or '-'} "
+              f"level={level}{' (from auto)' if auto else ''} "
+              f"target={target or '-'} "
               f"brief_tier={brief_tier}")
         # Compact: pi inlines every brief segment as its own flag, so the raw
         # command would print hundreds of lines of the brief itself. The brief
@@ -1501,6 +1616,27 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                 return q[:180] + f"...<{len(q)} chars>"
             return q
         print(f"  command: {' '.join(_compact(a) for a in cmd)}")
+        # goal:g1.31.4.1 conjunct 1 — a `--branch --dry-run` names the three
+        # facts the LIVE spawn would act on, through the SAME resolvers
+        # (`spawner_base_branch`, `loop_branch_name`,
+        # `branch_worktree_link`) — no hand-built `loop/<slug>` string, no
+        # fresh inline `git rev-parse`. The worktree is only NAMED
+        # (branch_worktree_for_spawn, which runs `git worktree add`, is NOT
+        # called). The stale-base refusal is deliberately NOT mirrored: the
+        # live call to `_stale_base_spawn` (which returns 3) FETCHES origin
+        # and a dry run must not touch the network, so the report says so
+        # rather than passing silently.
+        if getattr(args, "branch", False):
+            _dbase = spawner_base_branch(Path.cwd())
+            _dbranch = loop_branch_name(target, agent_id, current_season)
+            _dbase_shown = _dbase or f"NONE ({DETACHED_HEAD_REFUSAL})"
+            print(f"  branch: {_dbranch} base={_dbase_shown} "
+                  f"worktree={branch_worktree_link(root, agent_id)}")
+            print(f"  branch context: the live spawn re-roots the graph to "
+                  f"that worktree, so this dry report's placeholder context "
+                  f"is NOT the graph the child would see; stale-base not "
+                  f"evaluated here (live: `_stale_base_spawn`, return 3) to "
+                  f"keep the dry run off the network")
         export_keys = ["AGI_TIER", "AGI_ROLE", "AGI_LADDER_TIER",
                        "AGI_SEASON", "AGI_LOOP", "AGI_MODEL",
                        "AGI_PROFILE", "AGI_AGENT_ID", "AGI_ACTOR",
@@ -2000,7 +2136,7 @@ def main() -> int:
     # an explicit flag, a seat, or a non-zero-cost parent keeps the old path.
     if (args.harness is None and args.seat is None and args.tier == "kid"):
         inherited = os.environ.get("AGI_HARNESS")
-        inherited_row = (cfg.get("harnesses") or {}).get(inherited) or {}
+        inherited_row = adapters.harness_block(cfg, inherited)
         if inherited_row.get("zero_usd") is True:
             args.harness = inherited
             print(f"harness: inherited zero_usd harness {inherited} from AGI_HARNESS")
@@ -2107,7 +2243,7 @@ def main() -> int:
             # a NON-INPUT: ONE stderr warning naming the winning row, never a
             # silent read. The stale cells are read nowhere after this line.
             _legacy_model_srcs = []
-            _h = (cfg.get("harnesses") or {}).get(harness_name) or {}
+            _h = adapters.harness_block(cfg, harness_name)
             if _h.get("models"):
                 _legacy_model_srcs.append(f"harnesses.{harness_name}.models")
             if (cfg.get("agent_dispatch") or {}).get("model"):
@@ -2205,7 +2341,7 @@ def main() -> int:
         print(f"credentials: minting per spawn, limit=${cred_limit} "
               f"ttl={cred_ttl}min"
               + (f" workspace={cred_ws}" if cred_ws else " workspace=(default)"))
-    big_split = float(cfg.get("big_idea_vs_small_idea_split", 0.3))
+    big_split = big_split_threshold(cfg)
     timeout_min = int(cfg.get("agent_timeout_mins", 10))
     pipeline_template = args.template or cfg.get("pipeline_template")
 
@@ -2440,11 +2576,9 @@ def main() -> int:
         else:
             level, target, strategy = target_entry
             role = None
-        # Decide big-vs-small based on config split when "auto"
-        if level == "auto":
-            level = "big" if random.random() < big_split else "small"
-            if level == "small" and target is None:
-                level = "big"  # no target → fall back to big
+        # Decide big-vs-small when "auto" through the resolver the dry run
+        # shares, so a dry report's level is a level this round can take.
+        level = resolve_auto_level(level, big_split, target)
 
         agent_id = f"a{slot:02d}-{uuid.uuid4().hex[:8]}"
         sess_dir = iter_dir / agent_id
@@ -2516,9 +2650,8 @@ def main() -> int:
         if args.branch:
             base = spawner_base_branch(Path.cwd())
             if not base:
-                print(f"ERR {agent_id} slot={slot}: --branch requires a "
-                      f"checked-out branch (detached HEAD?) to cut a child "
-                      f"from", file=sys.stderr)
+                print(f"ERR {agent_id} slot={slot}: {DETACHED_HEAD_REFUSAL}",
+                      file=sys.stderr)
                 spawn_budget.release(lease)
                 return 1
             # hypothesis:l4-a-round-is-cut-from-the-branch-you-are-on
@@ -2544,6 +2677,18 @@ def main() -> int:
                       f"unchecked (origin/{branches.season_main(current_season)} "
                       f"unreachable); spawn proceeds", file=sys.stderr)
             branch = loop_branch_name(target, agent_id, current_season)
+            # goal:g7.16.1.5.4: a RAM disk over the guard's line HOLDS the
+            # launch (named, recorded unadmitted), never a checkout into it.
+            _hold = ram_worktree_hold(root)
+            if _hold:
+                print(f"unadmitted {agent_id} slot={slot}: HOLD -- {_hold}",
+                      file=sys.stderr)
+                spawn_budget.release(lease)
+                unadmitted.append({"id": agent_id, "slot": slot,
+                                   "tier": args.tier, "target": target,
+                                   "status": "unadmitted", "reason": _hold,
+                                   "at": int(time.time())})
+                continue
             try:
                 wt = branch_worktree_for_spawn(root, branch, agent_id, base)
             except RuntimeError as exc:
@@ -2584,8 +2729,8 @@ def main() -> int:
             # scoring can only return ids it just read out of the graph, but a
             # hand-passed `--target` can name anything. Say which id failed
             # instead of surfacing a CalledProcessError traceback.
-            print(f"ERR: no context for target {target!r} at level {level}: "
-                  f"{(exc.stderr or '').strip()}", file=sys.stderr)
+            print(_no_context_refusal(
+                target, level, (exc.stderr or "").strip()), file=sys.stderr)
             if branch_ref:
                 drop_branch_worktree(root, branch_ref["worktree"])
             spawn_budget.release(lease)
@@ -3849,13 +3994,14 @@ def _research_pipeline_targets(root: Path, n: int, iter_dir: Path) -> list[tuple
         cfg = json.loads(cfg_path.read_text())
         use_sqlite = cfg.get("persistence", {}).get("type") == "sqlite"
 
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.1: the loader's parents post-pass)
     if use_sqlite:
         from graph_core.persistence.sqlite_backend import SQLiteBackend
         from graph_core.db_loader import DBLoader
         db_path = root / cfg["persistence"]["path"]
-        g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory()
+        g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory(resolve=links.address_resolver(root))
     else:
-        g, loaded = load_directory(root / "nodes")
+        g, loaded = load_directory(root / "nodes", resolve=links.address_resolver(root))
 
     for ln in loaded:
         for parent_id in ln.node.parents:
@@ -3943,7 +4089,7 @@ def _attractiveness(desc: int, recency_boost: float, diversity: float,
     The recency leaf boost used to be `desc * 1.2` — and `_descendant_count`
     returns 0 for a leaf, so `0 * 1.2 == 0.0` and the boost never fired:
     every chain tip scored 0 and sorted last (idea:frontier-invitation
-    measured this at dispatch.py:1466). Flooring the descendant term at 1
+    measured this in `_pick_targets`). Flooring the descendant term at 1
     is what lets a leaf's boost mean anything: a leaf scores 1.2 (not 0.0)
     and can rank. The floor is identity for every non-leaf, which already
     has desc >= 1, so nothing else changes.
@@ -3993,13 +4139,14 @@ def _pick_targets(root: Path, n: int) -> list[tuple[str, str | None, str]]:
         cfg = json.loads(cfg_path.read_text())
         use_sqlite = cfg.get("persistence", {}).get("type") == "sqlite"
 
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.1: the loader's parents post-pass)
     if use_sqlite:
         from graph_core.persistence.sqlite_backend import SQLiteBackend
         from graph_core.db_loader import DBLoader
         db_path = root / cfg["persistence"]["path"]
-        g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory()
+        g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory(resolve=links.address_resolver(root))
     else:
-        g, loaded = load_directory(root / "nodes")
+        g, loaded = load_directory(root / "nodes", resolve=links.address_resolver(root))
 
     for ln in loaded:
         for parent_id in ln.node.parents:

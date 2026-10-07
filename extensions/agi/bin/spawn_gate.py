@@ -72,6 +72,7 @@ new one joins them.
 """
 from __future__ import annotations
 
+import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -420,10 +421,15 @@ def load_spawn_rules(schemas_dir, root=None) -> SpawnRules:
             rules.geometry = _parse_geometry(fm, src, rules)
             continue
         if name == "config":
+            # goal:g7.33.20.3 D1: `[config].md` is TWO things -- the project's
+            # `locations` declaration (read here) AND the type schema of every
+            # `config:*` node. It used to `continue` after the first, so the type
+            # was never registered and an admitted `create config <x>` was told
+            # "no active schema [config].md" while the file sat in the directory.
+            # No `spawn:` block -> registered, unverified (never an error).
             loc = fm.get("locations")
             if isinstance(loc, dict):
                 rules.locations = loc
-            continue
         raw[name] = (SpawnSchema(name=name, source=src), fm)
 
     for name, (schema, fm) in raw.items():
@@ -549,7 +555,8 @@ def build_type_index(nodes_dir) -> dict:
         nid = fm.get("id")
         if isinstance(nid, str) and nid.strip():
             index[nid.strip()] = canonical_type(fm.get("type") or "")
-    return index
+    import links   # goal:g4.18.6.3.3: a mint-id parent reads as its address twin
+    return links.resolving(index, p)
 
 
 def resolve_nodes_root(root, schemas_dir=None) -> Path:
@@ -824,7 +831,7 @@ def _node_fm(nodes_dir, node_id):
     return _read_frontmatter(Path(nodes_dir) / ntype / f"{name}.md")
 
 
-def nearest_vision(nodes_dir, start_ids, *, max_depth=6):
+def nearest_vision(nodes_dir, start_ids, *, max_depth=6, resolve=None):
     """The nearest ancestor vision of `start_ids` via the `parents:` edge.
 
     Returns `(vision_id, town)`, or `(None, core)` when no vision is reached.
@@ -832,15 +839,19 @@ def nearest_vision(nodes_dir, start_ids, *, max_depth=6):
     hang a spawn; a start id that IS a vision is its own nearest vision
     (depth 0). Both halves of the addendum use this -- a minted node and a
     brief both read the target's nearest vision's town cell (default core),
-    never an imagined cell and never a town NAME (goal:g8.2).
+    never an imagined cell and never a town NAME (goal:g8.2). `resolve` = a
+    caller's ONE links.gate_resolver, shared across per-node calls.
     """
     if not nodes_dir:
         return (None, "core")
     from collections import deque
+    import links   # goal:g4.18.6.3.3: walk mint-id parents as their addresses
+    r = resolve or links.gate_resolver(nodes_dir)
     seen: set = set()
     dq = deque()
     for sid in start_ids or ():
         sid = str(sid or "").strip()
+        sid = r(sid) or sid
         if sid and sid not in seen:
             seen.add(sid)
             dq.append((sid, 0))
@@ -880,19 +891,20 @@ def nearest_vision(nodes_dir, start_ids, *, max_depth=6):
             parents = [parents]
         for p in parents:
             p = str(p or "").strip()
+            p = r(p) or p
             if p and p not in seen:
                 seen.add(p)
                 dq.append((p, depth + 1))
     return (None, "core")
 
 
-def nearest_vision_town(nodes_dir, start_ids, *, max_depth=6) -> str:
+def nearest_vision_town(nodes_dir, start_ids, *, max_depth=6, resolve=None) -> str:
     """The town of a target's nearest vision, default `core`.
 
     Thin wrapper over `nearest_vision` so a caller that only wants the town
     (mint, brief, viewport) never has to unpack the tuple.
     """
-    return nearest_vision(nodes_dir, start_ids, max_depth=max_depth)[1]
+    return nearest_vision(nodes_dir, start_ids, max_depth=max_depth, resolve=resolve)[1]
 
 
 def read_ladder_roles(nodes_dir: Path) -> list | None:
@@ -1332,6 +1344,18 @@ def _reject_message(res: SpawnResult, shape: str, schema: SpawnSchema) -> None:
     )
 
 
+_WRITTEN_SENTENCE = re.compile(r"The node is written(?:, unchecked)?\.")
+
+
+def retract_written(res: SpawnResult, why: str) -> None:
+    """goal:g7.33.20.3 D2: the gate's UNVERIFIED lines end "The node is written."
+    -- true only if the caller then writes. A caller that will write NOTHING (a
+    create-only refusal, an existing file) says so here, BEFORE `announce`, so no
+    message contradicts the disk."""
+    res.messages = [_WRITTEN_SENTENCE.sub(f"Nothing was written ({why}).", m)
+                    for m in res.messages]
+
+
 def announce(res: SpawnResult, stream=None) -> None:
     """Print on EVERY outcome — that is the point of this gate.
 
@@ -1388,7 +1412,18 @@ def gate_for_root(root, nodes_dir=None) -> tuple[SpawnRules, dict, int | None]:
     rules = load_spawn_rules(schemas_dir, root=root)
     nd = Path(nodes_dir) if nodes_dir else resolve_nodes_root(root, schemas_dir)
     cs = read_ladder_season(nd)
-    return rules, build_type_index(nd), cs
+    # goal:g4.18.6.2.2: the writer paths read goal:g4.18.6.1's ONE index (one
+    # git grep, frontmatter lines only), never a per-create parse of every node
+    # file; git unable to look -> the walk, said on stderr (writes keep working)
+    import links  # noqa: PLC0415
+    import rotation_record  # noqa: PLC0415
+    try:
+        index = links.resolving({fm["id"]: canonical_type(fm.get("type") or "")   # goal:g4.18.6.3.3
+                                 for fm in links.frontmatter_rows(nd).values() if fm.get("id")}, nd)
+    except rotation_record.GrepError as exc:
+        print(f"warn: spawn gate index by walk ({exc})", file=sys.stderr)
+        index = build_type_index(nd)
+    return rules, index, cs
 
 
 def _cli(argv) -> int:

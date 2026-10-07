@@ -37,9 +37,9 @@ never started at f ≥ 0.41 nor while a rotation is pending — it becomes the s
 STARTUP OUTPUT printed below the card (rotate-self ran it for you)
  ├─ "answered continue" ─▶ wake acts: NONE — no ListAgents · ack · push · status read · ps · tmux
  └─ STARTUP prints an `ack … diff` line ─▶ that line is your ONE act
-NO STARTUP block (rotate.py spawn = recovery) ─▶ ListAgents ▸ rotate.py ack --seat <post> --gen <N> --ref <ref> continue|diff ▸ commit the row
+NO STARTUP block (rotate.py spawn = recovery) ─▶ ListAgents ▸ run the ack line you were handed (config:rotations `recovery_ack`) ▸ commit the row
 ```
-- PRIME ONLY, the one act "NONE" does not cover: re-arm the CHECK cron (skill agi-merge-pass §1). It is session-only and dies with the predecessor, so the card's cron id is always stale at wake (gen 13 skipped 09:13-21:13Z 09-27).
+- PRIME ONLY, the one act "NONE" does not cover: re-arm the CHECK cron (skill agi-merge-pass §1). CronList FIRST: a `--resume` RESTORES a session's old CronCreate jobs (gen 19's pre-reboot STOP + CHECK fired again in the idle agi-c2 at 04:43Z 09-30), and the post rotating OUT CronDeletes its own. It is session-only and dies with the predecessor, so the card's cron id is always stale at wake (gen 13 skipped 09:13-21:13Z 09-27).
 - A successor NEVER commits rotation records, `sequence.json` or `.agi/comms/**` at wake (F20).
 - The after_join `[reap-proof]` line proves the reap — never `ps`/`tmux` for it; the record reads `started` by construction (F1).
 - `posts row dirty before this ack` = someone else's row change: commit or drop THAT, never bundle.

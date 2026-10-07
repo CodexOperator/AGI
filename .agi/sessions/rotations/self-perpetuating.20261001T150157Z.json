@@ -1,0 +1,38 @@
+{
+  "rotation": "crash-recovery",
+  "seat": "self-perpetuating",
+  "recorded_at": "2026-10-01T15:01:57.309421Z",
+  "result": "respawned",
+  "probable_cause": "unknown",
+  "succ_name": "self-perpetuating",
+  "gen": 4,
+  "gen_after": 4,
+  "pin_ref": "",
+  "tmux_session": "agi-rc",
+  "window_id": "@3",
+  "pred_pids": [
+    2049268
+  ],
+  "row": {
+    "name": "self-perpetuating",
+    "role": "director",
+    "model": "claude-opus-5-5",
+    "pid": 2049268,
+    "window": "@43",
+    "session_id": "06312a1a-129b-43c8-a543-8b2292803f5b",
+    "generation": 4,
+    "worktree": ""
+  },
+  "respawn_outcome": {
+    "name": "self-perpetuating",
+    "generation": 4,
+    "pid": null,
+    "window": "@3",
+    "reason": "",
+    "row": "config:seats row 'self-perpetuating': session_ref= session_name= session_label=self-perpetuating session_id=06312a1a-129b-43c8-a543-8b2292803f5b pid=None generation=4 window='@3' source=registry"
+  },
+  "after_join": {
+    "skipped": "no live session",
+    "age_s": 338.7574954032898
+  }
+}

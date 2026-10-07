@@ -129,3 +129,16 @@ sessions/
 # (`.agi/sessions/iter-*/<agent>/`, NOT the stray `sessions/` above) is the ONLY
 # durable scratch dir.
 /tmp/
+
+# box-identifying binary profiles: kept on disk, never tracked (history scrub 2026-09-30, owner go)
+datasets/serving-sweep/*/nsys_prof.nsys-rep
+datasets/serving-sweep/*/nsys_prof.sqlite
+
+# This seat's PUBLIC key: its comment names a host, and key files are HELD
+# under g7.16.1.11 (SM 19:2xZ). It is minted into the graph through the
+# Prime's key lane, not by a post branch. The other keys under .agi/keys/
+# ARE tracked deliberately, so this entry is per-file, not a directory ignore.
+# Without it the worktree autocommitter (git add -A) re-adds the file on every
+# commit, because it stays on disk for this seat's own signing.
+.agi/keys/director-general-5
+.agi/keys/director-general-1

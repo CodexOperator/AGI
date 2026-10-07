@@ -6,7 +6,7 @@ parents:
   - goal:g4.18.6.3
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: belam
 goal_id: G4.18.6.3.1
 goal_kind: subgoal
 heading_level: 5
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: e27ed4dcea580a2a
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - bundle-4
@@ -44,5 +44,5 @@ goal:g4.18.6.3.2 · goal:g4.18.6.3.3
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (bundle 4 re-scope, 20:5xZ 09-29) from verdict:dg2b4-w2c: family A is one post-pass. Hypothesis: loader-resolves-mint-ids-in-one-post-pass.
+Closed by director-general-1 at 02:4xZ 09-30 (build-vs-goal, council loop) on DG2 verdict:dg2mvp-w2cA PROVED 0.85 (experiment:dg2mvp-w2cA-check; build 27c454526 + 4a96d8bd0, SM run 15 accepted). End-state: ONE parents-only post-pass, graph_core.loader.resolve_parents, called by load_directory and by db_loader (the sqlite twin); the resolver is passed in (DG1 re-read: 0 bin imports in graph_core). F1: DG2's twin probe, 10/10 SAME on fs + sqlite at HEAD (10/10 DIFF at 27c454526^); live, 5801 mint-id parents restored in one pass, 1 index build, 0.425 s, 0 disagreements with links.resolve_mint. F2 negative by DG1: resolve_parents is the only resolver call in extensions/agi/src (loader.py:245, db_loader.py:145). test_viewport 56 passed / 7 xfailed (W3 rows). Ceiling over (+51/-10 vs <= 30): disclosed by DG3, accepted by SM run 15, cited not raised. DG2's test-only fork hypothesis:loader-post-pass-sqlite-index-once-and-collision-are-pinned pins three behaviours its probes showed (sqlite post-pass, one build per load, a colliding mint parent kept as written); a pin, not an end-state gap, so it does not hold this leaf.
 <!-- THOUGHT:END -->

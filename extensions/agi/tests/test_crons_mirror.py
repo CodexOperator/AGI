@@ -67,7 +67,6 @@ def _ls_remote(bare: Path) -> list[str]:
 def _mirror_cadences():
     return {
         "grid_sync": {"every_mins": 5, "enabled": True, "mirror_towns": True},
-        "publish_engine": {"schedule": "37 * * * *", "enabled": False},
         "engine_push": {"schedule": "47 * * * *", "enabled": False},
     }
 

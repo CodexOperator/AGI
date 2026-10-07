@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """agi-memguard (box-owner-S2-L5-V, owner 09-25 after the 04:00Z OOM took every seat down).
-Every 5 s: the 5 posts' Claude processes, tmux and the stream keep oom_score_adj -900 + nice -5; pi workers get +500
-(the kernel kills them first); any process over 70% of RAM, or the largest unprotected one when MemAvailable < 1 GiB,
-is SIGSTOPped (suspended, never killed); a drop of >= 3 GiB within 30 s alerts. Alerts: journal + /var/log/agi-memguard.log
+Every 5 s: the 5 posts' Claude processes, tmux and the stream keep oom_score_adj -900 + nice -5, and so does a pi whose
+cgroup is a post's (/agi.slice/agi-post@*.service); every other pi worker gets +500 (the kernel kills them first);
+any process over 70% of RAM, or the largest unprotected one when MemAvailable < 1 GiB, is SIGSTOPped (suspended, never killed);
+a drop of >= 3 GiB within 30 s alerts. Alerts: journal + /var/log/agi-memguard.log
 + one [red] dm to box-owner (rate-limited 10 min)."""
 import os, re, time, signal, subprocess, collections
 PAGE = os.sysconf('SC_PAGE_SIZE'); ME = os.getpid()
@@ -11,6 +12,7 @@ TOTAL = meminfo('MemTotal')
 PROTECT_COMM = {'claude', 'tmux: server', 'ffmpeg', 'tmux'}
 PROTECT_CMD = re.compile(r'streamer-stub|rotate\.py launch-wrapper|agi-memguard')
 PI_CMD = re.compile(r'\.npm-global/(bin/pi\b|lib/node_modules/\S*pi)')
+POST_CG = re.compile(r'^0::/agi\.slice/agi-post@[^/\n]+\.service(/|$)', re.M)
 hist = collections.deque(); stopped = set(); last_alert = 0.0
 def log(msg, red=False):
     global last_alert
@@ -28,6 +30,10 @@ def procs():
             rss = int(open(f'/proc/{d}/statm').read().split()[1]) * PAGE
         except Exception: continue
         if cmd: yield int(d), comm, cmd, rss
+def post_pi(pid, comm, cmd):
+    if comm != 'pi' and not PI_CMD.search(cmd): return False
+    try: return bool(POST_CG.search(open(f'/proc/{pid}/cgroup').read()))
+    except Exception: return False
 def setadj(pid, v):
     try:
         p = f'/proc/{pid}/oom_score_adj'
@@ -40,7 +46,7 @@ while True:
     if peak - avail >= 3 << 30: log(f'SPIKE: MemAvailable fell {(peak-avail)>>20} MiB in <=30 s, now {avail>>20} MiB', red=True); hist.clear(); hist.append((now, avail))
     unprot = []
     for pid, comm, cmd, rss in procs():
-        prot = comm in PROTECT_COMM or bool(PROTECT_CMD.search(cmd))
+        prot = comm in PROTECT_COMM or bool(PROTECT_CMD.search(cmd)) or post_pi(pid, comm, cmd)
         if prot:
             setadj(pid, -900)
             try:

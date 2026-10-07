@@ -58,5 +58,5 @@ trunk rows + the directors' model cells (pubkeys must agree), temp index + ff-on
 | `grid.py commit --all` in prime-root can leave an evidence-gate demotion dirty | save the patch, restore the file, then merge |
 | every push prints the remote's moved location | `git push … 2>&1 \| grep -v '^remote:'` |
 | the trunk push is thought-master's alone (owner 09-25) | belam pushes only season2/main + local-maxxing/main |
-| suite lock `.agi/sessions/verify-suite.lock` | "free" = absent in MAIN and every post worktree (F7); no MAIN commit while it exists |
+| suite lock `.agi/sessions/<values.core.suite_lock.file>` | "free" = absent in MAIN and every post worktree (F7); no MAIN commit while it exists |
 | MAIN is shared with thought-master | commit by exact path; never switch branches, never touch others' uncommitted edits |

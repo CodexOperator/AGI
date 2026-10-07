@@ -49,18 +49,6 @@ DEFAULT_METRIC_PRIMARY = "outcome_coverage"
 #: Metrics that are descriptive only and must never be primary.
 GAMEABLE_METRICS = ("longest_chain_length",)
 
-#: Where `publish-engine.sh` used to record the outcome of every run it made
-#: (goal:g7.10, pre-goal:g11). Kept only because `publish-engine.sh` itself and
-#: its own test suite (`test_publish_alarm.py`) still read/write this path —
-#: **metrics.py no longer turns it into a METRIC line** (goal:g11 residual,
-#: see below). Generated state, gitignored, sitting beside
-#: `context/INJECTION.md` because that is where this repo already keeps
-#: generated state. Deliberately **not** under `nodes/`: gate 0 of
-#: publish-engine.sh refuses on any uncommitted change under `nodes/`, so a
-#: publish marker written there would arm, on every single run, the exact gate
-#: it exists to report on.
-PUBLISH_STATE_PATH = ("context", "publish-state.json")
-
 #: `unpushed_commits` when the gap could not be measured at all.
 #:
 #: Not `0`. `0` is this metric's one *reassuring* value — "everything local is
@@ -145,13 +133,16 @@ def _load_graph(root: Path):
     from graph_core.loader import load_directory
     from graph_core.edge import Edge
 
-    g, loaded = load_directory(root / "nodes")
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.1: the loader's parents post-pass)
+    g, loaded = load_directory(root / "nodes", resolve=links.address_resolver(root))
     traversable = _load_traversable_fields(root)
 
     # Build node-id -> values for non-parents traversable fields from frontmatter.
     # These are fields like `next_edges` that are ``role: lineage`` and
     # ``traversable: true`` but are not the primary ``parents`` field.
     import yaml
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.2: next_edges through the one resolver)
+    r = links.address_resolver(root)
     extra_forward: dict[str, list[str]] = {}
     other_fields = traversable - FALLBACK_TRAVERSABLE_FIELDS
     if other_fields:
@@ -173,9 +164,9 @@ def _load_graph(root: Path):
                 if isinstance(raw, list):
                     for v in raw:
                         if isinstance(v, str) and v.strip():
-                            vals.append(v.strip())
+                            vals.append(r(v.strip()) or v.strip())
                 elif isinstance(raw, str) and raw.strip():
-                    vals.append(raw.strip())
+                    vals.append(r(raw.strip()) or raw.strip())
             if vals:
                 extra_forward[nid] = vals
 
@@ -776,6 +767,8 @@ def goal_attribution(nodes_dir: Path) -> dict:
     # when walking UP from B.
     extra_ascendants: dict[str, list[str]] = {}
 
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.2: ids through the one resolver)
+    r = links.address_resolver(nodes_dir.parent)
     for _nf, fm in _iter_frontmatter(nodes_dir):
         nid = fm.get("id")
         if not isinstance(nid, str) or not nid.strip():
@@ -783,7 +776,7 @@ def goal_attribution(nodes_dir: Path) -> dict:
         nid = nid.strip()
         types[nid] = str(fm.get("type") or "")
         raw = fm.get("parents")
-        parents[nid] = [p.strip() for p in raw if isinstance(p, str) and p.strip()] \
+        parents[nid] = [r(p.strip()) or p.strip() for p in raw if isinstance(p, str) and p.strip()] \
             if isinstance(raw, (list, tuple)) else []
         # Additional traversable fields: build inverse relationships for
         # forward-pointing edges so the upward walk can reach the source node.
@@ -794,7 +787,7 @@ def goal_attribution(nodes_dir: Path) -> dict:
             if isinstance(raw_other, list):
                 for v in raw_other:
                     if isinstance(v, str) and v.strip():
-                        tid = v.strip()
+                        tid = r(v.strip()) or v.strip()
                         extra_ascendants.setdefault(tid, []).append(nid)
         st = fm.get("status")
         # Same predicate as `deprecated_node_ids`, over an iteration this
@@ -1147,7 +1140,14 @@ def _find_root(start: Path) -> Path:
 
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] in ("-h", "--help"):
+        print("usage: metrics.py [<repo>/.agi]  (print the graph root's metrics as k=v lines)")
+        return 0
     root = Path(argv[0]) if argv else _find_root(Path.cwd())
+    if not (root / "nodes").is_dir():   # goal:g3.8: the repo root, not <repo>/.agi, read all-zero
+        print(f"ERR: metrics.py: {root} has no nodes/ (pass <repo>/.agi, the graph root)",
+              file=sys.stderr)
+        return 2
     emit(root)
     return 0
 

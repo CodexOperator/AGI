@@ -61,11 +61,12 @@ DECLARED_ARGV_FRAGMENTS = [
 ]
 
 
-def test_docstring_disambiguates_from_verify_unified():
-    """The two names are one keystroke apart; the docstring must say so first."""
-    first_two = "\n".join(VERIFY_SOURCE.splitlines()[:6])
-    assert "verify_unified" in first_two, "first paragraph must name the twin"
-    assert "NOT" in first_two or "not" in first_two
+def test_docstring_names_verify_unified_only_as_retired():
+    """verify_unified.py is retired (goal:g7.16.1.4.1.1): the docstring may
+    name it only as retired, never as a present twin."""
+    first_lines = "\n".join(VERIFY_SOURCE.splitlines()[:8])
+    if "verify_unified" in first_lines:
+        assert "retired" in first_lines, "name verify_unified only as retired"
 
 
 def test_no_declared_argv_is_literal_in_verification_py():
@@ -668,7 +669,7 @@ def test_lock_acquire_returns_path_and_no_holder(tmp_path):
 def test_lock_refusal_names_the_live_holder_pid(tmp_path, monkeypatch):
     """A refusal that does not name the holder tells a successor nothing it can
     act on. The live holder's pid comes back so the message can name it."""
-    lock = tmp_path / "sessions" / verification.SUITE_LOCK
+    lock = tmp_path / "sessions" / verification.suite_lock_name(tmp_path)
     lock.parent.mkdir(parents=True, exist_ok=True)
     lock.write_text("424242")
     monkeypatch.setattr(verification, "_pid_alive", lambda pid: pid == 424242)
@@ -680,11 +681,28 @@ def test_lock_refusal_names_the_live_holder_pid(tmp_path, monkeypatch):
     assert lock.read_text().strip() == "424242"
 
 
+def test_lock_unknown_hold_rule_falls_back_to_default_and_warns_once(tmp_path, monkeypatch, capsys):
+    """An unknown `values.core.suite_lock.hold` is refused with ONE warning;
+    the default live-foreign-pid rule still decides: a live foreign pid holds."""
+    groot = tmp_path / ".agi"
+    groot.mkdir()
+    (groot / "config.json").write_text(json.dumps({"values": {"core": {
+        "suite_lock": {"hold": "steal-it"}}}}))
+    monkeypatch.setattr(verification, "_SUITE_LOCK_REFUSED", set())
+    lock = groot / "sessions" / "verify-suite.lock"
+    lock.parent.mkdir(parents=True)
+    lock.write_text("424242")
+    monkeypatch.setattr(verification, "_pid_alive", lambda pid: pid == 424242)
+    assert verification.acquire_suite_lock(groot) == (None, 424242)
+    assert verification.acquire_suite_lock(groot) == (None, 424242)
+    assert capsys.readouterr().err.count("steal-it") == 1
+
+
 def test_lock_stale_pid_is_broken_and_reacquired(tmp_path, monkeypatch):
     """A dead holder is not a holder. The stale lock is broken, not obeyed —
     otherwise one killed run closes the window until somebody deletes a file by
     hand, and this loop has already had rounds killed mid-flight."""
-    lock = tmp_path / "sessions" / verification.SUITE_LOCK
+    lock = tmp_path / "sessions" / verification.suite_lock_name(tmp_path)
     lock.parent.mkdir(parents=True, exist_ok=True)
     lock.write_text("999999")
     monkeypatch.setattr(verification, "_pid_alive", lambda pid: False)
@@ -704,7 +722,7 @@ def test_suite_lock_guard_refuses_held_and_spawns_nothing(tmp_path, monkeypatch)
     3650-error conftest cascade is the thing being removed, so subprocess.run
     must not be invoked for the suite at all, and the refusal must not carry a
     conftest-error count."""
-    lock = tmp_path / "sessions" / verification.SUITE_LOCK
+    lock = tmp_path / "sessions" / verification.suite_lock_name(tmp_path)
     lock.parent.mkdir(parents=True, exist_ok=True)
     lock.write_text("424242")
     monkeypatch.setattr(verification, "_pid_alive", lambda pid: pid == 424242)
@@ -732,7 +750,7 @@ def test_main_suite_refusal_returns_named_code(tmp_path, monkeypatch, capsys):
     returns the NAMED exit code, never running the level (so pytest never
     spawns). The named code is what a caller abroad can tell from a "suite ran
     and failed."""
-    lock = tmp_path / "sessions" / verification.SUITE_LOCK
+    lock = tmp_path / "sessions" / verification.suite_lock_name(tmp_path)
     lock.parent.mkdir(parents=True, exist_ok=True)
     lock.write_text("424242")
     monkeypatch.setattr(verification, "_pid_alive", lambda pid: pid == 424242)
@@ -761,7 +779,7 @@ def test_suite_lock_guard_stale_proceeds(tmp_path, monkeypatch):
     """A dead pid is broken, NOT refused: the guard lets the suite proceed
     exactly as before, and the probe leaves the window free for the child
     conftest to acquire as the one live holder."""
-    lock = tmp_path / "sessions" / verification.SUITE_LOCK
+    lock = tmp_path / "sessions" / verification.suite_lock_name(tmp_path)
     lock.parent.mkdir(parents=True, exist_ok=True)
     lock.write_text("999999")
     monkeypatch.setattr(verification, "_pid_alive", lambda pid: False)
@@ -780,7 +798,7 @@ def test_suite_lock_guard_marker_naming_the_holder_proceeds(tmp_path,
     PROCEEDS, the lock file is left untouched (still held across the suite),
     and nothing hangs. A marker naming any OTHER pid changes nothing -- that
     is still a foreign hold and refuses."""
-    lock = tmp_path / "sessions" / verification.SUITE_LOCK
+    lock = tmp_path / "sessions" / verification.suite_lock_name(tmp_path)
     lock.parent.mkdir(parents=True, exist_ok=True)
     lock.write_text("424242")
     monkeypatch.setattr(verification, "_pid_alive", lambda pid: pid == 424242)
@@ -809,7 +827,7 @@ def test_suite_lock_guard_free_proceeds(tmp_path, monkeypatch):
 
     msg = verification._suite_lock_guard(tmp_path)
     assert msg is None
-    assert not (tmp_path / "sessions" / verification.SUITE_LOCK).exists()
+    assert not (tmp_path / "sessions" / verification.suite_lock_name(tmp_path)).exists()
 
 
 # --- the read-only holder judgement (hypothesis:l4-the-suite-lock-has-one-
@@ -821,7 +839,7 @@ def test_suite_lock_holder_live_foreign_pid_readonly(tmp_path, monkeypatch):
     """A LIVE foreign holder returns its pid and the READ touches nothing:
     same bytes, same mtime. The probe that used to poke the lock (planting a
     live pid for microseconds) now only reads it."""
-    lock = tmp_path / "sessions" / verification.SUITE_LOCK
+    lock = tmp_path / "sessions" / verification.suite_lock_name(tmp_path)
     lock.parent.mkdir(parents=True, exist_ok=True)
     lock.write_text("424242")
     before_mtime = lock.stat().st_mtime_ns
@@ -838,7 +856,7 @@ def test_suite_lock_holder_live_foreign_pid_readonly(tmp_path, monkeypatch):
 def test_suite_lock_holder_absent_creates_nothing(tmp_path):
     """Absent lock: None returned, NEVER a file created by the probe."""
     assert verification.suite_lock_holder(tmp_path) is None
-    assert not (tmp_path / "sessions" / verification.SUITE_LOCK).exists()
+    assert not (tmp_path / "sessions" / verification.suite_lock_name(tmp_path)).exists()
 
 
 def test_suite_lock_holder_dead_pid_left_for_the_acquirer(tmp_path,
@@ -846,7 +864,7 @@ def test_suite_lock_holder_dead_pid_left_for_the_acquirer(tmp_path,
     """A dead pid reads as None and the probe leaves the file for the
     acquirer (claim 3: stale-breaking is the acquirer's job, never the
     probe's). Opposite of the guard's own stale-break, stated as the choice."""
-    lock = tmp_path / "sessions" / verification.SUITE_LOCK
+    lock = tmp_path / "sessions" / verification.suite_lock_name(tmp_path)
     lock.parent.mkdir(parents=True, exist_ok=True)
     lock.write_text("999999")
     monkeypatch.setattr(verification, "_pid_alive", lambda pid: False)

@@ -1,0 +1,43 @@
+---
+id: hypothesis:a00-50a86053-4d374b
+mint_id: 1a53c2a4904c49118c5bb6ac013ba13c
+type: hypothesis
+parents:
+  - goal:g1.31.4.1
+next_edges: []
+edited_by: director-general-3
+loop: goal:g1.31.4.1@s2
+model: stealth/space-bunny-alpha
+profile: balanced
+role: kid
+scaffold_hash: 27cbfa9668d37f24
+season: 2
+testable_claim: "a scoped scan over non-goal nodes finds zero live assertions of the retired dry-run caveat (SUPERSEDED: the caveat_residue module is removed by DH.DG3.49; goal:g1.31.4.1 falsifier 2 is a named-line assertion on experiment:a00-eccace59-e6cb6a)"
+title: "Falsifier 2 as a scoped runnable check: the goal quotes the retired caveat it retires"
+town: core
+---
+# hypothesis:a00-50a86053-4d374b
+
+## Hypothesis
+
+goal:g1.31.4.1's falsifier 2 is **unsatisfiable as written** and a scoped,
+runnable replacement can be landed WITHOUT touching the goal's text.
+
+| claim | proves it | disproves it |
+|---|---|---|
+| C1 — the whole-tree grep can never be zero while the goal itself quotes the retired phrase | the goal's line-42 grep over `.agi/nodes` (the pattern lives in `caveat_residue.PHRASE`, not in prose here) returns 2, both inside `goal/g1.31.4.1.md` (end-state line 33, falsifier line 42) | the grep returns 0 with the goal text intact |
+| C2 — a check scoped to the node kinds that ASSERT findings is satisfiable and still red on a real residue | the scoped scan is empty on the live graph AND goes red when the phrase is planted in an `experiment/` node | the scoped scan is red on the live graph, or planting the phrase leaves it green |
+| C3 — the `goal/` exclusion is part of the claim, not a convenient filter | the exclusion is asserted in the test AND the goal's two quotes are proven to exist | the goal carries no quote of the phrase (then the exclusion is hiding nothing because there is nothing to hide) |
+
+## Why this shape and not a rewrite
+
+The parent's standing rule: a bar is never loosened by the reviewer who wanted
+it green. Re-pointing the goal's line 42 at a narrower grep would make the
+count zero and destroy the check — the goal is the node a reader most likely
+treats as the definition. So the goal text stays byte-identical; a SEPARATE,
+NAMED, RUNNABLE artifact carries the check and states its scope in prose, in
+the source, and in an assertion.
+
+## Test
+
+experiment:a00-50a86053-scoped-falsifier2

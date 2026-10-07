@@ -2,7 +2,8 @@
 """render.py -- the boxkit render helper (hyp:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes).
 One template per live piece under the cell paths.boxkit.templates_dir, one manifest row per piece. No literal
 path and no host token lives here: a destination is the cell named by dest_cell joined under install_root, the
-kit's own knobs come from values.boxkit.* (config -- the ONE source; there is no defaults.json), the per-box
+kit's own knobs come from values.boxkit.* (config -- the ONE source; there is no defaults.json), every memory
+number comes from config:guard through guard-init.sh's own arithmetic (sizing(), goal:g7.16.1.5.5.4), the per-box
 inputs are ARGUMENTS (measured, never a cell), and the identity tokens come from host_tokens() -- the running
 engine checkout and the paths.boxkit.guard_dir cell. An unfilled placeholder is refused BY NAME."""
 from __future__ import annotations
@@ -12,9 +13,13 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 PH = re.compile(r"\{\{([A-Z][A-Z0-9_]*)\}\}")
 PER_BOX = ("MEM_TOTAL", "SYS_RESERVE", "HELD_OUT", "SWAP_TOTAL")
-RATIOS = (("USER_HIGH", "user_high_ratio"), ("AGI_HIGH", "agi_high_ratio"),
-          ("AGI_MAX", "agi_max_ratio"), ("WORK_HIGH", "work_high_ratio"),
-          ("WORK_MAX", "work_max_ratio"))
+GUARD_INIT = HERE.parent / "guard" / "guard-init.sh"
+# guard-init's `num_cell VAR NAME DEFAULT ...` / `size_cell VAR NAME DEFAULT` lines
+CELL = re.compile(r"\b(?:num|size)_cell [A-Z][A-Z0-9_]* ([A-Z][A-Z0-9_]*) ([0-9][0-9.]*[MG]?)(?=[\s;]|$)", re.M)
+#: every placeholder sizing() fills: values.boxkit carries none of them
+MEMORY = ("USER_HIGH", "USER_SWAP", "AGI_MAX", "AGI_HIGH", "ENGINE_MAX", "ENGINE_HIGH", "WORK_MAX",
+          "WORK_HIGH", "MEM_LOW", "SYSTEM_MIN", "SSH_MIN", "ENGINE_SWAP", "USER_OOM_PCT", "AGI_OOM_PCT",
+          "OOMD_SWAP_PCT", "OOMD_PRESSURE_PCT", "OOMD_PRESSURE_SEC", "HEALTH_LIMIT", "HEALTH_GRACE")
 
 class KitError(Exception):
     """A refusal: unfilled placeholder, unknown dest cell, unlisted placeholder."""
@@ -63,21 +68,88 @@ def host_tokens(cfg, repo_root=None, guard_dir=None):
     return {"OWNER_USER": pwd.getpwuid(os.getuid()).pw_name, "UID": str(os.getuid()),
             "REPO_ROOT": str(repo), "GUARD_SRC": str(guard / "guard-init.sh")}
 
-def values(cfg, per_box=None, overrides=None):
+def guard_defaults(src=None):
+    """Every memory cell's default, read from guard-init.sh's own cell lines -- never copied here."""
+    return dict(CELL.findall(Path(src or GUARD_INIT).read_text(encoding="utf-8")))
+
+def guard_cells(root=None):
+    """THIS box's config:guard cells (locations.guard_cell) over guard-init's defaults; an
+    empty cell takes the default, as guard-init's hostvar does."""
+    import sys
+    sys.path.insert(0, str(HERE.parent / "bin"))
+    import locations
+    root = Path(root) if root else engine_checkout()
+    return {k: locations.guard_cell(root, k, d) or d for k, d in guard_defaults().items()}
+
+def _mib(size):
+    """guard-init's to_mib: 512M | 2G | 1.5G | bare MiB -> whole MiB, truncated."""
+    s = str(size).upper()
+    return int(float(s[:-1]) * 1024) if s.endswith("G") else int(float(s.rstrip("M")))
+
+#: the cells sizing() reads -- a guard-init line the CELL regex cannot parse is refused by name
+SIZING_CELLS = ("USER_HIGH_PCT", "USER_SWAP_PCT", "USER_SWAP_CAP", "AGI_MAX_PCT", "AGI_HIGH_PCT",
+                "ENGINE_MAX", "ENGINE_HIGH_PCT", "WORK_HIGH_PCT", "ENGINE_SWAP_MAX", "CLAUDE_LOW_DIV",
+                "CLAUDE_LOW_CAP", "SYSTEM_MIN", "SSH_MIN", "OOMD_LIMIT", "AGI_OOMD_LIMIT",
+                "OOMD_SWAP_USED_PCT", "OOMD_PRESSURE_PCT", "OOMD_PRESSURE_S", "PSI_FULL", "GRACE")
+#: the placeholders derived from user@'s max: blank (never guessed) when it is unknown
+FROM_BASE = ("USER_HIGH", "AGI_MAX", "AGI_HIGH", "WORK_MAX", "WORK_HIGH", "MEM_LOW")
+
+def sizing(user_max, swap_total, g, ram=None):
+    """guard-init.sh's arithmetic over the cells `g`, on user@'s max and the box's swap ->
+    the kit's memory placeholders. `user_max` None (a probe with no installed user@ cap)
+    leaves out only FROM_BASE, `swap_total` None only USER_SWAP; every other target stands.
+    Bash $(( )) truncates toward zero and // floors: the two agree on the operands here,
+    which are never negative -- a derived line <= 0 or > `ram` is refused before any value
+    is returned, as guard-init refuses it (goal:g7.16.1.5.5.8)."""
+    if missing := [k for k in SIZING_CELLS if k not in g]:
+        raise KitError("boxkit: guard-init cell line(s) %s not parsed from %s"
+                       % (", ".join(missing), GUARD_INIT.name))
+    n = lambda k: int(g[k])
+    engine_max, engine_swap = _mib(g["ENGINE_MAX"]), _mib(g["ENGINE_SWAP_MAX"])
+    sizes = {"ENGINE_MAX": engine_max, "ENGINE_HIGH": engine_max * n("ENGINE_HIGH_PCT") // 100,
+             "SYSTEM_MIN": _mib(g["SYSTEM_MIN"]), "SSH_MIN": _mib(g["SSH_MIN"])}
+    if swap_total is not None:
+        sizes["USER_SWAP"] = min(int(swap_total) * n("USER_SWAP_PCT") // 100, _mib(g["USER_SWAP_CAP"]))
+    if user_max is not None:
+        u = int(user_max)
+        if u <= 0:
+            raise KitError("boxkit: user@'s max is %dM: config:guard leaves it nothing" % u)
+        agi_max = u * n("AGI_MAX_PCT") // 100
+        work_max = agi_max - engine_max
+        sizes.update(USER_HIGH=u * n("USER_HIGH_PCT") // 100, AGI_MAX=agi_max,
+                     AGI_HIGH=agi_max * n("AGI_HIGH_PCT") // 100, WORK_MAX=work_max,
+                     WORK_HIGH=max(work_max, 0) * n("WORK_HIGH_PCT") // 100,
+                     MEM_LOW=min(u // n("CLAUDE_LOW_DIV"), _mib(g["CLAUDE_LOW_CAP"])))
+    bad = sorted(k for k in ("USER_HIGH", "AGI_MAX", "AGI_HIGH", "ENGINE_MAX", "ENGINE_HIGH",
+                             "WORK_MAX", "WORK_HIGH", "MEM_LOW")
+                 if k in sizes and (sizes[k] <= 0 or (ram is not None and sizes[k] > int(ram))))
+    bad += [k for k in ("SYSTEM_MIN", "SSH_MIN")             # MemoryMin: 0 legal, > RAM not
+            if ram is not None and sizes[k] > int(ram)]
+    if bad:
+        raise KitError("boxkit: config:guard sizes %s to <= 0 or more than RAM: %s"
+                       % (", ".join(bad), {k: sizes[k] for k in bad}))
+    out = {k: "%dM" % x for k, x in sizes.items()}
+    out.update(ENGINE_SWAP="%dM" % engine_swap if engine_swap else "0",
+               USER_OOM_PCT=str(n("OOMD_LIMIT")), AGI_OOM_PCT=str(n("AGI_OOMD_LIMIT")),
+               OOMD_SWAP_PCT=str(n("OOMD_SWAP_USED_PCT")), OOMD_PRESSURE_PCT=str(n("OOMD_PRESSURE_PCT")),
+               OOMD_PRESSURE_SEC="%ds" % n("OOMD_PRESSURE_S"),
+               HEALTH_LIMIT=str(n("PSI_FULL")), HEALTH_GRACE=str(n("GRACE")))
+    return out
+
+def values(cfg, per_box=None, overrides=None, guard=None):
     """values.boxkit.* is the ONE source for the kit's knobs; the per-box inputs are
-    ARGUMENTS (measured on this box, never a cell); caller overrides win over both."""
+    ARGUMENTS (measured on this box, never a cell); caller overrides win over both.
+    Every memory number is sizing() over config:guard: `guard` None = THIS box's cells,
+    a dict = those cells over guard-init's defaults (another box, a fixture)."""
     v = dict(cfg.get("values", {}).get("boxkit", {}) or {})
     v.update(per_box or {})
     if missing := [k for k in PER_BOX if k not in v]:
         raise KitError("boxkit: per-box input(s) %s are ARGUMENTS, not cells: pass "
                        "values(cfg, per_box={...}) with the measured values" % ", ".join(missing))
     v.update(overrides or {})
-    v["USER_MAX"] = v["MEM_TOTAL"] - v["SYS_RESERVE"] - v["HELD_OUT"]
-    for name, ratio in RATIOS:
-        v[name] = int(v[ratio] * v["USER_MAX"])
-    v["USER_SWAP"] = int(v["swap_ratio"] * v["SWAP_TOTAL"])
-    for k in ("USER_MAX", "USER_HIGH", "USER_SWAP", "AGI_HIGH", "AGI_MAX", "WORK_HIGH", "WORK_MAX"):
-        v[k] = "%dM" % v[k]          # systemd sizes carry the M suffix; the ratios truncate
+    user_max = v["MEM_TOTAL"] - v["SYS_RESERVE"] - v["HELD_OUT"]
+    g = guard_cells() if guard is None else {**guard_defaults(), **guard}
+    v.update(sizing(user_max, v["SWAP_TOTAL"], g, v["MEM_TOTAL"]), USER_MAX="%dM" % user_max)
     cells = cfg["paths"]["boxkit"]
     v.update(SBIN_ABS="/" + cells["sbin_dir"].lstrip("/"),
              WATCHDOG_CONF="/" + cells["watchdog_conf"].lstrip("/"),

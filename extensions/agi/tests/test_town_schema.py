@@ -8,7 +8,8 @@ Proves the schema loaded through the engine's reader ships the ruling's shape:
   * written_by = [prime_director, owner]  (town rows are prime/owner-written);
   * the schema REFUSES `branches:` as a cell BY NAME, and says so in the body
     (branches is DERIVED, never a cell);
-  * the spawn parent shape admits exactly one ladder parent.
+  * the spawn parent shape takes exactly one goal AND one vision parent (the
+    ladder parent is retired — hypothesis:g716111-z4-phase-a-graph-only-...).
 """
 from __future__ import annotations
 
@@ -55,7 +56,14 @@ def test_schema_required_and_written_by(engine_on_path):
     nf = _town_schema()
     fm = nf.frontmatter
     assert fm["validation"]["required"] == ["visions", "council", "season"]
-    assert fm["written_by"] == ["prime_director", "owner"]
+    # The admitted list is READ from the schema (one source); the pin is the
+    # floor [prime_director, owner] plus the TEMPORARY `director` admit (owner
+    # 22:21Z 09-30, until goal:g7.16.1.11 lands) -- and never a kid.
+    import links
+    admitted = links.parse_written_by(fm["written_by"])
+    assert {"prime_director", "owner"} <= admitted, admitted
+    assert admitted <= {"prime_director", "owner", "director"}, admitted
+    assert "kid" not in admitted, admitted
 
 
 def test_schema_refuses_branches_cell(engine_on_path):
@@ -71,9 +79,10 @@ def test_schema_refuses_branches_cell(engine_on_path):
     assert "DERIVED, NEVER a cell" in nf.body
 
 
-def test_schema_spawn_takes_one_ladder_parent(engine_on_path):
+def test_schema_spawn_takes_a_goal_and_a_vision_parent(engine_on_path):
     nf = _town_schema()
     spawn = nf.frontmatter["spawn"]
-    assert spawn["allowed_parents"] == ["ladder"]
-    assert spawn["min_parents"] == 1
-    assert spawn["max_parents"] == 1
+    assert spawn["parent_shapes"] == [["goal", "vision"]]
+    assert spawn["allowed_parents"] == ["goal", "vision"]
+    assert spawn["min_parents"] == 2
+    assert spawn["max_parents"] == 2

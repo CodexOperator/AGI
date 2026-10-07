@@ -80,7 +80,7 @@ def _cell_with(root: Path, active: str, templates: str) -> None:
         f"templates: {templates}\n---\n", "utf-8")
 
 
-# RED on the trunk at 82d64ffe7 -- find_node_file resolves nodes/deprecated/,
+# RED on the trunk at ef73dec71 -- find_node_file resolves nodes/deprecated/,
 # so a retired template passed; green since director-general-3's build.
 def test_a_retired_template_fails_the_check(groot):
     _node(groot, "deprecated/doc/retired.md", "doc:retired")
@@ -105,7 +105,7 @@ def test_the_switch_runs_through_write_py(groot):
 
 
 # --- goal:g7.16.1.2.6 · hypothesis:park-is-a-tag-that-set-active-drops
-# (council bundle 2, director-general-2). RED on the trunk at 82d64ffe7 -- the
+# (council bundle 2, director-general-2). RED on the trunk at ef73dec71 -- the
 # park was THOUGHT text and `set active` dropped nothing; green since
 # director-general-3's build.
 def test_set_active_drops_that_formations_park_tag(groot):
@@ -155,9 +155,9 @@ def test_the_schema_holds_the_park_tag_form(groot, tags, ok):
 # --- goal:g7.16.1.2.8 · hypothesis:formations-are-one-registry-with-one-home
 # The LIVE registry (a corpus row, like the thought-hygiene corpus test): every
 # registered template maps to a goal and lives in the one formations home.
-# RED on the trunk at 82d64ffe7 -- 4 of 6 map to "", and doc:council-loop sat
+# RED on the trunk at ef73dec71 -- 4 of 6 map to "", and doc:council-loop sat
 # under nodes/doc/ (council bundle 2, director-general-2); green since the
-# home move (e12ca48c7) and the Prime's templates cell (fee990795).
+# home move (51cedf89e) and the Prime's templates cell (2904f9b88).
 def test_the_live_registry_maps_every_template_to_a_goal_in_one_home():
     import locations, node_writer, yaml
     root = locations.find_project_root(Path(__file__).resolve())
@@ -307,7 +307,7 @@ def test_a_grep_error_fails_closed(groot, monkeypatch, how):
         monkeypatch.setenv("GIT_CONFIG_PARAMETERS", "bogus")    # real git, exit 128
     else:                                                       # real git, exit 128
         monkeypatch.setattr(subprocess, "run", lambda a, **kw: real(
-            [":(badmagic)." if x == "." else x for x in a], **kw))
+            [":(badmagic)." if x in (".", "*.md") else x for x in a], **kw))   # *.md: SM 103
     _cell(groot, "doc:two-step")
     r = verification.check_formation(groot)
     assert r.status == "FAIL" and ("fatal" in r.note + r.message

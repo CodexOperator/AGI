@@ -34,7 +34,7 @@ Subcommands:
       would make.
 
   status
-    - List tmux windows in sessions whose name starts with agi-master or
+    - List tmux windows in the post session (DEFAULT_TMUX_SESSION) and in sessions named agi-master* or
       belam, with their age.
 
 Both meter and spawn (and loop) refuse to run while the repo is checked out
@@ -45,6 +45,8 @@ to merges only.
 from __future__ import annotations
 
 import argparse
+import contextlib
+import fcntl
 import functools
 import json
 import os
@@ -367,7 +369,13 @@ def find_pin_log(root: Path, seat: str | None = None) -> Path | None:
         return None
     if seat is not None:
         sp = sessions / f"{seat}{METER_PIN_EXT}"
-        return sp if sp.is_file() else None
+        try:
+            return sp if sp.is_file() else None
+        except OSError:
+            # An unreadable sessions DIR makes is_file() raise, which would
+            # escape every meter caller (mur residue 2 on 0c16b7daf). A pin we
+            # cannot stat is UNKNOWN, the same reading as an absent one.
+            return None
     pins = sorted(sessions.glob(f"*{METER_PIN_EXT}"),
                   key=lambda p: p.stat().st_mtime)
     return pins[-1] if pins else None
@@ -435,12 +443,28 @@ def _parse_pin_record(pin: Path) -> tuple[int | None, str | None]:
 
 
 def _read_pin_target(pin: Path) -> Path | None:
-    """The transcript a pin names, or None when the pin is empty/absent."""
+    """The transcript a pin names, or None when the pin is empty/absent --
+    and also when the named path cannot be RESOLVED OR STAT'd by this uid
+    (EACCES/ELOOP/ENOTDIR). An unreadable pin is UNKNOWN, never fatal:
+    exactly the `None` an absent transcript already returns, which every
+    caller reads as "warn and skip" (`_seat_fraction` docstring; the same
+    doctrine as `_seat_idle_minutes`'s broken clock). It is NOT a zero
+    fraction. The measurement that provoked this guard is on
+    hypothesis:an-unreadable-meter-pin-is-unknown-never-a-traceback, not
+    here. NOTE this guards the STAT only: a path that stats but cannot be
+    OPENED is caught one call deeper, in `_seat_fraction`."""
     _, target = _parse_pin_record(pin)
     if not target:
         return None
-    lp = Path(target).expanduser().resolve()
-    return lp if lp.exists() else None
+    try:
+        lp = Path(target).expanduser().resolve()
+        return lp if lp.exists() else None
+    except (OSError, RuntimeError):
+        # MEASURED 10-01 (py3.12.3): a symlink loop makes `Path.resolve()`
+        # raise RuntimeError('Symlink loop'), NOT an OSError — so an
+        # `except OSError` alone still tracebacks, which mur residue 1 on
+        # 0c16b7daf caught. A loop is UNKNOWN like any other unreadable pin.
+        return None
 
 
 def resolve_transcript(*, root: Path, session_log: str | None = None,
@@ -679,7 +703,7 @@ def load_role(root: Path | None, tier: str, field: str):
                 val = row[field]
                 break
         if val is None:
-            h = (_config_json(root).get("harnesses") or {}).get("claude-code") or {}
+            h = adapters.harness_block(_config_json(root), "claude-code")
             if field == "model":
                 models = h.get("models") or {}
                 val = models.get(tier) or models.get("director")
@@ -919,7 +943,7 @@ def _harness_row(root: Path | None, harness: str | None) -> dict:
     """
     if root is None or not harness:
         return {}
-    return ((_config_json(root).get("harnesses") or {}).get(harness) or {})
+    return adapters.harness_block(_config_json(root), harness)
 
 
 def _resolved_harness_bin(root: Path | None, harness: str | None):
@@ -1023,7 +1047,7 @@ def _validate_harness(root: Path | None,
     if root is None:
         declared = list(_known_harnesses())
     else:
-        declared = sorted((_config_json(root).get("harnesses") or {}).keys())
+        declared = adapters.harness_ids(_config_json(root))
     if harness not in declared:
         print(f"ERR: no harness {harness!r} in config; declared: {declared}",
               file=sys.stderr)
@@ -1061,8 +1085,13 @@ def _build_copilot_command(*, prompt_text: str, model=None, effort=None,
 def _build_harness_command(harness: str | None, *, name: str,
                            prompt_text: str, debug_file: str, model=None,
                            effort=None, settings=None,
-                           bin_path: str | None = None) -> list[str]:
+                           bin_path: str | None = None,
+                           resume: str | None = None) -> list[str]:
     """The argv for the resolved harness, DISPATCHED ON ITS TEMPLATE.
+
+    `resume` (goal:g7.16.1.7.1.1.3): a session id the harness resumes; a
+    template with no `resume` slot REFUSES by name -- a resume never
+    silently becomes a fresh spawn.
 
     The ONE seam a harness enters `spawn_window` through. `harness` absent or
     `claude-code` renders `claude-code.toml` byte-identically to the old
@@ -1071,10 +1100,15 @@ def _build_harness_command(harness: str | None, *, name: str,
     is built, and one without raises `UnknownHarnessError` by name rather than
     silently falling back to claude (goal:g15).
     """
+    hid = harness or "claude-code"
+    if resume and not harness_template.has_slot(hid, "resume"):
+        raise harness_template.HarnessTemplateError(
+            f"{hid}: the template has no resume slot; refusing to resume "
+            f"session {resume} as a fresh spawn")
     return harness_template.render(
-        harness or "claude-code", prompt=prompt_text, model=model,
+        hid, prompt=prompt_text, model=model,
         effort=effort, settings=settings, name=name, debug_file=debug_file,
-        bin_path=bin_path)
+        bin_path=bin_path, resume=resume)
 
 
 def _successor_command(*, name: str, tier: str, prompt_file: str, model,
@@ -1117,6 +1151,7 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
                                  bin_path: str | None = None,
                                  project_root: Path | None = None,
                                  card_file: str | None = None,
+                                 post: str | None = None,
                                  dispatch_py: str =
                                  "extensions/agi/bin/dispatch.py",
                                  cli_py: str =
@@ -1133,7 +1168,9 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
     import brief  # local: same dir, may be absent in a misleading env
     body = None
     try:
-        body = brief.render(post=name, role=tier,
+        # goal:g7.16.1.7.1.2.1: the render reads the post's ROW -- a chain
+        # seat launches under its numeral window name, which has no row.
+        body = brief.render(post=post or name, role=tier,
                             harness=harness or "claude-code",
                             project_root=project_root, card_file=card_file)
     except (brief.RenderError, brief.FaithRefError) as exc:
@@ -1142,13 +1179,21 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
         # FaithRefError is named too -- brief.render reads moral:faith, so a
         # broken faith ref raised past the fallback and killed the rotation
         # (hypothesis:brief-render-hygiene-after-the-batch-mur).
-        print(f"rotate: brief.render refused for post {name!r} ({exc}); "
+        print(f"rotate: brief.render refused for post {post or name!r} ({exc}); "
               f"falling back to brief.assemble", file=sys.stderr)
         body = None
     if not body:
         parts = brief.assemble(tier=tier, agent_id=name, iter_n=0,
                                dispatch_py=dispatch_py, cli_py=cli_py,
                                project_root=project_root)
+        # goal:g7.16.1.7.1.2: a refused render still carries the post's live
+        # card, through brief's own card resolver (never a raw file read).
+        try:
+            parts.append(brief.card_text(
+                brief._resolve_graph_root(project_root), post or name,
+                card_file))
+        except Exception:  # noqa: BLE001 -- no card is the legacy body, as before
+            pass
         body = "\n\n".join(parts)
     if _is_ultracode(settings):
         # keyword as the first line of the user turn (see _successor_command)
@@ -1547,7 +1592,7 @@ def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None,
 def _post_unit(seat: str | None) -> str | None:
     """A seat launch's scope unit name (None = no seat, no unit): the ONE
     spelling `_shell_cmd` and the `successor_argv` stand-in share (CM9)."""
-    return f"agi-post-{re.sub(r'[^\w.-]', '_', seat)}-{int(time.time())}" if seat else None
+    return mem_cap.unit_name("agi-post", seat) if seat else None
 
 
 def _launch_wrapper_argv(seat: str, child_cmd: list[str]) -> list[str]:
@@ -1752,21 +1797,25 @@ def ensure_tmux_session(tmux_session: str, root: Path | None = None) -> None:
     has a server. The slice follows the `spawn.post_scope` cell of `root` (else
     the project found from cwd): live -> its slice; off -> NO slice, so the
     server never lands under a shared cap the owner has not chosen (residue 68).
-    Present = no-op; a failure is a warning (the new-window names the error)."""
+    No usable systemd-run -> a plain `tmux new-session` (C3, one builder:
+    mem_cap.scope_argv). Present = no-op; a failure is a warning (the
+    new-window names the error)."""
     try:
         if subprocess.run(["tmux", "has-session", "-t", tmux_session],
                           capture_output=True, text=True, timeout=10).returncode == 0:
             return
         root = root if root is not None else locations.find_project_root()
-        slice_ = mem_cap.resolve_post_scope(_config_json(root) if root is not None else {})
-        r = subprocess.run(["systemd-run", "--user", "--scope", "-q",
-                            *([f"--slice={slice_}"] if slice_ else []),
-                            f"--unit=agi-tmux-{tmux_session}-{int(time.time())}", "--",
-                            "tmux", "new-session", "-d", "-s", tmux_session],
-                           capture_output=True, text=True, timeout=30)
+        cfg = _config_json(root) if root is not None else {}
+        # C3 (goal:g7.16.1.7.1.1): the ONE scope builder; no usable systemd-run
+        # on this box -> a plain `tmux new-session` rather than a failed scope
+        argv = mem_cap.scope_argv(["tmux", "new-session", "-d", "-s", tmux_session],
+                                  mem_cap.resolve_post_scope(cfg),
+                                  mem_cap.unit_name("agi-tmux", tmux_session),
+                                  cfg, own_scope=True)
+        r = subprocess.run(argv, capture_output=True, text=True, timeout=30)
         if r.returncode != 0:
-            print(f"warn: could not create tmux session {tmux_session!r} in its own "
-                  f"scope: {(r.stderr or r.stdout).strip()}", file=sys.stderr)
+            print(f"warn: could not create tmux session {tmux_session!r}: "
+                  f"{(r.stderr or r.stdout).strip()}", file=sys.stderr)
     except (OSError, subprocess.SubprocessError) as exc:
         print(f"warn: tmux session ensure for {tmux_session!r} failed: {exc}",
               file=sys.stderr)
@@ -1827,9 +1876,103 @@ def _cutover_to_scopes(cgroup_dir, keep: int, posts: dict, *,
     return done
 
 
+@contextlib.contextmanager
+def post_launch_lock(root: Path, post: str):
+    """goal:g7.16.1.7.1.1.2 (goal:g6.41.1 P4) -- ONE launch lock per post:
+    `<shared sessions>/seats/<post>.launch.lock`, a non-blocking flock held
+    from the liveness check through the launch to the row write. Yields True
+    when this caller holds it, False when another stand-up of the same post
+    already does (the caller refuses by name; heal retries next pass). The
+    shared sessions dir, so MAIN and every worktree take the same lock. A lock
+    file that cannot be opened yields True: no lock is never a reason to leave
+    a dead post down."""
+    fd = None
+    held = False
+    try:
+        path = locations.shared_sessions_dir(root) / "seats" / f"{post}.launch.lock"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        fd = os.open(str(path), os.O_RDWR | os.O_CREAT, 0o600)
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            held = True
+        except BlockingIOError:
+            held = False
+    except OSError as exc:
+        print(f"warn: launch lock for {post!r} unavailable ({exc}); "
+              f"launching without it", file=sys.stderr)
+        held = True
+    try:
+        yield held
+    finally:
+        if fd is not None:
+            if held:
+                with contextlib.suppress(OSError):
+                    fcntl.flock(fd, fcntl.LOCK_UN)
+            os.close(fd)
+
+
+#: goal:g7.16.1.7.1.1.4 -- the callers of the ONE stand-up verb.
+STAND_UP_MODES = ("spawn", "rotate", "recover", "restart")
+#: goal:g7.16.1.7.1.4 (hypothesis:stand-up-verb-keys-every-mode-through-
+#: key-template) -- `stand_up` keys EVERY mode through `ensure_post_key`; the
+#: one exception is a body that keys the row itself (`cmd_spawn`: its ONE
+#: seating commit carries the cells via `_first_seating_key`, same template).
+KEYED_BY_STAND_UP = STAND_UP_MODES
+
+
+def stand_up(root: Path, post: str, body, *, mode: str,
+             keyed_in_body: bool = False):
+    """goal:g7.16.1.7.1.1.4 -- THE one stand-up of a post: its launch lock
+    around `body()`, which resolves (resume on a transcript, else fresh),
+    launches through `spawn_window` / `stand_up_launch` and writes the row.
+    spawn (`cmd_spawn`, `cmd_seats_launch`), rotate (`cmd_rotate_self`),
+    recover (heal) and a hand restart (`rotate.py stand-up`) are thin callers.
+    The ONLY taker of `post_launch_lock` (a flock is per open file: a nested
+    take of the same post would refuse itself). Returns `(True, body())`, or
+    `(False, reason)` when another stand-up of the post holds the lock --
+    named once on stderr, nothing launched. The post is keyed from
+    key_template first (`ensure_post_key`) unless `keyed_in_body`."""
+    if mode not in STAND_UP_MODES:
+        raise ValueError(f"stand_up: unknown mode {mode!r}")
+    with post_launch_lock(root, post) as held:
+        if not held:
+            why = f"launch lock held: another stand-up of {post} is in flight"
+            print(f"ERR: {mode} refused: {why}", file=sys.stderr)
+            return False, why
+        if (mode in KEYED_BY_STAND_UP and not keyed_in_body
+                and (note := ensure_post_key(root, post))):
+            print(note, file=sys.stderr)
+        return True, body()
+
+
+def _stand_up_key_plan(root: Path, post: str) -> str:
+    """A dry stand-up's key line: the SAME decision `stand_up` would take
+    (`ensure_post_key(dry_run=True)`), printed, nothing written."""
+    if (note := ensure_post_key(root, post, dry_run=True)):
+        print(note, file=sys.stderr)
+    return note
+
+
+def stand_up_launch(root: Path, name: str, shell_cmd: str,
+                    window_path: str | None = None, cwd=None):
+    """The recover / restart launch of `stand_up`: `launch_in_window` in the
+    seat tree (`cwd`, else MAIN's repo root -- never the graph dir). Returns
+    `(pid, window @id)`: pid `None` = launched, pid unknown (the ack resolves
+    it); `0` = the launch FAILED (heal records `detected`, the next pass
+    retries). `inline_max=0`: the prompt never goes to tmux inline (the 22:19Z
+    `command too long`); `timeout_ok=False`: a tmux timeout is not a launch."""
+    tree = Path(cwd) if cwd is not None else Path(
+        locations.git_common_root(Path(root)) or root)
+    rc, wid = launch_in_window(
+        DEFAULT_TMUX_SESSION, name, shell_cmd, cwd=tree, root=root,
+        inline_max=0, timeout_ok=False)
+    return (None, wid) if rc == 0 else (0, "")
+
+
 def _launch_window(tmux_session: str, name: str, shell_cmd: str, *,
                    cwd: str | None = None) -> int:
-    """Run `shell_cmd` in a new tmux window. Returns 0 on success.
+    """Run `shell_cmd` in a new tmux window. Returns 0 on success. The rc-only
+    face of `launch_in_window`, kept for the callers and stubs that take 3 args.
 
     `cwd` (hypothesis:l4-spawn-cds-into-the-row-worktree-cell-when-set) is
     the directory the launch line cds into. Absent/None is byte-for-byte
@@ -1847,50 +1990,87 @@ def _launch_window(tmux_session: str, name: str, shell_cmd: str, *,
        one worked and one did not -- a knife-edge, not a design. Above
        `_TMUX_ARG_SAFE` the command is written to a mode-0600 script and tmux
        is handed `bash <script>`, a few dozen bytes, so growth in the head or
-       the prompt can no longer break rotation. The script is deliberately
-       NOT deleted: bash reads a script incrementally, so removing it early
-       can truncate a running successor.
+       the prompt can no longer break rotation. The script is never deleted
+       EARLY: bash reads a script incrementally, so its own last line removes
+       it only after the successor exits (launch_in_window).
     2. **The return code was discarded.** `subprocess.run` captured tmux's
        stderr into a variable that was thrown away and the function returned
        0 unconditionally, so `command too long` never reached a human. The
        downstream window-existence check added at L3.33 caught the *symptom*;
        this returns the *cause*.
     """
-    ensure_tmux_session(tmux_session)  # goal:g6.41.1 P1: a server first, in its own scope
-    launch_cmd = f"cd {shlex.quote(cwd or os.getcwd())} && {shell_cmd}"
-    if len(launch_cmd) > _TMUX_ARG_SAFE:
-        fd, script = tempfile.mkstemp(prefix=f"agi-launch-{name}-",
-                                      suffix=".sh")
-        with os.fdopen(fd, "w", encoding="utf-8") as fh:
-            fh.write("#!/usr/bin/env bash\n")
-            fh.write(launch_cmd + "\n")
-        launch_cmd = f"bash {shlex.quote(script)}"
+    return launch_in_window(tmux_session, name, shell_cmd, cwd=cwd)[0]
+
+
+def launch_in_window(tmux_session: str, name: str, shell_cmd: str, *,
+                     cwd: str | Path | None = None, root: Path | None = None,
+                     inline_max: int = _TMUX_ARG_SAFE,
+                     timeout_ok: bool = True) -> tuple[int, str]:
+    """THE one tmux launch (goal:g7.16.1.7.1.1, B1): spawn, rotate, heal
+    recover and a hand restart all hand their shell line HERE. Returns
+    `(rc, window @id)`; rc 0 = handed to tmux. Never raises.
+
+    A line past `inline_max` bytes goes to a mode-0600 launch file and tmux
+    gets `bash <file>`; the file's last line deletes it once the pane's shell
+    is done (`rm -f "$0"`, after the command, so a running successor is never
+    truncated). heal passes `inline_max=0`: a recovery never hands tmux its
+    prompt inline. The file is KEPT iff the launch counts as handed off --
+    every other outcome unlinks it here, so no prompt is left in /tmp.
+    `timeout_ok` says whether a tmux timeout counts as handed off (rotate:
+    the window may still appear; heal: not launched, the next pass retries).
+    `root` reaches ensure_tmux_session, so the server scope follows the
+    project's spawn.post_scope cell, not the cwd's."""
+    script: str | None = None
+    handed_off = False
     try:
+        cd = f"cd {shlex.quote(str(cwd or os.getcwd()))} && "
+        launch_cmd = cd + shell_cmd
+        if len(launch_cmd) > inline_max:  # the file first: unwritable = tmux is never called
+            fd, script = tempfile.mkstemp(prefix=f"agi-launch-{name}-",
+                                          suffix=".sh")
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                fh.write("#!/usr/bin/env bash\n")
+                fh.write(shell_cmd.rstrip("\n") + "\n")
+                fh.write('rm -f "$0" 2>/dev/null || true\n')
+            launch_cmd = cd + f"bash {shlex.quote(script)}"
+        if root is None and cwd:  # SM rotate candidate: the launch tree's project, not the spawner's cwd
+            root = locations.find_project_root(cwd)
+        ensure_tmux_session(tmux_session, root)  # goal:g6.41.1 P1: a server first, in its own scope
         # L4.114 (s3): `-P -F '#{window_id}'` makes tmux print the new
         # window's @id on stdout so the caller can JOIN the successor by its
-        # WINDOW @id (the `-P` flag was missing here before this round; a
-        # rename/kill addressed the window by dotted name, which real tmux
-        # refuses — see proof (d), owned by kid 2). The @id is discarded when
-        # no one reads it; capture happens in _successor_window_id.
+        # WINDOW @id.
         proc = subprocess.run(
             ["tmux", "new-window", "-t", tmux_session, "-n", name,
              "-P", "-F", "#{window_id}", launch_cmd],
             capture_output=True, text=True, timeout=10,
         )
-    except FileNotFoundError:
-        print("ERR: tmux not found. Install tmux or pass --dry-run to preview.",
-              file=sys.stderr)
-        return 1
+        handed_off = proc.returncode == 0
+    except FileNotFoundError as exc:
+        print(f"ERR: {exc.filename or 'tmux'} not found (tmux absent? "
+              f"pass --dry-run to preview).", file=sys.stderr)
+        return 1, ""
     except subprocess.TimeoutExpired:
         print("warn: tmux new-window timed out — window may still be created.",
               file=sys.stderr)
-        return 0
+        handed_off = timeout_ok
+        return (0 if timeout_ok else 1), ""
+    except Exception as exc:  # noqa: BLE001 -- never raises (heal's watch pass)
+        print(f"ERR: launch of {name!r} failed: {exc}", file=sys.stderr)
+        return 1, ""
+    finally:
+        if script and not handed_off:
+            try:
+                os.unlink(script)
+            except OSError as exc:
+                print(f"warn: launch file {script} for {name!r} not removed: "
+                      f"{exc}", file=sys.stderr)
     if proc.returncode != 0:
         detail = (proc.stderr or proc.stdout or "").strip() or "<no output>"
         print(f"ERR: tmux new-window failed for {name!r} "
               f"(rc={proc.returncode}): {detail}", file=sys.stderr)
-        return proc.returncode
-    return 0
+        return proc.returncode, ""
+    out = (proc.stdout or "").strip()
+    return 0, (out.splitlines()[-1] if out else "")
 
 
 def spawn_window(*, name: str, tier: str, prompt_file: str,
@@ -1904,7 +2084,8 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                  successor_argv: str | None = None,
                  harness: str | None = None,
                  cwd: str | None = None,
-                 card_file: str | None = None) -> tuple[int, str]:
+                 card_file: str | None = None,
+                 resume: str | None = None) -> tuple[int, str]:
     """THE one launch path shared by `cmd_spawn` and `cmd_loop`
     (hypothesis:l3w4-seat-transport).
 
@@ -2003,6 +2184,17 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
         # resolved (env override, `~`/{home} expansion, PATH) here, before it
         # reaches the argv (hypothesis:harness-bin-paths-resolve-per-box).
         _bin = _resolved_harness_bin(root, harness)
+        # goal:g7.16.1.7.1.1.3: a RESUME carries its own transcript (the brief
+        # is already in it); the user turn is only `extra` (the resume line).
+        if resume:
+            try:
+                claude_cmd = _build_harness_command(
+                    harness, name=rc_name or name, prompt_text=extra or "",
+                    debug_file=dbg, model=model, effort=effort,
+                    settings=settings, bin_path=_bin, resume=resume)
+            except harness_template.HarnessTemplateError as exc:
+                print(f"ERR: {exc}", file=sys.stderr)
+                return 1, ""
         # A seat spawned with no explicit --prompt-file gets its body from the
         # assembled brief -- for EVERY tier, the prime included
         # (hypothesis:brief-py-assembles-every-first-turn-from-config; the
@@ -2011,13 +2203,13 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
         # skip successor_prompt() — calling both would double-insert it
         # (hypothesis:l3w4-liaison-seat). An explicit --prompt-file still wins
         # byte-for-byte.
-        if prompt_file is None:
+        elif prompt_file is None:
             claude_cmd = _assembled_successor_command(
                 name=name, rc_name=rc_name, tier=tier, model=model,
                 effort=effort,
                 settings=settings, debug_file=dbg, extra=extra,
                 harness=harness, bin_path=_bin, project_root=root,
-                card_file=card_file,
+                card_file=card_file, post=seat or name,
             )
         else:
             pf = Path(prompt_file).expanduser().resolve()
@@ -2147,7 +2339,79 @@ def _seat_worktree_cwd(root: Path | None, row: dict | None) -> str | None:
 
 
 def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
-    """Build and (unless --dry-run) run a `claude --remote-control` command."""
+    """Build and (unless --dry-run) run a `claude --remote-control` command.
+    A SEATED live spawn is a `stand_up(mode="spawn")` (goal:g7.16.1.7.1.1.4):
+    a second stand-up of the same post is refused."""
+    seat = getattr(args, "seat", None)
+    if seat is None or root is None or getattr(args, "dry_run", False):
+        return _cmd_spawn(args, root)
+    held, out = stand_up(root, seat, lambda: _cmd_spawn(args, root),
+                         mode="spawn", keyed_in_body=True)
+    return out if held else 1
+
+
+def cmd_stand_up(args: argparse.Namespace, root: Path | None,
+                 launcher=None) -> int:
+    """goal:g7.16.1.7.1.1.4 -- THE hand restart (skill agi-post): stand a
+    post back up by NAME through heal's own recover body under
+    `stand_up(mode="restart")` -- `--resume <sid>` when the row's session has
+    a transcript, a fresh spawn otherwise -- then the same crash-recovery
+    record heal writes, so the after_join service joins it. Refuses a post
+    whose row pid is alive or whose window @id is open: never a second live
+    session. `launcher` is the test seam (heal's recover launcher)."""
+    if root is None:
+        print("ERR: stand-up needs a project root (.agi/)", file=sys.stderr)
+        return 1
+    import heal as _heal  # noqa: PLC0415 -- same bin dir; heal imports rotate lazily
+    me = sys.modules[__name__]
+    post = args.post
+    row = _find_seat(root, post)
+    if row is None:
+        print(f"ERR: stand-up: no config:posts row named {post!r}",
+              file=sys.stderr)
+        return 1
+    if eng := row.get("engine"):  # C2 goal:g7.16.1.11: systemd owns the post
+        print(f"ERR: stand-up refused: {post} is engine v{eng.get('v') if isinstance(eng, dict) else eng} (systemd-owned)", file=sys.stderr)
+        return 1
+    gdir = _heal._seat_geometry_dir(root, row)
+    if gdir is not None:
+        row = _heal._live_seat_row(gdir, post, me) or row
+    window_path = getattr(args, "window_path", None)
+    windows = _heal._all_windows(window_path)
+    pid = int(row.get("pid", 0) or 0)
+    if pid > 0 and _heal._pid_alive(pid):
+        print(f"ERR: stand-up refused: {post} row pid {pid} is alive",
+              file=sys.stderr)
+        return 1
+    if _heal._window_present(row, windows, window_path=window_path,
+                             rows=_load_seats(root), _rotate=me)[0]:
+        print(f"ERR: stand-up refused: {post} window "
+              f"{row.get('window')} is open", file=sys.stderr)
+        return 1
+    now = time.time()
+    held, outcome = stand_up(root, post, lambda: _heal._recover_seat(
+        root, row, "hand-restart", me, windows=windows,
+        window_path=window_path, launcher=launcher, now=now),
+        mode="restart")
+    if not held:
+        return 1
+    cells = {k: row.get(k) for k in (
+        "name", "role", "model", "pid", "window", "session_id",
+        "generation", "worktree")}
+    _heal._write_crash_recovery(root, post, "hand-restart", cells, me, now,
+                                outcome)
+    how = "resumed" if outcome.get("resumed") else "fresh"
+    if not outcome.get("respawned"):
+        print(f"ERR: stand-up of {post} did not launch: "
+              f"{outcome.get('reason') or 'unknown'}", file=sys.stderr)
+        return 1
+    print(f"stood up {post} ({how}): {outcome.get('name')} gen "
+          f"{outcome.get('generation')} window {outcome.get('window') or '-'}")
+    return 0
+
+
+def _cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
+    """cmd_spawn's body (the lock is the caller's)."""
 
     if root is not None:
         guard = _check_branch_guard(root)
@@ -2245,7 +2509,10 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         # spawn-gate-and-autopsy-share-one-pid).
         _row_pid = None
         if root is not None:
-            _row_pid = (_find_seat(root, seat) or {}).get("pid")
+            _row_pid = (_erow := _find_seat(root, seat) or {}).get("pid")
+            if eng := _erow.get("engine"):  # C2 goal:g7.16.1.11: no 2nd seat
+                print(f"ERR: stand-up refused: {seat} is engine v{eng.get('v') if isinstance(eng, dict) else eng} (systemd-owned)", file=sys.stderr)
+                return 1
             if _pred_pid is None:
                 _pred_pid = _row_pid
         _alive_note = None
@@ -2394,14 +2661,17 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         # clause (3): the dry-run PLAN names the first key this seating would
         # mint -- the ONE `would key <seat>` line -- and mints / writes
         # NOTHING (the seating writes below never run on a dry-run).
-        _first_seating_key(root, seat, dry_run=True)
+        _cells, _note = _first_seating_key(root, seat, dry_run=True)
+        if _note:  # a keyed row with no key file: the remint plan line
+            print(_note)
 
     if not args.dry_run:
         print(f"spawned {name!r} in tmux session {tmux_session!r}")
         if getattr(args, "harness", None) == "copilot-cli":
-            # Copilot has no remote-control mode / app-GUI session to watch.
+            # goal:g1.31.4.2.1 #32: copilot runs with its shipped `--remote`
+            # (templates/harness/copilot-cli.toml), not claude.ai's mode.
             print(f"  watch the tmux window {name!r} directly "
-                  f"(copilot has no remote-control mode)")
+                  f"(copilot runs in its --remote mode, not claude.ai)")
         else:
             print(f"  watch at: https://claude.ai/chat (remote-control mode)")
         # A recovery seating gets its predecessor autopsy pre-filled from
@@ -3233,17 +3503,28 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
         "The predecessor's read-back reads THAT ack file and refuses an ack "
         "whose gen_after is not your generation."
     )
-    rc, _ = spawn_window(
-        name=name, tier=role,
-        prompt_file=args.prompt_file,
-        model=args.model, effort=args.effort,
-        settings=json.loads(args.settings) if args.settings else None,
-        tmux_session=tmux_session, window_path=args.window_path, root=root,
-        dry_run=args.dry_run, debug_file=args.debug_file, extra=continuation,
-        successor_argv=getattr(args, "successor_argv", None),
-        seat=getattr(args, "seat", None),
-        harness=getattr(args, "harness", None),
-    )
+    def _launch_successor():
+        return spawn_window(
+            name=name, tier=role,
+            prompt_file=args.prompt_file,
+            model=args.model, effort=args.effort,
+            settings=json.loads(args.settings) if args.settings else None,
+            tmux_session=tmux_session, window_path=args.window_path, root=root,
+            dry_run=args.dry_run, debug_file=args.debug_file, extra=continuation,
+            successor_argv=getattr(args, "successor_argv", None),
+            seat=getattr(args, "seat", None),
+            harness=getattr(args, "harness", None),
+        )
+    # goal:g7.16.1.7.1.1.4: the loop's successor launch is a
+    # `stand_up(mode="rotate")` keyed on the seat (else the successor name).
+    # the row is the RESOLVED seat (`seat-a-II` keys `seat-a`'s row)
+    _key_seat = getattr(args, "seat", None) or _resolve_seat_for_name(root, name)
+    if args.dry_run:
+        _stand_up_key_plan(root, _key_seat)
+        rc, _ = _launch_successor()
+    else:
+        held, out = stand_up(root, _key_seat, _launch_successor, mode="rotate")
+        rc = out[0] if held else 1
     if rc != 0:
         return rc
 
@@ -3337,7 +3618,7 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
             croot=send.comms_root(root, getattr(args, "comms_root", None)),
             seat=ack_seat, successor=name, gen_before=None, gen_after=None,
             trigger="--force" if getattr(args, "force", False) else "meter due",
-            handoff_path=str(Path(ack_path).expanduser().resolve()),
+            handoff_path=_tree_rel(root, ack_path),
             in_flight=("successor acked `diff-empty`; handoff stood"
                        if reply == "diff-empty"
                        else "successor acked `continue`; handoff stood"),
@@ -3397,8 +3678,8 @@ def _poll_record_terminal(path, deadline: float) -> tuple[bool, str]:
 
 
 def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
-    """List tmux windows in sessions whose name starts with agi-master or
-    belam; with `--seats`, list the registry seats instead — one line per
+    """List tmux windows in the post session (DEFAULT_TMUX_SESSION) and in
+    sessions whose name starts with agi-master or belam; with `--seats`, list the registry seats instead — one line per
     row of seat/fraction/age, plus `gen=<N>` for the Prime and
     `session=<id8>` for a generation-less non-prime post ("each layer lasts
     longer" is read here, never enforced).
@@ -3558,11 +3839,14 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
         print("(no tmux sessions)", file=sys.stderr)
         return 0
 
+    # goal:g1.31.4.2.1 #45: the post session (DEFAULT_TMUX_SESSION) holds
+    # every seat's window, belam-* included -- never filtered out.
     sessions = [s.strip() for s in result.stdout.strip().splitlines()
-                if s.strip().startswith("agi-master")
+                if s.strip() == DEFAULT_TMUX_SESSION
+                or s.strip().startswith("agi-master")
                 or s.strip().startswith("belam")]
     if not sessions:
-        print("(no agi-master or belam tmux sessions)")
+        print(f"(no {DEFAULT_TMUX_SESSION}, agi-master or belam tmux sessions)")
         return 0
 
     now = time.time()
@@ -4581,7 +4865,7 @@ def _suite_lock_state_readonly(groot: Path) -> str:
     not create or delete the lock file). Names the holder pid when the file
     holds a live pid, else 'free'."""
     import verification  # lazy: verification imports rotate
-    path = Path(groot) / "sessions" / verification.SUITE_LOCK
+    path = Path(groot) / "sessions" / verification.suite_lock_name(groot)
     if not path.exists():
         return "free"
     try:
@@ -5080,21 +5364,31 @@ def cmd_seats_launch(args: argparse.Namespace, root: Path) -> int:
             root, seat=name, role=tier, succ_name=name,
             tmux_session=tmux_session, dry_run=args.dry_run,
             generation=_rowgen)
-        rc, _ = spawn_window(
-            name=name,
-            tier=tier,
-            prompt_file=args.prompt_file,
-            model=row.get("model"),
-            effort=row.get("effort"),
-            settings=settings,
-            tmux_session=tmux_session,
-            window_path=args.window_path,
-            root=root,
-            dry_run=args.dry_run,
-            extra=startup_block,
-            seat=name,
-            successor_argv=getattr(args, "successor_argv", None),
-        )
+        def _launch_seat(name=name, tier=tier, settings=settings,
+                         startup_block=startup_block, row=row):
+            return spawn_window(
+                name=name,
+                tier=tier,
+                prompt_file=args.prompt_file,
+                model=row.get("model"),
+                effort=row.get("effort"),
+                settings=settings,
+                tmux_session=tmux_session,
+                window_path=args.window_path,
+                root=root,
+                dry_run=args.dry_run,
+                extra=startup_block,
+                seat=name,
+                successor_argv=getattr(args, "successor_argv", None),
+            )
+        # goal:g7.16.1.7.1.1.4: a seat's first seating is a
+        # `stand_up(mode="spawn")`; a dry run launches nothing, takes no lock.
+        if args.dry_run:
+            _stand_up_key_plan(root, name)
+            rc, _ = _launch_seat()
+        else:
+            held, out = stand_up(root, name, _launch_seat, mode="spawn")
+            rc = out[0] if held else 1
         if rc != 0:
             print(f"ERR: launch failed for seat {name!r} (rc={rc})",
                   file=sys.stderr)
@@ -6024,6 +6318,21 @@ def _successor_address(name: str, ref: str = "",
     return f"{name} (pre-join: successor ref not yet resolved)"
 
 
+def _tree_rel(root: Path, p) -> str:
+    """A path as a peer reads it in an announcement: relative to the MAIN
+    checkout, else to its own repo; outside both -> the file name only
+    (goal:g7.16.1.7.1.1, SM rotate candidate: the absolute handoff path carried
+    the box's home layout into every peer's inbox). Never raises."""
+    p = Path(p).expanduser()
+    for base in (lambda r: locations.repo_root(locations.git_common_root(r)),
+                 locations.repo_root):  # no git: git_common_root is the graph dir itself
+        try:
+            return str(p.resolve().relative_to(Path(base(root)).resolve()))
+        except Exception:  # noqa: BLE001 -- not under it / not a repo: next base
+            continue
+    return p.name
+
+
 def _compose_announcement(*, seat, successor, gen_before, gen_after,
                           trigger, handoff_path, in_flight, seq=0,
                           successor_ref: str = "",
@@ -6735,20 +7044,32 @@ def _first_seating_key(root: Path, seat: str,
     import write as _w  # local: same dir (send.py pattern, no cycle)
     row = next((r for r in _w._load_seats(_shared_graph_root(root))
                 if r.get("name") == seat), None)
-    if not row or row.get("pubkey"):
-        return {}, ""
-    if dry_run:
-        print(f"would key {seat}")
+    if not row:
         return {}, ""
     import send  # local: same dir, no import cycle (send.py pattern)
-    scheme = str(row.get("sig_scheme") or send.seatsig.DEFAULT_SCHEME)
-    minted = send._mint_seat_key(root, seat, scheme)
-    if minted is None:
+    # goal:g7.16.1.7.1.4 (run-27 residue 159): the seating keys from
+    # key_template too -- a keyed row whose key file is absent takes the
+    # own-box remint rule (its own rekey commit), an existing key file on an
+    # unkeyed row is adopted, the template names the scheme.
+    if row.get("pubkey"):
+        if _key_present(send, root, seat):
+            return {}, ""
+        return {}, _rotate_first_key(root, None, seat, row, dry_run=dry_run)
+    tmpl = key_template(root)
+    if dry_run:  # the plan names the decision the real run takes
+        verb = _key_decision(send, root, seat, tmpl)[0]
+        if verb != "leave":
+            print(f"would key {seat}: would {verb}")
         return {}, ""
-    _path, pub = minted
+    scheme = str(row.get("sig_scheme") or tmpl.get("scheme")
+                 or send.seatsig.DEFAULT_SCHEME)
+    keyed = _template_key(send, root, seat, scheme, tmpl)
+    if keyed is None:
+        return {}, ""
+    scheme, pub, _path, verb = keyed
     return ({"pubkey": pub.hex(), "sig_scheme": scheme,
              "enc_scheme": row.get("enc_scheme") or "none"},
-            f"[seating] seat {seat!r} was unkeyed: minted its first key at "
+            f"[seating] seat {seat!r} was unkeyed: {verb} at "
             f"{_path} ({send.seatsig.fingerprint(pub)})")
 
 
@@ -7352,8 +7673,12 @@ def _kill_window(name: str, tmux_session: str,
 def _seat_fraction(root: Path, row: dict) -> float | None:
     """Context fraction for a seat row: read its seat-stable pin
     (`pin_ref` -> `.agi/sessions/<name>.meter`), parse the named transcript,
-    and divide by the ladder's context window. None when the pin or a usage
-    record is absent (caller warns and skips the seat)."""
+    and divide by the ladder's context window. None when the pin, the
+    transcript, or a usage record is absent or UNREADABLE (the caller warns
+    and skips the seat). The transcript READ is guarded here, not only the
+    stat in `_read_pin_target`: a file this uid may stat but not open is
+    still UNKNOWN, never a raised PermissionError out of `status`
+    (hypothesis:an-unreadable-meter-pin-is-unknown-never-a-traceback)."""
     name = row.get("name")
     if not name:
         return None
@@ -7367,9 +7692,15 @@ def _seat_fraction(root: Path, row: dict) -> float | None:
     target = _read_pin_target(pin)
     if target is None:
         return None
-    usage = parse_usage_from_cc_transcript(target)
-    if usage is None:
-        usage = parse_usage_from_rc_log(target)
+    try:
+        usage = parse_usage_from_cc_transcript(target)
+        if usage is None:
+            usage = parse_usage_from_rc_log(target)
+    except OSError:
+        # EXISTS but unreadable (EACCES on the file itself, not on a parent
+        # dir). The stat seam in _read_pin_target cannot see this; without
+        # this guard `rotate.py status` still dies on the first sealed seat.
+        return None
     if usage is None:
         return None
     context_tokens = load_ladder_field(root, "director_context_tokens",
@@ -15460,7 +15791,11 @@ def _record_accepted(rec) -> bool:
     # pin -> pending ack) runs exactly as a rotated seat's does.
     crash_ok = (rec.get("rotation") == "crash-recovery"
                 and rec.get("result") == "respawned")
-    return bool(ok_result or crash_ok)
+    # goal:g6.41.1.1: heal's boot-resume record (a session resumed after a
+    # reboot outside heal's recovery) gets the same one after_join wake.
+    boot_ok = (rec.get("rotation") == "boot-resume"
+               and rec.get("result") == "resumed")
+    return bool(ok_result or crash_ok or boot_ok)
 
 
 def _record_stamp_key(path: Path) -> str:
@@ -17418,6 +17753,315 @@ def _rotate_key_gate(root: Path, seat: str, row: dict | None) -> str | None:
             f"own signing key to rotate).")
 
 
+#: goal:g7.16.1.7.1.4 -- the season-2 seat-key template when
+#: config:key-authority carries no `key_template` cell: kind and forgiving.
+#: `scheme` "" = seatsig's default; `existing_key` "adopt" = a key file whose
+#: row names no pubkey is adopted (its pubkey written), "leave" = left alone.
+#: `missing_key` (council ruling 09-30): a KEYED row with no key file here is
+#: "remint_on_own_box" -- re-keyed only when the row's `box` cell is THIS box
+#: (boxes.this_box, never a caller value), the old key retired UNSIGNED --
+#: or "refuse". `witness` "box_cell_commit" = that retirement cites the
+#: commit that put the row's box cell on this box; none found = refused.
+KEY_TEMPLATE_DEFAULT = {"scheme": "", "existing_key": "adopt",
+                        "missing_key": "remint_on_own_box",
+                        "witness": "box_cell_commit"}
+
+
+def key_template(root: Path) -> dict:
+    """goal:g7.16.1.7.1.4 -- THE seat-key template: config:key-authority's
+    `key_template` cell over KEY_TEMPLATE_DEFAULT (unknown keys ignored).
+    Never raises: a template that cannot be read is the default."""
+    out = dict(KEY_TEMPLATE_DEFAULT)
+    try:
+        import send  # local: same dir, no import cycle (send.py pattern)
+        from node_writer import find_node_file
+        path = find_node_file(send._main_graph_root(root), "config:key-authority")
+        if path is not None:
+            cell = (send._fm.load_node_file(path, body=False).frontmatter
+                    or {}).get("key_template")
+            if isinstance(cell, dict):
+                out.update({k: v for k, v in cell.items() if k in out})
+    except Exception:  # noqa: BLE001 -- see docstring
+        pass
+    return out
+
+
+def _existing_seat_key(send, root: Path, seat: str):
+    """`(scheme name, pub)` of the seat's existing key file, or None."""
+    try:
+        obj = json.loads(send._seat_key_path(root, seat).read_text())
+        pub = send.seatsig.get(obj["scheme"]).public_from_secret(
+            bytes.fromhex(obj["priv_hex"]))
+        return obj["scheme"], pub
+    except Exception:  # noqa: BLE001 -- unreadable = nothing to adopt
+        return None
+
+
+def _box_cell_witness(root: Path, seat: str, box: str) -> str:
+    """The short sha of the commit that put `seat`'s row `box` cell on `box`
+    in MAIN's posts node: the newest commit whose row reads `box` while its
+    parent's does not (the row's birth commit when it was born there). ''
+    when no commit shows it. Bounded; never raises."""
+    try:
+        main_root = _shared_graph_root(root)
+        top = _git_toplevel(main_root)
+        if top is None:
+            return ""
+        rel = os.path.relpath(_ack_seats_path(main_root), top)
+        pat = re.compile(r'"name":\s*"%s"' % re.escape(seat))
+
+        def box_at(rev: str) -> str | None:
+            out = subprocess.run(["git", "-C", str(top), "show", f"{rev}:{rel}"],
+                                 capture_output=True, text=True, timeout=10)
+            line = next((ln for ln in out.stdout.splitlines() if pat.search(ln)), None)
+            if out.returncode != 0 or line is None:
+                return None
+            m = re.search(r'"box":\s*"([^"]*)"', line)
+            return m.group(1) if m else ""
+
+        revs = subprocess.run(
+            ["git", "-C", str(top), "log", "--format=%h", "-n", "200",
+             "-G", pat.pattern, "--", rel],
+            capture_output=True, text=True, timeout=20).stdout.split()
+        for rev in revs:
+            if box_at(rev) != box:
+                return ""
+            if box_at(f"{rev}^") != box:
+                return rev
+        return ""
+    except Exception:  # noqa: BLE001 -- no witness is a refusal, not a crash
+        return ""
+
+
+def _key_finding(root: Path, seat: str, line: str) -> str:
+    """ONE finding to the Prime (the `prime_director` row) per seat and
+    finding: a repeat stand-up of the same case sends nothing. Returns the
+    line for the caller's note. Never raises."""
+    try:
+        import send  # local: same dir, no import cycle (send.py pattern)
+        mark = locations.shared_sessions_dir(root) / "seats" / f"{seat}.key-finding"
+        if mark.is_file() and mark.read_text(encoding="utf-8") == line:
+            return line
+        import write as _w
+        prime = next((str(r.get("name")) for r in _w._load_seats(_shared_graph_root(root))
+                      if r.get("role") == "prime_director" and r.get("name")), "")
+        if prime:
+            send.send(root, prime, line, "heal")
+        mark.parent.mkdir(parents=True, exist_ok=True)
+        mark.write_text(line, encoding="utf-8")
+    except Exception as exc:  # noqa: BLE001
+        print(f"warn: key finding for {seat!r} not sent ({exc})", file=sys.stderr)
+    return line
+
+
+def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
+                        dry_run: bool = False) -> str:
+    """goal:g7.16.1.7.1.4, council ruling 09-30 -- a KEYED row whose key file
+    is absent here. Re-keyed ONLY on the row's own box (`box` cell ==
+    boxes.this_box; an undeclared box proves nothing) and only with a witness
+    commit for that box cell; the old key goes into key_history UNSIGNED with
+    reason, box, witness and time, plus ONE finding. Anything else REFUSES
+    with ONE finding naming row and box -- never a keygen hint."""
+    if tmpl.get("missing_key") != "remint_on_own_box":
+        return ""
+    import boxes
+    import write as _w  # local: same dir (send.py pattern, no cycle)
+    # the row's box from MAIN's posts node, never the caller's row dict
+    node_row = next((r for r in _w._load_seats(_shared_graph_root(root))
+                     if r.get("name") == seat), {})
+    own = str(node_row.get("box") or "").strip()
+    try:
+        here = boxes.this_box(root)
+    except Exception:  # noqa: BLE001 -- an undeclared box is never own
+        here = ""
+    refusal, witness = "", ""
+    if not own or own != here:
+        refusal = (f"[finding] {seat}: keyed row, no key file, row box "
+                   f"{own or '(none)'} is not this box {here or '(undeclared)'} "
+                   f"-- a moved seat or a stolen identity; remint REFUSED")
+    else:
+        witness = (_box_cell_witness(root, seat, own)
+                   if tmpl.get("witness") == "box_cell_commit" else "none")
+        if not witness:
+            refusal = (f"[finding] {seat}: keyed row, no key file, own box "
+                       f"{own}, but no commit witnesses the row's box cell -- "
+                       f"remint REFUSED")
+    if dry_run:  # run-27 residue 160: a dry run sends no finding, writes nothing
+        if refusal:
+            return f"(dry-run) {refusal[len('[finding] '):]} -- NOTHING sent"
+        staged, n = _orphan_staged_keys(send, root, seat, str(row.get("pubkey") or ""), True)
+        verb = (f"ADOPT its orphan staged key and sweep {n}" if staged
+                else f"remint (witness {witness}) and sweep {n}")
+        return (f"(dry-run) seat {seat!r} is keyed with no key file on its own box {own}; would {verb} -- NOTHING done")
+    if refusal:
+        return _key_finding(root, seat, refusal)
+    # 158c: a crash between the row write and the rename left the row naming
+    # a key that lives only in an orphan temp -- adopt it, sweep the rest.
+    old = str(row.get("pubkey"))
+    kp = send._seat_key_path(root, seat)
+    if kp.exists() and not kp.stat().st_size:  # a crash-left empty file is missing
+        kp.unlink()                            # (before the adopt links over it)
+    adopt, swept = _orphan_staged_keys(send, root, seat, old, False)
+    if adopt is not None:
+        try:
+            send._place_seat_key(adopt, send._seat_key_path(root, seat))
+        except OSError as exc:
+            return f"seat {seat!r}: remint held -- orphan staged key not placed ({exc})"
+        note = (f"seat {seat!r}: key file absent on own box {own} (witness {witness}); "
+                f"ADOPTED its orphan staged key "
+                f"{send.seatsig.fingerprint(bytes.fromhex(old))}, {swept} temp swept")
+        try:
+            _cn = _commit_spawn_row(
+                root, seat=seat, generation=_read_generation(root, seat),
+                session_id=str(row.get("session_id") or ""),
+                window=str(row.get("window") or ""),
+                pid=int(row.get("pid") or 0), rekey=True)
+            note += f"; {_cn.splitlines()[0]}"
+        except Exception as exc:  # noqa: BLE001
+            note += f"; key row commit not performed ({exc})"
+        _key_finding(root, seat, f"[finding] {note}"); return note
+    # 158 + 158b: the key is STAGED (hidden 0600 temp) before the row names
+    # it; a refused write or a failed rename unlinks it (row restored).
+    scheme = row.get("sig_scheme") or tmpl.get("scheme") or send.seatsig.DEFAULT_SCHEME
+    try:
+        staged = send._mint_seat_key(root, seat, scheme, stage=True)
+    except OSError as exc:
+        return f"seat {seat!r}: remint held -- key file not staged ({exc}); row untouched"
+    if staged is None:
+        return f"seat {seat!r}: remint held -- a key file appeared; row untouched"
+    tmp, pub = staged
+    entry = {"pub": old, "fp": send.seatsig.fingerprint(bytes.fromhex(old)),
+             "signed": False, "reason": "key file absent on own box",
+             "box": own, "witness": witness,
+             "at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}
+    cells = {"pubkey": pub.hex(), "sig_scheme": scheme,
+             "enc_scheme": row.get("enc_scheme") or "none",
+             "key_history": list(row.get("key_history") or []) + [entry]}
+    try:
+        if not _write_identity_cells(root, seat=seat, actor=seat,
+                                     role=str(row.get("role") or ""), cells=cells):
+            tmp.unlink(missing_ok=True)
+            return f"seat {seat!r}: remint held -- row write not admitted; no key file written"
+    except Exception as exc:  # noqa: BLE001
+        tmp.unlink(missing_ok=True)
+        return f"seat {seat!r}: remint held -- row write not admitted ({exc}); no key file written"
+    try:
+        send._place_seat_key(tmp, send._seat_key_path(root, seat))
+    except OSError as exc:
+        tmp.unlink(missing_ok=True)
+        what = ("a key file appeared" if isinstance(exc, FileExistsError)
+                else f"key file not placed ({exc})")
+        back = {"pubkey": old, "sig_scheme": row.get("sig_scheme") or scheme,
+                "enc_scheme": row.get("enc_scheme") or "none",
+                "key_history": list(row.get("key_history") or [])}
+        try:
+            restored = bool(_write_identity_cells(
+                root, seat=seat, actor=seat, role=str(row.get("role") or ""),
+                cells=back))
+        except Exception:  # noqa: BLE001
+            restored = False
+        return (f"seat {seat!r}: remint held -- {what}; "
+                f"row {'restored' if restored else 'NOT restored'} to {entry['fp']}")
+    note = (f"seat {seat!r}: key file absent on own box {own}; reminted "
+            f"{send.seatsig.fingerprint(pub)}, old key {entry['fp']} retired "
+            f"UNSIGNED (witness {witness})")
+    try:
+        _cn = _commit_spawn_row(
+            root, seat=seat, generation=_read_generation(root, seat),
+            session_id=str(row.get("session_id") or ""),
+            window=str(row.get("window") or ""),
+            pid=int(row.get("pid") or 0), rekey=True)
+        note += f"; {_cn.splitlines()[0]}"
+    except Exception as exc:  # noqa: BLE001
+        note += f"; key row commit not performed ({exc})"
+    _key_finding(root, seat, f"[finding] {note}")
+    return note
+
+
+def _key_present(send, root: Path, seat: str) -> bool:
+    """A key file that holds bytes (a zero-length crash leftover is missing)."""
+    p = send._seat_key_path(root, seat)
+    return p.exists() and p.stat().st_size > 0
+
+
+def _key_decision(send, root: Path, seat: str, tmpl: dict):
+    """The ONE mint | adopt | leave decision of an unkeyed row, shared by the
+    real run and every dry plan: `(verb, found)`, `found` = the adopted
+    `(scheme, pub)`."""
+    if not _key_present(send, root, seat):
+        return "mint", None
+    found = (_existing_seat_key(send, root, seat)
+             if tmpl.get("existing_key") == "adopt" else None)
+    return ("adopt", found) if found else ("leave", None)
+
+
+def _template_key(send, root: Path, seat: str, scheme: str, tmpl: dict):
+    """The ONE key step of an unkeyed row (seating and every stand-up):
+    mint through `send._mint_seat_key`, or -- a key file already there --
+    adopt it when the template says `existing_key: adopt`. Returns
+    `(scheme, pub, path, verb)`, or None (the key file is left alone)."""
+    verb, found = _key_decision(send, root, seat, tmpl)
+    if verb == "mint":
+        send._seat_key_path(root, seat).unlink(missing_ok=True)  # empty leftover
+        minted = send._mint_seat_key(root, seat, scheme)
+        if minted is None:
+            return None
+        return scheme, minted[1], minted[0], "minted its first key"
+    if verb == "leave":
+        return None
+    return (*found, send._seat_key_path(root, seat), "adopted its existing key")
+
+
+#: 158c: an orphan temp is touched (adopted or unlinked) only once it is this
+#: old. A YOUNGER one may be a CONCURRENT remint's in-flight stage (between its
+#: keygen and its placement); renaming or unlinking it destroys a live private
+#: key mid-mint, so a young temp -- match or not -- is left alone.
+ORPHAN_TEMP_GRACE_S = 300
+
+
+def _orphan_staged_keys(send, root: Path, seat: str, pub_hex: str, dry_run: bool):
+    """158c -- `seat`'s orphan temps past `ORPHAN_TEMP_GRACE_S`: the one whose
+    secret derives the row's CURRENT pubkey is adopted, the rest unlinked.
+    `(match, would_sweep)` -- the count a dry run reports is what it WOULD
+    unlink, not every temp it saw. A temp that vanishes mid-scan is skipped."""
+    path = send._seat_key_path(root, seat)
+    cutoff = time.time() - ORPHAN_TEMP_GRACE_S
+    match, swept = None, 0
+    for tmp in sorted(path.parent.glob(f".{path.name}.*.tmp")):
+        try:
+            if tmp.stat().st_mtime > cutoff:  # possibly a live mint's stage
+                continue
+            obj = json.loads(tmp.read_text())
+            hit = match is None and send.seatsig.get(obj["scheme"]).public_from_secret(
+                bytes.fromhex(obj["priv_hex"])).hex() == pub_hex
+        except FileNotFoundError:  # vanished: someone else's, skip
+            continue
+        except Exception:  # noqa: BLE001 -- unreadable is not the key
+            hit = False
+        if hit:
+            match = tmp
+        else:
+            swept += 1
+            if not dry_run:
+                tmp.unlink(missing_ok=True)
+    return match, swept
+
+
+def ensure_post_key(root: Path, post: str, dry_run: bool = False) -> str:
+    """goal:g7.16.1.7.1.4 -- every stand-up keys its post: the post's own
+    config:posts row, when it names no pubkey, is keyed from `key_template`
+    through `_rotate_first_key` (mint, or adopt an existing key file), row
+    cells written and committed. No model runs keygen. Returns the one-line
+    note ('' = nothing to do). Never raises: a key never blocks a stand-up."""
+    try:
+        import write as _w  # local: same dir (send.py pattern, no cycle)
+        row = next((r for r in _w._load_seats(_shared_graph_root(root))
+                    if r.get("name") == post), None)
+        return _rotate_first_key(root, None, post, row, dry_run=dry_run)
+    except Exception as exc:  # noqa: BLE001 -- see docstring
+        return f"warn: {post!r} key not assigned ({exc})"
+
+
 def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
                       dry_run: bool = False) -> str:
     """rotate-self KEY-GATING, line (1) MINTING half (hypothesis
@@ -17441,28 +18085,34 @@ def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
     naming the mint it would perform) so a caller on an unkeyed real row sees
     the refusal/mint plan without a side effect.
     """
-    if not row or row.get("pubkey"):
+    if not row:
         return ""
     import send  # local: same dir, no import cycle (send.py pattern)
-    scheme = row.get("sig_scheme") or send.seatsig.DEFAULT_SCHEME
+    if row.get("pubkey"):
+        if _key_present(send, root, seat):
+            return ""
+        return _remint_missing_key(send, root, seat, row, key_template(root),
+                                   dry_run=dry_run)
+    tmpl = key_template(root)
+    scheme = (row.get("sig_scheme") or tmpl.get("scheme")
+              or send.seatsig.DEFAULT_SCHEME)
     if dry_run:
         # dry-run is a planning check: report what an unkeyed real row would
         # do, but mint NOTHING and write NO row cell. Already-keyed rows
         # (above) and idempotent re-rotates (key file already exists, so the
         # live path would mint nothing) both return '' -- nothing to report.
-        if send._seat_key_path(root, seat).exists():
-            return ""
+        verb = _key_decision(send, root, seat, tmpl)[0]
+        if verb != "mint":
+            return (f"(dry-run) seat {seat!r} is unkeyed; would adopt its "
+                    f"existing key -- NOTHING done") if verb == "adopt" else ""
         return (f"(dry-run) seat {seat!r} is unkeyed; would mint its first "
                 f"key at {send._seat_key_path(root, seat)} (0600) and write "
                 f"its pubkey cells -- NOTHING done")
-    minted = send._mint_seat_key(root, seat, scheme)
-    if minted is None:
-        # a key file already exists though the row is unkeyed -- idempotent
-        # re-rotate; leave it, the next rotation sees the row still unkeyed
-        # and re-passing the gate. Nothing to do here.
+    keyed = _template_key(send, root, seat, scheme, tmpl)
+    if keyed is None:
         return ""
-    _path, pub = minted
-    note = (f"rotating seat {seat!r} was unkeyed; minted its first key at "
+    scheme, pub, _path, verb = keyed
+    note = (f"seat {seat!r} was unkeyed; {verb} at "
             f"{_path} (incremental fleet keying) -- "
             f"{send.seatsig.fingerprint(pub)}")
     _row_keyed = False
@@ -19497,18 +20147,23 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # goal:g15.25 line (1) -- rotate-self is KEY-GATED. A keyed seat cannot
     # rotate without its own signing key file; the gate refuses BY NAME and
     # runs BEFORE any side effect (started record, handoff, rename, spawn).
-    _key_err = _rotate_key_gate(root, seat, row)
-    if _key_err:
-        print(_key_err, file=sys.stderr)
-        return 1
     # goal:g15.25 line (1) minting half -- an UNKEYED real row mints its own
     # first key in this SAME step (incremental fleet keying), so its
     # successor wakes keyed. Best-effort row write; never fails the rotation.
+    # goal:g7.16.1.7.1.4: it runs BEFORE the gate -- a keyed row whose key
+    # file is absent on its own box is reminted here (key_template), and the
+    # gate then reads the re-keyed row.
     _mint_note = _rotate_first_key(
         root, cfg_root, seat, row,
         dry_run=bool(getattr(args, "dry_run", False)))
     if _mint_note:
         print(_mint_note, file=sys.stderr)
+        if row and row.get("pubkey") and not getattr(args, "dry_run", False):
+            row = _find_seat(_seat_read_root(root, seat), seat) or row
+    _key_err = _rotate_key_gate(root, seat, row)
+    if _key_err:
+        print(_key_err, file=sys.stderr)
+        return 1
 
     # L4.112 (A): resolve the rotation template at the TOP of rotate-self,
     # BEFORE any side effect (the started record, the handoff, the own-window
@@ -19940,19 +20595,27 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _rc_label = _session_label({"name": seat, "role": role}, gen)
     else:
         _rc_label = _session_label(row, gen)
-    rc, _ = spawn_window(
-        name=spawn_name, tier=role,
-        prompt_file=prompt_file, card_file=card_file,
-        model=args.model or ((row.get("model") if row else None) or None),
-        effort=args.effort or ((row.get("effort") if row else None) or None),
-        settings=(json.loads(args.settings) if args.settings
-                  else _normalize_settings(row.get("settings") if row
-                                           else None)),
-        tmux_session=tmux_session, window_path=args.window_path, root=root,
-        dry_run=args.dry_run, debug_file=dbg, extra=extra, seat=seat,
-        rc_name=_rc_label,
-        successor_argv=getattr(args, "successor_argv", None),
-    )
+    def _launch_successor():
+        return spawn_window(
+            name=spawn_name, tier=role,
+            prompt_file=prompt_file, card_file=card_file,
+            model=args.model or ((row.get("model") if row else None) or None),
+            effort=args.effort or ((row.get("effort") if row else None) or None),
+            settings=(json.loads(args.settings) if args.settings
+                      else _normalize_settings(row.get("settings") if row
+                                               else None)),
+            tmux_session=tmux_session, window_path=args.window_path, root=root,
+            dry_run=args.dry_run, debug_file=dbg, extra=extra, seat=seat,
+            rc_name=_rc_label,
+            successor_argv=getattr(args, "successor_argv", None),
+        )
+    # goal:g7.16.1.7.1.1.4: the successor launch is a `stand_up(mode="rotate")`
+    # -- a heal recovery or a spawn of this post in flight refuses it by name.
+    if args.dry_run:
+        rc, _ = _launch_successor()
+    else:
+        held, out = stand_up(root, seat, _launch_successor, mode="rotate")
+        rc = out[0] if held else 1
     if rc != 0:
         return rc
     if not args.dry_run:
@@ -20415,13 +21078,34 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # The JOIN was ATTEMPTED and no registry file matched the successor's
         # window @id: the rotation is NOT a success. Record `skipped` naming
         # `registry file for @<id>` (proof a).
-        _write_rotation_record(root, _rotate_self_record(
-            seat=seat, role=role, result="skipped",
-            gen_before=gen_before, gen_after=gen,
-            succ=succ, handover=handover,
-            readback_log=Path(dbg).expanduser().resolve(),
-            refusal=joined["note"]), path=rec_path)
-        print(f"ERR: {joined['note']}; rotation NOT reported success.",
+        # (hypothesis:a-skipped-rotate-join-leaves-no-stranded-window) the
+        # successor spawned at (4) is LIVE here (stranded, seq 348). Row 34:
+        # flag first (the record heal polls, action `pending`), then kill by
+        # @id (rotate is the ONE owner), then rewrite the record with what
+        # `_kill_window` did: killed | already_gone | error.
+        st = handover["stranded"] = {
+            "action": "pending", "window": spawn_name, "id": succ_window_id,
+            "why": "join not found; the spawned successor window would "
+                   "otherwise stay live under the bare post name"}
+        for _phase in (0, 1):
+            if _phase:
+                st["action"] = _kill_window(
+                    spawn_name, tmux_session, args.window_path,
+                    window_id=succ_window_id)
+            try:
+                _write_rotation_record(root, _rotate_self_record(
+                    seat=seat, role=role, result="skipped",
+                    gen_before=gen_before, gen_after=gen,
+                    succ=succ, handover=handover,
+                    readback_log=Path(dbg).expanduser().resolve(),
+                    refusal=joined["note"]), path=rec_path)
+            except OSError as exc:
+                if _phase:
+                    raise
+                print(f"NOTE: pre-kill record write failed ({exc}); killing anyway.", file=sys.stderr)
+        print(f"ERR: {joined['note']}; rotation NOT reported success. "
+              f"Stranded successor window {spawn_name!r} "
+              f"({succ_window_id}) {st['action']}.",
               file=sys.stderr)
         return 1
 
@@ -20764,7 +21448,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         croot=send.comms_root(root, getattr(args, "comms_root", None)),
         seat=seat, successor=spawn_name, gen_before=gen_before, gen_after=gen,
         trigger=getattr(args, "trigger", "rotate-self"),
-        handoff_path=str(_sessions_dir(root) / "seats" / f"{seat}.handoff.md"),
+        handoff_path=_tree_rel(root, _sessions_dir(root) / "seats" / f"{seat}.handoff.md"),
         in_flight=getattr(args, "in_flight",
                           f"successor {seat} confirmed; gen {gen}"),
         live_names=succ.get("names", []),
@@ -22011,6 +22695,14 @@ def main(argv: list[str] | None = None) -> int:
                         help="print the command instead of running it")
     p_spawn.set_defaults(func=cmd_spawn)
 
+    # stand-up (goal:g7.16.1.7.1.1.4): THE hand restart of a post by name.
+    p_su = sub.add_parser(
+        "stand-up", help="stand a dead post back up by name: resume its "
+                         "session when a transcript exists, fresh otherwise")
+    p_su.add_argument("--post", required=True, help="the config:posts row name")
+    p_su.add_argument("--window-path", default=None, help=argparse.SUPPRESS)
+    p_su.set_defaults(func=cmd_stand_up)
+
     # autopsy: the recovery seating's predecessor-death forensics, from FILES
     # ONLY, read-only. Prints the fact block the successor otherwise rebuilds
     # by hand (Sensei 175816Z calls 3-9+14); the LLM still decides continue|diff.
@@ -22546,7 +23238,8 @@ def main(argv: list[str] | None = None) -> int:
     # meter, loop, alarms, rotate-self, ack and seats-launch need the project root
     if args.cmd in ("meter", "loop", "alarms", "rotate-self", "rotate", "ack",
                     "next", "seats-launch", "seq", "handoff", "prepare",
-                    "first-decision", "autopsy", "closeout", "rename-post"):
+                    "first-decision", "autopsy", "closeout", "rename-post",
+                    "stand-up", "merge-up"):
         root = find_project_root()
         if root is None:
             print("ERR: no agi project found from cwd", file=sys.stderr)

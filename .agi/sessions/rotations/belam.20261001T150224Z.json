@@ -1,0 +1,76 @@
+{
+  "rotation": "rotate-self",
+  "seat": "belam",
+  "recorded_at": "2026-10-01T15:02:24.704174Z",
+  "result": "started",
+  "steps_reached": [
+    "2",
+    "handoff"
+  ],
+  "box": {
+    "loadavg": [
+      1.99,
+      2.015,
+      1.211
+    ],
+    "cores": 16
+  },
+  "template_source": "worktree (geometry current)",
+  "stops_sha256": "fbd1f99b15c3c61c6d6b429457a9cdc565a68ce2ad81e29e4353cdd39bcc1e96",
+  "gen_before": 23,
+  "gen_after": 1,
+  "after_join": {
+    "performer": "watch",
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep belam",
+        "rc": 0,
+        "output": "@10 belam-S2-L5-I\n",
+        "truncated": false,
+        "byte_cap": 40000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin {pin_ref} --session-log {succ_transcript}",
+        "refused": "join unresolved after 628s"
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E 'none: nothing to reap'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 40000
+      },
+      {
+        "label": "belam-chain",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep -E 'belam-S[0-9]+-L[0-9]+'",
+        "rc": 0,
+        "output": "@10 belam-S2-L5-I\n",
+        "truncated": false,
+        "byte_cap": 40000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] REFUSED \u2014 join unresolved after 628s\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E 'none: nothing to reap'\n[belam-chain] exit 0\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post belam --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --seat belam --gen 1 --ref <your ListAgents ref> diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "belam",
+    "dm_signed": true,
+    "code_head": "61225cd",
+    "code_loaded": "1790862065:1175545",
+    "claimed_at": "2026-10-01T15:12:53.587315+00:00",
+    "claim_key": "2026-10-01T15:02:24.704174Z",
+    "performed_after_s": 628.0883722305298,
+    "late": true,
+    "age_s": 628.0883722305298
+  },
+  "handover": {
+    "model_confirm": "skipped: no assistant turn within 120s (after_join poll waited 0s) \u2014 successor has not answered"
+  }
+}

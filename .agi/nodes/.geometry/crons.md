@@ -17,9 +17,7 @@ cadences:
     enabled: true
     box: local-town
     why_box: "the remote-box reader: mail_poll consumes inboxes fetched from the hub"
-  publish_engine:
-    schedule: 37 * * * *
-    enabled: false
+    cmd: git -C {repo_root} fetch -q origin && python3 {engine_root}/extensions/agi/bin/send.py read --box-local --peek >> {log} 2>&1; python3 {engine_root}/extensions/agi/bin/rotate.py migrate --receive >> {log} 2>&1
   engine_push:
     schedule: 47 * * * *
     enabled: false
@@ -38,14 +36,26 @@ cadences:
     box: local-town
     why_box: the Prime's town->season2/main merge routine runs where the Prime and the town trunk live (owner 01:2xZ 09-21, goal:g5; every 4 hours, owner 09-23 15:0xZ); inert until extensions/agi/bin/prime_merge.py lands (director-engine round)
     cmd: test -f {repo_root}/extensions/agi/bin/prime_merge.py && PI_BIN=$HOME/.npm-global/bin/pi python3 {repo_root}/extensions/agi/bin/prime_merge.py tick --root {root}
+  graph_metrics:
+    schedule: 23 * * * *
+    enabled: true
+    box: local-town
+    why_box: "belam's crontab reads every uid's files and writes the town node; a v5 uid reads only its own (goal:g3.8, AA1.S)"
+    cmd: python3 {repo_root}/extensions/agi/bin/metrics_cell.py {root} town:local-maxxing metrics_line --actor belam -- python3 {repo_root}/extensions/agi/bin/success_metrics.py --line {root}
   memory_alarm:
     every_mins: 1
     enabled: true
     box: local-town
     why_box: "reads this box's own /proc and user@ cgroup (OWNER 04:0xZ 09-26, after the 03:20Z memory livelock: raise a climb toward exhaustion before the box wedges); every threshold lives here, none in code"
     cmd: python3 {repo_root}/extensions/agi/bin/memory_alarm.py --root {root} --warn-avail-mib 2048 --crit-avail-mib 1024 --warn-psi-some-avg60 10 --crit-psi-full-avg60 20 --warn-cgroup-max-frac 0.95 --repeat-mins 15 --notify belam
+  memory_alarm_posts:
+    every_mins: 1
+    enabled: true
+    box: local-town
+    why_box: same reader as memory_alarm, pointed at the SYSTEM agi.slice where the pi-engine posts (agi-post@*) live; reads this box's cgroup, so it runs on this box only (stage-2.5 rootplan C3, parity row 45)
+    cmd: python3 {repo_root}/extensions/agi/bin/memory_alarm.py --root {root} --warn-avail-mib 2048 --crit-avail-mib 1024 --warn-psi-some-avg60 10 --crit-psi-full-avg60 20 --warn-cgroup-max-frac 0.95 --repeat-mins 15 --notify belam --cgroup /sys/fs/cgroup/agi.slice --state {root}/sessions/memory-alarm-posts.json
 crons_live: true
-edited_by: belam
+edited_by: a00-b465ec27
 season: 1
 services:
   agi-alarms-sanctuary-master:
@@ -69,72 +79,7 @@ thought_session: season
 title: Cron cadence declaration
 ---
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Two defects, found by the parent re-verifying this node's own claim during a
-`goal:g11` migration freeze: flipping the frontmatter boolean off really does
-remove every managed line (confirmed live: 2 lines removed), but this node's
-OWN PROSE never said which value does that — a reader had no way to answer
-"which value turns the crons off" from the node that exists to answer it,
-which is exactly what happened: the crons were believed disabled while they
-kept running and pushing.
-
-The root cause was mechanical, not a one-off typo: every past edit to
-`crons_live` replaced the boolean with a global find-and-replace that ran
-through this body's prose as well as the frontmatter, because the prose used
-to spell out the literal pattern `` `crons_live: true` `` (key, colon, and
-value glued into one string) in its own headings and sentences. A
-find-and-replace targeting that exact string flips the frontmatter and every
-matching prose occurrence together, so both sides of the explanation always
-carried the *same* value — self-contradictory at v1 (`true`), the
-all-`false` version, and back to `true` again, every time, by construction.
-Confirmed across the three prior versions of this node
-(`git show 78a95fa89:nodes/.geometry/crons.md`,
-`git show 90ff99986:...`, `git show 27855bafc:...`): the same X appeared on
-both sides of "`crons_live: X` is the single flip that removes... and
-`crons_live: X` is the equally single flip that brings back", which cannot be
-true for any single X.
-
-**Fixed by never writing that composite string again.** The two sections
-below name `` `crons_live` `` once, as the key, and name `` `false` `` and
-`` `true` `` separately, as plain values, each tied to its own effect in its
-own sentence — no shared "key: value" token exists anywhere in this body for
-a blanket replace to catch. A future edit to the frontmatter's boolean can
-therefore no longer drag the prose's claim along with it; the prose will only
-go stale if someone edits *it* directly, which is a normal editing risk, not
-a self-inflicted structural one.
-
-Also worth recording precisely, because the old text had it backwards: the
-self-reapply edge case belongs to `false`, not `true`. `crons_live: false`
-removes *all four* lines unconditionally (`grid_sync`'s own `enabled: true`
-does not save it) — including `grid_sync` itself, which is the job that
-would otherwise notice the next edit and re-apply it within five minutes. So
-going back to `true` needs one manual `crons.py apply` to install the first
-round of lines; after that, `grid_sync` is running again and every
-subsequent edit to this node self-applies as before, with no further manual
-step. `true` does not unconditionally install all four lines either — only
-the ones whose own `cadences.<job>.enabled` is `true`, which today is
-`grid_sync` and `branch_push` (`publish_engine` and `engine_push` stay
-disabled regardless of `crons_live`).
-
-Second, unrelated defect fixed in this same version: this node carried two
-authored reasoning regions (marked with the paired HTML comment this schema
-uses for exactly one such region per node) — the previous version's, about
-retiring the `publish_engine`/`engine_push` cadences after `goal:g11`, left
-at the top; and an older one below it, about correcting this node's own mint
-from parentless to `parents: [goal:g2.25]`, from the version before that.
-Past edits added a new region at the top without removing the one
-underneath, which the schema does not allow — exactly one such region per
-node, rewritten from scratch per version. Both are merged into this single
-one. The
-parentage fix from the older block is still true and is why `parents:
-[goal:g2.25]` is set above; that fact now lives in the frontmatter itself; it
-does not need to be restated at length here. The cadence-retirement reasoning
-from the newer block is still current and now lives in the body below,
-unchanged in substance.
-
-`crons_live` is left `false` in this version — the parent froze the crons
-deliberately for the duration of this migration and restores it at the end.
-This version changes only the prose and the duplicate-block cleanup, not the
-frozen state.
+goal:g7.16.1.4.1.2 (DG2's L2a config finding, re-read by DG1): the body said publish_engine and engine_push 'stay out ... because their own enabled is false', but de5507a17 removed the publish_engine cadence, so only engine_push still has an enabled. The kill-switch paragraph now says engine_push stays out and publish_engine no longer exists; the g11 race scenario is put in the past tense. Prose only: crons.py show output byte-identical before and after.
 <!-- THOUGHT:END -->
 
 The scheduling cadence for this project's four recurring jobs, declared as
@@ -153,8 +98,8 @@ Setting the frontmatter boolean above to `false` is the single flip that
 removes every managed cron line at once, unconditionally — no individual
 job's own `enabled` flag can save it. This exists for exactly the situation
 this repo used it for: `goal:g11` moved the graph inside the repo it builds,
-a change to where things live on disk while four crons independently read
-and write that same disk on their own timers. `grid_sync` snapshotting
+a change to where things live on disk while four crons (then) independently
+read and wrote that same disk on their own timers. `grid_sync` snapshotting
 mid-move, `branch_push` pushing a half-moved branch, `publish_engine`
 publishing against a graph commit the move has not settled yet, `engine_push`
 committing an engine tree mid-shuffle — any one of the four racing the move
@@ -169,8 +114,9 @@ property" below for the one case where that stops being automatic.
 Setting the frontmatter boolean above to `true` reconciles the real crontab
 to match `cadences:` above: each job whose own `enabled` is also `true` gets
 installed (today: `grid_sync`, `branch_push` and the bounded-footprint jobs
-named at the end of this body; `publish_engine` and
-`engine_push` stay out regardless, because their own `enabled` is `false` —
+named at the end of this body; `engine_push` stays out regardless,
+because its own `enabled` is `false`, and `publish_engine` no longer exists —
+its cadence was removed with publish-engine.sh (goal:g7.16.1.4.1.1);
 see "Two cadences the migration made meaningless" below). This is the
 opposite of the previous section: `false` overrides every job's own flag to
 off, `true` defers to each job's own flag.
@@ -192,14 +138,13 @@ and every later edit resumes self-applying as usual.
 ## Two cadences the migration made meaningless
 
 `goal:g11` landed, so two of the four cadences now describe work that no
-longer exists, and both are disabled in `cadences:` above rather than
+longer exists. `engine_push` stays disabled in `cadences:` above rather than
 deleted — a declaration that records what was retired is more useful than
 one that quietly forgets.
 
 `publish_engine` ran `publish-engine.sh` to carry bytes from the graph repo
 into the engine repo. There is one repo now; the payload IS the source file,
-so there is nothing to publish and the four gates guard a boundary that is
-gone.
+so there is nothing to publish and the four gates guard a boundary that is gone. Its cadence and the script itself were removed by goal:g7.16.1.4.1.1 (this node grid history keeps the declaration).
 
 `engine_push` pushed the engine repo. It is the same repo `branch_push`
 already pushes, so leaving both enabled would have pushed the same branch

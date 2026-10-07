@@ -50,7 +50,7 @@ commands:
       - python3
       - <engine>/extensions/agi/bin/links.py
       - schema
-    about: goal:s31 — which nodes violate their type's required list (dry)
+    about: goal:g7.33.10.1 — which nodes violate their type's required list (dry)
     workflow: read
   budget:
     argv:
@@ -185,7 +185,7 @@ commands:
       - gw
     about: "the overlay hub (gw): owner ops only (lock or unlock a farm box); agents have no business here -- listed so a cold session knows the name it sees in the mesh files."
     workflow: mesh
-edited_by: director-general-3
+edited_by: a00-2656a173
 excluded:
   write.py:patch:
     cli: write.py
@@ -463,6 +463,18 @@ excluded:
       - <engine>/extensions/agi/bin/rotate.py
       - spawn
     reason: spawns a successor process; never-run by a proposer
+    side_effects: spawn
+    proposable: false
+  rotate.py:stand-up:
+    cli: rotate.py
+    verb: stand-up
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/rotate.py
+      - stand-up
+      - "--post"
+      - <post>
+    reason: stands a post session up by hand (a restart); spawns a seat, operator-only
     side_effects: spawn
     proposable: false
   rotate.py:tile:
@@ -948,7 +960,7 @@ manifest:
     args:
       - {"name": "ref", "type": "str", "required": true, "choices": []}
       - {"name": "source", "type": "str", "required": true, "choices": ["-"]}
-    purpose: replace one body row (node_writer.body_rows), or lines i-j inside it (<n>:<i>-<j>)
+    purpose: replace one body row (node_writer.body_rows), or lines i-j inside it (<n>:<i>-<j>), or ONE nested frontmatter row (<top>.<key>, an empty source removes it)
     side_effects: graph-write
     proposable: true
   write.py:adopt:
@@ -961,6 +973,18 @@ manifest:
       - adopt
     args: []
     purpose: adopt the current on-disk payload/body bytes as this node's version
+    side_effects: graph-write
+    proposable: true
+  write.py:canonicalize:
+    cli: write.py
+    verb: canonicalize
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/write.py
+      - <node-id>
+      - canonicalize
+    args: []
+    purpose: re-render the node file in the ONE canonical form (node_writer.render_frontmatter + _serialize_node) and change nothing else; a node patch refuses on a non-canonical node and names this verb (council ruling on SM 154, goal:g4.18.1.6)
     side_effects: graph-write
     proposable: true
   cli.py:branch-reshuffle:
@@ -1298,7 +1322,6 @@ manifest:
     args:
       - {"name": "action", "type": "str", "required": true, "choices": ["install", "show", "remove"]}
       - {"name": "snapshot_mins", "type": "str", "required": false, "choices": []}
-      - {"name": "publish_engine", "type": "bool", "required": false, "choices": []}
     purpose: grid.py cron
     side_effects: destructive
     proposable: false
@@ -1421,6 +1444,20 @@ manifest:
       - {"name": "mint_id", "type": "str", "required": true, "choices": []}
       - {"name": "root", "type": "str", "required": false, "choices": []}
     purpose: resolve a mint id to the one live node carrying it (id, title, status)
+    side_effects: read
+    proposable: true
+  links.py:sha:
+    cli: links.py
+    verb: sha
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/links.py
+      - sha
+      - <mint_id>
+    args:
+      - {"name": "mint_id", "type": "str", "required": true, "choices": []}
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+    purpose: resolve a cited commit id (known, or pre-rewrite through the cell-named local map) to its commit; never prints a map line
     side_effects: read
     proposable: true
   links.py:schema:
@@ -2605,27 +2642,6 @@ manifest:
     side_effects: graph-write
     proposable: false
     reason: bulk-wires agent verdicts into the graph from the harness; loop-owned, operator-only
-  unify.py::
-    cli: unify.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/unify.py
-      - "--engine"
-      - <engine>
-    args:
-      - {"name": "engine", "type": "str", "required": true, "choices": []}
-      - {"name": "tree", "type": "str", "required": false, "choices": []}
-      - {"name": "rollback", "type": "bool", "required": false, "choices": []}
-      - {"name": "yes", "type": "bool", "required": false, "choices": []}
-      - {"name": "dry_run", "type": "bool", "required": false, "choices": []}
-      - {"name": "this_is_the_real_migration", "type": "bool", "required": false, "choices": []}
-      - {"name": "force", "type": "bool", "required": false, "choices": []}
-      - {"name": "report_json", "type": "bool", "required": false, "choices": []}
-    purpose: merge the two-repo layout into one
-    side_effects: destructive
-    proposable: false
-    reason: destructive one-repo migration and rollback; owner-ops, never proposed
   hierarchy.py:render:
     cli: hierarchy.py
     verb: render
@@ -3024,24 +3040,6 @@ manifest:
     purpose: one live read of every seat, the spawn budget and the telemetry roll-up
     side_effects: read
     proposable: true
-  verify_unified.py::
-    cli: verify_unified.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/verify_unified.py
-      - "--before"
-      - <before>
-      - "--after"
-      - <after>
-    args:
-      - {"name": "before", "type": "str", "required": true, "choices": []}
-      - {"name": "after", "type": "str", "required": true, "choices": []}
-      - {"name": "json", "type": "bool", "required": false, "choices": []}
-    purpose: "before vs after: did the goal:g11 migration lose anything? read-only"
-    side_effects: read
-    proposable: false
-    reason: a one-repo migration verifier; its goals_at_repo_root check fails on every repo since GOALS.md retired (the DG4 leftovers leaf under bundle 4 row W-G decides its fate)
   write_guard.py:check:
     cli: write_guard.py
     verb: check
@@ -3064,6 +3062,61 @@ manifest:
     reason: runs the whole engine suite under the one-runner suite lock -- opt-in, never proposed
     side_effects: read
     proposable: false
+  council_report.py:add:
+    cli: council_report.py
+    verb: add
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/council_report.py
+      - add
+      - "--run"
+      - <run>
+      - "--args"
+      - <args>
+    args:
+      - {"name": "run", "type": "str", "required": true, "choices": []}
+      - {"name": "args", "type": "str", "required": true, "choices": []}
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+    purpose: one report row per round, verify residues to owner leaves
+    side_effects: graph-write
+    proposable: false
+  reds.py:check:
+    cli: reds.py
+    verb: check
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/reds.py
+      - check
+      - <old>
+      - <new>
+    args:
+      - {"name": "old", "type": "str", "required": true, "choices": []}
+      - {"name": "new", "type": "str", "required": true, "choices": []}
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+      - {"name": "repo", "type": "str", "required": false, "choices": []}
+    purpose: goal:g7.16.1.10.3 — a range's mechanical reds (secrets, node_deletion, broken_link) before any model; rc 1 = a RED, rc 2 = cannot answer
+    side_effects: read
+    proposable: false
+    reason: run by the merge gate over a landed range (goal:g7.16.1.10.7), never proposed at a seat
+  merge_gate.py:check:
+    cli: merge_gate.py
+    verb: check
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/merge_gate.py
+      - check
+      - <base>
+      - <tip>
+    args:
+      - {"name": "base", "type": "str", "required": true, "choices": []}
+      - {"name": "tip", "type": "str", "required": true, "choices": []}
+      - {"name": "prime_count", "type": "int", "required": false, "choices": []}
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+      - {"name": "repo", "type": "str", "required": false, "choices": []}
+    purpose: "goal:g7.16.1.10.7 — ONE word from the council report before a merge: merge, or hold by name over a RED, an uncovered review-path commit or an unapproved budget row; rc 1 = hold, rc 2 = cannot answer"
+    side_effects: read
+    proposable: false
+    reason: run by the Prime's merge pass; NOT yet wired into the PASS -- the skill agi-merge-pass is restored to its merge-base (option A, corrective DH.DG3.65) and the wiring is its own leaf goal:g7.16.1.10.7.1, never proposed at a seat
 ordered:
   - verify
 placement:
@@ -3234,8 +3287,9 @@ agent is handed — the same class of mistake as the contradictory kid contract
 ## What reads this
 
 `bin/commands.py` resolves and runs (`list`, `show`, `run`), and
-`render-context.py` writes the set into `context/INJECTION.md` so **every
-agent is handed the commands rather than expected to remember them**.
+`inject.py` (via `briefing.py`) writes the set into `context/INJECTION.md` so
+**every agent is handed the commands rather than expected to remember them**
+(`render-context.py`, its earlier writer, retired at L1.05).
 
 That second reader is why this node is allowed to exist. `goal:g2.25`'s rule
 is that a `.geometry` node must be the input a code path resolves against,
@@ -3285,5 +3339,5 @@ graph carries only what is below: the alias, the label, and the one command.
   A box added to the farm gets a row here, a label, and nothing else.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-09-23 EF.21 kid a00-deb4f918: added the `manifest:` and `excluded:` frontmatter maps declaring the write.py verb surface (VERBS + create) so `commands.py manifest` has ONE typed choice set to print. The 25 `commands:` entries are untouched byte-for-byte (`manifest:` only ADDS metadata; the manifest action DERIVES cli/verb from a command's own argv when no override is present, so no existing entry needed editing). Deviation from the kid brief: it asked the manifest to contain no `<home>`, but the five mesh entries carry `<home>/work/.sanctuary/ssh/config` by design and the same brief forbids editing them -- `<home>` is a clone-agnostic placeholder resolved at run time, not a box value, so it stays. Frontmatter written directly because write.py has no verb for a nested map entry (patch = payload only); disclosed here, not silent.
+goal:g7.16.1.4.1.2 (DG2's L2a config finding): 'What reads this' named render-context.py as the writer of context/INJECTION.md; it retired at L1.05 (44ee2f65c) and the writer is inject.py, whose brief comes from briefing.build (which imports commands). The paragraph now names inject.py via briefing.py and render-context.py only as retired. Prose only: commands.py list output byte-identical before and after.
 <!-- THOUGHT:END -->

@@ -477,6 +477,22 @@ def test_the_argv_set_route_refuses_a_MINTED_row_by_the_same_check(project,
     assert not (project / "nodes" / "goal" / "g8.8.5.md").exists()
 
 
+def test_a_set_never_overwrites_the_gated_type_or_parents(project, tmp_path):
+    """SM run 10 probe: `create --parent goal:real --set parents=[goal:nope]`
+    landed goal:nope -- `fm.update(extra_fm)` ran AFTER the spawn gate. The
+    gated rows are refused by name on the CLI and in write_node itself."""
+    import node_writer
+    for row in ("parents=[goal:nope]", "type=vision"):
+        _out, err, rc = _run(["create", "goal", "g8.8.6", "--parent", "goal:g1",
+                              "--set", row, "--root", str(project)])
+        assert rc == 2 and row.split("=")[0] in err and "spawn gate" in err, row
+        assert not (project / "nodes" / "goal" / "g8.8.6.md").exists()
+    res = node_writer.write_node(project, "goal", "g8.8.6", ["goal:g1"],
+                                 extra_fm={"parents": ["goal:nope"]})
+    assert res.status == node_writer.REJECTED and "parents" in res.reason
+    assert not (project / "nodes" / "goal" / "g8.8.6.md").exists()
+
+
 def test_an_explicit_set_BEATS_the_calling_posts_stamp(project, tmp_path):
     """Hole 2. `post_rows` was filtered on `answers` alone, so an explicit
     `--set role=...` was overwritten by the post's row. THE RULE CHOSEN: the

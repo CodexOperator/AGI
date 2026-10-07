@@ -44,6 +44,13 @@ cli = _load("cli")
 heal = _load("heal")
 
 
+@pytest.fixture(autouse=True)
+def _no_box_pressure(monkeypatch):
+    """goal:g7.16.1.5.3: the sweep defers under real box memory/io PSI; a
+    test judges the sweep, never the box it happens to run on."""
+    monkeypatch.setattr(heal, "_sweep_pressure_ok", lambda root: (True, "test"))
+
+
 @pytest.fixture
 def graph_project(tmp_path: Path) -> Path:
     """A project whose graph root (repo/.agi) carries nodes + config so the
@@ -2544,3 +2551,51 @@ def test_r2_the_psi_line_is_the_cell(graph_project, monkeypatch, cell, psi, laun
     assert (launched == ["belam"]) is launches, (launched, log)
     if not launches:
         assert f">= {30 if cell == '30' else 40}" in log, log
+
+
+# ── goal:g7.16.1.7.1.1 R2-alert: N consecutive pressure deferrals -> ONE [red] to the Prime
+def _r2_sends(graph_project, monkeypatch):
+    import send
+    monkeypatch.setenv("AGI_REAPER_STATE", str(graph_project / "reaper-state"))
+    sent: list = []
+    monkeypatch.setattr(send, "send", lambda root, to, text, sender, **k: sent.append((to, text)) or ("", False))
+    return sent
+
+
+def test_r2_alert_one_red_per_seat_at_the_nth_pressure_deferral(graph_project, monkeypatch):
+    sent = _r2_sends(graph_project, monkeypatch)
+    for p in (1, 2):
+        _r2_one_pass(graph_project, monkeypatch, _R2_PSI(60.0))
+        assert sent == [], (p, sent)
+    _r2_one_pass(graph_project, monkeypatch, _R2_PSI(60.0))  # the 3rd pass in a row (default cell 3)
+    assert sorted(t.split(" recovery")[0] for _to, t in sent) == ["[red] heal: belam", "[red] heal: worker-a"], sent
+    assert all(to == "belam" and "avg10 60" in t for to, t in sent), sent  # to the prime_director row, the reading named
+    _r2_one_pass(graph_project, monkeypatch, _R2_PSI(60.0))
+    assert len(sent) == 2, "one [red] per streak, never one per pass"
+
+
+def test_r2_alert_blind_psi_is_its_own_red_on_the_first_pass(graph_project, monkeypatch):
+    sent = _r2_sends(graph_project, monkeypatch)
+    _r2_one_pass(graph_project, monkeypatch, {})
+    assert len(sent) == 2 and all("unreadable" in t for _to, t in sent), sent
+    _r2_one_pass(graph_project, monkeypatch, {})
+    assert len(sent) == 2, sent
+
+
+def test_r2_alert_streak_resets_and_slot_deferrals_never_count(graph_project, monkeypatch):
+    sent = _r2_sends(graph_project, monkeypatch)
+    for psi in (60.0, 60.0, 0.0, 60.0, 60.0):  # the calm pass breaks the streak
+        _r2_one_pass(graph_project, monkeypatch, _R2_PSI(psi))
+    assert sent == [], sent
+    for _ in range(4):  # under the line: the worker waits on the one-launch slot every pass
+        _r2_one_pass(graph_project, monkeypatch, _R2_PSI(0.0))
+    assert sent == [], sent
+
+
+# goal:g7.16.1.7.1.1.2: a post whose launch lock is held (a spawn in flight) is not recovered twice
+def test_p4_recovery_refused_while_the_post_launch_lock_is_held(graph_project, monkeypatch):
+    import rotate
+    with rotate.post_launch_lock(graph_project, "belam"):
+        launched, log = _r2_one_pass(graph_project, monkeypatch, _R2_PSI(0.0))
+    assert launched == ["worker-a"], launched  # the refused Prime never spends the pass's one slot
+    assert "launch lock held" in log, log

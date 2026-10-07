@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: c85019fd44b2e8f4
 season: 2
 tags:
@@ -47,7 +47,7 @@ TRAJECTORY  your town's todo — you write it, whole, one version per write
 ## §1 The master loop
 ```
 intake   one inbox read per nudge (never peek) · owner lines landed verbatim FIRST (the HEAD's notes line) · an owner LINK: land it on your town board's Links, then run the ingestion workflow by name, detached -- never a director graph round (owner 09-18)
-PLAN     one goal or hypothesis per round under your town's goal, in its schema's format (.agi/context/schemas/[goal].md · [hypothesis].md) — via write.py
+PLAN     one goal or hypothesis per round under your town's goal, in its schema's format (.agi/context/schemas/[goal].md · [hypothesis].md) — plain Write/Edit on the new engine (write.py on the old setup)
 ORDER    your director, one tagged dm naming the node (queue words, §2) — the director dispatches, never you
 REVIEW   its [merge-up] BY NAME: workflow.py run agi-merge-up-review on pi (never the Claude Workflow tool) — read the bytes, not the report
 ACCEPT   a note naming config-max and template-max answered  ·  or DEMOTE: the verdict + the measured reason
@@ -65,6 +65,7 @@ IDLE     between [merge-up]s: no polling, no status turns -- wake on a director'
 | directors text only you | a director dms only its master, as little as possible; you dm the Prime only per the UP line, batched one line per lap | owner 2026-09-18 06:5xZ: "Directors shouldn't text you only masters. And even then try to minimize it." |
 | clean batches only | your director closes mur residues in-loop before delivery (a batch with a residue open is not delivered); you hear earlier only for a `[red]` you must fix or judge | owner 2026-09-19 01:4xZ + 01:5xZ (goal:g5) |
 | quick fixes on your trunk | name the fix (a row on the town engine-findings leaf, or a hypothesis under the goal it fits; goal:g1 when none); the DIRECTOR dispatches; review = `workflow.py run review --harness pi-free` (ALWAYS explicit; bare pi is PAID deepseek, TMM.295), never research-review | owner 2026-09-19 04:1xZ, verbatim: "If you need anything quick fixed on your own branch tell the director to dispatch the parent and use a regular review workflow not research review" |
+| subagents (owner 21:3xZ 09-30) | **thought-master, RESEARCH LANE ONLY** (the research trajectory, goal:g5.*): Sonnet 5.5 for everything it needs (owner 02:26Z 10-01: "Everyone else on sonnet 5.5 for everything they need" -- supersedes the 21:3xZ Opus grant) · thought-master PLACES its own research-lane work on the town board (owner 22:11Z 09-30, to SM: "Oh, thank you for taking care of that. That was meant to go to Thoughtmaster instead."), not sanctuary-master · every other master: the director template's SUBAGENTS row (Sonnet 5.5 for everything since 02:26Z 10-01) · never key / identity / rotate work (HELD on goal:g7.16.1.11) |
 | config-max / template-max | your ACCEPT names both checks answered; a value that belongs in a cell, or a text that belongs in a template, returns the round | owner 2026-09-18 22:0xZ, `doc:l5-owner-decisions` |
 | MAIN | if you work in MAIN: exact-path commits only · never switch branches · never commit, reset or stash another post's edits · `.agi/sessions/verify-suite.lock` absent before a MAIN commit · index.lock → wait · push after every action | paid for |
 | suite | a window from the Prime · one runner per tree · `--basetemp` under /tmp | F7 |
@@ -78,5 +79,5 @@ IDLE     between [merge-up]s: no polling, no status turns -- wake on a director'
 - Non-Prime posts write no "gen N".
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-thought-master 09-27 19:3xZ: the Skills section (heading + 2 lines) removed -- OWNER in the thought-master pane 19:26:02Z, verbatim: "Unified master brief doesn’t need skill lines" and 19:26:08Z "The unified skill doc is the skill lines" (= doc:draft-skills-first-turn, the first-turn skills entry; owner 19:26:42Z "It’s the temp doc you found just now. The first turn one"). The director brief lost its own Skills section the same way (464eba344). Claude posts still see every skill through .claude/skills; the first-turn entry lists them for all harnesses.
+belam gen 22, 02:27Z 10-01 (date -u): thought-master's research lane moves from Opus 5.5 high to Sonnet 5.5. Owner 02:27Z, verbatim: "Everyone else on sonnet 5.5 for everything they need and DG3 on opus 5.6 medium subagents and everything" -- 'everyone else' includes thought-master, so the 21:3xZ Opus grant is superseded (latest owner word wins).
 <!-- THOUGHT:END -->

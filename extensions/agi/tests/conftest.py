@@ -34,6 +34,14 @@ from pathlib import Path
 import pytest
 
 GATE_TIER = "kid"
+
+# FAIL CLOSED (corrective DH.DG1.02 item 1): a worktrees entry we cannot read
+# is an UNKNOWN record, never an absent one. `_record_roots` sets this when
+# its per-entry guard drops an entry; `_effective_tier` reads it so an
+# unreadable entry can never be laundered into an AGI_TIER fallback.
+# Never reset on purpose: a process that has seen an unknown record stays
+# closed; the one-shot pytest_cmdline_main use makes that harmless.
+_WORKTREES_ENTRY_DROPPED = False
 REFUSAL_REASON = (
     "AGI_TIER=kid refuses a bare full-suite directory run; "
     "run a specific test file or a -k filter instead."
@@ -188,10 +196,20 @@ def _record_roots():
         if main_graph:
             wt_root = Path(main_graph) / "worktrees"
             if wt_root.is_dir():
-                for wt in sorted(wt_root.iterdir()):
-                    if not wt.is_dir():
-                        continue
-                    wt_graph = locations.find_project_root(wt)
+                global _WORKTREES_ENTRY_DROPPED  # set by either OSError arm
+                try:
+                    entries = sorted(wt_root.iterdir())
+                except OSError:
+                    _WORKTREES_ENTRY_DROPPED = True  # unknown, not absent
+                    entries = []  # an unreadable worktrees dir scans empty
+                for wt in entries:
+                    try:
+                        if not wt.is_dir():
+                            continue
+                        wt_graph = locations.find_project_root(wt)
+                    except OSError:
+                        _WORKTREES_ENTRY_DROPPED = True  # unknown, not absent
+                        continue  # one unreadable entry never kills collection
                     if wt_graph is not None:
                         _add(Path(wt_graph) / "sessions")
             if (Path(main_graph) / "nodes").is_dir():
@@ -266,6 +284,11 @@ def _effective_tier():
     record_tier = _resolve_tier_from_ancestors(merged, _ppid_of, os.getpid())
     if record_tier is not None:
         return record_tier
+    if _WORKTREES_ENTRY_DROPPED:
+        # Fail closed: the skipped entry may have held ANY record, so the gate
+        # answers with the most restrictive tier it knows rather than falling
+        # through to an env var the caller controls.
+        return GATE_TIER
     return os.environ.get("AGI_TIER")
 
 
@@ -699,6 +722,21 @@ def pytest_unconfigure(config):
     if _IMPORT_FENCE_SAVED is not None:
         _uninstall_spawn_fence(_IMPORT_FENCE_SAVED)
         _IMPORT_FENCE_SAVED = None
+
+
+@pytest.fixture(autouse=True)
+def _registry_default_to_tmp(tmp_path, monkeypatch):
+    """goal:g7.16.1.7.1.1.2.1 -- heal builds the session table on EVERY watch
+    pass, so the registry default (`~/.claude/sessions`, the LIVE box) is
+    pointed at a per-test dir on both rotate aliases (the `_no_openrouter`
+    two-alias rule). A test that wants a registry passes `registry_dir`."""
+    for _mod in ("rotate", "agi.bin.rotate"):
+        try:
+            _r = __import__(_mod, fromlist=["_"])
+        except ImportError:
+            continue
+        monkeypatch.setattr(_r, "REGISTRY_DEFAULT_DIR",
+                            str(tmp_path / "cc-registry"))
 
 
 @pytest.fixture(autouse=True)

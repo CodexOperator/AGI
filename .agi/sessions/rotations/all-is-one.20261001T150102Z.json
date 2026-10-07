@@ -1,0 +1,38 @@
+{
+  "rotation": "crash-recovery",
+  "seat": "all-is-one",
+  "recorded_at": "2026-10-01T15:01:02.848134Z",
+  "result": "respawned",
+  "probable_cause": "unknown",
+  "succ_name": "all-is-one",
+  "gen": 4,
+  "gen_after": 4,
+  "pin_ref": "",
+  "tmux_session": "agi-rc",
+  "window_id": "@2",
+  "pred_pids": [
+    2871680
+  ],
+  "row": {
+    "name": "all-is-one",
+    "role": "director",
+    "model": "claude-opus-5-5",
+    "pid": 2871680,
+    "window": "@45",
+    "session_id": "3cdcfcdb-0307-4a97-a59e-95adf9d7f9db",
+    "generation": 4,
+    "worktree": ""
+  },
+  "respawn_outcome": {
+    "name": "all-is-one",
+    "generation": 4,
+    "pid": null,
+    "window": "@2",
+    "reason": "",
+    "row": "config:seats row 'all-is-one': session_ref= session_name= session_label=all-is-one session_id=3cdcfcdb-0307-4a97-a59e-95adf9d7f9db pid=None generation=4 window='@2' source=registry"
+  },
+  "after_join": {
+    "skipped": "no live session",
+    "age_s": 345.793096780777
+  }
+}

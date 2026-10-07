@@ -8,6 +8,10 @@ actor_rows:  # hypothesis:l4-the-formation-owner-writes-config-posts-rows-and-th
 master_sensei_row: {actor: master-sensei, list_key: templates, role_field: id, fields: [startup, telemetry], deny_roles: [prime_director]}  # PRIME RULING 2026-09-11 (hypothesis:write-guard-carve-out-for-master-sensei-templates): the master-sensei seat may write config:rotations `templates` (startup + telemetry per role) and the `## facts` body section for EVERY role EXCEPT prime_director, without dm-and-wait. `brief_file` and `steps` of any template stay prime/owner-only, refused BY NAME. Every resolved first_turn/after_join cmd in the written value must pass rotate's startup producing judge (`rotate._producing_refusal`), so a Sensei cannot land an entry the executor would refuse. One generic rule in write.py `_enforce_written_by`, the regions as DATA here (the self_row pattern).
 town_cell: {field: town, match_key: name, list_keys: [posts, seats], accepted_from: ladder.towns, also_accepted: [core], overrides: {belam: sanctuary, sanctuary-master: sanctuary, master-sensei: sanctuary, sanctuary-director: sanctuary, sensei-director: sanctuary, sanctuary-helper: sanctuary, adv-self-perpetuating: sanctuary, adv-all-is-one: sanctuary, adv-alive: sanctuary, policy-master: sanctuary, all-is-one: sanctuary, self-perpetuating: sanctuary, alive: sanctuary}}  # goal:g15.25 SM.32 (hypothesis:l4-the-keep-and-director-rows-carry-their-real-town-cell...): the row `town` cell's accepted vocabulary is the ladder's declared `towns:` plus `core`; a write that CHANGES the cell to any other value (notably the retired `all`) is refused WHOLE by name (write.py `_town_cell_refusal`), judged on the NEW value only, so a row still spelling `town: all` stays readable and an unrelated write (session_name, pid, ...) is never refused. `overrides` is the TRANSITIONAL map readers use while the Prime's 0a cell lines land one per row at each post's next rotation boundary (`towns.row_town`); a declared cell always wins over an override, and a pair is deleted once that row's real cell lands. Kept as DATA, not code, on purpose: `test_no_literal_town.py` forbids a literal town name in any `bin/*.py`.
 structural: true
+spawn:  # belam gen 21, 2026-09-30, on SM's ask (g7.33.20.3 D1 made config register): the live cells hang off 1-2 goal/hypothesis parents (census = goal:g7.16.1.1.6.1); writers stay the written_by ring above
+  allowed_parents: [goal, hypothesis]
+  min_parents: 1
+  max_parents: 2
 derived_from: read-2026-08-25 from lib/find-root.sh, bin/level3.py, bin/grid.py
 fields:
   locations: {type: dict}            # role -> {path, derivation, declared_in}
@@ -219,14 +223,14 @@ drift.
 **What is collapsed, and what is not.** Before G11 the ancestor walk existed
 eleven times — ten `CONFIG_NAMES`-plus-walk copies under `bin/`
 (`benchmark.py`, `cli.py`, `dispatch.py`, `metrics.py`, `post_wire.py`,
-`render-context.py`, `snapshot-build-site.py`, `snapshot-goals.py`,
+`render-context.py` (retired, L1.05), `snapshot-build-site.py`, `snapshot-goals.py`,
 `spawn_gate.py`, `zoom.py`), plus `lib/find-root.sh`. That shell file is not
 one of the residuals — it is the deliberate bash half of the same rule,
 cross-checked against `locations.py` by `test_bash_and_python_agree` rather
 than trusted to agree on faith. `snapshot-goals.py` was a half-case (its
-goals_path() call retired with GOALS.md, goal:g7.16.1.4.1); it still declares its
-own `config_path()`, so it counts as one of the ten residuals. The other nine still carry their own
-copy untouched. That residual is tracked as `goal:g11.1`. `engine_root` also
+goals_path() call retired with GOALS.md, goal:g7.16.1.4.1); its `config_path` is now
+a re-export (`config_path = locations.config_path`, snapshot-goals.py:75), so it carries no copy of
+its own. The other nine still carry their own copy untouched. That residual is tracked as `goal:g11.1`. `engine_root` also
 remains defined twice in Python with two different index arithmetics, off by
 one because `level3.py` counts from a directory and `grid.py` counts from a
 file — a second, separate duplication class, out of `goal:g11.1`'s scope.
@@ -299,8 +303,7 @@ rewritten from scratch on each change, not accumulated.
   scalar `thought_session:` is reserved there for goal:g2.7 / goal:g10.1 to
   point at the chat that produced a version; it is not populated yet.
 - **Readers strip it.** Thought is provenance to zoom into, not weight every
-  reader carries forever. The retired goal render (goal:g7.16.1.4.1) stripped it via
-  `strip_thought()`; `render-context.py` and `zoom.py` never see it because
-  they read frontmatter only (`load_node_file(..., body=False)`) and so carry
-  no body text at all. The rule binds any future reader that *does* read
-  bodies.
+  reader carries forever. `brief.py` strips it from every body it renders via
+  `node_writer.strip_thought()`; `zoom.py` never sees it because it reads
+  frontmatter only (`load_node_file(..., body=False)`). The rule binds any
+  future reader that *does* read bodies.

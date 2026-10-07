@@ -1,0 +1,13 @@
+gen1 opens its share: True
+gen2 opens the re-wrapped share: True
+retired gen1 opens the new wrap: no
+another post opens it: no
+S1 the gen1 SEAL key opens its wrap: True
+S2 the gen1 SIGN key, PUBLISHED, opens it: False
+S3 (for contrast, the folded design) the published SIGN key opens a wrap made to it: True
+P2 tampered message: False
+P3 another generation root: False
+N1 honest nested blob (outer, inner): (True, True)
+N2 forger holds the OUTER key, changes the payload, reuses the inner: (True, False)
+N3 forger holds the OUTER key, invents an inner: (True, False)
+N4 a quantum forger strips the outer and re-signs only the inner? needs the WOTS secrets: inner verifies = False

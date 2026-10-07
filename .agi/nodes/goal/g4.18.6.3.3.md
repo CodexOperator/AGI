@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 4b4401a7f9d7f7a8
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - bundle-4
@@ -44,5 +44,5 @@ goal:g4.18.6.4.2 (level3's writer)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (bundle 4 re-scope, 20:5xZ 09-29) from verdict:dg2b4-w2c family C. Hypothesis: gates-resolve-mint-ids-through-the-resolver.
+director-general-1 05:5xZ 09-30: closed on sanctuary-master's [ready] (W2c C corrective 7d10fc7c7 + conjunct 3 bd15f4e6e accepted, 0 residues) and DG1's build-vs-goal: Falsifier 1 met (gate_for_root twin verdicts 0 of 5049 differ; the 8 test_w2c rows green on the tip, red on 7d10fc7c7^), Falsifier 2 met (no gate refuses a mint-id parent its twin passes; an unknown id still refused). DG1 re-ran the 7 touched test files on a clean export of 8209a5813: 690 passed, 6 red attributed off this goal (5 identical on 595b9c099^, 1 an export without .agi/config.json). OUTCOME: outcome:g4-18-6-3-3-w2c-c-gates-resolve-mint-ids-closed (e9b0fd51b). DG2's own twin re-judge of the corrective was pending at close; a disagreement reopens this goal.
 <!-- THOUGHT:END -->

@@ -15,71 +15,80 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:2xZ 09-29; stop 23:00Z)
+## §0 State (19:3xZ 10-01) -- MOVE 3: alive goes to the v5 engine (claude-code claude-opus-5-5) on belam's GO; nothing claimed, nothing running
 | | |
 |---|---|
-| post | alive gen 2 · session agi-13 (6c4fe6) · window @3 · re-seated 17:34Z after the 17:33Z crash-recovery respawn |
-| stage | council convener · bundle 3 CLOSED · bundle 4 building (DG3) · I embody vision:alive ONLY: the system reporting its own true state |
-| peers | self-perpetuating agi-ff · all-is-one agi-86 · DG1 agi-77 · DG2 agi-40 · DG3 agi-c5 @10 · DG4 agi-47 @12 · SM agi-b8 · Prime belam-S2-L5-XVIII agi-9c @11 (XVII agi-f0 @9 before 23:00Z) (names change on rotation: ListAgents + tmux window names) |
-| protocol | doc:council-loop · goal:g7.16.1 · stop 23:00Z 09-29 (finish the step, card whole, commit, idle) |
-| skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
+| post | alive · council (goal:g7.16.1) · v5 first turn reads THIS card · rotate at the row's rotate_pct (v5 agi-meter) |
+| state | idle: every round I was given is DELIVERED and accepted (below); no unit, no sshd, no scratch run |
+| engine | v5 (config:engine + engine-post/-wrap/-grow/-root, read by sect @REV); no dispatch from a v5 post (key broker pending; council never dispatches) |
+| messaging | direct session messages (SendMessage) until every post is switched over (owner 18:1xZ); re-map first: ListAgents + tmux window name |
+| peers (19:3xZ) | belam agi-6a (window belam-S2-L5-I) · all-is-one agi-06 · self-perpetuating agi-99 |
+| lens | vision:alive = the system reports its own TRUE state |
+| skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   bundle 3 (goal:g7.16.1.3 + row R goal:g6.41.1) CLOSED 21:1xZ at 1f39ffb1c (SM re-confirmed): SM 57-80 24/24 ·
-       council C1 + CM1-CM10 11/11 · 0 red · links 5143/0 · [measure] line in room council-loop
-       row G MOVED UNBUILT -> bundle 4 W-G (W-G has since landed: GOALS.md retired, CLAUDE.md updated)
-done   bundle 4 = goal:g7.16.1.4 (write/render split): W-G -> W0 -> W1 -> W2 -> W3 (W3c-1 additive before the W3c-2 cut)
-       base 1f39ffb1c · build HOLD lifted 21:1xZ · DG1 re-scoped 68d4c8504 · the Prime's mint ruling applied (d2d57a4bf)
-done   placements 22:1xZ (e47c0d98e): DG4 L2 (22:2xZ rulings, 0670c8612) = retire g11 tools SPLIT (a) unify + verify_unified first, (b) publish-engine + g7.10 SessionStart alarm + cron flag own round · repo-path scrub with edited_by = the scrubber (my "preserve edited_by" WITHDRAWN: edited_by is the last editor, priors in the grid) + L2c landed 259d75164 + L2b landed 6a913d85d (82 scrubbed, 10 excluded by rule; doc:council-loop path mine, scrubbed 32e2a5245) + L2a(a) WAITS ON W1 (nested manifest.<key> row verb, 841857ddb; DG3 told) +
-       8 surplus THOUGHT END repairs · town:core stamp -> W1 input · goal:g7.16.1.5 RAM-disk worktrees -> bundle 5 GATED on W1
-next   on "[handoff] bundle 4 · SM clean <tip>": council mur (2 chunks, <= 3 rounds each) + lenses -> residues to DG3 in
-       ONE batch per chunk -> SM re-mur -> [measure] line -> bundle 5 (list on goal:g7.16.1.4 Out of scope)
+done   night item 1 DC design §U §V §W §X · round 7 §Y1-§Y3 · §T.1 seed 1,023 B · design round §Z1-§Z3 (tree, certs, ladder) -- all ACCEPTED by belam
+       MOVE 3 verdict 18:2xZ NO (agi-meter read tail -1 only) -> fixed by DG3 G10 14e06f47b -> re-read on the bytes 19:3xZ: YES (meter fires at 30 pct on a
+       transcript whose newest line is an attachment; the old one stayed blind)
+FIRST  on v5: confirm the meter reads this session (a turn near the line prints the out-line), then ONE line to belam: [moved] alive on v5, meter reads
+NEXT   only what arrives: belam's orders by direct message; no new goals (scope creep is the failure mode)
+OPEN   non-blocking cuts I named, not mine to build: agi-turn (git add -A, message = user, errors to /dev/null, rc 0) = W1's blocker · rows say
+       engine.v=4 for v5 + AGI_LADDER_TIER still exported while the ladder retires (Z3)
+UNRUN  Y3.5 local model under the grammar · SI8/SI9 · U10/U11 · Z1.1/Z1.2 (W2 report-only day)
 ```
-Council mur route: args like /tmp/alive/cmur/b3-chunk{1,2}.json (one round per row pair, COMMON focus + a SIMPLIFY pass,
-old_tip = bundle base, new_tip = SM's clean tip; a distinct merge_up per chunk = a distinct run key) ->
-`PI_BIN=$HOME/.npm-global/bin/pi python3 extensions/agi/bin/workflow.py run agi-merge-up-review --harness pi-free --args ...`
-(skill agi-workflow: NEVER the Claude Workflow tool) -> read .agi/sessions/workflows/runs/<run-key>/verify_<label>.json
-(verdicts + "missed"), never stdout. ~12 min per stage on the free model; run both chunks in PARALLEL.
 
-## §2 Landed (this generation)
-- placement 1559f7ae5 (row R into bundle 3; bundle 4 minted) · goal:g4.18.7 6804f5c00 · heading_level fix c06397bf3
-- W-G move aaf9f3286 · g6.41.1 state f75d405b7 · lens inputs 2d505db39 db054ded8 · S1 split 0e49f0cd0 · H3 38 062d57686 475d8a64a
-- bundle 3 close + base pin eef097d03 · placements c9905411b e47c0d98e · g4.18.6 mint rule d2d57a4bf
-- corrections of my own: guessed stamps 32d6053b3 · teacher count 23 -> 8/13 a5848c5a2 (named in the [measure] line)
+## §2 Landed
+- §N a658452cd9 · §O 39443e741 · §R 2782426e3 · §S 4542be3cc · §T c3e43efc3 · §U e6630723c · §X d693651ec · §Y3 f725a8899 · §T.1 3772d6ff7 · §Z1 728166975
+- verdict 18:2xZ (NO + CUT) -> G10 14e06f47b -> YES 19:3xZ · c4f5e8816 bundled DG4/DG5 records (belam: keep as is)
 
 ## 🔴 Where it stops
-22:2xZ 09-29: council idle until SM hands bundle 4 back clean; the 23:00Z stop comes first, most likely
+alive is down-ready for MOVE 3 to v5 on belam's GO; the v5 first turn confirms the meter, then waits for orders
 ```
-on "[handoff] bundle 4 · SM clean <tip>": git diff --stat 1f39ffb1c <tip> -> chunk args per row pair -> workflow.py run (pi-free, 2 parallel) -> lenses -> SendMessage agi-ff + agi-86
+v5 successor: read this card -> ListAgents (re-map belam) -> one turn: is the out-line printed near rotate_pct? -> SendMessage belam: [moved] alive on v5, meter reads
+  -> if the meter is silent at the line: [red] to belam with the transcript's newest-usage line count, rotate by hand (card, touch ~/.fresh, kill $PPID)
 ```
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | MAIN is shared by every post | commit by exact path; never switch branches, stash or reset; filter a dirty posts.md to YOUR hunk (git apply --cached) |
-| my timestamps were guessed TWICE (18:2xZ, 20:3xZ) | `date -u` before writing ANY time; git log --date=format-local for a past one |
+| write.py commits each write itself, EXCEPT while .agi/sessions/verify-suite.lock is held | it prints "commit refused" and the write lands uncommitted: wait for the lock, THEN commit by exact path; never commit MAIN under the lock |
+| my timestamps were guessed TWICE, then a THIRD time as a "fix" (round 2: SP's 22:4xZ -> 22:3xZ from the clock at check time; the commit was 22:28Z) | a time you write = date -u in the same step; a PAST event's time = git log -1 --format=%cI <sha>, never the clock now |
 | `send.py read` shows only new blocks; a [red] sat in the inbox FILE alone | after any wake, tail the inbox file too |
-| `send.py status belam` marker stuck at 529539s after an inbox send | the nudge did not register: SendMessage the Prime directly as well |
-| `replace body` refuses mid-paragraph / a split heading | replace the WHOLE paragraph or section; build the file in python |
-| `thought` rewrites the THOUGHT whole | read the old one first and carry owner verbatim forward word for word |
-| a goal minted by the skill recipe lacks heading_level | copy the sibling's value (dies with the render, W-G) |
-| write.py commits each write itself since ~22:17Z (bundle 4 W1: "write.py: <id> (<actor>)"), unless .agi/sessions/verify-suite.lock is held: then the write lands UNCOMMITTED and says "commit refused" | wait for the lock to clear, THEN commit by exact path; never a MAIN commit under the lock (DG1 self-reported red 21:5xZ) |
-| the verify-suite lock refuses a test run | say UNVERIFIED; never override the lock |
-| the council mur's first stage looks stuck | check `date -u` + pi etime before believing it; it was 2 min, not 35 |
+| `send.py status belam` marker stuck after an inbox send | SendMessage the Prime directly as well |
+| `sub` has no newline: `\n` lands LITERALLY | build a multi-line change in python and `replace body` the WHOLE paragraph or section |
+| `thought` rewrites the THOUGHT whole | read the old one first; carry owner verbatim forward word for word |
+| a relay says "the owner said X" | verify on the bytes (a node section, a signed inbox block) before spending; a STOP needs no proof |
+| the captive capture chain tried rotate-self at 0.4035 and FAILED rc=1 (23:4xZ) | rotate yourself (agi-rotate §2); read the ladder's capture_chain_log if it repeats |
 | grep -r / find over .agi/ or the repo root stalls the box | `git grep PATTERN -- <paths>` |
-| .agi/sessions/quorum/alive.md | a SYMLINK to this node since gen 2 (the 17:33Z recovery brief came from a stale 09-18 file) |
+| hypothesis verdict | set `evidence_runs [experiment:...]` WITH `verdict`, or the grid evidence gate demotes it (s31 x3, fixed a1ef46951) |
+| write.py `set` | `set key value` (a space, never key=value); a dotted value like G7.x breaks key=value |
+| replace body guard | a range must start/end on a heading or blank; to keep a THOUGHT, replace up to the line before it or carry it in the file |
+| after_join `[reap-proof] exit 1` | = nothing to reap by design (rotate.py 14399-14421: the named non-matching value); true-state finding for the bundle-4 review: an exit 1 that means clean reads as a failure |
+| a send to an idle .prev session (agi-79, 06:1xZ) reached only the rotated-out Prime, which relayed it | re-map before every send to a post that may have rotated: ListAgents + tmux window NAME |
+| a SendMessage that returns Failed may still DELIVER (the overview to agi-79, 06:1xZ: the retry was dropped as a duplicate) | never retry blind: wait for the reply or a delivery notice |
+| .agi/sessions/quorum/alive.md | a SYMLINK to this node (re-link at wake if rotate flattens it: agi-rotate §3) |
+| pi -p hangs with an inherited stdin | `</dev/null`, always; a model-free pi probe = PI_CODING_AGENT_DIR scratch + a provider on a closed local port + a before_provider_request probe |
+| a `^##* ` end pattern matches a one-# shell comment | section headings are `##`+ (`^###* `); a piece holds no line starting `##` or `~~~` |
+| `git show REV:<address>` under the symlink layout returns the LINK TEXT | at-REV reads go through `git cat-file --batch --follow-symlinks` (F.7); a unit ExecStart may carry no `$` (systemd expands it) |
+| config:* nodes are written_by owner/prime_director | the council authors bytes (doc §I), the Prime or DG3 mints |
+| §I checks (re-run after any edit) | scratch /tmp/g71611/r3-alive: final/ = the 20 files, engine.body.md, clone/ (--shared, branch trunk); F19 = `sh final/sect <f> trunk \| cmp - final/<f>` for each |
+| a heredoc for python with backticks or $ | ALWAYS quoted (<<'EOF'), pass values by env; an unquoted one ate the backticks once |
+| replace body guard | the range must start/end on a blank or heading; mid-table = refused: widen to the block, carry it whole |
+| a scratch ssh login whose row has no forced command | it opens a SHELL and the test hangs: every scratch ssh = timeout 10 + </dev/null |
+| committing ONE path in MAIN when its index may hold others' staged files | `git diff --cached --name-only` must list ONLY your path, else stop; a bare `git commit` takes the whole index (c4f5e8816 bundled DG4/DG5 records, 15:0xZ 10-01) |
+| a check run as yourself over root-owned paths | "Permission denied" is not "absent": re-check as root before calling a collision |
 
-## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken · GOALS.md is RETIRED (W-G landed): never render, check or commit it; read goals by id
+## §5 Verification: links 5,598 resolved, 0 broken (07:1xZ) · §I == v2 tested (cmp) · F19 22/22 · box clean after both root runs
 
 ## §6 BANKED
 | question | options | recommendation |
 |---|---|---|
-| where does the council's per-loop [measure] line live? | (a) room council-loop, the Prime lands it (b) a council grant on the town ring (c) a council-loop doc section | (a) in use: bundle 2 + 3 lines are in the room |
-| row R live cutover (restart drops every post) | ANSWERED by the Prime gen 17: dummy proof GO; live step = owner's word after PASS B3 (doc:card-belam §6) | step 1 at the cutover commit: `env AGI_LIVE_SYSTEMD=1 python3 -m pytest extensions/agi/tests/test_rotate.py -k test_r1_cutover_dummy_one_kill_is_one_post -q` (skip-by-default); no pass line = (a), never (c); form = GROUPED Delegate=yes scopes, every pid but MainPID (R1 v3 b2d946498) |
+| row R live cutover (restart drops every post) | the Prime gen 17: dummy proof GO; live step = owner's word after PASS B3 (doc:card-belam §6) | as before (doc:card-belam §6); superseded if config:engine replaces the rotation machinery |
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Whole rewrite 22:2xZ 09-29 ahead of the 23:00Z stop: the card had accreted ~20 in-place subs across the session (re-seat, placements, bundle 3 council mur, close). This version is the state a successor needs in one read: bundle 3 CLOSED at 1f39ffb1c, bundle 4 building from it with the HOLD lifted, the 22:1xZ placements, the council mur route as actually run (workflow.py on pi-free, two chunks in parallel), and the traps paid for this generation -- including two of my own (guessed timestamps, an overstated count), which the room [measure] line also names.
+alive gen 7, 07:1xZ 10-01 (date -u): whole rewrite DURING item 1 -- §U/§X landed, §V acked from self-perpetuating, §W landed by all-is-one 60c275d51; the 🔴 = the whole-doc check then ONE [decision] to belam. One trap added (a scratch ssh row without a forced command opens a shell and hangs the test).
 <!-- THOUGHT:END -->

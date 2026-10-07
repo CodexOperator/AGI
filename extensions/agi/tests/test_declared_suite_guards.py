@@ -94,14 +94,14 @@ def test_a_second_declared_suite_run_refuses_by_name(tmp_path, monkeypatch):
             assert True
         """)
     holder = os.getpid()          # this process is alive and is not the child
-    (groot / "sessions" / verification.SUITE_LOCK).write_text(
+    (groot / "sessions" / verification.suite_lock_name(groot)).write_text(
         str(holder), encoding="utf-8")
     monkeypatch.delenv(verification.SUITE_LOCK_MARKER, raising=False)
     res = verification.check_extra_suite(groot)
     out = f"{res.status} {res.note} {res.message}"
     assert "suite window refused" in out, out
     assert str(holder) in out, out
-    (groot / "sessions" / verification.SUITE_LOCK).unlink()
+    (groot / "sessions" / verification.suite_lock_name(groot)).unlink()
 
 
 def test_a_context_test_cannot_signal_a_real_pid_or_read_the_live_config(
@@ -402,3 +402,21 @@ def test_two_env_strip_instances_keep_their_own_memo(monkeypatch):
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-q"]))
+
+
+#: the ONLY files that may name the fence marker (which holds the RAW stdlib
+#: leaf): the installer, the tests OF the fence, this scan, and the one test
+#: whose bash tick needs a real child. Adding a name here is the review.
+_FENCE_MARKER_HOLDERS = {"conftest.py", "test_conftest_guard.py",
+                         "test_declared_suite_guards.py",
+                         "test_workflow_slice_isolation.py"}
+
+
+def test_the_raw_leaf_escape_hatch_has_a_declared_allow_list():
+    """Any opted-in file can read the raw `Popen` off the fence marker; no
+    file may name the marker unless it is declared above."""
+    tests = Path(__file__).resolve().parent
+    holders = {f.name for f in tests.glob("*.py")
+               if any(n in f.read_text(encoding="utf-8")
+                      for n in ("__agi_spawn_fence__", "FENCE_MARKER"))}
+    assert holders <= _FENCE_MARKER_HOLDERS, sorted(holders - _FENCE_MARKER_HOLDERS)

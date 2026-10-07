@@ -20,7 +20,7 @@ validation:
   # goal:g7.16.1.2.6 -- a park is a TAG: `parked:<goal id of the formation it
   # waits for>`; `write.py config:formations 'set active <doc>'` drops it.
   item_regex:
-    tags: '(?!parked:)[^\n]*|parked:g\d+(\.\d+)*'
+    tags: '|[^p\n][^\n]*|p([^a\n][^\n]*)?|pa([^r\n][^\n]*)?|par([^k\n][^\n]*)?|park([^e\n][^\n]*)?|parke([^d\n][^\n]*)?|parked([^:\n][^\n]*)?|parked:g\d+(\.\d+)*'
 spawn:
   allowed_parents: [idea, goal, experiment, hypothesis]
   min_parents: 1
@@ -108,8 +108,7 @@ rewritten from scratch on each change, not accumulated.
   scalar `thought_session:` is reserved there for goal:g2.7 / goal:g10.1 to
   point at the chat that produced a version; it is not populated yet.
 - **Readers strip it.** Thought is provenance to zoom into, not weight every
-  reader carries forever. `snapshot-goals.py --render` strips it explicitly via
-  `strip_thought()`; `render-context.py` and `zoom.py` never see it because
-  they read frontmatter only (`load_node_file(..., body=False)`) and so carry
-  no body text at all. The rule binds any future reader that *does* read
-  bodies.
+  reader carries forever. `brief.py` strips it from every body it renders via
+  `node_writer.strip_thought()`; `zoom.py` never sees it because it reads
+  frontmatter only (`load_node_file(..., body=False)`). The rule binds any
+  future reader that *does* read bodies.

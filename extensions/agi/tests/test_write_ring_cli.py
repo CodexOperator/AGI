@@ -594,3 +594,22 @@ def test_H4b_gate_refuses_by_name_when_ledger_present_but_unreadable(
             set_fm={"a": "1"}, signatures=sigs, ring_fresh=(ts, nonce))
     msg = str(ei.value)
     assert "nonce ledger" in msg and "ring-nonces.json" in msg
+
+
+# g1.31 #37 (PASS B3, verify_l4-canonical-bytes-are-injective-and-fresh-and-
+# the-ring-gate): `unset k` carried k: "<unset>" and json_field passes a str
+# through, so it signed the SAME canonical bytes as `set k <unset>`. The unset
+# keys now ride one reserved `_unset` field (refused as a caller key both
+# ways), so the literal is a legal value and never reads as an unset.
+def test_g131_37_unset_literal_marker_never_signs_the_bytes_of_setting_it():
+    def canon(set_fm, unset_fm):
+        return rings.canonical_bytes("config-write", write._config_write_fields(
+            "config:seats", set_fm, unset_fm, ts="T", nonce="n"))
+    assert canon({"k": "<unset>"}, None) != canon(None, ["k"])
+    assert canon({"k": "<unset>", "j": "1"}, None) != canon({"j": "1"}, ["k"])
+    assert write._config_write_fields("config:seats", {"k": "<unset>"})["k"] == "<unset>"
+    assert canon(None, ["b", "a", "a"]) == canon(None, ["a", "b"]), "order never signs"
+    assert canon(None, ["a"]) != canon(None, ["b"]) != canon(None, ["a", "b"])
+    for set_fm, unset_fm in (({"_unset": '["a"]'}, None), (None, ["_unset"])):
+        with pytest.raises(write.EditError, match="'_unset'.*REFUSED"):
+            write._config_write_fields("config:seats", set_fm, unset_fm)

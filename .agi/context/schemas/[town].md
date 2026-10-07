@@ -1,6 +1,6 @@
 ---
 name: town
-written_by: [prime_director, owner]   # list-shaped; links.parse_written_by reads a list (L4.50 flip) — town rows are prime/owner-written, like config:vetoes and config:rotations
+written_by: [prime_director, owner, director]   # TEMPORARY (owner 22:21Z 09-30: "set him as an allowed actor for the board for now until the redesign and radical simplification lands" -- for thought-master; the gate admits ROLES only (L4.41) and `master` is off-ladder, so any actor could claim it; `director` is the narrowest on-ladder role that admits thought-master, so every seated director is admitted until goal:g7.16.1.11 lands) · was: list-shaped; links.parse_written_by reads a list (L4.50 flip) — town rows are prime/owner-written, like config:vetoes and config:rotations
 derived_from: owner ruling 2026-09-12 (doc:l4-owner-decisions body 697-717 @e6d090a77, Prime XVII 18:48Z)
 actor_rows:  # hypothesis:l4-the-formation-owner-writes-config-posts-rows-and-the-town-master-cell-through-a-schema-declared-actor-row-grant-never-a-role-literal: the town `master` cell (the config:posts row that owns this town's branch pair until council activation) is settable by the RESOLVED sanctuary-master seat through write.py's generic `actor_rows` grant. The DERIVED `branches:` cell stays refused BY NAME at mint (create field-level `refuse:`) and at read (towns.load_towns).
   - {actor: sanctuary-master, field: master}
@@ -26,9 +26,11 @@ validation:
     season: int
     season_history: list
 spawn:
-  allowed_parents: [ladder]
-  min_parents: 1
-  max_parents: 1
+  allowed_parents: [goal, vision]
+  parent_shapes:
+    - [goal, vision]
+  min_parents: 2
+  max_parents: 2
 ---
 
 # town
@@ -96,10 +98,12 @@ three towns at merge-up from the create lines.
 
 ## spawn
 
-A town's parent is the ladder (`.geometry/ladder.md`), which is where the
-towns list and `town_branches` are already declared — the town node is the
-row underneath that declaration. Exactly one ladder parent, never a vision
-(a vision is a town's CELL, not its ancestor).
+A town has exactly two parents, one goal and one vision (`spawn.parent_shapes`
+`[[goal, vision]]`; today `goal:g26.towns` + `vision:the-living-being`). The
+ladder is NO LONGER a parent (Z4 phase A, `doc:rse-z4-ladder-out`): the graph
+edge is gone, while `.geometry/ladder.md` and every reader of it are untouched
+until phases B and C. The `visions` cell still lists the visions this town
+OWNS; a town's parent vision is a separate edge.
 
 ## The first towns — created by the Prime at merge-up
 

@@ -21,10 +21,8 @@ Measured, and asserted here:
     alone: `node_writer._stamp_env_fields` overwrites it at mint time from
     AGI_SEASON > ladder current_season (node_writer.py:770-777). The ruling's
     core-2 / apps-1 split requires the mint to run under AGI_SEASON=2 / =1.
-  * ILLEGAL PARENT: a parent that RESOLVES to a non-ladder type is hard
-    REJECTED (rc=2) with the allowed shape named ("allowed: ['ladder']"). A
-    PHANTOM parent id (a node that doesn't exist) is UNVERIFIED — the node is
-    written, because the gate cannot resolve the id's type.
+  * ILLEGAL PARENT: a parent whose RESOLVED type the schema does not admit is REJECTED
+    (rc=2) naming the rule + the allowed shape READ from the schema; a PHANTOM id is UNVERIFIED.
   * VISIONS OMITTED: the schema now opts that field into `validation.
     required_nonempty` (a schema-DECLARED rule, the town deliberately opting
     out of goal:s31's warn-and-write on `validation.required` alone), so the
@@ -87,6 +85,13 @@ def _write(g: Path, rel: str, content: str):
     p.write_text(content)
 
 
+def _live_town_schema_path() -> Path:
+    import locations
+    root = locations.find_project_root(Path(__file__))
+    assert root is not None, "no project root for the live [town].md"
+    return Path(root) / "context" / "schemas" / "[town].md"
+
+
 def _fixture(tmp_path: Path) -> Path:
     """Build a fresh fixture PROJECT under tmp_path; returns the project root.
     Layout (the G11 shape):
@@ -122,6 +127,8 @@ def _fixture(tmp_path: Path) -> Path:
            + "\n".join(f"  - {json.dumps(r)}" for r in posts) + "\n---\n")
     _write(g, "nodes/ladder/ladder.md",
            "---\nid: ladder:ladder\ntype: ladder\n---\nbody\n")
+    _write(g, "nodes/goal/g1.md",
+           "---\nid: goal:g1\ntype: goal\ntitle: x\n---\nbody\n")
     for v in ("vision:a", "vision:b", "vision:c",
               "vision:streaming-suite", "vision:web-app-suite"):
         _write(g, f"nodes/vision/{v.split(':')[-1]}.md",
@@ -131,7 +138,8 @@ def _fixture(tmp_path: Path) -> Path:
 
 def _mint(monkeypatch, proj: Path, slug: str, *, visions,
           council: str, season: int, agi_season: str | None,
-          parent: str = "ladder:ladder", extra_sets: dict | None = None,
+          parents: tuple = ("goal:g1", "vision:a"),
+          extra_sets: dict | None = None,
           actor: str = "prime_director", dry_run: bool = False) -> int:
     """One real `write.py create town …` as the target actor; returns rc.
     `agi_season` None => AGI_SEASON cleared (ladder current_season decides)."""
@@ -139,8 +147,10 @@ def _mint(monkeypatch, proj: Path, slug: str, *, visions,
         monkeypatch.delenv("AGI_SEASON", raising=False)
     else:
         monkeypatch.setenv("AGI_SEASON", str(agi_season))
-    argv = ["create", "town", slug,
-            "--parent", parent,
+    argv = ["create", "town", slug]
+    for p in parents:
+        argv += ["--parent", p]
+    argv += [
             "--root", str(proj),
             "--actor", actor,
             "--set", f"visions={json.dumps(visions)}",
@@ -153,18 +163,17 @@ def _mint(monkeypatch, proj: Path, slug: str, *, visions,
     return write.main(argv)
 
 
-def test_dry_run_bypasses_spawn_gate_but_not_the_schema_refuse_gate(tmp_path, monkeypatch):
-    """`--dry-run` returns 0 BEFORE create() runs (write.py:2062-2070), so it
-    exercises no spawn gate — an illegal parent still dry-runs happily. But the
-    schema field-level `refuse:` gate now sits BEFORE the dry-run short-circuit,
-    because a dry run is a simulation of the mint and refuses what the real
-    mint would refuse: a `branches:` cell refuses by name even under --dry-run."""
+def test_dry_run_runs_the_spawn_gate_and_the_schema_refuse_gate(tmp_path, monkeypatch, capsys):
+    """`--dry-run` is a simulation of the mint and refuses what the real mint would
+    refuse: the spawn gate (goal:g7.33.20.3 D3 -- an illegal parent is rc 2 on a dry
+    run too, it used to dry-run happily) AND the schema field-level `refuse:` gate
+    (a `branches:` cell refuses by name)."""
     proj = _fixture(tmp_path)
-    # Illegal parent that WOULD hard-refuse for real (vision:a resolves):
     rc = _mint(monkeypatch, proj, "dryrun-bad", visions=["vision:a"],
                council="council-core", season=2, agi_season="2",
-               parent="vision:a", dry_run=True)
-    assert rc == 0, "dry-run must not run the spawn gate (write.py:2062-2070)"
+               parents=("goal:g1", "ladder:ladder"), dry_run=True)
+    assert rc == 2, "dry-run runs the spawn gate: an illegal parent refuses like the real mint (goal:g7.33.20.3 D3)"
+    assert "'allowed_parents'" in capsys.readouterr().err
     # A branches cell IS refused even under a dry run (schema gate pre-dry-run):
     rc2 = _mint(monkeypatch, proj, "dryrun-branches", visions=["vision:a"],
                 council="council-core", season=2, agi_season="2",
@@ -230,21 +239,26 @@ def test_season_set_is_overridden_at_mint_time(tmp_path, monkeypatch):
         "ladder current_season (2) must stamp season over --set season=1"
 
 
-def test_illegal_parent_real_vision_refused_by_name(tmp_path, monkeypatch):
-    """A parent that RESOLVES to a non-ladder type is hard-REJECTED with the
-    allowed parent shape named. `vision:a` is the honest illegal parent — the
-    schema body says a vision is a town's CELL, never its ancestor."""
+def test_illegal_parent_ladder_refused_by_name(tmp_path, monkeypatch, capsys):
+    """A parent whose RESOLVED type the schema does not admit is hard-REJECTED
+    by rule NAME, the allowed shape quoted. PREMISE GONE (renamed from
+    ..._real_vision_refused_by_name): a vision is now LEGAL, so the honest
+    wrong TYPE is the RETIRED ladder, with the goal parent alongside."""
     proj = _fixture(tmp_path)
-    rc = _mint(monkeypatch, proj, "kid-of-vision", visions=["vision:a"],
+    from graph_core.persistence import load_node_file  # READ, never typed
+    spawn = load_node_file(_live_town_schema_path(), body=True).frontmatter["spawn"]
+    rc = _mint(monkeypatch, proj, "kid-of-ladder", visions=["vision:a"],
                council="council-core", season=2, agi_season="2",
-               parent="vision:a")
-    assert rc == 2, "a vision parent must be rejected on the mint path"
-    assert not (proj / ".agi" / "nodes" / "town" / "kid-of-vision.md").exists(), \
+               parents=("goal:g1", "ladder:ladder"))
+    assert rc == 2, "a ladder parent must be rejected on the mint path"
+    err = capsys.readouterr().err
+    assert "'allowed_parents'" in err and str(spawn["allowed_parents"]) in err
+    assert not (proj / ".agi" / "nodes" / "town" / "kid-of-ladder.md").exists(), \
         "a rejected spawn must leave no node behind"
 
 
 def test_phantom_parent_is_unverified_at_the_gate_refused_at_the_create(
-        tmp_path, monkeypatch):
+        tmp_path, monkeypatch, capsys):
     """`--parent vision:alive` when NO such node exists stays UNVERIFIED at the
     GATE — the gate cannot resolve the phantom id's type, and it refuses by
     RESOLVED type; a phantom resolves to nothing.
@@ -257,8 +271,10 @@ def test_phantom_parent_is_unverified_at_the_gate_refused_at_the_create(
     proj = _fixture(tmp_path)  # vision:alive does NOT exist here
     rc = _mint(monkeypatch, proj, "phantom-parent", visions=["vision:a"],
                council="council-core", season=2, agi_season="2",
-               parent="vision:alive")
+               parents=("goal:g1", "vision:alive"))
     assert rc == 2, "a create onto a phantom parent id must be refused"
+    err = capsys.readouterr().err
+    assert "UNVERIFIED" in err and "vision:alive" in err
     assert not (proj / ".agi" / "nodes" / "town" / "phantom-parent.md").exists(), \
         "a refused create must leave no node behind"
 
@@ -276,7 +292,7 @@ def test_visions_omitted_refused_by_create_gate_by_name(tmp_path, monkeypatch, c
     import os as _os
     monkeypatch.delenv("AGI_SEASON", raising=False)
     rc = write.main(["create", "town", "novisions",
-                     "--parent", "ladder:ladder",
+                     "--parent", "goal:g1", "--parent", "vision:a",
                      "--root", str(proj),
                      "--actor", "prime_director",
                      "--set", "council=council-core",
@@ -326,17 +342,25 @@ def test_no_required_nonempty_schema_still_warns_and_writes(tmp_path, monkeypatc
         "the warned node must be written"
 
 
-def test_non_prime_actor_refused_naming_admitted_roles(tmp_path, monkeypatch):
+def test_non_prime_actor_refused_naming_admitted_roles(tmp_path, monkeypatch, capsys):
     """A kid actor is REFUSED by `_enforce_written_by` naming the admitted
-    roles — 'may be hand-edited only by admitted roles owner, prime_director'
-    — and nothing is written."""
+    roles — 'may be hand-edited only by admitted roles <sorted list>' — and
+    nothing is written. The list is READ from the live [town] schema through
+    links.parse_written_by (the production reader), never typed: it carries a
+    TEMPORARY `director` admit (owner 22:21Z 09-30, until goal:g7.16.1.11
+    lands), and a later schema change needs no edit here."""
+    import links
+    from graph_core.persistence import load_node_file
+    admitted = links.parse_written_by(
+        load_node_file(_live_town_schema_path(), body=True).frontmatter["written_by"])
+    assert "kid" not in admitted and "a00-someone" not in admitted, admitted
     proj = _fixture(tmp_path)
-    with pytest.raises(write.EditError) as e:
-        _mint(monkeypatch, proj, "kidtown", visions=["vision:a"],
-              council="council-core", season=2, agi_season="2",
-              actor="a00-someone")
-    msg = str(e.value)
-    assert "only by admitted roles owner, prime_director" in msg
+    rc = _mint(monkeypatch, proj, "kidtown", visions=["vision:a"],
+               council="council-core", season=2, agi_season="2",
+               actor="a00-someone")
+    msg = capsys.readouterr().err       # goal:g7.33.20.3: refused by name, rc 2, never a traceback
+    assert rc == 2 and ("only by admitted roles "
+                        + ", ".join(sorted(admitted))) in msg, (rc, msg)
     assert not (proj / ".agi" / "nodes" / "town" / "kidtown.md").exists()
 
 

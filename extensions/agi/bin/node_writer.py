@@ -52,6 +52,7 @@ of them had been fixed.
 from __future__ import annotations
 
 import datetime
+import functools
 import hashlib
 import json
 import os
@@ -91,6 +92,10 @@ CANONICAL_NODE_TYPES = (
 TYPE_ALIASES = {"bigger-outcome": "bigger_outcome",
                 "app-purpose": "vision",
                 "app_purpose": "vision"}
+#: Abbreviated ID prefixes the corpus carries in frontmatter (80 `exp:`, 46 `hyp:`
+#: live nodes whose file lives under nodes/experiment|hypothesis/): the same node,
+#: spelled short. Deliberately NOT in TYPE_ALIASES (that is the input/`choices` surface).
+ID_PREFIX_ALIASES = {"hyp": "hypothesis", "exp": "experiment"}
 #: What an argparse `choices=` should accept: canonical + aliases.
 NODE_TYPES = CANONICAL_NODE_TYPES + tuple(TYPE_ALIASES)
 
@@ -153,9 +158,18 @@ def canonical_node_type(node_type) -> str:
     return TYPE_ALIASES.get(t, spawn_gate.canonical_type(t))
 
 
+#: type -> the directory under `nodes/` a NEW node of it is born into, where that is
+#: not `nodes/<type>/`. `config:*` nodes live in `nodes/.geometry/` (config:posts,
+#: config:census, config:guard ...): a create that landed `nodes/config/<x>.md` would
+#: mint a second home the readers of `.geometry/` never see (goal:g7.33.20.3 D1).
+NODE_HOME = {"config": ".geometry"}
+
+
 def node_dir(root, node_type) -> Path:
-    """Where a node of this type lives: `<root>/nodes/<canonical_type>/`."""
-    return Path(root) / "nodes" / canonical_node_type(node_type)
+    """Where a node of this type lives: `<root>/nodes/<canonical_type>/`
+    (`NODE_HOME` names the types whose home is elsewhere)."""
+    t = canonical_node_type(node_type)
+    return Path(root) / "nodes" / NODE_HOME.get(t, t)
 
 
 #: `find_node_file`'s whole-corpus index, keyed by resolved root. Built once,
@@ -183,7 +197,7 @@ def _build_id_index(root: Path) -> dict:
     return index
 
 
-def find_node_file(root, node_id) -> Path | None:
+def find_node_file(root, node_id, *, tree_wide: bool = True) -> Path | None:
     """id -> the file that holds it. The one lookup, mirroring the one write.
 
     `cli.py` and `post_wire.py` each carried their own version of this and
@@ -209,7 +223,9 @@ def find_node_file(root, node_id) -> Path | None:
     3. a frontmatter index over the whole tree -- catches an id whose prefix
        is not its directory at all. Built once per root and dropped by
        `write_node`, so it cannot go stale under its own writer.
-    """
+
+    `tree_wide=False` stops after step 2 (goal:g7.33.20 B3: a caller that needs
+    "does the TYPE's own directory hold this id", never "does any file")."""
     if not isinstance(node_id, str) or ":" not in node_id:
         return None
     root = Path(root)
@@ -245,6 +261,8 @@ def find_node_file(root, node_id) -> Path | None:
             if isinstance(fm, dict) and fm.get("id") == node_id:
                 return nf
 
+    if not tree_wide:
+        return None   # goal:g7.33.20 B3: the caller asked for the type directories only
     key = str(root.resolve())
     if key not in _ID_INDEX:
         _ID_INDEX[key] = _build_id_index(root)
@@ -314,6 +332,20 @@ def _needs_quoting(sval: str) -> bool:
     return sval[0] in "\"'[{&*!|>%@`#-?:,"
 
 
+@functools.lru_cache(maxsize=8192)
+def _reads_back_as_other_type(sval: str) -> bool:
+    """True when the BARE spelling of a `str` would re-read (yaml.safe_load, the
+    reader every node goes through) as anything but that same `str`: '0.8' ->
+    float, 'yes' / 'true' -> bool, 'null' / '~' -> None, '1e3' / '0x1F' / '1:30' ->
+    number, '2026-09-30' -> date. goal:g4.18.1.6 R3: such a string keeps its quotes."""
+    import yaml
+    try:
+        back = yaml.safe_load(sval)
+    except yaml.YAMLError:
+        return True
+    return not (isinstance(back, str) and back == sval)
+
+
 def _scalar(v) -> str:
     """One frontmatter scalar, quoted if it needs to be.
 
@@ -341,6 +373,8 @@ def _scalar(v) -> str:
     # spaces, trim edge whitespace) is safe here, because a raw value that
     # carried a newline or edge whitespace would have been caught by the quote
     # triggers above. Empty reached the quote trigger, so it never lands here.
+    if isinstance(v, str) and _reads_back_as_other_type(raw):   # R3: a str never comes back a float/bool/None
+        return '"' + raw.replace("\\", "\\\\").replace('"', '\\"') + '"'   # no line break reaches here (_needs_quoting)
     return raw.replace("\n", " ").strip()
 
 
@@ -667,6 +701,141 @@ def replace_payload(root, ref: str, source=None, *, location: str | None = None,
 #: transcribing it (one source per rule).
 MINTED_IDENTITY = ("id", "mint_id", "next_edges", "scaffold_hash")
 
+#: THE gated rows: the spawn gate judges `type` and `parents` from write_node's
+#: own arguments, so a caller row naming one would land a node the gate never
+#: judged (`create --parent goal:real --set parents=[goal:nope]`, SM run 10).
+#: write.py's `--set` refusal reads it from HERE.
+GATED_ROWS = ("type", "parents")
+
+
+def judge_create(root, node_type, slug, parents=None, *, extra_fm=None,
+                 bypass=False, rules=None, type_index=None, fm_for_gate=None,
+                 on_exists=SKIP, announce=True):
+    """The spawn gate for ONE create, verdict and messages both -- the SAME call
+    `write_node` makes before it touches disk and `write.py create --dry-run`
+    makes instead of touching it (goal:g7.33.20.3 D3: a preview that skips the
+    gate says approved where the real create refuses).
+
+    Returns `(NodeWrite, node_file, current_season)`. `NodeWrite.status` is
+    REJECTED for a gate rejection or a create-only refusal (no active schema for
+    a brand-new type, an unresolved parent id) and otherwise untouched; the gate
+    itself carries the ONE verdict, and what `announce` prints matches it: a
+    create that will write nothing never says "The node is written" (D2)."""
+    root = Path(root)
+    ntype = canonical_node_type(node_type)
+    if isinstance(parents, str):
+        parents = [parents]
+    plist = [p.strip() for p in (parents or []) if isinstance(p, str) and p.strip()]
+    node_id = f"{ntype}:{slug}"
+    res = NodeWrite(node_id=node_id, node_type=ntype, slug=str(slug),
+                    parents=list(plist))
+    node_file_pre = node_dir(root, ntype) / f"{slug}.md"
+    gated = sorted(set(extra_fm or {}) & set(GATED_ROWS))
+    if gated:
+        res.status = REJECTED
+        res.reason = (f"extra_fm names {gated}: the spawn gate judges the create's own "
+                      f"type and parents, and a row never overwrites them after it")
+        return res, node_file_pre, None
+
+    current_season = None
+    if rules is None or type_index is None:
+        loaded_rules, loaded_index, current_season = spawn_gate.gate_for_root(root)
+        rules = rules if rules is not None else loaded_rules
+        type_index = type_index if type_index is not None else loaded_index
+        if announce:
+            spawn_gate.announce_schema_errors(rules)
+
+    # hypothesis:l4-create-refuses-a-genuinely-unknown-type-before-any-file-
+    # is-written -- the destination path, computed BEFORE the gate is judged
+    # so the refusal below can tell a genuinely new create from an update.
+    # `node_dir()` is pure: it resolves a path and touches nothing.
+    node_file = node_dir(root, ntype) / f"{slug}.md"
+    gate_fm = fm_for_gate if fm_for_gate is not None else (extra_fm or {})
+    gate = spawn_gate.check_spawn(
+        ntype, plist, rules=rules, type_index=type_index,
+        fm=gate_fm,
+        node_id=node_id, bypass=bypass,
+        season_parents=gate_fm.get("season_parents"),
+        current_season=current_season,
+        nodes_dir=str(Path(root) / "nodes"),
+    )
+    res.gate = gate
+    if not gate.ok:
+        if announce:
+            spawn_gate.announce(gate)
+        res.status = REJECTED
+        res.reason = gate.reason
+        return res, node_file, current_season
+    # hypothesis:l4-create-refuses-a-genuinely-unknown-type-before-any-file-
+    # is-written -- the gate's UNVERIFIED is deliberate and correct when
+    # something legitimate is being preserved (an existing node whose type
+    # predates any schema, an unresolved parent type, a schema whose
+    # rule_for() finds no variant). It is WRONG for a brand-new CREATE of a
+    # type that has never had a schema: there nothing legitimate is being
+    # preserved, so the write is refused in the SAME REJECTED shape as the
+    # `not gate.ok` branch above -- by name, no file, no directory. Only the
+    # no-active-schema reason qualifies; every other UNVERIFIED cause, and
+    # every pre-existing file, falls through unchanged. `rules.schemas`
+    # non-empty is the second discriminator: a project with NO active schema
+    # loaded at all (a missing/empty schemas dir) cannot tell an unknown type
+    # from an unconfigured one, and check_spawn's fail-open instinct applies
+    # there exactly as it does to an unresolved parent type.
+    if (
+        gate.status == spawn_gate.UNVERIFIED
+        and gate.reason == f"no active schema for type '{ntype}'"
+        and rules.schemas
+        and not node_file.exists()
+    ):
+        # goal:g7.33.20.3 D2: this create writes NOTHING -- the gate's UNVERIFIED line
+        # (announced below, and its status kept: what the gate found) says so, never
+        # "The node is written" ahead of a refusal.
+        res.status = REJECTED
+        res.reason = (
+            f"no active schema for type '{ntype}': a new {ntype} node "
+            f"cannot be created because context/schemas/[{ntype}].md does "
+            "not exist. Declare the type first (bracketed filename = "
+            "active), or update an existing node of it instead."
+        )
+        gate.fix = (f"declare context/schemas/[{ntype}].md (bracketed filename = active), "
+                    f"or update an existing {ntype} node instead")
+        spawn_gate.retract_written(gate, "create refused: no schema for a new type")
+        if announce:
+            spawn_gate.announce(gate)
+        return res, node_file, current_season
+
+    # hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-
+    # id-does-not-resolve -- the second CREATE-only refusal. A parent id that
+    # resolves to no node is UNVERIFIED, and fail-open is correct for anything
+    # ALIVE (never re-point a legacy edge, G7.1). But for a brand-new create
+    # there is nothing legitimate to preserve: the edge names a node that does
+    # not exist yet -- most often a subgoal the same round meant to mint and
+    # did not. Same REJECTED shape as the no-active-schema branch above. Only
+    # the unresolved-parent-id reason qualifies, and only when the file does
+    # not exist: an existing node keeps its fail-open edge untouched.
+    if (
+        gate.status == spawn_gate.UNVERIFIED
+        and gate.reason.startswith("parent id(s) resolve to no node")
+        and not node_file.exists()
+    ):
+        res.status = REJECTED
+        res.reason = (
+            f"{gate.reason}: a new {ntype} node cannot be created onto a "
+            f"parent that names no node. Create the parent first, or pass a "
+            f"parent id that exists in the graph."
+        )
+        gate.fix = "create the parent first, or pass a parent id that exists in the graph"
+        spawn_gate.retract_written(gate, "create refused: a parent names no node")
+        if announce:
+            spawn_gate.announce(gate)
+        return res, node_file, current_season
+
+    if node_file.exists() and on_exists == SKIP:
+        # goal:g7.33.20.3 D2: this create will write nothing -- the gate's line says so.
+        spawn_gate.retract_written(gate, f"{node_file} already exists")
+    if announce:
+        spawn_gate.announce(gate)
+    return res, node_file, current_season
+
 
 def write_node(
     root,
@@ -710,93 +879,13 @@ def write_node(
     Returns a `NodeWrite`; never raises for a rejection.
     """
     root = Path(root)
-    ntype = canonical_node_type(node_type)
-    if isinstance(parents, str):
-        parents = [parents]
-    plist = [p.strip() for p in (parents or []) if isinstance(p, str) and p.strip()]
-    node_id = f"{ntype}:{slug}"
-    res = NodeWrite(node_id=node_id, node_type=ntype, slug=str(slug),
-                    parents=list(plist))
-
-    current_season = None
-    if rules is None or type_index is None:
-        loaded_rules, loaded_index, current_season = spawn_gate.gate_for_root(root)
-        rules = rules if rules is not None else loaded_rules
-        type_index = type_index if type_index is not None else loaded_index
-        if announce:
-            spawn_gate.announce_schema_errors(rules)
-
-    # hypothesis:l4-create-refuses-a-genuinely-unknown-type-before-any-file-
-    # is-written -- the destination path, computed BEFORE the gate is judged
-    # so the refusal below can tell a genuinely new create from an update.
-    # `node_dir()` is pure: it resolves a path and touches nothing.
-    node_file = node_dir(root, ntype) / f"{slug}.md"
-    gate_fm = fm_for_gate if fm_for_gate is not None else (extra_fm or {})
-    gate = spawn_gate.check_spawn(
-        ntype, plist, rules=rules, type_index=type_index,
-        fm=gate_fm,
-        node_id=node_id, bypass=bypass,
-        season_parents=gate_fm.get("season_parents"),
-        current_season=current_season,
-        nodes_dir=str(Path(root) / "nodes"),
-    )
-    if announce:
-        spawn_gate.announce(gate)
-    res.gate = gate
-    if not gate.ok:
-        res.status = REJECTED
-        res.reason = gate.reason
+    res, node_file, current_season = judge_create(
+        root, node_type, slug, parents, extra_fm=extra_fm, bypass=bypass,
+        rules=rules, type_index=type_index, fm_for_gate=fm_for_gate,
+        on_exists=on_exists, announce=announce)
+    if res.status == REJECTED:
         return res
-    # hypothesis:l4-create-refuses-a-genuinely-unknown-type-before-any-file-
-    # is-written -- the gate's UNVERIFIED is deliberate and correct when
-    # something legitimate is being preserved (an existing node whose type
-    # predates any schema, an unresolved parent type, a schema whose
-    # rule_for() finds no variant). It is WRONG for a brand-new CREATE of a
-    # type that has never had a schema: there nothing legitimate is being
-    # preserved, so the write is refused in the SAME REJECTED shape as the
-    # `not gate.ok` branch above -- by name, no file, no directory. Only the
-    # no-active-schema reason qualifies; every other UNVERIFIED cause, and
-    # every pre-existing file, falls through unchanged. `rules.schemas`
-    # non-empty is the second discriminator: a project with NO active schema
-    # loaded at all (a missing/empty schemas dir) cannot tell an unknown type
-    # from an unconfigured one, and check_spawn's fail-open instinct applies
-    # there exactly as it does to an unresolved parent type.
-    if (
-        gate.status == spawn_gate.UNVERIFIED
-        and gate.reason == f"no active schema for type '{ntype}'"
-        and rules.schemas
-        and not node_file.exists()
-    ):
-        res.status = REJECTED
-        res.reason = (
-            f"no active schema for type '{ntype}': a new {ntype} node "
-            f"cannot be created because context/schemas/[{ntype}].md does "
-            "not exist. Declare the type first (bracketed filename = "
-            "active), or update an existing node of it instead."
-        )
-        return res
-
-    # hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-
-    # id-does-not-resolve -- the second CREATE-only refusal. A parent id that
-    # resolves to no node is UNVERIFIED, and fail-open is correct for anything
-    # ALIVE (never re-point a legacy edge, G7.1). But for a brand-new create
-    # there is nothing legitimate to preserve: the edge names a node that does
-    # not exist yet -- most often a subgoal the same round meant to mint and
-    # did not. Same REJECTED shape as the no-active-schema branch above. Only
-    # the unresolved-parent-id reason qualifies, and only when the file does
-    # not exist: an existing node keeps its fail-open edge untouched.
-    if (
-        gate.status == spawn_gate.UNVERIFIED
-        and gate.reason.startswith("parent id(s) resolve to no node")
-        and not node_file.exists()
-    ):
-        res.status = REJECTED
-        res.reason = (
-            f"{gate.reason}: a new {ntype} node cannot be created onto a "
-            f"parent that names no node. Create the parent first, or pass a "
-            f"parent id that exists in the graph."
-        )
-        return res
+    ntype, node_id, plist, gate = res.node_type, res.node_id, res.parents, res.gate
 
     scaffold_body = f"\n# {node_id}\n\n" if heading else "\n"
     if body is None:
@@ -986,8 +1075,18 @@ def _stamp_env_fields(fm: dict, *, current_season: int | None = None,
 THOUGHT_BEGIN = ("<!-- THOUGHT:BEGIN — authored, not derived; carried across "
                  "regenerating scans. The reasoning behind THIS version. -->")
 THOUGHT_END = "<!-- THOUGHT:END -->"
+#: a marker LINE, BEGIN or END -- the one line-level spelling (SM 113; write.py imports it)
+#: THE marker head, ONE constant both regexes are built from: `[ \t]*`, never
+#: `\s*`, so a marker never spans a newline (SM 131: `<!--\nTHOUGHT:BEGIN` was a
+#: block start but no marker line) and `\b`, so `THOUGHT:BEGIN_x` is neither (SM 129).
+#: _END is THE closer tail, ONE constant for every reader (SM 138): `END.`,
+#: `END trailing -->` or `END` with `-->` on the next line closes nothing.
+_HEAD = r"^<!--[ \t]*"
+_MARK = _HEAD + r"THOUGHT:"
+_END = r"END[ \t]*-->"
+THOUGHT_MARKER_LINE_RE = re.compile(_MARK + r"(BEGIN\b|" + _END + r")")
 _THOUGHT_RE = re.compile(
-    r"^<!--\s*THOUGHT:BEGIN.*?^<!--\s*THOUGHT:END\s*-->",
+    _MARK + r"BEGIN\b.*?" + _MARK + _END,
     re.DOTALL | re.MULTILINE)
 _THOUGHT_STRIP_RE = re.compile(r"\n*" + _THOUGHT_RE.pattern, _THOUGHT_RE.flags)
 
@@ -1008,7 +1107,7 @@ def thought_blocks(text: str) -> list[str]:
 
 
 _ROW_ITEM = re.compile(r"^\s{0,3}([-*+]|\d+[.)])\s")
-_ROW_BLOCK = re.compile(r"^<!--\s*([A-Z][A-Z-]*):BEGIN")
+_ROW_BLOCK = re.compile(_HEAD + r"([A-Z][A-Z-]*):BEGIN\b")   # SM 131: one line, a whole word
 
 
 def body_rows(body: str) -> list[tuple[int, int]]:
@@ -1025,7 +1124,7 @@ def body_rows(body: str) -> list[tuple[int, int]]:
             i += 1
             continue
         if (m := _ROW_BLOCK.match(ln)) or ln.startswith("```"):
-            end = re.compile(rf"^<!--\s*{re.escape(m.group(1))}:END" if m else r"^```")
+            end = re.compile(_HEAD + re.escape(m.group(1)) + ":" + _END if m else r"^```")   # SM 133/138: like _THOUGHT_RE
             # residue 95: the END marker LINE, never the substring (a THOUGHT quoting it)
             j = next((k for k in range(i + 1, len(lines)) if end.match(lines[k])), None)
             i = i if j is None else j   # an unpaired BEGIN (BODY) is one line
@@ -1176,8 +1275,11 @@ def update_node(
     validate=True,
     announce=False,
     log_extra=None,
+    canonicalize=False,
 ) -> NodeWrite:
     """Edit one existing node in place, gated. The only routine that does this.
+    `canonicalize` (write.py's verb, council ruling on SM 154): "unchanged" is
+    judged on the rendered BYTES, so a non-canonical node is re-rendered.
 
     `set_fm` is merged over the node's frontmatter; `unset_fm` names keys to
     drop. `body` replaces the body and is the one case where the authored
@@ -1234,7 +1336,9 @@ def update_node(
 
     # `assemble_node` applies the delta AFTER the absorb (never clobbered).
 
-    if fm == nf.frontmatter and new_body == nf.body:
+    if fm == nf.frontmatter and new_body == nf.body and not (
+            canonicalize and _serialize_node(render_frontmatter(fm), new_body)
+            != path.read_text(encoding="utf-8")):
         res.status = UNCHANGED
         res.reason = "nothing to change"
         return res

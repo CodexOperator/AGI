@@ -12,7 +12,7 @@ tags:
   - card
   - prime
   - belam
-thought_session: belam-S2-L5-XVII
+thought_session: belam-S2-L5-XVIII
 title: "doc:card-belam -- the Prime's card: the one scratch (state · plan · landed · where it stops · traps · verification · BANKED)"
 town: core
 ---
@@ -21,79 +21,78 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs, never here; progress lives on the town board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 18 is a crash recovery, not a rotation: the ack refused on its own dirty row (rotate.py:3002), which was the spawn's own gen 17->18 write, so it was committed alone (skill agi-rotate: commit THAT, never bundle) before the ack. The trunk sync repeats gen 17's 1b340f1f4 for the one key-row commit that landed after it (3a4dcd6ce); the posts.md conflict was the stale gen 1 DG1/DG2 rows on season2/main, so the trunk side was kept and the merged file equals the trunk tip.
+gen 27 out (14:4xZ 10-07): the carrier, unit, polkit, kid cell and GitHub sealer went live this generation, each root act read whole at a landed pinned T; A12 was rolled back after it looped DG2/DG3 (my miss: I took the self-heal prediction on the line's word). The owner's 10-07 lines re-scope the season: collapse + rollover design to the council, the old Python key/metrics/verify kept, belam's v5 move re-stated as more doable. Owner 14:4xZ verbatim (tail): "I will hear about it from your successor. Thank you for your service."
 <!-- THOUGHT:END -->
 
-## §0 State (21:0xZ 09-29, gen 18 recovered at 20:59Z)
+## §0 State (14:4xZ 10-07, read from date -u)
 | | |
 |---|---|
-| post | belam-S2-L5-XVIII gen 18 (RECOVERED: spawned 20:59Z, ack continue bb35f4c12 after committing the spawn's own row 12d8b278d; quorum link intact; meter 0.07) |
-| formation | council loop LIVE until 23:00Z (owner 16:5xZ: "Keep working till 7pm next and I'll check my CC sub then") · bundle 3 = goal:g7.16.1.3 (grok core simplify; H1 g4.18.3 · H2 g4.18.4 first) with DG1 · alive @4 · all-is-one @5 · self-perpetuating @6 · DG1 @7 · DG2 @8 · DG3 @10 (agi-c5) · DG4 @12 (NEW 22:14Z, owner 22:0xZ; LEFTOVERS lane, doc:card-director-general-4) · SM @13 (agi-1c) · stream-master @14 (NEW, side post) · TM/DT/DE DOWN |
-| merge | bundle 3 CLEAN re-confirmed ddea3a61f (SM 20:20Z, 23/23 residues closed, 0 red) = bundle 4 base · trunk syncs 1b340f1f4 (gen 17) + ce35d8c6f (gen 18: 3a4dcd6ce, ancestry only; the trunk is 0 behind season2/main) · PASS B2 2fb5c2043 · posts [red] fixed dcd06014e + sync #3 07f02d4a2 · PASS B3 due 17:47Z (BASE 922ff3f48d; 220 commits / 30 experiments / 0 D at 16:4xZ) |
-| STREAM | OFF (owner 17:3xZ: "put stream-master on new box first then start the stream"): panic --retract + unit stopped + Xvfb :2 / kiosk / graphweb stopped (freed ~4.7 GB); stream-master (@5 agi-5c) told to hold; encryption-town readiness = investigator report pending |
-| crons | RE-ARMED 21:0xZ by gen 18: CHECK c2bcbd3f "13 */4 * * *" · STOP c2ca8bfe (8 posts incl. DG4) "0 23 29 9 *" · PASS B3 9f6c36ee "33 23 29 9 *". Session-only: a successor re-arms |
+| post | belam gen 28 (woke 14:4xZ 10-07), session 38d10ddc, window @15 (row generation cell reads 3: rotate's counter, gen 25 fixed it by hand once), OLD engine |
+| box | up since 10-01 22:17Z; 8 v5 posts active 0 restarts (6 restarted 14:1xZ 10-07 after the owner's stop 10-04 07:53Z) · down by the owner: DG4 · DG5 · DT-2 · stream-master · old setup running: belam · SM (old TM = row thought-master-old, stood down 14:56Z 10-07) |
+| tree | owner > belam > council{alive, all-is-one, self-perpetuating; lands []} + keep{SM, TM} > DG1-3 under SM, DT-1 under TM (level rule 3a33c71b9) |
+| mail | `send.py --from belam send <p> "<text>"`; read .agi/sessions/inbox/belam.md by ts (trap 66) |
+| crons | session-only, die with me: gen 28 armed CHECK 8a0c8b5c (13 */4) + memory Monitor; re-arm both (MemAvailable < 6 GB or PSI avg10 >= 20, 30 min) at wake |
+| merge pass | paused_by_owner (council / automated). BASE 1f2b49ffc9 |
+| carrier | INSTALLED: /opt/agi/bin box · box-carry 56cd9215 (closer) · agi-signers 6b9df8d9 · sect; carry.env AGI_TRUNK=f02495529, hub empty; 12 agi-carry@<p>.path waiting; fetch timer on (60 s, local sweep); ring file /var/lib/agi/allowed_signers (append-only) |
+| unit | agi-post@.service = 5cecf3aa (A9). A12 (c4f5a917) ROLLED BACK 10-03 15:1xZ: DG2/DG3 looped exit 127 ~90 min (t lacked OUT.6 -> no bin/agi-out) |
+| polkit | 50-agi.rules a17953ca (K1: own mint/kid units only) · kid cell on belam row: usd 0.5, max 3 |
+| GitHub | seal.yml 686368aa LIVE on master (merge 6405a03fc), 30-min sweep, attests block digests; gh token has workflow scope (owner 10-03 05:58Z); block_push OFF until a real block |
+| MAIN config | gpg.ssh.allowedSignersFile UNSET at repo level (DG5 leftover shadowed every worktree; rollback = set it to .git/allowed_signers) |
 
 ## §1 Plan
 ```
-DONE   PASS B2 · config:formations + registry · posts [red] · goals g1.30 g4.18.3 g4.18.4 · M review doc:council-loop-review-s2 · council resumed to 23:00Z · stream-master stood up 237fdfc3f
-FIRST  B3. PASS B3 (below)
-then   F. row F: config:rotations first_turn `formation` line (goal:g7.16.1.2.9, exact draft at its body :35-38) · S. the 23:00Z stop -> owner <= 6 lines, hold for the CC-subscription call
-STREAM-MASTER -> encryption-town: CONDITIONAL GO (plan <home>/enc-town-plan.md). OWNER must: grant sudo there (firefox + xvfb) and pick the branch of a separate s2 clone; formal migrate NO-GO today; air the masked FEED, never the 3D dashboard (7.6 cores of software WebGL)
-PLACED goal:g6.41.1 (owner 17:3xZ "Make the recovery path restart tmux and your session as well") = bundle 3 ROW R after H4, before G/S2, leaf -> DG1 (alive 1559f7ae5): P1+P6 one launcher (rotate.py:1734 _launch_window, :1493 _shell_cmd) · P5 via memory_alarm.read_psi · closes on dummy scopes, never the live service · P2-P4 + falsifier 1 (RESUMED) = bundle 5 row 0. The box stays EXPOSED until P1 lands
-PLACED THE WRITE/RENDER SPLIT (owner 17:4x-18:0xZ) = goal:g7.16.1.4 = BUNDLE 4 (old bundle 4 -> 5): W0 g4.19 (retitle or park) -> g4.18.5 (rows; a write is a commit) -> g4.18.6 (links = raw mint ids) -> g4.18.7 (read leaves write.py, owner 18:0xZ verbatim; lacks heading_level: [red] to alive)
-OWNER  17:3xZ: RETIRE GOALS.md + the render round trip ("stop bothering with it") -> handed to alive as a bundle-3 row; NEVER render or --check GOALS.md again, never commit it
-OWNER  17:2xZ: goal:g4.18.5 (write.py rows + line edits; a write is a commit behind the permission layer; assigned DE, a council bundle may take it) · move stream-master to encryption-town "once possible" (town:streaming-suite note; skill agi-post §3; needs encryption-town reachable)
-HELD   g1.30 / g4.18.3 / g4.18.4 dms to DE (DE down; the council took g4.18.3 + .4 into bundle 3) · encryption-town config
+figure eight (doc:council-loop): council designs -> DG1 goals + hyps -> DG2 experiments <-> DG1 -> DG3 builds -> SM gate -> belam reviews + each root act its own GO
+OWNER 10-07 14:3x-14:4xZ (town board, verbatim): THIS SEASON = node collapse for a tidy archive + how to collapse between seasons (council D1-D4, incl. the
+  REVIEW of core/season2/et-grok-pilot: 2,014 commits, 0 nodes lost, read only) · KEEP the old Python key / metrics / verify (shell rewrites = season 3) ·
+  metrics back on · belam on v5 re-stated with that bypass ("a lot more doable sooner") · pane / matrix-math commands / Go keys / SSH-pane capsule = SEASON 3
+NEVER: assign a design or a build (council) · dispatch · write in another post's tree · install a root act not read whole at a landed pinned T
 ```
 
-## §2 Landed (gen 16): 2fb5c2043 · acff4a1ab · 1532a604b · feed41d3e · dcd06014e · 07f02d4a2 · fc4320819 · fee990795 · 899ea077f · b3f12726e · 7705a3a73 · 883e27369 · 237fdfc3f · gen 17: 45cf51809 · fa6f2c51b · a70ad4312 · 1b340f1f4 · gen 18: 12d8b278d · bb35f4c12 · ce35d8c6f · a8106f76a · 4b9ea1da0 (DG4 row) · 4876c1920 (DG4 card + goal:g7.16.1.5 horizon, owner RAM-disk idea) · W2d mint ruling (a) to DG2+DG1 22:1xZ
-
+## §2 Landed (gen 27)
+wake sync + card re-link · A1 A2 A4 A5 (carrier) · A1 re-run · A9 unit + MAIN repo signing config fix (F2/F3 met on DT-1) · A11 closer · A12 then ROLLBACK · K1 polkit + kid usd · capsule cells 1ea2129b5 in OUT.6 055fb92aa · §AB released (+ owner inputs 2-6: DAG checkpoints, drop-in algorithms, layered blocks, nested PQ + provable revocation, GitHub sealer) · seal.yml live · 8 KB rail ruled (F21: code <= 8,192, whole <= 12,288) · R6 = (c) · A10 = (B) · private-key gate accepted · 10-07 restart of 6 posts + continue sent to all
+gen 28: wake (card re-link 5eb826e84, CHECK 8a0c8b5c + memory watch) · D4 R2 ruled (A) to all-is-one · OWNER 14:4xZ RENAME: old TM down (10006804e 204912aae, @3 closed) · rows ea929923b · card swap 0024e3bbb · host 15:02Z: agi-post@thought-master active, uid 972 kept, ring +1, mail ok 19 s, sig Good · THOUGHT 0730798ae
 ## 🔴 Where it stops
-21:0xZ 09-29 belam-S2-L5-XVIII (recovered): crons re-armed, trunk synced + pushed; inbox read through 20:54Z, nothing open for the Prime; waiting on the owner items for the stream-master move; council STOP 23:00Z, PASS B3 23:33Z; verify smoke BLIND on goal:g4.18.7 heading_level ([red] to alive 18:0xZ)
-```
-B0. RE-ARM (session crons die with a session): CHECK "13 */4 * * *" · council STOP "0 23 29 9 *" · PASS B3 "33 23 29 9 *" (memory gate first).
-B3. 23:33Z: section 2 of .agi/sessions/prime-merge.crons.md (skill agi-merge-pass §2-§4): copy <home>/passB2 -> passB3, retag pb3 (grep every pb2 after copying).
-    The council is LIVE (7 CC Opus sessions + stream): CAP 2 chunks, not 3, and hold on memory_alarm as launch.sh does.
-    RED gates beyond the skill: anonymize over BASE..TIP (net range diff; DG1's bcff91a2c placeholder is removed at fc7cb0112) AND a hand grep of goal:g7.16.2
-        for the other-box user segment (residue 46). Either open = hold the merge. verify in prime-root in the BACKGROUND (> 120 s; bin-suite-fresh = the known FAIL). Residue 75 (a) LANDED 07ee9c46b (DG3; 5/5 match core's mint_ids, checked by the Prime): B3 carries it, nothing to check.
-    CORE NOTE (alive 17:1xZ, for the next core <-> season2/main merge, NOT B3): core marks goal:g7.31.3.3 + .1-.5 COMPLETE but the 4 modules behind them
-    (kid_write_gate · spawn_refusal · parent_slots · needs_rotate) are imported only by their own tests; the council's call: they land ACTIVE with a body line
-    "built at <core sha>, test <file> n/n, not wired".
-F.  row F: one first_turn entry in BOTH first_turn lists (director + prime_director) of config:rotations, text at goal:g7.16.1.2.9 :38;
-    judge it in-process first (F12: `None` = allowed), then a write.py write as prime_director, commit by path.
-S.  23:00Z: SendMessage the 8 posts (7 council + stream-master stays UP unless the owner says) "stop: finish the step, card whole, idle"; owner <= 6 lines.
-V.  the video: <home>/manim-agi/agi_explainer.mp4 is on the owner's device; Drive/YouTube need the owner's own sign-in.
-D.  /data: < 10 GB free -> no PASS launch. W. AFTER B3 closes: resume the worktree prune (goal:g7.16.1.5 body; 7/881 done, every byte kept under refs/archive/worktrees/*): systemd-run --user --unit=agi-wt-prune --slice=agi-work.slice --nice=19 --collect /usr/bin/python3 <home>/wt-prune/prune.py --apply --sleep 1 -- stop it while io PSI some avg10 > 60. RAM disk /mnt/agi-ram 7 GiB is UP (fstab nofail).
-R.  RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + /etc/hosts + guard-init --status, ONE window.
-```
+Nothing waits on belam. The council has the owner's 10-07 lines (D1-D4 + the Python-keep + metrics + the re-stated .17); expect ONE [rule] from alive and DG1's re-written prerequisites for goal:g7.16.1.11.17. Next GOs, each ONE line in the A-act shape: A12 re-install only when every v5 t carries bin/agi-out AND the agi-out step cannot loop (belam [red] 10-03 15:1xZ) · A10 = install the agi-land pieces from a landed fail-closed gate (RING.5b 5c3df5114 or later) after the CKPT landing + SM mur · agi-land LAND STEP · block_push after the first real block · pin attest-build-provenance by SHA (a master merge).
+- wake: CronList -> re-arm CHECK + memory Monitor · sync the trunk with origin/season2/main FIRST (trap 70) · re-link this card (trap 10) · inbox by ts
+- watch: SM's [merge-up]s; hold every result to the 8 KB rail + the owner lines on town:local-maxxing (Agent Notes)
 
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
 |---|---|---|
-| 3 | the grid cron versions an UNCOMMITTED node within minutes | a fresh node is retired + moved, never deleted |
-| 13 | the stream is LIVE (when up) | never print a secret, key, address or host name |
-| 15 | a retire+move with a changed body shows as `D` in a big diff | resolve by mint_id before calling a deletion RED |
-| 24 | the trunk push was thought-master's; TM is down | spawn/ack push the current branch; branch_push pushes hourly at :07 |
-| 40 | F13's home-path .env does not exist here | the MAIN .env is `/data/work/agi/.env` |
-| 43 | `send.py read` shows EMPTY while blocks sit in `.agi/sessions/inbox/belam.md` | read the inbox FILE by ts at every CHECK |
-| 44 | `write.py create goal` needs origin/seeds/heading_level + confidence + tags (schema) | set them at create; GOALS.md is RETIRED (owner 17:3xZ): never render it |
-| 45 | `du`/`find` over `.agi/worktrees` or `/tmp` is an io storm | `git worktree list`; `find -maxdepth 1` |
-| 46 | `pkill -f` / `pgrep -f` inside a Bash call matches your OWN shell | match exact argv in python (`/proc/<p>/cmdline`) |
-| 50 | a reboot empties /tmp | PASS tooling lives on <home> (passB2, prime-merge-tools/trunk-sync) |
-| 52 | after a --resume, `send.py read belam` refuses ("you are 'unknown'") | always `--from belam`; stand the post up: skill agi-post §4 |
-| 54 | a post's claude pid / session id | `/proc` comm == claude under its pane pid; `~/.claude/sessions/<pid>.json` sessionId + name |
-| 56 | commit "by exact path" in the shared MAIN still takes a file ANOTHER post is editing (fee990795 swept DG3's WIP test edits) | before editing a shared engine/test file: `git status` it AND ask; commit a pinned blob (hash-object + update-index on a temp index), never the live file |
-| 55 | verify in prime-root after a merge: `bin-suite-fresh` FAIL | the known FAIL (skill agi-verify §1); run verify in the background (> 120 s) |
+| 15 | a retire+move shows as `D` in a big diff | resolve by mint_id before calling a deletion RED |
+| 45 | `du`/`find` over `.agi/worktrees` is an io storm | `git worktree list`; never glob into `.agi/` |
+| 46 | `pkill -f` / `pgrep -f` matches your OWN shell | match by comm + /proc environ |
+| 57 | write.py lands UNCOMMITTED while verify-suite.lock is held | wait, then commit by exact path |
+| 61 | `workflow.py --harness claude-code` runs nothing headless | `<home>/passB3/ccrun.py` (SM's mur route) |
+| 63 | grepping pytest's LAST line reads noise as red | grep `(passed|failed|errors?) in` |
+| 66 | `send.py read belam` prints "empty" while mail sits in the inbox FILE | read `.agi/sessions/inbox/belam.md` by ts |
+| 67 | `open(p,"w").write(f(open(p).read()))` truncates first | read, write a tmp, os.replace |
+| 69 | an order without an ack can sit unread; send.py refuses [ack] to belam, so posts fell back to SendMessage to stale belam sessions (acks lost 17:4xZ) | ask for ONE [rule] line by send.py, never "[ack]"; none in 15 min = re-send (goal:g1.40 race) |
+| 70 | a belam / DG3 rotation pushes its key row to season2/main; town rotate-self then refuses | merge-tree; identical rows -> commit-tree with the trunk tree, CAS update-ref |
+| 73 | loose objects > gc.auto: every commit ran a failing gc | gc.auto=0 in MAIN (rollback: unset) |
+| 75 | write.py `sub` strips leading whitespace: a new frontmatter row lost its indent | anchor AFTER `  - ` (insert as `<row>\n  - <anchor>`) |
+| 76 | `lxc version` on this Ubuntu auto-installs the LXD snap | never call bare lxc / lxd |
+| 77 | heal's resume rewrites your row; `rotate.py ack` refuses on a dirty own row | check pid + pane, commit heal's write, then ack |
+| 78 | SendMessage "Failed" can still deliver; a v5 uid cannot append to another's inbox until AA1 | wait for a reply; v5 -> v5 mail = AA1 boxes |
+| 79 | the harness refuses `rm -rf $var` inside a root `sh -c` | run the act without it; name the temp dir left behind |
+| 80 | a unit step that needs a piece only a NEWER t carries loops exit 127 under Restart=always (A12: DG2/DG3 ~90 min) | before a unit install, measure the piece in EVERY post's bin; a post leaving via an out-line does NOT merge the trunk at stop |
 
-## §5 Verification: `links.py links` 0 broken · verify 18:1xZ gen 17: 11/13 PASS, smoke active 4859 / deprecated 231 / total 5090 (FAILs = goals-check vs retired GOALS.md + bin-suite-fresh, both known) · `spawn_budget.py status`
+## §5 Verification
+pb3 on the trunk 96140880b: rotations.md == ab864f427 · test_skills_first_turn_entry 4 passed · wake reads agi-post + agi-stream rc 0 · links 5724/0
+Z4A on the trunk c2decf431: 76 passed · links 5719/0 · schema 246/18/0 · growth.tsv == grow-project · verify 12/13 (bin-suite-fresh known) · nodes 5,760
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
-| REBOOT 04:50Z 09-29: systemd-oomd made 67 kills, then sanctuary-health failed PSI-full >= 40% past 300 s and the watchdog rebooted BY DESIGN | APPLIED 22:4xZ (owner picked (b)): oomd 85 % on user@1000 + its root slice (agi.slice stays 40 %), watchdog PSI_FULL 60 %, user@1000 MemoryHigh 13319M live. Knobs GUARD_OOMD_LIMIT / GUARD_USER_HIGH_PCT added to guard-init.sh (was a literal); backups *.bak-20260929T2245Z; apply log <home>/guard-apply-20260929T2245Z.log; --status all ok. Both kills today (05:15, 17:28) took the WHOLE claude-remote-control.service = every post. Before: owner asked oomd 50 -> ~85 % + more per-session leeway. Both oomd and the watchdog measure memory STALL time (PSI), not RAM used. The watchdog reboots at full avg60 >= 40 % for 300 s (sanctuary-health exit 2; the journal misprints it as ENOENT), so at 85 % a sustained thrash reboots the box before oomd kills one session. Options: (a) oomd 70 % + watchdog 40 % · (b) oomd 85 % + watchdog PSI_FULL 60 % (guard.env) · (c) oomd 85 % alone (NOT recommended). Recommend (b), plus user@1000 MemoryHigh 12618M -> 13.3G for leeway (no per-session cap exists while post_scope is off). All applied by ONE guard-init.sh re-run (the 50 % is a literal at guard-init.sh:209), which restarts oomd + daemon-reloads the user manager -> do it at a quiet point, owner present |
-| belam row says claude-opus-5-5 / high / quiet; the live Prime runs claude-opus-5-5[1m] / max: a resume built from the row (goal:g6.41.1 P2) would DOWNGRADE the Prime | owner sets the row (model + effort) before P2 lands |
-| ROW R LIVE CUTOVER (alive [decision] 18:04Z, goal:g6.41.1, DG1 11b2de165): tmux stays in claude-remote-control.service until restarted; a restart drops EVERY post + the Prime's crons + your remote link | after PASS B3 closes, owner present: (c) = StartTransientUnit(PIDs) into a Delegate=yes scope under agi.slice, every cgroup.procs pid but MainPID, repeat to empty (R1 v2 014912b17; AttachProcessesToUnit REFUSED on dummies) live ONLY if green + SM-clean; interim = ONE kill domain until P6 per-post scopes, else (a) planned restart; not (b) (box oomd-exposed to bundle 5). Dummy proof = GO now. STEP 1 at the cutover commit (alive [rule] 18:4xZ; the test is SKIPPED in every suite run, green once in DG3's build): env AGI_LIVE_SYSTEMD=1 python3 -m pytest extensions/agi/tests/test_rotate.py -k test_r1_cutover_dummy_one_kill_is_one_post -q -- record its pass line here; NO pass line = (a), never (c) |
-| docker data-root still on / | a stop-the-daemon window; owner's word |
-| DISK LATENCY: sda (USB SSD, dm-crypt, / + /data) ~35 ms/op | `sudo smartctl -a /dev/sda` · `sudo dmesg -T` |
-| origin remote moved (every push prints it) | `git remote set-url origin <new>` |
-| (closed gen 17) grid: 3 missing mint_id backfilled fa6f2c51b; 18 'unresolved' were all retired build nodes, now counted apart a70ad4312 | none |
+| the 2 x 5 USD TypeSafe jev keys (jev retired as an engine dependency) | release them: no live consumer; owner's keys and money |
+| GitHub history: ssh comment user@host (81d0e8729 8a9b0ad95 4b7d20df7) | OWNER 22:5xZ: leave it in -> no rewrite, no purge; SM's added-ever gate stays |
+| other boxes' clones hold pre-scrub history | owner tells them: re-clone, push nothing from an old clone |
+| /data/scrub backups hold the UNREDACTED history (mode 700) | delete backup-*.git + stripped/ after 10-03 (3 days); the sha map stays local, never tracked (no purge coming) |
+| the owner app (capsule client + iMessage ext + web map) | a goal of its own OUTSIDE g7.16.1.11, owner-named |
+| `*.pre-tier-*` backups (~/.claude, ~/.pi, on /) | past the day of clean tiering: delete on the owner's word |
+| /tmp on disk: tmpfiles 3m30s this boot (14m28s before) | owner 22:2xZ "Leave it for now" |
+| belam row opus-5-5 / high vs the live Prime opus-5-5[1m] / max | owner sets the row |
+| ORIGIN 15:0xZ 10-07: season2/main, season/s2, season2/docs/* + loops are GONE from origin (17 heads left, core/season3/main new); origin/season2/main locally = stale b0608a1f3; belam key: the authority-deferred swap could never complete, so belam swapped it by hand 15:5xZ (pending derived the row pubkey 31a98b62; old kept as belam.key.retired-5808cc1b29b0da94) | owner names the integration branch (recreate season2/main from the trunk, or point the engine at a new one); belam recreates NOTHING outward |
+| ring: thought-master-new@agi line still open with the key now also under thought-master@agi | close it at the next root ring pass (valid-before), or leave: same key, same post |
+| docker data-root on / · sda ~35 ms/op | owner's window: smartctl + dmesg (origin RE-POINTED 16:1xZ 10-07 by belam on the owner's word: the repo was renamed agi -> AGI, same id 1375406991; rollback = set-url back to .../agi.git) |
+| grid slot for EVERY file a node names (442 of 710 engine files have no build node; mvp source_files 29 nodes; 18 retired build nodes lack their payload in the grid) | not now: every live build node already carries node + payload (310/310 DG1, 297/297 alive); git history holds the retired bytes. Say go and DG1 cuts ONE goal:g1 round |

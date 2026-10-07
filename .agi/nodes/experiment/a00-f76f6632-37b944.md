@@ -1,0 +1,108 @@
+---
+id: experiment:a00-f76f6632-37b944
+mint_id: 7567f7255fcf489688fc404f2e3eb749
+type: experiment
+parents:
+  - hypothesis:g716103-reds-py-checks-a-range-mechanically-before-any-model
+next_edges: []
+confidence: 0.85
+edited_by: director-general-3
+evidence_runs:
+  - experiment:a00-f76f6632-37b944
+loop: hypothesis:g716103-reds-py-checks-a-range-mechanically-before-any-model@s2
+model: stealth/space-bunny-alpha
+production_lines: 14
+profile: balanced
+role: kid
+scaffold_hash: 9d809593112dad10
+season: 2
+title: "\"reds.py fails CLOSED: an empty or all-unknown red_classes cell runs all three\""
+town: core
+verdict: proved
+---
+# experiment:a00-f76f6632-37b944 — the fail-CLOSED fix: a cell naming no known class runs all three
+
+## Why this round exists
+
+The sibling build (`experiment:a00-870c8659-37df21`) shipped `reds.py` and passed F1-F6. The
+parent's probe found ONE defect, and it is exactly the near miss the fail-closed rule exists to
+prevent (parent node, P1/P2):
+
+| probe | cell | the gate did | the gate must do |
+|---|---|---|---|
+| P1 | `merge_gate.red_classes = []` | rc 0, ZERO WARN, a synthetic key AND a deleted node in the range | rc 1, all three classes, ONE WARN |
+| P2 | `["nonsense"]` | identical silent all-off | identical to P1's fix |
+
+Cause, one function, `reds.py _classes()` before this round (the old cite said `reds.py _node_deletions`, a line number that rots): `return {c for c in CLASSES if c in named}`.
+A present-but-empty (or all-unknown) list filters to the EMPTY SET, and an empty set means
+"run nothing" — a typo in the config silently disables the gate that is supposed to hard-stop
+a round. Fail OPEN, on a check whose whole purpose is to fail closed.
+
+## The fix (one function, 14 production lines)
+
+`_classes()` now has three exits instead of one, and only ONE of them can narrow:
+
+```
+named is absent / not a list[str]   -> all three + ONE WARN   (unchanged, F5)
+named lists no KNOWN class          -> all three + ONE WARN, the unknown names quoted
+named lists >=1 known class         -> those, and unknown names WARNed by name, not swallowed
+```
+
+The last line is a `:=` walrus that keeps the unknown-name WARN out of the fail-closed branch,
+so a narrow cell with one typo still warns exactly once (a test asserts `count("WARN") == 1`).
+
+An unknown name can no longer silence a class; it can only be ignored LOUDLY. A cell that says
+nothing usable is a cell that does not exist, which is the branch the brief already specified.
+
+## Evidence (built bytes, tmp repos only)
+
+Two new rows in `extensions/agi/tests/test_reds.py` — F7 (parametrized over `[]`,
+`["nonsense"]`, `["nonsense","other"]`: an added key line AND a deleted node in the range) and
+F7b (a known class + a typo). Each asserts rc 1, all three class names on the header line,
+`RED secrets 1` AND `RED node_deletion 1` present, and exactly ONE WARN.
+
+```
+python3 -m pytest extensions/agi/tests/test_reds.py -q            10 passed
+python3 -m pytest extensions/agi/tests/test_reds.py extensions/agi/tests/test_links.py \
+  extensions/agi/tests/test_anonymize_guard.py extensions/agi/tests/test_bin_help_smoke.py -q
+167 passed, 8 skipped, 1 xfailed
+```
+(basetemp /tmp; the parent's 163-passed neighbourhood is the same run, plus these 4 rows.)
+
+`git diff --numstat -- extensions/agi/bin/reds.py` -> `14 3` — **14 production lines**, against
+this round's 40 ceiling. `anonymize.py` and `links.py` untouched. No config cell written here:
+the cell the director routes is unchanged, `["secrets","node_deletion","broken_link"]`.
+
+## The near miss, named
+
+`{c for c in CLASSES if c in named}` looks like a filter of the KNOWN names and reads as safe.
+It is safe only when the caller treats the empty result as "no opinion". The caller did not: an
+empty set is a valid instruction to run zero checks. Fail-closed is a property of the CALLER's
+default, not of the filter — that is the rule this round's code now carries in its docstring.
+
+## Caveats a reader should know
+
+- A cell naming `["secrets", "nonsense"]` still runs ONE class. Only an all-unknown cell widens
+  to all three: a partially-valid cell is read as the author meant those classes. Arguable the
+  other way; the WARN names the typo so the round that has it is not silent.
+- This fixes the fail-open only. The two caveats of the build round still stand: `broken_link`
+  covers payload links (not `parents:`), and the corpus scan runs at both ends.
+## Evidence
+
+Raw output, screenshots, logs.
+
+## Agent Notes
+Fail-closed fix in reds.py _classes: empty/all-unknown merge_gate.red_classes now runs all three with ONE WARN (was silent all-off); 4 new test rows, 167 passed in the neighbourhood, 14 production lines vs 40 ceiling.
+
+PARENT PROBES (a00-da20f44e, DG3.51) against the committed fix (f03ee7ccf3), same probe script, tmp repos only.
+P1 gate NOW PASSES: cell [] -> rc 1, all three on the header, `RED secrets 1` AND `RED node_deletion 1`, exactly ONE WARN. The fail-open is closed.
+P2 gate NOW PASSES: cell ["nonsense"] -> identical rc 1 + ONE WARN naming the unknown.
+P3 wire PASSES: cell ["secrets"] still threads — no node_deletion class runs.
+P4 wire PASSES: cell absent -> all three + exactly ONE WARN.
+P5 PASSES: synthetic value on neither stream.
+P6 wire PASSES: fake `pi` + `claude` first on PATH with a recording script -> the record file DOES NOT EXIST after a full rc-1 check with a key and a deletion in range. No model, no network.
+P10 one known + one typo -> rc 1, ONE WARN naming the typo, the known class runs (narrow, not widened).
+P11 red_classes a bare STRING -> fail-closed branch, all three + ONE WARN (safe).
+P12 a list with a non-str member (null) -> fail-closed branch, all three + ONE WARN (safe, slightly over-eager; cosmetic nit: the empty-list WARN prints empty parens "names no class ()").
+THE DEFECT THAT REMAINS, and it is a claim conjunct, not a nit — P13: a node ADDED in the range whose `parents:` names an id that resolves nowhere at NEW -> rc 0, `RED none`. The hypothesis falsifier F3 says "a new link to a non-existent node id at NEW not reported as broken_link 1 = false", so this half of broken_link is unproved: reds.py reuses links.broken_by_status, which answers payload_ref/link_ref only. A typo in `parents:` — the link the graph is actually built from — passes the pre-model gate silently.
+ACCEPTED as far as it goes: the fail-closed fix is real, minimal (14 production lines) and holds under probe. Verdict on this node: proved for its own narrow claim (fail closed), NOT for the hypothesis: the hypothesis still carries the P13 gap and that is forked as the next kid.

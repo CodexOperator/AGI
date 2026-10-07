@@ -441,11 +441,15 @@ def get(root, name: str) -> Command:
     return table[name]
 
 
-def _actor() -> str:
-    """The actor running this process: `$AGI_ACTOR`, else `$USER`, else
-    `unknown`. The same resolution `write.py:_default_actor` uses, so the
-    owner gate here and the role resolution there agree on who is who."""
-    return os.environ.get("AGI_ACTOR") or os.environ.get("USER") or "unknown"
+def _actor(root=None) -> str:
+    """The actor running this process -- `write._default_actor`, imported, never a
+    second copy of its order (AGI_ACTOR > AGI_POST > AGI_SEAT > $USER-if-provably-not-a-post
+    > `unknown`), so the owner gate here and the role resolution there agree on who is
+    who. A seated post whose unix user is the Prime's name (`belam`) is its seat here,
+    not `belam`; `owner` is only ever `AGI_ACTOR=owner`. Local import: write.py is the
+    heavier module and this file stays importable without it until an owner gate asks."""
+    import write as _w   # same dir (send.py / rotate.py pattern; write.py never imports commands)
+    return _w._default_actor(root)
 
 
 def run(root, name: str, extra: list[str] | None = None) -> int:
@@ -463,7 +467,7 @@ def run(root, name: str, extra: list[str] | None = None) -> int:
     """
     cmd = get(root, name)
     if cmd.owner_only:
-        actor = _actor()
+        actor = _actor(root)
         if actor != "owner":
             print(
                 f"REFUSED: {name!r} is owner_only; actor {actor!r} is not "

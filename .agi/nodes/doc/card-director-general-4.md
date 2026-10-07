@@ -17,62 +17,53 @@ town: core
 ---
 # doc:card-director-general-4
 
-Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
+Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (22:3xZ 09-29) — gen 1, stood up by belam-S2-L5-XVIII on the owner's word
+## §0 State (21:4xZ 09-30) -- STOOD DOWN (owner 21:3xZ, verbatim via the seating post: "Stand down DG 4 and pass on any leftovers back on the board as unclaimed bundle goals.")
 | | |
 |---|---|
-| post | director-general-4 · the LEFTOVERS lane: graph growth the bundles left behind, disjoint from the live bundle |
-| protocol | doc:council-loop · goal:g7.16.1 · place: local-town, MAIN `<repo>` on local-maxxing/season2/main, CC Opus 5.5 high |
-| skills | agi-goal · agi-node-write · agi-verify · agi-send · agi-rotate · agi-workflow |
-| never | a bundle-4 row (goal:g7.16.1.4: DG1 -> DG2 -> DG3 -> SM own it) · write.py · node_writer.py · loader.py · links.py · viewport.py · rotate.py's posts paths |
-| route up | to belam: merge-up · decision · rotation · red · rule only. Council: ONE council-loop room line per landing |
-| convener | alive (agi-13) placed L2a/b/c 22:1xZ, answered 22:3xZ: L2a split (a) then (b); L2b option 2 (records on goal:g7.16.1.4) |
+| post | director-general-4 · DOWN: no live parent, kid, unit or subagent; nothing building |
+| leftovers | 25 open goal leaves -> status horizon, Agent Notes "Unassigned (was director-general-4)" (write.py sub, 25 commits) |
 
-## §1 Plan
+## §1 Where everything stopped
 ```
-L1  DONE e1d710942  8 horizon parents over an active leaf -> active · walk 468 = 306 active / 77 horizon / 47 complete / 38 retired
-      left: g6.49 (no Falsifier) · g15 + g26 retired over active (belam [decision], inbox 22:2xZ)
-      count: 250 active leaves · 76 no hypothesis · 57 untouched since 09-26
-L1b PROPOSED  check_goal_lifecycle in verification.py beside check_formation -- which bundle is the convener's call
-L2c DONE 259d75164  orphan THOUGHT END 6 -> 0
-L2b DONE 6a913d85d (+39 write.py self-commits)  repo path 92 -> 10 live nodes; the 10 are excluded by rule (other posts' cards, unified brief, formation)
-L2a(a) WAITS ON W1  unify.py + verify_unified.py: alive 22:4xZ chose option (1) as W1 own row verb (goal:g7.16.1.4 at 841857ddb, DG3 told); once W1 lands retire files + 4 nodes + BOTH manifest rows in ONE commit, never a half-retire
-        options posted to the room 22:3xZ, rec: DG3 adds nested unset, then DG4 retires
-L2a(b) NEXT after (a)  publish-engine.sh + the g7.10 hook alarm (cc-session-start.sh:119) + grid.py cron --publish-engine + crons.py job;
-        the hook runs in EVERY session: test it with the alarm removed before retiring anything it reads
+LANDED on local-maxxing/season2/main: 72dff76359 STACK DG4.06+15+21+11+22 · 2cbe754da1 DG4.17 · a2e42a3bf0 g1315131 (+ Prime cell hold_wait_s 90)
+  · 5a7a3bb828 DG4.10+20 · e81abd3f69 DG4.19
+WITH SM (delivered, SM gates + lands them; worktree = .agi/worktrees/<name>, remove after landing, lossless):
+  g73319 2b68fbc07e dg4-g73319 · SM-1 bd01ee8969 dg4-sm1 · SM-2 802577c1bd dg4-sm2 · DG4.12 af2c27335f dg4-dg412c (ON SM-2)
+  DG4.13 9baba2bc99 dg4-dg413c · r49 7eb1c65aed dg4-r49 (ON DG4.13) · g1.31.4.2.1 LINEAGE 2ec78512d4 dg4-fdreaders (+ dg4-dg414c)
+  g75213 7cd127824e dg4-g75213: code gate green, GO = the Prime's DISK bind of <MAIN>/.claude/worktrees + 3 guard cells
+  DG4.18 c576956960 dg4-dg418m: HELD on 3 Prime cells (locations.stream, rotations byte_cap 8000, 2 grid versions)
+PARKED  goal:g1.31.4.2.1.1 (C2c copilot hooks): 7d9f955842 in dg4-c2c, location invented -> never a merge-up until a real copilot probe (SPEND, Prime)
+BACK ON THE BOARD (horizon, unassigned): active before -> g1.31.4.2.1.1 · g1.31.5.1.3.1 · g1.31.5.1.3 · g7.16.1.5.3.1 · g7.16.1.7.1.4 · g7.16.1.7.1 · g7.16.1.7
+  already horizon -> g4.18.5.6 · g7.16.1.10.1 · .10.2 · .10.6 · g7.16.1.7.1.3 · .7.1.3.3 · .7.1.4.2 · .7.1.6 · .7.1.7 · .7.1.8 · g7.16.1.7.2 · .7.2.1-.7.2.6 · .7.2.8
+  notes: g1.31.5.1.3.1's fix LANDED (a2e42a3bf0; DG2 re-runs run_on.sh x3 on it) -> likely closeable by whoever claims it
+FINDINGS goal:g7.33.19 rows 47-50 (row 48 handed to SM: DG3 region)
 ```
-
-## §2 Landed
-- e1d710942 L1 goal lifecycle markers (8 goals)
-- 259d75164 L2c orphan THOUGHT END (6 nodes)
-- 6a913d85d + 39 write.py commits: L2b repo-path scrub (82 nodes)
-- council room: 4 lines · belam: 1 [decision] (g15/g26)
 
 ## 🔴 Where it stops
-23:00Z 09-29 council STOP. At wake: read the council-loop room for alive's L2a(a) option + L1b placement, then `send.py read director-general-4` once. If option (1) landed: retire L2a(a) per the §1 list; test ONE file at a time: test_commands_manifest.py, test_verification.py, test_bin_help_smoke.py.
+Down. A successor on these leaves starts from the board; the merge-ups above are SM's to land. No command owed by this post.
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN is shared with 7 posts | commit by exact path; never commit, reset or stash another post's file |
-| verify-suite.lock flaps (1-5 min runs) | write.py leaves the write uncommitted while held; wait, then commit by exact path |
-| replace body anchor guard | a one-line mid-paragraph range is refused; widen to paragraph bounds, never --force |
-| `thought` verb | rewrites the FIRST column-0 THOUGHT pair: check for a fenced / second BEGIN before using it |
-| grid.py commit --all | versions EVERY changed node incl. other posts' uncommitted edits |
-| config:commands | its rows live in FRONTMATTER under `manifest:`; unset is top-level only |
-| GOALS.md is retired (owner 17:3xZ) | never render, --check or recreate it; read a goal by id |
-| council invariant | no parent/kid dispatch; every node written through write.py; nothing deleted |
+| MAIN shared -- swept DG3's WIP once (1098822e1) | hunk/line check IN THE SAME COMMAND as `git commit -- <paths>`; retry only on an index.lock error |
+| stale .git/index.lock | a lock no process holds (fd scan) -> move aside to /tmp, never delete |
+| verify-suite.lock | the conftest refuses cleanly -> retry on "suite window refused"; a printed LOCKED is no guard |
+| engine slice memory | `file` there can be SHMEM (RAM disk): reclaim cannot free it; read memory.stat shmem first |
+| write.py on a node with a THOUGHT | replace body must cover the H1 section through THOUGHT END (carry the block whole); never --force |
+| config.json | not json.dumps round-trippable: insert cells as text, json.loads to verify |
+| SendMessage | a bare name can fail ("Failed to send") -> ListAgents, retry with the [ref] |
+| config:guard ring | a director's write.py on config:* is refused (owner / prime_director only): hand the exact text to SM |
+| renumber by script | never str.replace a Why/id prefix: it hit the id row of .5.5.5 (d1eb5ecad); use write.py or anchor on the full line |
+| suite lock rotating | short live suites hold it with a new pid each time: retry the conftest refusal with backoff (7 tries = ~90 s) |
+| send body | never backticks or $( in a send.py body: the shell eats them (19:5xZ lost a quoted phrase) -- body from a scratch file |
+| worktree cwd | creating a worktree flips the harness cwd into it: use absolute paths / git -C /data/work/agi |
 
 ## §5 Verification
-links.py links 5165 / 0 broken (22:3xZ) · links.py schema: 2 verdict rows, pre-existing · orphan THOUGHT END 0 · repo path in live nodes 10 (all excluded by rule)
+links 0 broken · DG4.01 family 150 · g1.31.2 loop: test_locations 85, paths audit rc 0, cite ast rc 0 · g1.31.1.2 loop: F1 green, links 5377/0
 
 ## §6 BANKED
-1. g15 retired over 32 active leaves, g26 over 1 -- re-parent to g1 (agi-goal §6) or retire the leaves. Rec: re-parent. Sent to belam as [decision].
-2. L2a(a) nested-unset verb -- the council's call, rec (1).
+(none)
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-L2b landed on alive's option 2 (edited_by = last editor, prior authors in the grid); L2a(a) stopped at a measured blocker rather than a hand frontmatter edit or a whole-manifest re-serialise: config:commands rows are nested under `manifest:` and write.py has no nested unset.
-<!-- THOUGHT:END -->

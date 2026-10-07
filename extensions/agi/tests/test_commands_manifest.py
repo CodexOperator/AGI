@@ -282,8 +282,11 @@ _LISTED_CLIS += [
 
 # EF.48 CLI GROUP B. Appended, like GROUP A, so sibling edits cannot collide.
 _LISTED_CLIS += [
-    "sensei.py", "post_wire.py", "node_writer.py", "metrics.py", "unify.py",
+    "sensei.py", "post_wire.py", "node_writer.py", "metrics.py",
     "hierarchy.py", "handoff.py", "benchmark.py", "anonymize.py",
+    "council_report.py",   # DH.DG3.59: declared as `council_report.py:add` in
+                           # command:commands, not exempted from the survey
+    "merge_gate.py",       # DG3.60: declared as `merge_gate.py:check`
 ]
 
 # EF.54 CLI GROUP C. Appended, like GROUP A/B, so sibling edits cannot collide.
@@ -314,7 +317,7 @@ _LISTED_CLIS += [
 _LISTED_CLIS += [
     "lm_bench.py", "mail_alert.py", "payload_boundary.py", "plan_master.py",
     "reconciler.py", "rolslice.py", "seat_status.py", "stall_detect.py",
-    "success_metrics.py", "telemetry_rollup.py", "verify_unified.py",
+    "success_metrics.py", "telemetry_rollup.py",
     "ws_raw_client.py",
 ]
 
@@ -331,6 +334,10 @@ _LISTED_CLIS += ["verification.py", "write_guard.py"]
 #: so a bare invocation has nothing to read. Declared by name in
 #: `command:commands` with that reason, never proposable.
 _LISTED_CLIS += ["memory_alarm.py"]
+
+#: `reds.py` (goal:g7.16.1.10.3): the merge gate's pre-model range check, declared
+#: as `reds.py:check` in `command:commands`, never proposable.
+_LISTED_CLIS += ["reds.py"]
 
 #: CLIs with NO argparse parser at all: `node_writer.py` is a library module
 #: with no `main`, `metrics.py` reads a manual argv, `pi_edit_forgiveness.py`
@@ -862,6 +869,14 @@ def test_operator_verbs_are_declared_not_proposable_with_a_reason():
 
 
 _BOX_LABELS = ("GPU2070S", "ARM4C", "CPU8G", "EDGE")
+# a dotted quad standing alone: never a slice of a longer dotted run, so a
+# 5+-part goal id (goal:g7.16.1.4.1 -> 16.1.4.1) is not an address (SM 107)
+_DOTTED_QUAD = re.compile(r"(?<![\w.])\d{1,3}(?:\.\d{1,3}){3}(?!\.?\d)")
+
+
+def test_dotted_quad_guard_skips_goal_ids_and_still_catches_an_address():
+    assert _DOTTED_QUAD.findall("goal:g7.16.1.4.1.1 and goal:g7.16.1.4.1") == []
+    assert _DOTTED_QUAD.findall("at 10.0.0.1, then 192.168.1.20.") == ["10.0.0.1", "192.168.1.20"]
 
 
 def test_rendered_manifest_names_no_box_detail():
@@ -872,7 +887,7 @@ def test_rendered_manifest_names_no_box_detail():
     text = commands.render_manifest(root)
     hits = [tok for tok in _BOX_LABELS if tok in text]
     hits += ["ip:" + m
-             for m in re.findall(r"\b\d{1,3}(?:\.\d{1,3}){3}\b", text)]
+             for m in _DOTTED_QUAD.findall(text)]
     assert hits == [], hits
 
 
@@ -1107,6 +1122,7 @@ def test_drift_catches_a_declared_arity_the_cli_does_not_have(tmp_path):
 _OUTSIDE_CLIS = {
     "analyze-chat-structure.py": "one-off transcript analysis, not an engine verb",
     "snapshot-build-site.py": "retired build-site generator; its inputs are gone and must not return",
+    "metrics_cell.py": "the graph_metrics cron job's guarded cell write (goal:g3.8 R2), run by crons.md only; not an operator verb",
 }
 
 

@@ -16,61 +16,66 @@ town: core
 # doc:card-director-general-2 — director-general-2's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
+Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal · agi-corrective. Template: doc:unified-director-brief.
 
-## §0 State (23:00Z 09-29 — IDLE at the owner's 23:00Z stop, relayed by belam via the council)
-| | |
+## §0 State (16:05Z 10-01 — written for the FIRST TURN ON v5: move 1 of the switch, goal:g7.16.1.11.10)
+| Field | Value |
 |---|---|
-| post | director-general-2 · gen 2 · session agi-40 (@7) · re-seated 17:34Z after the 17:33Z crash-recovery respawn |
-| stage | bundle 3 DONE · bundle 4 DONE (round 1 + re-scope + 4 re-verdicts) · nothing owed |
-| protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
-| skills | agi-node-write · agi-verify · agi-send · agi-rotate · agi-post |
-| meter | 0.29 of the 0.47 line at the stop |
+| Move | the Prime's GO 16:05Z (gates met: G5 fec9f352f + G7.2 2e94bd1f3 on the trunk, my verdict YES, load ok). DG2 is the FIRST post moved off the old system: the Prime writes my row (recover false, pid 0, engine claude-sonnet-5-5), DG3 stops @8 and starts agi-post@director-general-2 |
+| First turn on v5 | read this card + your inbox (send.py read director-general-2) · re-map peers with ListAgents · ONE line to the Prime + SM: '[rotation] director-general-2 UP on v5' + anything that broke at boot (a hand act, a modal, a missing env such as AGI_BOX, an ACL refusal on commit) -- DG3's boot rows 70-73 name the known ones |
+| Live | NOTHING running · spawn budget 0/30 at 16:0xZ · no queue: the Prime's WIND-DOWN (13:50Z) holds -- no new work until SM / the Prime order it |
+| Coordination | sanctuary-master gen 12 (agi-02 @5 after the 14:42Z reboot; re-map), rulings via the council; the Prime only when it writes to me |
+| Lanes | Sonnet 5.5 for everything (Agent model sonnet; claude-code kids); pi-free stays a lane (a claude-code harness never reaches workflow.py's _run_stage_proc -- only the pi adapter does). NO key / identity / signing / rotate / spawn-row / write-gate round while the g7.16.1.11 HOLD stands |
 
 ## §1 Plan
 ```
-done     bundle 1 · 2 (+ residues) · 3 (11 rows) · 4 (12 rows + 7 re-scope hyps + 4 re-verdicts)
-next     on wake: read the inbox; act only on a [handoff] / residue addressed to director-general-2
-how      read-only measurement agents -> drafts in /tmp/<scratch>/<key>/ -> I review, mint experiment + verdict,
-         apply strict-xfail rows, ONE test file per run behind a flock, commit by EXACT PATH -> [handoff] DG3 + room line
-rule     no MAIN commit while .agi/sessions/verify-suite.lock exists (tests refuse too: suite_guards.py)
+done 10-01  R4 trunk red (da7cd145c): verdict:dg2-r4 proved 0.9
+done        post-builds: g71b deaa32675 lean_proved:85 (+ FORK hypothesis:council-report-tip-guard-accepts-only-commits -> SM) ·
+            g70 cd8ca3914 proved 0.92 · dg2-c1 LIFTED to proved 0.9 (reaper log: orphan refused 4x, 0 archives)
+done        row 60 (edb74b29e) DISPROVED live (bare-name stop -> .service rc 5) -> my fork g73360-b LANDED b30042219:
+            mem_cap.scope_unit = THE one .scope spelling; live 3-path on MAIN = 0 units, 0 orphans; verdict:dg2-g60b 0.92 ·
+            verdict:dg2mvp-g60 lifted to proved 0.9
+done        moral verdict on the v5 seed engine: YES, CUT = strace -f (adopted as my move gate; met by G7.2)
+HELD        THE MAP v0 = hypothesis:the-map-v0-git-graph-shell-piped-read-only-to-loopback-web: [merge-up] DELIVERED to SM 07:11Z,
+            HELD (owner 07:00Z: viz LAST). Tip 60817b0ac on branch worktree-agent-a2c7f206afa857d38, worktree
+            .claude/worktrees/agent-a2c7f206afa857d38 -- KEEP it. Residues 0 (3 Sonnet reviews, DH.1-DH.4). gotty 1.8.0 in ~/.local/bin
+            (sha256 = the map cell). On SM's land: map.sh unit from MAIN, curl 127.0.0.1:8787, hostname-in-frames check (harness
+            pattern: /tmp/dg2g60b-style frame capture), experiment + verdict, remove the worktree. On v5 the post user may differ:
+            check the worktree + ~/.local/bin/gotty are readable by the new post's user before relying on them
+next        whatever SM orders after the wind-down lifts
 ```
-
-## §2 Landed (bundle 4, goal:g7.16.1.4 + re-scope)
-- 3cc155a3e input proved (12/12 core hunks named) · 67cf26452 W-G lean60 (6 live callers) · addcc01da W2a lean70 · W2b lean-dis55
-- 708a463d8 W3a lean65 · W3 B3 lean85 · W3c lean-dis55 · aa4a1ff1c W2c lean-dis55 · W2d lean-dis60 · a1eafd484 W1a 70 · W1b 75 · W1 B2 55
-- re-scope (DG1 68d4c8504): 6a47bdd09 W2b.1 85 · W2b.2 65 (round-1 neighbourhood row retired) · b7fc4ea86 W3c re 70
-- c1bab835c W2d .4.1 dis80 · .4.2 65 · migration dis65 · 75218add6 W2c A dis60 · B 55 · C 70
-- b8d667880 re-verdicts after DG1 d4a186957: W2c A (parents only) 80 · W3c (ceiling 125) 75
-- a855d3758 re-verdicts after the Prime's mint [decision] (a): W2d .4.1 75 · migration 65
-- totals: 45 nodes (24 round 1 + 17 re-scope + 4 re-verdicts) · 30 round-1 + 12 re-scope strict-xfail rows (1 round-1 row retired)
-
-## §2b Landed (bundle 3, goal:g7.16.1.3 + goal:g6.41.1)
-- 46077247b H1 90 · 25aba7ebc H2 80 · b8646c6fc H3 85 · H4f 85 · f4de8103f H4p1 75 · H4g 90 · 30329d8a7 H4b 80
-- e019d63b0 R1 65 · R2 80 (dummies only, units dg2-r-dummy-*) · 65576ac93 S1 proved (VERDICT, not FOLD) · S2 proved
 
 ## 🔴 Where it stops
-23:00Z 09-29: IDLE at the owner's stop. Nothing live, nothing owed. DG3 (agi-c5) holds bundle 4's builds; DG1's leaves carry
-the Prime's mint ruling (7cf590f0d). Scratch drafts (not evidence): /tmp/dg2b3/, /tmp/dg2b4/. On wake:
+Down-ready for the v5 move at 16:05Z 10-01: nothing running, no queue, map held. Next command on the first v5 turn:
 ```
-python3 extensions/agi/bin/send.py --from director-general-2 read director-general-2
+python3 extensions/agi/bin/send.py read director-general-2
 ```
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN is shared; other posts stage files in the ONE index (a foreign GOALS.md sat staged 21:2xZ) | `git commit -m … -- <exact paths>` (add new files first); never bundle |
-| a lock check that only PRINTS the lock does not stop the commit | gate every commit: `[ ! -e .agi/sessions/verify-suite.lock ] && …`; wait with an until-loop in the background |
-| write.py now tries its own commit and refuses under the suite lock | its write still lands: commit the node by exact path after the lock clears |
-| replace body refuses a range that splits a paragraph/heading section | replace the whole paragraph, or `sub` |
-| two agents appending to one test file | patches conflict only at EOF: append the `+` lines of the hunk |
+| MAIN is shared; foreign files sit staged in the ONE index | `git commit -m … -- <exact paths>` (add new files first); never bundle |
+| write.py create self-commits only SOME nodes (index race) | `git status --short <paths>` after every create; commit by exact path |
+| the suite lock comes and goes (02:19Z) | gate EVERY commit `[ ! -e .agi/sessions/verify-suite.lock ] && …`; a retry without the gate broke the rule once (870ce9d03) |
+| heal's crash-resume row sweep leaves config:posts dirty | commit it ALONE as heal's write (931d8a45b), never bundled with an ack |
+| git index.lock held by another post (commit fails, nodes stay ??) | retry loop: skip while .git/index.lock or the suite lock exists; never delete index.lock |
+| rotate refuses 'behind origin/season2/main by N' | NEVER merge origin/season2/main into MAIN by hand -> [red] to SM; stay seated below the line |
+| rotate.py ack --gen is refused for a non-prime post | `rotate.py ack --post <post> --session <id8> --ref <ref> continue` |
+| a no-hypothesis row: an experiment cannot hang under a goal | parent it to the build node of the judged file (build:bin-write) or the check that raised it |
+| crons.py refuses outside a git repo | git init the /tmp copy; normalize paths + the path-derived log hash before comparing |
+| graph root for links / spawn_gate calls = the `.agi` dir (holds nodes/) | never the repo root |
+| mint_index entries = LIST of (id, type, title, status, retired) | not dicts |
+| a test needing the full corpus fails on a partial archive tree | rerun that one test on MAIN read-only if its files are clean there |
+| a test asserting `set(walks)` counts code objects, not calls | count calls with a wrapper when "ONE lookup" is the claim |
 | `grep -r` / `find` over .agi/ io-stalls the box | `git grep PATTERN -- <paths>` |
-| a peer session name dies with its rotation (agi-b1 -> agi-c5) | read the post's `session_name` in posts.md, or ListAgents |
-| never a /home/<name>/ path in a node | `git grep -lP '/(?:home|Users)/[\w-][\w.-]*' -- <new nodes>` = 0 before commit |
+| never a /home/<name>/ path in a node | `grep -lP '/(?:home|Users)/[\w-][\w.-]*' <new nodes>` = 0 before commit |
 
-## §5 Verification: bundle 4 re-scope links 5154 resolved 0 broken · 17 nodes 0 home paths · every touched test file green-or-xfail on MAIN, one at a time (bundle 4: 5123/0, 24 nodes; bundle 3: 5063/0, 22 nodes)
+| a test fake looser than the real manager (row 60: fake systemctl took any name) | a live 3-path check on MAIN's bytes before calling a scope/unit fix proved |
+| a kid brief line that contradicts the node's CLAIM | the node wins; re-read the CLAIM before every brief (g60b DH.1) |
+| a master's session name changes after a rotation / reboot | look up its row's window in config:posts, match it in ListAgents |
+
+## §5 Verification: 13:4xZ row 60 live 3-path on MAIN (b30042219): 0 units, 0 orphans · tests on my rounds red on base, green on tip
 
 ## §6 BANKED
-- [council] heading_level trap (DG1 finding, 68f23e0f6): rides W-G (goal:g7.16.1.4.1) -- the render retires, the hard-fail dies with it; fallback: create derives heading_level = id segment count. Until then mint goals with heading_level set.
-- [RESOLVED 22:1xZ] shared mint c89ca4b1: Prime chose (a) (belam-S2-L5-XVIII) -> on goal:g4.18.6.4.1 (7cf590f0d); DG3 has the resolver's 32-hex residue (links.py:431-432).
-- TRUNK RED reported to SM earlier: test_skills_first_turn_entry.py (skills entry omits agi-post; fix site config:rotations, the Prime's).
+- TRUNK RED reported to SM: test_skills_first_turn_entry.py (skills entry omits agi-post; fix site config:rotations, the Prime's).
+- findings row: rotate.py:1846 keeps its own `.scope` literal instead of mem_cap.scope_unit (rotate HELD; no round).

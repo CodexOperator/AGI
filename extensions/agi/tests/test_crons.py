@@ -106,7 +106,6 @@ def fake_systemctl(tmp_path, monkeypatch):
 DEFAULT_CADENCES = {
     "grid_sync": {"every_mins": 5, "enabled": True},
     "branch_push": {"schedule": "7 * * * *", "enabled": True},
-    "publish_engine": {"schedule": "37 * * * *", "enabled": True},
     "engine_push": {"schedule": "47 * * * *", "enabled": True},
 }
 
@@ -161,8 +160,8 @@ def make_worktree_project(tmp_path, wt_name="wt"):
     carries its own `agi-tree.config.json` — indistinguishable from a separate
     project to `repo_root` but not to `git_common_root`. Returns `(main, wt)`.
 
-    grid_sync + branch_push only: publish_engine and engine_push are disabled
-    so no engine checkout is needed to render."""
+    grid_sync + branch_push only: engine_push is disabled so no engine
+    checkout is needed to render."""
     main = tmp_path / "main"
     main.mkdir(parents=True)
     _git_init(main, branch="master")
@@ -170,7 +169,6 @@ def make_worktree_project(tmp_path, wt_name="wt"):
     _git(main, "worktree", "add", "-q", str(wt), "-b", "season/s2")
     (wt / "agi-tree.config.json").write_text("{}")
     cad = dict(DEFAULT_CADENCES)
-    cad["publish_engine"] = {"schedule": "37 * * * *", "enabled": False}
     cad["engine_push"] = {"schedule": "47 * * * *", "enabled": False}
     write_crons_node(wt, crons_live=True, cadences=cad)
     return main, wt
@@ -356,7 +354,7 @@ def test_render_every_line_cds_into_root_first(tmp_path):
     root = make_project(tmp_path)
     _, cfg, repo_root, engine_root, node = crons._resolve(root)
     lines = crons.render_managed_lines(root, repo_root, engine_root, node)
-    assert len(lines) == 4
+    assert len(lines) == 3
     for line in lines:
         assert f"cd {root} &&" in line
 
@@ -365,11 +363,10 @@ def test_render_order_matches_known_jobs(tmp_path):
     root = make_project(tmp_path)
     _, cfg, repo_root, engine_root, node = crons._resolve(root)
     lines = crons.render_managed_lines(root, repo_root, engine_root, node)
-    # grid_sync (*/5), branch_push (min 7), publish_engine (min 37), engine_push (min 47)
+    # grid_sync (*/5), branch_push (min 7), engine_push (min 47)
     assert lines[0].startswith("*/5 * * * *")
     assert lines[1].startswith("7 * * * *")
-    assert lines[2].startswith("37 * * * *")
-    assert lines[3].startswith("47 * * * *")
+    assert lines[2].startswith("47 * * * *")
 
 
 def test_grid_sync_line_self_reapplies(tmp_path):
@@ -410,11 +407,12 @@ def test_self_reapply_names_the_engine_copy_not_the_running_one(tmp_path):
 
 def test_disabled_job_omitted(tmp_path):
     cadences = dict(DEFAULT_CADENCES)
-    cadences["publish_engine"] = {"schedule": "37 * * * *", "enabled": False}
+    cadences["engine_push"] = {"schedule": "47 * * * *", "enabled": False}
     root = make_project(tmp_path, cadences=cadences)
     _, cfg, repo_root, engine_root, node = crons._resolve(root)
     lines = crons.render_managed_lines(root, repo_root, engine_root, node)
-    assert len(lines) == 3
+    assert len(lines) == 2
+    assert not any(l.startswith("47 ") for l in lines)
     assert not any("publish-engine.sh" in l for l in lines)
 
 
@@ -549,7 +547,7 @@ def test_apply_from_plain_clone_does_not_refuse(tmp_path):
     fixture.write_text("")
     result = crons.cmd_apply(root, crontab_file=fixture)
     assert result["changed"] is True
-    assert len(result["managed_lines"]) == 4
+    assert len(result["managed_lines"]) == 3
 
 
 def test_apply_from_common_root_keeps_failure_isolated(tmp_path):
@@ -558,7 +556,7 @@ def test_apply_from_common_root_keeps_failure_isolated(tmp_path):
     fixture = tmp_path / "crontab.fixture"
     fixture.write_text("")
     result = crons.cmd_apply(root, crontab_file=fixture)
-    assert len(result["managed_lines"]) == 4
+    assert len(result["managed_lines"]) == 3
     grid_sync = result["managed_lines"][0]
 
     _, cfg, repo_root, engine_root, node = crons._resolve(root)
@@ -636,7 +634,7 @@ def test_apply_dry_run_writes_nothing(tmp_path):
 
     result = crons.cmd_apply(root, crontab_file=fixture, dry_run=True)
     assert fixture.read_text() == original, "--dry-run must not touch the file"
-    assert len(result["managed_lines"]) == 4
+    assert len(result["managed_lines"]) == 3
 
 
 def test_apply_creates_the_log_directory_the_lines_redirect_into(
@@ -717,7 +715,7 @@ def test_remove_only_this_projects_block(tmp_path):
     crons.cmd_apply(root, crontab_file=fixture)
 
     result = crons.cmd_remove(root, crontab_file=fixture)
-    assert len(result["removed_lines"]) == 4
+    assert len(result["removed_lines"]) == 3
     out = _read(fixture)
     assert out == UNRELATED_LINES
 
@@ -757,7 +755,7 @@ def test_disabled_engine_push_job_needs_no_engine_git(tmp_path):
     root = make_project(tmp_path, cadences=cadences, detach_engine=True)
     _, cfg, repo_root, engine_root, node = crons._resolve(root)
     lines = crons.render_managed_lines(root, repo_root, engine_root, node)
-    assert len(lines) == 3
+    assert len(lines) == 2
     # The engine_push template is specifically `git -C <engine_root> push`;
     # its absence (not a fuzzy substring match, which collides with the test's
     # own name) is what proves the disabled job never triggered the branch
@@ -776,7 +774,7 @@ def test_cli_apply_show_remove_round_trip(tmp_path, capsys):
     rc = crons.main(["apply", "--root", str(root), "--crontab-file", str(fixture)])
     assert rc == 0
     out = capsys.readouterr().out
-    assert "installed 4 line(s)" in out
+    assert "installed 3 line(s)" in out
 
     rc = crons.main(["show", "--root", str(root), "--crontab-file", str(fixture)])
     assert rc == 0
@@ -784,7 +782,7 @@ def test_cli_apply_show_remove_round_trip(tmp_path, capsys):
 
     rc = crons.main(["remove", "--root", str(root), "--crontab-file", str(fixture)])
     assert rc == 0
-    assert "removed 4 line(s)" in capsys.readouterr().out
+    assert "removed 3 line(s)" in capsys.readouterr().out
     assert _read(fixture) == UNRELATED_LINES
 
 
@@ -816,7 +814,7 @@ def test_cli_dry_run_reports_without_writing(tmp_path, capsys):
                      "--dry-run"])
     assert rc == 0
     assert fixture.read_text() == original
-    assert "would install 4 line(s)" in capsys.readouterr().out
+    assert "would install 3 line(s)" in capsys.readouterr().out
 
 
 # --- services table: systemd units rendered from the graph (fixture seam) --
@@ -1721,3 +1719,73 @@ def test_audit_flags_a_gated_generic_job_without_why_box(tmp_path, monkeypatch):
     crons.cmd_apply(root, crontab_file=fixture)
     found = crons.cmd_audit(root, crontab_file=fixture)
     assert any("town_probe" in f and "why_box" in f for f in found), found
+
+
+# --- config-max (belam 10-01 18:3xZ, DH.DG1.03 item 1): the command of the row
+# that retires a cursor lived in crons.py. These pin the MOVE, not a copy of it.
+MAIL_POLL_CMD = ("git -C {repo_root} fetch -q origin && python3 {engine_root}"
+                 "/extensions/agi/bin/send.py read --box-local --peek >> {log}"
+                 " 2>&1; python3 {engine_root}/extensions/agi/bin/rotate.py"
+                 " migrate --receive >> {log} 2>&1")
+
+
+def _poll(root, monkeypatch, drop_cell=False):
+    monkeypatch.setattr(crons, "_require_git_repo", lambda *a, **k: None)
+    node = crons.load_crons_node(root)
+    if drop_cell:
+        node["jobs"]["mail_poll"].pop("cmd", None)
+    lines = crons.render_managed_lines(root, root, root, node, "local-town")
+    return [ln for ln in lines if "--box-local" in ln]
+
+
+def _poll_project(tmp_path, cmd=None):
+    cad = {"mail_poll": {"every_mins": 5, "enabled": True, "box": "local-town",
+                         "why_box": "the remote reader"}}
+    if cmd is not None:
+        cad["mail_poll"]["cmd"] = cmd
+    return make_project(tmp_path, cadences=cad)
+
+
+def test_mail_poll_cmd_cell_renders_the_fstring_line_byte_for_byte(
+        tmp_path, monkeypatch):
+    """Falsifier (b): a MOVE renders the built-in's bytes for the same root."""
+    root = _poll_project(tmp_path, MAIL_POLL_CMD)
+    with_cell = _poll(root, monkeypatch)
+    assert with_cell == _poll(root, monkeypatch, drop_cell=True) and with_cell
+    assert "--peek" in with_cell[0] and "migrate --receive" in with_cell[0]
+    with pytest.raises(crons.CronsError, match=r"cadences\.mail_poll\.cmd"):
+        crons.load_crons_node(_poll_project(tmp_path / "e", "   "))
+
+
+def test_mail_poll_line_comes_from_the_cell_not_the_fstring(tmp_path,
+                                                            monkeypatch):
+    """The wire half: the test above passes a renderer that ignores the cell."""
+    edited = MAIL_POLL_CMD.replace("read --box-local", "read --box-local -v")
+    line = _poll(_poll_project(tmp_path, edited), monkeypatch)[0]
+    assert "read --box-local -v" in line
+    assert " >> " in line and line.rstrip().endswith("2>&1")
+
+
+# DH.DG1.04: the two tests above prove the renderer HONOURS a cell it is
+# handed; they never touch the cell the deployed cron actually reads. Pin THIS
+# checkout's own crons.md, and pin it in a module-level constant so a red run
+# can point the same assertion at a stripped COPY in tmp_path.
+LIVE_ROOT = Path(__file__).resolve().parents[3] / ".agi"
+
+
+def test_live_crons_node_carries_the_peek_that_stops_the_retire(monkeypatch):
+    """No `--peek` in the live mail_poll cell = every unread line of every
+    local post's inbox printed into a log file and retired (10-01, the two
+    cases attributed to this crontab line)."""
+    import unittest.mock as mock
+    node = crons.load_crons_node(LIVE_ROOT)
+    cmd = node["jobs"]["mail_poll"]["cmd"]
+    assert "read --box-local --peek" in cmd, \
+        f"the live mail_poll cell would advance the cursor on a log read: {cmd}"
+    repo = LIVE_ROOT.parent
+    with mock.patch.object(crons, "resolve_branch", lambda _git_dir: "main"):
+        lines = [ln for ln in crons.render_managed_lines(
+            LIVE_ROOT, repo, repo, node, "local-town") if "--box-local" in ln]
+    assert lines and "--peek" in lines[0], \
+        f"the cell carries --peek but the rendered crontab line does not: {lines}"
+

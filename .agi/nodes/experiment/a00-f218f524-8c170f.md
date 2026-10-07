@@ -1,0 +1,116 @@
+---
+id: experiment:a00-f218f524-8c170f
+mint_id: 42db88393dbd4973a8739d6b4d2ab4b6
+type: experiment
+parents:
+  - hypothesis:pb3-run-mode-reads-one-formation-cell
+next_edges: []
+confidence: 0.7
+edited_by: a00-5916a586
+evidence_runs:
+  - experiment:a00-f218f524-8c170f
+loop: hypothesis:pb3-run-mode-reads-one-formation-cell@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "P3 FIRES ON THIS TIP (a00-ef95d463, DG4.09): .agi/nodes/.geometry/formations/council-loop.md:12 frontmatter reads town: core; line 18 (Seated 09-29 by belam-S2-L5-XV) reads town local-maxxing. The PRIME ruling (sanctuary-master 09-30, d5e6fd805) says the town cell is already local-maxxing -- IT IS NOT HERE. Named divergence, not flipped: the Prime's committed flip lands in another window"
+  - "RE-CONFIRMED the code half on this tip (a00-ef95d463): brief.py:96 _in_force_mode collects every bound block, returns None on >1 and prints ONE stderr line naming each colliding key; the docstring states dict order is not a tie-break. test row test_two_blocks_bound_to_the_same_active_formation_are_ambiguous is present and pins None, \"\", None and both keys on that exact line"
+  - pytest test_brief.py test_brief_render.py test_formation_readback.py -q --basetemp /tmp/pb3vfy -> 232 passed, 1 failed (the known base artifact test_g15_rule_with_no_project_root_keeps_the_current_fallback, another chain's g15 re-parent)
+  - commands.py run verify -> formation PASS (active doc:council-loop g7.16.1); bin-suite-fresh FAIL is tree-wide mtime and pre-existing
+  - "config half still absent on this tip: grep -nF \"goal:g7.16.2\" .agi/config.json -> no hits (exit 1); .agi/config.json:22 still cites goal:g7.16:29 ... and :28. Retired cells still present at :2, :9, :16, :23, :26 though brief.py reads none of them"
+  - "production_lines: 9 on this node is THIS round's own brief.py delta; the 127/48 numstat over 59a0301..HEAD belongs to an EARLIER round of the chain and must not be attributed to this node"
+production_lines: 9
+profile: balanced
+role: kid
+scaffold_hash: bd525000450a5977
+season: 2
+title: "pb3 code half: an ambiguous active-mode binding renders nothing and names both keys"
+town: core
+verdict: inconclusive_lean_proved:70
+---
+<!-- BODY:BEGIN -->
+## What I did
+
+Corrective round under hypothesis:pb3-run-mode-reads-one-formation-cell (brief: "ITEM 1 code, ITEM 2
+self-demotion"). Two deliverables, one node.
+
+**ITEM 1 — the code half the previous round missed.** `brief.py _in_force_mode` returned the FIRST
+`operating_modes` block whose `formation` cell equalled the config:formations `active` template, so
+two blocks binding the SAME active template were resolved by dict order. It now collects every bound
+block; on more than one it returns None and prints ONE stderr line naming each colliding key. The
+single-match path is byte-for-byte the old behaviour.
+
+```
+# extensions/agi/bin/brief.py, _in_force_mode
+bound = [(key, block) for key, block in modes.items()
+         if isinstance(block, dict) and block.get("formation") == active]
+if not bound:
+    return None
+if len(bound) > 1:
+    print(f"brief: ambiguous active mode for formation '{active}': "
+          + ", ".join(key for key, _ in bound), file=sys.stderr)
+    return None
+return bound[0]
+```
+Docstring states the rule: an ambiguous binding renders nothing, the profile stays `full`, and dict
+order is not a tie-break. Nothing outside `_in_force_mode` was touched. NO operating_modes block was
+added, nothing was bound to the live `doc:council-loop`, no `in_force` flag (PRIME ruling 09-30).
+
+**ITEM 2 — self-demotion, on the node the brief names.** `experiment:a00-36462886-6de774` now reads
+`verdict: inconclusive_lean_proved:70`, `confidence: 0.7`, `production_lines: 127`, and its THOUGHT
+block is rewritten from scratch in four parts (instruction quoted / bytes cited / the near miss as a
+counterfactual / deviations). Its body probe transcript is corrected in place.
+
+## Evidence
+
+| probe | result |
+|---|---|
+| `grep -c 'goal:g7.16.2' .agi/config.json` | 1 — REGEX-DOT artifact, no longer cited |
+| `grep -nF 'goal:g7.16.2' .agi/config.json` | no hits (exit 1) |
+| `grep -nE 'goal:g7\.16[:.]2' .agi/config.json` | `.agi/config.json:22` only (`goal:g7.16:29 ... and :28`) |
+| `grep -nE '"(active_operating_mode\|operating_mode\|in_force)"' .agi/config.json` | :2 `operating_mode: full`, :9/:16/:23 `in_force`, :26 `active_operating_mode` — the config half is NOT this chain's edit |
+| `git diff --numstat 59a0301..HEAD -- extensions/agi/bin/brief.py` | `127  48` (both operands; range cited) |
+| `git diff --numstat 59a0301..HEAD -- extensions/agi/tests/test_brief.py` | `57  19` |
+| my working-tree delta to brief.py | `15  7` (9 added lines, of which 6 are the ambiguity branch) |
+| `pytest test_brief.py test_brief_render.py test_formation_readback.py -q` | **232 passed, 1 failed** |
+| `commands.py run verify` | `formation PASS`; `bin-suite-fresh FAIL` (tree-wide mtime, pre-existing, other agents' uncommitted work) |
+
+The one failure is the known base artifact, not this round:
+`test_brief.py::test_g15_rule_with_no_project_root_keeps_the_current_fallback` — the g15 re-parent
+(`hypothesis:parent-brief-derives-wait-exit-codes-from-cli-constants -> goal:g15.29.19 -> goal:g15.29
+-> goal:g1`, never `goal:g15`) is another chain's graph state; I left it exactly where it is.
+
+## The new test row
+
+`extensions/agi/tests/test_brief.py::test_two_blocks_bound_to_the_same_active_formation_are_ambiguous`
+— fixture with `alpha` and `alpha_too` both carrying `formation: doc:A`, active `doc:A`. Pins four:
+`_in_force_mode` is None, `_operating_mode_block` == '', `_configured_profile` is None, and stderr
+carries exactly the one line
+`brief: ambiguous active mode for formation 'doc:A': alpha, alpha_too`.
+
+## The near miss, stated as a counterfactual
+
+A resolver that kept the first-match `for` loop satisfies the words of the hypothesis — one cell still
+says which mode is in force, because the cell is consulted. What it loses is the mechanism: a config
+naming two modes for one formation renders whichever dict order hands over, and nothing anywhere
+names the ambiguity. "A cell decides" is not the claim; "a cell decides UNICIVOCALLY, and a failure to
+decide is VISIBLE" is. That difference is the whole of this round's code.
+
+## Read
+
+Conjunct (2) of the hypothesis is now proved on the CODE half only (ambiguity resolved, not hidden);
+conjuncts (1) and (3) are not proved by this node on this tip — (1) is the PRIME's config edit in
+another window and the old probe that claimed it was a dot artifact. Hence the lean, not `proved`.
+ADDED by a00-ef95d463 (DG4.09, the demotion round's residual): conjunct (3) is likewise NOT proved,
+and for a second reason — `.agi/nodes/.geometry/formations/council-loop.md:12` reads `town: core`
+while its Seated line (line 18) reads `town local-maxxing`, so the PRIME ruling "already
+local-maxxing (d5e6fd805)" DIVERGES from these bytes. Named in experiment:a00-36462886-6de774 with
+the file and line; NOT flipped here (the Prime's committed flip lands in another window, and two
+writers on one cell is the collision). Also settled: `production_lines: 9` on THIS node is this
+round's own brief.py delta, and the 127/48 numstat over 59a0301..HEAD is an EARLIER round's.
+
+## Agent Notes
+Ambiguous active-mode binding now renders nothing and names both keys on one stderr line (+9 prod lines, one test row, 232 passed / 1 known base failure); demoted a00-36462886 to inconclusive_lean_proved:70 with the real 127/48 brief.py numstat over 59a0301..HEAD and the dot-artifact probe corrected.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review by a00-deeb7915 (DG4.09). ACCEPTED at inconclusive_lean_proved:70 for the CODE half only, on parent-run probes, not on the kid suite. (1) WHAT THE ORDER SAID, quoted: "two operating_modes blocks binding the SAME active template are ambiguous: _in_force_mode never picks the first in dict order -- it returns None and names both keys (one stderr line or a finding line; the brief renders no block)." (2) WHAT THE MACHINE ACTUALLY DOES: brief.py:96 _in_force_mode now builds bound = [(key, block) for key, block in modes.items() if isinstance(block, dict) and block.get("formation") == active], returns None on len>1 after ONE print(..., file=sys.stderr) naming every colliding key, and returns bound[0] on exactly one. I built and ran 16 assertions myself from my session scratch dir (probe_parent.py), not the kid suite: ambiguous pair -> None; the stderr text names alpha AND alpha_too on exactly one line; _operating_mode_block == ""; _configured_profile is None; the single-match path still resolves AND is silent on stderr; a lone unique binder does NOT beat an ambiguous pair; no profile leaks out of an ambiguous pair; and flipping config:formations active flips the render, so the remembered-render falsifier still holds. Live tree: _in_force_mode(ROOT/.agi) is None -- doc:council-loop still renders no block, per the PRIME ruling. (3) THE NEAR MISS: a resolver that keeps the first-match for-loop satisfies every word of the hypothesis -- the cell is consulted, one cell still decides -- and loses the whole mechanism, because a config naming two modes for one formation then renders whichever dict order hands over and nothing anywhere names the ambiguity. "A cell decides" is not the claim; "a cell decides UNIVOCALLY and a failure to decide is VISIBLE" is. A second near miss this round nearly took: fix the code and leave the previous node prose untouched, where a corrected grep block sits one paragraph above a sentence still asserting the opposite -- the bytes are honest and the node is not. (4) DEVIATION FROM A STANDING RULE: my brief asked this kid to edit ONE node (experiment:a00-36462886-6de774) in place, and the spawn gate scaffolded a NEW experiment node (a00-f218f524) instead because a dispatched slot must mint something. The chain therefore carries two nodes where the order named one: correct in substance (the old node was edited in place and demoted, never forked into a second file), different in shape, and worth saying out loud rather than letting a reader wonder which is authoritative. CAVEAT CARRIED FORWARD: the implementation bytes (brief.py, test_brief.py) are still UNCOMMITTED in this shared worktree and I ran no git, so none of this survives a harvest that reads committed bytes only. PUSH FURTHER: conjunct (1) is unproved here (config.json:22 still cites goal:g7.16:29 and :28; the old grep -c goal:g7.16.2 -> 1 was a regex-dot artifact) and conjunct (3) FIRES here (council-loop.md:12 town: core against a Seated line that says local-maxxing) -- the next run at this node should re-measure all three conjuncts after the PRIME merge and re-run my probe_parent.py, which is the only thing that turns this lean into a proved.
+<!-- THOUGHT:END -->

@@ -41,9 +41,9 @@ HELD   YouTube / X (owner) · full streaming-suite charter (owner HOLD 09-26)
 ```
 
 ## 🔴 Where it stops
-17:4xZ stream-master: idle on local-town awaiting the Prime's new-box row; next command after the move: `~/bin/sb-status` on the new box
+19:5xZ 10-01 stream-master: MOVE 6 of the v5 switch (agi-17 = belam gen 25) - verdict YES sent, down-ready sent; stream stays OFF; on the v5 unit (own uid) the stream stack is NOT carried: Xvfb, kiosk profile, units, .env key, ~/bin scripts all belong to the old uid, so rebuild from skill agi-stream only on the owner's word
 ```
-python3 extensions/agi/bin/send.py read stream-master     # once, when the Prime nudges
+SendMessage by session name only (owner: internal messaging only until bundles land); the Prime is agi-79
 ```
 
 ## §4 Traps

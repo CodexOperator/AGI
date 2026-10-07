@@ -122,36 +122,13 @@ def test_cron_lines_are_cwd_proof(tmp_path):
         assert str(tmp_path / "g.log") in line  # log path doubles as the marker
 
 
-def test_publish_engine_cron_also_pushes_the_engine(tmp_path):
-    """goal:g7.10 — a publish that is never pushed is a publish nobody sees.
-
-    `publish-engine.sh` commits the engine and does not push, on the stated
-    grounds that pushing is the hourly cron's job. For the engine repo that
-    cron did not exist, so 25 commits sat local and the remote went 3 days
-    stale. The two halves of that design have to ship together.
-    """
-    plain = grid.cron_lines(tmp_path, "main", 5, tmp_path / "g.log")
-    assert len(plain) == 2, "engine lines must stay opt-in, off by default"
-
-    lines = grid.cron_lines(tmp_path, "main", 5, tmp_path / "g.log",
-                            publish_engine=True)
-    assert len(lines) == 4
-    publish, push = lines[2], lines[3]
-
-    engine_root = Path(grid.__file__).resolve().parents[3]
-    assert push.startswith(f"47 * * * * git -C {engine_root} push -q origin HEAD")
-
-    # Ordering is the property, not the literal minutes: the engine is pushed
-    # after the publish that writes it, and both after the graph push it cites.
-    minute = lambda l: int(l.split()[0])
-    assert minute(plain[1]) < minute(publish) < minute(push)
-
-    # HEAD, never a branch captured at install time — the iter24-extend-300hop
-    # shape, where a cron pushed `master` while the work was somewhere else.
-    assert " main" not in push
-
-    for line in lines:
-        assert str(tmp_path / "g.log") in line  # log path doubles as the marker
+def test_cron_lines_carry_no_publish_engine(tmp_path):
+    """goal:g7.16.1.4.1.1 -- `publish-engine.sh` (goal:g11's two-repo carry) is
+    retired, and with it the opt-in :37 publish and :47 engine push: the grid
+    cron is the snapshot line and the branch push, nothing else."""
+    lines = grid.cron_lines(tmp_path, "main", 5, tmp_path / "g.log")
+    assert len(lines) == 2
+    assert not any("publish-engine" in l for l in lines)
 
 
 def test_sync_pushes_grid_refs_and_sets_fetch_spec(project, tmp_path):
@@ -833,6 +810,22 @@ def test_parent_mint_trailer_in_commit_body(mint_project):
     subject = grid.git(mint_project, "log", "-1", "--format=%s",
                        grid.mint_node_ref(MINT_B))
     assert subject == "v1 idea:child"
+
+
+# hypothesis:grid-parent-trailer-reads-a-mint-parent-through-the-resolver: mint trailer == address twin's
+def test_parent_mint_trailer_resolves_a_mint_parent_like_its_address(mint_project, monkeypatch):
+    import links
+    builds, real, seen = [], links.mint_index, []
+    monkeypatch.setattr(links, "mint_index", lambda root: builds.append(1) or real(root))
+    _write_mint_node(mint_project, "parent.md", "idea:parent", mint_id=MINT_A)
+    for kids in ((("1", "idea:parent"),), (("2", MINT_A), ("3", MINT_A))):   # 1 address; 2 mint kids, ONE commit
+        builds.clear()
+        for k, par in kids:
+            _write_mint_node(mint_project, f"c{k}.md", f"idea:c{k}", mint_id=k * 32, parents=[par])
+        grid.cmd_commit(mint_project, [], do_all=True, session=None)
+        seen.append(([grid.git(mint_project, "log", "-1", "--format=%b", grid.mint_node_ref(k * 32)) for k, _ in kids],
+                     len(builds)))
+    assert seen == [([f"Parent-Mint-Id: {MINT_A} idea:parent"], 0), ([f"Parent-Mint-Id: {MINT_A} idea:parent"] * 2, 1)], seen
 
 
 def test_parent_mint_trailer_marks_unresolved_parent(mint_project):
@@ -2530,3 +2523,42 @@ def test_commit_refuses_nested_trunk_with_only_session_refs(
     assert "refusing commit" in msg
     assert "refs/grid/t9" in msg
     assert _refs(root, "refs/grid/node/") == []        # nothing re-minted
+
+
+# --- goal:g7.33.19.1: `commit <payload path>` versions the node that carries it
+
+
+def test_commit_of_a_payload_path_versions_its_node(project, engine, capsys):
+    _payload_node(project, "plain", "level3:plain", "bin/plain.py")
+    node = project / "nodes" / "level3" / "plain.md"
+    src = engine / "bin" / "plain.py"
+    grid.cmd_commit(project, [str(node)], do_all=False, session=None, engine_root=engine)
+    assert versions(project, "level3:plain") == 1
+
+    src.write_text("print('v2')\n")          # a payload-only edit, the node file untouched
+    grid.cmd_commit(project, [str(src)], do_all=False, session=None, engine_root=engine)
+    assert versions(project, "level3:plain") == 2
+    ref = grid.resolve_ref(project, "level3:plain")
+    rev = grid.version_rev(project, ref, "level3:plain", 2)
+    assert grid.read_tree_entry(project, rev, grid.PAYLOAD_ENTRY)[1] == b"print('v2')\n"
+
+    # the same call twice, and the node file after it: no new version
+    grid.cmd_commit(project, [str(src)], do_all=False, session=None, engine_root=engine)
+    grid.cmd_commit(project, [str(node)], do_all=False, session=None, engine_root=engine)
+    assert versions(project, "level3:plain") == 2
+    # two paths naming one node make one version
+    src.write_text("print('v3')\n")
+    grid.cmd_commit(project, [str(src), str(node)], do_all=False, session=None,
+                    engine_root=engine)
+    assert versions(project, "level3:plain") == 3
+
+
+def test_commit_of_an_unowned_path_is_refused_by_name_and_writes_nothing(project, engine):
+    _payload_node(project, "plain", "level3:plain", "bin/plain.py")
+    refs = grid.git(project, "for-each-ref", "refs/grid")
+    with pytest.raises(SystemExit) as exc:
+        grid.cmd_commit(project, [str(engine / "bin" / "run.sh")], do_all=False,
+                        session=None, engine_root=engine)
+    assert "no build node carries payload_ref" in str(exc.value)
+    assert "run.sh" in str(exc.value)
+    assert grid.git(project, "for-each-ref", "refs/grid") == refs

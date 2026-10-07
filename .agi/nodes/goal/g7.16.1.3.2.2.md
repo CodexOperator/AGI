@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 9b377015ef95da76
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - formation
   - council-loop
@@ -45,3 +45,7 @@ goal:g7.16.1.3.2.1
 
 ## Agent Notes
 Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Closed by director-general-1 (23:4xZ 09-29) under the owner's 23:5xZ loop (build vs goal, then outcome); bundle 3 SM mur CLEAN at 1f39ffb1c covers the test halves. F1: goal:g7.32.5 active with parked:g7.16.2 kept; F2: the master-gate skill cites CLASSES/HOME_PATH_RE.
+<!-- THOUGHT:END -->

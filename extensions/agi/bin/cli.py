@@ -217,6 +217,7 @@ def _evidence_corpus(root: Path) -> frozenset:
     dangling id resolve.
     """
     corpus = set(evidence_gate.build_corpus(root / "nodes"))
+    trees = [root / "nodes"]
     wt_root = root / "worktrees"
     if wt_root.is_dir():
         for tree in sorted(wt_root.glob("*")):
@@ -227,10 +228,12 @@ def _evidence_corpus(root: Path) -> frozenset:
                 continue
             try:
                 corpus |= set(evidence_gate.build_corpus(nodes))
+                trees.append(nodes)
             except evidence_gate.CorpusRootError:
                 # A stray root with a nodes/ child, not a real worktree graph.
                 continue
-    return frozenset(corpus)
+    # goal:g4.18.6.3.3: the union keeps every tree's resolver -- a mint ref counts as its address
+    return links.resolving(frozenset(corpus), *trees)
 
 
 def _node_evidence_runs_raw(root: Path, node_id: str | None):
@@ -3399,6 +3402,27 @@ _MSG_DONE = "migrated"
 _MSG_REFUSE = "REFUSE"
 
 
+def _discard_target(target: Path) -> None:
+    """Discard a failed session-complete target, sources intact. A SYMLINKED
+    target (heal's pre-link into the cold sessions home, goal:g7.16.1.5.2.1)
+    is emptied THROUGH the link -- shutil.rmtree refuses a symlink, so
+    `rmtree(target, ignore_errors=True)` silently kept the partial copy while
+    printing 'no target left' (SM residue 156); the link and its now-empty
+    dir are the linker's to undo. A real target goes whole, as before."""
+    if not target.is_symlink():
+        shutil.rmtree(target, ignore_errors=True)
+        return
+    real = target.resolve()
+    for child in (list(real.iterdir()) if real.is_dir() else []):
+        if child.is_dir() and not child.is_symlink():
+            shutil.rmtree(child, ignore_errors=True)
+        else:
+            try:
+                child.unlink()
+            except OSError:
+                pass
+
+
 def _session_complete(
     main_graph: Path,
     iter_n,
@@ -3532,8 +3556,11 @@ def _session_complete(
     # verifies is any source removed, and only its own contribution's.
     try:
         target.parent.mkdir(parents=True, exist_ok=True)
-        if target.is_dir():
-            target.rmdir()  # clear a pre-created empty placeholder only
+        # clear a pre-created empty placeholder only; an empty SYMLINKED dir
+        # stays -- heal pre-links MAIN's entry into the cold sessions home so
+        # the copy lands on disk, never the RAM disk (goal:g7.16.1.5.2.1)
+        if target.is_dir() and not target.is_symlink():
+            target.rmdir()
         for rel, wsrc in win.items():
             dp = target / rel
             dp.parent.mkdir(parents=True, exist_ok=True)
@@ -3548,7 +3575,7 @@ def _session_complete(
     except (OSError, shutil.Error) as exc:
         print(f"session-complete: copy failed -> {target}: {exc}; "
               f"sources intact, no target left")
-        shutil.rmtree(target, ignore_errors=True)
+        _discard_target(target)
         return 1
 
     # The whole-round verification (the multi-source take on `_trees_match`).
@@ -3562,7 +3589,7 @@ def _session_complete(
     if not landed:
         print(f"session-complete: VERIFY FAILED -> {target} -- source and "
               f"target differ; removing target, all sources intact")
-        shutil.rmtree(target, ignore_errors=True)
+        _discard_target(target)
         return 1
 
     # 🔴 PER-SOURCE removal. A source is removed only when ITS OWN
@@ -4923,9 +4950,15 @@ def _dead_kid_worktrees(repo: Path) -> list[Path]:
             ent["detached"] = True
     if ent:
         entries.append(ent)
+    # goal:g7.16.1.5.4: a round worktree may check out on the RAM disk
+    # (config:guard GUARD_RAM_WORKTREES); a reboot empties it, so its stale
+    # registrations are enumerated here too.
+    ram = locations.guard_cell(repo / ".agi", "RAM_WORKTREES") \
+        if wt_root is not None else ""
+    roots = [str(r) for r in (wt_root, Path(ram) if ram else None) if r]
     for e in entries:
         path = Path(e.get("path") or "").resolve()
-        if wt_root is None or not str(path).startswith(str(wt_root)) \
+        if not any(str(path).startswith(r) for r in roots) \
                 or "a00-" not in path.name:
             continue  # never a kid worktree; a post/worktree is not ours
         stale = not path.is_dir() or bool(e.get("detached"))

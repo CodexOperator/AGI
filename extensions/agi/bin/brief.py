@@ -93,22 +93,58 @@ def _paid_for_path_guard(project_root: Path | None = None) -> str:
 
 
 
-def _configured_profile(project_root: Path | None = None) -> str | None:
-    """Read the durable operating mode from ``.agi/config.json``.
+def _in_force_mode(project_root: Path | None = None) -> tuple[str, dict] | None:
+    """The ONE run mode in force: the ``.agi/config.json`` ``operating_modes``
+    block whose ``formation`` cell names the config:formations ``active``
+    template (hypothesis:pb3-run-mode-reads-one-formation-cell). The switch
+    lives in ONE cell, so a brief cannot print a mode the loop is not running.
 
-    The config may declare ``operating_mode`` with values full | survival |
-    ultimate_survival (hypothesis:l4b18-survival-modes). Config is the
-    durable default; the ``AGI_BRIEF_PROFILE`` env var layers on top as a
-    per-process override. Returns one of PROFILES via config, or None if the
-    config is missing, unreadable or does not declare the key.
+    A binding is AMBIGUOUS when two or more blocks carry the same ``formation``
+    cell equal to ``active`` -- no cell then says which mode is in force, so
+    the answer is None and ONE stderr line names every colliding key. Dict
+    order is not a tie-break. Returns ``(key, block)``, or None when config,
+    the cell, or the binding is absent or ambiguous: nothing renders and the
+    profile stays at its ``full`` default.
     """
-    cfg = _resolve_graph_root(project_root) / "config.json"
+    root = _resolve_graph_root(project_root)
     try:
-        data = json.loads(cfg.read_text(encoding="utf-8"))
+        data = json.loads((root / "config.json").read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
-    mode = data.get("operating_mode")
-    return mode if mode in PROFILES else None
+    from node_writer import find_node_file  # noqa: PLC0415
+    cell = find_node_file(root, "config:formations")
+    if cell is None:
+        return None
+    active = str((read_frontmatter(cell.read_text(encoding="utf-8"))
+                  or {}).get("active") or "")
+    modes = data.get("operating_modes")
+    if not active or not isinstance(modes, dict):
+        return None
+    bound = [(key, block) for key, block in modes.items()
+             if isinstance(block, dict) and block.get("formation") == active]
+    if not bound:
+        return None
+    if len(bound) > 1:
+        print(f"brief: ambiguous active mode for formation '{active}': "
+              + ", ".join(key for key, _ in bound), file=sys.stderr)
+        return None
+    return bound[0]
+
+
+def _configured_profile(project_root: Path | None = None) -> str | None:
+    """The durable profile: the ``profile`` cell on the ONE in-force mode
+    block (hypothesis:pb3-run-mode-reads-one-formation-cell), i.e. read
+    through the same resolver as the rendered block
+    (hypothesis:l4b18-survival-modes). The ``AGI_BRIEF_PROFILE`` env var
+    layers on top as a per-process override, never a cell. Returns one of
+    PROFILES, or None when no block is in force or it declares no profile --
+    the caller then falls back to ``full``.
+    """
+    found = _in_force_mode(project_root)
+    if found is None:
+        return None
+    profile = found[1].get("profile")
+    return profile if profile in PROFILES else None
 
 
 def _config_data(project_root: Path | None = None) -> dict:
@@ -646,26 +682,18 @@ def _operating_mode_block(project_root: Path | None = None) -> str:
     goal:g17.1 a third (enhanced survival), and the one IN FORCE was being
     remembered in prose by whoever wrote each brief. This renders it from the
     declaration instead, so an agent READS the mode from the brief it was
-    given and flipping `active_operating_mode` in config changes the render
-    with no second copy of the prose in code.
+    given, and the mode in force is whichever block is bound to the
+    config:formations `active` template (hypothesis:pb3-run-mode-reads-one-
+    formation-cell) -- one switch, one answer.
 
     Returns an empty string (else a block starting with the marker line)
     when no declaration exists — an absent declaration renders NOTHING and
     raises nothing, so a project that has not declared modes is unchanged.
     """
-    root = _resolve_graph_root(project_root)
-    cfg_path = root / "config.json"
-    try:
-        data = json.loads(cfg_path.read_text(encoding="utf-8"))
-    except (OSError, ValueError, FileNotFoundError):
+    found = _in_force_mode(project_root)
+    if found is None:
         return ""
-    modes = data.get("operating_modes")
-    active = data.get("active_operating_mode")
-    if not isinstance(modes, dict) or not active:
-        return ""
-    block = modes.get(active)
-    if not isinstance(block, dict):
-        return ""
+    active, block = found
     lines = [
         "─── OPERATING MODE (declared in .agi/config.json) ───",
         f"ACTIVE: {block.get('name') or active}",
@@ -1308,10 +1336,12 @@ def _parents_of(graph_root: Path, node_id: str) -> list[str]:
         except OSError:
             return []
         parents = fm.get("parents")
+        import links  # noqa: PLC0415  (goal:g4.18.6.3.2: a mint-id parent reads as its address)
+        r = links.address_resolver(graph_root)
         if isinstance(parents, str):
-            return [parents]
+            return [r(parents) or parents]
         if isinstance(parents, list):
-            return [str(p) for p in parents]
+            return [r(str(p)) or str(p) for p in parents]
         return []
     return []
 
@@ -2428,6 +2458,82 @@ def _brief_cell(root: Path) -> dict:
     return cell if isinstance(cell, dict) else {}
 
 
+def card_text(root: Path, post: str, card_file: str | None = None) -> str:
+    """The `card` part of a render, alone: the post's card NODE (or the named
+    file when it IS a node / no node exists), headed by its provenance and
+    the formation line. Public so a launch whose full render refused still
+    carries the card through the SAME resolver (rotate's legacy fallback)."""
+    from node_writer import find_node_file
+    # goal:g7.16.1.7.1.2: the card NODE wins. A caller-named file (rotate's
+    # own quorum card through the rename boundary, L5.11; heal's seat-tree
+    # node) is read only when it IS a node (a link into `nodes/`) or no node
+    # exists (a rename boundary before the node moves) -- a rotation flattens
+    # the quorum link into a COPY, and a copy goes stale (09-29 17:33Z: a
+    # recovery brief rendered from a 09-18 file). A missing named file falls
+    # through; nothing found at all refuses by name. The first lines name
+    # what was read.
+    node = find_node_file(root, f"doc:card-{post}")
+    named = (Path(card_file).resolve()
+             if card_file and Path(card_file).is_file() else None)
+    if named is not None and (node is None or "nodes" in named.parts):
+        body, src = _strip_thought(named.read_text(encoding="utf-8")), named
+    elif node is not None:
+        body, src = _node_text(root, f"doc:card-{post}"), node
+    else:
+        card = root / "sessions" / "quorum" / f"{post}.md"
+        if not card.is_file():
+            raise RenderError(f"card not found: {card}")
+        body, src = _strip_thought(card.read_text(encoding="utf-8")), card
+    head = "\n".join(x for x in (_card_provenance(root, src),
+                                 _formation_line(root)) if x)
+    return head + "\n\n" + body
+
+
+def _card_provenance(root: Path, path: Path) -> str:
+    """goal:g7.16.1.7.1.2: `[card] <id> · mint <m> · grid v<N> · git <sha>`
+    for the card file a render read -- the node's CURRENT version, named in
+    the first turn. A file that is not a node says so. Never raises."""
+    fm = read_frontmatter(path.read_text(encoding="utf-8")) or {}
+    node_id, mint = fm.get("id"), fm.get("mint_id")
+    if not node_id or "nodes" not in path.resolve().parts:
+        return f"[card] {path.name} -- a copied file, not a card node"
+    ver = "?"
+    try:
+        import grid  # noqa: PLC0415 -- same bin dir
+        ref = grid._resolve_read_ref(root, path, str(node_id))
+        tip = grid.ref_tip(root, ref) if ref else None
+        ver = grid.git(root, "rev-list", "--count", "--first-parent", tip).strip() if tip else "0"
+    except Exception:  # noqa: BLE001 -- provenance never blocks a render
+        pass
+    sha = ""
+    try:
+        import subprocess  # noqa: PLC0415
+        sha = subprocess.run(
+            ["git", "-C", str(path.resolve().parent), "log", "-1",
+             "--format=%h", "--", path.resolve().name],
+            capture_output=True, text=True, timeout=10).stdout.strip()
+    except Exception:  # noqa: BLE001
+        pass
+    return (f"[card] {node_id} · mint {mint or '?'} · grid v{ver}"
+            f" · git {sha or 'uncommitted'}")
+
+
+def _formation_line(root: Path) -> str:
+    """goal:g7.16.1.7.1.2 (row F): `[formation] <active> · goal:<g>`, read
+    from config:formations at render time; '' when the node or its `active`
+    cell is absent."""
+    from node_writer import find_node_file  # noqa: PLC0415
+    path = find_node_file(root, "config:formations")
+    if path is None:
+        return ""
+    fm = read_frontmatter(path.read_text(encoding="utf-8")) or {}
+    active = str(fm.get("active") or "").strip()
+    if not active:
+        return ""
+    goal = str((fm.get("templates") or {}).get(active) or "").strip()
+    return f"[formation] {active}" + (f" · goal:{goal}" if goal else "")
+
+
 def _node_text(root: Path, ref: str) -> str:
     """A node body by `type:slug[#REGION]`, live first then deprecated;
     refuses a missing node or region, never a silent empty string."""
@@ -2508,26 +2614,7 @@ def _part(name: str, root: Path, role: str, post: str | None, harness: str | Non
             ref = (_brief_cell(root).get("templates") or {}).get(role)
         return _template_text(root, str(ref)) if ref else ""
     if name == "card":
-        if not post:
-            return ""
-        from node_writer import find_node_file
-        # `doc:card-<post>` WINS; the quorum file is the fallback (a symlink
-        # to the node during the move). Both missing still refuses by name.
-        # A caller-NAMED card path WINS (hypothesis:non-prime-rotate-self-
-        # renders-through-brief-render): `rotate.py` already resolves the
-        # rotating post's OWN quorum card through the rename boundary (L5.11),
-        # and that file is more specific than either lookup below. A name
-        # that does not exist is NOT fatal here -- resolution falls through to
-        # `doc:card-<post>` and the graph root's quorum copy, so a stale name
-        # degrades instead of refusing a rotation.
-        if card_file and Path(card_file).is_file():
-            return _strip_thought(Path(card_file).read_text(encoding="utf-8"))
-        if find_node_file(root, f"doc:card-{post}") is not None:
-            return _node_text(root, f"doc:card-{post}")
-        card = root / "sessions" / "quorum" / f"{post}.md"
-        if not card.is_file():
-            raise RenderError(f"card not found: {card}")
-        return _strip_thought(card.read_text(encoding="utf-8"))
+        return card_text(root, post, card_file) if post else ""
     if name == "harness":
         rel = (_brief_cell(root).get("harness_blocks") or {}).get(harness or "")
         if not rel:

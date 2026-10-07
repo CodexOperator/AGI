@@ -1,0 +1,102 @@
+diff --git a/src/llama-graph.cpp b/src/llama-graph.cpp
+index 2df063f..a913477 100644
+--- a/src/llama-graph.cpp
++++ b/src/llama-graph.cpp
+@@ -24,6 +24,64 @@
+ #include <string>
+ #include <unordered_set>
+ 
++// osc L4 run 5 (hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b): per-KV-head sinks + window mask.
++// env LLAMA_HEAD_WINDOW="il:kv_head,il:kv_head,..." (il = absolute layer index), LLAMA_HEAD_WINDOW_W (default 128),
++// LLAMA_HEAD_WINDOW_SINKS (default 4). A listed head's query heads may attend key j at query position t iff
++// j < sinks || t - j < W (causality stays with kq_mask). Unset/empty = the graph is not changed at all.
++// Non-flash path only (flash-attn off). Assumes KV cell j holds position j: one sequence from an empty cache,
++// which is how llama-perplexity evaluates each chunk.
++namespace {
++struct head_window_cfg {
++    std::set<std::pair<int, int>> heads;
++    int32_t w     = 128;
++    int32_t sinks = 4;
++    head_window_cfg() {
++        if (const char * e = getenv("LLAMA_HEAD_WINDOW_W"))     { w     = atoi(e); }
++        if (const char * e = getenv("LLAMA_HEAD_WINDOW_SINKS")) { sinks = atoi(e); }
++        const char * e = getenv("LLAMA_HEAD_WINDOW");
++        std::stringstream ss(e ? e : "");
++        std::string item;
++        while (std::getline(ss, item, ',')) {
++            int il = -1, h = -1;
++            if (sscanf(item.c_str(), "%d:%d", &il, &h) != 2 || il < 0 || h < 0) {
++                GGML_ABORT("bad LLAMA_HEAD_WINDOW item '%s'", item.c_str());
++            }
++            heads.insert({il, h});
++        }
++        if (!heads.empty()) {
++            LLAMA_LOG_INFO("%s: head window on %zu KV heads, W = %d, sinks = %d\n", __func__, heads.size(), w, sinks);
++        }
++    }
++};
++
++const head_window_cfg & head_window() {
++    static head_window_cfg cfg;
++    return cfg;
++}
++
++// additive penalty [n_kv, n_tokens]: 0 where allowed, -INFINITY where the window drops the key
++class llm_graph_input_head_window : public llm_graph_input_i {
++public:
++    explicit llm_graph_input_head_window(ggml_tensor * pen) : pen(pen) {}
++    void set_input(const llama_ubatch * ubatch) override {
++        const auto & cfg = head_window();
++        const int64_t n_kv = pen->ne[0];
++        const int64_t n_tok = pen->ne[1];
++        GGML_ASSERT(n_tok == (int64_t) ubatch->n_tokens);
++        std::vector<float> data(n_kv*n_tok);
++        for (int64_t i = 0; i < n_tok; ++i) {
++            const int64_t t = ubatch->pos[i];
++            GGML_ASSERT(t < n_kv);
++            for (int64_t j = 0; j < n_kv; ++j) {
++                data[i*n_kv + j] = (j < cfg.sinks || t - j < cfg.w) ? 0.0f : -INFINITY;
++            }
++        }
++        ggml_backend_tensor_set(pen, data.data(), 0, data.size()*sizeof(float));
++    }
++    ggml_tensor * pen;
++};
++} // namespace
++
+ // dedup helpers
+ 
+ static ggml_tensor * build_attn_inp_kq_mask(
+@@ -2719,6 +2777,32 @@ ggml_tensor * llm_graph_context::build_attn_mha(
+             cb(kq, "kq_plus_kq_b", il);
+         }
+ 
++        if (!head_window().heads.empty()) {
++            // kq: [n_kv, n_tokens, n_head, n_stream]; query heads [g*r, (g+1)*r) read KV head g (ggml_mul_mat broadcast)
++            const int64_t n_kvh = k->ne[2];
++            std::vector<bool> win(n_kvh);
++            bool any = false;
++            for (int64_t g = 0; g < n_kvh; ++g) {
++                win[g] = head_window().heads.count({il, (int) g}) > 0;
++                any = any || win[g];
++            }
++            if (any) {
++                GGML_ASSERT(kq->ne[3] == 1 && kq->ne[2] % n_kvh == 0);
++                ggml_tensor * pen = ggml_new_tensor_2d(ctx0, GGML_TYPE_F32, kq->ne[0], kq->ne[1]);
++                ggml_set_input(pen);
++                res->add_input(std::make_unique<llm_graph_input_head_window>(pen));
++                const int64_t r = kq->ne[2] / n_kvh;
++                ggml_tensor * out = nullptr;
++                for (int64_t g = 0; g < n_kvh; ++g) {
++                    ggml_tensor * seg = ggml_view_3d(ctx0, kq, kq->ne[0], kq->ne[1], r, kq->nb[1], kq->nb[2], g*r*kq->nb[2]);
++                    seg = win[g] ? ggml_add(ctx0, seg, pen) : ggml_cont(ctx0, seg);
++                    out = out ? ggml_concat(ctx0, out, seg, 2) : seg;
++                }
++                kq = out;
++                cb(kq, "kq_head_window", il);
++            }
++        }
++
+         kq = ggml_soft_max_ext(ctx0, kq, kq_mask, kq_scale, hparams.f_max_alibi_bias);
+         ggml_soft_max_add_sinks(kq, sinks);
+         cb(kq, "kq_soft_max", il);

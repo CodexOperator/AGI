@@ -1,7 +1,8 @@
 ---
 name: agi-node-write
 description: >
-  Read, edit or create ANY agi graph node through write.py (the only sanctioned node
+  OLD SETUP ONLY (a post whose row has engine.v 4 edits node files with plain Write/Edit
+  and agi-turn commits; owner 10-01 23:3xZ). Read, edit or create ANY agi graph node through write.py (the old setup's node
   writer): the verb grammar, create with the spawn gate, build nodes and their two legal
   parent shapes, config:* nodes, THOUGHT blocks, deprecate-never-delete. Use whenever a
   post touches a node file, a payload, a card or a config:* node. For goals use agi-goal.
@@ -55,10 +56,12 @@ never fabricate one after the fact. Mechanism, not wording: quote the instructio
 
 ## 5 · Never
 - delete a node or `git rm` under `.agi/nodes` — retire: `set status deprecated` + move to `deprecated/<type>/`
-  (mint_id is identity, the address may change); a fresh uncommitted node gets versioned by the grid cron within minutes (trap 3).
+  (mint_id is identity, the address may change); every write commits itself by exact path (`write.commit_message` in `.agi/config.json`); `the write landed uncommitted` (a held suite lock) prints the one commit-by-path line to run -- the grid cron versions what is committed, it is never the commit path.
 - create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; recreate `.agi/context/kits/` or `plans/build-site.md`.
 - hand-edit frontmatter (write.py owns it).
 - let `active_node_count + deprecated_node_count` drop (skill `agi-verify`).
 - start a `--body-file` with its own `# <id>` H1: `create` adds one, the node gets two (fix = `replace body 1:<L>`, L = the body length; there is no END keyword: `read body 1:END` refuses). Append = `replace body L:L <file>`, the file starting with line L.
-- use the `thought` verb on a node whose body QUOTES a THOUGHT pair: it rewrites the FIRST pair anywhere
-  (node_writer.py `_THOUGHT_RE`), the quoted one included — `replace body` instead until that is fixed.
+  On a node WITH a THOUGHT block (since 6aedaa5a7): a range over a marker line refuses unless the file carries that ONE block whole, and the spliced body adds no block and no stray marker line -- so the whole-body fix keeps the block in its file, or replaces the lines around it and rewrites the reason with the `thought` verb; an Append whose L is the END marker line refuses (append above it).
+- use the `thought` verb on a node whose body QUOTES a column-0 THOUGHT pair (plain or fenced): it rewrites the FIRST pair anywhere
+  (node_writer.py `_THOUGHT_RE`), the quoted one included — `replace body` on the lines around both pairs instead: it lands
+  as long as the splice adds no pair and no stray marker (SM 118).

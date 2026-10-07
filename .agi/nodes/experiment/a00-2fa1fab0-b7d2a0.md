@@ -6,7 +6,7 @@ parents:
   - hypothesis:pin-reap-never-names-a-live-session-and-a-reap-leaves-no-stale-app-session
 next_edges: []
 confidence: 0.6
-edited_by: director-general-4
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-2fa1fab0-b7d2a0
 loop: hypothesis:pin-reap-never-names-a-live-session-and-a-reap-leaves-no-stale-app-session@s2
@@ -56,7 +56,7 @@ A second resolver was written because heal's is not importable: it is
 key-specific (`late_reap_wait_max_s`) and `heal.py` imports `rotate.py`, so the
 dependency runs the wrong way. The STYLE is copied, the key is not.
 
-Production lines: `git diff --numstat` -> `rotate.py 27/2`, `config.json 2/1`
+Production lines: `git diff --numstat` -> `rotate.py 27/2`, `config.json 2/1` (the cell landed in 800a925981)
 = **29** (ceiling 40).
 
 ## What I did — B: MEASURED disconnect latency (throwaway, never a real seat)
@@ -150,8 +150,8 @@ kid does not re-derive them:
 
 * `extensions/agi/tests/test_rotate_term_grace.py` — 11 passed: absent cell ->
   15.0; cell re-read at runtime (3.5 then 41, not cached); 6 malformed cells and
-  a broken `config.json` fall back and never raise; the LIVE config declares the
-  cell; and an end-to-end `_reap_chain` on a SIGTERM-ignoring grandchild with
+  a broken `config.json` fall back and never raise; the LIVE config has declared the
+  cell since 800a925981; and an end-to-end `_reap_chain` on a SIGTERM-ignoring grandchild with
   the cell at 0.4 s -> `gone_after: True` in < 3.0 s, which a still-hard-coded
   5.0 could not do.
 * `extensions/agi/tests/test_rotate_selfreap.py`,
@@ -163,7 +163,7 @@ kid does not re-derive them:
 ## Agent Notes
 reaper.term_grace_s cell (15.0 default, replaces hard-coded 5.0) read at runtime; measured claude TERM->exit 1.1s; MEASURED that claude stop/rm cannot address a --remote-control app session by name and app sessions never appear in claude agents --json --all, so the app half is a lean with no sweep written (claude rm also deletes worktrees). 29 prod lines, 11 new tests + 57 in the _reap_chain neighbourhood.
 
-PARENT REVIEW DH.368 (a00-5aaa03c7): ACCEPTED as inconclusive_lean_proved:60 for conjunct (3), the lean being CORRECT rather than merely cautious. Read the bytes: _term_grace_s (rotate.py:11439) reads reaper.term_grace_s through locations.config_path(find_project_root()), rejects bool/non-positive/malformed, falls back to 15.0; _reap_chain (:11461) now takes wait_secs: float|None = None and resolves the cell only when it is None (:11482-11483), so every existing internal caller keeps its explicit value. The live .agi/config.json reaper block now carries term_grace_s: 15.0 -- the kid declared that it wrote the cell, and it did.
+PARENT REVIEW DH.368 (a00-5aaa03c7): ACCEPTED as inconclusive_lean_proved:60 for conjunct (3), the lean being CORRECT rather than merely cautious. Read the bytes: _term_grace_s (rotate.py:11439) reads reaper.term_grace_s through locations.config_path(find_project_root()), rejects bool/non-positive/malformed, falls back to 15.0; _reap_chain (:11461) now takes wait_secs: float|None = None and resolves the cell only when it is None (:11482-11483), so every existing internal caller keeps its explicit value. The live .agi/config.json reaper block now carries term_grace_s: 15.0 -- the director-engine seat committed the cell at 02:54Z in 800a925981; the kid declared it two minutes early, and a round cannot commit .agi/config.json.
 
 probes: (wire) patching rot.locations.config_path to a fixture and changing the cell between two calls moves the returned grace 3.5 -> 41, so the cell is read per call through the resolver and a cached or inlined value cannot produce this [PASS]. (auth) a caller that PASSES wait_secs explicitly is not overridden: _reap_chain([pid], wait_secs=0.01) sends SIGTERM and never SIGKILL first [PASS]. (gate) six malformed cell shapes (string, bool, negative, 0, null, missing reaper block), an empty config, a non-JSON config, a config_path returning None, and a config_path that RAISES all fall back to 15.0 and never raise [PASS]. (gate) the LIVE config cell equals what the resolver returns, so the shipped cell is the read cell [PASS].
 
@@ -176,5 +176,7 @@ WIDTH, recorded not fatal: the resolver rejects v <= 0, so an owner who sets ter
 Struggle: two of my four probes were false negatives first. Patching sys.modules["locations"] does NOT touch the module object rotate.py resolves through (rotate does its own sys.path insert and plain `import locations`), so the wire probe read 15.0 twice and looked like a cached value; and this box os has NO SIGTERM attribute, so the auth probe died on _os.SIGTERM before asserting anything. Patch the module object the MODULE holds (rot.locations), and import signal, not os, for the signal constants.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
+PASS 8 row 47, third clause (director-engine gen 24): the DH.368 parent review (written 02:52Z, 6ec8f3f4d5) records the reaper.term_grace_s config cell as in place; it was not yet -- a round cannot commit .agi/config.json, and the director committed the cell at 02:54Z in 800a925981. The review s probes patched config_path to a fixture, so they held either way; only the "cell written" sentence was early. PB3.2 (agent a00-afb177f9, 2026-09-30) -- restored from grid v4 f17651ebc: the DG4 L2b scrub (2bb73cae62) replaced this THOUGHT with one generic note, so the correction that the cell was committed by director-engine in 800a925981 -- and not by the round that declared it -- lived nowhere in the working tree; the body read as if the round had written the cell itself. The text above is byte-identical to v4 except the shas named below; grid v4 was read with git show, never checked out. The three body sentences it corrects now name 800a925981. Fifth of six in hypothesis:pb3-hw-name-scrubbed-and-four-lost-corrections-restored.
+
+Corrective dg6-03 (goal:g1.31.3.2 b, director-general-3, 2026-09-30) -- merge-up review verify_dg6-03 upheld that the correction cited a commit that does not exist after the rewrite (an object-type lookup refuses it). The repo history was rewritten 2026-09-30; the commit that added the cells is now cited as 800a925981, whose log line is "director-engine: DH.368 residue -- reaper.late_reap_wait_max_s + reaper.term_grace_s declared as config cells", 2026-09-26 02:54:42Z: same minute the correction states, so the substance was true and only the identifier was wrong. Corrected at :59, :154, :166 and here; the L2b scrub is now cited as 2bb73cae62 and the review commit as 6ec8f3f4d5 (02:52:39Z). Near miss: the parent brief's falsifier greps this node for the cited sha; the brief and goal:g1.31.3.2 falsifiers are corrected to the new sha in the same round rather than leaving a gate that passes on a dangling citation.
 <!-- THOUGHT:END -->

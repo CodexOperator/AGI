@@ -340,12 +340,13 @@ def _load_wired_graph(root: Path):
         cfg = json.loads(cfg_path.read_text())
         use_sqlite = cfg.get("persistence", {}).get("type") == "sqlite"
 
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.1: the loader's parents post-pass)
     if use_sqlite:
         try:
             from graph_core.persistence.sqlite_backend import SQLiteBackend
             from graph_core.db_loader import DBLoader
             db_path = root / cfg["persistence"]["path"]
-            g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory()
+            g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory(resolve=links.address_resolver(root))
         except Exception as e:
             raise ZoomUnavailable(f"sqlite backend unavailable: {e}") from e
     else:
@@ -353,7 +354,7 @@ def _load_wired_graph(root: Path):
             from graph_core.loader import load_directory
         except Exception as e:
             raise ZoomUnavailable(f"filesystem loader unavailable: {e}") from e
-        g, loaded = load_directory(root / "nodes")
+        g, loaded = load_directory(root / "nodes", resolve=links.address_resolver(root))
 
     for ln in loaded:
         for parent_id in ln.node.parents:
@@ -535,14 +536,7 @@ def main() -> int:
         else:
             content = _render_level(root, args, int(raw_level))
     except ZoomUnavailable as e:
-        print(
-            f"ERR: zoom could not build a bounded context: {e}\n"
-            f"     Refusing to fall back to the whole graph — an unbounded\n"
-            f"     context defeats the entire point of a zoom level. Fix the\n"
-            f"     graph_core import / target id, or dispatch this agent at\n"
-            f"     --level big deliberately.",
-            file=sys.stderr,
-        )
+        print(unavailable_stderr(str(e)), file=sys.stderr)
         return 1
 
     out_path.write_text(content, encoding="utf-8")
@@ -642,13 +636,52 @@ def _target_not_found(root: Path, target: str) -> str:
     return base
 
 
+def target_resolves(root: Path, target: str | None, g=None) -> str | None:
+    """ONE resolver for "does this --target resolve in THIS graph?".
+
+    goal:g1.31.4.1 conjunct 2 — the render paths (`_compose_small`,
+    `_compose_parent`) and `dispatch.py --dry-run` all ask HERE, so a dry run
+    refuses exactly what a live spawn refuses. Returns None when the target
+    resolves, else the refusal text (what the render raises as
+    ZoomUnavailable). Pure read: no session dir, no context file, no spawn.
+
+    `g` is the graph the caller ALREADY holds (`_compose_small` /
+    `_compose_parent` / `_render_level` load it themselves): passing it keeps
+    ONE graph load per render instead of one per render plus one per check.
+    """
+    if not target:
+        return "--target required for --level small"
+    try:
+        g = _load_wired_graph(root)[0] if g is None else g
+    except ZoomUnavailable as e:
+        return str(e)
+    if not g.has_node(target):
+        return _target_not_found(root, target)
+    return None
+
+
+def unavailable_stderr(reason: str) -> str:
+    """The ONE wording of "zoom could not build a bounded context".
+
+    goal:g1.31.4.1 — zoom's own render refusal (main) and dispatch's refusal
+    of the same target (`_no_context_refusal`) read the same text, so a dry
+    run is a faithful preview of the message a live spawn would print.
+    """
+    return (f"ERR: zoom could not build a bounded context: {reason}\n"
+            f"     Refusing to fall back to the whole graph — an unbounded\n"
+            f"     context defeats the entire point of a zoom level. Fix the\n"
+            f"     graph_core import / target id, or dispatch this agent at\n"
+            f"     --level big deliberately.")
+
+
 def _compose_small(root: Path, args: argparse.Namespace) -> str:
     """Legacy 2-hop subtree around --target, ANY node type. Unchanged content."""
     g, _loaded = _load_wired_graph(root)
 
     target = args.target
-    if not g.has_node(target):
-        raise ZoomUnavailable(_target_not_found(root, target))
+    _refused = target_resolves(root, target, g)
+    if _refused is not None:
+        raise ZoomUnavailable(_refused)
 
     layers = _bfs_neighbors(g, target, hops=2)
     seen = set(layers)
@@ -792,8 +825,9 @@ def _compose_parent(root: Path, args: argparse.Namespace) -> str:
     """
     g, _loaded = _load_wired_graph(root)
     target = args.target
-    if not g.has_node(target):
-        raise ZoomUnavailable(_target_not_found(root, target))
+    _refused = target_resolves(root, target, g)
+    if _refused is not None:
+        raise ZoomUnavailable(_refused)
     tn = g.get_node(target)
     t_fm = _node_fm(root, target)
 
@@ -941,9 +975,12 @@ def _render_level(root: Path, args: argparse.Namespace, level: int) -> str:
     info = LEVEL_INFO[level]
     g, _loaded = _load_wired_graph(root)
 
+    # ONE target-existence check, the same one the small/parent shapes and the
+    # dry report use (goal:g1.31.4.1): a numeric level that loses its target
+    # must refuse in the same words, not in a second private wording.
     target = args.target
-    if target and not g.has_node(target):
-        raise ZoomUnavailable(_target_not_found(root, target))
+    if target and (_refused := target_resolves(root, target, g)) is not None:
+        raise ZoomUnavailable(_refused)
 
     fm_by_id = _frontmatter_for(root, info["dir_name"])
 
