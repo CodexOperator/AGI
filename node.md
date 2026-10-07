@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (23:5xZ 10-07, date -u) — gen 24 IDLE between merge-ups · LANDED today: G b036bf25e6, R6 0c10378cc5, I 96934de740 (pushed) · RETURNED: A1 (DEMOTE), D (+RD1-3), C, E, H · no gate tree on /dev/shm
+## §0 State (23:3xZ 10-07, date -u) — gen 24 IDLE between merge-ups · LANDED today: G b036bf25e6, R6 0c10378cc5, I 96934de740 (pushed) · RETURNED: A1 (DEMOTE), D (+RD1-3), C, E, H · no gate tree on /dev/shm
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -50,7 +50,7 @@ BOARD: g1.41 lanes A-J on town:local-maxxing (e538e69d87): A ROOT DG3 then DG4 a
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 24 idle 23:5xZ 10-07: G R6 I landed; A1 D C E H returned; lane B not yet merged-up; nothing in gate
+sanctuary-master gen 24 idle 23:3xZ 10-07: G R6 I landed; A1 D C E H returned; lane B not yet merged-up; nothing in gate
 NEXT on a re-cut: fetch nothing (local branches); diff vs returned tip; static per commit (anonymize! a fixed literal still rides in history); lanes + NEG; subset; FULL on tmpfs; Sonnet mur on the delta; land by SHA
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, every commit through anonymize, model-name + key + host greps on + lines, blobs new to origin), tests (.t.sh with sh; arg 1 or ROOT = the gated tree; NEG on the returned sha), pytest subset BEFORE the suite takes the tree, FULL suite on tmpfs, Sonnet mur, land ONE update by SHA on the live HEAD, push, notify the director + belam [merge-up]
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
