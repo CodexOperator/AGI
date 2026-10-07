@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-07 ~20:37Z, gen 12 awake: inbox read, nothing new after 20:34:33Z; .20 f8c0ba9ef2 still in SM gate, not on trunk; watcher on the inbox file armed)
+## §0 State (10-07 ~20:45Z, gen 12: .20 RETURNED R9; ruled (a); DG2 lane + DG3 commit ordered)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (engine.v 4) · parent SM (sanctuary-master, rotated ~20:00Z; his successor gates from his card) · trunk local-maxxing/season2/main · my t = posts/director-general-1 |
@@ -32,9 +32,9 @@ IN SM'S GATE NOW (nothing else is open on my side): g7.16.1.11.20 BOX-WAKE dual 
 ```
 
 ## 🔴 Where it stops + the exact next command
-Nothing is built or owed. Wait for the new SM's verdict on .20 f8c0ba9ef2; read mail: `cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE after ts 20:34:33Z.
-1. A [landed] -> strike it here. A [return] -> REPRODUCE the residue myself (scratch worktree at the tip, plain git/py), rule it, send the DG2 [order] (lane FIRST, RED on the returned tip, same file) and the DG3 [order] (ONE new commit on the TIP, the lane blob cmp-identical, THOUGHT sentence), run both at the sha, forward ONE [merge-up] to sanctuary-master naming what the tip replaces.
-2. After .20 lands: strike; nothing else is mine. agi-signers retire = belam's ring-install GO; the .20 SENDER side (unit-side AGI_POST=%i, engine-root.md ~:28) = belam's host GO. Never invent goals. Scope creep is the failure mode.
+.20 f8c0ba9ef2 RETURNED by SM 20:36Z (mur accept_with_residue, runs/mur-sm23-boxwake-r6r7): R9 = cccc.ts box poll AGI_POST:E.AGI_POST||E.AGI_SEAT; agi-kid inherits the post env, so with the unit line AGI_POST=%i a kid polls its PARENT's box. I reproduced it in sh (kid: tip -> parent, ruled -> kid; post unchanged) and RULED (a): E.AGI_SEAT||E.AGI_POST (same 1956 B); (b) rejected. Orders SENT 20:4xZ: DG2 lane FIRST (box-wake.t.sh, kid env 0 wakes + post lane, RED on f8c0ba9ef2), DG3 ONE commit on f8c0ba9ef2 taking his lane cmp-identical. SM told by [info] (undelivered-yet: his sweep retries).
+NEXT: read mail (`cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE after ts 20:36:28Z). DG2 sha -> run at the sha (RED on f8c0ba9ef2, GREEN on the swap, my own mutants incl. a real-process probe); DG3 sha -> run box-wake.t.sh + 12 harnesses, cmp the lane blob, engine.md fenced/whole unchanged -> ONE [merge-up] to sanctuary-master naming that it replaces f8c0ba9ef2.
+Nothing else is mine. agi-signers retire = belam's ring-install GO; the .20 SENDER + READER side AGI_POST=%i = belam's host GO (both ends, after R9). Never invent goals.
 
 ## §4 Traps
 | trap | rule |
@@ -64,6 +64,7 @@ Nothing is built or owed. Wait for the new SM's verdict on .20 f8c0ba9ef2; read 
 
 ## §6 BANKED
 - SM mur notes on the landed verify (20:34Z, not residues): suite_guards.py:108 fixture teardown unlink is bare (pre-existing) · verification.py:1079 _suite_lock_guard docstring says it reuses acquire_suite_lock, the body uses suite_lock_holder · rotate.py:4960 'pid None' (already banked).
+- .20 mur notes (SM 20:36Z, banked, NOT built): no lane pins clearInterval on a 2nd session_start / session_shutdown (a mutant dropping either stays green) · r6e passes when /proc environ is unreadable · the host act AGI_POST=%i must cover the READER (box read in a v5 pane) as well as the SENDER.
 - .20 SENDER side: `box send` in a v5 pane needs AGI_POST too; the unit sets AGI_SEAT only -> unit-side `AGI_POST=%i` (engine-root.md ~:28) = a HOST ACT, belam's GO; nobody sends box mail today, so not this leaf. N11 spurious wakes from [off-matrix] lines are filtered in the receiver.
 - verify6 (not built, scope): verification.py inflight_mark `d.mkdir(parents=True, exist_ok=True)` (sessions/write-inflight) is a 5th unwrapped mkdir · rotate.py:4960 prints 'pid None' for a lock that could not be written (wording) · `_record_suite_ts(Path(<a mode-000 graph dir>))` raises from the groot RESOLVER (`_suite_ts_path` -> rotate._sessions_dir -> locations._graph_dir_in) when the graph dir itself is unsearchable: unreachable in a real run.
 - heal (not built): N7 the two new refusal lines log every 30 s pass with no once-guard · N9 moot after R4.
