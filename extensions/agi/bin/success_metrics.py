@@ -228,9 +228,74 @@ def diff(root: Path, payload: dict) -> dict:
     return {"compared_season": cmp_season, "baseline": f"compared vs season {cmp_season}", "deltas": deltas}
 
 
+#: The graph counters metrics.py prints as `METRIC k=v`, in the order the line carries them.
+LINE_GRAPH_KEYS = (
+    "node_count", "active_node_count", "deprecated_node_count", "edge_count",
+    "evidence_fraction", "decisive_verdicts", "decisive_evidence_fraction",
+    "broken_links", "thought_coverage", "longest_chain_length", "outcome_coverage")
+
+
+def _reason(text: str) -> str:
+    """A reason that can sit inside UNMEASURED(...) on one line: no parens, no `&`/`|`."""
+    return re.sub(r"[()&|\s]+", " ", str(text)).strip()[:48] or "unknown"
+
+
+def _run_metrics_once(root: Path) -> tuple[dict, str | None]:
+    """ONE metrics.py run (about a minute live): (METRIC map, why it is dead or None)."""
+    try:
+        out = subprocess.run([sys.executable, str(METRICS_PY), str(root)],
+                             capture_output=True, text=True, timeout=900)
+    except subprocess.TimeoutExpired:
+        return {}, "metrics.py timeout"
+    except OSError as exc:
+        return {}, f"metrics.py unrunnable {_reason(exc)}"
+    if out.returncode != 0:
+        return {}, f"metrics.py rc={out.returncode}"
+    found = {}
+    for ln in out.stdout.splitlines():
+        if ln.startswith("METRIC ") and "=" in ln:
+            k, _, v = ln[7:].strip().partition("=")
+            found[k] = v.split()[0] if v.split() else ""
+    return found, None
+
+
+def make_line(root: Path) -> str:
+    """goal:g3.8 -- ONE line: a UTC minute, the graph counters and the seven success
+    metrics. A null is NAMED (UNMEASURED(reason)), never a number the engine does not
+    have; an absent counter is named, not dropped; a dead metrics.py is named with its
+    rc in every key. metrics.py runs ONCE; conclusive_verdicts is read from that stream."""
+    found, dead = _run_metrics_once(root)
+
+    def graph(k: str) -> str:
+        if dead:
+            return f"UNMEASURED({dead})"
+        return found[k] if found.get(k) else "UNMEASURED(absent from metrics.py)"
+
+    parts = []
+    for name, fn in SOURCE_FUNCS:
+        if name == "conclusive_verdicts":
+            parts.append(f"{name}={graph('decisive_verdicts')}")
+            continue
+        try:
+            rec = fn(root)
+        except (Exception, SystemExit) as exc:   # a source that cannot run is named, not fatal
+            parts.append(f"{name}=UNMEASURED(source failed: {_reason(exc)})")
+            continue
+        if rec.get("value") is not None:
+            parts.append(f"{name}={rec['value']}")
+        else:
+            parts.append(f"{name}=UNMEASURED("
+                         f"{'no live counter' if rec.get('present') else 'no source yet'})")
+    when = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
+    g = " ".join(f"{k}={graph(k)}" for k in LINE_GRAPH_KEYS)
+    return f"{when} graph: {g} | success: {' '.join(parts)}"
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("root", nargs="?", default=None)
+    ap.add_argument("--line", action="store_true",
+                    help="print ONE line for the town node's graph_metrics cell, no write")
     ap.add_argument("--json", action="store_true", help="print JSON, no write")
     ap.add_argument("--diff", action="store_true", help="include the season diff")
     args = ap.parse_args(argv)
@@ -238,6 +303,9 @@ def main(argv: list[str] | None = None) -> int:
     if root is None:
         print("ERR: not an agi project", file=sys.stderr)
         return 1
+    if args.line:
+        print(make_line(root))
+        return 0
     payload = compute(root)
     if args.diff:
         payload["diff"] = diff(root, payload)

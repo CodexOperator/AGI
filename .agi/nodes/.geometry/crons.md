@@ -36,6 +36,12 @@ cadences:
     box: local-town
     why_box: the Prime's town->season2/main merge routine runs where the Prime and the town trunk live (owner 01:2xZ 09-21, goal:g5; every 4 hours, owner 09-23 15:0xZ); inert until extensions/agi/bin/prime_merge.py lands (director-engine round)
     cmd: test -f {repo_root}/extensions/agi/bin/prime_merge.py && PI_BIN=$HOME/.npm-global/bin/pi python3 {repo_root}/extensions/agi/bin/prime_merge.py tick --root {root}
+  graph_metrics:
+    schedule: 23 * * * *
+    enabled: true
+    box: local-town
+    why_box: "belam's crontab reads every uid's files and writes the town node; a v5 uid reads only its own (goal:g3.8, AA1.S)"
+    cmd: L=$(python3 {repo_root}/extensions/agi/bin/success_metrics.py --line {root}) && python3 {repo_root}/extensions/agi/bin/write.py town:local-maxxing "set graph_metrics $L" --actor belam
   memory_alarm:
     every_mins: 1
     enabled: true
