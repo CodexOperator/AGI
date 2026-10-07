@@ -31,7 +31,7 @@ gen 27 out (14:4xZ 10-07): the carrier, unit, polkit, kid cell and GitHub sealer
 | box | up since 10-01 22:17Z; 8 v5 posts active 0 restarts (6 restarted 14:1xZ 10-07 after the owner's stop 10-04 07:53Z) · down by the owner: DG4 · DG5 · DT-2 · stream-master · old setup: belam · SM · old TM |
 | tree | owner > belam > council{alive, all-is-one, self-perpetuating; lands []} + keep{SM, TM-new} > DG1-3 under SM, DT-1 under TM-new (level rule 3a33c71b9) |
 | mail | `send.py --from belam send <p> "<text>"`; read .agi/sessions/inbox/belam.md by ts (trap 66) |
-| crons | session-only, die with me: re-arm CHECK (13 */4) + memory Monitor (MemAvailable < 6 GB or PSI avg10 >= 20, 30 min) at wake |
+| crons | session-only, die with me: gen 28 armed CHECK 8a0c8b5c (13 */4) + memory Monitor; re-arm both (MemAvailable < 6 GB or PSI avg10 >= 20, 30 min) at wake |
 | merge pass | paused_by_owner (council / automated). BASE 1f2b49ffc9 |
 | carrier | INSTALLED: /opt/agi/bin box · box-carry 56cd9215 (closer) · agi-signers 6b9df8d9 · sect; carry.env AGI_TRUNK=f02495529, hub empty; 12 agi-carry@<p>.path waiting; fetch timer on (60 s, local sweep); ring file /var/lib/agi/allowed_signers (append-only) |
 | unit | agi-post@.service = 5cecf3aa (A9). A12 (c4f5a917) ROLLED BACK 10-03 15:1xZ: DG2/DG3 looped exit 127 ~90 min (t lacked OUT.6 -> no bin/agi-out) |
