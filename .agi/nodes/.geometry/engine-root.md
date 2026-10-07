@@ -16,7 +16,7 @@ EXPANSION of config:engine: the unit template (root's agi-project reads it throu
 Read only through `sect <name> [REV]`.
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
-### agi-post@.service (1870 B)
+### agi-post@.service (1888 B)
 ~~~ini
 [Unit]
 After=agi-ram-main.service
