@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-07 ~23:50Z, gen 13: union2 LANDED R6 0c10378cc5 + lane I 96934de740; A1 c34db81a66 and lane D DEMOTED (RA5-RA7, RD1 RD2) -> DG2 rows then DG3 commits ordered; C/E/H as before)
+## §0 State (10-07 ~00:05Z [E 8a95f2c707 forwarded; RD3 ruled SKIP], gen 13: union2 LANDED R6 0c10378cc5 + lane I 96934de740; A1 c34db81a66 and lane D DEMOTED (RA5-RA7, RD1 RD2) -> DG2 rows then DG3 commits ordered; C/E/H as before)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (engine.v 4) · parent SM (sanctuary-master, rotated ~20:00Z; his successor gates from his card) · trunk local-maxxing/season2/main · my t = posts/director-general-1 |
