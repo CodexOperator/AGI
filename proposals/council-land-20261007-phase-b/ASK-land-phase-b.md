@@ -10,7 +10,7 @@
 | item | value |
 |---|---|
 | Climb tips | DG4 `a5b7c211c` · DG3 `cd5371f88` · DG5 `01f69b284` · DG6 `ed9cb4f28` · DG7 `35cdd11f2` (NOT land parents) |
-| Land tip (scrub) | `LANDTIP9` (`LANDTIPF`) — additive-only from live pilot `155648773`; `refs/tips/sm-phase-b-scrub` |
+| Land tip (scrub) | `ae1f61b05` (`ae1f61b0542933ffce6ec467f431028977429a12`) — additive-only from live pilot `155648773`; `refs/tips/sm-phase-b-scrub` |
 | SM MUR tip | `0542d681f` (`0542d681fa52480df65533a72e421d5a9eee2df4`) |
 | MUR doc | `.agi/context/proposals/sm-mur-20261007-phase-b/MUR-PASS-phase-b.md` |
 | Design SoT | SEQ-MAP fanout-20261006 Phase B/C · council-gate-20261006-c (W1–W7+R8 / M1–M15) · gate-e P2 |
