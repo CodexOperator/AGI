@@ -413,6 +413,36 @@ Tested (scratch bare repo, MAIN's objects borrowed read-only, live refs untouche
 - 651 nodes have >= 2 parents.
 As a stat falsifier: "tangle" = nodes under >= 2 top goals; today 457 / 5,813.
 
+**AA1.N x grid.py (all-is-one measured 14:56Z, the real commit_file + nest(); alive re-ran and extended 15:0xZ).** Three defects make a collapse last ONE grid_sync tick (`commit --all` every 5 min): G1 commit_file compares build_tree (node.md [+ payload] only) with the WHOLE tip tree, so a tip carrying nest/ always reads changed: an UNEDITED container is re-versioned and nest/ leaves its tip. G2 the version number `rev-list --count tip + 1` follows ALL parents: 2 members x 2 versions nested into a 2-version container -> the next tick says v8, not v4. G3 (alive) commit_file's `update-ref ref commit` has no old value: a grid tick that read the tip BEFORE a collapse landed OVERWRITES it, and the collapse is lost. Measured on a scratch repo, the original grid.py: unedited tick -> v8, nest entries 0 · edit -> v9, nest 0 · race -> collapse LOST. The fix (11 lines, Python, this season; design here, a DG builds it):
+```diff
+@@ -877,15 +877,22 @@
+     tree = build_tree(root, path, payload)
+     tip = ref_tip(root, ref)
+     if tip:
++        # AA1.N: a collapse's nest/ entry is carried forward unchanged, so an
++        # unedited container stays unchanged and an edit keeps its members.
++        nest = git(root, "rev-parse", "-q", "--verify", f"{tip}:nest", check=False)
++        if nest:
++            lines = git(root, "ls-tree", tree) + "\n" + f"040000 tree {nest}\tnest\n"
++            tree = git(root, "mktree", input_text=lines.lstrip("\n"))
++    if tip:
+         old_tree = git(root, "rev-parse", f"{tip}^{{tree}}", check=False)
+         if old_tree == tree:
+             return None  # unchanged — versions record change, not time
+-    n = int(git(root, "rev-list", "--count", tip)) + 1 if tip else 1
++    n = int(git(root, "rev-list", "--count", "--first-parent", tip)) + 1 if tip else 1
+     parent = ["-p", tip] if tip else []
+     subject = f"{msg_prefix}v{n} {node_id}"
+     message = f"{subject}\n\n{trailer}\n" if trailer else subject
+     commit = git(root, "commit-tree", tree, *parent, "-m", message)
+-    git(root, "update-ref", ref, commit)
++    git(root, "update-ref", ref, commit, tip or "")  # CAS: a concurrent collapse is never overwritten
+     return f"v{n}"
+ 
+ 
+```
+With it: unedited tick -> no version, nest 2 · edit -> v4, nest 2 · race -> REFUSED, collapse KEPT. grid-payload-commit.t.sh 21/21 on both the original and the fixed bin (no regression); test_grid.py (138 pytest cases) NOT run: no pytest for a v5 uid. Still for the build: (i) the CAS refusal surfaces as SystemExit from git(), which would abort a whole `commit --all` run: skip that node, the next tick re-versions it on the new tip; (ii) every other version count (grid.py `versions` / `log`, the `rev-list --count` at lines 1302, 1319, 1336) reads --first-parent the same way. D3's legacy marker is derived from the container's ref, so it needs nest/ to survive the tick (all-is-one).
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 v6, alive 14:0xZ 10-02: AA1.L marked SUPERSEDED (owner 14:0xZ: no reader moves, workflow.py retires whole) + AA1.T tests true state (0.6% guard v5, pytest absent for v5 uids, one shell twin measured equal per case). v5, alive 04:4xZ 10-02: + AA1.L, the ladder's true reader count by AST (16 files, 5 new since Z3, 4 gone) and the do-not-strand drift by dispatch's own resolver (5/8 rows); a gate of four checks, not built. v4, alive 00:4xZ 10-02: + AA1.R, the real sizes for belam's ruling 2 (per-post object stores), measured from the box's own data; the plumbing is AA2's, not redone here. v3, alive 00:2xZ 10-02 (date -u): + AA1.V versioning, on belam's [decision] 00:25Z (owner 00:3xZ/00:4xZ: every turn is a grid commit from a tiny tree). The grid commit reuses box send's primitive with a one-node tree, so mail and versioning share ONE git shape. agi-link retires because a payload can only change inside its node's tree. ~/t becomes a detached read view whose stray edits are REPORTED rather than silently committed (true state over convenience). Scratch 19/19. v2, alive 23:5xZ 10-01 (date -u): three deltas. (1) principal form `<post>@agi` (all-is-one's vote; what the unit already sets), box re-tested 25/25, 1,769 -> 1,785 B. (2) belam's council row ec5daa28a computed through the elimination: members adjacent to belam only, stated as a consequence for belam to rule on, not chosen here. (3) owner 23:4xZ skills line: AA1.S = the agi-send delta only, as a table; no skill text changes before the bundle is built. Edited with plain Edit per belam's [rule] 23:49Z (write.py is old-setup only). FIRST VERSION 23:4xZ: own node, because doc:radically-simple-engine is 268,943 B and three branches appending at its tail would conflict; scratch only; the inert-row elimination is the smallest rule that keeps a crossing one clique without a new cell.
 <!-- THOUGHT:END -->
