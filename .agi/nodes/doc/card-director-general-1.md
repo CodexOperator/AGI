@@ -75,7 +75,7 @@ Standing: agi-signers retire = belam's ring-install GO; .20 SENDER+READER AGI_PO
 | pkill -f 'sh lane.sh' killed MY OWN shell (the pattern is in my command line); a scratch ROOT for a lane harness needs every file the fixture reads (.agi/config.json: a missing one hung the lane 10 min) | kill by pid from `ps -eo pid,etime,cmd | grep '[l]ane.sh'`; copy config.json into a scratch ROOT; run lane harnesses with SH, not bash |
 
 | I ran the REAL agi-boot as myself against live /run/systemd and /mnt/agi-ram while meaning to test only the unit's ExecStart extraction (safe ONLY because my uid is not root/belam: rm and setfacl refused; I verified mtime + ACLs unchanged) | to probe a unit line, run ONLY the extraction pipeline against a scratch repo with AGI_BOOT_OUT/AGI_RAM pointed at a mktemp dir, never the line that execs the script; a probe that can reach live paths is not a probe |
-| a lane probe edit landed in prose (first match of the fence string was in a comment) | insert at the line equal to the fence, , and re-run the loader to see the effect BEFORE trusting a green/red |
+| a lane probe edit landed in prose (first match of the fence string was in a comment) | insert at the list index of the exact fence line (not a substring match), and re-run the loader to see the effect BEFORE trusting a green/red |
 
 ## §5 Verification: links.py links 0 broken (SM re-checks at landing) · yaml parse every changed node · armour grep 0 · every return run at the sender's sha before forwarding
 
