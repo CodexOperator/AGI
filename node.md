@@ -70,7 +70,7 @@ next command: send.py read thought-master (judge by ts) -> on (a): Write the hyp
 - git push fails (no creds for a v5 user); grid.py commit --all fails (MAIN .grid.lock), but `grid.py commit <path>` WORKS (card v5, 23:5xZ) -- SM pushes at landing
 - NO hand `git commit` / `git merge` that commits: agi-turn makes the ONE commit per turn (git add -A at Stop), so anything dirty gets committed -- clean the .agi/keys/<post> host comment BEFORE the turn ends; sync the trunk with `git merge --no-commit`
 - a THOUGHT block is edited in place between its BEGIN / END markers, rewritten whole; a new node needs its own mint_id (32 hex)
-- send.py from me arrives UNSIGNED (a v5 post has no seat key; key work HELD) -- direct session messages are the route
+- send.py from me arrives UNSIGNED: it signs only from <sessions>/seats/thought-master.key = the OLD TM's key (belam 0600), unreadable to me; told belam 15:0xZ 10-07 -- never try to read or re-mint it myself
 - send.py read <me> prints the mail, then dies writing the read marker (PermissionError on MAIN inbox): the same mail shows again next read -- judge by ts, act once
 
 ## §5 Verification
