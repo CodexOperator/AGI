@@ -12,7 +12,7 @@ grep -E '^(ExecCondition|ExecStartPre|ExecStart)=' $D/unit|sed "s|%i|post1|g;s|%
 while IFS= read -r l;do nl=$((nl+1));echo "${l%%=*}">$D/k.$nl;v=${l#*=};case $v in "+"*)echo plus>$D/t.$nl;;"awk "*)echo awk>$D/t.$nl;;"sh -c '"*)echo sh>$D/t.$nl;s=${v#"sh -c '"};printf '%s' "${s%"'"}">$D/s.$nl;;*)echo other>$D/t.$nl;;esac;done<$D/seq
 AO=$(grep -n 'agi-out' $D/seq|cut -d: -f1);[ "$(echo "$AO"|wc -w)" = 1 ]||{ echo "FAIL the unit has not exactly one agi-out step ($AO)";exit 99;}
 # mkh N: a scratch HOME with a STALE t (a git repo whose engine-post.md carries agi-flush + agi-run and NO agi-out), an empty /opt/agi/bin stand-in, no bin/agi-out
-mkh(){ H=$D/h$1;rm -rf $H;mkdir -p $H/t/$GEO $H/bin $D/run/agi-post1 $D/opt $D/orig;SHIM=
+mkh(){ H=$D/h$1;rm -rf $H $D/opt;mkdir -p $H/t/$GEO $H/bin $D/run/agi-post1 $D/opt $D/orig;SHIM=
  printf '### agi-flush (stub)\n~~~sh\n#!/bin/sh\ngit -C t merge "${AGI_TRUNK:-trunk}" >/dev/null||echo "agi-flush: merge conflict, t left as it was" >&2\nexit 0\n~~~\n### agi-run (stub)\n~~~sh\n#!/bin/sh\nexit 0\n~~~\n'>$H/t/$GEO/engine-post.md
  (cd $H/t;$GIT init -q;$GIT add -A;$GIT -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm stale);rm -f $D/run/agi-post1/i;}
 pu(){ echo ${SHIM:+$SHIM:}$H/bin:$D/opt:/usr/local/bin:/usr/bin:/bin;}
@@ -35,6 +35,10 @@ ok "o7b-loop-5-starts 5 starts with the stale t: ExecStart reached $reach times 
 # --- O7c: agi-out PRESENT: the step runs it as today and ITS exit code passes through (a skip never masks a present piece that fails)
 for x in 3 0 127;do mkh 3;printf '#!/bin/sh\necho ran>>$HOME/ran\nexit %s\n' $x>$H/bin/agi-out;chmod +x $H/bin/agi-out;rm -f $D/rc.*;cyc;want=0;[ $x = 0 ]&&want=1
  ok "o7c-present-exit-$x a present bin/agi-out exiting $x: the step exits $x (got $(rcao)), the piece ran ONCE ($(wc -l <$H/ran) time), no skipped line (stderr: $(head -1 $D/se.$AO|cut -c1-60)), and the start reaches ExecStart only on 0 (reached=$creach)" '[ "$(rcao)" = $x ]&&[ "$(wc -l <$H/ran)" = 1 ]&&! grep -qi skipped $D/se.$AO&&[ $creach = $want ]';done
+# O7c2 (INFO row, NOT counted: DG1 ruled no unit change, the unit rail has 1 B spare): agi-out on the unit's PATH but NOT in bin/ (the /opt/agi/bin stand-in). A skip that tests bin/ only masks it; a skip keyed on the PATH (type / command -v) runs it
+for x in 3 0;do mkh 3;printf '#!/bin/sh\necho ran>>$HOME/ran\nexit %s\n' $x>$D/opt/agi-out;chmod +x $D/opt/agi-out;rm -f $D/rc.*;cyc;nr=$(wc -l <$H/ran 2>/dev/null||echo 0)
+ if [ "$(rcao)" = $x ]&&[ "$nr" = 1 ]&&! grep -qi skipped $D/se.$AO;then st="ok, the PATH-only piece ran and its exit code passed";else st="GAP: skip tests bin/ only, a PATH-only piece is masked (it ran $nr times, the step exited $(rcao), stderr: $(head -1 $D/se.$AO|cut -c1-40))";fi
+ echo "tbl info o7c2 agi-out only on the PATH stand-in, exiting $x: $st";done
 # --- O7d (DG1 ruling: only ABSENT skips; present-and-broken fails as today, loud, never 0). Run on the STEP alone (the unit's line-36 `chmod +x bin/*` runs first in a real start and repairs a mode: named below)
 mkh 4;printf '#!/bin/sh\nexit 0\n'>$H/bin/agi-out;chmod -x $H/bin/agi-out;one $AO
 ok "o7d-not-executable bin/agi-out present but not executable: the step fails (rc $sr), loud (stderr: $(head -1 $D/se.$AO|cut -c1-70)), no skip. Green today by luck (every absence fails today too)" '[ $sr != 0 ]&&[ -s $D/se.$AO ]&&! grep -qi skipped $D/se.$AO'
