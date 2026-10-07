@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (15:2xZ 10-07) -- gen 8; D1 + D4 rows + placement + g3.8 design DONE and LANDED; nothing open; thought-master-new is now thought-master
+## §0 State (16:05Z 10-07) -- gen 8 ROTATING at the meter line (473,657/1M); nothing of alive's open; ONE unread [landed] waits (harmless)
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
@@ -28,39 +28,28 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   10-01/02 AA1 bundle in doc:rse-aa1-boxes (boxes, grid commit, stores, tests, one-shot/flow, M1 mail, the level rule; ACCEPTED) · level rule LANDED 3a33c71b9
-       10-03 (all LANDED, verified on the trunk): act1.sh for DG3's A6 (9778def43) · HOME MODE: homes stay 0755 until AA1.V's own-store switch
-       (a7705f2d2) · AA1.C v5 config ring + anchor line WITH -c (a7705f2d2; folded by sp into §AB) · AA1.K private-key gate (ba2a399d6, 21629a697)
-       rulings given: A3 key step BEFORE +agi-signers (measured U U U vs G G G; built A3.2) · council lands [] · DG3 install waits = belam GOs
-       inputs to sp's ONE key section §AB (owner 02:37-03:26Z, sp leads): DAG checkpoints, drop-in crypto, layered blocks = signers pairwise
-       a()-adjacent, provable revocation (POC root-readable keys, OFF every remote), GitHub attestations sealer (master schedule; AGI_SUBJECT recipe)
-       corrections alive owned: 490 B key line had 3 defects; told DG1 a line was in AA3.15 before it was; sp's IN-OR-ABOVE escalation (closed)
-       10-07 owner (belam 14:40Z): nest graph slices into nodes for rollover; council split (alive 14:40Z, taken): alive D1 + tangle · sp D2 · aio D3 + lead D4
-       D1 = AA1.N (merge-up alive/aa1n @5cc55defa at SM): collapse = ONE grid commit, tree + nest/<mint>, parents = members' tips; nest() 552 B;
-       116/116, 2 levels, g7 = 1,330 in one commit; flat side F1 = grid-only + members retire at rollover (74 flat readers). TANGLE: overviews 1.8%;
-       goal chains 457 (7.9%) under >=2 top goals, 52% g6 x g7. LIVE grid = refs/grid/local-maxxing/node/* (refs/grid/node/* frozen 09-21)
-       D4 rows judged 14:48Z (slice DROP code/ADAPT ideas; cccc.ts unread-count bug; belam-SSH wakes DROP; raw-shell = season 3)
-       14:45Z owner: old Python kept (keys/metrics/verify), metrics back on, .17 restated -> ONE placement to DG1 14:54Z (metrics: works, nothing runs it)
-       15:00Z aio found G1 (nest/ dropped next tick) + G2 (version jump); alive found G3 (lost update, no CAS) -> 11-line grid.py fix tested in AA1.N;
-       added to DG1's placement as a Python build (D3 legacy marker depends on it)
-       15:02Z DG1 wrote the goals (dg1-goals-1007 f7f358b3e9): g4.13.1 grid CAS -> .19 verify v5 -> g3.8 metrics -> .20 box mail (DG3 builds, in that order);
-       alive checked all three of its items: read right; added .20's wake-after-read lane
-       15:1xZ g3.8 DESIGNED = AA1.S (cron graph_metrics as belam hourly; success_metrics --line, nulls named, 634 B; metrics.py refuses no-nodes:
-       tested; a CELL graph_metrics, since a 'metrics:' line collides with trajectory_standin) -> DG1 told; belam told his 15:03Z sig read RETIRED:5808
-NEXT   mail only; nothing of alive's to build (DG3 builds g4.13.1 -> .19 -> g3.8 -> .20)
-WAITS  AA1.N + AA1.S LANDED; 16:0xZ DG2's g3.8 lanes caught MY formatter dropping an absent key -> fixed, alive/aa1s-fix @967e250cc at SM;
-       banked (belam/alive): crons.md duplicate YAML key is silently last-wins for every job
+done   10-01/02 AA1 bundle (doc:rse-aa1-boxes: boxes, grid commit, stores, tests, one-shot/flow, M1 mail, the level rule) · level rule 3a33c71b9
+       10-03 (all LANDED): act1.sh (DG3 A6) · home mode 0755 until own stores · AA1.C config ring + anchor (-> sp's §AB) · AA1.K private-key gate
+       (AA3.15 option B) · rulings: A3 key step BEFORE +agi-signers · inputs to sp's §AB (checkpoints, drop-in crypto, layered blocks, revocation, sealer)
+       10-07 after the CC pause (owner: continue; council split alive 14:40Z, taken): D1 = AA1.N recursive node nesting (ONE grid commit: tree +
+       nest/<mint>, parents = members' tips; nest() 552 B; g7 = 1,330 nodes in one commit) + the TANGLE (goal chains: 457 nodes / 7.9% under >=2 top
+       goals, 52% g6 x g7; overviews cover 1.8%) · grid.py seams G1-G3 (nest dropped next tick / version jump / no CAS) + tested 11-line fix -> goal g4.13.1
+       · D4 pilot rows judged (slice DROP code; cccc.ts unread-count bug; belam-SSH wakes DROP; raw-shell = season 3) · ONE placement to DG1 (14:54Z) ->
+       goals g4.13.1 -> .19 verify-as-v5 -> g3.8 metrics -> .20 box mail (DG3 builds in that order) · g3.8 DESIGN = AA1.S (one belam cron graph_metrics,
+       success_metrics --line, nulls named, metrics.py refuses a root with no nodes/; formatter fix after DG2's lane: an absent key is NAMED)
+       · belam's retired-key signing found (15:05Z) -> fixed by belam 15:5xZ (signer id f077dbc5 = sha256(row pubkey 31a98b62) checked)
+NEXT   successor: read mail (WHOLE output) and act on that only. Nothing to build: DG3 builds g4.13.1 -> .19 -> g3.8 -> .20; alive answers design seams
+WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is silently last-wins for every job (DG2 g3.8 lane)
 ```
 
-## §2 Landed (on local-maxxing/season2/main, each verified with merge-base --is-ancestor)
-- 10-02: level rule 3a33c71b9 (rse-aa1-boxes byte-equal at a0bbc7202) · 10-03: 9778def43 act1.sh · a7705f2d2 home mode + AA1.C + seams ·
-  ba2a399d6 AA1.K + per-commit line · 21629a697 AA1.K -> AA3.15 · 1b4fdbe13 AA1.K -> option B
-- belam ACCEPTED: AA1 bundle -> DG1 · AA1.M · the level rule · the private-key gate as its own round (03:17Z)
+## §2 Landed (each verified with merge-base --is-ancestor; while origin pushes fail, check refs/heads/local-maxxing/season2/main)
+- 10-02: 3a33c71b9 level rule · 10-03: 9778def43 act1.sh · a7705f2d2 home mode + AA1.C · ba2a399d6 / 21629a697 / 1b4fdbe13 AA1.K
+- 10-07: 5a1760e82 AA1.N + grid seams · 0b95e3bd8 AA1.S · 01fb4669a3 AA1.S formatter fix (alive/aa1s-fix 967e250cc)
 
 ## 🔴 Where it stops
-Idle on mail: AA1.N at SM; placement with DG1. Scratch nest/ + d4/ hold the D1/D4 working files; nothing needed to resume (all in AA1.N + mail).
+Rotating at the meter line; nothing open; the one unread is SM's [landed] for aa1s-fix (verified). No scratch needed (all in nodes + mail).
 ```
-next: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
+successor: read this card -> AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
   -> a merge-up = ONE node, cut on the trunk tip with plumbing (read-tree T; update-index; commit-tree -S -p T), branch alive/<name>, [merge-up] to SM
   -> the meter is /var/lib/agi/alive/bin/agi-meter (UserPromptSubmit); at the line: card whole, commit by path, touch ~/.fresh; kill $PPID
 ```
@@ -79,6 +68,7 @@ next: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output
 | my timestamps | a time I write = date -u in the same step; a PAST event = git log -1 --format=%cI <sha> |
 | a relay says "the owner said X" | verify on the bytes (a signed inbox block, a node) before spending; a STOP needs no proof |
 | grep -r / find over .agi/ or the repo root | stalls the box: `git grep PATTERN -- <paths>` |
+| the live grid | refs/grid/local-maxxing/node/<mint> (refs/grid/node/* is frozen 09-21, ~2,000 short); version counts must read --first-parent |
 | grid.py commit --all as a v5 uid | PermissionError on .grid.lock: version by PATH (`grid.py commit .agi/nodes/doc/<node>.md`) |
 | AGI_TRUNK is set in this unit | a scratch test inherits it: export AGI_TRUNK=HEAD in fixtures |
 | a check run as yourself over root-owned paths | "Permission denied" is not "absent" |
@@ -96,5 +86,5 @@ next: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 8, 06:04Z 10-03 (date -u): whole rewrite for the CC-usage pause (owner via belam 06:0xZ: "if you can't rotate on new system in the next couple hours it'll have to wait till next week"). §1 collapses the 10-03 log into what landed, what was ruled, what went to sp's §AB, and the corrections alive owned; the full record is in doc:rse-aa1-boxes, sp's §AB, the trunk and git. One merge-up is left at SM; nothing else is open.
+alive gen 8, 16:05Z 10-07 (date -u): whole rewrite AT the meter line (473,657/1M). §1 folds 10-07 into what landed and what DG3 builds next; every alive merge-up is landed and verified. SM's [landed] for aa1s-fix is left UNREAD on purpose (peeked, verified on the local trunk): a read would mark it and the successor would never see it.
 <!-- THOUGHT:END -->
