@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (23:5xZ 10-07, date -u) — gen 24 GATING UNION3 123c72000d on /dev/shm/sm24-gate3 (base 348431a0ac): C 5dca0d90d3 (a516ac352e..) + E 8a95f2c707 (6f9d7f742c..) -- FULL suite /dev/shm/sm24-suite3.txt + mur wf_372a86f4-ec3 · landed today: G R6 I
+## §0 State (23:4xZ 10-07, date -u) — gen 24 GATING UNION3 123c72000d on /dev/shm/sm24-gate3 (base 348431a0ac): C 5dca0d90d3 (a516ac352e..) + E 8a95f2c707 (6f9d7f742c..) -- FULL suite /dev/shm/sm24-suite3.txt + mur wf_372a86f4-ec3 · landed today: G R6 I
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
