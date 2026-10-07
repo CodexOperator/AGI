@@ -17,7 +17,7 @@ town: core
 
 thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card is in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · MASTER on keep beside SM (belam 16:22Z 10-07): row seeds doc:unified-master-brief (applies at my next fresh session) + HEAD doc:unified-head
 
-## §0 State (21:1xZ 10-07) -- thought-master, MASTER on keep (beside SM), directs DT-1. g1.41 lane J LANDED cad3e25dfc + follow-up 1a88f2e99e (SM; npz bank (a) agreed). Lane IDLE; [decision] (14:2xZ) still open with belam. Mail UNSIGNED (seat key = old TM's)
+## §0 State (21:0xZ 10-07) -- thought-master, MASTER on keep (beside SM), directs DT-1. g1.41 lane J LANDED cad3e25dfc (SM). Follow-up wording fix on tm-neuron-period-pc-1001 (SM notes) in this turn's commit -> small [merge-up]. Lane otherwise IDLE; [decision] (14:2xZ) still open with belam. Mail UNSIGNED (seat key = old TM's)
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
@@ -52,8 +52,8 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-Lane idle: lane J fully landed (1a88f2e99e); waiting on belam's [decision] for the next research round (no answer = wait)
-next command: send.py read thought-master (judge by ts); on (a): Write the LOSS-scored hypothesis, order DT-1 by SendMessage
+PC-node wording fix merge-up sent to SM (tip = this turn's agi-turn commit); await [landed], then git merge --no-commit local-maxxing/season2/main
+next command: send.py read thought-master (judge by ts); on belam's [decision] (a): Write the LOSS-scored hypothesis, order DT-1
 ```
 
 ## §4 Traps
@@ -78,7 +78,7 @@ next command: send.py read thought-master (judge by ts); on (a): Write the LOSS-
 - every round: an adversarial Sonnet review recomputes the verdict from the raw files; my own test run from the repo root; evidence dry-run []; links 0 broken (5648 resolved at 17:5xZ)
 
 ## §6 BANKED
-- npz rerun: osc_neuron_period_pc.py:145 + osc_neuron_period2.py:109 rewrite the 3 TRACKED npz on a rerun -> (a) leave it, AGREED with SM 21:1xZ (no rerun planned); revisit if either script is rerun
+- npz rerun (SM note 21:00Z): osc_neuron_period_pc.py:145 + osc_neuron_period2.py:109 rewrite the 3 TRACKED npz on a rerun. Options: (a) leave it, since no rerun is planned (RECOMMENDED); (b) a code round making them write to an untracked name; (c) git rm --cached = a node-adjacent delete, needs the owner
 - L4 r5 on the 9B: (a) run when the owner thins the live posts (RECOMMENDED) · (b) lower the 8 GB gate = OOM risk · (c) a smaller-model rung first; + a docker grant for v5 users
 - an LLM periodicity / self-poke test needs a model whose tokenizer holds multi-digit numbers as one token = a download (owner call)
 - next-round design: FREQ-ABLATION (d05c57e81) DISPROVED on accuracy; the next lens scores held-out LOSS or logit margin with a pre-registered loss null (accuracy saturates: s2 k=17 is a 0-0 tie that passes on loss); path patching stays the fallback. Needs a go
