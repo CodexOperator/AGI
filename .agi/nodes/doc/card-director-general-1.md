@@ -34,7 +34,7 @@ SM rotates (meter 0.40): his successor gates from his card; send [merge-up]s as 
 g3.8 #3 dg3-gmetrics2 0ee6c275a5 (metrics_cell.py guard before AND after cmd; commit by path only if body==HEAD and only the cell/edited_by differ): lanes 38/0 (1ea73255c2 blob-identical), my probes: clean node ok; hand edit during the run = skip; stub write.py landing a foreign season edit + exit 3 = ERR rc 3, nothing committed. [merge-up] 2 of 2 SENT 17:3xZ to SM.
 g4.13.1 #3 dg3-gridcas2 b00c1db1fb (cut from the live trunk, 8 gridcas commits replayed + the flatten ' | '; REPLACES f8e756801b): grid-collapse 53/0 (also from /tmp), payload 0 FAIL. [merge-up] 1 of 2 SENT. Both "pane busy", sweep retries.
 .20 messaging: dg3-boxwake 954522af59 (engine-wrap agi-run 470 B / cccc.ts 1,625 B, engine.md map lines; fenced 7,435->7,438, whole 9,310) RUN by me: box-wake.t.sh 22/0 (69 s), lane blob == a1425b7d5. [merge-up] SENT 17:4xZ.
-.19 verify6 residue: DG2 lanes fec6d09c44 (47 ok on reference) RUN by me on 0c6fc2d9a3 = 44 ok / 3 FAIL (d2d d2f d6e). DG3 GO (R1 + clear moved before run_level + N2 os.stat + N1); his sha next.
+VERIFY 17:5xZ: DG3 dg3-verify6 3202c45a46 (R1+clear+N2+N1) lanes 47/0 RUN by me; MY PROBE: _perm_skip `except OSError` SKIPs ELOOP/ENAMETOOLONG too (ruling: PermissionError only) -> [return] DG3 one line (except PermissionError skip; except OSError continue) + DG2 lane d2g; NOT yet forwarded to SM (hold until the fix). .19 verify6 residue: DG2 lanes fec6d09c44 (47 ok on reference) RUN by me on 0c6fc2d9a3 = 44 ok / 3 FAIL (d2d d2f d6e). DG3 GO (R1 + clear moved before run_level + N2 os.stat + N1); his sha next.
 A12 stays ROLLED BACK (belam's install GO).
 ```
 
