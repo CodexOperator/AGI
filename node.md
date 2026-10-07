@@ -393,6 +393,56 @@ Tested 12/12 (scratch, alive 03:2xZ): retired, live and unknown OpenSSH keys ref
 PLACEMENT CORRECTED (all-is-one 03:25Z, measured through the built agi-land, 9 lanes): in grow-gate's NODE loop (`.agi/nodes/**.md`, deprecated/ skipped) this pattern MISSES 4 that land: a key in extensions/, in a deprecated node, in a .geometry .tsv, and in a signed MERGE adding a key file in neither parent. The trunk is public, so the scope is EVERY path a commit adds or changes, binaries included: the line that ships lives in ONE place: doc:rse-aa3-land AA3.15 = DG1's ruled OPTION B (DG3 dg3-keygate eb6bee25e; the line 366 B, grow-gate 1,465 -> 1,833 B; recorded by all-is-one merge-up 29 b21c19473). History, said plainly: the per-commit v1 (merge-up 26; all-is-one 9/9, alive's re-run 8/8) FAILED OPEN on 3 cases neither suite had: a path containing a newline, a file -> symlink type change (T, outside --diff-filter=AM), and an unreadable blob (SM's refuter); all-is-one's v2 (merge-up 28, VOID) still failed open on the unreadable blob.
 WHY not narrower, measured on the same fixtures: an OPENSSH-only pattern passes RSA / EC / PKCS8 blocks; any step that runs `ssh-keygen -y` on the block (alive's 03:13Z 490 B line, kept "for the refusal message" in §AB.5's first text) HANGS on a passphrase-encrypted key, so one such block stalls every land; the 490 B line also checked only the FIRST block. The 630 B per-block ring-lookup line (alive 03:2xZ, 12/12) is NOT the trunk gate; refs/revoked is ruled by self-perpetuating's `revoke` (1,384 B), which may reuse its per-block + `-P ''` shape if it parses keys.
 
+## AA1.N RECURSIVE NODE NESTING (D1) + THE TANGLE (for D2) -- design only (belam [owner] 14:40Z 10-07; council split 14:40Z, taken by all-is-one + self-perpetuating)
+Owner: "recursively enable any arbitrary slice of the whole graph ... to be encapsulated into a given graph node since each node is itself a mini branch inside the grid trunk ... as long as our stats are read from the grid graph not the flat graph nothing changes. Only the overall appearance changes." Split: alive = D1 + the tangle number · self-perpetuating = D2 (which collapse at rollover) · all-is-one = D3 (legacy marker + renderer) + lead D4 (et-grok-pilot review).
+
+**Measured first (trunk 790ca2e92, read-only, 14:4xZ 10-07).** The LIVE grid is town-scoped: `refs/grid/local-maxxing/node/<mint>` = 5,832 refs; 5,802 of the trunk's 5,803 mint_ids have one (1 without; 30 refs match no trunk mint). `refs/grid/node/*` (3,807 refs, newest 09-21) is the pre-town namespace, frozen: a reader of it undercounts by 2,000. A node version's tree today = `node.md` (+ `payload` for a build node). Readers: 74 engine files read the FLAT node dir (38 glob or walk it); 5 read refs/grid. So "stats from the grid" is a switch, not today's state.
+
+**The collapse = ONE grid commit on the container N, a pure git wrapper (no new store, no new ref):** tree = N's tip tree + `nest/<mint>` = each member's tip TREE; parents = N's tip + each member's tip COMMIT, so N's ref reaches every member's whole history (the owner's "contain other nodes inside the node grid ref branch"). Members KEEP their own refs, so a node count from the grid does not move. The recipe (552 B):
+```sh
+# nest P N m...: collapse nodes m... into node N's grid ref P/N as ONE commit: tree = N's tip tree + nest/<m> = each m's tip tree; parents = N's tip + each m's tip
+nest(){ P=$1;N=$2;shift 2;t=$(for m;do printf '040000 tree %s\t%s\n' $(git rev-parse $P/$m^{tree}) $m;done|git mktree);r=$( { git ls-tree $P/$N|grep -v '	nest$';printf '040000 tree %s\tnest\n' $t; }|git mktree);a="-p $(git rev-parse $P/$N)";for m;do a="$a -p $(git rev-parse $P/$m)";done;c=$(echo "nest $# into $N"|git commit-tree $r $a)&&git update-ref $P/$N $c $(git rev-parse $P/$N);}
+```
+Tested (scratch bare repo, MAIN's objects borrowed read-only, live refs untouched): goal:g7.16.1.11 + its 116 descendants -> ONE commit, 117 parents, 410 ms, 2 new trees; 116/116 nested trees == each member's tip; N's own node.md unchanged; refs 5,832 before and after; versions reachable from N = 516 + 1. RECURSION: g7.16.1.11 nested into goal:g7.16.1 reads two levels down (`nest/<N>/nest/<k>/node.md`). SCALE: the whole goal:g7 subtree (1,330 nodes) = ONE commit, 1,331 parents, 64 KB commit object, 5.4 s (per-node rev-parse), rev-list over its 6,305 versions 46 ms. A re-collapse REPLACES nest/, so it names the whole slice; update-ref is CAS on N's old tip. A member nested in two containers costs 0 bytes (content-addressed trees): redundancy is a tree entry, not a copy.
+
+**The flat tree (the open cost).** F1 (alive's lean, 0 reader changes this season): the collapse is GRID-ONLY; at season rollover the members' flat files move to `deprecated/<type>/` (the existing retire convention every reader already handles; active + deprecated count unchanged), the container stays live, and the renderer (D3) draws the container as containing its nest/. F2 (the owner's literal "only appearance changes"): members leave the flat tree entirely; the 74 flat readers first read through the grid = season-3 scale.
+
+**THE TANGLE (for D2; self-perpetuating cites it).** Over all 5,813 trunk nodes (233 retired) and 6,390 parent edges, 0 dangling:
+- OVERVIEW chains (slice = the closure of an overview's parents): 17 overviews cover 103 nodes (1.8%); 16 nodes in >= 2 slices; 6 crossing edges. Today's overviews are small (6-10 nodes each), so "overview nodes record their slices" would leave 98% of the graph outside every slice.
+- GOAL chains (slice = a top goal's descendants; 24 top goals): 5,143 nodes (88.5%) under >= 1; TANGLE = 457 nodes (7.9%) under >= 2 top goals (max 3), mostly experiments 258 + hypotheses 161; 52% of it is one pair, g6 x g7 (238). 670 nodes (11.5%) under no top goal: build 132, verdict 110, the old hyp/task/exp types 254, idea 49, vision 31.
+- 651 nodes have >= 2 parents.
+As a stat falsifier: "tangle" = nodes under >= 2 top goals; today 457 / 5,813.
+
+**AA1.N x grid.py (all-is-one measured 14:56Z, the real commit_file + nest(); alive re-ran and extended 15:0xZ).** Three defects make a collapse last ONE grid_sync tick (`commit --all` every 5 min): G1 commit_file compares build_tree (node.md [+ payload] only) with the WHOLE tip tree, so a tip carrying nest/ always reads changed: an UNEDITED container is re-versioned and nest/ leaves its tip. G2 the version number `rev-list --count tip + 1` follows ALL parents: 2 members x 2 versions nested into a 2-version container -> the next tick says v8, not v4. G3 (alive) commit_file's `update-ref ref commit` has no old value: a grid tick that read the tip BEFORE a collapse landed OVERWRITES it, and the collapse is lost. Measured on a scratch repo, the original grid.py: unedited tick -> v8, nest entries 0 · edit -> v9, nest 0 · race -> collapse LOST. The fix (11 lines, Python, this season; design here, a DG builds it):
+```diff
+@@ -877,15 +877,22 @@
+     tree = build_tree(root, path, payload)
+     tip = ref_tip(root, ref)
+     if tip:
++        # AA1.N: a collapse's nest/ entry is carried forward unchanged, so an
++        # unedited container stays unchanged and an edit keeps its members.
++        nest = git(root, "rev-parse", "-q", "--verify", f"{tip}:nest", check=False)
++        if nest:
++            lines = git(root, "ls-tree", tree) + "\n" + f"040000 tree {nest}\tnest\n"
++            tree = git(root, "mktree", input_text=lines.lstrip("\n"))
++    if tip:
+         old_tree = git(root, "rev-parse", f"{tip}^{{tree}}", check=False)
+         if old_tree == tree:
+             return None  # unchanged — versions record change, not time
+-    n = int(git(root, "rev-list", "--count", tip)) + 1 if tip else 1
++    n = int(git(root, "rev-list", "--count", "--first-parent", tip)) + 1 if tip else 1
+     parent = ["-p", tip] if tip else []
+     subject = f"{msg_prefix}v{n} {node_id}"
+     message = f"{subject}\n\n{trailer}\n" if trailer else subject
+     commit = git(root, "commit-tree", tree, *parent, "-m", message)
+-    git(root, "update-ref", ref, commit)
++    git(root, "update-ref", ref, commit, tip or "")  # CAS: a concurrent collapse is never overwritten
+     return f"v{n}"
+ 
+ 
+```
+With it: unedited tick -> no version, nest 2 · edit -> v4, nest 2 · race -> REFUSED, collapse KEPT. grid-payload-commit.t.sh 21/21 on both the original and the fixed bin (no regression); test_grid.py (138 pytest cases) NOT run: no pytest for a v5 uid. Still for the build: (i) the CAS refusal surfaces as SystemExit from git(), which would abort a whole `commit --all` run: skip that node, the next tick re-versions it on the new tip; (ii) every other version count (grid.py `versions` / `log`, the `rev-list --count` at lines 1302, 1319, 1336) reads --first-parent the same way. D3's legacy marker is derived from the container's ref, so it needs nest/ to survive the tick (all-is-one).
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 v6, alive 14:0xZ 10-02: AA1.L marked SUPERSEDED (owner 14:0xZ: no reader moves, workflow.py retires whole) + AA1.T tests true state (0.6% guard v5, pytest absent for v5 uids, one shell twin measured equal per case). v5, alive 04:4xZ 10-02: + AA1.L, the ladder's true reader count by AST (16 files, 5 new since Z3, 4 gone) and the do-not-strand drift by dispatch's own resolver (5/8 rows); a gate of four checks, not built. v4, alive 00:4xZ 10-02: + AA1.R, the real sizes for belam's ruling 2 (per-post object stores), measured from the box's own data; the plumbing is AA2's, not redone here. v3, alive 00:2xZ 10-02 (date -u): + AA1.V versioning, on belam's [decision] 00:25Z (owner 00:3xZ/00:4xZ: every turn is a grid commit from a tiny tree). The grid commit reuses box send's primitive with a one-node tree, so mail and versioning share ONE git shape. agi-link retires because a payload can only change inside its node's tree. ~/t becomes a detached read view whose stray edits are REPORTED rather than silently committed (true state over convenience). Scratch 19/19. v2, alive 23:5xZ 10-01 (date -u): three deltas. (1) principal form `<post>@agi` (all-is-one's vote; what the unit already sets), box re-tested 25/25, 1,769 -> 1,785 B. (2) belam's council row ec5daa28a computed through the elimination: members adjacent to belam only, stated as a consequence for belam to rule on, not chosen here. (3) owner 23:4xZ skills line: AA1.S = the agi-send delta only, as a table; no skill text changes before the bundle is built. Edited with plain Edit per belam's [rule] 23:49Z (write.py is old-setup only). FIRST VERSION 23:4xZ: own node, because doc:radically-simple-engine is 268,943 B and three branches appending at its tail would conflict; scratch only; the inert-row elimination is the smallest rule that keeps a crossing one clique without a new cell.
 <!-- THOUGHT:END -->
