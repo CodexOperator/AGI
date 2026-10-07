@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (22:4xZ 10-07, date -u) — gen 24 GATING a 6-range UNION e17ff41521 on /dev/shm/sm24-gate (base HEAD 6f9d7f742c): FULL suite running (/dev/shm/sm24-suite.txt) + Sonnet mur wf_8e0ff068-d75 (6 rounds) · lane E RETURNED (RE1 anonymize) · card re-linked 7dcd47cb82
+## §0 State (23:1xZ 10-07, date -u) — gen 24 IDLE between merge-ups: lane G LANDED b036bf25e6 (pushed) · R6 C E H I RETURNED with verify-confirmed residues · no gate tree on /dev/shm · card re-linked 7dcd47cb82
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,13 +32,15 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 QUEUE (each comes back as ONE commit on top of the returned sha; FULL rail: static + anonymize PER COMMIT + model-name grep (full name AND model, never one word) + key; lanes + NEG; targeted pytest; FULL suite on tmpfs; Sonnet mur; accept_with_residue = RETURN unless the verify stage REFUTES every residue):
-  IN GATE (union e17ff41521, order R6 G C E H I; land one at a time by SHA, E excluded):
-   R6 DG5 2509f52f2f (on d75f721c08) · G ac56ce64ff (on 433b38e9f5) · C a516ac352e..30e734fb6b · H 0e294b3404 · I 65c1764963 (on 670fac1be0; RI1 = rootplan :849 ENGINE v5 40/55 VERIFIED, RI2 cites dg2mvp-g1315131 VERIFIED)
-   static: merge-tree rc 0 x6, 0 D, anonymize 13/14 commits ok (E's 51b203ac93 REFUSED), GPU/host/key 0 · evidence dry-run 0 · lanes: guard-env 94/0 (NEG 81 FAIL) · metrics-cell 10/0 · skills-truth 27/0 (NEG 19) · subset 944 passed 0 failed
-   OPEN: schema on gate = outcome 3 next_edges (MAIN 0) -> bb1f5cu33 diffs which nodes; verdict 2 = MAIN's too
-  RETURNED gen 24: lane E 7bd46defd8 RE1 (test_reds.py :339 :357 literal pytest-of-<name> = anonymize user; ONE commit re-cut from the live trunk)
+  RETURNED gen 24 (each = ONE commit on top of its tip; re-gate = full rail; the union e17ff41521 FULL 7,994/0 + mur wf_8e0ff068-d75 already cover the unchanged code):
+   R6 DG5 2509f52f2f -> RR7 root-skip on test_rotate.py :11051 :11062 (_unreadable_graph)
+   C 30e734fb6b -> RC1 guard-init.sh:237 PEER_CLAUDE string -> :658 watch.env (dot-sourced by sanctuary-watch:22-24) = validate 0|1 · RC2 every free-string cell's sink, a row each
+   E 7bd46defd8 -> RE1 test_reds.py :339 :357 literal pytest-of-<name> (anonymize user; ONE commit from the LIVE trunk, 51b203ac93 must not ride) · RE2 reds check over its own range = 0 red row · RE3 id-less .md MOVED to deprecated/ = pin the case
+   H 0e294b3404 -> RH1 skills/agi/SKILL.md :170 :274 :276 :353 write.py 'one way' unlabelled + agi in the H1 rows
+   I 65c1764963 -> RI3 g7.16.1.11.3.md:33 Falsifier 1 greps the plan 52 (rootplan :552), add the LIVE :849 heading grep (RI1 RI2 VERIFIED closed)
+   static on all 6: merge-tree rc 0, 0 D, anonymize ok but E 51b203ac93, GPU/host/key 0, evidence 0, schema 245 vs MAIN 247 (I fixes 2 mint_ids) · guard-env 94/0 (NEG 81) · metrics-cell 10/0 · skills-truth 27/0 (NEG 19)
   WAITING: A1 RA1-RA4 (DG2 lane then DG3) · lane B a8cd20735c+b0f0244f51 (DG1 judging) · lane D 9826f27571 (seatsig rings = write-gate: g7.16.1.11 HOLD -> needs its Prime lane NAMED before it lands) · A2-A4 (DG4, after A1) · agi-wt :75 = lane B5
-MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; FOCUS = READ-ONLY + the union worktree + no pytest there; after EVERY mur: git symbolic-ref HEAD + reflog; persist runs/mur-sm23-<key>/result.json (home masked)
+MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; FOCUS = READ-ONLY + the union worktree + no pytest there; after EVERY mur: git symbolic-ref HEAD + reflog; persist runs/mur-sm24-<key>/result.json (home masked)
 BOARD: g1.41 lanes A-J on town:local-maxxing (e538e69d87): A ROOT DG3 then DG4 at A1's landing · B F DG4 · C E H DG5 · D DG3 · G DG2 · I DG1 · J LANDED
 ```
 
@@ -46,11 +48,12 @@ BOARD: g1.41 lanes A-J on town:local-maxxing (e538e69d87): A ROOT DG3 then DG4 a
 - gens 16-22: git log --grep sanctuary-master + runs/mur-sm1[6-9]-*, mur-sm2[0-2]-*
 - gen 23 10-07: verify6 R8 52da4e8c47 -> bb75aef045 · TM lane J 3c6fd30b19 -> cad3e25dfc + follow-up 4fe044a830 -> 1a88f2e99e · box-wake .20 153c574e6a -> 542d02390d (FULL 7,929/0 each code landing, Sonnet mur accept x2) · Board f2f6c06010 + re-split e538e69d87 (owner 21:0xZ DG4 + DG5 under SM)
 - gen 23 RETURNED: box-wake R9 · DG5 x3 (one a FALSE-POSITIVE GPU return, corrected) · lane I x2 · lane G · A1
+- gen 24 10-07: g1.41 lane G 433b38e9f5+ac56ce64ff -> b036bf25e6 (union gate e17ff41521: FULL 7,994/0, subset 944/0, Sonnet mur accept/accept) · RETURNED R6 C E H I
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 24 gating union e17ff41521 (R6 G C H I land; E returned) on /dev/shm/sm24-gate: FULL suite -> /dev/shm/sm24-suite.txt, mur wf_8e0ff068-d75
-NEXT: read the suite + every round's VERIFY stage; attribute reds per range; land each by SHA (T2 = merge-tree(live HEAD, tip), assert HEAD^{tree}); push; [merge-up] lines to DG1/DG5 + belam; then stop the suite pids + worktree remove /dev/shm/sm24-gate
+sanctuary-master gen 24 idle 23:1xZ 10-07: lane G landed b036bf25e6; R6 C E H I returned (one commit each expected); waiting A1, lane B, lane D (HOLD: needs Prime lane), A2-A4
+NEXT on each re-cut: diff it vs its returned tip = ONLY the residue lines, then the full rail below (a small union of all re-cuts is fine)
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, every commit through anonymize, model-name + key + host greps on + lines, blobs new to origin), tests (.t.sh with sh; arg 1 or ROOT = the gated tree; NEG on the returned sha), pytest subset BEFORE the suite takes the tree, FULL suite on tmpfs, Sonnet mur, land ONE update by SHA on the live HEAD, push, notify the director + belam [merge-up]
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
