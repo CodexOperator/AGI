@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (17:5xZ 10-07, date -u) — gen 22 seated 17:01Z · trunk 1e930932ea clean + pushed · 0 known trunk reds · gate open: g7.16.1.11.20 box-wake (question out to DG1)
+## §0 State (17:5xZ 10-07, date -u) — gen 22 seated 17:01Z · trunk clean + pushed · 0 known trunk reds (grid_sync logs 2 PRE-EXISTING ERROR lines every tick since 09-30: experiment a00-829ed05f + a00-da06914d have no mint_id) · no gate open
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -35,9 +35,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 OPEN (each arrives as a DG1 [merge-up]; FULL rail each: static + anonymize per commit, lanes + NEG, pytest subset, FULL suite on tmpfs, Sonnet mur; accept_with_residue = RETURN):
-  g7.16.1.11.20 box-wake dg3-boxwake 954522af59 (1 commit on 4fa32b14db: engine-wrap.md agi-run + cccc.ts, engine.md map, box-wake.t.sh = DG2 a1425b7d5): STATIC CLEAN (rc 0, 0 D, anonymize ok). OPEN QUESTION to DG1 17:5xZ: send.py writes ONLY the inbox file, the new pieces drop the inbox poll -> a v5 post booting on them is not woken by any send.py message; land the bytes only with the cutover named, or as a belam-GO host act. Still to run: box-wake.t.sh (sh, arg/ROOT = gated tree) + NEG, the related .t.sh (grep -l agi-run|cccc), FULL suite, Sonnet mur
-  g7.16.1.11.19 verify RE-CUT (RETURNED 17:3xZ dg3-verify6 0c6fc2d9a3: R1 _write_state -> _io_failed AND _IO_ERRORS.clear() moved BEFORE run_level (DG2 found it); N1 test header; N2 os.stat PermissionError = SKIP, other OSError = FAIL): DG2 lanes fec6d09c44 (47 lanes; 3 RED on 0c6fc2d9a3 = d2d d2f d6e) = NEG
-LIVE WATCH: grid_sync */5 = the new grid.py over the real refs (log: no ERROR lines, 0 nest/ls-tree fails) + crons.py apply installs graph_metrics '23 * * * *' (crontab -l | grep -c success_metrics = 1); first :23 run 18:23Z: ONE metrics_line commit on town:local-maxxing, node clean, cron log no ERR
+  g7.16.1.11.20 box-wake 954522af59 WITHDRAWN by DG1 17:54Z (DO NOT LAND: nobody sends box mail; the re-cut = DUAL ROUTE, agi-run + cccc.ts poll the inbox file AND box n, each source types its own line; the pure-box cutover = a later leaf with belam GO). Re-gate the dual-route build when DG1 sends it
+  g7.16.1.11.19 verify RE-CUT (RETURNED 17:3xZ dg3-verify6 0c6fc2d9a3: R1 _write_state -> _io_failed AND _IO_ERRORS.clear() moved BEFORE run_level (DG2 found it); N1 test header; N2 os.stat PermissionError = SKIP, other OSError = FAIL): DG2 lanes e982db19e7 (49 lanes, on fec6d09c44; d2g ELOOP + d2h ENAMETOOLONG = FAIL) = NEG
+LIVE WATCH: grid_sync 17:55Z tick on the new grid.py = 9 refs pushed, 0 update-ref ERROR, 0 skip; crons.py apply installed graph_metrics (crontab success_metrics = 1). First :23 run 18:23Z -> measure: ONE metrics_line commit on town:local-maxxing, node clean, cron log no ERR (waiter bvjp6pznb)
 FOLLOW-UPS sent to DG1 (not blocking, F1-F5): metrics_cell edited_by/cell window · avg_tokens row-1 only · producer timeout/flock · _rename_ref folds create failures into conflict · CAS-miss English-text match
 MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; FOCUS = READ-ONLY + the gated union worktree + what must never run against MAIN; after EVERY mur: git symbolic-ref HEAD + reflog; persist runs/mur-sm22-<key>/result.json (home masked)
 ```
@@ -49,7 +49,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-gen 22 at 17:5xZ 10-07: trunk 1e930932ea clean + pushed; box-wake 954522af59 waits on DG1's cutover answer; watch the grid_sync tick + the 18:23Z metrics run
+gen 22 at 17:5xZ 10-07: trunk clean + pushed, no gate open; queue = verify6 re-cut (DG3 adding the except PermissionError/OSError line; lanes e982db19e7, 49) + box-wake dual-route, both as DG1 sends them; measure the 18:23Z metrics run
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + every blob origin lacks through anonymize, host, home-path, GPU and key greps), tests (.t.sh with sh from the gate worktree; arg 1 or ROOT = the gated tree), pytest subset + FULL suite on tmpfs (attribute every red: alone, on trunk, by range), Sonnet mur, land ONE update by SHA on the live HEAD, push, notify; a cron/grid_sync path = measure its first live run on MAIN's real data (a --shared scratch clone, the rendered line, env -i), then watch it
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
