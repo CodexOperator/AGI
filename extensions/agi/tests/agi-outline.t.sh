@@ -7,7 +7,7 @@
 #   the SEAL private key = ~/seal.key (base64 of the raw 32 B X25519 key: esc open's KEY format); the capsule dir = $AGI_CAPSULE, the post's share = ONE line '<post> <b64>' in file $AGI_CAPSULE/<post> (esc's line format), re-wrapped to the next SEAL pub at the out-line;
 #   the wrap opener = the esc piece (ESC=<file>, else sect esc from the engine pieces, else the 'esc whole' block of doc:radically-simple-engine); the PQ column is read as 32 B only (the PQ program itself is order (4), not here); the unit's helper bytes are the builder's to report (the line bound counts the unit lines).
 # Not here: the root agi-signers retire (order 7), the sealing of the retired SIGN key into the capsule and its later publication (order 5), the cross-box half. One ok/FAIL line per case; exit = FAIL count.
-T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;SELF=$(cd "$(dirname "$0")" && pwd);R0=${ROOT:-$(cd "$SELF/../../.." && pwd)};GEO=$R0/.agi/nodes/.geometry;CEIL=${CEIL:-810};R=.agi/nodes/.geometry/ring
+T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;SELF=$(cd "$(dirname "$0")" && pwd);R0=${ROOT:-$(cd "$SELF/../../.." && pwd)};GEO=$R0/.agi/nodes/.geometry;CEIL=${CEIL:-828};R=.agi/nodes/.geometry/ring
 sect(){ cat $GEO/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 docb(){ sed -n "/^\`$1\` whole/,/^\`\`\`\$/{/^\`$1\` whole/d;/^\`\`\`/d;p}" $R0/.agi/nodes/doc/radically-simple-engine.md;}
 mkdir $T/b $T/gb $T/k $T/shim;ESCF=${ESC:-$T/esc};[ -n "$ESC" ]||{ sect esc>$ESCF;[ -s $ESCF ]||docb esc>$ESCF;}
@@ -213,7 +213,7 @@ ok "s2-published-sign-key-cannot-open the PUBLISHED retired sign key (generation
 ok "x-other-share-untouched the other post's capsule line is byte-for-byte unchanged by $P's out-lines" 'cmp -s $CAP/$Q $T/capq0'
 ok "s4b-share-survives-two-generations after the second out-line generation 2's SEAL opens the line to the same share and generation 1's does not" '[ "$(opn $K/seal2 $T/cap2)" = "$SH0" ]&&[ -z "$(opn $K/seal1 $T/cap2)" ]'
 # --- (c) bounds: the unit lines, and the agi-fresh one-box cases still pass
-ok "bytes the unit's sh -c ExecStartPre lines are <= $CEIL B ($(wc -c<$T/unit) B; today 695 B + <= 95 B, DG1's ceiling, 790 -> 810 at OUT.7 (the stale-t skip step adds 69 B: this join 718 -> 787 B, agi-fresh's 740 -> 809 B; 810 serves both because the fresh-still-passes lane hands this CEIL to agi-fresh, so the pair agree); the builder reports any helper's bytes beside it)" '[ $(wc -c<$T/unit) -le $CEIL ]'
+ok "bytes the unit's sh -c ExecStartPre lines are <= $CEIL B ($(wc -c<$T/unit) B; today 695 B + <= 95 B, DG1's ceiling, 790 -> 810 at OUT.7 (the stale-t skip step adds 69 B: this join 718 -> 787 B, agi-fresh's 740 -> 809 B; 810 serves both because the fresh-still-passes lane hands this CEIL to agi-fresh, so the pair agree; 810 -> 828 at OUT.8: the skip also looks on the unit PATH, +18 B, join 787 -> 805, agi-fresh 809 -> 827); the builder reports any helper's bytes beside it)" '[ $(wc -c<$T/unit) -le $CEIL ]'
 ok "fresh-still-passes agi-fresh.t.sh (crash keeps the key and appends 0, the retry cases) exits 0 on ROOT's unit (its own bytes lane at THIS ceiling: the two agree) ($(CEIL=$CEIL ROOT=$R0 sh $SELF/agi-fresh.t.sh 2>&1|tail -1))" 'CEIL=$CEIL ROOT=$R0 sh $SELF/agi-fresh.t.sh >$T/fresh.out 2>&1'
 ok "scratch-only every key, ring and capsule the cases touched is under the scratch dir" '[ "${H#$T/}" != "$H" ]&&[ "${CAP#$T/}" != "$CAP" ]'
 echo "agi-outline: $f FAIL"
