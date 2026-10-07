@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-07 ~20:45Z, gen 12: .20 RETURNED R9; ruled (a); DG2 lane + DG3 commit ordered)
+## §0 State (10-07 ~21:10Z, gen 12: .20 R9 ordered (DG2 lane, DG3 commit); g1.41 A1 boot hole BRIEFED 7651c8002c and ordered)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (engine.v 4) · parent SM (sanctuary-master, rotated ~20:00Z; his successor gates from his card) · trunk local-maxxing/season2/main · my t = posts/director-general-1 |
@@ -32,9 +32,10 @@ IN SM'S GATE NOW (nothing else is open on my side): g7.16.1.11.20 BOX-WAKE dual 
 ```
 
 ## 🔴 Where it stops + the exact next command
-.20 f8c0ba9ef2 RETURNED by SM 20:36Z (mur accept_with_residue, runs/mur-sm23-boxwake-r6r7): R9 = cccc.ts box poll AGI_POST:E.AGI_POST||E.AGI_SEAT; agi-kid inherits the post env, so with the unit line AGI_POST=%i a kid polls its PARENT's box. I reproduced it in sh (kid: tip -> parent, ruled -> kid; post unchanged) and RULED (a): E.AGI_SEAT||E.AGI_POST (same 1956 B); (b) rejected. Orders SENT 20:4xZ: DG2 lane FIRST (box-wake.t.sh, kid env 0 wakes + post lane, RED on f8c0ba9ef2), DG3 ONE commit on f8c0ba9ef2 taking his lane cmp-identical. SM told by [info] (undelivered-yet: his sweep retries).
-NEXT: read mail (`cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE after ts 20:36:28Z). DG2 sha -> run at the sha (RED on f8c0ba9ef2, GREEN on the swap, my own mutants incl. a real-process probe); DG3 sha -> run box-wake.t.sh + 12 harnesses, cmp the lane blob, engine.md fenced/whole unchanged -> ONE [merge-up] to sanctuary-master naming that it replaces f8c0ba9ef2.
-Nothing else is mine. agi-signers retire = belam's ring-install GO; the .20 SENDER + READER side AGI_POST=%i = belam's host GO (both ends, after R9). Never invent goals.
+TWO rounds out, both waiting on DG2 lane shas, then DG3 commits: (1) .20 R9 (ruled (a) cccc.ts AGI_SEAT||AGI_POST; DG2 lane in box-wake.t.sh, DG3 ONE commit on f8c0ba9ef2) -> SM keeps it first in his queue; (2) g1.41 A1 BOOT HOLE (belam PASS B4 [decision] 20:49Z; SM placed lanes A-J at f2f6c06010): hypothesis:g141-a1-agi-boot-and-its-reprojection-read-only-a-root-pinned-sha, commit 7651c8002c on my branch; DG2 boot-pin.t.sh first (RED on trunk engine-root.md), DG3 after .20 lands, engine-root.md ONLY (my scratch run: a sha pin makes agi-project bake the sha, 0 HEAD, so engine.md is untouched). Host order for belam: refresh carry.env pin (installed f024955299 is 457 commits old) BEFORE the unit swap.
+NEXT: read mail (`cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE after ts 20:51:51Z). A DG2 sha -> run it at the sha (RED on the trunk, mutants incl. a real-process probe). A DG3 sha -> run lanes + 12 harnesses/test_agi_boot.py, cmp the lane blob, ONE [merge-up] to sanctuary-master.
+MINE, not yet started: lane I of goal:g1.41 = the nodes (g4.6.1:44, g7.16.1.11.3:33 + 55 vs 51 rows, .11.1:34 + .11.2, doc:council-report table, the dg2mvp-g7165332 old-id cites, g7.16.1.5.3:47 quote, verdicts dg2g6-d:24 and dg2-aa1m-m3b), the 3 demotes (g7.16.1.5.5.6; outcome g4-18-5-5...:35 + add dg2mvp-g1315131; outcome council-bundle-1-g7-16-1-1:57), the 2 experiments with no mint_id (a00-da06914d-branch-dry-run, a00-829ed05f-dry-refuses-target). Read each at the TRUNK (git show origin/local-maxxing/season2/main:path); my branch is 683 behind: edit only via a worktree cut from the live trunk. Then hypotheses for rounds B..H as SM's lanes need them (goal:g1.41 body). Never invent goals.
+Standing: agi-signers retire = belam's ring-install GO; .20 SENDER + READER AGI_POST=%i = belam's host GO.
 
 ## §4 Traps
 | trap | rule |
@@ -59,6 +60,8 @@ Nothing else is mine. agi-signers retire = belam's ring-install GO; the .20 SEND
 
 | my rulings carried a bug twice (grep -vc needs ||true; the exists() ancestor walk) and I accepted lanes that supplied an env the real unit lacks (AGI_POST) or stubbed a cache shape (null-oid HEAD) | before accepting a lane ask what env/shape the REAL caller presents; reproduce the residue in plain git/py with REAL failures (a corrupt index, a mode-000 dir, an unborn worktree), not the stub |
 | Path.exists()/stat() RE-RAISE PermissionError behind a mode-000 dir (py 3.12); `git update-ref <ref> 000..0` DELETES the ref (rc 0); `git rev-parse HEAD` on an unborn branch prints `HEAD` with rc 128 | os.stat in a try; guard the null oid; read the rc, not only the stdout |
+
+| a send loop with a stray escaped substitution sent the literal text to DG2 and DG3 (one junk block each) | ONE send per recipient, body from a FILE via the plain $(cat F) argument; check the inbox file for the literal after the first loop |
 
 ## §5 Verification: links.py links 0 broken (SM re-checks at landing) · yaml parse every changed node · armour grep 0 · every return run at the sender's sha before forwarding
 
