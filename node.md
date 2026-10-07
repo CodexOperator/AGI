@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (17:0xZ 10-07, date -u) — gen 21 ROTATING at ~0.41 (DECISION: early, below 0.47: the 0.41 hard rule bars landings and every open item ends in one; no gate open) · trunk clean + pushed · 0 known trunk reds
+## §0 State (17:5xZ 10-07, date -u) — gen 22 seated 17:01Z · trunk 1e930932ea clean + pushed · 0 known trunk reds · gate open: g7.16.1.11.20 box-wake (question out to DG1)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -35,24 +35,22 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 OPEN (each arrives as a DG1 [merge-up]; FULL rail each: static + anonymize per commit, lanes + NEG, pytest subset, FULL suite on tmpfs, Sonnet mur; accept_with_residue = RETURN):
-  g4.13.1 #3 grid.py: one-line ERROR (flatten git stderr) + a REAL multi-line lock lane (prior murs runs/mur-sm21-dg3-gridcas, -2, -3; NEG base f8e756801b; NEG = DG2 lane 0563a18377 grid-collapse.t.sh n1-lock-real-is-one-error-line, 1 RED on f8e756801b, 53 ok); LIVE via grid_sync */5: re-measure real refs (9,645: 0 merges/nest/ls-tree fails) and watch the first tick
-  g7.16.1.11.19 verify re-cut (DEMOTED 23a6591f72: D1 fail-open rc 0 -> rotate.py:4777 _merge_up_suite; D3 substring; D4 no retract; D2 uid-aware; D6 OSError): DG2 lanes c4d60a0b32 (42 ok; 11 RED on 23a6591f72); DG1 RULED all-SKIP suite = rc 3 + no stamp, test_verified_stamp_from_suite.py:69 renamed test_skip_only_is_not_green (a pytest edit in the build)
-  g3.8 #3 metrics (last union ad08961a4: lanes 27/0, pytest 410/0, FULL 7,914/0; mur runs/mur-sm21-dg3-gmetrics2 R1-R4 RULED by DG1: R1 parse rows, R2 never leave town node dirty, R3 cell renamed metrics_line, R4 no OpenRouter call in --line; NEG = DG2 lanes 211a0a00c7 graph-metrics.t.sh, 9 RED on 41956e53d5: run ROOT=<dir> BIN=<dir>/extensions/agi/bin sh). LIVE after landing: crons.py apply via grid_sync installs '23 * * * *' within 5 min (crontab -l | grep -c success_metrics = 1); watch the first :23 run: ONE metrics_line commit on town:local-maxxing, node not dirty, cron log no ERR
-  then g7.16.1.11.20 (box mail; DG2 lanes b94a30851) as DG1 sends it
-HOST ACTS = belam GO each: A10 ckpt on the hub; A12 re-install (bin/agi-out in every v5 t, root-owned env file, /opt/agi/bin lists no agi-out, readlink -f /bin/sh on the host); OUT.8 unit landed 3fb54c655 (install = belam)
-MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; FOCUS = READ-ONLY + the gated union worktree + what must never run against MAIN; after EVERY mur: git symbolic-ref HEAD + reflog; persist runs/mur-sm21-<key>/result.json (home masked)
+  g7.16.1.11.20 box-wake dg3-boxwake 954522af59 (1 commit on 4fa32b14db: engine-wrap.md agi-run + cccc.ts, engine.md map, box-wake.t.sh = DG2 a1425b7d5): STATIC CLEAN (rc 0, 0 D, anonymize ok). OPEN QUESTION to DG1 17:5xZ: send.py writes ONLY the inbox file, the new pieces drop the inbox poll -> a v5 post booting on them is not woken by any send.py message; land the bytes only with the cutover named, or as a belam-GO host act. Still to run: box-wake.t.sh (sh, arg/ROOT = gated tree) + NEG, the related .t.sh (grep -l agi-run|cccc), FULL suite, Sonnet mur
+  g7.16.1.11.19 verify RE-CUT (RETURNED 17:3xZ dg3-verify6 0c6fc2d9a3: R1 _write_state -> _io_failed AND _IO_ERRORS.clear() moved BEFORE run_level (DG2 found it); N1 test header; N2 os.stat PermissionError = SKIP, other OSError = FAIL): DG2 lanes fec6d09c44 (47 lanes; 3 RED on 0c6fc2d9a3 = d2d d2f d6e) = NEG
+LIVE WATCH: grid_sync */5 = the new grid.py over the real refs (log: no ERROR lines, 0 nest/ls-tree fails) + crons.py apply installs graph_metrics '23 * * * *' (crontab -l | grep -c success_metrics = 1); first :23 run 18:23Z: ONE metrics_line commit on town:local-maxxing, node clean, cron log no ERR
+FOLLOW-UPS sent to DG1 (not blocking, F1-F5): metrics_cell edited_by/cell window · avg_tokens row-1 only · producer timeout/flock · _rename_ref folds create failures into conflict · CAS-miss English-text match
+MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; FOCUS = READ-ONLY + the gated union worktree + what must never run against MAIN; after EVERY mur: git symbolic-ref HEAD + reflog; persist runs/mur-sm22-<key>/result.json (home masked)
 ```
 
 ## §2 Landed (each landing message carries its gate numbers)
-- gens 16-20 (10-02..04): see git log --grep sanctuary-master + runs/mur-sm1[6-9]-*, mur-sm20-*
-- gen 21 10-04: CKPT.3 70530c33c · OUT.7 666098f19 · DG3 agi-outline ckpt fixture d4773d9ab
-- gen 21 10-07: sp mu-15 b94124031 · DG1 nodes-33b + DG2 o7c2 b4e8bebda · OUT.8 3fb54c655 (FULL 7,914/0) · alive aa1n 5a1760e82 + AA1.S 0b95e3bd8 + aa1s-fix 01fb4669a · aio mu-31 e005cf445 + mu-33 483d23411 · sp mu-16 v2 9245dfe5f + mu-17 7979cd1e9 · DG1 goals daadcbb3f, c6f977e1a, 8bc80981d, 120296316, 5175738fb · thought-master card fcee0469b (grid v18)
-- gen 21 10-07 RETURNED/DEMOTED: OUT.8 R1 (-> node bound) · g4.13.1 x3 (R1-R3, V1-V3+N1, multi-line ERROR) · g7.16.1.11.19 DEMOTED · g3.8 x2 (anonymize home token + --help rc 2; R1-R4)
+- gens 16-21: see git log --grep sanctuary-master + runs/mur-sm1[6-9]-*, mur-sm2[01]-*
+- gen 22 10-07: g4.13.1 #3 dg3-gridcas2 5895e8bea5 + g3.8 #3 dg3-gmetrics2 1e930932ea (union 36e1bf2c30 FULL 7,915/0, mur accept x2, links 5778/0)
+- gen 22 10-07 RETURNED: g7.16.1.11.19 dg3-verify6 0c6fc2d9a3 (R1 baseline write fail-open)
 
 ## 🔴 Where it stops
 ```
-GATE OPEN (17:3xZ 10-07): RETURNED g7.16.1.11.19 dg3-verify6 0c6fc2d9a3 to DG1 (SendMessage 17:3xZ; R1 _write_state OSError -> _io_failed + DG2 lane; N1 test header, N2 _perm_skip nonexistent path). PIPELINE U = 36e1bf2c30 = HEAD 50282caef6 + DG1 1/2 g4.13.1 dg3-gridcas2 b00c1db1fb (M1 c72af0d759) + 2/2 g3.8 dg3-gmetrics2 0ee6c275a5, in /dev/shm/sm22-gu, tmp /dev/shm/tmp-sm22u. DONE: both merge-tree rc 0, 0 D, anonymize ok x12 commits, lanes on U grid-collapse 53/0, grid-payload-commit 21/0, graph-metrics 38/0; NEG trunk 37 + 21 FAIL. RUNNING: FULL suite on U (full-U.txt) + Sonnet mur 2 rounds (Workflow wf_cbeb5733-4e9). THEN: g3.8 first-run measure on a scratch clone, land gridcas2 first (re-run merge-tree on live HEAD), then gmetrics2; watch grid_sync's next tick + the first :23 metrics run.
-on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + every blob origin lacks through anonymize, host, home-path, GPU and key greps), tests (.t.sh with sh from the gate worktree; arg 1 or ROOT = the gated tree), pytest subset + FULL suite on tmpfs (attribute every red: alone, on trunk, by range), Sonnet mur, land ONE update by SHA on the live HEAD, push, notify; a cron/grid_sync path = measure its first live run on MAIN's real data, then watch it
+gen 22 at 17:5xZ 10-07: trunk 1e930932ea clean + pushed; box-wake 954522af59 waits on DG1's cutover answer; watch the grid_sync tick + the 18:23Z metrics run
+on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + every blob origin lacks through anonymize, host, home-path, GPU and key greps), tests (.t.sh with sh from the gate worktree; arg 1 or ROOT = the gated tree), pytest subset + FULL suite on tmpfs (attribute every red: alone, on trunk, by range), Sonnet mur, land ONE update by SHA on the live HEAD, push, notify; a cron/grid_sync path = measure its first live run on MAIN's real data (a --shared scratch clone, the rendered line, env -i), then watch it
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
 
