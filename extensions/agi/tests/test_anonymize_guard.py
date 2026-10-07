@@ -871,7 +871,7 @@ def test_the_landed_email_cell_reads_back_nonempty():
     assert anonymize._email_allow(Path(__file__).resolve().parents[3])
 
 
-@pytest.mark.xfail(strict=True, reason="the landed .agi/config.json cell does not "
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason="the landed .agi/config.json cell does not "
                    "carry the example.invalid pattern yet (a round cannot commit "
                    ".agi/config.json). STRICT: the day the cell lands this goes "
                    "XPASS = red; delete this marker then (g1.41 PASS B4)")
