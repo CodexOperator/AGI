@@ -1539,9 +1539,15 @@ def _sweep_worktree_heads(main_checkout: Path) -> dict:
         wt = rec.get("worktree")
         if not wt:
             return
+        head = rec.get("HEAD") or ""
+        if head and set(head) == {"0"}:
+            # goal:g7.16.1.5.3.2 R4: `worktree list --porcelain` prints the NULL oid for an
+            # UNBORN (--orphan) tree. That is NO head: cached as one, rev-parse never ran, the
+            # unborn tree reached _sweep_archive, and `update-ref <ref> 0000..0` on an
+            # EXISTING ref (a reused agent id) returns rc 0 and DELETES it.
+            head = ""
         heads[Path(wt).name] = (
-            (rec.get("branch") or "").replace("refs/heads/", ""),
-            rec.get("HEAD") or "")
+            (rec.get("branch") or "").replace("refs/heads/", ""), head)
     for line in out:
         if not line.strip():
             _flush(cur); cur = {}
@@ -1878,9 +1884,12 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         if base:
             base = _sweep_resolve_base(root, base)
         head = head_cached
+        hd_rc = 0
         if not head:
-            head_lines, _ = _git(["rev-parse", "HEAD"], wt)
-            head = head_lines[0] if head_lines else ""
+            head_lines, hd_rc = _git(["rev-parse", "HEAD"], wt)
+            # a FAILED rev-parse is NO head whatever it printed: on an unborn branch it
+            # prints the literal `HEAD` on stdout with rc 128 (goal:g7.16.1.5.3.2 R3)
+            head = head_lines[0] if head_lines and hd_rc == 0 else ""
         if not head and _sweep_orphan(wt):
             # DG2.C1: no HEAD and its gitdir is gone -- nothing to pin or
             # remove. Refuse by name ONCE (never "archived"), then stay quiet.
@@ -1892,6 +1901,17 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
                     _SWEEP_ORPHAN.add(agent_id)
             continue
         _SWEEP_ORPHAN.discard(agent_id)
+        if not head:
+            # goal:g7.16.1.5.3.2: the gitdir EXISTS but HEAD could not be read: that is
+            # UNKNOWN, never "nothing to pin". With head "" and a failed status
+            # _sweep_archive builds an empty want list, returns None (read as archived)
+            # and the --force remove below drops the tree. Refuse by name; per tree.
+            refused += 1
+            _watch_log(f"[sweep] refused {agent_id}: git rev-parse HEAD failed "
+                       f"(rc {hd_rc}); nothing archived or removed")
+            if not dry_run:
+                _SWEEP_SKIP[agent_id] = ("", base)   # recorded; the pop below clears it on a healthy pass
+            continue
         # (2)+(3) goal:g7.16.1.5.3: "unmerged" and "dirty" are no longer
         # terminal -- landings are fresh commits, so ancestry is rarely
         # provable. Such a tree is ARCHIVED (refs/archive/worktrees/<name>,
@@ -1902,7 +1922,17 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
             _, anc_rc = _git(["merge-base", "--is-ancestor", head, base],
                              main_checkout)
             merged = anc_rc == 0
-        status_lines, _ = _git(["status", "--porcelain"], wt)
+        status_lines, st_rc = _git(["status", "--porcelain"], wt)
+        if st_rc != 0:
+            # goal:g7.16.1.5.3.2: a FAILED status (an OOM-killed child, a corrupt index)
+            # is UNKNOWN, never clean: an unmerged tree would be archived with dirty=[]
+            # and then removed --force, dropping its uncommitted bytes. A merged tree
+            # too (a failed read proves nothing). Refuse by name; the sweep goes on.
+            refused += 1
+            _watch_log(f"[sweep] refused {agent_id}: git status failed (rc {st_rc})")
+            if not dry_run:
+                _SWEEP_SKIP[agent_id] = (head, base)   # recorded; a later healthy pass pops it
+            continue
         dirty = _sweep_dirty_paths(status_lines)
         needs_archive = not merged or bool(dirty)
         _SWEEP_SKIP.pop(agent_id, None)
@@ -2322,13 +2352,13 @@ def _wake_repair_due(root: Path, now: float) -> bool:
 
 def _repair_stranded_wakes(root: Path) -> None:
     """hypothesis:l4-a-stranded-nudge-is-resubmitted-by-typing-not-enter --
-    the watch pass's seat-wake repair. For every configured live seat row this
-    calls `send.wake(<seat>)`, which resubmits a stranded nudge-shaped line
-    in an IDLE pane (typed space + Enter, never Enter-only) or re-types the
-    wake token for a seat with unread, and silently no-ops on a pane with
-    nothing pending. Best-effort and read-only: missing seats / no tmux /
-    busy panes are silent no-ops; never touches the reaper logic, never
-    raises out of the watch loop."""
+    the watch pass's seat-wake repair. For every LOCAL live seat row (another
+    box's is skipped, as `send.wake_all_local` does) this calls
+    `send.wake(<seat>)`, which resubmits a stranded nudge-shaped line in an
+    IDLE pane (typed space + Enter, never Enter-only) or re-types the wake
+    token for a seat with unread, and silently no-ops on a pane with nothing
+    pending. Best-effort and read-only: missing seats / no tmux / busy panes
+    are silent no-ops; never touches the reaper logic, never raises."""
     try:
         import send as _send
     except Exception:                                     # noqa: BLE001
@@ -2339,7 +2369,7 @@ def _repair_stranded_wakes(root: Path) -> None:
         return
     for row in rows:
         seat = row.get("name") or row.get("seat")
-        if not seat:
+        if not seat or not boxes.row_is_local(root, row):
             continue
         # a QUIET row is skipped BY NAME: the dm is written, never a wake.
         try:
@@ -3655,16 +3685,20 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
                 or gdir / "sessions" / "quorum" / f"{seat}.md")
         if Path(card).is_file():
             card_file = str(card)
-    ack_gate = (
-        "RECOVERED SEAT (crash-recovery): first act after reading your handoff, "
-        f"run `python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} "
-        "--ref <your ListAgents ref> continue` to take your identity."
-    ) if not resume else (
-        "RESUMED SEAT (crash-recovery, heal): your process died and heal resumed "
-        "this same session. Re-read your card (it may have moved on), then run "
-        f"`python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} "
-        "--ref <your ListAgents ref> continue` and carry on."
-    )
+    # hypothesis:heal-ack-line-comes-from-config-rotations-by-role: the wording
+    # is config:rotations `recovery_ack[role|default][recovered|resumed]`.
+    try:
+        _cell = _rotate.frontmatter.load_node_file(
+            _rotate._rotations_node_path(root)).frontmatter["recovery_ack"]
+        ack_gate = _cell[role if role in _cell else "default"][
+            "resumed" if resume else "recovered"].format(seat=seat, gen=gen)
+    except Exception as exc:  # noqa: BLE001 -- any bad cell refuses, never raises into the watch loop
+        reason = (f"config:rotations cell recovery_ack[{role or 'default'}] "
+                  f"unusable in {_rotate._rotations_node_path(root)}: {exc!r}")
+        print(f"watch: {reason}", file=sys.stderr)
+        _watch_log(f"watch: {reason}")
+        return {"respawned": False, "name": spawn_name, "generation": gen,
+                "reason": reason, "row": "skipped"}
     try:
         rc, shell_cmd = _rotate.spawn_window(
             name=spawn_name, tier=tier, prompt_file=None,
@@ -3711,7 +3745,19 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
                 "reason": "launcher reported no successor process",
                 "row": "skipped"}
     # pid is None (launched, unknown) or a real int -> the recovery landed.
-    row_pid = pid if pid else None   # None keeps `_successor_row_write` pid-free
+    # a launcher that cannot name the pid (the real one: `None`) -> the new
+    # window's PANE pid, else the row keeps the DEAD pid and the next sweep
+    # re-judges that corpse (measured: all-is-one respawned twice).
+    row_pid = pid or None  # None = the row keeps its PRIOR pid (rotate._successor_row_write)
+    if row_pid is None and window_id:
+        reason = f"pane pid unknown for {window_id}: row keeps its prior pid"
+        try:
+            row_pid = _pane_pid_of(window_id, window_path) or None
+        except Exception as exc:  # noqa: BLE001 -- the row write below still runs
+            reason = f"pane pid lookup raised: {exc}"
+        if row_pid is None:
+            print(f"watch: {reason}", file=sys.stderr)
+            _watch_log(f"watch: {reason}")
     try:
         row_text = _rotate._successor_row_write(
             root, actor=seat, seat=seat, role=role, session_ref="",

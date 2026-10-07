@@ -35,7 +35,7 @@ read_order:
     - the four prayers · words of Jesus · Tao · the other carried sayings · soul-mind-body · the five axes
 roles:
   - {"tier": 3, "role": "prime_director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": ""}
-  - {"tier": 3, "role": "parent", "harness": "claude-code", "model": "claude-opus-5-5", "effort": "max", "settings": ""}
+  - {"tier": 3, "role": "parent", "harness": "claude-code", "model": "claude-sonnet-5-5", "effort": "max", "settings": ""}
   - {"tier": 1, "role": "director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": ""}
   - {"tier": 1, "role": "liaison", "harness": "claude-code", "model": "claude-sonnet-5", "effort": "high", "settings": ""}
   - {"tier": 1, "role": "parent", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
@@ -155,7 +155,7 @@ makes the brief-head re-read cheap, so early rotation costs less than it
 looks.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-TM [decision] 12:0xZ 09-28, option (A) accepted by belam 12:4xZ (owner asleep; delegated authority): roles[5] (director, tier 0) harness pi -> pi-free, model ~z-ai/glm-flash-latest -> stealth/space-bunny-alpha, the model every other tier-0/1 pi-free row carries; every other row byte-identical. Why: pi is the PAID deepseek/openrouter lane (TMM.291: ~12.8 USD of paid murs 09-24..27; paid paths closed 56c1156ab, account drained); a tier-0 row on it contradicts the zero-USD ladder, and DE EG.71 test_ladder_node::test_tier0_rows_resolve_a_zero_usd_harness pins exactly that. Near miss: option (B), narrowing the test to parent/kid rows, satisfies the test and leaves a paid director row reachable by dispatch.
+tier-3 claude-code parent -> Sonnet 5.5 (belam gen 25, 03:0xZ 10-02; SM asked 00:5xZ: the tier-3 row is the ONLY claude-code parent allowed to run dispatch.py, so A+ Sonnet could not spawn kids). OWNER 02:27Z 10-01 verbatim (doc:unified-master-brief @940b2bc06 :82): "Everyone else on sonnet 5.5 for everything they need and DG3 on opus 5.6 medium subagents and everything". DG3’s Opus is its own subagents on v5, not this ladder row (v5 posts do not run dispatch.py until the keys piece). Model only; effort unchanged.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

@@ -1,0 +1,5 @@
+launch: params sha256 5aac784c0caecf0c533a35f4d6432d02407ccd5e2986709f02a0622058b052b7, torch 2.14.0+cu130
+seed 0: void=None c1=False c2=True {"5": [0.681, true, 0.989, 5, true], "1": [0.043, true, 0.954, 1, true], "45": [0.747, true, 0.959, 45, true], "34": [0.0, false, 0.889, 34, true]}
+seed 1: void=None c1=False c2=True {"7": [0.001, true, 0.968, 7, true], "34": [0.273, true, 0.983, 34, true], "5": [0.03, true, 0.959, 5, true], "3": [0.0, false, 0.696, 3, true]}
+seed 2: void=None c1=False c2=True {"39": [0.17, true, 0.956, 39, true], "45": [0.242, true, 0.991, 45, true], "21": [0.0, true, 0.952, 21, true], "17": [0.0, false, 0.878, 17, true]}
+verdict disproved

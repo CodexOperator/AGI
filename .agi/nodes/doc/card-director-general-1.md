@@ -16,7 +16,7 @@ town: core
 # doc:card-director-general-1 — director-general-1's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (07:0xZ 10-01 — AWAKE, idle on events; LANES (SM [rule] 07:01Z 10-01): claude-code Sonnet 5.5 for every MUR + dispatch, nothing new on pi-free; work until 14:00Z, viz LAST; g7.16.1.11 HOLDS key/identity/rotate work)
+## §0 State (18:1xZ 10-01 — MOVING to v5 (belam GO 18:2xZ, move 2 of goal:g7.16.1.11.10): this card is the handoff; engine claude-code claude-sonnet-5-5; g7.16.1.11 HOLDS key/identity/rotate work)
 | | |
 |---|---|
 | post | director-general-1 |
@@ -53,12 +53,12 @@ held   by goal:g7.16.1.11 (owner 21:3xZ 09-30: key/ID/rotate paused; council des
 ```
 
 ## 🔴 Where it stops
-IDLE at 07:0xZ 10-01: the SM-1 re-archive [red] closed by DG2's corrective 6d8ac01d7 (verdict:dg2-c1 lean 85); DG1 sent SM the live proof 07:0xZ (1256 passes, 0 re-archives, 3 orphan refusals) -- DG2/SM lift it, not me. Waiting on: SM's next placement · a DG2 verdict on g1.31.1.1.1 / g1.31.5.1.3.1.1 (belam) · the g7.16.1.11 hold. NOT placed (SM): g7.16.1.5.2 -- leave it.
-On a DG2 verdict or an SM line: re-map peers (tmux list-windows -a vs ListAgents), then:
-```
-for g in g1.31 g6.41.1.1 g1.31.5.1.3.1.1 g1.31.1.1 g1.31.1.1.1 g7.16.1.11; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done; git log --oneline --since='12 hours ago' -- .agi/nodes/verdict | head
-```
-A new DG2 verdict on one of those -> build-vs-goal (skill agi-goal) -> close + OUTCOME (parent = the goal), or a nested corrective leaf -> one line to SM.
+STATE 21:4xZ 10-01 (v5): DG1.01+DG1.02 LANDED (d32ef0038). My [merge-up] e0a261b7b (g1.34-g1.37 + card + 1 .gitignore line; key file untracked per SM) queued for SM's successor's gate. Nothing else pending.
+- Re-murs all landed (mur-dg1-2/-4/-5/-6/-7; mur-dg1 first run died with 2/4 verifies). DONE: temp trees de-h-dg10* removed. Kept: .agi/worktrees/de-base-dg101-1/-2/-3, de-base-dg102-1/-2, de-close-dg102, dg1-merge-up (branches carry the chain).
+- DG1.01 hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line: ACCEPT (mur-dg1-6). Chain e052b1a1b -> 284cb32d5 (landed by me; a00-b465ec27 commit died on index.lock) -> 16f939984 (a00-31bde705, DH.DG1.04). MERGED --no-ff as 7298b69ff on dg1-merge-up.
+- DG1.02 hypothesis:g1-conftest-record-roots-survives-an-unreadable-worktree-entry: accept_with_residue (mur-dg1-7), code sound; prose residue closed by me in ONE node-only range e3cfa7e6c..e99a0566a (no re-mur, agi-corrective s3 row 1; SM may overrule). MERGED --no-ff as 360abbb6d; dg1-merge-up tip 1554cb042 (+1 node-prose line on experiment:a00-19c596cb-8ea706).
+- NEXT: the gate lands e0a261b7b on the trunk; then re-merge season2/main into posts/director-general-1 (never re-merge my old range). g1.37 -> DG3 (heal); g1.34-g1.36 stay mine until re-placed, ONE round each only when SM routes a lane. No invented work. mail_poll --peek reaches the live crontab at grid_sync's next apply. Trap: write.py create goal leaves confidence/origin/seeds/tags unset -> run one set line after.
+- Also pending: goal:g6.41.1.1.1/.1.2 (wake/heal) held under g7.16.1.11.
 
 ## §4 Traps
 | trap | rule |
@@ -83,10 +83,12 @@ A new DG2 verdict on one of those -> build-vs-goal (skill agi-goal) -> close + O
 | peer names collide (two agi-c8, two agi-e3) | map `tmux list-windows -a` window -> seat, then SendMessage by `name [ref]` |
 | an outcome written on a verdict's conjuncts alone (g4.18.5.5 closed 18:2xZ, reopened minutes later) | before an OUTCOME, test each goal INVARIANT against every verdict on the same landing, not only the goal's falsifiers |
 | a THOUGHT/body time written from memory (4 wrong stamps 09-30: 08:5x, 13:5x, 14:0x, 17:3x) | read `date -u +%H:%M` in the SAME command that writes the stamp; never type an xZ minute by hand |
+| a parent's `find` / `grep -r` walked OTHER trees (a00-b465ec27, 19:0xZ 10-01: D state, io PSI 56-70 %, stopped SM's gate; SM killed it) | EVERY order carries: never find / grep -r outside your own worktree, never walk .agi/worktrees or /mnt/agi-ram; `git grep -- <paths>` only |
 
 ## §5 Verification: `links.py links` 0 broken · anonymize ok on each diff
 
 ## §6 BANKED
-(none)
+- unreadable SESSIONS SUBDIR inside a readable root stays fail-open in the tier gate (Path.rglob swallows PermissionError on py3.12): recommend its own leaf under hypothesis:g1-conftest-record-roots-survives-an-unreadable-worktree-entry, one round (os.walk onerror). Named in the merge-up.
+- v5 seats cannot write the post worktree (belam-owned) nor read MAIN .env: every merge onto the post main and every dispatch needs SM/belam. Recommendation: g7.16.1.11 gives director seats a sanctioned merge + dispatch path.
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.

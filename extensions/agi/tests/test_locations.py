@@ -954,3 +954,46 @@ def test_find_project_root_own_repo_agi_beside_git_still_resolves(tmp_path):
     # a deep child of the worktree still reaches the fork (bounded to the
     # worktree's own repo, never crossing out):
     assert locations.find_project_root(wt / "deep" / "sub") == wt_graph
+
+
+# --- goal:g15.27.5: `locations.stream` cells, ONE resolver -----------------
+
+
+def test_stream_path_shapes(tmp_path):
+    """Relative resolves against the graph root, absolute is as-is, `{home}`
+    expands -- the three spellings one cell may use."""
+    root = make_graph_dir(tmp_path / "proj")
+    cfg = {"locations": {"stream": {
+        "rel": "box/stub", "abs": "/opt/stub", "hh": "{home}/classfeed/feed.py"}}}
+    assert locations.stream_path(root, "rel", cfg) == (root / "box/stub").resolve()
+    assert locations.stream_path(root, "abs", cfg) == Path("/opt/stub")
+    assert locations.stream_path(root, "hh", cfg) == Path.home() / "classfeed/feed.py"
+
+
+def test_stream_path_missing_key_refuses_by_name(tmp_path):
+    """A typo is a KEY on stderr, never a path that plausibly exists."""
+    root = make_graph_dir(tmp_path / "proj")
+    with pytest.raises(KeyError) as exc:
+        locations.stream_path(root, "nope", {"locations": {"stream": {}}})
+    assert "nope" in str(exc.value)
+
+
+def test_stream_cell_is_not_a_payload_location(tmp_path):
+    """`known_payload_locations` takes only non-empty FLAT strings; a dict cell
+    is skipped, so `stream` is never offered as a payload base."""
+    root = make_graph_dir(tmp_path / "proj")
+    cfg = {"locations": {"stream": {"stub": str(root / "s")}}}
+    assert "stream" not in locations.known_payload_locations(cfg)
+
+
+def test_streamer_stub_prefers_the_stream_cell(tmp_path):
+    """`commands.py`'s `<stub>` token and the skill resolve ONE directory."""
+    root = make_graph_dir(tmp_path / "proj")
+    want = root / "the-stub"
+    cfg = {"locations": {"streamer_stub": str(root / "legacy"),
+                         "stream": {"stub": str(want)}}}
+    assert locations.streamer_stub(root, cfg) == want.resolve()
+    # no cell -> the legacy flat key still answers
+    assert locations.streamer_stub(root, {"locations": cfg["locations"]}) == want.resolve()
+    del cfg["locations"]["stream"]
+    assert locations.streamer_stub(root, cfg) == (root / "legacy").resolve()

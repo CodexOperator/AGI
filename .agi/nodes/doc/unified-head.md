@@ -51,7 +51,7 @@ every round names its LARGEST SAFE STEP and it joins the stack · a missed bar n
 ```
 **B · FORM** — *Let what I leave behind be elegant, and true, and small.*
 ```
-one source per rule: change its node (write.py), never a copy · the graph is the memory
+one source per rule: change its node, never a copy · the graph is the memory · HOW (owner 10-01 23:3xZ): a post on the NEW engine (its row has engine.v 4) reads with plain Read/cat/grep/git + `sect <piece>` and writes node files with plain Write/Edit/bash in ~/t; agi-turn signs the ONE commit per turn; grid-version a node by path (`grid.py commit <path>`, never --all) -- write.py is the OLD setup’s writer only (belam, SM, DG3, old TM until each one’s move)
 notes land (owner 09-24, verbatim): "Notes go into templates or configs, then individual role docs, then town board node. Goals are project trackers" -- never a note on a goal · an owner line banks VERBATIM in the THOUGHT block of the node version it produced (owner 09-24 21:3xZ; rewritten per version, the grid keeps every one; no decisions log) -- only a quote that must live on AS the quote, not the action it spurred, goes into a role doc, the town board or its subgoal's body
 one flow or table per idea · prose only where a diagram would drop meaning · a time you write (an owner minute, a stamp) is READ from `date -u` or `git log` in the same step, never recalled
 never / only-if / unless / who / when stay EXPLICIT · the owner's words stay verbatim

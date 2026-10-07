@@ -62,6 +62,13 @@ kid commits  DH.386 (DE, lands with e362e7947): `cli.py done` auto-commits the r
              (config:posts, config:rotations, doc:unified-head, town:local-maxxing, goal:g5 measured) until DH.390 lands -> at every gate
              list changed .geometry / doc:unified-* / town:* / goal:* files and read each
 anonymize    anonymize.py guards the classes named in anonymize.CLASSES (loopback exempt); the home class is anonymize.HOME_PATH_RE (ANY box, bare or with a path) -- read them there, never a list here; it takes NO file args: git diff <merge-base> <tip> > F; anonymize.py check --root <gate> --diff-file F · the model name needs its own grep: grep the added lines ('^+') for the box's GPU model name yourself (anonymize.py does not cover it; never write the pattern into a node)
+             · the net diff hides HISTORY: a file ADDED then removed inside the range rides to origin with the merge (SM gen 14, 21:2xZ
+               10-01: DG1 e0a261b7b untracked .agi/keys/director-general-1, but 7b37db90f had added it with a host-named comment) ->
+               git log --diff-filter=A --name-only <merge-base>..<tip> lists every path ever added; read each one the net diff no longer
+               shows (a key file = return the tip; the director re-cuts ONE commit from the live trunk, never a rebase)
+               · scan every VERSION of a key file in the range, not only adds (a modified one can carry the host too) -- UNLESS the
+                 identical blob is already reachable from origin (a push sends only objects the remote lacks: no new bytes leave);
+                 name it in the landing message (gen 14: TM-new d60422468 = the blob 81d0e8729 already published, banked)
 evidence     the grid cron's evidence gate (evidence_gate.enforce_on_disk) DEMOTES a proved / disproved verdict without a resolvable
              evidence_runs (a JSON list of existing type:slug ids) IN MAIN'S WORKING TREE, uncommitted, 'caught at grid commit' -> gate
              every landing's range with it: my ae2276a95c carried a00-325d4c56-bedcc8 = disproved with no evidence_runs (22:4xZ)
@@ -107,9 +114,13 @@ context      a green main suite + verification's context suite (system python, N
              tests with the osc pythonpath from a neutral cwd in the gate tree -- never the whole context dir under torch during a model hold
 context+     the ENGINE suite never runs .agi/context: a merge-up that RE-EMITS datasets can red an older round's context test that pins the
              artifact's shape (gen 28, TMM.254: 8 uniform rows vs 4 pinned; a join shape) -> at EVERY merge-up with datasets / context /
-             conftest changes run the WHOLE .agi/context under the osc pythonpath on the gate tree (~2 min, torch) with no model round running
+             conftest changes run the RANGE'S OWN context tests (git diff --name-only <merge-base> <tip> -- '.agi/context/*test*.py') plus any
+             older test that reads a re-emitted dataset, ONE FILE AT A TIME under the osc pythonpath from a neutral cwd, each under `timeout`
+             + the memory guard, with no model round running -- NEVER the whole .agi/context dir (SM gen 12, 16:0xZ 10-01: it forked 273+
+             python3 that never exited, 9.4 GB anon, mem PSI full avg10 33, the Prime SIGTERMed 295 processes; a pytest `timeout` kills only
+             the parent, its children live on -- stop = every pid whose cwd is the neutral dir)
              · two gates PIPELINE: gate the 2nd on a PROVISIONAL landing of the 1st (commit-tree, no ff); the 1st fails -> land the 2nd ALONE:
-               its extensions/ identical = the engine suite carries; re-run only the context dir (gen 28: DE mu 13 landed alone in ~6 min)
+               its extensions/ identical = the engine suite carries; re-run only the range's own context tests (gen 28: DE mu 13 landed alone in ~6 min)
              · the trunk's autouse model guard stubs only modules imported BEFORE a test: an in-body import passes alone and is refused in file
                order once an earlier file imports the real one (DH.413 closed it: import hook + allow_model_load)
 fixtures     an experiment's own _test.py: PYTHONPATH=/data/ml/.venv/lib/python3.12/site-packages:/data/ml/scratch/osc03/pylib python3 -m pytest

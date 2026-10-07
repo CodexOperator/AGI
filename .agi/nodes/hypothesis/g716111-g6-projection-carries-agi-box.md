@@ -31,3 +31,19 @@ a new row: run the agi-project section under sh on a tmp git repo with a posts.m
 .agi/nodes/.geometry/engine.md (the agi-project jq env array, one token) · one test file · this node.
 ## CEILING
 production NET +0 lines (one token on one line) · tests +40 · Sonnet 5.5 subagent · 0 USD.
+
+## CORRECTIVE G6.2 -- closes mur-de-base-g6 g6-code (verify accept_with_residue: missed M1)
+BASE      CUT FROM de-base-G6 tip 016ba8f26 (worktree /mnt/agi-ram/worktrees/de-base-G6). No merge. Never rebase.
+1. Mutation blind spot -- extensions/agi/tests/test_project_agi_box.py -- the fixture's row box equals the projection's AGI_BOX (local-town), so a hardcoded "AGI_BOX=local-town" in engine.md:80 passes both tests. TRUE WHEN a row projects a fixture whose box is NOT local-town (run with AGI_BOX=<that box>) and asserts AGI_BOX=<that box>; paste the run of that mutation (hardcoded literal in a scratch copy) going red.
+DEMOTED   review R1-R4 (all refuted by the g6 verify: house skip convention · no engine cell named box exists · the file IS the drop-in · env-file precedence out of diff) · notes (size annotation, default-box literal pre-existing, WT bytes, F3 cells) · verify M2 (F2 stays a gate run, never a test) · M3 (merge-scope fact).
+FILE SCOPE extensions/agi/tests/test_project_agi_box.py · this node.  CEILING tests +20 · production 0 · Sonnet 5.5 subagent · 0 USD.
+
+## RESULT G6.2 (director, closes mur-de-base-g6b residues: verify V3 + missed M1 M2)
+NUMSTAT   git diff --numstat 016ba8f26 a3fdc5090 -> 8	7	extensions/agi/tests/test_project_agi_box.py (tests net +1 vs the +20 ceiling; production 0). G6 whole: git diff --numstat 6b536b730 a3fdc5090 -> engine.md 1/1, test_project_agi_box.py 47/7.
+MUTATION  pasted by the G6.2 kid (scratch copy /tmp/g62mut/engine.md, "AGI_BOX=\(.box)" -> "AGI_BOX=local-town", the worktree untouched): FAILED test_mut[other-town] - assert 'AGI_BOX=other-town' in '...AGI_ROLE=director AGI_LADDER_TIER=1 AGI_BOX=local-town' -> 1 failed, 1 passed in 0.08s
+REAL      test_project_agi_box.py on a3fdc5090: 3 passed in 0.19s (kid) · mur-de-base-g6b review accept, 3/3 MET.
+MERGE     a3fdc5090 needs 016ba8f26 (verify M3): the chain lands whole at its last tip, never the corrective alone.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director closes mur-de-base-g6b in-loop (node prose only, TMM.327): RESULT G6.2 carries the two-operand numstat, the kid pasted mutation red and the merge-order note; review notes 1-2 refuted by the verify
+<!-- THOUGHT:END -->

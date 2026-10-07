@@ -1,0 +1,57 @@
+{
+ "seed": 2,
+ "void": null,
+ "base_test_acc": 1.0,
+ "n_p1": 512,
+ "families": {
+  "39": {
+   "size": 167,
+   "drop": 0.11500167804004924,
+   "fam_norm": 0.4531809985637665,
+   "pU": 34.0,
+   "pN": 60.5,
+   "u_q": 0.40637319610694683,
+   "n_q": 0.4027027631726142,
+   "n_accepted": 200,
+   "load_bearing": false,
+   "n_untestable": false
+  },
+  "45": {
+   "size": 165,
+   "drop": 0.31021367043293435,
+   "fam_norm": 0.4982198178768158,
+   "pU": 90.5,
+   "pN": 85.5,
+   "u_q": 0.4398769437297234,
+   "n_q": 0.4759100570533613,
+   "n_accepted": 200,
+   "load_bearing": false,
+   "n_untestable": false
+  },
+  "21": {
+   "size": 129,
+   "drop": 0.010515717641794375,
+   "fam_norm": 0.4835614264011383,
+   "pU": 15.0,
+   "pN": 8.0,
+   "u_q": 0.364683969124063,
+   "n_q": 0.2696890032442107,
+   "n_accepted": 200,
+   "load_bearing": false,
+   "n_untestable": false
+  },
+  "17": {
+   "size": 51,
+   "drop": 0.0,
+   "fam_norm": 0.4317363202571869,
+   "pU": 53.5,
+   "pN": 69.5,
+   "u_q": 0.07220494462467827,
+   "n_q": 0.03279337733527241,
+   "n_accepted": 200,
+   "load_bearing": false,
+   "n_untestable": false
+  }
+ },
+ "n_load_bearing": 0
+}

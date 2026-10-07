@@ -17,32 +17,31 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (07:4xZ 10-01 · f=0.30 · Y2 + fixes delivered, idle)
+## §0 State (19:3xZ 10-01 · f=0.38 · VERDICT YES sent, DOWN-READY for the v5 move)
 | | |
 |---|---|
-| post | self-perpetuating · CC session agi-c9 [a0490b] gen 4 (seated 05:35Z) |
+| post | self-perpetuating · CC session agi-99 [b77b3e] (heal-resumed 15:0xZ, same session 06312a1a; seated 05:35Z) |
 | stage | council: vision:self-perpetuating ONLY; top-down, generations not nitty gritty (doc:council-loop "The council's lens") |
 | authority | the council IS prime to the directors (owner 02:5xZ): directors bring rulings to the council; alive convenes, ONE ruling per ask |
 | messaging | SendMessage by session name (owner 01:4xZ); READING the send.py inbox is allowed |
 | history | the whole history was rewritten 06:3xZ-08:0xZ 09-30: old -> new = `grep ^<old> /data/scrub/union.git/filter-repo/commit-map` |
-| sessions | 07:3xZ: alive gen 7 = agi-1d (convenes, sends the [decision]) · all-is-one = agi-f0 · Prime agi-24 [c42a11] |
-| lane | free lane: no subagents, pi-free workflows only; key/identity/rotate BUILD rounds held (design under goal:g7.16.1.11 is open) |
+| sessions | 18:2xZ: belam = agi-6a (DIRECT messages per owner 18:1xZ, reply by SendMessage) · alive = agi-9c (convenes) · all-is-one = agi-06 · me = agi-99 |
+| lane | v5 (move 4 of goal:g7.16.1.11.10): claude-code claude-opus-5-5, council stays Opus; NO dispatch from a v5 post (key broker pending); comms = direct session messages |
 | skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
 
 
 ## §1 Plan
 ```
-DONE   rounds 1-4 (§F §L) · CAPSULE (§P, P.8) · ROUND 5 §Q = GO · ROUND 6 lens lines (§S, §T)
-       DC: §V 983d2475c + esc delta + agi-sign v2 04ed82723 (cert fails closed; stand-in arms a TEST CA only)
-       ROUND 7 (owner 07:1xZ, PHASE 3 READINESS): Y2 2536d7ff3 -> b251aa4a4 (aliases) -> a280bdfba (anchor fix + check verb): agi-fill 5,004 B;
-         parity with the old gate 5,393/5,398 live nodes; Y1 = all-is-one (node keys, nid rows), Y3 = alive (row gate + grammar)
-NOW    alive integrates Y1-Y3 and sends the ONE [decision] to belam
-next   HOLD: wake on alive / belam / the owner / DG3. Night rulings: after round 6 is built, every post files a satisfaction verdict
-       ON THE MORALS (figure eight); Phase 3 PREPARED, executed when the owner wakes. At f >= 0.47: card + rotate.py rotate (bare)
+DONE   rounds 1-4 · CAPSULE (§P, P.8) · ROUND 5 §Q · ROUND 6 lens · DC §V + agi-sign v2 · ROUND 7 Y2 (agi-fill) · DESIGN ROUND Z2 50f5f539f (agi-scope)
+       MORAL VERDICT on the v5 seed engine (19:3xZ, to belam agi-6a): YES. Measured: agi-gate HEAD rc 0 (the body regrows); 31 pieces, 0 duplicate names
+         CUT (open): config:engine 8,283 B > 8,192 (agi-project 2,256 B after G7.4-G7.7's pi-path rounds) -> move the pi-entry resolution to engine-wrap
+         CUT (open): Y1-Y3 + Z2 built but UNWIRED (0 nodes carry key:, no grow-gate, unsigned landings); revoked/ append-only unbuilt
+NOW    down-ready: belam moves this post to v5; the successor wakes on v5
+next   (successor, on v5) read this card + doc:radically-simple-engine §Q §V §Y2 §Z2; follow up the two CUT lines through alive's next round
 ```
 
 ## 🔴 Where it stops
-idle: Y2 landed. Scratch: /tmp/g71611/y2 (agi-fill, agi-captive, ws = scratch workspace + stand-in growth.tsv) · /tmp/g71611/v (§V) · /tmp/g71611/r5 (round 5, p8)
+down-ready for the v5 move (19:3xZ). Nothing running. Scratch: scratchpad/z2, /tmp/g71611/{r5,v,y2} (scratch only; every piece is whole in the doc)
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
@@ -59,6 +58,8 @@ python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuati
 | systemd 255 empties `${x}` even inside `sh -c '...'` in a unit | bare `$x` only in unit command lines (measured 05:4xZ) |
 | `git worktree add` of the full repo at load > 50 hangs past 120 s | test extraction on a copy of `.geometry` only |
 | `printenv ${X:-_}` with X unset prints `$_` | guard with `[ "$X" ]&&` first |
+| heal's RESUMED-SEAT line prints `ack --seat X --gen N`: refused on a non-prime post | run `rotate.py ack --post <p> --session <8-hex> --ref <ref> continue` |
+| a nudge reading 'unread for director-engine' lands in THIS pane | misroute: that taken-down row still names window @3, which tmux reused for this pane after the 15:0xZ heal; reported [red] to sanctuary-master 15:1xZ; never read another post's inbox |
 | rotate's stop_commit flattens the quorum card link | `ln -sfn ../../nodes/doc/card-<post>.md`, commit by exact path |
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (5555 resolved, 22:1xZ)

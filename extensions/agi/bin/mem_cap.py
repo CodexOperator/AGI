@@ -268,9 +268,8 @@ def _reset_probe_unit() -> None:
     SIGKILL, so the unit ALWAYS ends up failed -- leaving it resident is the
     leak, not the kill."""
     try:
-        subprocess.run(
-            ["systemctl", "--user", "reset-failed", f"{_PROBE_UNIT}.scope"],
-            capture_output=True, timeout=10)
+        subprocess.run(["systemctl", "--user", "reset-failed", scope_unit(_PROBE_UNIT)],
+                       capture_output=True, timeout=10)
     except (OSError, subprocess.SubprocessError):
         pass
 
@@ -336,6 +335,11 @@ def unit_name(prefix: str, name: str) -> str:
     two launches of one name in the same second collide on the unit; a
     per-process sequence covers a clock too coarse to tick between calls."""
     return f"{prefix}-{re.sub(r'[^\w.-]', '_', name)}-{time.time_ns()}-{next(_UNIT_SEQ)}"
+
+
+def scope_unit(unit: str) -> str:
+    """THE one `.scope` spelling: `systemd-run --scope --unit=X` creates `X.scope`."""
+    return f"{unit}.scope"
 
 
 def scope_argv(argv: list, slice_: "str | None", unit: "str | None" = None,

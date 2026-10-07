@@ -31,10 +31,24 @@ ROW = {"name": "mainseat", "role": "director", "pid": 111, "worktree": "",
        "session_id": SID, "recover": True}
 
 
+def _seed_recovery_ack(gdir):
+    """config:rotations `recovery_ack` -- the recovered-seat ack wording
+    (hypothesis:heal-ack-line-comes-from-config-rotations-by-role)."""
+    geo = Path(gdir) / "nodes" / ".geometry"
+    geo.mkdir(parents=True, exist_ok=True)
+    (geo / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\nrecovery_ack:\n"
+        "  prime_director: {recovered: \"RECOVERED SEAT {seat} --gen {gen}\","
+        " resumed: \"RESUMED SEAT {seat} --gen {gen}\"}\n"
+        "  default: {recovered: \"RECOVERED SEAT {seat}\","
+        " resumed: \"RESUMED SEAT {seat}\"}\n---\n")
+
+
 def _recover(tmp_path, monkeypatch, *, transcript: bool, row=None):
     rotate = _load("rotate")
     gdir = tmp_path / "main" / ".agi"
     gdir.mkdir(parents=True, exist_ok=True)
+    _seed_recovery_ack(gdir)
     monkeypatch.setattr(rotate, "CC_PROJECTS_DIR", tmp_path / "projects")
     tree = heal._seat_tree_dir(gdir, {"worktree": ""})
     if transcript:

@@ -17,6 +17,7 @@ cadences:
     enabled: true
     box: local-town
     why_box: "the remote-box reader: mail_poll consumes inboxes fetched from the hub"
+    cmd: git -C {repo_root} fetch -q origin && python3 {engine_root}/extensions/agi/bin/send.py read --box-local --peek >> {log} 2>&1; python3 {engine_root}/extensions/agi/bin/rotate.py migrate --receive >> {log} 2>&1
   engine_push:
     schedule: 47 * * * *
     enabled: false
@@ -35,6 +36,12 @@ cadences:
     box: local-town
     why_box: the Prime's town->season2/main merge routine runs where the Prime and the town trunk live (owner 01:2xZ 09-21, goal:g5; every 4 hours, owner 09-23 15:0xZ); inert until extensions/agi/bin/prime_merge.py lands (director-engine round)
     cmd: test -f {repo_root}/extensions/agi/bin/prime_merge.py && PI_BIN=$HOME/.npm-global/bin/pi python3 {repo_root}/extensions/agi/bin/prime_merge.py tick --root {root}
+  graph_metrics:
+    schedule: 23 * * * *
+    enabled: true
+    box: local-town
+    why_box: "belam's crontab reads every uid's files and writes the town node; a v5 uid reads only its own (goal:g3.8, AA1.S)"
+    cmd: python3 {repo_root}/extensions/agi/bin/metrics_cell.py {root} town:local-maxxing metrics_line --actor belam -- python3 {repo_root}/extensions/agi/bin/success_metrics.py --line {root}
   memory_alarm:
     every_mins: 1
     enabled: true
@@ -48,7 +55,7 @@ cadences:
     why_box: same reader as memory_alarm, pointed at the SYSTEM agi.slice where the pi-engine posts (agi-post@*) live; reads this box's cgroup, so it runs on this box only (stage-2.5 rootplan C3, parity row 45)
     cmd: python3 {repo_root}/extensions/agi/bin/memory_alarm.py --root {root} --warn-avail-mib 2048 --crit-avail-mib 1024 --warn-psi-some-avg60 10 --crit-psi-full-avg60 20 --warn-cgroup-max-frac 0.95 --repeat-mins 15 --notify belam --cgroup /sys/fs/cgroup/agi.slice --state {root}/sessions/memory-alarm-posts.json
 crons_live: true
-edited_by: belam
+edited_by: a00-b465ec27
 season: 1
 services:
   agi-alarms-sanctuary-master:

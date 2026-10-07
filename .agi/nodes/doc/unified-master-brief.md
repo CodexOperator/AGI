@@ -47,7 +47,7 @@ TRAJECTORY  your town's todo — you write it, whole, one version per write
 ## §1 The master loop
 ```
 intake   one inbox read per nudge (never peek) · owner lines landed verbatim FIRST (the HEAD's notes line) · an owner LINK: land it on your town board's Links, then run the ingestion workflow by name, detached -- never a director graph round (owner 09-18)
-PLAN     one goal or hypothesis per round under your town's goal, in its schema's format (.agi/context/schemas/[goal].md · [hypothesis].md) — via write.py
+PLAN     one goal or hypothesis per round under your town's goal, in its schema's format (.agi/context/schemas/[goal].md · [hypothesis].md) — plain Write/Edit on the new engine (write.py on the old setup)
 ORDER    your director, one tagged dm naming the node (queue words, §2) — the director dispatches, never you
 REVIEW   its [merge-up] BY NAME: workflow.py run agi-merge-up-review on pi (never the Claude Workflow tool) — read the bytes, not the report
 ACCEPT   a note naming config-max and template-max answered  ·  or DEMOTE: the verdict + the measured reason

@@ -8,7 +8,7 @@ drive the REAL production entry point -- `verification.main --suite`, not a
 hand-written stamp -- and prove the write path and the read path agree:
 
   1. green  -> the stamp exists at exactly `cli._find_root()/sessions/verified.stamp`
-  2. SKIP-only is green too (the claim says PASS or SKIP, no FAIL)
+  2. SKIP-only is NOT green (rc 3, no stamp: a skipped suite never ran)
   3. red    -> no stamp is created at all
 """
 from __future__ import annotations
@@ -66,11 +66,15 @@ def test_green_suite_writes_the_stamp_the_delete_old_gate_reads(
     assert "green suite" in body and "deadbeef" in body, body
 
 
-def test_skip_only_is_green_too(tmp_path, monkeypatch):
-    """SKIP is not FAIL: a suite that skipped everything is still all-green."""
+def test_skip_only_is_not_green(tmp_path, monkeypatch):
+    """A SKIPPED suite never ran, so it certifies nothing (DG1 ruling 16:39Z
+    10-07, mur-sm21-dg3-verify5 D1): rc 3 and no verified.stamp. The stamp is
+    what the --delete-old gate reads as a green certification, and
+    rotate._merge_up_suite reads rc 0 as "suite passed": a uid with no pytest
+    must merge nothing. (Was test_skip_only_is_green_too: rc 0 + a stamp.)"""
     groot = _arm(tmp_path, monkeypatch, [_result("SKIP")])
-    assert verification.main(["--suite", "--root", str(tmp_path)]) == 0
-    assert (groot / "sessions/verified.stamp").exists()
+    assert verification.main(["--suite", "--root", str(tmp_path)]) == 3
+    assert not (groot / "sessions/verified.stamp").exists()
 
 
 def test_red_suite_writes_no_stamp(tmp_path, monkeypatch):

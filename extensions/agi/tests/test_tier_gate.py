@@ -1368,3 +1368,151 @@ def test_plain_scratch_refusal_fires_only_under_the_live_graph(monkeypatch):
     finally:
         os.chdir(old_cwd)
         shutil.rmtree(scratch, ignore_errors=True)
+
+
+# --- fix: an UNREADABLE worktrees entry never kills collection -----------
+# hypothesis:g1-conftest-record-roots-survives-an-unreadable-worktree-entry.
+# `_record_roots()` walked every entry of the main graph's `worktrees/` with
+# `if not wt.is_dir(): continue` then `find_project_root(wt)`. `is_dir` swallows
+# ENOENT/ENOTDIR (a dangling entry) but NOT EACCES: one entry that is a symlink
+# into a mount another uid owns kills collection for the WHOLE suite, before
+# one test runs. The scan must skip what it cannot read and still record every
+# readable sibling.
+
+
+def test_record_roots_survives_an_unreadable_worktrees_entry(tmp_path):
+    import shutil
+    if os.geteuid() == 0:
+        import pytest as _pytest
+        _pytest.skip("root reads a mode-000 dir: the EACCES case cannot fire")
+    td = str(tmp_path)
+    main = _build_fake_main(td, with_kid_record=False)
+    wts = main / ".agi" / "worktrees"
+    wts.mkdir(parents=True, exist_ok=True)
+    locked = Path(td) / "locked"          # this uid cannot traverse it
+    locked.mkdir()
+    (locked / ".agi").mkdir()             # a real graph marker inside it ...
+    (locked / ".agi" / "config.json").write_text("{}")  # ... stat() on which is EACCES
+    try:
+        # (a) EACCES, named to sort BEFORE the readable sibling so a guard that
+        # used `break` goes red; the chmod is INSIDE the try that restores 0o700.
+        os.chmod(locked, 0o000)
+        os.symlink(locked, wts / "aaa-locked-link")
+        os.symlink(Path(td) / "gone", wts / "dangling-link")  # (b) ENOENT
+        good = wts / "good"                             # (c) readable sibling
+        (good / ".agi" / "sessions").mkdir(parents=True)
+        (good / ".agi" / "nodes").mkdir()
+        (good / ".agi" / "config.json").write_text("{}")
+        good_sessions = str((good / ".agi" / "sessions").resolve())
+        tests = main / "extensions" / "agi" / "tests"
+        probe = tests / "test_roots_probe.py"
+        probe.write_text(
+            "import importlib.util, os\n"
+            "_c = os.path.join(os.path.dirname(__file__), 'conftest.py')\n"
+            "_s = importlib.util.spec_from_file_location('_gate_probe', _c)\n"
+            "_g = importlib.util.module_from_spec(_s)\n"
+            "_s.loader.exec_module(_g)\n"
+            "GOOD = %r\n"
+            "def test_readable_sibling_is_still_recorded():\n"
+            "    roots = _g._record_roots()\n"
+            "    assert GOOD in roots, roots\n" % good_sessions,
+            encoding="utf-8")
+        env = dict(os.environ)
+        env.pop("AGI_TIER", None)
+        for _g in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE"):
+            env.pop(_g, None)
+        proc = subprocess.run(
+            [sys.executable, "-m", "pytest", str(probe), "-q"],
+            cwd=str(main), capture_output=True, text=True, env=env, timeout=300)
+    finally:
+        os.chmod(locked, 0o700)  # tmp_path cleanup must be able to read it
+        shutil.rmtree(td, ignore_errors=True)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+
+
+def test_unreadable_worktrees_entry_fails_the_tier_gate_closed(tmp_path):
+    """corrective DH.DG1.02 item 1, committed (item 2): an entry the scan could
+    not read is an UNKNOWN record, never an absent one, so it must never be
+    laundered into an `AGI_TIER` fallback. No record at all -> the MOST
+    RESTRICTIVE tier, and it beats `AGI_TIER=director` (the fail-closed flag is
+    not an env fallback); a readable record -> THAT record's tier, whatever
+    it is."""
+    import shutil
+    if os.geteuid() == 0:
+        import pytest as _pytest
+        _pytest.skip("root reads a mode-000 dir: the EACCES case cannot fire")
+    for record_tier, expected in ((None, "kid"), ("director", "director")):
+        td = str(tmp_path / f"case-{record_tier}")
+        main = _build_fake_main(td, with_kid_record=record_tier is not None)
+        locked = Path(td) / "locked"
+        locked.mkdir(parents=True)
+        (main / ".agi" / "worktrees").mkdir(parents=True, exist_ok=True)
+        (locked / ".agi").mkdir()
+        (locked / ".agi" / "config.json").write_text("{}")
+        probe = main / "extensions" / "agi" / "tests" / "test_tier_probe.py"
+        env = dict(os.environ)
+        (env.update(AGI_TIER="director") if record_tier is None
+         else env.pop("AGI_TIER", None))
+        for _g in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE"):
+            env.pop(_g, None)
+        try:
+            os.chmod(locked, 0o000)
+            os.symlink(locked, main / ".agi" / "worktrees" / "aaa-locked-link")
+            rec = (main / ".agi" / "worktrees" / "kidA" / ".agi" / "sessions"
+                   / "iter-test" / "rec" / "agent.json")
+            if record_tier is not None:
+                rec.parent.mkdir(parents=True, exist_ok=True)
+                rec.write_text(json.dumps(
+                    {"status": "running", "tier": record_tier, "pid": os.getpid()}))
+            probe.write_text(
+                "import importlib.util, os\n"
+                "_c = os.path.join(os.path.dirname(__file__), 'conftest.py')\n"
+                "_s = importlib.util.spec_from_file_location('_tier_probe', _c)\n"
+                "_g = importlib.util.module_from_spec(_s)\n"
+                "_s.loader.exec_module(_g)\n"
+                "def test_effective_tier_is_restrictive_when_an_entry_was_dropped():\n"
+                "    assert _g._effective_tier() == %r, _g._effective_tier()\n"
+                % expected, encoding="utf-8")
+            proc = subprocess.run(
+                [sys.executable, "-m", "pytest", str(probe), "-q"],
+                cwd=str(main), capture_output=True, text=True, env=env, timeout=300)
+        finally:
+            os.chmod(locked, 0o700)
+            shutil.rmtree(td, ignore_errors=True)
+        assert proc.returncode == 0, (record_tier, proc.stdout + proc.stderr)
+
+
+def test_unreadable_worktrees_dir_fails_the_tier_gate_closed(tmp_path):
+    """corrective DH.DG1.05 item 1: a worktrees DIR the scan cannot list is the
+    same unknown-record shape as an unreadable ENTRY, so it must fail closed
+    too, not fall through to `AGI_TIER`."""
+    if os.geteuid() == 0:
+        import pytest as _pytest
+        _pytest.skip("root reads a mode-000 dir: the EACCES case cannot fire")
+    td = str(tmp_path)
+    main = _build_fake_main(td, with_kid_record=False)
+    wts = main / ".agi" / "worktrees"
+    (wts / "kidA" / ".agi" / "sessions").mkdir(parents=True)  # a hidden record
+    probe = main / "extensions" / "agi" / "tests" / "test_dir_probe.py"
+    probe.write_text(
+        "import importlib.util, os\n"
+        "_c = os.path.join(os.path.dirname(__file__), 'conftest.py')\n"
+        "_s = importlib.util.spec_from_file_location('_dir_probe', _c)\n"
+        "_g = importlib.util.module_from_spec(_s)\n"
+        "_s.loader.exec_module(_g)\n"
+        "def test_effective_tier_is_restrictive_when_the_dir_was_dropped():\n"
+        "    assert _g._effective_tier() == 'kid', _g._effective_tier()\n",
+        encoding="utf-8")
+    env = dict(os.environ)
+    env["AGI_TIER"] = "director"  # the flag must beat the env here too
+    for _g in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE"):
+        env.pop(_g, None)
+    try:
+        os.chmod(wts, 0o000)  # the listing itself is the EACCES
+        proc = subprocess.run(
+            [sys.executable, "-m", "pytest", str(probe), "-q"],
+            cwd=str(main), capture_output=True, text=True, env=env, timeout=300)
+    finally:
+        os.chmod(wts, 0o700)  # tmp_path cleanup must be able to read it
+        shutil.rmtree(td, ignore_errors=True)
+    assert proc.returncode == 0, proc.stdout + proc.stderr

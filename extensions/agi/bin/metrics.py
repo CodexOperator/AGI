@@ -1140,7 +1140,14 @@ def _find_root(start: Path) -> Path:
 
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] in ("-h", "--help"):
+        print("usage: metrics.py [<repo>/.agi]  (print the graph root's metrics as k=v lines)")
+        return 0
     root = Path(argv[0]) if argv else _find_root(Path.cwd())
+    if not (root / "nodes").is_dir():   # goal:g3.8: the repo root, not <repo>/.agi, read all-zero
+        print(f"ERR: metrics.py: {root} has no nodes/ (pass <repo>/.agi, the graph root)",
+              file=sys.stderr)
+        return 2
     emit(root)
     return 0
 

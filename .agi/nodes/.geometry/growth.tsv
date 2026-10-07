@@ -109,7 +109,6 @@ b34ef6e3e675c6a3	idea	-	hypothesis+hypothesis	*
 c5f472df7d7f562a	idea	-	hypothesis+vision	*
 b9059e31128e0324	idea	-	vision	*
 3a1f12e4925483dd	idea	-	vision+vision	*
-43644068064c42f1	ladder	-	goal	*
 2fe50ba43c479d67	moral	-	-	owner
 e03dba4915468e1f	mvp	-	experiment	*
 184a2c5147c53361	mvp	-	experiment+experiment	*
@@ -134,7 +133,7 @@ b0bfbe6eccc4cf35	overview	-	bigger_outcome	*
 69199f50ceb12daf	overview	-	bigger_outcome+bigger_outcome+bigger_outcome	*
 a9652a597910b550	overview	-	bigger_outcome+bigger_outcome+bigger_outcome+bigger_outcome	*
 cd864291d482db53	task	-	hypothesis	*
-0bdfa51c9e997b40	town	-	ladder	*
+00b8ef0c7c6395ec	town	-	goal+vision	*
 986917f699e30201	verdict	-	experiment	*
 8ff4d5c42bb845bf	verdict	-	experiment+experiment	*
 d4d7bf6c36587bca	verdict	-	experiment+hypothesis	*

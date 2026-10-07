@@ -58,6 +58,19 @@ def _write_seats(graph: Path, rows: list[dict]) -> None:
     p.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def _seed_recovery_ack(gdir):
+    """config:rotations `recovery_ack` -- the recovered-seat ack wording
+    (hypothesis:heal-ack-line-comes-from-config-rotations-by-role)."""
+    geo = Path(gdir) / "nodes" / ".geometry"
+    geo.mkdir(parents=True, exist_ok=True)
+    (geo / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\nrecovery_ack:\n"
+        "  prime_director: {recovered: \"RECOVERED SEAT {seat} --gen {gen}\","
+        " resumed: \"RESUMED SEAT {seat} --gen {gen}\"}\n"
+        "  default: {recovered: \"RECOVERED SEAT {seat}\","
+        " resumed: \"RESUMED SEAT {seat}\"}\n---\n")
+
+
 def _worktree_root(tmp_path: Path, *, worktree: bool) -> tuple[Path, Path]:
     """A REAL worktree-shaped graph root. `worktree=False` is the same root
     with the worktree dir REMOVED — the shape a pruned worktree leaves."""
@@ -66,6 +79,7 @@ def _worktree_root(tmp_path: Path, *, worktree: bool) -> tuple[Path, Path]:
     (gdir / "sessions" / "quorum").mkdir(parents=True, exist_ok=True)
     (gdir / "config.json").write_text(json.dumps({"metric_primary": "x"}))
     (gdir / "windows.txt").write_text("", encoding="utf-8")
+    _seed_recovery_ack(gdir)
     _write_seats(gdir, [dict(ROW)])
     wt_agi = gdir / "worktrees" / "seat-wt" / ".agi"
     wt_agi.mkdir(parents=True, exist_ok=True)
@@ -200,6 +214,7 @@ def test_typeerror_inside_a_cwd_aware_launcher_is_never_retried(tmp_path,
     called it a second time WITHOUT cwd, waking the successor in MAIN."""
     gdir = tmp_path / "main" / ".agi"
     gdir.mkdir(parents=True)
+    _seed_recovery_ack(gdir)
     calls: list = []
 
     def launch(root, name, shell_cmd, window_path=None, cwd=None):
@@ -249,6 +264,7 @@ def test_pre_cwd_seam_still_lands_for_a_main_checkout_seat(tmp_path,
     the independent second line."""
     gdir = tmp_path / "main" / ".agi"
     gdir.mkdir(parents=True)
+    _seed_recovery_ack(gdir)
     # heal does `import send as _send` INSIDE `_dm_crash_recovery`, so the
     # module object it gets is the one in `sys.modules` -- register this
     # instance there (monkeypatch restores it) or the stub patches a different
