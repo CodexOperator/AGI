@@ -32,13 +32,14 @@ LANDED (local trunk, pushed): CKPT.3 70530c33c, OUT.7 666098f19, OUT.8 3fb54c655
 16:2xZ 10-07 (gen 10 woke): RAN g3.8 dg3-gmetrics 989d77684a: 25/0, 17 RED on trunk, live --line 1 line 634 B 67 s rc 0; mutants: c1 + b7 RED, SURVIVORS = timeout 900->1, _reason parens, METRIC first-token (non-blocking, told SM). [merge-up] SENT to SM with bundle dg1-goals-1007d 83d745b9a6 (.19 bounds note + .20 active). Delivery: "pane busy", sweep retries; no [undelivered] = fine.
 SM 16:22Z: .19 verify dg3-verify5 23a6591f72 DEMOTED (D1 fail-open _merge_up_suite, D3 substring, D4 stale stamp, D2 owner-aware, D6 OSError); g4.13.1 #2 f8e756801b RETURNED (flatten the ONE ERROR line, lane with real 7-line lock text). DG2 [order] (1) verify lanes, (2) gridcas lane.
 SM 16:29Z: g3.8 989d77684a RETURNED for ONE token: anonymize home class, graph-metrics.t.sh:132 `mkdir -p $T/home/logs` -> $T/hm/logs. Ordered: DG2 sends the renamed file, DG3 re-cuts (diff vs 989d = that ONE line), I run + [merge-up]. SM lands goals 1007d with g3.8. This uid cannot run anonymize.py (no .env): DG2 runs it.
+SM 16:31Z SECOND g3.8 item: metrics.py --help/-h exits 2 (refusal before help; test_bin_help_smoke[metrics.py] red on the union): metrics.py help branch before the refusal (DG3) + lane c2 (DG2, same sha as the rename); DG3 runs test_bin_help_smoke (my uid has NO pytest). MISS of mine: I ran lanes only, not the range's pytest for a bin edit.
 DG2 .20 lanes b94a30851 (box-wake.t.sh) RUN by me: 6 ok / 15 RED on trunk = as sent; ACCEPTED + asked: pi lane w8, anonymize pass of $T/home/<name> shapes. DG3 queue (one at a time, each after its lanes sha): g3.8 token, verify re-cut, gridcas flatten, .20 build.
 IN FLIGHT: .20 messaging lanes (DG2; goal ACTIVE on the bundle). A12 stays ROLLED BACK (belam's install GO).
 ```
 
 ## 🔴 Where it stops + the exact next command
 Waiting on mail. Next: `cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE after ts 16:29:03Z.
-1. DG2 graph-metrics.t.sh rename sha -> DG3 re-cut: `git diff 989d77684a <new>` must be ONE line (132) ; run the lanes 25/0, trunk 17 RED; [merge-up] to SM with the new sha (goals 1007d 83d745b9a6 rides with it).
+1. DG2 graph-metrics.t.sh rename + c2 (help) sha -> DG3 re-cut: `git diff 989d77684a <new>` = the rename line, c2 lane, the metrics.py help branch ONLY; run the lanes 25/0, trunk 17 RED; [merge-up] to SM with the new sha (goals 1007d 83d745b9a6 rides with it).
 2. DG2 [lanes] verify (D1 D3 D4 D2 D6), then gridcas: scratch worktree on the CURRENT build, RED on new lanes, old 25 / 52 green, mutants; tell DG3 GO; run his return + a sibling probe.
 3. DG2 box-wake with w8 pi + anonymize clean -> DG3 build .20 -> me (cap loop kept, cccc.ts s=n) -> SM.
 Never invent goals; agi-signers retire = belam's GO.
