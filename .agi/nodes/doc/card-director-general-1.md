@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-07 ~22:30Z, gen 13: lanes E + H accepted and handed to DG5; lane D briefed; A1 + lane I still in SM's gate)
+## §0 State (10-07 ~22:50Z, gen 13: E 7bd46defd8 + H 0e294b3404 built, judged, [merge-up] sent to SM; lane B accepted (B2 addendum asked); lane D briefed; A1 + lane I still in SM's gate)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (engine.v 4) · parent SM (sanctuary-master, rotated ~20:00Z; his successor gates from his card) · trunk local-maxxing/season2/main · my t = posts/director-general-1 |
@@ -29,11 +29,12 @@ town: core
 OWNER 10-07 (via belam): old Python kept this season, shell rewrites = season 3. belam PASS B4 [decision] 20:49Z: goal:g1.41 residues; DG1 = hypotheses from the node; lane I = mine. SM Board e538e69d87: A1+.20 DG3 · A2-A4+B+F DG4 · C E H DG5 (Sonnet claude-code) · D DG3 · G DG2 · J landed · I me.
 LANDED: .20 box-wake 542d02390d. IN SM'S GATE (one union): A1 3209c6a32e + lane I 670fac1be0 (also queued: DG5 d75f721c08 find_pin_log, lane G 433b38e9f5..ac56ce64ff, lane C a516ac352e..30e734fb6b).
 BRIEFS on posts/director-general-1 (nodes only; ONE nodes-only merge-up at the end, anonymize-clean): A1 7651c8002c · C 2f1160c8ef · E d7595af7db · H e620a7863c · A2-A4 92511e63f4+40d8e367da · B be0818a36c+1090d38bd6 · D 895d157040. 
-DG2 LANES ACCEPTED+run: A1 fe42f38c12 · A2-A4 0bbc1d6679 · C ced863323f · G ac56ce64ff · E 3f7b284b46+00fb0d5bbb (my refs 26/50/10 green; my mutant 'every deleted nodes/ file' caught the addendum) · H 11dca49a94 (my ref 0 FAIL). HANDED to DG5 (waits the live trunk): E, H. WAITING on DG2: lane B (+B5), then D (sent 22:25Z; D3 must be reproduced first or it drops). NOT YET BRIEFED: F, 38 schema nodes.
+DG2 LANES ACCEPTED+run: A1 fe42f38c12 · A2-A4 0bbc1d6679 · C ced863323f · G ac56ce64ff · E 3f7b284b46+00fb0d5bbb · H 11dca49a94 · B a8cd20735c (my blind refs green; GAP: the drop stub hands nobody a safe.directory=* gitconfig, a real nobody dies 'dubious ownership': DG2 asked for a realistic-env addendum, builder must carry GIT_CONFIG_COUNT safe.directory in the piece).
+BUILDS JUDGED: E 7bd46defd8 + H 0e294b3404 (DG5) -> ONE [merge-up] to SM 22:4xZ (undelivered-yet = sweep retries). graph-metrics r2d/r2e FAIL identically on the trunk (not E). HANDED: B to DG4 (cut AFTER A2-A4 lands; B1 measures final bytes). WAITING: DG2 B2 addendum, then lane D lane (D3 reproduce-first); DG4 A2-A4 (after A1 lands). NOT YET BRIEFED: F, 38 schema nodes.
 ```
 
 ## 🔴 Where it stops + the exact next command
-FIRST ACT: read mail (`cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE /data/work/agi/.agi/sessions/inbox/director-general-1.md after the last ts you saw; last seen 2026-10-07T22:21:49Z).
+FIRST ACT: read mail (`cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE /data/work/agi/.agi/sessions/inbox/director-general-1.md after the last ts you saw; last seen 2026-10-07T22:29:51Z).
 THEN, by what arrives: SM [landed] -> strike (A1 = engine-root.md boot hole closed; tell belam the host order stays: refresh carry.env pin f024955299 BEFORE the unit swap), then BRIEF DG3 for lane D (build on DG2's lane sha) and cut DG4 on A2-A4. SM [return] -> reproduce in plain git/py at the sha, rule, order DG2 lane first + the builder ONE new commit. A DG2 lane sha -> RUN it at the sha (NEG on trunk, my OWN blind reference, a mutant/sibling probe), then [ok] + hand to the builder. A builder sha (DG5 C final / E / H, DG4 A2-A4 / B, DG3 D) -> RUN at the sha (clean git archive, sh), compare with MY OWN reference/probe, then ONE [merge-up] to sanctuary-master. Pytest here: `pip install --target <scratchpad>/pt pytest`, PYTHONPATH=<scratchpad>/pt.
 WORKTREES to remove when lane I lands (git -C /data/work/agi worktree remove --force PATH, then delete the branch): /var/lib/agi/director-general-1/wt-i (branch dg1-g141-i) and wt-i2 (the re-cut 670fac1be0, branch dg1-g141-i2).
 Standing: agi-signers retire = belam's ring-install GO · .20 SENDER+READER AGI_POST=%i host act = belam's GO (engine-post.md:75 swap = B5 lands first) · carry.env pin refresh BEFORE the A1 unit swap · lane F grid.py waits for belam's owner Q (double-write shape). Never invent goals.
