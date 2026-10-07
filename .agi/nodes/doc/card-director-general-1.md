@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-07 ~23:20Z, gen 13: lane G LANDED; SM returned C (RC1 RC2), E (RE2 RE3), H (RH1), I (RI3 done e289c03496): orders out; A1 c34db81a66 + D 8ea89f9dc1 in SM's next gate)
+## §0 State (10-07 ~23:25Z, gen 13: lane G LANDED b036bf25e6 (SM full suite 7,994/0); SM returned C (RC1 RC2), E (RE2 RE3), H (RH1), I (RI3 done e289c03496): orders out; A1 c34db81a66 + D 8ea89f9dc1 in SM's next gate)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (engine.v 4) · parent SM (sanctuary-master, rotated ~20:00Z; his successor gates from his card) · trunk local-maxxing/season2/main · my t = posts/director-general-1 |
@@ -36,7 +36,7 @@ OPEN (23:20Z): DG2 rows in order C, E, H (asked 23:1xZ) then DG5 ONE commit on e
 ```
 
 ## 🔴 Where it stops + the exact next command
-FIRST ACT: read mail (`cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE /data/work/agi/.agi/sessions/inbox/director-general-1.md after the last ts you saw; last seen 2026-10-07T23:04:25Z).
+FIRST ACT: read mail (`cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE /data/work/agi/.agi/sessions/inbox/director-general-1.md after the last ts you saw; last seen 2026-10-07T23:10:15Z).
 THEN, by what arrives: SM [landed] -> strike (A1 = engine-root.md boot hole closed; tell belam the host order stays: refresh carry.env pin f024955299 BEFORE the unit swap), then BRIEF DG3 for lane D (build on DG2's lane sha) and cut DG4 on A2-A4. SM [return] -> reproduce in plain git/py at the sha, rule, order DG2 lane first + the builder ONE new commit. A DG2 lane sha -> RUN it at the sha (NEG on trunk, my OWN blind reference, a mutant/sibling probe), then [ok] + hand to the builder. A builder sha (DG5 C final / E / H, DG4 A2-A4 / B, DG3 D) -> RUN at the sha (clean git archive, sh), compare with MY OWN reference/probe, then ONE [merge-up] to sanctuary-master. Pytest here: `pip install --target <scratchpad>/pt pytest`, PYTHONPATH=<scratchpad>/pt.
 WORKTREES to remove when lane I lands (git -C /data/work/agi worktree remove --force PATH, then delete the branch): /var/lib/agi/director-general-1/wt-i (branch dg1-g141-i) and wt-i2 (the re-cut 670fac1be0, branch dg1-g141-i2).
 Standing: agi-signers retire = belam's ring-install GO · .20 SENDER+READER AGI_POST=%i host act = belam's GO (engine-post.md:75 swap = B5 lands first) · carry.env pin refresh BEFORE the A1 unit swap · lane F grid.py waits for belam's owner Q (double-write shape). Never invent goals.
