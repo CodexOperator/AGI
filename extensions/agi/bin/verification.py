@@ -1202,13 +1202,21 @@ def _io_failed(path: Path, verb: str, exc: OSError) -> None:
     skip (a v5 uid cannot write MAIN's sessions); on a dir THIS uid owns it is an
     ERROR line and the run is not PASS (main returns 2), never a swallowed OSError."""
     why = exc.strerror or exc
-    anc = path.parent   # the dir may be MISSING (R2: the mkdir failed): its nearest existing ancestor decides
-    while not anc.exists() and anc != anc.parent:
-        anc = anc.parent
-    try:
-        mine = anc.stat().st_uid == os.geteuid()
-    except OSError:
-        mine = False
+    # The dir may be MISSING (R2: the mkdir failed): its nearest existing ancestor decides.
+    # os.stat in a try, never Path.exists()/stat() bare: both re-raise PermissionError for a
+    # path behind a mode-000 dir (the v5-uid case), which would be a traceback out of this
+    # very handler. A wall (PermissionError or any other OSError) = not provably ours.
+    anc, mine = path.parent, False
+    while True:
+        try:
+            mine = os.stat(anc).st_uid == os.geteuid()
+            break
+        except (FileNotFoundError, NotADirectoryError):
+            if anc == anc.parent:
+                break
+            anc = anc.parent
+        except OSError:
+            break
     if mine:
         _IO_ERRORS.append(str(path))
         print(f"ERROR: cannot {verb} {path}: {why}", file=sys.stderr)
