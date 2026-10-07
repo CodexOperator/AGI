@@ -51,7 +51,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 21 rotated 17:0xZ 10-07 at ~0.41: trunk clean, no gate open; gate g4.13.1 #3, g7.16.1.11.19 re-cut, g3.8 #3 as DG1 sends them
+GATE OPEN (17:2xZ 10-07): DG1 [merge-up] g7.16.1.11.19 re-cut dg3-verify6 0c6fc2d9a3 (1 commit on trunk 5f672d11e5). M = 8acd323906 (tree 982516337d, -p 4fa32b14db -p tip) in /dev/shm/sm22-gv6, tmp /dev/shm/tmp-sm22. DONE: merge-tree rc 0, 0 D, anonymize ok, 0 home/key/GPU/host (1 fixture line =x), lanes 42/0 on M + NEG 18/24 on trunk code, pytest 8 files 623/0. RUNNING: FULL suite (log /dev/shm/tmp-sm22/full-M.txt) + Sonnet mur (Workflow wf_ae92df69-2b4). LAND: re-run merge-tree on live HEAD, assert HEAD^{tree} vs gated base, L = commit-tree -p HEAD -p 0c6fc2d9a3, ff-only, push, notify DG1 (+ belam [merge-up] line). g3.8 #3 NOT ready (DG1: metrics_cell.py commits a mid-run hand edit; DG2 lane r2e coming)
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + every blob origin lacks through anonymize, host, home-path, GPU and key greps), tests (.t.sh with sh from the gate worktree; arg 1 or ROOT = the gated tree), pytest subset + FULL suite on tmpfs (attribute every red: alone, on trunk, by range), Sonnet mur, land ONE update by SHA on the live HEAD, push, notify; a cron/grid_sync path = measure its first live run on MAIN's real data, then watch it
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
