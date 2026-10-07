@@ -35,10 +35,9 @@ ok "o7b-loop-5-starts 5 starts with the stale t: ExecStart reached $reach times 
 # --- O7c: agi-out PRESENT: the step runs it as today and ITS exit code passes through (a skip never masks a present piece that fails)
 for x in 3 0 127;do mkh 3;printf '#!/bin/sh\necho ran>>$HOME/ran\nexit %s\n' $x>$H/bin/agi-out;chmod +x $H/bin/agi-out;rm -f $D/rc.*;cyc;want=0;[ $x = 0 ]&&want=1
  ok "o7c-present-exit-$x a present bin/agi-out exiting $x: the step exits $x (got $(rcao)), the piece ran ONCE ($(wc -l <$H/ran) time), no skipped line (stderr: $(head -1 $D/se.$AO|cut -c1-60)), and the start reaches ExecStart only on 0 (reached=$creach)" '[ "$(rcao)" = $x ]&&[ "$(wc -l <$H/ran)" = 1 ]&&! grep -qi skipped $D/se.$AO&&[ $creach = $want ]';done
-# O7c2 (INFO row, NOT counted: DG1 ruled no unit change, the unit rail has 1 B spare): agi-out on the unit's PATH but NOT in bin/ (the /opt/agi/bin stand-in). A skip that tests bin/ only masks it; a skip keyed on the PATH (type / command -v) runs it
-for x in 3 0;do mkh 3;printf '#!/bin/sh\necho ran>>$HOME/ran\nexit %s\n' $x>$D/opt/agi-out;chmod +x $D/opt/agi-out;rm -f $D/rc.*;cyc;nr=$(wc -l <$H/ran 2>/dev/null||echo 0)
- if [ "$(rcao)" = $x ]&&[ "$nr" = 1 ]&&! grep -qi skipped $D/se.$AO;then st="ok, the PATH-only piece ran and its exit code passed";else st="GAP: skip tests bin/ only, a PATH-only piece is masked (it ran $nr times, the step exited $(rcao), stderr: $(head -1 $D/se.$AO|cut -c1-40))";fi
- echo "tbl info o7c2 agi-out only on the PATH stand-in, exiting $x: $st";done
+# O7c2: agi-out on the unit's PATH but NOT in bin/ (the /opt/agi/bin stand-in): present on the PATH, so it must RUN and its exit code pass through (a skip keyed on bin/ alone masks a present root-owned piece)
+for x in 3 0;do mkh 3;printf '#!/bin/sh\necho ran>>$HOME/ran\nexit %s\n' $x>$D/opt/agi-out;chmod +x $D/opt/agi-out;rm -f $D/rc.*;cyc
+ ok "o7c2-on-path-not-in-bin-exit-$x agi-out only on the unit's PATH (the /opt/agi/bin stand-in), exiting $x: the step runs it ONCE ($(wc -l <$H/ran 2>/dev/null) times) and exits $x (got $(rcao)), no skipped line (stderr: $(head -1 $D/se.$AO|cut -c1-60))" '[ "$(rcao)" = $x ]&&[ "$(wc -l <$H/ran)" = 1 ]&&! grep -qi skipped $D/se.$AO';done
 # --- O7d (DG1 ruling: only ABSENT skips; present-and-broken fails as today, loud, never 0). Run on the STEP alone (the unit's line-36 `chmod +x bin/*` runs first in a real start and repairs a mode: named below)
 mkh 4;printf '#!/bin/sh\nexit 0\n'>$H/bin/agi-out;chmod -x $H/bin/agi-out;one $AO
 ok "o7d-not-executable bin/agi-out present but not executable: the step fails (rc $sr), loud (stderr: $(head -1 $D/se.$AO|cut -c1-70)), no skip. Green today by luck (every absence fails today too)" '[ $sr != 0 ]&&[ -s $D/se.$AO ]&&! grep -qi skipped $D/se.$AO'
