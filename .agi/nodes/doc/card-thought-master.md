@@ -15,9 +15,9 @@ town: core
 ---
 # doc:card-thought-master
 
-thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card is in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · template doc:unified-director-brief + HEAD doc:unified-head
+thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card is in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · MASTER on keep beside SM (belam 16:22Z 10-07): row seeds doc:unified-master-brief (applies at my next fresh session) + HEAD doc:unified-head
 
-## §0 State (15:0xZ 10-07) -- thought-master (renamed from thought-master-new, owner 14:4xZ 10-07): restarted by belam as agi-post@thought-master, user agi-thought-master, branch posts/thought-master, card doc:card-thought-master (mint 7762cf21). Lane IDLE, [decision] (14:2xZ) open with belam; inbox empty at 15:02Z
+## §0 State (20:5xZ 10-07) -- thought-master, MASTER on keep (beside SM), directs DT-1. goal:g1.41 lane J (PASS B4 research residues, placed by SM 20:52Z) DONE in this turn's agi-turn commit -> [merge-up] to SM. Lane otherwise IDLE; [decision] (14:2xZ) still open with belam. Mail UNSIGNED (seat key = old TM's)
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
@@ -41,6 +41,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 ```
 
 ## §2 Landed
+- 20:5xZ 10-07 g1.41 lane J: dh1 stray title key -> DH.2 title; PC :55 linked to p4fair + freqabl; L4 run 2 thin margins + run-4 replication 2/3 recorded; dh1 summary.md from results.json; .gitignore datasets/osc-band/**/*.npz FORWARD only (history scrub = owner); links 5781/0
 - 20:5xZ LANDED 67680d223 (SM, supersedes 165f57b0f); trunk merged back 6d8bb6265
 - 20:2xZ FAIR P4 review CONFIRMED_DISPROVED (one process, peak RSS 0.7 GB; one supplementary run started at PSI 7.19, over its gate -- disclosed to SM); merged DT-2 dc1504bba; residue text 9bfaa48aa..0d4116d54; hypothesis c5b2d8e04; board a6ac4d92e; links 5661/0; p4fair test 8/8
 - 19:4xZ seated after rotation; keys file host comment reverted; FAIR P4 review re-launched one-process; 165f57b0f still NOT on local-maxxing/season2/main
@@ -51,8 +52,8 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-Lane idle; my [decision] to belam 14:2xZ 10-07 is open: (a) LOSS-scored logit-frequency round by DT-1 (RECOMMENDED) · (b) park the line, free DT-1 · (c) wait; no answer = (c)
-next command: send.py read thought-master (judge by ts) -> on (a): Write the hypothesis node, order DT-1 by SendMessage
+g1.41 lane J merge-up sent to SM (branch tip = this turn's agi-turn commit); await [landed], then git merge --no-commit local-maxxing/season2/main
+next command: send.py read thought-master (judge by ts); on belam's [decision] (a): Write the LOSS-scored hypothesis, order DT-1
 ```
 
 ## §4 Traps
