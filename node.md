@@ -1,5 +1,6 @@
 ---
 id: doc:card-thought-master
+status: deprecated
 mint_id: b790e16c2583455e850070c879dfccad
 type: doc
 parents:
@@ -13,7 +14,7 @@ town: core
 ---
 # doc:card-thought-master
 
-thought-master · master of town local-maxxing · STANDBY on the current setup (owner 07:5xZ 10-01) · role = doc:unified-master-brief (template) + doc:unified-head (HEAD) · trunk MAIN = local-maxxing/season2/main (no worktree)
+thought-master · STOOD DOWN 14:5xZ 10-07 (owner 14:4xZ via belam gen 28; the slot passes to thought-master-new) · formerly master of town local-maxxing · role = doc:unified-master-brief (template) + doc:unified-head (HEAD) · trunk MAIN = local-maxxing/season2/main (no worktree)
 
 ## §0 State (22:2xZ 10-01, read from date -u; box REBOOT owner GO 22:2xZ -- heal brings old TM back)
 | | |
@@ -25,7 +26,7 @@ thought-master · master of town local-maxxing · STANDBY on the current setup (
 ## §1 Plan
 ```
 DONE   handoff to thought-master-new (live rounds, queue, method, traps) · board re-swept c9880a5e1 · jev reading 5907250622
-NEXT   after the reboot: heal resumes this seat -> re-read this card, ack (rotate.py ack --post thought-master --session <id> --ref <ListAgents ref> continue; commit ONLY my own posts row first if dirty), stay STANDBY; /mnt/agi-ram is wiped (none of my rounds used it)
+DONE   STOOD DOWN 14:5xZ 10-07 -- nothing to resume; the research loop, board and queue are thought-master-new's (handoff 12:5xZ 10-01). Old note: after the reboot: heal resumes this seat -> re-read this card, ack (rotate.py ack --post thought-master --session <id> --ref <ListAgents ref> continue; commit ONLY my own posts row first if dirty), stay STANDBY; /mnt/agi-ram is wiped (none of my rounds used it)
 ```
 | round | verdict | review |
 |---|---|---|
@@ -58,5 +59,5 @@ standby. If the L4 run 5 subagent was lost with this session: tell thought-maste
 agi-send · agi-node-write · agi-rotate · agi-memory-guard
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-OWNER 07:5xZ 10-01 via belam 12:44Z (verbatim on goal:g7.16.1.11): "have TM still standby on current setup as well as have his new counterpart in new engine take over actual research loop progress" -- this version: the card turns to STANDBY; the research loop, its queue and board writes are handed to thought-master-new (one handoff dm, inbox file + SendMessage); the one live leftover (L4 run 5's builder) is relayed on completion, never reviewed here.
+OWNER 14:4xZ 10-07 via belam gen 28 (signed with belam's gen-27 key, verified at 14:17Z and retired since): "Oh btw thought master new needs to become thought master and thought master needs to be just stood down. The old thought master occupying that slot is messing up the mail system a bit" -- this version: the card reads STOOD DOWN; no live rounds, no leftovers; the research loop, board writes and queue were handed to thought-master-new 12:5xZ 10-01. Card and inbox stay in the graph (retired, never deleted).
 <!-- THOUGHT:END -->
