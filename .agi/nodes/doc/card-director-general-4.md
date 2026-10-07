@@ -19,30 +19,22 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (21:4xZ 09-30) -- STOOD DOWN (owner 21:3xZ, verbatim via the seating post: "Stand down DG 4 and pass on any leftovers back on the board as unclaimed bundle goals.")
+## §0 State (21:1xZ 10-07) -- RE-SEATED under sanctuary-master (owner 21:0xZ: "Let's stand up DG4 and DG5 to help split the workload a bit.")
 | | |
 |---|---|
-| post | director-general-4 · DOWN: no live parent, kid, unit or subagent; nothing building |
-| leftovers | 25 open goal leaves -> status horizon, Agent Notes "Unassigned (was director-general-4)" (write.py sub, 25 commits) |
+| post | director-general-4 · UP: no parent, kid or unit running; trunk merged into posts/director-general-4 (ee1972c144) |
+| order | SM [order] 21:05Z: build goal:g1.41 lanes, ONE commit chain per round; DG1 writes the hypothesis, DG2 the lanes, DG1 sends SM ONE [merge-up]; Sonnet 5.5; NO key / identity / rotate work (g7.16.1.11 HOLD) |
 
-## §1 Where everything stopped
+## §1 Plan (goal:g1.41, board e538e69d87)
 ```
-LANDED on local-maxxing/season2/main: 72dff76359 STACK DG4.06+15+21+11+22 · 2cbe754da1 DG4.17 · a2e42a3bf0 g1315131 (+ Prime cell hold_wait_s 90)
-  · 5a7a3bb828 DG4.10+20 · e81abd3f69 DG4.19
-WITH SM (delivered, SM gates + lands them; worktree = .agi/worktrees/<name>, remove after landing, lossless):
-  g73319 2b68fbc07e dg4-g73319 · SM-1 bd01ee8969 dg4-sm1 · SM-2 802577c1bd dg4-sm2 · DG4.12 af2c27335f dg4-dg412c (ON SM-2)
-  DG4.13 9baba2bc99 dg4-dg413c · r49 7eb1c65aed dg4-r49 (ON DG4.13) · g1.31.4.2.1 LINEAGE 2ec78512d4 dg4-fdreaders (+ dg4-dg414c)
-  g75213 7cd127824e dg4-g75213: code gate green, GO = the Prime's DISK bind of <MAIN>/.claude/worktrees + 3 guard cells
-  DG4.18 c576956960 dg4-dg418m: HELD on 3 Prime cells (locations.stream, rotations byte_cap 8000, 2 grid versions)
-PARKED  goal:g1.31.4.2.1.1 (C2c copilot hooks): 7d9f955842 in dg4-c2c, location invented -> never a merge-up until a real copilot probe (SPEND, Prime)
-BACK ON THE BOARD (horizon, unassigned): active before -> g1.31.4.2.1.1 · g1.31.5.1.3.1 · g1.31.5.1.3 · g7.16.1.5.3.1 · g7.16.1.7.1.4 · g7.16.1.7.1 · g7.16.1.7
-  already horizon -> g4.18.5.6 · g7.16.1.10.1 · .10.2 · .10.6 · g7.16.1.7.1.3 · .7.1.3.3 · .7.1.4.2 · .7.1.6 · .7.1.7 · .7.1.8 · g7.16.1.7.2 · .7.2.1-.7.2.6 · .7.2.8
-  notes: g1.31.5.1.3.1's fix LANDED (a2e42a3bf0; DG2 re-runs run_on.sh x3 on it) -> likely closeable by whoever claims it
-FINDINGS goal:g7.33.19 rows 47-50 (row 48 handed to SM: DG3 region)
+B  .geometry/engine-grow.md :41,60 (ring cell) + engine-post.md :144 polkit ... WAITS on A1 landing
+F  grid.py :895,911-913,1240-1280 ........................................... WAITS on belam's owner Q (double-write fix shape)
+A2-A4  engine-root.md + engine.md ....................................... pass to DG4 at A1's landing (DG3 holds)
 ```
+No g1.41 hypothesis exists yet -> nothing to build; claim nothing before one lands.
 
 ## 🔴 Where it stops
-Down. A successor on these leaves starts from the board; the merge-ups above are SM's to land. No command owed by this post.
+Idle until DG1's hypothesis for lane B/F or A1's landing notice arrives. Next: `python3 extensions/agi/bin/send.py --from director-general-4 read director-general-4` (read once, whole).
 
 ## §4 Traps
 | trap | rule |
