@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-07 ~22:45Z, gen 13: E + H merge-up sent; A1 RETURNED by SM (RA1-RA4: orders out); lane I corrective 65c1764963 sent; lane D accepted + handed to DG3; lane B accepted, B2 addendum asked)
+## §0 State (10-07 ~22:55Z, gen 13: A1 ExecStart lane eba2247ee4 accepted -> DG3 builds ONE commit; lane E RE1 (anonymize) re-cut by DG5; fix-needed to DG2 for lane B + D literals)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (engine.v 4) · parent SM (sanctuary-master, rotated ~20:00Z; his successor gates from his card) · trunk local-maxxing/season2/main · my t = posts/director-general-1 |
@@ -32,11 +32,11 @@ BRIEFS on posts/director-general-1 (nodes only; ONE nodes-only merge-up at the e
 DG2 LANES ACCEPTED+run: A1 fe42f38c12 · A2-A4 0bbc1d6679 · C ced863323f · G ac56ce64ff · E 3f7b284b46+00fb0d5bbb · H 11dca49a94 · B a8cd20735c+b0f0244f51 (B2 addendum accepted 22:42Z) · D 9826f27571+ef5192e431 (D1 shape ruled: rings.py load_rings(strict) in b022b4883d; D3 retired-namesake finding in scope).
 BUILDS JUDGED: E 7bd46defd8 + H 0e294b3404 (DG5) -> [merge-up] to SM 22:4xZ. LANE I corrective 65c1764963 (branch dg1-g141-i2, ONE commit on 670fac1be0) sent to SM.
 A1 RETURN (SM 22:34Z, mur accept_with_residue): RA1 pin gate IN the ExecStart · RA2 GIT_NO_REPLACE_OBJECTS=1 in the unit AND the baked agi-project printf in engine.md (+37 B, DG3 asked, I ruled IN) · RA3 empty script fails loud · RA4 lane. Orders: DG2 ExecStart lane (his seat ROTATING, successor has it first) then DG3 ONE commit on 3209c6a32e (written, UNCOMMITTED in w-boot, holds for the lane sha). Carry.env GIT_CONFIG_VALUE_0 leak BANKED.
-OPEN: DG2 successor: lane B addendum (agi-gate-priv realistic post-drop env: no safe.directory, ASSUME_DIFFERENT_OWNER) + A1 ExecStart lane. DG3: A1 correction, then lane D build. DG4: A2-A4 (after A1 lands) then B (builder carries safe.directory in the agi-gate piece, GIT_CONFIG_COUNT env; B1 re-measures AFTER A1 + A2-A4 + the engine.md +37 B). DG5: C with SM, E/H with SM. NOT YET BRIEFED: F, 38 schema nodes.
+OPEN (22:55Z): DG2: lane B polkit-rule.t.sh name@name.service literals (26 lines) + lane D "/home/someone/x" split, new commits; DG5: lane E re-cut (RE1 split :339 :357, one commit from the live trunk); DG3: A1 commit = DG2 lane eba2247ee4 + fix, then lane D. (older line:) DG2 successor: lane B addendum (agi-gate-priv realistic post-drop env: no safe.directory, ASSUME_DIFFERENT_OWNER) + A1 ExecStart lane. DG3: A1 correction, then lane D build. DG4: A2-A4 (after A1 lands) then B (builder carries safe.directory in the agi-gate piece, GIT_CONFIG_COUNT env; B1 re-measures AFTER A1 + A2-A4 + the engine.md +37 B). DG5: C with SM, E/H with SM. NOT YET BRIEFED: F, 38 schema nodes.
 ```
 
 ## 🔴 Where it stops + the exact next command
-FIRST ACT: read mail (`cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE /data/work/agi/.agi/sessions/inbox/director-general-1.md after the last ts you saw; last seen 2026-10-07T22:37:00Z).
+FIRST ACT: read mail (`cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE /data/work/agi/.agi/sessions/inbox/director-general-1.md after the last ts you saw; last seen 2026-10-07T22:47:22Z).
 THEN, by what arrives: SM [landed] -> strike (A1 = engine-root.md boot hole closed; tell belam the host order stays: refresh carry.env pin f024955299 BEFORE the unit swap), then BRIEF DG3 for lane D (build on DG2's lane sha) and cut DG4 on A2-A4. SM [return] -> reproduce in plain git/py at the sha, rule, order DG2 lane first + the builder ONE new commit. A DG2 lane sha -> RUN it at the sha (NEG on trunk, my OWN blind reference, a mutant/sibling probe), then [ok] + hand to the builder. A builder sha (DG5 C final / E / H, DG4 A2-A4 / B, DG3 D) -> RUN at the sha (clean git archive, sh), compare with MY OWN reference/probe, then ONE [merge-up] to sanctuary-master. Pytest here: `pip install --target <scratchpad>/pt pytest`, PYTHONPATH=<scratchpad>/pt.
 WORKTREES to remove when lane I lands (git -C /data/work/agi worktree remove --force PATH, then delete the branch): /var/lib/agi/director-general-1/wt-i (branch dg1-g141-i) and wt-i2 (the re-cut 670fac1be0, branch dg1-g141-i2).
 Standing: agi-signers retire = belam's ring-install GO · .20 SENDER+READER AGI_POST=%i host act = belam's GO (engine-post.md:75 swap = B5 lands first) · carry.env pin refresh BEFORE the A1 unit swap · lane F grid.py waits for belam's owner Q (double-write shape). Never invent goals.
@@ -71,6 +71,8 @@ Standing: agi-signers retire = belam's ring-install GO · .20 SENDER+READER AGI_
 
 | I ran the REAL agi-boot as myself against live /run/systemd and /mnt/agi-ram while meaning to test only the unit's ExecStart extraction (safe ONLY because my uid is not root/belam: rm and setfacl refused; I verified mtime + ACLs unchanged) | to probe a unit line, run ONLY the extraction pipeline against a scratch repo with AGI_BOOT_OUT/AGI_RAM pointed at a mktemp dir, never the line that execs the script; a probe that can reach live paths is not a probe |
 | a lane probe edit landed in prose (first match of the fence string was in a comment) | insert at the list index of the exact fence line (not a substring match), and re-run the loader to see the effect BEFORE trusting a green/red |
+
+| SM's gate refused lane E (and would refuse B, D) on anonymize: whole `/tmp/pytest-of-<name>/`, `/home/x/`, `agi-post@name.service` literals in lane files; my accept never ran the scan | at accept, ALSO run `anonymize.scan(line, [], anonymize.email_allow(root), root)` over every added line of the sha (the CLI needs .env, my uid has none): 0 hits; split literals as trunk does (test_rotation_record_home.py:192) |
 
 ## §5 Verification: links.py links 0 broken (SM re-checks at landing) · yaml parse every changed node · armour grep 0 · every return run at the sender's sha before forwarding
 
