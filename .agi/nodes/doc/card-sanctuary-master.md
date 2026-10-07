@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (15:1xZ 10-07, date -u) — gen 21 · LOCAL trunk daadcbb3f = 6 landings NOT ON ORIGIN (push 500 'repository moved', belam's to re-point; origin a8aee1323) · nothing open at my gate
+## §0 State (15:2xZ 10-07, date -u) — gen 21 · trunk c6f977e1a PUSHED (origin recovered 15:2xZ) · GATING g4.13.1 grid.py CAS: FULL suite + Sonnet mur RUNNING
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -48,11 +48,12 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-07 14:3xZ gen 21: LANDED DG1 nodes round 945d2ec980 + DG2 75dc04865 = b4e8bebda (node + test only: ckpt BOUNDS n1-n4, ring LIMIT R6, out-line BOUND 4 bin/-only skip latent, W bound 11; agi-out-stale 15/0 + 2 o7c2 GAP info rows)
 - 10-07 14:3xZ gen 21: LANDED DG3 dg3-outline-ckpt 1b125626b2 = d4773d9ab (test only: ckpt in agi-outline's gate tools; C7 84/1 -> 85/0)
 - 10-07 15:0xZ gen 21: RETURNED OUT.8 bd63e551a0 + 56a77caeec (R1: node bound 4 overstates; PATH-only broken piece masked; ask = node wording + optional DG2 info row)
-- 10-07 15:1xZ gen 21: LANDED (local) OUT.8 3fb54c655 = bd63e551a0 + dc5761850c (suite 7,914/0 on union, mur R1 -> node bound 4 narrowed) · alive aa1n 5a1760e82 · aio mu-31 e005cf445 · aio mu-33 483d23411 · sp mu-16 v2 9245dfe5f · DG1 goals daadcbb3f (union: links 0 broken, schema == trunk)
+- 10-07 15:1xZ gen 21: LANDED (pushed 15:2xZ) OUT.8 3fb54c655 = bd63e551a0 + dc5761850c (suite 7,914/0 on union, mur R1 -> node bound 4 narrowed) · alive aa1n 5a1760e82 · aio mu-31 e005cf445 · aio mu-33 483d23411 · sp mu-16 v2 9245dfe5f · DG1 goals daadcbb3f (union: links 0 broken, schema == trunk)
+- 10-07 15:2xZ gen 21: LANDED alive AA1.S e6693df0b = 0b95e3bd8 · sp mu-17 3b866eae0 = 7979cd1e9 · DG1 goals-b 5b44a392ca = c6f977e1a (3 goals -> horizon)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 21, 15:1xZ 10-07: local trunk daadcbb3f clean; origin push FAILS (GitHub 'This repository moved' + 500, request E85C:265BD:9F217E:D46C04:6AC661EB) -> [red] to belam 15:15Z; NEXT: when belam re-points the remote (or branch_push at :07 succeeds), confirm origin == local trunk (git fetch; rev-parse both). Then: DG1 builds g4.13.1 -> g7.16.1.11.19 -> g3.8 -> g7.16.1.11.20 through me, one at a time; OUT.8 root install = belam GO
+sanctuary-master gen 21, 15:2xZ 10-07: GATING g4.13.1 = DG3 dg3-gridcas 87358d1813 (grid.py +34 -7, grid-collapse.t.sh == DG2 3ee02311e), union U 46101b528 on c6f977e1a, worktree /dev/shm/sm21-grid. DONE: static ok; grid-collapse 19/0, payload-commit 21/0, NEG trunk grid.py 5/14; LIVE first tick measured on MAIN: 9,645 refs/grid, 0 merges, 0 renumbered, 0 nest. RUNNING: FULL suite (scratchpad suite-grid.log/.pid, tmp /dev/shm/tmpsm21g) + mur wf_a6d5f1ee-8fe (key dg3-gridcas). Then: final verify decides (accept_with_residue = RETURN) -> T2 on live HEAD -> land -p HEAD -p 87358d1813 -> push -> watch the first grid_sync tick after (grid.py commit --all output / no skip lines expected) -> notify DG1 + belam; remove worktree + tmp
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps), links/schema, tests (EVERY .t.sh that reads a changed piece, with sh, from the gate worktree, arg 1 = gated sha), Sonnet security mur + FULL suite on tmpfs for root/grow-gate code, land ONE update by SHA on the live HEAD, push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
