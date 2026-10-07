@@ -11051,6 +11051,8 @@ def _unreadable_graph(tmp_path, mode=0o000, name="graph"):
 def test_find_pin_log_answers_unknown_under_an_unreadable_parent(tmp_path):
     """The named claim: an unreadable graph PARENT yields None (UNKNOWN), it
     never raises. Both arms -- the seat's own pin and the newest-pin scan."""
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
     graph, _sessions = _unreadable_graph(tmp_path)
     try:
         assert rotate.find_pin_log(graph, "director") is None
@@ -11063,6 +11065,8 @@ def test_find_pin_log_answers_unknown_under_an_unreadable_sessions_dir(
         tmp_path):
     """The same seam one level down: the sessions dir itself unreadable. The
     guard must not sit only around the PARENT's stat."""
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
     graph, sessions = _unreadable_graph(tmp_path, mode=0o755)
     sessions.chmod(0o000)
     try:
