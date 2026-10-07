@@ -323,3 +323,105 @@ def test_f13_a_link_broken_on_a_deprecated_node_at_new_is_counted(proj):
     r = _run(proj, base)
     assert r.returncode == 1, r.stdout + r.stderr
     assert "RED broken_link 1: idea:ret->notes/old.md" in r.stdout, r.stdout
+
+
+# goal:g1.41 E1 -- reds._secrets hands the project ROOT to anonymize.scan, so the `user` class (the
+# anonymize.user_roots cell) is applied to an ADDED line: a /tmp/pytest-of-<name>/ path is a secret row.
+def _user_roots_cell(proj, roots=("/tmp/pytest-of-",)):
+    cfg = json.loads((proj / ".agi/config.json").read_text())
+    cfg["anonymize"] = {"user_roots": list(roots)} if roots else {}
+    (proj / ".agi/config.json").write_text(json.dumps(cfg))
+    return _commit(proj, "cell")
+
+
+def test_e1_a_user_roots_path_on_an_added_line_is_a_secret_and_never_printed(proj):
+    base = _user_roots_cell(proj)
+    (proj / "notes" / "p.txt").write_text("fine line\nsee " + "/" + "tmp/pytest-of-" + "alice/pytest-3/x\n")
+    _commit(proj, "a user-rooted path")
+    r = _run(proj, base)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "RED secrets 1: notes/p.txt:2" in r.stdout, r.stdout
+    assert "alice" not in r.stdout + r.stderr
+
+
+def test_e1_a_placeholder_segment_and_a_foreign_prefix_are_clean(proj):
+    base = _user_roots_cell(proj)
+    (proj / "notes" / "p.txt").write_text("/tmp/pytest-of-<user>/pytest-3/x\n/tmp/other-of-alice/x\n/var/tmp/pytest-of\n")
+    _commit(proj, "placeholder, foreign prefix, bare prefix")
+    r = _run(proj, base)
+    assert r.returncode == 0 and "RED none" in r.stdout, r.stdout + r.stderr
+
+
+def test_e1_no_user_roots_cell_means_the_path_is_not_a_secret(proj):
+    base = _user_roots_cell(proj, roots=())
+    (proj / "notes" / "p.txt").write_text("see " + "/" + "tmp/pytest-of-" + "alice/pytest-3/x\n")
+    _commit(proj, "the same path, no cell")
+    r = _run(proj, base)
+    assert r.returncode == 0 and "RED none" in r.stdout, r.stdout + r.stderr
+
+
+# goal:g1.41 E2 -- reds._node_deletions reports a deleted nodes/*.md whose old text has no `id:` row, BY PATH.
+@pytest.mark.parametrize("old_text,why", [
+    ("just prose, no front matter\n", "no id and no mint"),
+    ("---\nmint_id: " + "d" * 32 + "\ntype: idea\n---\nbody\n", "a mint_id and no id"),
+    ("---\ntype: idea\ntitle: t\n---\nbody\n", "front matter without id or mint"),
+])
+def test_e2_a_deleted_id_less_node_is_reported_by_its_path(proj, old_text, why):
+    g = proj / ".agi" / "nodes" / "idea"
+    (g / "noid.md").write_text(old_text)
+    _commit(proj, "add an id-less node file")
+    base = _git(proj, "rev-parse", "HEAD").strip()
+    (g / "noid.md").unlink()
+    _commit(proj, "delete it")
+    r = _run(proj, base)
+    assert r.returncode == 1, (why, r.stdout + r.stderr)
+    assert "RED node_deletion 1: .agi/nodes/idea/noid.md" in r.stdout, (why, r.stdout)
+
+
+def test_e2_two_id_less_deletions_and_an_id_ful_one_are_all_named(proj):
+    g = proj / ".agi" / "nodes"
+    (g / "idea" / "noid.md").write_text("prose only\n")
+    (g / "idea" / "mintonly.md").write_text("---\nmint_id: " + "e" * 32 + "\n---\nbody\n")
+    _commit(proj, "add two id-less nodes")
+    base = _git(proj, "rev-parse", "HEAD").strip()
+    for f in ("idea/noid.md", "idea/mintonly.md", "build/two.md"):
+        (g / f).unlink()
+    _commit(proj, "delete three")
+    r = _run(proj, base)
+    assert r.returncode == 1, r.stdout + r.stderr
+    line = [l for l in r.stdout.splitlines() if l.startswith("RED node_deletion")][0]
+    assert line.startswith("RED node_deletion 3:"), line
+    assert all(n in line for n in (".agi/nodes/idea/noid.md", ".agi/nodes/idea/mintonly.md", "build:two")), line
+
+
+def test_e2_an_id_less_file_that_is_not_deleted_is_no_deletion(proj):
+    (proj / ".agi/nodes/idea/noid.md").write_text("prose only\n")
+    base = _commit(proj, "add an id-less node file")
+    (proj / ".agi/nodes/idea/noid.md").write_text("prose only, edited\n")
+    _commit(proj, "edit it, keep it")
+    r = _run(proj, base)
+    assert r.returncode == 0 and "RED node_deletion" not in r.stdout, r.stdout + r.stderr
+
+
+# goal:g1.41 E2 sibling (DG1 22:20Z): only a nodes/*.md is a node; a deleted payload or marker file under nodes/ is not a deletion.
+@pytest.mark.parametrize("rel", [".agi/nodes/idea/x.yaml", ".agi/nodes/.gitkeep", ".agi/nodes/idea/payload.txt"])
+def test_e2_a_deleted_non_md_file_under_nodes_is_no_node_deletion(proj, rel):
+    (proj / rel).write_text("not a node, no front matter\n")
+    base = _commit(proj, "add a non-node file under nodes/")
+    (proj / rel).unlink()
+    _commit(proj, "delete it")
+    r = _run(proj, base)
+    assert r.returncode == 0 and "RED node_deletion" not in r.stdout and "RED none" in r.stdout, r.stdout + r.stderr
+
+
+def test_e2_a_non_md_deletion_beside_an_id_less_md_deletion_names_only_the_md(proj):
+    g = proj / ".agi" / "nodes" / "idea"
+    (g / "x.yaml").write_text("k: v\n")
+    (g / "noid.md").write_text("prose only\n")
+    base = _commit(proj, "add one non-node and one id-less node file")
+    (g / "x.yaml").unlink()
+    (g / "noid.md").unlink()
+    _commit(proj, "delete both")
+    r = _run(proj, base)
+    line = [l for l in r.stdout.splitlines() if l.startswith("RED node_deletion")]
+    assert r.returncode == 1 and line == ["RED node_deletion 1: .agi/nodes/idea/noid.md"], r.stdout + r.stderr
