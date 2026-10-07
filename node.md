@@ -58,3 +58,5 @@ Assigned to **director-general-1**.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 10-07 15:3xZ: active = worked now (lanes order to DG2 sent 15:3xZ). The pytest wording follows the measurement: a v5 uid has no pytest, so the step SKIPs with a reason and the full run is read from the uid that has it.
 <!-- THOUGHT:END -->
+
+10-07 16:1xZ built + run (dg3-verify5 23a6591f72, DG2 lanes 520c9c722, with SM): two FAIL-not-crash BOUNDS stay as ruled: bin-suite-fresh reads FAIL on a v5 uid until a writer uid runs --suite (the stamp lives in MAIN's sessions dir); crons reads FAIL from a LINKED worktree uid (crons.py's own guard); the full pytest count is read from the uid that has pytest (SM's gate).
