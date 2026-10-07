@@ -1539,9 +1539,15 @@ def _sweep_worktree_heads(main_checkout: Path) -> dict:
         wt = rec.get("worktree")
         if not wt:
             return
+        head = rec.get("HEAD") or ""
+        if head and set(head) == {"0"}:
+            # goal:g7.16.1.5.3.2 R4: `worktree list --porcelain` prints the NULL oid for an
+            # UNBORN (--orphan) tree. That is NO head: cached as one, rev-parse never ran, the
+            # unborn tree reached _sweep_archive, and `update-ref <ref> 0000..0` on an
+            # EXISTING ref (a reused agent id) returns rc 0 and DELETES it.
+            head = ""
         heads[Path(wt).name] = (
-            (rec.get("branch") or "").replace("refs/heads/", ""),
-            rec.get("HEAD") or "")
+            (rec.get("branch") or "").replace("refs/heads/", ""), head)
     for line in out:
         if not line.strip():
             _flush(cur); cur = {}
@@ -1878,9 +1884,12 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         if base:
             base = _sweep_resolve_base(root, base)
         head = head_cached
+        hd_rc = 0
         if not head:
-            head_lines, _ = _git(["rev-parse", "HEAD"], wt)
-            head = head_lines[0] if head_lines else ""
+            head_lines, hd_rc = _git(["rev-parse", "HEAD"], wt)
+            # a FAILED rev-parse is NO head whatever it printed: on an unborn branch it
+            # prints the literal `HEAD` on stdout with rc 128 (goal:g7.16.1.5.3.2 R3)
+            head = head_lines[0] if head_lines and hd_rc == 0 else ""
         if not head and _sweep_orphan(wt):
             # DG2.C1: no HEAD and its gitdir is gone -- nothing to pin or
             # remove. Refuse by name ONCE (never "archived"), then stay quiet.
@@ -1892,6 +1901,17 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
                     _SWEEP_ORPHAN.add(agent_id)
             continue
         _SWEEP_ORPHAN.discard(agent_id)
+        if not head:
+            # goal:g7.16.1.5.3.2: the gitdir EXISTS but HEAD could not be read: that is
+            # UNKNOWN, never "nothing to pin". With head "" and a failed status
+            # _sweep_archive builds an empty want list, returns None (read as archived)
+            # and the --force remove below drops the tree. Refuse by name; per tree.
+            refused += 1
+            _watch_log(f"[sweep] refused {agent_id}: git rev-parse HEAD failed "
+                       f"(rc {hd_rc}); nothing archived or removed")
+            if not dry_run:
+                _SWEEP_SKIP[agent_id] = ("", base)   # recorded; the pop below clears it on a healthy pass
+            continue
         # (2)+(3) goal:g7.16.1.5.3: "unmerged" and "dirty" are no longer
         # terminal -- landings are fresh commits, so ancestry is rarely
         # provable. Such a tree is ARCHIVED (refs/archive/worktrees/<name>,
@@ -1902,7 +1922,17 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
             _, anc_rc = _git(["merge-base", "--is-ancestor", head, base],
                              main_checkout)
             merged = anc_rc == 0
-        status_lines, _ = _git(["status", "--porcelain"], wt)
+        status_lines, st_rc = _git(["status", "--porcelain"], wt)
+        if st_rc != 0:
+            # goal:g7.16.1.5.3.2: a FAILED status (an OOM-killed child, a corrupt index)
+            # is UNKNOWN, never clean: an unmerged tree would be archived with dirty=[]
+            # and then removed --force, dropping its uncommitted bytes. A merged tree
+            # too (a failed read proves nothing). Refuse by name; the sweep goes on.
+            refused += 1
+            _watch_log(f"[sweep] refused {agent_id}: git status failed (rc {st_rc})")
+            if not dry_run:
+                _SWEEP_SKIP[agent_id] = (head, base)   # recorded; a later healthy pass pops it
+            continue
         dirty = _sweep_dirty_paths(status_lines)
         needs_archive = not merged or bool(dirty)
         _SWEEP_SKIP.pop(agent_id, None)
