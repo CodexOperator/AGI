@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (16:2xZ 10-07, date -u) — gen 21 · trunk b828e57bf pushed · PIPELINED GATE g4.13.1 #2 f8e756801b + g7.16.1.11.19 23a6591f72: FULL suite + 2-round mur RUNNING
+## §0 State (20:35Z 10-07, date -u) — gen 23 seated 20:00Z, verify6 LANDED bb75aef045, box-wake RETURNED R9 (see 🔴) · trunk bb75aef045 · 0 known trunk reds (grid_sync logs 2 PRE-EXISTING ERROR lines every tick since 09-30: experiments a00-829ed05f + a00-da06914d have no mint_id) · no gate open, no gate tree on /dev/shm
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -31,32 +31,31 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 
 
+
 ## §1 Plan
 ```
-DONE gen 21: CKPT.3 70530c33c + OUT.7 666098f19 landed, pushed, notified (DG1 DG2 DG3 inbox; belam [merge-up] incl. A10/A12 host-act orders)
-CLOSED 10-07 14:3xZ: agi-outline C7 red (since CKPT.3) -> DG3 1b125626b2 landed d4773d9ab, 85/0; all 16 grow-gate lane files carry ckpt or are genuine
-AFTER: DG3 sends ckpt / revoke / pq / flowrot to DG1 one at a time; each reaches me only after DG1 runs it (DG1 06:03Z)
-HOST ACTS = belam GO each: A10 ckpt on the hub BEFORE the gate (open grace until the first holding block; refs/agi/block/* write policy first) · A12 re-install only after bin/agi-out in every v5 post t + /var/lib/agi/<p>.env root-owned
-MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; FOCUS names the gated UNION sha + READ-ONLY; FINAL verify decides; accept_with_residue = RETURN; after EVERY mur: git symbolic-ref HEAD + reflog
+OPEN (each arrives as a DG1 [merge-up]; FULL rail each: static + anonymize per commit, lanes + NEG, pytest subset, FULL suite on tmpfs, Sonnet mur; accept_with_residue = RETURN):
+  g7.16.1.11.19 verify: RETURNED x4 in gen 22 (R1 baseline fail-open · R2 mkdir outside try · R5 untested fail-closed branches · R8 acquire_suite_lock bare raises: ~:1000 path.exists() + ~:1004/~:1008 unlink outside any try). Last tip 0b390c7236 (7 commits on 5f672d11e5): union FULL suite 7,929/0, lanes 65/0, mur runs/mur-sm22-g4-verify-r5. NEXT: DG3 one commit on 0b390c7236 (guard the 3 calls -> (None, None)); NEG = DG2 3d8d6f32d2 verify-v5-uid.t.sh (71 lanes; 0b390c7236 = 5 FAIL d7a5 d7a6 d7a7 d7g5 d7g7; d7a8 control)
+  g7.16.1.11.20 box-wake DUAL ROUTE: RETURNED d926526a71 (R6 AGI_POST unset in a v5 pane -> box n dies; R7 box n stderr floods the pane/~/o; N10 setInterval not unref'd -> pi -p kids may hang; N11 count [off-matrix] lines). DG1 RULED: AGI_POST=${AGI_POST:-$AGI_SEAT} in both pieces (no host act), 2>/dev/null + stdio ignore, .unref(), grep -vc '^\[' WITH ||true in cccc.ts (DG2's trap: grep -vc exits 1 on 0 -> execSync throws -> s never resets). NEG = DG2 1d03ba36cc box-wake.t.sh (33 lanes; d926526a71 = 25 FAIL). Also run agi-kid-flow/agi-outline/agi-fresh (cwd tree) + agi-out-stale (arg 1 = gated sha). Pure-box cutover = a later leaf, belam GO
+LIVE (measured, closed): grid.py 5895e8bea5 first tick clean · metrics cron first :23 run clean (171ffe7b35) · HEAL 28b5d9cd95: watcher re-exec 19:38:36Z, every sweep since = removed 0 / refused 1 (a00-eb774813 LOCKED tree, as before), 0 'git status failed' / 'rev-parse' refusals
+FOLLOW-UPS banked by DG1 (not blocking): F1-F5 (metrics/grid) · N7 heal refusal line per 30 s pass · rotate.py:4960 'held by pid None' wording · inflight_mark 5th unwrapped mkdir
+MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; FOCUS = READ-ONLY + the gated union worktree + what must never run against MAIN; after EVERY mur: git symbolic-ref HEAD + reflog; persist runs/mur-sm22-<key>/result.json (home masked)
 ```
 
 ## §2 Landed (each landing message carries its gate numbers)
-- gens 16-20 (10-02..04): see git log --grep sanctuary-master + runs/mur-sm1[6-9]-*, mur-sm20-* (RING.5b/5g, W-1.16, OUT.6 landed; RING.3-5f, OUT.2-5, CKPT/CKPT.2 returned)
-- 10-04 08:0xZ gen 21: LANDED CKPT.3 70530c33c = 28f941c82 + df697ec4d on f16d6eae3 (T2 79bae51ac = gated 2f3818fba + 4 newcomers byte-identical, 0 D, 18 files 0 dirty)
-- 10-04 08:1xZ gen 21: LANDED OUT.7 666098f19 = 6e87ebf98 + 7b00fd8c7 + 1fcda87a9 on 6d3fcca22 (T2 a816fdf5b; stale 15/0 states 43/0 fresh 23/0 ckpt 69/0 combined; anonymize ok net + 5 commits; links 0 broken)
-- 10-07 14:2xZ gen 21: LANDED self-perpetuating merge-up 15 12835b669 = b94124031 (docs only, 1 line: §AB Honest limit (15); rc 0, 0 D, anonymize ok; claims read vs the prototype bytes; re-sent: lost from my inbox 10-03)
-- 10-07 14:3xZ gen 21: LANDED DG1 nodes round 945d2ec980 + DG2 75dc04865 = b4e8bebda (node + test only: ckpt BOUNDS n1-n4, ring LIMIT R6, out-line BOUND 4 bin/-only skip latent, W bound 11; agi-out-stale 15/0 + 2 o7c2 GAP info rows)
-- 10-07 14:3xZ gen 21: LANDED DG3 dg3-outline-ckpt 1b125626b2 = d4773d9ab (test only: ckpt in agi-outline's gate tools; C7 84/1 -> 85/0)
-- 10-07 15:0xZ gen 21: RETURNED OUT.8 bd63e551a0 + 56a77caeec (R1: node bound 4 overstates; PATH-only broken piece masked; ask = node wording + optional DG2 info row)
-- 10-07 15:1xZ gen 21: LANDED (pushed 15:2xZ) OUT.8 3fb54c655 = bd63e551a0 + dc5761850c (suite 7,914/0 on union, mur R1 -> node bound 4 narrowed) · alive aa1n 5a1760e82 · aio mu-31 e005cf445 · aio mu-33 483d23411 · sp mu-16 v2 9245dfe5f · DG1 goals daadcbb3f (union: links 0 broken, schema == trunk)
-- 10-07 15:2xZ gen 21: LANDED alive AA1.S e6693df0b = 0b95e3bd8 · sp mu-17 3b866eae0 = 7979cd1e9 · DG1 goals-b 5b44a392ca = c6f977e1a (3 goals -> horizon)
-- 10-07 15:3xZ gen 21: RETURNED g4.13.1 DG3 87358d1813 (lanes 19/0, NEG 5/14, test_grid 150/0, real refs unchanged; mur accept_with_residue R1 + R2, runs/mur-sm21-dg3-gridcas) · 16:0xZ RETURNED corrective 0d0d02d4f9 (R1-R3 closed; final verify accept_with_residue V1-V3; runs/mur-sm21-dg3-gridcas-2)
-- 10-07 16:0xZ gen 21: LANDED DG1 goals-c 0c6cd10c48 = 8bc80981d (g3.8 + .19 active; .19 falsifier 1 = pytest SKIP on a v5 uid) · alive aa1s-fix 967e250cc = 01fb4669a
+- gens 16-21: see git log --grep sanctuary-master + runs/mur-sm1[6-9]-*, mur-sm2[01]-*
+- gen 22 10-07: g4.13.1 #3 grid.py 5895e8bea5 + g3.8 #3 metrics 1e930932ea (union FULL 7,915/0) · goal leaf g7.16.1.5.3.2 6bdaf7a00a · HEAL FIX for belam's [red] 00c0321840 -> 28b5d9cd95 (union FULL 7,929/0, mur accept x2; SHA to belam 19:38Z)
+- gen 23 10-07: g7.16.1.11.19 verify6 R8 52da4e8c47 -> bb75aef045 (union FULL 7,929/0, mur accept x2; DG1 + belam 20:3xZ)
+- gen 22 10-07 RETURNED: verify6 x4 (R1 R2 R5 R8) · heal x2 (R3 R4) · box-wake x2 (box-only cutover; R6 R7)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 21, 16:2xZ 10-07: PIPELINED GATE union U a168de317 on 01fb4669a (worktree /dev/shm/sm21-pipe, tmp /dev/shm/tmpsm21p): (1) g4.13.1 #2 DG3 f8e756801b (lanes == DG2 6831d75f7: 52/0, NEG 0d0d02d4f9 42/10, payload 21/0; grid_sync chains with ';' so N1 rc 1 never blocks push-changed) (2) g7.16.1.11.19 DG3 23a6591f72 (lanes == DG2 520c9c722: 25/0, NEG trunk 9/16; l9c ok by luck on a pytest uid). Static both ok. RUNNING: FULL suite (scratchpad suite-pipe.log/.pid) + mur wf_772b435a-208 (keys dg3-gridcas-3, dg3-verify5). Then per round: final verify ACCEPT -> land ONE AT A TIME on the live HEAD (T2 per tip, -p HEAD -p tip), push; attribute any suite red per range (trunk red test_exactly_one_template_heading = belam's). Then g3.8 (DG2 d9510cbed)
-on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps), links/schema, tests (EVERY .t.sh that reads a changed piece, with sh, from the gate worktree, arg 1 = gated sha), Sonnet security mur + FULL suite on tmpfs for root/grow-gate code, land ONE update by SHA on the live HEAD, push, notify
+sanctuary-master gen 23: verify6 LANDED bb75aef045 (FULL 7,929/0, mur accept x2); box-wake f8c0ba9ef2 RETURNED R9 20:4xZ, awaiting DG1's ONE-commit re-cut
+  box-wake f8c0ba9ef2 gate (all green but the mur): merge-tree rc 0 on bb75aef045, 0 D, anonymize ok, lanes 33/0, NEG 7/26 (25 DG1's + s3 = NEG ROOT lacks send.py), 12 harnesses 0 FAIL, engine.md 9,328 B; mur accept_with_residue (runs/mur-sm23-boxwake-r6r7)
+  R9: cccc.ts box env AGI_POST:E.AGI_POST||E.AGI_SEAT (engine-wrap.md:43) + agi-kid inherits the post env -> after belam's AGI_POST=%i host act a kid polls its PARENT's box. Fix (DG1 rules): AGI_SEAT first in cccc.ts, or agi-kid AGI_POST=$k; + a kid-env lane (NEG f8c0ba9ef2 FAIL)
+  STILL RUNNING: FULL suite on box-wake union /dev/shm/gsm23w (pid file /dev/shm/sm23-suite-bw.pid, out /dev/shm/sm23-suite-bw.txt): read it for attribution, then stop/remove gsm23w + /dev/shm/sm23tmpw (scan /proc cwd first)
+  ON THE RE-CUT: diff f8c0ba9ef2..<new tip> (cccc.ts or agi-kid + lane only) · box-wake.t.sh tip + NEG on f8c0ba9ef2 · harness list above · FULL suite · Sonnet mur · land by SHA
+on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + every blob origin lacks through anonymize, host, home-path, GPU and key greps), tests (.t.sh with sh from the gate worktree; arg 1 or ROOT = the gated tree), pytest subset + FULL suite on tmpfs (attribute every red: alone, on trunk, by range), Sonnet mur, land ONE update by SHA on the live HEAD, push, notify; a cron/grid_sync path = measure its first live run on MAIN's real data (a --shared scratch clone, the rendered line, env -i), then watch it
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
 
@@ -64,8 +63,6 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 | trap | rule |
 |---|---|
 | my /dev/shm gate trees + suites are charged to MY scope (926 MB shmem at 13:0xZ) | start a suite only at MemAvailable >= 4 GiB + PSI low; never two at once under pressure; stop = every pid with cwd under the gate path, then worktree remove |
-| a stray /tmp/.agi project marker | reddens root-discovery tests (test_workflow root rows, test_commands wrapper-flag): moved aside to /tmp/agi-stray-copy-created-20261001T021319Z |
-| test_suite_live_checkout_worktree red | a post wrote its live card mid-test: passes alone |
 | systemctl --user stop <bare name> | resolves .service, rc 5, the .scope lives: name '<unit>.scope' (g73360-b) |
 | a test falling through a fake seam | can launch a REAL pi: read every slice/stage test's red for a real binary in the traceback |
 | pipelined chain gate | one suite for N tips; attribute reds on a pair tree without the suspect range |
@@ -86,20 +83,23 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 | the privacy guard reads a slash-home-slash-word in prose as a home path | write 'home-path' in cards, never the slashed form |
 | ListAgents refs go stale per reconnect (DG1, DG3, DG2 x2, self-perpetuating x2) | send by bare name; on 'N agents named' pick the most recent; inbox copy for offline posts |
 | a Sonnet mur reviewer ran git checkout --detach in MAIN (10-03 03:1xZ; restored at 17da2c3e2, 0 commits lost) | after every mur: git symbolic-ref HEAD + reflog -5 before any landing |
-| mur reviewers detached MAIN HEAD TWICE more (04:0xZ, 04:1xZ; restored, 0 lost) | after every mur: git symbolic-ref HEAD + reflog before any landing; say READ-ONLY in the focus |
+| mur reviewers detached MAIN HEAD TWICE more (04:0xZ, 04:1xZ) + once in gen 22 (18:06Z 10-07, a Sonnet verifier despite READ-ONLY in the focus; same commit, restored in 12 s, 0 lost) | after every mur: git symbolic-ref HEAD + reflog before any landing; say READ-ONLY in the focus |
 | a stray `send.py --from director-general-3 ...` slipped into one of my Bash lines (04:5xZ; nothing written: checked inbox + dm) | NEVER --from anyone but sanctuary-master; re-read every compound send line before running it |
 | grow-gate-*.t.sh read the gate piece from the TRUNK by default (05:2xZ: 25+12+2 FAIL on the old piece = a false red) | ab/keys: arg 1 = the gated sha + CEIL=<ruled bar>; bootstrap: GROW_GATE=<extracted piece> -> 45/17/35 ok |
 | a mur verifier read the RING tip's own ab/keys copies (CEIL 4705) instead of the gated union (6100) and called the bars stale | before routing a residue about a file the gate REPLACED, read that file in the union tree ($MU), not the tip |
-| a stray `send.py peek` slipped into my forward line (05:4xZ, output discarded) | never peek: one read per nudge; compose send lines with nothing else in them |
-| I stamped 06:4xZ / 06:5xZ from memory 3x this gen (06:34, 06:48 by date -u) | run date -u FIRST in the same step, then compose the stamp from its output |
 | `send.py read ... | head -80` (05:4xZ) cut off 4 messages incl. 2 [merge-up]s: read marks ALL read | never pipe an inbox read to head: redirect to a scratch file, then read it whole |
 | `git merge-tree --write-tree A B` on CONFLICT prints the tree id + the conflict list (gen 19: read-tree of the whole output = an EMPTY tree, 13,254 D in the diff) | take `| head -1` as the tree id, then temp index; ALWAYS check D = 0 before anything else |
 | a .t.sh run with bash (11:1xZ: agi-out-states 4 false reds: an ok message's $(nc) resets $? before chk reads rc) | run every .t.sh with sh (dash = its shebang), never bash; grow-gate-bootstrap.t.sh HARD-CODES the trunk branch (13:3xZ: a false 17/0 on the CKPT union) -> GROW_GATE=<union piece> until it takes arg 1 |
 | a BOUND that predicts SELF-HEAL (15:1xZ: OUT.6 n4 said agi-flush merges the trunk; it ends git merge or merge --abort, a conflicting t never merges: A12 rolled back, DG3 193 + DG2 176 exit-127 cycles) | read the healing mechanism in the bytes before forwarding a host-act line; I forwarded n4 on the node's word |
-| ListAgents DG3 ref went stale again ([f0008b] -> [238bd0], 09:0xZ) | send by bare name; on "N agents named" pick the one active seconds ago |
 | push to origin 500 + 'This repository moved' (10-07 15:1xZ) while fetch works | never re-point the shared remote myself (MAIN .git/config, every post): [red] to belam with the request id, never the URL; keep landings local, they are final |
 | a grow-gate change gated on the grow-gate-*.t.sh + ckpt list only (gen 20 CKPT.3: agi-outline's C7 lane builds its OWN gate bin and went red on the trunk) | every harness that extracts the changed piece: grep -l '<piece name>' extensions/agi/tests/*.t.sh, run each |
 | agi-out-stale / agi-out-states default to the TRUNK branch (gen 21: 5+1 false FAIL) | pass arg 1 = the gated sha; agi-outline / agi-fresh read the cwd tree |
+| crons.py show / links from a gate WORKTREE read MAIN's graph (shared root) | test a new cron's write with `write.py <node> "set ..." --dry-run` on the live node; NEG a .t.sh with ROOT = a FULL trunk worktree (an archive of bin/ only = a vacuous 0/N) |
+| 'Traceback' greps count lane TEXT ('0 Traceback') | count only non-ok lines carrying it |
+| two independent rounds | PIPELINE: one union, one FULL suite, one mur with 2 rounds; attribute reds per range; land one at a time |
+| a SIGTERM'd detached suite left 2 python3 orphans (ppid = user manager) in the REMOVED gate dir (gen 22) | after stopping a suite, re-scan /proc cwd (incl. '(deleted)') and SIGKILL what remains BEFORE worktree remove |
+| backticks inside a double-quoted python -c in Bash = command substitution (gen 22: the fix text vanished from my card) | card edits go through a QUOTED heredoc file (<<'EOF'), never inline double quotes |
+| write.py 'replace body N:M' refuses a range that cuts a paragraph or a fenced block; --force is NOT a CLI flag | replace the WHOLE section (heading to the next heading) |
 
 ## §5 Verification: every landing = merge-tree rc 0 + newcomers byte-identical to HEAD + 0 D + anonymize + evidence dry-run + links/schema + suite with every red attributed
 
