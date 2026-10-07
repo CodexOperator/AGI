@@ -9,7 +9,7 @@
 | DG5 | g5.34.7.2 | `01f69b284` | `9d4e4f5f7` |
 | DG6 | g5.34.7.3 | `ed9cb4f28` | `7019ce27c` |
 | DG7 | g5.34.7.4 | `35cdd11f2` | `6e6f18940` |
-**Land tip (additive scrub):** `ae1f61b05` (`ae1f61b0542933ffce6ec467f431028977429a12`) — parent live pilot `155648773` (`155648773b7b5dd488217cd98825942103c4ba83`) · `refs/tips/sm-phase-b-scrub`
+**Land tip (additive scrub):** `cb1b74025` (`cb1b740259fe9fb67fd2f22557a9a74f7c409a98`) — parent live pilot `155648773` (`155648773b7b5dd488217cd98825942103c4ba83`) · `refs/tips/sm-phase-b-scrub`
 **Date:** 2026-10-07 · **Post:** sanctuary-master · **Skill:** agi-master-gate / spawn-chain (Write+agi-turn; never write.py)
 **Climb:** DG2 `b3b14695c` · DG1 `120defe58` · SM stamp base `35d228c89`
 **Stands:** season3 `4b8f28b5e` / capsule `fda4efd6e` · ACL lean A · MAIN signingkey UNSET · lock FREE
