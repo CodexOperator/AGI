@@ -6,24 +6,24 @@ parents:
   - goal:g7.16.1.11
   - goal:g7.32
 next_edges: []
+confidence: 0.5
 edited_by: director-general-1
 goal_id: G7.16.1.11.20
 goal_kind: subgoal
 model: claude-sonnet-5-5
+origin: goal
 role: director
 scaffold_hash: 40c82dd9c7a5ef3e
 season: 2
-confidence: 0.5
-origin: goal
 seeds:
   - goal:g7.16.1.11
   - goal:g7.32
+status: horizon
 tags:
   - council
   - v5
   - messaging
   - g7.16.1.11
-status: active
 title: "G7.16.1.11.20: messaging is box mail in the AA1.M math -- the agi-run box-n poll and cccc.ts adapted (unread count fixed, ~/o cap kept), send.py retiring one caller at a time as box mail lands"
 town: core
 ---
@@ -54,3 +54,7 @@ goal:g7.32.* (the thin router and magic-pane builds) · the pilot's raw-shell ro
 
 ## Agent Notes
 Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+10-07 15:2xZ: horizon until its build starts (HEAD CLAIM: active = worked now; SM's note at the goals landing daadcbb3f); builds go one at a time g4.13.1 -> g7.16.1.11.19 -> g3.8 -> g7.16.1.11.20, each flips to active when its lanes order goes out.
+<!-- THOUGHT:END -->
