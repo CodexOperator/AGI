@@ -197,6 +197,11 @@ mkdir $T/priv000;echo x >$T/priv000/file.txt;chmod 000 $T/priv000
 proj d2e;mkpe $T/priv000/file.txt|cmds;drv check $G credentials >$T/d2e.out;proj d2f;mkpe $T/mine.txt/below.txt|cmds;drv check $G credentials >$T/d2f.out
 ok "d2e-path-under-a-mode-000-dir-is-skip (control for the refinement) a PermissionError line naming a path under a mode-000 directory (stat fails; exists() would say absent) is STATUS $(st $T/d2e.out) (want SKIP) with the path in the note: $(nt $T/d2e.out|cut -c1-90); green on 0c6fc2d9a3, RED only on a plain exists() variant" '[ "$(st $T/d2e.out)" = SKIP ]&&nt $T/d2e.out|grep -q priv000'
 ok "d2f-path-below-a-regular-file-is-fail a PermissionError line naming a path BELOW a regular file (NotADirectoryError: the path is really gone) is STATUS $(st $T/d2f.out) (want FAIL)" '[ "$(st $T/d2f.out)" = FAIL ]'
+# D2 narrowing (DG1 17:50Z): only a PermissionError on the path's stat is 'behind another uid's wall'; ELOOP / ENAMETOOLONG / EIO on a path are the writer uid's own failure and stay FAIL (d2e and d2f are the controls on either side)
+ln -s loopb $T/loopa;ln -s loopa $T/loopb;LONGN=$(printf 'n%.0s' $(seq 1 300))
+proj d2g;mkpe $T/loopa|cmds;drv check $G credentials >$T/d2g.out;proj d2h;mkpe $T/$LONGN|cmds;drv check $G credentials >$T/d2h.out
+ok "d2g-symlink-loop-path-is-fail a PermissionError line naming a SYMLINK-LOOP path (stat raises ELOOP, not a permission wall) is STATUS $(st $T/d2g.out) (want FAIL)" '[ "$(st $T/d2g.out)" = FAIL ]'
+ok "d2h-overlong-name-is-fail a PermissionError line naming a path with a 300-character component (ENAMETOOLONG) is STATUS $(st $T/d2h.out) (want FAIL)" '[ "$(st $T/d2h.out)" = FAIL ]'
 # D1 (all-SKIP, DG1 ruling 16:39Z): a --suite run in which EVERY result is SKIP (links + write-guard die naming the mode-000 file, tests = the exact no-pytest line, context-suite declares no roots, anonymize = a bin copy whose stub names the same file) is rc 3 and certifies nothing: no verified.stamp, fresh or stale
 rm -rf $T/bin3;cp -r $BIN $T/bin3;printf '#!/usr/bin/env python3\nimport sys\nsys.stderr.write("PermissionError: [Errno 13] Permission denied: '"'"'%s'"'"'\\n")\nsys.exit(1)\n' $T/theirs.txt >$T/bin3/anonymize.py
 cp $T/bin3/anonymize.py $T/pe.py

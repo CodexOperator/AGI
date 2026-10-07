@@ -220,8 +220,10 @@ def _perm_skip(output: str) -> str | None:
             os.stat(path)
         except (FileNotFoundError, NotADirectoryError):
             continue
-        except OSError:      # PermissionError: unstattable, the path is behind another uid's wall
+        except PermissionError:   # unstattable: the path is behind another uid's wall
             return f"unreadable {path}: permission denied (skipped)"
+        except OSError:           # a symlink loop, a name too long ...: no permission problem, FAIL like gone
+            continue
         if not (os.access(path, os.R_OK) and os.access(path, os.W_OK)):
             return f"unreadable {path}: permission denied (skipped)"
     return None
