@@ -131,6 +131,18 @@ rules      diagram-max · board / trajectory = VERSIONS (replace in place), neve
 memory     15 GB box · ONE model load at a time · start at MemAvailable >= 6 GB + memory PSI avg10 < 5, stop at >= 20 · containers with --memory
 research   L4 head windowing (g5.22) · neuron periodicity (g5.28) · queue + metrics = the trajectory_standin rows
 geometry   the trajectory lives here (owner 09-30); goal:g7.34* moot for this town
+g1.41      PASS B4 residues (belam [decision] 20:49Z 10-07) -- SM placement 20:5xZ: ONE build owner per file; route DG1 hyp -> DG2 lanes -> builder -> SM gate, one merge-up per round
+  A ROOT     DG3  .geometry/engine-root.md + engine.md (engine.md only after .20 box-wake lands)  A1 BOOT HOLE FIRST (:61-63,71,74 + engine.md:91: root reads a root-held pinned sha) -> A2 :73,76 jq null fail-closed -> A3 :39,43 exit-127 loop + :142-146,104 agi-carry restart bound -> A4 engine.md:90 .name validated; sizes :41-79 re-measured in EVERY A commit
+  B GROW+POST DG3 .geometry/engine-grow.md :41,60 · engine-post.md :144 polkit                after A1
+  C GUARD    DG5  extensions/agi/guard/{guard-init,ram-main,ram-tier,session-sweep}.sh: validate guard.env before any eval    parallel
+  D PY-GATES DG3  write.py:2079 · anonymize.py:306 · verification.py:1409-1412                 after A1
+  E PY-MISC  DG5  reds.py:51,100 · metrics_cell.py:138 · council_report.py:138                  parallel
+  F GRID     DG3  grid.py:895,911-913,1240-1280 (the double-write fix shape = belam's owner Q before build) · the 2 no-mint_id experiments = lane I
+  G TESTS    DG2  test_anonymize_guard.py:867-871 · test_heal_sweep.py:53-57 · test_heal_watch.py:51 · test_boxkit_templates.py:1199-1201 · test_node_writer.py:1796
+  H SKILLS   DG5  skills/agi/SKILL.md · skills/agi-{workflow,corrective,dispatch,goal}/SKILL.md (workflow.py retired; v5 = plain Write/Edit)
+  I NODES    DG1  the 3 demotes + every NODES/ANONYMIZE row + the 2 no-mint_id experiments; the 38 schema-field nodes = DG5 after, mechanical
+  J RESEARCH thought-master: its own placement (datasets in history: ignore/LFS forward; any history scrub = OWNER)
+  not placed AA1.V capsule install (council/belam lane) · history rewrite (owner)
 ```
 ## Agent Notes
 
