@@ -893,6 +893,47 @@ def iter_node_files(root: Path):
     yield from sorted((root / "nodes").rglob("*.md"))
 
 
+def payload_args_to_nodes(root: Path, paths: list[Path],
+                          engine_root: Path) -> tuple[list[Path], list[str]]:
+    """goal:g7.33.19.1 -- translate explicit `commit <path>` arguments: a node
+    file stays; a path some LIVE node names as its `payload_ref` becomes that
+    node's file (one version per node, whichever of its two paths was named);
+    anything else comes back in `unowned`, by name. Nothing is written here."""
+    nodes: list[Path] = []
+    unowned: list[str] = []
+    owners: dict[str, Path] | None = None
+    for p in paths:
+        try:
+            is_node = p.is_file() and parse_node_id(p) is not None
+        except UnicodeDecodeError:
+            is_node = False
+        if is_node:
+            found = p
+        else:
+            if owners is None:
+                owners = {}
+                for n in iter_node_files(root):
+                    if is_retired_node_file(root, n):
+                        continue
+                    try:
+                        ref = parse_payload_ref(n)
+                    except UnicodeDecodeError:
+                        continue
+                    if ref:
+                        owners.setdefault(ref.removeprefix("./"), n)
+            keys = [str(p).removeprefix("./")]
+            try:
+                keys.append(p.resolve().relative_to(engine_root.resolve()).as_posix())
+            except ValueError:
+                pass
+            found = next((owners[k] for k in keys if k in owners), None)
+        if found is None:
+            unowned.append(str(p))
+        elif found not in nodes:
+            nodes.append(found)
+    return nodes, unowned
+
+
 def is_retired_node_file(root: Path, path: Path) -> bool:
     """True for a node under `nodes/deprecated/` — retired, moved, never
     deleted (CLAUDE.md "Retire, never delete")."""
@@ -1096,6 +1137,14 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
     paths = list(iter_node_files(root)) if do_all else [Path(f) for f in files]
     if not paths:
         sys.exit("ERR: give node files or --all")
+    if not do_all and not session:
+        # goal:g7.33.19.1 -- a payload path versions the node that carries it;
+        # a path no node owns is refused by name BEFORE any ref is written.
+        paths, unowned = payload_args_to_nodes(root, paths,
+                                               engine_root or default_engine_root())
+        if unowned:
+            sys.exit("ERR: no build node carries payload_ref "
+                     + ", ".join(unowned))
 
     # hypothesis:l3w0-grid-flock — commit --all serializes with any other
     # commit --all on the same box (incl. the 5-min grid_sync cron) via an

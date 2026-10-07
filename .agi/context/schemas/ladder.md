@@ -1,5 +1,6 @@
 ---
 name: ladder
+active: false   # Z4 phase A (DG1.10): INACTIVE = unbracketed filename (precedent agent_session.md, schema_registry/active_set.py R2.2), so grow-project no longer projects it; the ladder node (.geometry/ladder.md) and every reader are untouched
 structural: true
 derived_from: authored-2026-09-06 for G12.3 — no prior corpus to survey; this
   schema and its one node are minted together

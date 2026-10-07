@@ -155,6 +155,7 @@
     "undelivered_after_minutes": 10
   },
   "locations": {
+    "stream": {"stub": "{home}/work/streamer-stub", "bin": "{home}/bin", "xvfb": "{home}/xvfb/root/usr/bin/Xvfb", "kiosk_profile": "{home}/snap/firefox/common/stream-profile", "feed": "{home}/classfeed/feed.py"},
     "comms_root": "comms/season-2",
     "pi_home": "/home/ubuntu/.pi/agent",
     "claude_home": "/home/ubuntu/.claude"
@@ -170,11 +171,14 @@
     }
   },
   "box": {
-    "root": "/home/ubuntu/work/agi",
+    "alias": "local-town", "hub": "",
+    "repo": "/data/work/agi",
+    "root": "/data/work/agi",
     "logs_dir": "/home/ubuntu/logs",
     "tmux_session": "agi-rc",
     "user": "ubuntu",
-    "allow": []
+    "allow": [],
+    "scan": ["extensions/", "skills/", "src/", ".claude/", ".agi/context/", ".agi/nodes/.geometry/"]
   },
   "workflows": {
     "review": {
@@ -204,6 +208,7 @@
     },
     "user_roots": ["/tmp/pytest-of-"],
     "email_allow": [
+      "agi-[a-z0-9-]+@[A-Za-z0-9_%-]*\\.(?:path|service|timer|socket)",
       "[^@]+@(?:[A-Za-z0-9-]+\\.)*example\\.(?:com|org|net)",
       "[^@]+@openssh\\.com",
       "[^@]+@(?:[0-9]+|UID)\\.service"

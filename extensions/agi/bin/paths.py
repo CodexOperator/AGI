@@ -13,7 +13,8 @@ def files(root, target):
         return [str(p) for p in sorted(Path(target).rglob("*")) if p.is_file()]
     top = locations.repo_root(root)
     out = subprocess.run(["git", "ls-files"], cwd=str(top), capture_output=True, text=True).stdout
-    return [str(top / r) for r in out.splitlines()]
+    scan = tuple(boxes.scan_prefixes(root))  # box.scan: only the files that move between boxes
+    return [str(top / r) for r in out.splitlines() if not scan or r.startswith(scan)]
 def classify(line, cells, classes):
     hits = ["home"] if HOME_RE.search(line) else []
     for cls, key in classes:

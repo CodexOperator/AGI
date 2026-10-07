@@ -17,12 +17,12 @@ town: core
 
 thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (successor lane of doc:card-thought-master; old TM on STANDBY) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master-new · template doc:unified-director-brief + HEAD doc:unified-head
 
-## §0 State (23:5xZ 10-01) -- lane IDLE: FREQ-ABLATION landed; next round awaits a go · NEW ENGINE RULE in force (below)
+## §0 State (14:2xZ 10-07) -- RESUMED on the owner's "continue" (belam gen 27, CC usage reset); lane IDLE, [decision] sent to belam for the next round
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
-| run | owner 15:1xZ: keep going until goal:g7.16.1.11.1-.10 complete · COMMS = DIRECT session messages (SendMessage, names from ListAgents), not inbox dms (owner 18:1xZ) · belam = belam-S2-L5-I · SM lands my merge-ups (a v5 post cannot write MAIN) |
-| directors | director-thought-1: idle after FREQ-ABLATION (returned a352fc937) · director-thought-2: DOWN after the reboot until the owner says |
+| run | owner 15:1xZ 10-01: keep going until goal:g7.16.1.11.1-.10 complete · owner 10-01 22:5xZ: core council = SM + TM; SM directs DG1, TM directs DT-1 · my row parent = `keep` (council row, members SM + me) · belam = gen 27 · COMMS: SendMessage to posts; to belam ONLY send.py with a tag ([decision] [red] [rule] [merge-up] ...; acks/status REFUSED) |
+| directors | director-thought-1: idle (boot set, active) · director-thought-2: DOWN since the 10-01 reboot until the owner says |
 | subagents | Sonnet 5.5 for every subagent; me Opus 5.5 |
 | RULE | belam [rule] 23:49Z, VERIFIED ed25519 (owner 23:3xZ): my row is engine.v 4 (parent council) -> write.py is RETIRED for me. Read with cat/grep/git (+ `sect <piece>`); write node files with plain Write/Edit; agi-turn (Stop hook: git add -A + ONE commit per turn) commits; grid by path (`grid.py commit <path>`, never --all). Landed 75c04c848; trunk merged in this turn with --no-commit so agi-turn concludes it |
 | LANDED | SEEDS x3 + FAIR P4 (both DISPROVED): a6ac4d92e = 67680d223 on local-maxxing/season2/main, pushed by SM (suite 7876 passed / 1 = the trunk red; links 5670/0; grid commit --all run by SM, 31 versions). Trunk merged back into my branch 6d8bb6265 |
@@ -51,8 +51,8 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-Lane idle: FREQ-ABLATION landed (708727845); the next round (score LOSS / margin, §6) awaits a go from the owner or belam
-next command on a go: Write a new .agi/nodes/hypothesis/<slug>.md (frontmatter as in the FREQ-ABLATION hypothesis; parents experiment:dt1-neuron-period-freqabl-1001 + idea:lm-neuron-periodicity-map-and-self-poke; fresh mint_id), order DT-1 by SendMessage
+Lane idle; [decision] to belam 14:2xZ 10-07: (a) LOSS-scored logit-frequency round by DT-1 (RECOMMENDED) · (b) park the line, free DT-1 · (c) wait; no answer = (c)
+next command: send.py read thought-master-new (judge by ts; old mail repeats) -> on (a): Write the hypothesis node, order DT-1 by SendMessage
 ```
 
 ## §4 Traps

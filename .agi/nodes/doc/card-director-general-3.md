@@ -17,13 +17,13 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator; belam for the BUILD) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (22:3xZ 10-01, after the real reboot) · OWNER 15:1xZ via belam: keep going until goal:g7.16.1.11.1-.10 complete · LANES: subagents Sonnet 5.5; murs pi-free · belam + SM by DIRECT session message (owner 18:1xZ): belam = agi-6a, SM = agi-02 (SendMessage)
+## §0 State (00:1xZ 10-02, MOVING to v5) · OWNER 15:1xZ via belam: keep going until goal:g7.16.1.11.1-.10 complete · LANES: subagents Sonnet 5.5; murs pi-free · MAIL: skill agi-send, `send.py --from director-general-3 send <post>` only (belam rule 10-02 18:04Z)
 | | |
 |---|---|
 | post | director-general-3 · graph-builder · the g7.16.1.11 BUILDER + the SWITCH to engine v5 |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-workflow · agi-dispatch · agi-memory-guard |
 | reports | BUILD + SWITCH: one line per milestone to belam (GO per post) · merge-ups to SM (board coordinator; G7 gates FIRST with SM) |
-| inbox | send.py read (WHOLE) + direct session messages |
+| inbox | send.py read (WHOLE) |
 
 ## §1 Plan
 ```
@@ -48,13 +48,16 @@ GATING MUR = claude-code via ccrun.py (belam trap 61, passB3): systemd-run --use
 G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2-6 (DG1 alive self-perpetuating all-is-one stream-master) · agi-meter on all v5 posts · DG5 key renewed 2x · G9 LANDED 0b8f086a5 + MOCK passed (F1-F3, teardown proven) · G9.5/G9.6/G9.7 + heal-ack + heal-pid merged up, residues 0 · findings rows 78 79(DONE) 81-85 87 88 89 on goal:g7.33.19 (86 held for SM's report_integrity item, BANKED)
 
 ## 🔴 Where it stops
-G9 DONE (the real reboot passed, belam ACCEPTED 22:4xZ; rows 90-94 placed). Nothing live of mine.
-BROKER = HOLD (belam [decision] 23:3xZ, owner 23:0xZ: the council places bundles, DG1 writes goals + hypotheses, builds come after). hypothesis:g716111-broker-keys-and-land-for-v5-posts (377133c65 + THOUGHT 1889f14ea) stays a PROPOSAL for the council: do NOT dispatch, nothing to do on it until a council bundle names it. Its kid (dispatched 22:5xZ, before the hold) was STOPPED; its partial UNREVIEWED work is PARKED on the LOCAL branch broker-v5 at 2dc9d4c66 (never merged; worktree removed).
-NEXT: nothing assigned. Read the inbox; take the next order from the council (SM = coordinator, agi-88) or belam (agi-eb). Non-boot posts stay DOWN (owner).
-SESSIONS: belam = agi-eb (tmux @1, named agi-17) · SM = agi-88 · whois cannot resolve them (row 91) -> tmux window name, then ListAgents
-```
-cd /data/work/agi; python3 extensions/agi/bin/send.py read director-general-3; git worktree list | grep agi-ram; cat /proc/loadavg
-```
+LANE TAKEN 18:53Z 10-02 (goal:g7.16.1.11.11.1 AA1.M; DG1 order M1 -> M3 -> M2). STATE 19:5xZ: M1+M3 built = piece `box` 1927 B (a() line HELD: owner 19:5xZ same-level-or-one-apart rule supersedes the figure-eight edge, DO NOT fold) in config:engine-post; M2 built scratch-only (box-carry, agi-signers, 4 units in config:engine-root, box-carry.t.sh 31 ok; review 1 REJECT fixed in 742432512, re-review running). SEQUENCE (SM 19:5xZ): HOLD until SM sends '[landed] 19' (DG1 merge-up 19 f53e626ac, newer DG2 files conflict with my 5bf54d0e0); then ONE commit on the new trunk = piece + engine map + my BUILD notes merged INTO 19's node versions + box-mail.t.sh (default sect box, c3 B0 derived, b0, o1 o2, n1 1927) + M1 real-box overclaim rewrite (a separate UNVERIFIED probe) + my card; NEVER carry .agi/keys (my Stop hook commits it: build the cut from a temp index / worktree on the trunk, proof `git log --diff-filter=A --name-only <trunk>..<tip>` has no .agi/keys). Drafts: branch dg3-aa1m-m1m3 (10b4d2929, old base, do not deliver); post branch posts/director-general-3 tip carries everything incl. M2. M2 = its OWN merge-up AFTER the M1/M3 landing (smaller mur), each host act = belam GO via SM/DG1 (DG3 -> belam is off-matrix by design). Held: K1 K2 K3 W. M2 residues left: config_max (AGI_BOX/HUB/REPO cells), survivor mutations (--strict, fsck, CAS old, ^$o).
+MOVED TO v5 (belam executes the packet, 00:1xZ 10-02). OWNER 00:0xZ verbatim: "Let’s stand up DG2 and DG3 on new system to take over whatever DG1 comes up with and take it to completion."
+YOUR JOB ON v5: take what DG1 writes (goals + hypotheses, placed by the council bundle) and carry it to completion, beside DG2. Order: council (SM = coordinator) -> DG1 writes -> you build. The broker (hypothesis:g716111-broker-keys-and-land-for-v5-posts) is a PROPOSAL on HOLD: never dispatch it unless a council bundle names it; its parked draft = local branch broker-v5 2dc9d4c66.
+v5 LIMITS (the known CUTs; each is a council item, not yours to hack around):
+  · no kid dispatch from v5 (no .env, no per-spawn key) -> keys = the council's AA2/AA3 (rows 92 93) -- until then build what you can directly or ask belam to dispatch
+  · inbox appends: send.py send belam (route proven 18:0xZ 10-02)
+  · node edits = plain Write/Edit on the node file; agi-turn commits (write.py is OLD SETUP ONLY, owner 23:3xZ)
+  · no sudo: every host act (systemctl, /etc, /run, other users' homes) = belam's
+  · v5 uids cannot git push (row 93); the Stop hook's git add -A is row 94
+FIRST TURN: read this card, the head, the director template; ONE send.py line to belam: UP + what you read; then wait for the council's bundle / DG1's output.
 
 ## §4 Traps
 | trap | rule |
