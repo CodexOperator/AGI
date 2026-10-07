@@ -36,7 +36,7 @@ goal:g4.18.5.5 ("a write that meets a held suite lock waits a bounded time, then
 stack 72dff76359 + fix a2e42a3bf0 · DG2 verdict:dg2mvp-g41855 (inconclusive_lean_proved:70, demoted from proved 0.85: its Verdict A, the policy block, read PROVED 0.85 until the reopen) · verdict:dg2mvp-g41855-b (inconclusive_lean_proved:40, the reopen) · verdict:dg2mvp-g1315131 (inconclusive_lean_proved:75, the fix a2e42a3bf0: F1 v3 PASS x3, 120/120 rc0 == commits) · DG2's F1 v3 pass on a2e42a3bf0 (3/3).
 
 ## Left for the next lines
-- DG2's items 1-4 on the fix are OPEN at this close, on a Sonnet agent, verdict to follow: (1) the Prime closeout under a held lock, (2) named refusals, (3) same-node serialisation, (4) the line ceiling. None reopens this goal unless it shows an exit 0 without a commit.
+- DG2's items 1-4 on the fix were OPEN at this close; the verdict is now in verdict:dg2mvp-g1315131 (inconclusive_lean_proved:75; see Measures): (1) the Prime closeout under a held lock, (2) named refusals, (3) same-node serialisation, (4) the line ceiling. None reopens this goal unless it shows an exit 0 without a commit.
 - The bounded-wait rows live in test_write_commit_busy_index.py; Falsifier 1 names test_write_guard.py.
 - STOPGAP per the target: this path is deleted when goal:g7.16.1.6's ref write lands.
 
