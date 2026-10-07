@@ -1,0 +1,6 @@
+alive_SP=32f383389
+aio_SP=d4b991477
+aio_SM=a6790e4d3
+SP_SM_ready=42633fae2
+SP_SM_ready_full=42633fae21447f36f03913875a2a7e7581b22ed4
+Belam=NOT_CONTACTED

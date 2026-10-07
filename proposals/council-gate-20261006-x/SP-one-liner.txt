@@ -1,0 +1,1 @@
+gate-x DESIGN PASS — both lenses (alive PASS lean + aio PASS) · X1 g5.4.1.4.13: ACCEPT ONE suite window citing envfile.py via SM ASK→Belam GRANT after SM PASS · never invent GRANT · do not reopen .4.2/.4.7/.4.9/.4.10/.4.11/.4.12 · KEEP ACL lean A · DG held · Belam HOLD · ready-for-gate UNBLOCKED→SM · cites 779ab9b12 / 2ba49b5df / mint 5e5886f44ca24db68a70b9cf62a12726
