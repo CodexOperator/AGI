@@ -11,7 +11,7 @@ printf '[user]\n\tname=t\n\temail=t@t\n[commit]\n\tgpgsign=false\n[safe]\n\tdire
 M="claude-opus-5"
 # the python driver: one command per call, every outcome printed as flat lines (STATUS, NOTE as a json string, EXC <type> when anything raised)
 cat >$T/drv.py <<'PYEOF'
-import json, sys
+import json, os, sys
 sys.path.insert(0, sys.argv[1]); sys.path.insert(0, sys.argv[2])
 from pathlib import Path
 import verification
@@ -26,6 +26,9 @@ try:
             print("RES", r.name, r.status, json.dumps(r.note))
     elif cmd == "check":
         show(verification.run_check(groot, sys.argv[5], False))
+    elif cmd == "count":
+        if os.environ.get("FAKEUID"): os.geteuid = lambda: int(os.environ["FAKEUID"])
+        show(verification.compare_count(groot, {"active": 5, "deprecated": 1, "total": 6}, stamp=True)); print("IOERR", len(verification._IO_ERRORS))
     elif cmd == "anon":
         show(verification.check_anonymize(groot))
     elif cmd == "extra":
@@ -114,7 +117,7 @@ EOF
 ok "l8c-writable-sessions-dir-stamps (control) the SAME fixture with a writable sessions dir is all green ($(grep '^RESULT:' $T/l8c.out|cut -c1-60)) and writes the verified stamp ($(ls $G/sessions|tr '\n' ' ')): the lane below really reaches the write" 'grep -q "^RESULT: PASS" $T/l8c.out&&[ -e $G/sessions/verified.stamp ]'
 rm -f $G/sessions/verified.stamp $G/sessions/verify-suite-ts.json;chmod 555 $G/sessions
 (cd $P&&PYTHONPATH=$T/stub:$SRC python3 $BIN/verification.py --level quick --suite) >$T/l8.out 2>&1;chmod 755 $G/sessions
-ok "l8-unwritable-sessions-dir-completes a --suite run whose sessions dir this uid cannot write (the suite stamp, the verified stamp): the RESULT line is printed ($(grep -c '^RESULT:' $T/l8.out)), 0 PermissionError ($(grep -c PermissionError $T/l8.out)), 0 Traceback ($(grep -c Traceback $T/l8.out)); a skipped write is named, never fatal" '[ "$(grep -c "^RESULT:" $T/l8.out)" = 1 ]&&[ "$(grep -c PermissionError $T/l8.out)" = 0 ]&&[ "$(grep -c Traceback $T/l8.out)" = 0 ]'
+ok "l8-unwritable-sessions-dir-completes a --suite run whose sessions dir this uid cannot write (the suite stamp, the verified stamp): the RESULT line is printed ($(grep -c '^RESULT:' $T/l8.out)), 0 PermissionError ($(grep -c PermissionError $T/l8.out)), 0 Traceback ($(grep -c Traceback $T/l8.out)); a write that fails in a dir THIS uid owns is a named ERROR and rc 2 (D6, d6g), never a traceback: only the printed verdict and 0 PermissionError / Traceback are pinned HERE" '[ "$(grep -c "^RESULT:" $T/l8.out)" = 1 ]&&[ "$(grep -c PermissionError $T/l8.out)" = 0 ]&&[ "$(grep -c Traceback $T/l8.out)" = 0 ]'
 # ---- L9: pytest absent for this uid = SKIP. The `tests` check runs a declared argv: the stub prints exactly what python prints without pytest. The declared second suite is run through sys.executable: the driver swaps in a python-without-pytest stub (hermetic on a host that HAS pytest)
 proj p9;cmds <<'EOF'
   tests:
@@ -220,5 +223,17 @@ dstampproj d6e;mkdir $G/sessions/verify-count.json;CS --level quick --stamp >$T/
 ok "d6e-baseline-write-failure-on-the-writer-uid-is-not-pass a --stamp run whose baseline write (verify-count.json, EISDIR) fails in a dir THIS uid owns exits $d6erc (want 2), prints ONE named error ($(grep -c '^ERROR: cannot write.*verify-count.json' $T/d6e.out) line(s); $(grep -c '^skip: cannot write.*verify-count.json' $T/d6e.out) skip line(s), want 0), 0 Traceback ($(grep -c Traceback $T/d6e.out)), and no 'baseline recorded' PASS is left standing ($(grep -c 'baseline recorded' $T/d6e.out) line(s); the file is $([ -d $G/sessions/verify-count.json ]&&echo still the directory||echo REPLACED))" '[ $d6erc = 2 ]&&[ "$(grep -c "^ERROR: cannot write.*verify-count.json" $T/d6e.out)" = 1 ]&&[ "$(grep -c "^skip: cannot write.*verify-count.json" $T/d6e.out)" = 0 ]&&[ "$(grep -c Traceback $T/d6e.out)" = 0 ]&&[ -d $G/sessions/verify-count.json ]'
 dstampproj d6f;rm -rf $G/sessions;ln -s /usr/share $G/sessions;CS --level quick --stamp >$T/d6f.out;d6frc=$?;rm -f $G/sessions
 ok "d6f-baseline-foreign-dir-is-the-named-skip (control) the same run when the sessions dir belongs to another uid (a root-owned dir): the named 'skip: cannot write' line for verify-count.json ($(grep -c '^skip: cannot write.*verify-count.json' $T/d6f.out)), no ERROR line for it ($(grep -c '^ERROR: cannot write.*verify-count.json' $T/d6f.out)), 0 Traceback, rc $d6frc as before (want 0: nothing FAILED)" '[ "$(grep -c "^skip: cannot write.*verify-count.json" $T/d6f.out)" = 1 ]&&[ "$(grep -c "^ERROR: cannot write.*verify-count.json" $T/d6f.out)" = 0 ]&&[ "$(grep -c Traceback $T/d6f.out)" = 0 ]&&[ $d6frc = 0 ]'
+# D6 R2 (DG1 18:09Z, mur final on a159c558c6): the sessions dir itself MISSING under a parent this uid owns but made 555 (a mkdir that cannot happen): the mkdir sits inside the same try as the write, so a --stamp run (the baseline, _write_state) and a --suite run (the suite record, _record_suite_ts) end rc 2 with ONE named ERROR and no traceback. A parent another uid owns is the named skip; one uid cannot own a root-owned graph dir, so d6h flips the uid seam (os.geteuid) of the SAME process: the dir stays ours and 555, the code is told it is someone else's
+dstampproj d6g1;rm -rf $G/sessions;chmod 555 $G;CS --level quick --stamp >$T/d6g1.out;d6g1rc=$?;chmod 755 $G
+ok "d6g1-baseline-mkdir-failure-on-the-writer-uid-is-error-rc-2 a --stamp run whose sessions dir is MISSING under a parent this uid owns (555, so the mkdir fails) exits $d6g1rc (want 2), prints ONE named error for verify-count.json ($(grep -c '^ERROR: cannot write.*verify-count.json' $T/d6g1.out)), 0 Traceback ($(grep -c Traceback $T/d6g1.out)), the verdict is printed ($(grep -c '^RESULT:' $T/d6g1.out))" '[ $d6g1rc = 2 ]&&[ "$(grep -c "^ERROR: cannot write.*verify-count.json" $T/d6g1.out)" = 1 ]&&[ "$(grep -c Traceback $T/d6g1.out)" = 0 ]&&[ "$(grep -c "^RESULT:" $T/d6g1.out)" = 1 ]'
+LINKS='0 broken' STALE= dproj d6g2 <$T/t.green;rm -rf $G/sessions;chmod 555 $G;CS --level quick --suite >$T/d6g2.out;d6g2rc=$?;chmod 755 $G
+ok "d6g2-suite-record-mkdir-failure-on-the-writer-uid-is-error-rc-2 a green --suite run whose sessions dir is MISSING under a parent this uid owns (555): exits $d6g2rc (want 2), ONE named error for verify-suite-ts.json ($(grep -c '^ERROR: cannot write.*verify-suite-ts.json' $T/d6g2.out)), 0 Traceback ($(grep -c Traceback $T/d6g2.out)), the verdict is printed ($(grep -c '^RESULT:' $T/d6g2.out))" '[ $d6g2rc = 2 ]&&[ "$(grep -c "^ERROR: cannot write.*verify-suite-ts.json" $T/d6g2.out)" = 1 ]&&[ "$(grep -c Traceback $T/d6g2.out)" = 0 ]&&[ "$(grep -c "^RESULT:" $T/d6g2.out)" = 1 ]'
+dstampproj d6h;rm -rf $G/sessions;chmod 555 $G;(cd $P&&FAKEUID=99999 PYTHONPATH=$T/stub:$SRC python3 $T/drv.py $BIN $SRC count $G) >$T/d6h.out 2>&1;chmod 755 $G
+ok "d6h-baseline-mkdir-under-a-foreign-parent-is-the-named-skip (uid seam) the same missing sessions dir when the code is told the parent belongs to another uid (os.geteuid = 99999 in the driver; the dir stays ours and 555): the named 'skip: cannot write' for verify-count.json ($(grep -c '^skip: cannot write.*verify-count.json' $T/d6h.out)), no ERROR ($(grep -c '^ERROR' $T/d6h.out)), 0 recorded IO errors ($(sed -n 's/^IOERR //p' $T/d6h.out)), STATUS $(st $T/d6h.out) as before (want PASS), 0 EXC/Traceback ($(grep -c 'EXC\|Traceback' $T/d6h.out))" '[ "$(grep -c "^skip: cannot write.*verify-count.json" $T/d6h.out)" = 1 ]&&[ "$(grep -c "^ERROR" $T/d6h.out)" = 0 ]&&[ "$(sed -n "s/^IOERR //p" $T/d6h.out)" = 0 ]&&[ "$(st $T/d6h.out)" = PASS ]&&[ "$(grep -c "EXC\|Traceback" $T/d6h.out)" = 0 ]'
+# D6 N4 (DG1 18:09Z, fail-closed): a run that exits non-zero from an IO error certifies nothing: no verified.stamp, and a stale one is retracted. d6j is the control (the same fixture without the failing baseline write DOES stamp, so the absence in d6i is not vacuous)
+dstampproj d6j;CS --level quick --suite --stamp >$T/d6j.out;d6jrc=$?;d6jst=$([ -e $G/sessions/verified.stamp ]&&echo stamp||echo none)
+ok "d6j-clean-suite-stamp-run-stamps (control) a green --suite --stamp run on the committed fixture exits $d6jrc (want 0) and writes verified.stamp ($d6jst, want stamp)" '[ $d6jrc = 0 ]&&[ "$d6jst" = stamp ]'
+dstampproj d6i;mkdir -p $G/sessions;echo stale >$G/sessions/verified.stamp;mkdir $G/sessions/verify-count.json;CS --level quick --suite --stamp >$T/d6i.out;d6irc=$?;d6ist=$([ -e $G/sessions/verified.stamp ]&&echo STAMP||echo none)
+ok "d6i-io-error-run-certifies-nothing the same green --suite --stamp run whose BASELINE write fails (EISDIR, as d6e) exits $d6irc (want 2) and leaves verified.stamp: $d6ist (want none: the stale stamp planted before the run is retracted, none is written)" '[ $d6irc = 2 ]&&[ "$d6ist" = none ]'
 echo "verify-v5-uid: $f FAIL"
 exit $f

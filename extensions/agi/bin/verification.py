@@ -883,7 +883,6 @@ def _write_state(groot: Path, current: dict, sha: str | None,
     byte-for-byte as before; the manifest is named by `manifest_sha256`.
     """
     path = _state_path(groot)
-    path.parent.mkdir(parents=True, exist_ok=True)
     doc = {
         "active": int(current.get("active", -1)),
         "deprecated": int(current.get("deprecated", -1)),
@@ -898,6 +897,7 @@ def _write_state(groot: Path, current: dict, sha: str | None,
         doc["manifest_sha256"] = hashlib.sha256(
             "\n".join(keys).encode("utf-8")).hexdigest()
     try:
+        path.parent.mkdir(parents=True, exist_ok=True)   # R2: inside the try, a missing dir is the same named outcome
         path.write_text(json.dumps(doc), encoding="utf-8")
     except OSError as exc:   # goal:g7.16.1.11.19: the baseline lives in MAIN's sessions dir
         _io_failed(path, "write", exc)   # R1: another uid's dir = the named skip; THIS uid's = ERROR + rc 2
@@ -1037,7 +1037,10 @@ def acquire_suite_lock(groot: Path) -> tuple[Path | None, int | None]:
     that rules when L4.10 folds the suite into `full`.
     """
     path = Path(groot) / "sessions" / suite_lock_name(groot)
-    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+    except OSError:   # R2: the sessions dir cannot be made: the documented "could not be written at all"
+        return None, None
     for _ in range(2):
         if path.exists():
             try:
@@ -1199,8 +1202,11 @@ def _io_failed(path: Path, verb: str, exc: OSError) -> None:
     skip (a v5 uid cannot write MAIN's sessions); on a dir THIS uid owns it is an
     ERROR line and the run is not PASS (main returns 2), never a swallowed OSError."""
     why = exc.strerror or exc
+    anc = path.parent   # the dir may be MISSING (R2: the mkdir failed): its nearest existing ancestor decides
+    while not anc.exists() and anc != anc.parent:
+        anc = anc.parent
     try:
-        mine = path.parent.stat().st_uid == os.geteuid()
+        mine = anc.stat().st_uid == os.geteuid()
     except OSError:
         mine = False
     if mine:
@@ -1280,7 +1286,6 @@ def _record_suite_ts(groot: Path, decision: dict | None = None, *,
     ledger -- so a later reader loads it from disk and re-verifies m-of-n
     WITHOUT argv, and a tampered record reads short-of-m by name."""
     path = _suite_ts_path(groot)
-    path.parent.mkdir(parents=True, exist_ok=True)
     doc = {"suite_ran_at": ran_at if ran_at is not None else time.time()}
     if ran_on is not None:
         doc["suite_ran_on"] = ran_on
@@ -1303,6 +1308,7 @@ def _record_suite_ts(groot: Path, decision: dict | None = None, *,
     except (OSError, ValueError, TypeError):
         pass
     try:
+        path.parent.mkdir(parents=True, exist_ok=True)   # R2: inside the try
         path.write_text(json.dumps(doc), encoding="utf-8")
     except OSError as exc:   # goal:g7.16.1.11.19
         _io_failed(path, "write", exc)
@@ -2411,14 +2417,15 @@ def main(argv: list[str] | None = None) -> int:
         # NOTHING -- the stamp is a pass marker, and absence is the correct
         # state on FAIL (never a stale marker claiming a green run that did
         # not happen).
-        if not _suite_skipped and not any(r.status == "FAIL" for r in results):
+        if not _suite_skipped and not _IO_ERRORS and not any(r.status == "FAIL" for r in results):
             _write_verified_stamp(groot, ran_at=_run_ts, ran_on=_run_sha)
         else:
             # A RED run RETRACTS any earlier certification at every path the
             # gate can read, so the stamp can never outlive the green run it
             # recorded (cli.py:5336 tests existence only). So does a SKIPPED
             # suite (D4, DG1 16:39Z): it never ran, so it certifies nothing and
-            # an older green stamp must not stand in for it.
+            # an older green stamp must not stand in for it. So does a run that
+            # exits non-zero from an IO error (N4, DG1 18:09Z): fail closed.
             _retract_verified_stamp(groot)
 
     if args.json:
