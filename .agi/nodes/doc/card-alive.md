@@ -48,7 +48,8 @@ done   10-01/02 AA1 bundle in doc:rse-aa1-boxes (boxes, grid commit, stores, tes
        15:1xZ g3.8 DESIGNED = AA1.S (cron graph_metrics as belam hourly; success_metrics --line, nulls named, 634 B; metrics.py refuses no-nodes:
        tested; a CELL graph_metrics, since a 'metrics:' line collides with trajectory_standin) -> DG1 told; belam told his 15:03Z sig read RETIRED:5808
 NEXT   mail only; nothing of alive's to build (DG3 builds g4.13.1 -> .19 -> g3.8 -> .20)
-WAITS  nothing of alive's is open: AA1.N 5a1760e82 + AA1.S 0b95e3bd8 LANDED (verified; origin c6f977e1a pushed after the 500)
+WAITS  AA1.N + AA1.S LANDED; 16:0xZ DG2's g3.8 lanes caught MY formatter dropping an absent key -> fixed, alive/aa1s-fix @967e250cc at SM;
+       banked (belam/alive): crons.md duplicate YAML key is silently last-wins for every job
 ```
 
 ## §2 Landed (on local-maxxing/season2/main, each verified with merge-base --is-ancestor)
