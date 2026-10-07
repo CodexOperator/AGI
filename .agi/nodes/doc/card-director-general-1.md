@@ -31,19 +31,17 @@ ENGINE QUEUE = NEXT SEASON, not built: pq, revoke(+LC_ALL=C), flowrot, round B m
 LANDED (local trunk, pushed): CKPT.3, OUT.7, OUT.8, goals 1007d (120296316) + 1007e (5175738fb).
 SM rotates (meter 0.40): his successor gates from his card; send [merge-up]s as usual. SM 17:00Z: FULL suite on the g3.8 union ad08961a4 = 7,914/0.
 .19 VERIFY: dg3-verify6 0c6fc2d9a3 (trunk 5f672d11e5) RUN by me: lanes 42/0 (c4d60a0b32 blob-identical), both rotate.py callers read only rc 0 as pass; DG3 pytest 125 passed + 8 fails identical on the trunk. [merge-up] SENT 17:2xZ ("pane busy", sweep retries); choices (a) suite-only SKIP vetoes, (b) rc 2 write error ACCEPTED. The skip-only test renamed test_skip_only_is_not_green (my 16:39Z ruling).
-g3.8 R1-R4: lanes 211a0a00c7 (36) ok; DG3 dg3-gmetrics2 ed0eae1462 (metrics_cell.py NEW, cell metrics_line, cmd via the helper): lanes 36/0, live line 632 B. MY PROBE: the helper COMMITS A HAND EDIT made during the 65 s run (check before cmd, recover after). [return] to DG3 + DG2 lanes 1ea73255c2 (r2e r2f, 38) RUN by me on ed0eae1462 = 36 ok / 2 FAIL (r2e r2f): ACCEPTED, DG3 GO 17:2xZ (re-check right before write.py; commit only if every +/- line starts metrics_line:/edited_by:, else ERR + rc != 0). metrics_cell.py needs NO build node (ruled). Then I run the re-cut + [merge-up].
-g4.13.1 #3 gridcas flatten: DG2 lane 0563a18377 RUN (52 ok / 1 FAIL n1-lock-real), DG3 GO; his sha comes after g3.8. 
-.20 messaging: DG2 lanes a1425b7d5 ACCEPTED (6 ok/16 FAIL on trunk); DG3 builds last (keep ~/o cap loop, cccc.ts s=n, pi types).
+g3.8 #3 dg3-gmetrics2 0ee6c275a5 (metrics_cell.py guard before AND after cmd; commit by path only if body==HEAD and only the cell/edited_by differ): lanes 38/0 (1ea73255c2 blob-identical), my probes: clean node ok; hand edit during the run = skip; stub write.py landing a foreign season edit + exit 3 = ERR rc 3, nothing committed. [merge-up] 2 of 2 SENT 17:3xZ to SM.
+g4.13.1 #3 dg3-gridcas2 b00c1db1fb (cut from the live trunk, 8 gridcas commits replayed + the flatten ' | '; REPLACES f8e756801b): grid-collapse 53/0 (also from /tmp), payload 0 FAIL. [merge-up] 1 of 2 SENT. Both "pane busy", sweep retries.
+.20 messaging: DG2 lanes a1425b7d5 (22 lanes) ACCEPTED; DG3 GO for the build (ack 17:3xZ): agi-run keeps the cap loop, types for claude*/pi*, s=n every tick; cccc.ts n>s&&..;s=n. He sends the sha; I run box-wake.t.sh at it (RED on trunk 6 ok/16 FAIL), then SM.
 A12 stays ROLLED BACK (belam's install GO).
 ```
 
 ## 🔴 Where it stops + the exact next command
-Waiting on mail. Next: `cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE after ts 17:16:17Z.
-1. DG2 lane r2e sha -> RED on ed0eae1462 (scratch worktree, `git show SHA:extensions/agi/tests/graph-metrics.t.sh` over it); DG3 re-cut: run the lanes, my hand-edit probe again (printf >> node inside the cmd: HEAD unmoved), the clean-node sanity, live `--line` once; then [merge-up] g3.8 #3 to SM.
-2. DG3 gridcas sha: run grid-collapse.t.sh 53 ok at it (MAIN + non-repo cwd), forward [merge-up] g4.13.1 #3.
-3. SM verdict on .19 (successor SM): a return = NEW DG3 commit, DG2 lane first for survivors.
-4. DG3 .20 build: run box-wake.t.sh at it (cap loop kept), a pi probe, then SM.
-Never invent goals; agi-signers retire = belam's GO.
+Waiting on mail. Next: `cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE after ts 17:27:37Z.
+1. SM (successor) verdicts on .19 verify6 0c6fc2d9a3, g4.13.1 #3 b00c1db1fb, g3.8 #3 0ee6c275a5: a return = a NEW DG3 commit, DG2 lane first for survivors; then I run it and forward. A landed = strike it here.
+2. DG3 .20 build sha: scratch worktree at it, box-wake.t.sh 0 FAIL, cmp the lane blob, size of the pieces, a pi probe, the cap loop; then [merge-up] to SM.
+3. After the first :23 run (belam's crons apply) nothing is mine; agi-signers retire = belam's GO. Never invent goals.
 
 ## §4 Traps
 | trap | rule |
