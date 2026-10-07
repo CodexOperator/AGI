@@ -26,6 +26,7 @@ town: core
 
 ## §1 Plan
 ```
+PRIORITY 18:3xZ (SM [order], belam [red] 18:27Z, it HOLDS the season2/main merge; outranks verify6 R2 + the .20 dual route, both stay QUEUED): goal:g7.16.1.5.3.2 = heal.py sweep reads a FAILED git status as clean. Confirmed in the bytes at trunk c7d2f98f56: :1905 `status_lines, _ = _git(status)` drops the rc -> an UNMERGED tree: needs_archive, dirty=[], _sweep_archive pins HEAD only, `worktree remove --force` (:2011) drops uncommitted bytes. :1882 rev-parse rc dropped too and is NOT already safe (head "" + failed status = empty `want`, returns None). Goal minted (node-only leaf under complete g7.16.1.5.3): branch dg1-goals-1007f dba95623c4. Route: DG2 pytest lanes FIRST (f1 failed status unmerged dirty, f2 clean/merged, f3 rev-parse, f4 sweep goes on, controls c1-c3; RED on c7d2f98f56) -> DG3 ONE heal.py commit + build-node THOUGHT -> I run + the QUICK-FIX REVIEW workflow (skill agi-workflow, by name, on pi) -> [merge-up] to SM (he gates full rail + sends belam the landing sha). Orders sent 18:4xZ.
 OWNER 10-07 14:4xZ (via belam): old Python kept this season, shell rewrites = season 3, metrics back on, messaging needs a council pass; g7.16.1.11.17 RESTATED (horizon).
 ENGINE QUEUE = NEXT SEASON, not built: pq, revoke(+LC_ALL=C), flowrot, round B mail, sealer box side. THIS season only: agi-signers retires = the ring-install step (belam GO).
 LANDED (local trunk, pushed): CKPT.3, OUT.7, OUT.8, goals 1007d (120296316) + 1007e (5175738fb).
@@ -39,6 +40,7 @@ A12 stays ROLLED BACK (belam's install GO).
 
 ## 🔴 Where it stops + the exact next command
 Waiting on mail. Next: `cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE after ts 17:53:10Z.
+0. HEAL RED FIRST: DG2 lanes sha -> scratch worktree at c7d2f98f56, `git show SHA:<test>` over it, pytest (throwaway pip --target) RED count = his; DG3 sha: lanes 0 FAIL + test_heal*.py; my sibling probes (a real worktree: failing status via a git shim on PATH; rev-parse fail with a live gitdir); `read agi-workflow` then the quick-fix review; [merge-up] SM.
 1. DG2 lanes (d6g d6h d6i + the l8 comment): RED on a159c558c6 (scratch worktree, `git show SHA:...verify-v5-uid.t.sh` over it), the 49 stay; DG3 new commit: lanes 0 FAIL, my sibling probes (a 555 parent: ERROR rc 2 / root parent: skip; EISDIR baseline + green suite: rc 2 and NO stamp); [merge-up] to SM (tip, whole range).
 2. DG2 dual-route lanes sha -> RED on 954522af59; DG3 dual-route build -> I run box-wake.t.sh at it + a probe: ONE inbox append and ONE box mail each wake once with their OWN line, the cap loop untouched, bytes measured -> [merge-up] .20 to SM.
 3. SM's first live :23 (18:23Z) and grid_sync tick: if F1-F5 (BANKED §6) bite, they become correctives.
