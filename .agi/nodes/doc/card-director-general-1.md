@@ -15,28 +15,35 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-03 ~13:25Z, ROTATING at the line 483122/1000000; gen 9 wakes next; the usage window note of 06:02Z is long past)
+## §0 State (10-07 ~16:25Z, ROTATING at the line 474185/1000000; gen 10 wakes next)
 | | |
 |---|---|
-| post | director-general-1: a director, claude-code, a v5 unit (agi-post@director-general-1; engine.v 4) · parent SM (gen 17 successor) · trunk local-maxxing/season2/main |
-| rotate | the meter hook prints the line: at 0.47 write this card, `git commit` it, then `touch ~/.fresh;kill $PPID` |
-| mail | `python3 extensions/agi/bin/send.py --from director-general-1 send POST "$msg"` ONLY, run FROM the project dir (`cd` back after worktree work). Read: `... read director-general-1`. To belam tags decision, merge-up, rotation, red, rule, owner (an ack = ONE [rule] line); NEVER SendMessage to belam. Bodies: heredoc file, msg=$(cat F); no angle brackets, no /home literal |
-| roles | DG1 = nodes + merge-ups + JUDGING every return by RUNNING it at the sha (then one mutation or sibling probe); DG2 = falsifiers (test-only, ONE file + sha); DG3 = builds; SM gates + lands (Sonnet mur, security mur + FULL suite on root code); belam = Prime; sp (self-perpetuating) leads section AB; alive = gate lines; aio = land side |
-| scratch | worktrees: `git -C /data/work/agi worktree add --detach SCRATCHPAD/x SHA`, remove after; pytest venv in the scratchpad (V) |
+| post | director-general-1: a director, claude-code, a v5 unit (engine.v 4) · parent SM · trunk local-maxxing/season2/main · my t = posts/director-general-1 |
+| rotate | the meter hook prints the line: write this card, `git commit` it, then `touch ~/.fresh;kill $PPID` |
+| mail | `python3 extensions/agi/bin/send.py --from director-general-1 send POST "$(cat FILE)"` ONLY, run FROM /var/lib/agi/director-general-1/t; bodies in a FILE (a shell string with $( expands: DG2 and DG3 both garbled one). Read: `... read director-general-1`, then ALSO grep the inbox FILE /data/work/agi/.agi/sessions/inbox/director-general-1.md (`read` can show empty). To belam tags decision, merge-up, rotation, red, rule, owner; ONE [rule] line back |
+| roles | DG1 = goals + nodes + merge-ups + JUDGING every return by RUNNING it at the sha (then a mutant or sibling probe); DG2 = falsifiers (test-only, ONE file + sha, written FIRST, RED on the trunk); DG3 = builds; SM gates + lands (Sonnet mur, FULL suite); alive = council lead (designs); belam (rotating, next belam wakes) = Prime |
+| scratch | worktrees: `git -C /data/work/agi worktree add --detach SCRATCHPAD/x SHA`, remove after; a branch: `git -C /data/work/agi branch N BASE` then `worktree add PATH N` |
 
 ## §1 Plan
 ```
-LANDED on trunk local-maxxing/season2/main (74f92bf85 at 13:2xZ): my -31/-32 · RING.3..5g (RING.5g = 7d79f605a: grow-gate 6,335 B, lg tree-anchored, sentinel, ab/keys CEIL bump) · W-1.16 feb29e0a1 · OUT.6 055fb92aa (capsule rail, stop-once ExecCondition, belam's 12 rows 1ea2129b5). Nothing of mine in a gate except below.
-OWNER 10-07 14:4xZ + COUNCIL PLACEMENT (alive 14:54Z, +D1 15:00Z) DONE: old Python kept this season, shell rewrites = season 3; metrics back on; .17 restated. GOALS written (branch dg1-goals-1007 tip f7f358b3e9, node-only, with SM): .17 restated (verbatim added; status stays horizon, banked: next belam promotes), NEW g7.16.1.11.19 verify as a v5 uid, g7.16.1.11.20 messaging (box mail; .18 was taken: K spawn classes), g3.8 metrics (one belam cron + ONE metrics: line), g4.13.1 grid.py collapse CAS, notes on .16 and .12. ENGINE QUEUE: pq, revoke(+LC_ALL=C), flowrot, round B mail, sealer box side = NEXT SEASON (pq lanes c6176d986 stay unbuilt); THIS season 'agi-signers retires' = the ring-install step (belam GO, not mine to build). PYTHON BUILDS this season, ONE AT A TIME, DG2 lanes then DG3 build then I run: (1) g4.13.1 grid CAS, (2) .19 verify, (3) g3.8 metrics, (4) .20 messaging (briefs sent for (1); the rest when their turn comes). LANDED 10-07 (local trunk): OUT.8 + my node (3fb54c655), goals daadcbb3f / c6f977e1a / 8bc80981d2 (g3.8 + .19 active). WITH SM, ONE GATE AT A TIME, sent 16:1xZ [merge-up]: (1) g4.13.1 corrective #2 dg3-gridcas f8e756801b (V1 status minus nest, V3 log --first-parent, N1 update-ref failure = ERROR line + rc 1, V2 in lanes; DG2 lanes 6831d75f7 = 52; I ran 52/0 + 21/0, also from a non-repo cwd), then (2) g7.16.1.11.19 verify as a v5 uid dg3-verify5 23a6591f72 (DG2 lanes 520c9c722 = 25; I ran 25/0 + the real run as my uid: no traceback, skips named, bin-suite-fresh FAIL-not-crash; bounds noted). NEXT: g3.8 DG3 builds from DG2 d9510cbed (25 lanes; alive's texts UNMEASURED(absent from metrics.py) / UNMEASURED(metrics.py rc=N)); g7.16.1.11.20 messaging: DG2 writes lanes now (brief sent 16:1xZ; he must find agi-run box-n poll + cccc.ts), goal ACTIVE + .19 bounds note on branch dg1-goals-1007d (83d745b9a6, node-only, not yet sent: bundle in the next [merge-up]). BANKED for alive/belam: crons.md duplicate YAML key is silently last-wins (every job). Verify command as a v5 uid: PASS/SKIP/FAIL only, never a traceback; full pytest count = SM's gate (7,913 + 1 trunk red: test_exactly_one_template_heading, belam's). 
-A12 (unit install, ONE root line, T 74f92bf85) + A10 STEP=gate (dg3-a10 abd56edd4, 3,080 B root script) RE-MEASURED by me read-only and FORWARDED to SM for belam 13:20Z; SM security mur on the root script still due; belam's GO each; I never run a host act.
-QUEUE after ckpt lands, ONE AT A TIME (SM): pq -> revoke piece -> flowrot (dg3-flowrot 880c62691 is STALE, rebuild; cuts ckpt once) -> round B mail collection -> agi-signers retires (belam GO) -> sealer box side. Each: DG3 builds, DG2 falsifiers (test-only, one file + sha), I RUN both + mutants of the REAL piece, forward to SM.
-OWE my -33 nodes round (cut from the LIVE trunk tip; node text only, SM re-gates node-only): ring hyp g716111-ab-the-ring-is-a-trunk-node-... gets a LIMIT section (belam R6: (c) now = engine*.md ruled by any ring signer, rail = SM mur + belam root GO reads every engine byte; THEN (a) signed SM ff landings + ring: [sanctuary-master] as its OWN round after ring + ckpt are installed) + a HELD line R4 (a post ABSENT from the ring commits lines signed by a key the ring does not name = findings row on the ring lane); W hyp: BOUNDS (11) wording (N keys = N launches, not '1 paid launch'); W-2 manifests; CORRECTIVE sections only if still useful.
-HELD  AA2.55 two boxes (section W cross-box half, UNRUN) · AA2.61 real PQ verifier · AA2.75/76/78 outward (belam GO) · AA2.62 retired · anchor block owner cert (CA window) · inner-on-commits ON
-never invent goals; belam-on-v5 .17 stays a HORIZON
+OWNER 10-07 14:4xZ (via belam): old Python kept this season (provisioning.py, metrics.py, success_metrics.py, verification.py, commands.py run verify), shell rewrites = season 3, metrics back on,
+messaging needs a council pass; goal g7.16.1.11.17 (belam on v5) RESTATED. COUNCIL (alive) PLACED it 14:54Z; I WROTE the goals (landed): .17 restated (horizon), .19 verify, .20 messaging, g3.8 metrics, g4.13.1 grid CAS.
+ENGINE QUEUE = NEXT SEASON, not built: pq (DG2 lanes c6176d986 stay unbuilt), revoke(+LC_ALL=C), flowrot, round B mail, sealer box side. THIS season only: agi-signers retires = the ring-install step (belam GO).
+LANDED (local trunk, pushed): CKPT.3 70530c33c, OUT.7 666098f19, OUT.8 3fb54c655 (PATH-aware skip; ceilings 828), goals through 8bc80981d2.
+WITH SM, one gate at a time (sent 16:1xZ): (1) g4.13.1 corrective #2 dg3-gridcas f8e756801b (DG2 lanes 6831d75f7, 52); (2) g7.16.1.11.19 verify as a v5 uid dg3-verify5 23a6591f72 (DG2 520c9c722, 25).
+JUST ARRIVED, NOT RUN BY ME: g3.8 dg3-gmetrics 989d77684a (one commit on trunk b828e57bf4: metrics.py, success_metrics.py, crons.md + graph-metrics.t.sh == DG2 d9510cbed, 25 lanes; DG3 reports 25/0, 15 mutants RED, the real line 634 B in 65.6 s).
+IN FLIGHT: g7.16.1.11.20 messaging: DG2 writes lanes (brief sent 16:1xZ; he must find agi-run box-n poll + cccc.ts on et-grok-pilot, ask alive). Goal ACTIVE on dg1-goals-1007d 83d745b9a6 (node-only, +.19 bounds note, NOT yet sent: bundle in the next [merge-up]).
+A12 stays ROLLED BACK (belam's install GO); preconditions: bin/agi-out in every v5 t, host sh = dash check, EnvironmentFile root-owned.
 ```
 
 ## 🔴 Where it stops + the exact next command
-Gen 9, 10-07: NEXT = SM [landed]/[return] on OUT.8; DG2's PQ lanes sha (running now) -> run on the trunk at the sha + mutants of his scratch; then DG3's pq sha -> run the union bare (every .t.sh that greps grow-gate + pq-nest) + mutants -> forward the pair. Read the inbox FILE too.
+FIRST: `cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1` (copy what you need, then grep the inbox FILE after the last ts you saw: 16:20:34Z DG3 g3.8 correction). THEN, in order:
+1. RUN g3.8 989d77684a (not run by me): scratch worktree at the sha; `git diff --stat b828e57bf4 989d77684a` = metrics.py, success_metrics.py, crons.md, graph-metrics.t.sh; `sh extensions/agi/tests/graph-metrics.t.sh` 25/0 (trunk 17 RED); `python3 extensions/agi/bin/metrics.py /tmp/emptydir` rc 2 + 0 METRIC lines; `success_metrics.py --line <root>` ONE line (~65 s); the crons.md cmd = `L=$(python3 {repo_root}/extensions/agi/bin/success_metrics.py --line {root}) && python3 {repo_root}/extensions/agi/bin/write.py town:local-maxxing "set graph_metrics $L" --actor belam`; mutants of the new code; then ONE [merge-up] to SM with my numbers. The job goes live only when belam's grid_sync applies crons (box local-town).
+2. SM [landed]/[return] on corrective #2 + verify: a [return] = NEW commits by DG3 on their branches, DG2 lanes first, I run, forward.
+3. DG2's .20 lanes sha: run RED on the trunk (shell, v5 uid), then DG3 builds, then me, then SM. alive's wake-after-read lane is in the goal falsifier.
+4. Bundle dg1-goals-1007d into the next SM [merge-up]. Then: agi-signers retire = belam's ring-install GO (not mine to build). Never invent goals.
+
+
 
 ## §4 Traps
 | trap | rule |
@@ -60,5 +67,7 @@ Gen 9, 10-07: NEXT = SM [landed]/[return] on OUT.8; DG2's PQ lanes sha (running 
 ## §5 Verification: links.py links 0 broken (SM re-checks at landing) · yaml parse every changed node · armour grep 0 · every return run at the sender's sha before forwarding
 
 ## §6 BANKED
-- belam: model_hint ruling, kid cell with usd, install GOs (A12 unit install, A10 gate step, the first live post director-thought-1 + n1 check), the outward act, owner options on grid (NO-GO for now). R6 RULED (c now, (a) later).
-- council: nothing open (the [config] ring + anchor signer were ruled by sp 06:02Z and nested; who writes master = belam, done; the cross-box half is section W, HELD).
+- next belam: promote goal g7.16.1.11.17 horizon -> active (owner: "a lot more doable sooner"); install GOs (A12 unit re-install with the preconditions above, A10 ckpt on the hub with the first holding block cut by hand at each ring-signer rotation, agi-signers retires in the ring-install step, the land step: agi-land installed readable + ONE real land); the graph_metrics cron applies on belam's crons.py apply.
+- alive/belam: crons.md node duplicate YAML key is silently last-wins for EVERY job (a crons.py loader change, not done: scope).
+- trunk red test_exactly_one_template_heading (belam's thought-master row seeds): belam's.
+- council: nothing open from me.
