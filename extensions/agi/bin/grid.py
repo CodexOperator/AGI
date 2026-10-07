@@ -877,15 +877,32 @@ def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
     tree = build_tree(root, path, payload)
     tip = ref_tip(root, ref)
     if tip:
+        # goal:g4.13.1: a collapse's nest/ entry is carried forward unchanged,
+        # so an unedited container stays unchanged and an edit keeps its members.
+        nest = git(root, "rev-parse", "-q", "--verify", f"{tip}:nest", check=False)
+        if nest:
+            lines = git(root, "ls-tree", tree) + "\n" + f"040000 tree {nest}\tnest\n"
+            tree = git(root, "mktree", input_text=lines.lstrip("\n"))
         old_tree = git(root, "rev-parse", f"{tip}^{{tree}}", check=False)
         if old_tree == tree:
             return None  # unchanged — versions record change, not time
-    n = int(git(root, "rev-list", "--count", tip)) + 1 if tip else 1
+    # --first-parent: a collapse's members are extra parents and are not versions
+    n = int(git(root, "rev-list", "--count", "--first-parent", tip)) + 1 if tip else 1
     parent = ["-p", tip] if tip else []
     subject = f"{msg_prefix}v{n} {node_id}"
     message = f"{subject}\n\n{trailer}\n" if trailer else subject
     commit = git(root, "commit-tree", tree, *parent, "-m", message)
-    git(root, "update-ref", ref, commit)
+    # CAS (goal:g4.13.1): the ref must still be at the tip read above ("" = must not
+    # exist), so a collapse landed since is never overwritten. A refusal skips THIS
+    # node only; the next tick re-versions it on the new tip.
+    res = subprocess.run(
+        ["git", *GIT_IDENT, "-C", str(repo_root(root)), "update-ref", ref, commit, tip or ""],
+        capture_output=True, text=True,
+    )
+    if res.returncode != 0:
+        print(f"skip (ref moved since read — a collapse or a concurrent write; "
+              f"the next tick re-versions it): {ref}: {res.stderr.strip()}", file=sys.stderr)
+        return None
     return f"v{n}"
 
 
@@ -1299,7 +1316,7 @@ def cmd_diff(root: Path, node_id: str, back: int) -> None:
     printed an empty diff and exited 0 for a node with three real versions.
     """
     ref = resolve_ref(root, node_id)
-    count = int(git(root, "rev-list", "--count", ref))
+    count = int(git(root, "rev-list", "--count", "--first-parent", ref))
     if count < back + 1:
         sys.exit(f"ERR: only {count} version(s); cannot go back {back}")
     print(git(root, "diff", f"{ref}~{back}", ref, "--", f":(top){NODE_ENTRY}"))
@@ -1316,7 +1333,7 @@ def cmd_versions(root: Path, node_id: str) -> None:
         legacy_ref = node_ref(node_id)
         ref = legacy_ref if ref_tip(root, legacy_ref) is not None else None
     tip = ref_tip(root, ref) if ref else None
-    print(int(git(root, "rev-list", "--count", tip)) if tip else 0)
+    print(int(git(root, "rev-list", "--count", "--first-parent", tip)) if tip else 0)
 
 
 # --- payload read side (goal:g6.3 / goal:g6.1) -------------------------------
@@ -1325,7 +1342,7 @@ def cmd_versions(root: Path, node_id: str) -> None:
 def version_rev(root: Path, ref: str, node_id: str, version: int | None) -> str:
     """The revision holding version `v<version>` of `node_id`, or the tip.
 
-    Versions count forward from 1 (`commit_file`'s `rev-list --count` + 1), so
+    Versions count forward from 1 (`commit_file`'s `rev-list --count --first-parent` + 1), so
     v(count) is the tip and v1 is `tip~(count-1)`. An out-of-range version is a
     hard error naming the range: silently serving the tip for a version that
     does not exist is the "partial answer served as a complete one" failure G7
@@ -1333,7 +1350,7 @@ def version_rev(root: Path, ref: str, node_id: str, version: int | None) -> str:
     """
     if version is None:
         return ref
-    count = int(git(root, "rev-list", "--count", ref))
+    count = int(git(root, "rev-list", "--count", "--first-parent", ref))
     if not 1 <= version <= count:
         sys.exit(f"ERR: {node_id} has {count} version(s); v{version} does not exist")
     return f"{ref}~{count - version}"
