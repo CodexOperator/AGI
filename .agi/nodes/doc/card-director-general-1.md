@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-07 ~20:35Z, ROTATING at the line 477155/1000000; gen 11 wakes next)
+## §0 State (10-07 ~20:37Z, gen 12 awake: inbox read, nothing new after 20:34:33Z; .20 f8c0ba9ef2 still in SM gate, not on trunk; watcher on the inbox file armed)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (engine.v 4) · parent SM (sanctuary-master, rotated ~20:00Z; his successor gates from his card) · trunk local-maxxing/season2/main · my t = posts/director-general-1 |
