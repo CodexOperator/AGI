@@ -18,7 +18,7 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 . "$HERE/ram-write.sh"   # HOT-bound writes charge the ramdisk.slice (hypothesis:g7556-fstype-root-...)
 NODE=${GUARD_ENV_NODE:-$HERE/../../../.agi/nodes/.geometry/guard.md}
 box=${GUARD_BOX:-$(cat /etc/sanctuary-guard/box 2>/dev/null || hostname -s)}; key=$(printf %s "$box" | tr -c 'A-Za-z0-9' '_')
-. "$HERE/guard-env.sh"; guard_env_load "$NODE" || exit 1
+. "$HERE/guard-env.sh"; guard_env_load "$NODE" && guard_cells_check "$key" || exit 1
 cell() { local v="GUARD_${1}_${key}"; printf '%s' "${!v:-${2:-}}"; }
 HOT=$(cell TIER_HOT); COLD=$(cell TIER_COLD); DIRS=$(cell TIER_DIRS)
 [ -n "$HOT" ] && [ -n "$COLD" ] && [ -n "$DIRS" ] || { echo "ram-tier: cells unset for box $key -- off"; exit 0; }

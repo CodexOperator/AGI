@@ -4,6 +4,9 @@
 # Contract the lane reads (c1): the loader is $GUARD/guard-env.sh, function guard_env_load <node>, it sets the GUARD_* variables in the caller; a refused line makes it return/exit non-zero with ONE message line that holds the node's file name AND the line number (of the node file, or of the block: both pass), before any stub call.
 # Lanes: c1-* each hostile line (cmd subst, backtick, semicolon chain, function def, single-quoted subst, a second dollar var, a CONTROL variable GUARD_DIR pointing at decoy sibling scripts) in each of the four scripts: rc != 0, the marker file absent, the refusal names node + line, 0 stub argv. l-* the loader alone: a battery of refused shapes, the accepted shapes, c2 $HOME by string replacement (HOME=/x/y, a HOME holding a substitution, a HOME holding an ampersand), c3 the live values. s-* the scripts: a benign node passes the loader, c3 every live value through each script's cell(), no non-comment eval, one loader.
 # Honest limits: NO real mount / unit write is run (that is the stubs + --dry-run), so "before any mount" is read off the stub log; guard-init's later layers and its legacy guard.env source are not covered; the ampersand row (l-home-ampersand) is beyond the brief: bash 5.2 expands & in ${v//pat/$HOME}.
+# RC1 + RC2 INVENTORY (DG1 23:05Z): every cell the four scripts read, and where its text ends up. Validated whole-string before use (num_cell / size_cell in guard-init: digits, one dot, M or G; a bad one is refused by name): RESERVE DOCKER_BUDGET PSI_FULL OOMD_LIMIT USER_HIGH_PCT GRACE USER_SWAP_PCT USER_SWAP_CAP AGI_MAX_PCT AGI_HIGH_PCT ENGINE_HIGH_PCT WORK_HIGH_PCT AGI_OOMD_LIMIT OOMD_SWAP_USED_PCT OOMD_PRESSURE_PCT OOMD_PRESSURE_S SYSTEM_MIN SSH_MIN CLAUDE_LOW_DIV CLAUDE_LOW_CAP USER_MIN DOCKER_CAP_HEADROOM_PCT DEFER_PCT ENGINE_MAX ENGINE_SWAP_MAX RAMDISK_SWAP_MAX RAM_BUDGET.
+# FREE STRINGS (the loader admits any text of its quoted set: spaces, =, >, %, comma): (1) PEERWATCH_CLAUDE -> guard-init :237 PEER_CLAUDE -> watch.env PEER_CLAUDE= (:658) which sanctuary-watch :22-24 DOT-SOURCES, so a second word RUNS: rows rc1-*. (2) GUARD_SANCTUARY (the environment, not a block cell) -> watch.env SANCTUARY= (:657, sourced) and every installed file header: rows rc2-sanctuary-*. (3) RAM_DIR -> guard-init :235 -> ramdisk.slice comment + Description= (:504-508, unit text): rows rc2-ram-dir-*; the same cell in ram-main.sh -> systemd-escape -p -> After= / Requires= of agi-ram-main.service: row rc2-ram-main-install-unit-text; session-sweep.sh -> df. (4) RAM_SYNC_MIN -> ram-main.sh timer OnUnitActiveSec=%smin: one line, a value like '5 x' writes a broken timer, never code: NOT pinned (banked). (5) RAM_MAIN TIER_HOT TIER_COLD TIER_DIRS SWEEP_PAIRS AGI_SESSIONS_ARCHIVE CLAUDE_PROJECTS_ARCHIVE SWEEP_*_MIN SWEEP_PRESSURE_PCT -> path ARGUMENTS of rsync / mv / mkdir / mount / df (quoted; TIER_DIRS and SWEEP_PAIRS are word-split on purpose): never sourced, never unit text, but a value starting with a dash is an OPTION to rsync: NOT pinned (banked, DG1 to rule: absolute-path-only?). (6) the legacy guard.env that guard-init :183 dot-sources is outside this lane.
+# Rows: rc1-* PEERWATCH_CLAUDE (block and environment) refused naming the cell, the marker absent, no raw PEER_CLAUDE line in the dry-run watch.env AND the watch.env it would write sourced under sh leaves the marker absent; controls 0 / 1 / no cell / the flag / an inherited PEER_CLAUDE. EMPTY is pinned as either refused or the default 0 (the cells convention at guard-init :190 says an empty cell takes the default; DG1's list said refuse: both pass, a raw empty or a second word never). rc2-* refused-or-inert for sinks (2) (3); rc2-i = the inventory covers every cell name found by grep. v-* (DG1 23:11Z, DG5's sink shapes) a uint cell (RAM_SYNC_MIN SWEEP_IDLE_MIN SWEEP_PRESSURE_PCT SWEEP_PRESSURE_IDLE_MIN SWEEP_CLAUDE_IDLE_MIN), an absolute-path cell (RAM_MAIN RAM_DIR TIER_HOT TIER_COLD AGI_SESSIONS_ARCHIVE CLAUDE_PROJECTS_ARCHIVE; no %), TIER_DIRS words, SWEEP_PAIRS path=>path, each given a loader-accepted wrong shape: rc != 0, the cell named, the marker absent, 0 stub argv; v-control = the valid block names no cell. NOT covered: GUARD_RAM_WORKTREES and GUARD_RAM_WT_HOLD_PCT, which no guard script reads (dispatch.py and cli.py read them through locations.guard_cell, a second parser); GUARD_SANCTUARY is covered (rc2-sanctuary-*) though DG5's list does not name it.
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;R0=${ROOT:-${1:-$(cd "$(dirname "$0")/../../.." && pwd)}};G=${GUARD:-$R0/extensions/agi/guard};LIVE=$R0/.agi/nodes/.geometry/guard.md
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE GUARD_BOX GUARD_ENV_NODE GUARD_DIR GUARD_SANCTUARY
@@ -131,5 +134,83 @@ ev=$(grep -nE '\beval\b' $G/*.sh|grep -vE ':[0-9]+:[[:space:]]*#'|wc -l|tr -d ' 
 ok "s-no-eval $ev non-comment eval line(s) in $G/*.sh (want 0; the trunk has 7)" '[ $ev = 0 ]'
 ld=$(grep -lE '^[[:space:]]*(function[[:space:]]+)?guard_env_load[[:space:]]*\(\)' $G/*.sh 2>/dev/null|xargs -n1 basename 2>/dev/null|tr '\n' ' ');us=$(grep -lE 'guard_env_load[[:space:]]+"?\$' $G/guard-init.sh $G/ram-main.sh $G/ram-tier.sh $G/session-sweep.sh 2>/dev/null|wc -l|tr -d ' ')
 ok "s-one-loader guard_env_load is defined in [$ld] (want exactly guard-env.sh) and CALLED by $us of the four scripts (want 4)" '[ "$ld" = "guard-env.sh " ]&&[ $us = 4 ]'
+# --- RC1 + RC2 (DG1 23:05Z; SM returned lane C): a cell the loader ACCEPTS must not reach a sink that is sourced or becomes unit text as code ---
+mkdir -p $T/fk2 $T/fk3 $T/th;NBX=rc.md
+printf '#!/bin/sh\n[ "$1" = passwd ]&&echo "$2:x:1000:1000::%s/th:/bin/sh"\n' $T >$T/fk2/getent
+printf '#!/bin/sh\necho "sudo $*" >>%s/stub\ncase $1 in tee)cat >%s/tee.out;; esac\nexit 0\n' $T $T >$T/fk3/sudo;chmod +x $T/fk2/getent $T/fk3/sudo
+gnode(){ printf 'prose\n```sh guard.env\n%s\n```\n' "$1" >$T/nd/$NBX;}
+wsect(){ awk -v f="$1" '$0 ~ "would (write|install) +.*"f"$"{p=1;next} p&&/^        /{sub(/^        /,"");print;next} p{exit}' $T/out;}
+# gi ENV=val...: the real guard-init --dry-run (GA = other args) with getent faked to a scratch home; sets rc mk (marker after the run) w.env slice raw (PEER_CLAUDE lines other than 0 or 1) mk2 (marker after sourcing the watch.env it would write under sh) nmd (stderr names the cell or the node)
+gi(){ rm -f $M $T/out $T/err;: >$T/stub;(cd $T&&env -i PATH=$T/fk2:$T/fk:/usr/bin:/bin HOME=$T/hm GUARD_BOX=local-town GUARD_ENV_NODE=$T/nd/$NBX "$@" timeout 60 bash $G/guard-init.sh ${GA:---dry-run} >$T/out 2>$T/err);rc=$?;mk=0;[ -e $M ]&&mk=1;wsect watch.env >$T/w.env;wsect ramdisk.slice >$T/slice
+ raw=$(grep -E '^PEER_CLAUDE=' $T/w.env|grep -vcxE 'PEER_CLAUDE=[01]'||true);mk2=0;if [ -s $T/w.env ];then rm -f $M;(cd $T/th&&env -i PATH=/usr/bin:/bin HOME=$T/hm sh -c '. "$1"' x $T/w.env >/dev/null 2>&1);[ -e $M ]&&mk2=1;fi;nmd=0;grep -qE "PEERWATCH_CLAUDE|GUARD_SANCTUARY|SANCTUARY|RAM_DIR|$NBX" $T/err&&nmd=1;true;}
+# pw NAME VALUE [ENV=val...]: PEERWATCH_CLAUDE as a block line (VALUE verbatim after the =)
+pw(){ nm=$1;v=$2;shift 2;gnode "GUARD_PEERWATCH_CLAUDE_local_town=$v";gi "$@";}
+bad(){ ok "rc1-$nm PEERWATCH_CLAUDE=[$v]: rc $rc (want != 0: refused), the cell or node named: $nmd (want 1), marker $mk after the run and $mk2 after sourcing the watch.env (want 0 and 0), $raw raw PEER_CLAUDE line(s) written (want 0)" '[ $rc != 0 ]&&[ $nmd = 1 ]&&[ $mk = 0 ]&&[ $mk2 = 0 ]&&[ $raw = 0 ]';}
+pw cmd-after-a-one "'1 touch $M'";bad
+pw semicolon-chain "'1;touch $M'";bad
+pw command-substitution "'\$(touch $M)'";bad
+pw two 2;bad
+pw word-yes yes;bad
+pw leading-space "' 1'";bad
+pw trailing-space "'1 '";bad
+pw leading-zero 01;bad
+pw word-true true;bad
+pw two-digits "'1 2'";bad
+pw empty "";ok "rc1-empty PEERWATCH_CLAUDE=[]: either refused naming the cell (rc $rc != 0, named $nmd) or taken as the default 0 like every other empty cell (rc $rc = 0, PEER_CLAUDE=0 written: $(grep -cx 'PEER_CLAUDE=0' $T/w.env)); never the raw text, marker $mk/$mk2 (want 0/0), $raw raw line(s) (want 0)" '{ [ $rc != 0 ]&&[ $nmd = 1 ]||{ [ $rc = 0 ]&&[ "$(grep -cx "PEER_CLAUDE=0" $T/w.env)" = 1 ];};}&&[ $mk = 0 ]&&[ $mk2 = 0 ]&&[ $raw = 0 ]'
+# the same cell supplied as a raw environment variable (no block line): a newline and a substitution the loader would refuse reach hostvar directly
+nl=$(printf '\n.');nl=${nl%.}
+gnode "GUARD_X_local_town=1";gi "GUARD_PEERWATCH_CLAUDE_local_town=1${nl}touch $M"
+ok "rc1-env-newline GUARD_PEERWATCH_CLAUDE_local_town in the environment = 1, newline, touch: rc $rc (want != 0), the cell named: $nmd (want 1), marker $mk/$mk2 (want 0/0), $raw raw line(s) (want 0)" '[ $rc != 0 ]&&[ $nmd = 1 ]&&[ $mk = 0 ]&&[ $mk2 = 0 ]&&[ $raw = 0 ]'
+gnode "GUARD_X_local_town=1";gi "GUARD_PEERWATCH_CLAUDE_local_town=\$(touch $M)"
+ok "rc1-env-command-substitution the same cell in the environment = a command substitution: rc $rc (want != 0), marker $mk/$mk2 (want 0/0), $raw raw line(s) (want 0)" '[ $rc != 0 ]&&[ $mk = 0 ]&&[ $mk2 = 0 ]&&[ $raw = 0 ]'
+# controls: 0 and 1 boot, a missing cell is 0, the --peerwatch-claude flag is 1, an inherited PEER_CLAUDE variable is not read
+pw zero 0;ok "rc1-control-zero PEERWATCH_CLAUDE=0: rc $rc (want 0), PEER_CLAUDE=0 written: $(grep -cx 'PEER_CLAUDE=0' $T/w.env) (want 1), raw $raw (want 0)" '[ $rc = 0 ]&&[ "$(grep -cx "PEER_CLAUDE=0" $T/w.env)" = 1 ]&&[ $raw = 0 ]'
+pw one 1;ok "rc1-control-one PEERWATCH_CLAUDE=1: rc $rc (want 0), PEER_CLAUDE=1 written: $(grep -cx 'PEER_CLAUDE=1' $T/w.env) (want 1), raw $raw (want 0)" '[ $rc = 0 ]&&[ "$(grep -cx "PEER_CLAUDE=1" $T/w.env)" = 1 ]&&[ $raw = 0 ]'
+gnode "GUARD_X_local_town=1";gi;ok "rc1-control-no-cell no PEERWATCH_CLAUDE line: rc $rc (want 0), PEER_CLAUDE=0 written: $(grep -cx 'PEER_CLAUDE=0' $T/w.env) (want 1)" '[ $rc = 0 ]&&[ "$(grep -cx "PEER_CLAUDE=0" $T/w.env)" = 1 ]'
+GA="--dry-run --peerwatch-claude";gi;GA=;ok "rc1-control-the-flag --peerwatch-claude with no cell: rc $rc (want 0), PEER_CLAUDE=1 written: $(grep -cx 'PEER_CLAUDE=1' $T/w.env) (want 1)" '[ $rc = 0 ]&&[ "$(grep -cx "PEER_CLAUDE=1" $T/w.env)" = 1 ]'
+gi "PEER_CLAUDE=1 touch $M";ok "rc1-an-inherited-PEER_CLAUDE-is-not-read PEER_CLAUDE='1 touch ..' in the environment, no cell: rc $rc (want 0), marker $mk/$mk2 (want 0/0), PEER_CLAUDE=0 written: $(grep -cx 'PEER_CLAUDE=0' $T/w.env) (want 1)" '[ $rc = 0 ]&&[ $mk = 0 ]&&[ $mk2 = 0 ]&&[ "$(grep -cx "PEER_CLAUDE=0" $T/w.env)" = 1 ]'
+# RC2: the other sinks. Each row is "refused, or reaches the sink inert"
+# GUARD_SANCTUARY (the environment; guard-init writes it raw into watch.env, which sanctuary-watch dot-sources, and into every installed file header)
+inert(){ ok "rc2-$nm $dsc: rc $rc, marker $mk after the run / $mk2 after sourcing the watch.env (want 0/0), refused-or-inert: $ri (want 1)" '[ $mk = 0 ]&&[ $mk2 = 0 ]&&[ $ri = 1 ]';}
+gnode "GUARD_X_local_town=1";gi "GUARD_SANCTUARY=/x touch $M";nm=sanctuary-second-word;dsc="GUARD_SANCTUARY='/x touch ..' -> watch.env SANCTUARY=";ri=0;{ [ $rc != 0 ]||[ "$(grep -c '^SANCTUARY=.* ' $T/w.env)" = 0 ];}&&ri=1;inert
+gnode "GUARD_X_local_town=1";gi "GUARD_SANCTUARY=\$(touch $M)";nm=sanctuary-command-substitution;dsc="GUARD_SANCTUARY=a command substitution -> watch.env SANCTUARY=";ri=1;inert
+gnode "GUARD_X_local_town=1";gi "GUARD_SANCTUARY=/x${nl}ExecStart=touch $M";nm=sanctuary-newline;dsc="GUARD_SANCTUARY=/x, newline, ExecStart=.. -> every installed file";ri=0;{ [ $rc != 0 ]||[ "$(grep -c '^ *ExecStart=touch' $T/out)" = 0 ];}&&ri=1;inert
+# RAM_DIR into ramdisk.slice (a comment and Description=): the block value and the environment value
+RB='GUARD_RAM_BUDGET_local_town=64M'
+gnode "$RB
+GUARD_RAM_DIR_local_town='/x Requires=y.target'";gi;nm=ram-dir-second-word;dsc="GUARD_RAM_DIR='/x Requires=y.target' -> ramdisk.slice";ri=0;{ [ $rc != 0 ]||{ [ -s $T/slice ]&&[ "$(grep -c '^ *Requires=' $T/slice)" = 0 ]&&[ "$(grep -c '^ *\[' $T/slice)" = 2 ];};}&&ri=1;inert
+gnode "$RB";gi "GUARD_RAM_DIR_local_town=/x${nl}ExecStart=touch $M";nm=ram-dir-env-newline;dsc="GUARD_RAM_DIR in the environment = /x, newline, ExecStart=.. -> ramdisk.slice";ri=0;{ [ $rc != 0 ]||{ [ -s $T/slice ]&&[ "$(grep -c '^ *ExecStart=' $T/slice)" = 0 ];};}&&ri=1;inert
+gnode "$RB";gi "GUARD_RAM_DIR_local_town=\$(touch $M)";nm=ram-dir-env-command-substitution;dsc="GUARD_RAM_DIR in the environment = a command substitution -> ramdisk.slice";ri=1;inert
+# RAM_DIR into ram-main.sh install (After=/Requires= through systemd-escape): the unit text goes through sudo tee (a stub that keeps stdin)
+gnode "GUARD_RAM_MAIN_local_town=/x/main
+GUARD_RAM_DIR_local_town='/x Requires=y.target'";rm -f $T/tee.out $M;: >$T/stub;(cd $T&&env -i PATH=$T/fk3:$T/fk:/usr/bin:/bin HOME=$T/hm GUARD_BOX=local-town GUARD_ENV_NODE=$T/nd/$NBX timeout 60 bash $G/ram-main.sh install >$T/out 2>$T/err);rc=$?;mk=0;[ -e $M ]&&mk=1;rq=$(grep -c '^Requires=' $T/tee.out 2>/dev/null);hq=$(grep -c 'Requires=y' $T/tee.out 2>/dev/null)
+ok "rc2-ram-main-install-unit-text GUARD_RAM_DIR='/x Requires=y.target' -> agi-ram-main.service from ram-main.sh install: rc $rc (refused when != 0, else:), marker $mk (want 0), $rq line(s) starting Requires= (want 1: the escaped mount unit only), $hq raw 'Requires=y' (want 0)" '[ $mk = 0 ]&&{ [ $rc != 0 ]||{ [ "$rq" = 1 ]&&[ "$hq" = 0 ];};}'
+# v: DG5's sink-shape classes (DG1 23:11Z) -- a uint cell, an absolute-path cell, TIER_DIRS paths, SWEEP_PAIRS path=>path: a loader-accepted value of the wrong shape is refused naming the cell, before any stub call and with the marker absent. Valid siblings are in the block so no script exits early as "off".
+BASEB="GUARD_RAM_MAIN_local_town=/x/main
+GUARD_RAM_DIR_local_town=/x/ram
+GUARD_TIER_HOT_local_town=/x/hot
+GUARD_TIER_COLD_local_town=/x/cold
+GUARD_TIER_DIRS_local_town='/x/d1 /x/d2'
+GUARD_AGI_SESSIONS_ARCHIVE_local_town=/x/a
+GUARD_CLAUDE_PROJECTS_ARCHIVE_local_town=/x/c
+GUARD_SWEEP_PAIRS_local_town='/x/s=>/x/t'"
+# vrow CELL SCRIPT ACTION NAME VALUE: BASEB with CELL overridden by the last line
+vrow(){ gnode "$BASEB
+GUARD_$1_local_town=$5";NODEF=$T/nd/$NBX;runs $2 $3;vn=0;grep -q "$1" $T/err $T/out&&vn=1
+ ok "v-$4-$1-in-${2%.sh} GUARD_$1_local_town=[$5] read by $2 $3: rc $rc (want != 0), the cell named: $vn (want 1), marker $mk (want 0), $stubn stub argv (want 0: refused before any side effect)" '[ $rc != 0 ]&&[ $vn = 1 ]&&[ $mk = 0 ]&&[ $stubn = 0 ]';}
+for pc in RAM_MAIN:ram-main.sh:status RAM_DIR:ram-main.sh:status RAM_DIR:session-sweep.sh:--dry-run TIER_HOT:ram-tier.sh:status TIER_COLD:ram-tier.sh:status AGI_SESSIONS_ARCHIVE:session-sweep.sh:--dry-run CLAUDE_PROJECTS_ARCHIVE:session-sweep.sh:--dry-run;do c=${pc%%:*};r=${pc#*:};s=${r%%:*};a=${r#*:}
+ vrow $c $s $a relative rel/path;vrow $c $s $a leading-dash "'--log-file=/x'";vrow $c $s $a percent '/x/%n';vrow $c $s $a second-word "'/x /y'";vrow $c $s $a redirect "'/x>/y'";done
+for u in RAM_SYNC_MIN:ram-main.sh:status SWEEP_IDLE_MIN:session-sweep.sh:--dry-run SWEEP_PRESSURE_PCT:session-sweep.sh:--dry-run SWEEP_PRESSURE_IDLE_MIN:session-sweep.sh:--dry-run SWEEP_CLAUDE_IDLE_MIN:session-sweep.sh:--dry-run;do c=${u%%:*};r=${u#*:};s=${r%%:*};a=${r#*:}
+ vrow $c $s $a second-word "'5 x'";vrow $c $s $a negative -1;vrow $c $s $a letters x;vrow $c $s $a decimal 5.5;vrow $c $s $a hex 0x10;vrow $c $s $a two-numbers "'1 2'";done
+vrow TIER_DIRS ram-tier.sh status relative-word "'/x/d1 rel'";vrow TIER_DIRS ram-tier.sh status dash-word "'/x/d1 --log-file=/x'";vrow TIER_DIRS ram-tier.sh status percent-word "'/x/d1 /x/%n'"
+vrow SWEEP_PAIRS session-sweep.sh --dry-run no-arrow /x/a;vrow SWEEP_PAIRS session-sweep.sh --dry-run empty-dest "'/x/a=>'";vrow SWEEP_PAIRS session-sweep.sh --dry-run empty-source "'=>/x/b'";vrow SWEEP_PAIRS session-sweep.sh --dry-run relative-source "'rel=>/x/b'";vrow SWEEP_PAIRS session-sweep.sh --dry-run relative-dest "'/x/a=>rel'";vrow SWEEP_PAIRS session-sweep.sh --dry-run second-pair-bad "'/x/a=>/x/b rel=>/x/c'"
+# controls: the valid block names no cell on stderr in any script (a validator that refuses a good value is as wrong as one that accepts a bad one)
+for sc in ram-main.sh:status ram-tier.sh:status session-sweep.sh:--dry-run;do s=${sc%%:*};a=${sc#*:};gnode "$BASEB
+GUARD_SWEEP_PAIRS_local_town='/x/s=>/x/t /x/u=>/x/v'";NODEF=$T/nd/$NBX;runs $s $a;vn=$(grep -cE 'GUARD_[A-Z_]+_local_town|RAM_MAIN|RAM_DIR|TIER_|ARCHIVE|SWEEP_|SYNC_MIN' $T/err||true)
+ ok "v-control-the-valid-block-in-${s%.sh} the valid block (absolute paths, two SWEEP_PAIRS, TIER_DIRS with two words) read by $s $a: marker $mk (want 0), $vn stderr line(s) naming a cell (want 0: nothing refused)" '[ $mk = 0 ]&&[ $vn = 0 ]';done
+# i: the inventory (header) names every cell the four scripts read, so a new free-string cell cannot arrive unlisted
+INV=" AGI_HIGH_PCT AGI_MAX_PCT AGI_OOMD_LIMIT AGI_SESSIONS_ARCHIVE CLAUDE_LOW_CAP CLAUDE_LOW_DIV CLAUDE_PROJECTS_ARCHIVE DEFER_PCT DOCKER_BUDGET DOCKER_CAP_HEADROOM_PCT ENGINE_HIGH_PCT ENGINE_MAX ENGINE_SWAP_MAX GRACE OOMD_LIMIT OOMD_PRESSURE_PCT OOMD_PRESSURE_S OOMD_SWAP_USED_PCT PEERWATCH_CLAUDE PSI_FULL RAM_BUDGET RAM_DIR RAMDISK_SWAP_MAX RAM_MAIN RAM_SYNC_MIN RESERVE SSH_MIN SWEEP_CLAUDE_IDLE_MIN SWEEP_IDLE_MIN SWEEP_PAIRS SWEEP_PRESSURE_IDLE_MIN SWEEP_PRESSURE_PCT SYSTEM_MIN TIER_COLD TIER_DIRS TIER_HOT USER_HIGH_PCT USER_MIN USER_SWAP_CAP USER_SWAP_PCT WORK_HIGH_PCT "
+seen=$({ grep -ohE '\b(hostvar|cell) [A-Z][A-Z0-9_]*' $G/*.sh|awk '{print $2}';grep -ohE '\b(num|size)_cell [A-Za-z_]+ [A-Z][A-Z0-9_]*' $G/*.sh|awk '{print $3}';}|sort -u);un=;for c in $seen;do case "$INV" in *" $c "*);;*)un="$un $c";; esac;done
+ok "rc2-i-the-inventory-names-every-cell the cells the four scripts read through hostvar / cell / num_cell / size_cell: $(echo $seen|wc -w|tr -d ' ') (want >= 38), not in this file's inventory:$un (want none: classify the new cell in the header, then add it to INV)" '[ -z "$un" ]&&[ $(echo $seen|wc -w) -ge 38 ]'
 echo "guard-env: $f FAIL"
 exit $f

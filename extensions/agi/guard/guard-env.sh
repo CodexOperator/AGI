@@ -13,3 +13,14 @@ guard_env_load() {  # NODE
     printf -v "$name" %s "$val"
   done < "$1"
 }
+
+# Cells whose VALUE reaches a sink beyond a bash variable (a unit file, watch.env that sanctuary-watch dot-sources, a sudo/mount argv): checked for the shape that sink needs, refused BY NAME before any side effect (g1.41 C RC1/RC2).
+# sinks: PEERWATCH_CLAUDE -> watch.env (dot-sourced) · RAM_DIR / RAM_WORKTREES -> unit text, mount argv · RAM_MAIN, TIER_HOT, TIER_COLD, TIER_DIRS, SWEEP_PAIRS, *_ARCHIVE -> mount / rsync / ln argv · the *_MIN / *_PCT numbers -> timer unit text, arithmetic.
+declare -A _GE_KIND=([PEERWATCH_CLAUDE]=bool [RAM_SYNC_MIN]=uint [SWEEP_IDLE_MIN]=uint [SWEEP_PRESSURE_PCT]=uint [SWEEP_PRESSURE_IDLE_MIN]=uint [SWEEP_CLAUDE_IDLE_MIN]=uint [RAM_WT_HOLD_PCT]=uint [RAM_MAIN]=path [RAM_DIR]=path [RAM_WORKTREES]=path [TIER_HOT]=path [TIER_COLD]=path [AGI_SESSIONS_ARCHIVE]=path [CLAUDE_PROJECTS_ARCHIVE]=path [TIER_DIRS]=paths [SWEEP_PAIRS]=pairs)
+guard_cells_check() {  # KEY
+  local LC_ALL=C c n v re p='/[A-Za-z0-9._/+,:@-]*'
+  for c in "${!_GE_KIND[@]}"; do n=GUARD_${c}_$1; v=${!n-}; [ -n "$v" ] || continue
+    case ${_GE_KIND[$c]} in bool) re='^[01]$';; uint) re='^[0123456789]{1,9}$';; path) re="^$p\$";; paths) re="^$p( $p)*\$";; pairs) re="^$p=>$p( $p=>$p)*\$";; esac
+    [[ $v =~ $re ]] || { echo "guard.env: cell $n is not a valid ${_GE_KIND[$c]} value (its sink cannot take it): refused, nothing done" >&2; return 1; }
+  done
+}

@@ -75,6 +75,7 @@ ok()   { printf '  %sok%s    %s\n' "$G" "$N" "$*"; }
 warn() { printf '  %swarn%s  %s\n' "$Y" "$N" "$*"; WARNINGS=$((WARNINGS+1)); }
 bad()  { printf '  %sFAIL%s  %s\n' "$R" "$N" "$*"; FAILS=$((FAILS+1)); }
 die()  { printf '%sguard-init: %s%s\n' "$R" "$*" "$N" >&2; exit 1; }
+[[ $SANCTUARY =~ ^/[A-Za-z0-9._/+,:@-]*$ ]] || die "SANCTUARY ($(printf %q "$SANCTUARY")) is not a plain absolute path: it is written raw into watch.env (sourced) and every installed file header"
 # Only the top-level shell dies: with set -E the trap is inherited by $(...)
 # subshells, where an expected non-zero (systemctl is-active -> 3) would print a
 # fake fatal line. A real failure inside a substitution still fails the
@@ -184,6 +185,7 @@ else
     if [ -f "$_gf" ]; then . "$_gf"; GUARD_ENV_FROM="legacy $_gf"; break; fi
   done
 fi
+guard_cells_check "$HOSTKEY" || exit 1   # a sink-bearing cell is the shape its sink needs (RC1/RC2)
 hostvar() { local n="GUARD_$1_$HOSTKEY"; printf '%s' "${!n:-${2:-}}"; }
 
 RAM_M=$(( $(awk '/^MemTotal:/{print $2}' /proc/meminfo) / 1024 ))
