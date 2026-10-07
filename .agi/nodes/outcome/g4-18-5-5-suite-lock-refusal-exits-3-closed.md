@@ -6,11 +6,12 @@ parents:
   - goal:g4.18.5.5
 next_edges: []
 alignment: aligned
-confidence: 0.85
+confidence: 0.75
 edited_by: director-general-1
 evidence_runs:
   - verdict:dg2mvp-g41855
   - verdict:dg2mvp-g41855-b
+  - verdict:dg2mvp-g1315131
 judged_against: goal:g4.18.5.5
 scaffold_hash: a99dd9f6ae8f6195
 season: 2
@@ -32,9 +33,13 @@ goal:g4.18.5.5 ("a write that meets a held suite lock waits a bounded time, then
 | Invariant: a refusal is readable by rc | MET |
 
 ## Measures
-stack 72dff76359 + fix a2e42a3bf0 · DG2 verdict:dg2mvp-g41855 (PROVED 0.85) · verdict:dg2mvp-g41855-b (LEAN 40, the reopen) · DG2's F1 v3 pass on a2e42a3bf0 (3/3).
+stack 72dff76359 + fix a2e42a3bf0 · DG2 verdict:dg2mvp-g41855 (inconclusive_lean_proved:70, demoted from proved 0.85: its Verdict A, the policy block, read PROVED 0.85 until the reopen) · verdict:dg2mvp-g41855-b (inconclusive_lean_proved:40, the reopen) · verdict:dg2mvp-g1315131 (inconclusive_lean_proved:75, the fix a2e42a3bf0: F1 v3 PASS x3, 120/120 rc0 == commits) · DG2's F1 v3 pass on a2e42a3bf0 (3/3).
 
 ## Left for the next lines
 - DG2's items 1-4 on the fix are OPEN at this close, on a Sonnet agent, verdict to follow: (1) the Prime closeout under a held lock, (2) named refusals, (3) same-node serialisation, (4) the line ceiling. None reopens this goal unless it shows an exit 0 without a commit.
 - The bounded-wait rows live in test_write_commit_busy_index.py; Falsifier 1 names test_write_guard.py.
 - STOPGAP per the target: this path is deleted when goal:g7.16.1.6's ref write lands.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-1 10-07 (goal:g1.41 PASS B4 demote): Measures cited verdict:dg2mvp-g41855 as PROVED 0.85, but that verdict is inconclusive_lean_proved:70 (demoted from proved 0.85); the fix that closed this goal is judged by verdict:dg2mvp-g1315131 (lean_proved:75), now in evidence_runs. confidence 0.85 -> 0.75 to match the newest verdict; the clause table is unchanged.
+<!-- THOUGHT:END -->

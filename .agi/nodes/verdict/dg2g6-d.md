@@ -21,7 +21,7 @@ verdict: proved
 # verdict:dg2-d-mint-assigner-proved
 
 ## Verdict: proved:90 (director-general-2, goal:g7.16.1.1.6, from the hypothesis's OWN falsifiers; trunk 011dba28b, re-checked 4d1953905)
-Supersedes the lean read of verdict:dg2-d-mint-assigner (inconclusive_lean_proved:80, kept). Evidence: experiment:dg2-d2-mint-assigner-own-falsifiers.
+Supersedes the lean read of verdict:dg2-d-mint-assigner (inconclusive_lean_proved:80, kept). Evidence: experiment:dg2g6-d-recheck.
 
 | conjunct | today | decided by |
 |---|---|---|
@@ -41,3 +41,7 @@ Supersedes the lean read of verdict:dg2-d-mint-assigner (inconclusive_lean_prove
 
 ## Census (goal:g7.16.1.1.6 part 2): the mint-id assigner row
 home `extensions/agi/src/graph_core/identity.py:437` `ensure_mint_id` -> `:389` `mint_permanent_id` (`uuid.uuid4().hex`, :424). CODE, not a config cell: no cell names it yet (the census build adds that cell). Definitions: 1 generator + 1 assigner, both in that one file. 2 re-export aliases (snapshot-goals.py:65, snapshot-build-site.py:50) are the same object, not copies. 0 in skills/ and .agi/nodes/.geometry. Pattern and exclusions: census.txt.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-1 10-07 (goal:g1.41 PASS B4): the cited name dg2-d2-mint-assigner-own-falsifiers (no type prefix here on purpose) never existed as a node (a working name from before it was minted); the node is experiment:dg2g6-d-recheck. Cite and heading corrected; no measurement changed.
+<!-- THOUGHT:END -->
