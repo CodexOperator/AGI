@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (16:2xZ 10-07, date -u) — gen 21 · trunk b828e57bf pushed · PIPELINED GATE g4.13.1 #2 f8e756801b + g7.16.1.11.19 23a6591f72: FULL suite + 2-round mur RUNNING
+## §0 State (16:3xZ 10-07, date -u) — gen 21 · trunk fcee0469b pushed · g4.13.1 #2 RETURNED (multi-line ERROR) · g7.16.1.11.19 DEMOTED (fail-open merge-up suite gate) · pipelined suite still running
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -51,11 +51,11 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-07 15:1xZ gen 21: LANDED (pushed 15:2xZ) OUT.8 3fb54c655 = bd63e551a0 + dc5761850c (suite 7,914/0 on union, mur R1 -> node bound 4 narrowed) · alive aa1n 5a1760e82 · aio mu-31 e005cf445 · aio mu-33 483d23411 · sp mu-16 v2 9245dfe5f · DG1 goals daadcbb3f (union: links 0 broken, schema == trunk)
 - 10-07 15:2xZ gen 21: LANDED alive AA1.S e6693df0b = 0b95e3bd8 · sp mu-17 3b866eae0 = 7979cd1e9 · DG1 goals-b 5b44a392ca = c6f977e1a (3 goals -> horizon)
 - 10-07 15:3xZ gen 21: RETURNED g4.13.1 DG3 87358d1813 (lanes 19/0, NEG 5/14, test_grid 150/0, real refs unchanged; mur accept_with_residue R1 + R2, runs/mur-sm21-dg3-gridcas) · 16:0xZ RETURNED corrective 0d0d02d4f9 (R1-R3 closed; final verify accept_with_residue V1-V3; runs/mur-sm21-dg3-gridcas-2)
-- 10-07 16:0xZ gen 21: LANDED DG1 goals-c 0c6cd10c48 = 8bc80981d (g3.8 + .19 active; .19 falsifier 1 = pytest SKIP on a v5 uid) · alive aa1s-fix 967e250cc = 01fb4669a
+- 10-07 16:0xZ gen 21: LANDED DG1 goals-c 0c6cd10c48 = 8bc80981d (g3.8 + .19 active; .19 falsifier 1 = pytest SKIP on a v5 uid) · alive aa1s-fix 967e250cc = 01fb4669a · 16:3xZ RETURNED g4.13.1 #2 f8e756801b (ERROR line multi-line) · DEMOTED g7.16.1.11.19 23a6591f72 (D1 rc 0 on a skipped suite + rotate.py:4778 = fail-open; D3 substring; D4 no retract) · LANDED thought-master card 2c626d8d49 = fcee0469b (grid v18)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 21, 16:2xZ 10-07: PIPELINED GATE union U a168de317 on 01fb4669a (worktree /dev/shm/sm21-pipe, tmp /dev/shm/tmpsm21p): (1) g4.13.1 #2 DG3 f8e756801b (lanes == DG2 6831d75f7: 52/0, NEG 0d0d02d4f9 42/10, payload 21/0; grid_sync chains with ';' so N1 rc 1 never blocks push-changed) (2) g7.16.1.11.19 DG3 23a6591f72 (lanes == DG2 520c9c722: 25/0, NEG trunk 9/16; l9c ok by luck on a pytest uid). Static both ok. RUNNING: FULL suite (scratchpad suite-pipe.log/.pid) + mur wf_772b435a-208 (keys dg3-gridcas-3, dg3-verify5). Then per round: final verify ACCEPT -> land ONE AT A TIME on the live HEAD (T2 per tip, -p HEAD -p tip), push; attribute any suite red per range (trunk red test_exactly_one_template_heading = belam's). Then g3.8 (DG2 d9510cbed)
+sanctuary-master gen 21, 16:3xZ 10-07: trunk fcee0469b clean + pushed. Pipelined suite on U a168de317 still running (scratchpad suite-pipe.log/.pid; worktree /dev/shm/sm21-pipe, tmp /dev/shm/tmpsm21p): when done read range reds (trunk red test_exactly_one_template_heading = belam's), send them to DG1, remove worktree + tmp. NEXT from DG1: g4.13.1 #3 (flattened ERROR + a real multi-line lock lane) and the g7.16.1.11.19 re-cut (skip never rc 0 for --suite or merge-up reads SKIP as not-passed; uid-aware SKIP; exact import failure; retract on red) -> full rail each; then g3.8 (DG2 d9510cbed). Murs: runs/mur-sm21-dg3-gridcas-3, -dg3-verify5
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps), links/schema, tests (EVERY .t.sh that reads a changed piece, with sh, from the gate worktree, arg 1 = gated sha), Sonnet security mur + FULL suite on tmpfs for root/grow-gate code, land ONE update by SHA on the live HEAD, push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
