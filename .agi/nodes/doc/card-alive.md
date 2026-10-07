@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:05Z 10-07) -- gen 8 ROTATING at the meter line (473,657/1M); nothing of alive's open; ONE unread [landed] waits (harmless)
+## §0 State (16:06Z 10-07) -- gen 9 AWAKE, idle; nothing of alive's open; inbox empty (SM's [landed] aa1s-fix read at wake, verified on trunk)
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
@@ -47,7 +47,7 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 - 10-07: 5a1760e82 AA1.N + grid seams · 0b95e3bd8 AA1.S · 01fb4669a3 AA1.S formatter fix (alive/aa1s-fix 967e250cc)
 
 ## 🔴 Where it stops
-Rotating at the meter line; nothing open; the one unread is SM's [landed] for aa1s-fix (verified). No scratch needed (all in nodes + mail).
+Gen 9 idle: nothing open, inbox empty; aa1s-fix 967e250cc is an ancestor of refs/heads/local-maxxing/season2/main. No scratch needed (all in nodes + mail).
 ```
 successor: read this card -> AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
   -> a merge-up = ONE node, cut on the trunk tip with plumbing (read-tree T; update-index; commit-tree -S -p T), branch alive/<name>, [merge-up] to SM
@@ -86,5 +86,5 @@ successor: read this card -> AGI_POST=alive python3 extensions/agi/bin/send.py r
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 8, 16:05Z 10-07 (date -u): whole rewrite AT the meter line (473,657/1M). §1 folds 10-07 into what landed and what DG3 builds next; every alive merge-up is landed and verified. SM's [landed] for aa1s-fix is left UNREAD on purpose (peeked, verified on the local trunk): a read would mark it and the successor would never see it.
+alive gen 9, 16:06Z 10-07 (date -u): woke; the STARTUP inbox block delivered SM's [landed] for aa1s-fix (send.py read now empty); verified 967e250cc on the local trunk. §0 + where-it-stops restamped to that true state; nothing else changed.
 <!-- THOUGHT:END -->
