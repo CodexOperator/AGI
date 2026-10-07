@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (08:1xZ 10-04, date -u) — gen 21 seated 07:56Z · trunk 666098f19 pushed (CKPT.3 + OUT.7 LANDED) · no merge-up open · IDLE until a [merge-up], a director blocker or an owner line
+## §0 State (14:5xZ 10-07, date -u) — gen 21 · owner via belam 14:2xZ 10-07: "Tell everyone to continue now" · trunk d4773d9ab+ · GATING OUT.8 (root code): FULL suite + Sonnet mur RUNNING
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -34,7 +34,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 DONE gen 21: CKPT.3 70530c33c + OUT.7 666098f19 landed, pushed, notified (DG1 DG2 DG3 inbox; belam [merge-up] incl. A10/A12 host-act orders)
-OPEN [red] on trunk (mine to see closed): agi-outline.t.sh C7 b-revouch-by-parent 84/1 since CKPT.3 -- fixture $T/gb (line 16) lacks ckpt; +ckpt = 85/0 measured; routed to DG3 08:1xZ as a one-commit corrective cut from 666098f19
+CLOSED 10-07 14:3xZ: agi-outline C7 red (since CKPT.3) -> DG3 1b125626b2 landed d4773d9ab, 85/0; all 16 grow-gate lane files carry ckpt or are genuine
 AFTER: DG3 sends ckpt / revoke / pq / flowrot to DG1 one at a time; each reaches me only after DG1 runs it (DG1 06:03Z)
 HOST ACTS = belam GO each: A10 ckpt on the hub BEFORE the gate (open grace until the first holding block; refs/agi/block/* write policy first) · A12 re-install only after bin/agi-out in every v5 post t + /var/lib/agi/<p>.env root-owned
 MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; FOCUS names the gated UNION sha + READ-ONLY; FINAL verify decides; accept_with_residue = RETURN; after EVERY mur: git symbolic-ref HEAD + reflog
@@ -44,10 +44,13 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - gens 16-20 (10-02..04): see git log --grep sanctuary-master + runs/mur-sm1[6-9]-*, mur-sm20-* (RING.5b/5g, W-1.16, OUT.6 landed; RING.3-5f, OUT.2-5, CKPT/CKPT.2 returned)
 - 10-04 08:0xZ gen 21: LANDED CKPT.3 70530c33c = 28f941c82 + df697ec4d on f16d6eae3 (T2 79bae51ac = gated 2f3818fba + 4 newcomers byte-identical, 0 D, 18 files 0 dirty)
 - 10-04 08:1xZ gen 21: LANDED OUT.7 666098f19 = 6e87ebf98 + 7b00fd8c7 + 1fcda87a9 on 6d3fcca22 (T2 a816fdf5b; stale 15/0 states 43/0 fresh 23/0 ckpt 69/0 combined; anonymize ok net + 5 commits; links 0 broken)
+- 10-07 14:2xZ gen 21: LANDED self-perpetuating merge-up 15 12835b669 = b94124031 (docs only, 1 line: §AB Honest limit (15); rc 0, 0 D, anonymize ok; claims read vs the prototype bytes; re-sent: lost from my inbox 10-03)
+- 10-07 14:3xZ gen 21: LANDED DG1 nodes round 945d2ec980 + DG2 75dc04865 = b4e8bebda (node + test only: ckpt BOUNDS n1-n4, ring LIMIT R6, out-line BOUND 4 bin/-only skip latent, W bound 11; agi-out-stale 15/0 + 2 o7c2 GAP info rows)
+- 10-07 14:3xZ gen 21: LANDED DG3 dg3-outline-ckpt 1b125626b2 = d4773d9ab (test only: ckpt in agi-outline's gate tools; C7 84/1 -> 85/0)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 21, 08:1xZ 10-04: trunk 666098f19 clean + pushed; nothing to land. Next: DG3's agi-outline ckpt-fixture corrective (via DG1) -> gate: sh agi-outline.t.sh in a gate worktree = 85/0 + grow-gate files unchanged; then the ckpt/revoke/pq/flowrot rounds as DG1 forwards them
+sanctuary-master gen 21, 14:5xZ 10-07: GATING OUT.8 = DG3 bd63e551a0 + DG1 node 56a77caeec, union U 7216ddc0f on 5e1003198 (gate worktree /dev/shm/sm21-out8). DONE: static (rc 0 x2, 0 D, 5 files, anonymize ok x3), stale 17/0 states 43/0 outline 85/0 fresh 23/0 ckpt 69/0, NEG on trunk unit 15/2, my mutants RED (type -> o7c2 x2, ls -> o7d x3). RUNNING: FULL suite (log scratchpad suite-out8.log; tmp /dev/shm/tmpsm21x) + mur Workflow run wf_094dfbe3-279 (key dg3-out-8). Then: final verify decides -> re-derive T2 on live HEAD -> L = T2 -p HEAD -p bd63e551a0 -p 56a77caeec -> ff, push, notify; [merge-up] to belam: root GO before any install (A12 stays rolled back)
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps), links/schema, tests (EVERY .t.sh that reads a changed piece, with sh, from the gate worktree, arg 1 = gated sha), Sonnet security mur + FULL suite on tmpfs for root/grow-gate code, land ONE update by SHA on the live HEAD, push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
