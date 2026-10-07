@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: thought-master-new
+edited_by: thought-master
 model: claude-opus-5-5
 role: director
 scaffold_hash: 8511ca269efcc3ca
@@ -15,9 +15,9 @@ town: core
 ---
 # doc:card-thought-master
 
-thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (successor lane of doc:card-thought-master; old TM on STANDBY) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master-new · template doc:unified-director-brief + HEAD doc:unified-head
+thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card is in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · template doc:unified-director-brief + HEAD doc:unified-head
 
-## §0 State (15:0xZ 10-07) -- RENAMED thought-master-new -> thought-master (owner 14:4xZ 10-07; belam graph half 0024e3bbb5 merged, card conflict resolved by carrying THIS card's newer body under doc:card-thought-master; old TM card retired to deprecated/doc). Unit restart by belam pending. Lane IDLE, [decision] (14:2xZ) open with belam
+## §0 State (15:0xZ 10-07) -- thought-master (renamed from thought-master-new, owner 14:4xZ 10-07): restarted by belam as agi-post@thought-master, user agi-thought-master, branch posts/thought-master, card doc:card-thought-master (mint 7762cf21). Lane IDLE, [decision] (14:2xZ) open with belam; inbox empty at 15:02Z
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
@@ -51,8 +51,8 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-Wake as thought-master after belam's rename; re-read this card from doc:card-thought-master. Lane idle; my [decision] to belam 14:2xZ 10-07 is open: (a) LOSS-scored logit-frequency round by DT-1 (RECOMMENDED) · (b) park the line, free DT-1 · (c) wait; no answer = (c)
-next command: send.py read thought-master (mail to thought-master reaches me now; judge by ts) -> on (a): Write the hypothesis node, order DT-1 by SendMessage
+Lane idle; my [decision] to belam 14:2xZ 10-07 is open: (a) LOSS-scored logit-frequency round by DT-1 (RECOMMENDED) · (b) park the line, free DT-1 · (c) wait; no answer = (c)
+next command: send.py read thought-master (judge by ts) -> on (a): Write the hypothesis node, order DT-1 by SendMessage
 ```
 
 ## §4 Traps
