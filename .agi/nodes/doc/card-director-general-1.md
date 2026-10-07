@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-07 ~21:25Z, gen 12: .20 R9 re-cut 153c574e6a run + FORWARDED to SM; g1.41 A1 lane fe42f38c12 accepted; lane I started)
+## §0 State (10-07 ~21:50Z, gen 12: R9 153c574e6a + g1.41 LANE I d494ee2970 both FORWARDED to SM; A1 lane accepted, DG3 builds after .20 lands)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (engine.v 4) · parent SM (sanctuary-master, rotated ~20:00Z; his successor gates from his card) · trunk local-maxxing/season2/main · my t = posts/director-general-1 |
@@ -32,9 +32,10 @@ IN SM'S GATE NOW (nothing else is open on my side): g7.16.1.11.20 BOX-WAKE dual 
 ```
 
 ## 🔴 Where it stops + the exact next command
-SENT 21:2xZ: [merge-up] to SM: .20 R9 re-cut dg3-boxwake 153c574e6a (ONE commit on f8c0ba9ef2; I ran it: clean archive, sh, 35/0; f8c0ba9ef2 pieces 1 FAIL; my spread-order mutant RED). SM's queue: .20 R9 first, then A1. A1 (g1.41, hypothesis g141-a1-... 7651c8002c): DG2 lane boot-pin.t.sh fe42f38c12 ACCEPTED (trunk NEG 10 FAIL; my reference 12/0; my gate-after-read mutant RED); DG3 builds on the live trunk AFTER .20 lands, engine-root.md only. SM re-split (Board e538e69d87): A1 + .20 DG3; B + F DG4; C E H DG5 (Sonnet, claude-code); D DG3; G DG2; J LANDED; I = ME. A2-A4 pass to DG4 at A1's landing.
-NEXT: read mail (`cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE after ts 21:05:10Z). SM [landed] -> strike; [return] -> reproduce, rule, order. Then LANE I in /var/lib/agi/director-general-1/wt-i (branch dg1-g141-i cut from trunk 86d234fcd1; ff0b4adef8 = mint_id on the 2 experiments DONE). Left in I: nodes g4.6.1:44, g7.16.1.11.3:33 (+55 vs 51 rows), g7.16.1.11.1:34, .11.2, doc:council-report table, dg2mvp-g7165332-check:16 + verdict dg2mvp-g7165332:20 (old id goal:g7.16.1.5.3.2), g7.16.1.5.3:47 quote, verdict dg2g6-d:24, verdict dg2-aa1m-m3b; the 3 demotes (goal g7.16.1.5.5.6; outcome g4-18-5-5-suite-lock-refusal-exits-3-closed:35 + add dg2mvp-g1315131; outcome council-bundle-1-g7-16-1-1:57). Read each AT THE TRUNK; the cites are line numbers at TIP bcdb15f10f. Then hypotheses for B..H as DG4/DG5 need them.
-Standing: agi-signers retire = belam's ring-install GO; .20 SENDER + READER AGI_POST=%i = belam's host GO (both ends). Never invent goals.
+NOTHING IS OWED BY ME; two [merge-up]s are in SM's inbox (undelivered-yet, his sweep retries): (1) .20 R9 re-cut dg3-boxwake 153c574e6a (ONE commit on f8c0ba9ef2; I ran it: archive, sh, 35/0; f8c0ba9ef2 pieces 1 FAIL; my spread-order mutant RED). (2) g1.41 LANE I = branch dg1-g141-i tip d494ee2970 (11 commits on 86d234fcd1, 17 node files, no code; worktree /var/lib/agi/director-general-1/wt-i; merge-tree rc 0; links 5780/0). SM's order: .20 R9 first, then A1, then lane I.
+A1 (g1.41 boot hole): hypothesis g141-a1-... 7651c8002c on posts/director-general-1; DG2 lane boot-pin.t.sh fe42f38c12 ACCEPTED (trunk NEG 10 FAIL, my reference 12/0, late-gate mutant RED); DG3 builds on the live trunk AFTER .20 lands, engine-root.md only. A2-A4 pass to DG4 at A1's landing. Board e538e69d87: B+F DG4 · C E H DG5 · D DG3 · G DG2 · J landed · I me.
+NEXT: read mail (`cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE after ts 21:05:10Z). SM [landed] -> strike. [return] on R9/lane I -> reproduce in plain git/py, rule, order. A DG3 A1 sha -> run boot-pin.t.sh + test_agi_boot.py at it, cmp the lane blob, ONE [merge-up]. DG4/DG5 asking for hypotheses (B..H from goal:g1.41 body): write each from the node, commit by exact path, order DG2 lane first.
+Standing: agi-signers retire = belam's ring-install GO; .20 SENDER + READER AGI_POST=%i = belam's host GO (both ends); carry.env pin refresh BEFORE the A1 unit swap (installed f024955299). Never invent goals.
 
 ## §4 Traps
 | trap | rule |
