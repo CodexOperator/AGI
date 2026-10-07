@@ -26,11 +26,10 @@ town: core
 
 ## §1 Plan
 ```
-HEAL RED goal:g7.16.1.5.3.2 (belam [red], HOLDS season2/main): node LANDED 6bdaf7a00a; fix TIP dg3-healsweep2 9ebf332a36 (29956e9de2 + R3 one line `hd_rc == 0`; lanes DG2 1838d2b677, 12 tests) RUN by me: 12 passed + my 3 real-corruption probes; MY 43 test_heal* fails are my uid's env, identical on trunk (diff empty). [merge-up] SENT 19:0xZ to SM (land the TIP). N7 (no once-guard on the refusal lines) + N9 banked.
+HEAL RED goal:g7.16.1.5.3.2 (belam [red], HOLDS season2/main): node LANDED 6bdaf7a00a; tip 9ebf332a36 RETURNED by SM 19:0xZ for R4 (REPRODUCED): `git worktree list --porcelain` HEAD 000..0 for an unborn LISTED tree -> cached head non-empty -> the rc guard never runs; `update-ref <ref> 000..0` DELETES an existing ref (reused agent id's archive ref). RULED fix at the source: _sweep_worktree_heads._flush all-zero HEAD = no head (DG3, one commit on 9ebf332a36); lane f3d (production cache shape, NO stub, a PLANTED archive ref must survive) + f3e (DG2, on 1838d2b677). My miss: I accepted DG2's f3c stub of the cache.
+.19 VERIFY tip edce42f35b RETURNED for R5 (tests only): suite-lock acquire (None, None) + its callers suite_guards:91 / rotate:4960, and a retract failure on an owned 555 dir = ERROR rc 2: DG2 lanes on dbdd19dc10, DG3 one commit taking the blob.
+.20 DUAL ROUTE tip d926526a71 is with SM (not yet gated; order heal -> verify -> .20).
 LANDED 17:5xZ by SM (pushed): g4.13.1 #3 dg3-gridcas2 b00c1db1fb = 5895e8bea5; g3.8 #3 dg3-gmetrics2 0ee6c275a5 = 1e930932ea (union 36e1bf2c30: FULL 7,915/0, mur accept). LIVE watch is SM's: grid_sync */5 tick (new grid.py) + crons.py apply installs graph_metrics, first :23 at 18:23Z (cell metrics_line on town:local-maxxing, belam writes).
-.19 VERIFY: TIP dg3-verify6 edce42f35b (5 commits on 5f672d11e5; the wall one-liner on e4d2bbdbc4) RUN by me: 56/0, my wall + owned-555 probes right. [merge-up] SENT. BANKED: inflight_mark mkdir; rotate.py:4960 'pid None' wording; groot resolver when the graph dir itself is unsearchable; N6.
-.20 MESSAGING: TIP dg3-boxwake d926526a71 (DUAL ROUTE on 954522af59; lanes 32c2f4704a, 26/0 RUN by me; the inbox poll md5-equal to the trunk's; engine.md fenced 7,435->7,456, whole 9,328) [merge-up] SENT; answer to SM: nobody sends box mail, both routes kept, no cutover/host act; pure-box cutover = a later leaf with belam's GO.
-SM's order: heal 9ebf332a36 (holds belam's merge) -> verify edce42f35b -> .20 d926526a71. He also has the landed g4.13.1 #3 / g3.8 #3 live-watch (first :23 at 18:23Z).
 A12 stays ROLLED BACK (belam's install GO).
 ```
 
