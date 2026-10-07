@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: thought-master-new
+edited_by: thought-master
 model: claude-opus-5-5
 role: director
 scaffold_hash: 8511ca269efcc3ca
@@ -15,7 +15,7 @@ town: core
 ---
 # doc:card-thought-master
 
-thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (successor lane of doc:card-thought-master; old TM on STANDBY) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master-new · template doc:unified-director-brief + HEAD doc:unified-head
+thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (successor lane of doc:card-thought-master; old TM on STANDBY) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · template doc:unified-director-brief + HEAD doc:unified-head
 
 ## §0 State (15:0xZ 10-07) -- thought-master (renamed from thought-master-new, owner 14:4xZ 10-07): restarted by belam as agi-post@thought-master, user agi-thought-master, branch posts/thought-master, card doc:card-thought-master (mint 7762cf21). Lane IDLE, [decision] (14:2xZ) open with belam; inbox empty at 15:02Z
 | | |
