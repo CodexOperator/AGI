@@ -49,7 +49,7 @@ WantedBy=multi-user.target
 ~~~
 
 
-### agi-boot.service (488 B)
+### agi-boot.service (688 B)
 ~~~ini
 [Unit]
 After=agi-ram-main.service
@@ -60,17 +60,17 @@ RemainAfterExit=yes
 TimeoutStartSec=infinity
 WorkingDirectory=/data/work/agi
 EnvironmentFile=/etc/agi/carry.env
-Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=*
-ExecStart=sh -c 'echo $AGI_TRUNK:.agi/nodes/.geometry/engine-root.md|git cat-file --batch --follow-symlinks|sed -n "/^### agi-boot /,/^##/{/^~~~/,/^~~~/{//!p}}"|sh -s'
+Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=* GIT_NO_REPLACE_OBJECTS=1
+ExecStart=sh -c 'case $AGI_TRUNK in *[!0-9a-f]*)exit 1;;esac;[ $(echo $AGI_TRUNK|wc -c) = 41 ]||exit 1;s=$(echo $AGI_TRUNK:.agi/nodes/.geometry/engine-root.md|git cat-file --batch --follow-symlinks|sed -n "/^### agi-boot /,/^##/{/^~~~/,/^~~~/{//!p}}");[ -n "$s" ]||{ echo "agi-boot: no ### agi-boot at $AGI_TRUNK">&2;exit 1;};echo "$s"|sh -s'
 [Install]
 WantedBy=multi-user.target
 ~~~
 
-### agi-boot (1532 B)
+### agi-boot (1564 B)
 ~~~sh
 #!/bin/sh
 R=${AGI_RAM:-/mnt/agi-ram} t=${AGI_TRUNK:?} o=${AGI_BOOT_OUT:-/run/systemd/system};w=$o/multi-user.target.wants
-case $t in *[!0-9a-f]*)exit 1;;esac;[ ${#t} = 40 ]||exit 1
+export GIT_NO_REPLACE_OBJECTS=1;case $t in *[!0-9a-f]*)exit 1;;esac;[ ${#t} = 40 ]||exit 1
 e=0;f(){ "$@"||{ echo "agi-boot: failed: $*">&2;e=1;};};f setfacl -m g:agi:x $R;f setfacl -m g:agi:--- ${AGI_RAM_STATE:-$R/state}
 c(){ git show $t:.agi/config.json|jq -r ".values.local_maxxing.$1";};L=$(c de_live_parents.ceiling_if.loadavg1_lt) P=$(c de_live_parents.ceiling_if.io_psi_some_avg60_lt) N=$(c agi_boot.poll_s) M=$(c agi_boot.wait_max_s) S=$(c agi_boot.space_s)
 echo $t:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n '/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}'|sh -s $o $t||exit 3
@@ -189,4 +189,5 @@ git update-ref $T $n $o
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 SPLIT (DG3 read sets): agi-post@.service moved here whole from engine-post; its ONE loop edit: for e in engine.md engine-[pw]*.md (was engine*.md), so a post reads engine + engine-post + engine-wrap only. G9 + G9.2 + G9.3 (hypothesis:g716111-g9-boot-install-brings-the-boot-set-up; owner 17:5xZ via belam): agi-boot.service + agi-boot run as root once at boot -- the agi-ram ACL pair, a projection of MAIN's checked-out HEAD (the local trunk; no trunk literal in the unit, WorkingDirectory is the one install-time literal) by REUSING the agi-project section, daemon-reload, then ONE start at a time of the boot:true rows that were projected, behind the shared de_live_parents load/io gate cells (fail-CLOSED on a missing or stale reading); every failure is named on stderr, boot CONTINUES, and any failure (ACL, reload, start, gate give-up) makes the unit exit non-zero; a boot row not yet on v5 is skipped by name (belam: by design until its move). G9.4: an unreadable or empty boot-row list is named and fails the unit.
 g1.41 A1 (hypothesis:g141-a1-agi-boot-and-its-reprojection-read-only-a-root-pinned-sha; owner 19:0xZ 'Leave it, fix via DG only'; host order: belam refreshes the pin in /etc/agi/carry.env BEFORE the unit swap, the installed pin f024955299 is 457 commits old and the new unit boots NOTHING without a good pin): root's boot chain reads only a 40-hex trunk sha pinned in carry.env, never HEAD. The unit loads EnvironmentFile=/etc/agi/carry.env and its ExecStart extracts this section from $AGI_TRUNK (0 HEAD); agi-boot starts with t=${AGI_TRUNK:?} and a case/length gate (the box-carry shape) BEFORE the first git read, ACL change or start, exit 1 on anything but 40 chars of [0-9a-f]; agi-project already bakes a sha as r (0 HEAD in its ExecStart), so engine.md is untouched. The word HEAD is gone from the boot chain; the pin does not move on a landing (belam's host act, or a later agi-land leaf). Sizes re-measured: agi-boot.service 447 -> 488 B, agi-boot 1477 -> 1532 B. test_agi_boot.py: its fixture exports AGI_TRUNK and one test asserted the old unit.
+SM mur on A1 (accept_with_residue, DG1 return 22:35Z): RA1 the pin is gated IN the ExecStart before the first git read (`case $AGI_TRUNK in *[!0-9a-f]*)exit 1;;esac;[ $(echo $AGI_TRUNK|wc -c) = 41 ]||exit 1`, an empty value fails the count; brace-free on purpose, systemd substitutes `${...}` inside an ExecStart word; the inner gate in agi-boot stays as depth). RA3 the fetched script is captured and an empty one fails LOUD (a line on stderr, exit 1) before anything is piped to sh (the old `|sh -s` on a pin whose blob lacks the section ran an empty script and exited 0). RA2 GIT_NO_REPLACE_OBJECTS=1 in the unit's Environment= and exported at the top of agi-boot, so every git read of the pin ignores replace refs (box-carry's shape); the baked agi-project.service text is engine.md's, see the commit report. Sizes re-measured: agi-boot.service 488 -> 688 B, agi-boot 1532 -> 1564 B.
 <!-- THOUGHT:END -->
