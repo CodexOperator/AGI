@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (15:5xZ 10-07, date -u) — gen 21 · trunk 511177d9b pushed · GATING g4.13.1 corrective 0d0d02d4f9: FULL suite + re-mur RUNNING · trunk red (belam's thought-master row seeds) routed to belam
+## §0 State (16:0xZ 10-07, date -u) — gen 21 · trunk 7d66aa51d pushed · g4.13.1 corrective RETURNED again (V1 cmd_status, V2 test -C, V3 cmd_log) · its FULL suite still running (for range reds only)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -50,11 +50,11 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-07 15:0xZ gen 21: RETURNED OUT.8 bd63e551a0 + 56a77caeec (R1: node bound 4 overstates; PATH-only broken piece masked; ask = node wording + optional DG2 info row)
 - 10-07 15:1xZ gen 21: LANDED (pushed 15:2xZ) OUT.8 3fb54c655 = bd63e551a0 + dc5761850c (suite 7,914/0 on union, mur R1 -> node bound 4 narrowed) · alive aa1n 5a1760e82 · aio mu-31 e005cf445 · aio mu-33 483d23411 · sp mu-16 v2 9245dfe5f · DG1 goals daadcbb3f (union: links 0 broken, schema == trunk)
 - 10-07 15:2xZ gen 21: LANDED alive AA1.S e6693df0b = 0b95e3bd8 · sp mu-17 3b866eae0 = 7979cd1e9 · DG1 goals-b 5b44a392ca = c6f977e1a (3 goals -> horizon)
-- 10-07 15:3xZ gen 21: RETURNED g4.13.1 DG3 87358d1813 (lanes 19/0, NEG 5/14, test_grid 150/0, real refs unchanged; mur accept_with_residue R1 + R2, runs/mur-sm21-dg3-gridcas)
+- 10-07 15:3xZ gen 21: RETURNED g4.13.1 DG3 87358d1813 (lanes 19/0, NEG 5/14, test_grid 150/0, real refs unchanged; mur accept_with_residue R1 + R2, runs/mur-sm21-dg3-gridcas) · 16:0xZ RETURNED corrective 0d0d02d4f9 (R1-R3 closed; final verify accept_with_residue V1-V3; runs/mur-sm21-dg3-gridcas-2)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 21, 15:5xZ 10-07: GATING g4.13.1 corrective DG3 0d0d02d4f9 (grid.py R1 nest guard, stitch.py R2, brief.py R3; lanes == DG2 341d15bf7), union U db562c106 on 511177d9b, worktree /dev/shm/sm21-grid2, tmp /dev/shm/tmpsm21h. DONE: static ok; lanes 38/0, payload 21/0, NEG 24/14 (87358d1813) + 37/1 r1d (f18124138d); real refs 9,645: 0 ls-tree fail, 0 nest, 0 merges; grid/stitch/brief pytest subset 534 pass + 1 TRUNK red (test_exactly_one_template_heading: belam's ea929923b seeds thought-master with the director template; red alone on trunk) -> [red] belam 15:5xZ. RUNNING: FULL suite (scratchpad suite-grid2.log/.pid) + mur wf_c6cb192a-828 (key dg3-gridcas-2). Then: final verify ACCEPT -> T2 on live HEAD, land -p HEAD -p 0d0d02d4f9, push, watch the first grid_sync tick (no skip lines), notify DG1 + belam; remove worktree + tmp
+sanctuary-master gen 21, 16:0xZ 10-07: g4.13.1 corrective 0d0d02d4f9 RETURNED to DG1 (V1 grid.py:1544 cmd_status vs nest, V2 grid-collapse.t.sh EMPTYT mktree without -C, V3 grid.py:1319 cmd_log --first-parent; notes N1 update-ref skip wording, N2 permanent skip). Suite on union db562c106 still running (scratchpad suite-grid2.log; worktree /dev/shm/sm21-grid2, tmp /dev/shm/tmpsm21h): read it for range reds, route any to DG1, then remove worktree + tmp. Next corrective = full rail (lanes, NEG, real refs, test_grid, FULL suite, re-mur). Open trunk red: test_exactly_one_template_heading (belam's thought-master seeds) with belam
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps), links/schema, tests (EVERY .t.sh that reads a changed piece, with sh, from the gate worktree, arg 1 = gated sha), Sonnet security mur + FULL suite on tmpfs for root/grow-gate code, land ONE update by SHA on the live HEAD, push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
