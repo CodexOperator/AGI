@@ -57,8 +57,8 @@ EOF
 start(){ nm=$1;kd=$2;shift 2;: >$T/typed.$nm;: >$T/wakes.$nm
  case $kd in
  agirun)rm -f $T/run/i;mkfifo $T/run/i;exec 3<>$T/run/i;cat <&3 >>$T/typed.$nm &echo $! >>$T/pids
-  (cd $T/hm&&env HOME=$T/hm H=claude-x RUNTIME_DIRECTORY=$T/run O=$T/r AGI_SEAT=alive AGI_POST=alive AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" setsid sh $AGIRUN >$T/ar.out.$nm 2>&1 &echo $! >>$T/pids);;
- cccc)(cd $T/r&&env HOME=$T/hm DIV=$DIV O=$T/r AGI_SEAT=alive AGI_POST=alive AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" node $T/drv.mjs $CCCC >$T/wakes.$nm 2>$T/node.err.$nm &echo $! >>$T/pids);;
+  (cd $T/hm&&env HOME=$T/hm H=claude-x RUNTIME_DIRECTORY=$T/run O=$T/r AGI_SEAT=alive AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" setsid sh $AGIRUN >$T/ar.out.$nm 2>&1 &echo $! >>$T/pids);;
+ cccc)(cd $T/r&&env HOME=$T/hm DIV=$DIV O=$T/r AGI_SEAT=alive AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" node $T/drv.mjs $CCCC >$T/wakes.$nm 2>$T/node.err.$nm &echo $! >>$T/pids);;
  esac;}
 stop(){ for p in $(cat $T/pids 2>/dev/null);do kill -TERM -$p 2>/dev/null;kill $p 2>/dev/null;done;: >$T/pids;exec 3<&-;/bin/sleep 0.3;}
 wakes(){ case $1 in a*)grep -o 'mail: box read' $T/typed.$1|wc -l|tr -d ' ';;*)grep -c '^WAKE mail: box read' $T/wakes.$1|tr -d ' ';;esac;}
@@ -106,6 +106,25 @@ reset;rm -f $ibf;start ${N}22 $kd;wt 0.6;ib both;snd belam alive bboth;wt 2;z1=$
 ok "s4-$kd-both-sources-one-wake-each an inbox append AND a box send in the same window: $z1 box-read wake(s) and $z2 send.py-read wake(s) (want 1 and 1: two at most, neither lost, neither counted for the other)" '[ "$z1" = 1 ]&&[ "$z2" = 1 ]'
 done
 reset;rm -f $ibf
+# ---- R6 R7 N10 N11 (DG1 19:27Z, SM's final on d926526a71): the RECEIVER pieces run on the REAL unit env: engine-root.md sets AGI_SEAT=%i ONLY (the box piece wants AGI_POST), so start() above no longer exports AGI_POST (as() still does: it models the SENDER / the agent reading its mail, which is the box piece's own env, banked). binF = a `box` that fails with stderr text; binA = NO box at all (PATH without any host bin dir)
+mkdir -p $T/binF $T/binA;cp $T/bin/strace $T/bin/stty $T/bin/claude-x $T/bin/sleep $T/binF/;cp $T/bin/strace $T/bin/stty $T/bin/claude-x $T/bin/sleep $T/binA/;ln -sf $T/binF/claude-x $T/binF/pi-x;ln -sf $T/binA/claude-x $T/binA/pi-x;printf '#!/bin/sh\necho "box: boom, the refs are unreadable" >&2\nexit 1\n'>$T/binF/box;chmod +x $T/binF/box
+for kd in agirun cccc;do case $kd in agirun)N=a;;*)N=p;;esac
+# r6: AGI_POST UNSET, AGI_SEAT=alive: a box send wakes ONCE
+reset;start ${N}30 $kd;wt 0.6;snd belam alive r6;wt 1.5;r6a=$(wakes ${N}30);wt 1.5;r6b=$(wakes ${N}30);r6e=$(tr '\0' '\n' </proc/$(cat $T/pids|tail -1)/environ 2>/dev/null|grep -c '^AGI_POST=')
+ok "r6-$kd-wakes-on-the-unit-env with AGI_POST unset and AGI_SEAT=alive (the unit's env: the watcher's /proc environ carries $r6e AGI_POST entries, want 0 where readable) a box send wakes ONCE ($r6a, still $r6b later); a piece that needs AGI_POST for 'box n' dies silently and never wakes" '[ "$r6a" = 1 ]&&[ "$r6b" = 1 ]&&[ "$r6e" = 0 ]'
+# r7: box failing / absent: 0 wakes and 0 bytes of error over ~12 ticks
+reset;start ${N}31 $kd PATH=$T/binF:/usr/local/bin:/usr/bin:/bin;wt 2.5;f7=$(wakes ${N}31);case $kd in agirun)e7=$(wc -c <$T/ar.out.${N}31);;*)e7=$(wc -c <$T/node.err.${N}31);esac;stop
+reset;start ${N}32 $kd PATH=$T/binA:/usr/local/bin:/usr/bin:/bin;wt 2.5;f8=$(wakes ${N}32);case $kd in agirun)e8=$(wc -c <$T/ar.out.${N}32);;*)e8=$(wc -c <$T/node.err.${N}32);esac;stop
+ok "r7-$kd-a-failing-or-absent-box-is-silent over ~12 ticks a box that exits 1 with stderr text: $f7 wake(s), $e7 byte(s) of error output; NO box at all: $f8 wake(s), $e8 byte(s) (want 0 wakes and 0 bytes both: a 5 s poll must not fill the pane / stderr with noise)" '[ "$f7" = 0 ]&&[ "$e7" = 0 ]&&[ "$f8" = 0 ]&&[ "$e8" = 0 ]'
+# n11: a forged / off-matrix ref (refs/box/ghost/alive: 'ghost' is no post) makes `box n` print '[off-matrix] ghost': that line is NOT a message
+reset;git -C $T/r update-ref refs/box/ghost/alive $(git -C $T/r rev-parse HEAD);start ${N}33 $kd;wt 2;g1=$(wakes ${N}33);snd belam alive real1;wt 1.5;g2=$(wakes ${N}33)
+ok "n11-$kd-off-matrix-line-is-not-mail a forged ref refs/box/ghost/alive ('box n' prints '[off-matrix] ghost'): $g1 wake(s) for it (want 0), and a real message right after wakes ONCE ($g2, want 1)" '[ "$g1" = 0 ]&&[ "$g2" = 1 ]'
+done
+reset
+# n10: cccc.ts's own timers must not keep node alive (agi-kid runs `pi -e cccc.ts -p`; pi drains, the process must exit): the driver WITHOUT its keep-alive line exits on its own
+grep -v '^real(() => {}, 1e6);' $T/drv.mjs >$T/drv-nokeep.mjs
+(cd $T/r&&env HOME=$T/hm DIV=$DIV O=$T/r AGI_SEAT=alive AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH timeout 6 node $T/drv-nokeep.mjs $CCCC >$T/nk.out 2>&1);nkrc=$?
+ok "n10-cccc-timers-alone-do-not-keep-node-alive the fake pi driver WITHOUT its own keep-alive, after the last event: node exits by itself (rc $nkrc, want 0; 124 = still running at the 6 s limit: the poll interval keeps a drained pi alive)" '[ $nkrc = 0 ]'
 # ---- the ~/o cap (agi-run only): the 5-minute loop trims ~/o to HALF the cap keeping the TAIL when it is over AGI_PANE_MAX_MB (default 64); DIV scales the 300 s
 capsz(){ stat -c%s $T/hm/o 2>/dev/null||echo 0;}
 mkbig(){ rm -f $T/hm/o;awk -v n=$1 'BEGIN{for(i=0;i<n;i++)printf "%07d line of the pane log, padding padding padding padding padding\n", i}' >$T/hm/o;}
