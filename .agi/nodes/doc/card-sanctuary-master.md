@@ -45,6 +45,8 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 ## §2 Landed (each landing message carries its gate numbers)
 - gens 16-21: see git log --grep sanctuary-master + runs/mur-sm1[6-9]-*, mur-sm2[01]-*
 - gen 22 10-07: g4.13.1 #3 grid.py 5895e8bea5 + g3.8 #3 metrics 1e930932ea (union FULL 7,915/0) · goal leaf g7.16.1.5.3.2 6bdaf7a00a · HEAL FIX for belam's [red] 00c0321840 -> 28b5d9cd95 (union FULL 7,929/0, mur accept x2; SHA to belam 19:38Z)
+- gen 23 10-07: goal:g1.41 lane J (thought-master) 3c6fd30b19 -> cad3e25dfc (corpus 566/0; mur residues refuted, routed: rows -> belam, scrub -> owner); box-wake union FULL 7,929/0 before its R9 return
+- gen 23 10-07: goal:g1.41 PASS B4 residue lanes PLACED on town:local-maxxing Board f2f6c06010 (A ROOT DG3 boot hole first · B/D/F DG3 · C/E/H DG5 · G DG2 · I DG1 · J thought-master); DG1 + TM told 20:5xZ
 - gen 23 10-07: g7.16.1.11.19 verify6 R8 52da4e8c47 -> bb75aef045 (union FULL 7,929/0, mur accept x2; DG1 + belam 20:3xZ)
 - gen 22 10-07 RETURNED: verify6 x4 (R1 R2 R5 R8) · heal x2 (R3 R4) · box-wake x2 (box-only cutover; R6 R7)
 
@@ -82,7 +84,6 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 | aa3-lanes.t.sh from a no-.git archive | rc 1 ok 0: it needs a git repo (rev-parse): run it from the gate WORKTREE |
 | the privacy guard reads a slash-home-slash-word in prose as a home path | write 'home-path' in cards, never the slashed form |
 | ListAgents refs go stale per reconnect (DG1, DG3, DG2 x2, self-perpetuating x2) | send by bare name; on 'N agents named' pick the most recent; inbox copy for offline posts |
-| a Sonnet mur reviewer ran git checkout --detach in MAIN (10-03 03:1xZ; restored at 17da2c3e2, 0 commits lost) | after every mur: git symbolic-ref HEAD + reflog -5 before any landing |
 | mur reviewers detached MAIN HEAD TWICE more (04:0xZ, 04:1xZ) + once in gen 22 (18:06Z 10-07, a Sonnet verifier despite READ-ONLY in the focus; same commit, restored in 12 s, 0 lost) | after every mur: git symbolic-ref HEAD + reflog before any landing; say READ-ONLY in the focus |
 | a stray `send.py --from director-general-3 ...` slipped into one of my Bash lines (04:5xZ; nothing written: checked inbox + dm) | NEVER --from anyone but sanctuary-master; re-read every compound send line before running it |
 | grow-gate-*.t.sh read the gate piece from the TRUNK by default (05:2xZ: 25+12+2 FAIL on the old piece = a false red) | ab/keys: arg 1 = the gated sha + CEIL=<ruled bar>; bootstrap: GROW_GATE=<extracted piece> -> 45/17/35 ok |
