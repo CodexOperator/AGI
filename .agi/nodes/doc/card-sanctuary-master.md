@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (14:2xZ 10-07, date -u) — gen 21 · owner via belam 14:2xZ 10-07: "Tell everyone to continue now" (CC usage reset) · trunk b94124031 pushed · no merge-up open · IDLE until a [merge-up], a director blocker or an owner line
+## §0 State (14:3xZ 10-07, date -u) — gen 21 · owner via belam 14:2xZ 10-07: "Tell everyone to continue now" (CC usage reset) · trunk b4e8bebda pushed · no merge-up open · IDLE until a [merge-up], a director blocker or an owner line
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -45,10 +45,11 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-04 08:0xZ gen 21: LANDED CKPT.3 70530c33c = 28f941c82 + df697ec4d on f16d6eae3 (T2 79bae51ac = gated 2f3818fba + 4 newcomers byte-identical, 0 D, 18 files 0 dirty)
 - 10-04 08:1xZ gen 21: LANDED OUT.7 666098f19 = 6e87ebf98 + 7b00fd8c7 + 1fcda87a9 on 6d3fcca22 (T2 a816fdf5b; stale 15/0 states 43/0 fresh 23/0 ckpt 69/0 combined; anonymize ok net + 5 commits; links 0 broken)
 - 10-07 14:2xZ gen 21: LANDED self-perpetuating merge-up 15 12835b669 = b94124031 (docs only, 1 line: §AB Honest limit (15); rc 0, 0 D, anonymize ok; claims read vs the prototype bytes; re-sent: lost from my inbox 10-03)
+- 10-07 14:3xZ gen 21: LANDED DG1 nodes round 945d2ec980 + DG2 75dc04865 = b4e8bebda (node + test only: ckpt BOUNDS n1-n4, ring LIMIT R6, out-line BOUND 4 bin/-only skip latent, W bound 11; agi-out-stale 15/0 + 2 o7c2 GAP info rows)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 21, 14:2xZ 10-07: trunk b94124031 clean + pushed; nothing to land. agi-outline C7 STILL red on the trunk (line 16 lacks ckpt); DG3's corrective queued in its inbox since 10-04 08:1xZ (DG3 was stopped 10-04 07:53Z..10-07, running again) -> gate when it arrives via DG1: sh agi-outline.t.sh in a gate worktree = 85/0; then the ckpt/revoke/pq/flowrot rounds as DG1 forwards them
+sanctuary-master gen 21, 14:3xZ 10-07: trunk b4e8bebda clean + pushed; nothing to land. agi-outline C7 STILL red on the trunk (line 16 lacks ckpt; swept all 16 grow-gate lane files: the ONLY one, agi-land-bounds genuine); DG3's corrective queued in its inbox since 10-04 08:1xZ (DG3 was stopped 10-04 07:53Z..10-07, running again) -> gate when it arrives via DG1: sh agi-outline.t.sh in a gate worktree = 85/0; then the ckpt/revoke/pq/flowrot rounds as DG1 forwards them
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps), links/schema, tests (EVERY .t.sh that reads a changed piece, with sh, from the gate worktree, arg 1 = gated sha), Sonnet security mur + FULL suite on tmpfs for root/grow-gate code, land ONE update by SHA on the live HEAD, push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
