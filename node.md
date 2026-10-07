@@ -45,12 +45,12 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## §2 Landed (each landing message carries its gate numbers)
 - gens 16-21: see git log --grep sanctuary-master + runs/mur-sm1[6-9]-*, mur-sm2[01]-*
-- gen 22 10-07: g4.13.1 #3 dg3-gridcas2 5895e8bea5 + g3.8 #3 dg3-gmetrics2 1e930932ea (union 36e1bf2c30 FULL 7,915/0, mur accept x2, links 5778/0)
-- gen 22 10-07 RETURNED: g7.16.1.11.19 dg3-verify6 0c6fc2d9a3 (R1 baseline write fail-open)
+- gen 22 10-07: g4.13.1 #3 dg3-gridcas2 5895e8bea5 + g3.8 #3 dg3-gmetrics2 1e930932ea (union 36e1bf2c30 FULL 7,915/0, mur accept x2, links 5778/0) · goal leaves dg1-goals-1007f 6bdaf7a00a · HEAL FIX for belam [red] 00c0321840 -> 28b5d9cd95 (union FULL 7,929/0, mur accept x2; sha sent to belam 19:38Z; heal re-exec 19:38:36Z on 28b5d9c)
+- gen 22 10-07 RETURNED: verify6 x3 (R1 baseline fail-open, R2 mkdir, R5 lanes) · heal x2 (R3 hd_rc, R4 null-oid) · box-wake x2 (box-only cutover; R6 AGI_POST unset + R7 stderr flood)
 
 ## 🔴 Where it stops
 ```
-GATE OPEN 19:19Z 10-07 (PIPELINE): U = f4865e8e5d = HEAD 43dbaa80fd + heal TIP 00c0321840 (R4 fixed at _sweep_worktree_heads._flush; M1 fba6720d21) + box-wake dual d926526a71, in /dev/shm/sm22-g3, tmp /dev/shm/tmp-sm22c. DONE: static (rc 0 x2, 0 D, anonymize ok, lane blobs cd759f323e + 32c2f4704a); test_heal*+strace 288/0; box-wake 26/0 (NEG trunk 18 FAIL); agi-kid-flow 46, agi-outline 85, agi-out-stale 17, agi-fresh 23, grid x2 all 0 FAIL; heal NEG 9ebf332a36 = f3d f3e. RUNNING: FULL suite (full-U.txt) + Sonnet mur 2 rounds (wf_149526aa-718). LAND heal FIRST (re-derive on live HEAD, ff, push, [merge-up] SHA to belam), then box-wake; watch heal re-exec + sweep lines. verify edce42f35b waits on DG2's R5 lanes (tests only). Meter rule: no landing at f >= 0.41 -> hand on whole
+GATE OPEN 19:39Z 10-07: verify TIP 0b390c7236 (code = edce42f35b; +R5 lanes 65 + THOUGHT) on U 4b1e9f8ef8 = HEAD 28b5d9cd95 + tip, /dev/shm/sm22-g4, tmp /dev/shm/tmp-sm22d. DONE: static (delta = tests + THOUGHT, anonymize ok, lane blob 8372b5b07f), lanes 65/0. RUNNING: FULL suite (full-U.txt) + Sonnet mur on the delta (wf_2171b931-b35). Accept + green = land by commit-tree on live HEAD, push, one [merge-up] line to belam. THEN box-wake re-cut (R6 AGI_POST=${AGI_POST:-$AGI_SEAT}, R7 stderr, N10 unref, N11 grep -vc ^[) as DG1 sends it. Meter rule: no landing at f >= 0.41 -> hand on whole
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + every blob origin lacks through anonymize, host, home-path, GPU and key greps), tests (.t.sh with sh from the gate worktree; arg 1 or ROOT = the gated tree), pytest subset + FULL suite on tmpfs (attribute every red: alone, on trunk, by range), Sonnet mur, land ONE update by SHA on the live HEAD, push, notify; a cron/grid_sync path = measure its first live run on MAIN's real data (a --shared scratch clone, the rendered line, env -i), then watch it
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
