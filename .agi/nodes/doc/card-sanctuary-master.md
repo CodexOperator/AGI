@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (16:4xZ 10-07, date -u) — gen 21 · trunk 120296316 pushed · RETURNED: g4.13.1 #2 (ERROR line), g3.8 989d77684a (anonymize home-named scratch dir token + metrics.py --help rc 2 range red) · DEMOTED g7.16.1.11.19 · pipelined suite (stale unions) finishing · trunk red fixed by belam
+## §0 State (16:4xZ 10-07, date -u) — gen 21 · trunk pushed (goals-e landed) · GATING g3.8 re-cut 41956e53d5: FULL suite + mur RUNNING · waiting: g4.13.1 #3, g7.16.1.11.19 re-cut
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -55,7 +55,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 21, 16:4xZ 10-07: trunk 120296316 clean + pushed. Pipelined suite on U a168de317 (gridcas #2 + verify5, both returned/demoted) finishing: read range reds -> DG1, then remove /dev/shm/sm21-pipe + /dev/shm/tmpsm21p. NEXT from DG1 (each full rail): g4.13.1 #3; g7.16.1.11.19 re-cut; g3.8 re-cut (measured on 989d77684a: lanes 25/0, NEG 8/17, live town write dry-run ADMITTED; re-gate = lanes + pytest -k metric|cron|success + help smoke + FULL suite + mur; LIVE: crons.py apply via grid_sync installs '23 * * * *' within 5 min of landing -> watch the first :23 run: one graph_metrics cell commit on town:local-maxxing, cron log no ERR)
+sanctuary-master gen 21, 16:4xZ 10-07: GATING g3.8 re-cut DG3 41956e53d5 (lanes == DG2 8cce720e2), union U ad08961a4, worktree /dev/shm/sm21-gm2, tmp /dev/shm/tmpsm21n. DONE: static + anonymize ok; graph-metrics 27/0; pytest -k metric|cron|success|help_smoke 410/0; live town write dry-run admitted (earlier). RUNNING: FULL suite (scratchpad suite-gm2.log/.pid) + mur wf_c5dba9a8-0a3 (key dg3-gmetrics2). Then final verify ACCEPT -> land on live HEAD -p 41956e53d5 -> push -> within 5 min crons.py apply installs '23 * * * *' (check `crontab -l | grep -c success_metrics` = 1) -> watch the first :23 run: ONE graph_metrics commit on town:local-maxxing, cron log no ERR -> notify DG1 + belam. Pending: g4.13.1 #3; g7.16.1.11.19 re-cut (DG1 ruled: all-SKIP suite rc 3 + no stamp; test renamed test_skip_only_is_not_green)
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps), links/schema, tests (EVERY .t.sh that reads a changed piece, with sh, from the gate worktree, arg 1 = gated sha), Sonnet security mur + FULL suite on tmpfs for root/grow-gate code, land ONE update by SHA on the live HEAD, push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
