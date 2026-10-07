@@ -1539,9 +1539,15 @@ def _sweep_worktree_heads(main_checkout: Path) -> dict:
         wt = rec.get("worktree")
         if not wt:
             return
+        head = rec.get("HEAD") or ""
+        if head and set(head) == {"0"}:
+            # goal:g7.16.1.5.3.2 R4: `worktree list --porcelain` prints the NULL oid for an
+            # UNBORN (--orphan) tree. That is NO head: cached as one, rev-parse never ran, the
+            # unborn tree reached _sweep_archive, and `update-ref <ref> 0000..0` on an
+            # EXISTING ref (a reused agent id) returns rc 0 and DELETES it.
+            head = ""
         heads[Path(wt).name] = (
-            (rec.get("branch") or "").replace("refs/heads/", ""),
-            rec.get("HEAD") or "")
+            (rec.get("branch") or "").replace("refs/heads/", ""), head)
     for line in out:
         if not line.strip():
             _flush(cur); cur = {}

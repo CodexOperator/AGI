@@ -247,7 +247,8 @@ def test_f3b_a_failed_rev_parse_that_printed_something_is_still_no_head(repo, mo
 def test_f3c_a_real_unborn_tree_is_refused_by_name(repo, monkeypatch):
     """The REAL shape: a worktree on an unborn branch (`git worktree add --orphan`): its gitdir
     exists, `git rev-parse HEAD` prints `HEAD` and exits 128. No fault is injected; the only
-    stub blanks the cached heads so the sweep reads HEAD itself."""
+    stub blanks the cached heads so the sweep reads HEAD itself: it pins the rc guard ALONE
+    on purpose (f3d is the production cache shape, where `worktree list` caches a null oid)."""
     wt = _graph(repo) / "worktrees" / "a00-unbrn1"
     _sh("git", "-C", str(repo), "worktree", "add", "--orphan", "-b", "loop/a00-unbrn1@2", str(wt))
     (wt / "uncommitted.txt").write_text("precious bytes\n")
@@ -267,6 +268,52 @@ def test_f3c_a_real_unborn_tree_is_refused_by_name(repo, monkeypatch):
     assert not _ref(repo, NS + "a00-unbrn1") and not _ref(repo, NS + "a00-unbrn1-dirty")
     assert not [c for c in calls if c[:2] == ["worktree", "remove"]]
     assert "a00-unbrn1" in heal._SWEEP_SKIP
+
+
+# -- f3d
+def _orphan_tree(repo: Path, agent: str) -> Path:
+    wt = _graph(repo) / "worktrees" / agent
+    _sh("git", "-C", str(repo), "worktree", "add", "--orphan", "-b", f"loop/{agent}@2", str(wt))
+    return wt
+
+
+def test_f3d_the_production_cache_shape_a_listed_unborn_tree_is_refused_and_a_reused_ref_survives(repo, monkeypatch):
+    """PRODUCTION shape, NO stub of the head cache: `git worktree list --porcelain` prints
+    `HEAD 0000000000000000000000000000000000000000` for an unborn listed tree, the sweep
+    caches it, and `git update-ref <ref> 0000..` on an EXISTING ref DELETES it (rc 0). So a tree
+    reusing an agent id whose archive ref already exists must be refused BEFORE the archive
+    path, and that ref must survive the pass byte-for-byte."""
+    wt = _orphan_tree(repo, "a00-unbrn2")
+    (wt / "uncommitted.txt").write_text("precious bytes\n")
+    listed = subprocess.run(["git", "-C", str(repo), "worktree", "list", "--porcelain"],
+                            capture_output=True, text=True).stdout
+    assert "HEAD " + "0" * 40 in listed, listed
+    planted = _ref(repo, "HEAD")
+    _sh("git", "-C", str(repo), "update-ref", NS + "a00-unbrn2", planted)   # an earlier tree of the same id
+    calls = []
+    real_git = heal._git
+    monkeypatch.setattr(heal, "_git", lambda a, c, e=None: (calls.append(list(a)), real_git(a, c, e))[1])
+    removed, refused, _ = sweep(repo)
+    assert (removed, refused) == (0, 1)
+    assert wt.is_dir() and (wt / "uncommitted.txt").read_text() == "precious bytes\n"
+    line = _refusal(repo, "a00-unbrn2")
+    assert len(line) == 1 and "rev-parse" in line[0], _log(repo)
+    assert _ref(repo, NS + "a00-unbrn2") == planted, "the planted archive ref survives the pass"
+    assert not _ref(repo, NS + "a00-unbrn2-dirty")
+    assert not [c for c in calls if c[:2] == ["worktree", "remove"]]
+    assert not [c for c in calls if c[:1] == ["update-ref"]], "nothing reached the archive path"
+    assert "a00-unbrn2" in heal._SWEEP_SKIP
+
+
+# -- f3e
+def test_f3e_worktree_heads_reads_a_null_oid_as_no_head(repo):
+    """The producer, direct: an unborn listed tree has head "" (so the consumer runs rev-parse);
+    a normal tree keeps its sha."""
+    unborn = _orphan_tree(repo, "a00-unbrn3")
+    normal = _cut(repo, "a00-norml1", "loop/a00-norml1@2")
+    heads = heal._sweep_worktree_heads(repo)
+    assert heads["a00-unbrn3"][1] == "" and heads["a00-unbrn3"][0] == "loop/a00-unbrn3@2"
+    assert heads["a00-norml1"][1] == _ref(normal, "HEAD") and len(heads["a00-norml1"][1]) == 40
 
 
 # -- f4
