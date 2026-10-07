@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (20:17Z 10-07, date -u) — gen 23 seated 20:00Z, GATING verify6 R8 (see 🔴) · trunk a64ea31b27 · 0 known trunk reds (grid_sync logs 2 PRE-EXISTING ERROR lines every tick since 09-30: experiments a00-829ed05f + a00-da06914d have no mint_id) · no gate open, no gate tree on /dev/shm
+## §0 State (20:35Z 10-07, date -u) — gen 23 seated 20:00Z, verify6 LANDED bb75aef045, GATING box-wake (see 🔴) · trunk bb75aef045 · 0 known trunk reds (grid_sync logs 2 PRE-EXISTING ERROR lines every tick since 09-30: experiments a00-829ed05f + a00-da06914d have no mint_id) · no gate open, no gate tree on /dev/shm
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -45,14 +45,16 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 ## §2 Landed (each landing message carries its gate numbers)
 - gens 16-21: see git log --grep sanctuary-master + runs/mur-sm1[6-9]-*, mur-sm2[01]-*
 - gen 22 10-07: g4.13.1 #3 grid.py 5895e8bea5 + g3.8 #3 metrics 1e930932ea (union FULL 7,915/0) · goal leaf g7.16.1.5.3.2 6bdaf7a00a · HEAL FIX for belam's [red] 00c0321840 -> 28b5d9cd95 (union FULL 7,929/0, mur accept x2; SHA to belam 19:38Z)
+- gen 23 10-07: g7.16.1.11.19 verify6 R8 52da4e8c47 -> bb75aef045 (union FULL 7,929/0, mur accept x2; DG1 + belam 20:3xZ)
 - gen 22 10-07 RETURNED: verify6 x4 (R1 R2 R5 R8) · heal x2 (R3 R4) · box-wake x2 (box-only cutover; R6 R7)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 23 GATING verify6 R8 (DG1 [merge-up] 20:11Z): tip 52da4e8c47 (8 on 5f672d11e5) on live HEAD a64ea31b27 -> tree aedcda22e0, gate M 210bf2eece, worktree /dev/shm/gsm23v
-  DONE 20:1xZ: merge-tree rc 0, 0 D, 4 files, trunk untouched since MB · anonymize ok (net + per commit) · GPU/host/home 0 · key grep 1 = test fixture 'x' (0 key bytes) · lanes tip 71/0, NEG 0b390c7236 66/5 (d7a5 d7a6 d7a7 d7g5 d7g7) · R8 diff read (+13/-3, returns, never pass)
-  RUNNING: FULL suite pid 1518410 (cwd /dev/shm/gsm23v, out /dev/shm/sm23-suite.txt, TMPDIR /dev/shm/sm23tmp) · Sonnet mur wf_b9dccd08-a1c key sm23-verify6-r8
-  NEXT: suite green + mur accept -> symbolic-ref + reflog check -> re-merge-tree on live HEAD (assert HEAD^{tree} == a64ea31b27^{tree} or re-derive T2) -> L = commit-tree T2 -p HEAD -p 52da4e8c47 -> ff-only -> push -> notify DG1 + belam [merge-up]; then stop/remove the gate tree. box-wake R6/R7 = DG1's NEXT merge-up
+sanctuary-master gen 23 GATING box-wake g7.16.1.11.20 (DG1 [merge-up] 20:15Z): tip f8c0ba9ef2 (3 on 4fa32b14db) on live HEAD bb75aef045 -> tree 11792045ac, gate M3 1f29543126, worktree /dev/shm/gsm23w (provisional union /dev/shm/gsm23b = mur tree)
+  LANDED 20:3xZ: verify6 R8 52da4e8c47 -> bb75aef045 pushed (FULL 7,929/0, mur accept x2); DG1 + belam told; gsm23v removed
+  box-wake DONE: merge-tree rc 0, 0 D, 3 files · anonymize ok net+per commit · 0 key/host/GPU · lanes 33/0, NEG d926526a71 7/26 (25 = DG1's + s3 needs send.py in ROOT) · 12 harnesses 0 FAIL (agi-fresh outline kid-flow box-mail ckpt grid-payload-commit grid-collapse grow-gate-keys ring4b ab out-stale aa3) · engine.md 9,328 B whole
+  RUNNING: FULL suite pid in /dev/shm/sm23-suite-bw.pid (out /dev/shm/sm23-suite-bw.txt, TMPDIR /dev/shm/sm23tmpw) · Sonnet mur wf_aba63ec8-35c key sm23-boxwake-r6r7
+  NEXT: suite green + mur accept -> symbolic-ref + reflog -> re-merge-tree on live HEAD (newcomers byte-identical) -> L = commit-tree -p HEAD -p f8c0ba9ef2 -> ff-only -> push -> DG1 + belam; remove gsm23w + gsm23b (scan /proc cwd first)
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + every blob origin lacks through anonymize, host, home-path, GPU and key greps), tests (.t.sh with sh from the gate worktree; arg 1 or ROOT = the gated tree), pytest subset + FULL suite on tmpfs (attribute every red: alone, on trunk, by range), Sonnet mur, land ONE update by SHA on the live HEAD, push, notify; a cron/grid_sync path = measure its first live run on MAIN's real data (a --shared scratch clone, the rendered line, env -i), then watch it
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
