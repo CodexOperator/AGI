@@ -1582,7 +1582,8 @@ def _rename_ref(root: Path, old_ref: str, new_ref: str, write: bool) -> str:
     if new_tip is not None:
         return "unchanged" if new_tip == old_tip else "conflict"
     if write:
-        git(root, "update-ref", new_ref, old_tip, "")  # CAS (goal:g4.13.1)
+        if git_try(root, "update-ref", new_ref, old_tip, "").returncode != 0:  # CAS (goal:g4.13.1)
+            return "conflict"
         git(root, "update-ref", "-d", old_ref, old_tip)
     return "moved"
 
