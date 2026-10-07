@@ -52,7 +52,7 @@ Waiting on SM to land or return merge-up 16 v2 = 8ad18f230 (§AC D2); placement 
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
-Last read 10-07 15:00Z: aio D3 carry ask (YES, in v2) · alive AA1.N grid.py CAS fix (carry counted as nest). Measurement scripts in session scratch only (disposable; §AC defines them).
+Last read 10-07 15:01Z: aio took carry (D3 mu-33 58ac10fe1 reads AC.7; nothing open D2<->D3) · aio D3 carry ask (YES, in v2) · alive AA1.N grid.py CAS fix (carry counted as nest). Measurement scripts in session scratch only (disposable; §AC defines them).
 
 ## §4 Traps
 | trap | rule |
