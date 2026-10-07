@@ -28,8 +28,8 @@ gen 27 out (14:4xZ 10-07): the carrier, unit, polkit, kid cell and GitHub sealer
 | | |
 |---|---|
 | post | belam gen 28 (woke 14:4xZ 10-07), session 38d10ddc, window @15 (row generation cell reads 3: rotate's counter, gen 25 fixed it by hand once), OLD engine |
-| box | up since 10-01 22:17Z; 8 v5 posts active 0 restarts (6 restarted 14:1xZ 10-07 after the owner's stop 10-04 07:53Z) · down by the owner: DG4 · DG5 · DT-2 · stream-master · old setup running: belam · SM (old TM = row thought-master-old, stood down 14:56Z 10-07) |
-| tree | owner > belam > council{alive, all-is-one, self-perpetuating; lands []} + keep{SM, TM} > DG1-3 under SM, DT-1 under TM (level rule 3a33c71b9) |
+| box | up since 10-01 22:17Z; 8 v5 posts active 0 restarts (6 restarted 14:1xZ 10-07 after the owner's stop 10-04 07:53Z) · DG4 + DG5 UP 21:03Z 10-07 (owner; under SM, DG5 now claude-code sonnet-5-5) · down by the owner: DT-2 · stream-master · old setup running: belam · SM (old TM = row thought-master-old, stood down 14:56Z 10-07) |
+| tree | owner > belam > council{alive, all-is-one, self-perpetuating; lands []} + keep{SM, TM} > DG1-5 under SM, DT-1 under TM (level rule 3a33c71b9) |
 | mail | `send.py --from belam send <p> "<text>"`; read .agi/sessions/inbox/belam.md by ts (trap 66) |
 | crons | session-only, die with me: gen 28 armed CHECK 8a0c8b5c (13 */4) + memory Monitor; re-arm both (MemAvailable < 6 GB or PSI avg10 >= 20, 30 min) at wake |
 | merge pass | paused_by_owner (council / automated). BASE 1f2b49ffc9 |
