@@ -920,7 +920,9 @@ def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
     # CAS (goal:g4.13.1): "" = the ref must not exist; a refusal skips this node only
     res = git_try(root, "update-ref", ref, commit, tip or "")
     if res.returncode != 0:
-        why = res.stderr.strip()
+        # ONE line whatever git said: a held ref lock is 7 lines (the lock path, a blank,
+        # a 5-line "Another git process" hint); the join keeps the hint, drops the blanks
+        why = " | ".join(ln.strip() for ln in res.stderr.splitlines() if ln.strip())
         if "but expected" in why or "reference already exists" in why:
             print(f"skip (ref moved since read; the next tick re-versions it): {ref}: "
                   f"{why}", file=sys.stderr)
