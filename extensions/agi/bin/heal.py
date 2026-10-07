@@ -1881,7 +1881,9 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         hd_rc = 0
         if not head:
             head_lines, hd_rc = _git(["rev-parse", "HEAD"], wt)
-            head = head_lines[0] if head_lines else ""
+            # a FAILED rev-parse is NO head whatever it printed: on an unborn branch it
+            # prints the literal `HEAD` on stdout with rc 128 (goal:g7.16.1.5.3.2 R3)
+            head = head_lines[0] if head_lines and hd_rc == 0 else ""
         if not head and _sweep_orphan(wt):
             # DG2.C1: no HEAD and its gitdir is gone -- nothing to pin or
             # remove. Refuse by name ONCE (never "archived"), then stay quiet.

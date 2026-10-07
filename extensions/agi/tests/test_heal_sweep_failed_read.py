@@ -147,8 +147,8 @@ def merged_clean(r: Path, agent="a00-mrgcl1") -> Path:
 class Fault:
     """A wrapper around heal._git: ([], 128) for ONE call on ONE tree, every call recorded."""
 
-    def __init__(self, monkeypatch, tree: str | None, call: str):
-        self.tree, self.call, self.on, self.calls = tree, call, True, []
+    def __init__(self, monkeypatch, tree: str | None, call: str, ret=([], 128)):
+        self.tree, self.call, self.on, self.calls, self.ret = tree, call, True, [], ret
         real = heal._git
 
         def wrapped(args, cwd, err=None):
@@ -156,7 +156,7 @@ class Fault:
             hit = {"status": list(args)[:2] == ["status", "--porcelain"],
                    "head": list(args) == ["rev-parse", "HEAD"]}[self.call]
             if self.on and hit and Path(cwd).name == self.tree:
-                return [], 128
+                return list(self.ret[0]), self.ret[1]
             return real(args, cwd, err)
 
         monkeypatch.setattr(heal, "_git", wrapped)
@@ -227,6 +227,48 @@ def test_f3_failed_rev_parse_on_a_live_gitdir_is_refused(repo, monkeypatch):
     assert "archived a00-dirty1" not in _log(repo) and "removed a00-dirty1" not in _log(repo)
 
 
+# -- f3b
+def test_f3b_a_failed_rev_parse_that_printed_something_is_still_no_head(repo, monkeypatch):
+    """git prints the literal `HEAD` on stdout with rc 128 on an unborn branch: a NON-EMPTY stdout
+    with a nonzero rc is no head either (the rc decides, not whether stdout is empty)."""
+    wt = unmerged_dirty(repo)
+    f = Fault(monkeypatch, "a00-dirty1", "head", ret=(["HEAD"], 128))
+    removed, refused, _ = sweep(repo)
+    assert (removed, refused) == (0, 1)
+    assert wt.is_dir() and (wt / "uncommitted.txt").read_text() == "precious bytes\n"
+    line = _refusal(repo, "a00-dirty1")
+    assert len(line) == 1 and "rev-parse" in line[0] and "orphan" not in line[0], _log(repo)
+    assert not _ref(repo, NS + "a00-dirty1") and not _ref(repo, NS + "a00-dirty1-dirty")
+    assert f.removes() == [] and "a00-dirty1" in heal._SWEEP_SKIP
+    assert "archived a00-dirty1" not in _log(repo) and "removed a00-dirty1" not in _log(repo)
+
+
+# -- f3c
+def test_f3c_a_real_unborn_tree_is_refused_by_name(repo, monkeypatch):
+    """The REAL shape: a worktree on an unborn branch (`git worktree add --orphan`): its gitdir
+    exists, `git rev-parse HEAD` prints `HEAD` and exits 128. No fault is injected; the only
+    stub blanks the cached heads so the sweep reads HEAD itself."""
+    wt = _graph(repo) / "worktrees" / "a00-unbrn1"
+    _sh("git", "-C", str(repo), "worktree", "add", "--orphan", "-b", "loop/a00-unbrn1@2", str(wt))
+    (wt / "uncommitted.txt").write_text("precious bytes\n")
+    real = subprocess.run(["git", "-C", str(wt), "rev-parse", "HEAD"], capture_output=True, text=True)
+    assert real.returncode != 0 and real.stdout.strip() == "HEAD", (real.returncode, real.stdout)
+    real_heads = heal._sweep_worktree_heads
+    monkeypatch.setattr(heal, "_sweep_worktree_heads",
+                        lambda mc: {k: (b, "") for k, (b, _h) in real_heads(mc).items()})
+    calls = []
+    real_git = heal._git
+    monkeypatch.setattr(heal, "_git", lambda a, c, e=None: (calls.append(list(a)), real_git(a, c, e))[1])
+    removed, refused, _ = sweep(repo)
+    assert (removed, refused) == (0, 1)
+    assert wt.is_dir() and (wt / "uncommitted.txt").read_text() == "precious bytes\n"
+    line = _refusal(repo, "a00-unbrn1")
+    assert len(line) == 1 and "rev-parse" in line[0], _log(repo)
+    assert not _ref(repo, NS + "a00-unbrn1") and not _ref(repo, NS + "a00-unbrn1-dirty")
+    assert not [c for c in calls if c[:2] == ["worktree", "remove"]]
+    assert "a00-unbrn1" in heal._SWEEP_SKIP
+
+
 # -- f4
 def test_f4_the_sweep_goes_on_past_a_refusal(repo, monkeypatch):
     bad = unmerged_dirty(repo, "a00-aaaa11")          # sorts first, its status fails
@@ -265,6 +307,7 @@ def test_f6_dry_run_refuses_too(repo, monkeypatch):
     text = _log(repo)
     assert "git status failed (rc 128)" in text
     assert "(dry-run)" not in text, text
+    assert not heal._SWEEP_SKIP, "a dry-run records nothing"
 
 
 # -- controls
