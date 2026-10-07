@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: thought-master-new
+edited_by: thought-master
 model: claude-opus-5-5
 role: director
 scaffold_hash: 8511ca269efcc3ca
@@ -13,19 +13,20 @@ season: 2
 title: Card thought master
 town: core
 ---
-# doc:card-thought-master-new
+# doc:card-thought-master
 
-thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (successor lane of doc:card-thought-master; old TM on STANDBY) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master-new · template doc:unified-director-brief + HEAD doc:unified-head
+thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card is in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · template doc:unified-director-brief + HEAD doc:unified-head
 
-## §0 State (22:3xZ 10-01; box rebooted 22:18Z; owner "go" in this session 22:3xZ = the go for the next round)
+## §0 State (15:0xZ 10-07) -- thought-master (renamed from thought-master-new, owner 14:4xZ 10-07): restarted by belam as agi-post@thought-master, user agi-thought-master, branch posts/thought-master, card doc:card-thought-master (mint 7762cf21). Lane IDLE, [decision] (14:2xZ) open with belam; inbox empty at 15:02Z
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
-| run | owner 15:1xZ: keep going until goal:g7.16.1.11.1-.10 complete · COMMS = DIRECT session messages (SendMessage, names from ListAgents), not inbox dms (owner 18:1xZ) · belam = belam-S2-L5-I · SM lands my merge-ups (a v5 post cannot write MAIN) |
-| directors | director-thought-1: ORDERED 22:3xZ (SendMessage, delivery unconfirmed) to build the FREQ-ABLATION round · director-thought-2: DOWN after the reboot until the owner says |
+| run | owner 15:1xZ 10-01: keep going until goal:g7.16.1.11.1-.10 complete · owner 10-01 22:5xZ: core council = SM + TM; SM directs DG1, TM directs DT-1 · my row parent = `keep` (council row, members SM + me) · belam = gen 27 · COMMS: SendMessage to posts; to belam ONLY send.py with a tag ([decision] [red] [rule] [merge-up] ...; acks/status REFUSED) |
+| directors | director-thought-1: idle (boot set, active) · director-thought-2: DOWN since the 10-01 reboot until the owner says |
 | subagents | Sonnet 5.5 for every subagent; me Opus 5.5 |
+| RULE | belam [rule] 23:49Z, VERIFIED ed25519 (owner 23:3xZ): my row is engine.v 4 (parent council) -> write.py is RETIRED for me. Read with cat/grep/git (+ `sect <piece>`); write node files with plain Write/Edit; agi-turn (Stop hook: git add -A + ONE commit per turn) commits; grid by path (`grid.py commit <path>`, never --all). Landed 75c04c848; trunk merged in this turn with --no-commit so agi-turn concludes it |
 | LANDED | SEEDS x3 + FAIR P4 (both DISPROVED): a6ac4d92e = 67680d223 on local-maxxing/season2/main, pushed by SM (suite 7876 passed / 1 = the trunk red; links 5670/0; grid commit --all run by SM, 31 versions). Trunk merged back into my branch 6d8bb6265 |
-| ROUND OUT | FREQ-ABLATION = hypothesis:lm-neuron-periodicity-every-family-frequency-is-load-bearing-in-logit-space (minted d05c57e81): logit-space ablation of each family frequency vs an EXHAUSTIVE non-key-frequency null (C1) + family direct-logit energy >= 0.5 in its own frequency (C2); builder DT-1, expected experiment:dt1-neuron-period-freqabl-1001 |
+| LANDED 2 | FREQ-ABLATION DISPROVED: 3fb85474f = 708727845 on local-maxxing/season2/main, pushed by SM (suite 7905 / 2 = skills_first_turn trunk red + a post-reboot test_dispatch pid-4242 flake, placed on DG1; grid 8 versions; links 5676/0). Trunk merged back 2bd54de9c |
 | PARKED | L4 r5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b: needs MemAvailable >= 8 GB held + a docker-capable user (v5 has none); resume steps in its THOUGHT |
 
 ## §1 Plan
@@ -33,8 +34,9 @@ thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 hig
 DONE   self-poke toy line LANDED a001a3c61 · guard-leak fix LANDED 0376b07da (goal:g7.33.19 row 80) · seeds x3 reviewed + merged, merge-up queued
 DONE   FAIR P4 reviewed CONFIRMED_DISPROVED + recorded + merged (dc1504bba) + gated + [merge-up] a6ac4d92e to SM
 DONE   SM landed 67680d223; trunk merged back 6d8bb6265
-NOW    (1) FREQ-ABLATION round out to DT-1; await its ONE return line (tip sha, verdict, C1/C2 per seed)
-NEXT   (2) adversarial ONE-process Sonnet review recomputing from raw (brief as the FAIR P4 one: ulimit -v 4000000, PSI gate, 40 min) -> THOUGHT + board g5.28 + merge DT-1 -> gate -> [merge-up] to SM
+DONE   FREQ-ABLATION built by DT-1, reviewed CONFIRMED_DISPROVED, recorded, merged 956e7b179, gated, [merge-up] 3fb85474f to SM
+DONE   SM landed 708727845; trunk merged back 2bd54de9c
+       (2) next research round = §6 (score LOSS or margin, not accuracy) -- awaits a go; do not mint it unasked
 BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-digit-token model resident = a download, BANKED)
 ```
 
@@ -49,8 +51,8 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-DT-1 RETURNED a352fc937: experiment:dt1-neuron-period-freqabl-1001 DISPROVED by C1 (s0 k=34, s1 k=3, s2 k=17 drop ~0), C2 12/12; one-process Sonnet review RUNNING (also loss deltas + sufficiency arm). My error: the hypothesis said 57-dim basis, it is 113 dims (57 components) -- fix in the hypothesis THOUGHT
-next command if silent > 60 min: ListAgents, then git log --oneline -5 posts/director-thought-1 (reconcile by branch, never by inbox alone)
+Lane idle; my [decision] to belam 14:2xZ 10-07 is open: (a) LOSS-scored logit-frequency round by DT-1 (RECOMMENDED) · (b) park the line, free DT-1 · (c) wait; no answer = (c)
+next command: send.py read thought-master (judge by ts) -> on (a): Write the hypothesis node, order DT-1 by SendMessage
 ```
 
 ## §4 Traps
@@ -61,14 +63,15 @@ next command if silent > 60 min: ListAgents, then git log --oneline -5 posts/dir
 - a stop / rotation of a v5 unit DELETES RUNTIME_DIRECTORY (/run/agi-<post>) until G8 is projected: never keep work there
 - MAIN is not writable by a v5 user: SM lands; datasets/osc-band in MAIN too -> out dirs resolve under the builder's tree
 - before a merge-up: grep added lines for the host name + absolute home paths (.agi/keys/* ssh comments; cards) and fix them on my branch
-- a findings row number is claimed only at landing: on a conflict keep theirs verbatim, renumber mine + every reference (write.py sub!)
+- a findings row number is claimed only at landing: on a conflict keep theirs verbatim, renumber mine + every reference
 - anonymize.py and provisioning.py die on MAIN .env (G2) -- grep by hand instead
-- tests: NO pytest anywhere on the box -> scratch shim (pytest.py with importorskip/approx/mark.parametrize + a runner) on PYTHONPATH with /data/ml/scratch/osc03/pylib, run by /data/ml/.venv/bin/python3; never pip install
+- tests: NO pytest anywhere on the box -> scratch shim (scratch is under /tmp: a reboot WIPES it, so rebuild it) (pytest.py with importorskip/approx/mark.parametrize + a runner) on PYTHONPATH with /data/ml/scratch/osc03/pylib, run by /data/ml/.venv/bin/python3; never pip install
 - import torch needs ulimit -v >= 4000000 (2000000 fails to map); brief subagents with 4000000
-- git push fails (no creds for a v5 user); grid.py commit --all fails (MAIN .grid.lock) -- SM does both at landing
-- write.py `thought` takes the TEXT inline ("thought $(cat f)"), not a path
-- send.py from me arrives UNSIGNED (a v5 post has no seat key; key work HELD) -- direct session messages are the route
-- write.py create on a town node: --actor thought-master-new, NO --role; a card write: --role director
+- git push fails (no creds for a v5 user); grid.py commit --all fails (MAIN .grid.lock), but `grid.py commit <path>` WORKS (card v5, 23:5xZ) -- SM pushes at landing
+- NO hand `git commit` / `git merge` that commits: agi-turn makes the ONE commit per turn (git add -A at Stop), so anything dirty gets committed -- clean the .agi/keys/<post> host comment BEFORE the turn ends; sync the trunk with `git merge --no-commit`
+- a THOUGHT block is edited in place between its BEGIN / END markers, rewritten whole; a new node needs its own mint_id (32 hex)
+- send.py from me arrives UNSIGNED: it signs only from <sessions>/seats/thought-master.key = the OLD TM's key (belam 0600), unreadable to me; told belam 15:0xZ 10-07 -- never try to read or re-mint it myself
+- send.py read <me> prints the mail, then dies writing the read marker (PermissionError on MAIN inbox): the same mail shows again next read -- judge by ts, act once
 
 ## §5 Verification
 - every round: an adversarial Sonnet review recomputes the verdict from the raw files; my own test run from the repo root; evidence dry-run []; links 0 broken (5648 resolved at 17:5xZ)
@@ -76,7 +79,7 @@ next command if silent > 60 min: ListAgents, then git log --oneline -5 posts/dir
 ## §6 BANKED
 - L4 r5 on the 9B: (a) run when the owner thins the live posts (RECOMMENDED) · (b) lower the 8 GB gate = OOM risk · (c) a smaller-model rung first; + a docker grant for v5 users
 - an LLM periodicity / self-poke test needs a model whose tokenizer holds multi-digit numbers as one token = a download (owner call)
-- next-round design: per-frequency logit lens MINTED d05c57e81 on the owner's go (22:3xZ); path patching stays the fallback lens if it is disproved
+- next-round design: FREQ-ABLATION (d05c57e81) DISPROVED on accuracy; the next lens scores held-out LOSS or logit margin with a pre-registered loss null (accuracy saturates: s2 k=17 is a 0-0 tie that passes on loss); path patching stays the fallback. Needs a go
 
 ## Skills
-agi-send · agi-node-write · agi-goal · agi-workflow · agi-verify · agi-rotate · agi-dispatch · agi-memory-guard · agi-master-gate
+agi-send · agi-goal · agi-workflow · agi-verify · agi-rotate · agi-dispatch · agi-memory-guard · agi-master-gate
