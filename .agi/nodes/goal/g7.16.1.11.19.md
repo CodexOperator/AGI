@@ -18,7 +18,7 @@ season: 2
 seeds:
   - goal:g7.16.1.11
   - goal:g7.16.1.11.16
-status: horizon
+status: active
 tags:
   - council
   - v5
@@ -38,7 +38,7 @@ goal:g7.16.1.11.16: the shell-tests leaf says the old-setup Python tests retire 
 
 ## Target end-state
 - `commands.py run verify` as a v5 uid never raises on a file it cannot read: an other-uid read SKIPs and prints the path and the reason; .env is read through the root-projected env file, or SKIPs with a reason.
-- One FULL run as a v5 uid, including the pytest suite, completes and its result is read (the numbers go to the board, not the card).
+- The pytest step on a uid with no pytest SKIPs with the reason 'no pytest for this uid' (never a pass, never a crash); the FULL run including the pytest suite is read from the uid that has pytest (SM's gate: 7,914 passed) and its numbers go to the town node, not the card.
 - Python edits only: verification.py and commands.py are kept, not rewritten.
 
 ## Invariants
@@ -46,7 +46,7 @@ goal:g7.16.1.11.16: the shell-tests leaf says the old-setup Python tests retire 
 - The run as belam (the uid that reads MAIN .env) gives the same verdict as before the change.
 
 ## Falsifier
-1. As a v5 uid: `python3 extensions/agi/bin/commands.py run verify` exits 0 (or its own named non-zero verdict), prints one SKIP line per unreadable path with a reason, and the pytest suite's count line appears.
+1. As a v5 uid: `python3 extensions/agi/bin/commands.py run verify` exits 0 (or its own named non-zero verdict), prints one SKIP line per unreadable path with a reason, and the pytest step prints its SKIP reason when the uid has no pytest.
 2. Negative: the same run prints zero `PermissionError` and zero Python tracebacks.
 
 ## Out of scope
@@ -56,5 +56,5 @@ goal:g7.16.1.11.16 (the shell-test rewrite, season 3) · provisioning.py and the
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-10-07 15:2xZ: horizon until its build starts (HEAD CLAIM: active = worked now; SM's note at the goals landing daadcbb3f); builds go one at a time g4.13.1 -> g7.16.1.11.19 -> g3.8 -> g7.16.1.11.20, each flips to active when its lanes order goes out.
+10-07 15:3xZ: active = worked now (lanes order to DG2 sent 15:3xZ). The pytest wording follows the measurement: a v5 uid has no pytest, so the step SKIPs with a reason and the full run is read from the uid that has it.
 <!-- THOUGHT:END -->
