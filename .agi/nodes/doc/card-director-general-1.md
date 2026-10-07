@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-07 ~16:25Z, ROTATING at the line 474185/1000000; gen 10 wakes next)
+## §0 State (10-07 ~16:30Z, gen 10 live)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (engine.v 4) · parent SM · trunk local-maxxing/season2/main · my t = posts/director-general-1 |
@@ -26,24 +26,20 @@ town: core
 
 ## §1 Plan
 ```
-OWNER 10-07 14:4xZ (via belam): old Python kept this season (provisioning.py, metrics.py, success_metrics.py, verification.py, commands.py run verify), shell rewrites = season 3, metrics back on,
-messaging needs a council pass; goal g7.16.1.11.17 (belam on v5) RESTATED. COUNCIL (alive) PLACED it 14:54Z; I WROTE the goals (landed): .17 restated (horizon), .19 verify, .20 messaging, g3.8 metrics, g4.13.1 grid CAS.
-ENGINE QUEUE = NEXT SEASON, not built: pq (DG2 lanes c6176d986 stay unbuilt), revoke(+LC_ALL=C), flowrot, round B mail, sealer box side. THIS season only: agi-signers retires = the ring-install step (belam GO).
-LANDED (local trunk, pushed): CKPT.3 70530c33c, OUT.7 666098f19, OUT.8 3fb54c655 (PATH-aware skip; ceilings 828), goals through 8bc80981d2.
-WITH SM, one gate at a time (sent 16:1xZ): (1) g4.13.1 corrective #2 dg3-gridcas f8e756801b (DG2 lanes 6831d75f7, 52); (2) g7.16.1.11.19 verify as a v5 uid dg3-verify5 23a6591f72 (DG2 520c9c722, 25).
-JUST ARRIVED, NOT RUN BY ME: g3.8 dg3-gmetrics 989d77684a (one commit on trunk b828e57bf4: metrics.py, success_metrics.py, crons.md + graph-metrics.t.sh == DG2 d9510cbed, 25 lanes; DG3 reports 25/0, 15 mutants RED, the real line 634 B in 65.6 s).
-IN FLIGHT: g7.16.1.11.20 messaging: DG2 writes lanes (brief sent 16:1xZ; he must find agi-run box-n poll + cccc.ts on et-grok-pilot, ask alive). Goal ACTIVE on dg1-goals-1007d 83d745b9a6 (node-only, +.19 bounds note, NOT yet sent: bundle in the next [merge-up]).
-A12 stays ROLLED BACK (belam's install GO); preconditions: bin/agi-out in every v5 t, host sh = dash check, EnvironmentFile root-owned.
+OWNER 10-07 14:4xZ (via belam): old Python kept this season, shell rewrites = season 3, metrics back on, messaging needs a council pass; g7.16.1.11.17 RESTATED (horizon).
+ENGINE QUEUE = NEXT SEASON, not built: pq, revoke(+LC_ALL=C), flowrot, round B mail, sealer box side. THIS season only: agi-signers retires = the ring-install step (belam GO).
+LANDED (local trunk, pushed): CKPT.3 70530c33c, OUT.7 666098f19, OUT.8 3fb54c655, goals through 8bc80981d2.
+16:2xZ 10-07 (gen 10 woke): RAN g3.8 dg3-gmetrics 989d77684a: 25/0, 17 RED on trunk, live --line 1 line 634 B 67 s rc 0; mutants: c1 + b7 RED, SURVIVORS = timeout 900->1, _reason parens, METRIC first-token (non-blocking, told SM). [merge-up] SENT to SM with bundle dg1-goals-1007d 83d745b9a6 (.19 bounds note + .20 active). Delivery: "pane busy", sweep retries; no [undelivered] = fine.
+SM 16:22Z: .19 verify dg3-verify5 23a6591f72 DEMOTED (D1 fail-open _merge_up_suite, D3 substring, D4 stale stamp, D2 owner-aware, D6 OSError); g4.13.1 #2 f8e756801b RETURNED (flatten the ONE ERROR line, lane with real 7-line lock text). I sent DG2 [order] (1) verify lanes, (2) gridcas lane; DG3 told: build only AFTER DG2's shas.
+IN FLIGHT: .20 messaging lanes (DG2; goal ACTIVE on the bundle). A12 stays ROLLED BACK (belam's install GO).
 ```
 
 ## 🔴 Where it stops + the exact next command
-FIRST: `cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1` (copy what you need, then grep the inbox FILE after the last ts you saw: 16:20:34Z DG3 g3.8 correction). THEN, in order:
-1. RUN g3.8 989d77684a (not run by me): scratch worktree at the sha; `git diff --stat b828e57bf4 989d77684a` = metrics.py, success_metrics.py, crons.md, graph-metrics.t.sh; `sh extensions/agi/tests/graph-metrics.t.sh` 25/0 (trunk 17 RED); `python3 extensions/agi/bin/metrics.py /tmp/emptydir` rc 2 + 0 METRIC lines; `success_metrics.py --line <root>` ONE line (~65 s); the crons.md cmd = `L=$(python3 {repo_root}/extensions/agi/bin/success_metrics.py --line {root}) && python3 {repo_root}/extensions/agi/bin/write.py town:local-maxxing "set graph_metrics $L" --actor belam`; mutants of the new code; then ONE [merge-up] to SM with my numbers. The job goes live only when belam's grid_sync applies crons (box local-town).
-2. SM [landed]/[return] on corrective #2 + verify: a [return] = NEW commits by DG3 on their branches, DG2 lanes first, I run, forward.
-3. DG2's .20 lanes sha: run RED on the trunk (shell, v5 uid), then DG3 builds, then me, then SM. alive's wake-after-read lane is in the goal falsifier.
-4. Bundle dg1-goals-1007d into the next SM [merge-up]. Then: agi-signers retire = belam's ring-install GO (not mine to build). Never invent goals.
-
-
+Waiting on mail: DG2 [lanes] shas, SM's reply on g3.8, DG3 new commits. Next: `cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE after ts 16:22:52Z (SM [return]).
+1. DG2 [lanes] (verify first): scratch worktree at the lane sha on the CURRENT build 23a6591f72 / f8e756801b: RED on the new lanes, old 25 / 52 still green; mutants of D1 D3 D4 D2 D6 and the 7-line flatten; then tell DG3 GO (cut from the LIVE trunk, NEW commits).
+2. DG3 return: run lanes at his sha + a sibling probe (an owner-aware check on the writer uid, a pytest-less uid, a stale stamp); forward ONE [merge-up] to SM per build, one gate at a time.
+3. SM verdict on g3.8: accept = done; a return = NEW DG3 commit, DG2 lane for survivors (timeout row) first.
+4. DG2's .20 lanes sha: run RED on the trunk (shell, v5 uid), then DG3 builds, then me, then SM. Then: agi-signers retire = belam's GO. Never invent goals.
 
 ## §4 Traps
 | trap | rule |
