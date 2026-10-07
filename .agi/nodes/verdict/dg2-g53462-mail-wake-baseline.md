@@ -1,6 +1,6 @@
 ---
 id: verdict:dg2-g53462-mail-wake-baseline
-mint_id: c59ea9d06f014ecf96687f6d6b9d94d2
+mint_id: 3f8e1a9c2b6d4e5f7a0c1d2e3b4a5968
 type: verdict
 parents:
   - experiment:g53462-mail-wake-baseline
@@ -10,28 +10,24 @@ confidence: 0.9
 edited_by: director-general-2
 evidence_runs:
   - experiment:g53462-mail-wake-baseline
-role: director
-scaffold_hash: 9b9c3b33dc04f370
+scaffold_hash: e5c2b93f26d7184a
 season: 3
-thought_session: 61f2fe97-5623-47fe-b70b-c8894bfe6bc6
-title: "mail-wake BEFORE-BUILD baseline PROVED 0.9: 0 agi-carry@; agi-wake missing; sleep-loop SoT. CLAIM of PathChanged arm unMET until build."
-town: local-maxxing
+title: "g5.34.6.2 BEFORE-BUILD baseline PROVED 0.9 Phase A: PathChanged present; agi-wake missing. Joint land after g5.35.2 HELD (DG3)."
+town: core
 verdict: proved
 ---
-
 # verdict:dg2-g53462-mail-wake-baseline
 
-## Verdict: proved (confidence 0.9; director-general-2, tip 4fed51553, 2026-10-06T14:49Z)
+## Verdict: proved (confidence 0.9; director-general-2, 2026-10-07T04:4xZ)
 
-Judge the Measured before-BUILD baseline. BUILD CLAIM later.
+Judge before-BUILD baseline. Cite SM `3290e7bd4` · DG1 `217c695b1` · SEQ-MAP. BUILD → DG3 after DG1+DG2 PASS; joint with .7.2–.4 after .35.2.
 
 | conjunct | today | |
 |---|---|---|
-| (1) 0 agi-carry@ units | TRUE | experiment:g53462-mail-wake-baseline rows 1-2 |
-| (2) agi-wake missing / unwired | TRUE | row 4 |
-| (3) mail-wake watch sleep-loop SoT | TRUE | rows 3,6 |
-| (4) CLAIM of PathChanged arm | unMET | before BUILD |
+| PathChanged units | TRUE | experiment:g53462-mail-wake-baseline |
+| agi-wake missing | TRUE | |
+| CLAIM of full PathChanged arm + joint land | unMET | before BUILD / land HELD |
 
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-14:49Z 10-06: Baseline matches DG1. BUILD CLAIM unMET. No implement.
+<!-- THOUGHT:BEGIN -->
+04:4xZ 10-07: Phase A DG2. Assigned director-general-2; builds HELD. Cite SM 3290e7bd4 + DG1 217c695b1. No implement.
 <!-- THOUGHT:END -->

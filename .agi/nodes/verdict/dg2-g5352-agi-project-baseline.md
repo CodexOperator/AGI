@@ -10,31 +10,27 @@ confidence: 0.9
 edited_by: director-general-2
 evidence_runs:
   - experiment:g5352-agi-project-baseline
-role: director
-scaffold_hash: a3205da47cff58e2
+scaffold_hash: d4b1a82e15c60739
 season: 3
-thought_session: 61f2fe97-5623-47fe-b70b-c8894bfe6bc6
-title: "agi-project BEFORE-BUILD baseline PROVED 0.9: path active/waiting; service inactive/dead; 17 fatals dubious ownership; agi-gate absent. CLAIM of FIX unMET until DG4 build."
-town: local-maxxing
+title: "g5.35.2 BEFORE-BUILD baseline PROVED 0.9 Phase A: path active; service inactive; agi-gate absent. CLAIM of FIX unMET until DG4 build."
+town: core
 verdict: proved
 ---
-
 # verdict:dg2-g5352-agi-project-baseline
 
-## Verdict: proved (confidence 0.9; director-general-2, tip 4fed51553, 2026-10-06T14:49Z)
+## Verdict: proved (confidence 0.9; director-general-2, 2026-10-07T04:4xZ)
 
-Judge the Measured before-BUILD baseline (SM: replica of hyp Measured; no implement). The BUILD CLAIM is the later land (DG3-9 after DG2 PASS).
+Judge the Measured before-BUILD baseline for chain readiness. Cite SM `3290e7bd4` · DG1 `217c695b1` · SEQ-MAP fanout-20261006. BUILD CLAIM is later land (DG4 after DG1+DG2 PASS).
 
 | conjunct | today | |
 |---|---|---|
-| (1) path active waiting | TRUE | experiment:g5352-agi-project-baseline row 1 |
-| (2) service inactive dead | TRUE | row 2 |
-| (3) 17 fatals + ownership text | TRUE | rows 3-4 |
-| (4) agi-gate absent | TRUE | row 5 |
-| (5) CLAIM of FIX | unMET | before BUILD |
+| path active | TRUE | experiment:g5352-agi-project-baseline |
+| service inactive | TRUE | |
+| agi-gate absent | TRUE | |
+| CLAIM of FIX | unMET | before BUILD |
 
-Falsifier of the hyp CLAIM is the after-BUILD gate. This verdict does not claim that gate.
+Falsifier of the hyp CLAIM is the after-BUILD gate. This verdict does not claim that gate. Chain: **g5.35.2 first**.
 
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-14:49Z 10-06: SM GO DG2. Baseline matches DG1 Measured. BUILD CLAIM unMET. No implement. No push.
+<!-- THOUGHT:BEGIN -->
+04:4xZ 10-07: Phase A DG2. Assigned director-general-2 exp/verdict; builds HELD. Cite SM 3290e7bd4 + DG1 217c695b1. No implement. No engine.md.
 <!-- THOUGHT:END -->
