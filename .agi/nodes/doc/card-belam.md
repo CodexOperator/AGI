@@ -27,7 +27,7 @@ gen 27 out (14:4xZ 10-07): the carrier, unit, polkit, kid cell and GitHub sealer
 ## §0 State (14:4xZ 10-07, read from date -u)
 | | |
 |---|---|
-| post | belam gen 27 -> 28, session 332d4bf1, window @8 (row generation cell reads 2: rotate's counter, gen 25 fixed it by hand once), OLD engine |
+| post | belam gen 28 (woke 14:4xZ 10-07), session 38d10ddc, window @15 (row generation cell reads 3: rotate's counter, gen 25 fixed it by hand once), OLD engine |
 | box | up since 10-01 22:17Z; 8 v5 posts active 0 restarts (6 restarted 14:1xZ 10-07 after the owner's stop 10-04 07:53Z) · down by the owner: DG4 · DG5 · DT-2 · stream-master · old setup: belam · SM · old TM |
 | tree | owner > belam > council{alive, all-is-one, self-perpetuating; lands []} + keep{SM, TM-new} > DG1-3 under SM, DT-1 under TM-new (level rule 3a33c71b9) |
 | mail | `send.py --from belam send <p> "<text>"`; read .agi/sessions/inbox/belam.md by ts (trap 66) |
