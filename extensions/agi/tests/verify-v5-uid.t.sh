@@ -29,6 +29,16 @@ try:
     elif cmd == "count":
         if os.environ.get("FAKEUID"): os.geteuid = lambda: int(os.environ["FAKEUID"])
         show(verification.compare_count(groot, {"active": 5, "deprecated": 1, "total": 6}, stamp=True)); print("IOERR", len(verification._IO_ERRORS))
+    elif cmd == "lock":
+        print("LOCK", *verification.acquire_suite_lock(groot))
+    elif cmd == "guard":
+        import suite_guards
+        os.environ.pop(verification.SUITE_LOCK_MARKER, None)
+        g = suite_guards.make_suite_lock_fixture(lambda: groot)()
+        try:
+            next(g); print("GUARD yielded"); g.close()
+        except RuntimeError as e:
+            print("GUARD RuntimeError", str(e)[:300])
     elif cmd == "anon":
         show(verification.check_anonymize(groot))
     elif cmd == "extra":
@@ -240,5 +250,23 @@ dstampproj d6k1;rm -rf $G/sessions;mkdir $T/wall1;chmod 000 $T/wall1;ln -s $T/wa
 ok "d6k1-baseline-write-behind-a-wall-is-the-named-skip a --stamp run whose sessions dir is missing under a MODE-000 parent: rc $d6k1rc (want 0), ONE 'skip: cannot write ...verify-count.json' ($(grep -c '^skip: cannot write.*verify-count.json' $T/d6k1.out)), 0 ERROR ($(grep -c '^ERROR' $T/d6k1.out)), 0 Traceback ($(grep -c Traceback $T/d6k1.out)), the verdict is printed ($(grep -c '^RESULT:' $T/d6k1.out))" '[ $d6k1rc = 0 ]&&[ "$(grep -c "^skip: cannot write.*verify-count.json" $T/d6k1.out)" = 1 ]&&[ "$(grep -c "^ERROR" $T/d6k1.out)" = 0 ]&&[ "$(grep -c Traceback $T/d6k1.out)" = 0 ]&&[ "$(grep -c "^RESULT:" $T/d6k1.out)" = 1 ]'
 LINKS='0 broken' STALE= dproj d6k2 <$T/t.green;rm -rf $G/sessions;mkdir $T/wall2;chmod 000 $T/wall2;ln -s $T/wall2/sessions $G/sessions;CS --level quick --suite >$T/d6k2.out;d6k2rc=$?
 ok "d6k2-suite-record-behind-a-wall-is-the-named-skip a green --suite run, same fixture: rc $d6k2rc (want 0), ONE 'skip: cannot write ...verify-suite-ts.json' ($(grep -c '^skip: cannot write.*verify-suite-ts.json' $T/d6k2.out)), 0 ERROR ($(grep -c '^ERROR' $T/d6k2.out)), 0 Traceback ($(grep -c Traceback $T/d6k2.out)), the verdict is printed ($(grep -c '^RESULT:' $T/d6k2.out))" '[ $d6k2rc = 0 ]&&[ "$(grep -c "^skip: cannot write.*verify-suite-ts.json" $T/d6k2.out)" = 1 ]&&[ "$(grep -c "^ERROR" $T/d6k2.out)" = 0 ]&&[ "$(grep -c Traceback $T/d6k2.out)" = 0 ]&&[ "$(grep -c "^RESULT:" $T/d6k2.out)" = 1 ]'
+# R5 (DG1 19:07Z): (a) the suite-lock ACQUIRE with its sessions dir missing returns the documented (None, None) instead of raising, under an owned 555 parent AND behind a wall (mode-000), and its caller in suite_guards (the pytest session fixture) turns that into the named RuntimeError 'suite window refused -- the suite lock could not be written under <sessions>', never a bare traceback of another type; (b) _retract_verified_stamp failing on an OWNED 555 dir is a named ERROR and rc 2. rotate.py's merge-up refusal (the other caller) needs a MAIN branch + a dirty-tree harness: no cheap one here, not lane'd. suite_guards is driven with the stub pytest already on PYTHONPATH (fixture = the function itself): next() on the fixture generator IS the guard
+lk(){ (cd $P&&PYTHONPATH=$T/stub:$SRC python3 $T/drv.py $BIN $SRC "$1" $G 2>&1);}
+proj d7a;rm -rf $G/sessions;chmod 555 $G;lk lock >$T/d7a1.out;lk guard >$T/d7g1.out;chmod 755 $G
+proj d7b;rm -rf $G/sessions;mkdir $T/wall7;chmod 000 $T/wall7;ln -s $T/wall7/sessions $G/sessions;lk lock >$T/d7a2.out;lk guard >$T/d7g2.out
+proj d7c;lk lock >$T/d7a3.out;rm -f $G/sessions/verify-suite.lock;lk guard >$T/d7g3.out
+ok "d7a1-lock-acquire-missing-dir-under-an-owned-555-parent-is-none-none acquire_suite_lock with the sessions dir MISSING under a parent this uid owns (555): '$(head -1 $T/d7a1.out)' (want LOCK None None), no exception" '[ "$(head -1 $T/d7a1.out)" = "LOCK None None" ]'
+ok "d7a2-lock-acquire-behind-a-wall-is-none-none the same behind a mode-000 parent: '$(head -1 $T/d7a2.out)' (want LOCK None None), no exception" '[ "$(head -1 $T/d7a2.out)" = "LOCK None None" ]'
+ok "d7a3-lock-acquire-writable-dir-takes-the-lock (control) a writable sessions dir: '$(head -1 $T/d7a3.out|cut -c1-40)...' (want LOCK <the lock path> None)" 'head -1 $T/d7a3.out|grep -q "^LOCK .*verify-suite.lock None$"'
+ok "d7g1-suite-guard-refuses-by-name-under-an-owned-555-parent the suite_guards session fixture (the caller of the acquire) on that dir raises RuntimeError naming the refusal: '$(head -1 $T/d7g1.out|cut -c1-150)' (want GUARD RuntimeError ... 'suite window refused' ... 'could not be written under')" 'head -1 $T/d7g1.out|grep -q "^GUARD RuntimeError.*suite window refused.*could not be written under"'
+ok "d7g2-suite-guard-refuses-by-name-behind-a-wall the same behind a mode-000 parent: '$(head -1 $T/d7g2.out|cut -c1-150)'" 'head -1 $T/d7g2.out|grep -q "^GUARD RuntimeError.*suite window refused.*could not be written under"'
+ok "d7g3-suite-guard-passes-on-a-writable-dir (control) the fixture yields on a writable sessions dir: '$(head -1 $T/d7g3.out)' (want GUARD yielded)" '[ "$(head -1 $T/d7g3.out)" = "GUARD yielded" ]'
+proj d7d;chmod 555 $G/sessions;lk lock >$T/d7a4.out;lk guard >$T/d7g4.out;chmod 755 $G/sessions
+ok "d7a4-lock-acquire-existing-555-dir-is-none-none the sessions dir EXISTS but is 555 (the mkdir succeeds, the lock WRITE fails): '$(head -1 $T/d7a4.out)' (want LOCK None None), no exception; the suite_guards fixture on it: '$(head -1 $T/d7g4.out|cut -c1-100)' (want GUARD RuntimeError ... could not be written under)" '[ "$(head -1 $T/d7a4.out)" = "LOCK None None" ]&&head -1 $T/d7g4.out|grep -q "^GUARD RuntimeError.*could not be written under"'
+# (b) the retract: a SKIPPED-suite run (tests SKIP) retracts a stale stamp; the sessions dir this uid owns is 555, so the unlink fails: ERROR + rc 2 (a RED run would end rc 1 first; a green run rewrites the stamp, which a 555 dir does not stop for an existing owned file). d6l2 is the control (the same run with a writable dir retracts: stamp gone, rc 3)
+LINKS='0 broken' STALE=1 dproj d6l1 <$T/t.skip;chmod 555 $G/sessions;CS --level quick --suite >$T/d6l1.out;d6l1rc=$?;chmod 755 $G/sessions;d6l1st=$([ -e $G/sessions/verified.stamp ]&&echo STAMP||echo none)
+ok "d6l1-retract-failure-on-the-writer-uid-is-error-rc-2 a skipped-suite run with a stale verified.stamp in a sessions dir THIS uid owns but made 555: rc $d6l1rc (want 2), ONE named '^ERROR: cannot retract ...verified.stamp' ($(grep -c '^ERROR: cannot retract.*verified.stamp' $T/d6l1.out)), 0 Traceback ($(grep -c Traceback $T/d6l1.out)), the verdict printed ($(grep -c '^RESULT:' $T/d6l1.out)); the stale stamp could not be removed ($d6l1st)" '[ $d6l1rc = 2 ]&&[ "$(grep -c "^ERROR: cannot retract.*verified.stamp" $T/d6l1.out)" = 1 ]&&[ "$(grep -c Traceback $T/d6l1.out)" = 0 ]&&[ "$(grep -c "^RESULT:" $T/d6l1.out)" = 1 ]'
+LINKS='0 broken' STALE=1 dproj d6l2 <$T/t.skip;CS --level quick --suite >$T/d6l2.out;d6l2rc=$?;d6l2st=$([ -e $G/sessions/verified.stamp ]&&echo STAMP||echo none)
+ok "d6l2-retract-in-a-writable-dir-removes-the-stamp (control) the same run with a writable sessions dir: rc $d6l2rc (want 3: a skipped suite), stamp $d6l2st (want none), 0 ERROR ($(grep -c '^ERROR' $T/d6l2.out))" '[ $d6l2rc = 3 ]&&[ "$d6l2st" = none ]&&[ "$(grep -c "^ERROR" $T/d6l2.out)" = 0 ]'
 echo "verify-v5-uid: $f FAIL"
 exit $f
