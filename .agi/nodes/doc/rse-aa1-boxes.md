@@ -455,10 +455,11 @@ import sys,json,time
 m=dict(l[7:].strip().split("=",1) for l in open(sys.argv[1]) if l.startswith("METRIC "))
 d=json.load(open(sys.argv[2]))["metrics"]
 keys=["node_count","active_node_count","deprecated_node_count","edge_count","evidence_fraction","decisive_verdicts","decisive_evidence_fraction","broken_links","thought_coverage","longest_chain_length","outcome_coverage"]
-g=" ".join(f"{k}={m[k]}" for k in keys if k in m)
+g=" ".join(f"{k}={m[k]}" if k in m else f"{k}=UNMEASURED(absent from metrics.py)" for k in keys)
 s=" ".join(f"{k}={v['value']}" if v.get("value") is not None else f"{k}=UNMEASURED({'no source yet' if not v.get('present') else 'no live counter'})" for k,v in d.items())
 print(f"{time.strftime('%Y-%m-%dT%H:%MZ',time.gmtime())} graph: {g} | success: {s}")
 ```
+   CORRECTED 16:0xZ (DG2's g3.8 lanes, e89f1861e): the first prototype DROPPED an absent graph key (`if k in m`); an absent key is NAMED, never dropped (fixed above). Bound pinned by DG1: the line <= 1,024 B. A dead metrics.py names its failure, e.g. `UNMEASURED(metrics.py rc=N)`, so it never reads like a counter that simply has no source.
    Today's line (634 B): `2026-10-07T15:05Z graph: node_count=5813 active_node_count=5574 deprecated_node_count=239 edge_count=6649 evidence_fraction=0.898 decisive_verdicts=1235 decisive_evidence_fraction=1.0 broken_links=0 thought_coverage=0.521 longest_chain_length=20 outcome_coverage=0.062 | success: avg_tokens_per_turn=UNMEASURED(no source yet) hierarchy_tokens_per_hour=UNMEASURED(no live counter) conclusive_verdicts=1235 overview_accuracy_vs_last_season=UNMEASURED(no live counter) subscription_tokens_per_season=UNMEASURED(no source yet) vision_adherence_score=UNMEASURED(no source yet) openrouter_subscription_spend_ratio=UNMEASURED(no source yet)`
 3. metrics.py REFUSES a root with no nodes/ (3 lines in main(): `if not (root / "nodes").is_dir(): print ERR ...; return 2`). Scratch copy: repo root -> rc 2, one reason line, 0 METRIC lines (the original: rc 0, 39 all-zero lines); <repo>/.agi -> node_count=5813 unchanged. The SessionStart hook imports functions, not main(), and driver.sh passes its resolved root, so neither changes.
 
