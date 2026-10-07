@@ -3,7 +3,7 @@
 # THE BUG (council 10-07 15:02Z, alive): the pilot's cccc.ts poll is `let s=0;setInterval(()=>{...n=+x("box n|wc -l"...);n>s&&(s=n,p.sendUserMessage("mail: box read",...))},5e3)`: s moves only UP, so after a read drops the count the NEXT mail (n <= the old maximum) never wakes the pane. agi-run's line (`...;s=$n;done`) resets s every tick and is right. Lane w4 is the bug itself: send 2, read both, send 1 = exactly ONE more wake.
 # sh + git + jq + ssh-keygen + node (v24, no TypeScript syntax in the piece: the driver loads a .mjs copy) on a SCRATCH repo, throwaway keys, no live ref, no network, 0 USD. It runs the REAL pieces extracted with `sect` from the .geometry/engine*.md of ROOT (the box-mail.t.sh recipe): `box` (the AA1 sender/reader), `agi-run` (under stubs: strace, stty, a harness that idles; a `sleep` shim that divides every sleep by DIV so the 5 s poll is 0.2 s) and `cccc.ts` (under a driver.mjs that gives it a fake pi API: p.on records the handlers, p.sendUserMessage logs the wake; setInterval is divided by DIV). Wakes are counted, never assumed: agi-run's typed text goes into a FIFO this file reads; cccc.ts's sendUserMessage goes to a log.
 # AGIRUN=<file> CCCC=<file> BOX=<file> test other pieces than ROOT's (mutants / the pilot's); ROOT=<repo> where the pieces are read; DIV=<n> time scale (default 25). One ok/FAIL line per case; exit = FAIL count.
-# Lanes: w1 one message wakes ONCE (and not again while it stays unread) · w2 a burst of 3 = ONE wake and the unread count is 3, then 0 after the read · w3 no mail = no wake · w4 THE BUG: send 2, read both, send 1 = exactly ONE more wake (w4b: send 1, read, send 1) · w5 a successor wakes on mail its predecessor never read (s=0 at start) · w6 an off-matrix send never wakes · w7 (agi-run) the typed line is followed by the Enter · w8 (agi-run) a PI harness (H=pi-x) wakes with the same counts as claude-x · c1-c3 the ~/o cap is KEPT (over the cap trimmed to HALF keeping the TAIL; under it untouched; the default is 64 MiB) · s1-s3 send.py: the two pieces carry no send.py and no sessions/inbox reference (no dangling caller), the typed line is `mail: box read`, and send.py itself still resolves (control). Each lane runs on agi-run (a*) and on cccc.ts (p*) where it applies.
+# Lanes: w1 one message wakes ONCE (and not again while it stays unread) · w2 a burst of 3 = ONE wake and the unread count is 3, then 0 after the read · w3 no mail = no wake · w4 THE BUG: send 2, read both, send 1 = exactly ONE more wake (w4b: send 1, read, send 1) · w5 a successor wakes on mail its predecessor never read (s=0 at start) · w6 an off-matrix send never wakes · w7 (agi-run) the typed line is followed by the Enter · w8 (agi-run) a PI harness (H=pi-x) wakes with the same counts as claude-x · c1-c3 the ~/o cap is KEPT (over the cap trimmed to HALF keeping the TAIL; under it untouched; the default is 64 MiB) · s1 s2 s4 DUAL ROUTE (DG1 17:54Z): the inbox file growing wakes with `mail: send.py read <seat>`, box n growing wakes with `mail: box read`, each source types its OWN line, both at once = one wake each; s3 send.py itself still resolves (control). Each lane runs on agi-run (a*) and on cccc.ts (p*) where it applies.
 # Honest limits: the poll interval and the 1 s typing pause are scaled, so the lanes pin the COMPARISON, not the wall-clock cadence; a wake is counted by the text typed / sent, not by a model turn. cccc.ts is run with node as an ES module (the real expression, not a transcription); the harness stub idles, it is not claude.
 T=$(mktemp -d);trap 'for p in $(cat $T/pids 2>/dev/null);do kill -TERM -$p 2>/dev/null;kill $p 2>/dev/null;done;rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};DIV=${DIV:-25}
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
@@ -45,6 +45,9 @@ echo '{"hooks":{}}'>$T/hm/.claude/settings.json
 cat >$T/drv.mjs <<'EOF'
 import { pathToFileURL } from "node:url";
 const real = globalThis.setInterval, div = Number(process.env.DIV || 25);
+real(() => {}, 1e6);   // pi stays alive between turns; a piece with no interval of its own must not let node exit under the lane
+import fs from "node:fs"; import { syncBuiltinESMExports } from "node:module";
+const rw = fs.watchFile; fs.watchFile = (f, o2, cb) => rw(f, { ...o2, interval: (o2.interval || 5007) / div }, cb); syncBuiltinESMExports();
 globalThis.setInterval = (f, ms, ...a) => real(f, ms / div, ...a);
 const mod = await import(pathToFileURL(process.argv[2]).href), h = {};
 mod.default({ on: (e, f) => { h[e] = f; }, sendUserMessage: (t) => { console.log("WAKE " + t); } });
@@ -55,7 +58,7 @@ start(){ nm=$1;kd=$2;shift 2;: >$T/typed.$nm;: >$T/wakes.$nm
  case $kd in
  agirun)rm -f $T/run/i;mkfifo $T/run/i;exec 3<>$T/run/i;cat <&3 >>$T/typed.$nm &echo $! >>$T/pids
   (cd $T/hm&&env HOME=$T/hm H=claude-x RUNTIME_DIRECTORY=$T/run O=$T/r AGI_SEAT=alive AGI_POST=alive AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" setsid sh $AGIRUN >$T/ar.out.$nm 2>&1 &echo $! >>$T/pids);;
- cccc)(cd $T/r&&env HOME=$T/hm DIV=$DIV AGI_SEAT=alive AGI_POST=alive AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" node $T/drv.mjs $CCCC >$T/wakes.$nm 2>$T/node.err.$nm &echo $! >>$T/pids);;
+ cccc)(cd $T/r&&env HOME=$T/hm DIV=$DIV O=$T/r AGI_SEAT=alive AGI_POST=alive AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" node $T/drv.mjs $CCCC >$T/wakes.$nm 2>$T/node.err.$nm &echo $! >>$T/pids);;
  esac;}
 stop(){ for p in $(cat $T/pids 2>/dev/null);do kill -TERM -$p 2>/dev/null;kill $p 2>/dev/null;done;: >$T/pids;exec 3<&-;/bin/sleep 0.3;}
 wakes(){ case $1 in a*)grep -o 'mail: box read' $T/typed.$1|wc -l|tr -d ' ';;*)grep -c '^WAKE mail: box read' $T/wakes.$1|tr -d ' ';;esac;}
@@ -87,7 +90,22 @@ ok "w7-agirun-types-the-Enter after the typed line the poll presses Enter (a CR)
  reset;start a13 agirun H=pi-x;snd belam alive q1;snd belam alive q2;wt 1.5;rd alive;wt 1.2;snd belam alive q3;wt 1.5;pw4=$(wakes a13)
 ok "w8-agirun-pi-harness-wakes-the-same (DG1 16:29Z) the poll types for a PI harness too (case \$H in claude*|pi*): with H=pi-x one message wakes ONCE ($pw1, still $pw1b later; want 1 1) and send 2, read, send 1 gives 2 wakes ($pw4, want 2): the SAME counts as claude-x on w1 and w4" '[ "$pw1" = 1 ]&&[ "$pw1b" = 1 ]&&[ "$pw4" = 2 ]';}
 done
-reset
+# ---- DUAL ROUTE (DG1 17:54Z, SM's catch on 954522af59): send.py never writes box mail, so the inbox poll stays until its callers are on box. The wake has TWO sources, each types its OWN line: the inbox file growing -> 'mail: send.py read alive', box n growing -> 'mail: box read'. agi-run (claude-x) and cccc.ts (the watchFile interval is scaled by the driver like setInterval).
+ibf=$T/r/.agi/sessions/inbox/alive.md;mkdir -p $T/r/.agi/sessions/inbox
+ib(){ printf 'ts: x\nfrom: belam\n\n%s\n' "$1">>$ibf;}   # a send.py-style append: it writes ONLY the inbox file
+sw(){ case $1 in a*)grep -o 'mail: send.py read alive' $T/typed.$1|wc -l|tr -d ' ';;*)grep -c '^WAKE mail: send.py read alive' $T/wakes.$1|tr -d ' ';;esac;}
+for kd in agirun cccc;do case $kd in agirun)N=a;;*)N=p;;esac
+# s1: the inbox route is a CONTROL now: growth wakes ONCE with the send.py line, not again while unchanged, and a further append wakes again
+reset;rm -f $ibf;start ${N}20 $kd;wt 0.6;ib one;wt 1.5;i1=$(sw ${N}20);wt 1.5;i1b=$(sw ${N}20);ib two;wt 1.5;i2=$(sw ${N}20);: >$ibf;wt 1.5;i3=$(sw ${N}20);ib three;wt 1.5;i4=$(sw ${N}20);b0=$(wakes ${N}20)
+ok "s1-$kd-inbox-growth-wakes-send-py-read an append to sessions/inbox/alive.md (nothing else) types 'mail: send.py read alive': ONE wake ($i1), still one later ($i1b), a second append wakes again ($i2, want 2), the inbox SHRINKING (truncated to 0) never wakes ($i3, want 2) and an append after it wakes again ($i4, want 3: the counter follows the size down); and NO 'mail: box read' for it ($b0, want 0)" '[ "$i1" = 1 ]&&[ "$i1b" = 1 ]&&[ "$i2" = 2 ]&&[ "$i3" = 2 ]&&[ "$i4" = 3 ]&&[ "$b0" = 0 ]'
+# s2: box mail types ITS line only (the inbox already holds old bytes: the box counter is not the inbox size)
+reset;rm -f $ibf;ib "old mail already in the inbox, long enough to exceed any box count";start ${N}21 $kd;wt 0.6;snd belam alive bx1;wt 1.5;x1=$(wakes ${N}21);y1=$(sw ${N}21);wt 1.5;x1b=$(wakes ${N}21)
+ok "s2-$kd-box-mail-types-box-read a box send (nothing in the inbox file moves; the inbox already holds old bytes) types 'mail: box read' ONCE ($x1, still $x1b) and never 'mail: send.py read' ($y1, want 0)" '[ "$x1" = 1 ]&&[ "$x1b" = 1 ]&&[ "$y1" = 0 ]'
+# s4: both sources grow in the same window: one wake per source, neither lost, at most two
+reset;rm -f $ibf;start ${N}22 $kd;wt 0.6;ib both;snd belam alive bboth;wt 2;z1=$(wakes ${N}22);z2=$(sw ${N}22)
+ok "s4-$kd-both-sources-one-wake-each an inbox append AND a box send in the same window: $z1 box-read wake(s) and $z2 send.py-read wake(s) (want 1 and 1: two at most, neither lost, neither counted for the other)" '[ "$z1" = 1 ]&&[ "$z2" = 1 ]'
+done
+reset;rm -f $ibf
 # ---- the ~/o cap (agi-run only): the 5-minute loop trims ~/o to HALF the cap keeping the TAIL when it is over AGI_PANE_MAX_MB (default 64); DIV scales the 300 s
 capsz(){ stat -c%s $T/hm/o 2>/dev/null||echo 0;}
 mkbig(){ rm -f $T/hm/o;awk -v n=$1 'BEGIN{for(i=0;i<n;i++)printf "%07d line of the pane log, padding padding padding padding padding\n", i}' >$T/hm/o;}
@@ -100,9 +118,6 @@ ok "c2-under-the-cap-untouched a ~/o under the cap is byte-identical after the l
 rm -f $T/hm/o;truncate -s 70M $T/hm/o;start a10 agirun;wt 6;sz2=$(capsz);stop;rm -f $T/hm/o
 ok "c3-default-cap-is-64-MiB with AGI_PANE_MAX_MB unset a 70 MiB ~/o is trimmed to $sz2 B (want $((32<<20)) = half of 64 MiB)" '[ "$sz2" = $((32<<20)) ]'
 # ---- send.py: no dangling caller in the two pieces; send.py itself resolves
-sc=$(cat $AGIRUN $CCCC|grep -c 'send\.py\|sessions/inbox')
-ok "s1-no-send-py-in-the-wake-pieces agi-run and cccc.ts carry no send.py and no sessions/inbox reference ($sc occurrence(s), want 0): the wake no longer depends on the inbox file nor types 'mail: send.py read'" '[ "$sc" = 0 ]'
-ok "s2-typed-line-is-box-read the line the poll types is 'mail: box read' (agi-run: $(grep -c 'mail: box read' $AGIRUN) occurrence(s); cccc.ts: $(grep -c 'mail: box read' $CCCC)), the old 'mail: send.py read' appears $(cat $AGIRUN $CCCC|grep -c 'mail: send.py read') times" 'grep -q "mail: box read" $AGIRUN&&grep -q "mail: box read" $CCCC&&! cat $AGIRUN $CCCC|grep -q "mail: send.py read"'
 SP=$R0/extensions/agi/bin/send.py;python3 $SP --help >/dev/null 2>&1;sprc=$?
 ok "s3-send-py-still-resolves (control) extensions/agi/bin/send.py is there ($([ -f $SP ]&&echo yes||echo NO)) and answers --help (rc $sprc): this goal retires no send.py caller it has not replaced" '[ -f $SP ]&&[ $sprc = 0 ]'
 echo "box-wake: $f FAIL"

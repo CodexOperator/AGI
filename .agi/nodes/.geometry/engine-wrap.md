@@ -17,11 +17,12 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-run (470 B)
+### agi-run (720 B)
 ~~~sh
 #!/bin/sh
-cd ~/t;c=-c;[ -e ~/.fresh ]&&rm ~/.fresh&&c=;stty cols 200 rows 50;i=$RUNTIME_DIRECTORY/i
+cd ~/t;c=-c;[ -e ~/.fresh ]&&rm ~/.fresh&&c=;stty cols 200 rows 50;i=$RUNTIME_DIRECTORY/i;f=$O/.agi/sessions/inbox/$AGI_SEAT.md
 (while sleep 300;do m=$((${AGI_PANE_MAX_MB:-64}<<20));[ $(stat -c%s ~/o 2>/dev/null||echo 0) -gt $m ]&&tail -c $((m/2)) ~/o>~/o.t&&cat ~/o.t>~/o;rm -f ~/o.t;done)&
+case $H in claude*)(s=$(stat -c%s $f 2>/dev/null||echo 0);while sleep 5;do n=$(stat -c%s $f 2>/dev/null||echo 0);[ $n -gt $s ]&&printf "mail: send.py read $AGI_SEAT">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
 case $H in claude*|pi*)(s=0;while sleep 5;do n=$(box n|wc -l);[ $n -gt $s ]&&printf "mail: box read">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
 exec strace -qqf -b execve -e%file -o'|agi-track' $H $c go
 ~~~
@@ -31,13 +32,14 @@ exec strace -qqf -b execve -e%file -o'|agi-track' $H $c go
 {"skipDangerousModePermissionPrompt":true,"hooks":{"PreToolUse":[{"hooks":[{"type":"command","command":"agi-captive"}]}],"SessionStart":[{"hooks":[{"type":"command","command":"agi-brief","timeout":180}]}],"UserPromptSubmit":[{"hooks":[{"type":"command","command":"agi-meter"}]}],"Stop":[{"hooks":[{"type":"command","command":"agi-turn"}]}]}}
 ~~~
 
-### cccc.ts (1625 B)
+### cccc.ts (1847 B)
 ~~~ts
-import{execSync as x}from"node:child_process";import{readFileSync as R}from"node:fs"
+import{execSync as x}from"node:child_process";import{readFileSync as R,watchFile as W,unwatchFile as U}from"node:fs"
 const E=process.env,H=JSON.parse(R(E.HOME+"/.claude/settings.json","utf8")).hooks,N={bash:"Bash",read:"Read",edit:"Edit",write:"Write"};let b="",v
 const h=(n,j={})=>{let o="",k=0;for(const g of H[n]||[])if(!g.matcher||RegExp(g.matcher).test(j.tool_name))for(const c of g.hooks)try{o+=x(c.command,{input:JSON.stringify({hook_event_name:n,cwd:process.cwd(),...j}),encoding:"utf8",stdio:"pipe",timeout:(c.timeout||60)*1e3})}catch(e){if(e.status==2)k=2,o+=e.stderr}return{o,k}}
 const t=e=>({tool_name:N[e.toolName]||e.toolName,tool_input:e.input}),S=s=>{b=h("SessionStart",{source:s}).o}
 export default p=>{const on=(e,f)=>p.on(e,f);on("session_start",e=>{S({new:"clear",fork:"resume",reload:"resume"}[e.reason]||e.reason)
+const f=`${E.O}/.agi/sessions/inbox/${E.AGI_SEAT}.md`;U(f);W(f,{interval:5e3,persistent:!1},(n,o)=>n.size>o.size&&p.sendUserMessage("mail: send.py read "+E.AGI_SEAT,{deliverAs:"followUp"}))
 let s=0;clearInterval(v);v=setInterval(()=>{try{const n=+x("box n|wc -l",{encoding:"utf8"}).trim();n>s&&p.sendUserMessage("mail: box read",{deliverAs:"followUp"});s=n}catch{}},5e3)})
 on("session_compact",()=>S("compact"));on("before_agent_start",e=>b&&{systemPrompt:e.systemPrompt+"\n\n"+b})
 on("input",(e,c)=>{const u=c.getContextUsage()||{},r=h("UserPromptSubmit",{prompt:e.text,tokens:u.tokens,context_window:u.contextWindow});return r.k?{action:"handled"}:r.o&&{action:"transform",text:e.text+"\n\n"+r.o}})
@@ -85,5 +87,5 @@ X
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-10-07 goal:g7.16.1.11.20 (director-general-3; lanes DG2 b94a30851 + a1425b7d5, box-wake.t.sh, 22 lanes): messaging is box mail. agi-run polls `box n|wc -l` (not the inbox file size) every 5 s, for claude AND pi harnesses, and types `mail: box read` + Enter when the count GROWS; s follows the count every tick, so mail after a read wakes the pane again. cccc.ts does the same from the pi extension: the pilot's `n>s&&(s=n,...)` only moved s UP, so after a read the next mail never woke the pane; here `n>s&&send;s=n`, with ONE interval (cleared on a second session_start and on shutdown). Neither piece names send.py or sessions/inbox any more. The ~/o cap loop is KEPT in agi-run (the pilot dropped it). Sizes: agi-run 470 B (the trunk header said 501 B; the piece measured 573), cccc.ts 1625 B (was 1647); engine.md's map lines for both changed with them (fenced 7,533 -> 7,536 B, whole 9,307 -> 9,310 B). Prior THOUGHT (v5 rounds 5 and 7: the wrapper pieces, agi-infer, agi-captive, the pane trim loop): grid history.
+10-07 goal:g7.16.1.11.20 (director-general-3; lanes DG2 b94a30851 + a1425b7d5 + 32c2f4704a, box-wake.t.sh, 26 lanes): messaging is box mail, with TWO sources until send.py's callers are on box (DG1 return 17:5xZ: send.py never writes box mail, only the inbox file, so dropping the inbox poll orphaned every send.py wake). agi-run polls BOTH: the inbox file size exactly as before (claude only; growth types `mail: send.py read $AGI_SEAT`, s=$n every tick) AND `box n|wc -l` (claude and pi; growth types `mail: box read`, s starts 0 and follows the count down, so mail after a read wakes). cccc.ts keeps its watchFile on the inbox AND adds the box interval: the pilot's `n>s&&(s=n,...)` only moved s UP, so after a read the next mail never woke the pane; here `n>s&&send;s=n`, ONE interval (cleared on a second session_start and on shutdown). Each source types its OWN line; neither shares a counter. The ~/o cap loop is KEPT (the pilot dropped it). The pure-box cutover is a LATER leaf with belam's GO. Sizes: agi-run 720 B (the trunk header said 501 B; the piece measured 573), cccc.ts 1847 B (was 1647); engine.md's map lines changed with them. Prior THOUGHT (v5 rounds 5 and 7: the wrapper pieces, agi-infer, agi-captive, the pane trim loop): grid history.
 <!-- THOUGHT:END -->
