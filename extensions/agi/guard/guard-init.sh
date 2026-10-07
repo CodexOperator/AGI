@@ -177,7 +177,7 @@ fi
 GUARD_ENV_FROM=defaults
 if [ -f "$GUARD_ENV_NODE" ]; then
   guard_env_load "$GUARD_ENV_NODE" || exit 1
-  [ "$GUARD_ENV_N" -gt 0 ] || die "$GUARD_ENV_NODE has no \`\`\`sh guard.env block"
+  [ "$_GE_LINES" -gt 0 ] || die "$GUARD_ENV_NODE has no \`\`\`sh guard.env block"
   GUARD_ENV_FROM="config:guard ($GUARD_ENV_NODE)"
 else
   for _gf in "$SANCTUARY/guard/guard.env" "$GUARD_DIR/guard.env"; do

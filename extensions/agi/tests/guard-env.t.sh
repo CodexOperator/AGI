@@ -2,7 +2,7 @@
 # guard-env.t.sh: goal:g1.41 C (DG1 21:38Z; hypothesis:g141-c-guard-env-is-read-by-one-validating-parser-never-eval): the four guard scripts read config:guard's ```sh guard.env block through ONE validating loader, never eval.
 # sh + bash + awk on SCRATCH nodes, no root, no mount, no systemd, no network, 0 USD. GUARD=<dir> is the guard dir under test (default: ROOT's extensions/agi/guard); the SAME file runs against the trunk's scripts (NEG) and the build. sudo / systemctl / mount / umount / runuser are STUBS on PATH that log argv. A non-root uid is required (guard-init dies for root BEFORE it reads the node).
 # Contract the lane reads (c1): the loader is $GUARD/guard-env.sh, function guard_env_load <node>, it sets the GUARD_* variables in the caller; a refused line makes it return/exit non-zero with ONE message line that holds the node's file name AND the line number (of the node file, or of the block: both pass), before any stub call.
-# Lanes: c1-* each hostile line (cmd subst, backtick, semicolon chain, function def, single-quoted subst, a second dollar var) in each of the four scripts: rc != 0, the marker file absent, the refusal names node + line, 0 stub argv. l-* the loader alone: a battery of refused shapes, the accepted shapes, c2 $HOME by string replacement (HOME=/x/y, a HOME holding a substitution, a HOME holding an ampersand), c3 the live values. s-* the scripts: a benign node passes the loader, c3 every live value through each script's cell(), no non-comment eval, one loader.
+# Lanes: c1-* each hostile line (cmd subst, backtick, semicolon chain, function def, single-quoted subst, a second dollar var, a CONTROL variable GUARD_DIR pointing at decoy sibling scripts) in each of the four scripts: rc != 0, the marker file absent, the refusal names node + line, 0 stub argv. l-* the loader alone: a battery of refused shapes, the accepted shapes, c2 $HOME by string replacement (HOME=/x/y, a HOME holding a substitution, a HOME holding an ampersand), c3 the live values. s-* the scripts: a benign node passes the loader, c3 every live value through each script's cell(), no non-comment eval, one loader.
 # Honest limits: NO real mount / unit write is run (that is the stubs + --dry-run), so "before any mount" is read off the stub log; guard-init's later layers and its legacy guard.env source are not covered; the ampersand row (l-home-ampersand) is beyond the brief: bash 5.2 expands & in ${v//pat/$HOME}.
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;R0=${ROOT:-${1:-$(cd "$(dirname "$0")/../../.." && pwd)}};G=${GUARD:-$R0/extensions/agi/guard};LIVE=$R0/.agi/nodes/.geometry/guard.md
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
@@ -23,14 +23,32 @@ named(){ cat $T/err $T/out 2>/dev/null|grep -F "$NB"|sed "s#$NODEF##g;s#$NB##g"|
 load(){ n=$1;shift;rm -f $M;(cd $T&&env -i PATH=$T/fk:/usr/bin:/bin HOME="${HM:-$T/hm}" bash -c '. "$1/guard-env.sh" || exit 91; guard_env_load "$2" || exit 92; shift 2; for v; do printf "%s=%s\n" "$v" "${!v-<unset>}"; done' x "$G" "$n" "$@" >$T/lo 2>$T/le);lrc=$?;mk=0;[ -e $M ]&&mk=1;}
 lnamed(){ cat $T/le $T/lo 2>/dev/null|grep -F "$NB"|sed "s#$NODEF##g;s#$NB##g"|grep -Eq '(^|[^0-9])(41|7)([^0-9]|$)';}
 # the six hostile lines; case 5 needs a cell the script really reads (the trunk's cell() evals it only then)
-H(){ case $1 in 1)printf '%s' "GUARD_RAM_DIR_local_town=\$(touch $M)";;2)printf '%s' "GUARD_RAM_DIR_local_town=\`touch $M\`";;3)printf '%s' "GUARD_X=1; touch $M";;4)printf '%s' "printf() { touch $M; command printf \"\$@\"; }";;5)printf '%s' "GUARD_$2_local_town='\$(touch $M)'";;6)printf '%s' "GUARD_RAM_DIR_local_town='\$HOME/\$USER'";;esac;}
+H(){ case $1 in 1)printf '%s' "GUARD_RAM_DIR_local_town=\$(touch $M)";;2)printf '%s' "GUARD_RAM_DIR_local_town=\`touch $M\`";;3)printf '%s' "GUARD_X=1; touch $M";;4)printf '%s' "printf() { touch $M; command printf \"\$@\"; }";;5)printf '%s' "GUARD_$2_local_town='\$(touch $M)'";;6)printf '%s' "GUARD_RAM_DIR_local_town='\$HOME/\$USER'";;7)printf '%s' "GUARD_DIR=$T/decoy";;esac;}
+mkdir -p $T/decoy;for d in sanctuary-health sanctuary-watch;do printf '#!/bin/sh\ntouch %s\n' $M >$T/decoy/$d;chmod +x $T/decoy/$d;done   # R1: a block line that points guard-init's GUARD_DIR at decoy sibling scripts (guard-init RUNS them, even in a dry run)
 SCR="ram-main.sh:status:RAM_DIR ram-tier.sh:sync:TIER_HOT session-sweep.sh:--dry-run:RAM_DIR guard-init.sh:--dry-run:RAM_DIR"
-for hc in 1:command-substitution 2:backtick 3:semicolon-chain 4:function-definition 5:single-quoted-substitution 6:second-dollar-var;do cn=${hc%%:*};cl=${hc#*:}
+for hc in 1:command-substitution 2:backtick 3:semicolon-chain 4:function-definition 5:single-quoted-substitution 6:second-dollar-var 7:control-variable-guard-dir;do cn=${hc%%:*};cl=${hc#*:}
  for sc in $SCR;do s=${sc%%:*};r=${sc#*:};a=${r%%:*};v=${r#*:};mknode $NODEF "$(H $cn $v)";runs $s $a;nm=0;named&&nm=1
   ok "c1-$cl-${s%.sh} $s $a with the hostile node line: rc $rc (want != 0), marker $mk (want 0 = nothing ran), $stubn stub argv (want 0 = refused before any mount/sudo/systemctl), the refusal names node + line: $nm (want 1)" '[ $rc != 0 ]&&[ $mk = 0 ]&&[ $stubn = 0 ]&&[ $nm = 1 ]';done;done
 # l: the loader alone
 ok "l-loader-file-defines-guard_env_load $G/guard-env.sh exists and defines guard_env_load" '[ -f $G/guard-env.sh ]&&grep -Eq "^[[:space:]]*(function[[:space:]]+)?guard_env_load[[:space:]]*(\(\))?[[:space:]]*\{?" $G/guard-env.sh'
 bad(){ nm=$1;mknode $NODEF "$2";load $NODEF;ln=0;lnamed&&ln=1;ok "l-refuses-$nm the line [$2] in a block: rc $lrc (want != 0 and not 91/the missing file), marker $mk (want 0), the refusal names node + line: $ln (want 1)" '[ $lrc != 0 ]&&[ $lrc != 91 ]&&[ $mk = 0 ]&&[ $ln = 1 ]';}
+# badn NAME LINE VAR: a refused CONTROL name; the refusal names node + line AND the variable was never assigned in the caller (a rule applied after the assignment leaves it set)
+badn(){ nm=$1;mknode $NODEF "$2";rm -f $M;(cd $T&&env -i PATH=$T/fk:/usr/bin:/bin HOME="$T/hm" bash -c '. "$1/guard-env.sh" || exit 91; guard_env_load "$2"; r=$?; shift 2; for v; do printf "%s=%s\n" "$v" "${!v-<unset>}"; done; exit $((r?92:0))' x "$G" "$NODEF" $3 >$T/lo 2>$T/le);lrc=$?;mk=0;[ -e $M ]&&mk=1;ln=0;lnamed&&ln=1;vs=$(sed "s/^$3=//" $T/lo)
+ ok "l-refuses-the-control-name-$nm the line [$2]: rc $lrc (want 92 = refused, not 91/0), marker $mk (want 0), the refusal names node + line: $ln (want 1), $3 after the refusal [$vs] (want <unset>)" '[ $lrc = 92 ]&&[ $mk = 0 ]&&[ $ln = 1 ]&&[ "$vs" = "<unset>" ]';}
+badn guard-dir 'GUARD_DIR=/x' GUARD_DIR
+badn env-node 'GUARD_ENV_NODE=/x' GUARD_ENV_NODE
+badn env-from 'GUARD_ENV_FROM=x' GUARD_ENV_FROM
+badn env-n 'GUARD_ENV_N=1' GUARD_ENV_N
+badn env-text 'GUARD_ENV_TEXT=x' GUARD_ENV_TEXT
+badn box 'GUARD_BOX=x' GUARD_BOX
+badn sanctuary 'GUARD_SANCTUARY=/x' GUARD_SANCTUARY
+badn ram-dir-no-box-suffix 'GUARD_RAM_DIR=/x' GUARD_RAM_DIR
+badn lowercase-name 'GUARD_x=1' GUARD_x
+badn uppercase-suffix 'GUARD_RAM_DIR_LOCAL=/x' GUARD_RAM_DIR_LOCAL
+badn leading-lowercase 'GUARD_aB_local_town=1' GUARD_aB_local_town
+badn empty-name-part 'GUARD__local_town=1' GUARD__local_town
+badn guard-dir-single-quoted "GUARD_DIR='/x'" GUARD_DIR
+badn box-single-quoted "GUARD_BOX='x'" GUARD_BOX
 bad pipe 'GUARD_RAM_DIR_local_town=a|b'
 bad ampersand 'GUARD_RAM_DIR_local_town=a&b'
 bad less-than 'GUARD_RAM_DIR_local_town=a<b'
@@ -82,6 +100,8 @@ awk '/^```sh guard.env$/{f=1;next} f&&/^```$/{exit} f' $LIVE|grep '^GUARD_' >$T/
 nl=$(wc -l <$T/live|tr -d ' ')
 load $LIVE $(cat $T/names)
 ok "l-c3-the-live-values the $nl live assignments of the trunk guard.md (want >= 20) load to the value computed from the block text, HOME=/x/y: rc $lrc (want 0), $(diff $EXP $T/lo 2>&1|grep -c '^[<>]') differing line(s) (want 0)" '[ $lrc = 0 ]&&[ $nl -ge 20 ]&&cmp -s $T/lo $EXP'
+shp=$(grep -cvE '^GUARD_[A-Z][A-Z0-9_]*_[a-z0-9][a-z0-9_]*$' $T/names)
+ok "l-live-names-match-the-name-shape $shp of the $nl live names miss ^GUARD_[A-Z][A-Z0-9_]*_[a-z0-9][a-z0-9_]*\$ (want 0: the rule must never refuse the live block)" '[ $shp = 0 ]'
 # s: the scripts
 mknode $NODEF '';: >$T/benign
 for sc in $SCR;do s=${sc%%:*};r=${sc#*:};a=${r%%:*};runs $s $a;rf=$(grep -ci 'refus' $T/err $T/out|awk -F: '{n+=$2}END{print n+0}')
