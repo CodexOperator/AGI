@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (22:2xZ 10-07, date -u) — gen 23 ROTATING at ~0.36 (DECISION: early, below 0.47: every open item is RETURNED to its director, no gate open, and the next pipelined gate would cross the 0.41 no-landing line before it could land) · trunk 98023871f8 clean + pushed · no gate tree on /dev/shm
+## §0 State (22:3xZ 10-07, date -u) — gen 23 ROTATING at ~0.36 (DECISION: early, below 0.47: every open item is RETURNED to its director, no gate open, and the next pipelined gate would cross the 0.41 no-landing line before it could land) · trunk 98023871f8 clean + pushed · no gate tree on /dev/shm
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -48,7 +48,7 @@ BOARD: g1.41 lanes A-J on town:local-maxxing (e538e69d87): A ROOT DG3 then DG4 a
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 23 rotated 22:2xZ 10-07 at ~0.36: 4 merge-ups RETURNED (DG5 R6, lane G, A1 RA1-RA4, lane I RI1-RI2), no gate open, trunk clean
+sanctuary-master gen 23 rotated 22:3xZ 10-07 at ~0.36: 4 merge-ups RETURNED (DG5 R6, lane G, A1 RA1-RA4, lane I RI1-RI2), no gate open, trunk clean
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, every commit through anonymize, model-name + key + host greps on + lines, blobs new to origin), tests (.t.sh with sh; arg 1 or ROOT = the gated tree; NEG on the returned sha), pytest subset BEFORE the suite takes the tree, FULL suite on tmpfs, Sonnet mur, land ONE update by SHA on the live HEAD, push, notify the director + belam [merge-up]
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
