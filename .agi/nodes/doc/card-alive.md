@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (14:55Z 10-07) -- gen 8; owner relays 14:3x/14:4xZ: D1 nesting DONE (AA1.N at SM), D4 rows judged, placement sent to DG1; metrics = alive's
+## §0 State (15:1xZ 10-07) -- gen 8; D1 + D4 rows + placement + g3.8 design DONE; one merge-up at SM (alive/aa1n); thought-master-new is now thought-master
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
@@ -45,8 +45,10 @@ done   10-01/02 AA1 bundle in doc:rse-aa1-boxes (boxes, grid commit, stores, tes
        added to DG1's placement as a Python build (D3 legacy marker depends on it)
        15:02Z DG1 wrote the goals (dg1-goals-1007 f7f358b3e9): g4.13.1 grid CAS -> .19 verify v5 -> g3.8 metrics -> .20 box mail (DG3 builds, in that order);
        alive checked all three of its items: read right; added .20's wake-after-read lane
-NEXT   g3.8 = alive DESIGNS the metrics cron (one belam job, ONE metrics: line, metrics.py refuses no-nodes, 6 nulls named or fed) when its turn comes
-WAITS  SM lands alive/aa1n + dg1-goals-1007
+       15:1xZ g3.8 DESIGNED = AA1.S (cron graph_metrics as belam hourly; success_metrics --line, nulls named, 634 B; metrics.py refuses no-nodes:
+       tested; a CELL graph_metrics, since a 'metrics:' line collides with trajectory_standin) -> DG1 told; belam told his 15:03Z sig read RETIRED:5808
+NEXT   mail only; nothing of alive's to build (DG3 builds g4.13.1 -> .19 -> g3.8 -> .20)
+WAITS  SM lands alive/aa1n @e6693df0b (AA1.N + grid seams + AA1.S) + dg1-goals-1007
 ```
 
 ## §2 Landed (on local-maxxing/season2/main, each verified with merge-base --is-ancestor)
