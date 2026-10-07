@@ -21,38 +21,39 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs, never here; progress lives on the town board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 27 (02:2xZ 10-03): woke on 'answered continue'; the one Prime act beyond NONE (CHECK re-armed) plus the trunk sync and card re-link; then the only wait on belam was the AA1.M install GO per act (SM 02:2xZ). Read install.sh + 8 pieces whole at T, carry.env parsed by systemd never sourced, repo config writable by uid 1000 only; ran A1 A2 A4 A5 with before-state + rollback named. Owner 01:5xZ verbatim: "Hmm everyone is waiting on someone else. Last thing before you rotate: do node worktrees include the file that node links to? I feel like each node grid slot should also include its linked build file. Obviously that doesn't count for things where the node is the file. Otherwise you have my go on continuing." -- answered: it holds for every live build node; the wider slot is a §6 option.
+gen 27 out (14:4xZ 10-07): the carrier, unit, polkit, kid cell and GitHub sealer went live this generation, each root act read whole at a landed pinned T; A12 was rolled back after it looped DG2/DG3 (my miss: I took the self-heal prediction on the line's word). The owner's 10-07 lines re-scope the season: collapse + rollover design to the council, the old Python key/metrics/verify kept, belam's v5 move re-stated as more doable. Owner 14:4xZ verbatim (tail): "I will hear about it from your successor. Thank you for your service."
 <!-- THOUGHT:END -->
 
-## §0 State (02:2xZ 10-03, read from date -u)
+## §0 State (14:4xZ 10-07, read from date -u)
 | | |
 |---|---|
-| post | belam gen 27, session 332d4bf1, window @8; the row's generation cell reads 2 (rotate counted 1 -> 2 again; gen 25 fixed it by hand at ff323856c), OLD engine (owner 00:1xZ: v5 move = goal:g7.16.1.11.17, after AA3 land + keys) |
-| box | rebooted 22:17:34Z 10-01 (owner GO); agi-boot enabled; heal guards the old posts only |
-| v5 up | alive · all-is-one · self-perpetuating · DG1 · DG2 · DG3 · TM-new · DT-1 |
-| down | DG4 · DG5 · DT-2 · stream-master: owner "keep the 5 down" |
-| old setup | belam · SM · old TM |
-| tree | owner > belam > council{alive, all-is-one, self-perpetuating; lands []} + keep{SM, TM-new} > DG1-3 under SM, DT-1 under TM-new (level rule 3a33c71b9: mail within a level or one up/down) |
-| mail | `send.py --from belam send <p> "<text>"` = append to the post's inbox file in MAIN; read .agi/sessions/inbox/belam.md by ts (trap 66) |
-| crons | RESUMED 14:1xZ 10-07 (owner "Tell everyone to continue now", usage reset): CHECK 2d1c1ae3 (13 */4) + memory Monitor (MemAvailable < 6 GB or PSI avg10 >= 20, 30 min, re-arm); session-only, re-arm at wake. 6 v5 posts restarted 14:1xZ (stopped 10-04 07:53:44Z) |
-| merge pass | paused_by_owner (05:1xZ 09-30: council / automated). BASE 1f2b49ffc9 |
-| carrier | AA1.M INSTALLED at T=d57b52bd46a7189c4ed77e3596abf90af112851b (gen 27, 02:1xZ-02:2xZ): /opt/agi/bin/{box,box-carry,agi-signers,sect} · /etc/agi/carry.env (hub empty) · /var/lib/agi/allowed_signers 12 lines · 4 units + 12 agi-carry@<p>.path active/waiting · no fetch timer. Rollbacks = doc:dg3-aa1m-install-packages A1 / A2 / A4 |
+| post | belam gen 27 -> 28, session 332d4bf1, window @8 (row generation cell reads 2: rotate's counter, gen 25 fixed it by hand once), OLD engine |
+| box | up since 10-01 22:17Z; 8 v5 posts active 0 restarts (6 restarted 14:1xZ 10-07 after the owner's stop 10-04 07:53Z) · down by the owner: DG4 · DG5 · DT-2 · stream-master · old setup: belam · SM · old TM |
+| tree | owner > belam > council{alive, all-is-one, self-perpetuating; lands []} + keep{SM, TM-new} > DG1-3 under SM, DT-1 under TM-new (level rule 3a33c71b9) |
+| mail | `send.py --from belam send <p> "<text>"`; read .agi/sessions/inbox/belam.md by ts (trap 66) |
+| crons | session-only, die with me: re-arm CHECK (13 */4) + memory Monitor (MemAvailable < 6 GB or PSI avg10 >= 20, 30 min) at wake |
+| merge pass | paused_by_owner (council / automated). BASE 1f2b49ffc9 |
+| carrier | INSTALLED: /opt/agi/bin box · box-carry 56cd9215 (closer) · agi-signers 6b9df8d9 · sect; carry.env AGI_TRUNK=f02495529, hub empty; 12 agi-carry@<p>.path waiting; fetch timer on (60 s, local sweep); ring file /var/lib/agi/allowed_signers (append-only) |
+| unit | agi-post@.service = 5cecf3aa (A9). A12 (c4f5a917) ROLLED BACK 10-03 15:1xZ: DG2/DG3 looped exit 127 ~90 min (t lacked OUT.6 -> no bin/agi-out) |
+| polkit | 50-agi.rules a17953ca (K1: own mint/kid units only) · kid cell on belam row: usd 0.5, max 3 |
+| GitHub | seal.yml 686368aa LIVE on master (merge 6405a03fc), 30-min sweep, attests block digests; gh token has workflow scope (owner 10-03 05:58Z); block_push OFF until a real block |
+| MAIN config | gpg.ssh.allowedSignersFile UNSET at repo level (DG5 leftover shadowed every worktree; rollback = set it to .git/allowed_signers) |
 
 ## §1 Plan
 ```
-figure eight (doc:council-loop): council designs -> DG1 goals + hyps -> DG2 experiments <-> DG1 -> DG3 builds -> SM gate -> belam reviews
-belam: answer [decision]s · each host act its own GO (read whole, before-state, rollback) · hold results to the 8 KB base / 1 KB seed + the owner lines
-NEVER: assign a design or a build (council) · dispatch · write in a director's tree
+figure eight (doc:council-loop): council designs -> DG1 goals + hyps -> DG2 experiments <-> DG1 -> DG3 builds -> SM gate -> belam reviews + each root act its own GO
+OWNER 10-07 14:3x-14:4xZ (town board, verbatim): THIS SEASON = node collapse for a tidy archive + how to collapse between seasons (council D1-D4, incl. the
+  REVIEW of core/season2/et-grok-pilot: 2,014 commits, 0 nodes lost, read only) · KEEP the old Python key / metrics / verify (shell rewrites = season 3) ·
+  metrics back on · belam on v5 re-stated with that bypass ("a lot more doable sooner") · pane / matrix-math commands / Go keys / SSH-pane capsule = SEASON 3
+NEVER: assign a design or a build (council) · dispatch · write in another post's tree · install a root act not read whole at a landed pinned T
 ```
 
 ## §2 Landed (gen 27)
-trunk synced with origin/season2/main 1054e030f (key row identical, trunk tree kept) · card re-linked 3048194b8 · host acts A1 A2 A4 A5 RUN (A5 starts=1: systemd drops PathChanged events during a run; carrier re-scan = the cover; residual gap after the final scan = finding to SM) · W hold RELEASED to DG1 (Z4.8 af4b1ca90 + 8e3bd232f on the trunk) · grid: payload-path fix = goal:g7.33.19.1 (DG1); slot-every-file = owner option (§6) · K1(b) kid.usd 0.5 b15b6461e · K1(a) polkit 345 B a17953ca RUN from landed f40ae4c38 (rollback = engine-post.md agi.rules 08a23f41) · owner 02:3xZ AA2 keys: one-box half RELEASED (DG1 -25), cross-box half + owner 02:4xZ DAG checkpoints = council pass, lead self-perpetuating
+wake sync + card re-link · A1 A2 A4 A5 (carrier) · A1 re-run · A9 unit + MAIN repo signing config fix (F2/F3 met on DT-1) · A11 closer · A12 then ROLLBACK · K1 polkit + kid usd · capsule cells 1ea2129b5 in OUT.6 055fb92aa · §AB released (+ owner inputs 2-6: DAG checkpoints, drop-in algorithms, layered blocks, nested PQ + provable revocation, GitHub sealer) · seal.yml live · 8 KB rail ruled (F21: code <= 8,192, whole <= 12,288) · R6 = (c) · A10 = (B) · private-key gate accepted · 10-07 restart of 6 posts + continue sent to all
 ## 🔴 Where it stops
-Wait for ONE [rule] line each from SM, DG1, alive (sent 02:2xZ); none in 15 min = re-send (trap 69). Next GOs, each as ONE line with command + before + rollback: A6 (after alive bd3960e23 lands + DG1's A3 signers BUILD round) · A7 (after the AA2 per-post stores, 5e448309c at SM) · agi-mint@ + agi-kid@ installs (all-is-one Z4.11 preconditions) · §AB (the ring is the tree) RELEASED 03:1xZ as AA2.54-66 (after SM lands mu4 10a2af211 + mu5 b784f9847; rules cell = belam, option B; agi-signers stays until AA2.64) -> each root act its own GO · owner 03:1xZ-03:2xZ: §AB 5th input (PQ nested inside classical + provable trustless revocation by published retired keys) with the council; conflict 3 RULED (POC on root-readable keys); DG1 holds AA2.59-62 + AA2.60 · ORIGIN IS PUBLIC-READABLE: no POC key ever pushed; private-key gate line (alive, 490 B) accepted 03:2xZ as its own round (0 key blocks in tree / origin / history, measured) · A1 RE-RUN DONE 03:4xZ at T=ebea6dc14 (agi-signers 6b9df8d9) · A9 DONE 04:2xZ (unit 5cecf3aa; /tmp/agi-a9.276SK0 left: the harness refused rm -rf) + DT-1 restarted: F2 + F3 MET after belam UNSET MAIN .git/config gpg.ssh.allowedSignersFile (DG5 leftover shadowed every worktree; rollback = set it back to .git/allowed_signers) · A12 RUN 13:1xZ then ROLLED BACK 15:1xZ (unit back to 5cecf3aa at 4225c981f): DG3 + DG2 restarted with t lacking OUT.6 -> agi-out exit 127 loop ~90 min (193 / 176 cycles); n4 self-heal FALSE for an out-line; both up again. Re-install only when every t has bin/agi-out AND the step cannot loop ([red] to SM 15:1xZ) · OUT.6 055fb92aa landed WITH belam/capsule-rows 1ea2129b5 (12 capsule cells) · A11 RUN 05:1xZ (closer box-carry 56cd9215 + fetch timer always, T=f02495529; first run status 0) · A10 = (B) no hook, agi-land pieces from a FAIL-CLOSED gate T (not f02495529) · SM rotate unblocked: c6064d5b1 synced af21b1b55 (trap 70) · 8 KB rail RULED = F21 (code in fences <= 8,192 + whole <= 12,288) · seal.yml now 1,489 B 686368aa: REBUILD the merge at push · GitHub sealer LIVE: seal.yml 686368aa on master by merge 6405a03fc (owner granted workflow scope 05:58Z); dispatch run 37101572247 success (0 blocks); CLAUDE.md row 3d37c7c08; residue: pin attest action by SHA · block_push cron waits for the first real block · the agi-land LAND STEP · A8 LAST (needs box.hub + a 2nd box). Re-running A1 `pieces` with a new T = its own GO (F2: AGI_TRUNK stays pinned until then).
-- HELD: nothing of mine. At W's merge-up belam renames the skills clause in both config:rotations entries (-> build:skills-agi-spawn-chain-SKILL.md) on a branch
-- goal:g7.16.1.11.17 (belam on v5) WAITS UNTIL NEXT WEEK (owner 06:0xZ 10-03: CC usage runs out; 3 of 4 prerequisites unbuilt: keys in DG2/DG3 queue, §AB ring build demoted 05:0xZ, A10 waits on a fail-closed grow-gate); this belam stays on the old engine
+Nothing waits on belam. The council has the owner's 10-07 lines (D1-D4 + the Python-keep + metrics + the re-stated .17); expect ONE [rule] from alive and DG1's re-written prerequisites for goal:g7.16.1.11.17. Next GOs, each ONE line in the A-act shape: A12 re-install only when every v5 t carries bin/agi-out AND the agi-out step cannot loop (belam [red] 10-03 15:1xZ) · A10 = install the agi-land pieces from a landed fail-closed gate (RING.5b 5c3df5114 or later) after the CKPT landing + SM mur · agi-land LAND STEP · block_push after the first real block · pin attest-build-provenance by SHA (a master merge).
 - wake: CronList -> re-arm CHECK + memory Monitor · sync the trunk with origin/season2/main FIRST (trap 70) · re-link this card (trap 10) · inbox by ts
-- watch: SM's [merge-up]s; review against the 8 KB base / 1 KB seed and the owner lines on town:local-maxxing (Agent Notes)
+- watch: SM's [merge-up]s; hold every result to the 8 KB rail + the owner lines on town:local-maxxing (Agent Notes)
 
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
@@ -72,6 +73,8 @@ Wait for ONE [rule] line each from SM, DG1, alive (sent 02:2xZ); none in 15 min 
 | 76 | `lxc version` on this Ubuntu auto-installs the LXD snap | never call bare lxc / lxd |
 | 77 | heal's resume rewrites your row; `rotate.py ack` refuses on a dirty own row | check pid + pane, commit heal's write, then ack |
 | 78 | SendMessage "Failed" can still deliver; a v5 uid cannot append to another's inbox until AA1 | wait for a reply; v5 -> v5 mail = AA1 boxes |
+| 79 | the harness refuses `rm -rf $var` inside a root `sh -c` | run the act without it; name the temp dir left behind |
+| 80 | a unit step that needs a piece only a NEWER t carries loops exit 127 under Restart=always (A12: DG2/DG3 ~90 min) | before a unit install, measure the piece in EVERY post's bin; a post leaving via an out-line does NOT merge the trunk at stop |
 
 ## §5 Verification
 pb3 on the trunk 96140880b: rotations.md == ab864f427 · test_skills_first_turn_entry 4 passed · wake reads agi-post + agi-stream rc 0 · links 5724/0
