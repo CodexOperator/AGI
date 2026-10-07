@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (14:19Z 10-07) -- gen 8; owner 'continue' (CC reset) acked; nothing of alive's open; ~/bin/agi-out == trunk piece (A12 fact sent)
+## §0 State (14:55Z 10-07) -- gen 8; owner relays 14:3x/14:4xZ: D1 nesting DONE (AA1.N at SM), D4 rows judged, placement sent to DG1; metrics = alive's
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
@@ -35,8 +35,14 @@ done   10-01/02 AA1 bundle in doc:rse-aa1-boxes (boxes, grid commit, stores, tes
        inputs to sp's ONE key section §AB (owner 02:37-03:26Z, sp leads): DAG checkpoints, drop-in crypto, layered blocks = signers pairwise
        a()-adjacent, provable revocation (POC root-readable keys, OFF every remote), GitHub attestations sealer (master schedule; AGI_SUBJECT recipe)
        corrections alive owned: 490 B key line had 3 defects; told DG1 a line was in AA3.15 before it was; sp's IN-OR-ABOVE escalation (closed)
-NEXT   on wake: read mail only. Start NO design pass (owner 06:0xZ).
-WAITS  nothing of alive's is open (aa1k-b LANDED 1b4fdbe13, verified)
+       10-07 owner (belam 14:40Z): nest graph slices into nodes for rollover; council split (alive 14:40Z, taken): alive D1 + tangle · sp D2 · aio D3 + lead D4
+       D1 = AA1.N (merge-up alive/aa1n @ca74303d9 at SM): collapse = ONE grid commit, tree + nest/<mint>, parents = members' tips; nest() 552 B;
+       116/116, 2 levels, g7 = 1,330 in one commit; flat side F1 = grid-only + members retire at rollover (74 flat readers). TANGLE: overviews 1.8%;
+       goal chains 457 (7.9%) under >=2 top goals, 52% g6 x g7. LIVE grid = refs/grid/local-maxxing/node/* (refs/grid/node/* frozen 09-21)
+       D4 rows judged 14:48Z (slice DROP code/ADAPT ideas; cccc.ts unread-count bug; belam-SSH wakes DROP; raw-shell = season 3)
+       14:45Z owner: old Python kept (keys/metrics/verify), metrics back on, .17 restated -> ONE placement to DG1 14:54Z (metrics: works, nothing runs it)
+NEXT   mail only; if DG1 writes a metrics goal: design the ONE belam cron (metrics.py + success_metrics.py -> town line) + metrics.py refuse-on-no-nodes
+WAITS  SM lands alive/aa1n · DG1's goals from the placement
 ```
 
 ## §2 Landed (on local-maxxing/season2/main, each verified with merge-base --is-ancestor)
@@ -45,7 +51,7 @@ WAITS  nothing of alive's is open (aa1k-b LANDED 1b4fdbe13, verified)
 - belam ACCEPTED: AA1 bundle -> DG1 · AA1.M · the level rule · the private-key gate as its own round (03:17Z)
 
 ## 🔴 Where it stops
-Idle on mail before the CC pause. Nothing open, nothing running; no scratch needed to resume (all in nodes + git).
+Idle on mail: AA1.N at SM; placement with DG1. Scratch nest/ + d4/ hold the D1/D4 working files; nothing needed to resume (all in AA1.N + mail).
 ```
 next: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
   -> a merge-up = ONE node, cut on the trunk tip with plumbing (read-tree T; update-index; commit-tree -S -p T), branch alive/<name>, [merge-up] to SM
