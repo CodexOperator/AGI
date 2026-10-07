@@ -53,7 +53,7 @@ Waiting on SM to land or return mu15 (re-sent 10-07 14:2xZ, queued: SM pane busy
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
-Last read 10-07 14:17Z: empty (trunk quiet 10-04 08:1xZ -> 10-07 14:1xZ). AA2.66 collection = MAIL lives only in mail; DG1 carries it to DG3.
+Last read 10-07 14:2xZ: belam [owner] "continue now" (usage reset; 6 v5 posts restarted; A12 stays rolled back) -> acked with ONE [rule] line. AA2.66 collection = MAIL lives only in mail; DG1 carries it to DG3.
 
 ## §4 Traps
 | trap | rule |
