@@ -887,19 +887,21 @@ def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
     if tip:
         # goal:g4.13.1: carry a collapse's nest/ forward (unedited = unchanged), but only
         # a non-empty tree of trees; anything else skips THIS node and the run goes on
-        ent = git(root, "ls-tree", tip, "--", "nest", check=False)
-        if ent:
+        er = git_try(root, "ls-tree", tip, "--", "nest")  # a failing read is a skip, never "no nest"
+        ent = er.stdout.strip()
+        built = None
+        if er.returncode == 0 and ent:
             head = ent.split("\t")[0].split()
             kids = git_try(root, "ls-tree", head[2]) if head[:2] == ["040000", "tree"] else None
             rows = kids.stdout.split("\n")[:-1] if kids is not None and kids.returncode == 0 else []
-            built = None
             if rows and all(r.split()[1] == "tree" for r in rows):
                 lines = git(root, "ls-tree", tree) + "\n" + f"040000 tree {head[2]}\tnest\n"
                 built = git_try(root, "mktree", input_text=lines.lstrip("\n"))
-            if built is None or built.returncode != 0:
-                print(f"skip (the nest entry of {node_id} is not a non-empty tree of trees; "
-                      f"the ref is untouched): {ref}", file=sys.stderr)
-                return None
+        if er.returncode != 0 or (ent and (built is None or built.returncode != 0)):
+            print(f"skip (the nest entry of {node_id} is unreadable or not a non-empty tree of "
+                  f"trees; the ref is untouched): {ref}", file=sys.stderr)
+            return None
+        if ent:
             tree = built.stdout.strip()
         old_tree = git(root, "rev-parse", f"{tip}^{{tree}}", check=False)
         if old_tree == tree:
