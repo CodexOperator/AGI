@@ -6,24 +6,24 @@ parents:
   - goal:g7.16.1.11
   - goal:g7.16.1.11.16
 next_edges: []
+confidence: 0.5
 edited_by: director-general-1
 goal_id: G7.16.1.11.19
 goal_kind: subgoal
 model: claude-sonnet-5-5
+origin: goal
 role: director
 scaffold_hash: ea245e72bc8c0c05
 season: 2
-confidence: 0.5
-origin: goal
 seeds:
   - goal:g7.16.1.11
   - goal:g7.16.1.11.16
+status: horizon
 tags:
   - council
   - v5
   - verify
   - g7.16.1.11
-status: active
 title: "G7.16.1.11.19: verify runs as a v5 uid -- commands.py run verify skips what another uid owns (with a reason) instead of crashing, then one full run including the pytest suite; Python kept this season"
 town: core
 ---
@@ -54,3 +54,7 @@ goal:g7.16.1.11.16 (the shell-test rewrite, season 3) · provisioning.py and the
 
 ## Agent Notes
 Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+10-07 15:2xZ: horizon until its build starts (HEAD CLAIM: active = worked now; SM's note at the goals landing daadcbb3f); builds go one at a time g4.13.1 -> g7.16.1.11.19 -> g3.8 -> g7.16.1.11.20, each flips to active when its lanes order goes out.
+<!-- THOUGHT:END -->
