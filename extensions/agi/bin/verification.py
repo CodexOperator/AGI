@@ -209,10 +209,19 @@ NO_PYTEST_NOTE = "no pytest for this uid (skipped)"
 
 def _perm_skip(output: str) -> str | None:
     """The SKIP note for a subprocess that died on a path THIS uid cannot read and
-    write, else None (D2: a PermissionError line naming a path the uid owns and
-    can use is the writer uid's own failure -- it stays a FAIL)."""
+    write, else None (D2: a PermissionError line naming a path the uid owns and can
+    use is the writer uid's own failure -- it stays a FAIL). N2: a path that is GONE
+    (os.stat: FileNotFoundError / NotADirectoryError) is no permission problem, it
+    stays a FAIL; a path that cannot even be stat'ed (PermissionError: it sits under
+    another uid's private dir, the core v5 case) is a SKIP."""
     for m in _PERM_RE.finditer(output):
         path = m.group(1)
+        try:
+            os.stat(path)
+        except (FileNotFoundError, NotADirectoryError):
+            continue
+        except OSError:      # PermissionError: unstattable, the path is behind another uid's wall
+            return f"unreadable {path}: permission denied (skipped)"
         if not (os.access(path, os.R_OK) and os.access(path, os.W_OK)):
             return f"unreadable {path}: permission denied (skipped)"
     return None
@@ -889,7 +898,7 @@ def _write_state(groot: Path, current: dict, sha: str | None,
     try:
         path.write_text(json.dumps(doc), encoding="utf-8")
     except OSError as exc:   # goal:g7.16.1.11.19: the baseline lives in MAIN's sessions dir
-        print(f"skip: cannot write {path}: {(exc.strerror or exc)}", file=sys.stderr)
+        _io_failed(path, "write", exc)   # R1: another uid's dir = the named skip; THIS uid's = ERROR + rc 2
 
 
 #: The two top-level directories under `nodes/` that are structural rather
@@ -2375,10 +2384,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.suite or args.stamp:
         _run_ts = time.time()
         _run_sha = _git(groot, ["rev-parse", "HEAD"])
+    _IO_ERRORS.clear()   # BEFORE the run: the baseline write happens inside run_level
     results = run_level(groot, args.level, args.suite, args.verbose,
                         stamp=args.stamp, run_ts=_run_ts, run_sha=_run_sha)
     _suite_skipped = False
-    _IO_ERRORS.clear()
     if args.suite:
         # A COMPLETED suite run records its timestamp, pass or fail. The
         # freshness check answers "has the suite run since this file

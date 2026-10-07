@@ -8,7 +8,7 @@ drive the REAL production entry point -- `verification.main --suite`, not a
 hand-written stamp -- and prove the write path and the read path agree:
 
   1. green  -> the stamp exists at exactly `cli._find_root()/sessions/verified.stamp`
-  2. SKIP-only is green too (the claim says PASS or SKIP, no FAIL)
+  2. SKIP-only is NOT green (rc 3, no stamp: a skipped suite never ran)
   3. red    -> no stamp is created at all
 """
 from __future__ import annotations
