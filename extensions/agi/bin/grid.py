@@ -357,11 +357,11 @@ def git(root: Path, *args: str, input_text: str | None = None, check: bool = Tru
     return res.stdout.strip()
 
 
-def git_try(root: Path, *args: str) -> "subprocess.CompletedProcess[str]":
+def git_try(root: Path, *args: str, input_text: str | None = None) -> "subprocess.CompletedProcess[str]":
     """`git` that never exits: the caller reads returncode and stderr (goal:g4.13.1)."""
     return subprocess.run(
         ["git", *GIT_IDENT, "-C", str(repo_root(root)), *args],
-        capture_output=True, text=True,
+        capture_output=True, text=True, input=input_text,
     )
 
 
@@ -885,11 +885,22 @@ def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
     tree = build_tree(root, path, payload)
     tip = ref_tip(root, ref)
     if tip:
-        # goal:g4.13.1: carry a collapse's nest/ forward (unedited = unchanged)
-        nest = git(root, "rev-parse", "-q", "--verify", f"{tip}:nest", check=False)
-        if nest:
-            lines = git(root, "ls-tree", tree) + "\n" + f"040000 tree {nest}\tnest\n"
-            tree = git(root, "mktree", input_text=lines.lstrip("\n"))
+        # goal:g4.13.1: carry a collapse's nest/ forward (unedited = unchanged), but only
+        # a non-empty tree of trees; anything else skips THIS node and the run goes on
+        ent = git(root, "ls-tree", tip, "--", "nest", check=False)
+        if ent:
+            head = ent.split("\t")[0].split()
+            kids = git_try(root, "ls-tree", head[2]) if head[:2] == ["040000", "tree"] else None
+            rows = kids.stdout.split("\n")[:-1] if kids is not None and kids.returncode == 0 else []
+            built = None
+            if rows and all(r.split()[1] == "tree" for r in rows):
+                lines = git(root, "ls-tree", tree) + "\n" + f"040000 tree {head[2]}\tnest\n"
+                built = git_try(root, "mktree", input_text=lines.lstrip("\n"))
+            if built is None or built.returncode != 0:
+                print(f"skip (the nest entry of {node_id} is not a non-empty tree of trees; "
+                      f"the ref is untouched): {ref}", file=sys.stderr)
+                return None
+            tree = built.stdout.strip()
         old_tree = git(root, "rev-parse", f"{tip}^{{tree}}", check=False)
         if old_tree == tree:
             return None  # unchanged — versions record change, not time
