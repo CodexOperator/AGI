@@ -17,53 +17,63 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:3xZ 10-01 · f=0.38 · VERDICT YES sent, DOWN-READY for the v5 move)
+## §0 State (10-07 14:5xZ · session [06312a] · mu16 §AC D2 at SM · placement lines with alive)
 | | |
 |---|---|
-| post | self-perpetuating · CC session agi-99 [b77b3e] (heal-resumed 15:0xZ, same session 06312a1a; seated 05:35Z) |
+| post | self-perpetuating · v5 (worktree /var/lib/agi/self-perpetuating/t, claude-opus-5-5); session [06312a], before it [8ca9cd] |
 | stage | council: vision:self-perpetuating ONLY; top-down, generations not nitty gritty (doc:council-loop "The council's lens") |
-| authority | the council IS prime to the directors (owner 02:5xZ): directors bring rulings to the council; alive convenes, ONE ruling per ask |
-| messaging | SendMessage by session name (owner 01:4xZ); READING the send.py inbox is allowed |
-| history | the whole history was rewritten 06:3xZ-08:0xZ 09-30: old -> new = `grep ^<old> /data/scrub/union.git/filter-repo/commit-map` |
-| sessions | 18:2xZ: belam = agi-6a (DIRECT messages per owner 18:1xZ, reply by SendMessage) · alive = agi-9c (convenes) · all-is-one = agi-06 · me = agi-99 |
-| lane | v5 (move 4 of goal:g7.16.1.11.10): claude-code claude-opus-5-5, council stays Opus; NO dispatch from a v5 post (key broker pending); comms = direct session messages |
-| skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
-
+| authority | the council IS prime to the directors; alive convenes; splits = first message to LAND (inbox ts) wins |
+| messaging | ALL mail = `python3 extensions/agi/bin/send.py --from self-perpetuating send <post> '...'`. To belam ONLY tagged: [merge-up] [decision] [rotation] [red] [rule] [complete] [owner]; an ack = ONE [rule] line |
+| lane | v5 engine.v 4: plain Write/Edit, agi-turn commits at the Stop hook, `grid.py commit <path>`; NO dispatch from a v5 post |
+| skills | agi-goal · agi-send · agi-rotate · agi-post (agi-node-write = OLD SETUP ONLY) |
 
 ## §1 Plan
 ```
-DONE   rounds 1-4 · CAPSULE (§P, P.8) · ROUND 5 §Q · ROUND 6 lens · DC §V + agi-sign v2 · ROUND 7 Y2 (agi-fill) · DESIGN ROUND Z2 50f5f539f (agi-scope)
-       MORAL VERDICT on the v5 seed engine (19:3xZ, to belam agi-6a): YES. Measured: agi-gate HEAD rc 0 (the body regrows); 31 pieces, 0 duplicate names
-         CUT (open): config:engine 8,283 B > 8,192 (agi-project 2,256 B after G7.4-G7.7's pi-path rounds) -> move the pi-entry resolution to engine-wrap
-         CUT (open): Y1-Y3 + Z2 built but UNWIRED (0 nodes carry key:, no grow-gate, unsigned landings); revoked/ append-only unbuilt
-NOW    down-ready: belam moves this post to v5; the successor wakes on v5
-next   (successor, on v5) read this card + doc:radically-simple-engine §Q §V §Y2 §Z2; follow up the two CUT lines through alive's next round
+DONE   §AB THE RING IS THE TREE on the trunk (ring = .agi/nodes/.geometry/ring; anchor = option B, belam); fixture run.sh 86/0 (558e77664);
+         rail ruled (f02495529); limit 15 = mu15 LANDED b94124031 (re-sent 10-07, never reached SM gen 20/21)
+       DG1 -31 59ad2a451: .17 (3)+(4) nested under g7.16.1.11.17; RING.5g + CKPT.2/3 + OUT.7 landed 10-03/04
+       10-07 14:4xZ owner (via belam gen 27, who rotated): D1-D4 graph nesting / season rollover / et-grok-pilot review; split by alive:
+         alive = D1 nest + tangle · sp = D2 rollover + D4 rollover rows · aio = D3 legacy + LEAD D4
+       D2 WRITTEN as §AC (merge-up 16 = 2394f35ed over trunk 419835fea, AT SM 14:4xZ): the goal tree is the collapse; measured
+         (a) chain 1.9 % · (b) build cones 8.9 % · nearest-goal homing 90.1 %; D1 shape + tangle cited from alive AA1.N (ca74303d9)
+       D4 rows to aio: slice hook ADAPT / piece DROP · season judge KEEP (+current_season from config:engine) · rolslice DROP · g5.4.1.2 KEEP points
+       2nd split (owner 14:4xZ old Python kept): sp lines sent to alive 14:5xZ: provisioning.py = issuer this season (belam uid only:
+         EACCES on MAIN .env from sp); queue: agi-signers retire THIS season with the ring; pq, revoke+LC_ALL=C, flowrot+round B, sealer box = NEXT;
+         first holding block cut by hand with landed `ckpt sign` after A10
+NOW    mu16 at SM; alive SENT the ONE placement to DG1 14:54Z (cc next belam) from our lines unchanged
+next   1. SM lands/returns mu16 -> if alive's AA1.N lands first, nothing changes (§AC cites it by merge-up sha; fix the sha only if asked)
+       2. answer DG1/DG2 leaves with ONE ruling each, from LANDED text only
+       3. end condition: DG1 outcomes -> SM bigger outcomes -> OUR overview nodes -> belam
 ```
 
 ## 🔴 Where it stops
-down-ready for the v5 move (19:3xZ). Nothing running. Scratch: scratchpad/z2, /tmp/g71611/{r5,v,y2} (scratch only; every piece is whole in the doc)
+Waiting on SM to land or return merge-up 16 (§AC D2); placement sent by alive 14:54Z; nothing running. Read mail first:
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
+Last read 10-07 14:55Z: alive placement sent (nothing more needed from sp). Measurement scripts in session scratch only (disposable; §AC defines them).
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| `replace body N:M` refuses to split a paragraph (a table or a list + line is ONE paragraph) | widen N back to the line after the last blank; the doc moves under you: re-read line numbers right before each write |
-| MAIN is shared; verify-suite.lock / index.lock block commits | write.py lands uncommitted under the lock: commit by exact path once it clears; wait on .git/index.lock, never delete it |
-| a pre-commit hook refuses owner email / GPU name / box tokens | redact and commit again; never --no-verify |
-| a sha from memory is wrong after the scrub | map it through the commit-map, or re-read git log |
-| `git show REV:<path>` on a SYMLINK returns the link text | at-REV readers address by mint path; a projection that comes out empty must fail loud |
-| a command inside `while read` eats the loop's stdin | give it `</dev/null` |
-| systemd 255 empties `${x}` even inside `sh -c '...'` in a unit | bare `$x` only in unit command lines (measured 05:4xZ) |
-| `git worktree add` of the full repo at load > 50 hangs past 120 s | test extraction on a copy of `.geometry` only |
-| `printenv ${X:-_}` with X unset prints `$_` | guard with `[ "$X" ]&&` first |
-| heal's RESUMED-SEAT line prints `ack --seat X --gen N`: refused on a non-prime post | run `rotate.py ack --post <p> --session <8-hex> --ref <ref> continue` |
-| a nudge reading 'unread for director-engine' lands in THIS pane | misroute: that taken-down row still names window @3, which tmux reused for this pane after the 15:0xZ heal; reported [red] to sanctuary-master 15:1xZ; never read another post's inbox |
-| rotate's stop_commit flattens the quorum card link | `ln -sfn ../../nodes/doc/card-<post>.md`, commit by exact path |
+| a design placed on posts/self-perpetuating is NOT on the trunk | merge-up to SM: commit-tree -S over the trunk (or over my own unlanded merge-up, as a child) + update-ref refs/heads/self-perpetuating-merge-up-N; check `git diff <trunk> HEAD -- <file> \| grep '^-[^-]'` first |
+| a host act runs from LANDED bytes only (belam) | a GO line names a trunk sha, never a merge-up sha |
+| bytes kept only in a session scratchpad die with the session | place them in a node or the fixture and merge them up before naming them |
+| git verifies an ssh cert / valid-before at the COMMIT's date | never trust a date: the receiving tip + blocks are the clock (§AB) |
+| an owner cert counts ONLY on a current ring key (C18) | a fixture cert is issued on belam's ring key; sign with `-f <key>-cert.pub` |
+| my global git config sets allowedSignersFile; others' does not | every piece passes its OWN signer file; test with GIT_CONFIG_GLOBAL=/dev/null |
+| a merge-up mail can sink in SM's inbox (sorted by ts, not arrival) | after a rotation, check `git merge-base --is-ancestor <mu> <trunk>` and SM's card; re-send once |
+| a figure carried from an earlier round | re-measure before citing (the '8,186' never reproduced) |
+| a 30-min test cert expires mid-session | issue fixtures -V -1m:+4h before blaming a change |
+| origin is PUBLIC and the trunk is pushed hourly | never a private key in a trunk node; publications only on refs/revoked |
+| my shell exports AGI_TRUNK (the real trunk) | a fixture repo needs AGI_TRUNK=<its own ref> |
+| `git commit -qSm` parses m as the key id · `git rev-parse <ref>:file` = blob sha | `-q -S -m` · `git show <ref>:file` |
+| a python one-liner `A + B if False else ""` empties A | build replacements in plain statements; check `git diff` before committing |
+| `ssh-keygen -Y sign` asks to overwrite an old .sig (hangs in python) | delete the old .sig; tests run with </dev/null + timeout |
 
-## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (5555 resolved, 22:1xZ)
+## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (10-03 05:4xZ: 5,754/0) · `sh .agi/context/local-maxxing/ab/run.sh <trunk>` = 86/0
 
 ## §6 BANKED
-- the 716 standing trees (~96 GB): pass 3 (`git worktree remove` of clean + merged trees) is irreversible -> the owner's go (doc §4 Migration)
-- (answered 05:45Z, removed: ring holders + phone holder -> iPhone-only custody, P.8)
+- (belam) manifest model_hint ('opus' x5 in research-review) vs owner 'every subagent Sonnet 5.5': recommend the invoker's kid cell CAPS the hint (alive agrees)
+- (owner via belam 10-02) 'when could we switch you (belam) over to the new system?' -> goal:g7.16.1.11.17; §AB answers its items 3+4 (design); the build is DG1's
+- the 716 standing trees (~96 GB): pass 3 (`git worktree remove` of clean + merged trees) is irreversible -> the owner's go
