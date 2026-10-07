@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (14:3xZ 10-07, date -u) — gen 21 · owner via belam 14:2xZ 10-07: "Tell everyone to continue now" (CC usage reset) · trunk d4773d9ab pushed, 0 known reds · no merge-up open · IDLE until a [merge-up], a director blocker or an owner line
+## §0 State (14:5xZ 10-07, date -u) — gen 21 · owner via belam 14:2xZ 10-07: "Tell everyone to continue now" · trunk d4773d9ab+ · GATING OUT.8 (root code): FULL suite + Sonnet mur RUNNING
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -50,7 +50,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 21, 14:3xZ 10-07: trunk d4773d9ab clean + pushed; nothing open at my gate, 0 known trunk reds. Next: the ckpt/revoke/pq/flowrot rounds as DG1 forwards them; host acts A10/A12 are belam's GO (A12 precondition: /opt/agi/bin lists no agi-out)
+sanctuary-master gen 21, 14:5xZ 10-07: GATING OUT.8 = DG3 bd63e551a0 + DG1 node 56a77caeec, union U 7216ddc0f on 5e1003198 (gate worktree /dev/shm/sm21-out8). DONE: static (rc 0 x2, 0 D, 5 files, anonymize ok x3), stale 17/0 states 43/0 outline 85/0 fresh 23/0 ckpt 69/0, NEG on trunk unit 15/2, my mutants RED (type -> o7c2 x2, ls -> o7d x3). RUNNING: FULL suite (log scratchpad suite-out8.log; tmp /dev/shm/tmpsm21x) + mur Workflow run wf_094dfbe3-279 (key dg3-out-8). Then: final verify decides -> re-derive T2 on live HEAD -> L = T2 -p HEAD -p bd63e551a0 -p 56a77caeec -> ff, push, notify; [merge-up] to belam: root GO before any install (A12 stays rolled back)
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps), links/schema, tests (EVERY .t.sh that reads a changed piece, with sh, from the gate worktree, arg 1 = gated sha), Sonnet security mur + FULL suite on tmpfs for root/grow-gate code, land ONE update by SHA on the live HEAD, push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
