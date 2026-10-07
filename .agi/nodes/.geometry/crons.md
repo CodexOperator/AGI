@@ -41,7 +41,7 @@ cadences:
     enabled: true
     box: local-town
     why_box: "belam's crontab reads every uid's files and writes the town node; a v5 uid reads only its own (goal:g3.8, AA1.S)"
-    cmd: L=$(python3 {repo_root}/extensions/agi/bin/success_metrics.py --line {root}) && python3 {repo_root}/extensions/agi/bin/write.py town:local-maxxing "set graph_metrics $L" --actor belam
+    cmd: python3 {repo_root}/extensions/agi/bin/metrics_cell.py {root} town:local-maxxing metrics_line --actor belam -- python3 {repo_root}/extensions/agi/bin/success_metrics.py --line {root}
   memory_alarm:
     every_mins: 1
     enabled: true

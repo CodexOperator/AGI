@@ -1,5 +1,5 @@
 #!/bin/sh
-# graph-metrics.t.sh: goal:g3.8 (DG1 15:47Z; design = doc:rse-aa1-boxes AA1.S at alive/aa1n e6693df0b): the old metrics are read again. ONE cron job as belam runs `success_metrics.py --line | write.py set graph_metrics` and the town node carries ONE `graph_metrics` cell; metrics.py refuses a root with no nodes/; every null is NAMED on the line, never a number the engine does not have.
+# graph-metrics.t.sh: goal:g3.8 (DG1 15:47Z; design = doc:rse-aa1-boxes AA1.S at alive/aa1n e6693df0b): the old metrics are read again. ONE cron job as belam runs `success_metrics.py --line | write.py set metrics_line` and the town node carries ONE `metrics_line` cell; metrics.py refuses a root with no nodes/; every null is NAMED on the line, never a number the engine does not have.
 # sh + git + python3 on a SCRATCH project (the engine's bin dir is COPIED under it, so crons.py's repo_root, success_metrics.py's root and write.py's graph are all the scratch); a v5 uid cannot read every uid's files, so nothing here touches the live box. No network (no OpenRouter key in the env or the scratch), 0 USD, a scratch crontab FILE (never the user's crontab). BIN = the extensions/agi/bin dir under test (default: ROOT's); a reference / mutant = BIN=<an edited copy of that dir>. The crons lanes read ROOT's own `.agi/nodes/.geometry/crons.md` (the node the builder edits). One ok/FAIL line per case; exit = FAIL count.
 # Lanes: A crons (a1 the shipped node declares the job ONCE with the AA1.S fields; a2 `crons.py apply` makes a scratch crontab agree, idempotently; a3 (dropped: DG1 15:59Z, a duplicate-key loader in crons.py is out of this round); a4 the rendered cron line, run by sh in the scratch, writes the cell) · B success_metrics.py --line (b1 ONE line in the AA1.S shape, rc 0, bounded, no && ; b2 exact counts on a known graph; b3 the 7 success metrics each a number or UNMEASURED(reason), none a number it does not have; b4 the reason names the real cause; b5 an ABSENT graph counter is named, not dropped, not 0; b6 a dead metrics.py gives no invented number; b7 a missing ladder node still gives a line) · C metrics.py (c1 a root with no nodes/ is REFUSED: rc != 0, ONE reason line, 0 METRIC lines; c2 control: a normal root prints the SAME 39 METRIC lines as before; c2-help `--help` / `-h` are usage requests, not roots (rc 0, usage, 0 METRIC lines); c3 control: an EMPTY nodes/ is not refused; c4 control: the functions the SessionStart hook imports still work on a root with no nodes/) · D the write (d1 dry-run admitted, writes nothing; d2 one cell replaced whole, value round-trips through YAML; d3 trajectory_standin untouched; d4 a second set by the same actor is last-wins, ONE key).
 # Honest limits: AA1.S names no byte bound beyond today's 634 B, so b1 pins 1,024 B (one constant: LINEMAX). b5 pins that an absent graph counter is NAMED (the AA1.S prototype formatter skips absent keys, which this lane calls a defect). d-lanes are green today (write.py set already works): they guard the builder, they are not the RED set.
@@ -133,31 +133,74 @@ cr apply >$T/a2.out;a2n=$(grep -c 'success_metrics.py --line' $T/ct);cp $T/ct $T
 ok "a2-apply-makes-the-crontab-agree after crons.py apply on a scratch crontab file the job is installed ONCE ($a2n line(s), want 1) at minute 23 hourly ($(grep 'success_metrics.py --line' $T/ct|head -1|cut -c1-14)), a second apply leaves the file byte-identical ($(cmp -s $T/ct $T/ct.1&&echo same||echo CHANGED)) and show reports no drift ($(grep -c DRIFT $T/a2s.out) DRIFT)" '[ "$a2n" = 1 ]&&grep "success_metrics.py --line" $T/ct|head -1|grep -q "^23 \* \* \* \* "&&cmp -s $T/ct $T/ct.1&&! grep -q DRIFT $T/a2s.out'
 # a4: the rendered cron line itself, run by sh in the scratch (belam's job end to end): the town node gets the cell
 mkp pc full;: >$T/ct;cr apply >/dev/null;cl=$(grep 'success_metrics.py --line' $T/ct|head -1|cut -d' ' -f6-);mkdir -p $HOME/logs
-(cd $P&&sh -c "$cl") >$T/a4.out 2>&1;a4rc=$?;cell=$(sed -n 's/^graph_metrics: //p' $G_/nodes/town/local-maxxing.md|head -1);NC=$(mt $G_|sed -n 's/^METRIC node_count=//p')
-ok "a4-the-cron-line-writes-the-cell the rendered job line, run by sh in the scratch project, exits $a4rc (want 0) and leaves ONE graph_metrics cell on town:local-maxxing holding the SAME node_count as metrics.py on that project ($NC) and conclusive_verdicts=1 (cell: $(echo "$cell"|cut -c1-80)...)" '[ $a4rc = 0 ]&&[ "$(grep -c "^graph_metrics:" $G_/nodes/town/local-maxxing.md)" = 1 ]&&echo "$cell"|grep -q "node_count=$NC "&&echo "$cell"|grep -q "conclusive_verdicts=1"'
-# ---- D: the write (write.py set graph_metrics as belam on the town node)
+(cd $P&&sh -c "$cl") >$T/a4.out 2>&1;a4rc=$?;cell=$(sed -n 's/^metrics_line: //p' $G_/nodes/town/local-maxxing.md|head -1);NC=$(mt $G_|sed -n 's/^METRIC node_count=//p')
+ok "a4-the-cron-line-writes-the-cell the rendered job line, run by sh in the scratch project, exits $a4rc (want 0) and leaves ONE metrics_line cell on town:local-maxxing holding the SAME node_count as metrics.py on that project ($NC) and conclusive_verdicts=1 (cell: $(echo "$cell"|cut -c1-80)...)" '[ $a4rc = 0 ]&&[ "$(grep -c "^metrics_line:" $G_/nodes/town/local-maxxing.md)" = 1 ]&&echo "$cell"|grep -q "node_count=$NC "&&echo "$cell"|grep -q "conclusive_verdicts=1"'
+# ---- D: the write (write.py set metrics_line as belam on the town node)
 mkp pw full;TN=$G_/nodes/town/local-maxxing.md;sha0=$(sha256sum <$TN|cut -d' ' -f1)
 V1='2026-10-07T15:05Z graph: node_count=5813 active_node_count=5574 evidence_fraction=0.898 thought_coverage=0.521 | success: avg_tokens_per_turn=UNMEASURED(no source yet) conclusive_verdicts=1235 openrouter_subscription_spend_ratio=UNMEASURED(no source yet)'
 V2='2026-10-07T16:23Z graph: node_count=5900 active_node_count=5650 | success: conclusive_verdicts=1300'
-wr(){ (cd $P&&python3 extensions/agi/bin/write.py town:local-maxxing "set graph_metrics $1" --actor belam $2 2>&1);}
+wr(){ (cd $P&&python3 extensions/agi/bin/write.py town:local-maxxing "set metrics_line $1" --actor belam $2 2>&1);}
 wr "$V1" --dry-run >$T/d1.out;d1rc=$?;sha1=$(sha256sum <$TN|cut -d' ' -f1)
-ok "d1-dry-run-admitted-writes-nothing (control) write.py set graph_metrics as belam --dry-run: rc $d1rc, the ring gate says admitted ($(grep -c 'admitted' $T/d1.out)), the town node is byte-identical after ($([ $sha0 = $sha1 ]&&echo same||echo CHANGED))" '[ $d1rc = 0 ]&&grep -q admitted $T/d1.out&&[ $sha0 = $sha1 ]'
+ok "d1-dry-run-admitted-writes-nothing (control) write.py set metrics_line as belam --dry-run: rc $d1rc, the ring gate says admitted ($(grep -c 'admitted' $T/d1.out)), the town node is byte-identical after ($([ $sha0 = $sha1 ]&&echo same||echo CHANGED))" '[ $d1rc = 0 ]&&grep -q admitted $T/d1.out&&[ $sha0 = $sha1 ]'
 wr "$V1" >$T/d2a.out;wr "$V2" >$T/d2b.out
 rt=$(cd $P&&python3 -c "
 import yaml
 fm=yaml.safe_load(open('$TN').read().split('---')[1])
-print('RT', fm.get('graph_metrics')=='''$V2''', len([k for k in fm if k=='graph_metrics']))" 2>&1|tail -1)
-ok "d2-one-cell-replaced-whole (control) two sets by the same actor leave ONE graph_metrics line in the node ($(grep -c '^graph_metrics:' $TN)), holding the SECOND value whole and round-tripping through YAML ('$rt'); the first value is gone ($(grep -c 'node_count=5813' $TN) occurrences)" '[ "$(grep -c "^graph_metrics:" $TN)" = 1 ]&&[ "$rt" = "RT True 1" ]&&! grep -q "node_count=5813" $TN'
+print('RT', fm.get('metrics_line')=='''$V2''', len([k for k in fm if k=='metrics_line']))" 2>&1|tail -1)
+ok "d2-one-cell-replaced-whole (control) two sets by the same actor leave ONE metrics_line line in the node ($(grep -c '^metrics_line:' $TN)), holding the SECOND value whole and round-tripping through YAML ('$rt'); the first value is gone ($(grep -c 'node_count=5813' $TN) occurrences)" '[ "$(grep -c "^metrics_line:" $TN)" = 1 ]&&[ "$rt" = "RT True 1" ]&&! grep -q "node_count=5813" $TN'
 tr=$(cd $P&&python3 - <<PYEOF 2>&1|tail -1
 import yaml,subprocess
 a=yaml.safe_load(open('$R0/.agi/nodes/town/local-maxxing.md').read().split('---')[1])
 b=yaml.safe_load(open('$TN').read().split('---')[1])
 same=a.get('trajectory_standin')==b.get('trajectory_standin')
-oth={k for k in set(a)|set(b) if k not in ('graph_metrics',) and a.get(k)!=b.get(k)}
+oth={k for k in set(a)|set(b) if k not in ('metrics_line',) and a.get(k)!=b.get(k)}
 print('TS',same,sum('metrics: HEAD + KV' in str(x) for x in b.get('trajectory_standin',[])),sorted(oth))
 PYEOF
 )
 ok "d3-trajectory-standin-untouched (control) after the sets the town node's trajectory_standin is identical to ROOT's, its 'metrics: HEAD + KV' entry still appears once, and no other frontmatter key changed: '$tr' (want TS True 1 [])" '[ "$tr" = "TS True 1 []" ]'
-ok "d4-last-wins-one-key (control) a third set by the same actor replaces again (still ONE graph_metrics line: $(wr "$V1" >/dev/null;grep -c '^graph_metrics:' $TN)), and the cell now holds the last value ($(grep -c 'node_count=5813' $TN) occurrence of the first value, want 1)" '[ "$(grep -c "^graph_metrics:" $TN)" = 1 ]&&[ "$(grep -c "node_count=5813" $TN)" = 1 ]'
+ok "d4-last-wins-one-key (control) a third set by the same actor replaces again (still ONE metrics_line line: $(wr "$V1" >/dev/null;grep -c '^metrics_line:' $TN)), and the cell now holds the last value ($(grep -c 'node_count=5813' $TN) occurrence of the first value, want 1)" '[ "$(grep -c "^metrics_line:" $TN)" = 1 ]&&[ "$(grep -c "node_count=5813" $TN)" = 1 ]'
+# ---- E: the four residues of mur-sm21-dg3-gmetrics2 (DG1 RULINGS 16:52Z), RED on 41956e53d5. Everything is observed through the shipped surfaces (success_metrics.py --line, the RENDERED cron line run by sh in the scratch, the node bytes, git): how the job is split into files is the builder's.
+# R1: hierarchy_tokens_per_hour reads a row's tokens FIELD, never the substring "tokens" (a node-id slug like ...first-prose-tokens-... is not a counter)
+mkp pr1;python3 -c '
+import json
+for i in range(3000): print(json.dumps({"ts": i, "verb": "set", "node": "goal:g1"}))
+for n in ("idea:first-prose-tokens-a", "idea:first-prose-tokens-b", "idea:first-prose-tokens-c", "hypothesis:first-prose-tokens-d"): print(json.dumps({"ts": 9000, "verb": "set", "node": n}))
+print(json.dumps({"ts": 9001, "verb": "note", "msg": "count the tokens later"}))
+' >$G_/sessions/write-log.jsonl;sm --line $G_ >$T/r1a.out;r1a=$(head -1 $T/r1a.out|xv x hierarchy_tokens_per_hour)
+python3 -c '
+import json
+for i in range(3000): print(json.dumps({"ts": i, "verb": "set", "node": "goal:g1", "tokens": 12}))
+' >$G_/sessions/write-log.jsonl;sm --line $G_ >$T/r1b.out;r1b=$(head -1 $T/r1b.out|xv x hierarchy_tokens_per_hour)
+ok "r1a-substring-is-not-a-counter a write-log whose only 'tokens' text is inside node-id slugs (4 rows) and a note value (1 row), no row with a tokens field: hierarchy_tokens_per_hour reads '$r1a' (want UNMEASURED(no source yet)); 41956e53d5 reads (no live counter) over the live 2.29 MB log" '[ "$r1a" = "UNMEASURED(no source yet)" ]'
+ok "r1b-a-tokens-field-is-the-counter-reading (control) a write-log whose rows carry a tokens FIELD: hierarchy_tokens_per_hour reads '$r1b' (want UNMEASURED(no live counter)), different from r1a" '[ "$r1b" = "UNMEASURED(no live counter)" ]'
+# R2: the hourly job never leaves town:local-maxxing dirty. The RENDERED cron line, run by sh in the scratch, in four states.
+mkp pj full;TN=$G_/nodes/town/local-maxxing.md;echo '{"values":{"core":{"suite_lock":{"hold_wait_s":1}}}}'>$G_/config.json;$G -C $P commit -qam cfg;: >$T/ct;cr apply >/dev/null;cl=$(grep 'success_metrics.py --line' $T/ct|head -1|cut -d' ' -f6-)
+[ -n "$cl" ]||cl=$(grep 'success_metrics.py' $T/ct|head -1|cut -d' ' -f6-)
+jb(){ LOG=$(echo "$cl"|sed 's/.*>> \([^ ]*\) .*/\1/');: >$LOG;(cd $P&&sh -c "$cl") >$T/job.out 2>&1;jrc=$?;cat $LOG >>$T/job.out;jn=$(grep -c . $T/job.out);jdirty=$($G -C $P status --porcelain --untracked-files=no|wc -l|tr -d ' ');}   # the cron line appends to a per-project log: that log IS the job's output
+dirtyp(){ $G -C $P status --porcelain -- "$TN"|wc -l|tr -d ' ';}
+jb;r2a=$(grep -c "^metrics_line:" $TN)
+ok "r2a-clean-node-writes-one-cell (control) on a clean node with no lock the job exits $jrc (want 0), the town node carries ONE metrics_line cell ($r2a) and the scratch repo is clean after ($jdirty dirty path(s), want 0)" '[ $jrc = 0 ]&&[ "$r2a" = 1 ]&&[ "$jdirty" = 0 ]'
+mkp pj full;TN=$G_/nodes/town/local-maxxing.md;echo '{"values":{"core":{"suite_lock":{"hold_wait_s":1}}}}'>$G_/config.json;$G -C $P commit -qam cfg;printf 'a hand edit\n'>>$TN;s0=$(sha256sum <$TN|cut -d' ' -f1);h0=$($G -C $P rev-parse HEAD)
+jb;s1=$(sha256sum <$TN|cut -d' ' -f1);h1=$($G -C $P rev-parse HEAD)
+ok "r2b-dirty-node-is-skipped a node that is ALREADY dirty (a hand edit): the job exits $jrc (want 0) after ONE output line ($jn: '$(head -1 $T/job.out|cut -c1-70)', containing skip), the node bytes are unchanged ($([ $s0 = $s1 ]&&echo same||echo CHANGED)) and HEAD did not move ($([ $h0 = $h1 ]&&echo same||echo MOVED): the hand edit is not laundered into a commit)" '[ $jrc = 0 ]&&[ "$jn" = 1 ]&&grep -qi skip $T/job.out&&[ $s0 = $s1 ]&&[ $h0 = $h1 ]'
+mkp pj full;TN=$G_/nodes/town/local-maxxing.md;echo '{"values":{"core":{"suite_lock":{"hold_wait_s":1}}}}'>$G_/config.json;$G -C $P commit -qam cfg;sleep 120 & LP=$!;echo $LP >$G_/sessions/verify-suite.lock;s0=$(sha256sum <$TN|cut -d' ' -f1);h0=$($G -C $P rev-parse HEAD)
+jb;kill $LP 2>/dev/null;s1=$(sha256sum <$TN|cut -d' ' -f1);h1=$($G -C $P rev-parse HEAD)
+ok "r2c-held-suite-lock-is-skipped with the graph's verify-suite.lock held by a LIVE pid ($LP) the job exits $jrc (want 0) after ONE output line ($jn: '$(head -1 $T/job.out|cut -c1-70)', containing skip), the node bytes are unchanged ($([ $s0 = $s1 ]&&echo same||echo CHANGED)), HEAD did not move ($([ $h0 = $h1 ]&&echo same||echo MOVED)) and the node is clean ($(dirtyp) dirty); 41956e53d5 writes the node, waits, exits 3 and leaves it dirty" '[ $jrc = 0 ]&&[ "$jn" = 1 ]&&grep -qi skip $T/job.out&&[ $s0 = $s1 ]&&[ $h0 = $h1 ]&&[ "$(dirtyp)" = 0 ]'
+mkp pj full;TN=$G_/nodes/town/local-maxxing.md;printf '#!/usr/bin/env python3\nimport sys\nn = sys.argv[1]\nsys.argv = sys.argv[:2]\np = "%s"\nt = open(p).read()\nopen(p, "w").write(t.replace("\\nscaffold_hash:", "\\nmetrics_line: stub\\nscaffold_hash:", 1))\nprint("commit refused: the write landed uncommitted; exit 3")\nsys.exit(3)\n' $TN >$P/extensions/agi/bin/write.py;$G -C $P add -A;$G -C $P commit -qm stubwrite;h0=$($G -C $P rev-parse HEAD)
+jb;h1=$($G -C $P rev-parse HEAD);r2d=$($G -C $P show --stat --format= HEAD|grep -c '|');r2dn=$($G -C $P show --stat --format= HEAD|grep '|'|grep -c 'nodes/town/local-maxxing.md')
+ok "r2d-write-exit-3-leaves-the-node-clean a write that still exits 3 (a stub write.py that edits the node and exits 3, the race after the pre-check): after the job the node is clean ($(dirtyp) dirty, want 0) and the scratch repo is clean ($jdirty), the recover commit is BY EXACT PATH (HEAD moved: $([ $h0 != $h1 ]&&echo yes||echo NO); it touches $r2d path(s), want 1: the node ($r2dn)); no checkout / reset (the metrics_line cell survived: $(grep -c '^metrics_line:' $TN)); job rc $jrc" '[ "$(dirtyp)" = 0 ]&&[ "$jdirty" = 0 ]&&[ $h0 != $h1 ]&&[ "$r2d" = 1 ]&&[ "$r2dn" = 1 ]&&[ "$(grep -c "^metrics_line:" $TN)" = 1 ]'
+# R3: the cell is metrics_line (sorts between master and scaffold_hash), so a town -> s2 merge-up where another writer rewrote edited_by is CLEAN
+mkp pj full;TN=$G_/nodes/town/local-maxxing.md;base=$($G -C $P rev-parse --abbrev-ref HEAD);$G -C $P checkout -q -b other;sed -i 's/^edited_by: .*/edited_by: thought-master/' $TN;$G -C $P commit -qam other-writer;$G -C $P checkout -q $base;jb
+nb=$(cd $P&&python3 -c "
+import yaml
+fm=yaml.safe_load(open('$TN').read().split('---')[1]);k=list(fm)
+i=k.index('metrics_line') if 'metrics_line' in k else -1
+print('NB', k[i-1] if i>0 else None, k[i+1] if 0<=i<len(k)-1 else None, 'graph_metrics' in k)" 2>&1|tail -1)
+ok "r3a-cell-sorts-between-master-and-scaffold_hash after the job the town node's frontmatter has the cell 'metrics_line' with neighbours '$nb' (want NB master scaffold_hash False: not next to edited_by, and no graph_metrics cell)" '[ "$nb" = "NB master scaffold_hash False" ]'
+$G -C $P merge -q --no-edit other >$T/mg.out 2>&1;mrc=$?;eb=$(sed -n 's/^edited_by: //p' $TN)
+ok "r3b-merge-with-an-edited_by-rewrite-is-clean a scratch merge of two branches, one rewriting edited_by (another writer), one holding the job's cell write, exits $mrc (want 0: no conflict), keeps both (edited_by '$eb', want thought-master; $(grep -c '^metrics_line:' $TN) metrics_line cell) and leaves no conflict markers ($(grep -c '^<<<<<<<' $TN))" '[ $mrc = 0 ]&&[ "$eb" = thought-master ]&&[ "$(grep -c "^metrics_line:" $TN)" = 1 ]&&[ "$(grep -c "^<<<<<<<" $TN)" = 0 ]'
+# R4: --line makes NO authenticated OpenRouter call (credit_balance / key_usage replaced by recorders that raise)
+mkp p4;printf 'import os\ndef _rec(n):\n    open(os.environ["CALLS"], "a").write(n + "\\n")\n    raise RuntimeError("no network in the lane")\ndef credit_balance(*a, **k):\n    _rec("credit_balance")\ndef key_usage(*a, **k):\n    _rec("key_usage")\ndef list_all_keys(*a, **k):\n    _rec("list_all_keys")\n'>$P/extensions/agi/bin/provisioning.py;: >$T/calls;export CALLS=$T/calls;sm --line $G_ >$T/r4.out;r4rc=$?;r4n=$(wc -l <$T/calls|tr -d ' ')
+ok "r4-line-makes-no-openrouter-call success_metrics.py --line with credit_balance / key_usage / list_all_keys replaced by recorders: $r4n call(s) (want 0; the cron fires hourly and each call is a 30 s authenticated GET whose result the line discards), rc $r4rc (want 0), subscription_tokens_per_season '$(head -1 $T/r4.out|xv x subscription_tokens_per_season)' and openrouter_subscription_spend_ratio '$(head -1 $T/r4.out|xv x openrouter_subscription_spend_ratio)' both UNMEASURED(no source yet), as before" '[ "$r4n" = 0 ]&&[ $r4rc = 0 ]&&[ "$(head -1 $T/r4.out|xv x subscription_tokens_per_season)" = "UNMEASURED(no source yet)" ]&&[ "$(head -1 $T/r4.out|xv x openrouter_subscription_spend_ratio)" = "UNMEASURED(no source yet)" ]'
 echo "graph-metrics: $f FAIL"
 exit $f
