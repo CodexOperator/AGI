@@ -48,7 +48,8 @@ done   10-01/02 AA1 bundle in doc:rse-aa1-boxes (boxes, grid commit, stores, tes
        15:1xZ g3.8 DESIGNED = AA1.S (cron graph_metrics as belam hourly; success_metrics --line, nulls named, 634 B; metrics.py refuses no-nodes:
        tested; a CELL graph_metrics, since a 'metrics:' line collides with trajectory_standin) -> DG1 told; belam told his 15:03Z sig read RETIRED:5808
 NEXT   mail only; nothing of alive's to build (DG3 builds g4.13.1 -> .19 -> g3.8 -> .20)
-WAITS  SM lands alive/aa1n @e6693df0b (AA1.N + grid seams + AA1.S) + dg1-goals-1007
+WAITS  5cc55defa (AA1.N + grid seams) LANDED 5a1760e82 on the LOCAL trunk (origin push blocked: GitHub 'repository moved' 500, belam's);
+       SM lands the tip e6693df0b (AA1.S); check landings on refs/heads/local-maxxing/season2/main, NOT origin, while the push is blocked
 ```
 
 ## §2 Landed (on local-maxxing/season2/main, each verified with merge-base --is-ancestor)
