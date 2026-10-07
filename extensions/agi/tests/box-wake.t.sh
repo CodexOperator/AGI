@@ -125,6 +125,15 @@ reset
 grep -v '^real(() => {}, 1e6);' $T/drv.mjs >$T/drv-nokeep.mjs
 (cd $T/r&&env HOME=$T/hm DIV=$DIV O=$T/r AGI_SEAT=alive AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH timeout 6 node $T/drv-nokeep.mjs $CCCC >$T/nk.out 2>&1);nkrc=$?
 ok "n10-cccc-timers-alone-do-not-keep-node-alive the fake pi driver WITHOUT its own keep-alive, after the last event: node exits by itself (rc $nkrc, want 0; 124 = still running at the 6 s limit: the poll interval keeps a drained pi alive)" '[ $nkrc = 0 ]'
+# ---- R9 (DG1 20:37Z, SM mur residue on f8c0ba9ef2): in a KID the env carries AGI_POST=<parent> (inherited) AND AGI_SEAT=<kid>. The cccc.ts poll must ask `box n` as the KID: env AGI_POST = AGI_SEAT||AGI_POST (ruled), not AGI_POST||AGI_SEAT, which asks as the parent and wakes the kid for the parent's mail. The stub box answers n>0 ONLY for the asker named in $T/who; in a post (POST=SEAT) and a pre-unit post (SEAT only) both orders agree
+mkdir -p $T/binK;cp $T/bin/strace $T/bin/stty $T/bin/claude-x $T/bin/sleep $T/binK/
+printf '#!/bin/sh\n[ "$1" = n ]&&[ "$AGI_POST" = "$(cat %s/who)" ]&&echo from-someone\nexit 0\n' $T >$T/binK/box;chmod +x $T/binK/box
+reset;echo alive >$T/who;start p40 cccc AGI_SEAT=kid9 AGI_POST=alive PATH=$T/binK:$PATH;wt 2.5;k1=$(wakes p40);stop
+reset;echo alive >$T/who;start p41 cccc AGI_SEAT=alive AGI_POST=alive PATH=$T/binK:$PATH;wt 2.5;k2=$(wakes p41);stop
+reset;echo alive >$T/who;start p42 cccc AGI_SEAT=alive PATH=$T/binK:$PATH;wt 2.5;k3=$(wakes p42);stop
+reset;echo kid9 >$T/who;start p43 cccc AGI_SEAT=kid9 AGI_POST=alive PATH=$T/binK:$PATH;wt 2.5;k4=$(wakes p43);stop
+ok "r9-cccc-kid-env-asks-box-as-the-kid a KID env (AGI_POST=alive inherited from the parent, AGI_SEAT=kid9) with a box that answers n>0 ONLY for the asker 'alive': $k1 wake(s) (want 0: the parent's mail is not the kid's); and ONLY for 'kid9' (the kid's own mail): $k4 wake (want 1: the poll is not just silenced)" '[ "$k1" = 0 ]&&[ "$k4" = 1 ]'
+ok "r9-cccc-post-env-wakes (control) a POST env (AGI_POST=AGI_SEAT=alive, box answers for 'alive'): $k2 wake (want 1); a pre-unit post (AGI_SEAT=alive only): $k3 wake (want 1): the fix cannot pass by silencing the poll or by reading only AGI_POST" '[ "$k2" = 1 ]&&[ "$k3" = 1 ]'
 # ---- the ~/o cap (agi-run only): the 5-minute loop trims ~/o to HALF the cap keeping the TAIL when it is over AGI_PANE_MAX_MB (default 64); DIV scales the 300 s
 capsz(){ stat -c%s $T/hm/o 2>/dev/null||echo 0;}
 mkbig(){ rm -f $T/hm/o;awk -v n=$1 'BEGIN{for(i=0;i<n;i++)printf "%07d line of the pane log, padding padding padding padding padding\n", i}' >$T/hm/o;}
