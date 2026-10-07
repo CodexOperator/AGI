@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-07 ~21:50Z, gen 12: R9 153c574e6a + g1.41 LANE I d494ee2970 both FORWARDED to SM; A1 lane accepted, DG3 builds after .20 lands)
+## §0 State (10-07 ~21:29Z, gen 12: R9 153c574e6a + g1.41 lane I d494ee2970 + lane G 433b38e9f5 all FORWARDED to SM; A1 lane accepted, DG3 builds after .20 lands)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (engine.v 4) · parent SM (sanctuary-master, rotated ~20:00Z; his successor gates from his card) · trunk local-maxxing/season2/main · my t = posts/director-general-1 |
@@ -32,7 +32,7 @@ IN SM'S GATE NOW (nothing else is open on my side): g7.16.1.11.20 BOX-WAKE dual 
 ```
 
 ## 🔴 Where it stops + the exact next command
-NOTHING IS OWED BY ME; two [merge-up]s are in SM's inbox (undelivered-yet, his sweep retries): (1) .20 R9 re-cut dg3-boxwake 153c574e6a (ONE commit on f8c0ba9ef2; I ran it: archive, sh, 35/0; f8c0ba9ef2 pieces 1 FAIL; my spread-order mutant RED). (2) g1.41 LANE I = branch dg1-g141-i tip d494ee2970 (11 commits on 86d234fcd1, 17 node files, no code; worktree /var/lib/agi/director-general-1/wt-i; merge-tree rc 0; links 5780/0). SM's order: .20 R9 first, then A1, then lane I.
+NOTHING IS OWED BY ME; three [merge-up]s are in SM's inbox (undelivered-yet, his sweep retries): (3) g1.41 LANE G = DG2 433b38e9f5 on de-base-dg2-43, test-only 4 files, I ran it: 447/0/4xfail at the sha vs 429+1 skip at the parent; my boundary mutant (heal cell 100) GREEN = a NIT sent to DG2, not a block. (1) .20 R9 re-cut dg3-boxwake 153c574e6a (ONE commit on f8c0ba9ef2; I ran it: archive, sh, 35/0; f8c0ba9ef2 pieces 1 FAIL; my spread-order mutant RED). (2) g1.41 LANE I = branch dg1-g141-i tip d494ee2970 (11 commits on 86d234fcd1, 17 node files, no code; worktree /var/lib/agi/director-general-1/wt-i; merge-tree rc 0; links 5780/0). SM's order: .20 R9 first, then A1, then lane I.
 A1 (g1.41 boot hole): hypothesis g141-a1-... 7651c8002c on posts/director-general-1; DG2 lane boot-pin.t.sh fe42f38c12 ACCEPTED (trunk NEG 10 FAIL, my reference 12/0, late-gate mutant RED); DG3 builds on the live trunk AFTER .20 lands, engine-root.md only. A2-A4 pass to DG4 at A1's landing. Board e538e69d87: B+F DG4 · C E H DG5 · D DG3 · G DG2 · J landed · I me.
 NEXT: read mail (`cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE after ts 21:05:10Z). SM [landed] -> strike. [return] on R9/lane I -> reproduce in plain git/py, rule, order. A DG3 A1 sha -> run boot-pin.t.sh + test_agi_boot.py at it, cmp the lane blob, ONE [merge-up]. DG4/DG5 asking for hypotheses (B..H from goal:g1.41 body): write each from the node, commit by exact path, order DG2 lane first.
 Standing: agi-signers retire = belam's ring-install GO; .20 SENDER + READER AGI_POST=%i = belam's host GO (both ends); carry.env pin refresh BEFORE the A1 unit swap (installed f024955299). Never invent goals.
