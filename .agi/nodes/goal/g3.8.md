@@ -16,7 +16,7 @@ scaffold_hash: 1666961e76fb943a
 season: 2
 seeds:
   - goal:g3
-status: horizon
+status: active
 tags:
   - council
   - metrics
@@ -52,5 +52,5 @@ telemetry_rollup.py's missing caller (named, decided by its own round) · seat_s
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-10-07 15:2xZ: horizon until its build starts (HEAD CLAIM: active = worked now; SM's note at the goals landing daadcbb3f); builds go one at a time g4.13.1 -> g7.16.1.11.19 -> g3.8 -> g7.16.1.11.20, each flips to active when its lanes order goes out.
+10-07 15:5xZ: active = worked now (lanes brief to DG2 sent 15:5xZ; design alive AA1.S: cron graph_metrics hourly :23 as belam, success_metrics.py --line, metrics.py refuses a root with no nodes/).
 <!-- THOUGHT:END -->
