@@ -201,6 +201,34 @@ class CheckResult:
     durations: list = field(default_factory=list)
 
 
+#: goal:g7.16.1.11.19 -- a v5 uid cannot read another uid's files: such a read is a
+#: SKIP that names the path and the reason, never a crash and never a pass.
+_PERM_RE = re.compile(r"PermissionError: \[Errno 13\] Permission denied: '([^']+)'")
+NO_PYTEST_NOTE = "no pytest for this uid (skipped)"
+
+
+def _perm_skip(output: str) -> str | None:
+    """The SKIP note for a subprocess that died on a path THIS uid cannot read and
+    write, else None (D2: a PermissionError line naming a path the uid owns and
+    can use is the writer uid's own failure -- it stays a FAIL)."""
+    for m in _PERM_RE.finditer(output):
+        path = m.group(1)
+        if not (os.access(path, os.R_OK) and os.access(path, os.W_OK)):
+            return f"unreadable {path}: permission denied (skipped)"
+    return None
+
+
+_NO_PYTEST_LINE = re.compile(r".+: No module named pytest")
+
+
+def _is_no_pytest(output: str) -> bool:
+    """True only for the import failure of pytest itself (D3): every non-empty
+    line of the output is `<python>: No module named pytest`. A suite that ran
+    and failed may QUOTE the phrase; that is a FAIL, never a SKIP."""
+    lines = [ln.strip() for ln in output.splitlines() if ln.strip()]
+    return bool(lines) and all(_NO_PYTEST_LINE.fullmatch(ln) for ln in lines)
+
+
 def _cleanup_basetemp(path: Path | None) -> None:
     """Best-effort removal of a runner-owned pytest basetemp. A removal
     failure never fails the check (claim (4))."""
@@ -858,7 +886,10 @@ def _write_state(groot: Path, current: dict, sha: str | None,
         keys = sorted(manifest) if isinstance(manifest, dict) else manifest
         doc["manifest_sha256"] = hashlib.sha256(
             "\n".join(keys).encode("utf-8")).hexdigest()
-    path.write_text(json.dumps(doc), encoding="utf-8")
+    try:
+        path.write_text(json.dumps(doc), encoding="utf-8")
+    except OSError as exc:   # goal:g7.16.1.11.19: the baseline lives in MAIN's sessions dir
+        print(f"skip: cannot write {path}: {(exc.strerror or exc)}", file=sys.stderr)
 
 
 #: The two top-level directories under `nodes/` that are structural rather
@@ -1148,6 +1179,26 @@ def _verified_stamp_paths(groot: Path) -> list[Path]:
     return out
 
 
+#: goal:g7.16.1.11.19 D6: the stamp / state writes that failed on a dir THIS uid owns.
+_IO_ERRORS: list[str] = []
+
+
+def _io_failed(path: Path, verb: str, exc: OSError) -> None:
+    """A write the run depends on failed. On a dir another uid owns it is the named
+    skip (a v5 uid cannot write MAIN's sessions); on a dir THIS uid owns it is an
+    ERROR line and the run is not PASS (main returns 2), never a swallowed OSError."""
+    why = exc.strerror or exc
+    try:
+        mine = path.parent.stat().st_uid == os.geteuid()
+    except OSError:
+        mine = False
+    if mine:
+        _IO_ERRORS.append(str(path))
+        print(f"ERROR: cannot {verb} {path}: {why}", file=sys.stderr)
+    else:
+        print(f"skip: cannot {verb} {path}: {why}", file=sys.stderr)
+
+
 def _write_verified_stamp(groot: Path, *, ran_at: float | None,
                           ran_on: str | None) -> None:
     """Certify an all-green `--suite` run where the freshness gate looks.
@@ -1159,8 +1210,11 @@ def _write_verified_stamp(groot: Path, *, ran_at: float | None,
     stamp_utc = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ts))
     body = f"green suite {stamp_utc} on {ran_on or 'unknown'}\n"
     for path in _verified_stamp_paths(groot):
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(body, encoding="utf-8")
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(body, encoding="utf-8")
+        except OSError as exc:   # goal:g7.16.1.11.19: a v5 uid cannot write MAIN's sessions
+            _io_failed(path, "write", exc)
 
 
 def _retract_verified_stamp(groot: Path) -> None:
@@ -1175,7 +1229,10 @@ def _retract_verified_stamp(groot: Path) -> None:
     nothing).
     """
     for path in _verified_stamp_paths(groot):
-        path.unlink(missing_ok=True)
+        try:
+            path.unlink(missing_ok=True)
+        except OSError as exc:
+            _io_failed(path, "retract", exc)
 
 
 def _read_suite_ts(groot: Path) -> float | None:
@@ -1234,7 +1291,10 @@ def _record_suite_ts(groot: Path, decision: dict | None = None, *,
             doc = {**existing, **doc}
     except (OSError, ValueError, TypeError):
         pass
-    path.write_text(json.dumps(doc), encoding="utf-8")
+    try:
+        path.write_text(json.dumps(doc), encoding="utf-8")
+    except OSError as exc:   # goal:g7.16.1.11.19
+        _io_failed(path, "write", exc)
 
 
 def check_bin_freshness(groot: Path, *, bin_dir: Path | None = None,
@@ -1316,8 +1376,9 @@ def _scan_seat_transcript(path: Path, declared: str) -> dict:
           "fallback_request_id": None}
     try:
         fh = open(path, encoding="utf-8", errors="replace")
-    except OSError:
-        return {"live": None, "first_drift": None, **fb}
+    except OSError as exc:
+        return {"live": None, "first_drift": None, **fb,
+                "unreadable": (exc.strerror or str(exc)).lower()}
     with fh:
         for line in fh:
             line = line.strip()
@@ -1372,9 +1433,18 @@ def _seat_transcript(groot: Path, seat: str) -> tuple[Path | None, str]:
         if written_gen != cur_gen:
             return None, (f"stale-pin (gen {written_gen} vs current "
                           f"{cur_gen}), skipped")
-    lp = Path(target).expanduser().resolve()
-    if not lp.exists():
-        return None, reason
+    raw = Path(target).expanduser()
+    lp = raw.resolve()
+    try:
+        if not lp.exists():
+            if raw.is_symlink():
+                return None, f"unreadable transcript {raw}: dangling symlink (skipped)"
+            return None, reason
+        if not lp.is_file():
+            return None, f"unreadable transcript {lp}: not a regular file (skipped)"
+    except OSError as exc:   # goal:g7.16.1.11.19: another uid's dir is not ours to stat
+        return None, (f"unreadable transcript {lp}: "
+                      f"{(exc.strerror or str(exc)).lower()} (skipped)")
     return lp, ""
 
 
@@ -1390,6 +1460,9 @@ def check_anonymize(groot: Path) -> CheckResult:
         return CheckResult("anonymize", "FAIL", time.monotonic() - start,
                            note=f"could not execute: {exc}")
     tail = (proc.stdout + proc.stderr).strip().splitlines()
+    skip = _perm_skip(proc.stdout + proc.stderr) if proc.returncode else None
+    if skip:
+        return CheckResult("anonymize", "SKIP", time.monotonic() - start, note=skip)
     return CheckResult("anonymize", "PASS" if proc.returncode == 0 else "FAIL",
                        time.monotonic() - start,
                        note="" if proc.returncode == 0 else (tail[-1] if tail else ""))
@@ -1554,19 +1627,26 @@ def check_seat_model(groot: Path) -> CheckResult:
     lines: list[str] = []
     drifted: list[str] = []
     skipped = 0
+    unreadable = 0
     for row in candidate:
         seat = row.get("name") or "?"
         declared = (row.get("model") or "").strip()
         tp, reason = _seat_transcript(groot, seat)
         if tp is None:
             skipped += 1
+            unreadable += reason.startswith("unreadable")
             lines.append(f"{seat}: {reason}")
             continue
         scan = _scan_seat_transcript(tp, declared)
         live = scan["live"]
         if live is None:
             skipped += 1
-            lines.append(f"{seat}: no assistant turns with a model (skipped)")
+            if scan.get("unreadable"):
+                unreadable += 1
+                lines.append(f"{seat}: unreadable transcript {tp}: "
+                             f"{scan['unreadable']} (skipped)")
+            else:
+                lines.append(f"{seat}: no assistant turns with a model (skipped)")
             continue
         # The last model_refusal_fallback event is surfaced on BOTH branches
         # (Prime merge-up 24 residue b): a seat that is clean NOW but had a
@@ -1586,11 +1666,15 @@ def check_seat_model(groot: Path) -> CheckResult:
     note = ("; ".join(lines) if lines else "no seated rows to check")
     if drifted:
         note = ("DRIFTED SEAT(S): " + ", ".join(drifted) + " -- " + note)
-    return CheckResult(
-        "seat-model", "FAIL" if drifted else "PASS",
-        time.monotonic() - start,
-        {"seats": n_cand, "drifted": len(drifted), "skipped": skipped},
-        note=note)
+    # goal:g7.16.1.11.19: a check whose EVERY seat was skipped for an unreadable
+    # path measured nothing: SKIP, never PASS (a plain missing or stale pin stays PASS)
+    status = "FAIL" if drifted else (
+        "SKIP" if unreadable and skipped == n_cand else "PASS")
+    number = {"seats": n_cand, "drifted": len(drifted), "skipped": skipped}
+    if unreadable:
+        number["unreadable"] = unreadable
+    return CheckResult("seat-model", status, time.monotonic() - start,
+                       number, note=note)
 
 
 # --- the merge-up window reply (step 3: print-only, never send) -----------
@@ -1782,7 +1866,13 @@ def check_extra_suite(groot: Path) -> CheckResult:
     collection ERROR is a FAIL with the failing tail -- a context module that
     cannot import is skipped BY NAME (`pytest.importorskip`), not dropped."""
     start = time.monotonic()
-    import suite_guards  # noqa: PLC0415 -- lazy: suite_guards imports THIS module
+    try:
+        import suite_guards  # noqa: PLC0415 -- lazy: suite_guards imports THIS module
+    except ModuleNotFoundError as exc:   # goal:g7.16.1.11.19: suite_guards imports pytest
+        if exc.name != "pytest":
+            raise
+        return CheckResult(EXTRA_SUITE_CMD, "SKIP", time.monotonic() - start,
+                           note=NO_PYTEST_NOTE)
     roots, cell = _declared_suite_roots(groot)
     if not roots:
         declared, value, _ = _suite_cell_state(groot)
@@ -1820,6 +1910,9 @@ def check_extra_suite(groot: Path) -> CheckResult:
                               timeout=SUITE_TIMEOUT, cwd=groot,
                               env=suite_guards.spawn_env())
         out = (proc.stdout or "") + (proc.stderr or "")
+        if proc.returncode and _is_no_pytest(out):
+            return CheckResult(EXTRA_SUITE_CMD, "SKIP", time.monotonic() - start,
+                               note=NO_PYTEST_NOTE)
         counts.update(_parse_pytest_counts(out))
         if proc.returncode:
             ok = False
@@ -1892,6 +1985,14 @@ def run_check(groot: Path, name: str, verbose: bool) -> CheckResult:
     finally:
         _cleanup_basetemp(basetemp)
     output = (proc.stdout or "") + (proc.stderr or "")
+    if proc.returncode:
+        # goal:g7.16.1.11.19: the suite on a uid with no pytest, or any other check
+        # that died reading another uid's file, SKIPs (a failing SUITE is never
+        # re-read as a permission problem: its output may quote PermissionError)
+        skip = (NO_PYTEST_NOTE if _is_no_pytest(output) else None) \
+            if name == SUITE_CMD else _perm_skip(output)
+        if skip:
+            return CheckResult(name, "SKIP", time.monotonic() - start, note=skip)
     durations = _parse_pytest_durations(output) if name == SUITE_CMD else []
     number = _parse_number(name, proc.returncode, output)
     ok = _passed(name, proc.returncode, number)
@@ -2006,9 +2107,17 @@ def render_summary(level: str, suite: bool, results: list[CheckResult],
     for r in results:
         lines.append(_one_line(r))
     failed = [r for r in results if r.status == "FAIL"]
+    skipped = [r for r in results if r.status == "SKIP"]
+    names = ", ".join(r.name for r in skipped)
     lines.append("")
     if failed:
         lines.append(f"RESULT: FAIL ({len(failed)} of {len(results)} checks failed)")
+    elif skipped and len(skipped) == len(results):
+        # goal:g7.16.1.11.19: a run that only skipped measured nothing
+        lines.append(f"RESULT: SKIPPED (all {len(results)} checks skipped: {names})")
+    elif skipped:
+        lines.append(f"RESULT: PASS ({len(results) - len(skipped)} of {len(results)} "
+                     f"checks green, {len(skipped)} skipped: {names})")
     else:
         lines.append(f"RESULT: PASS (all {len(results)} checks green)")
     return "\n".join(lines)
@@ -2023,7 +2132,9 @@ def render_json(level: str, suite: bool, results: list[CheckResult],
         "stamp": stamp,
         "graph_root": graph_root,
         "engine_root": engine_root,
-        "result": "FAIL" if any(r.status == "FAIL" for r in results) else "PASS",
+        "result": ("FAIL" if any(r.status == "FAIL" for r in results) else
+                   "SKIPPED" if results and all(r.status == "SKIP" for r in results)
+                   else "PASS"),
         "checks": [{
             "name": r.name,
             "status": r.status,
@@ -2266,29 +2377,37 @@ def main(argv: list[str] | None = None) -> int:
         _run_sha = _git(groot, ["rev-parse", "HEAD"])
     results = run_level(groot, args.level, args.suite, args.verbose,
                         stamp=args.stamp, run_ts=_run_ts, run_sha=_run_sha)
+    _suite_skipped = False
+    _IO_ERRORS.clear()
     if args.suite:
         # A COMPLETED suite run records its timestamp, pass or fail. The
         # freshness check answers "has the suite run since this file
         # changed", not "did it pass" -- pass/fail is the suite's own
         # business (THOUGHT on hypothesis:l4-bin-suite-freshness-check).
         _suite_res = next((r for r in results if r.name == SUITE_CMD), None)
-        _record_suite_ts(groot, _suite_decision, ran_at=_run_ts,
-                         ran_on=_run_sha,
-                         wall_s=_suite_res.elapsed if _suite_res else None,
-                         slowest_15=(_suite_res.durations
-                                     if _suite_res else None))
+        # goal:g7.16.1.11.19: a SKIPPED suite (no pytest for this uid) never ran:
+        # it records no completion and certifies nothing (a skip is never a pass)
+        _suite_skipped = _suite_res is not None and _suite_res.status == "SKIP"
+        if not _suite_skipped:
+            _record_suite_ts(groot, _suite_decision, ran_at=_run_ts,
+                             ran_on=_run_sha,
+                             wall_s=_suite_res.elapsed if _suite_res else None,
+                             slowest_15=(_suite_res.durations
+                                         if _suite_res else None))
         # An ALL-GREEN suite run certifies itself at the exact path
         # `cli.py --delete-old` reads. The predicate is the SAME one the return
         # code uses, so "green" and rc==0 can never disagree. A red run writes
         # NOTHING -- the stamp is a pass marker, and absence is the correct
         # state on FAIL (never a stale marker claiming a green run that did
         # not happen).
-        if not any(r.status == "FAIL" for r in results):
+        if not _suite_skipped and not any(r.status == "FAIL" for r in results):
             _write_verified_stamp(groot, ran_at=_run_ts, ran_on=_run_sha)
         else:
             # A RED run RETRACTS any earlier certification at every path the
             # gate can read, so the stamp can never outlive the green run it
-            # recorded (cli.py:5336 tests existence only).
+            # recorded (cli.py:5336 tests existence only). So does a SKIPPED
+            # suite (D4, DG1 16:39Z): it never ran, so it certifies nothing and
+            # an older green stamp must not stand in for it.
             _retract_verified_stamp(groot)
 
     if args.json:
@@ -2303,7 +2422,17 @@ def main(argv: list[str] | None = None) -> int:
                              engine_root=str(engine_root),
                              stamp=args.stamp))
 
-    return 1 if any(r.status == "FAIL" for r in results) else 0
+    if any(r.status == "FAIL" for r in results):
+        return 1
+    if _IO_ERRORS:   # goal:g7.16.1.11.19 D6: the writer uid's own stamp/state write failed
+        return 2
+    # goal:g7.16.1.11.19 D1 (DG1 ruling 16:39Z): a SKIPPED suite never ran, so a
+    # --suite run is not green (rc 3, no stamp): the merge-up reads rc 0 as
+    # "suite passed", and a uid with no pytest merges nothing. A run whose every
+    # check skipped is not "all pass" either.
+    if _suite_skipped or (results and all(r.status == "SKIP" for r in results)):
+        return 3
+    return 0
 
 
 if __name__ == "__main__":
