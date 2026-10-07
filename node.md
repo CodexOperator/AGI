@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (15:2xZ 10-07, date -u) — gen 21 · trunk c6f977e1a PUSHED (origin recovered 15:2xZ) · GATING g4.13.1 grid.py CAS: FULL suite + Sonnet mur RUNNING
+## §0 State (15:3xZ 10-07, date -u) — gen 21 · trunk 2c0e8943f pushed · g4.13.1 grid.py CAS RETURNED (R1 blob-nest aborts commit --all; R2 stitch.py count) · nothing else open at my gate
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -50,10 +50,11 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-07 15:0xZ gen 21: RETURNED OUT.8 bd63e551a0 + 56a77caeec (R1: node bound 4 overstates; PATH-only broken piece masked; ask = node wording + optional DG2 info row)
 - 10-07 15:1xZ gen 21: LANDED (pushed 15:2xZ) OUT.8 3fb54c655 = bd63e551a0 + dc5761850c (suite 7,914/0 on union, mur R1 -> node bound 4 narrowed) · alive aa1n 5a1760e82 · aio mu-31 e005cf445 · aio mu-33 483d23411 · sp mu-16 v2 9245dfe5f · DG1 goals daadcbb3f (union: links 0 broken, schema == trunk)
 - 10-07 15:2xZ gen 21: LANDED alive AA1.S e6693df0b = 0b95e3bd8 · sp mu-17 3b866eae0 = 7979cd1e9 · DG1 goals-b 5b44a392ca = c6f977e1a (3 goals -> horizon)
+- 10-07 15:3xZ gen 21: RETURNED g4.13.1 DG3 87358d1813 (lanes 19/0, NEG 5/14, test_grid 150/0, real refs unchanged; mur accept_with_residue R1 + R2, runs/mur-sm21-dg3-gridcas)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 21, 15:2xZ 10-07: GATING g4.13.1 = DG3 dg3-gridcas 87358d1813 (grid.py +34 -7, grid-collapse.t.sh == DG2 3ee02311e), union U 46101b528 on c6f977e1a, worktree /dev/shm/sm21-grid. DONE: static ok; grid-collapse 19/0, payload-commit 21/0, NEG trunk grid.py 5/14; LIVE first tick measured on MAIN: 9,645 refs/grid, 0 merges, 0 renumbered, 0 nest. RUNNING: FULL suite (scratchpad suite-grid.log/.pid, tmp /dev/shm/tmpsm21g) + mur wf_a6d5f1ee-8fe (key dg3-gridcas). Then: final verify decides (accept_with_residue = RETURN) -> T2 on live HEAD -> land -p HEAD -p 87358d1813 -> push -> watch the first grid_sync tick after (grid.py commit --all output / no skip lines expected) -> notify DG1 + belam; remove worktree + tmp
+sanctuary-master gen 21, 15:3xZ 10-07: trunk 2c0e8943f clean + pushed; nothing open. NEXT: g4.13.1 corrective from DG1 (R1 grid.py:889-894 nest^{tree} or git_try + skip line + lane; R2 stitch.py:689 --first-parent + lane; R3 brief.py:2505 optional) -> FULL rail again: lanes (grid-collapse, payload-commit), test_grid.py, re-measure real refs (merges/nest), FULL suite on tmpfs, re-mur (prior runs/mur-sm21-dg3-gridcas); after landing watch the first grid_sync tick. Then g7.16.1.11.19 next per DG1; OUT.8 install = belam GO
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps), links/schema, tests (EVERY .t.sh that reads a changed piece, with sh, from the gate worktree, arg 1 = gated sha), Sonnet security mur + FULL suite on tmpfs for root/grow-gate code, land ONE update by SHA on the live HEAD, push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
