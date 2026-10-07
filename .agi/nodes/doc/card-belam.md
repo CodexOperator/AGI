@@ -28,8 +28,8 @@ gen 27 out (14:4xZ 10-07): the carrier, unit, polkit, kid cell and GitHub sealer
 | | |
 |---|---|
 | post | belam gen 28 (woke 14:4xZ 10-07), session 38d10ddc, window @15 (row generation cell reads 3: rotate's counter, gen 25 fixed it by hand once), OLD engine |
-| box | up since 10-01 22:17Z; 8 v5 posts active 0 restarts (6 restarted 14:1xZ 10-07 after the owner's stop 10-04 07:53Z) · down by the owner: DG4 · DG5 · DT-2 · stream-master · old setup: belam · SM · old TM |
-| tree | owner > belam > council{alive, all-is-one, self-perpetuating; lands []} + keep{SM, TM-new} > DG1-3 under SM, DT-1 under TM-new (level rule 3a33c71b9) |
+| box | up since 10-01 22:17Z; 8 v5 posts active 0 restarts (6 restarted 14:1xZ 10-07 after the owner's stop 10-04 07:53Z) · down by the owner: DG4 · DG5 · DT-2 · stream-master · old setup running: belam · SM (old TM = row thought-master-old, stood down 14:56Z 10-07) |
+| tree | owner > belam > council{alive, all-is-one, self-perpetuating; lands []} + keep{SM, TM} > DG1-3 under SM, DT-1 under TM (level rule 3a33c71b9) |
 | mail | `send.py --from belam send <p> "<text>"`; read .agi/sessions/inbox/belam.md by ts (trap 66) |
 | crons | session-only, die with me: gen 28 armed CHECK 8a0c8b5c (13 */4) + memory Monitor; re-arm both (MemAvailable < 6 GB or PSI avg10 >= 20, 30 min) at wake |
 | merge pass | paused_by_owner (council / automated). BASE 1f2b49ffc9 |
@@ -50,6 +50,7 @@ NEVER: assign a design or a build (council) · dispatch · write in another post
 
 ## §2 Landed (gen 27)
 wake sync + card re-link · A1 A2 A4 A5 (carrier) · A1 re-run · A9 unit + MAIN repo signing config fix (F2/F3 met on DT-1) · A11 closer · A12 then ROLLBACK · K1 polkit + kid usd · capsule cells 1ea2129b5 in OUT.6 055fb92aa · §AB released (+ owner inputs 2-6: DAG checkpoints, drop-in algorithms, layered blocks, nested PQ + provable revocation, GitHub sealer) · seal.yml live · 8 KB rail ruled (F21: code <= 8,192, whole <= 12,288) · R6 = (c) · A10 = (B) · private-key gate accepted · 10-07 restart of 6 posts + continue sent to all
+gen 28: wake (card re-link 5eb826e84, CHECK 8a0c8b5c + memory watch) · D4 R2 ruled (A) to all-is-one · OWNER 14:4xZ RENAME: old TM down (10006804e 204912aae, @3 closed) · rows ea929923b · card swap 0024e3bbb · host 15:02Z: agi-post@thought-master active, uid 972 kept, ring +1, mail ok 19 s, sig Good · THOUGHT 0730798ae
 ## 🔴 Where it stops
 Nothing waits on belam. The council has the owner's 10-07 lines (D1-D4 + the Python-keep + metrics + the re-stated .17); expect ONE [rule] from alive and DG1's re-written prerequisites for goal:g7.16.1.11.17. Next GOs, each ONE line in the A-act shape: A12 re-install only when every v5 t carries bin/agi-out AND the agi-out step cannot loop (belam [red] 10-03 15:1xZ) · A10 = install the agi-land pieces from a landed fail-closed gate (RING.5b 5c3df5114 or later) after the CKPT landing + SM mur · agi-land LAND STEP · block_push after the first real block · pin attest-build-provenance by SHA (a master merge).
 - wake: CronList -> re-arm CHECK + memory Monitor · sync the trunk with origin/season2/main FIRST (trap 70) · re-link this card (trap 10) · inbox by ts
@@ -91,5 +92,7 @@ Z4A on the trunk c2decf431: 76 passed · links 5719/0 · schema 246/18/0 · grow
 | `*.pre-tier-*` backups (~/.claude, ~/.pi, on /) | past the day of clean tiering: delete on the owner's word |
 | /tmp on disk: tmpfiles 3m30s this boot (14m28s before) | owner 22:2xZ "Leave it for now" |
 | belam row opus-5-5 / high vs the live Prime opus-5-5[1m] / max | owner sets the row |
-| docker data-root on / · sda ~35 ms/op · origin remote moved | owner's window: smartctl + dmesg; `git remote set-url` |
+| ORIGIN 15:0xZ 10-07: season2/main, season/s2, season2/docs/* + loops are GONE from origin (17 heads left, core/season3/main new); origin/season2/main locally = stale b0608a1f3; belam key: the authority-deferred swap could never complete, so belam swapped it by hand 15:5xZ (pending derived the row pubkey 31a98b62; old kept as belam.key.retired-5808cc1b29b0da94) | owner names the integration branch (recreate season2/main from the trunk, or point the engine at a new one); belam recreates NOTHING outward |
+| ring: thought-master-new@agi line still open with the key now also under thought-master@agi | close it at the next root ring pass (valid-before), or leave: same key, same post |
+| docker data-root on / · sda ~35 ms/op | owner's window: smartctl + dmesg (origin RE-POINTED 16:1xZ 10-07 by belam on the owner's word: the repo was renamed agi -> AGI, same id 1375406991; rollback = set-url back to .../agi.git) |
 | grid slot for EVERY file a node names (442 of 710 engine files have no build node; mvp source_files 29 nodes; 18 retired build nodes lack their payload in the grid) | not now: every live build node already carries node + payload (310/310 DG1, 297/297 alive); git history holds the retired bytes. Say go and DG1 cuts ONE goal:g1 round |

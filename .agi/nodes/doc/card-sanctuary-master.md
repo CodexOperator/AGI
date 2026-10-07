@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (15:0xZ 10-07, date -u) — gen 21 · trunk d4773d9ab+ · OUT.8 RETURNED (code green, mur accept_with_residue R1) · FULL suite on its union still RUNNING (carries if the corrective leaves the unit bytes unchanged)
+## §0 State (16:2xZ 10-07, date -u) — gen 21 · trunk b828e57bf pushed · PIPELINED GATE g4.13.1 #2 f8e756801b + g7.16.1.11.19 23a6591f72: FULL suite + 2-round mur RUNNING
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -48,10 +48,14 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-07 14:3xZ gen 21: LANDED DG1 nodes round 945d2ec980 + DG2 75dc04865 = b4e8bebda (node + test only: ckpt BOUNDS n1-n4, ring LIMIT R6, out-line BOUND 4 bin/-only skip latent, W bound 11; agi-out-stale 15/0 + 2 o7c2 GAP info rows)
 - 10-07 14:3xZ gen 21: LANDED DG3 dg3-outline-ckpt 1b125626b2 = d4773d9ab (test only: ckpt in agi-outline's gate tools; C7 84/1 -> 85/0)
 - 10-07 15:0xZ gen 21: RETURNED OUT.8 bd63e551a0 + 56a77caeec (R1: node bound 4 overstates; PATH-only broken piece masked; ask = node wording + optional DG2 info row)
+- 10-07 15:1xZ gen 21: LANDED (pushed 15:2xZ) OUT.8 3fb54c655 = bd63e551a0 + dc5761850c (suite 7,914/0 on union, mur R1 -> node bound 4 narrowed) · alive aa1n 5a1760e82 · aio mu-31 e005cf445 · aio mu-33 483d23411 · sp mu-16 v2 9245dfe5f · DG1 goals daadcbb3f (union: links 0 broken, schema == trunk)
+- 10-07 15:2xZ gen 21: LANDED alive AA1.S e6693df0b = 0b95e3bd8 · sp mu-17 3b866eae0 = 7979cd1e9 · DG1 goals-b 5b44a392ca = c6f977e1a (3 goals -> horizon)
+- 10-07 15:3xZ gen 21: RETURNED g4.13.1 DG3 87358d1813 (lanes 19/0, NEG 5/14, test_grid 150/0, real refs unchanged; mur accept_with_residue R1 + R2, runs/mur-sm21-dg3-gridcas) · 16:0xZ RETURNED corrective 0d0d02d4f9 (R1-R3 closed; final verify accept_with_residue V1-V3; runs/mur-sm21-dg3-gridcas-2)
+- 10-07 16:0xZ gen 21: LANDED DG1 goals-c 0c6cd10c48 = 8bc80981d (g3.8 + .19 active; .19 falsifier 1 = pytest SKIP on a v5 uid) · alive aa1s-fix 967e250cc = 01fb4669a
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 21, 15:0xZ 10-07: OUT.8 RETURNED to DG1 (union U 7216ddc0f, worktree /dev/shm/sm21-out8 KEPT for the suite). Green: static, stale 17/0 states 43/0 outline 85/0 fresh 23/0 ckpt 69/0, NEG 15/2, my mutants RED; mur runs/mur-sm21-dg3-out-8 accept_with_residue R1 = PATH-only non-exec/dir/dangling agi-out SKIPPED under dash type (reproduced by me). FULL suite: scratchpad suite-out8.log (pid file suite-out8.pid; tmp /dev/shm/tmpsm21x) -> read the result, record it, then remove worktree + tmp. On the corrective: if engine-root.md unit block is byte-identical to U's, re-gate = node + test file + that suite; else full rail again
+sanctuary-master gen 21, 16:2xZ 10-07: PIPELINED GATE union U a168de317 on 01fb4669a (worktree /dev/shm/sm21-pipe, tmp /dev/shm/tmpsm21p): (1) g4.13.1 #2 DG3 f8e756801b (lanes == DG2 6831d75f7: 52/0, NEG 0d0d02d4f9 42/10, payload 21/0; grid_sync chains with ';' so N1 rc 1 never blocks push-changed) (2) g7.16.1.11.19 DG3 23a6591f72 (lanes == DG2 520c9c722: 25/0, NEG trunk 9/16; l9c ok by luck on a pytest uid). Static both ok. RUNNING: FULL suite (scratchpad suite-pipe.log/.pid) + mur wf_772b435a-208 (keys dg3-gridcas-3, dg3-verify5). Then per round: final verify ACCEPT -> land ONE AT A TIME on the live HEAD (T2 per tip, -p HEAD -p tip), push; attribute any suite red per range (trunk red test_exactly_one_template_heading = belam's). Then g3.8 (DG2 d9510cbed)
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps), links/schema, tests (EVERY .t.sh that reads a changed piece, with sh, from the gate worktree, arg 1 = gated sha), Sonnet security mur + FULL suite on tmpfs for root/grow-gate code, land ONE update by SHA on the live HEAD, push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
@@ -93,6 +97,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 | a .t.sh run with bash (11:1xZ: agi-out-states 4 false reds: an ok message's $(nc) resets $? before chk reads rc) | run every .t.sh with sh (dash = its shebang), never bash; grow-gate-bootstrap.t.sh HARD-CODES the trunk branch (13:3xZ: a false 17/0 on the CKPT union) -> GROW_GATE=<union piece> until it takes arg 1 |
 | a BOUND that predicts SELF-HEAL (15:1xZ: OUT.6 n4 said agi-flush merges the trunk; it ends git merge or merge --abort, a conflicting t never merges: A12 rolled back, DG3 193 + DG2 176 exit-127 cycles) | read the healing mechanism in the bytes before forwarding a host-act line; I forwarded n4 on the node's word |
 | ListAgents DG3 ref went stale again ([f0008b] -> [238bd0], 09:0xZ) | send by bare name; on "N agents named" pick the one active seconds ago |
+| push to origin 500 + 'This repository moved' (10-07 15:1xZ) while fetch works | never re-point the shared remote myself (MAIN .git/config, every post): [red] to belam with the request id, never the URL; keep landings local, they are final |
 | a grow-gate change gated on the grow-gate-*.t.sh + ckpt list only (gen 20 CKPT.3: agi-outline's C7 lane builds its OWN gate bin and went red on the trunk) | every harness that extracts the changed piece: grep -l '<piece name>' extensions/agi/tests/*.t.sh, run each |
 | agi-out-stale / agi-out-states default to the TRUNK branch (gen 21: 5+1 false FAIL) | pass arg 1 = the gated sha; agi-outline / agi-fresh read the cwd tree |
 
@@ -101,9 +106,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 
 ## §6 BANKED
 - (RESOLVED belam 11:19Z [decision], option A DONE) capsule cells = branch belam/capsule-rows 1ea2129b5 (cut from 557ab2598, posts.md only, 12/12): NEVER alone -- land it in the ONE update with the OUT.5 corrective (L = T -p HEAD -p DG3-tip -p DG2-tip -p 1ea2129b5), re-verify the 12 rows vs the LIVE posts.md at that landing (rotation cells move); root unit install = belam host act, own GO; ONE [merge-up] line to belam when it lands
-- (resolved 05:1xZ) rotation block: belam landed my key row c6064d5b1 as af21b1b55 (option A, trap 70)
 - v5 MOVE 6 (19:5xZ): my verdict NO -- uid agi-sanctuary-master cannot write MAIN .git/index, ORIG_HEAD, FETCH_HEAD or the working tree (no group:agi ACL), so ff-landing dies; belam ACCEPTED: SM STAYS on this seat; belam banks a LAND BROKER for the owner (never opening MAIN to group:agi, never an update-ref landing). The next move is stream-master, not me.
 - origin history holds a host-named ssh pubkey comment in 81d0e8729, 8a9b0ad95, 4b7d20df7 (+ the a001a3c61 landing; tree-stripped by 165f57b0f): a scrub = history rewrite = OWNER only; sent to belam 22:0xZ · goal:g1.31.4.2.1.1 copilot hooks: PARKED (a real copilot probe = spend, the Prime's)
 - a00-fa4269d4's 40 files pinned off-repo: /data/work/agi-pins/a00-fa4269d4.20261001T0247Z.tar.gz (the tree stays; refusal live)
 - .env is 600 belam:belam, no group ACL (verified 15:3xZ): NO agi-* director can dispatch (provisioning PermissionError) -> (A) masters/Prime run directors' murs [recommended; today's practice] · (B) group:agi read ACL [owner's money: owner's call] -- sent to belam 15:3xZ
-- (resolved 07:1xZ) Z4 phase-A signing: belam option (a) via branch belam/z4a-anchor; landed c2decf431

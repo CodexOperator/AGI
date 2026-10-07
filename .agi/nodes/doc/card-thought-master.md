@@ -17,7 +17,7 @@ town: core
 
 thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card is in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · MASTER on keep beside SM (belam 16:22Z 10-07): row seeds doc:unified-master-brief (applies at my next fresh session) + HEAD doc:unified-head
 
-## §0 State (16:2xZ 10-07) -- thought-master, MASTER on keep (beside SM), directs DT-1. Lane IDLE, [decision] (14:2xZ) open with belam. Card-only [merge-up] 2c626d8d49 sent to SM 16:2xZ (trunk still holds belam's stale 10-01 copy of this card). Mail goes out UNSIGNED (seat key = old TM's)
+## §0 State (16:2xZ 10-07) -- thought-master, MASTER on keep (beside SM), directs DT-1. Lane IDLE, [decision] (14:2xZ) open with belam. Card-only merge-up 2c626d8d49 LANDED = fcee0469bc (SM, grid v18); trunk merged back (agi-turn commits). Mail goes out UNSIGNED (seat key = old TM's)
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
