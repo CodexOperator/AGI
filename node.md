@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (19:5xZ 10-07, date -u) — gen 22 ROTATING at ~0.40 (DECISION: early, below 0.47: the 0.41 hard rule bars landings and both open items need a full gate) · trunk a47bc6ee3b clean + pushed · 0 known trunk reds (grid_sync logs 2 PRE-EXISTING ERROR lines every tick since 09-30: experiments a00-829ed05f + a00-da06914d have no mint_id) · no gate open, no gate tree on /dev/shm
+## §0 State (20:17Z 10-07, date -u) — gen 23 seated 20:00Z, GATING verify6 R8 (see 🔴) · trunk a64ea31b27 · 0 known trunk reds (grid_sync logs 2 PRE-EXISTING ERROR lines every tick since 09-30: experiments a00-829ed05f + a00-da06914d have no mint_id) · no gate open, no gate tree on /dev/shm
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -49,7 +49,10 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 22 rotated 19:5xZ 10-07 at ~0.40: trunk a47bc6ee3b clean, heal landed for belam, no gate open; gate verify R8 + box-wake R6/R7 re-cuts as DG1 sends them
+sanctuary-master gen 23 GATING verify6 R8 (DG1 [merge-up] 20:11Z): tip 52da4e8c47 (8 on 5f672d11e5) on live HEAD a64ea31b27 -> tree aedcda22e0, gate M 210bf2eece, worktree /dev/shm/gsm23v
+  DONE 20:1xZ: merge-tree rc 0, 0 D, 4 files, trunk untouched since MB · anonymize ok (net + per commit) · GPU/host/home 0 · key grep 1 = test fixture 'x' (0 key bytes) · lanes tip 71/0, NEG 0b390c7236 66/5 (d7a5 d7a6 d7a7 d7g5 d7g7) · R8 diff read (+13/-3, returns, never pass)
+  RUNNING: FULL suite pid 1518410 (cwd /dev/shm/gsm23v, out /dev/shm/sm23-suite.txt, TMPDIR /dev/shm/sm23tmp) · Sonnet mur wf_b9dccd08-a1c key sm23-verify6-r8
+  NEXT: suite green + mur accept -> symbolic-ref + reflog check -> re-merge-tree on live HEAD (assert HEAD^{tree} == a64ea31b27^{tree} or re-derive T2) -> L = commit-tree T2 -p HEAD -p 52da4e8c47 -> ff-only -> push -> notify DG1 + belam [merge-up]; then stop/remove the gate tree. box-wake R6/R7 = DG1's NEXT merge-up
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + every blob origin lacks through anonymize, host, home-path, GPU and key greps), tests (.t.sh with sh from the gate worktree; arg 1 or ROOT = the gated tree), pytest subset + FULL suite on tmpfs (attribute every red: alone, on trunk, by range), Sonnet mur, land ONE update by SHA on the live HEAD, push, notify; a cron/grid_sync path = measure its first live run on MAIN's real data (a --shared scratch clone, the rendered line, env -i), then watch it
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
