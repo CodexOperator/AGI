@@ -857,6 +857,11 @@ def cmd_init(root: Path) -> None:
     print(f"grid ready: {count} existing version ref(s) under {REF_NS}/")
 
 
+#: refs whose update-ref failed for a reason other than a CAS miss (goal:g4.13.1 N1):
+#: the run goes on, then `cmd_commit` exits 1 after its summary line.
+UPDATE_REF_FAILURES: list[str] = []
+
+
 def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
                 *, trailer: str | None = None,
                 payload: Path | None = None) -> str | None:
@@ -915,8 +920,13 @@ def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
     # CAS (goal:g4.13.1): "" = the ref must not exist; a refusal skips this node only
     res = git_try(root, "update-ref", ref, commit, tip or "")
     if res.returncode != 0:
-        print(f"skip (ref moved since read; the next tick re-versions it): {ref}: "
-              f"{res.stderr.strip()}", file=sys.stderr)
+        why = res.stderr.strip()
+        if "but expected" in why or "reference already exists" in why:
+            print(f"skip (ref moved since read; the next tick re-versions it): {ref}: "
+                  f"{why}", file=sys.stderr)
+        else:   # not a CAS miss (a stale lock, a permission error, a full disk)
+            print(f"ERROR: update-ref {ref} failed (not a CAS miss): {why}", file=sys.stderr)
+            UPDATE_REF_FAILURES.append(ref)
         return None
     return f"v{n}"
 
@@ -1221,6 +1231,7 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
         engine_root = engine_root or default_engine_root()
         written = 0
         errors = 0
+        UPDATE_REF_FAILURES.clear()
         payloads = 0
         payload_missing = 0
         payload_retired = 0
@@ -1272,6 +1283,8 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
               f"{payloads} with payload, {payload_missing} payload(s) unresolved, "
               f"{payload_retired} retired with their node, "
               f"{demoted} demoted by the evidence gate")
+        if UPDATE_REF_FAILURES:   # goal:g4.13.1 N1: the run went on; it is not clean
+            sys.exit(1)
     finally:
         if lock is not None:
             lock.release()
@@ -1316,7 +1329,7 @@ def resolve_ref(root: Path, node_id: str) -> str:
 
 def cmd_log(root: Path, node_id: str, n: int) -> None:
     ref = resolve_ref(root, node_id)
-    print(git(root, "log", f"-{n}", "--format=%h %ad %s", "--date=short", ref))
+    print(git(root, "log", f"-{n}", "--first-parent", "--format=%h %ad %s", "--date=short", ref))
 
 
 def cmd_diff(root: Path, node_id: str, back: int) -> None:
@@ -1542,7 +1555,8 @@ def cmd_status(root: Path, engine_root: Path | None = None) -> None:
         found = resolve_payload(root, payload_ref, engine_root,
                                 parse_location(p)) if payload_ref else None
         fresh = tree_entries(root, p, found[0] if found else None, write=False)
-        if fresh == read_tree(root, ref):
+        # goal:g4.13.1: a collapse's nest/ entry is carried, not drift
+        if fresh == [e for e in read_tree(root, ref) if e[0] != "nest"]:
             clean += 1
         else:
             changed += 1
