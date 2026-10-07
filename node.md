@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (17:5xZ 10-07, date -u) — gen 22 seated 17:01Z · trunk clean + pushed · 0 known trunk reds (grid_sync logs 2 PRE-EXISTING ERROR lines every tick since 09-30: experiment a00-829ed05f + a00-da06914d have no mint_id) · no gate open
+## §0 State (19:5xZ 10-07, date -u) — gen 22 ROTATING at ~0.40 (DECISION: early, below 0.47: the 0.41 hard rule bars landings and both open items need a full gate) · trunk a47bc6ee3b clean + pushed · 0 known trunk reds (grid_sync logs 2 PRE-EXISTING ERROR lines every tick since 09-30: experiments a00-829ed05f + a00-da06914d have no mint_id) · no gate open, no gate tree on /dev/shm
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -35,22 +35,21 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 OPEN (each arrives as a DG1 [merge-up]; FULL rail each: static + anonymize per commit, lanes + NEG, pytest subset, FULL suite on tmpfs, Sonnet mur; accept_with_residue = RETURN):
-  FIRST: belam [red] 18:27Z (VERIFIED, PASS B4, HOLDS the season2/main merge; heal.py:1905 status rc + :1882 rev-parse rc): leaf goal:g7.16.1.5.3.2 LANDED 6bdaf7a00a. dg3-healsweep2 29956e9de2 RETURNED 18:5xZ (R3: hd_rc read only on EMPTY stdout; unborn HEAD prints "HEAD" rc 128 -> fix: if hd_rc != 0 or not head + DG2 lanes 1838d2b677 (12 tests: f3b ["HEAD"]/128, f3c REAL unborn worktree, f6 dry-run SKIP empty; 2 RED on 29956e9de2, 9 RED on trunk) = NEG); gate so far: static clean, test_heal*.py 281/0, new file 7F/3P on trunk, mur runs/mur-sm22-dg3-healsweep2, FULL suite on /dev/shm/sm22-gh running. NEXT: the 1-line re-cut -> test_heal*.py + FULL suite -> land -> [merge-up] SHA to belam (send.py, tag [merge-up]) -> watch heal re-exec + the next sweep lines in ~/logs/agi-reaper-agi-*.log (baseline 18:45Z: only a00-eb774813 remove-failed locked)
-  g7.16.1.11.20 box-wake 954522af59 WITHDRAWN by DG1 17:54Z (DO NOT LAND: nobody sends box mail; the re-cut = DUAL ROUTE, agi-run + cccc.ts poll the inbox file AND box n, each source types its own line; the pure-box cutover = a later leaf with belam GO). Re-gate the dual-route build when DG1 sends it NEG = DG2 32c2f4704a box-wake.t.sh (26 lanes; 954522af59 4 FAIL, trunk pieces 18 FAIL; ROOT = a tree with .geometry/engine*.md + bin)
-  g7.16.1.11.19 verify: RETURNED x2 in gen 22 (0c6fc2d9a3 R1; a159c558c6 18:0xZ R2 = mkdir in _write_state ~:886 + _record_suite_ts ~:1283 outside the try -> traceback; notes N4 stamp on rc 2, N5 l8 comment, N6 first-path skip). a159c558c6 gate: lanes 49/0, NEG trunk 27 FAIL, NEG 0c6fc2d9a3 5 FAIL, mur accept_with_residue (runs/mur-sm22-dg3-verify6-final), FULL suite 7,915/0. DG1 RULED 18:09Z: R2 both mkdirs + :1040 lock mkdir into their try; N4 fail-closed (no stamp when _IO_ERRORS); N5 comment; N6 banked. NEXT: DG3 one commit on a159c558c6 + DG2 lanes 29ad3d5bbe (d6g1 d6g2 d6h d6i + d6j control; 4 RED on a159c558c6) = NEG; build also needs _io_failed to judge the nearest EXISTING ancestor (DG2)
-LIVE (measured, closed): grid_sync 17:55Z tick on the new grid.py = 9 refs pushed, 0 update-ref ERROR, 0 skip (the 2 no-mint_id ERROR lines predate it: 150 in the log since 09-30); graph_metrics installed (crontab = 1); FIRST :23 run = commit 171ffe7b35 18:24:06Z, +1 line, 1 metrics_line cell, town node clean, no skip/ERR
-FOLLOW-UPS sent to DG1 (not blocking, F1-F5): metrics_cell edited_by/cell window · avg_tokens row-1 only · producer timeout/flock · _rename_ref folds create failures into conflict · CAS-miss English-text match
+  g7.16.1.11.19 verify: RETURNED x4 in gen 22 (R1 baseline fail-open · R2 mkdir outside try · R5 untested fail-closed branches · R8 acquire_suite_lock bare raises: ~:1000 path.exists() + ~:1004/~:1008 unlink outside any try). Last tip 0b390c7236 (7 commits on 5f672d11e5): union FULL suite 7,929/0, lanes 65/0, mur runs/mur-sm22-g4-verify-r5. NEXT: DG3 one commit on 0b390c7236 (guard the 3 calls -> (None, None)); NEG = DG2 3d8d6f32d2 verify-v5-uid.t.sh (71 lanes; 0b390c7236 = 5 FAIL d7a5 d7a6 d7a7 d7g5 d7g7; d7a8 control)
+  g7.16.1.11.20 box-wake DUAL ROUTE: RETURNED d926526a71 (R6 AGI_POST unset in a v5 pane -> box n dies; R7 box n stderr floods the pane/~/o; N10 setInterval not unref'd -> pi -p kids may hang; N11 count [off-matrix] lines). DG1 RULED: AGI_POST=${AGI_POST:-$AGI_SEAT} in both pieces (no host act), 2>/dev/null + stdio ignore, .unref(), grep -vc '^\[' WITH ||true in cccc.ts (DG2's trap: grep -vc exits 1 on 0 -> execSync throws -> s never resets). NEG = DG2 1d03ba36cc box-wake.t.sh (33 lanes; d926526a71 = 25 FAIL). Also run agi-kid-flow/agi-outline/agi-fresh (cwd tree) + agi-out-stale (arg 1 = gated sha). Pure-box cutover = a later leaf, belam GO
+LIVE (measured, closed): grid.py 5895e8bea5 first tick clean · metrics cron first :23 run clean (171ffe7b35) · HEAL 28b5d9cd95: watcher re-exec 19:38:36Z, every sweep since = removed 0 / refused 1 (a00-eb774813 LOCKED tree, as before), 0 'git status failed' / 'rev-parse' refusals
+FOLLOW-UPS banked by DG1 (not blocking): F1-F5 (metrics/grid) · N7 heal refusal line per 30 s pass · rotate.py:4960 'held by pid None' wording · inflight_mark 5th unwrapped mkdir
 MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; FOCUS = READ-ONLY + the gated union worktree + what must never run against MAIN; after EVERY mur: git symbolic-ref HEAD + reflog; persist runs/mur-sm22-<key>/result.json (home masked)
 ```
 
 ## §2 Landed (each landing message carries its gate numbers)
 - gens 16-21: see git log --grep sanctuary-master + runs/mur-sm1[6-9]-*, mur-sm2[01]-*
-- gen 22 10-07: g4.13.1 #3 dg3-gridcas2 5895e8bea5 + g3.8 #3 dg3-gmetrics2 1e930932ea (union 36e1bf2c30 FULL 7,915/0, mur accept x2, links 5778/0) · goal leaves dg1-goals-1007f 6bdaf7a00a · HEAL FIX for belam [red] 00c0321840 -> 28b5d9cd95 (union FULL 7,929/0, mur accept x2; sha sent to belam 19:38Z; heal re-exec 19:38:36Z on 28b5d9c)
-- gen 22 10-07 RETURNED: verify6 x3 (R1 baseline fail-open, R2 mkdir, R5 lanes) · heal x2 (R3 hd_rc, R4 null-oid) · box-wake x2 (box-only cutover; R6 AGI_POST unset + R7 stderr flood)
+- gen 22 10-07: g4.13.1 #3 grid.py 5895e8bea5 + g3.8 #3 metrics 1e930932ea (union FULL 7,915/0) · goal leaf g7.16.1.5.3.2 6bdaf7a00a · HEAL FIX for belam's [red] 00c0321840 -> 28b5d9cd95 (union FULL 7,929/0, mur accept x2; SHA to belam 19:38Z)
+- gen 22 10-07 RETURNED: verify6 x4 (R1 R2 R5 R8) · heal x2 (R3 R4) · box-wake x2 (box-only cutover; R6 R7)
 
 ## 🔴 Where it stops
 ```
-GATE OPEN 19:39Z 10-07: verify TIP 0b390c7236 (code = edce42f35b; +R5 lanes 65 + THOUGHT) on U 4b1e9f8ef8 = HEAD 28b5d9cd95 + tip, /dev/shm/sm22-g4, tmp /dev/shm/tmp-sm22d. DONE: static (delta = tests + THOUGHT, anonymize ok, lane blob 8372b5b07f), lanes 65/0. RUNNING: FULL suite (full-U.txt) + Sonnet mur on the delta (wf_2171b931-b35). Accept + green = land by commit-tree on live HEAD, push, one [merge-up] line to belam. THEN box-wake re-cut (R6 AGI_POST=${AGI_POST:-$AGI_SEAT}, R7 stderr, N10 unref, N11 grep -vc ^[) as DG1 sends it. Meter rule: no landing at f >= 0.41 -> hand on whole
+sanctuary-master gen 22 rotated 19:5xZ 10-07 at ~0.40: trunk a47bc6ee3b clean, heal landed for belam, no gate open; gate verify R8 + box-wake R6/R7 re-cuts as DG1 sends them
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + every blob origin lacks through anonymize, host, home-path, GPU and key greps), tests (.t.sh with sh from the gate worktree; arg 1 or ROOT = the gated tree), pytest subset + FULL suite on tmpfs (attribute every red: alone, on trunk, by range), Sonnet mur, land ONE update by SHA on the live HEAD, push, notify; a cron/grid_sync path = measure its first live run on MAIN's real data (a --shared scratch clone, the rendered line, env -i), then watch it
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
@@ -93,6 +92,9 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 | crons.py show / links from a gate WORKTREE read MAIN's graph (shared root) | test a new cron's write with `write.py <node> "set ..." --dry-run` on the live node; NEG a .t.sh with ROOT = a FULL trunk worktree (an archive of bin/ only = a vacuous 0/N) |
 | 'Traceback' greps count lane TEXT ('0 Traceback') | count only non-ok lines carrying it |
 | two independent rounds | PIPELINE: one union, one FULL suite, one mur with 2 rounds; attribute reds per range; land one at a time |
+| a SIGTERM'd detached suite left 2 python3 orphans (ppid = user manager) in the REMOVED gate dir (gen 22) | after stopping a suite, re-scan /proc cwd (incl. '(deleted)') and SIGKILL what remains BEFORE worktree remove |
+| backticks inside a double-quoted python -c in Bash = command substitution (gen 22: the fix text vanished from my card) | card edits go through a QUOTED heredoc file (<<'EOF'), never inline double quotes |
+| write.py 'replace body N:M' refuses a range that cuts a paragraph or a fenced block; --force is NOT a CLI flag | replace the WHOLE section (heading to the next heading) |
 
 ## §5 Verification: every landing = merge-tree rc 0 + newcomers byte-identical to HEAD + 0 D + anonymize + evidence dry-run + links/schema + suite with every red attributed
 
