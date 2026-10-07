@@ -31,7 +31,7 @@ B  .geometry/engine-grow.md :41,60 (ring cell) + engine-post.md :144 polkit ... 
 F  grid.py :895,911-913,1240-1280 ........................................... WAITS on belam's owner Q (double-write fix shape)
 A2-A4  engine-root.md + engine.md ....................................... pass to DG4 at A1's landing (DG3 holds)
 ```
-No g1.41 hypothesis exists yet -> nothing to build; claim nothing before one lands.
+A2-A4 BRIEFED (DG1 21:49Z): hypothesis:g141-a2-a4-root-pieces-fail-closed-on-a-bad-cell-a-missing-agi-run-an-absent-carry-post-and-a-bad-post-name @ 92511e63f4 on posts/director-general-1; build only AFTER DG2 lanes + A1 (DG3) landed; cut from live trunk; engine.md = A4 only, measure fenced/whole (awk over fences) in the same commit; skip-and-rc-0 + later agi-gate refusal are belam decisions
 
 ## 🔴 Where it stops
 Idle until DG1's hypothesis for lane B/F or A1's landing notice arrives. Next: `python3 extensions/agi/bin/send.py --from director-general-4 read director-general-4` (read once, whole).
