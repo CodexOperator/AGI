@@ -11,8 +11,8 @@ set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 NODE=${GUARD_ENV_NODE:-$HERE/../../../.agi/nodes/.geometry/guard.md}
 box=${GUARD_BOX:-$(cat /etc/sanctuary-guard/box 2>/dev/null || hostname -s)}; key=$(printf %s "$box" | tr -c 'A-Za-z0-9' '_')
-[ -f "$NODE" ] && eval "$(awk '/^```sh guard.env$/{f=1;next} f&&/^```$/{exit} f' "$NODE")"
-cell() { local v="GUARD_${1}_${key}"; eval "printf '%s' \"${!v:-${2:-}}\""; }
+. "$HERE/guard-env.sh"; guard_env_load "$NODE" || exit 1
+cell() { local v="GUARD_${1}_${key}"; printf '%s' "${!v:-${2:-}}"; }
 DRY=0; [ "${1:-}" = --dry-run ] && DRY=1
 
 MAIN=$(cell RAM_MAIN); RAM_DIR=$(cell RAM_DIR /mnt/agi-ram)
