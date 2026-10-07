@@ -386,12 +386,15 @@ def find_pin_log(root: Path, seat: str | None = None) -> Path | None:
         # stat PER PIN: one dangling or vanished *.meter must not turn the whole
         # seatless scan into UNKNOWN (mur R4) -- skip it, keep the newest valid one.
         pins = []
-        for p in sessions.glob(f"*{METER_PIN_EXT}"):
-            try:
-                pins.append((p.stat().st_mtime, p))
-            except OSError:
-                continue
-        return max(pins, key=lambda t: t[0])[1] if pins else None
+        # os.scandir RAISES on an unreadable dir; Path.glob swallows EACCES and answers [] (mur R6)
+        with os.scandir(sessions) as it:
+            for e in it:
+                if e.name.endswith(METER_PIN_EXT) and not e.name.startswith("."):
+                    try:
+                        pins.append((e.stat().st_mtime, e.name))
+                    except OSError:
+                        continue
+        return sessions / max(pins)[1] if pins else None
     except (OSError, RuntimeError) as exc:
         _warn_pin_unknown(root, exc)
         return None

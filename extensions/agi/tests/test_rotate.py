@@ -11155,3 +11155,25 @@ def test_pinfix_r4_one_dangling_pin_does_not_hide_the_valid_newest_pin(tmp_path)
     os.utime(good, (2, 2))
     (sessions / "dangling.meter").symlink_to(tmp_path / "nowhere")
     assert rotate.find_pin_log(g) == good, "a dangling pin is skipped; the newest VALID pin is kept"
+
+
+def test_pinfix_r6_a_seatless_scan_of_a_mode_000_sessions_dir_prints_one_unknown_line(tmp_path, capsys):
+    """mur R6: Path.glob SWALLOWS EACCES (is_dir True, glob -> [] with no exception), so the seatless arm answered a
+    silent None. A listing call that raises (os.scandir) inside the guard makes the except arm warn."""
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
+    g = tmp_path / ".agi"
+    (g / "nodes").mkdir(parents=True)
+    sessions = g / "sessions"
+    sessions.mkdir()
+    (sessions / "seat.meter").write_text("4\t/x\n", encoding="utf-8")
+    sessions.chmod(0o000)
+    getattr(rotate, "_PIN_UNKNOWN_SEEN", set()).clear()
+    try:
+        assert rotate.find_pin_log(g) is None
+        err = capsys.readouterr().err
+    finally:
+        sessions.chmod(0o755)
+    lines = [l for l in err.splitlines() if "UNKNOWN" in l]
+    assert len(lines) == 1, err
+    assert "EACCES" in lines[0] and "sessions" in lines[0], lines[0]
