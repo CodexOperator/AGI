@@ -10,8 +10,8 @@
 | item | value |
 |---|---|
 | Climb tip (source ONLY) | `417185e19` (`417185e19042a3071638245ed41c5041af6f537f`) on `de-dg5-1` — descendant of pilot; merge-tree onto SM CONFLICTS → scrub path |
-| Land tip (scrub) | `064fdb043` (`064fdb043d0daba1813160c6fd990d019ba33ec5`) — additive from live pilot `e7aeb9314`; `refs/tips/sm-g5347-next-scrub` |
-| SM MUR tip | `ef4891bd6` (`ef4891bd6b9083d1eb079b3de04b689e8fdccee5`) |
+| Land tip (scrub) | `a252f0509` (`a252f0509cec687c39f54d543d726719ca10856d`) — additive from live pilot `e7aeb9314`; `refs/tips/sm-g5347-next-scrub` |
+| SM MUR tip | `4a31f8d4e` (`4a31f8d4e8695e181d8d7f0b9561f76f945a3988`) |
 | MUR doc | `.agi/context/proposals/sm-mur-20261007-g5347-next/MUR-PASS-g5347-next.md` |
 | Design SoT | `proposals/council-design-20261007-g5347-next/RULING-g5347-next.md` · mint `73a87f5b241a4586b11cf952bc11208b` |
 | SM PASS | `649550d11` (content `65ccf4454`) · DESIGN `7155cc6d4` |

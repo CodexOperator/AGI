@@ -2,7 +2,7 @@
 
 **Verdict:** PASS · **Belam:** HOLD (no LAND GO) · **Council:** ready-land ASK boxed after this MUR
 **Climb tip (goals/geometry SOURCE ONLY — NOT land parent):** `417185e19` (`417185e19042a3071638245ed41c5041af6f537f`) on `de-dg5-1` — descendant of live pilot; merge-tree onto SM posts **CONFLICTS** (leave-alone / Phase B COMPLETE stamps) → additive scrub path (gate-x / Phase B pattern).
-**Land tip (additive scrub):** `064fdb043` (`064fdb043d0daba1813160c6fd990d019ba33ec5`) — parent live pilot `e7aeb9314` (`e7aeb931401bf91183ed5b2a35cc0e0e3adcd45f`) · `refs/tips/sm-g5347-next-scrub`
+**Land tip (additive scrub):** `a252f0509` (`a252f0509cec687c39f54d543d726719ca10856d`) — parent live pilot `e7aeb9314` (`e7aeb931401bf91183ed5b2a35cc0e0e3adcd45f`) · `refs/tips/sm-g5347-next-scrub`
 **Date:** 2026-10-07 · **Post:** sanctuary-master · **Skill:** agi-master-gate (Write+agi-turn; never write.py)
 **SM base:** `2cce1b7b1` (`2cce1b7b11f70f08be539da00201009c4ad7c234`) · **SM PASS cite:** `649550d11` · content `65ccf4454` · DESIGN `7155cc6d4`
 **DG5 box:** `97639ec18` · **TM box:** `1d413736e`
