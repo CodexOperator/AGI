@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (16:0xZ 10-07, date -u) — gen 21 · trunk 7d66aa51d pushed · g4.13.1 corrective RETURNED again (V1 cmd_status, V2 test -C, V3 cmd_log) · its FULL suite still running (for range reds only)
+## §0 State (16:1xZ 10-07, date -u) — gen 21 · trunk 01fb4669a pushed · nothing in gate · waiting: g4.13.1 corrective #2 (V1 V2 V3 N1; DG2 lanes 6831d75f7) via DG1 · trunk red (thought-master seeds) with belam
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -51,10 +51,11 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-07 15:1xZ gen 21: LANDED (pushed 15:2xZ) OUT.8 3fb54c655 = bd63e551a0 + dc5761850c (suite 7,914/0 on union, mur R1 -> node bound 4 narrowed) · alive aa1n 5a1760e82 · aio mu-31 e005cf445 · aio mu-33 483d23411 · sp mu-16 v2 9245dfe5f · DG1 goals daadcbb3f (union: links 0 broken, schema == trunk)
 - 10-07 15:2xZ gen 21: LANDED alive AA1.S e6693df0b = 0b95e3bd8 · sp mu-17 3b866eae0 = 7979cd1e9 · DG1 goals-b 5b44a392ca = c6f977e1a (3 goals -> horizon)
 - 10-07 15:3xZ gen 21: RETURNED g4.13.1 DG3 87358d1813 (lanes 19/0, NEG 5/14, test_grid 150/0, real refs unchanged; mur accept_with_residue R1 + R2, runs/mur-sm21-dg3-gridcas) · 16:0xZ RETURNED corrective 0d0d02d4f9 (R1-R3 closed; final verify accept_with_residue V1-V3; runs/mur-sm21-dg3-gridcas-2)
+- 10-07 16:0xZ gen 21: LANDED DG1 goals-c 0c6cd10c48 = 8bc80981d (g3.8 + .19 active; .19 falsifier 1 = pytest SKIP on a v5 uid) · alive aa1s-fix 967e250cc = 01fb4669a
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 21, 16:0xZ 10-07: g4.13.1 corrective 0d0d02d4f9 RETURNED to DG1 (V1 grid.py:1544 cmd_status vs nest, V2 grid-collapse.t.sh EMPTYT mktree without -C, V3 grid.py:1319 cmd_log --first-parent; notes N1 update-ref skip wording, N2 permanent skip). Suite on union db562c106 still running (scratchpad suite-grid2.log; worktree /dev/shm/sm21-grid2, tmp /dev/shm/tmpsm21h): read it for range reds, route any to DG1, then remove worktree + tmp. Next corrective = full rail (lanes, NEG, real refs, test_grid, FULL suite, re-mur). Open trunk red: test_exactly_one_template_heading (belam's thought-master seeds) with belam
+sanctuary-master gen 21, 16:1xZ 10-07: trunk 01fb4669a clean + pushed; no gate open, no worktrees. Prior union db562c106 FULL suite 7,913/1 = the trunk red only. NEXT: g4.13.1 corrective #2 from DG1 (DG3 sha on 0d0d02d4f9 + DG2 lanes 6831d75f7, 52 lanes) -> full rail (static, lanes, NEG on 0d0d02d4f9 = 10 RED, real refs, test_grid, FULL suite, re-mur incl. the N1 rc 1 path in grid_sync: crons.md chains with ';'); then g3.8 (DG2 d9510cbed lanes) and g7.16.1.11.19 builds
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps), links/schema, tests (EVERY .t.sh that reads a changed piece, with sh, from the gate worktree, arg 1 = gated sha), Sonnet security mur + FULL suite on tmpfs for root/grow-gate code, land ONE update by SHA on the live HEAD, push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
@@ -105,9 +106,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 
 ## §6 BANKED
 - (RESOLVED belam 11:19Z [decision], option A DONE) capsule cells = branch belam/capsule-rows 1ea2129b5 (cut from 557ab2598, posts.md only, 12/12): NEVER alone -- land it in the ONE update with the OUT.5 corrective (L = T -p HEAD -p DG3-tip -p DG2-tip -p 1ea2129b5), re-verify the 12 rows vs the LIVE posts.md at that landing (rotation cells move); root unit install = belam host act, own GO; ONE [merge-up] line to belam when it lands
-- (resolved 05:1xZ) rotation block: belam landed my key row c6064d5b1 as af21b1b55 (option A, trap 70)
 - v5 MOVE 6 (19:5xZ): my verdict NO -- uid agi-sanctuary-master cannot write MAIN .git/index, ORIG_HEAD, FETCH_HEAD or the working tree (no group:agi ACL), so ff-landing dies; belam ACCEPTED: SM STAYS on this seat; belam banks a LAND BROKER for the owner (never opening MAIN to group:agi, never an update-ref landing). The next move is stream-master, not me.
 - origin history holds a host-named ssh pubkey comment in 81d0e8729, 8a9b0ad95, 4b7d20df7 (+ the a001a3c61 landing; tree-stripped by 165f57b0f): a scrub = history rewrite = OWNER only; sent to belam 22:0xZ · goal:g1.31.4.2.1.1 copilot hooks: PARKED (a real copilot probe = spend, the Prime's)
 - a00-fa4269d4's 40 files pinned off-repo: /data/work/agi-pins/a00-fa4269d4.20261001T0247Z.tar.gz (the tree stays; refusal live)
 - .env is 600 belam:belam, no group ACL (verified 15:3xZ): NO agi-* director can dispatch (provisioning PermissionError) -> (A) masters/Prime run directors' murs [recommended; today's practice] · (B) group:agi read ACL [owner's money: owner's call] -- sent to belam 15:3xZ
-- (resolved 07:1xZ) Z4 phase-A signing: belam option (a) via branch belam/z4a-anchor; landed c2decf431
