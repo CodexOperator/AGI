@@ -358,8 +358,7 @@ def git(root: Path, *args: str, input_text: str | None = None, check: bool = Tru
 
 
 def git_try(root: Path, *args: str) -> "subprocess.CompletedProcess[str]":
-    """`git` for `root` WITHOUT exiting on failure: the caller reads returncode and
-    stderr (goal:g4.13.1: a refused compare-and-swap skips one node, not the run)."""
+    """`git` that never exits: the caller reads returncode and stderr (goal:g4.13.1)."""
     return subprocess.run(
         ["git", *GIT_IDENT, "-C", str(repo_root(root)), *args],
         capture_output=True, text=True,
@@ -886,8 +885,7 @@ def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
     tree = build_tree(root, path, payload)
     tip = ref_tip(root, ref)
     if tip:
-        # goal:g4.13.1: a collapse's nest/ entry is carried forward unchanged,
-        # so an unedited container stays unchanged and an edit keeps its members.
+        # goal:g4.13.1: carry a collapse's nest/ forward (unedited = unchanged)
         nest = git(root, "rev-parse", "-q", "--verify", f"{tip}:nest", check=False)
         if nest:
             lines = git(root, "ls-tree", tree) + "\n" + f"040000 tree {nest}\tnest\n"
@@ -895,19 +893,17 @@ def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
         old_tree = git(root, "rev-parse", f"{tip}^{{tree}}", check=False)
         if old_tree == tree:
             return None  # unchanged — versions record change, not time
-    # --first-parent: a collapse's members are extra parents and are not versions
+    # --first-parent: a collapse's members are extra parents, not versions
     n = int(git(root, "rev-list", "--count", "--first-parent", tip)) + 1 if tip else 1
     parent = ["-p", tip] if tip else []
     subject = f"{msg_prefix}v{n} {node_id}"
     message = f"{subject}\n\n{trailer}\n" if trailer else subject
     commit = git(root, "commit-tree", tree, *parent, "-m", message)
-    # CAS (goal:g4.13.1): the ref must still be at the tip read above ("" = must not
-    # exist), so a collapse landed since is never overwritten. A refusal skips THIS
-    # node only; the next tick re-versions it on the new tip.
+    # CAS (goal:g4.13.1): "" = the ref must not exist; a refusal skips this node only
     res = git_try(root, "update-ref", ref, commit, tip or "")
     if res.returncode != 0:
-        print(f"skip (ref moved since read — a collapse or a concurrent write; "
-              f"the next tick re-versions it): {ref}: {res.stderr.strip()}", file=sys.stderr)
+        print(f"skip (ref moved since read; the next tick re-versions it): {ref}: "
+              f"{res.stderr.strip()}", file=sys.stderr)
         return None
     return f"v{n}"
 
@@ -1586,7 +1582,7 @@ def _rename_ref(root: Path, old_ref: str, new_ref: str, write: bool) -> str:
     if new_tip is not None:
         return "unchanged" if new_tip == old_tip else "conflict"
     if write:
-        git(root, "update-ref", new_ref, old_tip, "")  # CAS: the new ref must not exist yet (goal:g4.13.1)
+        git(root, "update-ref", new_ref, old_tip, "")  # CAS (goal:g4.13.1)
         git(root, "update-ref", "-d", old_ref, old_tip)
     return "moved"
 
