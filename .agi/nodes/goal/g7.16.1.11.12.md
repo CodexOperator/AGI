@@ -65,3 +65,5 @@ goal:g7.16.1.11.11 (boxes) · goal:g7.16.1.11.13 (land) · goal:g7.16.1.11.14 (s
 
 ## Agent Notes
 Assigned to **director-general-1**.
+
+10-07 council placement (alive 14:54Z, sp): the engine pieces pq nested inner signature, revoke piece (+ LC_ALL=C), flowrot, round B mail collection and the sealer box side (block_push) are NEXT season under the owner's bypass; THIS season keeps the ring install with agi-signers retired in the same step (belam's GO) and the A10 ckpt on the hub; their falsifier lanes already written (pq-nest.t.sh c6176d986) stay unbuilt.

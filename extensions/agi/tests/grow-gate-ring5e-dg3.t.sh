@@ -14,6 +14,7 @@ for n in owner1 belam1 alive1 sm1 dg1 dg1b dg2 atk;do ssh-keygen -qN "" -ted2551
 pk(){ cut -d' ' -f1,2 $D/k/$1.pub;}
 : >$D/over;for n in owner1 belam1 alive1 sm1 dg1 dg2 atk;do p=${n%[0-9]};echo "$p@agi namespaces=\"git\" $(pk $n)">>$D/over;done   # OVER-PERMISSIVE: every key made
 git init -q $D/r;echo $G/objects>$D/r/.git/objects/info/alternates;cd $D/r;export PATH=$D/b:$PATH
+printf '#!/bin/sh\nexit 0\n'>$D/ck0;printf '#!/bin/sh\nexit 3\n'>$D/ck3;export AGI_CKPT=$D/ck0
 GEO=.agi/nodes/.geometry;RG=$GEO/ring
 printf -- '---\n---\n  - {"name": "belam", "parent": "owner"}\n  - {"name": "council", "parent": "belam"}\n  - {"name": "keep", "parent": "belam"}\n  - {"name": "alive", "parent": "council"}\n  - {"name": "sm", "parent": "keep"}\n  - {"name": "dg1", "parent": "sm"}\n  - {"name": "dg2", "parent": "sm"}\n  - {"name": "dg9", "parent": "sm"}\n'>$D/posts.md
 printf 'owner %s\nbelam %s\nalive %s\nsm %s\ndg1 %s\ndg2 %s\n' "$(pk owner1)" "$(pk belam1)" "$(pk alive1)" "$(pk sm1)" "$(pk dg1)" "$(pk dg2)">$D/ring
@@ -71,7 +72,17 @@ gateC $R1 $(mkc $R1 dg1 $AFB:$D/af);ok "r1q-agi-fill-crash-valid-edit-refused th
 gate $R1 $(mkc $R1 dg1 $AFB:$D/af);ok "r1q0-control-valid-edit-admitted the same valid edit with the real agi-fill: admitted" '[ $r = 0 ]'
 # --- RING.5g (SM mur sm19 on RING.5f, R1): the sentinel reads [moral].md at the RECEIVING tip: an owner schema that breaks it refuses every later push (the documented outcome, named in LIMITS) · r1r the tip carries an EMPTY [moral].md: a valid edit is refused 'head: agi-fill sentinel' · r1r0 control: the same edit on the tip without that schema change is admitted (r1q0)
 SM=".agi/context/schemas/[moral].md";printf -- '---\n---\n'>$D/moral-empty;Rm=$(mkc $R1 owner1 "$SM:$D/moral-empty")
-gate $Rm $(mkc $Rm dg1 $AFB:$D/af);ok "r1r-broken-moral-schema-refuses-every-push the tip's [moral].md emptied by the owner: a valid edit by dg1 is refused by the sentinel (head: agi-fill sentinel), the documented outcome" 'refused&&grep -q "head: agi-fill sentinel" $D/out'
+gate $Rm $(mkc $Rm dg1 $AFB:$D/af);ok "r1r-broken-moral-schema-refuses-every-push the tip's [moral].md emptied by the owner: a valid edit by dg1 is refused by the sentinel (agi-fill sentinel), the documented outcome" 'refused&&grep -q "agi-fill sentinel" $D/out'
 gate $R1 $(mkc $R1 dg1 $AFB:$D/af);ok "r1r0-control-intact-schema-admitted the same valid edit on the tip with the schema intact: admitted" '[ $r = 0 ]'
+# --- CKPT round (DG1 12:2xZ, fail closed): a ckpt that is MISSING, UNREADABLE or CRASHES refuses the WHOLE push (by exit code, 'refused: ... ckpt ...'); an empty holding list admits as before
+SAVE=$PATH;unset AGI_CKPT;PATH=$D/b:/usr/bin:/bin;gate $R1 $(mkc $R1 dg1 $AFB:$D/af);PATH=$SAVE;ok "k1-ckpt-missing-refused no AGI_CKPT and no ckpt on PATH: a valid edit is refused (ckpt missing)" 'refused&&grep -q "ckpt missing" $D/out'
+export AGI_CKPT=$D/no-such-ckpt;gate $R1 $(mkc $R1 dg1 $AFB:$D/af);ok "k2-ckpt-unreadable-refused AGI_CKPT names a file that is not there (sh exits 2): refused (ckpt rc 2)" 'refused&&grep -q "ckpt rc 2" $D/out'
+export AGI_CKPT=$D/ck3;gate $R1 $(mkc $R1 dg1 $AFB:$D/af);ok "k3-ckpt-crash-refused ckpt exits 3: refused (ckpt rc 3), never read as 'no blocks'" 'refused&&grep -q "ckpt rc 3" $D/out'
+printf '#!/bin/sh\necho "x abc y"\n'>$D/ckbad;export AGI_CKPT=$D/ckbad;gate $R1 $(mkc $R1 dg1 $AFB:$D/af);ok "k4-ckpt-nonnumeric-time-refused a holding block naming a non-numeric time: refused" 'refused&&grep -q "non-numeric" $D/out'
+export AGI_CKPT=$D/ck0;gate $R1 $(mkc $R1 dg1 $AFB:$D/af);ok "k0-control-empty-holding-list-admitted ckpt lists no block: the valid edit is admitted" '[ $r = 0 ]'
+# a push that changes NO node never calls agi-fill: python absent (shimmed to 127) does not refuse a ring-ruled schema change (the sentinel runs lazily, at the first agi-fill use)
+mkdir -p $D/nopy;printf '#!/bin/sh\nexit 127\n'>$D/nopy/python3;cp $D/nopy/python3 $D/nopy/python;chmod +x $D/nopy/*;SCH=.agi/context/schemas/zz-ckpt-lazy.md;printf -- '---\n---\nx\n'>$D/sch
+SAVE=$PATH;PATH=$D/nopy:$PATH;gate $R1 $(mkc $R1 owner1 $SCH:$D/sch);PATH=$SAVE;ok "k5-no-node-no-agi-fill an owner schema-only push with python and python3 shimmed to 127: admitted (agi-fill, hence the sentinel, never ran)" '[ $r = 0 ]'
+SAVE=$PATH;PATH=$D/nopy:$PATH;gate $R1 $(mkc $R1 dg1 $AFB:$D/af);PATH=$SAVE;ok "k6-node-edit-needs-agi-fill the same shim on a NODE edit: refused by the sentinel (agi-fill is python)" 'refused&&grep -q "agi-fill sentinel" $D/out'
 echo "grow-gate-ring5e-dg3: $f FAIL"
 exit $f

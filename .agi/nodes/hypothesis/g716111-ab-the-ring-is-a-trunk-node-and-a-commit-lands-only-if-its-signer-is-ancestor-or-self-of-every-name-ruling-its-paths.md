@@ -39,6 +39,10 @@ engine-grow.md (the grow-gate piece) and its measure line in engine.md; the ring
 
 ## HELD (named, not built)
 AA2.55 (two boxes, seed-only): UNRUN until a second box exists; named, not built.
+R4 (HELD, DG1 10-03, named not built): a post ABSENT from the ring commits lines signed by a key the ring does not name = a findings row on the ring lane (belam's R6 reading; no lane and no code in this round).
+
+## LIMIT (belam R6, ruled 10-03; the engine*.md route)
+(c) NOW: a node with NO ring: cell (engine*.md, the gate's own source) is ruled by any ring signer. The rail that stands in for a rule on those bytes: SM's mur (Sonnet) + the security mur + the FULL suite on every engine*.md change, and belam's root GO, which reads every engine byte before it is installed (belam's own act, never a post's). A pushed side branch can over-refuse (safe). THEN (a), as its OWN round AFTER the ring and ckpt are installed on the hub: SM's landings become signed fast-forwards and the ring names `[sanctuary-master]` as the ruler of engine*.md; (b) the rules cell stays unchosen. Until (a), a ring signer who is not the Prime can land an engine*.md edit through SM's gate and nothing else; do not read the ring as protecting engine*.md.
 
 ## CEILING
 1 parent - kids <= 1 - grow-gate bars as ruled by DG1: RING.3 5,450 B HARD (05:17Z), RING.4/RING.5/RING.5b 6,100 B HARD (05:44Z), RING.5c 6,350 B HARD (07:28Z, the last raise), with the ckpt round on top at 7,100 B HARD (the 2,855 B prototype figure is superseded) - config:engine and the seed 0 B - 1 new test file - 0 USD - regular review + security mur on root code.

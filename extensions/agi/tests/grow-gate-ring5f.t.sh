@@ -7,7 +7,7 @@ T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1 [rc=$r $(tail -1 $D/out 2>/dev/null|cut -c1-90)]";f=$((f+1));fi;}
 r=0
 o=$(git rev-parse $T)||exit 1;for x in sect grow-check grow-gate agi-fill;do git ls-tree --full-tree --name-only $o .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$o:|"|git cat-file --batch --follow-symlinks|sed -n "/^###* $x /,/^###* /{/^~~~/,/^~~~/{//!p}}">$D/b/$x;done
-[ "$GROW_GATE" ]&&cp $GROW_GATE $D/b/grow-gate;chmod +x $D/b/*;[ -s $D/b/grow-gate ]||{ echo "FAIL no grow-gate at $T";exit 99;}
+[ "$GROW_GATE" ]&&cp $GROW_GATE $D/b/grow-gate;[ -s $D/b/ckpt ]||printf "#!/bin/sh\nexit 0\n">$D/b/ckpt;chmod +x $D/b/*;[ -s $D/b/grow-gate ]||{ echo "FAIL no grow-gate at $T";exit 99;}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_RULES AGI_TRUNK;export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
 for n in owner1 belam1 alive1 sm1 dg1 dg1b dg2 atk;do ssh-keygen -qN "" -ted25519 -f$D/k/$n -C $n>/dev/null;done
 pk(){ cut -d' ' -f1,2 $D/k/$1.pub;}
@@ -81,7 +81,7 @@ TE=$(mkc $R1 owner1 "$MS:$D/moral-empty")
 x=$D/i;GIT_INDEX_FILE=$x git read-tree $R1;GIT_INDEX_FILE=$x git update-index --force-remove "$MS";TR=$(GIT_INDEX_FILE=$x git write-tree);rm -f $x;TD=$(sgn owner1 -p $R1 -m r5f $TR)
 gate $R1 $E0;ok "f3c-control-intact-moral-schema-admitted the tip with the INTACT [moral].md: dg1's valid edit is admitted (the sentinel reads rc 3)" '[ $r = 0 ]'
 gate $TE $(mkc $TE dg1 $AFB:$D/af);ok "f3a-moral-required-empty-refuses-every-push the tip holds [moral].md with required: [] (landed by the owner): dg1's valid edit is refused 'agi-fill sentinel' (named, by design)" 'refused&&grep -q "agi-fill sentinel" $D/out'
-gate $TE $(mkc $TE owner1 $MS:$(git show $o:$MS>$D/moral-ok;echo $D/moral-ok));ok "f3a2-owner-repair-push-also-refused the OWNER's repair push (restoring the intact [moral].md) on that tip is refused too: the sentinel reads the RECEIVING tip's schema (the repair path is a root-side re-land)" 'refused&&grep -q "agi-fill sentinel" $D/out'
+gate $TE $(mkc $TE owner1 $MS:$(git show $o:$MS>$D/moral-ok;echo $D/moral-ok));ok "f3a2-owner-repair-push-admitted the OWNER's repair push (restoring the intact [moral].md; it changes NO node, so the LAZY sentinel (the first agi-fill use inside k) never runs) on that broken tip is ADMITTED (RING.5h: the repair no longer needs a root-side re-land); the same tip refuses a NODE edit (f3a)" '[ $r = 0 ]'
 gate $TD $(mkc $TD dg1 $AFB:$D/af);ok "f3b-moral-removed-refuses-every-push the tip has NO [moral].md (removed): dg1's valid edit is refused 'agi-fill sentinel' (named, by design)" 'refused&&grep -q "agi-fill sentinel" $D/out'
 echo "grow-gate-ring5f: $f FAIL"
 exit $f
