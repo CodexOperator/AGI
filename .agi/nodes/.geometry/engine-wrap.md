@@ -17,12 +17,12 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-run (501 B)
+### agi-run (470 B)
 ~~~sh
 #!/bin/sh
-cd ~/t;c=-c;[ -e ~/.fresh ]&&rm ~/.fresh&&c=;stty cols 200 rows 50;i=$RUNTIME_DIRECTORY/i;f=$O/.agi/sessions/inbox/$AGI_SEAT.md
+cd ~/t;c=-c;[ -e ~/.fresh ]&&rm ~/.fresh&&c=;stty cols 200 rows 50;i=$RUNTIME_DIRECTORY/i
 (while sleep 300;do m=$((${AGI_PANE_MAX_MB:-64}<<20));[ $(stat -c%s ~/o 2>/dev/null||echo 0) -gt $m ]&&tail -c $((m/2)) ~/o>~/o.t&&cat ~/o.t>~/o;rm -f ~/o.t;done)&
-case $H in claude*)(s=$(stat -c%s $f 2>/dev/null||echo 0);while sleep 5;do n=$(stat -c%s $f 2>/dev/null||echo 0);[ $n -gt $s ]&&printf "mail: send.py read $AGI_SEAT">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
+case $H in claude*|pi*)(s=0;while sleep 5;do n=$(box n|wc -l);[ $n -gt $s ]&&printf "mail: box read">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
 exec strace -qqf -b execve -e%file -o'|agi-track' $H $c go
 ~~~
 
@@ -31,18 +31,18 @@ exec strace -qqf -b execve -e%file -o'|agi-track' $H $c go
 {"skipDangerousModePermissionPrompt":true,"hooks":{"PreToolUse":[{"hooks":[{"type":"command","command":"agi-captive"}]}],"SessionStart":[{"hooks":[{"type":"command","command":"agi-brief","timeout":180}]}],"UserPromptSubmit":[{"hooks":[{"type":"command","command":"agi-meter"}]}],"Stop":[{"hooks":[{"type":"command","command":"agi-turn"}]}]}}
 ~~~
 
-### cccc.ts (1647 B)
+### cccc.ts (1625 B)
 ~~~ts
-import{execSync as x}from"node:child_process";import{readFileSync as R,watchFile as W,unwatchFile as U}from"node:fs"
-const E=process.env,H=JSON.parse(R(E.HOME+"/.claude/settings.json","utf8")).hooks,N={bash:"Bash",read:"Read",edit:"Edit",write:"Write"};let b=""
+import{execSync as x}from"node:child_process";import{readFileSync as R}from"node:fs"
+const E=process.env,H=JSON.parse(R(E.HOME+"/.claude/settings.json","utf8")).hooks,N={bash:"Bash",read:"Read",edit:"Edit",write:"Write"};let b="",v
 const h=(n,j={})=>{let o="",k=0;for(const g of H[n]||[])if(!g.matcher||RegExp(g.matcher).test(j.tool_name))for(const c of g.hooks)try{o+=x(c.command,{input:JSON.stringify({hook_event_name:n,cwd:process.cwd(),...j}),encoding:"utf8",stdio:"pipe",timeout:(c.timeout||60)*1e3})}catch(e){if(e.status==2)k=2,o+=e.stderr}return{o,k}}
 const t=e=>({tool_name:N[e.toolName]||e.toolName,tool_input:e.input}),S=s=>{b=h("SessionStart",{source:s}).o}
 export default p=>{const on=(e,f)=>p.on(e,f);on("session_start",e=>{S({new:"clear",fork:"resume",reload:"resume"}[e.reason]||e.reason)
-const f=`${E.O}/.agi/sessions/inbox/${E.AGI_SEAT}.md`;U(f);W(f,{interval:5e3,persistent:!1},(n,o)=>n.size>o.size&&p.sendUserMessage("mail: send.py read "+E.AGI_SEAT,{deliverAs:"followUp"}))})
+let s=0;clearInterval(v);v=setInterval(()=>{try{const n=+x("box n|wc -l",{encoding:"utf8"}).trim();n>s&&p.sendUserMessage("mail: box read",{deliverAs:"followUp"});s=n}catch{}},5e3)})
 on("session_compact",()=>S("compact"));on("before_agent_start",e=>b&&{systemPrompt:e.systemPrompt+"\n\n"+b})
 on("input",(e,c)=>{const u=c.getContextUsage()||{},r=h("UserPromptSubmit",{prompt:e.text,tokens:u.tokens,context_window:u.contextWindow});return r.k?{action:"handled"}:r.o&&{action:"transform",text:e.text+"\n\n"+r.o}})
 on("tool_call",e=>{const r=h("PreToolUse",t(e));return r.k&&{block:true,reason:r.o}});on("tool_result",e=>{h("PostToolUse",t(e))})
-on("session_before_compact",()=>{h("PreCompact",{trigger:"auto"})});on("turn_end",()=>{h("Stop")});on("session_shutdown",()=>{h("SessionEnd",{reason:"other"})})}
+on("session_before_compact",()=>{h("PreCompact",{trigger:"auto"})});on("turn_end",()=>{h("Stop")});on("session_shutdown",()=>{clearInterval(v);h("SessionEnd",{reason:"other"})})}
 ~~~
 
 ### agi-kid (2037 B)
@@ -85,5 +85,5 @@ X
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PROPOSED v5 (round 5, §Q): v4c's wrapper pieces cut whole + agi-infer (owner 05:50Z): one OpenAI-compatible chat call; cells infer_url/infer_model/infer_key (a var NAME, never a key). ROUND 7: + agi-captive (the patched copy: the doc one lets `agi-fill close; cmd` through) + one PreToolUse line in settings.json + agi-infer cell infer_schema. agi-run + a pane trim loop (cell pane_max_mb, default 64). SPLIT: agi-fill moved to engine-grow.
+10-07 goal:g7.16.1.11.20 (director-general-3; lanes DG2 b94a30851 + a1425b7d5, box-wake.t.sh, 22 lanes): messaging is box mail. agi-run polls `box n|wc -l` (not the inbox file size) every 5 s, for claude AND pi harnesses, and types `mail: box read` + Enter when the count GROWS; s follows the count every tick, so mail after a read wakes the pane again. cccc.ts does the same from the pi extension: the pilot's `n>s&&(s=n,...)` only moved s UP, so after a read the next mail never woke the pane; here `n>s&&send;s=n`, with ONE interval (cleared on a second session_start and on shutdown). Neither piece names send.py or sessions/inbox any more. The ~/o cap loop is KEPT in agi-run (the pilot dropped it). Sizes: agi-run 470 B (the trunk header said 501 B; the piece measured 573), cccc.ts 1625 B (was 1647); engine.md's map lines for both changed with them (fenced 7,533 -> 7,536 B, whole 9,307 -> 9,310 B). Prior THOUGHT (v5 rounds 5 and 7: the wrapper pieces, agi-infer, agi-captive, the pane trim loop): grid history.
 <!-- THOUGHT:END -->
