@@ -31,18 +31,18 @@ ENGINE QUEUE = NEXT SEASON, not built: pq, revoke(+LC_ALL=C), flowrot, round B m
 LANDED (local trunk, pushed): CKPT.3, OUT.7, OUT.8, goals 1007d (120296316) + 1007e (5175738fb).
 SM rotates (meter 0.40): his successor gates from his card; send [merge-up]s as usual. SM 17:00Z: FULL suite on the g3.8 union ad08961a4 = 7,914/0.
 .19 VERIFY 17:3xZ: SM RETURNED verify6 0c6fc2d9a3 (mur-sm22: D1-D6 + (a) MET, 623/0 pytest) for R1 = _write_state :889 swallows OSError for ANY owner (loud->silent); RULED: route via _io_failed (own dir ERROR rc 2), N1 test header '2. SKIP-only is NOT green', N2 _perm_skip needs os.path.exists; DG2 lanes 4dd2c1cf89 RUN by me on 0c6fc2d9a3 = 43 ok / 2 FAIL (d2d d6e); DG2 found _IO_ERRORS.clear() at :2381 AFTER run_level wipes the baseline error -> move before (accepted); N2 REFINED: vanished = os.stat FileNotFoundError, PermissionError (under a mode-000 dir) stays SKIP; DG2 adds d2e, DG3 builds (46 lanes). Was: dg3-verify6 0c6fc2d9a3 (trunk 5f672d11e5) RUN by me: lanes 42/0 (c4d60a0b32 blob-identical), both rotate.py callers read only rc 0 as pass; DG3 pytest 125 passed + 8 fails identical on the trunk. [merge-up] SENT 17:2xZ ("pane busy", sweep retries); choices (a) suite-only SKIP vetoes, (b) rc 2 write error ACCEPTED. The skip-only test renamed test_skip_only_is_not_green (my 16:39Z ruling).
-g3.8 #3 dg3-gmetrics2 0ee6c275a5 (metrics_cell.py guard before AND after cmd; commit by path only if body==HEAD and only the cell/edited_by differ): lanes 38/0 (1ea73255c2 blob-identical), my probes: clean node ok; hand edit during the run = skip; stub write.py landing a foreign season edit + exit 3 = ERR rc 3, nothing committed. [merge-up] 2 of 2 SENT 17:3xZ to SM.
-g4.13.1 #3 dg3-gridcas2 b00c1db1fb (cut from the live trunk, 8 gridcas commits replayed + the flatten ' | '; REPLACES f8e756801b): grid-collapse 53/0 (also from /tmp), payload 0 FAIL. [merge-up] 1 of 2 SENT. Both "pane busy", sweep retries.
-.20 messaging: dg3-boxwake 954522af59 (engine-wrap agi-run 470 B / cccc.ts 1,625 B, engine.md map lines; fenced 7,435->7,438, whole 9,310) RUN by me: box-wake.t.sh 22/0 (69 s), lane blob == a1425b7d5. [merge-up] SENT 17:4xZ.
-VERIFY 17:5xZ: DG3 dg3-verify6 3202c45a46 (R1+clear+N2+N1) lanes 47/0 RUN by me; MY PROBE: _perm_skip `except OSError` SKIPs ELOOP/ENAMETOOLONG too (ruling: PermissionError only) -> [return] DG3 one line (except PermissionError skip; except OSError continue) + DG2 lane d2g; NOT yet forwarded to SM (hold until the fix). .19 verify6 residue: DG2 lanes fec6d09c44 (47 ok on reference) RUN by me on 0c6fc2d9a3 = 44 ok / 3 FAIL (d2d d2f d6e). DG3 GO (R1 + clear moved before run_level + N2 os.stat + N1); his sha next.
+LANDED 17:5xZ by SM (pushed): g4.13.1 #3 dg3-gridcas2 b00c1db1fb = 5895e8bea5; g3.8 #3 dg3-gmetrics2 0ee6c275a5 = 1e930932ea (union 36e1bf2c30: FULL 7,915/0, mur accept). LIVE watch is SM's: grid_sync */5 tick (new grid.py) + crons.py apply installs graph_metrics, first :23 at 18:23Z (cell metrics_line on town:local-maxxing, belam writes).
+.20 messaging: dg3-boxwake 954522af59 RETURNED by me (SM asked who sends box mail): `box send` is post-side only, send.py writes ONLY the inbox file, nobody sends box mail -> dropping the inbox poll orphans every wake. MY MISS (lanes s1/s2 encoded the full removal). Re-cut = DUAL ROUTE (inbox poll as on the trunk + box n poll; each types its OWN line); pure-box cutover = a LATER leaf with belam's GO. DG2 lanes first (s1 inverts to a control), DG3 after the verify narrowing. Not forwarded.
+.19 verify6: dg3-verify6 3202c45a46 (R1+clear+N2+N1) lanes 47/0 RUN by me; MY PROBE: _perm_skip `except OSError` SKIPs ELOOP/ENAMETOOLONG too -> DG2 lanes e982db19e7 (d2g d2h, RED 47 ok/2 FAIL on 3202c45a46) RUN by me; DG3 GO (except PermissionError skip; except OSError continue). NOT yet forwarded to SM: hold for his sha.
 A12 stays ROLLED BACK (belam's install GO).
 ```
 
 ## 🔴 Where it stops + the exact next command
-Waiting on mail. Next: `cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE after ts 17:27:37Z.
-1. SM (successor) verdicts on .19 verify6 0c6fc2d9a3, g4.13.1 #3 b00c1db1fb, g3.8 #3 0ee6c275a5: a return = a NEW DG3 commit, DG2 lane first for survivors; then I run it and forward. A landed = strike it here.
-2. DG3 .20 build sha: scratch worktree at it, box-wake.t.sh 0 FAIL, cmp the lane blob, size of the pieces, a pi probe, the cap loop; then [merge-up] to SM.
-3. After the first :23 run (belam's crons apply) nothing is mine; agi-signers retire = belam's GO. Never invent goals.
+Waiting on mail. Next: `cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE after ts 17:53:10Z.
+1. DG3 verify6 narrowing sha (on 3202c45a46): scratch worktree, lane blob == e982db19e7 (49 ok), my probe again (ELOOP + ENAMETOOLONG path = FAIL; mode-000 dir = SKIP), then [merge-up] .19 to SM (the whole range 0c6fc2d9a3..sha).
+2. DG2 dual-route lanes sha -> RED on 954522af59; DG3 dual-route build -> I run box-wake.t.sh at it + a probe: ONE inbox append and ONE box mail each wake once with their OWN line, the cap loop untouched, bytes measured -> [merge-up] .20 to SM.
+3. SM's first live :23 (18:23Z) and grid_sync tick: if F1-F5 (BANKED §6) bite, they become correctives.
+Never invent goals; agi-signers retire = belam's GO.
 
 ## §4 Traps
 | trap | rule |
@@ -68,6 +68,8 @@ Waiting on mail. Next: `cd /var/lib/agi/director-general-1/t && python3 extensio
 ## §5 Verification: links.py links 0 broken (SM re-checks at landing) · yaml parse every changed node · armour grep 0 · every return run at the sender's sha before forwarding
 
 ## §6 BANKED
+- SM mur follow-ups on the landed g3.8/g4.13.1 (NOT built, scope): F1 ms window: a hand edit of ONLY edited_by/the cell between the 2nd guard and write.py rides the job commit (content edits ERR) · F2 success_metrics src_avg_tokens_per_turn parses row 1 only (moot: UNMEASURED) · F3 metrics_cell.py producer has no timeout/overlap flock (bounded by 900 s) · F4 grid.py _rename_ref folds any create failure into 'conflict', no stderr (6053fee3b9) · F5 CAS-miss detection matches English git text (fails loud). Corrective only if the first live :23 / grid_sync tick shows one.
+- the pure-box cutover (drop the inbox poll in agi-run/cccc.ts) = a later leaf after send.py delivers to box or every sender is on `box send`: belam's GO.
 - next belam: promote goal g7.16.1.11.17 horizon -> active (owner: "a lot more doable sooner"); install GOs (A12 unit re-install with the preconditions above, A10 ckpt on the hub with the first holding block cut by hand at each ring-signer rotation, agi-signers retires in the ring-install step, the land step: agi-land installed readable + ONE real land); the graph_metrics cron applies on belam's crons.py apply.
 - alive/belam: crons.md node duplicate YAML key is silently last-wins for EVERY job (a crons.py loader change, not done: scope).
 - trunk red test_exactly_one_template_heading (belam's thought-master row seeds): belam's.
