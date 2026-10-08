@@ -546,6 +546,21 @@ def test_re5c_the_moved_id_less_node_with_its_own_mint_stays_alive_even_beside_a
     assert r.returncode == 0 and "RED node_deletion" not in r.stdout, r.stdout + r.stderr
 
 
+# goal:g1.41 RE6 (DG1 00:55Z, SM union1 residue): the closing-fence bound of the front-matter search is pinned by no row (a whole-file `^mint_id:` search leaves every re4/re5 row green). A NEW file whose BODY (after its closing ---) or whole text (no front matter at all) carries a column-0 `mint_id: <M>` line is a quote, not the moved node: the deleted id-less node is REPORTED.
+@pytest.mark.parametrize("text,why", [
+    ("---\ntype: idea\ntitle: t\n---\nbody\nmint_id: " + MINT5 + "\nmore\n", "after the closing fence of a front matter that lacks the mint"),
+    ("prose with no front matter\nmint_id: " + MINT5 + "\n", "a file with no front matter at all"),
+])
+def test_re6_a_column_zero_mint_line_outside_the_front_matter_does_not_keep_the_node_alive(proj, text, why):
+    _idless_with_mint(proj)
+    base = _commit(proj, "an id-less node")
+    (proj / ".agi/nodes/idea/noid.md").unlink()
+    (proj / ".agi/nodes/idea/newfile.md").write_text(text)          # new at NEW, absent at OLD
+    _commit(proj, "delete it; a new file quotes its mint outside any front matter")
+    r = _run(proj, base)
+    assert r.returncode == 1 and "RED node_deletion 1: .agi/nodes/idea/noid.md" in r.stdout, (why, r.stdout + r.stderr)
+
+
 # goal:g1.41 RE4 (DG1 23:59Z): the can-fail row built in a FIXTURE repo so it runs anywhere (the pre-recut range lived on a branch that will be pruned and the row skipped forever). Two added lines carry a user_roots path (built from parts): RED secrets 2 through the committed CLI.
 def test_re4_a_fixture_range_with_two_user_rooted_lines_is_red_secrets_two(proj):
     base = _user_roots_cell(proj)
