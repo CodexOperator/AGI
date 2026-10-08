@@ -38,7 +38,7 @@ Depth 0 = diagram · 1 = loop + pieces · 2 = one piece: `sect <name>` (any `.ge
 
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
-agi-post@.service 1801 B  a post = one unit in agi.slice: own uid, tree, key, pane
+agi-post@.service 2238 B  a post = one unit in agi.slice: own uid, tree, key, pane
 agi-run           773 B  pane cmd: .fresh or -c, under strace; claude: inbox, claude|pi: box -> i
 settings.json      342 B  the ONE hook wiring: brief, meter, turn commit
 cccc.ts           1956 B  pi events -> those CC hooks; inbox + box mail -> a turn
@@ -59,7 +59,7 @@ agi.rules          211 B  group agi may start agi-post@ units
 project.sh         161 B  what the body SHOULD be
 observe.sh         255 B  what the body IS
 tick.sh            254 B  diff them; start the drift; commit
-agi-project       2300 B  the genome: units + cells for v4 rows
+agi-project       2430 B  the genome: units + cells for v4 rows
 agi-frontier       460 B  each active goal runs its falsifier
 agi-gate           404 B  refuse a tip whose body would not regrow; one name, one piece
 sect               214 B  ONE piece of any engine*.md node, byte-exact, any REV
@@ -71,23 +71,23 @@ ckpt              3444 B  a block = signed hand-offs at one tip; check lists tho
 grow-project      1185 B  schemas -> the growth matrix
 agi-land          1855 B  root: ff-lands a post range on the trunk, one parent edge up (ring-signed, grow-gate, agi-gate)
 box               2005 B  mail: one signed ref update per send (5x CAS), read from the store
-box-carry         3246 B  root: P's refs/box/P/<Q> -> the recipient's store (pipe, ff-only) or the hub; --fetch = the timer
+box-carry         3253 B  root: P's refs/box/P/<Q> -> the recipient's store (pipe, ff-only) or the hub; --fetch = the timer
 agi-signers       1727 B  root: the ONE allowed_signers, every key generation, valid-after/before; one strict key line
 agi-carry@.path     149 B  PathChanged on the sender's own refs/box/<P> (a unit on refs/box fires only on the first send)
-agi-carry@.service  287 B  oneshot: box-carry %i
+agi-carry@.service  308 B  oneshot: box-carry %i
 agi-carry-fetch.timer   88 B  every 60 s: carry each local post, then the hub      
 agi-carry-fetch.service 229 B  oneshot: box-carry --fetch
 ~~~
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-project (2300 B)
+### agi-project (2430 B)
 ~~~sh
 #!/bin/sh
 o=$1 r=$2 w=$1/multi-user.target.wants;g(){ echo "$r:.agi/nodes/.geometry/$1"|git cat-file --batch --follow-symlinks|{ read a t s;[ "$t" = blob ]&&head -c $s;};};s(){ git ls-tree --full-tree --name-only $r .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$r:|"|git cat-file --batch --follow-symlinks|sed -n "/^### $1 /,/^##/{/^~~~/,/^~~~/{//!p}}";}
 u=$(s agi-post@.service);[ "$u" ]||exit 3;P=$(printf '%s\n' "$u"|sed -n 's/^Environment=PATH=\([^ ]*\).*/\1/p'|tr : '\n'|while read d;do [ -f $d/pi ]&&[ -x $d/pi ]&&echo $d&&break;done);[ "$P" ]||{ g posts.md|sed -n 's/^  - {/{/p'|jq -e --arg b ${AGI_BOX:-local-town} 'select(.box==$b and .engine.v==4)|.+.engine|select(.harness|test("^pi"))'>/dev/null;[ $? = 4 ]||exit 3;}
 mkdir -p $w;rm -f $w/agi-post@*;printf '%s\n' "$u">$o/agi-post@.service;:>$o/agi-users.conf
-g posts.md|sed -n 's/^  - {/{/p'|jq -r --arg p "$P" --arg b ${AGI_BOX:-local-town} 'select(.box==$b and .engine.v==4)|.+.engine|[.name,if .harness|test("^pi") then "node \($p)/pi --provider openrouter --model \(.model) --thinking \(.effort) --skill skills -e ../bin/cccc.ts" else "claude --remote-control \(.name) --model \(.model) --effort \(.effort) --permission-mode bypassPermissions" end,([.engine|to_entries[]|"\"AGI_\(.key|ascii_upcase)=\(.value)\""]+["AGI_ROLE=\(.role)","AGI_LADDER_TIER=\(.tier)","AGI_BOX=\(.box)"]|join(" ")),.boot==true]|@tsv'|while IFS='	' read p h e b;do [ $b = true ]&&ln -s ../agi-post@.service $w/agi-post@$p.service;mkdir -p $o/agi-post@$p.service.d;printf '[Service]\nEnvironment="H=%s" O=%s %s\n' "$h" "$(git rev-parse --show-toplevel)" "$e">$o/agi-post@$p.service.d/h.conf;s sysusers.conf|sed s/@/$p/g>>$o/agi-users.conf;done
+g posts.md|sed -n 's/^  - {/{/p'|jq -r --arg p "$P" --arg b ${AGI_BOX:-local-town} 'select(.box==$b and .engine.v==4)|.+.engine|select(.name|(type=="string" and test("^[a-z][a-z0-9-]{0,27}\\z")) or (debug(@json "agi-project: skipped post name \(.)")|false))|[.name,if .harness|test("^pi") then "node \($p)/pi --provider openrouter --model \(.model) --thinking \(.effort) --skill skills -e ../bin/cccc.ts" else "claude --remote-control \(.name) --model \(.model) --effort \(.effort) --permission-mode bypassPermissions" end,([.engine|to_entries[]|"\"AGI_\(.key|ascii_upcase)=\(.value)\""]+["AGI_ROLE=\(.role)","AGI_LADDER_TIER=\(.tier)","AGI_BOX=\(.box)"]|join(" ")),.boot==true]|@tsv'|while IFS='	' read p h e b;do [ $b = true ]&&ln -s ../agi-post@.service $w/agi-post@$p.service;mkdir -p $o/agi-post@$p.service.d;printf '[Service]\nEnvironment="H=%s" O=%s %s\n' "$h" "$(git rev-parse --show-toplevel)" "$e">$o/agi-post@$p.service.d/h.conf;s sysusers.conf|sed s/@/$p/g>>$o/agi-users.conf;done
 printf '[Service]\nType=oneshot\nWorkingDirectory=%s\nEnvironment=GIT_NO_REPLACE_OBJECTS=1 GIT_NO_LAZY_FETCH=1\nExecStart=sh -c "echo %s:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n \047/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}\047|sh -s %s %s&&ls %s/agi-post@*.service.d/h.conf>/dev/null&&systemctl daemon-reload&&systemd-sysusers %s/agi-users.conf"\n' $PWD $r $o $r $o $o>$o/agi-project.service
 printf '[Path]\nPathChanged=%s/logs/%s\n' $(git rev-parse --absolute-git-dir) $(git rev-parse --symbolic-full-name $r)>$o/agi-project.path;ln -sf ../agi-project.path $w
 ~~~

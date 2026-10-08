@@ -66,8 +66,8 @@ mkdir $T/fk;printf '#!/bin/sh\necho "$*">>%s/rulog\nexit 1\n' $T>$T/fk/runuser;p
 echo order5|box A belam send alive;(PATH=$T/fk:$PATH RUN=runuser carry A belam 2>/dev/null)
 ok k3d-runuser-was-tried 'grep -q "agi-belam" $T/rulog'
 ok k3d-no-root-fallback '! grep -q -E "/(belam|alive|sm|dg5)/g.git" $T/gitlog'
-# fail closed: an unreadable matrix or an unknown sender carries nothing and exits non-zero
-carry A ghost 2>/dev/null;ok k3e-unknown-sender-refused '[ $? != 0 ]'
+# an unreadable matrix exits non-zero (restart-bounds.t.sh a3-box-carry-a-missing-matrix); an unknown sender carries nothing and exits 0 -- goal:g1.41 A3: rc 1 restarted the unit every 5 s for a post absent at the pin
+carry A ghost 2>/dev/null;ok k3e-unknown-sender-carries-nothing-and-exits-0 '[ $? = 0 ]'
 # the matrix is read at a PINNED sha: an unpinned trunk (a ref, HEAD) refuses to run, and a refs/replace entry a post can write does not change a cell
 echo m0|box A sm send alive;TRK=HEAD carry A sm 2>/dev/null;ok k0-unpinned-trunk-refused '[ "$(tip A alive refs/box/sm/alive)" = none ]'
 old=$($G -C $T/r rev-parse $TR:.agi/nodes/.geometry/posts.md);nw=$($G -C $T/r cat-file -p $old|sed 's/"name":"dg1","parent":"sm","harness":"claude","box":"B"/"name":"dg1","parent":"sm","harness":"claude","box":"A"/'|$G -C $T/r hash-object -w --stdin);$G -C $T/r replace $old $nw
