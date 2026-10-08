@@ -50,6 +50,7 @@ def _home(tmp_path, monkeypatch):
     h = tmp_path / "home"
     h.mkdir()
     monkeypatch.setenv("HOME", str(h))
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "xdg-cache"))   # legacy.cache_path() prefers it: without this an in-process row writes the USER's real ${XDG_CACHE_HOME}/agi/legacy.v1.tsv
     monkeypatch.setenv("GIT_CONFIG_GLOBAL", "/dev/null")
     monkeypatch.setenv("GIT_CONFIG_SYSTEM", "/dev/null")
     for k in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"):
@@ -1102,3 +1103,45 @@ def test_i5_a_mutant_that_forgets_the_memo_each_redraw_makes_the_equal_window_ro
     out = run_interactive(tmp_path, repo, "jlq", bin_dir=d)
     with pytest.raises(AssertionError):
         check_equal_window_runs_no_git(out)
+
+
+# ---- x: the lane never writes a user's REAL cache (DG1 21:4xZ, SM's gate: with XDG_CACHE_HOME set in the environment the in-process rows wrote ${XDG_CACHE_HOME}/agi/legacy.v1.tsv) ----
+
+FIXTURE_LINE = '    monkeypatch.setenv("XDG_CACHE' + '_HOME", str(tmp_path / "xdg-cache"))'   # built in two parts so this definition is not a second copy of the line
+
+
+def nested_pytest(tmp_path: Path, test_file: Path, decoy: Path, *extra: str) -> subprocess.CompletedProcess:
+    """pytest on `test_file` in a CHILD process whose environment carries XDG_CACHE_HOME=<decoy> (the box of a user who has one set)."""
+    tmpdir = tmp_path / "nested-tmp"
+    tmpdir.mkdir(exist_ok=True)
+    env = {**os.environ, "XDG_CACHE_HOME": str(decoy), "LEGACY_BIN": str(BIN), "TMPDIR": str(tmpdir)}
+    return subprocess.run([sys.executable, "-m", "pytest", "-p", "no:cacheprovider", "-q", str(test_file), *extra], capture_output=True, text=True, env=env, timeout=900)
+
+
+def test_x1_the_fixture_points_the_cache_at_the_tmp_dir_whatever_the_environment_says(tmp_path):
+    """Inside a row, XDG_CACHE_HOME is under this row's tmp dir (the autouse fixture overrode the user's) and legacy.cache_path() resolves under it."""
+    assert Path(os.environ["XDG_CACHE_HOME"]).is_relative_to(tmp_path), os.environ["XDG_CACHE_HOME"]
+    assert Path(load_legacy().cache_path()).is_relative_to(tmp_path), load_legacy().cache_path()
+
+
+def test_x2_a_whole_file_run_with_a_decoy_xdg_cache_home_leaves_the_decoy_empty(tmp_path):
+    """The file run in a child process with XDG_CACHE_HOME=<decoy dir> in its environment (this row and the next excluded): every other row passes and the decoy holds NOTHING."""
+    decoy = tmp_path / "decoy"
+    decoy.mkdir()
+    r = nested_pytest(tmp_path, HERE, decoy, "-k", "not decoy")
+    assert r.returncode == 0 and " passed" in r.stdout, (r.returncode, r.stdout[-400:], r.stderr[-300:])
+    assert sorted(decoy.rglob("*")) == [], f"the lane wrote into the user's cache dir: {sorted(decoy.rglob('*'))[:5]}"
+
+
+def test_x3_a_mutant_without_the_fixture_line_writes_the_decoy_cache_red_control(tmp_path):
+    """The control for x2: a copy of this file WITHOUT the fixture's XDG_CACHE_HOME line (one edit) run the same way on the in-process rows that fill the cache (d1b): the decoy is NOT empty."""
+    src = HERE.read_text()
+    assert src.count(FIXTURE_LINE) == 1, "the lane's patch point moved"
+    mut = tmp_path / "mut" / "test_legacy_mut.py"
+    mut.parent.mkdir()
+    mut.write_text(src.replace(FIXTURE_LINE, "    pass"))
+    decoy = tmp_path / "decoy"
+    decoy.mkdir()
+    r = nested_pytest(tmp_path, mut, decoy, "-k", "d1b and not decoy")
+    assert r.returncode == 0, (r.returncode, r.stdout[-400:], r.stderr[-300:])
+    assert sorted(decoy.rglob("*")) != [], "the mutant did not write the decoy cache: row x2 could not fail"
