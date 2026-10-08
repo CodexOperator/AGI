@@ -1,6 +1,6 @@
 #!/bin/sh
 # host-act-encryption-town.t.sh: the REHEARSAL of extensions/agi/guard/host-act-encryption-town.sh (ROOT=<scratch>, no systemd, no root): step 0 + the act + the rollback + the per-post move, on a scratch MAIN holding the REAL geometry. One ok/FAIL line per case; exit = FAIL count. ACT=<script copy> runs a mutant.
-T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;R0=$(cd "$(dirname "$0")/../../.." && pwd);ACT=${ACT:-$R0/extensions/agi/guard/host-act-encryption-town.sh};GEO=$R0/.agi/nodes/.geometry
+umask 022;T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;R0=$(cd "$(dirname "$0")/../../.." && pwd);ACT=${ACT:-$R0/extensions/agi/guard/host-act-encryption-town.sh};GEO=$R0/.agi/nodes/.geometry
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_AUTHOR_NAME GIT_COMMITTER_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_EMAIL;export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
 sect(){ cat $GEO/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
@@ -31,12 +31,15 @@ ok f1-main-acl-group-rwx-and-default-on-the-four-dirs "(for d in objects refs lo
 mkdir $GD/refs/heads/zz $GD/objects/zz
 ok f2-a-dir-made-later-inherits-the-group-acl "getfacl -p $GD/refs/heads/zz 2>/dev/null|grep -qx \"group:$GG:rwx\"&&getfacl -p $GD/objects/zz 2>/dev/null|grep -qx \"default:group:$GG:rwx\""
 rmdir $GD/refs/heads/zz $GD/objects/zz
+IB=$X/data/work/agi/.agi/sessions/inbox
+ok g1-inbox-has-group-rwx-default-rw-and-mode-775 "getfacl -p $IB 2>/dev/null|grep -qx \"group:$GG:rwx\"&&getfacl -p $IB 2>/dev/null|grep -qx \"default:group:$GG:rw-\"&&[ \$(stat -c %a $IB) = 775 ]"
 # ---- the rollback: back to the before-state, modes included ----
 rb=$(sed -n 's/.*rollback: sh //p' $T/a.out);sh $rb>$T/rb.out 2>&1;rr=$?
 ok b1-rollback-restores-an-untouched-E "[ $rr = 0 ]&&[ \"\$(tree)\" = \"$before\" ]"
-ok b2-rollback-restores-the-main-acl-and-drops-the-worktrees-dir "[ \"\$(acls)\" = \"\$acl0\" ]&&[ ! -e $GD/worktrees ]"
+ok b2-rollback-restores-the-main-acl-and-drops-the-worktrees-dir "[ \"\$(acls)\" = \"\$acl0\" ]&&[ ! -e $GD/worktrees ]&&[ ! -e $IB ]"
 # ---- an E with an old file of non-default mode: restored with its bytes and mode ----
-mk c;mkdir -p $X/etc/agi;echo OLD>$X/etc/agi/carry.env;chmod 640 $X/etc/agi/carry.env;before=$(tree);run sh $ACT act>$T/c.out 2>$T/c.err;rc=$?;rb=$(sed -n 's/.*rollback: sh //p' $T/c.out);sh $rb>/dev/null 2>&1
+mk c;mkdir -p $X/data/work/agi/.agi/sessions/inbox;chmod 750 $X/data/work/agi/.agi/sessions/inbox;mkdir -p $X/etc/agi;echo OLD>$X/etc/agi/carry.env;chmod 640 $X/etc/agi/carry.env;before=$(tree);run sh $ACT act>$T/c.out 2>$T/c.err;rc=$?;rb=$(sed -n 's/.*rollback: sh //p' $T/c.out);sh $rb>/dev/null 2>&1
+ok c2-an-old-inbox-comes-back-with-its-mode-and-no-group-acl "[ \$(stat -c %a $X/data/work/agi/.agi/sessions/inbox) = 750 ]&&! getfacl -p $X/data/work/agi/.agi/sessions/inbox 2>/dev/null|grep -q '^[a-z:]*group:[a-z]'"
 ok c1-an-old-carry-env-comes-back-with-its-bytes-and-mode "[ $rc = 0 ]&&[ \"\$(cat $X/etc/agi/carry.env)\" = OLD ]&&[ \$(stat -c %a $X/etc/agi/carry.env) = 640 ]&&[ \"\$(tree)\" = \"$before\" ]"
 # ---- refusals write NOTHING ----
 mk d;before=$(tree);run env PIN=zz sh $ACT act>/dev/null 2>$T/d1.err;r1=$?;run env PIN=0000000000000000000000000000000000000000 sh $ACT act>/dev/null 2>$T/d2.err;r2=$?;rm $X/opt/agi/bin/pi;run sh $ACT act>/dev/null 2>$T/d3.err;r3=$?
@@ -49,6 +52,7 @@ M=$X/data/work/agi;sed -i 's/"effort":"low"}}/"effort":"high"}}/' $M/.agi/nodes/
 mkdir -p $X/run/systemd/system/${PU}xp.service.d;: >$X/run/systemd/system/${PU}xp.service.d/h.conf;mkdir -p $X/run/systemd/system/multi-user.target.wants
 run env PIN=$PIN2 sh $ACT move xp>$T/e.out 2>$T/e.err;re=$?
 ok e1-move-bumps-the-pin-and-keeps-the-old-env "[ $re = 0 ]&&grep -qx \"AGI_TRUNK=$PIN2\" $X/etc/agi/carry.env&&grep -qx \"AGI_TRUNK=$PIN\" $X/etc/agi/carry.env.before-xp&&grep -q 'moved: xp' $T/e.out"
+ok e5-move-names-the-agi-box-a-shell-on-E-needs "grep -q 'needs AGI_BOX=encryption-town' $T/e.out"
 cp $X/etc/agi/carry.env $T/env.keep;run env PIN=$PIN2 sh $ACT move lp>/dev/null 2>$T/e2.err;re2=$?
 ok e2-a-post-whose-row-is-another-box-is-refused-and-nothing-changes "[ $re2 != 0 ]&&grep -q 'is not box encryption-town' $T/e2.err&&cmp -s $X/etc/agi/carry.env $T/env.keep"
 rm -rf $X/run/systemd/system/${PU}xp.service.d;ln -s ../agi-post@.service $X/run/systemd/system/multi-user.target.wants/${PU}xp.service;run env PIN=$PIN2 sh $ACT move xp>/dev/null 2>$T/e4.err;re4=$?
