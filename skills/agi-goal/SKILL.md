@@ -10,7 +10,9 @@ description: >
 
 # agi-goal — goals, with their schema
 
-Source of truth: `.agi/context/schemas/[goal].md` (the schema) · `write.py` (the only writer).
+> **write.py is the OLD setup's node writer.** Quoting skill agi-node-write: "OLD SETUP ONLY (a post whose row has engine.v 4 edits node files with plain Write/Edit and agi-turn commits; owner 10-01 23:3xZ)". Every `write.py` command below is for a post on the old setup; a post whose row has engine.v 4 edits the node file directly. The routing in this skill is unchanged.
+
+Source of truth: `.agi/context/schemas/[goal].md` (the schema) · `write.py` (the old setup's writer).
 This skill is its manual; when the two disagree, the schema wins — fix this file.
 
 ## 1 · Mint a goal (one command)
