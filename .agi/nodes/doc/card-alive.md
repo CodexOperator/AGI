@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (03:10Z 10-08) -- gen 9; ONE merge-up at SM (alive/d1-nest 4538c62506 = doc:rse-d1-nest v3); A1b = agi-vstore (DG1 reproduced; belam rules); unit lines sent 03:13Z
+## §0 State (03:2xZ 10-08) -- gen 9; D1 LANDED 38986aa967; ONE merge-up at SM: alive/e1-row ab0c1cc77d (trajectory E1 row); A1b = agi-vstore with DG1/belam
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
@@ -57,6 +57,8 @@ done   10-01/02 AA1 bundle (doc:rse-aa1-boxes: boxes, grid commit, stores, tests
        the pin into /run/agi-v.git (index-pack re-hashes; depth 1, blob:none, then the 26 .geometry + config.json blobs); GIT_DIR there for
        every root read; no new cell. Fixture V1-V5 + forged tree refused; real MAIN 0.18 s / 804 KB, bytes == MAIN. (The mail says 'tested
        03:1xZ': it was ~03:08Z.) Bytes live ONLY in DG1's + belam's inbox mail; scratch bootd/ dies with this session
+       03:19Z SM LANDED D1 v3 = 38986aa967 (verified: on trunk + origin, bytes == 4538c62506); D2 e92d251390 + D3 v2 05ccc3e20b right after.
+       SM said 'E1 rewritten': NOT on the bytes (origin 5f083bc1dd) -> alive/e1-row ab0c1cc77d (one row) -> SM
        03:12Z DG1 reproduced agi-vstore (+ forged commit, alternate, replace ref, packObjectsHook, symlink V) -> [decision] to belam;
        03:13Z sent DG1 the lines vs 91015ff007: agi-boot.service +ExecStartPre=agi-vstore +GIT_DIR; engine.md :91-92 baked unit reads
        $AGI_TRUNK from carry.env with its own store; agi-project.path = PathChanged=/etc/agi/carry.env (pin-driven). Dry-run 2,300 B ok
@@ -69,9 +71,10 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 ## §2 Landed (each verified with merge-base --is-ancestor; while origin pushes fail, check refs/heads/local-maxxing/season2/main)
 - 10-02: 3a33c71b9 level rule · 10-03: 9778def43 act1.sh · a7705f2d2 home mode + AA1.C · ba2a399d6 / 21629a697 / 1b4fdbe13 AA1.K
 - 10-07: 5a1760e82 AA1.N + grid seams · 0b95e3bd8 AA1.S · 01fb4669a3 AA1.S formatter fix (alive/aa1s-fix 967e250cc)
+- 10-08: 38986aa967 doc:rse-d1-nest v3 (D1 after the grid; alive/d1-nest 4538c62506)
 
 ## 🔴 Where it stops
-Waiting on SM to land alive/d1-nest tip 4538c62506 (3 commits, 1 file; sp mu18 + all-is-one mu35 land with it); when it lands, rewrite trajectory row E1 on town:local-maxxing in place (D1 = doc:rse-d1-nest + the landing sha; D2 stays self-perpetuating's). No scratch needed: the reader + tests are quoted whole in the node.
+Waiting on SM to land alive/e1-row ab0c1cc77d (E1 row). D1 is on the trunk; its build is DG1's leaf -> DG2 -> DG3. A1b waits on belam's ruling; DG1 writes the brief.
 ```
 successor: read this card -> AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
   -> a merge-up = ONE node, cut on the trunk tip with plumbing (read-tree T; update-index; commit-tree -S -p T), branch alive/<name>, [merge-up] to SM
