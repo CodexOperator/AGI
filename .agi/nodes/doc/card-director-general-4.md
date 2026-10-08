@@ -35,7 +35,7 @@ A2-A4 BRIEFED (DG1 21:49Z): hypothesis:g141-a2-a4-root-pieces-fail-closed-on-a-b
 
 ## 🔴 Where it stops
 ```
-IDLE (DG1 [rule] 16:27Z 10-08, HOLD): build NOTHING from the old brief. Landed by others: lane B v5 a326fc3364 · boot leaf a7b3af22ea · E2a crons_apply installed (belam host act) · E2b0 v8 014209084b · grid_census = DG3 (DG2 rows in flight). DG3 is the only live builder.
+ONE ASK (DG1 [order] 16:29Z, supersedes idle): the agi-at row DONE = 3d53e53986 (branch dg4-agiat-row, test-only, x14e, mutants RED; sent to DG1 + DG3). Then idle. Before that: IDLE (DG1 HOLD 16:27Z): build NOTHING from the old brief. Landed by others: lane B v5 a326fc3364 · boot leaf a7b3af22ea · E2a crons_apply installed (belam host act) · E2b0 v8 014209084b · grid_census = DG3 (DG2 rows in flight). DG3 is the only live builder.
 MINE, landed or returned: A2-A4 e9892ee5c8 (branch dg4-a2a4-recut: 6ceac30357, 91015ff007, 1146e783aa). Lane F cancelled (owner).
 NEXT: only a NEW belam order (tell DG1 its text in one line). No goal invented to fill a budget.
 read inbox: `python3 extensions/agi/bin/send.py --from director-general-4 read director-general-4` (once, whole). pytest: PYTHONPATH=<scratch>/pylib (pip install --target pytest).
