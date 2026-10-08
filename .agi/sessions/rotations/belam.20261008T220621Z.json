@@ -1,0 +1,126 @@
+{
+  "rotation": "rotate-self",
+  "seat": "belam",
+  "recorded_at": "2026-10-08T22:11:12.593337Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": false,
+      "window": "belam",
+      "windows": [
+        "bash",
+        "belam-S2-L5-V",
+        "belam-S2-L5-III",
+        "belam-S2-L5-IV",
+        "belam-S2-L5-I",
+        "belam-S2-L5-II",
+        "sanctuary-master"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "b_generation": {
+      "before": 4,
+      "after": 5
+    },
+    "c_readback_log_path": "/data/work/agi/.agi/sessions/belam.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 1536763,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "belam-S2-L5-IV",
+      "windows": [
+        "bash",
+        "belam-S2-L5-V",
+        "belam-S2-L5-III",
+        "belam-S2-L5-IV",
+        "belam-S2-L5-I",
+        "belam-S2-L5-II",
+        "sanctuary-master"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -78.273
+  },
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "belam-S2-L5-IV",
+      "id": "@21"
+    },
+    "successor_window": {
+      "name": "belam-S2-L5-V",
+      "id": "@29"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@29",
+      "pid": 195904,
+      "session_id": "8ddbf366-b73d-4bb0-a90e-07b052307169",
+      "transcript": "~/.claude/projects/-data-work-agi/8ddbf366-b73d-4bb0-a90e-07b052307169.jsonl",
+      "name": "agi-90",
+      "path": "~/.claude/sessions/195904.json",
+      "note": "joined by @29 in registry file 195904.json"
+    },
+    "successor_row": "config:seats row 'belam': session_ref= session_name=agi-90 session_label= session_id=8ddbf366-b73d-4bb0-a90e-07b052307169 pid=195904 generation=5 window='@29' source=registry pubkey=06fd4df815eeff32... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha 8d461b5b4a, retried 0) -- own-row only: belam spawn row: gen 5, session_id 8ddbf366-b73d-4bb0-a90e-07b052307169, window @29, pid 195904\npush: push: OK -- local-maxxing/season2/main\nauthority: OK -- f75e3f48b -> season2/main",
+    "key_replace": "key_replace: wrote successor key to /data/work/agi/.agi/sessions/seats/belam.key (0600, atomic replace)",
+    "meter_pin": "/data/work/agi/.agi/sessions/belam.meter",
+    "ack_written": "/data/work/agi/.agi/sessions/seats/belam.ack.gen5.json",
+    "own_authority_released": "generation 4 of seat 'belam' retired; successor generation 5 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "belam_cap": {
+      "prefix": "belam",
+      "would_exceed_five": false,
+      "oldest_to_reap": null,
+      "live_belam": [
+        "belam-S2-L5-I",
+        "belam-S2-L5-II",
+        "belam-S2-L5-III",
+        "belam-S2-L5-IV",
+        "belam-S2-L5-V"
+      ]
+    },
+    "button_down": "FAILED: Command '['/usr/bin/python3', '/data/work/agi/extensions/agi/bin/grid.py', 'commit', '--all']' timed out after 60 seconds",
+    "livestream_repoint": {
+      "session": "view-belam",
+      "target": "@29",
+      "skipped": "view session view-belam absent"
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "requested": {
+        "model": "claude-opus-5-5"
+      },
+      "live": {
+        "model": "claude-opus-5-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "rotate-self"
+    },
+    "bootstrap": "/data/work/agi/.agi/sessions/seats/belam.bootstrap.json",
+    "ack_written_at_spawn": "/data/work/agi/.agi/sessions/seats/belam.ack.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "907b914abc7560b5d6da93785e320af847915f74f371c5a10dba04f5d41e8815",
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "gated": "own window + own chain kill GATED OFF on a numeral-chain seat (owner chain rule keeps the five newest predecessors idle in their windows)",
+    "own_window_id": "@21",
+    "own_chain_reap": "GATED OFF"
+  },
+  "committed_by": "rotate-self"
+}
