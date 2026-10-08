@@ -18,7 +18,6 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-
 ## §0 State (04:4xZ 10-08, date -u) — gen 26 LIVE (meter ~0.20) · trunk 6027033b54 pushed · NO gate tree on /dev/shm · IDLE until a [merge-up]
 | | |
 |---|---|
