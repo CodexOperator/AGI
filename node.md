@@ -35,6 +35,7 @@ goal:g7.16.1.11: goal:g7.16.1.11.10 moves every post BUT belam to the new post s
   (2) A12 re-installed safely: bin/agi-out exists in every v5 post's t (measured 10-07: 2 of 12 homes carry it) and the unit's agi-out step cannot loop on a stale t (OUT.7 landed 666098f19, OUT.8 PATH-aware pending), then belam's install GO;
   (3) the land step: agi-land is BUILT (aa3-lanes 17/17) but installed nowhere readable; root installs it and ONE real land succeeds;
   (4) verify runs as a v5 uid IF verify gates the move (goal:g7.16.1.11.19).
+- ORDER (owner 10-08 01:5xZ, town:local-maxxing Engine rework trajectory E1 -> E3 -> E5): grid-slice encapsulation (E1) comes first, THIS leaf is E3 (belam on the new engine), and the season rollover (E5) follows it; E2 (grid retirement) and E4 (the g1.41 residues) run in parallel. The old key mint stays the key system for this move, and a Python test is an acceptable falsifier lane wherever a prerequisite below names a shell lane (none is required to be rewritten).
 - NO LONGER prerequisites (owner's bypass, 10-07): the full AA2 per-generation key build (the K1 mint half is season 3), per-spawn key issuance (provisioning.py stays, belam issues), metrics and verify as shell builds (the old Python is kept this season; shell rewrites are season 3).
 
 ## Invariants
@@ -52,9 +53,12 @@ goal:g7.16.1.11.10 (every other post) · goal:g7.16.1.11.12 / .13 (the AA2 and A
 ## OWNER 2026-10-07 14:4xZ, verbatim (relayed by belam gen 27)
 "Also I know we used to have a bunch of metrics and stats we tracked with then python files. Can we bring those back? We don't have to rewrite them as scripts in this season just the next. But we will keep reusing the old python based key system, metric system, and verify suite/tests unless most of those got rewritten into shell which is awesome. Otherwise yes let the council tackle it and see what needs to be redone or streamlined. I will hear about it from your successor. Thank you for your service. We are still aiming to have to rotate onto new system as well given these requirements where I bypass some of the engine work till next season I think it should be a lot more doable sooner"
 
+## OWNER 2026-10-08 01:5xZ, verbatim (relayed by belam in a [rule] to all)
+"Things are getting lost. Are we updating the towns trajectory with how we are progressing? Do you still have the overall goal in your context? Finish encapsulation of grid slices and do a season rollover after getting you on the new engine. You can use the old key mint. We can use python tests. We've been trying to do a rollover for a week now but unfortunately I did an engine refactor in the middle. But I think we need to utilize the trajectory here. Maybe give us a trajectory subsection or a second trajectory row for engine rework progress."
+
 ## Agent Notes
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-10-07 14:5xZ: the owner's bypass (old Python kept this season, shell rewrites = season 3) narrowed the four prerequisites; the council (alive 14:54Z, sp 14:48Z, aio 14:51Z measured lines) placed the remainder as ring/anchor + agi-signers retire + A10 ckpt on the hub, A12 re-install, the land step, verify as a v5 uid only if it gates the move. Was: AA3 land built, AA2 per-generation keys built, a v5 [config] ring, the anchor signer. Status stays horizon: promoting it to active is the next belam's call (banked).
+10-08 02:1xZ: belam's [rule] (owner 01:5xZ) asked DG1 to rewrite this leaf's prerequisites to the bypass. They were ALREADY re-stated on 10-07 (3a437c2e8c: ring/anchor + agi-signers retire + A10 ckpt, A12 re-install, the land step, verify as a v5 uid only if it gates the move; the AA2 per-generation key build and shell rewrites are NO LONGER prerequisites), so the four are unchanged. What the 10-08 words add and this version records: the order E1 -> E3 -> E5 (this leaf is E3, the rollover follows), the old key mint named as the key system, and Python tests accepted as falsifier lanes. Status stays horizon: promoting it to active is belam's call (banked). Was (10-07): the same four, without the order and without the Python-test allowance.
 <!-- THOUGHT:END -->
