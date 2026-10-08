@@ -4,7 +4,7 @@
 #   PIN=<40-hex> sh host-act-encryption-town.sh move POST                       per post, after its row has box encryption-town AT PIN
 #   ROOT=<scratch dir> ...                                                      rehearsal: every path is prefixed, no systemctl / ACL / chown / root check
 # Cells (env): PIN (required) · AGI_REPO (default /data/work/agi) · AGI_BOX (default encryption-town) · E_MEM_HIGH / E_MEM_MAX / E_OOM_LIMIT (the E agi.slice; typed here because config:guard has no E line: belam's to confirm) · SKIP_PREREQ=1 (a rehearsal without pi / claude).
-# What it installs, ALL from the pinned commit's bytes (`sect` over the geometry at PIN, never the moving checkout): agi-vstore, sect, box, box-carry, agi-signers, the carry units, agi-boot.service, the polkit rule; it writes /etc/agi/carry.env and, for E ONLY, a NO-OP agi-ram-main.service (Type=oneshot, ExecStart=/bin/true: E has no RAM disk, MAIN is a plain directory; a drop-in cannot reset a dependency list, so agi-boot.service keeps its pinned Requires / After text) plus a plain /mnt/agi-ram, and the MAIN ACL the posts need (g:agi:rwX + a default ACL, recursive, on .git/{objects,refs,logs,worktrees}: L carries it, no code made it before). NO engine byte changes; local-town is untouched.
+# What it installs, ALL from the pinned commit's bytes (`sect` over the geometry at PIN, never the moving checkout): agi-vstore, sect, box, box-carry, agi-signers, the carry units, agi-boot.service, the polkit rule; it writes /etc/agi/carry.env and, for E ONLY, a NO-OP agi-ram-main.service (Type=oneshot, ExecStart=/bin/true: E has no RAM disk, MAIN is a plain directory; a drop-in cannot reset a dependency list, so agi-boot.service keeps its pinned Requires / After text) plus a plain /mnt/agi-ram, and the MAIN ACL the posts need (g:agi:rwX + a default ACL, recursive, on .git/{objects,refs,logs,worktrees}, and on .agi/sessions/inbox g:agi:rwx + default g:agi:rw-, the one working-tree ACL L carries: L carries them, no code made them before). NO engine byte changes; local-town is untouched.
 # PREREQUISITES it checks and does NOT install: pi at /opt/agi/bin/pi (or any PATH dir of the post unit) and claude for the claude rows, readable by the agi-* users; group agi and the agi-<post> users; setfacl; the clone at AGI_REPO holding PIN.
 R=${ROOT:-};M=${AGI_REPO:-/data/work/agi};PIN=${PIN:-};BOX=${AGI_BOX:-encryption-town};mode=${1:-act}
 die(){ echo "host-act: $*">&2;exit 1;}
@@ -28,10 +28,11 @@ B=$R/var/backups/agi-act-$(date -u +%Y%m%dT%H%M%SZ)
 mkdir -p $R/var/backups&&mkdir $B||die "$B exists or cannot be made: refusing to overwrite a before-state";mkdir $B/files
 L="/etc/agi/carry.env /etc/systemd/system/agi-boot.service /etc/systemd/system/agi-ram-main.service /etc/systemd/system/agi-carry@.service /etc/systemd/system/agi-carry@.path /etc/systemd/system/agi-carry-fetch.service /etc/systemd/system/agi-carry-fetch.timer /etc/systemd/system/agi.slice /etc/polkit-1/rules.d/50-agi.rules /opt/agi/bin/agi-signers /opt/agi/bin/box /opt/agi/bin/box-carry /opt/agi/bin/sect /usr/local/libexec/agi-vstore"
 for f in $L;do if [ -e $R$f ];then (cd $R/&&cp -a --parents ${f#/} $B/files/)||exit 1;else echo $f>>$B/absent;fi;done
-for d in $M/.git/worktrees /mnt/agi-ram/state /mnt/agi-ram /opt/agi/bin /opt/agi /usr/local/libexec /etc/agi /var/lib/agi;do [ -d $R$d ]||echo $d>>$B/absentdirs;done
+for d in $M/.git/worktrees $M/.agi/sessions/inbox $M/.agi/sessions /mnt/agi-ram/state /mnt/agi-ram /opt/agi/bin /opt/agi /usr/local/libexec /etc/agi /var/lib/agi;do [ -d $R$d ]||echo $d>>$B/absentdirs;done
 for f in $L;do [ -e $R$f ]&&stat -c '%a %U:%G %n' $R$f;done>$B/before.stat
 AD=;for d in objects refs logs worktrees;do [ -d $R$M/.git/$d ]&&AD="$AD $R$M/.git/$d";done
 [ -z "$AD" ]||getfacl -R -p $AD>$B/acl.before 2>/dev/null||exit 1
+[ ! -d $R$M/.agi/sessions/inbox ]||getfacl -p $R$M/.agi/sessions/inbox>>$B/acl.before 2>/dev/null||exit 1
 U=$R/run/systemd/system;( cd $U 2>/dev/null&&ls -d agi-* agi.slice multi-user.target.wants/agi-* 2>/dev/null )>$B/run.list
 if [ -s $B/run.list ];then tar -C $U -cpf $B/run.tar -T $B/run.list||exit 1;(cd $U&&find $(cat $B/run.list) |sort)>$B/run.before;else : >$B/run.before;fi
 (cd $B/files&&find . -type f|sort|xargs -r sha256sum)>$B/before.sha256
@@ -54,11 +55,16 @@ AG=agi;[ -z "$R" ]||AG=$(id -gn)
 install -d $R$M/.git/worktrees||exit 1
 for d in objects refs logs worktrees;do setfacl -R -m g:$AG:rwX $R$M/.git/$d&&find $R$M/.git/$d -type d -exec setfacl -d -m g:$AG:rwX {} +||die "cannot set the MAIN ACL on .git/$d: sh $B/rollback.sh";done
 echo "  MAIN ACL g:$AG:rwX (+default) on .git/{objects,refs,logs,worktrees}"
+IB=$R$M/.agi/sessions/inbox;NS=;[ -d $R$M/.agi/sessions ]||NS=$R$M/.agi/sessions
+mkdir -p $IB||exit 1;[ -n "$R" ]||chown --reference=$R$M/.agi $NS $IB||exit 1
+setfacl -m g:$AG:rwx $IB&&setfacl -d -m g:$AG:rw- $IB||die "cannot set the inbox ACL on .agi/sessions/inbox: sh $B/rollback.sh"
+echo "  inbox ACL g:$AG:rwx + default g:$AG:rw- on .agi/sessions/inbox"
 if [ -z "$R" ];then
  U=$(G show $PIN:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r --arg b $BOX 'select(.box==$b and .engine.v==4)|.name'|head -1)
  if [ -n "$U" ]&&id agi-$U>/dev/null 2>&1;then
   for d in objects refs logs worktrees;do t=$(setpriv --reuid=$(id -u agi-$U) --regid=$(id -g agi-$U) --init-groups mktemp -d $M/.git/$d/.act-probe.XXXXXX)&&setpriv --reuid=$(id -u agi-$U) --regid=$(id -g agi-$U) --init-groups rmdir $t||die "agi-$U cannot create under $M/.git/$d (the MAIN ACL): sh $B/rollback.sh";done
-  echo "  probe: agi-$U creates and removes a dir in .git/{objects,refs,logs,worktrees}"
+  t=$(setpriv --reuid=$(id -u agi-$U) --regid=$(id -g agi-$U) --init-groups mktemp $M/.agi/sessions/inbox/.act-probe.XXXXXX)&&setpriv --reuid=$(id -u agi-$U) --regid=$(id -g agi-$U) --init-groups rm $t||die "agi-$U cannot create a file in $M/.agi/sessions/inbox (the inbox ACL): sh $B/rollback.sh"
+  echo "  probe: agi-$U creates and removes a dir in .git/{objects,refs,logs,worktrees} and a file in .agi/sessions/inbox"
  else echo "  probe SKIPPED: no agi-<post> user for a box $BOX row yet">&2;fi
 fi
 if [ -z "$R" ];then
@@ -81,6 +87,6 @@ if [ -z "$R" ];then
  systemctl enable --now agi-carry@$P.path&&systemctl start agi-post@$P||die "start failed for agi-post@$P"
  systemctl is-active agi-post@$P;systemctl show agi-post@$P -p ControlGroup
 fi
-echo "moved: $P started on $BOX; next: the owner logs it in (/login relay), it resumes from its card";;
+echo "moved: $P started on $BOX (a shell on E needs AGI_BOX=$BOX, or send.py refuses the E rows as FOREIGN); next: the owner logs it in (/login relay), it resumes from its card";;
 *)die "usage: act | move POST";;
 esac
