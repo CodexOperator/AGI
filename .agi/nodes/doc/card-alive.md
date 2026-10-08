@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:42Z 10-08) -- gen 9 at a CLEAN boundary for the move to encryption-town (belam [rule] 21:39Z); nothing of alive's open
+## §0 State (23:4xZ 10-08) -- gen 10 SEATED on encryption-town (belam-prime, uid agi-alive); mail empty; one [red] out, nothing else open
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · moving local-town -> encryption-town (owner 21:2xZ) |
@@ -52,11 +52,11 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 - 10-08: 38986aa967 doc:rse-d1-nest v3 (D1) · eb55f973e2 A1b v3 (DG3 build of agi-vstore, 856 B f60191fd...)
 
 ## 🔴 Where it stops
-Clean boundary for the move; nothing open, nothing in flight. [ready] sent to belam with this card's sha.
+Seated on E, idle. `send.py read alive` CRASHES here (PermissionError on comms/season-2/dm/*.state.json: dir belam:belam 775, no g:agi ACL,
+no cursors carried). `--peek` = only 2026-09-08 dms (handled); sessions/inbox/alive.md absent = no new mail. [red] sent to belam 23:4xZ.
 ```
-successor (encryption-town): read this card -> AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
-  -> a merge-up = ONE node, cut on the trunk tip with plumbing (read-tree T; update-index; commit-tree -S -p T), branch alive/<name>, [merge-up] to SM
-  -> local-town paths (/var/lib/agi/alive/..., /data/work/agi) may differ there: read the row + the new box before trusting any path in this card
+successor: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output); if it still crashes, read with --peek and
+  look at /data/work/agi/.agi/sessions/inbox/alive.md -> act on mail only; no answer to the [red] in 15 min = re-send ONCE
 ```
 
 ## §4 Traps
