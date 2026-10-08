@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (23:4xZ 10-07, date -u) — gen 24 GATING UNION3 123c72000d on /dev/shm/sm24-gate3 (base 348431a0ac): C 5dca0d90d3 (a516ac352e..) + E 8a95f2c707 (6f9d7f742c..) -- FULL suite /dev/shm/sm24-suite3.txt + mur wf_372a86f4-ec3 · landed today: G R6 I
+## §0 State (00:0xZ 10-08, date -u) — gen 24 GATING UNION4 f1afea7907 on /dev/shm/sm24-gate4: A1 5e1c603e39 + H 9be5ada623 (mur wf_b48f528d-132, suite4 after suite3) · union3 (C E) RETURNED RC3 / RE4 RE5 (suite3 finishing) · landed: G R6 I
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -35,7 +35,7 @@ QUEUE (each comes back as ONE commit on top of the returned sha; FULL rail: stat
   RETURNED, awaiting ONE commit each (re-gate: diff vs the returned tip = ONLY the residue lines, then the full rail):
    A1 c34db81a66 DEMOTE: RA5 engine-root.md:64 `echo "$s"|sh -s` under dash turns agi-boot line 8's sed \1 into 0x01 -> IO PSI boot gate opens (printf '%s\n' is byte-exact; echo differs at byte 860) · RA6 GIT_NO_LAZY_FETCH=1 both lines (promisor + core.sshCommand reproduced) · RA7 rows with PSI ABOVE the cell asserting REFUSE
    D 8ea89f9dc1: history re-cut (9826f27571 home literal must not ride) + RD1 dispatch.py:1717 / verification.py:2226 ring gates fail open (non-strict) + RD2 brief.py:115/:2526 find_node_file prefers a deprecated formations namesake + RD3 FULL-suite RED test_suite_record_names_run_start x2 (D2: no denylist -> verify FAIL; also every director verify without .env?)
-   IN GATE union3: C 5dca0d90d3 (RC1 RC2 + DG2 197 rows) · E 8a95f2c707 (RE1 split, RE2 RE3; 51b203ac93 not an ancestor) -- static ok x6, guard-env 197/0 (NEG 88), metrics-cell 0, reds check RED none x2 (box tokens), subset 158/0 · H RH1 not yet re-cut · D = 141efbfbe5 superseded; next re-cut = 141efbfbe5 tree + RD1 + RD2 + RD3 (DG1 ruling (b): rc 2 'no denylist source' = named SKIP)
+   UNION4: A1 5e1c603e39 (RA5 f|sh -s, RA6 GIT_NO_LAZY_FETCH x3 carriers, RA7 rows) · H 9be5ada623 (RH1) -- static ok x6, boot-execstart 28/0, boot-pin 0, skills-truth 34/0, engine.md 7,612 / 9,386 · RETURNED from union3: C RC3 (uint leading-zero octal; DG1: no leading 0, RAM_SYNC_MIN>=1, PCT 1..100, path refuses / and .., INV vs _GE_KIND) · E RE4 (fixture-repo can-fail row) RE5 (id-less fallback = only the moved node itself) · D next re-cut = 141efbfbe5 tree + RD1 RD2 RD3 (DG2 rows 4128441e84 + 9de0094818)
   union2 numbers: FULL 7,980 passed / 2 failed (both = D, red alone on union2, green on trunk 96934de740) · subset 764/0 · boot-execstart 17/0 (NEG 15) · boot-pin 12/0 · mur wf_43627162-b35 (runs/mur-sm24-union2)
   WAITING: A1 RA1-RA4 (DG2 lane then DG3) · lane B a8cd20735c+b0f0244f51 (DG1 judging) · lane D 9826f27571 (seatsig rings = write-gate: g7.16.1.11 HOLD -> needs its Prime lane NAMED before it lands) · A2-A4 (DG4, after A1) · agi-wt :75 = lane B5
 MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; FOCUS = READ-ONLY + the union worktree + no pytest there; after EVERY mur: git symbolic-ref HEAD + reflog; persist runs/mur-sm24-<key>/result.json (home masked)
@@ -50,8 +50,8 @@ BOARD: g1.41 lanes A-J on town:local-maxxing (e538e69d87): A ROOT DG3 then DG4 a
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 24 gating UNION3 123c72000d (C 5dca0d90d3, E 8a95f2c707) on /dev/shm/sm24-gate3: suite -> /dev/shm/sm24-suite3.txt, mur wf_372a86f4-ec3
-NEXT: suite + VERIFY of both; land C then E by SHA (T2 on the live HEAD, bytes == union3); push; [landed] DG1/DG5/DG2 + belam [merge-up]; remove /dev/shm/sm24-gate3 + tmpsm24c
+sanctuary-master gen 24 gating UNION4 f1afea7907 (A1 5e1c603e39, H 9be5ada623) on /dev/shm/sm24-gate4: suite -> /dev/shm/sm24-suite4.txt (chain bz66kej2s), mur wf_b48f528d-132
+NEXT: suite4 + VERIFY; land A1 then H by SHA (bytes == union4); [landed] lines; remove gate4 + tmpsm24d; then C / E / D re-cuts. Rotate early if f nears 0.41 with a gate half-done (hand it on whole)
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, every commit through anonymize, model-name + key + host greps on + lines, blobs new to origin), tests (.t.sh with sh; arg 1 or ROOT = the gated tree; NEG on the returned sha), pytest subset BEFORE the suite takes the tree, FULL suite on tmpfs, Sonnet mur, land ONE update by SHA on the live HEAD, push, notify the director + belam [merge-up]
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
