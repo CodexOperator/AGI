@@ -1,0 +1,57 @@
+---
+id: experiment:a00-ebd63562-3d2cb1
+mint_id: 5ac05fd41f1240c7ac86ee2feb244bec
+type: experiment
+parents:
+  - hypothesis:l4-keyless-env-skips-not-fails
+next_edges: []
+confidence: 0.95
+edited_by: a00-01252dcf
+evidence_runs:
+  - experiment:a00-ebd63562-3d2cb1
+loop: hypothesis:l4-keyless-env-skips-not-fails@s2
+model: ~deepseek/deepseek-v4-flash-latest
+profile: balanced
+push_further: "Make test_model_judge_fails_OPEN_when_no_api_key assert the fail-open mechanism in a KEYLESS env too: monkeypatch.setenv OPENROUTER_API_KEY to a dummy value, then delenv it, instead of skipping when the key was never there. The skip clears the merge-up gate but leaves the outage mode unasserted in exactly the environment where it is the live behaviour (source=judge-busy, directive=False, body RELAYS)."
+role: kid
+scaffold_hash: 90f9d31fec7f9a0f
+season: 2
+title: A00 ebd63562 3d2cb1
+town: streaming-suite
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-ebd63562-3d2cb1
+
+## Experiment
+
+FIXED in-loop per OWNER 2026-09-11 05:1xZ (doc:l4-owner-decisions, ACCEPTED 05:47Z), p3 + p6 folded, on town/streaming-suite@s2.
+
+**p3 — the keyless hard-FAIL → SKIP.** `test_stream_master_blind_measure_v2.py::test_model_judge_fails_OPEN_when_no_api_key` previously began with `assert j.available() is True`, which hard-failed in a keyless env (no OPENROUTER_API_KEY in the suite env — it turned merge-up 28c RED: 2792 passed / 1 failed in MAIN, dropping the town branch). Replaced the pre-key assert with a `pytest.skip(...)` guarded by `if not j.available()`, mirroring the sibling class's skipif. In a keyed env the test still runs to completion, monkeypatching the key away and asserting the pinned mechanism (fail-OPEN → directive=False, source='judge-busy', body RELAYS). The outage mechanism is therefore still asserted whenever a key exists; it just no longer fails the suite when none does.
+
+**p6 — semantic_screen.py prompt typo.** `extensions/agi/src/stream_master/semantic_screen.py:149` `_PROMPT` had '\u201cherd someone say\u201d' → corrected to '\u201cheard someone say\u201d'. Cosmetic, inside a judge prompt string; the 0-escape generalization result (KNOWN_ESCAPES empty in v2, 0/22 semantic baseline) is structurally unaffected — no heuristic/net/corpus/measurement code touched; only prose in the prompt fed to the model on the flagged-quote class.
+
+**Full town audit of provider-reaching tests** (grep `OPENROUTER|API_KEY|ModelJudge|available`):
+- `test_stream_master_blind_measure_v2.py`: the fail-open test (now skips keyless) + `TestRealGeneralizationProbe` class (already `@pytest.mark.skipif(not _real_judge.available())`).
+- `test_stream_master_semantic_screen.py`: `TestRealSemanticMeasurement` class (already `@pytest.mark.skipif(not _real_judge.available())`).
+- `test_stream_master_blind_measure.py`, `_quarantine.py`, `_relay.py`: no ModelJudge / no API env refs — offline only, no audit needed.
+Only the one hard-fail test existed; it is now consistent with every sibling.
+
+## Evidence
+
+Clearing evidence (verbatim, the point's required run):
+
+```
+$ env -u OPENROUTER_API_KEY python3 -m pytest extensions/agi/tests/test_stream_master_*.py -q
+........ssss...............sss                                           [100%]
+23 passed, 7 skipped in 0.16s
+```
+
+0 failures, 0 errors. 7 skips = 1 (fail-open, now skipped keyless) + 3 (v2 real probe class) + 3 (semantic real measurement class); 23 passed are the offline/offline-adjacent tests. FALSIFIER ("any town test that fails with the key unset") not triggered.
+
+**Verdict lean:** proved — the hypothesis's exact falsifier run is green; the only non-skip provider test now skips keyless; the typo is fixed; audit lists every provider-reaching test.
+
+## Agent Notes
+Keyless fail-open test now SKIPs (not fails) when OPENROUTER key absent via pytest.skip mirroring sibling skipif; semantic_screen.py prompt typo herd->heard fixed. Town audit: only v2 fail-open test hard-failed; both real-judge classes already skipif. Exact falsifier run green: env -u OPENROUTER_API_KEY pytest test_stream_master_*.py -> 23 passed, 7 skipped, 0 failed. Branch clears for merge-up 29.
+
+PARENT REVIEW (a00-01252dcf, iter 146): ACCEPTED verdict=proved, confidence 0.95 stands. Independently re-ran the falsifier: `env -u OPENROUTER_API_KEY python3 -m pytest extensions/agi/tests/test_stream_master_*.py -q` -> 23 passed, 7 skipped, 0 failed; and the target test still passes in a keyed env (`OPENROUTER_API_KEY=dummy pytest ...::test_model_judge_fails_OPEN_when_no_api_key` -> 1 passed), so the pinned mechanism (fail-OPEN -> directive=False, source=judge-busy, body relays) is still asserted where a key can exist. Independently re-grepped: only test_stream_master_blind_measure_v2.py and test_stream_master_semantic_screen.py reach a provider (both now skipif/skip), semantic_screen.py herd->heard fixed, no other `herd someone say` in extensions/. Diff is 8 lines added / 1 removed across exactly the two in-scope files — no scope creep. One real weakness, recorded not demoted: the test now skips in the ONE environment where fail-open is actually the live behaviour, so the strongest version (monkeypatch.setenv a dummy key, then delenv) would assert the mechanism keyless too. That is a push_further, not a defect against the owner-written claim, which asked for the sibling-skipif shape explicitly. No adjustment made to the node.
