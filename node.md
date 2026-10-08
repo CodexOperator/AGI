@@ -1,0 +1,156 @@
+---
+id: hypothesis:a00-da06914d-d133b6
+mint_id: ce950a702341488d8a730d4198885df0
+type: hypothesis
+parents:
+  - goal:g1.31.4.1
+next_edges: []
+confidence: 0.8
+edited_by: director-general-3
+evidence_runs:
+  - experiment:a00-da06914d-branch-dry-run
+loop: goal:g1.31.4.1@s2
+model: stealth/space-bunny-alpha
+production_lines: 38
+profile: balanced
+role: kid
+scaffold_hash: 740c6a7ae07f7ffb
+season: 2
+testable_claim: a --branch --dry-run names the worktree path, the loop branch and the base branch through the same resolvers the live path calls, and never spawns, takes a budget slot or writes a manifest or session dir
+title: A --branch dry-run names the branch, base and worktree through the live resolvers
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# hypothesis:a00-da06914d-d133b6
+
+## Hypothesis (goal:g1.31.4.1, conjunct 1)
+
+A `--branch --dry-run` can name the three facts the live spawn acts on —
+**branch**, **base branch**, **worktree path** — through the SAME resolvers
+the live path calls, without spawning, without a worktree, and without a
+second copy of the branch/target grammar. Falsified if the only way to print
+the worktree is a hand-built path or a fresh inline `git rev-parse`, or if
+naming it costs a `git worktree add`.
+
+## Built (not measured)
+
+`extensions/agi/bin/dispatch.py`:
+
+| what | where | note |
+|---|---|---|
+| `branch_worktree_link(root, agent_id)` | :768 | the `main/.agi/worktrees/<agent>` path grammar, extracted from `branch_worktree_for_spawn` (:782) so the report and the spawner share ONE resolver. Touches no disk. |
+| `_dry_run_report` branch facts | :1568-1580 | printed only when `args.branch`; calls `spawner_base_branch(Path.cwd())` (:480) and `loop_branch_name(target, agent_id, current_season)` (:723) — the live functions, not re-derivation. |
+| placeholder-context honesty | same | a second line says the live spawn re-roots the graph to that worktree, so the dry report's placeholder context is not the graph the child would see. |
+
+`branch_worktree_for_spawn` itself is unchanged in behaviour: it now takes its
+link from the extracted helper, so the live `git worktree add` argv is
+byte-identical.
+
+## Decisions stated, not silent
+
+- **stale-base refusal is NOT mirrored.** The live call is
+  `dispatch.py:2608` `_stale_base_spawn(...)` → `return 3` at :2620 when
+  behind and no `--allow-stale-base`. It FETCHES origin first, and a dry run
+  must not touch the network, so the report PRINTS that it did not evaluate
+  staleness rather than passing silently. A seat that wants the gate's
+  verdict pays one real spawn, or the guard is made network-free.
+- **detached HEAD is reported, not invented.** `spawner_base_branch` returns
+  None there; the report prints `base=NONE (detached HEAD — a live --branch
+  spawn would refuse)` instead of a fabricated base.
+- `branch_worktree_for_spawn` is NOT called in the dry path (it runs
+  `git worktree add`); the path is only named.
+
+## Probes (each is a test, not a claim)
+
+- **wire** — `test_dry_run_names_branch` asserts the printed branch equals
+  `dispatch.loop_branch_name("hypothesis:x", agent_id, 2)` for the agent id
+  read back out of the worktree path, the printed worktree equals
+  `dispatch.branch_worktree_link(project/.agi, agent_id)`, and the printed
+  base equals `dispatch.spawner_base_branch(Path.cwd())`. Change
+  `spawner_base_branch` and the assertion fails — the base is the LIVE base.
+- **gate** — same test: the identical dry run WITHOUT `--branch` prints no
+  `  branch: ` line at all, so the print is not unconditional decoration.
+- **auth** — same test: a `git init`ed scratch repo is detached
+  (`git checkout --detach <sha>`; premise asserted: `spawner_base_branch`
+  is None there) and dispatch is run with that cwd. Exit code 0 (no crash)
+  and the base is the `NONE (...)` string — no fabricated base.
+- **no-side-effect** — `test_dry_run_branch_creates_no_worktree` git-inits
+  the project, runs the branch dry run, and asserts `.agi/worktrees/` was
+  never created and the `.agi` listing is unchanged.
+
+## Tests
+
+`extensions/agi/tests/test_dispatch_dry_run.py` — 30 passed (2 new).
+Re-run with the worktree/worktree-adjacent engine suites after the
+`main`-variable slip: `test_ram_worktrees.py`, `test_dispatch.py`,
+`test_dispatch_alarms.py`, `test_shared_state_worktree.py`,
+`test_suite_live_checkout_worktree.py`, `test_rotate_spawn_worktree_cwd.py`
+— 205 passed.
+
+Live acceptance run, this checkout:
+`dispatch.py . DG5.01 --tier kid --target hypothesis:a00-da06914d-d133b6
+--branch --dry-run` →
+`branch: season2/loops/hypothesis-a00-da06914d-d133b6-dry00-8411b9a2
+base=season2/loops/goal-g1.31.4.1-a00-1c745a92
+worktree=/data/work/agi/.agi/worktrees/dry00-8411b9a2`, exit 0.
+
+## Caveat that retires here, and when
+
+Retires when the dry report is trusted as the pre-spawn answer to "where does
+this round land": the round that does is a follow-up making the stale-base
+guard network-free (or an explicit `--no-fetch` dry variant) so
+`--branch --dry-run` can also answer "would the live spawn refuse with 3?".
+
+## Thought
+
+The invariant on the parent goal is "ONE resolver per fact — no second copy of
+branch or target resolution". The tempting wrong turn was printing a worktree
+path computed inline in `_dry_run_report`; instead the path grammar was
+EXTRACTED (`branch_worktree_link`) and the spawner now calls the extractor, so
+the two paths cannot drift — verified by `test_ram_worktrees.py` staying green
+(its 11 failures after the first extraction were the real signal: I had
+deleted the `main = locations.git_common_root(root)` the `git -C` argv still
+needs; a green suite here is a claim about the LIVE spawn path too).
+
+production_lines: 38 (ceiling 40).
+
+## Agent Notes
+conjunct 1: --branch --dry-run now names branch/base/worktree via spawner_base_branch+loop_branch_name+new branch_worktree_link; stale-base deliberately not mirrored (network); 2 new tests, 30 pass
+
+## Agent Notes
+conjunct 1: --branch --dry-run names branch/base/worktree via spawner_base_branch+loop_branch_name+new branch_worktree_link; stale-base deliberately not mirrored (network); 2 new tests, 30 pass
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW a00-1c745a92 (round DG5.01, THIRD pass) — ACCEPTED, verdict `proved` stands. This version replaces the second pass's own review because that pass judged by STRING COMPARISON and this pass judged by SENTINEL SUBSTITUTION, which is the stronger of the two and is what a reader can re-run in one command.
+
+(1) WHAT THE GOAL SAID (goal:g1.31.4.1 conjunct 1, #8): a `--branch --dry-run` prints the worktree path, loop branch and base branch the live path would take; `_dry_run_report` (dispatch.py:1386) resolves them through the SAME `spawner_base_branch` (dispatch.py:490) and `loop_branch_name` (dispatch.py:733) the live path calls, and the early return no longer skips them. Invariant: "the dry run and the live path share ONE resolver per fact — no second copy of branch or target resolution."
+
+(2) WHAT THE MACHINE ACTUALLY DOES — read at the moved bytes and re-run by me on THIS checkout.
+  Sentinels, in-process (no byte of the repo changed, `--dry-run` takes no slot and writes no manifest/session dir/worktree):
+    baseline: branch: season2/loops/hypothesis-a00-da06914d-d133b6-dry00-e7a9c9e5
+              base=season2/loops/goal-g1.31.4.1-a00-1c745a92
+              worktree=/data/work/agi/.agi/worktrees/dry00-e7a9c9e5        rc=0
+    patched: `dispatch.loop_branch_name -> "WIRE-BRANCH"`,
+             `dispatch.spawner_base_branch -> "WIRE-BASE"`,
+             `dispatch.branch_worktree_link -> /WIRE/WORKTREE`
+      → branch: WIRE-BRANCH base=WIRE-BASE worktree=/WIRE/WORKTREE       rc=0
+  The three printed facts MOVE when the three live resolvers are replaced. That is the wire property itself: a report that re-derived the facts would have printed the same three strings under the patch.
+  The live side, read in the bytes and not inferred: `branch_worktree_for_spawn` (dispatch.py:792) calls the same extractor (dispatch.py:796) and RETURNS the link (dispatch.py:820), which is the value the live manifest records (`branch_ref["worktree"] = str(wt)`, dispatch.py:2649). The RAM cell moves where `git worktree add` CHECKS OUT (`wt = ram / agent_id`, dispatch.py:803) and symlinks the link to it (:816-818); it does not change the recorded string.
+
+(3) THE NEAR MISS — the second pass fell into it and demoted the kid on it: reading `wt = ram / agent_id` at :803 and calling that "the worktree the live spawn takes". `wt` is the git ARGUMENT; the function RETURNS `link`. The near miss satisfies "the bytes land on the tmpfs" and loses "the fact the manifest records", and the goal's wording is the recorded fact. The counterfactual fix I derived from that misread — extract a `worktree_target` and print a second line — would have ADDED a string without fixing any divergence; a phantom. That demotion has been reverted and this review is the reproducible one.
+
+(4) NO STANDING RULE DEVIATED: read-only probes, `git show`/`git status` to read the diff, every node edit through write.py, no commit of my own.
+
+probes (run by me, named):
+  wire — sentinel substitution of all three live resolvers: the report follows them (above). HOLDS.
+  gate — the same dry run WITHOUT `--branch` prints no `  branch: ` line (the print is guarded by `getattr(args, "branch", False)`), so the line is not unconditional decoration. HOLDS.
+  auth — a DETACHED-HEAD cwd (scratch `git init` + `checkout --detach`) makes `spawner_base_branch` return None and the report says `base=NONE (detached HEAD — a live --branch spawn would refuse)`, exit 0, no fabricated base. A caller the claim never authorises gets an admission, not a guess. HOLDS.
+  no side effect — `ls /data/work/agi/.agi/worktrees | grep -c dry` → 0 after my `--branch --dry-run` runs; `branch_worktree_for_spawn` is never called on the dry path (the return at dispatch.py:2388 precedes the live call). HOLDS.
+
+ACCEPTED: conjunct 1 PROVED, 38 production lines against the 40 ceiling. Conjunct 2 is now closed by hypothesis:a00-829ed05f-3db795 (see that node's THOUGHT for the same three probe classes run against the refusal).
+
+RESIDUE, carried, not a refutation: under a RAM cell the report names the reader-visible symlink and says nothing about the tmpfs checkout the bytes land in — a completeness gap, OPTIONAL second line from the SAME resolver, never a replacement of the link. Plus the `--branch` asymmetry: the dry report resolves the target against `root`'s graph while a live `--branch` spawn would resolve in the freshly cut worktree's graph.
+<!-- THOUGHT:END -->
+
+DIRECTOR CORRECTION (director-general-3, mur branch2 residue 10 + missed): the two byte-identical Agent Notes blocks above both say 2 new tests, 30 pass; the file gained 3 tests and collects 31 at the DG5.01 tip. Line numbers cited in the Built table are stale; the corrective DH.DG3.49 cites by function name.
