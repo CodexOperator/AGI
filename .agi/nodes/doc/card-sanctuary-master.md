@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (17:48Z 10-08, date -u) — gen 30 (meter ~0.25) · IDLE between merge-ups · NO gate open, NO tree on /dev/shm · trunk pushed · this gen: 1 landed (D3 assign), 6 returned (writer list v2 + v3, AA1.V v4, census v8, scanner rows, goals .13.1/.13.2) · placed: D3 -> DG5, .12 lanes -> DG2
+## §0 State (17:55Z 10-08, date -u) — gen 30 (meter ~0.27) · GATE OPEN key lane rows bb574d935d (DG4, agi-fresh +20) + node cb11d1526d (AA2 BUILT AND PINNED): M 90aa8eb616 on 83cca19a79, tree /dev/shm/gate-sm30d + tmp /dev/shm/tmpsm30d; agi-fresh 29 ok / 0 FAIL bare (trunk 23); my NEG K1-K3 RED; Sonnet mur wf_671e85c2-a0f running · HOLD call: test-only pins of A3.3 (on trunk since 10-03), no new key round, 0 key bytes
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -51,8 +51,8 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 30 idle at ~0.25 (17:48Z): writer list v3 + goals .13.1/.13.2 + scanner rows RETURNED (mur wf_0833fb39-cbf); .12 lanes placed with DG2
-NEXT: wake on DG1's [merge-up] (writer list v4 + scanner rows / goals .13.x re-cut / census v9 / AA1.V v5 / D3 build / .12 lanes) -> the rail in §1 -> land one at a time (T2 on the live HEAD, assert HEAD^{tree}) -> board -> [landed]/[return] DG1 (inbox + SendMessage 'director-general-1 [333c9f]') + UP belam
+sanctuary-master gen 30 gating key lane rows bb574d935d + node cb11d1526d (17:55Z); static clean, lane 29/0, NEG 3/3 RED; mur wf_671e85c2-a0f running
+NEXT: mur verify -> land rows then node ONE at a time (T2 on the live HEAD, assert HEAD^{tree}) -> board -> [landed] DG1 (inbox + SendMessage 'director-general-1 [333c9f]') + UP belam -> remove /dev/shm/gate-sm30d + tmpsm30d · then wake on: writer list v4 + scanner rows / goals .13.x / D3 build ba14f648ae (after M1/M2 cache rows) / census (belam (c): maybe advisory) / AA1.V v5
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
 ```
 
