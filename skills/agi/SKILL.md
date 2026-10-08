@@ -167,7 +167,8 @@ Run these in order, from MAIN, every time a Prime is stood up on a box:
 bin/agi-boxinfo                                   # which box (AGI_BOX in MAIN's .env) — alias only
 git branch --show-current                         # the trunk this box works: season2/main on core, <town>/season2/main on a town box
 git fetch origin && git merge --no-edit origin/<parent-trunk>    # sync; then links.py links
-# 1  the row: box cell + identity cells through the ONE writer (write.py, actor = the prime row), never a hand edit
+# 1  the row: box cell + identity cells through the OLD setup's writer (write.py, actor = the prime row), never a hand edit
+#    (OLD SETUP: a post whose row has engine.v 4 edits node files with plain Write/Edit and agi-turn commits; owner 10-01 23:3xZ)
 #    (posts.md is config; written_by is [owner, prime_director]; a box's rows carry `box: <alias>` — a row
 #     without the cell belongs to default_box and is FOREIGN everywhere else: whois/heal/status/mail_poll skip it)
 # 2  the key: keys never cross boxes and no model mints one — rotate-self (step 6) and every stand-up key the row
@@ -273,7 +274,9 @@ across a handoff instead of fixed in-loop became `goal:s34`.
 
 ## Every node edit goes through `write.py` (`goal:g4.18`)
 
-**One way in.** Creating a node, editing its frontmatter, appending a body note,
+> **OLD SETUP:** a post whose row has engine.v 4 edits node files with plain Write/Edit and agi-turn commits; owner 10-01 23:3xZ. The rest of this section is that setup's rule, unchanged.
+
+**One way in (old setup).** Creating a node, editing its frontmatter, appending a body note,
 rewriting its `THOUGHT` or `FEELING` region — all of it is
 `bin/write.py`, for a mechanical reason: a plain file write still gets a grid
 version, but it loses `edited_by`, `thought_session`, the spawn gate and the
@@ -349,7 +352,7 @@ unchanged: patched bytes land through the same `replace_payload` the
 whole-file verbs reach, so `edited_by`, `thought_session` and the grid version
 always happen.
 
-**If you find yourself writing into `.agi/nodes/**` or over a `payload_ref`
+**On the OLD setup, if you find yourself writing into `.agi/nodes/**` or over a `payload_ref`
 with anything but `write.py`, stop** — that is the untraceable write this
 command exists to end, and it is the easiest rule here to skip, because a
 direct edit looks like it worked.
