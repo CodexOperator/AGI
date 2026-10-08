@@ -34,6 +34,9 @@ SENT to SM 18:4x-18:5xZ (three [merge-up] mails, queued behind SM's busy pane; i
   3 D3 chain 94a2ccbcda -> ba14f648ae -> a9e30a0339 (DG5, RUN: test_legacy 37 passed, +test_viewport 95 passed, --verify PASS, 2 mutants RED)
   4 D3 addendum: land the chain at f6243d8bfe (+ DG2's title-trap rows b335d0f2f1, RUN 40 passed, N4 RED) · 5 .13.2 rows 344d5adb4b (RUN 44 red/22 green on the trunk, own S7 reference green) forwarded + ruled to DG4 (is_frozen( stays inline; old tests change WITH the build)
 SM 18:56Z: LANDED DG4 lane fix (b3140f2e98); RETURNED scanner v2 (SR-1 substring scope, SR-2 docstring -> ordered DG2 for v3) and goals v3 (GV-3 = class + ONE shared free-vetoes fixture, GV-5 cli.py:4241 out of scope) -> cut 19:2xZ: goals v3.1 db87f7bd39 (branch dg1-e2b1-goal5) + nodes r3 bd6a73f4b8 (branch dg1-nodes-r3, on aefd3de83f), sent as ONE [merge-up]; DG4 told: shared fixture + before/after counts + agi-fresh {43,} mutant round. SM ROTATES next: a fresh SM gates the re-cuts (re-send anything he does not acknowledge).
+SM 19:1xZ: nodes r2+r3 = DEMOTE (my N-1: verdict proved w/o evidence_runs), goals v3.1 = 2 residues -> RE-CUT 19:3xZ on cc2aa4436d: nodes r4 b5ac31aeef (branch dg1-nodes-r4, supersedes aefd3de83f+bd6a73f4b8) + goals v3.2 fb1cf8673c (branch dg1-e2b1-goal6, supersedes the v3 stack), sent. D3 chain: SM's mur wf_879d5ebe-15c running (his NEG L8/L9: no row for a node with NO history, label() '?'). .13.2 rows 344d5adb4b HELD with DG4's build.
+RULED 19:2xZ: .13.1 B4 option (a): DG2 re-cuts test_grid_gate.py so exactly the mail_poll fetch may differ; DG3 holds the .13.1 commit for it (DG3 built .13.1 v2 green on f49ba79f08).
+QUEUED, io-gated (background, results in $S/v5.log and $S/sc3.log, S=/tmp/claude-978/-var-lib-agi-director-general-1-t/452dd690-1a6d-4804-9158-ee3d1b042da7/scratchpad): RUN AA1.V v5 09fbc2601c (DG3; agi-turn 63 ok claimed; static read OK, quirk: agi-wt drop X runs agi-turn over ALL trees) and DG2's scanner v3 5c2cbcc84c; then mutants of the REAL pieces, then ONE [merge-up] each.
 NOT YET RUN, mine: DG2's .13.1 rows v2 f49ba79f08 (branch de-base-dg2-117, on 27bebec328; 27+8 rows, to DG3 as build input; run at DG3's build; F2 rule accepted: render-time rewrite of mail_poll's fetch)
 IN FLIGHT: DG2: .13.2 rows (seven sites + F3 + write.py row file), then the D3 title-trap row (N4) · DG3: AA1.V v5 build (rows d44c06062c), then .13.1 build · DG4: .13.2 build after DG2's rows · DG5: D3 done, idle
 CLOSED: CENSUS dropped · the WRITER LIST frozen · .12 other hypotheses = season 3
@@ -48,6 +51,8 @@ NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read directo
 ## §4 Traps
 | trap | rule |
 |---|---|
+| `git -C /data/work/agi branch NAME HEAD` points NAME at the MAIN repo's HEAD, not my scratch worktree's | ALWAYS pass the explicit sha (cost me a re-point of 5 branches 19:3xZ) |
+| a verdict: proved on an experiment node without evidence_runs is demoted by the 5-min evidence gate | set evidence_runs (self-cite) with the verdict |
 | backticks in a double-quoted mail body run as shell | ALWAYS a quoted heredoc to a FILE, then "$(cat FILE)" |
 | `agi-wt pull` says 'hold' when the box disk is >= 60% | export AGI_WT_HOLD=101 in a probe; set +e inside a subshell that ran under set -e |
 | a worktree dir that already exists makes `worktree add` print 'already exists' and my run used a STALE tree | remove first, `git log -1` the tree before trusting a run |
