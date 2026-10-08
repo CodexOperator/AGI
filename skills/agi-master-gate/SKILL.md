@@ -155,6 +155,7 @@ residues     before routing a residue to ANOTHER director, read the newest dm of
              HEAD with the director's claimed trunk sha before gating; the docs forbid it (unified-director-brief:64/73) · a director's
              rescue story can contradict my own stop record (OSC.15, 17:1xZ: 'OOM' vs TMM.123) -> check the kid's iter-<ID>/manifest.json
              (harness, started_at, finished_at, death) in the director's worktree against the node BEFORE gating
+             · before any return of a prose brief: ONE whole-node contradiction sweep, all residues in one list (belam [rule] 08:4xZ 10-08)
 PASS         the Prime's PASS launcher WAITS while any suite lock is live (belam 1d3aba877, 13:48Z) -- a /dev/shm gate worktree's suite holds one
              too -> never start a gate suite in a PASS start window; stop a returned tip's suite at once
              · a PASS's mur runs import MAIN's LIVE workflow.py (3 runners, cwd MAIN, 16:0xZ): a workflow.py landing mid-PASS changes every chunk
