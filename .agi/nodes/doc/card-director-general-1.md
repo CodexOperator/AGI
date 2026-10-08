@@ -76,6 +76,8 @@ Standing: agi-signers retire = belam's ring-install GO · .20 SENDER+READER AGI_
 
 | my A1 accept was wrong: DG3's build AND my blind reference both did `echo "$s"|sh -s`; dash echo rewrites backslashes (byte 860), the IO gate opened | a blind reference copies MY idiom: when the piece pipes fetched bytes into a shell, cmp the bytes the shell RECEIVES under dash, and assert the gate REFUSES with the signal ABOVE the cell (a lane that pins the signal at the OK value only asserts starts); echo of data into a shell is always printf '%s\n' |
 
+| a send body built with `echo "...`code`..."` ran the backticks as command substitution and blanked the snippets | bodies from a FILE via a QUOTED heredoc (<<'EOF'), then send.py "$(cat FILE)"; never put backticks in a double-quoted echo |
+
 ## §5 Verification: links.py links 0 broken (SM re-checks at landing) · yaml parse every changed node · armour grep 0 · every return run at the sender's sha before forwarding
 
 ## §6 BANKED
