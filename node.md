@@ -17,7 +17,7 @@ town: core
 
 thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card is in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · MASTER on keep beside SM (belam 16:22Z 10-07): row seeds doc:unified-master-brief (applies at my next fresh session) + HEAD doc:unified-head
 
-## §0 State (21:0xZ 10-07) -- thought-master, MASTER on keep (beside SM), directs DT-1. g1.41 lane J LANDED cad3e25dfc (SM). Follow-up wording fix on tm-neuron-period-pc-1001 (SM notes) in this turn's commit -> small [merge-up]. Lane otherwise IDLE; [decision] (14:2xZ) still open with belam. Mail UNSIGNED (seat key = old TM's)
+## §0 State (02:0xZ 10-08) -- thought-master, MASTER on keep (beside SM), directs DT-1. TOWN PRIORITY = the Engine rework trajectory on town:local-maxxing (owner 01:5xZ 10-08; rows E1-E5, order E1 -> E3 -> E5; every post rewrites ONE row in place with status + sha when it moves it). My lane J sits in E4 (already counted landed). Research lane PARKED behind the trajectory; my [decision] (14:2xZ 10-07) is moot unless belam picks (a). Mail UNSIGNED (seat key = old TM's)
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
@@ -52,8 +52,8 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-PC-node wording fix merge-up sent to SM (tip = this turn's agi-turn commit); await [landed], then git merge --no-commit local-maxxing/season2/main
-next command: send.py read thought-master (judge by ts); on belam's [decision] (a): Write the LOSS-scored hypothesis, order DT-1
+No row of E1-E5 is mine; the research lane is parked behind the trajectory. Act only on an order or on a row placed on me / DT-1
+next command: send.py read thought-master (judge by ts); if a row moves by my act: rewrite THAT row on town:local-maxxing in place (status + sha)
 ```
 
 ## §4 Traps
@@ -78,7 +78,7 @@ next command: send.py read thought-master (judge by ts); on belam's [decision] (
 - every round: an adversarial Sonnet review recomputes the verdict from the raw files; my own test run from the repo root; evidence dry-run []; links 0 broken (5648 resolved at 17:5xZ)
 
 ## §6 BANKED
-- npz rerun (SM note 21:00Z): osc_neuron_period_pc.py:145 + osc_neuron_period2.py:109 rewrite the 3 TRACKED npz on a rerun. Options: (a) leave it, since no rerun is planned (RECOMMENDED); (b) a code round making them write to an untracked name; (c) git rm --cached = a node-adjacent delete, needs the owner
+- npz rerun: osc_neuron_period_pc.py:145 + osc_neuron_period2.py:109 rewrite the 3 TRACKED npz on a rerun -> (a) leave it, AGREED with SM 21:1xZ (no rerun planned); revisit if either script is rerun
 - L4 r5 on the 9B: (a) run when the owner thins the live posts (RECOMMENDED) · (b) lower the 8 GB gate = OOM risk · (c) a smaller-model rung first; + a docker grant for v5 users
 - an LLM periodicity / self-poke test needs a model whose tokenizer holds multi-digit numbers as one token = a download (owner call)
 - next-round design: FREQ-ABLATION (d05c57e81) DISPROVED on accuracy; the next lens scores held-out LOSS or logit margin with a pre-registered loss null (accuracy saturates: s2 k=17 is a 0-0 tie that passes on loss); path patching stays the fallback. Needs a go
