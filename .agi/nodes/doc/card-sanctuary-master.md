@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:3xZ 10-08, date -u) — gen 31 · IDLE, NO gate open, NO tree on /dev/shm · trunk pushed · gen 31: skill line 24eb02fcea LANDED · RETURNED nodes r2+r3 (DEMOTE evidence_runs), goals v3.1, D3 chain · .13.2 rows HELD with DG4's build · box io PSI avg60 ~90% since 19:0xZ (no FULL may start: belam's gate < 50)
+## §0 State (19:5xZ 10-08, date -u) — gen 31 · IDLE, NO gate open, NO tree on /dev/shm · trunk 54bcb3a48a pushed · gen 31: LANDED skill lines 24eb02fcea + 2c73a00200, nodes r4 3d99399a4e, goals v3.2 5c0434bbdb · RETURNED D3 chain · .13.2 rows HELD with DG4's build · box io PSI ~90% (others' uids)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -33,11 +33,11 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 RAIL per merge-up (skill agi-master-gate): static (1 commit, merges 0, merge-tree rc 0, 0 D, anonymize per commit, full-name AND model GPU grep, key) · lanes cmp-identical to DG2's named sha · lanes bare env (env -i, empty HOME, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null, sh for .t.sh) in a 2nd tree · own NEG mutants on the REAL pieces · FULL on tmpfs · ONE Sonnet mur (focus: what the gate already measured + ONE whole-commit sweep, ALL residues one list) · accept_with_residue = RETURN unless verify refutes every residue, EXCEPT wording-only (belam (c)): land + name it + carry as a brief row · disjoint tips: ONE combined provisional tree, ONE FULL, land one at a time (T2 re-derived on the live HEAD each)
 QUEUE (in DG1's order):
-  1 nodes r4 (on bd6a73f4b8): N-1 evidence_runs self-cite (DEMOTE cause) · N-2 census/A-B wording · N-3 C8 RULE overclaim + LIMIT (str(BIN / "grid.py") slips; C5/C7 unquoted alts) · N-4 above->below, will compare · N-5 :217 'every site in a row' -> check ONLY these + evidence dry-run, then mur
-  2 goals v3.2 (on db87f7bd39): G-1 Falsifier 3 + test_town_cell_write / formation_readback / post_rename, 'ONE helper every local root builder calls' · G-2 rotate.py:19184 'Fail-open on a broken veto cell' into the comments row + grep · G-note fresh-root refusal named, vetoes.md:39 -> check ONLY these, then mur
-  3 D3 re-cut (ONE commit on f6243d8bfe): D-1 no-history rows (my L8/L9) · D-2 per-keypress git walk memo + row · D-3 hierarchy-layer stamp offset + row · D-4 cache rule version + doc :88 · D-5 build nodes -> re-run my NEG L1-L9 V1-V3 (scratch neg_d3.py pattern) + FULL on tmpfs (io gate) + lanes gate vs trunk + mur
+  1 D3 re-cut (ONE commit on f6243d8bfe): D-1 no-history rows (my L8/L9) · D-2 per-keypress git walk memo + row · D-3 hierarchy-layer stamp offset + row · D-4 cache rule version + doc :88 · D-5 build nodes -> re-run my NEG (scratch neg_d3.py) + FULL on tmpfs (io gate) + lanes gate vs trunk + mur (tmpfs root, explicit paths)
+  2 scanner rows v3 5c2cbcc84c (DG2: SR-1 shlex tokens + 5 cases, SR-2 d8 docstring; 27 passed) -> check ONLY SR-1/SR-2 + run it on the live trunk (the landed node r4 changed :62-63/:217/:244/:246: re-run the file!)
+  3 AA1.V v5 09fbc2601c (DG3, 8 files) · DG4 key lane round 2: wait for DG1's merge-up
   4 .13.2 rows 344d5adb4b HELD (44 RED by design) -> rides WITH DG4's .13.2 build
-  5 scanner rows v3 (DG2) · DG4 key lane round 2 · AA1.V v5: wait for DG1's merge-up
+  5 carried wording rows (sent to DG1 19:5xZ): C8 verb · C7 'none at the pin' · T1 grid.py:20/send.py:5798 · .13.2:52 accept-only creates a cell
   rail: static · lanes cmp · bare env · NEG on the REAL pieces (anchor at line start; assert count==1) · FULL on tmpfs · ALL .t.sh gate vs a trunk tree (scratch lanes.sh: env -i, node dir on PATH, sh) · Sonnet mur, focus = what the gate measured + ONE sweep
   HELD: lane W 6646702009 (with the flip) · AA1.Va lane 1732119924 (with its build) · graph-metrics r2d/r2e fixture = a DG2 row
   FLIP NOTE for belam: a retired commit skips evidence_gate.enforce_on_disk (grid.py:1264) -- name its successor gate at the flip
@@ -49,11 +49,11 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 - gen 28 10-08: A1b v3 eb55f973e2 (FULL 8,159/0, wf_57c3536c-9f0) · D1 v2 38e61463c7 + goal 1275bdcb50 (FULL 8,248/0, wf_82907707-a9d) · skill line 7736650a92 (mur scratch HOME) · boards E1/E2/E4 · belam's host act INSTALLED 10:57Z (pin 820e5baac7)
 - gen 29 10-08 (13:11-16:3xZ): LANDED nest nodes 02add72f8e · lane B v5 a326fc3364 · nest wording e296f375b8 · metrics gold c0a529db3f · g141-b wording f478a9c0fb · boot leaf a7b3af22ea · E2b0 v8 014209084b · RETURNED lane B v4, E2b0 v6, census v4 + v7, AA1.V v3 (DEMOTE), writer list e5a67228e2 + bb7a6adf06 + d830681092 · murs wf_43ae744e-714 wf_61f04d6f-397 wf_a3fcaaf3-1cd wf_b25ca36f-1b3 wf_e8b285ad-5de wf_1c2460ab-2fa wf_0916f678-255 · skill line 'lanes'
 - gen 30 10-08 (16:4xZ-18:5xZ): LANDED D3 assign 42f52a3db1 · key lane rows 6ddce0abc6 · AA2 node be7bc26581 · key wording 975bd1477f · WRITER LIST v4 79238a68c9 · .12 one-box key chain eb3fd09d05 · DG4 lane fix b3140f2e98 · RETURNED writer list v2 + v3, AA1.V v4 (edit LOST), census v8 (then DROPPED by belam), scanner rows v1 + v2, goals .13.x v1 v2 v2+F v3 · murs wf_c5efe89c-2ac wf_0262b3ac-4b3 wf_0833fb39-cbf wf_671e85c2-a0f wf_459f5a1d-405 wf_3d2e289b-9fa
-- gen 31 10-08 (18:57Z-): LANDED skill line agi-memory-guard 24eb02fcea (belam 18:4xZ: one full suite at a time) · RETURNED nodes r2+r3 bd6a73f4b8 (DEMOTE), goals v3.1 db87f7bd39, D3 chain f6243d8bfe · murs wf_94dcd4dd-a70 wf_879d5ebe-15c
+- gen 31 10-08 (18:57Z-): LANDED skill lines 24eb02fcea (memory-guard: one full suite) + 2c73a00200 (master-gate: mur root on tmpfs) · nodes r4 3d99399a4e · goals v3.2 5c0434bbdb · RETURNED nodes r2+r3 (DEMOTE evidence_runs), goals v3.1, D3 chain · murs wf_94dcd4dd-a70 wf_879d5ebe-15c wf_3323b847-00c
 
 ## 🔴 Where it stops
 ```
-sanctuary-master idle 19:3xZ 10-08: skill line landed; nodes r2+r3, goals v3.1, D3 chain returned to DG1
+sanctuary-master idle 19:5xZ 10-08: nodes r4 + goals v3.2 landed; D3 chain returned; scanner v3 + AA1.V v5 at DG1
 NEXT: wake on DG1's [merge-up] (nodes r4 / goals v3.2 / D3 re-cut / scanner v3 / DG4 lane 2 / AA1.V v5) -> the rail in §1 -> land ONE at a time (T2 on the live HEAD, assert HEAD^{tree}) -> board -> [landed]/[return] DG1 (inbox + SendMessage 'director-general-1 [82cc9a]') + UP belam
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; the raw store is .agi/sessions/inbox/sanctuary-master.md)
 ```
