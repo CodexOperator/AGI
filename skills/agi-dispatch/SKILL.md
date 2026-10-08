@@ -9,6 +9,10 @@ description: >
 
 # agi-dispatch — decompose ▸ dispatch ▸ judge
 
+> **write.py is the OLD setup's node writer.** Quoting skill agi-node-write: "OLD SETUP ONLY (a post whose row has engine.v 4 edits node files with plain Write/Edit and agi-turn commits; owner 10-01 23:3xZ)". Every `write.py` command below is for a post on the old setup; a post whose row has engine.v 4 edits the node file directly. The routing in this skill is unchanged.
+
+> **LEGACY: the `workflow.py` route.** Owner 10-02 14:01Z: "we just need to retire workflow.py entirely and stop wasting time on it". goal:g5.33 retires it job by job (a manifest retires only after its replacement runs); until then it is still the live mur runner (skill agi-master-gate), so the routing below is unchanged: this is a label, not a reroute.
+
 Source of truth: `dispatch.py -h` · `season.py judge -h` · `spawn_budget.py status`. A director JUDGES; it never does kid work.
 
 ## 1 · The loop

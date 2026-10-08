@@ -863,12 +863,22 @@ def test_a_reserved_invalid_tld_is_allowed_and_a_real_shape_is_not(
                           anonymize._email_allow(root)) == []
     assert anonymize.scan("reach fixture.person" + AT + "corp.example", toks,
                           anonymize._email_allow(root)) == ["email"]
-    live = json.loads((Path(__file__).resolve().parents[3] / ".agi" /
-                       "config.json").read_text())["anonymize"]["email_allow"]
-    if r"example\.invalid" not in " ".join(live):
-        pytest.skip("the landed cell does not carry the .invalid pattern yet "
-                    "(a round cannot commit .agi/config.json; the diff is in "
-                    "the round's experiment node)")
+
+
+def test_the_landed_email_cell_reads_back_nonempty():
+    """The xfail row below absorbs ANY failure, so its premise is its own row:
+    an unreadable or empty landed cell would make it XFAIL for the wrong reason."""
+    assert anonymize._email_allow(Path(__file__).resolve().parents[3])
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason="the landed .agi/config.json cell does not "
+                   "carry the example.invalid pattern yet (a round cannot commit "
+                   ".agi/config.json). STRICT: the day the cell lands this goes "
+                   "XPASS = red; delete this marker then (g1.41 PASS B4)")
+def test_the_landed_cell_admits_a_reserved_invalid_address(tmp_path, fake_box):
+    toks = anonymize.box_tokens(_email_graph(tmp_path))
+    live = anonymize._email_allow(Path(__file__).resolve().parents[3])
+    assert anonymize.scan("reach fixture.person" + AT + "example.invalid", toks, live) == []
 
 
 def _cell_leaks(node, core_digits=3):

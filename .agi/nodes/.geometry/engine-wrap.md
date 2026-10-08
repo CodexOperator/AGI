@@ -17,12 +17,13 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-run (501 B)
+### agi-run (773 B)
 ~~~sh
 #!/bin/sh
 cd ~/t;c=-c;[ -e ~/.fresh ]&&rm ~/.fresh&&c=;stty cols 200 rows 50;i=$RUNTIME_DIRECTORY/i;f=$O/.agi/sessions/inbox/$AGI_SEAT.md
 (while sleep 300;do m=$((${AGI_PANE_MAX_MB:-64}<<20));[ $(stat -c%s ~/o 2>/dev/null||echo 0) -gt $m ]&&tail -c $((m/2)) ~/o>~/o.t&&cat ~/o.t>~/o;rm -f ~/o.t;done)&
 case $H in claude*)(s=$(stat -c%s $f 2>/dev/null||echo 0);while sleep 5;do n=$(stat -c%s $f 2>/dev/null||echo 0);[ $n -gt $s ]&&printf "mail: send.py read $AGI_SEAT">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
+case $H in claude*|pi*)(s=0;while sleep 5;do n=$(AGI_POST=${AGI_POST:-$AGI_SEAT} box n 2>/dev/null|grep -vc '^\[');[ $n -gt $s ]&&printf "mail: box read">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
 exec strace -qqf -b execve -e%file -o'|agi-track' $H $c go
 ~~~
 
@@ -31,18 +32,19 @@ exec strace -qqf -b execve -e%file -o'|agi-track' $H $c go
 {"skipDangerousModePermissionPrompt":true,"hooks":{"PreToolUse":[{"hooks":[{"type":"command","command":"agi-captive"}]}],"SessionStart":[{"hooks":[{"type":"command","command":"agi-brief","timeout":180}]}],"UserPromptSubmit":[{"hooks":[{"type":"command","command":"agi-meter"}]}],"Stop":[{"hooks":[{"type":"command","command":"agi-turn"}]}]}}
 ~~~
 
-### cccc.ts (1647 B)
+### cccc.ts (1956 B)
 ~~~ts
 import{execSync as x}from"node:child_process";import{readFileSync as R,watchFile as W,unwatchFile as U}from"node:fs"
-const E=process.env,H=JSON.parse(R(E.HOME+"/.claude/settings.json","utf8")).hooks,N={bash:"Bash",read:"Read",edit:"Edit",write:"Write"};let b=""
+const E=process.env,H=JSON.parse(R(E.HOME+"/.claude/settings.json","utf8")).hooks,N={bash:"Bash",read:"Read",edit:"Edit",write:"Write"};let b="",v
 const h=(n,j={})=>{let o="",k=0;for(const g of H[n]||[])if(!g.matcher||RegExp(g.matcher).test(j.tool_name))for(const c of g.hooks)try{o+=x(c.command,{input:JSON.stringify({hook_event_name:n,cwd:process.cwd(),...j}),encoding:"utf8",stdio:"pipe",timeout:(c.timeout||60)*1e3})}catch(e){if(e.status==2)k=2,o+=e.stderr}return{o,k}}
 const t=e=>({tool_name:N[e.toolName]||e.toolName,tool_input:e.input}),S=s=>{b=h("SessionStart",{source:s}).o}
 export default p=>{const on=(e,f)=>p.on(e,f);on("session_start",e=>{S({new:"clear",fork:"resume",reload:"resume"}[e.reason]||e.reason)
-const f=`${E.O}/.agi/sessions/inbox/${E.AGI_SEAT}.md`;U(f);W(f,{interval:5e3,persistent:!1},(n,o)=>n.size>o.size&&p.sendUserMessage("mail: send.py read "+E.AGI_SEAT,{deliverAs:"followUp"}))})
+const f=`${E.O}/.agi/sessions/inbox/${E.AGI_SEAT}.md`;U(f);W(f,{interval:5e3,persistent:!1},(n,o)=>n.size>o.size&&p.sendUserMessage("mail: send.py read "+E.AGI_SEAT,{deliverAs:"followUp"}))
+let s=0;clearInterval(v);v=setInterval(()=>{try{const n=+x("box n 2>/dev/null|grep -vc '^\\['||:",{encoding:"utf8",stdio:["ignore","pipe","ignore"],env:{...E,AGI_POST:E.AGI_SEAT||E.AGI_POST}}).trim();n>s&&p.sendUserMessage("mail: box read",{deliverAs:"followUp"});s=n}catch{}},5e3).unref()})
 on("session_compact",()=>S("compact"));on("before_agent_start",e=>b&&{systemPrompt:e.systemPrompt+"\n\n"+b})
 on("input",(e,c)=>{const u=c.getContextUsage()||{},r=h("UserPromptSubmit",{prompt:e.text,tokens:u.tokens,context_window:u.contextWindow});return r.k?{action:"handled"}:r.o&&{action:"transform",text:e.text+"\n\n"+r.o}})
 on("tool_call",e=>{const r=h("PreToolUse",t(e));return r.k&&{block:true,reason:r.o}});on("tool_result",e=>{h("PostToolUse",t(e))})
-on("session_before_compact",()=>{h("PreCompact",{trigger:"auto"})});on("turn_end",()=>{h("Stop")});on("session_shutdown",()=>{h("SessionEnd",{reason:"other"})})}
+on("session_before_compact",()=>{h("PreCompact",{trigger:"auto"})});on("turn_end",()=>{h("Stop")});on("session_shutdown",()=>{clearInterval(v);h("SessionEnd",{reason:"other"})})}
 ~~~
 
 ### agi-kid (2037 B)
@@ -85,5 +87,6 @@ X
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PROPOSED v5 (round 5, §Q): v4c's wrapper pieces cut whole + agi-infer (owner 05:50Z): one OpenAI-compatible chat call; cells infer_url/infer_model/infer_key (a var NAME, never a key). ROUND 7: + agi-captive (the patched copy: the doc one lets `agi-fill close; cmd` through) + one PreToolUse line in settings.json + agi-infer cell infer_schema. agi-run + a pane trim loop (cell pane_max_mb, default 64). SPLIT: agi-fill moved to engine-grow.
+10-07 goal:g7.16.1.11.20 (director-general-3; lanes DG2 b94a30851 + a1425b7d5 + 32c2f4704a + 1d03ba36cc, box-wake.t.sh, 33 lanes): messaging is box mail, with TWO sources until send.py's callers are on box (DG1 return 17:5xZ: send.py never writes box mail, only the inbox file). agi-run polls BOTH: the inbox file size exactly as the trunk's (claude only; growth types `mail: send.py read $AGI_SEAT`, s=$n every tick; md5-equal to the trunk's line) AND `box n` (claude and pi; growth types `mail: box read`, s starts 0 and follows the count down). cccc.ts keeps its inbox watchFile AND adds ONE box interval (`n>s&&send;s=n`; the pilot's `n>s&&(s=n,...)` only moved s UP, so mail after a read never woke); each source types its OWN line, with separate counters; the ~/o cap loop is KEPT.
+SM mur final (DG1 return 19:27Z): the box route could not work live. R6: the unit sets AGI_SEAT=%i ONLY, the box piece needs AGI_POST (`P=${AGI_POST:?}`), so in a real pane `box n` died and the wake never fired while every lane (which exported AGI_POST) was green; both wake pieces now derive it, `AGI_POST=${AGI_POST:-$AGI_SEAT}` in agi-run and `env:{...E,AGI_POST:E.AGI_SEAT||E.AGI_POST}` in cccc.ts (R9 flipped the cccc.ts order, see below). The SENDER side needs AGI_POST too (the unit would set it) but that is a host act, banked, not this leaf. R7: stderr discipline, `2>/dev/null` and `stdio:["ignore","pipe","ignore"]`, so a dead or absent box is silent. N11: the count excludes lines starting with `[` (`[off-matrix]`, `[refused]`, which `box n` prints). A TRAP: `grep -vc` exits 1 on a zero count and execSync throws on a non-zero exit, which skips `s=n` and brings the original bug back (send 1, read, send 1 = no second wake), so the cccc.ts pipeline ends in `||:` (DG2's lanes w4/w4b found it). N10: `.unref()` on the interval, so agi-kid's `pi ... -e cccc.ts -p` can exit once pi drains. N12: agi-project projects `node <P>/pi ...` as H, so the `pi*` arm of agi-run is DORMANT today and the pi route is cccc.ts; lane w8 pins the arm's shape, not the projection. The pure-box cutover is a LATER leaf with belam's GO. Sizes: agi-run 773 B (the trunk header said 501 B; the piece measured 573), cccc.ts 1956 B (trunk 1647). R9 (mur, DG1 order 20:37Z): agi-kid execs pi with AGI_SEAT=$k and INHERITS the post env, so once the unit line AGI_POST=%i lands a kid would poll its PARENT's box, and a kid that obeys `box read` advances the parent's held ref; cccc.ts therefore prefers AGI_SEAT (`AGI_POST:E.AGI_SEAT||E.AGI_POST`, same 1956 B), so a kid's own name wins and matches no ref (`box n` reads 0); a post has both vars = %i, same result. agi-kid is NOT touched (option b rejected); the shell wrap line `AGI_POST=${AGI_POST:-$AGI_SEAT}` stays, post-only (a kid never runs the wrap). Prior THOUGHT (v5 rounds 5 and 7: the wrapper pieces, agi-infer, agi-captive, the pane trim loop): grid history.
 <!-- THOUGHT:END -->

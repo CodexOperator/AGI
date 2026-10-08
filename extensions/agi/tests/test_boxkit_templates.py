@@ -1184,21 +1184,11 @@ def test_one_planted_kit_copy_goes_red_and_the_kits_own_bytes_stay_clean(
     # the kit's own bytes carry systemd-unit address shapes (user@UID.service):
     # the cell's `anonymize.email_allow` is the ONLY thing that can cover them,
     # so the row reads the CELL and adds NO pattern of its own (dh347 item 4).
-    # Until the landed cell covers the unit shape the row SKIPS, naming the
-    # gap -- it does not name a compensating diff either; that diff is the
-    # cell edit the Prime owes, recorded in its own node, not a test literal.
+    # The landed cell covers them (measured at fc2cc2c6a8), so EVERY template
+    # must scan clean: an email-only hit is a red, never a skip (g1.41 PASS B4).
     allow = anonymize._email_allow(PROJECT)
-    # dg352 item 3: an email-ONLY hit is COLLECTED (the loop CONTINUES over every template), a non-email hit still fails, ONE notice at the end.
-    emailed = []
     for path, text in _kit_bytes():   # the kit's OWN bytes, incl. the clean src
-        hits = anonymize.scan(text, toks, allow)
-        if hits == ["email"]:
-            emailed.append(path.name)
-            continue
-        assert hits == [], path.name
-    if emailed:
-        pytest.skip("the landed anonymize.email_allow does not yet cover the "
-                    "systemd-unit address shape in: %s" % ", ".join(emailed))
+        assert anonymize.scan(text, toks, allow) == [], path.name
 
 
 # 14b -- THE DISJOINTNESS itself, BOTH directions, EVERY class. Direction 1 is per class.

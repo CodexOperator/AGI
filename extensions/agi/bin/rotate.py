@@ -46,6 +46,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import errno
 import fcntl
 import functools
 import json
@@ -364,21 +365,66 @@ def find_pin_log(root: Path, seat: str | None = None) -> Path | None:
     transcript)`. Returning the NEWEST lets several agents each pin their own
     transcript while the meter that is actually running reads its own.
     """
-    sessions = _sessions_dir(root)
-    if not sessions.is_dir():
-        return None
-    if seat is not None:
-        sp = sessions / f"{seat}{METER_PIN_EXT}"
-        try:
-            return sp if sp.is_file() else None
-        except OSError:
-            # An unreadable sessions DIR makes is_file() raise, which would
-            # escape every meter caller (mur residue 2 on 0c16b7daf). A pin we
-            # cannot stat is UNKNOWN, the same reading as an absent one.
+    # ONE guard around EVERY read this function makes, RESOLUTION INCLUDED:
+    # MEASURED 21:3xZ (goal:g1.31.4.2.1.2) on py3.12, an unreadable graph
+    # PARENT raises PermissionError out of `_sessions_dir`'s own probes --
+    # `Path.is_dir()` RE-RAISES EACCES, it does not answer False -- so a guard
+    # that started one line lower never ran. `RuntimeError` is carried from
+    # the pin leaf, where a real `a->b->a` loop DOES raise it out of
+    # `Path.resolve()`: it has no measured raiser at THIS seam today (a loop
+    # here makes `is_dir()` answer False), so it is one word of insurance, not
+    # a claim -- and the loop test below is marked as the control it is. Every
+    # one of these paths is UNKNOWN, the same reading as an absent pin (mur
+    # residue 2 on 0c16b7daf).
+    try:
+        sessions = _sessions_dir(root)
+        if not sessions.is_dir():
             return None
-    pins = sorted(sessions.glob(f"*{METER_PIN_EXT}"),
-                  key=lambda p: p.stat().st_mtime)
-    return pins[-1] if pins else None
+        if seat is not None:
+            sp = sessions / f"{seat}{METER_PIN_EXT}"
+            return sp if sp.is_file() else None
+        # stat PER PIN: one dangling or vanished *.meter must not turn the whole
+        # seatless scan into UNKNOWN (mur R4) -- skip it, keep the newest valid one.
+        pins = []
+        # os.scandir RAISES on an unreadable dir; Path.glob swallows EACCES and answers [] (mur R6)
+        with os.scandir(sessions) as it:
+            for e in it:
+                if e.name.endswith(METER_PIN_EXT) and not e.name.startswith("."):
+                    try:
+                        pins.append((e.stat().st_mtime, e.name))
+                    except OSError:
+                        continue
+        return sessions / max(pins)[1] if pins else None
+    except (OSError, RuntimeError) as exc:
+        _warn_pin_unknown(root, exc)
+        return None
+
+
+#: (path, errno) pairs already named on stderr this process: `status --seats` asks per seat, the reason prints ONCE.
+_PIN_UNKNOWN_SEEN: set[str] = set()
+
+
+def _warn_pin_unknown(root: Path, exc: BaseException) -> None:
+    """The reason behind a `find_pin_log` None that is UNKNOWN, not absent (goal:g1.31.4.2.1.2, mur R1): ONE stderr
+    line naming UNKNOWN + the path + the errno, never a silent empty."""
+    path = getattr(exc, "filename", None) or str(root)
+    code = (errno.errorcode.get(exc.errno, str(exc.errno))
+            if isinstance(exc, OSError) and exc.errno else type(exc).__name__)
+    key = f"{path}|{code}"
+    if key in _PIN_UNKNOWN_SEEN:
+        return
+    _PIN_UNKNOWN_SEEN.add(key)
+    print(f"warn: meter pin UNKNOWN: {path} ({code}: {getattr(exc, 'strerror', None) or exc})", file=sys.stderr)
+
+
+def _sessions_dir_text(root: Path) -> str:
+    """`_sessions_dir(root)` for a MESSAGE: an unreadable resolution prints UNKNOWN, never raises while explaining
+    itself (goal:g1.31.4.2.1.2, mur R3)."""
+    try:
+        return str(_sessions_dir(root))
+    except (OSError, RuntimeError) as exc:
+        _warn_pin_unknown(root, exc)
+        return "<sessions dir UNKNOWN>"
 
 
 def _seat_pin_path(root: Path, seat: str) -> Path:
@@ -1344,13 +1390,17 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
     if log_path is None:
         # no transcript anywhere (slug dirs empty): remote-control log fallback
         rc_path = root / REMOTE_CONTROL_LOG
-        if rc_path.exists():
+        try:
+            rc_exists = rc_path.exists()
+        except OSError:   # EACCES re-raises out of Path.exists(): an unreadable log is no log, the ERR below says so
+            rc_exists = False
+        if rc_exists:
             log_path = rc_path
             source = "rc_log"
         else:
             print("ERR: no session log found. Tried env "
                   f"${AGI_SESSION_LOG_VAR}, pin files under "
-                  f"{_sessions_dir(root)}/*.meter, transcripts for "
+                  f"{_sessions_dir_text(root)}/*.meter, transcripts for "
                   f"cwd slug ({_derive_cc_slug(os.getcwd())}), and the "
                   f"remote-control log ({REMOTE_CONTROL_LOG}).",
                   file=sys.stderr)

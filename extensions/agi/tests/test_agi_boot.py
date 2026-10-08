@@ -38,9 +38,9 @@ def box(tmp_path):
     for f in fk.iterdir():
         f.chmod(0o755)
     la.write_text("0.50 0.5 0.5 1/1 1\n"); io.write_text("some avg10=0.00 avg60=1.00 avg300=0.00 total=1\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=1\n")
-    env = {"PATH": f"{fk}:/usr/bin:/bin", "AGI_TRUNK": "HEAD", "AGI_RAM": str(tmp_path / "ram"), "AGI_BOOT_OUT": str(tmp_path / "out"),
+    env = {"PATH": f"{fk}:/usr/bin:/bin", "AGI_TRUNK": g("rev-parse", "HEAD").stdout.strip(), "AGI_RAM": str(tmp_path / "ram"), "AGI_BOOT_OUT": str(tmp_path / "out"),
            "AGI_LOADAVG": str(la), "AGI_PSI_IO": str(io)}
-    run = lambda: subprocess.run(["sh", "-s"], input=section("agi-boot"), cwd=repo, env=env, capture_output=True, text=True, timeout=60)
+    run = lambda: subprocess.run(["sh", "-s"], input=section("agi-boot"), cwd=repo, env={**env, "AGI_TRUNK": g("rev-parse", "HEAD").stdout.strip()}, capture_output=True, text=True, timeout=60)  # the pin is the sha HEAD has NOW (A1: the unit reads a pinned sha, never HEAD)
     run.env, run.repo = env, repo
     return run, log, la, io, tmp_path
 
@@ -115,15 +115,15 @@ def test_unreadable_or_empty_boot_list_is_named_and_fails(box, which):
     pm = run.repo / GEO / "posts.md"
     pm.write_text(pm.read_text().replace('"boot": true, ', "")) if which == "noboot" else pm.unlink()
     g("add", "-A"); g("commit", "-qm", "y")
-    r = run(); assert r.returncode != 0 and "agi-boot: no boot rows read from HEAD" in r.stderr and not any(l.startswith("b ") for l in lines(log))
+    r = run(); assert r.returncode != 0 and "agi-boot: no boot rows read from " + g("rev-parse", "HEAD").stdout.decode().strip() in r.stderr and not any(l.startswith("b ") for l in lines(log))
 
 
-def test_unit_execstart_reads_head_no_trunk_literal(box):
+def test_unit_execstart_reads_the_pinned_sha_never_head(box):  # g1.41 A1 (was: reads HEAD, no trunk literal)
     run, log, la, io, tp = box
-    u = section("agi-boot.service"); assert "AGI_TRUNK" not in u
+    u = section("agi-boot.service"); assert u.splitlines().count("EnvironmentFile=/etc/agi/carry.env") == 1
     cmd = next(l for l in u.splitlines() if l.startswith("ExecStart=")).split("=", 1)[1]
-    env = {k: v for k, v in run.env.items() if k != "AGI_TRUNK"}
-    assert subprocess.run(cmd, shell=True, cwd=run.repo, env=env, capture_output=True, text=True, timeout=60).returncode == 0
+    assert "HEAD" not in cmd and "$AGI_TRUNK:" in cmd
+    assert subprocess.run(cmd, shell=True, cwd=run.repo, env=run.env, capture_output=True, text=True, timeout=60).returncode == 0
     assert sum(l.startswith("b ") for l in lines(log)) == 2
 
 

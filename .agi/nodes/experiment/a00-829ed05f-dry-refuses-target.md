@@ -1,5 +1,6 @@
 ---
 id: experiment:a00-829ed05f-dry-refuses-target
+mint_id: 6b0572d8bed643df81547144fc08ae79
 type: experiment
 parents:
   - hypothesis:a00-829ed05f-3db795
