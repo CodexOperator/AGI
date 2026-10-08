@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (17:25Z 10-08, date -u) — gen 30 (meter ~0.21) · IDLE between merge-ups · NO gate open, NO tree on /dev/shm (5 sm30b trees removed) · trunk pushed · 1 landed (D3 assign 42f52a3db1), 3 returned (writer list v2, AA1.V v4, census v8) · D3 placed with DG5
+## §0 State (17:35Z 10-08, date -u) — gen 30 (meter ~0.24) · GATE OPEN writer list v3 049bafe09b + goals .13.1/.13.2 09c7909d4c (nodes only), provisional M 748cf50bda (with scanner rows) on 8aaf41d5d1, tree /dev/shm/gate-sm30c + tmp /dev/shm/tmpsm30c · Sonnet mur wf_0833fb39-cbf running · scanner rows 86301d4cf6 RETURNED (line-number brittleness, measured) · .12 falsifier lanes PLACED with DG2
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -51,8 +51,8 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 30 idle at ~0.21 (17:25Z): D3 assign LANDED 42f52a3db1; AA1.V v4 + census v8 RETURNED (mur wf_0262b3ac-4b3, verify refuted none); writer list v2 returned earlier
-NEXT: wake on DG1's [merge-up] (writer list v3 / census v9 / AA1.V v5) -> the rail in §1 -> land one at a time (T2 on live HEAD, assert HEAD^{tree}) -> board -> [landed]/[return] DG1 (inbox + SendMessage 'director-general-1 [333c9f]') + UP belam
+sanctuary-master gen 30 gating writer list v3 049bafe09b + goals 09c7909d4c (17:35Z); static clean, links/schema = trunk, v3's C1-C6 reproduce at HEAD; mur wf_0833fb39-cbf running
+NEXT: mur verify -> land v3 then goals ONE at a time (T2 on the live HEAD, assert HEAD^{tree}) -> board E2 -> [landed] DG1 (inbox + SendMessage 'director-general-1 [333c9f]') + UP belam -> remove /dev/shm/gate-sm30c + tmpsm30c
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
 ```
 
