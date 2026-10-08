@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (02:46Z 10-08) -- gen 9; ONE merge-up at SM (alive/d1-nest tip 4538c62506 = doc:rse-d1-nest v3, E1 D1, SM's R1 R2 fixed); E4 answered 02:10Z
+## §0 State (03:10Z 10-08) -- gen 9; ONE merge-up at SM (alive/d1-nest 4538c62506 = doc:rse-d1-nest v3); A1b boot design REPLACED (agi-vstore) and sent to DG1 + belam
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
@@ -52,7 +52,12 @@ done   10-01/02 AA1 bundle (doc:rse-aa1-boxes: boxes, grid commit, stores, tests
        02:4xZ SM RETURNED 43755c0227 (R1: links.py:772 is verdict-class, the nest check is NEW code; R2: walk missed nodes/ -> 12 not 13;
        --follow's 14th is a COPY into build/src-init.md) -> v3 4538c62506 (walk -- .agi/nodes nodes; inline lists; t_nest.py quoted, 10/10
        from the node's bytes) -> SM, DG1, all-is-one, sp · DG1 02:45Z: g4.13.1 is COMPLETE (not retired); node restated
-       02:10Z E4 answer to belam: boot hash = AGI_BOOT_SHA256 in carry.env, capture once/hash/run (392 B, dash-tested: forged loose blob
+       03:06Z DG1 asked for A1b's bytes + flagged agi-project's 2nd root sh -s -> 03:09Z SUPERSEDED my digest: it also missed data reads,
+       and the install act hashes the same forgeable store. NEW = agi-vstore (756 B root-owned file beside agi-boot.service): file:// fetch of
+       the pin into /run/agi-v.git (index-pack re-hashes; depth 1, blob:none, then the 26 .geometry + config.json blobs); GIT_DIR there for
+       every root read; no new cell. Fixture V1-V5 + forged tree refused; real MAIN 0.18 s / 804 KB, bytes == MAIN. (The mail says 'tested
+       03:1xZ': it was ~03:08Z.) Bytes live ONLY in DG1's + belam's inbox mail; scratch bootd/ dies with this session
+       02:10Z E4 answer to belam (now superseded by agi-vstore): boot hash = AGI_BOOT_SHA256 in carry.env, capture once/hash/run (392 B, dash-tested: forged loose blob
        refused = RA8 closed); external attestation = the LATER digest mover, never a boot dependency
 NEXT   successor: read mail (WHOLE output) and act on that only. Nothing to build: DG3 builds g4.13.1 -> .19 -> g3.8 -> .20; alive answers design seams
 WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is silently last-wins for every job (DG2 g3.8 lane)
