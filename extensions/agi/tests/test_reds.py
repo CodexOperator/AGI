@@ -476,11 +476,10 @@ def test_re3_an_id_less_move_beside_an_id_ful_move_names_only_the_id_less(proj):
 
 # goal:g1.41 RE2 (DG1 23:05Z): the committed CLI over the BUILD'S OWN range (the mur ran `reds.py check c99ac24ea3 7bd46defd8` and got RED secrets 2: two added lines of the lane's own test carried a user path). The range is named by ref so it keeps meaning; a clone that lacks the commits skips (vacuous there, said so). The check runs in-process with `anonymize.box_tokens` read when the box allows it and [] when it does not (a seat without the main .env): box tokens only ADD reds, so a green range here may still be red at a gate that holds them.
 TIP_BASE, TIP_REF = "6f9d7f742c", "d880746901"          # the build's own commit (RE1 recut) and its parent
-OLD_REF, PRE_RECUT_REF = "c99ac24ea3", "7bd46defd8"   # the range the mur ran: RED secrets 2
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 
-def _own_range(monkeypatch, capsys, old, new, only=None):
+def _own_range(monkeypatch, capsys, old, new):
     import anonymize, reds
     for r in (old, new):
         if subprocess.run(["git", "-C", str(REPO_ROOT), "cat-file", "-e", r + "^{commit}"], capture_output=True).returncode != 0:
@@ -493,8 +492,6 @@ def _own_range(monkeypatch, capsys, old, new, only=None):
         except OSError:
             return []
     monkeypatch.setattr(anonymize, "box_tokens", tokens)
-    if only:   # the slow classes extract two whole trees (about a minute each): the can-fail row narrows to the one class it is about
-        monkeypatch.setattr(reds, "_classes", lambda root: set(only))
     rc = reds.main(["check", old, new, "--root", str(REPO_ROOT), "--repo", str(REPO_ROOT)])
     return rc, capsys.readouterr().out
 
@@ -504,6 +501,56 @@ def test_re2_the_builds_own_range_is_green(monkeypatch, capsys):
     assert rc == 0 and "RED none" in out, out
 
 
-def test_re2_the_same_check_is_red_on_the_pre_recut_range(monkeypatch, capsys):
-    rc, out = _own_range(monkeypatch, capsys, OLD_REF, PRE_RECUT_REF, only={"secrets"})
-    assert rc == 1 and "RED secrets 2" in out, out
+# goal:g1.41 RE5 (DG1 23:59Z, ruled): an id-less DELETED node is alive only when a file at NEW IS the moved node (its mint in ITS OWN front matter `mint_id:` row) AND that file did not already carry that mint at OLD. A raw scan of every NEW file for the mint (a THOUGHT, a doc, a pre-existing OTHER node quoting it) voids the DG3.54 disguise rule for id-less nodes.
+MINT5 = "a5" * 16
+
+
+def _idless_with_mint(proj, name="noid.md"):
+    (proj / ".agi/nodes/idea" / name).write_text(f"---\nmint_id: {MINT5}\ntype: idea\n---\nbody\n")
+
+
+def test_re5a_a_pre_existing_other_node_carrying_the_mint_is_a_disguise_and_the_deletion_is_reported(proj):
+    _idless_with_mint(proj)
+    (proj / ".agi/nodes/idea/other.md").write_text(_node("idea:other", MINT5, type="idea"))   # the disguise: ANOTHER node already holds the mint
+    base = _commit(proj, "an id-less node and another node holding the same mint")
+    (proj / ".agi/nodes/idea/noid.md").unlink()
+    _commit(proj, "delete the id-less node")
+    r = _run(proj, base)
+    assert r.returncode == 1 and "RED node_deletion 1: .agi/nodes/idea/noid.md" in r.stdout, r.stdout + r.stderr
+
+
+@pytest.mark.parametrize("where", ["a body line", "a THOUGHT region", "a new doc"])
+def test_re5b_a_prose_quote_of_the_mint_in_another_file_does_not_keep_the_node_alive(proj, where):
+    _idless_with_mint(proj)
+    base = _commit(proj, "an id-less node")
+    (proj / ".agi/nodes/idea/noid.md").unlink()
+    if where == "a body line":
+        f = proj / ".agi/nodes/idea/one.md"
+        f.write_text(f.read_text() + f"\nsee mint {MINT5} for the old note\n")
+    elif where == "a THOUGHT region":
+        f = proj / ".agi/nodes/idea/one.md"
+        f.write_text(f.read_text() + f"\n<!-- THOUGHT:BEGIN -->\nthe old note was mint_id: {MINT5}\n<!-- THOUGHT:END -->\n")
+    else:
+        (proj / ".agi/nodes/idea/quote.md").write_text(_node("idea:quote", "b5" * 16, type="idea") + f"quotes {MINT5}\n")
+    _commit(proj, "delete it and quote its mint elsewhere")
+    r = _run(proj, base)
+    assert r.returncode == 1 and "RED node_deletion 1: .agi/nodes/idea/noid.md" in r.stdout, (where, r.stdout + r.stderr)
+
+
+def test_re5c_the_moved_id_less_node_with_its_own_mint_stays_alive_even_beside_a_quote(proj):
+    base = _move_to_deprecated(proj, f"---\nmint_id: {MINT5}\ntype: idea\n---\nbody\n")
+    f = proj / ".agi/nodes/idea/one.md"
+    f.write_text(f.read_text() + f"\nsee mint {MINT5}\n")
+    _commit(proj, "a quote too")
+    r = _run(proj, base)
+    assert r.returncode == 0 and "RED node_deletion" not in r.stdout, r.stdout + r.stderr
+
+
+# goal:g1.41 RE4 (DG1 23:59Z): the can-fail row built in a FIXTURE repo so it runs anywhere (the pre-recut range lived on a branch that will be pruned and the row skipped forever). Two added lines carry a user_roots path (built from parts): RED secrets 2 through the committed CLI.
+def test_re4_a_fixture_range_with_two_user_rooted_lines_is_red_secrets_two(proj):
+    base = _user_roots_cell(proj)
+    (proj / "notes" / "p.txt").write_text("ok\nsee " + "/" + "tmp/pytest-of-" + "alice/pytest-3/x\nand " + "/" + "tmp/pytest-of-" + "bob/pytest-9/y\n")
+    _commit(proj, "two user-rooted paths")
+    r = _run(proj, base)
+    assert r.returncode == 1 and "RED secrets 2: notes/p.txt:2 notes/p.txt:3" in r.stdout, r.stdout + r.stderr
+    assert "alice" not in r.stdout + r.stderr and "bob" not in r.stdout + r.stderr
