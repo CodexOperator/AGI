@@ -72,6 +72,7 @@ Progress on a goal is never written on the goal or a card: one numbers-only line
 Every version's why goes in the `THOUGHT` block (`thought <text>`, rewritten whole, never appended;
 absent = empty, never fabricated). Mechanism-not-wording: (1) the instruction quoted, (2) what the machine
 does at file:line, (3) the near miss, (4) the property that made a standing rule not apply.
+A brief (hypothesis node) that returns from a gate: re-read the WHOLE node before a re-cut; never patch-on-patch (belam [rule] 10-08 08:4xZ, after E2's six cuts, RE8/RE9/RE11/RE12 were my own patches contradicting each other).
 
 ## 5 · Nested subgoals — how every role splits work (director template §Standing "nest", owner 09-21 01:5xZ + 09-23 10:2xZ)
 ```
