@@ -9,6 +9,7 @@ edited_by: thought-master
 scaffold_hash: 7c61cb59727a97bd
 season: 2
 status: deprecated
+tags: []
 thought_session: belam-S2-L5-I
 title: "The local-maxxing town trajectory board — the ONE shared update space for the master and both directors (owner 01:2xZ 09-21): live rounds, queue per track, last merges, the engine batch; every post appends one line per landing, the master trims the body"
 town: local-maxxing

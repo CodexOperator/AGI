@@ -8,6 +8,7 @@ next_edges: []
 edited_by: sanctuary-master
 scaffold_hash: 3e856c7e9b80c2ab
 season: 2
+tags: []
 title: Card sanctuary master
 town: core
 ---

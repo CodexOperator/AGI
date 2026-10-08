@@ -8,6 +8,7 @@ next_edges: []
 edited_by: thought-master
 scaffold_hash: 7fef1ea3005738bd
 season: 2
+tags: []
 title: "doc:draft-skills-first-turn -- DRAFT config:rotations entry: the skill index on every rotated seat's first turn by template edit only (handed to the owner)"
 town: local-maxxing
 ---

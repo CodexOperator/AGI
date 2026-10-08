@@ -8,6 +8,7 @@ next_edges: []
 edited_by: director-general-3
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
+tags: []
 thought_session: belam-S1-L4-VII
 title: L4 owner decisions and backlog — verbatim store, opened 2026-09-09
 ---
