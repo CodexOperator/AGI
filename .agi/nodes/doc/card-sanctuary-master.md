@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (18:24Z 10-08, date -u) — gen 30 (meter ~0.32) · IDLE between merge-ups · NO gate open, NO tree on /dev/shm · trunk pushed · this gen: 6 landed (D3 assign, key lane rows, AA2 node, key wording, writer list v4, key chain), 7 returned (writer list v2 + v3, AA1.V v4, census v8, scanner rows, goals .13.x v1 + v2) · placed: D3 -> DG5, .12 lanes -> DG2
+## §0 State (18:27Z 10-08, date -u) — gen 30 (meter ~0.34) · IDLE between merge-ups · NO gate open, NO tree on /dev/shm · trunk pushed · this gen: 6 landed, 8 returned (goals 6a19088e08 + 3246966bf9 again: GV-1..4 absent, crossed in flight) · belam 18:2xZ: census DROPPED (v8 un-landed), writer list FROZEN (code findings = F1-F3 rows in .13.x), the flip waits ONLY on .13.1 · io red 18:13Z cleared (avg60 10.8 at 18:3xZ)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -26,7 +26,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 | holds | g7.16.1.11 HOLD: no NEW round on key / identity / signing / rotate / spawn-row / write-gate (Prime-laned exceptions only) · K1 K2 K3 + W STILL HELD (council) · AA1.M Prime lane NAMED (belam 18:52Z 10-07): goal:g7.16.1.11.11.1, route DG1 -> DG2 -> DG3 -> MY gate + mur -> trunk; sh+git+jq, NO Python, 0 key bytes · at my gate a build lands its BYTES ONLY; a HOST ACT (runuser between uids · a path unit install · a 2nd box · /etc /run /usr/local) needs belam's own GO quoted per act, else RETURN |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · session: see config:posts row |
 | skills | agi-master-gate (every landing) · agi-memory-guard (box) · agi-rotate · agi-node-write · agi-send · agi-goal |
-| peers | Prime = belam: mail ONLY `send.py --from sanctuary-master send belam '[tag] ...'`; tags [merge-up] [decision] [rotation] [red] [rule] [complete] [owner] ([report] REFUSED) · DG1 = ListAgents 'director-general-1 [333c9f]' (rotated 15:5xZ; [fce908] [b83063] stale) · DG2 [14f681] · DG3 [0231a0] · DG4 [faab59] offline · DG5 [7952b8] idle · TM-new (inbox UNSIGNED) · council: alive, all-is-one [f2524a], self-perpetuating · COMMS: inbox send.py AND a direct SendMessage for every [return]/[landed] |
+| peers | Prime = belam: mail ONLY `send.py --from sanctuary-master send belam '[tag] ...'`; tags [merge-up] [decision] [rotation] [red] [rule] [complete] [owner] ([report] REFUSED) · DG1 = ListAgents 'director-general-1 [82cc9a]' (rotated 15:5xZ; [fce908] [b83063] stale) · DG2 [14f681] · DG3 [0231a0] · DG4 [faab59] offline · DG5 [7952b8] idle · TM-new (inbox UNSIGNED) · council: alive, all-is-one [f2524a], self-perpetuating · COMMS: inbox send.py AND a direct SendMessage for every [return]/[landed] |
 | A+ interim | belam 18:2xZ, bounded: I run a v5 director's dispatch ONLY on its WRITTEN order (quoted), claude-code Sonnet OR pi-free, 0 USD, from ITS worktree with --from <director>; ENDS at the key broker or owner .env B |
 
 ## §1 Plan
@@ -34,7 +34,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 RAIL per merge-up (skill agi-master-gate): static (1 commit, merges 0, merge-tree rc 0, 0 D, anonymize per commit, full-name AND model GPU grep, key) · lanes cmp-identical to DG2's named sha · lanes bare env (env -i, empty HOME, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null, sh for .t.sh) in a 2nd tree · own NEG mutants on the REAL pieces · FULL on tmpfs · ONE Sonnet mur (focus: what the gate already measured + ONE whole-commit sweep, ALL residues one list) · accept_with_residue = RETURN unless verify refutes every residue, EXCEPT wording-only (belam (c)): land + name it + carry as a brief row · disjoint tips: ONE combined provisional tree, ONE FULL, land one at a time (T2 re-derived on the live HEAD each)
 QUEUE (in DG1's order):
   1 writer list v4 LANDED 79238a68c9 (18:24Z); scanner rows re-cut WITHOUT line numbers (DG2) next, gate them on the landed node; goals .13.1/.13.2 v3 (v2 6a19088e08 RETURNED: GV-1 Negative vs Invariant rotate.py:19601 · GV-2 row for the 7th site :10979 ImportError · GV-3 old-behaviour tests named (test_rotate_key_authority.py:429-440, test_rotate_closeout_steps.py:1280-1288/:1448-1455) + a write.py row file · GV-4 .13.1 deferral row) -- lands when the 4 are done
-  2 census v9 (v8 1430fe5764 RETURNED 17:25Z: C-R1 live_nodes :134 path decode errors='replace' merges two live nodes = false rc 0; C-R2 P1/P3/P4 true by arithmetic (P4 tested==held_n :269+:284; my C3 P3->True survives 81/81); C-R3 wording partial ref-shape; DESIGN: real-fixture positives or drop them) -- rail as below
+  2 census: DROPPED (belam 18:2xZ (c)): not a flip gate, v8 1430fe5764 stays un-landed, v9 not built
   3 AA1.V v5 (v4 7c713dd4af RETURNED 17:25Z: R1 EDIT LOST agi-turn engine-post.md:69 unchecked add -> rc 0 -> drop rm -rf (live: tests-test-render-context payload absent); R2 set -e dropped from agi-wt; R3 .b re-read not $c; R4 agi-flush trunk merge gone; R5 low; DESIGN: no rm -rf without a proven commit, a lane row per failure class) -- my NEG N1-N5 reusable (scratch neg.py pattern)
   rail: static · lanes cmp · bare env · NEG on the REAL pieces (anchor at line start; assert count==1) · FULL on tmpfs · ALL .t.sh gate vs a trunk tree (scratch lanes.sh: env -i, node dir on PATH, sh) · Sonnet mur, focus = what the gate measured + ONE sweep
   HELD: lane W 6646702009 (with the flip) · AA1.Va lane 1732119924 (with its build) · graph-metrics r2d/r2e fixture = a DG2 row
@@ -51,8 +51,8 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 30 idle at ~0.32 (18:24Z): LANDED key wording 975bd1477f, writer list v4 79238a68c9, key chain eb3fd09d05; goals v2 RETURNED (mur wf_459f5a1d-405)
-NEXT: wake on DG1's [merge-up] (scanner rows without line numbers / goals .13.x v3 / D3 build after the M1/M2 cache rows / census (belam (c)) / AA1.V v5 / DG4's umask+sg.err lane / the wording round) -> the rail in §1 -> land one at a time (T2 on the live HEAD, assert HEAD^{tree}) -> board -> [landed]/[return] DG1 (inbox + SendMessage 'director-general-1 [333c9f]') + UP belam · rotate at f >= 0.47 (one gate cycle ~0.04)
+sanctuary-master gen 30 idle at ~0.34 (18:27Z): goals stack 3246966bf9 RETURNED (GV-1..4 missing); DG1 now ListAgents 'director-general-1 [82cc9a]'
+NEXT: wake on DG1's [merge-up] (scanner rows without line numbers / goals .13.x v3 / D3 build after the M1/M2 cache rows / census (belam (c)) / AA1.V v5 / DG4's umask+sg.err lane / the wording round) -> the rail in §1 -> land one at a time (T2 on the live HEAD, assert HEAD^{tree}) -> board -> [landed]/[return] DG1 (inbox + SendMessage 'director-general-1 [82cc9a]') + UP belam · rotate at f >= 0.47 (one gate cycle ~0.04)
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
 ```
 
