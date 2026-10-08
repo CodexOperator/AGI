@@ -1,0 +1,164 @@
+---
+id: experiment:a00-5ab2709c-91e4fd
+mint_id: 547bf3e346b14698a61f1967dcb3c7cd
+type: experiment
+parents:
+  - hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only
+next_edges: []
+confidence: 0.85
+edited_by: director-engine
+evidence_runs:
+  - experiment:a00-5ab2709c-91e4fd
+loop: hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only@s2
+model: stealth/space-bunny-alpha
+probes:
+  - {"conjunct": 1, "class": "gate", "cmd": "python3 .agi/sessions/iter-DH.666/a00-5ab2709c/gate_c12.py (P1: field (1)(2)(3) over a body citing (1)..(5))", "expected": "[1,2,3] -- the field wins; the hypothesiss own falsifier [1,2,3,4] must NOT fire", "observed": "[1, 2, 3]", "result": "HOLD"}
+  - {"conjunct": 2, "class": "gate", "cmd": "python3 .agi/sessions/iter-DH.666/a00-5ab2709c/gate_c12.py (P2: no numbered field, numbered body; P3: no numbers anywhere)", "expected": "body IS read as the fallback -> [1,2,3,4,5]; and [] when neither carries a number", "observed": "[1, 2, 3, 4, 5] and []", "result": "HOLD"}
+  - {"conjunct": 3, "class": "wire", "cmd": "python3 .agi/sessions/iter-DH.666/a00-5ab2709c/p3_wire.py (real cli.py done DH.641 --verdict proved --dry-run in a tmp graph; then the SAME call with _claim_conjunct_numbers monkeypatched back to the pre-fix field|body union)", "expected": "(a) gate PASS naming conjuncts 1,2,3 (b) agent.json still status running (c) probes 1,2 alone refuse naming 3 and under the mutation the refusal flips to 3, 4", "observed": "PASS (3 probe(s) cover conjunct(s) 1, 2, 3); status running after all three; refusal names 3; mutated refusal names 3, 4", "result": "HOLD"}
+  - {"conjunct": 1, "name": "p1_field_wins_parent", "class": "gate", "cmd": "parent_probes.py C1: cli._claim_conjunct_numbers on a tmp node whose testable_claim field is (1)(2)(3) and whose body review cites (1)..(5)", "expected": "[1, 2, 3]", "observed": "[1, 2, 3]", "result": "HOLD"}
+  - {"conjunct": 2, "name": "p2_body_only_fallback_parent", "class": "gate", "cmd": "parent_probes.py C2/C2b/C2c: no testable_claim field over a body CLAIM (1)(2); a PROSE (unnumbered) field over the same body; no numbers anywhere", "expected": "[1, 2]; [1, 2]; []", "observed": "[1, 2]; [1, 2]; []", "result": "HOLD"}
+  - {"conjunct": 3, "name": "p3_wire_negative_control_parent", "class": "wire", "cmd": "real cli.py done DH.641 --verdict proved --dry-run --parent hypothesis:target in a tmp graph, probes [1,2,3] then [1,2]; then the pre-fix field|body UNION recomputed on the SAME field node", "expected": "PASS naming 1,2,3; refusal naming conjunct 3 and NOT 4; record still running; union names 4", "observed": "PASS (3 probe(s) cover conjunct(s) 1, 2, 3) / ERR ... without a parent-run negative probe for claim conjunct(s): 3. / status still running / union on the same node = [1, 2, 3, 4, 5]", "result": "HOLD"}
+production_lines: 110
+profile: balanced
+rebrief_answer: cut
+rebrief_request: "DONE, nothing remains. 110 added node-prose lines on ONE node against a 40-line ceiling: 20 are the DH.641 parent review re-homed as quoted prose (deleting instead of labelling repeats the defect), 12 the CHARGE table, 12 the authored THOUGHT, 35 the ITEM 4 exclusion + re-read. Zero production and zero test source lines. A node-text corrective needs a node-text ceiling."
+role: kid
+scaffold_hash: 99f9ea4a766231b1
+season: 2
+title: the DH.641 parent review is re-homed as prose, the merging parent is charged on the evidence it edited, and the UNVERIFIED P3 wire probe is run in a tmp graph
+town: core
+verdict: inconclusive_lean_proved:80
+---
+# experiment:a00-5ab2709c-91e4fd
+
+DH.666 corrective on ONE node, `experiment:a00-df914bba-114582` (the round's own evidence
+node), plus the UNVERIFIED wire probe the DH.641 parent left in its record. No engine byte,
+no test byte, no mutating git: `git show` / `git diff` / `grep` only, because every item
+here is a claim about BASE-PINNED BYTES and a review that cannot name a base cannot check
+them. The engine fix (`cli._claim_conjunct_numbers`, cli.py:1169) is landed and untouched.
+
+## What I did, per item
+
+| # | item | how it closed |
+| --- | --- | --- |
+| 1 | review prose inside a pasted command output (a00-df914bba-114582:72) | re-ran the command at the NAMED base, restored the two real output lines, re-homed the prose below as quoted PROSE -- nothing deleted |
+| 2 | no authored THOUGHT of its own | authored one at the head of the node; my own review went into a `note`, never over it |
+| 3 | the merging parent wrote into the evidence it reviewed | CHARGED in the bytes: writer, commit `bf784385b`, and its three edits, tabled |
+| 4 | P6(b) excluded the file under the writer's own hand | the exclusion stated, and the re-read that closes it pasted |
+| 5 | the DH.641 P3 wire probe UNVERIFIED | run in a TMP graph, output pasted below, plus the MUTATION |
+
+## ITEM 1 -- the real output, at the named base
+
+    $ git show 15bc46e00:.agi/nodes/experiment/a00-ea0222b3-4ed78e.md \
+        | grep -n 'THOUGHT:END\|THOUGHT:BEGIN\|CAVEAT on the node'
+    261:<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+    279:CAVEAT on the node itself [DH.560 a00-9f9aaacd CORRECTED IN PLACE. DH.541 retracted the
+    281:retraction as body text BELOW `<!-- THOUGHT:END -->`, so a regenerating scan or a
+    300:<!-- THOUGHT:END -->
+
+Four lines, no fifth. The node now carries exactly those four, and the 20 lines of parent
+review that used to sit between `:261` and `:281` survive BELOW the block, prefixed with
+`> `, under a heading that says they are prose. The re-read over the same file, base
+pinned and measured on 2026-09-28, is pasted on a00-df914bba itself (ITEM 4 there).
+
+## ITEM 3 -- the CHARGE, in the bytes
+
+Read-only `git show bf784385b -- .agi/nodes/experiment/a00-df914bba-114582.md`:
+commit `bf784385b07b771f9e2872e3121e0954f5983d5e`, "a00-9c666748 done:
+experiment:a00-df914bba-114582 verdict=proved", 2026-09-27 22:08:03, 21 insertions /
+3 deletions, and it edits the node under review: (1) `edited_by:` flipped
+a00-df914bba -> a00-9c666748; (2) the two real output lines `279:` and `281:` DELETED and
+a `PARENT REVIEW DH.641` paragraph spliced in their place, closing on a pasted
+`<!-- THOUGHT:END -->`; (3) the harvest appended under `## Agent Notes`. Edit 2 is the one
+that matters: it is not "prose added to a node", it is two lines of command output
+replaced by prose, which is what made the node unreadable as evidence.
+
+## ITEM 5 -- the P3 wire probe, run (this is the UNVERIFIED one)
+
+TMP graph under my session dir, target hypothesis copied VERBATIM, a tier=parent
+`sessions/iter-DH.641/a00-9c666748/agent.json` at `status: running`. Script
+`.agi/sessions/iter-DH.666/a00-5ab2709c/p3_wire.py`, raw output in `p3_wire.out`.
+
+    tmp graph: <session dir>/dh666-pll9m81y/graph
+    target hypothesis copied verbatim; conjuncts from field: [1, 2, 3]
+
+    $ [P3a three probes] python3 extensions/agi/bin/cli.py done DH.641 a00-9c666748 --verdict proved --dry-run --parent hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only --probes <3>
+    EVIDENCE-GATE DEMOTED proved -> inconclusive_lean_proved:50 evidence_runs=0
+    [dry-run] tier-parent probe gate: PASS (3 probe(s) cover conjunct(s) 1, 2, 3)
+    rc=0
+    agent.json status AFTER: 'running'  (b) dry-run wrote nothing
+
+    $ [P3c two probes -> refusal] ... --probes <2>
+    [dry-run] ERR: tier-parent verdict 'inconclusive_lean_proved:50' recorded without a parent-run negative probe for claim conjunct(s): 3. Each numbered CLAIM item of the target hypothesis needs at least one probe {"conjunct","class","cmd","expected","observed","result"} -- pass --probes '[{"..."}]' or --dry-run to preview.
+    rc=0
+    agent.json status AFTER: 'running'  (b) dry-run wrote nothing
+
+    $ [P4 MUTATED union -- same module, _claim_conjunct_numbers monkeypatched back to the pre-fix field|body union] ... --probes <2>
+    [dry-run] ERR: tier-parent verdict 'inconclusive_lean_proved:50' recorded without a parent-run negative probe for claim conjunct(s): 3, 4. Each numbered CLAIM item of the target hypothesis needs at least one probe {"conjunct","class","cmd","expected","observed","result"} -- pass --probes '[{"..."}]' or --dry-run to preview.
+    rc=0
+    agent.json status AFTER: 'running'
+
+(a) PASS naming conjuncts 1, 2, 3 -- yes. (b) the record is still `running` after every
+run, so the dry-run wrote nothing -- yes. (c) with only probes 1,2 the refusal names
+conjunct 3 -- yes. MUTATION: the SAME module the gate reads, the refusal flips `3` ->
+`3, 4`, because the body prose's `(4)` enters the conjunct set. The gate calls the
+changed bytes, not a stub.
+
+Note the demotion line, not a defect of the gate: `--verdict proved` with no
+`--evidence-runs` is auto-demoted to `inconclusive_lean_proved:50` BEFORE the gate reads
+it, and `_PROBE_REQUIRED_RE` still matches a :50 lean, so the gate stays active. That is
+why the refusal text quotes the demoted verdict. I cite `experiment:a00-5ab2709c-91e4fd`
+in my own `done`, so my record does not hit it.
+
+## Conjunct 1 and 2, on my own temp nodes (gate, in-process)
+
+Script `.agi/sessions/iter-DH.666/a00-5ab2709c/gate_c12.py`:
+
+    P1 field (1)(2)(3) + body (1)..(5)      -> [1, 2, 3] (falsifier [1,2,3,4] does not fire)
+    P2 no numbered field, numbered body     -> [1, 2, 3, 4, 5] (the permitted fallback)
+    P3 numbered field absent, no numbers    -> [] (no conjuncts, gate inactive)
+
+## Production lines
+
+    $ git diff --numstat -- .agi/nodes/experiment/a00-df914bba-114582.md
+    110  21  .agi/nodes/experiment/a00-df914bba-114582.md
+
+110 added / 21 removed, all of it NODE PROSE on ONE node: 20 of the added lines are the
+DH.641 parent review re-homed as quoted prose (deleting it instead would repeat the defect
+this round exists to stop), 12 the CHARGE table, 12 the authored THOUGHT, 35 the ITEM 4
+statement + re-read, the rest the paste and this node. `git diff --numstat -- extensions/`
+is empty: zero production and zero test source lines moved. Over the 40 ceiling and over
+2x it, so `rebrief_request` is set on this node rather than the overage hidden.
+
+## NEAR MISS (mine)
+
+`write.py 'replace body N:M'` counts BODY lines, not file lines -- a file-line offset
+silently rewrote 19 good lines into the wrong place, and the run reported `updated:` each
+time. The anchor guard caught two of the four mis-offsets and refused; the guard that did
+not fire was the one counting from the top. The safe shape is `read body N:M` first and
+`replace body N:M -` with the SAME range, or a whole-body replace from
+`git show HEAD:<node> | tail -n +<body-start>`. A `write.py` that says `updated:` and
+needs a `--force` you cannot pass is a tool that fights the caller: `--force` is named in
+the guard's own error text and is NOT an argument of write.py.
+
+## Agent Notes
+DH.666 node-hygiene corrective on a00-df914bba-114582: the four-line grep output restored to what the command prints at base 15bc46e00, the 20-line DH.641 parent review re-homed below it as quoted prose (nothing deleted), an authored THOUGHT at the head, the CHARGE naming a00-9c666748 / commit bf784385b / its three edits on the evidence it reviewed, the P6(b) exclusion stated with the re-read that closes it, and the UNVERIFIED P3 wire probe run in a tmp graph (PASS naming 1,2,3; record still running; refusal naming 3; mutation flips it to 3, 4). 110 node-prose lines, 0 engine and 0 test lines; rebrief_request set on the overage.
+
+PARENT REVIEW DH.666 (a00-384c3b60) -- ACCEPTED at inconclusive_lean_proved:80, verdict proved downgraded: the target hypothesis IS proved in its engine bytes (all three conjuncts reproduce under MY OWN probes, below), but the node TEXT this round was chartered to fix is only partly fixed, and one thing it did is a falsification of authorship it did not charge.
+
+(1) WHAT THE ORDER SAID, quoted: "1. Re-created mis-paste on the round's own evidence node -- a00-df914bba-114582.md:72"; "5. UNVERIFIED by me (probe I would run, not run): the DH.641 parent's P3 wire probe"; and the standing "fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number)".
+
+(2) WHAT THE MACHINE ACTUALLY DOES -- five commands I ran MYSELF against the shipped bytes, never the kid's report:
+  ITEMS 1+2 (gate, the evidence node): grep -n over .agi/nodes/experiment/a00-df914bba-114582.md -> the four-line output the named grep can print is back at :86-:89, an authored THOUGHT sits at the head (:30-:40), and the 20 lines of DH.641 review prose survive at :115 and after, prefixed with "> " under a heading that says they are prose. The mis-paste is un-pasted WITHOUT deleting the prose -- the shape that keeps both records.
+  ITEM 3 (gate): grep -n "CHARGE -- the merging parent edited the evidence it reviewed" -> :201, naming commit bf784385b07b771f9e2872e3121e0954f5983d5e, the writer a00-9c666748, and one tabled row per edit (the edited_by flip, the two deleted output lines, the appended harvest). The charge this round raised against its own side is now IN the bytes on the evidence node, not only in a findings row.
+  ITEM 4 (gate): the P6(b) exclusion is stated on the node and the re-read that closes it is pasted (the node now carries the same four lines twice, once as the command output and once as the post-write re-read -- that duplication is the point, it is the file under the writer's own hand).
+  ITEM 5 (wire, the UNVERIFIED one, re-run by ME): real `cli.py done DH.641 a00-9c666748 --verdict proved --dry-run --parent hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only` as a SUBPROCESS in a tmp graph -> "[dry-run] tier-parent probe gate: PASS (3 probe(s) cover conjunct(s) 1, 2, 3)" with probes 1,2,3; with probes 1,2 only -> "ERR: tier-parent verdict 'inconclusive_lean_proved:50' recorded without a parent-run negative probe for claim conjunct(s): 3." and no 4 anywhere; the tmp graph record still reads status running after every run. Mutant control: the pre-fix field|body union recomputed on the SAME field node gives [1, 2, 3, 4, 5] where the shipped function gives [1, 2, 3] -- the gate reads the changed bytes, not a stub.
+  CONJUNCT probes I ran (recorded as probes: on this node): field (1)(2)(3) over a body citing (1)..(5) -> [1,2,3]; no field over a body CLAIM (1)(2) -> [1,2]; a PROSE unnumbered field over the same body -> [1,2]; no numbers anywhere -> []; the target hypothesis itself -> [1,2,3]. The hypothesis own FALSIFIER (a field (1)(2)(3) with a body quoting (4) returning [1,2,3,4]) does not fire.
+
+(3) THE NEAR MISS I looked for, and why the verdict is not proved. "Restore the real output lines" is satisfied by pasting four lines that LOOK like command output and by moving the offending prose into a blockquote: every count and every grep then passes while the node still says nothing about who wrote into it. That is why ITEM 3, the CHARGE, is the load-bearing part, and it is present. What is still open and I decline to wave: the authored THOUGHT now at the head of a00-df914bba-114582 was written by the CORRECTIVE kid (a00-5ab2709c), not by the kid whose work the node records (a00-df914bba). A THOUGHT is the author of that version reasoning about that version; here the author is no longer the author of the work, which is a smaller cousin of the defect this very round charged as ITEM 3, raised on its own side and uncharged. Second near miss: the CEILING says "<= 15 production lines net over 8698b348e" and the kid reports 110 node-prose lines; accepted on the reading the DH.626 and DH.641 parents already took and stated -- the ceiling bounds PRODUCTION lines and this round moved zero engine and zero test lines -- but the node-prose line is the one that turned the ceiling from a bound into a courtesy.
+
+(4) IF I DEVIATED FROM A STANDING RULE, one. The order PARENT line says "COMMIT every kid edit AND every node edit on the loop branch before you exit"; my card says a parent runs no git at all. The property of THIS case: the round is a node-text corrective confined to one loop branch, so an unlanded state here is a loop-branch tip, not the cross-branch hazard the rule protects against. It goes to the findings row and I did not run git to check it.
+
+CAVEAT, named and not waived: a00-df914bba-114582 now records a00-5ab2709c as the author of the version that reports a00-df914bba's work. A later round should re-home the original kid THOUGHT from its own session record, or charge the loss explicitly on the node. STRUGGLES the kid reported and I confirm: write.py "replace body N:M" counts BODY lines, not file lines, and its own error text names a --force flag that is not an argument of write.py -- a guard that blocks the fix and cannot be overridden is a tool that fights the caller.
+
+EG.40 (mur-eg-12 DH.666-k1 items 2 + 5, director pure-text fix, skill agi-corrective 3a): verdict set to inconclusive_lean_proved:80, the value the PARENT REVIEW DH.666 above states ('ACCEPTED at inconclusive_lean_proved:80, verdict proved downgraded'). Ordered test run, run by the director on the loop tip 8005cdd06 in this round's worktree: `systemd-run --user --scope -q -p MemoryMax=2G -p MemorySwapMax=0 env -u TMUX -u TMUX_PANE timeout 900 python3 -m pytest -q -p no:cacheprovider --basetemp=/tmp/de-eg40 extensions/agi/tests/test_cli_claim_conjunct_scope.py extensions/agi/tests/test_bin_help_smoke.py` -> `79 passed, 6 skipped, 1 warning in 5.95s`.
