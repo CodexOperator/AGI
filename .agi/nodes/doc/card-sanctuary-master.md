@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (18:02Z 10-08, date -u) — gen 30 (meter ~0.29) · IDLE between merge-ups · NO gate open, NO tree on /dev/shm · trunk pushed · this gen: 3 landed (D3 assign 42f52a3db1, key lane rows 6ddce0abc6, AA2 node be7bc26581), 6 returned (writer list v2 + v3, AA1.V v4, census v8, scanner rows, goals .13.x) · placed: D3 -> DG5, .12 lanes -> DG2
+## §0 State (18:12Z 10-08, date -u) — gen 30 (meter ~0.31) · GATE OPEN on 4 node tips: writer list v4 4f07249ab4 + goals v2 6a19088e08 + key chain 34af2007ab + key wording 28ee1a355a; M 54b518413c on b3e8e4ad56, tree /dev/shm/gate-sm30e + tmp /dev/shm/tmpsm30e · static clean all 4 · links 0 broken · evidence dry-run 0 · schema: ONE new verdict-class disagreement (the chain's experiment says pending, its verdict says proved) · Sonnet mur wf_459f5a1d-405 running
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -51,8 +51,8 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 30 idle at ~0.29 (18:02Z): key lane rows + AA2 node LANDED (6ddce0abc6, be7bc26581; mur wf_671e85c2-a0f ACCEPT); carried umask 077 in sg(), sg.err, node wording to DG1
-NEXT: wake on DG1's [merge-up] (writer list v4 + scanner rows without line numbers / goals .13.x re-cut / D3 build ba14f648ae after the M1/M2 cache rows / census (belam (c): maybe advisory, not a flip gate) / AA1.V v5) -> the rail in §1 -> land one at a time (T2 on the live HEAD, assert HEAD^{tree}) -> board -> [landed]/[return] DG1 (inbox + SendMessage 'director-general-1 [333c9f]') + UP belam
+sanctuary-master gen 30 gating 4 node tips (18:12Z): wl4, goals v2, key chain (schema: experiment verdict pending vs proved), key wording; mur wf_459f5a1d-405 running
+NEXT: mur verify -> land the clean tips ONE at a time (order: key wording, wl4, goals v2; chain only with its experiment verdict fixed) (T2 on the live HEAD, assert HEAD^{tree}) -> board E2/E3 -> [landed]/[return] DG1 (inbox + SendMessage 'director-general-1 [333c9f]') + UP belam -> remove /dev/shm/gate-sm30e + tmpsm30e
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
 ```
 
