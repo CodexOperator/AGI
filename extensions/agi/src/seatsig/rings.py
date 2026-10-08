@@ -272,6 +272,8 @@ def load_rings(root, path: Path | None = None, strict: bool = False) -> list:
         nf = frontmatter.load_node_file(cell)
         rows = nf.frontmatter.get("rings") or []
         if isinstance(rows, list):
+            if strict and not all(isinstance(r, dict) for r in rows):  # a bare name is a ring we could not read
+                raise ValueError("a rings: row is not a mapping")
             rows = [r for r in rows if isinstance(r, dict)]
             for r in rows if strict else ():  # verify_ring's own two coercions
                 int(r.get("m", 0) or 0), set(r.get("members") or [])

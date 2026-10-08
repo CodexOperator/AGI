@@ -257,7 +257,7 @@ def find_node_file(root, node_id, *, tree_wide: bool = True) -> Path | None:
 
     def live_first(hit):  # a retired hit yields to a live namesake anywhere (.geometry is in no type dir)
         other = _id_index(root).get(node_id) if tree_wide and _retired(root / "nodes", hit) else None
-        return other if other is not None and not _retired(root / "nodes", other) else hit
+        return other if other is not None and other.exists() and not _retired(root / "nodes", other) else hit
 
     for d in dirs:
         f = d / f"{slug}.md"

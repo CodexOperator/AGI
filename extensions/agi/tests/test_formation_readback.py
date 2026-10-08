@@ -447,3 +447,77 @@ def test_rd2_the_readers_agree_with_check_formation(groot):
     assert "deprecated" not in found.parts
     assert brief._formation_line(groot).startswith("[formation] doc:two-step")
     assert verification.check_formation(groot).status == "PASS"
+
+
+# goal:g1.41 RD5 (DG1 00:55Z, SM union1 residue): find_node_file's live_first asks the per-root id index whether a
+# live namesake exists, and the index drops only inside write_node. A live node MOVED into deprecated/ in the same
+# process (git mv, os.rename: no write_node) leaves the index naming its OLD live path, so the lookup returns a
+# path that no longer exists. The answer must be a file that exists: the node's new retired path.
+def _build_index_by_a_retired_lookup(root: Path) -> None:
+    import node_writer
+    _node(root, "deprecated/goal/zz-first.md", "goal:zz-first")
+    assert node_writer.find_node_file(root, "goal:zz-first") == root / "nodes" / "deprecated" / "goal" / "zz-first.md"
+
+
+def _retire(root: Path, rel: str) -> Path:
+    import os
+    src = root / "nodes" / rel
+    dst = root / "nodes" / "deprecated" / rel
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    os.rename(src, dst)
+    return dst
+
+
+@pytest.mark.parametrize("how", ["by-slug", "by-descriptive-filename"])
+def test_rd5_a_live_node_moved_into_deprecated_resolves_to_its_new_retired_path(tmp_path, how):
+    import node_writer
+    root = tmp_path / ".agi"
+    rel = "goal/g9.md" if how == "by-slug" else "goal/t-001-thing.md"
+    nid = "goal:g9" if how == "by-slug" else "goal:t1"
+    _node(root, rel, nid)
+    _build_index_by_a_retired_lookup(root)
+    assert node_writer.find_node_file(root, nid) == root / "nodes" / rel         # live before the move
+    dst = _retire(root, rel)
+    found = node_writer.find_node_file(root, nid)
+    assert found is not None and found.exists(), found
+    assert found == dst, found
+
+
+def test_rd5_a_moved_node_that_had_a_retired_namesake_resolves_to_an_existing_retired_file(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _node(root, "goal/x.md", "goal:x")
+    _node(root, "deprecated/goal/x-old.md", "goal:x")                            # the retired namesake
+    _build_index_by_a_retired_lookup(root)
+    assert node_writer.find_node_file(root, "goal:x") == root / "nodes" / "goal" / "x.md"
+    _retire(root, "goal/x.md")
+    found = node_writer.find_node_file(root, "goal:x")
+    assert found is not None and found.exists() and "deprecated" in found.parts, found
+    assert "id: goal:x" in found.read_text("utf-8"), found
+
+
+def test_rd5_control_live_first_still_wins_over_a_retired_namesake_with_the_index_built(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _two_formations(root)
+    _build_index_by_a_retired_lookup(root)
+    assert node_writer.find_node_file(root, "config:formations") == root / "nodes" / ".geometry" / "formations.md"
+
+
+def test_rd5_control_a_retired_only_id_still_resolves_and_an_unmoved_live_node_is_unchanged(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _node(root, "goal/g5.md", "goal:g5")
+    _build_index_by_a_retired_lookup(root)
+    assert node_writer.find_node_file(root, "goal:zz-first") == root / "nodes" / "deprecated" / "goal" / "zz-first.md"
+    assert node_writer.find_node_file(root, "goal:g5") == root / "nodes" / "goal" / "g5.md"
+    assert node_writer.find_node_file(root, "goal:nope") is None
+
+
+def test_rd5_control_tree_wide_false_after_the_move_is_unchanged(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _node(root, "goal/g9.md", "goal:g9")
+    _build_index_by_a_retired_lookup(root)
+    dst = _retire(root, "goal/g9.md")
+    assert node_writer.find_node_file(root, "goal:g9", tree_wide=False) == dst

@@ -709,3 +709,43 @@ def test_d1_control_a_signed_quorum_still_writes_beside_a_broken_unrelated_cell(
     sigs = _sigs(signers, canonical, ["alice", "bob"])
     write._enforce_written_by(root, "config", "director1", "config:seats", role="prime",
                               set_fm=_SET, signatures=sigs, ring_fresh=(ts, nonce))
+
+
+# goal:g1.41 RD4 -- seatsig.rings.load_rings drops every non-dict row BEFORE its strict loop: `rings: [approval]`
+# (a list of STRINGS) loads as no ring, ring_by_name answers None and the unsigned config write goes through the opt-out.
+_RD4_ONE = "  - name: approval\n    m: 1\n    members: [alice]\n"
+_RD4_CELLS = {
+    "all-strings": "rings:\n  - approval\n",
+    "inline-strings": "rings: [approval, other]\n",
+    "mixed": "rings:\n" + _RD4_ONE + "  - approval\n",
+    "string-first": "rings:\n  - approval\n" + _RD4_ONE,
+}
+
+
+@pytest.mark.parametrize("shape", list(_RD4_CELLS))
+def test_rd4_a_rings_cell_holding_a_non_ring_row_refuses_the_unsigned_config_write_by_name(tmp_path, shape):
+    root, _s = _ring_root(tmp_path)
+    (root / _RINGS_REL).write_text("---\ntype: cell\n" + _RD4_CELLS[shape] + "---\n", encoding="utf-8")
+    with pytest.raises(write.EditError) as ei:
+        _unsigned_write(root)
+    msg = str(ei.value)
+    assert "approval" in msg, msg
+    assert _re.search(r"[A-Za-z]+Error", msg), msg
+    out = {}
+    _unsigned_write(root, preview=True, out=out)
+    assert out.get("refusal") and "approval" in out["refusal"], out
+
+
+def test_rd4_control_an_empty_rings_list_still_writes(tmp_path):
+    root, _s = _ring_root(tmp_path)
+    (root / _RINGS_REL).write_text("---\ntype: cell\nrings: []\n---\n", encoding="utf-8")
+    _unsigned_write(root)          # `rings: []` and an absent cell stay the documented opt-out
+
+
+def test_rd4_control_an_all_dict_list_naming_the_ring_still_refuses_on_the_count(tmp_path):
+    root, _s = _ring_root(tmp_path)
+    (root / _RINGS_REL).write_text("---\ntype: cell\nrings:\n  - name: other\n    m: 1\n    members: [alice]\n"
+                                   "  - name: approval\n    m: 2\n    members: [alice, bob]\n---\n", encoding="utf-8")
+    with pytest.raises(write.EditError) as ei:
+        _unsigned_write(root)
+    assert "approval" in str(ei.value) and "got 0" in str(ei.value), str(ei.value)      # the count, not a load error
