@@ -19194,9 +19194,9 @@ def _stops_push(root: Path, label: str = "stops") -> str | None:
     # `branches.is_remote_visible`) -- a frozen prime scope refuses by name, so
     # the caller's checklist stops at the step. When the resolved branch is an
     # ordinary post/loop branch the helper behaves EXACTLY as before: never
-    # held, so RUNG 4's fix is not regressed. Fail-open on a broken veto cell
-    # mirrors the existing closeout seams (`except Exception: pass`); changing
-    # that is a separate, already-flagged residue, not this round's call.
+    # held, so RUNG 4's fix is not regressed. A missing or broken veto cell
+    # HOLDS the trunk push by name (goal:g7.16.1.11.13.2), the way the closeout
+    # seams do: the cell is read STRICT and any error is a HELD line.
     top = _git_toplevel(root)
     if top is None:
         return "no git repo to push (gitless fixture/root)"

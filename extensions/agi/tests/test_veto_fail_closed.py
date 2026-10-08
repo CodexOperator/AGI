@@ -298,3 +298,19 @@ def test_every_veto_read_and_judgement_is_strict(name):
             continue
         bad.append((name, line, call.splitlines()[0][:100]))
     assert bad == [], f"non-strict veto call sites: {bad}"
+
+
+# ====
+# the stale "Fail-open ..." comment (SM's .13.2 gate V-1, DG1 21:5xZ): rotate.py kept `Fail-open on a broken veto cell mirrors the existing closeout seams` after the seam failed closed
+# ====
+
+#: the phrase, tolerant of a re-wrap: any run of whitespace / comment markers between the words, case-insensitive, hyphen or space in "fail-open"
+STALE_FAIL_OPEN = re.compile(r"fail[- ]open(?:[\s#]+)on(?:[\s#]+)a(?:[\s#]+)broken(?:[\s#]+)veto(?:[\s#]+)cell", re.IGNORECASE)
+
+
+@pytest.mark.parametrize("name", ["rotate.py", "write.py"])
+def test_the_stale_fail_open_comment_is_gone(name):
+    """`Fail-open on a broken veto cell` occurs 0 times in the module (also when a rewrite re-wraps it across a comment line break or changes its case): the seams it described now fail CLOSED."""
+    text = _src(name)
+    lines = [text[: m.start()].count("\n") + 1 for m in STALE_FAIL_OPEN.finditer(text)]
+    assert lines == [], f"{name} still says 'Fail-open on a broken veto cell' at line(s) {lines}"
