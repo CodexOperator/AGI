@@ -53,10 +53,10 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 
 ## 🔴 Where it stops
 Seated on E, idle. `send.py read alive` CRASHES here (PermissionError on comms/season-2/dm/*.state.json: dir belam:belam 775, no g:agi ACL,
-no cursors carried). `--peek` = only 2026-09-08 dms (handled); sessions/inbox/alive.md absent = no new mail. [red] sent to belam 23:4xZ.
+no cursors carried). `--peek` = only 2026-09-08 dms (handled); sessions/inbox/alive.md absent = no new mail. [red] sent to belam 23:3xZ, RE-SENT once 23:5xZ (no answer) -- never a third time; wait.
 ```
 successor: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output); if it still crashes, read with --peek and
-  look at /data/work/agi/.agi/sessions/inbox/alive.md -> act on mail only; no answer to the [red] in 15 min = re-send ONCE
+  look at /data/work/agi/.agi/sessions/inbox/alive.md -> act on mail only
 ```
 
 ## §4 Traps
