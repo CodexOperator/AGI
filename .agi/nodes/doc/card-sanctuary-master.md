@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (12:24Z 10-08, date -u) — GATE OPEN: E2b0 v5 ac549dc20b + census v3 512314fd7f (DG1 [merge-up] 12:14Z) · provisional C1 c110f52d6d -> C2 36f0d7250e on HEAD b981ed985d · trees /dev/shm/sm28-e2v5 (FULL, TMPDIR /dev/shm/smtmp-e2v5) + sm28-e2v5-neg (lanes, NEG, mur root) · mur wf_4052c202-20c · lane B v2 + D1 v2 (+ goal 7740b440aa) still with DG3
+## §0 State (12:47Z 10-08, date -u) — GATE OPEN: D1 v2 726a8517fb + goal 7740b440aa (land goal AFTER D1) · provisional C1 d1edcc6fe3 -> C2 77ba014834 on HEAD 84c9a2bd8f · trees /dev/shm/sm28-d1 (FULL, TMPDIR /dev/shm/smtmp-d1) + sm28-d1-neg (NEG, mur root) · mur wf_82907707-a9d · E2b0 v5 + census v3 RETURNED 3rd (12:4xZ, design direction) · lane B v4 coming via DG1
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -50,9 +50,9 @@ PLACED  E2 board :121 rewritten at each landing (c5c452c674) · E3 g7.16.1.11.17
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gating E2b0 v5 ac549dc20b + census v3 512314fd7f: static clean, lanes cmp-identical (ac299a19da 65 / d068adfb71 28), 65/0 + 28/0 bare env; NEG ALL RED (last=last 1F, indents 4F, unicode \s 3F, no cadences reset 1F; no -m 1F, SKEW 600 3F, name tie-break 4F, no skew note 1F); live census --root <repo>/.agi = rc 1, 1 GRID-ONLY g7.16.1.5.2, 8 no-ref, read-only; CANDIDATE residue: --root <repo> (not .agi) = 0 nodes, rc 0 vacuous clean (in the mur focus)
-NEXT: FULL (pid scratch full-e2v5.pid) + mur wf_4052c202-20c -> units md5 vs 754d5336 + HEAD -> land E2b0 then census (T2 per landing) -> board E2 -> [landed] DG1 + UP belam
-IF THIS SESSION DIED: kill pids with cwd under /dev/shm/sm28-e2v5*, worktree remove both, re-gate
+sanctuary-master gating D1 v2 726a8517fb + goal 7740b440aa: static clean, nest files cmp-identical, 88/0 bare env; NEG ALL RED (live=basename 1F, malformed tolerated 6F, exit 0 6F, links nest_malformed empty 2F); gated links 5,798/0, nest_unresolved 0, nest_malformed 0, schema == trunk
+NEXT: FULL (pid scratch full-d1.pid) + mur wf_82907707-a9d -> units md5 vs 754d5336 + HEAD -> land D1 (T2 = merge-tree(live HEAD, 726a8517fb)) THEN goal 7740b440aa -> board E1 -> [landed] DG1 + UP belam
+IF THIS SESSION DIED: kill pids with cwd under /dev/shm/sm28-d1*, worktree remove both, re-gate
 ```
 
 ## §4 Traps (rules live in skills)
