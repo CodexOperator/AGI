@@ -20,6 +20,23 @@ two=0;other=0;for r in $absent;do case $r in 0);;2)two=$((two+1));;*)other=$((ot
 ok "a3-post-skips-when-agi-run-is-absent the $nc ExecCondition line(s) of agi-post@.service with agi-run NOT on PATH exit [$absent]: $two exit 2 (want >= 1: a skip), $other exit another code (want 0: not a failure)" '[ $two -ge 1 ]&&[ $other = 0 ]'
 nz=0;for r in $present;do [ $r = 0 ]||nz=$((nz+1));done
 ok "a3-post-runs-when-agi-run-is-present the same line(s) with a stub agi-run on PATH exit [$present]: $nz non-zero (want 0)" '[ $nz = 0 ]&&[ $nc -ge 1 ]'
+# --- RA11 (DG1 02:23Z): the agi-run ExecCondition is exactly as wide as the extraction that follows it (ExecStartPre reads engine.md and engine-[pw]*.md of t): agi-run in ANY of engine.md, engine-post.md, engine-wrap.md of t (or, with no t yet, of the trunk the unit will build t from) exits 0; in none, and not on PATH, exits 2. A condition narrower than the extraction skips a post that could start (a stale-t fixture carries agi-run only in engine-post.md).
+grep '^ExecCondition=.*agi-run' $T/up|sed 's/^ExecCondition=//;s/%i/x/g' >$T/rcond;nrc=$(grep -c . $T/rcond)
+RUNSTUB='### agi-run (stub)\n~~~sh\n#!/bin/sh\nexit 0\n~~~\n'
+# cond_t FILE: t exists in the unit's cwd and holds agi-run ONLY in FILE (empty = nowhere), agi-run not on PATH
+cond_t(){ rm -rf $T/ct;mkdir -p $T/ct/t/.agi/nodes/.geometry;printf '### other (stub)\n~~~sh\nexit 0\n~~~\n' >$T/ct/t/.agi/nodes/.geometry/engine-grow.md;[ -z "$1" ]||printf "$RUNSTUB" >$T/ct/t/.agi/nodes/.geometry/$1
+ (cd $T/ct&&env -i PATH=$T/nobin:/usr/bin:/bin HOME=$T/hm sh -c "$(cat $T/rcond)" >/dev/null 2>&1);crc=$?;}
+# cond_trunk FILE: no t yet; $O is a repo whose trunk commit holds agi-run ONLY in FILE (empty = nowhere)
+cond_trunk(){ rm -rf $T/ct $T/co;mkdir -p $T/ct $T/co/.agi/nodes/.geometry;printf '### other (stub)\n~~~sh\nexit 0\n~~~\n' >$T/co/.agi/nodes/.geometry/engine-grow.md;[ -z "$1" ]||printf "$RUNSTUB" >$T/co/.agi/nodes/.geometry/$1
+ $G init -q $T/co;$G -C $T/co add -A;$G -C $T/co commit -qm trunk;TK=$($G -C $T/co rev-parse HEAD)
+ (cd $T/ct&&env -i PATH=$T/nobin:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=$T/gitconfig GIT_CONFIG_SYSTEM=/dev/null O=$T/co AGI_TRUNK=$TK sh -c "$(cat $T/rcond)" >/dev/null 2>&1);crc=$?;}
+ok "ra11-the-agi-run-condition-is-one-line the unit has exactly one ExecCondition that mentions agi-run: $nrc (want 1)" '[ "$nrc" = 1 ]'
+for fn in engine-post.md engine.md engine-wrap.md;do cond_t $fn
+ ok "ra11-t-has-agi-run-only-in-$fn t exists, agi-run only in t/.agi/nodes/.geometry/$fn, not on PATH: the condition exits $crc (want 0: the extraction finds it)" '[ $crc = 0 ]';done
+cond_t "";ok "ra11-t-has-agi-run-nowhere t exists, agi-run in none of the three files, not on PATH: the condition exits $crc (want 2: a skip)" '[ $crc = 2 ]'
+for fn in engine-post.md engine.md engine-wrap.md;do cond_trunk $fn
+ ok "ra11-no-t-trunk-has-agi-run-only-in-$fn no t yet, the trunk commit holds agi-run only in $fn, not on PATH: the condition exits $crc (want 0: the worktree add will give t that file)" '[ $crc = 0 ]';done
+cond_trunk "";ok "ra11-no-t-trunk-has-agi-run-nowhere no t yet, the trunk holds agi-run in none of the three files, not on PATH: the condition exits $crc (want 2)" '[ $crc = 2 ]'
 # --- a3-carry-unit: the [Unit] of the service unit
 iv=$(grep -Ec '^StartLimitIntervalSec=(0|infinity)[[:space:]]*$' $T/uc);bn=$(sed -n 's/^StartLimitBurst=\([0-9][0-9]*\)[[:space:]]*$/\1/p' $T/uc);nb=$(echo "$bn"|grep -c .)
 ok "a3-carry-unit-has-no-unlimited-restart agi-carry@.service: $iv StartLimitIntervalSec=0/infinity line(s) (want 0)" '[ $iv = 0 ]'

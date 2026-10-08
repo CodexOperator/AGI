@@ -150,7 +150,7 @@ def test_missing_space_cell_is_named_and_fails(box):
     run, log, *_ = box
     p = run.repo / ".agi/config.json"; cfg = json.loads(p.read_text()); del cfg["values"]["local_maxxing"]["agi_boot"]["space_s"]
     p.write_text(json.dumps(cfg)); subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t.invalid", "commit", "-qam", "y"], cwd=run.repo, check=True, capture_output=True)
-    r = run(); assert r.returncode != 0 and "agi-boot: failed: sleep null" in r.stderr
+    r = run(); assert r.returncode != 0 and "space_s" in r.stderr  # A2: the cell is named and refused before any setfacl, unit or start
 
 
 def test_non_boot_row_gets_no_wants_link_boot_rows_do(box):
