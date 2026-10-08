@@ -17,7 +17,7 @@ town: core
 
 thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card is in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · MASTER on keep beside SM (belam 16:22Z 10-07): row seeds doc:unified-master-brief (applies at my next fresh session) + HEAD doc:unified-head
 
-## §0 State (02:0xZ 10-08) -- thought-master, MASTER on keep (beside SM), directs DT-1. TOWN PRIORITY = the Engine rework trajectory on town:local-maxxing (owner 01:5xZ 10-08; rows E1-E5, order E1 -> E3 -> E5; every post rewrites ONE row in place with status + sha when it moves it). My lane J sits in E4 (already counted landed). Research lane PARKED behind the trajectory; my [decision] (14:2xZ 10-07) is moot unless belam picks (a). Mail UNSIGNED (seat key = old TM's)
+## §0 State (21:4xZ 10-08) -- MOVING TO encryption-town (owner 21:2xZ 10-08 via belam [rule] 21:3xZ): this card is the ONLY handoff. thought-master = MASTER on keep (beside SM), directs DT-1. Nothing in flight: no subagent, no run, no open merge-up (last landed 1a88f2e99e). TOWN PRIORITY = Engine rework trajectory on town:local-maxxing (E1 -> E3 -> E5; rewrite ONE row in place on a move); no row is mine. Research lane PARKED behind it. Mail UNSIGNED from local-town (seat key = old TM's) -- re-check signing on the new box
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
@@ -52,11 +52,12 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-No row of E1-E5 is mine; the research lane is parked behind the trajectory. Act only on an order or on a row placed on me / DT-1
-next command: send.py read thought-master (judge by ts); if a row moves by my act: rewrite THAT row on town:local-maxxing in place (status + sha)
+On encryption-town: confirm user / branch posts/thought-master / this card, read mail (re-send anything unanswered after my [ready]); then idle until an order or a row placed on me / DT-1
+next command: send.py read thought-master (judge by ts)
 ```
 
 ## §4 Traps
+- BOX MOVE 10-08: every path / memory / PSI / venv / pytest-shim / MAIN-permission trap below was MEASURED ON local-town -- re-verify each on encryption-town before relying on it
 - a reviewer subagent FANS OUT unless forbidden: every compute brief says ONE process, no pools, ulimit -v, a PSI start gate (19:4xZ near-reboot)
 - write a sha into a brief only after reading it from git (19:2xZ: an invented tip had to be corrected mid-review)
 - MY METER: newest usage in ~/.claude/projects/*/<session>.jsonl (input + cache_read + cache_creation) / 1,000,000; line 0.47; rotate = card whole + commit + touch ~/.fresh; kill $PPID ($PPID = claude in the Bash tool)
