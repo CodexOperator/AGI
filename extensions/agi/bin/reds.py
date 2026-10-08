@@ -69,9 +69,23 @@ def _secrets(repo, old, new, root):
     import dispatch  # late: keeps a pre-model gate cheap
     toks, allow = anonymize.box_tokens(root), anonymize.email_allow(root)
     return [f"{p}:{n}" for p, n, line in _added(repo, old, new)
-            if anonymize.scan(line, toks, allow)
+            if anonymize.scan(line, toks, allow, root=root)   # root: without it the `user` class (anonymize.user_roots) never fires
             or any(dispatch._looks_like_secret(nm, v) for nm, v in _ASSIGN.findall(line))
             or any(dispatch._looks_like_secret("", v) for v in _BARE.findall(line))]
+
+
+def _moved_carries(repo, old, new_graph, mint_id):
+    """An id-less deleted node (the mint index skips it) is alive only when a file that did NOT exist at OLD carries its
+    mint_id in its OWN front matter: the moved node itself. A pre-existing OTHER node or a prose quote is the DG3.54 disguise."""
+    want = re.compile(rf"^mint_id:\s*{re.escape(mint_id)}\s*$", re.M)
+    for f in (Path(new_graph) / "nodes").rglob("*.md"):
+        fm = _FM.match(f.read_text(encoding="utf-8", errors="replace"))
+        if fm and want.search(fm.group(1)):
+            try:
+                _git(repo, "cat-file", "-e", f"{old}:{locations.GRAPH_DIR_NAME}/{f.relative_to(new_graph).as_posix()}")
+            except RuntimeError:
+                return True   # not at OLD: the moved file
+    return False
 
 
 def _node_deletions(repo, old, new, old_graph, new_graph):
@@ -85,20 +99,25 @@ def _node_deletions(repo, old, new, old_graph, new_graph):
     out = []
     for path in _git(repo, "diff", "--diff-filter=D", "--no-renames", "--name-only",
                      old, new, "--", "*/nodes/*").splitlines():
-        text = _git(repo, "show", f"{old}:{path}") if path.endswith(".md") else ""
+        if not path.endswith(".md"):
+            continue
+        text = _git(repo, "show", f"{old}:{path}")
         mint = re.search(r"^mint_id:\s*(\S+)", text, re.M)
         node = re.search(r"^id:\s*(\S+)", text, re.M)
+        ident = node.group(1) if node else path   # a file with no `id:` row is named by its PATH, never skipped
         try:
             hit = links.resolve_mint(new_graph, mint.group(1), index=index) if mint else None
             # it survives only when its mint rides the SAME node, or one that did
             # not exist at OLD: a mint a pre-EXISTING other node carries is a
-            # deletion wearing the mint as a disguise (DG3.54 item 1).
-            alive = (hit is not None and not (hit[0] != node.group(1) and hit[0] in at_old)
-                     if mint else bool(node) and node.group(1) in ids)
+            # deletion wearing the mint as a disguise (DG3.54 item 1). With no id
+            # to compare, the mint alone must ride a node that did not exist at OLD.
+            alive = (hit is not None and not (hit[0] != ident and hit[0] in at_old)
+                     if mint else bool(node) and ident in ids)
+            alive = alive or bool(mint and not node and _moved_carries(repo, old, new_graph, mint.group(1)))
         except Exception as exc:  # fail CLOSED: an index that cannot answer is rc 2
             raise RuntimeError(f"node_deletion: {type(exc).__name__}") from None
-        if node and not alive:
-            out.append(node.group(1))
+        if not alive:
+            out.append(ident)
     return out
 
 
