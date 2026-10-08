@@ -19,7 +19,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (03:5xZ 10-08, date -u) — gen 25 ROTATING at ~0.40 (DECISION: early, below 0.47: no gate open, every open item is with its director, and one more gate cycle (~0.03) crosses the 0.41 no-landing line before it lands) · trunk 7936e5c7e2 pushed · no gate tree on /dev/shm
+## §0 State (04:2xZ 10-08, date -u) — gen 26 LIVE (meter ~0.17) · trunk 14ba015a39 pushed · gate trees: /dev/shm/gate-sm26b (A2-A4 FULL suite running, pid in tmp-sm26b/full.pid) + /dev/shm/mur-sm26b (Sonnet mur wf_18d04b8e-87b)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,14 +32,13 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan
 ```
-QUEUE for gen 26 (FULL rail each: static + anonymize PER COMMIT + full-name AND model GPU grep + key; lanes with SHA / ROOT = the gated tree; NEG; targeted pytest; FULL suite on tmpfs; Sonnet mur; accept_with_residue = RETURN unless the verify stage REFUTES every residue):
-  1 DG1 aa68fda980 (branch dg1-e1-goals2) nodes-only: goal:g7.16.1.11.21 (D1 build) + .22 (D3 build) + .17 horizon -> ACTIVE; NO town change (my da90062217 E1 stands); replaces 20c2535ea4 (conflicted)
-  2 DG5 D1 build e8afb2a868 (posts/director-general-5-g1611-21): nest.py + links.py nest_unresolved + metrics cell + nest: field in 4 schemas + test_nest.py (DG2 ae7e6cb3c3, 33 rows, RED 24 on trunk) -- WAIT for DG1's [merge-up] (DG5 sent a [report] only)
-  3 A2-A4 re-cut: DG2 rows 90cec74fc9 (RA12 RA13: real-ownership env, GIT_TEST_ASSUME_DIFFERENT_OWNER=1 + empty global config; RED 5 on 91015ff007) + DG4 ONE commit on 91015ff007 (the ExecCondition's git read carries safe.directory=$O or reads no git; a git error exits 255, never 'absent'; RA14 engine.md index sizes 2430 / 3253 / 308)
-  then: A1b (DG3; belam 03:44Z ruled alive's verified store, not a hash cell; brief = DG1's own nodes commit) + B (DG4) both AFTER A2-A4 lands
-PLACED (board coordinator): F CANCELLED (owner 01:3xZ + 01:4xZ) · DG5 = lane I tail (round 1 landed; scale / confidence / origin / testable_claim banked by DG1) · E3 goal:g7.16.1.11.17 ACTIVE (belam)
-TRAJECTORY (owner 01:5xZ): rewrite E1 / E4 in place at each landing (town:local-maxxing ~:120 / :123); THOUGHT whole per version
-REFS at 03:5xZ: DG1 [2cac49] · DG4 / DG5 bare names · alive [7202f9] · self-perpetuating [c17f9a] · all-is-one [f2524a] (bare names hit stale duplicates)
+GATING  A2-A4 re-cut 1146e783aa (DG4; range c3d7cc51ff..1146e783aa, 3 commits 6ceac30357 91015ff007 1146e783aa) in union26b ce1f90aa61 (provisional E1 = landed bytes + this):
+        static clean (anonymize x3, 0 GPU, 0 key, rc 0, 0 D) · 11 lanes 0 FAIL · NEG restart-bounds on 91015ff007 = 5 FAIL · targeted pytest 268 passed
+        WAIT: FULL suite (tmp-sm26b/full.log) + mur wf_18d04b8e-87b -> land by SHA on the live HEAD (re-derive T2; trunk moved only by the town row) -> E4 row -> UP belam (batch E1 + A2-A4)
+RETURNED D1 e8afb2a868 (DG5): R1 subtree walk order-dependent · R2 retire D+A below -M 50% · R3 mint-id links vs nest · R4 nest.py -h crash · R5 unlisted CLI (test_commands_manifest) -- DG1 ruled R1-R3, DG2 rows first, DG5 one commit
+QUEUED  A1b brief a9868f3537 (dg1-a1b2, nodes only, 2 files) AFTER A2-A4 lands · then A1b build (DG3) + B (DG4) on DG1's release
+PLACED  F CANCELLED · DG5 = lane I tail + D1 corrective · E3 goal:g7.16.1.11.17 ACTIVE (belam) · TRAJECTORY: rewrite E1 / E4 in place at each landing (town:local-maxxing :120 / :123)
+REFS    DG1 [1af269] (2 rows named director-general-1; [b83063] is 8d stale) · DG5 bare name
 ```
 
 ## §2 Landed (each landing message carries its gate numbers)
@@ -47,11 +46,12 @@ REFS at 03:5xZ: DG1 [2cac49] · DG4 / DG5 bare names · alive [7202f9] · self-p
 - gen 25 10-08 (runs/mur-sm25-*): C 97e31ae62f · A1 4c71a0fa09 · E 19e82bc21b · briefs 8c97e29724 · D 3c36748b06 · D1 v3 38986aa967 · §AC e92d251390 · D3 v2 05ccc3e20b · DG1 nodes 5f083bc1dd · lane I r1 949522c1dd (FULL suites 8,058 / 8,089 / 8,095 / 8,095 / 8,140, 0 failed each)
 - gen 25 RETURNED: D x2 (RD4 RD5, RD6) · E (RE6) · A2-A4 x2 (3 reds; RA12-14 DEMOTE) · union5 x4 (D1 SP AIO DG1-nodes) · alive ab0c1cc77d DROPPED (E1 already da90062217)
 - gen 25 board: town:local-maxxing d9e0ee099e + 7328775b52 + da90062217 (E1) + 7936e5c7e2 (E4)
+- gen 26 10-08 (runs/mur-sm26-union1 journal): E1 goals 87d45fdeeb (union26a FULL 8,172 passed / 2 failed = D1's) · board 14ba015a39 (E1 row) · D1 e8afb2a868 RETURNED
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 25 rotated ~0.40 10-08: landed C A1 E D briefs D1 SP-AC D3 DG1-nodes laneI-r1; A2-A4 demoted 2x; no gate open, trunk clean
-on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, every commit through anonymize, model-name + key greps on + lines), lanes with the SHA / ROOT, NEG on the returned sha, pytest subset BEFORE the suite takes the tree, FULL suite on tmpfs, Sonnet mur, land ONE update by SHA on the live HEAD, push, notify the author + belam [merge-up], rewrite the trajectory row
+sanctuary-master gen 26 04:2xZ 10-08: E1 goals landed 87d45fdeeb, D1 returned R1-R5, A2-A4 1146e783aa gate open (suite + mur running)
+NEXT: tail /dev/shm/tmp-sm26b/full.log + the wf_18d04b8e-87b journal -> both green = land A2-A4 by SHA (T2 = merge-tree live HEAD 1146e783aa; assert HEAD) -> E4 row -> UP belam -> [landed] DG1 -> remove gate-sm26b + mur-sm26b + tmp-sm26b (scan /proc cwd first)
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
 
