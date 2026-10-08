@@ -8,6 +8,7 @@ next_edges: []
 edited_by: belam
 scaffold_hash: d5baac0e9dc2d32a
 season: 2
+tags: []
 thought_session: belam-S2-L5-II
 title: doc:g5-lifecycle-history -- the pre-renumbering G5 body (goal lifecycle enforcement), moved verbatim from goal:g5 on 2026-09-24
 town: core
