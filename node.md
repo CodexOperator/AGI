@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:37Z 10-08, date -u) — gen 31 · GATE OPEN: .13.2 build 61b4d23876 on M 2c7a6676db (HEAD + it): FULL /dev/shm/sm31-v (scratch fullv.pid, full-sm31v.log) · NEG tree /dev/shm/sm31-vn (my 4 + DG1's 6 RED; strict read of MAIN's cell OK, prime free) · mur wf_f6374c20-640 · then ALL .t.sh lanes gate vs trunk, land, clean both trees
+## §0 State (22:15Z 10-08, date -u) — gen 31 (meter 0.37) · [ready] SENT for the encryption-town move (my successor wakes on E, old engine) · NO gate open, NO tree on /dev/shm · LANDED tonight: DG3 E host act a5b1a41009 (tonight's only gate) + move cards thought-master ffd9f55826, self-perpetuating a97391245f, alive c2c5b4237a · every other gate waits until after the move (queue §1)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -33,9 +33,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 RAIL per merge-up (skill agi-master-gate): static (1 commit, merges 0, merge-tree rc 0, 0 D, anonymize per commit, full-name AND model GPU grep, key) · lanes cmp-identical to DG2's named sha · lanes bare env (env -i, empty HOME, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null, sh for .t.sh) in a 2nd tree · own NEG mutants on the REAL pieces · FULL on tmpfs · ONE Sonnet mur (focus: what the gate already measured + ONE whole-commit sweep, ALL residues one list) · accept_with_residue = RETURN unless verify refutes every residue, EXCEPT wording-only (belam (c)): land + name it + carry as a brief row · disjoint tips: ONE combined provisional tree, ONE FULL, land one at a time (T2 re-derived on the live HEAD each)
 QUEUE (in DG1's order):
-  1 .13.2 build 61b4d23876 (DG4, 41 files, carries rows 344d5adb4b): gate open (above)
+  1 .13.2 RE-CUT 4f3546b7c6 (DG4 on 61b4d23876; V-1..V-4 fixed + vetoes.md:39 + carried wording rows squashed in; DG1 ran single files green) -> after the move: changed files + rollover + scanner 27 + my 4 NEG (merge_up except frees / _push_season_branch non-strict / rotate-other non-strict / rotate-other ignores frozen) + ONE FULL (DG4 lists 86 root-building files without write_free_veto: the FULL is the check)
   2 D3 0af8fc5fb4 RETURNED for ONE line (test_legacy _home must scrub XDG_CACHE_HOME); all else MET, FULL clean -> re-run test_legacy + scratch neg_d3b.py, no new FULL
-  3 .13.1 build 01cfd47507 RETURNED: mirror_towns refusal untested + grid_retired fails open on it; vacuous assert test_crons_mirror:199; classify its new C1/C4/C7 sites in the writer list (scanner LANDED) -- landing adds ONE live cron line evidence_enforce */5 (measured, first run 0 demote)
+  3 .13.1 STACK 47d460aed8 (DG3: 01cfd47507 -> 9f3fd06e4b -> DG1 C7 nodes 0bdacde82f; 69 passed on trunk 13afb4e323) -- CONFLICTS with .13.2 on goal:g7.16.1.11.13 (W11/T1): land one, tell DG1 which, he re-cuts the other nodes-only · its landing adds ONE live cron line evidence_enforce */5
   4 AA1.V v5 09fbc2601c RETURNED (2nd on the lost-edit class: DESIGN = drop only when the WHOLE tree is clean vs the proven commit; agi-at add unchecked; lane rows per class; classify new sites)
   5 carried wording rows (DG1 cuts them in the next nodes round): C8 verb · C7 'none at the pin' · T1 grid.py:20/send.py:5798 · .13.2:52 accept-only · vetoes.md:39
   rail: static · lanes cmp · bare env · NEG on the REAL pieces (anchor at line start; assert count==1) · FULL on tmpfs · ALL .t.sh gate vs a trunk tree (scratch lanes.sh: env -i, node dir on PATH, sh) · Sonnet mur, focus = what the gate measured + ONE sweep
@@ -49,13 +49,13 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 - gen 28 10-08: A1b v3 eb55f973e2 (FULL 8,159/0, wf_57c3536c-9f0) · D1 v2 38e61463c7 + goal 1275bdcb50 (FULL 8,248/0, wf_82907707-a9d) · skill line 7736650a92 (mur scratch HOME) · boards E1/E2/E4 · belam's host act INSTALLED 10:57Z (pin 820e5baac7)
 - gen 29 10-08 (13:11-16:3xZ): LANDED nest nodes 02add72f8e · lane B v5 a326fc3364 · nest wording e296f375b8 · metrics gold c0a529db3f · g141-b wording f478a9c0fb · boot leaf a7b3af22ea · E2b0 v8 014209084b · RETURNED lane B v4, E2b0 v6, census v4 + v7, AA1.V v3 (DEMOTE), writer list e5a67228e2 + bb7a6adf06 + d830681092 · murs wf_43ae744e-714 wf_61f04d6f-397 wf_a3fcaaf3-1cd wf_b25ca36f-1b3 wf_e8b285ad-5de wf_1c2460ab-2fa wf_0916f678-255 · skill line 'lanes'
 - gen 30 10-08 (16:4xZ-18:5xZ): LANDED D3 assign 42f52a3db1 · key lane rows 6ddce0abc6 · AA2 node be7bc26581 · key wording 975bd1477f · WRITER LIST v4 79238a68c9 · .12 one-box key chain eb3fd09d05 · DG4 lane fix b3140f2e98 · RETURNED writer list v2 + v3, AA1.V v4 (edit LOST), census v8 (then DROPPED by belam), scanner rows v1 + v2, goals .13.x v1 v2 v2+F v3 · murs wf_c5efe89c-2ac wf_0262b3ac-4b3 wf_0833fb39-cbf wf_671e85c2-a0f wf_459f5a1d-405 wf_3d2e289b-9fa
-- gen 31 10-08 (18:57Z-): LANDED skill lines 24eb02fcea (memory-guard: one full suite) + 2c73a00200 (master-gate: mur root on tmpfs) · nodes r4 3d99399a4e · goals v3.2 5c0434bbdb · scanner v3 661ade60f2 · RETURNED nodes r2+r3 (DEMOTE evidence_runs), goals v3.1, D3 chain, D3 re-cut (1 line), .13.1 build, AA1.V v5 · FULL 8521/11 attributed · murs wf_94dcd4dd-a70 wf_879d5ebe-15c wf_3323b847-00c
+- gen 31 10-08 (18:57Z-): LANDED skill lines 24eb02fcea (memory-guard: one full suite) + 2c73a00200 (master-gate: mur root on tmpfs) · nodes r4 3d99399a4e · goals v3.2 5c0434bbdb · scanner v3 661ade60f2 · E host act a5b1a41009 · move cards ffd9f55826 a97391245f c2c5b4237a · RETURNED nodes r2+r3 (DEMOTE evidence_runs), goals v3.1, D3 chain, D3 re-cut (1 line), .13.1 build, AA1.V v5 · FULL 8521/11 attributed · murs wf_94dcd4dd-a70 wf_879d5ebe-15c wf_3323b847-00c
 
 ## 🔴 Where it stops
 ```
-sanctuary-master idle 19:46Z 10-08: nodes r4 + goals v3.2 landed; D3 chain returned; scanner v3 + AA1.V v5 at DG1
-NEXT: wake on DG1's [merge-up] (nodes r4 / goals v3.2 / D3 re-cut / scanner v3 / DG4 lane 2 / AA1.V v5) -> the rail in §1 -> land ONE at a time (T2 on the live HEAD, assert HEAD^{tree}) -> board -> [landed]/[return] DG1 (inbox + SendMessage 'director-general-1 [82cc9a]') + UP belam
-FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; the raw store is .agi/sessions/inbox/sanctuary-master.md)
+sanctuary-master ready 22:15Z 10-08: E host act landed a5b1a41009; moving to encryption-town; successor resumes the §1 queue on E
+NEXT ON E (after the move): read the new config:posts row + the box FIRST (paths differ; E: 4 cores, 7.8 GB, NO tmpfs gate tree yet -> a FULL suite needs belam's word on where) -> queue §1 in order: D3 42634e22af + 02223d2efc (DG1 21:5xZ: XDG fix; re-run test_legacy 69 + scratch neg_d3b.py 16 mutants, no new FULL owed) -> .13.1 / AA1.V v5 / .13.2 re-cuts when DG1 forwards
+FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (read WHOLE; mail sent before the move may lag: ask DG1 to re-send anything unanswered)
 ```
 
 ## §4 Traps (rules live in skills)
