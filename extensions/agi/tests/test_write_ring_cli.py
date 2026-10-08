@@ -613,3 +613,99 @@ def test_g131_37_unset_literal_marker_never_signs_the_bytes_of_setting_it():
     for set_fm, unset_fm in (({"_unset": '["a"]'}, None), (None, ["_unset"])):
         with pytest.raises(write.EditError, match="'_unset'.*REFUSED"):
             write._config_write_fields("config:seats", set_fm, unset_fm)
+
+
+# goal:g1.41 D1 -- the ring gate answers "no ring, write it" when it COULD NOT LOOK. REAL load failures (a
+# rings file the uid cannot read, a corrupt one, one whose value is bad, a seatsig.rings that will not
+# import), never a stub of ring_by_name. NOTE for the builder: seatsig.rings.load_rings itself degrades an
+# unreadable / unparseable cell to [] ("an unreadable cell is an absent cell"), so a write.py-side split of
+# `except Exception` alone cannot see a mode-000 or a corrupt file: the gate must look at the cell itself
+# (or load_rings must stop swallowing). The opt-outs below are the ONLY intended passes.
+import os
+import re as _re
+
+_SET = {"seats": [{"name": "x"}]}
+_RINGS_REL = Path("nodes") / ".geometry" / "rings.md"
+
+
+def _unsigned_write(root, preview=False, out=None):
+    return write._enforce_written_by(root, "config", "director1", "config:seats", role="prime",
+                                     set_fm=_SET, preview=preview, out_decision=out)
+
+
+def _break_rings(root, how, monkeypatch):
+    cell = root / _RINGS_REL
+    if how == "mode000":
+        os.chmod(cell, 0)
+    elif how == "corrupt":
+        cell.write_text("---\ntype: cell\nrings: [ {name: approval, m: 2\n---\n", encoding="utf-8")
+    elif how == "not-a-list":
+        cell.write_text("---\ntype: cell\nrings: approval\n---\n", encoding="utf-8")
+    elif how == "bad-m":
+        cell.write_text("---\ntype: cell\nrings:\n  - name: approval\n    m: abc\n"
+                        "    members: [alice, bob, carol]\n---\n", encoding="utf-8")
+    elif how == "import":
+        monkeypatch.delattr(seatsig, "rings", raising=False)
+        monkeypatch.setitem(sys.modules, "seatsig.rings", None)
+
+
+REAL_FAILURES = ["mode000", "corrupt", "not-a-list", "bad-m", "import"]
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="a mode-000 file is readable by root")
+@pytest.mark.parametrize("how", REAL_FAILURES)
+def test_d1_a_real_rings_load_failure_refuses_the_unsigned_config_write_by_name(tmp_path, monkeypatch, how):
+    root, _s = _ring_root(tmp_path)
+    _break_rings(root, how, monkeypatch)
+    try:
+        with pytest.raises(write.EditError) as ei:
+            _unsigned_write(root)
+    finally:
+        os.chmod(root / _RINGS_REL, 0o644)
+    msg = str(ei.value)
+    assert "approval" in msg, msg                      # names the ring
+    assert _re.search(r"[A-Za-z]+Error", msg), msg     # names the error class
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="a mode-000 file is readable by root")
+@pytest.mark.parametrize("how", ["mode000", "corrupt", "import"])
+def test_d1_a_dry_run_of_a_load_failure_previews_the_refusal(tmp_path, monkeypatch, how):
+    root, _s = _ring_root(tmp_path)
+    _break_rings(root, how, monkeypatch)
+    out = {}
+    try:
+        _unsigned_write(root, preview=True, out=out)
+    finally:
+        os.chmod(root / _RINGS_REL, 0o644)
+    assert out.get("refusal") and "approval" in out["refusal"], out
+
+
+def test_d1_control_a_schema_with_no_ring_still_writes(tmp_path):
+    root, _s = _ring_root(tmp_path, ring=None)
+    _unsigned_write(root)          # no ring: line -> no quorum asked, no refusal
+
+
+def test_d1_control_a_rings_cell_that_is_absent_still_writes(tmp_path):
+    root, _s = _ring_root(tmp_path)
+    (root / _RINGS_REL).unlink()
+    _unsigned_write(root)          # the geometry names no ring at all: the documented opt-out
+
+
+def test_d1_control_a_ring_the_geometry_does_not_name_still_writes(tmp_path):
+    root, _s = _ring_root(tmp_path)
+    (root / _RINGS_REL).write_text("---\ntype: cell\nrings:\n  - name: other\n    m: 2\n"
+                                   "    members: [alice, bob]\n---\n", encoding="utf-8")
+    _unsigned_write(root)          # ring_by_name -> None: the opt-out
+    out = {}
+    _unsigned_write(root, preview=True, out=out)
+    assert not out.get("refusal"), out
+
+
+def test_d1_control_a_signed_quorum_still_writes_beside_a_broken_unrelated_cell(tmp_path):
+    root, signers = _ring_root(tmp_path)
+    ts, nonce = _now(), "write-d1"
+    fields = _cell_fields(root, "config:seats", _SET, ts=ts, nonce=nonce)
+    canonical = rings.canonical_bytes("config-write", fields)
+    sigs = _sigs(signers, canonical, ["alice", "bob"])
+    write._enforce_written_by(root, "config", "director1", "config:seats", role="prime",
+                              set_fm=_SET, signatures=sigs, ring_fresh=(ts, nonce))

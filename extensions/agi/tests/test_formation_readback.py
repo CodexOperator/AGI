@@ -320,3 +320,130 @@ def test_a_malformed_hit_is_a_named_fail_not_a_crash(groot):
     _cell(groot, "doc:two-step")
     r = verification.check_formation(groot)
     assert r.status == "FAIL" and "bad.md" in r.message
+
+
+# goal:g1.41 D3 -- the formation check reads ONE cell with ONE `active:`; a second cell file or a repeated key
+# is ambiguous and must FAIL naming formations, never read whichever file / last key it met first.
+_TPL = "templates: {doc:council-loop: g7.16.1, doc:two-step: g7.16.2}\n---\n"
+_CAUSE = r"more than one|duplicate|twice|repeat|second|multiple|two|\b2\b"
+
+
+def _says(r):
+    import re
+    return re.search(_CAUSE, f"{r.note} {r.message}".lower()) and "formations" in f"{r.note} {r.message}".lower()
+
+
+def _twin(groot, rel, active="doc:council-loop"):
+    f = groot / "nodes" / rel
+    f.parent.mkdir(parents=True, exist_ok=True)
+    f.write_text(f"---\nid: config:formations\ntype: config\nactive: {active}\n" + _TPL, "utf-8")
+
+
+@pytest.mark.parametrize("rel", [".geometry/formations-copy.md", "config/formations.md"])
+def test_d3_a_second_live_cell_file_fails_naming_formations(groot, rel):
+    _cell(groot, "doc:two-step")
+    _twin(groot, rel)
+    r = verification.check_formation(groot)
+    assert r.status == "FAIL" and _says(r), (r.status, r.note, r.message)
+
+
+def test_d3_a_second_cell_with_the_same_active_still_fails(groot):
+    _cell(groot, "doc:two-step")
+    _twin(groot, ".geometry/formations-copy.md", active="doc:two-step")
+    r = verification.check_formation(groot)
+    assert r.status == "FAIL" and _says(r), (r.status, r.note, r.message)
+
+
+@pytest.mark.parametrize("keys", [["doc:council-loop", "doc:two-step"], ["doc:two-step", "doc:two-step"]])
+def test_d3_a_repeated_active_key_fails_naming_formations(groot, keys):
+    (groot / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    (groot / "nodes" / ".geometry" / "formations.md").write_text(
+        "---\nid: config:formations\ntype: config\n" + "".join(f"active: {k}\n" for k in keys) + _TPL, "utf-8")
+    r = verification.check_formation(groot)
+    assert r.status == "FAIL" and _says(r), (r.status, r.note, r.message)
+
+
+def test_d3_a_retired_namesake_never_shadows_the_live_cell_silently(groot):
+    _cell(groot, "doc:two-step")
+    _twin(groot, "deprecated/config/formations.md")          # a retired copy naming ANOTHER template
+    r = verification.check_formation(groot)
+    # either it refuses the ambiguity by name, or it reads the LIVE cell (doc:two-step) -- never the retired copy
+    assert r.status == "FAIL" or "doc:two-step" in (r.note or ""), (r.status, r.note)
+
+
+def test_d3_control_one_cell_one_key_passes(groot):
+    _cell(groot, "doc:two-step")
+    r = verification.check_formation(groot)
+    assert r.status == "PASS" and "doc:two-step" in r.note, (r.status, r.note)
+
+
+# goal:g1.41 RD2 (DG1 23:32Z, ruled live-first): check_formation reads the LIVE config:formations cell only, but
+# node_writer.find_node_file (brief.py's two readers) returns a nodes/deprecated/config/ namesake ahead of the
+# live nodes/.geometry/ cell (.geometry is not in step 1, so the live cell is found only at step 3, after the
+# retired copy). The readers must agree: live-first inside find_node_file. A retired node is still readable.
+def _two_formations(root: Path, live: str = "live-tpl", retired: str = "retired-tpl", with_live: bool = True) -> None:
+    if with_live:
+        (root / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+        (root / "nodes" / ".geometry" / "formations.md").write_text(
+            "---\nid: config:formations\ntype: config\n"
+            f"active: doc:{live}\ntemplates: {{doc:{live}: g7.16.1}}\n---\n", "utf-8")
+    (root / "nodes" / "deprecated" / "config").mkdir(parents=True, exist_ok=True)
+    (root / "nodes" / "deprecated" / "config" / "formations.md").write_text(
+        "---\nid: config:formations\ntype: config\nstatus: deprecated\n"
+        f"active: doc:{retired}\ntemplates: {{doc:{retired}: g7.16.9}}\n---\n", "utf-8")
+
+
+def test_rd2_find_node_file_returns_the_live_cell_over_a_retired_namesake(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _two_formations(root)
+    found = node_writer.find_node_file(root, "config:formations")
+    assert found is not None and "deprecated" not in found.parts, found
+    assert found == root / "nodes" / ".geometry" / "formations.md", found
+
+
+def test_rd2_find_node_file_still_finds_a_retired_cell_when_it_is_the_only_one(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _two_formations(root, with_live=False)
+    found = node_writer.find_node_file(root, "config:formations")
+    assert found == root / "nodes" / "deprecated" / "config" / "formations.md", found
+
+
+def test_rd2_an_unrelated_id_lookup_is_unchanged(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _two_formations(root)
+    _node(root, "doc/plain.md", "doc:plain")
+    _node(root, "deprecated/goal/g4.md", "goal:g4")
+    assert node_writer.find_node_file(root, "doc:plain") == root / "nodes" / "doc" / "plain.md"
+    assert node_writer.find_node_file(root, "goal:g4") == root / "nodes" / "deprecated" / "goal" / "g4.md"
+    assert node_writer.find_node_file(root, "goal:nope") is None
+
+
+def test_rd2_brief_formation_line_reads_the_live_cell(tmp_path):
+    import brief
+    root = tmp_path / ".agi"
+    _two_formations(root)
+    assert brief._formation_line(root).startswith("[formation] doc:live-tpl"), brief._formation_line(root)
+
+
+def test_rd2_brief_in_force_mode_reads_the_live_cell(tmp_path):
+    import json
+    import brief
+    root = tmp_path / ".agi"
+    _two_formations(root)
+    (root / "config.json").write_text(json.dumps({"operating_modes": {
+        "live-mode": {"formation": "doc:live-tpl"}, "retired-mode": {"formation": "doc:retired-tpl"}}}), "utf-8")
+    got = brief._in_force_mode(root)
+    assert got is not None and got[0] == "live-mode", got
+
+
+def test_rd2_the_readers_agree_with_check_formation(groot):
+    import brief
+    import node_writer
+    _two_formations(groot, live="two-step", retired="council-loop")
+    found = node_writer.find_node_file(groot, "config:formations")
+    assert "deprecated" not in found.parts
+    assert brief._formation_line(groot).startswith("[formation] doc:two-step")
+    assert verification.check_formation(groot).status == "PASS"
