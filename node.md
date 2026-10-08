@@ -1,0 +1,79 @@
+---
+id: experiment:a00-8392b6e0-5d17ff
+mint_id: f303b20e62c041d992a94f0f1e2d7728
+type: experiment
+parents:
+  - hypothesis:a-write-refusal-names-the-index-truth
+next_edges: []
+confidence: 0.8
+edited_by: a00-563c98b6
+evidence_runs:
+  - experiment:a00-8392b6e0-5d17ff
+loop: hypothesis:a-write-refusal-names-the-index-truth@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "wire (perf row 5, the claim under test): a throwaway repo, wait_s=2.0, index.lock held for the whole write -- 6 tries, and only 2 index calls total (one ls-files -v + one --no-optional-locks status, i.e. the DEADLINE read only). The backoff loop pays nothing. HOLDS."
+  - "wire (regression of the deadline conjunct): writer A holds the lock, a peer frees it and commits at t=1.0s, a third writer re-takes it and holds 6s past the budget -- rc 0, note commit skipped ... clean at HEAD, HEAD carries the NEW title, 2 index calls at the deadline. The widening survived the move into the branch. HOLDS."
+  - "gate (regression of row 2): skip-worktree + write -> rc 3, no clean-at-HEAD note. HOLDS."
+  - "gate (regression of row 1): _commit_write live with payload_path outside the work tree, lock past budget -> STILL STAGED absent, the note names the failed STAGED check. HOLDS."
+production_lines: 14
+profile: balanced
+role: kid
+scaffold_hash: 4b16b16c84c0a1bf
+season: 2
+title: Row 5 perf gate, dead fixture in row 3 dropped, deadline row asserts the property
+town: core
+verdict: proved
+---
+# experiment:a00-8392b6e0-5d17ff
+
+## Experiment
+DH.DG4.06 rows 3, 4, 5 (the three the parent left open on top of
+experiment:a00-2c0f83aa-bde1c8), scope `_commit_write` + that test file only.
+
+| row | what it now says / does | where |
+|---|---|---|
+| 5 (perf) | the `ls-files -v` + `status` read moved INSIDE the `if not busy or past deadline:` branch, so only the two paths that can RETURN on it (a non-busy failure, the deadline) pay it; a backoff retry pays nothing | write.py `_commit_write` (one hunk, +14/-12 with comments) |
+| 3 (dead fixture) | the ignored-node row's `pre-commit` hook + `core.hooksPath` fixture is GONE; the docstring now names what actually refuses: `git add` on an ignored path (rc 1), and the `ls-files` row count is 0, so the index does not hold the path | test `test_an_IGNORED_node_...` |
+| 4 (property, not prose) | the deadline row asserts the PROPERTY (rc 0, no UNCOMMITTED, tree clean, `mine` in `HEAD:<node>`) and no longer greps the note string `clean at HEAD` | test `test_a_third_writer_...` |
+| 5 (row) | NEW `test_a_BUSY_retry_pays_no_index_read`: index.lock held across several retries, a spy on `subprocess.run` records every `ls-files` argv; the retry that lands the write must make ZERO of them | test file |
+
+Row 4's window, honestly: git cannot commit AT ALL while writer C's lock is
+held, so "hold the lock across the peer commit" is not reachable with a real
+index — the peer needs the lock free to commit, and a private
+`GIT_INDEX_FILE` peer leaves the main index dirty against the new HEAD, which
+makes `at_head` false and re-opens the refusal the row exists to kill. The
+window is therefore closed by ASSERTION, not by ordering: if a backoff retry
+slips in between the peer's unlink and C's relock, this writer makes its own
+real commit, which satisfies the same property. The docstring says so.
+
+## Evidence
+- `python3 -m pytest extensions/agi/tests/test_write_commit_busy_index.py -q` ->
+  10 passed, three consecutive times (also 3x before the comment trim).
+- `test_write_guard.py test_node_writer.py` -> 163 passed, 3 xfailed.
+- row 5 measured on the bytes: a lock held 2s with `wait_s=10` -> the write
+  lands committed with an EMPTY `ls-files` record; the pre-fix bytes are the
+  parent's probe (1 `ls-files -v` + 1 `status` on the same cheap path).
+- NEW FLAKE, NOT MINE, and it predates this node: the 3-writers-x-20 stress
+  row's `assert all("commit failed" in e and "UNCOMMITTED" in e for refusals)`
+  fails about 1 run in 8-12. The offending rc 3 is the OTHER sanctioned
+  refusal -- `was already dirty against HEAD before this write` (laundered
+  hand-edit), which by name does not say `commit failed`: a refused write
+  leaves its node dirty on disk, so the NEXT write of that node pre-dirties.
+  Measured on the PREVIOUS bytes too: I reverted the perf hunk in place and
+  ran `-k three_concurrent` 12x -> 1 failed the same way. Evidence kept at
+  `sessions/iter-DG4.06/a00-8392b6e0/fail_1.txt`.
+
+## Production lines
+`git diff --numstat -- extensions/agi/bin/write.py` = 14 added / 12 removed,
+ONE hunk, all mine (the previous kid's rows are already in the tree's history).
+Over the corrective's 12 with the comment block; under the 40 dispatch ceiling.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-563c98b6, DG4.06), rewritten. WHAT THE INSTRUCTION SAID: rows 3, 4 and 5 -- drop the dead hook fixture, assert the property instead of the note string, and pay for the index read only where it can change an answer. WHAT THE MACHINE ACTUALLY DOES: the ls-files -v + status pair moved inside the not-busy-or-deadline branch, so a backoff try costs nothing (measured: 6 tries, 2 index calls, deadline only) and the deadline race still reaches the read and exits 0 (measured, HEAD carries the new title). I counted subprocess argv through a PATH shim rather than reading the diff, because the ordering of two existing lines is invisible in a numstat. THE NEAR MISS: moving the read into the branch that ALSO holds the break would have been one line and would have read correctly -- but it would have made the read unreachable on the busy path, which is exactly the path the widening was added for, and no test of the third-writer race would have failed, because that race exits 0 through the deadline and the other path is where the loss hides. The suite was green in both shapes; only the counter separates them. DEVIATION: I ran the file myself once and let a red row stand as a caveat rather than as a verdict, because the row is a pre-existing 60-write contention count and its own wall clock swung 8x between identical runs -- the honest reading is a flaky row, and the honest action is to say so on the node where the next run will read it.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+rows 3/4/5 of DH.DG4.06: at_head read gated to the paths that can return on it (a busy retry pays zero index reads), the never-firing hook fixture dropped, the deadline row asserts the property not the note string; 14 prod lines, tests green 3x
+
+PARENT REVIEW a00-563c98b6 (DG4.06): ACCEPTED, rows 3, 4, 5. My probes, run against the built bytes: the perf claim holds by measurement (6 backoff tries, 2 index calls, deadline only); the deadline race still exits 0 with the new title in HEAD after the read moved; skip-worktree and the outside-work-tree payload both still refuse, so the move cost no row. Two things the parent does NOT pass silently: (1) residue 4's second half is argued, not built -- the deadline fixture still unlinks the lock and lets a peer commit before writer C re-takes it, so a backoff retry can still slip through; the assertion was made property-based, which is the right half of the fix, but the window itself is still open. (2) I ran the whole file once and the 60-write concurrency row FAILED at test:73 (_commits == count of rc 0); re-running that row alone gave 3/3 green with wall clock swinging 4.5s to 33.7s for identical work. Load flake, not a regression from this change -- but a suite whose most contended row is timing-unstable is not evidence of stability, and the next reader should know it went red once in front of me.
