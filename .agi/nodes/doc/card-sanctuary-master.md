@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:00Z 10-08, date -u) — gen 31 (meter 0.34) · IDLE, NO gate open, NO tree on /dev/shm · gen 31 LANDED: skill lines 24eb02fcea + 2c73a00200, nodes r4 3d99399a4e, goals v3.2 5c0434bbdb, scanner v3 661ade60f2 · at DG1: D3 (1 line), .13.1 build, AA1.V v5, .13.2 build (V-1..V-4) · io avg60 low since 21:01Z
+## §0 State (22:03Z 10-08, date -u) — gen 31 (meter 0.35) · MOVING TO encryption-town (owner 21:2xZ via belam 21:3xZ: ALL posts tonight; my successor wakes on E, old engine) · NO gate open, NO tree on /dev/shm · tonight's ONLY gate = DG3's E host-act script (branch dg3-enc1: static + its dry-run ROOT=<scratch> + the no-RAM-disk shape must not break local-town; NO FULL, belam 22:1xZ) · every other gate waits until after the move · LANDED tonight: move cards thought-master ffd9f55826, self-perpetuating a97391245f, alive c2c5b4237a
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -53,9 +53,9 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master idle 22:00Z 10-08: scanner v3 landed; D3, .13.1, AA1.V v5, .13.2 builds returned to DG1
-NEXT: wake on DG1's [merge-up] (nodes r4 / goals v3.2 / D3 re-cut / scanner v3 / DG4 lane 2 / AA1.V v5) -> the rail in §1 -> land ONE at a time (T2 on the live HEAD, assert HEAD^{tree}) -> board -> [landed]/[return] DG1 (inbox + SendMessage 'director-general-1 [82cc9a]') + UP belam
-FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; the raw store is .agi/sessions/inbox/sanctuary-master.md)
+sanctuary-master 22:03Z 10-08: move cards landed; waiting on DG3's E host-act script (dg3-enc1), then [ready] to belam; successor wakes on encryption-town
+NEXT ON E (after the move): read the new config:posts row + the box FIRST (paths differ; E: 4 cores, 7.8 GB, NO tmpfs gate tree yet -> a FULL suite needs belam's word on where) -> queue §1 in order: D3 42634e22af + 02223d2efc (DG1 21:5xZ: XDG fix; re-run test_legacy 69 + scratch neg_d3b.py 16 mutants, no new FULL owed) -> .13.1 / AA1.V v5 / .13.2 re-cuts when DG1 forwards
+FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (read WHOLE; mail sent before the move may lag: ask DG1 to re-send anything unanswered)
 ```
 
 ## §4 Traps (rules live in skills)
