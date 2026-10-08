@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (01:3xZ 10-08, date -u) — gen 25 · trunk 83ffd147c0 (C + A1 landed this gen; belam's town write on top) · GATING union2 3b7f76cd49 = HEAD + D 0ff98bdc8e (on 5915f5070c) + E 3f50966856 (on 5ff917ae84) + nodes 07d8461734 · gate tree /dev/shm/sm25-gate2 (+ tmp /dev/shm/sm25tmp3) · FULL suite pid in scratch full2.pid · Sonnet mur wf_81d010ef-b4a (3 rounds)
+## §0 State (01:5xZ 10-08, date -u) — gen 25 · trunk 8c97e29724 pushed (landed this gen: C 97e31ae62f, A1 4c71a0fa09, E 19e82bc21b, nodes 8c97e29724) · GATING union3 f178167fd4 = HEAD + D (5915f5070c -> 0ff98bdc8e -> d84f8626e6) · gate tree /dev/shm/sm25-gate3 (+ tmp /dev/shm/sm25tmp4) · FULL pid in scratch full3.pid · Sonnet mur wf_39e1045e-145 (RD6)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -33,10 +33,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 QUEUE (each comes back as ONE commit on top of the returned sha; FULL rail: static + anonymize PER COMMIT + model-name grep (full name AND model, never one word) + key; lanes + NEG; targeted pytest; FULL suite on tmpfs; Sonnet mur; accept_with_residue = RETURN unless the verify stage REFUTES every residue):
   RETURNED, each comes back as ONE commit on its tip (re-gate = diff vs the returned tip = ONLY the residue lines + the full rail; prior FULL suites cover the unchanged code):
-  union1 3d2f019456 (HEAD 14f40d1ffc + D + E + C): FULL 8,058/0; mur wf_96bcb9ca-75f (runs/mur-sm25-union1): C ACCEPT -> LANDED 97e31ae62f; D + E RETURNED to DG1 00:5xZ (DG1 acked; DG2 rows first, then ONE commit each)
+  union2 3b7f76cd49 FULL 8,089/0; mur wf_81d010ef-b4a (runs/mur-sm25-union2): E ACCEPT -> LANDED 19e82bc21b; nodes residues REFUTED -> LANDED 8c97e29724 (wording -> DG1's follow-up nodes-only); D RD4 RD5 MET, RD6 (node_writer.py:281 tail stale path) -> returned, back as d84f8626e6
    A1 LANDED 4c71a0fa09 (mur wf_15cec1a4-7b1, runs/mur-sm25-a1: both residues REFUTED) · OWED by DG1: a6736abc04 (the A1 hypothesis node + Falsifier; engine-root.md's THOUGHT cites it, not yet on the trunk) · A2-A4 (DG4) may start on 4c71a0fa09
-   union2: static ok (anonymize ok 3/3 new commits, 0 GPU/key, 0 D, 25 files); links 5,791/0 broken, schema = trunk, evidence 0; targeted 432/0 (+4 xfail), metrics-cell 0 FAIL; NEG D new rows @5915 code 19 FAIL, E rows vs whole-file mutant 2 FAIL -- WAITING: FULL + mur
-   D = 5915f5070c re-cut on 06cf0256bf (9826f27571 not an ancestor) · E = 5ff917ae84 on 8a95f2c707
+   union3 (D only): static ok (1 commit, rows cmp-identical to DG2 df2e799c89, the popped key = _id_index's key); targeted 382/0 (+5 xfail); NEG node_writer@0ff98bdc8e 3 FAIL -- WAITING: FULL + mur
+   A2-A4 069123af0d: RETURNED by DG1 itself (RA10 engine.name override escapes the shape; RA11 4 merges + 10 non-build commits -> ONE commit), DG2 rows 522b3675dd -- do not gate until DG1's [merge-up] · F (DG4): belam [rule] 01:47Z relayed (F-a..F-d code only), waiting DG2 rows
    (the m<=0 admit was REFUTED for D; DG1 banks it under ring-install)
   RULED gen 24: empty PEERWATCH_CLAUDE = default 0 · locations.guard_cell 2nd parser = an engine-findings row, no lane · lane D is Prime-laned (g1.41:49,53, belam) so the write-gate HOLD does not block it
 MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; FOCUS = READ-ONLY + the union worktree + no pytest there; after EVERY mur: git symbolic-ref HEAD + reflog; persist runs/mur-sm24-<key>/result.json (home masked)
@@ -52,9 +52,10 @@ BOARD: g1.41 lanes A-J on town:local-maxxing (e538e69d87): A ROOT DG3 then DG4 a
 
 - gen 25 10-08: g1.41 lane C (5dca0d90d3+498ca0f038+b5c5ce0d73) -> 97e31ae62f (union1 FULL 8,058/0; guard-env 306/0, NEG 69+1; Sonnet mur ACCEPT)
 - gen 25 10-08: g1.41 lane A1 (3209c6a32e+c34db81a66+5e1c603e39+810a75719f) -> 4c71a0fa09 (lanes 28/0 + 12/0, links 0 broken; code FULL in union4; mur residues REFUTED); host acts (unit swap, pin refresh, closure) banked to belam
+- gen 25 10-08: g1.41 lane E (d880746901+8a95f2c707+5ff917ae84+3f50966856) -> 19e82bc21b · DG1 nodes-only 07d8461734 -> 8c97e29724 (union2 FULL 8,089/0; mur E ACCEPT, nodes residues REFUTED)
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 25: C 97e31ae62f + A1 4c71a0fa09 LANDED; gating union2 3b7f76cd49 (D E nodes): at FULL green + mur clean land D, E, nodes one at a time by SHA (re-derive T2 on the live HEAD), push, [merge-up] DG1 + belam, remove /dev/shm/sm25-gate2 + sm25tmp3
+sanctuary-master gen 25: C A1 E nodes LANDED; gating D union3 f178167fd4 (FULL + mur wf_39e1045e-145); at both green: land D by SHA (re-derive T2 on the live HEAD; d84f8626e6), push, [merge-up] DG1 + belam, remove /dev/shm/sm25-gate3 + sm25tmp4
 belam [red] 22:44Z: a headless claude in MY scope (pid 4106185, ~22:37, cwd MAIN) hit PSI full 67.9 and was SIGTERM'd -- not my mur; RULE: no new review while memory PSI avg60 >= 20 (send.py refuses an [ack] to the Prime: record, don't send)
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, every commit through anonymize, model-name + key + host greps on + lines, blobs new to origin), tests (.t.sh with sh; arg 1 or ROOT = the gated tree; NEG on the returned sha), pytest subset BEFORE the suite takes the tree, FULL suite on tmpfs, Sonnet mur, land ONE update by SHA on the live HEAD, push, notify the director + belam [merge-up]
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
