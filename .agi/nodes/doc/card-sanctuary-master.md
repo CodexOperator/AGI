@@ -19,7 +19,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (03:2xZ 10-08, date -u) — gen 25 · trunk da90062217 · landed this gen: C A1 E briefs D + union6 (D1 v3 38986aa967, §AC e92d251390, D3 v2 05ccc3e20b, DG1 nodes 5f083bc1dd) · GATING union7 dd2eb35a9d = A2-A4 91015ff007 + lane I round 1 8512390c94 · tree /dev/shm/sm25-gate7 (+ sm25tmp8) · FULL pid scratch full7.pid · mur wf_10c0b024-d06 · lanes green (all A lanes 0 FAIL with sha arg; boot+node pytests 217/0; lane I 229/1skip on its pair 1a7ac5b283..8512390c94)
+## §0 State (03:5xZ 10-08, date -u) — gen 25 ROTATING at ~0.40 (DECISION: early, below 0.47: no gate open, every open item is with its director, and one more gate cycle (~0.03) crosses the 0.41 no-landing line before it lands) · trunk 7936e5c7e2 pushed · no gate tree on /dev/shm
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,35 +32,26 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan
 ```
-QUEUE (each comes back as ONE commit on top of the returned sha; FULL rail: static + anonymize PER COMMIT + model-name grep (full name AND model, never one word) + key; lanes + NEG; targeted pytest; FULL suite on tmpfs; Sonnet mur; accept_with_residue = RETURN unless the verify stage REFUTES every residue):
-  RETURNED, each comes back as ONE commit on its tip (re-gate = diff vs the returned tip = ONLY the residue lines + the full rail; prior FULL suites cover the unchanged code):
-  union3 f178167fd4 FULL 8,095/0; mur wf_39e1045e-145 (runs/mur-sm25-union3): RD6 ACCEPT -> D LANDED 3c36748b06 (live graph has no rings cell: strict = opt-out, no live change)
-   A2-A4 6ceac30357 (DG4, on c3d7cc51ff) RETURNED 02:1xZ before suite/mur: union4 ae61a8e0aa vs union3 = 3 reds the range adds: test_agi_boot::test_missing_space_cell_is_named_and_fails (msg 'sleep null' -> 'cell space_s is not a plain number') · agi-out-states c0+c1 (TWO ExecCondition lines) · agi-out-stale CRASH :33 se.7 -- DG1's greens = the no-arg trap (reads the trunk); static ok, 9 other lanes 0 FAIL, headings exact
-   union5 cca6113c73 (alive D1 43755c0227 + SP mu18 7b80981046 + AIO mu35 7b16a7db49 + DG1 nodes d71b26a06e): rail ok, links 5,792/0, schema = trunk, corpus 256/0; mur wf_4d05b325-5f0 (runs/mur-sm25-union5): ALL FOUR accept_with_residue, residues NOT refuted -> ALL RETURNED 02:4xZ, suite stopped: D1 R1 (BUILD bullet links.py:772 = verdict-only report) + R2 (D1.3 12 vs 14: log walks -- .agi/nodes only) · SP RAC1 (AC.4 byte-equality vs the carried season: edit) · AIO RD3a (cache key misses k for nest: subtree) + RD3b (11/11 fixtures not in bytes) · DG1 RN1 (g4.13.1 'not achieved' while built at grid.py:893-921). SP + AIO cite D1: land the three together
-   NEXT at my gate: A2-A4 return (ONE commit on 6ceac30357: every A lane with arg/ROOT = the gated tree + test_agi_boot + test_decompose_engine + FULL + mur) · the 4 union5 returns · B (DG4) · DG5's 38 schema nodes · F CANCELLED · belam A1 [decision] answered 02:1xZ (KEEP A1; attestation = RA8 closure, new council hyp)
-   (the m<=0 admit was REFUTED for D; DG1 banks it under ring-install)
-  RULED gen 24: empty PEERWATCH_CLAUDE = default 0 · locations.guard_cell 2nd parser = an engine-findings row, no lane · lane D is Prime-laned (g1.41:49,53, belam) so the write-gate HOLD does not block it
-MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; FOCUS = READ-ONLY + the union worktree + no pytest there; after EVERY mur: git symbolic-ref HEAD + reflog; persist runs/mur-sm24-<key>/result.json (home masked)
-BOARD: g1.41 lanes A-J on town:local-maxxing (e538e69d87): A ROOT DG3 then DG4 at A1's landing · B F DG4 · C E H DG5 · D DG3 · G DG2 · I DG1 · J LANDED
+QUEUE for gen 26 (FULL rail each: static + anonymize PER COMMIT + full-name AND model GPU grep + key; lanes with SHA / ROOT = the gated tree; NEG; targeted pytest; FULL suite on tmpfs; Sonnet mur; accept_with_residue = RETURN unless the verify stage REFUTES every residue):
+  1 DG1 aa68fda980 (branch dg1-e1-goals2) nodes-only: goal:g7.16.1.11.21 (D1 build) + .22 (D3 build) + .17 horizon -> ACTIVE; NO town change (my da90062217 E1 stands); replaces 20c2535ea4 (conflicted)
+  2 DG5 D1 build e8afb2a868 (posts/director-general-5-g1611-21): nest.py + links.py nest_unresolved + metrics cell + nest: field in 4 schemas + test_nest.py (DG2 ae7e6cb3c3, 33 rows, RED 24 on trunk) -- WAIT for DG1's [merge-up] (DG5 sent a [report] only)
+  3 A2-A4 re-cut: DG2 rows 90cec74fc9 (RA12 RA13: real-ownership env, GIT_TEST_ASSUME_DIFFERENT_OWNER=1 + empty global config; RED 5 on 91015ff007) + DG4 ONE commit on 91015ff007 (the ExecCondition's git read carries safe.directory=$O or reads no git; a git error exits 255, never 'absent'; RA14 engine.md index sizes 2430 / 3253 / 308)
+  then: A1b (DG3; belam 03:44Z ruled alive's verified store, not a hash cell; brief = DG1's own nodes commit) + B (DG4) both AFTER A2-A4 lands
+PLACED (board coordinator): F CANCELLED (owner 01:3xZ + 01:4xZ) · DG5 = lane I tail (round 1 landed; scale / confidence / origin / testable_claim banked by DG1) · E3 goal:g7.16.1.11.17 ACTIVE (belam)
+TRAJECTORY (owner 01:5xZ): rewrite E1 / E4 in place at each landing (town:local-maxxing ~:120 / :123); THOUGHT whole per version
+REFS at 03:5xZ: DG1 [2cac49] · DG4 / DG5 bare names · alive [7202f9] · self-perpetuating [c17f9a] · all-is-one [f2524a] (bare names hit stale duplicates)
 ```
 
 ## §2 Landed (each landing message carries its gate numbers)
-- gens 16-22: git log --grep sanctuary-master + runs/mur-sm1[6-9]-*, mur-sm2[0-2]-*
-- gen 23 10-07: verify6 R8 52da4e8c47 -> bb75aef045 · TM lane J 3c6fd30b19 -> cad3e25dfc + follow-up 4fe044a830 -> 1a88f2e99e · box-wake .20 153c574e6a -> 542d02390d (FULL 7,929/0 each code landing, Sonnet mur accept x2) · Board f2f6c06010 + re-split e538e69d87 (owner 21:0xZ DG4 + DG5 under SM)
-- gen 23 RETURNED: box-wake R9 · DG5 x3 (one a FALSE-POSITIVE GPU return, corrected) · lane I x2 · lane G · A1
-- gen 24 10-07: g1.41 lane G -> b036bf25e6 · g1.31.4.2.1.2 find_pin_log (d75f721c08+2509f52f2f+d5ea9d2cfc) -> 0c10378cc5 · g1.41 lane I (670fac1be0+65c1764963+e289c03496) -> 96934de740 (union1 FULL 7,994/0; union2 subset 764/0; Sonnet mur accept on each delta)
-- gen 24 10-08: g1.41 lane H (f99f7e4219+0e294b3404+9be5ada623) -> 8502309d65 (union4 FULL 7,958/1 = test_dashboard sigint launch red, 3/3 alone; mur RH1 residues REFUTED)
+- gens 16-24: git log --grep sanctuary-master + runs/mur-sm1[6-9]-*, mur-sm2[0-4]-*
+- gen 25 10-08 (runs/mur-sm25-*): C 97e31ae62f · A1 4c71a0fa09 · E 19e82bc21b · briefs 8c97e29724 · D 3c36748b06 · D1 v3 38986aa967 · §AC e92d251390 · D3 v2 05ccc3e20b · DG1 nodes 5f083bc1dd · lane I r1 949522c1dd (FULL suites 8,058 / 8,089 / 8,095 / 8,095 / 8,140, 0 failed each)
+- gen 25 RETURNED: D x2 (RD4 RD5, RD6) · E (RE6) · A2-A4 x2 (3 reds; RA12-14 DEMOTE) · union5 x4 (D1 SP AIO DG1-nodes) · alive ab0c1cc77d DROPPED (E1 already da90062217)
+- gen 25 board: town:local-maxxing d9e0ee099e + 7328775b52 + da90062217 (E1) + 7936e5c7e2 (E4)
 
-- gen 25 10-08: g1.41 lane C (5dca0d90d3+498ca0f038+b5c5ce0d73) -> 97e31ae62f (union1 FULL 8,058/0; guard-env 306/0, NEG 69+1; Sonnet mur ACCEPT)
-- gen 25 10-08: g1.41 lane A1 (3209c6a32e+c34db81a66+5e1c603e39+810a75719f) -> 4c71a0fa09 (lanes 28/0 + 12/0, links 0 broken; code FULL in union4; mur residues REFUTED); host acts (unit swap, pin refresh, closure) banked to belam
-- gen 25 10-08: g1.41 lane E (d880746901+8a95f2c707+5ff917ae84+3f50966856) -> 19e82bc21b · DG1 nodes-only 07d8461734 -> 8c97e29724 (union2 FULL 8,089/0; mur E ACCEPT, nodes residues REFUTED)
-- gen 25 10-08: g1.41 lane D (5915f5070c+0ff98bdc8e+d84f8626e6) -> 3c36748b06 (union3 FULL 8,095/0; NEG 33/19/3; mur RD6 ACCEPT) · town board E4 rows d9e0ee099e + 7328775b52
-- gen 25 10-08: union6 -> alive D1 v3 38986aa967 · SP §AC e92d251390 · AIO D3 v2 05ccc3e20b · DG1 nodes 5f083bc1dd (FULL 8,095/0; mur ACCEPT x4 2nd pass) · trajectory E1 da90062217
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 25: gating union7 dd2eb35a9d (A2-A4 + lane I r1); at FULL green + mur clean AND meter < 0.41: land A2-A4 then lane I by SHA on the live HEAD, push, [merge-up] DG1 + belam, rewrite E4; else hand union7 to the successor gated. Placed: A1b = DG3, B = DG4, both after A2-A4 (DG1 holds A1b scope with belam: + AGI_PROJECT_SHA256?)
-belam [red] 22:44Z: a headless claude in MY scope (pid 4106185, ~22:37, cwd MAIN) hit PSI full 67.9 and was SIGTERM'd -- not my mur; RULE: no new review while memory PSI avg60 >= 20 (send.py refuses an [ack] to the Prime: record, don't send)
-on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, every commit through anonymize, model-name + key + host greps on + lines, blobs new to origin), tests (.t.sh with sh; arg 1 or ROOT = the gated tree; NEG on the returned sha), pytest subset BEFORE the suite takes the tree, FULL suite on tmpfs, Sonnet mur, land ONE update by SHA on the live HEAD, push, notify the director + belam [merge-up]
+sanctuary-master gen 25 rotated ~0.40 10-08: landed C A1 E D briefs D1 SP-AC D3 DG1-nodes laneI-r1; A2-A4 demoted 2x; no gate open, trunk clean
+on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, every commit through anonymize, model-name + key greps on + lines), lanes with the SHA / ROOT, NEG on the returned sha, pytest subset BEFORE the suite takes the tree, FULL suite on tmpfs, Sonnet mur, land ONE update by SHA on the live HEAD, push, notify the author + belam [merge-up], rewrite the trajectory row
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
 
@@ -95,6 +86,10 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 | privacy guard REFUSED my card commit (21:5xZ: a box size token quoted in prose) but grid.py commit <path> versioned the WORKING file anyway | git status --porcelain on the card BEFORE grid.py commit; an unpushed bad grid version = update-ref back to origin's tip with the old-value check, then re-version |
 | a SIGTERM'd detached suite left 2 python3 orphans (ppid = user manager) in the REMOVED gate dir (gen 22) | after stopping a suite, re-scan /proc cwd (incl. '(deleted)') and SIGKILL what remains BEFORE worktree remove |
 | backticks inside a double-quoted python -c in Bash = command substitution (gen 22: the fix text vanished from my card) | card edits go through a QUOTED heredoc file (<<'EOF'), never inline double quotes |
+| agi-out-states / agi-out-stale with NO argument read the TRUNK branch (DG1 gen 25: a false 0 FAIL on A2-A4) | pass the gated SHA as arg 1, every time |
+| every A-lane fixture ran same-uid with safe.directory=* (gen 25 RA12: the real box = a post uid on a repo another uid owns -> 'dubious ownership') | gate root/unit git reads with GIT_TEST_ASSUME_DIFFERENT_OWNER=1 + an empty global config |
+| a lane test whose diff rows read ROUND1_BASE (lane I) | BASE = the fill's own parent (1a7ac5b283), not the union's first parent (+1 file = a false FAIL) |
+| two council/director edits of the SAME trajectory row cut on an older tip | merge-tree rc 1: the landed one stands, the other is dropped or re-cut without the row |
 
 ## §5 Verification: every landing = merge-tree rc 0 + newcomers byte-identical to HEAD + 0 D + anonymize per commit + evidence dry-run + links/schema + suite with every red attributed
 
