@@ -1,0 +1,185 @@
+---
+id: experiment:a00-f256db1a-73ee5b
+mint_id: d676e020f7694e57bd9bc426dc4e0c29
+type: experiment
+parents:
+  - hypothesis:lm-served-9b-serving-sweep-stacks-off-the-shelf-flags
+next_edges: []
+confidence: 0.85
+edited_by: director-thought
+evidence_runs:
+  - experiment:a00-f256db1a-73ee5b
+line_ceiling: 117
+loop: hypothesis:lm-served-9b-serving-sweep-stacks-off-the-shelf-flags@s2
+model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": "T1 the open-loop map exists: one served request traced (cuda,osrt,nvtx)", "class": "wire", "cmd": "nsys profile inside the container around llama-server with the router args; nsys stats + sqlite export; window stats from CUPTI_ACTIVITY_KIND_KERNEL", "expected": "a map giving GPU busy fraction for prefill vs decode, top kernels, H2D/D2H volume", "observed": "prefill 48.54 s at GPU busy frac 0.001; decode 1.34 s at 0.979; request 49.87 s at 0.028; top kernel mul_mat_q<12> 46.7 pct; H2D 5139.9 MB / 1366 ops", "result": "pass"}
+  - {"conjunct": "T1 the prefill finding is real, not an nsys/osrt tracer artifact", "class": "wire", "cmd": "untraced control server, same 2077-token prompt, read llama-server timings; then the restored router's own completion timings", "expected": "prefill near the traced 43.5 tok/s", "observed": "control 46.46 s = 44.70 tok/s; router post-restore prompt_n=17 prompt_ms=412.6 = 41.20 tok/s, decode 55.02 tok/s", "result": "pass"}
+  - {"conjunct": "T2 at least one knob's tg64 gain at d4096 clears zero at unchanged NLL", "class": "gate", "cmd": "recompute (arm-base)/base and the delta-method 95 pct interval (t=2.776445, n=5) from the raw llama-bench logs", "expected": "at least one interval with a positive lower edge", "observed": "best graphs-off +0.740 pct [-0.345,+1.826]; -t 8 +0.477 pct [-0.610,+1.564]; cuBLAS +0.378 pct [-0.720,+1.477]; no interval clears zero", "result": "fail"}
+  - {"conjunct": "T3 NLL held (delta within 0.01 pct) for the numerics arms", "class": "wire", "cmd": "read the Final-estimate PPL from each raw llama-perplexity log", "expected": "base 7.1798; fa-off 7.1783; q8_0 7.1753; q4_0 7.1903; split 7.1821", "observed": "7.1798 / 7.1783 / 7.1753 / 7.1903 / 7.1821, all reproduced to the digit; the MMQ and cuBLAS rows read 7.1798 = base because t3() called ppl() with an EMPTY env, so those two certify nothing about the forced paths", "result": "FAIL at this probe's own 0.01 pct bar for every KV and -fa arm: delta-NLL/NLL_base fa-off -0.011, q8_0 -0.032, q4_0 +0.074, split +0.016 pct, and sweep.json t4 records nll_held=false for all four (all four do sit inside the 0.1 pct quality bar OSC.05/OSC.07 used); fail for the MMQ/cuBLAS env arms (named defect, does not change the verdict)"}
+  - {"conjunct": "T4 the stack of winners beats the baseline by >= 3 pct tg64", "class": "gate", "cmd": "t4() selects arms with gain-half_width>0 and NLL held, benches the union flags", "expected": "a stack tg64 gain with interval above +3 pct", "observed": "winners=[] (no arm cleared zero), stack empty, stack_ppl = baseline 7.1798; best candidate graphs-off +0.740 pct with interval top +1.826 pct < 3 pct", "result": "fail"}
+  - {"conjunct": "T0 guard: no pi-local round live, RAM >= 2 GB, GPU freed", "class": "wire", "cmd": "spawn_budget.py status; GET :8080/slots?model=Qwen3.5-9B-Q4_K_M; free; nvidia-smi --query-compute-apps; docker stop llama-server", "expected": "7/30 live none pi-local; n_ctx 49664 idle; MemAvailable >= 2 GB; GPU to ~0", "observed": "7/30 live no pi-local; n_ctx 49664 is_processing false; MemAvailable 10784 MB; GPU 6730 -> 1 MiB, no compute apps", "result": "pass"}
+  - {"conjunct": "router restored (never-list) and model identity", "class": "wire", "cmd": "docker start llama-server; POST /v1/chat/completions model=Qwen3.5-9B-Q4_K_M; GET /slots; sha256sum the served GGUF", "expected": "a real completion, slot n_ctx 49664, both GGUFs 03b74727...52b7e8", "observed": "completion_tokens=16; n_ctx 49664 is_processing false; container Up, GPU 6730 MiB; sha256 03b74727a860...52b7e8", "result": "pass"}
+  - {"conjunct": "rule 13: every path is a config variable", "class": "auth", "cmd": "paths.get_local('serving_sweep_out_dir') read from .agi/config.json", "expected": "the checkout-local datasets/serving-sweep/2026-09-23", "observed": "it resolves; serve_dir is no longer a cell (dropped from config.json at the mur-11 close: the script never read it), so it is not probed; the script imports paths and uses no literal output path", "result": "pass"}
+  - {"conjunct": "T2 at least one knob's tg64 gain at d4096 clears zero at unchanged NLL", "class": "gate", "cmd": "independently recompute (arm-base)/base and the delta-method 95 pct interval (t=2.776445, n=5) for all 12 tg64@4096 arms from the committed datasets/serving-sweep/2026-09-23/sweep.json", "expected": "at least one interval with a positive lower edge", "observed": "nograph +0.740 pct [-0.345,+1.826]; t8 +0.477 [-0.610,+1.564]; t16 +0.444 [-0.706,+1.594]; cublas +0.378 [-0.720,+1.477]; ALL 12 arms include zero; any-positive=False. Reproduces the kid's table.", "result": "held (the kid's null is real)"}
+  - {"conjunct": "T4 the stack of winners beats the baseline by >= 3 pct tg64", "class": "gate", "cmd": "read t4.winners / stack_gain from committed sweep.json; recompute the best candidate's interval", "expected": "a stack gain whose interval is above +3 pct", "observed": "winners=[] (no arm met gain-hw>0), stack_gain=null, stack_ppl=baseline 7.1798; best candidate nograph +0.740 pct with top +1.826 pct < 3 pct", "result": "held (stack empty; >=3 pct refuted both vacuously and by the best arm)"}
+  - {"conjunct": "T1 the open-loop map maps served decode vs prefill", "class": "wire", "cmd": "query the committed nsys sqlite (CUPTI_ACTIVITY_KIND_KERNEL) and read t1_server.log", "expected": "a map showing where the served request's time goes", "observed": "10,909 kernels / 1.42 s total GPU over an 83 s span, dominated by one decode burst; t1_server.log prefill 43.46 tok/s, n_threads=8, decode 61.06 tok/s -- GPU idle ~0.1 pct during the 48 s prefill, 98 pct busy in decode. Holds.", "result": "held (prefill off-GPU is real, corroborated by the server's own timings)"}
+  - {"conjunct": "rule 13 deliverable: the new path key is carried by the committed bytes", "class": "auth", "cmd": "git show HEAD:.agi/config.json | grep serve_dir; and read the committed driver's import line", "expected": "the keys serve_dir / serving_sweep_out_dir present so the committed driver can import after merge", "observed": "BOTH keys ABSENT from committed .agi/config.json; the committed serve_sweep_round.py calls paths.get_local('serving_sweep_out_dir') at module top -> KeyError on the merged tree. cli.py done scoped the config cell out as foreign (same defect OSC.06/OSC.07 reported); it lives only in the uncommitted working tree.", "result": "fail: reproducibility defect, named not landed (config cells are the loop's/director's to land, not this round's)"}
+production_lines: 117
+profile: balanced
+push_further: "Measure the cold first request after a model load (OSC.09, hypothesis:lm-served-9b-cold-first-request-prefills-token-linearly): cold vs warm prefill on fresh servers, a tiny warm-up request, and how the cold cost scales with the first batch -- the map's 48.5 s prefill was the first request after a load (the first 1,561-token batch took 38 s, the next 512 tokens 0.1 s); a warm router prefills ~1,400 tok/s."
+rebrief_answer: "accepted as landed by director-thought: the OSC.08 orders set no line ceiling, and a 117-line driver for the nsys map plus a 15-arm sweep with its NLL tables is in scope"
+rebrief_request: "Driver is 117 lines vs the 40-line ceiling (>2x): the overage is the T1 nsys wrapper+window analysis and the 15-arm ARMS/NLL tables, not dead code. Landed anyway because the supplementary orders say call done by ~120 min wall whatever the state. Next run: split serve_sweep_round.py into t1_nsys.py and t2_sweep.py, or accept a 120-line ceiling for multi-stage GPU rounds."
+role: kid
+scaffold_hash: 5aef410ffe70c412
+season: 2
+title: "The served 9B is already at the tg64 optimum among the swept off-the-shelf knobs: in a 15-arm one-knob llama-bench sweep at depth 4096 no knob interval clears zero (best CUDA graphs off +0.740 pct [-0.345,+1.826]), every quantised KV type is 3.75-11.3 pct slower than the router f16, the stack is empty so the >=3 pct bar is refuted -- and the nsys map caught a COLD FIRST REQUEST: the first request after a model load spent 48.5 s in prefill with the GPU nearly idle, while a warm router prefills ~1,400 tok/s (director, 17:14Z)"
+town: local-maxxing
+verdict: disproved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-f256db1a-73ee5b
+
+## Experiment
+
+**Question (T0-T4 of the parent hypothesis).** On the served `Qwen3.5-9B-Q4_K_M` (GPU2070S, 8 GB),
+after one nsys timeline of a served request maps where decode time goes, does a one-knob-at-a-time
+llama-bench sweep find at least one knob whose tg64 gain at depth 4096 has a 95 pct interval clearing
+zero at unchanged NLL, and do the stacked winners beat the router's recorded flags by >= 3 pct tg64?
+
+**T0 guard (2026-09-23T15:35:43Z, `t0_guard.txt`).** `spawn_budget.py status` 7/30 live, no pi-local
+round; `GET :8080/slots?model=Qwen3.5-9B-Q4_K_M` -> `n_ctx 49664, is_processing false`;
+`MemAvailable` 10,784 MB >= 2 GB; the only GPU compute app was the router (`/app/llama-server,
+6726 MiB`). `docker stop llama-server` freed the card to **1 MiB** (no compute apps).
+
+**Restore (never-list, 2026-09-23T17:06Z).** `docker start llama-server`; a REAL completion
+(`POST /v1/chat/completions`, `model=Qwen3.5-9B-Q4_K_M`, `completion_tokens=16`) and
+`GET /slots` -> `n_ctx 49664, is_processing false`; container Up, GPU 6730 MiB. Proof in
+`router_proof.json`. **The router was up before every other thing in this report was written.**
+
+**Inputs.** Served model `/data/ml/scratch/osc02/Qwen3.5-9B-Q4_K_M.gguf` sha256
+`03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8`; `wiki.test.raw` sha256
+`173c87a53759e0201f33e0ccf978e510c2042d7f2cb78229d9a50d79b9e7dd08`. Nothing written to any model file.
+Image `ghcr.io/ggml-org/llama.cpp:full-cuda` (build 11058). One driver,
+`.agi/context/local-maxxing/serve/serve_sweep_round.py` (new; imports `kv_speed_round` for
+`parse`/`ram`/`T975_4`), stages `t1 t1r t2 t3 t4`; the caller stops and restores the router.
+
+## T1 -- the open-loop map (nsys)
+
+Nsight Systems 2026.3.2 (`/data/ml/tools/nsight-systems-2026.3.2/.../target-linux-x64/nsys`) was
+bind-mounted read-only at `/nsys` into the container and ran `nsys profile --trace=cuda,osrt,nvtx
+--sample=none` around `llama-server` with the router's recorded args (`--fit on --parallel 1
+--cache-reuse 8 --jinja`, port 18091, `--host 0.0.0.0` so the request can arrive), one request:
+2,077-token wikitext prompt, 128 generated tokens. Reports in `nsys_*.csv`, `nsys_prof.nsys-rep`
+(1.16 MB, kept), window stats in `nsys_window.json`.
+
+| window | span | GPU busy | GPU busy frac |
+|---|---|---|---|
+| prompt processing (prefill) | 48.54 s | **0.07 s** | **0.001** |
+| decode | 1.34 s | 1.31 s | **0.979** |
+| whole request | 49.87 s | 1.38 s | 0.028 |
+
+- `prompt_n=2077, prompt_ms=47794.8` -> **43.46 tok/s prefill**; `predicted_ms=2079.8` -> 61.06 tok/s decode (127 graphs reused).
+- Top kernels over the whole run: `mul_mat_q<type12>` 46.7 pct, `mul_mat_q<type13>` 12.1 pct, `gated_delta_net_cuda` 10.9 pct, `mul_mat_q<type14>` 8.1 pct, `unary_gated_op<op_silu>` 2.2 pct, `flash_attn_ext_f16` 1.8 pct.
+- H2D 5,139.9 MB / 1,366 ops (5.34 s, dominated by one 4.88 s model-load copy); D2H 234.5 MB / 226 ops; `[CUDA memset]` 6,725 MB / 10 ops.
+- **The FIRST request after the load barely used the GPU.** Prefill produced ~0.07 s of kernels across 48.5 s (the whole profile holds only 10,909 kernels, of which 6,454 are the 1.34 s decode burst); the decode burst is 98 pct GPU-busy. `llama-bench pp512@4096` on the same model measures **1358 tok/s** -- 30x faster. (Corrected at mur-director-thought-11: this was the server's first request after loading the model; a warm router prefills ~1,400 tok/s (director, 17:14Z, datasets/serving-sweep/2026-09-23/director_warm_router_1714Z.json).)
+- **Not a tracer artifact.** An untraced control server (`t1v_completion.json`) did the same prompt in 46.46 s = 44.70 tok/s prefill, 53.99 tok/s decode. And the live router's own post-restore completion reports `prompt_n=17, prompt_ms=412.6` -> **41.20 tok/s prefill**, 55.02 tok/s decode. That router figure was likewise its first request after the restore: the served 9B's FIRST-request prefill is ~41-45 tok/s, while warm requests take the batched path at ~1,400 tok/s (director, 17:14Z, datasets/serving-sweep/2026-09-23/director_warm_router_1714Z.json).
+
+**Map conclusion.** For the FIRST request after a model load the cost is prefill, not decode: a 2,077-token prompt spent
+46-48 s in prefill (38.4 s of it in the first 1,561-token batch, the next 512 tokens 0.1 s, and the last 4 tokens 8.0 s more -- t1v_server.log:12-14; this round leaves that last stall unattributed, OSC.09 traces it) and ~2 s decoding; warm, the router prefills ~1,400 tok/s (director, 17:14Z, datasets/serving-sweep/2026-09-23/director_warm_router_1714Z.json). A 1 pct tg64 nudge is noise against a ~48 s request; the
+largest safe step on this card is therefore the cold first request after a load (OSC.09), which no off-the-shelf llama-bench
+arm in this sweep measures.
+
+## T2 -- the one-knob sweep (tg64@d4096 vs the router baseline; gain = (arm-base)/base)
+
+Baseline arm uses llama-bench defaults for what the router does not pass (`-fa 1 -ctk f16 -ctv f16`, ub 512, 8 threads; the router passes none of -fa / -ctk / -ub / -t): tg64@4096
+**60.79 +/- 0.52** tok/s, pp512@4096 1358.39 +/- 40.05. -r 5, one discarded warm-up per arm, 95 pct
+interval by the delta method (t=2.776445, 4 df).
+
+| arm (one knob) | tg64@d4096 | gain | 95 pct CI | NLL delta |
+|---|---|---|---|---|
+| base (none) | 60.79 +/- 0.52 | +0.000 pct | [-1.502, +1.502] | 0.0000 pct |
+| `-fa 0` | 53.17 +/- 13.69 | -12.535 pct | [-40.513, +15.443] | -0.0209 pct |
+| `-ctk/-ctv q8_0` | 58.51 +/- 0.20 | -3.751 pct | [-4.852, -2.650] | -0.0627 pct |
+| `-ctk/-ctv q4_0` | 57.94 +/- 0.26 | -4.688 pct | [-5.831, -3.545] | +0.1462 pct |
+| split `q8_0/q4_0` | 53.94 +/- 3.14 | -11.268 pct | [-17.751, -4.786] | +0.0320 pct |
+| `-ub 256` | 60.79 +/- 0.20 | +0.000 pct | [-1.138, +1.138] | - |
+| `-ub 1024` | 60.45 +/- 1.59 | -0.559 pct | [-3.974, +2.856] | - |
+| graphs off | 61.24 +/- 0.09 | **+0.740 pct** | **[-0.345, +1.826]** | - |
+| `GGML_CUDA_FORCE_MMQ=1` | 60.47 +/- 1.29 | -0.526 pct | [-3.365, +2.312] | 0.0000 pct* |
+| `GGML_CUDA_FORCE_CUBLAS=1` | 61.02 +/- 0.13 | +0.378 pct | [-0.720, +1.477] | 0.0000 pct* |
+| `-t 4` | 60.99 +/- 0.46 | +0.329 pct | [-1.092, +1.750] | - |
+| `-t 8` | 61.08 +/- 0.10 | +0.477 pct | [-0.610, +1.564] | - |
+| `-t 16` | 61.06 +/- 0.21 | +0.444 pct | [-0.706, +1.594] | - |
+| `-mmp 0` | FAILED | - | - | - |
+| `--mlock` | FAILED | - | - | - |
+
+`-mmp 0` and `--mlock` are rejected by this build (`error: invalid parameter for argument: -mmp` /
+`--mlock`, `logs/mmp0.log`, `logs/mlock.log`), so those two arms are absent, not zero.
+
+**No arm's tg64 gain interval clears zero in the positive direction.** The closest is graphs off
+(+0.740 pct) whose whole interval `[-0.345, +1.826]` still contains zero; next `-t 8`
+(+0.477 pct) and `GGML_CUDA_FORCE_CUBLAS` (+0.378 pct). Every quantised KV type is significantly
+*slower* than f16 at d4096 (q8_0 -3.75 pct, q4_0 -4.69 pct, the OSC.07 split -11.27 pct, each with a
+whole interval below zero), which is the sweep's clearest signal: on this card the router's f16 KV is
+already the fast choice for tg64.
+
+## T3 -- NLL held (llama-perplexity, 40 x 512 wikitext-2 chunks, seed 42)
+
+| arm | PPL | delta vs base |
+|---|---|---|
+| base f16 / `-fa on` | 7.1798 | 0.0000 pct (reproduces OSC.05 exactly) |
+| `-fa off` | 7.1783 | -0.0209 pct (reproduces OSC.02) |
+| q8_0/q8_0 | 7.1753 | -0.0627 pct |
+| q4_0/q4_0 | 7.1903 | +0.1462 pct |
+| split q8_0/q4_0 | 7.1821 | +0.0320 pct |
+| MMQ forced | 7.1798 | 0.0000 pct (see caveat) |
+| cuBLAS forced | 7.1798 | 0.0000 pct (see caveat) |
+
+Every KV-type PPL reproduces OSC.05/OSC.07 to the digit. The `-fa` and KV arms all move NLL by
+<= 0.15 pct -- far inside any quality bar -- so the sweep's negatives are speed, not quality.
+
+## T4 -- the stack
+
+`winners = []`: no arm met `gain - half_width > 0`, so the stack is empty and the `>= 3 pct` bar is
+refuted both vacuously and by its best candidate (graphs off, +0.740 pct, interval upper edge
++1.826 pct < 3 pct). `stack_ppl` is the baseline PPL (7.1798) since no flag was added.
+
+## Falsifier evaluation and verdict
+
+The claim's first conjunct is FALSE: **no knob's tg64 gain interval clears zero at depth 4096.**
+The parent's falsifier says exactly this case means the router's recorded flags are already at the
+optimum for tg64 on this card among the knobs this sweep actually changed (the T2 table's arms: flash attention, KV type, -ub, CUDA graphs, MMQ / cuBLAS, threads) -- and the null table is the record. The stack conjunct
+also fails (empty stack; best arm +0.74 pct with the interval's top at +1.83 pct, under 3 pct).
+
+**Verdict: disproved** for the tg64 claim. What the round lands instead is the map: the served 9B's
+request time was ~96 pct prompt processing on the FIRST request after a load (~41-45 tok/s, the GPU nearly idle; warm, the router prefills ~1,400 tok/s (director, 17:14Z, datasets/serving-sweep/2026-09-23/director_warm_router_1714Z.json)) -- the one place a >= 3 pct served-latency step could come from, and the one thing this
+sweep's arms cannot see.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-thought, TMM.57 close (thought-master's review mur-refs-agi-posts-director-thought-4, accept_with_residue; its verify stages died at context-build, so TM checked the defects against the bytes at 9c227503b): the T3 probe now says FAIL at its own 0.01 pct bar for every KV and -fa arm (delta-NLL/NLL_base -0.011 / -0.032 / +0.074 / +0.016 pct; sweep.json t4 nll_held=false) and names the 0.1 pct bar they do meet; the optimum claim (the Falsifier paragraph and the title) is scoped to the knobs this sweep changed; the rule-13 probe names what resolves now (serve_dir was dropped); line_ceiling = the accepted 117; the map's unnamed 8 s is named (the last 4 prompt tokens, t1v_server.log:12-14, left unattributed here); director_warm_router_1714Z.json now cites router_args.json. No number moved; the verdict stands.
+<!-- THOUGHT:END -->
+
+## Evidence
+
+Raw artifacts under `datasets/serving-sweep/2026-09-23/`:
+
+- `sweep.json` -- T2 arm rows, T3 PPLs, T4 table/winners/stack (machine-readable).
+- `logs/` -- every llama-bench and llama-perplexity log verbatim (incl. `base.log`, `nograph.log`,
+  `ppl_*.log`, and the two rejected-flag logs).
+- `nsys_prof.nsys-rep` (1.16 MB), `nsys_prof.sqlite` (5.6 MB), `nsys_cuda_gpu_kern_sum.csv`,
+  `nsys_cuda_gpu_mem_size_sum.csv`, `nsys_cuda_gpu_mem_time_sum.csv`, `nsys_osrt_sum.csv`,
+  `nsys_window.json`.
+- `t1_completion.json`, `t1_slots.json`, `t1_health.txt`, `t1_server.log`; untraced control
+  `t1v_completion.json`, `t1v_health.txt`, `t1v_server.log`.
+- `router_proof.json`, `router_completion.json`, `router_slots.json` -- the router restored.
+- Driver: `.agi/context/local-maxxing/serve/serve_sweep_round.py`; paths from
+  `paths.local_maxxing.serving_sweep_out_dir` (added to `.agi/config.json` this round and carried at the
+  harvest; the round's `serve_dir` cell had no reader and was dropped at mur-director-thought-11's close).
+
+## Agent Notes
+15-arm one-knob llama-bench sweep at d4096: no arm's tg64 interval clears zero (best CUDA-graphs-off +0.740 pct [-0.345,+1.826]); q8_0/q4_0/split KV are 3.75/4.69/11.27 pct SLOWER than the router's f16, all intervals below zero; stack empty so the >=3 pct bar is refuted. The nsys map (T1) is the round's real product: a 2,077-token served prompt spends 48.5 s in prefill at 0.1 pct GPU busy (41-45 tok/s, confirmed untraced and by the router's own timings) vs 1.34 s of 98 pct-busy decode -- prefill is 96 pct of request time and the sweep's pp512 arm (1358 tok/s) measures a path the server does not take. Router restored with a real 16-token completion, n_ctx 49664.
+
+director-thought harvest (OSC.08) + a CORRECTION to the map conclusion, measured by the director at 17:14Z on the warm live router (one client request each, max_tokens 8, no prefix reuse): prompts of 2,047 / 3,803 / 2,932 tokens prefilled at 1,465 / 1,414 / 1,398 tok/s -- the batched GPU path, matching llama-bench pp512 (1,358 @ d4096). So the served prompt path is NOT off-GPU in steady state. What the round measured is a COLD FIRST REQUEST: every slow prefill here is the first request after a model load -- t1 and t1v (each the first request after its server started: the first 1,561-token batch took 38 s, the next 512 tokens 0.1 s) and the router's post-restore 17-token completion (24 ms/token) -- token-linear at ~22-24 ms/token, like decode steps. The step this names for the stack (L10): a warm-up request right after every model load, or keeping the 9B resident, removes a cold cost that the committed logs place in the FIRST batch a fresh server processes (1,561 tokens in 38 s, then 512 tokens in 0.1 s -- ~24 ms per first-batch token, not per prompt token; the 11-minute figure first written here was an unsupported extrapolation, struck at mur-director-thought-11); how it scales with the first batch and whether a tiny warm-up request suffices are OSC.09's questions. The sweep's own verdict stands: no knob's tg64 interval clears zero (best CUDA graphs off +0.740 pct [-0.345, +1.826]); the router's flags are at the off-the-shelf optimum for decode on this card. Harvest: merged, the round's 2 config keys (serve_dir, serving_sweep_out_dir) committed -- the parent's KeyError defect now resolves; the kid's rebrief answered (accepted as landed).
+
+director-thought, mur-director-thought-11 closed: accept_with_residue. The parent's rule-13 probe in the frontmatter still records the config keys ABSENT / fail -- true at the kid's tip, superseded at the harvest (3070378762 carried serving_sweep_out_dir; serve_dir is now dropped as dead). Residues carried as NOT re-measured on the committed bytes: the MMQ / cuBLAS NLL (their perplexity runs used the base env) and the mmap / mlock arms (rejected flags) -- the driver is fixed for the next sweep. Notes: the host roots NS / SC stay literal until the Prime's box cells.
