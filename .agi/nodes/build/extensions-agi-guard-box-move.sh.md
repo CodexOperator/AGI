@@ -10,6 +10,7 @@ build_kind: code
 edited_by: belam
 link_ref: extensions/agi/guard/box-move.sh
 location: source_root
+origin: build-scan
 payload_ref: extensions/agi/guard/box-move.sh
 scaffold_hash: e3a42f7c4d613997
 season: 2
