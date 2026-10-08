@@ -20,7 +20,7 @@ type: build
 Census parent: `idea:engine-tests`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-goal:g7.16.1.11.21: DG2's falsifier rows for the corrective rounds (R1-R5: once-only expansion, D+A retire-edit by path, mint ids, the command line; RD-1 cross-type same basename; RD-3 malformed nest values in nest.py, links.nest_malformed and the metrics cell), 55 rows, each RED on a mutant of the real piece. Falsifier of build:bin-nest.
+goal:g7.16.1.11.21: DG2's falsifier rows for the corrective rounds (R1-R4: once-only expansion, D+A retire-edit by path, mint ids, the command line (R5 is the _OUTSIDE_CLIS line in test_commands_manifest.py); RD-1 cross-type same basename; RD-3 malformed nest values in nest.py, links.nest_malformed and the metrics cell), 55 rows, each RED on a mutant of the real piece. Falsifier of build:bin-nest.
 <!-- THOUGHT:END -->
 
 <!-- BUILD-CONTRACT:BEGIN — harness-owned shape; a model may only fill why/perf/security, never add/remove/reorder fields or entries -->
