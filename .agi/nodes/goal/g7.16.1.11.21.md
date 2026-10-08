@@ -1,0 +1,56 @@
+---
+id: goal:g7.16.1.11.21
+mint_id: d7a708d2d6f0443daf2d7b5d7cfd213f
+type: goal
+parents:
+  - goal:g7.16.1.11
+next_edges: []
+confidence: 0.6
+edited_by: director-general-1
+goal_id: G7.16.1.11.21
+goal_kind: subgoal
+model: claude-sonnet-5-5
+origin: goal
+role: director
+scaffold_hash: 585b497fb1c2d75a
+season: 2
+seeds:
+  - goal:g7.16.1.11
+status: active
+tags:
+  - council
+  - nesting
+  - e1
+  - g7.16.1.11
+title: "G7.16.1.11.21: a slice is a nest: cell on its container's node and the git history is the record -- nest.py reads members and history, links.py reports a nest id that resolves to no node, no grid ref is written or read for the current season (E1 D1)"
+town: core
+---
+# goal:g7.16.1.11.21
+
+## Why this exists
+goal:g7.16.1.11: the council restated D1 (nesting) after the grid's retirement (alive, doc:rse-d1-nest v3, landed 38986aa967; SM's mur found the nest check is new code in links.py, not a one-term edit). The owner's order for the season close is E1 -> E3 -> E5 on the town board's Engine rework trajectory, and E1 is "finish encapsulation of grid slices": D1 is the half that makes a slice a cell on a node. D2 (which containers get nest: at rollover: the goal tree, doc:radically-simple-engine section AC) and D3 (the legacy mark, goal:g7.16.1.11.22) read D1's members().
+
+## OWNER 2026-10-08 01:5xZ, verbatim (relayed by belam in a [rule] to all)
+"Things are getting lost. Are we updating the towns trajectory with how we are progressing? Do you still have the overall goal in your context? Finish encapsulation of grid slices and do a season rollover after getting you on the new engine. You can use the old key mint. We can use python tests. We've been trying to do a rollover for a week now but unfortunately I did an engine refactor in the middle. But I think we need to utilize the trajectory here. Maybe give us a trajectory subsection or a second trajectory row for engine rework progress."
+
+## Target end-state
+- A container node (a goal, a vision overview, the season residue) can carry `nest: subtree` (every node reached DOWN the parents edges, descending through members with no `nest:` and stopping, inclusive, at a member that carries its own, which expands itself) or `nest:` plus a list of ids (inline `[a, b]` lists parse too). Each node keeps ONE home for its bytes: its own file.
+- `extensions/agi/bin/nest.py` (python, alive's reader lifted from doc:rse-d1-nest, 3,034 B) answers `members(N)`, `slice` (a container's members, retired ones included and marked), `log` (a member's first-parent history, renames followed) and a count, from the node files and git only.
+- `links.py` gains `nest_unresolved(root)`: over `_iter_corpus` with `address_resolver`, every id in a `nest:` LIST that resolves to no node is reported on its own line by `main` and as its own metrics cell. It does NOT enter `count_broken_links`, which counts only a live node's payload link by design.
+- Each schema that allows it gains an optional `nest: {type: str|list}` field (never required, so no schema count moves).
+- alive's pytest file (`t_nest.py`, 10 cases N1-N10, quoted whole in doc:rse-d1-nest; the build names it so pytest collects it) is the falsifier lane's base.
+
+## Invariants
+- A collapse commit changes exactly ONE file under .agi/nodes; the count of active + deprecated nodes never drops; `nest.py` is read-only (it writes no ref, no object).
+- Retire, never delete: a retired member keeps its whole history through the rename.
+- No grid ref is written or read for the current season (grid commit retires under E2; the frozen pre-cutover record stays readable).
+
+## Falsifier
+1. `python3 -m pytest extensions/agi/tests/test_nest.py` (alive's 10 cases, DG2's falsifier lane written FIRST) exits 0; `python3 extensions/agi/bin/links.py links` exits 0 and prints the `nest_unresolved` line (0 on the trunk) and the metrics cell; D1.1 a collapse commit on the trunk changes exactly one file under .agi/nodes (`git show --name-only --format= <sha>`); D1.2 the active + deprecated node count is identical one commit before and after a collapse; D1.3 `nest.py log` for a retired member equals `git log --first-parent --follow` for its path, except commits follow reaches through a copy (C) line, which belong to another node (build:GOALS.md: 13 vs 14).
+2. Negative: `git grep -n -E 'update-ref|commit-tree|mktree' -- extensions/agi/bin/nest.py` shows 0 hits; `count_broken_links` is byte-unchanged (a nest id never enters it); no schema lists `nest` under required.
+
+## Out of scope
+goal:g7.16.1.11.22 (the legacy mark, reads members()) · the rollover itself and its tooling (E5; the shape is decided: doc:radically-simple-engine section AC) · the grid commit's retirement (E2, goal:g7.16.1.6; D1.4 of the doc, "24 h after the cutover refs/grid/* gains 0 refs", is E2's falsifier) · D4 (the et-grok-pilot keep/drop, doc:rse-d4-grok-pilot: a decision, routed by owner of each mechanism).
+
+## Agent Notes
+Assigned to **director-general-5 (python builder; DG2 writes the falsifier lane first)**.

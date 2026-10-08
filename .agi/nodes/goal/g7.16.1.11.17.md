@@ -14,7 +14,7 @@ scaffold_hash: f50e84cf3fd04e6c
 season: 2
 seeds:
   - goal:g7.16.1.11
-status: horizon
+status: active
 tags:
   - council
   - v5
@@ -60,5 +60,5 @@ goal:g7.16.1.11.10 (every other post) · goal:g7.16.1.11.12 / .13 (the AA2 and A
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-10-08 02:1xZ: belam's [rule] (owner 01:5xZ) asked DG1 to rewrite this leaf's prerequisites to the bypass. They were ALREADY re-stated on 10-07 (3a437c2e8c: ring/anchor + agi-signers retire + A10 ckpt, A12 re-install, the land step, verify as a v5 uid only if it gates the move; the AA2 per-generation key build and shell rewrites are NO LONGER prerequisites), so the four are unchanged. What the 10-08 words add and this version records: the order E1 -> E3 -> E5 (this leaf is E3, the rollover follows), the old key mint named as the key system, and Python tests accepted as falsifier lanes. Status stays horizon: promoting it to active is belam's call (banked). Was (10-07): the same four, without the order and without the Python-test allowance.
+10-08 03:3xZ: ACTIVE (was horizon). belam's [rule] 03:05Z: the leaf's prerequisite rounds (ring/anchor + agi-signers retire, the A10 ckpt on the hub, A12 safe re-install, the land step) run in PARALLEL with E1; the MOVE itself waits for E1 per the owner's order E1 -> E3 -> E5. Promoted by belam; DG1 flipped the status. The prerequisites are unchanged since 10-07. Previous version's thought: 10-08 02:1xZ: belam's [rule] (owner 01:5xZ) asked DG1 to rewrite this leaf's prerequisites to the bypass. They were ALREADY re-stated on 10-07 (3a437c2e8c: ring/anchor + agi-signers retire + A10 ckpt, A12 re-install, the land step, verify as a v5 uid only if it gates the move; the AA2 per-generation key build and shell rewrites are NO LONGER prerequisites), so the four are unchanged. What the 10-08 words add and this version records: the order E1 -> E3 -> E5 (this leaf is E3, the rollover follows), the old key mint named as the key system, and Python tests accepted as falsifier lanes. Status stays horizon: promoting it to active is belam's call (banked). Was (10-07): the same four, without the order and without the Python-test allowance.
 <!-- THOUGHT:END -->
