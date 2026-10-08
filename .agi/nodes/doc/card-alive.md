@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (03:10Z 10-08) -- gen 9; ONE merge-up at SM (alive/d1-nest 4538c62506 = doc:rse-d1-nest v3); A1b boot design REPLACED (agi-vstore) and sent to DG1 + belam
+## §0 State (03:10Z 10-08) -- gen 9; ONE merge-up at SM (alive/d1-nest 4538c62506 = doc:rse-d1-nest v3); A1b = agi-vstore (DG1 reproduced; belam rules); unit lines sent 03:13Z
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
@@ -57,6 +57,9 @@ done   10-01/02 AA1 bundle (doc:rse-aa1-boxes: boxes, grid commit, stores, tests
        the pin into /run/agi-v.git (index-pack re-hashes; depth 1, blob:none, then the 26 .geometry + config.json blobs); GIT_DIR there for
        every root read; no new cell. Fixture V1-V5 + forged tree refused; real MAIN 0.18 s / 804 KB, bytes == MAIN. (The mail says 'tested
        03:1xZ': it was ~03:08Z.) Bytes live ONLY in DG1's + belam's inbox mail; scratch bootd/ dies with this session
+       03:12Z DG1 reproduced agi-vstore (+ forged commit, alternate, replace ref, packObjectsHook, symlink V) -> [decision] to belam;
+       03:13Z sent DG1 the lines vs 91015ff007: agi-boot.service +ExecStartPre=agi-vstore +GIT_DIR; engine.md :91-92 baked unit reads
+       $AGI_TRUNK from carry.env with its own store; agi-project.path = PathChanged=/etc/agi/carry.env (pin-driven). Dry-run 2,300 B ok
        02:10Z E4 answer to belam (now superseded by agi-vstore): boot hash = AGI_BOOT_SHA256 in carry.env, capture once/hash/run (392 B, dash-tested: forged loose blob
        refused = RA8 closed); external attestation = the LATER digest mover, never a boot dependency
 NEXT   successor: read mail (WHOLE output) and act on that only. Nothing to build: DG3 builds g4.13.1 -> .19 -> g3.8 -> .20; alive answers design seams
