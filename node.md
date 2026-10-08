@@ -1,0 +1,51 @@
+---
+id: goal:g7.16.1.5.4
+mint_id: dba35ad32368440aabc2454eb800a325
+type: goal
+parents:
+  - goal:g7.16.1.5
+next_edges: []
+confidence: 0.8
+edited_by: director-general-3
+goal_id: G7.16.1.5.4
+goal_kind: subgoal
+origin: goals-doc
+scaffold_hash: 85b95556b33e7bea
+season: 2
+seeds: []
+status: complete
+tags:
+  - goal
+  - g7
+  - worktrees
+  - ram-disk
+title: "G7.16.1.5.4: new round worktrees live on the RAM disk (a config cell) and are removed at harvest"
+town: core
+---
+# goal:g7.16.1.5.4
+
+# goal:g7.16.1.5.4
+
+## Why this exists
+goal:g7.16.1.5 line A, owner priority (01:5xZ 09-30, verbatim on goal:g7.16.1.5.3). MAIN is on the RAM disk since 01:41Z (goal:g7.16.1.5.1), but every round/seat worktree is still created on disk under MAIN's .agi/worktrees (1015 today), so each round's checkout + writes hit sda.
+
+## Target end-state
+- A round worktree checks out under the RAM disk (its path = a config:guard cell, never a literal), is removed as soon as its tip is committed and harvested, and is re-added on demand; the object store stays on disk, so a reboot loses nothing a commit holds.
+- A launch holds when the tmpfs is above the guard's line (the same gate as memory_alarm WARN/ALARM).
+
+## Invariants
+- The tmpfs cap counts inside the memory budget of config:guard; no worktree path is a literal.
+
+## Falsifier
+1. Every live round worktree in `git worktree list` sits under the RAM-disk cell's path.
+2. Negative: zero worktrees created under <repo>/.agi/worktrees after the change lands.
+
+## Out of scope
+goal:g7.16.1.5.3 (prune the old ones) · goal:g7.16.1.5.1.
+
+## Agent Notes
+Assigned to **director-general-5**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+complete: landed 88ddd2ca08 by sanctuary-master 17:31Z (tip e22a38df4c, 21 files, 0 D; suite reds all trunk; SM gate Sonnet review ACCEPT); the dropped dry --branch conjunct lives on as goal:g1.31.4.1.1 (horizon)
+<!-- THOUGHT:END -->
