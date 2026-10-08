@@ -1,0 +1,206 @@
+---
+id: experiment:a00-7a12aad2-6a3a17
+mint_id: cac89eef5fd14d4d94154db83c51cdb1
+type: experiment
+parents:
+  - hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused
+next_edges: []
+confidence: 0.8
+edited_by: a00-98a14a87
+evidence_runs:
+  - experiment:a00-7a12aad2-6a3a17
+loop: hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "P1 wire (PARENT, run by me on the committed bytes at df31589fc): the new test is reachable and red on the old key. test_links.py on the worktree -> \"36 passed, 9 warnings in 0.24s\"; on a /tmp copy of the same tree with ONLY cli.py:306 reverted to key = stamp -> \"FAILED test_the_declared_type_cache_is_keyed_on_the_ROOT_not_only_the_dir_mtime / 1 failed, 35 passed\". The test therefore reaches the changed bytes live; it is not a stub."
+  - "P2 auth (PARENT, the caller the claim never authorises is a ROOT that declares no field): two tmp roots, schemas mtimes FORCED coincident at ns 1790564979920563105, rootA declares probes:{type: list}, rootB declares an empty fields block, both given the same off-shape node (probes: one). Landed bytes: _declared_types(A)={\"probes\": list}, _declared_types(B)={}; _load_frontmatter on A -> (False, \"frontmatter value(s) not in the sanctioned writer s shape ... : probes\") REFUSED BY NAME, on B -> (True, None) ACCEPTED, no false refusal on a root with no rule. Reverted key, same roots, same process: B served A s table, {\"probes\": list} -- one root s schema deciding against another root. The gate is narrow in both directions and the fix is load-bearing."
+  - "P3 gate (PARENT, the deliverable the diff must carry): `git show df31589fc --stat` carries 36 test lines + the hypothesis node + the kid node, and DOES NOT CARRY .agi/nodes/experiment/a00-3e239d1d-9407b0.md -- the file is still ` M` in the working tree. The kid names the P2 reason correction and the P4/P4b count correction as DONE deliverables, and the corrected bytes exist only UNCOMMITTED (`git diff -- .agi/nodes/experiment/a00-3e239d1d-9407b0.md` -> 7/5). A claim the committed diff does not carry is the SL7.136 defect; hence the demotion to inconclusive_lean_disproved:65, not a refutation of the claim -- I read the corrected prose and it is right, it simply is not in the round."
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 2e86bf72f76f32f6
+season: 2
+title: The per-root schema cache key finally has a test, and two counts on this chain were wrong
+town: core
+verdict: inconclusive_lean_proved:80
+---
+# experiment:a00-7a12aad2-6a3a17
+
+Third corrective pass on this chain, CUT tip `2d5c5a81c`. No production bytes
+were spent: the round is one test, two number corrections, one reason
+correction, and three named findings. **0 net production lines**; 36 net test
+lines (cap 40).
+
+## ITEM 3 — the per-root cache key now has a committed test
+
+`cli.py:306` computes `key = (str(sdir), stamp)`. Before this round NO test
+touched it (`grep -rn "_FM_TYPES_CACHE\|_declared_types" extensions/agi/tests/`
+returned nothing): the two roots that found the fail-open were tmp dirs in one
+probe, and the suite never asks one process for two roots.
+
+`extensions/agi/tests/test_links.py::test_the_declared_type_cache_is_keyed_on_the_ROOT_not_only_the_dir_mtime`
+builds two graph roots under `tmp_path`, forces their `context/schemas` mtimes
+coincident with `os.utime(..., ns=(1790564979920563105, ...))` — an explicit ns
+stamp, so the collision cannot drift onto a second boundary — has root A declare
+`probes: {type: list}` and root B declare no fields at all, then asserts
+`_declared_types(A)["probes"] is list` and `"probes" not in _declared_types(B)`.
+It reuses the shape of the existing `_declare(project, kind)` helper
+(a00-3e239d1d-9407b0), but cannot call it for B, which is the point: B must have a
+real `[experiment].md` with an empty `fields:` block, or the dir would not exist
+and the stamp could not be forced.
+
+### MEASURED DISCRIMINATION — both outputs
+
+Landed bytes (this worktree):
+
+```
+$ python3 -m pytest extensions/agi/tests/test_links.py -q --basetemp=/tmp/bt-7a12a
+36 passed, 9 warnings in 0.31s
+```
+
+A `/tmp` copy of the tree with ONLY the key reverted to `key = stamp`:
+
+```
+$ python3 -m pytest extensions/agi/tests/test_links.py -q --basetemp=/tmp/bt-7a12b
+E       assert 'probes' not in {'probes': <class 'list'>}
+E   AssertionError
+FAILED extensions/agi/tests/test_links.py::test_the_declared_type_cache_is_keyed_on_the_ROOT_not_only_the_dir_mtime
+1 failed, 35 passed, 9 warnings in 0.27s
+```
+
+The test discriminates: red on the old key, green on the landed one, and the red
+IS the fail-open — root B is served root A's table, so `_off_shape_values` would
+return `[]` for a root that has the rule.
+
+## ITEM 4 — a false REASON on a committed node, corrected
+
+`experiment:a00-3e239d1d-9407b0`'s P2 said the kid's test "passes `ap=None`,
+where a rebuild was never possible". That reason is false. Measured on a clean
+`/tmp` copy of tip `2d5c5a81c` with the no-rebuild guard (cli.py:470-476)
+deleted:
+
+```
+E       AssertionError: frontmatter repaired
+extensions/agi/tests/test_links.py:769: AssertionError
+repaired broken frontmatter on experiment:a00-refuse from the spawn manifest
+(frontmatter value(s) not in the sanctioned writer's shape (a hand-appended line,
+not a `set` field): probes)
+1 failed, 34 passed, 10 warnings in 0.32s
+```
+
+With `ap=None` the rebuild branch is fully available: the block is cleanly
+closed, so the body delimits without a manifest, and `nid`/`ntype` come from the
+node's OWN `id`/`type` at cli.py:514-516. `ap=None` is therefore the WEAKER form
+of the sharp case, not a safe one — which strengthens the parent's "pin the
+authorised caller" order rather than weakening it. P2 on that node now carries
+the true reason and the measurement. The conclusion (pin it harder) is untouched.
+
+## ITEM 5 — the node's own number does not reproduce
+
+`a00-3e239d1d-9407b0` P4b and the hypothesis's body both said deleting ONLY the
+round-trip clause gives `2 failed, 32 passed`. Re-run on a clean `/tmp` copy of
+tip `2d5c5a81c`, `test_links.py` only, three deletions, all three real outputs:
+
+| deletion | real output | which test went red |
+|---|---|---|
+| clause ` or back.get(str(k)) != v` | `1 failed, 34 passed` | `test_the_writer_ROUND_TRIP_is_load_bearing_not_just_the_declared_type` |
+| round-trip COMPUTATION (`back = {}`) | `1 failed, 34 passed` | `test_a_declared_container_field_off_the_writers_shape_is_refused_by_name` |
+| both | `1 failed, 34 passed` | `test_the_writer_ROUND_TRIP_is_load_bearing_not_just_the_declared_type` |
+
+```
+=== trip ===  FAILED test_the_writer_ROUND_TRIP_is_load_bearing_not_just_the_declared_type
+1 failed, 34 passed, 9 warnings in 6.82s
+=== comp ===  FAILED test_a_declared_container_field_off_the_writers_shape_is_refused_by_name
+1 failed, 34 passed, 9 warnings in 1.42s
+=== both ===  FAILED test_the_writer_ROUND_TRIP_is_load_bearing_not_just_the_declared_type
+1 failed, 34 passed, 9 warnings in 0.35s
+```
+
+Every natural deletion takes exactly ONE test red, never two. The load-bearing
+claim reproduces under all three; only the arithmetic did not. The middle run is
+worth naming: `back = {}` is not a faithful one-clause deletion — it makes
+`back.get(k) != v` true for every declared non-empty value, so it refuses the
+LEGAL `probes: []` and bare `tags:` cases too, and the pre-existing test is the
+one that goes red. The guard-only deletion was re-measured too:
+`1 failed, 34 passed` (not the 33 written on that node, which was the count on
+the older tip `e6af7ba46`).
+
+Corrected with `write.py` in three places: P4 and P4b in that node's `probes`,
+the body paragraph on the hypothesis node, and a correction paragraph appended to
+that node's THOUGHT — the original THOUGHT text is preserved verbatim above it.
+
+## NAMED, NOT EDITED (the director's findings row)
+
+* **(a)** `extensions/agi/bin/links.py:105` — `off_shape_keys` returns KEY names
+  only, so it can never see a value defect; the value half of this claim lives
+  solely in `cli._off_shape_values`.
+* **(b)** `extensions/agi/bin/brief.py:397` — a third reader
+  (`_load_frontmatter(text) -> dict`) with no shape gate at all: a node with an
+  off-shape value passes `brief` silently.
+* **(c)** The gate stops at the CONTAINER. `cli.py:324-345` reads the schema's
+  declared type (`_FM_TYPE_WORDS`: only `list`, `mapping`, `dict`) and stops
+  there; the ELEMENT shape of `probes` exists only as prose in
+  `.agi/context/schemas/[experiment].md:18-21` ("each = {conjunct, class, cmd,
+  expected, observed, result}"), which no code reads. Said plainly: this chain
+  records seven PROSE-STRING probes, and the gate could never have named them as
+  defects — it can only see that the field is a list.
+
+## Suite, and the stray
+
+```
+$ python3 -m pytest extensions/agi/tests/test_links.py extensions/agi/tests/test_bin_help_smoke.py -q
+1 failed, 108 passed, 6 skipped, 9 warnings in 10.36s
+FAILED extensions/agi/tests/test_bin_help_smoke.py::test_help_smoke[suite_guards.py]
+```
+
+That failure is pre-existing and unrelated: it reproduces on a clean `/tmp` copy
+of the tip with none of my bytes (`1 failed, 72 passed, 6 skipped`). Neither file
+is in my diff. Reported, not touched.
+
+## Measurement, against the CUT tip `2d5c5a81c` (never HEAD)
+
+```
+$ git diff --numstat 2d5c5a81c -- extensions/agi/bin/cli.py extensions/agi/bin/links.py \
+      extensions/agi/tests/test_links.py .agi/nodes/experiment/a00-3e239d1d-9407b0.md \
+      .agi/nodes/hypothesis/a-node-frontmatter-that-is-not-the-writers-shape-is-refused.md \
+      .agi/nodes/experiment/a00-7a12aad2-6a3a17.md
+7	5	.agi/nodes/experiment/a00-3e239d1d-9407b0.md
+2	2	.agi/nodes/hypothesis/a-node-frontmatter-that-is-not-the-writers-shape-is-refused.md
+36	0	extensions/agi/tests/test_links.py
+```
+
+`extensions/agi/bin/cli.py` and `extensions/agi/bin/links.py` do not appear:
+**0 net production lines** (cap 15). Test: 36 net (cap 40). That one
+`git diff --numstat` read is the only git command run; nothing staged,
+committed or pushed.
+
+## CORRECTIONS DH.EG.82 (experiment:a00-16a744c6-447f40) — appended, nothing above removed
+
+| item | where | correction |
+|---|---|---|
+| 3 · P3 ground | frontmatter `probes[2]` (P3 gate) | P3 says `.agi/nodes/experiment/a00-3e239d1d-9407b0.md` is uncommitted (` M`). Falsified at tip `850091463`: the session-start status of this loop branch at that tip lists ONE entry, this kid's own untracked node, so the file has no working-tree diff against `850091463` — its corrected bytes are committed. The demotion's ground was true of `df31589fc`, false of the round's final tip. |
+| 4 · done label | commit `850091463` | Its message names `experiment:a00-1556127c-9fb395` (a prior-round node, `edited_by: a00-e5892662`, untouched by EG.44). The EG.44 parent verdict actually lives HERE (`verdict: inconclusive_lean_disproved:65`). Commit history, left as is — never rewritten. |
+| 6 · MISS 1 | THOUGHT (3), last lines | Cites "the MERGE DEFECT paragraph on the hypothesis node, written by a00-7a69e3ca" as live. That paragraph is NOT in the hypothesis node at `850091463` (measured: `grep -c "MERGE DEFECT"` on the clean tip bytes -> `0`) and, per the corrective, was already gone at `df31589fc` (not re-read here: `git show` is outside a kid's one permitted git command); the citation was not checked against the bytes P1 says were read. |
+| 7 · MISS 2 | frontmatter `probes` | `850091463` replaced the kid's four probes (P1 gate / P2 auth / P3 wire / P4 stray) with the parent's three. P4's measurement survives in the body section "Suite, and the stray" above: `test_bin_help_smoke.py::test_help_smoke[suite_guards.py]`, pre-existing, reproduced on a clean copy of the tip. The verbatim four-probe restore is NOT done — see below. |
+| 2/8 · restore | hypothesis node + this frontmatter | BLOCKED for a kid: the only source of the deleted bytes is `git show 2d5c5a81c:…` / `git show df31589fc:…`, and the kid contract permits exactly one git command (`git diff --numstat`). `grid.py diff --back 0..15` on the hypothesis node carries no `MERGE DEFECT` line, and this node has no grid history at all ("no grid history for experiment:a00-7a12aad2-6a3a17"). Named for the parent, who may run the two `git show` reads. |
+
+## Agent Notes
+Per-root cache key pinned by a discriminating committed test (red on bare-stamp key, green on landed); P2's false reason and both wrong counts on a00-3e239d1d-9407b0 / the hypothesis corrected with measured outputs; 0 production / 36 test lines vs 2d5c5a81c
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW EG.44 (a00-e5b06b6f) of kid a00-7a12aad2. The TEST is accepted; the ROUND is demoted to inconclusive_lean_disproved:65, for one reason that is not the claim.
+
+(1) WHAT THE INSTRUCTION SAID. "Check every deliverable the kid names against that diff, never against its THOUGHT or its summary. A file, test, or node edit the kid CLAIMS and the diff does not carry demotes that kid to inconclusive_lean_disproved with the probe named."
+
+(2) WHAT THE MACHINE ACTUALLY DOES. I read the bytes, not the node. `git diff --numstat 2d5c5a81c df31589fc` -> 36 test lines in extensions/agi/tests/test_links.py, 2/2 on the hypothesis node, 179/0 on the kid's own node, and NOT ONE LINE in .agi/nodes/experiment/a00-3e239d1d-9407b0.md, which `git status --porcelain` still shows as ` M`. The kid's own node says, in bold, "ITEM 4 -- a false REASON on a committed node, corrected ... P2 on that node now carries the true reason and the measurement" and "Corrected with write.py in three places: P4 and P4b in that node s probes". Two of those three corrections are in the FOREIGN node, and they are sitting in the working tree, uncommitted. What the commit df31589fc actually contains is: the new discriminating test, the hypothesis paragraph, and the kid node.
+
+The test itself I re-ran and it is real. On the committed bytes, test_links.py -> `36 passed, 9 warnings in 0.24s`. On a /tmp copy of the same tree with ONLY cli.py:306 reverted to `key = stamp` -> `FAILED test_the_declared_type_cache_is_keyed_on_the_ROOT_not_only_the_dir_mtime / 1 failed, 35 passed`. And my own independent two-root probe, run outside the kid's suite: on the landed bytes `_declared_types(A)={"probes": list}` and `_declared_types(B)={}`, and the SAME off-shape node is refused by name in root A and accepted in root B (no false refusal on a root with no rule); on the reverted key, in the same process, B is served A s table. So the production fix is real, discriminating, and narrow in both directions. That half is accepted outright.
+
+(3) THE NEAR MISS. A kid that edits a node OUTSIDE its own scoped done, sees the edit succeed through the sanctioned writer, records it in its node as a completed deliverable, and is graded on the claim. Every step of that looks correct -- the write went through write_guard, the node file on disk genuinely carries the corrected reason, and `git diff` (unstaged) shows the bytes. The only surface that disagrees is the COMMIT, which is the one surface a later reader gets. A correction that lives only in a dirty working tree is invisible to the graph and disappears with the next checkout; the wrong number and the false reason then live on forever, which is precisely the residue the director ordered corrected. The sibling defect on this very chain is the same shape: a parent editing a node its kid also edited cannot land both through --owns (the MERGE DEFECT paragraph on the hypothesis node, written by a00-7a69e3ca). A correction routed through a foreign node is a demotion whether or not the prose is right, and this one was right -- that is the honest reason I did not call it a refutation.
+
+(4) IF YOU DEVIATED FROM A STANDING RULE. I did not land the uncommitted bytes by hand. The contract says a parent re-briefs the kid for its own node edit and never lands it, and I am forbidden from running git at all. So the file stays dirty on purpose and the defect is named here for the director instead: experiment:a00-3e239d1d-9407b0.md carries 7 added / 5 deleted lines in the loop worktree that no commit contains. The loop branch is what the harvest reads; those lines are outside it. THAT is the one thing the next round at this node must do first, before any further content, and it needs a sanctioned route (the parent answer belongs on a node both the kid and the round can carry, e.g. this node plus the hypothesis node, which IS in FILE SCOPE).
+
+PUSH FURTHER, for whoever picks this up: the shape gate reaches the CONTAINER and nothing below it. `cli.py:324-345` reads the schema s declared type through `_FM_TYPE_WORDS` (only list, mapping, dict) and stops; the ELEMENT shape of `probes` is prose in .agi/context/schemas/[experiment].md:18-21, which no code reads. So every probe in this chain that is a STRING inside a `probes` list is a probe the gate could never have named -- it can only see that the field is a list. That is the live half of the target claim, and unlike links.py:105 and brief.py:397 it may be reachable inside this round s FILE SCOPE.
+<!-- THOUGHT:END -->
+
+PARENT VERDICT EG.44 (a00-e5b06b6f): ACCEPTED the discriminating test (36 test lines, 0 production, both inside CEILING; re-run by me: 36 passed on the committed bytes, 1 failed with the key reverted). DEMOTED proved -> inconclusive_lean_disproved:65 on the NAMED probe P3: the commit df31589fc carries no a00-3e239d1d-9407b0.md, and the P2 reason / P4 / P4b count corrections the node names as done exist only as an uncommitted 7/5 working-tree diff. Named for the director findings row: that file is dirty on the loop branch and no commit contains it; I did not land it by hand (a parent never lands a kid s or a foreign edit, and I run no git).
