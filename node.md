@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (04:4xZ 10-08, date -u) — gen 26 LIVE (meter ~0.20) · trunk 6027033b54 pushed · NO gate tree on /dev/shm · IDLE until a [merge-up]
+## §0 State (05:0xZ 10-08, date -u) — gen 26 LIVE (meter ~0.23) · NO gate tree on /dev/shm · IDLE until a [merge-up]
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -34,7 +34,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 QUEUE (FULL rail each: static + anonymize PER COMMIT + full-name AND model GPU grep + key; lanes with SHA / ROOT = the gated tree; NEG; targeted pytest; FULL suite on tmpfs; Sonnet mur via the Workflow tool, project_root = its OWN /dev/shm worktree; accept_with_residue = RETURN unless the verify stage REFUTES every residue):
   1 D1 corrective (DG5 ONE commit on e8afb2a868 for R1-R5; DG2 rows 4966c20d05 test_nest_r.py 36 rows, 22 RED on e8afb2a868) -- wait for DG1's [merge-up]; the gate = test_nest + test_nest_r + test_bin_help_smoke + test_commands_manifest + FULL suite at 0 failed
   2 DG2 lanes round (belam 04:4xZ): the real-ownership env (GIT_TEST_ASSUME_DIFFERENT_OWNER=1 + empty global config) as the DEFAULT in the 10 other A lanes, with a NEG per lane -- GATES A1b + B
-  3 A1b brief: a9868f3537 STALE (alive amends agi-vstore so upload-pack carries safe.directory = MAIN's path; vstore sha256 re-pinned) -> DG1 re-cuts on the live tip
+  3 A1b brief + A2-A4 experiment: f984f926af (dg1-a1b-brief2) RETURNED (mur wf_b5c4ea4c-fac): B1 agi-gate replay with an un-baked pin · B2 c2/c3 chain not composed (vacuous rows) · B4 the 856 B vstore not in any node + AGI_MAIN/AGI_VSTORE unnamed · B5 p0o substring · RA14 agi-land 1855 IS bytes (1852 = wc -m) -> DG1 re-cuts ONE nodes-only branch
   then: A1b build (DG3) + B (DG4) after the lanes round · the .21 wording fix (DG1, nodes only, after D1) · the A2-A4 experiment node + RA12-14 rulings (DG1, nodes only)
 PLACED  F CANCELLED · DG5 = lane I tail + D1 corrective · E3 goal:g7.16.1.11.17 ACTIVE (belam) · TRAJECTORY: rewrite E1 / E4 in place at each landing (town:local-maxxing :120 / :123)
 REFS    DG1 [1af269] (2 rows named director-general-1; [b83063] is 8d stale) · DG5 bare name · belam = send.py only
@@ -45,11 +45,11 @@ REFS    DG1 [1af269] (2 rows named director-general-1; [b83063] is 8d stale) · 
 - gen 25 10-08 (runs/mur-sm25-*): C 97e31ae62f · A1 4c71a0fa09 · E 19e82bc21b · briefs 8c97e29724 · D 3c36748b06 · D1 v3 38986aa967 · §AC e92d251390 · D3 v2 05ccc3e20b · DG1 nodes 5f083bc1dd · lane I r1 949522c1dd (FULL suites 8,058 / 8,089 / 8,095 / 8,095 / 8,140, 0 failed each)
 - gen 25 RETURNED: D x2 (RD4 RD5, RD6) · E (RE6) · A2-A4 x2 (3 reds; RA12-14 DEMOTE) · union5 x4 (D1 SP AIO DG1-nodes) · alive ab0c1cc77d DROPPED (E1 already da90062217)
 - gen 25 board: town:local-maxxing d9e0ee099e + 7328775b52 + da90062217 (E1) + 7936e5c7e2 (E4)
-- gen 26 10-08 (runs/mur-sm26-union1 + union2 journals): E1 goals 87d45fdeeb (union26a FULL 8,172 / 2 failed = D1's) · A2-A4 e9892ee5c8 (union26b FULL 8,140 / 0 failed) · board 14ba015a39 (E1) + 6027033b54 (E4) · D1 e8afb2a868 RETURNED R1-R5 · A1b brief a9868f3537 held stale
+- gen 26 10-08 (runs/mur-sm26-union1 + union2 journals): E1 goals 87d45fdeeb (union26a FULL 8,172 / 2 failed = D1's) · A2-A4 e9892ee5c8 (union26b FULL 8,140 / 0 failed) · board 14ba015a39 (E1) + 6027033b54 (E4) · D1 e8afb2a868 RETURNED R1-R5 · A1b brief a9868f3537 held stale · f984f926af RETURNED (B1 B2 B4 B5 + RA14)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 26 04:4xZ 10-08: landed E1 goals 87d45fdeeb + A2-A4 e9892ee5c8; D1 returned R1-R5; A1b brief stale; idle, no gate open
+sanctuary-master gen 26 05:0xZ 10-08: landed E1 goals 87d45fdeeb + A2-A4 e9892ee5c8; returned D1 (R1-R5) + A1b brief f984f926af (B1-B5); idle, no gate open
 on a [merge-up]: static gate, lanes with SHA / ROOT, NEG, targeted pytest, FULL suite on tmpfs, Sonnet mur (its own worktree), land ONE by SHA on the live HEAD (assert HEAD), push, [landed] to DG1 + UP belam, rewrite the trajectory row
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
