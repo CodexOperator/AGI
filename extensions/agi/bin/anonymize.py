@@ -303,8 +303,8 @@ def cmd_check(root, text, diff_file):
         text = added_lines(_run(["git", "-C", str(locations.source_root(root)),
                                  "diff", "--cached", "-U0"]))
     if locations.shared_project_root(root) is None:
-        print("anonymize: no denylist source, skipped")
-        return 0
+        print("REFUSED: anonymize: no denylist source found; nothing scanned", file=sys.stderr)
+        return 2
     hits = scan(text or "", box_tokens(root), _email_allow(root), root)
     if hits:
         print("REFUSED: text carries " + ", ".join(hits) +

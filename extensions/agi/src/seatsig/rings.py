@@ -254,13 +254,14 @@ def verify_decision(decision, ring: dict, get_scheme=seatsig.get,
                        get_scheme=get_scheme, pubkey_for_post=pubkey_for_post)
 
 
-def load_rings(root, path: Path | None = None) -> list:
+def load_rings(root, path: Path | None = None, strict: bool = False) -> list:
     """The `rings:` rows from the geometry cell, or [] when absent/unparseable.
 
     Reads through the SAME engine node loader the geometry rows use
     (graph_core.persistence.frontmatter) -- never a hand-rolled copy of the
     frontmatter read. A malformed cell degrades to [] so an absent or broken
     rings cell can never make a gate demand a quorum (rings are opt-in).
+    strict=True (write.py's gate) RAISES on any cell it could not read or use; ABSENT is still [].
     """
     cell = Path(root) / (path or RINGS_CELL)
     if not cell.is_file():
@@ -271,9 +272,17 @@ def load_rings(root, path: Path | None = None) -> list:
         nf = frontmatter.load_node_file(cell)
         rows = nf.frontmatter.get("rings") or []
         if isinstance(rows, list):
-            return [r for r in rows if isinstance(r, dict)]
+            if strict and not all(isinstance(r, dict) for r in rows):  # a bare name is a ring we could not read
+                raise ValueError("a rings: row is not a mapping")
+            rows = [r for r in rows if isinstance(r, dict)]
+            for r in rows if strict else ():  # verify_ring's own two coercions
+                int(r.get("m", 0) or 0), set(r.get("members") or [])
+            return rows
     except Exception:  # noqa: BLE001  (an unreadable cell is an absent cell)
-        pass
+        if strict:
+            raise
+    if strict:
+        raise ValueError("the rings: value is not a list")
     return []
 
 
