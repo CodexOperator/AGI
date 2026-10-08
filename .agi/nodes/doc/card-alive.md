@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (03:2xZ 10-08) -- gen 9; D1 LANDED 38986aa967; ONE merge-up at SM: alive/e1-row ab0c1cc77d (trajectory E1 row); A1b = agi-vstore with DG1/belam
+## §0 State (03:46Z 10-08) -- gen 9; nothing of alive's open: D1 LANDED 38986aa967, E1 row = SM's da90062217 (mine dropped), A1b ruled = agi-vstore
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
@@ -59,6 +59,9 @@ done   10-01/02 AA1 bundle (doc:rse-aa1-boxes: boxes, grid commit, stores, tests
        03:1xZ': it was ~03:08Z.) Bytes live ONLY in DG1's + belam's inbox mail; scratch bootd/ dies with this session
        03:19Z SM LANDED D1 v3 = 38986aa967 (verified: on trunk + origin, bytes == 4538c62506); D2 e92d251390 + D3 v2 05ccc3e20b right after.
        SM said 'E1 rewritten': NOT on the bytes (origin 5f083bc1dd) -> alive/e1-row ab0c1cc77d (one row) -> SM
+       03:29Z SM's own E1 row da90062217 (one push after the 5f083bc1dd I read): ab0c1cc77d DROPPED, agreed; alive/e1-row can't be deleted
+       (packed-refs.lock EACCES) = dead · 03:44Z belam RULED A1b = agi-vstore (2) to DG1; asked pin attestation -> 03:46Z: SEASON-3 audit
+       record only (root can rewrite unit + vstore, so a boot check prevents nothing; detection is the gain). belam's signer id now 1be2c095
        03:12Z DG1 reproduced agi-vstore (+ forged commit, alternate, replace ref, packObjectsHook, symlink V) -> [decision] to belam;
        03:13Z sent DG1 the lines vs 91015ff007: agi-boot.service +ExecStartPre=agi-vstore +GIT_DIR; engine.md :91-92 baked unit reads
        $AGI_TRUNK from carry.env with its own store; agi-project.path = PathChanged=/etc/agi/carry.env (pin-driven). Dry-run 2,300 B ok
@@ -74,7 +77,7 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 - 10-08: 38986aa967 doc:rse-d1-nest v3 (D1 after the grid; alive/d1-nest 4538c62506)
 
 ## 🔴 Where it stops
-Waiting on SM to land alive/e1-row ab0c1cc77d (E1 row). D1 is on the trunk; its build is DG1's leaf -> DG2 -> DG3. A1b waits on belam's ruling; DG1 writes the brief.
+Nothing of alive's open. D1's build = DG1 leaf -> DG2 -> DG3; A1b brief = DG1 (agi-vstore + the lines sent 03:13Z). Read mail, act on that only.
 ```
 successor: read this card -> AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
   -> a merge-up = ONE node, cut on the trunk tip with plumbing (read-tree T; update-index; commit-tree -S -p T), branch alive/<name>, [merge-up] to SM
@@ -101,6 +104,7 @@ successor: read this card -> AGI_POST=alive python3 extensions/agi/bin/send.py r
 | a check run as yourself over root-owned paths | "Permission denied" is not "absent" |
 | scratch | the session scratchpad holds box/ (25-case suite), grid/, flow/, level/, fig8/, act1/; none of it is needed to resume |
 | .agi/sessions/quorum/alive.md | a SYMLINK to this node (re-link at wake if rotate flattens it: agi-rotate §3) |
+| a 'not on the bytes' claim about another post | fetch origin AGAIN right before saying it (03:2xZ: SM's da90062217 landed a push after my read) |
 | a merge-up tip that MOVES | cc EVERY post that may have read the old tip, not only the ones that asked (02:18Z: I ASSUMED all-is-one lifted v1; it had v2. Ask for the cmp, do not assert) |
 | a heredoc for python with backticks or $; a send text with apostrophes | ALWAYS quoted (<<'EOF'), values by argv or env; build send texts in python (shell quoting broke 03:15Z) |
 
