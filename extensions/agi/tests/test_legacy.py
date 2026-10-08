@@ -604,3 +604,352 @@ def test_l4e_a_decoy_title_does_not_mask_a_really_dropped_mark(tmp_path, which, 
     d = scratch_bin(tmp_path, "bin_decoy", LG, 'lg = ""', nth)
     r = vp2(repo, "--verify", bin_dir=d)
     assert r.returncode != 0 and "PASS" not in r.stdout, f"{which}: a dropped mark hid behind the decoy title: rc {r.returncode} {r.stdout[-300:]}"
+
+
+# ====================================================================================================
+# v3 (DG1 19:4xZ order, SM's mur residues; DG5's contract 19:31Z, ruled by DG1 19:32Z): d1-* the NO-HISTORY class · d2-* the per-keypress stamp memo ·
+# d3-* the hierarchy layer at top>0 · d4-* the cache RULE VERSION. The contract the rows pin:
+#   viewport._with_legacy(frames, root, top=0, height=None, hier=0) memoises in the module dict viewport._LEGACY_MEMO, key = (str(root), top, height, hier, the window's node ids);
+#   a second call with an equal key runs NO subprocess and returns equal frames; the stamp window is frames[max(0, top - hier) : top + height] (hier = the human pane's lines above the frames).
+#   legacy.cache_path() ends in legacy.v1.tsv (rows `path TAB season TAB last-commit TAB mark`); a legacy.tsv beside it is never read nor rewritten.
+# NOT pinned (DG1 19:32Z): the memo key has no HEAD, so a commit made while a viewport is open shows after a scroll to a window with different node ids.
+# ====================================================================================================
+
+ORDER = list(EXPECT)                                    # goal:root, goal:a, goal:b, goal:g2, build:x, build:z  (the hand-made frame order of the d2 / d3a rows)
+A_PATH = ".agi/nodes/goal/a.md"
+GOALS = ".agi/nodes/goal"
+
+
+def test_d1a_a_path_with_no_history_reads_a_question_mark_and_an_empty_label(tmp_path, monkeypatch):
+    """legacy.py:44: mark() on a path with NO history at rev is '?' and label() renders it as '' (never '[legacy]'); a path WITH history beside it is not '?'."""
+    repo = Repo(tmp_path, "nohist2")
+    sha = repo.edit(f"{B}/x.md", node_text("build:x", "build", 1, ["mvp:e"], season=2), "x")
+    monkeypatch.chdir(repo.dir)
+    L = load_legacy()
+    nope = f"{B}/nope.md"
+    assert L.mark(sha, "2", nope) == "?"
+    assert L.label(sha, "2", nope) == "" and L.label(sha, "2", nope, {}) == "", (L.label(sha, "2", nope), L.label(sha, "2", nope, {}))
+    assert L.mark(sha, "2", f"{B}/x.md") != "?" and L.label(sha, "2", f"{B}/x.md") == "[legacy]"
+
+
+def test_d1b_labels_omits_a_path_that_has_no_history(tmp_path, monkeypatch):
+    """legacy.py:85 `if p not in last: continue`: a node file WRITTEN BUT NEVER COMMITTED (and a path git has never seen) is OMITTED from labels() (no key, not a computed blank),
+    while a committed node beside it keeps its label."""
+    repo = build_v(tmp_path)
+    monkeypatch.chdir(repo.dir)
+    L = load_legacy()
+    import nest
+    nodes = nest.graph("HEAD")
+    ghost = f"{GOALS}/uncommitted.md"
+    (repo.dir / ghost).write_text(node_text("goal:uncommitted", "goal", 40, ["goal:root"], title='"T-ghost"', season=3))
+    out = L.labels("HEAD", "3", [nodes["goal:a"][0], ghost, f"{GOALS}/never-existed.md"], nodes)
+    assert out == {nodes["goal:a"][0]: "[legacy ⊃2]"}, out
+
+
+def test_d1c_an_uncommitted_node_file_carries_no_mark_in_either_view(tmp_path):
+    """The viewport with a node file written but never committed: its line is in BOTH `--emit human` and `--emit llm` (not vacuous) and carries NO mark in either; the committed
+    nodes keep theirs; --verify exits 0."""
+    repo = build_v(tmp_path)
+    repo.write(f"{GOALS}/g9.md", node_text("goal:g9", "goal", 41, ["goal:root"], title='"T-g9"', season=3))
+    human, llm = vp(repo, "--emit", "human"), vp(repo, "--emit", "llm")
+    assert human.returncode == 0 and llm.returncode == 0, (human.stderr[-300:], llm.stderr[-300:])
+    assert MARK_RE.findall(line_of(human.stdout, "T-g9")) == [] and MARK_RE.findall(line_of(llm.stdout, "`goal:g9`")) == [], (line_of(human.stdout, "T-g9"), line_of(llm.stdout, "`goal:g9`"))
+    assert MARK_RE.findall(line_of(llm.stdout, "`goal:a`")) == ["[legacy ⊃2]"]
+    v = vp(repo, "--verify")
+    assert v.returncode == 0 and "PASS" in v.stdout, (v.returncode, v.stdout[-300:], v.stderr[-300:])
+
+
+# ---- d2: the per-keypress stamp memo (in-process: viewport.py is imported from BIN) ----
+
+@pytest.fixture
+def vpmod():
+    sys.path.insert(0, str(BIN))
+    import viewport
+    memo = getattr(viewport, "_LEGACY_MEMO", None)
+    for d in (memo, viewport._LEGACY_GRAPH):
+        if d is not None:
+            d.clear()
+    yield viewport
+    for d in (getattr(viewport, "_LEGACY_MEMO", None), viewport._LEGACY_GRAPH):
+        if d is not None:
+            d.clear()
+
+
+class GitCount:
+    """Counts every child process (subprocess.run builds a Popen, so patching Popen sees run AND Popen users in viewport, legacy and nest)."""
+
+    def __init__(self, monkeypatch):
+        self.calls: list = []
+        real = subprocess.Popen
+        calls = self.calls
+
+        def counted(*a, **k):                                 # a function, not a subclass: a conftest may already have wrapped Popen
+            calls.append(a[0] if a else k.get("args"))
+            return real(*a, **k)
+
+        monkeypatch.setattr(subprocess, "Popen", counted)
+
+
+def fr(v, nid: str, title: str = ""):
+    return v.Frame(node_id=nid, type=nid.split(":")[0], depth=0, kind="leaf", title=title or nid, verdict="", damaged="", agents=())
+
+
+def stamp(v, frames, root, top, h, hier=0):
+    return v._with_legacy(frames, root, top, h, **({"hier": hier} if hier else {}))
+
+
+def window(top: int, h: int, hier: int, n: int) -> range:
+    return range(max(0, top - hier), min(n, top + h))
+
+
+def test_d2a_a_second_call_with_an_equal_key_runs_no_subprocess_and_returns_equal_frames(tmp_path, monkeypatch, vpmod):
+    """The interactive loop redraws per key: the SAME window must not walk git again (1.3-1.6 s per scroll step). First call: git runs (not vacuous) and the marks are right;
+    second identical call: 0 child processes, frames EQUAL to the first call's."""
+    repo = build_v(tmp_path)
+    root = repo.dir / ".agi"
+    frames = [fr(vpmod, nid) for nid in ORDER]
+    g = GitCount(monkeypatch)
+    first = stamp(vpmod, frames, root, 0, 6)
+    n1 = len(g.calls)
+    assert n1 > 0, "the first call must run git: the count is not vacuous"
+    assert [f.legacy for f in first] == [EXPECT[nid][1] for nid in ORDER], [f.legacy for f in first]
+    second = stamp(vpmod, frames, root, 0, 6)
+    assert len(g.calls) == n1, f"a second equal call ran {len(g.calls) - n1} child process(es): {g.calls[n1:][:3]}"
+    assert second == first
+
+
+@pytest.mark.parametrize("part", ["top", "height", "hier", "one window id", "root"])
+def test_d2b_a_changed_key_part_recomputes(tmp_path, monkeypatch, vpmod, part):
+    """Each part of the key (root, top, height, hier, ONE node id in the window) changed alone, after a warm call, runs git again and stamps the NEW window right. The frames of
+    the top / height / hier cases repeat ONE node, so the window's node ids are equal across the two calls and only that one part differs."""
+    repo = build_v(tmp_path)
+    root = repo.dir / ".agi"
+    same = [fr(vpmod, "goal:a")] * 10
+    mixed = [fr(vpmod, nid) for nid in ORDER]
+    mixed2 = [*mixed[:2], fr(vpmod, "goal:g2"), *mixed[3:]]
+    cases = {  # part -> (frames1, args1, frames2, args2, root2)   args = (top, height, hier)
+        "top": (same, (2, 3, 0), same, (3, 3, 0), root),
+        "height": (same, (8, 3, 0), same, (8, 4, 0), root),
+        "hier": (same, (1, 2, 3), same, (1, 2, 5), root),
+        "one window id": (mixed, (0, 6, 0), mixed2, (0, 6, 0), root),
+        "root": (mixed, (0, 6, 0), mixed, (0, 6, 0), build_v(tmp_path / "two").dir / ".agi"),
+    }
+    f1, a1, f2, a2, root2 = cases[part]
+    stamp(vpmod, f1, root, *a1[:2], hier=a1[2])
+    g = GitCount(monkeypatch)
+    out = stamp(vpmod, f2, root2, a2[0], a2[1], hier=a2[2])
+    assert len(g.calls) > 0, f"{part}: the changed key was served from the memo (0 child processes)"
+    win = window(*a2, len(f2))                       # the stamp is keyed by node id, so a REPEATED id is stamped outside the window too: judge the window only
+    got = [out[i].legacy for i in win]
+    assert win and got == [EXPECT[f2[i].node_id][1] for i in win], (part, got)
+
+
+def test_d2c_clearing_the_memo_resets_it(tmp_path, monkeypatch, vpmod):
+    """viewport._LEGACY_MEMO exists (a dict), a warm call fills it, .clear() empties it, and the same call then runs git again."""
+    repo = build_v(tmp_path)
+    root = repo.dir / ".agi"
+    frames = [fr(vpmod, nid) for nid in ORDER]
+    stamp(vpmod, frames, root, 0, 6)
+    memo = getattr(vpmod, "_LEGACY_MEMO", None)
+    assert isinstance(memo, dict) and len(memo) >= 1, memo
+    g = GitCount(monkeypatch)
+    stamp(vpmod, frames, root, 0, 6)
+    assert len(g.calls) == 0, "warm: served from the memo"
+    memo.clear()
+    stamp(vpmod, frames, root, 0, 6)
+    assert len(g.calls) > 0, "after _LEGACY_MEMO.clear() the call must recompute"
+
+
+# ---- d3: the hierarchy layer at top > 0 ----
+
+def test_d3a_the_stamp_window_is_the_union_of_what_the_human_pane_shows_and_what_llm_shows(tmp_path, vpmod):
+    """With `hier` lines above the frames the human pane (layer hierarchy) shows frames[top-hier : top+h-hier] and `--emit llm` shows frames[top : top+h]; the stamp covers
+    frames[max(0, top-hier) : top+h] and NOTHING else (a frame outside both windows is not walked: its mark stays ''). Second case: hier > top clamps the start to 0."""
+    repo = build_v(tmp_path)
+    root = repo.dir / ".agi"
+    for top, h, hier in ((3, 2, 2), (1, 2, 3)):
+        vpmod._LEGACY_MEMO.clear() if hasattr(vpmod, "_LEGACY_MEMO") else None
+        frames = [fr(vpmod, nid) for nid in ORDER]
+        out = stamp(vpmod, frames, root, top, h, hier=hier)
+        win = window(top, h, hier, len(frames))
+        want = [EXPECT[f.node_id][1] if i in win else "" for i, f in enumerate(frames)]
+        assert [f.legacy for f in out] == want, ((top, h, hier), [f.legacy for f in out], want)
+        assert any(w for w in want) and any(EXPECT[ORDER[i]][1] and i not in win for i in range(len(ORDER))), "the case must have a marked frame inside AND outside the window"
+
+
+POSTS = """---
+id: config:posts
+mint_id: {m}
+type: config
+parents: []
+posts:
+  - name: dg-a
+    role: director
+    tier: 2
+    owning_goal: goal:root
+  - name: dg-b
+    role: parent
+    tier: 3
+    personality_ref: goal:a
+  - name: dg-c
+    role: kid
+    tier: 1
+---
+body
+"""
+
+
+def add_posts(repo: Repo) -> None:
+    """Three seats (two anchored, one not): the hierarchy layer is then 4 lines (the header + 3) above the frames in the human pane."""
+    repo.write(".agi/nodes/.geometry/posts.md", POSTS.format(m=mint(30)))
+    repo.commit("posts", ".agi/nodes/.geometry/posts.md")
+
+
+def frame_marks(out: str, view: str) -> dict:
+    """{node id: [marks on its line]} for the frame lines SHOWN in a view of EXPECT's nodes (human: the `~ `-prefixed lines of the hierarchy layer, found by title; llm: `id` lines)."""
+    shown = {}
+    for nid, (title, _) in EXPECT.items():
+        if view == "llm":
+            hits = [l for l in out.splitlines() if l.lstrip().startswith("- ") and f"`{nid}`" in l]
+        else:
+            hits = [l for l in out.splitlines() if l.startswith("~ ") and re.search(rf"\b{re.escape(title)}\b", l)]
+        if hits:
+            assert len(hits) == 1, (nid, hits)
+            shown[nid] = MARK_RE.findall(hits[0])
+    return shown
+
+
+def test_d3b_the_cli_hierarchy_layer_at_top_5_prints_the_true_label_on_every_frame_either_view_shows(tmp_path):
+    """`viewport.py --live --layer hierarchy --top 5 --height 3`: the human pane shows frames 1..3 (4 hierarchy lines come first), `--emit llm` shows frames 5..7. EVERY frame either
+    view shows carries its true label (EXPECT), the human pane's goal:root (a marked frame in the shifted-in part) included, and the llm slice carries the same label wherever the two overlap."""
+    repo = build_v(tmp_path)
+    add_posts(repo)
+    outs = {}
+    for view in ("human", "llm"):
+        r = vp(repo, "--live", "--layer", "hierarchy", "--emit", view, "--top", "5", "--height", "3")
+        assert r.returncode == 0, (view, r.returncode, r.stderr[-300:])
+        outs[view] = frame_marks(r.stdout, view)
+    assert "goal:root" in outs["human"] and "build:z" in outs["llm"], f"the fixture must show a marked frame in each view: {outs}"
+    for view, shown in outs.items():
+        for nid, marks in shown.items():
+            want = EXPECT[nid][1]
+            assert marks == ([want] if want else []), f"{view} view: {nid} reads {marks}, want {[want] if want else []}"
+    for nid in set(outs["human"]) & set(outs["llm"]):
+        assert outs["human"][nid] == outs["llm"][nid], nid
+
+
+def test_d3c_the_graph_layer_at_top_5_is_unchanged_control(tmp_path):
+    """Control (GREEN before and after the re-cut): in the graph layer the human pane and `--emit llm` show the SAME frames 5..7 and print the same true labels."""
+    repo = build_v(tmp_path)
+    add_posts(repo)
+    outs = {}
+    for view in ("human", "llm"):
+        r = vp(repo, "--live", "--layer", "graph", "--emit", view, "--top", "5", "--height", "3")
+        assert r.returncode == 0, (view, r.stderr[-300:])
+        txt = r.stdout
+        if view == "human":                                          # graph layer: the frame lines are un-prefixed; pick them by title
+            shown = {}
+            for nid, (title, _) in EXPECT.items():
+                hits = [l for l in txt.splitlines() if not l.startswith("~ ") and re.search(rf"^\s*\S+ [A-Za-z?] {re.escape(title)}\b", l)]
+                if hits:
+                    shown[nid] = MARK_RE.findall(hits[0])
+            outs[view] = shown
+        else:
+            outs[view] = frame_marks(txt, view)
+    assert outs["human"] == outs["llm"] and "build:z" in outs["llm"], outs
+    for nid, marks in outs["llm"].items():
+        assert marks == ([EXPECT[nid][1]] if EXPECT[nid][1] else []), (nid, marks)
+
+
+# ---- d4: the cache carries a RULE VERSION (legacy.v1.tsv) ----
+
+def cache_dir(home: Path) -> Path:
+    return home / ".cache" / "agi"
+
+
+def seed(home: Path, name: str, rows: list) -> str:
+    d = cache_dir(home)
+    d.mkdir(parents=True, exist_ok=True)
+    text = "".join("\t".join(r) + "\n" for r in rows)
+    (d / name).write_text(text)
+    return text
+
+
+def test_d4a_the_cache_file_is_named_legacy_v1_tsv(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "xdg"))
+    assert Path(load_legacy().cache_path()) == tmp_path / "xdg" / "agi" / "legacy.v1.tsv"
+
+
+def test_d4b_a_planted_row_in_the_old_legacy_tsv_is_ignored_and_the_file_is_not_rewritten(tmp_path):
+    """goal:a's true mark is `legacy` (label `[legacy ⊃2]`). A WRONG row (`-` = graphed, label `[⊃2]`) for goal:a at season 3 and its REAL newest commit is planted in the OLD name
+    legacy.tsv: the mark is recomputed (the old file is from the rule before the version), and the old file stays byte for byte."""
+    repo = build_v(tmp_path)
+    home = tmp_path / "h4b"
+    home.mkdir()
+    sha = repo.g("log", "-1", "--format=%H", "--", A_PATH)
+    old = seed(home, "legacy.tsv", [(A_PATH, "3", sha, "-")])
+    r = vp2(repo, "--emit", "llm", home=home)
+    assert r.returncode == 0, r.stderr[-300:]
+    assert mark_on(r.stdout, "goal:a") == ["[legacy ⊃2]"], f"the planted legacy.tsv row was served: {mark_on(r.stdout, 'goal:a')}"
+    assert (cache_dir(home) / "legacy.tsv").read_text() == old, "legacy.tsv was rewritten"
+
+
+def test_d4c_a_matching_row_in_legacy_v1_tsv_is_served_control(tmp_path):
+    """Control (the cache still works): the SAME wrong row planted in legacy.v1.tsv, matching goal:a's newest commit, IS served: the label reads `[⊃2]`."""
+    repo = build_v(tmp_path)
+    home = tmp_path / "h4c"
+    home.mkdir()
+    sha = repo.g("log", "-1", "--format=%H", "--", A_PATH)
+    seed(home, "legacy.v1.tsv", [(A_PATH, "3", sha, "-")])
+    r = vp2(repo, "--emit", "llm", home=home)
+    assert r.returncode == 0, r.stderr[-300:]
+    assert mark_on(r.stdout, "goal:a") == ["[⊃2]"], f"a matching legacy.v1.tsv row was not served: {mark_on(r.stdout, 'goal:a')}"
+
+
+def test_d4d_a_run_writes_legacy_v1_tsv_in_four_columns_and_no_legacy_tsv(tmp_path):
+    repo = build_v(tmp_path)
+    home = tmp_path / "h4d"
+    home.mkdir()
+    r = vp2(repo, "--emit", "llm", home=home)
+    assert r.returncode == 0, r.stderr[-300:]
+    sha = repo.g("log", "-1", "--format=%H", "--", A_PATH)
+    rows = [l.split("\t") for l in (cache_dir(home) / "legacy.v1.tsv").read_text().splitlines()]
+    assert rows and all(len(c) == 4 for c in rows), rows
+    assert [A_PATH, "3", sha, "legacy"] in rows, rows
+    assert not (cache_dir(home) / "legacy.tsv").exists(), "a run created the old-name file"
+
+
+# ---- d4e / d4f: the DOC (doc:rse-d3-legacy) documents the versioned cache (DG1 19:5xZ, the doc line 1e41179fe7). Env D3_REPO=<repo> reads the doc from another tree. ----
+
+DOC_REL = ".agi/nodes/doc/rse-d3-legacy.md"
+
+
+def cache_doc_line() -> str:
+    top = os.environ.get("D3_REPO") or subprocess.run(["git", "-C", str(HERE.parent), "rev-parse", "--show-toplevel"], capture_output=True, text=True).stdout.strip()
+    assert top, "run inside the repo"
+    text = (Path(top) / DOC_REL).read_text()
+    hits = [l for l in text.splitlines() if "a per-user cache file" in l]
+    assert len(hits) == 1, f"{DOC_REL}: {len(hits)} lines name the per-user cache file"
+    return hits[0]
+
+
+def test_d4e_the_doc_documents_legacy_v1_tsv_and_the_four_column_row():
+    """The doc's cache line: names the file `agi/legacy.v1.tsv`; documents the row as exactly FOUR columns in the order path, season, last-commit, mark (a code span of 4 fields joined
+    by ` TAB `); says an old-name file is never read; and no longer names `agi/legacy.tsv` as the cache (the old name appears only after the words 'old-name')."""
+    line = cache_doc_line()
+    assert "agi/legacy.v1.tsv" in line, line[-400:]
+    spans = [s for s in re.findall(r"`([^`]*)`", line) if " TAB " in s]
+    assert len(spans) == 1, spans
+    cols = spans[0].split(" TAB ")
+    assert len(cols) == 4 and cols[:3] == ["path", "season", "last-commit"] and cols[3].startswith("legacy"), cols
+    assert "agi/legacy.tsv" not in line, "the doc still names agi/legacy.tsv as the cache"
+    assert "never read" in line, "the doc must say an old-name cache file is never read"
+    for m in re.finditer(r"legacy\.tsv", line):
+        assert "old-name" in line[:m.start()], f"legacy.tsv named before the old-name sentence: {line[max(0, m.start() - 60):m.end()]}"
+
+
+def test_d4f_the_doc_names_the_file_the_code_uses(monkeypatch, tmp_path):
+    """The doc and legacy.cache_path() agree on the cache file's name (the rule version in the name is one fact, not two)."""
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "xdg"))
+    name = Path(load_legacy().cache_path()).name
+    assert f"agi/{name}" in cache_doc_line(), (name, cache_doc_line()[-300:])

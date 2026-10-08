@@ -295,33 +295,43 @@ def default_roots(g, fm_by_id: dict) -> list[str]:
 # Formatters. BOTH consume `frames` and nothing else.
 # --------------------------------------------------------------------------
 
-_LEGACY_GRAPH: dict = {}   # HEAD sha -> nest.graph(HEAD): the interactive view redraws per key, the graph load (seconds) is per commit
+_LEGACY_GRAPH: dict = {}   # HEAD sha -> nest.graph(HEAD): the graph load (seconds) is per commit
+_LEGACY_MEMO: dict = {}    # (root, top, height, hier, window ids) -> {node id: label}: an identical redraw runs no git at all
 
 
-def _with_legacy(frames: list[Frame], root, top: int = 0, height: int | None = None) -> list[Frame]:
+def _with_legacy(frames: list[Frame], root, top: int = 0, height: int | None = None, hier: int = 0) -> list[Frame]:
     """D3 (goal:g7.16.1.11.22): stamp the legacy mark on the frames in view
-    (`top`..`top+height`, all when `height` is None) ONCE, so both readers
-    print the same string (goal:g2.19). Only the window is stamped: a mark
-    costs a history walk (a cache keeps it warm), and the stream behind the
-    window is never drawn. Computed at HEAD of the repo holding `root`, season
-    = ladder.md's `current_season` at HEAD, from the node file's own history
-    (legacy.py); fails open to no mark (a graph outside git, an unreadable
-    history) -- never a traceback in the view."""
+    ONCE, so both readers print the same string (goal:g2.19). Only the window
+    is stamped: a mark costs a history walk (a cache keeps it warm), and the
+    stream behind the window is never drawn. `hier` = the lines the human pane
+    puts ABOVE the frame lines (the hierarchy layer on top); the window is the
+    union of what the human pane (frames[top-hier:top+height-hier]) and
+    `--emit llm` (frames[top:top+height]) show. Computed at HEAD of the repo
+    holding `root`, season = ladder.md's `current_season` at HEAD, from the node
+    file's own history (legacy.py). The result is memoised per window for the
+    process's life (the interactive graph is a startup snapshot too): a second
+    identical call spawns no git; a commit made while a viewport is open shows
+    only after a scroll to a window with different node ids. Fails open to no mark (a graph outside git,
+    an unreadable history) -- never a traceback in the view."""
     here = os.getcwd()
     try:
         import dataclasses
-        import legacy
-        import nest
-        os.chdir(Path(root).parent)          # legacy.py and nest.py run git in the cwd
-        head = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip() or "HEAD"
-        nodes = _LEGACY_GRAPH.get(head)
-        if nodes is None:
-            _LEGACY_GRAPH.clear()
-            nodes = _LEGACY_GRAPH[head] = nest.graph(head)
         end = len(frames) if height is None else top + height
-        view = [f for f in frames[top:end] if f.node_id in nodes]
-        marks = legacy.labels(head, legacy.season_of(head), [nodes[f.node_id][0] for f in view], nodes)
-        stamp = {f.node_id: marks.get(nodes[f.node_id][0], "") for f in view}
+        view = frames[max(0, top - hier):end]
+        key = (str(root), top, height, hier, tuple(f.node_id for f in view))
+        stamp = _LEGACY_MEMO.get(key)
+        if stamp is None:
+            import legacy
+            import nest
+            os.chdir(Path(root).parent)          # legacy.py and nest.py run git in the cwd
+            head = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip() or "HEAD"
+            nodes = _LEGACY_GRAPH.get(head)
+            if nodes is None:
+                _LEGACY_GRAPH.clear()
+                nodes = _LEGACY_GRAPH[head] = nest.graph(head)
+            seen = [f for f in view if f.node_id in nodes]
+            marks = legacy.labels(head, legacy.season_of(head), [nodes[f.node_id][0] for f in seen], nodes)
+            stamp = _LEGACY_MEMO[key] = {f.node_id: marks.get(nodes[f.node_id][0], "") for f in seen}
         return [dataclasses.replace(f, legacy=stamp[f.node_id]) if f.node_id in stamp else f for f in frames]
     except Exception as exc:                                     # noqa: BLE001
         print(f"viewport: legacy mark unavailable ({type(exc).__name__}: {exc})", file=sys.stderr)
@@ -1006,7 +1016,7 @@ def interactive(root: Path, g, fm_by_id, args) -> int:
             h, w = scr.getmaxyx()
             iter_name = iters[t_idx] if iters and t_idx >= 0 else None
             agents = agents_of_iteration(root, iter_name) if (live and iter_name) else {}
-            frames = _with_legacy(frame_stream(g, fm_by_id, anchor, depth, agents), root, top, h)
+            frames = frame_stream(g, fm_by_id, anchor, depth, agents)
 
             seats = None
             occupants = None
@@ -1027,6 +1037,8 @@ def interactive(root: Path, g, fm_by_id, args) -> int:
                 except Exception:                                    # noqa: BLE001
                     anchors = None
 
+            frames = _with_legacy(frames, root, top, h,
+                                  len(hierarchy_lines(anchors)) if (anchors is not None and layer == "hierarchy") else 0)
             status = (f"anchor={anchor or 'roots'} depth={depth} "
                       f"frames={len(frames)} "
                       f"time={iter_name or '-'} live={'on' if live else 'off'}"
@@ -1139,8 +1151,8 @@ def main() -> int:
         iter_name = pts[-1] if pts else None
     agents = agents_of_iteration(root, iter_name) if iter_name else {}
 
-    frames = _with_legacy(frame_stream(g, fm_by_id, args.anchor, args.depth, agents,
-                                       nodes_dir=str(root / "nodes")), root, args.top, args.height)
+    frames = frame_stream(g, fm_by_id, args.anchor, args.depth, agents,
+                          nodes_dir=str(root / "nodes"))
 
     # goal:g9.7, L1.04 — the briefing is built ONCE and handed to both
     # formatters, exactly as the frame stream is. Failing to build it is not
@@ -1201,6 +1213,8 @@ def main() -> int:
         except Exception:  # noqa: BLE001  (read-only, never a crash)
             freeze_lines = []
 
+    frames = _with_legacy(frames, root, args.top, args.height,
+                          len(hierarchy_lines(anchors)) if (anchors is not None and args.layer == "hierarchy") else 0)
     if args.verify:
         return _verify(frames, args, brief)
 

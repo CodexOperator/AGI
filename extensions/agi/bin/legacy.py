@@ -51,9 +51,9 @@ def label(rev, season, path, nodes=None):
     nodes = graph(rev) if nodes is None else nodes
     nid = next((i for i, (p, _) in nodes.items() if p == path), None)
     return render(mark(rev, season, path), contains(nodes, nid))
-# the cache: ${XDG_CACHE_HOME:-~/.cache}/agi/legacy.tsv  `path TAB season TAB last-commit TAB mark`, never committed, rebuilt whole when missing.
+# the cache: ${XDG_CACHE_HOME:-~/.cache}/agi/legacy.v1.tsv  `path TAB season TAB last-commit TAB mark`, never committed, rebuilt whole when missing.
 # The mark depends only on the commits touching the path, so it is keyed by the path's newest commit; k is NOT cached (a subtree's members change with no commit on the container).
-def cache_path(): return os.path.join(os.environ.get("XDG_CACHE_HOME") or os.path.join(os.path.expanduser("~"), ".cache"), "agi", "legacy.tsv")
+def cache_path(): return os.path.join(os.environ.get("XDG_CACHE_HOME") or os.path.join(os.path.expanduser("~"), ".cache"), "agi", "legacy.v1.tsv")
 def cache_read():
     try:
         with open(cache_path(), encoding="utf-8") as f: rows = [l.rstrip("\n").split("\t") for l in f]
