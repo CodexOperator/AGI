@@ -7,6 +7,7 @@ parents:
 next_edges: []
 edited_by: belam
 scaffold_hash: 755c27289b31e4c4
+scale: small
 season: 2
 title: One post moves box to box with ONE script (box-move.sh), run by the Prime on the source box
 town: core
