@@ -1,0 +1,219 @@
+---
+id: experiment:a00-fb8c4f95-cd7594
+mint_id: 40e6423fc0764c9a8a62944c0a904034
+type: experiment
+parents:
+  - hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-refused
+next_edges: []
+confidence: 0.85
+edited_by: a00-ac24f72d
+evidence_runs:
+  - experiment:a00-fb8c4f95-cd7594
+loop: hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-refused@s2
+model: stealth/space-bunny-alpha
+production_lines: 49
+profile: balanced
+role: kid
+scaffold_hash: ea5ca193065e5b07
+season: 2
+title: a live row is stamped with its own box at seating and an unset box is refused
+town: core
+verdict: inconclusive_lean_proved:85
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-fb8c4f95-cd7594
+
+## Dispatch line, answered FIRST (before any code)
+
+**The ONE writer that seats a live row:** `extensions/agi/bin/rotate.py:9478
+_write_identity_cells` (the identity cells of `config:posts`/`seats` in MAIN's
+graph), reached from the seating caller `rotate.py:9525 _successor_row_write`.
+Its `cells` dict is what a live row is born carrying.
+
+**The two `rec["box"]` writes are NOT the row's box label** — checked, as told:
+- `rotate.py:5658` and `rotate.py:6313` both set `rec["box"] = _box_fact()` on a
+  ROTATION RECORD (`nodes/.geometry/rotations.md`): the LOAD-FACT dict
+  `{loadavg, cores}` of the machine that rotated, not a locality label. Nothing
+  in either path touches a `config:posts` row.
+- Before this round, the ONLY write of a live row's `box` cell anywhere in
+  `extensions/agi/bin` was `cmd_migrate_receive` (`rotate.py:21608-21618`),
+  which writes it through `_migrate_seating_actor` — the schema's `actor_rows`
+  grant. Measured: 3 of ~12 live rows carry `box: local-town`; the rest carry
+  none, so `row_is_local` resolved them through `default_box` (`core-town`) and
+  on a non-core box they read as FOREIGN (belam 00:35Z: 6 rows).
+
+**Why the seat-row writer could not just write `box` itself:** `box` is NOT in
+`context/schemas/[config].md` `self_row.fields`, and an owner line says so
+verbatim (SM.123 slice 5, 09-19): "seating cells (box, worktree) are the
+master's to write, never a post's own (owner 14:5xZ 09-18 + 01:0xZ 09-18)". A
+post's own write of `box` is REFUSED by `write._enforce_written_by` — a post may
+not re-seat itself (L4.110 ruling B). So the stamp runs under the SEATING actor
+the schema grants, through the same ONE writer, exactly the authority path
+quick-migrate already uses. No schema byte was touched (out of FILE SCOPE).
+
+## What I built (claims 1 and 2)
+
+| file:line | change |
+|---|---|
+| `extensions/agi/bin/boxes.py:153` `this_box` | env `AGI_BOX` → the box env file → **REFUSE**. The `default_box` fallback is GONE; the refusal names `default_box` as documentation, never a fallback. |
+| `extensions/agi/bin/boxes.py:168` `row_is_local` | a row is local only when its OWN `box` cell equals this box. Empty / unknown / `'(default)'` is NEVER a match on a declared box. The one retained fail-open: a graph declaring NO box at all stays single-box (a dev graph must not go dark), and a row naming a box there is still foreign. |
+| `extensions/agi/bin/rotate.py:9669` `_stamp_row_box` (new, called from `_successor_row_write` after its one row write lands) | a row with no `box` cell gets its own `box` from `AGI_BOX`, through `_write_identity_cells` under `_migrate_seating_actor` (the schema grant). Fires ONCE per row, never rewrites a row that names its box, and its outcome is appended to the row-write line (`box=local-town` / `box=(undeclared…)` / `box=STAMP REFUSED (…)`). |
+| `extensions/agi/bin/send.py:2202` | the foreign-row refusal names `box (unset)`, not `box (default)` — the default it used to print no longer exists. |
+
+## THE FALLBACK CENSUS — every caller, and what it does after the change
+
+Grep: `grep -rn "row_is_local\|default_box(\|this_box(" extensions/agi/bin`
+
+| caller | after this change |
+|---|---|
+| `boxes.py:159` `this_box` (the fallback itself) | **removed**; an unset `AGI_BOX` now raises. `default_box()` is still READABLE and is now documentation only. |
+| `boxes.py:181` `row_is_local` | boxless/unknown row ⇒ foreign on any declared box. |
+| `send.py:2198` nudge target refusal | stricter: a boxless row is refused, and the line says `box (unset)`. This is the intended fix (belam 00:35Z). |
+| `send.py:2842` `wake_all_local` | a boxless row is no longer woken on a declared box. **Relies on the old fail-open** for boxless rows: work queued for a not-yet-stamped row waits until its first rotation stamps it. |
+| `send.py:4573` `_whois_answer` | a boxless row's `@id` is no longer asserted as this box's dial-able truth; the answer names the box instead. Safer, and the owner asked for it. |
+| `send.py:5519` `mail_poll --box-local` | a boxless row's inbox is SKIPPED as foreign until stamped. **The loudest consequence**: mail_poll stops reading an unstamped row's dm channels. Stamping at seating is what makes it stop skipping. |
+| `heal.py:3594` watch `pid_rows` | a boxless row is not watched (not killed/rotated by heal) on a declared box, until stamped. **Relies on the old behaviour**; this is the one that could make a live seat look unhealed. |
+| `heal.py:3597` watch `foreign` | the same rows are now named in the `watch: skipped foreign-box seat(s)` log line, so the cause is visible instead of silent. |
+| `rotate.py:3416` `--seats` listing | a boxless row is listed as foreign (it already was, via `default_box`, on a non-core box) and prints `box=(default)` — a stale name I could not fix (rotate.py print is outside the file scope I was given). |
+| `rotate.py:21310` `cmd_migrate` | already `try/except` → `REFUSED:` line. Unchanged behaviour, new message text. |
+| `rotate.py:21530` `cmd_migrate_receive` | same: already guarded; a boxless row is foreign until stamped, and the migrate tick writes the stamp itself. |
+| `crons.py:800/1100` `_this_box` | `try/except` → `""` → `_on_this_box` gates NOTHING. Unchanged, but the trap is now louder: a box whose env never set `AGI_BOX` runs EVERY box's jobs. Named here, not fixed (crons.py is out of scope). |
+| `agi-boxinfo:12` | resolves the alias through `this_box`; undeclared now raises instead of printing `core-town`. |
+
+## Evidence (built bytes, temp graphs only)
+
+- `extensions/agi/tests/test_box_identity.py` (new, **17 tests, all pass** — the
+  "12" this node carried was WRONG; corrected IN PLACE at DH.525, kid
+  a00-35013368, from a real re-run: `--collect-only` → `17 tests collected`,
+  `-q` → `17 passed in 0.16s`) — the falsifiers the hypothesis names,
+  each as an assertion:
+  `test_falsifier_unset_agi_box_refuses_instead_of_defaulting` (pre-fix this
+  returned `core-town`), `test_falsifier_empty_row_box_is_never_local`,
+  `test_falsifier_unknown_row_box_is_not_local_on_any_box` (loops four labels),
+  `test_falsifier_default_string_is_never_a_match`,
+  `test_seating_stamps_the_live_row_box` (a real `write.submit` through the
+  master's grant lands `box: local-town` on the row),
+  `test_seating_never_rewrites_a_row_that_names_its_box`,
+  `test_seating_writes_no_box_when_the_graph_names_none`,
+  and the (3) once-only family this node first listed only three of:
+  `test_falsifier_two_sweeps_print_the_refusal_once`,
+  `test_falsifier_refusal_names_an_unset_box_as_unset`,
+  `test_falsifier_cause_change_on_one_row_is_named_again`,
+  `test_falsifier_no_send_keys_reaches_the_foreign_window`,
+  `test_falsifier_two_foreign_causes_on_one_row_both_named`.
+- `17 passed` for the new file (real output, DH.525 re-run). The `461 passed`
+  neighbourhood figure below is that round's; the CURRENT tree (with kid 1's
+  re-pinned `test_box_guard.py` and this round's durable-memo change)
+  measures **876 passed, 6 skipped** over `test_box_guard test_box_identity
+  test_foreign_refusal_durability test_crons test_send test_send_quiet
+  test_rotate test_bin_help_smoke`.
+- Wider box neighbourhood, RE-MEASURED at DH.577 — the red tree this paragraph
+  asserted does not exist. On the current tree:
+
+  ```
+  $ python3 -m pytest extensions/agi/tests/test_box_guard.py -q
+  .......                                                       [100%]
+  7 passed in 1.39s
+  ```
+
+  WHERE the two tests went, read off the file rather than guessed:
+  `test_no_box_cell_is_default_box_and_local` was RENAMED AND REWRITTEN as
+  `test_unset_box_is_refused_by_name_not_defaulted` (test_box_guard.py:48) —
+  the old `this_box == default_box` assert became `pytest.raises(RuntimeError)`
+  with the message required to name both `AGI_BOX` and `default_box`, and
+  `boxes.default_box(root)` still asserted to read (documentation ≠ fallback).
+  `test_this_box_reads_agi_box_env` KEPT its name and is at test_box_guard.py:60;
+  its unset-half was re-pinned to raise. Neither was deleted, and the file is
+  green, so the "someone with test scope must … or the tree stays red" ask is
+  WITHDRAWN — it was satisfied on the node `experiment:a00-114ee609-176796`.
+  Near miss this edit refuses: deleting the two tests instead of re-pinning them
+  would also leave a green tree and would pin nothing.
+
+## The one thing I did NOT make fail-closed, and why
+
+A graph that declares no box at all (no `AGI_BOX` in the env or the env file)
+stays a single-box graph: a boxless row is still local there. Making that
+fail-closed too broke 8 tests in `test_send.py` whose fixtures are exactly such
+graphs — and would make `heal` and `mail_poll` stop working on any dev graph and
+on any box whose ini never ran. The trade is named here rather than hidden: a
+box that never set `AGI_BOX` still sees boxless rows as local, while a box that
+DOES declare itself refuses them. The owner's ini routine (belam 21:0xZ) is the
+thing that closes that gap, not this code.
+
+## Lines
+
+`git diff --numstat` over the production paths: `boxes.py 19/13`,
+`rotate.py 29/1`, `send.py 1/1` = **49 added production lines** against a 40
+ceiling (under the 2x re-brief threshold, so no re-brief filed). The 19 in
+`boxes.py` are 12 of docstring/why and 7 of code; the 29 in `rotate.py` are one
+small function plus its call site.
+
+
+## OPEN RESIDUE (named at DH.577, deliberately NOT fixed here): the cron box gate strips four live jobs on a box whose ini never set AGI_BOX
+
+Instruction this answers, quoted from the dispatch: the fail-closed `_on_this_box`
+gate is right, and the harm it causes must be recorded on the node that raised
+that harm — the node whose own trade-note (above, "The one thing I did NOT make
+fail-closed") says making this fail-closed too "would make `heal` and `mail_poll`
+stop working on any dev graph and on any box whose ini never ran". The cron path
+carried no such caveat, so the cost was priced in one direction only.
+
+| what the machine does | where |
+|---|---|
+| `cron:crons` gates FOUR enabled jobs with `box: local-town` | `.agi/nodes/.geometry/crons.md:18` (mail_poll), `:32` (maint_gc), `:38` (prime_merge), `:44` (memory_alarm) |
+| `grid_sync`, `branch_push`, `nudge_sweep` carry NO `box` cell, so they are ungated and SURVIVE on any box | crons.md:8-16, `:26-29` |
+| an unnamed box (`own == ""`) makes every gated job return False | `extensions/agi/bin/crons.py:798-800` (`_on_this_box`) |
+| the refusal is rendered ONCE as a crontab COMMENT | crons.py:981-989 — visible, not prevented |
+| `grid_sync` re-applies the rendered crontab every 5 minutes | crons.md:8-10 (`every_mins: 5`) |
+
+Consequence, stated as a mechanism and not a worry: on any box whose ini never
+set `AGI_BOX`, `grid_sync` still runs and, within five minutes, re-writes that
+box's crontab WITHOUT mail_poll, maint_gc, prime_merge and memory_alarm — and
+then re-does it every five minutes after that. The banner at crons.py:981-989
+tells a human the four are refused; it does not keep them from being removed.
+`memory_alarm` is the loudest loss: it is the alarm installed on 09-26 against
+the 03:20Z memory livelock, and it stops being installed on exactly the boxes
+that never ran the ini routine that is supposed to name them.
+
+WHERE A FIX WOULD TOUCH — named for the director's findings row, not taken here:
+- `extensions/agi/bin/crons.py:798-800` — the gate itself. A fix here is a
+  DECISION about which jobs must survive an unnamed box (a documented
+  fail-open set, a per-job `survives_unnamed: true` cell, or the gate being
+  narrowed to only the jobs that are truly box-exclusive). That decision is
+  the owner's, not a kid's.
+- `.agi/nodes/.geometry/crons.md:15-45` — the alternative site: the four
+  `why_box` cells are the place a "this job may run on an unnamed box"
+  exception would be declared, next to the reason it is gated at all.
+- `extensions/agi/tests/test_box_guard.py:166` —
+  `test_crons_box_gate_fails_closed_on_an_unset_box` PINS the current contract
+  (no runnable line for a box-gated job on an unset box). Any fix that lets a
+  named job survive must change that test, so this residue is a paired
+  behaviour change, not a silent one.
+
+DEVIATION, with the property of this case: the standing rule is "fix it in
+place". This one is not fixed, and the property that makes the rule not apply
+is that the correct fix is a POLICY — which jobs must survive a graph that
+cannot name its own box — and a kid choosing that policy would be choosing an
+owner decision and wearing it as a mechanism. Recording it with the file:line
+is the honest form of "fix it in the graph first".
+## Agent Notes
+Built both claims: this_box refuses an unset AGI_BOX (no default_box fallback), row_is_local never matches an empty/unknown box, and the ONE seat-row writer stamps a live row's own box from AGI_BOX under the schema's seating grant; 12 new tests + 461 neighbourhood tests pass, but 2 legacy test_box_guard.py tests pin the removed fallback and are out of my file scope.
+
+PARENT REVIEW (a00-efb7f2a8, DH.498) — ACCEPTED at lean 85, with one named residue.
+
+READ THE BYTES, not the report: boxes.py:153 this_box (default_box fallback removed, refusal names default_box as documentation), boxes.py:168 row_is_local (own box only; fail-open narrowed to `not own`), rotate.py:9669 _stamp_row_box called from _successor_row_write:9665, send.py:2202 the refusal now names (unset). 49 production lines, all four paths inside the director FILE SCOPE. The seat-row writer it NAMED is real: rotate.py:9478 _write_identity_cells is the only writer of a live row identity cells, and rotate.py:5658/6313 rec["box"] are the LOAD-FACT dict on a rotation record, not the label — the kid checked that trap instead of assuming it.
+
+probes (run by the parent, script at .agi/sessions/iter-DH.498/a00-efb7f2a8/parent_probes_a.py, temp graphs only, never the live pane):
+- P1 GATE (conjunct 2): AGI_BOX unset in env AND env file with default_box: core-town present -> this_box RAISES (no silent core-town). On a DECLARED box, a row with no box cell / box "" / box "   " / box "(default)" / box "nonesuch" is not local, and "nonesuch" is not local on core-town, sanctuary or streaming-suite. HOLDS.
+- P2 WIRE (conjunct 1): drove the REAL rotate._successor_row_write on a temp graph with the ONE writer instrumented — the writer is called twice, cells [generation, session_id, session_label, session_name, session_ref, window] then [box], and the outcome line ends `box=local-town`; with AGI_BOX unset the second call never happens. The changed bytes are reached from the live seating call site, not only callable directly. HOLDS.
+- P3 AUTH (wrong-seat): with _migrate_seating_actor resolving empty (no seating grant) _stamp_row_box writes NOTHING and posts.md is byte-identical; a row already naming its box is never relabelled (posts.md byte-identical). HOLDS.
+
+CAVEAT I did not let ride (named here, not in a later harvest): the retained fail-open is real and observable — on a graph that declares NO box at all, a boxless row is still LOCAL (P1b note). That is a stated deviation from conjunct 2, not a hidden hole: the graph has no box identity to compare against. I accept it because the alternative (fail-closed there) took 8 test_send.py tests and would darken heal/mail_poll on every dev graph, and the kid measured that rather than guessing.
+
+RESIDUE, LEFT RED — CLOSED AT DH.577, and this paragraph is corrected in place because it told the next round to go and do work that is already done. It read: "test_box_guard.py::test_no_box_cell_is_default_box_and_local and ::test_this_box_reads_agi_box_env pin the removed `this_box == default_box` contract and now FAIL BY NAME … the tree is red until a round is granted that scope. Next round at this node should open by rewriting those two tests to the new contract." The measurement this round: `python3 -m pytest extensions/agi/tests/test_box_guard.py -q` → `7 passed in 1.39s` on the current tree. Both were re-pinned on node `experiment:a00-114ee609-176796` (one renamed to `test_unset_box_is_refused_by_name_not_defaulted`, test_box_guard.py:48; one kept its name and re-pinned at :60). Nothing here is red and no box code is owed.
+
+THE RESIDUE THAT IS STILL OPEN AT DH.577, and it is on the CRON side, not the test side: the fail-closed box gate at crons.py:798-800 removes mail_poll, maint_gc, prime_merge and memory_alarm from the crontab of any box that never set `AGI_BOX`, and the ungated `grid_sync` re-applies that removal every 5 minutes. Filed as a named open residue in this node's body (not fixed here — the fix is an owner policy decision about which jobs must survive an unnamed box).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW, first version, REWRITTEN WHOLE at DH.586 because the authored region and the body of the SAME version disagreed: viewport --emit llm hands the next kid the THOUGHT, and this copy still said the tree was left RED by two legacy test_box_guard.py tests and that the honest verdict therefore stays a lean. That was true when written and is false on the bytes now. The review itself stands: this node is ACCEPTED on the diff and on three parent-run probes, not on the kid own suite. (1) The instruction was review the BYTES (the tier-parent contract: a kid tests are its CLAIM). (2) The machine: the changed bytes were boxes.py:153/168, rotate.py:9669 plus its one call site at :9665, and the send.py clause -- and the parent probes drove the REAL rotate._successor_row_write with the ONE writer instrumented, so the box cell is seen leaving the live seating call site, not only callable directly. (3) The near miss this review had to refuse: a kid that defines _stamp_row_box, tests it directly, and never wires it into the seating path would have passed every test in its own file while the mechanism was dead; P2 exists exactly to kill that, and it did not fire. A second near miss: accepting the census of callers on trust -- the census is prose, and prose is not the byte. (4) Deviation, now superseded: the RED that held the verdict at a lean was the two legacy tests; both were re-pinned on experiment:a00-114ee609-176796 and test_box_guard.py measures 7 passed, so the residue named in this THOUGHT is CLOSED and the lean was only ever about those two tests. What is STILL open, and is the honest reason not to call this proved, is on the CRON side and not the test side: the fail-closed box gate strips mail_poll, maint_gc, prime_merge and memory_alarm from the crontab of any box that never set AGI_BOX, and the ungated grid_sync re-applies that every 5 minutes. That is an owner policy decision about which jobs must survive an unnamed box, and it is filed in the body of this node, not here.
+<!-- THOUGHT:END -->
