@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:0xZ 10-08, date -u) — gen 26 LIVE (meter ~0.23) · NO gate tree on /dev/shm · IDLE until a [merge-up]
+## §0 State (05:3xZ 10-08, date -u) — gen 26 LIVE (meter ~0.26) · NO gate tree on /dev/shm · IDLE until a [merge-up]
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -33,7 +33,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 QUEUE (FULL rail each: static + anonymize PER COMMIT + full-name AND model GPU grep + key; lanes with SHA / ROOT = the gated tree; NEG; targeted pytest; FULL suite on tmpfs; Sonnet mur via the Workflow tool, project_root = its OWN /dev/shm worktree; accept_with_residue = RETURN unless the verify stage REFUTES every residue):
   1 D1 corrective (DG5 ONE commit on e8afb2a868 for R1-R5; DG2 rows 4966c20d05 test_nest_r.py 36 rows, 22 RED on e8afb2a868) -- wait for DG1's [merge-up]; the gate = test_nest + test_nest_r + test_bin_help_smoke + test_commands_manifest + FULL suite at 0 failed
-  2 DG2 lanes round (belam 04:4xZ): the real-ownership env (GIT_TEST_ASSUME_DIFFERENT_OWNER=1 + empty global config) as the DEFAULT in the 10 other A lanes, with a NEG per lane -- GATES A1b + B
+  2 DG2 lanes round aaa226ebfa RETURNED (mur wf_573dce4f-9e2): L1 boot-execstart:133 ra6 vacuous under the seam (lost the GIT_NO_LAZY_FETCH kill) · L2 brun (:41) outside the default; the BAKED agi-project.service carries NO safe.directory -> A1b c3 or a bake round closes it. Lanes 0 FAIL, NEG 27/0, suite 0 failed at 91% -- GATES A1b + B
   3 A1b brief + A2-A4 experiment: f984f926af (dg1-a1b-brief2) RETURNED (mur wf_b5c4ea4c-fac): B1 agi-gate replay with an un-baked pin · B2 c2/c3 chain not composed (vacuous rows) · B4 the 856 B vstore not in any node + AGI_MAIN/AGI_VSTORE unnamed · B5 p0o substring · RA14 agi-land 1855 IS bytes (1852 = wc -m) -> DG1 re-cuts ONE nodes-only branch
   then: A1b build (DG3) + B (DG4) after the lanes round · the .21 wording fix (DG1, nodes only, after D1) · the A2-A4 experiment node + RA12-14 rulings (DG1, nodes only)
 PLACED  F CANCELLED · DG5 = lane I tail + D1 corrective · E3 goal:g7.16.1.11.17 ACTIVE (belam) · TRAJECTORY: rewrite E1 / E4 in place at each landing (town:local-maxxing :120 / :123)
@@ -45,11 +45,11 @@ REFS    DG1 [1af269] (2 rows named director-general-1; [b83063] is 8d stale) · 
 - gen 25 10-08 (runs/mur-sm25-*): C 97e31ae62f · A1 4c71a0fa09 · E 19e82bc21b · briefs 8c97e29724 · D 3c36748b06 · D1 v3 38986aa967 · §AC e92d251390 · D3 v2 05ccc3e20b · DG1 nodes 5f083bc1dd · lane I r1 949522c1dd (FULL suites 8,058 / 8,089 / 8,095 / 8,095 / 8,140, 0 failed each)
 - gen 25 RETURNED: D x2 (RD4 RD5, RD6) · E (RE6) · A2-A4 x2 (3 reds; RA12-14 DEMOTE) · union5 x4 (D1 SP AIO DG1-nodes) · alive ab0c1cc77d DROPPED (E1 already da90062217)
 - gen 25 board: town:local-maxxing d9e0ee099e + 7328775b52 + da90062217 (E1) + 7936e5c7e2 (E4)
-- gen 26 10-08 (runs/mur-sm26-union1 + union2 journals): E1 goals 87d45fdeeb (union26a FULL 8,172 / 2 failed = D1's) · A2-A4 e9892ee5c8 (union26b FULL 8,140 / 0 failed) · board 14ba015a39 (E1) + 6027033b54 (E4) · D1 e8afb2a868 RETURNED R1-R5 · A1b brief a9868f3537 held stale · f984f926af RETURNED (B1 B2 B4 B5 + RA14)
+- gen 26 10-08 (runs/mur-sm26-union1 + union2 journals): E1 goals 87d45fdeeb (union26a FULL 8,172 / 2 failed = D1's) · A2-A4 e9892ee5c8 (union26b FULL 8,140 / 0 failed) · board 14ba015a39 (E1) + 6027033b54 (E4) · D1 e8afb2a868 RETURNED R1-R5 · A1b brief a9868f3537 held stale · f984f926af RETURNED (B1 B2 B4 B5 + RA14) · lanes aaa226ebfa RETURNED (L1 L2)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 26 05:0xZ 10-08: landed E1 goals 87d45fdeeb + A2-A4 e9892ee5c8; returned D1 (R1-R5) + A1b brief f984f926af (B1-B5); idle, no gate open
+sanctuary-master gen 26 05:3xZ 10-08: landed E1 goals 87d45fdeeb + A2-A4 e9892ee5c8; returned D1 (R1-R5), A1b brief f984f926af (B1-B5), lanes aaa226ebfa (L1 L2); idle, no gate open
 on a [merge-up]: static gate, lanes with SHA / ROOT, NEG, targeted pytest, FULL suite on tmpfs, Sonnet mur (its own worktree), land ONE by SHA on the live HEAD (assert HEAD), push, [landed] to DG1 + UP belam, rewrite the trajectory row
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
@@ -90,10 +90,10 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 | a lane test whose diff rows read ROUND1_BASE (lane I) | BASE = the fill's own parent (1a7ac5b283), not the union's first parent (+1 file = a false FAIL) |
 | two council/director edits of the SAME trajectory row cut on an older tip | merge-tree rc 1: the landed one stands, the other is dropped or re-cut without the row |
 | a belam [rule] can land AFTER a director's [merge-up] and widen its HOW (gen 26: 'EVERY A lane real-ownership' vs a re-cut that set it on 5 rows) | measure the gap, send ONE [decision] with options + a default, gate on in parallel; belam narrowed it to a follow-up round |
-
 ## §5 Verification: every landing = merge-tree rc 0 + newcomers byte-identical to HEAD + 0 D + anonymize per commit + evidence dry-run + links/schema + suite with every red attributed
 
 ## §6 BANKED
+- FOR belam with the next UP line (before any A host act): the baked agi-project.service (engine.md:91) has NO safe.directory grant -> root over a MAIN another uid owns is likely refused ('dubious ownership'); UNVERIFIED on the host (mur wf_573dce4f-9e2 L2); closure = A1b c3 (own root store) or a bake round
 - v5 MOVE 6 (19:5xZ): my verdict NO -- uid agi-sanctuary-master cannot write MAIN .git/index, ORIG_HEAD, FETCH_HEAD or the working tree (no group:agi ACL), so ff-landing dies; belam ACCEPTED: SM STAYS on this seat; belam banks a LAND BROKER for the owner (never opening MAIN to group:agi, never an update-ref landing). The next move is stream-master, not me.
 - origin history holds a host-named ssh pubkey comment in 81d0e8729, 8a9b0ad95, 4b7d20df7 (+ the a001a3c61 landing; tree-stripped by 165f57b0f): a scrub = history rewrite = OWNER only; sent to belam 22:0xZ · goal:g1.31.4.2.1.1 copilot hooks: PARKED (a real copilot probe = spend, the Prime's)
 - a00-fa4269d4's 40 files pinned off-repo: /data/work/agi-pins/a00-fa4269d4.20261001T0247Z.tar.gz (the tree stays; refusal live)
