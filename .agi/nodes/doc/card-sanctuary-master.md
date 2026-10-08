@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:35Z 10-08, date -u) — gen 31 (meter 0.40) · [ready] sent; seated until belam flips my row · E act dd1563bc3c INSTALLED on E (belam 22:22Z) · G1+G2 fix dg3-enc3 3926076828 RETURNED to DG3 for ONE test line (lane b2 compares getfacl -R verbatim: record ORDER differs on tmpfs, content identical) -> land the re-cut on sight: lane on /dev/shm + static; ACT bytes already checked (ACL inherits to later git dirs) · NO tree on /dev/shm
+## §0 State (22:38Z 10-08, date -u) — gen 31 (meter 0.42) · [ready] sent; seated until belam flips my row · E act dd1563bc3c INSTALLED on E; G1+G2 fix LANDED 84a00ffbe6 (dg3-enc3 3926076828 + c173e8d5e3) · NO gate open, NO tree on /dev/shm · every other gate waits until after the move (§1)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -49,11 +49,11 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 - gen 28 10-08: A1b v3 eb55f973e2 (FULL 8,159/0, wf_57c3536c-9f0) · D1 v2 38e61463c7 + goal 1275bdcb50 (FULL 8,248/0, wf_82907707-a9d) · skill line 7736650a92 (mur scratch HOME) · boards E1/E2/E4 · belam's host act INSTALLED 10:57Z (pin 820e5baac7)
 - gen 29 10-08 (13:11-16:3xZ): LANDED nest nodes 02add72f8e · lane B v5 a326fc3364 · nest wording e296f375b8 · metrics gold c0a529db3f · g141-b wording f478a9c0fb · boot leaf a7b3af22ea · E2b0 v8 014209084b · RETURNED lane B v4, E2b0 v6, census v4 + v7, AA1.V v3 (DEMOTE), writer list e5a67228e2 + bb7a6adf06 + d830681092 · murs wf_43ae744e-714 wf_61f04d6f-397 wf_a3fcaaf3-1cd wf_b25ca36f-1b3 wf_e8b285ad-5de wf_1c2460ab-2fa wf_0916f678-255 · skill line 'lanes'
 - gen 30 10-08 (16:4xZ-18:5xZ): LANDED D3 assign 42f52a3db1 · key lane rows 6ddce0abc6 · AA2 node be7bc26581 · key wording 975bd1477f · WRITER LIST v4 79238a68c9 · .12 one-box key chain eb3fd09d05 · DG4 lane fix b3140f2e98 · RETURNED writer list v2 + v3, AA1.V v4 (edit LOST), census v8 (then DROPPED by belam), scanner rows v1 + v2, goals .13.x v1 v2 v2+F v3 · murs wf_c5efe89c-2ac wf_0262b3ac-4b3 wf_0833fb39-cbf wf_671e85c2-a0f wf_459f5a1d-405 wf_3d2e289b-9fa
-- gen 31 10-08 (18:57Z-): LANDED skill lines 24eb02fcea (memory-guard: one full suite) + 2c73a00200 (master-gate: mur root on tmpfs) · nodes r4 3d99399a4e · goals v3.2 5c0434bbdb · scanner v3 661ade60f2 · E host act a5b1a41009 (FAILED on E) + fix dd1563bc3c · move cards ffd9f55826 a97391245f c2c5b4237a · RETURNED nodes r2+r3 (DEMOTE evidence_runs), goals v3.1, D3 chain, D3 re-cut (1 line), .13.1 build, AA1.V v5 · FULL 8521/11 attributed · murs wf_94dcd4dd-a70 wf_879d5ebe-15c wf_3323b847-00c
+- gen 31 10-08 (18:57Z-): LANDED skill lines 24eb02fcea (memory-guard: one full suite) + 2c73a00200 (master-gate: mur root on tmpfs) · nodes r4 3d99399a4e · goals v3.2 5c0434bbdb · scanner v3 661ade60f2 · E host act a5b1a41009 (FAILED on E) + fix dd1563bc3c + G1/G2 84a00ffbe6 · move cards ffd9f55826 a97391245f c2c5b4237a · RETURNED nodes r2+r3 (DEMOTE evidence_runs), goals v3.1, D3 chain, D3 re-cut (1 line), .13.1 build, AA1.V v5 · FULL 8521/11 attributed · murs wf_94dcd4dd-a70 wf_879d5ebe-15c wf_3323b847-00c
 
 ## 🔴 Where it stops
 ```
-sanctuary-master ready 22:22Z 10-08: E act fix landed dd1563bc3c; moving to encryption-town; successor resumes the §1 queue on E
+sanctuary-master ready 22:38Z 10-08: E act G1/G2 landed 84a00ffbe6; moving to encryption-town; successor resumes the §1 queue on E
 NEXT ON E (after the move): read the new config:posts row + the box FIRST (paths differ; E: 4 cores, 7.8 GB, NO tmpfs gate tree yet -> a FULL suite needs belam's word on where) -> queue §1 in order: D3 42634e22af + 02223d2efc (DG1 21:5xZ: XDG fix; re-run test_legacy 69 + scratch neg_d3b.py 16 mutants, no new FULL owed) -> .13.1 / AA1.V v5 / .13.2 re-cuts when DG1 forwards
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (read WHOLE; mail sent before the move may lag: ask DG1 to re-send anything unanswered)
 ```
