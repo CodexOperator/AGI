@@ -10,6 +10,11 @@ unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GI
 sect agi-boot >$T/agiboot.sh;sect agi-boot.service >$T/unit.txt
 # UE (DG1 04:15Z, belam 04:14Z: the lane runs the REAL ownership): the unit's own Environment= words are the ONLY thing that lets root read /data/work/agi (another uid owns it); the runs below use an empty git config + git's different-owner seam + UE, never a $T/gitconfig that grants safe.directory the unit does not
 sect agi-boot.service|sed -n 's/^Environment=//p'|tr ' ' '\n' >$T/ue.txt;UE=$(cat $T/ue.txt)
+# A1b (DG1 05:18Z, DG3's build 4915baf8e8): the boot unit carries ExecStartPre=/usr/local/libexec/agi-vstore and Environment=GIT_DIR=/run/agi-v.git, so root reads ONLY the verified store. The lane runs the chain the way the unit does: `pre WORDS && START`. pre = the REAL `### agi-vstore` piece builds a scratch store $T/vs from MAIN ($T/r) at the pin of THIS run (a pin the verifier refuses stops the chain: START is not reached, as systemd does); START = the run below, with the unit's Environment words and GIT_DIR rewritten to that store (UEG). Without the piece (a tree before A1b) every run below is a FAIL, not a skip.
+sect agi-vstore >$T/vstore;GDW=$(printf '%s\n' "$UE"|grep -cx 'GIT_DIR=/run/agi-v.git');UEG=$({ printf '%s\n' "$UE"|sed "s#^GIT_DIR=/run/agi-v.git#GIT_DIR=$T/vs#"|grep -v '^GIT_CONFIG_VALUE_0=';echo "GIT_CONFIG_VALUE_0=${CV0:-$T/r}";})
+# HOST MODEL (DG1 06:11Z): the unit's Environment= words, THEN /etc/agi/carry.env over them (systemd applies EnvironmentFile over Environment= for the same name): carry.env holds GIT_CONFIG_VALUE_0 = the PATH of AGI_REPO (measured 10-08: /data/work/agi), not the unit's inline `*`, so MAIN ($T/r here) is the ONE granted path. root owns its own stores on the host, so those are granted by the global file $T/own.cfg (the seam would make them foreign)
+printf '[safe]\n\tdirectory=%s\n\tdirectory=%s\n\tdirectory=%s\n\tdirectory=%s\n' $T/vs $T/vs.n $T/vp $T/vp.n >$T/own.cfg
+pre(){ rm -rf $T/vs $T/vs.n;[ -s $T/vstore ]||return 127;(set -f;cd $T/r&&env -i PATH=/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=$T/own.cfg GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 $UEG AGI_VSTORE=$T/vs AGI_MAIN=$T/r "$@" timeout 60 sh $T/vstore >/dev/null 2>$T/pre.err);r=$?;cat $T/pre.err >$T/err;cat $T/pre.err >$T/boot.out;return $r;}
 [ -s $T/agiboot.sh ]&&[ -s $T/unit.txt ]||{ echo "FAIL extract: agi-boot $(wc -c <$T/agiboot.sh) unit $(wc -c <$T/unit.txt)";exit 99;}
 mkdir -p $T/fk $T/hm
 printf '[user]\n\tname=t\n\temail=t@t\n[commit]\n\tgpgsign=false\n[safe]\n\tdirectory=*\n' >$T/gitconfig
@@ -29,7 +34,7 @@ $G -C $T/r checkout -q -b evil;row evil >>$T/r/.agi/nodes/.geometry/posts.md
 printf '### agi-boot (1 B)\n~~~sh\n#!/bin/sh\ntouch %s/marker\n~~~\n' $T >$T/r/.agi/nodes/.geometry/engine-root.md
 $G -C $T/r add -A;$G -C $T/r commit -qm hostile;EVIL=$($G -C $T/r rev-parse HEAD);$G -C $T/r checkout -q -B main $GOOD
 # boot OUT [VAR=val ...]: the real agi-boot under the fakes; the extra args are env assignments (the pin). rc in $brc, output in $T/boot.out
-boot(){ o=$1;shift;rm -rf $T/out.$o $T/ram;: >$T/log;: >$T/gitlog;(set -f;cd $T/r&&env -i PATH=$T/fk:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 $UE AGI_RAM=$T/ram AGI_BOOT_OUT=$T/out.$o AGI_LOADAVG=$T/la AGI_PSI_IO=$T/io "$@" sh -s <$T/agiboot.sh >$T/boot.out 2>&1);brc=$?;}
+boot(){ o=$1;shift;rm -rf $T/out.$o $T/ram;: >$T/log;: >$T/gitlog;pre "$@"&&(set -f;cd $T/r&&env -i PATH=$T/fk:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=$T/own.cfg GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 $UEG AGI_RAM=$T/ram AGI_BOOT_OUT=$T/out.$o AGI_LOADAVG=$T/la AGI_PSI_IO=$T/io "$@" sh -s <$T/agiboot.sh >$T/boot.out 2>&1);brc=$?;}
 starts(){ grep '^b ' $T/log|tr '\n' ' ';}
 # a5 control + the BEFORE snapshot: HEAD == the pin
 boot m AGI_TRUNK=$GOOD;a0rc=$brc;a0s=$(starts);rm -rf $T/snap.a0;cp -a $T/out.m $T/snap.a0   # the SAME out dir name both times: the baked units embed their own output path
@@ -39,8 +44,8 @@ ok "a5-pinned-boot-with-head-at-the-pin-starts-the-boot-rows (control) the pinne
 $G -C $T/r checkout -q -B main $EVIL
 boot m AGI_TRUNK=$GOOD;a1rc=$brc;a1s=$(starts);rm -f $T/marker;rm -rf $T/snap.a1;cp -a $T/out.m $T/snap.a1
 d=$(diff -r -x agi-project.path $T/snap.a0 $T/snap.a1 2>&1|wc -l|tr -d ' ');sv=$T/snap.a1/agi-project.service
-ev=$(find $T/snap.a1 -name '*evil*'|wc -l|tr -d ' ');hx=$(grep '^ExecStart=' $sv 2>/dev/null|grep -c HEAD);gs=$(grep -c $GOOD $sv 2>/dev/null)
-ok "a1-hostile-head-changes-nothing the pin is good and HEAD is the hostile commit (an extra boot row evil, a decoy engine-root.md): rc $a1rc (want 0), starts '$a1s' (want the same a b), the projected units differ from the pre-move boot by $d diff line(s) (want 0, agi-project.path excluded), $ev evil file(s) (want 0), the baked agi-project.service ExecStart holds HEAD $hx time(s) (want 0) and the pinned sha $gs time(s) (want >= 1)" '[ $a1rc = 0 ]&&[ "$a1s" = "$a0s" ]&&[ "$d" = 0 ]&&[ "$ev" = 0 ]&&[ "$hx" = 0 ]&&[ "$gs" -ge 1 ]'
+ev=$(find $T/snap.a1 -name '*evil*'|wc -l|tr -d ' ');hx=$(grep '^ExecStart=' $sv 2>/dev/null|grep -c HEAD);gs=$(grep -c $GOOD $sv 2>/dev/null||true);lt=$(grep '^ExecStart=' $sv 2>/dev/null|grep -c '\$AGI_TRUNK')
+ok "a1-hostile-head-changes-nothing the pin is good and HEAD is the hostile commit (an extra boot row evil, a decoy engine-root.md): rc $a1rc (want 0), starts '$a1s' (want the same a b), the projected units differ from the pre-move boot by $d diff line(s) (want 0, agi-project.path excluded), $ev evil file(s) (want 0), the baked agi-project.service ExecStart holds HEAD $hx time(s) (want 0) and the pinned sha $gs time(s) (want 0: A1b, the baked unit reads the pin at run time from carry.env, no sha is baked in) and the literal \$AGI_TRUNK $lt time(s) (want >= 1)" '[ $a1rc = 0 ]&&[ "$a1s" = "$a0s" ]&&[ "$d" = 0 ]&&[ "$ev" = 0 ]&&[ "$hx" = 0 ]&&[ "$gs" = 0 ]&&[ "$lt" -ge 1 ]'
 # a2: a bad pin fails before ANY work
 nl=$(printf '\n.');nl=${nl%.}
 chk(){ nm=$1;shift;boot c$nm "$@";gl=$(wc -l <$T/gitlog|tr -d ' ');sf=$(grep -c '^setfacl' $T/log);st=$(grep -c '^b ' $T/log);od=$(ls $T/out.c$nm 2>/dev/null|wc -l|tr -d ' ')
@@ -59,7 +64,10 @@ ec=$(grep -c '^EnvironmentFile=/etc/agi/carry.env$' $T/unit.txt);xh=$(grep '^Exe
 ok "a3-unit-loads-the-carry-env-and-never-names-head agi-boot.service carries EnvironmentFile=/etc/agi/carry.env ($ec, want 1) and HEAD appears in $xh of its $xs ExecStart line(s) (want 0 of 1)" '[ "$ec" = 1 ]&&[ "$xh" = 0 ]&&[ "$xs" = 1 ]'
 # a4: the ExecStart line run under sh, HEAD = the hostile commit with the decoy
 cmd=$(grep '^ExecStart=' $T/unit.txt|sed 's/^ExecStart=//');rm -rf $T/out.x $T/ram;: >$T/log;rm -f $T/marker
-(set -f;cd $T/r&&env -i PATH=$T/fk:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 $UE AGI_RAM=$T/ram AGI_BOOT_OUT=$T/out.x AGI_LOADAVG=$T/la AGI_PSI_IO=$T/io AGI_TRUNK=$GOOD sh -c "$cmd" >$T/x.out 2>&1);xrc=$?;xs2=$(starts)
+pre AGI_TRUNK=$GOOD&&(set -f;cd $T/r&&env -i PATH=$T/fk:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=$T/own.cfg GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 $UEG AGI_RAM=$T/ram AGI_BOOT_OUT=$T/out.x AGI_LOADAVG=$T/la AGI_PSI_IO=$T/io AGI_TRUNK=$GOOD sh -c "$cmd" >$T/x.out 2>&1);xrc=$?;xs2=$(starts)
 ok "a4-execstart-reads-the-pinned-blob-not-head the ExecStart line extracted and run under sh with AGI_TRUNK=<good> while HEAD carries a decoy engine-root.md: the decoy marker is $([ -e $T/marker ]&&echo TOUCHED||echo untouched) (want untouched), rc $xrc (want 0), the pinned boot ran: starts '$xs2' (want a b)" '[ ! -e $T/marker ]&&[ $xrc = 0 ]&&[ "$xs2" = "b ${P}a b ${P}b " ]'
+# the unit text this lane relies on (NEG: GIT_DIR dropped / the verifier after ExecStart / a - prefix -> RED)
+sect agi-boot.service >$T/unit.u;upre=$(grep -n '^ExecStartPre=/usr/local/libexec/agi-vstore$' $T/unit.u|cut -d: -f1);uxs=$(grep -n '^ExecStart=' $T/unit.u|cut -d: -f1);unp=$(grep -c '^ExecStartPre=' $T/unit.u)
+ok "a0-the-unit-reads-the-verified-store agi-boot.service: ExecStartPre=/usr/local/libexec/agi-vstore on line ${upre:-none} before ExecStart on line ${uxs:-none}, $unp ExecStartPre line(s) (want 1), Environment GIT_DIR=/run/agi-v.git: $GDW (want 1)" '[ -n "$upre" ]&&[ -n "$uxs" ]&&[ "$upre" -lt "$uxs" ]&&[ "$unp" = 1 ]&&[ "$GDW" = 1 ]'
 echo "boot-pin: $f FAIL"
 exit $f
