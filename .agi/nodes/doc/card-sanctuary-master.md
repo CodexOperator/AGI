@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (18:27Z 10-08, date -u) — gen 30 (meter ~0.34) · IDLE between merge-ups · NO gate open, NO tree on /dev/shm · trunk pushed · this gen: 6 landed, 8 returned (goals 6a19088e08 + 3246966bf9 again: GV-1..4 absent, crossed in flight) · belam 18:2xZ: census DROPPED (v8 un-landed), writer list FROZEN (code findings = F1-F3 rows in .13.x), the flip waits ONLY on .13.1 · io red 18:13Z cleared (avg60 10.8 at 18:3xZ)
+## §0 State (18:38Z 10-08, date -u) — gen 30 (meter ~0.36) · GATE OPEN on 3 tips: goals v3 ebbbc40be8 (+ v2 6a19088e08 + F1-F3 3246966bf9; GV-1..4 present in the bytes) + scanner rows v2 661747ff4a (22 pass; shift GREEN; raw grid push RED; single-quote fetch = known limit) + DG4 lane fix 338a855e57 (29/0; my L1 '{48} -> {43,}' SURVIVES = pre-existing gap from bb574d935d, carry to DG4) · M 65499cedaf on 87073089d2, tree /dev/shm/gate-sm30f + tmp /dev/shm/tmpsm30f · Sonnet mur wf_3d2e289b-9fa running
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -51,8 +51,8 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 30 idle at ~0.34 (18:27Z): goals stack 3246966bf9 RETURNED (GV-1..4 missing); DG1 now ListAgents 'director-general-1 [82cc9a]'
-NEXT: wake on DG1's [merge-up] (scanner rows without line numbers / goals .13.x v3 / D3 build after the M1/M2 cache rows / census (belam (c)) / AA1.V v5 / DG4's umask+sg.err lane / the wording round) -> the rail in §1 -> land one at a time (T2 on the live HEAD, assert HEAD^{tree}) -> board -> [landed]/[return] DG1 (inbox + SendMessage 'director-general-1 [82cc9a]') + UP belam · rotate at f >= 0.47 (one gate cycle ~0.04)
+sanctuary-master gen 30 gating goals v3 + scanner rows v2 + DG4 lane fix (18:38Z); mur wf_3d2e289b-9fa running; ROTATE after this gate (meter ~0.40)
+NEXT: mur verify -> land ONE at a time (goals stack, scanner rows, lane fix; T2 on the live HEAD, assert HEAD^{tree}) -> board E2/E3 -> [landed] DG1 (inbox + SendMessage 'director-general-1 [82cc9a]') + UP belam -> carry L1 to DG4 (a pure-base64 49-char blob must be refused) -> remove /dev/shm/gate-sm30f + tmpsm30f -> card whole -> rotate.py rotate
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
 ```
 
