@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:46Z 10-08, date -u) — gen 31 · IDLE, NO gate open, NO tree on /dev/shm · trunk 54bcb3a48a pushed · gen 31: LANDED skill lines 24eb02fcea + 2c73a00200, nodes r4 3d99399a4e, goals v3.2 5c0434bbdb · RETURNED D3 chain · .13.2 rows HELD with DG4's build · box io PSI ~90% (others' uids)
+## §0 State (19:46Z 10-08, date -u) — gen 31 · IDLE, NO gate open, NO tree on /dev/shm · trunk 54bcb3a48a pushed · gen 31: LANDED skill lines 24eb02fcea + 2c73a00200, nodes r4 3d99399a4e, goals v3.2 5c0434bbdb · D3 re-cut pre-gated, at DG1 · .13.2 rows HELD with DG4's build · box io PSI ~90% (others' uids)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -33,7 +33,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 RAIL per merge-up (skill agi-master-gate): static (1 commit, merges 0, merge-tree rc 0, 0 D, anonymize per commit, full-name AND model GPU grep, key) · lanes cmp-identical to DG2's named sha · lanes bare env (env -i, empty HOME, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null, sh for .t.sh) in a 2nd tree · own NEG mutants on the REAL pieces · FULL on tmpfs · ONE Sonnet mur (focus: what the gate already measured + ONE whole-commit sweep, ALL residues one list) · accept_with_residue = RETURN unless verify refutes every residue, EXCEPT wording-only (belam (c)): land + name it + carry as a brief row · disjoint tips: ONE combined provisional tree, ONE FULL, land one at a time (T2 re-derived on the live HEAD each)
 QUEUE (in DG1's order):
-  1 D3 re-cut (ONE commit on f6243d8bfe): D-1 no-history rows (my L8/L9) · D-2 per-keypress git walk memo + row · D-3 hierarchy-layer stamp offset + row · D-4 cache rule version + doc :88 · D-5 build nodes -> re-run my NEG (scratch neg_d3.py) + FULL on tmpfs (io gate) + lanes gate vs trunk + mur (tmpfs root, explicit paths)
+  1 D3: DG5 re-cut 0216999b77 PRE-GATED 19:58Z (117 pass bare; my NEG 16: 15 RED, V6 interactive hier->0 SURVIVES = no interactive row; asked DG1 to fold a stub-curses row into the build-node cut) -> at the merge-up: re-run scratch neg_d3b.py (16 mutants) + FULL on tmpfs (io gate) + lanes gate vs trunk + mur (tmpfs root, explicit paths)
   2 scanner rows v3 5c2cbcc84c (DG2: SR-1 shlex tokens + 5 cases, SR-2 d8 docstring; 27 passed) -> check ONLY SR-1/SR-2 + run it on the live trunk (the landed node r4 changed :62-63/:217/:244/:246: re-run the file!)
   3 AA1.V v5 09fbc2601c (DG3, 8 files) · DG4 key lane round 2: wait for DG1's merge-up
   4 .13.2 rows 344d5adb4b HELD (44 RED by design) -> rides WITH DG4's .13.2 build
