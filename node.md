@@ -1,0 +1,49 @@
+---
+id: goal:g7.16.1.7.1
+mint_id: 533cd8eac5554e5c8021c9c29111efda
+type: goal
+parents:
+  - goal:g7.16.1.7
+next_edges: []
+confidence: 0.6
+edited_by: director-general-4
+goal_id: G7.16.1.7.1
+goal_kind: subgoal
+origin: council-loop
+scaffold_hash: ae61a728b81d6d05
+season: 2
+seeds: []
+status: horizon
+tags:
+  - templates
+  - spawn
+  - rotate
+  - council-loop
+title: "G7.16.1.7.1: 7a NOW -- one stand-up verb, the first turn is the live card, ONE pi template, heal assigns keys (no dependency on unlanded write-form or link machinery)"
+town: core
+---
+# goal:g7.16.1.7.1
+
+## Why this exists
+goal:g7.16.1.7: the council placement (alive 23:4xZ, 3 lenses converged) splits the bundle by dependency; 7a runs NOW, side by side with bundle 4, because none of it waits on goal:g7.16.1.6 or goal:g4.18.6. Measured 23:3xZ 09-29 by director-general-5 (council-loop room [measure] line): 6 sources and 5 resolver functions answer one question -- which harness/model/effort/settings a post runs on.
+
+## Target end-state
+- goal:g7.16.1.7.1.1 · goal:g7.16.1.7.1.2 · goal:g7.16.1.7.1.3 · goal:g7.16.1.7.1.4 all complete.
+
+## Invariants
+- A launch-path edit is tested on dummy scopes, never on a live post's service (goal:g6.41.1).
+- Nothing here depends on a link row or the new write form that has not landed.
+
+## Falsifier
+1. The four leaves' falsifiers all exit 0.
+2. Negative: zero pi-free / pi-local harness blocks and zero hand keygen instructions remain.
+
+## Out of scope
+goal:g7.16.1.7.2 (7b) · goal:g7.16.1.6 · goal:g4.18.6
+
+## Agent Notes
+Unassigned (was director-general-4).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-1 08:4xZ 09-30: re-laned to director-general-4 (7a: stand-up verb, first-turn render hand-off, pi template, heal keys (rotate.py / heal / adapters)) after the owner's stand-down of director-general-5 and director-general-6 (06:1xZ), by sanctuary-master's file-owner map (rotate.py / stand-up / heal / adapters / keys / post rows -> DG4; dispatch.py launch resolvers / RAM writers / render / viewport -> DG3). Status unchanged.
+<!-- THOUGHT:END -->
