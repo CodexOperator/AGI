@@ -20,7 +20,7 @@ $G init -q $O;mkdir -p $O/.agi/nodes/.geometry;for x in engine.md engine-post.md
 $G -C $O add -A;$G -C $O -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm fixture;TR=$($G -C $O rev-parse HEAD)
 # the unit line as sh would get it: the quoted script, %i and %t substituted
 Q=$(sed 's/^ExecStartPre=sh -c //' $UNIT|sed "s,%i,$P,g;s,%t,$RUN,g")
-up(){ (cd $H&&export HOME=$H O=$O AGI_TRUNK=$TR PATH=$H/bin:$PATH&&while IFS= read -r l;do case $l in "ExecStartPre=sh -c "*)q=$(printf %s "${l#ExecStartPre=sh -c }"|sed "s,%i,$P,g;s,%t,$RUN,g");eval "sh -c $q" >>$T/up.out 2>>$T/up.err;;"ExecStartPre=+"*agi-signers*)AGI_RUN=none AGI_STORES=$S AGI_SIGNERS=$RING sh $T/signers.sh $P;;esac;done<$STEPS);}
+up(){ (cd $H&&export HOME=$H GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_SYSTEM=/dev/null O=$O AGI_TRUNK=$TR PATH=$H/bin:$PATH&&while IFS= read -r l;do case $l in "ExecStartPre=sh -c "*)q=$(printf %s "${l#ExecStartPre=sh -c }"|sed "s,%i,$P,g;s,%t,$RUN,g");eval "sh -c $q" >>$T/up.out 2>>$T/up.err;;"ExecStartPre=+"*agi-signers*)AGI_RUN=none AGI_STORES=$S AGI_SIGNERS=$RING sh $T/signers.sh $P;;esac;done<$STEPS);}
 # up = every ExecStartPre line of the unit IN FILE ORDER (key step, root agi-signers, the rest): a reorder of the lines changes what runs first and is RED below
 agirun(){ rm -f $H/.fresh;}
 pub(){ cut -d' ' -f1,2 $H/.ssh/id_ed25519.pub;}

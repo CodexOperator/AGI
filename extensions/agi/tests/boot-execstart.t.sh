@@ -34,7 +34,7 @@ G40=gggggggggggggggggggggggggggggggggggggggg;$G -C $T/r branch $G40 $EVIL;$G -C 
 [ "$GOOD" != "$EVIL" ]&&[ "$GOOD" != "$NB" ]&&[ "$GOOD" != "$NF" ]&&[ ${#G40} = 40 ]||echo "FAIL fixture: the commits are not distinct"
 # xrun PIN|-: the agi-boot.service ExecStart under env -i with the unit's Environment= words; - = AGI_TRUNK absent. rc in $brc, MARK in $mk, counts in $sf $st $uf, stderr in $T/err
 xrun(){ rm -rf $T/out $T/ram $MARK;: >$T/log;pin=;[ "$1" = - ]||pin="AGI_TRUNK=$1"
- (set -f;cd $T/r&&env -i PATH=$T/fk:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null AGI_RAM=$T/ram AGI_BOOT_OUT=$T/out AGI_LOADAVG=${LAF:-$T/la} AGI_PSI_IO=${IOF:-$T/io} $UE ${pin:+"$pin"} timeout 60 sh -c "$UCMD" >$T/x.out 2>$T/err);brc=$?;counts;}
+ (set -f;cd $T/r&&env -i PATH=$T/fk:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 AGI_RAM=$T/ram AGI_BOOT_OUT=$T/out AGI_LOADAVG=${LAF:-$T/la} AGI_PSI_IO=${IOF:-$T/io} $UE ${pin:+"$pin"} timeout 60 sh -c "$UCMD" >$T/x.out 2>$T/err);brc=$?;counts;}
 counts(){ sf=$(grep -c '^setfacl' $T/log||true);st=$(grep -c '^b ' $T/log||true);uf=$(ls $T/out 2>/dev/null|wc -l|tr -d ' ');mk=untouched;[ -e $MARK ]&&mk="TOUCHED($(tr '\n' ' ' <$MARK))";true;}
 # brun: the baked agi-project.service ExecStart under env -i with the baked unit's own Environment= words (the output dir is emptied first, so a regrow is visible)
 brun(){ rm -rf $T/out $MARK;: >$T/log
@@ -130,7 +130,7 @@ ok "ra6-k-the-trap-is-live a plain git read of a missing blob in a promisor repo
 rm -f $LZ;xrun $MB;l1=0;[ -e $LZ ]&&l1=1
 ok "ra6-the-unit-environment-stops-the-lazy-fetch the boot ExecStart, the pin names a commit whose engine-root.md blob is missing: rc $brc (want != 0: loud), the sshCommand ran: $l1 (want 0), $st start(s) (want 0)" '[ $brc != 0 ]&&[ $l1 = 0 ]&&[ $st = 0 ]'
 sect agi-boot >$T/agiboot.sh;rm -f $LZ
-(cd $T/r&&env -i PATH=$T/fk:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null AGI_RAM=$T/ram AGI_BOOT_OUT=$T/out2 AGI_LOADAVG=$T/la AGI_PSI_IO=$T/io AGI_TRUNK=$PC timeout 60 sh -s <$T/agiboot.sh >$T/s.out 2>$T/s.err);l2=0;[ -e $LZ ]&&l2=1
+(cd $T/r&&env -i PATH=$T/fk:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 AGI_RAM=$T/ram AGI_BOOT_OUT=$T/out2 AGI_LOADAVG=$T/la AGI_PSI_IO=$T/io AGI_TRUNK=$PC timeout 60 sh -s <$T/agiboot.sh >$T/s.out 2>$T/s.err);l2=0;[ -e $LZ ]&&l2=1
 ok "ra6-the-agi-boot-export-stops-the-lazy-fetch the agi-boot script run WITHOUT the unit's environment (the export is its own), the pin names a commit whose config.json blob is missing: the sshCommand ran: $l2 (want 0)" '[ $l2 = 0 ]'
 rm -f $LZ;brun;l3=0;[ -e $LZ ]&&l3=1
 ok "ra6-the-baked-environment-stops-the-lazy-fetch the baked agi-project ExecStart, its engine.md blob missing: rc $brc (want != 0), the sshCommand ran: $l3 (want 0)" '[ $brc != 0 ]&&[ $l3 = 0 ]'

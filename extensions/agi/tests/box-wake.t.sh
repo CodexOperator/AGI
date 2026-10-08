@@ -21,7 +21,7 @@ chmod +x $T/bin/box
 for u in belam alive dg9;do
  ssh-keygen -q -t ed25519 -N '' -f $T/k/$u -C $u>/dev/null
  echo "$u@agi namespaces=\"git\" $(cut -d' ' -f1,2 $T/k/$u.pub)">>$T/signers
- printf '[user]\n\tname=%s\n\temail=%s@agi\n\tsigningkey=%s\n[gpg]\n\tformat=ssh\n[gpg "ssh"]\n\tallowedSignersFile=%s\n[commit]\n\tgpgsign=false\n' $u $u $T/k/$u $T/signers>$T/c/$u
+ printf '[user]\n\tname=%s\n\temail=%s@agi\n\tsigningkey=%s\n[gpg]\n\tformat=ssh\n[gpg "ssh"]\n\tallowedSignersFile=%s\n[commit]\n\tgpgsign=false\n[safe]\n\tdirectory=*\n' $u $u $T/k/$u $T/signers>$T/c/$u
 done
 $G init -q $T/r;mkdir -p $T/r/.agi/nodes/.geometry
 cat >$T/r/.agi/nodes/.geometry/posts.md<<'EOF'
@@ -31,8 +31,8 @@ cat >$T/r/.agi/nodes/.geometry/posts.md<<'EOF'
   - {"name":"dg9","parent":"alive","harness":"claude"}
 EOF
 $G -C $T/r add -A;$G -C $T/r -c user.name=x -c user.email=x@x commit -qm fixture
-# a post's environment: its git identity + the matrix trunk; PATH = the scratch bin (box, the stubs)
-as(){ u=$1;shift;(cd $T/r&&AGI_POST=$u AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/$u GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@");}
+# a post's environment (DG1 04:15Z: the REAL ownership): its git identity + safe.directory=* (agi-post@.service ExecStartPre #4 runs `git config --global safe.directory "*"` in the post's own HOME before any box call) under git's different-owner seam + the matrix trunk; PATH = the scratch bin (box, the stubs)
+as(){ u=$1;shift;(cd $T/r&&AGI_POST=$u AGI_TRUNK=HEAD GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/$u GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@");}
 snd(){ printf '%s\n' "$3"|as $1 sh $T/bin/box send $2;}        # snd FROM TO MSG
 unread(){ as $1 sh $T/bin/box n|wc -l|tr -d ' ';}
 rd(){ as $1 sh $T/bin/box read >/dev/null 2>&1;}
@@ -57,8 +57,8 @@ EOF
 start(){ nm=$1;kd=$2;shift 2;: >$T/typed.$nm;: >$T/wakes.$nm
  case $kd in
  agirun)rm -f $T/run/i;mkfifo $T/run/i;exec 3<>$T/run/i;cat <&3 >>$T/typed.$nm &echo $! >>$T/pids
-  (cd $T/hm&&env HOME=$T/hm H=claude-x RUNTIME_DIRECTORY=$T/run O=$T/r AGI_SEAT=alive AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" setsid sh $AGIRUN >$T/ar.out.$nm 2>&1 &echo $! >>$T/pids);;
- cccc)(cd $T/r&&env HOME=$T/hm DIV=$DIV O=$T/r AGI_SEAT=alive AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" node $T/drv.mjs $CCCC >$T/wakes.$nm 2>$T/node.err.$nm &echo $! >>$T/pids);;
+  (cd $T/hm&&env HOME=$T/hm H=claude-x RUNTIME_DIRECTORY=$T/run O=$T/r AGI_SEAT=alive AGI_TRUNK=HEAD GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" setsid sh $AGIRUN >$T/ar.out.$nm 2>&1 &echo $! >>$T/pids);;
+ cccc)(cd $T/r&&env HOME=$T/hm DIV=$DIV O=$T/r AGI_SEAT=alive AGI_TRUNK=HEAD GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" node $T/drv.mjs $CCCC >$T/wakes.$nm 2>$T/node.err.$nm &echo $! >>$T/pids);;
  esac;}
 stop(){ for p in $(cat $T/pids 2>/dev/null);do kill -TERM -$p 2>/dev/null;kill $p 2>/dev/null;done;: >$T/pids;exec 3<&-;/bin/sleep 0.3;}
 wakes(){ case $1 in a*)grep -o 'mail: box read' $T/typed.$1|wc -l|tr -d ' ';;*)grep -c '^WAKE mail: box read' $T/wakes.$1|tr -d ' ';;esac;}
@@ -123,7 +123,7 @@ done
 reset
 # n10: cccc.ts's own timers must not keep node alive (agi-kid runs `pi -e cccc.ts -p`; pi drains, the process must exit): the driver WITHOUT its keep-alive line exits on its own
 grep -v '^real(() => {}, 1e6);' $T/drv.mjs >$T/drv-nokeep.mjs
-(cd $T/r&&env HOME=$T/hm DIV=$DIV O=$T/r AGI_SEAT=alive AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH timeout 6 node $T/drv-nokeep.mjs $CCCC >$T/nk.out 2>&1);nkrc=$?
+(cd $T/r&&env HOME=$T/hm DIV=$DIV O=$T/r AGI_SEAT=alive AGI_TRUNK=HEAD GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH timeout 6 node $T/drv-nokeep.mjs $CCCC >$T/nk.out 2>&1);nkrc=$?
 ok "n10-cccc-timers-alone-do-not-keep-node-alive the fake pi driver WITHOUT its own keep-alive, after the last event: node exits by itself (rc $nkrc, want 0; 124 = still running at the 6 s limit: the poll interval keeps a drained pi alive)" '[ $nkrc = 0 ]'
 # ---- R9 (DG1 20:37Z, SM mur residue on f8c0ba9ef2): in a KID the env carries AGI_POST=<parent> (inherited) AND AGI_SEAT=<kid>. The cccc.ts poll must ask `box n` as the KID: env AGI_POST = AGI_SEAT||AGI_POST (ruled), not AGI_POST||AGI_SEAT, which asks as the parent and wakes the kid for the parent's mail. The stub box answers n>0 ONLY for the asker named in $T/who; in a post (POST=SEAT) and a pre-unit post (SEAT only) both orders agree
 mkdir -p $T/binK;cp $T/bin/strace $T/bin/stty $T/bin/claude-x $T/bin/sleep $T/binK/
@@ -148,5 +148,8 @@ ok "c3-default-cap-is-64-MiB with AGI_PANE_MAX_MB unset a 70 MiB ~/o is trimmed 
 # ---- send.py: no dangling caller in the two pieces; send.py itself resolves
 SP=$R0/extensions/agi/bin/send.py;python3 $SP --help >/dev/null 2>&1;sprc=$?
 ok "s3-send-py-still-resolves (control) extensions/agi/bin/send.py is there ($([ -f $SP ]&&echo yes||echo NO)) and answers --help (rc $sprc): this goal retires no send.py caller it has not replaced" '[ -f $SP ]&&[ $sprc = 0 ]'
+# z1 (DG1 04:44Z re-scope: the real-ownership env is the DEFAULT of every A-range lane): box and agi-run read the post's OWN repo under the post's OWN global (identity + safe.directory=*, what ExecStartPre #4 and the engine gitconfig piece give it), never a foreign-uid repo, so the env is on by default and ONE row proves it: with an empty config and git's different-owner seam a plain read of the lane's repo is refused as dubious ownership; with the post's lane config it works
+sn=$(cd $T/r&&env -i PATH=$PATH HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 git rev-parse HEAD 2>&1|grep -c 'dubious ownership');gn=$(cd $T/r&&env -i PATH=$PATH HOME=$T/hm GIT_CONFIG_GLOBAL=$T/c/belam GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 git rev-parse HEAD >/dev/null 2>&1;echo $?)
+ok "z1-real-ownership-default-is-on a plain git read of the lane's repo under an empty config + GIT_TEST_ASSUME_DIFFERENT_OWNER=1: $sn dubious-ownership line(s) (want 1: the seam bites); with a post's lane config (safe.directory=*): rc $gn (want 0)" '[ "$sn" = 1 ]&&[ "$gn" = 0 ]'
 echo "box-wake: $f FAIL"
 exit $f
