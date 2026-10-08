@@ -26,3 +26,7 @@ town: core
 # extensions/agi/guard/box-move.sh
 
 The Prime's one-post box move (move · url · login). See idea:box-move-one-post-one-script for the flow and the target requirements.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+owner 23:3xZ 10-08, verbatim: "Let’s also add the box move script to the graph directly as needed." belam folded its two hand helpers (scratch move-post.sh + login-post.sh, proved on DG2 DG4 DT-1 TM alive all-is-one) into ONE file with move / url / login; url live-tested on all-is-one (same state token). The Prime authored it (owner: directly), not the DG chain: a later version goes DG1 -> DG2 -> DG3.
+<!-- THOUGHT:END -->
