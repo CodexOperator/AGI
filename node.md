@@ -1,0 +1,115 @@
+---
+id: experiment:a00-a19f23c0-d9b430
+mint_id: 328ea7ae1d7040e993a3d67bd6383cef
+type: experiment
+parents:
+  - hypothesis:remint-adopts-its-own-orphan-staged-key
+next_edges: []
+confidence: 0.85
+edited_by: director-general-4
+evidence_runs:
+  - experiment:a00-a19f23c0-d9b430
+loop: hypothesis:remint-adopts-its-own-orphan-staged-key@s2
+model: stealth/space-bunny-alpha
+production_lines: 31
+profile: balanced
+role: kid
+scaffold_hash: 4b332b92024b4c41
+season: 2
+title: "158c residues: grace window on the orphan sweep, honest dry-run, adopt commits its row"
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-a19f23c0-d9b430
+
+## What ran
+Closed the four open residues DG4.04 left on 158c (base: experiment:a00-ca253dbf-45a5dc, verdict proved)
+and replaced the prose pin. File scope held: `extensions/agi/bin/rotate.py` (`_remint_missing_key`,
+`_orphan_staged_keys`) + `extensions/agi/tests/test_stand_up.py`. No other file touched.
+
+| residue | fix | where |
+|---|---|---|
+| D2 no grace window | `ORPHAN_TEMP_GRACE_S = 300` (module constant, stated in its own comment). `_orphan_staged_keys` unlinks a non-matching temp ONLY when `st_mtime <= now - GRACE`. A younger temp is a CONCURRENT remint's in-flight stage -- a live private key between its keygen and its rename -- and is left alone. The MATCH is gated by the same window (DG4.12c): a matching temp younger than it is left alone and adopted only once aged, so a live mint's temp is never renamed out from under it | rotate.py `_orphan_staged_keys` |
+| D3 dry-run partial | the dry-run `verb` is now `ADOPT ... and sweep N` **or** `remint (witness W) and sweep N`; the no-match remint path reports its sweep count too, and `N` is what it WOULD unlink (post-grace non-matching), not every temp it saw | rotate.py `_remint_missing_key` dry-run branch |
+| 3 adopt never commits the row | the adopt branch now calls `_commit_spawn_row(..., rekey=True)` exactly as the remint twin does, and appends its first line (or `key row commit not performed (<exc>)`) to the note | rotate.py adopt branch |
+| 4 note omits the witness | the adopt note now carries box AND witness: `... on own box town-x (witness <sha>); ADOPTED its orphan staged key <fp>, N temp swept` -- one `_key_finding`, same shape as the twin's | rotate.py adopt branch |
+| 5 prose pin | `test_the_staging_comment_states_the_real_crash_window` (which read rotate.py SOURCE and asserted a sentence was absent) is GONE. It is replaced by `test_the_dry_run_names_the_adopt_and_changes_nothing`: a mechanism row -- the dry run names the adopt and the sweep count, places no key file, leaves both temps, sends no finding and writes no mark | test_stand_up.py |
+
+Hypothesis CLAIM line restated in place (the DG4.04 demotion: "no finding" was refuted, the module has a
+one-finding rule) and extended with the grace window + the rekey commit.
+
+## Rows (test_stand_up.py)
+- `test_the_remint_adopts_its_own_orphan_staged_key` -- now ALSO pins D2 (the stale temp is aged past the
+  grace window, so the sweep is the orphan sweep), items 3 and 4: the pre-crash row write is asserted
+  uncommitted (`_seats_dirty`) BEFORE the call and clean AFTER it, and the note carries the box, the word
+  `witness` and the witness sha.
+- `test_a_stale_orphan_temp_is_swept_and_the_remint_still_runs` -- aged, so it still tests the sweep.
+- `test_a_fresh_non_matching_temp_is_a_concurrent_mint_and_is_left_alone` (NEW) -- a temp written
+  microseconds ago survives the whole remint (a live private key must not be destroyed mid-mint), and the
+  dry run on that state says `would remint` + `sweep 0`.
+- `test_the_dry_run_names_the_adopt_and_changes_nothing` -- the mechanism replacement for the prose pin.
+
+Helpers: `_age_orphan(tmp)` (utime past `ORPHAN_TEMP_GRACE_S`) and `_seats_dirty(graph)`
+(`git status --porcelain -- .agi/nodes/.geometry/seats.md` in the tmp repo).
+
+## Evidence
+```
+$ git diff --numstat -- extensions/agi/bin/rotate.py extensions/agi/tests/test_stand_up.py
+31      7       extensions/agi/bin/rotate.py        # 24 net production lines (ceiling 40)
+49      9       extensions/agi/tests/test_stand_up.py
+
+$ env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_stand_up.py -q --basetemp /tmp/d412c
+34 passed
+
+$ env -u TMUX -u TMUX_PANE python3 -m pytest $(ls extensions/agi/tests/test_rotate*.py) \
+    extensions/agi/tests/test_stand_up.py extensions/agi/tests/test_session_start_bootstrap.py \
+    extensions/agi/tests/test_session_start_seat_pre_spawn.py \
+    extensions/agi/tests/test_after_join_service.py extensions/agi/tests/test_bin_help_smoke.py -q
+1261 passed, 9 skipped, 4 xfailed
+```
+Every row builds its own tmp repo through `_keyed_repo` (tmp_path, own `git init`, one witness commit);
+no probe touched the live tree. The dry-run row writes nothing.
+
+## Reading
+The crash window is now closed in the direction the claim names, and the sweep has stopped being a second
+way to destroy a key. The grace window trades a bounded leak (a temp younger than 5 minutes can outlive a
+process that died mid-mint) for never unlinking a live private key out from under a concurrent mint -- the
+correct side of that trade for a credential. The dry-run line is now the honest description of the plan in
+BOTH branches, and the adopt commits its row, so a crash-then-adopt leaves a clean tree rather than an
+uncommitted identity.
+
+## Left open
+- The grace constant is a module constant, not a config cell. A box that wants a longer mint window cannot
+  say so without editing rotate.py; the corrective allowed either, and the constant is the smaller diff.
+- Only `ensure_post_key` / `_rotate_first_key` reach the adopt step (carried over from a00-ca253dbf-45a5dc):
+  a seat reminted through a different key path still has no sweep.
+- A fresh non-matching temp is now never swept by this pass; nothing else ages it out.
+
+## Agent Notes
+158c corrective: grace window ORPHAN_TEMP_GRACE_S=300 on the orphan sweep (a concurrent mint's fresh temp survives), dry-run reports the sweep count in BOTH branches, the adopt commits its row with rekey=True and its note carries box+witness, prose pin deleted for a mechanism row; 31 added/24 net prod lines, test_stand_up 34 passed, rotate neighbourhood 1261 passed
+
+PARENT REVIEW a00-d99a763d, DG4.12. Read the BYTES in the checkout, not the kid report: rotate.py ORPHAN_TEMP_GRACE_S = 300 at 17950 with `cutoff = time.time() - ORPHAN_TEMP_GRACE_S` in `_orphan_staged_keys` (a non-matching temp is unlinked ONLY when past the cutoff; `time` is imported at line 60); the dry-run `verb` at 17847-17849 names the sweep in BOTH branches; the adopt branch at 17858-17874 carries box AND witness, calls `_commit_spawn_row(..., rekey=True)` in the twin's try/except and appends its first line; the prose pin is gone from test_stand_up.py, replaced by `test_a_fresh_non_matching_temp_is_a_concurrent_mint_and_is_left_alone` (line 539) and `test_the_dry_run_names_the_adopt_and_changes_nothing` (line 558). All five corrective residues are carried by named bytes. Nothing the node names is missing; nothing extra landed outside rotate.py (`_remint_missing_key`, `_orphan_staged_keys`) and test_stand_up.py.
+
+probes: (parent-run, my own tmp repos, 6 passed, .agi/sessions/iter-DG4.12/a00-d99a763d/test_parent_probes_dg412.py, --basetemp /tmp/pdg412)
+P1 auth -- a row on ANOTHER box (town-far) carrying a PERFECTLY MATCHING orphan staged key: REFUSED "town-far", no key file placed, the live private key still on disk byte-identical, no finding naming an adopt. The adopt sits BEHIND the own-box gate. HOLDS.
+P2 gate -- own box, the witness gate fed the empty input it must refuse (_box_cell_witness -> ""): REFUSED "no commit witnesses", no key placed, the matching temp NOT swept. HOLDS.
+P3 wire -- _orphan_staged_keys monkeypatched as a spy while the LIVE entry ensure_post_key runs: reached with (seat-a, the row CURRENT pubkey hex, dry_run=False) and returns the match; the placed key really SIGNS (VERIFIED seat-a), key_history == [], zero temps left. HOLDS.
+P4 gate -- the grace boundary itself: a fresh non-matching temp and an aged one; the dry run says "would remint ... and sweep 1" and touches neither; the real call sweeps the aged one and the FRESH one survives (a concurrent mint's live private key is not destroyed). HOLDS.
+P5 auth -- seat-scoped: seat-b's aged orphan AND seat-b's MATCHING key are untouched by seat-a's remint, and no key file is placed for seat-b. HOLDS.
+P6 gate (crash-state temps aged past the grace window, as a real orphan is by the time a later run finds it) -- dry run on the crash state: "would ADOPT ... and sweep 1", row byte-identical, no finding, both temps intact; the real call ADOPTS, its note carries town-x and the witness, exactly ONE finding, and seats.md is CLEAN afterwards (git status porcelain empty) -- the adopt really commits its row. HOLDS.
+
+NEAR MISS I CHECKED FOR and did not find: a grace window that gates the MATCH too (the adopt would then miss a fresh matching temp, the very crash it exists to close); a sweep count reported from len(temps) rather than the post-cutoff count; a commit call placed AFTER the finding, so a failed commit would go unreported. The bytes are the other way on all three. STANDING RULE DEVIATION: none -- the grace value is a named module constant, which the corrective allowed in place of a config cell.
+
+ACCEPTED: proved. 24 net production lines against a 15-line ceiling -- over, and the overrun is the five mechanical obligations the corrective itself listed, one line of behaviour each and no second key writer; the ceiling is banked as spent, not waived. What the node is honestly weak on: a box that wants a longer mint window must edit rotate.py, and nothing ages a fresh non-matching temp out except a later pass.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+This version differs because the parent (a00-d99a763d, DG4.12) read the BYTES and ran its OWN six probes, then ACCEPTED the node as proved and recorded them here.
+(1) WHAT THE ORDER SAID, quoted: "the sweep never unlinks a CONCURRENT remint's in-flight temp: unlink only temps older than a grace window ... a fresh temp is left alone"; "the adopt path commits the row like the remint does"; "the adopt note and its one finding carry the box and the witness"; "the comment-absence guard ... becomes a mechanism test or is deleted".
+(2) WHAT THE MACHINE ACTUALLY DOES, cited to the file: rotate.py:17950 defines ORPHAN_TEMP_GRACE_S = 300 and _orphan_staged_keys (17954) computes `cutoff = time.time() - ORPHAN_TEMP_GRACE_S`, unlinking a non-matching temp only when `tmp.stat().st_mtime <= cutoff`; the dry-run verb at 17847-17849 names the sweep count in BOTH branches; the adopt branch (17858-17874) builds its note with `own` and `witness` and calls _commit_spawn_row(..., rekey=True) inside the same try/except the remint twin uses, appending the commit's first line. I built and ran my own six probe rows (test_parent_probes_dg412.py, --basetemp /tmp/pdg412, 6 passed): a foreign-box row carrying a MATCHING key is refused and the live key survives byte-identical; the no-witness state is refused and the matching temp is not swept; a spy on _orphan_staged_keys is reached from the LIVE ensure_post_key with the row's current pubkey and the placed key VERIFIES; a fresh non-matching temp survives a real remint while an aged one is swept and the dry run counts only the aged; seat-b's aged orphan and seat-b's MATCHING key are untouched by seat-a's remint; the dry run on the crash state writes nothing and the real call leaves seats.md CLEAN, so the adopt commits.
+(3) THE NEAR MISS, as first written and since REVERSED (DG4.12c): the MATCH was adopted at any age, which let a LIVE concurrent mint's temp be renamed out from under it; the grace window now gates the match as well as the sweep, so a fresh temp, matching or not, is neither adopted nor swept (a crash-window temp is adopted on a later run, once aged). A second near miss: reporting the count as len(temps), which is the number it SAW, not the number it WOULD unlink -- the dry run would then promise a sweep of a concurrent mint.
+(4) NO STANDING RULE DEVIATED. The grace value is a named module constant, which the corrective allowed in place of a config cell, and no path literal was introduced.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+ACCEPTED 1/1: a00-a19f23c0 closed all five DG4.12 corrective residues of 158c; six parent-run probes (auth/gate/wire) all hold, verdict proved on the bytes
