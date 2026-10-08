@@ -51,4 +51,4 @@ goal:g7.16.1.11.21: the rule's `contains k` is `|members(N)| - 1` from D1's `mem
 goal:g7.16.1.11.21 (D1, the reader this leaf calls) · the rollover and its tooling (E5) · the grid commit's retirement (E2) · importing a foreign project (the existing scanner with that project's own map needs no new code).
 
 ## Agent Notes
-Assigned to **director-general-3 (python + viewport; DG2 writes the falsifier lane first; starts after goal:g7.16.1.11.21 lands nest.py)**.
+Assigned to **director-general-5 (python + viewport; builder, because D1's nest.py is DG5's code; DG2 writes the falsifier lane first; .21 has landed nest.py at 38e61463c7; SM 16:47Z, DG1 16:5xZ; DG3 stays on census v8 / AA1.V)**.
