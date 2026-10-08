@@ -38,7 +38,7 @@ Depth 0 = diagram · 1 = loop + pieces · 2 = one piece: `sect <name>` (any `.ge
 
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
-agi-post@.service 1801 B  a post = one unit in agi.slice: own uid, tree, key, pane
+agi-post@.service 2238 B  a post = one unit in agi.slice: own uid, tree, key, pane
 agi-run           773 B  pane cmd: .fresh or -c, under strace; claude: inbox, claude|pi: box -> i
 settings.json      342 B  the ONE hook wiring: brief, meter, turn commit
 cccc.ts           1956 B  pi events -> those CC hooks; inbox + box mail -> a turn
@@ -59,7 +59,7 @@ agi.rules          211 B  group agi may start agi-post@ units
 project.sh         161 B  what the body SHOULD be
 observe.sh         255 B  what the body IS
 tick.sh            254 B  diff them; start the drift; commit
-agi-project       2300 B  the genome: units + cells for v4 rows
+agi-project       2430 B  the genome: units + cells for v4 rows
 agi-frontier       460 B  each active goal runs its falsifier
 agi-gate           404 B  refuse a tip whose body would not regrow; one name, one piece
 sect               214 B  ONE piece of any engine*.md node, byte-exact, any REV
@@ -71,10 +71,10 @@ ckpt              3444 B  a block = signed hand-offs at one tip; check lists tho
 grow-project      1185 B  schemas -> the growth matrix
 agi-land          1855 B  root: ff-lands a post range on the trunk, one parent edge up (ring-signed, grow-gate, agi-gate)
 box               2005 B  mail: one signed ref update per send (5x CAS), read from the store
-box-carry         3246 B  root: P's refs/box/P/<Q> -> the recipient's store (pipe, ff-only) or the hub; --fetch = the timer
+box-carry         3253 B  root: P's refs/box/P/<Q> -> the recipient's store (pipe, ff-only) or the hub; --fetch = the timer
 agi-signers       1727 B  root: the ONE allowed_signers, every key generation, valid-after/before; one strict key line
 agi-carry@.path     149 B  PathChanged on the sender's own refs/box/<P> (a unit on refs/box fires only on the first send)
-agi-carry@.service  287 B  oneshot: box-carry %i
+agi-carry@.service  308 B  oneshot: box-carry %i
 agi-carry-fetch.timer   88 B  every 60 s: carry each local post, then the hub      
 agi-carry-fetch.service 229 B  oneshot: box-carry --fetch
 ~~~

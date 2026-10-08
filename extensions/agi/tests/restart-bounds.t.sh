@@ -10,6 +10,7 @@ unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GI
 sect agi-post@.service >$T/up;sect agi-carry@.service >$T/uc;sect box-carry >$T/carry;sect agi-project >$T/proj.sh
 [ -s $T/up ]&&[ -s $T/uc ]&&[ -s $T/carry ]&&[ -s $T/proj.sh ]||{ echo "FAIL extract: post unit $(wc -c <$T/up) carry unit $(wc -c <$T/uc) box-carry $(wc -c <$T/carry) agi-project $(wc -c <$T/proj.sh)";exit 99;}
 mkdir -p $T/cap $T/hm $T/cwd $T/nobin $T/withrun $T/bin
+mkdir -p $T/cwd/t/.agi/nodes/.geometry   # RA12: the unit cwd HAS a t (agi-run in none of its files): the a3-post rows mean "absent -> skip 2"; with NO t the line reads the trunk and a git error is exit 255 (ra13 rows)
 printf '#!/bin/sh\nexit 0\n' >$T/withrun/agi-run;chmod +x $T/withrun/agi-run
 printf '[user]\n\tname=t\n\temail=t@t\n[commit]\n\tgpgsign=false\n[safe]\n\tdirectory=*\n' >$T/gitconfig;export GIT_CONFIG_GLOBAL=$T/gitconfig GIT_CONFIG_SYSTEM=/dev/null
 # --- a3-post: every ExecCondition line of the post unit, run as sh would run the value (%i -> x), cwd without .ssh/out-refused
@@ -37,6 +38,18 @@ cond_t "";ok "ra11-t-has-agi-run-nowhere t exists, agi-run in none of the three 
 for fn in engine-post.md engine.md engine-wrap.md;do cond_trunk $fn
  ok "ra11-no-t-trunk-has-agi-run-only-in-$fn no t yet, the trunk commit holds agi-run only in $fn, not on PATH: the condition exits $crc (want 0: the worktree add will give t that file)" '[ $crc = 0 ]';done
 cond_trunk "";ok "ra11-no-t-trunk-has-agi-run-nowhere no t yet, the trunk holds agi-run in none of the three files, not on PATH: the condition exits $crc (want 2)" '[ $crc = 2 ]'
+# --- RA12 + RA13 (DG1 03:42Z, SM mur RA12-RA14): the no-t branch runs as User=agi-%i BEFORE any ExecStartPre, so safe.directory (set by ExecStartPre #4) is not there yet and git sees $O, a repo owned by ANOTHER uid, as dubious ownership; a git error read as "absent" exits 2 = SKIP FOREVER for a fresh post. These rows run the line with an EMPTY global/system git config and git's own different-owner seam (GIT_TEST_ASSUME_DIFFERENT_OWNER=1), and a git ERROR must exit 255, never 2 (absent) and never 0 (present). The ra11 rows above keep the same-owner config ($T/gitconfig holds safe.directory=*).
+# cond_do FILE [unset] [PIN]: no t; $O a real repo whose trunk commit holds agi-run ONLY in FILE (empty = nowhere); empty git config; the seam on. unset = O not set at all; PIN replaces AGI_TRUNK
+cond_do(){ rm -rf $T/ct $T/co;mkdir -p $T/ct $T/co/.agi/nodes/.geometry;printf '### other (stub)\n~~~sh\nexit 0\n~~~\n' >$T/co/.agi/nodes/.geometry/engine-grow.md;[ -z "$1" ]||printf "$RUNSTUB" >$T/co/.agi/nodes/.geometry/$1
+ $G init -q $T/co;$G -C $T/co add -A;$G -C $T/co commit -qm trunk;TK=$($G -C $T/co rev-parse HEAD);OE="O=$T/co";[ "$2" != unset ]||OE=
+ (cd $T/ct&&env -i PATH=$T/nobin:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 $OE AGI_TRUNK=${3:-$TK} sh -c "$(cat $T/rcond)" >/dev/null 2>&1);crc=$?;}
+cond_do engine-post.md;seam=$(cd $T/ct&&env -i PATH=/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 $G -C $T/co rev-parse HEAD 2>&1|grep -c 'dubious ownership')
+ok "ra12-the-different-owner-seam-works with an empty config and GIT_TEST_ASSUME_DIFFERENT_OWNER=1 a plain git -C on the trunk repo is refused as dubious ownership: $seam line(s) (want 1; 0 = the seam no longer bites and the rows below prove nothing)" '[ "$seam" = 1 ]'
+for fn in engine-post.md engine.md engine-wrap.md;do cond_do $fn
+ ok "ra12-different-owner-no-t-trunk-has-agi-run-only-in-$fn no t, O owned by another uid, empty git config, the trunk holds agi-run only in $fn: the condition exits $crc (want 0: it must see the trunk without a safe.directory it has not been given yet)" '[ $crc = 0 ]';done
+cond_do "";ok "ra12-different-owner-no-t-trunk-has-agi-run-nowhere no t, O owned by another uid, the trunk holds agi-run nowhere: the condition exits $crc (want 2: absent is a skip)" '[ $crc = 2 ]'
+cond_do engine-post.md unset;ok "ra13-a-git-error-is-not-absent-O-unset no t, O unset (git cannot even find the repo): the condition exits $crc (want 255: not 2 = a skip, not 0)" '[ $crc = 255 ]'
+cond_do engine-post.md "" 0000000000000000000000000000000000000000;ok "ra13-a-git-error-is-not-absent-a-pin-naming-no-commit no t, O a real repo that DOES hold agi-run in HEAD, AGI_TRUNK a 40-zero pin that names no commit: the condition exits $crc (want 255: the pin is read, a bad one is an error, not a miss and not HEAD)" '[ $crc = 255 ]'
 # --- a3-carry-unit: the [Unit] of the service unit
 iv=$(grep -Ec '^StartLimitIntervalSec=(0|infinity)[[:space:]]*$' $T/uc);bn=$(sed -n 's/^StartLimitBurst=\([0-9][0-9]*\)[[:space:]]*$/\1/p' $T/uc);nb=$(echo "$bn"|grep -c .)
 ok "a3-carry-unit-has-no-unlimited-restart agi-carry@.service: $iv StartLimitIntervalSec=0/infinity line(s) (want 0)" '[ $iv = 0 ]'
