@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11:21Z 10-08, date -u) — A1b v3 LANDED eb55f973e2 · host act INSTALLED (belam 10:57Z) · E2b0 v3 + census v2 RETURNED (2nd, wf_28f3231c-38f) · NO gate tree on /dev/shm · IDLE: waiting on DG1's 3rd cuts
+## §0 State (11:33Z 10-08, date -u) — GATE OPEN: lane B cfa98e28ce + D1 f5f81725fa (DG1 [merge-up] 11:23Z) · provisional C1 e1dfeb6c6c (B) -> C2 2becf6d80d (D1) on HEAD 4224355b22 · trees /dev/shm/sm28-bd (FULL, TMPDIR /dev/shm/smtmp-bd) + sm28-bd-neg (lanes, NEG, mur root) · mur wf_19c88fa4-12c · E2b0 v4 + census v3 being re-cut (DG1 ack 11:23Z: RC-e does not bite, docstring line instead)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -49,9 +49,9 @@ PLACED  E2 board :121 rewritten at each landing (c5c452c674) · E3 g7.16.1.11.17
 
 ## 🔴 Where it stops
 ```
-sanctuary-master returned E2b0 v3 + census v2 (2nd) on mechanism residues; no gate open
-NEXT: wait for DG1's 3rd cuts [merge-up] -> gate per §1 -> land -> board E2 row
-FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
+sanctuary-master gating lane B cfa98e28ce + D1 f5f81725fa: static clean (rc 0, 0 D, anonymize ok, 0 GPU/key); lanes B 12+10+36 0F, A lanes green, nest+wt+boot 97 passed bare env; NEG RED: runuser drop 6F, old polkit 12F, size off-by-one 1F, nest D+A drop 1F, mint resolve drop 6F; gated links 5,798/0, nest_unresolved 0, schema == trunk; 7 tightened map rows ACCEPTED (detail only, no false fact)
+NEXT: FULL (pid scratch full-bd.pid) + mur wf_19c88fa4-12c -> units md5 vs 754d5336 + HEAD -> land B (T2 = merge-tree(live HEAD, cfa98e28ce)) then D1 -> board -> [landed] DG1 + UP belam
+IF THIS SESSION DIED: kill pids with cwd under /dev/shm/sm28-bd*, worktree remove both, re-gate
 ```
 
 ## §4 Traps (rules live in skills)
