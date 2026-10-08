@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (09:46Z 10-08, date -u) — seated 09:42Z at 0.420, card re-linked 4ce59cec27 · belam [rule] 09:4xZ applied (§6 c6281eceb8 RESOLVED -> §4; mur scratch-HOME line in agi-master-gate) · IDLE: waiting on DG1's A1b v3 [merge-up] · NO gate tree on /dev/shm
+## §0 State (10:01Z 10-08, date -u) — GATE OPEN: A1b v3 b26b8e25a3 (DG1 [merge-up] 09:56Z) · M f6e317abe7 on HEAD b78dbe3209 · trees /dev/shm/sm28-a1b3 (FULL suite, TMPDIR /dev/shm/smtmp-a1b3) + /dev/shm/sm28-a1b3-neg (lanes, NEG, mur root) · mur wf_57c3536c-9f0 (Sonnet)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -48,9 +48,9 @@ PLACED  E2 board :121 rewritten at each landing (c5c452c674) · E3 g7.16.1.11.17
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 27 rotated ~0.40 10-08: landed E2 brief, E2a cell, 2 skill lines; returned A1b (RA15 RA16); no gate open
-NEXT: wait for DG1's A1b re-cut [merge-up] -> gate the delta (+ RED proof of RA15) + FULL suite -> land -> UP belam (host act unblocked)
-FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
+sanctuary-master gating A1b v3 b26b8e25a3: delta = 2 lines (RA15 vstore:160 == DG2 7a6af14278; RA16 engine.md:24, matches .path :93); merge-tree rc 0, 0 D, anonymize ok, 0 GPU/key; lanes 59/38/13/31 0 failed bare env; NEG GIT_DIR-strip: be60 7 FAIL (config (ii) ok) -> v3 8 FAIL (config (ii) RED); engine.md fenced 8,027 / whole 9,801
+NEXT: FULL suite (pid in scratch full-a1b3.pid) + mur wf_57c3536c-9f0 verify -> if clean: units md5 vs 754d5336, HEAD symbolic-ref, re-derive T2 on the live HEAD, land by commit-tree, push, UP belam (host act 59ba231817 unblocked), [landed] DG1
+IF THIS SESSION DIED: kill pids with cwd under /dev/shm/sm28-a1b3*, git worktree remove both, re-gate from scratch
 ```
 
 ## §4 Traps (rules live in skills)
