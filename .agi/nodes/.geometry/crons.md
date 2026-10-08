@@ -9,6 +9,10 @@ cadences:
     every_mins: 5
     enabled: true
     mirror_towns: true
+  crons_apply:
+    every_mins: 5
+    enabled: true
+    cmd: python3 {repo_root}/extensions/agi/bin/crons.py apply --unit-dir $HOME/.config/systemd/user
   branch_push:
     schedule: 7 * * * *
     enabled: true
@@ -79,7 +83,7 @@ thought_session: season
 title: Cron cadence declaration
 ---
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-goal:g7.16.1.4.1.2 (DG2's L2a config finding, re-read by DG1): the body said publish_engine and engine_push 'stay out ... because their own enabled is false', but de5507a17 removed the publish_engine cadence, so only engine_push still has an enabled. The kill-switch paragraph now says engine_push stays out and publish_engine no longer exists; the g11 race scenario is put in the past tense. Prose only: crons.py show output byte-identical before and after.
+goal:g7.16.1.11.13 E2a (hypothesis g716111-aa3-the-crontab-applier-survives-grid-syncs-retirement, V3; DG1 cut, belam [rule] 05:1xZ 10-08, SM RE5/RE6): this version adds ONE cell, `cadences.crons_apply` (every_mins 5, enabled, NO `box` and so no `why_box`, cmd `crons.py apply --unit-dir $HOME/.config/systemd/user`), so the crontab self-heal no longer lives only in the tail of grid_sync's line and retiring grid_sync cannot lose it. It is boxless on purpose: it renders on every box, AGI_BOX unset included. grid_sync's own apply step STAYS until the switch round (E2b0 and after), so there is no gap. The 'self-reapply property' prose now names crons_apply instead of grid_sync as what runs the applier. The earlier thought (goal:g7.16.1.4.1.2: only engine_push still carries an enabled of its own, publish_engine is gone) is unchanged and lives in the body's kill-switch paragraph. Builder: director-general-3 (DG4 silent, DG1 08:32Z).
 <!-- THOUGHT:END -->
 
 The scheduling cadence for this project's four recurring jobs, declared as
@@ -123,17 +127,21 @@ off, `true` defers to each job's own flag.
 
 ## The self-reapply property
 
-`grid_sync` itself runs every 5 minutes, and what it runs is the applier
-that reconciles the real scheduled-job table against this node. So editing
+`crons_apply` runs every 5 minutes, and what it runs is the applier
+(`crons.py apply`) that reconciles the real scheduled-job table against this
+node. It is a cadence of its own, with no `box` key (so no `why_box`): it
+renders on every box, and retiring `grid_sync` no longer takes the self-heal
+with it. `grid_sync`'s own last step still runs the same applier until the
+switch round removes it. So editing
 `cadences` or `crons_live` here and letting the graph get committed is
 usually the whole change: within 5 minutes the running schedule matches what
 this node says, with no command typed against the schedule itself. The one
 edge case worth naming, because it is where that stops being automatic: the
-kill-switch above removes `grid_sync` along with the other three, so once it
-has run, nothing on this machine is left to notice the *next* edit. Setting
-the boolean back on therefore needs one manual re-run of the applier to
-install that first round of lines — after which `grid_sync` is live again
-and every later edit resumes self-applying as usual.
+kill-switch above removes `crons_apply` and `grid_sync` along with the other
+jobs, so once it has run, nothing on this machine is left to notice the *next*
+edit. Setting the boolean back on therefore needs one manual re-run of the
+applier to install that first round of lines — after which `crons_apply` is
+live again and every later edit resumes self-applying as usual.
 
 ## Two cadences the migration made meaningless
 
