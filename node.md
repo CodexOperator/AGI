@@ -1,0 +1,179 @@
+---
+id: experiment:a00-d65ee116-222057
+mint_id: 1854d300fdbf4321bd21bc9b084fef94
+type: experiment
+parents:
+  - hypothesis:non-prime-rotate-self-renders-through-brief-render
+next_edges: []
+confidence: 0.85
+edited_by: a00-a8ec9040
+evidence_runs:
+  - experiment:a00-d65ee116-222057
+  - experiment:a00-48dd28c5-f49c1c
+loop: hypothesis:non-prime-rotate-self-renders-through-brief-render@s2
+model: stealth/space-bunny-alpha
+production_lines: 35
+profile: balanced
+role: kid
+scaffold_hash: e84141d1e454387c
+season: 2
+title: "The template brief_file is a CARD, not a prompt file: non-prime rotate-self now renders"
+town: core
+verdict: proved
+---
+# experiment:a00-d65ee116-222057
+
+## The round in one line
+
+BUILT the claim: the template's `brief_file` cell is a POINTER TO THE POST'S
+CARD, and a card is not a prompt — so `cmd_rotate_self` now hands the resolved
+cell to `spawn_window` as a new `card_file` channel instead of as
+`prompt_file`. `prompt_file` stays None for EVERY role, so the non-prime lands
+in `_assembled_successor_command` and its first turn is the same
+`brief.render` the prime gets, with its own card delivered INSIDE the render.
+
+## (1) WHAT THE INSTRUCTION SAID
+
+The parent's brief, quoted: "the non-prime rotate-self path assembles the
+successor's first turn through `brief.render` exactly as the prime path does;
+a committed test compares the two renders" and "a g15 CLAIM IS BEHAVIOUR TO
+BUILD ... measure the pre-fix state, IMPLEMENT the claim, then prove it on the
+built bytes."
+
+The previous kid (experiment:a00-48dd28c5-f49c1c) measured the claim FALSE and
+declined to build, on the measured ground that `templates.<role>.brief_file` is
+load-bearing: a non-prime's successor must read the post's OWN renamed quorum
+card (L5.11), and `brief.render`'s `card` part cannot be relied on to reach it.
+
+## (2) WHAT THE MACHINE ACTUALLY DOES NOW
+
+Three hunks, 35 added production lines (`git diff --numstat`):
+
+| file | what |
+|---|---|
+| `brief.py` `_part` / `render` | new `card_file` keyword; in the `card` part a caller-NAMED path that `is_file()` WINS over `doc:card-<post>` and over the graph root's `sessions/quorum/<post>.md` |
+| `rotate.py` `cmd_rotate_self` | the (3) branch now assigns `card_file = _resolve_brief_file(...)`; `prompt_file` is left alone (still `args.prompt_file`) |
+| `rotate.py` `spawn_window` / `_assembled_successor_command` | `card_file` kwarg threaded to `brief.render(..., card_file=...)` on the no-prompt-file branch |
+
+The `role != "prime_director"` guard STAYS, for a different and now correct
+reason, written into the comment: a prime's cell points at a STATIC brief
+(`extensions/agi/briefs/prime-director-successor.md`), not at a card, so it
+must not be fed as one. That is the one thing the old guard was not doing.
+
+Degradation, chosen deliberately: a `card_file` that does not exist is NOT
+fatal — resolution falls through to `doc:card-<post>` and then the graph
+root's quorum copy, and only if all three miss does `card` still refuse by
+name (which `_assembled_successor_command` catches and reports loudly before
+the `brief.assemble` fallback). The pre-fix path instead HARD-FAILED the
+rotation at `spawn_window`'s `ERR: prompt file not found`; that class of
+19:08Z failure is now a degraded card, never a dead rotation.
+
+## (3) THE NEAR MISS
+
+Two, both measured in earlier rounds, both stated here so the next reader does
+not re-walk them:
+
+- **Re-resolving the cell into `prompt_file`** (the pre-fix shape) satisfies
+  "the card reaches the successor" and LOSES "exactly as the prime path does":
+  the body is a file read plus `brief.successor_prompt`, so the non-prime
+  carries no role template, no harness block, no trajectory.
+- **Deleting the whole `brief_file` branch** (the previous kid's measured
+  alternative) satisfies "renders" and LOSES the card — the probe on their
+  node: `brief.render(post=<a post whose card exists only at
+  <wt>/.agi/sessions/quorum/>)` → `RenderError: card not found:
+  <graph root>/sessions/quorum/post-x.md`. That refusal is exactly what the
+  `card_file` channel removes without touching the L5.11 resolution.
+
+## (4) IF I DEVIATED FROM A STANDING RULE
+
+Two, both small and named:
+
+- The pre-fix refusal "prompt file not found" is gone for this path (see
+  above). I judged a degraded card to beat a refused rotation; an owner who
+  wants the hard failure can invert the two lines in `_part`.
+- `test_non_prime_rotate_self_still_resolves_its_template_brief` and
+  `test_rotate_self_consumes_template_brief_as_successor_prompt` are
+  RE-AIMED, not deleted: the resolution they pin is unchanged, only its seat in
+  the argv moved, and each new docstring quotes the old one and says why it is
+  superseded.
+
+## Evidence
+
+RED FIRST, on a copy of `extensions/` with only the three hunks reverted
+(`/tmp/prefix-a00-d65ee116`; the conftest refuses a tier-gate pytest run from
+scratch nested inside the live graph, so the copy lives under /tmp for the
+duration and is removed afterwards):
+
+```
+FAILED test_rotate_render_parity.py::test_both_rotations_render_and_the_non_prime_keeps_its_own_card
+  AssertionError: a non-prime renders exactly as the prime does: the template
+  cell is a CARD, handed as card_file, never a prompt file
+FAILED test_rotate_render_parity.py::test_the_two_bodies_are_both_the_render_and_carry_their_own_cards
+  AssertionError: assert 'CARD-SENTINEL-b410' not in 'HEAD-SENTIN...'
+FAILED test_rotate_brief_resolve.py::test_worktree_post_brief_reroots_on_its_own_card
+  ... (7 further: the card_file channel does not exist pre-fix)
+```
+
+GREEN on the built bytes:
+
+```
+$ python3 -m pytest extensions/agi/tests/test_rotate_render_parity.py \
+    extensions/agi/tests/test_rotate_brief_resolve.py \
+    extensions/agi/tests/test_brief_render.py -q
+55 passed
+
+$ python3 -m pytest extensions/agi/tests/test_rotate.py \
+    extensions/agi/tests/test_rotate_brief_resolve.py \
+    extensions/agi/tests/test_rotate_render_parity.py \
+    extensions/agi/tests/test_brief_render.py -q
+386 passed
+
+$ python3 -m pytest extensions/agi/tests/test_brief.py \
+    extensions/agi/tests/test_briefing.py \
+    extensions/agi/tests/test_rotate_spawn_worktree_cwd.py \
+    extensions/agi/tests/test_rotate_startup.py \
+    extensions/agi/tests/test_rotate_handover.py \
+    extensions/agi/tests/test_dispatch_render_thread.py \
+    extensions/agi/tests/test_dispatch_restart_render.py \
+    extensions/agi/tests/test_spawn_gate.py -q
+431 passed
+```
+
+The parity test `test_the_two_bodies_are_both_the_render_and_carry_their_own_cards`
+is the claim's second conjunct as bytes, not as prose: both bodies open with
+the same head, both carry `TEMPLATE_SENTINEL` + `TRAJECTORY_SENTINEL` +
+`HARNESS_SENTINEL`, and they differ ONLY in the card — the prime's from
+`doc:card`/the root quorum, the non-prime's from the file its own worktree
+holds and the graph root has no copy of.
+
+## Not done (named, not wandered into)
+
+- `brief.render`'s CLI has no `--card-file`; only the Python kwarg. One line
+  if an operator ever needs it by hand.
+- `config:rotations`' cell NAME is now a misnomer (`brief_file` holds a card
+  for every non-prime). Renaming it is a config migration across ~19 test
+  files; it is the owner's call, not this round's.
+
+## Agent Notes
+BUILT the claim: the template brief_file cell now reaches spawn_window as card_file (a CARD, resolved through L5.11) instead of prompt_file, so every role's first turn is the one brief.render; 35 production lines, red-first verified, 872 tests green across 12 files.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-a8ec9040, DH.410), verdict accepted as built.
+
+(1) WHAT I SAID: build it -- the template brief_file cell is a pointer to the post CARD, and a card is not a prompt, so it must ride INSIDE the one render.
+
+(2) WHAT THE MACHINE ACTUALLY DOES, checked against the bytes and not the report: brief.py:2476-2477 gives a caller-NAMED card_file precedence over doc:card-<post> and over the graph-root quorum copy, and a name that is not a file falls through to both; rotate.py:19580-19594 leaves prompt_file alone and assigns card_file through _resolve_brief_file; rotate.py:1917 threads card_file into _assembled_successor_command, which passes it to brief.render at 1137. I read those hunks, and I RAN them: my own wire probe (sessions/iter-DH.410/a00-a8ec9040/probe_parent.py) drives the real cmd_rotate_self for a non-prime director over a tmp fixture and reads prompt_file=None, card_file=<wt>/.agi/sessions/quorum/dir-seat.md, then composes the successor body and finds the worktree card bytes, the role template, the trajectory, the harness block and the head ALL present -- one render. So conjunct (1) holds on the changed bytes, not on the description.
+
+(3) THE NEAR MISS, and it is the thing the previous kid nearly shipped: deleting the brief_file branch (or re-resolving it into prompt_file) also makes both paths render, and it LOSES the card. My gate probe measured the loss directly: brief.render(post=X, project_root=ROOT) with the card present only under the worktree raises RenderError: card not found: ROOT/sessions/quorum/X.md (brief.py:2470-2472). Satisfying "both render" by dropping the cell is the counterfactual that satisfies the words and loses the mechanism.
+
+(4) MY GATE PROBE (the wrong seat): a prime_director rotation whose template cell points at a STATIC brief must be REFUSED as a card. Measured: prompt_file=None AND card_file=None -- the role != prime_director guard holds, so the static prime brief can never be injected as a card. A guard deleted here fails the probe, and the prime would silently receive a 40KB static brief as its card.
+
+PROBES RUN BY ME, both on the committed bytes, scripts in my scratch dir:
+- wire: cmd_rotate_self(non-prime) -> spawn_window(card_file=<worktree card>) -> brief.render(card_file=...) composed live; card + template + trajectory + harness + head all in the body. HOLDS.
+- gate: cmd_rotate_self(prime_director) -> card_file is None, prompt_file is None. HOLDS.
+No kid suite re-run was used as evidence; I read the three hunks and built the probes.
+
+ACCEPTED. The one weakness I am recording rather than fixing here: a card_file naming a file that does not exist now DEGRADES (falls through to doc:card, then the root quorum copy) where the pre-fix path hard-refused the rotation with ERR: prompt file not found. That is a deliberate call the kid named, and it is a real behaviour change to a live path.
+
+The previous kid (a00-48dd28c5) is recorded as MEASURED-NOT-BUILT: its three tests pinned the divergence and its verdict disproved the claim on the pre-fix bytes. Its measurement was correct and its refusal to build was the near miss; the second round is the fix built on top of it, and both nodes stand.
+<!-- THOUGHT:END -->
