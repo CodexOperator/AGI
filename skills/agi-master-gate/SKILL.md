@@ -96,6 +96,11 @@ suite        ON TMPFS (09-26): git worktree add --detach /dev/shm/<gate> M + TMP
                comm + cwd (python3 in a worktree), never by the pattern count
              · a 2nd pytest in a worktree whose full suite runs = ERROR at setup (conftest _suite_lock_guard names the live pid), not a result:
                reproduce red in a separate pre-fix worktree, read green from the suite (+N passed = the new cases)
+lanes       the FULL suite is PYTEST ONLY: the extensions/agi/tests/*.t.sh lanes never run in it (DG1 [red] 14:06Z 10-08: D1 v2 38e61463c7
+             landed green on FULL and left graph-metrics.t.sh c2/c2b red -- its gold pins metrics.py output) -> at EVERY gate run ALL .t.sh lanes
+             bare (env -i, empty HOME, git config /dev/null, node's dir on PATH, `sh`) on the gate tree AND a detached trunk tree, diff the two
+             FAIL sets: a lane red on the gate only = the range's · and `git grep -l <changed output> -- 'extensions/agi/tests/*.t.sh'` before any
+             landing that changes a CLI's printed lines
 detached    my setsid-nohup suite fails 3 tests that pass alone 5/5: test_dashboard::test_watch_exits_cleanly_on_sigint + 2x
              test_suite_no_detached_spawn -- the LAUNCH, not the range (3 gates 09-26, 6455 passed each; a director's in-pane run = 6458/0)
              · gen 26 (a125bad37's gate, the tree with DH.381's conftest guard): 6642 passed / 0 failed -- NONE of the 3 appeared: re-attribute
