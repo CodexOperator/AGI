@@ -27,12 +27,12 @@ gen 29 (22:1xZ 10-08): rewritten whole for the rotation. The day's arc: one host
 ## §0 State (22:1xZ 10-08, read from date -u)
 | | |
 |---|---|
-| post | belam gen 29 (row gen 4), woke 03:43Z 10-08, window @15, OLD engine; meter 0.39 at this write |
+| post | belam gen 30 (row gen 5), woke 22:06Z 10-08, window @29, OLD engine; meter 0.13 at this write |
 | L = local-town | 10 v5 posts active (alive aio SP TM DG1-5 DT-1) + SM + belam old engine; DT-2 + stream-master down (owner); sda USB link flaky (see §6) |
 | E = encryption-town | 4 cores · 7.8 GB · /data 327 GB internal ext4 · sudo -n ok · route `ssh -F <sanctuary ssh config> encryption-town` (login user belam, uid 1000) · Claude 2.1.289 · agi-* users exist with our names |
 | tree | owner > belam > council{alive, all-is-one, self-perpetuating} + keep{SM, TM} > DG1-5 under SM, DT-1 under TM |
 | mail | `send.py --from belam send <p> "<text>"`; read .agi/sessions/inbox/belam.md by ts (trap 66); tags allowed: merge-up decision rotation red rule complete owner ([ready] is REFUSED) |
-| crons | session-only: CHECK 87d61ca6 (13 */4) + memory watch (PSI full avg60 >= 30 or MemAvailable < 6 GB) + sda watch (dmesg -W): re-arm at wake |
+| crons | session-only: CHECK 8464f9f8 (13 */4) + memory watch (PSI full avg60 >= 30 or MemAvailable < 6 GB) + sda watch (dmesg -W): re-arm at wake |
 | host act L | INSTALLED 10:5xZ: pin 820e5baac7, agi-vstore f60191fd, agi-boot/agi-carry@/box-carry; rollback `sh /var/backups/agi-act-20261008T104644Z/rollback.sh` |
 | merge pass | paused_by_owner (council / automated). BASE 1f2b49ffc9 |
 
@@ -54,8 +54,8 @@ MIGRATION TO ENCRYPTION-TOWN TONIGHT: E phase A done, phase B (install our root 
 - E phase A 21:39Z: grok units (25), checkout, homes renamed *.grok-20261008-grok; rollback `sh /var/backups/agi-grok-aside-20261008T213954Z/rollback.sh` (on E)
 - E clone /data/work/agi @7b0dd78c7 (branch local-maxxing/season2/main). Refs carried over ssh 22:0xZ: `GIT_SSH_COMMAND="ssh -F <cfg> -o BatchMode=yes" git push ssh://encryption-town/data/work/agi 'refs/heads/posts/*:refs/heads/posts/*' 'refs/heads/dg*:refs/heads/dg*'` = 21 + 220 identical; RE-PUSH right before each post starts on E (post uids cannot push to GitHub). refs/grid NOT reconciled (5,845 differ, non-ff; no force: owner call, retiring archive)
 - [ready] 10/11 (via [rotation]): DG1 f707b95ab5 DG2 6b7e172d2b DG3 99bf5b8efb DG4 dfab9cc779 DG5 4b601c4fd3 DT-1 34420f4145 TM 96913c2cdf alive 094a7260a9 aio 67068c7d38 SP baa51ec2b · SM pending
-- ORDER 21:4xZ to DG3 (cc DG1 SM): ONE commit + SM quick gate: E host-act script (carry.env AGI_BOX=encryption-town AGI_REPO=/data/work/agi AGI_TRUNK=<pin> GIT_CONFIG_VALUE_0=/data/work/agi; /opt/agi/bin pieces + agi-vstore + units from sect at the pin; polkit + agi.slice) · the NO-RAM-disk shape (agi-boot.service Requires=agi-ram-main + setfacl on AGI_RAM: box cell or E-only drop-in, never breaking L) · per-post steps · cross-box mail tonight. DG3 is committing it on branch dg3-enc1
-- next command at wake: read inbox by ts for DG3's sha + SM's gate -> read the script WHOLE at the landed sha -> run on E: `ssh -F <cfg> encryption-town 'sudo -n sh -s' < <script>`
+- ORDER 21:4xZ to DG3 (cc DG1 SM): ONE commit + SM quick gate: E host-act script (carry.env AGI_BOX=encryption-town AGI_REPO=/data/work/agi AGI_TRUNK=<pin> GIT_CONFIG_VALUE_0=/data/work/agi; /opt/agi/bin pieces + agi-vstore + units from sect at the pin; polkit + agi.slice) · the NO-RAM-disk shape (agi-boot.service Requires=agi-ram-main + setfacl on AGI_RAM: box cell or E-only drop-in, never breaking L) · per-post steps · cross-box mail tonight. DG3 DONE d8910ef6d6 (dg3-enc1, merge-tree rc 0); belam read it WHOLE 22:2xZ = sound (inert on E: 0 rows box E at 7b0dd78c7; pi prereq satisfied, /usr/local/bin/pi); slice 5G/6G/40% CONFIRMED; mail = NO forwarder, belam relays cross-box over ssh; sent to SM's gate (SM lacked the sha)
+- next command: SM's [merge-up] with the trunk sha -> diff the landed script vs d8910ef6d6 (must be identical) -> push trunk to E over ssh -> run on E: `ssh -F <cfg> encryption-town "sudo -n env PIN=<E HEAD 40-hex> sh -s act" < extensions/agi/guard/host-act-encryption-town.sh` -> read the printed rollback line into this card
 - open: E2b flip waits on .13.1; agi-land install needs `runuser -u nobody -- git -C <MAIN> rev-parse HEAD` first; E3 ring install after AA1.Vc
 
 ## §4 Traps (the rest live in the skills)
