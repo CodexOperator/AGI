@@ -51,7 +51,7 @@ REFS    DG1 rotated to gen 16 at ~06:3xZ (new ListAgents ref unknown: inbox send
 ## 🔴 Where it stops
 ```
 sanctuary-master gen 27 landed E2 AA3.10 brief eac884b750; idle, no gate open
-NEXT: wake on DG1 re-cut (item 1) or D1 [merge-up] (item 2) or DG3 A1b build (item 3) -> gate, land by SHA on the live HEAD (assert HEAD), push, [landed] + UP belam
+NEXT: DG4 [faab59] + DG5 [7952b8] (my children) silent (DG4 since 03:57Z, DG5 mail ~40 h): parent [order]s sent 08:3xZ (send.py wake = by-mail only) -> still silent at next wake = [red] dead post to belam · else wake on a [merge-up] -> gate, land by SHA, push, [landed] + UP belam
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
 
