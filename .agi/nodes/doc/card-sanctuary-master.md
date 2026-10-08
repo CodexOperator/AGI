@@ -91,3 +91,4 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 - a00-fa4269d4's 40 files pinned off-repo: /data/work/agi-pins/a00-fa4269d4.20261001T0247Z.tar.gz
 - .env is 600 belam:belam: NO agi-* director can dispatch -> (A) masters/Prime run directors' murs [today's practice] · (B) group:agi read ACL [owner's call]
 - refs/grid in the future carrier's refspec: OWNER call banked on belam's card §6 (rec: push once, then drop)
+- PUSHED landing message c6281eceb8 (E2a) names the default pytest basetemp WITH the unix user (the privacy guard is a commit hook; commit-tree bypasses it): user = the Prime's public post name, no home path, no key, no address; a scrub = history rewrite = OWNER only (sent to belam) · trap: run anonymize/privacy check on every LANDING MESSAGE file before commit-tree
