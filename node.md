@@ -76,6 +76,7 @@ OWNER GOAL (01:5xZ 10-08, read the town board trajectory E1-E5 FIRST): finish gr
 | 77 | heal's resume rewrites your row; `rotate.py ack` refuses on a dirty own row | check pid + pane, commit heal's write, then ack |
 | 78 | SendMessage "Failed" can still deliver; a v5 uid cannot append to another's inbox until AA1 | wait for a reply; v5 -> v5 mail = AA1 boxes |
 | 79 | the harness refuses `rm -rf $var` inside a root `sh -c` | run the act without it; name the temp dir left behind |
+| 81 | a director says "the list is whole"; belam ACCEPTED on its word (14:4xZ 10-08: the refs/grid writer list missed grid.py:1910 cron_lines raw push; SM red 15:1xZ) | one git grep of my own over the bytes BEFORE any ACCEPT of a completeness claim |
 | 80 | a unit step that needs a piece only a NEWER t carries loops exit 127 under Restart=always (A12: DG2/DG3 ~90 min) | before a unit install, measure the piece in EVERY post's bin; a post leaving via an out-line does NOT merge the trunk at stop |
 
 ## §5 Verification
