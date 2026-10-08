@@ -1496,6 +1496,8 @@ def check_anonymize(groot: Path) -> CheckResult:
                            note=f"could not execute: {exc}")
     tail = (proc.stdout + proc.stderr).strip().splitlines()
     skip = _perm_skip(proc.stdout + proc.stderr) if proc.returncode else None
+    if proc.returncode == 2 and "no denylist source" in proc.stderr:  # could not look: a named SKIP, not PASS (an argparse rc 2 stays FAIL)
+        skip = "no denylist source; nothing scanned"
     if skip:
         return CheckResult("anonymize", "SKIP", time.monotonic() - start, note=skip)
     return CheckResult("anonymize", "PASS" if proc.returncode == 0 else "FAIL",
@@ -1514,10 +1516,17 @@ def check_formation(groot: Path) -> CheckResult:
     import yaml
     import node_writer
     t0 = time.monotonic()
-    cell = node_writer.find_node_file(groot, "config:formations")
-    if cell is None:
+    try:  # the LIVE cell(s) only: find_node_file would hand back a retired copy over a live one
+        cells = [f for i, f, _ in rotation_record.grep_live(groot, "id: config:formations") if i == "config:formations"]
+    except rotation_record.GrepError as exc:
+        return CheckResult("formation", "FAIL", time.monotonic() - t0, note="the cell grep failed", message=str(exc))
+    if not cells:
         return CheckResult("formation", "SKIP", 0.0, note="no config:formations cell")
-    fm = yaml.safe_load(node_writer.split_frontmatter(cell.read_text("utf-8"))[0]) or {}
+    head = node_writer.split_frontmatter(cells[0].read_text("utf-8"))[0]
+    if len(cells) > 1 or len(re.findall(r"^active:", head, re.M)) > 1:  # which one / which key would win?
+        return CheckResult("formation", "FAIL", time.monotonic() - t0,
+                           note="config:formations is ambiguous: " + (f"{len(cells)} live cell files" if len(cells) > 1 else "the active: key is repeated"))
+    fm = yaml.safe_load(head) or {}
     active, table = fm.get("active"), fm.get("templates") or {}
     tpl = node_writer.find_node_file(groot, active) if isinstance(active, str) else None
     if (tpl is None or active not in table     # a RETIRED template never runs (R5)
@@ -2216,10 +2225,10 @@ def _ring_gate_refusal(groot: Path, ring_name: str, level: str,
     try:
         from seatsig import rings as _rings
 
-        rings_rows = _rings.load_rings(groot)
-        ring = _rings.ring_by_name(rings_rows, ring_name)
-    except Exception:  # noqa: BLE001
-        ring = None
+        ring = _rings.ring_by_name(_rings.load_rings(groot, strict=True), ring_name)
+    except Exception as e:  # noqa: BLE001  (could not look: refuse, never the opt-in)
+        return (f"merge grant refused: ring {ring_name!r} could not be loaded "
+                f"({type(e).__name__}: {e})")
     if ring is None:
         return None  # no such ring declared -> opt-in means nothing demanded
     fields = fields if fields is not None else \
