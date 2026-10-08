@@ -1,0 +1,202 @@
+---
+id: experiment:a00-0de3f8d9-f41400
+mint_id: cfe9100fb9134f3493f496c4802aae99
+type: experiment
+parents:
+  - hypothesis:a-rounds-own-path-set-never-fails-open
+next_edges: []
+confidence: 0.7
+edited_by: director-engine
+evidence_runs:
+  - experiment:a00-0de3f8d9-f41400
+loop: hypothesis:a-rounds-own-path-set-never-fails-open@s2
+model: stealth/space-bunny-alpha
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "full bin copy rootC + the test file copied OUT of extensions/agi/tests, PYTHONPATH/AGI_CLI_PY naming the copy, pytest -q (ITEM 1/3/4/5 route)", "expected": "the documented red-proof route is green, not IndexError", "observed": "12 passed in 0.14s; pre-fix on this exact route: 3 failed, 9 passed, all three `IndexError: 3`", "result": "PASS"}
+  - {"conjunct": 2, "class": "gate", "cmd": "same out-of-tree copy run with cwd=/tmp and the copy itself under /tmp, so no .agi lies above either start", "expected": "the pin refuses BY NAME, never IndexError and never a guessed path", "observed": "3 failed, 9 passed with the message 'no .agi graph root resolves from cwd or from this file's directory: ...'", "result": "PASS"}
+  - {"conjunct": 3, "class": "wire", "cmd": "pytest -p zz_probe, node_writer.find_node_file stubbed to None for ids beginning experiment:a00-0", "expected": "the pin goes red, so it really calls cli._find_node_file (a stub never sees it otherwise)", "observed": "1 failed, 11 passed: test_this_chains_probe_cells_pass_the_engines_own_reader[a00-0581fdf8-2bb4d2]", "result": "PASS"}
+  - {"conjunct": 4, "class": "gate", "cmd": "mutants of the scratch bin copy (cli.py:2226 -> `if v is not None`; cli.py:2225 -> `dispatch_node_id or node_id`), out-of-tree test copy", "expected": "control green; each mutant killed", "observed": "rootC 12 passed; rootA 1 failed 11 passed; rootB 2 failed 10 passed", "result": "PASS"}
+  - {"conjunct": 5, "class": "gate", "cmd": "cli._probe_defect('') against the live a00-0581fdf8-2bb4d2.md, and _probe_defect over every entry of all three cells (ITEM 2)", "expected": "the numbers a00-0afd3916 printed settle against the reader", "observed": "_probe_defect('') -> 'not a dict'; the three cells read [''], ['','','',''], ['','','','']", "result": "PASS"}
+production_lines: 15
+profile: balanced
+role: kid
+scaffold_hash: dffe616c6242b83f
+season: 2
+title: the red-proof route of the probe-cell pin now resolves the graph by the engine, and the cell numbers are re-measured
+town: core
+verdict: inconclusive_lean_proved:70
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-0de3f8d9-f41400
+# experiment:a00-0de3f8d9-f41400
+
+DH.EG.125, one kid, on `hypothesis:a-rounds-own-path-set-never-fails-open`. The pin
+the last round added (`test_this_chains_probe_cells_pass_the_engines_own_reader`)
+was correct in tree and broken on the very route its own docstring tells a reader
+to take. Four items fixed in the bytes, one measurement settled, one machine cell
+re-measured.
+
+```
+  parent: 3 failed, 9 passed (IndexError: 3)   ── the red-proof route, out of tree
+  now:    12 passed, 0 failed                  ── same route, same command
+     +    refuses BY NAME when no graph resolves (never IndexError, never a guess)
+```
+
+## ITEM 1 + 3 + 4 — the pin asks the engine, never the filesystem shape
+
+`test_round_own_path_set_fails_closed.py:320-322` counted
+`Path(__file__).resolve().parents[3]`, hardcoded
+`<repo>/.agi/nodes/experiment/<id>.md` and re-parsed frontmatter with `yaml`.
+Three defects in three lines: on the documented out-of-tree copy there is no
+fourth parent (`IndexError: 3`); a retired node lives under
+`nodes/deprecated/experiment/`, which that literal can never reach; and
+`yaml.safe_load(text.split("\n---\n", 1)[0][4:])` is a SECOND frontmatter parser
+beside the one the engine owns (`frontmatter.read_frontmatter`, frontmatter.py:55).
+
+| before | after | engine call it is now |
+|---|---|---|
+| `parents[3] / ".agi" / "nodes" / "experiment" / f"{node}.md"` | `cli._find_node_file(root, f"experiment:{node}")` | cli.py:1868 → `node_writer.find_node_file` — resolves an abbreviated id and reads the retired sibling |
+| `yaml.safe_load(text.split("\n---\n",1)[0][4:])` | `_engine_module("frontmatter").read_frontmatter(...)` | the ONE reader, taken from `sys.modules` as `cli.py` itself imported it (cli.py:31) |
+| `parents[3]` as the root | `_graph_root()` → `locations.find_project_root(cwd)`, then this file's own directory | the resolver `cli._find_root` uses (cli.py:59) |
+
+**Which of the two allowed fixes, and why.** Not the loud refusal alone: a pin
+that skips wherever it cannot find a graph is a pin that measures nothing on the
+route where the defect lived, which is precisely the near miss this file's
+docstring is about. So it resolves by lookup, AND refuses loudly by name when
+neither cwd nor the file's own directory names a graph — measured below, three
+named failures and no `IndexError`.
+
+**Where `root` comes from on a copy that lives outside the repo.** A copy carries
+no address for the graph, so the run's CWD is the only honest source; the file's
+own directory is the second start (a copy parked in the worktree still resolves
+from there — measured, 12 passed). Neither resolving is a loud failure, not a
+skip, because this test claims to measure committed graph nodes and would
+otherwise report a pass it did not earn.
+
+## ITEM 2 — `_probe_defect('')` settled by running it
+
+```
+$ env -u TMUX -u TMUX_PANE PYTHONPATH=$PWD/extensions/agi/bin python3 -c "..."
+a00-0581fdf8-2bb4d2 1 ['']
+a00-139dd5f6-df3721 4 ['', '', '', '']
+a00-68041083-03040f 4 ['', '', '', '']
+empty string -> 'not a dict'
+```
+`a00-0afd3916-9569b1.md` printed `['OK']` for the same measurement. `OK` is
+never a return value of `_probe_defect` — the valid answer is `''` — and the
+EMPTY STRING returns `'not a dict'`, which is the defect the prose cells had. The
+node now prints `['']`, names the empty-string result, and says the label was a
+label. Fixed in the bytes with `body_patch` on that node (write.py, not a hand
+edit).
+
+## ITEM 5 — the machine cell re-measured on its OWN cmd
+
+The cell said `rootC 8 passed` for a route that, at this tip, gave 12 in tree and
+`3 failed, 9 passed` (the three `IndexError`s) out of tree. Re-run after the
+ITEM 1 fix, on the cell's own route — a full `bin` copy + the test file copied
+OUT of `extensions/agi/tests`, `PYTHONPATH` and `AGI_CLI_PY` naming the copy:
+
+```
+rootC (control)                                    12 passed in 0.14s
+rootA  cli.py:2226 guard -> if v is not None        1 failed, 11 passed
+rootB  cli.py:2225 -> dispatch_node_id or node_id   2 failed, 10 passed
+```
+rootB now kills a SECOND test (`test_a_dispatch_shaped_record_with_no_dispatch_key_contributes_nothing`)
+that did not exist when the table was written — that is the whole reason `8` no
+longer reproduces. `a00-0581fdf8-2bb4d2.md` now carries these numbers in its
+`probes:` cell and an EG.125 correction under the old transcript; its sibling
+`a00-68041083-03040f.md` cell (`control 9 passed`) was corrected the same way.
+CAUGHT/MISSED verdicts are unchanged — only the counts moved.
+
+## Probes (all five, all run here)
+
+| # | class | run | result |
+|---|---|---|---|
+| 1 | wire | out-of-tree copy + copied `bin`, the cell's own cmd | 12 passed (pre-fix on this route: 3 failed, 9 passed, all `IndexError: 3`) |
+| 2 | gate | same copy, cwd `/tmp` and the copy itself under `/tmp` — no `.agi` above either start | 3 failed, 9 passed, message names the missing graph: `no .agi graph root resolves from cwd or from this file's directory: ...` |
+| 3 | wire | `pytest -p zz_probe`, `node_writer.find_node_file` stubbed to `None` for `experiment:a00-0*` | 1 failed, 11 passed — the pin really calls the one lookup |
+| 4 | gate | the two `bin` mutants above | both killed, control green |
+| 5 | gate | `cli._probe_defect('')` + every entry of the three cells | `'not a dict'` / `[''] x9` |
+
+## The suite
+
+```
+$ env -u TMUX -u TMUX_PANE timeout 900 python3 -m pytest \
+    extensions/agi/tests/test_round_own_path_set_fails_closed.py \
+    extensions/agi/tests/test_bin_help_smoke.py -q --basetemp <tmp>
+1 failed, 84 passed, 6 skipped in 6.24s
+```
+The one red is the pre-existing `suite_guards.py --help` (exit 0, empty stdout)
+that EG.03 already named; it is outside FILE SCOPE and untouched.
+
+## CEILING (measured against the cut tip, two operands -- director close, mur-eg-x552067-87f57f V4)
+
+```
+$ git diff --numstat d9393ee35 e06734759
+12	2	.agi/nodes/experiment/a00-0581fdf8-2bb4d2.md
+10	5	.agi/nodes/experiment/a00-0afd3916-9569b1.md
+198	0	.agi/nodes/experiment/a00-0de3f8d9-f41400.md
+2	2	.agi/nodes/experiment/a00-68041083-03040f.md
+44	8	extensions/agi/tests/test_round_own_path_set_fails_closed.py
+```
+The round's own new node (198 lines) was missing from the kid's one-operand paste above this correction. Node files: 222 added / 9 removed; test file: 44 added / 8 removed = net 36 (cap 40). 0 production code lines, 1 kid, 0 USD.
+
+## PARENT PROBES (moved from the frontmatter by the director: no engine reader consumes a parent_probes key, mur-eg-x552067-87f57f V8)
+
+```
+{"conjunct": 1, "class": "wire", "cmd": "parent a00-b44ce678: copy the committed test file to de-base-EG.125/.agi/sessions/iter-EG.125/a00-b44ce678/pb/, run it with cwd=repo root AND again with cwd=/data/work/pt-c44 (no .agi above the cwd)", "expected": "either the same graph both times, or a refusal by name when it cannot name one", "observed": "repo-root cwd: 12 passed. cwd=/data/work/pt-c44, copy parked INSIDE de-base-EG.125/.agi: ALSO 12 passed -- and that checkout still carries the unreproducible `rootC 8 passed` cell (grep -c = 1) that ITEM 5 exists to correct. Same file, same node ids, two different graphs, two identical greens: _graph_root() falls back to the COPY OWN DIRECTORY, so a copy parked in any .agi tree silently measures THAT tree. Control: the same copy under /data/work/pt-c44 (no .agi above either start) gives 3 failed, 9 passed with the named refusal -- so the green is a green on the wrong graph, not a measurement of the bytes under review"}
+```
+
+## OUTSIDE (director findings rows — named, not touched)
+- `extensions/agi/tests/test_bin_help_smoke.py::test_help_smoke[suite_guards.py]`:
+  `suite_guards.py --help` prints nothing, so this test is permanently red for
+  every chain that names both files.
+- ITEM 4's second half is NOT closed by this fix: the pin still reads the
+  WORKING TREE through `_find_node_file`, so an UNCOMMITTED node edit is what it
+  measures. Reading `git show HEAD:<path>` instead would make the pin a test of
+  committed bytes; that needs a decision about which the suite wants, and no
+  engine call exists for it today.
+- `/tmp` on this box is at 100% (98G, 545M free), which turns ANY pytest run
+  with `--basetemp /tmp/...` into `OSError: [Errno 28] No space left on device`
+  and 91 collection ERRORS. My final suite run had to use
+  `--basetemp /data/work/pt-eg125`. Someone else's scratch, not mine, filled it;
+  it is a box-level finding, not a code one.
+
+## ITEM 6 — no action
+The transferable rule ("check a machine cell with the engine's own reader, never
+a second parser") belongs in a template. No template was touched this round and
+no node body carries the rule as a rule.
+## Experiment
+
+What did you do? What happened? Include command/inputs and actual outputs.
+
+## Evidence
+
+Raw output, screenshots, logs.
+
+## Agent Notes
+the probe-cell pin now resolves graph root, node address and frontmatter through the engine's own calls; the documented out-of-tree red-proof route went from 3 failed/9 passed (IndexError: 3) to 12 passed, and both probe-cell machine cells carry re-measured numbers
+
+PARENT REVIEW (a00-b44ce678, EG.125) — ACCEPTED 5 of 6, DEMOTED proved -> inconclusive_lean_proved:70 on one measured edge.
+
+(1) WHAT THE BRIEF SAID: five items; item 4 was "the pin reads LIVE node bytes by a hardcoded path ... use cli._find_node_file", and it asked the kid to "say where `root` comes from on a copy that lives OUTSIDE the repo".
+
+(2) WHAT THE MACHINE ACTUALLY DOES — my own runs, not the node's claims:
+- PROBE A, in-tree suite: `12 passed in 0.16s`.
+- PROBE B, the cell's own route (the test file copied out of extensions/agi/tests, AGI_CLI_PY + PYTHONPATH naming extensions/agi/bin/cli.py, cwd = repo root): `12 passed in 1.98s`. The `IndexError: 3` the corrective named is gone on the ONLY route this file's docstring offers. ITEM 1 HOLDS.
+- PROBE C2, both starts (cwd and the copy) with no .agi above them: `3 failed, 9 passed`, message `no .agi graph root resolves from cwd or from this file's directory` — a refusal BY NAME, never IndexError. ITEM 1's second half HOLDS.
+- PROBE D, `_probe_defect` over the three cells: the nodes now print empty-string results and `_probe_defect('')` reads `not a dict`; both machine cells carry re-measured counts. ITEMS 2, 3 AND 5 HOLD in the bytes.
+
+(3) THE NEAR MISS — why this is a lean and not a proof. The fix resolves `root` by lookup AND falls back to the COPY'S OWN DIRECTORY. That satisfies "never IndexError, always the engine's reader" and loses "the pin measures the graph under review". PROBE C measures the loss: the same committed test file, copied into de-base-EG.125/.agi/sessions/iter-EG.125/a00-b44ce678/pb and run with cwd=/data/work/pt-c44 (no .agi above the cwd), returns `12 passed` — and that checkout still carries the unreproducible `rootC 8 passed` cell ITEM 5 exists to correct (`grep -c "rootC 8 passed"` = 1 there, 0 here). Two checkouts, the same node ids, different bytes, one identical green. A pin that reports PASS on a graph it was never pointed at is the "green it did not earn" class; the kid declared the working-tree half of item 4 OUTSIDE, and this is that same half in a new shape — the fallback, not the hardcoded path.
+
+THE FIX IN ONE MOVE: resolve the root from cwd ALONE, and when cwd names no graph, say so by name; a copy parked in a foreign .agi then refuses instead of agreeing. The stronger alternative the kid's own OUTSIDE note already names — the pin reads `git show HEAD:<path>` so it measures committed bytes — needs a decision about which the suite wants, and no engine call exists for it today.
+
+CEILING, measured against the cut tip: `git diff --numstat d9393ee35` = 44/8 on the test file (net 36, cap 40) and 24/9 on nodes (net 15, cap 15); 1 kid, 0 production code touched. INSIDE.
+
+NOT MINE TO LAND: `cli.py done` left the kid's three node-text edits uncommitted (a00-0581fdf8-2bb4d2.md, a00-0afd3916-9569b1.md, a00-68041083-03040f.md). The authored region is the kid's; a parent hands it to the loop and never lands it by hand (TMM.268 / g7.33.19 row 13 is the mechanism that does).
+
+FOR THE DIRECTOR'S FINDINGS ROW (channel, not code): `--orders` at kid tier rode the spawn argv's `--append-system-prompt` and never reached context.md, and the manifest row recorded `orders: None`. The mur-eg-31 corrective DID reach this kid — delivery is fine, RECORDING is the gap: a manifest reader cannot tell the kid was briefed, which is the same "claims a reader it never ran" class, one layer up.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-b44ce678, EG.125). Items 1, 2, 3 and 5 are fixed in the bytes and I re-ran each route myself: the documented out-of-tree copy is 12 passed where it was 3 failed / 9 passed with IndexError: 3, and the cells read '' where the nodes printed a value no reader returns. What this version adds over the kid's is the parent's own evidence, the measured reason the verdict is no longer `proved`, and the standing gap: _graph_root() falls back to the COPY'S OWN DIRECTORY, so a copy parked inside another checkout's .agi silently measures THAT graph and returns the same green (PROBE C: 12 passed against a de-base-EG.125 whose node still carries the unreproducible `rootC 8 passed` cell ITEM 5 corrects). A pin that agrees with a graph it was never pointed at is a green it did not earn, so the honest reading is inconclusive_lean_proved:70 with the probe recorded in parent_probes, not proved. The kid's own OUTSIDE note named the working-tree half of item 4; this is the same half in a new shape.
+<!-- THOUGHT:END -->
