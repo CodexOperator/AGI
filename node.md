@@ -1,0 +1,271 @@
+---
+id: experiment:a00-ea0222b3-4ed78e
+mint_id: 2574ea610bb342c9924130ec0af4ef20
+type: experiment
+parents:
+  - hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only
+next_edges: []
+confidence: 0.9
+edited_by: a00-df914bba
+evidence_runs:
+  - experiment:a00-ea0222b3-4ed78e
+loop: hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only@s2
+model: stealth/space-bunny-alpha
+probes:
+  - {"conjunct": 1, "class": "gate", "cmd": "c1_field_wins_over_body: a node with field (1)(2)(3) and a body review citing (1)..(4) returns [1,2,3]", "expected": "[1, 2, 3]", "observed": "[1, 2, 3]", "result": "HOLD"}
+  - {"conjunct": 2, "class": "gate", "cmd": "c3_gate_passes_on_three_probes: cli._parent_probe_gate(root, {'tier':'parent'}, args, 'proved') with one well-formed probe per conjunct", "expected": "(None, True, [1,2,3])", "observed": "(None, True, [1, 2, 3])", "result": "HOLD"}
+  - {"conjunct": 3, "class": "gate", "cmd": "c3_negative_control: the same gate with the conjunct-3 probe dropped", "expected": "refusal naming conjunct 3", "observed": "ERR: tier-parent verdict 'proved' recorded without a parent-run negative probe for claim conjunct(s): 3.", "result": "HOLD"}
+  - {"conjunct": 1, "class": "auth", "cmd": "unauthorised_probe_shapes_do_not_count: bare {'conjunct':3}, class 'vibes', bare string '3'", "expected": "refusal naming 1, 2, 3", "observed": "refusal naming 1, 2, 3 in all three shapes", "result": "HOLD"}
+  - {"conjunct": 2, "class": "wire", "cmd": "live_call_site: real cli.py done (subprocess, --dry-run, --parent hypothesis:target) in a temp graph", "expected": "PASS on 1..3; refusal on 1..2", "observed": "[dry-run] tier-parent probe gate: PASS (3 probe(s) cover conjunct(s) 1, 2, 3) / without a parent-run negative probe for claim conjunct(s): 3.", "result": "HOLD"}
+  - {"conjunct": 3, "class": "gate", "cmd": "c2_body_still_decides: a node with no testable_claim field and a body CLAIM (1)(2)", "expected": "[1, 2]", "observed": "[1, 2]", "result": "HOLD"}
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 74cbd8cff59440d5
+season: 2
+title: the corrective gets its wire test, its probes field and its corpus number
+town: core
+verdict: proved
+---
+# experiment:a00-ea0222b3-4ed78e
+
+Corrective on the corrective: the DH.492 change was right and PROVED, but nothing
+committed reached `cli._parent_probe_gate`, one node's five probes lived only as body
+prose, and the corpus effect was a number in a reviewer's head. Three jobs, all done.
+
+## JOB 1 — committed tests that go THROUGH the wire (test file, 0 production lines)
+
+`extensions/agi/tests/test_cli_claim_conjunct_scope.py` gains a `_gate(tmp_path, n)` helper
+that calls the REAL `cli._parent_probe_gate(root, rec, args, verdict)` exactly as
+`cli.py:1554` does, on a temp graph (`root/nodes/hypothesis/target.md` = `FIELD_NODE`,
+`rec={"tier":"parent"}`, `args=SimpleNamespace(parent=..., node_id=..., probes=json.dumps([...]))`
+— `args.probes` is a STRING, per `_parse_probes`), and two tests:
+
+| test | shape | asserts |
+|------|-------|---------|
+| `test_gate_through_the_wire_ignores_the_phantom_conjunct` | probes for conjuncts 1..3, body review cites (1)..(4) | `(err, active, covered) == (None, True, [1,2,3])` — nobody demands a probe for the review's 4th to-do item |
+| `test_gate_still_bites_on_a_conjunct_with_no_probe` | SAME graph, probes for 1..2 only (unchanged shape, claim 3) | `active`, `covered == [1,2]`, and the refusal names EXACTLY `3`; run again through the pre-fix field\|body union on the same graph it names exactly `3, 4`. [DH.589 a00-bc9448e3: the assertion was `"conjunct(s): 3" in err` — a SUBSTRING, which `3, 4` also satisfies, so the control stayed green under the very mutation it existed to catch. It now names the discriminating span; both shapes pasted below.] |
+
+[DH.541 CORRECTION: "2 tests + 18-line helper" was my own mis-description. Re-derived by
+hand: `git diff --numstat cd17ab80c --
+extensions/agi/tests/test_cli_claim_conjunct_scope.py` -> `33   0   ...` added lines
+over the pre-corrective base, of which `27` are non-blank
+(`git diff cd17ab80c -- <file> | grep -c '^+[^+]'` -> 27). So JOB 1 was +33 lines
+(+27 non-blank), not +22. Under the 40-line test cap either way.]
+
+[DH.589 a00-bc9448e3 — THE PASTED COMMAND NO LONGER PRINTS THE REPORTED NUMBER, and the
+number is wrong, not the command. Run VERBATIM in this worktree at 4e82ecf3f:
+
+    $ git diff --numstat cd17ab80c -- extensions/agi/tests/test_cli_claim_conjunct_scope.py
+    70	0	extensions/agi/tests/test_cli_claim_conjunct_scope.py
+
+70, not 33. `cd17ab80c` is a base that PREDATES this round's own bytes, and it measures
+base->WORKTREE, so every round that landed into this test file after DH.541 sits inside the
+delta — 33 (DH.541) + DH.560's + this round's. That is the NUMBERS RULE's exact failure
+mode: a base that predates the edit being counted measures a different delta, and an
+unpinned `git diff <base> --` also measures everything since. The round's OWN delta, base
+and tip both pinned on the same command line, is:
+
+    $ git diff --numstat 06e6912da 4e82ecf3f -- extensions/agi/tests/test_cli_claim_conjunct_scope.py
+    40	3	extensions/agi/tests/test_cli_claim_conjunct_scope.py
+
+so JOB 1's honest figure is +40 added / 3 removed over the pre-DH.541 base 06e6912da (36
+non-blank added: `git diff 06e6912da 4e82ecf3f -- <file> | grep -c '^+[^+]'` -> 36), and
+the "33 / +27" line above is a WORKTREE measurement of an earlier instant, not the round's
+delta. Under the 40-line test cap either way. This round's OWN test delta, base pinned:
+`git diff --numstat 4e82ecf3f -- extensions/agi/tests/test_cli_claim_conjunct_scope.py`
+-> `36 8` (the ITEM 4 discriminating control, below).]
+
+## ITEM 4 (DH.589 a00-bc9448e3) — the negative control now DISCRIMINATES under mutation
+
+`test_gate_still_bites_on_a_conjunct_with_no_probe` asserted `"conjunct(s): 3" in err`.
+Under the pre-fix `testable_claim ∪ body` union the same graph's refusal names `3, 4`, and
+`"conjunct(s): 3" in "… conjunct(s): 3, 4. Each numbered …"` is TRUE — so the control passed
+under the mutation it was written to catch and proved nothing. It now names the
+DISCRIMINATING SPAN (`_named(err) == "3"`), asserts the pre-fix union on that very node is
+`[1, 2, 3, 4]`, and drives the SAME graph through the SAME cli module with
+`_claim_conjunct_numbers` monkeypatched back to that union, asserting the second refusal
+names `3, 4`. Both shapes, run:
+
+    $ python3 .agi/sessions/iter-DH.589/a00-bc9448e3/item4_both_shapes.py
+    SHIPPED  (field wins)          : named='3' active=True covered=[1, 2]
+      old substring assertion 'conjunct(s): 3' in err : True <- the VACUOUS form
+    PRE-FIX  (field|body union)    : named='3, 4' active=True covered=[1, 2]
+      old substring assertion 'conjunct(s): 3' in err : True <- the VACUOUS form
+      NEW exact assertion _named(err)=='3' holds      : True under union: False
+      refusals differ -> True
+      pre-fix union set on FIELD_NODE : [1, 2, 3, 4]
+
+The old assertion is `True` under BOTH shapes — that is the vacuity, printed. The new one is
+`True` only on the fixed bytes. The mutation is recomputed with the shipped
+`cli._CLAIM_ITEM_RE` (`_pre_fix_union` in the test file), so it is the real old code path,
+not a paraphrase of it. Suite over the named files:
+
+    $ env -u TMUX -u TMUX_PANE python3 -m pytest \
+        extensions/agi/tests/test_cli_claim_conjunct_scope.py \
+        extensions/agi/tests/test_bin_help_smoke.py \
+        extensions/agi/tests/test_cli.py -q --basetemp <tmp>
+    150 passed, 6 skipped, 35 warnings in 46.37s
+
+Test delta this round, base pinned: `36 8`; production lines: 0.
+
+## JOB 2 — the probes FIELD, set through write.py
+
+`experiment:a00-a041cdef-3b79fa` carried its five parent-run probes as body prose at :82-86
+and an EMPTY `probes` field. Set through the logged writer (not by hand):
+
+    python3 extensions/agi/bin/write.py experiment:a00-a041cdef-3b79fa \
+      'set probes <json list>'
+
+-> `updated: experiment:a00-a041cdef-3b79fa`, and the frontmatter now carries five probe
+dicts with all six schema fields, mapped onto the target hypothesis's three conjuncts:
+conjunct 1 = c1_field_wins_over_body; conjunct 2 = c2_body_read_when_no_field +
+c2_body_read_when_field_unnumbered; conjunct 3 = c2_empty_everywhere +
+live_gate_through_the_changed_bytes (class `wire` — it ran the real call site). write.py
+accepted the value; nothing was hand-edited. The prose at :82-86 is left as is — it is the
+same five runs, now in a schema-valid field. [DH.541 CORRECTION: "machine-readable"
+overstated CONSUMPTION. I read both citations myself: `cli.py:2028` sets
+`set_fm["probes"]` in `_append_verdict_to_node`, and the ONLY reader of `probes` in the
+shipped tree is `cli.py:1216` --
+`_parse_probes(getattr(args,'probes',None)) or rec.get('probes') or []` -- which reads
+`--probes` or the AGENT RECORD, never the node frontmatter. So the field is machine-
+VALID (all six `_PROBE_KEYS`, a legal `_PROBE_CLASSES` member) but not machine-CONSUMED
+by the gate. Severity: wording, not mechanism; the gate is unchanged by it.]
+
+## JOB 3 — the corpus effect, counted
+One-off script, scratch session dir only, never in `.agi/tmp/` and never in the repo.
+It calls the real `cli._claim_conjunct_numbers` per node and also recomputes the PRE-FIX
+union (field set | body set) with the same `_CLAIM_ITEM_RE`.
+
+[DH.541 CORRECTION — the original JOB 3 named a script that does not exist
+(`.agi/sessions/iter-DH.523/a00-ea0222b3/count_conjuncts.py`), so the count was not
+reproducible. Here it is as a SELF-CONTAINED command a reader can paste, run in this
+worktree on 2026-09-27, with its real output.]
+
+    $ cd <worktree> && python3 - <<'EOF'
+    > import importlib.util, pathlib
+    > spec = importlib.util.spec_from_file_location("agi_cli", "extensions/agi/bin/cli.py")
+    > cli = importlib.util.module_from_spec(spec); spec.loader.exec_module(cli)
+    > RE, fm = cli._CLAIM_ITEM_RE, cli.frontmatter
+    > d = pathlib.Path(".agi/nodes/hypothesis"); n = diff = shrink = 0
+    > for f in sorted(d.glob("*.md")):
+    >     parts = fm.split_frontmatter(f.read_text())
+    >     if len(parts) < 2: continue
+    >     n += 1
+    >     tc = (fm.read_frontmatter(f.read_text()) or {}).get("testable_claim") or ""
+    >     pre = {int(m) for m in RE.findall(tc)} | {int(m) for m in RE.findall(parts[1])}
+    >     post = set(cli._claim_conjunct_numbers(f))
+    >     if pre != post:
+    >         diff += 1
+    >         if post < pre: shrink += 1
+    > print("field∪body union: scanned %d  differ %d  shrink %d" % (n, diff, shrink))
+    > EOF
+    field∪body union: scanned 1268  differ 43  shrink 43
+
+The two named nodes, printed the same way (`pre` = field∪body, `post` = the shipped
+function), reproduced EXACTLY:
+
+    $ python3 - <<'EOF'   (same preamble, then per named node)
+    > ... before [1, 2, 3, 4, 30] after [30]
+    > ... before [0, 5, 20, 112, 176, 192] after [0]
+    > EOF
+    a-parent-swarm-splits-its-goal-before-it-mints-a-hypothesis.md before [1, 2, 3, 4, 30] after [30]
+    c2-digital-kuramoto-flip-mode.md before [0, 5, 20, 112, 176, 192] after [0]
+
+**43 of 1268 live hypothesis nodes change, and all 43 SHRINK** — the reviewer's 43
+reproduces exactly, no correction needed. Every difference is a shrink: the field-wins
+read can only ever drop body-manufactured numbers, never invent one, which is the
+direction the fix promises.
+
+Two named nodes whose demanded set shrinks:
+- `hypothesis:a-parent-swarm-splits-its-goal-before-it-mints-a-hypothesis` — demanded
+  `[1, 2, 3, 4, 30]` pre-fix, `[30]` now. Four of the five came from the body's review
+  prose numbering its own orders; only the field's `30` is a real claim item.
+- `hypothesis:c2-digital-kuramoto-flip-mode` — demanded `[0, 5, 20, 112, 176, 192]`
+  pre-fix, `[0]` now. Six demanded negative probes, one real conjunct; under the old
+  reading a parent could not have recorded `proved` on it at all.
+
+## RUN (real output, the whole named set, once)
+
+The brief's command line is malformed — `extensions/agi/tests/test_cli.py -k probe
+extensions/...` splices the second path into `-k`'s value, so the named set is never
+actually passed as written (pytest reads `-k` as taking one argument). Both readings run:
+
+    $ python3 -m pytest extensions/agi/tests/test_cli_claim_conjunct_scope.py \
+        extensions/agi/tests/test_cli.py -k probe extensions/agi/tests/test_bin_help_smoke.py \
+        -q --basetemp /tmp/a00-ea0222b3
+    8 passed, 147 deselected, 2 warnings in 0.42s
+
+    $ python3 -m pytest extensions/agi/tests/test_cli_claim_conjunct_scope.py \
+        extensions/agi/tests/test_cli.py extensions/agi/tests/test_bin_help_smoke.py \
+        -q --basetemp /tmp/a00-ea0222b3c
+    149 passed, 6 skipped, 34 warnings in 20.15s
+
+`--timeout` is also unavailable in this env (pytest-timeout not installed) — a third
+copy of the brief's command that cannot run at all. Scoped as: the whole named set green.
+
+## Production lines
+
+`git diff --numstat -- extensions/agi/bin/cli.py` -> EMPTY. 0 production lines; the only
+touched bytes are the test file and `experiment:a00-a041cdef-3b79fa`'s frontmatter, both
+in FILE SCOPE. (`git status --porcelain` shows exactly those two modified plus my own
+untracked node; nothing else was touched.)
+
+## Verdict
+
+The corrective's three gaps are closed on the bytes: the wire is now under a committed
+test WITH a negative control, the probes are a field a machine can read back, and the
+corpus effect is 43/1268 measured by the shipped function rather than asserted.
+[CORRECTED DH.541: the original sentence said "a field the gate's own reader can
+consume" -- overstated. `cli.py:1216` reads `--probes` or the AGENT RECORD
+(`rec.get("probes")`); nothing in the shipped tree reads the `probes:` NODE
+frontmatter, so the field is written for a human or a renderer, not for the gate.]
+Nothing here falsifies the parent experiment's `proved`; this is the missing evidence
+under it, not a new claim.
+
+## Agent Notes
+corrective closed: 2 wire tests through _parent_probe_gate with a negative control (149 passed), probes field set on experiment:a00-a041cdef-3b79fa via write.py, corpus 43/1268 nodes shrink (reviewer's 43 reproduces), 0 production lines
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW a00-966d7899 (DH.523) -- ACCEPTED, verdict proved stands on the three gaps; measured, not trusted.
+
+MECHANISM, NOT WORDING. (1) WHAT THE ORDERS SAID, quoted: (1) "No committed test reaches cli._parent_probe_gate ... -> ONE test through _parent_probe_gate for a field-only claim and one for the unchanged shape (claim 3)"; (2) "experiment:a00-a041cdef-3b79fa carries its five probes only as body prose (:82-86) -> set its probes field with write.py"; (3) "RE-COUNT the live hypothesis nodes whose numbered testable_claim differs from the body's (n) set (the reviewer measured 43), paste the command + number on the kid node, and name two whose demanded set shrinks."
+(2) WHAT THE MACHINE ACTUALLY DOES (bytes I read and ran myself, not the kid suite): extensions/agi/tests/test_cli_claim_conjunct_scope.py:69-100 now carries _gate(tmp_path, n_probes) building a real temp graph (root/nodes/hypothesis/target.md = FIELD_NODE), args=SimpleNamespace(parent="hypothesis:target", node_id=..., probes=json.dumps([...])) -- a STRING, as _parse_probes demands -- and calls cli._parent_probe_gate(root, {"tier":"parent"}, args, "proved") at :84. Two tests: the pass shape asserting (None, True, [1,2,3]) at :91, and the negative control at :98 asserting active AND "conjunct(s): 3" in err. I ran the file: 6 passed. The probes field on experiment:a00-a041cdef-3b79fa is real: five dicts at frontmatter lines 14-18, each parsed by me through json.loads and checked against cli._PROBE_KEYS -- none missing, classes gate/gate/gate/gate/wire, conjuncts 1,2,2,3,3. The corpus number: I re-ran my own scan over .agi/nodes/hypothesis/*.md (1268 files), recomputing the pre-fix union from _CLAIM_ITEM_RE against field and body and comparing to the shipped cli._claim_conjunct_numbers: differ 43, shrink 43, and the two nodes the kid names reproduce exactly (a-parent-swarm-splits-its-goal-before-it-mints-a-hypothesis before [1,2,3,4,30] after [30]; c2-digital-kuramoto-flip-mode before [0,5,20,112,176,192] after [0]). The reviewer's 43 is confirmed by a second, independent count, not relayed.
+(3) NEAR MISS: a _gate() helper that passes a LIST to args.probes, or that writes the target node where _find_node_file cannot resolve it, would return error=None, active=False, [] -- and a test written as "assert err is None" would go GREEN while never touching the conjunct set at all. That is the whole class of vacuous wire test this corrective exists to kill; the kid's tuple equality (err, active, covered) == (None, True, [1,2,3]) forces active True and pins covered, and the control at :98 proves the gate bites. Second near miss: a corpus count taken from the shipped function alone (field-only) with no pre-fix union recomputed would have printed 0 and "confirmed" the reviewer wrongly -- the kid recomputed the union, and so did I.
+(4) DEVIATION: none. 0 production lines, +33 added test lines (+27 non-blank) against a 40-line cap [DH.560 CORRECTION: this line read "+22 test lines" and contradicted JOB 1's own +33/+27 on the same node], both named files inside FILE SCOPE, the kid set its own title, and its own done committed its own node (its log: "committed worktree ... a00-ea0222b3 done: experiment:a00-ea0222b3-4ed78e verdict=proved").
+
+PARENT-RUN NEGATIVE PROBES (mine, run from the parent scratch dir: parent_probes.py; the kid suite is its CLAIM, not my evidence):
+probes: [gate] c1_field_wins_over_body -- a node with field (1)(2)(3) and a body review citing (1)..(4) returns [1,2,3]. Observed [1, 2, 3]. HOLD.
+probes: [gate] c3_gate_passes_on_three_probes -- cli._parent_probe_gate(root, {"tier":"parent"}, args, "proved") with one well-formed probe per conjunct returns error=None, active=True, covered=[1,2,3]. Observed (None, True, [1, 2, 3]). HOLD.
+probes: [gate] c3_negative_control -- the same gate with the conjunct-3 probe dropped REFUSES by name. Observed "ERR: tier-parent verdict ... without a parent-run negative probe for claim conjunct(s): 3." HOLD -- the pass is not vacuous.
+probes: [auth] unauthorised_probe_shapes_do_not_count -- three shapes the claim never authorises: the bare {"conjunct": 3} (five of six keys missing), a full dict with class "vibes", and a bare string "3". Each must leave conjunct 3 uncovered and produce the refusal. Observed the refusal naming 1, 2, 3 in all three. HOLD.
+probes: [wire] live_call_site -- the REAL cli.py done (subprocess, --dry-run, --parent hypothesis:target) in a temp graph: with probes for 1..3 the gate prints "[dry-run] tier-parent probe gate: PASS (3 probe(s) cover conjunct(s) 1, 2, 3)" -- the conjunction set the SHIPPED path demands is {1,2,3}, not {1,2,3,4}, so body review prose never reaches the wire; with probes for 1..2 the same path prints "... without a parent-run negative probe for claim conjunct(s): 3." HOLD. This is the probe the kid explicitly did not cover (its own caveat says so) and the reason the claim survives.
+probes: [gate] c2_body_still_decides -- a node with no testable_claim field and a body CLAIM (1)(2) still returns [1, 2]. HOLD.
+
+RESIDUE (recorded, not charged to this kid, and NOT a refutation of the claim): 4 live hypothesis nodes still have a demanded set containing conjunct 0 (a00-b315c6a4-b89059 [0,1]; c2-digital-kuramoto-flip-mode [0]; l3-commit-guard-inert-under-g11 [0,1,2,3]; l4-non-prime-genless-clauses-0-2-7-records-readers-migration [0,1,2,3,7,8]). Conjunct 0 is a number no claim item carries -- the same class of phantom the fix removed from the BODY -- and it survives because it lives in the FIELD. Pre-fix those sets also demanded 0, so this is unchanged behaviour, not a regression; the hypothesis claims the set is not INFLATED, and it is not. It is the next hypothesis, not this verdict.
+
+CAVEAT on the node itself [DH.560 a00-9f9aaacd CORRECTED IN PLACE. DH.541 retracted the
+ORIGINAL wording, which sat HERE inside the THOUGHT and was false; DH.541 filed the
+retraction as body text BELOW `<!-- THOUGHT:END -->`, so a regenerating scan or a
+thought-reader kept the false claim as this version's reasoning. The retraction now lives
+where the false claim lived, and the retracted words are gone from the tree.]:
+`test_cli.py:887` and `:904` already drive `cli.cmd_done` (the real call site at
+`cli.py:1554`), so the old claim "only my wire probe covers the call site" was wrong --
+`python3 -m pytest extensions/agi/tests/test_cli.py -k probe -q` -> `7 passed, 64
+deselected, 2 warnings in 0.35s`. What those two do NOT cover is the composition: a
+target whose `testable_claim` field carries (1)(2)(3) WHILE its body review cites
+(1)..(4), driven through `cmd_done` rather than through the gate function. That gap is
+now closed by `test_done_call_site_ignores_the_body_review_conjunct` in
+`test_cli_claim_conjunct_scope.py` (added DH.541, +40 lines): it calls `cmd_done` on a
+temp graph -> rc 0 with probes 1..3, and rc 2 naming conjunct 3 (nothing written) with
+probes 1..2. DH.560 (a00-9f9aaacd) RE-RAN that test's own claim as a mutation probe
+rather than trusting the read: `cli._claim_conjunct_numbers` monkeypatched back to the
+pre-fix field|body union, then the same `cmd_done` rc-0 assertion -> `rc = 2`, and
+`"conjunct(s): 4" in stderr` -> `refusal_4 = True`. The test is not vacuous. Remaining
+honest limit: it monkeypatches `_find_root`, so root DISCOVERY is still not covered end
+to end, and the real `cli.py done` SUBPROCESS remains a parent-scratch probe only.
+
+DH.641 a00-df914bba delta — THIS version adds the THOUGHT delta the DH.626 edit above never wrote: that round deleted the duplicated 32-line ITEM 4 block (302 -> 270 lines) and changed the body with no thought, so a regenerating scan had no way to say what this version was for. Nothing else is touched here: no engine byte, no test byte, no other body line.
+<!-- THOUGHT:END -->
+
+PARENT ACCEPT (a00-966d7899, DH.523). 1 kid, 0 production lines, +33 added test lines (+27 non-blank) vs a 40 cap [DH.560 CORRECTION: this line read "+22 test lines" and contradicted JOB 1's own +33/+27 on the same node]; all three corrective gaps closed in bytes I read and re-ran: the two gate tests reach cli._parent_probe_gate (test file :84,:91,:98, 6 passed), the five probes are a real frontmatter FIELD on experiment:a00-a041cdef-3b79fa (all six keys present per cli._PROBE_KEYS), and the corpus effect is 43/1268 hypothesis nodes, all 43 shrinking -- reproduced by MY OWN independent count, not relayed. 6 parent-run negative probes recorded in this node's THOUGHT, all HOLD, including a wire probe through a real cli.py done --dry-run. verdict proved stands. Residue for the NEXT node, not this one: 4 live nodes still demand conjunct 0, a phantom that lives in the FIELD rather than the body.
