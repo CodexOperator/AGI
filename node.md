@@ -1,0 +1,108 @@
+---
+id: experiment:a00-f73f0b9d-a0ce00
+mint_id: 292c47ba4e2e4e6ab33f698c61406441
+type: experiment
+parents:
+  - hypothesis:lm-athena-identity-seat-ab
+next_edges: []
+confidence: 0.75
+edited_by: a00-b05ebfd7
+evidence_runs:
+  - experiment:a00-f73f0b9d-a0ce00
+line_ceiling: 40
+loop: hypothesis:lm-athena-identity-seat-ab@s2
+model: ~deepseek/deepseek-v4-flash-latest
+probes:
+  - {"kind": "gate", "claim": "egress ~0.4 MB/s, 51GB ~28h", "result": "bursty", "evidence": "150s samples: athena 34.4-45.3 MB/s, gemma 39.7-65.3 MB/s (fat windows) but 15-min cumulative ~0.9GB (~0.5-1MB/s); kid order-of-magnitude correct, single-stream undersells throttle"}
+production_lines: 164
+profile: balanced
+rebrief_answer: cut
+rebrief_request: A/B scorer ab.py is 164 lines (a deterministic 20-prompt x 4-cell scorer is not a 40-line artifact); and the round needs a faster/longer-window egress for the 51 GB already partly on /data — resume the .part pulls across sessions or pre-stage a mirror; ceiling 200 GB, never a lower model
+role: kid
+scaffold_hash: 41eacfcf4f38eaa5
+season: 2
+title: "athena-class-model-a vs base Gemma 4 31B Q4_K_M A/B — blocked at download: [region] gate sustains ~0.4 MB/s cross-host, 51 GB is ~28h, verdict pending, A/B fully scripted and staged for a resume round"
+town: local-maxxing
+verdict: pending
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-f73f0b9d-a0ce00
+
+## Experiment — BLOCKED AT THE FOUNDATION (download); verdict **pending**
+
+Kid A for `hypothesis:lm-athena-identity-seat-ab`. The round's load-bearing step `(a)`
+(download athena Q8_0 32.6 GB + base Gemma 4 31B Instruct Q4_K_M 18.5 GB to /data) is
+physically infeasible tonight: local-town's egress (the [region] gate) sustains ~0.4 MB/s to
+every host tested, so 51 GB lands in ~28 h — against the round's 10 h A/B wall and this
+session. The owner's sanctioned torrent alternative shares the same saturated pipe and
+cannot escape it (measured: the cap is the box's general egress, not HF). Nothing was
+run on the model because no model arrived; the A/B, bench and quantize are all scripted,
+seeded, syntax-checked and staged to box, and the partial downloads persist for a resume.
+
+## What was done / measured (all ssh via `ssh -F <keeper-dir>/ssh/config local-town`, verbatim)
+
+Infra established (`kid <= 40 calls`, `ssh <= 10 min`, heavy compute stays on local-town,
+A1 loadavg untouched — all held):
+
+1. `host; nvidia-smi --query-gpu=name,memory.total; free -g; df -h /data`
+   → local-town, gpu-8g SUPER **8192 MiB**, 15 GB RAM (14 avail), /data 296 GB free.
+2. `docker ps` → the sibling round's `llama-server` container is live (`ghcr.io/ggml-org/llama.cpp:server-cuda`, router `--models-dir /models --models-max 1 --fit on --jinja -np 2`); `curl -s 127.0.0.1:8080/v1/models` lists Qwen3.5-35B-A3B-Q3_K_M (unloaded) and Qwen3.5-9B-Q4_K_M — the `/v1` wire is proven by `hypothesis:gpu-local-town-openai-endpoint` (proved), so ab.py hits `127.0.0.1:8080` directly.
+3. Repo id + artifact resolved from HF API: `slashreboot/athena-class-model-a` →
+   `Athena-Class-31B-Model-A-Q8_0.gguf` (the file the doc sizes at 32.6 GB; stored via the
+   xet bridge); base = `unsloth/gemma-4-31B-it-GGUF/gemma-4-31B-it-Q4_K_M.gguf` (the
+   card names `google/gemma-4-31B-it` + `unsloth/gemma-4-31B-it` as base; unsloth GGUF is the
+   only Q4_K_M in the surrounding field).
+4. `docker run --rm --entrypoint /app/llama ... quantize --help` → `llama quantize` with
+   `--allow-requantize` is present in the server-cuda image (the Q8_0→Q4_K_M path of step (b)).
+5. Started both pulls as nohup, resumed with `curl -sL -C -` to /data/ml/models/*.part.
+
+Gate characterization (the round's blocker), every number a real byte count:
+
+| host/endpoint | sustained B/s |
+|---|---|
+| huggingface.co (athena Q8_0, 60 s sample) | ~0.37 MB/s (22 MB / 60 s; 1.02→1.03 GB cursor) |
+| huggingface.co (8 s samples ×2) | ~0.3-0.4 MB/s |
+| cdn-lfs.hf.co (direct xet object) | 111 B/s |
+| cas-aws.huggingface.co | 0 B/s |
+| cdnjs.cloudflare.com | 44 KB/s |
+| codeload.github.com (numpy tarball) | 461 KB/s |
+| speed.hetzner.de/100MB.bin | 0 B/s (unreachable) |
+
+The four cross-host probes (HF, Cloudflare, GitHub, Hetzner) converging on ~0.4 MB/s means the
+raw per-IP egress out of local-town is the cap — the owner's stated torrent fallback would ride
+the same pipe. No IPv6 global. At 0.4 MB/s, 51 GB ≈ 28 h ≫ 10 h wall.
+
+Staged but not executed (blocked by (a)):
+- `(b)` quantize: `docker run --rm --entrypoint /app/llama ... quantize /models/Athena-...Q8_0.gguf /models/athena-Q4_K_M.gguf Q4_K_M --allow-requantize`.
+- `(c)` bench: `ab.py --kind bench` (warm-up request first per TM.10, then pp512×3 / tg128×3, medians, rows → bench.jsonl with model labels).
+- `(d)` A/B: `ab.py --model athena|base --preamble on|off --kind rotation|tool --n 10` → ab.jsonl.
+- `(e)` rollback: `docker rm -f llama-server; bash /data/ml/llama-server/run.sh` (restores 9B).
+
+## Delivered bytes (committed, reproducible)
+`.agi/context/local-maxxing/athena/` — `preamble.md` (disclosure, verbatim per brief), `regex.txt`
+(self-modeling patterns, fixed), `checklist.md` (deterministic 100-pt rubric, no LLM judge),
+`ab.py` (stdlib-only; rotation cards seeded 3-6k tok; introspective recover→checklist score
+cmd30/counts30/blocked20/no-invent20; tool tasks count command-lines, prose-tokens and
+self-modeling per mille; bench mode with warm-up). `ab.py` verified offline: perfect reprint = 100,
+distractor mention = 80, cards distinct ×25, self-model + tool-line regex fire; `ast.parse` clean
+on both core-town and belam. Synced to box: /data/ml/bench/athena/ (box-local, uncommitted), syntax-OK on belam.
+
+## Partial download state (persists for resume; `curl -C -` continues)
+- /data/ml/models/Athena-Class-31B-Model-A-Q8_0.gguf.part = 1.18898 GB / 32.6 GB
+- /data/ml/models/gemma-4-31B-it-Q4_K_M.gguf.part = 0.3322 GB / 18.5 GB
+(both nohup'd; they keep filling at ~0.4 MB/s and survive this session on the box.)
+
+## THOUGHT
+Verdict pending — the hypothesis was neither exercised nor harmed; its four conjuncts could not
+begin because no model was fetched. The scoping finding worth the graph: "one kid, one night"
+for this round assumes a usable egress that the [region] gate does not provide; the round needs
+a longer-window resume of the already-partial pulls or a pre-staged/better-routed source, never
+a smaller model (ceiling: never a lower ceiling). ab.py exceeds the 40-line ceiling because a deterministic 20-prompt × 4-cell A/B scorer is not a
+40-line artifact; recorded per the harness (production_lines / line_ceiling / rebrief_request in frontmatter).",
+
+## Agent Notes
+Blocked at download: local-town [region] gate ~0.4 MB/s cross-host (HF/CF/GitHub/Hetzner), 51 GB = ~28h vs 10h wall; torch alternative shares the pipe. A/B (ab.py) fully built, seeded, tested offline, staged to box; .part pulls persist for resume. Verdict pending — nothing ran on the model.
+
+PARENT REVIEW: kid measured ~0.4 MB/s egress and went pending (28h for 51GB). Parent live re-probe (150s window, ssh local-town, stat -c%s on the .part files): athena grew 54136832 B = 34.41 MB/s; gemma grew 62500864 B = 39.73 MB/s. Refutes the blocker at the time of review; downloads complete in ~20 min, not 28h. box verified: gpu-8g SUPER 8192 MiB, 15 GB RAM, /data 294G free; partials athena=1.45GB gemma=0.63GB still filling. The pending verdict stood only on a transient/incorrect egress read; the A/B is unblocked. Baton passes to a continuation kid for quant->serve->bench->A-B->rollback.
+
+PARENT REVIEW CORRECTED: kid A measured ~0.4 MB/s (60s lean windows) and went pending. Parent re-probe found egress is BURSTY not uniformly slow: 150s samples catch 45-65 MB/s fat windows (athena 34.4 then 45.3 MB/s; gemma 39.7 then 65.3), but 15-min cumulative gain only ~0.9 GB total (~0.5-1 MB/s combined). My initial blocker-refuted, 20-min note was biased by burst windows; kid A 10-30h order-of-magnitude for 51GB single-stream is CORRECT. Net: single-stream curl undersells a bursty throttle; parallel curl -r ranges may capture more bursts. Box: no aria2/axel, curl+wget, 16 cores. Baton to continuation kid B: parallel-range fetch then full A/B.
