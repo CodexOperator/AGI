@@ -35,13 +35,10 @@ A2-A4 BRIEFED (DG1 21:49Z): hypothesis:g141-a2-a4-root-pieces-fail-closed-on-a-b
 
 ## 🔴 Where it stops
 ```
-DONE   A2-A4 = 6ceac30357 + RETURN 91015ff007 + RETURN-2 1146e783aa (branch dg4-a2a4-recut; RA12 safe.directory + loud git error, RA14 index sizes, DG2 90cec74fc9 file; reported to DG1 [merge-up]); 069123af0d superseded. Was: RE-CUT 6ceac30357 Was: BUILT 069123af0d by DG1 01:48Z (RA10: A4 filters outer .name but .+.engine lets engine.name override -> move the name select AFTER .+.engine; RA11: re-cut as ONE commit on the LIVE trunk tip via cherry-pick on a fresh branch NOT posts/director-general-4, no merges/cards in range). WAIT for DG1 [go] carrying DG2 sha of the RA10 row; return sha, lanes incl. A4 engine-name rows, failed-set before/after, my mutant of the fix, numstat tip..sha, rails, anonymize.scan over added lines AND the commit message. Previously: on posts/director-general-4 (ONE commit; lane 0bbc1d6679 cmp-identical; reported to DG1 [merge-up] 01:5xZ 10-08)
-NEXT   lane B (brief be0818a36c + 1090d38bd6): cut AFTER A2-A4 lands on the live trunk (fetch first); ONE commit; lane files = DG2 chain tip 44f22a4f6f (de-base-dg2-48, final bytes of engine-sizes / agi-gate-priv / polkit-rule .t.sh, cmp-identical) + DG2's coming addendum on agi-gate-priv.t.sh
-       traps: B4 comment INSIDE the grow-gate fence (re-measure it after) · B2 drop = FIRST command after the shebang, nobody, GIT_CONFIG_COUNT=1 KEY_0=safe.directory VALUE_0=* (+~165 B) · B3 unit name from s.user, never a prefix match · B5 engine-post.md:75 s=${AGI_SEAT:-$AGI_POST} · B4 ring RULED (no cell), do not reopen
-       report: sha · the 3 .t.sh lines · numstat 2 operands · railed engine.md totals (now 7,644 / 9,516) · anonymize.scan over EACH commit · what could not run
-LATER  lane F CANCELLED (SM 02:0xZ 10-08, owner: "We dont need the grid commit work we are retiring grid commit"; grid retirement = AA1.V/AA3, not mine): no grid.py change. WAS: lane F UNHELD (SM 02:xxZ 10-08, belam rule 01:47Z; re-mint + npz drop DONE on trunk 02b8b6244b d476147a3c, do not redo): CODE ONLY on the live trunk tip: F-a commit --all refuses by name when two files share a ref (writes neither, one ERROR naming both) · F-b write.py create refuses a live mint_id · F-c card ping-pong (cron must not version MAIN copy over a newer post-branch version) · F-d the per-node ls-tree. Route: DG2 falsifier rows FIRST (RED on tip), then my build; merge-up via DG1 must name what the FIRST live tick does on MAIN real graph (measured, dry)
-NO     pytest on this seat (test_agi_boot.py, test_decompose_engine.py unrun)
-read inbox: `python3 extensions/agi/bin/send.py --from director-general-4 read director-general-4` (once, whole)
+IDLE (DG1 [rule] 16:27Z 10-08, HOLD): build NOTHING from the old brief. Landed by others: lane B v5 a326fc3364 · boot leaf a7b3af22ea · E2a crons_apply installed (belam host act) · E2b0 v8 014209084b · grid_census = DG3 (DG2 rows in flight). DG3 is the only live builder.
+MINE, landed or returned: A2-A4 e9892ee5c8 (branch dg4-a2a4-recut: 6ceac30357, 91015ff007, 1146e783aa). Lane F cancelled (owner).
+NEXT: only a NEW belam order (tell DG1 its text in one line). No goal invented to fill a budget.
+read inbox: `python3 extensions/agi/bin/send.py --from director-general-4 read director-general-4` (once, whole). pytest: PYTHONPATH=<scratch>/pylib (pip install --target pytest).
 ```
 
 ## §4 Traps
