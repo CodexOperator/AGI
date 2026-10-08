@@ -26,20 +26,22 @@ town: core
 | roles | DG1 = goals + nodes + merge-ups + JUDGING every return by RUNNING it at the sha; DG2 = falsifier lanes (test-only); DG3 = the only live builder (line 0.49, cannot rotate); DG4 + DG5 BACK 16:2xZ (belam re-placed): DG4 = agi-at row, DG5 = read-only .t.sh sweep; SM gates + lands |
 | scratch | `git -C /data/work/agi worktree add --detach $S/x SHA`, remove from a cwd OUTSIDE it; pytest needs `PYTHONPATH=<an older scratchpad>/pt` (this gen's S has none; /tmp/claude-978/.../3c9050af-.../scratchpad/pt works); lanes bare `env -i PATH=/usr/bin:/bin:/usr/local/bin HOME=/tmp GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null ROOT=<wt> sh X.t.sh`. Old tools in /tmp/claude-978/-var-lib-agi-director-general-1-t/3c9050af-3b97-4b8e-b12b-b657de711872/scratchpad: race3.sh, re_probe.py, gfz.py, fz.py (census fuzz), fuzz.py |
 
-## §1 Plan — what is where
+## §1 Plan — what is where (trunk 94a2ccbcda + D3 assign 42f52a3db1 landed by SM)
 ```
-LANDED: E2b0 v8 014209084b (INERT until the flip) · boot leaf a7b3af22ea · lane B v5 · D1 nest 38e61463c7 · metrics gold · (earlier: A1-A4 E2a)
-SENT TO SM (16:3xZ): WRITER LIST re-cut d830681092, branch dg1-e2-sweep3 (nodes only, on 014209084b; L1-L5 closed) -> SM verdict pending
-CENSUS v8 FAIL-CLOSED (belam 16:1xZ rule): DG3 coded dg3-census13 8bc7b62a7f (P1-P4, ONE return 0, except Exception -> rc 2; 70/0 on ef97a6cec4; Nth-git-call 1..10 -> rc 2) waits on DG2's rows: structure (ast one rc-0) + fail-the-Nth-git + emptied-stdout (every N = rc 2) on top of ef97a6cec4 (RUN by me: 15 red on v7, 55 green)
-AA1.V v4: DG3 rebuilt on 522a79f390 (8,190/8,192 rail, DG2 rows d8593b25f0 0867b54a7e b2c5ef8859 cmp-identical, RUN by me on b619583cf8: 41/85/0 FAIL); full .t.sh sweep vs trunk running at DG3; GAP: agi-at `git add -A` mutant green -> DG4's row (order 16:3xZ)
+LANDED (SM): E2b0 v8 014209084b (inert until the flip) · D3 assign 42f52a3db1 · boot leaf · lane B v5 · D1 nest · metrics gold
+AT SM (my merge-ups): WRITER LIST v3 049bafe09b (branch dg1-e2-sweep5, six pinned greps, nodes only) · GOALS .13.1 + .13.2 09c7909d4c (dg1-e2b1-goal) · SCANNER ROWS 86301d4cf6 (DG2, 8 rows, RUN by me 8/0 with the v3 node)
+RETURNED 17:24Z by SM (re-cut ordered 17:3xZ, I reproduced R1/R2 on the pieces with a real signer):
+  AA1.V v4 7c713dd4af -> v5: R1 EDIT LOST (agi-turn add unchecked + $p unquoted, absent payload; live case build:tests-test-render-context's test_inject.py) · R2 agi-wt lost set -e · R3 .b = $c · R4 flush lost the trunk merge (my ruling: CAS merge onto posts/P, or DG3 shows a root-side DOWN dart + a row) · R5 low named. ONE RULE: no rm -rf unless the turn proved its commit. Rail 8,190/8,192.
+  CENSUS v8 1430fe5764 -> v9: C-R1 strict UTF-8 on live_nodes paths (grid_census.py:134) · C-R2 drop P1/P3/P4 flags, keep ONE boolean P2 (rows g42 re-cut, `any` equivalent) · C-R3 wording (legacy refs parse, no-grid-ref counted)
+ORDERS OUT: DG2 rows (A) AA1.V v5 then (B) census v9 + goal .13.1 rows (flip successors) + .13.2 rows (G-FRZ); DG3 builds v5, v9, then .13.1 (evidence_enforce + town_mirror) and the .12 key ExecStartPre; DG4 key LANE (goal .12, one-box half) then builds .13.2; DG5 D3 build against DG2's d74b3d9514 (I ran: 24F/4P on the base)
 ```
-- **After census + AA1.V return**: RUN each at its sha (census tests 70/0, mistyped roots rc 2, live MAIN = 1 GRID-ONLY g7.16.1.5.2 + `no grid ref: 8` + 0 no_mint, fz.py, my mutants; AA1.V: race3.sh on the NEW pieces (drop rc 4 tree kept), ALL .t.sh vs trunk (DG5's table), agi-at reachability probe, the unit-env row, rail count), a lane gap -> back BEFORE the forward, then ONE [merge-up] each to SM.
-- **After E2b0 + census LAND** (E2b0 done): mint the census build node (level3.py --mint-missing-only writes 360 files: keep ONLY grid_census/test_grid_census nodes), cut the FLIP brief (nodes only, sequence (a)-(e) in goal:g7.16.1.11.13, plain literal `enabled: false`; check grid_retired(MAIN) True on host python; name the gate for evidence_gate.enforce_on_disk at the flip), ask belam for the E2a-installed proof (`crontab -l`).
-- **AA1.V v4 rulings (ordered 15:3xZ)**: V1 unit AGI_POST=%i + pieces STRICT AGI_POST; V2 `agi-at PATH...` CAS; V3 flush retries 3x, rc 4 if still raced (three racers needed: DG2 measured, accepted); V4 node records r2 (heal SWEEP_ARCHIVE_NS stays) + f2. Rail: engine.md fenced <= 8,192 (never raise).
+- **belam rulings 17:1xZ**: evidence gate = (A) cron job `evidence_enforce` + `town_mirror` in goal:g7.16.1.11.13.1, the flip waits for both landed · G-FRZ fail-closed (goal .13.2, five sites rotate.py:9520 :9644 :10832 :19208 :19616) · .12 lanes GO · D3 with DG5 · census path agreed.
+- **After each return**: RUN at the sha (lanes bare, mutants of the REAL piece, my probe: $S/probe_r1.keep is the missing-payload probe, race3.sh the racer probe, pieces extracted by regex from engine-post.md), a lane gap -> DG2 BEFORE the forward, then ONE [merge-up] to SM. AA1.V v5 also needs: ALL .t.sh vs trunk (DG5 can do it again), rail count by engine-sizes.t.sh.
+- **After E2b0 + census + .13.1 LAND**: mint census build nodes (level3.py --mint-missing-only writes 360 files: keep ONLY grid_census/test_grid_census), cut the FLIP brief (plain literal `enabled: false` on the grid_sync child; check grid_retired(MAIN) True on host python); belam applies.
 
 ## 🔴 Where it stops + the exact next command
-DG1 gen 18: writer list re-cut forwarded to SM, census v8 fail-closed ordered, DG4/DG5 re-placed; waiting on DG2's census rows, DG3's census v8 + AA1.V v4 returns, SM's list verdict
-FIRST ACT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1` (mail after ts 2026-10-08T16:29:02Z). THEN as the bullets above. Never run a host act; never invent goals.
+DG1 gen 18: AA1.V v5 + census v9 + .13.1 + .13.2 + .12 key lane + D3 build all ordered; waiting on DG2's rows (A then B), DG4's key lane, DG5's D3 return, SM's verdict on list v3 + goals + scanner rows
+FIRST ACT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1` (mail after ts 2026-10-08T17:24:45Z). THEN as the bullets above. Never run a host act; never invent goals.
 
 ## §4 Traps
 | trap | rule |
