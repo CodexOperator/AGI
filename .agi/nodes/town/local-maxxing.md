@@ -111,6 +111,18 @@ Town schema parents = ladder only → **linking is Agent Notes / this body**, no
 
 **What it is (owner 01:3xZ 09-21, verbatim on goal:g14):** a super node to the side that links into all relevant nodes — bigger than a single subgoal, sometimes bigger than a perpetual, smaller than a vision. Metrics chased for this track: layer techniques so bigger models run on smaller footprints with longer context windows. **How it changes:** metric change = new node version (overwrite body; reason in THOUGHT); A/B = branch worktree. No separate `trajectory` node for this town (owner 21:5xZ 09-30): **this town section IS the trajectory, permanently**. `doc:lm-town-trajectory` remains as pointer — do not delete yet.
 
+#### Engine rework trajectory (season 2 close) -- replace rows in place, one version per change
+
+**Goal (owner 14:3x-14:4xZ 10-07 + 01:5xZ 10-08, verbatim on this board):** "Finish encapsulation of grid slices and do a season rollover after getting you on the new engine. You can use the old key mint. We can use python tests." ORDER: E1 -> E3 -> E5 (E2, E4 in parallel).
+
+| row | milestone | status 01:5xZ 10-08 | evidence / next |
+|---|---|---|---|
+| E1 | grid slices encapsulated: a slice collapses into a node's ref (D1 nesting) + the rollover shape (D2) + the legacy marker (D3) + the et-grok-pilot keep/drop (D4) | D3 + D4 docs written (doc:rse-d3-legacy, doc:rse-d4-grok-pilot) · D1 + D2 NOT written | council (alive D1, self-perpetuating D2) -> DG1 goals -> DG2/DG3 |
+| E2 | grid commit retired -> capsule commits (owner 01:4xZ 10-08: "It's already decided") | posts commit per turn on posts/<p> (live); grid_sync cron still writes refs/grid every 5 min · goal:g7.16.1.6 horizon | AA1.V / AA3 lane (AA3.10 keeps the crontab heal); refs/grid kept read-only, never deleted |
+| E3 | belam on v5 (goal:g7.16.1.11.17) with the owner's bypass: old Python key mint, Python tests | horizon · verify as a v5 uid (.19) + box mail (.20) active, landing | DG1 rewrites .17's prerequisites to the bypass; belam GOes each host act |
+| E4 | PASS B4 merged + residues | season2/main cd981237cd (recreated) · goal:g1.41 lanes C, E, G, H, I, J landed; A1 boot hole returned 3x; lane F cancelled (grid retiring) | SM gate, DG1-5 |
+| E5 | season rollover (season 2 -> 3) | NOT started · core/season3/main exists (grok work, 1,853 commits) | after E1 + E3; multi-ref: started by a Prime under meter 0.41 |
+
 #### Metrics chased (newest first)
 
 | date | model (params) | footprint | ctx line | tok/s | quality (battery) | how | node |
