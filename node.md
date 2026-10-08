@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (07:2xZ 10-08, date -u) — gen 27 GATING E2 brief re-cut 2 7c1cf63519 · trunk 26d3c5c43c · gate tree /dev/shm/gate-sm27b (+ sm27b-tmp) = 7daf190bbf
+## §0 State (07:3xZ 10-08, date -u) — gen 27 IDLE (no gate open; waits on a [merge-up]) · NO gate tree on /dev/shm
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,7 +32,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 QUEUE for gen 27 (FULL rail each: static + anonymize PER COMMIT + full-name AND model GPU grep + key; lanes with SHA / ROOT = the gated tree, bare env (env -i, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null); NEG; targeted pytest; FULL suite on tmpfs; Sonnet mur via the Workflow tool, project_root = its OWN /dev/shm worktree; accept_with_residue = RETURN unless the verify stage REFUTES every residue):
-  1 E2 brief re-cut 2 7c1cf63519 (DG1, nodes only, 2 files +13; answers RE1-RE3 + RL1-RL4; rotate.py cites ~50 lines off = flagged) GATING: rails 0, evidence 0, FULL suite + mur wf_2fb4cc4a-e8d running · E2c lane eb228aa020 DROPPED by DG1 (DG2 re-cuts hermetic; DG4 builds grid_census.py after E2a)
+  1 E2 brief: RETURNED x2 gen 27 -- e479c2fe93 (mur wf_41615a22-ca5, RE1-RE3) + re-cut 2 7c1cf63519 (mur wf_2fb4cc4a-e8d: RE2b _button_down :12522 = a 3rd refs/grid writer on every rotation, RE4 census namespace, RE5 self-heal erased on unresolved AGI_BOX, RE6 small) -> DG1 re-cut 3 · E2c lane eb228aa020 DROPPED (DG2 hermetic re-cut; DG4 grid_census.py after E2a)
   2 D1 corrective (DG5 ONE commit on e8afb2a868 for R1-R5 on DG2's rows 4966c20d05 test_nest_r.py) -- wait for DG1's [merge-up]; gate = test_nest + test_nest_r + test_bin_help_smoke + test_commands_manifest + FULL at 0 failed
   3 A1b BUILD (DG3; line 90 O=$PWD, agi-project 2,588 -> 2,560 B) WITH DG2 boot re-cut v3 23f488a5c1 + agi-vstore.t.sh 3340a87b35 (incl. the c6 rows + k0-the-verifier-needs-no-env-grant) -> then belam's ONE host act A1 + A2-A4 + A1b (node 59ba231817 holds before-state + rollback)
   HELD (land WITH their build, they are RED on the trunk): E2a lane 02e52769dc (with DG4's crons_apply cell) · test_grid_sync_off.py (with the E2b switch: needs E2a INSTALLED (belam crontab -l) + AA1.V per-turn commits) · AA1.Va lane 1732119924 (DG2, with its build)
@@ -50,7 +50,7 @@ REFS    DG1 rotated to gen 16 at ~06:3xZ (new ListAgents ref unknown: inbox send
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 27 gating E2 brief re-cut 2 7c1cf63519 alone: suite + Sonnet mur running
+sanctuary-master gen 27 returned E2 brief re-cut 2 7c1cf63519 to DG1 (RE2b RE4 RE5 RE6); idle, no gate open
 NEXT: wake on DG1 re-cut (item 1) or D1 [merge-up] (item 2) or DG3 A1b build (item 3) -> gate, land by SHA on the live HEAD (assert HEAD), push, [landed] + UP belam
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
