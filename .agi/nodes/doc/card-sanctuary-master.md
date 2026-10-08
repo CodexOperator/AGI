@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:25Z 10-08, date -u) — gen 29 · IDLE (meter ~0.38: a full gate cycle would land past 0.41 -> the next gate goes to my successor unless one arrives NOW and is nodes-only) · trunk 014209084b+ pushed · NO gate tree on /dev/shm
+## §0 State (16:40Z 10-08, date -u) — ROTATING at 0.40 (gen 29 -> 30): idle, NO gate open, NO tree on /dev/shm · trunk pushed · 7 landings this gen
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -33,24 +33,25 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 RAIL per merge-up (skill agi-master-gate): static (1 commit, merges 0, merge-tree rc 0, 0 D, anonymize per commit, full-name AND model GPU grep, key) · lanes cmp-identical to DG2's named sha · lanes bare env (env -i, empty HOME, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null, sh for .t.sh) in a 2nd tree · own NEG mutants on the REAL pieces · FULL on tmpfs · ONE Sonnet mur (focus: what the gate already measured + ONE whole-commit sweep, ALL residues one list) · accept_with_residue = RETURN unless verify refutes every residue, EXCEPT wording-only (belam (c)): land + name it + carry as a brief row · disjoint tips: ONE combined provisional tree, ONE FULL, land one at a time (T2 re-derived on the live HEAD each)
 QUEUE (in DG1's order):
-  1 census v8 (DG2 rows ef97a6cec4, 70 rows: RC-i tip shape, shallow/graft, HEAD once, read errors exit 2, RC-j mtime, packed vs loose) + the writer list re-cut (nodes only, from 014209084b: L1 trunk gates named, L2 B8h rows now on the trunk, L3 W12 row, L4 4 push sites, L5 method line)
-  2 AA1.V v4 (DG3 dg3-aa1v5; DG2 rows d8593b25f0 agi-turn 41 ok, 0867b54a7e agi-outline, b2c5ef8859 polkit; agi-at piece; unit AGI_POST=%i; flush retries) -- DG2 FINDING: a kid inheriting AGI_POST archives under the parent (C = the spawn sets it)
-  rail: static · lanes cmp · bare env · NEG on the real pieces · FULL · ALL .t.sh gate vs trunk tree · Sonnet mur
+  1 writer list re-cut (nodes only; d830681092 RETURNED 16:3xZ on ONE fact: 'Result TODAY' says W1 gated by G-E2+G-NS+G-BR, but storage_trunk (config.json:239) opens G-NS/G-BR -> live = G-E2 only, inert; + wording: G-NS :1171-1182, W1 'only creator', W6 any rc, grep ':!extensions/agi/tests', cannot-carry not exhaustive) -- gate it light: static, links/schema = trunk, ONE Sonnet mur; FULL optional for nodes-only goal text
+  2 census v8 (fail-closed BY CONSTRUCTION, belam 16:1xZ: ONE rc-0 path behind named positives P1-P4, except Exception -> rc 2; DG2 rows ef97a6cec4 + the ast/fail-Nth-call rows) -- DG1 runs it before ONE [merge-up]
+  3 AA1.V v4 (DG3 dg3-aa1v5; DG2 rows d8593b25f0 agi-turn 41, 0867b54a7e agi-outline, b2c5ef8859 polkit; agi-at piece; unit AGI_POST=%i; flush retries) -- DG2 FINDING: a kid inheriting AGI_POST archives under the parent (item C: the spawn sets it)
+  rail: static · lanes cmp · bare env · NEG on the REAL pieces (anchor at line start; assert count==1) · FULL on tmpfs · ALL .t.sh gate vs a trunk tree (scratch lanes.sh: env -i, node dir on PATH, sh) · Sonnet mur, focus = what the gate measured + ONE sweep
   HELD: lane W 6646702009 (with the flip) · AA1.Va lane 1732119924 (with its build) · graph-metrics r2d/r2e fixture = a DG2 row
-  FLIP NOTE for belam: a retired commit skips evidence_gate.enforce_on_disk (on-disk demotion of unbacked verdicts) -- name its successor gate at the flip
+  FLIP NOTE for belam: a retired commit skips evidence_gate.enforce_on_disk (grid.py:1264) -- name its successor gate at the flip
 PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.1.11.17 ACTIVE · F CANCELLED · D3 (g7.16.1.11.22) unblocked by D1
 ```
 
 ## §2 Landed (each landing message carries its gate numbers)
 - gens 16-27: git log --grep sanctuary-master + runs/mur-sm*-* + wf ids on each landing message
 - gen 28 10-08: A1b v3 eb55f973e2 (FULL 8,159/0, wf_57c3536c-9f0) · D1 v2 38e61463c7 + goal 1275bdcb50 (FULL 8,248/0, wf_82907707-a9d) · skill line 7736650a92 (mur scratch HOME) · boards E1/E2/E4 · belam's host act INSTALLED 10:57Z (pin 820e5baac7)
-- gen 29 10-08: LANDED nest nodes 02add72f8e · lane B v5 a326fc3364 · nest wording e296f375b8 · metrics gold c0a529db3f · g141-b wording f478a9c0fb · boot leaf a7b3af22ea · E2b0 v8 014209084b · RETURNED lane B v4, E2b0 v6, census v4 + v7, AA1.V v3 (DEMOTE), writer list e5a67228e2 + bb7a6adf06 · murs wf_43ae744e-714 wf_61f04d6f-397 wf_a3fcaaf3-1cd wf_b25ca36f-1b3 wf_e8b285ad-5de wf_1c2460ab-2fa · skill line 'lanes'
+- gen 29 10-08 (13:11-16:3xZ): LANDED nest nodes 02add72f8e · lane B v5 a326fc3364 · nest wording e296f375b8 · metrics gold c0a529db3f · g141-b wording f478a9c0fb · boot leaf a7b3af22ea · E2b0 v8 014209084b · RETURNED lane B v4, E2b0 v6, census v4 + v7, AA1.V v3 (DEMOTE), writer list e5a67228e2 + bb7a6adf06 + d830681092 · murs wf_43ae744e-714 wf_61f04d6f-397 wf_a3fcaaf3-1cd wf_b25ca36f-1b3 wf_e8b285ad-5de wf_1c2460ab-2fa wf_0916f678-255 · skill line 'lanes'
 - gen 28 RETURNED: E2b0 v2/v3/v5 + census v1/v2/v3 (wf_03a02542-a0c, wf_28f3231c-38f, wf_4052c202-20c; FULLs 8,225 / 8,253 green) · lane B v1 cfa98e28ce + D1 f5f81725fa (wf_19c88fa4-12c, FULL 8,229/0)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 29 idle at ~0.38: 7 landings (last E2b0 v8 014209084b); writer list bb7a6adf06 returned; census v8 + list re-cut, then AA1.V v4, are next
-NEXT: wake on DG1's [merge-up] -> the rail in §1 -> land one at a time -> board -> [landed] DG1 (inbox + SendMessage 'director-general-1 [333c9f]') + UP belam · past ~0.40 = rotate first, the gate goes whole to the successor
+sanctuary-master rotated at 0.40 16:3xZ 10-08: 7 landed (last E2b0 v8 014209084b); writer list d830681092 returned; census v8 + AA1.V v4 queued
+NEXT: wake on DG1's [merge-up] (writer list re-cut first) -> the rail in §1 -> land one at a time (T2 on live HEAD, assert HEAD^{tree}) -> board -> [landed] DG1 (inbox + SendMessage 'director-general-1 [333c9f]') + UP belam
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
 ```
 
