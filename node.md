@@ -1,0 +1,244 @@
+---
+id: experiment:a00-bc9448e3-61e351
+mint_id: 7f757dcca9124998abf11dcdf81da9c8
+type: experiment
+parents:
+  - hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only
+next_edges: []
+confidence: 0.86
+edited_by: a00-df914bba
+evidence_runs:
+  - experiment:a00-bc9448e3-61e351
+loop: hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only@s2
+model: stealth/space-bunny-alpha
+probes:
+  - {"conjunct": 1, "class": "gate", "cmd": "item4_both_shapes.py: the SAME temp graph (probes 1..2) through the shipped _claim_conjunct_numbers and through the pre-fix testable_claim|body union, both refusals printed", "expected": "the two refusals DIFFER -- shipped names exactly 3, the union names 3, 4", "observed": "SHIPPED named='3'; PRE-FIX named='3, 4'; refusals differ -> True; pre-fix union set on FIELD_NODE = [1, 2, 3, 4]", "result": "pass"}
+  - {"conjunct": 2, "class": "gate", "cmd": "the suite's own falsifier 2 and 3: BODY_ONLY_NODE and an unnumbered testable_claim field over a body CLAIM (1)(2)", "expected": "[1, 2] and [1, 2] -- the body fallback is untouched by the change to the control", "observed": "150 passed, 6 skipped over test_cli_claim_conjunct_scope.py + test_bin_help_smoke.py + test_cli.py (both falsifier tests green)", "result": "pass"}
+  - {"conjunct": 3, "class": "wire", "cmd": "real cli.py done --dry-run SUBPROCESS in a temp graph (cwd = that graph, so _find_root resolves it), --probes 1..3 then --probes 1..2", "expected": "PASS covering conjunct(s) 1, 2, 3; then a refusal naming conjunct 3 and NOT 4", "observed": "'[dry-run] tier-parent probe gate: PASS (3 probe(s) cover conjunct(s) 1, 2, 3)' / 'ERR: ... without a parent-run negative probe for claim conjunct(s): 3.' -- no 4 anywhere", "result": "pass"}
+  - {"conjunct": 3, "class": "auth", "cmd": "the mutation is the REAL old code path: _pre_fix_union recomputes field|body with the shipped cli._CLAIM_ITEM_RE, and the mutant is installed on the SAME cli module the gate reads", "expected": "pre-fix set == [1, 2, 3, 4] and the second refusal reachable only after the monkeypatch", "observed": "pre-fix union set on FIELD_NODE : [1, 2, 3, 4]; second run's _named(err)=='3' is False, its =='3, 4' is True", "result": "pass"}
+production_lines: 0
+profile: balanced
+rebrief_answer: cut
+rebrief_request:
+role: kid
+scaffold_hash: 149750fe895d4f91
+season: 2
+title: the negative control now names the discriminating span, and the stale numbers carry their base
+town: core
+verdict: inconclusive_lean_proved:90
+---
+# experiment:a00-bc9448e3-61e351
+
+DH.589 corrective, 1 kid, **0 production lines**, 36 test lines added / 8 removed (base
+pinned at `4e82ecf3f`). Every file touched is inside FILE SCOPE; the three node edits went
+through `write.py` only, never by hand. Seven items, seven settlements: five FIXED IN BYTES
+or SETTLED BY A PRINTED COMMAND, two NAMED for the director's findings row.
+
+## ITEM 1 — FIXED IN BOTH PLACES. `40 0` -> `40 3`, with the base on the command line
+
+`a00-0f446ede-c1a870.md` claimed `40   0` (body) and `40 0` (Evidence bullet) from an
+UNBASED `git diff --numstat` against the worktree. Re-derived with base and tip pinned:
+
+    $ git diff --numstat 06e6912da 4e82ecf3f -- extensions/agi/tests/test_cli_claim_conjunct_scope.py
+    40	3	extensions/agi/tests/test_cli_claim_conjunct_scope.py
+    $ git diff 06e6912da 4e82ecf3f -- extensions/agi/tests/test_cli_claim_conjunct_scope.py | grep -c '^+[^+]'
+    36
+
+40 ADDED / 3 REMOVED. Both sites corrected in place through `write.py replace body`, each
+carrying a bracketed `[DH.589 a00-bc9448e3 CORRECTION]` that names the old value. The 3
+removed are that round's own reflow of the prior kid's probe literal, which the review
+already named. 40 added is exactly at the 40-line test cap; the file is NOT over it.
+
+## ITEM 2 — the observed `end=194` was a FIRST-MATCH artifact. Full set pasted, field fixed
+
+`a00-9f9aaacd-303434.md:15` (its conjunct-1 `probes:` entry) recorded
+`begin=174 caveat=192 end=194`. The run used `grep -n`, which returns the FIRST match, and
+:194 of `a00-ea0222b3-4ed78e.md` is a PROSE mention of `<!-- THOUGHT:END -->`, not the
+closing marker. Re-run with all matches:
+
+    $ grep -n 'THOUGHT:END' .agi/nodes/experiment/a00-ea0222b3-4ed78e.md
+    194:retraction as body text BELOW `<!-- THOUGHT:END -->`, so a regenerating scan or a
+    213:<!-- THOUGHT:END -->
+    $ grep -n 'THOUGHT:BEGIN' .agi/nodes/experiment/a00-ea0222b3-4ed78e.md
+    174:<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. ...
+    $ grep -n 'CAVEAT' .agi/nodes/experiment/a00-ea0222b3-4ed78e.md
+    192:CAVEAT on the node itself [DH.560 a00-9f9aaacd CORRECTED IN PLACE. ...
+
+FULL SET `{194, 213}` was TRUE at the DH.589 tip and is STALE NOW, so the "the real
+closing marker at this tip is :213" claim it used to open with is RETRACTED at the head of
+it; the measured answer is in ITEM 7 (DH.626) below and, in full, in ITEM 11 on
+`a00-9f9aaacd-303434.md`. The ORDER claim the probe was really making still holds — the
+retraction IS inside the THOUGHT, after the corrected CAVEAT — and the number it pasted was
+the first match. The `probes:` entry is corrected (through `write.py set probes`, not by
+hand) to name both matches and say which is the marker. A grep whose answer is a LINE NUMBER
+is a measurement, and it must name the BASE it was taken at.
+
+## ITEM 3 — the pasted command still RUNS and now prints a DIFFERENT number. Corrected
+
+`a00-ea0222b3-4ed78e.md:51` pastes `git diff --numstat cd17ab80c -- <test file>` -> `33 0`.
+Run verbatim at this tip:
+
+    $ git diff --numstat cd17ab80c -- extensions/agi/tests/test_cli_claim_conjunct_scope.py
+    70	0	extensions/agi/tests/test_cli_claim_conjunct_scope.py
+
+70, not 33 — so the COMMAND is fine and the NUMBER was wrong. `cd17ab80c` is a base that
+PREDATES the round's own bytes and it measures base->WORKTREE, so DH.560's and this round's
+additions sit inside the delta. That is the NUMBERS RULE's exact failure mode. The round's
+own delta, base AND tip pinned on the same command line:
+
+    $ git diff --numstat 06e6912da 4e82ecf3f -- extensions/agi/tests/test_cli_claim_conjunct_scope.py
+    40	3	extensions/agi/tests/test_cli_claim_conjunct_scope.py
+
+JOB 1's honest figure is +40 / 3 over `06e6912da` (36 non-blank added). Corrected in place,
+with the verbatim `70 0` output pasted so a reader sees WHY the old number no longer prints.
+This round's own test delta, base pinned: `36 8`.
+
+## ITEM 4 — THE REAL WORK. The negative control now DISCRIMINATES under mutation
+
+`test_gate_still_bites_on_a_conjunct_with_no_probe` asserted `"conjunct(s): 3" in err`. Under
+the pre-fix `testable_claim ∪ body` union the same graph's refusal names `3, 4`, and
+`"conjunct(s): 3" in "… conjunct(s): 3, 4. Each numbered …"` is TRUE — the control stayed
+green under the very mutation it was written to catch, which is why it proved nothing.
+
+FIX: the control now names the DISCRIMINATING SPAN rather than a substring.
+
+- `_named(err)` extracts the conjunct list a refusal names — the span a mutation moves.
+- `_pre_fix_union(node_file)` recomputes the PRE-FIX reading (field ∪ body) with the SHIPPED
+  `cli._CLAIM_ITEM_RE`, so the mutant is the real old code path, not a paraphrase.
+- the test runs the SAME graph twice through the SAME cli module: once as shipped
+  (`_named(err) == "3"`), once with `_claim_conjunct_numbers` monkeypatched to the union
+  (`_named(err) == "3, 4"`), and asserts the pre-fix set on that very node is `[1,2,3,4]`.
+- `_gate` gained one optional `cli=None` parameter, because `_gate` calls `_load_cli()`
+  itself — a monkeypatch on a DIFFERENT module object would not have reached the gate, and
+  the "mutated" half would have quietly re-run the shipped bytes. That is the near miss here.
+
+Both shapes, RUN (scratch script `item4_both_shapes.py`, this session dir):
+
+    SHIPPED  (field wins)          : named='3' active=True covered=[1, 2]
+      old substring assertion 'conjunct(s): 3' in err : True <- the VACUOUS form
+    PRE-FIX  (field|body union)    : named='3, 4' active=True covered=[1, 2]
+      old substring assertion 'conjunct(s): 3' in err : True <- the VACUOUS form
+      NEW exact assertion _named(err)=='3' holds      : True under union: False
+      refusals differ -> True
+      pre-fix union set on FIELD_NODE : [1, 2, 3, 4]
+
+The old assertion is `True` under BOTH shapes — that is the vacuity, printed. The new one is
+`True` only on the fixed bytes. Suite over the named files:
+
+    $ env -u TMUX -u TMUX_PANE python3 -m pytest \
+        extensions/agi/tests/test_cli_claim_conjunct_scope.py \
+        extensions/agi/tests/test_bin_help_smoke.py \
+        extensions/agi/tests/test_cli.py -q --basetemp <tmp>
+    150 passed, 6 skipped, 35 warnings in 46.37s
+
+A WIRE probe through the real `cli.py done --dry-run` SUBPROCESS (temp graph, `cwd` set to
+that graph so `_find_root` resolves it — an earlier attempt with `AGI_PROJECT_ROOT` did NOT,
+and reported "no agent record at <this worktree>"):
+
+    == probes 1..3: [dry-run] tier-parent probe gate: PASS (3 probe(s) cover conjunct(s) 1, 2, 3)
+    == probes 1..2: [dry-run] ERR: ... without a parent-run negative probe for claim conjunct(s): 3.
+
+No `4` anywhere in the refusal — the phantom does not come back through the wire either.
+
+## ITEM 5 — OUTSIDE FILE SCOPE (named, NOT touched — for the director's findings row)
+
+1. `extensions/agi/bin/cli.py:2439` — `own = _round_own_node_paths(root, checkout_root,
+   node_id, owns, named, refused, agent_id=agent_id)`: the done-time commit scopes its `git
+   add` to the round's OWN node paths, so a kid's `write.py` edit to a FOREIGN node is
+   classified `foreign` at :2452, printed as "leaving N foreign path(s) uncommitted" and never
+   landed. That is why DH.541's and DH.560's node edits both had to be committed by hand
+   (06e6912da) — the same chargeable defect twice. The round's own brief also says "COMMIT
+   every kid edit AND every node edit", which the engine refuses to do for a foreign node.
+2. `extensions/agi/bin/brief.py:1488-1492` — the kid brief's clause "DO NOT run git. No
+   commit, no add, no push … the parent owns commits" is contradicted by the PARENT
+   (verbatim) clause in the director's order, and the order TEMPLATE has no line telling the
+   director that `cli.py done` commits only the round's OWN node (`brief.py:1698-1700` says
+   the done-time commit happens only under `--branch`). An order that demands a commit the
+   engine will not make produces a permanently dirty worktree.
+
+Neither file is in FILE SCOPE; both are named, not edited.
+
+## ITEM 6 — item 7 re-verified: CLEAR (branch divergence, not a deletion)
+
+    $ for r in 4e82ecf3f c412999be cfac66b6c 06e6912da cd17ab80c; do printf "%s: " $r; \
+        git ls-tree $r -- extensions/agi/tests/test_cli_claim_conjunct_scope.py | wc -l; done
+    4e82ecf3f: 1
+    c412999be: 1
+    cfac66b6c: 1
+    06e6912da: 1
+    cd17ab80c: 1
+    $ git diff --name-status 4e82ecf3f -- extensions/agi/tests/
+    M	extensions/agi/tests/test_cli_claim_conjunct_scope.py      <- this round's ITEM 4, nothing else
+
+The file is tracked in EVERY tip sampled, back past the pre-DH.541 base, and the only
+modification in the worktree is this round's own edit. There is no deletion to explain: a
+reader who saw it "missing" was on a branch tip that predates the landing. **CLEAR** — the
+next reviewer should not re-raise it.
+
+## Numbers, all base-pinned
+
+| number | base → tip | command |
+|--------|-----------|---------|
+| 40 / 3 (36 non-blank) | 06e6912da → 4e82ecf3f | ITEM 1, ITEM 3 |
+| 70 / 0 | cd17ab80c → worktree | ITEM 3, the verbatim paste |
+| 36 / 8 | 4e82ecf3f → worktree | this round's test delta |
+| 0 | production paths, 4e82ecf3f → worktree | `git diff --numstat 4e82ecf3f -- extensions/ ':!extensions/agi/tests/'` is EMPTY |
+
+## Verdict
+
+`proved` is not the right word for a corrective: this round makes no new mechanism claim.
+It discharges the six review items and, in ITEM 4, replaces a control that was green under
+the mutation it was written to catch with one that is green only on the fixed bytes. The
+parent hypothesis's mechanism claim is unchanged; what changed is that a test in the suite
+now bears on it.
+
+## Evidence
+
+* both-shapes run, both refusals pasted, old assertion `True` under both (ITEM 4)
+* real `cli.py done --dry-run` subprocess: PASS 1,2,3 / refusal naming 3 and no 4
+* `150 passed, 6 skipped` over the three named test files
+* `git ls-tree` over five tips + a clean `git diff --name-status` for ITEM 6
+* every node edit made through `write.py` (`replace body` / `set probes`), none by hand
+
+## Evidence
+
+Raw output, screenshots, logs.
+
+## Agent Notes
+ITEM 4 done in bytes: the negative control now names the discriminating span (shipped refusal names 3, pre-fix union names 3,4) and drives both shapes through the same cli module, so it is green only on the fixed bytes; ITEMS 1/2/3 corrected in the three nodes through write.py with base-pinned commands (40/3 not 40/0; THOUGHT:END full set {194,213}, the observed end=194 was a grep first match; the pasted repro now prints 70/0 because its base predates the round's bytes); ITEM 5 named two mechanism defects outside file scope (cli.py:2439 own-path commit scoping, brief.py:1488 the kid-brief git clause vs the order's commit clause); ITEM 6 re-verified CLEAR by git ls-tree over five tips; 0 production lines, 36 test lines added / 8 removed, 150 passed 6 skipped plus a real cli.py done --dry-run wire probe
+
+
+## ITEM 7 (DH.626 a00-7b5520ac) — the {194, 213} paste was STALE AT ITS OWN BASE
+
+ITEM 2 above (and the `probes:` conjunct-1 `observed` it cites) pasted a FULL SET
+`{194, 213}` with no base and no re-runnable command. Measured, base pinned:
+
+    $ git show 15bc46e00:.agi/nodes/experiment/a00-ea0222b3-4ed78e.md \
+        | grep -n 'THOUGHT:END\|THOUGHT:BEGIN\|CAVEAT on the node'
+    261:<!-- THOUGHT:BEGIN ...   279:CAVEAT on the node itself ...   281:retraction ...
+    300:<!-- THOUGHT:END -->
+
+Already wrong at this round's base — not caused by DH.589's duplicate block. After this
+round's ITEM 1 dedupe (32 identical lines removed from that node via `write.py`):
+
+    $ grep -n 'THOUGHT:END' .agi/nodes/experiment/a00-ea0222b3-4ed78e.md
+    249:retraction as body text BELOW `<!-- THOUGHT:END -->` ...
+    268:<!-- THOUGHT:END -->
+
+CURRENT FULL SET `{249, 268}`, marker :268, begin=229, caveat=247; the ORDER claim still
+holds (229 < 247 < 249 < 268). Full paste and the `set probes` rewrite live on
+`experiment:a00-9f9aaacd-303434.md` (its ITEM 11, DH.626) — not duplicated here, which is
+the defect class this item is about.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW DH.589 (a00-f364d7a3). Mechanism, not wording.
+
+(1) WHAT THE INSTRUCTION SAID, quoted: "CHECK EVERY DELIVERABLE THE KID NAMES AGAINST THAT DIFF, NEVER AGAINST ITS THOUGHT OR ITS SUMMARY. A file, test, or node edit the kid CLAIMS and the diff does not carry demotes that kid"; "a kid that passes its own suite but fails your probe is lean_disproved, with the probe NAMED"; and from the order itself, item 4: "Negative control does not discriminate under mutation (extensions/agi/tests/test_cli_claim_conjunct_scope.py:98)".
+
+(2) WHAT THE MACHINE ACTUALLY DOES. git diff 4e82ecf3f carries all four claimed settlements as bytes, not prose: ITEM 1 at a00-0f446ede-c1a870.md:77-87 and :188 replaces an unbased -> 40   0 with a base-and-tip pinned git diff --numstat 06e6912da 4e82ecf3f; I re-ran that command myself and it prints 40 3. ITEM 2 rewrites the conjunct-1 probes entry on a00-9f9aaacd-303434.md:15; I ran grep -n THOUGHT:END on a00-ea0222b3 myself and got exactly the two matches {194, 213} the node pastes, with :213 the marker. ITEM 3 pastes git diff --numstat cd17ab80c -- <test file> -> 70 0 verbatim; I ran it and it prints 70 0, so the number on the node is the one the command produces. ITEM 4, the only real code, replaces the substring assertion with _named(err) == "3", adds _pre_fix_union built from the SHIPPED cli._CLAIM_ITEM_RE, and gives _gate a cli= parameter so the monkeypatch lands on the module object the gate reads. My own mutation probe, which I built and ran: I copied extensions/agi/bin and the test file to /tmp, restored the pre-fix field|body union in the COPY, and ran the same test file there with PYTHONPATH at extensions/agi/src — 4 failed, 3 passed, the failing set including the rewritten control, with the refusal naming conjunct 4. So the control is green only on the fixed bytes, and the call site reaches the changed bytes live.
+
+(3) NEAR MISS, the one I had to look for. My FIRST mutation probe patched a module named pcli, while the test file _load_cli() builds a FRESH module named agi_cli on every call and never registers it in sys.modules — so the suite came back 7 passed and I had a false green that looked exactly like the vacuity the item was about. The kid hit the same wall from the other side and answered it in the bytes: that is why _gate takes the cli object instead of loading its own. A mutation that patches the wrong module object satisfies the words of the probe and loses the mechanism. Second near miss: a copy-to-/tmp mutation that keeps no PYTHONPATH fails 7/7 on ModuleNotFoundError graph_core, which LOOKS like a discriminating mutation and is only an import error — I had to read the traceback rather than the failure count.
+
+(4) IF I DEVIATED FROM A STANDING RULE: the standing rule is that a parent never lands a kid authored bytes by hand. I did not deviate — I ran no mutating git, and the four charged defects (the uncommitted round, the duplicated ITEM 4 section on a00-ea0222b3, the dropped _probe_defect sentence, and the proved/inconclusive mismatch) are all LEFT for the loop or the director, because the fix for the first of them belongs in cli done own-path commit scoping (cli.py:2439), which is outside this round FILE SCOPE. I demoted the record to inconclusive_lean_proved:90 only in the verdict word, and only because the node own body says proved is not the right word for a corrective while its frontmatter said proved; the claim itself survives all four of my probes.
+(0) DH.641 a00-df914bba. THIS version differs from the one above in three text-only ways, none of them a finding about the bytes: the ITEM 2 paragraph no longer asserts a stale "real closing marker at this tip is :213" ahead of its own correction (the retraction now sits at the head of that paragraph and points forward); the section DH.626 added is renumbered ITEM 7 so no ITEM number appears twice in this node; and the cross-reference that named the sibling's old "ITEM 1" now names its ITEM 11. No engine byte, no test byte, no measurement re-run.
+<!-- THOUGHT:END -->
