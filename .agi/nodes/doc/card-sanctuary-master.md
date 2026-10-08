@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (09:4xZ 10-08, date -u) — gen 27 ROTATING at ~0.40 (DECISION: the next gate cycle, A1b re-cut, crosses the 0.41 no-landing line) · trunk c5c452c674 pushed · NO gate tree on /dev/shm
+## §0 State (09:44Z 10-08, date -u) — seated 09:42Z at 0.420, card re-linked 4ce59cec27 · IDLE: waiting on DG1's A1b v3 [merge-up] · NO gate tree on /dev/shm
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,11 +32,11 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 QUEUE for gen 28 (FULL rail each: anonymize PER COMMIT + full-name AND model GPU grep + key; lanes with sh, ROOT = the gated tree, env -i + empty HOME + GIT_CONFIG_GLOBAL/SYSTEM=/dev/null; own NEG mutant; FULL suite on tmpfs; ONE Sonnet mur, focus = ONE whole-commit contradiction sweep, ALL residues in one list (belam [rule] 08:4xZ; skill agi-master-gate); accept_with_residue = RETURN unless verify refutes every residue, EXCEPT wording-only (belam (c)): land, name it in the landing message, carry it as a build-brief row):
-  1 A1b re-cut of be60c531aa (RETURNED 09:3xZ, mur wf_72cf6103-ee5: piece + c1-c6 + B1 B5 B6 + k0 MET; lanes 59/38/13/31 all 0 failed; my NEG '-' on ExecStartPre RED) on RA15 (DG2: agi-vstore.t.sh:151-160 forged-config.json (ii) row cannot fail -> forge a value that changes the start count, RED with GIT_DIR stripped) + RA16 (DG3: engine.md:24 diagram says a landing re-runs agi-project; the .path is now on /etc/agi/carry.env). Gate the DELTA vs be60c531aa + its RED proof + FULL suite -> land -> UP belam: his ONE host act (A1 + A2-A4 + A1b, node 59ba231817) is unblocked
+  1 A1b re-cut of be60c531aa (RETURNED 09:3xZ, mur wf_72cf6103-ee5: piece + c1-c6 + B1 B5 B6 + k0 MET; lanes 59/38/13/31 all 0 failed; my NEG '-' on ExecStartPre RED) on RA15 (DG2: agi-vstore.t.sh:151-160 forged-config.json (ii) row cannot fail -> forge a value that changes the start count, RED with GIT_DIR stripped) + RA16 (DG3: engine.md:24 diagram says a landing re-runs agi-project; the .path is now on /etc/agi/carry.env). INBOX 09:41Z: DG2's RA15 fix = 7a6af14278 (branch de-base-dg2-88, 1 file agi-vstore.t.sh, forged evil.cfg adds loadavg1_lt 0.1; build 59/0 before+after; GIT_DIR-stripped mutant 7 -> 8 FAIL, c2 forged-config (ii) now RED); DG1 combines it with DG3's RA16 line as A1b v3. Gate the DELTA vs be60c531aa + its RED proof + FULL suite -> land -> UP belam: his ONE host act (A1 + A2-A4 + A1b, node 59ba231817) is unblocked
   2 grid_census.py (builder: DG1 reassigns from DG4) WITH lane fe1542efa5 (g12-g15 incl N2)
-  3 E2b0 grid.py gate (DG3 after A1b) WITH lane 701aff5513 (+ RE7 rows); wording carried from E2a: crons.md body :89 :113 :120 :161 + crons.py docstrings :35-40 still name grid_sync as the only applier
+  3 E2b0 v2 grid.py gate (DG3 fixing: a nested `enabled: false` under grid_sync retires it; the gate must read ind == grid_sync body indent) WITH lane G 6b2be27500 test_grid_gate.py (22 rows; DG2 split 701aff5513, branch de-base-dg2-87; G on E2b0 1e9c9efab6 = 20/2 FAIL, the two b8d rows by design); wording carried from E2a: crons.md body :89 :113 :120 :161 + crons.py docstrings :35-40 still name grid_sync as the only applier
   4 D1 corrective (was DG5, login expired -> DG1 reassigns): ONE commit on e8afb2a868 for R1-R5 on DG2 rows 4966c20d05 test_nest_r.py; gate = test_nest + test_nest_r + test_bin_help_smoke + test_commands_manifest + FULL
-  HELD: test_grid_sync_off.py (with the flip) · AA1.Va lane 1732119924 (DG2, with its build) · the older crons tests leave an empty $HOME/logs (DG1 orders a low-priority test-only leaf)
+  HELD: lane W 6646702009 test_grid_sync_off.py, 4 rows (with the flip) · AA1.Va lane 1732119924 (DG2, with its build) · the older crons tests leave an empty $HOME/logs (DG1 orders a low-priority test-only leaf)
 PLACED  E2 board :121 rewritten at each landing (c5c452c674) · E3 g7.16.1.11.17 ACTIVE · F CANCELLED
 ```
 
