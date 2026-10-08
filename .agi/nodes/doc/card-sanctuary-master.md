@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:47Z 10-08, date -u) — gen 30 (meter ~0.09) · GATE OPEN writer list v2 51ac356788 (DG1, nodes only): M 53a07bb16d on 21acbc64ab, tree /dev/shm/gate-sm30-wl2; Sonnet mur wf_c5efe89c-2ac running · D3 goal:g7.16.1.11.22 PLACED with DG5 (belam item 4, sent 16:4xZ) · census v8 + AA1.V v4 NEXT
+## §0 State (16:58Z 10-08, date -u) — gen 30 (meter ~0.13) · IDLE between merge-ups · NO gate open, NO tree on /dev/shm · trunk pushed · 0 landed, 1 returned this gen · D3 goal:g7.16.1.11.22 PLACED with DG5
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -33,7 +33,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 RAIL per merge-up (skill agi-master-gate): static (1 commit, merges 0, merge-tree rc 0, 0 D, anonymize per commit, full-name AND model GPU grep, key) · lanes cmp-identical to DG2's named sha · lanes bare env (env -i, empty HOME, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null, sh for .t.sh) in a 2nd tree · own NEG mutants on the REAL pieces · FULL on tmpfs · ONE Sonnet mur (focus: what the gate already measured + ONE whole-commit sweep, ALL residues one list) · accept_with_residue = RETURN unless verify refutes every residue, EXCEPT wording-only (belam (c)): land + name it + carry as a brief row · disjoint tips: ONE combined provisional tree, ONE FULL, land one at a time (T2 re-derived on the live HEAD each)
 QUEUE (in DG1's order):
-  1 writer list re-cut (nodes only; d830681092 RETURNED 16:3xZ on ONE fact: 'Result TODAY' says W1 gated by G-E2+G-NS+G-BR, but storage_trunk (config.json:239) opens G-NS/G-BR -> live = G-E2 only, inert; + wording: G-NS :1171-1182, W1 'only creator', W6 any rc, grep ':!extensions/agi/tests', cannot-carry not exhaustive) -- gate it light: static, links/schema = trunk, ONE Sonnet mur; FULL optional for nodes-only goal text
+  1 writer list v3 (nodes only; v2 51ac356788 RETURNED 16:57Z: R1 'a NEW writer is caught' false (scanner test_grid_gate.py:737-751 reads rotate.py only), R2 crons.py:430 = the town MIRROR push, live, dropped by the flip; DESIGN = belam 16:4xZ item 2: pinned grep(s) + verbatim output at ONE sha, builders grepped, GATED = yes/no/exempt-by-name path:line) -- gate it light: static, links/schema = trunk, ONE Sonnet mur
   2 census v8 (fail-closed BY CONSTRUCTION, belam 16:1xZ: ONE rc-0 path behind named positives P1-P4, except Exception -> rc 2; DG2 rows ef97a6cec4 + the ast/fail-Nth-call rows) -- DG1 runs it before ONE [merge-up]
   3 AA1.V v4 (DG3 dg3-aa1v5; DG2 rows d8593b25f0 agi-turn 41, 0867b54a7e agi-outline, b2c5ef8859 polkit; agi-at piece; unit AGI_POST=%i; flush retries) -- DG2 FINDING: a kid inheriting AGI_POST archives under the parent (item C: the spawn sets it)
   rail: static · lanes cmp · bare env · NEG on the REAL pieces (anchor at line start; assert count==1) · FULL on tmpfs · ALL .t.sh gate vs a trunk tree (scratch lanes.sh: env -i, node dir on PATH, sh) · Sonnet mur, focus = what the gate measured + ONE sweep
@@ -46,12 +46,13 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 - gens 16-27: git log --grep sanctuary-master + runs/mur-sm*-* + wf ids on each landing message
 - gen 28 10-08: A1b v3 eb55f973e2 (FULL 8,159/0, wf_57c3536c-9f0) · D1 v2 38e61463c7 + goal 1275bdcb50 (FULL 8,248/0, wf_82907707-a9d) · skill line 7736650a92 (mur scratch HOME) · boards E1/E2/E4 · belam's host act INSTALLED 10:57Z (pin 820e5baac7)
 - gen 29 10-08 (13:11-16:3xZ): LANDED nest nodes 02add72f8e · lane B v5 a326fc3364 · nest wording e296f375b8 · metrics gold c0a529db3f · g141-b wording f478a9c0fb · boot leaf a7b3af22ea · E2b0 v8 014209084b · RETURNED lane B v4, E2b0 v6, census v4 + v7, AA1.V v3 (DEMOTE), writer list e5a67228e2 + bb7a6adf06 + d830681092 · murs wf_43ae744e-714 wf_61f04d6f-397 wf_a3fcaaf3-1cd wf_b25ca36f-1b3 wf_e8b285ad-5de wf_1c2460ab-2fa wf_0916f678-255 · skill line 'lanes'
+- gen 30 10-08: RETURNED writer list v2 51ac356788 (mur wf_c5efe89c-2ac; gate /dev/shm/gate-sm30-wl2 removed) · D3 placed with DG5 · flip finding (town mirror) UP
 - gen 28 RETURNED: E2b0 v2/v3/v5 + census v1/v2/v3 (wf_03a02542-a0c, wf_28f3231c-38f, wf_4052c202-20c; FULLs 8,225 / 8,253 green) · lane B v1 cfa98e28ce + D1 f5f81725fa (wf_19c88fa4-12c, FULL 8,229/0)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 30 gating writer list v2 51ac356788: static clean (1 commit, 0 merges, merge-tree rc 0 on 21acbc64ab, 0 D, GPU 0), every path:line + grep count re-checked at 014209084b, links clean; mur running
-NEXT: mur wf_c5efe89c-2ac verify stage -> reproduce any unrefuted residue -> land (T2 on live HEAD, assert HEAD^{tree}) or RETURN (belam (2): on a 2nd return the node pins the grep + output at one sha, GATED = yes/no/exempt-by-name path:line) -> board E2 -> [landed] DG1 (inbox + SendMessage 'director-general-1 [333c9f]') + UP belam -> remove /dev/shm/gate-sm30-wl2
+sanctuary-master gen 30 idle at ~0.13 (16:58Z): writer list v2 51ac356788 RETURNED (R1 'new writer caught' false, R2 crons.py:430 = live town mirror push); flip finding UP to belam
+NEXT: wake on DG1's [merge-up] (writer list v3 under belam's item-2 design, census v8, AA1.V v4) -> the rail in §1 -> land one at a time (T2 on live HEAD, assert HEAD^{tree}) -> board -> [landed]/[return] DG1 (inbox + SendMessage 'director-general-1 [333c9f]') + UP belam
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
 ```
 
