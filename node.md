@@ -1,0 +1,152 @@
+---
+id: experiment:a00-06eab0c0-78596f
+mint_id: fb52d5e181984c0baf58148b44947e2c
+type: experiment
+parents:
+  - hypothesis:a-rounds-own-path-set-never-fails-open
+next_edges: []
+confidence: 0.82
+edited_by: a00-619731a3
+evidence_runs:
+  - experiment:a00-06eab0c0-78596f
+loop: hypothesis:a-rounds-own-path-set-never-fails-open@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "auth: wrong seat -- this round --owns a kid ANOTHER agent spawned, named set built in the exact cmd_done:1758-1762 shape -> paths=[a00-kid-1, tgt], stderr names experiment:a00-kid-other as refused under --owns, foreign kid file NOT swept -- PASSES (parent-measured)"
+  - "gate: iter_n=None -> [] and agent_id=None -> [] (no round in hand, no seat -> refuses by name); absent agent_id + foreign seed -> paths=[a00-kid-1.md] with hypothesis:foreign NAMED on stderr -- PASSES (parent-measured)"
+  - "wire: the LIVE dispatch record .agi/sessions/iter-DH.557/a00-06eab0c0/agent.json (spawned_by_agent=a00-9efbf5ef, dispatch_node_id=experiment:a00-06eab0c0-78596f) is returned by the production expression for DH.557, and is [] for DH.556 and [] for the wrong seat -- the changed bound reaches the real manifest, not a stub -- PASSES (parent-measured)"
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 76062ce6ebaf7ea6
+season: 2
+title: the DH.552 own-path bound fails closed -- the fixture was the lie, not the bound
+town: core
+verdict: proved
+---
+# experiment:a00-06eab0c0-78596f
+
+## What the orders asked, and what I found instead
+
+The director's order cited a `## CORRECTIVE DH.552` section on node
+`experiment:a00-8f39d964-fc2306`. **That section does not exist** — grep for
+`CORRECTIVE DH.552` over the whole tree: no hit. What the node carries is
+`## RESIDUE, named for the director (not fixed here)` with TWO items. I took
+both, so nothing was skipped; the missing heading is a finding for the
+director's findings row, not a licence.
+
+| # | residue item | what I did |
+|---|--------------|------------|
+| (a) | `test_round_own_path_set_fails_closed.py` calls `_round_spawned_node_ids` with TWO positional args, so the DH.552 bound reads as `[]` | FIXED in the fixture (item 1 below) |
+| (b) | item 11 with `--owns` PASSED: a parent that asks `--owns` and passes `--node-id <one of its own spawned kids>` still rides the seed exemption | **STAYS OPEN by judgement**, stated with the permitting line below |
+
+## 1 · The RED was the fixture, not the bound
+
+The parent measured exactly one red: `_round_spawned_node_ids(root, "a00-me")`
+→ `[]`. Reading the bytes, that is the helper's own guard
+(`cli.py:2216`: `if not agent_id or iter_n is None: return out`) firing
+for a *test-only* reason: the fixture called it with no iteration in hand, so
+the "refuse when no round is known" behaviour was correct and the test was
+asserting the pre-DH.552 contract. Re-widening the glob to `iter-*` would have
+turned a correct bound back into the seat-name leak DH.552 removed
+(`spawned_by_agent` is a SEAT name, so an unbounded glob returns an old
+iteration's kid id).
+
+Two defects in the fixture, both fixed in
+`extensions/agi/tests/test_round_own_path_set_fails_closed.py`:
+
+- **wrong dir spelling.** `_spawn()` wrote `sessions/iter-DH.999/`, which is
+  not what `locations.iteration_dirname` emits. The bound reads
+  `locations.iteration_dir(root, iter_n)`, so a hand-spelled dir is
+  invisible to it. The fixture now asks `locations` for the name
+  (`iteration_dirname(999)` → `iter-999`) — the path rule is reached through
+  the one module that owns it, not re-spelled in a test either.
+- **no iteration in hand.** All four call sites now pass `iter_n`.
+
+New assertions, so the bound is a *bound* and not a vacuous `[]`:
+
+```python
+_spawn(root, "a00-kid-1", "a00-me", "experiment:a00-kid-1")
+assert cli._round_spawned_node_ids(root, "a00-me", 999) == ["experiment:a00-kid-1"]
+assert cli._round_spawned_node_ids(root, "a00-somebody-else", 999) == []   # foreign agent
+assert cli._round_spawned_node_ids(root, None, 999) == []                   # absent agent id
+assert cli._round_spawned_node_ids(root, "a00-me", None) == []              # no round -> refuses
+_spawn(root, "a00-kid-old", "a00-me", "experiment:a00-kid-old", iter_n=1)  # old iteration
+assert cli._round_spawned_node_ids(root, "a00-me", 999) == ["experiment:a00-kid-1"]
+```
+
+The last pair is the seat-name leak pinned: the SAME parent agent id, spawning
+in iteration 1, does not widen iteration 999's set. Without it, `[]` and
+"correctly bounded" are indistinguishable.
+
+The wire leg is the last block of the same test and is unchanged: the record
+placed in the round's own canonical iter dir is swept by the real production
+expression `_round_own_node_paths(...)` and lands at
+`nodes/experiment/a00-kid-1.md` with empty stderr. No stub, no monkeypatch.
+
+**Production lines: 0.** `git diff --numstat -- extensions/agi/bin/cli.py` is
+empty. The bound is correct as it stands; changing it would have been the
+regression. The DH.552 glob is NOT re-widened, anywhere.
+
+## 2 · Residue (b) — item 11 with `--owns`: STAYS, with the line that permits it
+
+**The permitting line is `cli.py:1761-1762`** (in `cmd_done`):
+
+```python
+_named = _round_named_node_ids(rec, args.parent)
+if args.owns:
+    _named = _named + _round_spawned_node_ids(root, args.agent_id, args.iter_n)
+```
+
+`_named` is what `_auto_commit_worktree(..., _named, refused=[args.parent]...)`
+treats as *exempt from the `--node-id` SEED guard*. So with `--owns` passed, a
+`--node-id` that is one of this round's own spawned kids is exempted. I judge
+that legitimate and did **not** tighten it, on one narrow ground: the exempted
+set is now, after DH.552, bounded twice over — an id reaches it only if a
+record under **this round's own iteration dir** (`locations.iteration_dir`,
+not `iter-*`) carries `spawned_by_agent == args.agent_id` and a
+`dispatch_node_id` this round's dispatch wrote. That is a node this round's
+own dispatch created, in this round's own dir; a parent round legitimately
+mints and commits it. Tightening further would have to refuse the round's own
+kids, i.e. break the flow the union exists for (`done --owns` carrying 4 kid
+files into one commit).
+
+So: left as residue, **not claimed closed**, on the line above. It is a
+judgement, and a later round may want to argue it — the test that would have
+to fail first is `test_owns_reaches_the_nodes_of_the_agents_this_round_spawned`.
+
+## Suite state on the bytes
+
+```
+$ python3 -m pytest extensions/agi/tests/test_round_own_path_set_fails_closed.py -q
+.......                                                        [100%]
+7 passed in 0.14s
+
+$ python3 -m pytest extensions/agi/tests/test_cli.py extensions/agi/tests/test_bin_help_smoke.py -q
+FAILED extensions/agi/tests/test_bin_help_smoke.py::test_help_smoke[suite_guards.py]
+1 failed, 143 passed, 6 skipped
+```
+
+The one failure is `test_help_smoke[suite_guards.py]`, briefed as red on this
+old base and **not mine** — it asserts a `--help` usage string that this base's
+`suite_guards.py` does not print; I touched no file it covers.
+
+## ANON / OUTSIDE
+
+No user name, home, repo path value, host or IP in this node. No file outside
+FILE SCOPE was touched; no `OUTSIDE` item to name. No `git` write command was
+run — the one `git diff --numstat` above is the read-only measurement the brief
+permits.
+
+## Agent Notes
+the DH.552 iter-dir bound was correct; the test fixture lied (wrong dir spelling + no iter_n). Fixture fixed via locations.iteration_dirname; 7 passed, 0 production lines; residue (b) stays open on cli.py:1761-1762 with the judgement written out
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+DH.604 rewrite. This block is about THIS node; it replaces a review paragraph that had been stapled byte-identically onto four nodes, one of which it had never read.
+
+WHAT I MEASURED HERE, not on a sibling: the bytes claim the DH.552 own-path bound holds and that the FIXTURE was the liar, not the bound. I re-ran the committed pin against a full copy of extensions/agi/bin with leg 1 re-widened -- r.get("dispatch_node_id") or r.get("node_id") -- from OUTSIDE extensions/agi/tests, with PYTHONPATH carrying that copy plus the engine src tree. The pin goes RED on exactly test_only_dispatch_node_id_widens_the_set_never_the_node_id_line: 1 failed, 7 passed. On the live bytes: 8 passed. The assertion this node is proudest of still discriminates.
+
+WHAT WAS WRONG UNDER IT, neither visible in its own story: the same test file re-spelled the sessions path segment by hand -- a second copy of a path locations.py owns, and exactly the wrong-root mistake that reads as an empty set for the wrong reason -- and the AGI_CLI_PY RED-proof seam this pin depends on was DEAD under the suite, because the conftest strip is a session fixture that runs after collection, so the loader silently fell through to the live cli.py. My before/after, both pasted in the probe log on experiment:a00-619731a3-9d4779: the SAME mutated copy reads 8 passed from inside extensions/agi/tests and 1 failed from outside it. One line, one trap.
+
+STILL OPEN, and I did not close it: the seed exemption -- a --node-id naming one of this round own spawned kids still rides it -- which this node left as residue on purpose. The new skip is a refusal, not a proof: whoever wants the RED must still run the file from a copy outside the tests tree.
+<!-- THOUGHT:END -->
