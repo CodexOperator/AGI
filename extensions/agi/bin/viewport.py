@@ -118,6 +118,7 @@ class Frame:
     damaged: str         # "" when sound, else why
     agents: tuple        # agent ids working here (live axis)
     town: str = ""      # town of nearest vision (hyp:l4-towns-...), "" when unknown
+    legacy: str = ""    # D3 (goal:g7.16.1.11.22): "[legacy]" | "[legacy ⊃k]" | "[⊃k]" | "", computed from the node file's history (legacy.py)
 
 
 def _title_of(node, fm: dict) -> str:
@@ -294,6 +295,41 @@ def default_roots(g, fm_by_id: dict) -> list[str]:
 # Formatters. BOTH consume `frames` and nothing else.
 # --------------------------------------------------------------------------
 
+_LEGACY_GRAPH: dict = {}   # HEAD sha -> nest.graph(HEAD): the interactive view redraws per key, the graph load (seconds) is per commit
+
+
+def _with_legacy(frames: list[Frame], root, top: int = 0, height: int | None = None) -> list[Frame]:
+    """D3 (goal:g7.16.1.11.22): stamp the legacy mark on the frames in view
+    (`top`..`top+height`, all when `height` is None) ONCE, so both readers
+    print the same string (goal:g2.19). Only the window is stamped: a mark
+    costs a history walk (a cache keeps it warm), and the stream behind the
+    window is never drawn. Computed at HEAD of the repo holding `root`, season
+    = ladder.md's `current_season` at HEAD, from the node file's own history
+    (legacy.py); fails open to no mark (a graph outside git, an unreadable
+    history) -- never a traceback in the view."""
+    here = os.getcwd()
+    try:
+        import dataclasses
+        import legacy
+        import nest
+        os.chdir(Path(root).parent)          # legacy.py and nest.py run git in the cwd
+        head = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip() or "HEAD"
+        nodes = _LEGACY_GRAPH.get(head)
+        if nodes is None:
+            _LEGACY_GRAPH.clear()
+            nodes = _LEGACY_GRAPH[head] = nest.graph(head)
+        end = len(frames) if height is None else top + height
+        view = [f for f in frames[top:end] if f.node_id in nodes]
+        marks = legacy.labels(head, legacy.season_of(head), [nodes[f.node_id][0] for f in view], nodes)
+        stamp = {f.node_id: marks.get(nodes[f.node_id][0], "") for f in view}
+        return [dataclasses.replace(f, legacy=stamp[f.node_id]) if f.node_id in stamp else f for f in frames]
+    except Exception as exc:                                     # noqa: BLE001
+        print(f"viewport: legacy mark unavailable ({type(exc).__name__}: {exc})", file=sys.stderr)
+        return frames
+    finally:
+        os.chdir(here)
+
+
 def render_human(frames: list[Frame], top: int, left: int,
                  height: int, width: int, status: str = "",
                  brief=None, seats=None, occupants=None, anchors=None,
@@ -324,7 +360,8 @@ def render_human(frames: list[Frame], top: int, left: int,
         seats_here = occupants.seats_at(f.node_id) if occupants is not None else ()
         seat_mark = "".join(f" {GLYPH['seat']}{nm}" for nm in seats_here)
         town_mark = f" [town:{f.town}]" if f.town and f.town != "core" else ""
-        lines.append(f"{'  ' * f.depth}{glyph} {tag} {f.title}{town_mark}{v}{spider}{seat_mark}{note}")
+        lg = f" {f.legacy}" if f.legacy else ""
+        lines.append(f"{'  ' * f.depth}{glyph} {tag} {f.title}{town_mark}{lg}{v}{spider}{seat_mark}{note}")
 
     # Round 2 — stacked layers. Top renders full; the layer beneath is
     # faint-prefixed so it peeks around the top one in a plain terminal.
@@ -392,7 +429,8 @@ def render_llm(frames: list[Frame], top: int, left: int,
         seats_here = occupants.seats_at(f.node_id) if occupants is not None else ()
         seating = f" seats={','.join(seats_here)}" if seats_here else ""
         tn = f" town={f.town}" if f.town and f.town != "core" else ""
-        body.append(f"{'  ' * f.depth}- `{f.node_id}` ({f.type}) {f.title}{tn}{v}{dmg}{who}{seating}")
+        lg = f" {f.legacy}" if f.legacy else ""
+        body.append(f"{'  ' * f.depth}- `{f.node_id}` ({f.type}) {f.title}{tn}{lg}{v}{dmg}{who}{seating}")
     head = [
         "# graph viewport",
         f"_frames {top}-{min(top + height, len(frames))} of {len(frames)}_",
@@ -968,7 +1006,7 @@ def interactive(root: Path, g, fm_by_id, args) -> int:
             h, w = scr.getmaxyx()
             iter_name = iters[t_idx] if iters and t_idx >= 0 else None
             agents = agents_of_iteration(root, iter_name) if (live and iter_name) else {}
-            frames = frame_stream(g, fm_by_id, anchor, depth, agents)
+            frames = _with_legacy(frame_stream(g, fm_by_id, anchor, depth, agents), root, top, h)
 
             seats = None
             occupants = None
@@ -1101,8 +1139,8 @@ def main() -> int:
         iter_name = pts[-1] if pts else None
     agents = agents_of_iteration(root, iter_name) if iter_name else {}
 
-    frames = frame_stream(g, fm_by_id, args.anchor, args.depth, agents,
-                          nodes_dir=str(root / "nodes"))
+    frames = _with_legacy(frame_stream(g, fm_by_id, args.anchor, args.depth, agents,
+                                       nodes_dir=str(root / "nodes")), root, args.top, args.height)
 
     # goal:g9.7, L1.04 — the briefing is built ONCE and handed to both
     # formatters, exactly as the frame stream is. Failing to build it is not
