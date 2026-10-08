@@ -1,0 +1,56 @@
+---
+id: goal:g4.13.1
+mint_id: 34e59d219e584540bb068873bf9382be
+type: goal
+parents:
+  - goal:g4.13
+next_edges: []
+edited_by: director-general-1
+goal_id: G4.13.1
+goal_kind: subgoal
+model: claude-sonnet-5-5
+role: director
+scaffold_hash: ab1d2f242bd55f55
+season: 2
+confidence: 0.5
+origin: goal
+seeds:
+  - goal:g4.13
+tags:
+  - council
+  - grid
+  - g4.13
+status: complete
+title: "G4.13.1: a grid tick never overwrites a collapse -- commit_file carries the nest entry forward, numbers versions by --first-parent and update-refs with the old tip (CAS); a refusal skips that node, not the --all run"
+town: core
+---
+# goal:g4.13.1
+
+## Why this exists
+goal:g4.13: commit-path gates and grid flock work. The council measured a lost collapse (alive, 10-07 15:00Z, design and patch in doc:rse-aa1-boxes AA1.N at alive/aa1n @5cc55defaddd7be1786f9f73c652948781c7c20f): `commit_file` in extensions/agi/bin/grid.py ends in an `update-ref` with no old value, so a grid tick that read a node's tip BEFORE a collapse overwrites the collapse. Measured on the real commit_file in scratch: the original, unedited tick gave v8 nest 0, an edit v9 nest 0, and the race LOST the collapse; the patched one gave no new version nest 2, an edit v4 nest 2, and the race REFUSED with the collapse KEPT. A Python build this season (the owner keeps the old Python, 10-07; no shell rewrite). all-is-one's D3 (the legacy marker) depends on it.
+
+## OWNER 2026-10-07 14:4xZ, verbatim (relayed by belam gen 27)
+"But we will keep reusing the old python based key system, metric system, and verify suite/tests unless most of those got rewritten into shell which is awesome."
+
+## Target end-state
+- `commit_file` carries the tip's nest entry forward, numbers the version by `--first-parent`, and runs `update-ref` WITH the old tip (a compare-and-swap): a collapse made between a tick's read and its write is never overwritten.
+- A CAS refusal skips THAT node with one reason line and the `grid.py commit --all` run goes on with the rest (the refusal is not a SystemExit of the whole run).
+- Every other reader of the version count (the `--count` readers near grid.py lines 1302, 1319, 1336) agrees with the first-parent numbering.
+
+## Invariants
+- A node's version history stays a chain: no collapse is lost, no version number is reused; the grid ref of a node outlives its file (retire, never delete).
+- grid.py keeps one writer path to the ref; the patch adds the old-value check, not a second writer.
+
+## Falsifier
+1. `sh extensions/agi/tests/grid-payload-commit.t.sh` exits 0 (21 of 21 at the scratch patch) and a new lane reproduces the race: a tick that read the tip before a collapse is REFUSED and the collapse survives, RED on the unpatched commit_file.
+2. Negative: `git grep -n 'update-ref' -- extensions/agi/bin/grid.py` shows no `update-ref` of a node's grid ref without its old value.
+
+## Out of scope
+The grid cron cadence (crons.md) · goal:g7.16.1.6 (the one-commit-per-write redesign, horizon) · the shell rewrite of grid.py (season 3).
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+10-08 02:5xZ: COMPLETE, not retired. My d71b26a06e set it `retired` (stopped making sense) on alive's [rule] 02:09Z; SM's mur (RN1) showed the end-state IS built on the trunk, so that status was untrue. Built: grid.py carries a collapse's nest entry forward (:893-906, only a non-empty tree of trees; anything else skips THAT node), numbers versions by --first-parent (:915), and update-refs with the old tip (:921, a compare-and-swap; a refusal skips the node, the run goes on) -- bb46895c1b, 7daaccb35d, dbbb940a36, b00c1db1fb. Falsifier re-run at d71b26a06e: `sh extensions/agi/tests/grid-payload-commit.t.sh` 0 FAIL; the negative holds (every update-ref of a node's grid ref in grid.py carries its old value). Why alive recommended retiring it, kept as context: the store it serves (refs/grid) retires under E2 of the Engine rework trajectory (owner 01:4xZ 10-08: "It's already decided"), so nothing further is owed here and D1 is restated without the grid in doc:rse-d1-nest. The schema has no achieved-then-retired status; `complete` (achieved, keeps scoring) is the one that fits. Was: active, then retired in d71b26a06e.
+<!-- THOUGHT:END -->

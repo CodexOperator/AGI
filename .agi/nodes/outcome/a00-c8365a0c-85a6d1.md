@@ -4,6 +4,7 @@ mint_id: 00f77f2908ec406c8ee3119f3c9fd8d3
 type: outcome
 parents:
   - mvp:unified-spawn-path
+next_edges: []
 accepted_bytes_total: 0
 confidence: 0.7
 cost_usd_total: 0

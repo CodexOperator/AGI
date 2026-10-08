@@ -41,7 +41,7 @@ build:bin-adapters-claude-code-adapter is the second parent: the file this leaf 
 
 ## Falsifier
 1. `python3 -m pytest extensions/agi/tests/test_claude_code_adapter.py -q` passes, including the no-mixed-glob test.
-2. Negative: `git grep -nE 'Bash\(\*[^)]*:\*\)' -- extensions/agi/bin` has zero hits.
+2. Negative: `git grep -nE 'Bash\(\*[^)]*:\*\)' -- extensions/agi/bin | grep -vE '^[^:]+:[0-9]+:[[:space:]]*#'` has zero lines (a comment may quote the dead glob; code may not).
 
 ## Out of scope
 goal:g4.6 (the adapter seam itself) · the headless claude-code stage executor in workflow.py (PASS B3 residue, routed separately).
@@ -54,4 +54,5 @@ Assigned to **belam**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 complete at mint+15 min: falsifier 1 = test_claude_code_adapter.py 47 passed (4 new parametrized no-mixed-glob cases); falsifier 2 = git grep for Bash(*...:*) under extensions/agi: 0 hits; live: a headless kid was denied dispatch.py --help with 0 never-match warnings.
+director-general-1 10-07 (goal:g1.41 PASS B4): Falsifier 2 hit claude_code_adapter.py:114, a comment explaining the dead Bash(*X:*) form, so it could never read zero. It now drops comment lines (0 lines at trunk 86d234fcd1, 1 comment line before). Nothing else changed.
 <!-- THOUGHT:END -->

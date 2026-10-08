@@ -37,9 +37,13 @@ $G init -q --bare $T/hub.git
 for b in A B;do mkdir -p $T/$b;done
 for pb in belam:A hang:A alive:A sm:A dg5:B dg1:B;do u=${pb%:*};b=${pb#*:};$G init -q --bare $T/$b/$u/g.git;echo $T/r/.git/objects>$T/$b/$u/g.git/objects/info/alternates;done
 # as BOX-LETTER POST ARGS...: the box script as POST in POST's own store, trunk pinned by sha
+# box() runs as the post in the store it owns and is NOT under the different-owner seam; its grant is the per-post global config's [safe] directory=* (measured: with the seam added the 64 rows still pass, with the seam and without that [safe] grant 13 FAIL)
 box(){ b=$1;u=$2;shift 2;(cd $T/$b/$u/g.git&&AGI_POST=$u AGI_TRUNK=$TR GIT_CONFIG_GLOBAL=$T/c/$u GIT_CONFIG_SYSTEM=/dev/null sh $BOX "$@");}
 # carry BOX-LETTER ARGS: the carrier as root of that box (one uid: plain calls)
-carry(){ b=$1;shift;PATH=$T/bin:$PATH AGI_RUN=${RUN:-none} AGI_BOX=$b AGI_STORES=$T/$b AGI_REPO=$T/r AGI_TRUNK=${TRK-$TR} AGI_HUB=${HUB-$T/hub.git} AGI_CARRY=$T/$b/carry.git ${CT:+timeout $CT} sh $CARRY "$@";}
+# CE (DG1 04:15Z, belam 04:14Z: the lane runs the REAL ownership): the carrier is root reading AGI_REPO (/data/work/agi, another uid's) and the stores; what lets it is the unit's own GIT_CONFIG_COUNT/KEY_0 words + the VALUE_0 that /etc/agi/carry.env holds (measured from the host's /etc/agi/carry.env 10-08: GIT_CONFIG_VALUE_0=/data/work/agi = AGI_REPO, a PATH and not `*`; modelled here as $T/r = AGI_REPO). So carry() runs with an EMPTY git config (but the hub path, below), git's different-owner seam and exactly those words, never an ambient ~/.gitconfig
+{ printf '[safe]\n\tdirectory=%s\n' $T/hub.git;for sd in $T/A/*/g.git $T/B/*/g.git $T/A/carry.git $T/B/carry.git;do printf '\tdirectory=%s\n' $sd;done;} >$T/hubcfg   # the hub is a stand-in for a REMOTE (no local-ownership rule there); git's file transport drops GIT_CONFIG_COUNT for the child receive-pack, so the hub path is granted by the global file. So are the per-post stores and the carrier's own store: on the host every store touch is `as POST` (runuser, the store's OWNER) and the carrier's own store is root's, neither sees an ownership refusal; this ONE-uid lane (AGI_RUN=none, `as` = a plain call) cannot be that owner, so it grants those paths here and ONLY the repo path through the unit's words (measured 10-08: this model 64 ok / 0 FAIL; the stores NOT granted 19 FAIL; VALUE_0 a bogus path 23 FAIL, so the repo grant is load-bearing; the old `*` also 64 / 0, so no row needs it)
+CE="GIT_CONFIG_GLOBAL=$T/hubcfg GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 $(sect agi-carry@.service|sed -n 's/^Environment=//p'|tr ' ' '\n'|grep '^GIT_CONFIG'|tr '\n' ' ')"
+carry(){ b=$1;shift;PATH=$T/bin:$PATH AGI_RUN=${RUN:-none} AGI_BOX=$b AGI_STORES=$T/$b AGI_REPO=$T/r AGI_TRUNK=${TRK-$TR} AGI_HUB=${HUB-$T/hub.git} AGI_CARRY=$T/$b/carry.git ${CT:+timeout $CT} env $CE GIT_CONFIG_VALUE_0=$T/r sh $CARRY "$@";}
 tip(){ $G -C $T/$1/$2/g.git rev-parse -q --verify $3||echo none;}
 # --- k1: belam -> alive, same box: one carry, then alive reads it FROM ITS OWN STORE; held moves
 echo order1|box A belam send alive;carry A belam 2>$T/k1.err
@@ -66,8 +70,8 @@ mkdir $T/fk;printf '#!/bin/sh\necho "$*">>%s/rulog\nexit 1\n' $T>$T/fk/runuser;p
 echo order5|box A belam send alive;(PATH=$T/fk:$PATH RUN=runuser carry A belam 2>/dev/null)
 ok k3d-runuser-was-tried 'grep -q "agi-belam" $T/rulog'
 ok k3d-no-root-fallback '! grep -q -E "/(belam|alive|sm|dg5)/g.git" $T/gitlog'
-# fail closed: an unreadable matrix or an unknown sender carries nothing and exits non-zero
-carry A ghost 2>/dev/null;ok k3e-unknown-sender-refused '[ $? != 0 ]'
+# an unreadable matrix exits non-zero (restart-bounds.t.sh a3-box-carry-a-missing-matrix); an unknown sender carries nothing and exits 0 -- goal:g1.41 A3: rc 1 restarted the unit every 5 s for a post absent at the pin
+carry A ghost 2>/dev/null;ok k3e-unknown-sender-carries-nothing-and-exits-0 '[ $? = 0 ]'
 # the matrix is read at a PINNED sha: an unpinned trunk (a ref, HEAD) refuses to run, and a refs/replace entry a post can write does not change a cell
 echo m0|box A sm send alive;TRK=HEAD carry A sm 2>/dev/null;ok k0-unpinned-trunk-refused '[ "$(tip A alive refs/box/sm/alive)" = none ]'
 old=$($G -C $T/r rev-parse $TR:.agi/nodes/.geometry/posts.md);nw=$($G -C $T/r cat-file -p $old|sed 's/"name":"dg1","parent":"sm","harness":"claude","box":"B"/"name":"dg1","parent":"sm","harness":"claude","box":"A"/'|$G -C $T/r hash-object -w --stdin);$G -C $T/r replace $old $nw
@@ -90,12 +94,12 @@ ok k4c-send-during-run-not-lost '[ "$(box A belam read|grep -c "^\[sm\] ")" = 2 
 # read-at-pin, both halves: HEAD's a() denies everything and HEAD flips dg5/dg1 to box A, the pin does not: the carrier must still deliver alive -> belam and route sm -> dg5 by the pin (k5)
 echo pin|box A alive send belam;carry A alive 2>/dev/null;ok k0c-adjacency-read-at-the-pin '[ "$(tip A belam refs/box/alive/belam)" = "$(tip A alive refs/box/alive/belam)" ]&&[ "$(tip A alive refs/box/alive/belam)" != none ]'
 # --- k4: a diverged tip in the recipient's store is refused, loud, and left as it is
-box A alive read>/dev/null;x=$($G -C $T/A/alive/g.git commit-tree -m diverge $($G -C $T/A/alive/g.git hash-object -w -t tree /dev/null));$G -C $T/A/alive/g.git update-ref refs/box/belam/alive $x
+box A alive read>/dev/null;x=$(GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@t GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@t $G -C $T/A/alive/g.git commit-tree -m diverge $($G -C $T/A/alive/g.git hash-object -w -t tree /dev/null));$G -C $T/A/alive/g.git update-ref refs/box/belam/alive $x
 echo order4|box A belam send alive;carry A belam 2>$T/k4.err;rc=$?
 ok k4-diverged-refused '[ "$(tip A alive refs/box/belam/alive)" = "$x" ]&&grep -q "^\[carry-failed\] refs/box/belam/alive" $T/k4.err'
 # a tip the SENDER rewrote onto a sibling chain (a ref P moved by hand, not an extension of what Q holds) is refused by the ff check, never forced
 box A alive read>/dev/null;$G -C $T/A/alive/g.git update-ref -d refs/box/belam/alive;carry A belam
-y=$(tip A alive refs/box/belam/alive);[ "$y" = "$(tip A belam refs/box/belam/alive)" ]||echo '# k4b setup: alive not at belam tip';z=$($G -C $T/A/belam/g.git commit-tree -m sibling $($G -C $T/A/belam/g.git hash-object -w -t tree /dev/null));$G -C $T/A/belam/g.git update-ref refs/box/belam/alive $z
+y=$(tip A alive refs/box/belam/alive);[ "$y" = "$(tip A belam refs/box/belam/alive)" ]||echo '# k4b setup: alive not at belam tip';z=$(GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@t GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@t $G -C $T/A/belam/g.git commit-tree -m sibling $($G -C $T/A/belam/g.git hash-object -w -t tree /dev/null));$G -C $T/A/belam/g.git update-ref refs/box/belam/alive $z
 carry A belam 2>$T/k4b.err;ok k4b-not-ff-refused '[ "$(tip A alive refs/box/belam/alive)" = "$y" ]&&grep -q "^\[carry-failed\] refs/box/belam/alive" $T/k4b.err'
 # the tail window: tips that are STILL moving after the last pass make the carrier exit 75 (the unit restarts it), never a silent stop
 mkdir $T/fk3;printf '#!/bin/sh\nif [ "$3" = pack-objects ];then (cd %s/A/sm/g.git&&echo late$$|PATH=%s AGI_POST=sm AGI_TRUNK=%s GIT_CONFIG_GLOBAL=%s/c/sm GIT_CONFIG_SYSTEM=/dev/null sh %s send belam);fi\nexec %s "$@"\n' $T "$PATH" $TR $T $BOX $G>$T/fk3/git;chmod +x $T/fk3/git

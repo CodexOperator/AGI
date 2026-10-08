@@ -863,12 +863,22 @@ def test_a_reserved_invalid_tld_is_allowed_and_a_real_shape_is_not(
                           anonymize._email_allow(root)) == []
     assert anonymize.scan("reach fixture.person" + AT + "corp.example", toks,
                           anonymize._email_allow(root)) == ["email"]
-    live = json.loads((Path(__file__).resolve().parents[3] / ".agi" /
-                       "config.json").read_text())["anonymize"]["email_allow"]
-    if r"example\.invalid" not in " ".join(live):
-        pytest.skip("the landed cell does not carry the .invalid pattern yet "
-                    "(a round cannot commit .agi/config.json; the diff is in "
-                    "the round's experiment node)")
+
+
+def test_the_landed_email_cell_reads_back_nonempty():
+    """The xfail row below absorbs ANY failure, so its premise is its own row:
+    an unreadable or empty landed cell would make it XFAIL for the wrong reason."""
+    assert anonymize._email_allow(Path(__file__).resolve().parents[3])
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason="the landed .agi/config.json cell does not "
+                   "carry the example.invalid pattern yet (a round cannot commit "
+                   ".agi/config.json). STRICT: the day the cell lands this goes "
+                   "XPASS = red; delete this marker then (g1.41 PASS B4)")
+def test_the_landed_cell_admits_a_reserved_invalid_address(tmp_path, fake_box):
+    toks = anonymize.box_tokens(_email_graph(tmp_path))
+    live = anonymize._email_allow(Path(__file__).resolve().parents[3])
+    assert anonymize.scan("reach fixture.person" + AT + "example.invalid", toks, live) == []
 
 
 def _cell_leaks(node, core_digits=3):
@@ -935,3 +945,106 @@ def test_a_pre_scrub_shaped_note_is_refused_only_where_the_box_names_the_card(
     _hw_fixture(tmp_path, monkeypatch, name="Fixturo Other 4410 MAX")
     assert anonymize.main(["check", "--root", str(root), "--diff-file", str(diff)]) == 0
     assert "9990" not in capsys.readouterr().err
+
+
+# goal:g1.41 D2 -- a check that could not look must not say ok: no denylist source = rc != 0, named, no "ok".
+def test_d2_no_denylist_source_is_a_refusal_naming_it_never_ok(tmp_path, capsys):
+    nowhere = tmp_path / "nowhere"
+    nowhere.mkdir()
+    rc = anonymize.cmd_check(nowhere, "any text at all\n", None)
+    out, err = capsys.readouterr()
+    assert rc != 0, (rc, out, err)
+    assert "denylist" in err.lower(), err                       # stderr names the missing source
+    assert "ok" not in out.lower() and "skipped" not in out.lower(), out
+
+
+def test_d2_the_same_through_the_cli_verb(tmp_path, capsys):
+    nowhere = tmp_path / "nowhere"
+    nowhere.mkdir()
+    rc = anonymize.main(["check", "--root", str(nowhere), "--text", "see /" + "home/someone/x\n"])
+    out, err = capsys.readouterr()
+    assert rc != 0 and "denylist" in err.lower() and "ok" not in out.lower(), (rc, out, err)
+
+
+def test_d2_a_diff_file_with_no_source_is_refused_too(tmp_path, capsys):
+    nowhere = tmp_path / "nowhere"
+    nowhere.mkdir()
+    d = tmp_path / "x.diff"
+    d.write_text("+++ b/f\n@@ -0,0 +1 @@\n+fine line\n")
+    rc = anonymize.cmd_check(nowhere, None, str(d))
+    out, err = capsys.readouterr()
+    assert rc != 0 and "denylist" in err.lower() and "ok" not in out.lower(), (rc, out, err)
+
+
+def test_d2_control_a_present_source_clean_text_is_ok_and_a_hit_is_refused(tmp_path, capsys, fake_box):
+    root = _email_graph(tmp_path)
+    assert anonymize.cmd_check(root, "nothing physical here\n", None) == 0
+    assert "anonymize: ok" in capsys.readouterr().out
+    assert anonymize.cmd_check(root, "reach fixture.person" + AT + "example.invalid\n", None) == 1
+    assert "email" in capsys.readouterr().err
+
+
+# goal:g1.41 RD3 (DG1 23:38Z, corrected 23:59Z): verification.check_anonymize classifies the CLI's answer. A root
+# with no project root -> SKIP, the note names "no denylist source" (DG1's decision); a text hit (rc 1) -> FAIL; a
+# bare argparse usage error (rc 2 WITHOUT the denylist text) -> FAIL; a PermissionError naming a path behind
+# another uid's wall (an unreadable .env: the existing _perm_skip, a deliberate v5 SKIP) -> SKIP naming the path,
+# and at a path this uid can use -> FAIL (_perm_skip's own D2 rule). The real CLI is run for the no-project-root
+# row; the others feed the CLI's real shapes through the subprocess seam.
+import subprocess as _sp
+
+import verification as _v
+
+
+def _cli_says(monkeypatch, rc, out="", err=""):
+    monkeypatch.setattr(_v.subprocess, "run", lambda *a, **k: _sp.CompletedProcess(a[0] if a else [], rc, out, err))
+
+
+def test_rd3_a_root_with_no_project_root_is_a_skip_naming_the_denylist(tmp_path):
+    nowhere = tmp_path / "nowhere"
+    nowhere.mkdir()
+    res = _v.check_anonymize(nowhere)
+    assert res.status == "SKIP" and "no denylist source" in res.note, (res.status, res.note)
+
+
+def test_rd3_the_denylist_refusal_text_alone_is_a_skip(monkeypatch, tmp_path):
+    _cli_says(monkeypatch, 2, err="anonymize: no denylist source (no shared project root): refusing to say ok without scanning\n")
+    res = _v.check_anonymize(tmp_path)
+    assert res.status == "SKIP" and "no denylist source" in res.note, (res.status, res.note)
+
+
+def test_rd3_a_text_hit_is_a_fail(monkeypatch, tmp_path):
+    _cli_says(monkeypatch, 1, out="anonymize: 1 hit: x.txt:3 (class home)\n")
+    assert _v.check_anonymize(tmp_path).status == "FAIL"
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="a mode-000 file is readable by root")
+def test_rd3_a_permission_error_naming_an_unreadable_env_is_a_skip_naming_the_path(monkeypatch, tmp_path):
+    # DG1 23:59Z: _perm_skip is deliberate (R6/D2/N2): an .env this uid cannot read is a v5 seat's wall, a SKIP
+    env = tmp_path / ".env"
+    env.write_text("K=v\n", encoding="utf-8")
+    os.chmod(env, 0)
+    try:
+        _cli_says(monkeypatch, 1, err="Traceback (most recent call last):\n  File \"anonymize.py\", line 1, in read_env\n"
+                                     f"PermissionError: [Errno 13] Permission denied: '{env}'\n")
+        res = _v.check_anonymize(tmp_path)
+    finally:
+        os.chmod(env, 0o644)
+    assert res.status == "SKIP" and str(env) in res.note and "permission denied" in res.note, (res.status, res.note)
+
+
+def test_rd3_a_permission_error_at_a_path_this_uid_can_use_stays_a_fail(monkeypatch, tmp_path):
+    # _perm_skip's own D2 rule: the writer uid's own failure is not a wall
+    env = tmp_path / ".env"
+    env.write_text("K=v\n", encoding="utf-8")
+    _cli_says(monkeypatch, 1, err=f"PermissionError: [Errno 13] Permission denied: '{env}'\n")
+    assert _v.check_anonymize(tmp_path).status == "FAIL"
+
+
+def test_rd3_a_bare_argparse_usage_error_is_a_fail(monkeypatch, tmp_path):
+    _cli_says(monkeypatch, 2, err="usage: anonymize.py check [-h] [--root ROOT]\nanonymize.py check: error: unrecognized arguments: --bogus\n")
+    assert _v.check_anonymize(tmp_path).status == "FAIL"
+
+
+def test_rd3_a_clean_scan_is_a_pass(monkeypatch, tmp_path):
+    _cli_says(monkeypatch, 0, out="anonymize: ok\n")
+    assert _v.check_anonymize(tmp_path).status == "PASS"

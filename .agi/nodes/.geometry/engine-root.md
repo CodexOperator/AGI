@@ -16,7 +16,7 @@ EXPANSION of config:engine: the unit template (root's agi-project reads it throu
 Read only through `sect <name> [REV]`.
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
-### agi-post@.service (1801 B)
+### agi-post@.service (2238 B)
 ~~~ini
 [Unit]
 After=agi-ram-main.service
@@ -30,11 +30,12 @@ Environment=GIT_AUTHOR_NAME=%i GIT_COMMITTER_NAME=%i GIT_AUTHOR_EMAIL=%i@agi GIT
 RuntimeDirectory=agi-%i
 RuntimeDirectoryPreserve=restart
 ExecCondition=sh -c '[ ! -e .ssh/out-refused ]||[ .fresh -nt .ssh/out-refused ]||exit 2'
+ExecCondition=sh -c 'type agi-run>/dev/null||grep -qs "^### agi-run " t/.agi/nodes/.geometry/engine.md t/.agi/nodes/.geometry/engine-[pw]*.md||{ [ ! -d t ]&&{ git -c safe.directory=$O -C $O grep -q "^### agi-run " $AGI_TRUNK -- .agi/nodes/.geometry/engine.md ".agi/nodes/.geometry/engine-[pw]*.md";r=$?;[ $r -lt 2 ]||exit 255;[ $r = 0 ];};}||exit 2'
 ExecStartPre=awk -F"[= ]" "/some/{exit $$3>40}" /proc/pressure/memory
 ExecStartPre=sh -c 'mkdir -p .ssh;[ -d t ]||[ -e .fresh ]||touch .fresh;[ .fresh -nt .ssh/id_ed25519 -a ! -f t/.agi/nodes/.geometry/ring ]&&rm -f .ssh/id_ed25519*;[ -f .ssh/id_ed25519 ]||ssh-keygen -qN "" -ted25519 -f.ssh/id_ed25519'
 ExecStartPre=+/usr/bin/env -i PATH=/usr/sbin:/usr/bin:/bin /opt/agi/bin/agi-signers %i
 ExecStartPre=sh -c 'mkdir -p .ssh bin .claude hooks;git config --global safe.directory "*";[ -d t ]||{ git -C $O branch posts/%i $AGI_TRUNK;git -C $O worktree add -fq $PWD/t posts/%i;};for e in t/.agi/nodes/.geometry/engine.md t/.agi/nodes/.geometry/engine-[pw]*.md;do for x in $(grep -o "^### [^ ]*" $e|cut -c5-);do sed -n "/^### $x /,/^##/{/^~~~/,/^~~~/{//!p}}" $e>bin/$x;done;done;chmod +x bin/*;mv bin/gitconfig .gitconfig;mv bin/settings.json .claude;mkfifo -m600 %t/agi-%i/i;[ -e o ]||install -m600 /dev/null o'
-ExecStartPre=sh -c 'agi-out'
+ExecStartPre=sh -c '{ ls bin/agi-out||type agi-out;}>/dev/null 2>&1&&exec agi-out;echo agi-out skipped, stale t>&2'
 ExecStartPre=+/usr/bin/env -i PATH=/usr/sbin:/usr/bin:/bin /opt/agi/bin/agi-signers %i
 ExecStart=sh -c 'exec 3<>%t/agi-%i/i;exec script -qfaO$HOME/o -c agi-run <&3'
 StandardOutput=null
@@ -49,7 +50,7 @@ WantedBy=multi-user.target
 ~~~
 
 
-### agi-boot.service (447 B)
+### agi-boot.service (826 B)
 ~~~ini
 [Unit]
 After=agi-ram-main.service
@@ -59,18 +60,23 @@ Type=oneshot
 RemainAfterExit=yes
 TimeoutStartSec=infinity
 WorkingDirectory=/data/work/agi
-Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=*
-ExecStart=sh -c 'echo HEAD:.agi/nodes/.geometry/engine-root.md|git cat-file --batch --follow-symlinks|sed -n "/^### agi-boot /,/^##/{/^~~~/,/^~~~/{//!p}}"|sh -s'
+EnvironmentFile=/etc/agi/carry.env
+Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=* GIT_NO_REPLACE_OBJECTS=1 GIT_NO_LAZY_FETCH=1
+ExecStartPre=/usr/local/libexec/agi-vstore
+Environment=GIT_DIR=/run/agi-v.git
+ExecStart=sh -c 'case $AGI_TRUNK in *[!0-9a-f]*)exit 1;;esac;[ $(echo $AGI_TRUNK|wc -c) = 41 ]||exit 1;git cat-file -e $AGI_TRUNK^{commit}||exit 1;f(){ echo $AGI_TRUNK:.agi/nodes/.geometry/engine-root.md|git cat-file --batch --follow-symlinks|sed -n "/^### agi-boot /,/^##/{/^~~~/,/^~~~/{//!p}}";};[ -n "$(f)" ]||{ echo "agi-boot: no ### agi-boot at $AGI_TRUNK">&2;exit 1;};f|sh -s'
 [Install]
 WantedBy=multi-user.target
 ~~~
 
-### agi-boot (1477 B)
+### agi-boot (1797 B)
 ~~~sh
 #!/bin/sh
-R=${AGI_RAM:-/mnt/agi-ram} t=${AGI_TRUNK:-HEAD} o=${AGI_BOOT_OUT:-/run/systemd/system};w=$o/multi-user.target.wants
-e=0;f(){ "$@"||{ echo "agi-boot: failed: $*">&2;e=1;};};f setfacl -m g:agi:x $R;f setfacl -m g:agi:--- ${AGI_RAM_STATE:-$R/state}
+R=${AGI_RAM:-/mnt/agi-ram} t=${AGI_TRUNK:?} o=${AGI_BOOT_OUT:-/run/systemd/system};w=$o/multi-user.target.wants
+export GIT_NO_REPLACE_OBJECTS=1 GIT_NO_LAZY_FETCH=1;case $t in *[!0-9a-f]*)exit 1;;esac;[ ${#t} = 40 ]||exit 1
 c(){ git show $t:.agi/config.json|jq -r ".values.local_maxxing.$1";};L=$(c de_live_parents.ceiling_if.loadavg1_lt) P=$(c de_live_parents.ceiling_if.io_psi_some_avg60_lt) N=$(c agi_boot.poll_s) M=$(c agi_boot.wait_max_s) S=$(c agi_boot.space_s)
+for v in loadavg1_lt:"$L" io_psi_some_avg60_lt:"$P" poll_s:"$N" wait_max_s:"$M" space_s:"$S";do case ${v#*:} in ""|*[!0-9.]*|*.*.*|.)echo "agi-boot: cell ${v%%:*} is not a plain number at $t">&2;exit 1;;esac;done
+e=0;f(){ "$@"||{ echo "agi-boot: failed: $*">&2;e=1;};};f setfacl -m g:agi:x $R;f setfacl -m g:agi:--- ${AGI_RAM_STATE:-$R/state}
 echo $t:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n '/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}'|sh -s $o $t||exit 3
 f systemctl daemon-reload
 ok(){ l=;read l _<${AGI_LOADAVG:-/proc/loadavg};i=$(sed -n 's/^some .*avg60=\([0-9.]*\).*/\1/p' ${AGI_PSI_IO:-/proc/pressure/io});[ -n "$l" ]&&[ -n "$i" ]&&awk -v l=$l -v i=$i -v L=$L -v P=$P 'BEGIN{exit !(l<L&&i<P)}';}
@@ -80,7 +86,18 @@ systemctl start agi-post@$p</dev/null||{ echo "agi-boot: start failed $p">&2;e=1
 exit $e
 ~~~
 
-### box-carry (3246 B)
+### agi-vstore (856 B)
+~~~sh
+#!/bin/sh
+# agi-vstore: root's verified read of the pin (RA8). index-pack re-hashes every object into a root-owned RAM store; reads go to GIT_DIR=$V, lazy fetch off
+V=${AGI_VSTORE:-/run/agi-v.git} M=${AGI_MAIN:-/data/work/agi} t=${AGI_TRUNK:?};case $t in *[!0-9a-f]*)exit 1;;esac;[ ${#t} = 40 ]||exit 1
+G=$M;[ -d $M/.git ]&&G=$M/.git;u="git -c safe.directory=$G -c uploadpack.allowFilter=true -c uploadpack.allowAnySHA1InWant=true upload-pack"
+export GIT_NO_LAZY_FETCH=1 GIT_NO_REPLACE_OBJECTS=1;unset GIT_DIR;n=$V.n;rm -rf $V $n;(umask 077;git init -q --bare $n)||exit 1
+F(){ git -C $n -c protocol.version=2 fetch -q --upload-pack="$u" file://$G "$@";};F --depth 1 --filter=blob:none $t||{ rm -rf $n;exit 1;}
+b=$(git -C $n ls-tree -r --format='%(objectname)' $t -- .agi/nodes/.geometry .agi/config.json)&&[ -n "$b" ]&&F $b&&mv $n $V||{ rm -rf $n;exit 1;}
+~~~
+
+### box-carry (3253 B)
 ~~~sh
 #!/bin/sh
 # box-carry P (ROOT, agi-carry@P.service, woken by P's own refs/box/P): P's refs/box/P/<Q> -> the store of each recipient on this box (pipe, ff-only, strict), or -> the hub when Q's box is elsewhere; re-scanned (max 5x) as long as P's tips keep moving; still moving after the last pass = exit 75 (the unit restarts it)
@@ -101,7 +118,7 @@ if [ "$1" = --fetch ];then for p in $(echo "$W"|awk -v b=$B '$2==b{print $1}');d
  for r in $(git -C $C for-each-ref --format='%(refname)' $m);do f=${r#$m/};f=${f%/*};q=${r##*/};ok $f&&ok $q&&[ "$(bx $f)" = $B ]&&[ "$(bx $q)" != $B ]&&a $f $q&&git -C $C push -q $H $r:$r;done
  git -C $C -c transfer.fsckObjects=1 fetch -q $H "$m/*:$m/*"
  for r in $(git -C $C for-each-ref --format='%(refname)' $m);do f=${r#$m/};f=${f%/*};q=${r##*/};ok $f&&ok $q&&[ "$(bx $q)" = $B ]&&[ "$(bx $f)" != $B ]&&a $f $q&&put - $C $q $S/$q/g.git $r;done
-else P=$1;ok $P&&[ -n "$(bx $P)" ]||exit 1;k=;i=0
+else P=$1;ok $P||exit 1;[ -n "$(bx $P)" ]||exit 0;k=;i=0
  while [ $i -lt 5 ];do s=$(as $P git -C $S/$P/g.git for-each-ref --format='%(objectname) %(refname)' $m/$P/);[ "$s" = "$k" ]&&break;k=$s;i=$((i+1))
   for r in $(echo "$s"|cut -d' ' -f2);do q=${r##*/};[ $r = $m/$P/$q ]&&ok $q&&a $P $q||continue
    if [ "$(bx $q)" = $B ];then put $P $S/$P/g.git $q $S/$q/g.git $r;elif [ -n "$H" ];then put $P $S/$P/g.git - $C $r&&git -C $C push -q $H $r:$r;fi;done;done;[ "$(as $P git -C $S/$P/g.git for-each-ref --format='%(objectname) %(refname)' $m/$P/)" = "$k" ]||exit 75;fi;:
@@ -132,10 +149,11 @@ PathChanged=/var/lib/agi/%i/g.git/refs/box/%i
 WantedBy=paths.target
 ~~~
 
-### agi-carry@.service (287 B)
+### agi-carry@.service (308 B)
 ~~~ini
 [Unit]
-StartLimitIntervalSec=0
+StartLimitIntervalSec=300
+StartLimitBurst=30
 [Service]
 Type=oneshot
 TimeoutStartSec=120
@@ -186,4 +204,8 @@ git update-ref $T $n $o
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 SPLIT (DG3 read sets): agi-post@.service moved here whole from engine-post; its ONE loop edit: for e in engine.md engine-[pw]*.md (was engine*.md), so a post reads engine + engine-post + engine-wrap only. G9 + G9.2 + G9.3 (hypothesis:g716111-g9-boot-install-brings-the-boot-set-up; owner 17:5xZ via belam): agi-boot.service + agi-boot run as root once at boot -- the agi-ram ACL pair, a projection of MAIN's checked-out HEAD (the local trunk; no trunk literal in the unit, WorkingDirectory is the one install-time literal) by REUSING the agi-project section, daemon-reload, then ONE start at a time of the boot:true rows that were projected, behind the shared de_live_parents load/io gate cells (fail-CLOSED on a missing or stale reading); every failure is named on stderr, boot CONTINUES, and any failure (ACL, reload, start, gate give-up) makes the unit exit non-zero; a boot row not yet on v5 is skipped by name (belam: by design until its move). G9.4: an unreadable or empty boot-row list is named and fails the unit.
+g1.41 A1 (hypothesis:g141-a1-agi-boot-and-its-reprojection-read-only-a-root-pinned-sha; owner 19:0xZ 'Leave it, fix via DG only'; host order: belam refreshes the pin in /etc/agi/carry.env BEFORE the unit swap, the installed pin f024955299 is 457 commits old and the new unit boots NOTHING without a good pin): root's boot chain reads only a 40-hex trunk sha pinned in carry.env, never HEAD. The unit loads EnvironmentFile=/etc/agi/carry.env and its ExecStart extracts this section from $AGI_TRUNK (0 HEAD); agi-boot starts with t=${AGI_TRUNK:?} and a case/length gate (the box-carry shape) BEFORE the first git read, ACL change or start, exit 1 on anything but 40 chars of [0-9a-f]; agi-project already bakes a sha as r (0 HEAD in its ExecStart), so engine.md is untouched. The word HEAD is gone from the boot chain; the pin does not move on a landing (belam's host act, or a later agi-land leaf). Sizes re-measured: agi-boot.service 447 -> 488 B, agi-boot 1477 -> 1532 B. test_agi_boot.py: its fixture exports AGI_TRUNK and one test asserted the old unit.
+SM mur on A1 (accept_with_residue, DG1 return 22:35Z): RA1 the pin is gated IN the ExecStart before the first git read (`case $AGI_TRUNK in *[!0-9a-f]*)exit 1;;esac;[ $(echo $AGI_TRUNK|wc -c) = 41 ]||exit 1`, an empty value fails the count; brace-free on purpose, systemd substitutes `${...}` inside an ExecStart word; the inner gate in agi-boot stays as depth). RA3 the fetched script is captured and an empty one fails LOUD (a line on stderr, exit 1) before anything is piped to sh (the old `|sh -s` on a pin whose blob lacks the section ran an empty script and exited 0). RA2 GIT_NO_REPLACE_OBJECTS=1 in the unit's Environment= and exported at the top of agi-boot, so every git read of the pin ignores replace refs (box-carry's shape); the baked agi-project.service text is engine.md's, see the commit report. Sizes re-measured: agi-boot.service 488 -> 688 B, agi-boot 1532 -> 1564 B.
+SM mur on A1 c34db81a66 (DEMOTE, SM 23:29Z): RA5 the ExecStart ended `echo "$s"|sh -s`, and /bin/sh is dash, whose echo rewrites a backslash sequence in the fetched script (agi-boot line 8's sed backslash-1 became byte 0x01, so the IO half of the boot gate read an empty PSI and OPENED at any pressure; the bytes differed at byte 860). The ExecStart now defines the fetch as a function f and runs it twice (`[ -n "$(f)" ]` for the loud empty check, then `f|sh -s`): no echo of fetched bytes anywhere, and no percent sign, because the SM-suggested printf format `%s` is a systemd specifier inside a unit (it would need `%%s`, which the lanes that run the line raw under sh would print literally); the second fetch reads the same pinned object, unless a writer of the object store changes or empties it between the two reads (RA8 below). RA6 GIT_NO_LAZY_FETCH=1 beside GIT_NO_REPLACE_OBJECTS=1 on the unit Environment=, the agi-boot export and the baked agi-project printf (a promisor remote plus core.sshCommand in an agi-writable .git/config made a missing pinned object run the sshCommand). What else a group-writable repo config can still steer: measured on git 2.43 in a scratch repo, 15 executable-valued keys (core.fsmonitor, hooksPath, pager, sshCommand, editor, askPass, alternateRefsCommand, diff.external, credential.helper, gpg.program, uploadpack.packObjectsHook, alias.show and pager.show among them) ran for NONE of the git commands root issues on this path (cat-file --batch, show, ls-tree, rev-parse, grep --no-index); include.path IS followed, so an include can set any key, and the objects and refs dirs are writable too. RA8 (SM mur on 5e1c603e39; reproduced in a scratch repo): the pin makes the REF root-held, NOT the BYTES. Git does not re-hash an object on read, so a writer of the objects dir who overwrites a loose object under its own sha path is served by cat-file and show (only git fsck notices) and can forge the script root runs; a racing writer can also empty the second f read, and the unit then exits 0 having booted nothing (same privilege as forging). NOT DONE, banked for belam: a root-owned object store incl. objects/info/alternates, or a hash check of the fetched blob against the pinned tree before sh -s; likewise a root-owned repo config for any key a future command makes git execute. Sizes re-measured below in the headings.
+g1.41 A1b (belam rule 03:44Z and 04:4xZ 10-08; DG1's brief b2cefe0f41; alive's agi-vstore, 856 B, sha256 f60191fd12942280569156cc2308e3ab4ec0c82cbb366676d50e77717b2d1fcc, bytes whole from his 04:45Z mail): root reads the pinned trunk ONLY through a store it verified, which closes RA8 for the three root reads of the boot chain. ### agi-vstore fetches the pin over file:// into a root-owned bare store in /run; git index-pack re-hashes every object it receives, so a forged blob, tree or commit (or one served through objects/info/alternates) makes the fetch fail; every later read goes to the store through GIT_DIR. The child upload-pack carries `-c safe.directory=<the gitdir>` (MAIN/.git for a non-bare MAIN, MAIN for a bare one), never `*`, because git's file transport does not hand the env pair to it and MAIN is owned by another uid; the store is built at $V.n and renamed to $V only after BOTH fetches succeed. The piece is installed by the host act at /usr/local/libexec/agi-vstore (root, 0755) and is NEVER read from the trunk it verifies; the host act installs it BEFORE the new agi-boot.service, or the boot fails closed at ExecStartPre. agi-boot.service gains ExecStartPre=/usr/local/libexec/agi-vstore (no - prefix: a failed verification stops ExecStart) and Environment=GIT_DIR=/run/agi-v.git; the baked agi-project.service (engine.md) reads through its OWN store /run/agi-v-project.git (a path-fired re-projection never removes the store agi-boot is reading), takes the pin at run time from carry.env as $AGI_TRUNK (no baked sha, no rev-parse), and agi-project.path watches /etc/agi/carry.env: a re-projection happens when the host act rewrites the pin, never on a trunk move. carry.env gains NO cell. The store keeps a promisor remote to MAIN, so every reader of it keeps GIT_NO_LAZY_FETCH=1. FAIL-CLOSED: a corrupt object in MAIN stops the boot. Still open (goal:g1.41.1): box-carry, agi-land and agi-gate read MAIN's objects. Unrun: systemd itself (ExecStartPre order, PathChanged on carry.env) and root's safe.directory on the real MAIN: the host act's first live proof. The boot lanes boot-cells, boot-pin and boot-execstart take the unit's Environment= words, which carry GIT_DIR=/run/agi-v.git, so each builds a scratch store with the real piece first (DG2's re-cut, landed with the A1b commit).
 <!-- THOUGHT:END -->

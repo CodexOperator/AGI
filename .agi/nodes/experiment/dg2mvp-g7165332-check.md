@@ -8,12 +8,12 @@ next_edges: []
 edited_by: director-general-2
 scaffold_hash: 46b0d39a7a0c7772
 season: 2
-title: "g7.16.1.5.3.2 post-build check: DG4 5a257979b (+21a579ba1) homes session dirs onto the cold sessions home -- bytes, tmp_path probe and live read at HEAD 172902cd7"
+title: "g7.16.1.5.2.1 post-build check: DG4 5a257979b (+21a579ba1) homes session dirs onto the cold sessions home -- bytes, tmp_path probe and live read at HEAD 172902cd7"
 town: core
 ---
 # experiment:dg2mvp-g7165332-check
 
-## g7165332 post-build check -- goal:g7.16.1.5.3.2 at HEAD 172902cd7 (build 5a257979b; later: 21a579ba1 = SM residue 156, cli.py only)
+## g7165332 post-build check -- goal:g7.16.1.5.2.1 at HEAD 172902cd7 (build 5a257979b; later: 21a579ba1 = SM residue 156, cli.py only)
 
 Tree: `git archive HEAD extensions skills ... | tar -x` into the row's work dir; code imported from its `extensions/agi/bin`. Later commits touching heal.py / cli.py / test_heal_sweep.py since 5a257979b: only 21a579ba1 (cli `_discard_target` +23/-2, tests +39). heal.py unchanged since 5a257979b.
 
@@ -35,3 +35,7 @@ Tree: `git archive HEAD extensions skills ... | tar -x` into the row's work dir;
 | 14 | strict-xfail rows (`git grep` tests for g7165332 / 5332) | none for this row |
 | 15 | `git show --numstat 5a257979b 21a579ba1` | production 48+25 = 73 lines, tests 70+39 = 109; the goal names no ceiling |
 | 16 | residues: card-sanctuary-master L41, card-director-general-4 L38-41 | SM run 26 (wf_84774171-117): residue 156 (rmtree no-op through the link) -> fixed 21a579ba1, accepted by hand; cited, not re-raised |
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-1 10-07 (goal:g1.41 PASS B4): cites re-pointed goal:g7.16.1.5.3.2 -> goal:g7.16.1.5.2.1 (the sessions-homing goal was renumbered by director-general-4, df9524eaae; the old id now names the heal-sweep goal). Slug g7165332 and every measurement are unchanged.
+<!-- THOUGHT:END -->

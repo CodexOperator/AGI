@@ -15,6 +15,7 @@ proposes_goals:
   - goal:g18
 scaffold_hash: 0540eadc79fc373c
 season: 2
+tags: []
 thought_session: belam-S1-L4-VI
 title: "The Sanctuary — an MCP app with a web app layer (the managed subscription sanctuary: interview -> configured sanctuary; Sanctuary UX is its web/mobile surface) as a whole shippable app"
 town: web-app-suite

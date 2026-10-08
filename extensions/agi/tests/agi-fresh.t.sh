@@ -6,7 +6,7 @@
 # (A3.2 split the user steps in two, key step then the rest, with the root agi-signers line between: the default JOINS the sh -c lines into the one script this test models.)
 # STEPS = the unit's ExecStartPre lines in file order (default: from engine-root.md of ROOT; a reorder mutation = STEPS=<edited copy>).
 # UNIT = the joined sh -c lines (bytes / no-ring-write cases) (default: the `sh -c` line of the unit in .geometry/engine-root.md of ROOT); a mutation = UNIT=<file holding the edited line>. One ok/FAIL line per case; exit = FAIL count.
-T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};GEO=$R0/.agi/nodes/.geometry;CEIL=${CEIL:-745}
+T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};GEO=$R0/.agi/nodes/.geometry;CEIL=${CEIL:-828}
 sect(){ cat $GEO/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 [ -n "$UNIT" ]||{ sed -n "/^### agi-post@.service/,/^~~~\$/{/^ExecStartPre=sh -c /p}" $GEO/engine-root.md|awk -v q="'" 'NR==1{sub(q"$","");printf "%s",$0;next}{sub("^ExecStartPre=sh -c "q,"");printf ";%s",$0}END{print ""}'>$T/unit;UNIT=$T/unit;}
 [ -n "$STEPS" ]||{ sed -n "/^### agi-post@.service/,/^~~~\$/{/^ExecStartPre=/p}" $GEO/engine-root.md>$T/steps;STEPS=$T/steps;}
@@ -20,7 +20,7 @@ $G init -q $O;mkdir -p $O/.agi/nodes/.geometry;for x in engine.md engine-post.md
 $G -C $O add -A;$G -C $O -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm fixture;TR=$($G -C $O rev-parse HEAD)
 # the unit line as sh would get it: the quoted script, %i and %t substituted
 Q=$(sed 's/^ExecStartPre=sh -c //' $UNIT|sed "s,%i,$P,g;s,%t,$RUN,g")
-up(){ (cd $H&&export HOME=$H O=$O AGI_TRUNK=$TR PATH=$H/bin:$PATH&&while IFS= read -r l;do case $l in "ExecStartPre=sh -c "*)q=$(printf %s "${l#ExecStartPre=sh -c }"|sed "s,%i,$P,g;s,%t,$RUN,g");eval "sh -c $q" >>$T/up.out 2>>$T/up.err;;"ExecStartPre=+"*agi-signers*)AGI_RUN=none AGI_STORES=$S AGI_SIGNERS=$RING sh $T/signers.sh $P;;esac;done<$STEPS);}
+up(){ (cd $H&&export HOME=$H GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_SYSTEM=/dev/null O=$O AGI_TRUNK=$TR PATH=$H/bin:$PATH&&while IFS= read -r l;do case $l in "ExecStartPre=sh -c "*)q=$(printf %s "${l#ExecStartPre=sh -c }"|sed "s,%i,$P,g;s,%t,$RUN,g");eval "sh -c $q" >>$T/up.out 2>>$T/up.err;;"ExecStartPre=+"*agi-signers*)AGI_RUN=none AGI_STORES=$S AGI_SIGNERS=$RING sh $T/signers.sh $P;;esac;done<$STEPS);}
 # up = every ExecStartPre line of the unit IN FILE ORDER (key step, root agi-signers, the rest): a reorder of the lines changes what runs first and is RED below
 agirun(){ rm -f $H/.fresh;}
 pub(){ cut -d' ' -f1,2 $H/.ssh/id_ed25519.pub;}
@@ -60,6 +60,26 @@ up;KF=$(pub);sleep 1;up;up
 ok "a-first-start-retry a first start that dies before agi-run, retried twice, keeps the key its first attempt made and the ring holds exactly 1 line (key same: $([ "$(pub)" = "$KF" ]&&echo yes||echo NO); ring $(lines))" '[ -n "$KF" ]&&[ "$(pub)" = "$KF" ]&&[ "$(lines)" = 1 ]&&[ -e $H/.fresh ]'
 agirun;up;ok "a-first-start-then-crash after agi-run ate .fresh a crash restart keeps the key and adds nothing" '[ "$(pub)" = "$KF" ]&&[ "$(lines)" = 1 ]'
 P=$P1;H=$H1;Q=$Q1;RING=$RING1
+# --- (a) the two EDGES of the unit's key drop (DG4 audit of this file, goal:g7.16.1.11.12; mutants the rows below kill: the `! -f t/.../ring` clause dropped, the drop widened to `rm -rf .ssh/*`). keystep = ONLY the unit's key line (the first sh -c with ssh-keygen), so agi-out and the ring writer cannot answer for it
+keystep(){ (cd $H&&export HOME=$H&&ksl=$(sed -n "${ko}p" $STEPS)&&q=$(printf %s "${ksl#ExecStartPre=sh -c }"|sed "s,%i,$P,g;s,%t,$RUN,g")&&eval "sh -c $q" >>$T/up.out 2>>$T/up.err);}
+P1=$P;H1=$H;Q1=$Q;RING1=$RING;P=post3;H=$S/$P;RING=$T/ring3;mkdir -p $H $RUN/agi-$P
+keystep;K30=$(pub);mkdir -p $H/t/.agi/nodes/.geometry;: >$H/t/.agi/nodes/.geometry/ring;sleep 2;touch $H/.fresh;keystep
+ok "a-ring-in-t-keeps-the-key when t carries the ring file (agi-out rotates then) an out-line's key step does NOT drop the key (same key: $([ "$(pub)" = "$K30" ]&&echo yes||echo NO))" '[ -n "$K30" ]&&[ "$(pub)" = "$K30" ]'
+rm -f $H/t/.agi/nodes/.geometry/ring;sleep 2;touch $H/.fresh;keystep;K31=$(pub)
+ok "a-ring-in-t-witness the same out-line with the ring file gone DOES drop the key (the row above can fail): old ...$(echo $K30|rev|cut -c1-6|rev), new ...$(echo $K31|rev|cut -c1-6|rev)" '[ -n "$K31" ]&&[ "$K31" != "$K30" ]'
+: >$H/.ssh/out-refused;echo kh >$H/.ssh/known_hosts;sleep 2;touch $H/.fresh;keystep;K32=$(pub)
+ok "a-drop-touches-only-the-key-files an out-line's drop removes id_ed25519 and id_ed25519.pub and nothing else in .ssh: new key $([ -n "$K32" ]&&[ "$K32" != "$K31" ]&&echo yes||echo NO) (want yes); .ssh = [$(ls $H/.ssh|sort|tr "\n" " ")] (want [id_ed25519 id_ed25519.pub known_hosts out-refused ])" '[ -n "$K32" ]&&[ "$K32" != "$K31" ]&&[ "$(ls $H/.ssh|sort|tr "\n" " ")" = "id_ed25519 id_ed25519.pub known_hosts out-refused " ]'
+# --- (a) the ring writer's own gates (agi-signers; mutants: the ring chmod 644 -> 666, the one-line check removed, the strict ed25519 key pattern loosened): each refusal leaves the ring file UNWRITTEN
+P=post4;H=$S/$P;mkdir -p $H/.ssh;ssh-keygen -qN "" -ted25519 -f$H/.ssh/id_ed25519 >/dev/null;cp $H/.ssh/id_ed25519.pub $T/good4.pub
+sg(){ (umask 077;AGI_RUN=none AGI_STORES=$S AGI_SIGNERS=$RING sh $T/signers.sh $P >/dev/null 2>$T/sg.err);}  # umask 077: the ring would be 600 without the piece's own chmod 644 (at the default 022 the deleted chmod still reads 644)
+RING=$T/ring4;sg;rc4=$?
+ok "ring-mode-644 a good key is appended (rc $rc4, want 0; $(lines) line, want 1) and the ring file is mode $(stat -c %a $RING 2>/dev/null) (want 644: readable by every verifier, writable by root alone)" '[ $rc4 = 0 ]&&[ "$(lines)" = 1 ]&&[ "$(stat -c %a $RING)" = 644 ]'
+RING=$T/ring5;{ cat $T/good4.pub;echo 'evil@agi namespaces="git" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEvilEvilEvilEvilEvilEvilEvilEvilEvilEvilEvil';} >$H/.ssh/id_ed25519.pub;sg;rc5=$?
+ok "pubkey-one-line-only a key file of TWO lines (a second principal line) is refused: rc $rc5 (want != 0), the ring has $(lines) line(s) (want 0: nothing written), no evil line: $(cat $RING 2>/dev/null|grep -c evil) (want 0), the refusal says so: $(grep -c 'key file refused' $T/sg.err) line (want 1)" '[ $rc5 != 0 ]&&[ "$(lines)" = 0 ]&&! grep -q evil $RING 2>/dev/null&&grep -q "key file refused" $T/sg.err'
+bad=;n=0;for k in 'ssh-ed25519 AAAAB3NzaC1yc2EAAAADAQABAAABAQCxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA' 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGoodButEndsWithAnExtraCharacterThatIsNotBase64!!';do n=$((n+1));RING=$T/ring6$n;echo "$k">$H/.ssh/id_ed25519.pub;sg&&bad="$bad $n-accepted";grep -q 'key file refused' $T/sg.err||bad="$bad $n-no-reason";done
+ok "pubkey-strict-ed25519-pattern an RSA blob under the ed25519 type, a short ed25519 blob and a blob with a non-base64 tail are each refused WITH the reason text (key file refused): accepted or reasonless cases [${bad# }] (want none)" '[ -z "$bad" ]'
+cp $T/good4.pub $H/.ssh/id_ed25519.pub
+P=$P1;H=$H1;Q=$Q1;RING=$RING1
 # --- (b) a commit by generation g's key dated AFTER g+1 started fails verify-commit; inside g's window it verifies
 cp $H/.ssh/id_ed25519 $T/key1
 oi=$(vc $T/key0 $((e0+1)));oa=$(vc $T/key0 $(( $(date -u +%s)+3600 )));nn=$(vc $T/key1 $(( $(date -u +%s)+3 )))
@@ -70,7 +90,7 @@ ok "b-new-key-verifies g1's key verifies now" 'vk $nn'
 ok "c-principal-form every commit that verifies says 'for $P@agi' and never 'No principal matched'" 'vk $oi&&grep -q "for $P@agi" $T/vk.out&&! grep -q "No principal matched" $T/vk.out&&vk $nn&&grep -q "for $P@agi" $T/vk.out&&! grep -q "No principal matched" $T/vk.out'
 ok "c-unit-email the unit exports the committer identity as %i@agi (the form the ring holds)" 'sed -n "/^### agi-post@.service/,/^~~~\$/p" $GEO/engine-root.md|grep -q "GIT_COMMITTER_EMAIL=%i@agi"'
 # --- bounds: the unit edit is small, the ring writer is the existing root piece (not edited), no live key
-ok "bytes the ExecStartPre line is <= $CEIL B ($(wc -c<$UNIT) B; today 685 B + ~35 + the idempotence guard)" '[ $(wc -c<$UNIT) -le $CEIL ]'
+ok "bytes the ExecStartPre line is <= $CEIL B ($(wc -c<$UNIT) B; today 685 B + ~35 + the idempotence guard; 745 -> 810 at OUT.7 (the stale-t skip step adds 69 B: this join 740 -> 809 B, agi-outline's 718 -> 787 B; the same ceiling as agi-outline, whose fresh-still-passes lane hands it CEIL; 810 -> 828 at OUT.8: the skip also looks on the unit PATH, +18 B, join 809 -> 827, agi-outline's 787 -> 805)" '[ $(wc -c<$UNIT) -le $CEIL ]'
 ok "no-ring-write-in-unit the post-side line writes no allowed_signers / valid-after / valid-before (root does)" '! grep -qE "valid-(after|before)|allowed_signers" $UNIT'
 ok "scratch-only every step ran in the scratch HOME: the keys, ring and worktree are under the scratch dir (a find of the real ~/.ssh was a flake risk and is gone)" '[ "${H#$T/}" != "$H" ]&&[ -f $H/.ssh/id_ed25519 ]&&[ -f $RING ]&&[ -d $H/t ]'
 echo "agi-fresh: $f FAIL"

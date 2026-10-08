@@ -9,6 +9,8 @@ description: >
 
 # agi-workflow — workflows run by name (F29)
 
+> **LEGACY: the `workflow.py` route.** Owner 10-02 14:01Z: "we just need to retire workflow.py entirely and stop wasting time on it". goal:g5.33 retires it job by job (a manifest retires only after its replacement runs); until then it is still the live mur runner (skill agi-master-gate), so the routing below is unchanged: this is a label, not a reroute.
+
 Source of truth: `workflow.py -h` · `workflow.py list` · the manifests in `extensions/agi/workflows/<name>.json`.
 
 ## 1 · The route

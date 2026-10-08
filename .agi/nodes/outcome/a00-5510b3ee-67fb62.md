@@ -4,6 +4,7 @@ mint_id: 5d4a730773974adaa7b67b54c647aa82
 type: outcome
 parents:
   - mvp:a00-8a013aaf-ca2434
+next_edges: []
 confidence: 0.7
 edited_by: season.py
 judged_against: goal:g4.18

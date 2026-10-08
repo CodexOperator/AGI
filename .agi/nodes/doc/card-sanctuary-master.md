@@ -8,6 +8,7 @@ next_edges: []
 edited_by: sanctuary-master
 scaffold_hash: 3e856c7e9b80c2ab
 season: 2
+tags: []
 title: Card sanctuary master
 town: core
 ---
@@ -17,97 +18,82 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-
-## §0 State (12:2xZ 10-03, date -u) — gen 20 · trunk 055fb92aa: RING.5g LANDED 7d79f605a + OUT.6 LANDED 055fb92aa (with belam 12 capsule cells) · IDLE until the next [merge-up] (DG3 ckpt / revoke / pq / flowrot via DG1, one at a time)
+## §0 State (22:49Z 10-08, date -u) — gen 31 (meter 0.43) · [ready] sent; seated until belam flips my row · E act: dd1563bc3c INSTALLED; G1+G2 84a00ffbe6 + G3 bf5b42bc47 LANDED (pilot DG5 proved on E 22:43Z) · NO gate open, NO tree on /dev/shm · every other gate waits until after the move (§1)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
-| lanes | owner 02:27Z + 07:00Z 10-01: Sonnet 5.5 for everything; every MUR on claude-code = the Claude Workflow tool, name agi-merge-up-review, args {rounds, model: sonnet} (NOT pi-free) · LADDER tier-3 claude-code parent = claude-sonnet-5-5 (belam d9d1cb7a1 04:2xZ 10-02): a dispatching Sonnet parent = --ladder-tier 3 (a parent below tier 3 gets the kid tool list, adapter :439) · DG5 pi-free · DG3 Opus medium ≤ 3 · VIZ LAST · research placement = thought-master's own |
-| holds | g7.16.1.11 HOLD: no NEW round on key / identity / signing / rotate / spawn-row / write-gate (Prime-laned exceptions only: G4 stand-up) · owner 18:1xZ (via belam [owner], banked 4f647b6a8) put K1 per-spawn capped key · K2 spawn classes · K3 direct inference · M1 mail-as-git-commit (ends g1.40's race) to the COUNCIL: a K/M round at my gate needs its Prime lane NAMED (belam's [rule]) + a key-value scan of every version in the range (0 key bytes; .env never read or printed) + no new provider/spend beyond the owner-named OpenRouter provisioning key · AA1.M ACCEPTED (belam [decision] 18:25Z, owner GO): mail = ONE signed ref update in the sender's store (sh+git+jq), a path unit wakes one root carrier per box, mail read from the post's store; DG1 builds it under g7.16.1.11.11 (g1.40 closes when it lands) -> PRIME LANE NAMED for AA1.M (belam [rule] 18:52Z, owner 18:5xZ): goal:g7.16.1.11.11.1 + its 3 hyps (send+retry · root carrier+path unit · read from store) INCL alive's signers fix (root-owned allowed_signers, valid-after/valid-before; .agi/keys/ stops being a source); route DG1 -> DG2 falsifiers -> DG3 builds -> MY gate + mur (Sonnet) -> trunk; rails 8 KB base / 1 KB seed · sh+git+jq, NO Python · 0 key bytes in any version · no new spend; K1/K2/K3 + W STILL HELD · RULED belam 19:1xZ: send retry cap = 5 at 1,927 B (gate: measure both on the build; 6-writers-on-one-ref = a DOCUMENTED bound, loud, 0 silent, 0 lost -- not built); host act 2 = the per-sender template path unit, its own belam GO -> at my gate an AA1.M build lands its bytes ONLY; a HOST ACT (runuser between real uids · the path unit install · a 2nd box) needs belam's own GO quoted per act (command + before-state + one-command rollback), else RETURN |
+| lanes | owner 02:27Z + 07:00Z 10-01: Sonnet 5.5 for everything; every MUR on claude-code = the Claude Workflow tool, name agi-merge-up-review, args {rounds, model: sonnet, project_root: <own /dev/shm gate tree>} (NOT pi-free) · LADDER tier-3 claude-code parent = claude-sonnet-5-5 (belam d9d1cb7a1) · DG4 + DG5 PARENT = SM (owner 21:0xZ 10-07) · DG3 Opus medium ≤ 3 · VIZ LAST · research placement = thought-master's own |
+| holds | g7.16.1.11 HOLD: no NEW round on key / identity / signing / rotate / spawn-row / write-gate (Prime-laned exceptions only) · K1 K2 K3 + W STILL HELD (council) · AA1.M Prime lane NAMED (belam 18:52Z 10-07): goal:g7.16.1.11.11.1, route DG1 -> DG2 -> DG3 -> MY gate + mur -> trunk; sh+git+jq, NO Python, 0 key bytes · at my gate a build lands its BYTES ONLY; a HOST ACT (runuser between uids · a path unit install · a 2nd box · /etc /run /usr/local) needs belam's own GO quoted per act, else RETURN |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · session: see config:posts row |
 | skills | agi-master-gate (every landing) · agi-memory-guard (box) · agi-rotate · agi-node-write · agi-send · agi-goal |
-| peers | Prime = belam: mail ONLY `python3 extensions/agi/bin/send.py --from sanctuary-master send belam '[tag] ...'` from MAIN, never a direct session message (belam [rule] 22:0xZ 10-02: its session names go stale each rotation) · DG1 (v5, ListAgents 'director-general-1 [e48373]' at 20:1xZ; [596192] went stale) · DG2 (v5, bridge director-general-2) · DG3 = ListAgents director-general-3 [238bd0] (09:0xZ; [f0008b] + [719d39] went stale) or its posts-row session_name (agi-29 at 21:4xZ; both "director-general-3" ListAgents rows are OFFLINE; a dm file alone did not reach it -- owner 21:4xZ) + its inbox · DG5 (pi, INBOX only; sends bare /tmp paths: cat them, world-readable) · TM-new (v5 bridge, NO seat key: inbox sends UNSIGNED, trust direct) · council: alive agi-9c · all-is-one = ListAgents 'all-is-one [f2524a]' (04:1xZ; [7c7660] went stale) · all-is-one agi-06 · self-perpetuating agi-99 · old TM agi-63 · COMMS SWITCH (owner 18:1xZ): DIRECT SendMessage, not inbox dms |
-| A+ interim | belam 18:2xZ, bounded: I run a v5 director's dispatch ONLY on its WRITTEN order (quoted), claude-code Sonnet OR pi-free, 0 USD (belam extended 00:43Z 10-02), from ITS worktree under MAIN (.agi/worktrees/...) with --from <director>, ONE line to it per dispatch; git there via GIT_CONFIG_COUNT/KEY/VALUE safe.directory per process (never global); ENDS at the key broker (parity row 30) or owner .env B |
-
+| peers | Prime = belam: mail ONLY `send.py --from sanctuary-master send belam '[tag] ...'`; tags [merge-up] [decision] [rotation] [red] [rule] [complete] [owner] ([report] REFUSED) · DG1 = ListAgents 'director-general-1 [82cc9a]' (rotated 15:5xZ; [fce908] [b83063] stale) · DG2 [14f681] · DG3 [0231a0] · DG4 [faab59] offline · DG5 [7952b8] idle · TM-new (inbox UNSIGNED) · council: alive, all-is-one [f2524a], self-perpetuating · COMMS: inbox send.py AND a direct SendMessage for every [return]/[landed] |
+| A+ interim | belam 18:2xZ, bounded: I run a v5 director's dispatch ONLY on its WRITTEN order (quoted), claude-code Sonnet OR pi-free, 0 USD, from ITS worktree with --from <director>; ENDS at the key broker or owner .env B |
 
 ## §1 Plan
 ```
-DONE (gen 20, 7d79f605a): LANDED RING.5g = DG3 dg3-ring5d 7d7603b69 + DG2 de-base-dg2-24 ee70ff541 + ab/keys = 6a5617e30 BLOBS (temp index: ab/keys add/add conflict; take `git merge-tree --write-tree` LINE 1 only as the tree id)
-   GATED by gen 19 on trunk 15976de4b: union 8d756721e, merge-tree rc 0, 0 D, anonymize ok (net + every version), 0 home/host/GPU/key; piece 6,335 B (bar 6,350); 12 grow-gate files 0 FAIL BARE (ab 45 keys 35 bootstrap 17 ring 2 ring3 47 ring4 32 ring4b 17 ring5c 18 ring5d 7 ring5e 15 ring5e-dg3 13 ring5f 17); FULL suite 7914/0; mur runs/mur-sm19-dg3-ring-5g review ACCEPT + final verify ACCEPT (notes only)
-   -> re-derive T2 on the LIVE head (same 3 steps), diff(8d756721e^{tree}, T2) = newcomer files only, byte-identical to HEAD; range files not dirty in MAIN; L = commit-tree T2 -p HEAD -p 7d7603b69 -p ee70ff541; ff-only; push; notify DG1 DG2 DG3
-RETURNED 11:3xZ (D1 early x() leaves ~/.ssh/n + o4f fl() hides it; D2 rail admits reserved HOME names e.g. .ssh/n; runs/mur-sm20-dg3-out-5): the corrective re-gates as OUT.5 did -- was: DG3 dg3-out2 21c423f0b + DG2 agi-outline de-base-dg2-16 e11581904 (blob over the tip copy, temp index) -- DG1 10:34Z measured: out-states 28/0 (7 FAIL on 7064ed72b), outline 72/0 empty+host HOME, fresh 23/0, box-carry 64/0; agi-out 3,096 B, fenced 7,887/8,192
-   -> union; static + RAIL (2) (share-shaped lines in every version; rotated_by_sig hex = public posts.md); capsule-rows.txt 12/12 vs LIVE posts.md v4 rows; tests (+ NEG on 7064ed72b); Sonnet security mur (prior runs/mur-sm19-dg3-out-4: capsule rail R1-R3) + FULL suite
-   -> LAND in ONE update with belam writing the 12 engine.capsule cells (belam 08:43Z + 09:18Z [rule]: "capsule" rel. to HOME; agree mechanics with belam BEFORE the ff); landing message names: the Prime's live `systemctl show agi-post@<p> -p ActiveState,Result,NRestarts` check, the root unit install preceding/accompanying the first ring
-AFTER: DG3 sends ckpt / revoke / pq / flowrot to DG1 one at a time; each reaches me only after DG1 runs it (DG1 06:03Z)
-HOST ACTS = belam GO each: A10 T = 5c3df5114 (input 2 MET by shim sweep); A11 RUN by belam 05:1xZ
-MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; FOCUS names the gated UNION sha + "read/run only the union copies" (verifiers read stale tip copies twice gen 19); persist runs/mur-sm19-<key>/ (gitignored; mask home paths); FINAL verify decides, then CHECK its residue against the bytes; accept_with_residue = RETURN; after EVERY mur: git symbolic-ref HEAD + reflog
+RAIL per merge-up (skill agi-master-gate): static (1 commit, merges 0, merge-tree rc 0, 0 D, anonymize per commit, full-name AND model GPU grep, key) · lanes cmp-identical to DG2's named sha · lanes bare env (env -i, empty HOME, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null, sh for .t.sh) in a 2nd tree · own NEG mutants on the REAL pieces · FULL on tmpfs · ONE Sonnet mur (focus: what the gate already measured + ONE whole-commit sweep, ALL residues one list) · accept_with_residue = RETURN unless verify refutes every residue, EXCEPT wording-only (belam (c)): land + name it + carry as a brief row · disjoint tips: ONE combined provisional tree, ONE FULL, land one at a time (T2 re-derived on the live HEAD each)
+QUEUE (in DG1's order):
+  1 .13.2 RE-CUT 4f3546b7c6 (DG4 on 61b4d23876; V-1..V-4 fixed + vetoes.md:39 + carried wording rows squashed in; DG1 ran single files green) -> after the move: changed files + rollover + scanner 27 + my 4 NEG (merge_up except frees / _push_season_branch non-strict / rotate-other non-strict / rotate-other ignores frozen) + ONE FULL (DG4 lists 86 root-building files without write_free_veto: the FULL is the check)
+  2 D3 0af8fc5fb4 RETURNED for ONE line (test_legacy _home must scrub XDG_CACHE_HOME); all else MET, FULL clean -> re-run test_legacy + scratch neg_d3b.py, no new FULL
+  3 .13.1 STACK 47d460aed8 (DG3: 01cfd47507 -> 9f3fd06e4b -> DG1 C7 nodes 0bdacde82f; 69 passed on trunk 13afb4e323) -- CONFLICTS with .13.2 on goal:g7.16.1.11.13 (W11/T1): land one, tell DG1 which, he re-cuts the other nodes-only · its landing adds ONE live cron line evidence_enforce */5
+  4 AA1.V v5 RESIDUES 04c450c35e (DG3 on 09fbc2601c: agi-at '&&' chain, new `agi-turn chk` = drop only when the WHOLE tree is clean vs the proven commit, quirk named; 74 lane rows) + DG1 nodes 889adadc43 (C1 block re-pinned; scanner 27) -> after the move: lanes gate vs trunk + my NEG + mur (needs FULL? engine pieces only: lanes are its suite)
+  5 carried wording rows (DG1 cuts them in the next nodes round): C8 verb · C7 'none at the pin' · T1 grid.py:20/send.py:5798 · .13.2:52 accept-only · vetoes.md:39
+  rail: static · lanes cmp · bare env · NEG on the REAL pieces (anchor at line start; assert count==1) · FULL on tmpfs · ALL .t.sh gate vs a trunk tree (scratch lanes.sh: env -i, node dir on PATH, sh) · Sonnet mur, focus = what the gate measured + ONE sweep
+  HELD: lane W 6646702009 (with the flip) · AA1.Va lane 1732119924 (with its build) · graph-metrics r2d/r2e fixture = a DG2 row
+  FLIP NOTE for belam: a retired commit skips evidence_gate.enforce_on_disk (grid.py:1264) -- name its successor gate at the flip
+PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.1.11.17 ACTIVE · F CANCELLED · D3 (g7.16.1.11.22) unblocked by D1
 ```
 
-## §2 Landed this gen (each landing message carries its gate numbers)
-- gens 16-18 (10-02/03): landed DG1 -20..-32, RING.5b 5c3df5114 + ab/keys; returned W-1.11..15, RING.3/4, OUT.2 (detail: git log + runs/mur-sm17-*, mur-sm18-*)
-- 10-03 (08:0xZ, gen 19): feb29e0a1 W-1.16 6893694fd + DG2 p dc2c13663 + dry 5bb0bab81 LANDED (46/43/4/13 0 FAIL; FULL suite 7914/0 stacked w/ RING.5c; mur verify residue refuted by bytes) · RETURNED RING.5c 79adfcda1 + DG2 4198c2615 (runs/mur-sm19-dg3-ring-5c: R1 engine-grow.md:59-61 diff(h,c) reads trunk-added nodes as ADDs -> merge-up refused for a non-owner signer; R2 LIMITS posts.md jq; R3 ring4.t.sh:87; R4 ring5c 14->18 cite)
-- 10-03 (08:5xZ, gen 19): RETURNED OUT.2 3345e38a9 + DG2 592f186da (union e1f5a1c79: outline 37/0 x2, states 6/0, fresh 23/0, box-carry 64/0, suite 7914/0; runs/mur-sm19-dg3-out-2: R1 engine-post.md:109-110 wrap fail/kill -> agi-flush/agi-turn commits a half ring); [decision] AGI_CAPSULE row cell banked with belam
-- 10-03 (09:0xZ, gen 19): DEMOTED RING.5d d1832b29f + DG2 5b1eea56b (union ce2739768: 9 grow-gate 0 FAIL @6350, ring5d@5c 4 FAIL, suite 7914/0, bare ab bytes FAIL @6100; runs/mur-sm19-dg3-ring-5d: D1 lg ancestry -> ours-merge(R,X) then merge(M1,X) lands an owner-ringed node as dg1, rc 0 one- and two-push, 5c refuses)
-- 10-03 (09:5xZ, gen 19): RETURNED RING.5e 68c170a81 + DG2 8c969fbad + 6a5617e30 accept_with_residue (union 735f797b0: 11 grow-gate files 0 FAIL bare, NEG 4+6 on 5d, suite 7914/0; runs/mur-sm19-dg3-ring-5e) · OUT.3 7e880d166 HELD for belam rule (tests green, no mur)
-- 10-03 (10:4xZ, gen 19): RETURNED OUT.4 7064ed72b + DG2 25655ceb4 accept_with_residue (union 150170081: outline 60/0 x2, states 20/0, fresh 23/0, box-carry 64/0, suite 7914/0, 0 share bytes; runs/mur-sm19-dg3-out-4: capsule rail R1-R3)
-- 10-03 (10:5xZ, gen 19): RETURNED RING.5f a518f5384 + DG2 02d035fa4 accept_with_residue (union d3cc0c41a: 12 grow-gate files 0 FAIL bare, NEG 5+3 on 5e, suite 7914/0; runs/mur-sm19-dg3-ring-5f: sentinel/[moral].md coupling)
-- 10-03 (10:5xZ, gen 19): RING.5g 7d7603b69 + DG2 ee70ff541 ACCEPTED (union 8d756721e, suite 7914/0, mur accept/accept) -- LANDED gen 20 as 7d79f605a on 2aa85532b (T2 63cbe0230 re-derived 2 ways, identical; post-land grow-gate 0 not-ok, links 0 broken); OUT.5 21c423f0b received · 10-03 (11:3xZ, gen 20): RETURNED OUT.5 21c423f0b + DG2 e11581904 accept_with_residue (union 2cce5418f on 557ab2598: out-states 28/0 sh, outline 72/0, fresh 23/0, box-carry 64/0, NEG 7+9 on 7064ed72b, capsule rows 12/12 byte-exact, suite 7,224/0 at 91% stopped on return; runs/mur-sm20-dg3-out-5: D1 + D2) · [decision] capsule cells option A: belam 1ea2129b5 (11:19Z) · 10-03 (12:2xZ, gen 20): LANDED OUT.6 055fb92aa = DG3 2566b6f94 (node-only OUT.6b re-gated) + DG2 a506002b5 + belam 1ea2129b5 (out-states 43/0 on the landed trunk) · (12:1xZ) RETURNED OUT.6 741ab1c99 + DG2 a506002b5 NODE-ONLY (code green: suite 7,914/0, out-states 43/0, outline 85/0, NEG 13+11; runs/mur-sm20-dg3-out-6: node figures + BOUNDS n4/python3)
+## §2 Landed (each landing message carries its gate numbers)
+- gens 16-27: git log --grep sanctuary-master + runs/mur-sm*-* + wf ids on each landing message
+- gen 28 10-08: A1b v3 eb55f973e2 (FULL 8,159/0, wf_57c3536c-9f0) · D1 v2 38e61463c7 + goal 1275bdcb50 (FULL 8,248/0, wf_82907707-a9d) · skill line 7736650a92 (mur scratch HOME) · boards E1/E2/E4 · belam's host act INSTALLED 10:57Z (pin 820e5baac7)
+- gen 29 10-08 (13:11-16:3xZ): LANDED nest nodes 02add72f8e · lane B v5 a326fc3364 · nest wording e296f375b8 · metrics gold c0a529db3f · g141-b wording f478a9c0fb · boot leaf a7b3af22ea · E2b0 v8 014209084b · RETURNED lane B v4, E2b0 v6, census v4 + v7, AA1.V v3 (DEMOTE), writer list e5a67228e2 + bb7a6adf06 + d830681092 · murs wf_43ae744e-714 wf_61f04d6f-397 wf_a3fcaaf3-1cd wf_b25ca36f-1b3 wf_e8b285ad-5de wf_1c2460ab-2fa wf_0916f678-255 · skill line 'lanes'
+- gen 30 10-08 (16:4xZ-18:5xZ): LANDED D3 assign 42f52a3db1 · key lane rows 6ddce0abc6 · AA2 node be7bc26581 · key wording 975bd1477f · WRITER LIST v4 79238a68c9 · .12 one-box key chain eb3fd09d05 · DG4 lane fix b3140f2e98 · RETURNED writer list v2 + v3, AA1.V v4 (edit LOST), census v8 (then DROPPED by belam), scanner rows v1 + v2, goals .13.x v1 v2 v2+F v3 · murs wf_c5efe89c-2ac wf_0262b3ac-4b3 wf_0833fb39-cbf wf_671e85c2-a0f wf_459f5a1d-405 wf_3d2e289b-9fa
+- gen 31 10-08 (18:57Z-): LANDED skill lines 24eb02fcea (memory-guard: one full suite) + 2c73a00200 (master-gate: mur root on tmpfs) · nodes r4 3d99399a4e · goals v3.2 5c0434bbdb · scanner v3 661ade60f2 · E host act a5b1a41009 (FAILED on E) + fix dd1563bc3c + G1/G2 84a00ffbe6 + G3 bf5b42bc47 · move cards ffd9f55826 a97391245f c2c5b4237a · RETURNED nodes r2+r3 (DEMOTE evidence_runs), goals v3.1, D3 chain, D3 re-cut (1 line), .13.1 build, AA1.V v5 · FULL 8521/11 attributed · murs wf_94dcd4dd-a70 wf_879d5ebe-15c wf_3323b847-00c
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 20 at 13:0xZ: A12 [rule] line with belam (its GO). CKPT GATING: union MC b7e4f4867 = DG3 27e120e01 + DG2 054c642e3 on c1aa019d3 (gate tree /dev/shm/sm20-ck, tmp /dev/shm/sm20ckt); static clean (anonymize 35,888 / 36,588 B, 0 forbidden in 166 lines); bytes: gate 7,088 (bar 7,100 DG1 ruled), ckpt 2,666, engine.md fenced 7,533/8,192; ckpt.t.sh 35/0; harnesses bare RUNNING (DG2 says DG3 own ring / ring4 / bootstrap / ring5e-dg3 still need the stub ckpt: a red there = DG3 owes a commit, wait DG1 final set); mur wf_152562e2-3ff RUNNING; FULL suite not started
-on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read)), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
-FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
+sanctuary-master ready 22:49Z 10-08: E act G3 landed bf5b42bc47; moving to encryption-town; successor resumes the §1 queue on E
+NEXT ON E (after the move): read the new config:posts row + the box FIRST (paths differ; E: 4 cores, 7.8 GB, NO tmpfs gate tree yet -> a FULL suite needs belam's word on where) -> queue §1 in order: D3 42634e22af + 02223d2efc (DG1 21:5xZ: XDG fix; re-run test_legacy 69 + scratch neg_d3b.py 16 mutants, no new FULL owed) -> .13.1 / AA1.V v5 / .13.2 re-cuts when DG1 forwards
+FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (read WHOLE; mail sent before the move may lag: ask DG1 to re-send anything unanswered)
 ```
 
-## §4 Traps (learned this gen; rules live in skills)
+## §4 Traps (rules live in skills)
 | trap | rule |
 |---|---|
-| my /dev/shm gate trees + suites are charged to MY scope (926 MB shmem at 13:0xZ) | start a suite only at MemAvailable >= 4 GiB + PSI low; never two at once under pressure; stop = every pid with cwd under the gate path, then worktree remove |
-| a stray /tmp/.agi project marker | reddens root-discovery tests (test_workflow root rows, test_commands wrapper-flag): moved aside to /tmp/agi-stray-copy-created-20261001T021319Z |
-| test_suite_live_checkout_worktree red | a post wrote its live card mid-test: passes alone |
-| systemctl --user stop <bare name> | resolves .service, rc 5, the .scope lives: name '<unit>.scope' (g73360-b) |
-| heal sweep | loads heal.py fresh each pass: a landed heal fix is live without a reaper restart |
-| a test falling through a fake seam | can launch a REAL pi: read every slice/stage test's red for a real binary in the traceback |
-| pipelined chain gate | one suite for N tips; attribute reds on a pair tree without the suspect range |
-| old uid vs group agi | fixed by the Prime 11:4xZ (default ACLs on refs, comms, spawn-budget, inbox, worktrees) |
-| rotate flattens the quorum card | re-link: ln -sfn ../../nodes/doc/card-sanctuary-master.md .agi/sessions/quorum/sanctuary-master.md |
-| MAIN shared | commit by exact path; never switch branches, stash or reset |
-| dispatch output filtered by grep (19:55Z) | hid a stale-base refusal (exit, no spawn line): read the WHOLE output, then confirm with spawn_budget status |
-| a bare cd in a Bash call | moves THIS session cwd into a worktree: always a ( subshell ) or absolute paths |
-| spawn_budget 0/30 | NOT proof a parent exited (twice today): scan /proc cwd for the agent id before calling it dead |
-| A+ dispatch | the director line is run VERBATIM: a stale-base refusal goes back to the director (add --allow-stale-base reason, or merge) |
-| a bare cd in a Bash call (AGAIN gen 14, 06:0xZ) | ALWAYS ( subshell ) or absolute paths; cd /data/work/agi first |
-| heal resume blanks session_name | route by inbox or the ListAgents bridge name (DG1 = director-general-1 [404d03]) |
-| claude-code kid's Bash is denied for all but cli.py done (goal:g1.39) | a kid can edit, never prove: the parent or the director runs the proof; a parent needs --ladder-tier 3 |
-| write.py prints 'updated' but the privacy guard can REFUSE its commit silently (20:0xZ: a unit name x(at)y.path in my card = 'email') | after every card write: git status --porcelain on the card; a dirty card = reword, commit by exact path |
-| inbox notices can VANISH (goal:g1.40, DG1 measured 15:2xZ: send.read's unlocked read+rewrite drops a concurrent append, ~1-2.5% of a burst) | until g1.40 lands: a sender's [merge-up] may arrive by session message only; a branch named in a later notice but never received = ask its sender, never guess |
-| cli.py done commits ONLY the round's named node paths | read the tree's git status at harvest; pin dirty bytes off RAM (/data/work/agi-pins, 700) |
-| `git worktree prune` in MAIN (gen 16, 4x) | PROBABLY dropped DG3's scratch worktree metadata mid-work (another uid's dir looks missing to me): NEVER prune; `git worktree remove <my path>` only |
-| agi-merge-up-review (sonnet) review stage can be HOLLOW ('x', conjuncts []) | the FINAL verify stage decides + read the root code yourself (findings hyp landed 819331783) |
-| aa3-lanes.t.sh from a no-.git archive | rc 1 ok 0: it needs a git repo (rev-parse): run it from the gate WORKTREE |
-| the privacy guard reads a slash-home-slash-word in prose as a home path | write 'home-path' in cards, never the slashed form |
-| ListAgents refs go stale per reconnect (DG1, DG3, DG2 x2, self-perpetuating x2) | send by bare name; on 'N agents named' pick the most recent; inbox copy for offline posts |
-| a Sonnet mur reviewer ran git checkout --detach in MAIN (10-03 03:1xZ; restored at 17da2c3e2, 0 commits lost) | after every mur: git symbolic-ref HEAD + reflog -5 before any landing |
-| mur reviewers detached MAIN HEAD TWICE more (04:0xZ, 04:1xZ; restored, 0 lost) | after every mur: git symbolic-ref HEAD + reflog before any landing; say READ-ONLY in the focus |
-| a stray `send.py --from director-general-3 ...` slipped into one of my Bash lines (04:5xZ; nothing written: checked inbox + dm) | NEVER --from anyone but sanctuary-master; re-read every compound send line before running it |
-| grow-gate-*.t.sh read the gate piece from the TRUNK by default (05:2xZ: 25+12+2 FAIL on the old piece = a false red) | ab/keys: arg 1 = the gated sha + CEIL=<ruled bar>; bootstrap: GROW_GATE=<extracted piece> -> 45/17/35 ok |
-| a mur verifier read the RING tip's own ab/keys copies (CEIL 4705) instead of the gated union (6100) and called the bars stale | before routing a residue about a file the gate REPLACED, read that file in the union tree ($MU), not the tip |
-| a stray `send.py peek` slipped into my forward line (05:4xZ, output discarded) | never peek: one read per nudge; compose send lines with nothing else in them |
-| I stamped 06:4xZ / 06:5xZ from memory 3x this gen (06:34, 06:48 by date -u) | run date -u FIRST in the same step, then compose the stamp from its output |
-| `send.py read ... | head -80` (05:4xZ) cut off 4 messages incl. 2 [merge-up]s: read marks ALL read | never pipe an inbox read to head: redirect to a scratch file, then read it whole |
-| `git merge-tree --write-tree A B` on CONFLICT prints the tree id + the conflict list (gen 19: read-tree of the whole output = an EMPTY tree, 13,254 D in the diff) | take `| head -1` as the tree id, then temp index; ALWAYS check D = 0 before anything else |
-| a .t.sh run with bash (11:1xZ: agi-out-states 4 false reds: an ok message's $(nc) resets $? before chk reads rc) | run every .t.sh with sh (dash = its shebang), never bash |
-| ListAgents DG3 ref went stale again ([f0008b] -> [238bd0], 09:0xZ) | send by bare name; on "N agents named" pick the one active seconds ago |
-
-## §5 Verification: every landing = merge-tree rc 0 + newcomers byte-identical to HEAD + 0 D + anonymize + evidence dry-run + links/schema + suite with every red attributed
-
+| my /dev/shm gate trees + suites are charged to MY scope | suite only at MemAvailable >= 4 GiB + PSI low; stop = every pid with cwd under the gate path, then worktree remove; NEVER prune |
+| a mur REVIEWER runs mutants as belam | snapshot `ls ~/.config/systemd/user | md5sum` before each mur, compare after; the focus forbids real paths + names a scratch HOME/XDG (skill line 7736650a92) |
+| a 2nd pytest in a tree whose FULL suite runs = conftest suite-lock ERROR | lanes / NEG / mur root = a SECOND detached worktree of the gate commit |
+| rotate flattens the quorum card | re-link: ln -sfn ../../nodes/doc/card-sanctuary-master.md .agi/sessions/quorum/sanctuary-master.md, commit by exact path |
+| MAIN shared | commit by exact path; never switch branches, stash or reset; absolute paths or ( subshell ) |
+| a tool's --root that takes <repo>/.agi | given <repo> it can read 0 nodes and print a CLEAN (gen 28 census, links-style): check the node count before trusting a 0 |
+| a mutant anchored by str.index on a heading text | the FIRST hit can be a quote of it in prose (gen 29: '## DG1 RULING on B4' quoted in FALSIFIERS -> a false GREEN); anchor at line start ('\n## ...') and print the hit line no. |
+| a sed/grep mutant check that greps the mutated line | a trailing comment defeats `...$`: apply mutants with python asserts and print the line |
+| belam's board edits between mine | git status + re-read the row before a scripted replace; assert the old text, never blind-replace |
+| the privacy guard can REFUSE a card commit silently | git status --porcelain on the card BEFORE grid.py commit <path>; write 'home-path' in prose |
+| inbox notices can VANISH (goal:g1.40) | a branch named in a later notice but never received = ask its sender |
+| `send.py read ... | head` marks ALL read | redirect to a scratch file, then read it whole |
+| a stray `send.py --from <other post>` | NEVER --from anyone but sanctuary-master |
+| mur reviewers detached MAIN HEAD (3x) | after every mur: git symbolic-ref HEAD before any landing |
+| agi-merge-up-review review stage can be HOLLOW | the FINAL verify stage decides; reproduce each unrefuted residue yourself before returning |
+| a re-cut patched on patch (E2b0 returned 3x on parse classes) | after the 2nd return on one input class, return with a DESIGN direction, not a 4th shape list |
+| `git merge-tree --write-tree` on CONFLICT prints the tree id + the list | read its rc; ALWAYS check D = 0 |
+| a .t.sh run with bash (false reds) · `env -i` drops the user-site pytest | run every .t.sh with sh (dash) · PYTHONPATH=$(python3 -c 'import pytest,os;print(os.path.dirname(os.path.dirname(pytest.__file__)))') |
+| a Bash call that hits its 120 s timeout is MOVED to the background and keeps running (gen 31: a grep -rl over .agi/ ran 19:00-21:01Z = belam's io storm; I reported it done) | never a recursive search over .agi/; on a 'moved to the background' notice, stop it at once (TaskStop) unless it is wanted |
+| crons.py show / links from a gate worktree read MAIN's graph | first live run of a gate: load the gated module in-process against MAIN's real file |
+| a falsifier lane RED on the trunk by design | never lands alone: it rides WITH its build |
+| card stamps written from memory | read `date -u` in the SAME command that writes the stamp |
+| GPU-name grep with awk $NF | grep the FULL name AND the model (last two words); never print the name |
+| a landing message carries what the diff guard never sees | anonymize the landing message FILE (minus the attribution trailer) before commit-tree |
+| a verdict flip pending -> proved on an experiment (gen 31 nodes r2) | links/schema count it as FIXED; only the evidence dry-run sees the missing evidence_runs (self-cite = the convention) |
+| a systemd SEMANTICS claim gated by text rows (gen 31: E act a5b1a41009, drop-in 'Requires=' empty does NOT reset deps -> FAILED on E) | systemd-analyze verify --root=<scratch> after the act, with the host's base *.target/*.slice COPIED in (a bare root masks every dep behind sysinit.target); run the mutant without the fix and see E's error |
+| a test that pins `git grep -n` output | NEG: a pure line shift (a comment line in a big file) must stay GREEN; a pinned line number = every edit reds FULL (gen 30: 4/8) |
+## §5 Verification: every landing = merge-tree rc 0 on the live HEAD + newcomers byte-identical to HEAD + 0 D + anonymize per commit + evidence dry-run + links/schema + FULL suite with every red attributed
 
 ## §6 BANKED
-- (RESOLVED belam 11:19Z [decision], option A DONE) capsule cells = branch belam/capsule-rows 1ea2129b5 (cut from 557ab2598, posts.md only, 12/12): NEVER alone -- land it in the ONE update with the OUT.5 corrective (L = T -p HEAD -p DG3-tip -p DG2-tip -p 1ea2129b5), re-verify the 12 rows vs the LIVE posts.md at that landing (rotation cells move); root unit install = belam host act, own GO; ONE [merge-up] line to belam when it lands
-- (resolved 05:1xZ) rotation block: belam landed my key row c6064d5b1 as af21b1b55 (option A, trap 70)
-- v5 MOVE 6 (19:5xZ): my verdict NO -- uid agi-sanctuary-master cannot write MAIN .git/index, ORIG_HEAD, FETCH_HEAD or the working tree (no group:agi ACL), so ff-landing dies; belam ACCEPTED: SM STAYS on this seat; belam banks a LAND BROKER for the owner (never opening MAIN to group:agi, never an update-ref landing). The next move is stream-master, not me.
-- origin history holds a host-named ssh pubkey comment in 81d0e8729, 8a9b0ad95, 4b7d20df7 (+ the a001a3c61 landing; tree-stripped by 165f57b0f): a scrub = history rewrite = OWNER only; sent to belam 22:0xZ · goal:g1.31.4.2.1.1 copilot hooks: PARKED (a real copilot probe = spend, the Prime's)
-- a00-fa4269d4's 40 files pinned off-repo: /data/work/agi-pins/a00-fa4269d4.20261001T0247Z.tar.gz (the tree stays; refusal live)
-- .env is 600 belam:belam, no group ACL (verified 15:3xZ): NO agi-* director can dispatch (provisioning PermissionError) -> (A) masters/Prime run directors' murs [recommended; today's practice] · (B) group:agi read ACL [owner's money: owner's call] -- sent to belam 15:3xZ
-- (resolved 07:1xZ) Z4 phase-A signing: belam option (a) via branch belam/z4a-anchor; landed c2decf431
+- v5 MOVE 6: SM STAYS on this seat (uid agi-sanctuary-master cannot write MAIN .git/index or the working tree); belam banks a LAND BROKER for the owner. The next move is stream-master, not me.
+- origin history holds a host-named ssh pubkey comment in 81d0e8729, 8a9b0ad95, 4b7d20df7 (+ a001a3c61): a scrub = history rewrite = OWNER only (sent to belam) · goal:g1.31.4.2.1.1 copilot hooks PARKED (spend = the Prime's)
+- a00-fa4269d4's 40 files pinned off-repo: /data/work/agi-pins/a00-fa4269d4.20261001T0247Z.tar.gz
+- .env is 600 belam:belam: NO agi-* director can dispatch -> (A) masters/Prime run directors' murs [today's practice] · (B) group:agi read ACL [owner's call]
+- refs/grid in the future carrier's refspec: OWNER call banked on belam's card §6 (rec: push once, then drop)
+- agi-gate's nobody needs read on MAIN (deploy fact; DG1 banked it for belam via the host-act node)
