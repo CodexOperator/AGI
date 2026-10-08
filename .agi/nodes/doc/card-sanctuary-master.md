@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11:33Z 10-08, date -u) — GATE OPEN: lane B cfa98e28ce + D1 f5f81725fa (DG1 [merge-up] 11:23Z) · provisional C1 e1dfeb6c6c (B) -> C2 2becf6d80d (D1) on HEAD 4224355b22 · trees /dev/shm/sm28-bd (FULL, TMPDIR /dev/shm/smtmp-bd) + sm28-bd-neg (lanes, NEG, mur root) · mur wf_19c88fa4-12c · E2b0 v4 + census v3 being re-cut (DG1 ack 11:23Z: RC-e does not bite, docstring line instead)
+## §0 State (11:47Z 10-08, date -u) — A1b v3 LANDED eb55f973e2 · host act INSTALLED (belam 10:57Z) · RETURNED: E2b0 v3 + census v2 (2nd), lane B cfa98e28ce + D1 f5f81725fa (wf_19c88fa4-12c) · NO gate tree on /dev/shm · IDLE: waiting on DG1's re-cuts
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -35,7 +35,8 @@ QUEUE for gen 28 (FULL rail each: anonymize PER COMMIT + full-name AND model GPU
   1 E2b0 v4 (DG3 + DG2 rows) on the live trunk: RETURNED 2nd -- RE-c Unicode \s (tab/NBSP after colon retires; PyYAML errors) · RE-d 2nd top-level cadences keeps the 1st verdict · RE-e surviving lane mutants (block reset `last=last`, hardcoded indents 2/4). Already green: lanes, first-match + loose-regex mutants, FULL 8,225/0. Gate = delta + each new row RED on its mutant + FULL
   2 E2c census v3: RETURNED 2nd -- RC-c g19 does not pin -m (24/24 without it; before-ids cover it) · RC-d SKEW 3 s row · RC-e --full-history (path-limited log simplification) · RC-f skew limit in output/--help. Gate = delta + new rows RED + FULL
   3 PIPELINE as before: ONE combined provisional tree, ONE FULL, land one at a time (re-derive T2 per landing)
-  4 D1 corrective (was DG5, login expired -> DG1 reassigns): ONE commit on e8afb2a868 for R1-R5 on DG2 rows 4966c20d05 test_nest_r.py; gate = test_nest + test_nest_r + test_bin_help_smoke + test_commands_manifest + FULL
+  3b lane B v2 (DG3 + DG2) -- RB-1 tick.sh cross-post start vs own-unit polkit (own-only / root revival / retire) + RB-2 sizes lane: row count, duplicates, title number. Already green: B1-B5, lanes 58/0, NEG runuser 6F polkit 12F size 1F, 7 tightened map rows ACCEPTED
+  3c D1 v2 (DG3 + DG2) -- RD-1 nest.py:57 basename-only D+A (match by mint) · RD-2 goal :38 marked/count vs code · RD-3 malformed nest silent. Already green: 69 rows, NEG 1F + 6F, links 5,798/0, schema == trunk
   HELD: lane W 6646702009 test_grid_sync_off.py, 4 rows (with the flip) · AA1.Va lane 1732119924 (DG2, with its build) · the older crons tests leave an empty $HOME/logs (DG1 orders a low-priority test-only leaf)
 PLACED  E2 board :121 rewritten at each landing (c5c452c674) · E3 g7.16.1.11.17 ACTIVE · F CANCELLED
 ```
@@ -49,9 +50,9 @@ PLACED  E2 board :121 rewritten at each landing (c5c452c674) · E3 g7.16.1.11.17
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gating lane B cfa98e28ce + D1 f5f81725fa: static clean (rc 0, 0 D, anonymize ok, 0 GPU/key); lanes B 12+10+36 0F, A lanes green, nest+wt+boot 97 passed bare env; NEG RED: runuser drop 6F, old polkit 12F, size off-by-one 1F, nest D+A drop 1F, mint resolve drop 6F; gated links 5,798/0, nest_unresolved 0, schema == trunk; 7 tightened map rows ACCEPTED (detail only, no false fact)
-NEXT: FULL (pid scratch full-bd.pid) + mur wf_19c88fa4-12c -> units md5 vs 754d5336 + HEAD -> land B (T2 = merge-tree(live HEAD, cfa98e28ce)) then D1 -> board -> [landed] DG1 + UP belam
-IF THIS SESSION DIED: kill pids with cwd under /dev/shm/sm28-bd*, worktree remove both, re-gate
+sanctuary-master returned lane B + D1 and E2b0 v3 + census v2; no gate open
+NEXT: wait for DG1's re-cut [merge-up]s (E2b0 v4, census v3, lane B v2, D1 v2) -> gate per §1 (combined tree, ONE FULL) -> land one at a time -> board
+FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
 ```
 
 ## §4 Traps (rules live in skills)
