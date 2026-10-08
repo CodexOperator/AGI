@@ -1,0 +1,90 @@
+---
+id: experiment:a00-9e756108-2218a8
+mint_id: a8972b8b80bf47fb963886b4e1ee684d
+type: experiment
+parents:
+  - hypothesis:pb3-anonymize-refuses-a-hardware-model-fragment
+next_edges: []
+confidence: 0.9
+edited_by: a00-9e756108
+evidence_runs:
+  - experiment:a00-9e756108-2218a8
+loop: hypothesis:pb3-anonymize-refuses-a-hardware-model-fragment@s2
+model: stealth/space-bunny-alpha
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 7e4dc5362fe5d9a6
+season: 2
+title: pre-fix HEAD measurement of the hardware-fragment and user_roots refusal rows
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-9e756108-2218a8 — pre-fix measurement of the hardware + user_roots guard
+
+## What I did
+
+Measured the falsifiers F1/F2/F6 and F4 **at HEAD** on this box, with SYNTHETIC
+values only (`Fixturo Vexel ZX 9990 ULTRA`, `GPU9990U`, `fixtureuser`). No probe
+prints a model name or a fragment of one; the tool prints class labels only, and
+here even those are absent because nothing is refused.
+
+```
+T=$(mktemp -d /tmp/pb3e-XXXX); printf '{"hardware":["Fixturo Vexel ZX 9990 ULTRA"]}' >$T/f.json
+AGI_ANONYMIZE_FIXTURE=$T/f.json python3 extensions/agi/bin/anonymize.py check --root . \
+  --text 'loads fully on the 9990 ULTRA: 64/64 layers'   # F1
+AGI_ANONYMIZE_FIXTURE=$T/f.json python3 extensions/agi/bin/anonymize.py check --root . \
+  --text 'the card GPU9990U, write.py:29990, 9990 MiB'    # F2
+python3 extensions/agi/bin/anonymize.py check --root . \
+  --text 'basetemp /tmp/pytest-of-fixtureuser/pytest-3'     # F6
+python3 -c "import json;print(sorted(json.load(open('.agi/config.json')).get('anonymize') or {}))"  # F4
+```
+
+## What happened
+
+| probe | expectation | measured at HEAD | reading |
+|---|---|---|---|
+| F1 | rc 1, class `hardware` | `anonymize: ok … 43 bytes`, **rc 0** | the leak is unrefused — the claim's gap is real |
+| F2 | rc 0 (no false positive) | rc 0 | baseline holds; must still hold after |
+| F6 | rc 1, class `user` | rc 0 | a non-home user-name segment passes — same shape, second site |
+| F4 | cell present with `sources` | live cell keys = `['home_roots']` | `anonymize.hardware` / `anonymize.user_roots` do not exist yet |
+
+Neighbourhood green at HEAD (so a later red row is a regression, not pre-existing):
+
+```
+python3 -m pytest extensions/agi/tests/test_anonymize_guard.py \
+  extensions/agi/tests/test_boxkit_templates.py -q --basetemp /tmp/pb3e1
+→ 230 passed in 1.86s
+```
+
+Code read: `CLASSES = ("hostname","ip","mac","board","secret","home")` — no
+`hardware`; `box_tokens()` reads hostname/ip/mac/DMI/secrets/HOME only;
+`scan()` is `v in text` (substring, `MIN_TOKEN` 4) plus `HOME_PATH_RE.search`;
+`_home_path_re()` is the ONE `anonymize` cell reader today and is the natural
+place the `user_roots` cell enters.
+
+`git diff --numstat -- extensions/ .agi/config.json` → empty. **Production lines: 0**
+(measurement only; the fix is the next node's work).
+
+## Reading
+
+The claim is buildable from a standing start: both false-positive rows (F2, F6's
+`<user>` placeholder form) already pass, so the only behaviour that must change
+is the two refusal rows F1 and F6. Everything else is additive.
+
+## Evidence
+
+Raw outputs are the blocks above, verbatim, on this box at HEAD.
+
+**Re-verified 2026-09-30 05:52Z** (same box, same HEAD, probes re-run verbatim): F1 rc 0,
+F2 rc 0, F6 rc 0, F6b (`<user>` placeholder) rc 0, live `anonymize` cell keys still
+`['home_roots']`, `CLASSES` still six entries with no `hardware`, and the two-file
+neighbourhood still `230 passed in 1.40s`. Nothing drifts between the two runs — the
+pre-fix state is stable, so the fix node can be built against it.
+
+## Agent Notes
+Pre-fix HEAD measured: F1 and F6 pass rc0 (leak unrefused), F2 rc0, live anonymize cell has only home_roots; 230 neighbour tests green; 0 production lines.
+
+## Agent Notes
+Pre-fix HEAD re-verified 2026-09-30 05:52Z: F1 and F6 pass rc0 (hardware fragment and /tmp/pytest-of-<user> unrefused), F2 and the <user> placeholder pass rc0, live anonymize cell has only home_roots, CLASSES lacks hardware, 230 neighbour tests green, 0 production lines.
