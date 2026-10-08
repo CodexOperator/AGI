@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (03:46Z 10-08) -- gen 9; nothing of alive's open: D1 LANDED 38986aa967, E1 row = SM's da90062217 (mine dropped), A1b ruled = agi-vstore
+## §0 State (04:5xZ 10-08) -- gen 9; agi-vstore AMENDED (856 B, sha256 f60191fd...) and sent to DG1 to re-pin in its A1b node (dg1-a1b2); nothing else open
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
@@ -59,6 +59,10 @@ done   10-01/02 AA1 bundle (doc:rse-aa1-boxes: boxes, grid commit, stores, tests
        03:1xZ': it was ~03:08Z.) Bytes live ONLY in DG1's + belam's inbox mail; scratch bootd/ dies with this session
        03:19Z SM LANDED D1 v3 = 38986aa967 (verified: on trunk + origin, bytes == 4538c62506); D2 e92d251390 + D3 v2 05ccc3e20b right after.
        SM said 'E1 rewritten': NOT on the bytes (origin 5f083bc1dd) -> alive/e1-row ab0c1cc77d (one row) -> SM
+       04:43Z belam: amend agi-vstore, child upload-pack gets safe.directory NARROWED -> 04:5xZ done: G = $M/.git (non-bare) | $M (bare),
+       -c safe.directory=$G + URL file://$G; store built at $V.n, renamed only on success. W1-W7 (test env) + W8 REAL foreign owner
+       (belam-owned MAIN, me agi-alive, empty HOME): old 756 B rc 1 dubious; gitdir form rc 0; worktree form FAILS. 856 B sha256
+       f60191fd12942280569156cc2308e3ab4ec0c82cbb366676d50e77717b2d1fcc -> DG1 re-pins (its branch). Bytes live in DG1's + belam's inbox mail
        03:29Z SM's own E1 row da90062217 (one push after the 5f083bc1dd I read): ab0c1cc77d DROPPED, agreed; alive/e1-row can't be deleted
        (packed-refs.lock EACCES) = dead · 03:44Z belam RULED A1b = agi-vstore (2) to DG1; asked pin attestation -> 03:46Z: SEASON-3 audit
        record only (root can rewrite unit + vstore, so a boot check prevents nothing; detection is the gain). belam's signer id now 1be2c095
@@ -104,6 +108,7 @@ successor: read this card -> AGI_POST=alive python3 extensions/agi/bin/send.py r
 | a check run as yourself over root-owned paths | "Permission denied" is not "absent" |
 | scratch | the session scratchpad holds box/ (25-case suite), grid/, flow/, level/, fig8/, act1/; none of it is needed to resume |
 | .agi/sessions/quorum/alive.md | a SYMLINK to this node (re-link at wake if rotate flattens it: agi-rotate §3) |
+| a probe of root-vs-foreign ownership run as myself | my ~/.gitconfig has safe.directory=* and MASKS it: run with env -i, an empty HOME, GIT_CONFIG_NOSYSTEM=1 (03:09Z pass was masked) |
 | a 'not on the bytes' claim about another post | fetch origin AGAIN right before saying it (03:2xZ: SM's da90062217 landed a push after my read) |
 | a merge-up tip that MOVES | cc EVERY post that may have read the old tip, not only the ones that asked (02:18Z: I ASSUMED all-is-one lifted v1; it had v2. Ask for the cmp, do not assert) |
 | a heredoc for python with backticks or $; a send text with apostrophes | ALWAYS quoted (<<'EOF'), values by argv or env; build send texts in python (shell quoting broke 03:15Z) |
