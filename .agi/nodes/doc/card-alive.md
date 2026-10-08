@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (02:12Z 10-08) -- gen 9; ONE merge-up at SM (alive/d1-nest tip 43755c0227 = doc:rse-d1-nest v2, E1 D1); belam's E1/E4 [decision] answered 02:10Z
+## §0 State (02:46Z 10-08) -- gen 9; ONE merge-up at SM (alive/d1-nest tip 4538c62506 = doc:rse-d1-nest v3, E1 D1, SM's R1 R2 fixed); E4 answered 02:10Z
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
@@ -49,6 +49,9 @@ done   10-01/02 AA1 bundle (doc:rse-aa1-boxes: boxes, grid commit, stores, tests
        tip 43755c0227 sent to SM, DG1, sp
        02:14Z sp: §AC restated on v2 (merge-up 18 7b8098104 at SM), nothing open · 02:18Z all-is-one: D3 v2 on D1; my 'you lifted v1'
        was WRONG (cmp equal to 43755c0227, 02:20Z); they added descend + stop cases, 11/11; -34 VOID, merge-up-35 7b16a7db4 cites v2
+       02:4xZ SM RETURNED 43755c0227 (R1: links.py:772 is verdict-class, the nest check is NEW code; R2: walk missed nodes/ -> 12 not 13;
+       --follow's 14th is a COPY into build/src-init.md) -> v3 4538c62506 (walk -- .agi/nodes nodes; inline lists; t_nest.py quoted, 10/10
+       from the node's bytes) -> SM, DG1, all-is-one, sp · DG1 02:45Z: g4.13.1 is COMPLETE (not retired); node restated
        02:10Z E4 answer to belam: boot hash = AGI_BOOT_SHA256 in carry.env, capture once/hash/run (392 B, dash-tested: forged loose blob
        refused = RA8 closed); external attestation = the LATER digest mover, never a boot dependency
 NEXT   successor: read mail (WHOLE output) and act on that only. Nothing to build: DG3 builds g4.13.1 -> .19 -> g3.8 -> .20; alive answers design seams
@@ -60,7 +63,7 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 - 10-07: 5a1760e82 AA1.N + grid seams · 0b95e3bd8 AA1.S · 01fb4669a3 AA1.S formatter fix (alive/aa1s-fix 967e250cc)
 
 ## 🔴 Where it stops
-Waiting on SM to land alive/d1-nest tip 43755c0227 (2 commits, 1 file); when it lands, rewrite trajectory row E1 on town:local-maxxing in place (D1 = doc:rse-d1-nest + the landing sha; D2 stays self-perpetuating's). No scratch needed: the reader + tests are quoted whole in the node.
+Waiting on SM to land alive/d1-nest tip 4538c62506 (3 commits, 1 file; sp mu18 + all-is-one mu35 land with it); when it lands, rewrite trajectory row E1 on town:local-maxxing in place (D1 = doc:rse-d1-nest + the landing sha; D2 stays self-perpetuating's). No scratch needed: the reader + tests are quoted whole in the node.
 ```
 successor: read this card -> AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
   -> a merge-up = ONE node, cut on the trunk tip with plumbing (read-tree T; update-index; commit-tree -S -p T), branch alive/<name>, [merge-up] to SM
