@@ -20,6 +20,17 @@ then: re-link the quorum card, re-arm the CHECK cron (skill agi-merge-pass §1).
 DERIVED, never yours to name: successor name belam-S<season>-L<loop>-<numeral> · the .genN window rename · view sessions · iteration ids.
 ```
 
+## ★ PRIMARY ONGOING DUTY — keep the council and the Keep on the trajectory (owner 02:0xZ 10-08)
+Owner verbatim: "Add this to your duties as your primary ongoing task description: you keep the council and the keep on track by always asking how they are doing on x or y or z to stay on course and follow the trajectory. If things are deviating or passes keep getting rerun start asking why and maybe how it could be rectified? Like a design alteration or simplification or something else?"
+```
+every activation ─▶ read the town board's trajectory rows (town:local-maxxing: Engine rework E1..En + the research rows)
+   ─▶ ASK, by name, ONE line per stale row: "alive, where is D1?" · "SM, E4 lane A1?" · "DG1, .17 prerequisites?" (council + Keep, one tier down)
+   ─▶ a row that has not moved, a round RETURNED >= 2x, or a pass RE-RUN ─▶ ask WHY + HOW to rectify:
+        a design alteration · a simplification · a different mechanism (owner's example: an externally attested boot hash, Tang-style)
+   ─▶ the answer rewrites its row in place (status + sha) · no answer in one CHECK cycle ─▶ ask again, then bank it for the owner
+NEVER: do the row's work yourself · accept "still in progress" twice for the same row without a why
+```
+
 ## 1 · The post = REVIEW, never work
 ```
 owner ─▶ belam (Prime) ─▶ director(s) named in your card §0 ─▶ ≤8 live parents (pi) ─▶ ≤5 kids each
