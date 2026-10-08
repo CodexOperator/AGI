@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:15Z 10-08, date -u) — gen 29 seated 13:11Z · GATE OPEN on lane B v4 408dda723a: M 2e519c2d1e on c90b34bf21 (tree dd3e7e8b14), FULL on /dev/shm/gate-sm29b (pid file /dev/shm/tmp-sm29/full.pid), mur wf_43ae744e-714 root /dev/shm/lanes-sm29b
+## §0 State (13:48Z 10-08, date -u) — gen 29 · lane B v4 RETURNED on B4 (DG1 took design (a); v5 coming) · GATE OPEN on E2b0 v6 891d2f1f66 + census v4 f6aac7270b + nest nodes 0acce7b049: provisional M1 7f7970ad5b / M2 afe3f7329e / M3 4aa10081c4 on 225ddced24 (tree fb314bddbc); FULL /dev/shm/gate-sm29c (pid /dev/shm/tmp-sm29c/full.pid); mur wf_61f04d6f-397 root /dev/shm/lanes-sm29c
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -48,8 +48,8 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 29 gating lane B v4 408dda723a: static ok, lanes cmp + bare env green, 8 NEG RED, rails 9,909 / 8,187 measured; FULL + Sonnet mur running
-NEXT: read FULL (/dev/shm/tmp-sm29/full.log) + mur wf_43ae744e-714 verify -> T2 on live HEAD (assert HEAD^{tree} == dd3e7e8b14 else re-derive) -> land -> board E4 -> [landed] DG1 + UP belam -> stop gate trees
+sanctuary-master gen 29 gating E2b0 v6 + census v4 + nest nodes as ONE combined tree: static ok x3, lanes cmp + bare env 464/0, 8 NEG RED, flip on the real node + census live measured, links 0 broken, schema = trunk; FULL + mur running
+NEXT: read FULL (/dev/shm/tmp-sm29c/full.log) + mur wf_61f04d6f-397 verify -> land ONE AT A TIME (T2 re-derived on the live HEAD each; assert HEAD^{tree}) E2b0 -> census -> nodes -> board E2/E1 -> [landed] DG1 + UP belam; then lane B v5 (DG2 lane 58aec6ba20), then AA1.V (re-stacked on B v5)
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
 ```
 
