@@ -111,6 +111,18 @@ Town schema parents = ladder only → **linking is Agent Notes / this body**, no
 
 **What it is (owner 01:3xZ 09-21, verbatim on goal:g14):** a super node to the side that links into all relevant nodes — bigger than a single subgoal, sometimes bigger than a perpetual, smaller than a vision. Metrics chased for this track: layer techniques so bigger models run on smaller footprints with longer context windows. **How it changes:** metric change = new node version (overwrite body; reason in THOUGHT); A/B = branch worktree. No separate `trajectory` node for this town (owner 21:5xZ 09-30): **this town section IS the trajectory, permanently**. `doc:lm-town-trajectory` remains as pointer — do not delete yet.
 
+#### Engine rework trajectory (season 2 close) -- replace rows in place, one version per change
+
+**Goal (owner 14:3x-14:4xZ 10-07 + 01:5xZ 10-08, verbatim on this board):** "Finish encapsulation of grid slices and do a season rollover after getting you on the new engine. You can use the old key mint. We can use python tests." ORDER: E1 -> E3 -> E5 (E2, E4 in parallel).
+
+| row | milestone | status 01:5xZ 10-08 | evidence / next |
+|---|---|---|---|
+| E1 | grid slices encapsulated: a slice collapses into a node's ref (D1 nesting) + the rollover shape (D2) + the legacy marker (D3) + the et-grok-pilot keep/drop (D4) | D3 + D4 docs written (doc:rse-d3-legacy, doc:rse-d4-grok-pilot) · D1 + D2 NOT written | council (alive D1, self-perpetuating D2) -> DG1 goals -> DG2/DG3 |
+| E2 | grid commit retired -> capsule commits (owner 01:4xZ 10-08: "It's already decided") | posts commit per turn on posts/<p> (live); grid_sync cron still writes refs/grid every 5 min · goal:g7.16.1.6 horizon | AA1.V / AA3 lane (AA3.10 keeps the crontab heal); refs/grid kept read-only, never deleted |
+| E3 | belam on v5 (goal:g7.16.1.11.17) with the owner's bypass: old Python key mint, Python tests | horizon · verify as a v5 uid (.19) + box mail (.20) active, landing | DG1 rewrites .17's prerequisites to the bypass; belam GOes each host act |
+| E4 | PASS B4 merged + residues | 02:0xZ 10-08: season2/main cd981237cd (recreated) · goal:g1.41 LANDED on local-maxxing/season2/main: G b036bf25e6 · I 96934de740 · H 8502309d65 · J cad3e25dfc · C 97e31ae62f · A1 4c71a0fa09 · E 19e82bc21b · lane briefs 8c97e29724 · D d84f8626e6 IN GATE (union3 FULL suite; mur ACCEPT) · A2-A4 returned (RA10 RA11) · B unblocked (A1 landed) · F CANCELLED (owner 01:3xZ: grid retiring) | SM gate, DG1-5 · open: D, A2-A4, B, I's 38 schema-field nodes |
+| E5 | season rollover (season 2 -> 3) | NOT started · core/season3/main exists (grok work, 1,853 commits) | after E1 + E3; multi-ref: started by a Prime under meter 0.41 |
+
 #### Metrics chased (newest first)
 
 | date | model (params) | footprint | ctx line | tok/s | quality (battery) | how | node |
@@ -132,15 +144,15 @@ memory     15 GB box · ONE model load at a time · start at MemAvailable >= 6 G
 research   L4 head windowing (g5.22) · neuron periodicity (g5.28) · queue + metrics = the trajectory_standin rows
 geometry   the trajectory lives here (owner 09-30); goal:g7.34* moot for this town
 g1.41      PASS B4 residues (belam [decision] 20:49Z 10-07) -- SM placement, RE-SPLIT 21:0xZ for DG4 + DG5 (owner 21:0xZ; both parent SM): ONE build owner per file at a time; route DG1 hyp -> DG2 lanes -> builder -> SM gate, one merge-up per round
-  A ROOT     DG3 then DG4  .geometry/engine-root.md + engine.md: A1 BOOT HOLE = DG3, IN FLIGHT (DG2 lanes fe42f38c12) + .20 box-wake engine.md = DG3; the files pass to DG4 at A1's landing -> A2 :73,76 jq null fail-closed -> A3 :39,43 exit-127 loop + :142-146,104 agi-carry restart bound -> A4 engine.md:90 .name validated; sizes :41-79 re-measured in EVERY A commit
-  B GROW+POST DG4 .geometry/engine-grow.md :41,60 · engine-post.md :144 polkit                after A1
-  C GUARD    DG5  extensions/agi/guard/{guard-init,ram-main,ram-tier,session-sweep}.sh: validate guard.env before any eval    parallel
-  D PY-GATES DG3  write.py:2079 · anonymize.py:306 · verification.py:1409-1412                 after A1
-  E PY-MISC  DG5  reds.py:51,100 · metrics_cell.py:138 · council_report.py:138                  parallel
-  F GRID     DG4  grid.py:895,911-913,1240-1280 (the double-write fix shape = belam's owner Q before build) · the 2 no-mint_id experiments = lane I
+  A ROOT     DG3 then DG4  .geometry/engine-root.md + engine.md: A1 BOOT HOLE = DG3, LANDED 4c71a0fa09 (host acts = belam's) + .20 box-wake engine.md = DG3; the files are DG4's now -> A2 :73,76 jq null fail-closed -> A3 :39,43 exit-127 loop + :142-146,104 agi-carry restart bound -> A4 engine.md:90 .name validated; sizes :41-79 re-measured in EVERY A commit
+  B GROW+POST DG4 .geometry/engine-grow.md :41,60 · engine-post.md :144 polkit                UNBLOCKED (A1 landed); DG4 after its A2-A4 re-cut (RA10 RA11)
+  C GUARD    DG5  extensions/agi/guard/{guard-init,ram-main,ram-tier,session-sweep}.sh: validate guard.env before any eval    LANDED 97e31ae62f
+  D PY-GATES DG3  write.py:2079 · anonymize.py:306 · verification.py:1409-1412                 IN GATE d84f8626e6 (returns RD1-RD6)
+  E PY-MISC  DG5  reds.py:51,100 · metrics_cell.py:138 · council_report.py:138                  LANDED 19e82bc21b
+  F GRID     CANCELLED (owner 01:3xZ + 01:4xZ 10-08, belam [rule]): no grid.py change -- grid commit retires on the AA1.V / AA3 lane (E2); belam's re-mint 02b8b6244b stays
   G TESTS    DG2  test_anonymize_guard.py:867-871 · test_heal_sweep.py:53-57 · test_heal_watch.py:51 · test_boxkit_templates.py:1199-1201 · test_node_writer.py:1796
-  H SKILLS   DG5  skills/agi/SKILL.md · skills/agi-{workflow,corrective,dispatch,goal}/SKILL.md (workflow.py retired; v5 = plain Write/Edit)
-  I NODES    DG1  the 3 demotes + every NODES/ANONYMIZE row + the 2 no-mint_id experiments; the 38 schema-field nodes = DG5 after, mechanical
+  H SKILLS   DG5  LANDED 8502309d65 · skills/agi/SKILL.md · skills/agi-{workflow,corrective,dispatch,goal}/SKILL.md (workflow.py retired; v5 = plain Write/Edit)
+  I NODES    DG1  LANDED 96934de740 (3 demotes + NODES/ANONYMIZE rows + 2 mint_ids); the 38 schema-field nodes = DG5 NOW (C E H landed), mechanical
   J RESEARCH thought-master: LANDED cad3e25dfc + 1a88f2e99e (row 1 partial by design: history scrub = OWNER)
   DG4 + DG5 first act: merge the trunk into their own branch (DG4 1,945 behind, DG5 997 behind + 54 unlanded), then their lanes
   not placed AA1.V capsule install (council/belam lane) · history rewrite (owner)
@@ -153,7 +165,7 @@ g1.41      PASS B4 residues (belam [decision] 20:49Z 10-07) -- SM placement, RE-
 - Actor Belam; master cell = thought-master.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-sanctuary-master 21:0xZ 10-07: the g1.41 Board block is RE-SPLIT for two new directors. OWNER 21:0xZ 10-07 (to belam, relayed in belam [rule] 21:04Z, verbatim): "Let's stand up DG4 and DG5 to help split the workload a bit." DG4 + DG5 were stood up 21:03Z parented to sanctuary-master. Delta: lanes B and F move DG3 -> DG4; A passes DG3 -> DG4 at A1's landing (A1 is in flight with DG3, so it is not moved mid-round); C, E, H stay DG5 (now claude-code Sonnet, no longer pi-free); D stays DG3; G DG2 and I DG1 unchanged; J marked landed. Every other row byte-identical.
+sanctuary-master 02:0xZ 10-08: E4 + the g1.41 Board rewritten in place from the landings (C 97e31ae62f, A1 4c71a0fa09, E 19e82bc21b, briefs 8c97e29724; D in gate) and lane F CANCELLED. OWNER 01:3xZ 10-08 (relayed in belam [rule] 01:57Z, verbatim): "We don't need the grid commit work we're retiring grid commit." OWNER 01:4xZ 10-08 (belam [rule] 01:58Z, verbatim): "It's already decided". Delta: E4's status cell names every landed lane by sha; A, C, D, E, H, I rows carry their state; F's row says cancelled (grid commit retires on the AA1.V / AA3 lane, E2); DG4 keeps A2-A4 then B (B unblocked by A1); DG5, free after C E H, takes I's 38 schema-field nodes. Every other row byte-identical.
 <!-- THOUGHT:END -->
 
 PASS 5 (belam-S2-L5-V, 09-25 02:02-02:4xZ): trunk @5b7d503fa7 -> season2/main 8daa626e89 · BASE 3b0c4e8e8f: 449 commits, 39 experiment files · 18 rounds / 4 chunks on pi-free, 27 min, 0 USD · 9 accept_with_residue, 9 demote, 0 RED · links 0 broken, goals byte-identical, smoke 4,331 · residues: hypothesis:pass5-0925-residue-batch (3 code-defect hypotheses + 1 reopened, 6 lm-* demotes via thought-master)
