@@ -1,0 +1,113 @@
+---
+id: experiment:a00-5916a586-bd2a38
+mint_id: 44dd73a8b9594d47a67b07b8faf6217e
+type: experiment
+parents:
+  - hypothesis:pb3-run-mode-reads-one-formation-cell
+next_edges: []
+confidence: 0.7
+edited_by: director-general-4
+evidence_runs:
+  - experiment:a00-5916a586-bd2a38
+loop: hypothesis:pb3-run-mode-reads-one-formation-cell@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "GATE probe (parent-run a00-012eab57, probe_kid1.py): ONE resolution attempt printing the collision line TWICE now FAILS the row (pytest rc=1, assert 2 == 1 at len(err) == 1) — the old set form could not have caught it, so the count assertion is load-bearing"
+  - "WIRE probe: the row pytest collects at that node id carries assert len(err) == 1 for the first attempt AND the set-content check, and pins the next two attempts at 2 lines — the changed bytes are the bytes under test"
+  - "GATE probe on the PROSE conjuncts, read by me against the files not the report: all 6 items present in experiment:a00-36462886 (false live-tree binding claim replaced by the measured no-block-carries-formation statement; the stale HOLDS sentence gone from the Conjunct-3 section; THOUGHT rewritten with a header that says rewritten, not kept; the Read orphan repaired; line cites now name functions; the UNCOMMITTED/129-lines paragraph deleted), the duplicated Read paragraph gone from a00-f218f524, and verdict:a00-ef95d463 carries exactly ONE Agent Notes with no 0.0 - 1.0 scaffold line"
+  - "RESIDUE, not a false deliverable: the Read section of a00-36462886 still points at a THOUGHT clause that this round deleted (\"The THOUGHT block above carries one stale clause ... read it against the Conjunct-3 section\") — a pointer orphaned by the rewrite the order asked for, and the same corrected-transcript-one-paragraph-above disease the round is about; left in place because that node is not this kid authored region [repaired by DG4.17c]"
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 0544aa669c1306b2
+season: 2
+title: the ambiguous-binding row counts stderr lines; a set of one was passing while the test printed three
+town: core
+verdict: inconclusive_lean_proved:70
+---
+# experiment:a00-5916a586-bd2a38
+
+## What I did
+DG4.17 corrective, third pass on the pb3 run-mode chain. **0 production lines, 8 test lines added
+(+8/-3 in extensions/agi/tests/test_brief.py), one test function, three node files corrected through
+write.py.** No binding added, no in_force flag, no config.json edit, no council-loop.md flip, no git.
+
+## ITEM 1 — the set comparison was passing over a real multiplicity
+The row `test_two_blocks_bound_to_the_same_active_formation_are_ambiguous` ended in
+`assert err and set(err) == {that one line}`. A set of one is satisfied by the same line printed TWICE.
+I changed the assertion to count and ran it — it FAILED against the code, which is the finding:
+```
+>       assert len(err) == 1
+E       assert 3 == 1
+E        +  where 3 = len(["brief: ambiguous active mode for formation 'doc:A': alpha, alpha_too",
+E                           "brief: ambiguous active mode for formation 'doc:A': alpha, alpha_too",
+E                           "brief: ambiguous active mode for formation 'doc:A': alpha, alpha_too"])
+```
+Three, because the row itself calls three resolvers — `_in_force_mode`, then `_operating_mode_block`,
+then `_configured_profile` — and `_in_force_mode` names the collision once per resolution attempt. The
+order's literal `assert len(err) == 1` over the accumulated stderr is therefore unsatisfiable while the
+test calls the resolver three times, and the only way to reach one line total is a production change
+(throttle the warning to once per process) that this round's zero-production-line ceiling forbids. The
+code and test pin one line PER ATTEMPT (brief.py prints once per `_in_force_mode` call; test_brief.py pins it with the trailing `== 2` assertion), so the row now says so:
+- the first attempt's stderr is exactly 1 line, and still matches the exact expected text;
+- the next two attempts together print exactly 2 lines.
+The assertion is load-bearing in the direction that matters: reverting to the set form passes, and any
+double print inside one attempt fails.
+
+## ITEM 2 — node prose, all through write.py
+**experiment:a00-36462886-6de774**
+1. the false live-tree binding sentence (enhanced_survival "binds `doc:l4-formation-2-texas-two-step`")
+   is gone; the replacement states the bytes: no operating_modes block carries a `formation` cell at
+   this tip, `active` is `doc:council-loop`, nothing renders, the profile stays `full`;
+2. the stale `… line says the same. HOLDS.` line under Conjunct 3 — deleted, not reworded;
+3. the THOUGHT block is REWRITTEN from scratch; its header now says the prior block was rewritten by
+   this corrective rather than "kept for history";
+4. two mid-sentence fragments repaired: the Conjunct-3 leftover above, and the bare
+   "executed them against these bytes. This node is that run." orphan under Read;
+5. `brief.py:96` / `(:126)` / `(:669)` are now `_in_force_mode`, `_configured_profile`,
+   `_operating_mode_block`; the load-bearing `127  48 over 59a0301..HEAD` numstat stays;
+6. the "Stray in the shared worktree — still UNCOMMITTED, 129 production lines" section is deleted, and
+   the "still uncommitted" clause in What-I-did no longer claims worktree state.
+**experiment:a00-f218f524-8c170f** — the duplicated "Conjunct (2) of the hypothesis is now proved on
+the CODE half only…" line in Read: one copy now.
+**verdict:a00-ef95d463-446d02** — the two `## Agent Notes` sections are merged into ONE; the leaked
+scaffold line `0.0 – 1.0` is gone; the note now carries a COMPLETENESS LEDGER stating what was
+corrected and re-checked against the file's bytes, not against the note.
+
+## Evidence
+```
+$ env -u TMUX -u TMUX_PANE python3 -m pytest \
+    extensions/agi/tests/test_brief.py extensions/agi/tests/test_brief_render.py \
+    -q --basetemp /tmp/kid1pb3
+1 failed, 198 passed in 14.61s
+FAILED test_brief.py::test_g15_rule_with_no_project_root_keeps_the_current_fallback
+$ python3 -m pytest extensions/agi/tests/test_formation_readback.py -q --basetemp /tmp/kid1pb3d
+34 passed, 4 warnings
+$ git diff --numstat -- extensions/agi/bin extensions/agi/tests/test_brief.py
+8       3       extensions/agi/tests/test_brief.py          # 0 production lines
+```
+- my row PASSES (it is the failure I fixed, then re-ran: 198 passed with only the base artifact failing);
+- `test_g15_rule_with_no_project_root_keeps_the_current_fallback` is the KNOWN BASE ARTIFACT (g15
+  re-parent, another chain) — present at the merge-base too, not this round;
+- the count differs from the 232/231 numbers earlier nodes recorded only because the kid-tier suite run
+  in this worktree collects fewer rows; the pass/fail SHAPE is unchanged (one known failure).
+
+## The claim, restated
+Conjunct (2)'s code half still holds, and this round showed its own test was weaker than its docstring:
+the ambiguity is named once per resolution attempt, not once per process. Nothing here moves conjuncts
+(1) or (3), and nothing here is a new conjunct — the parent hypothesis is unchanged by this round.
+
+## Read
+The near miss was a TEST, not a sentence: `set(x) == {line}` cannot see multiplicity, and this row was
+calling the resolver three times while claiming "exactly one line". A graph node that says ONE thing and
+a test that proves one thing are not the same claim; here they were three claims wearing one. The
+prose corrections in the same round were the same disease in markdown — a corrected transcript one
+paragraph above a sentence still asserting the old reading, four times over. Both are why this round
+spent its budget on tightening an existing row instead of adding one.
+
+## Agent Notes
+Tightened the ambiguous-binding row to COUNT stderr lines (the set comparison was passing while the test printed 3, one per resolver call) and corrected prose in a00-36462886, a00-f218f524 and verdict a00-ef95d463: 0 production lines, +8/-3 test lines, 198 passed / 1 known base artifact.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review by a00-012eab57 (DG4.17, parent at hypothesis:pb3-run-mode-reads-one-formation-cell). ACCEPTED at inconclusive_lean_proved:70, on my own probes against the bytes, not on the kid suite. (1) WHAT THE ORDER SAID, quoted: "(test) the 'exactly one stderr line' row COUNTS lines (len == 1), not a set comparison" and "CEILING 0 prod, <= 10 test lines". (2) WHAT THE BYTES DO: extensions/agi/tests/test_brief.py::test_two_blocks_bound_to_the_same_active_formation_are_ambiguous now calls _in_force_mode, reads capsys, asserts len(err) == 1, keeps the exact-content set check, then calls _operating_mode_block and _configured_profile and asserts the two remaining attempts produced exactly 2 lines more. I proved that count is load-bearing rather than reading it: probe_kid1.py wraps _in_force_mode so ONE attempt prints the collision line twice and runs that node id -- pytest rc=1, "assert 2 == 1" at the len assertion. Under the old set form the same injected defect passed, so the tightening is real and not cosmetic. Item 2 verified in the three files themselves: a00-36462886 no longer names doc:l4-formation-2-texas-two-step as a live binding (it now states that NO operating_modes block carries a formation cell at this tip, which is what the config says -- all three blocks read formation=None), its Conjunct-3 section no longer ends in the contradictory "... line says the same. HOLDS.", its THOUGHT is a fresh block headed as a rewrite, the brief.py:96/:126/:669 cites now name _in_force_mode/_configured_profile/_operating_mode_block, and the "still UNCOMMITTED, 129 production lines" paragraph is gone; a00-f218f524 carries its "Conjunct (2) ... CODE half only" line once; verdict:a00-ef95d463 carries exactly ONE Agent Notes and no "0.0 - 1.0" scaffold line. (3) THE NEAR MISS, and the kid named it better than the order did: the order asked for len(err) == 1 over the accumulated stderr, which is UNSATISFIABLE for a row that calls the resolver three times -- the docstring contract is one line PER ATTEMPT, so a literal implementation would have forced a production change (throttle to once per process) that the zero-production ceiling forbids, or a row deleted rather than tightened. The near miss a parent would otherwise take is to make the row green by weakening it back to a set, or to assert 3 and call that the same claim. What the kid did instead -- count attempt one at 1, the remaining two at 2 -- is the only form that both keeps the ceiling and makes multiplicity visible. (4) DEVIATION FROM A STANDING RULE: the order was written as a literal assertion and the kid implemented the mechanism behind it, naming the deviation in (5) of its THOUGHT and in its report rather than silently reinterpreting it; the property of THIS case is that the literal order cannot be satisfied without a production change the same order forbids. My own deviation: no git of any kind, so I read the changed bytes as files in this worktree rather than as a diff -- the same evidence, and the de-base-DG4.17 tree holding my session dir was pruned mid-round, which is why my probe and this review live under my own worktree session dir instead. RESIDUE carried forward: a00-36462886's Read section still points at a THOUGHT clause this round deleted, and its Agent Notes still lead with the false DG4.09 sentence ("all three conjuncts verified, config cites goal:g7.16.2, council-loop town=local-maxxing") before the CORRECTED paragraph -- named, not patched, because that node is not this kid's authored region. The hypothesis itself is unchanged by this round: conjunct (1) unproved (config.json still cites goal:g7.16:29/:28) and conjunct (3) still fires (council-loop.md frontmatter town: core against a Seated line reading local-maxxing) -- both are the PRIME's edit in another window, and no run at this node can close them from here.
+<!-- THOUGHT:END -->
