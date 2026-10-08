@@ -130,6 +130,18 @@ def main(argv: list[str] | None = None) -> int:
     rel = path.relative_to(repo).as_posix()
     msg = f"write.py: {args.node} ({args.actor})"
     recover = f"git -C {repo} add -- {rel} && git -C {repo} commit -q -m '{msg}' -- {rel}"
+    try:   # g1.41 E3: no by-path commit while the suite lock is held; wait <= hold_wait_s, BEFORE the only-cell re-check below
+        import time, verification  # noqa: PLC0415,E401
+        end = time.monotonic() + verification.suite_lock_policy(root)["hold_wait_s"]
+        while verification.suite_lock_holder(root) and time.monotonic() < end:
+            time.sleep(0.25)
+        held = verification.suite_lock_holder(root)
+    except (Exception, SystemExit):  # noqa: BLE001 -- an unreadable policy is no hold
+        held = None
+    if held:
+        print(f"ERR: metrics_cell.py: {args.node} left dirty: the suite lock (verify-suite) is held by live pid {held} past "
+              f"values.core.suite_lock.hold_wait_s; NOT committed; recover once released: {recover}", file=sys.stderr)
+        return 3
     if not _only_cell_changed(repo, path, args.cell):
         print(f"ERR: metrics_cell.py: {args.node} is dirty with more than {args.cell} (a hand "
               f"edit?); NOT committed, left as it is; recover by hand: {recover}", file=sys.stderr)

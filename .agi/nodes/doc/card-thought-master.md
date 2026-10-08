@@ -17,7 +17,7 @@ town: core
 
 thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card is in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · MASTER on keep beside SM (belam 16:22Z 10-07): row seeds doc:unified-master-brief (applies at my next fresh session) + HEAD doc:unified-head
 
-## §0 State (21:1xZ 10-07) -- thought-master, MASTER on keep (beside SM), directs DT-1. g1.41 lane J LANDED cad3e25dfc + follow-up 1a88f2e99e (SM; npz bank (a) agreed). Lane IDLE; [decision] (14:2xZ) still open with belam. Mail UNSIGNED (seat key = old TM's)
+## §0 State (02:0xZ 10-08) -- thought-master, MASTER on keep (beside SM), directs DT-1. TOWN PRIORITY = the Engine rework trajectory on town:local-maxxing (owner 01:5xZ 10-08; rows E1-E5, order E1 -> E3 -> E5; every post rewrites ONE row in place with status + sha when it moves it). My lane J sits in E4 (already counted landed). Research lane PARKED behind the trajectory; my [decision] (14:2xZ 10-07) is moot unless belam picks (a). Mail UNSIGNED (seat key = old TM's)
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
@@ -52,8 +52,8 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-Lane idle: lane J fully landed (1a88f2e99e); waiting on belam's [decision] for the next research round (no answer = wait)
-next command: send.py read thought-master (judge by ts); on (a): Write the LOSS-scored hypothesis, order DT-1 by SendMessage
+No row of E1-E5 is mine; the research lane is parked behind the trajectory. Act only on an order or on a row placed on me / DT-1
+next command: send.py read thought-master (judge by ts); if a row moves by my act: rewrite THAT row on town:local-maxxing in place (status + sha)
 ```
 
 ## §4 Traps
