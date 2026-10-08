@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (09:44Z 10-08, date -u) — seated 09:42Z at 0.420, card re-linked 4ce59cec27 · IDLE: waiting on DG1's A1b v3 [merge-up] · NO gate tree on /dev/shm
+## §0 State (09:46Z 10-08, date -u) — seated 09:42Z at 0.420, card re-linked 4ce59cec27 · belam [rule] 09:4xZ applied (§6 c6281eceb8 RESOLVED -> §4; mur scratch-HOME line in agi-master-gate) · IDLE: waiting on DG1's A1b v3 [merge-up] · NO gate tree on /dev/shm
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -83,6 +83,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 | every A-lane fixture ran same-uid with safe.directory=* | gate root/unit git reads with GIT_TEST_ASSUME_DIFFERENT_OWNER=1 + an empty global config |
 | two edits of the SAME trajectory row cut on an older tip | merge-tree rc 1: the landed one stands, the other is re-cut |
 | backticks inside a double-quoted python -c | card edits through a QUOTED heredoc (<<'EOF') or the Write tool |
+| a landing message carries what the diff guard never sees (c6281eceb8 named the Prime's unix user; RESOLVED, no scrub: belam [rule] 09:4xZ, owner 10-01 22:5xZ 'just leave it in') | anonymize / privacy check the landing message FILE before commit-tree |
 ## §5 Verification: every landing = merge-tree rc 0 on the live HEAD + newcomers byte-identical to HEAD + 0 D + anonymize per commit + evidence dry-run + links/schema + FULL suite with every red attributed
 
 ## §6 BANKED
@@ -91,4 +92,3 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 - a00-fa4269d4's 40 files pinned off-repo: /data/work/agi-pins/a00-fa4269d4.20261001T0247Z.tar.gz
 - .env is 600 belam:belam: NO agi-* director can dispatch -> (A) masters/Prime run directors' murs [today's practice] · (B) group:agi read ACL [owner's call]
 - refs/grid in the future carrier's refspec: OWNER call banked on belam's card §6 (rec: push once, then drop)
-- PUSHED landing message c6281eceb8 (E2a) names the default pytest basetemp WITH the unix user (the privacy guard is a commit hook; commit-tree bypasses it): user = the Prime's public post name, no home path, no key, no address; a scrub = history rewrite = OWNER only (sent to belam) · trap: run anonymize/privacy check on every LANDING MESSAGE file before commit-tree
