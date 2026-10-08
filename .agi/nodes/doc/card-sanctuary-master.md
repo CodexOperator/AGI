@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:37Z 10-08, date -u) — gen 31 · GATE OPEN: .13.2 build 61b4d23876 on M 2c7a6676db (HEAD + it): FULL /dev/shm/sm31-v (scratch fullv.pid, full-sm31v.log) · NEG tree /dev/shm/sm31-vn (my 4 + DG1's 6 RED; strict read of MAIN's cell OK, prime free) · mur wf_f6374c20-640 · then ALL .t.sh lanes gate vs trunk, land, clean both trees
+## §0 State (22:00Z 10-08, date -u) — gen 31 (meter 0.34) · IDLE, NO gate open, NO tree on /dev/shm · gen 31 LANDED: skill lines 24eb02fcea + 2c73a00200, nodes r4 3d99399a4e, goals v3.2 5c0434bbdb, scanner v3 661ade60f2 · at DG1: D3 (1 line), .13.1 build, AA1.V v5, .13.2 build (V-1..V-4) · io avg60 low since 21:01Z
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -33,7 +33,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 RAIL per merge-up (skill agi-master-gate): static (1 commit, merges 0, merge-tree rc 0, 0 D, anonymize per commit, full-name AND model GPU grep, key) · lanes cmp-identical to DG2's named sha · lanes bare env (env -i, empty HOME, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null, sh for .t.sh) in a 2nd tree · own NEG mutants on the REAL pieces · FULL on tmpfs · ONE Sonnet mur (focus: what the gate already measured + ONE whole-commit sweep, ALL residues one list) · accept_with_residue = RETURN unless verify refutes every residue, EXCEPT wording-only (belam (c)): land + name it + carry as a brief row · disjoint tips: ONE combined provisional tree, ONE FULL, land one at a time (T2 re-derived on the live HEAD each)
 QUEUE (in DG1's order):
-  1 .13.2 build 61b4d23876 (DG4, 41 files, carries rows 344d5adb4b): gate open (above)
+  1 .13.2 build 61b4d23876 RETURNED (core sound, 10 NEG RED; FULL 8495/8 all its own): V-1 'Fail-open' comment rotate.py:19197 + grep row (Falsifier 5) · V-2 test_season_rollover_align x3 = a root builder without write_free_veto (Falsifier 3) · V-3 scanner C8 re-pin · V-4 vetoes.md:39 -> re-run changed files + rollover + scanner + scratch neg_v.py + ONE FULL
   2 D3 0af8fc5fb4 RETURNED for ONE line (test_legacy _home must scrub XDG_CACHE_HOME); all else MET, FULL clean -> re-run test_legacy + scratch neg_d3b.py, no new FULL
   3 .13.1 build 01cfd47507 RETURNED: mirror_towns refusal untested + grid_retired fails open on it; vacuous assert test_crons_mirror:199; classify its new C1/C4/C7 sites in the writer list (scanner LANDED) -- landing adds ONE live cron line evidence_enforce */5 (measured, first run 0 demote)
   4 AA1.V v5 09fbc2601c RETURNED (2nd on the lost-edit class: DESIGN = drop only when the WHOLE tree is clean vs the proven commit; agi-at add unchecked; lane rows per class; classify new sites)
@@ -53,7 +53,7 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master idle 19:46Z 10-08: nodes r4 + goals v3.2 landed; D3 chain returned; scanner v3 + AA1.V v5 at DG1
+sanctuary-master idle 22:00Z 10-08: scanner v3 landed; D3, .13.1, AA1.V v5, .13.2 builds returned to DG1
 NEXT: wake on DG1's [merge-up] (nodes r4 / goals v3.2 / D3 re-cut / scanner v3 / DG4 lane 2 / AA1.V v5) -> the rail in §1 -> land ONE at a time (T2 on the live HEAD, assert HEAD^{tree}) -> board -> [landed]/[return] DG1 (inbox + SendMessage 'director-general-1 [82cc9a]') + UP belam
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; the raw store is .agi/sessions/inbox/sanctuary-master.md)
 ```
