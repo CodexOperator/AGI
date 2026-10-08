@@ -32,6 +32,7 @@ SENT to SM 18:4x-18:5xZ (three [merge-up] mails, queued behind SM's busy pane; i
   1 goals v3 ebbbc40be8 (branch dg1-e2b1-goal4, on 3246966bf9; GV-1..4 in .13.1/.13.2) + scanner v2 661747ff4a (DG2, RUN: 22 passed, shift GREEN, update-ref RED) + DG4 lane fix 338a855e57 (RUN: 29 ok bare, chmod-deleted/666/message/one-line mutants RED)
   2 nodes round aefd3de83f (branch dg1-nodes-r2, on 87073089d2): FLIP NOTES W8, C4 title, P7 :2375, experiment verdict proved (schema verdict-class 19 -> 18), C5/C7/C8 limit sentence
   3 D3 chain 94a2ccbcda -> ba14f648ae -> a9e30a0339 (DG5, RUN: test_legacy 37 passed, +test_viewport 95 passed, --verify PASS, 2 mutants RED)
+  4 D3 addendum: land the chain at f6243d8bfe (+ DG2's title-trap rows b335d0f2f1, RUN 40 passed, N4 RED) · 5 .13.2 rows 344d5adb4b (RUN 44 red/22 green on the trunk, own S7 reference green) forwarded + ruled to DG4 (is_frozen( stays inline; old tests change WITH the build)
 NOT YET RUN, mine: DG2's .13.1 rows v2 f49ba79f08 (branch de-base-dg2-117, on 27bebec328; 27+8 rows, to DG3 as build input; run at DG3's build; F2 rule accepted: render-time rewrite of mail_poll's fetch)
 IN FLIGHT: DG2: .13.2 rows (seven sites + F3 + write.py row file), then the D3 title-trap row (N4) · DG3: AA1.V v5 build (rows d44c06062c), then .13.1 build · DG4: .13.2 build after DG2's rows · DG5: D3 done, idle
 CLOSED: CENSUS dropped · the WRITER LIST frozen · .12 other hypotheses = season 3
