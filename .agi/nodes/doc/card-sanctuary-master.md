@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (18:57Z 10-08, date -u) — ROTATING at ~0.37 (gen 30 -> 31): idle, NO gate open, NO tree on /dev/shm · trunk pushed · gen 30: 7 landed, 10 returned · placed: D3 -> DG5, .12 lanes -> DG2 · belam 18:2xZ: census DROPPED, writer list FROZEN, the flip waits ONLY on .13.1
+## §0 State (19:09Z 10-08, date -u) — gen 31 seated 18:57Z · GATE OPEN: nodes r2+r3 + goals v3.1 on provisional /dev/shm/sm31-nodes (M2 871505149f), mur wf_94dcd4dd-a70 running · D3 chain f6243d8bfe static OK, FULL waits on io PSI avg60 < 50 (91% at 19:0xZ) · skill line 24eb02fcea LANDED
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -33,13 +33,11 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 RAIL per merge-up (skill agi-master-gate): static (1 commit, merges 0, merge-tree rc 0, 0 D, anonymize per commit, full-name AND model GPU grep, key) · lanes cmp-identical to DG2's named sha · lanes bare env (env -i, empty HOME, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null, sh for .t.sh) in a 2nd tree · own NEG mutants on the REAL pieces · FULL on tmpfs · ONE Sonnet mur (focus: what the gate already measured + ONE whole-commit sweep, ALL residues one list) · accept_with_residue = RETURN unless verify refutes every residue, EXCEPT wording-only (belam (c)): land + name it + carry as a brief row · disjoint tips: ONE combined provisional tree, ONE FULL, land one at a time (T2 re-derived on the live HEAD each)
 QUEUE (in DG1's order):
-  1 goals .13.1/.13.2 v4 (v3 ebbbc40be8 RETURNED 18:5xZ; GV-1/2/4 + F1-F3 MET; GV-3 DESIGN: strict veto reads redden ~115 committed tests in 9+ files (write_actor_rows 19, write_ring_cli 32, write_master_sensei 10, closeout_steps 15, handover 24, prepare 8 ...) -> name the CLASS + ONE shared fixture writing a well-formed FREE vetoes.md, a row 'suite stays green with it'; GV-5 cli.py:4241 row or scoped out) -- check ONLY those two, then mur
-  1b scanner rows v3 (v2 661747ff4a RETURNED: SR-1 shape row :121 substring scope check -> exact pathspec tokens; SR-2 d8 docstring says C5 catches the hand-spelled push, it does not) -- v2 measured 22 pass, shift GREEN, raw grid push RED; rides on the landed list 79238a68c9
-  1c DG4 key lane round 2 (ORDER sent): pure-base64 47-/49-char blobs kill my L1 ({48} -> {43,} at engine-root.md:136 survives 29/29) + [ ! -s $RING ] per strict case
-  1d DG1 nodes round (A): writer list FLIP NOTES (4) W8 'exempt', C4 wording, P7 :2375, experiment verdict pending -> proved, the double-quote + cut-tail limits named
-  2 census: DROPPED (belam 18:2xZ (c)): not a flip gate, v8 1430fe5764 stays un-landed, v9 not built
-  3 AA1.V v5 (v4 7c713dd4af RETURNED 17:25Z: R1 EDIT LOST agi-turn engine-post.md:69 unchecked add -> rc 0 -> drop rm -rf (live: tests-test-render-context payload absent); R2 set -e dropped from agi-wt; R3 .b re-read not $c; R4 agi-flush trunk merge gone; R5 low; DESIGN: no rm -rf without a proven commit, a lane row per failure class) -- my NEG N1-N5 reusable (scratch neg.py pattern)
-  4 D3 build ba14f648ae (DG5) after DG2's cache rows v2 f0cb8e8b32 kill M1/M2 (cache across a commit, season, unwritable HOME) + --verify compares marks (DG1 ruled in scope; inject.py stamping ruled OUT)
+  1 nodes r2 aefd3de83f + r3 bd6a73f4b8: 5 closed items TRUE at 2e92b6447a; RETURN-bound: evidence dry-run DEMOTES the experiment (verdict proved, no evidence_runs -> add [experiment:g716111-aa2-key-onebox-agi-fresh], the convention) + FLIP NOTES still says census = precondition / A-B pending (belam 18:2xZ dropped it) -> one list with the mur's residues
+  2 goals stack 6a19088e08..db87f7bd39 v3.1: GV-3 + GV-5 MET; anonymize ok x6, 0 D, links 0 broken -> land on a clean mur (independent of 1: re-derive T2 on the live HEAD alone)
+  3 D3 chain 94a2ccbcda..f6243d8bfe (legacy.py new, viewport +61, help_smoke +2, test_legacy +606): static OK (anonymize x3, GPU 0, home 0, merge-tree rc 0, 0 merges); inject.py unstamped (ruled); viewport-verify in commands.md 13 s -> 39 s cold (limit named) -> FULL on tmpfs when io avg60 < 50 + mem >= 6 GB, lanes gate vs trunk, NEG on _verify, mur
+  4 .13.2 rows 344d5adb4b (DG2): 44 RED on the trunk by design = HELD, rides WITH DG4's .13.2 build
+  5 scanner rows v3 (DG2 re-cut SR-1/SR-2) · DG4 key lane round 2 · AA1.V v5: wait for DG1's merge-up
   rail: static · lanes cmp · bare env · NEG on the REAL pieces (anchor at line start; assert count==1) · FULL on tmpfs · ALL .t.sh gate vs a trunk tree (scratch lanes.sh: env -i, node dir on PATH, sh) · Sonnet mur, focus = what the gate measured + ONE sweep
   HELD: lane W 6646702009 (with the flip) · AA1.Va lane 1732119924 (with its build) · graph-metrics r2d/r2e fixture = a DG2 row
   FLIP NOTE for belam: a retired commit skips evidence_gate.enforce_on_disk (grid.py:1264) -- name its successor gate at the flip
