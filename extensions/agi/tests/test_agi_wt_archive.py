@@ -81,11 +81,16 @@ def test_r2_one_namespace_with_heal():
     assert f"update-ref {m[1]}$s@" in piece("agi-wt")
 
 
-def test_m1_identity_post_wins_and_none_refuses(tmp_path):
-    g, t, rt, d = setup(tmp_path / "a", AGI_POST="p2")
+def test_m1_identity_seat_wins_and_none_refuses(tmp_path):
+    """goal:g1.41 B5: the caller's own seat names the archive (a kid whose env inherits AGI_POST=<parent> must not overwrite the parent's entry); AGI_POST alone still works."""
+    g, t, rt, d = setup(tmp_path / "a", AGI_POST="p2")                    # AGI_SEAT=p1 from setup(): the seat wins
     move(g, t, d)
     assert g("agi-wt", "drop", "doc:t1").returncode == 4
-    assert g("git", "for-each-ref", "refs/archive").stdout.split()[-1] == "refs/archive/worktrees/p2@m1"  # flat: no slash after the namespace
+    assert g("git", "for-each-ref", "refs/archive").stdout.split()[-1] == "refs/archive/worktrees/p1@m1"  # flat: no slash after the namespace
+    g, t, rt, d = setup(tmp_path / "c", AGI_SEAT=None, AGI_POST="p2")      # only AGI_POST: it names the archive
+    move(g, t, d)
+    assert g("agi-wt", "drop", "doc:t1").returncode == 4
+    assert g("git", "for-each-ref", "refs/archive").stdout.split()[-1] == "refs/archive/worktrees/p2@m1"
     g, t, rt, d = setup(tmp_path / "b", AGI_SEAT=None, AGI_POST=None)
     move(g, t, d)
     r = g("agi-wt", "drop", "doc:t1")
