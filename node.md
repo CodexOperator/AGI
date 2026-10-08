@@ -10,7 +10,7 @@ scaffold_hash: 1a5628596065214d
 season: 2
 town: core
 ---
-# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 40 pieces (43 `###` blocks in engine*.md: agi-boot, agi-boot.service and matrix are not mapped)
+# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 43 pieces (every `###` block in engine*.md)
 Depth 0 = diagram · 1 = loop + pieces · 2 = one piece: `sect <name>` (any `.geometry/engine*.md`: this node, config:engine-post, config:engine-wrap, config:engine-grow, config:engine-root) · 3 = this file. Pieces are small templates over raw commands; parameters are cells: a row's ONE `engine` object is projected as AGI_<KEY> env. Parity: doc:g716111-stage25-parity.
 
 ## diagram — depth 0
@@ -21,9 +21,9 @@ Depth 0 = diagram · 1 = loop + pieces · 2 = one piece: `sect <name>` (any `.ge
    start|resume|compact ──CC hooks, or pi via cccc.ts──▶ agi-brief: walk(card+seeds+claims) + STARTUP
    prompt ──▶ agi-meter: at the line: card, .fresh, kill ──▶ Restart = a FRESH successor
    turn end ──▶ agi-turn: one signed commit · agi-link · released agi-wt trees dropped · mail = a turn
-   stop ──▶ agi-flush ──▶ the master lands posts/<p> ──▶ next brief sees it · agi-project re-runs on a pin bump in carry.env, not on a landing
+   stop ──▶ agi-flush ──▶ the master lands posts/<p> ──▶ next brief sees it · a write of carry.env re-runs agi-project
    harness: claude --remote-control <p> (hooks native; the owner's app lists it) · pi + cccc.ts · agi-kid
-   tick: project(graph) == observe(body)? equal = alive · differ = start it + a drift commit
+   tick: project(graph) == observe(body)? equal = alive · differ = start its OWN unit + a drift commit
    ZYGOTE = this read (map · sect · agi-project · agi-gate) ──sect @REV──▶ EXPANSION: config:engine-post · config:engine-wrap · config:engine-grow · config:engine-root
 ~~~
 
@@ -46,37 +46,40 @@ agi-kid           2037 B  a pi-free kid in this unit: own HOME, tree, cccc.ts
 agi-infer          1077 B  ONE chat call, OpenAI-compatible: stdin -> stdout
 agi-brief          938 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
-agi-meter          439 B  past rotate_pct of the window: the out-line
+agi-meter          547 B  past rotate_pct of the window: out-line
 agi-turn           269 B  drop released trees; signed commit; agi-link
 agi-link           358 B  node <-> code file via payload_ref
-agi-wt             688 B  a node's tiny RAM tree: pull; drop = commit+purge
+agi-wt            1077 B  a node's tiny RAM tree: pull; drop = commit+purge
 agi-track           89 B  strace sink: each path once
-agi-flush          181 B  on exit: drop trees, commit, merge trunk
+agi-flush          216 B  on exit: drop trees, commit, merge trunk
 agi-out           3120 B  the out-line: next keys, ONE ring commit, re-wrap, swap
-gitconfig          198 B  signed commits, verified against the root-owned allowed_signers, own hooks
+gitconfig          198 B  signed commits, checked against root's allowed_signers, own hooks
 sysusers.conf       41 B  a post = one user in group agi
-agi.rules          211 B  group agi may start agi-post@ units
+agi.rules          242 B  a post starts only its OWN unit
 project.sh         161 B  what the body SHOULD be
 observe.sh         255 B  what the body IS
-tick.sh            254 B  diff them; start the drift; commit
+tick.sh            284 B  diff them; start own unit; commit
 agi-project       2560 B  the genome: units + cells for v4 rows
 agi-frontier       460 B  each active goal runs its falsifier
-agi-gate           410 B  refuse a tip whose body would not regrow; one name, one piece
+agi-gate           542 B  refuse a tip whose body would not regrow; one name, one piece
 agi-vstore         856 B  root: fetches the pin into a root-owned RAM store, git re-hashes every object
+agi-boot         1797 B  root: gate the pin, start the posts
+agi-boot.service  826 B  runs agi-boot after agi-vstore
+matrix            100 B  who reads which node via which piece
 sect               214 B  ONE piece of any engine*.md node, byte-exact, any REV
-agi-fill          5973 B  a node key opens a captive fill window
+agi-fill          5973 B  a node key opens a captive window
 agi-captive        576 B  window open: only agi-fill passes
 grow-check        1298 B  one node vs its matrix row + key
-grow-gate         7088 B  pre-receive: added/changed nodes must pass
-ckpt              3444 B  a block = signed hand-offs at one tip; check lists those that hold
+grow-gate         7098 B  pre-receive: added/changed nodes must pass
+ckpt              3444 B  signed hand-offs at one tip; check lists those that hold
 grow-project      1185 B  schemas -> the growth matrix
-agi-land          1855 B  root: ff-lands a post range on the trunk, one parent edge up (ring-signed, grow-gate, agi-gate)
-box               2005 B  mail: one signed ref update per send (5x CAS), read from the store
-box-carry         3253 B  root: P's refs/box/P/<Q> -> the recipient's store (pipe, ff-only) or the hub; --fetch = the timer
-agi-signers       1727 B  root: the ONE allowed_signers, every key generation, valid-after/before; one strict key line
-agi-carry@.path     149 B  PathChanged on the sender's own refs/box/<P> (a unit on refs/box fires only on the first send)
+agi-land          1855 B  root: ff-lands a post range one edge up (ring, grow-gate, agi-gate)
+box               2005 B  mail: one signed ref update per send (5x CAS)
+box-carry         3253 B  root: refs/box/P/<Q> -> the recipient's store (ff-only) or the hub; --fetch = timer
+agi-signers       1727 B  root: the ONE allowed_signers, every key generation, valid-after/before
+agi-carry@.path     149 B  PathChanged on the sender's refs/box/<P> (a refs/box unit fires only on first send)
 agi-carry@.service  308 B  oneshot: box-carry %i
-agi-carry-fetch.timer   88 B  every 60 s: carry each local post, then the hub      
+agi-carry-fetch.timer   88 B  every 60 s: carry each local post, then hub
 agi-carry-fetch.service 229 B  oneshot: box-carry --fetch
 ~~~
 
@@ -93,9 +96,10 @@ printf '[Service]\nType=oneshot\nWorkingDirectory=%s\nEnvironmentFile=/etc/agi/c
 printf '[Path]\nPathChanged=/etc/agi/carry.env\n'>$o/agi-project.path;ln -sf ../agi-project.path $w
 ~~~
 
-### agi-gate (410 B)
+### agi-gate (542 B)
 ~~~sh
 #!/bin/sh
+[ $(id -u) = 0 ]&&exec runuser -u nobody -- env GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0='*' "$0" "$@"
 git grep -ho "^### [^ ]*" $1 -- ":/.agi/nodes/.geometry/engine*.md"|sort|uniq -d|grep -q .&&exit 2
 o=$(mktemp -d);sect agi-project $1|sh -s $o $1&&[ -s $o/agi-post@.service ]&&ls $o/agi-post@*.service.d/h.conf>/dev/null||{ rm -rf $o;exit 1;}
 mv $o $o.1;AGI_TRUNK=$1 sh -c "$(sed -n 's/^ExecStart=sh -c "\(.*\)&&systemctl.*/\1/p' $o.1/agi-project.service)";diff -r $o.1 $o;r=$?;rm -rf $o $o.1;exit $r
