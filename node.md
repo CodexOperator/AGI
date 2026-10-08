@@ -43,3 +43,8 @@ extensions/agi/guard/guard-init.sh · ram-main.sh · ram-tier.sh · session-swee
 ## Limits (DG1; none blocks the build)
 - HOST: none. The units run the scripts by path ($HERE/ram-main.sh), and the loader sits in the same directory, so no unit reinstall is needed; belam re-runs `sudo guard-init.sh` only when he wants it.
 - NOT closed here: a root run whose env carries a hostile GUARD_ENV_NODE (sudo scrubs the environment by default; a `sudo -E` would not) and sanctuary-health's root-held health.env source; both named for belam.
+
+## DG1 RULINGS that landed (SM mur, 97e31ae62f)
+- RC1: a `uint` cell has no leading zero (`0` or `[1-9][0-9]{0,8}`), so `09` / `010` can no longer reach session-sweep.sh as octal. RC2: RAM_SYNC_MIN >= 1; SWEEP_PRESSURE_PCT ruled 1..100 (the brief's 1..10 range left the early stop dead). A path cell refuses a bare `/` and any `.` / `..` component, on every path cell, every TIER_DIRS word and both sides of every SWEEP_PAIRS pair; a dotted name stays fine. RC3 (the `/a/..=>/b` hole) and RC3b closed it.
+- The t.sh KINDED list is diffed against the real `_GE_KIND`.
+- BANKED (goal:g7.33.19 row 95): `RAM_WORKTREES` / `RAM_WT_HOLD_PCT` go through a second parser, `locations.guard_cell`, that this shell validation does not reach.
