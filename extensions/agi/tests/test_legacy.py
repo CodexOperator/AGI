@@ -12,12 +12,16 @@ PINNED INTERFACE (DG5 may counter-propose; the rows are then re-cut):
 The four shapes: `[legacy]` (k = 0, not graphed since the entry) · `[legacy ⊃k]` (k > 0, not graphed) · `[⊃k]` (k > 0, graphed) · none (k = 0, graphed). ENTRY = the NEWEST of the path's first commit, the commit that ADDS `nest:`, and the commit after which `season:` equals the current season; GRAPHED = a commit above the entry after which `parents:` GAIN a `goal:` id absent at the entry (or, when the entry is the first commit, the node was minted with a goal parent). "Gain", not "includes".
 
 Rows: l2-* the doc's 11-case table (each case judged AT its commit) + carry / retire-move / hand-set-field cases · l1-* the mark equals v1's grid-ref shell rule (quoted from the doc's first version) for every node that has a grid ref · neg-* no `^legacy:` field in any node file, no `refs/grid` in legacy.py (+ witnesses that the greps can hit) · l3-* the viewport CLI. Env: LEGACY_BIN=<dir holding legacy.py, nest.py, viewport.py and the rest of bin> (default: this tree's extensions/agi/bin); mutants are such dirs.
+
+v2 (DG1 17:55Z, DG5's survivors M1 / M2 and the --verify ruling): l4-* the per-user CACHE (${XDG_CACHE_HOME:-~/.cache}/agi/legacy.tsv) is invalidated by a NEW COMMIT on a node (l4-a) and by a new SEASON with no commit on any node (l4-b); an unwritable HOME / cache path still renders the mark (l4-c); `viewport.py --verify` fails when ONE of the two views drops or alters the mark and passes on the clean tree (l4-d: a patched renderer in a scratch copy of the bin dir; env LEGACY_BIN points the lane at the code under test).
 """
 from __future__ import annotations
 
 import importlib.util
 import os
 import re
+import shutil
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -436,3 +440,140 @@ def test_l3_the_terminal_and_the_llm_view_print_the_same_mark_string(tmp_path, n
     llm = line_of(vp(repo, "--emit", "llm").stdout, f"`{nid}`")
     hm, lm = MARK_RE.findall(human), MARK_RE.findall(llm)
     assert hm == lm == ([want] if want else []), f"{nid}: human {hm}, llm {lm}, want {[want] if want else []}\n{human!r}\n{llm!r}"
+
+
+# ====================================================================================================
+# l4: the cache is keyed by (path, season, the path's newest commit); an unwritable cache never hides the mark; --verify compares the marks
+# ====================================================================================================
+
+
+def vp2(repo: Repo, *args: str, home: Path | None = None, bin_dir: Path | None = None) -> subprocess.CompletedProcess:
+    viewport = (bin_dir or BIN) / "viewport.py"
+    assert viewport.exists(), f"{viewport} does not exist"
+    return subprocess.run([sys.executable, str(viewport), "--project", str(repo.dir / ".agi"), *args], cwd=repo.dir, capture_output=True, text=True, timeout=180,
+                          env={"PATH": "/usr/bin:/bin", "HOME": str(home or os.environ["HOME"]), "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_SYSTEM": "/dev/null"})
+
+
+def mark_on(out: str, nid: str) -> list[str]:
+    """The mark strings on the llm view's line of `nid` (a list: [] = none)."""
+    return MARK_RE.findall(line_of(out, f"`{nid}`"))
+
+
+def test_l4a_a_new_commit_on_a_node_invalidates_its_cached_mark(tmp_path):
+    """ONE HOME, two runs, a commit between: goal:a (carried, collapsed, 2 members) reads `[legacy ⊃2]`; a commit that gains goal:g2 as a PARENT of goal:a makes the SAME node
+    read `[⊃2]` (graphed since the entry) on the second run. A cache hit that ignores the path's newest-commit key keeps the stale `[legacy ⊃2]` (DG5's M1)."""
+    repo = build_v(tmp_path)
+    first = vp2(repo, "--emit", "llm")
+    assert first.returncode == 0, first.stderr[-300:]
+    assert mark_on(first.stdout, "goal:a") == ["[legacy ⊃2]"], first.stdout[-400:]
+    repo.edit(".agi/nodes/goal/a.md", node_text("goal:a", "goal", 2, ["goal:root", "goal:g2"], title='"T-a"', season=3, nest="subtree"), "a gains goal:g2")
+    second = vp2(repo, "--emit", "llm")
+    assert second.returncode == 0, second.stderr[-300:]
+    assert mark_on(second.stdout, "goal:a") == ["[⊃2]"], f"stale cache: {mark_on(second.stdout, 'goal:a')} (want [⊃2])"
+    third = vp2(repo, "--emit", "llm")
+    assert mark_on(third.stdout, "goal:a") == ["[⊃2]"], "a third run over the warm cache must read the same"
+
+
+def build_season_fx(tmp_path: Path) -> Repo:
+    """build:q is minted in season 2, GAINS goal:g1 in season 2, is carried to season 3 by a one-node commit and never touched again: at current_season 3 its entry is the carry
+    commit and it gained nothing above it = `[legacy]`; at current_season 4 NO node has a season-4 commit, so its entry is its FIRST commit and the gain of goal:g1 is above it = graphed, no mark."""
+    r = Repo(tmp_path, "sx")
+    ladder = lambda n: node_text("config:ladder", "config", 20, [], current_season=n)
+    q = lambda ps, season: node_text("build:q", "build", 5, ps, title='"T-q"', season=season)
+    r.write(".agi/nodes/.geometry/ladder.md", ladder(2))
+    r.write(".agi/nodes/goal/root.md", node_text("goal:root", "goal", 1, [], title='"T-root"', season=2))
+    r.write(".agi/nodes/goal/g1.md", node_text("goal:g1", "goal", 2, ["goal:root"], title='"T-g1"', season=2))
+    r.write(".agi/nodes/build/q.md", q(["goal:root"], 2))
+    r.commit("season 2 tip")
+    r.edit(".agi/nodes/build/q.md", q(["goal:root", "goal:g1"], 2), "q gains goal:g1 (season 2)")
+    r.edit(".agi/nodes/.geometry/ladder.md", ladder(3), "ladder: season 3")
+    for nid, typ, i, ps in (("goal:root", "goal", 1, []), ("goal:g1", "goal", 2, ["goal:root"])):
+        r.edit(f".agi/nodes/goal/{nid.split(':')[1]}.md", node_text(nid, typ, i, ps, title=f'"T-{nid.split(":")[1]}"', season=3), f"carry {nid}")
+    r.edit(".agi/nodes/build/q.md", q(["goal:root", "goal:g1"], 3), "carry build:q")
+    return r
+
+
+def test_l4b_a_new_season_with_no_node_commit_invalidates_the_cached_mark(tmp_path):
+    """ONE HOME, two runs; the ONLY commit between them edits ladder.md (current_season 3 -> 4), so every node path keeps its newest commit: build:q reads `[legacy]` at season 3 and NO
+    mark at season 4 (its entry falls back to its first commit; the goal:g1 gain is above it). A cache key that ignores the season returns the stale `[legacy]` (DG5's M2)."""
+    repo = build_season_fx(tmp_path)
+    first = vp2(repo, "--emit", "llm")
+    assert first.returncode == 0, first.stderr[-300:]
+    assert mark_on(first.stdout, "build:q") == ["[legacy]"], first.stdout[-500:]
+    repo.edit(".agi/nodes/.geometry/ladder.md", node_text("config:ladder", "config", 20, [], current_season=4), "ladder: season 4")
+    second = vp2(repo, "--emit", "llm")
+    assert second.returncode == 0, second.stderr[-300:]
+    assert mark_on(second.stdout, "build:q") == [], f"stale cache across a season: {mark_on(second.stdout, 'build:q')} (want none)"
+
+
+def test_l4c_an_unwritable_home_still_renders_the_mark(tmp_path):
+    """The cache is an optimisation: HOME read-only (no ~/.cache can be created) -> rc 0 and the marks are all on, as on a writable HOME."""
+    repo = build_v(tmp_path)
+    ro = tmp_path / "ro-home"
+    ro.mkdir()
+    ro.chmod(0o500)
+    try:
+        r = vp2(repo, "--emit", "llm", home=ro)
+    finally:
+        ro.chmod(0o700)
+    assert r.returncode == 0, (r.returncode, r.stderr[-300:])
+    assert mark_on(r.stdout, "goal:a") == ["[legacy ⊃2]"] and mark_on(r.stdout, "build:z") == ["[legacy]"] and mark_on(r.stdout, "goal:b") == [], r.stdout[-500:]
+    assert "Traceback" not in r.stderr, r.stderr[-300:]
+
+
+def test_l4c2_a_cache_path_that_is_a_file_still_renders_the_mark(tmp_path):
+    """HOME/.cache is a regular FILE (makedirs fails): rc 0, all marks on, no traceback."""
+    repo = build_v(tmp_path)
+    h = tmp_path / "file-home"
+    h.mkdir()
+    (h / ".cache").write_text("not a directory")
+    r = vp2(repo, "--emit", "llm", home=h)
+    assert r.returncode == 0, (r.returncode, r.stderr[-300:])
+    assert mark_on(r.stdout, "goal:a") == ["[legacy ⊃2]" ] and mark_on(r.stdout, "build:z") == ["[legacy]"], r.stdout[-500:]
+    assert "Traceback" not in r.stderr, r.stderr[-300:]
+
+
+def scratch_bin(tmp_path: Path, name: str, old: str, new: str, nth: int = 1) -> Path:
+    """A scratch copy of the bin dir under test: every entry a symlink except viewport.py, a patched copy (the nth occurrence of `old` replaced by `new`)."""
+    d = tmp_path / name
+    d.mkdir()
+    for e in BIN.iterdir():
+        if e.name in ("viewport.py", "__pycache__"):
+            continue
+        (d / e.name).symlink_to(e)
+    src = (BIN / "viewport.py").read_text()
+    if old:
+        assert src.count(old) >= nth, f"{old!r} occurs {src.count(old)} time(s) in viewport.py (need >= {nth}): the lane's patch point moved"
+        parts = src.split(old)
+        src = old.join(parts[:nth]) + new + old.join(parts[nth:])
+    (d / "viewport.py").write_text(src)
+    return d
+
+
+LG = 'lg = f" {f.legacy}" if f.legacy else ""'
+
+
+def test_l4d_verify_exits_0_on_a_clean_scratch_copy(tmp_path):
+    """The control for the patched rows: an UNPATCHED scratch copy of the bin dir passes --verify (so a non-zero below is the patch, not the copy)."""
+    repo = build_v(tmp_path)
+    d = scratch_bin(tmp_path, "bin_clean", "", "")
+    r = vp2(repo, "--verify", bin_dir=d)
+    assert r.returncode == 0 and "PASS" in r.stdout, (r.returncode, r.stdout[-300:], r.stderr[-300:])
+
+
+@pytest.mark.parametrize("which,nth,new", [
+    ("the human view drops the mark", 1, 'lg = ""'),
+    ("the llm view drops the mark", 2, 'lg = ""'),
+    ("the llm view alters the mark", 2, 'lg = f" {f.legacy.replace(\'legacy\', \'old\')}" if f.legacy else ""'),
+    ("the human view alters the mark", 1, 'lg = f" {f.legacy.replace(\'⊃\', \'+\')}" if f.legacy else ""'),
+])
+def test_l4d_verify_fails_when_one_view_drops_or_alters_the_mark(tmp_path, which, nth, new):
+    """goal:g2.19 'one render, two readers': a renderer that drops or alters the legacy mark in ONE of the two views makes `viewport.py --verify` exit non-zero (and not print PASS)."""
+    repo = build_v(tmp_path)
+    d = scratch_bin(tmp_path, "bin_patched", LG, new, nth)
+    r = vp2(repo, "--verify", bin_dir=d)
+    assert r.returncode != 0 and "PASS" not in r.stdout, f"{which}: --verify still passes: rc {r.returncode} {r.stdout[-300:]}"
+    # and the patched view really differs from the clean one (the patch is live, not vacuous)
+    clean = vp2(repo, "--emit", "llm" if nth == 2 else "human")
+    patched = vp2(repo, "--emit", "llm" if nth == 2 else "human", bin_dir=d)
+    assert MARK_RE.findall(clean.stdout) != MARK_RE.findall(patched.stdout), f"{which}: the patch changed nothing in the view"

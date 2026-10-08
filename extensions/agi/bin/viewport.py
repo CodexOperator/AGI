@@ -1239,6 +1239,7 @@ def main() -> int:
 #: verifier that silently starts measuring different lines has stopped
 #: verifying (L1.04).
 _FRAME_LINE = re.compile(r"^\s*-\s+`([^`]+)`\s+\(")
+_LEGACY_MARK = re.compile(r"\[(?:legacy(?: ⊃\d+)?|⊃\d+)\]")   # legacy.render()'s three shapes
 
 
 def _verify(frames: list[Frame], args, brief=None) -> int:
@@ -1278,6 +1279,18 @@ def _verify(frames: list[Frame], args, brief=None) -> int:
         if f.damaged and f.damaged not in llm:
             print(f"FAIL: damage on {f.node_id} is missing from the llm view")
             ok = False
+
+    # D3 (goal:g7.16.1.11.22): the legacy mark is the SAME string in both renderings
+    # (goal:g2.19: the terminal and the llm view agree byte for byte). Each frame's
+    # title is cut out of its line first: a title may itself read like a mark.
+    llm_line = {m.group(1): ln for ln in llm.splitlines() if (m := _FRAME_LINE.match(ln))}
+    for f, hl in zip(sl, human[len(human) - len(sl):]):   # the briefing head comes first; no status / idle band here, so the frame lines are the last len(sl)
+        want = [f.legacy] if f.legacy else []
+        for view, ln in (("human", hl), ("llm", llm_line.get(f.node_id, ""))):
+            got = _LEGACY_MARK.findall(ln.replace(f.title, "", 1))
+            if got != want:
+                print(f"FAIL: {view} view shows legacy mark {got} on {f.node_id}, want {want}")
+                ok = False
 
     if brief is not None:
         # The facts both readers were handed must appear in both renderings.
