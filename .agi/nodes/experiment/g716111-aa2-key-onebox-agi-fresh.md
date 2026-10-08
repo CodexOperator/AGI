@@ -13,7 +13,9 @@ scaffold_hash: 04191639ebb8a420
 season: 2
 title: "EXP: the one-box key half (crash keeps the key / 0 ring lines, out-line = new key + 1 ring line + valid-before, a stale generation fails verify-commit, principal <post>@agi) run through the REAL unit line and agi-signers: agi-fresh.t.sh 23 ok / 0 FAIL on the trunk, 29 ok with the six survivor rows"
 town: core
-verdict: pending
+verdict: proved
+evidence_runs:
+  - experiment:g716111-aa2-key-onebox-agi-fresh
 ---
 # experiment:g716111-aa2-key-onebox-agi-fresh
 
