@@ -52,30 +52,31 @@ j=$(cat);t=$(echo "$j"|jq '.tokens//empty');[ "$t" ]||t=$(echo "$j"|jq -r .trans
 [ "${t:-0}" -gt $((w*${AGI_ROTATE_PCT:-47}/100)) ] 2>/dev/null&&echo "At the line ($t/$w): write your card in its node tree (agi-wt pull), run agi-flush, then: touch ~/.fresh;kill \$PPID";:
 ~~~
 
-### agi-at (538 B)
+### agi-at (549 B)
 ~~~sh
 #!/bin/sh
 # agi-at PATH...: ONE signed commit of ~/t's paths onto posts/P by CAS on the tip read; a miss = [raced], exit 4, the edit stays; ~/t = a detached view of the tip
-cd ~/t;P=${AGI_POST:?};b=refs/heads/posts/$P;x=$(mktemp -u);trap 'rm -f $x' 0;export GIT_INDEX_FILE=$x;t=$(git rev-parse $b);git read-tree $t;git add -A -- "$@";n=$(git write-tree)
+cd ~/t;P=${AGI_POST:?};b=refs/heads/posts/$P;x=$(mktemp -u);trap 'rm -f $x' 0;export GIT_INDEX_FILE=$x;t=$(git rev-parse $b)&&git read-tree $t&&git add -A -- "$@"&&n=$(git write-tree)||exit 1
 [ $n = $(git rev-parse $t^{tree}) ]&&exit;c=$(echo "$P: $*"|git commit-tree -S -p $t $n)&&git update-ref $b $c $t||{ echo "[raced] $*">&2;exit 4;}
 unset GIT_INDEX_FILE;git reset -q $b
 ~~~
 
-### agi-turn (1440 B)
+### agi-turn (1897 B)
 ~~~sh
 #!/bin/sh
-# agi-turn: each changed node tree = ONE grid commit on posts/P (temp index from the tip, signed, CAS); the tip moved it since pull = archived + dropped; a tree is purged ONLY once its commit is proven, any failure keeps it (rc != 0, a [label]); ~/t = a detached read view
+# agi-turn: each changed node tree = ONE grid commit on posts/P (temp index from the tip, signed, CAS); the tip moved it since pull = archived + dropped; a tree is purged ONLY once its commit is proven AND the whole tree is clean against it (agi-turn chk DIR COMMIT: a file outside .p keeps it, [dirty]), any failure keeps it (rc != 0, a [label]); ~/t = a detached read view
 cd ~/t;P=${AGI_POST:?};b=refs/heads/posts/$P;x=$(mktemp -u);trap 'rm -f $x' 0;export GIT_INDEX_FILE=$x;k=0
+[ "$1" = chk ]&&{ git read-tree $3||exit 1;l=$({ git --work-tree=$2 diff --name-only --diff-filter=MT;git --work-tree=$2 ls-files -o;}|grep -vxF -e .p -e .b|tr '\n' ' ');[ -z "$l" ]&&exit;echo "[dirty] $(basename $2): kept, not in the commit: $l">&2;exit 1;}
 for d in ${AGI_WT:-$RUNTIME_DIRECTORY/wt}/*/;do [ -f $d.p ]||continue;m=$(basename $d);t=$(git rev-parse $b)&&git read-tree $t&&a=$(git --work-tree=$d add -A --pathspec-from-file=$d.p 2>&1)&&n=$(git write-tree)||{ echo "[stage] $m: $(echo "${a:-git failed}"|tr '\n' ' ')">&2;k=1;continue;}
  [ $n = $(git rev-parse $t^{tree}) ]&&continue;r=$b;o=$t;q=;[ ! -f $d.b ]||(IFS='
 ';set -f;git diff --quiet $(cat $d.b) $t -- $(cat $d.p))||{ r=refs/archive/$P/$m;o=$(git rev-parse -q --verify $r||:);q=${o:+-p $o};}
  c=$(echo "$P: $(sed q $d.p)"|git commit-tree -S -p $t $q $n 2>&1)||{ echo "[commit] $m: cannot sign or commit: $c">&2;k=1;continue;}
  git update-ref $r $c "$o"||{ echo "[raced] $m">&2;k=4;continue;}
- [ $r = $b ]&&{ echo $c>$d.b;continue;};echo "[moved] $m: changed on the tip since pull; your version is $r, the tree is dropped">&2;rm -rf $d;done
+ [ $r = $b ]&&{ echo $c>$d.b;continue;};agi-turn chk $d $c&&{ echo "[moved] $m: changed on the tip since pull; your version is $r, the tree is dropped">&2;rm -rf $d;continue;};echo "[moved] $m: your version is $r, the tree is KEPT">&2;k=1;done
 unset GIT_INDEX_FILE;git checkout -q --detach $b;git status -s|grep -q .&&echo "[out-of-tree] ~/t has $(git status -s|wc -l) unversioned change(s): edit in a node's tree (agi-wt pull)">&2;exit $k
 ~~~
 
-### agi-wt (1081 B)
+### agi-wt (1111 B)
 ~~~sh
 #!/bin/sh
 # agi-wt pull ID [REV] | new PATH [PAYLOAD] | drop ID: a node's tiny tree (node + payload, ONE PATH PER LINE in .p) in RAM for the session; agi-turn versions it, drop purges it only after a proven turn
@@ -86,7 +87,7 @@ f=$(git grep -lE "^(id|mint_id): $2$" $r -- .agi/nodes|head -1|cut -d: -f2-);[ "
 case $1 in pull)[ -d $d ]&&{ echo $d;exit;};[ $(df --output=pcent $w|tail -1|tr -dc 0-9) -lt ${AGI_WT_HOLD:-60} ]||{ echo "hold $w";exit 3;}
 mkdir $d;printf '%s\n' "$f" $(git show $r:$f|sed -n 's/^payload_ref: "\{0,1\}\([^"]*\)"\{0,1\}$/\1/p')>$d/.p
 e=$(git archive -o $d.tar $r $(cat $d/.p) 2>&1&&tar -xC $d -f $d.tar 2>&1)||{ rm -rf $d $d.tar;echo "agi-wt: pull $2 failed: $e">&2;exit 6;};rm $d.tar;git rev-parse $r>$d/.b;echo $d;;
-drop)agi-turn&&rm -rf $d;;esac
+drop)agi-turn&&agi-turn chk $d $(cat $d/.b)&&rm -rf $d;;esac
 ~~~
 
 ### agi-track (89 B)

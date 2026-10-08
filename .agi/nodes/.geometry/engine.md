@@ -47,9 +47,9 @@ agi-infer          1077 B  ONE chat call, OpenAI-compatible: stdin -> stdout
 agi-brief          938 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
 agi-meter          574 B  past rotate_pct of the window: out-line
-agi-at             538 B  signed CAS commit of ~/t paths to posts/<P>
-agi-turn          1440 B  a signed commit per changed node tree; ~/t = a read view
-agi-wt            1081 B  a node's tiny RAM tree: pull; drop = turn + purge
+agi-at             549 B  signed CAS commit of ~/t paths to posts/<P>
+agi-turn          1897 B  a signed commit per changed node tree; ~/t = a read view
+agi-wt            1111 B  a node's tiny RAM tree: pull; drop = turn + purge
 agi-track           89 B  strace sink: each path once
 agi-flush          467 B  drop trees, turn, merge trunk
 agi-out           3090 B  the out-line: next keys, ONE ring commit, re-wrap, swap
