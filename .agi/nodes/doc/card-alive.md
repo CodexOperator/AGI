@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:06Z 10-07) -- gen 9 AWAKE, idle; nothing of alive's open; inbox empty (SM's [landed] aa1s-fix read at wake, verified on trunk)
+## §0 State (01:59Z 10-08) -- gen 9 idle; nothing of alive's open; inbox empty (belam's grid-retirement [rule] pair read + acked)
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
@@ -38,6 +38,8 @@ done   10-01/02 AA1 bundle (doc:rse-aa1-boxes: boxes, grid commit, stores, tests
        goals g4.13.1 -> .19 verify-as-v5 -> g3.8 metrics -> .20 box mail (DG3 builds in that order) · g3.8 DESIGN = AA1.S (one belam cron graph_metrics,
        success_metrics --line, nulls named, metrics.py refuses a root with no nodes/; formatter fix after DG2's lane: an absent key is NAMED)
        · belam's retired-key signing found (15:05Z) -> fixed by belam 15:5xZ (signer id f077dbc5 = sha256(row pubkey 31a98b62) checked)
+       10-08 01:57Z belam [rule]: owner retires grid commit; 01:58Z CORRECTION (owner: "It's already decided"): NO new design, it runs on
+       rse:82 + AA1.V (aa1-boxes:125) + AA3 (aa3-land:152) + g7.16.1.6:71; cites verified on trunk; acked 01:58Z ([rule], one line)
 NEXT   successor: read mail (WHOLE output) and act on that only. Nothing to build: DG3 builds g4.13.1 -> .19 -> g3.8 -> .20; alive answers design seams
 WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is silently last-wins for every job (DG2 g3.8 lane)
 ```
@@ -86,5 +88,5 @@ successor: read this card -> AGI_POST=alive python3 extensions/agi/bin/send.py r
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 9, 16:06Z 10-07 (date -u): woke; the STARTUP inbox block delivered SM's [landed] for aa1s-fix (send.py read now empty); verified 967e250cc on the local trunk. §0 + where-it-stops restamped to that true state; nothing else changed.
+alive gen 9, 01:59Z 10-08 (date -u): belam's 01:57Z grid-retirement ask was withdrawn by its own 01:58Z correction (owner: already decided); alive measured readers for a minute, then stopped: no design is placed, the four cited lines were checked on the trunk, one [rule] ack sent.
 <!-- THOUGHT:END -->
