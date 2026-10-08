@@ -7,6 +7,7 @@ fields:
   next_edges: {type: list}
   season: {type: int}        # which season's overviews this belongs to
   tags: {type: list}
+  nest: {type: str|list}      # OPTIONAL, never required: `subtree` (every node down the parents edges) or a list of ids -- this node holds a slice (nest.py)
   status: {type: str}        # open | closed
   confidence: {type: float}
   evidence_fraction: {type: float}   # inherited score of what it aggregates

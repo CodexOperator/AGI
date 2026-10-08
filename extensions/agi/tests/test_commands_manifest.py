@@ -1123,6 +1123,7 @@ _OUTSIDE_CLIS = {
     "analyze-chat-structure.py": "one-off transcript analysis, not an engine verb",
     "snapshot-build-site.py": "retired build-site generator; its inputs are gone and must not return",
     "metrics_cell.py": "the graph_metrics cron job's guarded cell write (goal:g3.8 R2), run by crons.md only; not an operator verb",
+    "nest.py": "read-only slice | log helper over a container's nest: cell (goal:g7.16.1.11.21 D1), raw argv with its own usage line; not a proposable choice-surface verb",
 }
 
 

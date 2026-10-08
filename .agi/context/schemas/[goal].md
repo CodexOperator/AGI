@@ -18,6 +18,7 @@ fields:
   parents: {type: list}       # subgoal: >=1 goal; any variant may add a build
   confidence: {type: float}
   tags: {type: list}
+  nest: {type: str|list}      # OPTIONAL, never required: `subtree` (every node down the parents edges) or a list of ids -- this node holds a slice (nest.py)
 validation:
   required: [id, type, mint_id, title, goal_id, goal_kind, status, origin, seeds, confidence, tags]
   types:
