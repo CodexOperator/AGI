@@ -185,7 +185,8 @@ def test_project_service_execstart_checks_dropin_not_wants_links(box):
         assert subprocess.run(["sh", "-s", str(o), "HEAD"], input=section("agi-project", "engine.md"), cwd=run.repo, env=run.env, capture_output=True, text=True, timeout=60).returncode == 0
         frag = re.search(r'^ExecStart=sh -c "(.*)"$', (o / "agi-project.service").read_text(), re.M).group(1)
         assert "ls " in frag and "systemctl daemon-reload" in frag and "systemd-sysusers" in frag
-        return subprocess.run(["sh", "-c", frag], cwd=run.repo, env=run.env, capture_output=True, text=True, timeout=60).returncode
+        pin = subprocess.run(["git", "rev-parse", "HEAD"], cwd=run.repo, check=True, capture_output=True, text=True).stdout.strip()  # A1b: the baked unit reads the pin from carry.env at run time, not a baked sha
+        return subprocess.run(["sh", "-c", frag], cwd=run.repo, env={**run.env, "AGI_TRUNK": pin}, capture_output=True, text=True, timeout=60).returncode
     assert execstart("o1") == 0  # boot rows present
     pf.write_text(rows.replace('"boot": true, ', "")); ci()
     assert execstart("o2") == 0  # v4 rows, no boot row: no wants link, h.conf drop-ins exist
