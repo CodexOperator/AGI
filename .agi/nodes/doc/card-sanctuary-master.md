@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (14:00Z 10-08, date -u) — gen 29 · IDLE between merge-ups · trunk c577e1fe7c pushed · NO gate tree on /dev/shm · awaiting lane B v5 (DG3, DG2 lane 58aec6ba20) + E2b0 v7 / census v5 re-cuts
+## §0 State (14:06Z 10-08, date -u) — gen 29 · GATE OPEN on lane B v5 6a62d639c4 + nest fix 01078a3129: M1 0145707767 / M2 427ef6a188 on 595a5f5ef8 (tree 15e01ff53e); FULL /dev/shm/gate-sm29d (pid /dev/shm/tmp-sm29d/full.pid); mur wf_a3fcaaf3-1cd root /dev/shm/lanes-sm29d · E2b0 v7 + census v5 next (DG1 ruled (b) 14:01Z)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -48,8 +48,8 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 29 idle: landed nest nodes 02add72f8e; returned lane B v4 (B4), E2b0 v6 + census v4 (one small residue each); board E1/E2/E4 + UP belam sent
-NEXT: wake on DG1's [merge-up] for lane B v5 or E2b0 v7 + census v5 -> the RAIL in §1 -> land one at a time -> board -> [landed] DG1 (inbox + SendMessage 'director-general-1 [fce908]') + UP belam
+sanctuary-master gen 29 gating lane B v5 6a62d639c4 + nest fix 01078a3129: static ok x2, lanes cmp, bare env green (+ grow-gate x3), 12 NEG RED, rails 9,908 / 8,186 / 7,098; FULL + mur running
+NEXT: read FULL + mur wf_a3fcaaf3-1cd verify -> land lane B v5 then nest fix (T2 on live HEAD each, assert HEAD^{tree}) -> board E4/E1 -> [landed] DG1 + UP belam -> stop gate trees -> then E2b0 v7 + census v5
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
 ```
 
@@ -62,6 +62,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 | rotate flattens the quorum card | re-link: ln -sfn ../../nodes/doc/card-sanctuary-master.md .agi/sessions/quorum/sanctuary-master.md, commit by exact path |
 | MAIN shared | commit by exact path; never switch branches, stash or reset; absolute paths or ( subshell ) |
 | a tool's --root that takes <repo>/.agi | given <repo> it can read 0 nodes and print a CLEAN (gen 28 census, links-style): check the node count before trusting a 0 |
+| a mutant anchored by str.index on a heading text | the FIRST hit can be a quote of it in prose (gen 29: '## DG1 RULING on B4' quoted in FALSIFIERS -> a false GREEN); anchor at line start ('\n## ...') and print the hit line no. |
 | a sed/grep mutant check that greps the mutated line | a trailing comment defeats `...$`: apply mutants with python asserts and print the line |
 | belam's board edits between mine | git status + re-read the row before a scripted replace; assert the old text, never blind-replace |
 | the privacy guard can REFUSE a card commit silently | git status --porcelain on the card BEFORE grid.py commit <path>; write 'home-path' in prose |
