@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (10:01Z 10-08, date -u) — GATE OPEN: A1b v3 b26b8e25a3 (DG1 [merge-up] 09:56Z) · M f6e317abe7 on HEAD b78dbe3209 · trees /dev/shm/sm28-a1b3 (FULL suite, TMPDIR /dev/shm/smtmp-a1b3) + /dev/shm/sm28-a1b3-neg (lanes, NEG, mur root) · mur wf_57c3536c-9f0 (Sonnet)
+## §0 State (10:27Z 10-08, date -u) — A1b v3 LANDED eb55f973e2 · E2b0 v2 + E2c census RETURNED · NO gate tree on /dev/shm · IDLE: waiting on DG1's re-cuts
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,9 +32,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 QUEUE for gen 28 (FULL rail each: anonymize PER COMMIT + full-name AND model GPU grep + key; lanes with sh, ROOT = the gated tree, env -i + empty HOME + GIT_CONFIG_GLOBAL/SYSTEM=/dev/null; own NEG mutant; FULL suite on tmpfs; ONE Sonnet mur, focus = ONE whole-commit contradiction sweep, ALL residues in one list (belam [rule] 08:4xZ; skill agi-master-gate); accept_with_residue = RETURN unless verify refutes every residue, EXCEPT wording-only (belam (c)): land, name it in the landing message, carry it as a build-brief row):
-  1 A1b re-cut of be60c531aa (RETURNED 09:3xZ, mur wf_72cf6103-ee5: piece + c1-c6 + B1 B5 B6 + k0 MET; lanes 59/38/13/31 all 0 failed; my NEG '-' on ExecStartPre RED) on RA15 (DG2: agi-vstore.t.sh:151-160 forged-config.json (ii) row cannot fail -> forge a value that changes the start count, RED with GIT_DIR stripped) + RA16 (DG3: engine.md:24 diagram says a landing re-runs agi-project; the .path is now on /etc/agi/carry.env). INBOX 09:41Z: DG2's RA15 fix = 7a6af14278 (branch de-base-dg2-88, 1 file agi-vstore.t.sh, forged evil.cfg adds loadavg1_lt 0.1; build 59/0 before+after; GIT_DIR-stripped mutant 7 -> 8 FAIL, c2 forged-config (ii) now RED); DG1 combines it with DG3's RA16 line as A1b v3. Gate the DELTA vs be60c531aa + its RED proof + FULL suite -> land -> UP belam: his ONE host act (A1 + A2-A4 + A1b, node 59ba231817) is unblocked
-  2 grid_census.py (builder: DG1 reassigns from DG4) WITH lane fe1542efa5 (g12-g15 incl N2)
-  3 E2b0 v2 grid.py gate (DG3 fixing: a nested `enabled: false` under grid_sync retires it; the gate must read ind == grid_sync body indent) WITH lane G 6b2be27500 test_grid_gate.py (22 rows; DG2 split 701aff5513, branch de-base-dg2-87; G on E2b0 1e9c9efab6 = 20/2 FAIL, the two b8d rows by design); wording carried from E2a: crons.md body :89 :113 :120 :161 + crons.py docstrings :35-40 still name grid_sync as the only applier
+  1 E2b0 v3 (DG3 code + DG2 rows) on eb55f973e2: RETURNED 10:2xZ mur wf_03a02542-a0c -- RE-a grid.py:238 regex over-retires 'enabled:false' + 'enabled: false#x' (yaml: strings) · RE-b lane G has no raw-text rows (all via yaml.safe_dump). Gate = delta + new rows RED on a mutant + FULL; lands WITH G 6b2be27500 (+ its new rows)
+  2 E2c census v2 (DG3 + DG2) on eb55f973e2: RETURNED same mur -- RC-a :99-102 newest ref by (second, refname) = FAIL-OPEN on a tie/skew (precondition 3) · RC-b :116-127 trunk history: no -m/-z, moves + quoted paths missed (fail-closed). Gate = delta + tie/skew/merge/move/non-ASCII rows RED proofs + FULL
+  3 PIPELINE: E2b0 + census touch disjoint files -> ONE combined provisional tree, ONE FULL suite, land one at a time (re-derive T2 per landing)
   4 D1 corrective (was DG5, login expired -> DG1 reassigns): ONE commit on e8afb2a868 for R1-R5 on DG2 rows 4966c20d05 test_nest_r.py; gate = test_nest + test_nest_r + test_bin_help_smoke + test_commands_manifest + FULL
   HELD: lane W 6646702009 test_grid_sync_off.py, 4 rows (with the flip) · AA1.Va lane 1732119924 (DG2, with its build) · the older crons tests leave an empty $HOME/logs (DG1 orders a low-priority test-only leaf)
 PLACED  E2 board :121 rewritten at each landing (c5c452c674) · E3 g7.16.1.11.17 ACTIVE · F CANCELLED
@@ -44,13 +44,14 @@ PLACED  E2 board :121 rewritten at each landing (c5c452c674) · E3 g7.16.1.11.17
 - gens 16-25: git log --grep sanctuary-master + runs/mur-sm1[6-9]-*, mur-sm2[0-5]-*
 - gen 26 10-08 (runs/mur-sm26-*): E1 goals 87d45fdeeb · A2-A4 e9892ee5c8 · lanes e92f0f42da · A1b brief 2a0cdd7a4d · host-act node 59ba231817 · RETURNED D1 e8afb2a868 + 5
 - gen 27 10-08 (murs wf_41615a22-ca5 .. wf_72cf6103-ee5): E2 AA3.10 brief eac884b750 (6 cuts, FULL 8,140/0) · skill lines 921813d9ff (agi-master-gate) + 78356f972c (DG1 agi-goal, 259/0) · E2a crons_apply cell c6281eceb8 (FULL 8,159/0, first live run +1 crontab line, self-installs via grid_sync's apply) · board E2 ba6048271c + c5c452c674
+- 10-08 (10:27Z): A1b v3 eb55f973e2 (FULL 8,159/0, mur wf_57c3536c-9f0, wording residue engine-root.md:210 carried) · skill line 7736650a92 (mur scratch HOME) · board E4+E2 · RETURNED E2b0 v2 d6900610a1 + census 01ddc327c1 (mur wf_03a02542-a0c)
 - gen 27 RETURNED: E2 brief x5 (RE1-RE12, RL1-RL5) · lanes eb228aa020 + 8ea1f21f37 DROPPED · A1b be60c531aa (RA15 RA16) · E2a once (RL6, WITHDRAWN: my error) · [red] DG4 + DG5 -> login expired
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gating A1b v3 b26b8e25a3: delta = 2 lines (RA15 vstore:160 == DG2 7a6af14278; RA16 engine.md:24, matches .path :93); merge-tree rc 0, 0 D, anonymize ok, 0 GPU/key; lanes 59/38/13/31 0 failed bare env; NEG GIT_DIR-strip: be60 7 FAIL (config (ii) ok) -> v3 8 FAIL (config (ii) RED); engine.md fenced 8,027 / whole 9,801
-NEXT: FULL suite (pid in scratch full-a1b3.pid) + mur wf_57c3536c-9f0 verify -> if clean: units md5 vs 754d5336, HEAD symbolic-ref, re-derive T2 on the live HEAD, land by commit-tree, push, UP belam (host act 59ba231817 unblocked), [landed] DG1
-IF THIS SESSION DIED: kill pids with cwd under /dev/shm/sm28-a1b3*, git worktree remove both, re-gate from scratch
+sanctuary-master landed A1b v3 eb55f973e2 and returned E2b0 v2 + E2c census; no gate open
+NEXT: wait for DG1's re-cut [merge-up]s (E2b0 v3, census v2) -> gate per §1 -> land -> board E2 row
+FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
 ```
 
 ## §4 Traps (rules live in skills)
