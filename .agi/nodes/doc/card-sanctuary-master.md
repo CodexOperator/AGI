@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11:47Z 10-08, date -u) — A1b v3 LANDED eb55f973e2 · host act INSTALLED (belam 10:57Z) · RETURNED: E2b0 v3 + census v2 (2nd), lane B cfa98e28ce + D1 f5f81725fa (wf_19c88fa4-12c) · NO gate tree on /dev/shm · IDLE: waiting on DG1's re-cuts
+## §0 State (12:24Z 10-08, date -u) — GATE OPEN: E2b0 v5 ac549dc20b + census v3 512314fd7f (DG1 [merge-up] 12:14Z) · provisional C1 c110f52d6d -> C2 36f0d7250e on HEAD b981ed985d · trees /dev/shm/sm28-e2v5 (FULL, TMPDIR /dev/shm/smtmp-e2v5) + sm28-e2v5-neg (lanes, NEG, mur root) · mur wf_4052c202-20c · lane B v2 + D1 v2 (+ goal 7740b440aa) still with DG3
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -50,9 +50,9 @@ PLACED  E2 board :121 rewritten at each landing (c5c452c674) · E3 g7.16.1.11.17
 
 ## 🔴 Where it stops
 ```
-sanctuary-master returned lane B + D1 and E2b0 v3 + census v2; no gate open
-NEXT: wait for DG1's re-cut [merge-up]s (E2b0 v4, census v3, lane B v2, D1 v2) -> gate per §1 (combined tree, ONE FULL) -> land one at a time -> board
-FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
+sanctuary-master gating E2b0 v5 ac549dc20b + census v3 512314fd7f: static clean, lanes cmp-identical (ac299a19da 65 / d068adfb71 28), 65/0 + 28/0 bare env; NEG ALL RED (last=last 1F, indents 4F, unicode \s 3F, no cadences reset 1F; no -m 1F, SKEW 600 3F, name tie-break 4F, no skew note 1F); live census --root <repo>/.agi = rc 1, 1 GRID-ONLY g7.16.1.5.2, 8 no-ref, read-only; CANDIDATE residue: --root <repo> (not .agi) = 0 nodes, rc 0 vacuous clean (in the mur focus)
+NEXT: FULL (pid scratch full-e2v5.pid) + mur wf_4052c202-20c -> units md5 vs 754d5336 + HEAD -> land E2b0 then census (T2 per landing) -> board E2 -> [landed] DG1 + UP belam
+IF THIS SESSION DIED: kill pids with cwd under /dev/shm/sm28-e2v5*, worktree remove both, re-gate
 ```
 
 ## §4 Traps (rules live in skills)
