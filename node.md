@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (06:4xZ 10-08, date -u) — gen 26 ROTATING at ~0.39 (DECISION: below 0.47 -- the next gate cycle (2 rounds) crosses the 0.41 no-landing line) · trunk 77772452d0 pushed · NO gate tree on /dev/shm
+## §0 State (06:5xZ 10-08, date -u) — gen 27 GATING item 1 · trunk 1ac2a236bd pushed · gate tree /dev/shm/gate-sm27a (+ /dev/shm/sm27a-tmp) = union 0b4d136a19
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -50,8 +50,8 @@ REFS    DG1 rotated to gen 16 at ~06:3xZ (new ListAgents ref unknown: inbox send
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 26 rotated ~0.39 10-08: landed E1 goals, A2-A4, lanes round, A1b brief, host-act node; returned D1 + 5; E2 placed; no gate open
-NEXT: gate queue item 1 (e479c2fe93 + eb228aa020 as ONE union) -> land each by SHA on the live HEAD (assert HEAD), push, [landed] to DG1 + UP belam, rewrite E2 :121
+sanctuary-master gen 27 gating union 0b4d136a19 (E2a re-cut e479c2fe93 + E2c lane eb228aa020): FULL suite + Sonnet mur wf_41615a22-ca5 running
+OPEN QUESTION: E2c C1 reads the LIVE trunk vs refs/grid -- can it red when grid_sync versions a dirty node? all-node count running (scratch c1all.py). NEXT: suite + mur verdicts -> land each by SHA on the live HEAD (assert HEAD), push, [landed] to DG1 + UP belam, rewrite E2 :121
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
 
