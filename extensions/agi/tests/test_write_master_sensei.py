@@ -26,6 +26,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 BIN = Path(__file__).resolve().parent.parent / "bin"
 SRC = Path(__file__).resolve().parent.parent / "src"
@@ -75,6 +76,7 @@ def _write_rotations_node(root):
     import json
     d = root / "nodes" / ".geometry"
     d.mkdir(parents=True, exist_ok=True)
+    write_free_veto(d)
     # a node body with a ## facts section between non-facts sections
     body = (
         "# config:rotations\n\npreamble\n\n"

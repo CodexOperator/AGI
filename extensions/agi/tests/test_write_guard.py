@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 BIN = Path(__file__).resolve().parents[1] / "bin"
 
@@ -82,6 +83,7 @@ def project(tmp_path):
     # Nodes directory
     nd = agi / "nodes"
     nd.mkdir(parents=True)
+    write_free_veto(nd / ".geometry")
     nd2 = nd / "idea"
     nd2.mkdir(parents=True)
     (nd2 / "i1.md").write_text(

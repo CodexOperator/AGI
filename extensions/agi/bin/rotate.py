@@ -9512,13 +9512,14 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
         try:
             from seatsig import veto as _veto
 
-            _frozen, _why = _veto.is_frozen(
-                _shared_graph_root(root), "prime")
+            _geom = _veto.read(_shared_graph_root(root), strict=True)
+            _frozen, _why = _veto.is_frozen(None, "prime", geom=_geom)
             if _frozen:
                 return (False, "refused",
                         f"merge_up: HELD -- merge-up is a gated act; {_why}")
-        except Exception:  # noqa: BLE001  (a broken veto cell never un-gates)
-            pass
+        except Exception as exc:  # noqa: BLE001  (an unreadable veto cell HOLDS)
+            return (False, "refused",
+                    f"merge_up: HELD -- veto cell is unreadable ({exc})")
         main = _closeout_main(root)
         if main is None:
             return (False, "refused",
@@ -9617,6 +9618,9 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
         res = _closeout_pop_and_run(
             root, [sys.executable, str(binp), "commit", "--all"], cwd=main)
         if res["ok"]:
+            if any("grid: retired" in str(_t) for _t in res.get("tail") or []):
+                return (True, "ok", "grid commit --all: retired (grid_sync "
+                        "off), nothing written")
             return (True, "ok", "grid commit --all")
         return (False, "failed", "grid commit --all refused")
 
@@ -9636,13 +9640,14 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
         try:
             from seatsig import veto as _veto
 
-            _frozen, _why = _veto.is_frozen(
-                _shared_graph_root(root), "prime")
+            _geom = _veto.read(_shared_graph_root(root), strict=True)
+            _frozen, _why = _veto.is_frozen(None, "prime", geom=_geom)
             if _frozen:
                 return (False, "refused",
                         f"push: HELD -- push is a gated act; {_why}")
-        except Exception:  # noqa: BLE001  (a broken veto cell never un-gates)
-            pass
+        except Exception as exc:  # noqa: BLE001  (an unreadable veto cell HOLDS)
+            return (False, "refused",
+                    f"push: HELD -- veto cell is unreadable ({exc})")
         main = _closeout_main(root)
         if main is None:
             return (False, "refused", "push: could not resolve MAIN")
@@ -10824,13 +10829,16 @@ def _push_season_branch(root: Path) -> str:
     try:
         from seatsig import veto as _veto
 
-        _frozen, _why = _veto.is_frozen(_shared_graph_root(root), "prime")
+        _geom = _veto.read(_shared_graph_root(root), strict=True)
+        _frozen, _why = _veto.is_frozen(None, "prime", geom=_geom)
         if _frozen:
             _l = f"push: HELD -- merge-up push is a gated act; {_why}"
             print(_l, file=sys.stderr)
             return _l
-    except Exception:  # noqa: BLE001  (a broken veto cell never gates silently)
-        pass
+    except Exception as exc:  # noqa: BLE001  (an unreadable veto cell HOLDS)
+        _l = f"push: HELD -- veto cell is unreadable ({exc})"
+        print(_l, file=sys.stderr)
+        return _l
     main_root = _shared_graph_root(root)
     top = _git_toplevel(main_root)
     if top is None:
@@ -10976,9 +10984,8 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
         _frozen, _why = _veto.is_frozen(None, "prime", geom=_veto_geom)
         if _frozen:
             return f"authority: HELD -- publish is a gated Prime-scope act; {_why}"
-    except ImportError:  # veto subsystem is not installed on this host
-        pass
-    except Exception as exc:  # noqa: BLE001  (an unreadable veto cell gates)
+    except Exception as exc:  # noqa: BLE001  (an unreadable veto cell, or a
+        # broken seatsig import: seatsig is in-repo, never "not installed")
         return f"authority: HELD -- veto cell is unreadable ({exc})"
     try:
         import send as _send
@@ -12553,14 +12560,20 @@ def _button_down(*, root: Path, branch_allow: bool = True,
             reason += " (season gate off)"
         return reason + "; record left for the loop"
     try:
-        subprocess.run([sys.executable,
-                        str(Path(__file__).with_name("grid.py")),
-                        "commit", "--all"],
-                       cwd=str(root), capture_output=True, text=True,
-                       timeout=60)
-        return f"grid committed — record+row on branch {branch}"
+        res = subprocess.run([sys.executable,
+                              str(Path(__file__).with_name("grid.py")),
+                              "commit", "--all"],
+                             cwd=str(root), capture_output=True, text=True,
+                             timeout=60)
     except Exception as exc:  # noqa: BLE001
         return f"FAILED: {exc}"
+    _txt = ((res.stdout or "") + (res.stderr or "")).strip()
+    _last = _txt.splitlines()[-1] if _txt else ""
+    if res.returncode != 0:
+        return f"FAILED: grid commit --all rc {res.returncode}: {_last}"
+    if "grid: retired" in _txt:
+        return f"grid retired -- nothing written on branch {branch}: {_last}"
+    return f"grid committed — record+row on branch {branch}"
 
 
 # -- s11: the cheapest verification level rotate-self cites (<15s) -------
@@ -19200,13 +19213,14 @@ def _stops_push(root: Path, label: str = "stops") -> str | None:
         try:
             from seatsig import veto as _veto
 
-            _frozen, _why = _veto.is_frozen(
-                _shared_graph_root(root), "prime")
+            _geom = _veto.read(_shared_graph_root(root), strict=True)
+            _frozen, _why = _veto.is_frozen(None, "prime", geom=_geom)
             if _frozen:
                 return (f"push: HELD -- {label} push targets a trunk branch "
                         f"({branch}) while the prime is frozen; {_why}")
-        except Exception:  # noqa: BLE001  (a broken veto cell never un-gates)
-            pass
+        except Exception as exc:  # noqa: BLE001  (an unreadable veto cell HOLDS)
+            return (f"push: HELD -- {label} push targets a trunk branch "
+                    f"({branch}) and the veto cell is unreadable ({exc})")
     # goal:g15.25 lines (1)+(2) (SM.250): a post/loop branch is LOCAL-ONLY --
     # its tip goes to the ADDITIVE mirror ref `refs/agi/<kind>/<name>`, proved
     # by ls-remote, and NEVER reaches origin as a head (falsifier: any engine
@@ -19591,14 +19605,14 @@ def _rotate_human_gate(root: Path, seat: str,
     try:
         from seatsig import veto as _veto
 
-        _groot = _shared_graph_root(root)
-        _frozen, _why = _veto.is_frozen(_groot, "prime")
+        _geom = _veto.read(_shared_graph_root(root), strict=True)
+        _frozen, _why = _veto.is_frozen(None, "prime", geom=_geom)
         if _frozen:
             held = (f"rotation: HELD -- rotating another post {seat!r} is a "
                     f"gated Prime-scope act; {_why}")
             _gate = None
             try:
-                _gate = _veto.active_gate(_veto.read(_groot), "prime")
+                _gate = _veto.active_gate(_geom, "prime")
             except Exception:  # noqa: BLE001  (the frozen verdict still stands)
                 _gate = None
             freeze = {
@@ -19613,8 +19627,14 @@ def _rotate_human_gate(root: Path, seat: str,
                     if _gate.get(_k):
                         freeze[_k] = _gate[_k]
             return held, freeze
-    except Exception:  # noqa: BLE001  (a broken veto cell never gates silently)
-        pass
+    except Exception as exc:  # noqa: BLE001  (an unreadable veto cell HOLDS)
+        _unreadable = f"veto cell is unreadable ({exc})"
+        return (f"rotation: HELD -- rotating another post {seat!r} is a "
+                f"gated Prime-scope act and the {_unreadable}",
+                {"scope": "prime", "hold_reason": _unreadable,
+                 "auto_released": False,
+                 "note": "an unreadable veto cell holds, never frees; fix "
+                         "the cell, then retry"})
     return None, None
 
 

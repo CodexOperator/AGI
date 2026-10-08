@@ -15,6 +15,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 BIN = Path(__file__).resolve().parent.parent / "bin"
 SRC = Path(__file__).resolve().parent.parent / "src"
@@ -37,6 +38,7 @@ def project(tmp_path: Path) -> Path:
     graph = tmp_path / ".agi"
     (graph / "nodes" / "hypothesis").mkdir(parents=True)
     (graph / "config.json").write_text("{}")
+    write_free_veto(graph / "nodes" / ".geometry")
     _node(graph, "hypothesis/h1.md",
           '---\nid: "hypothesis:h1"\ntype: hypothesis\nmint_id: abc123\n'
           'title: "hello world"\ntestable_claim: "c"\nscaffold_hash: deadbeef\n'
@@ -280,6 +282,7 @@ def test_sub_payload_mode(tmp_path):
     graph = tmp_path / ".agi"
     (graph / "nodes" / "build").mkdir(parents=True)
     (graph / "config.json").write_text("{}")
+    write_free_veto(graph / "nodes" / ".geometry")
     payload = tmp_path / "lib" / "mod.py"
     payload.parent.mkdir(parents=True)
     payload.write_text("alpha BETA gamma\n")

@@ -426,9 +426,12 @@ def test_publish_refuses_closed_on_real_unreadable_veto_cell(
                 "origin/season2/main").stdout.strip() == pre
 
 
-def test_publish_proceeds_when_veto_subsystem_is_absent(tmp_path, monkeypatch):
-    """No installed veto subsystem is the distinct fail-open case."""
+def test_publish_holds_when_the_veto_import_is_broken(tmp_path, monkeypatch):
+    """goal:g7.16.1.11.13.2 (G-3): seatsig is in-repo and imported
+    unconditionally, so an ImportError is a BROKEN package, not an absent
+    subsystem: the publish HOLDS by name and origin does not move."""
     repo, g, posts, _bare = _fixture(tmp_path)
+    pre = _git(repo, "rev-parse", "origin/season2/main").stdout.strip()
     import builtins
     real_import = builtins.__import__
 
@@ -438,7 +441,11 @@ def test_publish_proceeds_when_veto_subsystem_is_absent(tmp_path, monkeypatch):
         return real_import(name, *args, **kwargs)
     monkeypatch.setattr(builtins, "__import__", without_seatsig)
     out = rotate._publish_row_to_authority(g, "aa", posts.read_text())
-    assert out.startswith("authority: OK"), out
+    monkeypatch.setattr(builtins, "__import__", real_import)
+    assert out == "authority: HELD -- veto cell is unreadable (seatsig unavailable)", out
+    _git(repo, "fetch", "-q", "origin", "season2/main")
+    assert _git(repo, "rev-parse",
+                "origin/season2/main").stdout.strip() == pre
 
 
 def test_c2_publish_refuses_while_prime_scope_is_frozen(tmp_path):
