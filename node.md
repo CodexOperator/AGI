@@ -8,6 +8,7 @@ next_edges: []
 edited_by: alive
 scaffold_hash: 0394875185875b1d
 season: 2
+tags: []
 title: Card alive
 town: core
 ---
