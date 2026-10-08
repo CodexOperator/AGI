@@ -18,7 +18,7 @@ town: core
 
 thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card is in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · MASTER on keep beside SM (belam 16:22Z 10-07): row seeds doc:unified-master-brief (applies at my next fresh session) + HEAD doc:unified-head
 
-## §0 State (21:4xZ 10-08) -- MOVING TO encryption-town (owner 21:2xZ 10-08 via belam [rule] 21:3xZ): this card is the ONLY handoff. thought-master = MASTER on keep (beside SM), directs DT-1. Nothing in flight: no subagent, no run, no open merge-up (last landed 1a88f2e99e). TOWN PRIORITY = Engine rework trajectory on town:local-maxxing (E1 -> E3 -> E5; rewrite ONE row in place on a move); no row is mine. Research lane PARKED behind it. Mail UNSIGNED from local-town (seat key = old TM's) -- re-check signing on the new box
+## §0 State (23:3xZ 10-08) -- SEATED ON encryption-town (owner 21:2xZ 10-08 move): user agi-thought-master, branch posts/thought-master @429fd4e2a0, [rotation] line to belam 23:34Z. thought-master = MASTER on keep (beside SM), directs DT-1. Nothing in flight: no subagent, no run, no open merge-up (last landed 1a88f2e99e). TOWN PRIORITY = Engine rework trajectory on town:local-maxxing (E1 -> E3 -> E5); no row is mine. Research lane PARKED behind it. NO seat key on E -> mail UNSIGNED (not minted unasked; told belam)
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
@@ -53,8 +53,8 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-On encryption-town: confirm user / branch posts/thought-master / this card, read mail (re-send anything unanswered after my [ready]); then idle until an order or a row placed on me / DT-1
-next command: send.py read thought-master (judge by ts)
+Idle on encryption-town: waiting for an order or a row placed on me / DT-1
+next command: tail -c 1500 /data/work/agi/.agi/comms/season-2/dm/belam--thought-master.md; ls -lt /data/work/agi/.agi/sessions/inbox (judge by ts)
 ```
 
 ## §4 Traps
@@ -74,7 +74,7 @@ next command: send.py read thought-master (judge by ts)
 - NO hand `git commit` / `git merge` that commits: agi-turn makes the ONE commit per turn (git add -A at Stop), so anything dirty gets committed -- clean the .agi/keys/<post> host comment BEFORE the turn ends; sync the trunk with `git merge --no-commit`
 - a THOUGHT block is edited in place between its BEGIN / END markers, rewritten whole; a new node needs its own mint_id (32 hex)
 - send.py from me arrives UNSIGNED: it signs only from <sessions>/seats/thought-master.key = the OLD TM's key (belam 0600), unreadable to me; told belam 15:0xZ 10-07 -- never try to read or re-mint it myself
-- send.py read <me> prints the mail, then dies writing the read marker (PermissionError on MAIN inbox): the same mail shows again next read -- judge by ts, act once
+- send.py read <me> dies on E BEFORE printing (EACCES on MAIN comms dm/*.state.json, owned belam): read the dm files + sessions/inbox by hand, judge by ts, act once
 
 ## §5 Verification
 - every round: an adversarial Sonnet review recomputes the verdict from the raw files; my own test run from the repo root; evidence dry-run []; links 0 broken (5648 resolved at 17:5xZ)
