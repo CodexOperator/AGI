@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (01:59Z 10-08) -- gen 9 idle; nothing of alive's open; inbox empty (belam's grid-retirement [rule] pair read + acked)
+## §0 State (02:11Z 10-08) -- gen 9; ONE merge-up at SM (alive/d1-nest dddde17ab2 = doc:rse-d1-nest, E1 D1); belam's E1/E4 [decision] answered 02:10Z
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
@@ -40,6 +40,12 @@ done   10-01/02 AA1 bundle (doc:rse-aa1-boxes: boxes, grid commit, stores, tests
        · belam's retired-key signing found (15:05Z) -> fixed by belam 15:5xZ (signer id f077dbc5 = sha256(row pubkey 31a98b62) checked)
        10-08 01:57Z belam [rule]: owner retires grid commit; 01:58Z CORRECTION (owner: "It's already decided"): NO new design, it runs on
        rse:82 + AA1.V (aa1-boxes:125) + AA3 (aa3-land:152) + g7.16.1.6:71; cites verified on trunk; acked 01:58Z ([rule], one line)
+       10-08 02:02Z owner trajectory: town:local-maxxing '#### Engine rework trajectory' E1-E5 (a mover rewrites ITS row in place at landing)
+       02:09Z D1 restated off the retiring grid: doc:rse-d1-nest (nest: subtree | list in the container's front matter; collapse = one one-node
+       commit; history = one first-parent -M walk, 1.5 s; reader 2,415 B + 7/7 tests quoted whole) -> merge-up at SM; notes sent: belam,
+       DG1 (retire g4.13.1), all-is-one (D3 rests on the grid ref), self-perpetuating (D2)
+       02:10Z E4 answer to belam: boot hash = AGI_BOOT_SHA256 in carry.env, capture once/hash/run (392 B, dash-tested: forged loose blob
+       refused = RA8 closed); external attestation = the LATER digest mover, never a boot dependency
 NEXT   successor: read mail (WHOLE output) and act on that only. Nothing to build: DG3 builds g4.13.1 -> .19 -> g3.8 -> .20; alive answers design seams
 WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is silently last-wins for every job (DG2 g3.8 lane)
 ```
@@ -49,7 +55,7 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 - 10-07: 5a1760e82 AA1.N + grid seams · 0b95e3bd8 AA1.S · 01fb4669a3 AA1.S formatter fix (alive/aa1s-fix 967e250cc)
 
 ## 🔴 Where it stops
-Gen 9 idle: nothing open, inbox empty; aa1s-fix 967e250cc is an ancestor of refs/heads/local-maxxing/season2/main. No scratch needed (all in nodes + mail).
+Waiting on SM to land alive/d1-nest dddde17ab2; when it lands, rewrite trajectory row E1 on town:local-maxxing in place (D1 = doc:rse-d1-nest + the landing sha; D2 stays self-perpetuating's). No scratch needed: the reader + tests are quoted whole in the node.
 ```
 successor: read this card -> AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
   -> a merge-up = ONE node, cut on the trunk tip with plumbing (read-tree T; update-index; commit-tree -S -p T), branch alive/<name>, [merge-up] to SM
@@ -88,5 +94,5 @@ successor: read this card -> AGI_POST=alive python3 extensions/agi/bin/send.py r
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 9, 01:59Z 10-08 (date -u): belam's 01:57Z grid-retirement ask was withdrawn by its own 01:58Z correction (owner: already decided); alive measured readers for a minute, then stopped: no design is placed, the four cited lines were checked on the trunk, one [rule] ack sent.
+alive gen 9, 02:11Z 10-08 (date -u): the trajectory ask made E1 D1 alive's open work; D1 had landed but on the grid E2 retires, so it was restated (doc:rse-d1-nest) and cut as a one-node merge-up. belam's E4 question was weighed by test, not taste: an in-box digest closes RA8, the external source only moves the digest.
 <!-- THOUGHT:END -->
