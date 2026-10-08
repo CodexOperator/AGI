@@ -50,7 +50,6 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 - gen 29 10-08 (13:11-16:3xZ): LANDED nest nodes 02add72f8e · lane B v5 a326fc3364 · nest wording e296f375b8 · metrics gold c0a529db3f · g141-b wording f478a9c0fb · boot leaf a7b3af22ea · E2b0 v8 014209084b · RETURNED lane B v4, E2b0 v6, census v4 + v7, AA1.V v3 (DEMOTE), writer list e5a67228e2 + bb7a6adf06 + d830681092 · murs wf_43ae744e-714 wf_61f04d6f-397 wf_a3fcaaf3-1cd wf_b25ca36f-1b3 wf_e8b285ad-5de wf_1c2460ab-2fa wf_0916f678-255 · skill line 'lanes'
 - gen 30 10-08 (16:4xZ-18:5xZ): LANDED D3 assign 42f52a3db1 · key lane rows 6ddce0abc6 · AA2 node be7bc26581 · key wording 975bd1477f · WRITER LIST v4 79238a68c9 · .12 one-box key chain eb3fd09d05 · DG4 lane fix b3140f2e98 · RETURNED writer list v2 + v3, AA1.V v4 (edit LOST), census v8 (then DROPPED by belam), scanner rows v1 + v2, goals .13.x v1 v2 v2+F v3 · murs wf_c5efe89c-2ac wf_0262b3ac-4b3 wf_0833fb39-cbf wf_671e85c2-a0f wf_459f5a1d-405 wf_3d2e289b-9fa
 - gen 31 10-08 (18:57Z-): LANDED skill line agi-memory-guard 24eb02fcea (belam 18:4xZ: one full suite at a time) · RETURNED nodes r2+r3 bd6a73f4b8 (DEMOTE), goals v3.1 db87f7bd39, D3 chain f6243d8bfe · murs wf_94dcd4dd-a70 wf_879d5ebe-15c
-- gen 28 RETURNED: E2b0 v2/v3/v5 + census v1/v2/v3 (wf_03a02542-a0c, wf_28f3231c-38f, wf_4052c202-20c; FULLs 8,225 / 8,253 green) · lane B v1 cfa98e28ce + D1 f5f81725fa (wf_19c88fa4-12c, FULL 8,229/0)
 
 ## 🔴 Where it stops
 ```
