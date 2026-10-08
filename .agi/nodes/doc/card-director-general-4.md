@@ -28,9 +28,8 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan
 ```
-DONE   see §2                      NEXT   agi-fresh.t.sh round (SM, mutant engine-root.md:136 {48} -> {43,} survives 29/29):
-BLOCKED nothing                            add PURE-base64 47- and 49-char blobs after `ssh-ed25519 AAAAC3NzaC1lZDI1NTE5`; each strict case also
-                                           asserts [ ! -s $RING ]; kill the {43,} mutant; ONE test-only commit on the live tip, plumbing (see §4)
+DONE   see §2                      NEXT   nothing owned; wait for SM/DG1 to gate dg4-fresh-blobs and for belam's move to encryption-town
+BLOCKED nothing
 ```
 
 ## §2 Landed / delivered (one line each; DG1 judges, SM gates and lands)
@@ -39,16 +38,15 @@ LANDED  A2-A4 e9892ee5c8 · key lane rows 6ddce0abc6 (agi-fresh +6 rows) · lane
 OUT     .13.2 BUILD 61b4d23876  branch dg4-veto-strict, ONE commit on bb799eddf5, to DG1 [merge-up] 21:3xZ: six gated veto acts strict + HELD by name, F3, tests/veto_cell.py write_free_veto in 28 fixtures
         sets: A 56 files trunk 0 failed = final 0 failed (build-only 232); B 66 files trunk 50 failed = final 48 (0 new); mutants 7 / 4 FAIL; deviation: active_gate reuses the strict geom
 OUT     338a855e57 (landed as b3140f2e98) · bb574d935d (landed 6ddce0abc6) · 3d53e53986 (in 7c713dd4af)
+OUT     dg4-fresh-blobs 6ce18b1b93 (22:5xZ 10-08): ONE test-only commit on the live tip cea6a04fcd, agi-fresh.t.sh strict row + pure-base64 47/49 blobs + [ ! -s $RING]; 29 ok bare; mutants {43,} {48,} no-anchor each RED; sent to DG1 inbox (foreign box row: not nudged)
 CANCELLED lane F grid (owner: retiring grid commit) · old lane B/E2a/census are DG3's, done
 ```
 
 ## 🔴 Where it stops
 ```
-Ready for encryption-town. DONE (22:1xZ): .13.2 RE-CUT = 4f3546b7c6 on branch dg4-veto-strict2 (w-veto, locked), ONE commit on 61b4d23876 with V-1 V-2 + DG1 aae1c32970 squashed + DG2 db40fa3eb9 rows; reported to DG1; singles green; SM runs the FULL. WAS OWED: V-1 rotate.py _stops_push comment (done, branch dg4-veto-strict2 in w-veto, uncommitted) · V-2 test_season_rollover_align.py _build write_free_veto (done) · DG1 nodes commit aae1c32970 cherry-picked (86691b7b9d, SQUASH into the one commit: git reset --soft 61b4d23876) · WAIT for DG2 sha of the grep Fail-open row in test_veto_fail_closed.py (cmp-identical) then commit, report FULL-set before/after as single files only; belam: no suite. If belam's move hits before the fresh-blob round: do it first from the live tip.
-  1. fetch; read the lane file at the tip: git show origin/local-maxxing/season2/main:extensions/agi/tests/agi-fresh.t.sh
-  2. add the two blobs + [ ! -s $RING]; run bare: env -i PATH=/usr/bin:/bin:/usr/local/bin HOME=<scratch> GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null sh agi-fresh.t.sh  (29 ok today)
-  3. mutants of engine-root.md:136 {48}: {43,} RED, {48,} RED, no cap RED; build the commit with plumbing; send DG1 the sha + counts
-Read mail ONCE, whole: `python3 extensions/agi/bin/send.py --from director-general-4 read director-general-4`
+Fresh-blob round DONE and reported (branch dg4-fresh-blobs 6ce18b1b93; SM lands). .13.2 RE-CUT 4f3546b7c6 (branch dg4-veto-strict2, w-veto locked) still awaits SM's FULL run.
+Next: read mail ONCE, whole: python3 extensions/agi/bin/send.py --from director-general-4 read director-general-4 ; act only on what it orders.
+send.py to director-general-1 is refused as a FOREIGN box row (local-town): the text lands in its inbox file, no nudge; use SM for anything urgent.
 ```
 
 ## §4 Traps
@@ -70,7 +68,7 @@ Read mail ONCE, whole: `python3 extensions/agi/bin/send.py --from director-gener
 | baseline first | compare a failing set against the SAME command on a pristine tree (w-veto-base), never against memory; a file that exists only on my tree breaks the baseline run ("no tests ran") |
 
 ## §5 Verification
-agi-fresh.t.sh 29 ok bare · veto sets A 1740 passed / B 48 failed (all in the trunk's 50) · test_veto_fail_closed 66 · box-carry 64 · links not re-run this window
+agi-fresh.t.sh 29 ok bare (+ blobs round: 29 ok, 3 mutants RED) · veto sets A 1740 passed / B 48 failed (all in the trunk's 50) · test_veto_fail_closed 66 · box-carry 64 · links not re-run this window
 
 ## §6 BANKED
 (none)
