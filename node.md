@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (06:5xZ 10-08, date -u) — gen 27 GATING item 1 · trunk 1ac2a236bd pushed · gate tree /dev/shm/gate-sm27a (+ /dev/shm/sm27a-tmp) = union 0b4d136a19
+## §0 State (07:2xZ 10-08, date -u) — gen 27 IDLE (no gate open; waits on a [merge-up]) · trunk 28b10e2b5d pushed · NO gate tree on /dev/shm
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,7 +32,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 QUEUE for gen 27 (FULL rail each: static + anonymize PER COMMIT + full-name AND model GPU grep + key; lanes with SHA / ROOT = the gated tree, bare env (env -i, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null); NEG; targeted pytest; FULL suite on tmpfs; Sonnet mur via the Workflow tool, project_root = its OWN /dev/shm worktree; accept_with_residue = RETURN unless the verify stage REFUTES every residue):
-  1 E2a brief re-cut e479c2fe93 (dg1-e2-aa310b, nodes only, 2 files +13; supersedes 32ad43a464, answers mur E1 E2) + E2c lane eb228aa020 (dg1-e2c-lane, test_trunk_history_is_the_grid.py = DG2 de94ecc8d3, 6 pass, GREEN on the trunk -> lands alone): pipeline them, ONE union + ONE suite + ONE mur
+  1 RETURNED gen 27 (union 0b4d136a19 FULL 8,146/0; mur wf_41615a22-ca5): E2a re-cut e479c2fe93 (RE1-RE3) + E2c lane eb228aa020 (RL1-RL4) -> DG1 re-cuts ONE commit each on 28b10e2b5d; default: pytest lane HERMETIC + a live census COMMAND for E2b
   2 D1 corrective (DG5 ONE commit on e8afb2a868 for R1-R5 on DG2's rows 4966c20d05 test_nest_r.py) -- wait for DG1's [merge-up]; gate = test_nest + test_nest_r + test_bin_help_smoke + test_commands_manifest + FULL at 0 failed
   3 A1b BUILD (DG3; line 90 O=$PWD, agi-project 2,588 -> 2,560 B) WITH DG2 boot re-cut v3 23f488a5c1 + agi-vstore.t.sh 3340a87b35 (incl. the c6 rows + k0-the-verifier-needs-no-env-grant) -> then belam's ONE host act A1 + A2-A4 + A1b (node 59ba231817 holds before-state + rollback)
   HELD (land WITH their build, they are RED on the trunk): E2a lane 02e52769dc (with DG4's crons_apply cell) · test_grid_sync_off.py (with the E2b switch: needs E2a INSTALLED (belam crontab -l) + AA1.V per-turn commits) · AA1.Va lane 1732119924 (DG2, with its build)
@@ -50,8 +50,8 @@ REFS    DG1 rotated to gen 16 at ~06:3xZ (new ListAgents ref unknown: inbox send
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 27 gating union 0b4d136a19 (E2a re-cut e479c2fe93 + E2c lane eb228aa020): FULL suite + Sonnet mur wf_41615a22-ca5 running
-OPEN QUESTION: E2c C1 reads the LIVE trunk vs refs/grid -- can it red when grid_sync versions a dirty node? all-node count running (scratch c1all.py). NEXT: suite + mur verdicts -> land each by SHA on the live HEAD (assert HEAD), push, [landed] to DG1 + UP belam, rewrite E2 :121
+sanctuary-master gen 27 returned E2a re-cut + E2c lane to DG1 (mur residues RE1-RE3, RL1-RL4); idle, no gate open
+NEXT: wake on DG1 re-cut (item 1) or D1 [merge-up] (item 2) or DG3 A1b build (item 3) -> gate, land by SHA on the live HEAD (assert HEAD), push, [landed] + UP belam
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
 
@@ -89,7 +89,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 | agi-out-states / agi-out-stale with NO argument read the TRUNK branch (DG1 gen 25: a false 0 FAIL on A2-A4) | pass the gated SHA as arg 1, every time |
 | every A-lane fixture ran same-uid with safe.directory=* (gen 25 RA12: the real box = a post uid on a repo another uid owns -> 'dubious ownership') | gate root/unit git reads with GIT_TEST_ASSUME_DIFFERENT_OWNER=1 + an empty global config |
 | two council/director edits of the SAME trajectory row cut on an older tip | merge-tree rc 1: the landed one stands, the other is dropped or re-cut without the row |
-| a falsifier lane RED on the trunk by design (gen 26: E2a 8 FAILED, E2b 4) | never land it alone (a red suite = a return): it rides WITH its build; a lane GREEN on the trunk (a regression guard) may land alone |
+| a falsifier lane RED on the trunk by design (gen 26: E2a 8 FAILED, E2b 4); a lane GREEN today on LIVE state (gen 27 E2c C1: MAIN trunk + refs/grid, stride sample) | never land a red lane alone: it rides WITH its build; a live-state lane is not "always green" from one run: measure the at-risk class (dirty nodes: git status --porcelain .agi/nodes) through its checker |
 | a belam [rule] can land AFTER a director's [merge-up] and widen its HOW (gen 26: 'EVERY A lane real-ownership' vs a re-cut that set it on 5 rows) | measure the gap, send ONE [decision] with options + a default, gate on in parallel; belam narrowed it to a follow-up round |
 ## §5 Verification: every landing = merge-tree rc 0 + newcomers byte-identical to HEAD + 0 D + anonymize per commit + evidence dry-run + links/schema + suite with every red attributed
 
