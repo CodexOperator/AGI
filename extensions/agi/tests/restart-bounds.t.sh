@@ -13,9 +13,11 @@ mkdir -p $T/cap $T/hm $T/cwd $T/nobin $T/withrun $T/bin
 mkdir -p $T/cwd/t/.agi/nodes/.geometry   # RA12: the unit cwd HAS a t (agi-run in none of its files): the a3-post rows mean "absent -> skip 2"; with NO t the line reads the trunk and a git error is exit 255 (ra13 rows)
 printf '#!/bin/sh\nexit 0\n' >$T/withrun/agi-run;chmod +x $T/withrun/agi-run
 printf '[user]\n\tname=t\n\temail=t@t\n[commit]\n\tgpgsign=false\n[safe]\n\tdirectory=*\n' >$T/gitconfig;export GIT_CONFIG_GLOBAL=$T/gitconfig GIT_CONFIG_SYSTEM=/dev/null
+# DEF (DG1 04:15Z, belam 04:14Z): the DEFAULT env of every unit-line row is the REAL ownership: an empty global/system git config and git's own different-owner seam, so a git read of a repo another uid owns is refused unless the line itself carries the safe.directory. $T/gitconfig (safe.directory=*) stays for the fixture's own git calls above and for the ONE explicit same-uid row (ra11-same-uid).
+DEF='GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1'
 # --- a3-post: every ExecCondition line of the post unit, run as sh would run the value (%i -> x), cwd without .ssh/out-refused
 grep '^ExecCondition=' $T/up|sed 's/^ExecCondition=//;s/%i/x/g' >$T/conds
-conds(){ rcs=;while IFS= read -r l;do (cd $T/cwd&&env -i PATH=$1:/usr/bin:/bin HOME=$T/hm sh -c "$l" >/dev/null 2>&1);rcs="$rcs $?";done <$T/conds;rcs=${rcs# };}
+conds(){ rcs=;while IFS= read -r l;do (cd $T/cwd&&env -i PATH=$1:/usr/bin:/bin HOME=$T/hm $DEF sh -c "$l" >/dev/null 2>&1);rcs="$rcs $?";done <$T/conds;rcs=${rcs# };}
 conds $T/nobin;absent="$rcs";conds $T/withrun;present="$rcs";nc=$(wc -l <$T/conds|tr -d ' ')
 two=0;other=0;for r in $absent;do case $r in 0);;2)two=$((two+1));;*)other=$((other+1));;esac;done
 ok "a3-post-skips-when-agi-run-is-absent the $nc ExecCondition line(s) of agi-post@.service with agi-run NOT on PATH exit [$absent]: $two exit 2 (want >= 1: a skip), $other exit another code (want 0: not a failure)" '[ $two -ge 1 ]&&[ $other = 0 ]'
@@ -26,11 +28,11 @@ grep '^ExecCondition=.*agi-run' $T/up|sed 's/^ExecCondition=//;s/%i/x/g' >$T/rco
 RUNSTUB='### agi-run (stub)\n~~~sh\n#!/bin/sh\nexit 0\n~~~\n'
 # cond_t FILE: t exists in the unit's cwd and holds agi-run ONLY in FILE (empty = nowhere), agi-run not on PATH
 cond_t(){ rm -rf $T/ct;mkdir -p $T/ct/t/.agi/nodes/.geometry;printf '### other (stub)\n~~~sh\nexit 0\n~~~\n' >$T/ct/t/.agi/nodes/.geometry/engine-grow.md;[ -z "$1" ]||printf "$RUNSTUB" >$T/ct/t/.agi/nodes/.geometry/$1
- (cd $T/ct&&env -i PATH=$T/nobin:/usr/bin:/bin HOME=$T/hm sh -c "$(cat $T/rcond)" >/dev/null 2>&1);crc=$?;}
-# cond_trunk FILE: no t yet; $O is a repo whose trunk commit holds agi-run ONLY in FILE (empty = nowhere)
+ (cd $T/ct&&env -i PATH=$T/nobin:/usr/bin:/bin HOME=$T/hm $DEF sh -c "$(cat $T/rcond)" >/dev/null 2>&1);crc=$?;}
+# cond_trunk FILE [same]: no t yet; $O is a repo whose trunk commit holds agi-run ONLY in FILE (empty = nowhere); the DEFAULT env (DEF: real ownership); `same` = the ONE explicit same-uid row (the old env: $T/gitconfig holds safe.directory=*, no seam)
 cond_trunk(){ rm -rf $T/ct $T/co;mkdir -p $T/ct $T/co/.agi/nodes/.geometry;printf '### other (stub)\n~~~sh\nexit 0\n~~~\n' >$T/co/.agi/nodes/.geometry/engine-grow.md;[ -z "$1" ]||printf "$RUNSTUB" >$T/co/.agi/nodes/.geometry/$1
- $G init -q $T/co;$G -C $T/co add -A;$G -C $T/co commit -qm trunk;TK=$($G -C $T/co rev-parse HEAD)
- (cd $T/ct&&env -i PATH=$T/nobin:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=$T/gitconfig GIT_CONFIG_SYSTEM=/dev/null O=$T/co AGI_TRUNK=$TK sh -c "$(cat $T/rcond)" >/dev/null 2>&1);crc=$?;}
+ $G init -q $T/co;$G -C $T/co add -A;$G -C $T/co commit -qm trunk;TK=$($G -C $T/co rev-parse HEAD);EV=$DEF;[ "$2" != same ]||EV="GIT_CONFIG_GLOBAL=$T/gitconfig GIT_CONFIG_SYSTEM=/dev/null"
+ (cd $T/ct&&env -i PATH=$T/nobin:/usr/bin:/bin HOME=$T/hm $EV O=$T/co AGI_TRUNK=$TK sh -c "$(cat $T/rcond)" >/dev/null 2>&1);crc=$?;}
 ok "ra11-the-agi-run-condition-is-one-line the unit has exactly one ExecCondition that mentions agi-run: $nrc (want 1)" '[ "$nrc" = 1 ]'
 for fn in engine-post.md engine.md engine-wrap.md;do cond_t $fn
  ok "ra11-t-has-agi-run-only-in-$fn t exists, agi-run only in t/.agi/nodes/.geometry/$fn, not on PATH: the condition exits $crc (want 0: the extraction finds it)" '[ $crc = 0 ]';done
@@ -38,6 +40,7 @@ cond_t "";ok "ra11-t-has-agi-run-nowhere t exists, agi-run in none of the three 
 for fn in engine-post.md engine.md engine-wrap.md;do cond_trunk $fn
  ok "ra11-no-t-trunk-has-agi-run-only-in-$fn no t yet, the trunk commit holds agi-run only in $fn, not on PATH: the condition exits $crc (want 0: the worktree add will give t that file)" '[ $crc = 0 ]';done
 cond_trunk "";ok "ra11-no-t-trunk-has-agi-run-nowhere no t yet, the trunk holds agi-run in none of the three files, not on PATH: the condition exits $crc (want 2)" '[ $crc = 2 ]'
+cond_trunk engine-post.md same;ok "ra11-same-uid-no-t-trunk-has-agi-run-only-in-engine-post.md (the ONE explicit same-owner row: $T/gitconfig holds safe.directory=*, no seam) no t, the trunk holds agi-run only in engine-post.md: the condition exits $crc (want 0)" '[ $crc = 0 ]'
 # --- RA12 + RA13 (DG1 03:42Z, SM mur RA12-RA14): the no-t branch runs as User=agi-%i BEFORE any ExecStartPre, so safe.directory (set by ExecStartPre #4) is not there yet and git sees $O, a repo owned by ANOTHER uid, as dubious ownership; a git error read as "absent" exits 2 = SKIP FOREVER for a fresh post. These rows run the line with an EMPTY global/system git config and git's own different-owner seam (GIT_TEST_ASSUME_DIFFERENT_OWNER=1), and a git ERROR must exit 255, never 2 (absent) and never 0 (present). The ra11 rows above keep the same-owner config ($T/gitconfig holds safe.directory=*).
 # cond_do FILE [unset] [PIN]: no t; $O a real repo whose trunk commit holds agi-run ONLY in FILE (empty = nowhere); empty git config; the seam on. unset = O not set at all; PIN replaces AGI_TRUNK
 cond_do(){ rm -rf $T/ct $T/co;mkdir -p $T/ct $T/co/.agi/nodes/.geometry;printf '### other (stub)\n~~~sh\nexit 0\n~~~\n' >$T/co/.agi/nodes/.geometry/engine-grow.md;[ -z "$1" ]||printf "$RUNSTUB" >$T/co/.agi/nodes/.geometry/$1

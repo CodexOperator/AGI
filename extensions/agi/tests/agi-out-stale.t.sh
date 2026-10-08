@@ -17,7 +17,7 @@ mkh(){ H=$D/h$1;rm -rf $H $D/opt;mkdir -p $H/t/$GEO $H/bin $D/run/agi-post1 $D/o
  (cd $H/t;$GIT init -q;$GIT add -A;$GIT -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm stale);rm -f $D/run/agi-post1/i;}
 pu(){ echo ${SHIM:+$SHIM:}$H/bin:$D/opt:/usr/local/bin:/usr/bin:/bin;}
 # one N: step N alone (rc in sr, stdout so.N, stderr se.N)
-one(){ (cd $H&&env -i PATH=$(pu) HOME=$H O=$D/orig AGI_TRUNK=trunk AGI_SEAT=post1 sh -c "$(cat $D/s.$1)")>$D/so.$1 2>$D/se.$1;sr=$?;echo $sr>$D/rc.$1;}
+one(){ (cd $H&&env -i PATH=$(pu) HOME=$H O=$D/orig AGI_TRUNK=trunk AGI_SEAT=post1 GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 sh -c "$(cat $D/s.$1)")>$D/so.$1 2>$D/se.$1;sr=$?;echo $sr>$D/rc.$1;}
 # cyc: ONE start of the unit (steps in order; a failing ExecStartPre aborts the start = systemd's Restart= loop; ALL=1 runs on past a failure to fill the table). creach = ExecStart reached, cfail = "N:rc" of the first failing step, pl = the root stubs that ran
 cyc(){ creach=0;cfail=;: >$D/pl;n=0;while [ $n -lt $nl ];do n=$((n+1));k=$(cat $D/k.$n);ty=$(cat $D/t.$n)
   [ $k = ExecStart ]&&{ creach=1;break;}
@@ -59,4 +59,7 @@ n=0;while [ $n -lt $nl ];do n=$((n+1));k=$(cat $D/k.$n);ty=$(cat $D/t.$n);lb=$(e
 # info rows (NOT counted): the ExecStart's agi-run and the ExecStopPost's agi-flush are t-resident pieces too; run with NO such piece in bin/ (a t that lacks the piece), what the unit would see
 mkh 7;(cd $H&&env -i PATH=$(pu) HOME=$H sh -c agi-run>/dev/null 2>&1);ra=$?;(cd $H&&env -i PATH=$(pu) HOME=$H sh -c agi-flush>/dev/null 2>&1);rf=$?
 echo "tbl info ExecStart's agi-run absent from bin/: rc=$ra; ExecStopPost's agi-flush absent: rc=$rf (nonzero = a failed main process / a failed stop, Restart=always restarts either way; not counted)"
+# z1 (DG1 04:44Z re-scope: the real-ownership env is the DEFAULT of every A-range lane): this lane never reads a foreign-uid repo -- the unit lines run in a scratch HOME whose stale t is the post's OWN, and $O is an empty dir -- so the env is on by default and ONE row proves it: under the lane's env (empty config + git's different-owner seam) a plain git read of its t is REFUSED as dubious ownership, and the grant the unit gives (safe.directory=*) lifts it
+mkh 8;sn=$(cd $H/t&&env -i PATH=$PATH HOME=$H GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 git rev-parse HEAD 2>&1|grep -c 'dubious ownership');gn=$(cd $H/t&&env -i PATH=$PATH HOME=$H GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 git -c safe.directory='*' rev-parse HEAD >/dev/null 2>&1;echo $?)
+ok "z1-real-ownership-default-is-on a plain git read of t under an empty config + GIT_TEST_ASSUME_DIFFERENT_OWNER=1: $sn dubious-ownership line(s) (want 1: the seam bites on this lane's t); with the unit's safe.directory=* grant: rc $gn (want 0)" '[ "$sn" = 1 ]&&[ "$gn" = 0 ]'
 echo "agi-out-stale: $f FAIL";exit $f

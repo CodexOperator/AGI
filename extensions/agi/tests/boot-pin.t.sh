@@ -8,6 +8,8 @@ ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_SEAT AGI_POST AGI_RAM AGI_BOOT_OUT
 sect agi-boot >$T/agiboot.sh;sect agi-boot.service >$T/unit.txt
+# UE (DG1 04:15Z, belam 04:14Z: the lane runs the REAL ownership): the unit's own Environment= words are the ONLY thing that lets root read /data/work/agi (another uid owns it); the runs below use an empty git config + git's different-owner seam + UE, never a $T/gitconfig that grants safe.directory the unit does not
+sect agi-boot.service|sed -n 's/^Environment=//p'|tr ' ' '\n' >$T/ue.txt;UE=$(cat $T/ue.txt)
 [ -s $T/agiboot.sh ]&&[ -s $T/unit.txt ]||{ echo "FAIL extract: agi-boot $(wc -c <$T/agiboot.sh) unit $(wc -c <$T/unit.txt)";exit 99;}
 mkdir -p $T/fk $T/hm
 printf '[user]\n\tname=t\n\temail=t@t\n[commit]\n\tgpgsign=false\n[safe]\n\tdirectory=*\n' >$T/gitconfig
@@ -27,7 +29,7 @@ $G -C $T/r checkout -q -b evil;row evil >>$T/r/.agi/nodes/.geometry/posts.md
 printf '### agi-boot (1 B)\n~~~sh\n#!/bin/sh\ntouch %s/marker\n~~~\n' $T >$T/r/.agi/nodes/.geometry/engine-root.md
 $G -C $T/r add -A;$G -C $T/r commit -qm hostile;EVIL=$($G -C $T/r rev-parse HEAD);$G -C $T/r checkout -q -B main $GOOD
 # boot OUT [VAR=val ...]: the real agi-boot under the fakes; the extra args are env assignments (the pin). rc in $brc, output in $T/boot.out
-boot(){ o=$1;shift;rm -rf $T/out.$o $T/ram;: >$T/log;: >$T/gitlog;(cd $T/r&&env -i PATH=$T/fk:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=$T/gitconfig GIT_CONFIG_SYSTEM=/dev/null AGI_RAM=$T/ram AGI_BOOT_OUT=$T/out.$o AGI_LOADAVG=$T/la AGI_PSI_IO=$T/io "$@" sh -s <$T/agiboot.sh >$T/boot.out 2>&1);brc=$?;}
+boot(){ o=$1;shift;rm -rf $T/out.$o $T/ram;: >$T/log;: >$T/gitlog;(set -f;cd $T/r&&env -i PATH=$T/fk:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 $UE AGI_RAM=$T/ram AGI_BOOT_OUT=$T/out.$o AGI_LOADAVG=$T/la AGI_PSI_IO=$T/io "$@" sh -s <$T/agiboot.sh >$T/boot.out 2>&1);brc=$?;}
 starts(){ grep '^b ' $T/log|tr '\n' ' ';}
 # a5 control + the BEFORE snapshot: HEAD == the pin
 boot m AGI_TRUNK=$GOOD;a0rc=$brc;a0s=$(starts);rm -rf $T/snap.a0;cp -a $T/out.m $T/snap.a0   # the SAME out dir name both times: the baked units embed their own output path
@@ -57,7 +59,7 @@ ec=$(grep -c '^EnvironmentFile=/etc/agi/carry.env$' $T/unit.txt);xh=$(grep '^Exe
 ok "a3-unit-loads-the-carry-env-and-never-names-head agi-boot.service carries EnvironmentFile=/etc/agi/carry.env ($ec, want 1) and HEAD appears in $xh of its $xs ExecStart line(s) (want 0 of 1)" '[ "$ec" = 1 ]&&[ "$xh" = 0 ]&&[ "$xs" = 1 ]'
 # a4: the ExecStart line run under sh, HEAD = the hostile commit with the decoy
 cmd=$(grep '^ExecStart=' $T/unit.txt|sed 's/^ExecStart=//');rm -rf $T/out.x $T/ram;: >$T/log;rm -f $T/marker
-(cd $T/r&&env -i PATH=$T/fk:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=$T/gitconfig GIT_CONFIG_SYSTEM=/dev/null AGI_RAM=$T/ram AGI_BOOT_OUT=$T/out.x AGI_LOADAVG=$T/la AGI_PSI_IO=$T/io AGI_TRUNK=$GOOD sh -c "$cmd" >$T/x.out 2>&1);xrc=$?;xs2=$(starts)
+(set -f;cd $T/r&&env -i PATH=$T/fk:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 $UE AGI_RAM=$T/ram AGI_BOOT_OUT=$T/out.x AGI_LOADAVG=$T/la AGI_PSI_IO=$T/io AGI_TRUNK=$GOOD sh -c "$cmd" >$T/x.out 2>&1);xrc=$?;xs2=$(starts)
 ok "a4-execstart-reads-the-pinned-blob-not-head the ExecStart line extracted and run under sh with AGI_TRUNK=<good> while HEAD carries a decoy engine-root.md: the decoy marker is $([ -e $T/marker ]&&echo TOUCHED||echo untouched) (want untouched), rc $xrc (want 0), the pinned boot ran: starts '$xs2' (want a b)" '[ ! -e $T/marker ]&&[ $xrc = 0 ]&&[ "$xs2" = "b ${P}a b ${P}b " ]'
 echo "boot-pin: $f FAIL"
 exit $f
