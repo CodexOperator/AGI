@@ -577,3 +577,30 @@ def test_l4d_verify_fails_when_one_view_drops_or_alters_the_mark(tmp_path, which
     clean = vp2(repo, "--emit", "llm" if nth == 2 else "human")
     patched = vp2(repo, "--emit", "llm" if nth == 2 else "human", bin_dir=d)
     assert MARK_RE.findall(clean.stdout) != MARK_RE.findall(patched.stdout), f"{which}: the patch changed nothing in the view"
+
+
+def build_decoy(tmp_path: Path) -> Repo:
+    """build_v + two retitled nodes whose TITLE reads like a mark: goal:b (true mark: none) is 'T-b [legacy] [legacy ⊃9] trap' and goal:a (true mark `[legacy ⊃2]`) is 'T-a [legacy ⊃2]'."""
+    repo = build_v(tmp_path)
+    repo.edit(".agi/nodes/goal/b.md", node_text("goal:b", "goal", 3, ["goal:a", "goal:g2"], title='"T-b [legacy] [legacy ⊃9] trap"', season=3), "retitle goal:b with a decoy")
+    repo.edit(".agi/nodes/goal/a.md", node_text("goal:a", "goal", 2, ["goal:root"], title='"T-a [legacy ⊃2]"', season=3, nest="subtree"), "retitle goal:a with its own mark")
+    return repo
+
+
+def test_l4e_a_title_that_reads_like_a_mark_does_not_fail_the_clean_verify(tmp_path):
+    """The compare reads the mark OUT OF the line, so it must cut the title first: with the decoy titles `--verify` still exits 0 (PASS) on the clean tree, the decoys are really on the llm lines, and goal:a's true mark is the one AFTER its title."""
+    repo = build_decoy(tmp_path)
+    r = vp2(repo, "--verify")
+    assert r.returncode == 0 and "PASS" in r.stdout, (r.returncode, r.stdout[-300:], r.stderr[-300:])
+    llm = vp2(repo, "--emit", "llm").stdout
+    assert "trap" in line_of(llm, "`goal:b`") and "[legacy ⊃9]" in line_of(llm, "`goal:b`"), "the decoy title is not in the view: the row is vacuous"
+    assert line_of(llm, "`goal:a`").count("[legacy ⊃2]") == 2, line_of(llm, "`goal:a`")
+
+
+@pytest.mark.parametrize("which,nth", [("the llm view", 2), ("the human view", 1)])
+def test_l4e_a_decoy_title_does_not_mask_a_really_dropped_mark(tmp_path, which, nth):
+    """goal:a's TITLE carries the same string as its true mark: when one renderer drops the true mark the line still holds that string (from the title), so a compare that reads the whole line passes. `--verify` must still exit non-zero."""
+    repo = build_decoy(tmp_path)
+    d = scratch_bin(tmp_path, "bin_decoy", LG, 'lg = ""', nth)
+    r = vp2(repo, "--verify", bin_dir=d)
+    assert r.returncode != 0 and "PASS" not in r.stdout, f"{which}: a dropped mark hid behind the decoy title: rc {r.returncode} {r.stdout[-300:]}"
