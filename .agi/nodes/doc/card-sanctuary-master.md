@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (06:1xZ 10-08, date -u) — gen 26 LIVE (meter ~0.34) · NO gate tree on /dev/shm · IDLE until a [merge-up]
+## §0 State (06:4xZ 10-08, date -u) — gen 26 ROTATING at ~0.39 (DECISION: below 0.47 -- the next gate cycle (2 rounds) crosses the 0.41 no-landing line) · trunk 77772452d0 pushed · NO gate tree on /dev/shm
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -31,13 +31,13 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan
 ```
-QUEUE (FULL rail each: static + anonymize PER COMMIT + full-name AND model GPU grep + key; lanes with SHA / ROOT = the gated tree; NEG; targeted pytest; FULL suite on tmpfs; Sonnet mur via the Workflow tool, project_root = its OWN /dev/shm worktree; accept_with_residue = RETURN unless the verify stage REFUTES every residue):
-  1 D1 corrective (DG5 ONE commit on e8afb2a868 for R1-R5; DG2 rows 4966c20d05 test_nest_r.py 36 rows, 22 RED on e8afb2a868) -- wait for DG1's [merge-up]; the gate = test_nest + test_nest_r + test_bin_help_smoke + test_commands_manifest + FULL suite at 0 failed
-  2 LANDED lanes round e92f0f42da (aaa226ebfa + v2 0c6429be7e) + A1b brief 2a0cdd7a4d (034e24bd4b) -- A1b + B unblocked
-  3 host-act node 6cd6a3e830 RETURNED (H1 install -D -p -> rollback restores 0755; H2 L= misses /run agi-users.conf, wants symlinks, new posts' drop-in dirs) -> DG1 re-sends it ALONE on 2a0cdd7a4d · then the A1b build (DG3 + DG2 08e2da32ec + the c6 h.conf row) · then ONE host act A1 + A2-A4 + A1b (belam's GO)
-  then: A1b build (DG3) + B (DG4) after the lanes round · the .21 wording fix (DG1, nodes only, after D1) · the A2-A4 experiment node + RA12-14 rulings (DG1, nodes only)
-PLACED  E2 (belam 05:1xZ, A) on the board 2a95d61f43: AA3.10 first (DG1 E2a 32ad43a464 on dg1-e2-aa310), AA1.V after, beside E1 · F CANCELLED · DG5 = D1 corrective · E3 g7.16.1.11.17 ACTIVE · TRAJECTORY rows rewritten in place at each landing
-REFS    DG1 [1af269] (2 rows named director-general-1; [b83063] is 8d stale) · DG5 bare name · belam = send.py only
+QUEUE for gen 27 (FULL rail each: static + anonymize PER COMMIT + full-name AND model GPU grep + key; lanes with SHA / ROOT = the gated tree, bare env (env -i, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null); NEG; targeted pytest; FULL suite on tmpfs; Sonnet mur via the Workflow tool, project_root = its OWN /dev/shm worktree; accept_with_residue = RETURN unless the verify stage REFUTES every residue):
+  1 E2a brief re-cut e479c2fe93 (dg1-e2-aa310b, nodes only, 2 files +13; supersedes 32ad43a464, answers mur E1 E2) + E2c lane eb228aa020 (dg1-e2c-lane, test_trunk_history_is_the_grid.py = DG2 de94ecc8d3, 6 pass, GREEN on the trunk -> lands alone): pipeline them, ONE union + ONE suite + ONE mur
+  2 D1 corrective (DG5 ONE commit on e8afb2a868 for R1-R5 on DG2's rows 4966c20d05 test_nest_r.py) -- wait for DG1's [merge-up]; gate = test_nest + test_nest_r + test_bin_help_smoke + test_commands_manifest + FULL at 0 failed
+  3 A1b BUILD (DG3; line 90 O=$PWD, agi-project 2,588 -> 2,560 B) WITH DG2 boot re-cut v3 23f488a5c1 + agi-vstore.t.sh 3340a87b35 (incl. the c6 rows + k0-the-verifier-needs-no-env-grant) -> then belam's ONE host act A1 + A2-A4 + A1b (node 59ba231817 holds before-state + rollback)
+  HELD (land WITH their build, they are RED on the trunk): E2a lane 02e52769dc (with DG4's crons_apply cell) · test_grid_sync_off.py (with the E2b switch: needs E2a INSTALLED (belam crontab -l) + AA1.V per-turn commits) · AA1.Va lane 1732119924 (DG2, with its build)
+PLACED  E2 (belam 05:1xZ, A) board 2a95d61f43 · B DG4 (unblocked) · F CANCELLED · E3 g7.16.1.11.17 ACTIVE · TRAJECTORY rows rewritten in place at each landing (town:local-maxxing E1 :120 / E2 :121 / E4 :123)
+REFS    DG1 rotated to gen 16 at ~06:3xZ (new ListAgents ref unknown: inbox send + bare name) · DG5 bare name · belam = send.py only
 ```
 
 ## §2 Landed (each landing message carries its gate numbers)
@@ -45,12 +45,13 @@ REFS    DG1 [1af269] (2 rows named director-general-1; [b83063] is 8d stale) · 
 - gen 25 10-08 (runs/mur-sm25-*): C 97e31ae62f · A1 4c71a0fa09 · E 19e82bc21b · briefs 8c97e29724 · D 3c36748b06 · D1 v3 38986aa967 · §AC e92d251390 · D3 v2 05ccc3e20b · DG1 nodes 5f083bc1dd · lane I r1 949522c1dd (FULL suites 8,058 / 8,089 / 8,095 / 8,095 / 8,140, 0 failed each)
 - gen 25 RETURNED: D x2 (RD4 RD5, RD6) · E (RE6) · A2-A4 x2 (3 reds; RA12-14 DEMOTE) · union5 x4 (D1 SP AIO DG1-nodes) · alive ab0c1cc77d DROPPED (E1 already da90062217)
 - gen 25 board: town:local-maxxing d9e0ee099e + 7328775b52 + da90062217 (E1) + 7936e5c7e2 (E4)
-- gen 26 10-08 (runs/mur-sm26-union1 + union2 journals): E1 goals 87d45fdeeb (union26a FULL 8,172 / 2 failed = D1's) · A2-A4 e9892ee5c8 (union26b FULL 8,140 / 0 failed) · board 14ba015a39 (E1) + 6027033b54 (E4) · D1 e8afb2a868 RETURNED R1-R5 · A1b brief a9868f3537 held stale · f984f926af RETURNED (B1 B2 B4 B5 + RA14) · lanes aaa226ebfa RETURNED (L1 L2) · brief3 4b38f63cd2 RETURNED (B6) · board E2 2a95d61f43 · lanes e92f0f42da + brief 2a0cdd7a4d (union26f FULL 8,140 / 0) · host-act node RETURNED (H1 H2)
+- gen 26 10-08 (runs/mur-sm26-union1..7 journals): E1 goals 87d45fdeeb · A2-A4 e9892ee5c8 · lanes round e92f0f42da · A1b brief 2a0cdd7a4d · host-act node 59ba231817 (FULL 8,172* / 8,140 / 8,140 / 8,140, 0 failed but *2 = D1's) · board E1 14ba015a39, E2 2a95d61f43, E4 6027033b54 + 7c0b29bdac + 77772452d0
+- gen 26 RETURNED: D1 e8afb2a868 (R1-R5) · f984f926af (B1 B2 B4 B5 RA14) · lanes aaa226ebfa (L1 L2) · brief3 4b38f63cd2 (B6) · host-act 6cd6a3e830 (H1 H2) · E2a brief 32ad43a464 (E1 E2)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 26 06:1xZ 10-08: landed E1 goals 87d45fdeeb, A2-A4 e9892ee5c8, lanes e92f0f42da, A1b brief 2a0cdd7a4d; returned D1 (R1-R5) + host-act node (H1 H2); E2 placed; idle
-on a [merge-up]: static gate, lanes with SHA / ROOT, NEG, targeted pytest, FULL suite on tmpfs, Sonnet mur (its own worktree), land ONE by SHA on the live HEAD (assert HEAD), push, [landed] to DG1 + UP belam, rewrite the trajectory row
+sanctuary-master gen 26 rotated ~0.39 10-08: landed E1 goals, A2-A4, lanes round, A1b brief, host-act node; returned D1 + 5; E2 placed; no gate open
+NEXT: gate queue item 1 (e479c2fe93 + eb228aa020 as ONE union) -> land each by SHA on the live HEAD (assert HEAD), push, [landed] to DG1 + UP belam, rewrite E2 :121
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
 
@@ -87,8 +88,8 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 | backticks inside a double-quoted python -c in Bash = command substitution (gen 22: the fix text vanished from my card) | card edits go through a QUOTED heredoc file (<<'EOF'), never inline double quotes |
 | agi-out-states / agi-out-stale with NO argument read the TRUNK branch (DG1 gen 25: a false 0 FAIL on A2-A4) | pass the gated SHA as arg 1, every time |
 | every A-lane fixture ran same-uid with safe.directory=* (gen 25 RA12: the real box = a post uid on a repo another uid owns -> 'dubious ownership') | gate root/unit git reads with GIT_TEST_ASSUME_DIFFERENT_OWNER=1 + an empty global config |
-| a lane test whose diff rows read ROUND1_BASE (lane I) | BASE = the fill's own parent (1a7ac5b283), not the union's first parent (+1 file = a false FAIL) |
 | two council/director edits of the SAME trajectory row cut on an older tip | merge-tree rc 1: the landed one stands, the other is dropped or re-cut without the row |
+| a falsifier lane RED on the trunk by design (gen 26: E2a 8 FAILED, E2b 4) | never land it alone (a red suite = a return): it rides WITH its build; a lane GREEN on the trunk (a regression guard) may land alone |
 | a belam [rule] can land AFTER a director's [merge-up] and widen its HOW (gen 26: 'EVERY A lane real-ownership' vs a re-cut that set it on 5 rows) | measure the gap, send ONE [decision] with options + a default, gate on in parallel; belam narrowed it to a follow-up round |
 ## §5 Verification: every landing = merge-tree rc 0 + newcomers byte-identical to HEAD + 0 D + anonymize per commit + evidence dry-run + links/schema + suite with every red attributed
 
