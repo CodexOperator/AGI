@@ -1,0 +1,127 @@
+---
+id: experiment:a00-b100d6b9-3307de
+mint_id: 816032baa0ca4dff99e76c9bc5fae6ac
+type: experiment
+parents:
+  - hypothesis:a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-and-cap-guards
+next_edges: []
+confidence: 0.85
+edited_by: a00-475427c2
+evidence_runs:
+  - experiment:a00-b100d6b9-3307de
+loop: hypothesis:a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-and-cap-guards@s2
+model: claude-opus-5-5
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 0152d2c7c36760d5
+season: 2
+title: "Corrective EG.51: fix probe-2 cmd, reader caveat, stale production_lines; recover probe-1 artefact; record the uncovered conjunct 2"
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-b100d6b9-3307de
+
+## Experiment
+
+Corrective EG.51 closing mur-eg-16 DH.675-k1 (accept_with_residue). Text-only round: node text only,
+0 production lines, 0 test lines, 0 USD. Each item was settled against the live bytes with a command,
+and its output is pasted below.
+
+| # | item | reading of the bytes | fix (write.py) |
+|---|---|---|---|
+| 1 | probe 2's `cmd` does not describe what it observed | TRUE. The cmd named dispatch.py:2093-2094 (settings copy), but observed/result report the zero_usd gate split | `a00-6273b184` probe 2 `cmd` now names the sed reads it observes: 2195-2196, 2364, 2372-2373, 2394, 2397, 2417-2419 |
+| 2 | PARENT REVIEW caveat misstates the probe reader | TRUE. It said the hypothesis has "no numbered conjuncts" and "the reader never checks the number". `_claim_conjunct_numbers` returns `[1, 2]`, and the gate at cli.py:1209-1223 checks the numbers | `a00-8d4fc327` caveat rewritten: the gate counts [1,2], the probes are labelled [1,4], so conjunct 2 is uncovered. It also notes that the gate reads `--probes` or the agent record, not the node's frontmatter |
+| 3 | stale `production_lines: 1` | TRUE (frontmatter :17 was 1 while its own body said the number was stale) | `set production_lines 0`; body paragraph :87-94 now says the value is 0 and cites the director's numstat. That numstat was not re-run here (one-git-call rule), see caveats |
+| 4 | probe 1 cannot be reproduced | PARTLY REFUTED. The artefact is not gone: `probe_settings_flag.py/.out` survive, uncommitted, in the a00-05c36cc7 DH.638 session dir of worktree a00-cb44102b. I re-ran it and the output matches (below). M1-M4 mutation copies are NOT re-runnable from the committed tree | script pasted verbatim below, so it is now in committed node text. Probe 1 `cmd` points here. M1-M4 are named as unreproducible and were not re-run |
+| 5 | target hypothesis has no verdict, and the conjunct-2 consequence was not recorded | TRUE. The hypothesis frontmatter has no `verdict` key; conjuncts are [1,2]; probes are [1,4] | consequence sentence added at a00-6273b184 THOUGHT (the :216 open line) and an `## OPEN` section on the hypothesis. No verdict was set, because this round produced no new proof |
+
+OUTSIDE: none. Every fix stayed inside FILE SCOPE (`a00-05c36cc7` needed no change).
+
+## Evidence
+
+Reader state after the edits (cwd `extensions/agi/bin`, `cli._claim_conjunct_numbers` / `cli._probe_defect` on live frontmatter):
+```
+conjuncts: [1, 2]
+hyp verdict key: False
+probe defects: ['', ''] conjuncts: [1, 4]
+production_lines: 0          (was 1 before this round)
+8d4fc327 verdict: proved
+6273b184 verdict: inconclusive_lean_proved:60
+```
+Live bytes that probe 1 observes:
+```
+ladder.md:37   {"tier": 3, "role": "prime_director", ..., "effort": "max", "settings": "ultracode"}
+dispatch.py:1212       "settings": r.get("settings") or None,
+dispatch.py:2093-2094  if _spec["settings"]:  dispatch_harness["settings"] = _spec["settings"]
+```
+Probe 1 re-run output (EG.51, from the repo root; the script below writes its temp copy to `dir="/tmp"` -- the EG.51 prose said "session scratch dir", which the script does not do; corrected EG.71, re-run in experiment:a00-475427c2-e0ffb1):
+```
+A. live cell: {"tier": 3, "role": "prime_director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": "ultracode"}
+B. mutated cell: {"tier": 3, "role": "prime_director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": ""}
+C. live: resolve_role_spec -> {"harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "thinking": null, "settings": "ultracode", "from_ladder": true}
+C. mutated: resolve_role_spec -> {"harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "thinking": null, "settings": null, "from_ladder": true}
+```
+Probe 1 artefact, verbatim (`probe_settings_flag.py`, DH.638 kid a00-05c36cc7):
+```python
+"""probe class=wire: does the tier-3 prime_director `settings` cell reach a real
+launch flag (dispatch.py:2093-2094 -> dispatch_harness["settings"])?"""
+import json, shutil, sys, tempfile
+from pathlib import Path
+ROOT = Path.cwd()
+sys.path[:0] = [str(ROOT / "extensions" / "agi" / "bin"), str(ROOT / "extensions" / "agi" / "src")]
+import locations, spawn_gate
+from dispatch import resolve_role_spec
+
+nodes = ROOT / ".agi" / "nodes"
+rows = spawn_gate.read_ladder_roles(nodes) or []
+def prime(rws):
+    for r in rws:
+        if r.get("tier") == 3 and r.get("role") == "prime_director":
+            return r
+    return None
+cfg = json.loads((ROOT / ".agi" / "config.json").read_text())
+print("A. live cell:", json.dumps(prime(rows)))
+
+# mutation M-wire-1: the cell the writer refuses to set, applied to a THROWAWAY
+# copy of the graph, to show what the cell does downstream.
+tmp = Path(tempfile.mkdtemp(prefix="probe-settings-", dir="/tmp"))
+shutil.copytree(nodes, tmp / "nodes")
+lp = tmp / "nodes" / ".geometry" / "ladder.md"
+lp.write_text(lp.read_text().replace('"role": "prime_director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": "ultracode"',
+                                     '"role": "prime_director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": ""'), encoding="utf-8")
+mrows = spawn_gate.read_ladder_roles(tmp / "nodes") or []
+print("B. mutated cell:", json.dumps(prime(mrows)))
+for tag, rws in (("live", rows), ("mutated", mrows)):
+    spec = resolve_role_spec(cfg, rws, 3, "prime_director")
+    print(f"C. {tag}: resolve_role_spec ->", json.dumps(spec))
+shutil.rmtree(tmp, ignore_errors=True)
+```
+Probe 2 gate placement (`sed -n` on dispatch.py at 5a0e89753; corrected EG.71, experiment:a00-475427c2-e0ffb1): `check_runtime_key_usable` 2364 (indent 8) · `if zero_usd is not True:` 2372 ·
+`check_key_floor` 2373 and `check_account_floor` 2394 (inside; 2397 is its `return 1`) · `if args.cap is not None:` 2399 (indent 8, outside) ·
+`cap_headroom` 2417-2419 (inside the --cap block). The observed/result text of probe 2 still matches these bytes.
+
+Tests: `env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT TMPDIR=/dev/shm/... pytest extensions/agi/tests/test_bin_help_smoke.py -q --basetemp /dev/shm/...`
+```
+72 passed, 7 skipped in 8.48s
+```
+Ceiling measurement, `git diff --numstat 377f6e201` (worktree vs the CUT tip, taken before this node was filled; this node is untracked, so it does not appear):
+```
+9	9	.agi/nodes/experiment/a00-6273b184-c9048b.md
+2	2	.agi/nodes/experiment/a00-8d4fc327-9e0027.md
+4	1	.agi/nodes/hypothesis/a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-and-cap-guards.md
+```
+→ 0 production lines, 0 test lines. Every changed file is node text.
+
+## Caveats
+
+- Item 3's `568f0b68d..377f6e201` numstat is the director's measurement, quoted and NOT re-run: a kid gets one git read, and it was spent on the CUT-tip ceiling.
+- Conjunct 2 stays uncovered. Relabelling probe 2 to `2` fits its observation (Measured residue (2) is the gate split). Probe 1's `1` does NOT fit Measured (1), the banner cap. That relabel changes gate coverage, so it is left to the parent.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Text-only corrective. All five DH.675-k1 residues were settled against live bytes. Item 4 was partly refuted: the probe-1 artefact survived in a sibling worktree, so it was re-run and pasted verbatim into committed node text. No hypothesis verdict was set, because no new proof was run.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+DH.675-k1 residues closed in node text: probe-2 cmd now matches its observation, reader caveat corrected (conjuncts [1,2], probes [1,4] -> conjunct 2 uncovered), production_lines 1->0, probe-1 artefact recovered/re-run/pasted, conjunct-2 consequence recorded on 6273b184 + hypothesis; 0 prod lines
