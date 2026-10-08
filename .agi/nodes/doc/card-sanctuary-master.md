@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:09Z 10-08, date -u) — gen 31 seated 18:57Z · GATE OPEN: nodes r2+r3 + goals v3.1 on provisional /dev/shm/sm31-nodes (M2 871505149f), mur wf_94dcd4dd-a70 running · D3 chain f6243d8bfe static OK, FULL waits on io PSI avg60 < 50 (91% at 19:0xZ) · skill line 24eb02fcea LANDED
+## §0 State (19:3xZ 10-08, date -u) — gen 31 · IDLE, NO gate open, NO tree on /dev/shm · trunk pushed · gen 31: skill line 24eb02fcea LANDED · RETURNED nodes r2+r3 (DEMOTE evidence_runs), goals v3.1, D3 chain · .13.2 rows HELD with DG4's build · box io PSI avg60 ~90% since 19:0xZ (no FULL may start: belam's gate < 50)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -33,11 +33,11 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 RAIL per merge-up (skill agi-master-gate): static (1 commit, merges 0, merge-tree rc 0, 0 D, anonymize per commit, full-name AND model GPU grep, key) · lanes cmp-identical to DG2's named sha · lanes bare env (env -i, empty HOME, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null, sh for .t.sh) in a 2nd tree · own NEG mutants on the REAL pieces · FULL on tmpfs · ONE Sonnet mur (focus: what the gate already measured + ONE whole-commit sweep, ALL residues one list) · accept_with_residue = RETURN unless verify refutes every residue, EXCEPT wording-only (belam (c)): land + name it + carry as a brief row · disjoint tips: ONE combined provisional tree, ONE FULL, land one at a time (T2 re-derived on the live HEAD each)
 QUEUE (in DG1's order):
-  1 nodes r2 aefd3de83f + r3 bd6a73f4b8: 5 closed items TRUE at 2e92b6447a; RETURN-bound: evidence dry-run DEMOTES the experiment (verdict proved, no evidence_runs -> add [experiment:g716111-aa2-key-onebox-agi-fresh], the convention) + FLIP NOTES still says census = precondition / A-B pending (belam 18:2xZ dropped it) -> one list with the mur's residues
-  2 goals stack 6a19088e08..db87f7bd39 v3.1: GV-3 + GV-5 MET; anonymize ok x6, 0 D, links 0 broken -> land on a clean mur (independent of 1: re-derive T2 on the live HEAD alone)
-  3 D3 chain 94a2ccbcda..f6243d8bfe (legacy.py new, viewport +61, help_smoke +2, test_legacy +606): static OK (anonymize x3, GPU 0, home 0, merge-tree rc 0, 0 merges); inject.py unstamped (ruled); viewport-verify in commands.md 13 s -> 39 s cold (limit named) -> FULL on tmpfs when io avg60 < 50 + mem >= 6 GB, lanes gate vs trunk, NEG on _verify, mur
-  4 .13.2 rows 344d5adb4b (DG2): 44 RED on the trunk by design = HELD, rides WITH DG4's .13.2 build
-  5 scanner rows v3 (DG2 re-cut SR-1/SR-2) · DG4 key lane round 2 · AA1.V v5: wait for DG1's merge-up
+  1 nodes r4 (on bd6a73f4b8): N-1 evidence_runs self-cite (DEMOTE cause) · N-2 census/A-B wording · N-3 C8 RULE overclaim + LIMIT (str(BIN / "grid.py") slips; C5/C7 unquoted alts) · N-4 above->below, will compare · N-5 :217 'every site in a row' -> check ONLY these + evidence dry-run, then mur
+  2 goals v3.2 (on db87f7bd39): G-1 Falsifier 3 + test_town_cell_write / formation_readback / post_rename, 'ONE helper every local root builder calls' · G-2 rotate.py:19184 'Fail-open on a broken veto cell' into the comments row + grep · G-note fresh-root refusal named, vetoes.md:39 -> check ONLY these, then mur
+  3 D3 re-cut (ONE commit on f6243d8bfe): D-1 no-history rows (my L8/L9) · D-2 per-keypress git walk memo + row · D-3 hierarchy-layer stamp offset + row · D-4 cache rule version + doc :88 · D-5 build nodes -> re-run my NEG L1-L9 V1-V3 (scratch neg_d3.py pattern) + FULL on tmpfs (io gate) + lanes gate vs trunk + mur
+  4 .13.2 rows 344d5adb4b HELD (44 RED by design) -> rides WITH DG4's .13.2 build
+  5 scanner rows v3 (DG2) · DG4 key lane round 2 · AA1.V v5: wait for DG1's merge-up
   rail: static · lanes cmp · bare env · NEG on the REAL pieces (anchor at line start; assert count==1) · FULL on tmpfs · ALL .t.sh gate vs a trunk tree (scratch lanes.sh: env -i, node dir on PATH, sh) · Sonnet mur, focus = what the gate measured + ONE sweep
   HELD: lane W 6646702009 (with the flip) · AA1.Va lane 1732119924 (with its build) · graph-metrics r2d/r2e fixture = a DG2 row
   FLIP NOTE for belam: a retired commit skips evidence_gate.enforce_on_disk (grid.py:1264) -- name its successor gate at the flip
@@ -49,13 +49,14 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 - gen 28 10-08: A1b v3 eb55f973e2 (FULL 8,159/0, wf_57c3536c-9f0) · D1 v2 38e61463c7 + goal 1275bdcb50 (FULL 8,248/0, wf_82907707-a9d) · skill line 7736650a92 (mur scratch HOME) · boards E1/E2/E4 · belam's host act INSTALLED 10:57Z (pin 820e5baac7)
 - gen 29 10-08 (13:11-16:3xZ): LANDED nest nodes 02add72f8e · lane B v5 a326fc3364 · nest wording e296f375b8 · metrics gold c0a529db3f · g141-b wording f478a9c0fb · boot leaf a7b3af22ea · E2b0 v8 014209084b · RETURNED lane B v4, E2b0 v6, census v4 + v7, AA1.V v3 (DEMOTE), writer list e5a67228e2 + bb7a6adf06 + d830681092 · murs wf_43ae744e-714 wf_61f04d6f-397 wf_a3fcaaf3-1cd wf_b25ca36f-1b3 wf_e8b285ad-5de wf_1c2460ab-2fa wf_0916f678-255 · skill line 'lanes'
 - gen 30 10-08 (16:4xZ-18:5xZ): LANDED D3 assign 42f52a3db1 · key lane rows 6ddce0abc6 · AA2 node be7bc26581 · key wording 975bd1477f · WRITER LIST v4 79238a68c9 · .12 one-box key chain eb3fd09d05 · DG4 lane fix b3140f2e98 · RETURNED writer list v2 + v3, AA1.V v4 (edit LOST), census v8 (then DROPPED by belam), scanner rows v1 + v2, goals .13.x v1 v2 v2+F v3 · murs wf_c5efe89c-2ac wf_0262b3ac-4b3 wf_0833fb39-cbf wf_671e85c2-a0f wf_459f5a1d-405 wf_3d2e289b-9fa
+- gen 31 10-08 (18:57Z-): LANDED skill line agi-memory-guard 24eb02fcea (belam 18:4xZ: one full suite at a time) · RETURNED nodes r2+r3 bd6a73f4b8 (DEMOTE), goals v3.1 db87f7bd39, D3 chain f6243d8bfe · murs wf_94dcd4dd-a70 wf_879d5ebe-15c
 - gen 28 RETURNED: E2b0 v2/v3/v5 + census v1/v2/v3 (wf_03a02542-a0c, wf_28f3231c-38f, wf_4052c202-20c; FULLs 8,225 / 8,253 green) · lane B v1 cfa98e28ce + D1 f5f81725fa (wf_19c88fa4-12c, FULL 8,229/0)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master rotated at 0.37 18:5xZ 10-08: 7 landed (last DG4 lane fix b3140f2e98); goals v3 + scanner rows v2 returned
-NEXT: wake on DG1's [merge-up] (goals .13.x v4 / scanner rows v3 / DG4 key lane 2 / DG1 nodes round (A) / D3 build / AA1.V v5) -> the rail in §1 -> land ONE at a time (T2 on the live HEAD, assert HEAD^{tree}) -> board -> [landed]/[return] DG1 (inbox + SendMessage 'director-general-1 [82cc9a]') + UP belam
-FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
+sanctuary-master idle 19:3xZ 10-08: skill line landed; nodes r2+r3, goals v3.1, D3 chain returned to DG1
+NEXT: wake on DG1's [merge-up] (nodes r4 / goals v3.2 / D3 re-cut / scanner v3 / DG4 lane 2 / AA1.V v5) -> the rail in §1 -> land ONE at a time (T2 on the live HEAD, assert HEAD^{tree}) -> board -> [landed]/[return] DG1 (inbox + SendMessage 'director-general-1 [82cc9a]') + UP belam
+FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; the raw store is .agi/sessions/inbox/sanctuary-master.md)
 ```
 
 ## §4 Traps (rules live in skills)
@@ -85,6 +86,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 | card stamps written from memory | read `date -u` in the SAME command that writes the stamp |
 | GPU-name grep with awk $NF | grep the FULL name AND the model (last two words); never print the name |
 | a landing message carries what the diff guard never sees | anonymize the landing message FILE (minus the attribution trailer) before commit-tree |
+| a verdict flip pending -> proved on an experiment (gen 31 nodes r2) | links/schema count it as FIXED; only the evidence dry-run sees the missing evidence_runs (self-cite = the convention) |
 | 'named positives' guarding an rc 0 (census v8) | NEG: force EACH positive True on the real file; a survivor = true by arithmetic, not a proof (gen 30: P3 81/81) |
 | a test that pins `git grep -n` output | NEG: a pure line shift (a comment line in a big file) must stay GREEN; a pinned line number = every edit reds FULL (gen 30: 4/8) |
 ## §5 Verification: every landing = merge-tree rc 0 on the live HEAD + newcomers byte-identical to HEAD + 0 D + anonymize per commit + evidence dry-run + links/schema + FULL suite with every red attributed
