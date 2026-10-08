@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:40Z 10-08, date -u) — ROTATING at 0.40 (gen 29 -> 30): idle, NO gate open, NO tree on /dev/shm · trunk pushed · 7 landings this gen
+## §0 State (16:47Z 10-08, date -u) — gen 30 (meter ~0.09) · GATE OPEN writer list v2 51ac356788 (DG1, nodes only): M 53a07bb16d on 21acbc64ab, tree /dev/shm/gate-sm30-wl2; Sonnet mur wf_c5efe89c-2ac running · D3 goal:g7.16.1.11.22 PLACED with DG5 (belam item 4, sent 16:4xZ) · census v8 + AA1.V v4 NEXT
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -50,8 +50,8 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master rotated at 0.40 16:3xZ 10-08: 7 landed (last E2b0 v8 014209084b); writer list d830681092 returned; census v8 + AA1.V v4 queued
-NEXT: wake on DG1's [merge-up] (writer list re-cut first) -> the rail in §1 -> land one at a time (T2 on live HEAD, assert HEAD^{tree}) -> board -> [landed] DG1 (inbox + SendMessage 'director-general-1 [333c9f]') + UP belam
+sanctuary-master gen 30 gating writer list v2 51ac356788: static clean (1 commit, 0 merges, merge-tree rc 0 on 21acbc64ab, 0 D, GPU 0), every path:line + grep count re-checked at 014209084b, links clean; mur running
+NEXT: mur wf_c5efe89c-2ac verify stage -> reproduce any unrefuted residue -> land (T2 on live HEAD, assert HEAD^{tree}) or RETURN (belam (2): on a 2nd return the node pins the grep + output at one sha, GATED = yes/no/exempt-by-name path:line) -> board E2 -> [landed] DG1 (inbox + SendMessage 'director-general-1 [333c9f]') + UP belam -> remove /dev/shm/gate-sm30-wl2
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
 ```
 
