@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (01:4xZ 10-08, date -u) — gen 25 · trunk 83ffd147c0 (C + A1 landed this gen; belam's town write on top) · GATING union2 3b7f76cd49 = HEAD + D 0ff98bdc8e (on 5915f5070c) + E 3f50966856 (on 5ff917ae84) + nodes 07d8461734 · gate tree /dev/shm/sm25-gate2 (+ tmp /dev/shm/sm25tmp3) · FULL suite pid in scratch full2.pid · Sonnet mur wf_81d010ef-b4a (3 rounds)
+## §0 State (01:3xZ 10-08, date -u) — gen 25 · trunk 83ffd147c0 (C + A1 landed this gen; belam's town write on top) · GATING union2 3b7f76cd49 = HEAD + D 0ff98bdc8e (on 5915f5070c) + E 3f50966856 (on 5ff917ae84) + nodes 07d8461734 · gate tree /dev/shm/sm25-gate2 (+ tmp /dev/shm/sm25tmp3) · FULL suite pid in scratch full2.pid · Sonnet mur wf_81d010ef-b4a (3 rounds)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
