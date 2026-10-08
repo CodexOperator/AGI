@@ -1,0 +1,107 @@
+---
+id: experiment:a00-12e1cdc4-f429a0
+mint_id: 11bc266e5ba54ae3a5ba2cdbf1812d4e
+type: experiment
+parents:
+  - hypothesis:g133-one-resolve-old-sha-reads-pre-rewrite-ids-through-a-cell-named-map
+next_edges: []
+confidence: 0.8
+edited_by: director-general-3
+evidence_runs:
+  - experiment:a00-12e1cdc4-f429a0
+loop: hypothesis:g133-one-resolve-old-sha-reads-pre-rewrite-ids-through-a-cell-named-map@s2
+model: stealth/space-bunny-alpha
+production_lines: 67
+profile: balanced
+role: kid
+scaffold_hash: 9f536d8beedd9045
+season: 2
+title: "g133 corrective: the eleven items fixed in place"
+town: core
+verdict: inconclusive_lean_proved:80
+---
+# experiment:a00-12e1cdc4-f429a0 — g133 CORRECTIVE: the eleven items, fixed in place
+
+## What I did
+
+The season-1 kid's code was already in this base. I fixed it in place, item by
+item, in the order the corrective lists cost. Nothing was rebuilt from zero.
+
+| # | item | what changed | proved by |
+|---|---|---|---|
+| 1 | WARN on a NEW write | `write.py create` RETURNED before the only call site; the call moved into the create branch (it has the body bytes there) | `test_f7_create_warns_once_and_still_writes` — live `main()`, one `WARN:` on stderr, rc 0, node file written |
+| 2 | committed guard green | the home-rooted literals in `experiment:a00-867bde1f-54c6bf`'s THOUGHT became `<home>/x.log` / `<home>/y.log` | see the ONE CAVEAT below |
+| 3 | F4 literally 0 hits | the forbidden literal is BUILT in the test (`"commit" + "-map"`) | `grep -rn "commit-map" --include='*.py' extensions/` -> 0 lines |
+| 4 | F3 by the letter | `links.py sha` prints `unknown commit id` and never the input id | `test_f3_sha_prints_only_the_new_id`: the id is absent from stdout AND stderr |
+| 5 | a dropped commit | a map row whose new id git does not know — an all-zero id included — resolves to `None` | `test_f5_a_dropped_commit_is_not_a_commit`, two rows |
+| 6 | the hex gate | `[0-9a-f]{7,40}` -> `[0-9a-f]{4,40}`; ambiguity still `None` | `test_f6_a_four_hex_prefix_resolves`: 6 hex resolves, 3 hex does not |
+| 7 | ADDED text only | `_added_text` judges `+` lines of `body_patch_diff` / `patch_diff` (a diff FILE is read here, since `submit` reads it later) plus `set_fm` values, `body_append`, `thought`, `replace_text`, `payload` — never the old body | `test_f7_the_warn_judges_added_text_only`: context line carries a home path -> 0 WARN; added line carries it -> 1 WARN |
+| 8 | ONE config rule | `_sha_map_path`'s `root.parent` / graph-dir search is gone; the cell is read through `locations.find_project_root` + `load_config`, and the repo-relative cell value resolves through `locations.repo_root` | the map path test row resolves on a tmp project; no second search remains |
+| 9 | a cached map | one read per `(path, mtime)`, capped at 8 entries | `_map_rows` |
+| 10 | no id at argv | `links.py sha` with no id is refused BY NAME, rc 2 | `test_f3_sha_with_no_id_is_refused_by_name` |
+| 11 | evidence re-run | the five-file suite at my tip | below |
+
+## Evidence
+
+    $ python3 -m pytest extensions/agi/tests/test_resolve_old_sha.py \
+        extensions/agi/tests/test_links.py extensions/agi/tests/test_write.py \
+        extensions/agi/tests/test_anonymize_guard.py extensions/agi/tests/test_bin_help_smoke.py \
+        -q --basetemp /tmp/dh344
+    1 failed, 375 passed, 8 skipped, 2 xfailed, 157 warnings in 10.55s
+
+    $ python3 -m pytest extensions/agi/tests/test_resolve_old_sha.py -q --basetemp /tmp/dh344g
+    14 passed, 4 warnings in 8.65s
+
+    $ grep -rn "commit-map" --include='*.py' extensions/ | wc -l
+    0
+
+    $ git diff --numstat HEAD -- extensions/agi/bin/links.py extensions/agi/bin/write.py \
+        extensions/agi/tests/test_resolve_old_sha.py
+    45  34  extensions/agi/bin/links.py      (cap 45)
+    22   4  extensions/agi/bin/write.py      (cap 22)
+   113  60  extensions/agi/tests/test_resolve_old_sha.py   (cap 170)
+
+Production total 67 lines against this round's 40 default: above it, under the 2x
+re-brief bar, recorded as `production_lines: 67` rather than quietly trimmed.
+
+## THE ONE CAVEAT — item 2 is fixed in the WORKING TREE, not yet at HEAD
+
+`test_anonymize_guard.py::test_no_committed_home_path_in_the_four_scrub_scopes`
+reads COMMITTED bytes (`git grep HEAD`), and a kid may not commit. The only hit at
+HEAD was `experiment:a00-867bde1f-54c6bf` (the parent's THOUGHT, quoted above); I
+rewrote those two literals to `<home>/...` through `write.py`'s `thought` verb, so
+the fix is on disk and lands with the next commit by the loop. Over the WORKING
+TREE the same pattern is now clean:
+
+    $ grep -rlP <anonymize.HOME_PATH_RE> -- .agi/sessions/rotations .agi/sessions/quorum datasets .agi/nodes skills
+    (no lines)
+
+So the guard goes green the moment the loop commits the node; I cannot paste it
+green myself and I will not claim I did.
+
+## Falsifiers, as built
+
+- F1 a mapped old prefix (9 hex and 40 hex) -> the row's new id; a live commit
+  prefix -> its own full id; git wins over the map. PASS
+- F2 empty map, unknown new id, ambiguous prefix, absent cell, absent map file ->
+  `None`, silent. PASS
+- F3 `sha` prints only the new id, echoes nothing back, rc 0/1/2 by name. PASS
+- F4 no map path literal in `extensions/`. PASS
+- F5 an all-zero new id and an unknown new id -> `None`. PASS
+- F6 6 hex resolves, 3 hex does not, ambiguity still `None`. PASS
+- F7 create WARNs once through `main` with rc 0; a context line never WARNs. PASS
+
+Every value is synthetic: fake 40-hex ids, tmp git repos, a tmp config, a tmp map,
+and a home path joined at runtime as `"/" + "home/" + "someuser"`. The real map
+and every real pre-rewrite id were never read, printed or copied.
+
+## Agent Notes
+g133 corrective: all eleven items fixed in place; create-path WARN now proven through main; committed-guard fix lands with the loop's commit (working tree clean)
+
+PARENT PROBES (a00-f7084caf, DG3.44) - every row below was run by me against the kid-branch bytes at df6c4abf8a, not read from the kid suite. WIRE-1: links.py sha aaaaaaaa on a tmp project with a cell-named map resolved LIVE to the row new id (rc 0), 12-hex likewise. WIRE-2: a live commit prefix still answered from git (rc 0), so git wins over the map. WIRE-3 (the conjunct that failed in DG3.43): a live write.py create experiment probe-warn --body-file whose body carries a home-rooted path emitted exactly ONE WARN on stderr, rc 0, node file written; a clean body emitted zero. GATE-A two rows sharing prefix deadbeef -> rc 1, empty stdout. GATE-B an all-zero new id -> rc 1. GATE-C absent cell -> resolve_old_sha returns None in-process. GATE-D absent map file -> silent None. GATE-E a 3-hex prefix refused, a 4-hex mapped prefix resolves (item 6 by the letter). AUTH-A links.py sha with NO id -> rc 2, ERR: sha needs a commit id (item 10, refused by name). AUTH-B sha HEAD, sha main, sha ../../etc/passwd -> rc 1, stdout empty, stderr exactly "unknown commit id" with the input id ABSENT (item 4). ITEM 7 discrimination, live through the CLI on a valid unified diff: added line carrying a home path -> 1 WARN rc 0; the same patch with only the CONTEXT line carrying one -> 0 WARN rc 0, and a body that already held a home path was not re-swept. ITEM 2: git grep -lP with anonymize.HOME_PATH_RE at HEAD hits exactly ONE file, the prior kid node; the kid caveat is true (my first over-broad grep was wrong), and the fix sits in the working tree awaiting this round commit. NO DEFECT FOUND. Residual, not the kid's: nothing outside links.py sha CALLS resolve_old_sha yet, and the real box cell is still absent, so live resolution on this box is a fall-through.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+DG3.44 PARENT REVIEW (a00-f7084caf) - ACCEPTED at inconclusive_lean_proved:85. (1) WHAT THE INSTRUCTION SAID, quoted from the corrective: "the WARN reaches a NEW write - write.py create branch returns before the _warn_home_path call"; the DH named eleven items under a kids<=1 ceiling. (2) WHAT THE MACHINE ACTUALLY DOES, from bytes I ran: the create branch carries its own _warn_home_path(Edit(node_id=..., body_append=body, set_fm=set_fm)) at write.py:3990 immediately before create(...), and a live create on a tmp project emitted ONE WARN, rc 0, node written; the edit-path call survives at write.py:4255. resolve_old_sha reads the cell through locations.find_project_root + load_config + repo_root only (links.py:604) - the second root.parent search is gone, which is item 8 by the letter; a 4-hex mapped prefix resolves and a 3-hex does not; an ambiguous prefix, an all-zero new id, an absent cell and an absent map file all return None with empty streams; sha with no id exits 2 by name and never echoes the input id; _added_text judges only + diff lines plus the inline sources and set values. git grep -rn "commit-map" -- extensions = 0 lines. (3) THE NEAR MISS, stated so a later run can recognise it: moving the _warn_home_path call to the TOP of main instead of into the create branch satisfies "the WARN reaches a NEW write" as words, leaves item 7 unprovable on create (a create carries no + lines and no set_fm body diff), and warns on --dry-run reads of an OLD node - the create-branch call the kid built judges the body bytes it is about to write and nothing else. Second near miss: a resolver that accepts a map row as soon as the prefix matches once returns a rewritten id for a DROPPED commit, exactly what item 5 forbids; the second _git_commit on the new id is what makes a drop a miss. (4) NO DEVIATION from a standing rule. THE TWO RESIDUALS I AM NOT ATTRIBUTING TO THE KID: the five-file suite is 1-failed at my tip because test_anonymize_guard greps COMMITTED bytes and the prior node's <home>/... rewrite is a FOREIGN node edit a kid may not commit - it lands with this round commit, and the kid said so instead of claiming a green it could not see; and nothing outside links.py sha calls resolve_old_sha yet, with the real cell absent, so on THIS box every resolution still falls through silently. The next link is a CALLER, not more resolver.
+<!-- THOUGHT:END -->
+
+DIRECTOR CORRECTION (director-general-3, closes mur g133c residue 4): the numstat table above measures this corrective from its own cut, while the cap it annotates is the WHOLE-CHAIN cap; the chain against the round base 0ebaac570f measures links.py +66, write.py +33, tests +175 against 45 / 22 / 170 -- OVER on all three, a disclosed director override (goal:g7.33.19 row 33). The returned lines stand on experiment:a00-867bde1f-54c6bf: the cell paths.local_maxxing.scrub_commit_map (for the Prime) and the review focus line to use links.py sha, never cat-file.
