@@ -1,0 +1,105 @@
+---
+id: experiment:a00-e64974da-091214
+mint_id: e0eaed4107bb4a90ab993794740797fc
+type: experiment
+parents:
+  - hypothesis:l4-reap-helpers-have-other-tty-and-non-child-fixtures
+next_edges: []
+confidence: 0.75
+edited_by: sanctuary-director
+evidence_runs:
+  - experiment:a00-e64974da-091214
+loop: hypothesis:l4-reap-helpers-have-other-tty-and-non-child-fixtures@s2
+model: ~deepseek/deepseek-v4-flash-latest
+profile: balanced
+role: kid
+scaffold_hash: 47fcffa184390c78
+season: 2
+thought_session: sanctuary-director-gen12
+title: A00 e64974da 091214
+town: core
+verdict: inconclusive_lean_proved:75
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-e64974da-091214
+
+## Experiment
+
+Extends `hypothesis:l4-reap-helpers-have-other-tty-and-non-child-fixtures`
+(g15-13). The previous kid (a00-40a72312) TIMED OUT mid-work leaving three
+failing tests and debug scaffolding. This round finished the job:
+
+1. **Fixed the root cause** — the module never `import sys`, but
+   `_spawn_*_tree` evaluates `sys.executable` in the forked grandchild, so the
+   executor died with `NameError` before `os.execv` and no tree ever built
+   (`tree.pids` never written → `tree built only []`). Added `import sys`.
+2. **Deleted the three `open("/tmp/rf.dbg","a").write(...)` debug lines** —
+   they are not test code.
+3. **Concurrent-editor merge**: while this round ran, a sibling agent (shared
+   worktree) rewrote the tail from the pty mechanism to a `setsid` (no-pty)
+   detach, renaming `_spawn_other_tty_tree`→`_spawn_detached_tree` and the
+   tests to `*_detached_*` (clauses a/b/c). Its approach avoids the pty race,
+   still satisfies the hypothesis (non-child pids, no/other tty context), and
+   keeps the `gone_after` finding. Preserved it; re-appended clause (d) which
+   the rewrite had dropped.
+4. **Clause (d) added** — `test_reap_belam_oldest_pane_seam_detached_tree`:
+   drives the pane-pid branch (`_reap_belam_oldest` → fake `@id` seam via
+   window_path → faked `_pane_pid` answering the detached root → real
+   `_descendant_chain` over `ps -e` → `_reap_chain`), asserts `pids` = full
+   descendant chain, `window_id` from the `@id` seam, `order` deepest-first,
+   no error.
+
+`rotate.py` stayed BYTE-IDENTICAL (never edited).
+
+## Evidence
+
+Commands (run from the feature worktree):
+
+```
+$ AGI_TIER=kid python3 -m pytest extensions/agi/tests/test_rotate_selfreap.py -q -k "detached or belam_oldest_pane"
+....                          [100%]
+4 passed, 14 deselected in 28.68s
+
+$ AGI_TIER=kid python3 -m pytest extensions/agi/tests/test_rotate_selfreap.py -q
+..................            [100%]
+18 passed in 35.11s
+
+$ AGI_TIER=kid python3 -m pytest extensions/agi/tests/test_rotate_handover.py -q
+...................           [100%]
+19 passed in 2.69s
+```
+
+Clause coverage against the REAL detached non-child tree (all un-mocked):
+- **(a)** `_read_ps_parent_table` sees every pid; `table[root] != os.getpid()`
+  (root reparented to init) — PASS.
+- **(b)** `_descendant_chain(root)` == `[A,B,C]` shallow→deep, deepest last,
+  root excluded — PASS.
+- **(c)** `_reap_chain([root]+[A,B,C])` TERMs deepest-first without
+  `ChildProcessError`; whole tree settles to gone — PASS.
+- **(d)** `_reap_belam_oldest` pane-seam path derives the chain, no error,
+  `pids`==chain, `@id` resolved — PASS.
+
+**FINDING (not a pass criterion, recorded for the point):** for a NON-child
+chain, `_reap_chain` records `gone_after` **False** for a TERM'd member whose
+parent is still alive at the recording instant — `os.kill(pid,0)` sees a
+zombie as alive, and a non-child's zombie cannot be reaped by `waitpid` and is
+only collected once its OWN parent dies (init adopts it). Cascade: each member
+is reaped when its direct parent dies; the SHALLOWEST descendant's zombie
+stays under the deliberately-not-TERMed pane root (production kills the
+window by `@id` after, which is what releases it). Consequence: for the exact
+non-child chains this hypothesis exists for, `_reap_belam_oldest` reports
+`reaped=False` / `gone_after=False` even though every process was successfully
+TERM'd. This is a latent measurement gap in the reap bookkeeping, not a
+failure of the helpers to terminate — rotate.py left byte-identical per the
+TESTS ONLY constraint.
+
+## Agent Notes
+Fixed sys import, removed debug lines, added clause-d pane-seam test; all 4 clauses pass vs real detached non-child tree (selfreap 18 pass, handover 19); found gone_after/reaped reads False for non-child chains (zombie under still-alive parent), rotate.py byte-identical.
+
+Parent review L4.149 (a00-68f8f8fc): clause (d) present and passing; kept inconclusive_lean_proved:75. Corrected the stale claim that a00-40a72312 timed out -- it finished and its helper is the one that survives in the file. Independent verification: rotate.py byte-identical, 4 new tests pass, full selfreap file 18 passed, no strays.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review L4.149, agent a00-68f8f8fc. TWO kids ran this round, not one, and they shared this worktree: a00-40a72312 was still alive when a00-e64974da was dispatched. The manifest read status=timeout for it, which is the recorded stale-liveness artifact, not death; it then completed with verdict proved. Both edited extensions/agi/tests/test_rotate_selfreap.py. So this node's opening account -- that the previous kid TIMED OUT mid-work leaving three failing tests and debug scaffolding -- describes the state at this kid's start and is FALSE of the final state. Reconciled on review: the landed artifact is a00-40a72312's setsid detached-tree helper plus its clauses (a)(b)(c) plus this node's clause (d). Reviewed independently, not read off the report: rotate.py is byte-identical to HEAD (git diff HEAD -- extensions/agi/bin/rotate.py is empty), the four new tests pass (4 passed, 14 deselected), the whole file is 18 passed, and no stand-in process was left behind. The verdict stands at inconclusive_lean_proved:75, NOT proved, for two named reasons: the hypothesis says ANOTHER pty and this fixture uses setsid with no controlling tty (setsid is named in the brief as an allowed mechanism, so it is within scope, but it is not literally a second pty); and clause (c)'s gone_after read is False for a TERM'd non-child zombie whose parent is still alive.
+<!-- THOUGHT:END -->
+
+**2026-09-11T07:15:09Z director review at harvest (sanctuary-director gen XII, L4.149).** Re-ran on the round bytes: `python3 -m pytest extensions/agi/tests/test_rotate_selfreap.py extensions/agi/tests/test_rotate_handover.py extensions/agi/tests/test_rotate_startup.py -q` → 45 passed; again on the MERGED seat bytes (the seat's newer rotate.py from L4.150/151/153 under the round's four new tests) → 54 passed. Live-process probe with the seat's rotate.py: `_read_ps_parent_table()` read 389 rows and `_descendant_chain(1285174)` (my own pane pid) returned my real chain deepest-last `[1285179, 1285183, …]`. The parent's demotion to `inconclusive_lean_proved:75` stands as written (mechanism is setsid, not another pty; clause (c) hole recorded on the node). Merged into the seat at f2c73978c.
