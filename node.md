@@ -16,7 +16,7 @@ EXPANSION of config:engine: the unit template (root's agi-project reads it throu
 Read only through `sect <name> [REV]`.
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
-### agi-post@.service (1888 B)
+### agi-post@.service (2238 B)
 ~~~ini
 [Unit]
 After=agi-ram-main.service
@@ -30,6 +30,7 @@ Environment=GIT_AUTHOR_NAME=%i GIT_COMMITTER_NAME=%i GIT_AUTHOR_EMAIL=%i@agi GIT
 RuntimeDirectory=agi-%i
 RuntimeDirectoryPreserve=restart
 ExecCondition=sh -c '[ ! -e .ssh/out-refused ]||[ .fresh -nt .ssh/out-refused ]||exit 2'
+ExecCondition=sh -c 'type agi-run>/dev/null||grep -qs "^### agi-run " t/.agi/nodes/.geometry/engine.md t/.agi/nodes/.geometry/engine-[pw]*.md||{ [ ! -d t ]&&{ git -c safe.directory=$O -C $O grep -q "^### agi-run " $AGI_TRUNK -- .agi/nodes/.geometry/engine.md ".agi/nodes/.geometry/engine-[pw]*.md";r=$?;[ $r -lt 2 ]||exit 255;[ $r = 0 ];};}||exit 2'
 ExecStartPre=awk -F"[= ]" "/some/{exit $$3>40}" /proc/pressure/memory
 ExecStartPre=sh -c 'mkdir -p .ssh;[ -d t ]||[ -e .fresh ]||touch .fresh;[ .fresh -nt .ssh/id_ed25519 -a ! -f t/.agi/nodes/.geometry/ring ]&&rm -f .ssh/id_ed25519*;[ -f .ssh/id_ed25519 ]||ssh-keygen -qN "" -ted25519 -f.ssh/id_ed25519'
 ExecStartPre=+/usr/bin/env -i PATH=/usr/sbin:/usr/bin:/bin /opt/agi/bin/agi-signers %i
@@ -49,7 +50,7 @@ WantedBy=multi-user.target
 ~~~
 
 
-### agi-boot.service (704 B)
+### agi-boot.service (748 B)
 ~~~ini
 [Unit]
 After=agi-ram-main.service
@@ -61,18 +62,19 @@ TimeoutStartSec=infinity
 WorkingDirectory=/data/work/agi
 EnvironmentFile=/etc/agi/carry.env
 Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=* GIT_NO_REPLACE_OBJECTS=1 GIT_NO_LAZY_FETCH=1
-ExecStart=sh -c 'case $AGI_TRUNK in *[!0-9a-f]*)exit 1;;esac;[ $(echo $AGI_TRUNK|wc -c) = 41 ]||exit 1;f(){ echo $AGI_TRUNK:.agi/nodes/.geometry/engine-root.md|git cat-file --batch --follow-symlinks|sed -n "/^### agi-boot /,/^##/{/^~~~/,/^~~~/{//!p}}";};[ -n "$(f)" ]||{ echo "agi-boot: no ### agi-boot at $AGI_TRUNK">&2;exit 1;};f|sh -s'
+ExecStart=sh -c 'case $AGI_TRUNK in *[!0-9a-f]*)exit 1;;esac;[ $(echo $AGI_TRUNK|wc -c) = 41 ]||exit 1;git cat-file -e $AGI_TRUNK^{commit}||exit 1;f(){ echo $AGI_TRUNK:.agi/nodes/.geometry/engine-root.md|git cat-file --batch --follow-symlinks|sed -n "/^### agi-boot /,/^##/{/^~~~/,/^~~~/{//!p}}";};[ -n "$(f)" ]||{ echo "agi-boot: no ### agi-boot at $AGI_TRUNK">&2;exit 1;};f|sh -s'
 [Install]
 WantedBy=multi-user.target
 ~~~
 
-### agi-boot (1584 B)
+### agi-boot (1797 B)
 ~~~sh
 #!/bin/sh
 R=${AGI_RAM:-/mnt/agi-ram} t=${AGI_TRUNK:?} o=${AGI_BOOT_OUT:-/run/systemd/system};w=$o/multi-user.target.wants
 export GIT_NO_REPLACE_OBJECTS=1 GIT_NO_LAZY_FETCH=1;case $t in *[!0-9a-f]*)exit 1;;esac;[ ${#t} = 40 ]||exit 1
-e=0;f(){ "$@"||{ echo "agi-boot: failed: $*">&2;e=1;};};f setfacl -m g:agi:x $R;f setfacl -m g:agi:--- ${AGI_RAM_STATE:-$R/state}
 c(){ git show $t:.agi/config.json|jq -r ".values.local_maxxing.$1";};L=$(c de_live_parents.ceiling_if.loadavg1_lt) P=$(c de_live_parents.ceiling_if.io_psi_some_avg60_lt) N=$(c agi_boot.poll_s) M=$(c agi_boot.wait_max_s) S=$(c agi_boot.space_s)
+for v in loadavg1_lt:"$L" io_psi_some_avg60_lt:"$P" poll_s:"$N" wait_max_s:"$M" space_s:"$S";do case ${v#*:} in ""|*[!0-9.]*|*.*.*|.)echo "agi-boot: cell ${v%%:*} is not a plain number at $t">&2;exit 1;;esac;done
+e=0;f(){ "$@"||{ echo "agi-boot: failed: $*">&2;e=1;};};f setfacl -m g:agi:x $R;f setfacl -m g:agi:--- ${AGI_RAM_STATE:-$R/state}
 echo $t:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n '/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}'|sh -s $o $t||exit 3
 f systemctl daemon-reload
 ok(){ l=;read l _<${AGI_LOADAVG:-/proc/loadavg};i=$(sed -n 's/^some .*avg60=\([0-9.]*\).*/\1/p' ${AGI_PSI_IO:-/proc/pressure/io});[ -n "$l" ]&&[ -n "$i" ]&&awk -v l=$l -v i=$i -v L=$L -v P=$P 'BEGIN{exit !(l<L&&i<P)}';}
@@ -82,7 +84,7 @@ systemctl start agi-post@$p</dev/null||{ echo "agi-boot: start failed $p">&2;e=1
 exit $e
 ~~~
 
-### box-carry (3246 B)
+### box-carry (3253 B)
 ~~~sh
 #!/bin/sh
 # box-carry P (ROOT, agi-carry@P.service, woken by P's own refs/box/P): P's refs/box/P/<Q> -> the store of each recipient on this box (pipe, ff-only, strict), or -> the hub when Q's box is elsewhere; re-scanned (max 5x) as long as P's tips keep moving; still moving after the last pass = exit 75 (the unit restarts it)
@@ -103,7 +105,7 @@ if [ "$1" = --fetch ];then for p in $(echo "$W"|awk -v b=$B '$2==b{print $1}');d
  for r in $(git -C $C for-each-ref --format='%(refname)' $m);do f=${r#$m/};f=${f%/*};q=${r##*/};ok $f&&ok $q&&[ "$(bx $f)" = $B ]&&[ "$(bx $q)" != $B ]&&a $f $q&&git -C $C push -q $H $r:$r;done
  git -C $C -c transfer.fsckObjects=1 fetch -q $H "$m/*:$m/*"
  for r in $(git -C $C for-each-ref --format='%(refname)' $m);do f=${r#$m/};f=${f%/*};q=${r##*/};ok $f&&ok $q&&[ "$(bx $q)" = $B ]&&[ "$(bx $f)" != $B ]&&a $f $q&&put - $C $q $S/$q/g.git $r;done
-else P=$1;ok $P&&[ -n "$(bx $P)" ]||exit 1;k=;i=0
+else P=$1;ok $P||exit 1;[ -n "$(bx $P)" ]||exit 0;k=;i=0
  while [ $i -lt 5 ];do s=$(as $P git -C $S/$P/g.git for-each-ref --format='%(objectname) %(refname)' $m/$P/);[ "$s" = "$k" ]&&break;k=$s;i=$((i+1))
   for r in $(echo "$s"|cut -d' ' -f2);do q=${r##*/};[ $r = $m/$P/$q ]&&ok $q&&a $P $q||continue
    if [ "$(bx $q)" = $B ];then put $P $S/$P/g.git $q $S/$q/g.git $r;elif [ -n "$H" ];then put $P $S/$P/g.git - $C $r&&git -C $C push -q $H $r:$r;fi;done;done;[ "$(as $P git -C $S/$P/g.git for-each-ref --format='%(objectname) %(refname)' $m/$P/)" = "$k" ]||exit 75;fi;:
@@ -134,10 +136,11 @@ PathChanged=/var/lib/agi/%i/g.git/refs/box/%i
 WantedBy=paths.target
 ~~~
 
-### agi-carry@.service (287 B)
+### agi-carry@.service (308 B)
 ~~~ini
 [Unit]
-StartLimitIntervalSec=0
+StartLimitIntervalSec=300
+StartLimitBurst=30
 [Service]
 Type=oneshot
 TimeoutStartSec=120
