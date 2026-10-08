@@ -8,9 +8,11 @@ mk(){ X=$T/$1;rm -rf $X;mkdir -p $X/data/work/agi/.agi/nodes/.geometry $X/opt/ag
  { printf '%s\n' '---' 'posts:';printf '  - {"name":"xp","box":"encryption-town","engine":{"v":4,"name":"xp","harness":"pi","model":"m","effort":"low"}}\n  - {"name":"lp","box":"local-town","engine":{"v":4,"name":"lp","harness":"pi","model":"m","effort":"low"}}\n';printf '%s\n' '---';} >$M/.agi/nodes/.geometry/posts.md
  git init -q $M;git -C $M add -A;git -C $M -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm fx;PIN=$(git -C $M rev-parse HEAD);printf '#!/bin/sh\n' >$X/opt/agi/bin/pi;chmod +x $X/opt/agi/bin/pi;}
 run(){ ( cd $T;env -i PATH=$PATH HOME=$T ROOT=$X PIN=${PIN} AGI_REPO=/data/work/agi "$@" );}
+# one line per getfacl record, sorted: readdir order differs between filesystems (tmpfs moves .git/index when it is rewritten), the content does not
+acls(){ getfacl -R -p $X/data/work/agi/.git 2>/dev/null|awk 'BEGIN{RS=""}{gsub(/\n/,"|");print}'|sort;}
 tree(){ (cd $X&&find . -path ./data -prune -o -path ./var/backups -prune -o -print|sort|xargs -I{} stat -c '%a %n' {});}
 # ---- a clean E: the act installs exactly the pinned bytes ----
-PU=agi-post@;GG=$(id -gn);mk a;before=$(tree);acl0=$(getfacl -R -p $X/data/work/agi/.git 2>/dev/null);run sh $ACT act>$T/a.out 2>$T/a.err;ra=$?
+PU=agi-post@;GG=$(id -gn);mk a;before=$(tree);acl0=$(acls);run sh $ACT act>$T/a.out 2>$T/a.err;ra=$?
 ok a1-act-exits-0-and-names-the-backup "[ $ra = 0 ]&&grep -q '^backup .*rollback: sh ' $T/a.out"
 ok a2-carry-env-is-exactly-the-five-cells "[ \"\$(cat $X/etc/agi/carry.env)\" = \"\$(printf 'AGI_BOX=encryption-town\nAGI_HUB=\nAGI_REPO=/data/work/agi\nAGI_TRUNK=%s\nGIT_CONFIG_VALUE_0=/data/work/agi\n' $PIN)\" ]"
 for p in agi-vstore:usr/local/libexec/agi-vstore sect:opt/agi/bin/sect box:opt/agi/bin/box box-carry:opt/agi/bin/box-carry agi-signers:opt/agi/bin/agi-signers;do n=${p%%:*};d=${p#*:}
@@ -32,7 +34,7 @@ rmdir $GD/refs/heads/zz $GD/objects/zz
 # ---- the rollback: back to the before-state, modes included ----
 rb=$(sed -n 's/.*rollback: sh //p' $T/a.out);sh $rb>$T/rb.out 2>&1;rr=$?
 ok b1-rollback-restores-an-untouched-E "[ $rr = 0 ]&&[ \"\$(tree)\" = \"$before\" ]"
-ok b2-rollback-restores-the-main-acl-and-drops-the-worktrees-dir "[ \"\$(getfacl -R -p $GD 2>/dev/null)\" = \"\$acl0\" ]&&[ ! -e $GD/worktrees ]"
+ok b2-rollback-restores-the-main-acl-and-drops-the-worktrees-dir "[ \"\$(acls)\" = \"\$acl0\" ]&&[ ! -e $GD/worktrees ]"
 # ---- an E with an old file of non-default mode: restored with its bytes and mode ----
 mk c;mkdir -p $X/etc/agi;echo OLD>$X/etc/agi/carry.env;chmod 640 $X/etc/agi/carry.env;before=$(tree);run sh $ACT act>$T/c.out 2>$T/c.err;rc=$?;rb=$(sed -n 's/.*rollback: sh //p' $T/c.out);sh $rb>/dev/null 2>&1
 ok c1-an-old-carry-env-comes-back-with-its-bytes-and-mode "[ $rc = 0 ]&&[ \"\$(cat $X/etc/agi/carry.env)\" = OLD ]&&[ \$(stat -c %a $X/etc/agi/carry.env) = 640 ]&&[ \"\$(tree)\" = \"$before\" ]"
