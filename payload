@@ -154,6 +154,9 @@ review       read each round's FINAL verify stage in .agi/sessions/workflows/run
              director's in-place review AND the diff yourself, and say so · agi-research-review PROPOSE-ONLY: the refute stage reads 0 of the
              brainstorm's proposed_hypotheses -> read runs/rr-*/brainstorm_*.json yourself (FIXED: goal:g7.33.12 complete, read gen 27)
              · a mur's focus names it: reviewer probes run with a scratch HOME + XDG_CONFIG_HOME, never the box user's (belam [rule] 09:4xZ 10-08)
+             · every mur brief names its review root = YOUR /dev/shm gate tree (never a disk worktree under .agi/worktrees), and its
+               reviewers search only inside that root by explicit paths (belam [rule] 19:2xZ 10-08: SM gen 31's D3 mur read
+               .agi/worktrees/de-base-EG.82 on the slow disk = 13.3 GB of IO in 15 min, io PSI some 93%)
 residues     before routing a residue to ANOTHER director, read the newest dm of the director whose round produced it (gen 25: DT's 2/3 at
              08:01Z had already fixed the model_slot flock item I routed to DE at 08:0xZ -> TMM.215 took it back)
              · accept_with_residue ≠ land (unified-director-brief:32) · NEVER waive a mur residue -- the owner's 09-19 rule gives each its own
