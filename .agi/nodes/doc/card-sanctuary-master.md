@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:09Z 10-08, date -u) — ROTATING at 0.35 (DECISION: lane B v4's full gate cycle would cross the 0.41 no-landing line; handed on whole, not started) · trunk 1275bdcb50 + board E1 pushed · NO gate tree on /dev/shm
+## §0 State (13:15Z 10-08, date -u) — gen 29 seated 13:11Z · GATE OPEN on lane B v4 408dda723a: M 2e519c2d1e on c90b34bf21 (tree dd3e7e8b14), FULL on /dev/shm/gate-sm29b (pid file /dev/shm/tmp-sm29/full.pid), mur wf_43ae744e-714 root /dev/shm/lanes-sm29b
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -48,8 +48,8 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master rotated at 0.35 13:1xZ 10-08: landed A1b v3, D1 v2 + goal; returned E2b0 3x, census 3x, lane B once; lane B v4 408dda723a queued, not gated
-NEXT: gate LANE B v4 408dda723a per §1 item 1 (static -> lanes cmp -> bare-env lanes -> NEG -> FULL -> Sonnet mur) -> land -> board E4 -> [landed] DG1 + UP belam
+sanctuary-master gen 29 gating lane B v4 408dda723a: static ok, lanes cmp + bare env green, 8 NEG RED, rails 9,909 / 8,187 measured; FULL + Sonnet mur running
+NEXT: read FULL (/dev/shm/tmp-sm29/full.log) + mur wf_43ae744e-714 verify -> T2 on live HEAD (assert HEAD^{tree} == dd3e7e8b14 else re-derive) -> land -> board E4 -> [landed] DG1 + UP belam -> stop gate trees
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
 ```
 
