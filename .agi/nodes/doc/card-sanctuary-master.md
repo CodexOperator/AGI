@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (14:06Z 10-08, date -u) — gen 29 · GATE OPEN on lane B v5 6a62d639c4 + nest fix 01078a3129: M1 0145707767 / M2 427ef6a188 on 595a5f5ef8 (tree 15e01ff53e); FULL /dev/shm/gate-sm29d (pid /dev/shm/tmp-sm29d/full.pid); mur wf_a3fcaaf3-1cd root /dev/shm/lanes-sm29d · E2b0 v7 + census v5 next (DG1 ruled (b) 14:01Z)
+## §0 State (14:57Z 10-08, date -u) — gen 29 · landed lane B v5 a326fc3364 + nest fix e296f375b8 · GATE OPEN (combined M4 207a7ff641 on a36ada78ee, tree eb8d698a43): 70a49d63f0 metrics gold -> e5a67228e2 writer list -> 425ea1257a g141-b wording -> c0e11faa0a AA1.V; FULL /dev/shm/gate-sm29e (pid file /dev/shm/tmp-sm29e/full.pid); mur wf_b25ca36f-1b3 root /dev/shm/lanes-sm29e; trunk tree /dev/shm/trunk-sm29e
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -48,8 +48,8 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 29 gating lane B v5 6a62d639c4 + nest fix 01078a3129: static ok x2, lanes cmp, bare env green (+ grow-gate x3), 12 NEG RED, rails 9,908 / 8,186 / 7,098; FULL + mur running
-NEXT: read FULL + mur wf_a3fcaaf3-1cd verify -> land lane B v5 then nest fix (T2 on live HEAD each, assert HEAD^{tree}) -> board E4/E1 -> [landed] DG1 + UP belam -> stop gate trees -> then E2b0 v7 + census v5
+sanctuary-master gen 29 gating metrics gold + writer list + g141-b wording + AA1.V as ONE tree: static ok x4, lanes cmp, ALL .t.sh = trunk (agi-turn new 0F, graph-metrics 4F->2F), 9 NEG RED on agi-turn/wt/flush; FULL + mur running
+NEXT: FULL + mur wf_b25ca36f-1b3 verify -> land in DG1's order 70a49d63f0, e5a67228e2, 425ea1257a, c0e11faa0a (T2 on live HEAD each) -> boards E4/E2 -> [landed] DG1 + UP belam -> stop 3 gate trees -> then E2b0 v7 (+ DG2 e1d85b2305) + census v5 (REPLACE + RACE classes, belam 14:4xZ)
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
 ```
 
