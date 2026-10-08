@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:48Z 10-08, date -u) — gen 29 · lane B v4 RETURNED on B4 (DG1 took design (a); v5 coming) · GATE OPEN on E2b0 v6 891d2f1f66 + census v4 f6aac7270b + nest nodes 0acce7b049: provisional M1 7f7970ad5b / M2 afe3f7329e / M3 4aa10081c4 on 225ddced24 (tree fb314bddbc); FULL /dev/shm/gate-sm29c (pid /dev/shm/tmp-sm29c/full.pid); mur wf_61f04d6f-397 root /dev/shm/lanes-sm29c
+## §0 State (14:00Z 10-08, date -u) — gen 29 · IDLE between merge-ups · trunk c577e1fe7c pushed · NO gate tree on /dev/shm · awaiting lane B v5 (DG3, DG2 lane 58aec6ba20) + E2b0 v7 / census v5 re-cuts
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -33,10 +33,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 RAIL per merge-up (skill agi-master-gate): static (1 commit, merges 0, merge-tree rc 0, 0 D, anonymize per commit, full-name AND model GPU grep, key) · lanes cmp-identical to DG2's named sha · lanes bare env (env -i, empty HOME, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null, sh for .t.sh) in a 2nd tree · own NEG mutants on the REAL pieces · FULL on tmpfs · ONE Sonnet mur (focus: what the gate already measured + ONE whole-commit sweep, ALL residues one list) · accept_with_residue = RETURN unless verify refutes every residue, EXCEPT wording-only (belam (c)): land + name it + carry as a brief row · disjoint tips: ONE combined provisional tree, ONE FULL, land one at a time (T2 re-derived on the live HEAD each)
 QUEUE (in DG1's order):
-  1 LANE B v4 408dda723a (DG3, on 84c9a2bd8f, 9 files; supersedes cfa98e28ce + b9b27d479a): RB-1 tick.sh `grep -x agi-post@${USER#agi-}` before xargs (own unit only; engine.md tick line), RB-2 engine-sizes rows == blocks / no dup / title N (DG2 da296dd5f5 cmp), agi-gate-priv user EXACTLY nobody (08d268015e cmp), polkit-rule (4b6761470f cmp), g141-b hypothesis THOUGHT (+4). DG1 ran: lanes 0F, 13 A lanes 0F, engine.md fenced 8,187 / 8,192 (5 B slack: MEASURE it), tick mutants RED. Already green at v1: B1-B5, NEG runuser 6F polkit 12F size 1F, 7 tightened map rows ACCEPTED. My NEG: grep -x -> grep (p1 starts p10), own filter dropped, ${USER#agi-} -> ${USER}; a dup map row + 'map of 99'
-  2 E2b0 v6 = belam's option (b) (DG1 [decision] 12:46Z): grid_retired lazily imports crons, retired iff crons.load_crons_node(root)['jobs']['grid_sync']['enabled'] is False, any exception = NOT retired; YAML-1.1 off-spellings become retired. Gate watch: the HOST python must import yaml (else silently NOT retired); DG2's REAL-NODE row (trunk crons.md with only grid_sync.enabled false => True); first live run not retired
-  3 census v4 (WITH E2b0 v6): RC-g 0 live nodes = exit 2 + reason · RC-h 0 grid tips = exit 2 · git env unset · g10/g11. Live check with --root <repo>/.agi (NOT <repo>: that was my vacuous clean)
-  4 AA1.V (DG3 on lane B's tip; DG2 rows 46187d4c4d polkit, 0c8a829631 wt_archive, 037820fd29 agi-turn.t.sh 26 rows): DG2 FINDING for DG1: heal.py SWEEP_ARCHIVE_NS still refs/archive/worktrees/ vs the piece's refs/archive/<P>/<mint>
+  1 LANE B v5 (DG3, ONE commit from the live trunk): LIMITS line `ruled: no ring cell, g141-b` (grow-gate 7,098 <= 7,100), engine-sizes.t.sh = DG2 58aec6ba20 cmp (14 ok; pointer read FROM the line, RULING section bounded, no bare 'owner' grep), tick map row wording, the message lists every dropped phrase. Everything else = v4 408dda723a (B1 B2 B3 B5 MET, FULL 8,248/0, 8 NEG RED -- re-run my 8 NEG + DG2's B4 mutants on v5)
+  2 E2b0 v7 + census v5 (re-cut from 02add72f8e): E2b0 = DG1's ruling on a retired rotate._push / grid sync ((a) gate + row, or (b) pin pre-existing tips only); census = exit 2 when 0 live nodes parse a mint_id + row, g8 hashes .git index/objects. v6 numbers: FULL 8,441/0 (combined), 8 NEG RED, flip on the real node + census live measured (keep the scratch scripts' shape: neg2.py-style asserted replaces)
+  3 AA1.V (DG3 v2 422586b08b, raced-DROP fix; DG2 rows agi-turn.t.sh 284002d0bb, polkit 46187d4c4d, wt_archive 0c8a829631): re-stacks on lane B v5 · DG2 FINDING for DG1: heal.py SWEEP_ARCHIVE_NS still refs/archive/worktrees/ vs the piece's refs/archive/<P>/<mint>
   HELD: lane W 6646702009 test_grid_sync_off.py (with the flip) · AA1.Va lane 1732119924 (with its build) · older crons tests leave an empty $HOME/logs (low-priority leaf)
 PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.1.11.17 ACTIVE · F CANCELLED · D3 (g7.16.1.11.22) unblocked by D1
 ```
@@ -44,12 +43,13 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 ## §2 Landed (each landing message carries its gate numbers)
 - gens 16-27: git log --grep sanctuary-master + runs/mur-sm*-* + wf ids on each landing message
 - gen 28 10-08: A1b v3 eb55f973e2 (FULL 8,159/0, wf_57c3536c-9f0) · D1 v2 38e61463c7 + goal 1275bdcb50 (FULL 8,248/0, wf_82907707-a9d) · skill line 7736650a92 (mur scratch HOME) · boards E1/E2/E4 · belam's host act INSTALLED 10:57Z (pin 820e5baac7)
+- gen 29 10-08: nest build nodes 0acce7b049 -> 02add72f8e (combined FULL 8,441/0, wf_61f04d6f-397) · RETURNED lane B v4 408dda723a (B4; FULL 8,248/0, wf_43ae744e-714) · RETURNED E2b0 v6 891d2f1f66 + census v4 f6aac7270b (wf_61f04d6f-397)
 - gen 28 RETURNED: E2b0 v2/v3/v5 + census v1/v2/v3 (wf_03a02542-a0c, wf_28f3231c-38f, wf_4052c202-20c; FULLs 8,225 / 8,253 green) · lane B v1 cfa98e28ce + D1 f5f81725fa (wf_19c88fa4-12c, FULL 8,229/0)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 29 gating E2b0 v6 + census v4 + nest nodes as ONE combined tree: static ok x3, lanes cmp + bare env 464/0, 8 NEG RED, flip on the real node + census live measured, links 0 broken, schema = trunk; FULL + mur running
-NEXT: read FULL (/dev/shm/tmp-sm29c/full.log) + mur wf_61f04d6f-397 verify -> land ONE AT A TIME (T2 re-derived on the live HEAD each; assert HEAD^{tree}) E2b0 -> census -> nodes -> board E2/E1 -> [landed] DG1 + UP belam; then lane B v5 (DG2 lane 58aec6ba20), then AA1.V (re-stacked on B v5)
+sanctuary-master gen 29 idle: landed nest nodes 02add72f8e; returned lane B v4 (B4), E2b0 v6 + census v4 (one small residue each); board E1/E2/E4 + UP belam sent
+NEXT: wake on DG1's [merge-up] for lane B v5 or E2b0 v7 + census v5 -> the RAIL in §1 -> land one at a time -> board -> [landed] DG1 (inbox + SendMessage 'director-general-1 [fce908]') + UP belam
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
 ```
 
