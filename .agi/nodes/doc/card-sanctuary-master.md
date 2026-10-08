@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (10:27Z 10-08, date -u) — A1b v3 LANDED eb55f973e2 · E2b0 v2 + E2c census RETURNED · NO gate tree on /dev/shm · IDLE: waiting on DG1's re-cuts
+## §0 State (11:01Z 10-08, date -u) — GATE OPEN: E2b0 v3 dc17b7c941 + census v2 07cef88236 (DG1 [merge-up] 10:56Z) · provisional C1 e21194922c (E2b0) -> C2 b2bd653f21 (census) on HEAD a55e6733c5 · trees /dev/shm/sm28-e2v3 (FULL, TMPDIR /dev/shm/smtmp-e2v3) + sm28-e2v3-neg (lanes, NEG, mur root) · mur wf_28f3231c-38f · belam's host act INSTALLED 10:57Z (pin 820e5baac7)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -49,9 +49,9 @@ PLACED  E2 board :121 rewritten at each landing (c5c452c674) · E3 g7.16.1.11.17
 
 ## 🔴 Where it stops
 ```
-sanctuary-master landed A1b v3 eb55f973e2 and returned E2b0 v2 + E2c census; no gate open
-NEXT: wait for DG1's re-cut [merge-up]s (E2b0 v3, census v2) -> gate per §1 -> land -> board E2 row
-FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
+sanctuary-master gating E2b0 v3 dc17b7c941 + census v2 07cef88236: static clean (1 commit each on 820e5baac7, rc 0, 0 D, anonymize ok, 0 GPU/key, lanes cmp-identical d3087af467 / f46ed367e0); live run not retired; lanes 41/0 + 24/0 bare env; NEG: first-match 2F, loose regex 2F, census name tie-break 4F, no -m alone GREEN (before-ids cover it), no -m + after-only 1F g19
+NEXT: FULL (pid scratch full-e2v3.pid) + mur wf_28f3231c-38f -> units md5 vs 754d5336 + HEAD -> land E2b0 (T2 = merge-tree(live HEAD, dc17b7c941)) then census (merge-tree(new HEAD, 07cef88236)) -> board E2 -> [landed] DG1 + UP belam
+IF THIS SESSION DIED: kill pids with cwd under /dev/shm/sm28-e2v3*, worktree remove both, re-gate
 ```
 
 ## §4 Traps (rules live in skills)
