@@ -953,3 +953,152 @@ def test_d4f_the_doc_names_the_file_the_code_uses(monkeypatch, tmp_path):
     monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "xdg"))
     name = Path(load_legacy().cache_path()).name
     assert f"agi/{name}" in cache_doc_line(), (name, cache_doc_line()[-300:])
+
+
+# ---- i: the INTERACTIVE loop (SM's pre-gate survivor: interactive()'s hier forced to 0 stayed green, the loop had no row). A STUB curses drives the REAL viewport.main() -> interactive()
+# in a child process (so a mutated copy of viewport.py can be run the same way): a scripted key list, a fixed 40 x 250 screen, every redraw's text and the child processes it started recorded. ----
+
+RUNNER = r'''
+import io, json, subprocess, sys, types
+bin_dir, project, keys, layer = sys.argv[1:5]
+sys.path.insert(0, bin_dir)
+calls = []
+real_popen = subprocess.Popen
+def counted(*a, **k):
+    calls.append(list(a[0]) if a and not isinstance(a[0], str) else (a[0] if a else k.get("args")))
+    return real_popen(*a, **k)
+subprocess.Popen = counted
+cur = types.ModuleType("curses")
+cur.error = type("error", (Exception,), {})
+cur.A_REVERSE = 1
+for n, v in dict(KEY_DOWN=258, KEY_UP=259, KEY_LEFT=260, KEY_RIGHT=261, KEY_NPAGE=338, KEY_PPAGE=339).items():
+    setattr(cur, n, v)
+cur.curs_set = lambda n: None
+draws = []
+class Scr:
+    def __init__(s):
+        s.cur, s.keys, s.mark = [], [ord(c) for c in keys], 0
+    def getmaxyx(s): return (40, 250)
+    def nodelay(s, f): pass
+    def erase(s): s.cur = []
+    def addstr(s, y, x, text, attr=None): s.cur.append(text)
+    def refresh(s): pass
+    def getch(s):
+        new = calls[s.mark:]
+        draws.append({"lines": s.cur, "calls": len(new), "argv": [" ".join(map(str, c)) if isinstance(c, (list, tuple)) else str(c) for c in new]})
+        s.mark = len(calls)
+        return s.keys.pop(0)
+cur.wrapper = lambda fn: fn(Scr())
+sys.modules["curses"] = cur
+class TTY(io.StringIO):
+    def isatty(self): return True
+real_out = sys.stdout
+sys.stdout = TTY()
+sys.argv = ["viewport.py", "--project", project, "--live", "--layer", layer]
+import viewport
+rc = viewport.main()
+real_out.write(json.dumps({"rc": rc, "draws": draws}))
+'''
+
+
+def run_interactive(tmp_path: Path, repo: Repo, keys: str, bin_dir: Path | None = None, layer: str = "hierarchy") -> dict:
+    """Drive the interactive viewport with the scripted `keys` (j = down, l = right, q = quit) on `repo`; {"rc", "draws": [{"lines", "calls", "git"}]} (one entry per redraw)."""
+    import json
+    runner = tmp_path / "runner.py"
+    runner.write_text(RUNNER)
+    r = subprocess.run([sys.executable, str(runner), str(bin_dir or BIN), str(repo.dir / ".agi"), keys, layer], cwd=repo.dir, capture_output=True, text=True, timeout=180,
+                       env={"PATH": "/usr/bin:/bin", "HOME": os.environ["HOME"], "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_SYSTEM": "/dev/null"})
+    assert r.returncode == 0, (r.returncode, r.stdout[-300:], r.stderr[-600:])
+    out = json.loads(r.stdout)
+    assert out["rc"] == 0 and len(out["draws"]) == len(keys), (out["rc"], len(out["draws"]), keys, r.stderr[-300:])
+    return out
+
+
+def check_hierarchy_marks(out: dict) -> None:
+    """The LAST redraw of 'jjjq' (top 3, hierarchy layer, 4 hierarchy lines above the frames): every frame the pane shows carries its true label, goal:root (index 2, above `top`) included."""
+    shown = frame_marks("\n".join(out["draws"][-1]["lines"]), "human")
+    assert "goal:root" in shown and "build:z" in shown, f"the pane must show goal:root and build:z: {shown}"
+    for nid, marks in shown.items():
+        want = EXPECT[nid][1]
+        assert marks == ([want] if want else []), f"interactive pane: {nid} reads {marks}, want {[want] if want else []}"
+
+
+def check_equal_window_runs_no_git(out: dict) -> None:
+    """Keys 'jlq': redraw 1 scrolls (top 0 -> 1: the stamp runs git, not vacuous), redraw 2 only pans (left += 4, the SAME window): the stamp runs NO child process. The loop's own
+    five `git rev-parse --git-dir --git-common-dir` per redraw (not the stamp's: they run on every redraw, memo or not) are set aside by their exact shape."""
+    stamp = lambda i: [a for a in out["draws"][i]["argv"] if not a.endswith("rev-parse --git-dir --git-common-dir")]
+    assert stamp(1), f"the scrolled redraw must run the stamp's git (not vacuous): {out['draws'][1]['argv']}"
+    assert stamp(2) == [], f"a redraw of an equal window ran child processes for the stamp: {stamp(2)}"
+
+
+def test_i1_the_interactive_hierarchy_layer_at_top_3_draws_the_true_mark_on_every_frame_its_pane_shows(tmp_path):
+    repo = build_v(tmp_path)
+    add_posts(repo)
+    check_hierarchy_marks(run_interactive(tmp_path, repo, "jjjq"))
+
+
+def test_i2_a_redraw_of_an_equal_window_runs_no_git(tmp_path):
+    repo = build_v(tmp_path)
+    add_posts(repo)
+    check_equal_window_runs_no_git(run_interactive(tmp_path, repo, "jlq"))
+
+
+def test_i3_the_graph_layer_control_draws_the_true_marks(tmp_path):
+    """Control (GREEN before and after): the interactive GRAPH layer at top 3 prints the true label on every frame its pane shows."""
+    repo = build_v(tmp_path)
+    add_posts(repo)
+    out = run_interactive(tmp_path, repo, "jjjq", layer="graph")
+    txt = out["draws"][-1]["lines"]
+    shown = {}
+    for nid, (title, _) in EXPECT.items():
+        hits = [l for l in txt if not l.startswith("~ ") and re.search(rf"^\s*\S+ [A-Za-z?] {re.escape(title)}\b", l)]
+        if hits:
+            shown[nid] = MARK_RE.findall(hits[0])
+    assert len(shown) >= 2, shown
+    for nid, marks in shown.items():
+        assert marks == ([EXPECT[nid][1]] if EXPECT[nid][1] else []), (nid, marks)
+
+
+def scratch_bin_multi(tmp_path: Path, name: str, patches: list) -> Path:
+    """A scratch copy of the bin dir under test: viewport.py patched by every (old, new) pair (each `old` must occur exactly once), the rest symlinked."""
+    d = tmp_path / name
+    d.mkdir()
+    for e in BIN.iterdir():
+        if e.name not in ("viewport.py", "__pycache__"):
+            (d / e.name).symlink_to(e)
+    src = (BIN / "viewport.py").read_text()
+    for old, new in patches:
+        assert src.count(old) == 1, f"{old[:70]!r} occurs {src.count(old)} time(s) in viewport.py: the lane's patch point moved"
+        src = src.replace(old, new)
+    (d / "viewport.py").write_text(src)
+    return d
+
+
+I_HIER = 'len(hierarchy_lines(anchors)) if (anchors is not None and layer == "hierarchy") else 0)'
+I_CALL = f"frames = _with_legacy(frames, root, top, h,\n                                  {I_HIER}"
+I_STREAM = "frames = frame_stream(g, fm_by_id, anchor, depth, agents)\n"
+
+
+@pytest.mark.parametrize("name,patches", [
+    ("hier forced to 0 in interactive() (SM's survivor)", [(I_HIER, "0)")]),
+    ("interactive() does not pass hier", [(I_CALL, "frames = _with_legacy(frames, root, top, h)")]),
+    ("interactive() stamps BEFORE the anchors (hier 0, the later stamp gone)", [(I_STREAM, "frames = _with_legacy(frame_stream(g, fm_by_id, anchor, depth, agents), root, top, h, 0)\n"), (I_CALL, "pass")]),
+])
+def test_i4_mutants_of_the_real_viewport_make_the_hierarchy_mark_row_red(tmp_path, name, patches):
+    """One edit each to the REAL viewport.py (a scratch copy): the interactive hierarchy pane then leaves a frame above `top` unstamped, and row i1's check fails."""
+    repo = build_v(tmp_path)
+    add_posts(repo)
+    d = scratch_bin_multi(tmp_path, "bin_i", patches)
+    out = run_interactive(tmp_path, repo, "jjjq", bin_dir=d)
+    with pytest.raises(AssertionError):
+        check_hierarchy_marks(out)
+
+
+def test_i5_a_mutant_that_forgets_the_memo_each_redraw_makes_the_equal_window_row_red(tmp_path):
+    """interactive() clears _LEGACY_MEMO before every stamp: the pan-only redraw runs git again, and row i2's check fails."""
+    repo = build_v(tmp_path)
+    add_posts(repo)
+    d = scratch_bin_multi(tmp_path, "bin_i2", [("            frames = _with_legacy(frames, root, top, h,\n", "            _LEGACY_MEMO.clear()\n            frames = _with_legacy(frames, root, top, h,\n")])
+    out = run_interactive(tmp_path, repo, "jlq", bin_dir=d)
+    with pytest.raises(AssertionError):
+        check_equal_window_runs_no_git(out)
