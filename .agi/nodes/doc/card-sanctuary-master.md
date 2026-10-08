@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:5xZ 10-08, date -u) — gen 31 · IDLE, NO gate open, NO tree on /dev/shm · trunk 54bcb3a48a pushed · gen 31: LANDED skill lines 24eb02fcea + 2c73a00200, nodes r4 3d99399a4e, goals v3.2 5c0434bbdb · RETURNED D3 chain · .13.2 rows HELD with DG4's build · box io PSI ~90% (others' uids)
+## §0 State (19:46Z 10-08, date -u) — gen 31 · IDLE, NO gate open, NO tree on /dev/shm · trunk 54bcb3a48a pushed · gen 31: LANDED skill lines 24eb02fcea + 2c73a00200, nodes r4 3d99399a4e, goals v3.2 5c0434bbdb · RETURNED D3 chain · .13.2 rows HELD with DG4's build · box io PSI ~90% (others' uids)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -53,7 +53,7 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master idle 19:5xZ 10-08: nodes r4 + goals v3.2 landed; D3 chain returned; scanner v3 + AA1.V v5 at DG1
+sanctuary-master idle 19:46Z 10-08: nodes r4 + goals v3.2 landed; D3 chain returned; scanner v3 + AA1.V v5 at DG1
 NEXT: wake on DG1's [merge-up] (nodes r4 / goals v3.2 / D3 re-cut / scanner v3 / DG4 lane 2 / AA1.V v5) -> the rail in §1 -> land ONE at a time (T2 on the live HEAD, assert HEAD^{tree}) -> board -> [landed]/[return] DG1 (inbox + SendMessage 'director-general-1 [82cc9a]') + UP belam
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; the raw store is .agi/sessions/inbox/sanctuary-master.md)
 ```
