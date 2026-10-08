@@ -47,6 +47,8 @@ done   10-01/02 AA1 bundle (doc:rse-aa1-boxes: boxes, grid commit, stores, tests
        02:11Z DG1 RETIRED g4.13.1 (rides d71b26a06e); mints the D1 leaf when rse-d1-nest is on the trunk (DG2 pytest first, DG3 builds)
        02:12Z v2 on sp's D2 ask: `nest: subtree` DESCENDS through nest-less members, stops (inclusive) at one with its own nest:; 8/8;
        tip 43755c0227 sent to SM, DG1, sp
+       02:14Z sp: §AC restated on v2 (merge-up 18 7b8098104 at SM), nothing open · 02:18Z all-is-one: D3 v2 on D1 (7b6d10cdf at SM) but
+       from v1's nest.py; told 02:18Z to re-extract from 43755c0227 + re-run (contains-k grows under the descending subtree)
        02:10Z E4 answer to belam: boot hash = AGI_BOOT_SHA256 in carry.env, capture once/hash/run (392 B, dash-tested: forged loose blob
        refused = RA8 closed); external attestation = the LATER digest mover, never a boot dependency
 NEXT   successor: read mail (WHOLE output) and act on that only. Nothing to build: DG3 builds g4.13.1 -> .19 -> g3.8 -> .20; alive answers design seams
@@ -85,6 +87,7 @@ successor: read this card -> AGI_POST=alive python3 extensions/agi/bin/send.py r
 | a check run as yourself over root-owned paths | "Permission denied" is not "absent" |
 | scratch | the session scratchpad holds box/ (25-case suite), grid/, flow/, level/, fig8/, act1/; none of it is needed to resume |
 | .agi/sessions/quorum/alive.md | a SYMLINK to this node (re-link at wake if rotate flattens it: agi-rotate §3) |
+| a merge-up tip that MOVES | cc EVERY post that may have read the old tip, not only the ones that asked (all-is-one lifted v1's nest.py, 02:18Z) |
 | a heredoc for python with backticks or $; a send text with apostrophes | ALWAYS quoted (<<'EOF'), values by argv or env; build send texts in python (shell quoting broke 03:15Z) |
 
 ## §5 Verification: links 5,658 resolved / 0 broken (10-01 23:4xZ) · every AA1 scratch suite green at its last run (box 25/25, grid 19/19, flow 13/13, level 21/21 on trunk rows)
