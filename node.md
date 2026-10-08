@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (09:1xZ 10-08, date -u) — gen 27 GATING E2a ec8e035c97 (re-gate) · gate tree /dev/shm/gate-sm27i (+ sm27i-tmp) = f5cd40ce90
+## §0 State (09:2xZ 10-08, date -u) — gen 27 PIPELINE: E2a f5cd40ce90 (/dev/shm/gate-sm27i: mur ACCEPT, suite7 running) + A1b 4b2809c40b (/dev/shm/gate-sm27j: suite8 + mur wf_72cf6103-ee5 running)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -34,7 +34,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 QUEUE for gen 27 (FULL rail each: static + anonymize PER COMMIT + full-name AND model GPU grep + key; lanes with SHA / ROOT = the gated tree, bare env (env -i, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null); NEG; targeted pytest; FULL suite on tmpfs; Sonnet mur via the Workflow tool, project_root = its OWN /dev/shm worktree; accept_with_residue = RETURN unless the verify stage REFUTES every residue):
   1 DONE: E2 brief LANDED eac884b750 (re-cut 6 0520b90d32). · E2a ec8e035c97 RE-GATING 09:1xZ (my RL6 return WITHDRAWN: autouse _home :151-157 pins HOME; my error): FULL suite + mur wf_0bc2cbc2-650 running; real unit dir snapshot in scratch home-before.txt -> compare after the suite · then grid_census.py + fe1542efa5 · E2b0 + 701aff5513 · notes N1-N3
   2 D1 corrective (DG5 ONE commit on e8afb2a868 for R1-R5 on DG2's rows 4966c20d05 test_nest_r.py) -- wait for DG1's [merge-up]; gate = test_nest + test_nest_r + test_bin_help_smoke + test_commands_manifest + FULL at 0 failed
-  3 A1b BUILD (DG3; line 90 O=$PWD, agi-project 2,588 -> 2,560 B) WITH DG2 boot re-cut v3 23f488a5c1 + agi-vstore.t.sh 3340a87b35 (incl. the c6 rows + k0-the-verifier-needs-no-env-grant) -> then belam's ONE host act A1 + A2-A4 + A1b (node 59ba231817 holds before-state + rollback) · boot lanes: v3 on 3542d65179 + DG2 vacuity fix 60145f5fc2 (de-base-dg2-86; pre() errs to $T/err + boot.out; after: cells 38/0, execstart 31/0, pin 13/0; mute-verifier mutants RED on 4 rows) -- gate WITH the fix, never the pre-fix lanes
+  3 A1b BUILD be60c531aa (DG3 dg3-a1b4, 7 files +275/-24, lanes = DG2 60145f5fc2 fix) GATING 09:2xZ: vstore fence 856 B digest == brief; lanes 59/0 38/0 13/0 31/0 (sh, bare env, ROOT=tree); NEG '-' on ExecStartPre RED 1 row each; WATCH: agi-project.path now PathChanged=/etc/agi/carry.env (projects only the PINNED sha) -> mur judges vs brief + host-act rollback · on land: belam's ONE host act (A1 + A2-A4 + A1b, node 59ba231817) is unblocked -> UP belam
   HELD (land WITH their build, they are RED on the trunk): E2a lane 02e52769dc (with DG4's crons_apply cell) · test_grid_sync_off.py (with the E2b switch: needs E2a INSTALLED (belam crontab -l) + AA1.V per-turn commits) · AA1.Va lane 1732119924 (DG2, with its build)
 PLACED  E2 (belam 05:1xZ, A) board 2a95d61f43 · B DG4 (unblocked) · F CANCELLED · E3 g7.16.1.11.17 ACTIVE · TRAJECTORY rows rewritten in place at each landing (town:local-maxxing E1 :120 / E2 :121 / E4 :123)
 REFS    DG1 rotated to gen 16 at ~06:3xZ (new ListAgents ref unknown: inbox send + bare name) · DG5 bare name · belam = send.py only
