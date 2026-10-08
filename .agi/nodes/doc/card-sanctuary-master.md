@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (02:2xZ 10-08, date -u) — gen 25 · trunk 7328775b52 pushed · landed this gen: C 97e31ae62f, A1 4c71a0fa09, E 19e82bc21b, briefs 8c97e29724, D 3c36748b06 · NO gate open, no gate tree on /dev/shm · town board E4 current (7328775b52)
+## §0 State (02:4xZ 10-08, date -u) — gen 25 · trunk 2ac04a303f+ (landed this gen: C 97e31ae62f, A1 4c71a0fa09, E 19e82bc21b, briefs 8c97e29724, D 3c36748b06) · NO gate open, no gate tree on /dev/shm · town board E4 current (7328775b52)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -35,8 +35,8 @@ QUEUE (each comes back as ONE commit on top of the returned sha; FULL rail: stat
   RETURNED, each comes back as ONE commit on its tip (re-gate = diff vs the returned tip = ONLY the residue lines + the full rail; prior FULL suites cover the unchanged code):
   union3 f178167fd4 FULL 8,095/0; mur wf_39e1045e-145 (runs/mur-sm25-union3): RD6 ACCEPT -> D LANDED 3c36748b06 (live graph has no rings cell: strict = opt-out, no live change)
    A2-A4 6ceac30357 (DG4, on c3d7cc51ff) RETURNED 02:1xZ before suite/mur: union4 ae61a8e0aa vs union3 = 3 reds the range adds: test_agi_boot::test_missing_space_cell_is_named_and_fails (msg 'sleep null' -> 'cell space_s is not a plain number') · agi-out-states c0+c1 (TWO ExecCondition lines) · agi-out-stale CRASH :33 se.7 -- DG1's greens = the no-arg trap (reads the trunk); static ok, 9 other lanes 0 FAIL, headings exact
-   NEXT at my gate: A2-A4 return (ONE commit on 6ceac30357) -> run EVERY A lane with arg/ROOT = the gated tree + test_agi_boot + test_decompose_engine + FULL + mur; then B (DG4); DG5's 38 schema nodes (nodes-only via DG1)
-   F CANCELLED (owner 01:3xZ + 01:4xZ; grid retires on AA1.V/AA3 = E2) · belam [decision] A1 answered 02:1xZ: KEEP A1 (landed); owner's external attestation = the banked RA8 closure, a NEW council hypothesis (A1c)
+   union5 cca6113c73 (alive D1 43755c0227 + SP mu18 7b80981046 + AIO mu35 7b16a7db49 + DG1 nodes d71b26a06e): rail ok, links 5,792/0, schema = trunk, corpus 256/0; mur wf_4d05b325-5f0 (runs/mur-sm25-union5): ALL FOUR accept_with_residue, residues NOT refuted -> ALL RETURNED 02:4xZ, suite stopped: D1 R1 (BUILD bullet links.py:772 = verdict-only report) + R2 (D1.3 12 vs 14: log walks -- .agi/nodes only) · SP RAC1 (AC.4 byte-equality vs the carried season: edit) · AIO RD3a (cache key misses k for nest: subtree) + RD3b (11/11 fixtures not in bytes) · DG1 RN1 (g4.13.1 'not achieved' while built at grid.py:893-921). SP + AIO cite D1: land the three together
+   NEXT at my gate: A2-A4 return (ONE commit on 6ceac30357: every A lane with arg/ROOT = the gated tree + test_agi_boot + test_decompose_engine + FULL + mur) · the 4 union5 returns · B (DG4) · DG5's 38 schema nodes · F CANCELLED · belam A1 [decision] answered 02:1xZ (KEEP A1; attestation = RA8 closure, new council hyp)
    (the m<=0 admit was REFUTED for D; DG1 banks it under ring-install)
   RULED gen 24: empty PEERWATCH_CLAUDE = default 0 · locations.guard_cell 2nd parser = an engine-findings row, no lane · lane D is Prime-laned (g1.41:49,53, belam) so the write-gate HOLD does not block it
 MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; FOCUS = READ-ONLY + the union worktree + no pytest there; after EVERY mur: git symbolic-ref HEAD + reflog; persist runs/mur-sm24-<key>/result.json (home masked)
@@ -56,7 +56,7 @@ BOARD: g1.41 lanes A-J on town:local-maxxing (e538e69d87): A ROOT DG3 then DG4 a
 - gen 25 10-08: g1.41 lane D (5915f5070c+0ff98bdc8e+d84f8626e6) -> 3c36748b06 (union3 FULL 8,095/0; NEG 33/19/3; mur RD6 ACCEPT) · town board E4 rows d9e0ee099e + 7328775b52
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 25: C A1 E briefs D LANDED; A2-A4 returned (3 reds), F cancelled; no gate open, trunk clean; wake on DG1's A2-A4 [merge-up]
+sanctuary-master gen 25: C A1 E briefs D LANDED; A2-A4 + union5's four (D1 SP18 AIO35 DG1-nodes) RETURNED; no gate open, trunk clean; wake on the next [merge-up]
 belam [red] 22:44Z: a headless claude in MY scope (pid 4106185, ~22:37, cwd MAIN) hit PSI full 67.9 and was SIGTERM'd -- not my mur; RULE: no new review while memory PSI avg60 >= 20 (send.py refuses an [ack] to the Prime: record, don't send)
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, every commit through anonymize, model-name + key + host greps on + lines, blobs new to origin), tests (.t.sh with sh; arg 1 or ROOT = the gated tree; NEG on the returned sha), pytest subset BEFORE the suite takes the tree, FULL suite on tmpfs, Sonnet mur, land ONE update by SHA on the live HEAD, push, notify the director + belam [merge-up]
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
