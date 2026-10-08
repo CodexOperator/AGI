@@ -8,7 +8,6 @@ next_edges: []
 edited_by: alive
 scaffold_hash: 0394875185875b1d
 season: 2
-tags: []
 title: Card alive
 town: core
 ---
@@ -16,80 +15,113 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:3xZ 10-01) -- MOVE 3: alive goes to the v5 engine (claude-code claude-opus-5-5) on belam's GO; nothing claimed, nothing running
+## §0 State (04:53Z 10-08) -- gen 9; nothing of alive's open. agi-vstore 856 B f60191fd... PINNED by DG1 in the A1b brief b2cefe0f41 (merge-up at SM; verified)
 | | |
 |---|---|
-| post | alive · council (goal:g7.16.1) · v5 first turn reads THIS card · rotate at the row's rotate_pct (v5 agi-meter) |
-| state | idle: every round I was given is DELIVERED and accepted (below); no unit, no sshd, no scratch run |
-| engine | v5 (config:engine + engine-post/-wrap/-grow/-root, read by sect @REV); no dispatch from a v5 post (key broker pending; council never dispatches) |
-| messaging | direct session messages (SendMessage) until every post is switched over (owner 18:1xZ); re-map first: ListAgents + tmux window name |
-| peers (19:3xZ) | belam agi-6a (window belam-S2-L5-I) · all-is-one agi-06 · self-perpetuating agi-99 |
-| lens | vision:alive = the system reports its own TRUE state |
-| skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post |
+| post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
+| work | the council's design bundle: AA1 = alive's node `doc:rse-aa1-boxes` (boxes, versioning, stores, tests, flows, M1 mail, the level rule) · AA2 = self-perpetuating in doc:radically-simple-engine · AA3 + Z4 = all-is-one (doc:rse-aa3-land, doc:rse-z4-ladder-out) · DG1 turns them into goals; DG3 builds; SM gates |
+| messaging | ONE route: `send.py --from alive send <post> '[tag] ...'`. To belam: [merge-up] [decision] [rotation] [red] [rule] [complete] [owner]; an ack = ONE [rule] line. Never SendMessage to a session name. No answer in 15 min = re-send ONCE (goal:g1.40) |
+| reading | `send.py read alive` prints ONLY new blocks and marks them: read its WHOLE output, never filter it |
+| council | split each owner line by mechanism owned; when splits cross, the first to LAND (inbox ts) stands |
+| lens | vision:alive = the system reports its own TRUE state (measure, then say it; correct your own claims at once) |
+| skills | agi-send · agi-rotate · agi-goal · agi-post · NODES = plain Read/Edit/Write + agi-turn's commit + `grid.py commit <path>` (write.py = old setup only) |
 
 ## §1 Plan
 ```
-done   night item 1 DC design §U §V §W §X · round 7 §Y1-§Y3 · §T.1 seed 1,023 B · design round §Z1-§Z3 (tree, certs, ladder) -- all ACCEPTED by belam
-       MOVE 3 verdict 18:2xZ NO (agi-meter read tail -1 only) -> fixed by DG3 G10 14e06f47b -> re-read on the bytes 19:3xZ: YES (meter fires at 30 pct on a
-       transcript whose newest line is an attachment; the old one stayed blind)
-FIRST  on v5: confirm the meter reads this session (a turn near the line prints the out-line), then ONE line to belam: [moved] alive on v5, meter reads
-NEXT   only what arrives: belam's orders by direct message; no new goals (scope creep is the failure mode)
-OPEN   non-blocking cuts I named, not mine to build: agi-turn (git add -A, message = user, errors to /dev/null, rc 0) = W1's blocker · rows say
-       engine.v=4 for v5 + AGI_LADDER_TIER still exported while the ladder retires (Z3)
-UNRUN  Y3.5 local model under the grammar · SI8/SI9 · U10/U11 · Z1.1/Z1.2 (W2 report-only day)
+done   10-01/02 AA1 bundle (doc:rse-aa1-boxes: boxes, grid commit, stores, tests, one-shot/flow, M1 mail, the level rule) · level rule 3a33c71b9
+       10-03 (all LANDED): act1.sh (DG3 A6) · home mode 0755 until own stores · AA1.C config ring + anchor (-> sp's §AB) · AA1.K private-key gate
+       (AA3.15 option B) · rulings: A3 key step BEFORE +agi-signers · inputs to sp's §AB (checkpoints, drop-in crypto, layered blocks, revocation, sealer)
+       10-07 after the CC pause (owner: continue; council split alive 14:40Z, taken): D1 = AA1.N recursive node nesting (ONE grid commit: tree +
+       nest/<mint>, parents = members' tips; nest() 552 B; g7 = 1,330 nodes in one commit) + the TANGLE (goal chains: 457 nodes / 7.9% under >=2 top
+       goals, 52% g6 x g7; overviews cover 1.8%) · grid.py seams G1-G3 (nest dropped next tick / version jump / no CAS) + tested 11-line fix -> goal g4.13.1
+       · D4 pilot rows judged (slice DROP code; cccc.ts unread-count bug; belam-SSH wakes DROP; raw-shell = season 3) · ONE placement to DG1 (14:54Z) ->
+       goals g4.13.1 -> .19 verify-as-v5 -> g3.8 metrics -> .20 box mail (DG3 builds in that order) · g3.8 DESIGN = AA1.S (one belam cron graph_metrics,
+       success_metrics --line, nulls named, metrics.py refuses a root with no nodes/; formatter fix after DG2's lane: an absent key is NAMED)
+       · belam's retired-key signing found (15:05Z) -> fixed by belam 15:5xZ (signer id f077dbc5 = sha256(row pubkey 31a98b62) checked)
+       10-08 01:57Z belam [rule]: owner retires grid commit; 01:58Z CORRECTION (owner: "It's already decided"): NO new design, it runs on
+       rse:82 + AA1.V (aa1-boxes:125) + AA3 (aa3-land:152) + g7.16.1.6:71; cites verified on trunk; acked 01:58Z ([rule], one line)
+       10-08 02:02Z owner trajectory: town:local-maxxing '#### Engine rework trajectory' E1-E5 (a mover rewrites ITS row in place at landing)
+       02:09Z D1 restated off the retiring grid: doc:rse-d1-nest (nest: subtree | list in the container's front matter; collapse = one one-node
+       commit; history = one first-parent -M walk, 1.5 s; reader 2,415 B + 7/7 tests quoted whole) -> merge-up at SM; notes sent: belam,
+       DG1 (retire g4.13.1), all-is-one (D3 rests on the grid ref), self-perpetuating (D2)
+       02:11Z DG1 RETIRED g4.13.1 (rides d71b26a06e); mints the D1 leaf when rse-d1-nest is on the trunk (DG2 pytest first, DG3 builds)
+       02:12Z v2 on sp's D2 ask: `nest: subtree` DESCENDS through nest-less members, stops (inclusive) at one with its own nest:; 8/8;
+       tip 43755c0227 sent to SM, DG1, sp
+       02:14Z sp: §AC restated on v2 (merge-up 18 7b8098104 at SM), nothing open · 02:18Z all-is-one: D3 v2 on D1; my 'you lifted v1'
+       was WRONG (cmp equal to 43755c0227, 02:20Z); they added descend + stop cases, 11/11; -34 VOID, merge-up-35 7b16a7db4 cites v2
+       02:4xZ SM RETURNED 43755c0227 (R1: links.py:772 is verdict-class, the nest check is NEW code; R2: walk missed nodes/ -> 12 not 13;
+       --follow's 14th is a COPY into build/src-init.md) -> v3 4538c62506 (walk -- .agi/nodes nodes; inline lists; t_nest.py quoted, 10/10
+       from the node's bytes) -> SM, DG1, all-is-one, sp · DG1 02:45Z: g4.13.1 is COMPLETE (not retired); node restated
+       03:06Z DG1 asked for A1b's bytes + flagged agi-project's 2nd root sh -s -> 03:09Z SUPERSEDED my digest: it also missed data reads,
+       and the install act hashes the same forgeable store. NEW = agi-vstore (756 B root-owned file beside agi-boot.service): file:// fetch of
+       the pin into /run/agi-v.git (index-pack re-hashes; depth 1, blob:none, then the 26 .geometry + config.json blobs); GIT_DIR there for
+       every root read; no new cell. Fixture V1-V5 + forged tree refused; real MAIN 0.18 s / 804 KB, bytes == MAIN. (The mail says 'tested
+       03:1xZ': it was ~03:08Z.) Bytes live ONLY in DG1's + belam's inbox mail; scratch bootd/ dies with this session
+       03:19Z SM LANDED D1 v3 = 38986aa967 (verified: on trunk + origin, bytes == 4538c62506); D2 e92d251390 + D3 v2 05ccc3e20b right after.
+       SM said 'E1 rewritten': NOT on the bytes (origin 5f083bc1dd) -> alive/e1-row ab0c1cc77d (one row) -> SM
+       04:43Z belam: amend agi-vstore, child upload-pack gets safe.directory NARROWED -> 04:5xZ done: G = $M/.git (non-bare) | $M (bare),
+       -c safe.directory=$G + URL file://$G; store built at $V.n, renamed only on success. W1-W7 (test env) + W8 REAL foreign owner
+       (belam-owned MAIN, me agi-alive, empty HOME): old 756 B rc 1 dubious; gitdir form rc 0; worktree form FAILS. 856 B sha256
+       f60191fd12942280569156cc2308e3ab4ec0c82cbb366676d50e77717b2d1fcc -> DG1 re-pins (its branch). Bytes live in DG1's + belam's inbox mail
+       03:29Z SM's own E1 row da90062217 (one push after the 5f083bc1dd I read): ab0c1cc77d DROPPED, agreed; alive/e1-row can't be deleted
+       (packed-refs.lock EACCES) = dead · 03:44Z belam RULED A1b = agi-vstore (2) to DG1; asked pin attestation -> 03:46Z: SEASON-3 audit
+       record only (root can rewrite unit + vstore, so a boot check prevents nothing; detection is the gain). belam's signer id now 1be2c095
+       03:12Z DG1 reproduced agi-vstore (+ forged commit, alternate, replace ref, packObjectsHook, symlink V) -> [decision] to belam;
+       03:13Z sent DG1 the lines vs 91015ff007: agi-boot.service +ExecStartPre=agi-vstore +GIT_DIR; engine.md :91-92 baked unit reads
+       $AGI_TRUNK from carry.env with its own store; agi-project.path = PathChanged=/etc/agi/carry.env (pin-driven). Dry-run 2,300 B ok
+       02:10Z E4 answer to belam (now superseded by agi-vstore): boot hash = AGI_BOOT_SHA256 in carry.env, capture once/hash/run (392 B, dash-tested: forged loose blob
+       refused = RA8 closed); external attestation = the LATER digest mover, never a boot dependency
+NEXT   successor: read mail (WHOLE output) and act on that only. Nothing to build: DG3 builds g4.13.1 -> .19 -> g3.8 -> .20; alive answers design seams
+WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is silently last-wins for every job (DG2 g3.8 lane)
 ```
 
-## §2 Landed
-- §N a658452cd9 · §O 39443e741 · §R 2782426e3 · §S 4542be3cc · §T c3e43efc3 · §U e6630723c · §X d693651ec · §Y3 f725a8899 · §T.1 3772d6ff7 · §Z1 728166975
-- verdict 18:2xZ (NO + CUT) -> G10 14e06f47b -> YES 19:3xZ · c4f5e8816 bundled DG4/DG5 records (belam: keep as is)
+## §2 Landed (each verified with merge-base --is-ancestor; while origin pushes fail, check refs/heads/local-maxxing/season2/main)
+- 10-02: 3a33c71b9 level rule · 10-03: 9778def43 act1.sh · a7705f2d2 home mode + AA1.C · ba2a399d6 / 21629a697 / 1b4fdbe13 AA1.K
+- 10-07: 5a1760e82 AA1.N + grid seams · 0b95e3bd8 AA1.S · 01fb4669a3 AA1.S formatter fix (alive/aa1s-fix 967e250cc)
+- 10-08: 38986aa967 doc:rse-d1-nest v3 (D1 after the grid; alive/d1-nest 4538c62506)
 
 ## 🔴 Where it stops
-alive is down-ready for MOVE 3 to v5 on belam's GO; the v5 first turn confirms the meter, then waits for orders
+Nothing of alive's open. D1's build = DG1 leaf -> DG2 -> DG3; A1b brief = DG1 (agi-vstore + the lines sent 03:13Z). Read mail, act on that only.
 ```
-v5 successor: read this card -> ListAgents (re-map belam) -> one turn: is the out-line printed near rotate_pct? -> SendMessage belam: [moved] alive on v5, meter reads
-  -> if the meter is silent at the line: [red] to belam with the transcript's newest-usage line count, rotate by hand (card, touch ~/.fresh, kill $PPID)
+successor: read this card -> AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
+  -> a merge-up = ONE node, cut on the trunk tip with plumbing (read-tree T; update-index; commit-tree -S -p T), branch alive/<name>, [merge-up] to SM
+  -> the meter is /var/lib/agi/alive/bin/agi-meter (UserPromptSubmit); at the line: card whole, commit by path, touch ~/.fresh; kill $PPID
 ```
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN is shared by every post | commit by exact path; never switch branches, stash or reset; filter a dirty posts.md to YOUR hunk (git apply --cached) |
-| write.py commits each write itself, EXCEPT while .agi/sessions/verify-suite.lock is held | it prints "commit refused" and the write lands uncommitted: wait for the lock, THEN commit by exact path; never commit MAIN under the lock |
-| my timestamps were guessed TWICE, then a THIRD time as a "fix" (round 2: SP's 22:4xZ -> 22:3xZ from the clock at check time; the commit was 22:28Z) | a time you write = date -u in the same step; a PAST event's time = git log -1 --format=%cI <sha>, never the clock now |
-| `send.py read` shows only new blocks; a [red] sat in the inbox FILE alone | after any wake, tail the inbox file too |
-| `send.py status belam` marker stuck after an inbox send | SendMessage the Prime directly as well |
-| `sub` has no newline: `\n` lands LITERALLY | build a multi-line change in python and `replace body` the WHOLE paragraph or section |
-| `thought` rewrites the THOUGHT whole | read the old one first; carry owner verbatim forward word for word |
-| a relay says "the owner said X" | verify on the bytes (a node section, a signed inbox block) before spending; a STOP needs no proof |
-| the captive capture chain tried rotate-self at 0.4035 and FAILED rc=1 (23:4xZ) | rotate yourself (agi-rotate §2); read the ladder's capture_chain_log if it repeats |
-| grep -r / find over .agi/ or the repo root stalls the box | `git grep PATTERN -- <paths>` |
-| hypothesis verdict | set `evidence_runs [experiment:...]` WITH `verdict`, or the grid evidence gate demotes it (s31 x3, fixed a1ef46951) |
-| write.py `set` | `set key value` (a space, never key=value); a dotted value like G7.x breaks key=value |
-| replace body guard | a range must start/end on a heading or blank; to keep a THOUGHT, replace up to the line before it or carry it in the file |
-| after_join `[reap-proof] exit 1` | = nothing to reap by design (rotate.py 14399-14421: the named non-matching value); true-state finding for the bundle-4 review: an exit 1 that means clean reads as a failure |
-| a send to an idle .prev session (agi-79, 06:1xZ) reached only the rotated-out Prime, which relayed it | re-map before every send to a post that may have rotated: ListAgents + tmux window NAME |
-| a SendMessage that returns Failed may still DELIVER (the overview to agi-79, 06:1xZ: the retry was dropped as a duplicate) | never retry blind: wait for the reply or a delivery notice |
+| MAIN is shared by every post | commit by exact path; never switch branches, stash or reset; `git diff --cached --name-only` = ONLY your path before a commit |
+| a file a DG names as 'on alive' | it is a wait on YOU: scratchpads die with the session; commit it into the tree (cut on the trunk tip, F4), never leave it in /tmp |
+| belam's [decision] that ACCEPTS | still ack: ONE [rule] line by send.py (gen 8 skipped it; belam chased the route at 20:09Z) |
+| a message that says "it is in the node" / "it is in X's node" | WRITE + VERIFY the node first (grep -F the line), THEN send (missed twice 10-02: 19:4xZ, 19:5xZ) |
+| a python f-string around shell code with `{` (`a(){`) | SyntaxError: build doc text by concatenation |
+| a sed rewrite of a script | it mangled box send and the flow runner once each: edit by python on whole lines, then re-run the suite |
+| send.py read with a filter | an awk filter hid belam's [owner] 14:01Z and the read marked it; read the whole output |
+| grep with `$` in a pattern | it is an anchor: use grep -F for literal code |
+| my timestamps | a time I write = date -u in the same step; a PAST event = git log -1 --format=%cI <sha> |
+| a relay says "the owner said X" | verify on the bytes (a signed inbox block, a node) before spending; a STOP needs no proof |
+| grep -r / find over .agi/ or the repo root | stalls the box: `git grep PATTERN -- <paths>` |
+| the live grid | refs/grid/local-maxxing/node/<mint> (refs/grid/node/* is frozen 09-21, ~2,000 short); version counts must read --first-parent |
+| grid.py commit --all as a v5 uid | PermissionError on .grid.lock: version by PATH (`grid.py commit .agi/nodes/doc/<node>.md`) |
+| AGI_TRUNK is set in this unit | a scratch test inherits it: export AGI_TRUNK=HEAD in fixtures |
+| a check run as yourself over root-owned paths | "Permission denied" is not "absent" |
+| scratch | the session scratchpad holds box/ (25-case suite), grid/, flow/, level/, fig8/, act1/; none of it is needed to resume |
 | .agi/sessions/quorum/alive.md | a SYMLINK to this node (re-link at wake if rotate flattens it: agi-rotate §3) |
-| pi -p hangs with an inherited stdin | `</dev/null`, always; a model-free pi probe = PI_CODING_AGENT_DIR scratch + a provider on a closed local port + a before_provider_request probe |
-| a `^##* ` end pattern matches a one-# shell comment | section headings are `##`+ (`^###* `); a piece holds no line starting `##` or `~~~` |
-| `git show REV:<address>` under the symlink layout returns the LINK TEXT | at-REV reads go through `git cat-file --batch --follow-symlinks` (F.7); a unit ExecStart may carry no `$` (systemd expands it) |
-| config:* nodes are written_by owner/prime_director | the council authors bytes (doc §I), the Prime or DG3 mints |
-| §I checks (re-run after any edit) | scratch /tmp/g71611/r3-alive: final/ = the 20 files, engine.body.md, clone/ (--shared, branch trunk); F19 = `sh final/sect <f> trunk \| cmp - final/<f>` for each |
-| a heredoc for python with backticks or $ | ALWAYS quoted (<<'EOF'), pass values by env; an unquoted one ate the backticks once |
-| replace body guard | the range must start/end on a blank or heading; mid-table = refused: widen to the block, carry it whole |
-| a scratch ssh login whose row has no forced command | it opens a SHELL and the test hangs: every scratch ssh = timeout 10 + </dev/null |
-| committing ONE path in MAIN when its index may hold others' staged files | `git diff --cached --name-only` must list ONLY your path, else stop; a bare `git commit` takes the whole index (c4f5e8816 bundled DG4/DG5 records, 15:0xZ 10-01) |
-| a check run as yourself over root-owned paths | "Permission denied" is not "absent": re-check as root before calling a collision |
+| a probe of root-vs-foreign ownership run as myself | my ~/.gitconfig has safe.directory=* and MASKS it: run with env -i, an empty HOME, GIT_CONFIG_NOSYSTEM=1 (03:09Z pass was masked) |
+| a 'not on the bytes' claim about another post | fetch origin AGAIN right before saying it (03:2xZ: SM's da90062217 landed a push after my read) |
+| a merge-up tip that MOVES | cc EVERY post that may have read the old tip, not only the ones that asked (02:18Z: I ASSUMED all-is-one lifted v1; it had v2. Ask for the cmp, do not assert) |
+| a heredoc for python with backticks or $; a send text with apostrophes | ALWAYS quoted (<<'EOF'), values by argv or env; build send texts in python (shell quoting broke 03:15Z) |
 
-## §5 Verification: links 5,598 resolved, 0 broken (07:1xZ) · §I == v2 tested (cmp) · F19 22/22 · box clean after both root runs
+## §5 Verification: links 5,658 resolved / 0 broken (10-01 23:4xZ) · every AA1 scratch suite green at its last run (box 25/25, grid 19/19, flow 13/13, level 21/21 on trunk rows)
 
 ## §6 BANKED
 | question | options | recommendation |
 |---|---|---|
-| row R live cutover (restart drops every post) | the Prime gen 17: dummy proof GO; live step = owner's word after PASS B3 (doc:card-belam §6) | as before (doc:card-belam §6); superseded if config:engine replaces the rotation machinery |
+| none open for alive | -- | -- |
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 7, 07:1xZ 10-01 (date -u): whole rewrite DURING item 1 -- §U/§X landed, §V acked from self-perpetuating, §W landed by all-is-one 60c275d51; the 🔴 = the whole-doc check then ONE [decision] to belam. One trap added (a scratch ssh row without a forced command opens a shell and hangs the test).
+alive gen 9, 02:11Z 10-08 (date -u): the trajectory ask made E1 D1 alive's open work; D1 had landed but on the grid E2 retires, so it was restated (doc:rse-d1-nest) and cut as a one-node merge-up. belam's E4 question was weighed by test, not taste: an in-box digest closes RA8, the external source only moves the digest.
 <!-- THOUGHT:END -->
