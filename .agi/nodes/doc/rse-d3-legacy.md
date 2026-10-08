@@ -27,7 +27,7 @@ Split (alive 14:40Z 10-07): D3 = all-is-one. It rests on D1 (alive, restated off
 "Truthfully" rules out a frontmatter field: a field is asserted, can be set wrong, and goes stale the moment someone graphs the node. So `legacy` is COMPUTED from two facts the node already has, read from the node FILE's own first-parent git history (renames followed, so a retire move to deprecated/<type>/ keeps it):
 - **ENTRY** = how the node came into this season, the NEWEST of: the path's first commit · the commit that ADDS `nest:` (D1's collapse) · the commit after which `season:` equals the current season (D2's carry: ONE one-node commit that SETS `season:` to the new season, adding the cell when absent; settled with self-perpetuating 02:1xZ).
 - **graphed here** = a commit ABOVE the entry after which the node's `parents:` GAIN a `goal:` id absent at the entry; or, when the entry is the first commit, the node was minted with a `goal:` parent (`[goal, mvp]` / `[build, goal]`, CLAUDE.md goal:s29). "Gain", not "includes": a carried build node keeps its season-2 goal parent, so "parents include a goal" would read its first unrelated edit in season 3 as graphed.
-- **contains k** = `|members(N)| - 1` from D1's `members()` (D1 v2: `nest: subtree` descends through the container's descendants until one carries its own `nest:`, which expands itself; a list names arbitrary ids; a retired member still counts, it is still a file).
+- **contains k** = `|members(N)| - 1` from D1's `members()` (D1 v2 and v3: `nest: subtree` descends through the container's descendants until one carries its own `nest:`, which expands itself; a list names arbitrary ids; a retired member still counts, it is still a file).
 
 | mark | when | reads as |
 |---|---|---|
@@ -38,17 +38,10 @@ Split (alive 14:40Z 10-07): D3 = all-is-one. It rests on D1 (alive, restated off
 
 The `⊃k` IS the owner's "not just plopped in": it is read off the container's own `nest:` cell and D1's walk reaches every member's whole history. A member's own later work never clears its container's mark: the rule reads only the container's file.
 
-The rule whole (python, the season-2 tools' language per the owner; its helpers first, so a falsifier runs it from these bytes alone with `import re, subprocess`):
+The rule whole (python, the season-2 tools' language per the owner; its helpers first, so a falsifier runs it from these bytes plus D1 v3's quoted `nest.py` (beside it as nest.py) with `import re, subprocess`):
 ```python
 def git(*a): return subprocess.run(("git",)+a, capture_output=True, text=True).stdout
-def fm(body):
-    d, k = {}, None
-    if not body.startswith("---"): return d
-    for l in body.split("\n---", 1)[0].split("\n")[1:]:
-        m = re.match(r"^([a-z_]+):\s*(.*)$", l)
-        if m: k = m.group(1); d[k] = m.group(2).strip().strip('"') or []
-        elif k and re.match(r"^\s*- ", l) and isinstance(d.get(k), list): d[k].append(l.split("- ", 1)[1].strip().strip('"'))
-    return d
+from nest import fm  # D1 v3's parser, byte for byte (inline [a, b] lists too): one parser for the rule and members()
 def versions(rev, path):
     out = git("log", "--first-parent", "--follow", "-M", "--name-status", "--format=@%H", rev, "--", path)
     vs, cur = [], None
@@ -72,9 +65,9 @@ def mark(rev, season, path):
 ```
 
 ## Measured (all-is-one, 10-08 02:1xZ, local trunk, read-only)
-- **Every build node (297), season 2:** 256 `legacy`, 41 graphed, and node for node IDENTICAL to v1's grid-ref rule (0 of 297 disagree). So moving off the grid changes no mark. Of the 261 with `origin: build-scan` (the scanner brought the engine's own files in, one mvp per subsystem), 245 are legacy: the owner's "a project that isn't graph based" is already most of our own build layer.
+- **Every build node (297), season 2:** 256 `legacy`, 41 graphed (re-run 02:5xZ on D1 v3's fm(): identical node for node), and node for node IDENTICAL to v1's grid-ref rule (0 of 297 disagree). So moving off the grid changes no mark. Of the 261 with `origin: build-scan` (the scanner brought the engine's own files in, one mvp per subsystem), 245 are legacy: the owner's "a project that isn't graph based" is already most of our own build layer.
 - **The first cut was wrong, and the measurement caught it:** without the minted-through-a-goal case the rule read 279 / 18; the 23 extra "legacy" were nodes born with a goal parent, which never GAIN one.
-- **Scratch cases 11/11**, from these bytes: a throwaway git repo, one commit per row, each row's file written whole (front matter shown; body "body"); the mark = `mark("HEAD", season, path)` above + `⊃k` with k = `len(members(graph("HEAD"), N)) - 1` from D1 v2's `nest.py` (alive/d1-nest 43755c0227, its quoted reader, byte for byte). `season` = 2 for C1-C3, 3 after.
+- **Scratch cases 11/11**, from these bytes: a throwaway git repo, one commit per row, each row's file written whole (front matter shown; body "body"); the mark = `mark("HEAD", season, path)` above + `⊃k` with k = `len(members(graph("HEAD"), N)) - 1` from D1 v3's `nest.py` (alive/d1-nest 4538c62506, 3,034 B, its quoted reader, byte for byte). `season` = 2 for C1-C3, 3 after.
 ```text
 #   commit (file <- front matter)                                                        node read   expected
 C1  build/x.md <- id build:x, parents [mvp:engine-bin], season 2                          build:x     legacy
