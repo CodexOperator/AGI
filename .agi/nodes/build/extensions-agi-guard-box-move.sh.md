@@ -15,6 +15,9 @@ origin: build-scan
 payload_ref: extensions/agi/guard/box-move.sh
 scaffold_hash: e3a42f7c4d613997
 season: 2
+tags:
+  - box-move
+  - encryption-town
 title: "extensions/agi/guard/box-move.sh: the Prime's one-post box move (move, url, login)"
 town: core
 ---
