@@ -278,7 +278,11 @@ def find_node_file(root, node_id, *, tree_wide: bool = True) -> Path | None:
 
     if not tree_wide:
         return None   # goal:g7.33.20 B3: the caller asked for the type directories only
-    return _id_index(root).get(node_id)
+    hit = _id_index(root).get(node_id)
+    if hit is not None and not hit.exists():  # stale (the index drops only in write_node): rebuild once, never a missing path
+        _ID_INDEX.pop(str(Path(root).resolve()), None)
+        hit = _id_index(root).get(node_id)
+    return hit
 
 
 def _needs_quoting(sval: str) -> bool:

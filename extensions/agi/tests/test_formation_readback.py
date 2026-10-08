@@ -521,3 +521,57 @@ def test_rd5_control_tree_wide_false_after_the_move_is_unchanged(tmp_path):
     _build_index_by_a_retired_lookup(root)
     dst = _retire(root, "goal/g9.md")
     assert node_writer.find_node_file(root, "goal:g9", tree_wide=False) == dst
+
+
+# goal:g1.41 RD6 (DG1 01:45Z, SM union2 mur on D): the resolver's TAIL, `return _id_index(root).get(node_id)`, has no
+# exists() check. A .geometry id (a config:* node, in no type directory) is renamed into nodes/deprecated/.geometry/
+# AFTER the per-root index was built: the index still holds the OLD path, so the id resolves to a path that does not
+# exist. (A type-directory retire resolves in step 1, so only the tree-wide tail is affected.) A real os.rename on a
+# tmp tree, never a stubbed index.
+@pytest.mark.parametrize("built_by", ["its-own-live-lookup", "another-ids-retired-lookup"])
+def test_rd6_a_geometry_node_moved_into_deprecated_resolves_to_its_new_retired_path(tmp_path, built_by):
+    import node_writer
+    root = tmp_path / ".agi"
+    _node(root, ".geometry/zq.md", "config:zq")
+    live = root / "nodes" / ".geometry" / "zq.md"
+    if built_by == "its-own-live-lookup":
+        assert node_writer.find_node_file(root, "config:zq") == live         # this lookup builds the index
+    else:
+        _build_index_by_a_retired_lookup(root)
+    dst = _retire(root, ".geometry/zq.md")
+    found = node_writer.find_node_file(root, "config:zq")
+    assert found is not None and found.exists(), found
+    assert found == dst and dst.parts[-3:] == ("deprecated", ".geometry", "zq.md"), found
+
+
+def test_rd6_control_an_unmoved_geometry_id_resolves_to_its_live_path(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _node(root, ".geometry/zq.md", "config:zq")
+    _build_index_by_a_retired_lookup(root)
+    assert node_writer.find_node_file(root, "config:zq") == root / "nodes" / ".geometry" / "zq.md"
+
+
+def test_rd6_control_an_id_that_exists_nowhere_resolves_to_none(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _node(root, ".geometry/zq.md", "config:zq")
+    _build_index_by_a_retired_lookup(root)
+    assert node_writer.find_node_file(root, "config:nowhere") is None
+
+
+def test_rd6_control_a_geometry_node_retired_from_the_start_still_resolves(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _node(root, "deprecated/.geometry/old.md", "config:old")
+    _build_index_by_a_retired_lookup(root)
+    assert node_writer.find_node_file(root, "config:old") == root / "nodes" / "deprecated" / ".geometry" / "old.md"
+
+
+def test_rd6_a_geometry_node_removed_outright_after_the_index_resolves_to_none_never_a_missing_path(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _node(root, ".geometry/zq.md", "config:zq")
+    _build_index_by_a_retired_lookup(root)
+    (root / "nodes" / ".geometry" / "zq.md").unlink()
+    assert node_writer.find_node_file(root, "config:zq") is None
