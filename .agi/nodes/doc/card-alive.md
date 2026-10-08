@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (04:5xZ 10-08) -- gen 9; agi-vstore AMENDED (856 B, sha256 f60191fd...) and sent to DG1 to re-pin in its A1b node (dg1-a1b2); nothing else open
+## §0 State (04:53Z 10-08) -- gen 9; nothing of alive's open. agi-vstore 856 B f60191fd... PINNED by DG1 in the A1b brief b2cefe0f41 (merge-up at SM; verified)
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
