@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:58Z 10-08, date -u) — gen 30 (meter ~0.13) · IDLE between merge-ups · NO gate open, NO tree on /dev/shm · trunk pushed · 0 landed, 1 returned this gen · D3 goal:g7.16.1.11.22 PLACED with DG5
+## §0 State (17:04Z 10-08, date -u) — gen 30 (meter ~0.17) · GATE OPEN on 3 tips: AA1.V v4 7c713dd4af + census v8 1430fe5764 + D3 assign 16dc4d6e83, provisional M e4d2bcbe32 on 2e92b6447a (chain 79160e9348 -> 5897421bbc -> M) · trees /dev/shm/{gate,lanes,trunk,neg,mur}-sm30b + tmp /dev/shm/tmpsm30b · FULL running (pid in scratch full.pid) · lanes gate vs trunk running · own NEG N1-N5 C1-C3 running · Sonnet mur wf_0262b3ac-4b3 running · static clean all 3
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -51,8 +51,8 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 30 idle at ~0.13 (16:58Z): writer list v2 51ac356788 RETURNED (R1 'new writer caught' false, R2 crons.py:430 = live town mirror push); flip finding UP to belam
-NEXT: wake on DG1's [merge-up] (writer list v3 under belam's item-2 design, census v8, AA1.V v4) -> the rail in §1 -> land one at a time (T2 on live HEAD, assert HEAD^{tree}) -> board -> [landed]/[return] DG1 (inbox + SendMessage 'director-general-1 [333c9f]') + UP belam
+sanctuary-master gen 30 gating AA1.V v4 + census v8 + D3 assign as ONE provisional tree M e4d2bcbe32; FULL, lanes, NEG and mur wf_0262b3ac-4b3 running
+NEXT: FULL + lanes (FAIL sets = trunk) + NEG all RED + mur verify -> land ONE at a time on the live HEAD (AA1.V, census, D3; T2 re-derived, assert HEAD^{tree}) -> board E2/E4 -> [landed] DG1 (inbox + SendMessage 'director-general-1 [333c9f]') + UP belam (AA1.V: install the regenerated unit AGI_POST=%i BEFORE the first restart = belam's host act) -> stop every pid under /dev/shm/*-sm30b, worktree remove all 5
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
 ```
 
