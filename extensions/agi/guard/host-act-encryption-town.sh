@@ -4,7 +4,7 @@
 #   PIN=<40-hex> sh host-act-encryption-town.sh move POST                       per post, after its row has box encryption-town AT PIN
 #   ROOT=<scratch dir> ...                                                      rehearsal: every path is prefixed, no systemctl / ACL / chown / root check
 # Cells (env): PIN (required) · AGI_REPO (default /data/work/agi) · AGI_BOX (default encryption-town) · E_MEM_HIGH / E_MEM_MAX / E_OOM_LIMIT (the E agi.slice; typed here because config:guard has no E line: belam's to confirm) · SKIP_PREREQ=1 (a rehearsal without pi / claude).
-# What it installs, ALL from the pinned commit's bytes (`sect` over the geometry at PIN, never the moving checkout): agi-vstore, sect, box, box-carry, agi-signers, the carry units, agi-boot.service, the polkit rule; it writes /etc/agi/carry.env and, for E ONLY, a NO-OP agi-ram-main.service (Type=oneshot, ExecStart=/bin/true: E has no RAM disk, MAIN is a plain directory; a drop-in cannot reset a dependency list, so agi-boot.service keeps its pinned Requires / After text) plus a plain /mnt/agi-ram. NO engine byte changes; local-town is untouched.
+# What it installs, ALL from the pinned commit's bytes (`sect` over the geometry at PIN, never the moving checkout): agi-vstore, sect, box, box-carry, agi-signers, the carry units, agi-boot.service, the polkit rule; it writes /etc/agi/carry.env and, for E ONLY, a NO-OP agi-ram-main.service (Type=oneshot, ExecStart=/bin/true: E has no RAM disk, MAIN is a plain directory; a drop-in cannot reset a dependency list, so agi-boot.service keeps its pinned Requires / After text) plus a plain /mnt/agi-ram, and the MAIN ACL the posts need (g:agi:rwX + a default ACL, recursive, on .git/{objects,refs,logs,worktrees}: L carries it, no code made it before). NO engine byte changes; local-town is untouched.
 # PREREQUISITES it checks and does NOT install: pi at /opt/agi/bin/pi (or any PATH dir of the post unit) and claude for the claude rows, readable by the agi-* users; group agi and the agi-<post> users; setfacl; the clone at AGI_REPO holding PIN.
 R=${ROOT:-};M=${AGI_REPO:-/data/work/agi};PIN=${PIN:-};BOX=${AGI_BOX:-encryption-town};mode=${1:-act}
 die(){ echo "host-act: $*">&2;exit 1;}
@@ -28,12 +28,14 @@ B=$R/var/backups/agi-act-$(date -u +%Y%m%dT%H%M%SZ)
 mkdir -p $R/var/backups&&mkdir $B||die "$B exists or cannot be made: refusing to overwrite a before-state";mkdir $B/files
 L="/etc/agi/carry.env /etc/systemd/system/agi-boot.service /etc/systemd/system/agi-ram-main.service /etc/systemd/system/agi-carry@.service /etc/systemd/system/agi-carry@.path /etc/systemd/system/agi-carry-fetch.service /etc/systemd/system/agi-carry-fetch.timer /etc/systemd/system/agi.slice /etc/polkit-1/rules.d/50-agi.rules /opt/agi/bin/agi-signers /opt/agi/bin/box /opt/agi/bin/box-carry /opt/agi/bin/sect /usr/local/libexec/agi-vstore"
 for f in $L;do if [ -e $R$f ];then (cd $R/&&cp -a --parents ${f#/} $B/files/)||exit 1;else echo $f>>$B/absent;fi;done
-for d in /mnt/agi-ram/state /mnt/agi-ram /opt/agi/bin /opt/agi /usr/local/libexec /etc/agi /var/lib/agi;do [ -d $R$d ]||echo $d>>$B/absentdirs;done
+for d in $M/.git/worktrees /mnt/agi-ram/state /mnt/agi-ram /opt/agi/bin /opt/agi /usr/local/libexec /etc/agi /var/lib/agi;do [ -d $R$d ]||echo $d>>$B/absentdirs;done
 for f in $L;do [ -e $R$f ]&&stat -c '%a %U:%G %n' $R$f;done>$B/before.stat
+AD=;for d in objects refs logs worktrees;do [ -d $R$M/.git/$d ]&&AD="$AD $R$M/.git/$d";done
+[ -z "$AD" ]||getfacl -R -p $AD>$B/acl.before 2>/dev/null||exit 1
 U=$R/run/systemd/system;( cd $U 2>/dev/null&&ls -d agi-* agi.slice multi-user.target.wants/agi-* 2>/dev/null )>$B/run.list
 if [ -s $B/run.list ];then tar -C $U -cpf $B/run.tar -T $B/run.list||exit 1;(cd $U&&find $(cat $B/run.list) |sort)>$B/run.before;else : >$B/run.before;fi
 (cd $B/files&&find . -type f|sort|xargs -r sha256sum)>$B/before.sha256
-printf '%s\n' '#!/bin/sh' "B=$B;R=$R" 'U=$R/run/systemd/system' '[ -n "$R" ]||systemctl disable --now agi-carry-fetch.timer 2>/dev/null' '[ -n "$R" ]||systemctl disable agi-boot.service 2>/dev/null' '[ ! -d $B/files ]||cp -a $B/files/. ${R:-/}||exit 1' 'if [ -d $U ];then ( cd $U;find agi-* agi.slice multi-user.target.wants/agi-* 2>/dev/null|while read p;do grep -qxF "$p" $B/run.before||rm -rf "$p";done );fi' '[ ! -s $B/run.tar ]||tar -C $U -xpf $B/run.tar' '[ ! -s $B/absent ]||while read f;do rm -f $R$f;done<$B/absent' '[ ! -s $B/absentdirs ]||while read d;do rmdir $R$d 2>/dev/null;done<$B/absentdirs' '[ -n "$R" ]||systemctl daemon-reload' 'echo rolled back from $B'>$B/rollback.sh
+printf '%s\n' '#!/bin/sh' "B=$B;R=$R" 'U=$R/run/systemd/system' '[ -n "$R" ]||systemctl disable --now agi-carry-fetch.timer 2>/dev/null' '[ -n "$R" ]||systemctl disable agi-boot.service 2>/dev/null' '[ ! -d $B/files ]||cp -a $B/files/. ${R:-/}||exit 1' '[ ! -s $B/acl.before ]||setfacl --restore=$B/acl.before||exit 1' 'if [ -d $U ];then ( cd $U;find agi-* agi.slice multi-user.target.wants/agi-* 2>/dev/null|while read p;do grep -qxF "$p" $B/run.before||rm -rf "$p";done );fi' '[ ! -s $B/run.tar ]||tar -C $U -xpf $B/run.tar' '[ ! -s $B/absent ]||while read f;do rm -f $R$f;done<$B/absent' '[ ! -s $B/absentdirs ]||while read d;do rmdir $R$d 2>/dev/null;done<$B/absentdirs' '[ -n "$R" ]||systemctl daemon-reload' 'echo rolled back from $B'>$B/rollback.sh
 echo "backup $B: $(wc -l <$B/before.sha256) files, $(wc -l <$B/run.before) /run paths, $(wc -l <$B/absent 2>/dev/null||echo 0) absent files; rollback: sh $B/rollback.sh"
 # ---- the act: vstore first, then carry.env, the pieces, the units, the E no-op ram unit, polkit, the slice, reload, enable ----
 echo "installing from $PIN:"
@@ -47,6 +49,18 @@ printf '%s\n' '# encryption-town ONLY: MAIN is a plain directory on the internal
 put agi.rules /etc/polkit-1/rules.d/50-agi.rules 644 unit
 printf '%s\n' '# encryption-town: typed here (config:guard has no E line); 7.8 GB box' '[Slice]' "MemoryHigh=${E_MEM_HIGH:-5G}" "MemoryMax=${E_MEM_MAX:-6G}" 'ManagedOOMMemoryPressure=kill' "ManagedOOMMemoryPressureLimit=${E_OOM_LIMIT:-40%}" >$R/etc/systemd/system/agi.slice||exit 1;chmod 644 $R/etc/systemd/system/agi.slice
 install -d -m 755 $OWN $R/var/lib/agi||exit 1
+# MAIN ACL: the post users (group agi) create refs, objects, logs and worktrees in MAIN's .git; L carries this, nothing in the repo made it
+AG=agi;[ -z "$R" ]||AG=$(id -gn)
+install -d $R$M/.git/worktrees||exit 1
+for d in objects refs logs worktrees;do setfacl -R -m g:$AG:rwX $R$M/.git/$d&&find $R$M/.git/$d -type d -exec setfacl -d -m g:$AG:rwX {} +||die "cannot set the MAIN ACL on .git/$d: sh $B/rollback.sh";done
+echo "  MAIN ACL g:$AG:rwX (+default) on .git/{objects,refs,logs,worktrees}"
+if [ -z "$R" ];then
+ U=$(G show $PIN:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r --arg b $BOX 'select(.box==$b and .engine.v==4)|.name'|head -1)
+ if [ -n "$U" ]&&id agi-$U>/dev/null 2>&1;then
+  for d in objects refs logs worktrees;do t=$(setpriv --reuid=$(id -u agi-$U) --regid=$(id -g agi-$U) --init-groups mktemp -d $M/.git/$d/.act-probe.XXXXXX)&&setpriv --reuid=$(id -u agi-$U) --regid=$(id -g agi-$U) --init-groups rmdir $t||die "agi-$U cannot create under $M/.git/$d (the MAIN ACL): sh $B/rollback.sh";done
+  echo "  probe: agi-$U creates and removes a dir in .git/{objects,refs,logs,worktrees}"
+ else echo "  probe SKIPPED: no agi-<post> user for a box $BOX row yet">&2;fi
+fi
 if [ -z "$R" ];then
  systemd-analyze verify /etc/systemd/system/agi-ram-main.service /etc/systemd/system/agi-boot.service /etc/systemd/system/agi-carry@.service /etc/systemd/system/agi-carry-fetch.service /etc/systemd/system/agi.slice||die "systemd-analyze verify refused a unit: sh $B/rollback.sh"
  systemctl daemon-reload&&systemctl enable --now agi-carry-fetch.timer&&systemctl enable agi-boot.service&&systemctl start agi-boot.service||die "enable / start failed: sh $B/rollback.sh"
@@ -60,7 +74,9 @@ G show $PIN:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -e --arg p $P
 if ! grep -qx "AGI_TRUNK=$PIN" $R/etc/agi/carry.env;then cp -a $R/etc/agi/carry.env $R/etc/agi/carry.env.before-$P||exit 1;sed "s/^AGI_TRUNK=.*/AGI_TRUNK=$PIN/" $R/etc/agi/carry.env.before-$P>$R/etc/agi/carry.env.new&&cat $R/etc/agi/carry.env.new>$R/etc/agi/carry.env;rm -f $R/etc/agi/carry.env.new;echo "pin -> $PIN (the old carry.env is carry.env.before-$P)";fi
 if [ -z "$R" ];then
  systemctl start agi-project.service||die "projection failed (agi-project.service)"
- [ -L /run/systemd/system/multi-user.target.wants/agi-post@$P.service ]||die "agi-post@$P is not projected: the row's engine.v / box at $PIN"
+fi
+[ -f $R/run/systemd/system/agi-post@$P.service.d/h.conf ]||die "agi-post@$P is not projected (no h.conf drop-in): the row's engine.v / box at $PIN"
+if [ -z "$R" ];then
  id agi-$P>/dev/null||die "user agi-$P is absent"
  systemctl enable --now agi-carry@$P.path&&systemctl start agi-post@$P||die "start failed for agi-post@$P"
  systemctl is-active agi-post@$P;systemctl show agi-post@$P -p ControlGroup
