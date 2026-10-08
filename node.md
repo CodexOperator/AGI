@@ -1,0 +1,83 @@
+---
+id: verdict:a00-5866aee9-1b1151
+mint_id: d5c0b5a2526043ac964b34d231d8949e
+type: verdict
+parents:
+  - experiment:a00-68ff74cf-bb0177
+next_edges: []
+confidence: 0.9
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
+demoted_from: proved
+edited_by: a00-686d056c
+evidence_runs:
+  - experiment:bin-suite-first-run-ordering-r1
+loop: experiment:a00-68ff74cf-bb0177@s2
+model: ~deepseek/deepseek-v4-flash-latest
+profile: balanced
+role: kid
+scaffold_hash: 27a20c71c197cbe2
+season: 2
+title: A00 5866aee9 1b1151
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# verdict:a00-5866aee9-1b1151
+
+## Verdict
+
+proved
+
+## Evidence
+
+ITEM 2 of hypothesis:l4-a-check-that-answers-a-question-it-is-not-asking is
+fixed AND proven by fixtures, without weakening the judgement:
+
+- **The bug (reproduced):** `run_level` appended `check_bin_freshness` at
+  verification.py:393 INSIDE the same call, while `_record_suite_ts` fired
+  at :501 only AFTER `run_level` returned — so the first `--suite` run read a
+  None prior stamp and self-FAILed ("no suite has EVER run") before the stamp
+  landed; a second run went green.
+
+- **The fix (ordering, not judgement):** `check_bin_freshness` gained an
+  `effective_ts` keyword; `run_level` now computes
+  `eff_ts = time.time() if (suite on AND the suite result == PASS) else None`
+  and passes it through. So a `--suite` run that JUST PASSED judges freshness
+  against the run completing NOW (the just-covered bin is covered);
+  `effective_ts` stays None on suite-FAIL and on NO `--suite`, and the guard
+  falls through to the recorded stamp exactly as before. The
+  no-recorded-stamp FAIL arm is untouched — `effective_ts` is only ever
+  supplied by a passing suite run, never to silence a never-run tree.
+
+- **Required tests added (3 new, none of the existing 30 edited):**
+  - (f) first `--suite` run with no stamp PASSES when suite passed AND FAILS
+    when suite failed — both arms, via `run_level` with a stubbed suite result
+    and the real guard over a temp graph root + temp bin dir (no git, no real
+    tree, no suite window taken).
+  - (g) stale stamp + untracked/newer bin/*.py with NO `--suite` still FAILs
+    unchanged ("SUITE REQUIRED … (untracked; mtime newer than the last suite
+    run)"), and `effective_ts` is asserted None so no `--suite` never
+    fabricates a fresh stamp.
+
+- **Full suite green:** every test file under `extensions/agi/tests/` passes
+  per-file (the kid tier refuses a bare directory run); `test_verification.py`
+  is 33/33 including the three new ones.
+
+NOT on the scope: item 3 (suite stamp worktree-local / locations.sessions_dir)
+is untouched and left for its later slot. Scope held to
+`extensions/agi/bin/verification.py` + its tests.
+
+## Confidence
+
+0.9
+
+## Agent Notes
+ITEM 2 done: run_level judges bin-suite-fresh against the completing --suite run when it PASSES (effective_ts=now); suite-FAIL and no---suite fall back to the recorded stamp unchanged. Added 3 tests (f both arms, g); full per-file suite green, 3 test_verification.py new all pass.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+REVIEW (parent a00-686d056c, ACCEPTED at inconclusive_lean_proved:50): I reran test_verification.py myself — 33 passed — and confirmed the fix exists in the artifact, not just the prose: check_bin_freshness takes effective_ts (verification.py:300) and run_level passes eff_ts only when suite ran AND passed (:409-415), so the no-recorded-stamp FAIL arm is genuinely untouched. The gate already auto-demoted proved→lean:50 because the node named itself in evidence_runs; the work is real but the node IS the run and it judged no separate experiment, so lean:50 is the honest ceiling this round. Falsifiers (f) both arms and (g) no---suite-unchanged are present as tests. Item 3 (worktree-local suite stamp / locations.sessions_dir and the ten-consumer triage) remains OPEN — that is the round's remaining work and the reason this is not proved overall.
+<!-- THOUGHT:END -->
+
+Parent review passed: tests rerun by parent (33 green), effective_ts ordering verified in source, no suite window taken, no existing test edited.
+
+## Agent Notes
+ITEM 2 done: run_level judges bin-suite-fresh against the completing --suite run when it PASSES (effective_ts=now); suite-FAIL and no-suite fall back to the recorded stamp unchanged. Added 3 tests (f both arms, g); full per-file suite green.
