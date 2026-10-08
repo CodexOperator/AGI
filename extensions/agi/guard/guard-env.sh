@@ -22,6 +22,6 @@ guard_cells_check() {  # KEY
   local LC_ALL=C c n v re p='/[A-Za-z0-9._+,:@-][A-Za-z0-9._/+,:@-]*'
   for c in "${!_GE_KIND[@]}"; do n=GUARD_${c}_$1; v=${!n-}; [ -n "$v" ] || continue
     case ${_GE_KIND[$c]} in bool) re='^[01]$';; uint) re='^(0|[123456789][0123456789]{0,8})$';; path) re="^$p\$";; paths) re="^$p( $p)*\$";; pairs) re="^$p=>$p( $p=>$p)*\$";; esac
-    [[ $v =~ $re && ! $v =~ (^|[/ >])\.\.?([/ ]|$) ]] && { [ "${_GE_KIND[$c]}" != uint ] || (( v >= ${_GE_MIN[$c]:-0} && v <= ${_GE_MAX[$c]:-999999999} )); } || { echo "guard.env: cell $n is not a valid ${_GE_KIND[$c]} value (its sink cannot take it): refused, nothing done" >&2; return 1; }
+    [[ $v =~ $re && ! $v =~ (^|[/ >])\.\.?([/ =]|$) ]] && { [ "${_GE_KIND[$c]}" != uint ] || (( v >= ${_GE_MIN[$c]:-0} && v <= ${_GE_MAX[$c]:-999999999} )); } || { echo "guard.env: cell $n is not a valid ${_GE_KIND[$c]} value (its sink cannot take it): refused, nothing done" >&2; return 1; }
   done
 }
