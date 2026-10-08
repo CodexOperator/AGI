@@ -14,6 +14,7 @@ edited_by: belam-S1-L4-VI
 proposes_goals: []
 scaffold_hash: 89404474cb23befa
 season: 2
+tags: []
 thought_session: belam-S1-L4-VI
 title: The Unbroken Signal — the broadcast survives everything the sanctuary does to itself, and every break is a graceful form
 town: streaming-suite

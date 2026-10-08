@@ -323,3 +323,249 @@ def test_f13_a_link_broken_on_a_deprecated_node_at_new_is_counted(proj):
     r = _run(proj, base)
     assert r.returncode == 1, r.stdout + r.stderr
     assert "RED broken_link 1: idea:ret->notes/old.md" in r.stdout, r.stdout
+
+
+# goal:g1.41 E1 -- reds._secrets hands the project ROOT to anonymize.scan, so the `user` class (the
+# anonymize.user_roots cell) is applied to an ADDED line: a /tmp/pytest-of-<name>/ path is a secret row.
+def _user_roots_cell(proj, roots=("/tmp/pytest-of-",)):
+    cfg = json.loads((proj / ".agi/config.json").read_text())
+    cfg["anonymize"] = {"user_roots": list(roots)} if roots else {}
+    (proj / ".agi/config.json").write_text(json.dumps(cfg))
+    return _commit(proj, "cell")
+
+
+def test_e1_a_user_roots_path_on_an_added_line_is_a_secret_and_never_printed(proj):
+    base = _user_roots_cell(proj)
+    (proj / "notes" / "p.txt").write_text("fine line\nsee " + "/" + "tmp/pytest-of-" + "alice/pytest-3/x\n")
+    _commit(proj, "a user-rooted path")
+    r = _run(proj, base)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "RED secrets 1: notes/p.txt:2" in r.stdout, r.stdout
+    assert "alice" not in r.stdout + r.stderr
+
+
+def test_e1_a_placeholder_segment_and_a_foreign_prefix_are_clean(proj):
+    base = _user_roots_cell(proj)
+    (proj / "notes" / "p.txt").write_text("/tmp/pytest-of-<user>/pytest-3/x\n/tmp/other-of-alice/x\n/var/tmp/pytest-of\n")
+    _commit(proj, "placeholder, foreign prefix, bare prefix")
+    r = _run(proj, base)
+    assert r.returncode == 0 and "RED none" in r.stdout, r.stdout + r.stderr
+
+
+def test_e1_no_user_roots_cell_means_the_path_is_not_a_secret(proj):
+    base = _user_roots_cell(proj, roots=())
+    (proj / "notes" / "p.txt").write_text("see " + "/" + "tmp/pytest-of-" + "alice/pytest-3/x\n")
+    _commit(proj, "the same path, no cell")
+    r = _run(proj, base)
+    assert r.returncode == 0 and "RED none" in r.stdout, r.stdout + r.stderr
+
+
+# goal:g1.41 E2 -- reds._node_deletions reports a deleted nodes/*.md whose old text has no `id:` row, BY PATH.
+@pytest.mark.parametrize("old_text,why", [
+    ("just prose, no front matter\n", "no id and no mint"),
+    ("---\nmint_id: " + "d" * 32 + "\ntype: idea\n---\nbody\n", "a mint_id and no id"),
+    ("---\ntype: idea\ntitle: t\n---\nbody\n", "front matter without id or mint"),
+])
+def test_e2_a_deleted_id_less_node_is_reported_by_its_path(proj, old_text, why):
+    g = proj / ".agi" / "nodes" / "idea"
+    (g / "noid.md").write_text(old_text)
+    _commit(proj, "add an id-less node file")
+    base = _git(proj, "rev-parse", "HEAD").strip()
+    (g / "noid.md").unlink()
+    _commit(proj, "delete it")
+    r = _run(proj, base)
+    assert r.returncode == 1, (why, r.stdout + r.stderr)
+    assert "RED node_deletion 1: .agi/nodes/idea/noid.md" in r.stdout, (why, r.stdout)
+
+
+def test_e2_two_id_less_deletions_and_an_id_ful_one_are_all_named(proj):
+    g = proj / ".agi" / "nodes"
+    (g / "idea" / "noid.md").write_text("prose only\n")
+    (g / "idea" / "mintonly.md").write_text("---\nmint_id: " + "e" * 32 + "\n---\nbody\n")
+    _commit(proj, "add two id-less nodes")
+    base = _git(proj, "rev-parse", "HEAD").strip()
+    for f in ("idea/noid.md", "idea/mintonly.md", "build/two.md"):
+        (g / f).unlink()
+    _commit(proj, "delete three")
+    r = _run(proj, base)
+    assert r.returncode == 1, r.stdout + r.stderr
+    line = [l for l in r.stdout.splitlines() if l.startswith("RED node_deletion")][0]
+    assert line.startswith("RED node_deletion 3:"), line
+    assert all(n in line for n in (".agi/nodes/idea/noid.md", ".agi/nodes/idea/mintonly.md", "build:two")), line
+
+
+def test_e2_an_id_less_file_that_is_not_deleted_is_no_deletion(proj):
+    (proj / ".agi/nodes/idea/noid.md").write_text("prose only\n")
+    base = _commit(proj, "add an id-less node file")
+    (proj / ".agi/nodes/idea/noid.md").write_text("prose only, edited\n")
+    _commit(proj, "edit it, keep it")
+    r = _run(proj, base)
+    assert r.returncode == 0 and "RED node_deletion" not in r.stdout, r.stdout + r.stderr
+
+
+# goal:g1.41 E2 sibling (DG1 22:20Z): only a nodes/*.md is a node; a deleted payload or marker file under nodes/ is not a deletion.
+@pytest.mark.parametrize("rel", [".agi/nodes/idea/x.yaml", ".agi/nodes/.gitkeep", ".agi/nodes/idea/payload.txt"])
+def test_e2_a_deleted_non_md_file_under_nodes_is_no_node_deletion(proj, rel):
+    (proj / rel).write_text("not a node, no front matter\n")
+    base = _commit(proj, "add a non-node file under nodes/")
+    (proj / rel).unlink()
+    _commit(proj, "delete it")
+    r = _run(proj, base)
+    assert r.returncode == 0 and "RED node_deletion" not in r.stdout and "RED none" in r.stdout, r.stdout + r.stderr
+
+
+def test_e2_a_non_md_deletion_beside_an_id_less_md_deletion_names_only_the_md(proj):
+    g = proj / ".agi" / "nodes" / "idea"
+    (g / "x.yaml").write_text("k: v\n")
+    (g / "noid.md").write_text("prose only\n")
+    base = _commit(proj, "add one non-node and one id-less node file")
+    (g / "x.yaml").unlink()
+    (g / "noid.md").unlink()
+    _commit(proj, "delete both")
+    r = _run(proj, base)
+    line = [l for l in r.stdout.splitlines() if l.startswith("RED node_deletion")]
+    assert r.returncode == 1 and line == ["RED node_deletion 1: .agi/nodes/idea/noid.md"], r.stdout + r.stderr
+
+
+# goal:g1.41 RE3 (DG1 23:05Z): a nodes/*.md MOVED into nodes/deprecated/ is a D plus an A under --no-renames. DECISION (DG1, row a): an id-less, mint-less file cannot be proved to survive and the schema requires an id, so the move is REPORTED by its old path. A mint kept = alive (b), an id kept = alive (c); the DG3.54 mint-disguise rows stay as they are.
+def _move_to_deprecated(proj, text, name="moved.md"):
+    g = proj / ".agi" / "nodes"
+    (g / "idea" / name).write_text(text)
+    base = _commit(proj, "add a node file")
+    (g / "deprecated" / "idea").mkdir(parents=True, exist_ok=True)
+    _git(proj, "mv", f".agi/nodes/idea/{name}", f".agi/nodes/deprecated/idea/{name}")
+    _commit(proj, "move it to deprecated/")
+    return base
+
+
+@pytest.mark.parametrize("text,why", [
+    ("just prose, no front matter\n", "no front matter"),
+    ("---\ntype: idea\ntitle: t\n---\nbody\n", "front matter without id or mint"),
+])
+def test_re3_a_moved_id_less_mint_less_node_is_reported_by_its_path_by_decision(proj, text, why):
+    base = _move_to_deprecated(proj, text)
+    r = _run(proj, base)
+    assert r.returncode == 1, (why, r.stdout + r.stderr)
+    assert "RED node_deletion 1: .agi/nodes/idea/moved.md" in r.stdout, (why, r.stdout)
+
+
+def test_re3_a_moved_id_less_node_that_keeps_its_mint_is_no_deletion(proj):
+    base = _move_to_deprecated(proj, "---\nmint_id: " + "f" * 32 + "\ntype: idea\n---\nbody\n")
+    r = _run(proj, base)
+    assert r.returncode == 0 and "RED node_deletion" not in r.stdout, r.stdout + r.stderr
+
+
+def test_re3_a_moved_id_ful_node_is_no_deletion(proj):
+    base = _move_to_deprecated(proj, _node("idea:moved", "9" * 32, type="idea"))
+    r = _run(proj, base)
+    assert r.returncode == 0 and "RED node_deletion" not in r.stdout, r.stdout + r.stderr
+
+
+def test_re3_an_id_less_move_beside_an_id_ful_move_names_only_the_id_less(proj):
+    g = proj / ".agi" / "nodes"
+    (g / "idea" / "a.md").write_text("prose only\n")
+    (g / "idea" / "b.md").write_text(_node("idea:b", "8" * 32, type="idea"))
+    base = _commit(proj, "add two node files")
+    (g / "deprecated" / "idea").mkdir(parents=True)
+    for n in ("a.md", "b.md"):
+        _git(proj, "mv", f".agi/nodes/idea/{n}", f".agi/nodes/deprecated/idea/{n}")
+    _commit(proj, "move both")
+    r = _run(proj, base)
+    assert r.returncode == 1 and "RED node_deletion 1: .agi/nodes/idea/a.md" in r.stdout and "idea:b" not in r.stdout, r.stdout + r.stderr
+
+
+# goal:g1.41 RE2 (DG1 23:05Z): the committed CLI over the BUILD'S OWN range (the mur ran `reds.py check c99ac24ea3 7bd46defd8` and got RED secrets 2: two added lines of the lane's own test carried a user path). The range is named by ref so it keeps meaning; a clone that lacks the commits skips (vacuous there, said so). The check runs in-process with `anonymize.box_tokens` read when the box allows it and [] when it does not (a seat without the main .env): box tokens only ADD reds, so a green range here may still be red at a gate that holds them.
+TIP_BASE, TIP_REF = "6f9d7f742c", "d880746901"          # the build's own commit (RE1 recut) and its parent
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
+
+def _own_range(monkeypatch, capsys, old, new):
+    import anonymize, reds
+    for r in (old, new):
+        if subprocess.run(["git", "-C", str(REPO_ROOT), "cat-file", "-e", r + "^{commit}"], capture_output=True).returncode != 0:
+            pytest.skip(f"{r} is not in this clone")
+    real = anonymize.box_tokens
+
+    def tokens(root=None):
+        try:
+            return real(root)
+        except OSError:
+            return []
+    monkeypatch.setattr(anonymize, "box_tokens", tokens)
+    rc = reds.main(["check", old, new, "--root", str(REPO_ROOT), "--repo", str(REPO_ROOT)])
+    return rc, capsys.readouterr().out
+
+
+def test_re2_the_builds_own_range_is_green(monkeypatch, capsys):
+    rc, out = _own_range(monkeypatch, capsys, TIP_BASE, TIP_REF)
+    assert rc == 0 and "RED none" in out, out
+
+
+# goal:g1.41 RE5 (DG1 23:59Z, ruled): an id-less DELETED node is alive only when a file at NEW IS the moved node (its mint in ITS OWN front matter `mint_id:` row) AND that file did not already carry that mint at OLD. A raw scan of every NEW file for the mint (a THOUGHT, a doc, a pre-existing OTHER node quoting it) voids the DG3.54 disguise rule for id-less nodes.
+MINT5 = "a5" * 16
+
+
+def _idless_with_mint(proj, name="noid.md"):
+    (proj / ".agi/nodes/idea" / name).write_text(f"---\nmint_id: {MINT5}\ntype: idea\n---\nbody\n")
+
+
+def test_re5a_a_pre_existing_other_node_carrying_the_mint_is_a_disguise_and_the_deletion_is_reported(proj):
+    _idless_with_mint(proj)
+    (proj / ".agi/nodes/idea/other.md").write_text(_node("idea:other", MINT5, type="idea"))   # the disguise: ANOTHER node already holds the mint
+    base = _commit(proj, "an id-less node and another node holding the same mint")
+    (proj / ".agi/nodes/idea/noid.md").unlink()
+    _commit(proj, "delete the id-less node")
+    r = _run(proj, base)
+    assert r.returncode == 1 and "RED node_deletion 1: .agi/nodes/idea/noid.md" in r.stdout, r.stdout + r.stderr
+
+
+@pytest.mark.parametrize("where", ["a body line", "a THOUGHT region", "a new doc"])
+def test_re5b_a_prose_quote_of_the_mint_in_another_file_does_not_keep_the_node_alive(proj, where):
+    _idless_with_mint(proj)
+    base = _commit(proj, "an id-less node")
+    (proj / ".agi/nodes/idea/noid.md").unlink()
+    if where == "a body line":
+        f = proj / ".agi/nodes/idea/one.md"
+        f.write_text(f.read_text() + f"\nsee mint {MINT5} for the old note\n")
+    elif where == "a THOUGHT region":
+        f = proj / ".agi/nodes/idea/one.md"
+        f.write_text(f.read_text() + f"\n<!-- THOUGHT:BEGIN -->\nthe old note was mint_id: {MINT5}\n<!-- THOUGHT:END -->\n")
+    else:
+        (proj / ".agi/nodes/idea/quote.md").write_text(_node("idea:quote", "b5" * 16, type="idea") + f"quotes {MINT5}\n")
+    _commit(proj, "delete it and quote its mint elsewhere")
+    r = _run(proj, base)
+    assert r.returncode == 1 and "RED node_deletion 1: .agi/nodes/idea/noid.md" in r.stdout, (where, r.stdout + r.stderr)
+
+
+def test_re5c_the_moved_id_less_node_with_its_own_mint_stays_alive_even_beside_a_quote(proj):
+    base = _move_to_deprecated(proj, f"---\nmint_id: {MINT5}\ntype: idea\n---\nbody\n")
+    f = proj / ".agi/nodes/idea/one.md"
+    f.write_text(f.read_text() + f"\nsee mint {MINT5}\n")
+    _commit(proj, "a quote too")
+    r = _run(proj, base)
+    assert r.returncode == 0 and "RED node_deletion" not in r.stdout, r.stdout + r.stderr
+
+
+# goal:g1.41 RE6 (DG1 00:55Z, SM union1 residue): the closing-fence bound of the front-matter search is pinned by no row (a whole-file `^mint_id:` search leaves every re4/re5 row green). A NEW file whose BODY (after its closing ---) or whole text (no front matter at all) carries a column-0 `mint_id: <M>` line is a quote, not the moved node: the deleted id-less node is REPORTED.
+@pytest.mark.parametrize("text,why", [
+    ("---\ntype: idea\ntitle: t\n---\nbody\nmint_id: " + MINT5 + "\nmore\n", "after the closing fence of a front matter that lacks the mint"),
+    ("prose with no front matter\nmint_id: " + MINT5 + "\n", "a file with no front matter at all"),
+])
+def test_re6_a_column_zero_mint_line_outside_the_front_matter_does_not_keep_the_node_alive(proj, text, why):
+    _idless_with_mint(proj)
+    base = _commit(proj, "an id-less node")
+    (proj / ".agi/nodes/idea/noid.md").unlink()
+    (proj / ".agi/nodes/idea/newfile.md").write_text(text)          # new at NEW, absent at OLD
+    _commit(proj, "delete it; a new file quotes its mint outside any front matter")
+    r = _run(proj, base)
+    assert r.returncode == 1 and "RED node_deletion 1: .agi/nodes/idea/noid.md" in r.stdout, (why, r.stdout + r.stderr)
+
+
+# goal:g1.41 RE4 (DG1 23:59Z): the can-fail row built in a FIXTURE repo so it runs anywhere (the pre-recut range lived on a branch that will be pruned and the row skipped forever). Two added lines carry a user_roots path (built from parts): RED secrets 2 through the committed CLI.
+def test_re4_a_fixture_range_with_two_user_rooted_lines_is_red_secrets_two(proj):
+    base = _user_roots_cell(proj)
+    (proj / "notes" / "p.txt").write_text("ok\nsee " + "/" + "tmp/pytest-of-" + "alice/pytest-3/x\nand " + "/" + "tmp/pytest-of-" + "bob/pytest-9/y\n")
+    _commit(proj, "two user-rooted paths")
+    r = _run(proj, base)
+    assert r.returncode == 1 and "RED secrets 2: notes/p.txt:2 notes/p.txt:3" in r.stdout, r.stdout + r.stderr
+    assert "alice" not in r.stdout + r.stderr and "bob" not in r.stdout + r.stderr

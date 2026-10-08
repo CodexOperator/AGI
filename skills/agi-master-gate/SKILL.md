@@ -96,6 +96,11 @@ suite        ON TMPFS (09-26): git worktree add --detach /dev/shm/<gate> M + TMP
                comm + cwd (python3 in a worktree), never by the pattern count
              · a 2nd pytest in a worktree whose full suite runs = ERROR at setup (conftest _suite_lock_guard names the live pid), not a result:
                reproduce red in a separate pre-fix worktree, read green from the suite (+N passed = the new cases)
+lanes       the FULL suite is PYTEST ONLY: the extensions/agi/tests/*.t.sh lanes never run in it (DG1 [red] 14:06Z 10-08: D1 v2 38e61463c7
+             landed green on FULL and left graph-metrics.t.sh c2/c2b red -- its gold pins metrics.py output) -> at EVERY gate run ALL .t.sh lanes
+             bare (env -i, empty HOME, git config /dev/null, node's dir on PATH, `sh`) on the gate tree AND a detached trunk tree, diff the two
+             FAIL sets: a lane red on the gate only = the range's · and `git grep -l <changed output> -- 'extensions/agi/tests/*.t.sh'` before any
+             landing that changes a CLI's printed lines
 detached    my setsid-nohup suite fails 3 tests that pass alone 5/5: test_dashboard::test_watch_exits_cleanly_on_sigint + 2x
              test_suite_no_detached_spawn -- the LAUNCH, not the range (3 gates 09-26, 6455 passed each; a director's in-pane run = 6458/0)
              · gen 26 (a125bad37's gate, the tree with DH.381's conftest guard): 6642 passed / 0 failed -- NONE of the 3 appeared: re-attribute
@@ -148,6 +153,10 @@ verdicts     read the CONTROL arms before any verdict: a result FLAT across bit 
 review       read each round's FINAL verify stage in .agi/sessions/workflows/runs/mur-*/verify_R-EFnn.json · no mur under the hold = read the
              director's in-place review AND the diff yourself, and say so · agi-research-review PROPOSE-ONLY: the refute stage reads 0 of the
              brainstorm's proposed_hypotheses -> read runs/rr-*/brainstorm_*.json yourself (FIXED: goal:g7.33.12 complete, read gen 27)
+             · a mur's focus names it: reviewer probes run with a scratch HOME + XDG_CONFIG_HOME, never the box user's (belam [rule] 09:4xZ 10-08)
+             · every mur brief names its review root = YOUR /dev/shm gate tree (never a disk worktree under .agi/worktrees), and its
+               reviewers search only inside that root by explicit paths (belam [rule] 19:2xZ 10-08: SM gen 31's D3 mur read
+               .agi/worktrees/de-base-EG.82 on the slow disk = 13.3 GB of IO in 15 min, io PSI some 93%)
 residues     before routing a residue to ANOTHER director, read the newest dm of the director whose round produced it (gen 25: DT's 2/3 at
              08:01Z had already fixed the model_slot flock item I routed to DE at 08:0xZ -> TMM.215 took it back)
              · accept_with_residue ≠ land (unified-director-brief:32) · NEVER waive a mur residue -- the owner's 09-19 rule gives each its own
@@ -155,6 +164,7 @@ residues     before routing a residue to ANOTHER director, read the newest dm of
              HEAD with the director's claimed trunk sha before gating; the docs forbid it (unified-director-brief:64/73) · a director's
              rescue story can contradict my own stop record (OSC.15, 17:1xZ: 'OOM' vs TMM.123) -> check the kid's iter-<ID>/manifest.json
              (harness, started_at, finished_at, death) in the director's worktree against the node BEFORE gating
+             · before any return of a prose brief: ONE whole-node contradiction sweep, all residues in one list (belam [rule] 08:4xZ 10-08)
 PASS         the Prime's PASS launcher WAITS while any suite lock is live (belam 1d3aba877, 13:48Z) -- a /dev/shm gate worktree's suite holds one
              too -> never start a gate suite in a PASS start window; stop a returned tip's suite at once
              · a PASS's mur runs import MAIN's LIVE workflow.py (3 runners, cwd MAIN, 16:0xZ): a workflow.py landing mid-PASS changes every chunk

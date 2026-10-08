@@ -56,13 +56,15 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 | `bin/send.py {send,read,peek} <target>` | One-verb agent comms via inbox file |
 | `bin/rotate.py {meter,spawn,status}` | Director rotation: meter context usage, launch successor in tmux |
 | `bin/write_guard.py {check,hook}` | Detect unsanctioned node writes; pre-commit hook |
-| `bin/workflow.py run <name> [--harness pi\|claude-code] [--dry-run]` | **The only sanctioned workflow dispatch route** |
+| `bin/workflow.py run <name> [--harness pi\|claude-code] [--dry-run]` | **LEGACY route (goal:g5.33); still the live mur runner** |
 | `bin/workflow.py register <name> --script <path> [--from-run <dir>]` | Land an inline script as a registered manifest pair as it runs |
 | `bin/workflow.py list` / `validate` | Enumerate the registry / check the agi-*.js↔*.json invariant |
 
 **`grid.py checkout` is gone — never run it.** There is no staged copy to materialize; see "The git grid" below for what replaced the whole pipeline it belonged to.
 
 ## Workflows: registered as they run, dispatched only one way
+
+> **LEGACY: the `workflow.py` route.** Owner 10-02 14:01Z: "we just need to retire workflow.py entirely and stop wasting time on it". goal:g5.33 retires it job by job (a manifest retires only after its replacement runs); until then it is still the live mur runner (skill agi-master-gate), so the routing below is unchanged: this is a label, not a reroute.
 
 A workflow is a harness-agnostic script + stage manifest under `extensions/agi/workflows/`. **Register it as it runs** — `workflow.py register <name> --script <path>` lands an inline script as a proper `agi-<name>.js` + `<name>.json` pair in the same action that runs it (an inline script with no registration is the failure this closes: it runs on one harness and evaporates with the session) — and **dispatch every workflow through `workflow.py run <name>`**, the one sanctioned route. There is no second path that also works: a second path is what goes stale. `review` and `drafting` are the working reference pairs. Write a workflow inline without registering it and you have re-opened the defect this rule exists to shut.
 
@@ -165,7 +167,8 @@ Run these in order, from MAIN, every time a Prime is stood up on a box:
 bin/agi-boxinfo                                   # which box (AGI_BOX in MAIN's .env) — alias only
 git branch --show-current                         # the trunk this box works: season2/main on core, <town>/season2/main on a town box
 git fetch origin && git merge --no-edit origin/<parent-trunk>    # sync; then links.py links
-# 1  the row: box cell + identity cells through the ONE writer (write.py, actor = the prime row), never a hand edit
+# 1  the row: box cell + identity cells through the OLD setup's writer (write.py, actor = the prime row), never a hand edit
+#    (OLD SETUP: a post whose row has engine.v 4 edits node files with plain Write/Edit and agi-turn commits; owner 10-01 23:3xZ)
 #    (posts.md is config; written_by is [owner, prime_director]; a box's rows carry `box: <alias>` — a row
 #     without the cell belongs to default_box and is FOREIGN everywhere else: whois/heal/status/mail_poll skip it)
 # 2  the key: keys never cross boxes and no model mints one — rotate-self (step 6) and every stand-up key the row
@@ -271,7 +274,9 @@ across a handoff instead of fixed in-loop became `goal:s34`.
 
 ## Every node edit goes through `write.py` (`goal:g4.18`)
 
-**One way in.** Creating a node, editing its frontmatter, appending a body note,
+> **OLD SETUP:** a post whose row has engine.v 4 edits node files with plain Write/Edit and agi-turn commits; owner 10-01 23:3xZ. The rest of this section is that setup's rule, unchanged.
+
+**One way in (old setup).** Creating a node, editing its frontmatter, appending a body note,
 rewriting its `THOUGHT` or `FEELING` region — all of it is
 `bin/write.py`, for a mechanical reason: a plain file write still gets a grid
 version, but it loses `edited_by`, `thought_session`, the spawn gate and the
@@ -347,7 +352,7 @@ unchanged: patched bytes land through the same `replace_payload` the
 whole-file verbs reach, so `edited_by`, `thought_session` and the grid version
 always happen.
 
-**If you find yourself writing into `.agi/nodes/**` or over a `payload_ref`
+**On the OLD setup, if you find yourself writing into `.agi/nodes/**` or over a `payload_ref`
 with anything but `write.py`, stop** — that is the untraceable write this
 command exists to end, and it is the easiest rule here to skip, because a
 direct edit looks like it worked.

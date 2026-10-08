@@ -75,6 +75,7 @@ ok()   { printf '  %sok%s    %s\n' "$G" "$N" "$*"; }
 warn() { printf '  %swarn%s  %s\n' "$Y" "$N" "$*"; WARNINGS=$((WARNINGS+1)); }
 bad()  { printf '  %sFAIL%s  %s\n' "$R" "$N" "$*"; FAILS=$((FAILS+1)); }
 die()  { printf '%sguard-init: %s%s\n' "$R" "$*" "$N" >&2; exit 1; }
+[[ $SANCTUARY =~ ^/[A-Za-z0-9._/+,:@-]*$ ]] || die "SANCTUARY ($(printf %q "$SANCTUARY")) is not a plain absolute path: it is written raw into watch.env (sourced) and every installed file header"
 # Only the top-level shell dies: with set -E the trap is inherited by $(...)
 # subshells, where an expected non-zero (systemctl is-active -> 3) would print a
 # fake fatal line. A real failure inside a substitution still fails the
@@ -168,7 +169,7 @@ to_mib() {  # 512M | 2G | 1.5G | 1024 (MiB) -> integer MiB
 # The settings: the ```sh guard.env fenced block of config:guard, evaluated as
 # bash (the same assignments guard.env held). Default node: the repo this script
 # really lives in, else the main checkout.
-guard_env_block() { awk '/^```sh guard\.env[[:space:]]*$/{f=1; next} f && /^```[[:space:]]*$/{exit} f' "$1"; }
+. "$GUARD_DIR/guard-env.sh"   # guard_env_load: validates the block line by line, no evaluation
 GUARD_ENV_NODE=${GUARD_ENV_NODE:-}
 if [ -z "$GUARD_ENV_NODE" ]; then
   GUARD_ENV_NODE=$(cd "$GUARD_DIR/../../.." 2>/dev/null && pwd)/.agi/nodes/.geometry/guard.md
@@ -176,15 +177,15 @@ if [ -z "$GUARD_ENV_NODE" ]; then
 fi
 GUARD_ENV_FROM=defaults
 if [ -f "$GUARD_ENV_NODE" ]; then
-  GUARD_ENV_TEXT=$(guard_env_block "$GUARD_ENV_NODE")
-  [ -n "$GUARD_ENV_TEXT" ] || die "$GUARD_ENV_NODE has no \`\`\`sh guard.env block"
-  eval "$GUARD_ENV_TEXT"
+  guard_env_load "$GUARD_ENV_NODE" || exit 1
+  [ "$_GE_LINES" -gt 0 ] || die "$GUARD_ENV_NODE has no \`\`\`sh guard.env block"
   GUARD_ENV_FROM="config:guard ($GUARD_ENV_NODE)"
 else
   for _gf in "$SANCTUARY/guard/guard.env" "$GUARD_DIR/guard.env"; do
     if [ -f "$_gf" ]; then . "$_gf"; GUARD_ENV_FROM="legacy $_gf"; break; fi
   done
 fi
+guard_cells_check "$HOSTKEY" || exit 1   # a sink-bearing cell is the shape its sink needs (RC1/RC2)
 hostvar() { local n="GUARD_$1_$HOSTKEY"; printf '%s' "${!n:-${2:-}}"; }
 
 RAM_M=$(( $(awk '/^MemTotal:/{print $2}' /proc/meminfo) / 1024 ))

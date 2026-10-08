@@ -1,0 +1,159 @@
+{
+  "rotation": "rotate-self",
+  "seat": "sanctuary-master",
+  "recorded_at": "2026-10-07T22:38:32.363290Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "sanctuary-master",
+      "windows": [
+        "bash",
+        "agi-17",
+        "belam-S2-L5-III",
+        "sanctuary-master",
+        "belam-S2-L5-I",
+        "belam-S2-L5-II",
+        "sanctuary-master.prev"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/data/work/agi/.agi/sessions/sanctuary-master.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 2872651,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "sanctuary-master.prev",
+      "windows": [
+        "bash",
+        "agi-17",
+        "belam-S2-L5-III",
+        "sanctuary-master",
+        "belam-S2-L5-I",
+        "belam-S2-L5-II",
+        "sanctuary-master.prev"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -70.066
+  },
+  "seated_at": "2026-10-07T22:38:32.363290Z",
+  "window": "sanctuary-master",
+  "session_id": "4fbb7070-e0d7-4329-bb7b-302b97901fb6",
+  "pid": 4042865,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "sanctuary-master.prev",
+      "id": "@17"
+    },
+    "successor_window": {
+      "name": "sanctuary-master",
+      "id": "@18"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@18",
+      "pid": 4042865,
+      "session_id": "4fbb7070-e0d7-4329-bb7b-302b97901fb6",
+      "transcript": "~/.claude/projects/-data-work-agi/4fbb7070-e0d7-4329-bb7b-302b97901fb6.jsonl",
+      "name": "agi-c3",
+      "path": "~/.claude/sessions/4042865.json",
+      "note": "joined by @18 in registry file 4042865.json"
+    },
+    "successor_row": "config:seats row 'sanctuary-master': session_ref= session_name=agi-c3 session_label=sanctuary-master session_id=4fbb7070-e0d7-4329-bb7b-302b97901fb6 pid=4042865 generation=24 window='@18' source=registry pubkey=54a67023ef624d6f... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha 30e23f4615, retried 0) -- own-row only: sanctuary-master spawn row: gen 24, session_id 4fbb7070-e0d7-4329-bb7b-302b97901fb6, window @18, pid 4042865\npush: push: OK -- local-maxxing/season2/main\nauthority: OK -- 06f1d50c4 -> season2/main",
+    "key_replace": "key_replace: wrote successor key to /data/work/agi/.agi/sessions/seats/sanctuary-master.key (0600, atomic replace)",
+    "meter_pin": "/data/work/agi/.agi/sessions/sanctuary-master.meter",
+    "ack_written": "/data/work/agi/.agi/sessions/seats/sanctuary-master.ack.4fbb7070.json",
+    "own_authority_released": "generation 23 of seat 'sanctuary-master' retired; successor generation 24 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "FAILED: Command '['/usr/bin/python3', '/data/work/agi/extensions/agi/bin/grid.py', 'commit', '--all']' timed out after 60 seconds",
+    "livestream_repoint": {
+      "session": "view-sanctuary-master",
+      "target": "@18",
+      "skipped": "view session view-sanctuary-master absent"
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "requested": {
+        "model": "claude-opus-5-5"
+      },
+      "live": {
+        "model": "claude-opus-5-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "after_join"
+    },
+    "bootstrap": "/data/work/agi/.agi/sessions/seats/sanctuary-master.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "ee644de3495511e02e8f15663c12024a5d365da1ed1ad507a90c9170052ab031",
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      1322969,
+      1322979,
+      1323002
+    ],
+    "reap_source": "derived from own window @id @17 pane 1322969: chain [1322969, 1322979, 1323002] (deepest-first; authority row pid 1323002)"
+  },
+  "after_join": {
+    "performer": "watch",
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep sanctuary-master",
+        "rc": 0,
+        "output": "@18 sanctuary-master\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/sanctuary-master.meter --session-log ~/.claude/projects/-data-work-agi/4fbb7070-e0d7-4329-bb7b-302b97901fb6.jsonl",
+        "rc": 0,
+        "output": "0.0795\t79469/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(1322969|1322979|1323002)\\b'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(1322969|1322979|1323002)\\b'\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post sanctuary-master --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post sanctuary-master --ref <your ListAgents ref> diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "sanctuary-master",
+    "dm_signed": true,
+    "code_head": "437a0d9",
+    "code_loaded": "1790887846:1177428",
+    "claimed_at": "2026-10-07T22:39:16.444956+00:00",
+    "claim_key": "2026-10-07T22:38:32.363290Z",
+    "performed_after_s": 43.286456823349
+  }
+}

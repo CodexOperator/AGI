@@ -135,9 +135,13 @@ def round_args(root: Path, label: str, args: dict, cell: dict) -> tuple[str, str
         (r for r in args["rounds"] if label.startswith(str(r.get("key") or "\0"))),
         key=lambda r: len(str(r["key"])))
     tips = [str(hit[-1].get(t) or "") for t in ("old_tip", "new_tip")] if hit else ["", ""]
-    shown = [subprocess.run(["git", "show", "-s", "--format=%s", "--end-of-options", t],
-                            cwd=root.parent if root.name == ".agi" else root,
-                            capture_output=True, text=True, check=False) for t in tips if t]
+    cwd = root.parent if root.name == ".agi" else root
+    # a tip is 7-40 lowercase hex that git resolves to a COMMIT (g1.41 E4): never `?` `*` a range, a ref name, a tree
+    is_commit = lambda t: re.fullmatch(r"[0-9a-f]{7,40}", t) and subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", "--end-of-options", f"{t}^{{commit}}"],
+        cwd=cwd, capture_output=True, check=False).returncode == 0
+    shown = [subprocess.run(["git", "show", "-s", "--format=%s", "--end-of-options", t], cwd=cwd,
+                            capture_output=True, text=True, check=False) for t in tips if t and is_commit(t)]
     if len(shown) < 2 or any(g.returncode for g in shown):
         raise SystemExit(f"council_report: label {label!r} matches no round with known "
                          "old_tip/new_tip -- nothing written, never a ?..? row")

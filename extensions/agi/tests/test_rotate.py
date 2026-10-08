@@ -11026,3 +11026,158 @@ def test_find_pin_log_is_none_when_the_sessions_dir_is_unreadable(tmp_path):
         assert rotate._seat_fraction(g, {"name": "sealed-seat"}) is None
     finally:
         sessions.chmod(0o755)
+
+
+# ── goal:g1.31.4.2.1.2 — the guard sits ABOVE the first syscall that can
+# raise. MEASURED 21:3xZ on py3.12: `Path.is_dir()` RE-RAISES EACCES (it does
+# not answer False), and the sessions RESOLVER itself probes the path, so the
+# first raiser can be `_sessions_dir` rather than the is_dir() this leaf
+# names. Either way the answer must be UNKNOWN, never a traceback out of a
+# meter caller.
+
+def _unreadable_graph(tmp_path, mode=0o000, name="graph"):
+    """A graph dir (pins live at `<graph>/sessions/`) that cannot be entered,
+    with one pin inside, plus a restore hook -- a mode-000 dir left behind
+    makes pytest's tmp_path cleanup warn (pin-leaf residue 4)."""
+    graph = tmp_path / name
+    sessions = graph / "sessions"
+    sessions.mkdir(parents=True)
+    (sessions / "director.meter").write_text("/some/transcript\n",
+                                             encoding="utf-8")
+    graph.chmod(mode)
+    return graph, sessions
+
+
+def test_find_pin_log_answers_unknown_under_an_unreadable_parent(tmp_path):
+    """The named claim: an unreadable graph PARENT yields None (UNKNOWN), it
+    never raises. Both arms -- the seat's own pin and the newest-pin scan."""
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
+    graph, _sessions = _unreadable_graph(tmp_path)
+    try:
+        assert rotate.find_pin_log(graph, "director") is None
+        assert rotate.find_pin_log(graph) is None
+    finally:
+        graph.chmod(0o755)
+
+
+def test_find_pin_log_answers_unknown_under_an_unreadable_sessions_dir(
+        tmp_path):
+    """The same seam one level down: the sessions dir itself unreadable. The
+    guard must not sit only around the PARENT's stat."""
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
+    graph, sessions = _unreadable_graph(tmp_path, mode=0o755)
+    sessions.chmod(0o000)
+    try:
+        assert rotate.find_pin_log(graph, "director") is None
+        assert rotate.find_pin_log(graph) is None
+    finally:
+        sessions.chmod(0o755)
+
+
+def test_find_pin_log_answers_unknown_under_a_symlink_loop(tmp_path):
+    """CONTROL, and an honest one: MEASURED 21:3xZ, a real `a->b->a` loop makes
+    `Path.is_dir()` answer FALSE (py3.12 swallows the ELOOP), so the loop
+    arrives here as "not a sessions dir" -> None, never a raise. This test is
+    therefore NOT a falsifier for the new guard (it is green before and after,
+    and dropping the `RuntimeError` arm leaves it green) -- it is pinned so
+    nobody later reads "loop" as a crash path at THIS seam. The measured
+    RuntimeError raiser lives in the pin leaf's `resolve()` calls, not here."""
+    root = tmp_path / "loopgraph"
+    root.mkdir()
+    (root / "a").symlink_to(root / "b")
+    (root / "b").symlink_to(root / "a")
+    assert rotate.find_pin_log(root, "director") is None
+    assert rotate.find_pin_log(root) is None
+
+
+def test_find_pin_log_still_reads_a_pin_that_is_there(tmp_path):
+    """The control: the guard must not turn a readable graph into a silent
+    None. Without this, a guard that always returned None would pass the three
+    tests above."""
+    graph, sessions = _unreadable_graph(tmp_path, mode=0o755, name="graph2")
+    assert rotate.find_pin_log(graph, "director") == \
+        sessions / "director.meter"
+    assert rotate.find_pin_log(graph) == sessions / "director.meter"
+
+
+# goal:g1.31.4.2.1.2 corrective (mur-sm23-dg5-findpinlog, residues R1 R3 R4). FIXTURES ONLY: tmp dirs, no pane.
+def _sealed_graph(tmp_path):
+    """<tmp>/proj/.agi with nodes/ (so it is a graph dir), then its PARENT sealed mode 000: the box shape."""
+    proj = tmp_path / "proj"
+    g = proj / ".agi"
+    (g / "nodes").mkdir(parents=True)
+    (g / "sessions").mkdir()
+    proj.chmod(0o000)
+    return proj, g
+
+
+def test_pinfix_r1_an_unreadable_sessions_resolution_prints_one_unknown_line_with_the_errno(tmp_path, capsys):
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
+    proj, g = _sealed_graph(tmp_path)
+    getattr(rotate, "_PIN_UNKNOWN_SEEN", set()).clear()
+    try:
+        assert rotate.find_pin_log(g) is None
+        assert rotate.find_pin_log(g) is None   # a second call must NOT print a second line
+        err = capsys.readouterr().err
+    finally:
+        proj.chmod(0o755)
+    lines = [l for l in err.splitlines() if "UNKNOWN" in l]
+    assert len(lines) == 1, err
+    assert "EACCES" in lines[0] and "proj" in lines[0], lines[0]
+
+
+def test_pinfix_r3_meter_end_to_end_on_a_mode_000_parent_prints_a_reason_and_never_raises(tmp_path, monkeypatch, capsys):
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
+    proj, g = _sealed_graph(tmp_path)
+    monkeypatch.setattr(rotate, "find_project_root", lambda *a, **k: g)
+    monkeypatch.delenv(rotate.AGI_SESSION_LOG_VAR, raising=False)
+    monkeypatch.setenv("HOME", str(tmp_path / "emptyhome"))
+    getattr(rotate, "_PIN_UNKNOWN_SEEN", set()).clear()
+    try:
+        code = rotate.main(["meter"])
+    finally:
+        proj.chmod(0o755)
+    err = capsys.readouterr().err
+    assert code != 0 and "UNKNOWN" in err, (code, err)
+    assert "Traceback" not in err
+
+
+def test_pinfix_r4_one_dangling_pin_does_not_hide_the_valid_newest_pin(tmp_path):
+    g = tmp_path / ".agi"
+    (g / "nodes").mkdir(parents=True)
+    sessions = g / "sessions"
+    sessions.mkdir()
+    old = sessions / "old.meter"
+    old.write_text("4\t/x\n", encoding="utf-8")
+    good = sessions / "good.meter"
+    good.write_text("4\t/y\n", encoding="utf-8")
+    os.utime(old, (1, 1))
+    os.utime(good, (2, 2))
+    (sessions / "dangling.meter").symlink_to(tmp_path / "nowhere")
+    assert rotate.find_pin_log(g) == good, "a dangling pin is skipped; the newest VALID pin is kept"
+
+
+def test_pinfix_r6_a_seatless_scan_of_a_mode_000_sessions_dir_prints_one_unknown_line(tmp_path, capsys):
+    """mur R6: Path.glob SWALLOWS EACCES (is_dir True, glob -> [] with no exception), so the seatless arm answered a
+    silent None. A listing call that raises (os.scandir) inside the guard makes the except arm warn."""
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
+    g = tmp_path / ".agi"
+    (g / "nodes").mkdir(parents=True)
+    sessions = g / "sessions"
+    sessions.mkdir()
+    (sessions / "seat.meter").write_text("4\t/x\n", encoding="utf-8")
+    sessions.chmod(0o000)
+    getattr(rotate, "_PIN_UNKNOWN_SEEN", set()).clear()
+    try:
+        assert rotate.find_pin_log(g) is None
+        err = capsys.readouterr().err
+    finally:
+        sessions.chmod(0o755)
+    lines = [l for l in err.splitlines() if "UNKNOWN" in l]
+    assert len(lines) == 1, err
+    assert "EACCES" in lines[0] and "sessions" in lines[0], lines[0]

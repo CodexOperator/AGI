@@ -10,6 +10,7 @@ holds symlinks into it, so every command below works from either path:
 |---|---|
 | `guard/guard-init.sh` | the one command. Idempotent; `--dry-run`, `--status`, `--uninstall` |
 | `config:guard` | per-box overrides (docker budget, reserve, which box runs the recovery agent): the ```` ```sh guard.env ```` block of `.agi/nodes/.geometry/guard.md`, keyed by box name. The old `guard/guard.env` is kept as `guard.env.pre-graph-20260930` and read only if the node is missing |
+| `guard/guard-env.sh` | the ONE reader of that block (`guard_env_load <node>`), sourced by guard-init, ram-main, ram-tier and session-sweep: only blank lines, `#` comments and `GUARD_<NAME>=<value>` (bare, or single-quoted with the literal `$HOME`) are accepted, anything else exits 1 naming the node and line before any side effect; nothing is evaluated. Names are CELLS only, `GUARD_<UPPER_WORDS>_<lowercase box key>` (so a block can never set `GUARD_DIR`, `GUARD_BOX`, `GUARD_ENV_NODE`); a box whose key has a capital would be refused by name |
 | `guard/sanctuary-health` | the watchdog's health check (installed to `/usr/local/sbin`) |
 | `guard/sanctuary-watch` | the 2-minute watcher: cap-kill alerts + peer checks (installed to `~/.local/bin`) |
 

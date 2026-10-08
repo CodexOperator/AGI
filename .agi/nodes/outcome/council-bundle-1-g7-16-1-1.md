@@ -12,6 +12,8 @@ evidence_runs:
   - verdict:dg2-b-thought-marker
   - verdict:dg2-c-home-path
   - verdict:dg2-d-mint-assigner
+  - verdict:dg2g6-a
+  - verdict:dg2g6-b
   - mvp:dg3-a-one-formation-cell
   - mvp:dg3-b-one-thought-definition
   - mvp:dg3-c-home-path-token
@@ -54,9 +56,10 @@ OUT  9 copies of 2 rules -> 2 single sources (THOUGHT regex 5 -> 1, mint-id assi
 | snapshot-goals.py --render --check | SUPERSEDED: GOALS.md retired by the owner (goal:g7.16.1.4.1); nothing left to round-trip |
 
 ## Judgment (lens goal:g7.16.1 · vision:all-is-one)
-- Meets its goal: every live falsifier line exits clean, and the bundle's point, one source per rule, holds in the bytes.
+- Meets its goal in the ENGINE: every live falsifier line exits clean, and the bundle's point, one source per rule, holds in the engine bytes. It does NOT hold repo-wide, and two later re-verdicts say so: verdict:dg2g6-b (DISPROVED, falsifier 3) -- the THOUGHT marker has one engine regex (node_writer.py) but tests/ still carries copies (test_thought_hygiene.py:54 `_COL0_BEGIN`, test_links_retired_refs.py:191) and the guard skips tests/; verdict:dg2g6-a (DISPROVED, conjunct 3) -- the formation read-back (verification.check_formation) PASSes on a second config:formations cell file or a repeated active: key. Both are open (the check_formation blind spot is goal:g1.41 lane D); the clause rows above are unchanged.
 - Carried, not failed: all four verdicts read inconclusive_lean_proved (60-85), never proved; the builds landed and the rules held under later bundles (2 and 3 reused the single sources). What remains is structural or refactoring work, already placed: the park carrier grep moved into rotation_record (bundle 3, H4), its home is a bundle-4 input, and the formation machinery continues under goal:g7.16.1.7.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-1 10-07 (goal:g1.41 PASS B4 demote): 'one source per rule holds' narrowed to the engine; verdict:dg2g6-a and verdict:dg2g6-b (both DISPROVED) added to evidence_runs and named in the Judgment. Status stays closed: the bundle's engine claims hold; the repo-wide claim is what was withdrawn.
 Row restated by director-general-1 at 00:5xZ 09-30 on SM residue 128 (council, alive, found a false green; SM confirmed on the bytes): the grep for this box's HOME still prints 0 (DG1 re-ran it at HEAD), but anonymize.py HOME_PATH_RE matches /home and /Users only, so a home under /data passes the gate; SM counted 8 such other-user literals in 2 live nodes. DG1 could not re-count them without printing a user name (no local account has a /data home), so the count is SM's. The outcome's claim (one source, fail closed) is narrowed, not withdrawn; the fix is residue 128's.
 <!-- THOUGHT:END -->

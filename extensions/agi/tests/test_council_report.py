@@ -309,3 +309,53 @@ def test_g2_the_owner_subject_is_new_tips_own_never_old_tips(tmp_path):
                                                      text=True, capture_output=True).stdout.strip()
     cr.add(root / ".agi", "k1", args, writer=_writer(store))   # old_tip subject: c1 (post-a)
     assert "r two" in store["goal:g9.2"] and "r two" not in store["goal:g7.9"]
+
+
+# goal:g1.41 E4 -- a tip is accepted ONLY as 7-40 lowercase hex that git resolves to a COMMIT
+# (rev-parse --verify <t>^{commit}): `?`, `*`, a range, a ref name, :/msg, a short or uppercase hex, a tree sha and a
+# tag-to-tree are rc 2 naming the label, and NOTHING is written.
+def _bad_tips(root):
+    def git(*a):
+        return cr.subprocess.run(["git", "-C", str(root), "-c", "user.name=t", "-c", "user.email=t@t", *a],
+                                 text=True, capture_output=True, check=True).stdout.strip()
+    head, parent = git("rev-parse", "HEAD"), git("rev-parse", "HEAD~1")
+    git("tag", "-a", "-m", "tag a tree", "ttree", git("rev-parse", "HEAD^{tree}"))
+    return {"qmark": "?", "star": "*", "range": f"{parent[:10]}..{head[:10]}", "HEAD": "HEAD",
+            "branch": git("symbolic-ref", "--short", "HEAD"), "msg": ":/c1", "hex6": head[:6],
+            "upper": head[:10].upper(), "tree": git("rev-parse", "HEAD^{tree}"), "tag-to-tree": git("rev-parse", "ttree")}
+
+
+BAD_TIPS = ["qmark", "star", "range", "HEAD", "branch", "msg", "hex6", "upper", "tree", "tag-to-tree"]
+
+
+@pytest.mark.parametrize("kind", BAD_TIPS)
+def test_e4_a_flat_tip_that_is_not_a_commit_sha_is_rc2_with_nothing_written(tmp_path, kind):
+    root, store = _project(tmp_path), {}
+    _run(root, verify={"final_recommendation": "accept", "missed": ["r one"]})
+    args = _flat(root)
+    args["new"] = _bad_tips(root)[kind]
+    with pytest.raises(SystemExit) as exc:
+        cr.add(root / ".agi", "k1", args, writer=_writer(store))
+    assert "'a1'" in str(exc.value) and store == {}, (kind, str(exc.value))
+
+
+@pytest.mark.parametrize("kind", BAD_TIPS)
+def test_e4_a_round_tip_that_is_not_a_commit_sha_is_rc2_naming_the_label(tmp_path, capsys, kind):
+    root, _tip, args = _mur(tmp_path)
+    args["rounds"][1]["old_tip"] = _bad_tips(root)[kind]
+    (tmp_path / "a.json").write_text(json.dumps(args))
+    rc = cr.main(["add", "--run", "k1", "--args", str(tmp_path / "a.json"), "--root", str(root)])
+    assert (rc, "a2-code" in capsys.readouterr().out) == (2, True), kind
+    assert "k1/a2-code" not in (root / ".agi/nodes/doc/council-report.md").read_text(), kind   # nothing written
+
+
+@pytest.mark.parametrize("width", [7, 10, 40])
+def test_e4_a_full_sha_and_a_unique_prefix_of_a_commit_are_accepted(tmp_path, width):
+    root, store = _project(tmp_path), {}
+    _run(root, verify={"final_recommendation": "accept", "missed": ["r one"]})
+    args = _flat(root)
+    git = lambda *a: cr.subprocess.run(["git", "-C", str(root), *a], text=True, capture_output=True, check=True).stdout.strip()
+    old, new = git("rev-parse", "HEAD~1")[:width], git("rev-parse", "HEAD")[:width]
+    args["old"], args["new"] = old, new
+    cr.add(root / ".agi", "k1", args, writer=_writer(store))
+    assert f"| k1/a1 | {old}..{new} |" in store["doc:council-report"], store

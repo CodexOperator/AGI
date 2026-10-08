@@ -20,7 +20,7 @@ tags:
   - council
   - grid
   - g4.13
-status: active
+status: complete
 title: "G4.13.1: a grid tick never overwrites a collapse -- commit_file carries the nest entry forward, numbers versions by --first-parent and update-refs with the old tip (CAS); a refusal skips that node, not the --all run"
 town: core
 ---
@@ -50,3 +50,7 @@ The grid cron cadence (crons.md) · goal:g7.16.1.6 (the one-commit-per-write red
 
 ## Agent Notes
 Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+10-08 02:5xZ: COMPLETE, not retired. My d71b26a06e set it `retired` (stopped making sense) on alive's [rule] 02:09Z; SM's mur (RN1) showed the end-state IS built on the trunk, so that status was untrue. Built: grid.py carries a collapse's nest entry forward (:893-906, only a non-empty tree of trees; anything else skips THAT node), numbers versions by --first-parent (:915), and update-refs with the old tip (:921, a compare-and-swap; a refusal skips the node, the run goes on) -- bb46895c1b, 7daaccb35d, dbbb940a36, b00c1db1fb. Falsifier re-run at d71b26a06e: `sh extensions/agi/tests/grid-payload-commit.t.sh` 0 FAIL; the negative holds (every update-ref of a node's grid ref in grid.py carries its old value). Why alive recommended retiring it, kept as context: the store it serves (refs/grid) retires under E2 of the Engine rework trajectory (owner 01:4xZ 10-08: "It's already decided"), so nothing further is owed here and D1 is restated without the grid in doc:rse-d1-nest. The schema has no achieved-then-retired status; `complete` (achieved, keeps scoring) is the one that fits. Was: active, then retired in d71b26a06e.
+<!-- THOUGHT:END -->

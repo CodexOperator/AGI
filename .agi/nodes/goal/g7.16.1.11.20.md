@@ -18,7 +18,7 @@ season: 2
 seeds:
   - goal:g7.16.1.11
   - goal:g7.32
-status: horizon
+status: active
 tags:
   - council
   - v5
@@ -56,5 +56,5 @@ goal:g7.32.* (the thin router and magic-pane builds) · the pilot's raw-shell ro
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-10-07 15:2xZ: horizon until its build starts (HEAD CLAIM: active = worked now; SM's note at the goals landing daadcbb3f); builds go one at a time g4.13.1 -> g7.16.1.11.19 -> g3.8 -> g7.16.1.11.20, each flips to active when its lanes order goes out.
+10-07 16:1xZ: active = worked now (lanes brief to DG2 sent 16:1xZ).
 <!-- THOUGHT:END -->

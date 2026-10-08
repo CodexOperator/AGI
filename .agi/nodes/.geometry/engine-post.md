@@ -66,13 +66,13 @@ git diff --name-only ${1:-HEAD~} HEAD -- ${AGI_LINK_ROOTS:-extensions skills src
 [ "$n" ]&&echo "$(git show $n|sed -n 's/^id: //p;/^id:/q') $f"||{ echo "unlinked $f";[ "$AGI_LINK_MINT" ]&&python3 extensions/agi/bin/level3.py --mint-missing-only;};done;:
 ~~~
 
-### agi-wt (688 B)
+### agi-wt (1077 B)
 ~~~sh
 #!/bin/sh
 set -e;cd ~/t;r=${3:-HEAD};w=${AGI_WT:-$RUNTIME_DIRECTORY/wt};f=$(git grep -lE "^(id|mint_id): $2$" $r -- .agi/nodes|head -1|cut -d: -f2-);[ "$f" ]||exit 2;d=$w/$(git show $r:$f|sed -n 's/^mint_id: //p')
 P="$f $(git show $r:$f|sed -n 's/^payload_ref: "\{0,1\}\([^"]*\)"\{0,1\}$/\1/p')";case $1 in pull)[ -d $d ]&&{ echo $d;exit;};mkdir -p $w
 [ $(df --output=pcent $w|tail -1|tr -dc 0-9) -lt ${AGI_WT_HOLD:-60} ]||{ echo "hold $w";exit 3;};mkdir $d;git archive $r $P|tar -xC $d;git rev-parse $r>$d/.b;echo $d;;
-drop)git diff --quiet $(cat $d/.b) -- $P||{ s=${AGI_POST:-$AGI_SEAT};[ "$s" ]||{ echo "agi-wt: no AGI_POST/AGI_SEAT, $2 not archived" >&2;exit 5;}
+drop)git diff --quiet $(cat $d/.b) -- $P||{ s=${AGI_SEAT:-$AGI_POST};[ "$s" ]||{ echo "agi-wt: no AGI_POST/AGI_SEAT, $2 not archived" >&2;exit 5;}
 (x=$(mktemp -u);trap "rm -f $x" EXIT;b=$(cat $d/.b);export GIT_INDEX_FILE=$x;git read-tree $b&&git --work-tree=$d add -A -- $P&&git update-ref refs/archive/worktrees/$s@$(basename $d) $(git commit-tree $(git write-tree) -p $b -m wt))||{ echo "agi-wt: archive of $2 failed" >&2;exit 5;};echo "moved $2";exit 4;};tar -cC $d --exclude=.b .|tar -x;git add $P;git commit -qm"$USER: $2">/dev/null||:;rm -rf $d;;esac
 ~~~
 
@@ -82,7 +82,7 @@ drop)git diff --quiet $(cat $d/.b) -- $P||{ s=${AGI_POST:-$AGI_SEAT};[ "$s" ]||{
 grep --line-buffered -o '"/[^"]*"'|awk '!s[$0]++{print;fflush()}'>>$HOME/track
 ~~~
 
-### agi-flush (181 B)
+### agi-flush (216 B)
 ~~~sh
 #!/bin/sh
 cd ~/t;k=0;for d in ${AGI_WT:-$RUNTIME_DIRECTORY/wt}/*/;do [ -d $d ]||continue;agi-wt drop $(basename $d);[ $? = 5 ]&&k=5;done;agi-turn;git merge -q --no-edit ${AGI_TRUNK:-trunk}||git merge --abort;exit $k
@@ -139,9 +139,9 @@ u agi-@ - "@" /var/lib/agi/@
 m agi-@ agi
 ~~~
 
-### agi.rules (211 B)
+### agi.rules (242 B)
 ~~~js
-polkit.addRule(function(a,s){if(a.id=="org.freedesktop.systemd1.manage-units"&&a.lookup("verb")=="start"&&/^agi-post@[a-z0-9-]+\.service$/.test(a.lookup("unit"))&&s.isInGroup("agi"))return polkit.Result.YES;});
+polkit.addRule(function(a,s){var m=/^agi-post@([a-z0-9-]+)\.service$/.exec(a.lookup("unit"));if(a.id=="org.freedesktop.systemd1.manage-units"&&a.lookup("verb")=="start"&&m&&s.user=="agi-"+m[1]&&s.isInGroup("agi"))return polkit.Result.YES;});
 ~~~
 
 ### project.sh (161 B)
@@ -157,11 +157,11 @@ getent passwd|awk -F: '/^agi-/{print "user",$1;system("jq -e .hooks.SessionStart
 systemctl list-units --state=active --plain --no-legend 'agi-post@*'|sed 's/\.service .*//;s/^/unit /'
 ~~~
 
-### tick.sh (254 B)
+### tick.sh (284 B)
 ~~~sh
 #!/bin/sh
 cd ~/t;mkdir -p .agi/drift;sect project.sh|sh|sort>~/.p;sect observe.sh|sh|sort>~/.q;diff ~/.p ~/.q>.agi/drift/$USER&&exit
-grep '^< unit' .agi/drift/$USER|cut -d' ' -f3|xargs -rn1 systemctl start;git add .agi/drift;git commit -qm"drift: $USER"
+grep '^< unit' .agi/drift/$USER|cut -d' ' -f3|grep -x agi-post@${USER#agi-}|xargs -rn1 systemctl start;git add .agi/drift;git commit -qm"drift: $USER"
 ~~~
 
 ### agi-frontier (460 B)

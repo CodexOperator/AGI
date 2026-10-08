@@ -134,6 +134,11 @@ sessions/
 datasets/serving-sweep/*/nsys_prof.nsys-rep
 datasets/serving-sweep/*/nsys_prof.sqlite
 
+# research-lane activation dumps (PASS B4 residue, goal:g1.41 lane J; thought-master 10-07): regenerable from the
+# sha-pinned checkpoints, never tracked FROM NOW ON. Already-tracked files stay (any history scrub = owner);
+# the small *.pt checkpoints stay tracked on purpose: later rounds pin them by sha.
+datasets/osc-band/**/*.npz
+
 # This seat's PUBLIC key: its comment names a host, and key files are HELD
 # under g7.16.1.11 (SM 19:2xZ). It is minted into the graph through the
 # Prime's key lane, not by a post branch. The other keys under .agi/keys/

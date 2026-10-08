@@ -1,0 +1,202 @@
+#!/bin/sh
+# grid-collapse.t.sh: goal:g4.13.1 (design + 11-line patch: doc:rse-aa1-boxes AA1.N, alive/aa1n @5cc55defa): a grid tick never overwrites a COLLAPSE. A collapse = ONE grid commit on a container's ref: tree = the container's tip tree + nest/<member mint> (each member's tip tree), parents = the container's tip + each member's tip. Three defects make it last ONE tick: G1 the unchanged-check compares the node tree with the WHOLE tip tree (an unedited container is re-versioned and nest/ leaves), G2 the version number counts ALL parents (v8, not v4), G3 `update-ref` has no old value (a tick that read the tip BEFORE a collapse overwrites it).
+# sh + git + python3 on a SCRATCH repo (the grid-payload-commit.t.sh recipe: the engine's bin dir is COPIED under the scratch root, so grid.py's own repo IS the scratch project). BIN = the extensions/agi/bin dir under test (default: ROOT's); a mutation / reference = BIN=<an edited copy of that dir>. 0 USD, no live ref, no network. One ok/FAIL line per case; exit = FAIL count.
+# Fixture: container CA (a build node with a payload) and members M1 M2 (idea nodes), each versioned TWICE (v1, v2), then CA absorbs M1 + M2 by the doc's nest recipe: CA's first-parent chain = v1 v2 collapse (3), `rev-list --count` = 7 (2 + 1 + 2 members x 2). x1 x2 are plain nodes that sort AFTER CA (a CAS refusal on CA must not stop them). The RACE is a git shim on PATH: when grid.py runs `update-ref` on CA's ref, the shim first lands the collapse (a concurrent writer), then runs the real command.
+# Lanes (DG1 15:08Z adds d3 and f2): a the race is refused and the collapse survives (+ a2 the next tick lands v4 on it) · b an UNEDITED collapsed container stays unchanged (v8 -> nest 0 vs nest 2) · c an edit after a collapse numbers by --first-parent (v4) and keeps nest 2 · d a refusal skips THAT node with ONE reason line, the --all run goes on and exits 0 (d3) · e the other --count readers (diff, versions, payload --version near lines 1302 1319 1336) agree with first-parent · f no non-delete update-ref in commit_file lacks its old value (grep/AST lane); f2 the rename core (_rename_ref via migrate-mint-refs --write) refuses a NEW ref that appeared between its check and its update-ref. Honest limits are named in the lane text. CORRECTIVE #2 (DG1 15:57Z): v1-* status reads a collapse as clean (+ a real edit still CHANGED) · v3-* log walks the first-parent chain · n1-* an update-ref failure is classified by git's stderr: CAS miss = skip rc 0, anything else = ONE ERROR line + run goes on + rc 1 · V2: no bare git call outside a repo cwd. CORRECTIVE (DG1 15:25Z, mur sm21 R1 R2 R3): r1-* a nest entry that is not a non-empty tree of trees (blob, gitlink, tree holding a blob, mixed, EMPTY) skips THAT node, run goes on, rc 0 (+ r1-control a healthy nest still carries) · r1d-* a FAILING nest read (ls-tree rc != 0) fails closed: ONE skip, ref + collapse kept, run goes on · r2-* stitch --grid-version counts first-parent (V=3 2 1 serve, V=4 7 refused) · r3 brief's card provenance shows grid v3, not v7.
+T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};BIN=${BIN:-$R0/extensions/agi/bin}
+ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
+unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK
+printf '[user]\n\tname=t\n\temail=t@t\n[commit]\n\tgpgsign=false\n[safe]\n\tdirectory=*\n' >$T/gitconfig;export GIT_CONFIG_GLOBAL=$T/gitconfig GIT_CONFIG_SYSTEM=/dev/null
+CA=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa;M1=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb;M2=cccccccccccccccccccccccccccccccc;X1=dddddddddddddddddddddddddddddddd;X2=eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;NS=refs/grid/node
+grid(){ (cd $P&&PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=$R0/extensions/agi/src python3 extensions/agi/bin/grid.py "$@");}
+tip(){ $G -C $P rev-parse -q --verify $NS/$1 2>/dev/null;}
+fp(){ $G -C $P rev-list --count --first-parent $NS/$1;}
+pc(){ $G -C $P rev-list --count $NS/$1;}
+nestn(){ $G -C $P ls-tree $NS/$1:nest 2>/dev/null|wc -l|tr -d ' ';}
+subj(){ $G -C $P log -1 --format=%s $NS/$1;}
+bld(){ printf -- '---\nid: build:%s\nmint_id: %s\ntype: build\nparents:\n  - idea:y\npayload_ref: extensions/%s.sh\n---\nbody %s %s\n' $1 $2 $1 $1 "$3">$P/.agi/nodes/build/$1.md;}
+idn(){ printf -- '---\nid: idea:%s\nmint_id: %s\ntype: idea\nparents:\n  - goal:g\n---\nbody %s %s\n' $1 $2 $1 "$3">$P/.agi/nodes/idea/$1.md;}
+# the doc's nest recipe, run in $P (real git): collapse M1 M2 into CA's ref
+nest(){ P_=$NS;N=$1;shift;(cd $P;t=$($G mktree </dev/null);t=$(for m;do printf '040000 tree %s\t%s\n' $($G rev-parse $P_/$m^{tree}) $m;done|$G mktree);r=$( { $G ls-tree $P_/$N|grep -v '	nest$';printf '040000 tree %s\tnest\n' $t; }|$G mktree);a="-p $($G rev-parse $P_/$N)";for m;do a="$a -p $($G rev-parse $P_/$m)";done;c=$(echo "nest $# into $N"|$G commit-tree $r $a)&&$G update-ref $P_/$N $c $($G rev-parse $P_/$N)&&echo $c);}
+# fixture: tpl0 = all five nodes at v1 + v2 (NOT collapsed); tpl1 = tpl0 + the collapse
+P=$T/tpl0;mkdir -p $P/.agi/nodes/build $P/.agi/nodes/idea $P/extensions;mkdir -p $P/extensions/agi;cp -r $BIN $P/extensions/agi/bin;find $P/extensions/agi/bin -name __pycache__ -prune -exec rm -rf {} +
+$G init -q $P;echo '{}'>$P/.agi/config.json;echo 'echo ca1'>$P/extensions/ca.sh
+bld ca $CA one;idn m1 $M1 one;idn m2 $M2 one;idn x1 $X1 one;idn x2 $X2 one;$G -C $P add -A;$G -C $P commit -qm fixture
+grid init >/dev/null 2>&1;grid commit --all >$T/v1.out 2>&1
+echo 'echo ca2'>>$P/extensions/ca.sh;bld ca $CA two;idn m1 $M1 two;idn m2 $M2 two;idn x1 $X1 two;idn x2 $X2 two;grid commit --all >$T/v2.out 2>&1
+ok "base-two-versions the five nodes each have 2 versions on their own refs (ca $(fp $CA), m1 $(fp $M1), m2 $(fp $M2), x1 $(fp $X1), x2 $(fp $X2))" '[ "$(fp $CA)" = 2 ]&&[ "$(fp $M1)" = 2 ]&&[ "$(fp $M2)" = 2 ]&&[ "$(fp $X1)" = 2 ]&&[ "$(fp $X2)" = 2 ]'
+cp -a $P $T/tpl1;P=$T/tpl1;COL=$(nest $CA $M1 $M2)
+ok "base-collapse the fixture collapse is ONE commit on CA's ref: tip = $(echo $COL|cut -c1-8), first-parent versions $(fp $CA) (want 3), rev-list --count $(pc $CA) (want 7: 2 + 1 + 2 members x 2), nest entries $(nestn $CA) (want 2)" '[ -n "$COL" ]&&[ "$(tip $CA)" = "$COL" ]&&[ "$(fp $CA)" = 3 ]&&[ "$(pc $CA)" = 7 ]&&[ "$(nestn $CA)" = 2 ]'
+# --- b: an UNEDITED collapsed container stays unchanged (G1: today the tick re-versions it as v8 and nest/ leaves)
+rm -rf $T/pb;cp -a $T/tpl1 $T/pb;P=$T/pb;grid commit --all >$T/b.out 2>&1
+ok "b-unedited-keeps-nest a tick over the UNEDITED collapsed container makes no new version (tip $(tip $CA|cut -c1-8), want the collapse $(echo $COL|cut -c1-8)) and the nest/ entries stay (nest $(nestn $CA), want 2); today it is re-versioned (v8) with nest 0" '[ "$(tip $CA)" = "$COL" ]&&[ "$(nestn $CA)" = 2 ]&&! grep -q "v8" $T/b.out'
+# --- c: an EDIT after a collapse numbers by --first-parent (G2) and keeps the members (G1)
+rm -rf $T/pc;cp -a $T/tpl1 $T/pc;P=$T/pc;bld ca $CA three;grid commit --all >$T/c.out 2>&1
+ok "c1-edit-numbers-first-parent an edit of the collapsed container is v4 (subject '$(subj $CA)', want 'v4 build:ca'): the number counts the container's own chain, not the 7 commits it reaches" '[ "$(subj $CA)" = "v4 build:ca" ]'
+ok "c2-edit-keeps-nest the edit's tree still carries the 2 nest/ entries (nest $(nestn $CA)) and its first parent is the collapse (chain $(fp $CA), want 4)" '[ "$(nestn $CA)" = 2 ]&&[ "$(fp $CA)" = 4 ]&&[ "$($G -C $P rev-parse $NS/$CA^)" = "$COL" ]'
+# --- a: the race (G3): a tick that read CA's tip BEFORE the collapse; the shim lands the collapse just before grid.py's update-ref on CA
+rm -rf $T/pa;cp -a $T/tpl0 $T/pa;P=$T/pa;mkdir -p $T/shim;cat >$T/collapse.sh <<EOF
+#!/bin/sh
+cd "\$CP"||exit 1
+G=/usr/bin/git;P_=$NS;N=$CA
+t=\$(for m in $M1 $M2;do printf '040000 tree %s\t%s\n' \$(\$G rev-parse \$P_/\$m^{tree}) \$m;done|\$G mktree)
+r=\$( { \$G ls-tree \$P_/\$N|grep -v '	nest\$';printf '040000 tree %s\tnest\n' \$t; }|\$G mktree)
+c=\$(echo "nest 2 into \$N"|\$G commit-tree \$r -p \$(\$G rev-parse \$P_/\$N) -p \$(\$G rev-parse \$P_/$M1) -p \$(\$G rev-parse \$P_/$M2))
+\$G update-ref \$P_/\$N \$c \$(\$G rev-parse \$P_/\$N)&&echo \$c>$T/injected.sha
+EOF
+cat >$T/shim/git <<EOF
+#!/bin/sh
+case " \$* " in *" update-ref $NS/$CA "*)[ -e $T/injected ]||{ : >$T/injected;sh $T/collapse.sh;};;esac
+exec /usr/bin/git "\$@"
+EOF
+chmod +x $T/shim/git
+shimrun(){ (cd $P&&CP=$P PATH=$T/shim:$PATH PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=$R0/extensions/agi/src python3 extensions/agi/bin/grid.py "$@");}
+bld ca $CA race;shimrun commit --all >$T/a.out 2>&1;INJ=$(cat $T/injected.sha 2>/dev/null)
+ok "a-race-refused a tick that read CA's tip BEFORE the collapse is REFUSED and the collapse SURVIVES: the shim landed the collapse ($(echo "${INJ:-NOT LANDED}"|cut -c1-8)), CA's tip is still it ($(tip $CA|cut -c1-8)) and carries nest $(nestn $CA) (want 2); today the tick overwrites it" '[ -n "$INJ" ]&&[ "$(tip $CA)" = "$INJ" ]&&[ "$(nestn $CA)" = 2 ]'
+grid commit --all >$T/a2.out 2>&1
+ok "a2-next-tick-lands-on-the-collapse the NEXT tick (no race) re-versions the still-edited container on the new tip: v4 ('$(subj $CA)') with nest $(nestn $CA) (want 2)" '[ "$(subj $CA)" = "v4 build:ca" ]&&[ "$(nestn $CA)" = 2 ]'
+# --- d: a refusal skips THAT node with ONE reason line and the --all run goes on with the rest (x1 x2 sort after CA)
+rm -rf $T/pd $T/injected $T/injected.sha;cp -a $T/tpl0 $T/pd;P=$T/pd
+bld ca $CA race;idn x1 $X1 three;idn x2 $X2 three;shimrun commit --all >$T/d.out 2>&1;drc=$?
+nl=$(grep -c "$CA\|build:ca" $T/d.out|tr -d ' ');rl=$(grep "$CA\|build:ca" $T/d.out|grep -v '^v[0-9]'|wc -l|tr -d ' ')
+ok "d1-run-goes-on the refusal of CA does not stop the run: x1 and x2 still get their v3 ($(fp $X1), $(fp $X2)); the run exited $drc (not asserted)" '[ "$(fp $X1)" = 3 ]&&[ "$(fp $X2)" = 3 ]'
+ok "d2-one-reason-line the refusal prints exactly ONE reason line naming CA (its mint id or build:ca, not a 'vN' version line): $rl line(s): $(grep "$CA\|build:ca" $T/d.out|grep -v '^v[0-9]'|head -2|cut -c1-110|tr '\n' '|')" '[ "$rl" = 1 ]&&[ "$(tip $CA)" = "$(cat $T/injected.sha 2>/dev/null)" ]'
+ok "d3-skip-exits-0 a --all run that skipped a node (a refusal is re-versioned by the next tick, it is not a failure) exits 0 (got $drc) AND prints the ONE reason line ($rl)" '[ "$drc" = 0 ]&&[ "$rl" = 1 ]'
+# --- e: the other version readers agree with the first-parent numbering (the collapsed fixture: 3 own versions, 7 reachable)
+P=$T/tpl1;nv=$(grid versions build:ca 2>&1)
+ok "e1-versions-first-parent grid.py versions build:ca prints the container's OWN version count: $nv (want 3, not the 7 commits it reaches)" '[ "$nv" = 3 ]'
+grid diff build:ca --back 3 >$T/e2.out 2>&1;e2rc=$?
+ok "e2-diff-back-bound grid.py diff build:ca --back 3 is refused by the first-parent bound (rc $e2rc): 'only 3 version(s)' ($(head -1 $T/e2.out|cut -c1-70))" '[ $e2rc != 0 ]&&grep -q "only 3 version" $T/e2.out'
+grid diff build:ca --back 2 >$T/e2b.out 2>&1;e2brc=$?
+ok "e2b-diff-back-2-works --back 2 (v1 against the collapse) still works (rc $e2brc, $(wc -l <$T/e2b.out|tr -d ' ') lines)" '[ $e2brc = 0 ]&&[ -s $T/e2b.out ]'
+pv2=$(grid payload build:ca --version 2 2>&1)
+ok "e3-payload-version-2 grid.py payload build:ca --version 2 returns v2's payload (the 2 lines ca1 / ca2): got '$(echo "$pv2"|tr '\n' ' '|cut -c1-60)'" '[ "$pv2" = "echo ca1
+echo ca2" ]'
+grid payload build:ca --version 4 >$T/e4.out 2>&1;e4rc=$?
+ok "e4-payload-version-4-refused grid.py payload build:ca --version 4 names the first-parent range: 'has 3 version(s); v4 does not exist' (rc $e4rc: $(head -1 $T/e4.out|cut -c1-80))" '[ $e4rc != 0 ]&&grep -q "has 3 version" $T/e4.out'
+# --- f2 (DG1 15:08Z): _rename_ref (migrate-mint-refs --write) creates the NEW ref with no old value: a NEW ref that appears between its check and its update-ref is REFUSED (not overwritten), ONE reason line, the run goes on. Fixture: three legacy node-id refs (r1 r2 r3) whose mint refs do not exist; the shim lands a NEWCOMER on r2's mint ref just before grid.py's update-ref of it
+rm -rf $T/pf2;mkdir -p $T/pf2/.agi/nodes/idea $T/pf2/extensions/agi;P=$T/pf2;cp -r $BIN $P/extensions/agi/bin;find $P/extensions/agi/bin -name __pycache__ -prune -exec rm -rf {} +
+$G init -q $P;echo '{}'>$P/.agi/config.json;RA=11111111111111111111111111111111;RB=22222222222222222222222222222222;RC=33333333333333333333333333333333
+idn r1 $RA one;idn r2 $RB one;idn r3 $RC one;$G -C $P add -A;$G -C $P commit -qm fixture;grid init >/dev/null 2>&1
+for rr in r1:$RA r2:$RB r3:$RC;do nn=${rr%%:*};old=$(cd $P&&PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=$BIN:$R0/extensions/agi/src python3 -c "import grid;print(grid.node_ref('idea:$nn'))" 2>/dev/null);bl=$($G -C $P hash-object -w $P/.agi/nodes/idea/$nn.md);tr_=$(printf '100644 blob %s\tnode.md\n' $bl|$G -C $P mktree);cm=$(echo "legacy $nn"|$G -C $P commit-tree $tr_);$G -C $P update-ref $old $cm;eval "OLD_$nn=$old;LEG_$nn=$cm";done
+NEWC=$(echo newcomer|$G -C $P commit-tree $($G -C $P mktree </dev/null));rm -f $T/injf2
+cat >$T/shim/git <<EOF
+#!/bin/sh
+case " \$* " in *" update-ref $NS/$RB "*)[ -e $T/injf2 ]||{ : >$T/injf2;/usr/bin/git -C $P update-ref $NS/$RB $NEWC;};;esac
+exec /usr/bin/git "\$@"
+EOF
+shimrun migrate-mint-refs --write >$T/f2.out 2>&1;f2rc=$?
+rl2=$(grep "$RB\|idea:r2" $T/f2.out|grep -v '^MOVE'|wc -l|tr -d ' ')
+ok "f2-rename-race-refused a NEW mint ref that appears between _rename_ref's check and its update-ref is REFUSED: r2's mint ref is still the newcomer ($(tip $RB|cut -c1-8) vs $(echo $NEWC|cut -c1-8)), r2's legacy ref still holds its history ($($G -C $P rev-parse -q --verify $OLD_r2|cut -c1-8) vs $(echo $LEG_r2|cut -c1-8)); today the newcomer is OVERWRITTEN" '[ "$(tip $RB)" = "$NEWC" ]&&[ "$($G -C $P rev-parse -q --verify $OLD_r2)" = "$LEG_r2" ]'
+ok "f2b-rename-race-run-goes-on the refusal of r2 does not stop the run: r1 and r3 are moved onto their mint refs (r1 $(tip $RA|cut -c1-8) = legacy $(echo $LEG_r1|cut -c1-8), r3 $(tip $RC|cut -c1-8) = legacy $(echo $LEG_r3|cut -c1-8)) and their legacy refs are gone; the run exited $f2rc (not asserted)" '[ "$(tip $RA)" = "$LEG_r1" ]&&[ "$(tip $RC)" = "$LEG_r3" ]&&! $G -C $P rev-parse -q --verify $OLD_r1 >/dev/null&&! $G -C $P rev-parse -q --verify $OLD_r3 >/dev/null'
+ok "f2c-rename-race-one-reason-line the refusal prints exactly ONE reason line naming r2 (its mint id or idea:r2, not a MOVE line): $rl2 line(s): $(grep "$RB\|idea:r2" $T/f2.out|grep -v '^MOVE'|head -2|cut -c1-110|tr '\n' '|')" '[ "$rl2" = 1 ]'
+# --- f: no non-delete update-ref in commit_file without its old value (AST): the third positional after `update-ref` (ref, new, OLD) must be there
+cat >$T/chkupd.py <<'PYEOF'
+import ast,sys
+src=open(sys.argv[1]).read();t=ast.parse(src);bad=[]
+class V(ast.NodeVisitor):
+    fn=None
+    def visit_FunctionDef(self,n):
+        o=self.fn;self.fn=n.name;self.generic_visit(n);self.fn=o
+    def visit_Call(self,n):
+        a=[x.value if isinstance(x,ast.Constant) else None for x in n.args]
+        if "update-ref" in a:
+            i=a.index("update-ref");rest=n.args[i+1:]
+            need=3
+            if len(rest)<need and not (rest and isinstance(rest[0],ast.Constant) and rest[0].value=="-d" and len(rest)>=3):bad.append((self.fn,n.lineno,len(rest)))
+        self.generic_visit(n)
+V().visit(t)
+cf=[b for b in bad if b[0]=="commit_file"];oth=[b for b in bad if b[0]!="commit_file"]
+print("commit_file:",cf);print("elsewhere (named, not counted):",oth)
+sys.exit(1 if cf else 0)
+PYEOF
+python3 $T/chkupd.py $BIN/grid.py >$T/f.out 2>&1;frc=$?
+ok "f-update-ref-carries-old commit_file's update-ref of a node's grid ref carries the OLD tip (a CAS): $(head -1 $T/f.out|cut -c1-80). NOT counted, named: $(sed -n 2p $T/f.out|cut -c1-120)" '[ $frc = 0 ]'
+# === CORRECTIVE (DG1 15:25Z, SM mur sm21-dg3-gridcas R1 R2 R3 on dg3-gridcas 87358d1813): written BEFORE the fix, RED on 87358d1813 ===
+# --- R1: a tip whose nest entry is NOT a non-empty tree of trees (a blob, a gitlink, a tree holding a blob, a tree mixing a tree and a blob, an EMPTY tree) must not abort the whole --all run: that node = ONE skip line naming it, its ref UNTOUCHED, the run goes on (x1 x2 get v3), rc 0. Bad node = CA (sorts first: an abort denies x1 x2). Honest limit: an EMPTY nest is a SKIP by DG1's brief (a collapse never produces one), so 87358d1813 carries it forward instead of aborting: that lane is RED for a different reason (it versions CA), not a crash.
+EMPTYT=$($G -C $T/tpl0 mktree </dev/null)   # V2 (DG1 15:57Z): every git call carries -C (a bare one wrote into whatever repo the CALLER stood in, or died outside one)
+oddtip(){ # $1 kind: sets ODD = the hand-made tip on CA's ref (the v2 tip + an odd `nest` entry)
+ o=$($G -C $P rev-parse $NS/$CA);hb=$(echo odd|$G -C $P hash-object -w --stdin)
+ case $1 in blob)e=$(printf '100644 blob %s\tnest' $hb);;gitlink)e=$(printf '160000 commit %s\tnest' $($G -C $P rev-parse HEAD));;
+  treeblob)st=$(printf '100644 blob %s\tstray\n' $hb|$G -C $P mktree);e=$(printf '040000 tree %s\tnest' $st);;
+  mixed)st=$(printf '100644 blob %s\tstray\n040000 tree %s\tm1\n' $hb $($G -C $P rev-parse $NS/$M1^{tree})|$G -C $P mktree);e=$(printf '040000 tree %s\tnest' $st);;
+  empty)e=$(printf '040000 tree %s\tnest' $EMPTYT);;esac
+ tr_=$( { $G -C $P ls-tree $o|grep -v '	nest$';echo "$e"; }|$G -C $P mktree);ODD=$(echo "odd nest $1"|$G -C $P commit-tree $tr_ -p $o);$G -C $P update-ref $NS/$CA $ODD $o;}
+r1run(){ # $1 kind: tpl0 + the odd tip on CA, CA x1 x2 edited, one --all run
+ rm -rf $T/pr1;cp -a $T/tpl0 $T/pr1;P=$T/pr1;oddtip $1;bld ca $CA r1;idn x1 $X1 r1;idn x2 $X2 r1;grid commit --all >$T/r1.out 2>&1;r1rc=$?
+ r1l=$(grep "$CA\|build:ca" $T/r1.out|grep -v '^v[0-9]'|wc -l|tr -d ' ');r1tb=$(grep -c Traceback $T/r1.out);}
+for k in blob gitlink treeblob mixed empty;do r1run $k
+ok "r1-$k-run-goes-on a tip whose nest entry is a $k does not stop the --all run: x1 x2 get v3 ($(fp $X1), $(fp $X2)), rc $r1rc (want 0), $r1tb Traceback line(s) (want 0)" '[ "$(fp $X1)" = 3 ]&&[ "$(fp $X2)" = 3 ]&&[ $r1rc = 0 ]&&[ "$r1tb" = 0 ]'
+ok "r1-$k-one-skip-ref-untouched the bad node is skipped with ONE line naming it ($r1l line(s): $(grep "$CA\|build:ca" $T/r1.out|grep -v '^v[0-9]'|head -1|cut -c1-90)) and its ref is UNCHANGED (tip $(tip $CA|cut -c1-8), want the odd tip $(echo $ODD|cut -c1-8)), never versioned onto a wrong nest" '[ "$r1l" = 1 ]&&[ "$(tip $CA)" = "$ODD" ]';done
+# control: a HEALTHY collapse (nest 2) edited in the SAME run as a bad node (x1, hand-made blob nest) still carries its nest forward: v4 + nest 2, and x2 still gets v3
+rm -rf $T/pr1c;cp -a $T/tpl1 $T/pr1c;P=$T/pr1c;o=$($G -C $P rev-parse $NS/$X1);hb=$(echo odd|$G -C $P hash-object -w --stdin)
+tr_=$( { $G -C $P ls-tree $o;printf '100644 blob %s\tnest\n' $hb; }|$G -C $P mktree);XODD=$(echo "odd nest x1"|$G -C $P commit-tree $tr_ -p $o);$G -C $P update-ref $NS/$X1 $XODD $o
+bld ca $CA r1;idn x1 $X1 r1;idn x2 $X2 r1;grid commit --all >$T/r1c.out 2>&1;r1crc=$?
+ok "r1-control-healthy-nest-carried a healthy collapse (nest 2) edited beside a bad node (x1) is still v4 ('$(subj $CA)') with nest $(nestn $CA) (want 2), x1 is skipped untouched ($(tip $X1|cut -c1-8) vs $(echo $XODD|cut -c1-8)), x2 gets v3 ($(fp $X2)), rc $r1crc" '[ "$(subj $CA)" = "v4 build:ca" ]&&[ "$(nestn $CA)" = 2 ]&&[ "$(tip $X1)" = "$XODD" ]&&[ "$(fp $X2)" = 3 ]&&[ $r1crc = 0 ]'
+# r1d (DG1 15:39Z, the SAME R1 neighbourhood, on f18124138d): the READ of the tip's nest must fail CLOSED. A failing `ls-tree <tip> -- nest` (rc != 0: a missing tip object, an I/O error) read as '' = "no nest", so the node was versioned WITHOUT its nest: the collapse silently dropped from the new tip, the CAS passes (the tip did not move). Shim on PATH (the race-shim recipe): `ls-tree <CA's collapse tip> -- nest` exits 128; every other git call is the real one (so x1 x2 read their own nest normally). Healthy collapse CA edited beside x1 x2.
+rm -rf $T/pr1d;cp -a $T/tpl1 $T/pr1d;P=$T/pr1d;mkdir -p $T/shim2;cat >$T/shim2/git <<EOF
+#!/bin/sh
+case " \$* " in *" ls-tree $COL -- nest "*)echo "fatal: simulated ls-tree failure" >&2;exit 128;;esac
+exec /usr/bin/git "\$@"
+EOF
+chmod +x $T/shim2/git;bld ca $CA r1d;idn x1 $X1 r1d;idn x2 $X2 r1d
+(cd $P&&CP=$P PATH=$T/shim2:$PATH PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=$R0/extensions/agi/src python3 extensions/agi/bin/grid.py commit --all) >$T/r1d.out 2>&1;r1drc=$?
+r1dl=$(grep "$CA\|build:ca" $T/r1d.out|grep -v '^v[0-9]'|wc -l|tr -d ' ')
+ok "r1d-failing-nest-read-skips-and-keeps-the-collapse when reading CA's tip nest FAILS (ls-tree rc 128), CA is skipped with ONE line naming it ($r1dl line(s): $(grep "$CA\|build:ca" $T/r1d.out|grep -v '^v[0-9]'|head -1|cut -c1-90)) and its ref is UNCHANGED (tip $(tip $CA|cut -c1-8), want the collapse $(echo $COL|cut -c1-8); nest $(nestn $CA), want 2); today CA is versioned v$(fp $CA) WITHOUT its nest (nest 0) and the collapse is gone from the tip" '[ "$r1dl" = 1 ]&&[ "$(tip $CA)" = "$COL" ]&&[ "$(nestn $CA)" = 2 ]'
+ok "r1d2-failing-nest-read-run-goes-on the run goes on past the unreadable CA: x1 x2 get v3 ($(fp $X1), $(fp $X2)), rc $r1drc (want 0), $(grep -c Traceback $T/r1d.out) Traceback line(s) (want 0)" '[ "$(fp $X1)" = 3 ]&&[ "$(fp $X2)" = 3 ]&&[ $r1drc = 0 ]&&[ "$(grep -c Traceback $T/r1d.out)" = 0 ]'
+# --- R2: stitch.py --from-grid --grid-version V counts the container's OWN versions (first-parent), like grid.py. The collapsed fixture (tpl1): CA's chain = v1 v2 collapse (3), rev-list --count 7. Today `rev-list --count` WITHOUT --first-parent gives 7 and ref~(7-V) walks off the chain: V=3 V=2 V=1 are all SKIPPED (no file), and V=7 serves the tip. Honest limit: v2 and the collapse carry the SAME payload (the collapse is v2's tree + nest/), so V=3 and V=2 cannot be told apart by bytes; V=1 and V=4 / V=7 pin the arithmetic. V=4 is green today by luck (a refusal either way): the lane stays as the guard for a fix that over-serves.
+P=$T/tpl1
+stv(){ rm -rf $T/so$1;(cd $P&&PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=$R0/extensions/agi/src python3 extensions/agi/bin/stitch.py --project $P --engine-root $P --from-grid --grid-version $1 --out $T/so$1) >$T/so$1.out 2>&1;}
+for v in 3 2 1 4 7;do stv $v;done
+sf(){ cat $T/so$1/extensions/ca.sh 2>/dev/null;}
+ok "r2-v3-serves-the-tip stitch --from-grid --grid-version 3 (the collapse tip, the container's 3rd own version) serves the payload (got '$(sf 3|tr '\n' ' '|cut -c1-40)', want echo ca1 / echo ca2); today it is skipped ('no payload in the node's grid ref')" '[ "$(sf 3)" = "echo ca1
+echo ca2" ]'
+ok "r2-v2-serves-v2 --grid-version 2 serves v2's payload (got '$(sf 2|tr '\n' ' '|cut -c1-40)', want echo ca1 / echo ca2)" '[ "$(sf 2)" = "echo ca1
+echo ca2" ]'
+ok "r2-v1-serves-v1 --grid-version 1 serves v1's payload (got '$(sf 1|tr '\n' ' '|cut -c1-40)', want echo ca1 only)" '[ "$(sf 1)" = "echo ca1" ]'
+ok "r2-v4-refused --grid-version 4 (the container has 3 own versions) is REFUSED, not served: no file written ($(ls $T/so4/extensions 2>/dev/null|wc -l|tr -d ' ') files) and the skip is reported ($(grep -c 'skipped' $T/so4.out)); green today by luck" '[ ! -e $T/so4/extensions/ca.sh ]&&grep -q skipped $T/so4.out'
+ok "r2-v7-refused --grid-version 7 (the 7 commits the collapse REACHES, not versions) is REFUSED: no file written (got '$(sf 7|tr '\n' ' '|cut -c1-40)'); today ref~0 serves the tip as if it were version 7" '[ ! -e $T/so7/extensions/ca.sh ]&&grep -q skipped $T/so7.out'
+# --- R3: brief.py's card provenance line counts the container's OWN versions (display only): on the collapsed fixture it reads `grid v3`, never `grid v7`. The function is brief._card_provenance (goal:g7.16.1.7.1.2); a rename of it fails this lane loudly (no line), by design.
+cp3=$(cd $P&&PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=$P/extensions/agi/bin:$R0/extensions/agi/src python3 -c "import brief,pathlib;print(brief._card_provenance(pathlib.Path('$P'),pathlib.Path('$P/.agi/nodes/build/ca.md')))" 2>&1|tail -1)
+ok "r3-card-provenance-first-parent the card provenance line shows the container's own count: '$(echo "$cp3"|cut -c1-110)' (want 'grid v3 ', not v7)" 'echo "$cp3"|grep -q "mint $CA · grid v3 · git"'
+# === CORRECTIVE #2 (DG1 15:57Z, SM final verify mur-sm21-dg3-gridcas-2 on 0d0d02d4f9): V1 status, V3 log, N1 update-ref failures classified. V2 = the EMPTYT line above (-C everywhere; every other bare $G in this file runs inside `cd $P` / `cd "$CP"` or takes a path: `git init $P`, the nest() subshell, collapse.sh). ===
+# --- V1: `grid status` compares the tree commit_file would build with the ref's tip tree, nest/ INCLUDED: an UNEDITED collapsed container reads CHANGED forever while commit_file writes nothing (status disagreeing with commit, the thing its docstring forbids). A real edit must still read CHANGED.
+P=$T/tpl1;grid status >$T/v1a.out 2>&1
+ok "v1a-status-clean-on-a-collapse grid status on the collapsed fixture (nothing edited) reads build:ca CLEAN: $(grep -c '^CHANGED' $T/v1a.out) CHANGED line(s) (want 0), summary '$(grep '^grid status' $T/v1a.out)' (want 0 new, 0 changed, 5 clean); today the nest/ entry makes it CHANGED" '! grep -q "^CHANGED" $T/v1a.out&&grep -q "^grid status: 0 new, 0 changed, 5 clean" $T/v1a.out'
+P=$T/pb;grid status >$T/v1b.out 2>&1
+ok "v1b-status-clean-after-a-tick after a grid tick over the collapsed container (lane b: it wrote nothing) status still reads 0 changed ('$(grep '^grid status' $T/v1b.out)')" 'grep -q "^grid status: 0 new, 0 changed, 5 clean" $T/v1b.out'
+rm -rf $T/pv1;cp -a $T/tpl1 $T/pv1;P=$T/pv1;bld ca $CA v1;grid status >$T/v1c.out 2>&1
+ok "v1c-status-still-sees-a-real-edit (control) an EDIT of the collapsed container reads CHANGED  build:ca ($(grep -c '^CHANGED  build:ca' $T/v1c.out) line, want 1; '$(grep '^grid status' $T/v1c.out)')" '[ "$(grep -c "^CHANGED  build:ca" $T/v1c.out)" = 1 ]&&grep -q "^grid status: 0 new, 1 changed, 4 clean" $T/v1c.out'
+grid commit --all >/dev/null 2>&1;grid status >$T/v1d.out 2>&1
+ok "v1d-status-clean-after-the-edit-commit once the edit is committed (v4 on the collapse, nest carried) status reads clean again ('$(grep '^grid status' $T/v1d.out)'): a nest the commit carried is not drift" 'grep -q "^grid status: 0 new, 0 changed, 5 clean" $T/v1d.out'
+# --- V3: `grid log` walks the container's OWN versions (first-parent), like versions / diff / payload: the collapsed fixture has 3, not the 7 commits it reaches
+P=$T/tpl1;grid log build:ca >$T/v3a.out 2>&1;grid log build:ca -n 2 >$T/v3b.out 2>&1
+ok "v3a-log-first-parent grid log build:ca on the collapsed fixture shows 3 entries ($(wc -l <$T/v3a.out|tr -d ' ')), none of them a member's version ($(grep -c 'idea:m' $T/v3a.out) member lines, want 0); today it lists the 7 reachable commits" '[ "$(wc -l <$T/v3a.out|tr -d " ")" = 3 ]&&! grep -q "idea:m" $T/v3a.out'
+ok "v3b-log-n-2-is-the-chain grid log build:ca -n 2 shows the collapse and CA's own v2 ($(sed 's/^[0-9a-f]* [0-9-]* //' $T/v3b.out|tr '\n' '|')), never a member's version" '[ "$(wc -l <$T/v3b.out|tr -d " ")" = 2 ]&&grep -q "v2 build:ca" $T/v3b.out&&! grep -q "idea:m" $T/v3b.out'
+# --- N1 (RULED by DG1): update-ref failures are CLASSIFIED by git's stderr. A CAS miss ('cannot lock ref ...: is at X but expected Y', or 'reference already exists' for a new ref) = the one skip line, rc 0, as today. ANY OTHER failure (a stale .lock, a permission error, a full disk) = ONE line 'ERROR: update-ref <ref> failed (not a CAS miss): <stderr>', the run goes on with the remaining nodes, the ref is unchanged, and the run EXITS 1 at the end (a persistent fault must reach the cron's status, never read as a race). The shim fails the update-ref of CA's ref with the stderr text of each kind (the race-shim recipe).
+n1(){ # $1 kind $2 stderr text $3 node (CA or X3): sets n1rc, n1l (ERROR lines), n1s (skip lines)
+ rm -rf $T/pn1;cp -a $T/tpl0 $T/pn1;P=$T/pn1;mkdir -p $T/shim3;printf '%s\n' "$2" >$T/shimerr
+ cat >$T/shim3/git <<EOF
+#!/bin/sh
+case " \$* " in *" update-ref $NS/$3 "*)cat $T/shimerr >&2;exit 128;;esac
+exec /usr/bin/git "\$@"
+EOF
+ chmod +x $T/shim3/git;N1TIP=$(tip $CA);bld ca $CA n1;idn x1 $X1 n1;idn x2 $X2 n1;[ $3 = $X3 ]&&idn x3 $X3 n1
+ (cd $P&&CP=$P PATH=$T/shim3:$PATH PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=$R0/extensions/agi/src python3 extensions/agi/bin/grid.py commit --all) >$T/n1.out 2>&1;n1rc=$?
+ n1l=$(grep -c '^ERROR: update-ref' $T/n1.out);n1s=$(grep -c 'ref moved since read' $T/n1.out);}
+X3=ffffffffffffffffffffffffffffffff
+for kv in "lock|fatal: Unable to create '$T/pn1/.git/$NS/$CA.lock': File exists." "perm|error: cannot lock ref '$NS/$CA': Unable to create '$T/pn1/.git/$NS/$CA.lock': Permission denied" "disk|error: unable to write file $T/pn1/.git/$NS/$CA: No space left on device";do k=${kv%%|*};txt=${kv#*|};n1 $k "$txt" $CA
+ok "n1-$k-error-line a $k failure of CA's update-ref prints ONE 'ERROR: update-ref ... failed (not a CAS miss)' line naming CA's ref and carrying git's stderr ($n1l line(s): $(grep '^ERROR: update-ref' $T/n1.out|head -1|cut -c1-120)), NOT the race-skip text ($n1s)" '[ "$n1l" = 1 ]&&[ "$n1s" = 0 ]&&grep "^ERROR: update-ref" $T/n1.out|grep -q "$CA"&&grep "^ERROR: update-ref" $T/n1.out|grep -q "failed (not a CAS miss)"&&grep "^ERROR: update-ref" $T/n1.out|grep -q "$(echo "$txt"|sed "s/.*: //"|cut -c1-12)"'
+ok "n1-$k-run-goes-on-rc-1 the run goes on past it: x1 x2 get v3 ($(fp $X1), $(fp $X2)), CA's ref is UNCHANGED ($(tip $CA|cut -c1-8) vs $(echo $N1TIP|cut -c1-8)), the summary line still prints, and the run EXITS 1 (rc $n1rc): a persistent fault reaches the cron's status" '[ "$(fp $X1)" = 3 ]&&[ "$(fp $X2)" = 3 ]&&[ "$(tip $CA)" = "$N1TIP" ]&&grep -q "^grid: " $T/n1.out&&[ $n1rc = 1 ]';done
+n1 cas "fatal: cannot lock ref '$NS/$CA': is at 1111111111111111111111111111111111111111 but expected 2222222222222222222222222222222222222222" $CA
+ok "n1-cas-miss-stays-a-skip (control) git's real CAS-miss stderr ('is at X but expected Y') is still the ONE skip line ($n1s) with NO ERROR line ($n1l) and rc 0 (got $n1rc); x1 x2 versioned ($(fp $X1), $(fp $X2))" '[ "$n1s" = 1 ]&&[ "$n1l" = 0 ]&&[ $n1rc = 0 ]&&[ "$(fp $X1)" = 3 ]&&[ "$(fp $X2)" = 3 ]'
+n1 new "fatal: cannot lock ref '$NS/$X3': reference already exists" $X3
+ok "n1-new-ref-exists-stays-a-skip (control) the CAS miss of a NEW node (the ref appeared since read: 'reference already exists') is the one skip line ($n1s), no ERROR ($n1l), rc $n1rc (want 0)" '[ "$n1s" = 1 ]&&[ "$n1l" = 0 ]&&[ $n1rc = 0 ]'
+# --- N1 residue (DG1 16:25Z, SM mur on dg3-gridcas f8e756801b): git's REAL stderr for a held ref lock is SEVEN lines (the 'Unable to create ...lock: File exists.' line, a blank line and the 5-line 'Another git process seems to be running' paragraph). The ERROR for it is ONE output line (the whole text flattened onto it, or its first line), never the multi-line text; the single-line lock text above already passed. The text is produced by REAL git at run time in a scratch repo with a planted ref .lock, not typed here.
+rl=$T/rlock;rm -rf $rl;$G init -q $rl;$G -C $rl commit -q --allow-empty -m e;mkdir -p $rl/.git/refs/x;: >$rl/.git/refs/x/y.lock;$G -C $rl update-ref refs/x/y HEAD 2>$T/realerr;rln=$(wc -l <$T/realerr|tr -d ' ')
+n1 lock "fatal: Unable to create '$T/pn1/.git/$NS/$CA.lock': File exists." $CA;n1base=$(grep -cv '^grid: ' $T/n1.out)   # the same run with the one-line text: the lines a failed ref costs besides the summary
+n1 lock-real "$(cat $T/realerr)" $CA
+cont=$(sed 1d $T/realerr|grep .|grep -cxFf - $T/n1.out);blank=$(grep -c '^$' $T/n1.out);n1n=$(grep -cv '^grid: ' $T/n1.out)
+ok "n1-lock-real-is-one-error-line git's real held-ref-lock stderr ($rln lines, from git itself) printed through the update-ref failure is ONE 'ERROR: update-ref <ref> failed (not a CAS miss): ...' line ($n1l ERROR line(s), want 1) that still carries git's first line ('$(grep '^ERROR: update-ref' $T/n1.out|head -1|grep -o 'Unable to create' )' want Unable to create), with $cont of git's continuation lines on their own lines (want 0), $blank blank lines (want 0) and $n1n output line(s) besides the summary (want $n1base: what the one-line text costs); run rc $n1rc (want 1), x1 x2 versioned ($(fp $X1), $(fp $X2)), CA's ref unchanged" '[ "$rln" -ge 5 ]&&[ "$n1l" = 1 ]&&[ "$n1s" = 0 ]&&grep "^ERROR: update-ref" $T/n1.out|grep -q "failed (not a CAS miss)"&&grep "^ERROR: update-ref" $T/n1.out|grep -q "$CA"&&grep "^ERROR: update-ref" $T/n1.out|grep -q "Unable to create"&&[ "$cont" = 0 ]&&[ "$blank" = 0 ]&&[ "$n1n" = "$n1base" ]&&[ $n1rc = 1 ]&&[ "$(fp $X1)" = 3 ]&&[ "$(fp $X2)" = 3 ]&&[ "$(tip $CA)" = "$N1TIP" ]'
+echo "grid-collapse: $f FAIL"
+exit $f
