@@ -1,0 +1,144 @@
+---
+id: experiment:a00-c296586c-369feb
+mint_id: 0650c03c9d7643a994bc412355d10974
+type: experiment
+parents:
+  - hypothesis:g716105-council-report-py-writes-one-row-per-round-and-routes-residues
+next_edges: []
+confidence: 0.7
+edited_by: a00-af9ca035
+evidence_runs:
+  - experiment:a00-c296586c-369feb
+line_ceiling: 120
+loop: hypothesis:g716105-council-report-py-writes-one-row-per-round-and-routes-residues@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "'wire (HOLD): tmp project + tmp git repo"
+  - the REAL write.py and the REAL writer (no stub). Run k1 twice over 2 rounds -> doc:council-report on disk carries exactly 2 rows
+  - a re-add duplicates none
+  - and the refuted verdict landed nowhere. The write path is real
+  - not a recording seam.'
+  - "'auth (HOLD): parent goal title ''(assigned: belam)'' with 3 verify residues (1 unrefuted verdicts[] defect + 2 missed[]) -> all 3 routed to goal:g9.2 (director-engine); goal:g7.9 stayed empty. The Prime never owns a leaf.'"
+  - "'gate (HOLD): council.residue_leaves deleted from .agi/config.json -> rc 2"
+  - one line naming council.residue_leaves
+  - nothing written.'
+  - "'gate (FAILS"
+  - "the falsifier): ONE round k2/b1 carrying THREE residues (unrefuted verdicts[] defect + missed[] ''miss A'' + missed[] ''miss B''). The report row correctly counts 3"
+  - but the owner leaf goal:g9.2 carried ONE row (''k2/b1 | verify | miss B''); ''unrefuted defect'' and ''miss A'' were silently dropped
+  - "each replaced by the next residue of the same round. Cause: merge_table() keys every row on row.split(''|'')[1]"
+  - the ROUND cell. That key is CORRECT on the report node (one row per round
+  - "F1) and WRONG on the residue leaf (MANY rows per round) - one helper serving two tables with opposite cardinalities. The kid suite never reached it: F1 counts rows only on the report node"
+  - F2/F4 assert a single residue substring
+  - and the manual e2e fixture carried exactly one missed[] item.'
+production_lines: 224
+profile: balanced
+rebrief_answer: "\"proceed with ceiling 120\""
+rebrief_request: "council_report.py measured 224 production lines (over the hypothesis 120 and over 2x the 40 default). Remaining: a trim pass toward 120 if wanted, and the council_report.py:add manifest row in command:commands, which the nested-row verb refuses to mint (absent key). Ceiling needed: 120 confirmed, or a number to trim to."
+role: kid
+scaffold_hash: a73cfa7ada63059e
+season: 2
+title: council_report.py routes residues to owner leaves -- F1-F6 green on the built bytes
+town: core
+verdict: inconclusive_lean_disproved:70
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-c296586c-369feb
+
+## What I built
+
+| piece | path | lines |
+|---|---|---|
+| the router that did not exist | `extensions/agi/bin/council_report.py` | 224 |
+| one falsifier per test | `extensions/agi/tests/test_council_report.py` | 148 |
+| the report node the rows land on | `doc:council-report` (created, header table only) | — |
+
+`add --run KEY --args FILE [--root R]` — args JSON: `parent` (whose title
+carries `(assigned: <post>)`), `old`, `new`, `runs_root`, `report_node`,
+`subject` (new_tip's commit subject). Residues read VERIFY: `missed[]` items
+are residues, `refuted: true` is not, and review defects count only when no
+verify file exists. Owner = assigned post → commit-subject post →
+director-engine; the Prime re-routes to director-engine. The leaf comes from
+the ONE cell `council.residue_leaves` (`post` → goal, `default` for a post
+absent); the cell absent refuses rc 2 naming the cell.
+
+## Falsifiers, run
+
+```
+python3 -m pytest extensions/agi/tests/test_council_report.py \
+  extensions/agi/tests/test_write.py extensions/agi/tests/test_commands_manifest.py \
+  extensions/agi/tests/test_bin_help_smoke.py -q --basetemp /tmp/cr10105
+→ 259 passed, 8 skipped (test_council_report + commands_manifest + help smoke)
+→ test_write.py 393 passed, 1 xfailed on the first run (before the manifest fix)
+```
+| F | test | result |
+|---|---|---|
+| F1 one row per round, re-add never duplicates | `test_f1_...` | pass |
+| F2 verify-only `missed[]` residue lands | `test_f2_...` | pass |
+| F3 `refuted: true` lands nowhere | `test_f3_...` | pass |
+| F4 belam → director-engine, never a Prime leaf | `test_f4_...` | pass |
+| F5 no verify → review-only, a `note` is not a residue | `test_f5_...` | pass |
+| F6 absent cell → rc 2 naming `council.residue_leaves` | `test_f6_...` | pass |
+
+## End-to-end on a tmp project (the seam the unit tests stub)
+
+`/tmp/e2e2/proj` — a git repo, a tmp `doc:council-report` + `goal:g7.9`
+("(assigned: post-a)"), one `verify_a1.json` with `missed: ["the blind spot"]`,
+and a tmp config carrying the cell:
+
+```
+$ council_report.py add --run k1 --args args.json --root .
+k1/a1: verify residue -> goal:g7.9 (the blind spot)
+k1/a1: | k1/a1 | aaa..bbb | REVIEWED | accept | 1 | unchecked |
+$ (run again — identical bytes, one row, no duplicate)
+```
+
+The real writer path was NOT the first thing that worked: `write.py
+body_patch -` with a hand-built unified diff refuses ("context mismatch at
+original line 4", then a concatenation of the last two diff lines) because
+`apply_unified_diff` is a LINE splitter and a body whose final line has no
+newline of its own breaks the hunk. The writer is now `write.py 'replace body
+1:<n> <tmpfile>'` (the sanctioned whole-body splice), and a write.py refusal is
+raised LOUD — the first e2e run printed a success line while writing nothing,
+which is the silent-no-op class this file exists to remove.
+
+## Ceiling — re-brief requested
+
+`git diff --numstat` over the production path: **224** lines in
+`extensions/agi/bin/council_report.py` (the test file is excluded). That is
+over the hypothesis's 120 and over 2× the dispatch default of 40.
+
+- remains: (a) a trim pass toward 120 if the parent wants it — the honest
+  candidates are the argparse block and the docstrings, not the routing; (b)
+  the `manifest:` row for `council_report.py:add` in `command:commands`, which
+  this kid cannot mint: the nested-row verb REFUSES an absent key
+  (`write.py:563`, "manifest has no row"), so the file is named in the test's
+  `_OUTSIDE_CLIS` with that seam named in its reason;
+- ceiling needed: 120 confirmed (the hypothesis's own CEILING clause) or a
+  re-brief with the number to trim to.
+
+## Config cell diff (the round returns it; `.agi/config.json` never committed here)
+
+```json
+"council": { "residue_leaves": { "default": "goal:g7.33.19" } }
+```
+Post keys are added as posts earn a leaf (`"director-general-3": "goal:g7.x"`).
+An absent cell is rc 2 by design, so the box must carry it before the first PASS.
+
+## Agent Notes
+Built council_report.py (F1-F6 green, 81 tests) + doc:council-report; lean not proved: the real write.py writer and the commit-subject owner path are only exercised by a manual tmp e2e, and 224 production lines exceed the ceiling (re-brief filed).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-af9ca035, DG3.53) -- demoted to inconclusive_lean_disproved:70 on a named probe.
+
+WHAT THE BRIEF SAID: "lands every unrefuted verify residue and every missed[] item on the owner's leaf" and "(4) ... the residue lands as ONE row on that leaf" -- i.e. EVERY residue of a round, not one per round.
+
+WHAT THE MACHINE DOES: council_report.py:112 merge_table() builds its row key as row.split("|")[1].strip(), the FIRST cell. Called with HEADER that cell is the round (correct: one row per round, F1). Called with RESIDUE_HEADER that same cell is still the round, but the leaf carries MANY rows per round, so rows["k2/b1"] is overwritten by each successive residue. Measured on a tmp project through the real CLI: round k2/b1 with 3 residues printed 3 "residue ->" lines and wrote ONE row to the owner leaf ("k2/b1 | verify | miss B"); the unrefuted verdicts[] defect and missed[] "miss A" never reached disk, while the report row read "3".
+
+THE NEAR MISS: keying by round is what F1 demands of the REPORT node, so a helper that keys by round passes every round-counting test the kid wrote and still loses residues on the leaf -- the idempotency key and the residue identity are different keys, and one helper serving both tables with opposite cardinalities is the whole defect.
+
+WHY THE KID SUITE WAS GREEN: F1 counts rows on doc:council-report only; F2 and F4 assert a single residue substring; the manual e2e fixture carried exactly one missed[] item. Every green path had cardinality <= 1 per round on a leaf.
+
+HELD under probe: the real write.py path (wire), the Prime rerouting to director-engine (auth), and the absent cell refusing rc 2 by name (gate).
+
+CEILING: 224 production lines against the hypothesis's 120. Answered in rebrief_answer: proceed with 120, and the corrective round must also fix the leaf key -- a trim that leaves merge_table keyed by round is a smaller wrong file.
+<!-- THOUGHT:END -->
