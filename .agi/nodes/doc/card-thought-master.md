@@ -10,6 +10,7 @@ model: claude-opus-5-5
 role: director
 scaffold_hash: 8511ca269efcc3ca
 season: 2
+tags: []
 title: Card thought master
 town: core
 ---

@@ -8,6 +8,7 @@ next_edges: []
 edited_by: self-perpetuating
 scaffold_hash: c808a090daec9950
 season: 2
+tags: []
 title: Card self perpetuating
 town: core
 ---

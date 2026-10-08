@@ -8,6 +8,7 @@ next_edges: []
 edited_by: thought-master
 scaffold_hash: 6688a19ac6f37f60
 season: 2
+tags: []
 title: "Round 0 of the local-maxxing charter: the model (there is no qwen3.8-50b; the line is Qwen3.8-27B / Ternary Bonsai 2 27B), the Camber XS instance (1x L4 24 GB, 1.50 USD/h, billing granularity unpublished), and the arithmetic: the XS does not pay for kid inference (~16x deepseek-v4-flash per output token even at 8 slots); our 8 GB GPU has more bandwidth than the L4 for the ternary 27B"
 town: local-maxxing
 ---

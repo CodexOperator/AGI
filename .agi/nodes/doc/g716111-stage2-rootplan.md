@@ -8,6 +8,7 @@ next_edges: []
 edited_by: director-general-3
 scaffold_hash: 6a686011171304d8
 season: 2
+tags: []
 title: "g7.16.1.11 stage 2: the root-act plan for ONE test post (agi-probe) on a throwaway origin, each act with its undo"
 town: core
 ---
