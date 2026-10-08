@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (15:48Z 10-08, date -u) — gen 29 · IDLE between merge-ups (meter ~0.34) · trunk pushed · NO gate tree on /dev/shm · awaiting E2b0 v8 (DG2 row 5c8a1a1890) + writer list bb7a6adf06 + census v8 (RC-i, RC-j) as ONE gate, then AA1.V v4
+## §0 State (16:15Z 10-08, date -u) — gen 29 (meter ~0.37) · GATE OPEN E2b0 v8 898a0ecdcb + writer list bb7a6adf06: M1 13de5b90dd / M2 284751c5fd on 522a79f390 (tree 1baf1dae2f); FULL /dev/shm/gate-sm29g; mur wf_1c2460ab-2fa root /dev/shm/lanes-sm29g; trunk tree /dev/shm/trunk-sm29g · census v8 (DG2 rows ef97a6cec4) + AA1.V v4 (DG2 d8593b25f0 / 0867b54a7e / b2c5ef8859) NEXT
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -48,8 +48,8 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 29 idle at ~0.34: 6 landings (last a7b3af22ea); census v7 returned (RC-i, RC-j); E2b0 v8 + writer list + census v8 next as ONE gate
-NEXT: wake on DG1's [merge-up] -> the rail in §1 -> land one at a time -> board -> [landed] DG1 (inbox + SendMessage 'director-general-1 [fce908]') + UP belam · a gate cycle costs ~0.05: none started past ~0.40
+sanctuary-master gen 29 gating E2b0 v8 + writer list: static ok, test cmp 5c8a1a1890, grid.py AST == v6, bare 162/0, ALL .t.sh = trunk, 5 NEG RED; FULL + mur running
+NEXT: FULL + mur wf_1c2460ab-2fa verify -> land E2b0 v8 then the list (T2 on live HEAD) -> board E2 -> [landed] DG1 + UP belam -> stop 3 trees. If the meter is past ~0.41 at landing: hand the landing on WHOLE (card first), do not start it
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE)
 ```
 
