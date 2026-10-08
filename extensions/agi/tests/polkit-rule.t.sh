@@ -55,35 +55,27 @@ while IFS='|' read -r n got want;do [ -n "$n" ]||continue;ok "j-$n the rule says
 # w: the real agi-wt piece, ONE node tree under $HOME/t, drop on a dirty pulled tree under several envs
 chmod +x $T/agiwt;mkdir -p $T/hm;printf '[user]\n\tname=t\n\temail=t@t\n[commit]\n\tgpgsign=false\n[safe]\n\tdirectory=*\n' >$T/gitconfig;export GIT_CONFIG_GLOBAL=$T/gitconfig GIT_CONFIG_SYSTEM=/dev/null
 MINT=0123456789abcdef0123456789abcdef
-wt(){ rm -rf $T/hm/t $T/wtdir;mkdir -p $T/hm/t/.agi/nodes/idea $T/wtdir;printf -- '---\nid: idea:n\nmint_id: %s\ntype: idea\n---\nbody\n' $MINT >$T/hm/t/.agi/nodes/idea/n.md;$G init -q $T/hm/t;$G -C $T/hm/t add -A;$G -C $T/hm/t commit -qm base;SEED=$($G -C $T/hm/t rev-parse HEAD)
- $G -C $T/hm/t update-ref refs/archive/worktrees/parentpost@$MINT $SEED
- aw(){ (cd $T&&env -i PATH=/usr/bin:/bin HOME=$T/hm USER=t GIT_CONFIG_GLOBAL=$T/gitconfig GIT_CONFIG_SYSTEM=/dev/null AGI_WT=$T/wtdir AGI_WT_HOLD=101 "$@" sh $T/agiwt $WCMD idea:n >$T/w.out 2>$T/w.err);wrc=$?;}
- WCMD=pull;aw X=1;d=$(cat $T/w.out);echo "the wt edit" >>$d/.agi/nodes/idea/n.md;echo "the repo moved meanwhile" >>$T/hm/t/.agi/nodes/idea/n.md;WCMD=drop;}   # drop archives the wt copy when the repo's own copy moved since the pull
-refs(){ $G -C $T/hm/t for-each-ref --format='%(refname:strip=3)' refs/archive/worktrees|tr '\n' ' ';}
-wt;aw AGI_POST=parentpost AGI_SEAT=kidseat;r=$(refs);pp=$($G -C $T/hm/t rev-parse refs/archive/worktrees/parentpost@$MINT)
-ok "w-a-kid-archives-under-its-own-seat a kid env (AGI_POST=parentpost inherited, AGI_SEAT=kidseat): rc $wrc (want 4 = moved), refs [${r% }] (want kidseat@$MINT and parentpost@$MINT), the parent's ref untouched: $([ $pp = $SEED ]&&echo yes||echo NO) (want yes)" '[ $wrc = 4 ]&&echo "$r"|grep -q "kidseat@$MINT"&&[ $pp = $SEED ]'
-wt;aw AGI_POST=alpha AGI_SEAT=alpha;r=$(refs)
-ok "w-a-post-env-archives-under-its-name both variables = alpha: rc $wrc (want 4), refs [${r% }] (want alpha@$MINT)" '[ $wrc = 4 ]&&echo "$r"|grep -q "alpha@$MINT"'
-wt;aw AGI_POST=alpha;r=$(refs)
-ok "w-only-AGI_POST-still-works AGI_POST=alpha alone: rc $wrc (want 4), refs [${r% }] (want alpha@$MINT)" '[ $wrc = 4 ]&&echo "$r"|grep -q "alpha@$MINT"'
-wt;aw AGI_SEAT=kidseat;r=$(refs)
-ok "w-only-AGI_SEAT-still-works AGI_SEAT=kidseat alone: rc $wrc (want 4), refs [${r% }] (want kidseat@$MINT)" '[ $wrc = 4 ]&&echo "$r"|grep -q "kidseat@$MINT"'
-wt;aw X=1;r=$(refs)
-ok "w-no-seat-archives-nothing neither variable: rc $wrc (want 5), a message on stderr: $(grep -c 'agi-wt' $T/w.err) (want >= 1), refs [${r% }] (want only parentpost@$MINT)" '[ $wrc = 5 ]&&[ $(grep -c "agi-wt" $T/w.err) -ge 1 ]&&[ "${r% }" = "parentpost@$MINT" ]'
+# v4 (AA1.V): agi-wt drop hands the tree to agi-turn, which archives under refs/archive/$AGI_POST/<mint> (agi-turn.t.sh g8 / x10*); the AGI_SEAT split and refs/archive/worktrees are retired, so the four rows above have nothing to pin
+ok "w-the-v4-agi-wt-has-no-seat-split the piece names AGI_SEAT $(grep -c AGI_SEAT $T/agiwt) time(s) (want 0), refs/archive/worktrees $(grep -c "archive/worktrees" $T/agiwt) (want 0), hands the drop to agi-turn $(grep -c "drop)agi-turn" $T/agiwt) time(s) (want 1)" '[ $(grep -c AGI_SEAT $T/agiwt) = 0 ]&&[ $(grep -c "archive/worktrees" $T/agiwt) = 0 ]&&[ $(grep -c "drop)agi-turn" $T/agiwt) = 1 ]'
 # t (RB-1): tick.sh starts ONLY its own unit. The real tick.sh piece under a stub `sect` (project.sh lists TWO down units, p1 and p2; observe.sh lists none) and a stub `systemctl` that logs argv, run as USER=agi-p1 in a scratch $HOME/t repo: only the unit of agi-p1 is started; the drift file still lists BOTH (the drift is evidence, not an order). The at sign is built at run time (the anonymize email class).
-sect tick.sh >$T/tick.sh;AT=$(printf '\100');U1=agi-post${AT}p1;U2=agi-post${AT}p2
+sect tick.sh >$T/tick.sh;sect agi-at >$T/agi-at;AT=$(printf '\100');U1=agi-post${AT}p1;U2=agi-post${AT}p2
 tk(){ args=;for u in "$@";do args="$args agi-post${AT}$u";done;rm -rf $T/tk;mkdir -p $T/tk/bin $T/tk/hm/t;$G init -q $T/tk/hm/t;$G -C $T/tk/hm/t commit -q --allow-empty -m base;: >$T/tk/log
+ if [ -s $T/agi-at ];then # the tick ends in `agi-at` (AA1.V): the REAL piece, a detached ~/t, a throwaway ssh signer, posts/p1 = the tip it commits onto
+  cp $T/agi-at $T/tk/bin/agi-at;chmod +x $T/tk/bin/agi-at;ssh-keygen -q -t ed25519 -N '' -f $T/tk/key -C p1 >/dev/null;tg="$G -C $T/tk/hm/t";$tg config gpg.format ssh;$tg config user.signingkey $T/tk/key;$tg branch posts/p1;$tg checkout -q --detach posts/p1;fi
  cat >$T/tk/bin/sect<<XX
 #!/bin/sh
 case "\$1" in project.sh) printf '%s\\n' 'printf "unit %s\\n" $args';; *) echo true;; esac
 XX
  printf '#!/bin/sh\necho "$*" >>%s\n' $T/tk/log >$T/tk/bin/systemctl;chmod +x $T/tk/bin/sect $T/tk/bin/systemctl
- (cd $T/tk/hm&&env -i PATH=$T/tk/bin:/usr/bin:/bin HOME=$T/tk/hm USER=agi-p1 GIT_CONFIG_GLOBAL=$T/gitconfig GIT_CONFIG_SYSTEM=/dev/null timeout 60 sh $T/tick.sh >$T/tk/out 2>&1);trc=$?
+ (cd $T/tk/hm&&env -i PATH=$T/tk/bin:/usr/bin:/bin HOME=$T/tk/hm USER=agi-p1 AGI_POST=p1 GIT_CONFIG_GLOBAL=$T/gitconfig GIT_CONFIG_SYSTEM=/dev/null timeout 60 sh $T/tick.sh >$T/tk/out 2>&1);trc=$?
  D1F=$T/tk/hm/t/.agi/drift/agi-p1;nstart=$(grep -c '^start ' $T/tk/log);own=$(grep -c "^start $U1\(\.service\)\?\$" $T/tk/log);other=$(grep -c "$U2" $T/tk/log);dd=$(grep -c '^< unit ' $D1F 2>/dev/null);d1=$(grep -c "$U1" $D1F 2>/dev/null);d2=$(grep -c "$U2" $D1F 2>/dev/null);nall=$(wc -l <$T/tk/log|tr -d ' ');true;}
 tk p1 p2
 ok "t-the-tick-piece-is-extracted-and-the-stubs-ran the real tick.sh piece: $(wc -c <$T/tick.sh|tr -d ' ') bytes (want > 0), rc $trc (want 0), the drift file lists $dd '< unit' line(s) (want 2)" '[ -s $T/tick.sh ]&&[ $trc = 0 ]&&[ "$dd" = 2 ]'
 ok "t-the-tick-starts-only-its-own-unit systemctl start calls: $nstart (want 1), for the own unit agi-post@p1: $own (want 1), mentioning the other post's unit: $other (want 0)" '[ "$nstart" = 1 ]&&[ "$own" = 1 ]&&[ "$other" = 0 ]'
 ok "t-the-drift-file-still-lists-both-units the drift file names the own unit $d1 time(s) (want 1) and the other post's $d2 time(s) (want 1)" '[ "$d1" = 1 ]&&[ "$d2" = 1 ]'
+if [ -s $T/agi-at ];then # v4: the tick versions the drift with agi-at = ONE signed commit onto posts/p1 that carries the drift file; ~/t stays a detached view of that tip
+ tg="$G -C $T/tk/hm/t";tn=$($tg rev-list --count posts/p1);ts=$($tg log -1 --format=%s posts/p1);tsig=$($tg cat-file commit posts/p1|grep -c '^gpgsig ');tin=$($tg show posts/p1:.agi/drift/agi-p1 2>/dev/null|grep -c '^< unit ');thd=$([ "$($tg rev-parse HEAD)" = "$($tg rev-parse posts/p1)" ]&&echo yes||echo NO)
+ ok "t-the-tick-versions-the-drift-with-one-signed-agi-at-commit posts/p1 commits: $tn (want 2 = base + one), subject [$ts] (want [p1: .agi/drift]), signed: $tsig (want 1), the drift on the tip lists $tin unit line(s) (want 2), ~/t HEAD is the tip: $thd (want yes)" '[ "$tn" = 2 ]&&[ "$ts" = "p1: .agi/drift" ]&&[ "$tsig" = 1 ]&&[ "$tin" = 2 ]&&[ "$thd" = yes ]';fi
 # t2 (DG1 12:37Z): the own-unit filter is an EXACT match (p1 must not start p10) and starts nothing when only other posts are down
 tk p1 p10 p2
 ok "t-a-prefix-of-the-own-unit-is-not-the-own-unit units down: p1 p10 p2, USER=agi-p1: systemctl start calls $nstart (want 1), for exactly agi-post@p1: $own (want 1), total systemctl calls $nall (want 1), the drift file lists $dd unit line(s) (want 3)" '[ "$nstart" = 1 ]&&[ "$own" = 1 ]&&[ "$nall" = 1 ]&&[ "$dd" = 3 ]'

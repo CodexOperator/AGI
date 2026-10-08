@@ -20,7 +20,7 @@ Depth 0 = diagram · 1 = loop + pieces · 2 = one piece: `sect <name>` (any `.ge
    unit ──▶ own uid · worktree ~/t of MAIN on posts/<p> · pane = fifo i + typescript o (script) · strace
    start|resume|compact ──CC hooks, or pi via cccc.ts──▶ agi-brief: walk(card+seeds+claims) + STARTUP
    prompt ──▶ agi-meter: at the line: card, .fresh, kill ──▶ Restart = a FRESH successor
-   turn end ──▶ agi-turn: one signed commit · agi-link · released agi-wt trees dropped · mail = a turn
+   turn end ──▶ agi-turn: one signed commit per node tree · ~/t = a read view · mail = a turn
    stop ──▶ agi-flush ──▶ the master lands posts/<p> ──▶ next brief sees it · a write of carry.env re-runs agi-project
    harness: claude --remote-control <p> (hooks native; the owner's app lists it) · pi + cccc.ts · agi-kid
    tick: project(graph) == observe(body)? equal = alive · differ = start its OWN unit + a drift commit
@@ -32,13 +32,13 @@ Depth 0 = diagram · 1 = loop + pieces · 2 = one piece: `sect <name>` (any `.ge
 1 BOOT   root runs agi-project @REV: unit, user, cells for engine.v==4 rows; dropped rows unlinked
 2 START  PSI admission; key, worktree, tools from this node; .fresh = new session, else -c resumes
 3 WORK   brief in the system prompt; plain paths in ~/t; inbox, budget, records resolve to MAIN
-4 TURN   one signed commit; agi-link; at the line: card, touch ~/.fresh, kill $PPID = rotation
+4 TURN   one signed commit per node tree; at the line: card, touch ~/.fresh, kill $PPID = rotation
 5 LAND   ExecStopPost agi-flush; the master gates posts/<p> onto the trunk (skill agi-master-gate)
 ~~~
 
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
-agi-post@.service 2238 B  a post = one unit in agi.slice: own uid, tree, key, pane
+agi-post@.service 2250 B  a post = one unit in agi.slice: own uid, tree, key, pane
 agi-run           773 B  pane cmd: .fresh or -c, under strace; claude: inbox, claude|pi: box -> i
 settings.json      342 B  the ONE hook wiring: brief, meter, turn commit
 cccc.ts           1956 B  pi events -> those CC hooks; inbox + box mail -> a turn
@@ -46,19 +46,19 @@ agi-kid           2037 B  a pi-free kid in this unit: own HOME, tree, cccc.ts
 agi-infer          1077 B  ONE chat call, OpenAI-compatible: stdin -> stdout
 agi-brief          938 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
-agi-meter          547 B  past rotate_pct of the window: out-line
-agi-turn           269 B  drop released trees; signed commit; agi-link
-agi-link           358 B  node <-> code file via payload_ref
-agi-wt            1077 B  a node's tiny RAM tree: pull; drop = commit+purge
+agi-meter          574 B  past rotate_pct of the window: out-line
+agi-at             538 B  signed CAS commit of ~/t paths to posts/<P>
+agi-turn          1440 B  a signed commit per changed node tree; ~/t = a read view
+agi-wt            1081 B  a node's tiny RAM tree: pull; drop = turn + purge
 agi-track           89 B  strace sink: each path once
-agi-flush          216 B  on exit: drop trees, commit, merge trunk
-agi-out           3120 B  the out-line: next keys, ONE ring commit, re-wrap, swap
+agi-flush          467 B  drop trees, turn, merge trunk
+agi-out           3090 B  the out-line: next keys, ONE ring commit, re-wrap, swap
 gitconfig          198 B  signed commits, checked against root's allowed_signers, own hooks
 sysusers.conf       41 B  a post = one user in group agi
 agi.rules          242 B  a post starts only its OWN unit
 project.sh         161 B  what the body SHOULD be
 observe.sh         255 B  what the body IS
-tick.sh            284 B  diff them; start own unit; commit
+tick.sh            254 B  diff them; start own unit; commit
 agi-project       2560 B  the genome: units + cells for v4 rows
 agi-frontier       460 B  each active goal runs its falsifier
 agi-gate           542 B  refuse a tip whose body would not regrow; one name, one piece
