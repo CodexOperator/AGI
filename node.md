@@ -1,0 +1,160 @@
+---
+id: experiment:a00-3006fda7-3969ab
+mint_id: b9f866e93c4a47988ac95f673936ace2
+type: experiment
+parents:
+  - hypothesis:a-restarted-agent-gets-the-same-render-as-its-first-spawn
+next_edges: []
+confidence: 0.9
+edited_by: a00-aa83b77d
+evidence_runs:
+  - experiment:a00-3006fda7-3969ab
+loop: hypothesis:a-restarted-agent-gets-the-same-render-as-its-first-spawn@s2
+model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "route _reap_one_impl through the REAL pi adapter with spawn.json brief=SENTINEL and brief.assemble poisoned; capture subprocess.Popen argv", "expected": "the pi restart argv carries the exact spawn.json brief; no second assemble; record running", "observed": "record=running; SENTINEL in argv True", "result": "pass"}
+  - {"conjunct": 1, "class": "wire", "cmd": "control: same _reap_one_impl with NO spawn.json; count brief.assemble calls", "expected": "rendered_brief None -> adapter calls brief.assemble once; no sentinel in argv", "observed": "assemble_calls=1; SENTINEL in argv False", "result": "pass"}
+  - {"conjunct": 1, "class": "auth", "cmd": "_carried_restart_brief(iter_dir, agent_id) for the correct id vs a foreign id a00-OTHER when only a00-x has a render", "expected": "correct id -> SENTINEL; wrong id -> None (a restart cannot inherit a foreign seat's render)", "observed": "same=True; other_is_none=True", "result": "pass"}
+  - {"conjunct": 2, "class": "gate", "cmd": "_render_dispatch_brief(root=None, tier=kid) with brief.render raising brief.FaithRefError and brief.assemble returning FALLBACK-BODY; capture stderr", "expected": "returns the assemble fallback and prints a loud 'brief.render refused ... falling back' line", "observed": "got='FALLBACK-BODY'; loud stderr True", "result": "pass"}
+  - {"conjunct": 2, "class": "gate", "cmd": "control: brief.render raising KeyError('boom')", "expected": "KeyError propagates (the catch stays narrow, never swallows a non-brief error)", "observed": "escaped=True", "result": "pass"}
+  - {"conjunct": 3, "class": "gate", "cmd": "fixture config:brief node (parts kid=[head,extras], unified-head MARKER, moral:faith REFERENCE) vs a bare .agi; then pi build_command(rendered_brief=fixture render)", "expected": "fixture render carries MARKER; bare graph render does not and differs; the MARKER render reaches the pi --append-system-prompt segment", "observed": "marker_in_render=True; marker_in_fallback=False; render_ne_fallback=True; argv_has_marker=True", "result": "pass"}
+production_lines: 32
+profile: balanced
+role: kid
+scaffold_hash: 0d8d2714d083a238
+season: 2
+title: A restarted agent's first turn is the spawn's own brief, read back from spawn.json
+town: local-maxxing
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-3006fda7-3969ab
+
+## Experiment
+
+**Built the restart carry; proved it on the built bytes.** The claim is a
+build order, not a measurement (`hypothesis:l4-a-g15-claim-is-a-build-order-
+not-a-measurement`), so I measured the pre-fix state, IMPLEMENTED the carry,
+then proved it on the built bytes.
+
+### The mechanism (chosen: store with the spawn, read back)
+
+| | mechanism | verdict |
+|---|---|---|
+| (a) | read the render back from the agent's own `spawn.json` at the restart call site | **CHOSEN** — one source, structural |
+| (b) | re-render at restart with the spawn's inputs | rejected — byte-identity only if every input matches |
+
+`spawn.json` is the ONE artifact the first spawn already wrote with the exact
+bytes (`_brief_text or "<brief render failed>"`). Re-rendering (b) would make
+byte-identity a re-derivation that can drift; reading the artifact back makes
+it structural. It also keeps the bytes out of the manifest: putting the full
+brief on `agent_record` would duplicate it into every `agent.json` and
+`manifest.json` (one source per rule). `None` on a missing artifact or the
+failed-render sentinel keeps the pre-fix `brief.assemble` path byte-identical.
+
+### Production changes (32 lines, ceiling 40)
+
+| file | change |
+|---|---|
+| `dispatch.py` | `_carried_restart_brief(iter_dir, agent_id)` reads `spawn.json["brief"]`; `_reap_one_impl` restart callsite passes `rendered_brief=...` |
+| `pi_adapter.py` | `restart(..., rendered_brief=None)` -> `build_command(rendered_brief=...)` |
+| `claude_code_adapter.py` | same |
+| `copilot_cli_adapter.py` | same |
+| `grok_bot_adapter.py` | same (accept-and-ignore stub, no TypeError) |
+
+### RED on pre-fix bytes (scratch mirror, no git)
+
+A full copy of `extensions/agi/{bin,tests}` under the session dir, the 5
+production files reverted by hand, run with `--noconftest` and the repo `src`
+on `PYTHONPATH`:
+
+```
+7 failed, 5 passed
+FAILED ...test_carried_restart_brief_reads_the_spawn_artifact
+FAILED ...test_carried_restart_brief_is_none_without_render_or_artifact
+FAILED ...test_reap_restart_threads_the_spawned_render_to_the_adapter
+FAILED ...test_adapter_restart_carries_the_render_into_its_argv[pi]
+FAILED ...test_adapter_restart_carries_the_render_into_its_argv[claude_code]
+FAILED ...test_adapter_restart_carries_the_render_into_its_argv[copilot_cli]
+FAILED ...test_grok_restart_accepts_the_render_without_dying
+```
+
+The failures are the exact pre-fix wounds: `TypeError: restart() got an
+unexpected keyword argument 'rendered_brief'`, and the dispatch-level assert
+on the missing kwarg. The 5 that pass pre-fix are the two regression locks
+(conjunct 2, conjunct 3) plus the back-compat control — see the deviation.
+
+### GREEN on the fixed bytes
+
+| suite | result |
+|---|---|
+| `test_dispatch_render_thread.py` + `test_dispatch_restart_render.py` | **19 passed** |
+| `test_adapters.py test_claude_code_adapter.py test_copilot_cli_adapter.py test_grok_bot_adapter.py` | **122 passed** |
+| `test_dispatch.py test_brief.py test_brief_render.py` | 315 passed, **1 pre-existing failure** (below) |
+
+Pre-existing, unrelated: `test_brief.py::test_g15_rule_with_no_project_root_
+keeps_the_current_fallback` fails because its target
+`hypothesis:l4-a-g15-claim-is-a-build-order-not-a-measurement` now has parents
+`goal:g6.11`, not g15 lineage, so the walk-up finds no rule. I touched no
+brief.py and no node; it is a stale test against moved graph data.
+
+## Probes
+
+- class: wire | cmd: `_reap_one_impl` with a fake adapter, `spawn.json["brief"]=SENTINEL` | expected: `rendered_brief==SENTINEL` reaches the adapter | observed: captured kwarg == SENTINEL, record `running` | result: pass
+- class: wire | cmd: `pi/claude_code/copilot_cli.restart(..., rendered_brief=RENDERED)` with `brief.assemble` forced to raise | expected: argv/system-prompt file carries RENDERED verbatim | observed: all three carry it; grok accepts without TypeError | result: pass
+- class: gate | cmd: `_render_dispatch_brief` with `brief.render` raising `FaithRefError` | expected: loud `brief.assemble` fallback + stderr naming it | observed: `FALLBACK-BODY`, stderr `brief.render refused ... falling back` | result: pass
+- class: gate | cmd: `_render_dispatch_brief` with `brief.render` raising `KeyError` | expected: propagates (catch stays narrow) | observed: `KeyError` raised, not swallowed | result: pass
+- class: gate | cmd: fixture `config:brief` node (head+extras, MARKER) vs bare `.agi` | expected: fixture render carries MARKER, bare falls to assemble and does not | observed: fixture 6264 B with MARKER, fallback 9670 B without; `build_command` argv carries the render | result: pass
+- class: auth | cmd: back-compat control, restart with no `spawn.json` | expected: `rendered_brief is None`, adapter assembles as pre-fix | observed: None | result: pass
+
+## Evidence
+
+Run ids: this node (`experiment:a00-3006fda7-3969ab`). Raw outputs saved
+under the session dir `.agi/sessions/iter-EF.61/a00-3006fda7/` (probe scripts
+`probe_fixture.py`, `probe_faith.py`, `probe_reap.py`, `probe_adapter2.py`;
+RED mirror under `prefix_check/`). Measured production lines:
+`git diff --numstat` = 24 (dispatch) + 2x4 (adapters) = **32**, at or below the
+40-line ceiling.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+**(1) Instruction, quoted.** "threads the SAME `brief.render` output into
+`build_command` that the first spawn used ... the restart call site passes the
+carried render ... Absent/None keeps the pre-fix assemble path byte-identical
+(do not break it)."
+
+**(2) What the machine did, cited.** Pre-fix, `dispatch.py:3573` called
+`adapter.restart(...)` with no `rendered_brief`; each adapter `restart()`
+rebuilt argv through `build_command` with no `rendered_brief` (pi ~320,
+claude_code ~855, copilot ~362, grok ~131). `build_command` ALREADY accepted
+`rendered_brief` and used `[rendered_brief]` over `brief.assemble` (pi
+~213 etc.); the first spawn rendered once at `:2524`/`:1349` and wrote the
+same string to `spawn.json` at `:2927`. So the gap was one missing link: the
+restart. I added the read-back helper and one call-site kwarg, and threaded
+the parameter through all four restore signatures.
+
+**(3) THE NEAR MISS.** A `rendered_brief` kwarg that is accepted-and-ignored
+(the grok stub), or a re-render with mismatched inputs (mechanism b), would
+satisfy the words and lose the mechanism. I guarded against both: the
+adapter tests force `brief.assemble` to raise so an accepted-and-ignored kwarg
+is a loud failure for pi/claude/copilot, and mechanism (a) reads the bytes
+back rather than re-deriving.
+
+**(4) Deviation — honest scope of the RED claim.** The brief said every added
+test must be RED pre-fix. That holds for conjunct 1 (7 of my 12 tests: the
+carry). It does NOT hold for conjuncts 2 and 3, because the director had
+already landed the `FaithRefError` catch and the render path before minting;
+those 5 tests are regression locks that are GREEN pre-fix by design. I kept
+them — a lock on behavior that already shipped is not a defect — and I
+recorded the distinction rather than pretending a green test was red.
+
+A second judgement call: mechanism (a) stores the render with the spawn
+artifact, not on `agent_record` as the brief's option (a) literally phrased
+it. `spawn.json` IS the spawn artifact and is already the canonical holder of
+the exact bytes; duplicating them onto `agent_record` would push the full
+brief into `manifest.json` for every agent.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Built the restart carry: _carried_restart_brief reads spawn.json['brief'] back and _reap_one_impl passes it to all four adapter restart()->build_command (32 prod lines). 7 carry tests RED on pre-fix mirror, RED->GREEN; 19+122 suite tests green; conjuncts 2/3 are green pre-fix regression locks.
+
+PARENT REVIEW (a00-aa83b77d): all three claim conjuncts VERIFIED by six parent-run negative probes (3 wire/auth, 3 gate) recorded in this node's probes:. Read the kid DIFF (7 files, +452): dispatch.py:_carried_restart_brief reads spawn.json['brief'] and _reap_one_impl passes it as rendered_brief to all four adapter restart()->build_command; None keeps the pre-fix assemble path. Live probe on the REAL a00-3006fda7 spawn.json returned the 20145-byte render byte-identical to spawn.json. Accepted proved. Caveat: the dry-run==spawn byte-identity is inherited from the prior hypothesis, not re-proved here.
