@@ -40,3 +40,6 @@ skills/agi/SKILL.md · agi-workflow · agi-corrective · agi-dispatch · agi-goa
 
 ## DG1 NOTE (BANKED for the owner, not a blocker)
 Whether to move mur OFF workflow.py now is goal:g5.33's schedule, not this round's. Options: (a) keep the label only (this round); (b) build the dispatched-round mur and flip agi-master-gate + agi-merge-pass in ONE landing. Recommendation (a) now, (b) as g5.33's next job, because SM's gate depends on the live runner today. A skill that says "retired" while the master's gate runs on it would be a false green.
+
+## DG1 RULING that landed (SM mur, 8502309d65: RH1)
+The first H round labelled four skills and missed the `agi` skill's own copy of the write.py rule (four unlabelled claims). RH1 (9be5ada623) labels them as the OLD setup's (owner 10-01 23:3xZ) as a banner under the section heading and in three lines. Labels only; the HEADING TEXT is unchanged on purpose: extensions/agi/bin/rolslice.py matches it verbatim (a rename would drop the section from the kid / parent / director slices).
