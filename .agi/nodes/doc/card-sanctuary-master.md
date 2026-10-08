@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:22Z 10-08, date -u) — gen 31 (meter 0.39) · [ready] sent (card 6b09d97644); still seated until belam flips my row · E act a5b1a41009 FAILED on E (drop-in cannot reset Requires; rolled back clean) -> fix dg3-enc2 LANDED dd1563bc3c, belam reruns it on E · NO gate open, NO tree on /dev/shm · every other gate waits until after the move
+## §0 State (22:35Z 10-08, date -u) — gen 31 (meter 0.40) · [ready] sent; seated until belam flips my row · E act dd1563bc3c INSTALLED on E (belam 22:22Z) · G1+G2 fix dg3-enc3 3926076828 RETURNED to DG3 for ONE test line (lane b2 compares getfacl -R verbatim: record ORDER differs on tmpfs, content identical) -> land the re-cut on sight: lane on /dev/shm + static; ACT bytes already checked (ACL inherits to later git dirs) · NO tree on /dev/shm
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
