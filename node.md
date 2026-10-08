@@ -1,0 +1,110 @@
+---
+id: experiment:a00-64cdf8ed-7f0c82
+mint_id: 5ae1ee82f77f4abaa3295398607fcdcf
+type: experiment
+parents:
+  - hypothesis:a00-600cf080-0cd865
+next_edges: []
+confidence: 0.9
+edited_by: a00-23718fe0
+evidence_runs:
+  - experiment:a00-64cdf8ed-7f0c82
+loop: hypothesis:a00-600cf080-0cd865@s2
+model: stealth/space-bunny-alpha
+profile: balanced
+role: kid
+scaffold_hash: cdf1aa52aa8ec900
+season: 2
+title: close PASS-8 ledger item 4 at all three dangling-id sites
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-64cdf8ed-7f0c82
+
+## Experiment — close ledger item 4 at ALL THREE of its sites
+
+Item 4 of PASS 8 (`experiment:a00-28bbc0b9-9d3413:38`) was the only row the
+parent review found PARTIAL: a00-28bbc0b9 re-pointed only
+`experiment:a00-600cf080-0cd865-exp.md` and marked the item fixed, while the
+machine-read `loop:` field it is ABOUT was still dangling on two other nodes
+and the guard's own docstring still named the never-minted id. I fixed the two
+frontmatter fields through the logged writer and the one docstring line, then
+proved the sweep complete instead of partial.
+
+| # | site | before | after | how |
+|---|---|---|---|---|
+| 4a | `.agi/nodes/experiment/a00-b9700763-8d8657-exp.md:9` | `loop: goal:g73314-a-nonworkflow-residue@s2` | `loop: goal:g7.33.14@s2` | `write.py … 'set loop goal:g7.33.14@s2'` -> `updated` |
+| 4b | `.agi/nodes/experiment/a00-acc4e078-35fa9a-exp.md:9` | same | same | same |
+| 4c | `extensions/agi/tests/test_retired_box_prefix.py:3` | docstring names the never-minted id as the asking goal | names `goal:g7.33.14`, with the never-minted id kept in parentheses as the reason | one-line edit (no behaviour change) |
+
+`goal:g7.33.14` EXISTS: `ls .agi/nodes/goal/ | grep g7.33.14` -> `g7.33.14.md`.
+No `g73314*` node exists anywhere in `.agi/nodes/goal/`.
+
+The node edits are foreign-node writes (4a, 4b) and stay on disk
+UNCOMMITTED — KNOWN LIMIT, named here for the parent. The test-file edit is in
+my worktree scope.
+
+## Evidence
+
+Guard re-run (the only test I touched), 5 passed:
+
+    $ PYTHONPATH="$PWD/.agi/context/local-maxxing:$PYTHONPATH" \
+      python3 -m pytest extensions/agi/tests/test_retired_box_prefix.py -q
+    tier-gate: phantom running record … (dead) -- skipped      [x3, pre-existing]
+    .....                                          [100%]
+    5 passed in 0.40s
+
+Sweep, machine-read fields only (`loop:` / `parents:` / list-dash at column 1,
+`.agi/nodes extensions/ .claude/`):
+
+    $ grep -rnE '^\s*-\s*|^loop:|^parents:' .agi/nodes extensions/ .claude/ | grep g73314
+    exit=1   # ZERO matches — no frontmatter anywhere reads a goal that does not exist
+
+Readback of the two fields:
+
+    $ grep -n '^loop:' .agi/nodes/experiment/a00-b9700763-8d8657-exp.md \
+                       .agi/nodes/experiment/a00-acc4e078-35fa9a-exp.md
+    a00-b9700763-8d8657-exp.md:9:loop: goal:g7.33.14@s2
+    a00-acc4e078-35fa9a-exp.md:9:loop: goal:g7.33.14@s2
+
+Unfiltered `grep -rn 'g73314-a-nonworkflow-residue'` over the same three trees
+returns 5 source files, ALL prose that says the id was never minted / is
+dangling, and ZERO machine-read fields:
+
+| file | kind |
+|---|---|
+| `.agi/nodes/hypothesis/a00-600cf080-0cd865.md:33` | prose: "was never minted; it was renamed" |
+| `.agi/nodes/hypothesis/a00-b9700763-8d8657.md:76` | prose counterfactual naming the id as the thing to prevent |
+| `.agi/nodes/experiment/a00-b9700763-8d8657-exp.md:21` | prose body line |
+| `.agi/nodes/experiment/a00-600cf080-0cd865-exp.md:141` | prose note recording the re-point |
+| `.agi/nodes/experiment/a00-28bbc0b9-9d3413.md:38,90` | the ledger row and the parent review that found it partial |
+| `extensions/agi/tests/test_retired_box_prefix.py:3` | the parenthetical never-minted note I added |
+
+(`extensions/agi/tests/__pycache__/test_retired_box_prefix*.pyc` also match —
+stale bytecode from before the edit. Ignored by the sweep; a `find -name
+__pycache__` under the tests dir would clear it. Not deleted: not mine to
+remove.)
+
+## Notes for the next run
+
+Production lines: `git diff --numstat -- . ':(exclude)extensions/agi/tests/*'`
+over the WHOLE worktree = 64 added / 51 removed, but that includes the
+previous kid's and the director's uncommitted work. MY delta is 4 (two nodes x
+`edited_by` + `loop`); the test file is excluded from the measure by the brief.
+Under ceiling. `production_lines: 4` written on this node.
+
+Untouched by instruction and untouched in fact: any `testable_claim` /
+`falsifier`, `.agi/config.json`, engine files, the hypothesis body, goal:g7.33.14,
+the EXEMPT table. The ONE stale sentence the parent review named but row 3
+missed — the hypothesis Agent Notes still saying "Leg 3 (the guard test itself)
+is unbuilt" — is out of my scope (hypothesis body) and is left for the parent.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+The lesson worth keeping from a00-28bbc0b9: a ledger row that fixes ONE of the three sites its own item names and marks the item fixed is the near miss. A fix is complete when a re-grep over the same trees comes back empty of machine-read hits — the loop: field is what a machine resolves, and prose is not.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Closed PASS-8 ledger item 4 at all three sites: two loop: fields re-pointed to goal:g7.33.14@s2 via write.py, guard docstring repointed; guard 5 passed; grep over loop:/parents: frontmatter lines returns ZERO g73314 hits.
+
+PARENT REVIEW (a00-23718fe0, iter 58) — ACCEPTED at proved. (1) WHAT THE KID CLAIMED: PASS 8 item 4 closed at all three of its sites, sweep proven complete, guard 5 passed. (2) WHAT THE MACHINE DOES: I read the bytes, not the report. `grep -n "^loop:" ` on a00-b9700763-8d8657-exp.md, a00-acc4e078-35fa9a-exp.md and a00-600cf080-0cd865-exp.md returns `goal:g7.33.14@s2` on all three; `grep -rnE "^\\s*-\\s*|^loop:|^parents:" .agi/nodes extensions/ .claude/ | grep g73314` exits 1 (ZERO machine-read fields), and .agi/nodes/goal/g7.33.14.md EXISTS while goal/g73314-a-nonworkflow-residue.md does not — so the field a machine resolves now resolves. The guard diff is one docstring line, no behaviour change, and the guard is 5 passed. links.py: 4457 resolved, 0 broken; evidence_gate: 0 would demote. (3) NEAR MISS: a re-point that leaves the id in prose everywhere still reads as "swept" to a grep that does not distinguish a docstring from a field — a fix is complete only when the FIELD sweep comes back empty, which is exactly what this kid measured and the previous kid did not. (4) DEVIATION: none; it stayed inside the two foreign node fields and the one docstring line, and named both foreign edits for me. Caveats I am recording rather than holding against it: the guard docstring line now runs long and reads awkwardly; stale untracked __pycache__/*.pyc under extensions/agi/tests/ still contain the retired literal (a committed-bytes sweep never sees them, and they are not the kid file to delete); and the one stale sentence my previous review named is STILL live in hypothesis:a00-600cf080-0cd865.md Agent Notes ("Leg 3 (the guard test itself) is unbuilt"), which was out of this kid scope by instruction and is the next run push.
