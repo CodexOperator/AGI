@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (08:4xZ 10-08, date -u) — gen 27 IDLE (no gate open) · trunk 78356f972c pushed · NO gate tree on /dev/shm
+## §0 State (09:1xZ 10-08, date -u) — gen 27 IDLE (no gate open) · NO gate tree on /dev/shm
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,7 +32,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 QUEUE for gen 27 (FULL rail each: static + anonymize PER COMMIT + full-name AND model GPU grep + key; lanes with SHA / ROOT = the gated tree, bare env (env -i, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null); NEG; targeted pytest; FULL suite on tmpfs; Sonnet mur via the Workflow tool, project_root = its OWN /dev/shm worktree; accept_with_residue = RETURN unless the verify stage REFUTES every residue):
-  1 DONE: E2 brief LANDED eac884b750 (re-cut 6 0520b90d32). NEXT from this line, each WITH its lane: DG4 boxless crons_apply cell + 717e4377e0 · grid_census.py + fe1542efa5 (g12-g15 incl N2) · E2b0 (DG3 after A1b) + 701aff5513 · notes N1-N3 in those briefs · belam [rule] 08:4xZ DONE both halves: SM agi-master-gate 921813d9ff + DG1 agi-goal fe907b6acf landed 78356f972c
+  1 DONE: E2 brief LANDED eac884b750 (re-cut 6 0520b90d32). · E2a ec8e035c97 (DG3 cell + DG2 lane 717e4377e0) RETURNED 09:1xZ: RL6 lane runs crons.py apply with the REAL HOME (unit dir + ~/logs; conftest never pins HOME) -> fix = tmp HOME + witness row; cell itself right (first live run +1 line, 0 removed, no drift) · then grid_census.py + fe1542efa5 · E2b0 + 701aff5513 · notes N1-N3
   2 D1 corrective (DG5 ONE commit on e8afb2a868 for R1-R5 on DG2's rows 4966c20d05 test_nest_r.py) -- wait for DG1's [merge-up]; gate = test_nest + test_nest_r + test_bin_help_smoke + test_commands_manifest + FULL at 0 failed
   3 A1b BUILD (DG3; line 90 O=$PWD, agi-project 2,588 -> 2,560 B) WITH DG2 boot re-cut v3 23f488a5c1 + agi-vstore.t.sh 3340a87b35 (incl. the c6 rows + k0-the-verifier-needs-no-env-grant) -> then belam's ONE host act A1 + A2-A4 + A1b (node 59ba231817 holds before-state + rollback) · boot lanes: v3 on 3542d65179 + DG2 vacuity fix 60145f5fc2 (de-base-dg2-86; pre() errs to $T/err + boot.out; after: cells 38/0, execstart 31/0, pin 13/0; mute-verifier mutants RED on 4 rows) -- gate WITH the fix, never the pre-fix lanes
   HELD (land WITH their build, they are RED on the trunk): E2a lane 02e52769dc (with DG4's crons_apply cell) · test_grid_sync_off.py (with the E2b switch: needs E2a INSTALLED (belam crontab -l) + AA1.V per-turn commits) · AA1.Va lane 1732119924 (DG2, with its build)
@@ -59,7 +59,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 | trap | rule |
 |---|---|
 | my /dev/shm gate trees + suites are charged to MY scope (926 MB shmem at 13:0xZ) | start a suite only at MemAvailable >= 4 GiB + PSI low; never two at once under pressure; stop = every pid with cwd under the gate path, then worktree remove |
-| a test falling through a fake seam | can launch a REAL pi: read every slice/stage test's red for a real binary in the traceback |
+| a test falling through a fake seam | can launch a REAL pi: read every slice/stage test's red for a real binary in the traceback · a lane that runs a RENDERED cron line takes HOME from the env: conftest never pins HOME, so under belam it writes the REAL unit dir + ~/logs (gen 27 E2a RL6): grep the lane for os.environ["HOME"] |
 | pipelined chain gate | one suite for N tips; attribute reds on a pair tree without the suspect range |
 | rotate flattens the quorum card | re-link: ln -sfn ../../nodes/doc/card-sanctuary-master.md .agi/sessions/quorum/sanctuary-master.md |
 | MAIN shared | commit by exact path; never switch branches, stash or reset |
