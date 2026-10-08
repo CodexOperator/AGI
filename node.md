@@ -1,0 +1,111 @@
+---
+id: experiment:a00-39246378-7f9700
+mint_id: cf6be10e0a584a4daee406a4524b9889
+type: experiment
+parents:
+  - hypothesis:l4-sm36-integration-residue-v3-post-merge-target-mirror-behind-check-alias-arm-plan-line-header-fields-structural-push-test-one-scope-rule
+next_edges: []
+confidence: 0.8
+edited_by: a00-53229197
+evidence_runs:
+  - experiment:a00-39246378-7f9700
+line_ceiling: 120
+loop: hypothesis:l4-sm36-integration-residue-v3-post-merge-target-mirror-behind-check-alias-arm-plan-line-header-fields-structural-push-test-one-scope-rule@s2
+model: ~deepseek/deepseek-v4-flash-latest
+probes:
+  - "gate: branches.merge_target(v3_post core/season2/posts/sensei-director/main) -> core/season2/main, v3_loop likewise, core/main and core/season2/main still self-target (ran by parent on the built bytes)"
+  - "gate: real fixture (bare origin + seat on core/season2/posts/adv-alive/main) mirror refs/agi/posts/adv-alive one commit behind HEAD -> check1 BLOCKS named unpushed commits vs refs/agi/posts/adv-alive; mirror at HEAD -> ok; no mirror -> ok/unmeasured; zero push argv issued (ran by parent)"
+production_lines: 51
+profile: balanced
+role: kid
+scaffold_hash: 7d432512f7e343ca
+season: 2
+title: A00 39246378 7f9700
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-39246378-7f9700
+
+## Experiment
+
+Slice A of the parent claim: items (1) and (2) ONLY (items (3)-(9) are
+other kids' lanes). Pre-fix state MEASURED by reading the bytes, then
+IMPLEMENTED, then proved on the built bytes.
+
+PRE-FIX (bytes, cited):
+
+* item (1) `extensions/agi/bin/branches.py` `merge_target` gated on
+  `parsed["kind"] in ("post", "loop")` only, then fell through to
+  `# A /main leaf is its own merge target. return branch`. But `parse`
+  returns `v3_post`/`v3_loop` for the live TOWN-FIRST spelling
+  (`core/season2/posts/sensei-director/main`, branches.py:552), so for a
+  real seat `merge_target` returned THE BRANCH ITSELF and `merge-up --post`
+  refused `MAIN is on <trunk>` for every live seat.
+* item (2) `extensions/agi/bin/rotate.py` `_prepare_checks` check 1 counted
+  `@{u}..HEAD`, then `origin/<branch>..HEAD`, else blocked
+  `no upstream for <branch>`. Under SM.36 no engine path advances
+  `origin/<post head>` (a post tip lives ONLY in the additive
+  `refs/agi/posts/<seat>` mirror), so a rotation read behind forever / a
+  seat hand-pushed a head.
+
+FIX:
+
+1. `merge_target`: treat `("post","v3_post")` / `("loop","v3_loop")`
+   alike. Season-first keeps `season_main` / `town_main`; a v3 record has
+   `town`+`town_season` and NO `season` key, so the trunk is derived through
+   the module's OWN tuple helper `derive_names(town, town_season)
+   ["town_season_main"]` -> `<town>/season<m>/main`, exactly the
+   town/season trunk cli.py's reshuffle names the migration target. No
+   second parse, no second hand-spelled name, no change to any `main` leaf's
+   self-target.
+2. `_prepare_checks` check 1: when `branches.mirror_ref_for_branch(branch)`
+   resolves a mirror ref, measure `mirror..HEAD` against that LOCAL ref if it
+   resolves (NO fetch -- fetch is a network write prepare must not do). A
+   mirror that does not resolve reports ok/unmeasured; it is NEVER the old
+   `no upstream` block. Trunks/unparseable branches keep the `@{u}`/origin
+   fallback byte-identical. Nothing is pushed; no origin head is advanced.
+
+TESTS (fixtures only):
+
+* `extensions/agi/tests/test_branches.py::test_merge_target_v3_town_post_and_loop_map_to_the_trunk`
+  -- v3 post and v3 loop target the derived trunk, never the branch; a
+  non-core town targets its own trunk; `core/main` / `core/season2/main`
+  leaves stay their own target; season-first spellings unchanged.
+* `extensions/agi/tests/test_rotate_prepare.py::test_prepare_check1_counts_against_the_local_mirror_ref`
+  -- a REAL fixture repo (bare origin + a repo on the v3 post spelling
+  `core/season2/posts/adv-alive/main`) with the mirror ref set locally by
+  `git update-ref`: mirror at HEAD -> ok (0 unpushed); mirror one commit
+  behind -> BLOCK named `unpushed commits vs refs/agi/posts/adv-alive`;
+  no local mirror ref -> ok/unmeasured, never `no upstream for`.
+
+Ceiling: 51 production lines (branches.py +19/-4, rotate.py +32/-7),
+measured with `git diff --numstat`; ceiling 120.
+
+## Evidence
+
+* `python3 -m pytest extensions/agi/tests/test_branches.py -q`
+  -> `72 passed in 0.40s`
+* `python3 -m pytest extensions/agi/tests/test_rotate_prepare.py -q`
+  -> `52 passed, 10 warnings in 2.77s`
+* `python3 -m pytest extensions/agi/tests/test_rotate.py -q -x`
+  -> `310 passed, 354 warnings in 39.19s`
+* `python3 -m pytest extensions/agi/tests/test_dispatch.py
+  extensions/agi/tests/test_branch_reshuffle_v3.py
+  extensions/agi/tests/test_rotate_alert_two_tree.py -q`
+  -> `181 passed, 1 xfailed, 24 warnings in 33.89s`
+* `python3` probe on the built bytes:
+  `merge_target("core/season2/posts/sensei-director/main")` ->
+  `core/season2/main`; the loop spelling likewise; `season2/posts/foo`
+  -> `season2/main`; `core/season2/main` -> itself.
+
+tier-gate printed one line on each run: `phantom running record
+.../a00-3881afe7/agent.json pid=1459751 (dead) -- skipped` -- pre-existing
+stale record, unrelated to this change.
+
+## Agent Notes
+Items (1)+(2) fixed on the bytes: branches.merge_target maps v3_post/v3_loop to the derived town/season trunk (derive_names town_season_main, core/season2/posts/X/main -> core/season2/main) instead of returning the branch; rotate._prepare_checks check 1 measures a post/loop branch against the LOCAL refs/agi/<kind>/<leaf> mirror (no fetch, no push) and reports ok/unmeasured when that ref is absent. 51 production lines of 120. Tests: test_branches.py 72 passed; test_rotate_prepare.py 52 passed; test_rotate.py 310 passed; test_dispatch + test_branch_reshuffle_v3 + test_rotate_alert_two_tree 181 passed 1 xfailed.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review SM.53 (a00-53229197), slice A. (1) INSTRUCTION: the parent node claims (1)-(2) must be built and each item tested, --delete-old DRY. (2) MECHANISM read off the kid DIFF (cd1ebdf50): branches.py merge_target now handles kind in (v3_post,v3_loop) via derive_names(town,town_season)[town_season_main]; rotate.py _prepare_checks check 1 gains an elif mirror: arm that rev-parses the LOCAL refs/agi/<kind>/<leaf> and counts mirror..HEAD, else ok/unmeasured. Parent probes on the built bytes: gate probe for merge_target (v3 post and v3 loop -> trunk; core/main and core/season2/main still self-target) and gate probe for check 1 (mirror one behind BLOCKS by name; mirror at HEAD ok; no mirror ok/unmeasured; no push argv) -- both hold, so the kid tests are not taken on trust. (3) NEAR MISS: adding v3 kinds to the ("post","loop") branch would have read parsed["season"], which a v3 record does NOT carry (KeyError) -- the kid went through the module helper instead; and a probe that only asserted v3_post != branch would have passed while a KeyError path stayed hidden. (4) DEVIATION: none; the slice kept --delete-old untouched and pushed nothing. Accepted proved; residue noted: rotate.py _prepare_merge_target (~14907) has its own kind in ("post","loop") gate that still misses v3 -- item-1-adjacent, not in the claim, carried as push_further.
+<!-- THOUGHT:END -->
