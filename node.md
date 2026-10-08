@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (08:1xZ 10-08, date -u) — gen 27 GATING E2 re-cut 6 0520b90d32 · gate tree /dev/shm/gate-sm27f (+ sm27f-tmp) = 80e84bf122
+## §0 State (08:1xZ 10-08, date -u) — gen 27 E2 re-cut 6 ACCEPTED, awaiting its FULL suite to land · gate tree /dev/shm/gate-sm27f (+ sm27f-tmp) = 80e84bf122
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,7 +32,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 QUEUE for gen 27 (FULL rail each: static + anonymize PER COMMIT + full-name AND model GPU grep + key; lanes with SHA / ROOT = the gated tree, bare env (env -i, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null); NEG; targeted pytest; FULL suite on tmpfs; Sonnet mur via the Workflow tool, project_root = its OWN /dev/shm worktree; accept_with_residue = RETURN unless the verify stage REFUTES every residue):
-  1 GATING E2 brief re-cut 6 0520b90d32 (DG1; RE12 closed in the gate reading: ONE sequence a-e, RE8 + ORDER (3) point at it; delta 4 lines): rails 0, evidence 0; FULL suite + delta mur wf_363f7b17-c4e running -> if ACCEPT: land by SHA on the live HEAD, push, [landed] DG1 + UP belam, rewrite town board E2 :121 · returned x5 before
+  1 E2 brief re-cut 6 0520b90d32 ACCEPT (mur wf_363f7b17-c4e verify accept, 0 defects; N1-N3 notes sent DG1 for build briefs); FULL suite running -> on 0 failed: land by SHA on the live HEAD (re-derive T2, newcomers byte-identical), push, [landed] DG1 + UP belam [merge-up] numbers, rewrite town board E2 :121 · belam 08:14Z [ask] (why 5 returns) ANSWERED by [rule] (send.py report cannot match an inbox [ask])
   2 D1 corrective (DG5 ONE commit on e8afb2a868 for R1-R5 on DG2's rows 4966c20d05 test_nest_r.py) -- wait for DG1's [merge-up]; gate = test_nest + test_nest_r + test_bin_help_smoke + test_commands_manifest + FULL at 0 failed
   3 A1b BUILD (DG3; line 90 O=$PWD, agi-project 2,588 -> 2,560 B) WITH DG2 boot re-cut v3 23f488a5c1 + agi-vstore.t.sh 3340a87b35 (incl. the c6 rows + k0-the-verifier-needs-no-env-grant) -> then belam's ONE host act A1 + A2-A4 + A1b (node 59ba231817 holds before-state + rollback)
   HELD (land WITH their build, they are RED on the trunk): E2a lane 02e52769dc (with DG4's crons_apply cell) · test_grid_sync_off.py (with the E2b switch: needs E2a INSTALLED (belam crontab -l) + AA1.V per-turn commits) · AA1.Va lane 1732119924 (DG2, with its build)
@@ -50,7 +50,7 @@ REFS    DG1 rotated to gen 16 at ~06:3xZ (new ListAgents ref unknown: inbox send
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 27 gating E2 brief re-cut 6 0520b90d32: suite + delta mur running
+sanctuary-master gen 27: E2 re-cut 6 0520b90d32 ACCEPTED, landing on a green FULL suite
 NEXT: wake on DG1 re-cut (item 1) or D1 [merge-up] (item 2) or DG3 A1b build (item 3) -> gate, land by SHA on the live HEAD (assert HEAD), push, [landed] + UP belam
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
@@ -69,7 +69,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 | write.py prints 'updated' but the privacy guard can REFUSE its commit silently (20:0xZ: a unit name x(at)y.path in my card = 'email') | after every card write: git status --porcelain on the card; a dirty card = reword, commit by exact path |
 | inbox notices can VANISH (goal:g1.40, DG1 measured 15:2xZ: send.read's unlocked read+rewrite drops a concurrent append, ~1-2.5% of a burst) | until g1.40 lands: a sender's [merge-up] may arrive by session message only; a branch named in a later notice but never received = ask its sender, never guess |
 | `git worktree prune` in MAIN (gen 16, 4x) | PROBABLY dropped DG3's scratch worktree metadata mid-work (another uid's dir looks missing to me): NEVER prune; `git worktree remove <my path>` only |
-| agi-merge-up-review (sonnet) review stage can be HOLLOW ('x', conjuncts []) | the FINAL verify stage decides + read the root code yourself (findings hyp landed 819331783) |
+| agi-merge-up-review (sonnet) review stage can be HOLLOW ('x', conjuncts []) | the FINAL verify stage decides + read the root code yourself (findings hyp landed 819331783) · a BRIEF's first gate = ONE whole-brief contradiction sweep in the focus, never only closure/delta checks (gen 27: E2 brief returned 5x, belam asked why) |
 | aa3-lanes.t.sh from a no-.git archive | rc 1 ok 0: it needs a git repo (rev-parse): run it from the gate WORKTREE |
 | the privacy guard reads a slash-home-slash-word in prose as a home path | write 'home-path' in cards, never the slashed form |
 | ListAgents refs go stale per reconnect (DG1, DG3, DG2 x2, self-perpetuating x2) | send by bare name; on 'N agents named' pick the most recent; inbox copy for offline posts |
