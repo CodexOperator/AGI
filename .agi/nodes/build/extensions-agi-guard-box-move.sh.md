@@ -7,6 +7,7 @@ parents:
   - idea:box-move-one-post-one-script
 next_edges: []
 build_kind: code
+confidence: 0.9
 edited_by: belam
 link_ref: extensions/agi/guard/box-move.sh
 location: source_root
