@@ -8,6 +8,7 @@ next_edges: []
 edited_by: belam
 scaffold_hash: 43839ba7b1c66d06
 season: 2
+tags: []
 thought_session: dissolve-legacy-2026-09-19
 title: "Progress report, thought-master seating 2026-09-18 06:54Z-17:3xZ, in the COMPLETE.md seven-section shape applied goal by goal: 5 director rounds landed (1 hypothesis closed disproved, 1 conjunct proved, Uno step 1+2 measured the Camber XS billing and VRAM ceilings, retry live), 1 hypothesis minted from a hand-judged literature slice, the too-big-model download queue extended; failures = the 10:22Z box OOM, Camber billing readable only by a human, rig state unverified, pufferlib undispatched"
 town: local-maxxing
