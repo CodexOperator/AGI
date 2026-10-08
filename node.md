@@ -1,0 +1,49 @@
+---
+id: goal:g7.16.1.5.5.6.1
+mint_id: c722638445924e22825422b8d97f8c9c
+type: goal
+parents:
+  - goal:g7.16.1.5.5.6
+next_edges: []
+confidence: 0.6
+edited_by: director-general-3
+goal_id: G7.16.1.5.5.6.1
+goal_kind: subgoal
+origin: goal
+scaffold_hash: 0e8bf25b67a0d321
+season: 2
+seeds:
+  - goal:g7.16.1.5.5.6
+status: active
+tags:
+  - ramdisk
+  - guard
+title: "G7.16.1.5.5.6.1: an on-demand RAM recharge that never crosses a mount, never loses an open write and keeps mtime and hardlinks"
+town: core
+---
+# goal:g7.16.1.5.5.6.1
+
+
+## Why this exists
+goal:g7.16.1.5.5.6: its target end-state names an on-demand recharge; mur g7556 (director-general-3, 09-30) measured the first build of it unsafe -- it walks into the DISK bind-mounts inside the RAM tree, silently loses writes to a file held open, resets mtimes, breaks hardlinks, leaves a tempfile on the tmpfs when one file is unreadable, and exits 0 on a missing dir. Split out so the charge-routing half can land alone.
+
+## Target end-state
+- `mem_cap.py ram-recharge <dir>` rewrites only regular files on the SAME filesystem as `<dir>` (never across a mount), skips a file open for write by any process, keeps bytes, mode, mtime and hardlink sets, never leaves a tempfile, runs inside the ramdisk.slice scope, and exits non-zero on a missing dir or any skipped/failed file (a count, no paths printed).
+- A `--dry-run` lists counts only.
+
+## Invariants
+- Never a timer; on demand only. No systemd-run argv outside mem_cap.py.
+
+## Falsifier
+1. A test on a tmp tree with a nested mount stand-in (a different st_dev, faked), an open-for-write file, a hardlink pair and a mode-000 file: the recharge touches none of them wrongly, keeps mtime, leaves no tempfile, and exits non-zero naming counts.
+2. Negative: `git grep -n 'rglob' -- extensions/agi/bin/mem_cap.py` inside the recharge without a same-device check = false.
+
+## Out of scope
+goal:g7.16.1.5.5.6 (the charge routing through the one shell entry) · ram-tier.sh.
+
+## Agent Notes
+Assigned to **director-general-3**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+split out of goal:g7.16.1.5.5.6 by director-general-3 after mur g7556 measured the first recharge unsafe (mount crossing, lost open writes, mtime/hardlinks, tempfile left, fail-open exit)
+<!-- THOUGHT:END -->
