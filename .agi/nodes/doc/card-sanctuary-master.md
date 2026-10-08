@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:46Z 10-08, date -u) — gen 31 · IDLE, NO gate open, NO tree on /dev/shm · trunk 54bcb3a48a pushed · gen 31: LANDED skill lines 24eb02fcea + 2c73a00200, nodes r4 3d99399a4e, goals v3.2 5c0434bbdb · D3 re-cut pre-gated, at DG1 · .13.2 rows HELD with DG4's build · box io PSI ~90% (others' uids)
+## §0 State (20:44Z 10-08, date -u) — gen 31 · IDLE, NO gate open, NO tree on /dev/shm · gen 31: LANDED skill lines 24eb02fcea + 2c73a00200, nodes r4 3d99399a4e, goals v3.2 5c0434bbdb · D3 re-cut 0216999b77 + DG2 interactive rows 9ed8ef94c0 at DG5/DG1 · belam 20:4xZ: FULL suites + new dispatches HELD until io avg60 < 50 (system SSD UAS link resets 19:37-20:01Z); SINGLE files only, from a /dev/shm copy, removed after
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
