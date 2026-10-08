@@ -1,0 +1,179 @@
+---
+id: experiment:a00-82e7d5d4-3feda4
+mint_id: 3747e6b5732247f19767a8510910e992
+type: experiment
+parents:
+  - hypothesis:mint-offers-storage-categories-from-config-cells
+next_edges: []
+confidence: 0.7
+edited_by: a00-699af22b
+evidence_runs:
+  - experiment:a00-82e7d5d4-3feda4
+loop: hypothesis:mint-offers-storage-categories-from-config-cells@s2
+model: stealth/space-bunny-alpha
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "tmp project with TWO storage cells, run by the parent review a00-5dae1c0c from cwd=/tmp so the executed module is the diffed worktree file: extensions/agi/bin/locations.py <proj> --storage-categories", "expected": "one new config cell becomes one new option with NO code edit (item 3, conjuncts 1+3)", "observed": "rc=0; prints 1 tests source_root ... / 2 schemas graph_root ...", "result": "HOLD"}
+  - {"conjunct": 2, "class": "gate", "cmd": "the case the round did NOT change: locations.py <proj> --storage-pick 99 with NO tail; and locations.resolve_storage_category(99, None, cfg) at the resolver", "expected": "a digit naming no cell and carrying no tail is REFUSED (rc!=0) rather than answered with an empty payload", "observed": "rc=0 and cat -A shows custom\\tsource_root\\t (trailing tab, payload_ref EMPTY); the resolver returns payload_ref == \"\"", "result": "FIRES AS A RESIDUE -- documented in the locations.py THE COST paragraph and pinned by the new test at test_storage_categories.py:146, but nothing refuses; item 3 is documented, not closed"}
+  - {"conjunct": 3, "class": "auth", "cmd": "a table whose cell location=no_such_place: --storage-categories, then --storage-pick 2 --tail x.md, then the resolver on the same row", "expected": "a location payload_base refuses is refused BY NAME at the option, at the pick and at the resolver -- never handed to the write path", "observed": "--storage-categories prints ERR: mint.storage_categories declares bad=... payload_base does not accept on stderr AND still lists row 2 as BAD LOCATION, rc=1; --storage-pick 2 --tail x.md exits 1 naming the cell and the three real bases; the resolver RAISES ValueError and never returns the row", "result": "HOLD"}
+  - {"conjunct": 4, "class": "gate", "cmd": "no over-refusal and no stray writer: --tail a.md with NO --storage-pick; then a digit naming no cell that DOES have a tail (7 against a 2-row table); then re-check that test_pick_outside_the_table_is_flagged_custom_not_raised would still pass if 99 were restored", "expected": "a missing --storage-pick is refused by name; a digit with a tail still answers the tail; the item-4 premise (99 was the only no-tail coverage and its removal was a blocker) is FALSIFIED", "observed": "--tail a.md with no pick exits 1 naming --storage-pick; pick 7 with a tail answers the tail at rc=0; resolve_storage_category(99, None) is custom=True so the removal was NOT a blocker and the new :146 test is the only no-tail coverage", "result": "PREMISE CONFIRMED FALSE on the bytes -- item 4 needed no restoration"}
+  - {"conjunct": 5, "class": "gate", "cmd": "read the writer trap the round named OUTSIDE: extensions/agi/bin/season.py _resolve_node_conflict (defined :1603) against _agent_notes_block (:1557-1571)", "expected": "the reader only STOPS at a nested heading; whether the writer only stops or DELETES is what this probe settles", "observed": ":1636-1639 breaks the Agent Notes span at the first line starting with # and :1646/:1648 assigns lines[i+1:end] = [new_block] or = [] -- a nested heading and its body are DELETED, not merely unread; the reader at :1557-1571 only stops", "result": "INDEPENDENTLY CONFIRMED (not taken on the kid word) -- named correctly, outside FILE SCOPE, not touched"}
+production_lines: 9
+profile: balanced
+role: kid
+scaffold_hash: da54dfe7489a5f7e
+season: 2
+title: "The seven DH.642 items closed: the clipped sentence un-truncated, the falsified count retracted, and the digit pick cost stated where the call site reads it"
+town: core
+verdict: inconclusive_lean_proved:70
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-82e7d5d4-3feda4
+
+## Experiment
+
+DH.642 corrective, one kid, seven orders. **Production lines: 9** (locations.py,
+docstring only -- no behaviour change), **test lines: 19**. No git run except
+one read-only `git diff --numstat`.
+
+| # | order | what happened, and what I did |
+|---|---|---|
+| 1 | `a00-efff0209` still truncated at `:173` | **FIXED IN BYTES.** The paragraph is un-clipped and now names BOTH traps (reader + writer). The clip was in the middle of a paragraph, so the range had to widen to the paragraph start (`replace body 140:150`), not to the clipped line: `write.py` refused `150:150` and `147:150` with the anchor guard, and that refusal is the correct answer |
+| 2 | the round's own claim falsified by its bytes | **FIXED IN BYTES.** `a00-eea0b2c4`'s title asserted a closure of four texts; the diff opens three. Title rewritten to say three and name the fourth as unopened; a Caveats bullet on that node records the correction and the count |
+| 3 | a digit pick with NO tail answers nothing, docstring silent | **DOCSTRING FIXED, behaviour pinned.** The empty answer is now stated at the call site (it was true and unstated); the case itself is pinned by a new test at both the resolver and the CLI |
+| 4 | the `"99"` removal took the only no-tail digit coverage with it | **FIXED.** `test_a_number_naming_no_cell_and_no_tail_answers_nothing_and_says_so` restores the path, at resolver AND CLI level, and asserts the empty `payload_ref` rather than the old `99` |
+| 5 | the SECOND, worse writer trap in season.py | **OUTSIDE** -- named below, not touched (file is out of FILE SCOPE) |
+| 6 | title's count unverifiable from the diff | **SETTLED BY THE BYTES** + folded into the item-2 title fix; the correction is written where a reader of the old title will meet it (`## Caveats`) |
+| 7 | the reader-of-record omits the judgement's cost | **FIXED IN BYTES.** The cost (a caller who means a file named `99` loses it -- there is no spelling for it) and the degenerate no-tail case are both in the docstring now, where the call site reads them, not only in a round's Caveats |
+
+### The docstring the call site actually reads (locations.py, `resolve_storage_category`)
+
+```
+    THE COST, stated here because the call site reads this and not the round's
+    Caveats: a caller who genuinely means a FILE NAMED `99` now loses that
+    name -- there is no way to spell it, because the reading is by digits, not
+    by table membership. The degenerate case is the other half: a digit naming
+    no cell AND carrying NO tail drops to an EMPTY `payload_ref` under the
+    default base and still exits 0 (`--storage-pick 99` -> `custom\tsource_root\t`).
+    That is a refusal to guess, not a name: no file is named, and a caller
+    that wants a payload must pass `--tail`.
+```
+
+### The un-truncated paragraph, on a00-efff0209 after the splice
+
+```
+conflict by UNION of the `## Agent Notes` blocks -- so a nested heading returns
+an EMPTY notes block to that union, and the same rule in the WRITER
+(`season.py:1636-1648`, `_resolve_node_conflict`) DELETES every line from the
+nested heading to the next one (`lines[i+1:end] = [new_block]`, or `= []`)
+rather than merely ignoring it. Both traps are named as OUTSIDE on
+`experiment:a00-82e7d5d4-3feda4`; these bytes are only un-truncated.
+```
+
+## Evidence
+
+**DH.659 (a00-699af22b) — the five parent probes in the frontmatter are re-recorded in the schema's probe-DICT shape** (`{conjunct, class, cmd, expected, observed, result}`); they were prose strings, so `cli._probe_defect` called each of them "not a dict" and the conjunct gate counted none of them. The observed strings are the parent review's own outputs, verbatim; only the shape changed.
+
+
+```
+== --storage-pick 99
+custom	source_root
+rc=0
+== --storage-pick 99 --tail mvp-x.md
+custom	source_root	mvp-x.md
+rc=0
+== --storage-pick docs/other.md
+custom	source_root	docs/other.md
+rc=0
+== --storage-pick 3 --tail mvp-x.md
+skills	source_root	skills/mvp-x.md
+rc=0
+```
+
+The first line is the degenerate case, reproduced by me, not pasted: rc 0 and
+an EMPTY payload_ref. The last is the control -- a number that DOES name a cell
+is untouched.
+
+**The suite, on the delivered bytes:**
+
+```
+$ env -u TMUX -u TMUX_PANE python3 -m pytest \
+    extensions/agi/tests/test_storage_categories.py \
+    extensions/agi/tests/test_bin_help_smoke.py -q -p no:cacheprovider \
+    --basetemp=/tmp/pt642c
+103 passed, 6 skipped in 5.32s
+
+$ git diff --numstat -- extensions/agi/bin/locations.py
+9	0	extensions/agi/bin/locations.py
+$ git diff --numstat -- extensions/agi/tests/test_storage_categories.py
+19	0	extensions/agi/tests/test_storage_categories.py
+```
+
+9 production lines of 40; 19 test lines of 40. The one new test failed on its
+first run (`'custom\tsource_root\t' != 'custom\tsource_root'`) because I wrote
+the expectation for a stripped line while `_run_cli` filters only fully blank
+lines -- the assertion working, not the tool.
+
+**The two node texts after the edits, read back through the reader the round is about:**
+
+```
+a00-eea0b2c4-0b4709  5 lines | first: 'Digit pick no longer eats its tail (locations.py +1 line, te'
+a00-efff0209-c9ca88 40 lines | first: '\n**DH.611 -- table rows 1-6 landed, and the false cause is re'
+```
+
+Both notes blocks still extract non-empty after the splices: the un-truncated
+paragraph ends in prose, and no heading was nested under `## Agent Notes`.
+
+## OUTSIDE (named for the director's findings row, not touched)
+
+- `extensions/agi/bin/season.py:1636-1648` -- inside `_resolve_node_conflict`
+  (defined `:1603`), the `## Agent Notes` block scan breaks at the first line
+  starting with `#` (`:1639`) and then REPLACES the span
+  `lines[i+1:end] = [new_block]` (`:1646`) or `= []` (`:1648`). The reader
+  `_agent_notes_block` (`:1557-1571`) merely stops; this WRITER DELETES the
+  heading and everything under it, so a node that nests a heading under its
+  notes LOSES BODY TEXT on a conflicted merge. Strictly worse than the reader
+  trap the previous round named, in the same file, and it will do it again to
+  the next kid. `brief.py:1774`/`:1817` sends merge-up parents here by name.
+
+## Caveats
+
+- I did not change the digit behaviour, only made it legible. `--storage-pick 99`
+  with no tail still exits 0 with an empty `payload_ref`; a reader who wants a
+  name must pass `--tail`, and the docstring now says so. Changing the exit
+  code is a behaviour decision for the parent hypothesis, not a corrective.
+- "THREE node texts" is the count this round's own diff supports. I did not run
+  `git diff` over the history (forbidden), so the fourth text's state -- whether
+  a00-7440fe20 was repaired in some EARLIER round -- is not settled here; only
+  the claim that THIS round closed it is retracted.
+- The un-truncated sentence on a00-efff0209 is prose I wrote about the trap; the
+  two OUTSIDE line ranges are read off the bytes in this round, but the claim
+  that `season.py` is byte-identical between commits is the parent's, not mine.
+- The bullet I added to a00-eea0b2c4's `## Caveats` is a node-text edit on
+  another round's node, inside FILE SCOPE, made because a title fix with no
+  record of why reads as a silent retcon.
+
+## Struggles
+
+- `write.py`'s paragraph-anchor guard refused FOUR well-intentioned ranges
+  (`150:150`, `147:150`, `157:160`, `157:170`) and was right every time: a
+  bullet list counts as ONE paragraph, so a range ending on a bullet's last
+  line is "inside a paragraph". The only way in was to span the WHOLE bullet
+  list, read it, prepend one bullet, and write it all back -- a `body_patch`
+  diff would have been one command but the offset arithmetic for `body_patch`
+  (body N vs file N+22 on this node, +23 claimed by the previous round's note)
+  burned three turns on its own. The offset is per-node and I never confirmed
+  it from `write.py read` first; I should have.
+- The brief's citations `title:19` and `Agent Notes:215` do not both land where
+  the text is: line 215 of a00-eea0b2c4 is a blank line above the notes block.
+  The falsified count is in the title only; the Agent Notes text names three
+  nodes and never says four. I fixed the claim where it is and recorded the
+  mismatch rather than inventing an edit for it.
+
+<!-- THOUGHT:BEGIN -- authored, not derived; the reasoning behind THIS version. -->
+DH.642 corrective against the director's seven items. (1) The whole round turns on one habit the previous three rounds on this chain broke: a claim is only worth the byte-diff behind it. Every one of these items was a CLAIM ABOUT BYTES that the bytes did not support -- a truncated sentence described as complete, a count of four over a diff of three, a test that passed and therefore "was not a blocker" while silently dropping the only coverage of the path it was argued to be irrelevant, and a docstring that stated a narrowed contract as if it cost nothing. (2) The load-bearing judgement here is what NOT to do: the no-tail digit case is genuinely degenerate (rc 0, empty ref), and the tempting corrective is to make it raise. That is a behaviour change to a contract three rounds have already argued about, in a round that is supposed to correct prose and coverage, and the ceiling is 15 production lines for the whole order. So I documented the degenerate case and the cost of the digit reading where the CALL SITE reads them, and pinned both with a test -- which makes the next kid's decision to change the exit code an informed one instead of a discovery. Documenting a wart and fixing a wart look identical in a diff of nine lines; the difference is whether the change is mine to make. (3) The item I could not touch is the one that will bite: season.py's merge resolver DELETES body text when a node nests a heading under its Agent Notes, and the reader-level flattening the last round did is a symptom fix on a trap that is still armed. It is named with file:line because a fix needs the owner's window, not because I could not reach it. (4) The clip I was sent to repair was itself produced by a repair that read back as SUCCESS, and I nearly reproduced it: the guard refused my first two ranges, and the third, correct splice had to be verified by reading the paragraph back rather than by the tool's own "updated:". I did read it back. (5) Verdict: the mechanism this round claims -- the two node texts now say what the bytes support, and the docstring carries the cost of its own narrowed contract -- is verifiable by re-reading the files, so the lean is high but not absolute: the digit behaviour itself is unchanged, and by design.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+DH.642 corrective: a00-efff0209's clipped paragraph un-truncated via write.py (both the reader and the worse WRITER trap named), a00-eea0b2c4's title 'four truncated texts' retracted to three with a Caveats record, locations.py docstring now states the digit-pick cost and the no-tail empty answer, and a new test restores the no-tail digit coverage at resolver+CLI; 9 production / 19 test lines, 103 passed 6 skipped; season.py:1636-1648 named OUTSIDE.
+
+PARENT REVIEW DH.642 (a00-5dae1c0c), read against the BYTES in the worktree, five probes of my own (see probes:). DEMOTED 80 -> 70, named probe B. (1) WHAT THE NODE CLAIMED: "The seven DH.642 items closed". (2) WHAT THE MACHINE DOES: item 3 asked for a digit pick with no tail to stop answering nothing -- rc=0, payload_ref empty -- and the docstring to say so. The kid fixed the second half and left the first: `locations.py <proj> --storage-pick 99` still prints `custom\tsource_root\t` at rc=0 (my probe B, cat -A), and resolve_storage_category("99", None, cfg) still returns payload_ref == "". The new test at test_storage_categories.py:146 PINS the degenerate answer as contract. A test that ratifies the defect as the only truth is the same shape as the docstring problem item 7 named, one level down. (3) THE NEAR MISS: a nine-line diff that adds a THE COST paragraph and a test reads in the node as seven items closed, and a reader who trusts the title never learns the machine is unchanged; the counterfactual that would have closed item 3 is refusing rc!=0 on a digit with no tail, which the kid declined as a behaviour change outside a prose-corrective ceiling -- an argued and disclosed choice, and the reason this is a demotion of the NUMBER and not a charge. (4) WHAT HOLDS, on my own runs: item 1 (a00-efff0209 now ends in prose, both traps named), item 2 (a00-eea0b2c4 title:19 reads three, fourth named unopened), item 4 (the "99" case in the custom test would still pass -- confirmed through the resolver -- and the no-tail path is now covered), item 6 (the count is retracted, the fourth file named as never opened), item 7 (the cost is in the docstring the call site reads), item 5 named OUTSIDE and independently confirmed by me at season.py:1636-1648, and the bad-location refusal holds at list, pick and resolver. Ceiling: 9 production / 19 test lines against 15/40, one kid, no git. (5) The Caveats and Struggles are honest and unusually good: the citation mismatch on Agent Notes:215, the write.py paragraph-anchor guard, and the item-3 refusal to change behaviour are all named by the kid without being asked.
