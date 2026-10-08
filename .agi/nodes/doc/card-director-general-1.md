@@ -26,22 +26,21 @@ town: core
 | roles | DG1 = goals + nodes + merge-ups + JUDGING every return by RUNNING it at the sha; DG2 = falsifier lanes (test-only); DG3 = the only live builder (line 0.49, cannot rotate); DG4 + DG5 BACK 16:2xZ (belam re-placed): DG4 = agi-at row, DG5 = read-only .t.sh sweep; SM gates + lands |
 | scratch | `git -C /data/work/agi worktree add --detach $S/x SHA`, remove from a cwd OUTSIDE it; pytest needs `PYTHONPATH=<an older scratchpad>/pt` (this gen's S has none; /tmp/claude-978/.../3c9050af-.../scratchpad/pt works); lanes bare `env -i PATH=/usr/bin:/bin:/usr/local/bin HOME=/tmp GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null ROOT=<wt> sh X.t.sh`. Old tools in /tmp/claude-978/-var-lib-agi-director-general-1-t/3c9050af-3b97-4b8e-b12b-b657de711872/scratchpad: race3.sh, re_probe.py, gfz.py, fz.py (census fuzz), fuzz.py |
 
-## §1 Plan — what is where (trunk 94a2ccbcda + D3 assign 42f52a3db1 landed by SM)
+## §1 Plan — what is where (trunk ec48b36c48 at 17:58Z)
 ```
-LANDED (SM): E2b0 v8 014209084b (inert until the flip) · D3 assign 42f52a3db1 · boot leaf · lane B v5 · D1 nest · metrics gold
-AT SM (my merge-ups): WRITER LIST v3 049bafe09b (branch dg1-e2-sweep5, six pinned greps, nodes only) · GOALS .13.1 + .13.2 09c7909d4c (dg1-e2b1-goal) · SCANNER ROWS 86301d4cf6 (DG2, 8 rows, RUN by me 8/0 with the v3 node)
-RETURNED 17:24Z by SM (re-cut ordered 17:3xZ, I reproduced R1/R2 on the pieces with a real signer):
-  AA1.V v4 7c713dd4af -> v5: R1 EDIT LOST (agi-turn add unchecked + $p unquoted, absent payload; live case build:tests-test-render-context's test_inject.py) · R2 agi-wt lost set -e · R3 .b = $c · R4 flush lost the trunk merge (my ruling: CAS merge onto posts/P, or DG3 shows a root-side DOWN dart + a row) · R5 low named. ONE RULE: no rm -rf unless the turn proved its commit. Rail 8,190/8,192.
-  CENSUS v8 1430fe5764 -> v9: C-R1 strict UTF-8 on live_nodes paths (grid_census.py:134) · C-R2 drop P1/P3/P4 flags, keep ONE boolean P2 (rows g42 re-cut, `any` equivalent) · C-R3 wording (legacy refs parse, no-grid-ref counted)
-ORDERS OUT: DG2 rows (A) AA1.V v5 then (B) census v9 + goal .13.1 rows (flip successors) + .13.2 rows (G-FRZ); DG3 builds v5, v9, then .13.1 (evidence_enforce + town_mirror) and the .12 key ExecStartPre; DG4 key LANE (goal .12, one-box half) then builds .13.2; DG5 D3 build against DG2's d74b3d9514 (I ran: 24F/4P on the base)
+LANDED (SM): E2b0 v8 · D3 assign · boot leaf · lane B v5 · D1 nest · metrics gold
+AT SM, all mine, all nodes/tests only: WRITER LIST v4 4f07249ab4 (dg1-e2-sweep6; C1-C8 pinned, SM WL-1..3 done) · GOALS .13.1/.13.2 v2 6a19088e08 (dg1-e2b1-goal2; G-1..G-5) · KEY CHAIN nodes 34af2007ab (experiment + verdict proved, dg1-aa2-key-chain) · hypothesis note cb11d1526d + DG4 key rows bb574d935d (gate open) · SCANNER rows 86301d4cf6 (DG2 re-cut ordered: strip line numbers, C1-C8)
+AA1.V v5 (v4 7c713dd4af returned): DG2 rows d44c06062c RUN by me (44 ok/19 FAIL on v4, polkit 0 FAIL); DG3 builds (CAS merge in flush = the DOWN dart charged to AA1.V, belam (a); .p one path per line, --pathspec-from-file; no rm -rf unless the turn proved its commit; rail 8,191/8,192, no row moves out; agi-at [raced] label = named limit)
+CENSUS: belam 17:4xZ asks if it gates the flip; I answered NO (recommend advisory/drop; the only GRID-ONLY node is goal:g7.16.1.5.2's 2-line note in refs/grid 166b70d5ac) and HOLD v9 until belam says build/drop. v8 1430fe5764 stays RETURNED, un-landed
+.13.1 (evidence_enforce + town_mirror; DG2 rows c3a114bd3a + G-4/G-5 update, DG3 builds) · .13.2 (strict veto reads, SIX sites, ImportError=HELD; DG2 rows, DG4 builds) · D3 goal .22 (DG5 build ba14f648ae; DG2 cache/season/--verify rows, then DG5's new commit; inject.py OUT of scope)
 ```
-- **belam rulings 17:1xZ**: evidence gate = (A) cron job `evidence_enforce` + `town_mirror` in goal:g7.16.1.11.13.1, the flip waits for both landed · G-FRZ fail-closed (goal .13.2, five sites rotate.py:9520 :9644 :10832 :19208 :19616) · .12 lanes GO · D3 with DG5 · census path agreed.
-- **After each return**: RUN at the sha (lanes bare, mutants of the REAL piece, my probe: $S/probe_r1.keep is the missing-payload probe, race3.sh the racer probe, pieces extracted by regex from engine-post.md), a lane gap -> DG2 BEFORE the forward, then ONE [merge-up] to SM. AA1.V v5 also needs: ALL .t.sh vs trunk (DG5 can do it again), rail count by engine-sizes.t.sh.
-- **After E2b0 + census + .13.1 LAND**: mint census build nodes (level3.py --mint-missing-only writes 360 files: keep ONLY grid_census/test_grid_census), cut the FLIP brief (plain literal `enabled: false` on the grid_sync child; check grid_retired(MAIN) True on host python); belam applies.
+- **belam rulings 17:4xZ**: (a) ONLY the DOWN dart, cut only if net <= 0 (the flush merge is that) · (b) key chain closed (done) · (c) census question answered, v9 held · .12 other hypotheses (lap, tier, K1, stores, ladder) = season 3, NOT cut.
+- **After each return**: RUN at the sha (lanes bare, mutants of the REAL piece, probes: $S/probe_r1.keep, race3.sh, pieces by regex from engine-post.md), a lane gap -> DG2 BEFORE the forward, then ONE [merge-up] to SM. Reproduce every residue on the bytes before ordering.
+- **Flip prerequisites left**: .13.1 landed (rows+build) only; then FLIP brief (plain literal `enabled: false`; belam applies). Mint census build nodes only if census lands.
 
 ## 🔴 Where it stops + the exact next command
-DG1 gen 18: AA1.V v5 + census v9 + .13.1 + .13.2 + .12 key lane + D3 build all ordered; waiting on DG2's rows (A then B), DG4's key lane, DG5's D3 return, SM's verdict on list v3 + goals + scanner rows
-FIRST ACT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1` (mail after ts 2026-10-08T17:24:45Z). THEN as the bullets above. Never run a host act; never invent goals.
+DG1 gen 18: everything ordered; waiting on DG2 (scanner re-cut, .13.1 rows update, .13.2 rows, D3 cache rows), DG3 (AA1.V v5 build, .13.1 build), DG4 (.13.2 build), DG5 (D3 new commit), SM (verdicts on list v4, goals v2, key chain, key lane, scanner, D3)
+FIRST ACT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1` (mail after ts 2026-10-08T17:55:49Z). THEN as the bullets above. Never run a host act; never invent goals.
 
 ## §4 Traps
 | trap | rule |
