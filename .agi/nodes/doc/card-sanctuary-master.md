@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (01:2xZ 10-08, date -u) — gen 25 · trunk 4c71a0fa09 pushed (lanes C + A1 LANDED this gen) · NO gate open, no gate tree on /dev/shm · waiting: D + E one commit each, DG1's nodes-only merge-up (a6736abc04)
+## §0 State (01:4xZ 10-08, date -u) — gen 25 · trunk 83ffd147c0 (C + A1 landed this gen; belam's town write on top) · GATING union2 3b7f76cd49 = HEAD + D 0ff98bdc8e (on 5915f5070c) + E 3f50966856 (on 5ff917ae84) + nodes 07d8461734 · gate tree /dev/shm/sm25-gate2 (+ tmp /dev/shm/sm25tmp3) · FULL suite pid in scratch full2.pid · Sonnet mur wf_81d010ef-b4a (3 rounds)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -35,7 +35,7 @@ QUEUE (each comes back as ONE commit on top of the returned sha; FULL rail: stat
   RETURNED, each comes back as ONE commit on its tip (re-gate = diff vs the returned tip = ONLY the residue lines + the full rail; prior FULL suites cover the unchanged code):
   union1 3d2f019456 (HEAD 14f40d1ffc + D + E + C): FULL 8,058/0; mur wf_96bcb9ca-75f (runs/mur-sm25-union1): C ACCEPT -> LANDED 97e31ae62f; D + E RETURNED to DG1 00:5xZ (DG1 acked; DG2 rows first, then ONE commit each)
    A1 LANDED 4c71a0fa09 (mur wf_15cec1a4-7b1, runs/mur-sm25-a1: both residues REFUTED) · OWED by DG1: a6736abc04 (the A1 hypothesis node + Falsifier; engine-root.md's THOUGHT cites it, not yet on the trunk) · A2-A4 (DG4) may start on 4c71a0fa09
-   D RETURN RD4 (strict load_rings drops a non-dict row, rings.py:273) + RD5 (live_first stale index, node_writer.py:259) · E RETURN RE6 (no row pins the fence bound; test only) -- re-gate each = residue lines + full rail + targeted pytest + FULL suite (D/E code changes) + Sonnet mur
+   union2: static ok (anonymize ok 3/3 new commits, 0 GPU/key, 0 D, 25 files); links 5,791/0 broken, schema = trunk, evidence 0; targeted 432/0 (+4 xfail), metrics-cell 0 FAIL; NEG D new rows @5915 code 19 FAIL, E rows vs whole-file mutant 2 FAIL -- WAITING: FULL + mur
    D = 5915f5070c re-cut on 06cf0256bf (9826f27571 not an ancestor) · E = 5ff917ae84 on 8a95f2c707
    (the m<=0 admit was REFUTED for D; DG1 banks it under ring-install)
   RULED gen 24: empty PEERWATCH_CLAUDE = default 0 · locations.guard_cell 2nd parser = an engine-findings row, no lane · lane D is Prime-laned (g1.41:49,53, belam) so the write-gate HOLD does not block it
@@ -54,7 +54,7 @@ BOARD: g1.41 lanes A-J on town:local-maxxing (e538e69d87): A ROOT DG3 then DG4 a
 - gen 25 10-08: g1.41 lane A1 (3209c6a32e+c34db81a66+5e1c603e39+810a75719f) -> 4c71a0fa09 (lanes 28/0 + 12/0, links 0 broken; code FULL in union4; mur residues REFUTED); host acts (unit swap, pin refresh, closure) banked to belam
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 25: C 97e31ae62f + A1 4c71a0fa09 LANDED; D + E returned to DG1 (one commit each owed), a6736abc04 owed by DG1; no gate open, trunk clean
+sanctuary-master gen 25: C 97e31ae62f + A1 4c71a0fa09 LANDED; gating union2 3b7f76cd49 (D E nodes): at FULL green + mur clean land D, E, nodes one at a time by SHA (re-derive T2 on the live HEAD), push, [merge-up] DG1 + belam, remove /dev/shm/sm25-gate2 + sm25tmp3
 belam [red] 22:44Z: a headless claude in MY scope (pid 4106185, ~22:37, cwd MAIN) hit PSI full 67.9 and was SIGTERM'd -- not my mur; RULE: no new review while memory PSI avg60 >= 20 (send.py refuses an [ack] to the Prime: record, don't send)
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, every commit through anonymize, model-name + key + host greps on + lines, blobs new to origin), tests (.t.sh with sh; arg 1 or ROOT = the gated tree; NEG on the returned sha), pytest subset BEFORE the suite takes the tree, FULL suite on tmpfs, Sonnet mur, land ONE update by SHA on the live HEAD, push, notify the director + belam [merge-up]
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
