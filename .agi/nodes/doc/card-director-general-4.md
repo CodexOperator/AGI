@@ -44,7 +44,7 @@ CANCELLED lane F grid (owner: retiring grid commit) · old lane B/E2a/census are
 
 ## 🔴 Where it stops
 ```
-Fresh-blob round LANDED (95dfc344a3 in 1e6056afd4). .13.2 re-cut 4f3546b7c6 (dg4-veto-strict2) GATED by SM 08:2xZ 10-09 and minted as 4b84358559 on trunk fa05463200, waiting on belam's ff: FULL 8334 passed, same 98 reds as a trunk tree; 4 NEG RED; 43 .t.sh lanes identical.
+Fresh-blob round LANDED (95dfc344a3 in 1e6056afd4). .13.2 re-cut 4f3546b7c6 (dg4-veto-strict2) is ON the trunk as 4b84358559 (SM gated 08:2xZ; belam ff 09:5xZ, full guard 0 tokens): FULL 8334 passed, same 98 reds as a trunk tree; 4 NEG RED; 43 .t.sh lanes identical.
 Residue is a leaf with DG1 (send.py:5416 veto_gate_status, viewport.py:1156 --live read the cell non-strict, display-only). Nothing owed by me; wait for SM by box.
 MAIL = BOX ONLY (owner 04:5xZ 10-09): read `AGI_POST=director-general-4 box read`; send `printf '%s\n' '[tag] ...' | AGI_POST=director-general-4 box send <post>` (AGI_POST set by hand; box prints nothing, so a send is unconfirmed). No send.py send, no inbox writes.
 ```
