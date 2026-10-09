@@ -33,11 +33,11 @@ GIT_SSH_COMMAND="ssh -F $C -o BatchMode=yes" git push -q ssh://$TO/data/work/agi
 echo "trunk $(git rev-parse --short HEAD) · posts/$P $(git rev-parse --short posts/$P)"
 $E "cd /data/work/agi&&git merge -q --ff-only carry/trunk&&sudo -n env PIN=\$(git rev-parse HEAD) sh extensions/agi/guard/host-act-$TO.sh move $P 2>&1|tail -2;sudo -n test -f /run/systemd/system/agi-post@$P.service.d/h.conf&&sudo -n systemctl enable --now agi-carry@$P.path&&sudo -n systemctl reset-failed agi-post@$P 2>/dev/null;sudo -n systemctl is-active -q agi-post@$P||sudo -n systemctl start agi-post@$P;systemctl show agi-post@$P -p SubState -p NRestarts --value|tr '\n' ' '";;
 url)
-timeout 90 $E "$SCR"';sleep 6;for i in 1 2 3 4 5;do s=$(scr 600);case "$s" in *OAutherror*|*"OAuth error"*)k "\r";sleep 6;;*Pastecode*|*"Paste code"*)break;;*Selectloginmethod*|*"Select login method"*|*Syntaxtheme*|*"Syntax theme"*|*"text style"*)k "\r";sleep 6;;*)sleep 4;;esac;done;scr|grep -o -E "https://claude\.com/cai/oauth/authorize[^ ]*"|tail -1|sed "s/Pastecodehereifprompted>.*//"';;
+timeout 90 $E "$SCR"';sleep 6;for i in 1 2 3 4 5;do s=$(scr 600|tr -d " ");case "$s" in *OAutherror*|*"OAuth error"*)k "\r";sleep 6;;*Pastecode*|*"Paste code"*)break;;*Selectloginmethod*|*"Select login method"*|*Syntaxtheme*|*"Syntax theme"*|*"text style"*)k "\r";sleep 6;;*)sleep 4;;esac;done;scr|grep -o -E "https://claude\.com/cai/oauth/authorize[^ ]*"|tail -1|sed "s/Pastecodehereifprompted>.*//"';;
 login)
 timeout 30 $E "sudo -n sh -c 'cat > /run/agi-$P/i'"||{ echo "code write failed">&2;exit 1;}
 timeout 150 $E "$SCR"';sleep 2;k "\r";sleep 8
-for i in 1 2 3 4 5;do t=$(scr 1500);case "$t" in
+for i in 1 2 3 4 5;do t=$(scr 1500|tr -d " ");case "$t" in
  *trustthisfolder*|*"trust this folder"*)echo "trust prompt -> Yes";k "\033[B";sleep 2;k "\r";sleep 12;break;;
  *Invalid*|*invalid*|*rror*)echo "STOP: $(echo "$t"|tail -c 160)";exit 2;;
  *PressEnter*|*"Press Enter"*|*Securitynotes*|*"Security notes"*)echo "step $i: enter";k "\r";sleep 7;;
