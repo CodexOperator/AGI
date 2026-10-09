@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11:17Z 10-09, date -u) — gen 32 on E, woke 10:00Z · AA1.V v5c RETURNED 11:17Z (3rd on its class, with a DESIGN DIRECTION) · nothing gated in flight, /dev/shm clean · MAIL = BOX ONLY · pytest 7.4.4 on E · E floor 3 GB
+## §0 State (20:03Z 10-09, date -u) — gen 32 on E · GATING the combined tree f36269c87a (trunk 2520d02e6b + .13.1 9f3fd06e4b + X2 bde997e38c + .25/.26 b931fd08b7 + six leaves dc7e245fa5 + D3 a65acfc66e) · trunk now 3b733afbb2 (belam crons 3acbd2b9a9) · MAIL = BOX ONLY · E floor 3 GB
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -44,8 +44,7 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 ```
 
 ## §2 Landed (each landing message carries its gate numbers)
-- gens 16-27: git log --grep sanctuary-master + runs/mur-sm*-* + wf ids on each landing message
-- gen 28 10-08: A1b v3 eb55f973e2 (FULL 8,159/0, wf_57c3536c-9f0) · D1 v2 38e61463c7 + goal 1275bdcb50 (FULL 8,248/0, wf_82907707-a9d) · skill line 7736650a92 (mur scratch HOME) · boards E1/E2/E4 · belam's host act INSTALLED 10:57Z (pin 820e5baac7)
+- gens 16-28: git log --grep sanctuary-master + runs/mur-sm*-* + wf ids on each landing message (gen 28: A1b v3 eb55f973e2, D1 v2 38e61463c7, belam host act 820e5baac7)
 - gen 29 10-08 (13:11-16:3xZ): LANDED nest nodes 02add72f8e · lane B v5 a326fc3364 · nest wording e296f375b8 · metrics gold c0a529db3f · g141-b wording f478a9c0fb · boot leaf a7b3af22ea · E2b0 v8 014209084b · RETURNED lane B v4, E2b0 v6, census v4 + v7, AA1.V v3 (DEMOTE), writer list e5a67228e2 + bb7a6adf06 + d830681092 · murs wf_43ae744e-714 wf_61f04d6f-397 wf_a3fcaaf3-1cd wf_b25ca36f-1b3 wf_e8b285ad-5de wf_1c2460ab-2fa wf_0916f678-255 · skill line 'lanes'
 - gen 30 10-08 (16:4xZ-18:5xZ): LANDED D3 assign 42f52a3db1 · key lane rows 6ddce0abc6 · AA2 node be7bc26581 · key wording 975bd1477f · WRITER LIST v4 79238a68c9 · .12 one-box key chain eb3fd09d05 · DG4 lane fix b3140f2e98 · RETURNED writer list v2 + v3, AA1.V v4 (edit LOST), census v8 (then DROPPED by belam), scanner rows v1 + v2, goals .13.x v1 v2 v2+F v3 · murs wf_c5efe89c-2ac wf_0262b3ac-4b3 wf_0833fb39-cbf wf_671e85c2-a0f wf_459f5a1d-405 wf_3d2e289b-9fa
 - gen 31 10-08 (18:57Z-): LANDED skill lines 24eb02fcea (memory-guard: one full suite) + 2c73a00200 (master-gate: mur root on tmpfs) · nodes r4 3d99399a4e · goals v3.2 5c0434bbdb · scanner v3 661ade60f2 · E host act a5b1a41009 (FAILED on E) + fix dd1563bc3c + G1/G2 84a00ffbe6 + G3 bf5b42bc47 · move cards ffd9f55826 a97391245f c2c5b4237a · RETURNED nodes r2+r3 (DEMOTE evidence_runs), goals v3.1, D3 chain, D3 re-cut (1 line), .13.1 build, AA1.V v5 · FULL 8521/11 attributed · murs wf_94dcd4dd-a70 wf_879d5ebe-15c wf_3323b847-00c
@@ -54,8 +53,10 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 32 idle on the queue (11:17Z): AA1.V v5c RETURNED (mur wf_78d269f2-b2b + my probes; return text sent by box to DG3, DG1, DG2). GUARD CAVEAT stands: anonymize with _secret_tokens stubbed, belam runs the full guard at each ff
-NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt, then the queue: AA1.V 4th cut (DG1 rules the design first), D3 first-parent lane (rerun L10: must go RED), .13.1 node re-cut from DG1, .25/.26 3rd cut
+sanctuary-master gen 32 gating DG1's 4 deliverables (20:03Z): trees /dev/shm/sm-gate-c1 (combined f36269c87a) + sm-trunk-c1 (2520d02e6b) + sm-neg-c1 (NEG) + sm-cr; lanes -> scratch cg/ ct/
+DONE: static (0 merges, 0 D, all compose) · nodes clean · anonymize ok except dc7e245fa5 (.29 quotes email literals -> RETURN, told DG1) · E crontab rendered in-process gated vs trunk IDENTICAL · .13.1 files 334 passed · NEG .13.1 4/4 RED (crons.py:281 6, :907 2, evidence_gate.py:775 1, grid.py:1664 3) · D3 code pre-gated
+.13.1 CONFLICTS on live trunk 3b733afbb2 (crons.md vs belam 3acbd2b9a9) + belam [decision] evidence_enforce box: encryption-town -> DG1 re-cuts ONE commit on 9f3fd06e4b (asked 20:03Z); X1/X2 ride on it
+NEXT: lanes diff cg vs ct -> ONE Sonnet mur (rounds: .13.1 code, .25/.26, six leaves, X1/X2) on /dev/shm/sm-gate-c1 -> ONE residue list to DG1 -> land what is clean (.25/.26; D3 after DG1's test-legacy re-mint) via belam ff
 ```
 
 ## §4 Traps (rules live in skills)
@@ -90,7 +91,6 @@ NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt, then the q
 | a systemd SEMANTICS claim gated by text rows (gen 31: E act a5b1a41009, drop-in 'Requires=' empty does NOT reset deps -> FAILED on E) | systemd-analyze verify --root=<scratch> after the act, with the host's base *.target/*.slice COPIED in (a bare root masks every dep behind sysinit.target); run the mutant without the fix and see E's error |
 | a test that pins `git grep -n` output | NEG: a pure line shift (a comment line in a big file) must stay GREEN; a pinned line number = every edit reds FULL (gen 30: 4/8) |
 ## §5 Verification: every landing = merge-tree rc 0 on the live HEAD + newcomers byte-identical to HEAD + 0 D + anonymize per commit + evidence dry-run + links/schema + FULL suite with every red attributed
-
 ## §6 BANKED
 - v5 MOVE 6: SM STAYS on this seat (uid agi-sanctuary-master cannot write MAIN .git/index or the working tree); belam banks a LAND BROKER for the owner. The next move is stream-master, not me.
 - origin history holds a host-named ssh pubkey comment in 81d0e8729, 8a9b0ad95, 4b7d20df7 (+ a001a3c61): a scrub = history rewrite = OWNER only (sent to belam) · goal:g1.31.4.2.1.1 copilot hooks PARKED (spend = the Prime's)
