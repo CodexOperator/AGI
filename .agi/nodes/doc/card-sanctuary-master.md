@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (00:34Z 10-09, date -u) — gen 31 (meter 0.43) · DOWN-READY: moving to encryption-town on the NEW ENGINE (owner 00:1xZ via belam 00:2xZ: "Can we use the new engine on both of your posts with just minor allowances like using some old engine pieces but this way you get the new mail finally") · row = TM's engine cell (v4, claude-code, opus-5-5 high, rotate 47) + box encryption-town · NO gate open, NO tree on /dev/shm · E act LANDED: dd1563bc3c + G1/G2 84a00ffbe6 + G3 bf5b42bc47
+## §0 State (02:40Z 10-09, date -u) — gen 31 on E (v5 engine cell, AGI_BOX=encryption-town) · 4 LANDED 02:3xZ (belam ff to 1e6056afd4; push = belam's :07 cron) · NO gate open · /dev/shm clean (sm-gate-q-scrub = an older gen's, left) · E load 6-11 on 4 cores
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,7 +32,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 RAIL per merge-up (skill agi-master-gate): static (1 commit, merges 0, merge-tree rc 0, 0 D, anonymize per commit, full-name AND model GPU grep, key) · lanes cmp-identical to DG2's named sha · lanes bare env (env -i, empty HOME, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null, sh for .t.sh) in a 2nd tree · own NEG mutants on the REAL pieces · FULL on tmpfs · ONE Sonnet mur (focus: what the gate already measured + ONE whole-commit sweep, ALL residues one list) · accept_with_residue = RETURN unless verify refutes every residue, EXCEPT wording-only (belam (c)): land + name it + carry as a brief row · disjoint tips: ONE combined provisional tree, ONE FULL, land one at a time (T2 re-derived on the live HEAD each)
-QUEUE ON E (every gate HELD for the move; resume in this order; ON E: GATE = static + targeted lanes, NO FULL suite there (7.8 GB, 6G slice) until belam names an idle window; old Python pieces write.py / send.py / verification.py stay callable, a shell needs AGI_BOX=encryption-town):
+QUEUE ON E (gate = static + ALL .t.sh lanes gate vs trunk + NEG + Sonnet mur; NO FULL suite on E; whole-graph links times out at load 10: check the changed nodes in-process (missing_required / off_shape_keys / parents); old send.py needs AGI_BOX=encryption-town):
+  0 LAND STEP = belam's: my uid cannot write MAIN's index/worktree and has no push creds (push dry-run rc 128) -> mint the signed chain on the live HEAD (commit-tree -S, assert tree == gated), send belam `merge --ff-only <L>`; belam's :07 cron pushes
   1 D3 RE-FORWARD = DG5 posts/director-general-5-g1611-22 up to 42634e22af (XDG fix, test_legacy 69) + DG1 nodes 02223d2efc (build nodes; SUPERSEDES 0af8fc5fb4) -> test_legacy + my 16 NEG (L1-L10 legacy.py, V1-V7 viewport: recreate from §2's gen 31 line), no new FULL owed (FULL 8521 clean for D3)
   2 .13.2 RE-CUT 4f3546b7c6 (DG4 on 61b4d23876: V-1 comment + grep row, V-2 rollover builders, V-3 scanner C8, V-4 vetoes.md:39 + DG1's carried wording rows) -> changed files + test_season_rollover_align + test_grid_writers 27 + my 4 NEG (merge_up except frees / _push_season_branch non-strict / rotate-other non-strict / rotate-other ignores frozen); a FULL is the class check (86 root builders) -> ask belam where
   3 .13.1 STACK 47d460aed8 (01cfd47507 -> 9f3fd06e4b -> DG1 C7 nodes 0bdacde82f) -- CONFLICTS with 2 on goal:g7.16.1.11.13 (W11/T1): land one, tell DG1 which, he re-cuts the other nodes-only · landing adds ONE live cron line evidence_enforce */5 (first run on MAIN measured 0 demote) -- crontab is per box: say which box's crons apply
@@ -50,12 +51,12 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 - gen 29 10-08 (13:11-16:3xZ): LANDED nest nodes 02add72f8e · lane B v5 a326fc3364 · nest wording e296f375b8 · metrics gold c0a529db3f · g141-b wording f478a9c0fb · boot leaf a7b3af22ea · E2b0 v8 014209084b · RETURNED lane B v4, E2b0 v6, census v4 + v7, AA1.V v3 (DEMOTE), writer list e5a67228e2 + bb7a6adf06 + d830681092 · murs wf_43ae744e-714 wf_61f04d6f-397 wf_a3fcaaf3-1cd wf_b25ca36f-1b3 wf_e8b285ad-5de wf_1c2460ab-2fa wf_0916f678-255 · skill line 'lanes'
 - gen 30 10-08 (16:4xZ-18:5xZ): LANDED D3 assign 42f52a3db1 · key lane rows 6ddce0abc6 · AA2 node be7bc26581 · key wording 975bd1477f · WRITER LIST v4 79238a68c9 · .12 one-box key chain eb3fd09d05 · DG4 lane fix b3140f2e98 · RETURNED writer list v2 + v3, AA1.V v4 (edit LOST), census v8 (then DROPPED by belam), scanner rows v1 + v2, goals .13.x v1 v2 v2+F v3 · murs wf_c5efe89c-2ac wf_0262b3ac-4b3 wf_0833fb39-cbf wf_671e85c2-a0f wf_459f5a1d-405 wf_3d2e289b-9fa
 - gen 31 10-08 (18:57Z-): LANDED skill lines 24eb02fcea (memory-guard: one full suite) + 2c73a00200 (master-gate: mur root on tmpfs) · nodes r4 3d99399a4e · goals v3.2 5c0434bbdb · scanner v3 661ade60f2 · E host act a5b1a41009 (FAILED on E) + fix dd1563bc3c + G1/G2 84a00ffbe6 + G3 bf5b42bc47 · move cards ffd9f55826 a97391245f c2c5b4237a · RETURNED nodes r2+r3 (DEMOTE evidence_runs), goals v3.1, D3 chain, D3 re-cut (1 line), .13.1 build, AA1.V v5 · FULL 8521/11 attributed · murs wf_94dcd4dd-a70 wf_879d5ebe-15c wf_3323b847-00c
+- gen 31 on E 10-09 (00:5xZ-02:4xZ): LANDED via belam ff 1e6056afd4: fresh-blob 6ce18b1b93 -> 95dfc344a3 · g17-done 2f0004a146 -> a01c9f0ac5 · g23 leaf 73ca866c9b -> 0f481d0945 · enc6 TIP 32c87df112 -> 1e6056afd4 (enc6 98fb9ebfd8 RETURNED first: rollback ||exit 1) · murs wf_5ef1ef29-f20 wf_a8473047-083 · carried wording rows to DG1 (g23 Agent Notes) + DG3 (enc6 warn text)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master down-ready 00:34Z 10-09: E act complete on the trunk (bf5b42bc47); moving to encryption-town on the new engine; successor resumes the §1 queue on E
-FIRST ON E: read the new config:posts row + the box (paths differ) -> read the inbox whole -> ask DG1 to re-send anything sent around the move -> queue §1 item 1
-FIRST COMMAND AT WAKE: the new engine's mail read (agi-turn / box mail per doc:unified-head HOW); on the old pieces: AGI_BOX=encryption-town python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt
+sanctuary-master on E, idle at the gate 02:4xZ 10-09: 4 landings on the trunk; enc6 host act = belam's GO (not mine); next = §1 QUEUE item 1 (D3 re-forward) once DG5/DG1 re-send on E
+NEXT COMMAND: AGI_BOX=encryption-town python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt (box read is EMPTY: no refs/box on E yet) · DO NOT run agi-meter in the foreground (hung >120 s 02:4xZ)
 ```
 
 ## §4 Traps (rules live in skills)
