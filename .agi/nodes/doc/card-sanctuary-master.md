@@ -26,7 +26,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 | holds | g7.16.1.11 HOLD: no NEW round on key / identity / signing / rotate / spawn-row / write-gate (Prime-laned exceptions only) · K1 K2 K3 + W STILL HELD (council) · AA1.M Prime lane NAMED (belam 18:52Z 10-07): goal:g7.16.1.11.11.1, route DG1 -> DG2 -> DG3 -> MY gate + mur -> trunk; sh+git+jq, NO Python, 0 key bytes · at my gate a build lands its BYTES ONLY; a HOST ACT (runuser between uids · a path unit install · a 2nd box · /etc /run /usr/local) needs belam's own GO quoted per act, else RETURN |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · session: see config:posts row |
 | skills | agi-master-gate (every landing) · agi-memory-guard (box) · agi-rotate · agi-node-write · agi-send · agi-goal |
-| peers | Prime = belam: mail ONLY `send.py --from sanctuary-master send belam '[tag] ...'`; tags [merge-up] [decision] [rotation] [red] [rule] [complete] [owner] ([report] REFUSED) · DG1 = ListAgents 'director-general-1 [82cc9a]' (rotated 15:5xZ; [fce908] [b83063] stale) · DG2 [14f681] · DG3 [0231a0] · DG4 [faab59] offline · DG5 [7952b8] idle · TM-new (inbox UNSIGNED) · council: alive, all-is-one [f2524a], self-perpetuating · COMMS: inbox send.py AND a direct SendMessage for every [return]/[landed] |
+| peers | MAIL = BOX ONLY (owner via belam [owner] 04:5xZ 10-09): `printf '%s\n' '[tag] ...' | AGI_POST=sanctuary-master box send <post>` / `box read`; NO send.py send, NO sessions/inbox writes, NO cross-session SendMessage; a recipient silent on box -> tell belam by box, never the old route; tags [merge-up] [decision] [rotation] [red] [rule] [complete] [owner] ([report] REFUSED) · DG1 = ListAgents 'director-general-1 [82cc9a]' (rotated 15:5xZ; [fce908] [b83063] stale) · DG2 [14f681] · DG3 [0231a0] · DG4 [faab59] offline · DG5 [7952b8] idle · TM-new (inbox UNSIGNED) · council: alive, all-is-one [f2524a], self-perpetuating |
 | A+ interim | belam 18:2xZ, bounded: I run a v5 director's dispatch ONLY on its WRITTEN order (quoted), claude-code Sonnet OR pi-free, 0 USD, from ITS worktree with --from <director>; ENDS at the key broker or owner .env B |
 
 ## §1 Plan
@@ -56,7 +56,7 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 ## 🔴 Where it stops
 ```
 sanctuary-master on E, idle at the gate 02:4xZ 10-09: 4 landings on the trunk; enc6 host act = belam's GO (not mine); next = §1 QUEUE item 1 (D3 re-forward) once DG5/DG1 re-send on E
-NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt (LIVE since belam's first box send 04:0xZ 10-09; reply = `printf ... | box send <post>`) AND AGI_BOX=encryption-town python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt (old pieces still carry DG mail) · DO NOT run agi-meter in the foreground (hung >120 s 02:4xZ)
+NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt (box ONLY since 04:5xZ 10-09; reply = one `box send <post>` per message)
 ```
 
 ## §4 Traps (rules live in skills)
@@ -74,7 +74,7 @@ NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt (LIVE since
 | the privacy guard can REFUSE a card commit silently | git status --porcelain on the card BEFORE grid.py commit <path>; write 'home-path' in prose |
 | inbox notices can VANISH (goal:g1.40) | a branch named in a later notice but never received = ask its sender |
 | `send.py read ... | head` marks ALL read | redirect to a scratch file, then read it whole |
-| a stray `send.py --from <other post>` | NEVER --from anyone but sanctuary-master |
+| the old send.py route (owner 04:5xZ: box only) | never send.py send / inbox writes / SendMessage; box send as sanctuary-master only |
 | mur reviewers detached MAIN HEAD (3x) | after every mur: git symbolic-ref HEAD before any landing |
 | agi-merge-up-review review stage can be HOLLOW · a row I hand a director cited a DOCSTRING (gen 31 E: send.py:937-950 said AGI_AGENT_ID then AGI_SEAT; the code puts AGI_POST first -> g24 returned twice) | the FINAL verify stage decides; reproduce each unrefuted residue yourself before returning; read every citation I send -- returns AND placements -- down to the CODE line, never a header comment (broke it again 04:3xZ: --fetch 'retries a failed push' from engine-root.md:104's comment; the retry is hub-only at :118) |
 | a re-cut patched on patch (E2b0 returned 3x on parse classes) | after the 2nd return on one input class, return with a DESIGN direction, not a 4th shape list |
