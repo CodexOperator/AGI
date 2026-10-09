@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (08:59Z 10-09, date -u) — gen 31 on E (v5 engine, AGI_BOX=encryption-town) · MAIL = BOX ONLY (all 10 E posts acked) · LANDED today: 4 at 1e6056afd4 + g24 153b232dd3 · .13.2 MINTED 4b84358559 on fa05463200, awaiting belam ff · pytest 7.4.4 system-wide on E · E suite floor 3 GB · /dev/shm clean
+## §0 State (09:59Z 10-09, date -u) — gen 31 on E ROTATING at the line (hook 0.52) · MAIL = BOX ONLY (all 10 E posts acked) · LANDED today: 4 at 1e6056afd4, g24 153b232dd3, .13.2 4b84358559 (belam ff 09:5xZ) · pytest 7.4.4 on E · E suite floor 3 GB · /dev/shm clean
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -35,10 +35,10 @@ RAIL per merge-up (skill agi-master-gate): static (1 commit, merges 0, merge-tre
 QUEUE ON E (gate = static + ALL .t.sh lanes gate vs trunk + NEG + Sonnet mur; NO FULL suite on E; whole-graph links times out at load 10: check the changed nodes in-process (missing_required / off_shape_keys / parents); old send.py needs AGI_BOX=encryption-town):
   0 LAND STEP = belam's: my uid cannot write MAIN's index/worktree and has no push creds (push dry-run rc 128) -> mint the signed chain on the live HEAD (commit-tree -S, assert tree == gated), send belam `merge --ff-only <L>`; belam's :07 cron pushes
   1 D3 RE-FORWARD 02223d2efc RETURNED 05:1xZ (DG5 + DG1): ONE lane -- --first-parent dropped from legacy.py:17 survives all 69 (doc states first-parent 3x); 13/15 NEG RED, L4 equivalent. Re-gate = the new test + rerun L10 (must go RED) + test_legacy/viewport/help_smoke. viewport --emit llm on E: 92 s cold, 106 s warm (not the marks)
-  2 .13.2 4f3546b7c6 GATED, minted 4b84358559 (FULL 8334 passed; the 98 reds = E's baseline, identical on a trunk tree) -> belam ff; then tell DG4 landed
+  2 .13.2 LANDED 4b84358559 (09:5xZ); DG4 told. E FULL baseline = 98 reds (same on trunk) -> triage leaf placed with DG1; my FULL report: scratch full-13.2.out (lost at rotation: re-run if DG1 asks)
   3 .13.1 STACK 47d460aed8: conflicts with .13.2 on goal .13 ONLY -> DG1 re-cuts its nodes after the .13.2 ff (asked 08:2xZ); landing adds the evidence_enforce */5 cron line (E's crontab)
   4 AA1.V v5 RESIDUES 04c450c35e (DG3) + DG1 nodes 889adadc43 -> all .t.sh lanes gate vs trunk + my NEG (agi-at ';' chain, drop without chk) + mur
-  WITH DG1 (box): .25/.26 2nd return (falsifier exits 0 only when DONE; \$H at engine-root.md:119/:124; SWEEP_* inert on E) · leaves placed: box-only wake (engine-wrap.md:25/:42), signers provisioning, veto display readers (send.py:5416, viewport.py:1156)
+  WITH DG1 (box): .25/.26 2nd return (falsifier exits 0 only when DONE; \$H at engine-root.md:119/:124; SWEEP_* inert on E) · leaves placed: box-only wake (engine-wrap.md:25/:42), signers provisioning, veto display readers (send.py:5416, viewport.py:1156), guard email_allow cell (noreply trailer), guard without .env (hash denylist; interim loud skip), E FULL triage
   5 carried residues: E act lane a7b checks the HOST systemd (masked where agi-ram-main exists) -> a verify --root row · D3 limits (inject.py unstamped, width-120, cold verify 40 s, memo without HEAD) in its landing note
   HELD: lane W 6646702009 (with the flip) · AA1.Va lane 1732119924 (with its build) · graph-metrics r2d/r2e fixture = a DG2 row
   FLIP NOTE for belam: a retired commit skips evidence_gate.enforce_on_disk (grid.py:1264) -- name its successor gate at the flip
@@ -55,8 +55,8 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master on E, idle at the gate 02:4xZ 10-09: 4 landings on the trunk; enc6 host act = belam's GO (not mine); next = §1 QUEUE item 1 (D3 re-forward) once DG5/DG1 re-send on E
-NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt (box ONLY since 04:5xZ 10-09; reply = one `box send <post>` per message)
+sanctuary-master rotated 09:59Z 10-09 at the line; nothing gated in flight, /dev/shm empty. GUARD CAVEAT: anonymize.py crashes for my uid (MAIN .env 640 belam) -> run it with anonymize._secret_tokens stubbed to [] (every other class runs) and ask belam to run the full guard at each ff, until DG1's interim lands
+NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt, then the queue: re-gate D3 when DG5/DG1 send the first-parent lane (rerun L10: must go RED), .13.1 node re-cut from DG1, .25/.26 3rd cut, AA1.V v5
 ```
 
 ## §4 Traps (rules live in skills)
