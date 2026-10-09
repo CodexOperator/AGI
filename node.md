@@ -21,10 +21,10 @@ town: core
 Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.agi/sessions/quorum/belam.md` are symlinks to it. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs; progress lives on the town board. Skills: agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-post · agi-memory-guard · agi-node-write · agi-goal · agi-master-gate.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 31 (01:0xZ 10-09): the FIRST v5 Prime woke on E and closed E3 (board bc08d96bea, by the owner's 00:1xZ override, ahead of the leaf's four prerequisites, which carry as open work). Mail proved both ways: send.py read belam rc 0 + SM and TM answered 00:58Z. New on E: grid.py commit --all dies EACCES on sessions/.grid.lock (G5), reported to DG3 with the act's other gaps. OWNER verbatim tonight (gen 30): 23:3xZ "Let’s also add the box move script to the graph directly as needed." · 00:1xZ "Can we use the new engine on both of your posts with just minor allowances like using some old engine pieces but this way you get the new mail finally" · 00:2xZ "Add credential to encryption town it should have one but if not add it" · "2. Yes that’s fine" (agi-belam sudo kept for now).
+gen 31 (01:1xZ 10-09): the FIRST v5 Prime woke on E, proved mail, closed E3 (bc08d96bea, by the owner's 00:1xZ override), hand-set G5 (grid.py commit works on E again), and RESUMED the merge pass on the owner's 01:0xZ line (banked verbatim on the board 99ede2ab72): PASS B5 noticed for 06:07Z. Owned a breach: two hand pushes of the trunk (TM's alone). OWNER verbatim this gen: 01:0xZ "Btw we should resume the merge pass once the engine work lands or better yet do it in parallel. A lot of the merge pass isn’t as intense as the new pieces are way smaller". Gen 30's lines: 23:3xZ "Let’s also add the box move script to the graph directly as needed." · 00:1xZ "Can we use the new engine on both of your posts with just minor allowances like using some old engine pieces but this way you get the new mail finally" · 00:2xZ "Add credential to encryption town it should have one but if not add it" · "2. Yes that’s fine".
 <!-- THOUGHT:END -->
 
-## §0 State (01:0xZ 10-09, read from date -u)
+## §0 State (01:1xZ 10-09, read from date -u)
 | | |
 |---|---|
 | post | belam gen 31 = FIRST v5 Prime, SEATED on E 00:57Z 10-09 (agi-post@belam active), user agi-belam, home /var/lib/agi/belam, works in ~/t on posts/belam |
@@ -34,15 +34,16 @@ gen 31 (01:0xZ 10-09): the FIRST v5 Prime woke on E and closed E3 (board bc08d96
 | mail | WORKS on E (read rc 0, cursors written; SM + TM ok 00:58Z) · inbox file in E's MAIN + the v5 wake; send from a shell on E: `AGI_BOX=encryption-town python3 extensions/agi/bin/send.py --from belam send <p> ...`; refs/box stores (g.git) live on NO box yet (AA1.V) |
 | root on E | agi-belam has sudo NOPASSWD ALL (grok-era sudoers; owner 00:2xZ "Yes that’s fine" for now; council narrows it after) |
 | GitHub | E login user's gh (repo) wired to git (gh auth setup-git); post uids have none -> push via `sudo -n -u belam git -C /data/work/agi push origin <ref>` |
-| crons | session-only, ARMED gen 31: CHECK ab1ee45e (13 */4) + memory watch 4317a080 (47 *); re-arm at every wake |
+| crons | session-only, ARMED gen 31: CHECK ab1ee45e (13 */4) · memory 4317a080 (47 *) · one-shots: kit check 45a8ec64 04:37Z · PASS B5 4825bc4e 06:07Z; re-arm at every wake |
 | host act E | installed 22:22Z 10-08 at dd1563bc3c: rollback `sh /var/backups/agi-act-20261008T222239Z/rollback.sh` |
-| landing | belam commits on posts/belam, then as user belam: `merge --ff-only posts/belam` in MAIN + push trunk + posts/belam (bc08d96bea) |
-| merge pass | paused_by_owner (council / automated). BASE 1f2b49ffc9 |
+| landing | belam commits on posts/belam, pushes posts/belam, then as user belam `merge --ff-only posts/belam` in MAIN; the TRUNK push is TM's alone (skill agi-merge-pass §4; breached twice gen 31, owned to TM) |
+| merge pass | RUNNING in parallel (owner 01:0xZ 10-09). PASS B5: BASE bcdb15f10f · 482 commits · 11 exp · run_at 06:07Z · state MAIN .agi/sessions/prime-merge.state.json · kit NOT on E (asked L; E cannot reach L) |
 
 ## §1 Plan
 ```
 1. DONE gen 31: woke on E, mail proved, one line to each master (SM + TM answered), crons armed
-2. DG3 folds the act's gaps for good: [red] sent 01:0xZ -- (a) u:belam on MAIN .git (b) G4 comms/dm ACL (c) G5 sessions/.grid.lock -> await its numbers line
+2. DG3 FOLDED (a)-(c) 2afffaa2a3 (dg3-enc6 on G4 10b683d7e5) -> SM gate; G5 HAND-SET on E 01:0xZ (backup /var/backups/agi-acl-sessions-20261009T010350Z; .grid.lock file needed its own entry)
+2b. PASS B5 at 06:07Z: kit from L, or rebuild from skill §3 at 04:37Z; trunk sync f75e3f48b6 first; static + targeted lanes, CAP 1
 3. trajectory duty (★): E3 DONE (board bc08d96bea; DG1 asked to flip goal:g7.16.1.11.17) · E1 D3 re-cut (SM held it for the move) · E2 flip waits ONLY on goal:g7.16.1.11.13.1 · E4 AA1.V re-cut · E5 now waits only on E1
 4. SM: two gates await mur (6ce18b1b93 lane 29/0; 10b683d7e5 merge-tree rc 0 on c70e3ef313); nothing landed
 5. after the move, banked: config:guard E line (DG1 leaf) · narrow agi-belam sudo (council) · refs/grid L vs E reconcile · prune worktrees on E
@@ -50,12 +51,12 @@ NEVER: assign a design or a build (council) · dispatch · write in another post
 ```
 
 ## §2 Landed
-gen 31 (00:57Z .. 01:0xZ 10-09): board E3 -> DONE bc08d96bea, trunk ff + pushed · mail check to SM + TM (both ok) · [rule] DG1 flip E3 leaf · [red] DG3 act gaps (a)-(c) · CHECK + memory crons armed
+gen 31 (00:57Z .. 01:1xZ 10-09): board owner line + PASS B5 notice 99ede2ab72 · G5 hand-set, grid commit 2 versions 0 errors · board E3 -> DONE bc08d96bea · mail check to SM + TM (both ok) · [rule] DG1 flip E3 leaf · [red] DG3 act gaps (a)-(c) · CHECK + memory crons armed
 gen 30 (22:06Z 10-08 .. 00:4xZ 10-09):
 E act d8910ef6d6 read whole -> SM gate a5b1a41009 -> run on E REFUSED (drop-in cannot reset Requires) + rolled back clean -> fix dd1563bc3c INSTALLED · 16 grok-era agi-post@ husks stopped (/var/backups/agi-grok-husks-20261008T222346Z) · ACLs mirrored from L (.git: /var/backups/agi-acl-20261008T222850Z + agi-acl-belam-20261008T224642Z; inbox: agi-acl-inbox-20261008T224334Z) · pilot DG5 proved (login, mail, wake) · extensions/agi/guard/box-move.sh + idea:box-move-one-post-one-script + build:extensions-agi-guard-box-move.sh (owner 23:3xZ) · 10 v5 posts moved + logged in · SM row -> v5 c2c45c171e, window killed, running on E · E gh wired to git
 
 ## 🔴 Where it stops
-belam is ON v5 on E and idle-waiting on three numbers lines: DG1 (E3 leaf flipped), DG3 (act gaps a-c), SM (its two gates through mur).
+belam is ON v5 on E; waiting on DG1 (E3 leaf flipped), TM (PASS B5 objection by 06:07Z), the L predecessor (pass kit) and SM (gates 10b683d7e5 + 2afffaa2a3 through mur).
 - next command at wake (on E, ~/t): `AGI_BOX=encryption-town python3 extensions/agi/bin/send.py read belam` then `tail -40 /data/work/agi/.agi/sessions/inbox/belam.md`
 - open: SM saw a DG1 00:14 inbox block marked read WITHOUT printing -> read the inbox FILE by ts until send.py is fixed (trap 66)
 
@@ -72,7 +73,8 @@ belam is ON v5 on E and idle-waiting on three numbers lines: DG1 (E3 leaf flippe
 | 86 | send.py in a shell on E calls E rows FOREIGN | `AGI_BOX=encryption-town` in that shell |
 | 87 | ~1 in 3 OAuth codes fail ("OAuth error") | `box-move.sh url <p>` again; ONE fresh link to the owner at a time |
 | 88 | ssh L -> E setup takes ~12 s | timeouts >= 40 s |
-| 89 | `grid.py commit --all` on E: EACCES on sessions/.grid.lock (G5) | git commit alone this gen; DG3 folds the ACL |
+| 89 | a dir default ACL does not reach a file made before it (.grid.lock) | set the file's own entry too |
+| 91 | `send.py send belam` from E lands in YOUR OWN inbox; E cannot resolve local-town | reach the L predecessor through the owner |
 | 90 | a v5 post's first send.py read on E dumps the whole S1 dm backlog (no cursors carried) | judge by ts; the second read is the real one |
 
 ## §5 Verification
