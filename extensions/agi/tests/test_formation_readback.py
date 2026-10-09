@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
 import verification  # noqa: E402
@@ -39,6 +40,7 @@ def groot(tmp_path):
 
 def _cell(root: Path, active: str) -> None:
     (root / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    write_free_veto(root / "nodes" / ".geometry")
     (root / "nodes" / ".geometry" / "formations.md").write_text(
         "---\nid: config:formations\ntype: config\n"
         f"active: {active}\n"
@@ -75,6 +77,7 @@ def test_switching_is_one_cell_and_changes_the_wake_list(groot):
 # (council bundle 2, director-general-2)
 def _cell_with(root: Path, active: str, templates: str) -> None:
     (root / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    write_free_veto(root / "nodes" / ".geometry")
     (root / "nodes" / ".geometry" / "formations.md").write_text(
         f"---\nid: config:formations\ntype: config\nactive: {active}\n"
         f"templates: {templates}\n---\n", "utf-8")
@@ -140,6 +143,7 @@ def test_a_thought_park_mark_fails_the_check(groot):
 def test_the_schema_holds_the_park_tag_form(groot, tags, ok):
     import os, shutil, subprocess
     (groot / "config.json").write_text("{}\n", "utf-8")
+    write_free_veto(groot / "nodes" / ".geometry")
     src = Path(__file__).resolve().parents[3] / ".agi" / "context" / "schemas"
     (groot / "context").mkdir()
     shutil.copytree(src, groot / "context" / "schemas")
@@ -357,6 +361,7 @@ def test_d3_a_second_cell_with_the_same_active_still_fails(groot):
 @pytest.mark.parametrize("keys", [["doc:council-loop", "doc:two-step"], ["doc:two-step", "doc:two-step"]])
 def test_d3_a_repeated_active_key_fails_naming_formations(groot, keys):
     (groot / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    write_free_veto(groot / "nodes" / ".geometry")
     (groot / "nodes" / ".geometry" / "formations.md").write_text(
         "---\nid: config:formations\ntype: config\n" + "".join(f"active: {k}\n" for k in keys) + _TPL, "utf-8")
     r = verification.check_formation(groot)
@@ -384,6 +389,7 @@ def test_d3_control_one_cell_one_key_passes(groot):
 def _two_formations(root: Path, live: str = "live-tpl", retired: str = "retired-tpl", with_live: bool = True) -> None:
     if with_live:
         (root / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+        write_free_veto(root / "nodes" / ".geometry")
         (root / "nodes" / ".geometry" / "formations.md").write_text(
             "---\nid: config:formations\ntype: config\n"
             f"active: doc:{live}\ntemplates: {{doc:{live}: g7.16.1}}\n---\n", "utf-8")

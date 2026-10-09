@@ -26,6 +26,7 @@ REPO = HERE.parents[3]
 sys.path.insert(0, str(BIN))
 
 import crons  # noqa: E402
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 GRID_PY = Path(os.environ.get("GRID_PY") or BIN / "grid.py")
 LIVE_NODE = Path(os.environ.get("CRONS_NODE")
@@ -460,6 +461,7 @@ def retired_push_fixture(tmp_path: Path):
     root, env = seeded(tmp_path)
     git(root.parent, "branch", "season2/main")
     set_grid_sync(root, "off")
+    write_free_veto(root / "nodes" / ".geometry")   # the push step reads the veto cell STRICT
     return root, env
 
 

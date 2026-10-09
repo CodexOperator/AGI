@@ -12,6 +12,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import rotate
+from tests.veto_cell import write_free_veto  # noqa: E402
 from agi.bin import brief
 
 
@@ -906,6 +907,7 @@ def _seed_key_history_graph(root, rows):
         (sd / "[config].md").write_text(live.read_text(encoding="utf-8"))
     d = graph / "nodes" / ".geometry"
     d.mkdir(parents=True, exist_ok=True)
+    write_free_veto(d)
     body = "\n".join(f"  - {r!r}" for r in rows)
     (d / "seats.md").write_text(
         "---\nid: config:seats\n"
@@ -1240,6 +1242,7 @@ def fake_ladder(tmp_path, monkeypatch):
     # pins is code, suite after the .geometry write".
     g = root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (g / "rotations.md").write_text(
         "---\nid: config:rotations\ntype: config\ntemplates:\n"
         "  parent: {brief_file: extensions/agi/briefs/parent-successor.md, "
@@ -1401,6 +1404,7 @@ def _proj(tmp_path, ladder_roles=""):
     returns) with a ladder node under nodes/.geometry."""
     root = tmp_path / "proj"
     (root / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(root / "nodes" / ".geometry")
     lines = ["---"]
     if ladder_roles:
         lines.append("roles:")
@@ -2728,6 +2732,7 @@ def _write_seats_sheet(root, rows):
     """Write a minimal seals-md-style registry the loader can parse."""
     nodes = root / "nodes" / ".geometry"
     nodes.mkdir(parents=True, exist_ok=True)
+    write_free_veto(nodes)
     (root / "sessions").mkdir(parents=True, exist_ok=True)
     body = "---\nid: config:seats\ntype: config\nseats:\n"
     for r in rows:
@@ -3264,6 +3269,7 @@ def test_commit_stops_row_commits_card_and_own_row_nothing_else(tmp_path):
     from agi.bin import rotate as _r
     nodes = tmp_path / "nodes" / ".geometry"
     nodes.mkdir(parents=True)
+    write_free_veto(nodes)
     seats = nodes / "seats.md"
     seats.write_text("---\nid: config:seats\ntype: config\nseats:\n"
                      "  - {\"name\": \"s1\", \"role\": \"parent\"}\n"
@@ -4648,6 +4654,7 @@ def test_rotate_self_without_throwaway_still_refuses_unregistered(
     an unregistered name without --throwaway must still error `no seat`."""
     mk = tmp_path / "nodes" / ".geometry"
     mk.mkdir(parents=True, exist_ok=True)
+    write_free_veto(mk)
     # an empty registry sheet: adv-alive not present
     (mk / "seats.md").write_text("---\nid: config:seats\ntype: config\n---\n",
                                  encoding="utf-8")
@@ -5121,6 +5128,7 @@ def _write_first_seating_rotations(tmp_path):
     composes. The probe file is real so the command is a genuine first_turn."""
     g = tmp_path / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (tmp_path / "bin").mkdir(parents=True, exist_ok=True)
     (tmp_path / "bin" / "probe_first_seating.py").write_text(
         "import sys\nprint(','.join(sys.argv[1:]))\n", encoding="utf-8")
@@ -5447,6 +5455,7 @@ def test_first_seating_bootstrap_ack_is_truthful_at_turn_one(tmp_path):
     _write_seats_sheet(tmp_path, rows)
     g = tmp_path / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (tmp_path / "bin").mkdir(parents=True, exist_ok=True)
     (tmp_path / "bin" / "probe_fs_ack.py").write_text(
         "import sys\nprint(','.join(sys.argv[1:]))\n", encoding="utf-8")
@@ -5552,6 +5561,7 @@ def test_first_seating_turn_one_ack_tracks_ask_diff_mode(tmp_path, monkeypatch):
     # bootstrap record actually carries the ack fact (SL7.42 overrides).
     g = tmp_path / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (tmp_path / "bin").mkdir(parents=True, exist_ok=True)
     (tmp_path / "bin" / "probe_first_seating.py").write_text(
         "import sys\nprint(','.join(sys.argv[1:]))\n", encoding="utf-8")
@@ -6001,6 +6011,7 @@ def test_tile_command_dry_run_prints_one_rect_per_window(monkeypatch, tmp_path,
     monkeypatch.setattr(rotate, "find_project_root", lambda: tmp_path)
     root = tmp_path / "nodes" / ".geometry"
     root.mkdir(parents=True, exist_ok=True)
+    write_free_veto(root)
     rc = rotate.main(["tile", "--count", "4", "--width", "100", "--height", "100",
                       "--dry-run"])
     assert rc == 0
@@ -6898,6 +6909,7 @@ def _rs_tmpl_fixture(tmp_path, tmpls):
           "model": "x", "effort": "max", "settings": ""}])
     g = tmp_path / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     lines = ["---", "id: config:rotations", "type: config", "templates:"]
     for name, ent in tmpls.items():
         lines.append(f"  {name}:")
@@ -8437,6 +8449,7 @@ def test_commit_spawn_row_records_skip_no_change_or_no_repo(
     # -> records SKIPPED, no commit.
     bare = tmp_path.parent / "gitless"
     (bare / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(bare / "nodes" / ".geometry")
     gitless = rotate._commit_spawn_row(
         bare, seat="belam", generation=4, session_id="sess-9",
         window="@w9", pid=4242)
