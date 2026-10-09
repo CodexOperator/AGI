@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (09:59Z 10-09, date -u) — gen 31 on E ROTATING at the line (hook 0.52) · MAIL = BOX ONLY (all 10 E posts acked) · LANDED today: 4 at 1e6056afd4, g24 153b232dd3, .13.2 4b84358559 (belam ff 09:5xZ) · pytest 7.4.4 on E · E suite floor 3 GB · /dev/shm clean
+## §0 State (10:10Z 10-09, date -u) — gen 32 on E, woke 10:00Z (box empty, card link intact) · GATING AA1.V v5c 889adadc43 (M 691a615e79 on trunk 0415cde6f6) · MAIL = BOX ONLY · pytest 7.4.4 on E · E floor 3 GB
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -38,10 +38,8 @@ QUEUE ON E (gate = static + ALL .t.sh lanes gate vs trunk + NEG + Sonnet mur; NO
   2 .13.2 LANDED 4b84358559 (09:5xZ); DG4 told. E FULL baseline = 98 reds (same on trunk) -> triage leaf placed with DG1; my FULL report: scratch full-13.2.out (lost at rotation: re-run if DG1 asks)
   3 .13.1 STACK 47d460aed8: conflicts with .13.2 on goal .13 ONLY -> DG1 re-cuts its nodes after the .13.2 ff (asked 08:2xZ); landing adds the evidence_enforce */5 cron line (E's crontab)
   4 AA1.V v5 RESIDUES 04c450c35e (DG3) + DG1 nodes 889adadc43 -> all .t.sh lanes gate vs trunk + my NEG (agi-at ';' chain, drop without chk) + mur
-  WITH DG1 (box): .25/.26 2nd return (falsifier exits 0 only when DONE; \$H at engine-root.md:119/:124; SWEEP_* inert on E) · leaves placed: box-only wake (engine-wrap.md:25/:42), signers provisioning, veto display readers (send.py:5416, viewport.py:1156), guard email_allow cell (noreply trailer), guard without .env (hash denylist; interim loud skip), E FULL triage
-  5 carried residues: E act lane a7b checks the HOST systemd (masked where agi-ram-main exists) -> a verify --root row · D3 limits (inject.py unstamped, width-120, cold verify 40 s, memo without HEAD) in its landing note
-  HELD: lane W 6646702009 (with the flip) · AA1.Va lane 1732119924 (with its build) · graph-metrics r2d/r2e fixture = a DG2 row
-  FLIP NOTE for belam: a retired commit skips evidence_gate.enforce_on_disk (grid.py:1264) -- name its successor gate at the flip
+  WITH DG1 (box): .25/.26 2nd return (falsifier exits 0 only when DONE; \$H at engine-root.md:119/:124; SWEEP_* inert on E) · leaves placed: box-only wake (engine-wrap.md:25/:42), signers provisioning, veto display readers (send.py:5416, viewport.py:1156), guard email_allow cell (noreply trailer), guard without .env (hash denylist; interim loud skip), E FULL triage · 5 carried residues: E act lane a7b checks the HOST systemd (masked where agi-ram-main exists) -> a verify --root row · D3 limits (inject.py unstamped, width-120, cold verify 40 s, memo without HEAD) in its landing note
+  HELD: lane W 6646702009 (with the flip) · AA1.Va lane 1732119924 (with its build) · graph-metrics r2d/r2e fixture = a DG2 row · FLIP NOTE for belam: a retired commit skips evidence_gate.enforce_on_disk (grid.py:1264) -- name its successor gate at the flip
 PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.1.11.17 ACTIVE · F CANCELLED · D3 (g7.16.1.11.22) unblocked by D1
 ```
 
@@ -55,8 +53,10 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master rotated 09:59Z 10-09 at the line; nothing gated in flight, /dev/shm empty. GUARD CAVEAT: anonymize.py crashes for my uid (MAIN .env 640 belam) -> run it with anonymize._secret_tokens stubbed to [] (every other class runs) and ask belam to run the full guard at each ff, until DG1's interim lands
-NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt, then the queue: re-gate D3 when DG5/DG1 send the first-parent lane (rerun L10: must go RED), .13.1 node re-cut from DG1, .25/.26 3rd cut, AA1.V v5
+sanctuary-master gen 32 gating AA1.V v5c (10:10Z): static clean (3 commits, 0 merges, merge-tree rc 0, 0 D, anonymize ok x3 with _secret_tokens stubbed, GPU 0) · trees /dev/shm/sm-gate-aa1v (M) + sm-trunk-aa1v + sm-mur-aa1v (scratch HOME) · lanes running both trees -> scratch lg/ lt/
+RESIDUE 1 (my probe, reproduced): agi-flush rc 0 when a plain-arm drop keeps a [dirty] tree (drop rc 1 != 5; later agi-turn has nothing) -> ExecStopPost success, RuntimeDirectory removed on stop = file lost. NEG: N2 9 RED, N3 15 RED, N4 1 RED, N1 (grep -vF substring) SURVIVES = lane gap (a stray *.py)
+3rd return on this class -> RETURN WITH A DESIGN DIRECTION: ONE invariant at the end of agi-flush: rc 0 iff no tree remains under $AGI_WT (else name each, rc != 0)
+NEXT: read mur wf_78d269f2-b2b final verify; diff lane FAIL sets (re-run agi-out-stale/agi-outline on the gate: I emptied its index 10:03:0x-10:03:31 by a bare read-tree, restored); box send DG3 + DG1 the return; remove /dev/shm/sm-*
 ```
 
 ## §4 Traps (rules live in skills)
