@@ -42,7 +42,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 ```
 
 ## §2 Landed
-- 04:4xZ 10-09 SM [rule] BOX ONLY (owner): acked by box 4b7ce5c239; forwarded to DT-1 by box (ack awaited)
+- 04:4xZ 10-09 SM [rule] BOX ONLY (owner): acked by box 4b7ce5c239; forwarded to DT-1 by box, DT-1 acked 04:47Z (idle, no order held)
 - 04:0xZ 10-09 box mailbox live (owner, no hub): read belam's first box line, answered by box a3901bc274 (Good ssh signature, thought-master@agi) -- my box mail IS signed
 - 01:0xZ 10-09 belam [owner] PASS B5 notice (trunk past bcdb15f10f -> season2/main, runs 06:07Z on E): answered NO objection / run-now; E = 7 GiB / 3 avail, 4 cpu
 - 20:5xZ 10-07 g1.41 lane J: dh1 stray title key -> DH.2 title; PC :55 linked to p4fair + freqabl; L4 run 2 thin margins + run-4 replication 2/3 recorded; dh1 summary.md from results.json; .gitignore datasets/osc-band/**/*.npz FORWARD only (history scrub = owner); links 5781/0
