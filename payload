@@ -29,6 +29,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 BIN = HERE.parent / "bin"
@@ -434,6 +435,7 @@ def test_d11_d12_the_writer_collapses_with_exactly_one_tracked_file_changed_and_
         p = root / "nodes" / "goal" / f"{nid}.md"
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(_goal(nid), encoding="utf-8")
+    write_free_veto(root / "nodes" / ".geometry")   # the writer reads the veto cell STRICT: a FREE cell, committed in the base
     repo = Repo(root.parent)
     repo.g("add", "-A")
     repo.g("commit", "-q", "-m", "base")
@@ -449,7 +451,7 @@ def test_d11_d12_the_writer_collapses_with_exactly_one_tracked_file_changed_and_
     assert "nest: subtree" in (root / "nodes" / "goal" / "a.md").read_text(encoding="utf-8")
     assert not [l for l in repo.g("for-each-ref").splitlines() if "refs/grid" in l]
     assert _metrics(root).get("node_count") == before and before, (before, _metrics(root).get("node_count"))
-    assert len(list((root / "nodes").rglob("*.md"))) == 2
+    assert len(list((root / "nodes").rglob("*.md"))) == 3   # a, b and the FREE veto cell
 
 
 # --- negative: nest.py is read-only ---
