@@ -17,11 +17,12 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-brief (938 B)
+### agi-brief (1212 B)
 ~~~sh
 #!/bin/sh
 p=$AGI_SEAT;cd ~/t;s=$(jq -r .source);case $AGI_HARNESS in pi*)B=${B:-40000};;esac
 sect brief.py|python3 - .agi/nodes doc:card-$p,$AGI_SEEDS$(find $(git rev-parse --git-common-dir)/refs/claims -user $USER -printf ,%f 2>/dev/null) ${K:-20}>~/.brief;cat ~/.brief;cut -d' ' -f4 ~/.brief|xargs tail -n+1|head -c ${B:-0}
+w=${AGI_WT:-$RUNTIME_DIRECTORY/wt};git for-each-ref --format='%(refname) %(subject)' refs/archive/${AGI_POST:-$p}|sed -n 's/^\([^ ]*\) [^ ]*: kept .*/[kept] \1: a stop left this tree whole; recover it, then git update-ref -d it/p';ls -d $w/*/ 2>/dev/null|sed 's/^/[tree] /'
 [ "$s" = compact ]&&exit;jq -n "{seat:\"$p\",rotation:\"engine-v4\",result:\"success\",source:\"$s\",pid:0,window:\"\",recorded_at:\"$(date -u +%FT%TZ)\"}">$O/.agi/sessions/rotations/$p.$(date -u +%Y%m%dT%H%M%SZ).json
 [ "$s" = resume ]||{ echo "## STARTUP OUTPUT";sed -n "/^  $AGI_ROLE:/,/^  [a-z_]*:\$/{/first_turn:/,/after_join:/s/^        - //p}" .agi/nodes/.geometry/rotations.md|jq -r '"\(.label)\t\(.byte_cap//3000)\t\(.cmd)"'|sed "s|{seat}|$p|g;s|{repo}|$O|g;s|{worktree}|$PWD|g;s|{prime_ref}|belam|g"|while IFS='	' read -r l b c;do echo "### $l";timeout 30 sh -c "$c" 2>&1|head -c $b;done|head -c 8000;}
 ~~~
@@ -61,12 +62,16 @@ cd ~/t;P=${AGI_POST:?};b=refs/heads/posts/$P;x=$(mktemp -u);trap 'rm -f $x' 0;ex
 unset GIT_INDEX_FILE;git reset -q $b
 ~~~
 
-### agi-turn (1897 B)
+### agi-turn (2952 B)
 ~~~sh
 #!/bin/sh
-# agi-turn: each changed node tree = ONE grid commit on posts/P (temp index from the tip, signed, CAS); the tip moved it since pull = archived + dropped; a tree is purged ONLY once its commit is proven AND the whole tree is clean against it (agi-turn chk DIR COMMIT: a file outside .p keeps it, [dirty]), any failure keeps it (rc != 0, a [label]); ~/t = a detached read view
-cd ~/t;P=${AGI_POST:?};b=refs/heads/posts/$P;x=$(mktemp -u);trap 'rm -f $x' 0;export GIT_INDEX_FILE=$x;k=0
-[ "$1" = chk ]&&{ git read-tree $3||exit 1;l=$({ git --work-tree=$2 diff --name-only --diff-filter=MT;git --work-tree=$2 ls-files -o;}|grep -vxF -e .p -e .b|tr '\n' ' ');[ -z "$l" ]&&exit;echo "[dirty] $(basename $2): kept, not in the commit: $l">&2;exit 1;}
+# agi-turn: each changed node tree = ONE grid commit on posts/P (temp index from the tip, signed, CAS); the tip moved it since pull = archived + dropped; a tree is purged ONLY once its commit is proven AND the whole tree is clean against it (agi-turn chk DIR COMMIT: a file outside .p keeps it, [dirty]; a git failure keeps it too); agi-turn purge DIR = that check then rm, else EVERY file of the tree goes to refs/archive/P/<dir> (signed, CAS), [kept] names it, rc 1; a kid (AGI_ROLE=kid, which agi-kid sets) or no posts/P = rc 5, nothing committed; any failure keeps the tree (rc != 0, a [label]); ~/t = a detached read view
+cd ~/t;P=${AGI_POST:?};b=refs/heads/posts/$P;x=$(mktemp -u);trap 'rm -f $x $x.l' 0;export GIT_INDEX_FILE=$x;k=0
+c(){ [ "$2" ]&&git read-tree $2&&git --work-tree=$1 diff --name-only --diff-filter=MT>$x.l&&git --work-tree=$1 ls-files -o>>$x.l||return 2;l=$(grep -vxF -e .p -e .b $x.l|tr '\n' ' ');[ -z "$l" ];}
+[ "$1" = chk ]&&{ c $2 $3;r=$?;[ $r = 0 ]&&exit;[ $r = 1 ]&&echo "[dirty] $(basename $2): kept, not in the commit: $l">&2||echo "[dirty] $(basename $2): kept, cannot read it against '$3'">&2;exit 1;}
+{ [ "$AGI_ROLE" != kid ]&&git rev-parse -q --verify $b>/dev/null;}||{ echo "[no-branch] $P: a kid, or no posts/$P: nothing committed">&2;exit 5;}
+[ "$1" = purge ]&&{ d=${2%/};m=${d##*/};c $d $(cat $d/.b 2>/dev/null||git rev-parse $b);[ $? = 0 ]&&{ rm -rf $d;exit;};a=refs/archive/$P/$m;o=$(git rev-parse -q --verify $a||:)
+ t=$(git rev-parse $b)&&git read-tree $t&&git --work-tree=$d add --ignore-removal -f -- . ':!.p' ':!.b'&&n=$(git write-tree)&&e=$(echo "$P: kept $m"|git commit-tree -S -p $t ${o:+-p $o} $n)&&git update-ref $a $e "$o"&&s="whole tree committed to $a"||s="NOT SAVED: the ref write failed";echo "[kept] $m: ${l:-unreadable}: $s">&2;exit 1;}
 for d in ${AGI_WT:-$RUNTIME_DIRECTORY/wt}/*/;do [ -f $d.p ]||continue;m=$(basename $d);t=$(git rev-parse $b)&&git read-tree $t&&a=$(git --work-tree=$d add -A --pathspec-from-file=$d.p 2>&1)&&n=$(git write-tree)||{ echo "[stage] $m: $(echo "${a:-git failed}"|tr '\n' ' ')">&2;k=1;continue;}
  [ $n = $(git rev-parse $t^{tree}) ]&&continue;r=$b;o=$t;q=;[ ! -f $d.b ]||(IFS='
 ';set -f;git diff --quiet $(cat $d.b) $t -- $(cat $d.p))||{ r=refs/archive/$P/$m;o=$(git rev-parse -q --verify $r||:);q=${o:+-p $o};}
@@ -76,7 +81,7 @@ for d in ${AGI_WT:-$RUNTIME_DIRECTORY/wt}/*/;do [ -f $d.p ]||continue;m=$(basena
 unset GIT_INDEX_FILE;git checkout -q --detach $b;git status -s|grep -q .&&echo "[out-of-tree] ~/t has $(git status -s|wc -l) unversioned change(s): edit in a node's tree (agi-wt pull)">&2;exit $k
 ~~~
 
-### agi-wt (1111 B)
+### agi-wt (1225 B)
 ~~~sh
 #!/bin/sh
 # agi-wt pull ID [REV] | new PATH [PAYLOAD] | drop ID: a node's tiny tree (node + payload, ONE PATH PER LINE in .p) in RAM for the session; agi-turn versions it, drop purges it only after a proven turn
@@ -87,7 +92,7 @@ f=$(git grep -lE "^(id|mint_id): $2$" $r -- .agi/nodes|head -1|cut -d: -f2-);[ "
 case $1 in pull)[ -d $d ]&&{ echo $d;exit;};[ $(df --output=pcent $w|tail -1|tr -dc 0-9) -lt ${AGI_WT_HOLD:-60} ]||{ echo "hold $w";exit 3;}
 mkdir $d;printf '%s\n' "$f" $(git show $r:$f|sed -n 's/^payload_ref: "\{0,1\}\([^"]*\)"\{0,1\}$/\1/p')>$d/.p
 e=$(git archive -o $d.tar $r $(cat $d/.p) 2>&1&&tar -xC $d -f $d.tar 2>&1)||{ rm -rf $d $d.tar;echo "agi-wt: pull $2 failed: $e">&2;exit 6;};rm $d.tar;git rev-parse $r>$d/.b;echo $d;;
-drop)agi-turn&&agi-turn chk $d $(cat $d/.b)&&rm -rf $d;;esac
+drop)[ -d $d ]||{ echo "agi-wt: no tree $d for $2 (a 'new' tree is dropped by agi-flush)">&2;exit 2;};agi-turn&&{ [ ! -d $d ]||agi-turn chk $d $(cat $d/.b)&&rm -rf $d;};;esac
 ~~~
 
 ### agi-track (89 B)
@@ -96,11 +101,12 @@ drop)agi-turn&&agi-turn chk $d $(cat $d/.b)&&rm -rf $d;;esac
 grep --line-buffered -o '"/[^"]*"'|awk '!s[$0]++{print;fflush()}'>>$HOME/track
 ~~~
 
-### agi-flush (467 B)
+### agi-flush (806 B)
 ~~~sh
 #!/bin/sh
-cd ~/t;k=0;for d in ${AGI_WT:-$RUNTIME_DIRECTORY/wt}/*/;do [ -d $d ]||continue;agi-wt drop $(basename $d);[ $? = 5 ]&&k=5;done;agi-turn||agi-turn||agi-turn;r=$?;[ $k = 0 ]&&k=$r
-b=refs/heads/posts/$AGI_POST;T=${AGI_TRUNK:-trunk};t=$(git rev-parse $b)&&! git merge-base --is-ancestor $T $b&&n=$(git merge-tree --write-tree $b $T)&&c=$(echo "$AGI_POST: merge $T"|git commit-tree -S -p $t -p $T $n)&&git update-ref $b $c $t
+# agi-flush: land every tree (4 turns), then agi-turn purge each dir left under $AGI_WT, found by DIR (pulled or new): clean = removed, anything else = kept whole on refs/archive/P/<dir> and [kept]: rc 0 iff no tree remains; then merge the trunk, resolved ONCE
+[ "$AGI_POST" ]||{ echo "agi-flush: no AGI_POST">&2;exit 5;};cd ~/t;w=${AGI_WT:-$RUNTIME_DIRECTORY/wt};agi-turn||agi-turn||agi-turn||agi-turn;k=$?;for d in $w/*/;do [ -d $d ]&&{ agi-turn purge $d||[ $k != 0 ]||k=1;};done
+b=refs/heads/posts/$AGI_POST;t=$(git rev-parse $b)&&T=$(git rev-parse ${AGI_TRUNK:-trunk})&&! git merge-base --is-ancestor $T $b&&n=$(git merge-tree --write-tree $b $T)&&c=$(echo "$AGI_POST: merge ${AGI_TRUNK:-trunk}"|git commit-tree -S -p $t -p $T $n)&&git update-ref $b $c $t
 git checkout -q --detach $b;exit $k
 ~~~
 
