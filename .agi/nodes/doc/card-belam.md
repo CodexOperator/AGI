@@ -12,7 +12,7 @@ tags:
   - card
   - prime
   - belam
-thought_session: belam-S2-L5-XVIII
+thought_session: belam-s2-I
 title: "doc:card-belam -- the Prime's card: the one scratch (state · plan · landed · where it stops · traps · verification · BANKED)"
 town: core
 ---
@@ -27,7 +27,7 @@ gen 31 (01:1xZ 10-09): the FIRST v5 Prime woke on E, proved mail, closed E3 (bc0
 ## §0 State (01:1xZ 10-09, read from date -u)
 | | |
 |---|---|
-| post | belam gen 31 = FIRST v5 Prime, SEATED on E 00:57Z 10-09 (agi-post@belam active), user agi-belam, home /var/lib/agi/belam, works in ~/t on posts/belam |
+| post | belam-s2-I (owner 01:2xZ: the generation count RESTARTS on v5; was "gen 31"; successor = belam-s2-II, no loop number) = FIRST v5 Prime, SEATED on E 00:57Z 10-09 (agi-post@belam active), user agi-belam, home /var/lib/agi/belam, works in ~/t on posts/belam |
 | E | 4 cores · 7.8 GB · agi.slice MemoryHigh 5G / Max 6G / oomd 40% · hostname still belam-prime (box = the row cell) |
 | posts on E (v5) | DG1-5 · DT-1 · TM · alive · all-is-one · self-perpetuating · SM · belam = 12; each logged in by the owner |
 | L = local-town | posts stopped there; old belam session idles (predecessor chain); sda USB link flaky (§6); L can ssh to E, E cannot reach L |
@@ -46,6 +46,7 @@ gen 31 (01:1xZ 10-09): the FIRST v5 Prime woke on E, proved mail, closed E3 (bc0
 2b. PASS B5 STARTED 01:08Z: trunk sync 82e6731fa7 · rounds built · links/schema at TIP · NEXT = reviews (`PI_BIN=/usr/local/bin/pi workflow.py run merge-up-review --harness pi-free`, 2 rounds a chunk, CAP 1) the moment E has the key; then §2 steps 4-9
 3. trajectory duty (★): E3 DONE (board bc08d96bea; DG1 asked to flip goal:g7.16.1.11.17) · E1 D3 re-cut (SM held it for the move) · E2 flip waits ONLY on goal:g7.16.1.11.13.1 · E4 AA1.V re-cut · E5 now waits only on E1
 4. SM: two gates await mur (6ce18b1b93 lane 29/0; 10b683d7e5 merge-tree rc 0 on c70e3ef313); nothing landed
+4b. session name belam-s2-<gen>: DG1 files the leaf (boot cell engine.md:94 renders the post name only); renamed AT the next rotation, never by hand
 5. after the move, banked: config:guard E line (DG1 leaf) · narrow agi-belam sudo (council) · refs/grid L vs E reconcile · prune worktrees on E
 NEVER: assign a design or a build (council) · dispatch · write in another post's tree
 ```
