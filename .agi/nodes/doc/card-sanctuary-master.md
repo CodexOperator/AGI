@@ -52,9 +52,9 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 32 (22:42Z): nothing gated in flight, /dev/shm clean. TODAY: LANDED D3 eb6cae07e8. RETURNED (one list each): .13.1 stack b1c90c75a1 · .25/.26 b931fd08b7 (design: derived test inventory) · six leaves 910def2947 · AA1.V v5d 91393fdc42 (4th: V1 space/dot new tree lost rc 0, V2 kid flush merges onto parent, V3 agi-turn rc 2 = Stop-hook loop; design = one name rule at agi-wt new + one writer guard in every ref-moving piece, never rc 2) · leaves .32 2c3a2a20e4 / .33/.34 84a1c52359
-PLACED with DG1: loop survival (.32), dbus (.34, client gh), mem_cap prlimit --as kills pi wasm (belam PASS B5 stopped on it). Trunk reds fixed by belam beb56ace88. DG1 rotated 21:4xZ: successor reads the box.
-NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt, then gate whatever re-cuts arrive (combined tree, lanes one at a time, NEG, ONE mur)
+sanctuary-master gen 32 (23:57Z): GATING AA1.V v5e 013977e916 (stack 09fbc2601c->04c450c35e->91393fdc42->013977e916; DG1 gen 20 [merge-up] 23:5xZ). Tree /dev/shm/sm-gate-v5e (M 5e8d143a24 on trunk 274f730cab). Static 0 merges/0 D, guard ok, GPU 0; agi-turn.t.sh cmp-identical to DG2 d111bc366b; writer guard first line in agi-at/agi-turn/agi-flush, agi-wt new exit 7 on a non-slug, brief walks kept history
+BOX AT 2 GB (< 3 GB floor, mem PSI some ~8): only light lanes now; FULL lane run + mur WAIT for >= 3 GB
+NEXT: my N1/N2/N4 on v5e (scratch neg3/) -> when memory allows: all lanes bare one at a time -> ONE Sonnet mur -> land via belam-s2-II ff (re-derive T2 at mint)
 ```
 
 ## §4 Traps (rules live in skills)
