@@ -6,10 +6,11 @@ unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_AUTHOR_NAME GIT_COMMITTER_NAME GI
 sect(){ cat $GEO/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 mk(){ X=$T/$1;rm -rf $X;mkdir -p $X/data/work/agi/.agi/nodes/.geometry $X/opt/agi/bin $X/etc/systemd/system $X/etc/polkit-1/rules.d $X/usr/local $X/mnt $X/var/lib;M=$X/data/work/agi;cp $GEO/engine*.md $M/.agi/nodes/.geometry/
  { printf '%s\n' '---' 'posts:';printf '  - {"name":"xp","box":"encryption-town","engine":{"v":4,"name":"xp","harness":"pi","model":"m","effort":"low"}}\n  - {"name":"lp","box":"local-town","engine":{"v":4,"name":"lp","harness":"pi","model":"m","effort":"low"}}\n';printf '%s\n' '---';} >$M/.agi/nodes/.geometry/posts.md
+ [ -n "$NOCOMMS" ]||{ mkdir -p $M/.agi/comms/season-2/dm;echo x>$M/.agi/comms/season-2/dm/a--b.md;}
  git init -q $M;git -C $M add -A;git -C $M -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm fx;PIN=$(git -C $M rev-parse HEAD);printf '#!/bin/sh\n' >$X/opt/agi/bin/pi;chmod +x $X/opt/agi/bin/pi;}
 run(){ ( cd $T;env -i PATH=$PATH HOME=$T ROOT=$X PIN=${PIN} AGI_REPO=/data/work/agi "$@" );}
 # one line per getfacl record, sorted: readdir order differs between filesystems (tmpfs moves .git/index when it is rewritten), the content does not
-acls(){ getfacl -R -p $X/data/work/agi/.git 2>/dev/null|awk 'BEGIN{RS=""}{gsub(/\n/,"|");print}'|sort;}
+acls(){ getfacl -R -p $X/data/work/agi/.git $X/data/work/agi/.agi/comms 2>/dev/null|awk 'BEGIN{RS=""}{gsub(/\n/,"|");print}'|sort;}
 tree(){ (cd $X&&find . -path ./data -prune -o -path ./var/backups -prune -o -print|sort|xargs -I{} stat -c '%a %n' {});}
 # ---- a clean E: the act installs exactly the pinned bytes ----
 PU=agi-post@;GG=$(id -gn);mk a;before=$(tree);acl0=$(acls);run sh $ACT act>$T/a.out 2>$T/a.err;ra=$?
@@ -33,14 +34,26 @@ ok f2-a-dir-made-later-inherits-the-group-acl "getfacl -p $GD/refs/heads/zz 2>/d
 rmdir $GD/refs/heads/zz $GD/objects/zz
 IB=$X/data/work/agi/.agi/sessions/inbox
 ok g1-inbox-has-group-rwx-default-rw-and-mode-775 "getfacl -p $IB 2>/dev/null|grep -qx \"group:$GG:rwx\"&&getfacl -p $IB 2>/dev/null|grep -qx \"default:group:$GG:rw-\"&&[ \$(stat -c %a $IB) = 775 ]"
+CD=$X/data/work/agi/.agi/comms;PUN=$(id -un)
+ok h1-comms-acl-group-and-prime-user-rwx-with-defaults-on-every-dir "(for d in $CD $CD/season-2 $CD/season-2/dm;do getfacl -p \$d 2>/dev/null|grep -qx \"group:$GG:rwx\"&&getfacl -p \$d 2>/dev/null|grep -qx \"user:$PUN:rwx\"&&getfacl -p \$d 2>/dev/null|grep -qx \"default:group:$GG:rwx\"&&getfacl -p \$d 2>/dev/null|grep -qx \"default:user:$PUN:rwx\"||exit 1;done;getfacl -p $CD/season-2/dm/a--b.md 2>/dev/null|grep -qx \"group:$GG:rw-\")"
+mkdir $CD/season-2/zz
+ok h2-a-comms-dir-made-later-inherits-both-entries "getfacl -p $CD/season-2/zz 2>/dev/null|grep -qx \"group:$GG:rwx\"&&getfacl -p $CD/season-2/zz 2>/dev/null|grep -qx \"user:$PUN:rwx\"&&getfacl -p $CD/season-2/zz 2>/dev/null|grep -qx \"default:user:$PUN:rwx\""
+rmdir $CD/season-2/zz
+ok h3-the-act-names-the-comms-acl "grep -q 'comms ACL g:$GG:rwX + u:$PUN:rwX' $T/a.out"
 # ---- the rollback: back to the before-state, modes included ----
 rb=$(sed -n 's/.*rollback: sh //p' $T/a.out);sh $rb>$T/rb.out 2>&1;rr=$?
 ok b1-rollback-restores-an-untouched-E "[ $rr = 0 ]&&[ \"\$(tree)\" = \"$before\" ]"
 ok b2-rollback-restores-the-main-acl-and-drops-the-worktrees-dir "[ \"\$(acls)\" = \"\$acl0\" ]&&[ ! -e $GD/worktrees ]&&[ ! -e $IB ]"
+ok b3-rollback-leaves-the-comms-bytes-and-no-acl-on-them "[ \"\$(cat $CD/season-2/dm/a--b.md)\" = x ]&&! getfacl -R -p $CD 2>/dev/null|grep -q '^default:\\|^user:[a-z]\\|^group:[a-z]'"
 # ---- an E with an old file of non-default mode: restored with its bytes and mode ----
 mk c;mkdir -p $X/data/work/agi/.agi/sessions/inbox;chmod 750 $X/data/work/agi/.agi/sessions/inbox;mkdir -p $X/etc/agi;echo OLD>$X/etc/agi/carry.env;chmod 640 $X/etc/agi/carry.env;before=$(tree);run sh $ACT act>$T/c.out 2>$T/c.err;rc=$?;rb=$(sed -n 's/.*rollback: sh //p' $T/c.out);sh $rb>/dev/null 2>&1
 ok c2-an-old-inbox-comes-back-with-its-mode-and-no-group-acl "[ \$(stat -c %a $X/data/work/agi/.agi/sessions/inbox) = 750 ]&&! getfacl -p $X/data/work/agi/.agi/sessions/inbox 2>/dev/null|grep -q '^[a-z:]*group:[a-z]'"
 ok c1-an-old-carry-env-comes-back-with-its-bytes-and-mode "[ $rc = 0 ]&&[ \"\$(cat $X/etc/agi/carry.env)\" = OLD ]&&[ \$(stat -c %a $X/etc/agi/carry.env) = 640 ]&&[ \"\$(tree)\" = \"$before\" ]"
+# ---- a MAIN with no comms dir: the act makes it, the rollback removes it; an absent prime user is refused with nothing written ----
+NOCOMMS=1 mk h;[ ! -e $X/data/work/agi/.agi/comms ];run sh $ACT act>$T/h.out 2>$T/h.err;rh=$?;rb=$(sed -n 's/.*rollback: sh //p' $T/h.out);sh $rb>/dev/null 2>&1
+ok h4-an-absent-comms-dir-is-made-and-rolled-back "[ $rh = 0 ]&&grep -q 'comms ACL' $T/h.out&&[ ! -e $X/data/work/agi/.agi/comms ]"
+mk i;before=$(tree);run env PRIME_USER=nosuchuser-zz sh $ACT act>/dev/null 2>$T/i.err;ri=$?
+ok h5-an-absent-prime-user-is-refused-and-nothing-is-written "[ $ri != 0 ]&&grep -q 'PREREQ: user nosuchuser-zz' $T/i.err&&[ ! -e $X/var/backups ]&&[ \"\$(tree)\" = \"$before\" ]"
 # ---- refusals write NOTHING ----
 mk d;before=$(tree);run env PIN=zz sh $ACT act>/dev/null 2>$T/d1.err;r1=$?;run env PIN=0000000000000000000000000000000000000000 sh $ACT act>/dev/null 2>$T/d2.err;r2=$?;rm $X/opt/agi/bin/pi;run sh $ACT act>/dev/null 2>$T/d3.err;r3=$?
 ok d1-a-bad-pin-is-refused-by-name "[ $r1 != 0 ]&&grep -q 'PIN must be' $T/d1.err"
