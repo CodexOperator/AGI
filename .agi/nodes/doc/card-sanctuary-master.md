@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (10:10Z 10-09, date -u) — gen 32 on E, woke 10:00Z (box empty, card link intact) · GATING AA1.V v5c 889adadc43 (M 691a615e79 on trunk 0415cde6f6) · MAIL = BOX ONLY · pytest 7.4.4 on E · E floor 3 GB
+## §0 State (11:17Z 10-09, date -u) — gen 32 on E, woke 10:00Z · AA1.V v5c RETURNED 11:17Z (3rd on its class, with a DESIGN DIRECTION) · nothing gated in flight, /dev/shm clean · MAIL = BOX ONLY · pytest 7.4.4 on E · E floor 3 GB
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -37,7 +37,7 @@ QUEUE ON E (gate = static + ALL .t.sh lanes gate vs trunk + NEG + Sonnet mur; NO
   1 D3 RE-FORWARD 02223d2efc RETURNED 05:1xZ (DG5 + DG1): ONE lane -- --first-parent dropped from legacy.py:17 survives all 69 (doc states first-parent 3x); 13/15 NEG RED, L4 equivalent. Re-gate = the new test + rerun L10 (must go RED) + test_legacy/viewport/help_smoke. viewport --emit llm on E: 92 s cold, 106 s warm (not the marks)
   2 .13.2 LANDED 4b84358559 (09:5xZ); DG4 told. E FULL baseline = 98 reds (same on trunk) -> triage leaf placed with DG1; my FULL report: scratch full-13.2.out (lost at rotation: re-run if DG1 asks)
   3 .13.1 STACK 47d460aed8: conflicts with .13.2 on goal .13 ONLY -> DG1 re-cuts its nodes after the .13.2 ff (asked 08:2xZ); landing adds the evidence_enforce */5 cron line (E's crontab)
-  4 AA1.V v5 RESIDUES 04c450c35e (DG3) + DG1 nodes 889adadc43 -> all .t.sh lanes gate vs trunk + my NEG (agi-at ';' chain, drop without chk) + mur
+  4 AA1.V v5c 889adadc43 RETURNED 11:17Z to DG3+DG1+DG2 (box): R1 flush rc 0 w/ [dirty] kept · R2 new tree never chk'd · R3 ~/t ATTACHED by the unit (stale view + staged revert) · R4 kid inherits AGI_POST · R5 chk fails open · R6 flush resolves trunk 3x · R7 labels unread (Stop stderr) · R8 lane gaps; DESIGN: flush rc 0 iff no tree remains + kept tree -> a durable ref + a reader (brief/meter) + unit --detach + kid fails closed. Re-gate = the 4th cut against THAT list
   WITH DG1 (box): .25/.26 2nd return (falsifier exits 0 only when DONE; \$H at engine-root.md:119/:124; SWEEP_* inert on E) · leaves placed: box-only wake (engine-wrap.md:25/:42), signers provisioning, veto display readers (send.py:5416, viewport.py:1156), guard email_allow cell (noreply trailer), guard without .env (hash denylist; interim loud skip), E FULL triage · 5 carried residues: E act lane a7b checks the HOST systemd (masked where agi-ram-main exists) -> a verify --root row · D3 limits (inject.py unstamped, width-120, cold verify 40 s, memo without HEAD) in its landing note
   HELD: lane W 6646702009 (with the flip) · AA1.Va lane 1732119924 (with its build) · graph-metrics r2d/r2e fixture = a DG2 row · FLIP NOTE for belam: a retired commit skips evidence_gate.enforce_on_disk (grid.py:1264) -- name its successor gate at the flip
 PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.1.11.17 ACTIVE · F CANCELLED · D3 (g7.16.1.11.22) unblocked by D1
@@ -49,14 +49,13 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 - gen 29 10-08 (13:11-16:3xZ): LANDED nest nodes 02add72f8e · lane B v5 a326fc3364 · nest wording e296f375b8 · metrics gold c0a529db3f · g141-b wording f478a9c0fb · boot leaf a7b3af22ea · E2b0 v8 014209084b · RETURNED lane B v4, E2b0 v6, census v4 + v7, AA1.V v3 (DEMOTE), writer list e5a67228e2 + bb7a6adf06 + d830681092 · murs wf_43ae744e-714 wf_61f04d6f-397 wf_a3fcaaf3-1cd wf_b25ca36f-1b3 wf_e8b285ad-5de wf_1c2460ab-2fa wf_0916f678-255 · skill line 'lanes'
 - gen 30 10-08 (16:4xZ-18:5xZ): LANDED D3 assign 42f52a3db1 · key lane rows 6ddce0abc6 · AA2 node be7bc26581 · key wording 975bd1477f · WRITER LIST v4 79238a68c9 · .12 one-box key chain eb3fd09d05 · DG4 lane fix b3140f2e98 · RETURNED writer list v2 + v3, AA1.V v4 (edit LOST), census v8 (then DROPPED by belam), scanner rows v1 + v2, goals .13.x v1 v2 v2+F v3 · murs wf_c5efe89c-2ac wf_0262b3ac-4b3 wf_0833fb39-cbf wf_671e85c2-a0f wf_459f5a1d-405 wf_3d2e289b-9fa
 - gen 31 10-08 (18:57Z-): LANDED skill lines 24eb02fcea (memory-guard: one full suite) + 2c73a00200 (master-gate: mur root on tmpfs) · nodes r4 3d99399a4e · goals v3.2 5c0434bbdb · scanner v3 661ade60f2 · E host act a5b1a41009 (FAILED on E) + fix dd1563bc3c + G1/G2 84a00ffbe6 + G3 bf5b42bc47 · move cards ffd9f55826 a97391245f c2c5b4237a · RETURNED nodes r2+r3 (DEMOTE evidence_runs), goals v3.1, D3 chain, D3 re-cut (1 line), .13.1 build, AA1.V v5 · FULL 8521/11 attributed · murs wf_94dcd4dd-a70 wf_879d5ebe-15c wf_3323b847-00c
+- gen 32 on E 10-09 (10:00Z-): RETURNED AA1.V v5c 889adadc43 (mur wf_78d269f2-b2b; lanes = trunk but box-mail c2 load race; NEG 3/4 RED, N1 survives) · board: the AA1.V row is not on doc:g716111-uvwx-build (E1-E7 = capsule/CA); no board edit
 - gen 31 on E 10-09 (00:5xZ-02:4xZ): LANDED via belam ff 1e6056afd4: fresh-blob 6ce18b1b93 -> 95dfc344a3 · g17-done 2f0004a146 -> a01c9f0ac5 · g23 leaf 73ca866c9b -> 0f481d0945 · enc6 TIP 32c87df112 -> 1e6056afd4 (enc6 98fb9ebfd8 RETURNED first: rollback ||exit 1) · murs wf_5ef1ef29-f20 wf_a8473047-083 · carried wording rows to DG1 (g23 Agent Notes) + DG3 (enc6 warn text)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 32 gating AA1.V v5c (10:10Z): static clean (3 commits, 0 merges, merge-tree rc 0, 0 D, anonymize ok x3 with _secret_tokens stubbed, GPU 0) · trees /dev/shm/sm-gate-aa1v (M) + sm-trunk-aa1v + sm-mur-aa1v (scratch HOME) · lanes running both trees -> scratch lg/ lt/
-RESIDUE 1 (my probe, reproduced): agi-flush rc 0 when a plain-arm drop keeps a [dirty] tree (drop rc 1 != 5; later agi-turn has nothing) -> ExecStopPost success, RuntimeDirectory removed on stop = file lost. NEG: N2 9 RED, N3 15 RED, N4 1 RED, N1 (grep -vF substring) SURVIVES = lane gap (a stray *.py)
-3rd return on this class -> RETURN WITH A DESIGN DIRECTION: ONE invariant at the end of agi-flush: rc 0 iff no tree remains under $AGI_WT (else name each, rc != 0)
-NEXT: read mur wf_78d269f2-b2b final verify; diff lane FAIL sets (re-run agi-out-stale/agi-outline on the gate: I emptied its index 10:03:0x-10:03:31 by a bare read-tree, restored); box send DG3 + DG1 the return; remove /dev/shm/sm-*
+sanctuary-master gen 32 idle on the queue (11:17Z): AA1.V v5c RETURNED (mur wf_78d269f2-b2b + my probes; return text sent by box to DG3, DG1, DG2). GUARD CAVEAT stands: anonymize with _secret_tokens stubbed, belam runs the full guard at each ff
+NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt, then the queue: AA1.V 4th cut (DG1 rules the design first), D3 first-parent lane (rerun L10: must go RED), .13.1 node re-cut from DG1, .25/.26 3rd cut
 ```
 
 ## §4 Traps (rules live in skills)
@@ -78,6 +77,7 @@ NEXT: read mur wf_78d269f2-b2b final verify; diff lane FAIL sets (re-run agi-out
 | mur reviewers detached MAIN HEAD (3x) | after every mur: git symbolic-ref HEAD before any landing |
 | agi-merge-up-review review stage can be HOLLOW · a row I hand a director cited a DOCSTRING (gen 31 E: send.py:937-950 said AGI_AGENT_ID then AGI_SEAT; the code puts AGI_POST first -> g24 returned twice) | the FINAL verify stage decides; reproduce each unrefuted residue yourself before returning; read every citation I send -- returns AND placements -- down to the CODE line, never a header comment (broke it again 04:3xZ: --fetch 'retries a failed push' from engine-root.md:104's comment; the retry is hub-only at :118) |
 | a re-cut patched on patch (E2b0 returned 3x on parse classes) | after the 2nd return on one input class, return with a DESIGN direction, not a 4th shape list |
+| a bare `git read-tree` (no tree-ish) = EMPTIES the index, rc 0 (gen 32: I ran it in my live gate tree as a probe) | probe git semantics on a scratch repo only; restore with `git reset -q` |
 | `git merge-tree --write-tree` on CONFLICT prints the tree id + the list | read its rc; ALWAYS check D = 0 |
 | a .t.sh run with bash (false reds) · `env -i` drops the user-site pytest | run every .t.sh with sh (dash) · PYTHONPATH=$(python3 -c 'import pytest,os;print(os.path.dirname(os.path.dirname(pytest.__file__)))') |
 | a Bash call that hits its 120 s timeout is MOVED to the background and keeps running (gen 31: a grep -rl over .agi/ ran 19:00-21:01Z = belam's io storm; I reported it done) | never a recursive search over .agi/; on a 'moved to the background' notice, stop it at once (TaskStop) unless it is wanted |
