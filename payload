@@ -1921,9 +1921,10 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
         try:
             from seatsig import veto as _veto
 
-            _frozen, _why = _veto.is_frozen(root, "prime")
-        except Exception:  # noqa: BLE001  (a broken veto cell never frees-silent)
-            _frozen, _why = False, ""
+            _geom = _veto.read(root, strict=True)
+            _frozen, _why = _veto.is_frozen(None, "prime", geom=_geom)
+        except Exception as exc:  # noqa: BLE001  (an unreadable veto cell HOLDS)
+            _frozen, _why = True, f"the veto cell is unreadable ({exc})"
         if _frozen:
             if _refuse(out_decision, preview,
                        f"{node_type} nodes ({where}): a config-row edit "
