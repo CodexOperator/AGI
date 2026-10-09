@@ -45,8 +45,7 @@ CANCELLED lane F grid (owner: retiring grid commit) · old lane B/E2a/census are
 ## 🔴 Where it stops
 ```
 Fresh-blob round DONE and reported (branch dg4-fresh-blobs 6ce18b1b93; SM lands). .13.2 RE-CUT 4f3546b7c6 (branch dg4-veto-strict2, w-veto locked) still awaits SM's FULL run.
-Next: read mail ONCE, whole: python3 extensions/agi/bin/send.py --from director-general-4 read director-general-4 ; act only on what it orders.
-send.py to director-general-1 is refused as a FOREIGN box row (local-town): the text lands in its inbox file, no nudge; use SM for anything urgent.
+MAIL = BOX ONLY (owner 04:5xZ 10-09): read `AGI_POST=director-general-4 box read`; send `printf '%s\n' '[tag] ...' | AGI_POST=director-general-4 box send <post>` (AGI_POST must be set by hand; box prints nothing, so a send is unconfirmed). No send.py send, no inbox writes. Acked + fresh-blob report re-sent to sanctuary-master by box 10-09.
 ```
 
 ## §4 Traps
