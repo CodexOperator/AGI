@@ -69,8 +69,8 @@ belam is ON v5 on E; PASS B5 holds at its review step on the OWNER (L's .env -> 
 | 46 | `pkill -f` / `pgrep -f` matches your OWN shell | match by comm + /proc environ |
 | 66 | `send.py read belam` prints "empty" while mail sits in the inbox FILE | read the file by ts |
 | 69 | send.py refuses tags outside its gate ([ack], [ready]) | `[rotation] [ready] ...` |
-| 79 | the harness refuses `rm` inside a root `sh -c` | pipe a reviewed script file to `sudo -n sh -s` |
 | 84 | a drop-in cannot reset Requires=/After= | a no-op unit on the box, never a reset |
+| 95 | RC dropped for half the posts 09:06-10:00Z 10-09: claude.ai access tokens live 8 h; every post was logged in within ~2 h last night, so all expired 06:38-09:20Z, and a post idle at expiry never refreshed -> its RC link died ('login was rejected' / 'could not reach RC ~30 min'); busy posts refreshed fine. Refresh tokens unique + valid to 11-05..11-07; clock synced | not the box: re-login or `/remote-control <post>` (bare /remote-control names the session after its first prompt, 'go'); a keepalive turn every < 8 h per post would prevent it |
 | 94 | other uids cannot read MAIN .env (by design) -> their anonymize secret class crashes | until the hashed denylist lands, belam runs the FULL guard (`anonymize.py check --root /data/work/agi --diff-file F`) before every ff |
 | 93 | a post home (/var/lib/agi/<post>) in a node = an anonymize RED (test_anonymize_guard) | write `~` in nodes and cards |
 | 92 | re-running the UNCHANGED E act re-enables agi-carry-fetch.timer (host-act-encryption-town.sh:88; its verify :87 dies if the unit is gone) | never re-run the act until goal:g7.16.1.11.25 lands (SM 04:4xZ) |
