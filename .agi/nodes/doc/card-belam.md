@@ -27,7 +27,7 @@ gen 31 (01:1xZ 10-09): the FIRST v5 Prime woke on E, proved mail, closed E3 (bc0
 ## §0 State (01:1xZ 10-09, read from date -u)
 | | |
 |---|---|
-| post | belam-s2-I (owner 01:2xZ: the generation count RESTARTS on v5; was "gen 31"; successor = belam-s2-II, no loop number) = FIRST v5 Prime, SEATED on E 00:57Z 10-09 (agi-post@belam active), user agi-belam, home /var/lib/agi/belam, works in ~/t on posts/belam |
+| post | belam-s2-I (owner 01:2xZ: the generation count RESTARTS on v5; was "gen 31"; successor = belam-s2-II, no loop number) = FIRST v5 Prime, SEATED on E 00:57Z 10-09 (agi-post@belam active), user agi-belam, home ~, works in ~/t on posts/belam |
 | E | 4 cores · 7.8 GB · agi.slice MemoryHigh 5G / Max 6G / oomd 40% · hostname still belam-prime (box = the row cell) |
 | posts on E (v5) | DG1-5 · DT-1 · TM · alive · all-is-one · self-perpetuating · SM · belam = 12; each logged in by the owner |
 | L = local-town | SHUT DOWN 02:0xZ 10-09 (owner: "confirm local town is clear and shut it down"); belam-s2-I is the ONLY Prime; every seat key carried L->E (sends sign again); L's .env NOT carried; refs/grid bundle on L's USB /mnt/agi-flash |
@@ -37,13 +37,13 @@ gen 31 (01:1xZ 10-09): the FIRST v5 Prime woke on E, proved mail, closed E3 (bc0
 | crons | box: user belam's crontab on E is LIVE (10 lines = the graph; crons_apply 02:05Z no-op): grid_sync */5 · ref pushes */5 · trunk push :07 · send.py wake */2 (the L note "E has no crontab" was wrong) · session-only (re-arm at wake): CHECK 68b8b22b (13 */4, box read + launch when the key lands) · memory 4317a080 (47 *) · one-shots 45a8ec64 04:37Z · 4825bc4e 06:07Z |
 | host act E | installed 22:22Z 10-08 at dd1563bc3c: rollback `sh /var/backups/agi-act-20261008T222239Z/rollback.sh` |
 | landing | belam commits on posts/belam, pushes posts/belam, then as user belam `merge --ff-only posts/belam` in MAIN; the TRUNK push is TM's alone (skill agi-merge-pass §4; breached twice gen 31, owned to TM) |
-| merge pass | RUNNING in parallel (owner 01:0xZ 10-09). PASS B5 STARTED 01:08Z (TM no objection): BASE bcdb15f10f · TIP PINNED 82e6731fa7 (trunk sync of f75e3f48b6 in MAIN) · 17 rounds built /var/lib/agi/belam/pass-b5/ · secrets 0 · node D 0 · REVIEWS BLOCKED: no pi credential on E (no MAIN .env) · state MAIN .agi/sessions/prime-merge.state.json |
+| merge pass | RUNNING in parallel (owner 01:0xZ 10-09). PASS B5 STARTED 01:08Z (TM no objection): BASE bcdb15f10f · TIP PINNED 82e6731fa7 (trunk sync of f75e3f48b6 in MAIN) · 17 rounds built ~/pass-b5/ · secrets 0 · node D 0 · REVIEWS BLOCKED: no pi credential on E (no MAIN .env) · state MAIN .agi/sessions/prime-merge.state.json |
 
 ## §1 Plan
 ```
 1. DONE gen 31: woke on E, mail proved, one line to each master (SM + TM answered), crons armed
 2. DG3 enc6 LANDED in 1e6056afd4 (act bytes only; the E re-run of the act = my quoted GO, not yet); G5 HAND-SET on E 01:0xZ (backup /var/backups/agi-acl-sessions-20261009T010350Z; .grid.lock file needed its own entry)
-2b. PASS B5 STARTED 01:08Z: trunk sync 82e6731fa7 · kit rebuilt /var/lib/agi/belam/pass-b5 (launch.sh refuses rc 3 without a key) · NEXT = `sh launch.sh` in the background, then reviews (`PI_BIN=/usr/local/bin/pi workflow.py run merge-up-review --harness pi-free`, 2 rounds a chunk, CAP 1) the moment E has the key; then §2 steps 4-9
+2b. PASS B5 STARTED 01:08Z: trunk sync 82e6731fa7 · kit rebuilt ~/pass-b5 (launch.sh refuses rc 3 without a key) · NEXT = `sh launch.sh` in the background, then reviews (`PI_BIN=/usr/local/bin/pi workflow.py run merge-up-review --harness pi-free`, 2 rounds a chunk, CAP 1) the moment E has the key; then §2 steps 4-9
 3. trajectory duty (★): E3 DONE (board bc08d96bea; DG1 asked to flip goal:g7.16.1.11.17) · E1 D3 re-cut (SM held it for the move) · E2 flip waits ONLY on goal:g7.16.1.11.13.1 · E4 AA1.V re-cut · E5 now waits only on E1
 4. SM: two gates await mur (6ce18b1b93 lane 29/0; 10b683d7e5 merge-tree rc 0 on c70e3ef313); nothing landed
 4b. session name belam-s2-<gen>: goal:g7.16.1.11.23 (horizon, landed 1e6056afd4) (boot cell engine.md:94 renders the post name only); renamed AT the next rotation, never by hand
