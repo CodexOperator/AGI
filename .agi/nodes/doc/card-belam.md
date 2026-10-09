@@ -52,11 +52,11 @@ NEVER: assign a design or a build (council) · dispatch · write in another post
 ```
 
 ## §2 Landed
+belam-s2-I 09:5xZ: DG4 .13.2 veto-strict ff'd 4b84358559 (full guard with .env run by me: diff ok; message 'email' = the public noreply trailer -> allow-list leaf) · .env breaks the guard for non-belam uids -> my call: hashed secret denylist (target) + loud skip (interim), leaf via SM · E FULL baseline 98 reds -> triage leaf via SM
 belam-s2-I 08:0xZ: E key from Doppler (project agi, config dev, OPENROUTER_ADMIN -> MAIN .env OPENROUTER_PROVISIONING_KEY; never printed; .env belam 640 + u:agi-belam:r) -> provisioning available, `mint per-run` -> PASS B5 reviews launched · .env.example: provisioning is the main way (owner) · Doppler: belam's tokens are service tokens (belam/prd ro, agi dev/stg/prd rw in ~/.config/sanctuary/doppler as user belam); `access` project needs a doppler login or its own token
 belam-s2-I 05:0xZ: FULL-suite floor on E = 3 GB (owner: no RAM disk / stream; skill agi-memory-guard §5, 98b506ad48) · SM told: stale /dev/shm gate trees (~760 MB) + DG3's 4 h host-act .t.sh
 belam-s2-I 04:5xZ: box-only switch COMPLETE (10/10 acked via SM) · signers fix in 3 homes (DG1, all-is-one, self-perpetuating: ~/.signers missing -> /var/lib/agi/allowed_signers; backup /var/backups/agi-gitconfig-signers-20261009T044851Z) · python3-pytest 7.4.4 installed system-wide (SM option A) · app device: user belam's claude-remote-control.service renamed belam-prime -> encryption-town (backup .before-encryption-town), enabled + started (linger on, Restart=always)
 belam-s2-I 04:2xZ (owner 1-5): local-town parked out of active peers (hosts.json towns -> parked_towns) · xai-proxy stopped + disabled · agi-carry-fetch.timer stopped + disabled (hub already empty) · egress watchdog graphed 6a830b2fbf (idea + 4 builds) · engine-side hub removal + guard E lines -> council via SM
-belam-s2-I 04:1xZ: E root audit -- fence/oomd/watchdog/sshd ok, engine scripts = trunk, G2-G5 ACLs live (enc6 re-run NOT needed), agi-project.path was dead -> started; L state merged from the stick
 
 ## 🔴 Where it stops
 belam is ON v5 on E; PASS B5 holds at its review step on the OWNER (L's .env -> E's MAIN). Also waiting: DG1 (E3 leaf flipped), SM (lands dg3-enc6 98fb9ebfd8 + pushes the trunk, 3 ahead).
@@ -72,6 +72,7 @@ belam is ON v5 on E; PASS B5 holds at its review step on the OWNER (L's .env -> 
 | 69 | send.py refuses tags outside its gate ([ack], [ready]) | `[rotation] [ready] ...` |
 | 79 | the harness refuses `rm` inside a root `sh -c` | pipe a reviewed script file to `sudo -n sh -s` |
 | 84 | a drop-in cannot reset Requires=/After= | a no-op unit on the box, never a reset |
+| 94 | other uids cannot read MAIN .env (by design) -> their anonymize secret class crashes | until the hashed denylist lands, belam runs the FULL guard (`anonymize.py check --root /data/work/agi --diff-file F`) before every ff |
 | 93 | a post home (/var/lib/agi/<post>) in a node = an anonymize RED (test_anonymize_guard) | write `~` in nodes and cards |
 | 92 | re-running the UNCHANGED E act re-enables agi-carry-fetch.timer (host-act-encryption-town.sh:88; its verify :87 dies if the unit is gone) | never re-run the act until goal:g7.16.1.11.25 lands (SM 04:4xZ) |
 | 86 | send.py in a shell on E calls E rows FOREIGN | `AGI_BOX=encryption-town` in that shell |
