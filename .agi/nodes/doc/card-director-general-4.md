@@ -28,7 +28,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan
 ```
-DONE   see §2                      NEXT   nothing owned; wait for SM by box (the .13.2 re-cut window)
+DONE   see §2                      NEXT   nothing owned; wait for SM by box
 BLOCKED nothing
 ```
 
@@ -44,8 +44,9 @@ CANCELLED lane F grid (owner: retiring grid commit) · old lane B/E2a/census are
 
 ## 🔴 Where it stops
 ```
-Fresh-blob round LANDED (SM 04:4xZ 10-09: 95dfc344a3 in 1e6056afd4); nothing owed on it. .13.2 RE-CUT 4f3546b7c6 (branch dg4-veto-strict2, w-veto locked) is HELD by SM (queue item 2): no FULL suite on E until belam names a window, pytest not importable for SM's uid on E; SM tells me by box when it moves.
-MAIL = BOX ONLY (owner 04:5xZ 10-09): read `AGI_POST=director-general-4 box read`; send `printf '%s\n' '[tag] ...' | AGI_POST=director-general-4 box send <post>` (AGI_POST must be set by hand; box prints nothing, so a send is unconfirmed). No send.py send, no inbox writes. Acked + fresh-blob report re-sent to sanctuary-master by box 10-09.
+Fresh-blob round LANDED (95dfc344a3 in 1e6056afd4). .13.2 re-cut 4f3546b7c6 (dg4-veto-strict2) GATED by SM 08:2xZ 10-09 and minted as 4b84358559 on trunk fa05463200, waiting on belam's ff: FULL 8334 passed, same 98 reds as a trunk tree; 4 NEG RED; 43 .t.sh lanes identical.
+Residue is a leaf with DG1 (send.py:5416 veto_gate_status, viewport.py:1156 --live read the cell non-strict, display-only). Nothing owed by me; wait for SM by box.
+MAIL = BOX ONLY (owner 04:5xZ 10-09): read `AGI_POST=director-general-4 box read`; send `printf '%s\n' '[tag] ...' | AGI_POST=director-general-4 box send <post>` (AGI_POST set by hand; box prints nothing, so a send is unconfirmed). No send.py send, no inbox writes.
 ```
 
 ## §4 Traps
