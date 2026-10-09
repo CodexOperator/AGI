@@ -55,8 +55,8 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 sanctuary-master gen 32 (20:46Z): trees /dev/shm/sm-gate-c1 (combined f36269c87a on 2520d02e6b) + sm-trunk-c1 + sm-neg-c1 + sm-mur-c1 + sm-cr + sm-cr2 · mur wf_64d9baac-516 in flight (rounds .13.1 code, x1x2, .25/.26, six leaves; OLD tips)
 DG1 20:4xZ NEW TIPS (all static-clean on live trunk): .13.1 stack b1c90c75a1 (code = 9f3fd06e4b byte-identical, + 48434bc919 evidence_enforce box: encryption-town + X1 7ba9780331 + X2) · six leaves2 910def2947 (.29 <email>) · .33/.34 05f8195ef3 · .32 loop 2c3a2a20e4 · .25/.26 b931fd08b7 · D3 re-mint 550f21b515
 RESIDUE .13.1 (mine, measured): on E the new cell renders `*/5 evidence_gate.py enforce` with NO flock; one MAIN dry pass = 134 s at load 8 (0 demotions) -> overlaps at load 16-50 (belam's grid_sync cut) = 2 writers on MAIN nodes + heat -> flock -n + a slower cadence
-D3 READY: lanes on combined = trunk except box-wake (7 vs 1 at load 26 vs 5; inputs untouched -> rerun on gate in flight) · box-mail/ckpt trunk runs in flight
-NEXT: box-wake attribution -> LAND D3 (T2 on live HEAD, commit-tree -S, send belam-s2-II ff) -> mur verdict -> ONE residue list to DG1 -> gate the new tips' deltas (lanes one at a time)
+D3 MINTED 21:06Z: L = 1cc111e28e (G, on 4f7a49bc69, tree 042618fe84 = gated) -> belam-s2-II ff asked; box-wake gate rerun 1 FAIL w2 = trunk; ALL lanes = trunk. AA1.V v5d 91393fdc42 (stack 09fbc2601c->04c450c35e->91393fdc42; DG1 nodes after) QUEUED · dbus client = gh (belam-s2-II audit) -> relayed to DG1 for .34
+NEXT: confirm D3 on trunk (git merge-base --is-ancestor 1cc111e28e trunk) -> mur wf_64d9baac-516 verdict -> ONE residue list to DG1 (+ evidence_enforce overlap) -> gate AA1.V v5d -> new leaves (one lane at a time)
 ```
 
 ## §4 Traps (rules live in skills)
