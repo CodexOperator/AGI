@@ -21,7 +21,7 @@ town: core
 Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.agi/sessions/quorum/belam.md` are symlinks to it. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs; progress lives on the town board. Skills: agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-post · agi-memory-guard · agi-node-write · agi-goal · agi-master-gate.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 31 (01:1xZ 10-09): the FIRST v5 Prime woke on E, proved mail, closed E3 (bc08d96bea, by the owner's 00:1xZ override), hand-set G5 (grid.py commit works on E again), and RESUMED the merge pass on the owner's 01:0xZ line (banked verbatim on the board 99ede2ab72): PASS B5 noticed for 06:07Z. Owned a breach: two hand pushes of the trunk (TM's alone). OWNER verbatim this gen: 01:0xZ "Btw we should resume the merge pass once the engine work lands or better yet do it in parallel. A lot of the merge pass isn’t as intense as the new pieces are way smaller". Gen 30's lines: 23:3xZ "Let’s also add the box move script to the graph directly as needed." · 00:1xZ "Can we use the new engine on both of your posts with just minor allowances like using some old engine pieces but this way you get the new mail finally" · 00:2xZ "Add credential to encryption town it should have one but if not add it" · "2. Yes that’s fine".
+belam-s2-I 20:1xZ 10-09, at the rotation line: card whole for belam-s2-II. This gen: E3 done; mail moved to box only for every post; Doppler key into .env (wrong workspace -> PASS B5 reviews held); RC drop explained (8 h tokens on idle posts) + root keepalive; box health on E (AGI_BOX in .env restored the box-gated crons; 541 orphan dbus buses reaped + reaper; grid_sync 30 min; 92C throttling to the owner). OWNER verbatim this gen (banked on their nodes): 01:0xZ "Btw we should resume the merge pass ... do it in parallel" · 01:2xZ "Just belam-s2-I and you can restart since it’s new engine" · 04:2xZ "1. Local town will remain down for the foreseeable future ..." · 05:0xZ "Let’s lower the floor ..." · 08:0xZ "Also we use the provisioning key primarily not the api key" · "Yes let’s do that" (keepalive).
 <!-- THOUGHT:END -->
 
 ## §0 State (01:1xZ 10-09, read from date -u)
@@ -41,13 +41,12 @@ gen 31 (01:1xZ 10-09): the FIRST v5 Prime woke on E, proved mail, closed E3 (bc0
 
 ## §1 Plan
 ```
-1. DONE gen 31: woke on E, mail proved, one line to each master (SM + TM answered), crons armed
-2. DG3 enc6 LANDED in 1e6056afd4 (act bytes only; the E re-run of the act = my quoted GO, not yet); G5 HAND-SET on E 01:0xZ (backup /var/backups/agi-acl-sessions-20261009T010350Z; .grid.lock file needed its own entry)
-2b. PASS B5 STARTED 01:08Z: trunk sync 82e6731fa7 · kit rebuilt ~/pass-b5 (launch.sh refuses rc 3 without a key) · NEXT = `sh launch.sh` in the background, then reviews (`PI_BIN=/usr/local/bin/pi workflow.py run merge-up-review --harness pi-free`, 2 rounds a chunk, CAP 1) the moment E has the key; then §2 steps 4-9
-3. trajectory duty (★): E3 DONE (board bc08d96bea; DG1 asked to flip goal:g7.16.1.11.17) · E1 D3 re-cut (SM held it for the move) · E2 flip waits ONLY on goal:g7.16.1.11.13.1 · E4 AA1.V re-cut · E5 now waits only on E1
-4. SM: two gates await mur (6ce18b1b93 lane 29/0; 10b683d7e5 merge-tree rc 0 on c70e3ef313); nothing landed
-4b. session name belam-s2-<gen>: goal:g7.16.1.11.23 (horizon, landed 1e6056afd4) (boot cell engine.md:94 renders the post name only); renamed AT the next rotation, never by hand
-5. after the move, banked: config:guard E line (DG1 leaf) · narrow agi-belam sudo (council) · refs/grid L vs E reconcile · prune worktrees on E
+1. PASS B5 (merge pass RUNNING in parallel, owner 01:0xZ): BLOCKED on the key that owns ws 72750376 (config spawn workspace, new account 5b6342571d). E's .env key = Doppler agi/dev OPENROUTER_ADMIN, owns ws 023ce4bd -> mint 403. Likely Doppler project `access`: needs a `doppler login` on E (as belam) or an access service token from the owner. Then: swap it into .env (never printed), `sh ~/pass-b5/launch.sh` (background), verdicts.py, skill §2 steps 5-9. Kit + 17 rounds ready; TIP 82e6731fa7; RED checks clean
+2. dbus leak: name the client (SM 20:2xZ asks a ROOT exec audit ~30 min: auditd / bpftrace execve on dbus-launch|dbus-daemon, parent chain + env). Reaper agi-dbus-reap holds it meanwhile; DG1 has the engine leaf (unit refuses autolaunch)
+3. heat on E (92C, powerclamp): owner checks cooling; optional agi.slice CPUQuota ~300% on the owner's word
+4. trajectory (★): E3 DONE (goal .17 complete) · E1 D3 re-forward returned to DG1 · E2 waits on .13.1 (conflicts with .13.2, DG4 re-cut) · E4 AA1.V re-cut returned to DG1/DG3 · E5 waits on E1
+5. landings come from SM by box: before EVERY ff run the FULL anonymize guard with .env (trap 94), then `merge --ff-only <L>` in MAIN as belam; the :07 cron pushes the trunk
+6. banked: config:guard E lines (DG1 .26) · narrow agi-belam sudo (council) · refs/grid L vs E reconcile · prune worktrees on E · egress watchdog fix (owner)
 NEVER: assign a design or a build (council) · dispatch · write in another post's tree
 ```
 
@@ -58,9 +57,9 @@ belam-s2-I 09:5xZ: DG4 .13.2 veto-strict ff'd 4b84358559 (full guard with .env r
 belam-s2-I 08:0xZ: E key from Doppler (project agi, config dev, OPENROUTER_ADMIN -> MAIN .env OPENROUTER_PROVISIONING_KEY; never printed; .env belam 640 + u:agi-belam:r) -> provisioning available, `mint per-run` -> PASS B5 reviews launched · .env.example: provisioning is the main way (owner) · Doppler: belam's tokens are service tokens (belam/prd ro, agi dev/stg/prd rw in ~/.config/sanctuary/doppler as user belam); `access` project needs a doppler login or its own token
 
 ## 🔴 Where it stops
-belam is ON v5 on E; PASS B5 holds at its review step on the OWNER (L's .env -> E's MAIN). Also waiting: DG1 (E3 leaf flipped), SM (lands dg3-enc6 98fb9ebfd8 + pushes the trunk, 3 ahead).
-- next command at wake (on E, ~/t): `AGI_BOX=encryption-town python3 extensions/agi/bin/send.py read belam` then `tail -40 /data/work/agi/.agi/sessions/inbox/belam.md`
-- open: SM saw a DG1 00:14 inbox block marked read WITHOUT printing -> read the inbox FILE by ts until send.py is fixed (trap 66)
+belam-s2-I rotated at its line (20:1xZ 10-09; hook "write your card, git commit it, then touch ~/.fresh;kill $PPID"). Successor = belam-s2-II (owner: generation restarts on v5; the rename lands with goal:g7.16.1.11.23, still horizon, so the RC name stays "belam").
+- next command at wake (on E, ~/t): `AGI_POST=belam box read` (box is the ONLY mail route), then re-arm the session crons (CHECK 13 */4 with the ws-72750376 launch condition, memory watch 47 *)
+- open at handoff: SM's dbus audit ask (plan 2) · PASS B5 key (plan 1) · DG1 working SM's 8 delivered msgs (.25/.26, D3, AA1.V, placements) · 5 posts' agi-run box-wake loops dead (trap 96): the root keepalive + hand wakes cover them until DG1's leaf
 
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
