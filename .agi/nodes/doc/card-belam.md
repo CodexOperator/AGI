@@ -52,6 +52,7 @@ NEVER: assign a design or a build (council) · dispatch · write in another post
 ```
 
 ## §2 Landed
+belam-s2-I 04:2xZ (owner 1-5): local-town parked out of active peers (hosts.json towns -> parked_towns) · xai-proxy stopped + disabled · agi-carry-fetch.timer stopped + disabled (hub already empty) · egress watchdog graphed 6a830b2fbf (idea + 4 builds) · engine-side hub removal + guard E lines -> council via SM
 belam-s2-I 04:1xZ: E root audit -- fence/oomd/watchdog/sshd ok, engine scripts = trunk, G2-G5 ACLs live (enc6 re-run NOT needed), agi-project.path was dead -> started; L state merged from the stick
 belam-s2-I 02:4xZ: SM's 4 gated landings ff'd onto the trunk 1e6056afd4 (DG4 fresh-blob · DG1 E3 leaf -> complete · DG1 g7.16.1.11.23 session-name leaf · DG3 enc6 tip 32c87df112, bytes only: host act needs my quoted GO) · trunk push by the :07 cron
 gen 31 (00:57Z .. 01:1xZ 10-09): board owner line + PASS B5 notice 99ede2ab72 · G5 hand-set, grid commit 2 versions 0 errors · board E3 -> DONE bc08d96bea · mail check to SM + TM (both ok) · [rule] DG1 flip E3 leaf · [red] DG3 act gaps (a)-(c) · CHECK + memory crons armed
@@ -82,11 +83,9 @@ E act: agi-boot exit 0 · vstore 700 root · slice live · DG5 mail test: receiv
 | item | recommendation |
 |---|---|
 | E has NO MAIN .env: pi-free (0 USD) cannot run | NOT on stick agi-flash (sdc1, mounted ro /mnt/agi-flash 04:1xZ: bundle + main-tree.tar hold .env.example only; pi auth.json = {}); owner tries the other stick |
-| E root audit 04:1xZ: guard layer 5 sanctuary-watch NOT installed | hold: its peers still list local-town (down) and PEERWATCH_CLAUDE_encryption_town=1 would launch a recovery claude per L outage; first config:guard E lines (DG1 leaf) + /etc/sanctuary-guard/box = encryption-town, then sudo guard-init.sh |
+| egress watchdog NEVER RUNS (literal \" quotes: always exit 0) while E is in FULL tunnel | owner: fix it (drop 6 backslashes; then 3 missed pings -> split, never back) or leave it; idea:egress-watchdog-keeps-e-reachable |
+| guard layer 5 (sanctuary-watch) not installed | local-town parked (owner 04:2xZ); still needs config:guard E lines (council, via SM 04:2xZ) before guard-init.sh |
 | guard layer 1 FAIL = oomd on user@1000/agi.slice (the OLD engine slice) | moot on v5: system /agi.slice is fenced 5G/6G, oomd kill at 40%; the E guard line says so |
-| grok-era root leftovers: xai-proxy.service RUNNING (xAI bearer proxy) · /opt/agi/bin/agi-sync unreferenced | stop + disable xai-proxy, leave agi-sync, on the owner's word |
-| agi-carry-fetch.timer = the hub route (owner 04:0xZ: hub is old design) | disable on the owner's word; council drops the hub from the engine cell |
-| belam-egress-watchdog (wg full->split fallback, root) is not in the graph | keep running; add a build node (owner 23:3xZ: scripts into the graph) |
 | L sda USB link resets (19:37-20:01Z 10-08), SMART PASSED | moot once L is idle; else reseat cable / UAS quirk on the owner's GO |
 | refs/grid on E differs from L in 5,845 refs | reconcile into a namespace on E; owner picks; no force-push |
 | agi-belam sudo NOPASSWD ALL on E (grok-era) | owner 00:2xZ: keep tonight; council narrows to the host-act verbs |
