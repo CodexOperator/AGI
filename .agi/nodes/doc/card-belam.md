@@ -37,7 +37,7 @@ gen 31 (01:1xZ 10-09): the FIRST v5 Prime woke on E, proved mail, closed E3 (bc0
 | crons | box: user belam's crontab on E is LIVE (10 lines = the graph; crons_apply 02:05Z no-op): grid_sync */5 · ref pushes */5 · trunk push :07 · send.py wake */2 (the L note "E has no crontab" was wrong) · session-only (re-arm at wake): CHECK 68b8b22b (13 */4, box read + launch when the key lands) · memory 4317a080 (47 *) · one-shots 45a8ec64 04:37Z · 4825bc4e 06:07Z |
 | host act E | installed 22:22Z 10-08 at dd1563bc3c: rollback `sh /var/backups/agi-act-20261008T222239Z/rollback.sh` |
 | landing | belam commits on posts/belam, pushes posts/belam, then as user belam `merge --ff-only posts/belam` in MAIN; the TRUNK push is TM's alone (skill agi-merge-pass §4; breached twice gen 31, owned to TM) |
-| merge pass | RUNNING in parallel (owner 01:0xZ 10-09). PASS B5: BASE bcdb15f10f · TIP 82e6731fa7 · 17 rounds · REVIEWS RUNNING since 08:0xZ (`sh ~/pass-b5/launch.sh`, background; log ~/pass-b5/launch.log; verdicts.py) on minted per-run keys, free model · state MAIN .agi/sessions/prime-merge.state.json |
+| merge pass | RUNNING in parallel (owner 01:0xZ 10-09). PASS B5: BASE bcdb15f10f · TIP 82e6731fa7 · 17 rounds · launcher STOPPED 08:1xZ: mint 403 -- the .env key (Doppler agi/dev OPENROUTER_ADMIN) owns ws 023ce4bd, config mints into ws 72750376 (new account, 5b6342571d); the right key is likely in Doppler project `access` (needs doppler login / access token) · state MAIN .agi/sessions/prime-merge.state.json |
 
 ## §1 Plan
 ```
