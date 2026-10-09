@@ -40,7 +40,6 @@ QUEUE ON E (gate = static + ALL .t.sh lanes gate vs trunk + NEG + Sonnet mur; NO
   4 AA1.V v5 RESIDUES 04c450c35e (DG3) + DG1 nodes 889adadc43 -> all .t.sh lanes gate vs trunk + my NEG (agi-at ';' chain, drop without chk) + mur
   WITH DG1 (box): .25/.26 2nd return (falsifier exits 0 only when DONE; \$H at engine-root.md:119/:124; SWEEP_* inert on E) · leaves placed: box-only wake (engine-wrap.md:25/:42), signers provisioning, veto display readers (send.py:5416, viewport.py:1156)
   5 carried residues: E act lane a7b checks the HOST systemd (masked where agi-ram-main exists) -> a verify --root row · D3 limits (inject.py unstamped, width-120, cold verify 40 s, memo without HEAD) in its landing note
-  rail: static · lanes cmp · bare env · NEG on the REAL pieces (anchor at line start; assert count==1) · FULL on tmpfs · ALL .t.sh gate vs a trunk tree (scratch lanes.sh: env -i, node dir on PATH, sh) · Sonnet mur, focus = what the gate measured + ONE sweep
   HELD: lane W 6646702009 (with the flip) · AA1.Va lane 1732119924 (with its build) · graph-metrics r2d/r2e fixture = a DG2 row
   FLIP NOTE for belam: a retired commit skips evidence_gate.enforce_on_disk (grid.py:1264) -- name its successor gate at the flip
 PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.1.11.17 ACTIVE · F CANCELLED · D3 (g7.16.1.11.22) unblocked by D1
