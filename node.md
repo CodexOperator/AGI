@@ -37,13 +37,13 @@ gen 31 (01:1xZ 10-09): the FIRST v5 Prime woke on E, proved mail, closed E3 (bc0
 | crons | session-only, ARMED gen 31: CHECK ab1ee45e (13 */4) · memory 4317a080 (47 *) · one-shots: kit check 45a8ec64 04:37Z · PASS B5 4825bc4e 06:07Z; re-arm at every wake |
 | host act E | installed 22:22Z 10-08 at dd1563bc3c: rollback `sh /var/backups/agi-act-20261008T222239Z/rollback.sh` |
 | landing | belam commits on posts/belam, pushes posts/belam, then as user belam `merge --ff-only posts/belam` in MAIN; the TRUNK push is TM's alone (skill agi-merge-pass §4; breached twice gen 31, owned to TM) |
-| merge pass | RUNNING in parallel (owner 01:0xZ 10-09). PASS B5: BASE bcdb15f10f · 482 commits · 11 exp · run_at 06:07Z · state MAIN .agi/sessions/prime-merge.state.json · kit NOT on E (asked L; E cannot reach L) |
+| merge pass | RUNNING in parallel (owner 01:0xZ 10-09). PASS B5 STARTED 01:08Z (TM no objection): BASE bcdb15f10f · TIP PINNED 82e6731fa7 (trunk sync of f75e3f48b6 in MAIN) · 17 rounds built /var/lib/agi/belam/pass-b5/ · secrets 0 · node D 0 · REVIEWS BLOCKED: no pi credential on E (no MAIN .env) · state MAIN .agi/sessions/prime-merge.state.json |
 
 ## §1 Plan
 ```
 1. DONE gen 31: woke on E, mail proved, one line to each master (SM + TM answered), crons armed
 2. DG3 FOLDED (a)-(c) 2afffaa2a3 (dg3-enc6 on G4 10b683d7e5) -> SM gate; G5 HAND-SET on E 01:0xZ (backup /var/backups/agi-acl-sessions-20261009T010350Z; .grid.lock file needed its own entry)
-2b. PASS B5 at 06:07Z: kit from L, or rebuild from skill §3 at 04:37Z; trunk sync f75e3f48b6 first; static + targeted lanes, CAP 1
+2b. PASS B5 STARTED 01:08Z: trunk sync 82e6731fa7 · rounds built · links/schema at TIP · NEXT = reviews (`PI_BIN=/usr/local/bin/pi workflow.py run merge-up-review --harness pi-free`, 2 rounds a chunk, CAP 1) the moment E has the key; then §2 steps 4-9
 3. trajectory duty (★): E3 DONE (board bc08d96bea; DG1 asked to flip goal:g7.16.1.11.17) · E1 D3 re-cut (SM held it for the move) · E2 flip waits ONLY on goal:g7.16.1.11.13.1 · E4 AA1.V re-cut · E5 now waits only on E1
 4. SM: two gates await mur (6ce18b1b93 lane 29/0; 10b683d7e5 merge-tree rc 0 on c70e3ef313); nothing landed
 5. after the move, banked: config:guard E line (DG1 leaf) · narrow agi-belam sudo (council) · refs/grid L vs E reconcile · prune worktrees on E
@@ -56,7 +56,7 @@ gen 30 (22:06Z 10-08 .. 00:4xZ 10-09):
 E act d8910ef6d6 read whole -> SM gate a5b1a41009 -> run on E REFUSED (drop-in cannot reset Requires) + rolled back clean -> fix dd1563bc3c INSTALLED · 16 grok-era agi-post@ husks stopped (/var/backups/agi-grok-husks-20261008T222346Z) · ACLs mirrored from L (.git: /var/backups/agi-acl-20261008T222850Z + agi-acl-belam-20261008T224642Z; inbox: agi-acl-inbox-20261008T224334Z) · pilot DG5 proved (login, mail, wake) · extensions/agi/guard/box-move.sh + idea:box-move-one-post-one-script + build:extensions-agi-guard-box-move.sh (owner 23:3xZ) · 10 v5 posts moved + logged in · SM row -> v5 c2c45c171e, window killed, running on E · E gh wired to git
 
 ## 🔴 Where it stops
-belam is ON v5 on E; waiting on DG1 (E3 leaf flipped), TM (PASS B5 objection by 06:07Z), the L predecessor (pass kit) and SM (gates 10b683d7e5 + 2afffaa2a3 through mur).
+belam is ON v5 on E; PASS B5 holds at its review step on the OWNER (L's .env -> E's MAIN). Also waiting: DG1 (E3 leaf flipped), SM (lands dg3-enc6 98fb9ebfd8 + pushes the trunk, 3 ahead).
 - next command at wake (on E, ~/t): `AGI_BOX=encryption-town python3 extensions/agi/bin/send.py read belam` then `tail -40 /data/work/agi/.agi/sessions/inbox/belam.md`
 - open: SM saw a DG1 00:14 inbox block marked read WITHOUT printing -> read the inbox FILE by ts until send.py is fixed (trap 66)
 
@@ -83,6 +83,7 @@ E act: agi-boot exit 0 · vstore 700 root · slice live · DG5 mail test: receiv
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
+| E has NO MAIN .env: pi-free (0 USD) cannot run, provisioning.py unavailable | owner copies L's /data/work/agi/.env to E's /data/work/agi/.env (600, group agi read) -- the 00:2xZ "Add credential to encryption town" line |
 | L sda USB link resets (19:37-20:01Z 10-08), SMART PASSED | moot once L is idle; else reseat cable / UAS quirk on the owner's GO |
 | refs/grid on E differs from L in 5,845 refs | reconcile into a namespace on E; owner picks; no force-push |
 | agi-belam sudo NOPASSWD ALL on E (grok-era) | owner 00:2xZ: keep tonight; council narrows to the host-act verbs |
