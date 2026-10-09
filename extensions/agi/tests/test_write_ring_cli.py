@@ -37,6 +37,7 @@ import time
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 BIN = Path(__file__).resolve().parent.parent / "bin"
 SRC = Path(__file__).resolve().parent.parent / "src"
@@ -108,6 +109,7 @@ def _ring_root(tmp_path, written_by="prime", ring="approval",
     keys = {nm: scheme.keygen() for nm in ("alice", "bob", "carol")}
     pubkeys = {nm: priv.hex() for nm, (priv, _pub) in keys.items()}
     (agi / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(agi / "nodes" / ".geometry")
     (agi / "nodes" / ".geometry" / "rings.md").write_text(
         "---\ntype: cell\nrings:\n"
         f"  - name: approval\n    m: {m}\n"

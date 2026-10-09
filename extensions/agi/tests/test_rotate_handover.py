@@ -19,6 +19,7 @@ import time
 from types import SimpleNamespace
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 import rotate  # noqa: E402
 
@@ -59,6 +60,7 @@ def _fix(tmp_path, monkeypatch):
     monkeypatch.setattr(rotate, "load_ladder_field", fake_load)
     g = root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (g / "rotations.md").write_text(
         "---\nid: config:rotations\ntype: config\ntemplates:\n"
         "  parent: {brief_file: extensions/agi/briefs/parent-successor.md, "
@@ -75,6 +77,7 @@ def _fix(tmp_path, monkeypatch):
 def _write_seats_sheet(root, rows):
     nodes = root / "nodes" / ".geometry"
     nodes.mkdir(parents=True, exist_ok=True)
+    write_free_veto(nodes)
     (root / "sessions").mkdir(parents=True, exist_ok=True)
     body = "---\nid: config:seats\ntype: config\nseats:\n"
     for r in rows:
@@ -142,6 +145,7 @@ def test_handover_writes_row_pin_identity_ack(_fix, tmp_path,
     if with_template:
         g = tmp_path / "nodes" / ".geometry"
         g.mkdir(parents=True, exist_ok=True)
+        write_free_veto(g)
         (g / "rotations.md").write_text(
             "---\nid: config:rotations\ntype: config\ntemplates:\n"
             "  parent:\n    brief_file: .agi/sessions/quorum/{seat}.md\n"
@@ -1501,6 +1505,7 @@ def test_rotate_self_bootstrap_ack_verbatim_at_spawn(_fix, tmp_path,
                          "model": "x", "effort": "max", "settings": ""}])
     g = tmp_path / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (g / "rotations.md").write_text(
         "---\nid: config:rotations\ntype: config\ntemplates:\n"
         "  parent:\n    brief_file: .agi/sessions/quorum/{seat}.md\n"

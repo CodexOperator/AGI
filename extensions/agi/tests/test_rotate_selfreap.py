@@ -36,6 +36,7 @@ from types import SimpleNamespace
 import subprocess
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 import rotate  # noqa: E402
 
@@ -58,6 +59,7 @@ def _fix(tmp_path, monkeypatch):
                         lambda *a, **k: root)
     g = root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (g / "rotations.md").write_text(
         "---\nid: config:rotations\ntype: config\ntemplates:\n"
         "  parent:\n    brief_file: extensions/agi/briefs/parent-successor.md\n"
@@ -230,6 +232,7 @@ def test_rotate_self_s12_skipped_names_tmux_pane(_fix, tmp_path, monkeypatch):
 def _write_seats_sheet(root, rows):
     nodes = root / "nodes" / ".geometry"
     nodes.mkdir(parents=True, exist_ok=True)
+    write_free_veto(nodes)
     (root / "sessions").mkdir(parents=True, exist_ok=True)
     body = "---\nid: config:seats\ntype: config\nseats:\n"
     for r in rows:
