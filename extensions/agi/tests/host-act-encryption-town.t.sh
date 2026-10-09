@@ -61,6 +61,13 @@ NOCOMMS=1 mk h;[ ! -e $X/data/work/agi/.agi/comms ];run sh $ACT act>$T/h.out 2>$
 ok h4-an-absent-comms-dir-is-made-and-rolled-back "[ $rh = 0 ]&&grep -q 'comms ACL' $T/h.out&&[ ! -e $X/data/work/agi/.agi/comms ]"
 mk i;before=$(tree);run env PRIME_USER=nosuchuser-zz sh $ACT act>/dev/null 2>$T/i.err;ri=$?
 ok h5-an-absent-prime-user-is-refused-and-nothing-is-written "[ $ri != 0 ]&&grep -q 'PREREQ: user nosuchuser-zz' $T/i.err&&[ ! -e $X/var/backups ]&&[ \"\$(tree)\" = \"$before\" ]"
+# ---- a recorded path that vanished before the rollback (a loose object gc'd, a comms file renamed): the ACL restore warns and the later undo steps STILL run ----
+mk j;mkdir -p $X/run/systemd/system;run sh $ACT act>$T/j.out 2>$T/j.err;rb=$(sed -n 's/.*rollback: sh //p' $T/j.out)
+: >$X/run/systemd/system/agi-junk.service;rm -f $X/data/work/agi/.git/logs/HEAD
+sh $rb>$T/j.rb 2>$T/j.rberr;rj=$?
+ok j1-a-vanished-recorded-path-warns-and-the-rollback-finishes "[ $rj = 0 ]&&grep -q 'rollback: acl restore rc' $T/j.rberr&&grep -q '^rolled back from' $T/j.rb"
+ok j2-the-later-undo-steps-ran-run-list-absent-files-and-act-made-dirs "[ ! -e $X/run/systemd/system/agi-junk.service ]&&[ ! -e $X/etc/agi/carry.env ]&&[ ! -e $X/data/work/agi/.agi/sessions ]&&[ ! -e $X/data/work/agi/.git/worktrees ]"
+ok j3-the-rollback-echo-says-a-filled-act-made-dir-stays "grep -q 'act-made dir that posts have filled since stays' $T/j.rb"
 # ---- refusals write NOTHING ----
 mk d;before=$(tree);run env PIN=zz sh $ACT act>/dev/null 2>$T/d1.err;r1=$?;run env PIN=0000000000000000000000000000000000000000 sh $ACT act>/dev/null 2>$T/d2.err;r2=$?;rm $X/opt/agi/bin/pi;run sh $ACT act>/dev/null 2>$T/d3.err;r3=$?
 ok d1-a-bad-pin-is-refused-by-name "[ $r1 != 0 ]&&grep -q 'PIN must be' $T/d1.err"
