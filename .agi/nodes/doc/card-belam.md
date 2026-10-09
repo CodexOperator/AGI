@@ -52,10 +52,10 @@ NEVER: assign a design or a build (council) · dispatch · write in another post
 ```
 
 ## §2 Landed
+belam-s2-I 04:1xZ: E root audit -- fence/oomd/watchdog/sshd ok, engine scripts = trunk, G2-G5 ACLs live (enc6 re-run NOT needed), agi-project.path was dead -> started; L state merged from the stick
 belam-s2-I 02:4xZ: SM's 4 gated landings ff'd onto the trunk 1e6056afd4 (DG4 fresh-blob · DG1 E3 leaf -> complete · DG1 g7.16.1.11.23 session-name leaf · DG3 enc6 tip 32c87df112, bytes only: host act needs my quoted GO) · trunk push by the :07 cron
 gen 31 (00:57Z .. 01:1xZ 10-09): board owner line + PASS B5 notice 99ede2ab72 · G5 hand-set, grid commit 2 versions 0 errors · board E3 -> DONE bc08d96bea · mail check to SM + TM (both ok) · [rule] DG1 flip E3 leaf · [red] DG3 act gaps (a)-(c) · CHECK + memory crons armed
-gen 30 (22:06Z 10-08 .. 00:4xZ 10-09):
-E act d8910ef6d6 read whole -> SM gate a5b1a41009 -> run on E REFUSED (drop-in cannot reset Requires) + rolled back clean -> fix dd1563bc3c INSTALLED · 16 grok-era agi-post@ husks stopped (/var/backups/agi-grok-husks-20261008T222346Z) · ACLs mirrored from L (.git: /var/backups/agi-acl-20261008T222850Z + agi-acl-belam-20261008T224642Z; inbox: agi-acl-inbox-20261008T224334Z) · pilot DG5 proved (login, mail, wake) · extensions/agi/guard/box-move.sh + idea:box-move-one-post-one-script + build:extensions-agi-guard-box-move.sh (owner 23:3xZ) · 10 v5 posts moved + logged in · SM row -> v5 c2c45c171e, window killed, running on E · E gh wired to git
+gen 30 (22:06Z 10-08 .. 00:4xZ 10-09): the L -> E move (E act dd1563bc3c installed, 11 posts moved by box-move.sh, ACLs mirrored) -- detail in git log + this node's grid history
 
 ## 🔴 Where it stops
 belam is ON v5 on E; PASS B5 holds at its review step on the OWNER (L's .env -> E's MAIN). Also waiting: DG1 (E3 leaf flipped), SM (lands dg3-enc6 98fb9ebfd8 + pushes the trunk, 3 ahead).
@@ -71,12 +71,8 @@ belam is ON v5 on E; PASS B5 holds at its review step on the OWNER (L's .env -> 
 | 69 | send.py refuses tags outside its gate ([ack], [ready]) | `[rotation] [ready] ...` |
 | 79 | the harness refuses `rm` inside a root `sh -c` | pipe a reviewed script file to `sudo -n sh -s` |
 | 84 | a drop-in cannot reset Requires=/After= | a no-op unit on the box, never a reset |
-| 85 | a post user cannot add its worktree on a fresh box | MAIN .git ACL g:agi + u:belam rwX + defaults, BEFORE the first start |
 | 86 | send.py in a shell on E calls E rows FOREIGN | `AGI_BOX=encryption-town` in that shell |
-| 87 | ~1 in 3 OAuth codes fail ("OAuth error") | `box-move.sh url <p>` again; ONE fresh link to the owner at a time |
-| 88 | ssh L -> E setup takes ~12 s | timeouts >= 40 s |
 | 89 | a dir default ACL does not reach a file made before it (.grid.lock) | set the file's own entry too |
-| 91 | `send.py send belam` from E lands in YOUR OWN inbox | there is no other belam: L is down |
 | 90 | a v5 post's first send.py read on E dumps the whole S1 dm backlog (no cursors carried) | judge by ts; the second read is the real one |
 
 ## §5 Verification
@@ -85,7 +81,12 @@ E act: agi-boot exit 0 · vstore 700 root · slice live · DG5 mail test: receiv
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
-| E has NO MAIN .env: pi-free (0 USD) cannot run, provisioning.py unavailable | owner copies L's /data/work/agi/.env to E's /data/work/agi/.env (600, group agi read) -- the 00:2xZ "Add credential to encryption town" line |
+| E has NO MAIN .env: pi-free (0 USD) cannot run | NOT on stick agi-flash (sdc1, mounted ro /mnt/agi-flash 04:1xZ: bundle + main-tree.tar hold .env.example only; pi auth.json = {}); owner tries the other stick |
+| E root audit 04:1xZ: guard layer 5 sanctuary-watch NOT installed | hold: its peers still list local-town (down) and PEERWATCH_CLAUDE_encryption_town=1 would launch a recovery claude per L outage; first config:guard E lines (DG1 leaf) + /etc/sanctuary-guard/box = encryption-town, then sudo guard-init.sh |
+| guard layer 1 FAIL = oomd on user@1000/agi.slice (the OLD engine slice) | moot on v5: system /agi.slice is fenced 5G/6G, oomd kill at 40%; the E guard line says so |
+| grok-era root leftovers: xai-proxy.service RUNNING (xAI bearer proxy) · /opt/agi/bin/agi-sync unreferenced | stop + disable xai-proxy, leave agi-sync, on the owner's word |
+| agi-carry-fetch.timer = the hub route (owner 04:0xZ: hub is old design) | disable on the owner's word; council drops the hub from the engine cell |
+| belam-egress-watchdog (wg full->split fallback, root) is not in the graph | keep running; add a build node (owner 23:3xZ: scripts into the graph) |
 | L sda USB link resets (19:37-20:01Z 10-08), SMART PASSED | moot once L is idle; else reseat cable / UAS quirk on the owner's GO |
 | refs/grid on E differs from L in 5,845 refs | reconcile into a namespace on E; owner picks; no force-push |
 | agi-belam sudo NOPASSWD ALL on E (grok-era) | owner 00:2xZ: keep tonight; council narrows to the host-act verbs |
