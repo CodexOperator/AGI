@@ -52,10 +52,10 @@ NEVER: assign a design or a build (council) · dispatch · write in another post
 ```
 
 ## §2 Landed
+belam-s2-I 20:1xZ: box health -- 541 orphan autolaunched session buses (post users, 1.27 GB) stopped + root reaper agi-dbus-reap (30 min; 3efda84b84); CPU 91C with powerclamp throttling (load 16-50) -> grid_sync */5 overlapped (> 6 min runs) -> every 30 min (e463b253d5); root fixes via SM
 belam-s2-I 19:5xZ: E crons were refusing every box-gated job (MAIN .env had no AGI_BOX) -> AGI_BOX=encryption-town in .env + config:crons maint_gc / graph_metrics / memory_alarm(_posts) -> encryption-town (3acbd2b9a9), crontab 13 lines; mail_poll + prime_merge stay off · stall cleared: 5 posts' agi-run box-wake loops dead, DG1 sat on 8 unread 04:51-19:0xZ, woken by hand, engine leaf via SM
 belam-s2-I 09:5xZ: DG4 .13.2 veto-strict ff'd 4b84358559 (full guard with .env run by me: diff ok; message 'email' = the public noreply trailer -> allow-list leaf) · .env breaks the guard for non-belam uids -> my call: hashed secret denylist (target) + loud skip (interim), leaf via SM · E FULL baseline 98 reds -> triage leaf via SM
 belam-s2-I 08:0xZ: E key from Doppler (project agi, config dev, OPENROUTER_ADMIN -> MAIN .env OPENROUTER_PROVISIONING_KEY; never printed; .env belam 640 + u:agi-belam:r) -> provisioning available, `mint per-run` -> PASS B5 reviews launched · .env.example: provisioning is the main way (owner) · Doppler: belam's tokens are service tokens (belam/prd ro, agi dev/stg/prd rw in ~/.config/sanctuary/doppler as user belam); `access` project needs a doppler login or its own token
-belam-s2-I 04:2xZ (owner 1-5): local-town parked out of active peers (hosts.json towns -> parked_towns) · xai-proxy stopped + disabled · agi-carry-fetch.timer stopped + disabled (hub already empty) · egress watchdog graphed 6a830b2fbf (idea + 4 builds) · engine-side hub removal + guard E lines -> council via SM
 
 ## 🔴 Where it stops
 belam is ON v5 on E; PASS B5 holds at its review step on the OWNER (L's .env -> E's MAIN). Also waiting: DG1 (E3 leaf flipped), SM (lands dg3-enc6 98fb9ebfd8 + pushes the trunk, 3 ahead).
@@ -65,10 +65,10 @@ belam is ON v5 on E; PASS B5 holds at its review step on the OWNER (L's .env -> 
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
 |---|---|---|
-| 45 | `du`/`find`/`grep -r` over `.agi/` is an io storm | `git grep` / explicit paths |
 | 46 | `pkill -f` / `pgrep -f` matches your OWN shell | match by comm + /proc environ |
 | 66 | `send.py read belam` prints "empty" while mail sits in the inbox FILE | read the file by ts |
 | 69 | send.py refuses tags outside its gate ([ack], [ready]) | `[rotation] [ready] ...` |
+| 97 | E runs HOT (91C, intel_powerclamp idle injection = load 16-50 with 4 R procs) and post users leak dbus session buses | read thermal_zone temp with load; `ps -C dbus-daemon` count (reaper keeps it low); one heavy lane at a time |
 | 96 | agi-run's 'while sleep 5' wake loops die for good when the sleep is killed (5 posts lost the box wake 10-09; DG1 sat on 8 unread for 14 h); typing /remote-control in a connected pane opens a menu that eats the next line | count each post's 'sleep 5' (2 = healthy); wake by hand; Esc closes the RC menu; engine fix via SM 19:1xZ |
 | 95 | RC dropped for half the posts 09:06-10:00Z 10-09: claude.ai access tokens live 8 h; every post was logged in within ~2 h last night, so all expired 06:38-09:20Z, and a post idle at expiry never refreshed -> its RC link died ('login was rejected' / 'could not reach RC ~30 min'); busy posts refreshed fine. Refresh tokens unique + valid to 11-05..11-07; clock synced | not the box: re-login or `/remote-control <post>` (bare /remote-control names the session after its first prompt, 'go'); FIXED 15:0xZ: root timer agi-rc-keepalive (30 min; one turn only when a token is < 2 h from expiry; a122028fee, idea:rc-keepalive-refreshes-idle-posts); the 4 expired posts refreshed without a login; 6 dropped links reconnected with `/remote-control <post>` |
 | 94 | other uids cannot read MAIN .env (by design) -> their anonymize secret class crashes | until the hashed denylist lands, belam runs the FULL guard (`anonymize.py check --root /data/work/agi --diff-file F`) before every ff |
