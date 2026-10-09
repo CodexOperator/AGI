@@ -10,6 +10,13 @@ now=$(date +%s)
 for u in $(systemctl list-units 'agi-post@*.service' --state=running --no-legend --plain | awk '{print $1}');do
  p=${u#agi-post@};p=${p%.service};case $p in ""|*[!a-z0-9-]*)continue;;esac
  c=/var/lib/agi/$p/.claude/.credentials.json;f=/run/agi-$p/i;[ -r "$c" ]&&[ -p "$f" ]||continue
+ # title heal: a bare /remote-control titles the RC session after its first prompt ('go': sanctuary-master 14:38Z
+ # 10-09) -- if the LIVE bridge's titleSha is not sha256(P) and the session is not already user-named P, /rename P once
+ for q in $(jq -r '(.replBridgePlaceholders // {})[]|"\(.pid):\(.titleSha)"' /var/lib/agi/$p/.claude.json 2>/dev/null);do
+  k=${q%%:*};[ -d /proc/$k ]||continue;[ "${q#*:}" = "$(printf %s "$p"|sha256sum|cut -c1-12)" ]&&continue
+  [ "$(jq -r .name /var/lib/agi/$p/.claude/sessions/$k.json 2>/dev/null)" = "$p" ]&&continue
+  runuser -u agi-$p -- timeout 5 sh -c 'printf "%s" "$1" > "$2"' _ "/rename $p" "$f"&&sleep 1&&runuser -u agi-$p -- timeout 5 sh -c 'printf "\r" > "$1"' _ "$f"&&logger -t agi-rc-keepalive "renamed $p (RC title was not the post name)"
+ done
  e=$(jq -r '.claudeAiOauth.expiresAt // empty' "$c" 2>/dev/null);[ -n "$e" ]||continue;e=$((e/1000))
  [ $((e-now)) -lt $LEAD ]||continue
  l=$(cat $S/$p 2>/dev/null||echo 0);[ $((now-l)) -ge $GAP ]||continue
