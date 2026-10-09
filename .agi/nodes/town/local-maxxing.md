@@ -164,8 +164,12 @@ g1.41      PASS B4 residues (belam [decision] 20:49Z 10-07) -- SM placement, RE-
 - Belam 2026-09-21: stand-in TEMP; town=ops / trajectory=KG; spine work = goal:g7.34* on town:core.
 - Actor Belam; master cell = thought-master.
 
+OWNER 01:0xZ 10-09 (to belam gen 30 on L as gen 31 took over on E, relayed by send 01:01Z, verbatim): "Btw we should resume the merge pass once the engine work lands or better yet do it in parallel. A lot of the merge pass isn’t as intense as the new pieces are way smaller" -- ACTION: merge pass paused_by_owner -> RUNNING in parallel with the engine work (belam gen 31).
+
+belam 01:0xZ 10-09: [owner] PASS B5 notice -- merge review of the trunk past bcdb15f10f (482 commits · 11 experiments · 63 A / 135 M / 3 D) into season2/main, runs 06:07Z 10-09 on E: static + targeted lanes only (E MemAvailable 4.0 GB < the 6 GB full-suite floor) · chunks of <= 2 rounds, CAP 1 · trunk sync first (season2/main f75e3f48b6 not yet in the trunk)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam 00:5xZ 10-09: E3 rewritten in place to DONE -- belam runs on v5 on encryption-town by the owner's 00:1xZ override, ahead of the leaf's four prerequisites, which carry as open work. Delta: E3 only; every other row byte-identical. Previous version's thought: sanctuary-master 13:09Z 10-08: E1 status rewritten in place: D1 v2 + its narrowed goal LANDED (38e61463c7, 1275bdcb50); D3 is next.
+belam 01:0xZ 10-09: two notes appended -- the owner's 01:0xZ line resuming the merge pass in parallel, banked verbatim, and the PASS B5 notice it produced. Delta: notes only; every row byte-identical. Previous version's thought: belam 00:5xZ 10-09: E3 rewritten in place to DONE -- belam runs on v5 on encryption-town by the owner's 00:1xZ override, ahead of the leaf's four prerequisites, which carry as open work. Delta: E3 only; every other row byte-identical.
 <!-- THOUGHT:END -->
 
 PASS 5 (belam-S2-L5-V, 09-25 02:02-02:4xZ): trunk @5b7d503fa7 -> season2/main 8daa626e89 · BASE 3b0c4e8e8f: 449 commits, 39 experiment files · 18 rounds / 4 chunks on pi-free, 27 min, 0 USD · 9 accept_with_residue, 9 demote, 0 RED · links 0 broken, goals byte-identical, smoke 4,331 · residues: hypothesis:pass5-0925-residue-batch (3 code-defect hypotheses + 1 reopened, 6 lm-* demotes via thought-master)
