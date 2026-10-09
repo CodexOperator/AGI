@@ -54,7 +54,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 ## 🔴 Where it stops
 ```
 Idle on encryption-town: waiting for an order or a row placed on me / DT-1
-next command: tail -c 1500 /data/work/agi/.agi/comms/season-2/dm/belam--thought-master.md; ls -lt /data/work/agi/.agi/sessions/inbox (judge by ts)
+next command: send.py read thought-master (judge by ts)
 ```
 
 ## §4 Traps
@@ -74,7 +74,7 @@ next command: tail -c 1500 /data/work/agi/.agi/comms/season-2/dm/belam--thought-
 - NO hand `git commit` / `git merge` that commits: agi-turn makes the ONE commit per turn (git add -A at Stop), so anything dirty gets committed -- clean the .agi/keys/<post> host comment BEFORE the turn ends; sync the trunk with `git merge --no-commit`
 - a THOUGHT block is edited in place between its BEGIN / END markers, rewritten whole; a new node needs its own mint_id (32 hex)
 - send.py from me arrives UNSIGNED: it signs only from <sessions>/seats/thought-master.key = the OLD TM's key (belam 0600), unreadable to me; told belam 15:0xZ 10-07 -- never try to read or re-mint it myself
-- send.py read <me> dies on E BEFORE printing (EACCES on MAIN comms dm/*.state.json, owned belam): read the dm files + sessions/inbox by hand, judge by ts, act once
+- send.py read <me> works on E since 00:5xZ 10-09 (rc 0, cursors written; at 23:33Z it died EACCES on dm/*.state.json); belam gen 31 = first v5 Prime, seated on E 00:57Z
 
 ## §5 Verification
 - every round: an adversarial Sonnet review recomputes the verdict from the raw files; my own test run from the repo root; evidence dry-run []; links 0 broken (5648 resolved at 17:5xZ)
