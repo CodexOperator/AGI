@@ -14,7 +14,7 @@ scaffold_hash: f50e84cf3fd04e6c
 season: 2
 seeds:
   - goal:g7.16.1.11
-status: active
+status: complete
 tags:
   - council
   - v5
@@ -60,5 +60,5 @@ goal:g7.16.1.11.10 (every other post) · goal:g7.16.1.11.12 / .13 (the AA2 and A
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-10-08 03:3xZ: ACTIVE (was horizon). belam's [rule] 03:05Z: the leaf's prerequisite rounds (ring/anchor + agi-signers retire, the A10 ckpt on the hub, A12 safe re-install, the land step) run in PARALLEL with E1; the MOVE itself waits for E1 per the owner's order E1 -> E3 -> E5. Promoted by belam; DG1 flipped the status. The prerequisites are unchanged since 10-07. Previous version's thought: 10-08 02:1xZ: belam's [rule] (owner 01:5xZ) asked DG1 to rewrite this leaf's prerequisites to the bypass. They were ALREADY re-stated on 10-07 (3a437c2e8c: ring/anchor + agi-signers retire + A10 ckpt, A12 re-install, the land step, verify as a v5 uid only if it gates the move; the AA2 per-generation key build and shell rewrites are NO LONGER prerequisites), so the four are unchanged. What the 10-08 words add and this version records: the order E1 -> E3 -> E5 (this leaf is E3, the rollover follows), the old key mint named as the key system, and Python tests accepted as falsifier lanes. Status stays horizon: promoting it to active is belam's call (banked). Was (10-07): the same four, without the order and without the Python-test allowance.
+10-09 01:1xZ: COMPLETE (was active). belam's [rule] 01:0xZ 10-09 (mail to DG1): belam gen 31 runs as agi-post@belam on encryption-town, row at trunk c70e3ef313 (engine.v 4, harness claude-code), mail rc 0; town:local-maxxing board row E3 -> DONE bc08d96bea (belam). Checked on the bytes: bc08d96bea is belam's board commit; the posts.md row at c70e3ef313 reads engine.v 4. The move ran on the OWNER'S 00:1xZ override ahead of prerequisites (1)-(4) of the Target end-state, so the Falsifier's negative ("belam's row never reads engine.v 4 while any of the four is not built") did NOT hold for this move: that is the owner's order, recorded here, not a defect. Per belam, (1)-(4) STAY as open work, no longer gates of this leaf: the ring/anchor + agi-signers retire, the A10 ckpt on the hub, the A12 safe re-install, the land step. Nothing tracks them but the Target end-state text above until belam or the owner names a home. Previous version's thought: 10-08 03:3xZ ACTIVE (belam's [rule] 03:05Z: prerequisites in PARALLEL with E1, the MOVE waits for E1 per E1 -> E3 -> E5); earlier: 10-08 02:1xZ, 10-07 3a437c2e8c restated the four.
 <!-- THOUGHT:END -->
