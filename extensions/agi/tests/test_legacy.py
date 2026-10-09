@@ -195,6 +195,33 @@ def test_l2_a_carried_node_with_a_season_2_goal_reads_legacy_until_a_NEW_goal_is
     assert got == ["", "[legacy]", "[legacy]", ""], got
 
 
+def test_l2_a_goal_gained_then_dropped_on_a_merged_branch_does_not_graph_the_node(tmp_path, monkeypatch):
+    """The mark reads FIRST-PARENT history (legacy.py:17, doc:rse-d3-legacy x3). w is minted in season 3 with no goal parent; a side branch GAINS goal:g9 then DROPS it
+    again (and edits w's `omega`), trunk edits w's `alpha`, and the branch is merged --no-ff. The merge differs from BOTH parents (git cannot simplify the side branch away),
+    so only --first-parent keeps the branch's own commits out of the walk: w reads `legacy`. Without it the gain commit joins the walk and w reads `-` (graphed)."""
+    repo = Repo(tmp_path, "merge")
+    p = f"{B}/w.md"
+    w = lambda ps, **kw: node_text("build:w", "build", 1, ps, **kw)
+    ex = lambda alpha, omega: dict(alpha=alpha, m1="m", m2="m", m3="m", omega=omega)
+    base = repo.edit(p, w(["mvp:e"], season=3, **ex(1, 1)), "minted, no goal parent")
+    repo.g("checkout", "-q", "-b", "side")
+    gain = repo.edit(p, w(["mvp:e", "goal:g9"], season=3, **ex(1, 1)), "side: gains goal:g9")
+    repo.edit(p, w(["mvp:e"], season=3, **ex(1, 2)), "side: drops goal:g9, edits omega")
+    repo.g("checkout", "-q", "trunk")
+    repo.edit(p, w(["mvp:e"], season=3, **ex(2, 1)), "trunk: edits alpha")
+    env = {"GIT_COMMITTER_DATE": "2026-02-01T00:00:00Z", "GIT_AUTHOR_DATE": "2026-02-01T00:00:00Z", "GIT_COMMITTER_NAME": "t",
+           "GIT_COMMITTER_EMAIL": "t@t", "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t"}
+    repo.g("merge", "-q", "--no-ff", "-m", "merge side", "side", env=env)
+    sha = repo.g("rev-parse", "HEAD")
+    assert len(repo.g("rev-list", "--parents", "-n1", sha).split()) == 3, "the fixture must end in a real two-parent merge"
+    assert gain in repo.g("log", "--format=%H", sha, "--", p).split(), "the fixture must be a topology where the branch's gain commit is on the walk without --first-parent"
+    monkeypatch.chdir(repo.dir)
+    L = load_legacy()
+    got = (L.mark(sha, "3", p), L.label(sha, "3", p))
+    assert got == ("legacy", "[legacy]"), got
+    assert base != sha
+
+
 @pytest.mark.parametrize("order", ["nest-then-carry", "carry-then-nest"])
 def test_l2_the_entry_is_the_NEWEST_of_the_nest_commit_and_the_season_carry(tmp_path, monkeypatch, order):
     """A container d with one member m. nest-then-carry: minted (season 2), `nest:` added, a goal GAINED, then the season-3 carry: the carry is the newest entry, so the
