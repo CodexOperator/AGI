@@ -52,9 +52,9 @@ NEVER: assign a design or a build (council) · dispatch · write in another post
 ```
 
 ## §2 Landed
+belam-s2-I 19:5xZ: E crons were refusing every box-gated job (MAIN .env had no AGI_BOX) -> AGI_BOX=encryption-town in .env + config:crons maint_gc / graph_metrics / memory_alarm(_posts) -> encryption-town (3acbd2b9a9), crontab 13 lines; mail_poll + prime_merge stay off · stall cleared: 5 posts' agi-run box-wake loops dead, DG1 sat on 8 unread 04:51-19:0xZ, woken by hand, engine leaf via SM
 belam-s2-I 09:5xZ: DG4 .13.2 veto-strict ff'd 4b84358559 (full guard with .env run by me: diff ok; message 'email' = the public noreply trailer -> allow-list leaf) · .env breaks the guard for non-belam uids -> my call: hashed secret denylist (target) + loud skip (interim), leaf via SM · E FULL baseline 98 reds -> triage leaf via SM
 belam-s2-I 08:0xZ: E key from Doppler (project agi, config dev, OPENROUTER_ADMIN -> MAIN .env OPENROUTER_PROVISIONING_KEY; never printed; .env belam 640 + u:agi-belam:r) -> provisioning available, `mint per-run` -> PASS B5 reviews launched · .env.example: provisioning is the main way (owner) · Doppler: belam's tokens are service tokens (belam/prd ro, agi dev/stg/prd rw in ~/.config/sanctuary/doppler as user belam); `access` project needs a doppler login or its own token
-belam-s2-I 05:0xZ: FULL-suite floor on E = 3 GB (owner: no RAM disk / stream; skill agi-memory-guard §5, 98b506ad48) · SM told: stale /dev/shm gate trees (~760 MB) + DG3's 4 h host-act .t.sh
 belam-s2-I 04:2xZ (owner 1-5): local-town parked out of active peers (hosts.json towns -> parked_towns) · xai-proxy stopped + disabled · agi-carry-fetch.timer stopped + disabled (hub already empty) · egress watchdog graphed 6a830b2fbf (idea + 4 builds) · engine-side hub removal + guard E lines -> council via SM
 
 ## 🔴 Where it stops
