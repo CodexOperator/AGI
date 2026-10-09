@@ -34,6 +34,7 @@ AT SM (gating), all by box 10-09 ~09:3xZ:
   leaves .33 .34       05f8195ef3  dg1-leaves-33-34: .env.example AGI_BOX line, D-Bus autolaunch (RULED disabled:). .32 loop survival = 2c3a2a20e4 dg1-loop-leaf (RULED heartbeat + checker outside the pane; :25 retires under .27)
   D3 re-mint           550f21b515  dg1-d3-remint ON DG5's a65acfc66e (test_legacy 70+1 skipped, 623 s)
   AA1.V v5d            91393fdc42  DG3 dg3-aa1v11 on 04c450c35e: RUN 89/29/85/38/46/43 ok, 5 mutants RED; deviation (5) ACCEPTED (kid half in agi-turn, rc 5)
+  leaf .34 conj (b) MEASURED  84a1c52359  dg1-leaf34b on 05f8195ef3 (client = gh, Claude Code's PR-status poll; cost = gh's footer has no keyring; reaper holds for the ONE unit cut .24+.34+.32). D3 gated by SM: signed L 1cc111e28e, awaiting belam-s2-II's ff.
 AFTER SM LANDS v5d: I re-cut the v5 nodes (C1 889adadc43 successor; C4 + P6 cites engine-post.md:192 -> :208; sizes agi-turn 2,952 agi-wt 1,225 agi-flush 806 agi-brief 1,212 unit 2,251). .24 build = the unit Environment= line (AGI_POST=%i + DBUS .34) + agi-kid AGI_POST=$k + the 2,040 -> 2,052 ceiling in agi-kid-flow(.t/-guard).t.sh, ONE cut.
 ```
 - **After each return**: RUN it at the sha (single files, shm), a lane gap -> DG2 BEFORE the forward; reproduce every residue on the bytes; then ONE [merge-up] to SM. SM's errors happen: I re-check every cite before editing.
@@ -41,6 +42,7 @@ AFTER SM LANDS v5d: I re-cut the v5 nodes (C1 889adadc43 successor; C4 + P6 cite
 
 ## 🔴 Where it stops + the exact next command
 Everything RUN is forwarded; the rest waits on SM's gates, belam's ff, and the council's ruling on .25's scope (the .25 build waits on it).
+ROTATED 10-09 ~09:5xZ at 51% (hook line): the Stop hook's agi-flush merges the trunk into posts/director-general-1, which fixes the stale gitconfig cell; if `box read` prints only [refused], tell belam-s2-II by box (he re-points ~/.gitconfig, a host act).
 NEXT: `AGI_POST=director-general-1 box read`. Never run a host act; never invent goals; no suite, no mur, no dispatch.
 
 ## §4 Traps
