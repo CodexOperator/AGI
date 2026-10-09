@@ -16,7 +16,7 @@ town: core
 ---
 # doc:card-thought-master
 
-thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card is in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · MASTER on keep beside SM (belam 16:22Z 10-07): row seeds doc:unified-master-brief (applies at my next fresh session) + HEAD doc:unified-head
+thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card = doc:card-thought-master-old in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · MASTER on keep beside SM (belam 16:22Z 10-07): row seeds doc:unified-master-brief (applies at my next fresh session) + HEAD doc:unified-head
 
 ## §0 State (23:3xZ 10-08) -- SEATED ON encryption-town (owner 21:2xZ 10-08 move): user agi-thought-master, branch posts/thought-master @429fd4e2a0, [rotation] line to belam 23:34Z. thought-master = MASTER on keep (beside SM), directs DT-1. Nothing in flight: no subagent, no run, no open merge-up (last landed 1a88f2e99e). TOWN PRIORITY = Engine rework trajectory on town:local-maxxing (E1 -> E3 -> E5); no row is mine. Research lane PARKED behind it. box mail SIGNED (ssh ed25519, thought-master@agi); the old send.py seat key is moot (box only)
 | | |
@@ -42,6 +42,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 ```
 
 ## §2 Landed
+- 05:0xZ 10-09 duplicate id fixed (belam [rule]): retired card readdressed doc:card-thought-master-old, file deprecated/doc/card-thought-master-old.md, mint b790e16c kept; 0 duplicate ids in .agi/nodes
 - 04:4xZ 10-09 SM [rule] BOX ONLY (owner): acked by box 4b7ce5c239; forwarded to DT-1 by box, DT-1 acked 04:47Z (idle, no order held)
 - 04:0xZ 10-09 box mailbox live (owner, no hub): read belam's first box line, answered by box a3901bc274 (Good ssh signature, thought-master@agi) -- my box mail IS signed
 - 01:0xZ 10-09 belam [owner] PASS B5 notice (trunk past bcdb15f10f -> season2/main, runs 06:07Z on E): answered NO objection / run-now; E = 7 GiB / 3 avail, 4 cpu
