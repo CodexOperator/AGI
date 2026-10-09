@@ -41,7 +41,7 @@ belam-s2-II 20:5xZ 10-09: woke (box empty, CHECK 746dda5f + memory 144506ef re-a
 
 ## §1 Plan
 ```
-1. PASS B5 (merge pass RUNNING in parallel, owner 01:0xZ): BLOCKED on the key that owns ws 72750376 (config spawn workspace, new account 5b6342571d). E's .env key = Doppler agi/dev OPENROUTER_ADMIN, owns ws 023ce4bd -> mint 403. Likely Doppler project `access`: needs a `doppler login` on E (as belam) or an access service token from the owner. Then: swap it into .env (never printed), `sh ~/pass-b5/launch.sh` (background), verdicts.py, skill §2 steps 5-9. Kit + 17 rounds ready; TIP 82e6731fa7; RED checks clean
+1. PASS B5 (merge pass RUNNING in parallel, owner 01:0xZ): BLOCKED on the key that owns ws 72750376 (NOT in Doppler: belam-s2-II 21:5xZ checked access/agi/belam; the owner's OpenRouter account or L's .env) (config spawn workspace, new account 5b6342571d). E's .env key = Doppler agi/dev OPENROUTER_ADMIN, owns ws 023ce4bd -> mint 403. Likely Doppler project `access`: needs a `doppler login` on E (as belam) or an access service token from the owner. Then: swap it into .env (never printed), `sh ~/pass-b5/launch.sh` (background), verdicts.py, skill §2 steps 5-9. Kit + 17 rounds ready; TIP 82e6731fa7; RED checks clean
 2. dbus leak: NAMED 20:4xZ (bpftrace 30 min: 9 autolaunches, all gh <- claude's PR-status poll, DG5 x5 DG3 x4; post uids have no gh config -> keyring -> godbus bare dbus-launch). Fix = DBUS_SESSION_BUS_ADDRESS=disabled: in agi-post@ -> mailed SM (engine leaf, SM's lane). Reaper holds it meanwhile
 3. heat on E (92C, powerclamp): owner checks cooling; optional agi.slice CPUQuota ~300% on the owner's word
 4. trajectory (★): E3 DONE (goal .17 complete) · E1 D3 re-forward returned to DG1 · E2 waits on .13.1 (conflicts with .13.2, DG4 re-cut) · E4 AA1.V re-cut returned to DG1/DG3 · E5 waits on E1
@@ -51,12 +51,11 @@ NEVER: assign a design or a build (council) · dispatch · write in another post
 ```
 
 ## §2 Landed
+belam-s2-II 21:5xZ: D3 re-forward (goal:g7.16.1.11.22) ff a5e07d455d -> eb6cae07e8 (SM's signed L; full guard with .env: diff ok, msgs ok but the noreply trailers) · owner's Doppler token = project `access`/prd: it holds only the 4 service tokens belam has; agi/dev OPENROUTER_ADMIN is the ONLY OpenRouter key in Doppler, sha == .env's; that account: 170 USD credits, 169.52 used. PASS B5 still needs the ws-72750376 account's provisioning key (L's .env, not carried) -> BANKED
 belam-s2-II 21:0xZ: trap 96 stopgap -- agi-boxwake@<post> transient units (own uid + agi-run env, BindsTo agi-post@<post>, `while :;do sleep 5`) for all-is-one DG1 DG2 DG5 self-perpetuating; 12/12 posts poll box (bpftrace). Engine patch (engine-wrap.md:24-26 `while :;do sleep N;`) mailed SM for DG1's leaf
 belam-s2-II 20:5xZ: SM's RC session titled 'go' (titleSha = sha256('go'): a bare /remote-control re-made its bridge 14:38Z) -> typed `/rename sanctuary-master` (session name now sanctuary-master) + agi-rc-keepalive heals any post whose live bridge title is not its name (1fa6ca9fcb, installed; dry run: 12/12 ok) · dbus client named, SM mailed · DG1 + DG5 hand-woken (dead box loops: all-is-one DG1 DG2 DG5 self-perpetuating) · MAIN ff ecf126920f
 belam-s2-I 20:1xZ: box health -- 541 orphan autolaunched session buses (post users, 1.27 GB) stopped + root reaper agi-dbus-reap (30 min; 3efda84b84); CPU 91C with powerclamp throttling (load 16-50) -> grid_sync */5 overlapped (> 6 min runs) -> every 30 min (e463b253d5); root fixes via SM
 belam-s2-I 19:5xZ: E crons were refusing every box-gated job (MAIN .env had no AGI_BOX) -> AGI_BOX=encryption-town in .env + config:crons maint_gc / graph_metrics / memory_alarm(_posts) -> encryption-town (3acbd2b9a9), crontab 13 lines; mail_poll + prime_merge stay off · stall cleared: 5 posts' agi-run box-wake loops dead, DG1 sat on 8 unread 04:51-19:0xZ, woken by hand, engine leaf via SM
-belam-s2-I 09:5xZ: DG4 .13.2 veto-strict ff'd 4b84358559 (full guard with .env run by me: diff ok; message 'email' = the public noreply trailer -> allow-list leaf) · .env breaks the guard for non-belam uids -> my call: hashed secret denylist (target) + loud skip (interim), leaf via SM · E FULL baseline 98 reds -> triage leaf via SM
-belam-s2-I 08:0xZ: E key from Doppler (project agi, config dev, OPENROUTER_ADMIN -> MAIN .env OPENROUTER_PROVISIONING_KEY; never printed; .env belam 640 + u:agi-belam:r) -> provisioning available, `mint per-run` -> PASS B5 reviews launched · .env.example: provisioning is the main way (owner) · Doppler: belam's tokens are service tokens (belam/prd ro, agi dev/stg/prd rw in ~/.config/sanctuary/doppler as user belam); `access` project needs a doppler login or its own token
 
 ## 🔴 Where it stops
 belam-s2-I rotated at its line (20:1xZ 10-09; hook "write your card, git commit it, then touch ~/.fresh;kill $PPID"). Successor = belam-s2-II (owner: generation restarts on v5; the rename lands with goal:g7.16.1.11.23, still horizon, so the RC name stays "belam").
@@ -86,6 +85,7 @@ E act: agi-boot exit 0 · vstore 700 root · slice live · DG5 mail test: receiv
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
+| PASS B5 key: the ws 72750376 (new account) provisioning key is in no Doppler config; the .env key's account is down to 0.48 USD | owner: add it to Doppler agi/dev (e.g. OPENROUTER_PROVISIONING_KEY) or paste it into MAIN .env; else re-point spawn.credential.workspace_id at 023ce4bd only after topping that account up |
 | egress watchdog NEVER RUNS (literal \" quotes: always exit 0) while E is in FULL tunnel | owner: fix it (drop 6 backslashes; then 3 missed pings -> split, never back) or leave it; idea:egress-watchdog-keeps-e-reachable |
 | guard layer 5 (sanctuary-watch) not installed | local-town parked (owner 04:2xZ); still needs config:guard E lines (council, via SM 04:2xZ) before guard-init.sh |
 | guard layer 1 FAIL = oomd on user@1000/agi.slice (the OLD engine slice) | moot on v5: system /agi.slice is fenced 5G/6G, oomd kill at 40%; the E guard line says so |
