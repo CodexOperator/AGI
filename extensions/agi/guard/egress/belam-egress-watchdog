@@ -1,0 +1,6 @@
+#!/bin/bash
+[ \"$(readlink /etc/wireguard/wg0.conf)\" = /etc/wireguard/wg0-full.conf ] || exit 0
+F=/run/belam-egress-fails
+ping -c1 -W3 10.66.0.1 >/dev/null 2>&1 && { rm -f $F; exit 0; }
+n=$(( $(cat $F 2>/dev/null || echo 0) + 1 )); echo $n > $F
+[ $n -ge 3 ] && { logger -t belam-egress \"gateway unreachable x3, falling back to split\"; /usr/local/sbin/belam-egress split; rm -f $F; }
