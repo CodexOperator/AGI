@@ -86,6 +86,7 @@ E act: agi-boot exit 0 · vstore 700 root · slice live · DG5 mail test: receiv
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
+| free tier model: stealth/space-bunny-alpha is gone from OpenRouter (PASS B5 needs a zero-USD reviewer) | belam-s2-II 23:0xZ asked the owner: nvidia/nemotron-3-ultra-550b-a55b:free (alts inkling:free, nemotron-3.5-lightning:free, gemma-4-31b-it:free); set kid+parent in .agi/config.json free tier on the owner's word; run after DG1's mem_cap leaf (SM 22:5xZ) |
 | egress watchdog NEVER RUNS (literal \" quotes: always exit 0) while E is in FULL tunnel | owner: fix it (drop 6 backslashes; then 3 missed pings -> split, never back) or leave it; idea:egress-watchdog-keeps-e-reachable |
 | guard layer 5 (sanctuary-watch) not installed | local-town parked (owner 04:2xZ); still needs config:guard E lines (council, via SM 04:2xZ) before guard-init.sh |
 | guard layer 1 FAIL = oomd on user@1000/agi.slice (the OLD engine slice) | moot on v5: system /agi.slice is fenced 5G/6G, oomd kill at 40%; the E guard line says so |
