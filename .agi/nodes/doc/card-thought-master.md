@@ -18,11 +18,11 @@ town: core
 
 thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card is in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · MASTER on keep beside SM (belam 16:22Z 10-07): row seeds doc:unified-master-brief (applies at my next fresh session) + HEAD doc:unified-head
 
-## §0 State (23:3xZ 10-08) -- SEATED ON encryption-town (owner 21:2xZ 10-08 move): user agi-thought-master, branch posts/thought-master @429fd4e2a0, [rotation] line to belam 23:34Z. thought-master = MASTER on keep (beside SM), directs DT-1. Nothing in flight: no subagent, no run, no open merge-up (last landed 1a88f2e99e). TOWN PRIORITY = Engine rework trajectory on town:local-maxxing (E1 -> E3 -> E5); no row is mine. Research lane PARKED behind it. NO seat key on E -> mail UNSIGNED (not minted unasked; told belam)
+## §0 State (23:3xZ 10-08) -- SEATED ON encryption-town (owner 21:2xZ 10-08 move): user agi-thought-master, branch posts/thought-master @429fd4e2a0, [rotation] line to belam 23:34Z. thought-master = MASTER on keep (beside SM), directs DT-1. Nothing in flight: no subagent, no run, no open merge-up (last landed 1a88f2e99e). TOWN PRIORITY = Engine rework trajectory on town:local-maxxing (E1 -> E3 -> E5); no row is mine. Research lane PARKED behind it. box mail SIGNED (ssh ed25519, thought-master@agi); the old send.py seat key is moot (box only)
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
-| run | owner 15:1xZ 10-01: keep going until goal:g7.16.1.11.1-.10 complete · owner 10-01 22:5xZ: core council = SM + TM; SM directs DG1, TM directs DT-1 · my row parent = `keep` (council row, members SM + me) · belam = gen 27 · COMMS: SendMessage to posts; to belam ONLY send.py with a tag ([decision] [red] [rule] [merge-up] ...; acks/status REFUSED) |
+| run | owner 15:1xZ 10-01: keep going until goal:g7.16.1.11.1-.10 complete · owner 10-01 22:5xZ: core council = SM + TM; SM directs DG1, TM directs DT-1 · my row parent = `keep` (council row, members SM + me) · belam = gen 27 · COMMS = BOX ONLY (owner via belam + SM [rule] 04:5xZ 10-09): every post, tagged; no send.py send, no sessions/inbox writes, no SendMessage |
 | directors | director-thought-1: idle (boot set, active) · director-thought-2: DOWN since the 10-01 reboot until the owner says |
 | subagents | Sonnet 5.5 for every subagent; me Opus 5.5 |
 | RULE | belam [rule] 23:49Z, VERIFIED ed25519 (owner 23:3xZ): my row is engine.v 4 (parent council) -> write.py is RETIRED for me. Read with cat/grep/git (+ `sect <piece>`); write node files with plain Write/Edit; agi-turn (Stop hook: git add -A + ONE commit per turn) commits; grid by path (`grid.py commit <path>`, never --all). Landed 75c04c848; trunk merged in this turn with --no-commit so agi-turn concludes it |
@@ -42,6 +42,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 ```
 
 ## §2 Landed
+- 04:4xZ 10-09 SM [rule] BOX ONLY (owner): acked by box 4b7ce5c239; forwarded to DT-1 by box (ack awaited)
 - 04:0xZ 10-09 box mailbox live (owner, no hub): read belam's first box line, answered by box a3901bc274 (Good ssh signature, thought-master@agi) -- my box mail IS signed
 - 01:0xZ 10-09 belam [owner] PASS B5 notice (trunk past bcdb15f10f -> season2/main, runs 06:07Z on E): answered NO objection / run-now; E = 7 GiB / 3 avail, 4 cpu
 - 20:5xZ 10-07 g1.41 lane J: dh1 stray title key -> DH.2 title; PC :55 linked to p4fair + freqabl; L4 run 2 thin margins + run-4 replication 2/3 recorded; dh1 summary.md from results.json; .gitignore datasets/osc-band/**/*.npz FORWARD only (history scrub = owner); links 5781/0
@@ -75,9 +76,7 @@ next command: AGI_POST=thought-master ~/bin/box read   (mail = signed commits on
 - git push fails (no creds for a v5 user); grid.py commit --all fails (MAIN .grid.lock), but `grid.py commit <path>` WORKS (card v5, 23:5xZ) -- SM pushes at landing
 - NO hand `git commit` / `git merge` that commits: agi-turn makes the ONE commit per turn (git add -A at Stop), so anything dirty gets committed -- clean the .agi/keys/<post> host comment BEFORE the turn ends; sync the trunk with `git merge --no-commit`
 - a THOUGHT block is edited in place between its BEGIN / END markers, rewritten whole; a new node needs its own mint_id (32 hex)
-- send.py from me arrives UNSIGNED: it signs only from <sessions>/seats/thought-master.key = the OLD TM's key (belam 0600), unreadable to me; told belam 15:0xZ 10-07 -- never try to read or re-mint it myself
 - box needs AGI_POST set (dies "parameter not set" without it); a post mails only matrix-adjacent rows (levels differ <= 1)
-- send.py read <me> works on E since 00:5xZ 10-09 (rc 0, cursors written; at 23:33Z it died EACCES on dm/*.state.json); belam gen 31 = first v5 Prime, seated on E 00:57Z
 
 ## §5 Verification
 - every round: an adversarial Sonnet review recomputes the verdict from the raw files; my own test run from the repo root; evidence dry-run []; links 0 broken (5648 resolved at 17:5xZ)
