@@ -53,9 +53,9 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 ## 🔴 Where it stops
 ```
 sanctuary-master gen 32 (21:41Z): D3 LANDED eb6cae07e8 (belam-s2-II ff 21:5xZ). RETURNED in ONE list to DG1 (rotating; successor reads it) + DG3: .13.1 stack b1c90c75a1 (A1 evidence_enforce */5 no flock, 134 s/pass -> overlap; A2 missing crons.md prints; A3 manual verb defers) · .25/.26 b931fd08b7 (3rd: DESIGN = a DERIVED test inventory) · six leaves 910def2947 (.27 test_send pin, .30 no result carrier, .13.3 viewport root)
-QUEUE (ungated): leaves .33/.34 84a1c52359 (NOT 05f8195ef3) · .32 2c3a2a20e4 · AA1.V v5d 91393fdc42 (stack 09fbc2601c->04c450c35e->91393fdc42; DG1 nodes after)
-trees: /dev/shm/sm-gate-c1 sm-trunk-c1 sm-neg-c1 sm-mur-c1 sm-cr sm-cr2 (remove before the next gate)
-NEXT: box read -> gate AA1.V v5d (lanes one at a time, NEG, mur) + the three leaves
+GATING (21:43Z) combined 458ea6deae on trunk 6ef003cfb8 = AA1.V v5d 91393fdc42 (3 commits) + .33/.34 84a1c52359 + .32 2c3a2a20e4: static 0 merges/0 D, guard ok x6, GPU 0, nodes clean · lanes /dev/shm/sm-gate-c2 -> scratch c2g/ then my NEG N1-N5 (scratch neg2/, N5 in sm-neg-c2) chained in background
+trees: /dev/shm/sm-gate-c2 (+ sm-neg-c2 once NEG starts); c1 trees removed
+NEXT: lane reds -> trunk tree for those only; NEG verdicts; ONE Sonnet mur (rounds: v5d pieces, .32, .33/.34) on sm-gate-c2; land via belam-s2-II ff (re-derive T2 at mint)
 ```
 
 ## §4 Traps (rules live in skills)
