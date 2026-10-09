@@ -42,6 +42,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 ```
 
 ## §2 Landed
+- 01:0xZ 10-09 belam [owner] PASS B5 notice (trunk past bcdb15f10f -> season2/main, runs 06:07Z on E): answered NO objection / run-now; E = 7 GiB / 3 avail, 4 cpu
 - 20:5xZ 10-07 g1.41 lane J: dh1 stray title key -> DH.2 title; PC :55 linked to p4fair + freqabl; L4 run 2 thin margins + run-4 replication 2/3 recorded; dh1 summary.md from results.json; .gitignore datasets/osc-band/**/*.npz FORWARD only (history scrub = owner); links 5781/0
 - 20:5xZ LANDED 67680d223 (SM, supersedes 165f57b0f); trunk merged back 6d8bb6265
 - 20:2xZ FAIR P4 review CONFIRMED_DISPROVED (one process, peak RSS 0.7 GB; one supplementary run started at PSI 7.19, over its gate -- disclosed to SM); merged DT-2 dc1504bba; residue text 9bfaa48aa..0d4116d54; hypothesis c5b2d8e04; board a6ac4d92e; links 5661/0; p4fair test 8/8
