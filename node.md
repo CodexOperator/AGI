@@ -31,7 +31,7 @@ cadences:
   maint_gc:
     schedule: 41 4 * * *
     enabled: true
-    box: local-town
+    box: encryption-town
     why_box: the object store is the local box's; gc on any other box would repack a store this job does not own
     cmd: git -C {repo_root} gc --quiet
   prime_merge:
@@ -43,19 +43,19 @@ cadences:
   graph_metrics:
     schedule: 23 * * * *
     enabled: true
-    box: local-town
+    box: encryption-town
     why_box: "belam's crontab reads every uid's files and writes the town node; a v5 uid reads only its own (goal:g3.8, AA1.S)"
     cmd: python3 {repo_root}/extensions/agi/bin/metrics_cell.py {root} town:local-maxxing metrics_line --actor belam -- python3 {repo_root}/extensions/agi/bin/success_metrics.py --line {root}
   memory_alarm:
     every_mins: 1
     enabled: true
-    box: local-town
+    box: encryption-town
     why_box: "reads this box's own /proc and user@ cgroup (OWNER 04:0xZ 09-26, after the 03:20Z memory livelock: raise a climb toward exhaustion before the box wedges); every threshold lives here, none in code"
     cmd: python3 {repo_root}/extensions/agi/bin/memory_alarm.py --root {root} --warn-avail-mib 2048 --crit-avail-mib 1024 --warn-psi-some-avg60 10 --crit-psi-full-avg60 20 --warn-cgroup-max-frac 0.95 --repeat-mins 15 --notify belam
   memory_alarm_posts:
     every_mins: 1
     enabled: true
-    box: local-town
+    box: encryption-town
     why_box: same reader as memory_alarm, pointed at the SYSTEM agi.slice where the pi-engine posts (agi-post@*) live; reads this box's cgroup, so it runs on this box only (stage-2.5 rootplan C3, parity row 45)
     cmd: python3 {repo_root}/extensions/agi/bin/memory_alarm.py --root {root} --warn-avail-mib 2048 --crit-avail-mib 1024 --warn-psi-some-avg60 10 --crit-psi-full-avg60 20 --warn-cgroup-max-frac 0.95 --repeat-mins 15 --notify belam --cgroup /sys/fs/cgroup/agi.slice --state {root}/sessions/memory-alarm-posts.json
 crons_live: true
@@ -83,7 +83,7 @@ thought_session: season
 title: Cron cadence declaration
 ---
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-goal:g7.16.1.11.13 E2a (hypothesis g716111-aa3-the-crontab-applier-survives-grid-syncs-retirement, V3; DG1 cut, belam [rule] 05:1xZ 10-08, SM RE5/RE6): this version adds ONE cell, `cadences.crons_apply` (every_mins 5, enabled, NO `box` and so no `why_box`, cmd `crons.py apply --unit-dir $HOME/.config/systemd/user`), so the crontab self-heal no longer lives only in the tail of grid_sync's line and retiring grid_sync cannot lose it. It is boxless on purpose: it renders on every box, AGI_BOX unset included. grid_sync's own apply step STAYS until the switch round (E2b0 and after), so there is no gap. The 'self-reapply property' prose now names crons_apply instead of grid_sync as what runs the applier. The earlier thought (goal:g7.16.1.4.1.2: only engine_push still carries an enabled of its own, publish_engine is gone) is unchanged and lives in the body's kill-switch paragraph. Builder: director-general-3 (DG4 silent, DG1 08:32Z).
+belam-s2-I 19:4xZ 10-09: box local-town -> encryption-town for maint_gc, graph_metrics, memory_alarm, memory_alarm_posts. Why: MAIN, the Prime and every post moved to encryption-town 10-08/09 and the owner parked local-town ("Local town will remain down for the foreseeable future", 04:2xZ 10-09), so _on_this_box refused all four and E had no memory alarm, no hourly metrics line and no gc. Kept on local-town (= off): mail_poll (the hub reader; owner 04:0xZ: "Hub is old design") and prime_merge (the Prime's session CHECK covers it; the cron would start a PASS unattended). Previous version's thought: goal:g7.16.1.11.13 E2a (hypothesis g716111-aa3-the-crontab-applier-survives-grid-syncs-retirement, V3; DG1 cut, belam [rule] 05:1xZ 10-08, SM RE5/RE6): this version adds ONE cell, `cadences.crons_apply` (every_mins 5, enabled, NO `box` and so no `why_box`, cmd `crons.py apply --unit-dir $HOME/.config/systemd/user`), so the crontab self-heal no longer lives only in the tail of grid_sync's line and retiring grid_sync cannot lose it. It is boxless on purpose: it renders on every box, AGI_BOX unset included. grid_sync's own apply step STAYS until the switch round (E2b0 and after), so there is no gap. The 'self-reapply property' prose now names crons_apply instead of grid_sync as what runs the applier. The earlier thought (goal:g7.16.1.4.1.2: only engine_push still carries an enabled of its own, publish_engine is gone) is unchanged and lives in the body's kill-switch paragraph. Builder: director-general-3 (DG4 silent, DG1 08:32Z).
 <!-- THOUGHT:END -->
 
 The scheduling cadence for this project's four recurring jobs, declared as
