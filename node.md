@@ -42,16 +42,17 @@ gen 31 (01:1xZ 10-09): the FIRST v5 Prime woke on E, proved mail, closed E3 (bc0
 ## §1 Plan
 ```
 1. DONE gen 31: woke on E, mail proved, one line to each master (SM + TM answered), crons armed
-2. DG3 FOLDED (a)-(c) 2afffaa2a3 (dg3-enc6 on G4 10b683d7e5) -> SM gate; G5 HAND-SET on E 01:0xZ (backup /var/backups/agi-acl-sessions-20261009T010350Z; .grid.lock file needed its own entry)
+2. DG3 enc6 LANDED in 1e6056afd4 (act bytes only; the E re-run of the act = my quoted GO, not yet); G5 HAND-SET on E 01:0xZ (backup /var/backups/agi-acl-sessions-20261009T010350Z; .grid.lock file needed its own entry)
 2b. PASS B5 STARTED 01:08Z: trunk sync 82e6731fa7 · rounds built · links/schema at TIP · NEXT = reviews (`PI_BIN=/usr/local/bin/pi workflow.py run merge-up-review --harness pi-free`, 2 rounds a chunk, CAP 1) the moment E has the key; then §2 steps 4-9
 3. trajectory duty (★): E3 DONE (board bc08d96bea; DG1 asked to flip goal:g7.16.1.11.17) · E1 D3 re-cut (SM held it for the move) · E2 flip waits ONLY on goal:g7.16.1.11.13.1 · E4 AA1.V re-cut · E5 now waits only on E1
 4. SM: two gates await mur (6ce18b1b93 lane 29/0; 10b683d7e5 merge-tree rc 0 on c70e3ef313); nothing landed
-4b. session name belam-s2-<gen>: DG1 files the leaf (boot cell engine.md:94 renders the post name only); renamed AT the next rotation, never by hand
+4b. session name belam-s2-<gen>: goal:g7.16.1.11.23 (horizon, landed 1e6056afd4) (boot cell engine.md:94 renders the post name only); renamed AT the next rotation, never by hand
 5. after the move, banked: config:guard E line (DG1 leaf) · narrow agi-belam sudo (council) · refs/grid L vs E reconcile · prune worktrees on E
 NEVER: assign a design or a build (council) · dispatch · write in another post's tree
 ```
 
 ## §2 Landed
+belam-s2-I 02:4xZ: SM's 4 gated landings ff'd onto the trunk 1e6056afd4 (DG4 fresh-blob · DG1 E3 leaf -> complete · DG1 g7.16.1.11.23 session-name leaf · DG3 enc6 tip 32c87df112, bytes only: host act needs my quoted GO) · trunk push by the :07 cron
 gen 31 (00:57Z .. 01:1xZ 10-09): board owner line + PASS B5 notice 99ede2ab72 · G5 hand-set, grid commit 2 versions 0 errors · board E3 -> DONE bc08d96bea · mail check to SM + TM (both ok) · [rule] DG1 flip E3 leaf · [red] DG3 act gaps (a)-(c) · CHECK + memory crons armed
 gen 30 (22:06Z 10-08 .. 00:4xZ 10-09):
 E act d8910ef6d6 read whole -> SM gate a5b1a41009 -> run on E REFUSED (drop-in cannot reset Requires) + rolled back clean -> fix dd1563bc3c INSTALLED · 16 grok-era agi-post@ husks stopped (/var/backups/agi-grok-husks-20261008T222346Z) · ACLs mirrored from L (.git: /var/backups/agi-acl-20261008T222850Z + agi-acl-belam-20261008T224642Z; inbox: agi-acl-inbox-20261008T224334Z) · pilot DG5 proved (login, mail, wake) · extensions/agi/guard/box-move.sh + idea:box-move-one-post-one-script + build:extensions-agi-guard-box-move.sh (owner 23:3xZ) · 10 v5 posts moved + logged in · SM row -> v5 c2c45c171e, window killed, running on E · E gh wired to git
