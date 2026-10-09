@@ -8,8 +8,9 @@
 #   sh box-move.sh url POST                  step the theme / login-method screens and print the login URL for the owner
 # Cells (env): AGI_MOVE_TO (default encryption-town) · AGI_MOVE_FROM (default local-town) · AGI_MOVE_SSH (the ssh config holding the target
 # host; default the sanctuary mesh config) · AGI_MOVE_EXTRA (more branch globs for the post, e.g. 'dg4-*').
-# Requires on the target (the gaps the pilot found, G1-G3): the host act (host-act-<box>.sh act) · group agi + user belam ACLs on
-# MAIN .git/{objects,refs,logs,worktrees} and .agi/sessions/inbox, mirrored from the source · AGI_BOX=<target> in any shell there running send.py.
+# Requires on the target (the gaps the pilot found, G1-G5): the host act (host-act-<box>.sh act) carries ALL of them: group agi + user belam
+# ACLs (+ defaults) on MAIN .git/{objects,refs,logs,worktrees} (G2) and .agi/comms (G4, recursive), group agi (+ default) on .agi/sessions
+# (G5: grid.py commit --all needs sessions/.grid.lock) and .agi/sessions/inbox (G3) · AGI_BOX=<target> in any shell there running send.py.
 P=$2;TO=${AGI_MOVE_TO:-encryption-town};FROM=${AGI_MOVE_FROM:-local-town}
 case $P in ""|*[!a-z0-9-]*)echo "usage: move|login|url POST">&2;exit 1;;esac
 C=${AGI_MOVE_SSH:-$(ls -d /home/*/work/.sanctuary/ssh/config 2>/dev/null|head -1)};[ -f "$C" ]||{ echo "no ssh config (AGI_MOVE_SSH)">&2;exit 1;}
