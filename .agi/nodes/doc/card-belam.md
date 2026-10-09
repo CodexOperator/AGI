@@ -21,13 +21,13 @@ town: core
 Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.agi/sessions/quorum/belam.md` are symlinks to it. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs; progress lives on the town board. Skills: agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-post · agi-memory-guard · agi-node-write · agi-goal · agi-master-gate.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-s2-I 20:1xZ 10-09, at the rotation line: card whole for belam-s2-II. This gen: E3 done; mail moved to box only for every post; Doppler key into .env (wrong workspace -> PASS B5 reviews held); RC drop explained (8 h tokens on idle posts) + root keepalive; box health on E (AGI_BOX in .env restored the box-gated crons; 541 orphan dbus buses reaped + reaper; grid_sync 30 min; 92C throttling to the owner). OWNER verbatim this gen (banked on their nodes): 01:0xZ "Btw we should resume the merge pass ... do it in parallel" · 01:2xZ "Just belam-s2-I and you can restart since it’s new engine" · 04:2xZ "1. Local town will remain down for the foreseeable future ..." · 05:0xZ "Let’s lower the floor ..." · 08:0xZ "Also we use the provisioning key primarily not the api key" · "Yes let’s do that" (keepalive).
+belam-s2-II 20:5xZ 10-09: woke (box empty, CHECK 746dda5f + memory 144506ef re-armed); dbus client NAMED (gh via claude's PR-status poll) -> SM leaf; SM's RC title 'go' fixed + keepalive heals titles (owner 20:3xZ: "Sanctuary master’s session is not naming properly ... can we fix it"). Before: belam-s2-I 20:1xZ 10-09, at the rotation line: card whole for belam-s2-II. This gen: E3 done; mail moved to box only for every post; Doppler key into .env (wrong workspace -> PASS B5 reviews held); RC drop explained (8 h tokens on idle posts) + root keepalive; box health on E (AGI_BOX in .env restored the box-gated crons; 541 orphan dbus buses reaped + reaper; grid_sync 30 min; 92C throttling to the owner). OWNER verbatim this gen (banked on their nodes): 01:0xZ "Btw we should resume the merge pass ... do it in parallel" · 01:2xZ "Just belam-s2-I and you can restart since it’s new engine" · 04:2xZ "1. Local town will remain down for the foreseeable future ..." · 05:0xZ "Let’s lower the floor ..." · 08:0xZ "Also we use the provisioning key primarily not the api key" · "Yes let’s do that" (keepalive).
 <!-- THOUGHT:END -->
 
 ## §0 State (01:1xZ 10-09, read from date -u)
 | | |
 |---|---|
-| post | belam-s2-I (owner 01:2xZ: the generation count RESTARTS on v5; was "gen 31"; successor = belam-s2-II, no loop number) = FIRST v5 Prime, SEATED on E 00:57Z 10-09 (agi-post@belam active), user agi-belam, home ~, works in ~/t on posts/belam |
+| post | belam-s2-II (woke 20:18Z 10-09; predecessor belam-s2-I, owner 01:2xZ: the generation count RESTARTS on v5; was "gen 31"; successor = belam-s2-II, no loop number) = FIRST v5 Prime, SEATED on E 00:57Z 10-09 (agi-post@belam active), user agi-belam, home ~, works in ~/t on posts/belam |
 | E | 4 cores · 7.8 GB · agi.slice MemoryHigh 5G / Max 6G / oomd 40% · hostname still belam-prime (box = the row cell) |
 | posts on E (v5) | DG1-5 · DT-1 · TM · alive · all-is-one · self-perpetuating · SM · belam = 12; each logged in by the owner |
 | L = local-town | SHUT DOWN 02:0xZ 10-09 (owner: "confirm local town is clear and shut it down"); belam-s2-I is the ONLY Prime; every seat key carried L->E (sends sign again); L's .env NOT carried; refs/grid bundle on L's USB /mnt/agi-flash |
@@ -42,7 +42,7 @@ belam-s2-I 20:1xZ 10-09, at the rotation line: card whole for belam-s2-II. This 
 ## §1 Plan
 ```
 1. PASS B5 (merge pass RUNNING in parallel, owner 01:0xZ): BLOCKED on the key that owns ws 72750376 (config spawn workspace, new account 5b6342571d). E's .env key = Doppler agi/dev OPENROUTER_ADMIN, owns ws 023ce4bd -> mint 403. Likely Doppler project `access`: needs a `doppler login` on E (as belam) or an access service token from the owner. Then: swap it into .env (never printed), `sh ~/pass-b5/launch.sh` (background), verdicts.py, skill §2 steps 5-9. Kit + 17 rounds ready; TIP 82e6731fa7; RED checks clean
-2. dbus leak: name the client (SM 20:2xZ asks a ROOT exec audit ~30 min: auditd / bpftrace execve on dbus-launch|dbus-daemon, parent chain + env). Reaper agi-dbus-reap holds it meanwhile; DG1 has the engine leaf (unit refuses autolaunch)
+2. dbus leak: NAMED 20:4xZ (bpftrace 30 min: 9 autolaunches, all gh <- claude's PR-status poll, DG5 x5 DG3 x4; post uids have no gh config -> keyring -> godbus bare dbus-launch). Fix = DBUS_SESSION_BUS_ADDRESS=disabled: in agi-post@ -> mailed SM (engine leaf, SM's lane). Reaper holds it meanwhile
 3. heat on E (92C, powerclamp): owner checks cooling; optional agi.slice CPUQuota ~300% on the owner's word
 4. trajectory (★): E3 DONE (goal .17 complete) · E1 D3 re-forward returned to DG1 · E2 waits on .13.1 (conflicts with .13.2, DG4 re-cut) · E4 AA1.V re-cut returned to DG1/DG3 · E5 waits on E1
 5. landings come from SM by box: before EVERY ff run the FULL anonymize guard with .env (trap 94), then `merge --ff-only <L>` in MAIN as belam; the :07 cron pushes the trunk
@@ -51,6 +51,7 @@ NEVER: assign a design or a build (council) · dispatch · write in another post
 ```
 
 ## §2 Landed
+belam-s2-II 20:5xZ: SM's RC session titled 'go' (titleSha = sha256('go'): a bare /remote-control re-made its bridge 14:38Z) -> typed `/rename sanctuary-master` (session name now sanctuary-master) + agi-rc-keepalive heals any post whose live bridge title is not its name (1fa6ca9fcb, installed; dry run: 12/12 ok) · dbus client named, SM mailed · DG1 + DG5 hand-woken (dead box loops: all-is-one DG1 DG2 DG5 self-perpetuating) · MAIN ff ecf126920f
 belam-s2-I 20:1xZ: box health -- 541 orphan autolaunched session buses (post users, 1.27 GB) stopped + root reaper agi-dbus-reap (30 min; 3efda84b84); CPU 91C with powerclamp throttling (load 16-50) -> grid_sync */5 overlapped (> 6 min runs) -> every 30 min (e463b253d5); root fixes via SM
 belam-s2-I 19:5xZ: E crons were refusing every box-gated job (MAIN .env had no AGI_BOX) -> AGI_BOX=encryption-town in .env + config:crons maint_gc / graph_metrics / memory_alarm(_posts) -> encryption-town (3acbd2b9a9), crontab 13 lines; mail_poll + prime_merge stay off · stall cleared: 5 posts' agi-run box-wake loops dead, DG1 sat on 8 unread 04:51-19:0xZ, woken by hand, engine leaf via SM
 belam-s2-I 09:5xZ: DG4 .13.2 veto-strict ff'd 4b84358559 (full guard with .env run by me: diff ok; message 'email' = the public noreply trailer -> allow-list leaf) · .env breaks the guard for non-belam uids -> my call: hashed secret denylist (target) + loud skip (interim), leaf via SM · E FULL baseline 98 reds -> triage leaf via SM
@@ -58,8 +59,9 @@ belam-s2-I 08:0xZ: E key from Doppler (project agi, config dev, OPENROUTER_ADMIN
 
 ## 🔴 Where it stops
 belam-s2-I rotated at its line (20:1xZ 10-09; hook "write your card, git commit it, then touch ~/.fresh;kill $PPID"). Successor = belam-s2-II (owner: generation restarts on v5; the rename lands with goal:g7.16.1.11.23, still horizon, so the RC name stays "belam").
-- next command at wake (on E, ~/t): `AGI_POST=belam box read` (box is the ONLY mail route), then re-arm the session crons (CHECK 13 */4 with the ws-72750376 launch condition, memory watch 47 *)
-- open at handoff: SM's dbus audit ask (plan 2) · PASS B5 key (plan 1) · DG1 working SM's 8 delivered msgs (.25/.26, D3, AA1.V, placements) · 5 posts' agi-run box-wake loops dead (trap 96): the root keepalive + hand wakes cover them until DG1's leaf
+belam-s2-II is live; at the next wake (on E, ~/t): `AGI_POST=belam box read` (box is the ONLY mail route), then re-arm the session crons (CHECK 13 */4 with the ws-72750376 launch condition, memory watch 47 *)
+- owner: confirm the phone app shows SM as 'sanctuary-master' (the /rename landed locally; the bridge title is not readable from the box)
+- open at handoff: SM's dbus engine leaf (plan 2) · PASS B5 key (plan 1) · DG1 working SM's 8 delivered msgs (.25/.26, D3, AA1.V, placements) · 5 posts' agi-run box-wake loops dead (trap 96): the root keepalive + hand wakes cover them until DG1's leaf
 
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
