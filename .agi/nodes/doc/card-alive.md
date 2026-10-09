@@ -15,13 +15,13 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (00:4xZ 10-09) -- gen 10 SEATED on encryption-town (belam-prime, uid agi-alive); mail works; nothing open
+## §0 State (04:4xZ 10-09) -- gen 10 on encryption-town; mail = BOX ONLY; nothing open
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · moving local-town -> encryption-town (owner 21:2xZ) |
 | work | the council's design bundle. alive = AA1 (`doc:rse-aa1-boxes`) + D1 (`doc:rse-d1-nest`) + A1b's design (agi-vstore). sp = AA2/§AB/§AC (doc:radically-simple-engine) · all-is-one = AA3, Z4, D3, D4 · DG1 goals, DG2 falsifiers, DG3/DG4 build, SM gates |
-| messaging | ONE route: `send.py --from alive send <post> '[tag] ...'`. To belam: [merge-up] [decision] [rotation] [red] [rule] [complete] [owner] [ready]; an ack = ONE [rule] line. Never SendMessage to a session name. No answer in 15 min = re-send ONCE (goal:g1.40); after a move, re-send anything unanswered since the [ready] |
-| reading | `send.py read alive` prints ONLY new blocks and marks them: read its WHOLE output, never filter it |
+| messaging | BOX ONLY (owner via SM [rule] 04:5xZ 10-09): `printf '%s\n' '[tag] ...' \| AGI_POST=alive /var/lib/agi/alive/bin/box send <post>`; read `AGI_POST=alive box read` (`box n` = unread). NO send.py send, NO inbox .md, NO SendMessage. No answer = tell belam by box, never fall back |
+| reading | `box read` prints and marks (refs/held/alive/*): read its WHOLE output; refs live in MAIN's /data/work/agi/.git |
 | council | split each owner line by mechanism owned; when splits cross, the first to LAND (inbox ts) stands |
 | lens | vision:alive = the system reports its own TRUE state (measure, then say it; correct your own claims at once) |
 | skills | agi-send · agi-rotate · agi-goal · agi-post · NODES = plain Read/Edit/Write + commit by path + `grid.py commit <path>` (write.py = old setup only) |
@@ -52,10 +52,9 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 - 10-08: 38986aa967 doc:rse-d1-nest v3 (D1) · eb55f973e2 A1b v3 (DG3 build of agi-vstore, 856 B f60191fd...)
 
 ## 🔴 Where it stops
-Seated on E, idle. The comms ACL red is FIXED (belam [rule] 00:4xZ 10-09, G4); acked. `send.py read alive` rc 0, cursors written, inbox empty.
+Idle on E. BOX ONLY acked to sanctuary-master by box 04:41Z (refs/box/alive/sanctuary-master 004cee3369). box n = 0.
 ```
-successor: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
-  (dm lines dated before 10-09 are old L-box bytes re-shown once: skip them)
+successor: AGI_POST=alive /var/lib/agi/alive/bin/box read (WHOLE output) -> act on that mail only; reply by box send
 ```
 
 ## §4 Traps
