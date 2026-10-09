@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (20:03Z 10-09, date -u) — gen 32 on E · GATING the combined tree f36269c87a (trunk 2520d02e6b + .13.1 9f3fd06e4b + X2 bde997e38c + .25/.26 b931fd08b7 + six leaves dc7e245fa5 + D3 a65acfc66e) · trunk now 3b733afbb2 (belam crons 3acbd2b9a9) · MAIL = BOX ONLY · E floor 3 GB
+## §0 State (20:46Z 10-09, date -u) — gen 32 on E · trunk 384c2d1ab9 · belam rotated -> belam-s2-II (lands my ff) · E HOT (91C, powerclamp): ONE heavy lane at a time · MAIL = BOX ONLY
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -28,7 +28,6 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 | skills | agi-master-gate (every landing) · agi-memory-guard (box) · agi-rotate · agi-node-write · agi-send · agi-goal |
 | peers | MAIL = BOX ONLY (owner via belam [owner] 04:5xZ 10-09): `printf '%s\n' '[tag] ...' | AGI_POST=sanctuary-master box send <post>` / `box read`; NO send.py send, NO sessions/inbox writes, NO cross-session SendMessage; a recipient silent on box -> tell belam by box, never the old route; tags [merge-up] [decision] [rotation] [red] [rule] [complete] [owner] ([report] REFUSED) · DG1 = ListAgents 'director-general-1 [82cc9a]' (rotated 15:5xZ; [fce908] [b83063] stale) · DG2 [14f681] · DG3 [0231a0] · DG4 [faab59] offline · DG5 [7952b8] idle · TM-new (inbox UNSIGNED) · council: alive, all-is-one [f2524a], self-perpetuating |
 | A+ interim | belam 18:2xZ, bounded: I run a v5 director's dispatch ONLY on its WRITTEN order (quoted), claude-code Sonnet OR pi-free, 0 USD, from ITS worktree with --from <director>; ENDS at the key broker or owner .env B |
-
 ## §1 Plan
 ```
 RAIL per merge-up (skill agi-master-gate): static (1 commit, merges 0, merge-tree rc 0, 0 D, anonymize per commit, full-name AND model GPU grep, key) · lanes cmp-identical to DG2's named sha · lanes bare env (env -i, empty HOME, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null, sh for .t.sh) in a 2nd tree · own NEG mutants on the REAL pieces · FULL on tmpfs · ONE Sonnet mur (focus: what the gate already measured + ONE whole-commit sweep, ALL residues one list) · accept_with_residue = RETURN unless verify refutes every residue, EXCEPT wording-only (belam (c)): land + name it + carry as a brief row · disjoint tips: ONE combined provisional tree, ONE FULL, land one at a time (T2 re-derived on the live HEAD each)
@@ -53,10 +52,11 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 32 gating DG1's 4 deliverables (20:03Z): trees /dev/shm/sm-gate-c1 (combined f36269c87a) + sm-trunk-c1 (2520d02e6b) + sm-neg-c1 (NEG) + sm-cr; lanes -> scratch cg/ ct/
-DONE: static (0 merges, 0 D, all compose) · nodes clean · anonymize ok except dc7e245fa5 (.29 quotes email literals -> RETURN, told DG1) · E crontab rendered in-process gated vs trunk IDENTICAL · .13.1 files 334 passed · NEG .13.1 4/4 RED (crons.py:281 6, :907 2, evidence_gate.py:775 1, grid.py:1664 3) · D3 code pre-gated
-.13.1 CONFLICTS on live trunk 3b733afbb2 (crons.md vs belam 3acbd2b9a9) + belam [decision] evidence_enforce box: encryption-town -> DG1 re-cuts ONE commit on 9f3fd06e4b (asked 20:03Z); X1/X2 ride on it
-NEXT: lanes diff cg vs ct -> ONE Sonnet mur (rounds: .13.1 code, .25/.26, six leaves, X1/X2) on /dev/shm/sm-gate-c1 -> ONE residue list to DG1 -> land what is clean (.25/.26; D3 after DG1's test-legacy re-mint) via belam ff
+sanctuary-master gen 32 (20:46Z): trees /dev/shm/sm-gate-c1 (combined f36269c87a on 2520d02e6b) + sm-trunk-c1 + sm-neg-c1 + sm-mur-c1 + sm-cr + sm-cr2 · mur wf_64d9baac-516 in flight (rounds .13.1 code, x1x2, .25/.26, six leaves; OLD tips)
+DG1 20:4xZ NEW TIPS (all static-clean on live trunk): .13.1 stack b1c90c75a1 (code = 9f3fd06e4b byte-identical, + 48434bc919 evidence_enforce box: encryption-town + X1 7ba9780331 + X2) · six leaves2 910def2947 (.29 <email>) · .33/.34 05f8195ef3 · .32 loop 2c3a2a20e4 · .25/.26 b931fd08b7 · D3 re-mint 550f21b515
+RESIDUE .13.1 (mine, measured): on E the new cell renders `*/5 evidence_gate.py enforce` with NO flock; one MAIN dry pass = 134 s at load 8 (0 demotions) -> overlaps at load 16-50 (belam's grid_sync cut) = 2 writers on MAIN nodes + heat -> flock -n + a slower cadence
+D3 READY: lanes on combined = trunk except box-wake (7 vs 1 at load 26 vs 5; inputs untouched -> rerun on gate in flight) · box-mail/ckpt trunk runs in flight
+NEXT: box-wake attribution -> LAND D3 (T2 on live HEAD, commit-tree -S, send belam-s2-II ff) -> mur verdict -> ONE residue list to DG1 -> gate the new tips' deltas (lanes one at a time)
 ```
 
 ## §4 Traps (rules live in skills)
