@@ -43,7 +43,7 @@ gen 31 (01:1xZ 10-09): the FIRST v5 Prime woke on E, proved mail, closed E3 (bc0
 ```
 1. DONE gen 31: woke on E, mail proved, one line to each master (SM + TM answered), crons armed
 2. DG3 enc6 LANDED in 1e6056afd4 (act bytes only; the E re-run of the act = my quoted GO, not yet); G5 HAND-SET on E 01:0xZ (backup /var/backups/agi-acl-sessions-20261009T010350Z; .grid.lock file needed its own entry)
-2b. PASS B5 STARTED 01:08Z: trunk sync 82e6731fa7 · rounds built · links/schema at TIP · NEXT = reviews (`PI_BIN=/usr/local/bin/pi workflow.py run merge-up-review --harness pi-free`, 2 rounds a chunk, CAP 1) the moment E has the key; then §2 steps 4-9
+2b. PASS B5 STARTED 01:08Z: trunk sync 82e6731fa7 · kit rebuilt /var/lib/agi/belam/pass-b5 (launch.sh refuses rc 3 without a key) · NEXT = `sh launch.sh` in the background, then reviews (`PI_BIN=/usr/local/bin/pi workflow.py run merge-up-review --harness pi-free`, 2 rounds a chunk, CAP 1) the moment E has the key; then §2 steps 4-9
 3. trajectory duty (★): E3 DONE (board bc08d96bea; DG1 asked to flip goal:g7.16.1.11.17) · E1 D3 re-cut (SM held it for the move) · E2 flip waits ONLY on goal:g7.16.1.11.13.1 · E4 AA1.V re-cut · E5 now waits only on E1
 4. SM: two gates await mur (6ce18b1b93 lane 29/0; 10b683d7e5 merge-tree rc 0 on c70e3ef313); nothing landed
 4b. session name belam-s2-<gen>: goal:g7.16.1.11.23 (horizon, landed 1e6056afd4) (boot cell engine.md:94 renders the post name only); renamed AT the next rotation, never by hand
@@ -72,6 +72,7 @@ belam is ON v5 on E; PASS B5 holds at its review step on the OWNER (L's .env -> 
 | 69 | send.py refuses tags outside its gate ([ack], [ready]) | `[rotation] [ready] ...` |
 | 79 | the harness refuses `rm` inside a root `sh -c` | pipe a reviewed script file to `sudo -n sh -s` |
 | 84 | a drop-in cannot reset Requires=/After= | a no-op unit on the box, never a reset |
+| 92 | re-running the UNCHANGED E act re-enables agi-carry-fetch.timer (host-act-encryption-town.sh:88; its verify :87 dies if the unit is gone) | never re-run the act until goal:g7.16.1.11.25 lands (SM 04:4xZ) |
 | 86 | send.py in a shell on E calls E rows FOREIGN | `AGI_BOX=encryption-town` in that shell |
 | 89 | a dir default ACL does not reach a file made before it (.grid.lock) | set the file's own entry too |
 | 90 | a v5 post's first send.py read on E dumps the whole S1 dm backlog (no cursors carried) | judge by ts; the second read is the real one |
