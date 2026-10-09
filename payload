@@ -1,0 +1,5 @@
+[Unit]
+Description=agi: stop orphan autolaunched session buses of post users
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/agi-dbus-reap
