@@ -52,6 +52,7 @@ NEVER: assign a design or a build (council) · dispatch · write in another post
 ```
 
 ## §2 Landed
+belam-s2-I 05:0xZ: FULL-suite floor on E = 3 GB (owner: no RAM disk / stream; skill agi-memory-guard §5, 98b506ad48) · SM told: stale /dev/shm gate trees (~760 MB) + DG3's 4 h host-act .t.sh
 belam-s2-I 04:5xZ: box-only switch COMPLETE (10/10 acked via SM) · signers fix in 3 homes (DG1, all-is-one, self-perpetuating: ~/.signers missing -> /var/lib/agi/allowed_signers; backup /var/backups/agi-gitconfig-signers-20261009T044851Z) · python3-pytest 7.4.4 installed system-wide (SM option A) · app device: user belam's claude-remote-control.service renamed belam-prime -> encryption-town (backup .before-encryption-town), enabled + started (linger on, Restart=always)
 belam-s2-I 04:2xZ (owner 1-5): local-town parked out of active peers (hosts.json towns -> parked_towns) · xai-proxy stopped + disabled · agi-carry-fetch.timer stopped + disabled (hub already empty) · egress watchdog graphed 6a830b2fbf (idea + 4 builds) · engine-side hub removal + guard E lines -> council via SM
 belam-s2-I 04:1xZ: E root audit -- fence/oomd/watchdog/sshd ok, engine scripts = trunk, G2-G5 ACLs live (enc6 re-run NOT needed), agi-project.path was dead -> started; L state merged from the stick
@@ -85,7 +86,6 @@ E act: agi-boot exit 0 · vstore 700 root · slice live · DG5 mail test: receiv
 | E has NO MAIN .env: pi-free (0 USD) cannot run | NOT on stick agi-flash (sdc1, mounted ro /mnt/agi-flash 04:1xZ: bundle + main-tree.tar hold .env.example only; pi auth.json = {}); owner tries the other stick |
 | egress watchdog NEVER RUNS (literal \" quotes: always exit 0) while E is in FULL tunnel | owner: fix it (drop 6 backslashes; then 3 missed pings -> split, never back) or leave it; idea:egress-watchdog-keeps-e-reachable |
 | guard layer 5 (sanctuary-watch) not installed | local-town parked (owner 04:2xZ); still needs config:guard E lines (council, via SM 04:2xZ) before guard-init.sh |
-| FULL-suite window on E (SM 04:4xZ): the skill's floor is MemAvailable >= 6 GB, E idles at ~4 GB | owner names a window or a lower floor; until then targeted lanes only |
 | guard layer 1 FAIL = oomd on user@1000/agi.slice (the OLD engine slice) | moot on v5: system /agi.slice is fenced 5G/6G, oomd kill at 40%; the E guard line says so |
 | L sda USB link resets (19:37-20:01Z 10-08), SMART PASSED | moot once L is idle; else reseat cable / UAS quirk on the owner's GO |
 | refs/grid on E differs from L in 5,845 refs | reconcile into a namespace on E; owner picks; no force-push |
