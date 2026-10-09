@@ -56,7 +56,7 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 ## 🔴 Where it stops
 ```
 sanctuary-master on E, idle at the gate 02:4xZ 10-09: 4 landings on the trunk; enc6 host act = belam's GO (not mine); next = §1 QUEUE item 1 (D3 re-forward) once DG5/DG1 re-send on E
-NEXT COMMAND: AGI_BOX=encryption-town python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt (box read is EMPTY: no refs/box on E yet) · DO NOT run agi-meter in the foreground (hung >120 s 02:4xZ)
+NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt (LIVE since belam's first box send 04:0xZ 10-09; reply = `printf ... | box send <post>`) AND AGI_BOX=encryption-town python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt (old pieces still carry DG mail) · DO NOT run agi-meter in the foreground (hung >120 s 02:4xZ)
 ```
 
 ## §4 Traps (rules live in skills)
