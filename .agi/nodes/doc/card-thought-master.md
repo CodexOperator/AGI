@@ -42,7 +42,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 ```
 
 ## §2 Landed
-- 05:0xZ 10-09 duplicate id fixed (belam [rule]): retired card readdressed doc:card-thought-master-old, file deprecated/doc/card-thought-master-old.md, mint b790e16c kept; 0 duplicate ids in .agi/nodes
+- 05:0xZ 10-09 duplicate id fixed (belam [rule]): retired card readdressed doc:card-thought-master-old, file deprecated/doc/card-thought-master-old.md, mint b790e16c kept; 0 duplicate ids in .agi/nodes; committed 8d17b2c482, numbers to belam by box 05:21Z; links.py links timed out 580 s at load 9 (not re-run)
 - 04:4xZ 10-09 SM [rule] BOX ONLY (owner): acked by box 4b7ce5c239; forwarded to DT-1 by box, DT-1 acked 04:47Z (idle, no order held)
 - 04:0xZ 10-09 box mailbox live (owner, no hub): read belam's first box line, answered by box a3901bc274 (Good ssh signature, thought-master@agi) -- my box mail IS signed
 - 01:0xZ 10-09 belam [owner] PASS B5 notice (trunk past bcdb15f10f -> season2/main, runs 06:07Z on E): answered NO objection / run-now; E = 7 GiB / 3 avail, 4 cpu
@@ -63,6 +63,7 @@ next command: AGI_POST=thought-master ~/bin/box read   (mail = signed commits on
 
 ## §4 Traps
 - BOX MOVE 10-08: every path / memory / PSI / venv / pytest-shim / MAIN-permission trap below was MEASURED ON local-town -- re-verify each on encryption-town before relying on it
+- links.py links on E: > 580 s at load 8-9 (exit 124, 05:1xZ 10-09) -- run it only on a quiet box or leave it to the lander
 - a reviewer subagent FANS OUT unless forbidden: every compute brief says ONE process, no pools, ulimit -v, a PSI start gate (19:4xZ near-reboot)
 - write a sha into a brief only after reading it from git (19:2xZ: an invented tip had to be corrected mid-review)
 - MY METER: newest usage in ~/.claude/projects/*/<session>.jsonl (input + cache_read + cache_creation) / 1,000,000; line 0.47; rotate = card whole + commit + touch ~/.fresh; kill $PPID ($PPID = claude in the Bash tool)
