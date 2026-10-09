@@ -76,7 +76,7 @@ NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt (LIVE since
 | `send.py read ... | head` marks ALL read | redirect to a scratch file, then read it whole |
 | a stray `send.py --from <other post>` | NEVER --from anyone but sanctuary-master |
 | mur reviewers detached MAIN HEAD (3x) | after every mur: git symbolic-ref HEAD before any landing |
-| agi-merge-up-review review stage can be HOLLOW · a row I hand a director cited a DOCSTRING (gen 31 E: send.py:937-950 said AGI_AGENT_ID then AGI_SEAT; the code puts AGI_POST first -> g24 returned twice) | the FINAL verify stage decides; reproduce each unrefuted residue yourself before returning; read every citation I send down to the CODE line |
+| agi-merge-up-review review stage can be HOLLOW · a row I hand a director cited a DOCSTRING (gen 31 E: send.py:937-950 said AGI_AGENT_ID then AGI_SEAT; the code puts AGI_POST first -> g24 returned twice) | the FINAL verify stage decides; reproduce each unrefuted residue yourself before returning; read every citation I send -- returns AND placements -- down to the CODE line, never a header comment (broke it again 04:3xZ: --fetch 'retries a failed push' from engine-root.md:104's comment; the retry is hub-only at :118) |
 | a re-cut patched on patch (E2b0 returned 3x on parse classes) | after the 2nd return on one input class, return with a DESIGN direction, not a 4th shape list |
 | `git merge-tree --write-tree` on CONFLICT prints the tree id + the list | read its rc; ALWAYS check D = 0 |
 | a .t.sh run with bash (false reds) · `env -i` drops the user-site pytest | run every .t.sh with sh (dash) · PYTHONPATH=$(python3 -c 'import pytest,os;print(os.path.dirname(os.path.dirname(pytest.__file__)))') |
