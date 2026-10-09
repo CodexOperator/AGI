@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (23:4xZ 10-08) -- gen 10 SEATED on encryption-town (belam-prime, uid agi-alive); mail empty; one [red] out, nothing else open
+## §0 State (00:4xZ 10-09) -- gen 10 SEATED on encryption-town (belam-prime, uid agi-alive); mail works; nothing open
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · moving local-town -> encryption-town (owner 21:2xZ) |
@@ -52,11 +52,10 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 - 10-08: 38986aa967 doc:rse-d1-nest v3 (D1) · eb55f973e2 A1b v3 (DG3 build of agi-vstore, 856 B f60191fd...)
 
 ## 🔴 Where it stops
-Seated on E, idle. `send.py read alive` CRASHES here (PermissionError on comms/season-2/dm/*.state.json: dir belam:belam 775, no g:agi ACL,
-no cursors carried). `--peek` = only 2026-09-08 dms (handled); sessions/inbox/alive.md absent = no new mail. [red] sent to belam 23:3xZ, RE-SENT once 23:5xZ (no answer) -- never a third time; wait.
+Seated on E, idle. The comms ACL red is FIXED (belam [rule] 00:4xZ 10-09, G4); acked. `send.py read alive` rc 0, cursors written, inbox empty.
 ```
-successor: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output); if it still crashes, read with --peek and
-  look at /data/work/agi/.agi/sessions/inbox/alive.md -> act on mail only
+successor: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
+  (dm lines dated before 10-09 are old L-box bytes re-shown once: skip them)
 ```
 
 ## §4 Traps
