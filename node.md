@@ -10,7 +10,7 @@ council: council-local-maxxing
 edited_by: belam
 location: local-town
 master: thought-master
-metrics_line: "2026-10-10T04:25Z graph: node_count=5879 active_node_count=5639 deprecated_node_count=240 edge_count=6728 evidence_fraction=0.898 decisive_verdicts=1237 decisive_evidence_fraction=1.0 broken_links=0 thought_coverage=0.523 longest_chain_length=20 outcome_coverage=0.062 | success: avg_tokens_per_turn=UNMEASURED(no source yet) hierarchy_tokens_per_hour=UNMEASURED(no source yet) conclusive_verdicts=1237 overview_accuracy_vs_last_season=UNMEASURED(no live counter) subscription_tokens_per_season=UNMEASURED(no source yet) vision_adherence_score=UNMEASURED(no source yet) openrouter_subscription_spend_ratio=UNMEASURED(no source yet)"
+metrics_line: "2026-10-10T05:25Z graph: node_count=5882 active_node_count=5642 deprecated_node_count=240 edge_count=6733 evidence_fraction=0.898 decisive_verdicts=1237 decisive_evidence_fraction=1.0 broken_links=0 thought_coverage=0.522 longest_chain_length=20 outcome_coverage=0.062 | success: avg_tokens_per_turn=UNMEASURED(no source yet) hierarchy_tokens_per_hour=UNMEASURED(no source yet) conclusive_verdicts=1237 overview_accuracy_vs_last_season=UNMEASURED(no live counter) subscription_tokens_per_season=UNMEASURED(no source yet) vision_adherence_score=UNMEASURED(no source yet) openrouter_subscription_spend_ratio=UNMEASURED(no source yet)"
 scaffold_hash: 3876620b4bc4f88e
 season: 1
 thought_session: belam-S2-L5-XI
