@@ -1049,7 +1049,9 @@ def _systemd_bus_env() -> dict[str, str] | None:
       FAILED actions, because a healing step that only runs when the bus is
       up and then FAILs is not a healing step (CLAUDE.md).
     """
-    if os.environ.get("DBUS_SESSION_BUS_ADDRESS"):
+    # "disabled:" (the agi-post@ drop-in 51-no-session-bus.conf) names NO bus: fall through to the socket probe
+    addr = os.environ.get("DBUS_SESSION_BUS_ADDRESS", "")
+    if addr and not addr.startswith("disabled:"):
         return {}
     runtime = os.environ.get("XDG_RUNTIME_DIR") or f"/run/user/{os.getuid()}"
     if os.path.exists(f"{runtime}/bus"):
