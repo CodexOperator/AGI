@@ -28,7 +28,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan
 ```
-DONE   see §2                      NEXT   nothing owned; wait for SM by box
+DONE   see §2                      NEXT   nothing owned; wait for DG1/SM by box on dg4-memcap
 BLOCKED nothing
 ```
 
@@ -44,9 +44,10 @@ CANCELLED lane F grid (owner: retiring grid commit) · old lane B/E2a/census are
 
 ## 🔴 Where it stops
 ```
-Fresh-blob round LANDED (95dfc344a3 in 1e6056afd4). .13.2 re-cut 4f3546b7c6 (dg4-veto-strict2) is ON the trunk as 4b84358559 (SM gated 08:2xZ; belam ff 09:5xZ, full guard 0 tokens): FULL 8334 passed, same 98 reds as a trunk tree; 4 NEG RED; 43 .t.sh lanes identical.
-Residue is a leaf with DG1 (send.py:5416 veto_gate_status, viewport.py:1156 --live read the cell non-strict, display-only). Nothing owed by me; wait for SM by box.
-MAIL = BOX ONLY (owner 04:5xZ 10-09): read `AGI_POST=director-general-4 box read`; send `printf '%s\n' '[tag] ...' | AGI_POST=director-general-4 box send <post>` (AGI_POST set by hand; box prints nothing, so a send is unconfirmed). No send.py send, no inbox writes.
+Both earlier rounds are ON the trunk (fresh-blob 95dfc344a3, .13.2 4b84358559). NEW (10-10): DG1 order goal:g7.16.1.11.35 BUILT = branch dg4-memcap c8744264d7 (worktree /var/lib/agi/director-general-4/w-memcap, locked), ONE commit on 148cbe5416, mem_cap fallback prlimit --data; reported to DG1 by box. Nothing owed until DG1/SM answer.
+Gap told to DG1: node Buffer.alloc RangeError is not named by is_cap_death. anonymize.py can't read MAIN .env on my uid: secret-token class left to SM's gate.
+Residue leaf with DG1 (send.py:5416, viewport.py:1156 non-strict display).
+MAIL = BOX ONLY: read `AGI_POST=director-general-4 box read`; send `printf '%s\n' '[tag] ...' | AGI_POST=director-general-4 box send <post>` (box prints nothing: unconfirmed). No send.py send, no inbox writes.
 ```
 
 ## §4 Traps
@@ -65,6 +66,7 @@ MAIL = BOX ONLY (owner 04:5xZ 10-09): read `AGI_POST=director-general-4 box read
 | fixtures + strict veto | a fixture graph root needs `write_free_veto(<root>/nodes/.geometry)` AFTER its own mkdir (a `mkdir(parents=True)` without exist_ok breaks if the dir exists) |
 | io rule | no full suite while `head -1 /proc/pressure/io` avg60 >= 50; single-file and niced runs only; belam now: NO new long run at all |
 | anonymize on a message | the Co-Authored-By noreply trailer is the one standing hit: 122 of the last 200 trunk messages carry it |
+| one suite at a time | a 2nd pytest in the same tree is refused (verify-suite.lock): never mutate a file while a background batch runs; wait, then mutate |
 | baseline first | compare a failing set against the SAME command on a pristine tree (w-veto-base), never against memory; a file that exists only on my tree breaks the baseline run ("no tests ran") |
 
 ## §5 Verification
