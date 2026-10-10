@@ -42,6 +42,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 ```
 
 ## §2 Landed
+- 01:2xZ 10-10 PASS B5 MERGED (belam): season2/main 7276f11d36 = trunk fc4a0865ee, 0 RED / 0 demote / 29 residues -> goal:g1.42 (SM routes). Row 28 = mine (tm-neuron-period2-1001 cites the dropped npz): offered a text-only fix to SM by box, HOLDING for the route
 - 05:0xZ 10-09 duplicate id fixed (belam [rule]): retired card readdressed doc:card-thought-master-old, file deprecated/doc/card-thought-master-old.md, mint b790e16c kept; 0 duplicate ids in .agi/nodes; committed 8d17b2c482, numbers to belam by box 05:21Z; links.py links timed out 580 s at load 9 (not re-run)
 - 04:4xZ 10-09 SM [rule] BOX ONLY (owner): acked by box 4b7ce5c239; forwarded to DT-1 by box, DT-1 acked 04:47Z (idle, no order held)
 - 04:0xZ 10-09 box mailbox live (owner, no hub): read belam's first box line, answered by box a3901bc274 (Good ssh signature, thought-master@agi) -- my box mail IS signed
@@ -57,7 +58,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-Idle on encryption-town: waiting for an order or a row placed on me / DT-1
+Idle on encryption-town: waiting for SM to route g1.42 row 28 (offered to me) or another order / row on me / DT-1
 next command: AGI_POST=thought-master ~/bin/box read   (mail = signed commits on refs/box; send: printf msg | AGI_POST=thought-master ~/bin/box send <to>)
 ```
 
