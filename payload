@@ -47,6 +47,12 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
              · a VALIDATION gate (write.py set / create, any refusal every post's calls pass through) = judge it over EVERY live node with the
                gated predicate + real --dry-runs of the routine writes (the briefs' own lines: brief.py, cli.py) -- a green suite cannot see it:
                the tests carry their own fixture schemas (TMM.171: 111 live (type, field) pairs would have been refused)
+             · a temp-index recipe = GIT_INDEX_FILE=<tmp> with read-tree <tree-ish>; a bare read-tree empties the index at rc 0 (SM gen 32,
+               live gate tree): probe git semantics on a scratch repo only, restore with `git reset -q`
+             · a merge-up tip that MOVES after you named it -> cc EVERY post that may have read the old tip and name the new sha; ask them
+               for the cmp, do not assert a mismatch (alive: tip moved under reviewers)
+             · signing a commit: spell the flags apart, `git commit -q -S -m` (a clustered `-qSm` makes m the key id; self-perpetuating); read
+               a file at a ref with `git show <ref>:file`
 push         (the Prime's [rule] 02:54Z, owner 09-25; doc:unified-director-brief §2) directors' post branches are LOCAL-ONLY, never pushed; a
              merge-up names a LOCAL tip; my landing on local-maxxing/season2/main is the town's ONLY remote push; the Prime keeps local-maxxing/main
              + season2/main by SHA from it · a push's output names the remote URL: print only the ref-update line · a new seat's key row lands
@@ -70,6 +76,12 @@ anonymize    anonymize.py guards the classes named in anonymize.CLASSES (loopbac
                · scan every VERSION of a key file in the range, not only adds (a modified one can carry the host too) -- UNLESS the
                  identical blob is already reachable from origin (a push sends only objects the remote lacks: no new bytes leave);
                  name it in the landing message (gen 14: TM-new d60422468 = the blob 81d0e8729 already published, banked)
+             · GPU-name scan of added lines: grep the FULL name AND the model (last two words), never awk $NF (it missed the model form); never
+               print the name or write the pattern into a node
+             · before commit-tree run anonymize over the landing message FILE (minus the attribution trailer): the diff guard never reads
+               commit messages (a landing message leaked past it)
+             · anonymize.py check as a non-belam uid: --root = a scratch archive (extensions + .agi/config.json), not MAIN / the worktree
+               (PermissionError on .env); read the result BEFORE any message cites it (SM gen 35: sent 'anonymize ok' unread)
 evidence     the grid cron's evidence gate (evidence_gate.enforce_on_disk) DEMOTES a proved / disproved verdict without a resolvable
              evidence_runs (a JSON list of existing type:slug ids) IN MAIN'S WORKING TREE, uncommitted, 'caught at grid commit' -> gate
              every landing's range with it: my ae2276a95c carried a00-325d4c56-bedcc8 = disproved with no evidence_runs (22:4xZ)
@@ -97,11 +109,20 @@ suite        ON TMPFS (09-26): git worktree add --detach /dev/shm/<gate> M + TMP
                comm + cwd (python3 in a worktree), never by the pattern count
              · a 2nd pytest in a worktree whose full suite runs = ERROR at setup (conftest _suite_lock_guard names the live pid), not a result:
                reproduce red in a separate pre-fix worktree, read green from the suite (+N passed = the new cases)
+             · gate suites run with GIT_CONFIG_GLOBAL=/dev/null: the global core.hooksPath shadows fixture repos' hooks; a red that vanishes
+               under it is goal:g1.43 row 13, not the range (SM gen 35: 5 test_rotate reds on trunk AND candidate)
 lanes       the FULL suite is PYTEST ONLY: the extensions/agi/tests/*.t.sh lanes never run in it (DG1 [red] 14:06Z 10-08: D1 v2 38e61463c7
              landed green on FULL and left graph-metrics.t.sh c2/c2b red -- its gold pins metrics.py output) -> at EVERY gate run ALL .t.sh lanes
              bare (env -i, empty HOME, git config /dev/null, node's dir on PATH, `sh`) on the gate tree AND a detached trunk tree, diff the two
              FAIL sets: a lane red on the gate only = the range's · and `git grep -l <changed output> -- 'extensions/agi/tests/*.t.sh'` before any
              landing that changes a CLI's printed lines
+             · env -i lanes lose the user-site pytest -> PYTHONPATH=$(python3 -c 'import pytest,os;print(os.path.dirname(os.path.dirname(pytest.__file__)))');
+               always run with sh (dash), never bash (false reds)
+             · a falsifier lane that is RED on the trunk by design never lands alone: it rides in the SAME landing as its build
+             · any .geometry/engine*.md change: also run test_grid_writers.py + test_thought_hygiene.py and grep lanes for the FILE name, not
+               only piece names -- they scan by pattern (SM gen 33 AA1.V: 5 RED on trunk after landing)
+             · a lane with a TRUNK arg (agi-out-*, aa3, ckpt, grow-gate-*, agi-land-bounds) extracts from that REF -> pass the CANDIDATE commit
+               as T; a green that does not change when the piece changes is no gate (SM gen 33 AA1.V: vacuous 44/0, 9 RED landed)
 detached    my setsid-nohup suite fails 3 tests that pass alone 5/5: test_dashboard::test_watch_exits_cleanly_on_sigint + 2x
              test_suite_no_detached_spawn -- the LAUNCH, not the range (3 gates 09-26, 6455 passed each; a director's in-pane run = 6458/0)
              · gen 26 (a125bad37's gate, the tree with DH.381's conftest guard): 6642 passed / 0 failed -- NONE of the 3 appeared: re-attribute
@@ -115,6 +136,8 @@ detached    my setsid-nohup suite fails 3 tests that pass alone 5/5: test_dashbo
                in the full suite, 5/5 alone) until DE freezes its writer (TMM.241)
 reds         attribute each: which range touches the test / its code (git diff --quiet <base> <tip> -- <file>) · re-run it ALONE (a load
              flake passes alone) · run it on MAIN + another range too: red there = the trunk's · test_thought_hygiene counts node_writer.thought_blocks per node (BOTH markers at column 0; the column-0 BEGIN count must equal it): an indented or inline quoted marker never trips it
+             · a test that pins `git grep -n` output or line numbers needs a NEG: a pure line shift (a comment line in a big file) must stay
+               GREEN, else every edit reds FULL (SM gen 30: 4/8 reds from pinned line numbers)
 context      a green main suite + verification's context suite (system python, NO torch) cannot see a .agi/context regression that only a TORCH
              python hits (MU8's guard: 16 errors) -> at every gate touching .agi/context/conftest.py or a context test's imports, run DT's seeds
              tests with the osc pythonpath from a neutral cwd in the gate tree -- never the whole context dir under torch during a model hold
@@ -135,6 +158,18 @@ fixtures     an experiment's own _test.py: PYTHONPATH=/data/ml/.venv/lib/python3
              placeholders: a python read of it is NOT a path (gen 25's first run: numpy missing) · a deliberate break runs in a SECOND
              detached tmpfs worktree of M (158 MiB): paths.get_local resolves inside that tree (brain_swap_out_dir = <wt>/datasets/...),
              so a mutated log / node / script never touches the gate tree its suite reads; restore with git checkout, status clean
+             · mutant check: apply as python (old,new) pairs, assert count==1, anchor headings at line start ('\n## '), print the hit line;
+               never sed/grep '$' or '|'-split specs; a fatal break sits outside the arm's own except (SM gen 29: a quoted '## DG1 RULING'
+               gave a false GREEN)
+             · unit semantics in a gate or a return (Requires=, Restart=, ExecCondition): systemd-analyze verify --root=<scratch> with the host
+               base targets copied + read the man row in the SAME command; name the trade-off (SM gen 31 a5b1a41009; gen 33 D10 Restart=)
+             · probing git permissions / signing: run bare (env -i, empty HOME, GIT_CONFIG_NOSYSTEM=1, GIT_CONFIG_GLOBAL=/dev/null; a fixture
+               repo gets its own AGI_TRUNK) -- your ~/.gitconfig (safe.directory=*, allowedSignersFile) masks it (alive 03:09Z; self-perpetuating)
+             · signed-commit fixtures: issue certs -V -1m:+4h (a 30-min cert expires mid-session); git checks valid-before at the COMMIT's
+               date, so never trust a date: the receiving tip + blocks are the clock (self-perpetuating: §AB cert dated at commit)
+             · an owner cert counts only on a CURRENT ring key (C18): issue a fixture cert on belam's ring key and sign with `-f <key>-cert.pub`
+             · `ssh-keygen -Y sign` prompts to overwrite an old .sig and hangs a python caller -> delete the old .sig first; run such tests
+               with </dev/null and a timeout (self-perpetuating: signing test hung)
 fixtures+    a fixture test's xfails can leave its LOAD-BEARING assertion dead (OSC.43: PASS 8 found the ordering assert dead in all 3 cases after I re-derived only the numbers) -> run it and show the assert executes (pytest -rx; a deliberate break must turn it red) · a verdict resting on a PASS-demoted round's log is weaker than its number
 ```
 
@@ -151,6 +186,8 @@ verdicts     read the CONTROL arms before any verdict: a result FLAT across bit 
              · a round's correction can live only in Agent Notes / THOUGHT while the BODY keeps the kid's false claim (OSC.31: 'w + 1'):
                the body is state -> return it for the rewrite before landing (a PASS demotes it as an overclaim)
              · a TAG is not a budget: compute bits() of the widths yourself (weighted mean width + 16 bits of scale per class over the pairs) -- the '7.75' known cell was [13,13,10,10] = 11.75 (TMM.150/151's premise, corrected in TMM.154)
+             · a builder's report of 'N rows' is not a check: count them yourself on the trunk AND the candidate; the same count with
+               RED -> GREEN is the gate (SM: DG2 '8 rows' was 7 on both trees)
 review       read each round's FINAL verify stage in .agi/sessions/workflows/runs/mur-*/verify_R-EFnn.json · no mur under the hold = read the
              director's in-place review AND the diff yourself, and say so · agi-research-review PROPOSE-ONLY: the refute stage reads 0 of the
              brainstorm's proposed_hypotheses -> read runs/rr-*/brainstorm_*.json yourself (FIXED: goal:g7.33.12 complete, read gen 27)
@@ -158,6 +195,13 @@ review       read each round's FINAL verify stage in .agi/sessions/workflows/run
              · every mur brief names its review root = YOUR /dev/shm gate tree (never a disk worktree under .agi/worktrees), and its
                reviewers search only inside that root by explicit paths (belam [rule] 19:2xZ 10-08: SM gen 31's D3 mur read
                .agi/worktrees/de-base-EG.82 on the slow disk = 13.3 GB of IO in 15 min, io PSI some 93%)
+             · mur reviewer probes touch real paths: snapshot `ls ~/.config/systemd/user | md5sum` before each mur and compare after; the mur
+               focus names a scratch HOME/XDG and forbids real paths (SM gen 31: mur mutants ran as belam)
+             · after every mur `git symbolic-ref HEAD` in MAIN must still name the branch before any landing (reviewers detached it 3 times);
+               re-attach first
+             · a mur review stage can be hollow -> the FINAL verify stage decides; reproduce each unrefuted residue yourself; read every
+               citation you send (returns AND placements) down to the CODE line, never a header comment (SM gen 31 E send.py docstring;
+               04:3xZ engine-root.md:104)
 residues     before routing a residue to ANOTHER director, read the newest dm of the director whose round produced it (gen 25: DT's 2/3 at
              08:01Z had already fixed the model_slot flock item I routed to DE at 08:0xZ -> TMM.215 took it back)
              · accept_with_residue ≠ land (unified-director-brief:32) · NEVER waive a mur residue -- the owner's 09-19 rule gives each its own
