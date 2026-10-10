@@ -33,11 +33,10 @@ thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master)
 ## §1 Plan
 ```
 DONE   self-poke toy line LANDED a001a3c61 · guard-leak fix LANDED 0376b07da (goal:g7.33.19 row 80) · seeds x3 reviewed + merged, merge-up queued
-DONE   FAIR P4 reviewed CONFIRMED_DISPROVED + recorded + merged (dc1504bba) + gated + [merge-up] a6ac4d92e to SM
-DONE   SM landed 67680d223; trunk merged back 6d8bb6265
-DONE   FREQ-ABLATION built by DT-1, reviewed CONFIRMED_DISPROVED, recorded, merged 956e7b179, gated, [merge-up] 3fb85474f to SM
-DONE   SM landed 708727845; trunk merged back 2bd54de9c
+DONE   FAIR P4 reviewed CONFIRMED_DISPROVED + recorded + merged (dc1504bba) + gated + [merge-up] a6ac4d92e to SM -> landed 67680d223, merged back 6d8bb6265
+DONE   FREQ-ABLATION built by DT-1, reviewed CONFIRMED_DISPROVED, recorded, merged 956e7b179, gated, [merge-up] 3fb85474f to SM -> landed 708727845, merged back 2bd54de9c
 DONE   g5.28 PAIR-LOSS DISPROVED, reviewed, LANDED 957e0cbc7d
+AT ROTATION drop every §4 trap row from before this gen (TRAP SWEEP, belam [rule] 22:3xZ 10-10, MAIN 0ed3a367ae; relayed to DT-1 2da962fd3f); KEEP the 'BOX MOVE 10-08' + 'no pytest on the box' cells
 BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-digit-token model resident = a download, BANKED)
 ```
 
