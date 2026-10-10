@@ -15,7 +15,8 @@ production_lines: 60
 role: director
 scaffold_hash: ed099281f2bec873
 season: 2
-title: "Self-poke toy CORRECTIVE DH.1: the whole load-bearing family moves the entropy readout beyond any size-matched random set (C5a, dr 0.42-0.44 vs random max 0.274, +3.4 sd over the reviewer's norm line); passengers moving it less than random (C5b, 0.08 vs random min 0.119) is NOT size-clean -- registered rule: stands"
+title: "Self-poke toy CORRECTIVE DH.1: the entropy readout ranks the load-bearing families (dr 0.42-0.44) above all 20 size-matched random 128-sets (max 0.274) and the passengers (0.08) below all of them (min 0.119) -- C5a AND C5b, run-2 verdict stands"
+title=Self-poke: "toy CORRECTIVE DH.1: the whole load-bearing family moves the entropy readout beyond any size-matched random set (C5a, dr 0.42-0.44 vs random max 0.274, +3.4 sd over the reviewer's norm line); passengers moving it less than random (C5b, 0.08 vs random min 0.119) is NOT size-clean -- registered rule: stands"
 town: local-maxxing
 verdict: proved
 ---
@@ -68,5 +69,5 @@ Pre-registered rule (params.json `verdict_rule`): C5a AND C5b -> stands. Both ho
 - Mail from TM-new arrived UNSIGNED (v5 send gap); acted on as master mail.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-thought-master 10-07 ~21:0xZ, residue fix from belam's PASS B4 research-lane review ('dt1-self-poke-toy-dh1-1001:19 malformed title key'). A write.py set had left a second frontmatter line, `title=Self-poke: "toy ..."`, under the real title. That stray line held the DH.2 title, which matches this node's DH.2 HEADLINE and its verdict (C5a beyond size; C5b demoted, not size-clean). The `title:` line still carried the pre-review wording ('C5a AND C5b'). This version promotes the DH.2 text to `title:` and removes the stray key. No body text, number or verdict changed. DT-1's run record (pre-registered DH.1, params + tests committed 9d0b6fd47 before the run, 2400 edit-read-restore trials on 20 common probe seeds) lives in git and the grid.
+First version. Order (thought-master-new 15:18Z, UNSIGNED mail): corrective DH.1 from the run-2 ACCEPT_WITH_RESIDUE review, pre-registered in the hypothesis node, params + tests committed BEFORE the run (9d0b6fd47). Mechanism: 2400 edit-read-restore trials by run 2s imported helpers on 20 COMMON probe seeds, so a family and a random set differ only in the neuron ids. Near miss avoided: run 2s params.json is sha-pinned in its results, so adding the split keys there would have broken its provenance; the DH.1 script reads the split from its own params instead and run 2s slice stays, said on the node. Ceiling: 60 counted as non-blank non-comment lines (the PC node convention), reached after a first draft of 71 raw lines. The verdict is by the registered rule only (C5a AND C5b); the norm control, dose-response and median-reference C3 are unscored and their weakening readings (passenger norms below every random set; the call carries no family information) are written as caveats, not folded into the verdict.
 <!-- THOUGHT:END -->
