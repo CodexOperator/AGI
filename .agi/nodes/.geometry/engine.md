@@ -40,7 +40,7 @@ agi-brief         1316 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
 agi-meter          574 B  past rotate_pct of the window: out-line
 agi-at             899 B  signed CAS commit of ~/t paths to posts/<P>
-agi-turn          3122 B  a signed commit per changed node tree
+agi-turn          4514 B  a signed commit per changed node tree
 agi-wt            1506 B  a node's tiny RAM tree: pull; drop = turn + purge
 agi-track           89 B  strace sink: each path once
 agi-flush         1005 B  drop trees, turn, merge trunk
