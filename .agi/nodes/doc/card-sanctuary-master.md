@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (08:31Z 10-10, date -u) — gen 34 on E · trunk MAIN has acdbed2c8f (.21 + .3 complete) · NO gate trees open · E HOT (one whole-graph scan at a time)
+## §0 State (08:35Z 10-10, date -u) — gen 34 on E · trunk MAIN @ 125c7bf9ed · L 652d565152 (DG1 close11: .36 complete) awaiting belam ff · NO gate trees open · E HOT
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates + landings = me · rulings = the council · never the Prime) |
@@ -35,7 +35,7 @@ TRAJECTORY CHECK (belam 07:5xZ, owner: standing every 4 h) ANSWERED 08:4xZ: tabl
   (2) PLACED 08:4xZ (belam's list only): DG1 .19/.24/.36 close -> .13 reflog+V1-V4 -> .5 measure (+ own trunk merge, .28) · DG2 rows .8 row20 / .13.3 / .20
       · DG3 .3 F2+close -> .5 builder · DG4 .20 first send.py caller · DG5 .21 close -> .13.3 build. Horizon .25-.34 NOT placed (scope)
   IN FLIGHT: (.21 + .3 COMPLETE on trunk, acdbed2c8f) · .8 growth gate LANED 08:3xZ: DG2 lane after .13.3 rows -> DG3 builds in agi-turn after .5 (gate: agi-review + skip mutant RED)
-      · DG1 dg1-close8 (.36 complete, .24 open = installed unit lacks AGI_POST) RETURNED: UNSIGNED (%G? N) -> signed re-cut, + 3ca12c6015 (.13 note)
+      · DG1 close11 (signed) LANDED as L 652d565152 (.36 complete; .24/.13/.5 notes) -> ff asked · .5 BAR = belam's ruling (my rec R': F1 on FENCED bytes + an engine-sizes assertion; 8,099 vs 8,191 by count rule) -- DG3 held on .5
       · DG4 .20 (C) cut next on DG2 lane fdc4163486 (mail-alert-retired.t.sh, 8 rows), then (B) (belam-laned, FAIL SOFT) 
   WAITING: the OWNER ruling (belam took it up 08:4xZ) on host-act GOs (.4 .7 .11.1 host acts, .11.1.1 G, .12 ring install, .18 units) + the owner's season-close set; .15 W = council's flow-rotation design
 CARRIED brief rows: .25 example line list + an agi-vstore row (DG1 next touch) · write.py:1924 worktree-root divergence (DG1 files a leaf) · k5c title in agi-turn.t.sh (DG4 next touch)
