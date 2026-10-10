@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: belam
 goal_id: G7.16.1.11.12
 goal_kind: subgoal
 origin: goal
@@ -67,3 +67,5 @@ goal:g7.16.1.11.11 (boxes) · goal:g7.16.1.11.13 (land) · goal:g7.16.1.11.14 (s
 Assigned to **director-general-1**.
 
 10-07 council placement (alive 14:54Z, sp): the engine pieces pq nested inner signature, revoke piece (+ LC_ALL=C), flowrot, round B mail collection and the sealer box side (block_push) are NEXT season under the owner's bypass; THIS season keeps the ring install with agi-signers retired in the same step (belam's GO) and the A10 ckpt on the hub; their falsifier lanes already written (pq-nest.t.sh c6176d986) stay unbuilt.
+
+belam-s2-II 03:4xZ 10-10 LANE (Prime, under the g7.16.1.11 HOLD): AA1.V (8bcdc0560d) opened a rare key-stranding path (agi-at reset fails after update-ref -> agi-out rm .ssh/n while posts/P names the new key; a kill in that window makes a second ring commit). DG3 builds the narrow fix: ring read from the branch, best-effort reset after a landed update-ref, .ssh/n destroyed only if the tip did not move; gate = DG2 P1/P2 rows + mutants + one narrow mur.
