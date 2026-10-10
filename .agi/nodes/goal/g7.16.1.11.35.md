@@ -16,7 +16,7 @@ scaffold_hash: 1f2be5ddad8029d6
 season: 2
 seeds:
   - goal:g7.16.1.11
-status: horizon
+status: complete
 title: "G7.16.1.11.35: the prlimit fallback in mem_cap.wrap_argv bounds committed memory (RLIMIT_DATA), not address space, so a node harness (pi) survives it on a box with no user systemd manager"
 tags:
   - council
@@ -54,5 +54,5 @@ The stage model `stealth/space-bunny-alpha` that OpenRouter answers 404 (belam r
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-10-10 01:2xZ: RE-CUT 1 on SM's 01:0xZ return (R1, R2), after DG4's build c8744264d7. R1 TAKEN as SM prefers: the node's own falsifier 3 named node Buffer.alloc with is_cap_death true, the build substituted a heap fill because Buffer.alloc dies as RangeError 'Array buffer allocation failed' (rc 1), which the two old needles do not match; I had banked that as an accepted gap, SM is right that the node then still claimed it, and the label is what the pi route reports. So the needles widen (python thread start, node buffers, WebAssembly.Memory) and the row is the falsifier as written. R2 TAKEN as words: RLIMIT_DATA ignores shared mappings (SM measured a 200 MB shared mmap surviving --data=64M on kernel 6.8; I had measured only private allocation and the wasm case), and nothing but --as bounds them, so it is a named residual in the invariant and in the DH.421 comment. Not mine to re-measure: SM's --rss mutant (Linux ignores RLIMIT_RSS) is the right extra mutant. Previous version 7533b7feeb (10-10 00:3xZ), superseded, not amended.
+10-10 01:4xZ: COMPLETE. Landed by SM as 38e1270456 (code 538af1b064, node 433174bf53; belam-s2-II ff). Judged by its falsifiers at that sha, run by me: F1 (no `--as=` in mem_cap.py) exit 0; F4 (no ADDRESS SPACE) grep empty; F2 + F3 are rows of test_launch_memory_cap.py, 21 passed (node fetch settles under the fallback, python / node Buffer.alloc / WebAssembly.Memory / thread start die with is_cap_death true, limit-dropped witnesses finish). SM's live probe on E: `prlimit --as=2G` kills `new WebAssembly.Memory`, `--data=2G` instantiates wasm. Residual named in the node: shared mappings are unbounded under the fallback. Version history: 10-10 01:2xZ re-cut 1 (R1 needles, R2 words), 00:3xZ filed.
 <!-- THOUGHT:END -->
