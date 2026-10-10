@@ -11,8 +11,11 @@ bk3  an explicit build_kind=prose on a .py payload is kept (the explicit value w
 bk4  create build WITHOUT a payload    -> no build_kind invented (nothing to derive it from); unchanged
 bk5  a non-build create is untouched   -> no build_kind key
 bk6  the REAL grow.py piece (engine-post.md, once it is on the tree) APPROVES the minted nodes on a temp index
+bk7  `--dry-run` and the real create give the SAME verdict for a build with a payload: an illegal parent shape is
+     rc 2 on both, a legal one rc 0 on both (the default is derived ONCE, in write._with_build_kind)
 
-MUTANT: delete the `extra.setdefault("build_kind", ...)` default in write.create -> bk1, bk2, bk6 RED (bk3 stays green).
+MUTANTS: (1) delete the `extra.setdefault("build_kind", ...)` default in write._with_build_kind -> bk1, bk2, bk6, bk7 RED (bk3 stays green);
+(2) the default on the REAL path only (the dry-run judge not calling the helper) -> bk7 RED.
 """
 from __future__ import annotations
 
@@ -52,11 +55,9 @@ def _grow_piece() -> str | None:
 
 @pytest.fixture()
 def scratch(tmp_path: Path) -> Path:
-    """A scratch repo: the engine's own bin/src + schemas, one parent goal, one baseline commit."""
+    """A scratch repo: the engine's own schemas, one parent goal, one idea, one baseline commit (only bk6 also copies the engine)."""
     t = tmp_path / "t"
-    (t / "extensions" / "agi").mkdir(parents=True)
-    shutil.copytree(BIN, t / "extensions" / "agi" / "bin", ignore=shutil.ignore_patterns("__pycache__"))
-    shutil.copytree(ROOT / "extensions" / "agi" / "src", t / "extensions" / "agi" / "src", ignore=shutil.ignore_patterns("__pycache__"))
+    t.mkdir()
     shutil.copytree(ROOT / ".agi" / "context" / "schemas", t / ".agi" / "context" / "schemas")
     (t / ".agi" / "config.json").write_text("{}")
     (t / ".agi" / "nodes" / "goal").mkdir(parents=True)
@@ -118,8 +119,10 @@ def test_bk5_a_non_build_create_is_untouched(scratch):
     assert "build_kind" not in _fm(res.path)
 
 
-@pytest.mark.skipif(_grow_piece() is None, reason="grow.py (goal:g7.16.1.11.8) is not on this tree yet; bk1/bk2 carry the same predicate in-process")
+@pytest.mark.skipif(_grow_piece() is None, reason="SKIPPED until goal:g7.16.1.11.8 lands: its '### grow.py' piece is not in engine-post.md on this tree (bk1/bk2 carry the same predicate in-process; GROW_ENGINE_POST=<engine-post.md> points this row at another tree's piece)")
 def test_bk6_the_real_grow_piece_approves_a_created_build_node(scratch, tmp_path):
+    for d in ("bin", "src"):   # grow.py runs from the scratch cwd and imports the engine from extensions/agi/<d>
+        shutil.copytree(ROOT / "extensions" / "agi" / d, scratch / "extensions" / "agi" / d, ignore=shutil.ignore_patterns("__pycache__"))
     a, _ = _create(scratch, "bk6a", "src/bk6a.py")
     b, _ = _create(scratch, "bk6b", "etc/bk6b.conf")
     grow = tmp_path / "grow.py"
@@ -132,3 +135,24 @@ def test_bk6_the_real_grow_piece_approves_a_created_build_node(scratch, tmp_path
     r = subprocess.run([sys.executable, "-B", str(grow), tip], cwd=scratch, env=env, capture_output=True, text=True)
     assert r.returncode == 0, f"grow.py refused a node write.py create minted: {r.stdout} {r.stderr}"
     assert "[growth-order]" not in r.stdout and "[spawn-gate" not in r.stdout
+
+
+def test_bk7_dry_run_and_the_real_create_give_the_same_verdict(scratch, capsys):
+    """SM 10:5xZ (2): `--dry-run` runs the same gates the real create runs; the build_kind default was only on the real path."""
+    base = ["create", "build"]
+    tail = ["--payload", "src/bk7.py", "--root", str(scratch)]
+    # an illegal shape ([goal] alone): rc 2 on BOTH, the same rule named
+    dry = write.main(base + ["bk7-bad", "--parent", "goal:g1"] + tail + ["--dry-run"])
+    dry_err = capsys.readouterr().err
+    real = write.main(base + ["bk7-bad", "--parent", "goal:g1"] + tail)
+    real_err = capsys.readouterr().err
+    assert (dry, real) == (2, 2), f"dry-run rc {dry}, real rc {real}: a preview must give the real verdict"
+    assert "parent_shapes" in dry_err and "parent_shapes" in real_err
+    assert not (scratch / ".agi" / "nodes" / "build" / "bk7-bad.md").exists()
+    # a legal shape ([goal, idea]): rc 0 on BOTH; the dry run writes nothing, the real one does
+    dry = write.main(base + ["bk7-ok", "--parent", "goal:g1", "--parent", "idea:i0"] + tail + ["--dry-run"])
+    capsys.readouterr()
+    assert dry == 0 and not (scratch / ".agi" / "nodes" / "build" / "bk7-ok.md").exists()
+    real = write.main(base + ["bk7-ok", "--parent", "goal:g1", "--parent", "idea:i0"] + tail)
+    capsys.readouterr()
+    assert real == 0 and _fm(scratch / ".agi" / "nodes" / "build" / "bk7-ok.md")["build_kind"] == "code"
