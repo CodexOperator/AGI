@@ -12,7 +12,6 @@ goal_kind: subgoal
 origin: owner
 scaffold_hash: 0250fcfcc84f8baf
 season: 2
-seeds: []
 status: active
 tags:
   - council-loop
