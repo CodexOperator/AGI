@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:0xZ 10-10, date -u) — gen 35 LIVE · trunk MAIN @ 3eecea2800 · no gate trees open · E ~3 GiB · belam = belam-s2-III · NEW ROUTE: council approves, belam only ffs (owner 21:5xZ)
+## §0 State (22:0xZ 10-10, date -u) — gen 35 LIVE · trunk MAIN @ 07daa408c4 · no gate trees open · E ~3 GiB · belam = belam-s2-III · NEW ROUTE: council approves, belam only ffs (owner 21:5xZ)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + every landing OK = the council: alive · all-is-one · self-perpetuating, a split -> belam breaks the tie · belam = owner items only: host acts, spend, season close) |
@@ -31,7 +31,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 QUEUE (gen 35), in order:
- (0) build_kind (A) DG3 29ba4c1fb3 + g1.43 rows 14-19 + card: gated (675 passed, mutant red, verifier CLEAR) as 0ccf8ef92b on f0c932f727; trunk moved (3 belam files, byte-identical) -> re-minted on 3eecea2800; [review] boxed to the council 22:0xZ, waiting [approve] -> then [merge-up] to belam with the council line
+ (0) DONE: build_kind (A) landed 7ac20cd62a (council self-perpetuating 22:01:54Z, belam ff) -- first council-route landing. Council remark -> goal:g1.43.1 + rows 14-18 repaired = DG1 66c1d3613e, gated (6 APPROVED), council [review] 22:4xZ
  (1) .8 re-send (DG3 2431dedccb + DG2 rows go10/go10b, decoy/same-tree/unresolvable parent, 'goall') as ONE stack on (0): merge-tree live trunk, re-run agi-turn/agi-out-states/polkit-rule + bk6 (48 lanes were identical gate vs trunk on a7534672e2), red mutant per row, engine-sizes 0 FAIL, verifier -> council [review] -> TELL DG4
  (2) .36 tui (DG4, after .8) -> (3) .20 v5 alert in agi-run's .fresh branch (DG4, after .36; rows a/b/c RED; measure = first director restart -> MY box; + SKILL §2 'Prime ROTATING post' nit). Inbox-retire cut HELD.
  (4) goal:g1.43 (mine; low): rows 2-19. Row 6: .34 body :38 still pre-fix. · (5) LOOP END (owner: not optional): outcomes -> MY bigger_outcomes -> council reviews -> overview nodes -> belam. None written since 10-08.
@@ -46,8 +46,8 @@ QUEUE (gen 35), in order:
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 35 22:0xZ 10-10: build_kind landing re-minted on 3eecea2800 and boxed to the council as [review]; .8 re-send next
-NEXT COMMAND: AGI_POST=sanctuary-master box read; on a council [approve <L>]: box belam [merge-up] ff-only <L> · council: <post> approve <ts>; on DG3's .8 re-send: merge-tree on the live trunk, gate, council [review]
+sanctuary-master gen 35 22:4xZ 10-10: DG1 66c1d3613e (goal:g1.43.1 + rows 14-18) minted on 07daa408c4 and boxed to the council; .8 re-send awaited
+NEXT COMMAND: AGI_POST=sanctuary-master box read; on [approve <L>]: box belam [merge-up] ff-only <L> · council: <post> approve <ts>; on DG3's .8: merge-tree, gate, council [review]
 ```
 
 ## §4 Traps (rules live in skills)
@@ -62,7 +62,7 @@ NEXT COMMAND: AGI_POST=sanctuary-master box read; on a council [approve <L>]: bo
 | a mutant anchored by str.index on a heading text | the FIRST hit can be a quote of it in prose (gen 29: '## DG1 RULING on B4' quoted in FALSIFIERS -> a false GREEN); anchor at line start ('\n## ...') and print the hit line no. |
 | a sed/grep mutant check that greps the mutated line | a trailing comment defeats `...$`: apply mutants with python asserts and print the line |
 | belam's board edits between mine | git status + re-read the row before a scripted replace; assert the old text, never blind-replace |
-| the privacy guard can REFUSE a card commit silently | git status --porcelain on the card BEFORE grid.py commit <path>; write 'home-path' in prose |
+| the privacy guard can REFUSE a card commit silently | git status --porcelain on the card after the commit; write 'home-path' in prose · grid commit is RETIRED (owner 01:3xZ 10-08): never run grid.py commit (belam 22:0xZ) |
 | inbox notices can VANISH (goal:g1.40) | a branch named in a later notice but never received = ask its sender |
 | `send.py read ... | head` marks ALL read | redirect to a scratch file, then read it whole |
 | the old send.py route (owner 04:5xZ: box only) | never send.py send / inbox writes / SendMessage; box send as sanctuary-master only |
