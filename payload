@@ -46,6 +46,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import errno
 import fcntl
 import functools
 import json
@@ -364,21 +365,66 @@ def find_pin_log(root: Path, seat: str | None = None) -> Path | None:
     transcript)`. Returning the NEWEST lets several agents each pin their own
     transcript while the meter that is actually running reads its own.
     """
-    sessions = _sessions_dir(root)
-    if not sessions.is_dir():
-        return None
-    if seat is not None:
-        sp = sessions / f"{seat}{METER_PIN_EXT}"
-        try:
-            return sp if sp.is_file() else None
-        except OSError:
-            # An unreadable sessions DIR makes is_file() raise, which would
-            # escape every meter caller (mur residue 2 on 0c16b7daf). A pin we
-            # cannot stat is UNKNOWN, the same reading as an absent one.
+    # ONE guard around EVERY read this function makes, RESOLUTION INCLUDED:
+    # MEASURED 21:3xZ (goal:g1.31.4.2.1.2) on py3.12, an unreadable graph
+    # PARENT raises PermissionError out of `_sessions_dir`'s own probes --
+    # `Path.is_dir()` RE-RAISES EACCES, it does not answer False -- so a guard
+    # that started one line lower never ran. `RuntimeError` is carried from
+    # the pin leaf, where a real `a->b->a` loop DOES raise it out of
+    # `Path.resolve()`: it has no measured raiser at THIS seam today (a loop
+    # here makes `is_dir()` answer False), so it is one word of insurance, not
+    # a claim -- and the loop test below is marked as the control it is. Every
+    # one of these paths is UNKNOWN, the same reading as an absent pin (mur
+    # residue 2 on 0c16b7daf).
+    try:
+        sessions = _sessions_dir(root)
+        if not sessions.is_dir():
             return None
-    pins = sorted(sessions.glob(f"*{METER_PIN_EXT}"),
-                  key=lambda p: p.stat().st_mtime)
-    return pins[-1] if pins else None
+        if seat is not None:
+            sp = sessions / f"{seat}{METER_PIN_EXT}"
+            return sp if sp.is_file() else None
+        # stat PER PIN: one dangling or vanished *.meter must not turn the whole
+        # seatless scan into UNKNOWN (mur R4) -- skip it, keep the newest valid one.
+        pins = []
+        # os.scandir RAISES on an unreadable dir; Path.glob swallows EACCES and answers [] (mur R6)
+        with os.scandir(sessions) as it:
+            for e in it:
+                if e.name.endswith(METER_PIN_EXT) and not e.name.startswith("."):
+                    try:
+                        pins.append((e.stat().st_mtime, e.name))
+                    except OSError:
+                        continue
+        return sessions / max(pins)[1] if pins else None
+    except (OSError, RuntimeError) as exc:
+        _warn_pin_unknown(root, exc)
+        return None
+
+
+#: (path, errno) pairs already named on stderr this process: `status --seats` asks per seat, the reason prints ONCE.
+_PIN_UNKNOWN_SEEN: set[str] = set()
+
+
+def _warn_pin_unknown(root: Path, exc: BaseException) -> None:
+    """The reason behind a `find_pin_log` None that is UNKNOWN, not absent (goal:g1.31.4.2.1.2, mur R1): ONE stderr
+    line naming UNKNOWN + the path + the errno, never a silent empty."""
+    path = getattr(exc, "filename", None) or str(root)
+    code = (errno.errorcode.get(exc.errno, str(exc.errno))
+            if isinstance(exc, OSError) and exc.errno else type(exc).__name__)
+    key = f"{path}|{code}"
+    if key in _PIN_UNKNOWN_SEEN:
+        return
+    _PIN_UNKNOWN_SEEN.add(key)
+    print(f"warn: meter pin UNKNOWN: {path} ({code}: {getattr(exc, 'strerror', None) or exc})", file=sys.stderr)
+
+
+def _sessions_dir_text(root: Path) -> str:
+    """`_sessions_dir(root)` for a MESSAGE: an unreadable resolution prints UNKNOWN, never raises while explaining
+    itself (goal:g1.31.4.2.1.2, mur R3)."""
+    try:
+        return str(_sessions_dir(root))
+    except (OSError, RuntimeError) as exc:
+        _warn_pin_unknown(root, exc)
+        return "<sessions dir UNKNOWN>"
 
 
 def _seat_pin_path(root: Path, seat: str) -> Path:
@@ -1344,13 +1390,17 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
     if log_path is None:
         # no transcript anywhere (slug dirs empty): remote-control log fallback
         rc_path = root / REMOTE_CONTROL_LOG
-        if rc_path.exists():
+        try:
+            rc_exists = rc_path.exists()
+        except OSError:   # EACCES re-raises out of Path.exists(): an unreadable log is no log, the ERR below says so
+            rc_exists = False
+        if rc_exists:
             log_path = rc_path
             source = "rc_log"
         else:
             print("ERR: no session log found. Tried env "
                   f"${AGI_SESSION_LOG_VAR}, pin files under "
-                  f"{_sessions_dir(root)}/*.meter, transcripts for "
+                  f"{_sessions_dir_text(root)}/*.meter, transcripts for "
                   f"cwd slug ({_derive_cc_slug(os.getcwd())}), and the "
                   f"remote-control log ({REMOTE_CONTROL_LOG}).",
                   file=sys.stderr)
@@ -9462,13 +9512,14 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
         try:
             from seatsig import veto as _veto
 
-            _frozen, _why = _veto.is_frozen(
-                _shared_graph_root(root), "prime")
+            _geom = _veto.read(_shared_graph_root(root), strict=True)
+            _frozen, _why = _veto.is_frozen(None, "prime", geom=_geom)
             if _frozen:
                 return (False, "refused",
                         f"merge_up: HELD -- merge-up is a gated act; {_why}")
-        except Exception:  # noqa: BLE001  (a broken veto cell never un-gates)
-            pass
+        except Exception as exc:  # noqa: BLE001  (an unreadable veto cell HOLDS)
+            return (False, "refused",
+                    f"merge_up: HELD -- veto cell is unreadable ({exc})")
         main = _closeout_main(root)
         if main is None:
             return (False, "refused",
@@ -9567,6 +9618,9 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
         res = _closeout_pop_and_run(
             root, [sys.executable, str(binp), "commit", "--all"], cwd=main)
         if res["ok"]:
+            if any("grid: retired" in str(_t) for _t in res.get("tail") or []):
+                return (True, "ok", "grid commit --all: retired (grid_sync "
+                        "off), nothing written")
             return (True, "ok", "grid commit --all")
         return (False, "failed", "grid commit --all refused")
 
@@ -9586,13 +9640,14 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
         try:
             from seatsig import veto as _veto
 
-            _frozen, _why = _veto.is_frozen(
-                _shared_graph_root(root), "prime")
+            _geom = _veto.read(_shared_graph_root(root), strict=True)
+            _frozen, _why = _veto.is_frozen(None, "prime", geom=_geom)
             if _frozen:
                 return (False, "refused",
                         f"push: HELD -- push is a gated act; {_why}")
-        except Exception:  # noqa: BLE001  (a broken veto cell never un-gates)
-            pass
+        except Exception as exc:  # noqa: BLE001  (an unreadable veto cell HOLDS)
+            return (False, "refused",
+                    f"push: HELD -- veto cell is unreadable ({exc})")
         main = _closeout_main(root)
         if main is None:
             return (False, "refused", "push: could not resolve MAIN")
@@ -10774,13 +10829,16 @@ def _push_season_branch(root: Path) -> str:
     try:
         from seatsig import veto as _veto
 
-        _frozen, _why = _veto.is_frozen(_shared_graph_root(root), "prime")
+        _geom = _veto.read(_shared_graph_root(root), strict=True)
+        _frozen, _why = _veto.is_frozen(None, "prime", geom=_geom)
         if _frozen:
             _l = f"push: HELD -- merge-up push is a gated act; {_why}"
             print(_l, file=sys.stderr)
             return _l
-    except Exception:  # noqa: BLE001  (a broken veto cell never gates silently)
-        pass
+    except Exception as exc:  # noqa: BLE001  (an unreadable veto cell HOLDS)
+        _l = f"push: HELD -- veto cell is unreadable ({exc})"
+        print(_l, file=sys.stderr)
+        return _l
     main_root = _shared_graph_root(root)
     top = _git_toplevel(main_root)
     if top is None:
@@ -10926,9 +10984,8 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
         _frozen, _why = _veto.is_frozen(None, "prime", geom=_veto_geom)
         if _frozen:
             return f"authority: HELD -- publish is a gated Prime-scope act; {_why}"
-    except ImportError:  # veto subsystem is not installed on this host
-        pass
-    except Exception as exc:  # noqa: BLE001  (an unreadable veto cell gates)
+    except Exception as exc:  # noqa: BLE001  (an unreadable veto cell, or a
+        # broken seatsig import: seatsig is in-repo, never "not installed")
         return f"authority: HELD -- veto cell is unreadable ({exc})"
     try:
         import send as _send
@@ -12503,14 +12560,20 @@ def _button_down(*, root: Path, branch_allow: bool = True,
             reason += " (season gate off)"
         return reason + "; record left for the loop"
     try:
-        subprocess.run([sys.executable,
-                        str(Path(__file__).with_name("grid.py")),
-                        "commit", "--all"],
-                       cwd=str(root), capture_output=True, text=True,
-                       timeout=60)
-        return f"grid committed — record+row on branch {branch}"
+        res = subprocess.run([sys.executable,
+                              str(Path(__file__).with_name("grid.py")),
+                              "commit", "--all"],
+                             cwd=str(root), capture_output=True, text=True,
+                             timeout=60)
     except Exception as exc:  # noqa: BLE001
         return f"FAILED: {exc}"
+    _txt = ((res.stdout or "") + (res.stderr or "")).strip()
+    _last = _txt.splitlines()[-1] if _txt else ""
+    if res.returncode != 0:
+        return f"FAILED: grid commit --all rc {res.returncode}: {_last}"
+    if "grid: retired" in _txt:
+        return f"grid retired -- nothing written on branch {branch}: {_last}"
+    return f"grid committed — record+row on branch {branch}"
 
 
 # -- s11: the cheapest verification level rotate-self cites (<15s) -------
@@ -19131,9 +19194,9 @@ def _stops_push(root: Path, label: str = "stops") -> str | None:
     # `branches.is_remote_visible`) -- a frozen prime scope refuses by name, so
     # the caller's checklist stops at the step. When the resolved branch is an
     # ordinary post/loop branch the helper behaves EXACTLY as before: never
-    # held, so RUNG 4's fix is not regressed. Fail-open on a broken veto cell
-    # mirrors the existing closeout seams (`except Exception: pass`); changing
-    # that is a separate, already-flagged residue, not this round's call.
+    # held, so RUNG 4's fix is not regressed. A missing or broken veto cell
+    # HOLDS the trunk push by name (goal:g7.16.1.11.13.2), the way the closeout
+    # seams do: the cell is read STRICT and any error is a HELD line.
     top = _git_toplevel(root)
     if top is None:
         return "no git repo to push (gitless fixture/root)"
@@ -19150,13 +19213,14 @@ def _stops_push(root: Path, label: str = "stops") -> str | None:
         try:
             from seatsig import veto as _veto
 
-            _frozen, _why = _veto.is_frozen(
-                _shared_graph_root(root), "prime")
+            _geom = _veto.read(_shared_graph_root(root), strict=True)
+            _frozen, _why = _veto.is_frozen(None, "prime", geom=_geom)
             if _frozen:
                 return (f"push: HELD -- {label} push targets a trunk branch "
                         f"({branch}) while the prime is frozen; {_why}")
-        except Exception:  # noqa: BLE001  (a broken veto cell never un-gates)
-            pass
+        except Exception as exc:  # noqa: BLE001  (an unreadable veto cell HOLDS)
+            return (f"push: HELD -- {label} push targets a trunk branch "
+                    f"({branch}) and the veto cell is unreadable ({exc})")
     # goal:g15.25 lines (1)+(2) (SM.250): a post/loop branch is LOCAL-ONLY --
     # its tip goes to the ADDITIVE mirror ref `refs/agi/<kind>/<name>`, proved
     # by ls-remote, and NEVER reaches origin as a head (falsifier: any engine
@@ -19541,14 +19605,14 @@ def _rotate_human_gate(root: Path, seat: str,
     try:
         from seatsig import veto as _veto
 
-        _groot = _shared_graph_root(root)
-        _frozen, _why = _veto.is_frozen(_groot, "prime")
+        _geom = _veto.read(_shared_graph_root(root), strict=True)
+        _frozen, _why = _veto.is_frozen(None, "prime", geom=_geom)
         if _frozen:
             held = (f"rotation: HELD -- rotating another post {seat!r} is a "
                     f"gated Prime-scope act; {_why}")
             _gate = None
             try:
-                _gate = _veto.active_gate(_veto.read(_groot), "prime")
+                _gate = _veto.active_gate(_geom, "prime")
             except Exception:  # noqa: BLE001  (the frozen verdict still stands)
                 _gate = None
             freeze = {
@@ -19563,8 +19627,14 @@ def _rotate_human_gate(root: Path, seat: str,
                     if _gate.get(_k):
                         freeze[_k] = _gate[_k]
             return held, freeze
-    except Exception:  # noqa: BLE001  (a broken veto cell never gates silently)
-        pass
+    except Exception as exc:  # noqa: BLE001  (an unreadable veto cell HOLDS)
+        _unreadable = f"veto cell is unreadable ({exc})"
+        return (f"rotation: HELD -- rotating another post {seat!r} is a "
+                f"gated Prime-scope act and the {_unreadable}",
+                {"scope": "prime", "hold_reason": _unreadable,
+                 "auto_released": False,
+                 "note": "an unreadable veto cell holds, never frees; fix "
+                         "the cell, then retry"})
     return None, None
 
 
