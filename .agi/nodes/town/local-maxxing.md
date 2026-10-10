@@ -92,13 +92,13 @@ Leave the board AS BUNDLES (owner 07:2xZ 10-01; their nodes and statuses untouch
 | id | role |
 |---|---|
 | goal:g5 | umbrella: the town's goal (owner lines land on node versions, never as notes) |
-| goal:g5.22 | TRACK I inference (L4 head windowing: run 1 disproved · run 2 PROVED · run 3 disproved; the per-head DIRECT cost is the best arm -> run 4 scores it on fresh docs) |
+| goal:g5.22 | TRACK I inference (L4 head windowing: runs 1 + 3 disproved · runs 2 + 4 PROVED (run 4 = per-head DIRECT on fresh docs); run 5 on the served 9B BLOCKED: MemAvailable >= 8 GB + a docker-capable user, E has 7 GiB total) |
 | goal:g5.23 | TRACK II fine-tune |
 | goal:g5.24 | TRACK III magic pane (goal:g5.24.3); jev ABSORBED by config:engine, retired as a dependency (10-01) |
 | goal:g5.25 | abliteration (goal:g5.25.1 own refusal lever) |
 | goal:g5.26 | research corpus |
 | goal:g5.27 | the switch / battery (goal:g5.27.1) |
-| goal:g5.28 | side track: spiking / oscillator / spectral (the owner's neuron-periodicity idea: MAP runs 1-2 disproved; positive control next) |
+| goal:g5.28 | side track: spiking / oscillator / spectral (the owner's neuron-periodicity idea: MAP runs 1-2 disproved · positive control PROVED · seeds x3, FAIR P4, FREQ-ABLATION disproved; next lens = held-out LOSS / logit margin, designed, NOT minted: needs a go) |
 | goal:g5.29 | research treasury |
 | goal:g5.30 | KV-cache telepathy |
 | goal:g5.31 | diagram-max + batch-max |
@@ -171,7 +171,8 @@ belam 01:0xZ 10-09: [owner] PASS B5 notice -- merge review of the trunk past bcd
 OWNER 01:2xZ 10-09 (to belam on E, verbatim): "Also your session name is missing the season name and your generation. No need to include loop number anymore" · "Just belam-s2-I and you can restart since it’s new engine and continue along town trajectory including the merge passes. Can rename your session next rotation not needed immediately" -- ACTION: belam's generation count RESTARTS on v5: this session = belam-s2-I, its successor = belam-s2-II (no loop number). Today the v5 boot cell names every session by the post name alone (.agi/nodes/.geometry/engine.md:94 `claude --remote-control \(.name)`); the rename lands at belam's next rotation through a goal leaf (DG1 files it), never by hand.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-s2-I 01:2xZ 10-09: one note appended -- the owner's session-name lines, banked verbatim, with the generation restart they produce. Delta: notes only. Previous version's thought: belam 01:0xZ 10-09: two notes appended -- the owner's 01:0xZ line resuming the merge pass in parallel, banked verbatim, and the PASS B5 notice it produced. Delta: notes only; every row byte-identical.
+THIS version (thought-master 08:2xZ 10-10, belam TRAJECTORY CHECK 07:5xZ): Research goal ids rows g5.22 + g5.28 were stale (said run 4 / positive control were NEXT; both ran 10-01, PROVED) -- rewritten from the experiment nodes. Nothing else changed.
+PRIOR THOUGHT, carried verbatim: belam-s2-I 01:2xZ 10-09: one note appended -- the owner's session-name lines, banked verbatim, with the generation restart they produce. Delta: notes only. Previous version's thought: belam 01:0xZ 10-09: two notes appended -- the owner's 01:0xZ line resuming the merge pass in parallel, banked verbatim, and the PASS B5 notice it produced. Delta: notes only; every row byte-identical.
 <!-- THOUGHT:END -->
 
 PASS 5 (belam-S2-L5-V, 09-25 02:02-02:4xZ): trunk @5b7d503fa7 -> season2/main 8daa626e89 · BASE 3b0c4e8e8f: 449 commits, 39 experiment files · 18 rounds / 4 chunks on pi-free, 27 min, 0 USD · 9 accept_with_residue, 9 demote, 0 RED · links 0 broken, goals byte-identical, smoke 4,331 · residues: hypothesis:pass5-0925-residue-batch (3 code-defect hypotheses + 1 reopened, 6 lm-* demotes via thought-master)
