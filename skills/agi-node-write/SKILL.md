@@ -45,7 +45,9 @@ A director's write.py on `config:*` is refused by the written_by guard (owner / 
 | `[mvp]` | a NEW file, argued for by an mvp |
 | `[build, goal]` | a new VERSION of an existing file + the goal that motivated it |
 | `[goal, mvp]` · `[goal, idea]` | a new file under a goal, argued by an mvp or an idea (skills: `idea:engine-skill-doc`) |
-A goal ALONE never mints a build node. New file + node in one call:
+A goal ALONE never mints a build node. **Never run `level3.py` by hand** until goal:g1.43.1's round lands: its default
+scan overwrites a hand-repaired parent list with its census hit (goal:g1.43 rows 16-18 -> the illegal `[idea]`; council 10-10).
+New file + node in one call:
 ```bash
 write.py create build <path-with-dashes> --parent goal:<id> --parent idea:<id> --payload <repo/path> \
   --set payload_ref=<repo/path> --set build_kind=prose|code --body-file <body.md> --actor <post> --role <role>

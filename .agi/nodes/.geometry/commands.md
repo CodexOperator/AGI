@@ -2229,7 +2229,7 @@ manifest:
     purpose: derive one level-3 node per code file
     side_effects: graph-write
     proposable: false
-    reason: default scan prunes stale level3-scan build nodes; operator-only
+    reason: "default scan prunes stale level3-scan build nodes; operator-only. NEVER run by hand until goal:g1.43.1's round lands: the default scan overwrites hand-repaired parents with its census hit (reverts goal:g1.43 rows 16-18 to the illegal [idea]; council alive 22:11Z 10-10)"
   season.py:status:
     cli: season.py
     verb: status
