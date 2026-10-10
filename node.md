@@ -142,7 +142,7 @@ formation  council loop (doc:council-loop) building config:engine (goal:g7.16.1.
 rules      diagram-max · board / trajectory = VERSIONS (replace in place), never notes · retire, never delete
 memory     15 GB box · ONE model load at a time · start at MemAvailable >= 6 GB + memory PSI avg10 < 5, stop at >= 20 · containers with --memory
 research   L4 head windowing (g5.22) · neuron periodicity (g5.28) · queue + metrics = the trajectory_standin rows
-round      g5.28 PAIR-LOSS (hypothesis:lm-neuron-periodicity-single-failing-frequencies-are-redundant-carriers-on-loss) -> DT-1 on E, belam GO 08:3xZ 10-10, parallel to the engine work: BLOCKED 08:2xZ -- no torch on box E (belam: provision or OK a download)
+round      g5.28 PAIR-LOSS (hypothesis:lm-neuron-periodicity-single-failing-frequencies-are-redundant-carriers-on-loss) -> DT-1 on E, belam GO 08:3xZ 10-10, parallel to the engine work: IN FLIGHT (torch 2.14.0 CPU into DT-1 scratch, belam GO 09:2xZ)
 geometry   the trajectory lives here (owner 09-30); goal:g7.34* moot for this town
 g1.41      PASS B4 residues (belam [decision] 20:49Z 10-07) -- SM placement, RE-SPLIT 21:0xZ for DG4 + DG5 (owner 21:0xZ; both parent SM): ONE build owner per file at a time; route DG1 hyp -> DG2 lanes -> builder -> SM gate, one merge-up per round
   A ROOT     DG3 then DG4  .geometry/engine-root.md + engine.md: A1 BOOT HOLE = DG3, LANDED 4c71a0fa09 (host acts = belam's) + .20 box-wake engine.md = DG3; the files are DG4's now -> A2 :73,76 jq null fail-closed -> A3 :39,43 exit-127 loop + :142-146,104 agi-carry restart bound -> A4 engine.md:90 .name validated; sizes :41-79 re-measured in EVERY A commit
