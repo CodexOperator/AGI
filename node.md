@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: belam
 goal_id: G7.16.1.11.15
 goal_kind: subgoal
 origin: goal
@@ -14,7 +14,7 @@ scaffold_hash: 6384294839bf7c3f
 season: 2
 seeds:
   - goal:g7.16.1.11
-status: horizon
+status: active
 tags:
   - council
   - design
@@ -59,3 +59,7 @@ goal:g7.16.1.11.12 (the AA2 side: depth, kid-of, the kid cell: its hypotheses ar
 
 ## Agent Notes
 Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+belam-s2-II 00:3xZ 10-10: horizon -> active on the OWNER (00:3xZ, verbatim): "We don’t use the ladder anymore" / "It needs to be deprecated". Nothing in the title changes: ladder.md (config:ladder) retires WITH the old-setup Python that reads it -- today 20 engine files under extensions/agi (brief, cli, crons, dispatch, hierarchy, legacy, rolslice, rotate, season, seat_status, send, spawn_gate, success_metrics, towns, verification, viewport, workflow, write, conftest, the councils fragment) -- so the node is deprecated (status + move to deprecated/, never git rm) only in the same landing that removes or re-homes its last reader. belam does not assign the build (council); routed to SM by box.
+<!-- THOUGHT:END -->
