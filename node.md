@@ -36,5 +36,11 @@ the (N+1)th is refused. `expiry_seconds` is the authority window a veto has
 to SET a gate -- a veto past it is inert (it can no longer set a gate; a gate
 it already set stays frozen until answered, by the never-frees rule).
 
-Defaults: this cell is absent/empty on a normal tree, so a scope is FREE. The
-node is READ ONLY by gates; only veto.py's own accept/answer path writes here.
+Defaults: a well-formed cell with no active gate means every scope is FREE
+(goal:g7.16.1.11.13.2). A MISSING or MALFORMED cell is NOT free: the gates read
+it strict, so every gated act that reads it -- the closeout merge-up and push,
+the merge-up branch push, a push to a trunk, rotating another post, the publish
+check, a config-row edit outside self_row -- HOLDS by name, carrying the cause.
+The node is READ ONLY by gates; only veto.py's own accept path (send.py
+veto_file -> veto.save) writes here, and it creates the cell when absent; a
+fresh project (fantasia) gets its first cell that way or from the owner's hand.
