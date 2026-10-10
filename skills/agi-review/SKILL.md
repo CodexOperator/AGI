@@ -19,8 +19,8 @@ O=<your scratchpad>/review-<key>                      # never inside a repo work
 sh extensions/agi/bin/review-lanes.sh <BASE> <TIP> $O [MAX]   # MAX files per lane, default 40
 ```
 Writes `$O/range`, `$O/all.txt`, one `$O/L<n>-<area>.txt` per lane; every changed path lands in exactly one lane.
-Copy the brief out of the node next to them: `python3 extensions/agi/bin/write.py doc:agi-review-brief 'read body' > $O/brief.md`
-(or `sed '1,/^---$/d' …/agi-review-brief.md` past the frontmatter).
+Copy the brief out of the node next to them, past BOTH frontmatter fences (a single `sed '1,/^---$/d'` leaves 0 B -- SM 08:44Z):
+`awk 'f>=2; /^---$/{f++}' .agi/nodes/doc/agi-review-brief.md > $O/brief.md`
 
 ## 2 · Fan out (one Agent call per lane, all in ONE message, `model: sonnet`, background)
 Prompt per lane = "Read the brief at $O/brief.md and follow it exactly." + `LANE` · `RANGE: $O/range` ·
