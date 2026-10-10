@@ -12,6 +12,7 @@ Rows (the builder is free in wording: a row asks for the token HOLD and the caus
   d3  stays-green: a well-formed cell prints byte-identical lines (GOLDEN below, measured on trunk 3bbfd7cf15): send FREE + FROZEN, viewport FROZEN, viewport FREE = no gate line
   d5  the INVARIANT (a display reader never frees a scope a gate holds), the import arm: since .13.2 every gate HOLDS when `seatsig` cannot be imported; `veto_gate_status` with a broken seatsig import must HOLD with the cause, not "treated as free"
   d6  the same for `viewport.py --live`: a HOLD line with the cause in both views, not the silence its outer `except Exception` gave
+  d7  a strict read that raises something OTHER than VetoCellUnreadable (an OSError): `veto_gate_status` and `viewport.py --live` HOLD with its text, no traceback (DG5 ask, SM 09:00Z); d4-reverse also pins "HOLD" not in out, d6 pins HOLD + cause inside the gate segment
   d4  falsifier 4: a git worktree whose copy of the cell is FREE while MAIN's is FROZEN (and the reverse): `viewport.py --live` run from the worktree shows MAIN's verdict, the
       same as the gate and as `veto_gate_status` (which already resolves MAIN: those two rows stay green)
 Each row runs the reader as a SUBPROCESS under a scratch HOME and git config; the engine under test is VETO_ROOT=<tree> (default: the repo holding this file).
@@ -56,11 +57,21 @@ BRK = ("import sys\n"
        "def install():\n"
        "    for k in [k for k in sys.modules if k == 'seatsig' or k.startswith('seatsig.')]:\n"
        "        del sys.modules[k]\n"
-       "    sys.meta_path.insert(0, _Break())\n")
+       "    sys.meta_path.insert(0, _Break())\n"
+       "def raise_read():\n"
+       "    from seatsig import veto\n"
+       "    def _r(*a, **k):\n"
+       "        raise OSError('boom-oserr-9')\n"
+       "    veto.read = _r\n")
 PROBE_BRK = ("import sys;sys.path[:0]=[%r,%r,%r,%r];from pathlib import Path;import send,brk;brk.install();"
              "print(send.veto_gate_status(Path(sys.argv[1]),sys.argv[2]))")
 VP_BRK = ("import sys,runpy;sys.path.insert(0,%r);import brk;brk.install();"
           "sys.argv=['viewport.py','--live','--emit',sys.argv[1],'--project',sys.argv[2]];runpy.run_path(%r,run_name='__main__')")
+
+PROBE_RAISE = ("import sys;sys.path[:0]=[%r,%r,%r,%r];from pathlib import Path;import send,brk;brk.raise_read();"
+               "print(send.veto_gate_status(Path(sys.argv[1]),sys.argv[2]))")
+VP_RAISE = ("import sys,runpy;sys.path[:0]=[%r,%r,%r];import brk;brk.raise_read();"
+            "sys.argv=['viewport.py','--live','--emit',sys.argv[1],'--project',sys.argv[2]];runpy.run_path(%r,run_name='__main__')")
 
 PROBE = ("import sys;sys.path[:0]=[%r,%r,%r];from pathlib import Path;import send;"
          "print(send.veto_gate_status(Path(sys.argv[1]),sys.argv[2]))" % (str(EXT), str(BIN), str(SRC)))
@@ -106,15 +117,19 @@ class World:
         else:
             p.write_text(TEXT[state])
 
-    def send(self, where: Path, scope: str = "prime", broken: bool = False) -> str:
+    def send(self, where: Path, scope: str = "prime", broken: bool = False, raising: bool = False) -> str:
         code = PROBE_BRK % (str(self.brk), str(EXT), str(BIN), str(SRC)) if broken else PROBE
+        if raising:
+            code = PROBE_RAISE % (str(self.brk), str(EXT), str(BIN), str(SRC))
         r = subprocess.run([sys.executable, "-c", code, str(where / ".agi"), scope], capture_output=True, text=True,
                            env={**_env(self.home), "PYTHONDONTWRITEBYTECODE": "1"}, timeout=120)
         return r.stdout + r.stderr
 
-    def viewport(self, where: Path, view: str = "human", broken: bool = False) -> str:
+    def viewport(self, where: Path, view: str = "human", broken: bool = False, raising: bool = False) -> str:
         cmd = ([sys.executable, "-c", VP_BRK % (str(self.brk), str(VIEWPORT)), view, str(where / ".agi")] if broken
                else [sys.executable, str(VIEWPORT), "--live", "--emit", view, "--project", str(where / ".agi")])
+        if raising:
+            cmd = [sys.executable, "-c", VP_RAISE % (str(self.brk), str(EXT), str(SRC), str(VIEWPORT)), view, str(where / ".agi")]
         r = subprocess.run(cmd, cwd=where,
                            capture_output=True, text=True, env={**_env(self.home), "PYTHONDONTWRITEBYTECODE": "1"}, timeout=180)
         return r.stdout + r.stderr
@@ -207,6 +222,7 @@ def test_d4_viewport_from_a_worktree_shows_MAINs_FREE_when_the_worktree_copy_is_
     world.cell(world.wt, "frozen")
     out = world.viewport(world.wt)
     assert "GATE-FROZEN" not in out, f"MAIN is FREE but the worktree's FROZEN copy was read: {gate_lines(out)}"
+    assert "HOLD" not in out, f"MAIN is FREE: a FREE verdict must not print a HOLD: {gate_lines(out)} / {out[-300:]!r}"
     assert "anchor=roots" in out, "the status line itself must still print (non-vacuous)"
 
 
@@ -238,6 +254,7 @@ def test_d6_viewport_live_shows_a_hold_when_the_seatsig_import_is_broken(world, 
     world.cell(world.main, "free")
     out = world.viewport(world.main, view, broken=True)
     assert "HOLD" in out and "boom-import-9" in out, f"{view}: want a HOLD line + the import error, not silence: {out[-300:]!r}"
+    assert any("HOLD" in g and "boom-import-9" in g for g in gate_lines(out)), f"{view}: the HOLD + cause must be in the status line's gate segment, not elsewhere in the output: {gate_lines(out)}"
     assert "anchor=roots" in out, "the status line itself must still print (non-vacuous: the viewport ran)"
 
 
@@ -246,3 +263,20 @@ def test_d5_d6_the_break_is_real_the_same_probe_without_it_reads_the_cell(world)
     world.cell(world.main, "free")
     assert world.send(world.main).strip() == G_SEND_FREE
     assert "HOLD" not in world.viewport(world.main)
+
+
+# --- d7: a read that raises something OTHER than VetoCellUnreadable (an OSError from the cell file, say): HOLD with its cause, never FREE and never a traceback
+@pytest.mark.parametrize("state", ["free", "frozen"])
+def test_d7_send_veto_gate_status_holds_when_the_strict_read_raises_an_oserror(world, state):
+    world.cell(world.main, state)
+    out = world.send(world.main, raising=True)
+    assert "HOLD" in out and "boom-oserr-9" in out, f"{state}: want HOLD + the OSError text, got {out[-300:]!r}"
+    assert "Traceback" not in out and "is FREE" not in out and "GATE-FROZEN" not in out, f"{state}: {out[-300:]!r}"
+
+
+@pytest.mark.parametrize("view", ["human", "llm"])
+def test_d7_viewport_live_holds_when_the_strict_read_raises_an_oserror(world, view):
+    world.cell(world.main, "free")
+    out = world.viewport(world.main, view, raising=True)
+    assert any("HOLD" in g and "boom-oserr-9" in g for g in gate_lines(out)), f"{view}: {gate_lines(out)} / {out[-300:]!r}"
+    assert "anchor=roots" in out, "the status line itself must still print (non-vacuous: the viewport ran)"
