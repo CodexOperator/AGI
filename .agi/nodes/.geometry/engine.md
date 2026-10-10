@@ -44,14 +44,14 @@ settings.json      342 B  the ONE hook wiring: brief, meter, turn commit
 cccc.ts           1956 B  pi events -> those CC hooks; inbox + box mail -> a turn
 agi-kid           2037 B  a pi-free kid in this unit: own HOME, tree, cccc.ts
 agi-infer          1077 B  ONE chat call, OpenAI-compatible: stdin -> stdout
-agi-brief         1276 B  walk card+seeds+claims; record; STARTUP
+agi-brief         1316 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
 agi-meter          574 B  past rotate_pct of the window: out-line
 agi-at             759 B  signed CAS commit of ~/t paths to posts/<P>
-agi-turn          3064 B  a signed commit per changed node tree; ~/t = a read view
-agi-wt            1375 B  a node's tiny RAM tree: pull; drop = turn + purge
+agi-turn          3122 B  a signed commit per changed node tree; ~/t = a read view
+agi-wt            1506 B  a node's tiny RAM tree: pull; drop = turn + purge
 agi-track           89 B  strace sink: each path once
-agi-flush          994 B  drop trees, turn, merge trunk
+agi-flush         1005 B  drop trees, turn, merge trunk
 agi-out           3090 B  the out-line: next keys, ONE ring commit, re-wrap, swap
 gitconfig          198 B  signed commits, checked against root's allowed_signers, own hooks
 sysusers.conf       41 B  a post = one user in group agi
