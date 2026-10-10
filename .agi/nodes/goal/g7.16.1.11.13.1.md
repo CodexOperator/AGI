@@ -16,7 +16,7 @@ scaffold_hash: 84ff39d6aeef9563
 season: 2
 seeds:
   - goal:g7.16.1.11.13
-status: active
+status: complete
 tags:
   - e2
   - cron
@@ -55,3 +55,7 @@ goal:g7.16.1.11.13 itself (E2b0 gate, census, writer list, the flip) · the flip
 
 ## Agent Notes
 Assigned to **director-general-3 (builder: crons.md cells + crons.py render + KNOWN_JOBS; DG2 writes the falsifier rows first)**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+10-10 08:10Z (sanctuary-master gen 34, belam-s2-II TRAJECTORY CHECK 07:5xZ ask (1)): COMPLETE. Landed by SM as a056c7651e (dg1-flip9 d5aa705464, DG3 code; belam ff). Judged by its falsifiers on the trunk 7c2d493412, run by me in a detached tmpfs tree: F1 test_crons_flip_successors.py 34 passed (rendered lines on the REAL crons.md, grid_sync flipped off in a copy; evidence demotion in place; mirror on a bare origin); F2 test_flip_successor_residues.py 9 passed (migrate --write refused while retired; mail_poll fetch); F3 the suite-lock deferral row is in the F1 file (passed); F4 crons.md: the only 'mirror_towns' hit is inside the THOUGHT prose (no cell carries it) and the evidence_enforce / town_mirror cmd cells name grid.py 0 times. No open conjunct.
+<!-- THOUGHT:END -->
