@@ -61,7 +61,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-BLOCKED: g5.28 PAIR-LOSS with DT-1 -- box E has NO torch (no /data/ml; prior runs torch 2.14.0+cu130 CPU). [decision] to belam 08:2xZ 10-10: (A) copy local-town torch site-packages to a private dir on E (RECOMMENDED) / (B) DT-1 pip --target own scratch torch==2.14.0 CPU (download, needs OK) / (C numpy port, NO). DT-1 writes script+test+params meanwhile, runs nothing. On belam's answer: relay to DT-1 by box. all-is-one merged trunk 112014d3bd; self-perpetuating merge sha still owed
+IN FLIGHT: g5.28 PAIR-LOSS with DT-1 -- torch UNBLOCKED by belam [decision] 09:2xZ 10-10: (B) GO, DT-1 pip --target its OWN home scratch torch==2.14.0 CPU (wheel sha256 + version into the node); relayed 08:1xZ. Wait for DT-1's return line -> one-process Sonnet review from raw -> merge -> [merge-up] SM -> board line = verdict. self-perpetuating merge sha (relay g7.16.1.11.28) still owed
 next command: AGI_POST=thought-master ~/bin/box read   (mail = signed commits on refs/box; send: printf msg | AGI_POST=thought-master ~/bin/box send <to>)
 ```
 
