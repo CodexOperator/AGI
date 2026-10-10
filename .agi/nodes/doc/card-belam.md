@@ -51,6 +51,7 @@ NEVER: assign a design or a build (council) · dispatch · write in another post
 ```
 
 ## §2 Landed
+belam-s2-II 00:1xZ 10-10: DG1's ~/.gitconfig re-pointed to /var/lib/agi/allowed_signers (box read verified); re-cut stale at every DG1 start until posts/director-general-1 merges 677dacf312 (asked SM to route) · memory WARN 00:03Z = the owner's Bazzite PXE test VM (pxe-vmtest-bazzite, not agi), cleared 00:04, re-warned 00:05
 belam-s2-II 22:4xZ: PASS B5 key FOUND (owner: "an openrouter_admin_key2 or something like it"): Doppler agi/dev AGI_WORKSPACE_PROV_KEY mints into ws 72750376 (probe 201, deleted) -> MAIN .env OPENROUTER_PROVISIONING_KEY (never printed; old = Doppler OPENROUTER_ADMIN). Launched 22:14Z, STOPPED 22:3xZ: every pi stage dies under mem_cap's prlimit --as 2G (undici llhttp wasm cannot allocate; no user systemd for agi-belam) + free model stealth/space-bunny-alpha 404 -> engine leaf + model to SM · trunk reds fixed: graph-metrics a1/a2/a4 + test_grid_gate B5 follow the encryption-town box move (beb56ace88) · DG1 boxwake re-launched after its 21:40Z restart (fresh loop died in minutes)
 belam-s2-II 21:5xZ: D3 re-forward (goal:g7.16.1.11.22) ff a5e07d455d -> eb6cae07e8 (SM's signed L; full guard with .env: diff ok, msgs ok but the noreply trailers) · owner's Doppler token = project `access`/prd: it holds only the 4 service tokens belam has; agi/dev OPENROUTER_ADMIN is the ONLY OpenRouter key in Doppler, sha == .env's; that account: 170 USD credits, 169.52 used. PASS B5 still needs the ws-72750376 account's provisioning key (L's .env, not carried) -> BANKED
 belam-s2-II 21:0xZ: trap 96 stopgap -- agi-boxwake@<post> transient units (own uid + agi-run env, BindsTo agi-post@<post>, `while :;do sleep 5`) for all-is-one DG1 DG2 DG5 self-perpetuating; 12/12 posts poll box (bpftrace). Engine patch (engine-wrap.md:24-26 `while :;do sleep N;`) mailed SM for DG1's leaf
@@ -87,6 +88,7 @@ E act: agi-boot exit 0 · vstore 700 root · slice live · DG5 mail test: receiv
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
+| config:crons evidence_enforce cell (DG1 ruling via SM 00:0xZ 10-10) | add box encryption-town + every 30 min ONLY when the .13.1 re-cut (non-blocking flock in evidence_gate.py enforce) lands; one dry pass = 134 s at load 8 |
 | free tier model: stealth/space-bunny-alpha is gone from OpenRouter (PASS B5 needs a zero-USD reviewer) | belam-s2-II 23:0xZ asked the owner: nvidia/nemotron-3-ultra-550b-a55b:free (alts inkling:free, nemotron-3.5-lightning:free, gemma-4-31b-it:free); set kid+parent in .agi/config.json free tier on the owner's word; run after DG1's mem_cap leaf (SM 22:5xZ) |
 | egress watchdog NEVER RUNS (literal \" quotes: always exit 0) while E is in FULL tunnel | owner: fix it (drop 6 backslashes; then 3 missed pings -> split, never back) or leave it; idea:egress-watchdog-keeps-e-reachable |
 | guard layer 5 (sanctuary-watch) not installed | local-town parked (owner 04:2xZ); still needs config:guard E lines (council, via SM 04:2xZ) before guard-init.sh |
