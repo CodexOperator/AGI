@@ -6586,7 +6586,8 @@ def _box_send_announce(recv: str, seat: str, text: str, declared: str,
     never decides `delivered` (the inbox copy does). `deadline` (a
     time.monotonic() value, set ONCE per announce) makes the bound TOTAL: each
     call gets what is left, and a call that finds the budget spent sends
-    nothing and says so, so N receivers can never cost N x the timeout."""
+    nothing and says so, so N receivers can never cost N x the timeout. A
+    timeout adds up to 5 s of reap (kill the group, wait) on top of the budget."""
     proc = None
     try:
         left = (BOX_ANNOUNCE_TIMEOUT_S if deadline is None
@@ -6611,7 +6612,7 @@ def _box_send_announce(recv: str, seat: str, text: str, declared: str,
             os.killpg(proc.pid, signal.SIGKILL)
             proc.communicate(timeout=5)
         print(f"warn: box send of the {declared} to {recv!r} timed out "
-              f"after {BOX_ANNOUNCE_TIMEOUT_S}s", file=sys.stderr)
+              f"after {left:.0f}s (the budget left for this call)", file=sys.stderr)
     except Exception as exc:  # noqa: BLE001 -- fail soft, whatever it is
         print(f"warn: box send of the {declared} to {recv!r} failed: {exc}",
               file=sys.stderr)
@@ -6760,7 +6761,7 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
         return delivered
     delivered = []
     _box_on = bool(receivers) and _box_announce_guard(seat, declared)
-    _box_deadline = time.monotonic() + BOX_ANNOUNCE_TIMEOUT_S
+    _box_deadline = None   # armed at the FIRST box call: send.send's tmux calls never spend it
     for recv in receivers:
         try:
             # CLAUSE 1: land the SAME [rotation-alert] block in the
@@ -6774,10 +6775,12 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
             # failure, never part of `delivered`, never a gate on the rotation.
             send.send(root, recv, text, sender=seat)
             if _box_on:
+                if _box_deadline is None:
+                    _box_deadline = time.monotonic() + BOX_ANNOUNCE_TIMEOUT_S
                 _box_send_announce(recv, seat, text, declared, _box_deadline)
             delivered.append(recv)
         except SystemExit as exc:
-            print(f"warn: could not land the {declared} in {recv!r}'s inbox: {exc}",
+            print(f"warn: could not land the {declared} in the inbox of {recv!r}: {exc}",
                   file=sys.stderr)
             continue
     print(f"announced {declared} -> {len(delivered)} recipient(s) "

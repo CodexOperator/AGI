@@ -324,13 +324,55 @@ def test_b9_the_guard_says_nothing_when_there_are_no_receivers(world, seams, mon
 # ---------------------------------------------------------------- B10 (residue d)
 def test_b10_an_inbox_failure_says_the_inbox_not_a_dm(world, seams, monkeypatch, capsys):
     """The send_dm hop is gone, so the failure line for a receiver whose INBOX write failed must say so
-    (`could not land the rotation in 'dg3's inbox`), not the stale `could not dm`."""
+    (`could not land the rotation in the inbox of 'dg3'`), not the stale `could not dm`."""
     seams.inbox_fail = {"dg3"}
     delivered = _announce(world, monkeypatch, ["sm", "dg3"])
     err = capsys.readouterr().err
     assert delivered == ["sm"]
     assert "could not dm" not in err, err
-    assert "could not land the rotation in 'dg3'" in err and "inbox" in err, err
+    lines = [ln for ln in err.splitlines() if "could not land" in ln]
+    assert len(lines) == 1 and lines[0].startswith(
+        "warn: could not land the rotation in the inbox of 'dg3': "), lines
+    assert "''" not in lines[0], lines
+
+
+# ---------------------------------------------------------------- B11 / B12 (residues a, b, c)
+def test_b11_a_slow_inbox_send_does_not_spend_the_box_budget(world, seams, monkeypatch, capsys):
+    """The 20 s budget is armed at the FIRST box call: send.send's own (tmux) time before it is not charged.
+    The FIRST inbox send takes 4 s (> the 3 s budget); armed eagerly, the budget would be spent before any
+    box call and every receiver would be skipped. Armed lazily, all three get their box message."""
+    log = world.tmp / "boxed.log"
+    _install_box(world, f"#!/bin/sh\ncat >/dev/null\necho \"$2\" >> {log}\nexit 0\n")
+    monkeypatch.setattr(rotate, "BOX_ANNOUNCE_TIMEOUT_S", 3)
+    orig = send.send
+
+    def slow_send(root, to, *a, **k):
+        if to == "sm":
+            time.sleep(4)
+        return orig(root, to, *a, **k)
+
+    monkeypatch.setattr(send, "send", slow_send)
+    recvs = ["sm", "dg1", "dg3"]
+    delivered = _announce(world, monkeypatch, recvs)
+    err = capsys.readouterr().err
+    assert delivered == recvs
+    assert log.read_text().split() == recvs, (log.read_text(), err)
+    assert not [ln for ln in err.splitlines() if ln.startswith("warn")], err
+
+
+def test_b12_the_timeout_line_names_the_budget_actually_given(world, seams, monkeypatch, capsys):
+    """A call that gets what is LEFT says so: with a 6 s total and a first box that takes 2 s, the hung
+    second call times out after ~4 s, and the line says 4s, never the full 6s."""
+    cnt = world.tmp / "n"
+    _install_box(world, f"#!/bin/sh\nn=$(cat {cnt} 2>/dev/null || echo 0)\necho $((n+1)) > {cnt}\n"
+                        "cat >/dev/null\nif [ \"$n\" -eq 0 ]; then sleep 2; exit 0; fi\nexec sleep 60\n")
+    monkeypatch.setattr(rotate, "BOX_ANNOUNCE_TIMEOUT_S", 6)
+    delivered = _announce(world, monkeypatch, ["sm", "dg1"])
+    err = capsys.readouterr().err
+    assert delivered == ["sm", "dg1"]
+    lines = _warn_lines(err, "dg1")
+    assert len(lines) == 1 and "timed out after 4s" in lines[0], lines
+    assert "after 6s" not in err
 
 
 # ---------------------------------------------------------------- B5
