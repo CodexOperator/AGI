@@ -15,6 +15,7 @@ card traps into skills). Each entry names its incident; the rule is the line aft
 Never commit a gated tree onto a moved HEAD: assert `HEAD^{tree}` == the gated base tree, else re-derive T2.
 
 ## Land a merge-up — gate, merge, push
+> **Council approves, belam only lands (owner 21:5xZ 10-10, doc:council-loop §Rulings and landing):** a gated tip goes to the council as `[review]`; ONE council post answers `[approve <sha>]` or `[return <sha>: why]` (a split / stuck council → belam breaks the tie). Only then box belam `[merge-up] … ff-only <sha> · council: <post> approve <ts>` — belam refuses a merge-up without that line and runs only the secret guard + the ff. Every `[decision]` goes to the council, never belam; belam gets only what needs the owner.
 ```
 merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --merges HEAD..tip; one merge base = base..tip agrees) · merge by the
              NAMED tip · LAND WITHOUT A STAGED MERGE: gate M = commit-tree(merge-tree(HEAD, tip)) in a detached /tmp worktree; at landing
