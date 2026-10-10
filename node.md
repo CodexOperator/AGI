@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11
 next_edges: []
 confidence: 0.6
-edited_by: belam
+edited_by: director-general-1
 goal_id: G7.16.1.11.12
 goal_kind: subgoal
 origin: goal
@@ -14,7 +14,7 @@ scaffold_hash: 4c4a8cdf0ba4c1c6
 season: 2
 seeds:
   - goal:g7.16.1.11
-status: active
+status: horizon
 tags:
   - council
   - design
@@ -48,7 +48,6 @@ Skills line (owner 23:4xZ via belam 23:49Z): "update the other skills to reflect
 - VERSIONING (AA2, self-perpetuating 370cd4433): PHI's 18 darts read as branch moves (9 DOWN = branch off the parent's tip, 9 UP = the parent may fast-forward, masked by the `lands` cell; the council row carries lands: [sanctuary-master]); a child's tip moves only on its parent's handoff mail; trees live one generation (commit always, purge only at ~/.fresh; agi-turn -129 B, agi-flush +17 B, the per-stop trunk merge -61 B); READ is open on one box and hidden by the hub's `hide` (331 B) across boxes (banked to belam). Falsifiers AA2.9-AA2.17.
 - ONE-BOX READ (AA2 'READ, RULING 2', belam accepted (b) 04:45Z): one git object store per post user (alternates -> a trunk-only commons, never MAIN), root's agi-carry moves only a lap dart's tip; ~1,059 B expansion; limits: privacy after the switch only, the commons never pruned, the uid barrier is the build check.
 - LADDER OUT (AA2, belam 04:43Z [decision]): tier = projected depth; a kid's spec = the nearest ancestor-or-self row's `engine.kid` cell (kid-of, ~+360 B in agi-kid, AGI_KID_MODEL is EMPTY on every v4 row today); the ladder retires in order with dispatch.py. Falsifiers AA2.18-AA2.25.
-- THE RING IS THE TREE (doc:radically-simple-engine section AB + AB.5 + AB.6 + AGI_SEAL_ID, landed at trunk 1c0edcf20; belam [decision] 03:07Z releases it, owner 02:3xZ 'Is the design finished and looks sound? If so send on'): ONE ring node at .agi/nodes/.geometry/ring, one line per post x algorithm column; may(s, x) <=> s is ancestor-or-self of ruler(x) read at the RECEIVING tip; no date is read; layered blocks under refs/agi/block/* are the calendar; ONE GENERATION = three keys (SIGN published once sealed, PQ inner, SEAL never published); a retired SIGN key goes to refs/revoked (never pushed); the outward sealer is a scheduled GitHub sweep on master. This SUPERSEDES the KEYS bullet above where they differ (root no longer owns a post-side ring: the post writes its own next line, signed by its current key; agi-signers retires after AA2.64). Falsifiers AA2.54-AA2.80 are carried by the hypotheses named g716111-ab-* and g716111-aa2-the-trunk-refuses-... (the leaves, in build order: key-gate, ring, out-line, ckpt, pq, revoke, flow-rotation, agi-signers retires, outward sealer). HELD: AA2.55 (two boxes), AA2.61 (a real PQ verifier), AA2.75/76/78 (outward, belam's GO), AA2.62 RETIRED (AB.5: the nest is in the block blob).
 
 ## Invariants
 - Row order IS sibling order: reordering config:posts reorders the lap (intended, now load-bearing).
@@ -58,14 +57,10 @@ Skills line (owner 23:4xZ via belam 23:49Z): "update the other skills to reflect
 
 ## Falsifier
 1. `awk` over `.geometry/lap.tsv` shows 18 rows, every image unique, and the cycle from (owner, belam) has length 18 (AA2.1) on today's cells; `wc -c` of config:engine <= 8192 and `agi-gate HEAD` rc 0 (AA2.4).
-2. (SUPERSEDED by section AB where it conflicts: the ring is a trunk node ruled by grow-gate, and ckpt, revoke and pq are new pieces; falsifier AA2.63 is the size gate.) Negative: `git grep -n 'valid-after' -- <any post-writable path>` returns zero hits (the ring is root-owned only), and no new engine PIECE is added (the piece list of config:engine is unchanged).
+2. Negative: `git grep -n 'valid-after' -- <any post-writable path>` returns zero hits (the ring is root-owned only), and no new engine PIECE is added (the piece list of config:engine is unchanged).
 
 ## Out of scope
 goal:g7.16.1.11.11 (boxes) · goal:g7.16.1.11.13 (land) · goal:g7.16.1.11.14 (skill deltas, incl. the load matrix) · the group vertex's own key (banked to the council) · who owns KEYS if not AA2 (open: AA2 or AA3, the bundle proposes AA2).
 
 ## Agent Notes
 Assigned to **director-general-1**.
-
-10-07 council placement (alive 14:54Z, sp): the engine pieces pq nested inner signature, revoke piece (+ LC_ALL=C), flowrot, round B mail collection and the sealer box side (block_push) are NEXT season under the owner's bypass; THIS season keeps the ring install with agi-signers retired in the same step (belam's GO) and the A10 ckpt on the hub; their falsifier lanes already written (pq-nest.t.sh c6176d986) stay unbuilt.
-
-belam-s2-II 03:4xZ 10-10 LANE (Prime, under the g7.16.1.11 HOLD): AA1.V (8bcdc0560d) opened a rare key-stranding path (agi-at reset fails after update-ref -> agi-out rm .ssh/n while posts/P names the new key; a kill in that window makes a second ring commit). DG3 builds the narrow fix: ring read from the branch, best-effort reset after a landed update-ref, .ssh/n destroyed only if the tip did not move; gate = DG2 P1/P2 rows + mutants + one narrow mur.
