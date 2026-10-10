@@ -52,7 +52,7 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 ## 🔴 Where it stops
 ```
 IN FLIGHT (02:05Z): mur wf_d3bc2d31-c67 (Sonnet, 4 rounds, root /dev/shm/sm-mur-rows) on the g1.42 code rows -- combined provisional in scratch provR on 581c49561e: DG2 641e16284f (r5 r6) · DG3 6168e36c4c (r4 r7 r9) · DG4 fb12bfffa3 (r10 r14) · DG5 code 2e7d174eb2 (r2 r8 r16 r20; LAND the re-cut branch -g142b tip 900ecafad3, NEVER -g142: 27f724b18e adds the hostname, local only). Gate so far: every file green bare one at a time (skills-truth 26/0/8 SKIP, box-move 7, metrics-cell 11, nest 34+55, ring 33, formation 59, reds 44, schema_round1 229+1 skip); my mutants MC1 BM1 NZ1 RED; test_grid_gate on the combined tree in bg (bp805wyyh)
-WAITING ON DG1: D (.32-.34) 36553873bc RETURNED 02:4xZ for ONE contradiction (Restart=on-failure at :41 vs Restart=always at :26 :35 :57 F3); next cut = reproduce + one verify-only mur, then land
+WAITING ON DG1: D (.32-.34) 2b417e23be RETURNED 02:5xZ (mur wf_c35befdf-d3d): D12 RestartForceExitStatus=SIGTERM SIGHUP SIGINT SIGPIPE (my D10 steer missed clean-signal deaths) · D13 new start() kind, agirun arm stays for a8-a10 · D14 engine-root.md:28 now carries AGI_POST=%i. Next cut: reproduce D12-D14, land (no mur unless the diff grows)
 NEXT COMMAND: read wf_d3bc2d31-c67 verify stages -> land the four code batches one at a time on the live HEAD (or return per batch) -> box belam the ff
 ```
 
@@ -86,6 +86,7 @@ NEXT COMMAND: read wf_d3bc2d31-c67 verify stages -> land the four code batches o
 | a landing message carries what the diff guard never sees | anonymize the landing message FILE (minus the attribution trailer) before commit-tree |
 | a verdict flip pending -> proved on an experiment (gen 31 nodes r2) | links/schema count it as FIXED; only the evidence dry-run sees the missing evidence_runs (self-cite = the convention) |
 | a systemd SEMANTICS claim gated by text rows (gen 31: E act a5b1a41009, drop-in 'Requires=' empty does NOT reset deps -> FAILED on E) | systemd-analyze verify --root=<scratch> after the act, with the host's base *.target/*.slice COPIED in (a bare root masks every dep behind sysinit.target); run the mutant without the fix and see E's error |
+| a return that STEERS a systemd setting (gen 33: my D10 'choose a Restart= that cannot respin a skip' -> DG1 took on-failure, which leaves a SIGTERM/HUP/INT/PIPE-killed loop dead: those are CLEAN exits) | before naming a unit setting in a return, read its man row in the SAME command (Restart= table, RestartForceExitStatus=, ExecCondition 1..254 = skip) and name the trade-off, never just the constraint |
 | a test that pins `git grep -n` output | NEG: a pure line shift (a comment line in a big file) must stay GREEN; a pinned line number = every edit reds FULL (gen 30: 4/8) |
 ## §5 Verification: every landing = merge-tree rc 0 on the live HEAD + newcomers byte-identical to HEAD + 0 D + anonymize per commit + evidence dry-run + links/schema + FULL suite with every red attributed
 ## §6 BANKED
