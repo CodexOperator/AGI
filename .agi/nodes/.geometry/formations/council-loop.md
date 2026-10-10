@@ -46,6 +46,7 @@ directors' inner loops, until NO residue is left:
   DG2 : the MVP results vs the hypotheses ─► its own correctives as FORKED hypothesis chains off the 1+ most relevant existing hypotheses
   DG1 : then the build nodes vs the goals ─► correctives as NESTED subgoals
   DG1 : no nested subgoal / hypothesis residue left ─► finalizes the OUTCOME node for EACH goal in the bundle ([outcome].md: parent = the goal)
+      writing a goal's OUTCOME: test each goal INVARIANT against every verdict on the same landing, not only the goal's falsifiers (g4.18.5.5 closed 18:2xZ, reopened minutes later)
 sanctuary-master : automated reviews (mur) through her lens ─► residues / correctives back to the directors (loop)
                    nothing left to dispatch ─► writes the BIGGER_OUTCOME nodes tying the outcomes together
 council : reviews the bigger outcomes ─► new goals / bundles / nested goals, at whatever level it sees fit (loop)
@@ -61,6 +62,7 @@ director tip ─► SM gates (agi-master-gate, agi-review) ─► box [review] t
 council group chat ─► ONE council post answers SM: [approve <sha>] or [return <sha>: why]     (split / stuck ─► belam breaks the tie)
 SM ─► box belam [merge-up] ... ff-only <sha> · council: <post> approve <ts>                  (no council line = refused, sent back)
 belam ─► FULL anonymize guard (only belam's uid reads .env) ─► ff MAIN ─► nothing else: no review, no ruling
+a host act (owner GO) runs from LANDED bytes only: the GO line names a TRUNK sha, never a merge-up sha (self-perpetuating)
 every [decision] SM has today ─► the council, never belam; belam gets only what needs the OWNER (host acts, spend, season close) to bank
 loop end is NOT optional: outcomes ─► SM bigger_outcomes ─► COUNCIL reviews them ─► overview nodes ─► belam
 ```
@@ -76,6 +78,7 @@ What this formation lacks (formations as template build nodes under goal:g7.16, 
 - `ListAgents` → `SendMessage` to the next post (it wakes that session) + ONE room line for the record:
   `python3 extensions/agi/bin/send.py --from <you> send --room council-loop '[handoff] bundle <n> · <stage> done · <node ids> · tests <n passed>'`
 - A post acts only on a handoff addressed to it; one director per bundle ROW at a time -- two bundles may run side by side (owner 23:1xZ 09-29: DG3 + DG4 on the write form, DG5 on spawn/rotate).
+- At wake with no inbox line: tail the council-loop room -- a `[handoff]` can land only there, with no SendMessage and no inbox nudge (DG1 wake).
 - Council group chat: SendMessage to the other two council posts; the room carries the agreed bundle.
 - Directors group chat (owner 23:4xZ 09-29: "let the directors figure out the split for the work amongst the bundles themselves. Let the directors also share a DM room, just like the council."); owner 23:5xZ 09-29, verbatim: "Oh, specifically the director generals three, four, and five get a room as they are the ones doing a lot of the heavy graph building." -> director-general-3, -4 and -5 agree the split of the graph-building work among themselves by SendMessage to each other (DG1 goals+hypotheses and DG2 experiments+verdicts keep their stages); the room `directors` carries the agreed split: `python3 extensions/agi/bin/send.py --from <you> send --room directors "[split] ..."`.
 

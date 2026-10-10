@@ -276,6 +276,8 @@ across a handoff instead of fixed in-loop became `goal:s34`.
 
 > **OLD SETUP:** a post whose row has engine.v 4 edits node files with plain Write/Edit and agi-turn commits; owner 10-01 23:3xZ. The rest of this section is that setup's rule, unchanged.
 
+> **Never rename this heading:** `rolslice.py:102,109,117` match it verbatim -- add a label under it instead (DG5).
+
 **One way in (old setup).** Creating a node, editing its frontmatter, appending a body note,
 rewriting its `THOUGHT` or `FEELING` region — all of it is
 `bin/write.py`, for a mechanical reason: a plain file write still gets a grid
