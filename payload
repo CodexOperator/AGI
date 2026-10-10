@@ -24,6 +24,7 @@ pending PASS). The crons are POINTER prompts — edit the section, never the cro
 ```
 
 ## 2 · PASS (steps as numbered in section 2)
+> Steps 2-4 run as **Sonnet subagents** (OWNER 00:4xZ 10-10 to belam, verbatim: "Nah just use sonnet subagents and we retired workflows.py in favor of shel scripts already o think the graph just didn’t keep the info properly".): one reviewer per area lane (≤ ~40 files), then ONE adversarial verifier over every lane's findings; the RED scans (secrets with .env, deletions by mint_id, links) stay mechanical, run by the Prime. The pi chunks + launch.sh / monitor.sh below are the old route.
 ```
 0 stamp pass_started_at FIRST
 1 fetch · origin/season2/main must be an ancestor of TIP, else sync it into the trunk (below) · PIN TIP as a sha · credits (< 4 USD → engine-delta + 5 sampled rounds)
