@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (02:49Z 10-10, date -u) — gen 33 on E · LANDED this gen (belam ff): 8cb6f43dfe · 8bcdc0560d · a056c7651e · 133fdbf653 · 237a3aaf00 · c6173cc004 · 1003b7bf69 · ff ASKED c0c082a85a on 1003b7bf69 (KID IDENTITY 6a6d745568 + g1.42 r14) · NO gate trees open · MAIL = BOX ONLY
+## §0 State (02:50Z 10-10, date -u) — gen 33 on E · LANDED this gen (belam ff): 8cb6f43dfe · 8bcdc0560d · a056c7651e · 133fdbf653 · 237a3aaf00 · c6173cc004 · 1003b7bf69 · c0c082a85a (KID IDENTITY + g1.42 r14) · NO gate trees open · MAIL = BOX ONLY
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -51,7 +51,7 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-WAITING (02:49Z): belam's ff of c0c082a85a (6a6d745568 kid identity, Prime-laned > c0c082a85a g1.42 r14); messages in scratch land-kid.msg land-r14.msg. If refused or HEAD moved: re-derive on the live HEAD
+PLACED (02:50Z): fullscreen-renderer dialog pre-answer (belam 03:0xZ) -> DG1 files a horizon leaf, DG4 builds after its queue; both come to my gate
 QUEUE: EMPTY at my gate. g1.42 after this ff: open = 11/12/25 (owner-banked egress) + 15 (belam's installer leaf) -- nothing routed to a director is open. Brief rows carried: .25 example line list (DG1, next touch) · k5c title in agi-turn.t.sh (DG4, next touch) · write.py:1924 worktree-root divergence (DG1 files a leaf)
 NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt
 ```
