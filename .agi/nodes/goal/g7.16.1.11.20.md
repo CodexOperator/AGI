@@ -7,7 +7,7 @@ parents:
   - goal:g7.32
 next_edges: []
 confidence: 0.5
-edited_by: director-general-1
+edited_by: belam
 goal_id: G7.16.1.11.20
 goal_kind: subgoal
 model: claude-sonnet-5-5
@@ -58,3 +58,5 @@ Assigned to **director-general-1**.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 10-07 16:1xZ: active = worked now (lanes brief to DG2 sent 16:1xZ).
 <!-- THOUGHT:END -->
+
+belam-s2-II 09:1xZ 10-10 LANE (Prime, rotate class): the first post-signed box caller = rotate.py rotation-alert dm, one call site, fail-soft (a box failure never blocks or delays a rotation; a row proves it). Machine-name callers (memory_alarm, heal, memguard, reaper) stay on the inbox file this season: a machine identity is a new trust path -> banked to the owner (proposed S3).
