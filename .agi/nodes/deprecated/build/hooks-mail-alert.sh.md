@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:hooks-mail-alert.sh"
+id: build:hooks-mail-alert.sh
 mint_id: b220a71cd267405aae1c331540f183ab
-origin: build-scan
+type: build
 parents:
   - mvp:hooks
+build_kind: code
+confidence: 1.0
+deprecated_on: "2026-10-10"
+edited_by: director-general-4
+origin: build-scan
 payload_ref: extensions/agi/hooks/mail-alert.sh
+status: deprecated
 tags:
   - build
   - code
   - g2.1
 title: "Build: extensions/agi/hooks/mail-alert.sh"
-type: build
 ---
-
 `extensions/agi/hooks/mail-alert.sh` — level-3 code node (one file, one canonical node).
 
 Census parent: `mvp:hooks`.

@@ -1,8 +1,9 @@
-"""Tests for the grid_sync town MIRROR — item 2 of the I-3a-2 order
+"""Tests for the town_mirror cron job (the town MIRROR) — item 2 of the I-3a-2 order
 (hypothesis:l4-the-reshuffle-plans-the-final-town-first-tree-from-the-town-
 tuples-and-the-mirror-line-lands-inert, region C).
 
-When `cadences.grid_sync.mirror_towns` is true, `render_managed_lines`
+When the job `cadences.town_mirror` is enabled (goal:g7.16.1.11.13.1: the mirror moved
+out of the grid_sync block, independent of it), `render_managed_lines`
 appends one GUARDED push per declared town, publishing every
 `refs/heads/<town>/*` to `refs/agi/<town>/*` — NEVER to `refs/heads`. The
 guard (`git for-each-ref refs/heads/<town>/ | grep -q .`) runs before the
@@ -66,7 +67,8 @@ def _ls_remote(bare: Path) -> list[str]:
 
 def _mirror_cadences():
     return {
-        "grid_sync": {"every_mins": 5, "enabled": True, "mirror_towns": True},
+        "grid_sync": {"every_mins": 5, "enabled": True},
+        "town_mirror": {"every_mins": 5, "enabled": True},
         "engine_push": {"schedule": "47 * * * *", "enabled": False},
     }
 
@@ -129,7 +131,7 @@ def _run(cmd: str, cwd: Path) -> subprocess.CompletedProcess:
                           cwd=str(cwd))
 
 
-# --- the three claims ---------------------------------------------------
+# ==== the three claims ====
 
 
 def test_guard_is_a_no_op_when_no_town_refs(tmp_path, monkeypatch):
@@ -174,7 +176,7 @@ def test_guard_pushes_only_under_refs_agi(tmp_path, monkeypatch):
 def test_guard_shape_is_pinned(tmp_path, monkeypatch):
     root, repo_root, engine_root, node, bare, mirror = _setup(tmp_path, monkeypatch)
     line = mirror[0]
-    # A single cron line, grid_sync cadence, cd-into-root first.
+    # A single cron line, town_mirror cadence, cd-into-root first.
     assert "\n" not in line
     assert line.startswith("*/5 * * * *")
     assert f"cd {root} &&" in line
@@ -188,29 +190,53 @@ def test_guard_shape_is_pinned(tmp_path, monkeypatch):
     assert ":refs/heads/" not in line
 
 
-def test_load_crons_node_parses_mirror_towns(tmp_path):
+def test_load_crons_node_parses_the_town_mirror_cell(tmp_path):
     root = tmp_path / "proj"
     root.mkdir(parents=True)
     _write_crons_node(root)
     node = crons.load_crons_node(root)
-    assert node["jobs"]["grid_sync"]["mirror_towns"] is True
+    assert node["jobs"]["town_mirror"]["enabled"] is True
+    assert "mirror_towns" not in node["jobs"]["grid_sync"], node["jobs"]["grid_sync"]   # the flag is GONE from the cell (the old `... or is False` could not fail: the loader never emits the key)
 
 
-def test_mirror_towns_absent_defaults_to_false(tmp_path):
+def test_town_mirror_absent_renders_no_mirror_line(tmp_path, monkeypatch):
+    root, repo_root, engine_root, node, bare, mirror = _setup(tmp_path, monkeypatch)
+    assert len(mirror) == 1   # the control: declared = one line per town
+    cad = _mirror_cadences()
+    del cad["town_mirror"]
+    _write_crons_node(root, cad)
+    node2 = crons.load_crons_node(root)
+    lines = crons.render_managed_lines(root, repo_root, engine_root, node2)
+    assert [l for l in lines if "for-each-ref" in l and "refs/agi/" in l] == []
+
+
+def test_town_mirror_disabled_renders_no_mirror_line(tmp_path, monkeypatch):
+    root, repo_root, engine_root, node, bare, mirror = _setup(tmp_path, monkeypatch)
+    cad = _mirror_cadences()
+    cad["town_mirror"]["enabled"] = False
+    _write_crons_node(root, cad)
+    node2 = crons.load_crons_node(root)
+    lines = crons.render_managed_lines(root, repo_root, engine_root, node2)
+    assert [l for l in lines if "for-each-ref" in l and "refs/agi/" in l] == []
+
+
+def test_town_mirror_renders_with_grid_sync_off(tmp_path, monkeypatch):
+    """The point of the move: grid_sync disabled, the mirror line still renders."""
+    root, repo_root, engine_root, node, bare, mirror = _setup(tmp_path, monkeypatch)
+    cad = _mirror_cadences()
+    cad["grid_sync"]["enabled"] = False
+    _write_crons_node(root, cad)
+    node2 = crons.load_crons_node(root)
+    lines = crons.render_managed_lines(root, repo_root, engine_root, node2)
+    assert len([l for l in lines if "for-each-ref" in l and "refs/agi/" in l]) == 1
+    assert [l for l in lines if "grid.py" in l] == []
+
+
+def test_town_mirror_non_bool_enabled_refused(tmp_path):
     root = tmp_path / "proj"
     root.mkdir(parents=True)
     cad = _mirror_cadences()
-    del cad["grid_sync"]["mirror_towns"]
+    cad["town_mirror"]["enabled"] = "yes"
     _write_crons_node(root, cad)
-    node = crons.load_crons_node(root)
-    assert node["jobs"]["grid_sync"].get("mirror_towns") is False
-
-
-def test_mirror_towns_non_bool_refused(tmp_path):
-    root = tmp_path / "proj"
-    root.mkdir(parents=True)
-    cad = _mirror_cadences()
-    cad["grid_sync"]["mirror_towns"] = "yes"
-    _write_crons_node(root, cad)
-    with pytest.raises(crons.CronsError, match="mirror_towns"):
+    with pytest.raises(crons.CronsError, match="enabled"):
         crons.load_crons_node(root)

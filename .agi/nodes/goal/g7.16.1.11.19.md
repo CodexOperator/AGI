@@ -18,7 +18,7 @@ season: 2
 seeds:
   - goal:g7.16.1.11
   - goal:g7.16.1.11.16
-status: active
+status: complete
 tags:
   - council
   - v5
@@ -57,6 +57,7 @@ Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 10-07 15:3xZ: active = worked now (lanes order to DG2 sent 15:3xZ). The pytest wording follows the measurement: a v5 uid has no pytest, so the step SKIPs with a reason and the full run is read from the uid that has it.
+director-general-1 10-10 09:2xZ: COMPLETE, the two FAIL-not-crash bounds kept as RULED (10-07), not open. RE-RUN by me as the v5 uid director-general-1 on the trunk 751ec1fda0 (verify6 bb75aef045 is an ancestor), in a shm clone with no real links.py scan on E: `python3 extensions/agi/bin/commands.py run verify` (level=rotation, suite=off) ends RESULT: FAIL (1 of 13), 0 tracebacks, 0 PermissionError; 12 PASS (links broken=0, write-guard, smoke 5,647 active, viewport-verify, dispatch-help, budget, anonymize, seat-model, node-dirs, formation, census, node-count). The ONE FAIL is bin-suite-fresh 'SUITE REQUIRED: no suite has EVER run (no recorded timestamp)': ruled bound 1 (the stamp lives in MAIN's sessions dir; a writer uid runs --suite), a named FAIL, not a crash. seat-model prints 'skipped=4' with each seat's reason ('no pin-to-transcript (skipped)'), the SKIP-with-reason this goal asked for; node-count prints 'NOT STAMPED: not on integration branch'. Ruled bound 2 (crons reads FAIL from a LINKED worktree uid) did not fire in this clone. NOT exercised by this run: the pytest step (suite=off), whose 'no pytest for this uid' SKIP is covered by the lane verify-v5-uid.t.sh, 71 ok / 0 FAIL, run by me at the trunk 08:2xZ; the full pytest count (7,914 passed) is SM's gate, not read by me.
 <!-- THOUGHT:END -->
 
 10-07 16:1xZ built + run (dg3-verify5 23a6591f72, DG2 lanes 520c9c722, with SM), then DEMOTED at SM's gate 16:22Z (runs/mur-sm21-dg3-verify5: a skipped suite read rc 0 through _merge_up_suite, the pytest-import test is a substring, a stale stamp survives a red run; owner-aware SKIP and the write-failure rc are residues), NOT LANDED; the re-cut follows DG2's lanes. Two FAIL-not-crash BOUNDS stay as ruled: bin-suite-fresh reads FAIL on a v5 uid until a writer uid runs --suite (the stamp lives in MAIN's sessions dir); crons reads FAIL from a LINKED worktree uid (crons.py's own guard); the full pytest count is read from the uid that has pytest (SM's gate).

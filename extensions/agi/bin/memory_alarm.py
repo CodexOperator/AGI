@@ -21,7 +21,7 @@ Signals, all read from the kernel (never from a process list):
 Levels ok < warn < crit. On a rise, and every --repeat-mins while raised:
 one line to the guard's alerts.log (its `TS HOST MESSAGE` shape, so
 `guard-init.sh --status` lists it) and one [red] dm per --notify post through
-send.py (the seat's mail_alert hook and the 2-min wake surface it). On the
+send.py (the 2-min wake surfaces it). On the
 fall back to ok: one CLEARED line + dm. A run that changes nothing writes
 nothing (hypothesis:cron-layer-keeps-its-disk-footprint-bounded).
 """

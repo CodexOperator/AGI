@@ -2,7 +2,7 @@
 
 `grid_retired(root)` = a lazy `import crons`, then `crons.load_crons_node(<SHARED root>)["jobs"]["grid_sync"]["enabled"] is False` (the shared root is `locations.shared_project_root`, like `ref_ns_for`: a linked worktree carries its own `.agi` that can lag); ANY exception is NOT retired. So the gate is retired ONLY when crons.py reads `grid_sync.enabled` as False: every YAML-1.1 off spelling (`false`, `False`, `FALSE`, `no`, `No`, `off`, `Off`), flow style, a comment, CRLF, indents read not assumed. `crons_live: false`, a `box:` gate and an absent key also drop the job from the applier but leave the gate OPEN (fail-safe). Not retired: true / yes, a missing file / key / job, and everything crons.py refuses (it validates the WHOLE node: an empty / 0 / "false" / `n` value, a tab, a BOM, no closing `---`, an unknown job with no `cmd`, `import yaml` missing) and a DEEPER `enabled: false` (grid_sync.mirror.enabled). Retired, `grid.py commit` and `grid.py push-changed` print `grid: retired (cron:crons grid_sync.enabled false); nothing written` and exit 0; read verbs are not gated.
 
-Every row builds its OWN node in a scratch repo (the live crons.md is only the base of the other cadences), except B8f, which edits the LIVE node. RED on the trunk without the gate: the retired B8 / B8c / B8e / B8f / B8h rows; GREEN without it: the RENDER rows B4 B5 B7 (the cron block loses only grid_sync lines, renders no grid writer, the pre-switch node is the witness) and every not-retired row. B8: BEHAVIOURAL, retired `grid.py commit --all`, `push-changed`, rotate.py's `_button_down` and closeout `_grid_commit` leave refs/grid byte-identical (and the scratch origin holds none); the same calls with grid_sync ON move it (the witnesses), and every not-retired state moves it too. B8b pins the rotate.py writer FUNCTIONS to {_grid_commit, _button_down, _push} (a fourth is a RED); B9 proves the scanner can see one. B8c: the gate reads the SHARED root. B8d: a deeper `enabled: false` never retires the job. B8e: the switch node as RAW TEXT, one row per shape (every other row writes it through yaml.safe_dump, which can only emit the canonical form), each shape ANCHORED to what `crons.load_crons_node` says about it (an anchor row per shape, so the table is not opinion), each row asserting the verdict AND what the verbs did. B8h (SM residue, DG1 ruling (b); B8h-3 the legacy `grid.py cron install` snap line, DG1 15:18Z): a RETIRED push may publish ONLY tips that already exist locally: rotate's closeout push step and `grid.py sync` (the operator's verb, ungated by design) leave the local refs/grid/* identical, the origin ends equal to local, a second push moves nothing. B8f: the REAL node (the trunk's crons.md with ONLY `grid_sync.enabled` set to false is retired; unflipped is not) and `import yaml` missing AFTER grid loaded (not retired, no exception; the same call a line earlier is True: this row is also what sees a module-level `import crons`, which keeps its binding when `crons` is dropped from sys.modules).
+Every row builds its OWN node in a scratch repo (the live crons.md is only the base of the other cadences), except B8f, which edits the LIVE node. RED on the trunk without the gate: the retired B8 / B8c / B8e / B8f / B8h rows; GREEN without it: the RENDER rows B4 B5 B7 (the cron block loses only grid_sync lines (and, with .13.1 F2, has the mail_poll fetch rewritten by exactly one substitution), renders no grid writer, the pre-switch node is the witness) and every not-retired row. B8: BEHAVIOURAL, retired `grid.py commit --all`, `push-changed`, rotate.py's `_button_down` and closeout `_grid_commit` leave refs/grid byte-identical (and the scratch origin holds none); the same calls with grid_sync ON move it (the witnesses), and every not-retired state moves it too. B8b pins the rotate.py writer FUNCTIONS to {_grid_commit, _button_down, _push} (a fourth is a RED); B9 proves the scanner can see one. B8c: the gate reads the SHARED root. B8d: a deeper `enabled: false` never retires the job. B8e: the switch node as RAW TEXT, one row per shape (every other row writes it through yaml.safe_dump, which can only emit the canonical form), each shape ANCHORED to what `crons.load_crons_node` says about it (an anchor row per shape, so the table is not opinion), each row asserting the verdict AND what the verbs did. B8h (SM residue, DG1 ruling (b); B8h-3 the legacy `grid.py cron install` snap line, DG1 15:18Z): a RETIRED push may publish ONLY tips that already exist locally: rotate's closeout push step and `grid.py sync` (the operator's verb, ungated by design) leave the local refs/grid/* identical, the origin ends equal to local, a second push moves nothing. B8f: the REAL node (the trunk's crons.md with ONLY `grid_sync.enabled` set to false is retired; unflipped is not) and `import yaml` missing AFTER grid loaded (not retired, no exception; the same call a line earlier is True: this row is also what sees a module-level `import crons`, which keeps its binding when `crons` is dropped from sys.modules).
 
 Override the units under test: CRONS_NODE=<crons.md copy> (the base node), GRID_PY=<grid.py copy> (the gate; copied into the scratch engine dir next to the real crons.py), ROTATE_PY=<rotate.py copy> (a new writer).
 """
@@ -33,6 +33,7 @@ LIVE_NODE = Path(os.environ.get("CRONS_NODE")
                  or REPO / ".agi" / "nodes" / ".geometry" / "crons.md")
 BOX_SCHEMA = REPO / ".agi" / "context" / "schemas" / "[box].md"
 BOX = "encryption-town"
+MAIL_BOX = "local-town"   # mail_poll stays box-gated to local-town (the hub reader): the rows that read ITS line render the block for that box
 
 
 def git(repo: Path, *args: str, check: bool = True, env: dict | None = None) -> str:
@@ -177,15 +178,76 @@ def cron_run(line: str, env: dict) -> subprocess.CompletedProcess:
 
 
 
-def test_b4_the_switch_removes_only_grid_sync_lines(tmp_path):
-    post = render(make_project(tmp_path, fm_with(grid_sync=False), name="post"))
-    pre = render(make_project(tmp_path, fm_with(grid_sync=True), name="pre"))
+#: goal:g7.16.1.11.13.1 F2 (DG1 ruling 19:2xZ): the flip rewrites the mail_poll line's plain fetch to an explicit heads refspec, so no plain fetch updates refs/grid. It is the ONE
+#: line the flip may change instead of remove, and by exactly this one substitution.
+FETCH_OLD = "fetch -q origin"
+FETCH_NEW = "fetch -q origin '+refs/heads/*:refs/remotes/origin/*'"
+
+
+def switch_pair(tmp_path: Path) -> tuple[list[str], list[str]]:
+    """(pre, post): the cron block rendered with grid_sync ON and OFF, the scratch root and the log name normalised."""
+    post = render(make_project(tmp_path, fm_with(grid_sync=False), name="post"), MAIL_BOX)
+    pre = render(make_project(tmp_path, fm_with(grid_sync=True), name="pre"), MAIL_BOX)
     n = lambda ls, r: [re.sub(r"agi-crons-\S+?\.log", "LOG", l.replace(str(r), "R")) for l in ls]
-    pre, post = n(pre, tmp_path / "pre"), n(post, tmp_path / "post")
-    removed = [l for l in pre if l not in post]
-    assert removed and all("grid.py" in l or "refs/agi/" in l for l in removed), removed
-    assert [l for l in post if l not in pre] == []
+    return n(pre, tmp_path / "pre"), n(post, tmp_path / "post")
+
+
+def switch_problems(pre: list[str], post: list[str]) -> list[str]:
+    """What the flip did beyond 'remove the grid_sync lines': every removed line names grid.py or refs/agi/, EXCEPT the mail_poll line (it holds `send.py read`), which is not removed
+    but REWRITTEN by exactly FETCH_OLD -> FETCH_NEW (once, at the first match); no other line is added, and ON (today's) carries no heads refspec."""
+    removed, added = [l for l in pre if l not in post], [l for l in post if l not in pre]
+    bad = [f"a pre line already carries the heads refspec: {l}" for l in pre if "refs/remotes/origin" in l]
+    if not removed:
+        bad.append("the flip removed nothing")
+    swapped = [l for l in removed if "send.py read" in l and FETCH_OLD in l and l.replace(FETCH_OLD, FETCH_NEW, 1) in added]
+    bad += [f"a removed line names neither grid.py nor refs/agi/ (and is not the mail_poll rewrite): {l}" for l in removed if l not in swapped and not ("grid.py" in l or "refs/agi/" in l)]
+    bad += [f"an added line is not the one mail_poll fetch substitution: {l}" for l in added if l not in [s.replace(FETCH_OLD, FETCH_NEW, 1) for s in swapped]]
+    bad += [f"{len(swapped)} mail_poll rewrites (at most one)"] if len(swapped) > 1 else []
+    return bad
+
+
+def test_b4_the_switch_removes_only_grid_sync_lines(tmp_path):
+    """The cron block loses only grid_sync lines; the ONE other change is the mail_poll fetch, rewritten by exactly FETCH_OLD -> FETCH_NEW (F2). A build without F2 (no rewrite) is GREEN too."""
+    pre, post = switch_pair(tmp_path)
+    assert switch_problems(pre, post) == []
     assert any("push -q origin" in l for l in post), "branch_push line stays"
+
+
+def _mail_poll(ls: list[str]) -> str:
+    one = [l for l in ls if "send.py read" in l and FETCH_OLD in l.replace(FETCH_NEW, FETCH_OLD)]
+    assert len(one) == 1, one
+    return one[0]
+
+
+def _flipped(pre: list[str], rewrite: bool) -> list[str]:
+    """A hand-made POST block from the rendered PRE one (build-independent): the grid_sync lines gone, the mail_poll line rewritten by FETCH_OLD -> FETCH_NEW or, without `rewrite`, kept."""
+    mp = _mail_poll(pre)
+    return [mp.replace(FETCH_OLD, FETCH_NEW, 1) if rewrite and l == mp else l for l in pre if l == mp or not ("grid.py" in l or "refs/agi/" in l)]
+
+
+def test_b4_the_hand_made_flips_are_green_with_and_without_the_fetch_rewrite(tmp_path):
+    """Controls for the mutant rows: the rewrite is allowed, not required (a build without F2 stays GREEN; F2's own rows pin the rewrite)."""
+    pre, _ = switch_pair(tmp_path)
+    assert FETCH_NEW in _mail_poll(_flipped(pre, True)) and switch_problems(pre, _flipped(pre, True)) == []
+    assert FETCH_NEW not in _mail_poll(_flipped(pre, False)) and switch_problems(pre, _flipped(pre, False)) == []
+
+
+@pytest.mark.parametrize("name,edit", [
+    ("a different refspec", lambda ls: [l.replace(FETCH_NEW, FETCH_OLD + " '+refs/*:refs/remotes/origin/*'") for l in ls]),
+    ("the substitution twice in the line", lambda ls: [l.replace(FETCH_NEW, FETCH_NEW + " " + FETCH_NEW) for l in ls]),
+    ("a SECOND line differs (branch_push gains a flag)", lambda ls: [l.replace("push -q origin", "push -q --force origin") if "push -q origin" in l else l for l in ls]),
+    ("a second line is ADDED", lambda ls: [*ls, "*/5 * * * * cd R/.agi && echo extra >> LOG 2>&1"]),
+    ("the mail_poll line is dropped, not rewritten", lambda ls: [l for l in ls if FETCH_NEW not in l]),
+    ("the rewrite also changes the rest of the line", lambda ls: [l.replace("--peek", "--peek --all") if FETCH_NEW in l else l for l in ls]),
+])
+def test_b4_mutants_a_second_differing_line_or_another_substitution_is_red(tmp_path, name, edit):
+    """One edit to the hand-made POST block each: another refspec, the substitution twice, a second line changed, a line added, the mail_poll line dropped, the mail_poll line changed beyond
+    the substitution: each is a problem (the row can fail), the un-mutated block is GREEN (row above)."""
+    pre, _ = switch_pair(tmp_path)
+    post = _flipped(pre, True)
+    mutant = edit(post)
+    assert mutant != post, name
+    assert switch_problems(pre, mutant), name
 
 
 def test_b5_no_builtin_job_renders_a_grid_writer(tmp_path):
@@ -680,15 +742,20 @@ def test_b8e_the_table_has_both_verdicts_in_depth():
 # --- B8f: the REAL node, and `import yaml` missing ---
 
 
-def test_b8f_the_real_node_with_only_grid_sync_off_is_retired_unflipped_is_not(tmp_path):
-    """The flip's own acceptance: the trunk's live crons.md (crons.py must read it) with ONLY `grid_sync.enabled: false` set."""
-    live = LIVE_NODE.read_text()
-    m = re.search(r"^(  grid_sync:\n(?:    .*\n)*?    enabled: )true$", live, re.M)
-    assert m, "the live node no longer spells `grid_sync:` ... `enabled: true` on its own line: re-pin this row"
-    flipped = live[:m.start()] + m[1] + "false" + live[m.end():]
-    assert len(live.splitlines()) == len(flipped.splitlines()) and [a for a, b in zip(live.splitlines(), flipped.splitlines()) if a != b] == [m[0].splitlines()[-1]], "exactly one line differs"
-    assert crons_says(tmp_path / "live", live) is False and crons_says(tmp_path / "flip", flipped) is True, "crons.py must read today's node (a refusal makes the flip impossible)"
-    for text, retired in ((flipped, True), (live, False)):
+def _grid_sync_spelled(live: str, value: str) -> str:
+    """The real node with ONLY the `grid_sync:` `enabled:` line set to `value` ('true' | 'false'), whichever spelling the live node carries."""
+    m = re.search(r"^(  grid_sync:\n(?:    .*\n)*?    enabled: )(?:true|false)$", live, re.M)
+    assert m, "the live node no longer spells `grid_sync:` ... `enabled: true|false` on its own line: re-pin this row"
+    return live[:m.start()] + m[1] + value + live[m.end():]
+
+
+def _b8f_acceptance(tmp_path, live: str):
+    """The flip's own acceptance, FROM A FIXTURE of the real node: `on` = grid_sync enabled, `off` = ONLY that line false."""
+    on, off = _grid_sync_spelled(live, "true"), _grid_sync_spelled(live, "false")
+    diff = [a for a, b in zip(on.splitlines(), off.splitlines()) if a != b]
+    assert len(on.splitlines()) == len(off.splitlines()) and len(diff) == 1 and diff[0].strip() == "enabled: true", "exactly one line differs"
+    assert crons_says(tmp_path / "live", on) is False and crons_says(tmp_path / "flip", off) is True, "crons.py must read today's node (a refusal makes the flip impossible)"
+    for text, retired in ((off, True), (on, False)):
         root, env = seeded(tmp_path / ("flip" if retired else "live"))
         before = refs_grid(root.parent)
         (root / "nodes" / ".geometry" / "crons.md").write_text(text)
@@ -697,6 +764,20 @@ def test_b8f_the_real_node_with_only_grid_sync_off_is_retired_unflipped_is_not(t
         assert a.returncode == 0 and b.returncode == 0 and "Traceback" not in a.stderr + b.stderr, (a.stderr[-300:], b.stderr[-300:])
         assert (RETIRED in a.stdout and RETIRED in b.stdout) is retired, (retired, a.stdout[-200:])
         assert (refs_grid(root.parent) == before) is retired, f"retired={retired}: refs/grid {'moved' if retired else 'did not move'}"
+
+
+def test_b8f_the_real_node_with_only_grid_sync_off_is_retired_unflipped_is_not(tmp_path):
+    """The flip's own acceptance on the trunk's live crons.md (crons.py must read it): ONLY `grid_sync.enabled` differs. goal:g1.42 B5 row 7: modelled on a
+    fixture of the real node, so it neither needs the live node to spell `enabled: true` today nor reds the day the flip happens."""
+    _b8f_acceptance(tmp_path, LIVE_NODE.read_text())
+
+
+def test_b8f_the_acceptance_holds_from_the_post_flip_spelling_too(tmp_path):
+    """The same acceptance when the live node ALREADY spells `grid_sync.enabled: false` (the day after the flip): the row neither reds nor goes vacuous."""
+    live = LIVE_NODE.read_text()
+    after = _grid_sync_spelled(live, "false")
+    assert after != _grid_sync_spelled(live, "true"), "the post-flip fixture must differ from the unflipped one"
+    _b8f_acceptance(tmp_path, after)
 
 
 YAML_GONE = """
