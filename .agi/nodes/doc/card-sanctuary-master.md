@@ -52,10 +52,10 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 32 (00:05Z 10-10): (1) AA1.V v5e 013977e916 on /dev/shm/sm-gate-v5e: guard ok, 105/0, my N1 N2 N4 now RED; lanes -> scratch v5eg/ then N6 (leading dot) -> task b5xovp877; mur wf_72b3959b-6d8. OPEN: the name rule refuses 96 existing node basenames (94 ':' , 2 leading '.': build/.env.example, build/.gitignore) -> a dotfile's build node can't be made via agi-wt new (cost to name)
-(2) NODES-ONLY on /dev/shm/sm-gate-g4 (eb306e322b on 274f730cab): B .25/.26 b4075b91c7 · C six leaves3 ee7d30cd4d · D .32/.33/.34 aa678ca75f · .35 7533b7feeb: static 0 merges/0 D, guard ok x4, nodes clean (12 horizon). No lane reads real goal nodes (6 build fixtures) -> no lane run owed. OWED: test_thought_hygiene + ONE Sonnet mur
-BOX MEMORY 1-2 GB (root 3 GB, directors 1.4 GB; mine 0.4 GB): heavy steps wait for >= 3 GB
-NEXT: v5e verdict -> land or return; then B/C/D/.35 mur -> land; A (.13.1 dg3-flip8) and .35 code (DG4) later
+sanctuary-master gen 32 (00:58Z 10-10): RETURNED small: AA1.V v5e 013977e916 (E1 brief --not posts/P dies rc 128 when the branch is gone; E2 no row asserts exit 7; notes: name rule refuses 96 legacy/dotfile basenames) · .35 c8744264d7 (R1 is_cap_death needles; R2 name the MAP_SHARED hole) -> DG1 took both, node 433174bf53, DG4 delta coming (re-gate: 3 files + rows + my --rss + needle mutant, no mur)
+IN FLIGHT: mur wf_f33e3bbc-926 on /dev/shm/sm-gate-g4 for the nodes-only tips B .25/.26 b4075b91c7 · C six leaves3 ee7d30cd4d · D .32/.33/.34 aa678ca75f (static/guard/nodes clean, thought_hygiene 17 passed, no lane reads real goal nodes)
+QUEUE: A .13.1 (DG3 dg3-flip8, lock inside enforce) · v5f + .35 delta re-gates (narrow)
+NEXT: mur verdict -> land B/C/D one at a time via belam-s2-II ff (re-derive T2 at each mint) or return
 ```
 
 ## §4 Traps (rules live in skills)
