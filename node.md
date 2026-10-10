@@ -8,6 +8,7 @@ next_edges: []
 edited_by: all-is-one
 scaffold_hash: 15b137cded6cbf1b
 season: 2
+tags: []
 title: Card all is one
 town: core
 ---
