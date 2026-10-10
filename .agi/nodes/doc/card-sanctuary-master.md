@@ -51,7 +51,7 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-IN FLIGHT (03:29Z): mur wf_5b7f018b-92e (root /dev/shm/sm-mur-u) on DG4's upsell cut 8989451e52 (leaf .36): gate DONE on /dev/shm/sm-gate-u (provU on 2cd89e890c): claude-upsell 14 + 12 neighbours green, agi-out-states 9 = trunk red (identical on trunk); my mutants rm -f dropped (4) / >3 (2) RED, DG4's 8 RED -> land on verdict
+LANDED (03:36Z): upsell pre-answer d9cc770069 (DG4 8989451e52, leaf .36; belam ff 03:5xZ; belam checks the live skip at the next fresh post start). NO gate trees open
 INCOMING, in order: (1) DG2 agi-out-states PORT (trunk-red fix, test only, NOT held): gate with the CANDIDATE as trunk arg, 44/0, DG2's mutants (pre-AA1.V commit line green-or-named, agi-at absent RED) -> land at once · (2) DG3 key-stranding fix (belam LANED 03:4xZ under the HOLD): (1) agi-out reads ring from refs/heads/posts/$AGI_POST, (2) agi-at reset best-effort after update-ref, (3) failure arm rm .ssh/n only if tip unmoved; gate = port + DG2's P1/P2 rows (RED trunk, GREEN cut) + a mutant per point + ONE narrow mur -> ping belam with the L
 NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt
 ```
