@@ -289,6 +289,7 @@
       "osc_neuron_period_seeds_dir": "datasets/osc-band/2026-10-01-neuron-period-seeds",
       "osc_neuron_period_p4fair_dir": "datasets/osc-band/2026-10-01-neuron-period-p4fair",
       "osc_neuron_period_freqabl_dir": "datasets/osc-band/2026-10-01-neuron-period-freqabl",
+      "osc_neuron_period_pairloss_dir": "datasets/osc-band/2026-10-10-neuron-period-pairloss",
       "osc_self_poke_toy_dir": "datasets/osc-band/2026-10-01-self-poke-toy",
       "osc_self_poke_toy_dh1_dir": "datasets/osc-band/2026-10-01-self-poke-toy-dh1",
       "model_slot_lock": ".agi/sessions/locks/model-slot.lock",
