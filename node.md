@@ -53,3 +53,5 @@ goal:g7.16.1.11.13 (the AA3 lanes harness: its falsifier 1 is the FIRST row of t
 
 ## Agent Notes
 Assigned to **director-general-1**.
+
+10-07 owner bypass (belam 14:4xZ, council placement alive 14:54Z): the old Python verify suite and tests are KEPT this season and run as a v5 uid (goal:g7.16.1.11.19); the retirement of the old-setup Python tests named in this target moves to season 3 with the shell rewrite.
