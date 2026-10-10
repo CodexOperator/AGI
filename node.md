@@ -15,7 +15,6 @@ proposes_goals:
   - goal:g2.27
 scaffold_hash: 8f30a63fc84f3437
 season: 2
-tags: []
 thought_session: belam-S1-L4-VI
 title: The streaming suite — the live stream of the working desktop (streamer-stub) as a whole shippable app
 town: streaming-suite
