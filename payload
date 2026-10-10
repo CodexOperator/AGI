@@ -50,7 +50,7 @@
       "bin": "~/.npm-global/bin/pi",
       "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"],
       "rows": [
-        {"name": "free", "default": true, "zero_usd": true, "provider": "openrouter", "thinking": "medium", "models": {"kid": "stealth/space-bunny-alpha", "parent": "stealth/space-bunny-alpha"}, "allowed_extra": ["stealth/space-bunny-alpha"]},
+        {"name": "free", "default": true, "zero_usd": true, "provider": "openrouter", "thinking": "medium", "models": {"kid": "nvidia/nemotron-3-ultra-550b-a55b:free", "parent": "nvidia/nemotron-3-ultra-550b-a55b:free"}, "allowed_extra": ["nvidia/nemotron-3-ultra-550b-a55b:free"]},
         {"name": "paid", "provider": "openrouter", "thinking": "medium", "models": {"kid": "deepseek/deepseek-v4.1-flash", "parent": "deepseek/deepseek-v4.1-flash"}, "allowed_extra": ["deepseek/deepseek-v4.1-flash", "~z-ai/glm-flash-latest", "anthropic/claude-opus-5"]},
         {"name": "local", "zero_usd": true, "provider": "local-town", "credential": "none", "max_live": 1, "models": {"kid": "OrcaBonsai-27B-C2", "parent": "OrcaBonsai-27B-C2"}, "allowed_extra": ["OrcaBonsai-27B-C2"]}
       ],
