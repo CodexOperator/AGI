@@ -686,7 +686,7 @@ def _grid_payload(project_root: Path, node: Level3Node,
         return None
     rev = ref
     if grid_version is not None:
-        count = int(grid.git(project_root, "rev-list", "--count", ref))
+        count = int(grid.git(project_root, "rev-list", "--count", "--first-parent", ref))
         if not 1 <= grid_version <= count:
             return None
         rev = f"{ref}~{count - grid_version}"
