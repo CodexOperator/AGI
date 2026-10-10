@@ -372,8 +372,10 @@ def test_d3_a_retired_namesake_never_shadows_the_live_cell_silently(groot):
     _cell(groot, "doc:two-step")
     _twin(groot, "deprecated/config/formations.md")          # a retired copy naming ANOTHER template
     r = verification.check_formation(groot)
-    # either it refuses the ambiguity by name, or it reads the LIVE cell (doc:two-step) -- never the retired copy
-    assert r.status == "FAIL" or "doc:two-step" in (r.note or ""), (r.status, r.note)
+    # ONE outcome (g1.42 row 10, measured): the retired copy is not a live cell, so it is neither ambiguity
+    # nor a shadow -- the check PASSES reading the LIVE cell's template and never names the retired one.
+    assert r.status == "PASS" and "doc:two-step" in (r.note or ""), (r.status, r.note)
+    assert "council-loop" not in f"{r.note} {r.message}", (r.note, r.message)
 
 
 def test_d3_control_one_cell_one_key_passes(groot):
