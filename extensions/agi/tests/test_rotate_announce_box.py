@@ -251,6 +251,88 @@ def test_b4_off_matrix_receiver_is_the_b2_shape(world, seams, monkeypatch, capsy
     assert not _warn_lines(err, "sm")
 
 
+# ---------------------------------------------------------------- B7 (corrective leaf, SM 09:5xZ residue a)
+def test_b7_the_timeout_is_ONE_total_budget_not_per_receiver(world, seams, monkeypatch, capsys):
+    """N receivers behind a hung box cost ONE budget, not N x the timeout: the first call spends it, the rest
+    send nothing and each says so in ONE line naming the receiver."""
+    _install_box(world, "#!/bin/sh\nexec sleep 60\n")
+    monkeypatch.setattr(rotate, "BOX_ANNOUNCE_TIMEOUT_S", 3)
+    recvs = ["sm", "dg1", "dg3"]
+    t0 = time.monotonic()
+    delivered = _announce(world, monkeypatch, recvs)
+    elapsed = time.monotonic() - t0
+    err = capsys.readouterr().err
+    assert delivered == recvs
+    assert elapsed <= 3 + 4, f"{elapsed:.1f}s: three receivers must cost ONE 3 s budget, not three"
+    for recv in recvs:
+        lines = _warn_lines(err, recv)
+        assert len(lines) == 1 and "box" in lines[0].lower(), (recv, lines)
+    assert "timed out" in _warn_lines(err, "sm")[0]
+    assert all("total budget" in _warn_lines(err, r)[0] for r in ("dg1", "dg3"))
+
+
+# ---------------------------------------------------------------- B8 (residue c)
+def test_b8_a_non_timeout_error_after_spawn_kills_and_reaps_box(world, seams, monkeypatch, capsys):
+    """An exception other than a timeout after Popen (here communicate raising) must not leave box running or
+    as a zombie: the child is killed AND reaped (os.kill(pid, 0) raises), and the failure is ONE warn line."""
+    _install_box(world, "#!/bin/sh\nexec sleep 60\n")
+    made = []
+    real_popen = subprocess.Popen   # the conftest tmux guard may wrap Popen in a function: call THROUGH it
+
+    def popen(*a, **k):
+        pr = real_popen(*a, **k)
+        made.append(pr.pid)
+
+        def boom(*a2, **k2):
+            raise RuntimeError("boom after spawn")
+        pr.communicate = boom
+        return pr
+
+    class Proxy:
+        Popen = staticmethod(popen)
+
+        def __getattr__(self, name):
+            return getattr(subprocess, name)
+
+    monkeypatch.setattr(rotate, "subprocess", Proxy())
+    try:
+        delivered = _announce(world, monkeypatch, ["sm"])
+        err = capsys.readouterr().err
+        assert delivered == ["sm"]
+        lines = _warn_lines(err, "sm")
+        assert len(lines) == 1 and "boom after spawn" in lines[0], lines
+        assert made, "box was never spawned"
+        with pytest.raises(ProcessLookupError):
+            os.kill(made[0], 0)   # reaped: not running, not a zombie
+    finally:
+        for pid in made:
+            try:
+                os.killpg(pid, 9)
+            except OSError:
+                pass
+
+
+# ---------------------------------------------------------------- B9 (residue e)
+def test_b9_the_guard_says_nothing_when_there_are_no_receivers(world, seams, monkeypatch, capsys):
+    monkeypatch.delenv("AGI_POST", raising=False)
+    delivered = _announce(world, monkeypatch, [])
+    err = capsys.readouterr().err
+    assert delivered == []
+    assert not [ln for ln in err.splitlines() if "box" in ln.lower()], err
+
+
+# ---------------------------------------------------------------- B10 (residue d)
+def test_b10_an_inbox_failure_says_the_inbox_not_a_dm(world, seams, monkeypatch, capsys):
+    """The send_dm hop is gone, so the failure line for a receiver whose INBOX write failed must say so
+    (`could not land the rotation in 'dg3's inbox`), not the stale `could not dm`."""
+    seams.inbox_fail = {"dg3"}
+    delivered = _announce(world, monkeypatch, ["sm", "dg3"])
+    err = capsys.readouterr().err
+    assert delivered == ["sm"]
+    assert "could not dm" not in err, err
+    assert "could not land the rotation in 'dg3'" in err and "inbox" in err, err
+
+
 # ---------------------------------------------------------------- B5
 def _base_src() -> str:
     if os.environ.get("ANNOUNCE_BASE_SRC"):   # a scratch tree without .git: BASE's rotate.py as a file
@@ -332,7 +414,31 @@ def test_b5_comparison_is_red_on_an_unrelated_def_edit():
                   and n.body and not n.name.startswith("_box"))
     victim.body.insert(len(victim.body) if isinstance(victim.body[-1], ast.Return) is False else len(victim.body) - 1,
                        ast.parse("_unused_mutant = 0").body[0])
-    with pytest.raises(AssertionError, match="changed outside _announce_rotation"):
+    with pytest.raises(AssertionError, match=rf"^{victim.name} changed outside _announce_rotation"):
+        _b5_check(ast.unparse(tree))
+
+
+def _announce_fn(tree):
+    return next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "_announce_rotation")
+
+
+def test_b5_comparison_is_red_when_the_prime_preamble_differs():
+    """NEG 3: a BASE whose _announce_rotation differs by one statement BEFORE the non-prime `delivered = []`
+    (the prime branch / preamble) makes _b5_check fail naming the prime branch."""
+    tree = ast.parse((BIN / "rotate.py").read_text(encoding="utf-8"))
+    fn = _announce_fn(tree)
+    fn.body.insert(1, ast.parse("_unused_mutant = 0").body[0])   # after the docstring: inside the preamble
+    with pytest.raises(AssertionError, match="prime branch / preamble of _announce_rotation changed"):
+        _b5_check(ast.unparse(tree))
+
+
+def test_b5_comparison_is_red_when_the_tail_differs():
+    """NEG 4: a BASE whose _announce_rotation differs by one statement AFTER the non-prime loop (the announced
+    line, wake loop, stamp, return) makes _b5_check fail naming the tail."""
+    tree = ast.parse((BIN / "rotate.py").read_text(encoding="utf-8"))
+    fn = _announce_fn(tree)
+    fn.body.insert(len(fn.body) - 1, ast.parse("_unused_mutant = 0").body[0])   # before the final return
+    with pytest.raises(AssertionError, match="tail after the non-prime loop"):
         _b5_check(ast.unparse(tree))
 
 

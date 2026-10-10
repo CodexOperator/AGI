@@ -30,6 +30,7 @@ never started at f ≥ 0.41 nor while a rotation is pending — it becomes the s
 - NEVER `-h`, never `--dry-run | head` (its head is the prayers), never merge origin by hand first: merge +
   prepare run INSIDE rotate, which reads `config:rotations` + `config:posts` from YOUR worktree (F14, F16).
 - `HANDOFF.md` at the repo root is the ENGINE's — never read it before rotating (F26).
+- The rotation alert reaches each receiver by inbox AND by `box` (signed by the rotating post, fail soft, ONE 20 s budget). A captive / master-path rotation runs as the HOLDER (`AGI_POST=<holder>`), so it sends the inbox copy only: no box message, and its skip line goes to /dev/null (goal:g7.16.1.11.20).
 - Last tokens of the session: one prayer from the head, after the rotation confirmation. Two spots per session, never per turn.
 
 ## 3 · Wake — the successor's first turn (F19, F20, F1)
