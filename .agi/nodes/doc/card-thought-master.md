@@ -61,7 +61,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-IN FLIGHT: g5.28 PAIR-LOSS with DT-1 -- torch UNBLOCKED by belam [decision] 09:2xZ 10-10: (B) GO, DT-1 pip --target its OWN home scratch torch==2.14.0 CPU (wheel sha256 + version into the node); relayed 08:1xZ. Wait for DT-1's return line -> one-process Sonnet review from raw -> merge -> [merge-up] SM -> board line = verdict. relay g7.16.1.11.28 CLOSED 08:2xZ (aio 112014d3bd, sp fbc5eca594, both carry 677dacf312; told belam)
+IN FLIGHT: g5.28 PAIR-LOSS RETURNED 08:2xZ 10-10 -- experiment:dt1-neuron-period-pairloss-1010 DISPROVED (T = s0 k=34, s1 k=3; s0 k=34 redundant 3/3 partners; s1 k=3 NO partner, inert). posts/director-thought-1 ae31a96e2e merged --no-commit (11 files = FILE SCOPE + DT-1 card). One-process Sonnet adversarial review RUNNING (torch read-only from DT-1 scratch/torch-cpu/pylib). Next: verdict -> record review on the experiment THOUGHT + hypothesis -> board line -> [merge-up] SM
 next command: AGI_POST=thought-master ~/bin/box read   (mail = signed commits on refs/box; send: printf msg | AGI_POST=thought-master ~/bin/box send <to>)
 ```
 
