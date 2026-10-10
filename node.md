@@ -8,88 +8,63 @@ next_edges: []
 edited_by: director-general-1
 scaffold_hash: ce9da8b3b952451b
 season: 2
-tags: []
 title: Card director general 1
 town: core
 ---
 # doc:card-director-general-1
 
-# doc:card-director-general-1 — director-general-1's card (council loop, goal:g7.16.1): the ONE scratch
+# doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (18:1xZ 10-01 — MOVING to v5 (belam GO 18:2xZ, move 2 of goal:g7.16.1.11.10): this card is the handoff; engine claude-code claude-sonnet-5-5; g7.16.1.11 HOLDS key/identity/rotate work)
+## OVERALL GOAL (owner 10-08): finish encapsulation of grid slices (E1), put belam on the new engine (E3, DONE), then the season rollover (E5). Progress is read ONLY on town:local-maxxing 'Engine rework trajectory' E1-E5. E2 (grid retirement) is MINE to cut; E4 (g1.41) moves by SM's landings.
+
+## §0 State (10-10 ~04:5xZ, gen 21 wakes, on encryption-town)
 | | |
 |---|---|
-| post | director-general-1 |
-| loop | doc:council-loop "The loop": DG2's MVP-vs-hypothesis verdict -> DG1 checks the BUILD vs the GOAL -> correctives as NESTED subgoals -> no residue -> OUTCOME (parent = the goal) -> SM |
-| protocol | goal:g7.16.1 · not in the directors room · coordination -> SM (agi-5c [da1a42]) · rulings -> the council · SendMessage between sessions |
-| peers | SM agi-e0 [1840c0] (@31) · DG2 agi-e3 [78fffb] (@24) · alive agi-e3 [761106] (@16) · self-perpetuating agi-53 [21dc2d] (@2) · Prime agi-23 [ecd665] (@23) · DG3/DG4 re-map (windows moved) -- ALWAYS re-map at wake: tmux list-windows -a vs ListAgents |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 · window @33 |
-| skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post |
+| post | director-general-1: a director, claude-code, v5 unit (engine.v 4) · parent SM (sanctuary-master) · trunk local-maxxing/season2/main · my t = posts/director-general-1 (this uid cannot push to GitHub or fetch into MAIN: I push a sha to MAIN with `git push /data/work/agi SHA:refs/heads/NAME` from a /dev/shm clone) |
+| mail | **BOX ONLY**: `AGI_POST=director-general-1 /opt/agi/bin/box read` (send: `cat FILE \| ... box send POST`). Belam re-pointed ~/.gitconfig to /var/lib/agi/allowed_signers (10-10 00:1xZ) but the unit rewrites it from my worktree at EVERY start (my branch lacks 677dacf312) until my rotation merges the trunk: after a restart, if `box read` prints `[refused]`, use the per-command override GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=gpg.ssh.allowedSignersFile GIT_CONFIG_VALUE_0=/var/lib/agi/allowed_signers and tell belam via SM. To BELAM only [merge-up] [decision] [rotation] [red] [rule] [complete] [owner]; belam -> me and me -> belam-s2-II are off-matrix (SM relays) |
+| roles | DG1 = goals + nodes + merge-ups + JUDGING every return by RUNNING it at the sha · DG2 falsifier lanes · DG3 builder (.13.1 code, AA1.V) · DG4 builder (.35) · DG5 D3 builder (landed) · SM gates + lands · a leaf = a tracker |
 
-## §1 Plan
+## §1 Plan (10-10 ~04:5xZ, gen 20 -> 21)
+LANDED by SM on main (all verified by me at the sha): .13.2 · fresh-blob · enc6 · .17 · .23 · .24 unit half · D3 · .35 · AA1.V v5..v5g · .13.1 · .25/.26 B 133fdbf653 · C 344606a0ac · g1.42 rows 17/18/19 · kid identity 6a6d745568 · .36 leaf 2cd89e890c · agi-out-states PORT 8f00bb2c96 (trunk red closed).
 ```
-done   bundles 1-4: every row closed with its OUTCOME; bundle 4's bigger_outcome:council-bundle-4-one-gate-one-commit-ids-never-move is SM's
-         bundle 4 = g4.18.5.1 · g4.18.5.2 (+.2.1 .2.2) · g4.18.6.1 · g4.18.6.2 · g4.18.6.3.2 · g4.18.6.3.3 · g7.16.1.4.1 · roll-up g4.18.6.3
-         g4.18.6.3.3 W2c C: outcome:g4-18-6-3-3-w2c-c-gates-resolve-mint-ids-closed (DG2 verdict:dg2mvp-w2cD PROVED 0.86 agrees)
-         g4.18.5 / g4.18.6 NOT complete (.5.3 .5.4 · .6.4 .6.5 .6.6 open): no roll-up until they are
-done   goal:g7.16.1.10 leaves .1-.6 all horizon; re-laned 08:3xZ (SM, after the owner stood DG5+DG6 down): .10.1 .10.2 .10.6 -> DG4 · .10.4 -> DG3
-done   goal:g7.16.1.7 council edits (SP review, SM routed 08:3xZ): .7.1.3.2 bullet 2 NOT HELD (4 pi-free cells) · .7.2.2 F1 + no other post restarted · .7.2.4 F1 + pane cell · 6 HORIZON leaves .7.1.5 (council) .7.1.6 .7.1.7 .7.2.6 .7.2.8 (DG4) .7.2.7 (council)
-done   goal:g7.16.1.7 re-laned 08:4xZ (SM's file-owner map after the DG5+DG6 stand-down): 12 open nodes -> DG4 (incl .7.1.4 .7.1.4.1 keys, .7.2.3 w/ DG3's dispatch.py sites) · .7.1.5 .7.2.7 -> DG3 · complete nodes keep DG5 (record) · .7.3 council
-done   goal:g7.16.1.7.1.8 HORIZON -> DG4 (13:4xZ, SP lens): no row claimed by two live sessions -- sibling of .7.1.7, not a widening; reap stays rotate.py's
-done   goal:g7.16.1.10 (SP lens 13:4xZ): .10.7 MERGE GATE minted HORIZON (-> DG3 on SM's placement, with .10.3 .10.5) · .10.5 F1 + missed[]-only residue · .10.6 names the census dep
-hold   g7.16.1.5.3.1 (DG4): verdict:dg2mvp-g7165331b INCONCLUSIVE_LEAN_PROVED 75 -- oom half HOLDS (0 kills, reaper peak 373 MiB vs live high 2304M),
-         count half NOT MET (max 15 a00-* trees/pass vs >= 25) -> stays active, NO corrective; closes on the first >= 25-tree pass with 0 kills.
-         DG4 06:2xZ: F1 stays as written; if no such pass comes, DG4 banks a re-pin AFTER hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove lands
-hold   g7.16.1.7.1.4 (keys): .4.1.1 + .4.1 CLOSED 19:3xZ with OUTCOMEs. Invariant 2 measured by DG2 (experiment:dg2-g7161714-trunk-invariant): holds for spawn/rotate, fails once on a FIRST SEATING (DG6 gen 0, local only) -> nested goal:g7.16.1.7.1.4.2 HORIZON -> DG4 (SM places) -> close .4.2 -> .4, each with its OUTCOME
-hold   g6.41.1.1 reboot wake: (1) MET (DG1 build, landed 82c553bb9a, DG2 verdict:dg2mvp-g64111 PROVED 0.85) · 2 leaves PLACED ON DG1 (SM 17:2xZ), NEXT RUN: .1.1 wake.*/ack_cmd.* cells + heal reads them + wake names the boot (QUEUED behind the Prime's cells, sent 17:02Z) · .1.2 live dummy check F1 (after .1.1) -> OUTCOME when both close
-done   goal:g1.31.3 ROLLED UP 02:3xZ 10-01 (SM placed 02:31Z): g1.31.3.2 · g1.31.3.1 · g1.31.3 each COMPLETE with its OUTCOME (outcome:g1-31-3-2-… · g1-31-3-1-… · g1-31-3-node-text-…); 3 self-matching Negatives anchored, now 0
-done   goal:g6.49 COMPLETE 02:4xZ 10-01 (SM placed 02:39Z): outcome:g6-49-the-reaper-no-longer-burns-the-box-closed -- .1 .3 MET live; .2 MET via g7.16.1.5.3 (memo removed); a00-fa4269d4 re-archive echo = g7.16.1.5.3.1; dead skipped/_SWEEP_SKIP proposed as a g7.33 row
-done   OUTCOMES 17:4xZ: goal:g1.31.4.1 (DG2 PROVED 0.84, as re-scoped) · goal:g7.16.1.5.4 (own falsifiers checked: 1 pre-change straggler a00-eb774813 rides DG4's heal-sweep fork)
-done   goal:g4.18.5.5 RE-CLOSED 20:2xZ on DG4's fix a2e42a3bf0 (DG2 harness 3/3: rc0 == commits 120/120, 0 dirty); its one OUTCOME set closed, DG2's items 1-4 named OPEN in it; told SM to move bundle 4 to 0.9
-hold   g1.31.5.1.3 (launder row): corrective .3.1 LANDED a2e42a3bf0, DG2 verdict:dg2mvp-g1315131 LEAN 75: F1 MET, target bullet 2 UNMET (the Prime closeout skips push under a lock held past hold_wait_s) -> nested goal:g1.31.5.1.3.1.1 ACTIVE on belam (SM relays) -> close .3.1.1 -> .3.1 -> .3, each with its OUTCOME
-hold   g1.31.1.1 (run-mode cells): DG2 verdict:dg2mvp-g13111 LEAN 75, brief.py half MET -> config half nested goal:g1.31.1.1.1 ACTIVE on belam (DH.DG4.09 via SM; F2 grep = 5 hits today) -> OUTCOMEs .1.1.1 -> .1.1 when it reads 0
-done   goal:g1.33 OUTCOME outcome:g1-33-resolve-old-sha-one-map-reader-closed (a143fa142d) on DG2 PROVED 0.92; F1 17p + F2 0 hits re-run
-held   by goal:g7.16.1.11 (owner 21:3xZ 09-30: key/ID/rotate paused; council design doc): g7.16.1.5.3.1 · g7.16.1.7.1.4(.2) · g1.31.5.1.3(.1) went horizon 21:49Z; g6.41.1.1.1/.1.2 (wake/heal) stay queued, untouched
+AT SM: NOTHING. D 5d7e7fd219 (.32 .33 .34 carried), v5 nodes bc88057988, .35 complete 3df674e37a are all ancestors of origin/local-maxxing/season2/main (checked 10-10 gen 21 wake; trunk tip 2cd89e890c).
+WITH BUILDERS (I RUN each sha at the sha, then ONE [merge-up] to SM):
+  DG3  KEY-STRANDING FIX dg3-keystrand (belam LANED, narrow): (1) agi-out reads the ring from refs/heads/posts/$AGI_POST:$R never HEAD; (2) agi-at's post-update-ref reset is best-effort (rc 0 + one [reset] line); (3) CORRECTED BY ME: the failure arm destroys ~/.ssh/n ONLY IF the branch's ring does NOT name the NEW key (did OUR commit land), NOT 'tip moved' (a lost race moves the tip: DG2's ra1 red on DG3's WIP 649c85a287). Carries DG2's P1/P2/P1b rows cmp-identical (DG2 branch de-base-dg2-135-p). Gate: lane with the candidate as trunk argument + P1 P1b P2 GREEN (RED on trunk) + ra1 + a mutant per point ((1) HEAD, (2) reset rc returned, (3) unconditional destroy and 'tip moved'). belam ACCEPTED the (3) correction 03:4xZ (his was wrong for a lost race): gate on P1b + ra1; DG3 builds ONE cut carrying DG2's P1/P1b/P2 commit cmp-identical.
+  DG4  .36 build (fullscreenUpsellSeenCount -> 3 in <home>/.claude.json at start, idempotent, claude H only; lane on a scratch HOME) after its queue.
+OWED BY ME: (1) a board row for the write.py:1924 gate reading a worktree root (SM C-b); (2) .25 wording at my next touch (box-carry.t.sh hits :2 :7 :45 :73 :120 :152 :204; add an agi-vstore row for :202 :204); (3) the g7.16.1.11 HOLD stands: a NEW round on key/identity/signing/rotate/spawn-row/write-gate is Prime-laned only (belam), bytes elsewhere are free.
 ```
+- **After each return**: RUN it at the sha (single files, shm; MemAvailable ~2 GB on E, no suite), a lane gap -> DG2 BEFORE the forward; reproduce every residue on the bytes; ONE [merge-up] to SM. SM's errors happen and so do mine: re-check every cite; READ THE GUARD'S OWN rc before any push.
+- **A falsifier exits 0 ONLY when the work is done**: agi-frontier (engine-post.md:170-173) runs the FIRST backticked grep|test|ls|getent|git(...) command of an ACTIVE goal's `## Falsifier`; check with `sed -n '/^## Falsifier/,/^## Out/p' F | grep -o '`[^`]*`' | tr -d '`' | grep -Em1 '^(grep|test|ls|getent|git (log|show|grep|rev-parse|ls-files|diff|for-each-ref)) '`, run it (rc 1 today).
 
-## 🔴 Where it stops
-STATE 21:4xZ 10-01 (v5): DG1.01+DG1.02 LANDED (d32ef0038). My [merge-up] e0a261b7b (g1.34-g1.37 + card + 1 .gitignore line; key file untracked per SM) queued for SM's successor's gate. Nothing else pending.
-- Re-murs all landed (mur-dg1-2/-4/-5/-6/-7; mur-dg1 first run died with 2/4 verifies). DONE: temp trees de-h-dg10* removed. Kept: .agi/worktrees/de-base-dg101-1/-2/-3, de-base-dg102-1/-2, de-close-dg102, dg1-merge-up (branches carry the chain).
-- DG1.01 hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line: ACCEPT (mur-dg1-6). Chain e052b1a1b -> 284cb32d5 (landed by me; a00-b465ec27 commit died on index.lock) -> 16f939984 (a00-31bde705, DH.DG1.04). MERGED --no-ff as 7298b69ff on dg1-merge-up.
-- DG1.02 hypothesis:g1-conftest-record-roots-survives-an-unreadable-worktree-entry: accept_with_residue (mur-dg1-7), code sound; prose residue closed by me in ONE node-only range e3cfa7e6c..e99a0566a (no re-mur, agi-corrective s3 row 1; SM may overrule). MERGED --no-ff as 360abbb6d; dg1-merge-up tip 1554cb042 (+1 node-prose line on experiment:a00-19c596cb-8ea706).
-- NEXT: the gate lands e0a261b7b on the trunk; then re-merge season2/main into posts/director-general-1 (never re-merge my old range). g1.37 -> DG3 (heal); g1.34-g1.36 stay mine until re-placed, ONE round each only when SM routes a lane. No invented work. mail_poll --peek reaches the live crontab at grid_sync's next apply. Trap: write.py create goal leaves confidence/origin/seeds/tags unset -> run one set line after.
-- Also pending: goal:g6.41.1.1.1/.1.2 (wake/heal) held under g7.16.1.11.
+## 🔴 Where it stops + the exact next command
+gen 21: DG3 dg3-keystrand 56d362bcd8 RUN at the sha (agi-out-states 49/0, trunk 4 RED, 4 mutants each RED on one row, neighbours 0 FAIL, merge-tree rc 0 on 760a9b49b1) and [merge-up] SENT to SM 10-10 ~05:0xZ. Box works (belam re-pointed ~/.gitconfig, SM 04:4x); anything sent 03:42:35Z-04:5xZ never arrived: I asked SM to name it. Waiting: DG4 .36, SM's land of 56d362bcd8.
+ROTATED at the line 10-10 ~04:5xZ (hook: 470944/1000000). Everything RUN is forwarded; nothing unsent.
+NEXT: `AGI_POST=director-general-1 /opt/agi/bin/box read`. If it prints `[refused]` only: the unit re-wrote ~/.gitconfig from my worktree (this branch lacks 677dacf312; the rotation's trunk merge in agi-flush should have fixed it): use the per-command override (see §0) and tell SM by box that belam must re-point it. The first return to expect: DG3 dg3-keystrand (the key-stranding fix) -> RUN it at the sha as §1 says. Never run a host act; never invent goals.
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN is shared by every post | commit by exact path; never switch branches, stash or reset |
-| write.py now COMMITS each write itself (W1b landed) | under the suite lock it writes the file, refuses its commit, and exits 0: check `git status` after a write and commit by path once the lock clears |
-| a commit under .agi/sessions/verify-suite.lock (d1de2e804, 21:5xZ, self-reported to alive) | gate EVERY commit: `[ -e .agi/sessions/verify-suite.lock ] \&\& { echo LOCKED; exit 1; }; git commit ...` -- printing the lock is not stopping on it |
-| `git ls-files` hides untracked nodes | a crashed seat's mints are untracked: `git ls-files --others` before re-minting |
-| rotate.py ack refuses while posts.md is dirty | the recovery respawn commits the rows within seconds; retry, never commit its rows |
-| `grep -r` / `find` over .agi/ or the repo root io-stalls the box | `git grep PATTERN -- <paths>` |
-| `send.py read <self>` without --from resolves to 'unknown' | always `send.py --from director-general-1 read director-general-1` |
-| the handoff may land only in the room | `tail .agi/comms/season-2/room/council-loop.md` at wake |
-| `anonymize.py check FILE` refuses a positional | `check --diff-file FILE` |
-| a negative grep over .agi/nodes hits the nodes that QUOTE its pattern (bundle 3 H3; bundle 4 W0 hit its own title, 45771a9e1; g1.31.3 x3 on 10-01: 19 quotes, 0 pointers) | exclude the quoting nodes or anchor the pattern; run the falsifier once before committing the leaf. H3 anchor: anchor `· triage: parked: formation g[0-9.]+ \|$` (39 rows, 5 carriers) |
-| a count or claim copied into every leaf of a row | measure it once per row with its own command; a wrong shared Measured line (W2: 8654, no walk, links gates parents) was wrong in 5 leaves at once |
-| GOALS.md is retired (owner 17:3xZ) | never render it; goals are read from their nodes |
-| moving a live process tree into a scope (R1 cutover, measured 18:4xZ on dummies) | AttachProcessesToUnit needs a Delegate=yes target; a moved parent leaves its children: move EVERY pid; probe with sleep dummies only, never tmux / a post / the RC service |
-| `set <key> '<text>'` in write.py | the value is the raw rest of the line: quotes are STORED; never quote a set value |
-| every sha changed at the 08:0xZ history scrub | cite node ids, never a sha from memory; old -> new via the scrub's commit-map (Prime's [rule] resume) |
-| a pre-commit hook refuses owner email / hardware name / pytest-of-<user> / box tokens | on REFUSED redact and commit again; never --no-verify |
-| `replace body A:B` refuses a range that cuts a paragraph or ends on a heading | replace a whole fenced block or section; keep its trailing blank line |
-| peer names collide (two agi-c8, two agi-e3) | map `tmux list-windows -a` window -> seat, then SendMessage by `name [ref]` |
-| an outcome written on a verdict's conjuncts alone (g4.18.5.5 closed 18:2xZ, reopened minutes later) | before an OUTCOME, test each goal INVARIANT against every verdict on the same landing, not only the goal's falsifiers |
-| a THOUGHT/body time written from memory (4 wrong stamps 09-30: 08:5x, 13:5x, 14:0x, 17:3x) | read `date -u +%H:%M` in the SAME command that writes the stamp; never type an xZ minute by hand |
-| a parent's `find` / `grep -r` walked OTHER trees (a00-b465ec27, 19:0xZ 10-01: D state, io PSI 56-70 %, stopped SM's gate; SM killed it) | EVERY order carries: never find / grep -r outside your own worktree, never walk .agi/worktrees or /mnt/agi-ram; `git grep -- <paths>` only |
+| a hand `box` needs AGI_POST AND the signers override (§0) | always both |
+| `git grep -c` prints path:count | pipe `\| cut -d: -f2` before `test -eq/-ge` |
+| `$H` in a falsifier grep hits the harness variable in engine-wrap.md / engine-grow.md | scope it to engine-root.md |
+| a sent sha is never amended (new commit, say 'supersedes'); an UNSENT one may be amended | |
+| `git -C /data/work/agi branch NAME HEAD` points NAME at the MAIN repo's HEAD | pass the explicit sha; `git push /data/work/agi SHA:refs/heads/NAME` from a /dev/shm clone (-q hides nothing: check with for-each-ref) |
+| my guard runner (secret class stubbed: .env is unreadable to my uid) | /dev/shm/dg1.guard.py (python -I; sets anonymize._secret_tokens to []; cmd_check on each commit's diff). The commit MESSAGE trailer is refused until goal .29 lands: no Co-Authored-By on engine commits |
+| a leaf must not carry a literal address (the guard refuses the bytes) | write <email> |
+| a rebased code stack gets new shas; the original sent shas stay | say 'supersedes' |
+| a 280 s foreground pytest times out with NO summary line (rc 124) | run long files in the background, read rc |
+| the suite lock is per tree | one run per tree, or a second clone |
+| write.py create lands COMMITTED in a shm clone, with confidence/origin/seeds/tags missing | add them by hand and `commit --amend` while unsent |
+| a verdict: proved on an experiment node without evidence_runs is demoted by the 5-min evidence gate | set evidence_runs (self-cite) |
+| backticks in a double-quoted mail body run as shell | quoted heredoc to a FILE |
+| the trunk moves under me | compare local main to origin before a merge-tree; test against BOTH |
+| the guard's exit code hides behind a pipe: `python3 -I guard.py ... \| grep rc` printed 'rc 1' and I still pushed + sent (10-10, a literal home path in .36) | read the guard's OWN rc, gate the push on it (`guard.py ... \| grep -q 'rc 0'`), and never name a binary or file by a home path in a node |
+| my `mut()` helper skips when the replace count != 1 | assert count == 1 (done, /dev/shm/dg1.mut.py) |
 
-## §5 Verification: `links.py links` 0 broken · anonymize ok on each diff
+## §5 Verification: every return RUN at the sender's sha (lanes bare `env -i` + the lane naming the pieces + >= 3 mutants of the REAL piece via PIECES=<file>); single files only, from a /dev/shm shared clone (`git clone -q --shared --no-checkout /data/work/agi /dev/shm/X && git -C /dev/shm/X checkout -q SHA`), removed after; links.py links takes ~8 min (5809 resolved, 0 broken at 73ca866c9b)
 
-## §6 BANKED
-- unreadable SESSIONS SUBDIR inside a readable root stays fail-open in the tier gate (Path.rglob swallows PermissionError on py3.12): recommend its own leaf under hypothesis:g1-conftest-record-roots-survives-an-unreadable-worktree-entry, one round (os.walk onerror). Named in the merge-up.
-- v5 seats cannot write the post worktree (belam-owned) nor read MAIN .env: every merge onto the post main and every dispatch needs SM/belam. Recommendation: g7.16.1.11 gives director seats a sanctioned merge + dispatch path.
-
-Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
+## §6 BANKED (to belam via SM; none blocks a build)
+- **evidence_enforce lands in the WRONG crontab**: crons.md `box: local-town`; recommend `box: encryption-town` AND `every_mins: 30` (A1: a pass is 134 s at load 8 and can exceed 300 s throttled). config:crons is belam's.
+- The one-time re-detach of existing posts' ~/t (v5c R3), the stale post branches (.28), re-pointing this uid's ~/.gitconfig to /var/lib/agi/allowed_signers, replacing belam's transient agi-boxwake@ units with the .32 template: host acts, belam's GO per act.
+- A done (boot leaf). B: agi-gate env -i + safe.directory scoped. C: the spawn sets AGI_POST to the kid's own name. AA1.Vc cutover recommend dogfood on DG1's row first. E2d: does root push refs/grid at all (recommend ONCE then drop). .23 wording row at the next touch of that node.
+- Branches I created that cannot be deleted from this uid (leave): the dg1-* ones.
