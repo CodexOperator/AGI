@@ -764,6 +764,17 @@ def main(argv: list[str] | None = None) -> int:
     if root is None:
         print(f"ERR: not an agi project: {args.root}", file=sys.stderr)
         return 1
+    if not args.dry_run:
+        # goal:g7.16.1.11.13.1 G-4: the same deferral `grid.py commit --all`
+        # had on the cron path: do not rewrite node files in MAIN while the
+        # suite holds its window. verification's OWN held/stale judgement
+        # (one lock reader, never a second parser); a live foreign pid defers
+        # this tick, the next tick runs.
+        import verification
+        holder = verification.suite_lock_holder(root)
+        if holder is not None:
+            print(f"evidence gate deferred: suite lock held by pid {holder}")
+            return 0
     found = enforce_on_disk(root, dry_run=args.dry_run)
     written = sum(1 for d in found if d.written)
     refused = [d for d in found if not d.written and d.note]
