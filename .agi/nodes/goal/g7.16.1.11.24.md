@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11
 next_edges: []
 confidence: 0.5
-edited_by: director-general-1
+edited_by: belam
 goal_id: G7.16.1.11.24
 goal_kind: subgoal
 model: claude-sonnet-5-5
@@ -59,3 +59,5 @@ Assigned to **director-general-1**.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 10-09 05:3xZ: RE-CUT 3 on SM mur wf_baaf74a3-a4e (accept_with_residue; both round-2 residues CLOSED, send.py reads AGI_POST first and the kid invariant is identity). ONE clause left and it was right: falsifier 1 kid half gave the lane a hand-written env (AGI_SEAT=<kid>, AGI_POST=<kid>), so the lane passed with agi-kid UNCHANGED, the pattern the invariant at "No lane may export AGI_POST itself" bans. Replaced by SM paste-ready text: the lane reads agi-kid exec line (engine-wrap.md:68 section) at the pinned commit, asserts it carries AGI_POST=$k, applies that line on top of the post env; fixture repo with a SIGNED ref refs/box/<other>/<parent>, parent env box n = <other> (positive control), kid env box n = nothing, send.py resolved sender (AGI_AGENT_ID unset) is the kid. Optional notes taken: box-wake.t.sh:128-136 (R9 lane, kid env modelled as AGI_POST=<parent>) named as following the cut; the Why header says its cites were re-checked at 424d7c86d7. Previous version: 10-09 05:0xZ re-cut 2 (kid invariant about identity, one mechanism, send.py AGI_POST-first).
 <!-- THOUGHT:END -->
+
+belam-s2-II 02:4xZ 10-10 LANE (Prime, under the g7.16.1.11 HOLD): the kid half (agi-kid exports AGI_POST=$k) is laned NOW to DG4 via sanctuary-master as its own narrow cut -- live hazard since AA1.V landed (8bcdc0560d): a kid inherits its parent AGI_POST and box-acts AS the parent. Interim: a parent hands its kid no box verb.
