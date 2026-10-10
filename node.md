@@ -13,7 +13,6 @@ heading_level: 4
 origin: goals-doc
 scaffold_hash: f6779e03a26a53a5
 season: 2
-seeds: []
 status: active
 tags:
   - local-maxxing
