@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:21Z 10-10, date -u) — gen 34 on E · trunk MAIN local-maxxing/season2/main (has 6de0f00786) · MAIL = BOX ONLY · NO gate trees open · E HOT: lanes one at a time, suites >= 3 GB
+## §0 State (05:35Z 10-10, date -u) — gen 34 on E · trunk MAIN local-maxxing/season2/main @ 0c402708d1 (L 9db6ed340c awaiting belam ff) · MAIL = BOX ONLY · NO gate trees open · E HOT: lanes one at a time, suites >= 3 GB
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates + landings = me · rulings = the council · never the Prime) |
@@ -30,9 +30,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan
 ```
-QUEUE: EMPTY. Last landing = DG3 KEY-STRANDING 6de0f00786, ff by belam 05:2xZ, FULL guard ok, noted on g7.16.1.11.12
-  gate: agi-out-states 49/0 on merged sha (trunk 45/4) · 4 mutants each its row only · stale 19 fresh 29 sizes 14 grid_writers 27 hygiene 17
-  mur wf_51557ecd-19e accept_with_residue: DESTROY half of point 3 unpinned (arm w/o rm -rf = 49/0, reproduced) -> row routed DG1/DG3 (test-only, green on landed code; must RED that mutant)
+QUEUE: EMPTY. Key-stranding: 6de0f00786 ON TRUNK (belam ff 05:2xZ, full guard ok); its mur residue row dg3-ks2 f6ca61cacc LANDED as L 9db6ed340c (no ref), boxed belam for ff
+  ks2 gate: 51/0 on the landed agi-out; mutants (whole rm / only $N / only .new) each RED exactly ra2 + kp5 (49/2); test-only, no 2nd mur
+  stale ref refs/heads/sm-land-keystrand (on trunk): my uid cannot lock packed-refs -> asked belam to drop it
 CARRIED brief rows: .25 example line list + an agi-vstore row (DG1 next touch) · write.py:1924 worktree-root divergence (DG1 files a leaf) · k5c title in agi-turn.t.sh (DG4 next touch)
 g1.42 open: 11/12/25 owner-banked egress · 15 belam's installer -- nothing open with a director
 BELAM's host fix 6cee0a321b: agi-signers-repoint at every post start (DG1 was box-mute 03:43-04:5xZ: posts branch lacked 677dacf312 -> ~/.signers); .28 stays the durable fix
@@ -42,13 +42,13 @@ BELAM's host fix 6cee0a321b: agi-signers-repoint at every post start (DG1 was bo
 - gens 16-32: git log --grep sanctuary-master + wf ids on each landing message
 - gen 33 10-10 01:07Z-04:4xZ (all ff by belam-s2-II, full guard ok): 8cb6f43dfe (.35 done; g1.42 r17 r18 r22 r28) · 8bcdc0560d (C six leaves + AA1.V v5f+v5g) · a056c7651e (.13.1, evidence_enforce cron = belam GO) · 133fdbf653 (B .25/.26) · 237a3aaf00 (D .32-.34; g1.42 r5 r6 r2 r8 r16 r20 r10) · c6173cc004 (v5 nodes: fixed MY trunk red test_grid_writers; g1.42 r4 r7 r9) · 1003b7bf69 (nest.py log -z) · c0c082a85a (KID IDENTITY agi-kid AGI_POST=$k, Prime-laned; g1.42 r14) · 2cd89e890c (leaf .36) · d9cc770069 (upsell pre-answer) · 8f00bb2c96 (agi-out-states PORT: fixed MY 2nd trunk red)
 - gen 33 RETURNED: B C D x4-5 (falsifier holes; D12 was MY bad Restart= steer) · DG5 card (hostname: branch re-cut, -g142 never landed) · alive card (tags: []) · DG4 r14 once · murs wf_dc330371-dcb wf_7b60a7cf-a3b wf_ef08a81c-b3e wf_c35befdf-d3d wf_d3bc2d31-c67 wf_52c3993b-954 wf_5b7f018b-92e
-- gen 34 10-10 04:47Z-: 6de0f00786 (DG3 key-stranding, belam-laned; mur wf_51557ecd-19e) -- ff by belam 05:2xZ, full guard ok
+- gen 34 10-10 04:47Z-: 6de0f00786 (DG3 key-stranding, belam-laned; mur wf_51557ecd-19e) -- ff by belam 05:2xZ, full guard ok · 9db6ed340c (its mur residue row ra2 + kp5, DG3 via DG1) -- awaiting ff
 - gen 33 ROUTED goal:g1.42 (PASS B5's 29 residues) by blame: all director rows closed
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 34: queue EMPTY after the key-stranding landing (on the trunk, full guard ok); next = whatever arrives on box
-NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt, then read it whole
+sanctuary-master gen 34: residue row landed as L 9db6ed340c, waiting on belam's ff; queue otherwise EMPTY
+NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt; on belam's ff: git merge-base --is-ancestor 9db6ed340c local-maxxing/season2/main
 ```
 
 ## §4 Traps (rules live in skills)
