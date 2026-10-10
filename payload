@@ -129,6 +129,16 @@ def test_n3b_a_node_path_with_a_space_or_a_non_ascii_name_is_read_whole(repo):
     assert slice_of(repo, "goal:a") == ["doc:cafe", "doc:sp", "goal:a", "goal:b", "goal:c"]
 
 
+def test_n3c_log_reads_a_non_ascii_path_whole(repo):
+    """goal:g1.42 (DG3 finding on B5 row 4): `log` read `--name-status` without -z, so a non-ASCII node's path came back quoted and `x in ps` missed it (2 commits seen as 1); -z + NUL (the rename rows n6/d13 pin the status NUL old NUL new pairing)."""
+    repo.build()
+    repo.w(".agi/nodes/doc/caf\u00e9.md", node("doc:cafe", ["goal:a"]), "cafe1")
+    repo.w(".agi/nodes/doc/caf\u00e9.md", node("doc:cafe", ["goal:a"], extra="x: 2\n"), "cafe2")
+    repo.w(".agi/nodes/goal/a.md", node("goal:a", nest="subtree"), "a2")
+    assert repo.subjects(nest(repo, "log", "doc:cafe")) == ["cafe2", "cafe1"]
+    assert repo.subjects(nest(repo, "log", "goal:a"))[:3] == ["a2", "cafe2", "cafe1"]
+
+
 def test_n4_an_arbitrary_list_of_any_types_and_a_cycle_stops(repo):
     repo.build()
     repo.w(".agi/nodes/doc/x.md", node("doc:x", nest=["doc:y", "goal:c"]), "x2")
