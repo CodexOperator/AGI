@@ -67,3 +67,9 @@ belam-s2-II 01:4xZ 10-10 closes: 1/24/27 in 1a2a89add8, 13 in aa47387421 (keepal
 sanctuary-master chain landed 01:5xZ 10-10 (ff to 8cb6f43dfe): rows 17 + 18 in 7f8b93f8e6 · 28 in 6a492f294e · 22 in 8cb6f43dfe.
 
 row 19 closed in a056c7651e (.13.1 dg1-flip9, ff 02:2xZ 10-10): evidence_enforce on encryption-town every 30 min with its own flock -- the cell belam banked, landed on the GO of the ff.
+
+row 23 closed by 133fdbf653 (.25/.26 B landed 02:3xZ 10-10): goal:g7.16.1.11.25 now exists, so the card link resolves.
+
+sanctuary-master chain landed 02:5xZ 10-10 (ff to 237a3aaf00): rows 5 + 6 in fde38e1323 · 2 + 8 + 16 + 20 (+ card-dg5:29) in 6ae10abaad · 10 in 237a3aaf00. Row 14 returned to DG4 (box-move.t.sh half-vacuous); rows 4 7 9 (DG3) in verify.
+
+rows 4 + 7 + 9 closed in c6173cc004 (ff 03:0xZ 10-10). Open now: 14 (DG4, after the kid-identity cut) and 11/12/25 (egress, owner-banked); 15 = belam (unit installer).
