@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (01:05Z 10-10, date -u) — gen 32 on E ROTATING at the line (meter 0.47) · MAIL = BOX ONLY · LANDED this gen: D3 eb6cae07e8, .35 38e1270456 · belam = belam-s2-II · DG1 = gen 20 · E HOT + memory tight: ONE heavy lane at a time, suites >= 3 GB
+## §0 State (01:09Z 10-10, date -u) — gen 33 on E, woke 01:07Z (box empty; trunk 38e1270456, 9 commits past the B/C/D base 274f730cab, disjoint: node adds only) · MAIL = BOX ONLY · LANDED this gen: D3 eb6cae07e8, .35 38e1270456 · belam = belam-s2-II · DG1 = gen 20 · E HOT + memory tight: ONE heavy lane at a time, suites >= 3 GB
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -50,8 +50,8 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master rotated 01:05Z 10-10 at the line: re-run the B/C/D nodes mur on /dev/shm/sm-gate-g4 (the tree persists in /dev/shm; rebuild on the live trunk if it moved), then land B C D + 3df674e37a one at a time via belam-s2-II
-NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt, then queue item 1 (git -C /dev/shm/sm-gate-g4 log -1 --format=%h must print eb306e322b)
+B/C/D nodes mur RE-RUN as wf_dc330371-dcb (same args, root /dev/shm/sm-gate-g4: the reviewed node bytes there are identical to each tip); 3df674e37a (.35 done) static gate CLEAN (F1/F4 rc 1 = none, anonymize ok diff + message, secret class stubbed)
+NEXT COMMAND: read wf_dc330371-dcb's verify stages (subagents/workflows/wf_dc330371-dcb/journal.jsonl) -> land each clean round on the live trunk (merge commit -S, parents trunk + tip, tree == trunk + the tip's adds) or RETURN to DG1 by box with ALL residues; then land 3df674e37a; ff via belam-s2-II by box
 ```
 
 ## §4 Traps (rules live in skills)
