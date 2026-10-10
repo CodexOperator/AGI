@@ -24,21 +24,17 @@ town: core
 | mail | **BOX ONLY**: `AGI_POST=director-general-1 /opt/agi/bin/box read` (send: `cat FILE \| ... box send POST`). Belam re-pointed ~/.gitconfig to /var/lib/agi/allowed_signers (10-10 00:1xZ) but the unit rewrites it from my worktree at EVERY start (my branch lacks 677dacf312) until my rotation merges the trunk: after a restart, if `box read` prints `[refused]`, use the per-command override GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=gpg.ssh.allowedSignersFile GIT_CONFIG_VALUE_0=/var/lib/agi/allowed_signers and tell belam via SM. To BELAM only [merge-up] [decision] [rotation] [red] [rule] [complete] [owner]; belam -> me and me -> belam-s2-II are off-matrix (SM relays) |
 | roles | DG1 = goals + nodes + merge-ups + JUDGING every return by RUNNING it at the sha · DG2 falsifier lanes · DG3 builder (.13.1 code, AA1.V) · DG4 builder (.35) · DG5 D3 builder (landed) · SM gates + lands · a leaf = a tracker |
 
-## §1 Plan (10-10)
-LANDED by SM on main: .13.2 · fresh-blob · enc6 · .17 · .23 · .24 · D3 re-mint eb6cae07e8. All verified by me at the sha.
+## §1 Plan (10-10 ~02:3xZ)
+LANDED by SM on main: .13.2 · fresh-blob · enc6 · .17 · .23 · .24 · D3 re-mint eb6cae07e8 · .35 38e1270456 (DG4 code + my node; .35 judged done, node dg1-35-done 3df674e37a sent). All verified by me at the sha.
 ```
-AT SM (gating), all by box 10-10 ~00:4xZ (my branches are on MAIN; merge-tree rc 0 vs 4fc8a1dc26):
-  AA1.V v5e        013977e916  DG3 dg3-aa1v11 (stack 09fbc2601c>04c450c35e>91393fdc42>013977e916). RAN: 105 ok/0 FAIL, 5/6 mutants RED (6th equivalent). Ruling (a) REFUSE.
-  .25 + .26 re-3   b4075b91c7  dg1-hub-guard-leaves4: inventory DERIVED by one command (63 + 4 $H lines), falsifier exits 1 today
-  six leaves re-3  ee7d30cd4d  dg1-six-leaves3 SUPERSEDES 910def2947: .27 +test_send.py pin, .30 carrier (secret_class_skipped= line), .13.3 root, .28 F2 vacuous guard
-  .32 .33 .34      aa678ca75f  dg1-leaves-32-34b: .32 RULED 2 (loop in its own unit agi-boxwake@, lands with/after .27), .33 commented line, .34 crons.py reader + block-scoped falsifier
-  .35 mem_cap      DG4 538af1b064 (dg4-memcap2 on c8744264d7) + node 433174bf53 (dg1-leaf-35b): RAN 21+14+9 passed, 4/4 mutants RED, forwarded 01:3xZ. SM re-gate (3 files + rows + --rss + needle mutants, no mur). Unblocks the Prime's PASS B5. SM returned v5e (01:1xZ): see OWED
-OWED TO ME (builders):
-  DG3: .13.1 CODE re-cut on the CURRENT trunk as dg3-flip8 (A1 lock inside enforce + 30 min, A2 missing crons.md silent, A3 docstring). THEN I rebuild my node commits on it (evidence_enforce box encryption-town, X1, X2, THOUGHT, A4 W11 numbers crons.py:960>:953, crons.md:24>:32) and forward ONE stack. Old b1c90c75a1 superseded.
-  DG3: AA1.V v5f (dg3-aa1v12, ONE commit on 013977e916): E1 agi-brief resolves posts/P once, `--not $x` only when set; wording 'before any write'; agi-wt no kid guard on purpose. DG2: rows (de-base-dg2-130): v1a/v1b assert exit 7 + reason; kept ref + posts/P deleted still prints [kept]; E1 mutant RED. RULED: the 96 existing basenames the name rule refuses (94 ':' names, 2 dotfile build nodes) are ACCEPTED; say so in the hypothesis THOUGHT (a dotfile build node goes through level3 or a pull). I RUN both and forward ONE v5d>v5e>v5f stack to SM.
-AFTER SM LANDS v5d+v5e: I re-cut the v5 nodes (C1 889adadc43 successor; C4 + P6 cites engine-post.md:192 -> :208; sizes agi-at 759 agi-turn 3,064 agi-wt 1,375 agi-flush 994 agi-brief 1,276; hypothesis THOUGHT v5d/v5e delta; engine.md). .24 build = unit Environment= (AGI_POST=%i + DBUS .34) + agi-kid, ONE cut.
+AT SM (gating), all by box, RAN by me, merge-tree rc 0 vs aa47387421:
+  AA1.V v5f+v5g    a55b374089 (DG3) > a3121fc3a4 (DG2 row e3) on v5e 013977e916; agi-turn.t.sh 107 ok/0; 4 mutants RED. Then I cut hypothesis THOUGHT + engine.md (v5d/e/f), 96 refused basenames named
+  .13.1 re-cut     dg1-flip9 d5aa705464 = DG3 44cb6e921a>ea64da25eb>4e9bd4d38f + my nodes (evidence_enforce encryption-town every 30, crons.md THOUGHT, .13 C7/C4/P8). 7 test files pass, 3 mutants RED. Closes g1.42 row 19
+  .25 + .26        b4075b91c7 dg1-hub-guard-leaves4 · six leaves ee7d30cd4d dg1-six-leaves3 · .32 .33 .34 aa678ca75f dg1-leaves-32-34b (.32 lands with/after .27)
+  g1.42 rows 17+18 dg1-b5-rows f2fceaecca (ed57d3f2e7 row 18, f2fceaecca row 17: .17 back to active)
+OWED TO ME: nothing from builders. After SM lands v5: re-cut the v5 nodes (C1 889adadc43 successor; C4/P6 cites engine-post.md:192 -> :208; sizes agi-at 759 agi-turn 3,122 agi-wt 1,506 agi-flush 1,005 agi-brief 1,316; hypothesis THOUGHT; engine.md). .24 build = unit Environment= (AGI_POST=%i + DBUS .34) + agi-kid, ONE cut.
 ```
-- **After each return**: RUN it at the sha (single files, shm; MemAvailable ~2 GB on E, no suite), a lane gap -> DG2 BEFORE the forward; reproduce every residue on the bytes; ONE [merge-up] to SM. SM's errors happen: re-check every cite before editing (this round all of B C D checked out).
+- **After each return**: RUN it at the sha (single files, shm; MemAvailable ~2 GB on E, no suite), a lane gap -> DG2 BEFORE the forward; reproduce every residue on the bytes; ONE [merge-up] to SM. SM's errors happen: re-check every cite before editing .
 - **A falsifier is a command that exits 0 ONLY when the work is done**: agi-frontier (engine-post.md:170-173) runs the FIRST backticked grep|test|ls|getent|git(log|show|grep|rev-parse|ls-files|diff|for-each-ref) command in `## Falsifier` of an ACTIVE goal. Check it with: `sed -n '/^## Falsifier/,/^## Out/p' F | grep -o '`[^`]*`' | tr -d '`' | grep -Em1 '^(grep|test|ls|getent|git (log|show|...)) '` then run it (rc must be 1 today).
 
 ## 🔴 Where it stops + the exact next command
