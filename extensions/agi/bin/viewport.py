@@ -1218,8 +1218,8 @@ def main() -> int:
                         f"GATE-FROZEN scope={_gate.get('scope')} since="
                         f"{_gate.get('since')} veto={_gate.get('veto_ref')} "
                         f"(human gate; waits for an owner answer)")
-        except Exception:  # noqa: BLE001  (read-only, never a crash)
-            freeze_lines = []
+        except Exception as _exc:  # noqa: BLE001  (read-only, never a crash; goal:g7.16.1.11.13.3: and never silence)
+            freeze_lines = [f"HOLD veto cell: {_exc}"]
 
     frames = _with_legacy(frames, root, args.top, args.height,
                           len(hierarchy_lines(anchors)) if (anchors is not None and args.layer == "hierarchy") else 0)

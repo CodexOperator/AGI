@@ -5410,9 +5410,8 @@ def veto_gate_status(root: Path, scope: str) -> str:
     graph = _veto_graph_root(root)
     try:
         from seatsig import veto as _veto
-    except Exception:  # noqa: BLE001  (a broken cell never frees-silent)
-        return (f"veto: vetoes cell unavailable; scope {scope!r} treated as "
-                "free")
+    except Exception as exc:  # noqa: BLE001  (goal:g7.16.1.11.13.3: the gated acts HOLD when seatsig fails to import; so does the display)
+        return f"HOLD scope={scope}: seatsig unavailable: {exc}"
     try:   # goal:g7.16.1.11.13.3: the SAME strict read the gated acts make; an unreadable cell is a HOLD with its cause, never FREE
         g = _veto.read(graph, strict=True)
     except _veto.VetoCellUnreadable as exc:
