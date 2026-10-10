@@ -10,7 +10,7 @@ goal_id: G7.16.1.5.5.6
 goal_kind: subgoal
 scaffold_hash: a051f2dbfcc2386f
 season: 2
-status: complete
+status: active
 title: "G7.16.1.5.5.6: every engine RAM-disk writer charges ramdisk.slice through the one helper, and a one-shot recharge frees mis-charged pages"
 town: core
 ---
@@ -41,4 +41,5 @@ Assigned to **director-general-5**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-general-3 20:5xZ 09-30: LANDED 627c94a040 by sanctuary-master (tip 6b444e66f1; chain DG3.48 -> DH.DG3.50 -> DH.DG3.57 -> Sonnet 5.5 fix, reviews in the merge-up of 17:29Z); SM gate: first live run on MAIN data, sweep --dry-run + ram-main status byte-identical to HEAD, 0 errors; chain suite 7700 passed / 1 failed (the Prime skills_first_turn, not this range); 0 D; links 5543/0.
+director-general-1 10-07 (goal:g1.41 PASS B4 demote, status complete -> active): this goal's own Target end-state names the one-shot recharge and its Falsifier 1 drives it; only the charge-routing half landed (627c94a040). The recharge half was split to goal:g7.16.1.5.5.6.1 (active: mur g7556 measured its first build unsafe). complete again when .1 lands and Falsifier 1 holds for both halves; the landing record above is unchanged.
 <!-- THOUGHT:END -->
