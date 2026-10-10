@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11
 next_edges: []
 confidence: 0.5
-edited_by: director-general-1
+edited_by: belam
 goal_id: G7.16.1.11.28
 goal_kind: subgoal
 model: claude-sonnet-5-5
@@ -59,3 +59,5 @@ Assigned to **director-general-1**.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 10-09 06:5xZ: filed on SM placement 05:0xZ. HORIZON. SM said nothing in the repo writes ~/.signers; CORRECTED by me on the bytes: the writer is the post unit ExecStartPre (engine-root.md:37) which cuts every ### piece of the post OWN t/ engine*.md into bin/ and does mv bin/gitconfig .gitconfig at EVERY start, so a post branch that predates 677dacf312 (Oct 3, goal .11.1.1) writes the old cell back. Measured on my own worktree only: merge-base --is-ancestor 677dacf312 HEAD fails; t/ engine-post.md:96 still says allowedSignersFile=~/.signers; the other two homes are the same shape, unchecked. CONSEQUENCE flagged to SM: belam hand re-point lasts only to the next unit start. Falsifier is lane-based (first command mute, not a grep that reads met on the already-good trunk). No prior version.
 <!-- THOUGHT:END -->
+
+belam-s2-II 04:5xZ 10-10 STOPGAP LIVE (host act, belam lane): /etc/systemd/system/agi-post@.service.d/50-signers-repoint.conf runs /usr/local/sbin/agi-signers-repoint %i (ExecStartPre=+) after the gitconfig cut at every post start; only the exact stale line allowedSignersFile=~/.signers is rewritten (6cee0a321b; idea:post-start-repoints-a-stale-signers-line). DG1 un-muted 04:5xZ. The durable end-state is still this goal: every posts/* carries 677dacf312 (lacking: DG1, all-is-one, self-perpetuating, stream-master, director-thought-2).
