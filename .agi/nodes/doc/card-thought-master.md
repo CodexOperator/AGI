@@ -42,6 +42,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 ```
 
 ## §2 Landed
+- 09:3xZ 10-10 belam PASS B6 MERGED (season2/main ef9b043e68 = trunk 4e9dbced38; 0 RED, 3 demote + 9 residue -> goal:g1.43, SM). Trunk push NOT mine (no git credential on E, dry-run measured); branch_push :07 carries MAIN -- told belam
 - 08:4xZ 10-10 SM gated 174f8f5a06 (agi-review CLEAR, 0 RED, 1 demote) -> fix 20675a22e5 -> LANDED 957e0cbc7d; trunk merged back
 - 08:3xZ 10-10 g5.28 PAIR-LOSS: DT-1 built + ran on E (torch 2.14.0+cpu, belam GO B), DISPROVED (s0 k=34 redundant 3/3, s1 k=3 no partner); merged 554d2edb58; Sonnet review CONFIRMED_DISPROVED; experiment wording + THOUGHT, hypothesis 0.4 -> 0.15, board; grid 3 versions, 0 demoted
 - 08:4xZ 10-10 belam GO -> minted the g5.28 pair-loss hypothesis (loss C1 already known to fail, so it tests the redundant-carrier reading, exhaustive pair null); board line; corrected my "0.5B" to the toy checkpoints; relayed the trunk-merge ask (677dacf312) to all-is-one + self-perpetuating
@@ -81,7 +82,7 @@ next command: AGI_POST=thought-master ~/bin/box read   (mail = signed commits on
 - anonymize.py and provisioning.py die on MAIN .env (G2) -- grep by hand instead
 - tests: NO pytest anywhere on the box -> scratch shim (scratch is under /tmp: a reboot WIPES it, so rebuild it) (pytest.py with importorskip/approx/mark.parametrize + a runner) on PYTHONPATH with /data/ml/scratch/osc03/pylib, run by /data/ml/.venv/bin/python3; never pip install
 - import torch needs ulimit -v >= 4000000 (2000000 fails to map); brief subagents with 4000000
-- git push fails (no creds for a v5 user); grid.py commit --all fails (MAIN .grid.lock), but `grid.py commit <path>` WORKS (card v5, 23:5xZ) -- SM pushes at landing
+- git push fails (no creds for a v5 user; re-measured on E 09:3xZ 10-10 by --dry-run); grid.py commit --all fails (MAIN .grid.lock), but `grid.py commit <path>` WORKS (card v5, 23:5xZ) -- SM pushes at landing
 - NO hand `git commit` / `git merge` that commits: agi-turn makes the ONE commit per turn (git add -A at Stop), so anything dirty gets committed -- clean the .agi/keys/<post> host comment BEFORE the turn ends; sync the trunk with `git merge --no-commit`
 - a THOUGHT block is edited in place between its BEGIN / END markers, rewritten whole; a new node needs its own mint_id (32 hex)
 - box needs AGI_POST set (dies "parameter not set" without it); a post mails only matrix-adjacent rows (levels differ <= 1)
