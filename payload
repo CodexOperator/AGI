@@ -14,6 +14,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 BIN = Path(__file__).resolve().parents[1] / "bin"
 sys.path.insert(0, str(BIN))
@@ -795,6 +796,7 @@ def test_wake_stale_id_is_named_and_falls_back_to_name(project: Path,
     fallback target is actually the send-keys target."""
     monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
     (project / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(project / "nodes" / ".geometry")
     (project / "nodes" / ".geometry" / "seats.md").write_text(
         _seats_md([{"name": "sanctuary-director", "role": "director",
                     "window": "@246", "pid": 424242}]))
@@ -821,6 +823,7 @@ def test_wake_live_id_keeps_id_target(project: Path, monkeypatch, capsys):
     the target -- no `nudge repair:` line, no by-name fallback."""
     monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
     (project / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(project / "nodes" / ".geometry")
     (project / "nodes" / ".geometry" / "seats.md").write_text(
         _seats_md([{"name": "sanctuary-director", "role": "director",
                     "window": "@246", "pid": 424242}]))
@@ -845,6 +848,7 @@ def test_send_stale_id_repairs_by_name(project: Path, monkeypatch, capsys):
     wake failed inside tmux send-keys with no line at all."""
     monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
     (project / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(project / "nodes" / ".geometry")
     (project / "nodes" / ".geometry" / "seats.md").write_text(
         _seats_md([{"name": "sanctuary-director", "role": "director",
                     "window": "@246", "pid": 424242}]))
@@ -872,6 +876,7 @@ def test_send_stale_id_no_name_fallback_prints_one_line(
     silence) and the message STILL lands in the inbox."""
     monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
     (project / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(project / "nodes" / ".geometry")
     (project / "nodes" / ".geometry" / "seats.md").write_text(
         _seats_md([{"name": "sanctuary-director", "role": "director",
                     "window": "@246", "pid": 424242}]))
@@ -897,6 +902,7 @@ def test_dm_stale_id_repairs_by_name(project: Path, monkeypatch, capsys):
     # send_dm resolves its nudge root via find_project_root -> the .agi
     # graph root; seats must be where THAT reader looks.
     (project / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(project / ".agi" / "nodes" / ".geometry")
     (project / ".agi" / "nodes" / ".geometry" / "seats.md").write_text(
         _seats_md([{"name": "liaison", "role": "liaison",
                     "window": "@999", "pid": 424242}]))
@@ -2126,6 +2132,7 @@ def test_nudge_addressed_by_row_at_id(project: Path, monkeypatch):
     deterministically falls to the capture-pane fake."""
     monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
     (project / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(project / "nodes" / ".geometry")
     (project / "nodes" / ".geometry" / "seats.md").write_text(
         _seats_md([{"name": "sanctuary-director", "role": "director",
                     "window": "@246", "pid": 424242}]))
@@ -2231,6 +2238,7 @@ def test_row_window_name_is_refused_and_falls_back_to_listing(project: Path,
     reason on stderr and a FALL BACK to the genuinely-listed window NAME.
     Old bytes used any truthy window cell verbatim and addressed the NAME."""
     (project / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(project / "nodes" / ".geometry")
     (project / "nodes" / ".geometry" / "seats.md").write_text(
         _seats_md([{"name": "sanctuary-director", "role": "director",
                     "window": "sanctuary-director"}]))   # a NAME, not @id
@@ -2252,6 +2260,7 @@ def test_stale_unlisted_at_id_is_not_used_verbatim(project: Path,
     the ONE named 'no window named …' line -- never silence -- and nothing
     is typed."""
     (project / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(project / "nodes" / ".geometry")
     (project / "nodes" / ".geometry" / "seats.md").write_text(
         _seats_md([{"name": "sanctuary-director", "role": "director",
                     "window": "@250"}]))
@@ -3443,6 +3452,7 @@ def test_comms_root_defaults_to_season_root(tmp_path: Path):
     iteration (hypothesis:l3-send-comms-root). Season from the ladder."""
     root = tmp_path / "proj"
     (root / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(root / ".agi" / "nodes" / ".geometry")
     (root / ".agi" / "config.json").write_text(json.dumps(
         {"metric_primary": "outcome_coverage"}))
     (root / ".agi" / "nodes" / ".geometry" / "ladder.md").write_text(
@@ -3456,6 +3466,7 @@ def test_comms_root_default_ignores_newest_iteration(tmp_path: Path):
     """A per-iteration dir must NOT win: the room must not reset each loop."""
     root = tmp_path / "proj"
     (root / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(root / ".agi" / "nodes" / ".geometry")
     (root / ".agi" / "config.json").write_text(json.dumps(
         {"metric_primary": "outcome_coverage"}))
     (root / ".agi" / "nodes" / ".geometry" / "ladder.md").write_text(
@@ -3501,6 +3512,7 @@ def test_comms_root_resolves_to_main_from_a_linked_worktree(tmp_path: Path):
         subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
                        check=True, capture_output=True)
     (repo / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(repo / ".agi" / "nodes" / ".geometry")
     (repo / ".agi" / "config.json").write_text(json.dumps(
         {"metric_primary": "outcome_coverage"}))
     (repo / ".agi" / "nodes" / ".geometry" / "ladder.md").write_text(
@@ -3537,6 +3549,7 @@ def test_inbox_dir_resolves_to_main_from_a_linked_worktree(tmp_path: Path):
         subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
                        check=True, capture_output=True)
     (repo / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(repo / ".agi" / "nodes" / ".geometry")
     (repo / ".agi" / "config.json").write_text(json.dumps(
         {"metric_primary": "outcome_coverage"}))
     subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
@@ -3803,6 +3816,7 @@ def test_whois_unreachable_is_unverified_nonzero(tmp_path, monkeypatch):
     _stub_pushed(monkeypatch, None)
     seats_dir = tmp_path / "nodes" / ".geometry"
     seats_dir.mkdir(parents=True)
+    write_free_veto(seats_dir)
     (seats_dir / "seats.md").write_text(
         "---\nseats:\n  - {\"name\": \"belam\", \"role\": \"prime_director\", "
     "\"session_ref\": \"7902ac\"}\n---\n")
@@ -3820,6 +3834,7 @@ def test_whois_ignores_working_tree_edit(monkeypatch, tmp_path):
     change a verified answer — the whole point of reading the pushed ref."""
     seats_dir = tmp_path / "nodes" / ".geometry"
     seats_dir.mkdir(parents=True)
+    write_free_veto(seats_dir)
     # working tree hands 7902ac to a DIFFERENT seat than the pushed ref does
     (seats_dir / "seats.md").write_text(
         "---\nseats:\n  - {\"name\": \"evil\", \"role\": \"hacker\", "
@@ -4587,6 +4602,7 @@ def test_tampered_body_still_reads_forged(project, capsys, monkeypatch):
 def _write_seats_node(project, rows):
     d = project / ".agi" / "nodes" / ".geometry"
     d.mkdir(parents=True, exist_ok=True)
+    write_free_veto(d)
     body = "\n".join(f"  - {r!r}" for r in rows)
     (d / "seats.md").write_text(
         "---\nid: config:seats\nmint_id: 3e88873e3c204c5088f6ab81322a26de\n"
@@ -5920,6 +5936,7 @@ def _git_project(tmp_path, rows, branch="season/s2", comms=None):
     root the send/read/client code resolves (has `.agi/config.json`)."""
     root = tmp_path / "proj"
     (root / ".agi" / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    write_free_veto(root / ".agi" / "nodes" / ".geometry")
     cfg = {"metric_primary": "x"}
     if comms is not None:
         cfg["comms"] = comms
@@ -6192,6 +6209,7 @@ def test_absent_row_everywhere_reads_unverifiable_no_row(tmp_path, monkeypatch,
     priv_a, _pub_a = scheme.keygen()
     root = tmp_path / "proj"
     (root / ".agi" / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    write_free_veto(root / ".agi" / "nodes" / ".geometry")
     (root / ".agi" / "config.json").write_text(
         json.dumps({"metric_primary": "x"}))
     (root / ".agi" / "nodes" / ".geometry" / "seats.md").write_text(
@@ -7515,6 +7533,7 @@ def _write_geometry(root: Path, *, rows=None, aliases=None) -> Path:
     `posts:` rows and/or the Prime-written `aliases:` table (old -> new)."""
     geo = root / ".agi" / "nodes" / ".geometry"
     geo.mkdir(parents=True, exist_ok=True)
+    write_free_veto(geo)
     lines = ["---", "id: config:posts", "posts:"]
     for r in rows or []:
         lines.append("  - " + json.dumps(r, sort_keys=True))
@@ -7701,6 +7720,7 @@ def test_dm_sweep_cursor_is_shared_across_a_linked_worktree(
         subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
                        check=True, capture_output=True)
     (repo / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(repo / ".agi" / "nodes" / ".geometry")
     (repo / ".agi" / "config.json").write_text(json.dumps(
         {"metric_primary": "outcome_coverage"}))
     (repo / ".agi" / "nodes" / ".geometry" / "ladder.md").write_text(
@@ -7917,6 +7937,7 @@ def _plain_seats(project: Path, rows) -> None:
     # `<project>/.agi/nodes/...` in a fixture project. A guard on loaded rows
     # is therefore INERT in every test that uses this helper.
     (project / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    write_free_veto(project / "nodes" / ".geometry")
     (project / "nodes" / ".geometry" / "seats.md").write_text(_seats_md(rows))
 
 
