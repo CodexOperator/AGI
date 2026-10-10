@@ -12,7 +12,7 @@ tags:
   - card
   - prime
   - belam
-thought_session: belam-s2-I
+thought_session: belam-s2-II
 title: "doc:card-belam -- the Prime's card: the one scratch (state · plan · landed · where it stops · traps · verification · BANKED)"
 town: core
 ---
@@ -21,13 +21,14 @@ town: core
 Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.agi/sessions/quorum/belam.md` are symlinks to it. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs; progress lives on the town board. Skills: agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-post · agi-memory-guard · agi-node-write · agi-goal · agi-master-gate.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-s2-II 20:5xZ 10-09: woke (box empty, CHECK 746dda5f + memory 144506ef re-armed); dbus client NAMED (gh via claude's PR-status poll) -> SM leaf; SM's RC title 'go' fixed + keepalive heals titles (owner 20:3xZ: "Sanctuary master’s session is not naming properly ... can we fix it"). Before: belam-s2-I 20:1xZ 10-09, at the rotation line: card whole for belam-s2-II. This gen: E3 done; mail moved to box only for every post; Doppler key into .env (wrong workspace -> PASS B5 reviews held); RC drop explained (8 h tokens on idle posts) + root keepalive; box health on E (AGI_BOX in .env restored the box-gated crons; 541 orphan dbus buses reaped + reaper; grid_sync 30 min; 92C throttling to the owner). OWNER verbatim this gen (banked on their nodes): 01:0xZ "Btw we should resume the merge pass ... do it in parallel" · 01:2xZ "Just belam-s2-I and you can restart since it’s new engine" · 04:2xZ "1. Local town will remain down for the foreseeable future ..." · 05:0xZ "Let’s lower the floor ..." · 08:0xZ "Also we use the provisioning key primarily not the api key" · "Yes let’s do that" (keepalive).
+belam-s2-II 09:3xZ 10-10, at the rotation line: card whole for belam-s2-III. This gen: woke 20:18Z; PASS B5 merged (583 commits, first Sonnet-lane pass); B6 reviewed, verifier + merge handed on; season leaves closed .3 .5 .11.1.1 .13.1 .13.2 .13.3 .19 .21 .34 .36; host fixes: dbus leak source (gh auth token) -> no-session-bus drop-in, stale signers -> signers-repoint drop-in, dead box-wake loops -> agi-boxwake@ units, stuck upsell dialog -> engine fix .36. OWNER verbatim this gen: "Nah just use sonnet subagents and we retired workflows.py in favor of shel scripts already" · "Yes always. Thats your main check every 4 hours is to see what’s stuck if anything and keep town on trajectory and moving toward season completion" · "I’m fine with the Nvidia pick yes" · "We don’t use the ladder anymore" / "It needs to be deprecated" · "The bazzite vm is temporary just doing a local town related project in the background".
 <!-- THOUGHT:END -->
 
 ## §0 State (01:1xZ 10-09, read from date -u)
 | | |
 |---|---|
-| post | belam-s2-II (woke 20:18Z 10-09; predecessor belam-s2-I, owner 01:2xZ: the generation count RESTARTS on v5; was "gen 31"; successor = belam-s2-II, no loop number) = FIRST v5 Prime, SEATED on E 00:57Z 10-09 (agi-post@belam active), user agi-belam, home ~, works in ~/t on posts/belam |
+| STANDING | owner 07:5xZ 10-10: every 4-h CHECK = TRAJECTORY FIRST -- what is stuck, idle posts, season leaves -> SM (engine) / TM (research) (skill agi-merge-pass §1 T1-T3). Reviews = Sonnet subagents (skill agi-review; workflow.py retired) |
+| post | belam-s2-II (woke 20:18Z 10-09) rotated at its line 09:3xZ 10-10 -> successor belam-s2-III; user agi-belam, home ~, works in ~/t on posts/belam |
 | E | 4 cores · 7.8 GB · agi.slice MemoryHigh 5G / Max 6G / oomd 40% · the OS hostname is still the old Prime's (box = the row cell) |
 | posts on E (v5) | DG1-5 · DT-1 · TM · alive · all-is-one · self-perpetuating · SM · belam = 12; each logged in by the owner |
 | L = local-town | SHUT DOWN 02:0xZ 10-09 (owner: "confirm local town is clear and shut it down"); belam-s2-I is the ONLY Prime; every seat key carried L->E (sends sign again); L's .env NOT carried; refs/grid bundle on L's USB /mnt/agi-flash |
@@ -37,30 +38,28 @@ belam-s2-II 20:5xZ 10-09: woke (box empty, CHECK 746dda5f + memory 144506ef re-a
 | crons | box: user belam's crontab on E is LIVE (10 lines = the graph; crons_apply 02:05Z no-op): grid_sync */5 · ref pushes */5 · trunk push :07 · send.py wake */2 (the L note "E has no crontab" was wrong) · session-only (re-arm at wake): CHECK 541c0eb9 (13 */4, box read + launch when the key sees ws 72750376) · memory 4317a080 (47 *) · one-shots 45a8ec64 04:37Z · 4825bc4e 06:07Z |
 | host act E | installed 22:22Z 10-08 at dd1563bc3c: rollback `sh /var/backups/agi-act-20261008T222239Z/rollback.sh` |
 | landing | belam commits on posts/belam, pushes posts/belam, then as user belam `merge --ff-only posts/belam` in MAIN; the TRUNK push is TM's alone (skill agi-merge-pass §4; breached twice gen 31, owned to TM) |
-| merge pass | PASS B5 MERGED 01:3xZ 10-10: season2/main 7276f11d36 = trunk fc4a0865ee (Sonnet lanes; residues goal:g1.42). Next pass B6: BASE fc4a0865ee · state MAIN .agi/sessions/prime-merge.state.json |
+| merge pass | B5 MERGED (season2/main 7276f11d36). B6 IN FLIGHT: BASE fc4a0865ee · TIP PINNED 4e9dbced38 (176 commits, 124 paths) · 6 Sonnet lanes DONE: 0 RED · 3 demote · 9 residue · mechanical: anonymize ok 504 KB, D = moves/retirements verified, links 5845/0 · VERIFIER NOT DONE (died with the session) · kit ~/pass-b6 (brief, range, lanes, out/*.json, combined.json, verify-prompt.md) · state MAIN .agi/sessions/prime-merge.state.json |
 
 ## §1 Plan
 ```
-1. PASS B5 DONE (7276f11d36). Next pass B6: BASE fc4a0865ee; Sonnet lanes (skill agi-merge-pass §2 note). Owner asked for a GRAPH template for Sonnet subagent reviews on CC: brief doc node + agi-review skill + lane-split shell script (draft it next, send to SM for the directors) (config spawn workspace, new account 5b6342571d). E's .env key = Doppler agi/dev OPENROUTER_ADMIN, owns ws 023ce4bd -> mint 403. Likely Doppler project `access`: needs a `doppler login` on E (as belam) or an access service token from the owner. Then: swap it into .env (never printed), `sh ~/pass-b5/launch.sh` (background), verdicts.py, skill §2 steps 5-9. Kit + 17 rounds ready; TIP 82e6731fa7; RED checks clean
-2. dbus leak: NAMED 20:4xZ (bpftrace 30 min: 9 autolaunches, all gh <- claude's PR-status poll, DG5 x5 DG3 x4; post uids have no gh config -> keyring -> godbus bare dbus-launch). Fix = DBUS_SESSION_BUS_ADDRESS=disabled: in agi-post@ -> mailed SM (engine leaf, SM's lane). Reaper holds it meanwhile
-3. heat on E (92C, powerclamp): owner checks cooling; optional agi.slice CPUQuota ~300% on the owner's word
-4. trajectory (★): E3 DONE (goal .17 complete) · E1 D3 re-forward returned to DG1 · E2 waits on .13.1 (conflicts with .13.2, DG4 re-cut) · E4 AA1.V re-cut returned to DG1/DG3 · E5 waits on E1
-5. landings come from SM by box: before EVERY ff run the FULL anonymize guard with .env (trap 94), then `merge --ff-only <L>` in MAIN as belam; the :07 cron pushes the trunk
-6. banked: config:guard E lines (DG1 .26) · narrow agi-belam sudo (council) · refs/grid L vs E reconcile · prune worktrees on E · egress watchdog fix (owner)
-STANDING (owner 07:5xZ 10-10): every 4-h CHECK = trajectory first -- what is stuck, idle posts, season leaves -> SM/TM (skill agi-merge-pass §1 T1-T3)
+1. PASS B6: re-run the ADVERSARIAL VERIFIER (one Agent, model sonnet, prompt = ~/pass-b6/verify-prompt.md). CLEAR -> merge exactly as B5:
+   M = commit-tree TIP^{tree} -p origin/season2/main -p TIP (season2/main must be an ancestor of TIP) as user belam; push M:season2/main; push TIP:local-maxxing/main;
+   residues (3 demote + 9 residue + verifier) -> ONE leaf goal:g1.43 (skill agi-goal); state file closed; board note; [merge-up] to TM; residues to SM
+2. TRAJECTORY (standing): DG1-5 work .5-done/.8 lane/.13/.20 B (rotate alert, fail-soft)/.24/.12 key-fix landed; DT-1 g5.28 next lens (torch CPU wheel in its scratch)
+3. OWNER RULINGS OWED (asked 09:0xZ, unanswered): (a) season-2 CLOSE SET = SM 08:12Z proposal (.3 .5 .12-ring .13 .13.3 .17 .19 .21 .36 + overview nodes; the rest S3)
+   (b) host-act GOs: my rec GO .12 ring install + .11.1 install this season; .4 .7 .18 .6 -> S3 (c) machine identity for root alerts -> S3
+4. live probes owed at the next FRESH post start: ~/.claude.json fullscreenUpsellSeenCount = 3 and no dialog (.36); DBUS_SESSION_BUS_ADDRESS=disabled: in the unit env; signers line re-pointed
+5. agi-boxwake@ stopgap units (5; DG1 sticky Restart=always) until the engine-wrap `while :;do sleep 5` fix lands: then stop them by hand
 NEVER: assign a design or a build (council) · dispatch · write in another post's tree
 ```
 
-## §2 Landed
-belam-s2-II 01:3xZ 10-10: PASS B5 MERGED -- season2/main f75e3f48b6 -> 7276f11d36 (no-ff; trunk fc4a0865ee, 583 commits), local-maxxing/main -> fc4a0865ee. Owner 00:4xZ: "Nah just use sonnet subagents and we retired workflows.py": 8 Sonnet lanes + 1 adversarial verifier: RED 0 · demote 0 · residues 29 -> goal:g1.42 (to SM). Free tier -> nvidia/nemotron-3-ultra-550b-a55b:free (owner's pick; 39 test reds identical with/without it = pre-existing). .35 (RLIMIT_DATA cap fallback) landed 38e1270456: pi spawns on E work again. Ladder: goal:g7.16.1.11.15 active (owner: "It needs to be deprecated"). keepalive /rename rate-limited (g1.42 row)
-belam-s2-II 00:1xZ 10-10: DG1's ~/.gitconfig re-pointed to /var/lib/agi/allowed_signers (box read verified); re-cut stale at every DG1 start until posts/director-general-1 merges 677dacf312 (asked SM to route) · memory WARN 00:03Z = the owner's Bazzite PXE test VM (pxe-vmtest-bazzite; owner 00:2xZ: "temporary just doing a local town related project in the background" -- its WARNs are expected, never stop it), cleared 00:04, re-warned 00:05
-belam-s2-II 21:0xZ: trap 96 stopgap -- agi-boxwake@<post> transient units (own uid + agi-run env, BindsTo agi-post@<post>, `while :;do sleep 5`) for all-is-one DG1 DG2 DG5 self-perpetuating; 12/12 posts poll box (bpftrace). Engine patch (engine-wrap.md:24-26 `while :;do sleep N;`) mailed SM for DG1's leaf
-belam-s2-II 20:5xZ: SM's RC session titled 'go' (titleSha = sha256('go'): a bare /remote-control re-made its bridge 14:38Z) -> typed `/rename sanctuary-master` (session name now sanctuary-master) + agi-rc-keepalive heals any post whose live bridge title is not its name (1fa6ca9fcb, installed; dry run: 12/12 ok) · dbus client named, SM mailed · DG1 + DG5 hand-woken (dead box loops: all-is-one DG1 DG2 DG5 self-perpetuating) · MAIN ff ecf126920f
+## §2 Landed (belam-s2-II; detail in git + the goal notes)
+B5 7276f11d36 · .35 RLIMIT_DATA · AA1.V v5f/g · kid identity · key-stranding fix + rows · .13.1/.13.2/.11.1.1/.3/.21/.36/.5/.34/.19/.13.3 closes (all via SM, full guard each)
+mine: free tier -> nvidia/nemotron-3-ultra-550b-a55b:free · skill agi-review + review-lanes.sh + doc:agi-review-brief · goal:g1.42 (B5 residues; open 11/12/25 owner + 15 mine) · rc-keepalive title heal + rate limit · signers-repoint + no-session-bus drop-ins (/etc/systemd/system/agi-post@.service.d/50-,51-) · crons._systemd_bus_env disabled: fix · ladder goal .15 active
 
 ## 🔴 Where it stops
-belam-s2-II is live; at the next wake (on E, ~/t): `AGI_POST=belam box read` (box is the ONLY mail route), then re-arm the session crons (CHECK 13 */4 with the ws-72750376 launch condition, memory watch 47 *)
-- owner: confirm the phone app shows SM as 'sanctuary-master' (the /rename landed locally; the bridge title is not readable from the box)
-- open at handoff: SM's dbus engine leaf (plan 2) · PASS B5 key (plan 1) · DG1 working SM's 8 delivered msgs (.25/.26, D3, AA1.V, placements) · 5 posts' agi-run box-wake loops dead (trap 96): the root keepalive + hand wakes cover them until DG1's leaf
+belam-s2-II rotated at its line 09:3xZ 10-10 in the middle of PASS B6: lanes done, VERIFIER owed, merge owed (an irreversible multi-ref act is never started past 0.41 -- it is this card's first line).
+- next command at wake (on E, ~/t): `AGI_POST=belam box read` (UNREAD mail waits: SM sent at ~09:3xZ, not read by me), re-arm crons (CHECK 13 */4 trajectory-first, memory 47 *), then plan 1
 
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
