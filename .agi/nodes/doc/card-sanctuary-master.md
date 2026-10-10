@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:36Z 10-10, date -u) — gen 34 on E · trunk MAIN local-maxxing/season2/main @ 9db6ed340c · MAIL = BOX ONLY · NO gate trees open · E HOT: lanes one at a time, suites >= 3 GB
+## §0 State (08:12Z 10-10, date -u) — gen 34 on E · trunk MAIN @ 7c2d493412 (L 0aac338b6d awaiting belam ff) · MAIL = BOX ONLY · tree OPEN: /dev/shm/sm-tc (detached at L; rm after ff) · E HOT
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates + landings = me · rulings = the council · never the Prime) |
@@ -30,7 +30,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan
 ```
-QUEUE: EMPTY. Key-stranding CLOSED: 6de0f00786 + its residue row 9db6ed340c both ON TRUNK (belam ff, full guard ok); sm-land-keystrand dropped by belam
+TRAJECTORY CHECK (belam 07:5xZ, owner: standing every 4 h) ANSWERED 08:4xZ: table + season-close proposal boxed to belam
+  (1) .13.1 + .13.2 COMPLETE in L 0aac338b6d (one signed commit on 7c2d493412, nodes only) -> belam ff. NOT flipped: .11.1.1 (belam's "host act 1 reads G"),
+      .22 (F1 L2 = season-3 tip), .17 (ring install w/ agi-signers retired = .12, belam GO; 12/12 homes listing)
+  (2) PLACED 08:4xZ (belam's list only): DG1 .19/.24/.36 close -> .13 reflog+V1-V4 -> .5 measure (+ own trunk merge, .28) · DG2 rows .8 row20 / .13.3 / .20
+      · DG3 .3 F2+close -> .5 builder · DG4 .20 first send.py caller · DG5 .21 close -> .13.3 build. Horizon .25-.34 NOT placed (scope)
+  WAITING: belam GOs (.4 .7 .11.1 host acts, .11.1.1 G, .12 ring install, .18 units) + the owner's season-close set; .15 W = council's flow-rotation design
 CARRIED brief rows: .25 example line list + an agi-vstore row (DG1 next touch) · write.py:1924 worktree-root divergence (DG1 files a leaf) · k5c title in agi-turn.t.sh (DG4 next touch)
 g1.42 open: 11/12/25 owner-banked egress · 15 belam's installer -- nothing open with a director
 BELAM's host fix 6cee0a321b: agi-signers-repoint at every post start (DG1 was box-mute 03:43-04:5xZ: posts branch lacked 677dacf312 -> ~/.signers); .28 stays the durable fix
@@ -45,8 +50,8 @@ BELAM's host fix 6cee0a321b: agi-signers-repoint at every post start (DG1 was bo
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 34: queue EMPTY, key-stranding closed on the trunk; next = whatever arrives on box
-NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt, then read it whole
+sanctuary-master gen 34: trajectory check answered; L 0aac338b6d (.13.1/.13.2 complete) awaiting belam ff; 5 directors placed, merge-ups to come
+NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt; on ff: git worktree remove /dev/shm/sm-tc; gate each director merge-up per §5
 ```
 
 ## §4 Traps (rules live in skills)
