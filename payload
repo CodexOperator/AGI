@@ -118,6 +118,7 @@ class Frame:
     damaged: str         # "" when sound, else why
     agents: tuple        # agent ids working here (live axis)
     town: str = ""      # town of nearest vision (hyp:l4-towns-...), "" when unknown
+    legacy: str = ""    # D3 (goal:g7.16.1.11.22): "[legacy]" | "[legacy ⊃k]" | "[⊃k]" | "", computed from the node file's history (legacy.py)
 
 
 def _title_of(node, fm: dict) -> str:
@@ -294,6 +295,51 @@ def default_roots(g, fm_by_id: dict) -> list[str]:
 # Formatters. BOTH consume `frames` and nothing else.
 # --------------------------------------------------------------------------
 
+_LEGACY_GRAPH: dict = {}   # HEAD sha -> nest.graph(HEAD): the graph load (seconds) is per commit
+_LEGACY_MEMO: dict = {}    # (root, top, height, hier, window ids) -> {node id: label}: an identical redraw runs no git at all
+
+
+def _with_legacy(frames: list[Frame], root, top: int = 0, height: int | None = None, hier: int = 0) -> list[Frame]:
+    """D3 (goal:g7.16.1.11.22): stamp the legacy mark on the frames in view
+    ONCE, so both readers print the same string (goal:g2.19). Only the window
+    is stamped: a mark costs a history walk (a cache keeps it warm), and the
+    stream behind the window is never drawn. `hier` = the lines the human pane
+    puts ABOVE the frame lines (the hierarchy layer on top); the window is the
+    union of what the human pane (frames[top-hier:top+height-hier]) and
+    `--emit llm` (frames[top:top+height]) show. Computed at HEAD of the repo
+    holding `root`, season = ladder.md's `current_season` at HEAD, from the node
+    file's own history (legacy.py). The result is memoised per window for the
+    process's life (the interactive graph is a startup snapshot too): a second
+    identical call spawns no git; a commit made while a viewport is open shows
+    only after a scroll to a window with different node ids. Fails open to no mark (a graph outside git,
+    an unreadable history) -- never a traceback in the view."""
+    here = os.getcwd()
+    try:
+        import dataclasses
+        end = len(frames) if height is None else top + height
+        view = frames[max(0, top - hier):end]
+        key = (str(root), top, height, hier, tuple(f.node_id for f in view))
+        stamp = _LEGACY_MEMO.get(key)
+        if stamp is None:
+            import legacy
+            import nest
+            os.chdir(Path(root).parent)          # legacy.py and nest.py run git in the cwd
+            head = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip() or "HEAD"
+            nodes = _LEGACY_GRAPH.get(head)
+            if nodes is None:
+                _LEGACY_GRAPH.clear()
+                nodes = _LEGACY_GRAPH[head] = nest.graph(head)
+            seen = [f for f in view if f.node_id in nodes]
+            marks = legacy.labels(head, legacy.season_of(head), [nodes[f.node_id][0] for f in seen], nodes)
+            stamp = _LEGACY_MEMO[key] = {f.node_id: marks.get(nodes[f.node_id][0], "") for f in seen}
+        return [dataclasses.replace(f, legacy=stamp[f.node_id]) if f.node_id in stamp else f for f in frames]
+    except Exception as exc:                                     # noqa: BLE001
+        print(f"viewport: legacy mark unavailable ({type(exc).__name__}: {exc})", file=sys.stderr)
+        return frames
+    finally:
+        os.chdir(here)
+
+
 def render_human(frames: list[Frame], top: int, left: int,
                  height: int, width: int, status: str = "",
                  brief=None, seats=None, occupants=None, anchors=None,
@@ -324,7 +370,8 @@ def render_human(frames: list[Frame], top: int, left: int,
         seats_here = occupants.seats_at(f.node_id) if occupants is not None else ()
         seat_mark = "".join(f" {GLYPH['seat']}{nm}" for nm in seats_here)
         town_mark = f" [town:{f.town}]" if f.town and f.town != "core" else ""
-        lines.append(f"{'  ' * f.depth}{glyph} {tag} {f.title}{town_mark}{v}{spider}{seat_mark}{note}")
+        lg = f" {f.legacy}" if f.legacy else ""
+        lines.append(f"{'  ' * f.depth}{glyph} {tag} {f.title}{town_mark}{lg}{v}{spider}{seat_mark}{note}")
 
     # Round 2 — stacked layers. Top renders full; the layer beneath is
     # faint-prefixed so it peeks around the top one in a plain terminal.
@@ -392,7 +439,8 @@ def render_llm(frames: list[Frame], top: int, left: int,
         seats_here = occupants.seats_at(f.node_id) if occupants is not None else ()
         seating = f" seats={','.join(seats_here)}" if seats_here else ""
         tn = f" town={f.town}" if f.town and f.town != "core" else ""
-        body.append(f"{'  ' * f.depth}- `{f.node_id}` ({f.type}) {f.title}{tn}{v}{dmg}{who}{seating}")
+        lg = f" {f.legacy}" if f.legacy else ""
+        body.append(f"{'  ' * f.depth}- `{f.node_id}` ({f.type}) {f.title}{tn}{lg}{v}{dmg}{who}{seating}")
     head = [
         "# graph viewport",
         f"_frames {top}-{min(top + height, len(frames))} of {len(frames)}_",
@@ -989,6 +1037,8 @@ def interactive(root: Path, g, fm_by_id, args) -> int:
                 except Exception:                                    # noqa: BLE001
                     anchors = None
 
+            frames = _with_legacy(frames, root, top, h,
+                                  len(hierarchy_lines(anchors)) if (anchors is not None and layer == "hierarchy") else 0)
             status = (f"anchor={anchor or 'roots'} depth={depth} "
                       f"frames={len(frames)} "
                       f"time={iter_name or '-'} live={'on' if live else 'off'}"
@@ -1163,6 +1213,8 @@ def main() -> int:
         except Exception:  # noqa: BLE001  (read-only, never a crash)
             freeze_lines = []
 
+    frames = _with_legacy(frames, root, args.top, args.height,
+                          len(hierarchy_lines(anchors)) if (anchors is not None and args.layer == "hierarchy") else 0)
     if args.verify:
         return _verify(frames, args, brief)
 
@@ -1201,6 +1253,7 @@ def main() -> int:
 #: verifier that silently starts measuring different lines has stopped
 #: verifying (L1.04).
 _FRAME_LINE = re.compile(r"^\s*-\s+`([^`]+)`\s+\(")
+_LEGACY_MARK = re.compile(r"\[(?:legacy(?: ⊃\d+)?|⊃\d+)\]")   # legacy.render()'s three shapes
 
 
 def _verify(frames: list[Frame], args, brief=None) -> int:
@@ -1240,6 +1293,18 @@ def _verify(frames: list[Frame], args, brief=None) -> int:
         if f.damaged and f.damaged not in llm:
             print(f"FAIL: damage on {f.node_id} is missing from the llm view")
             ok = False
+
+    # D3 (goal:g7.16.1.11.22): the legacy mark is the SAME string in both renderings
+    # (goal:g2.19: the terminal and the llm view agree byte for byte). Each frame's
+    # title is cut out of its line first: a title may itself read like a mark.
+    llm_line = {m.group(1): ln for ln in llm.splitlines() if (m := _FRAME_LINE.match(ln))}
+    for f, hl in zip(sl, human[len(human) - len(sl):]):   # the briefing head comes first; no status / idle band here, so the frame lines are the last len(sl)
+        want = [f.legacy] if f.legacy else []
+        for view, ln in (("human", hl), ("llm", llm_line.get(f.node_id, ""))):
+            got = _LEGACY_MARK.findall(ln.replace(f.title, "", 1))
+            if got != want:
+                print(f"FAIL: {view} view shows legacy mark {got} on {f.node_id}, want {want}")
+                ok = False
 
     if brief is not None:
         # The facts both readers were handed must appear in both renderings.
