@@ -75,8 +75,9 @@ Standing, owner 2026-09-09: trim + diagram-max, for every role, all the time; ow
 
 ## Editing the engine — one commit
 Edit the file in place · run its tests · `git commit` · `python3 extensions/agi/bin/grid.py commit --all`.
-A new file is written directly under `extensions/`, `skills/` or `src/`; `level3.py` (via `git ls-files`) or
-`write.py create build … --payload` gives it a node (parents checked at mint: [mvp] · [build, goal] · [goal, mvp] · [goal, idea]; a goal alone is refused). **Never `grid.py checkout`** — it silently reverted another
+A new file is written directly under `extensions/`, `skills/` or `src/`; `write.py create build … --payload` gives it a node
+with a legal parent set: [mvp] · [build, goal] · [goal, mvp] · [goal, idea] (checked at mint; a goal alone is refused). Never `level3.py`
+for this until goal:g1.43.1 lands: both its modes mint illegal parent shapes today (council, alive 10-10). **Never `grid.py checkout`** — it silently reverted another
 agent's uncommitted work twice (`goal:g4.1`). `stitch.py --from-grid --grid-version N --out DIR` (writes OUT) survives.
 
 ## The two rules this project has already paid for
