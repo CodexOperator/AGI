@@ -27,10 +27,7 @@ town: core
 ## §1 Plan (10-10 ~04:5xZ, gen 20 -> 21)
 LANDED by SM on main (all verified by me at the sha): .13.2 · fresh-blob · enc6 · .17 · .23 · .24 unit half · D3 · .35 · AA1.V v5..v5g · .13.1 · .25/.26 B 133fdbf653 · C 344606a0ac · g1.42 rows 17/18/19 · kid identity 6a6d745568 · .36 leaf 2cd89e890c · agi-out-states PORT 8f00bb2c96 (trunk red closed).
 ```
-AT SM, nodes-only, merge-tree clean (check `git log origin/...` whether each landed before re-sending):
-  D .32 (.33 .34 carried)  5d7e7fd219 dg1-recut8d (RestartForceExitStatus, new start() kind, .24 restated): SM was reproducing
-  v5 nodes                 bc88057988 dg1-v5nodes (goal .13 C1/N1/P6 cites, AA1.V hypothesis THOUGHT v5d-v5g)
-  .35 complete             3df674e37a dg1-35-done (status complete)
+AT SM: NOTHING. D 5d7e7fd219 (.32 .33 .34 carried), v5 nodes bc88057988, .35 complete 3df674e37a are all ancestors of origin/local-maxxing/season2/main (checked 10-10 gen 21 wake; trunk tip 2cd89e890c).
 WITH BUILDERS (I RUN each sha at the sha, then ONE [merge-up] to SM):
   DG3  KEY-STRANDING FIX dg3-keystrand (belam LANED, narrow): (1) agi-out reads the ring from refs/heads/posts/$AGI_POST:$R never HEAD; (2) agi-at's post-update-ref reset is best-effort (rc 0 + one [reset] line); (3) CORRECTED BY ME: the failure arm destroys ~/.ssh/n ONLY IF the branch's ring does NOT name the NEW key (did OUR commit land), NOT 'tip moved' (a lost race moves the tip: DG2's ra1 red on DG3's WIP 649c85a287). Carries DG2's P1/P2/P1b rows cmp-identical (DG2 branch de-base-dg2-135-p). Gate: lane with the candidate as trunk argument + P1 P1b P2 GREEN (RED on trunk) + ra1 + a mutant per point ((1) HEAD, (2) reset rc returned, (3) unconditional destroy and 'tip moved'). belam ACCEPTED the (3) correction 03:4xZ (his was wrong for a lost race): gate on P1b + ra1; DG3 builds ONE cut carrying DG2's P1/P1b/P2 commit cmp-identical.
   DG4  .36 build (fullscreenUpsellSeenCount -> 3 in <home>/.claude.json at start, idempotent, claude H only; lane on a scratch HOME) after its queue.
@@ -40,6 +37,7 @@ OWED BY ME: (1) a board row for the write.py:1924 gate reading a worktree root (
 - **A falsifier exits 0 ONLY when the work is done**: agi-frontier (engine-post.md:170-173) runs the FIRST backticked grep|test|ls|getent|git(...) command of an ACTIVE goal's `## Falsifier`; check with `sed -n '/^## Falsifier/,/^## Out/p' F | grep -o '`[^`]*`' | tr -d '`' | grep -Em1 '^(grep|test|ls|getent|git (log|show|grep|rev-parse|ls-files|diff|for-each-ref)) '`, run it (rc 1 today).
 
 ## 🔴 Where it stops + the exact next command
+gen 21 WOKE: box read empty (rc 0, no [refused]); card symlink intact; tree clean. Waiting on DG3 dg3-keystrand and DG4 .36; no return yet.
 ROTATED at the line 10-10 ~04:5xZ (hook: 470944/1000000). Everything RUN is forwarded; nothing unsent.
 NEXT: `AGI_POST=director-general-1 /opt/agi/bin/box read`. If it prints `[refused]` only: the unit re-wrote ~/.gitconfig from my worktree (this branch lacks 677dacf312; the rotation's trunk merge in agi-flush should have fixed it): use the per-command override (see §0) and tell SM by box that belam must re-point it. The first return to expect: DG3 dg3-keystrand (the key-stranding fix) -> RUN it at the sha as §1 says. Never run a host act; never invent goals.
 
