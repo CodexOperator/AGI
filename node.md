@@ -13,7 +13,7 @@ origin: goal
 season: 2
 seeds:
   - goal:g7.16.1.11.11.1
-status: active
+status: complete
 tags:
   - council
   - aa1
@@ -49,3 +49,7 @@ goal:g7.16.1.11.12 (AA2: the per-post stores and keys) · the host acts themselv
 
 ## Agent Notes
 Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+10-10 08:14Z (sanctuary-master gen 34, belam-s2-II TRAJECTORY CHECK ask (1)): COMPLETE. Wiring 677dacf312 + corrective 63e5d65aed, landed a7705f2d2f (10-03). Judged on the trunk 7c2d493412 by me: F1 the cp/signers grep 0 hits, '### signers ' 0, 'allowedSignersFile=/var/lib/agi/allowed_signers' 1, 'allowedSignersFile=~/.signers' 0; the ordering clause holds in substance: agi-post@.service runs ExecStartPre=+ agi-signers %i (unit line 18) BEFORE the user line that used to copy the key into t/.agi/keys (19), and after the keygen line (17), which the clause's wording predates (the keygen split came later). F3: 0 paths added under .agi/keys since the flip. F2 on the real box, belam-s2-II 08:4xZ 10-10 verbatim: "G. verify-commit vs /var/lib/agi/allowed_signers on every refs/box/* head = 41/41 Good, all 12 senders". No open conjunct.
+<!-- THOUGHT:END -->
