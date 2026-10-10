@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (09:00Z 10-10, date -u) — gen 34 on E · trunk MAIN @ 6b4e77226c · L 53a26cfe96 (.13.3) awaiting belam ff · NO gate trees open · E HOT
+## §0 State (09:00Z 10-10, date -u) — gen 34 on E · trunk MAIN @ 53a26cfe96 (.13.3 ff, full guard ok) · NO gate trees open · E HOT
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates + landings = me · rulings = the council · never the Prime) |
@@ -34,8 +34,8 @@ TRAJECTORY CHECK (belam 07:5xZ, owner: standing every 4 h) ANSWERED 08:4xZ: tabl
   (1) COMPLETE on trunk: .13.1 .13.2 (0aac338b6d) .11.1.1 (e0b749fecc) .21 .3 (acdbed2c8f) .36 (652d565152) · open: .22 at S3 open, .17 behind .12, .36 probe belam, .6 HELD owner list, .28 via rotation/TM
   (2) PLACED 08:4xZ (belam's list only): DG1 .19/.24/.36 close -> .13 reflog+V1-V4 -> .5 measure (+ own trunk merge, .28) · DG2 rows .8 row20 / .13.3 / .20
       · DG3 .3 F2+close -> .5 builder · DG4 .20 first send.py caller · DG5 .21 close -> .13.3 build. Horizon .25-.34 NOT placed (scope)
-  IN FLIGHT: .13.3 LANDED as L 53a26cfe96 (agi-review CLEAR, 4 mutants RED) -> ff asked; DG5 sets complete + residues (send catch-all, d4/d6 rows) · DG4 (B) next (FAIL SOFT) · .8: DG2 rows a6d6c9ac9f + missing-checker row asked (I RULED fail CLOSED, distinct line) -> DG3 · · .8 growth gate LANED 08:3xZ: DG2 lane after .13.3 rows -> DG3 builds in agi-turn after .5 (gate: agi-review + skip mutant RED)
-      · LANDED today also: TM g5.28 (957e0cbc7d) · .5 rule+amend (bde6fd808e) · .20 C + .5 C2/C3 (592cb1e416)
+  IN FLIGHT: .13.3 ON TRUNK 53a26cfe96; DG5 sets complete + residues (send catch-all, d4/d6 rows) · DG4 (B) next (FAIL SOFT) · .8: DG2 rows a6d6c9ac9f + missing-checker row asked (I RULED fail CLOSED, distinct line) -> DG3 · · .8 growth gate LANED 08:3xZ: DG2 lane after .13.3 rows -> DG3 builds in agi-turn after .5 (gate: agi-review + skip mutant RED)
+      · LANDED today also: TM g5.28 (957e0cbc7d) · .5 rule+amend (bde6fd808e) · .20 C + .5 C2/C3 (592cb1e416) · .13.3 (53a26cfe96)
       · DG4 .20 (C) cut next on DG2 lane fdc4163486 (mail-alert-retired.t.sh, 8 rows), then (B) (belam-laned, FAIL SOFT)  · .13.3 DG5 6eaeeb6bf7 RETURNED: seatsig-ImportError arms (send "treated as free", viewport silence) break the invariant -> DG2 rows d5/d6, DG5 commit on top
   WAITING: the OWNER ruling (belam took it up 08:4xZ) on host-act GOs (.4 .7 .11.1 host acts, .11.1.1 G, .12 ring install, .18 units) + the owner's season-close set; .15 W = council's flow-rotation design
 CARRIED brief rows: .25 example line list + an agi-vstore row (DG1 next touch) · write.py:1924 worktree-root divergence (DG1 files a leaf) · k5c title in agi-turn.t.sh (DG4 next touch)
@@ -52,8 +52,8 @@ BELAM's host fix 6cee0a321b: agi-signers-repoint at every post start (DG1 was bo
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 34: three leaves closed on the trunk; 5 directors placed; waiting on DG1's .3 merge-up, DG4's (C) cut, belam's lane on (B), the owner's ruling
-NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt; gate each merge-up per §5 with skill agi-review as the mur
+sanctuary-master gen 34: all merge-ups landed (latest .13.3, 53a26cfe96); next = DG4 (B) fail-soft alert, DG3 .8 growth gate, DG1 .19/.5 complete, owner ruling via belam
+NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt; gate each merge-up per §5 (skill agi-review as the mur)
 ```
 
 ## §4 Traps (rules live in skills)
