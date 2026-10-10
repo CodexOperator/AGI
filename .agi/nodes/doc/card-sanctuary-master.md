@@ -18,11 +18,11 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (08:14Z 10-10, date -u) — gen 34 on E · trunk MAIN @ 0aac338b6d (.13.1/.13.2 complete, ff 08:10Z) · L ecc2cf4d9b (.11.1.1 complete) awaiting belam ff · tree OPEN: /dev/shm/sm-tc (rm after ff) · E HOT
+## §0 State (08:17Z 10-10, date -u) — gen 34 on E · trunk MAIN @ e0b749fecc (.13.1 .13.2 .11.1.1 complete) · MAIL = BOX ONLY · NO gate trees open · E HOT
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates + landings = me · rulings = the council · never the Prime) |
-| lanes | Sonnet 5.5 for everything; every MUR = the Claude Workflow tool, name agi-merge-up-review, args {rounds, model: sonnet, project_root: <own /dev/shm tree>} · DG4 + DG5 PARENT = SM |
+| lanes | Sonnet 5.5 for everything; every MUR = skill agi-review (belam 08:1xZ, owner: workflow.py retires): review-lanes.sh BASE TIP <scratch> -> one Sonnet Agent per lane on doc:agi-review-brief + ONE adversarial verifier; mechanical REDs mine · DG4 + DG5 PARENT = SM |
 | holds | g7.16.1.11 HOLD: no NEW round on key / identity / signing / rotate / spawn-row / write-gate unless belam lanes it (quote belam's word to the builder) · a HOST ACT needs belam's GO per act |
 | land step | mint signed merge(s) on the LIVE trunk (commit-tree -S, parents trunk + tip, tree == gated), box belam `[merge-up] ... git merge --ff-only <L>`; belam ffs + runs the FULL guard (.env) |
 | skills | agi-master-gate · agi-memory-guard · agi-rotate · agi-node-write · agi-send · agi-goal |
@@ -31,10 +31,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 TRAJECTORY CHECK (belam 07:5xZ, owner: standing every 4 h) ANSWERED 08:4xZ: table + season-close proposal boxed to belam
-  (1) .13.1 + .13.2 COMPLETE (0aac338b6d, ff + full guard ok); .11.1.1 COMPLETE on belam's G (41/41 Good) in L ecc2cf4d9b -> ff asked
-      belam AGREED: .22 checked at S3 open · .17 behind .12 · .36 probe = belam · .6 HELD -> owner list · .28 relayed via TM (SM/DT-2 run no unit on E)
+  (1) .13.1 + .13.2 COMPLETE (0aac338b6d) · .11.1.1 COMPLETE (ecc2cf4d9b, merged by belam e0b749fecc) -- all full guard ok
+      belam AGREED: .22 checked at S3 open · .17 behind .12 · .36 probe = belam · .6 HELD -> owner list · .28 relayed via TM
   (2) PLACED 08:4xZ (belam's list only): DG1 .19/.24/.36 close -> .13 reflog+V1-V4 -> .5 measure (+ own trunk merge, .28) · DG2 rows .8 row20 / .13.3 / .20
       · DG3 .3 F2+close -> .5 builder · DG4 .20 first send.py caller · DG5 .21 close -> .13.3 build. Horizon .25-.34 NOT placed (scope)
+  IN FLIGHT: DG3 .3 close dg3-close3 44ad89ce07 (via DG1; 15 parity rows = its stated end-state, no leaf; row 18 key class -> owner list)
+      · DG4 .20: (C) retire mail_alert.py + hook + registry row + its test rows = YES; (B) rotate.py alert dm = ROTATE class -> belam lane ASKED; (A) machine identity = belam's
   WAITING: the OWNER ruling (belam took it up 08:4xZ) on host-act GOs (.4 .7 .11.1 host acts, .11.1.1 G, .12 ring install, .18 units) + the owner's season-close set; .15 W = council's flow-rotation design
 CARRIED brief rows: .25 example line list + an agi-vstore row (DG1 next touch) · write.py:1924 worktree-root divergence (DG1 files a leaf) · k5c title in agi-turn.t.sh (DG4 next touch)
 g1.42 open: 11/12/25 owner-banked egress · 15 belam's installer -- nothing open with a director
@@ -50,8 +52,8 @@ BELAM's host fix 6cee0a321b: agi-signers-repoint at every post start (DG1 was bo
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 34: L ecc2cf4d9b (.11.1.1 complete) awaiting belam ff; 5 directors placed; owner ruling on host-act GOs + season close pending via belam
-NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt; on ff: git worktree remove /dev/shm/sm-tc; gate each director merge-up per §5
+sanctuary-master gen 34: three leaves closed on the trunk; 5 directors placed; waiting on DG1's .3 merge-up, DG4's (C) cut, belam's lane on (B), the owner's ruling
+NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt; gate each merge-up per §5 with skill agi-review as the mur
 ```
 
 ## §4 Traps (rules live in skills)
