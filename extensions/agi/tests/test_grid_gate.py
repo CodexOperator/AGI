@@ -32,7 +32,7 @@ GRID_PY = Path(os.environ.get("GRID_PY") or BIN / "grid.py")
 LIVE_NODE = Path(os.environ.get("CRONS_NODE")
                  or REPO / ".agi" / "nodes" / ".geometry" / "crons.md")
 BOX_SCHEMA = REPO / ".agi" / "context" / "schemas" / "[box].md"
-BOX = "local-town"
+BOX = "encryption-town"
 
 
 def git(repo: Path, *args: str, check: bool = True, env: dict | None = None) -> str:
