@@ -243,6 +243,59 @@ def count_broken_links(root) -> int:
     return len(live)
 
 
+def nest_unresolved(root) -> list[str]:
+    """goal:g7.16.1.11.21 (E1 D1) -- every id in a `nest:` LIST that resolves to
+    no node, as `"<container> -> <id>"`, container order then list order.
+
+    Its own number, never part of `count_broken_links`: that counts only a LIVE
+    node's payload link by design, and a dangling slice member is a different
+    defect with a different repair (edit the list). `nest: subtree` has no ids
+    to resolve. A RETIRED node still resolves (retire, never delete: it keeps
+    its file under deprecated/), so only an id naming no file at all is named.
+    """
+    corpus = [(nid, fm) for nid, fm, _body in _iter_corpus(root)]
+    known = {nid for nid, _fm in corpus}
+    resolve, out = address_resolver(root), []
+    for nid, fm in corpus:
+        spec = fm.get("nest")
+        if not isinstance(spec, list):
+            continue
+        for ref in (str(x) for x in spec):
+            if ref not in known and not resolve(ref):
+                out.append(f"{nid} -> {ref}")
+    return out
+
+
+def nest_malformed(root) -> list[str]:
+    """goal:g7.16.1.11.21 (E1 D1, RD-3) -- every `nest:` value that is neither
+    exactly `subtree` nor a list, as `"<id> -> <value>"`, in path order.
+
+    The rule is `nest.malformed`, read from the RAW front matter by `nest.fm`:
+    the YAML reader behind `_iter_corpus` would strip the comment of
+    `nest: subtree # x` and call it `subtree`, while `nest.py` refuses it, so
+    the two would disagree. Its own number, never part of `count_broken_links`
+    or `nest_unresolved`; `nest.py slice|log` exits 1 on the same values.
+    """
+    import nest  # noqa: PLC0415
+
+    out, nodes_dir = [], Path(root) / "nodes"
+    if not nodes_dir.is_dir():
+        return out
+    for path in sorted(nodes_dir.rglob("*.md")):
+        if path.name.startswith("."):
+            continue
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        if "\nnest:" not in text:
+            continue
+        fm = nest.fm(text)
+        if nest.malformed(fm.get("nest")):
+            out.append(f"{fm.get('id') or path.stem} -> {fm['nest']}")
+    return out
+
+
 def broken_by_status(root) -> tuple[list, list]:
     """`(broken_on_live_nodes, broken_on_deprecated_nodes)`.
 
@@ -752,6 +805,14 @@ def main(argv: list[str] | None = None) -> int:
     for sentinel in retired_broken:
         print(f"  retired {sentinel.node_id} -> {sentinel.ref} "
               f"(deprecated; bytes in the grid ref)")
+    nest_bad = nest_unresolved(root)
+    print(f"nest_unresolved: {len(nest_bad)}")
+    for row in nest_bad:
+        print(f"  nest-dangling {row}")
+    nest_mal = nest_malformed(root)
+    print(f"nest_malformed: {len(nest_mal)}")
+    for row in nest_mal:
+        print(f"  nest-malformed {row}")
     if args.strict and retired_refs:
         return 1
     return 1 if live_broken and args.broken else 0
