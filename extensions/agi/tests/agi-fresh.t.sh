@@ -20,7 +20,7 @@ $G init -q $O;mkdir -p $O/.agi/nodes/.geometry;for x in engine.md engine-post.md
 $G -C $O add -A;$G -C $O -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm fixture;TR=$($G -C $O rev-parse HEAD)
 # the unit line as sh would get it: the quoted script, %i and %t substituted
 Q=$(sed 's/^ExecStartPre=sh -c //' $UNIT|sed "s,%i,$P,g;s,%t,$RUN,g")
-up(){ (cd $H&&export HOME=$H O=$O AGI_TRUNK=$TR PATH=$H/bin:$PATH&&while IFS= read -r l;do case $l in "ExecStartPre=sh -c "*)q=$(printf %s "${l#ExecStartPre=sh -c }"|sed "s,%i,$P,g;s,%t,$RUN,g");eval "sh -c $q" >>$T/up.out 2>>$T/up.err;;"ExecStartPre=+"*agi-signers*)AGI_RUN=none AGI_STORES=$S AGI_SIGNERS=$RING sh $T/signers.sh $P;;esac;done<$STEPS);}
+up(){ (cd $H&&export HOME=$H GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_SYSTEM=/dev/null O=$O AGI_TRUNK=$TR PATH=$H/bin:$PATH&&while IFS= read -r l;do case $l in "ExecStartPre=sh -c "*)q=$(printf %s "${l#ExecStartPre=sh -c }"|sed "s,%i,$P,g;s,%t,$RUN,g");eval "sh -c $q" >>$T/up.out 2>>$T/up.err;;"ExecStartPre=+"*agi-signers*)AGI_RUN=none AGI_STORES=$S AGI_SIGNERS=$RING sh $T/signers.sh $P;;esac;done<$STEPS);}
 # up = every ExecStartPre line of the unit IN FILE ORDER (key step, root agi-signers, the rest): a reorder of the lines changes what runs first and is RED below
 agirun(){ rm -f $H/.fresh;}
 pub(){ cut -d' ' -f1,2 $H/.ssh/id_ed25519.pub;}
@@ -59,6 +59,26 @@ P1=$P;H1=$H;Q1=$Q;RING1=$RING;P=post2;H=$S/$P;RING=$T/ring2;mkdir -p $H $RUN/agi
 up;KF=$(pub);sleep 1;up;up
 ok "a-first-start-retry a first start that dies before agi-run, retried twice, keeps the key its first attempt made and the ring holds exactly 1 line (key same: $([ "$(pub)" = "$KF" ]&&echo yes||echo NO); ring $(lines))" '[ -n "$KF" ]&&[ "$(pub)" = "$KF" ]&&[ "$(lines)" = 1 ]&&[ -e $H/.fresh ]'
 agirun;up;ok "a-first-start-then-crash after agi-run ate .fresh a crash restart keeps the key and adds nothing" '[ "$(pub)" = "$KF" ]&&[ "$(lines)" = 1 ]'
+P=$P1;H=$H1;Q=$Q1;RING=$RING1
+# --- (a) the two EDGES of the unit's key drop (DG4 audit of this file, goal:g7.16.1.11.12; mutants the rows below kill: the `! -f t/.../ring` clause dropped, the drop widened to `rm -rf .ssh/*`). keystep = ONLY the unit's key line (the first sh -c with ssh-keygen), so agi-out and the ring writer cannot answer for it
+keystep(){ (cd $H&&export HOME=$H&&ksl=$(sed -n "${ko}p" $STEPS)&&q=$(printf %s "${ksl#ExecStartPre=sh -c }"|sed "s,%i,$P,g;s,%t,$RUN,g")&&eval "sh -c $q" >>$T/up.out 2>>$T/up.err);}
+P1=$P;H1=$H;Q1=$Q;RING1=$RING;P=post3;H=$S/$P;RING=$T/ring3;mkdir -p $H $RUN/agi-$P
+keystep;K30=$(pub);mkdir -p $H/t/.agi/nodes/.geometry;: >$H/t/.agi/nodes/.geometry/ring;sleep 2;touch $H/.fresh;keystep
+ok "a-ring-in-t-keeps-the-key when t carries the ring file (agi-out rotates then) an out-line's key step does NOT drop the key (same key: $([ "$(pub)" = "$K30" ]&&echo yes||echo NO))" '[ -n "$K30" ]&&[ "$(pub)" = "$K30" ]'
+rm -f $H/t/.agi/nodes/.geometry/ring;sleep 2;touch $H/.fresh;keystep;K31=$(pub)
+ok "a-ring-in-t-witness the same out-line with the ring file gone DOES drop the key (the row above can fail): old ...$(echo $K30|rev|cut -c1-6|rev), new ...$(echo $K31|rev|cut -c1-6|rev)" '[ -n "$K31" ]&&[ "$K31" != "$K30" ]'
+: >$H/.ssh/out-refused;echo kh >$H/.ssh/known_hosts;sleep 2;touch $H/.fresh;keystep;K32=$(pub)
+ok "a-drop-touches-only-the-key-files an out-line's drop removes id_ed25519 and id_ed25519.pub and nothing else in .ssh: new key $([ -n "$K32" ]&&[ "$K32" != "$K31" ]&&echo yes||echo NO) (want yes); .ssh = [$(ls $H/.ssh|sort|tr "\n" " ")] (want [id_ed25519 id_ed25519.pub known_hosts out-refused ])" '[ -n "$K32" ]&&[ "$K32" != "$K31" ]&&[ "$(ls $H/.ssh|sort|tr "\n" " ")" = "id_ed25519 id_ed25519.pub known_hosts out-refused " ]'
+# --- (a) the ring writer's own gates (agi-signers; mutants: the ring chmod 644 -> 666, the one-line check removed, the strict ed25519 key pattern loosened): each refusal leaves the ring file UNWRITTEN
+P=post4;H=$S/$P;mkdir -p $H/.ssh;ssh-keygen -qN "" -ted25519 -f$H/.ssh/id_ed25519 >/dev/null;cp $H/.ssh/id_ed25519.pub $T/good4.pub
+sg(){ (umask 077;AGI_RUN=none AGI_STORES=$S AGI_SIGNERS=$RING sh $T/signers.sh $P >/dev/null 2>$T/sg.err);}  # umask 077: the ring would be 600 without the piece's own chmod 644 (at the default 022 the deleted chmod still reads 644)
+RING=$T/ring4;sg;rc4=$?
+ok "ring-mode-644 a good key is appended (rc $rc4, want 0; $(lines) line, want 1) and the ring file is mode $(stat -c %a $RING 2>/dev/null) (want 644: readable by every verifier, writable by root alone)" '[ $rc4 = 0 ]&&[ "$(lines)" = 1 ]&&[ "$(stat -c %a $RING)" = 644 ]'
+RING=$T/ring5;{ cat $T/good4.pub;echo 'evil@agi namespaces="git" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEvilEvilEvilEvilEvilEvilEvilEvilEvilEvilEvil';} >$H/.ssh/id_ed25519.pub;sg;rc5=$?
+ok "pubkey-one-line-only a key file of TWO lines (a second principal line) is refused: rc $rc5 (want != 0), the ring has $(lines) line(s) (want 0: nothing written), no evil line: $(cat $RING 2>/dev/null|grep -c evil) (want 0), the refusal says so: $(grep -c 'key file refused' $T/sg.err) line (want 1)" '[ $rc5 != 0 ]&&[ "$(lines)" = 0 ]&&! grep -q evil $RING 2>/dev/null&&grep -q "key file refused" $T/sg.err'
+bad=;n=0;for k in 'ssh-ed25519 AAAAB3NzaC1yc2EAAAADAQABAAABAQCxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA' 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGoodButEndsWithAnExtraCharacterThatIsNotBase64!!' 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGoodKeyBlobTailOfExactLength0123456789abcd' 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGoodKeyBlobTailOfExactLength0123456789abcdef';do n=$((n+1));RING=$T/ring6$n;echo "$k">$H/.ssh/id_ed25519.pub;sg&&bad="$bad $n-accepted";[ ! -s $RING ]||bad="$bad $n-ring-written";grep -q 'key file refused' $T/sg.err||bad="$bad $n-no-reason";done
+ok "pubkey-strict-ed25519-pattern an RSA blob under the ed25519 type, a short ed25519 blob, a blob with a non-base64 tail and pure-base64 blobs one char short (47) and one char long (49) of the 48-char tail are each refused, the ring left empty, WITH the reason text (key file refused): accepted or reasonless cases [${bad# }] (want none)" '[ -z "$bad" ]'
+cp $T/good4.pub $H/.ssh/id_ed25519.pub
 P=$P1;H=$H1;Q=$Q1;RING=$RING1
 # --- (b) a commit by generation g's key dated AFTER g+1 started fails verify-commit; inside g's window it verifies
 cp $H/.ssh/id_ed25519 $T/key1

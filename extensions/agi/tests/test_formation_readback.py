@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
 import verification  # noqa: E402
@@ -39,6 +40,7 @@ def groot(tmp_path):
 
 def _cell(root: Path, active: str) -> None:
     (root / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    write_free_veto(root / "nodes" / ".geometry")
     (root / "nodes" / ".geometry" / "formations.md").write_text(
         "---\nid: config:formations\ntype: config\n"
         f"active: {active}\n"
@@ -75,6 +77,7 @@ def test_switching_is_one_cell_and_changes_the_wake_list(groot):
 # (council bundle 2, director-general-2)
 def _cell_with(root: Path, active: str, templates: str) -> None:
     (root / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    write_free_veto(root / "nodes" / ".geometry")
     (root / "nodes" / ".geometry" / "formations.md").write_text(
         f"---\nid: config:formations\ntype: config\nactive: {active}\n"
         f"templates: {templates}\n---\n", "utf-8")
@@ -140,6 +143,7 @@ def test_a_thought_park_mark_fails_the_check(groot):
 def test_the_schema_holds_the_park_tag_form(groot, tags, ok):
     import os, shutil, subprocess
     (groot / "config.json").write_text("{}\n", "utf-8")
+    write_free_veto(groot / "nodes" / ".geometry")
     src = Path(__file__).resolve().parents[3] / ".agi" / "context" / "schemas"
     (groot / "context").mkdir()
     shutil.copytree(src, groot / "context" / "schemas")
@@ -320,3 +324,260 @@ def test_a_malformed_hit_is_a_named_fail_not_a_crash(groot):
     _cell(groot, "doc:two-step")
     r = verification.check_formation(groot)
     assert r.status == "FAIL" and "bad.md" in r.message
+
+
+# goal:g1.41 D3 -- the formation check reads ONE cell with ONE `active:`; a second cell file or a repeated key
+# is ambiguous and must FAIL naming formations, never read whichever file / last key it met first.
+_TPL = "templates: {doc:council-loop: g7.16.1, doc:two-step: g7.16.2}\n---\n"
+_CAUSE = r"more than one|duplicate|twice|repeat|second|multiple|two|\b2\b"
+
+
+def _says(r):
+    import re
+    return re.search(_CAUSE, f"{r.note} {r.message}".lower()) and "formations" in f"{r.note} {r.message}".lower()
+
+
+def _twin(groot, rel, active="doc:council-loop"):
+    f = groot / "nodes" / rel
+    f.parent.mkdir(parents=True, exist_ok=True)
+    f.write_text(f"---\nid: config:formations\ntype: config\nactive: {active}\n" + _TPL, "utf-8")
+
+
+@pytest.mark.parametrize("rel", [".geometry/formations-copy.md", "config/formations.md"])
+def test_d3_a_second_live_cell_file_fails_naming_formations(groot, rel):
+    _cell(groot, "doc:two-step")
+    _twin(groot, rel)
+    r = verification.check_formation(groot)
+    assert r.status == "FAIL" and _says(r), (r.status, r.note, r.message)
+
+
+def test_d3_a_second_cell_with_the_same_active_still_fails(groot):
+    _cell(groot, "doc:two-step")
+    _twin(groot, ".geometry/formations-copy.md", active="doc:two-step")
+    r = verification.check_formation(groot)
+    assert r.status == "FAIL" and _says(r), (r.status, r.note, r.message)
+
+
+@pytest.mark.parametrize("keys", [["doc:council-loop", "doc:two-step"], ["doc:two-step", "doc:two-step"]])
+def test_d3_a_repeated_active_key_fails_naming_formations(groot, keys):
+    (groot / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    write_free_veto(groot / "nodes" / ".geometry")
+    (groot / "nodes" / ".geometry" / "formations.md").write_text(
+        "---\nid: config:formations\ntype: config\n" + "".join(f"active: {k}\n" for k in keys) + _TPL, "utf-8")
+    r = verification.check_formation(groot)
+    assert r.status == "FAIL" and _says(r), (r.status, r.note, r.message)
+
+
+def test_d3_a_retired_namesake_never_shadows_the_live_cell_silently(groot):
+    _cell(groot, "doc:two-step")
+    _twin(groot, "deprecated/config/formations.md")          # a retired copy naming ANOTHER template
+    r = verification.check_formation(groot)
+    # either it refuses the ambiguity by name, or it reads the LIVE cell (doc:two-step) -- never the retired copy
+    assert r.status == "FAIL" or "doc:two-step" in (r.note or ""), (r.status, r.note)
+
+
+def test_d3_control_one_cell_one_key_passes(groot):
+    _cell(groot, "doc:two-step")
+    r = verification.check_formation(groot)
+    assert r.status == "PASS" and "doc:two-step" in r.note, (r.status, r.note)
+
+
+# goal:g1.41 RD2 (DG1 23:32Z, ruled live-first): check_formation reads the LIVE config:formations cell only, but
+# node_writer.find_node_file (brief.py's two readers) returns a nodes/deprecated/config/ namesake ahead of the
+# live nodes/.geometry/ cell (.geometry is not in step 1, so the live cell is found only at step 3, after the
+# retired copy). The readers must agree: live-first inside find_node_file. A retired node is still readable.
+def _two_formations(root: Path, live: str = "live-tpl", retired: str = "retired-tpl", with_live: bool = True) -> None:
+    if with_live:
+        (root / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+        write_free_veto(root / "nodes" / ".geometry")
+        (root / "nodes" / ".geometry" / "formations.md").write_text(
+            "---\nid: config:formations\ntype: config\n"
+            f"active: doc:{live}\ntemplates: {{doc:{live}: g7.16.1}}\n---\n", "utf-8")
+    (root / "nodes" / "deprecated" / "config").mkdir(parents=True, exist_ok=True)
+    (root / "nodes" / "deprecated" / "config" / "formations.md").write_text(
+        "---\nid: config:formations\ntype: config\nstatus: deprecated\n"
+        f"active: doc:{retired}\ntemplates: {{doc:{retired}: g7.16.9}}\n---\n", "utf-8")
+
+
+def test_rd2_find_node_file_returns_the_live_cell_over_a_retired_namesake(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _two_formations(root)
+    found = node_writer.find_node_file(root, "config:formations")
+    assert found is not None and "deprecated" not in found.parts, found
+    assert found == root / "nodes" / ".geometry" / "formations.md", found
+
+
+def test_rd2_find_node_file_still_finds_a_retired_cell_when_it_is_the_only_one(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _two_formations(root, with_live=False)
+    found = node_writer.find_node_file(root, "config:formations")
+    assert found == root / "nodes" / "deprecated" / "config" / "formations.md", found
+
+
+def test_rd2_an_unrelated_id_lookup_is_unchanged(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _two_formations(root)
+    _node(root, "doc/plain.md", "doc:plain")
+    _node(root, "deprecated/goal/g4.md", "goal:g4")
+    assert node_writer.find_node_file(root, "doc:plain") == root / "nodes" / "doc" / "plain.md"
+    assert node_writer.find_node_file(root, "goal:g4") == root / "nodes" / "deprecated" / "goal" / "g4.md"
+    assert node_writer.find_node_file(root, "goal:nope") is None
+
+
+def test_rd2_brief_formation_line_reads_the_live_cell(tmp_path):
+    import brief
+    root = tmp_path / ".agi"
+    _two_formations(root)
+    assert brief._formation_line(root).startswith("[formation] doc:live-tpl"), brief._formation_line(root)
+
+
+def test_rd2_brief_in_force_mode_reads_the_live_cell(tmp_path):
+    import json
+    import brief
+    root = tmp_path / ".agi"
+    _two_formations(root)
+    (root / "config.json").write_text(json.dumps({"operating_modes": {
+        "live-mode": {"formation": "doc:live-tpl"}, "retired-mode": {"formation": "doc:retired-tpl"}}}), "utf-8")
+    got = brief._in_force_mode(root)
+    assert got is not None and got[0] == "live-mode", got
+
+
+def test_rd2_the_readers_agree_with_check_formation(groot):
+    import brief
+    import node_writer
+    _two_formations(groot, live="two-step", retired="council-loop")
+    found = node_writer.find_node_file(groot, "config:formations")
+    assert "deprecated" not in found.parts
+    assert brief._formation_line(groot).startswith("[formation] doc:two-step")
+    assert verification.check_formation(groot).status == "PASS"
+
+
+# goal:g1.41 RD5 (DG1 00:55Z, SM union1 residue): find_node_file's live_first asks the per-root id index whether a
+# live namesake exists, and the index drops only inside write_node. A live node MOVED into deprecated/ in the same
+# process (git mv, os.rename: no write_node) leaves the index naming its OLD live path, so the lookup returns a
+# path that no longer exists. The answer must be a file that exists: the node's new retired path.
+def _build_index_by_a_retired_lookup(root: Path) -> None:
+    import node_writer
+    _node(root, "deprecated/goal/zz-first.md", "goal:zz-first")
+    assert node_writer.find_node_file(root, "goal:zz-first") == root / "nodes" / "deprecated" / "goal" / "zz-first.md"
+
+
+def _retire(root: Path, rel: str) -> Path:
+    import os
+    src = root / "nodes" / rel
+    dst = root / "nodes" / "deprecated" / rel
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    os.rename(src, dst)
+    return dst
+
+
+@pytest.mark.parametrize("how", ["by-slug", "by-descriptive-filename"])
+def test_rd5_a_live_node_moved_into_deprecated_resolves_to_its_new_retired_path(tmp_path, how):
+    import node_writer
+    root = tmp_path / ".agi"
+    rel = "goal/g9.md" if how == "by-slug" else "goal/t-001-thing.md"
+    nid = "goal:g9" if how == "by-slug" else "goal:t1"
+    _node(root, rel, nid)
+    _build_index_by_a_retired_lookup(root)
+    assert node_writer.find_node_file(root, nid) == root / "nodes" / rel         # live before the move
+    dst = _retire(root, rel)
+    found = node_writer.find_node_file(root, nid)
+    assert found is not None and found.exists(), found
+    assert found == dst, found
+
+
+def test_rd5_a_moved_node_that_had_a_retired_namesake_resolves_to_an_existing_retired_file(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _node(root, "goal/x.md", "goal:x")
+    _node(root, "deprecated/goal/x-old.md", "goal:x")                            # the retired namesake
+    _build_index_by_a_retired_lookup(root)
+    assert node_writer.find_node_file(root, "goal:x") == root / "nodes" / "goal" / "x.md"
+    _retire(root, "goal/x.md")
+    found = node_writer.find_node_file(root, "goal:x")
+    assert found is not None and found.exists() and "deprecated" in found.parts, found
+    assert "id: goal:x" in found.read_text("utf-8"), found
+
+
+def test_rd5_control_live_first_still_wins_over_a_retired_namesake_with_the_index_built(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _two_formations(root)
+    _build_index_by_a_retired_lookup(root)
+    assert node_writer.find_node_file(root, "config:formations") == root / "nodes" / ".geometry" / "formations.md"
+
+
+def test_rd5_control_a_retired_only_id_still_resolves_and_an_unmoved_live_node_is_unchanged(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _node(root, "goal/g5.md", "goal:g5")
+    _build_index_by_a_retired_lookup(root)
+    assert node_writer.find_node_file(root, "goal:zz-first") == root / "nodes" / "deprecated" / "goal" / "zz-first.md"
+    assert node_writer.find_node_file(root, "goal:g5") == root / "nodes" / "goal" / "g5.md"
+    assert node_writer.find_node_file(root, "goal:nope") is None
+
+
+def test_rd5_control_tree_wide_false_after_the_move_is_unchanged(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _node(root, "goal/g9.md", "goal:g9")
+    _build_index_by_a_retired_lookup(root)
+    dst = _retire(root, "goal/g9.md")
+    assert node_writer.find_node_file(root, "goal:g9", tree_wide=False) == dst
+
+
+# goal:g1.41 RD6 (DG1 01:45Z, SM union2 mur on D): the resolver's TAIL, `return _id_index(root).get(node_id)`, has no
+# exists() check. A .geometry id (a config:* node, in no type directory) is renamed into nodes/deprecated/.geometry/
+# AFTER the per-root index was built: the index still holds the OLD path, so the id resolves to a path that does not
+# exist. (A type-directory retire resolves in step 1, so only the tree-wide tail is affected.) A real os.rename on a
+# tmp tree, never a stubbed index.
+@pytest.mark.parametrize("built_by", ["its-own-live-lookup", "another-ids-retired-lookup"])
+def test_rd6_a_geometry_node_moved_into_deprecated_resolves_to_its_new_retired_path(tmp_path, built_by):
+    import node_writer
+    root = tmp_path / ".agi"
+    _node(root, ".geometry/zq.md", "config:zq")
+    live = root / "nodes" / ".geometry" / "zq.md"
+    if built_by == "its-own-live-lookup":
+        assert node_writer.find_node_file(root, "config:zq") == live         # this lookup builds the index
+    else:
+        _build_index_by_a_retired_lookup(root)
+    dst = _retire(root, ".geometry/zq.md")
+    found = node_writer.find_node_file(root, "config:zq")
+    assert found is not None and found.exists(), found
+    assert found == dst and dst.parts[-3:] == ("deprecated", ".geometry", "zq.md"), found
+
+
+def test_rd6_control_an_unmoved_geometry_id_resolves_to_its_live_path(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _node(root, ".geometry/zq.md", "config:zq")
+    _build_index_by_a_retired_lookup(root)
+    assert node_writer.find_node_file(root, "config:zq") == root / "nodes" / ".geometry" / "zq.md"
+
+
+def test_rd6_control_an_id_that_exists_nowhere_resolves_to_none(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _node(root, ".geometry/zq.md", "config:zq")
+    _build_index_by_a_retired_lookup(root)
+    assert node_writer.find_node_file(root, "config:nowhere") is None
+
+
+def test_rd6_control_a_geometry_node_retired_from_the_start_still_resolves(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _node(root, "deprecated/.geometry/old.md", "config:old")
+    _build_index_by_a_retired_lookup(root)
+    assert node_writer.find_node_file(root, "config:old") == root / "nodes" / "deprecated" / ".geometry" / "old.md"
+
+
+def test_rd6_a_geometry_node_removed_outright_after_the_index_resolves_to_none_never_a_missing_path(tmp_path):
+    import node_writer
+    root = tmp_path / ".agi"
+    _node(root, ".geometry/zq.md", "config:zq")
+    _build_index_by_a_retired_lookup(root)
+    (root / "nodes" / ".geometry" / "zq.md").unlink()
+    assert node_writer.find_node_file(root, "config:zq") is None

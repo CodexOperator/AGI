@@ -13,6 +13,7 @@ fields:
   parents: {type: list}
   confidence: {type: float}
   tags: {type: list}
+  nest: {type: str|list}      # OPTIONAL, never required: `subtree` (every node down the parents edges) or a list of ids -- this node holds a slice (nest.py)
   status: {type: str}             # absent = live; `deprecated` = retired in place
 validation:
   required: [id, type, mint_id, title, tags]

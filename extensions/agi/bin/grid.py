@@ -234,8 +234,41 @@ def push_batches(root: Path) -> list[list[str]]:
     return [changed[i:i + size] for i in range(0, len(changed), size)]
 
 
+RETIRED_LINE = "grid: retired (cron:crons grid_sync.enabled false); nothing written"
+
+
+def grid_retired(root: Path) -> bool:
+    """True only when `crons.py` reads `cadences.grid_sync.enabled` as False.
+
+    goal:g7.16.1.11.13 E2b0: once off, `commit` and `push-changed` write nothing
+    NEW (a retired `commit` returns rc 0 printing RETIRED_LINE, so rotate reports
+    'grid committed'). The node is read by `crons.load_crons_node` (a lazy
+    import: crons imports grid) from the project's SHARED checkout like
+    `ref_ns_for`. `crons_live: false`, a `box:` gate or an absent key also drop
+    the job but leave the gate OPEN (fail-safe); a node crons.py cannot validate
+    (any error, no file, no key, no yaml) is NOT retired; `False`, `no`, `off`
+    ARE retired. Retired, rotate._push's `refs/grid/*` push and `grid.py sync`
+    (the operator's verb, ungated by design) can only republish tips that
+    already exist locally: a non-force push, idempotent, nothing new written
+    (whether root pushes refs/grid at all is E2d, belam's). The `cron_lines` snap
+    line (`commit --all && git push -q origin PUSH_SPEC`, installed only by
+    `grid.py cron install`) is EXEMPT with `sync`: it never calls the push verbs
+    gated here, and a retired `commit --all` exits 0, so its `&&` push
+    republishes pre-existing tips.
+    """
+    try:
+        import crons
+        shared = locations.shared_project_root(Path(root))
+        return crons.load_crons_node(Path(shared or root))["jobs"]["grid_sync"]["enabled"] is False
+    except Exception:
+        return False
+
+
 def cmd_push_changed(root: Path) -> None:
     """Advance only changed local grid tips, stopping at the first bad batch."""
+    if grid_retired(root):
+        print(RETIRED_LINE)
+        return
     ensure_repo(root)
     batches = push_batches(root)
     for number, batch in enumerate(batches, 1):
@@ -1114,6 +1147,9 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
     produced (see module docstring), and this file does not get to
     reintroduce it under a different cause.
     """
+    if grid_retired(root):
+        print(RETIRED_LINE)
+        return
     ensure_repo(root)
 
     # hypothesis:grid-commit-guard-and-writer-read-one-namespace conjunct 1 --

@@ -24,6 +24,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import rotate
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[3]
 CELLS = [(2, 5), (3, 1)]
@@ -32,6 +33,7 @@ CELLS = [(2, 5), (3, 1)]
 def _ladder(root, season, loop):
     g = root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (g / "ladder.md").write_text(
         "---\nid: ladder:ladder\ntype: ladder\n"
         f"current_season: {season}\ncurrent_loop: {loop}\n---\n\nbody\n",

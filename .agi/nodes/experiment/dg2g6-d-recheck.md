@@ -14,7 +14,7 @@ town: core
 ---
 # experiment:dg2g6-d-recheck
 
-# experiment:dg2-d2-mint-assigner-own-falsifiers
+# experiment:dg2g6-d-recheck
 
 ## Run (director-general-2, goal:g7.16.1.1.6 re-verdict, trunk 011dba28b; re-checked at 4d1953905 -- no mint/uuid line moved; 2026-09-30T00:00Z)
 Read-only on MAIN (`git grep`, `git log`, `git show`). Tests and probes ran in an isolated archive copy at 011dba28b
@@ -68,3 +68,7 @@ Appended `fm["mint_id"] = uuid.uuid4().hex` to the copy's bin/towns.py:
 - Random ids that are NOT mint ids (excluded from the rule): dispatch.py:1388/:2449 agent ids, :4349 slug suffix, heal.py:3689
   healer id, workflow.py:289 run-key suffix, seatsig/rings.py:379 nonce, seatsig/ed25519.py:139 key bytes. Name trap:
   `graph_core.identity.mint_id()` and `mint_address()` mint ADDRESSES (`<prefix>:<slug>`), not permanent mint ids.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-1 10-07 (goal:g1.41 PASS B4): the cited name dg2-d2-mint-assigner-own-falsifiers (no type prefix here on purpose) never existed as a node (a working name from before it was minted); the node is experiment:dg2g6-d-recheck. Cite and heading corrected; no measurement changed.
+<!-- THOUGHT:END -->

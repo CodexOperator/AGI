@@ -10,14 +10,15 @@ model: claude-opus-5-5
 role: director
 scaffold_hash: 8511ca269efcc3ca
 season: 2
+tags: []
 title: Card thought master
 town: core
 ---
 # doc:card-thought-master
 
-thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card is in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · template doc:unified-director-brief + HEAD doc:unified-head
+thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card is in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · MASTER on keep beside SM (belam 16:22Z 10-07): row seeds doc:unified-master-brief (applies at my next fresh session) + HEAD doc:unified-head
 
-## §0 State (15:0xZ 10-07) -- thought-master (renamed from thought-master-new, owner 14:4xZ 10-07): restarted by belam as agi-post@thought-master, user agi-thought-master, branch posts/thought-master, card doc:card-thought-master (mint 7762cf21). Lane IDLE, [decision] (14:2xZ) open with belam; inbox empty at 15:02Z
+## §0 State (21:4xZ 10-08) -- MOVING TO encryption-town (owner 21:2xZ 10-08 via belam [rule] 21:3xZ): this card is the ONLY handoff. thought-master = MASTER on keep (beside SM), directs DT-1. Nothing in flight: no subagent, no run, no open merge-up (last landed 1a88f2e99e). TOWN PRIORITY = Engine rework trajectory on town:local-maxxing (E1 -> E3 -> E5; rewrite ONE row in place on a move); no row is mine. Research lane PARKED behind it. Mail UNSIGNED from local-town (seat key = old TM's) -- re-check signing on the new box
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
@@ -41,6 +42,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 ```
 
 ## §2 Landed
+- 20:5xZ 10-07 g1.41 lane J: dh1 stray title key -> DH.2 title; PC :55 linked to p4fair + freqabl; L4 run 2 thin margins + run-4 replication 2/3 recorded; dh1 summary.md from results.json; .gitignore datasets/osc-band/**/*.npz FORWARD only (history scrub = owner); links 5781/0
 - 20:5xZ LANDED 67680d223 (SM, supersedes 165f57b0f); trunk merged back 6d8bb6265
 - 20:2xZ FAIR P4 review CONFIRMED_DISPROVED (one process, peak RSS 0.7 GB; one supplementary run started at PSI 7.19, over its gate -- disclosed to SM); merged DT-2 dc1504bba; residue text 9bfaa48aa..0d4116d54; hypothesis c5b2d8e04; board a6ac4d92e; links 5661/0; p4fair test 8/8
 - 19:4xZ seated after rotation; keys file host comment reverted; FAIR P4 review re-launched one-process; 165f57b0f still NOT on local-maxxing/season2/main
@@ -51,11 +53,12 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-Lane idle; my [decision] to belam 14:2xZ 10-07 is open: (a) LOSS-scored logit-frequency round by DT-1 (RECOMMENDED) · (b) park the line, free DT-1 · (c) wait; no answer = (c)
-next command: send.py read thought-master (judge by ts) -> on (a): Write the hypothesis node, order DT-1 by SendMessage
+On encryption-town: confirm user / branch posts/thought-master / this card, read mail (re-send anything unanswered after my [ready]); then idle until an order or a row placed on me / DT-1
+next command: send.py read thought-master (judge by ts)
 ```
 
 ## §4 Traps
+- BOX MOVE 10-08: every path / memory / PSI / venv / pytest-shim / MAIN-permission trap below was MEASURED ON local-town -- re-verify each on encryption-town before relying on it
 - a reviewer subagent FANS OUT unless forbidden: every compute brief says ONE process, no pools, ulimit -v, a PSI start gate (19:4xZ near-reboot)
 - write a sha into a brief only after reading it from git (19:2xZ: an invented tip had to be corrected mid-review)
 - MY METER: newest usage in ~/.claude/projects/*/<session>.jsonl (input + cache_read + cache_creation) / 1,000,000; line 0.47; rotate = card whole + commit + touch ~/.fresh; kill $PPID ($PPID = claude in the Bash tool)
@@ -77,6 +80,7 @@ next command: send.py read thought-master (judge by ts) -> on (a): Write the hyp
 - every round: an adversarial Sonnet review recomputes the verdict from the raw files; my own test run from the repo root; evidence dry-run []; links 0 broken (5648 resolved at 17:5xZ)
 
 ## §6 BANKED
+- npz rerun: osc_neuron_period_pc.py:145 + osc_neuron_period2.py:109 rewrite the 3 TRACKED npz on a rerun -> (a) leave it, AGREED with SM 21:1xZ (no rerun planned); revisit if either script is rerun
 - L4 r5 on the 9B: (a) run when the owner thins the live posts (RECOMMENDED) · (b) lower the 8 GB gate = OOM risk · (c) a smaller-model rung first; + a docker grant for v5 users
 - an LLM periodicity / self-poke test needs a model whose tokenizer holds multi-digit numbers as one token = a download (owner call)
 - next-round design: FREQ-ABLATION (d05c57e81) DISPROVED on accuracy; the next lens scores held-out LOSS or logit margin with a pre-registered loss null (accuracy saturates: s2 k=17 is a 0-0 tie that passes on loss); path patching stays the fallback. Needs a go

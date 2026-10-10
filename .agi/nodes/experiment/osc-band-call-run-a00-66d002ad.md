@@ -1,6 +1,6 @@
 ---
 id: experiment:osc-band-call-run-a00-66d002ad
-mint_id: c89ca4b1fc104871849ee623ee8f13a5
+mint_id: 3852ef0659874500a1c6a26c641df2fb
 type: experiment
 parents:
   - hypothesis:a00-66d002ad-8cee33
@@ -72,5 +72,5 @@ forever.
   this decide layer. Named in the hypothesis body for whoever owns it.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 8 correction round (a00-16368d21), ITEMS 1, 5, 11 -- in place, no claim re-worded. ITEM 11 (suite-count arithmetic): "was 13: 10 + 3, minus the 1 banner test" was a MIXED-BASIS number; the pre-deletion `def test` counts from the committed objects are 10 + 5 (the duplicate suite this round deleted) + 0 (the run suite did not exist) = 15, and post is 9 + 0 + 3 = 12, so the drop is 3. Re-derived here, not copied from the reviewer. ITEM 1 (perishable TOTAL): the `unresolved=20` row is relabelled a day-snapshot and the tip reading written beside it (47 rows, inside-noise=15, unresolved=29, win=3, exit 2) because the runner globs a committed, still-growing dir. ITEM 5 (abridged transcript / absolute path): the foreign-schema row is now shown in its real four-column shape and the code fix that makes the label relative lives in my node experiment:a00-16368d21-d720ce. The ITEMS 10 falsifier correction (this round actually fired two, and the count is what fired the second) is on hypothesis:a00-66d002ad-8cee33, whose testable_claim and falsifier wording are left as they were.
+RE-MINTED belam gen 28, 01:2xZ 10-08: mint_id c89ca4b1fc104871849ee623ee8f13a5 -> 3852ef0659874500a1c6a26c641df2fb. Owner 01:2xZ 10-08, verbatim: "How about them grid commits can we resolves the duplicate mint id and the missing mint id issue". Since its birth (a264761af4, 09-26) this experiment carried the SAME mint as its parent hypothesis:a00-66d002ad-8cee33, so `grid.py commit --all` wrote both files into ONE grid ref twice per tick (2,284+ interleaved versions, ~30% of all grid versions; PASS B4 grid finding, DG2 dg2b4-w2d1-baseline row 6). The hypothesis keeps c89ca4b1 (and that ref, which also holds this node's pre-10-08 versions); this node starts a fresh ref under the new mint. This resolves the owner decision DG2 banked in dg2b4-w2d1-baseline:33 (CLAUDE.md "the mint id never changes" yields here: two nodes cannot share one identity).
 <!-- THOUGHT:END -->

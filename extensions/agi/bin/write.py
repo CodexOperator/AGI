@@ -1921,9 +1921,10 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
         try:
             from seatsig import veto as _veto
 
-            _frozen, _why = _veto.is_frozen(root, "prime")
-        except Exception:  # noqa: BLE001  (a broken veto cell never frees-silent)
-            _frozen, _why = False, ""
+            _geom = _veto.read(root, strict=True)
+            _frozen, _why = _veto.is_frozen(None, "prime", geom=_geom)
+        except Exception as exc:  # noqa: BLE001  (an unreadable veto cell HOLDS)
+            _frozen, _why = True, f"the veto cell is unreadable ({exc})"
         if _frozen:
             if _refuse(out_decision, preview,
                        f"{node_type} nodes ({where}): a config-row edit "
@@ -2074,10 +2075,13 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
         try:
             from seatsig import rings as _rings
 
-            rings_rows = _rings.load_rings(root)
-            ring = _rings.ring_by_name(rings_rows, ring_name)
-        except Exception:  # noqa: BLE001
-            ring = None
+            ring = _rings.ring_by_name(_rings.load_rings(root, strict=True), ring_name)
+        except Exception as e:  # noqa: BLE001  (could not look: refuse, never the opt-out)
+            if _refuse(out_decision, preview,
+                       f"{node_type} nodes ({where}): ring {ring_name!r} could not be loaded "
+                       f"({type(e).__name__}: {e}); an unreadable ring is not an opt-out. "
+                       f"(rung 2 multisig ring)"):
+                return
         if ring is not None:
             # FRESH (kid B): the gate signs the SAME fresh decision a producer
             # signs (pin ts/nonce via ring_fresh, or mint fresh here once);

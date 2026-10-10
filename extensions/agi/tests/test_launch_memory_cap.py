@@ -12,6 +12,7 @@ workflow stage site; (4) `memory_max: none` leaves argv unchanged (identity);
 from __future__ import annotations
 
 import os
+import shutil
 import stat
 import subprocess
 import sys
@@ -164,7 +165,7 @@ def test_workflow_stage_site_really_launches_under_a_cap(tmp_path):
         stage={"label": "only"},
         spawn_env=os.environ.copy(), view=None, cap="256M")
     # Under the faked seam the cap is prlimit's, so the death is
-    # RLIMIT_AS exhaustion (MemoryError, rc 1), not a cgroup SIGKILL --
+    # RLIMIT_DATA exhaustion (MemoryError, rc 1), not a cgroup SIGKILL --
     # `is_cap_death` is the seam-independent name for both.
     assert mem_cap.is_cap_death(r.returncode, "256M", r.stderr), r
 
@@ -192,11 +193,120 @@ def test_prlimit_fallback_keeps_the_memory_cap_name(monkeypatch):
     monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda cfg=None: False)
     wrapped = mem_cap.wrap_argv(["echo", "x"], "256M")
     assert wrapped[:1] == ["prlimit"], wrapped
-    assert wrapped[1] == f"--as={256 * 1024 ** 2}", wrapped
+    assert wrapped[1] == f"--data={256 * 1024 ** 2}", wrapped
     p = subprocess.run(wrapped[:2] + [sys.executable, "-c", _ALLOC],
                        capture_output=True, text=True)
     assert p.returncode != 0
     assert mem_cap.is_cap_death(p.returncode, "256M", p.stderr), p.stderr
+
+
+# ---- (5b) the fallback bounds COMMITTED memory, so a node harness lives ---
+# goal:g7.16.1.11.35: `prlimit --as` also counts PROT_NONE reservations, and
+# V8's wasm reservation (node's undici, every pi stage) dies under it on a box
+# with no user systemd manager. `--data` (RLIMIT_DATA) counts only what a
+# process has committed, so the runaway still dies and the harness does not.
+
+_NODE = shutil.which("node")
+_need_node = pytest.mark.skipif(
+    _NODE is None, reason="node absent on this box: the pi-harness rows need it")
+_FETCH = ('fetch("http://127.0.0.1:9")'
+          '.catch(e=>console.log("settled:",e.message))')
+# Each child below exceeds ITS cap by a bounded amount (<= 200 MB) and exits 0
+# when the limit is dropped, so the unbounded witness stays small on a 2 GB box.
+# The wordings are the runtimes' own ENOMEM texts (is_cap_death's needles).
+_KILL_ROWS = {
+    # kind: (child argv tail, cap, the text the death must carry)
+    "python": (["-c", "x=bytearray(200*1024*1024)"], "128M", "memoryerror"),
+    # the falsifier as written (goal:g7.16.1.11.35 falsifier 3): a node
+    # Buffer.alloc past the cap, rc 1, no abort
+    "node-buffer": (["-e", 'Buffer.alloc(2e8).fill(1);console.log("ok")'],
+                    "128M", "array buffer allocation failed"),
+    "node-wasm-memory": (["-e", 'new WebAssembly.Memory({initial:3200});'
+                                'console.log("ok")'],
+                         "128M", "could not allocate memory"),
+    # 40 x 8 MB thread stacks: private mappings, so RLIMIT_DATA bounds them;
+    # daemon threads released in finally so a failed start cannot hang exit
+    "python-thread": (["-c", "import threading as t\n"
+                             "t.stack_size(8*1024*1024);e=t.Event();l=[]\n"
+                             "try:\n"
+                             " for _ in range(40):\n"
+                             "  x=t.Thread(target=e.wait,daemon=True)\n"
+                             "  x.start();l.append(x)\n"
+                             "finally:\n"
+                             " e.set()\n"],
+                      "64M", "can't start new thread"),
+}
+
+
+def _fallback(monkeypatch, argv, cap):
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda cfg=None: False)
+    return mem_cap.wrap_argv(argv, cap)
+
+
+def _run(argv):
+    return subprocess.run(argv, capture_output=True, text=True, timeout=120)
+
+
+@_need_node
+def test_fallback_argv_lets_a_node_child_instantiate_webassembly(monkeypatch):
+    argv = _fallback(monkeypatch, [_NODE, "-e", _FETCH], "2G")
+    assert argv[:2] == ["prlimit", f"--data={2 * 1024 ** 3}"], argv
+
+    def settles(a):
+        p = _run(a)
+        return (p.returncode == 0 and "settled: fetch failed" in p.stdout
+                and "WebAssembly" not in p.stderr)
+
+    assert settles(argv)
+    # the row can fail: the same child under --as (the old fallback) dies
+    # in WebAssembly.instantiate
+    assert not settles([x.replace("--data=", "--as=") for x in argv])
+
+
+@pytest.mark.parametrize("kind", sorted(_KILL_ROWS))
+def test_fallback_still_kills_a_child_that_allocates_past_the_cap(
+        monkeypatch, kind):
+    tail, cap, wording = _KILL_ROWS[kind]
+    if kind.startswith("node") and _NODE is None:
+        pytest.skip("node absent on this box: the pi-harness rows need it")
+    interp = _NODE if kind.startswith("node") else sys.executable
+    argv = _fallback(monkeypatch, [interp, *tail], cap)
+    assert argv[1] == f"--data={mem_cap._as_bytes(cap)}", argv
+    p = _run(argv)
+    assert p.returncode != 0, (kind, p.stdout, p.stderr)
+    assert wording in p.stderr.lower(), (kind, p.stderr)
+    assert mem_cap.is_cap_death(p.returncode, cap, p.stderr), (
+        kind, p.returncode, p.stderr)
+    # the row can fail: with the limit dropped the same child finishes
+    free = _run(argv[argv.index("--") + 1:])
+    assert free.returncode == 0, (kind, free.stderr)
+    assert not mem_cap.is_cap_death(free.returncode, cap, free.stderr)
+
+
+@pytest.mark.parametrize("text", [
+    "MemoryError",
+    "FATAL ERROR: Allocation failed - JavaScript heap out of memory",
+    "RangeError: Array buffer allocation failed",
+    "RangeError: WebAssembly.Memory(): could not allocate memory",
+    "RuntimeError: can't start new thread",
+    "fork: Cannot allocate memory"])
+def test_is_cap_death_names_each_runtimes_enomem_wording(text):
+    assert mem_cap.is_cap_death(1, "256M", text), text
+    # the needle is the only reason: an ordinary rc 1 is not a cap death
+    assert not mem_cap.is_cap_death(1, "256M", "ValueError: bad input")
+    assert not mem_cap.is_cap_death(1, None, text)
+
+
+def test_cap_none_is_the_same_argv_object_and_systemd_has_no_prlimit(
+        monkeypatch):
+    argv = ["echo", "x"]
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda cfg=None: False)
+    assert mem_cap.wrap_argv(argv, None) is argv
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda cfg=None: True)
+    assert mem_cap.wrap_argv(argv, None) is argv
+    out = mem_cap.wrap_argv(argv, "256M")
+    assert out[0] == "systemd-run" and "prlimit" not in out, out
+    assert not [x for x in out if x.startswith(("--as", "--data"))], out
 
 
 # ---- (2) the sibling beside a capped runaway finishes green ---------------

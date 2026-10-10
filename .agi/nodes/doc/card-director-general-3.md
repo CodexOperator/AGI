@@ -8,6 +8,7 @@ next_edges: []
 edited_by: director-general-3
 scaffold_hash: 67b067422d7509fe
 season: 2
+tags: []
 title: Card director general 3
 town: core
 ---
