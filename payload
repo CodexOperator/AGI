@@ -234,8 +234,47 @@ def push_batches(root: Path) -> list[list[str]]:
     return [changed[i:i + size] for i in range(0, len(changed), size)]
 
 
+RETIRED_LINE = "grid: retired (cron:crons grid_sync.enabled false); nothing written"
+
+
+def grid_retired(root: Path) -> bool:
+    """True only when `crons.py` reads `cadences.grid_sync.enabled` as False.
+
+    goal:g7.16.1.11.13 E2b0: once off, `commit` and `push-changed` write nothing
+    NEW (a retired `commit` returns rc 0 printing RETIRED_LINE, so rotate reports
+    'grid committed'). The node is read by `crons.load_crons_node` (a lazy
+    import: crons imports grid) from the project's SHARED checkout like
+    `ref_ns_for`. `crons_live: false`, a `box:` gate or an absent key also drop
+    the job but leave the gate OPEN (fail-safe); a node crons.py cannot validate
+    (any error, no file, no key, no yaml) is NOT retired, and a CronsError (an
+    invalid node) prints ONE stderr line per call, `grid: crons node invalid
+    (<text>); grid NOT retired`; `False`, `no`, `off`
+    ARE retired. Retired, rotate._push's `refs/grid/*` push and `grid.py sync`
+    (the operator's verb, ungated by design) can only republish tips that
+    already exist locally: a non-force push, idempotent, nothing new written
+    (whether root pushes refs/grid at all is E2d, belam's). The `cron_lines` snap
+    line (`commit --all && git push -q origin PUSH_SPEC`, installed only by
+    `grid.py cron install`) is EXEMPT with `sync`: it never calls the push verbs
+    gated here, and a retired `commit --all` exits 0, so its `&&` push
+    republishes pre-existing tips.
+    """
+    try:
+        import crons
+        shared = Path(locations.shared_project_root(Path(root)) or root)
+        if not (shared / crons.CRONS_NODE_REL).is_file():
+            return False    # no crons node at all (a project without one): SILENT; an INVALID node is still named below
+        return crons.load_crons_node(shared)["jobs"]["grid_sync"]["enabled"] is False
+    except Exception as exc:
+        if type(exc).__name__ == "CronsError":    # an invalid node (the old mirror_towns flag, a bad cell) is NAMED, never silent
+            print(f"grid: crons node invalid ({exc}); grid NOT retired", file=sys.stderr)
+        return False
+
+
 def cmd_push_changed(root: Path) -> None:
     """Advance only changed local grid tips, stopping at the first bad batch."""
+    if grid_retired(root):
+        print(RETIRED_LINE)
+        return
     ensure_repo(root)
     batches = push_batches(root)
     for number, batch in enumerate(batches, 1):
@@ -355,6 +394,14 @@ def git(root: Path, *args: str, input_text: str | None = None, check: bool = Tru
     if check and res.returncode != 0:
         sys.exit(f"ERR: git {' '.join(args)}: {res.stderr.strip()}")
     return res.stdout.strip()
+
+
+def git_try(root: Path, *args: str, input_text: str | None = None) -> "subprocess.CompletedProcess[str]":
+    """`git` that never exits: the caller reads returncode and stderr (goal:g4.13.1)."""
+    return subprocess.run(
+        ["git", *GIT_IDENT, "-C", str(repo_root(root)), *args],
+        capture_output=True, text=True, input=input_text,
+    )
 
 
 def _encode_component(s: str) -> str:
@@ -849,6 +896,11 @@ def cmd_init(root: Path) -> None:
     print(f"grid ready: {count} existing version ref(s) under {REF_NS}/")
 
 
+#: refs whose update-ref failed for a reason other than a CAS miss (goal:g4.13.1 N1):
+#: the run goes on, then `cmd_commit` exits 1 after its summary line.
+UPDATE_REF_FAILURES: list[str] = []
+
+
 def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
                 *, trailer: str | None = None,
                 payload: Path | None = None) -> str | None:
@@ -877,20 +929,92 @@ def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
     tree = build_tree(root, path, payload)
     tip = ref_tip(root, ref)
     if tip:
+        # goal:g4.13.1: carry a collapse's nest/ forward (unedited = unchanged), but only
+        # a non-empty tree of trees; anything else skips THIS node and the run goes on
+        er = git_try(root, "ls-tree", tip, "--", "nest")  # a failing read is a skip, never "no nest"
+        ent = er.stdout.strip()
+        built = None
+        if er.returncode == 0 and ent:
+            head = ent.split("\t")[0].split()
+            kids = git_try(root, "ls-tree", head[2]) if head[:2] == ["040000", "tree"] else None
+            rows = kids.stdout.split("\n")[:-1] if kids is not None and kids.returncode == 0 else []
+            if rows and all(r.split()[1] == "tree" for r in rows):
+                lines = git(root, "ls-tree", tree) + "\n" + f"040000 tree {head[2]}\tnest\n"
+                built = git_try(root, "mktree", input_text=lines.lstrip("\n"))
+        if er.returncode != 0 or (ent and (built is None or built.returncode != 0)):
+            print(f"skip (the nest entry of {node_id} is unreadable or not a non-empty tree of "
+                  f"trees; the ref is untouched): {ref}", file=sys.stderr)
+            return None
+        if ent:
+            tree = built.stdout.strip()
         old_tree = git(root, "rev-parse", f"{tip}^{{tree}}", check=False)
         if old_tree == tree:
             return None  # unchanged — versions record change, not time
-    n = int(git(root, "rev-list", "--count", tip)) + 1 if tip else 1
+    # --first-parent: a collapse's members are extra parents, not versions
+    n = int(git(root, "rev-list", "--count", "--first-parent", tip)) + 1 if tip else 1
     parent = ["-p", tip] if tip else []
     subject = f"{msg_prefix}v{n} {node_id}"
     message = f"{subject}\n\n{trailer}\n" if trailer else subject
     commit = git(root, "commit-tree", tree, *parent, "-m", message)
-    git(root, "update-ref", ref, commit)
+    # CAS (goal:g4.13.1): "" = the ref must not exist; a refusal skips this node only
+    res = git_try(root, "update-ref", ref, commit, tip or "")
+    if res.returncode != 0:
+        # ONE line whatever git said: a held ref lock is 7 lines (the lock path, a blank,
+        # a 5-line "Another git process" hint); the join keeps the hint, drops the blanks
+        why = " | ".join(ln.strip() for ln in res.stderr.splitlines() if ln.strip())
+        if "but expected" in why or "reference already exists" in why:
+            print(f"skip (ref moved since read; the next tick re-versions it): {ref}: "
+                  f"{why}", file=sys.stderr)
+        else:   # not a CAS miss (a stale lock, a permission error, a full disk)
+            print(f"ERROR: update-ref {ref} failed (not a CAS miss): {why}", file=sys.stderr)
+            UPDATE_REF_FAILURES.append(ref)
+        return None
     return f"v{n}"
 
 
 def iter_node_files(root: Path):
     yield from sorted((root / "nodes").rglob("*.md"))
+
+
+def payload_args_to_nodes(root: Path, paths: list[Path],
+                          engine_root: Path) -> tuple[list[Path], list[str]]:
+    """goal:g7.33.19.1 -- translate explicit `commit <path>` arguments: a node
+    file stays; a path some LIVE node names as its `payload_ref` becomes that
+    node's file (one version per node, whichever of its two paths was named);
+    anything else comes back in `unowned`, by name. Nothing is written here."""
+    nodes: list[Path] = []
+    unowned: list[str] = []
+    owners: dict[str, Path] | None = None
+    for p in paths:
+        try:
+            is_node = p.is_file() and parse_node_id(p) is not None
+        except UnicodeDecodeError:
+            is_node = False
+        if is_node:
+            found = p
+        else:
+            if owners is None:
+                owners = {}
+                for n in iter_node_files(root):
+                    if is_retired_node_file(root, n):
+                        continue
+                    try:
+                        ref = parse_payload_ref(n)
+                    except UnicodeDecodeError:
+                        continue
+                    if ref:
+                        owners.setdefault(ref.removeprefix("./"), n)
+            keys = [str(p).removeprefix("./")]
+            try:
+                keys.append(p.resolve().relative_to(engine_root.resolve()).as_posix())
+            except ValueError:
+                pass
+            found = next((owners[k] for k in keys if k in owners), None)
+        if found is None:
+            unowned.append(str(p))
+        elif found not in nodes:
+            nodes.append(found)
+    return nodes, unowned
 
 
 def is_retired_node_file(root: Path, path: Path) -> bool:
@@ -1029,6 +1153,9 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
     produced (see module docstring), and this file does not get to
     reintroduce it under a different cause.
     """
+    if grid_retired(root):
+        print(RETIRED_LINE)
+        return
     ensure_repo(root)
 
     # hypothesis:grid-commit-guard-and-writer-read-one-namespace conjunct 1 --
@@ -1096,6 +1223,14 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
     paths = list(iter_node_files(root)) if do_all else [Path(f) for f in files]
     if not paths:
         sys.exit("ERR: give node files or --all")
+    if not do_all and not session:
+        # goal:g7.33.19.1 -- a payload path versions the node that carries it;
+        # a path no node owns is refused by name BEFORE any ref is written.
+        paths, unowned = payload_args_to_nodes(root, paths,
+                                               engine_root or default_engine_root())
+        if unowned:
+            sys.exit("ERR: no build node carries payload_ref "
+                     + ", ".join(unowned))
 
     # hypothesis:l3w0-grid-flock — commit --all serializes with any other
     # commit --all on the same box (incl. the 5-min grid_sync cron) via an
@@ -1140,6 +1275,7 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
         engine_root = engine_root or default_engine_root()
         written = 0
         errors = 0
+        UPDATE_REF_FAILURES.clear()
         payloads = 0
         payload_missing = 0
         payload_retired = 0
@@ -1191,6 +1327,8 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
               f"{payloads} with payload, {payload_missing} payload(s) unresolved, "
               f"{payload_retired} retired with their node, "
               f"{demoted} demoted by the evidence gate")
+        if UPDATE_REF_FAILURES:   # goal:g4.13.1 N1: the run went on; it is not clean
+            sys.exit(1)
     finally:
         if lock is not None:
             lock.release()
@@ -1235,7 +1373,7 @@ def resolve_ref(root: Path, node_id: str) -> str:
 
 def cmd_log(root: Path, node_id: str, n: int) -> None:
     ref = resolve_ref(root, node_id)
-    print(git(root, "log", f"-{n}", "--format=%h %ad %s", "--date=short", ref))
+    print(git(root, "log", f"-{n}", "--first-parent", "--format=%h %ad %s", "--date=short", ref))
 
 
 def cmd_diff(root: Path, node_id: str, back: int) -> None:
@@ -1250,7 +1388,7 @@ def cmd_diff(root: Path, node_id: str, back: int) -> None:
     printed an empty diff and exited 0 for a node with three real versions.
     """
     ref = resolve_ref(root, node_id)
-    count = int(git(root, "rev-list", "--count", ref))
+    count = int(git(root, "rev-list", "--count", "--first-parent", ref))
     if count < back + 1:
         sys.exit(f"ERR: only {count} version(s); cannot go back {back}")
     print(git(root, "diff", f"{ref}~{back}", ref, "--", f":(top){NODE_ENTRY}"))
@@ -1267,7 +1405,7 @@ def cmd_versions(root: Path, node_id: str) -> None:
         legacy_ref = node_ref(node_id)
         ref = legacy_ref if ref_tip(root, legacy_ref) is not None else None
     tip = ref_tip(root, ref) if ref else None
-    print(int(git(root, "rev-list", "--count", tip)) if tip else 0)
+    print(int(git(root, "rev-list", "--count", "--first-parent", tip)) if tip else 0)
 
 
 # --- payload read side (goal:g6.3 / goal:g6.1) -------------------------------
@@ -1276,7 +1414,7 @@ def cmd_versions(root: Path, node_id: str) -> None:
 def version_rev(root: Path, ref: str, node_id: str, version: int | None) -> str:
     """The revision holding version `v<version>` of `node_id`, or the tip.
 
-    Versions count forward from 1 (`commit_file`'s `rev-list --count` + 1), so
+    Versions count forward from 1 (`commit_file`'s `rev-list --count --first-parent` + 1), so
     v(count) is the tip and v1 is `tip~(count-1)`. An out-of-range version is a
     hard error naming the range: silently serving the tip for a version that
     does not exist is the "partial answer served as a complete one" failure G7
@@ -1284,7 +1422,7 @@ def version_rev(root: Path, ref: str, node_id: str, version: int | None) -> str:
     """
     if version is None:
         return ref
-    count = int(git(root, "rev-list", "--count", ref))
+    count = int(git(root, "rev-list", "--count", "--first-parent", ref))
     if not 1 <= version <= count:
         sys.exit(f"ERR: {node_id} has {count} version(s); v{version} does not exist")
     return f"{ref}~{count - version}"
@@ -1461,7 +1599,8 @@ def cmd_status(root: Path, engine_root: Path | None = None) -> None:
         found = resolve_payload(root, payload_ref, engine_root,
                                 parse_location(p)) if payload_ref else None
         fresh = tree_entries(root, p, found[0] if found else None, write=False)
-        if fresh == read_tree(root, ref):
+        # goal:g4.13.1: a collapse's nest/ entry is carried, not drift
+        if fresh == [e for e in read_tree(root, ref) if e[0] != "nest"]:
             clean += 1
         else:
             changed += 1
@@ -1514,9 +1653,20 @@ def _rename_ref(root: Path, old_ref: str, new_ref: str, write: bool) -> str:
     if new_tip is not None:
         return "unchanged" if new_tip == old_tip else "conflict"
     if write:
-        git(root, "update-ref", new_ref, old_tip)
+        if git_try(root, "update-ref", new_ref, old_tip, "").returncode != 0:  # CAS (goal:g4.13.1)
+            return "conflict"
         git(root, "update-ref", "-d", old_ref, old_tip)
     return "moved"
+
+
+def _retired_write(root: Path, write: bool) -> bool:
+    """goal:g7.16.1.11.13.1 F1: a `--write` migrate verb moves refs/grid, so
+    once grid_sync is retired it refuses by name (RETIRED_LINE, rc 0, no ref
+    moved); a dry run is never gated."""
+    if write and grid_retired(root):
+        print(RETIRED_LINE)
+        return True
+    return False
 
 
 def cmd_migrate_refs(root: Path, write: bool) -> None:
@@ -1965,6 +2115,8 @@ def main() -> None:
                      unmanaged=not args.no_unmanaged, force=args.force)
     elif args.cmd == "status":
         cmd_status(root)
+    elif args.cmd in ("migrate-refs", "migrate-mint-refs", "migrate-trunk") and _retired_write(root, args.write):
+        pass
     elif args.cmd == "migrate-refs":
         cmd_migrate_refs(root, args.write)
     elif args.cmd == "migrate-mint-refs":
