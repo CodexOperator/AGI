@@ -6552,7 +6552,8 @@ def _derive_receivers(root: Path, *, seat: str,
 
 
 #: goal:g7.16.1.11.20 (cut B, belam LANED): the hard bound on the rotation
-#: alert's `box send`, so a hung box can never hold a rotation.
+#: alert's `box send`, so a hung box can never hold a rotation. ONE TOTAL
+#: budget for the whole announce (not per receiver): see `_box_send_announce`.
 BOX_ANNOUNCE_TIMEOUT_S = 20
 
 
@@ -6561,7 +6562,14 @@ def _box_announce_guard(seat: str, declared: str) -> bool:
     the only identity whose key signs a box message as `<seat>@agi`. Anything
     else prints ONE line and sends nothing: a message signed by another key
     would sit as the tip of refs/box/<seat>/<recv> and make the real post's
-    later sends refuse `[squatted]`."""
+    later sends refuse `[squatted]`.
+
+    NAMED (corrective leaf, SM 09:5xZ): a captive / master-path rotation
+    (`_spawn_master_rotate`) runs `rotate.py rotate --post <seat>` AS THE
+    HOLDER (AGI_POST=<holder>) with stderr to /dev/null, so it sends NO box
+    message (the holder's key cannot sign as the seat) and this skip line is
+    never seen; the inbox copy and the wake still land. By design, written
+    here rather than left to be discovered."""
     got = os.environ.get("AGI_POST")
     if got == seat:
         return True
@@ -6570,18 +6578,29 @@ def _box_announce_guard(seat: str, declared: str) -> bool:
     return False
 
 
-def _box_send_announce(recv: str, seat: str, text: str, declared: str) -> bool:
+def _box_send_announce(recv: str, seat: str, text: str, declared: str,
+                       deadline: float | None = None) -> bool:
     """`box send <recv>` with the alert on STDIN, AGI_POST=<seat>, a hard
     timeout that kills box AND its children. FAIL SOFT: every failure prints
     ONE `warn:` line naming `recv` and returns False; it never raises and
-    never decides `delivered` (the inbox copy does)."""
+    never decides `delivered` (the inbox copy does). `deadline` (a
+    time.monotonic() value, set ONCE per announce) makes the bound TOTAL: each
+    call gets what is left, and a call that finds the budget spent sends
+    nothing and says so, so N receivers can never cost N x the timeout."""
     proc = None
     try:
+        left = (BOX_ANNOUNCE_TIMEOUT_S if deadline is None
+                else deadline - time.monotonic())
+        if left <= 0:
+            print(f"warn: box send of the {declared} to {recv!r} skipped: "
+                  f"the {BOX_ANNOUNCE_TIMEOUT_S}s total budget is spent",
+                  file=sys.stderr)
+            return False
         proc = subprocess.Popen(
             ["box", "send", recv], stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
             env=dict(os.environ, AGI_POST=seat), start_new_session=True)
-        out, _ = proc.communicate(text, timeout=BOX_ANNOUNCE_TIMEOUT_S)
+        out, _ = proc.communicate(text, timeout=left)
         if proc.returncode == 0:
             return True
         why = (out or "").strip().replace("\n", " ")[:160]
@@ -6596,6 +6615,13 @@ def _box_send_announce(recv: str, seat: str, text: str, declared: str) -> bool:
     except Exception as exc:  # noqa: BLE001 -- fail soft, whatever it is
         print(f"warn: box send of the {declared} to {recv!r} failed: {exc}",
               file=sys.stderr)
+    finally:
+        # any exit that left box running (a non-timeout error after Popen)
+        # kills its group and reaps it: no orphan, no zombie
+        if proc is not None and proc.poll() is None:
+            with contextlib.suppress(Exception):
+                os.killpg(proc.pid, signal.SIGKILL)
+                proc.wait(timeout=5)
     return False
 
 
@@ -6733,7 +6759,8 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
         _announce_stamp_announced_to(root, record_path, delivered)
         return delivered
     delivered = []
-    _box_on = _box_announce_guard(seat, declared)
+    _box_on = bool(receivers) and _box_announce_guard(seat, declared)
+    _box_deadline = time.monotonic() + BOX_ANNOUNCE_TIMEOUT_S
     for recv in receivers:
         try:
             # CLAUSE 1: land the SAME [rotation-alert] block in the
@@ -6747,10 +6774,10 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
             # failure, never part of `delivered`, never a gate on the rotation.
             send.send(root, recv, text, sender=seat)
             if _box_on:
-                _box_send_announce(recv, seat, text, declared)
+                _box_send_announce(recv, seat, text, declared, _box_deadline)
             delivered.append(recv)
         except SystemExit as exc:
-            print(f"warn: could not dm {recv!r} the {declared}: {exc}",
+            print(f"warn: could not land the {declared} in {recv!r}'s inbox: {exc}",
                   file=sys.stderr)
             continue
     print(f"announced {declared} -> {len(delivered)} recipient(s) "
