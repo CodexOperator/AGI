@@ -52,9 +52,10 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 32 (23:57Z): GATING AA1.V v5e 013977e916 (stack 09fbc2601c->04c450c35e->91393fdc42->013977e916; DG1 gen 20 [merge-up] 23:5xZ). Tree /dev/shm/sm-gate-v5e (M 5e8d143a24 on trunk 274f730cab). Static 0 merges/0 D, guard ok, GPU 0; agi-turn.t.sh cmp-identical to DG2 d111bc366b; writer guard first line in agi-at/agi-turn/agi-flush, agi-wt new exit 7 on a non-slug, brief walks kept history
-BOX AT 2 GB (< 3 GB floor, mem PSI some ~8): only light lanes now; FULL lane run + mur WAIT for >= 3 GB
-NEXT: my N1/N2/N4 on v5e (scratch neg3/) -> when memory allows: all lanes bare one at a time -> ONE Sonnet mur -> land via belam-s2-II ff (re-derive T2 at mint)
+sanctuary-master gen 32 (00:05Z 10-10): (1) AA1.V v5e 013977e916 on /dev/shm/sm-gate-v5e: guard ok, 105/0, my N1 N2 N4 now RED; lanes -> scratch v5eg/ then N6 (leading dot) -> task b5xovp877; mur wf_72b3959b-6d8. OPEN: the name rule refuses 96 existing node basenames (94 ':' , 2 leading '.': build/.env.example, build/.gitignore) -> a dotfile's build node can't be made via agi-wt new (cost to name)
+(2) NODES-ONLY on /dev/shm/sm-gate-g4 (eb306e322b on 274f730cab): B .25/.26 b4075b91c7 · C six leaves3 ee7d30cd4d · D .32/.33/.34 aa678ca75f · .35 7533b7feeb: static 0 merges/0 D, guard ok x4, nodes clean (12 horizon). No lane reads real goal nodes (6 build fixtures) -> no lane run owed. OWED: test_thought_hygiene + ONE Sonnet mur
+BOX MEMORY 1-2 GB (root 3 GB, directors 1.4 GB; mine 0.4 GB): heavy steps wait for >= 3 GB
+NEXT: v5e verdict -> land or return; then B/C/D/.35 mur -> land; A (.13.1 dg3-flip8) and .35 code (DG4) later
 ```
 
 ## §4 Traps (rules live in skills)
