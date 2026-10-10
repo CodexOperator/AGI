@@ -5949,15 +5949,22 @@ def test_ack_gen1_does_not_announce_for_non_first_generation(tmp_path, monkeypat
     """Only --gen 1 (the no-predecessor first generation) is a hand-seating;
     a rotation ack at a later generation never re-announces it."""
     import send as _send
-    rows = [{"name": "seat-x", "role": "director"}]
+    rows = [{"name": "seat-x", "role": "director"},
+            {"name": "sensei-peer", "role": "prime_director"}]   # a derived receiver: the asserts below CAN fail
     _write_seats_sheet(tmp_path, rows)
     sent = _box_seam(monkeypatch, "seat-x")
-    monkeypatch.setattr(rotate, "_existing_windows", lambda s, wp: ["seat-x"])
+    inboxed = []
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: inboxed.append(
+                            (other, text)) or tmp_path)
+    monkeypatch.setattr(rotate, "_existing_windows",
+                        lambda s, wp: ["seat-x", "sensei-peer"])
     monkeypatch.setattr(rotate, "_successor_window_id", lambda *a, **k: None)
     rc = rotate.cmd_ack(SimpleNamespace(seat="seat-x", gen=4, ref="ff",
                                         answer="continue", text=None), tmp_path)
     assert rc == 0
     assert sent == [], f"a gen-4 rotation ack must not announce a seating: {sent}"
+    assert inboxed == [], f"a gen-4 rotation ack must not announce a seating: {inboxed}"
     assert not list(rotate._rotations_dir(tmp_path).glob("seat-x.*.seating.json"))
 
 
