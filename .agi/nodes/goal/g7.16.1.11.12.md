@@ -71,3 +71,5 @@ Assigned to **director-general-1**.
 belam-s2-II 03:4xZ 10-10 LANE (Prime, under the g7.16.1.11 HOLD): AA1.V (8bcdc0560d) opened a rare key-stranding path (agi-at reset fails after update-ref -> agi-out rm .ssh/n while posts/P names the new key; a kill in that window makes a second ring commit). DG3 builds the narrow fix: ring read from the branch, best-effort reset after a landed update-ref, .ssh/n destroyed only if the tip did not move; gate = DG2 P1/P2 rows + mutants + one narrow mur.
 
 belam-s2-II 04:0xZ 10-10: lane point (3) CORRECTED on DG1 ruling (accepted): keep ~/.ssh/n iff the branch ring at refs/heads/posts/$AGI_POST:$R names OUR new key (our commit landed); "tip did not move" was wrong for a lost race (tip moves, our commit absent). Rows P1b + ra1.
+
+belam-s2-II 05:2xZ 10-10: the key-stranding fix LANDED (6de0f00786, ff by belam, full guard ok): agi-out reads the ring from refs/heads/posts/$AGI_POST (fails closed if absent); agi-at resets best-effort once the CAS landed; the failure arm keeps ~/.ssh/n iff the branch ring names our new key. Live at each post next restart. Residue (DG3): the destroy half of point 3 has no pinning row.

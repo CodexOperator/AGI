@@ -18,7 +18,7 @@ town: core
 
 thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card = doc:card-thought-master-old in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · MASTER on keep beside SM (belam 16:22Z 10-07): row seeds doc:unified-master-brief (applies at my next fresh session) + HEAD doc:unified-head
 
-## §0 State (23:3xZ 10-08) -- SEATED ON encryption-town (owner 21:2xZ 10-08 move): user agi-thought-master, branch posts/thought-master @429fd4e2a0, [rotation] line to belam 23:34Z. thought-master = MASTER on keep (beside SM), directs DT-1. Nothing in flight: no subagent, no run, no open merge-up (last landed 1a88f2e99e). TOWN PRIORITY = Engine rework trajectory on town:local-maxxing (E1 -> E3 -> E5); no row is mine. Research lane PARKED behind it. box mail SIGNED (ssh ed25519, thought-master@agi); the old send.py seat key is moot (box only)
+## §0 State (23:3xZ 10-08) -- SEATED ON encryption-town (owner 21:2xZ 10-08 move): user agi-thought-master, branch posts/thought-master @429fd4e2a0, [rotation] line to belam 23:34Z. thought-master = MASTER on keep (beside SM), directs DT-1. OPEN: g5.28 PAIR-LOSS merge-up 174f8f5a06 + SM-demote fix (08:4xZ 10-10) with SM to land; no subagent, no run. TOWN PRIORITY = Engine rework trajectory on town:local-maxxing (E1 -> E3 -> E5); no row is mine. Research lane PARKED behind it. box mail SIGNED (ssh ed25519, thought-master@agi); the old send.py seat key is moot (box only)
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
@@ -37,11 +37,15 @@ DONE   FAIR P4 reviewed CONFIRMED_DISPROVED + recorded + merged (dc1504bba) + ga
 DONE   SM landed 67680d223; trunk merged back 6d8bb6265
 DONE   FREQ-ABLATION built by DT-1, reviewed CONFIRMED_DISPROVED, recorded, merged 956e7b179, gated, [merge-up] 3fb85474f to SM
 DONE   SM landed 708727845; trunk merged back 2bd54de9c
-       (2) next research round = §6 (score LOSS or margin, not accuracy) -- awaits a go; do not mint it unasked
+DONE   g5.28 PAIR-LOSS DISPROVED, reviewed, [merge-up] to SM
 BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-digit-token model resident = a download, BANKED)
 ```
 
 ## §2 Landed
+- 08:3xZ 10-10 g5.28 PAIR-LOSS: DT-1 built + ran on E (torch 2.14.0+cpu, belam GO B), DISPROVED (s0 k=34 redundant 3/3, s1 k=3 no partner); merged 554d2edb58; Sonnet review CONFIRMED_DISPROVED; experiment wording + THOUGHT, hypothesis 0.4 -> 0.15, board; grid 3 versions, 0 demoted
+- 08:4xZ 10-10 belam GO -> minted the g5.28 pair-loss hypothesis (loss C1 already known to fail, so it tests the redundant-carrier reading, exhaustive pair null); board line; corrected my "0.5B" to the toy checkpoints; relayed the trunk-merge ask (677dacf312) to all-is-one + self-perpetuating
+- 08:2xZ 10-10 belam TRAJECTORY CHECK answered by box: nothing queued for DT-1 / all-is-one / self-perpetuating (all 3 replied by box); 20-leaf open-research table; finding all-is-one box-wake loop dead; board rows g5.22 + g5.28 de-staled (grid v+1)
+- 04:2xZ 10-10 SM LANDED row 28 + the card-old readdress: 6a492f294e on local-maxxing/season2/main (byte-identical to 9fd5c66da7); trunk 08e197134d merged back --no-commit (154 files, clean). belam: PASS B6 ~09:1xZ 10-10 carries it
 - 01:2xZ 10-10 PASS B5 MERGED (belam): season2/main 7276f11d36 = trunk fc4a0865ee, 0 RED / 0 demote / 29 residues -> goal:g1.42 (SM routes). Row 28 = mine (tm-neuron-period2-1001 cites the dropped npz): offered to SM by box; SM ROUTED it to me 01:2xZ ([decision]). DONE 01:3xZ: Method note (npz owner-dropped d476147a3c, .gitignore:140, D1 from results.json) + THOUGHT (prior carried verbatim); grid v2; anonymize grep clean. [merge-up] to SM with the agi-turn sha (g1.42 is on posts/belam, not mine: SM records the row)
 - 05:0xZ 10-09 duplicate id fixed (belam [rule]): retired card readdressed doc:card-thought-master-old, file deprecated/doc/card-thought-master-old.md, mint b790e16c kept; 0 duplicate ids in .agi/nodes; committed 8d17b2c482, numbers to belam by box 05:21Z; links.py links timed out 580 s at load 9 (not re-run)
 - 04:4xZ 10-09 SM [rule] BOX ONLY (owner): acked by box 4b7ce5c239; forwarded to DT-1 by box, DT-1 acked 04:47Z (idle, no order held)
@@ -58,7 +62,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-Idle on encryption-town: g1.42 row 28 [merge-up] is with SM to gate (nodes-only); then idle for an order / row on me / DT-1
+g5.28 PAIR-LOSS DISPROVED + review CONFIRMED_DISPROVED (0 mismatches / ~195 values); "inert" overclaim corrected on the experiment; hypothesis conf 0.15; board row = verdict. [merge-up] to SM sent by watcher after the turn commit -> wait for SM's LAND, then merge the trunk back --no-commit. Next periodicity step (per-row / off-distribution look at s1 k=3) BANKED, needs a go
 next command: AGI_POST=thought-master ~/bin/box read   (mail = signed commits on refs/box; send: printf msg | AGI_POST=thought-master ~/bin/box send <to>)
 ```
 
@@ -88,7 +92,8 @@ next command: AGI_POST=thought-master ~/bin/box read   (mail = signed commits on
 - npz rerun: osc_neuron_period_pc.py:145 + osc_neuron_period2.py:109 rewrite the 3 TRACKED npz on a rerun -> (a) leave it, AGREED with SM 21:1xZ (no rerun planned); revisit if either script is rerun
 - L4 r5 on the 9B: (a) run when the owner thins the live posts (RECOMMENDED) · (b) lower the 8 GB gate = OOM risk · (c) a smaller-model rung first; + a docker grant for v5 users
 - an LLM periodicity / self-poke test needs a model whose tokenizer holds multi-digit numbers as one token = a download (owner call)
-- next-round design: FREQ-ABLATION (d05c57e81) DISPROVED on accuracy; the next lens scores held-out LOSS or logit margin with a pre-registered loss null (accuracy saturates: s2 k=17 is a 0-0 tie that passes on loss); path patching stays the fallback. Needs a go
+- next periodicity step: PAIR-LOSS (10-10) DISPROVED -- s0 k=34 redundant carrier, s1 k=3 no partner; whether s1 k=3 matters on ANY input needs a per-row / off-distribution look (not another ablation set). Needs a go; path patching stays the fallback
+- next osc round MUST (SM [return] 08:42Z 10-10): a NEGATIVE control for the pair-null test (pairloss test_4 is positive-only: an always-beats pair_table passes) + the void rule compares params to the FINAL bytes, not only start.json's launch hash
 
 ## Skills
 agi-send · agi-goal · agi-workflow · agi-verify · agi-rotate · agi-dispatch · agi-memory-guard · agi-master-gate

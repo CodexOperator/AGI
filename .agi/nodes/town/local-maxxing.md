@@ -10,7 +10,7 @@ council: council-local-maxxing
 edited_by: belam
 location: local-town
 master: thought-master
-metrics_line: "2026-10-10T04:25Z graph: node_count=5879 active_node_count=5639 deprecated_node_count=240 edge_count=6728 evidence_fraction=0.898 decisive_verdicts=1237 decisive_evidence_fraction=1.0 broken_links=0 thought_coverage=0.523 longest_chain_length=20 outcome_coverage=0.062 | success: avg_tokens_per_turn=UNMEASURED(no source yet) hierarchy_tokens_per_hour=UNMEASURED(no source yet) conclusive_verdicts=1237 overview_accuracy_vs_last_season=UNMEASURED(no live counter) subscription_tokens_per_season=UNMEASURED(no source yet) vision_adherence_score=UNMEASURED(no source yet) openrouter_subscription_spend_ratio=UNMEASURED(no source yet)"
+metrics_line: "2026-10-10T09:26Z graph: node_count=5888 active_node_count=5645 deprecated_node_count=243 edge_count=6742 evidence_fraction=0.898 decisive_verdicts=1238 decisive_evidence_fraction=1.0 broken_links=0 thought_coverage=0.523 longest_chain_length=20 outcome_coverage=0.062 | success: avg_tokens_per_turn=UNMEASURED(no source yet) hierarchy_tokens_per_hour=UNMEASURED(no source yet) conclusive_verdicts=1238 overview_accuracy_vs_last_season=UNMEASURED(no live counter) subscription_tokens_per_season=UNMEASURED(no source yet) vision_adherence_score=UNMEASURED(no source yet) openrouter_subscription_spend_ratio=UNMEASURED(no source yet)"
 scaffold_hash: 3876620b4bc4f88e
 season: 1
 thought_session: belam-S2-L5-XI
@@ -92,13 +92,13 @@ Leave the board AS BUNDLES (owner 07:2xZ 10-01; their nodes and statuses untouch
 | id | role |
 |---|---|
 | goal:g5 | umbrella: the town's goal (owner lines land on node versions, never as notes) |
-| goal:g5.22 | TRACK I inference (L4 head windowing: run 1 disproved · run 2 PROVED · run 3 disproved; the per-head DIRECT cost is the best arm -> run 4 scores it on fresh docs) |
+| goal:g5.22 | TRACK I inference (L4 head windowing: runs 1 + 3 disproved · runs 2 + 4 PROVED (run 4 = per-head DIRECT on fresh docs); run 5 on the served 9B BLOCKED: MemAvailable >= 8 GB + a docker-capable user, E has 7 GiB total) |
 | goal:g5.23 | TRACK II fine-tune |
 | goal:g5.24 | TRACK III magic pane (goal:g5.24.3); jev ABSORBED by config:engine, retired as a dependency (10-01) |
 | goal:g5.25 | abliteration (goal:g5.25.1 own refusal lever) |
 | goal:g5.26 | research corpus |
 | goal:g5.27 | the switch / battery (goal:g5.27.1) |
-| goal:g5.28 | side track: spiking / oscillator / spectral (the owner's neuron-periodicity idea: MAP runs 1-2 disproved; positive control next) |
+| goal:g5.28 | side track: spiking / oscillator / spectral (the owner's neuron-periodicity idea: MAP runs 1-2 disproved · positive control PROVED · seeds x3, FAIR P4, FREQ-ABLATION disproved · PAIR-LOSS (held-out loss, exhaustive pair null) DISPROVED 10-10, experiment:dt1-neuron-period-pairloss-1010: s0 k=34 is a redundant carrier, s1 k=3 has no partner; next = a per-row / off-distribution look at s1 k=3, BANKED, needs a go) |
 | goal:g5.29 | research treasury |
 | goal:g5.30 | KV-cache telepathy |
 | goal:g5.31 | diagram-max + batch-max |
@@ -142,6 +142,7 @@ formation  council loop (doc:council-loop) building config:engine (goal:g7.16.1.
 rules      diagram-max · board / trajectory = VERSIONS (replace in place), never notes · retire, never delete
 memory     15 GB box · ONE model load at a time · start at MemAvailable >= 6 GB + memory PSI avg10 < 5, stop at >= 20 · containers with --memory
 research   L4 head windowing (g5.22) · neuron periodicity (g5.28) · queue + metrics = the trajectory_standin rows
+round      g5.28 PAIR-LOSS (hypothesis:lm-neuron-periodicity-single-failing-frequencies-are-redundant-carriers-on-loss) -> DT-1 on E, belam GO 08:3xZ 10-10, DISPROVED 10-10 (experiment:dt1-neuron-period-pairloss-1010, review CONFIRMED_DISPROVED): s0 k=34 is a redundant carrier (3/3 partners), s1 k=3 has no partner -- not load-bearing on loss
 geometry   the trajectory lives here (owner 09-30); goal:g7.34* moot for this town
 g1.41      PASS B4 residues (belam [decision] 20:49Z 10-07) -- SM placement, RE-SPLIT 21:0xZ for DG4 + DG5 (owner 21:0xZ; both parent SM): ONE build owner per file at a time; route DG1 hyp -> DG2 lanes -> builder -> SM gate, one merge-up per round
   A ROOT     DG3 then DG4  .geometry/engine-root.md + engine.md: A1 BOOT HOLE = DG3, LANDED 4c71a0fa09 (host acts = belam's) + .20 box-wake engine.md = DG3; the files are DG4's now -> A2 :73,76 jq null fail-closed -> A3 :39,43 exit-127 loop + :142-146,104 agi-carry restart bound -> A4 engine.md:90 .name validated; sizes :41-79 re-measured in EVERY A commit
@@ -171,7 +172,8 @@ belam 01:0xZ 10-09: [owner] PASS B5 notice -- merge review of the trunk past bcd
 OWNER 01:2xZ 10-09 (to belam on E, verbatim): "Also your session name is missing the season name and your generation. No need to include loop number anymore" · "Just belam-s2-I and you can restart since it’s new engine and continue along town trajectory including the merge passes. Can rename your session next rotation not needed immediately" -- ACTION: belam's generation count RESTARTS on v5: this session = belam-s2-I, its successor = belam-s2-II (no loop number). Today the v5 boot cell names every session by the post name alone (.agi/nodes/.geometry/engine.md:94 `claude --remote-control \(.name)`); the rename lands at belam's next rotation through a goal leaf (DG1 files it), never by hand.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-s2-I 01:2xZ 10-09: one note appended -- the owner's session-name lines, banked verbatim, with the generation restart they produce. Delta: notes only. Previous version's thought: belam 01:0xZ 10-09: two notes appended -- the owner's 01:0xZ line resuming the merge pass in parallel, banked verbatim, and the PASS B5 notice it produced. Delta: notes only; every row byte-identical.
+THIS version (thought-master 08:4xZ 10-10, SM [return] 08:42Z on 174f8f5a06 -- a demote): since the 08:2xZ version this range (a) ADDED the Board line "round g5.28 PAIR-LOSS", then flipped it IN FLIGHT -> BLOCKED (no torch on E) -> IN FLIGHT -> DISPROVED, and (b) its Research goal ids g5.28 row still said the loss lens was "NOT minted" after it ran -> now says what experiment:dt1-neuron-period-pairloss-1010 says. Earlier in the same range (08:2xZ): rows g5.22 + g5.28 de-staled (run 4 / the positive control had run 10-01, PROVED). The 08:2xZ THOUGHT's "Nothing else changed" was true for that version only.
+PRIOR THOUGHT, carried verbatim: belam-s2-I 01:2xZ 10-09: one note appended -- the owner's session-name lines, banked verbatim, with the generation restart they produce. Delta: notes only. Previous version's thought: belam 01:0xZ 10-09: two notes appended -- the owner's 01:0xZ line resuming the merge pass in parallel, banked verbatim, and the PASS B5 notice it produced. Delta: notes only; every row byte-identical.
 <!-- THOUGHT:END -->
 
 PASS 5 (belam-S2-L5-V, 09-25 02:02-02:4xZ): trunk @5b7d503fa7 -> season2/main 8daa626e89 · BASE 3b0c4e8e8f: 449 commits, 39 experiment files · 18 rounds / 4 chunks on pi-free, 27 min, 0 USD · 9 accept_with_residue, 9 demote, 0 RED · links 0 broken, goals byte-identical, smoke 4,331 · residues: hypothesis:pass5-0925-residue-batch (3 code-defect hypotheses + 1 reopened, 6 lm-* demotes via thought-master)
@@ -282,3 +284,5 @@ PASS B4 (belam gen 28, 18:2x-21:0xZ 10-07, owner-ordered): trunk bcdb15f10f -> s
 OWNER 01:3xZ 10-08 (to belam gen 28, verbatim): "We don't need the grid commit work we're retiring grid commit." -- ACTION: lane F (grid.py code, DG4) cancelled at SM; the retirement (versioning after grid, grid_sync cron, refs/grid/* kept read-only, every reader) ALREADY DESIGNED (owner 01:4xZ 10-08: "It's already decided"): doc:radically-simple-engine:82 (history = git log -- <path>), AA1.V rse-aa1-boxes:125 (signed one-node commits on posts/P, no refs/grid, no cron), AA3 rse-aa3-land:152 (land + snapshot + grid retirement; AA3.10 grid_sync retirement keeps the crontab heal), goal:g7.16.1.6:71 (no refs/grid ref ever deleted): built on the existing AA1.V/AA3 lane, no new design pass
 
 PASS B5 01:3xZ 10-10: season2/main f75e3f48b6 -> 7276f11d36 = trunk fc4a0865ee; 583 commits; 8 Sonnet lanes + 1 verifier; RED 0 · demote 0 · residues 29 (goal:g1.42); links 5826/0 broken
+
+PASS B6 09:4xZ 10-10: season2/main 7276f11d36 -> ef9b043e68 = trunk 4e9dbced38; 176 commits / 124 paths; 6 Sonnet lanes + 1 verifier (CLEAR); RED 0 · demote 3 · residues 9 (goal:g1.43); links 5845/0 broken; mint_ids 5866 base all present

@@ -23,30 +23,24 @@ director-thought-1 · v5 post · Sonnet 5.5 high · director under thought-maste
 
 ## §0 State
 ```
-skills  agi-node-write · agi-send · agi-rotate · agi-workflow · agi-verify
-order   TM-new 22:3xZ (UNSIGNED, direct SendMessage): hypothesis:lm-neuron-periodicity-every-family-frequency-is-load-bearing-in-logit-space -> BUILT + RUN + MINTED, return line sent. Post-reboot (agi-boot restarted me); DT-2 stays down. Next: WAIT for TM-new (review + SM landing are theirs; do NOT message SM)
-comms   DIRECT SendMessage to the session NAME (ListAgents first; bare name when unique) until every post is switched (owner 18:1xZ via belam, confirmed by TM-new). TM-new = thought-master-new; belam = belam-S2-L5-I (agi-6a). Inbox mail still shows UNSIGNED (v5 gap): a VERIFIED line is a signed belam one
-merge   posts/thought-master-new BEFORE any card write or node edit: TM-new renumbers rows inside my nodes (leak row 78 -> 80 on goal:g7.33.19); done at 33ee777ef
-G8      the v5 moved-tree data-loss fix (c34954f72) applies at this re-projection; my tree is committed and the branch tip is in the shared repo
+skills  agi-memory-guard (box reads) · agi-node-write (old setup: plain Write/Edit) · agi-send (mail is BOX ONLY now)
+order   g5.28 PAIR-LOSS from thought-master 10-10 (belam GO 08:3xZ): DONE, returned by box [complete]. Nothing running, nothing assigned: WAIT for thought-master
+comms   BOX ONLY (owner 04:5xZ 10-09): read `AGI_POST=director-thought-1 box read`; send `printf '%s\n' '[tag] ...' | AGI_POST=director-thought-1 box send <post>`. NO send.py, NO inbox *.md writes, NO SendMessage. A silent `box send` printed nothing each time (no delivery receipt). Keepalive prompts: reply `ok`, nothing else
+box     encryption-town (E): NO /data/ml, no torch in the system python
 ```
 
 ## §1 Plan
 ```
-DONE   all minted + committed (branch tip in the shared repo):
-       experiment:dt1-self-poke-toy-1001 PROVED (run 1 void by MY void-guard bug, disclosed; run 2 key-identical)
-       experiment:dt1-self-poke-toy-dh1-1001 STANDS (C5a beyond size, C5b NOT size-clean; tests green under the context fence, DH.2)
-       LEAK HUNT -> experiment:dt1-guard-leak-depth-1001 PROVED + CORRECTIVE DH.1 (200531733): goal:g7.33.19 row 80 DONE, 52 context files 0 leftovers twice
-       experiment:dt1-neuron-period-freqabl-1001 DISPROVED (C2 12/12; C1 fails s0 k=34, s1 k=3, s2 k=17), freqabl script+test+params b2ab3a558, results 448767122, node 8a4d22c13
-NEXT   nothing assigned: WAIT for TM-new (corrective orders arrive by SendMessage; merge posts/thought-master-new first)
+DONE   experiment:dt1-neuron-period-pairloss-1010 DISPROVED: T={seed0 k=34, seed1 k=3}; k=34 has 3/3 partners that beat the null (best g=45 1.133 vs 0.069), seed 1 k=3 has 0/3 (inert); seed 2 k=17 (unscored) 3/3. Commits: pre-run 7f82854951, results e670e9c8b6, node ec913021fe (grid v1 by path)
+NEXT   nothing assigned
 BLOCK  none
 ```
 
 ## 🔴 Where it stops
 ```
-Tree clean at the card commit. Successor: read this card, do nothing, wait for TM-new (orders by SendMessage). On any order: merge posts/thought-master-new first.
-tests: from the REPO ROOT so the context conftest + model fence load:
-  PYTHONPATH="/data/ml/.venv/lib/python3.12/site-packages:/data/ml/scratch/osc03/pylib:<dir holding pytest>" /data/ml/.venv/bin/python -m pytest <file> -q -p no:cacheprovider --basetemp /tmp/<x>
-  pytest: pip install --target <scratchpad>/pylib pytest (the venv has none; system pip refuses --user, PEP 668); the scratchpad is cleaned on resume
+Tree clean after the card commit. Successor: read this card, `box read`, do nothing without an order. On any order: merge posts/thought-master first (git merge <sha the order names>).
+run torch things on E:  cd <tree>; (ulimit -v 4000000; OMP_NUM_THREADS=1 PYTHONPATH=$HOME/scratch/torch-cpu/pylib python3 -m pytest <file> -q -p no:cacheprovider --basetemp <scratchpad>/bt)
+  torch 2.14.0+cpu in ~/scratch/torch-cpu/pylib (belam GO 09:2xZ 10-10; wheel sha256 a09987c9...0bc260 is in the node); system numpy 1.26.4 + pytest 7.4.4 stay the system's
 ```
 
 ## §4 Traps (hit this generation)
@@ -61,6 +55,7 @@ strip       suite_guards.agi_env_stripped removes every AGI_* var before a test 
 recursion   subprocess timeout kills only the DIRECT child; a recursing test needs start_new_session + os.killpg; a mutation test of it leaves a chain: kill my own pytest procs in a SEPARATE call (orphans hold the tool's pipe)
 heredoc     an unquoted shell heredoc eats backticks; write multi-line node text with the Write tool, then replace body L:END (a range over the last section must carry its THOUGHT block whole)
 unsigned    dispatch/[rule]/[decision] mail shows UNSIGNED on v5; acted on as master mail, said so on the node
+no write.py VERIFIED belam [rule] 23:49Z (row engine.v 4): READ with plain Read/cat/grep/git (+ `sect <piece>`); WRITE node files with Write/Edit/bash in ~/t; agi-turn signs the ONE commit per turn; grid-version by path `grid.py commit <path>`, NEVER --all. send.py read dies on the inbox read-marker (PermissionError, /data/work/agi/.agi/sessions/inbox): the mail still prints
 ```
 
 ## §6 BANKED

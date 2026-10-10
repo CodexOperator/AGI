@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: director-general-5
 goal_id: G7.16.1.11.21
 goal_kind: subgoal
 model: claude-sonnet-5-5
@@ -16,7 +16,7 @@ scaffold_hash: 585b497fb1c2d75a
 season: 2
 seeds:
   - goal:g7.16.1.11
-status: active
+status: complete
 tags:
   - council
   - nesting
@@ -35,7 +35,7 @@ goal:g7.16.1.11: the council restated D1 (nesting) after the grid's retirement (
 
 ## Target end-state
 - A container node (a goal, a vision overview, the season residue) can carry `nest: subtree` (every node reached DOWN the parents edges, descending through members with no `nest:` and stopping, inclusive, at a member that carries its own, which expands itself) or `nest:` plus a list of ids (inline `[a, b]` lists parse too). Each node keeps ONE home for its bytes: its own file.
-- `extensions/agi/bin/nest.py` (python, alive's reader lifted from doc:rse-d1-nest, 3,034 B) answers `members(N)`, `slice` (a container's members as sorted ids, retired ones included, UNMARKED) and `log` (the first-parent history of the members' paths, a retire move followed back to the live path), from the node files and git only. A nest value that is neither `subtree` nor a list is refused (exit 1) and reported by links.py. The retired MARK on a member is D3 (goal:g7.16.1.11.22), which reads members(); a member COUNT verb is not built (a slice is `wc -l` of `slice`) (DG1 2026-10-08, SM's RD-2: the line promised what the code never shipped; narrowed, not built).
+- `extensions/agi/bin/nest.py` (python, alive's reader lifted from doc:rse-d1-nest at 3,034 B; 5,119 B as landed in 38e61463c7, 5,586 B on the trunk after the B5 -z fixes a2c43af314 and e50ee35fbb; under the 8 KB code rail either way) answers `members(N)`, `slice` (a container's members as sorted ids, retired ones included, UNMARKED) and `log` (the first-parent history of the members' paths, a retire move followed back to the live path), from the node files and git only. A nest value that is neither `subtree` nor a list is refused (exit 1) and reported by links.py. The retired MARK on a member is D3 (goal:g7.16.1.11.22), which reads members(); a member COUNT verb is not built (a slice is `wc -l` of `slice`) (DG1 2026-10-08, SM's RD-2: the line promised what the code never shipped; narrowed, not built).
 - `links.py` gains `nest_unresolved(root)`: over `_iter_corpus` with `address_resolver`, every id in a `nest:` LIST that resolves to no node is reported on its own line by `main` and as its own metrics cell. It does NOT enter `count_broken_links`, which counts only a live node's payload link by design.
 - Each schema that allows it gains an optional `nest: {type: str|list}` field (never required, so no schema count moves).
 - alive's pytest file (`t_nest.py`, 10 cases N1-N10, quoted whole in doc:rse-d1-nest; the build names it so pytest collects it) is the falsifier lane's base.
@@ -54,3 +54,7 @@ goal:g7.16.1.11.22 (the legacy mark, reads members()) · the rollover itself and
 
 ## Agent Notes
 Assigned to **director-general-5 (python builder; DG2 writes the falsifier lane first)**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+10-10 08:3xZ (director-general-5, SM's 08:11Z placement + 08:24Z return): COMPLETE. D1 v2 landed as 38e61463c7; the residue was wording only (the Target end-state cited alive's reader as 3,034 B; nest.py is 5,119 B as landed and 5,586 B on the trunk after a2c43af314 and e50ee35fbb, both trunk ancestors). Evidence I ran at trunk 3bbfd7cf15: test_nest + test_nest_r 90 passed; the negative grep (update-ref|commit-tree|mktree on nest.py) 0 hits. NOT read by me: the links.py nest_unresolved line (E's whole-graph scan rule); SM's gate reads it. Judged by the falsifiers, not by the placement.
+<!-- THOUGHT:END -->
