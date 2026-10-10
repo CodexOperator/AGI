@@ -10,7 +10,7 @@ scaffold_hash: 1a5628596065214d
 season: 2
 town: core
 ---
-# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 43 pieces (every `###` block in engine*.md)
+# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 44 pieces (every `###` block in engine*.md)
 Depth 0 = diagram · 1 = pieces · 2 = one piece: `sect <name>` (any `.geometry/engine*.md`: this node, config:engine-post, config:engine-wrap, config:engine-grow, config:engine-root) · 3 = this file. Pieces are small templates over raw commands; parameters are cells: a row's ONE `engine` object is projected as AGI_<KEY> env. Parity: doc:g716111-stage25-parity.
 
 ## diagram — depth 0
@@ -32,15 +32,16 @@ Depth 0 = diagram · 1 = pieces · 2 = one piece: `sect <name>` (any `.geometry/
 ~~~
 agi-post@.service 2251 B  a post = one unit: own uid, tree, key, pane
 agi-run           1057 B  pane cmd: .fresh or -c, strace; inbox + box -> i
-settings.json      342 B  the ONE hook wiring: brief, meter, turn commit
+settings.json      356 B  the ONE hook wiring: brief, meter, turn commit
 cccc.ts           1956 B  pi events -> the CC hooks; mail -> a turn
 agi-kid           2049 B  a pi-free kid in this unit: own HOME and tree
 agi-infer          1077 B  ONE chat call, OpenAI-compatible: stdin -> stdout
 agi-brief         1316 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
 agi-meter          574 B  past rotate_pct of the window: out-line
-agi-at             899 B  signed CAS commit of ~/t paths to posts/<P>
-agi-turn          4514 B  a signed commit per changed node tree
+agi-at             996 B  signed CAS commit of ~/t paths to posts/<P>
+grow.py           1840 B  the growth-order check both writers call
+agi-turn          3349 B  a signed commit per changed node tree
 agi-wt            1506 B  a node's tiny RAM tree: pull; drop = turn + purge
 agi-track           89 B  strace sink: each path once
 agi-flush         1005 B  drop trees, turn, merge trunk

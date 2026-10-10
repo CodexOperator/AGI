@@ -53,29 +53,50 @@ j=$(cat);t=$(echo "$j"|jq '.tokens//empty');[ "$t" ]||t=$(echo "$j"|jq -r .trans
 [ "${t:-0}" -gt $((w*${AGI_ROTATE_PCT:-47}/100)) ] 2>/dev/null&&echo "At the line ($t/$w): write your card in its node tree (agi-wt pull), run agi-flush, then: touch ~/.fresh;kill \$PPID";:
 ~~~
 
-### agi-at (899 B)
+### agi-at (996 B)
 ~~~sh
 #!/bin/sh
-# agi-at PATH...: ONE signed commit of ~/t's paths onto posts/P by CAS on the tip read; a miss = [raced], exit 4, the edit stays; a kid, no AGI_POST or no posts/P = rc 5 before any write; once the CAS landed the final reset is best-effort (a failed one = [reset], rc 0); ~/t = a detached view of the tip
+# agi-at PATH...: ONE signed commit of ~/t's paths onto posts/P by CAS on the tip read; a miss = [raced], exit 4, the edit stays; a kid, no AGI_POST or no posts/P = rc 5 before any write; a NEW .agi/nodes node must pass grow.py first, else rc 6 (the edit stays); once the CAS landed the final reset is best-effort (a failed one = [reset], rc 0); ~/t = a detached view of the tip
 cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;{ [ "$P" ]&&[ "$AGI_ROLE" != kid ]&&git rev-parse -q --verify $b>/dev/null;}||{ echo "[no-branch] $P: a kid, or no posts/$P: nothing committed">&2;exit 5;};x=$(mktemp -u);trap 'rm -f $x' 0;export GIT_INDEX_FILE=$x;t=$(git rev-parse $b)&&git read-tree $t&&git add -A -- "$@"&&n=$(git write-tree)||exit 1
+grow.py $t>&2||exit 6
 [ $n = $(git rev-parse $t^{tree}) ]&&exit;c=$(echo "$P: $*"|git commit-tree -S -p $t $n)&&git update-ref $b $c $t||{ echo "[raced] $*">&2;exit 4;}
 unset GIT_INDEX_FILE;git reset -q $b||echo "[reset] $b: the commit landed, HEAD not moved">&2
 ~~~
 
-### agi-turn (4514 B)
+### grow.py (1840 B)
+~~~python
+#!/usr/bin/env python3
+# grow.py TIP: the ONE growth-order check agi-turn and agi-at call on the temp index (GIT_INDEX_FILE) after the tree is written and before the commit. Every NEW .agi/nodes/**.md (an add against TIP, --no-renames, not under deprecated/; an edit is never gated) is read from its STAGED blob and run through spawn_gate.check_spawn in-process (the engine's own frontmatter loader). rc 0 = pass; 1 = [growth-order] <node> (one line per refusal, node + rule); 3 = [spawn-gate-missing] / [spawn-gate-broken] (an absent or crashing checker, or a failed diff-index, FAILS CLOSED)
+import sys,os,subprocess as S
+sys.dont_write_bytecode=True
+b=0
+try:
+ L=[p for p in S.run(["git","-c","core.quotepath=off","diff-index","--cached","--no-renames","--name-only","--diff-filter=A",sys.argv[1],"--",".agi/nodes"],capture_output=True,text=True,check=True).stdout.split("\n") if p.endswith(".md") and not p.startswith(".agi/nodes/deprecated/")]
+ if L and not os.path.exists("extensions/agi/bin/spawn_gate.py"):print("[spawn-gate-missing] extensions/agi/bin/spawn_gate.py is not in ~/t: %d new node(s) not checked"%len(L));b=3
+ elif L:
+  sys.path.insert(0,"extensions/agi/bin");import spawn_gate as g,frontmatter as f
+  R,I,C=g.gate_for_root(".agi")
+  for p in L:
+   m=f.read_frontmatter(S.run(["git","show",":"+p],capture_output=True,text=True,check=True).stdout)
+   if m is None:print("[growth-order] "+p+": no readable front matter");b=1;continue
+   r=g.check_spawn(m.get("type"),m.get("parents"),rules=R,type_index=I,fm=m,node_id=m.get("id") or p,season_parents=m.get("season_parents"),current_season=C)
+   if r.status==g.REJECTED:print("[growth-order] "+r.messages[0].replace("SPAWN-GATE REJECTED: ","",1).split(" Schema:")[0]);b=1
+except BaseException as e:print("[spawn-gate-broken] spawn_gate.py: "+repr(e)[:160]);b=3
+sys.exit(b)
+~~~
+
+### agi-turn (3349 B)
 ~~~sh
 #!/bin/sh
-# agi-turn: each changed node tree = ONE grid commit on posts/P (temp index from the tip, signed, CAS); the tip moved it since pull = archived + dropped; a tree is purged ONLY once its commit is proven AND the whole tree is clean against it (agi-turn chk DIR COMMIT: a file outside .p keeps it, [dirty]; a git failure keeps it too); agi-turn purge DIR = that check then rm, else EVERY file of the tree goes to refs/archive/P/<dir> (signed, CAS), [kept] names it, rc 1; a kid (AGI_ROLE=kid, which agi-kid sets), no AGI_POST or no posts/P = rc 5, nothing committed (the SAME guard line before any WRITE in agi-at, agi-turn and agi-flush (chk and c() only read, so they run before it); a Stop hook must never exit 2); a NEW node file (an add, not an edit or a move) must pass spawn_gate.py check, else [growth-order] (the node + the rule) or [spawn-gate-missing]/[spawn-gate-broken] (a checker that is absent or crashes FAILS CLOSED), rc 1, nothing committed, the tree kept; any failure keeps the tree (rc != 0, a [label]); ~/t = a detached read view
+# agi-turn: each changed node tree = ONE grid commit on posts/P (temp index from the tip, signed, CAS); the tip moved it since pull = archived + dropped; a tree is purged ONLY once its commit is proven AND the whole tree is clean against it (agi-turn chk DIR COMMIT: a file outside .p keeps it, [dirty]; a git failure keeps it too); agi-turn purge DIR = that check then rm, else EVERY file of the tree goes to refs/archive/P/<dir> (signed, CAS), [kept] names it, rc 1; a kid (AGI_ROLE=kid, which agi-kid sets), no AGI_POST or no posts/P = rc 5, nothing committed (the SAME guard line before any WRITE in agi-at, agi-turn and agi-flush (chk and c() only read, so they run before it); a Stop hook must never exit 2); the staged tree goes through grow.py (a NEW .agi/nodes node must pass spawn_gate; an edit never does; a refusal or a broken checker = ONE bracketed line, rc 1, nothing committed, the tree kept); any failure keeps the tree (rc != 0, a [label]); ~/t = a detached read view
 cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;x=$(mktemp -u);trap 'rm -f $x $x.l' 0;export GIT_INDEX_FILE=$x;k=0
 c(){ [ "$2" ]&&git read-tree $2&&git --work-tree=$1 diff --name-only --diff-filter=MT>$x.l&&git --work-tree=$1 ls-files -o>>$x.l||return 2;l=$(grep -vxF -e .p -e .b $x.l|tr '\n' ' ');[ -z "$l" ];}
-G(){ s=extensions/agi/bin/spawn_gate.py;for f in $(git -c core.quotepath=off diff-index --cached -M --name-only --diff-filter=A $t -- .agi/nodes);do case $f in *.md);;*)continue;;esac;[ -f $s ]||{ echo "[spawn-gate-missing] $s is not in ~/t: $f not checked, nothing committed">&2;return 1;};o=$(IFS='
-';set -f;python3 -B $s check --root .agi $(git show :$f|awk 'NR==1{next} /^---/{exit} /^parents: *\[/{gsub(/^parents: *\[|\]/,"");n=split($0,a,",");for(i=1;i<=n;i++){gsub(/^ +| +$|"/,"",a[i]);if(a[i]!="")print "--parent\n" a[i]};next} /^parents:/{p=1;next} p&&/^  - /{sub(/^  - /,"");gsub(/"/,"");print "--parent\n" $0;next} {p=0} match($0,/^[a-z_]+: /){k=substr($0,1,RLENGTH-2);v=substr($0,RLENGTH+1);gsub(/^"|"$/,"",v);if(k=="type")print "--type\n" v;else if(k=="id")print "--id\n" v;else if(v!="")print "--set\n" k "=" v}') 2>&1);r=$?;[ $r = 0 ]&&continue;if [ $r = 2 ]&&echo "$o"|grep -q '^!! SPAWN-GATE REJECTED';then echo "[growth-order] $(echo "$o"|sed -n 's/^!! SPAWN-GATE REJECTED: //p;q'|sed 's/ Schema: .*//')">&2;else echo "[spawn-gate-broken] rc $r on $f: $(echo "$o"|tail -n1)">&2;fi;return 1;done;}
 [ "$1" = chk ]&&{ c $2 $3;r=$?;[ $r = 0 ]&&exit;[ $r = 1 ]&&echo "[dirty] $(basename $2): kept, not in the commit: $l">&2||echo "[dirty] $(basename $2): kept, cannot read it against '$3'">&2;exit 1;}
 { [ "$P" ]&&[ "$AGI_ROLE" != kid ]&&git rev-parse -q --verify $b>/dev/null;}||{ echo "[no-branch] $P: a kid, or no posts/$P: nothing committed">&2;exit 5;}
 [ "$1" = purge ]&&{ d=${2%/};m=${d##*/};c $d $(cat $d/.b 2>/dev/null||git rev-parse $b);[ $? = 0 ]&&{ rm -rf $d;exit;};a=refs/archive/$P/$m;o=$(git rev-parse -q --verify $a||:)
  t=$(git rev-parse $b)&&git read-tree $t&&git --work-tree=$d add --ignore-removal -f -- . ':!.p' ':!.b'&&n=$(git write-tree)&&e=$(echo "$P: kept $m"|git commit-tree -S -p $t ${o:+-p $o} $n)&&git update-ref $a $e "$o"&&s="whole tree committed to $a"||s="NOT SAVED: the ref write failed";echo "[kept] $m: ${l:-unreadable}: $s">&2;exit 1;}
 for d in ${AGI_WT:-$RUNTIME_DIRECTORY/wt}/*/;do [ -f $d.p ]||continue;m=$(basename $d);t=$(git rev-parse $b)&&git read-tree $t&&a=$(git --work-tree=$d add -A --pathspec-from-file=$d.p 2>&1)&&n=$(git write-tree)||{ echo "[stage] $m: $(echo "${a:-git failed}"|tr '\n' ' ')">&2;k=1;continue;}
- [ $n = $(git rev-parse $t^{tree}) ]&&continue;G||{ k=1;continue;};r=$b;o=$t;q=;[ ! -f $d.b ]||(IFS='
+ [ $n = $(git rev-parse $t^{tree}) ]&&continue;grow.py $t>&2||{ k=1;continue;};r=$b;o=$t;q=;[ ! -f $d.b ]||(IFS='
 ';set -f;git diff --quiet $(cat $d.b) $t -- $(cat $d.p))||{ r=refs/archive/$P/$m;o=$(git rev-parse -q --verify $r||:);q=${o:+-p $o};}
  c=$(echo "$P: $(sed q $d.p)"|git commit-tree -S -p $t $q $n 2>&1)||{ echo "[commit] $m: cannot sign or commit: $c">&2;k=1;continue;}
  git update-ref $r $c "$o"||{ echo "[raced] $m">&2;k=4;continue;}
