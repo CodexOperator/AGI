@@ -196,7 +196,7 @@ def test_load_crons_node_parses_the_town_mirror_cell(tmp_path):
     _write_crons_node(root)
     node = crons.load_crons_node(root)
     assert node["jobs"]["town_mirror"]["enabled"] is True
-    assert "mirror_towns" not in node["jobs"]["grid_sync"] or node["jobs"]["grid_sync"]["mirror_towns"] is False
+    assert "mirror_towns" not in node["jobs"]["grid_sync"], node["jobs"]["grid_sync"]   # the flag is GONE from the cell (the old `... or is False` could not fail: the loader never emits the key)
 
 
 def test_town_mirror_absent_renders_no_mirror_line(tmp_path, monkeypatch):

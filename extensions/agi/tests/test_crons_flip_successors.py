@@ -554,3 +554,78 @@ def test_f2_grid_sync_on_the_grid_is_fetched_as_today(tmp_path, monkeypatch):
     r = run_fetch_line(fx, tmp_path)
     assert r.returncode == 0, (r.returncode, r.stderr[-300:])
     assert local_grid_refs(fx) == f"refs/grid/node/zz {sha}", local_grid_refs(fx)
+
+
+# ====
+# g: the OLD flag `grid_sync.mirror_towns` (DG1 21:4xZ, SM's gate): refused BY NAME, and a node crons.py refuses never retires the grid SILENTLY
+# ====
+
+NOT_RETIRED = "grid: crons node invalid ({}); grid NOT retired"
+
+
+def with_old_flag(value, enabled=None):
+    def edit(fm: dict) -> None:
+        fm["cadences"]["grid_sync"]["mirror_towns"] = value
+        if enabled is not None:
+            fm["cadences"]["grid_sync"]["enabled"] = enabled
+    return edit
+
+
+def refusal_text(fx: Fx) -> str:
+    with pytest.raises(crons.CronsError) as e:
+        crons.load_crons_node(fx.graph)
+    return str(e.value)
+
+
+@pytest.mark.parametrize("value", [True, False])
+def test_g1_a_node_still_carrying_the_old_mirror_towns_flag_is_refused_by_name(tmp_path, monkeypatch, value):
+    """`cadences.grid_sync.mirror_towns` (either value) moved to the `town_mirror` job: load_crons_node refuses the node, and the text NAMES both the old flag and the new job (so the operator
+    sees what to do). Control: the same node without the flag loads."""
+    fx = Fx(tmp_path, monkeypatch, with_old_flag(value))
+    text = refusal_text(fx)
+    assert "mirror_towns" in text and "town_mirror" in text, text
+    (tmp_path / "ok").mkdir()
+    ok = Fx(tmp_path / "ok", monkeypatch, None)
+    assert "mirror_towns" not in crons.load_crons_node(ok.graph)["jobs"]["grid_sync"]
+
+
+@pytest.mark.parametrize("enabled", [None, False, True])
+def test_g2_grid_retired_on_a_refused_node_is_false_and_prints_one_named_line_per_call(tmp_path, monkeypatch, capsys, enabled):
+    """grid_retired() on a node crons.py REFUSES keeps the fail-safe value False (the grid keeps working) but is no longer silent: ONE stderr line per call, exactly
+    `grid: crons node invalid (<the CronsError text>); grid NOT retired`, nothing on stdout. With `enabled: false` ALSO set (the flip done on an invalid node) it is STILL False: an invalid node never retires the grid."""
+    import grid
+    fx = Fx(tmp_path, monkeypatch, with_old_flag(True, enabled))
+    want = NOT_RETIRED.format(refusal_text(fx))
+    capsys.readouterr()
+    assert grid.grid_retired(fx.graph) is False
+    first = capsys.readouterr()
+    assert first.err.splitlines() == [want] and first.out == "", (first.err, first.out)
+    assert grid.grid_retired(fx.graph) is False
+    second = capsys.readouterr()
+    assert second.err.splitlines() == [want], f"one line PER call: {second.err!r}"
+
+
+def test_g3_a_valid_node_is_silent_on_or_off(tmp_path, monkeypatch, capsys):
+    """Control for g2: a node crons.py accepts prints NOTHING on stderr from grid_retired(): ON -> False, flipped OFF -> True."""
+    import grid
+    (tmp_path / "off").mkdir()
+    on = Fx(tmp_path, monkeypatch, None)
+    off = Fx(tmp_path / "off", monkeypatch, flip_off)
+    capsys.readouterr()
+    assert grid.grid_retired(on.graph) is False
+    assert grid.grid_retired(off.graph) is True
+    assert capsys.readouterr().err == ""
+
+
+def test_g4_the_grid_keeps_working_on_a_refused_node_and_names_it_on_stderr(tmp_path, monkeypatch):
+    """The CLI: `grid.py commit --all` on a refused node (even with `enabled: false` set) is NOT retired: rc 0, no RETIRED_LINE, refs/grid written, and stderr carries the named line ONCE."""
+    fx = Fx(tmp_path, monkeypatch, with_old_flag(True, False))
+    seed_migrations(fx)
+    import re
+    assert "mirror_towns" in refusal_text(fx)
+    before = git(fx.repo, "for-each-ref", "--format=%(refname) %(objectname)", "refs/grid")
+    r = grid_cmd(fx, "commit", "--all")
+    assert r.returncode == 0 and RETIRED_LINE not in r.stdout, (r.returncode, r.stdout[-300:], r.stderr[-300:])
+    named = [l for l in r.stderr.splitlines() if re.fullmatch(r"grid: crons node invalid \(.*mirror_towns.*\); grid NOT retired", l)]
+    assert len(named) == 1, (named, r.stderr[-500:])
+    assert git(fx.repo, "for-each-ref", "--format=%(refname) %(objectname)", "refs/grid") != before, "the grid did not write: it was treated as retired"
