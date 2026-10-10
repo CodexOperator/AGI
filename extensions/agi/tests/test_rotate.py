@@ -5351,8 +5351,8 @@ def test_spawn_first_seating_emits_seating_alert_and_record(tmp_path, monkeypatc
     wins.write_text("@42 director-seat\nsensei-peer\n", encoding="utf-8")
     reg = _seating_registry(tmp_path)
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
     monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
     args = SimpleNamespace(name="director-seat", tier="director",
@@ -5409,8 +5409,8 @@ def test_spawn_first_seating_default_ack_source_seating_wake_zero(
     wins.write_text("@42 director-seat\nsensei-peer\n", encoding="utf-8")
     reg = _seating_registry(tmp_path)
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender:
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw:
                         sent.append((other, text)) or tmp_path)
     monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
     args = SimpleNamespace(name="director-seat", tier="director",
@@ -5514,8 +5514,8 @@ def test_spawn_first_seating_ask_diff_prints_exact_ack_line(
     wins.write_text("@42 director-seat\nsensei-peer\n", encoding="utf-8")
     reg = _seating_registry(tmp_path)
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender:
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw:
                         sent.append((other, text)) or tmp_path)
     monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
     args = SimpleNamespace(name="director-seat", tier="director",
@@ -5752,8 +5752,8 @@ def test_seats_launch_first_seating_emits_seating_alert(tmp_path, monkeypatch):
     wins.write_text("@42 director-seat\nsensei-peer\n", encoding="utf-8")
     reg = _seating_registry(tmp_path)
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
     monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
     args = SimpleNamespace(prompt_file=None, tmux_session="agi-rc",
@@ -5782,8 +5782,8 @@ def test_ack_gen1_first_seating_announces_once_dedup(tmp_path, monkeypatch):
     ]
     _write_seats_sheet(tmp_path, rows)
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
     monkeypatch.setattr(rotate, "_existing_windows",
                         lambda s, wp: ["hand-seat", "sensei-peer"])
@@ -5823,8 +5823,8 @@ def test_ack_gen1_diff_empty_announces_once(tmp_path, monkeypatch):
             {"name": "sensei-peer", "role": "prime_director"}]
     _write_seats_sheet(tmp_path, rows)
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
     monkeypatch.setattr(rotate, "_existing_windows",
                         lambda s, wp: ["diff-seat", "sensei-peer"])
@@ -5877,8 +5877,8 @@ def test_ack_gen1_continue_no_commit_still_announces_and_records(tmp_path, monke
             {"name": "sensei-peer", "role": "prime_director"}]
     _write_seats_sheet(tmp_path, rows)
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
     monkeypatch.setattr(rotate, "_existing_windows",
                         lambda s, wp: ["noct-seat", "sensei-peer"])
@@ -5970,8 +5970,8 @@ def test_announce_rotation_same_composer_writes_seating_record(tmp_path, monkeyp
             {"name": "hand-seat", "role": "parent"}]
     _write_seats_sheet(tmp_path, rows)
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
     seating = rotate._seating_record(
         seat="hand-seat", role="parent", source="cmd_ack", window_id="@7",
@@ -6220,8 +6220,8 @@ def test_announce_rotation_dms_post_join_address(monkeypatch, tmp_path):
     _write_seats_sheet(tmp_path, rows)
     sent = []
     import send as _send
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
     delivered = rotate._announce_rotation(
         root=tmp_path, croot=tmp_path / "comms", seat="belam-II",
@@ -6254,8 +6254,8 @@ def test_announce_rotation_dms_every_derived_recipient(monkeypatch, tmp_path):
     _write_seats_sheet(tmp_path, rows)
     sent = []
     import send as _send  # the SAME top-level module rotate's lazy import binds to
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
     delivered = rotate._announce_rotation(
         root=tmp_path, croot=tmp_path / "comms", seat="liason",
@@ -6311,18 +6311,23 @@ def test_announce_rotation_prime_routes_to_alert_room_never_quorum(
 def test_announce_rotation_lands_alert_in_each_recipient_inbox(
         monkeypatch, tmp_path):
     """Clause 1 non-prime leg: every derived recipient's INBOX file holds the
-    [rotation-alert] block that `send.py read <recv>` shows, while the dm-log
-    hop (send_dm) still happens with the same payload. Falsifier: an alert
-    absent from a recipient's inbox."""
+    [rotation-alert] block that `send.py read <recv>` shows, while the second
+    hop is now the box message (goal:g7.16.1.11.20 cut B; send_dm is no longer
+    called) with the same payload. Falsifier: an alert absent from a
+    recipient's inbox."""
     rows = [{"name": "kid-a", "role": "director"},
             {"name": "liason", "role": "parent"},
             {"name": "kid-b", "role": "director"}]
     _write_seats_sheet(tmp_path, rows)
-    dms = []
+    dms, boxed = [], []
     import send as _send
     monkeypatch.setattr(_send, "send_dm",
                         lambda croot, me, other, text, sender: dms.append(
                             (other, text)) or tmp_path)
+    monkeypatch.setenv("AGI_POST", "liason")     # the guard: this process IS the rotating post
+    monkeypatch.setattr(rotate, "_box_send_announce",
+                        lambda recv, seat, text, declared: boxed.append(
+                            (recv, seat, text)) or True)
     rotate._announce_rotation(
         root=tmp_path, croot=tmp_path / "comms", seat="liason",
         successor="liason", gen_before=1, gen_after=2, trigger="rotate-self",
@@ -6336,9 +6341,10 @@ def test_announce_rotation_lands_alert_in_each_recipient_inbox(
         assert "[rotation-alert]" in body, f"{recv} inbox lacks the alert"
         assert "trigger: rotate-self" in body
         assert "in flight: none" in body
-    # dm-log hop unchanged, same payload.
-    assert [to for to, _ in dms] == ["kid-a", "kid-b"]
-    for _, text in dms:
+    # the second hop is the box message, signed by the rotating post, same payload.
+    assert dms == [], "send_dm is replaced by the box message"
+    assert [(r, st) for r, st, _ in boxed] == [("kid-a", "liason"), ("kid-b", "liason")]
+    for _, _, text in boxed:
         assert "[rotation-alert]" in text
 
 
@@ -6491,8 +6497,8 @@ def test_announce_stamps_payload_with_seq_and_writes_sequence_file(
     _write_seats_sheet(root, rows)
     import send as _send
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
     delivered = rotate._announce_rotation(
         root=root, croot=tmp_path / "comms", seat="liason",
