@@ -5414,7 +5414,7 @@ def veto_gate_status(root: Path, scope: str) -> str:
         return f"HOLD scope={scope}: seatsig unavailable: {exc}"
     try:   # goal:g7.16.1.11.13.3: the SAME strict read the gated acts make; an unreadable cell is a HOLD with its cause, never FREE
         g = _veto.read(graph, strict=True)
-    except _veto.VetoCellUnreadable as exc:
+    except Exception as exc:   # noqa: BLE001 -- VetoCellUnreadable or any other failure of the read: the gates HOLD on it, so does the display
         return f"HOLD scope={scope}: {exc}"
     frozen, why = _veto.is_frozen(graph, scope, geom=g)
     room = g.get("veto_room") or "veto"
