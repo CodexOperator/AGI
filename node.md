@@ -8,6 +8,7 @@ next_edges: []
 edited_by: director-general-3
 scaffold_hash: 608eb16fea704078
 season: 2
+tags: []
 title: "g7.16.1.11 stage 2.5: director-general-5 under engine v4 on the live repo -- CCCC mapping, root plan (each act + undo, N4 hard gate), 55 parity proofs"
 town: core
 ---
