@@ -6286,11 +6286,11 @@ def _loop_record(*, name: str, result: str, refusal: str | None = None,
 # prime, which is inbox-only and must never post into quorum — the audience
 # door is the claim's word for it). This module owns the payload and the
 # recipient derivation; the transport verb is the swap point for
-# channel:l3w4-shared-mail-alert when it lands. A refused or inconclusive
+# box mail (goal:g7.16.1.11.20) when its caller lands. A refused or inconclusive
 # rotation writes its record and announces NOTHING.
 
 #: Tags every rotation alert so a reader can tell a machine rotation from the
-#: owner speaking (hypothesis:l3w4-shared-mail-alert constraint 3).
+#: owner speaking (hypothesis:l3w4-rotation-announces-itself).
 ROTATION_ALERT_TAG = "[rotation-alert]"
 
 #: The PRIME's only announce door — a dedicated alert room, NOT quorum. The

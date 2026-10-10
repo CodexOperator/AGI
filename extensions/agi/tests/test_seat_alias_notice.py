@@ -7,7 +7,7 @@ both set the same dest. The notice goes to STDERR (these parsers feed hooks
 and shell callers that parse stdout).
 
 Before this landed (fix-only round 2, KID B) only dispatch.py fired the
-notice; rotate.py (13 sites), handoff.py, mail_alert.py, season.py and send.py
+notice; rotate.py (13 sites), handoff.py, season.py and send.py
 carried `--seat` as a plain store, so the alias was silently accepted there.
 Regression guard: a NEW `--seat` add_argument that forgets the action fails
 the wiring scan below and is silently accepted no more.
@@ -35,8 +35,6 @@ _WIRED_MODULES = [
     ("rotate", ["meter"], ["meter", "--seat", "alice"], "seat"),
     # handoff.py — dest is "holder", not "seat".
     ("handoff", ["claim", "sec"], ["claim", "sec", "--seat", "bob"], "holder"),
-    # mail_alert.py — flat parser.
-    ("mail_alert", [], ["--seat", "carol"], "seat"),
     # season.py — merge-up carries the alias.
     ("season", ["merge-up", "branch"], ["merge-up", "branch", "--seat", "dave"], "seat"),
     # send.py — keygen carries the alias.
@@ -218,7 +216,9 @@ def test_static_scan_reports_site_count_and_names():
     site surfaces here (this test is the pointer, the parametrized scan below
     is the gate; both must be updated together). 22 since SL7.84 (goal:g15,
     the rotate-self --closeout form's own subparser registers `--seat`
-    through the same SeatAction — SL2#25 merge-up 58e94015c measured it)."""
+    through the same SeatAction — SL2#25 merge-up 58e94015c measured it);
+    21 since goal:g7.16.1.11.20 retired the receive-side alert hook CLI,
+    whose flat parser carried one of them."""
     sites = []
     for f in sorted(BIN.glob("*.py")):
         try:
@@ -234,7 +234,7 @@ def test_static_scan_reports_site_count_and_names():
                         and isinstance(a.value, str)]
                 if "--seat" in opts:
                     sites.append(f"{f.name}:{node.lineno}")
-    assert len(sites) == 22, sites
+    assert len(sites) == 21, sites
 
 
 @pytest.mark.parametrize("fname", _seat_modules())

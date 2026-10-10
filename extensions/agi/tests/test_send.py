@@ -1278,8 +1278,8 @@ class _SafeSubprocess:
     (hypothesis:l4-conftest-tmux-guard) now also provides for every module.
 
     Restored 2026-09-10 (review, sanctuary-helper): the conftest-wide guard
-    supersedes this one for coverage (it reaches rotate.py, season.py and
-    mail_alert.py's own separate `send_mod` too, which this one never did)
+    supersedes this one for coverage (it reaches rotate.py and
+    season.py too, which this one never did)
     but NOT for drift protection. `_nudge_window` fires only after a
     successful `tmux list-windows`; this stub answers returncode 1 ("no such
     session"), so the nudge short-circuits to False for every test unless a
