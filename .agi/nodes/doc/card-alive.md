@@ -15,13 +15,13 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (04:4xZ 10-09) -- gen 10 on encryption-town; mail = BOX ONLY; nothing open
+## §0 State (01:3xZ 10-10) -- gen 10 on encryption-town; mail = BOX ONLY; g1.42 row 22 fixed (this version), [merge-up] to SM
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · moving local-town -> encryption-town (owner 21:2xZ) |
 | work | the council's design bundle. alive = AA1 (`doc:rse-aa1-boxes`) + D1 (`doc:rse-d1-nest`) + A1b's design (agi-vstore). sp = AA2/§AB/§AC (doc:radically-simple-engine) · all-is-one = AA3, Z4, D3, D4 · DG1 goals, DG2 falsifiers, DG3/DG4 build, SM gates |
-| messaging | BOX ONLY (owner via SM [rule] 04:5xZ 10-09): `printf '%s\n' '[tag] ...' \| AGI_POST=alive /var/lib/agi/alive/bin/box send <post>`; read `AGI_POST=alive box read` (`box n` = unread). NO send.py send, NO inbox .md, NO SendMessage. No answer = tell belam by box, never fall back |
-| reading | `box read` prints and marks (refs/held/alive/*): read its WHOLE output; refs live in MAIN's /data/work/agi/.git |
+| messaging | BOX ONLY (owner via SM [rule] 04:5xZ 10-09): `printf '%s\n' '[tag] ...' \| AGI_POST=alive ~/bin/box send <post>`; read `AGI_POST=alive box read` (`box n` = unread). NO send.py send, NO inbox .md, NO SendMessage. No answer = tell belam by box, never fall back |
+| reading | `box read` prints and marks (refs/held/alive/*): read its WHOLE output; refs live in MAIN's git dir (shared by every post's worktree) |
 | council | split each owner line by mechanism owned; when splits cross, the first to LAND (inbox ts) stands |
 | lens | vision:alive = the system reports its own TRUE state (measure, then say it; correct your own claims at once) |
 | skills | agi-send · agi-rotate · agi-goal · agi-post · NODES = plain Read/Edit/Write + commit by path + `grid.py commit <path>` (write.py = old setup only) |
@@ -54,7 +54,7 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 ## 🔴 Where it stops
 Idle on E. BOX ONLY acked to sanctuary-master by box 04:41Z (refs/box/alive/sanctuary-master 004cee3369). box n = 0.
 ```
-successor: AGI_POST=alive /var/lib/agi/alive/bin/box read (WHOLE output) -> act on that mail only; reply by box send
+successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only; reply by box send
 ```
 
 ## §4 Traps
@@ -75,7 +75,7 @@ successor: AGI_POST=alive /var/lib/agi/alive/bin/box read (WHOLE output) -> act 
 | my timestamps | a time I write = date -u in the same step; a PAST event = git log -1 --format=%cI <sha> |
 | a relay says "the owner said X" | verify on the bytes (a signed inbox block, a node) before spending; a STOP needs no proof |
 | grid.py commit --all as a v5 uid | PermissionError on .grid.lock: version by PATH; the grid itself is retiring (E2) |
-| deleting a ref in MAIN | packed-refs.lock EACCES as agi-alive: dead branches (alive/e1-row) stay; say so |
+| deleting a ref in MAIN | packed-refs.lock EACCES as alive's uid: dead branches (alive/e1-row) stay; say so |
 | heredocs / send texts | ALWAYS quoted (<<'EOF'), values by argv or env; build send texts in python |
 | .agi/sessions/quorum/alive.md | a SYMLINK to this node (re-link at wake if rotate flattens it: agi-rotate §3) |
 
@@ -89,5 +89,5 @@ successor: AGI_POST=alive /var/lib/agi/alive/bin/box read (WHOLE output) -> act 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 9, 21:42Z 10-08 (date -u): whole rewrite for the move to encryption-town (belam [rule] 21:39Z, owner 21:2xZ), so a successor there resumes from this card alone. The 128-line log of 10-08 is folded to what landed (D1 38986aa967, A1b eb55f973e2) and the traps it paid for. Not pushed as a posts/ branch: origin holds town trunks only; the card is cut as a one-node merge-up to the trunk instead, and the [ready] line says so.
+alive gen 10, 01:3xZ 10-10 (date -u): closes goal:g1.42 row 22 (SM [decision] 01:2xZ 10-10, by box): the trunk version carried a post's private home path on line 59, an anonymize RED. Every post path is now written as ~ (the post's own home) or by name: `~/bin/box`, "MAIN's git dir", "alive's uid". Also carries gen 10's seat on encryption-town: the comms ACL red belam fixed (G4) and the owner's BOX ONLY mail rule, so the trunk card matches the post. anonymize.py check cannot run as a post uid (MAIN's .env is unreadable, correctly); the home/hostname classes were scanned with the secrets source stubbed out: 0 hits. SM's gate runs the full check.
 <!-- THOUGHT:END -->
