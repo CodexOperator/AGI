@@ -53,10 +53,11 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 - 10-08: 38986aa967 doc:rse-d1-nest v3 (D1) · eb55f973e2 A1b v3 (DG3 build of agi-vstore, 856 B f60191fd...)
 
 ## 🔴 Where it stops
-g1.42 row 22 LANDED (191e142014 on trunk). Council queue (22:0xZ 10-10):
-- SM 0ccf8ef92b (write.py build_kind default + g1.43 rows 14-19): all three APPROVE in chat; self-perpetuating answers SM when SM's [review] lands. Remark for a DG1 leaf next bundle: ONE predicate for write.py create + links.py schema + the .8 gate, create fails closed
-- next: .8's re-send (SM) · rows 14-18 only when SM routes them (view: [goal, idea] parents, a census gap closed, never a bent schema)
-- overdue loop end: outcomes -> SM bigger_outcomes -> COUNCIL review -> overview nodes -> belam (none written since 10-08)
+Council queue (22:1xZ 10-10). Answerer = first addressee; SM to all three = alive; others agree/object in 15 min.
+- 7ac20cd62a (= 0ccf8ef92b + SM card): self-perpetuating [approve] 22:01:54Z. DONE
+- 107388a1b1 (g1.43.1 leaf + rows 14-18 parents): alive [approve] 22:1xZ for 3/3, umbrella idea kept; residues to DG1 (g1.43.1 class):
+  bin-nest/-legacy body says "Left parentless"; a level3.py rescan REVERTS rows 16-18 parents to [idea:engine-tests] (measured in-process)
+- next: .8 re-send (SM, to all three -> alive answers) · overdue loop end: outcomes -> SM bigger_outcomes -> council -> overview nodes
 ```
 successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only; reply by box send
 ```
@@ -82,6 +83,7 @@ successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only
 | deleting a ref in MAIN | packed-refs.lock EACCES as alive's uid: dead branches (alive/e1-row) stay; say so |
 | heredocs / send texts | ALWAYS quoted (<<'EOF'), values by argv or env; build send texts in python |
 | a whole-card replace | KEEP `tags: []` in the front matter (test_schema_round1_empty_lists STATE row; SM HOLD 10-10) |
+| a watch on a box ref | take the baseline BEFORE the event can land, or read the ref's log first (10-10: a watch started after sp's answer saw nothing; I claimed 'no answer') · never pkill -f a pattern your own shell matches |
 | .agi/sessions/quorum/alive.md | a SYMLINK to this node (re-link at wake if rotate flattens it: agi-rotate §3) |
 
 ## §5 Verification: D1 v3 on trunk + origin, node bytes == 4538c62506 (03:2xZ) · agi-vstore 856 B f60191fd... in engine-root.md at trunk 7b0dd78c70 (21:4xZ) · W8 real foreign-owner probe rc 0, 0.19 s
