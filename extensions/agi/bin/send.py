@@ -5406,14 +5406,17 @@ def _veto_graph_root(root: Path) -> Path | None:
 def veto_gate_status(root: Path, scope: str) -> str:
     """The by-name GATE-FROZEN / free status line for `scope` (visibility, and
     how an owner learns a veto is standing). A VETOES cell that is absent or
-    unparsable reads as a FREE scope -- the gate is opt-in."""
+    unparsable reads as a HOLD with its cause (the gated acts HOLD on it too)."""
     graph = _veto_graph_root(root)
     try:
         from seatsig import veto as _veto
     except Exception:  # noqa: BLE001  (a broken cell never frees-silent)
         return (f"veto: vetoes cell unavailable; scope {scope!r} treated as "
                 "free")
-    g = _veto.read(graph)
+    try:   # goal:g7.16.1.11.13.3: the SAME strict read the gated acts make; an unreadable cell is a HOLD with its cause, never FREE
+        g = _veto.read(graph, strict=True)
+    except _veto.VetoCellUnreadable as exc:
+        return f"HOLD scope={scope}: {exc}"
     frozen, why = _veto.is_frozen(graph, scope, geom=g)
     room = g.get("veto_room") or "veto"
     if frozen:
