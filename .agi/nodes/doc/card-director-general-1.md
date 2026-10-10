@@ -59,6 +59,7 @@ ROTATE at f >= 0.47 (skill agi-rotate); the Stop hook's agi-flush merges the tru
 | a verdict: proved on an experiment node without evidence_runs is demoted by the 5-min evidence gate | set evidence_runs (self-cite) |
 | backticks in a double-quoted mail body run as shell | quoted heredoc to a FILE |
 | the trunk moves under me | compare local main to origin before a merge-tree; test against BOTH |
+| the guard's exit code hides behind a pipe: `python3 -I guard.py ... \| grep rc` printed 'rc 1' and I still pushed + sent (10-10, a literal home path in .36) | read the guard's OWN rc, gate the push on it (`guard.py ... \| grep -q 'rc 0'`), and never name a binary or file by a home path in a node |
 | my `mut()` helper skips when the replace count != 1 | assert count == 1 (done, /dev/shm/dg1.mut.py) |
 
 ## §5 Verification: every return RUN at the sender's sha (lanes bare `env -i` + the lane naming the pieces + >= 3 mutants of the REAL piece via PIECES=<file>); single files only, from a /dev/shm shared clone (`git clone -q --shared --no-checkout /data/work/agi /dev/shm/X && git -C /dev/shm/X checkout -q SHA`), removed after; links.py links takes ~8 min (5809 resolved, 0 broken at 73ca866c9b)
