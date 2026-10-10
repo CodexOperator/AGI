@@ -10,6 +10,8 @@ Rows (the builder is free in wording: a row asks for the token HOLD and the caus
   d1  falsifier 1: the non-strict `_veto.read(graph|root)` reads in send.py + viewport.py count <= 2 (4 today: send.py x3, viewport.py x1; the two WRITER reads in send.py stay)
   d2  falsifier 2: per reader, the cell MISSING then MALFORMED: the output has HOLD and the cause ("missing veto cell" / "unreadable veto cell") and no FREE
   d3  stays-green: a well-formed cell prints byte-identical lines (GOLDEN below, measured on trunk 3bbfd7cf15): send FREE + FROZEN, viewport FROZEN, viewport FREE = no gate line
+  d5  the INVARIANT (a display reader never frees a scope a gate holds), the import arm: since .13.2 every gate HOLDS when `seatsig` cannot be imported; `veto_gate_status` with a broken seatsig import must HOLD with the cause, not "treated as free"
+  d6  the same for `viewport.py --live`: a HOLD line with the cause in both views, not the silence its outer `except Exception` gave
   d4  falsifier 4: a git worktree whose copy of the cell is FREE while MAIN's is FROZEN (and the reverse): `viewport.py --live` run from the worktree shows MAIN's verdict, the
       same as the gate and as `veto_gate_status` (which already resolves MAIN: those two rows stay green)
 Each row runs the reader as a SUBPROCESS under a scratch HOME and git config; the engine under test is VETO_ROOT=<tree> (default: the repo holding this file).
@@ -46,6 +48,20 @@ G_SEND_FROZEN = ("GATE-FROZEN scope=prime room=veto; 'prime' is FROZEN by a huma
                  "it is never auto-released -- only an owner answer in 'veto' clears it")
 G_VP_FROZEN = "GATE-FROZEN scope=prime since=2026-10-10 00:00:00+00:00 veto=v1 (human gate; waits for an owner answer)"
 
+BRK = ("import sys\n"
+       "class _Break:\n"
+       "    def find_spec(self, name, path=None, target=None):\n"
+       "        if name == 'seatsig' or name.startswith('seatsig.'):\n"
+       "            raise ImportError('boom-import-9')\n"
+       "def install():\n"
+       "    for k in [k for k in sys.modules if k == 'seatsig' or k.startswith('seatsig.')]:\n"
+       "        del sys.modules[k]\n"
+       "    sys.meta_path.insert(0, _Break())\n")
+PROBE_BRK = ("import sys;sys.path[:0]=[%r,%r,%r,%r];from pathlib import Path;import send,brk;brk.install();"
+             "print(send.veto_gate_status(Path(sys.argv[1]),sys.argv[2]))")
+VP_BRK = ("import sys,runpy;sys.path.insert(0,%r);import brk;brk.install();"
+          "sys.argv=['viewport.py','--live','--emit',sys.argv[1],'--project',sys.argv[2]];runpy.run_path(%r,run_name='__main__')")
+
 PROBE = ("import sys;sys.path[:0]=[%r,%r,%r];from pathlib import Path;import send;"
          "print(send.veto_gate_status(Path(sys.argv[1]),sys.argv[2]))" % (str(EXT), str(BIN), str(SRC)))
 
@@ -66,6 +82,9 @@ class World:
     def __init__(self, tmp: Path):
         self.home = tmp / "home"
         self.home.mkdir()
+        self.brk = tmp / "brk"
+        self.brk.mkdir()
+        (self.brk / "brk.py").write_text(BRK)
         self.main = tmp / "main"
         self.wt = tmp / "wt"
         self.main.mkdir()
@@ -87,13 +106,16 @@ class World:
         else:
             p.write_text(TEXT[state])
 
-    def send(self, where: Path, scope: str = "prime") -> str:
-        r = subprocess.run([sys.executable, "-c", PROBE, str(where / ".agi"), scope], capture_output=True, text=True,
+    def send(self, where: Path, scope: str = "prime", broken: bool = False) -> str:
+        code = PROBE_BRK % (str(self.brk), str(EXT), str(BIN), str(SRC)) if broken else PROBE
+        r = subprocess.run([sys.executable, "-c", code, str(where / ".agi"), scope], capture_output=True, text=True,
                            env={**_env(self.home), "PYTHONDONTWRITEBYTECODE": "1"}, timeout=120)
         return r.stdout + r.stderr
 
-    def viewport(self, where: Path, view: str = "human") -> str:
-        r = subprocess.run([sys.executable, str(VIEWPORT), "--live", "--emit", view, "--project", str(where / ".agi")], cwd=where,
+    def viewport(self, where: Path, view: str = "human", broken: bool = False) -> str:
+        cmd = ([sys.executable, "-c", VP_BRK % (str(self.brk), str(VIEWPORT)), view, str(where / ".agi")] if broken
+               else [sys.executable, str(VIEWPORT), "--live", "--emit", view, "--project", str(where / ".agi")])
+        r = subprocess.run(cmd, cwd=where,
                            capture_output=True, text=True, env={**_env(self.home), "PYTHONDONTWRITEBYTECODE": "1"}, timeout=180)
         return r.stdout + r.stderr
 
@@ -200,3 +222,27 @@ def test_d4_send_status_from_a_worktree_already_reads_MAIN_stays_green(world, ma
     world.cell(world.main, main_state)
     world.cell(world.wt, wt_state)
     assert world.send(world.wt).strip() == want
+
+
+# --- d5 / d6: the import arm. The gates HOLD whatever the cell says when `seatsig` cannot be imported; the displays must not free what they hold
+@pytest.mark.parametrize("state", ["free", "frozen"])
+def test_d5_send_veto_gate_status_holds_when_the_seatsig_import_is_broken(world, state):
+    world.cell(world.main, state)
+    out = world.send(world.main, broken=True)
+    assert "HOLD" in out and "boom-import-9" in out, f"{state}: want HOLD + the import error, got {out[-300:]!r}"
+    assert "treated as free" not in out and "is FREE" not in out, f"{state}: the display frees a scope the gates hold: {out[-300:]!r}"
+
+
+@pytest.mark.parametrize("view", ["human", "llm"])
+def test_d6_viewport_live_shows_a_hold_when_the_seatsig_import_is_broken(world, view):
+    world.cell(world.main, "free")
+    out = world.viewport(world.main, view, broken=True)
+    assert "HOLD" in out and "boom-import-9" in out, f"{view}: want a HOLD line + the import error, not silence: {out[-300:]!r}"
+    assert "anchor=roots" in out, "the status line itself must still print (non-vacuous: the viewport ran)"
+
+
+def test_d5_d6_the_break_is_real_the_same_probe_without_it_reads_the_cell(world):
+    """Non-vacuous: without the break the FREE cell prints today's FREE line and the viewport prints no HOLD."""
+    world.cell(world.main, "free")
+    assert world.send(world.main).strip() == G_SEND_FREE
+    assert "HOLD" not in world.viewport(world.main)
