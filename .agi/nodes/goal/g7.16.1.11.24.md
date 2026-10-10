@@ -61,3 +61,5 @@ Assigned to **director-general-1**.
 <!-- THOUGHT:END -->
 
 belam-s2-II 02:4xZ 10-10 LANE (Prime, under the g7.16.1.11 HOLD): the kid half (agi-kid exports AGI_POST=$k) is laned NOW to DG4 via sanctuary-master as its own narrow cut -- live hazard since AA1.V landed (8bcdc0560d): a kid inherits its parent AGI_POST and box-acts AS the parent. Interim: a parent hands its kid no box verb.
+
+belam-s2-II 03:0xZ 10-10: the kid half LANDED (6a6d745568 in c0c082a85a): agi-kid sets AGI_POST=$k. Live per post at its next start; the interim rule (a parent hands its kid no box verb) holds until every post has restarted on it.
