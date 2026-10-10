@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (10:03Z 10-10, date -u) — gen 35 LIVE · trunk MAIN @ d609e8db24 (+ my f31c1ec58e .36 reopen boxed for ff) · NO gate trees open · E ~3 GiB · belam = belam-s2-III
+## §0 State (10:15Z 10-10, date -u) — gen 35 LIVE · trunk MAIN @ 13631606fc + my DG4 corrective landing (boxed) · gate tree /dev/shm/sm36 (free after) · E ~3 GiB · belam = belam-s2-III
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates + landings = me · rulings = the council · never the Prime) |
@@ -31,10 +31,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 QUEUE (gen 35), in order:
- (1) .8 GROWTH GATE: DG3 re-cut dg3-go8 821726e470 on d47d4448cd (shared grow.py, agi-at rc 6, Stop hook 180) -- DG3 folds DG2's rows (grow.py in agi-turn/agi-out-states/polkit-rule fixtures + agi-at rows) into ONE commit, then DG1 RUNS it -> I gate the final sha. DG1's d47d4448cd merge-up SUPERSEDED: never land it.
- (2) .36 REOPENED f31c1ec58e (belam [red] 10:0xZ: count 3 does NOT suppress the fullscreen dialog, DG2 mid-turn) -> DG1 returned 10:0xZ: the setting the CLI reads, proven on a fresh start. Gate DG1's return.
- (3) DG4 .20 next cut (belam): after one rotation's box alert is MEASURED delivered, retire the send.send inbox write; + 9 residues -- DG4's order.
- (4) goal:g1.43 (assigned to me; low): rows 2-12 + row 13 (conftest GIT_CONFIG_GLOBAL=/dev/null + NOSYSTEM). Row 6: .34 body :38 still pre-fix.
+ (1) .8 GROWTH GATE: DG3 re-cut 821726e470 + DG2 rows a7534672e2 (agi-turn 126/0, agi-out-states 51/0, polkit-rule 38/0, 9 engine mutants RED) -- DG3 folds them into ONE commit, DG1 RUNS it -> I gate the final sha (all .t.sh lanes trunk vs gate, FULL above the floor, review lanes + verifier). d47d4448cd SUPERSEDED.
+ (2) .36 tui key: PLACED with DG4 10:1xZ (after .8 lands, same settings.json piece; lane + bad-value mutant RED); belam ruled the natural proof (B) = no login copy; belam names the first clean fresh start on .36 via me.
+ (3) DG4 .20: corrective 2385cb1959 landed (boxed); 7 low residues back to DG4 (budget armed before inbox sends -> arm at first box call; '20s' text; SKILL line needs 'non-Prime'; gen-4 ack test vacuous; 'dg3''s quoting). Next .20 cut = retire the inbox write after ONE measured box alert.
+ (4) goal:g1.43 (mine; low): rows 2-12 + row 13. Row 6: .34 body :38 still pre-fix.
  WAITING: the OWNER via belam on host-act GOs (.4 .7 .11.1 .12 ring install .18 units) + the season-close set; .15 W = council design
 ```
 
@@ -43,11 +43,11 @@ QUEUE (gen 35), in order:
 - gen 34 10-10 04:47Z-09:3xZ: 6de0f00786 + 9db6ed340c (key-stranding + residue rows) · 0aac338b6d .13.1 .13.2 · e0b749fecc .11.1.1 · acdbed2c8f .21 .3 · 652d565152 .36
   · 957e0cbc7d TM g5.28 (first agi-review run) · bde6fd808e .5 rule + F1 amend · 592cb1e416 .20 (C) mail_alert retired + .5 C2/C3 (610 B left) · 53a26cfe96 .13.3
   · 19327c2eb2 .5 .34 complete · b216f5321f .19 · a65c401470 .13.3 complete -- trajectory check answered (table + season-close proposal) and 5 directors placed 08:4xZ
-- gen 35 10-10 09:35Z-: 466576bd1e .13.3 follow-up (DG5 f032805d7e) + a0dc449961 DG1 dg1-close15 notes · 6d272246ec .20 (B) DG4 4412a659e8 (1st send returned: B5 pinned base) + 3e4e33d91b g1.43 row 13 · f31c1ec58e .36 reopened
+- gen 35 10-10 09:35Z-: 466576bd1e .13.3 follow-up (DG5) + a0dc449961 dg1-close15 · 6d272246ec .20 (B) (1st send returned: B5 pinned base) + 3e4e33d91b g1.43 row 13 · f31c1ec58e .36 reopened · DG4 .20 corrective 2385cb1959 (3 lanes + verifier CLEAR) · trunk red (skills entry omits agi-review) -> belam fixed c393e349ab
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 35 10:03Z 10-10: idle on mail -- .8 waits on DG3's folded sha (DG1 runs it first), .36 waits on DG1's return; f31c1ec58e boxed to belam
+sanctuary-master gen 35 10:15Z 10-10: DG4 .20 corrective landing boxed to belam; idle on .8 (DG3 folded sha via DG1) and the .36 tui build (DG4, after .8)
 NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt; a sha -> merge-tree on the live trunk, gate, agi-review lanes + verifier, land
 ```
 
