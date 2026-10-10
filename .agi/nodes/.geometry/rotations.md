@@ -7,7 +7,7 @@ parents:
 next_edges: []
 alerts:
   audit:
-    - master-sensei
+    - sanctuary-master
   edges: {}
   silent:
     - stream-master
