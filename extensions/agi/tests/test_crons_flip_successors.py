@@ -7,8 +7,8 @@ against fixture graphs / repos. Nothing touches the real crontab, graph or origi
 
 v2 (DG1 17:53Z, SM G-4 / G-5): (e) the evidence job KEEPS the suite-lock deferral of the grid path it replaces (verification.suite_lock_holder's own judgement: a LIVE FOREIGN pid in the suite lock = the tick prints `evidence gate deferred: suite lock held by pid N`, rewrites NO node file, rc 0; the next tick runs) and is NOT a committer (no commit, no ref; the demotion is an in-place working-tree edit, a second run changes nothing). test_crons_mirror.py changes with the build (sent with these rows). v3 (DG1 18:21Z, writer-list FIX ROWS): (f) F1 the grid.py migrate verbs REFUSE `--write` by name while grid_sync is retired (no ref moved), dry-run unchanged, grid_sync on = today's; F2 no PLAIN fetch updates refs/grid after the flip: the mail_poll line the node renders (the live cell crons.md:24 and crons.py's built-in) run with grid_sync off leaves local refs/grid unchanged, with grid_sync on it fetches the grid as today (cli.py:4241, the rename verb's `git fetch`, has no row: it needs a full branch-rename fixture; DG1 to rule).
 
-Pinned (contract for the builder; the rows are implementation-agnostic otherwise): the evidence line is the ONLY rendered line naming `evidence_gate.py`, runs `enforce --root <the graph root>`, every 5 minutes,
-behind `box: local-town`; each town gets ONE mirror line, byte-for-byte `crons._mirror_push_line` (the shape test_crons_mirror.py pins), every 5 minutes, any box; with grid_sync ON the rendered set is
+Pinned (contract for the builder; the rows are implementation-agnostic otherwise): the evidence line is the ONLY rendered line naming `evidence_gate.py`, runs `enforce --root <the graph root>`, every 30 minutes (every 5 before SM 21:4xZ A1),
+behind `box: encryption-town`; each town gets ONE mirror line, byte-for-byte `crons._mirror_push_line` (the shape test_crons_mirror.py pins), every 5 minutes, any box; with grid_sync ON the rendered set is
 today's (the node WITHOUT the two jobs and with `mirror_towns: true` on grid_sync) plus the one evidence line; neither job names grid.py; `mirror_towns` is gone from the grid_sync cell; `crons_live: false` removes
 every line; a disabled job renders nothing.
 Env FLIP_ROOT=<tree> runs a scratch tree (extensions/agi/bin + .agi/nodes/.geometry/crons.md); default: the repo that holds this file.
@@ -32,8 +32,10 @@ sys.path.insert(0, str(BIN))
 import crons  # noqa: E402
 
 TOWNS = ("core", "local-maxxing")
-BOX = "local-town"
+BOX = "encryption-town"
+MAIL_BOX = "local-town"  # mail_poll stays box-gated to local-town (belam 19:4xZ 10-09: the hub reader, kept off); evidence_enforce is BOX
 EVERY5 = "*/5 * * * *"
+EVERY30 = "*/30 * * * *"  # evidence_enforce (SM 21:4xZ A1); the mirror stays */5
 
 
 def real_fm() -> dict:
@@ -161,12 +163,12 @@ def test_a2_with_grid_sync_on_the_rendered_set_is_todays_plus_the_two_jobs(tmp_p
 
 
 def test_a3_cadence_box_and_the_exact_mirror_shape(tmp_path, monkeypatch):
-    """Both jobs run every 5 minutes. The evidence line is box-gated (local-town): on another box, or none, it does NOT render (fail closed); the mirror line is NOT box-gated.
+    """The evidence job runs every 30 minutes, the mirror every 5. The evidence line is box-gated (encryption-town): on another box, or none, it does NOT render (fail closed); the mirror line is NOT box-gated.
     Each mirror line is byte-for-byte the shape test_crons_mirror.py pins."""
     fx = Fx(tmp_path, monkeypatch, flip_off)
     lines = fx.render(BOX)
     assert f" enforce --root {fx.graph.resolve()} " in evid(lines)[0] and f"cd {fx.graph.resolve()} && " in evid(lines)[0], f"the evidence line enforces on the GRAPH root (not the repo root): {evid(lines)[0]}"
-    assert evid(lines)[0].startswith(EVERY5 + " ") and all(l.startswith(EVERY5 + " ") for l in mirrors(lines)), (evid(lines), mirrors(lines))
+    assert evid(lines)[0].startswith(EVERY30 + " ") and all(l.startswith(EVERY5 + " ") for l in mirrors(lines)), (evid(lines), mirrors(lines))
     for other in ("some-other-box",):
         ls = fx.render(other)
         assert evid(ls) == [], f"box {other!r}: the evidence job edits node files on MAIN and must not render here: {evid(ls)}"
@@ -190,7 +192,7 @@ def test_a4_the_kill_switch_and_a_disabled_job_remove_the_lines(tmp_path, monkey
 
 
 def test_a5_crons_py_show_prints_them_with_grid_sync_off(tmp_path, monkeypatch):
-    """The shipped command, not only the function: `crons.py show --root <graph>` (AGI_BOX=local-town, an empty crontab file) lists the evidence line and the mirror lines under `desired:` and no grid.py line."""
+    """The shipped command, not only the function: `crons.py show --root <graph>` (AGI_BOX=encryption-town, an empty crontab file) lists the evidence line and the mirror lines under `desired:` and no grid.py line."""
     fx = Fx(tmp_path, monkeypatch, flip_off)
     ct = tmp_path / "crontab.txt"
     ct.write_text("")
@@ -202,13 +204,13 @@ def test_a5_crons_py_show_prints_them_with_grid_sync_off(tmp_path, monkeypatch):
 
 
 def test_a6_the_two_jobs_are_cells_of_the_real_node_and_the_flag_moved(tmp_path):
-    """The REAL node: `evidence_enforce` (every 5, enabled, box local-town) and `town_mirror` (every 5, enabled) exist; neither cell names grid.py; `mirror_towns` is GONE from the grid_sync cell
+    """The REAL node: `evidence_enforce` (every 30, enabled, box encryption-town: a pass is 134 s at load 8 and the lock is inside the verb, SM 21:4xZ A1) and `town_mirror` (every 5, enabled) exist; neither cell names grid.py; `mirror_towns` is GONE from the grid_sync cell
     (it moved to town_mirror); grid_sync itself still exists (the flip changes ONE literal later)."""
     fm = real_fm()
     cad = fm["cadences"]
-    for name in ("evidence_enforce", "town_mirror"):
+    for name, mins in (("evidence_enforce", 30), ("town_mirror", 5)):
         assert name in cad, f"cadences.{name} missing"
-        assert cad[name].get("enabled") is True and cad[name].get("every_mins") == 5, (name, cad[name])
+        assert cad[name].get("enabled") is True and cad[name].get("every_mins") == mins, (name, cad[name])
         assert "grid.py" not in yaml.safe_dump(cad[name]), (name, cad[name])
     assert cad["evidence_enforce"].get("box") == BOX, cad["evidence_enforce"]
     assert "mirror_towns" not in cad["grid_sync"], cad["grid_sync"]
@@ -499,7 +501,7 @@ def test_f1_grid_sync_on_is_todays_behaviour_the_verbs_move_refs(tmp_path, monke
 
 
 def mail_poll_line(fx: Fx) -> str:
-    ls = [l for l in fx.render() if " fetch " in l and "origin" in l]
+    ls = [l for l in fx.render(MAIL_BOX) if " fetch " in l and "origin" in l]
     assert len(ls) == 1, f"mail_poll's fetch line: {ls}"
     return ls[0]
 
