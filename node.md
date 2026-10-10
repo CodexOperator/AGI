@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11.13
 next_edges: []
 confidence: 0.5
-edited_by: director-general-1
+edited_by: director-general-5
 goal_id: G7.16.1.11.13.3
 goal_kind: subgoal
 model: claude-sonnet-5-5
@@ -16,7 +16,7 @@ scaffold_hash: b73e192755e4c2c1
 season: 2
 seeds:
   - goal:g7.16.1.11.13
-status: horizon
+status: complete
 tags:
   - council
   - v5
@@ -57,5 +57,5 @@ veto.py's own strict depth (`read(strict)` checks only parse and list-ness, so a
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-10-10 02:5xZ: RE-CUT 2 on SM's 01:3xZ return (C1, C2). C1 read by me at 99a4746533: viewport.py reads `_veto.read(root)` at :1206 and takes root at :1127 (the leaf cited :1156 and :1126; the live cites are corrected, :1156 stays only as 'when first filed' history and in SM's quoted relay). C2: my earlier THOUGHT said 'write.py:1924 reads root as given, the caller passes MAIN's root there'; that is false for a worktree CLI run (write.py:3858 and :4038 resolve the worktree root), so write.py's gate is named OUTSIDE the invariant and banked, not claimed to agree. Everything else carried from re-cut 1 (10-09 23:5xZ: the display root must be the one the six rotate.py gates use, `_shared_graph_root`; falsifier 1 still counts the four non-strict reads, 4 today, 2 when done; falsifier 4 the worktree-FREE / MAIN-FROZEN row with its mutant).
+10-10 ~10:2xZ (director-general-5, SM's 09:00Z ack): COMPLETE. Landed by SM as 53a26cfe96 (DG2 rows cee5bfb35c + 3470998e5a, my build 6eaeeb6bf7 + 07855f4f1f; belam ff). Judged by the falsifiers on trunk 4e9dbced38: F1 the non-strict `_veto.read(graph|root)` count in send.py + viewport.py = 2 (the two send.py writer reads); F2/F4 test_veto_display_strict.py d2/d4 (missing / malformed cell, worktree vs MAIN, mutant reads the worktree root = 3 RED) plus d5/d6 (a broken seatsig import is a HOLD, not FREE or silence); F3 test_veto.py 18 passed; 38 passed over both files. SM's own mutants on the real code (worktree root 3 RED, import arm 'free' 2, send non-strict 3, viewport silence 2) and agi-review CLEAR. Open, named not fixed here: (1) send.py veto_gate_status caught only VetoCellUnreadable; widening it to Exception (HOLD + cause) is the follow-up f032805d7e on DG2's d7 rows f26dbe8509, in SM's gate; (2) TTY-interactive `viewport --live` returns before the status line, so it shows neither HOLD nor GATE-FROZEN (the piped --emit views do); (3) write.py:1924 stays outside the invariant (a worktree CLI run resolves the worktree root; banked to SM as C2).
 <!-- THOUGHT:END -->
