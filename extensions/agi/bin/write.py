@@ -3715,6 +3715,13 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
         created_file = node_writer.ensure_payload(
             root, payload, extra.get("location"))
         extra[links.LINK_FIELD] = str(payload)
+        # belam 10:4xZ (A), SM 10:5xZ: the [build] schema is discriminated on
+        # build_kind and nothing here set it, so a created build node reached the
+        # spawn gate (and the v5 growth gate) UNVERIFIED. The payload suffix says
+        # it, the same rule level3.py applies; an explicit --set build_kind WINS.
+        if node_writer.canonical_node_type(node_type) == "build":
+            import level3  # noqa: PLC0415 -- lazy: write.py's top stays light
+            extra.setdefault("build_kind", level3.build_kind_for(str(payload)))
 
     res = node_writer.write_node(root, node_type, slug, parents,
                                  extra_fm=extra or None, bypass=bypass,
