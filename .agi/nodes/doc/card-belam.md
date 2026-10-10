@@ -21,7 +21,7 @@ town: core
 Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.agi/sessions/quorum/belam.md` are symlinks to it. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs; progress lives on the town board. Skills: agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-post · agi-memory-guard · agi-node-write · agi-goal · agi-master-gate.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-s2-III 09:2xZ 10-10, at wake: crons re-armed (CHECK 13b11552 13 */4 trajectory-first, hourly 7647814e 47 *); SM's .13.3 COMPLETE land taken as merge a65c401470 (MAIN had moved to my card, ff-only impossible); ruled .8's Stop hook = explicit timeout 180 in the same cut; B6 verifier relaunched (Sonnet). B6 merge shape checked: season2/main 7276f11d36 tree == B5 TIP tree, B5 TIP is an ancestor of B6 TIP -> M6 = commit-tree TIP^{tree} -p 7276f11d36 -p TIP drops nothing. Owner verbatim carried from belam-s2-II: "Nah just use sonnet subagents and we retired workflows.py in favor of shel scripts already" · "Yes always. Thats your main check every 4 hours is to see what’s stuck if anything and keep town on trajectory and moving toward season completion" · "I’m fine with the Nvidia pick yes" · "We don’t use the ladder anymore" / "It needs to be deprecated" · "The bazzite vm is temporary just doing a local town related project in the background".
+belam-s2-III 09:2xZ 10-10, at wake: crons re-armed (CHECK 13b11552 13 */4 trajectory-first, hourly 7647814e 47 *); SM's .13.3 COMPLETE land taken as merge a65c401470 (MAIN had moved to my card, ff-only impossible); ruled .8's Stop hook = explicit timeout 180 in the same cut; B6 verifier (Sonnet) CLEAR, 12/12 findings confirmed -> B6 merged ef9b043e68, residues goal:g1.43 to SM; agi-at ruled to call the same growth check as agi-turn. B6 merge shape checked: season2/main 7276f11d36 tree == B5 TIP tree, B5 TIP is an ancestor of B6 TIP -> M6 = commit-tree TIP^{tree} -p 7276f11d36 -p TIP drops nothing. Owner verbatim carried from belam-s2-II: "Nah just use sonnet subagents and we retired workflows.py in favor of shel scripts already" · "Yes always. Thats your main check every 4 hours is to see what’s stuck if anything and keep town on trajectory and moving toward season completion" · "I’m fine with the Nvidia pick yes" · "We don’t use the ladder anymore" / "It needs to be deprecated" · "The bazzite vm is temporary just doing a local town related project in the background".
 <!-- THOUGHT:END -->
 
 ## §0 State (01:1xZ 10-09, read from date -u)
@@ -38,13 +38,11 @@ belam-s2-III 09:2xZ 10-10, at wake: crons re-armed (CHECK 13b11552 13 */4 trajec
 | crons | box: user belam's crontab on E is LIVE (10 lines = the graph; crons_apply 02:05Z no-op): grid_sync */5 · ref pushes */5 · trunk push :07 · send.py wake */2 (the L note "E has no crontab" was wrong) · session-only (re-arm at wake): CHECK 13b11552 (13 */4, trajectory-first) · hourly 7647814e (47 *: memory + stuck-dialog scan + box read) |
 | host act E | installed 22:22Z 10-08 at dd1563bc3c: rollback `sh /var/backups/agi-act-20261008T222239Z/rollback.sh` |
 | landing | belam commits on posts/belam, pushes posts/belam, then as user belam `merge --ff-only posts/belam` in MAIN; the TRUNK push is TM's alone (skill agi-merge-pass §4; breached twice gen 31, owned to TM) |
-| merge pass | B5 MERGED (season2/main 7276f11d36). B6 IN FLIGHT: BASE fc4a0865ee · TIP PINNED 4e9dbced38 (176 commits, 124 paths) · 6 Sonnet lanes DONE: 0 RED · 3 demote · 9 residue · mechanical: anonymize ok 504 KB, D = moves/retirements verified, links 5845/0 · VERIFIER RELAUNCHED 09:3xZ by belam-s2-III (Sonnet agent -> out/verify.json) · merge shape checked (THOUGHT) · kit ~/pass-b6 (brief, range, lanes, out/*.json, combined.json, verify-prompt.md) · state MAIN .agi/sessions/prime-merge.state.json |
+| merge pass | B6 MERGED 09:4xZ 10-10: season2/main ef9b043e68 = trunk 4e9dbced38 (176 commits; 6 Sonnet lanes + verifier CLEAR; RED 0 · demote 3 · residue 9 -> goal:g1.43, SM); local-maxxing/main 4e9dbced38; state file closed (BASE for B7 = 4e9dbced38); kit ~/pass-b6 |
 
 ## §1 Plan
 ```
-1. PASS B6: re-run the ADVERSARIAL VERIFIER (one Agent, model sonnet, prompt = ~/pass-b6/verify-prompt.md). CLEAR -> merge exactly as B5:
-   M = commit-tree TIP^{tree} -p origin/season2/main -p TIP (season2/main must be an ancestor of TIP) as user belam; push M:season2/main; push TIP:local-maxxing/main;
-   residues (3 demote + 9 residue + verifier) -> ONE leaf goal:g1.43 (skill agi-goal); state file closed; board note; [merge-up] to TM; residues to SM
+1. PASS B7 when the CHECK finds landed experiments past 4e9dbced38 (notice -> Sonnet lanes + verifier -> merge as B6: M = commit-tree TIP^{tree} -p season2/main -p TIP after checking season2/main's tree == an ancestor TIP's tree)
 2. TRAJECTORY (standing): DG1-5 work .5-done/.8 lane/.13/.20 B (rotate alert, fail-soft)/.24/.12 key-fix landed; DT-1 g5.28 next lens (torch CPU wheel in its scratch)
 3. OWNER RULINGS OWED (asked 09:0xZ, unanswered): (a) season-2 CLOSE SET = SM 08:12Z proposal (.3 .5 .12-ring .13 .13.3 .17 .19 .21 .36 + overview nodes; the rest S3)
    (b) host-act GOs: my rec GO .12 ring install + .11.1 install this season; .4 .7 .18 .6 -> S3 (c) machine identity for root alerts -> S3
@@ -53,13 +51,13 @@ belam-s2-III 09:2xZ 10-10, at wake: crons re-armed (CHECK 13b11552 13 */4 trajec
 NEVER: assign a design or a build (council) · dispatch · write in another post's tree
 ```
 
-## §2 Landed (belam-s2-III: .13.3 COMPLETE land a65c401470 · .8 Stop-hook ruling to SM. belam-s2-II below; detail in git + the goal notes)
+## §2 Landed (belam-s2-III: .13.3 COMPLETE land a65c401470 · PASS B6 ef9b043e68 + goal:g1.43 · .8 rulings to SM (Stop-hook timeout 180; agi-at calls the same growth check). belam-s2-II below; detail in git + the goal notes)
 B5 7276f11d36 · .35 RLIMIT_DATA · AA1.V v5f/g · kid identity · key-stranding fix + rows · .13.1/.13.2/.11.1.1/.3/.21/.36/.5/.34/.19/.13.3 closes (all via SM, full guard each)
 mine: free tier -> nvidia/nemotron-3-ultra-550b-a55b:free · skill agi-review + review-lanes.sh + doc:agi-review-brief · goal:g1.42 (B5 residues; open 11/12/25 owner + 15 mine) · rc-keepalive title heal + rate limit · signers-repoint + no-session-bus drop-ins (/etc/systemd/system/agi-post@.service.d/50-,51-) · crons._systemd_bus_env disabled: fix · ladder goal .15 active
 
 ## 🔴 Where it stops
-belam-s2-III is mid PASS B6: verifier running; on CLEAR -> plan 1 merge (M6 = commit-tree 4e9dbced38^{tree} -p 7276f11d36 -p 4e9dbced38).
-- if this post dies before the merge: re-run the verifier (one Sonnet Agent, prompt ~/pass-b6/verify-prompt.md), unless ~/pass-b6/out/verify.json exists -> read it and go to plan 1
+belam-s2-III idle between CHECKs after B6 merged; .8 held at SM for a re-cut (Stop-hook timeout 180 + agi-at gated by the same check = my rulings 09:3xZ).
+- next command: wait for the CHECK cron (13 */4) or mail; at a rotation, re-arm crons first (CronList)
 
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
