@@ -17,7 +17,6 @@ profile: balanced
 role: parent
 scaffold_hash: ab138834ee6b8126
 season: 2
-seeds: []
 status: active
 tags:
   - goal
