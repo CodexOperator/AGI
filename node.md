@@ -695,15 +695,6 @@ excluded:
     reason: runs llama-bench and spends local model compute; writes a benchmark JSONL row
     side_effects: spend
     proposable: false
-  mail_alert.py::
-    cli: mail_alert.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/mail_alert.py
-    reason: stamps an alerted_at state record per seat+thread; hook-invoked side channel
-    side_effects: graph-write
-    proposable: false
   plan_master.py:record-run:
     cli: plan_master.py
     verb: record-run
