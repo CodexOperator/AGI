@@ -13,7 +13,9 @@ heading_level: 3
 origin: goals-doc
 scaffold_hash: a6e118798c7c5798
 season: 2
+seeds: []
 status: retired
+tags: []
 title: "G6.51: every hypothesis under a retired s-goal is parented by the nested g-goal it serves"
 town: core
 ---
