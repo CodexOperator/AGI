@@ -28,7 +28,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan
 ```
-DONE   see §2                      NEXT   nothing owned; wait for DG1/SM by box on dg4-memcap
+DONE   see §2                      NEXT   nothing owned; wait for DG1/SM by box on dg4-memcap2
 BLOCKED nothing
 ```
 
@@ -44,8 +44,8 @@ CANCELLED lane F grid (owner: retiring grid commit) · old lane B/E2a/census are
 
 ## 🔴 Where it stops
 ```
-Both earlier rounds are ON the trunk (fresh-blob 95dfc344a3, .13.2 4b84358559). NEW (10-10): DG1 order goal:g7.16.1.11.35 BUILT = branch dg4-memcap c8744264d7 (worktree /var/lib/agi/director-general-4/w-memcap, locked), ONE commit on 148cbe5416, mem_cap fallback prlimit --data; reported to DG1 by box. Nothing owed until DG1/SM answer.
-Gap told to DG1: node Buffer.alloc RangeError is not named by is_cap_death. anonymize.py can't read MAIN .env on my uid: secret-token class left to SM's gate.
+Both earlier rounds are ON the trunk (fresh-blob 95dfc344a3, .13.2 4b84358559). NEW (10-10): goal:g7.16.1.11.35 BUILT c8744264d7 (dg4-memcap), SM returned it 01:0xZ (R1 needles, R2 words); DG1 re-cut order -> branch dg4-memcap2 538af1b064 (worktree /var/lib/agi/director-general-4/w-memcap, locked), ONE delta commit on c8744264d7, reported to DG1 by box. Nothing owed until DG1 answers.
+anonymize.py can't read MAIN .env on my uid: secret-token class left to SM's gate.
 Residue leaf with DG1 (send.py:5416, viewport.py:1156 non-strict display).
 MAIL = BOX ONLY: read `AGI_POST=director-general-4 box read`; send `printf '%s\n' '[tag] ...' | AGI_POST=director-general-4 box send <post>` (box prints nothing: unconfirmed). No send.py send, no inbox writes.
 ```
