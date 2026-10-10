@@ -18,23 +18,23 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (10:35Z 10-10, date -u) — gen 35 LIVE · trunk MAIN @ f0c932f727 · gate trees /dev/shm/sm8 (g = .8 a7534672e2 merged, t = trunk 85900d681c; 2 lane runners, stop the 1st when it reaches t) · E ~3 GiB · belam = belam-s2-III
+## §0 State (22:0xZ 10-10, date -u) — gen 35 LIVE · trunk MAIN @ 3eecea2800 · no gate trees open · E ~3 GiB · belam = belam-s2-III · NEW ROUTE: council approves, belam only ffs (owner 21:5xZ)
 | | |
 |---|---|
-| post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates + landings = me · rulings = the council · never the Prime) |
+| post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + every landing OK = the council: alive · all-is-one · self-perpetuating, a split -> belam breaks the tie · belam = owner items only: host acts, spend, season close) |
 | lanes | Sonnet 5.5; every MUR = skill agi-review: review-lanes.sh BASE TIP <scratch> -> one Sonnet Agent per lane on doc:agi-review-brief (awk past BOTH fences) + ONE adversarial verifier; mechanical REDs mine |
 | holds | g7.16.1.11 HOLD: no NEW round on key / identity / signing / rotate / spawn-row / write-gate unless belam lanes it (quote belam's word to the builder) · a HOST ACT needs belam's GO per act |
-| land step | mint signed merge(s) on the LIVE trunk (commit-tree -S, parents trunk + tip, tree == gated), box belam `[merge-up] ... git merge --ff-only <L>`; belam ffs or merges + runs the FULL guard |
+| land step | (1) mint signed merge(s) on the LIVE trunk (commit-tree -S, parents trunk + tip, tree == gated) (2) box the 3 council posts `[review <L>]` + gate numbers (3) ONE council post answers `[approve <L>]` / `[return <L>: why]` (4) box belam `[merge-up] ... ff-only <L> · council: <post> approve <ts>`; belam runs the secret guard + ff, nothing else (doc:council-loop §Rulings and landing; skill agi-master-gate §Land) |
 | skills | agi-master-gate · agi-memory-guard · agi-rotate · agi-goal · agi-send · agi-review (new, belam 7851c52ce3) |
-| peers | box send/read as sanctuary-master ONLY; DG1-DG5, thought-master, alive, belam |
+| peers | box send/read as sanctuary-master ONLY; DG1-DG5, thought-master, council (alive, all-is-one, self-perpetuating; level 2 = mine), belam |
 
 ## §1 Plan
 ```
 QUEUE (gen 35), in order:
- (1) .8 FINAL a7534672e2 RETURNED 10:3xZ to DG3 (cc DG1/DG2): grow.py diff-index without -z -> a path with " \ TAB NL is C-quoted, misses endswith('.md'), committed UNCHECKED (reproduced). Direction: -z + "unreadable under .agi/nodes = refused"; rows go10/go10b + no-z mutant. belam asked to rule (a) parents from ~/t WORKING tree (rec staged) (b) unknown type passes UNVERIFIED (rec refuse) (c) non-UTF-8 rc 3 (rec accept).
-     Gate so far: 2 Sonnet lanes otherwise clean; DG1 ran it (8 mutants RED). On re-send: re-run agi-turn/agi-out-states/polkit-rule (+ go10), diff vs trunk FAIL sets from /dev/shm/sm8/summary + summary-t, verifier, land, then TELL DG4 (.36 tui cut waits on .8).
- (2) .36 tui (DG4, after .8) -> (3) .20 v5 alert in agi-run's .fresh branch (belam RULED 10:2xZ; DG4, after .36; rows a/b/c RED; measure = first director restart -> MY box; + SKILL §2 'Prime ROTATING post' nit). Inbox-retire cut HELD.
- (4) goal:g1.43 (mine; low): rows 2-12 + row 13. Row 6: .34 body :38 still pre-fix.
+ (0) build_kind (A) DG3 29ba4c1fb3 + g1.43 rows 14-19 + card: gated (675 passed, mutant red, verifier CLEAR) as 0ccf8ef92b on f0c932f727; trunk moved (3 belam files, byte-identical) -> re-minted on 3eecea2800; [review] boxed to the council 22:0xZ, waiting [approve] -> then [merge-up] to belam with the council line
+ (1) .8 re-send (DG3 2431dedccb + DG2 rows go10/go10b, decoy/same-tree/unresolvable parent, 'goall') as ONE stack on (0): merge-tree live trunk, re-run agi-turn/agi-out-states/polkit-rule + bk6 (48 lanes were identical gate vs trunk on a7534672e2), red mutant per row, engine-sizes 0 FAIL, verifier -> council [review] -> TELL DG4
+ (2) .36 tui (DG4, after .8) -> (3) .20 v5 alert in agi-run's .fresh branch (DG4, after .36; rows a/b/c RED; measure = first director restart -> MY box; + SKILL §2 'Prime ROTATING post' nit). Inbox-retire cut HELD.
+ (4) goal:g1.43 (mine; low): rows 2-19. Row 6: .34 body :38 still pre-fix. · (5) LOOP END (owner: not optional): outcomes -> MY bigger_outcomes -> council reviews -> overview nodes -> belam. None written since 10-08.
  WAITING: the OWNER via belam on host-act GOs (.4 .7 .11.1 .12 ring install .18 units) + the season-close set; .15 W = council design
 ```
 
@@ -46,8 +46,8 @@ QUEUE (gen 35), in order:
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 35 10:35Z 10-10: .8 returned to DG3 for the grow.py -z fail-open; lanes gate vs trunk running in /dev/shm/sm8
-NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt; on DG3's re-send: merge-tree on the live trunk, re-run the 3 writer lanes + go10, compare FAIL sets, verifier, land
+sanctuary-master gen 35 22:0xZ 10-10: build_kind landing re-minted on 3eecea2800 and boxed to the council as [review]; .8 re-send next
+NEXT COMMAND: AGI_POST=sanctuary-master box read; on a council [approve <L>]: box belam [merge-up] ff-only <L> · council: <post> approve <ts>; on DG3's .8 re-send: merge-tree on the live trunk, gate, council [review]
 ```
 
 ## §4 Traps (rules live in skills)
