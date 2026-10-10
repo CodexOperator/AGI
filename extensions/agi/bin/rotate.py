@@ -6612,7 +6612,7 @@ def _box_send_announce(recv: str, seat: str, text: str, declared: str,
             os.killpg(proc.pid, signal.SIGKILL)
             proc.communicate(timeout=5)
         print(f"warn: box send of the {declared} to {recv!r} timed out "
-              f"after {left:.0f}s (the budget left for this call)", file=sys.stderr)
+              f"after {left:.1f}s (the budget left for this call)", file=sys.stderr)
     except Exception as exc:  # noqa: BLE001 -- fail soft, whatever it is
         print(f"warn: box send of the {declared} to {recv!r} failed: {exc}",
               file=sys.stderr)
@@ -6761,7 +6761,7 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
         return delivered
     delivered = []
     _box_on = bool(receivers) and _box_announce_guard(seat, declared)
-    _box_deadline = None   # armed at the FIRST box call: send.send's tmux calls never spend it
+    _box_deadline = None   # armed at the FIRST box call: send.send's time BEFORE it is not charged (later sends are)
     for recv in receivers:
         try:
             # CLAUSE 1: land the SAME [rotation-alert] block in the

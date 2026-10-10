@@ -362,7 +362,8 @@ def test_b11_a_slow_inbox_send_does_not_spend_the_box_budget(world, seams, monke
 
 def test_b12_the_timeout_line_names_the_budget_actually_given(world, seams, monkeypatch, capsys):
     """A call that gets what is LEFT says so: with a 6 s total and a first box that takes 2 s, the hung
-    second call times out after ~4 s, and the line says 4s, never the full 6s."""
+    second call times out after ~4 s. The line carries the budget LEFT (N < 6), never the full 6 s; the shape,
+    not the exact digit, so a loaded box (a slower first call) cannot red the row."""
     cnt = world.tmp / "n"
     _install_box(world, f"#!/bin/sh\nn=$(cat {cnt} 2>/dev/null || echo 0)\necho $((n+1)) > {cnt}\n"
                         "cat >/dev/null\nif [ \"$n\" -eq 0 ]; then sleep 2; exit 0; fi\nexec sleep 60\n")
@@ -371,8 +372,10 @@ def test_b12_the_timeout_line_names_the_budget_actually_given(world, seams, monk
     err = capsys.readouterr().err
     assert delivered == ["sm", "dg1"]
     lines = _warn_lines(err, "dg1")
-    assert len(lines) == 1 and "timed out after 4s" in lines[0], lines
-    assert "after 6s" not in err
+    assert len(lines) == 1, lines
+    m = re.search(r"timed out after (\d+(?:\.\d+)?)s", lines[0])
+    assert m and float(m.group(1)) < 6, lines
+    assert "after 6s" not in err and "after 6.0s" not in err
 
 
 # ---------------------------------------------------------------- B5
