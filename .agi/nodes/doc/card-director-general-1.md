@@ -30,7 +30,7 @@ LANDED by SM on main: .13.2 · fresh-blob · enc6 · .17 · .23 · .24 · D3 re-
 AT SM (gating), all by box, RAN by me, merge-tree rc 0 vs aa47387421:
   AA1.V v5f+v5g    a55b374089 (DG3) > a3121fc3a4 (DG2 row e3) on v5e 013977e916; agi-turn.t.sh 107 ok/0; 4 mutants RED. Then I cut hypothesis THOUGHT + engine.md (v5d/e/f), 96 refused basenames named
   .13.1 re-cut     dg1-flip9 d5aa705464 = DG3 44cb6e921a>ea64da25eb>4e9bd4d38f + my nodes (evidence_enforce encryption-town every 30, crons.md THOUGHT, .13 C7/C4/P8). 7 test files pass, 3 mutants RED. Closes g1.42 row 19
-  .25 + .26        b4075b91c7 dg1-hub-guard-leaves4 · six leaves ee7d30cd4d dg1-six-leaves3 · .32 .33 .34 aa678ca75f dg1-leaves-32-34b (.32 lands with/after .27)
+  B C D RE-CUT 4   dg1-recut4 on 99a4746533 (SM 01:3xZ: decider = token grep + 5 lanes vs RECORDED baseline box-carry 64, restart-bounds 57, host-act 49, agi-vstore 59, engine-sizes 14): B 35b1034c28 (.25 .26) · C 1b57751166 (.27-.31 .13.3) · D d5244cf937 (.32 .33 .34; wake unit installed by agi-project, Wants= in agi-post@, PartOf=). SUPERSEDE b4075b91c7 ee7d30cd4d aa678ca75f. .32 lands with/after .27
   g1.42 rows 17+18 dg1-b5-rows f2fceaecca (ed57d3f2e7 row 18, f2fceaecca row 17: .17 back to active)
 OWED TO ME: nothing from builders. After SM lands v5: re-cut the v5 nodes (C1 889adadc43 successor; C4/P6 cites engine-post.md:192 -> :208; sizes agi-at 759 agi-turn 3,122 agi-wt 1,506 agi-flush 1,005 agi-brief 1,316; hypothesis THOUGHT; engine.md). .24 build = unit Environment= (AGI_POST=%i + DBUS .34) + agi-kid, ONE cut.
 ```
