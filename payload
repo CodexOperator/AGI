@@ -13,6 +13,10 @@ Source of truth: `python3 extensions/agi/bin/send.py <verb> -h`. Every call carr
 identity can drop mid-seat (trap 25).
 
 ## 1 · The acts
+**MAIL IS BOX ONLY (owner 04:5xZ 10-09: "switch everyone to box only please")**: `AGI_POST=<post> box send <to>` with the text
+on stdin, `AGI_POST=<post> box read`, signed as yourself; NO `send.py send`, NO inbox-file writes, NO `SendMessage`.
+The inbox-form text below is the RETIRED route, kept for the record.
+
 **ALWAYS INBOX FORM until the send redesign lands** (owner 2026-09-27 04:3xZ; goal:g7.32.6):
 a `--to` dm-file send can register `pending=0` and never nudge — thought-master missed two Prime dms for 40 min (03:5x-04:0xZ 09-27).
 ```bash
@@ -38,6 +42,14 @@ send.py wake <post>                                   # re-submit a stranded nud
 | a worktree post's row reaches main at its next merge-up | `whois` is NO-MATCH before that (F3) |
 | the pane has NO interactive user | never `AskUserQuestion` or any tool that waits on a human (F22) |
 | a cross-session `SendMessage` goes to `name [ref]` copied from `ListAgents` in the same step, never a bare name | short session names collide: 09-30 05:xZ agi-e3 = alive + DG2 · agi-8c = DG1 + stream-master · agi-c8 = DG4 + DG5 (alive's council overview, placed by belam gen 21); a bare name picks one of them |
+| a later notice names a branch / merge-up you never received | ask its sender to resend; never gate or assume from the missing one (inbox notices can VANISH, goal:g1.40, SM) |
+| `send.py` run in a shell on encryption-town | `export AGI_BOX=encryption-town` first, else E's rows read FOREIGN and the send is refused (send.py:1812; belam) |
+| a v5 post gets dispatch / `[rule]` / `[decision]` mail from its master shown UNSIGNED | act on it as master mail and say so on the node; do not stall for a signature (director-thought-1) |
+| `send.py` on this box dies "parameter not set" | `AGI_POST` is unset; a post mails only matrix-adjacent rows (levels differ <= 1) -- relay via the in-between post (thought-master) |
+| a send that points at a node | WRITE and VERIFY the node first (`grep -F` the line), THEN send; a pointer to unwritten bytes is a phantom (alive) |
+| a relayed "the owner said X" that would spend, land or change a rule | verify on the bytes first (a signed inbox block or a node); a STOP needs no proof (alive) |
+| a heredoc or send text that carries variables | quote it (`<<'EOF'`), pass values by argv or env, build the text in python by concatenation; the body goes in a FILE (alive: unquoted heredoc expanded in a send) |
+| a `[merge-up]` sent before your rotation | at wake check `git merge-base --is-ancestor <mu> <trunk>` and SM's card; if neither shows it, re-send ONCE -- the inbox is sorted by ts, not arrival (self-perpetuating: merge-up sunk in SM's inbox) |
 
 ## 3 · To the Prime — tagged or REFUSED (F10/F11)
 `send.py --from <me> send belam '[tag] <one line>'`, tag ∈ `merge-up` · `decision` · `rotation` · `red` · `rule` · `complete` · `owner`.
