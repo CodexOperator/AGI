@@ -12,7 +12,7 @@ export HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
 mkdir -p $T/hm $T/bin $T/shim $T/run $T/k
 ssh-keygen -q -t ed25519 -N '' -f $T/k/alive -C alive >/dev/null||{ echo "FAIL fixture: ssh-keygen";exit 99;}
 echo "alive@agi namespaces=\"git\" $(cut -d' ' -f1,2 $T/k/alive.pub)" >$T/allowed
-for n in agi-turn agi-wt agi-flush agi-link agi-at agi-out agi-meter tick.sh;do sect $n >$T/bin/$n;if [ -s $T/bin/$n ];then chmod +x $T/bin/$n;else rm -f $T/bin/$n;fi;done
+for n in agi-turn agi-wt agi-flush agi-link agi-at agi-out agi-meter tick.sh grow.py;do sect $n >$T/bin/$n;if [ -s $T/bin/$n ];then chmod +x $T/bin/$n;else rm -f $T/bin/$n;fi;done
 cat >$T/shim/git<<XX
 #!/bin/sh
 G=/usr/bin/git
@@ -31,6 +31,8 @@ if [ "\$1" = archive ]&&[ -e $T/failarchive ];then echo "fatal: simulated git ar
 if [ "\$1" = read-tree ]&&[ -e $T/failreadtree ];then echo "fatal: simulated read-tree failure" >&2;exit 128;fi
 # k6: chk reads the tree through `git --work-tree=D diff --name-only` and `ls-files -o` (flags $T/faildiff, $T/faills): a failing one must KEEP the tree
 case " \$* " in *" diff --name-only "*)[ -e $T/faildiff ]&&{ echo "fatal: simulated diff failure" >&2;exit 128;};; *" ls-files -o "*)[ -e $T/faills ]&&{ echo "fatal: simulated ls-files failure" >&2;exit 128;};; esac
+# go8/ga6: a failing git diff-index (flag $T/faildi): grow.py reads the turn's NEW nodes through it, so it must FAIL CLOSED
+case " \$* " in *" diff-index "*)[ -e $T/faildi ]&&{ echo "fatal: simulated diff-index failure" >&2;exit 128;};; esac
 # k7: the trunk moves while merge-tree runs (flag $T/movetrunk); the args merge-tree got are recorded in $T/mt.args
 if [ "\$1" = merge-tree ]&&[ -e $T/movetrunk ];then unlink $T/movetrunk;echo "\$*" >$T/mt.args;o=\$(\$G "\$@")||exit \$?;tt=\$(\$G -C $T/g rev-parse trunk);nn=\$(\$G -C $T/g commit-tree -m moved-late -p \$tt \$tt^{tree});\$G -C $T/g update-ref refs/heads/trunk \$nn;echo "\$o";exit 0;fi
 if [ "\$1" = update-ref ]&&[ -s $T/postrace ]&&l=\$(grep -m1 "^\$2 " $T/postrace)&&[ -n "\$l" ];then
@@ -57,7 +59,7 @@ chmod +x $T/shim/tar
 MA=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa;MB=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb;MC=cccccccccccccccccccccccccccccccc
 NA=.agi/nodes/doc/a.md;NB=.agi/nodes/doc/b.md;NC=.agi/nodes/build/c.md
 # mk: a fresh fixture (trunk with doc:a, doc:b, build:c + src/c.sh + README.md; posts/alive = trunk; ~/t = a detached worktree of it; no trees)
-mk(){ rm -rf $T/g $T/hm/t $T/wt $T/raceflag $T/racespec $T/failarchive $T/failtar $T/postrace $T/failreadtree $T/faildiff $T/faills $T/movetrunk $T/mt.args;mkdir -p $T/wt;$G init -q -b trunk $T/g;g="$G -C $T/g";$g config user.name alive;$g config user.email alive@agi;$g config gpg.format ssh;$g config user.signingkey $T/k/alive;$g config commit.gpgsign true
+mk(){ rm -rf $T/g $T/hm/t $T/wt $T/raceflag $T/racespec $T/failarchive $T/failtar $T/postrace $T/failreadtree $T/faildiff $T/faills $T/faildi $T/movetrunk $T/mt.args;mkdir -p $T/wt;$G init -q -b trunk $T/g;g="$G -C $T/g";$g config user.name alive;$g config user.email alive@agi;$g config gpg.format ssh;$g config user.signingkey $T/k/alive;$g config commit.gpgsign true
  mkdir -p $T/g/.agi/nodes/doc $T/g/.agi/nodes/build $T/g/src
  for n in a:$MA b:$MB;do k=${n%:*};m=${n#*:};printf -- '---\nid: doc:%s\nmint_id: %s\ntype: doc\n---\nbody %s\n' $k $m $k >$T/g/.agi/nodes/doc/$k.md;done
  printf -- '---\nid: build:c\nmint_id: %s\ntype: build\npayload_ref: src/c.sh\n---\nbuild c\n' $MC >$T/g/$NC;printf '#!/bin/sh\necho c\n' >$T/g/src/c.sh;echo readme >$T/g/README.md
@@ -422,14 +424,116 @@ ok "go2-a-legal-new-node-is-accepted a NEW experiment parented by hypothesis:h1:
 # go3 (control): an EDIT of an existing node whose parents are LEGACY (experiment:x1 under goal:g1) is accepted -- no retro-refusal
 mkgo;dx=$(run agi-wt pull experiment:x1 2>/dev/null);echo "an edit" >>$dx/.agi/nodes/experiment/x1.md;b0=$(tip);run agi-turn 2>$T/ego3;rgo3=$?
 ok "go3-an-edit-of-a-legacy-node-is-never-gated experiment:x1 (parent goal:g1, grandfathered) edited in its pulled tree: rc $rgo3 (want 0), $($G -C $T/g rev-list --count $b0..posts/alive) new commit(s) (want 1), the edit on the tip: $($G -C $T/g show posts/alive:.agi/nodes/experiment/x1.md|grep -c 'an edit') (want 1), bracketed lines: $(grep -c '^\[' $T/ego3) (want 0)" '[ $rgo3 = 0 ]&&[ "$($G -C $T/g rev-list --count $b0..posts/alive)" = 1 ]&&[ "$($G -C $T/g show posts/alive:.agi/nodes/experiment/x1.md|grep -c "an edit")" = 1 ]&&[ "$(grep -c "^\[" $T/ego3)" = 0 ]'
-# go4: one refused tree does not stop the next (as x7b): the legal node lands, the out-of-order one is kept, rc != 0
-mkgo;newexp o1 000000000000000000000000000000d1 goal:g1;do1=$ne;newexp l1 000000000000000000000000000000e1 hypothesis:h1;b0=$(tip);run agi-turn 2>$T/ego4;rgo4=$?
-ok "go4-a-refused-tree-does-not-stop-the-next the out-of-order o1 and the legal l1 in one turn: rc $rgo4 (want != 0), l1 on the tip: $($G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/l1.md 2>/dev/null&&echo yes||echo NO) (want yes), o1 on the tip: $($G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/o1.md 2>/dev/null&&echo YES||echo no) (want no), new commits: $($G -C $T/g rev-list --count $b0..posts/alive) (want 1), o1's tree kept: $([ -f $do1/.agi/nodes/experiment/o1.md ]&&echo yes||echo NO), bracketed lines: $(grep -c '^\[' $T/ego4) (want 1)" '[ $rgo4 != 0 ]&&$G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/l1.md&&! $G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/o1.md 2>/dev/null&&[ "$($G -C $T/g rev-list --count $b0..posts/alive)" = 1 ]&&[ -f $do1/.agi/nodes/experiment/o1.md ]&&[ "$(grep -c "^\[" $T/ego4)" = 1 ]'
-# go5 (SM 08:59Z ruling): a MISSING or UNRUNNABLE checker FAILS CLOSED with a DISTINCT bracketed line (not the refusal line, which names a rule): rc != 0, nothing committed, the tree kept. A LEGAL node is used so only the checker's absence can refuse it. go5 = spawn_gate.py absent from the fixture (removed on the trunk, ~/t on the tip); go5b = it present but crashing (exit 1: neither APPROVED 0 nor REJECTED 2)
-for v in absent crashing;do
- mkgo;if [ $v = absent ];then $G -C $T/g rm -q extensions/agi/bin/spawn_gate.py;else printf 'import sys\nsys.exit(1)\n' >$T/g/extensions/agi/bin/spawn_gate.py;$G -C $T/g add -A;fi;$G -C $T/g commit -qm "checker $v";$G -C $T/g update-ref refs/heads/posts/alive trunk;$G -C $T/hm/t checkout -q --detach posts/alive
+# go4 (SM 09:27Z): one refused tree does not stop the next (as x7b). agi-turn walks $AGI_WT/*/ in glob order, so the REFUSED tree (a1) must sort FIRST and the legal one (z1) after it: a build that stops at the first refusal (G||{ k=1;break;}) then never reaches z1. The row asserts the order itself (non-vacuous), z1 landed, a1 kept
+mkgo;newexp a1 000000000000000000000000000000d1 goal:g1;do1=$ne;newexp z1 000000000000000000000000000000e1 hypothesis:h1;fst=$(ls $T/wt|head -1);b0=$(tip);run agi-turn 2>$T/ego4;rgo4=$?
+ok "go4-a-refused-tree-does-not-stop-the-next the out-of-order a1 (sorts FIRST: first tree dir [$fst], a1's is [$(basename $do1)]) and the legal z1 in one turn: rc $rgo4 (want != 0), z1 on the tip: $($G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/z1.md 2>/dev/null&&echo yes||echo NO) (want yes), a1 on the tip: $($G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/a1.md 2>/dev/null&&echo YES||echo no) (want no), new commits: $($G -C $T/g rev-list --count $b0..posts/alive) (want 1), a1's tree kept: $([ -f $do1/.agi/nodes/experiment/a1.md ]&&echo yes||echo NO), bracketed lines: $(grep -c '^\[' $T/ego4) (want 1)" '[ "$fst" = "$(basename $do1)" ]&&[ $rgo4 != 0 ]&&$G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/z1.md&&! $G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/a1.md 2>/dev/null&&[ "$($G -C $T/g rev-list --count $b0..posts/alive)" = 1 ]&&[ -f $do1/.agi/nodes/experiment/a1.md ]&&[ "$(grep -c "^\[" $T/ego4)" = 1 ]'
+# go5 (SM 08:59Z ruling): a MISSING or UNRUNNABLE checker FAILS CLOSED with a DISTINCT bracketed line (not the refusal line, which names a rule): rc != 0, nothing committed, the tree kept. A LEGAL node is used so only the checker's absence can refuse it. go5 = spawn_gate.py absent from the fixture (removed on the trunk, ~/t on the tip); go5b = it present but crashing (exit 1: neither APPROVED 0 nor REJECTED 2); go5c (SM 09:27Z) = it exiting 2 WITHOUT the REJECTED line (an argparse usage error exits 2): that is [spawn-gate-broken], never a refusal and never a rule name. Each variant asserts its LABEL: absent = [spawn-gate-missing], the others [spawn-gate-broken]
+for v in absent crashing exit2;do
+ lab=broken;[ $v = absent ]&&lab=missing;ec=1;[ $v = exit2 ]&&ec=2
+ mkgo;if [ $v = absent ];then $G -C $T/g rm -q extensions/agi/bin/spawn_gate.py;else printf 'import sys\nsys.exit(%s)\n' $ec >$T/g/extensions/agi/bin/spawn_gate.py;$G -C $T/g add -A;fi;$G -C $T/g commit -qm "checker $v";$G -C $T/g update-ref refs/heads/posts/alive trunk;$G -C $T/hm/t checkout -q --detach posts/alive
  newexp l1 000000000000000000000000000000e1 hypothesis:h1;b0=$(tip);run agi-turn 2>$T/ego5$v;rgo5=$?;fl=$ne/.agi/nodes/experiment/l1.md;ll=$(grep '^\[' $T/ego5$v|head -3|cut -c1-110|tr '\n' '|')
- ok "go5-a-$v-checker-fails-closed-with-its-own-line a LEGAL new node (parent hypothesis:h1) with the checker $v: rc $rgo5 (want != 0), the tip $([ $(tip) = $b0 ]&&echo unchanged||echo MOVED) (want unchanged), the node on the tip: $($G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/l1.md 2>/dev/null&&echo YES||echo no) (want no), the tree kept: $([ -f $fl ]&&echo yes||echo NO), bracketed lines: $(grep -c '^\[' $T/ego5$v) (want exactly 1) [$ll], naming a RULE (allowed_parents / min_parents / max_parents / parent_shapes): $(grep '^\[' $T/ego5$v|grep -cE 'allowed_parents|min_parents|max_parents|parent_shapes') (want 0: distinct from a refusal), naming the checker (spawn): $(grep '^\[' $T/ego5$v|grep -ci spawn) (want 1)" '[ $rgo5 != 0 ]&&[ $(tip) = $b0 ]&&! $G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/l1.md 2>/dev/null&&[ -f $fl ]&&[ "$(grep -c "^\[" $T/ego5$v)" = 1 ]&&[ "$(grep "^\[" $T/ego5$v|grep -cE "allowed_parents|min_parents|max_parents|parent_shapes")" = 0 ]&&[ "$(grep "^\[" $T/ego5$v|grep -ci spawn)" = 1 ]'
+ ok "go5-a-$v-checker-fails-closed-with-its-own-line a LEGAL new node (parent hypothesis:h1) with the checker $v: rc $rgo5 (want != 0), the tip $([ $(tip) = $b0 ]&&echo unchanged||echo MOVED) (want unchanged), the node on the tip: $($G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/l1.md 2>/dev/null&&echo YES||echo no) (want no), the tree kept: $([ -f $fl ]&&echo yes||echo NO), bracketed lines: $(grep -c '^\[' $T/ego5$v) (want exactly 1) [$ll], naming a RULE (allowed_parents / min_parents / max_parents / parent_shapes): $(grep '^\[' $T/ego5$v|grep -cE 'allowed_parents|min_parents|max_parents|parent_shapes') (want 0: distinct from a refusal), naming the checker (spawn): $(grep '^\[' $T/ego5$v|grep -ci spawn) (want 1), the label [spawn-gate-$lab]: $(grep -c "^\[spawn-gate-$lab\]" $T/ego5$v) (want 1)" '[ $rgo5 != 0 ]&&[ $(tip) = $b0 ]&&! $G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/l1.md 2>/dev/null&&[ -f $fl ]&&[ "$(grep -c "^\[" $T/ego5$v)" = 1 ]&&[ "$(grep "^\[" $T/ego5$v|grep -cE "allowed_parents|min_parents|max_parents|parent_shapes")" = 0 ]&&[ "$(grep "^\[" $T/ego5$v|grep -ci spawn)" = 1 ]&&[ "$(grep -c "^\[spawn-gate-$lab\]" $T/ego5$v)" = 1 ]'
+done
+# newraw ID: a NEW experiment node whose WHOLE file is stdin (flow lists, quoting), in a fresh agi-wt new tree ($ne)
+newraw(){ id=$1;ne=$(run agi-wt new .agi/nodes/experiment/$id.md 2>/dev/null);mkdir -p $ne/.agi/nodes/experiment;cat >$ne/.agi/nodes/experiment/$id.md;}
+# refused ID RC FILE: the common shape of a refusal row: rc != 0, the tip unchanged, the node not on the tip, the tree kept, ONE bracketed line naming the node and the rule allowed_parents
+# go6 (SM 09:27Z, hole a): the parents are a MULTI-LINE flow list whose SECOND entry is illegal: a line-by-line reader sees no parent and accepts it as UNVERIFIED; the engine's own YAML reader sees goal:g1 -> refused
+mkgo;newraw m6 <<'XX'
+---
+id: experiment:m6
+mint_id: 000000000000000000000000000000d6
+type: experiment
+parents: [hypothesis:h1,
+  goal:g1]
+---
+new m6
+XX
+b0=$(tip);run agi-turn 2>$T/ego6;rgo6=$?
+ok "go6-a-multi-line-flow-list-with-an-illegal-parent-is-refused a NEW experiment with parents [hypothesis:h1,\\n goal:g1]: rc $rgo6 (want != 0), the tip $([ $(tip) = $b0 ]&&echo unchanged||echo MOVED) (want unchanged), on the tip: $($G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/m6.md 2>/dev/null&&echo YES||echo no) (want no), the tree kept: $([ -f $ne/.agi/nodes/experiment/m6.md ]&&echo yes||echo NO), bracketed lines: $(grep -c '^\[' $T/ego6) (want 1) naming the node and allowed_parents: $(grep '^\[' $T/ego6|grep -c 'm6.*allowed_parents\|experiment:m6.*allowed_parents') (want 1)" '[ $rgo6 != 0 ]&&[ $(tip) = $b0 ]&&! $G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/m6.md 2>/dev/null&&[ -f $ne/.agi/nodes/experiment/m6.md ]&&[ "$(grep -c "^\[" $T/ego6)" = 1 ]&&[ "$(grep "^\[" $T/ego6|grep -c "m6.*allowed_parents")" = 1 ]'
+# go9 (SM 09:27Z, hole a): a SINGLE-QUOTED illegal parent is refused, not accepted as UNVERIFIED because a regex did not see goal:g1
+mkgo;newraw q9 <<'XX'
+---
+id: experiment:q9
+mint_id: 000000000000000000000000000000d9
+type: experiment
+parents:
+  - 'goal:g1'
+---
+new q9
+XX
+b0=$(tip);run agi-turn 2>$T/ego9;rgo9=$?
+ok "go9-a-single-quoted-illegal-parent-is-refused a NEW experiment with parents [- 'goal:g1']: rc $rgo9 (want != 0), the tip $([ $(tip) = $b0 ]&&echo unchanged||echo MOVED) (want unchanged), on the tip: $($G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/q9.md 2>/dev/null&&echo YES||echo no) (want no), the tree kept: $([ -f $ne/.agi/nodes/experiment/q9.md ]&&echo yes||echo NO), bracketed lines: $(grep -c '^\[' $T/ego9) (want 1) naming the node and allowed_parents: $(grep '^\[' $T/ego9|grep -c 'q9.*allowed_parents') (want 1)" '[ $rgo9 != 0 ]&&[ $(tip) = $b0 ]&&! $G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/q9.md 2>/dev/null&&[ -f $ne/.agi/nodes/experiment/q9.md ]&&[ "$(grep -c "^\[" $T/ego9)" = 1 ]&&[ "$(grep "^\[" $T/ego9|grep -c "q9.*allowed_parents")" = 1 ]'
+# go8 (SM 09:27Z): the new-node list comes from git diff-index; when THAT fails the gate FAILS CLOSED with [spawn-gate-broken] (it must not read as "no new node"), nothing committed, the tree kept
+mkgo;newexp l1 000000000000000000000000000000e1 hypothesis:h1;b0=$(tip);: >$T/faildi;run agi-turn 2>$T/ego8;rgo8=$?;rm -f $T/faildi
+ok "go8-a-failing-diff-index-fails-closed a LEGAL new node while git diff-index fails: rc $rgo8 (want != 0), the tip $([ $(tip) = $b0 ]&&echo unchanged||echo MOVED) (want unchanged), on the tip: $($G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/l1.md 2>/dev/null&&echo YES||echo no) (want no), the tree kept: $([ -f $ne/.agi/nodes/experiment/l1.md ]&&echo yes||echo NO), [spawn-gate-broken] lines: $(grep -c '^\[spawn-gate-broken\]' $T/ego8) (want 1), naming a rule: $(grep '^\['  $T/ego8|grep -cE 'allowed_parents|min_parents|max_parents|parent_shapes') (want 0)" '[ $rgo8 != 0 ]&&[ $(tip) = $b0 ]&&! $G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/l1.md 2>/dev/null&&[ -f $ne/.agi/nodes/experiment/l1.md ]&&[ "$(grep -c "^\[spawn-gate-broken\]" $T/ego8)" = 1 ]&&[ "$(grep "^\[" $T/ego8|grep -cE "allowed_parents|min_parents|max_parents|parent_shapes")" = 0 ]'
+# go7 (SM 09:27Z, hole b): a NEW live node that REPLACES a >=50%-similar existing node (the old one deleted in the SAME tree, so git -M sees R097) is still a NEW node: gated (here an illegal parent: refused). The tree is agi-wt new <new path> <old path>: the old path rides in .p and is absent from the tree = a delete
+mkgo;ne=$(run agi-wt new .agi/nodes/experiment/r7.md .agi/nodes/experiment/x1.md 2>/dev/null);mkdir -p $ne/.agi/nodes/experiment;printf -- '---\nid: experiment:r7\nmint_id: 000000000000000000000000000000d7\ntype: experiment\nparents:\n  - goal:g1\n---\nlegacy experiment\n' >$ne/.agi/nodes/experiment/r7.md;b0=$(tip);run agi-turn 2>$T/ego7;rgo7=$?
+ok "go7-a-replacing-node-is-still-a-new-node a NEW experiment r7 (parent goal:g1, illegal) that replaces the similar legacy x1 in one tree: rc $rgo7 (want != 0), the tip $([ $(tip) = $b0 ]&&echo unchanged||echo MOVED) (want unchanged), r7 on the tip: $($G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/r7.md 2>/dev/null&&echo YES||echo no) (want no), x1 still on the tip: $($G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/x1.md 2>/dev/null&&echo yes||echo NO) (want yes), bracketed lines: $(grep -c '^\[' $T/ego7) (want 1) naming r7 and allowed_parents: $(grep '^\[' $T/ego7|grep -c 'r7.*allowed_parents') (want 1)" '[ $rgo7 != 0 ]&&[ $(tip) = $b0 ]&&! $G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/r7.md 2>/dev/null&&$G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/x1.md&&[ "$(grep -c "^\[" $T/ego7)" = 1 ]&&[ "$(grep "^\[" $T/ego7|grep -c "r7.*allowed_parents")" = 1 ]'
+# go7b (control): a MOVE of the legacy node into .agi/nodes/deprecated/ (retire, never delete) is never gated, whatever its parents: rc 0, ONE commit, the deprecated copy on the tip and x1 gone from the live dir
+mkgo;ne=$(run agi-wt new .agi/nodes/deprecated/experiment/x1.md .agi/nodes/experiment/x1.md 2>/dev/null);mkdir -p $ne/.agi/nodes/deprecated/experiment;printf -- '---\nid: experiment:x1\nmint_id: 000000000000000000000000000000c1\ntype: experiment\nstatus: deprecated\nparents:\n  - goal:g1\n---\nlegacy experiment\n' >$ne/.agi/nodes/deprecated/experiment/x1.md;b0=$(tip);run agi-turn 2>$T/ego7b;rgo7b=$?
+ok "go7b-a-move-into-deprecated-is-never-gated the legacy x1 moved to .agi/nodes/deprecated/experiment/ (parent goal:g1): rc $rgo7b (want 0), $($G -C $T/g rev-list --count $b0..posts/alive) new commit(s) (want 1), the deprecated copy on the tip: $($G -C $T/g cat-file -e posts/alive:.agi/nodes/deprecated/experiment/x1.md 2>/dev/null&&echo yes||echo NO), x1 gone from the live dir: $($G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/x1.md 2>/dev/null&&echo NO||echo yes), bracketed lines: $(grep -c '^\[' $T/ego7b) (want 0)" '[ $rgo7b = 0 ]&&[ "$($G -C $T/g rev-list --count $b0..posts/alive)" = 1 ]&&$G -C $T/g cat-file -e posts/alive:.agi/nodes/deprecated/experiment/x1.md&&! $G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/x1.md 2>/dev/null&&[ "$(grep -c "^\[" $T/ego7b)" = 0 ]'
+# ---- agi-at on the same gate (belam 09:3xZ, relayed by SM 09:28Z): a NEW .agi/nodes node committed through agi-at passes grow.py first, else rc 6 (distinct from 1 / 4 / 5), the tip unchanged, the edit STAYS in ~/t. ga helper: file CONTENT at ~/t/PATH
+gaf(){ mkdir -p "$(dirname "$T/hm/t/$1")";cat >"$T/hm/t/$1";}
+# ga1: an out-of-order NEW node via agi-at: rc 6, the tip unchanged, the file kept in ~/t, ONE bracketed line naming the node and the rule
+mkgo;gaf .agi/nodes/experiment/o1.md <<'XX'
+---
+id: experiment:o1
+mint_id: 000000000000000000000000000000d1
+type: experiment
+parents:
+  - goal:g1
+---
+new o1
+XX
+b0=$(tip);run agi-at .agi/nodes/experiment/o1.md 2>$T/ega1;rga1=$?
+ok "ga1-agi-at-refuses-an-out-of-order-new-node agi-at over a NEW experiment parented by goal:g1: rc $rga1 (want 6), the tip $([ $(tip) = $b0 ]&&echo unchanged||echo MOVED) (want unchanged), the edit stays in ~/t: $([ -f $T/hm/t/.agi/nodes/experiment/o1.md ]&&echo yes||echo NO), bracketed lines: $(grep -c '^\[' $T/ega1) (want 1) naming o1 and allowed_parents: $(grep '^\[' $T/ega1|grep -c 'o1.*allowed_parents') (want 1)" '[ $rga1 = 6 ]&&[ $(tip) = $b0 ]&&[ -f $T/hm/t/.agi/nodes/experiment/o1.md ]&&[ "$(grep -c "^\[" $T/ega1)" = 1 ]&&[ "$(grep "^\[" $T/ega1|grep -c "o1.*allowed_parents")" = 1 ]'
+# ga2 (control): a LEGAL new node via agi-at lands as before: rc 0, ONE signed commit
+mkgo;gaf .agi/nodes/experiment/l1.md <<'XX'
+---
+id: experiment:l1
+mint_id: 000000000000000000000000000000e1
+type: experiment
+parents:
+  - hypothesis:h1
+---
+new l1
+XX
+b0=$(tip);run agi-at .agi/nodes/experiment/l1.md 2>$T/ega2;rga2=$?
+ok "ga2-agi-at-lands-a-legal-new-node a NEW experiment parented by hypothesis:h1: rc $rga2 (want 0), $($G -C $T/g rev-list --count $b0..posts/alive) new commit(s) (want 1), on the tip: $($G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/l1.md 2>/dev/null&&echo yes||echo NO), signed: [$(sig posts/alive)] (want G), bracketed lines: $(grep -c '^\[' $T/ega2) (want 0)" '[ $rga2 = 0 ]&&[ "$($G -C $T/g rev-list --count $b0..posts/alive)" = 1 ]&&$G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/l1.md&&[ "$(sig posts/alive)" = G ]&&[ "$(grep -c "^\[" $T/ega2)" = 0 ]'
+# ga3 (control): a path OUTSIDE .agi/nodes is unaffected, even a .md whose front matter would be refused as a node (notes/n.md), and a NEW non-.md file under .agi/nodes (the .geometry/ring that agi-out commits through agi-at is not a typed node)
+mkgo;gaf notes/n9.md <<'XX'
+---
+id: experiment:n9
+mint_id: 000000000000000000000000000000d9
+type: experiment
+parents:
+  - goal:g1
+---
+not a node: it lives outside .agi/nodes
+XX
+gaf .agi/nodes/.geometry/ring <<'XX'
+alive ssh-ed25519 AAAAfixture
+XX
+b0=$(tip);run agi-at notes/n9.md .agi/nodes/.geometry/ring 2>$T/ega3;rga3=$?
+ok "ga3-agi-at-ignores-a-non-node-path notes/n9.md (a .md outside .agi/nodes) and a NEW .agi/nodes/.geometry/ring (not a .md): rc $rga3 (want 0), $($G -C $T/g rev-list --count $b0..posts/alive) new commit(s) (want 1), both on the tip: $($G -C $T/g cat-file -e posts/alive:notes/n9.md 2>/dev/null&&$G -C $T/g cat-file -e posts/alive:.agi/nodes/.geometry/ring 2>/dev/null&&echo yes||echo NO), bracketed lines: $(grep -c '^\[' $T/ega3) (want 0)" '[ $rga3 = 0 ]&&[ "$($G -C $T/g rev-list --count $b0..posts/alive)" = 1 ]&&$G -C $T/g cat-file -e posts/alive:notes/n9.md&&$G -C $T/g cat-file -e posts/alive:.agi/nodes/.geometry/ring&&[ "$(grep -c "^\[" $T/ega3)" = 0 ]'
+# ga4 (control): an EDIT of the legacy x1 (parent goal:g1) via agi-at is never gated
+mkgo;echo "an at edit" >>$T/hm/t/.agi/nodes/experiment/x1.md;b0=$(tip);run agi-at .agi/nodes/experiment/x1.md 2>$T/ega4;rga4=$?
+ok "ga4-agi-at-never-gates-an-edit experiment:x1 (legacy parent goal:g1) edited via agi-at: rc $rga4 (want 0), $($G -C $T/g rev-list --count $b0..posts/alive) new commit(s) (want 1), the edit on the tip: $($G -C $T/g show posts/alive:.agi/nodes/experiment/x1.md|grep -c 'an at edit') (want 1), bracketed lines: $(grep -c '^\[' $T/ega4) (want 0)" '[ $rga4 = 0 ]&&[ "$($G -C $T/g rev-list --count $b0..posts/alive)" = 1 ]&&[ "$($G -C $T/g show posts/alive:.agi/nodes/experiment/x1.md|grep -c "an at edit")" = 1 ]&&[ "$(grep -c "^\[" $T/ega4)" = 0 ]'
+# ga5 / ga6: the gate FAILS CLOSED on agi-at too, with its own rc 6 and label: the checker absent (ga5, [spawn-gate-missing]); git diff-index failing (ga6, [spawn-gate-broken])
+for v in absent faildi;do
+ mkgo;if [ $v = absent ];then $G -C $T/g rm -q extensions/agi/bin/spawn_gate.py;$G -C $T/g commit -qm "checker absent";$G -C $T/g update-ref refs/heads/posts/alive trunk;$G -C $T/hm/t checkout -q --detach posts/alive;lab=missing;else lab=broken;fi
+ gaf .agi/nodes/experiment/l1.md <<'XX'
+---
+id: experiment:l1
+mint_id: 000000000000000000000000000000e1
+type: experiment
+parents:
+  - hypothesis:h1
+---
+new l1
+XX
+ b0=$(tip);[ $v = faildi ]&&: >$T/faildi;run agi-at .agi/nodes/experiment/l1.md 2>$T/ega5$v;rga5=$?;rm -f $T/faildi
+ ok "ga5-agi-at-fails-closed-$v a LEGAL new node via agi-at with $v: rc $rga5 (want 6), the tip $([ $(tip) = $b0 ]&&echo unchanged||echo MOVED) (want unchanged), the edit stays: $([ -f $T/hm/t/.agi/nodes/experiment/l1.md ]&&echo yes||echo NO), [spawn-gate-$lab] lines: $(grep -c "^\[spawn-gate-$lab\]" $T/ega5$v) (want 1), naming a rule: $(grep '^\[' $T/ega5$v|grep -cE 'allowed_parents|min_parents|max_parents|parent_shapes') (want 0)" '[ $rga5 = 6 ]&&[ $(tip) = $b0 ]&&[ -f $T/hm/t/.agi/nodes/experiment/l1.md ]&&[ "$(grep -c "^\[spawn-gate-$lab\]" $T/ega5$v)" = 1 ]&&[ "$(grep "^\[" $T/ega5$v|grep -cE "allowed_parents|min_parents|max_parents|parent_shapes")" = 0 ]'
 done
 echo "agi-turn: $f FAIL"
 exit $f
