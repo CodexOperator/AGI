@@ -32,7 +32,7 @@ cadences:
     schedule: 41 4 * * *
     enabled: true
     box: encryption-town
-    why_box: the object store is the local box's; gc on any other box would repack a store this job does not own
+    why_box: the object store is encryption-town's (MAIN moved there 10-09); gc on any other box would repack a store this job does not own
     cmd: git -C {repo_root} gc --quiet
   prime_merge:
     schedule: 13 */4 * * *
