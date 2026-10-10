@@ -42,7 +42,7 @@ agi-post@.service 2251 B  a post = one unit in agi.slice: own uid, tree, key, pa
 agi-run           773 B  pane cmd: .fresh or -c, under strace; claude: inbox, claude|pi: box -> i
 settings.json      342 B  the ONE hook wiring: brief, meter, turn commit
 cccc.ts           1956 B  pi events -> those CC hooks; inbox + box mail -> a turn
-agi-kid           2037 B  a pi-free kid in this unit: own HOME, tree, cccc.ts
+agi-kid           2049 B  a pi-free kid in this unit: own HOME, tree, cccc.ts
 agi-infer          1077 B  ONE chat call, OpenAI-compatible: stdin -> stdout
 agi-brief         1316 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
