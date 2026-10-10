@@ -250,7 +250,7 @@ def test_the_prlimit_fallback_names_no_process_bound_it_cannot_enforce(
     test fails the day someone pretends otherwise."""
     monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda cfg=None: False)
     out = mem_cap.wrap_argv(["echo", "x"], "256M", _cfg(tasks_max=8))
-    assert out[:2] == ["prlimit", f"--as={256 * 1024 ** 2}"], out
+    assert out[:2] == ["prlimit", f"--data={256 * 1024 ** 2}"], out
     assert not [a for a in out if "TasksMax" in a or "nproc" in a], out
 
 

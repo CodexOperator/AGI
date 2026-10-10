@@ -128,7 +128,7 @@ def resolve_memory_cap(cfg: dict, override: "str | None" = None) -> "str | None"
 
 
 def _as_bytes(spec: str) -> int:
-    """`4G` -> bytes, for `prlimit --as`."""
+    """`4G` -> bytes, for `prlimit --data` (the fallback's RLIMIT_DATA)."""
     s = str(spec).strip().upper()
     return int(float(s[:-1]) * _SUFFIX[s[-1]]) if s[-1] in _SUFFIX else int(s)
 
@@ -376,12 +376,16 @@ def wrap_argv(argv: list, cap: "str | None",
                 f"--property=MemoryMax={cap}",
                 f"--property=TasksMax={resolve_tasks_max(cfg)}",
                 "--property=MemorySwapMax=0", "--", *argv]
-    # NAMED RESIDUAL (DH.421): the prlimit fallback bounds ADDRESS SPACE per
-    # process and NOTHING about the tree's width -- RLIMIT_NPROC is per-USER,
-    # so a per-tree process cap has no prlimit spelling. A box without a
-    # usable systemd-run still fans out unbounded; the fix is the systemd
-    # path, not a second limit here.
-    return ["prlimit", f"--as={_as_bytes(cap)}", "--", *argv]
+    # NAMED RESIDUAL (DH.421): the prlimit fallback bounds the COMMITTED DATA
+    # (RLIMIT_DATA: private writable memory a process has actually written or
+    # mapped) of each process and NOTHING about the tree's width --
+    # RLIMIT_NPROC is per-USER, so a per-tree process cap has no prlimit
+    # spelling. A box without a usable systemd-run still fans out unbounded;
+    # the fix is the systemd path, not a second limit here. It is not
+    # `--as`: that counts PROT_NONE reservations too, and V8's wasm
+    # reservation (node's undici) dies under it on a harness that never
+    # allocates (goal:g7.16.1.11.35).
+    return ["prlimit", f"--data={_as_bytes(cap)}", "--", *argv]
 
 
 def is_wrapped(argv) -> bool:
@@ -391,8 +395,8 @@ def is_wrapped(argv) -> bool:
 
 
 def is_cap_death(returncode, cap, output: str = "") -> bool:
-    """The cap's kill: cgroup SIGKILL (negative rc) or RLIMIT_AS exhaustion
-    (MemoryError / out of memory). A wall timeout raises before this."""
+    """The cap's kill: cgroup SIGKILL (negative rc) or RLIMIT_DATA exhaustion
+    (an ENOMEM from a bounded allocation: MemoryError / out of memory). A wall timeout raises before this."""
     if cap is None or returncode is None:
         return False
     if returncode < 0:
