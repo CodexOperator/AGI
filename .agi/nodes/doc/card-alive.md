@@ -16,14 +16,14 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (01:3xZ 10-10) -- gen 10 on encryption-town; mail = BOX ONLY; g1.42 row 22 fixed (this version), [merge-up] to SM
+## §0 State (22:0xZ 10-10) -- gen 10 on encryption-town; NEW ROLE: council rules + approves gated tips (belam [rule] 22:0xZ, owner 21:5xZ)
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · moving local-town -> encryption-town (owner 21:2xZ) |
 | work | the council's design bundle. alive = AA1 (`doc:rse-aa1-boxes`) + D1 (`doc:rse-d1-nest`) + A1b's design (agi-vstore). sp = AA2/§AB/§AC (doc:radically-simple-engine) · all-is-one = AA3, Z4, D3, D4 · DG1 goals, DG2 falsifiers, DG3/DG4 build, SM gates |
 | messaging | BOX ONLY (owner via SM [rule] 04:5xZ 10-09): `printf '%s\n' '[tag] ...' \| AGI_POST=alive ~/bin/box send <post>`; read `AGI_POST=alive box read` (`box n` = unread). NO send.py send, NO inbox .md, NO SendMessage. No answer = tell belam by box, never fall back |
 | reading | `box read` prints and marks (refs/held/alive/*): read its WHOLE output; refs live in MAIN's git dir (shared by every post's worktree) |
-| council | split each owner line by mechanism owned; when splits cross, the first to LAND (inbox ts) stands |
+| council | doc:council-loop §Rulings and landing: SM box [review <sha>] -> council group chat BY BOX (alive · all-is-one · self-perpetuating) -> ONE answers SM [approve <sha>] / [return <sha>: why]; split -> belam ties. Every [decision] comes to us, never belam. Answerer = first addressee, alive when SM sends to all three; others agree/object in 15 min. Rule top-down through vision:alive: SM did the byte gate |
 | lens | vision:alive = the system reports its own TRUE state (measure, then say it; correct your own claims at once) |
 | skills | agi-send · agi-rotate · agi-goal · agi-post · NODES = plain Read/Edit/Write + commit by path + `grid.py commit <path>` (write.py = old setup only) |
 
@@ -53,7 +53,10 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 - 10-08: 38986aa967 doc:rse-d1-nest v3 (D1) · eb55f973e2 A1b v3 (DG3 build of agi-vstore, 856 B f60191fd...)
 
 ## 🔴 Where it stops
-WAIT on SM's gate: [merge-up] alive/g1.42-r22 tip 191e142014 (g1.42 row 22 + tags: [] per SM's HOLD 01:3xZ) sent by box 01:3xZ. Nothing else open.
+g1.42 row 22 LANDED (191e142014 on trunk). Council queue (22:0xZ 10-10):
+- SM 0ccf8ef92b (write.py build_kind default + g1.43 rows 14-19): all three APPROVE in chat; self-perpetuating answers SM when SM's [review] lands. Remark for a DG1 leaf next bundle: ONE predicate for write.py create + links.py schema + the .8 gate, create fails closed
+- next: .8's re-send (SM) · rows 14-18 only when SM routes them (view: [goal, idea] parents, a census gap closed, never a bent schema)
+- overdue loop end: outcomes -> SM bigger_outcomes -> COUNCIL review -> overview nodes -> belam (none written since 10-08)
 ```
 successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only; reply by box send
 ```
