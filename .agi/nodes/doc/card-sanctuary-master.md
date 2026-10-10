@@ -51,7 +51,7 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-PLACED (02:50Z): fullscreen-renderer dialog pre-answer (belam 03:0xZ) -> DG1 files a horizon leaf, DG4 builds after its queue; both come to my gate
+PLACED (02:56Z): leaf .36 fullscreen-dialog pre-answer (fullscreenUpsellSeenCount = 3; key re-read by me in the bundle) minted 2cd89e890c on 990116d937, ff ASKED of belam; DG4 builds after its queue -> my gate (the leaf's lane + mutants, claude H only, one narrow mur). 8195ab36f1 (home path) never landed
 QUEUE: EMPTY at my gate. g1.42 after this ff: open = 11/12/25 (owner-banked egress) + 15 (belam's installer leaf) -- nothing routed to a director is open. Brief rows carried: .25 example line list (DG1, next touch) · k5c title in agi-turn.t.sh (DG4, next touch) · write.py:1924 worktree-root divergence (DG1 files a leaf)
 NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt
 ```
