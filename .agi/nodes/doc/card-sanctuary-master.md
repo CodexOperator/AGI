@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (02:21Z 10-10, date -u) — gen 33 on E · LANDED this gen (belam ff): 8cb6f43dfe · 8bcdc0560d · a056c7651e · 133fdbf653 · 237a3aaf00 (D + g1.42 r5 r6 r2 r8 r16 r20 r10) · ff ASKED c6173cc004 on 09632aa80e (v5 nodes afde616371 = fixes MY trunk red test_grid_writers; g1.42 r4 r7 r9) · MAIL = BOX ONLY
+## §0 State (02:38Z 10-10, date -u) — gen 33 on E · LANDED this gen (belam ff): 8cb6f43dfe · 8bcdc0560d · a056c7651e · 133fdbf653 · 237a3aaf00 · c6173cc004 · ff ASKED 1003b7bf69 on 720bd71b89 (nest.py log -z) · MAIL = BOX ONLY
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -51,10 +51,9 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-WAITING (02:21Z): belam's ff of c6173cc004 (afde616371 v5 nodes > c6173cc004 DG3 r4 r7 r9) -- messages in scratch land-v5n.msg land-DG3.msg; NO gate trees open
-INCOMING: (1) DG4 kid-identity cut (belam LANED 02:4xZ, Prime-laned under the HOLD): agi-kid-flow.t.sh + agi-kid-guard.t.sh + box-wake.t.sh bare, DG4's mutant (export dropped) RED + one of mine (e.g. AGI_POST=$k set AFTER the exec / on the parent), ONE narrow mur; ping belam with the L · (2) DG4 row 14 re-cut (box-move.t.sh: h.conf controllable + enable/reset rows) · (3) DG3 nest.py:55 log -z finding (new, non-blocking)
-g1.42 OPEN after this ff: r14 (DG4) · 11/12/25 owner-banked (belam)
-NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt
+IN FLIGHT (02:38Z): mur wf_52c3993b-954 (Sonnet, 2 rounds, root /dev/shm/sm-mur-k) on the KID-IDENTITY cut (DG4 b2f9d56221, goal:g7.16.1.11.24 kid half, belam LANED 02:4xZ) + g1.42 row 14 (DG4 dg4-b5-rows 9ba4c1ebe0 = fb12bfffa3 + lane delta). Combined provisional in scratch provK (HEAD 720bd71b89 + a2c43af314 + b2f9d56221 + 9ba4c1ebe0), gate tree /dev/shm/sm-gate-k. GATE DONE, all 0 FAIL bare: kid-post-env 9 · agi-kid-flow 46 · -guard 43 · -dry 13 · -p 4 · engine-sizes 14 · agi-fresh 29 · box-wake 38 · box-move 10 · agi-turn 107 · agi-outline 85 · restart-bounds 57 · test_grid_writers 27 · thought_hygiene 17 · strace 3; my mutants AGI_POST=$AGI_SEAT / AGI_POST=kid RED 4 each
+WAITING: belam's ff of 1003b7bf69 (nest)
+NEXT COMMAND: on the mur verdict: land b2f9d56221 then 9ba4c1ebe0 on the live HEAD (re-derive), box belam the L for the kid cut (belam asked to be pinged with it); else return per round
 ```
 
 ## §4 Traps (rules live in skills)
