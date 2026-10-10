@@ -1714,10 +1714,10 @@ def _round_ring_refusal(project_root: str, ring_name: str, tier: str,
     try:
         from seatsig import rings as _rings
 
-        rings_rows = _rings.load_rings(root)
-        ring = _rings.ring_by_name(rings_rows, ring_name)
-    except Exception:  # noqa: BLE001
-        ring = None
+        ring = _rings.ring_by_name(_rings.load_rings(root, strict=True), ring_name)
+    except Exception as e:  # noqa: BLE001  (could not look: refuse, never the opt-in)
+        return (f"round {ring_name!r} refused: its ring could not be loaded "
+                f"({type(e).__name__}: {e})")
     if ring is None:
         return None  # no such ring declared -> opt-in means nothing demanded
     fields = fields if fields is not None else \
