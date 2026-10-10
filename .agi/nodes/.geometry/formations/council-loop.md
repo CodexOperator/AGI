@@ -53,6 +53,19 @@ council : reviews the bigger outcomes ─► new goals / bundles / nested goals,
 STOP ~ midnight ET = 04:00Z 09-30 (owner: "we just keep working full steam ahead until about midnight Eastern time")
 ```
 
+## Rulings and landing (owner 2026-10-10 21:5xZ to belam-s2-III; supersedes the SM and belam rows above where they differ)
+OWNER, verbatim: "Need to make council do all this review work while you idle mostly and await loop finish. I think council is being skipped on final loop step and I think a lot of the traps across various cards could go into skills or whatever other relevant docs"
+OWNER answers, verbatim: rulings = "Council, but I break ties" · landing = "I ff on council OK only (Recommended)" · traps = "One sweep, then a rule (Recommended)"
+```
+director tip ─► SM gates (agi-master-gate, agi-review) ─► box [review] to the council (alive · all-is-one · self-perpetuating)
+council group chat ─► ONE council post answers SM: [approve <sha>] or [return <sha>: why]     (split / stuck ─► belam breaks the tie)
+SM ─► box belam [merge-up] ... ff-only <sha> · council: <post> approve <ts>                  (no council line = refused, sent back)
+belam ─► FULL anonymize guard (only belam's uid reads .env) ─► ff MAIN ─► nothing else: no review, no ruling
+every [decision] SM has today ─► the council, never belam; belam gets only what needs the OWNER (host acts, spend, season close) to bank
+loop end is NOT optional: outcomes ─► SM bigger_outcomes ─► COUNCIL reviews them ─► overview nodes ─► belam
+```
+Later (council designs, a director builds, owner GO for the host act): a LAND BROKER so belam is out of the landing path entirely.
+
 ## Order of work (owner 09-29)
 1. The current town bundle (town:local-maxxing board) — first.
 2. Grok's work on `core/season2/main` and `core/main` ("probably way overbuilt on core"): simplify.
@@ -76,5 +89,5 @@ Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2
 - Rotation at the meter line: skill agi-rotate. Post mechanics: skill agi-post.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-S2-L5-XVIII 23:5xZ 09-29 rewrote The loop on the owner’s order, verbatim: "Then we’re going to add another small check where the director general two checks the MVP result against the hypotheses. They then issue their own correctives as needed under forked hypothesis chains splitting off from lone or more of the most relevant existing ones. Once that passes, Director General 1 looks at the resulting build nodes and checks them against the goals to see if those need any corrective steps dispatched as nested subgoals. Once these loops complete amongst the directors, then it gets handed to Sanctuary Master to run its own review and check and get passed back using her lens for any correctives, using automated reviews. And once that’s done, then it gets passed to the council. In the process, Sanctuary Master should be the one to write the bigger outcome nodes to tie the outcome nodes together. And actually, one more correction, since this is going to be the new loop. Director General 1, once there are no more nested subgoal or hypothesis residues left to dispatch, uh, finalizes the outcome nodes for each goal in the bundle. Once Sanctuary Master does their reviews and their residue dispatches, then they write bigger outcome nodes once there are nothing else left to dispatch. And once those get written, then the chain, the graph chain that’s been grown can get passed off to the council to review the bigger outcomes and issue additional goals or additional bundles or additional nested goals or whatever, whatever level they see fit. And once none of those remain, then the council writes overview nodes to cap off the season’s growth and hands those off to you. At this point, we just keep working full steam ahead until about midnight Eastern time." Delta: outcome nodes move from the council (23:3xZ lens) to DG1; SM writes bigger outcomes; the council writes overviews; the lens flow now points at the loop.
+belam-s2-III 21:5xZ 10-10: added 'Rulings and landing' on the owner's order (verbatim in the section). Why: SM's card already said 'rulings = the council · never the Prime', yet every [decision] of 10-10 (.8 .20 .36) went to belam; the council posts were near silent (alive's last mail 01:30Z) and no outcome / bigger_outcome node was written after 10-08 -- the loop's last step was skipped. Box matrix: the council posts are level 2 (parent row 'council', inert), the same as SM, so SM mails them directly. Prior thought is in git history.
 <!-- THOUGHT:END -->
