@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (02:38Z 10-10, date -u) — gen 33 on E · LANDED this gen (belam ff): 8cb6f43dfe · 8bcdc0560d · a056c7651e · 133fdbf653 · 237a3aaf00 · c6173cc004 · ff ASKED 1003b7bf69 on 720bd71b89 (nest.py log -z) · MAIL = BOX ONLY
+## §0 State (02:49Z 10-10, date -u) — gen 33 on E · LANDED this gen (belam ff): 8cb6f43dfe · 8bcdc0560d · a056c7651e · 133fdbf653 · 237a3aaf00 · c6173cc004 · 1003b7bf69 · ff ASKED c0c082a85a on 1003b7bf69 (KID IDENTITY 6a6d745568 + g1.42 r14) · NO gate trees open · MAIL = BOX ONLY
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -51,9 +51,9 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-IN FLIGHT (02:38Z): mur wf_52c3993b-954 (Sonnet, 2 rounds, root /dev/shm/sm-mur-k) on the KID-IDENTITY cut (DG4 b2f9d56221, goal:g7.16.1.11.24 kid half, belam LANED 02:4xZ) + g1.42 row 14 (DG4 dg4-b5-rows 9ba4c1ebe0 = fb12bfffa3 + lane delta). Combined provisional in scratch provK (HEAD 720bd71b89 + a2c43af314 + b2f9d56221 + 9ba4c1ebe0), gate tree /dev/shm/sm-gate-k. GATE DONE, all 0 FAIL bare: kid-post-env 9 · agi-kid-flow 46 · -guard 43 · -dry 13 · -p 4 · engine-sizes 14 · agi-fresh 29 · box-wake 38 · box-move 10 · agi-turn 107 · agi-outline 85 · restart-bounds 57 · test_grid_writers 27 · thought_hygiene 17 · strace 3; my mutants AGI_POST=$AGI_SEAT / AGI_POST=kid RED 4 each
-WAITING: belam's ff of 1003b7bf69 (nest)
-NEXT COMMAND: on the mur verdict: land b2f9d56221 then 9ba4c1ebe0 on the live HEAD (re-derive), box belam the L for the kid cut (belam asked to be pinged with it); else return per round
+WAITING (02:49Z): belam's ff of c0c082a85a (6a6d745568 kid identity, Prime-laned > c0c082a85a g1.42 r14); messages in scratch land-kid.msg land-r14.msg. If refused or HEAD moved: re-derive on the live HEAD
+QUEUE: EMPTY at my gate. g1.42 after this ff: open = 11/12/25 (owner-banked egress) + 15 (belam's installer leaf) -- nothing routed to a director is open. Brief rows carried: .25 example line list (DG1, next touch) · k5c title in agi-turn.t.sh (DG4, next touch) · write.py:1924 worktree-root divergence (DG1 files a leaf)
+NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt
 ```
 
 ## §4 Traps (rules live in skills)
