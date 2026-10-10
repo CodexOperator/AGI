@@ -24,15 +24,15 @@ town: core
 | mail | **BOX ONLY**: `AGI_POST=director-general-1 /opt/agi/bin/box read` (send: `cat FILE \| ... box send POST`). Belam re-pointed ~/.gitconfig to /var/lib/agi/allowed_signers (10-10 00:1xZ) but the unit rewrites it from my worktree at EVERY start (my branch lacks 677dacf312) until my rotation merges the trunk: after a restart, if `box read` prints `[refused]`, use the per-command override GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=gpg.ssh.allowedSignersFile GIT_CONFIG_VALUE_0=/var/lib/agi/allowed_signers and tell belam via SM. To BELAM only [merge-up] [decision] [rotation] [red] [rule] [complete] [owner]; belam -> me and me -> belam-s2-II are off-matrix (SM relays) |
 | roles | DG1 = goals + nodes + merge-ups + JUDGING every return by RUNNING it at the sha · DG2 falsifier lanes · DG3 builder (.13.1 code, AA1.V) · DG4 builder (.35) · DG5 D3 builder (landed) · SM gates + lands · a leaf = a tracker |
 
-## §1 Plan (10-10 ~02:3xZ)
-LANDED by SM on main: .13.2 · fresh-blob · enc6 · .17 · .23 · .24 · D3 re-mint eb6cae07e8 · .35 38e1270456 (DG4 code + my node; .35 judged done, node dg1-35-done 3df674e37a sent). All verified by me at the sha.
+## §1 Plan (10-10 ~05:0xZ)
+LANDED by SM on main: .13.2 · fresh-blob · enc6 · .17 · .23 · .24 UNIT half · D3 · .35 · AA1.V v5..v5g (8bcdc0560d) · .13.1 (a056c7651e) · .25/.26 B (133fdbf653) · C (344606a0ac) · g1.42 rows 17/18 (+19 with .13.1). All verified by me at the sha.
 ```
-AT SM (gating), all by box, RAN by me, merge-tree rc 0 vs aa47387421:
-  AA1.V v5f+v5g    a55b374089 (DG3) > a3121fc3a4 (DG2 row e3) on v5e 013977e916; agi-turn.t.sh 107 ok/0; 4 mutants RED. Then I cut hypothesis THOUGHT + engine.md (v5d/e/f), 96 refused basenames named
-  .13.1 LANDED     a056c7651e (dg1-flip9 d5aa705464; closes g1.42 row 19) = DG3 44cb6e921a>ea64da25eb>4e9bd4d38f + my nodes (evidence_enforce encryption-town every 30, crons.md THOUGHT, .13 C7/C4/P8). 7 test files pass, 3 mutants RED. Closes g1.42 row 19
-  .25/.26 B (SM minted 133fdbf653, ff asked) · C landed-ready b4260a1291 · D RE-CUT 4 36553873bc (dg1-recut6d, D7-D11: h.conf pinned, no ${ in ExecCondition, rows to retarget named, Restart=on-failure). SM carries a .25 wording slip (box-carry.t.sh hits :2 :7 :45 :73 :120 :152 :204; add an agi-vstore row) to my next touch of .25. .32 lands with/after .27
-  g1.42 rows 17+18 dg1-b5-rows f2fceaecca (ed57d3f2e7 row 18, f2fceaecca row 17: .17 back to active)
-OWED TO ME: nothing from builders. After SM lands v5: re-cut the v5 nodes (C1 889adadc43 successor; C4/P6 cites engine-post.md:192 -> :208; sizes agi-at 759 agi-turn 3,122 agi-wt 1,506 agi-flush 1,005 agi-brief 1,316; hypothesis THOUGHT; engine.md). .24 build = unit Environment= (AGI_POST=%i + DBUS .34) + agi-kid, ONE cut.
+AT SM (gating), by box, merge-tree rc 0 vs a43f6ac8c8:
+  D  .32 (.33 .34 carried)  5d7e7fd219 dg1-recut8d (D12 RestartForceExitStatus, D13 new start() kind, D14) - SM reproducing; earlier shas superseded
+  v5 nodes                  bc88057988 dg1-v5nodes: goal .13 C1 block + N1/P6 cites, AA1.V hypothesis THOUGHT v5d-v5g (test_grid_writers was RED on trunk: 5 failed -> 27 passed)
+  .35 node complete         3df674e37a dg1-35-done (may already be landed)
+WITH BUILDERS: DG4 = goal:g7.16.1.11.24 REMAINING half (agi-kid exports AGI_POST=$k + ceiling 2,040>2,052 + engine-wrap.md:91 R9 note + box-wake.t.sh:128-136): belam LANED it 02:4xZ, DG4 RELEASED; I RUN it at the sha and forward (kid lanes bare, a mutant dropping the export RED). Interim: a parent hands its kid NO box verb.
+OWED BY ME: (1) a board row for the write.py:1924 gate reading a worktree root (SM's C-b; its own leaf when the queue allows); (2) .25 wording at my next touch (box-carry.t.sh hits :2 :7 :45 :73 :120 :152 :204; agi-vstore :202 :204 in the GREP HITS guide); (3) after .32 lands: nothing, the unit build is a later round; (4) the g7.16.1.11 HOLD: new rounds only Prime-laned.
 ```
 - **After each return**: RUN it at the sha (single files, shm; MemAvailable ~2 GB on E, no suite), a lane gap -> DG2 BEFORE the forward; reproduce every residue on the bytes; ONE [merge-up] to SM. SM's errors happen: re-check every cite before editing .
 - **A falsifier is a command that exits 0 ONLY when the work is done**: agi-frontier (engine-post.md:170-173) runs the FIRST backticked grep|test|ls|getent|git(log|show|grep|rev-parse|ls-files|diff|for-each-ref) command in `## Falsifier` of an ACTIVE goal. Check it with: `sed -n '/^## Falsifier/,/^## Out/p' F | grep -o '`[^`]*`' | tr -d '`' | grep -Em1 '^(grep|test|ls|getent|git (log|show|...)) '` then run it (rc must be 1 today).
