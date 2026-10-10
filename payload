@@ -5574,10 +5574,6 @@ def test_first_seating_turn_one_ack_tracks_ask_diff_mode(tmp_path, monkeypatch):
     wins = tmp_path / "windows.txt"
     wins.write_text("@42 director-seat\nsensei-peer\n", encoding="utf-8")
     reg = _seating_registry(tmp_path)
-    sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender:
-                        sent.append((other, text)) or tmp_path)
     monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
 
     def _run(args):
@@ -5841,6 +5837,20 @@ def test_ack_gen1_diff_empty_announces_once(tmp_path, monkeypatch):
     assert len(recs) == 1, f"exactly ONE seating record, got {recs}"
 
 
+def _box_seam(monkeypatch, seat):
+    """Record rotate's BOX leg (goal:g7.16.1.11.20 cut B): AGI_POST=<seat> so the
+    guard passes, `_box_send_announce` stubbed to append (recv, text). A test
+    that says "no alert went out" asserts on THIS list, not on the retired
+    send_dm seam."""
+    boxed = []
+    monkeypatch.setenv("AGI_POST", seat)
+    monkeypatch.setattr(
+        rotate, "_box_send_announce",
+        lambda recv, seat_, text, declared, deadline=None: boxed.append(
+            (recv, text)) or True)
+    return boxed
+
+
 def test_ack_gen1_diff_with_text_does_not_announce(tmp_path, monkeypatch):
     """g15.24 FIX-ONLY falsifier — a gen-1 ack answered `diff` WITH text never
     commits (the successor still edits), so by the SAME predicate it announces
@@ -5849,10 +5859,7 @@ def test_ack_gen1_diff_with_text_does_not_announce(tmp_path, monkeypatch):
     rows = [{"name": "diff-t", "role": "director"},
             {"name": "sensei-peer", "role": "prime_director"}]
     _write_seats_sheet(tmp_path, rows)
-    sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
-                            (other, text)) or tmp_path)
+    sent = _box_seam(monkeypatch, "diff-t")
     monkeypatch.setattr(rotate, "_existing_windows",
                         lambda s, wp: ["diff-t", "sensei-peer"])
     monkeypatch.setattr(rotate, "_successor_window_id", lambda *a, **k: None)
@@ -5910,10 +5917,7 @@ def test_ack_gen1_diff_with_text_no_commit_still_sends_nothing(tmp_path, monkeyp
     rows = [{"name": "diff-nc", "role": "director"},
             {"name": "sensei-peer", "role": "prime_director"}]
     _write_seats_sheet(tmp_path, rows)
-    sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
-                            (other, text)) or tmp_path)
+    sent = _box_seam(monkeypatch, "diff-nc")
     monkeypatch.setattr(rotate, "_existing_windows",
                         lambda s, wp: ["diff-nc", "sensei-peer"])
     monkeypatch.setattr(rotate, "_successor_window_id", lambda *a, **k: None)
@@ -5947,10 +5951,7 @@ def test_ack_gen1_does_not_announce_for_non_first_generation(tmp_path, monkeypat
     import send as _send
     rows = [{"name": "seat-x", "role": "director"}]
     _write_seats_sheet(tmp_path, rows)
-    sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
-                            (other, text)) or tmp_path)
+    sent = _box_seam(monkeypatch, "seat-x")
     monkeypatch.setattr(rotate, "_existing_windows", lambda s, wp: ["seat-x"])
     monkeypatch.setattr(rotate, "_successor_window_id", lambda *a, **k: None)
     rc = rotate.cmd_ack(SimpleNamespace(seat="seat-x", gen=4, ref="ff",
@@ -5977,6 +5978,7 @@ def test_announce_rotation_same_composer_writes_seating_record(tmp_path, monkeyp
         seat="hand-seat", role="parent", source="cmd_ack", window_id="@7",
         ref="caa927", pid=11, session_id="s1", transcript_path="t.jsonl",
         first_turn=[])
+    boxed = _box_seam(monkeypatch, "hand-seat")
     delivered = rotate._announce_rotation(
         root=tmp_path, croot=tmp_path / "comms", seat="hand-seat",
         successor="hand-seat", gen_before=0, gen_after=1,
@@ -5986,6 +5988,7 @@ def test_announce_rotation_same_composer_writes_seating_record(tmp_path, monkeyp
     assert delivered == ["kid-a"]
     (_, text), = sent
     assert "trigger: first-seating" in text and "first seating hand-seat @7" in text
+    assert boxed == sent, "the box leg carries the SAME first-seating payload"
     recs = list(rotate._rotations_dir(tmp_path).glob("hand-seat.*.seating.json"))
     assert len(recs) == 1, "one seating record shared with the alert"
 
@@ -6223,6 +6226,7 @@ def test_announce_rotation_dms_post_join_address(monkeypatch, tmp_path):
     monkeypatch.setattr(_send, "send",
                         lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
+    boxed = _box_seam(monkeypatch, "belam-II")
     delivered = rotate._announce_rotation(
         root=tmp_path, croot=tmp_path / "comms", seat="belam-II",
         successor="belam-III", gen_before=2, gen_after=3, trigger="rotate-self",
@@ -6233,6 +6237,7 @@ def test_announce_rotation_dms_post_join_address(monkeypatch, tmp_path):
     assert len(sent) == 1
     _, text = sent[0]
     assert "belam-II -> belam-III [f52a4c] @9 |" in text
+    assert boxed == sent, "the box leg carries the SAME payload to the same receiver"
 
 
 def test_derive_receivers_drops_gone_window_and_self(tmp_path):
@@ -6257,6 +6262,7 @@ def test_announce_rotation_dms_every_derived_recipient(monkeypatch, tmp_path):
     monkeypatch.setattr(_send, "send",
                         lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
+    boxed = _box_seam(monkeypatch, "liason")
     delivered = rotate._announce_rotation(
         root=tmp_path, croot=tmp_path / "comms", seat="liason",
         successor="liason", gen_before=1, gen_after=2, trigger="rotate-self",
@@ -6267,6 +6273,7 @@ def test_announce_rotation_dms_every_derived_recipient(monkeypatch, tmp_path):
     for _, text in sent:
         assert "trigger: rotate-self" in text
         assert "in flight: none" in text
+    assert boxed == sent, "the box leg carries the SAME payload to every receiver"
 
 
 def test_announce_rotation_prime_routes_to_alert_room_never_quorum(
@@ -6326,7 +6333,7 @@ def test_announce_rotation_lands_alert_in_each_recipient_inbox(
                             (other, text)) or tmp_path)
     monkeypatch.setenv("AGI_POST", "liason")     # the guard: this process IS the rotating post
     monkeypatch.setattr(rotate, "_box_send_announce",
-                        lambda recv, seat, text, declared: boxed.append(
+                        lambda recv, seat, text, declared, deadline=None: boxed.append(
                             (recv, seat, text)) or True)
     rotate._announce_rotation(
         root=tmp_path, croot=tmp_path / "comms", seat="liason",
@@ -6500,6 +6507,7 @@ def test_announce_stamps_payload_with_seq_and_writes_sequence_file(
     monkeypatch.setattr(_send, "send",
                         lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
+    boxed = _box_seam(monkeypatch, "liason")
     delivered = rotate._announce_rotation(
         root=root, croot=tmp_path / "comms", seat="liason",
         successor="liason", gen_before=1, gen_after=2, trigger="rotate-self",
@@ -6509,6 +6517,7 @@ def test_announce_stamps_payload_with_seq_and_writes_sequence_file(
     assert rotate._current_sequence(root) == 1
     (_, text), = sent
     assert "seq: 1" in text
+    assert boxed == sent, "the box leg carries the SAME seq-stamped payload"
 
 
 def test_cmd_sequence_is_the_seat_visible_one_read(tmp_path, capsys):
