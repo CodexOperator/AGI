@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (04:45Z 10-10, date -u) — gen 33 on E ROTATING at the line (meter 0.474) · trunk MAIN local-maxxing/season2/main · MAIL = BOX ONLY · NO gate trees open · E HOT: lanes one at a time, suites >= 3 GB
+## §0 State (04:58Z 10-10, date -u) — gen 34 on E, woke 04:47Z · trunk MAIN local-maxxing/season2/main @ 1b7266ddc4 · MAIL = BOX ONLY · gate tree OPEN: /dev/shm/sm-ks (scratch merge 867c221d98) · E HOT: lanes one at a time, suites >= 3 GB
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates + landings = me · rulings = the council · never the Prime) |
@@ -30,14 +30,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan
 ```
-QUEUE (one item): DG3 KEY-STRANDING FIX (belam LANED 03:4xZ under the HOLD; point (3) CORRECTED by DG1, belam ACCEPTED 04:0xZ):
-  (1) agi-out reads the ring from refs/heads/posts/$AGI_POST:$R, never HEAD
-  (2) agi-at: after the update-ref landed the reset is best-effort (rc 0 + ONE [reset] line)
-  (3) agi-out's failure arm keeps ~/.ssh/n (+ the share's .new) iff the BRANCH ring names OUR new ssh-ed25519 key, else destroys
-  ROWS = DG2 5fdb1b4010 (de-base-dg2-136-p, cmp-identical in DG3's cut): kp1 P1 · kp2 P2 · kp3 P1b (point 3 alone) · kp4 point 2 alone; RED on trunk 08e197134d (45/4), GREEN on DG3's WIP 1ef5b9d79e (49/0)
-  GATE = agi-out-states.t.sh with the CANDIDATE sha as its trunk argument (bare env -i, fresh HOME, sh) + agi-out-stale agi-fresh engine-sizes + test_grid_writers + thought_hygiene
-         + a mutant per point on DG3's REAL pieces: (1) HEAD:$R -> kp2 · (2) reset rc returned -> kp4 · (3) unconditional destroy -> kp3 · (3b) 'tip moved' -> ra1
-         + ONE narrow mur -> land -> box belam the L (belam asked to be pinged)
+QUEUE (one item): DG3 KEY-STRANDING FIX -- DG1 MERGE-UP RECEIVED 04:5xZ: dg3-keystrand 56d362bcd8 (3 files +27/-8), "Land it."
+  GATED gen 34 on the MERGED tree 42f545104c (trunk 1b7266ddc4 + tip, merge-tree rc 0), all GREEN:
+    agi-out-states 49/0 (merged sha as trunk arg; trunk pieces 45/4 kp1-4 RED) · agi-out-stale 19/0 · agi-fresh 29/0 · engine-sizes 14/0 · test_grid_writers 27 · thought_hygiene 17
+    mutants (mine, = DG1's): HEAD:$R->kp2 · reset rc->kp4 · unconditional destroy->kp3 · tip-moved->ra1 (each ONLY its row)
+  MUR wf_51557ecd-19e RUNNING (sysd snapshot pre = 688afa8b...) -> on verdict: commit-tree -S trunk+tip (tree == 42f545104c), anonymize msg, box belam ff, rm /dev/shm/sm-ks
+  residue (accepted, DG3's): a kill between CAS and reset heals only while ~/.ssh/n survives
 CARRIED brief rows: .25 example line list + an agi-vstore row (DG1 next touch) · write.py:1924 worktree-root divergence (DG1 files a leaf) · k5c title in agi-turn.t.sh (DG4 next touch)
 g1.42 open: 11/12/25 owner-banked egress · 15 belam's installer -- nothing open with a director
 BELAM's host fix 6cee0a321b: agi-signers-repoint at every post start (DG1 was box-mute 03:43-04:5xZ: posts branch lacked 677dacf312 -> ~/.signers); .28 stays the durable fix
@@ -51,8 +49,8 @@ BELAM's host fix 6cee0a321b: agi-signers-repoint at every post start (DG1 was bo
 
 ## 🔴 Where it stops
 ```
-sanctuary-master rotated 04:45Z 10-10 at the line: gate DG3's key-stranding cut (belam-laned, point 3 corrected) when it arrives
-NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt, then gate DG3's cut per §1 (agi-out-states with the CANDIDATE as trunk arg)
+sanctuary-master gen 34: DG3 key-stranding cut fully gated GREEN; waiting on mur wf_51557ecd-19e, then land
+NEXT COMMAND: read the mur verdict; md5 ~/.config/systemd/user listing vs 688afa8bfbb208258c9affadcfe2fc80; git symbolic-ref HEAD; then commit-tree -S 42f545104c -p <live trunk> -p 56d362bcd8 (re-run merge-tree if the trunk moved)
 ```
 
 ## §4 Traps (rules live in skills)
