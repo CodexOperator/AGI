@@ -33,6 +33,7 @@ LIVE_NODE = Path(os.environ.get("CRONS_NODE")
                  or REPO / ".agi" / "nodes" / ".geometry" / "crons.md")
 BOX_SCHEMA = REPO / ".agi" / "context" / "schemas" / "[box].md"
 BOX = "encryption-town"
+MAIL_BOX = "local-town"   # mail_poll stays box-gated to local-town (the hub reader): the rows that read ITS line render the block for that box
 
 
 def git(repo: Path, *args: str, check: bool = True, env: dict | None = None) -> str:
@@ -185,8 +186,8 @@ FETCH_NEW = "fetch -q origin '+refs/heads/*:refs/remotes/origin/*'"
 
 def switch_pair(tmp_path: Path) -> tuple[list[str], list[str]]:
     """(pre, post): the cron block rendered with grid_sync ON and OFF, the scratch root and the log name normalised."""
-    post = render(make_project(tmp_path, fm_with(grid_sync=False), name="post"))
-    pre = render(make_project(tmp_path, fm_with(grid_sync=True), name="pre"))
+    post = render(make_project(tmp_path, fm_with(grid_sync=False), name="post"), MAIL_BOX)
+    pre = render(make_project(tmp_path, fm_with(grid_sync=True), name="pre"), MAIL_BOX)
     n = lambda ls, r: [re.sub(r"agi-crons-\S+?\.log", "LOG", l.replace(str(r), "R")) for l in ls]
     return n(pre, tmp_path / "pre"), n(post, tmp_path / "post")
 

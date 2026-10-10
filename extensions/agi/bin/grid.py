@@ -260,8 +260,10 @@ def grid_retired(root: Path) -> bool:
     """
     try:
         import crons
-        shared = locations.shared_project_root(Path(root))
-        return crons.load_crons_node(Path(shared or root))["jobs"]["grid_sync"]["enabled"] is False
+        shared = Path(locations.shared_project_root(Path(root)) or root)
+        if not (shared / crons.CRONS_NODE_REL).is_file():
+            return False    # no crons node at all (a project without one): SILENT; an INVALID node is still named below
+        return crons.load_crons_node(shared)["jobs"]["grid_sync"]["enabled"] is False
     except Exception as exc:
         if type(exc).__name__ == "CronsError":    # an invalid node (the old mirror_towns flag, a bad cell) is NAMED, never silent
             print(f"grid: crons node invalid ({exc}); grid NOT retired", file=sys.stderr)
