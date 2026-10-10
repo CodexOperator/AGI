@@ -120,6 +120,15 @@ def test_n3_a_member_with_its_own_subtree_expands_itself(repo):
     assert slice_of(repo, "goal:a") == ["goal:a", "goal:b", "goal:c"]
 
 
+def test_n3b_a_node_path_with_a_space_or_a_non_ascii_name_is_read_whole(repo):
+    """goal:g1.42 B5 row 4 (nest.py graph() split `ls-tree` names on any whitespace: a path with a space gave an IndexError; a non-ASCII name came back quoted and was never found)."""
+    repo.build()
+    repo.w(".agi/nodes/doc/my note.md", node("doc:sp", ["goal:a"]), "sp1")
+    repo.w(".agi/nodes/doc/caf\u00e9.md", node("doc:cafe", ["goal:a"]), "cafe1")
+    repo.w(".agi/nodes/goal/a.md", node("goal:a", nest="subtree"), "a2")
+    assert slice_of(repo, "goal:a") == ["doc:cafe", "doc:sp", "goal:a", "goal:b", "goal:c"]
+
+
 def test_n4_an_arbitrary_list_of_any_types_and_a_cycle_stops(repo):
     repo.build()
     repo.w(".agi/nodes/doc/x.md", node("doc:x", nest=["doc:y", "goal:c"]), "x2")
