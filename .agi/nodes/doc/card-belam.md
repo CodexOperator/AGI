@@ -12,7 +12,7 @@ tags:
   - card
   - prime
   - belam
-thought_session: belam-s2-II
+thought_session: belam-s2-III
 title: "doc:card-belam -- the Prime's card: the one scratch (state · plan · landed · where it stops · traps · verification · BANKED)"
 town: core
 ---
@@ -21,24 +21,24 @@ town: core
 Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.agi/sessions/quorum/belam.md` are symlinks to it. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs; progress lives on the town board. Skills: agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-post · agi-memory-guard · agi-node-write · agi-goal · agi-master-gate.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-s2-II 09:3xZ 10-10, at the rotation line: card whole for belam-s2-III. This gen: woke 20:18Z; PASS B5 merged (583 commits, first Sonnet-lane pass); B6 reviewed, verifier + merge handed on; season leaves closed .3 .5 .11.1.1 .13.1 .13.2 .13.3 .19 .21 .34 .36; host fixes: dbus leak source (gh auth token) -> no-session-bus drop-in, stale signers -> signers-repoint drop-in, dead box-wake loops -> agi-boxwake@ units, stuck upsell dialog -> engine fix .36. OWNER verbatim this gen: "Nah just use sonnet subagents and we retired workflows.py in favor of shel scripts already" · "Yes always. Thats your main check every 4 hours is to see what’s stuck if anything and keep town on trajectory and moving toward season completion" · "I’m fine with the Nvidia pick yes" · "We don’t use the ladder anymore" / "It needs to be deprecated" · "The bazzite vm is temporary just doing a local town related project in the background".
+belam-s2-III 09:2xZ 10-10, at wake: crons re-armed (CHECK 13b11552 13 */4 trajectory-first, hourly 7647814e 47 *); SM's .13.3 COMPLETE land taken as merge a65c401470 (MAIN had moved to my card, ff-only impossible); ruled .8's Stop hook = explicit timeout 180 in the same cut; B6 verifier relaunched (Sonnet). B6 merge shape checked: season2/main 7276f11d36 tree == B5 TIP tree, B5 TIP is an ancestor of B6 TIP -> M6 = commit-tree TIP^{tree} -p 7276f11d36 -p TIP drops nothing. Owner verbatim carried from belam-s2-II: "Nah just use sonnet subagents and we retired workflows.py in favor of shel scripts already" · "Yes always. Thats your main check every 4 hours is to see what’s stuck if anything and keep town on trajectory and moving toward season completion" · "I’m fine with the Nvidia pick yes" · "We don’t use the ladder anymore" / "It needs to be deprecated" · "The bazzite vm is temporary just doing a local town related project in the background".
 <!-- THOUGHT:END -->
 
 ## §0 State (01:1xZ 10-09, read from date -u)
 | | |
 |---|---|
 | STANDING | owner 07:5xZ 10-10: every 4-h CHECK = TRAJECTORY FIRST -- what is stuck, idle posts, season leaves -> SM (engine) / TM (research) (skill agi-merge-pass §1 T1-T3). Reviews = Sonnet subagents (skill agi-review; workflow.py retired) |
-| post | belam-s2-II (woke 20:18Z 10-09) rotated at its line 09:3xZ 10-10 -> successor belam-s2-III; user agi-belam, home ~, works in ~/t on posts/belam |
+| post | belam-s2-III (woke 09:2xZ 10-10; predecessor belam-s2-II); user agi-belam, home ~, works in ~/t on posts/belam |
 | E | 4 cores · 7.8 GB · agi.slice MemoryHigh 5G / Max 6G / oomd 40% · the OS hostname is still the old Prime's (box = the row cell) |
 | posts on E (v5) | DG1-5 · DT-1 · TM · alive · all-is-one · self-perpetuating · SM · belam = 12; each logged in by the owner |
 | L = local-town | SHUT DOWN 02:0xZ 10-09 (owner: "confirm local town is clear and shut it down"); belam-s2-I is the ONLY Prime; every seat key carried L->E (sends sign again); L's .env NOT carried; refs/grid bundle on L's USB /mnt/agi-flash |
 | mail | NEW MAILBOX LIVE (owner 04:0xZ 10-09; "Hub is old design should not be needed anymore"): `AGI_POST=belam box send <p>` (stdin) · `AGI_POST=belam box read` · signed commits on refs/box/<from>/<to> in the SHARED MAIN repo, no g.git, no hub, no carry; agi-run wakes on "mail: box read". Proved both ways 04:0xZ with SM + TM. Matrix = levels differ <= 1: belam mails the masters ONLY; a director goes via its master (belam -> DG1 = [off-matrix]). AGI_POST must be set by hand (unit sets AGI_SEAT only; residue R6, DG1 leaf via SM 04:1xZ). BOX ONLY for EVERY post (owner 04:5xZ to belam + to SM: "switch everyone to box only please including DG 1 and yourself"; SM sent the rule to all 10 by box, names any post silent on box): no send.py send, no inbox-file writes, no cross-session pings |
 | root on E | agi-belam has sudo NOPASSWD ALL (grok-era sudoers; owner 00:2xZ "Yes that’s fine" for now; council narrows it after) |
 | GitHub | E login user's gh (repo) wired to git (gh auth setup-git); post uids have none -> push via `sudo -n -u belam git -C /data/work/agi push origin <ref>` |
-| crons | box: user belam's crontab on E is LIVE (10 lines = the graph; crons_apply 02:05Z no-op): grid_sync */5 · ref pushes */5 · trunk push :07 · send.py wake */2 (the L note "E has no crontab" was wrong) · session-only (re-arm at wake): CHECK 541c0eb9 (13 */4, box read + launch when the key sees ws 72750376) · memory 4317a080 (47 *) · one-shots 45a8ec64 04:37Z · 4825bc4e 06:07Z |
+| crons | box: user belam's crontab on E is LIVE (10 lines = the graph; crons_apply 02:05Z no-op): grid_sync */5 · ref pushes */5 · trunk push :07 · send.py wake */2 (the L note "E has no crontab" was wrong) · session-only (re-arm at wake): CHECK 13b11552 (13 */4, trajectory-first) · hourly 7647814e (47 *: memory + stuck-dialog scan + box read) |
 | host act E | installed 22:22Z 10-08 at dd1563bc3c: rollback `sh /var/backups/agi-act-20261008T222239Z/rollback.sh` |
 | landing | belam commits on posts/belam, pushes posts/belam, then as user belam `merge --ff-only posts/belam` in MAIN; the TRUNK push is TM's alone (skill agi-merge-pass §4; breached twice gen 31, owned to TM) |
-| merge pass | B5 MERGED (season2/main 7276f11d36). B6 IN FLIGHT: BASE fc4a0865ee · TIP PINNED 4e9dbced38 (176 commits, 124 paths) · 6 Sonnet lanes DONE: 0 RED · 3 demote · 9 residue · mechanical: anonymize ok 504 KB, D = moves/retirements verified, links 5845/0 · VERIFIER NOT DONE (died with the session) · kit ~/pass-b6 (brief, range, lanes, out/*.json, combined.json, verify-prompt.md) · state MAIN .agi/sessions/prime-merge.state.json |
+| merge pass | B5 MERGED (season2/main 7276f11d36). B6 IN FLIGHT: BASE fc4a0865ee · TIP PINNED 4e9dbced38 (176 commits, 124 paths) · 6 Sonnet lanes DONE: 0 RED · 3 demote · 9 residue · mechanical: anonymize ok 504 KB, D = moves/retirements verified, links 5845/0 · VERIFIER RELAUNCHED 09:3xZ by belam-s2-III (Sonnet agent -> out/verify.json) · merge shape checked (THOUGHT) · kit ~/pass-b6 (brief, range, lanes, out/*.json, combined.json, verify-prompt.md) · state MAIN .agi/sessions/prime-merge.state.json |
 
 ## §1 Plan
 ```
@@ -53,13 +53,13 @@ belam-s2-II 09:3xZ 10-10, at the rotation line: card whole for belam-s2-III. Thi
 NEVER: assign a design or a build (council) · dispatch · write in another post's tree
 ```
 
-## §2 Landed (belam-s2-II; detail in git + the goal notes)
+## §2 Landed (belam-s2-III: .13.3 COMPLETE land a65c401470 · .8 Stop-hook ruling to SM. belam-s2-II below; detail in git + the goal notes)
 B5 7276f11d36 · .35 RLIMIT_DATA · AA1.V v5f/g · kid identity · key-stranding fix + rows · .13.1/.13.2/.11.1.1/.3/.21/.36/.5/.34/.19/.13.3 closes (all via SM, full guard each)
 mine: free tier -> nvidia/nemotron-3-ultra-550b-a55b:free · skill agi-review + review-lanes.sh + doc:agi-review-brief · goal:g1.42 (B5 residues; open 11/12/25 owner + 15 mine) · rc-keepalive title heal + rate limit · signers-repoint + no-session-bus drop-ins (/etc/systemd/system/agi-post@.service.d/50-,51-) · crons._systemd_bus_env disabled: fix · ladder goal .15 active
 
 ## 🔴 Where it stops
-belam-s2-II rotated at its line 09:3xZ 10-10 in the middle of PASS B6: lanes done, VERIFIER owed, merge owed (an irreversible multi-ref act is never started past 0.41 -- it is this card's first line).
-- next command at wake (on E, ~/t): `AGI_POST=belam box read` (UNREAD mail waits: SM sent at ~09:3xZ, not read by me), re-arm crons (CHECK 13 */4 trajectory-first, memory 47 *), then plan 1
+belam-s2-III is mid PASS B6: verifier running; on CLEAR -> plan 1 merge (M6 = commit-tree 4e9dbced38^{tree} -p 7276f11d36 -p 4e9dbced38).
+- if this post dies before the merge: re-run the verifier (one Sonnet Agent, prompt ~/pass-b6/verify-prompt.md), unless ~/pass-b6/out/verify.json exists -> read it and go to plan 1
 
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
