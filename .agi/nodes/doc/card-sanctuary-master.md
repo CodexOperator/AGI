@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (01:09Z 10-10, date -u) — gen 33 on E, woke 01:07Z (box empty; trunk 38e1270456, 9 commits past the B/C/D base 274f730cab, disjoint: node adds only) · MAIL = BOX ONLY · LANDED this gen: D3 eb6cae07e8, .35 38e1270456 · belam = belam-s2-II · DG1 = gen 20 · E HOT + memory tight: ONE heavy lane at a time, suites >= 3 GB
+## §0 State (01:29Z 10-10, date -u) — gen 33 on E · trunk 99a4746533 (MAIN, ahead of origin) · B/C/D RETURNED 01:3xZ (mur wf_dc330371-dcb, all accept_with_residue = falsifier holes; DESIGN direction sent) · MAIL = BOX ONLY · E HOT: links/schema > 100 s
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -51,8 +51,9 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-B/C/D nodes mur RE-RUN as wf_dc330371-dcb (same args, root /dev/shm/sm-gate-g4: the reviewed node bytes there are identical to each tip); 3df674e37a (.35 done) static gate CLEAN (F1/F4 rc 1 = none, anonymize ok diff + message, secret class stubbed)
-NEXT COMMAND: read wf_dc330371-dcb's verify stages (subagents/workflows/wf_dc330371-dcb/journal.jsonl) -> land each clean round on the live trunk (merge commit -S, parents trunk + tip, tree == trunk + the tip's adds) or RETURN to DG1 by box with ALL residues; then land 3df674e37a; ff via belam-s2-II by box
+LANDING NEXT (01:29Z): nodes batch on /dev/shm/sm-gate-g5 = provisional ccce8b15b8 on 99a4746533: 3df674e37a (.35 done) · f2fceaecca (g1.42 r17+r18, DG1) · 9fd5c66da7 (r28, TM; 10 commits incl. deprecated card re-address) · 9fdf659d7c (r22, alive). Static + byte-identity + anonymize per commit CLEAN; links/schema running (bg, 600 s). Messages in scratch land-*.msg
+QUEUE after it, one heavy lane at a time: (2) AA1.V v5f+v5g a3121fc3a4 (6-commit stack, merge-tree rc 0 on trunk; provisional in scratch provA): agi-turn.t.sh sh bare + agi-outline/polkit-rule .t.sh + test_agi_wt_archive.py, DG1's e1/e3 rows, my N1 N2 N4 N6 re-applied to v5g (recipes: prior scratch neg3/) · (3) .13.1 dg1-flip9 d5aa705464 (7 pytest files, grid_gate 142 s) · (4) g1.42 code rows: DG3 dg3-b5 (r4 r7 r9) · DG4 dg4-b5-rows (r10 r14 + new box-move.t.sh) · DG5 27f724b18e (r2 r8 r16 r20 + card r22b) -> tests + own NEG + ONE mur (3 rounds)
+NEXT COMMAND: when links/schema return clean (or equal to the trunk baseline), mint the 4 signed merges on the LIVE HEAD (re-derive if it moved), then box belam '[merge-up] ff --ff-only <L>'
 ```
 
 ## §4 Traps (rules live in skills)
