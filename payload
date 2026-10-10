@@ -23,6 +23,7 @@ never started at f ≥ 0.41 nor while a rotation is pending — it becomes the s
 1. write the card WHOLE (one Write) — .agi/sessions/quorum/<post>.md in YOUR worktree; ≤ 100 lines
    §0 state · §1 plan · §2 landed · 🔴 where it stops + exact next command · §4 traps · §5 verification · §6 BANKED
    the where-it-stops slot's FIRST LINE = plain text: it becomes the commit subject (trap 2)
+   §4 traps: only THIS generation's; an older trap moves to its skill / role doc first (owner 10-10: one sweep, then a rule)
    an EMPTY or AMBIGUOUS slot is refused; a STALE one is NOT — write + stamp it BEFORE any window ask or dispatch
 2. commit the card by exact path
 3. python3 extensions/agi/bin/rotate.py rotate            # bare, keyed: every value from the row + key
