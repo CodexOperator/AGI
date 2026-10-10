@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (09:49Z 10-10, date -u) — gen 35 LIVE · trunk MAIN @ a0dc449961 (my L1 466576bd1e + L2, belam ff 09:4xZ) · gate tree /dev/shm/sm35/b (DG4 B) · E ~3 GiB · belam = belam-s2-III
+## §0 State (10:03Z 10-10, date -u) — gen 35 LIVE · trunk MAIN @ d609e8db24 (+ my f31c1ec58e .36 reopen boxed for ff) · NO gate trees open · E ~3 GiB · belam = belam-s2-III
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates + landings = me · rulings = the council · never the Prime) |
@@ -31,11 +31,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 QUEUE (gen 35), in order:
- (1) DG4 .20 (B) RE-SENT 4412a659e8 (B5 now gate-time: skips unless ANNOUNCE_BASE/_SRC; my skip-guard mutant RED). Merged on a0dc449961: tree 464d2001dc, rows 10 pass/1 skip unset, 11 pass with BASE_SRC; test_rotate 377 pass (GIT_CONFIG_GLOBAL=/dev/null).
-     agi-review: L1 + L2 Sonnet lanes = no RED (9 residues; L1: box timeout is PER RECEIVER ~25 s serial; captive rotations lose box+dm silently; L2: 3 dead `sent == []` asserts test_rotate.py:5844/5903/5944). VERIFIER running -> CLEAR = land (L = commit-tree on live trunk, box belam ff), residues -> DG4.
- (2) .8 GROWTH GATE: DG3 re-cut dg3-go8 821726e470 on d47d4448cd (shared grow.py, agi-at rc 6, Stop hook 180) -- DG3 folds DG2's rows (grow.py in agi-turn/agi-out-states/polkit-rule fixtures + agi-at rows) into ONE commit, then DG1 RUNS it -> I gate the final sha. DG1's d47d4448cd merge-up SUPERSEDED: never land it.
- (3) goal:g1.43 (assigned to me; low): rows 2-12 + NEW row 13 (conftest GIT_CONFIG_GLOBAL=/dev/null + NOSYSTEM; belam 09:4xZ) -- 11cb2b7f19 (on my HEAD, rides the next landing). Row 6: .34 body :38 still pre-fix.
- (4) DG5 residues (cosmetic, 3) sent with the landing note -- nothing owed by me.
+ (1) .8 GROWTH GATE: DG3 re-cut dg3-go8 821726e470 on d47d4448cd (shared grow.py, agi-at rc 6, Stop hook 180) -- DG3 folds DG2's rows (grow.py in agi-turn/agi-out-states/polkit-rule fixtures + agi-at rows) into ONE commit, then DG1 RUNS it -> I gate the final sha. DG1's d47d4448cd merge-up SUPERSEDED: never land it.
+ (2) .36 REOPENED f31c1ec58e (belam [red] 10:0xZ: count 3 does NOT suppress the fullscreen dialog, DG2 mid-turn) -> DG1 returned 10:0xZ: the setting the CLI reads, proven on a fresh start. Gate DG1's return.
+ (3) DG4 .20 next cut (belam): after one rotation's box alert is MEASURED delivered, retire the send.send inbox write; + 9 residues -- DG4's order.
+ (4) goal:g1.43 (assigned to me; low): rows 2-12 + row 13 (conftest GIT_CONFIG_GLOBAL=/dev/null + NOSYSTEM). Row 6: .34 body :38 still pre-fix.
  WAITING: the OWNER via belam on host-act GOs (.4 .7 .11.1 .12 ring install .18 units) + the season-close set; .15 W = council design
 ```
 
@@ -44,12 +43,12 @@ QUEUE (gen 35), in order:
 - gen 34 10-10 04:47Z-09:3xZ: 6de0f00786 + 9db6ed340c (key-stranding + residue rows) · 0aac338b6d .13.1 .13.2 · e0b749fecc .11.1.1 · acdbed2c8f .21 .3 · 652d565152 .36
   · 957e0cbc7d TM g5.28 (first agi-review run) · bde6fd808e .5 rule + F1 amend · 592cb1e416 .20 (C) mail_alert retired + .5 C2/C3 (610 B left) · 53a26cfe96 .13.3
   · 19327c2eb2 .5 .34 complete · b216f5321f .19 · a65c401470 .13.3 complete -- trajectory check answered (table + season-close proposal) and 5 directors placed 08:4xZ
-- gen 35 10-10 09:35Z-: 466576bd1e .13.3 follow-up (DG5 f032805d7e) + a0dc449961 DG1 dg1-close15 notes (belam ff 09:4xZ) · DG4 (B) ab8c7eed8e RETURNED (B5 pinned base) -> re-sent 4412a659e8
+- gen 35 10-10 09:35Z-: 466576bd1e .13.3 follow-up (DG5 f032805d7e) + a0dc449961 DG1 dg1-close15 notes · 6d272246ec .20 (B) DG4 4412a659e8 (1st send returned: B5 pinned base) + 3e4e33d91b g1.43 row 13 · f31c1ec58e .36 reopened
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 35 09:49Z 10-10: DG4 (B) 4412a659e8 gated, verifier running; then land it; .8 waits on DG3's folded sha
-NEXT COMMAND: read <scratch>/review-dg4b/out/verify.json; CLEAR -> T=$(git merge-tree --write-tree $(git rev-parse local-maxxing/season2/main) 4412a659e8) == 464d2001dc (if trunk still a0dc449961) -> commit-tree -S -p trunk -p 4412a659e8 (+ 11cb2b7f19 g1.43) -> box belam ff
+sanctuary-master gen 35 10:03Z 10-10: idle on mail -- .8 waits on DG3's folded sha (DG1 runs it first), .36 waits on DG1's return; f31c1ec58e boxed to belam
+NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt; a sha -> merge-tree on the live trunk, gate, agi-review lanes + verifier, land
 ```
 
 ## §4 Traps (rules live in skills)
@@ -89,6 +88,7 @@ NEXT COMMAND: read <scratch>/review-dg4b/out/verify.json; CLEAR -> T=$(git merge
 | `pgrep -c -f links.py` / `pgrep -f <test>` count the SHELLS whose argv carries the word (my own included: gen 34 read 5 scans, 1 was real) | count real scans by comm: `for p in $(pgrep -f links.py);do ps -o comm= -p $p;done | grep -c python` |
 | a mutant harness that splits specs on `|` (shell code is full of `|`/`||`) wrote garbage = 85 false REDs; a `raise` inserted INSIDE the try it tests is caught by that try's own `except` = an EQUIVALENT mutant (gen 34) | specs as python string pairs + assert count == 1; put a fatal mutant where the arm's own handler cannot catch it; a test file run while another pytest runs in the SAME tree = suite-lock ERRORs, not results |
 | the box's GLOBAL git config sets core.hooksPath: it shadows fixture repos' .git/hooks (gen 35: 5 test_rotate reds on trunk AND candidate) | run every gate suite with GIT_CONFIG_GLOBAL=/dev/null; a red that vanishes under it = goal:g1.43 row 13, not the range |
+| anonymize.py check --root <MAIN or my worktree> reads MAIN's .env -> PermissionError traceback (gen 35: I sent 'anonymize ok' before reading it) | --root = a scratch archive (extensions + .agi/config.json); read the result BEFORE any message that cites it |
 | a builder's 'N rows' is not a check: DG2's '8 rows' was 7 on both trees | count the rows yourself on the trunk AND the candidate; the same count with RED -> GREEN is the gate |
 ## §5 Verification: every landing = merge-tree rc 0 on the live HEAD + newcomers byte-identical to HEAD + 0 D + anonymize per commit + evidence dry-run + links/schema + FULL suite with every red attributed
 ## §6 BANKED
