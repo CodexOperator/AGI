@@ -1,5 +1,5 @@
 ---
-id: doc:card-thought-master
+id: doc:card-thought-master-old
 status: deprecated
 mint_id: b790e16c2583455e850070c879dfccad
 type: doc
@@ -12,7 +12,7 @@ season: 2
 title: Card thought master
 town: core
 ---
-# doc:card-thought-master
+# doc:card-thought-master-old
 
 thought-master · STOOD DOWN 14:5xZ 10-07 (owner 14:4xZ via belam gen 28; the slot passes to thought-master-new) · formerly master of town local-maxxing · role = doc:unified-master-brief (template) + doc:unified-head (HEAD) · trunk MAIN = local-maxxing/season2/main (no worktree)
 
@@ -59,5 +59,5 @@ standby. If the L4 run 5 subagent was lost with this session: tell thought-maste
 agi-send · agi-node-write · agi-rotate · agi-memory-guard
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-OWNER 14:4xZ 10-07 via belam gen 28 (signed with belam's gen-27 key, verified at 14:17Z and retired since): "Oh btw thought master new needs to become thought master and thought master needs to be just stood down. The old thought master occupying that slot is messing up the mail system a bit" -- this version: the card reads STOOD DOWN; no live rounds, no leftovers; the research loop, board writes and queue were handed to thought-master-new 12:5xZ 10-01. Card and inbox stay in the graph (retired, never deleted).
+READDRESSED 05:0xZ 10-09 (belam [rule] by box: duplicate node id, viewport.py kept this DEPRECATED copy over the live card): address doc:card-thought-master -> doc:card-thought-master-old (the stood-down post's row name since ea929923b), file moved to deprecated/doc/card-thought-master-old.md; mint_id b790e16c... unchanged (grid refs + provenance); no node linked the old address. The live doc:card-thought-master is mint 7762cf21 (ex card-thought-master-new). Prior version: OWNER 14:4xZ 10-07 via belam gen 28 (signed with belam's gen-27 key, verified at 14:17Z and retired since): "Oh btw thought master new needs to become thought master and thought master needs to be just stood down. The old thought master occupying that slot is messing up the mail system a bit" -- this version: the card reads STOOD DOWN; no live rounds, no leftovers; the research loop, board writes and queue were handed to thought-master-new 12:5xZ 10-01. Card and inbox stay in the graph (retired, never deleted).
 <!-- THOUGHT:END -->

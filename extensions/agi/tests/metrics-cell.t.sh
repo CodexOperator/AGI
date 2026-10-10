@@ -69,5 +69,9 @@ ok "e3-lock-held-at-start-is-the-old-skip a live holder before the run: rc $mrc 
 # a DEAD pid in the lock file is no hold: the by-path commit proceeds at once
 mk 5;sleep 0.1 & DEAD=$!;wait $DEAD;echo $DEAD >$LOCK;go STUB_X=1
 ok "e3-a-stale-lock-is-no-hold a lock file naming a dead pid: rc $mrc (want 0), commits $nc (want 2), dirty $dirty (want 0), took ${el}s (want <= 3: no wait)" '[ $mrc = 0 ]&&[ $nc = 2 ]&&[ $dirty = 0 ]&&[ $el -le 3 ]'
+# goal:g1.42 row 2: an UNREADABLE lock state (here: the policy read RAISES, via a stub `verification` whose holder read is clean) FAILS CLOSED: ERR rc 3 naming the unreadable state + the recover command, nothing committed
+mk 5;rm -f $T/bin/verification.py;printf 'def suite_lock_holder(root): return None\ndef suite_lock_policy(root): raise RuntimeError("policy unreadable")\n' >$T/bin/verification.py;go STUB_X=1
+ok "e3-an-unreadable-lock-state-fails-closed the policy read raises: rc $mrc (want 3), HEAD moved: $([ $hd = $H0 ]&&echo no||echo YES) (want no), node dirty files $dirty (want 1), an ERR: line naming the unreadable lock state $(grep -c '^ERR:.*unreadable' $T/e) (want 1), the recover command $(grep -c 'git -C .* add -- ' $T/e) (want >= 1)" '[ $mrc = 3 ]&&[ $hd = $H0 ]&&[ $dirty = 1 ]&&[ $(grep -c "^ERR:.*unreadable" $T/e) = 1 ]&&[ $(grep -c "git -C .* add -- " $T/e) -ge 1 ]'
+rm -f $T/bin/verification.py;ln -s $BIN/verification.py $T/bin/verification.py
 echo "metrics-cell: $f FAIL"
 exit $f

@@ -26,6 +26,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 import rotate  # noqa: E402
 
@@ -52,6 +53,7 @@ def _fix(tmp_path, monkeypatch):
     monkeypatch.setattr(rotate, "find_project_root", fake_root)
     g = root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (g / "rotations.md").write_text(
         "---\nid: config:rotations\ntype: config\ntemplates:\n"
         "  parent:\n    brief_file: extensions/agi/briefs/parent-successor.md\n"
@@ -70,6 +72,7 @@ def _fix(tmp_path, monkeypatch):
 def _write_seats_sheet(root, rows):
     nodes = root / "nodes" / ".geometry"
     nodes.mkdir(parents=True, exist_ok=True)
+    write_free_veto(nodes)
     (root / "sessions").mkdir(parents=True, exist_ok=True)
     body = "---\nid: config:seats\ntype: config\nseats:\n"
     for r in rows:
@@ -277,6 +280,7 @@ def test_bootstrap_staleness_refuses_stale_accepts_fresh(_fix):
 def _write_rotations_with_fact_bounds(root, fact_bounds):
     g = root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     body = "---\nid: config:rotations\ntype: config\nfact_bounds:\n"
     for k, v in fact_bounds.items():
         body += f"  {k}: {v}\n"

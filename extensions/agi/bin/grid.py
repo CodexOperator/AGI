@@ -246,7 +246,9 @@ def grid_retired(root: Path) -> bool:
     import: crons imports grid) from the project's SHARED checkout like
     `ref_ns_for`. `crons_live: false`, a `box:` gate or an absent key also drop
     the job but leave the gate OPEN (fail-safe); a node crons.py cannot validate
-    (any error, no file, no key, no yaml) is NOT retired; `False`, `no`, `off`
+    (any error, no file, no key, no yaml) is NOT retired, and a CronsError (an
+    invalid node) prints ONE stderr line per call, `grid: crons node invalid
+    (<text>); grid NOT retired`; `False`, `no`, `off`
     ARE retired. Retired, rotate._push's `refs/grid/*` push and `grid.py sync`
     (the operator's verb, ungated by design) can only republish tips that
     already exist locally: a non-force push, idempotent, nothing new written
@@ -258,9 +260,13 @@ def grid_retired(root: Path) -> bool:
     """
     try:
         import crons
-        shared = locations.shared_project_root(Path(root))
-        return crons.load_crons_node(Path(shared or root))["jobs"]["grid_sync"]["enabled"] is False
-    except Exception:
+        shared = Path(locations.shared_project_root(Path(root)) or root)
+        if not (shared / crons.CRONS_NODE_REL).is_file():
+            return False    # no crons node at all (a project without one): SILENT; an INVALID node is still named below
+        return crons.load_crons_node(shared)["jobs"]["grid_sync"]["enabled"] is False
+    except Exception as exc:
+        if type(exc).__name__ == "CronsError":    # an invalid node (the old mirror_towns flag, a bad cell) is NAMED, never silent
+            print(f"grid: crons node invalid ({exc}); grid NOT retired", file=sys.stderr)
         return False
 
 
@@ -1653,6 +1659,16 @@ def _rename_ref(root: Path, old_ref: str, new_ref: str, write: bool) -> str:
     return "moved"
 
 
+def _retired_write(root: Path, write: bool) -> bool:
+    """goal:g7.16.1.11.13.1 F1: a `--write` migrate verb moves refs/grid, so
+    once grid_sync is retired it refuses by name (RETIRED_LINE, rc 0, no ref
+    moved); a dry run is never gated."""
+    if write and grid_retired(root):
+        print(RETIRED_LINE)
+        return True
+    return False
+
+
 def cmd_migrate_refs(root: Path, write: bool) -> None:
     """Move `refs/grid/node/*` from the pre-fix sanitize() scheme to the
     injective one, driven entirely by node ids found on disk today.
@@ -2099,6 +2115,8 @@ def main() -> None:
                      unmanaged=not args.no_unmanaged, force=args.force)
     elif args.cmd == "status":
         cmd_status(root)
+    elif args.cmd in ("migrate-refs", "migrate-mint-refs", "migrate-trunk") and _retired_write(root, args.write):
+        pass
     elif args.cmd == "migrate-refs":
         cmd_migrate_refs(root, args.write)
     elif args.cmd == "migrate-mint-refs":

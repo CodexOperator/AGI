@@ -19,6 +19,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 import yaml
 
 BIN = Path(__file__).resolve().parent.parent / "bin"
@@ -39,6 +40,7 @@ def project(tmp_path: Path) -> Path:
     graph = tmp_path / ".agi"
     (graph / "nodes" / "hypothesis").mkdir(parents=True)
     (graph / "config.json").write_text("{}")
+    write_free_veto(graph / "nodes" / ".geometry")
     (graph / "nodes" / "hypothesis" / "h1.md").write_text(
         '---\nid: "hypothesis:h1"\ntype: hypothesis\nmint_id: abc123\n'
         'title: "t"\ntestable_claim: "c"\nscaffold_hash: deadbeef\n'
@@ -727,6 +729,7 @@ def test_sm144_an_empty_body_patch_stdin_refuses_beside_any_verb(project, tmp_pa
 def _g41816_guard(project):
     d = project / "nodes" / ".geometry"
     d.mkdir(parents=True, exist_ok=True)
+    write_free_veto(d)
     (d / "guard.md").write_text("---\nid: config:guard\ntype: config\nmint_id: " + "e" * 32 +
                                 "\nlimit: 384M\n---\n\n# config:guard\n\nold line\n\n" + THOUGHT + "\n")
     assert write.main(["config:guard", "set note_row x", "--root", str(project)]) == 0   # canonical form
@@ -1215,6 +1218,7 @@ def _seats_fixture(project, rows):
     Each tuple is (name, role)."""
     d = project / "nodes" / ".geometry"
     d.mkdir(parents=True, exist_ok=True)
+    write_free_veto(d)
     body = "\n".join(
         f'  - {{"name": "{n}", "role": "{r}"}}' for n, r in rows)
     (d / "seats.md").write_text(
@@ -2247,7 +2251,9 @@ def test_submit_resolves_repo_root_descend_only(project):
 # --------------------------------------------------------------------------
 
 def _seeded_node_dirs(graph: Path) -> set[str]:
-    return {p.name for p in (graph / "nodes").iterdir() if p.is_dir()}
+    # `.geometry` holds the fixture's FREE veto cell (write_free_veto), not a node type
+    return {p.name for p in (graph / "nodes").iterdir()
+            if p.is_dir() and p.name != ".geometry"}
 
 
 def test_create_refuses_a_type_with_no_active_schema_by_name(project):
@@ -3374,6 +3380,7 @@ def test_r1c_every_splitlines_separator_before_the_opener_is_refused_on_sub_body
 def _g733202_posts(project, *names):
     d = project / "nodes" / ".geometry"
     d.mkdir(parents=True, exist_ok=True)
+    write_free_veto(d)
     body = "\n".join(f'  - {{"name": "{n}", "role": "director"}}' for n in names)
     (d / "posts.md").write_text("---\nid: config:posts\ntype: config\nposts:\n" + body +
                                 "\n---\n\nbody\n")
@@ -3548,6 +3555,7 @@ def test_g73320_b3_same_type_descriptive_stems_and_geometry_nodes_still_read(pro
         assert rc == 0 and "legacy body" in out and err == "", (nid, out, err)
     g = project / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (g / "census.md").write_text("---\nid: config:census\nmint_id: " + "6" * 32 +
                                  "\ntype: config\nparents:\n  - goal:g1\n---\n\ngeo body\n")
     node_writer._ID_INDEX.clear()

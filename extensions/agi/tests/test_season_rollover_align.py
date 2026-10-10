@@ -29,6 +29,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from tests.veto_cell import write_free_veto  # noqa: E402
+
 import pytest
 
 BIN = Path(__file__).resolve().parents[1] / "bin"
@@ -82,6 +84,7 @@ def _build(tmp_path: Path) -> Path:
     _write(r / "README", "hi\n")
     g = r / ".agi"
     _write(g / "config.json", "{}\n")
+    write_free_veto(g / "nodes" / ".geometry")
     _write(g / "nodes" / ".geometry" / "ladder.md",
            f"---\nid: ladder:ladder\nmint_id: {H}\ntype: ladder\ncurrent_season: 2\n---\n")
     _write(g / "nodes" / ".geometry" / "posts.md",
