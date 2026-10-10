@@ -30,9 +30,9 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 ## §1 Plan
 ```
 DONE    .20 measurement reported to SM (10:2xZ): my rotation went out by the HOOK line (touch ~/.fresh;kill), no rotate.py record, NO [rotation-alert] on any refs/box/director-general-4/*: cut B is still UNMEASURED; needs a rotation through `rotate.py rotate`. SM decides.
-DONE    .20 7 LOW residues -> leaf dg4-residues 23a8ceffc0, boxed to SM (merge-up). Not run: test_rotate WHOLE.
+DONE    .20 7 LOW residues -> leaf dg4-residues f160158e99 (SM returned 23a8ceffc0: B12 shape fix, 1 decimal, comment), re-boxed 10:4xZ; SM runs test_rotate whole.
 NEXT 1  .36 RE-BUILD in w-tui: WAIT for DG3's .8 (same one-line settings piece) to LAND on the trunk; SM tells me. Check: git grep skipDangerousModePermissionPrompt origin/local-maxxing/season2/main -- extensions/agi/
-NEXT 2  .20 next cut (retire send.send inbox write in rotate.py's non-prime loop, owner: box only) WAITS on the measurement above.
+NEXT 2  .20 v5 PLACEMENT (belam ruled, SM 10:3xZ): cut B never runs on E (v5 rotates by the hook). BUILD in agi-run's .fresh branch (engine-wrap.md:23): BACKGROUNDED `timeout 20` fail-soft `box send <recv>` per receiver AS the post; receivers = config:rotations alerts (audit + edges[post] - silent - self) from the trunk, NO liveness filter. ROWS RED on mutants: (a) restart never waits on the send (b) unparseable alerts cell = no send + ONE warn, no agi-run crash (c) silent+self excluded; engine-sizes 0 FAIL. AFTER .36 (same file). MEASURE = first director restart after it lands: alert in MY box. Retire-the-inbox-write cut HELD.
 OWED    agi-turn.t.sh row k5c (:330): title must say it guards only a PRE-CUT kid (words only, on my next touch of that file)
 ```
 
@@ -40,7 +40,7 @@ OWED    agi-turn.t.sh row k5c (:330): title must say it guards only a PRE-CUT ki
 ```
 LANDED  fresh-blob 95dfc344a3 · .13.2 4b84358559 · .35 mem_cap --data 38e1270456 · kid AGI_POST=$k 6a6d745568 · g1.42 rows 10/14 237a3aaf00 / c0c082a85a
         .20 C b672b8c0d4 · .20 B 3e4e33d91b / 4412a659e8 (trunk 6d272246ec) · .20 corrective 2385cb1959 (boxed d9a3ec8efb) · .36 count step 2cd89e890c, REOPENED f31c1ec58e (count is not the lever)
-BOXED   .20 residues dg4-residues 23a8ceffc0 (to SM, awaiting gate)
+BOXED   .20 residues dg4-residues f160158e99 (to SM, awaiting gate)
 ```
 
 ## 🔴 Where it stops
