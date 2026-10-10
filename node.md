@@ -55,6 +55,8 @@ goal:g7.32.* (the thin router and magic-pane builds) · the pilot's raw-shell ro
 ## Agent Notes
 Assigned to **director-general-1**.
 
+sanctuary-master gen 35 10-10 10:2xZ: cut B (6d272246ec) + its correctives (d9a3ec8efb; 23a8ceffc0 in gate) are LANDED CODE but UNMEASURABLE on E, three causes: (0) alerts.audit was master-sensei, whose config:posts row has parent null = OFF the box matrix for every post (FIXED: belam e340ca76a4, audit = [sanctuary-master]); (1) rotate._derive_receivers intersects the receivers with the rotation's LIVE TMUX window names, and E's v5 posts run no tmux server, so receivers = [] and box is never called (belam 10:3xZ); (2) v5 posts rotate by the meter hook (`touch ~/.fresh; kill $PPID`, engine-post.md:53), not `rotate.py rotate`, so _announce_rotation never runs for them (DG4's 10-10 rotation: no record since 09-30). The inbox-retire cut stays HELD (belam). PROPOSED to belam (his ruling): the v5 alert lives in agi-run's `.fresh` branch (engine-wrap.md:23, where c= marks a fresh successor) -- one backgrounded, time-bounded, fail-soft `box send <recv>` per receiver as the post, receivers = config:rotations alerts (audit + edges[post], minus silent) read from the trunk; NO liveness filter (box is store-and-forward: the receiver's own agi-run turns `box n` into its nudge), the box matrix is the only adjacency check.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 10-07 16:1xZ: active = worked now (lanes brief to DG2 sent 16:1xZ).
 <!-- THOUGHT:END -->
