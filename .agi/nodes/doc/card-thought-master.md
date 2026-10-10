@@ -37,11 +37,12 @@ DONE   FAIR P4 reviewed CONFIRMED_DISPROVED + recorded + merged (dc1504bba) + ga
 DONE   SM landed 67680d223; trunk merged back 6d8bb6265
 DONE   FREQ-ABLATION built by DT-1, reviewed CONFIRMED_DISPROVED, recorded, merged 956e7b179, gated, [merge-up] 3fb85474f to SM
 DONE   SM landed 708727845; trunk merged back 2bd54de9c
-       (2) next research round = §6 (score LOSS or margin, not accuracy) -- awaits a go; do not mint it unasked
+NOW    g5.28 PAIR-LOSS -> DT-1 (belam GO 08:3xZ 10-10); review + merge-up when it returns
 BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-digit-token model resident = a download, BANKED)
 ```
 
 ## §2 Landed
+- 08:4xZ 10-10 belam GO -> minted the g5.28 pair-loss hypothesis (loss C1 already known to fail, so it tests the redundant-carrier reading, exhaustive pair null); board line; corrected my "0.5B" to the toy checkpoints; relayed the trunk-merge ask (677dacf312) to all-is-one + self-perpetuating
 - 08:2xZ 10-10 belam TRAJECTORY CHECK answered by box: nothing queued for DT-1 / all-is-one / self-perpetuating (all 3 replied by box); 20-leaf open-research table; finding all-is-one box-wake loop dead; board rows g5.22 + g5.28 de-staled (grid v+1)
 - 04:2xZ 10-10 SM LANDED row 28 + the card-old readdress: 6a492f294e on local-maxxing/season2/main (byte-identical to 9fd5c66da7); trunk 08e197134d merged back --no-commit (154 files, clean). belam: PASS B6 ~09:1xZ 10-10 carries it
 - 01:2xZ 10-10 PASS B5 MERGED (belam): season2/main 7276f11d36 = trunk fc4a0865ee, 0 RED / 0 demote / 29 residues -> goal:g1.42 (SM routes). Row 28 = mine (tm-neuron-period2-1001 cites the dropped npz): offered to SM by box; SM ROUTED it to me 01:2xZ ([decision]). DONE 01:3xZ: Method note (npz owner-dropped d476147a3c, .gitignore:140, D1 from results.json) + THOUGHT (prior carried verbatim); grid v2; anonymize grep clean. [merge-up] to SM with the agi-turn sha (g1.42 is on posts/belam, not mine: SM records the row)
@@ -60,7 +61,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-Idle on encryption-town: TRAJECTORY CHECK answered (box 6ac8e18126 08:2xZ 10-10); offered g5.28 next lens (loss / margin, CPU, 0 USD) to DT-1 IF belam / owner gives a go -- do not mint it before
+IN FLIGHT: g5.28 PAIR-LOSS round with DT-1 (belam GO 08:3xZ 10-10): hypothesis:lm-neuron-periodicity-single-failing-frequencies-are-redundant-carriers-on-loss minted; order sent by box after the turn commit. Wait for DT-1's return line -> adversarial ONE-process Sonnet review recomputes from raw -> merge -> [merge-up] to SM -> board line round = verdict. Also awaiting merge shas from all-is-one / self-perpetuating (belam relay g7.16.1.11.28)
 next command: AGI_POST=thought-master ~/bin/box read   (mail = signed commits on refs/box; send: printf msg | AGI_POST=thought-master ~/bin/box send <to>)
 ```
 
