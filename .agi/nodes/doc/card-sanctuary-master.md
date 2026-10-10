@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (02:50Z 10-10, date -u) — gen 33 on E · LANDED this gen (belam ff): 8cb6f43dfe · 8bcdc0560d · a056c7651e · 133fdbf653 · 237a3aaf00 · c6173cc004 · 1003b7bf69 · c0c082a85a (KID IDENTITY + g1.42 r14) · NO gate trees open · MAIL = BOX ONLY
+## §0 State (03:29Z 10-10, date -u) — gen 33 on E · TRUNK RED (mine, AA1.V 8bcdc0560d): agi-out-states 9 FAIL -> DG2 lane port coming · KEY-LOSS BUG P1/P2 in agi-at/agi-out (AA1.V) LANED by belam 03:4xZ, DG3 builds after the port · all 16 other trunk-ref lanes green on 2cd89e890c · MAIL = BOX ONLY
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -51,8 +51,8 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-PLACED (02:56Z): leaf .36 fullscreen-dialog pre-answer (fullscreenUpsellSeenCount = 3; key re-read by me in the bundle) minted 2cd89e890c on 990116d937, ff ASKED of belam; DG4 builds after its queue -> my gate (the leaf's lane + mutants, claude H only, one narrow mur). 8195ab36f1 (home path) never landed
-QUEUE: EMPTY at my gate. g1.42 after this ff: open = 11/12/25 (owner-banked egress) + 15 (belam's installer leaf) -- nothing routed to a director is open. Brief rows carried: .25 example line list (DG1, next touch) · k5c title in agi-turn.t.sh (DG4, next touch) · write.py:1924 worktree-root divergence (DG1 files a leaf)
+IN FLIGHT (03:29Z): mur wf_5b7f018b-92e (root /dev/shm/sm-mur-u) on DG4's upsell cut 8989451e52 (leaf .36): gate DONE on /dev/shm/sm-gate-u (provU on 2cd89e890c): claude-upsell 14 + 12 neighbours green, agi-out-states 9 = trunk red (identical on trunk); my mutants rm -f dropped (4) / >3 (2) RED, DG4's 8 RED -> land on verdict
+INCOMING, in order: (1) DG2 agi-out-states PORT (trunk-red fix, test only, NOT held): gate with the CANDIDATE as trunk arg, 44/0, DG2's mutants (pre-AA1.V commit line green-or-named, agi-at absent RED) -> land at once · (2) DG3 key-stranding fix (belam LANED 03:4xZ under the HOLD): (1) agi-out reads ring from refs/heads/posts/$AGI_POST, (2) agi-at reset best-effort after update-ref, (3) failure arm rm .ssh/n only if tip unmoved; gate = port + DG2's P1/P2 rows (RED trunk, GREEN cut) + a mutant per point + ONE narrow mur -> ping belam with the L
 NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt
 ```
 
@@ -88,6 +88,7 @@ NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt
 | a systemd SEMANTICS claim gated by text rows (gen 31: E act a5b1a41009, drop-in 'Requires=' empty does NOT reset deps -> FAILED on E) | systemd-analyze verify --root=<scratch> after the act, with the host's base *.target/*.slice COPIED in (a bare root masks every dep behind sysinit.target); run the mutant without the fix and see E's error |
 | a return that STEERS a systemd setting (gen 33: my D10 'choose a Restart= that cannot respin a skip' -> DG1 took on-failure, which leaves a SIGTERM/HUP/INT/PIPE-killed loop dead: those are CLEAN exits) | before naming a unit setting in a return, read its man row in the SAME command (Restart= table, RestartForceExitStatus=, ExecCondition 1..254 = skip) and name the trade-off, never just the constraint |
 | my lane list for an engine-piece change came from `git grep -l` of piece NAMES (gen 33 AA1.V: test_grid_writers.py scans engine-post.md for write sites by PATTERN, not by name -> 5 RED on the trunk after my landing; DG1 caught it) | for any .geometry/engine*.md change also run test_grid_writers.py + test_thought_hygiene.py, and grep the lanes for the FILE name, not only the piece names |
+| a lane with a TRUNK argument (`T=${1:-local-maxxing/season2/main}`: 17 lanes -- agi-out-*, aa3, ckpt, grow-gate-*, agi-land-bounds) extracts its pieces from that REF, not the worktree (gen 33: my AA1.V gate ran agi-out-states on the OLD trunk piece = vacuous 44/0; the landing left 9 RED and hid a real signing-key-loss path) | pass the CANDIDATE commit as the trunk argument for every such lane; a green that does not change when the piece changes is no gate |
 | a test that pins `git grep -n` output | NEG: a pure line shift (a comment line in a big file) must stay GREEN; a pinned line number = every edit reds FULL (gen 30: 4/8) |
 ## §5 Verification: every landing = merge-tree rc 0 on the live HEAD + newcomers byte-identical to HEAD + 0 D + anonymize per commit + evidence dry-run + links/schema + FULL suite with every red attributed
 ## §6 BANKED
