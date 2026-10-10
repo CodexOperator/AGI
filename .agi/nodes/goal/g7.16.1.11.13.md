@@ -134,10 +134,11 @@ extensions/agi/bin/grid.py:880:        if FETCH_SPEC not in specs:
 extensions/agi/bin/grid.py:881:            git(root, "config", "--add", "remote.origin.fetch", FETCH_SPEC)
 extensions/agi/bin/grid.py:882:            print(f"grid: added fetch refspec {FETCH_SPEC} to origin")
 ```
-C4 wildcard-push probe (its two hits are comment / docstring text: no `--all` / `--mirror` / `refs/*` push exists)
+C4 wildcard-push probe (its three hits are comment / docstring / prose text -- the third is crons.md's THOUGHT line, whose words push ... commit --all match the pattern: no `--all` / `--mirror` / `refs/*` push exists)
 ```
 $ git grep -nE 'push[^|]*(--all|--mirror|refs/\*)' -- extensions src .agi/nodes/.geometry ':!extensions/agi/tests' ':!*.js' ':!*.json' ':!extensions/**/*.md' | cut -c1-120
-extensions/agi/bin/rotate.py:18588:    single call so a future push site (ack/prepare/cron/keygen --all-live)
+.agi/nodes/.geometry/crons.md:94:goal:g7.16.1.11.13.1 (DG1 order 17:22Z, rows test_crons_flip_successors.py c3a114bd3a b
+extensions/agi/bin/rotate.py:18601:    single call so a future push site (ack/prepare/cron/keygen --all-live)
 extensions/agi/bin/send.py:878:    """g15.26 claim (b) -- the push-like line the NO-WRITE --all-live path
 ```
 C5 every push site, per file (count)
@@ -154,6 +155,7 @@ extensions/agi/bin/metrics.py:1
 extensions/agi/bin/rotate.py:44
 extensions/agi/bin/season.py:1
 extensions/agi/bin/sensei.py:1
+extensions/agi/guard/box-move.sh:2
 extensions/agi/hooks/agent-git/pre-push:1
 ```
 C6 the literal outside grid.py
@@ -183,7 +185,7 @@ extensions/agi/src/graph_core/identity.py:379:# | Keys | `refs/grid/node/<mint-i
 C7 every fetch consumer
 ```
 $ git grep -nE '"fetch"|fetch -q|git fetch( |")|git -C [^ ]+ fetch' -- extensions src .agi/nodes/.geometry ':!extensions/agi/tests' ':!*.js' ':!*.json' ':!extensions/**/*.md' | cut -c1-120
-.agi/nodes/.geometry/crons.md:24:    cmd: git -C {repo_root} fetch -q origin && python3 {engine_root}/extensions/agi/bin
+.agi/nodes/.geometry/crons.md:32:    cmd: git -C {repo_root} fetch -q origin && python3 {engine_root}/extensions/agi/bin
 .agi/nodes/.geometry/engine-post.md:192:carry)h=$2;shift 2;x=;for p;do git push -q $h "$m/$p/*:$m/$p/*";x="$x ^$m/$p/*";
 .agi/nodes/.geometry/engine-root.md:96:F(){ git -C $n -c protocol.version=2 fetch -q --upload-pack="$u" file://$G "$@";}
 .agi/nodes/.geometry/engine-root.md:119: git -C $C -c transfer.fsckObjects=1 fetch -q $H "$m/*:$m/*"
@@ -192,7 +194,8 @@ extensions/agi/bin/cli.py:4240:    if apply and not step_done("fetch"):
 extensions/agi/bin/cli.py:4241:        r = subprocess.run(["git", "fetch"], cwd=repo, capture_output=True, text=True)
 extensions/agi/bin/cli.py:4243:            print(f"  note: git fetch rc={r.returncode} (no remote or offline); "
 extensions/agi/bin/cli.py:4245:        mark("fetch")
-extensions/agi/bin/crons.py:960:            f"git -C {repo_root} fetch -q origin && "
+extensions/agi/bin/crons.py:953:            f"git -C {repo_root} fetch -q origin && "
+extensions/agi/bin/crons.py:964:            text = text.replace("fetch -q origin", "fetch -q origin '+refs/heads/*:refs/
 extensions/agi/bin/dispatch.py:579:                ["git", "-C", str(root), "fetch", "origin", fetch_ref],
 extensions/agi/bin/rotate.py:10999:            fetch = subprocess.run(["git", "-C", str(top), "fetch", "origin",
 extensions/agi/bin/rotate.py:11009:            last = f"could not launch git fetch for {branch}: {exc}"
@@ -228,7 +231,7 @@ G-E2 = `grid_retired()` (grid.py:240; guards grid.py:1150 and :269): EXISTS, rea
 | W8 | grid.py:1650 update-ref, :1652 update-ref -d (migrate helpers; cmd_migrate_refs :1656, cmd_migrate_mint_refs :1717, cmd_migrate_trunk :1822) | writes (renames existing tips) | yes | no | dry-run unless --write (grid.py:1656, :1717, :1822) |
 | W9 | grid.py:881 `git config --add remote.origin.fetch FETCH_SPEC` (cmd_init :874) | config | no ref written | n/a | n/a |
 | W10 | grid.py:1948-1949 snap line (commit half :1948 = C8, push half :1949) `git push -q origin PUSH_SPEC` (cron_lines :1927, cmd_cron :1967); its commit half is W1 | pushes | yes | exempt-by-name grid.py:253-254 (row test_grid_gate.py:522) | exempt |
-| W11 | cli.py:4241 (`git fetch`), crons.py:960 (the built-in mail_poll line, 5 min) and the LIVE cell .agi/nodes/.geometry/crons.md:24 (mail_poll `fetch -q origin`, which crons.py prefers over :960): plain fetches under the configured FETCH_SPEC `+refs/grid/*:refs/grid/*` ('+' forced, grid.py:106) | fetches into local grid refs | yes | exempt-by-name (this row; brings in tips that already exist remotely) | exempt |
+| W11 | cli.py:4241 (`git fetch`), crons.py:953 (the built-in mail_poll line, 5 min) and the LIVE cell .agi/nodes/.geometry/crons.md:32 (mail_poll `fetch -q origin`, which crons.py prefers over :953): plain fetches under the configured FETCH_SPEC `+refs/grid/*:refs/grid/*` ('+' forced, grid.py:106) | fetches into local grid refs | yes | exempt-by-name (this row; brings in tips that already exist remotely); AFTER goal:g7.16.1.11.13.1 (F2) with grid_sync off the RENDERED mail_poll line is rewritten at render time by crons.py (`text.replace("fetch -q origin", "fetch -q origin '+refs/heads/*:refs/remotes/origin/*'", 1)`, a C7 TEXT site, not a new git call) so it fetches heads only and writes no refs/grid | exempt |
 | T1 | C7 text only, no fetch run: cli.py:4239-4240, :4243, :4245 (the rename verb's step label and notes around W11's :4241), rotate.py:11009, :13206, :14387, :17016, :17301 (strings, comments and a printed `git fetch origin <b> && git merge` that a human runs), send.py:550 (a comment; all of these ARE lines of the C7 block); NOT matched by C7's pattern, found by a wider read of the word `fetch` and listed so no one hunts them again: grid.py:20, metrics.py:367, send.py:5798 (docstring / help text) | none | n/a | n/a | n/a |
 | F1 | dispatch.py:579, rotate.py:10999, :17007, send.py:905, :4935 (`fetch origin <ref>`: an explicit ref); engine-root.md:96, :119 (fetch from file:// G / refs/box) | fetches a named ref | no | n/a | n/a |
 | N1 | engine-post.md:76, :186, :191 (refs/archive/worktrees/..., refs/held/$P/$f) | writes | no | n/a | n/a |
@@ -243,6 +246,7 @@ G-E2 = `grid_retired()` (grid.py:240; guards grid.py:1150 and :269): EXISTS, rea
 | P5 | crons.py:925, :933 (rendered `push -q origin {branch}` / `{engine_branch}`); grid.py:1950 (the legacy cron line `push -q origin {branch}`) | pushes | no | n/a | n/a |
 | P6 | engine-root.md:118, :124 (`push -q $H $r:$r`, refs/box/*); engine-post.md:192 (the `box` piece's `carry)` arm: `push -q $h $m/$p/*` AND its FETCH half `fetch -q $h "$m/*:$m/*"`, m=refs/box, so refs/box/* only, never refs/grid) | pushes, fetches | no | n/a | n/a |
 | P7 | claude_code_adapter.py:110 (a disallowed-verb tuple), metrics.py:1138 (help text), sensei.py:2375 (a variable `push_at`; :2373 is the comment above it), hooks/agent-git/pre-push (a refusing hook) | no push | no | n/a | n/a |
+| P8 | extensions/agi/guard/box-move.sh:31 (`git push -q origin HEAD:local-maxxing/season2/main`, the trunk branch) and :33 (`git push -q ssh://$TO/data/work/agi <sha>:refs/heads/carry/trunk refs/heads/posts/$P:refs/heads/posts/$P`, branches to the target box): host move tooling, branch refs only, never refs/grid | pushes | no | n/a | n/a |
 FLIP NOTES (what stops or changes when cron:crons grid_sync.enabled turns false; belam's gate list): (1) `commit --all` and `push-changed` become no-ops (grid.py:1150, :269); (2) evidence_gate.enforce_on_disk (grid.py:1264) is skipped, no other caller runs it automatically (goal:g7.16.1.11.13.1 moves it to the `evidence_enforce` job); (3) the town MIRROR push P4 (crons.py:430) is no longer rendered: refs/agi/local-maxxing/* stops updating; (4) W3, W4, W10, W11 stay (exempt, named); W8 (the migrate verbs) is NOT exempt: its gated column is `no` and it is dry-run unless `--write` (grid.py:1656, :1717, :1822) -- its code gap is fix row F1 of goal:g7.16.1.11.13.1. The census is DROPPED (belam 18:2xZ (c)); the flip waits ONLY on goal:g7.16.1.11.13.1 (evidence_enforce + town_mirror).
 
 ## Agent Notes
