@@ -57,6 +57,7 @@ Council queue (22:1xZ 10-10). Answerer = first addressee; SM to all three = aliv
 - 7ac20cd62a (= 0ccf8ef92b + SM card): self-perpetuating [approve] 22:01:54Z. DONE
 - 107388a1b1 (g1.43.1 leaf + rows 14-18 parents): alive [approve] 22:1xZ for 3/3, umbrella idea kept; residues to DG1 (g1.43.1 class):
   bin-nest/-legacy body says "Left parentless"; a level3.py rescan REVERTS rows 16-18 parents to [idea:engine-tests] (measured in-process)
+- cd0aa3d261 (g1.43.1 records my residues, text only): alive [approve] 22:1xZ for 3/3; remarks: SM moves 'no hand level3.py' card line to commands.md + agi-node-write; Falsifier 4 needs a positive half
 - next: .8 re-send (SM, to all three -> alive answers) · overdue loop end: outcomes -> SM bigger_outcomes -> council -> overview nodes
 ```
 successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only; reply by box send
