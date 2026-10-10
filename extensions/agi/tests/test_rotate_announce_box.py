@@ -9,6 +9,8 @@
   B5 DIFF-SCOPE (AST vs BASE): every top-level def/class of BASE except `_announce_rotation` is identical (new top-level defs must carry `box` in their name); inside `_announce_rotation` the signature and everything before the non-prime `delivered = []` (the PRIME branch) and everything after the non-prime loop are identical
   B6 old route kept: send.send once per receiver (inbox copy), send.wake once per delivered, send.send_dm NOT called in the non-prime loop
 
+B5 is a GATE-TIME row and SKIPS unless ANNOUNCE_BASE or ANNOUNCE_BASE_SRC is set.
+
 Env ANNOUNCE_ROOT=<tree> runs the rows against a scratch tree (extensions/agi/{bin,src} and .agi/nodes/.geometry/engine*.md); default: the repo that holds this file. ANNOUNCE_BASE=<rev> is the BASE of B5 (default: the trunk the rows were cut on; ANNOUNCE_BASE_SRC=<file> gives BASE's rotate.py directly for a tree without .git). Hermetic: send.send / send.wake / send.send_dm and `_derive_receivers` are stubbed at the module seam; the box piece, git and the throwaway ssh keys are REAL, in a scratch repo.
 """
 from __future__ import annotations
@@ -35,7 +37,7 @@ sys.path.insert(0, str(EXT / "agi" / "src"))
 from agi.bin import rotate  # noqa: E402
 import send  # noqa: E402
 
-BASE_REV = os.environ.get("ANNOUNCE_BASE") or "19327c2eb2"
+BASE_REV = os.environ.get("ANNOUNCE_BASE") or "19327c2eb2"   # used by B5 only when it is named explicitly (see B5)
 SEAT = "dg2"
 TIMEOUT_CEIL_S = 25.0   # the order's ~20 s hard timeout + 5 s
 POSTS = "\n".join([
@@ -283,8 +285,9 @@ def _split_announce(fn):
     return sig, _dump(body[:di]), body[li], _dump(body[li + 1:])
 
 
-def test_b5_diff_scope_only_the_nonprime_loop_changes():
-    base = ast.parse(_base_src())
+def _b5_check(base_source: str) -> None:
+    """The B5 comparison of `base_source` (a rotate.py text) against the tree's rotate.py."""
+    base = ast.parse(base_source)
     new = ast.parse((BIN / "rotate.py").read_text(encoding="utf-8"))
     bd, nd = _defs(base), _defs(new)
     for name, node in bd.items():
@@ -299,6 +302,38 @@ def test_b5_diff_scope_only_the_nonprime_loop_changes():
     assert bs == ns, "the _announce_rotation signature changed"
     assert bpre == npre, "the prime branch / preamble of _announce_rotation changed"
     assert btail == ntail, "the tail after the non-prime loop (announced line, wake loop, stamp, return) changed"
+
+
+def test_b5_diff_scope_only_the_nonprime_loop_changes():
+    """A GATE-TIME row (SM 09:4xZ): it compares every top-level def against a BASE, so on a later trunk the
+    first edit to any other def of rotate.py would turn the FULL suite red. It therefore RUNS only when the
+    gate names the base explicitly (ANNOUNCE_BASE=<rev> or ANNOUNCE_BASE_SRC=<file>); the full suite never does."""
+    if not (os.environ.get("ANNOUNCE_BASE") or os.environ.get("ANNOUNCE_BASE_SRC")):
+        pytest.skip("B5 is a gate-time row: set ANNOUNCE_BASE=<rev> or ANNOUNCE_BASE_SRC=<file> (the gate does)")
+    _b5_check(_base_src())
+
+
+def test_b5_is_skipped_unless_the_base_is_named(monkeypatch):
+    """NEG 1: with neither ANNOUNCE_BASE nor ANNOUNCE_BASE_SRC set, the B5 row SKIPS (never asserts, never needs .git)."""
+    monkeypatch.delenv("ANNOUNCE_BASE", raising=False)
+    monkeypatch.delenv("ANNOUNCE_BASE_SRC", raising=False)
+    with pytest.raises(pytest.skip.Exception):
+        test_b5_diff_scope_only_the_nonprime_loop_changes()
+
+
+def test_b5_comparison_is_red_on_an_unrelated_def_edit():
+    """NEG 2: the comparison itself is live. A BASE that differs from the tree by ONE statement inside a def other
+    than _announce_rotation (the tree's own rotate.py with `_unused_mutant = 0` added to the first such def)
+    makes _b5_check fail naming that def; the unmutated tree passes against itself."""
+    src = (BIN / "rotate.py").read_text(encoding="utf-8")
+    _b5_check(src)   # control: the tree against itself
+    tree = ast.parse(src)
+    victim = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name != "_announce_rotation"
+                  and n.body and not n.name.startswith("_box"))
+    victim.body.insert(len(victim.body) if isinstance(victim.body[-1], ast.Return) is False else len(victim.body) - 1,
+                       ast.parse("_unused_mutant = 0").body[0])
+    with pytest.raises(AssertionError, match="changed outside _announce_rotation"):
+        _b5_check(ast.unparse(tree))
 
 
 # ---------------------------------------------------------------- B6
