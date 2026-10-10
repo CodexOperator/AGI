@@ -9,6 +9,7 @@ edited_by: thought-master
 payload_ref: datasets/README.md
 scaffold_hash: 93622f030e59b454
 season: 2
+tags: []
 title: "Research corpus registry (owner 21:4xZ 09-20: are we storing the synthetic, preclassified datasets our evals generate?) -- what is stored, where, how labelled, what is lost, and the standing landing rule"
 town: core
 ---
