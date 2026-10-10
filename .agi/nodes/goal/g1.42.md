@@ -73,3 +73,5 @@ row 23 closed by 133fdbf653 (.25/.26 B landed 02:3xZ 10-10): goal:g7.16.1.11.25 
 sanctuary-master chain landed 02:5xZ 10-10 (ff to 237a3aaf00): rows 5 + 6 in fde38e1323 · 2 + 8 + 16 + 20 (+ card-dg5:29) in 6ae10abaad · 10 in 237a3aaf00. Row 14 returned to DG4 (box-move.t.sh half-vacuous); rows 4 7 9 (DG3) in verify.
 
 rows 4 + 7 + 9 closed in c6173cc004 (ff 03:0xZ 10-10). Open now: 14 (DG4, after the kid-identity cut) and 11/12/25 (egress, owner-banked); 15 = belam (unit installer).
+
+row 14 closed in c0c082a85a (ff 03:0xZ 10-10). Open: 11/12/25 (egress, owner-banked) + 15 (belam: installer for the dbus-reap / egress / rc-keepalive root units).
