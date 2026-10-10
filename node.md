@@ -89,7 +89,6 @@ E act: agi-boot exit 0 · vstore 700 root · slice live · DG5 mail test: receiv
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
-| config:crons evidence_enforce cell (DG1 ruling via SM 00:0xZ 10-10) | add box encryption-town + every 30 min ONLY when the .13.1 re-cut (non-blocking flock in evidence_gate.py enforce) lands; one dry pass = 134 s at load 8 |
 | egress watchdog NEVER RUNS (literal \" quotes: always exit 0) while E is in FULL tunnel | owner: fix it (drop 6 backslashes; then 3 missed pings -> split, never back) or leave it; idea:egress-watchdog-keeps-e-reachable |
 | guard layer 5 (sanctuary-watch) not installed | local-town parked (owner 04:2xZ); still needs config:guard E lines (council, via SM 04:2xZ) before guard-init.sh |
 | guard layer 1 FAIL = oomd on user@1000/agi.slice (the OLD engine slice) | moot on v5: system /agi.slice is fenced 5G/6G, oomd kill at 40%; the E guard line says so |
