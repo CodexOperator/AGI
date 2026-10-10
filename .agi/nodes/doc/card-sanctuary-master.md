@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (02:05Z 10-10, date -u) — gen 33 on E · LANDED this gen (belam ff): 8cb6f43dfe (.35 done, g1.42 r17 r18 r22 r28) · 8bcdc0560d (C six leaves + AA1.V v5f+v5g) · a056c7651e (.13.1, g1.42 r19; evidence_enforce cron = belam GO) · 133fdbf653 (.25/.26 B) · MAIL = BOX ONLY · E HOT
+## §0 State (02:17Z 10-10, date -u) — gen 33 on E · LANDED this gen (belam ff): 8cb6f43dfe · 8bcdc0560d (C + AA1.V) · a056c7651e (.13.1) · 133fdbf653 (B) · ff ASKED 237a3aaf00 on 27067723f7 (D + g1.42 r5 r6 r2 r8 r16 r20 r10) · KID-IDENTITY FIX LANED by belam 02:4xZ (DG4 builds .24's half: agi-kid AGI_POST=$k) · MAIL = BOX ONLY
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -51,9 +51,10 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-IN FLIGHT (02:05Z): mur wf_d3bc2d31-c67 (Sonnet, 4 rounds, root /dev/shm/sm-mur-rows) on the g1.42 code rows -- combined provisional in scratch provR on 581c49561e: DG2 641e16284f (r5 r6) · DG3 6168e36c4c (r4 r7 r9) · DG4 fb12bfffa3 (r10 r14) · DG5 code 2e7d174eb2 (r2 r8 r16 r20; LAND the re-cut branch -g142b tip 900ecafad3, NEVER -g142: 27f724b18e adds the hostname, local only). Gate so far: every file green bare one at a time (skills-truth 26/0/8 SKIP, box-move 7, metrics-cell 11, nest 34+55, ring 33, formation 59, reds 44, schema_round1 229+1 skip); my mutants MC1 BM1 NZ1 RED; test_grid_gate on the combined tree in bg (bp805wyyh)
-WAITING ON DG1: D (.32-.34) 2b417e23be RETURNED 02:5xZ (mur wf_c35befdf-d3d): D12 RestartForceExitStatus=SIGTERM SIGHUP SIGINT SIGPIPE (my D10 steer missed clean-signal deaths) · D13 new start() kind, agirun arm stays for a8-a10 · D14 engine-root.md:28 now carries AGI_POST=%i. Next cut: reproduce D12-D14, land (no mur unless the diff grows)
-NEXT COMMAND: read wf_d3bc2d31-c67 verify stages -> land the four code batches one at a time on the live HEAD (or return per batch) -> box belam the ff
+WAITING (02:17Z): belam's ff of 237a3aaf00 (chain 7bbb275920 D > fde38e1323 DG2 > 6ae10abaad DG5 > 237a3aaf00 DG4 r10; messages in scratch land-*.msg) · mur wf_d3bc2d31-c67's LAST stage verify:b5-dg3-r4r7r9 still running (review said accept_with_residue: 'no OTHER git call in nest.py keeps the space bug' NOT_MET -- read it) -> land DG3 dg3-b5 6168e36c4c or return
+INCOMING: DG4 kid-identity cut (belam LANED 02:4xZ, Prime-laned under the HOLD): gate = agi-kid-flow.t.sh + agi-kid-guard.t.sh + box-wake.t.sh bare, DG4's mutant (export dropped) RED + one of mine, ONE narrow mur; ping belam with the L · DG4 row 14 re-cut (box-move.t.sh h.conf controllable) after it
+g1.42 OPEN after this chain: r4 r7 r9 (DG3, mur) · r14 (DG4) · 11/12/25 owner-banked (belam)
+NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt; then the DG3 verify verdict (subagents/workflows/wf_d3bc2d31-c67/journal.jsonl)
 ```
 
 ## §4 Traps (rules live in skills)
