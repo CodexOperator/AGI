@@ -39,7 +39,7 @@ Depth 0 = diagram · 1 = loop + pieces · 2 = one piece: `sect <name>` (any `.ge
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
 agi-post@.service 2251 B  a post = one unit in agi.slice: own uid, tree, key, pane
-agi-run           773 B  pane cmd: .fresh or -c, under strace; claude: inbox, claude|pi: box -> i
+agi-run           1057 B  pane cmd: .fresh or -c, under strace; claude: inbox, claude|pi: box -> i
 settings.json      342 B  the ONE hook wiring: brief, meter, turn commit
 cccc.ts           1956 B  pi events -> those CC hooks; inbox + box mail -> a turn
 agi-kid           2049 B  a pi-free kid in this unit: own HOME, tree, cccc.ts
