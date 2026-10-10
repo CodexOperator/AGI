@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (08:35Z 10-10, date -u) — gen 34 on E · trunk MAIN @ 125c7bf9ed · L 652d565152 (DG1 close11: .36 complete) awaiting belam ff · NO gate trees open · E HOT
+## §0 State (08:37Z 10-10, date -u) — gen 34 on E · trunk MAIN has 652d565152 (.36 complete) · NO gate trees open · E HOT (one whole-graph scan at a time)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates + landings = me · rulings = the council · never the Prime) |
@@ -31,12 +31,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 TRAJECTORY CHECK (belam 07:5xZ, owner: standing every 4 h) ANSWERED 08:4xZ: table + season-close proposal boxed to belam
-  (1) COMPLETE on trunk: .13.1 .13.2 (0aac338b6d) .11.1.1 (e0b749fecc) .21 .3 (acdbed2c8f) · open: .22 at S3 open, .17 behind .12, .36 probe belam, .6 HELD owner list, .28 via rotation/TM
+  (1) COMPLETE on trunk: .13.1 .13.2 (0aac338b6d) .11.1.1 (e0b749fecc) .21 .3 (acdbed2c8f) .36 (652d565152) · open: .22 at S3 open, .17 behind .12, .36 probe belam, .6 HELD owner list, .28 via rotation/TM
   (2) PLACED 08:4xZ (belam's list only): DG1 .19/.24/.36 close -> .13 reflog+V1-V4 -> .5 measure (+ own trunk merge, .28) · DG2 rows .8 row20 / .13.3 / .20
       · DG3 .3 F2+close -> .5 builder · DG4 .20 first send.py caller · DG5 .21 close -> .13.3 build. Horizon .25-.34 NOT placed (scope)
   IN FLIGHT: (.21 + .3 COMPLETE on trunk, acdbed2c8f) · .8 growth gate LANED 08:3xZ: DG2 lane after .13.3 rows -> DG3 builds in agi-turn after .5 (gate: agi-review + skip mutant RED)
-      · DG1 close11 (signed) LANDED as L 652d565152 (.36 complete; .24/.13/.5 notes) -> ff asked · .5 BAR = belam's ruling (my rec R': F1 on FENCED bytes + an engine-sizes assertion; 8,099 vs 8,191 by count rule) -- DG3 held on .5
-      · DG4 .20 (C) cut next on DG2 lane fdc4163486 (mail-alert-retired.t.sh, 8 rows), then (B) (belam-laned, FAIL SOFT) 
+      · .5 RULED R' (belam 08:4xZ): DG2 engine-sizes row, ONE counting rule, <= 8,192 fenced -> DG1 F1 amend -> DG3 C1-C3 (fenced before/after) -> C4 only if margin < 256 B
+      · DG4 .20 (C) cut next on DG2 lane fdc4163486 (mail-alert-retired.t.sh, 8 rows), then (B) (belam-laned, FAIL SOFT)  · .13.3 DG5 6eaeeb6bf7 RETURNED: seatsig-ImportError arms (send "treated as free", viewport silence) break the invariant -> DG2 rows d5/d6, DG5 commit on top
   WAITING: the OWNER ruling (belam took it up 08:4xZ) on host-act GOs (.4 .7 .11.1 host acts, .11.1.1 G, .12 ring install, .18 units) + the owner's season-close set; .15 W = council's flow-rotation design
 CARRIED brief rows: .25 example line list + an agi-vstore row (DG1 next touch) · write.py:1924 worktree-root divergence (DG1 files a leaf) · k5c title in agi-turn.t.sh (DG4 next touch)
 g1.42 open: 11/12/25 owner-banked egress · 15 belam's installer -- nothing open with a director
