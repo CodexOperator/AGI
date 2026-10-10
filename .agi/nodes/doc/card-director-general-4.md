@@ -45,8 +45,7 @@ CANCELLED lane F grid (owner: retiring grid commit) · old lane B/E2a/census are
 ## 🔴 Where it stops
 ```
 Both earlier rounds are ON the trunk (fresh-blob 95dfc344a3, .13.2 4b84358559). NEW (10-10): goal:g7.16.1.11.35 BUILT c8744264d7 (dg4-memcap), SM returned it 01:0xZ (R1 needles, R2 words); DG1 re-cut order -> branch dg4-memcap2 538af1b064 (worktree /var/lib/agi/director-general-4/w-memcap, locked), ONE delta commit on c8744264d7, reported to DG1 by box. SM 01:1xZ GATED it (44 passed, needle + --rss mutants RED) and MINTED the signed chain L1 66654d58d1 (code 538af1b064) -> L2 38e1270456 (node 433174bf53) on f4ca68e9b7; LANDED on the trunk as 38e1270456 (SM 01:2xZ 10-10, belam-s2-II ff, full guard ok). DONE; nothing owed by me. Worktree w-memcap (branches dg4-memcap, dg4-memcap2) can be unlocked/removed when idle.
-NEW 10-10 (SM [decision] 01:2xZ, g1.42 B5 residues, non-blocking): rows 10 + 14 BUILT = branch dg4-b5-rows in w-b5 (locked), cut from fc4a0865ee: 477a7a40f7 (row 10: pin PASS/live cell, test_formation_readback) + fb12bfffa3 (row 14: box-move.sh carries the host-act rc + new lane box-move.t.sh); reported to SM by box. Row 3 is NOT mine (write-gate HOLD, banked for belam). Waiting on SM.
-HELD (DG1 order, SM 02:1xZ): BUILD g7.16.1.11.24 agi-kid AGI_POST=$k is NOT started; build/push nothing until belam's word, relayed by DG1. Only read; worktree w-kid (locked, detached a43f6ac8c8) untouched. Plan if released: engine-wrap.md agi-kid exec line +` AGI_POST=$k` (2037 -> 2049 B), re-measure heading + engine.md map row, ceilings 2040 -> 2052 in agi-kid-flow(.guard).t.sh, rewrite the R9 note, box-wake.t.sh r9 rows take the kid env FROM agi-kid's text, new lane for falsifier 1+2.
+10-10 OUT (all by box): (1) g1.42 row 10 LANDED (237a3aaf00). (2) row 14: fb12bfffa3 RETURNED by SM (sudo stub hid h.conf) -> delta 9ba4c1ebe0 on branch dg4-b5-rows (w-b5, locked), reported to SM. (3) g7.16.1.11.24 kid half (belam LANED 02:4xZ, DG1 RELEASED the hold): branch dg4-kidpost b2f9d56221 in w-kid (locked), ONE commit on 27067723f7: agi-kid AGI_SEAT=$k AGI_POST=$k (2049 B), ceilings 2052, R9 note, box-wake r9 rows + new lane kid-post-env.t.sh; reported to DG1. Waiting on SM/DG1 verdicts.
 anonymize.py can't read MAIN .env on my uid: secret-token class left to SM's gate.
 Residue leaf with DG1 (send.py:5416, viewport.py:1156 non-strict display).
 MAIL = BOX ONLY: read `AGI_POST=director-general-4 box read`; send `printf '%s\n' '[tag] ...' | AGI_POST=director-general-4 box send <post>` (box prints nothing: unconfirmed). No send.py send, no inbox writes.
@@ -69,6 +68,7 @@ MAIL = BOX ONLY: read `AGI_POST=director-general-4 box read`; send `printf '%s\n
 | io rule | no full suite while `head -1 /proc/pressure/io` avg60 >= 50; single-file and niced runs only; belam now: NO new long run at all |
 | anonymize on a message | the Co-Authored-By noreply trailer is the one standing hit: 122 of the last 200 trunk messages carry it |
 | one suite at a time | a 2nd pytest in the same tree is refused (verify-suite.lock): never mutate a file while a background batch runs; wait, then mutate |
+| lane SRC= path | a lane that cds into a scratch repo needs an ABSOLUTE SRC=/PIECES= path (relative resolves inside the scratch) |
 | baseline first | compare a failing set against the SAME command on a pristine tree (w-veto-base), never against memory; a file that exists only on my tree breaks the baseline run ("no tests ran") |
 
 ## §5 Verification
