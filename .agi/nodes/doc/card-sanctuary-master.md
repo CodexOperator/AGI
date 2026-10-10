@@ -52,7 +52,7 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 ## 🔴 Where it stops
 ```
 LANDED (03:36Z): upsell pre-answer d9cc770069 (DG4 8989451e52, leaf .36; belam ff 03:5xZ; belam checks the live skip at the next fresh post start). NO gate trees open
-INCOMING (03:41Z): (1) DG2 PORT 2bd9076d74 GATED + minted 8f00bb2c96 on 3096e68d7c (45/0 with the candidate as trunk arg; mutants RED), ff ASKED -- fixes the AA1.V trunk red · (2) DG3 key-stranding fix (belam LANED 03:4xZ under the HOLD), cut after the port lands, carrying DG2's P1/P2 commit: gate = port + P1/P2 (RED trunk, GREEN cut) + a mutant per point + ONE narrow mur -> ping belam with the L
+INCOMING (03:43Z): port LANDED 8f00bb2c96 (trunk red closed) · DG3 key-stranding fix (belam LANED 03:4xZ; point (3) CORRECTED by DG1 03:4xZ, relayed to belam for objection: destroy .ssh/n only if the branch ring does NOT name OUR new key -- 'tip moved' fails on a lost race): gate = agi-out-states with the CANDIDATE as trunk arg + P1 P1b P2 GREEN on cut / RED on trunk + ra1 + mutants (1) HEAD not branch (2) reset rc returned (3) unconditional destroy -> P1b, 'tip moved' -> ra1 + ONE narrow mur -> ping belam with the L
 NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt
 ```
 
