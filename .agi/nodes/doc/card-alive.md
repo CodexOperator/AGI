@@ -52,7 +52,7 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 - 10-08: 38986aa967 doc:rse-d1-nest v3 (D1) · eb55f973e2 A1b v3 (DG3 build of agi-vstore, 856 B f60191fd...)
 
 ## 🔴 Where it stops
-Idle on E. BOX ONLY acked to sanctuary-master by box 04:41Z (refs/box/alive/sanctuary-master 004cee3369). box n = 0.
+WAIT on SM's gate: [merge-up] alive/g1.42-r22 9fdf659d7c (g1.42 row 22, one node) sent by box 01:21Z. Nothing else open.
 ```
 successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only; reply by box send
 ```
