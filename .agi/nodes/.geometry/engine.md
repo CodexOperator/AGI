@@ -11,7 +11,7 @@ season: 2
 town: core
 ---
 # config:engine — the ZYGOTE: the code that runs before any post exists + the map of 43 pieces (every `###` block in engine*.md)
-Depth 0 = diagram · 1 = loop + pieces · 2 = one piece: `sect <name>` (any `.geometry/engine*.md`: this node, config:engine-post, config:engine-wrap, config:engine-grow, config:engine-root) · 3 = this file. Pieces are small templates over raw commands; parameters are cells: a row's ONE `engine` object is projected as AGI_<KEY> env. Parity: doc:g716111-stage25-parity.
+Depth 0 = diagram · 1 = pieces · 2 = one piece: `sect <name>` (any `.geometry/engine*.md`: this node, config:engine-post, config:engine-wrap, config:engine-grow, config:engine-root) · 3 = this file. Pieces are small templates over raw commands; parameters are cells: a row's ONE `engine` object is projected as AGI_<KEY> env. Parity: doc:g716111-stage25-parity.
 
 ## diagram — depth 0
 ~~~
@@ -24,36 +24,28 @@ Depth 0 = diagram · 1 = loop + pieces · 2 = one piece: `sect <name>` (any `.ge
    stop ──▶ agi-flush ──▶ the master lands posts/<p> ──▶ next brief sees it · a write of carry.env re-runs agi-project
    harness: claude --remote-control <p> (hooks native; the owner's app lists it) · pi + cccc.ts · agi-kid
    tick: project(graph) == observe(body)? equal = alive · differ = start its OWN unit + a drift commit
+   start: PSI admission; .fresh = a new session, else -c resumes · work: plain paths in ~/t; inbox, budget, records resolve to MAIN · a dropped row is unlinked
    ZYGOTE = this read (map · sect · agi-project · agi-gate) ──sect @REV──▶ EXPANSION: config:engine-post · config:engine-wrap · config:engine-grow · config:engine-root
-~~~
-
-## loop — depth 1
-~~~
-1 BOOT   root runs agi-project @REV: unit, user, cells for engine.v==4 rows; dropped rows unlinked
-2 START  PSI admission; key, worktree, tools from this node; .fresh = new session, else -c resumes
-3 WORK   brief in the system prompt; plain paths in ~/t; inbox, budget, records resolve to MAIN
-4 TURN   one signed commit per node tree; at the line: card, touch ~/.fresh, kill $PPID = rotation
-5 LAND   ExecStopPost agi-flush; the master gates posts/<p> onto the trunk (skill agi-master-gate)
 ~~~
 
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
-agi-post@.service 2251 B  a post = one unit in agi.slice: own uid, tree, key, pane
-agi-run           1057 B  pane cmd: .fresh or -c, under strace; claude: inbox, claude|pi: box -> i
+agi-post@.service 2251 B  a post = one unit: own uid, tree, key, pane
+agi-run           1057 B  pane cmd: .fresh or -c, strace; inbox + box -> i
 settings.json      342 B  the ONE hook wiring: brief, meter, turn commit
-cccc.ts           1956 B  pi events -> those CC hooks; inbox + box mail -> a turn
-agi-kid           2049 B  a pi-free kid in this unit: own HOME, tree, cccc.ts
+cccc.ts           1956 B  pi events -> the CC hooks; mail -> a turn
+agi-kid           2049 B  a pi-free kid in this unit: own HOME and tree
 agi-infer          1077 B  ONE chat call, OpenAI-compatible: stdin -> stdout
 agi-brief         1316 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
 agi-meter          574 B  past rotate_pct of the window: out-line
 agi-at             899 B  signed CAS commit of ~/t paths to posts/<P>
-agi-turn          3122 B  a signed commit per changed node tree; ~/t = a read view
+agi-turn          3122 B  a signed commit per changed node tree
 agi-wt            1506 B  a node's tiny RAM tree: pull; drop = turn + purge
 agi-track           89 B  strace sink: each path once
 agi-flush         1005 B  drop trees, turn, merge trunk
-agi-out           3357 B  the out-line: next keys, ONE ring commit, re-wrap, swap
-gitconfig          198 B  signed commits, checked against root's allowed_signers, own hooks
+agi-out           3357 B  the out-line: next keys, ring commit, re-wrap, swap
+gitconfig          198 B  signed commits against root's allowed_signers
 sysusers.conf       41 B  a post = one user in group agi
 agi.rules          242 B  a post starts only its OWN unit
 project.sh         161 B  what the body SHOULD be
@@ -61,8 +53,8 @@ observe.sh         255 B  what the body IS
 tick.sh            254 B  diff them; start own unit; commit
 agi-project       2560 B  the genome: units + cells for v4 rows
 agi-frontier       460 B  each active goal runs its falsifier
-agi-gate           542 B  refuse a tip whose body would not regrow; one name, one piece
-agi-vstore         856 B  root: fetches the pin into a root-owned RAM store, git re-hashes every object
+agi-gate           542 B  refuse a tip whose body would not regrow
+agi-vstore         856 B  root: fetches the pin into a re-hashed RAM store
 agi-boot         1797 B  root: gate the pin, start the posts
 agi-boot.service  826 B  runs agi-boot after agi-vstore
 matrix            100 B  who reads which node via which piece
@@ -71,13 +63,13 @@ agi-fill          5973 B  a node key opens a captive window
 agi-captive        576 B  window open: only agi-fill passes
 grow-check        1298 B  one node vs its matrix row + key
 grow-gate         7098 B  pre-receive: added/changed nodes must pass
-ckpt              3444 B  signed hand-offs at one tip; check lists those that hold
+ckpt              3444 B  signed hand-offs at one tip; check lists them
 grow-project      1185 B  schemas -> the growth matrix
-agi-land          1855 B  root: ff-lands a post range one edge up (ring, grow-gate, agi-gate)
+agi-land          1855 B  root: ff-lands a post range one edge up
 box               2005 B  mail: one signed ref update per send (5x CAS)
-box-carry         3253 B  root: refs/box/P/<Q> -> the recipient's store (ff-only) or the hub; --fetch = timer
-agi-signers       1727 B  root: the ONE allowed_signers, every key generation, valid-after/before
-agi-carry@.path     149 B  PathChanged on the sender's refs/box/<P> (a refs/box unit fires only on first send)
+box-carry         3253 B  root: refs/box/P/<Q> -> the recipient's store or hub
+agi-signers       1727 B  root: the ONE allowed_signers, every key generation
+agi-carry@.path     149 B  PathChanged on refs/box/<P>; first send only
 agi-carry@.service  308 B  oneshot: box-carry %i
 agi-carry-fetch.timer   88 B  every 60 s: carry each local post, then hub
 agi-carry-fetch.service 229 B  oneshot: box-carry --fetch
@@ -120,5 +112,5 @@ post	brief	card-<p>	brief
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PROPOSED v5 (owner GO 06:1xZ; doc:radically-simple-engine §Q+§R): v4c cut by one rule: ZYGOTE = what runs before any post exists + the map; the rest is EXPANSION read by sect @REV. Only the 4 readers changed (sect, agi-project, agi-gate, agi-post@.service): every .geometry/engine*.md at the REV, ranges end at ^##; the gate refuses a duplicate name (2) and an empty unit (1). R7: + `### matrix` + engine-grow. SPLIT: the unit is in engine-root; a post's loop reads engine.md + engine-[pw]*.md. Scope add: post identity env (parity 42), pane trim (agi-run, pane_max_mb).
+v5 (owner GO 06:1xZ; doc:radically-simple-engine §Q+§R): ZYGOTE = what runs before any post exists + the map; the rest is EXPANSION read by `sect @REV`. .5 (belam R' 08:4xZ): the FENCED bytes <= 8,192 with a margin: 14 map descriptions shortened to <= ~55 B (names and sizes untouched), the loop block folded into the diagram's start/work line.
 <!-- THOUGHT:END -->
