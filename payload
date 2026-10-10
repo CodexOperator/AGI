@@ -17,7 +17,7 @@ def fm(body):
         elif k and re.match(r"^\s*- ", l) and isinstance(d[k], list): d[k].append(l.split("- ", 1)[1].strip().strip('"'))
     return d
 def graph(rev):
-    ps = [p for p in git("ls-tree", "-r", "--name-only", rev, "--", ".agi/nodes").split() if p.endswith(".md")]
+    ps = [p for p in git("ls-tree", "-z", "-r", "--name-only", rev, "--", ".agi/nodes").split("\0") if p.endswith(".md")]  # -z + NUL: a path with a space or a non-ASCII name (ls-tree quotes it otherwise) is ONE path, not several
     out = subprocess.run(("git", "cat-file", "--batch"), input="".join(f"{rev}:{p}\n" for p in ps).encode(), capture_output=True, check=True).stdout; nodes, i = {}, 0
     for p in ps:
         j = out.index(b"\n", i); n = int(out[i:j].split()[2]); d = fm(out[j + 1:j + 1 + n].decode("utf-8", "replace")); i = j + 2 + n
