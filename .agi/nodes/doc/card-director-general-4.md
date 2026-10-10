@@ -40,7 +40,7 @@ OWED    agi-turn.t.sh row k5c (:330): title must say it guards only a PRE-CUT ki
 ```
 LANDED  fresh-blob 95dfc344a3 · .13.2 4b84358559 · .35 mem_cap --data 38e1270456 · kid AGI_POST=$k 6a6d745568 · g1.42 rows 10/14 237a3aaf00 / c0c082a85a
         .20 C b672b8c0d4 · .20 B 3e4e33d91b / 4412a659e8 (trunk 6d272246ec) · .20 corrective 2385cb1959 (boxed d9a3ec8efb) · .36 count step 2cd89e890c, REOPENED f31c1ec58e (count is not the lever)
-BOXED   .20 residues dg4-residues f160158e99 (to SM, awaiting gate)
+BOXED   .20 residues f160158e99 GATED by SM (387 passed, verifier CLEAR), boxed to belam as f0c932f727. DOC NIT for the v5 cut: skills/agi-rotate/SKILL.md:33 'each NON-Prime receiver' is wrong: a ROTATING Prime sends no box message (its branch returns before the box loop); a Prime can RECEIVE one.
 ```
 
 ## 🔴 Where it stops
