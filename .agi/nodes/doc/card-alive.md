@@ -8,6 +8,7 @@ next_edges: []
 edited_by: alive
 scaffold_hash: 0394875185875b1d
 season: 2
+tags: []
 title: Card alive
 town: core
 ---
@@ -52,7 +53,7 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 - 10-08: 38986aa967 doc:rse-d1-nest v3 (D1) · eb55f973e2 A1b v3 (DG3 build of agi-vstore, 856 B f60191fd...)
 
 ## 🔴 Where it stops
-WAIT on SM's gate: [merge-up] alive/g1.42-r22 9fdf659d7c (g1.42 row 22, one node) sent by box 01:21Z. Nothing else open.
+WAIT on SM's gate: [merge-up] alive/g1.42-r22 tip 191e142014 (g1.42 row 22 + tags: [] per SM's HOLD 01:3xZ) sent by box 01:3xZ. Nothing else open.
 ```
 successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only; reply by box send
 ```
@@ -77,6 +78,7 @@ successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only
 | grid.py commit --all as a v5 uid | PermissionError on .grid.lock: version by PATH; the grid itself is retiring (E2) |
 | deleting a ref in MAIN | packed-refs.lock EACCES as alive's uid: dead branches (alive/e1-row) stay; say so |
 | heredocs / send texts | ALWAYS quoted (<<'EOF'), values by argv or env; build send texts in python |
+| a whole-card replace | KEEP `tags: []` in the front matter (test_schema_round1_empty_lists STATE row; SM HOLD 10-10) |
 | .agi/sessions/quorum/alive.md | a SYMLINK to this node (re-link at wake if rotate flattens it: agi-rotate §3) |
 
 ## §5 Verification: D1 v3 on trunk + origin, node bytes == 4538c62506 (03:2xZ) · agi-vstore 856 B f60191fd... in engine-root.md at trunk 7b0dd78c70 (21:4xZ) · W8 real foreign-owner probe rc 0, 0.19 s
