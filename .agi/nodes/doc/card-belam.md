@@ -37,7 +37,7 @@ belam-s2-III 09:2xZ 10-10, at wake: crons re-armed (CHECK 13b11552 13 */4 trajec
 | GitHub | E login user's gh (repo) wired to git (gh auth setup-git); post uids have none -> push via `sudo -n -u belam git -C /data/work/agi push origin <ref>` |
 | crons | box: user belam's crontab on E is LIVE (10 lines = the graph; crons_apply 02:05Z no-op): grid_sync */5 · ref pushes */5 · trunk push :07 · send.py wake */2 (the L note "E has no crontab" was wrong) · session-only (re-arm at wake): CHECK 13b11552 (13 */4, trajectory-first) · hourly 7647814e (47 *: memory + stuck-dialog scan + box read) |
 | host act E | installed 22:22Z 10-08 at dd1563bc3c: rollback `sh /var/backups/agi-act-20261008T222239Z/rollback.sh` |
-| landing | belam commits on posts/belam, pushes posts/belam, then as user belam `merge --ff-only posts/belam` in MAIN; the TRUNK push is TM's alone (skill agi-merge-pass §4; breached twice gen 31, owned to TM) |
+| landing | belam commits on posts/belam, pushes posts/belam, then as user belam `merge --ff-only posts/belam` in MAIN; the TRUNK (local-maxxing/season2/main) is carried by the branch_push cron at :07 -- no post pushes it by hand (TM 09:3xZ 10-10: TM's uid has no GitHub credential on E) |
 | merge pass | B6 MERGED 09:4xZ 10-10: season2/main ef9b043e68 = trunk 4e9dbced38 (176 commits; 6 Sonnet lanes + verifier CLEAR; RED 0 · demote 3 · residue 9 -> goal:g1.43, SM); local-maxxing/main 4e9dbced38; state file closed (BASE for B7 = 4e9dbced38); kit ~/pass-b6 |
 
 ## §1 Plan
