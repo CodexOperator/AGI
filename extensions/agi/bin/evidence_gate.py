@@ -743,10 +743,21 @@ def enforce_on_disk(root, paths=None, *, dry_run: bool = False,
 def main(argv: list[str] | None = None) -> int:
     """`evidence_gate.py enforce [--dry-run] [--root PATH]`
 
-    The commit path's gate, runnable on its own -- to see what the next
-    `grid.py commit --all` would demote (`--dry-run`), or to demote now
+    The commit path's gate, runnable on its own -- `--dry-run` shows what the
+    next `grid.py commit --all` would demote; without it the verb demotes
     without minting versions. The commit path is the placement; this is the
     same function with the commit left out.
+
+    The verb is deliberately timid, and has NO override (an override is the
+    footgun): (1) it takes ONE non-blocking exclusive flock on
+    `<graph>/sessions/.evidence-enforce.lock` (the directory the suite lock
+    lives in; git ignores it): while another enforce holds it, this one prints
+    `[busy] evidence enforce already running`, exits 0 and demotes nothing --
+    cron AND the manual verb share the one lock, so two writers never walk
+    MAIN's node files at once; (2) it DEFERS (rc 0, one line
+    `evidence gate deferred: suite lock held by pid N`, nothing demoted) while
+    a live foreign pid holds the suite lock; the next tick runs. `--dry-run`
+    writes nothing and takes neither.
     """
     import argparse
 
@@ -764,6 +775,36 @@ def main(argv: list[str] | None = None) -> int:
     if root is None:
         print(f"ERR: not an agi project: {args.root}", file=sys.stderr)
         return 1
+    if not args.dry_run:
+        # goal:g7.16.1.11.13.1 A1 (SM 21:4xZ): ONE enforce at a time. The lock is
+        # INSIDE the verb so cron and the manual verb share it (a flock on the
+        # cron line would cover only cron). Same directory as the suite lock
+        # (`<graph>/sessions/`, git-ignored). The fd stays open to the end of
+        # main(): the OS drops the flock at exit, so a crash never leaves it held.
+        # A lock that cannot be taken at all fails CLOSED (rc 1, nothing demoted).
+        import fcntl
+        lock_file = Path(root) / "sessions" / ".evidence-enforce.lock"
+        try:
+            lock_file.parent.mkdir(parents=True, exist_ok=True)
+            lock_fd = open(lock_file, "a")
+            fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            print("[busy] evidence enforce already running")
+            return 0
+        except OSError as exc:
+            print(f"ERR: evidence enforce cannot take its lock {lock_file}: {exc}",
+                  file=sys.stderr)
+            return 1
+        # goal:g7.16.1.11.13.1 G-4: the same deferral `grid.py commit --all`
+        # had on the cron path: do not rewrite node files in MAIN while the
+        # suite holds its window. verification's OWN held/stale judgement
+        # (one lock reader, never a second parser); a live foreign pid defers
+        # this tick, the next tick runs.
+        import verification
+        holder = verification.suite_lock_holder(root)
+        if holder is not None:
+            print(f"evidence gate deferred: suite lock held by pid {holder}")
+            return 0
     found = enforce_on_disk(root, dry_run=args.dry_run)
     written = sum(1 for d in found if d.written)
     refused = [d for d in found if not d.written and d.note]

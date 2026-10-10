@@ -196,6 +196,7 @@ def test_load_valid_node(tmp_path):
     cad = dict(DEFAULT_CADENCES)
     cad["mail_poll"] = {"every_mins": 5, "enabled": True}
     cad["nudge_sweep"] = {"every_mins": 2, "enabled": True}
+    cad["town_mirror"] = {"every_mins": 5, "enabled": True}
     root = make_project(tmp_path, cadences=cad)
     node = crons.load_crons_node(root)
     assert node["crons_live"] is True

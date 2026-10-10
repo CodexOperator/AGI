@@ -17,7 +17,7 @@ def fm(body):
         elif k and re.match(r"^\s*- ", l) and isinstance(d[k], list): d[k].append(l.split("- ", 1)[1].strip().strip('"'))
     return d
 def graph(rev):
-    ps = [p for p in git("ls-tree", "-r", "--name-only", rev, "--", ".agi/nodes").split() if p.endswith(".md")]
+    ps = [p for p in git("ls-tree", "-z", "-r", "--name-only", rev, "--", ".agi/nodes").split("\0") if p.endswith(".md")]  # -z + NUL: a path with a space or a non-ASCII name (ls-tree quotes it otherwise) is ONE path, not several
     out = subprocess.run(("git", "cat-file", "--batch"), input="".join(f"{rev}:{p}\n" for p in ps).encode(), capture_output=True, check=True).stdout; nodes, i = {}, 0
     for p in ps:
         j = out.index(b"\n", i); n = int(out[i:j].split()[2]); d = fm(out[j + 1:j + 1 + n].decode("utf-8", "replace")); i = j + 2 + n
@@ -52,11 +52,14 @@ def members(nodes, n):
     return out
 def live(p): return "/".join(s for s in p.split("/") if s != "deprecated")  # a retire is <type>/f.md <-> deprecated/<type>/f.md: the same node
 def log(rev, paths):
-    walk = git("log", "--first-parent", "-M", "--name-status", "--format=@%H", rev, "--", ".agi/nodes", "nodes")  # nodes/ = before the one-repo move
-    cs, ps, hits = [], set(paths), []
-    for l in walk.split("\n"):
-        if l.startswith("@"): cs.append((l[1:], []))
-        elif len(l.split("\t")) > 1: cs[-1][1].append(l.split("\t"))
+    walk = git("log", "--first-parent", "-M", "--name-status", "-z", "--format=@%H", rev, "--", ".agi/nodes", "nodes").split("\0")  # nodes/ = before the one-repo move; -z + NUL: a non-ASCII path is ONE unquoted path (plain --name-status quotes it, so `x in ps` missed it)
+    cs, ps, hits, i = [], set(paths), [], 0
+    while i < len(walk):  # -z: `@hash` NUL, then `\nS` NUL path NUL (a rename/copy `R100` NUL old NUL new NUL); a header is read only where a status is due
+        t = walk[i].lstrip("\n"); i += 1
+        if t.startswith("@"): cs.append((t[1:], []))
+        elif t and cs:
+            k = 2 if t[0] in "RC" else 1
+            cs[-1][1].append([t] + walk[i:i + k]); i += k
     for h, fs in cs:  # newest first
         if any(x in ps for f in fs for x in f[1:]): hits.append(h)
         for f in fs:

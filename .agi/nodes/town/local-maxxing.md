@@ -10,7 +10,7 @@ council: council-local-maxxing
 edited_by: belam
 location: local-town
 master: thought-master
-metrics_line: "2026-10-10T00:31Z graph: node_count=5864 active_node_count=5624 deprecated_node_count=240 edge_count=6713 evidence_fraction=0.898 decisive_verdicts=1237 decisive_evidence_fraction=1.0 broken_links=0 thought_coverage=0.521 longest_chain_length=20 outcome_coverage=0.062 | success: avg_tokens_per_turn=UNMEASURED(no source yet) hierarchy_tokens_per_hour=UNMEASURED(no source yet) conclusive_verdicts=1237 overview_accuracy_vs_last_season=UNMEASURED(no live counter) subscription_tokens_per_season=UNMEASURED(no source yet) vision_adherence_score=UNMEASURED(no source yet) openrouter_subscription_spend_ratio=UNMEASURED(no source yet)"
+metrics_line: "2026-10-10T04:25Z graph: node_count=5879 active_node_count=5639 deprecated_node_count=240 edge_count=6728 evidence_fraction=0.898 decisive_verdicts=1237 decisive_evidence_fraction=1.0 broken_links=0 thought_coverage=0.523 longest_chain_length=20 outcome_coverage=0.062 | success: avg_tokens_per_turn=UNMEASURED(no source yet) hierarchy_tokens_per_hour=UNMEASURED(no source yet) conclusive_verdicts=1237 overview_accuracy_vs_last_season=UNMEASURED(no live counter) subscription_tokens_per_season=UNMEASURED(no source yet) vision_adherence_score=UNMEASURED(no source yet) openrouter_subscription_spend_ratio=UNMEASURED(no source yet)"
 scaffold_hash: 3876620b4bc4f88e
 season: 1
 thought_session: belam-S2-L5-XI
@@ -280,3 +280,5 @@ OWNER 14:4xZ 10-07 (to belam gen 27 during its rotation, verbatim): "Oh btw thou
 PASS B4 (belam gen 28, 18:2x-21:0xZ 10-07, owner-ordered): trunk bcdb15f10f -> season2/main cd981237cd (season2/main recreated at b0608a1f3) · BASE 1f2b49ffc9 · 5,242 commits / 1,165 live files · 6 reviewers · 2 RED (heal sweep fixed pre-merge 28b5d9cd95; agi-boot -> DG per owner) · 2 accept_with_residue · 2 demote · 0 D / 0 key / 2 anonymize residues · verify 12/13 (bin-suite-fresh known) · links 5779/0 · 5,819 nodes · local-maxxing/main -> bcdb15f10f · residues -> goal:g1.41
 
 OWNER 01:3xZ 10-08 (to belam gen 28, verbatim): "We don't need the grid commit work we're retiring grid commit." -- ACTION: lane F (grid.py code, DG4) cancelled at SM; the retirement (versioning after grid, grid_sync cron, refs/grid/* kept read-only, every reader) ALREADY DESIGNED (owner 01:4xZ 10-08: "It's already decided"): doc:radically-simple-engine:82 (history = git log -- <path>), AA1.V rse-aa1-boxes:125 (signed one-node commits on posts/P, no refs/grid, no cron), AA3 rse-aa3-land:152 (land + snapshot + grid retirement; AA3.10 grid_sync retirement keeps the crontab heal), goal:g7.16.1.6:71 (no refs/grid ref ever deleted): built on the existing AA1.V/AA3 lane, no new design pass
+
+PASS B5 01:3xZ 10-10: season2/main f75e3f48b6 -> 7276f11d36 = trunk fc4a0865ee; 583 commits; 8 Sonnet lanes + 1 verifier; RED 0 · demote 0 · residues 29 (goal:g1.42); links 5826/0 broken
