@@ -680,15 +680,20 @@ def test_b8e_the_table_has_both_verdicts_in_depth():
 # --- B8f: the REAL node, and `import yaml` missing ---
 
 
-def test_b8f_the_real_node_with_only_grid_sync_off_is_retired_unflipped_is_not(tmp_path):
-    """The flip's own acceptance: the trunk's live crons.md (crons.py must read it) with ONLY `grid_sync.enabled: false` set."""
-    live = LIVE_NODE.read_text()
-    m = re.search(r"^(  grid_sync:\n(?:    .*\n)*?    enabled: )true$", live, re.M)
-    assert m, "the live node no longer spells `grid_sync:` ... `enabled: true` on its own line: re-pin this row"
-    flipped = live[:m.start()] + m[1] + "false" + live[m.end():]
-    assert len(live.splitlines()) == len(flipped.splitlines()) and [a for a, b in zip(live.splitlines(), flipped.splitlines()) if a != b] == [m[0].splitlines()[-1]], "exactly one line differs"
-    assert crons_says(tmp_path / "live", live) is False and crons_says(tmp_path / "flip", flipped) is True, "crons.py must read today's node (a refusal makes the flip impossible)"
-    for text, retired in ((flipped, True), (live, False)):
+def _grid_sync_spelled(live: str, value: str) -> str:
+    """The real node with ONLY the `grid_sync:` `enabled:` line set to `value` ('true' | 'false'), whichever spelling the live node carries."""
+    m = re.search(r"^(  grid_sync:\n(?:    .*\n)*?    enabled: )(?:true|false)$", live, re.M)
+    assert m, "the live node no longer spells `grid_sync:` ... `enabled: true|false` on its own line: re-pin this row"
+    return live[:m.start()] + m[1] + value + live[m.end():]
+
+
+def _b8f_acceptance(tmp_path, live: str):
+    """The flip's own acceptance, FROM A FIXTURE of the real node: `on` = grid_sync enabled, `off` = ONLY that line false."""
+    on, off = _grid_sync_spelled(live, "true"), _grid_sync_spelled(live, "false")
+    diff = [a for a, b in zip(on.splitlines(), off.splitlines()) if a != b]
+    assert len(on.splitlines()) == len(off.splitlines()) and len(diff) == 1 and diff[0].strip() == "enabled: true", "exactly one line differs"
+    assert crons_says(tmp_path / "live", on) is False and crons_says(tmp_path / "flip", off) is True, "crons.py must read today's node (a refusal makes the flip impossible)"
+    for text, retired in ((off, True), (on, False)):
         root, env = seeded(tmp_path / ("flip" if retired else "live"))
         before = refs_grid(root.parent)
         (root / "nodes" / ".geometry" / "crons.md").write_text(text)
@@ -697,6 +702,20 @@ def test_b8f_the_real_node_with_only_grid_sync_off_is_retired_unflipped_is_not(t
         assert a.returncode == 0 and b.returncode == 0 and "Traceback" not in a.stderr + b.stderr, (a.stderr[-300:], b.stderr[-300:])
         assert (RETIRED in a.stdout and RETIRED in b.stdout) is retired, (retired, a.stdout[-200:])
         assert (refs_grid(root.parent) == before) is retired, f"retired={retired}: refs/grid {'moved' if retired else 'did not move'}"
+
+
+def test_b8f_the_real_node_with_only_grid_sync_off_is_retired_unflipped_is_not(tmp_path):
+    """The flip's own acceptance on the trunk's live crons.md (crons.py must read it): ONLY `grid_sync.enabled` differs. goal:g1.42 B5 row 7: modelled on a
+    fixture of the real node, so it neither needs the live node to spell `enabled: true` today nor reds the day the flip happens."""
+    _b8f_acceptance(tmp_path, LIVE_NODE.read_text())
+
+
+def test_b8f_the_acceptance_holds_from_the_post_flip_spelling_too(tmp_path):
+    """The same acceptance when the live node ALREADY spells `grid_sync.enabled: false` (the day after the flip): the row neither reds nor goes vacuous."""
+    live = LIVE_NODE.read_text()
+    after = _grid_sync_spelled(live, "false")
+    assert after != _grid_sync_spelled(live, "true"), "the post-flip fixture must differ from the unflipped one"
+    _b8f_acceptance(tmp_path, after)
 
 
 YAML_GONE = """
