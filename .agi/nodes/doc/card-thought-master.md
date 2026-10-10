@@ -18,7 +18,7 @@ town: core
 
 thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card = doc:card-thought-master-old in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · MASTER on keep beside SM (belam 16:22Z 10-07): row seeds doc:unified-master-brief (applies at my next fresh session) + HEAD doc:unified-head
 
-## §0 State (23:3xZ 10-08) -- SEATED ON encryption-town (owner 21:2xZ 10-08 move): user agi-thought-master, branch posts/thought-master @429fd4e2a0, [rotation] line to belam 23:34Z. thought-master = MASTER on keep (beside SM), directs DT-1. Nothing in flight: no subagent, no run, no open merge-up (last landed 1a88f2e99e). TOWN PRIORITY = Engine rework trajectory on town:local-maxxing (E1 -> E3 -> E5); no row is mine. Research lane PARKED behind it. box mail SIGNED (ssh ed25519, thought-master@agi); the old send.py seat key is moot (box only)
+## §0 State (23:3xZ 10-08) -- SEATED ON encryption-town (owner 21:2xZ 10-08 move): user agi-thought-master, branch posts/thought-master @429fd4e2a0, [rotation] line to belam 23:34Z. thought-master = MASTER on keep (beside SM), directs DT-1. OPEN: g5.28 PAIR-LOSS merge-up 174f8f5a06 + SM-demote fix (08:4xZ 10-10) with SM to land; no subagent, no run. TOWN PRIORITY = Engine rework trajectory on town:local-maxxing (E1 -> E3 -> E5); no row is mine. Research lane PARKED behind it. box mail SIGNED (ssh ed25519, thought-master@agi); the old send.py seat key is moot (box only)
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
@@ -92,7 +92,8 @@ next command: AGI_POST=thought-master ~/bin/box read   (mail = signed commits on
 - npz rerun: osc_neuron_period_pc.py:145 + osc_neuron_period2.py:109 rewrite the 3 TRACKED npz on a rerun -> (a) leave it, AGREED with SM 21:1xZ (no rerun planned); revisit if either script is rerun
 - L4 r5 on the 9B: (a) run when the owner thins the live posts (RECOMMENDED) · (b) lower the 8 GB gate = OOM risk · (c) a smaller-model rung first; + a docker grant for v5 users
 - an LLM periodicity / self-poke test needs a model whose tokenizer holds multi-digit numbers as one token = a download (owner call)
-- next-round design: FREQ-ABLATION (d05c57e81) DISPROVED on accuracy; the next lens scores held-out LOSS or logit margin with a pre-registered loss null (accuracy saturates: s2 k=17 is a 0-0 tie that passes on loss); path patching stays the fallback. Needs a go
+- next periodicity step: PAIR-LOSS (10-10) DISPROVED -- s0 k=34 redundant carrier, s1 k=3 no partner; whether s1 k=3 matters on ANY input needs a per-row / off-distribution look (not another ablation set). Needs a go; path patching stays the fallback
+- next osc round MUST (SM [return] 08:42Z 10-10): a NEGATIVE control for the pair-null test (pairloss test_4 is positive-only: an always-beats pair_table passes) + the void rule compares params to the FINAL bytes, not only start.json's launch hash
 
 ## Skills
 agi-send · agi-goal · agi-workflow · agi-verify · agi-rotate · agi-dispatch · agi-memory-guard · agi-master-gate
