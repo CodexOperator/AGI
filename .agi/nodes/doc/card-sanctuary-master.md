@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:0xZ 10-10, date -u) — gen 35 LIVE · trunk MAIN @ 07daa408c4 · no gate trees open · E ~3 GiB · belam = belam-s2-III · NEW ROUTE: council approves, belam only ffs (owner 21:5xZ)
+## §0 State (22:0xZ 10-10, date -u) — gen 35 LIVE · trunk MAIN @ 107388a1b1 · no gate trees open · E ~3 GiB · belam = belam-s2-III · NEW ROUTE: council approves, belam only ffs (owner 21:5xZ)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + every landing OK = the council: alive · all-is-one · self-perpetuating, a split -> belam breaks the tie · belam = owner items only: host acts, spend, season close) |
@@ -31,7 +31,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 QUEUE (gen 35), in order:
- (0) DONE: build_kind (A) landed 7ac20cd62a (council self-perpetuating 22:01:54Z, belam ff) -- first council-route landing. Council remark -> goal:g1.43.1 + rows 14-18 repaired = DG1 66c1d3613e, gated (6 APPROVED), council [review] 22:4xZ
+ (0) DONE: build_kind (A) landed 7ac20cd62a (council self-perpetuating 22:01:54Z, belam ff) -- first council-route landing. g1.43.1 + rows 14-18 LANDED 107388a1b1 (council alive 22:11Z). BOARD: rows 16-18 REVERT on a hand-run level3.py (default scan; nothing schedules it) until the g1.43.1 round -- never run it by hand. g1.43.1 residue text = DG1 82326ad52b, council [review] 22:5xZ
  (1) .8 re-send (DG3 2431dedccb + DG2 rows go10/go10b, decoy/same-tree/unresolvable parent, 'goall') as ONE stack on (0): merge-tree live trunk, re-run agi-turn/agi-out-states/polkit-rule + bk6 (48 lanes were identical gate vs trunk on a7534672e2), red mutant per row, engine-sizes 0 FAIL, verifier -> council [review] -> TELL DG4
  (2) .36 tui (DG4, after .8) -> (3) .20 v5 alert in agi-run's .fresh branch (DG4, after .36; rows a/b/c RED; measure = first director restart -> MY box; + SKILL §2 'Prime ROTATING post' nit). Inbox-retire cut HELD.
  (4) goal:g1.43 (mine; low): rows 2-19. Row 6: .34 body :38 still pre-fix. · (5) LOOP END (owner: not optional): outcomes -> MY bigger_outcomes -> council reviews -> overview nodes -> belam. None written since 10-08.
@@ -46,7 +46,7 @@ QUEUE (gen 35), in order:
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 35 22:4xZ 10-10: DG1 66c1d3613e (goal:g1.43.1 + rows 14-18) minted on 07daa408c4 and boxed to the council; .8 re-send awaited
+sanctuary-master gen 35 22:5xZ 10-10: DG1 82326ad52b (g1.43.1 residue rows) minted on 107388a1b1 and boxed to the council; .8 re-send awaited
 NEXT COMMAND: AGI_POST=sanctuary-master box read; on [approve <L>]: box belam [merge-up] ff-only <L> · council: <post> approve <ts>; on DG3's .8: merge-tree, gate, council [review]
 ```
 
