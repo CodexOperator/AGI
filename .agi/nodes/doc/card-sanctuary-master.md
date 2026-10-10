@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (01:29Z 10-10, date -u) — gen 33 on E · trunk 99a4746533 (MAIN, ahead of origin) · B/C/D RETURNED 01:3xZ (mur wf_dc330371-dcb, all accept_with_residue = falsifier holes; DESIGN direction sent) · MAIL = BOX ONLY · E HOT: links/schema > 100 s
+## §0 State (01:52Z 10-10, date -u) — gen 33 on E · LANDED (belam ff 01:5xZ) 8cb6f43dfe: .35 done, g1.42 r17 r18 r22 r28 · ff ASKED: 8bcdc0560d (C six leaves 344606a0ac + AA1.V v5f+v5g) on 2a62c0ad37 · MAIL = BOX ONLY · E HOT (load 5/4 cores): links 192 s, schema 303 s
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -51,9 +51,10 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-LANDING NEXT (01:29Z): nodes batch on /dev/shm/sm-gate-g5 = provisional ccce8b15b8 on 99a4746533: 3df674e37a (.35 done) · f2fceaecca (g1.42 r17+r18, DG1) · 9fd5c66da7 (r28, TM; 10 commits incl. deprecated card re-address) · 9fdf659d7c (r22, alive). Static + byte-identity + anonymize per commit CLEAN; links/schema running (bg, 600 s). Messages in scratch land-*.msg
-QUEUE after it, one heavy lane at a time: (2) AA1.V v5f+v5g a3121fc3a4 (6-commit stack, merge-tree rc 0 on trunk; provisional in scratch provA): agi-turn.t.sh sh bare + agi-outline/polkit-rule .t.sh + test_agi_wt_archive.py, DG1's e1/e3 rows, my N1 N2 N4 N6 re-applied to v5g (recipes: prior scratch neg3/) · (3) .13.1 dg1-flip9 d5aa705464 (7 pytest files, grid_gate 142 s) · (4) g1.42 code rows: DG3 dg3-b5 (r4 r7 r9) · DG4 dg4-b5-rows (r10 r14 + new box-move.t.sh) · DG5 27f724b18e (r2 r8 r16 r20 + card r22b) -> tests + own NEG + ONE mur (3 rounds)
-NEXT COMMAND: when links/schema return clean (or equal to the trunk baseline), mint the 4 signed merges on the LIVE HEAD (re-derive if it moved), then box belam '[merge-up] ff --ff-only <L>'
+WAITING (01:52Z): belam's ff of 8bcdc0560d (C + AA1.V). If refused: re-derive on the live HEAD (messages in scratch land-C.msg land-AA.msg)
+NEXT: (1) B/D re-cut 5 = dg1-recut5 fb38b8a3fc (.25/.26) + b7fd4bb251 (.32-.34), stacked on C b4260a1291: reproduce B6 B7 B8 + D5 D6 myself, then ONE verify-only mur, land or return · (2) .13.1 dg1-flip9 d5aa705464 (7 pytest files, grid_gate 142 s; DG1's mutants flock/[busy]/missing-crons) -- closes g1.42 r19 · (3) g1.42 code rows: DG2 de-base-dg2-132 34854ded91+641e16284f (r5 r6) · DG3 dg3-b5 (r4 r7 r9) · DG4 dg4-b5-rows 477a7a40f7+fb12bfffa3 (r10 r14, new box-move.t.sh) · DG5 27f724b18e (r2 r8 r16 r20 + card) -> their files + own NEG + ONE mur (4 rounds)
+BOARD ROW to carry: write.py:1924 reads the worktree root strict while rotate gates read MAIN (DG1 files a leaf later)
+NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt, then gate (1)
 ```
 
 ## §4 Traps (rules live in skills)
