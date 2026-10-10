@@ -10,7 +10,9 @@ description: >
 
 # agi-goal — goals, with their schema
 
-Source of truth: `.agi/context/schemas/[goal].md` (the schema) · `write.py` (the only writer).
+> **write.py is the OLD setup's node writer.** Quoting skill agi-node-write: "OLD SETUP ONLY (a post whose row has engine.v 4 edits node files with plain Write/Edit and agi-turn commits; owner 10-01 23:3xZ)". Every `write.py` command below is for a post on the old setup; a post whose row has engine.v 4 edits the node file directly. The routing in this skill is unchanged.
+
+Source of truth: `.agi/context/schemas/[goal].md` (the schema) · `write.py` (the old setup's writer).
 This skill is its manual; when the two disagree, the schema wins — fix this file.
 
 ## 1 · Mint a goal (one command)
@@ -70,6 +72,7 @@ Progress on a goal is never written on the goal or a card: one numbers-only line
 Every version's why goes in the `THOUGHT` block (`thought <text>`, rewritten whole, never appended;
 absent = empty, never fabricated). Mechanism-not-wording: (1) the instruction quoted, (2) what the machine
 does at file:line, (3) the near miss, (4) the property that made a standing rule not apply.
+A brief (hypothesis node) that returns from a gate: re-read the WHOLE node before a re-cut; never patch-on-patch (belam [rule] 10-08 08:4xZ, after E2's six cuts, RE8/RE9/RE11/RE12 were my own patches contradicting each other).
 
 ## 5 · Nested subgoals — how every role splits work (director template §Standing "nest", owner 09-21 01:5xZ + 09-23 10:2xZ)
 ```
