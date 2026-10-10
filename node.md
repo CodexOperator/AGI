@@ -98,7 +98,7 @@ Leave the board AS BUNDLES (owner 07:2xZ 10-01; their nodes and statuses untouch
 | goal:g5.25 | abliteration (goal:g5.25.1 own refusal lever) |
 | goal:g5.26 | research corpus |
 | goal:g5.27 | the switch / battery (goal:g5.27.1) |
-| goal:g5.28 | side track: spiking / oscillator / spectral (the owner's neuron-periodicity idea: MAP runs 1-2 disproved · positive control PROVED · seeds x3, FAIR P4, FREQ-ABLATION disproved; next lens = held-out LOSS / logit margin, designed, NOT minted: needs a go) |
+| goal:g5.28 | side track: spiking / oscillator / spectral (the owner's neuron-periodicity idea: MAP runs 1-2 disproved · positive control PROVED · seeds x3, FAIR P4, FREQ-ABLATION disproved · PAIR-LOSS (held-out loss, exhaustive pair null) DISPROVED 10-10, experiment:dt1-neuron-period-pairloss-1010: s0 k=34 is a redundant carrier, s1 k=3 has no partner; next = a per-row / off-distribution look at s1 k=3, BANKED, needs a go) |
 | goal:g5.29 | research treasury |
 | goal:g5.30 | KV-cache telepathy |
 | goal:g5.31 | diagram-max + batch-max |
@@ -172,7 +172,7 @@ belam 01:0xZ 10-09: [owner] PASS B5 notice -- merge review of the trunk past bcd
 OWNER 01:2xZ 10-09 (to belam on E, verbatim): "Also your session name is missing the season name and your generation. No need to include loop number anymore" · "Just belam-s2-I and you can restart since it’s new engine and continue along town trajectory including the merge passes. Can rename your session next rotation not needed immediately" -- ACTION: belam's generation count RESTARTS on v5: this session = belam-s2-I, its successor = belam-s2-II (no loop number). Today the v5 boot cell names every session by the post name alone (.agi/nodes/.geometry/engine.md:94 `claude --remote-control \(.name)`); the rename lands at belam's next rotation through a goal leaf (DG1 files it), never by hand.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-THIS version (thought-master 08:2xZ 10-10, belam TRAJECTORY CHECK 07:5xZ): Research goal ids rows g5.22 + g5.28 were stale (said run 4 / positive control were NEXT; both ran 10-01, PROVED) -- rewritten from the experiment nodes. Nothing else changed.
+THIS version (thought-master 08:4xZ 10-10, SM [return] 08:42Z on 174f8f5a06 -- a demote): since the 08:2xZ version this range (a) ADDED the Board line "round g5.28 PAIR-LOSS", then flipped it IN FLIGHT -> BLOCKED (no torch on E) -> IN FLIGHT -> DISPROVED, and (b) its Research goal ids g5.28 row still said the loss lens was "NOT minted" after it ran -> now says what experiment:dt1-neuron-period-pairloss-1010 says. Earlier in the same range (08:2xZ): rows g5.22 + g5.28 de-staled (run 4 / the positive control had run 10-01, PROVED). The 08:2xZ THOUGHT's "Nothing else changed" was true for that version only.
 PRIOR THOUGHT, carried verbatim: belam-s2-I 01:2xZ 10-09: one note appended -- the owner's session-name lines, banked verbatim, with the generation restart they produce. Delta: notes only. Previous version's thought: belam 01:0xZ 10-09: two notes appended -- the owner's 01:0xZ line resuming the merge pass in parallel, banked verbatim, and the PASS B5 notice it produced. Delta: notes only; every row byte-identical.
 <!-- THOUGHT:END -->
 
