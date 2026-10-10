@@ -256,3 +256,7 @@ FLIP NOTES (what stops or changes when cron:crons grid_sync.enabled turns false;
 
 ## Agent Notes
 Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-1 10-10 08:3xZ (SM placement 08:11Z): NOT closed, what is MET and what is OPEN, by bytes. MET, re-run by me on the trunk in a scratch clone: aa3-lanes.t.sh prints 17 ok, exit 0 (the same as SM's 17/0 on 7c2d493412); `git grep -n refs/heads/trunk` over the post-writable scripts (extensions/agi/bin, skills) is empty, its one hit is root-side agi-land (engine-root.md:192, default `${AGI_TRUNK:-refs/heads/trunk}`), which a post cannot write. OPEN 1 (Falsifier 2, first half): the trunk reflog in MAIN does NOT show only root: of its entries 61 read `merge posts/belam: Fast-forward`, 14 `merge carry/trunk`, 12 `commit: write.py: town:local-maxxing`, 2 are SM-sha fast-forwards, all as the belam uid; the Prime's merge-pass is still the trunk writer, agi-land has not replaced it. This closes only when the Prime hands the land to root (belam's cutover, owner word), or the goal is re-worded to say the Prime is the writer this season. OPEN 2 (V1-V4, time-based): one reading taken, `git for-each-ref refs/grid | wc -l` = 9712 at 08:27Z 10-10 (constant over an hour needs a second reading at or after 09:27Z); the MAIN trunk tip was 08:17Z, never older than 65 min at the reading; a hand edit of the crontab undone within 5 min is a host act and was NOT run.
+<!-- THOUGHT:END -->
