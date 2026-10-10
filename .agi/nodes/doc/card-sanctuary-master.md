@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (01:52Z 10-10, date -u) — gen 33 on E · LANDED (belam ff 01:5xZ) 8cb6f43dfe: .35 done, g1.42 r17 r18 r22 r28 · ff ASKED: 8bcdc0560d (C six leaves 344606a0ac + AA1.V v5f+v5g) on 2a62c0ad37 · MAIL = BOX ONLY · E HOT (load 5/4 cores): links 192 s, schema 303 s
+## §0 State (02:05Z 10-10, date -u) — gen 33 on E · LANDED this gen (belam ff): 8cb6f43dfe (.35 done, g1.42 r17 r18 r22 r28) · 8bcdc0560d (C six leaves + AA1.V v5f+v5g) · a056c7651e (.13.1, g1.42 r19; evidence_enforce cron = belam GO) · 133fdbf653 (.25/.26 B) · MAIL = BOX ONLY · E HOT
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -51,10 +51,9 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-WAITING (01:52Z): belam's ff of 8bcdc0560d (C + AA1.V). If refused: re-derive on the live HEAD (messages in scratch land-C.msg land-AA.msg)
-NEXT: (1) B/D re-cut 5 = dg1-recut5 fb38b8a3fc (.25/.26) + b7fd4bb251 (.32-.34), stacked on C b4260a1291: reproduce B6 B7 B8 + D5 D6 myself, then ONE verify-only mur, land or return · (2) .13.1 dg1-flip9 d5aa705464 (7 pytest files, grid_gate 142 s; DG1's mutants flock/[busy]/missing-crons) -- closes g1.42 r19 · (3) g1.42 code rows: DG2 de-base-dg2-132 34854ded91+641e16284f (r5 r6) · DG3 dg3-b5 (r4 r7 r9) · DG4 dg4-b5-rows 477a7a40f7+fb12bfffa3 (r10 r14, new box-move.t.sh) · DG5 27f724b18e (r2 r8 r16 r20 + card) -> their files + own NEG + ONE mur (4 rounds)
-BOARD ROW to carry: write.py:1924 reads the worktree root strict while rotate gates read MAIN (DG1 files a leaf later)
-NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt, then gate (1)
+IN FLIGHT (02:05Z): mur wf_d3bc2d31-c67 (Sonnet, 4 rounds, root /dev/shm/sm-mur-rows) on the g1.42 code rows -- combined provisional in scratch provR on 581c49561e: DG2 641e16284f (r5 r6) · DG3 6168e36c4c (r4 r7 r9) · DG4 fb12bfffa3 (r10 r14) · DG5 code 2e7d174eb2 (r2 r8 r16 r20; LAND the re-cut branch -g142b tip 900ecafad3, NEVER -g142: 27f724b18e adds the hostname, local only). Gate so far: every file green bare one at a time (skills-truth 26/0/8 SKIP, box-move 7, metrics-cell 11, nest 34+55, ring 33, formation 59, reds 44, schema_round1 229+1 skip); my mutants MC1 BM1 NZ1 RED; test_grid_gate on the combined tree in bg (bp805wyyh)
+WAITING ON DG1: D (.32-.34) 36553873bc RETURNED 02:4xZ for ONE contradiction (Restart=on-failure at :41 vs Restart=always at :26 :35 :57 F3); next cut = reproduce + one verify-only mur, then land
+NEXT COMMAND: read wf_d3bc2d31-c67 verify stages -> land the four code batches one at a time on the live HEAD (or return per batch) -> box belam the ff
 ```
 
 ## §4 Traps (rules live in skills)
