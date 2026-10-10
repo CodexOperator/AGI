@@ -32,8 +32,17 @@ the carrier's path unit + service (root files: belam's GO per act) · its own ex
 ## CEILING
 1 parent · kids <= 1 · 1 host act, its own belam GO. HORIZON: not dispatched; DG1's inner loop places it.
 
-## Result (belam's host act 2, 19:32Z)
-verdict:dg2-aa1m-m2-fork PROVED 0.95 on real systemd (host acts 2 + 2b, 8 of 8 lines MET); the pack-refs mitigations above are NOT needed (the unit re-arms); a unit that waited on a missing dir attaches when it appears, so the live unit may take the default boot shape. Per belam, DG3 may build the per-sender template on this; the live install is its own GO.
+## Placement (DG1 19:16Z, belam 19:1xZ)
+ACCEPTED as the corrective of hypothesis:g716111-aa1m-one-root-carrier-per-box-woken-by-a-path-unit-moves-mail-between-stores-and-boxes (verdict:dg2-aa1m-m2). Its host act 2 = doc:dg2-aa1m-host-act-2 (scratch units, stub service, one command + one-command rollback), sent to belam as ONE line for his GO; the live unit install (agi-carry@.path per row) is DG3's build and its own later GO. HORIZON until belam GOes act 2: the PACK line decides whether the live design needs the store's gc.packRefs=false or the carrier re-creating the dir.
 
-## Placement (DG1 19:16Z, belam 19:1xZ; updated after host acts 2 + 2b)
-ACCEPTED as the corrective of hypothesis:g716111-aa1m-one-root-carrier-per-box-woken-by-a-path-unit-moves-mail-between-stores-and-boxes (verdict:dg2-aa1m-m2). Host act 2 (doc:dg2-aa1m-host-act-2) RAN (belam, root, 19:32:46Z) and 2b RAN (19:39:48Z), both self- or hand-rolled-back: 8 of 8 lines MET; the unit RE-ARMS after a pruned dir, a waiting unit attaches when its dir appears (the live `agi-carry@.path` may take the default `paths.target` shape, no ordering after the post unit), pid 1 inotify +1 per unit. The live unit install (agi-carry@.path per row) is DG3's build and its own later GO.
+## HOST ACT 2 RESULT (belam [decision] 19:3xZ 10-02: RAN as root 19:32:46Z with his GO, script read whole first, sha256 9e4180a5 OK; ROLLED BACK 19:33:10Z: units 0, /tmp/m2 0, /run files 0, pid 1 inotify back to 10 = before)
+| line | result | reads |
+|---|---|---|
+| ROW alive | sends=3 fired=3 | MET: the per-sender PathChanged fires on EVERY send |
+| CTRL all-is-one | sends=3 fired=1 | MET: a watch on refs/box fires only on the first send; the M2 bug is real |
+| NEG | no send + a write elsewhere: 3 -> 3 | MET |
+| PACK | `pack-refs --all` pruned the dir: YES; 2 more sends: fired=5 | MET: systemd RE-ARMS the unit across a pruned and re-created dir; NO gc.packRefs mitigation is needed (the twin's raw inotify died with the dir; the real unit does not) |
+| GHOST before | a row with no dir yet: active / waiting, Result success | MET: the unit waits, it does not fail |
+| GHOST after | HOST ACT 2b RAN (belam, root, 19:39:48Z, script read whole, sha256 a53de7d5 OK, self-rolled-back: units 0, /tmp/m3 0, /run files 0): root made the dir, the row user wrote: fired=1 and still active; a 2nd write: fired=2 | MET: a waiting per-sender path unit ATTACHES when its dir appears later. The first run's GHOST-after flaw (mkdir as the row user under a root-owned /tmp/m2) is closed by this separate one-shot |
+| INOTIFY pid 1 | 10 -> 13 for 3 units | MET: +1 instance per unit; 32 rows = +32 against max_user_instances 128 |
+DG3 may build the per-sender template (`agi-carry@.path`, `PathChanged=STORE/refs/box/%i`) on this; the LIVE install is its own belam GO. The twin's PACK hazard (the watch died with the dir) did NOT hold for systemd: the mitigation candidates (a) gc.packRefs=false and (b) the carrier re-creating the dir are NOT needed. HOST ACT 2 IS NOW 8 of 8 MET (7 lines + the ghost-after of 2b). The live `agi-carry@.path` may take the DEFAULT shape (`WantedBy=paths.target`, up at boot): NO ordering after the post unit is required (belam [decision] 19:4xZ). The verdict is DG2's: the evidence now supports PROVED, not lean, on the real box (scratch units, a stub service; the live install is DG3's build and its own GO).
