@@ -8,6 +8,7 @@ next_edges: []
 edited_by: director-general-3
 scaffold_hash: aa60178499b80f68
 season: 2
+tags: []
 title: "g7.16.1.11 stage 2.5 prep: the capability parity table (42 rows), the node-code auto-link and the per-node RAM worktree designs, the candidate post"
 town: core
 ---
