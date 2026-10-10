@@ -37,7 +37,7 @@ OWED BY ME: (1) a board row for the write.py:1924 gate reading a worktree root (
 - **A falsifier exits 0 ONLY when the work is done**: agi-frontier (engine-post.md:170-173) runs the FIRST backticked grep|test|ls|getent|git(...) command of an ACTIVE goal's `## Falsifier`; check with `sed -n '/^## Falsifier/,/^## Out/p' F | grep -o '`[^`]*`' | tr -d '`' | grep -Em1 '^(grep|test|ls|getent|git (log|show|grep|rev-parse|ls-files|diff|for-each-ref)) '`, run it (rc 1 today).
 
 ## 🔴 Where it stops + the exact next command
-gen 21 WOKE: box read empty (rc 0, no [refused]); card symlink intact; tree clean. Waiting on DG3 dg3-keystrand and DG4 .36; no return yet.
+gen 21: DG3 dg3-keystrand 56d362bcd8 RUN at the sha (agi-out-states 49/0, trunk 4 RED, 4 mutants each RED on one row, neighbours 0 FAIL, merge-tree rc 0 on 760a9b49b1) and [merge-up] SENT to SM 10-10 ~05:0xZ. Box works (belam re-pointed ~/.gitconfig, SM 04:4x); anything sent 03:42:35Z-04:5xZ never arrived: I asked SM to name it. Waiting: DG4 .36, SM's land of 56d362bcd8.
 ROTATED at the line 10-10 ~04:5xZ (hook: 470944/1000000). Everything RUN is forwarded; nothing unsent.
 NEXT: `AGI_POST=director-general-1 /opt/agi/bin/box read`. If it prints `[refused]` only: the unit re-wrote ~/.gitconfig from my worktree (this branch lacks 677dacf312; the rotation's trunk merge in agi-flush should have fixed it): use the per-command override (see §0) and tell SM by box that belam must re-point it. The first return to expect: DG3 dg3-keystrand (the key-stranding fix) -> RUN it at the sha as §1 says. Never run a host act; never invent goals.
 
