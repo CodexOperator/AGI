@@ -28,6 +28,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import rotate  # noqa: E402
@@ -38,6 +39,7 @@ import rotate  # noqa: E402
 def _write_seats(root, rows):
     gp = root / "nodes" / ".geometry"
     gp.mkdir(parents=True, exist_ok=True)
+    write_free_veto(gp)
     body = "---\nid: config:seats\ntype: config\nseats:\n"
     for r in rows:
         body += "  - " + json.dumps(r) + "\n"
@@ -131,6 +133,7 @@ def _fix(tmp_path, monkeypatch):
     monkeypatch.setattr(rotate, "find_project_root", lambda *a, **k: root)
     g = root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (g / "rotations.md").write_text(
         "---\nid: config:rotations\ntype: config\ntemplates:\n"
         "  parent:\n    brief_file: extensions/agi/briefs/parent-successor.md\n"
@@ -143,6 +146,7 @@ def _fix(tmp_path, monkeypatch):
 def _write_seats_sheet(root, rows):
     nodes = root / "nodes" / ".geometry"
     nodes.mkdir(parents=True, exist_ok=True)
+    write_free_veto(nodes)
     (root / "sessions").mkdir(parents=True, exist_ok=True)
     body = "---\nid: config:seats\ntype: config\nseats:\n"
     for r in rows:

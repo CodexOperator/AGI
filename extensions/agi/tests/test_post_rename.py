@@ -21,6 +21,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 BIN = Path(__file__).resolve().parents[1] / "bin"
 CLI = BIN / "cli.py"
@@ -63,6 +64,7 @@ def _build_repo(tmp_path):
 
     g = r / ".agi" / "nodes" / ".geometry"
     g.mkdir(parents=True)
+    write_free_veto(g)
     (g / "seats.md").write_text(_seats_md())
     (r / "README").write_text("hi\n")
     (r / ".gitignore").write_text(".agi/worktrees/\n.agi/sessions/\n")

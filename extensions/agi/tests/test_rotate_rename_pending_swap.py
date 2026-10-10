@@ -24,6 +24,7 @@ from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import rotate  # noqa: E402
+from tests.veto_cell import write_free_veto  # noqa: E402
 from agi.bin import send  # noqa: E402
 
 
@@ -32,6 +33,7 @@ def _geo(root, rows, aliases=None):
     rows AND the Prime-written `aliases:` table (old -> new)."""
     geo = root / "nodes" / ".geometry"
     geo.mkdir(parents=True, exist_ok=True)
+    write_free_veto(geo)
     lines = ["---", "id: config:posts", "posts:"]
     for r in rows:
         lines.append("  - " + json.dumps(r, sort_keys=True))
@@ -63,6 +65,7 @@ def _ladder(tmp_path, monkeypatch):
                                          "director_rotate_at": 0.25}.get(f, d))
     g = tmp_path / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (g / "rotations.md").write_text(
         "---\nid: config:rotations\ntype: config\ntemplates:\n"
         "  parent: {brief_file: extensions/agi/briefs/parent-successor.md, "

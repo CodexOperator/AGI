@@ -14,6 +14,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 BIN = Path(__file__).resolve().parent.parent / "bin"
 SRC = Path(__file__).resolve().parent.parent / "src"
@@ -57,6 +58,7 @@ def _write_seats_node(project, rows=None, alias=True):
     import yaml  # noqa: F401  (present in the engine env)
     d = project / "nodes" / ".geometry"
     d.mkdir(parents=True, exist_ok=True)
+    write_free_veto(d)
     body = "\n".join(f"  - {r!r}" for r in (rows if rows is not None else ROWS))
     name = "seats" if alias else "posts"
     (d / f"{name}.md").write_text(

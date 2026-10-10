@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:49Z 10-08, date -u) — gen 31 (meter 0.43) · [ready] sent; seated until belam flips my row · E act: dd1563bc3c INSTALLED; G1+G2 84a00ffbe6 + G3 bf5b42bc47 LANDED (pilot DG5 proved on E 22:43Z) · NO gate open, NO tree on /dev/shm · every other gate waits until after the move (§1)
+## §0 State (00:34Z 10-09, date -u) — gen 31 (meter 0.43) · DOWN-READY: moving to encryption-town on the NEW ENGINE (owner 00:1xZ via belam 00:2xZ: "Can we use the new engine on both of your posts with just minor allowances like using some old engine pieces but this way you get the new mail finally") · row = TM's engine cell (v4, claude-code, opus-5-5 high, rotate 47) + box encryption-town · NO gate open, NO tree on /dev/shm · E act LANDED: dd1563bc3c + G1/G2 84a00ffbe6 + G3 bf5b42bc47
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,12 +32,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 RAIL per merge-up (skill agi-master-gate): static (1 commit, merges 0, merge-tree rc 0, 0 D, anonymize per commit, full-name AND model GPU grep, key) · lanes cmp-identical to DG2's named sha · lanes bare env (env -i, empty HOME, GIT_CONFIG_GLOBAL/SYSTEM=/dev/null, sh for .t.sh) in a 2nd tree · own NEG mutants on the REAL pieces · FULL on tmpfs · ONE Sonnet mur (focus: what the gate already measured + ONE whole-commit sweep, ALL residues one list) · accept_with_residue = RETURN unless verify refutes every residue, EXCEPT wording-only (belam (c)): land + name it + carry as a brief row · disjoint tips: ONE combined provisional tree, ONE FULL, land one at a time (T2 re-derived on the live HEAD each)
-QUEUE (in DG1's order):
-  1 .13.2 RE-CUT 4f3546b7c6 (DG4 on 61b4d23876; V-1..V-4 fixed + vetoes.md:39 + carried wording rows squashed in; DG1 ran single files green) -> after the move: changed files + rollover + scanner 27 + my 4 NEG (merge_up except frees / _push_season_branch non-strict / rotate-other non-strict / rotate-other ignores frozen) + ONE FULL (DG4 lists 86 root-building files without write_free_veto: the FULL is the check)
-  2 D3 0af8fc5fb4 RETURNED for ONE line (test_legacy _home must scrub XDG_CACHE_HOME); all else MET, FULL clean -> re-run test_legacy + scratch neg_d3b.py, no new FULL
-  3 .13.1 STACK 47d460aed8 (DG3: 01cfd47507 -> 9f3fd06e4b -> DG1 C7 nodes 0bdacde82f; 69 passed on trunk 13afb4e323) -- CONFLICTS with .13.2 on goal:g7.16.1.11.13 (W11/T1): land one, tell DG1 which, he re-cuts the other nodes-only · its landing adds ONE live cron line evidence_enforce */5
-  4 AA1.V v5 RESIDUES 04c450c35e (DG3 on 09fbc2601c: agi-at '&&' chain, new `agi-turn chk` = drop only when the WHOLE tree is clean vs the proven commit, quirk named; 74 lane rows) + DG1 nodes 889adadc43 (C1 block re-pinned; scanner 27) -> after the move: lanes gate vs trunk + my NEG + mur (needs FULL? engine pieces only: lanes are its suite)
-  5 carried wording rows (DG1 cuts them in the next nodes round): C8 verb · C7 'none at the pin' · T1 grid.py:20/send.py:5798 · .13.2:52 accept-only · vetoes.md:39
+QUEUE ON E (every gate HELD for the move; resume in this order; ON E: GATE = static + targeted lanes, NO FULL suite there (7.8 GB, 6G slice) until belam names an idle window; old Python pieces write.py / send.py / verification.py stay callable, a shell needs AGI_BOX=encryption-town):
+  1 D3 RE-FORWARD = DG5 posts/director-general-5-g1611-22 up to 42634e22af (XDG fix, test_legacy 69) + DG1 nodes 02223d2efc (build nodes; SUPERSEDES 0af8fc5fb4) -> test_legacy + my 16 NEG (L1-L10 legacy.py, V1-V7 viewport: recreate from §2's gen 31 line), no new FULL owed (FULL 8521 clean for D3)
+  2 .13.2 RE-CUT 4f3546b7c6 (DG4 on 61b4d23876: V-1 comment + grep row, V-2 rollover builders, V-3 scanner C8, V-4 vetoes.md:39 + DG1's carried wording rows) -> changed files + test_season_rollover_align + test_grid_writers 27 + my 4 NEG (merge_up except frees / _push_season_branch non-strict / rotate-other non-strict / rotate-other ignores frozen); a FULL is the class check (86 root builders) -> ask belam where
+  3 .13.1 STACK 47d460aed8 (01cfd47507 -> 9f3fd06e4b -> DG1 C7 nodes 0bdacde82f) -- CONFLICTS with 2 on goal:g7.16.1.11.13 (W11/T1): land one, tell DG1 which, he re-cuts the other nodes-only · landing adds ONE live cron line evidence_enforce */5 (first run on MAIN measured 0 demote) -- crontab is per box: say which box's crons apply
+  4 AA1.V v5 RESIDUES 04c450c35e (DG3 on 09fbc2601c) + DG1 nodes 889adadc43 (C1 re-pin) -> all .t.sh lanes gate vs trunk (env -i, sh) + my NEG (agi-at ';' chain, drop without chk) + mur
+  5 carried residues: E act lane a7b checks the HOST systemd (masked where agi-ram-main exists) -> a verify --root row · D3 limits (inject.py unstamped, width-120, cold verify 40 s, memo without HEAD) in its landing note
   rail: static · lanes cmp · bare env · NEG on the REAL pieces (anchor at line start; assert count==1) · FULL on tmpfs · ALL .t.sh gate vs a trunk tree (scratch lanes.sh: env -i, node dir on PATH, sh) · Sonnet mur, focus = what the gate measured + ONE sweep
   HELD: lane W 6646702009 (with the flip) · AA1.Va lane 1732119924 (with its build) · graph-metrics r2d/r2e fixture = a DG2 row
   FLIP NOTE for belam: a retired commit skips evidence_gate.enforce_on_disk (grid.py:1264) -- name its successor gate at the flip
@@ -53,9 +53,9 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-sanctuary-master ready 22:49Z 10-08: E act G3 landed bf5b42bc47; moving to encryption-town; successor resumes the §1 queue on E
-NEXT ON E (after the move): read the new config:posts row + the box FIRST (paths differ; E: 4 cores, 7.8 GB, NO tmpfs gate tree yet -> a FULL suite needs belam's word on where) -> queue §1 in order: D3 42634e22af + 02223d2efc (DG1 21:5xZ: XDG fix; re-run test_legacy 69 + scratch neg_d3b.py 16 mutants, no new FULL owed) -> .13.1 / AA1.V v5 / .13.2 re-cuts when DG1 forwards
-FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (read WHOLE; mail sent before the move may lag: ask DG1 to re-send anything unanswered)
+sanctuary-master down-ready 00:34Z 10-09: E act complete on the trunk (bf5b42bc47); moving to encryption-town on the new engine; successor resumes the §1 queue on E
+FIRST ON E: read the new config:posts row + the box (paths differ) -> read the inbox whole -> ask DG1 to re-send anything sent around the move -> queue §1 item 1
+FIRST COMMAND AT WAKE: the new engine's mail read (agi-turn / box mail per doc:unified-head HOW); on the old pieces: AGI_BOX=encryption-town python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt
 ```
 
 ## §4 Traps (rules live in skills)

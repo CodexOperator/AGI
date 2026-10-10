@@ -35,6 +35,7 @@ _BIN = _REPO / "extensions" / "agi" / "bin"
 sys.path.insert(0, str(_BIN))  # so the lazy `import verification` resolves
 
 from agi.bin import rotate  # noqa: E402
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 
 def _seed_gen_record(root, name, gen_after):
@@ -58,6 +59,7 @@ def prep_root(tmp_path):
     'clean' state every test starts from. Tests then break it by injecting
     git lines / re-pointing the pin."""
     (tmp_path / "nodes").mkdir(parents=True)
+    write_free_veto(tmp_path / "nodes" / ".geometry")
     sess = tmp_path / "sessions"
     (sess / "seats").mkdir(parents=True)      # meter pins + handoffs
     (sess / "quorum").mkdir(parents=True)     # the card rotate-self briefs
@@ -421,6 +423,7 @@ def _seat_row(prep_root, gen, pid=None):
     tasks line counts descendants under, when set."""
     g = prep_root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     row = {"name": "adv-alive", "role": "parent",
            "generation": gen, "worktree": ""}
     if pid is not None:
@@ -437,6 +440,7 @@ def _seat_row_wt(prep_root, gen):
     WITHOUT depending on the SM.84 MAIN-post foreign-dirt scoping."""
     g = prep_root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     row = {"name": "adv-alive", "role": "parent",
            "generation": gen, "worktree": "/some/wt"}
     (g / "seats.md").write_text(
@@ -506,6 +510,7 @@ def test_prepare_check5_clear_line_prefers_row_transcript_over_stale_pin(
     the WRONG transcript for the re-point."""
     g = prep_root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     row = {"name": "adv-alive", "role": "parent", "generation": 3,
            "worktree": "", "cwd": str(prep_root / "seat-hub"),
            "session_id": "row-sess-001"}
@@ -609,6 +614,7 @@ def test_prepare_season_branch_comes_from_the_ladder(
     derives the same branch)."""
     g = prep_root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (g / "ladder.md").write_text(
         "---\ntype: config\ncurrent_season: 3\n---\n", encoding="utf-8")
     behind = {("status", "--porcelain"): [],
@@ -1132,6 +1138,7 @@ def _real_unpushed_rotate_repo(tmp_path):
     (root / "nodes").mkdir(parents=True, exist_ok=True)
     g = root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (g / "rotations.md").write_text(
         "---\nid: config:rotations\ntype: config\ntemplates:\n"
         "  parent:\n    brief_file: extensions/agi/briefs/parent-successor.md\n"
@@ -1454,6 +1461,7 @@ def test_prepare_check2_worktree_post_dirt_blocks_even_outside_touch(
     foreign line appears even when the touch-set would exclude the path."""
     g = prep_root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     row = {"name": "adv-alive", "role": "parent", "generation": 3,
            "worktree": "/some/wt"}
     (g / "seats.md").write_text(
@@ -1508,6 +1516,7 @@ def test_prepare_check2_quoted_dirty_path_touch_set_real_fixture(
         # mirroring _real_repo, but in a fresh sub-root per scenario so the
         # touch-set membership can differ between them.
         (root / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+        write_free_veto(root / "nodes" / ".geometry")
         sess = root / "sessions"
         (sess / "seats").mkdir(parents=True)
         (sess / "quorum").mkdir(parents=True)
