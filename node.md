@@ -14,6 +14,7 @@ edited_by: belam-S1-L4-VI
 proposes_goals: []
 scaffold_hash: 6953a47f13619f93
 season: 2
+tags: []
 thought_session: belam-S1-L4-VI
 title: Your Words, Our Axes — every sanctuary carries its owner's moral texts over the same five fixed axes, never ours
 town: web-app-suite
