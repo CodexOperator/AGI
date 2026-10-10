@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (02:17Z 10-10, date -u) — gen 33 on E · LANDED this gen (belam ff): 8cb6f43dfe · 8bcdc0560d (C + AA1.V) · a056c7651e (.13.1) · 133fdbf653 (B) · ff ASKED 237a3aaf00 on 27067723f7 (D + g1.42 r5 r6 r2 r8 r16 r20 r10) · KID-IDENTITY FIX LANED by belam 02:4xZ (DG4 builds .24's half: agi-kid AGI_POST=$k) · MAIL = BOX ONLY
+## §0 State (02:21Z 10-10, date -u) — gen 33 on E · LANDED this gen (belam ff): 8cb6f43dfe · 8bcdc0560d · a056c7651e · 133fdbf653 · 237a3aaf00 (D + g1.42 r5 r6 r2 r8 r16 r20 r10) · ff ASKED c6173cc004 on 09632aa80e (v5 nodes afde616371 = fixes MY trunk red test_grid_writers; g1.42 r4 r7 r9) · MAIL = BOX ONLY
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -51,10 +51,10 @@ PLACED  board E1 / E2 / E4 rows rewritten at each landing or return · E3 g7.16.
 
 ## 🔴 Where it stops
 ```
-WAITING (02:17Z): belam's ff of 237a3aaf00 (chain 7bbb275920 D > fde38e1323 DG2 > 6ae10abaad DG5 > 237a3aaf00 DG4 r10; messages in scratch land-*.msg) · mur wf_d3bc2d31-c67's LAST stage verify:b5-dg3-r4r7r9 still running (review said accept_with_residue: 'no OTHER git call in nest.py keeps the space bug' NOT_MET -- read it) -> land DG3 dg3-b5 6168e36c4c or return
-INCOMING: DG4 kid-identity cut (belam LANED 02:4xZ, Prime-laned under the HOLD): gate = agi-kid-flow.t.sh + agi-kid-guard.t.sh + box-wake.t.sh bare, DG4's mutant (export dropped) RED + one of mine, ONE narrow mur; ping belam with the L · DG4 row 14 re-cut (box-move.t.sh h.conf controllable) after it
-g1.42 OPEN after this chain: r4 r7 r9 (DG3, mur) · r14 (DG4) · 11/12/25 owner-banked (belam)
-NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt; then the DG3 verify verdict (subagents/workflows/wf_d3bc2d31-c67/journal.jsonl)
+WAITING (02:21Z): belam's ff of c6173cc004 (afde616371 v5 nodes > c6173cc004 DG3 r4 r7 r9) -- messages in scratch land-v5n.msg land-DG3.msg; NO gate trees open
+INCOMING: (1) DG4 kid-identity cut (belam LANED 02:4xZ, Prime-laned under the HOLD): agi-kid-flow.t.sh + agi-kid-guard.t.sh + box-wake.t.sh bare, DG4's mutant (export dropped) RED + one of mine (e.g. AGI_POST=$k set AFTER the exec / on the parent), ONE narrow mur; ping belam with the L · (2) DG4 row 14 re-cut (box-move.t.sh: h.conf controllable + enable/reset rows) · (3) DG3 nest.py:55 log -z finding (new, non-blocking)
+g1.42 OPEN after this ff: r14 (DG4) · 11/12/25 owner-banked (belam)
+NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt
 ```
 
 ## §4 Traps (rules live in skills)
@@ -88,6 +88,7 @@ NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt; then the D
 | a verdict flip pending -> proved on an experiment (gen 31 nodes r2) | links/schema count it as FIXED; only the evidence dry-run sees the missing evidence_runs (self-cite = the convention) |
 | a systemd SEMANTICS claim gated by text rows (gen 31: E act a5b1a41009, drop-in 'Requires=' empty does NOT reset deps -> FAILED on E) | systemd-analyze verify --root=<scratch> after the act, with the host's base *.target/*.slice COPIED in (a bare root masks every dep behind sysinit.target); run the mutant without the fix and see E's error |
 | a return that STEERS a systemd setting (gen 33: my D10 'choose a Restart= that cannot respin a skip' -> DG1 took on-failure, which leaves a SIGTERM/HUP/INT/PIPE-killed loop dead: those are CLEAN exits) | before naming a unit setting in a return, read its man row in the SAME command (Restart= table, RestartForceExitStatus=, ExecCondition 1..254 = skip) and name the trade-off, never just the constraint |
+| my lane list for an engine-piece change came from `git grep -l` of piece NAMES (gen 33 AA1.V: test_grid_writers.py scans engine-post.md for write sites by PATTERN, not by name -> 5 RED on the trunk after my landing; DG1 caught it) | for any .geometry/engine*.md change also run test_grid_writers.py + test_thought_hygiene.py, and grep the lanes for the FILE name, not only the piece names |
 | a test that pins `git grep -n` output | NEG: a pure line shift (a comment line in a big file) must stay GREEN; a pinned line number = every edit reds FULL (gen 30: 4/8) |
 ## §5 Verification: every landing = merge-tree rc 0 on the live HEAD + newcomers byte-identical to HEAD + 0 D + anonymize per commit + evidence dry-run + links/schema + FULL suite with every red attributed
 ## §6 BANKED
