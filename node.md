@@ -13,7 +13,6 @@ heading_level: 3
 origin: goals-doc
 scaffold_hash: 8d4c042c66ea786f
 season: 2
-seeds: []
 status: active
 tags:
   - engine
