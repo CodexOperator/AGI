@@ -37,11 +37,12 @@ DONE   FAIR P4 reviewed CONFIRMED_DISPROVED + recorded + merged (dc1504bba) + ga
 DONE   SM landed 67680d223; trunk merged back 6d8bb6265
 DONE   FREQ-ABLATION built by DT-1, reviewed CONFIRMED_DISPROVED, recorded, merged 956e7b179, gated, [merge-up] 3fb85474f to SM
 DONE   SM landed 708727845; trunk merged back 2bd54de9c
-NOW    g5.28 PAIR-LOSS -> DT-1 (belam GO 08:3xZ 10-10); review + merge-up when it returns
+DONE   g5.28 PAIR-LOSS DISPROVED, reviewed, [merge-up] to SM
 BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-digit-token model resident = a download, BANKED)
 ```
 
 ## §2 Landed
+- 08:3xZ 10-10 g5.28 PAIR-LOSS: DT-1 built + ran on E (torch 2.14.0+cpu, belam GO B), DISPROVED (s0 k=34 redundant 3/3, s1 k=3 no partner); merged 554d2edb58; Sonnet review CONFIRMED_DISPROVED; experiment wording + THOUGHT, hypothesis 0.4 -> 0.15, board; grid 3 versions, 0 demoted
 - 08:4xZ 10-10 belam GO -> minted the g5.28 pair-loss hypothesis (loss C1 already known to fail, so it tests the redundant-carrier reading, exhaustive pair null); board line; corrected my "0.5B" to the toy checkpoints; relayed the trunk-merge ask (677dacf312) to all-is-one + self-perpetuating
 - 08:2xZ 10-10 belam TRAJECTORY CHECK answered by box: nothing queued for DT-1 / all-is-one / self-perpetuating (all 3 replied by box); 20-leaf open-research table; finding all-is-one box-wake loop dead; board rows g5.22 + g5.28 de-staled (grid v+1)
 - 04:2xZ 10-10 SM LANDED row 28 + the card-old readdress: 6a492f294e on local-maxxing/season2/main (byte-identical to 9fd5c66da7); trunk 08e197134d merged back --no-commit (154 files, clean). belam: PASS B6 ~09:1xZ 10-10 carries it
@@ -61,7 +62,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-IN FLIGHT: g5.28 PAIR-LOSS RETURNED 08:2xZ 10-10 -- experiment:dt1-neuron-period-pairloss-1010 DISPROVED (T = s0 k=34, s1 k=3; s0 k=34 redundant 3/3 partners; s1 k=3 NO partner, inert). posts/director-thought-1 ae31a96e2e merged --no-commit (11 files = FILE SCOPE + DT-1 card). One-process Sonnet adversarial review RUNNING (torch read-only from DT-1 scratch/torch-cpu/pylib). Next: verdict -> record review on the experiment THOUGHT + hypothesis -> board line -> [merge-up] SM
+g5.28 PAIR-LOSS DISPROVED + review CONFIRMED_DISPROVED (0 mismatches / ~195 values); "inert" overclaim corrected on the experiment; hypothesis conf 0.15; board row = verdict. [merge-up] to SM sent by watcher after the turn commit -> wait for SM's LAND, then merge the trunk back --no-commit. Next periodicity step (per-row / off-distribution look at s1 k=3) BANKED, needs a go
 next command: AGI_POST=thought-master ~/bin/box read   (mail = signed commits on refs/box; send: printf msg | AGI_POST=thought-master ~/bin/box send <to>)
 ```
 
