@@ -211,10 +211,31 @@ _need_node = pytest.mark.skipif(
     _NODE is None, reason="node absent on this box: the pi-harness rows need it")
 _FETCH = ('fetch("http://127.0.0.1:9")'
           '.catch(e=>console.log("settled:",e.message))')
-# ~600 MB of heap, then exit 0: past a 256M cap it dies, and with the limit
-# dropped it finishes (a bounded runaway, so the mutant row cannot eat the box)
-_NODE_ALLOC = ('const a=[];for(let i=0;i<600;i++)a.push(new Array(130000)'
-               '.fill(i+1.5));console.log("survived",a.length)')
+# Each child below exceeds ITS cap by a bounded amount (<= 200 MB) and exits 0
+# when the limit is dropped, so the unbounded witness stays small on a 2 GB box.
+# The wordings are the runtimes' own ENOMEM texts (is_cap_death's needles).
+_KILL_ROWS = {
+    # kind: (child argv tail, cap, the text the death must carry)
+    "python": (["-c", "x=bytearray(200*1024*1024)"], "128M", "memoryerror"),
+    # the falsifier as written (goal:g7.16.1.11.35 falsifier 3): a node
+    # Buffer.alloc past the cap, rc 1, no abort
+    "node-buffer": (["-e", 'Buffer.alloc(2e8).fill(1);console.log("ok")'],
+                    "128M", "array buffer allocation failed"),
+    "node-wasm-memory": (["-e", 'new WebAssembly.Memory({initial:3200});'
+                                'console.log("ok")'],
+                         "128M", "could not allocate memory"),
+    # 40 x 8 MB thread stacks: private mappings, so RLIMIT_DATA bounds them;
+    # daemon threads released in finally so a failed start cannot hang exit
+    "python-thread": (["-c", "import threading as t\n"
+                             "t.stack_size(8*1024*1024);e=t.Event();l=[]\n"
+                             "try:\n"
+                             " for _ in range(40):\n"
+                             "  x=t.Thread(target=e.wait,daemon=True)\n"
+                             "  x.start();l.append(x)\n"
+                             "finally:\n"
+                             " e.set()\n"],
+                      "64M", "can't start new thread"),
+}
 
 
 def _fallback(monkeypatch, argv, cap):
@@ -242,23 +263,38 @@ def test_fallback_argv_lets_a_node_child_instantiate_webassembly(monkeypatch):
     assert not settles([x.replace("--data=", "--as=") for x in argv])
 
 
-@pytest.mark.parametrize("kind", ["python", "node"])
+@pytest.mark.parametrize("kind", sorted(_KILL_ROWS))
 def test_fallback_still_kills_a_child_that_allocates_past_the_cap(
         monkeypatch, kind):
-    if kind == "node" and _NODE is None:
+    tail, cap, wording = _KILL_ROWS[kind]
+    if kind.startswith("node") and _NODE is None:
         pytest.skip("node absent on this box: the pi-harness rows need it")
-    child = ([sys.executable, "-c", _ALLOC] if kind == "python"
-             else [_NODE, "-e", _NODE_ALLOC])
-    argv = _fallback(monkeypatch, child, "256M")
-    assert argv[1] == f"--data={256 * 1024 ** 2}", argv
+    interp = _NODE if kind.startswith("node") else sys.executable
+    argv = _fallback(monkeypatch, [interp, *tail], cap)
+    assert argv[1] == f"--data={mem_cap._as_bytes(cap)}", argv
     p = _run(argv)
     assert p.returncode != 0, (kind, p.stdout, p.stderr)
-    assert mem_cap.is_cap_death(p.returncode, "256M", p.stderr), (
+    assert wording in p.stderr.lower(), (kind, p.stderr)
+    assert mem_cap.is_cap_death(p.returncode, cap, p.stderr), (
         kind, p.returncode, p.stderr)
     # the row can fail: with the limit dropped the same child finishes
     free = _run(argv[argv.index("--") + 1:])
     assert free.returncode == 0, (kind, free.stderr)
-    assert not mem_cap.is_cap_death(free.returncode, "256M", free.stderr)
+    assert not mem_cap.is_cap_death(free.returncode, cap, free.stderr)
+
+
+@pytest.mark.parametrize("text", [
+    "MemoryError",
+    "FATAL ERROR: Allocation failed - JavaScript heap out of memory",
+    "RangeError: Array buffer allocation failed",
+    "RangeError: WebAssembly.Memory(): could not allocate memory",
+    "RuntimeError: can't start new thread",
+    "fork: Cannot allocate memory"])
+def test_is_cap_death_names_each_runtimes_enomem_wording(text):
+    assert mem_cap.is_cap_death(1, "256M", text), text
+    # the needle is the only reason: an ordinary rc 1 is not a cap death
+    assert not mem_cap.is_cap_death(1, "256M", "ValueError: bad input")
+    assert not mem_cap.is_cap_death(1, None, text)
 
 
 def test_cap_none_is_the_same_argv_object_and_systemd_has_no_prlimit(

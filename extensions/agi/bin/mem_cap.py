@@ -377,14 +377,19 @@ def wrap_argv(argv: list, cap: "str | None",
                 f"--property=TasksMax={resolve_tasks_max(cfg)}",
                 "--property=MemorySwapMax=0", "--", *argv]
     # NAMED RESIDUAL (DH.421): the prlimit fallback bounds the COMMITTED DATA
-    # (RLIMIT_DATA: private writable memory a process has actually written or
+    # (RLIMIT_DATA: PRIVATE writable memory a process has actually written or
     # mapped) of each process and NOTHING about the tree's width --
     # RLIMIT_NPROC is per-USER, so a per-tree process cap has no prlimit
     # spelling. A box without a usable systemd-run still fans out unbounded;
     # the fix is the systemd path, not a second limit here. It is not
     # `--as`: that counts PROT_NONE reservations too, and V8's wasm
     # reservation (node's undici) dies under it on a harness that never
-    # allocates (goal:g7.16.1.11.35).
+    # allocates (goal:g7.16.1.11.35). SECOND RESIDUAL, measured on kernel
+    # 6.8: RLIMIT_DATA does not bound SHARED mappings (MAP_SHARED, tmpfs,
+    # memfd): a 200 MB anonymous shared mmap, every page touched, survives
+    # `--data=64M`. No prlimit spelling bounds it without `--as`, which kills
+    # wasm. So: private memory only under the fallback; the systemd path
+    # bounds both.
     return ["prlimit", f"--data={_as_bytes(cap)}", "--", *argv]
 
 
@@ -394,15 +399,23 @@ def is_wrapped(argv) -> bool:
     return bool(argv) and argv[0] == "systemd-run"
 
 
+_CAP_DEATH_NEEDLES = ("memoryerror", "out of memory", "allocation failed",
+                      "could not allocate", "cannot allocate memory",
+                      "can't start new thread")
+
+
 def is_cap_death(returncode, cap, output: str = "") -> bool:
     """The cap's kill: cgroup SIGKILL (negative rc) or RLIMIT_DATA exhaustion
-    (an ENOMEM from a bounded allocation: MemoryError / out of memory). A wall timeout raises before this."""
+    (an ENOMEM from a bounded allocation, which each runtime words its own
+    way: python MemoryError / "can't start new thread", node "out of memory" /
+    "Array buffer allocation failed" / "could not allocate memory", libc
+    "Cannot allocate memory"). A wall timeout raises before this."""
     if cap is None or returncode is None:
         return False
     if returncode < 0:
         return True
     low = (output or "").lower()
-    return "memoryerror" in low or "out of memory" in low
+    return any(n in low for n in _CAP_DEATH_NEEDLES)
 
 
 def reaped_cap_death(pid: int, cap: "str | None") -> bool:
