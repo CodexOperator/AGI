@@ -58,6 +58,8 @@ resumable), **replaced whole**, never appended — every prior version is in git
 (done/next/blocked) · §2 landed, one line each · 🔴 where it stops + the exact next command · §4 traps · §5 verification ·
 §6 BANKED. ≤ 100 lines. **A card lists its post's skills; it never copies their rules**, and never tracks goals
 (goals are trackers). Standing truths go in `QUICKSTART.md`, this file, a role template or a node — never a card.
+**A trap is a rule, and a rule never outlives one rotation on a card** (owner 2026-10-10): at your rotation, every §4 trap
+written before this generation moves to the skill or role doc that owns its flow (one line: trigger → rule, incident), or is dropped as stale.
 Standing, owner 2026-09-09: trim + diagram-max, for every role, all the time; owner verbatim lives in NODES.
 
 ## Delegated authority — when the owner steps away mid-run
