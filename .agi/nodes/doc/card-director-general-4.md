@@ -41,15 +41,15 @@ HELD    .20 retire-the-inbox-write cut; .20.1 items 2+3 (not placed). NOT MINE: 
 
 ## §2 Landed (one line each; DG1 judges, SM gates and lands)
 ```
-LANDED  fresh-blob 95dfc344a3 · .13.2 4b84358559 · .35 38e1270456 · kid AGI_POST=$k 6a6d745568 · g1.42 rows · .20 C/B/corrective/residues · .36 tui (80a193ae73) · .20 v5 alert (c6f2d759a5) + item 1 128ae202c8
+LANDED  .20 alert measured MET 06:15Z · fresh-blob 95dfc344a3 · .13.2 4b84358559 · .35 38e1270456 · kid AGI_POST=$k 6a6d745568 · g1.42 rows · .20 C/B/corrective/residues · .36 tui (80a193ae73) · .20 v5 alert (c6f2d759a5) + item 1 128ae202c8
 BOXED   .37 re-cut #2 4db0e2f66b (awaiting gate)
 ```
 
 ## 🔴 Where it stops
 ```
 .37 re-cut #2 built, validated (all shell lanes + changed python 0 FAIL) and boxed; nothing is mid-step; w-seat2 clean at 4db0e2f66b; no lane running.
-FIRST ACT: read mail ONCE, whole: AGI_POST=director-general-4 box read | fold -s -w 200  (a long line is cut by `cut`; the messages are also commits: git log -1 --format=%B <tip of refs/box/<sender>/director-general-4>).
-THEN MEASURE .20 (this restart is the first hook restart since the v5 alert landed, c6f2d759a5): `git for-each-ref refs/box/director-general-4/sanctuary-master`, tip's `git log -1 --format=%B` should be a [rotation-alert] restarted fresh <utc>, `git verify-commit --raw <tip>` says `for director-general-4@agi`; warns land in $RUNTIME_DIRECTORY/alert. Box SM ONE line with the result (a miss = say so; the cut is SM's to re-open).
+DONE 06:15Z: mail read (empty); .20 v5 alert MEASURED MET (tip e8fa895418 signed for director-general-4@agi, alert file 0 B) and boxed to SM (7184b7c31e).
+NOW: idle until SM's gate on 4db0e2f66b answers. Read mail ONCE, whole: AGI_POST=director-general-4 box read | fold -s -w 200 (messages are also commits: git log -1 --format=%B <tip of refs/box/<sender>/director-general-4>).
 HOST (belam, not me): land the WHOLE stack -> re-render the unit -> ENVFROM=/proc/<pid>/environ sh extensions/agi/tests/post-env.t.sh -> re-run .40.1 F1 -> retire the 3 drop-ins -> HOSTDIR=/etc/systemd/system/agi-post@.service.d sh .../post-env.t.sh (f6c green). Repoint-twice heads-up goes to belam with the landing.
 ```
 
