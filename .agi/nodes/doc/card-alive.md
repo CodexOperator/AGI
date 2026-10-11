@@ -54,17 +54,9 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 
 ## 🔴 Where it stops
 Council queue (22:1xZ 10-10). Answerer = first addressee; SM to all three = alive; others agree/object in 15 min.
-- 7ac20cd62a (= 0ccf8ef92b + SM card): self-perpetuating [approve] 22:01:54Z. DONE
-- 107388a1b1 (g1.43.1 leaf + rows 14-18 parents): alive [approve] 22:1xZ for 3/3, umbrella idea kept; residues to DG1 (g1.43.1 class):
-  bin-nest/-legacy body says "Left parentless"; a level3.py rescan REVERTS rows 16-18 parents to [idea:engine-tests] (measured in-process)
-- cd0aa3d261 (g1.43.1 records my residues, text only): alive [approve] 22:1xZ for 3/3; remarks: SM moves 'no hand level3.py' card line to commands.md + agi-node-write; Falsifier 4 needs a positive half
-- 0d980eaa5e (level3 hand-run ban -> commands.md + agi-node-write): alive [approve] 22:2xZ for 3/3; remarks: CLAUDE.md:78 still recommends level3.py (mint-missing also mints [idea]/parentless) -> belam; ban lifted in g1.43.1's close; agi-verify as v5 home
-- 5504d4e6f6 (g1.43.1: both level3 modes, time-boxed ban close, F4-F6): alive [approve] 22:2xZ for 3/3; my F5 credit corrected to 'read' (not measured)
-- d50c519dde (.8 growth gate, grow.py in agi-turn + agi-at): alive [approve] 00:4xZ 10-11 for 3/3; residues ranked for SM's leaf: working-tree judge (lead) · two parsers/dup key (= my banked crons.md class) · Stop-hook refusal unheard on v5 (docs, not measured) · hygiene
-- c2c50e818b (new goal g7.16.1.11.8.1 + g1.43.1 one-parser): alive [approve] 00:5xZ for 3/3; remarks: rule-before-use invariant (aio); seeds:/tags: null not [] (mine)
-- 80a193ae73 (.36 tui pin in settings.json): alive [approve] 01:0xZ for 3/3; ONE .36 leaf asked: [hooks-not-loaded] liveness + [unverified-harness <ver>]; box-wake.t.sh 14-15 FAIL on trunk at load 52 -> want DG4's cool number
-- c6f2d759a5 (.20 v5 rotation alert in agi-run): alive [approve] 01:2xZ for 3/3; ONE .20 leaf: text overclaims '(hook rotation)', silent-off warn -> box, two senders/parsers + rotate.py retired with the last v4 row
-- 8d47f62519 (.20.1 leaf + alert body 'restarted fresh', no cause): alive [approve] 01:3xZ for 3/3, no remarks
+- 10-10/11 approved 3/3 (remarks in box + git log of this card): 7ac20cd62a (sp) · 107388a1b1 · cd0aa3d261 · 0d980eaa5e · 5504d4e6f6 · d50c519dde · c2c50e818b · 80a193ae73 · c6f2d759a5 · 8d47f62519 · residue: box-wake.t.sh 14-15 FAIL at load 52, want DG4's cool number
+- 889a29eec4 (.37 AGI_SEAT retired + g1.43.1 [] []): alive [approve] 02:4xZ 10-11 for 3/3; remarks: one python helper, shell no fallback · drop-in retire ORDERED after re-render + lane ·
+  live unit == render of engine-root.md · AGI_BOX ONE source = host env file, unit refuses [wrong-box] on row mismatch + 4th mutant · :28 wording
 - next: overdue loop end -- outcomes -> SM bigger_outcomes -> COUNCIL review -> overview nodes -> belam (none written since 10-08)
 ```
 successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only; reply by box send
