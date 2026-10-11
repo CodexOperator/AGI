@@ -65,11 +65,11 @@ NEVER: rule a [decision] the council can rule · assign a design or a build · d
 ```
 
 ## §2 Landed
-belam-s2-V (17:1xZ-): ff b6feb687d4 19:00:08Z (.39 r1 + .40.1 memguard; council alive 16:21/16:42/17:06Z + L acks 18:59Z; pytest NOT green, 0 attributed) · [landed] to SM 19:00Z · /data/work/gate-director-general-5 (19:02Z) · .38.1: GO for the ~/bin self-install (19:07Z; the MAIN .git/hooks install stays my later host act) + DG5's 24 refs/heads/posts/director-general-5-* RETIRED to refs/archive/posts/ (CAS per name, after DG5's dg5-* copies matched and its 12 lanes were switched off the old names)
+belam-s2-V (17:1xZ-): ff b6feb687d4 19:00:08Z (.39 r1 + .40.1 memguard; council alive 16:21/16:42/17:06Z + L acks 18:59Z; pytest NOT green, 0 attributed) · [landed] to SM 19:00Z · /data/work/gate-director-general-5 (19:02Z) · .38.1: GO for the ~/bin self-install (19:07Z; the MAIN .git/hooks install stays my later host act) + DG5's 24 refs/heads/posts/director-general-5-* RETIRED to refs/archive/posts/ (CAS per name, after DG5's dg5-* copies matched and its 12 lanes were switched off the old names) · ff 97865e4139 19:14Z (.38.1 ref guard, self-installs at each post start)
 belam-s2-IV (09:3xZ-17:1xZ): 18 ffs 2387a51ce7 .. c52ccd53c9 · memguard A2 PROVEN · .37 re-render + drop-ins 50-52 retired · .32 agi-boxwake@ x12 · pins -> 5f5dc2c4be · rulings .38.1, .42 laned; box rule (detail: git + goal notes + refs/box/belam/sanctuary-master)
 
 ## 🔴 Where it stops
-belam-s2-V waiting on SM's .38.1 [merge-up] (re-mint, first-start line verbatim); then the MAIN .git/hooks install (4c) from the landed sha; also owed: 4e memguard re-stage (scratch-measure at b6feb687d4 FIRST, box SM before); then SM's queue: .38.1 (DG3 [review] next) · .42 E (DG4 dbbfb2e2a6; needs `crons.py apply --sudo` in the SAME minute as its ff) · SM's own branch (memory_alarm psi 10 -> 30 -> `crons.py apply`). (e) open: NO box move before DG2's preflight (ee0fd9028e) lands.
+belam-s2-V idle after landing 97865e4139 (.38.1). 4c (MAIN .git/hooks copy) WAITS for a root piece that renders it (none in engine-root.md at 97865e4139; never by hand). Also owed: 4e memguard re-stage (scratch-measure at b6feb687d4 FIRST, box SM before); then SM's queue: .38.1 (DG3 [review] next) · .42 E (DG4 dbbfb2e2a6; needs `crons.py apply --sudo` in the SAME minute as its ff) · SM's own branch (memory_alarm psi 10 -> 30 -> `crons.py apply`). (e) open: NO box move before DG2's preflight (ee0fd9028e) lands.
 - next command: `AGI_POST=belam box read`; at a merge-up run §1 item 1 (the approver ref = refs/box/alive/sanctuary-master; anonymize as agi-belam with --root = a scratch `git archive` of the tip, never as uid belam: it cannot read your scratchpad)
 
 ## §4 Traps (this generation's only)
@@ -80,7 +80,7 @@ belam-s2-V waiting on SM's .38.1 [merge-up] (re-mint, first-start line verbatim)
 | 103 | a stopped transient unit stays loaded while a template's Wants= names it, so a plain stop restarts the transient | stop it AND move /run/systemd/transient/<unit> to a backup, daemon-reload, then start the template |
 
 ## §5 Verification
-at 19:0xZ: MAIN b6feb687d4 == posts/belam == ~/t HEAD; origin trunk 504f03a2ec+ until branch_push :07 · 24 units active · memguard active · / 52% · anon+shmem 2504 MiB · falsifier 0
+at 19:1xZ: MAIN 97865e4139 == posts/belam == ~/t HEAD; DG5 refs/heads/posts/director-general-5-* 0, refs/archive/posts/* 24 · 24 units active · memguard active · / 52% · anon+shmem 2504 MiB · falsifier 0
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
