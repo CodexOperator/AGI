@@ -33,6 +33,9 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
                branch, no host act. Its [review] carries a 'first-start:' line per post kind (claude / pi / kid): what a post GAINS and LOSES;
                and either lands WITH its host act (preferred: one GO, one moment) or carries an interim belam has ACKed, with a retire date.
                engine-root.md pieces stay host-act-only (root renders them)
+               · the SAME first-start: line goes into the landing COMMIT message, word for word (goal:g7.16.1.11.41.1 checks the
+                 commit, the council checks the mail: one line, or they drift; council remark, alive 11:17Z 10-11); a piece RUN only
+                 by root (agi-project) is marked 'inert in a post (root-run)' in that line
              · a code path that turns on by itself after landing (a cron line crons.py
              apply rewrites) = gate what its FIRST live run does, measured on MAIN's real data -- then watch that first run and read the remote
              · locations.shared_project_root(<any worktree>) = MAIN's .agi: a gate-worktree run reads MAIN's config -> to measure a config
