@@ -31,45 +31,14 @@ Depth 0 = diagram · 1 = pieces · 2 = one piece: `sect <name>` (any `.geometry/
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
 agi-post@.service 2251 B  a post = one unit: own uid, tree, key, pane
-agi-run           2054 B  pane cmd: .fresh or -c, strace; inbox + box -> i
-settings.json      372 B  the ONE hook wiring: brief, meter, turn commit
-cccc.ts           1956 B  pi events -> the CC hooks; mail -> a turn
-agi-kid           2049 B  a pi-free kid in this unit: own HOME and tree
-agi-infer          1077 B  ONE chat call, OpenAI-compatible: stdin -> stdout
-agi-brief         1358 B  walk card+seeds+claims; record; STARTUP
-brief.py           810 B  the complex walk over parents: edges
-agi-meter          616 B  past rotate_pct of the window: out-line
-agi-at             996 B  signed CAS commit of ~/t paths to posts/<P>
-grow.py           3228 B  the growth-order check both writers call
-agi-turn          4358 B  a signed commit per changed node tree
-agi-wt            1506 B  a node's tiny RAM tree: pull; drop = turn + purge
-agi-track           89 B  strace sink: each path once
-agi-flush         1120 B  drop trees, turn, merge trunk
-agi-out           3357 B  the out-line: next keys, ring commit, re-wrap, swap
-gitconfig          196 B  signed commits against root's allowed_signers
-pre-commit          639 B  refuses a plain commit on a detached ~/t
-agi-notice          1141 B  engine->post notices: add / claim + print
-sysusers.conf       41 B  a post = one user in group agi
-agi.rules          242 B  a post starts only its OWN unit
-project.sh         161 B  what the body SHOULD be
-observe.sh         255 B  what the body IS
-tick.sh            254 B  diff them; start own unit; commit
 agi-project       2560 B  the genome: units + cells for v4 rows
-agi-frontier       460 B  each active goal runs its falsifier
 agi-gate           542 B  refuse a tip whose body would not regrow
 agi-vstore         856 B  root: fetches the pin into a re-hashed RAM store
 agi-boot         1797 B  root: gate the pin, start the posts
 agi-boot.service  826 B  runs agi-boot after agi-vstore
 matrix            100 B  who reads which node via which piece
 sect               214 B  ONE piece of any engine*.md node, byte-exact, any REV
-agi-fill          5973 B  a node key opens a captive window
-agi-captive        576 B  window open: only agi-fill passes
-grow-check        1298 B  one node vs its matrix row + key
-grow-gate         7098 B  pre-receive: added/changed nodes must pass
-ckpt              3444 B  signed hand-offs at one tip; check lists them
-grow-project      1185 B  schemas -> the growth matrix
 agi-land          1855 B  root: ff-lands a post range one edge up
-box               2005 B  mail: one signed ref update per send (5x CAS)
 box-carry         3253 B  root: refs/box/P/<Q> -> the recipient's store or hub
 agi-signers       1727 B  root: the ONE allowed_signers, every key generation
 agi-carry@.path     149 B  PathChanged on refs/box/<P>; first send only
@@ -118,7 +87,6 @@ post	brief	card-<p>	brief
 v5 (owner GO 06:1xZ; doc:radically-simple-engine §Q+§R): ZYGOTE = what runs before any post exists + the map; the rest is EXPANSION read by `sect @REV`. .5 (belam R' 08:4xZ): the FENCED bytes <= 8,192 with a margin: 14 map descriptions shortened to <= ~55 B (names and sizes untouched), the loop block folded into the diagram's start/work line.
 <!-- THOUGHT:END -->
 
-
 ## fence exceptions
 
-goal:g7.16.1.11.38 +138 B · council 03:3xZ-04:0xZ · eviction goal:g7.16.1.11.5.1 · OPEN
+goal:g7.16.1.11.38 +138 B · council 03:3xZ-04:0xZ · eviction goal:g7.16.1.11.5.1 · repaid by goal:g7.16.1.11.5.1

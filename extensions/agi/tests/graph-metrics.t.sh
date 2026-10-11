@@ -18,7 +18,7 @@ mkp(){ P=$T/$1;G_=$P/.agi;rm -rf $P;mkdir -p $G_/nodes/goal $G_/nodes/idea $G_/n
 evidence_runs: 2
 ';nd deprecated/idea idea:i3 goal:g1 'status: deprecated
 '
- if [ "$2" = full ];then cp $R0/.agi/nodes/town/local-maxxing.md $G_/nodes/town/;cp $R0/.agi/nodes/.geometry/ladder.md $R0/.agi/nodes/.geometry/crons.md $G_/nodes/.geometry/;cp "$R0/.agi/context/schemas/[box].md" $G_/context/schemas/
+ if [ "$2" = full ];then cp $R0/.agi/nodes/town/local-maxxing.md $G_/nodes/town/;sed -i "/^metrics_line:/d" $G_/nodes/town/local-maxxing.md;cp $R0/.agi/nodes/.geometry/ladder.md $R0/.agi/nodes/.geometry/crons.md $G_/nodes/.geometry/;cp "$R0/.agi/context/schemas/[box].md" $G_/context/schemas/
  else printf -- '---\nid: ladder:ladder\nmint_id: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb2\ntype: ladder\nparents:\n  - goal:g1\ncurrent_season: 2\n---\nbody\n' >$G_/nodes/.geometry/ladder.md;fi
  $G -C $P add -A >/dev/null 2>&1;$G -C $P commit -qm fixture;}
 sm(){ (cd $P&&python3 extensions/agi/bin/success_metrics.py "$@" 2>$T/sm.err);}   # stdout only: the cron line is `L=$(...)`, stderr never reaches the cell
@@ -182,6 +182,9 @@ jb(){ LOG=$(echo "$cl"|sed 's/.*>> \([^ ]*\) .*/\1/');: >$LOG;(cd $P&&sh -c "$cl
 dirtyp(){ $G -C $P status --porcelain -- "$TN"|wc -l|tr -d ' ';}
 jb;r2a=$(grep -c "^metrics_line:" $TN)
 ok "r2a-clean-node-writes-one-cell (control) on a clean node with no lock the job exits $jrc (want 0), the town node carries ONE metrics_line cell ($r2a) and the scratch repo is clean after ($jdirty dirty path(s), want 0)" '[ $jrc = 0 ]&&[ "$r2a" = 1 ]&&[ "$jdirty" = 0 ]'
+# r2g (DG3, SM 04:33Z): the LIVE town node always carries a metrics_line cell (the hourly job commits it since 10-07), so a fixture copied from it starts with ONE cell. The job must REPLACE it: still ONE cell, and not the old value. (r2d / r2e want 1 / 0 cells and were RED for days because the seed carried one: mkp full now strips it, this row is the control that the seeded-cell case works.)
+mkp pj full;TN=$G_/nodes/town/local-maxxing.md;echo '{"values":{"core":{"suite_lock":{"hold_wait_s":1}}}}'>$G_/config.json;sed -i 's/^scaffold_hash:/metrics_line: OLDCELL\nscaffold_hash:/' $TN;$G -C $P commit -qam cfg;jb;r2g=$(grep -c "^metrics_line:" $TN);r2go=$(grep -c "OLDCELL" $TN)
+ok "r2g-a-node-that-already-carries-the-cell-keeps-ONE ($r2g cell(s), want 1; the old value survives in $r2go place(s), want 0; job rc $jrc, want 0; scratch repo $jdirty dirty, want 0)" '[ $jrc = 0 ]&&[ "$r2g" = 1 ]&&[ "$r2go" = 0 ]&&[ "$jdirty" = 0 ]'
 mkp pj full;TN=$G_/nodes/town/local-maxxing.md;echo '{"values":{"core":{"suite_lock":{"hold_wait_s":1}}}}'>$G_/config.json;$G -C $P commit -qam cfg;printf 'a hand edit\n'>>$TN;s0=$(sha256sum <$TN|cut -d' ' -f1);h0=$($G -C $P rev-parse HEAD)
 jb;s1=$(sha256sum <$TN|cut -d' ' -f1);h1=$($G -C $P rev-parse HEAD)
 ok "r2b-dirty-node-is-skipped a node that is ALREADY dirty (a hand edit): the job exits $jrc (want 0) after ONE output line ($jn: '$(head -1 $T/job.out|cut -c1-70)', containing skip), the node bytes are unchanged ($([ $s0 = $s1 ]&&echo same||echo CHANGED)) and HEAD did not move ($([ $h0 = $h1 ]&&echo same||echo MOVED): the hand edit is not laundered into a commit)" '[ $jrc = 0 ]&&[ "$jn" = 1 ]&&grep -qi skip $T/job.out&&[ $s0 = $s1 ]&&[ $h0 = $h1 ]'
