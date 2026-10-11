@@ -52,8 +52,8 @@ done   [decision .42 board signer] 3/3 NOT A -> D in RULED form (one host identi
 done   .42 option E (belam): 3/3 E with C1-C6, verdict to SM 15:07Z (supersedes 14:56Z once E's first live run lands). C6 (mine):
          the uid-belam ff lands only job-own commits in MAIN..posts/belam, else no ff + notice + non-zero. WATCH DG4's cut: C1-C6
          rows + mutants; the CAS never moves posts/belam off its old tip.
-         15:1xZ belam WITHDREW E (crossed: read only 14:56Z) -> .42 stays HORIZON, honest N, banked with the owner. My [note]
-         15:17Z: the bank must say E was council-acceptable 3/3 (not "the same flaw"); no new verdict.
+         15:1xZ belam withdrew E, then RE-LANED it with C1-C6 exactly (SM relay 15:19Z): .42 ACTIVE, DG4 cutting the code half,
+         then [merge-up] to SM with the C6 'ff always' mutant RED -> it reaches the council as a [review]; check C1-C6 + the CAS rule.
          15:1xZ [placement] 3/3 to SM: the 06:0xZ ruling's SCOPE sentence (HOST act = no seat key; a seat's own pieces in its uid on
          its branch = the seat's act) into goal .40.1 item 4 ONLY. WATCH it landing in SM's next batch.
 NEXT   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
