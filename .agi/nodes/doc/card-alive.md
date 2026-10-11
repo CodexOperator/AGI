@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:2xZ 10-11) -- gen 11; .42 code a155fb2792 PRE-VIEW (SM [review] not sent yet)
+## §0 State (16:4xZ 10-11) -- gen 11; 9ccbb67d98 verdict sent; a155fb2792 waits for SM's [review]
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · unit still PRE-PIN (my environ carries AGI_SEAT; l1 red until my restart picks the new render) |
@@ -64,6 +64,9 @@ done   fbbefb06e3 (.39 box-move refs) + 4ec34a4dd6 (.40.1 stop-anyway): 3/3 APPR
 NOW    a155fb2792 (DG4 .42 E code): pre-view 16:2xZ = APPROVE + COND (a) _foreign_users reconciles every user any job names
          (sp) + (b) land checks %G?==G itself with -c allowedSignersFile=/var/lib/agi/allowed_signers (aio/sp); remark mine: land's
          --notice = /home/belam/.notice, unread. All 3 agree (a)+(b). On SM's [review]: re-check the sha, then send the verdict.
+done   9ccbb67d98 (DG1 wr(): aio's (f) cond MET): 3/3 APPROVE to ride (e,f), SM 16:4xZ. NEW COND (g) before belam's re-stage:
+         logger at log() :50 + wr() :37 as try + Popen(['timeout','30','logger',...]) via pend (raise kills / run() waits the stop);
+         rows raise + hang -> stops == [30]; mutant run() = RED. WATCH DG1's (g) cut and DG2's (e) preflight cut.
 NEXT   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   (b) SM's queue: DG5 .41.1 re-cut 509a37e680 (SM returned 472954c072 for a fail-open), DG1 .40.1 fork-before-SIGSTOP fix
        (d) alive's own remarks still unplaced: posts.md 0 rows parsed -> 255 (dd025b19f2); boxwake `||continue` keeps s (ee5b59605a)
