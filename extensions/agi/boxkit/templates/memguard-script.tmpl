@@ -13,6 +13,8 @@ a drop of >= 3 GiB within 30 s alerts. Alerts: journal + {{MEMGUARD_LOG}} + one 
 the post's own; one line per kind per {{ALERT_COOLDOWN_S}} s, but a stop or resume line is keyed by its pid too, so a second stop is never swallowed). A pid stopped for
 low memory is SIGCONTed once MemAvailable has stayed above {{RESUME_FACTOR}}x the low line for {{RESUME_HOLD_S}} s, and the notice line names its unit + pid;
 a pid stopped for size is resumed by hand and says so again every {{RENOTIFY_S}} s while it stays stopped.
+The kernel is the one home of "stopped": every tick, before anything else reads the list, a pid whose /proc/N/stat state is not T/t (resumed by hand),
+whose start time changed (the pid was reused) or that is gone is dropped from it with one journal line and no alert, with its cooldown keys.
 The tree selection reads argv only as the exact tail equality between one unit's tracer and its child: never a pattern, never printed."""
 import os, re, time, signal, subprocess, collections
 PAGE = os.sysconf('SC_PAGE_SIZE'); ME = os.getpid()
@@ -32,11 +34,12 @@ def notice(text):
                               '[ -x ~/bin/agi-notice ] && exec ~/bin/agi-notice add "$0" || echo "$0" >> ~/.notice', text],
                              stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
         except Exception as e: open('{{MEMGUARD_LOG}}', 'a').write(f'notice to {to} not written: {e!r}\n')
-def log(msg, red=False, kind='x'):
+def log(msg, red=False, kind='x', key=None):
     line = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()) + ' ' + msg
     open('{{MEMGUARD_LOG}}', 'a').write(line + '\n'); subprocess.run(['logger', '-t', 'agi-memguard', msg])
-    if red and time.time() - last.get(kind, 0) > {{ALERT_COOLDOWN_S}}:
-        last[kind] = time.time()
+    key = key or kind
+    if red and time.time() - last.get(key, 0) > {{ALERT_COOLDOWN_S}}:
+        last[key] = time.time()
         for k in [k for k, v in last.items() if len(last) > 200 and time.time() - v > {{ALERT_COOLDOWN_S}}]: del last[k]
         notice(f'[memguard-{kind}] ' + msg + f' (ev {int(time.time()):08x})')
 def unit_of(pid):
@@ -73,6 +76,9 @@ def guarded(rows):
         for k in kids[n]:
             if k != h: out |= sub(k)
     return out, bool(h)
+def pstat(pid):
+    try: s = open(f'/proc/{pid}/stat').read(); r = s[s.rindex(')') + 2:].split(); return r[0], r[19]
+    except Exception: return None
 def setadj(pid, v):
     try:
         p = f'/proc/{pid}/oom_score_adj'
@@ -84,6 +90,12 @@ while True:
     peak = max(a for _, a in hist)
     if peak - avail >= {{SPIKE_BYTES}} << 30: log(f'SPIKE: MemAvailable fell {(peak-avail)>>20} MiB in <=30 s, now {avail>>20} MiB', red=True, kind='spike'); hist.clear(); hist.append((now, avail))
     unprot = []; snap = list(procs()); inpost = set(); keep = set()
+    for p in list(stopped):
+        st = pstat(p)
+        if st is None or st[0] not in 'Tt' or st[1] != stopped[p][4]:
+            log(f'pid {p} ({stopped[p][1]}) ' + ('gone' if st is None else 'resumed by hand' if st[1] == stopped[p][4] else 'is a different process now (pid reused)') + ': no longer tracked as stopped')
+            was = stopped.pop(p); last_re.pop(p, None)
+            for k in ('susp', 'resume', 'still'): last.pop(f'{k}-{p}-{was[4]}', None)
     for unit, rows in post_rows(snap).items():
         inpost |= set(rows)
         try:
@@ -103,11 +115,11 @@ while True:
         if pid in keep and rss > {{SUSPEND_RATIO}} * TOTAL and pid not in warned:
             warned.add(pid); log(f'ALERT pid {pid} ({comm}) is a post\'s spine or harness: RSS {rss>>20} MiB > {{SUSPEND_PCT}}% of {TOTAL>>20} MiB -- not stopped', red=True, kind='post')
         elif pid not in keep and rss > {{SUSPEND_RATIO}} * TOTAL and pid not in stopped:
-            os.kill(pid, signal.SIGSTOP); u = unit_of(pid); stopped[pid] = ('size', comm, u, now); log(f'SUSPENDED pid {pid} ({comm}, unit {u}): RSS {rss>>20} MiB > {{SUSPEND_PCT}}% of {TOTAL>>20} MiB -- resume by hand: kill -CONT {pid}', red=True, kind=f'susp-{pid}')
+            os.kill(pid, signal.SIGSTOP); u = unit_of(pid); stopped[pid] = ('size', comm, u, now, (pstat(pid) or ('', ''))[1]); log(f'SUSPENDED pid {pid} ({comm}, unit {u}): RSS {rss>>20} MiB > {{SUSPEND_PCT}}% of {TOTAL>>20} MiB -- resume by hand: kill -CONT {pid}', red=True, kind=f'susp-{pid}', key=f'susp-{pid}-{stopped[pid][4]}')
     if avail < {{LOW_AVAIL_BYTES}} << 30 and unprot:
         rss, pid, comm = max(unprot)
         if pid not in stopped:
-            os.kill(pid, signal.SIGSTOP); u = unit_of(pid); stopped[pid] = ('low', comm, u, now); log(f'SUSPENDED pid {pid} ({comm}, unit {u}, RSS {rss>>20} MiB): MemAvailable {avail>>20} MiB < {{LOW_AVAIL_GIB}} GiB -- resumed automatically once MemAvailable holds above {{RESUME_FACTOR}}x that for {{RESUME_HOLD_S}} s, or by hand: kill -CONT {pid}', red=True, kind=f'susp-{pid}')
+            os.kill(pid, signal.SIGSTOP); u = unit_of(pid); stopped[pid] = ('low', comm, u, now, (pstat(pid) or ('', ''))[1]); log(f'SUSPENDED pid {pid} ({comm}, unit {u}, RSS {rss>>20} MiB): MemAvailable {avail>>20} MiB < {{LOW_AVAIL_GIB}} GiB -- resumed automatically once MemAvailable holds above {{RESUME_FACTOR}}x that for {{RESUME_HOLD_S}} s, or by hand: kill -CONT {pid}', red=True, kind=f'susp-{pid}', key=f'susp-{pid}-{stopped[pid][4]}')
     lows = [p for p, v in stopped.items() if v[0] == 'low']
     if lows and avail > {{RESUME_FACTOR}} * ({{LOW_AVAIL_BYTES}} << 30):
         rec = rec or now
@@ -115,11 +127,11 @@ while True:
             for p in lows:
                 try: os.kill(p, signal.SIGCONT); how = 'resumed'
                 except Exception as e: how = f'could not resume ({e!r})'
-                log(f'RESUMED pid {p} ({stopped[p][1]}, unit {stopped[p][2]}): {how}; MemAvailable {avail>>20} MiB held above {{RESUME_FACTOR}}x the low line for {{RESUME_HOLD_S}} s', red=True, kind=f'resume-{p}'); del stopped[p]
+                log(f'RESUMED pid {p} ({stopped[p][1]}, unit {stopped[p][2]}): {how}; MemAvailable {avail>>20} MiB held above {{RESUME_FACTOR}}x the low line for {{RESUME_HOLD_S}} s', red=True, kind=f'resume-{p}', key=f'resume-{p}-{stopped[p][4]}'); del stopped[p]
             rec = None
     else: rec = None
     for p, v in stopped.items():
         if v[0] == 'size' and now - last_re.setdefault(p, v[3]) >= {{RENOTIFY_S}}:
-            last_re[p] = now; log(f'STILL STOPPED pid {p} ({v[1]}, unit {v[2]}) for {int(now - v[3]) // 60} min (size stop): resume by hand: kill -CONT {p}', red=True, kind=f'still-{p}')
-    stopped = {p: v for p, v in stopped.items() if os.path.exists(f'/proc/{p}')}; last_re = {p: x for p, x in last_re.items() if p in stopped}; warned = {p for p in warned if os.path.exists(f'/proc/{p}')}
+            last_re[p] = now; log(f'STILL STOPPED pid {p} ({v[1]}, unit {v[2]}) for {int(now - v[3]) // 60} min (size stop): resume by hand: kill -CONT {p}', red=True, kind=f'still-{p}', key=f'still-{p}-{v[4]}')
+    warned = {p for p in warned if os.path.exists(f'/proc/{p}')}
     time.sleep({{INTERVAL_S}})
