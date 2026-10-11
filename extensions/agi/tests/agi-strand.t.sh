@@ -22,7 +22,7 @@ ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 sect(){ if [ -n "$PIECES" ];then cat "$PIECES";else cat $R0/.agi/nodes/.geometry/engine*.md;fi|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}"; }
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE AGI_POST AGI_SEAT AGI_WT RUNTIME_DIRECTORY AGI_TRUNK
 mkdir -p $T/hm $T/bin $T/run $T/wt
-for n in agi-turn agi-flush agi-meter agi-brief agi-notice pre-commit;do sect $n >$T/bin/$n;if [ -s $T/bin/$n ];then chmod +x $T/bin/$n;else rm -f $T/bin/$n;fi;done
+for n in agi-turn agi-flush agi-meter agi-brief agi-notice agi-sync pre-commit;do sect $n >$T/bin/$n;if [ -s $T/bin/$n ];then chmod +x $T/bin/$n;else rm -f $T/bin/$n;fi;done
 ok x0-pieces-extracted '[ -x $T/bin/agi-turn ]&&[ -x $T/bin/agi-flush ]&&[ -x $T/bin/agi-meter ]&&[ -s $T/bin/agi-brief ]&&[ -x $T/bin/agi-notice ]&&[ -x $T/bin/pre-commit ]'
 [ -x $T/bin/agi-turn ]&&[ -x $T/bin/agi-flush ]||{ echo "FAIL extract: agi-turn / agi-flush";exit 99;}
 H=$T/hm;V=$H/t
