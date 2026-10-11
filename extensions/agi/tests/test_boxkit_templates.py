@@ -2064,7 +2064,7 @@ _STUB_UNIT_CTL = """#!/bin/sh
 echo "$*" >> "$CALLS"
 case "$*" in
   "is-active "*) [ -e "$STATE" ]; exit $?;;
-  "stop "*) rm -f "$STATE";;
+  "stop "*) if [ -n "$BREAK_LOG" ]; then rm -f "$LOG"; mkdir "$LOG"; fi; if [ -n "$RACE_PID" ]; then kill -STOP "$RACE_PID"; echo "2026-10-11T09:00:00Z SUSPENDED pid $RACE_PID (sleep): in the window" >> "$LOG"; fi; rm -f "$STATE";;
   "enable --now "*) : > "$STATE";;
   "disable"*) rm -f "$STATE";;
 esac
@@ -2088,15 +2088,21 @@ def test_memguard_a1_undo_disables_and_removes_the_wants_link_a_hand_stop_leaves
     assert r.returncode == 1 and "UNDO A1 REFUSED: the unit is active" in r.stdout and (sb / "agi-memguard.py").exists()
 
 
+_OLD_GUARD = "old guard\n    for to in 'master belam'.split():\n        x = 'HOME=/stores/' + to\n"                       # the recipients and the stores the real guard source carries
+_STUB_NOTICE = "#!/bin/sh\necho \"$1 $2\" >> \"$NOTICES\"\n"
+
+
 def _restage_world(tmp_path):
     """A MAIN with the real boxkit, a box that already runs an OLDER guard (installed, enabled, active, a2.since = ORIG), and the stub systemctl."""
     repo, g = _mini_repo(tmp_path); sha = g("rev-parse", "HEAD")
     sb, ud = tmp_path / "sbin", tmp_path / "units"; (ud / "multi-user.target.wants").mkdir(parents=True); sb.mkdir()
-    (sb / "agi-memguard.py").write_text("old guard"); (ud / "agi-memguard.service").write_text("old unit")
+    (sb / "agi-memguard.py").write_text(_OLD_GUARD); (ud / "agi-memguard.service").write_text("old unit")
     (ud / "multi-user.target.wants" / "agi-memguard.service").symlink_to(ud / "agi-memguard.service")
     stage = tmp_path / "memguard-A0"; stage.mkdir(); (stage / "a2.since").write_text("2026-10-11T08:30:00Z\n")
     ctl = tmp_path / "ctl"; ctl.write_text(_STUB_UNIT_CTL); ctl.chmod(0o755); (tmp_path / "active").write_text("")
-    env = dict(SUDO="env", OWN="", LOG=tmp_path / "guard.log", SBIN=sb, UNITDIR=ud, SYSTEMCTL=ctl, CALLS=tmp_path / "calls.log", STATE=tmp_path / "active", STAGE=stage, MAIN=repo)
+    nb = tmp_path / "notice-bin"; nb.write_text(_STUB_NOTICE); nb.chmod(0o755)
+    env = dict(SUDO="env", OWN="", LOG=tmp_path / "guard.log", SBIN=sb, UNITDIR=ud, SYSTEMCTL=ctl, CALLS=tmp_path / "calls.log", STATE=tmp_path / "active", STAGE=stage, MAIN=repo,
+               NOTICE_BIN=nb, NOTICES=tmp_path / "notices.log", RACE_PID="")
     return repo, g, sha, stage, sb, ud, env
 
 
@@ -2107,7 +2113,7 @@ def test_memguard_restage_moves_a_running_guard_to_the_new_sha_and_keeps_the_und
     calls = (tmp_path / "calls.log").read_text().splitlines()
     assert r.returncode == 0 and "RESTAGE OK" in r.stdout, r.stdout + r.stderr
     assert (stage / "a2.since").read_text().strip() == "2026-10-11T08:30:00Z", (stage / "a2.since").read_text()     # the ORIGINAL scope, not the re-stage's stamp
-    assert (sb / "agi-memguard.py").read_text() != "old guard" and (stage / "SHA").read_text().strip() == sha        # the new bytes are in
+    assert (sb / "agi-memguard.py").read_text() != _OLD_GUARD and (stage / "SHA").read_text().strip() == sha        # the new bytes are in
     assert not (ud / "multi-user.target.wants" / "agi-memguard.service").is_symlink()                                 # a1.undo took the stale wants link
     order = [calls.index(c) for c in ("stop agi-memguard.service", "disable agi-memguard.service", "enable --now agi-memguard.service")]
     assert order == sorted(order) and (tmp_path / "active").exists(), calls                                        # stopped first, running again at the end
@@ -2127,7 +2133,7 @@ def test_memguard_restage_refuses_without_a_landed_sha_and_touches_nothing_when_
     assert r.returncode == 1 and "RESTAGE STOPPED at A0" in r.stdout and "the guard was not touched" in r.stdout, r.stdout + r.stderr
     assert not (tmp_path / "calls.log").exists() and (tmp_path / "active").exists(), "the guard was never stopped"
     assert (stage / "a2.since").read_text().strip() == "2026-10-11T08:30:00Z"                                      # and the scope A0 wiped is back
-    assert (sb / "agi-memguard.py").read_text() == "old guard"
+    assert (sb / "agi-memguard.py").read_text() == _OLD_GUARD
 
 
 @pytest.mark.skipif(shutil.which("git") is None, reason="needs git")
@@ -2155,7 +2161,9 @@ def test_memguard_restage_refuses_while_the_guard_holds_stopped_pids_and_touches
                        "2026-10-11T08:42:00Z SUSPENDED pid %d (sleep): this A2, resumed since\n" % (older.pid, mine.pid, running.pid))
         r = _sh("memguard-restage.sh", tmp_path, SHA=sha, **env)
         assert r.returncode == 1 and "RESTAGE REFUSED: the guard holds stopped pids: %d " % mine.pid in r.stdout + " " and str(older.pid) not in r.stdout.split("holds stopped pids:")[1] and str(running.pid) not in r.stdout.split("holds stopped pids:")[1], r.stdout + r.stderr
-        assert not (tmp_path / "calls.log").exists() and (tmp_path / "active").exists() and (sb / "agi-memguard.py").read_text() == "old guard", "nothing touched"
+        assert not (tmp_path / "calls.log").exists() and (tmp_path / "active").exists() and (sb / "agi-memguard.py").read_text() == _OLD_GUARD, "nothing touched"
+        said = (tmp_path / "notices.log").read_text().splitlines()
+        assert [l.split(" ")[0] for l in said] == ["master", "belam"] and all("[memguard-restage] RESTAGE REFUSED: the guard holds stopped pids:" in l for l in said), said      # a refusal reaches both recipients
         assert (stage / "a2.since").read_text().strip() == "2026-10-11T08:30:00Z" and not (stage / "SHA").exists(), "not even A0 ran"
         os.kill(mine.pid, signal.SIGCONT); time.sleep(0.3)                             # resumed: only an EARLIER A2's stopped pid is left, which is not this A2's to continue
         r = _sh("memguard-restage.sh", tmp_path, SHA=sha, **env)
@@ -2171,3 +2179,46 @@ def test_memguard_restage_refuses_while_the_guard_holds_stopped_pids_and_touches
     fb = tmp_path / "w3" / "fakebin"; fb.mkdir(); (fb / "awk").write_text("#!/bin/sh\nexit 2\n"); (fb / "awk").chmod(0o755)
     r = _sh("memguard-restage.sh", tmp_path / "w3", SHA=sha, **env)
     assert r.returncode == 1 and "cannot be read" in r.stdout and not (tmp_path / "w3" / "calls.log").exists(), r.stdout + r.stderr
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="needs git")
+def test_memguard_restage_resumes_a_pid_the_old_guard_stops_in_the_window_before_its_stop_and_says_so(tmp_path):
+    import signal, time
+    repo, g, sha, stage, sb, ud, env = _restage_world(tmp_path)
+    racer = subprocess.Popen(["sleep", "30"])
+    state = lambda p: Path("/proc/%d/stat" % p).read_text().rsplit(")", 1)[1].split()[0]
+    try:
+        r = _sh("memguard-restage.sh", tmp_path, SHA=sha, **{**env, "RACE_PID": racer.pid})          # the stub `systemctl stop` SIGSTOPs the pid and logs it: the first check saw nothing
+        time.sleep(0.3)
+        assert r.returncode == 0 and "RESTAGE OK" in r.stdout and "RESTAGE RESUMED pid %d" % racer.pid in r.stdout, r.stdout + r.stderr
+        assert state(racer.pid) == "S", state(racer.pid)                                          # THE FALSIFIER: after the script returns, no pid the old guard stopped is still T/t
+        said = (tmp_path / "notices.log").read_text().splitlines()
+        assert [l.split(" ")[0] for l in said] == ["sanctuary-master", "belam"] and all("RESUMED pid %d" % racer.pid in l and "kill -CONT %d" % racer.pid in l for l in said), said
+        assert (stage / "a2.since").read_text().strip() == "2026-10-11T08:30:00Z"
+    finally:
+        racer.kill(); racer.wait()
+    # a pid that CANNOT be resumed is named WITH its resume command (the falsifier's other arm), and the restage goes on
+    repo, g, sha, stage, sb, ud, env = _restage_world(tmp_path / "w2")
+    fb = tmp_path / "w2" / "fakebin"; fb.mkdir(parents=True); (fb / "kill").write_text("#!/bin/sh\nexit 1\n"); (fb / "kill").chmod(0o755)        # `env kill -CONT` finds this one first
+    racer = subprocess.Popen(["sleep", "30"])
+    try:
+        r = _sh("memguard-restage.sh", tmp_path / "w2", SHA=sha, **{**env, "RACE_PID": racer.pid})
+        time.sleep(0.3)
+        assert r.returncode == 0 and "RESTAGE COULD NOT RESUME pid %d" % racer.pid in r.stdout and "RESTAGE OK" in r.stdout, r.stdout + r.stderr
+        assert state(racer.pid) == "T"                                                                # still stopped: so the line must carry the command
+        said = (tmp_path / "w2" / "notices.log").read_text().splitlines()
+        assert len(said) == 2 and all("STILL STOPPED" in l and "resume it by hand: kill -CONT %d" % racer.pid in l for l in said), said
+    finally:
+        os.kill(racer.pid, signal.SIGCONT); racer.kill(); racer.wait()
+    # a failure AFTER the stop reaches the recipients too
+    repo, g, sha, stage, sb, ud, env = _restage_world(tmp_path / "w3"); (tmp_path / "w3" / "sbin").chmod(0o555)
+    try:
+        r = _sh("memguard-restage.sh", tmp_path / "w3", SHA=sha, **env)
+    finally: (tmp_path / "w3" / "sbin").chmod(0o755)
+    said = (tmp_path / "w3" / "notices.log").read_text().splitlines()
+    assert r.returncode == 1 and len(said) == 2 and all("THE GUARD IS STOPPED" in l for l in said), (r.stdout, said)
+    # the log readable at the first check and NOT after the stop: the stopped pids are unknown, THE GUARD IS STOPPED is said to the recipients, nothing is guessed
+    repo, g, sha, stage, sb, ud, env = _restage_world(tmp_path / "w4"); Path(env["LOG"]).write_text("")
+    r = _sh("memguard-restage.sh", tmp_path / "w4", SHA=sha, **{**env, "BREAK_LOG": "1"})
+    said = (tmp_path / "w4" / "notices.log").read_text().splitlines()
+    assert r.returncode == 1 and "RESTAGE FAILED after the stop: THE GUARD IS STOPPED and" in r.stdout and len(said) == 2 and "memguard-a2.undo.sh" in said[0], (r.stdout, said)
