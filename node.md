@@ -30,6 +30,7 @@ agi-out           3357 B  the out-line: next keys, ring commit, re-wrap, swap
 gitconfig          196 B  signed commits against root's allowed_signers
 pre-commit          639 B  refuses a plain commit on a detached ~/t
 agi-notice          1141 B  engine->post notices: add / claim + print
+reference-transaction 1338 B  refuses a post moving a peer's ref (a mistake guard)
 sysusers.conf       41 B  a post = one user in group agi
 agi.rules          242 B  a post starts only its OWN unit
 project.sh         161 B  what the body SHOULD be
@@ -158,6 +159,20 @@ unset GIT_INDEX_FILE;if agi-turn strand;then git checkout -q --detach $b;else k=
 # agi-notice [add LINE]: the ONE engine->post channel, ~/.notice (a file in the post's home: it survives a rotation, the .fresh restart and agi-out, which touch .ssh, bin, .gitconfig, .claude, never this file). `add LINE` appends it unless a line with the same KEY is already there (the [label] plus any 7+ hex word, e.g. the sha), so a stuck condition is ONE line, not one per turn. No args = print: CLAIM the file atomically first (mv to ~/.notice.PID; an append during the print lands in a fresh ~/.notice and prints next turn, and a claim left by a crashed printer is printed too), print each distinct line once on STDOUT (the hook channel the model reads: agi-brief's SessionStart and agi-meter's prompt hook call it first), THEN remove the claims printed
 case $1 in add)[ -e ~/.notice ]||: >~/.notice;awk -v l="$2" 'function K(x,n,a,i,r){n=split(x,a," ");for(i=1;i<=n;i++)if(a[i]~/^\[/||(length(a[i])>6&&a[i]~/^[0-9a-f]+$/))r=r a[i];return r}K($0)==K(l){f=1}END{exit f}' ~/.notice&&echo "$2">>~/.notice;exit 0;;esac
 mv ~/.notice ~/.notice.$$ 2>/dev/null;f=$(ls ~/.notice.* 2>/dev/null)||exit 0;cat $f|awk '!s[$0]++';rm -f $f
+~~~
+
+### reference-transaction (1338 B)
+~~~sh
+#!/bin/sh
+# reference-transaction (git runs it from core.hooksPath=~/bin; goal:g7.16.1.11.38.1): a post's MISTAKE cannot move a peer's ref. Git calls it for prepared, committed and aborted and honours a non-zero exit ONLY in prepared, so it acts only there: an agi-<p> user may not update refs/heads/posts/<q>, refs/box/<q>/* or refs/held/<q>/* with q != p (rc 1, one named line). Root, belam, agi-belam (the Prime's post, whose unit runs as agi-belam since the .10 move: it may move any ref), every other ref and every other user pass. It FAILS OPEN on its own error (rc 0, a stderr line, and an agi-notice once per post per day). A guard against mistakes, NOT a wall: any ref write run with git -c core.hooksPath=/dev/null still moves a peer's ref, and this file is the post's own, editable until the next unit start
+[ "$1" = prepared ]||exit 0
+f(){ echo "[ref-guard] fail open: $1">&2;agi-notice add "[ref-guard] fail open: $1 $(date +%Y%m%d)" 2>/dev/null;exit 0;}
+u=$(id -un)&&[ "$u" ]||f "no user"
+case $u in agi-belam)exit 0;;agi-?*);;*)exit 0;;esac
+while read o n r;do [ "$r" ]||f "unparsed input"
+ case $r in refs/heads/posts/*)q=${r#refs/heads/posts/};;refs/box/*|refs/held/*)q=${r#refs/*/};;*)continue;;esac
+ [ "${q%%/*}" = "${u#agi-}" ]||{ echo "[ref-guard] $u may not move $r (a peer's ref), nothing changed">&2;exit 1;}
+done
 ~~~
 
 ### agi-wt (1506 B)
