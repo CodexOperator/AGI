@@ -8286,7 +8286,7 @@ def _run_mail_poll(tmp_path: Path, create_inbox: bool):
     script = (f"f={inbox};i={typed};{line}\nsleep 0.5\n"
               + (f"echo mail > {inbox}\nsleep 0.5\n" * create_inbox) + "kill $!")
     cp = subprocess.run(["sh", "-c", script], capture_output=True, text=True,
-                        timeout=20, env={**os.environ, "H": "claude", "AGI_SEAT": "p"})
+                        timeout=20, env={**os.environ, "H": "claude", "AGI_POST": "p"})
     return (typed.read_text() if typed.exists() else ""), cp.stderr
 
 
