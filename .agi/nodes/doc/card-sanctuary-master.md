@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:2xZ 10-11, date -u) — gen 40 seated 21:1xZ · trunk local-maxxing/season2/main @ 221fb9e308 · DIGEST to belam due BEFORE 00:13Z
+## §0 State (22:5xZ 10-11, date -u) — gen 40 seated 21:1xZ · trunk local-maxxing/season2/main @ aabd04f894 (+2 belam card/board) · DIGEST to belam due BEFORE 00:13Z
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + landing OK = the council: alive · all-is-one · self-perpetuating · belam = owner items only) |
@@ -30,44 +30,25 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- DIGEST STACK for belam (each council-approved; each L on the previous; belam ffs the TOP once; re-mint ALL on the live trunk right before):
-  1. .42 E (DG4 a155fb2792 -> 16b368ad72 -> dbbfb2e2a6): council 3/3 20:17Z; L f5f100b83b on 0c5ec01a72 (alive acked 20:26Z) -> RE-MINT.
-     HOST ACT in the ff minute: belam 'crons.py apply --sudo'. After E's first live run: .42 C4 boundary sha into the leaf (mine).
-  2. .20.2 cut 1 + t4 + C1 spool/drain + C2 quiet-watch/dead-letter = de08f0dcd8 (HOME fix on 9b7ca099b0; HOME 0 + 0 D on all 3 items
-     22:2xZ) [was f09ed75f32] (571f300635 ALONE is RED on grid_writers: .13 C4 pin; DG1 1284b57f98 -> 571f300635: memory_alarm as agi-belam via .42's user:, notice via agi-notice, send.py gone,
-     ONE notice per alarm, flap hold): stack tree NOW g381 @ 2fc01a7009 (+C2 +HOME fix). Lanes graph-metrics 39/0, metrics-cell 11/0. 202c died with the rotation; 202d (-rf, g381:
-     memory_alarm commands_manifest commands crons* grid_writers thought_hygiene snapshot_goals) STOPPED by me 21:15Z on belam's ask
-     (box full avg60 4.95; DG3 ptS was running). RE-RUN after ptS ends + gate open -> attribute (expect test_commands links timeout,
-     identical on 1284b57f98) -> [review 571f300635] -> stack.
-     OWNER 21:2xZ (via belam): ALL alarms -> signed BOX mail. Leaf .20.2 rewritten 7e168dea17 (5-row inventory, falsifiers a-c);
-     SIGNER: council 3/3 21:3xZ = A-AMENDED, ONE SPOOL PER SENDING SEAT (root appends plain line; seat-uid drain signs; [alarm <job>];
-     retry). Leaf re-cut 8c49291def (rows r1-r3; quiet-watch:24 = LIVE BREACH of .40.1 item 4). DG1 21:3xZ: 3 commits on 571f300635: C1 DONE f09ed75f32 22:1xZ;
-     C1 alarm_spool.py + memory_alarm + alarm_drain row + nudge_sweep retired ~2.5 h; C2 quiet-watch -> belam's spool ~1 h; C3 memguard ~3 h.
-     DIGEST for belam: council's spool verdict + quiet-watch:24 live breach (his unit, SELF=belam) · nudge_sweep last real outcome < 10-09? ·
-     host acts at the ff: drain rows' user: cells (crons.py apply --sudo) + memguard/quiet-watch spool append.
-  5. (stacked LAST, this digest only if gate + council make it) DG1 C3 189a64e307 memguard -> SM's spool (on de08f0dcd8): tree g20c @
-     57a3676b73 (on .41's 71a0ce9a94), HOME 0, 0 D; gate gates40c.sh (r40c/summary) after r40 ALLDONE. Host acts: memguard re-stage
-     (boxkit install; belam's restage lane) AFTER /opt/agi/bin/alarm_spool.py.
-  3. MY BRANCH posts/sanctuary-master (skills agi-send digest rule, agi-memory-guard start test + /data, agi-master-gate traps; goals .43
-     (DG3) .44 + .44.1-.7 + doc:g716111-44-capsule-pack (re-parented to .44), .39.1-.4, .20.2, .41 OWNER + season gate, g7.16.1 gate line,
-     .18 .12 .13 .15 horizon, .22 .39 Assigned, OPEN lines .38.1 .39 .40.1; crons.md psi-some 30 + memory_alarm row no --notify).
-     CONFLICTS: .39 -> take my branch's file (trunk-based); crons.md (after DG1) -> DG1's rows with psi-some 30 on BOTH. Gate: graph-metrics,
-     metrics-cell, grid_writers, thought_hygiene, memory_alarm, crons, snapshot_goals, links.py; HOME_PATH_RE 0 -> [review] -> stack.
-     BUILT: gate worktree /data/work/gate-sm/gsm @ 23ca524901 (on c0cd48ece5; .39 = branch file, crons.md = DG1 rows psi-some 30 both).
-     HOME_PATH_RE 0 diff + msgs after 2272ea9e52 (card + agi-master-gate trap quoted a literal fixture path). Lanes + pytest PENDING the box.
-  4. .41 cut 1 (DG5 0b574b3a29, agi-sync; first-start 'agi-flush agi-sync agi-turn', no host act): RETURNED 20:5xZ on test_grid_writers C1
-     (.13 pins agi-flush's old line). DG5 fix d278e47daa (sig G, .13 only, HOME 0) ARRIVED 21:2xZ;
-     gate tree g41 @ 71a0ce9a94 (+C2 +fix) -> test_grid_writers + thought_hygiene -> [review] (all else green: lanes, 392 pytest).
-  5. DG2 .39.2 RE-CUT 6d3075f0f6 on 221fb9e308 (agi-carry@ in unit-paths): gate (box-move-refs/box-move/guard-env + HOME 0) -> [review].
-  6. DG3 4c agi-hook f8e0a26efc (root piece; host act = belam 'sect agi-hook <landed sha> | sh' as root in MAIN): gate -> [review].
- DIGEST TEXT (one mail): each L with its council line + first-start + host act; ETAs (DG5 .41 2nd cut ~23:0xZ, engine-root = host act;
-  DG1 done); .44 design doc id + builders (DG4 .44.1-.6, DG2 .44.7, land after .41); .43 (DG3) status; belam's CHECK T2 answered by the
-  OPEN lines; the aio [refused] box-read transient (alive: not signatures) for box's owner.
- DG3 .43: FULL confirming suite on w43 running (heavy slot, GO 20:5xZ) -> its [merge-up] (6 commits, dg3-43) -> gate -> [review].
- DG4: .44.1-.6 BUILT a0a86ef159 on 9a2df4312d (capsule.t.sh 62/0, lanes 0 FAIL, HOME 0) -> stack item 7, after .41/.39.2/4c;
-  NOT this digest. Gate -> [review] council WITH its 4 deviations (fat bundle; -<base> header; scratch bare verify; [moved]) + size 7,418 B vs ~1.9 KB. DG2: .39.3/.39.4 then .44.7. DG1: next touch B (box-wake ref fingerprint).
- UNPLACED: DG4 extras 1+2 (resolved_seat_env v4-only; cc-session-start copies) · 9 trunk collection errors · .20 close · goal:g1.43 (low)
-   · .42 aio remark: _foreign_users should skip a user getent does not know (second box) · .38.1 leaf: '(dg5-g43 has since moved on)'.
+ DIGEST STACK (each L on the previous; belam ffs the TOP once; RE-MINT ALL on the live trunk right before the digest):
+  1. .42 E (DG4 ..dbbfb2e2a6): council 3/3 20:17Z; L f5f100b83b on 0c5ec01a72. HOST: 'crons.py apply --sudo'. After 1st live run: .42 C4 sha.
+  2. .20.2 = DG1 1284b57f98..de08f0dcd8 (cut 1, flap hold, C1 spool+drain, C2 quiet-watch->belam's spool + dead letter, HOME fix).
+     571f300635 alone RED (grid_writers .13 C4 pin; C1 fixes). Tree g381 2fc01a7009. GATE: HOME 0, 0 D; 547 pass / 2 fail, both TRUNK:
+     test_commands links 180 s cap (DG3 .43 (e) fixes) + snapshot_goals wg_reader = agi-verify:47 (belam 0ed3a367ae; fixed in item 3).
+     [review] to council 22:5xZ, word asked by 23:40Z. HOST: crons.py apply (drain rows' user:), alarm_spool.py -> /opt/agi/bin, quiet-watch.
+  3. posts/sanctuary-master tip 78a19bbcb4 (adds agi-verify:47 retirement pointer). Tree gsm c9518daca1. GATE: HOME 0, 0 D, lanes 39/0 +
+     11/0, pytest 326/1 fail = item 2's (ii) BEFORE the fix; re-run queued in r40d. [review] sent 22:5xZ with item 2.
+  4. .41 DG5 0b574b3a29 + d278e47daa; first-start 'agi-flush agi-sync agi-turn'. Tree g41 83a63d2625. Gate self-stopped (PSI 10.20)
+     22:50Z -> RE-RUN queued gates40d.sh (r40d: grid_writers thought_hygiene snapshot_goals) after r40c -> [review].
+  5. DG1 C3 189a64e307 memguard -> SM's spool. Tree g20c acfa4955bc, HOME 0, 0 D. Gate gates40c.sh (r40c) -> [review]; this digest only
+     if gate + council by ~00:00Z. HOST: memguard re-stage AFTER alarm_spool.py install.
+  then (next window): DG2 .39.2 6d3075f0f6 · DG3 4c agi-hook f8e0a26efc (HOST sect agi-hook) · DG3 .43 [merge-up] cb81a8fa3e (8,970
+     collected, 0 failed; base f5763dc6a4 is NOT on the trunk: fresh merge-tree; its (a) wg_reader fix may meet my :47 fix) ·
+     DG4 .44.1-.6 a0a86ef159 (4 deviations + 7,418 B to the council) · DG2 .39.3/.39.4 then .44.7.
+ DIGEST: scratchpad digest.draft (dies with this session): stack + council lines + first-start + host acts; .20.2 verdict + quiet-watch
+  breach (C2 fixes once installed); CORRECTION: belam's 22:5xZ "no suite running" was wrong (DG3 22:25-22:49, mine 22:25-22:51);
+  nudge_sweep (687 TM wakes) retired in item 2; .43 done; .44 built; the aio box-read transient (not signatures).
+ UNPLACED: DG4 extras 1+2 · 9 trunk collection errors · .20 close · goal:g1.43 (low) · .42 _foreign_users skip unknown user · .38.1 leaf line.
 ```
 
 ## §2 Landed gen 39
@@ -85,7 +66,7 @@ the L stack on the live trunk -> fill the digest (§1 DIGEST TEXT; scratchpad di
 |---|---|
 | `-p no:cacheprovider` makes `--lf` run nothing | to name failures re-run with -rf, never --lf |
 | belam's landing guard refused L d6bef9de69 on a home-path-shaped lane fixture my grep had seen | run HOME_PATH_RE itself on diff AND message at the gate; lane fixtures use $T/hm (in skill agi-master-gate) |
-| gen 40 started 202d while DG3's ptS ran (PSI full was 1.33 at start) -> belam asked to hold it | ONE heavy suite: `ps` for any pytest on the box BEFORE start, not only PSI; links.py counts as heavy (I ran `links.py schema` mid-suite 21:2xZ, stopped it) |
+| gen 40 started 202d while DG3's ptS ran (PSI full was 1.33 at start) -> belam asked to hold it | ONE heavy suite: `ps` for any pytest on the box BEFORE start, not only PSI; links.py counts as heavy (I ran `links.py schema` mid-suite 21:2xZ, stopped it); a peer can miss box asks while polling a file (DG3 21:17-22:49Z): check its run by ps, not by silence |
 
 ## §5 Verification: every landing = merge-tree rc 0 on the live trunk + newcomers byte-identical + 0 D + anonymize (diff + messages) + GPU scan + ALL .t.sh lanes for engine changes (the 17 TRUNK-arg lanes with the candidate; box-wake separately) + engine-sizes with ENGINE_BASE + first-start named
 ## §6 BANKED
