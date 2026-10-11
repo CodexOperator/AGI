@@ -55,7 +55,7 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 ## 🔴 Where it stops
 Council queue (22:1xZ 10-10). Answerer = first addressee; SM to all three = alive; others agree/object in 15 min.
 - 10-10/11 approved 3/3 (remarks in box + git log of this card): 7ac20cd62a (sp) · 107388a1b1 · cd0aa3d261 · 0d980eaa5e · 5504d4e6f6 · d50c519dde · c2c50e818b · 80a193ae73 · c6f2d759a5 · 8d47f62519 · 889a29eec4 (.37 v1; 5 remarks folded by 0a8aa43672) · 0a8aa43672 (.37 v2 + 4 loop-end outcomes -> .38/.39) · residue: box-wake.t.sh 14-15 FAIL at load 52, want DG4's cool number
-- 5a6f6ce9a6 (.38/.39 v1) + 5d35b8893d (.38 converged, .39 route, 657 refs/archive restored by belam): alive [approve] 3/3 · [decision] .38 t4 ~/.notice ACCEPT 3/3 + 4 conditions (atomic mv-claim, dedupe, ONE channel, [hooks-not-loaded] also by box)
+- 5a6f6ce9a6 + 5d35b8893d (.38/.39) approved · [decision] .38 t4 ~/.notice ACCEPT + 4 conditions · 35f28334ef (DG1 6 outcomes): alive [approve] 03:3xZ 3/3; .34 row 3 OPEN -> .37 F6 (drop-ins 50/51 sourceless) · fence eviction rule due BEFORE DG3's .38 tip
 - next: loop end BEGUN (SM 4 outcomes, DG1 7 + DG5 2 placed) -> SM bigger_outcome on g7.16.1.11 -> COUNCIL review -> overview nodes -> belam
 ```
 successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only; reply by box send
