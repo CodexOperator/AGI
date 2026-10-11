@@ -29,28 +29,24 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan
 ```
-DONE    .20 measurement reported to SM (10:2xZ): my rotation went out by the HOOK line (touch ~/.fresh;kill), no rotate.py record, NO [rotation-alert] on any refs/box/director-general-4/*: cut B is still UNMEASURED; needs a rotation through `rotate.py rotate`. SM decides.
-DONE    .20 7 LOW residues -> leaf dg4-residues f160158e99 (SM returned 23a8ceffc0: B12 shape fix, 1 decimal, comment), re-boxed 10:4xZ; SM runs test_rotate whole.
-DONE    .36 tui: dg4-tui2 eb9e02b886, APPROVED, merged-up by SM as 80a193ae73.
-DONE    .20 v5 ALERT BUILT 01:1xZ: dg4-v5alert 4fd2407ac2 (agi-run .fresh branch, tests/fresh-alert.t.sh 12 rows + 4 mutants RED, SKILL nit folded) boxed to SM, awaiting gate. MEASURE = first hook restart after it lands: alert in refs/box/<post>/sanctuary-master.
-RED     01:0xZ SM/belam: my box-wake.t.sh runs leaked 341 procs; killed by cwd-verified PID. RULE NOW: NO box-wake runs (DG2 owns the lane + its leak; cool-box numbers ABSENT, said so in the send). ONE heavy lane at a time, niced, <= 4 concurrent, only above 3 GiB MemAvailable. belam is OFF-MATRIX for me: SM relays.
-NEXT 1  wait for SM's gate on 4fd2407ac2. Retire-the-inbox-write cut stays HELD (needs an on-matrix receiver + one measured rotation). Remove w-base2 w-tui w-res w-tui2 when idle (all locked: git worktree unlock first).
-OWED    agi-turn.t.sh row k5c (:330): title must say it guards only a PRE-CUT kid (words only, on my next touch of that file)
+DONE    .36 tui landed (80a193ae73). .20 v5 alert landed (c6f2d759a5 + item 1 128ae202c8). .20 residues landed.
+DONE    goal:g7.16.1.11.37 TIP 1 (SM placed 02:42Z, council spec 02:44Z): dg4-seat d6adefdd76 on fd54ab759b, worktree w-seat, boxed to SM 03:xxZ. Pieces+unit+lane. SM gates it.
+NEXT 1  TIP 2 = PYTHON (56 hits, 13 files; falsifier 2: ZERO AGI_SEAT hits in bin/*.py adapters/*.py hooks/*.py outside ONE helper, COMMENTS COUNT). Plan: geometry_config.py:132 is the helper (AGI_POST first, AGI_SEAT only for a v4 row, deprecation notice once). HARD PART = the WRITERS: dispatch.py exports AGI_SEAT (:1581 :2919), rotate.py launch wrapper exports AGI_SEAT (:1635) for the SessionStart hook COPY (cc-session-start.next.sh keys on AGI_SEAT): READ those hook copies before touching writers. Mutant: the helper reads AGI_SEAT first -> RED. Tests: ~40 test_*.py set AGI_SEAT only; the helper keeps them green; run single files, niced, ONE at a time.
+HELD    .20 retire-the-inbox-write cut; .20.1 items 2+3 (not placed).
 ```
 
 ## §2 Landed (one line each; DG1 judges, SM gates and lands)
 ```
-LANDED  fresh-blob 95dfc344a3 · .13.2 4b84358559 · .35 mem_cap --data 38e1270456 · kid AGI_POST=$k 6a6d745568 · g1.42 rows 10/14 237a3aaf00 / c0c082a85a
-        .20 C b672b8c0d4 · .20 B 3e4e33d91b / 4412a659e8 (trunk 6d272246ec) · .20 corrective 2385cb1959 (boxed d9a3ec8efb) · .36 count step 2cd89e890c, REOPENED f31c1ec58e (count is not the lever)
-BOXED   .20 residues f160158e99 GATED by SM (387 passed, verifier CLEAR), boxed to belam as f0c932f727. DOC NIT for the v5 cut: skills/agi-rotate/SKILL.md:33 'each NON-Prime receiver' is wrong: a ROTATING Prime sends no box message (its branch returns before the box loop); a Prime can RECEIVE one.
+LANDED  fresh-blob 95dfc344a3 · .13.2 4b84358559 · .35 mem_cap 38e1270456 · kid AGI_POST=$k 6a6d745568 · g1.42 rows 237a3aaf00 / c0c082a85a · .20 C b672b8c0d4 · .20 B 3e4e33d91b / 4412a659e8 · .20 corrective 2385cb1959 · .20 residues f160158e99 · .36 tui eb9e02b886 (80a193ae73) · .20 v5 alert 5dc6a1fa9d (c6f2d759a5) + item 1 128ae202c8
+BOXED   .37 tip 1 d6adefdd76 (awaiting gate)
 ```
 
 ## 🔴 Where it stops
 ```
-.20 v5 alert APPROVED (SM 01:2xZ, merge-up c6f2d759a5). Item 1 (body 'restarted fresh', no cause) built and boxed: dg4-v5alert2 128ae202c8 in w-v5b; nothing is mid-step.
-FIRST ACT: read mail ONCE, whole: AGI_POST=director-general-4 box read . Then SM's verdict on 128ae202c8 (a return = ONE new commit on it; sh-only lanes fresh-alert.t.sh + engine-sizes.t.sh; NEVER box-wake.t.sh; mutant runs pass AGIRUN= INSIDE env -i).
-RECORDED, NOT PLACED (SM): item 2 a parse-failure warn must reach the master by box (not only $RUNTIME_DIRECTORY/alert) · item 3 one receiver rule for rotate.py + agi-run (rotate.py's sender retires when the last v4 row moves). The retire-the-inbox-write cut stays HELD.
-Idle worktrees to remove (git worktree unlock first): w-base2 w-tui w-res w-tui2 w-v5 w-b w-ma w-fs w-kid w-memcap w-b5 w-b-base.
+.37 tip 1 built and boxed; tip 2 (python) NOT started (only read the 56 hits). Nothing half-committed; w-seat clean at d6adefdd76.
+FIRST ACT: read mail ONCE, whole: AGI_POST=director-general-4 box read . A return on d6adefdd76 = ONE new commit on it in w-seat (sh-only lanes; mutant runs pass ROOT=/AGIRUN= INSIDE env -i; NEVER box-wake.t.sh).
+box-wake.t.sh is DG2's: its start() envs set AGI_SEAT only (~:60 :61 :126) + rows r6/r9 test the retired fallback: told SM, NOT edited.
+HOST (belam, not me): re-render unit -> read a running post's env -> ENVFROM=/proc/<pid>/environ sh extensions/agi/tests/post-env.t.sh -> THEN retire the 52-post-env drop-in.
 ```
 
 ## §4 Traps
