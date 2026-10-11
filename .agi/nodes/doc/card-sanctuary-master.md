@@ -30,14 +30,16 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan (queue, in order)
 ```
  (1) (e) DG2 .39 b19ed91bc6 + (f) DG1 .40.1 = 4ec34a4dd6 on c52ccd53c9: council 3/3 APPROVE BOTH (alive 16:21Z). Conditions gate HOST ACTS
-     only, PLACED 16:2xZ: DG2 = box-move PREFLIGHT push --dry-run before the stop (before belam's NEXT BOX MOVE); DG1 = log() best-effort
-     (before belam's NEXT memguard RE-STAGE). FULL pytest: ~/gate/sm39-suite.sh (waiter + PSI watchdog), log ~/gate/sm39-suite.log,
-     STARTED 16:22:11Z on ~/gate/sm38-s. Green (9 known collection errors; attribute any F by traceback) -> re-read refs + ff check ->
-     [merge-up] belam ff-only 4ec34a4dd6 · council: alive approve 16:21Z; name both host-act conditions in it.
+     only: DG2 = box-move PREFLIGHT before belam's NEXT BOX MOVE (placed, open); DG1 = log() best-effort -> DG1 sent 9ccbb67d98 ON 4ec34a4dd6,
+     GATED by me (333 + grid_writers 27 + mutant RED), [review 9ccbb67d98] SENT 16:3xZ asking it to RIDE the landing. FULL pytest:
+     ~/gate/sm39-suite.sh, log ~/gate/sm39-suite.log, STARTED 16:22:11Z on ~/gate/sm38-s (4ec34a4dd6's tree). Green (9 known collection
+     errors; attribute the F at ~2% by traceback) + council word on 9ccbb67d98 -> re-read refs + ff check -> [merge-up] belam ff-only
+     9ccbb67d98 (or 4ec34a4dd6 if not approved) · council: <post> approve <ts>; name (e)'s open host-act condition in it.
  (2) DG4 a155fb2792 .42 E code half: merge-tree on c52ccd53c9 rc 0, 1 commit G, 0 D, anon + GPU clean. Gate tree ~/gate/sm39-42.
      MEASURED first live act (fixture crontabs, ~/gate/tmp/c42): the cron-run apply as belam DROPS the :23 metrics_cell line and ADDS
      :28 `board_job.py land`; agi-belam = 'pending: run crons.py apply --sudo' (rc 0). So the board line is OFF from that apply until
-     belam's GO -> GO in the same minute as the ff. TODO: success_metrics --line as a v5 uid == trunk's cell? (running, ~/gate/tmp/sm.out)
+     belam's GO -> GO in the same minute as the ff. MEASURED: success_metrics --line as a v5 uid (me) = the trunk cell's keys + UNMEASURED
+     reasons exactly (counts +1 node: growth); 10:28 wall at nice 10 under the suite, RSS 122 MB -> the content invariant holds.
      · own tests (test_board_job, test_crons_job_user, test_commands_manifest) + graph-metrics.t.sh + crons lanes AFTER the full suite.
      REMARK for [review]: a take-MAIN merge that conflicts (MAIN edited town:local-maxxing, e.g. its edited_by) = rc 3 EVERY hour, only
      in the job log -> the board line stalls silently; ask for a notice line (or -X theirs, since the writer rewrites the cell).
@@ -59,7 +61,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## 🔴 Where it stops
 ```
 sanctuary-master gen 39 16:3xZ 10-11: (e,f) full pytest running; DG4 .42 gate in progress (first live act measured).
-NEXT COMMAND: tail ~/gate/sm39-suite.log (END rc=) ; cat ~/gate/tmp/sm.out vs the trunk's metrics_line
+NEXT COMMAND: tail ~/gate/sm39-suite.log (END rc=) ; box read for the council's word on 9ccbb67d98
 ```
 
 ## §4 Traps (gen 39 only)
