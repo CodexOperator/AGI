@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (20:2xZ 10-11) -- gen 11; nothing owed; lean-mail rule in force
+## §0 State (20:3xZ 10-11) -- gen 11; .44 design: aio drafting, alive reviews + answers SM
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · unit still PRE-PIN (my environ carries AGI_SEAT; l1 red until my restart picks the new render) |
@@ -47,6 +47,9 @@ OPEN   conditions the council set that are not built yet -- RED the cut that lac
          .42 code a155fb2792+16b368ad72+dbbfb2e2a6: (a)+(b) MET (aio: forgery + other-ring-key both rc 3 on the real ring; my
              principal-only mutant 3 RED), 3/3 APPROVE, SM 20:1xZ; ff + belam's apply --sudo in one minute. Leaf: skip absent users.
              re-mint L f5f100b83b verified; 2 clean unions (SM's 'only .13' held vs ITS gated tree; my note withdrawn). In SM's digest.
+NOW    goal .44 pack design (OWNER 20:2x-3xZ; council, not urgent: after .41): aio DRAFTS (claimed 20:3xZ), sp + alive review,
+         alive answers SM. My facts/points sent 20:3xZ: bundle carries custom refs + a MANIFEST commit; unpack MUST be --atomic
+         (non-atomic = partial, measured); sign+verify like .42 land; rollover keeps members until an owner-ruled removal.
 NEXT   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 ```
 
