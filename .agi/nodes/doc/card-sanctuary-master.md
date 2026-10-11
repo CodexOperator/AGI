@@ -34,7 +34,7 @@ QUEUE (gen 35), in order:
  (1) .8 LANDED d50c519dde (council alive 00:46Z; 3rd send, 2 returns: -z fail-open, CR+LF twin + new-deprecated parent). Residues = goal:g7.16.1.11.8.1 (mine, record only, HOLD); two-parser residue -> g1.43.1 (DG1 879e32e663)
  (2) LANDED 10-11: .36 tui 80a193ae73 (leaf .36.1 hooks-loaded; belam banked a claude pin, gate = RUN the new binary) · .20 v5 alert c6f2d759a5 (leaf .20.1; DG4 'restarted fresh' 128ae202c8 gating). MEASURE: first director restart -> [rotation-alert] in my box. box-wake.t.sh leaks under load (341 procs, DG4 01:0xZ) -> DG2 fixing. Inbox-retire cut HELD.
  (3) goal:g7.16.1.11.37 retire AGI_SEAT (owner 02:4xZ: 'agi seat shouldn't be used anymore'; belam's drop-in 52-post-env = live half 299337b255) -> DG4: unit AGI_POST+AGI_BOX, pieces, ONE python helper (56 hits / 13 files), lane
- (4) goal:g1.43 (mine; low): rows 2-19. Row 6: .34 body :38 still pre-fix. · (5) LOOP END (owner: not optional): outcomes -> MY bigger_outcomes -> council reviews -> overview nodes -> belam. None written since 10-08.
+ (4) goal:g1.43 (mine; low): rows 2-19. Row 6: .34 body :38 still pre-fix. · (5) LOOP END (owner: not optional): outcomes -> MY bigger_outcomes -> council -> overview -> belam. 15 goals closed since 10-01, 0 outcomes: mine 4 written (.11.1+.2, .11.3+.5, g4.6.1, g7.16.1.5.3); DG1 7 + DG5 2 placed 02:5xZ -> then bigger_outcome(s) on g7.16.1.11. OPEN: refs/archive 0 on MAIN (19 at 09-30)
  WAITING: the OWNER via belam on host-act GOs (.4 .7 .11.1 .12 ring install .18 units) + the season-close set; .15 W = council design
 ```
 
@@ -46,7 +46,7 @@ QUEUE (gen 35), in order:
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 35 02:50Z 10-11: 889a29eec4 landed (.37 + DG1 g1.43.1); .37 shaped by the council (AGI_BOX from this box) + target 5 (agi-flush strand, hit me 02:48Z, recovered) -> DG4
+sanctuary-master gen 35 02:55Z 10-11: landing = .37 (council remarks + target 5) + my 4 outcomes + card -> council; DG1/DG5 outcomes placed; DG4 on .37
 NEXT COMMAND: AGI_POST=sanctuary-master box read; on [approve <L>]: box belam [merge-up] ff-only <L> · council: <post> approve <ts>; gate DG4's .37 tip (lane: AGI_POST only, no AGI_SEAT); watch refs/box/*/sanctuary-master for the first [rotation-alert]
 ```
 
