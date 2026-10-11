@@ -29,6 +29,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 BIN = HERE.parent / "bin"
@@ -117,6 +118,25 @@ def test_n3_a_member_with_its_own_subtree_expands_itself(repo):
     repo.w(".agi/nodes/goal/b.md", node("goal:b", ["goal:a"], nest="subtree"), "b2")
     repo.w(".agi/nodes/goal/a.md", node("goal:a", nest="subtree"), "a2")
     assert slice_of(repo, "goal:a") == ["goal:a", "goal:b", "goal:c"]
+
+
+def test_n3b_a_node_path_with_a_space_or_a_non_ascii_name_is_read_whole(repo):
+    """goal:g1.42 B5 row 4 (nest.py graph() split `ls-tree` names on any whitespace: a path with a space gave an IndexError; a non-ASCII name came back quoted and was never found)."""
+    repo.build()
+    repo.w(".agi/nodes/doc/my note.md", node("doc:sp", ["goal:a"]), "sp1")
+    repo.w(".agi/nodes/doc/caf\u00e9.md", node("doc:cafe", ["goal:a"]), "cafe1")
+    repo.w(".agi/nodes/goal/a.md", node("goal:a", nest="subtree"), "a2")
+    assert slice_of(repo, "goal:a") == ["doc:cafe", "doc:sp", "goal:a", "goal:b", "goal:c"]
+
+
+def test_n3c_log_reads_a_non_ascii_path_whole(repo):
+    """goal:g1.42 (DG3 finding on B5 row 4): `log` read `--name-status` without -z, so a non-ASCII node's path came back quoted and `x in ps` missed it (2 commits seen as 1); -z + NUL (the rename rows n6/d13 pin the status NUL old NUL new pairing)."""
+    repo.build()
+    repo.w(".agi/nodes/doc/caf\u00e9.md", node("doc:cafe", ["goal:a"]), "cafe1")
+    repo.w(".agi/nodes/doc/caf\u00e9.md", node("doc:cafe", ["goal:a"], extra="x: 2\n"), "cafe2")
+    repo.w(".agi/nodes/goal/a.md", node("goal:a", nest="subtree"), "a2")
+    assert repo.subjects(nest(repo, "log", "doc:cafe")) == ["cafe2", "cafe1"]
+    assert repo.subjects(nest(repo, "log", "goal:a"))[:3] == ["a2", "cafe2", "cafe1"]
 
 
 def test_n4_an_arbitrary_list_of_any_types_and_a_cycle_stops(repo):
@@ -434,6 +454,7 @@ def test_d11_d12_the_writer_collapses_with_exactly_one_tracked_file_changed_and_
         p = root / "nodes" / "goal" / f"{nid}.md"
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(_goal(nid), encoding="utf-8")
+    write_free_veto(root / "nodes" / ".geometry")   # the writer reads the veto cell STRICT: a FREE cell, committed in the base
     repo = Repo(root.parent)
     repo.g("add", "-A")
     repo.g("commit", "-q", "-m", "base")
@@ -449,7 +470,7 @@ def test_d11_d12_the_writer_collapses_with_exactly_one_tracked_file_changed_and_
     assert "nest: subtree" in (root / "nodes" / "goal" / "a.md").read_text(encoding="utf-8")
     assert not [l for l in repo.g("for-each-ref").splitlines() if "refs/grid" in l]
     assert _metrics(root).get("node_count") == before and before, (before, _metrics(root).get("node_count"))
-    assert len(list((root / "nodes").rglob("*.md"))) == 2
+    assert len(list((root / "nodes").rglob("*.md"))) == 3   # a, b and the FREE veto cell
 
 
 # --- negative: nest.py is read-only ---

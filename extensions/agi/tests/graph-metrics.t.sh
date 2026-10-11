@@ -6,7 +6,7 @@
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};BIN=${BIN:-$R0/extensions/agi/bin};SRC=$R0/extensions/agi/src;LINEMAX=1024
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_SEAT AGI_POST OPENROUTER_API_KEY OPENROUTER_PROVISIONING_KEY
-export PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=$SRC AGI_BOX=local-town HOME=$T/home;mkdir -p $T/home
+export PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=$SRC AGI_BOX=encryption-town HOME=$T/home;mkdir -p $T/home
 printf '[user]\n\tname=t\n\temail=t@t\n[commit]\n\tgpgsign=false\n[safe]\n\tdirectory=*\n' >$T/gitconfig;export GIT_CONFIG_GLOBAL=$T/gitconfig GIT_CONFIG_SYSTEM=/dev/null
 # nd DIR ID PARENT [EXTRA]: one node file under nodes/DIR
 nd(){ { printf -- '---\nid: %s\nmint_id: %s\ntype: %s\nparents:\n  - %s\n%s---\nbody\n' $2 $(printf '%s' $2|md5sum|cut -c1-32) ${2%%:*} $3 "$4"; } >$G_/nodes/$1/${2#*:}.md;}
@@ -127,8 +127,8 @@ yf=$(cd $P&&python3 -c "
 import yaml
 fm=yaml.safe_load(open('$G_/nodes/.geometry/crons.md').read().split('---')[1])
 j=(fm.get('cadences') or {}).get('graph_metrics') or {}
-print('A1OK' if (j.get('schedule')=='23 * * * *' and j.get('enabled') is True and j.get('box')=='local-town' and str(j.get('why_box') or '').strip() and 'success_metrics.py --line' in str(j.get('cmd'))) else 'A1BAD '+repr(j)[:90])" 2>&1|tail -1)
-ok "a1-shipped-node-declares-the-job-once crons.py show over ROOT's crons.md lists graph_metrics ONCE ($a1c line(s) with success_metrics.py --line) at '23 * * * *' ($(echo "$a1d"|grep 'success_metrics.py --line'|head -1|cut -c1-14)), and the node's cadence cell (schedule 23 * * * *, enabled, box local-town, a why_box, the cmd) reads: $yf (want A1OK); today the job is absent" '[ "$a1c" = 1 ]&&echo "$a1d"|grep "success_metrics.py --line"|head -1|grep -q "^  23 \* \* \* \* "&&[ "$yf" = A1OK ]'
+print('A1OK' if (j.get('schedule')=='23 * * * *' and j.get('enabled') is True and j.get('box')=='encryption-town' and str(j.get('why_box') or '').strip() and 'success_metrics.py --line' in str(j.get('cmd'))) else 'A1BAD '+repr(j)[:90])" 2>&1|tail -1)
+ok "a1-shipped-node-declares-the-job-once crons.py show over ROOT's crons.md lists graph_metrics ONCE ($a1c line(s) with success_metrics.py --line) at '23 * * * *' ($(echo "$a1d"|grep 'success_metrics.py --line'|head -1|cut -c1-14)), and the node's cadence cell (schedule 23 * * * *, enabled, box encryption-town, a why_box, the cmd) reads: $yf (want A1OK); today the job is absent" '[ "$a1c" = 1 ]&&echo "$a1d"|grep "success_metrics.py --line"|head -1|grep -q "^  23 \* \* \* \* "&&[ "$yf" = A1OK ]'
 ng=$(grep -c '^  graph_metrics:' $G_/nodes/.geometry/crons.md);nm=$(grep -c 'metrics.py' $G_/nodes/.geometry/crons.md)
 ok "a1b-exactly-once-in-the-node the node has ONE graph_metrics cadence key ($ng, want 1) and 'metrics.py' appears on exactly ONE line of it ($nm, want 1: the cmd; the prose says nothing that would match twice)" '[ "$ng" = 1 ]&&[ "$nm" = 1 ]'
 cr apply >$T/a2.out;a2n=$(grep -c 'success_metrics.py --line' $T/ct);cp $T/ct $T/ct.1;cr apply >/dev/null;cr show >$T/a2s.out

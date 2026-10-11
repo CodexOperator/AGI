@@ -1921,9 +1921,10 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
         try:
             from seatsig import veto as _veto
 
-            _frozen, _why = _veto.is_frozen(root, "prime")
-        except Exception:  # noqa: BLE001  (a broken veto cell never frees-silent)
-            _frozen, _why = False, ""
+            _geom = _veto.read(root, strict=True)
+            _frozen, _why = _veto.is_frozen(None, "prime", geom=_geom)
+        except Exception as exc:  # noqa: BLE001  (an unreadable veto cell HOLDS)
+            _frozen, _why = True, f"the veto cell is unreadable ({exc})"
         if _frozen:
             if _refuse(out_decision, preview,
                        f"{node_type} nodes ({where}): a config-row edit "
@@ -3656,6 +3657,21 @@ def _spawn_refusal_line(res) -> str:
             f"{fix} (--no-spawn-gate bypasses this, loudly.)")
 
 
+def _with_build_kind(node_type, payload, set_fm) -> dict:
+    """The ONE place a created build node's `build_kind` is defaulted (belam 10:4xZ (A), SM 10:5xZ).
+
+    The [build] schema is discriminated on `build_kind`; a build node with a payload and no explicit
+    value gets `level3.build_kind_for(<payload>)` -- the payload suffix, the rule level3.py already
+    applies. An explicit `--set build_kind` WINS; no payload = nothing to derive from, nothing invented;
+    any other type is untouched. `create()` and `--dry-run`'s `_create_gate_refusal` BOTH call this, so
+    a preview gives the verdict the real create gives."""
+    extra = dict(set_fm or {})
+    if payload and node_writer.canonical_node_type(node_type) == "build":
+        import level3  # noqa: PLC0415 -- lazy: write.py's top stays light
+        extra.setdefault("build_kind", level3.build_kind_for(str(payload)))
+    return extra
+
+
 def _create_gate_refusal(root, node_type, slug, parents, set_fm, args, *,
                          payload=None) -> str | None:
     """`create --dry-run`'s judge (goal:g7.33.20.3 D3): what the real create's
@@ -3671,6 +3687,7 @@ def _create_gate_refusal(root, node_type, slug, parents, set_fm, args, *,
     if payload:   # the same gate row `create` hands write_node
         extra.setdefault("location", locations.DEFAULT_PAYLOAD_LOCATION)
         extra[links.LINK_FIELD] = str(payload)
+    extra = _with_build_kind(node_type, payload, extra)
     res, _file, _season = node_writer.judge_create(
         root, node_type, slug, parents, extra_fm=extra or None,
         bypass=args.no_spawn_gate)
@@ -3714,6 +3731,7 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
         created_file = node_writer.ensure_payload(
             root, payload, extra.get("location"))
         extra[links.LINK_FIELD] = str(payload)
+    extra = _with_build_kind(node_type, payload, extra)   # belam 10:4xZ (A): one helper, dry-run shares it
 
     res = node_writer.write_node(root, node_type, slug, parents,
                                  extra_fm=extra or None, bypass=bypass,

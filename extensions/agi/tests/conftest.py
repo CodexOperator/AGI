@@ -368,8 +368,8 @@ def _no_real_tmux(monkeypatch):
     break those tests — see the L4.5x brief.
 
     Patch target: the real stdlib `subprocess.run`.
-    send.py/rotate.py/season.py `import subprocess`, and mail_alert.py
-    `import send` (whose module object `import subprocess` too), so every
+    send.py/rotate.py/season.py `import subprocess` (and any module that
+    `import send`s reaches the same attribute), so every
     module's tmux call ultimately resolves through this one attribute — one
     fixture covers the whole suite. A per-module-alias patch would defeat
     the "project-wide" point.

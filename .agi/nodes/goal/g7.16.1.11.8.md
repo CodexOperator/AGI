@@ -38,3 +38,5 @@ the sibling leaves goal:g7.16.1.11.1 through goal:g7.16.1.11.10, each its own en
 "we should make sure the engine still maintains graph growth order so posts can't just grow nodes without respecting order" (owner 07:1xZ; verbatim on goal:g7.16.1.11)
 ## Agent Notes
 Assigned to **council**.
+
+belam-s2-II 08:3xZ 10-10 LANE (Prime, write-gate class): DG2 08:25Z bytes -- on v5 the plain path (Write/Edit + agi-turn/agi-at) has NO growth-order gate (spawn_gate.check_spawn runs only inside write.py/cli.py create; an out-of-order build node was accepted). DG3 builds the check into agi-turn for NEW node files only (reuse check_spawn; edits never gated); DG2 rows (refuse / legal control / edit control). After the season-close leaves.

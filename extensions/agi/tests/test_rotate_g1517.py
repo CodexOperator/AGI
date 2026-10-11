@@ -26,11 +26,13 @@ import pytest
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import rotate
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 
 def _seats_sheet(root, rows):
     nodes = root / "nodes" / ".geometry"
     nodes.mkdir(parents=True, exist_ok=True)
+    write_free_veto(nodes)
     (root / "sessions").mkdir(parents=True, exist_ok=True)
     body = "---\nid: config:seats\ntype: config\nseats:\n"
     for r in rows:
@@ -44,6 +46,7 @@ def _director_turn_rotations(root):
     `startup.first_turn` probe — the block a first seating composes."""
     g = root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (root / "bin").mkdir(parents=True, exist_ok=True)
     (root / "bin" / "probe_g15.py").write_text(
         "import sys\nprint(','.join(sys.argv[1:]))\n", encoding="utf-8")
@@ -238,6 +241,7 @@ def test_rotate_self_refuses_join_only_template(tmp_path, monkeypatch,
          "effort": "max", "settings": ""}])
     g = tmp_path / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (g / "rotations.md").write_text(
         "---\nid: config:rotations\ntype: config\ntemplates:\n"
         "  director: {brief_file: x.md, steps: [spawn], telemetry: [seat], "
@@ -265,6 +269,7 @@ def test_rotate_self_plain_no_startup_still_spawns(tmp_path, monkeypatch,
         {"name": "plain-seat", "role": "parent", "model": "m",
          "effort": "max", "settings": ""}])
     (tmp_path / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    write_free_veto(tmp_path / "nodes" / ".geometry")
     (tmp_path / "nodes" / ".geometry" / "rotations.md").write_text(
         "---\nid: config:rotations\ntype: config\ntemplates:\n"
         "  parent: {brief_file: x.md, steps: [spawn], telemetry: [seat]}\n"

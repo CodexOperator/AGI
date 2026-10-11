@@ -1,0 +1,81 @@
+{
+ "p": 113,
+ "model": {
+  "d_model": 128,
+  "n_heads": 4,
+  "d_mlp": 512,
+  "n_ctx": 3,
+  "act": "relu",
+  "layernorm": false,
+  "pos": "learned",
+  "vocab_in": 114,
+  "vocab_out": 113,
+  "note": "1 layer: tokens (a, b, '=') with '=' = id 113; causal attention (no biases on Q/K/V/O), MLP W_in+b_in -> ReLU -> W_out+b_out, residual stream only (no LayerNorm), unembed (no bias) read at the '=' position (index 2) -> logits over 113 classes = (a+b) mod 113. Init: W_E, W_pos ~ N(0, 1/d_model); Linear layers PyTorch default"
+ },
+ "train_fraction": 0.3,
+ "split_seed": 0,
+ "split_def": "all 113*113 pairs (a, b), index a*113+b; numpy default_rng(split_seed).permutation; first floor(0.3*12769) = 3830 = train, the rest (8939) = held-out test",
+ "grok_threshold": 0.99,
+ "threads": 1,
+ "b_set": [
+  0,
+  23,
+  46,
+  69,
+  92
+ ],
+ "sweep_def": "for each b in b_set: inputs (a, b, '=') for a = 0..112; read the MLP post-ReLU activations (512) at the '=' position -> acts (5, 113, 512) float32, saved",
+ "detrend_tol": 1e-09,
+ "pipeline": "IMPORTED unchanged from osc_neuron_period2.py: dpeak (= detrend over span{1, a} then run 1's peakiness) and detrended_null; peakiness = max non-DC rfft power / total non-DC power over the 113-long a series, dominant bin k in 1..56",
+ "statistic": "per neuron: detrended peakiness per b, averaged over the 5 b -> pk; dominant frequency k = the most common per-b dominant bin over the 5 b (ties -> smallest k)",
+ "null_permutations": 20,
+ "null_seed": 0,
+ "null_quantile": 0.999,
+ "null_def": "detrended label-shuffled null: for each b, osc_neuron_period2.detrended_null(acts_b, 20, null_seed) (permute a FIRST, then detrend, then peakiness; the same 20 permutations for every b) -> (20, 512) per b, averaged over b -> pooled 10240 values, 99.9th pct",
+ "twin_seed": 1001,
+ "twin_def": "random-init twin: the SAME architecture built after torch.manual_seed(twin_seed), untrained, same sweep and statistic; null 2 = max pk over its 512 neurons",
+ "p1_min_fraction": 0.5,
+ "p1_set": "neurons with pk > null q999 AND pk > twin max (both strict); fraction over all 512",
+ "box_max_psi_some_avg10": 5,
+ "family_floor": 20,
+ "checkpoints": {
+  "0": {
+   "path": "datasets/osc-band/2026-10-01-neuron-period-pc/model.pt",
+   "sha256": "8e174e98261aa4995d69a65911cefcbe5f6cdef4388577f8a3209ec64e5ccccc"
+  },
+  "1": {
+   "path": "datasets/osc-band/2026-10-01-neuron-period-seeds/model_s1.pt",
+   "sha256": "7a2d0bdb04e6f82f6b712720b5222733ddd6c2a5778a9828dcd3087870b84e5a"
+  },
+  "2": {
+   "path": "datasets/osc-band/2026-10-01-neuron-period-seeds/model_s2.pt",
+   "sha256": "51bf7db6fa3111ab5ac4878240cab8993d398144a949bdebc2a22ddbd547cbb6"
+  }
+ },
+ "model_seeds": [
+  0,
+  1,
+  2
+ ],
+ "wall_cap_s": 1200,
+ "frequencies": "1..56 (p = 113)",
+ "key_rule": "W = the embedding top-6 key frequencies: the we_top6 rule of osc_neuron_period_seeds.analyse (top 6 of sum_d |rfft(E[:113])|^2 over bins 1..56, sorted); NK = every frequency in 1..56 not in W",
+ "basis_def": "B_k = the orthonormalised pair (cos 2 pi k c / p, sin 2 pi k c / p), c = 0..112, Gram-Schmidt in float64; the constant vector 1/sqrt(p) plus the 56 pairs = 57 components = 113 orthonormal dimensions (a full basis of R^113; the order's '57-dim' is read as 57 components)",
+ "recon_tol": 1e-09,
+ "base_min_acc": 0.99,
+ "hypothesis": "hypothesis:lm-neuron-periodicity-single-failing-frequencies-are-redundant-carriers-on-loss",
+ "run": "pair-ablation on held-out cross-entropy on the SAVED checkpoints of seeds 0, 1, 2; forward passes only, NO training, NO download of data",
+ "box_min_avail_mib": 2000,
+ "box_note": "launch only at MemAvailable >= 2 GB (box_min_avail_mib) and memory PSI full avg60 < 5 and no suite/gate lane running (checked by hand before launch; wait_box also gates on some avg10 < box_max_psi_some_avg10); ONE python process, threads 1, ulimit -v 4000000, wall cap 1200 s",
+ "score_def": "CE(S) = mean over the held-out rows (S.data split_seed 0, te) of -log softmax(ablate(L, Bm, cols(S)))[y], natural log, float64, S a SET of frequencies (cols = the (2k-1, 2k) basis pair of each, duplicates merged); dCE(S) = CE(S) - CE({}); margin (unscored) = correct logit minus the max wrong logit, mean over rows",
+ "step_a_def": "for every k in 1..56 dCE({k}); T_s = the family frequencies f of seed s with dCE({f}) <= max over j in NK of dCE({j}) (W = the embedding top-6 key rule of freqabl, NK = 1..56 minus W); T is COMPUTED by the run",
+ "r_def": "R(f) iff some g in F_s minus {f} has dCE({f,g}) - dCE({g}) > max over j in NK of [dCE({j,g}) - dCE({g})]; the null is exhaustive (every non-key j, the same g; j = g gives marginal 0)",
+ "verdict_rule": "VOID (checked first) if a checkpoint sha256 differs, a baseline held-out acc < base_min_acc, CE or accuracy of ablate(L, {}) differs from L, the constant + 56 pairs do not reconstruct L to recon_tol, the wall cap hits, or the params.json sha256 at launch differs from the final one. Else T (over all seeds) empty -> inconclusive; else proved iff R(f) for every f in every T_s, any f without a partner -> disproved",
+ "extra_pair_table": {
+  "2": [
+   17
+  ]
+ },
+ "extra_note": "reported, unscored: the same pair table for seed 2 k=17 (a 0-0 accuracy tie that passes on loss in the 10-01 review) when 17 is a family frequency of seed 2",
+ "torch_note": "box E has no /data/ml venv; torch 2.14.0+cpu from a private --target dir (belam GO 09:2xZ 10-10); wheel and torch.__version__ recorded in the experiment node"
+}

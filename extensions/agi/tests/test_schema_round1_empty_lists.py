@@ -8,10 +8,14 @@ the 10 goals missing `origin`/`confidence` stay unfixed (no bulk fill of a value
 Two kinds of rows:
   * STATE rows (no commit pair): at NEW (ROUND1_NEW, default HEAD) none of the 45 misses its named field(s). They are
     RED on the tip and stay as a standing guard.
-  * DIFF rows (a commit pair): BASE -> NEW is exactly the fill. They need ROUND1_BASE=<the build's parent>, e.g.
+  * DIFF rows (a commit pair): BASE -> NEW is exactly the fill. The DEFAULT pair is the landed fill itself, pinned by
+    sha (PIN_BASE -> PIN_NEW = DG5's 8512390c94^ -> 8512390c94, 10-08): a diff row cannot follow a moving tip, a landed
+    commit does not move, so the default run checks the fill that landed (about 60 s). ROUND1_BASE=<rev> (with
+    ROUND1_NEW, default HEAD) checks another pair, e.g. a build before it lands:
         ROUND1_BASE=$(git rev-parse HEAD^) python3 -m pytest extensions/agi/tests/test_schema_round1_empty_lists.py
-    and SKIP (loudly, by name) without it: a diff row cannot know a moving tip. ROUND1_FULL=1 adds the slow row that
-    runs the whole-corpus schema count on both trees (about 2 x 110 s).
+    If the pin is not in this clone (a shallow one) the diff rows SKIP, loudly, naming the missing sha.
+    ROUND1_FULL=1 adds the slow row that runs the whole-corpus schema count on both trees (about 2 x 110 s); it stays
+    opt-in because it doubles the run for a count the 45 per-file rows already pin.
 Every check reads `git archive` copies of the two revisions (nodes + schemas + config), never the working tree, through
 the engine's own node_writer.missing_required: the same function `links.py schema` counts with.
 """
@@ -34,6 +38,8 @@ from graph_core.persistence import frontmatter as fm_reader  # noqa: E402
 REPO = Path(__file__).resolve().parents[3]
 BASE_REV = os.environ.get("ROUND1_BASE")
 NEW_REV = os.environ.get("ROUND1_NEW") or "HEAD"
+PIN_BASE = "1a7ac5b2830c24fc3f86d4474b05b1d8183c84ab"   # 8512390c94^
+PIN_NEW = "8512390c94878f847938a019f34ed1e4c9740845"    # 8512390c94: nodes: round 1 of the schema-field backfill (DG5)
 
 DOC = ("card-alive card-all-is-one card-director-general-1 card-director-general-2 card-director-general-3 "
        "card-director-general-6 card-sanctuary-master card-self-perpetuating card-thought-master "
@@ -53,7 +59,16 @@ IDS = [f"{t}-{s}" for t, s, _ in ITEMS]
 PATH = {(t, s): f".agi/nodes/{t}/{s}.md" for t, s, _ in ITEMS}
 NAMED = {(t, s, f) for t, s, fs in ITEMS for f in fs}
 LISTED = set(PATH.values())
-needs_base = pytest.mark.skipif(not BASE_REV, reason="a diff row needs ROUND1_BASE=<the build's parent> (see the module doc)")
+
+
+def _have(rev):
+    return subprocess.run(["git", "-C", str(REPO), "cat-file", "-e", rev + "^{commit}"], capture_output=True).returncode == 0
+
+
+#: the pair the DIFF rows read: ROUND1_BASE -> ROUND1_NEW when given, else the pinned landed fill.
+PAIR = (BASE_REV, NEW_REV) if BASE_REV else (PIN_BASE, PIN_NEW)
+_MISSING = [r for r in PAIR if not _have(r)]
+needs_base = pytest.mark.skipif(bool(_MISSING), reason=f"a diff row needs its commit pair in this clone: {[r[:10] for r in _MISSING]} missing (see the module doc)")
 
 
 def _git(*args, text=True):
@@ -83,11 +98,15 @@ def _archive(tmp_root: Path, rev: str) -> Path:
 def trees(tmp_path_factory):
     tmp = tmp_path_factory.mktemp("round1")
     new = _rev(NEW_REV)
-    out = {"new": new, "new_root": _archive(tmp, new)}
-    if BASE_REV:
-        out["base"] = _rev(BASE_REV)
-        out["base_root"] = _archive(tmp, out["base"])
-    return out
+    return {"new": new, "new_root": _archive(tmp, new)}
+
+
+@pytest.fixture(scope="module")
+def pair(tmp_path_factory):
+    """The DIFF rows' two trees (PAIR): base/new + their archived roots."""
+    tmp = tmp_path_factory.mktemp("round1pair")
+    base, new = _rev(PAIR[0]), _rev(PAIR[1])
+    return {"base": base, "base_root": _archive(tmp, base), "new": new, "new_root": _archive(tmp, new)}
 
 
 def _file(root: Path, typ: str, slug: str) -> Path:
@@ -115,9 +134,9 @@ def test_r1_state_the_node_no_longer_misses_its_named_field(trees, item):
 # --- the list itself (BASE)
 @needs_base
 @pytest.mark.parametrize("item", ITEMS, ids=IDS)
-def test_r1_before_each_listed_node_misses_exactly_the_named_fields(trees, item):
+def test_r1_before_each_listed_node_misses_exactly_the_named_fields(pair, item):
     typ, slug, fields = item
-    root = trees["base_root"]
+    root = pair["base_root"]
     assert _missing(root, _file(root, typ, slug)) == sorted(fields), (typ, slug)
 
 
@@ -133,8 +152,8 @@ def _fm_end(lines) -> int:
 
 
 @needs_base
-def test_r1_diff_touches_exactly_the_45_listed_files_and_deletes_nothing(trees):
-    out = _git("diff", "--name-status", "--no-renames", trees["base"], trees["new"])
+def test_r1_diff_touches_exactly_the_45_listed_files_and_deletes_nothing(pair):
+    out = _git("diff", "--name-status", "--no-renames", pair["base"], pair["new"])
     rows = [l.split("\t") for l in out.splitlines() if l]
     assert sorted(r[1] for r in rows) == sorted(LISTED), \
         f"outside the list: {sorted({r[1] for r in rows} - LISTED)}; listed but untouched: {sorted(LISTED - {r[1] for r in rows})}"
@@ -143,10 +162,10 @@ def test_r1_diff_touches_exactly_the_45_listed_files_and_deletes_nothing(trees):
 
 @needs_base
 @pytest.mark.parametrize("item", ITEMS, ids=IDS)
-def test_r1_diff_each_file_only_gains_the_named_lines_inside_its_front_matter(trees, item):
+def test_r1_diff_each_file_only_gains_the_named_lines_inside_its_front_matter(pair, item):
     typ, slug, fields = item
     path = PATH[(typ, slug)]
-    b, n = _lines(trees["base"], path), _lines(trees["new"], path)
+    b, n = _lines(pair["base"], path), _lines(pair["new"], path)
     ops = difflib.SequenceMatcher(None, b, n, autojunk=False).get_opcodes()
     kinds = {op[0] for op in ops}
     assert kinds <= {"equal", "insert"}, f"{path}: lines were replaced or deleted: {[o for o in ops if o[0] not in ('equal', 'insert')][:3]}"
@@ -162,10 +181,10 @@ def _mint(lines):
 
 @needs_base
 @pytest.mark.parametrize("item", ITEMS, ids=IDS)
-def test_r1_diff_no_mint_id_changes_and_the_body_is_byte_identical(trees, item):
+def test_r1_diff_no_mint_id_changes_and_the_body_is_byte_identical(pair, item):
     typ, slug, _fields = item
     path = PATH[(typ, slug)]
-    b, n = _lines(trees["base"], path), _lines(trees["new"], path)
+    b, n = _lines(pair["base"], path), _lines(pair["new"], path)
     assert _mint(b) == _mint(n) and len(_mint(b)) == 1, path
     assert b[_fm_end(b):] == n[_fm_end(n):], f"{path}: the body or the closing fence changed"
 
@@ -191,10 +210,10 @@ def _expected(base_lines, fields):
 
 @needs_base
 @pytest.mark.parametrize("item", ITEMS, ids=IDS)
-def test_r1_diff_each_new_line_sits_where_the_files_key_order_puts_it(trees, item):
+def test_r1_diff_each_new_line_sits_where_the_files_key_order_puts_it(pair, item):
     typ, slug, fields = item
     path = PATH[(typ, slug)]
-    b, n = _lines(trees["base"], path), _lines(trees["new"], path)
+    b, n = _lines(pair["base"], path), _lines(pair["new"], path)
     assert n == _expected(b, fields), f"{path}: placement differs from the key-order rule (next_edges after parents, else alphabetical)"
 
 
@@ -205,8 +224,8 @@ def _blobs(rev, *paths):
 
 
 @needs_base
-def test_r1_control_every_other_node_and_schema_keeps_its_bytes(trees):
-    b, n = _blobs(trees["base"], ".agi/nodes", ".agi/context/schemas"), _blobs(trees["new"], ".agi/nodes", ".agi/context/schemas")
+def test_r1_control_every_other_node_and_schema_keeps_its_bytes(pair):
+    b, n = _blobs(pair["base"], ".agi/nodes", ".agi/context/schemas"), _blobs(pair["new"], ".agi/nodes", ".agi/context/schemas")
     changed = {p for p in set(b) | set(n) if b.get(p) != n.get(p)}
     outside = changed - LISTED
     assert not outside, f"{len(outside)} file(s) outside the list changed, e.g. {sorted(outside)[:5]}"
@@ -214,7 +233,7 @@ def test_r1_control_every_other_node_and_schema_keeps_its_bytes(trees):
 
 
 @needs_base
-def test_r1_control_the_goals_missing_origin_or_confidence_stay_unfixed_and_nothing_else_is_filled(trees):
+def test_r1_control_the_goals_missing_origin_or_confidence_stay_unfixed_and_nothing_else_is_filled(pair):
     """Every goal node (live and retired): no (node, missing field) pair appears at NEW, and the only pairs that
     disappear are the named seeds/tags ones. A bulk fill of `origin` or `confidence` (or of any field not named) is RED."""
     def pairs(root):
@@ -226,7 +245,7 @@ def test_r1_control_the_goals_missing_origin_or_confidence_stay_unfixed_and_noth
             for f in node_writer.missing_required(root, "goal", fm, str(fm.get("id"))):
                 out.add((str(fm.get("id")), f))
         return out
-    before, after = pairs(trees["base_root"]), pairs(trees["new_root"])
+    before, after = pairs(pair["base_root"]), pairs(pair["new_root"])
     named = {(f"goal:{s}", f) for t, s, f in NAMED if t == "goal"}
     assert named <= before, f"named pairs not missing at BASE: {sorted(named - before)}"
     assert not (after - before), f"a goal gained a missing field: {sorted(after - before)}"
@@ -237,15 +256,15 @@ def test_r1_control_the_goals_missing_origin_or_confidence_stay_unfixed_and_noth
 
 
 @needs_base
-def test_r1_control_the_schema_count_over_the_listed_files_drops_by_exactly_45(trees):
+def test_r1_control_the_schema_count_over_the_listed_files_drops_by_exactly_45(pair):
     def count(root):
         return sum(1 for t, s, _f in ITEMS if _missing(root, _file(root, t, s)))
-    assert count(trees["base_root"]) - count(trees["new_root"]) == 45
+    assert count(pair["base_root"]) - count(pair["new_root"]) == 45
 
 
 @needs_base
 @pytest.mark.skipif(os.environ.get("ROUND1_FULL") != "1", reason="slow (about 2 x 110 s): set ROUND1_FULL=1 for the whole-corpus schema count")
-def test_r1_full_corpus_schema_count_drops_by_exactly_45(trees):
+def test_r1_full_corpus_schema_count_drops_by_exactly_45(pair):
     def count(root):
         n = 0
         for p in sorted((root / "nodes").rglob("*.md")):
@@ -260,5 +279,5 @@ def test_r1_full_corpus_schema_count_drops_by_exactly_45(trees):
                 continue
             n += bool(node_writer.missing_required(root, typ, fm, str(fm.get("id") or f"{typ}:{p.stem}")))
         return n
-    b, a = count(trees["base_root"]), count(trees["new_root"])
+    b, a = count(pair["base_root"]), count(pair["new_root"])
     assert b - a == 45, (b, a)

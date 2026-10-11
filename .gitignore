@@ -147,3 +147,6 @@ datasets/osc-band/**/*.npz
 # commit, because it stays on disk for this seat's own signing.
 .agi/keys/director-general-5
 .agi/keys/director-general-1
+
+# Claude Code session cron lock (a live session id + pid; goal:g1.42 row 1)
+.claude/scheduled_tasks.lock

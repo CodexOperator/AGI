@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import time
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 import seatsig  # noqa: F401  (guarantees the engine spelling, mur-39 (e))
 from seatsig import register, Scheme, get
@@ -219,6 +220,7 @@ def test_load_rings_from_cell(tmp_path):
     # whose geometry holds a rules cell but no rings cell.
     other = tmp_path / "other"
     (other / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(other / "nodes" / ".geometry")
     (other / "nodes" / "rules.md").write_text("---\ntype: cell\n---\n",
                                               encoding="utf-8")
     assert rings.load_rings(tmp_path / "other") == []
@@ -250,6 +252,7 @@ def _write_gate_root(tmp_path):
     keys = {m: scheme.keygen() for m in ("alice", "bob", "carol")}
     pubkeys = {m: priv.hex() for m, (priv, _pub) in keys.items()}
     (agi / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(agi / "nodes" / ".geometry")
     (agi / "nodes" / ".geometry" / "rings.md").write_text(
         "---\ntype: cell\nrings:\n"
         "  - name: approval\n    m: 2\n"
@@ -355,6 +358,7 @@ def test_write_gate_opt_in_no_ring_declared(tmp_path):
     agi = tmp_path / ".agi"
     agi.mkdir(parents=True)
     (agi / "config.json").write_text("{}", encoding="utf-8")
+    write_free_veto(agi / "nodes" / ".geometry")
     sd = agi / "context" / "schemas"
     sd.mkdir(parents=True)
     (sd / "[config].md").write_text(
@@ -382,6 +386,7 @@ def _suite_grant_root(tmp_path):
     agi.mkdir(parents=True)
     (agi / "config.json").write_text("{}", encoding="utf-8")
     (agi / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(agi / "nodes" / ".geometry")
     scheme = get("fixture")
     keys = {m: scheme.keygen() for m in ("alice", "bob", "carol")}
     pubkeys = {m: priv.hex() for m, (priv, _pub) in keys.items()}

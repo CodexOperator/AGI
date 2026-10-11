@@ -250,7 +250,7 @@ def test_falsifier_4_the_minus_S_bypass_is_real_and_named(standin_tree):
     """Falsifier 4, measured: `python -S` skips site, so the NAME fence does
     not apply. This test exists so the residual cannot quietly become a claim
     of closure; the node body names the escaping command verbatim. The second
-    layer (mem_cap's RLIMIT_AS) is process-wide, not name-based."""
+    layer (mem_cap's RLIMIT_DATA) is process-wide, not name-based."""
     env = {"PATH": os.environ.get("PATH", "/usr/bin:/bin"),
            "PYTHONPATH": os.pathsep.join([str(FENCE_DIR), str(standin_tree)]),
            "AGI_MODEL_FENCE_SRC": str(TABLE)}

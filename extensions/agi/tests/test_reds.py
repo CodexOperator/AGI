@@ -474,31 +474,20 @@ def test_re3_an_id_less_move_beside_an_id_ful_move_names_only_the_id_less(proj):
     assert r.returncode == 1 and "RED node_deletion 1: .agi/nodes/idea/a.md" in r.stdout and "idea:b" not in r.stdout, r.stdout + r.stderr
 
 
-# goal:g1.41 RE2 (DG1 23:05Z): the committed CLI over the BUILD'S OWN range (the mur ran `reds.py check c99ac24ea3 7bd46defd8` and got RED secrets 2: two added lines of the lane's own test carried a user path). The range is named by ref so it keeps meaning; a clone that lacks the commits skips (vacuous there, said so). The check runs in-process with `anonymize.box_tokens` read when the box allows it and [] when it does not (a seat without the main .env): box tokens only ADD reds, so a green range here may still be red at a gate that holds them.
-TIP_BASE, TIP_REF = "6f9d7f742c", "d880746901"          # the build's own commit (RE1 recut) and its parent
-REPO_ROOT = Path(__file__).resolve().parents[3]
-
-
-def _own_range(monkeypatch, capsys, old, new):
-    import anonymize, reds
-    for r in (old, new):
-        if subprocess.run(["git", "-C", str(REPO_ROOT), "cat-file", "-e", r + "^{commit}"], capture_output=True).returncode != 0:
-            pytest.skip(f"{r} is not in this clone")
-    real = anonymize.box_tokens
-
-    def tokens(root=None):
-        try:
-            return real(root)
-        except OSError:
-            return []
-    monkeypatch.setattr(anonymize, "box_tokens", tokens)
-    rc = reds.main(["check", old, new, "--root", str(REPO_ROOT), "--repo", str(REPO_ROOT)])
-    return rc, capsys.readouterr().out
-
-
-def test_re2_the_builds_own_range_is_green(monkeypatch, capsys):
-    rc, out = _own_range(monkeypatch, capsys, TIP_BASE, TIP_REF)
-    assert rc == 0 and "RED none" in out, out
+# goal:g1.41 RE2 (DG1 23:05Z; B5 row 8): the committed CLI over a lane-test-shaped RANGE. The mur ran `reds.py check c99ac24ea3 7bd46defd8` and got RED secrets 2: two added lines of the lane's own test carried a user path.
+# The range is a FIXTURE built here (it used to be two short shas of the build's own commits, which skipped silently on any clone that pruned them): green with a placeholder segment, red with a user-rooted path.
+def test_re2_a_lane_test_shaped_range_is_green_and_its_user_path_twin_is_red(proj):
+    base = _user_roots_cell(proj)
+    lane = "def test_row(tmp_path, monkeypatch):\n    p = tmp_path / 'x'\n    note = '/tmp/pytest-of-<user>/pytest-3/x'\n    assert p.name == 'x'\n"
+    (proj / "notes" / "test_lane.py").write_text(lane)
+    green = _commit(proj, "a lane test, placeholder path")
+    r = _run(proj, base, green)
+    assert r.returncode == 0 and "RED none" in r.stdout, r.stdout + r.stderr
+    (proj / "notes" / "test_lane.py").write_text(lane + "    seen = '" + "/" + "tmp/pytest-of-" + "alice/pytest-3/x'\n")
+    red = _commit(proj, "the same test with a user path")
+    r = _run(proj, green, red)
+    assert r.returncode == 1 and "RED secrets 1: notes/test_lane.py:5" in r.stdout, r.stdout + r.stderr
+    assert "alice" not in r.stdout + r.stderr
 
 
 # goal:g1.41 RE5 (DG1 23:59Z, ruled): an id-less DELETED node is alive only when a file at NEW IS the moved node (its mint in ITS OWN front matter `mint_id:` row) AND that file did not already carry that mint at OLD. A raw scan of every NEW file for the mint (a THOUGHT, a doc, a pre-existing OTHER node quoting it) voids the DG3.54 disguise rule for id-less nodes.

@@ -144,6 +144,6 @@ for v in '{"rounds":"abc"}' '{"rounds":{"a":{"key":"k"}}}' '{"rounds":null}' '{"
 done
 : >$LOG;flow miss-of '{"rounds":[]}'>/dev/null 2>&1;rc=$?
 ok "r2-empty-of an EMPTY rounds list is a real list: the flow runs its other stage and signs (rc=$rc, launches $(nl $LOG))" '[ $rc = 0 ]&&[ "$(nl $LOG)" = 1 ]'
-ok "bytes the piece is <= ${CEIL:-2040} B ($(wc -c<$PIECE) B)" '[ $(wc -c<$PIECE) -le ${CEIL:-2040} ]'
+ok "bytes the piece is <= ${CEIL:-2052} B ($(wc -c<$PIECE) B)" '[ $(wc -c<$PIECE) -le ${CEIL:-2052} ]'
 echo "agi-kid-flow-guard: $f FAIL"
 exit $f

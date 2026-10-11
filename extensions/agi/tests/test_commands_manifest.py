@@ -312,10 +312,10 @@ _LISTED_CLIS += [
 ]
 
 # EF.54 CLI GROUP E. Appended, like GROUP C/D, so sibling edits cannot collide.
-# The 12 last engine CLIs whose parser is a plain module-level `main`; every
+# The 10 last engine CLIs whose parser is a plain module-level `main`; every
 # verb is declared or excluded BY NAME in `command:commands`.
 _LISTED_CLIS += [
-    "lm_bench.py", "mail_alert.py", "payload_boundary.py", "plan_master.py",
+    "lm_bench.py", "payload_boundary.py", "plan_master.py",
     "reconciler.py", "rolslice.py", "seat_status.py", "stall_detect.py",
     "success_metrics.py", "telemetry_rollup.py",
     "ws_raw_client.py",

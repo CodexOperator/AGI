@@ -20,6 +20,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 BIN = Path(__file__).resolve().parent.parent / "bin"
 SRC = Path(__file__).resolve().parent.parent / "src"
@@ -70,6 +71,7 @@ def _fixture_root(tmp_path, rotations: str | None,
     (agi / "config.json").write_text("{}")
     g = agi / "nodes" / ".geometry"
     g.mkdir(parents=True)
+    write_free_veto(g)
     if seats is not None:
         (g / "seats.md").write_text(seats)
     if rotations is not None:
@@ -757,6 +759,7 @@ def test_falsifier_old_rotate_whois_does_not_parse():
 def test_status_record_reads_latest_surfaces_capsys(tmp_path, monkeypatch, capsys):
     root = tmp_path / ".agi"
     (root / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(root / "nodes" / ".geometry")
     (root / "nodes" / ".geometry" / "seats.md").write_text(SEATS_BODY)
     rot = root / "sessions" / "rotations"
     rot.mkdir(parents=True)
@@ -787,6 +790,7 @@ def test_wait_returns_zero_when_record_already_terminal(
     import datetime
     root = tmp_path / ".agi"
     (root / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(root / "nodes" / ".geometry")
     (root / "nodes" / ".geometry" / "seats.md").write_text(SEATS_BODY)
     rot = root / "sessions" / "rotations"
     rot.mkdir(parents=True)
@@ -819,6 +823,7 @@ def test_wait_times_out_when_record_never_terminal(
     import datetime
     root = tmp_path / ".agi"
     (root / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(root / "nodes" / ".geometry")
     (root / "nodes" / ".geometry" / "seats.md").write_text(SEATS_BODY)
     rot = root / "sessions" / "rotations"
     rot.mkdir(parents=True)
@@ -858,6 +863,7 @@ def test_wait_waits_for_record_to_appear_then_terminal(
     import datetime
     root = tmp_path / ".agi"
     (root / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(root / "nodes" / ".geometry")
     (root / "nodes" / ".geometry" / "seats.md").write_text(SEATS_BODY)
     rot = root / "sessions" / "rotations"
     rot.mkdir(parents=True)
@@ -899,6 +905,7 @@ def test_wait_for_missing_record_times_out(tmp_path, monkeypatch, capsys):
     old silent `(no rotation record for <seat>)` return 0. Wall-time-free."""
     root = tmp_path / ".agi"
     (root / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(root / "nodes" / ".geometry")
     (root / "nodes" / ".geometry" / "seats.md").write_text(SEATS_BODY)
     rot = root / "sessions" / "rotations"
     rot.mkdir(parents=True)
@@ -926,6 +933,7 @@ def test_wait_returns_zero_when_record_becomes_terminal_mid_wait(
     import threading
     root = tmp_path / ".agi"
     (root / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(root / "nodes" / ".geometry")
     (root / "nodes" / ".geometry" / "seats.md").write_text(SEATS_BODY)
     rot = root / "sessions" / "rotations"
     rot.mkdir(parents=True)
@@ -984,6 +992,7 @@ def _geometry_commit(root, rotations_body, message) -> str:
     (agi / "config.json").write_text("{}")
     g = agi / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (g / "rotations.md").write_text(rotations_body)
     (g / "seats.md").write_text(SEATS_BODY)
     _mgit(root, "add", "-A")

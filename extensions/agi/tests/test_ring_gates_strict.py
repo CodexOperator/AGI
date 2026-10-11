@@ -84,10 +84,11 @@ def _suite(tmp_path, ring="approval"):
 
 
 GATES = [("round", _round), ("suite", _suite)]
-HOWS = ["mode000", "corrupt", "not-a-list", "bad-m", "import"]
+# goal:g1.42 B5 row 9: only the mode-000 case is unobservable as root (root reads a mode-000 file); the four other cases are real under root and must RUN there.
+HOWS = [pytest.param("mode000", marks=pytest.mark.skipif(os.geteuid() == 0, reason="a mode-000 file is readable by root")),
+        "corrupt", "not-a-list", "bad-m", "import"]
 
 
-@pytest.mark.skipif(os.geteuid() == 0, reason="a mode-000 file is readable by root")
 @pytest.mark.parametrize("how", HOWS)
 @pytest.mark.parametrize("gate,call", GATES, ids=[g for g, _ in GATES])
 def test_rd1_a_real_rings_load_failure_is_a_refusal_naming_the_ring_and_the_error(tmp_path, monkeypatch, gate, call, how):

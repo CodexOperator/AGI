@@ -25,6 +25,7 @@ import time
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 BIN = HERE.parent / "bin"
@@ -44,6 +45,7 @@ def _graph(tmp_path: Path, rows: list[dict]) -> Path:
     """A temp project root whose config carries the memo cell, repo-relative."""
     agi = tmp_path / ".agi"
     (agi / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    write_free_veto(agi / "nodes" / ".geometry")
     (agi / "context" / "schemas").mkdir(parents=True, exist_ok=True)
     (agi / "config.json").write_text(json.dumps(
         {"paths": {"core": {"foreign_refusal_memo":

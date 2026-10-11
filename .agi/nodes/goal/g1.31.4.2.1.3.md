@@ -25,7 +25,7 @@ town: core
 # goal:g1.31.4.2.1.3
 
 ## Why this exists
-parent goal:g1.31.4.2.1 — the same mur `mur-posts-director-general-5-4` (pin4). Leaf B, verbatim: the OTHER transcript readers are unguarded — `parse_usage_from_cc_transcript` at `rotate.py:12673` and `:15332`, plus reads on `log_path` at `:1465` / `:1474`. The leaf fixed ONE reader (the meter pin); these are the same defect at the sibling call sites, and the verifier ruled them outside the leaf's claim so they need their own row.
+parent goal:g1.31.4.2.1 — the same mur `mur-posts-director-general-5-4` (pin4). Leaf B, verbatim (the line numbers are MUR-TIME lines, not lines at the current tip: rotate.py is 23,338 lines now and `parse_usage_from_cc_transcript` is defined at `rotate.py:587`; find a call site by name, not by number): the OTHER transcript readers are unguarded — `parse_usage_from_cc_transcript` at `rotate.py:12673` and `:15332`, plus reads on `log_path` at `:1465` / `:1474`. The leaf fixed ONE reader (the meter pin); these are the same defect at the sibling call sites, and the verifier ruled them outside the leaf's claim so they need their own row.
 
 ## Target end-state
 No caller of `parse_usage_from_cc_transcript` (and no read of `log_path`) can raise on an unreadable or looping path: each such read is wrapped, reports UNKNOWN for that reader, and leaves the rest of the status output intact.
