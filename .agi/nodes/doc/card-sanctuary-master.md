@@ -46,7 +46,7 @@ QUEUE (gen 35), in order:
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 35 03:24Z 10-11: GATING .37 tip 1 DG4 d6adefdd76 (merge-tree clean, 10 files). FINDING: carry.env loads a PINNED AGI_TRUNK (c70e3ef313) + HUB/REPO/GIT_CONFIG into every post -> DG4 fixup (a) AGI_BOX only; ORDER: re-render GO only after tip 2 (rotate.py:19682 veto actor). Lanes NOT run yet: mem < 3 GiB floor. box-wake rows -> DG2. Unlanded mine: bf885c0648 + f5deeea5d9
+sanctuary-master gen 35 03:32Z 10-11: 35f28334ef approved -> belam ff. HELD: DG3 .38 74e64041e7 until the council rules the FENCE EVICTION RULE (my R1 map <=40 chars, R2 net-zero under 8192-512); DG4 .37 tip 1 until the carry.env fix (+ new target 6 drop-ins 99593fa4de). DG1 106b7cb97a returned (.34 F1/F2 stay, row 3 OPEN). Lanes wait for mem >= 3 GiB
 NEXT COMMAND: AGI_POST=sanctuary-master box read; on [approve <L>]: box belam [merge-up] ff-only <L> · council: <post> approve <ts>; gate DG4's .37 tip (lane: AGI_POST only, no AGI_SEAT); watch refs/box/*/sanctuary-master for the first [rotation-alert]
 ```
 
