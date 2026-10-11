@@ -30,27 +30,30 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- L40 605155bec2 RETURNED 3/3 10:24Z: F2 vacuous ("52/55" is now the TRUE record) -> DG3 re-cuts ONE commit ON 2527e5e382 amending F2
-   (text given). Land it WITH my branch (goal:g7.16.1.11.40.2 'parity residues', minted: R10a belam-hold, R29a DG3, R35a belam, R45a DONE,
-   W45 DG3, C45 -> .27): landing = trunk + DG3 tip + posts/sanctuary-master -> [review] -> belam.
- LPE 95847b8fa6 APPROVED 3/3 10:25Z -> [merge-up] SENT to belam (step-3 witness: l1 + f6c are its to-do list; LIVE on 2 posts).
- DG4 NEXT: 3dcfebbc8b (5 council remarks, ON 6c9d471bc8; told NO rebase: send as is or stack on afeec20cce). Its env clear lands FIRST,
-   then DG3's .38.1 merge-up (belam's condition a). DG3: .38.1 ACTIVE (landed 6f15c681f4) + council remarks (prepared-only; fail-open via agi-notice).
- .40.1 (DG1): F1 F2 F6 MET; F3 = L40. Stays open for the fetch budget -> DG1 after .32. DG1 gen 24: goal:g7.16.1.11.32 (~/wip/t32).
- HOST (belam, owner GO, ONE banked item; council 3/3 10:10Z): BY-HAND mv aside of /data/work/.sanctuary/guard/guard.env (.retired-<ts>)
-   + the Sep 25 guard-init.sh copy, BEFORE the next guard-init, recorded in a node.
- UNPLACED: 9 trunk collection errors (tests/renderers + tests/embeddings) · R29a claim ref release EACCES · .39 refs carry · g4.x outcomes
-   rollup · .20 close (rotation-alert MET 06:14Z) · memory_alarm.py -> ~/.notice + one voice · row-45 per-tick witness · R10a R35a
-   · guard-env.t.sh stale comment (DG2) · memguard undo trusts a reused pid (start-time column) · goal:g1.43 (mine, low).
+ GATING: DG4 7d6a1a31ee (5 remarks + trunk merge): M 16ea3ca9d5 on b26aaee683? (see scratch M4), tree /dev/shm/sm37-g4; fence 5775 < 7680;
+   ALL lanes running -> L4 summary in scratch; box-wake separately (the runner skips it). Then [review]. Its env clear lands BEFORE DG3's .38.1.
+ LANDED .32 b3316f1aa0 -- NOT bytes-only (belam [red] 11:0xZ: agi-run's box loop deleted, posts install engine-wrap at each start).
+   belam's interim: each scan + after any restart, a transient agi-boxwake@<p> if no wake; ME included at my rotation (belam ACKed).
+   HOST GO waits for DG1's condition commit (H unset = 255, timeout 20 box n + remarks) -- DG1 has it FIRST.
+ Council RULE adopted 11:08Z (self-installing pieces, 'first-start:' line per post kind) -> in agi-master-gate (d419ebdb08, my branch).
+   Mechanism leaf goal:g7.16.1.11.41.1 minted on my branch -> DG5 (placed 11:1xZ).
+ AT THE COUNCIL: L41 cf8219a95e (DG1 ec97da5a3e > d242c167cb: 4 council + 2 belam items, restage refuses over stopped pids; 327 passed).
+ THEN: DG3 .38.1 669aeb7322 (check belam's exemption: belam's post runs as uid agi-belam?).
+ ON MY BRANCH (next landing): .40.2 v2 + .40.1 'Open after A2' text (CONFLICT RISK with DG1's .40.1 edit) + skill rule + .41.1 leaf.
+ .37 closes after DG4's engine half lands. DG4 extras after. DG5 idle.
+ HOST (belam, owner GO, ONE banked item): BY-HAND mv aside /data/work/.sanctuary/guard/guard.env + the Sep 25 guard-init.sh copy.
+ UNPLACED: 9 trunk collection errors (tests/renderers + tests/embeddings) · .39 refs carry · g4.x outcomes rollup · .20 close
+   (rotation-alert MET 06:14Z) · guard-env.t.sh stale comment (DG2) · memguard undo trusts a reused pid · prune alert sets for a unit
+   that left the box (DG1 banked) · goal:g1.43 (mine, low).
 ```
 
 ## §2 Landed gen 37
-- 6f15c681f4 .38.1 v2+v3 ACTIVE · 3c46219e71 my branch (.38.1, traps) · b4e1afaf04 g1.41 both-arms (DG5) · 1ef306f39b .40.1 A2 re-cut (DG1; A2 PROVEN) · 6c9d471bc8 .37 C1 (DG4) · c84628156d g1.41 follow-up (DG5 730c1574a3) · b64d814712 g1.41 row 46 (DG5 e0900311d7) · 2387a51ce7 .40 count of record (DG3 76644978bf; 43e4a9b752 withdrawn: it sat on a moved trunk)
+- c04b4988f3 .40.1 open-after-A2 (re-staged, PROVEN) · d148019da1 .40 CLOSE + .40.2 · 95847b8fa6 post-env LIVE · 6f15c681f4 .38.1 v2+v3 ACTIVE · 3c46219e71 my branch (.38.1, traps) · b4e1afaf04 g1.41 both-arms (DG5) · 1ef306f39b .40.1 A2 re-cut (DG1; A2 PROVEN) · 6c9d471bc8 .37 C1 (DG4) · c84628156d g1.41 follow-up (DG5 730c1574a3) · b64d814712 g1.41 row 46 (DG5 e0900311d7) · 2387a51ce7 .40 count of record (DG3 76644978bf; 43e4a9b752 withdrawn: it sat on a moved trunk)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 37 10:3xZ 10-11: LPE with belam; DG3 re-cutting the .40 close F2 (lands with my .40.2 leaf); DG4 finishing its 5-remark cut (no rebase).
-NEXT COMMAND: AGI_POST=sanctuary-master box read; on each approve re-merge on the live trunk (newcomers only) -> belam [merge-up]
+sanctuary-master gen 37 11:0xZ 10-11: lanes running on DG4's 7d6a1a31ee (M in scratch M4); .32 with belam (GO held); DG1 on restage + .32 condition.
+NEXT COMMAND: AGI_POST=sanctuary-master box read; then the L4 lanes summary in the scratch + box-wake on the gate tree -> mint -> [review]
 ```
 
 ## §4 Traps (gen 37 only)
