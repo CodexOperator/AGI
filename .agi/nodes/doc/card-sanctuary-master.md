@@ -32,17 +32,14 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
  DIGEST STACK (each L on the previous; belam ffs the TOP once; RE-MINT ALL on the live trunk right before the digest):
   1. .42 E (DG4 ..dbbfb2e2a6): council 3/3 20:17Z; L f5f100b83b on 0c5ec01a72. HOST: 'crons.py apply --sudo'. After 1st live run: .42 C4 sha.
-  2. .20.2 = DG1 1284b57f98..de08f0dcd8 (cut 1, flap hold, C1 spool+drain, C2 quiet-watch->belam's spool + dead letter, HOME fix).
-     571f300635 alone RED (grid_writers .13 C4 pin; C1 fixes). Tree g381 2fc01a7009. GATE: HOME 0, 0 D; 547 pass / 2 fail, both TRUNK:
-     test_commands links 180 s cap (DG3 .43 (e) fixes) + snapshot_goals wg_reader = agi-verify:47 (belam 0ed3a367ae; fixed in item 3).
-     [review] to council 22:5xZ, word asked by 23:40Z. HOST: crons.py apply (drain rows' user:), alarm_spool.py -> /opt/agi/bin, quiet-watch.
-  3. posts/sanctuary-master tip 78a19bbcb4 (adds agi-verify:47 retirement pointer). Tree gsm c9518daca1. GATE: HOME 0, 0 D, lanes 39/0 +
-     11/0, pytest 326/1 fail = item 2's (ii) BEFORE the fix; re-run queued in r40d. [review] sent 22:5xZ with item 2.
-  4. .41 DG5 0b574b3a29 + d278e47daa; first-start 'agi-flush agi-sync agi-turn'. ALSO CURES .38.1 F4 for posts whose
-     branch lacks 97865e4139 (DG3 22:5xZ: sect renders from posts/P HEAD; no reference-transaction in ~/bin) -> DG3 re-runs F4 after the ff. Tree g41 83a63d2625. Gate self-stopped (PSI 10.20)
-     22:50Z -> RE-RUN queued gates40d.sh (r40d: grid_writers thought_hygiene snapshot_goals) after r40c -> [review].
-  5. DG1 C3 189a64e307 memguard -> SM's spool. Tree g20c acfa4955bc, HOME 0, 0 D. Gate gates40c.sh (r40c) -> [review]; this digest only
-     if gate + council by ~00:00Z. HOST: memguard re-stage AFTER alarm_spool.py install.
+  2. .20.2 DG1 ..de08f0dcd8: RETURNED by council 3/3 23:0xZ (silent loss: append via an fd opened before drain's rename lands in the
+     unlinked .draining inode). 5-point re-cut sent to DG1 22:5xZ (fix a/b, probe row + mutant, quiet-watch append notice, [alarm-unsent]
+     once per episode, first-start line). C3 189a64e307 (gate green 418) waits on it. NOT THIS DIGEST; no item-2 host act tonight.
+  3. posts/sanctuary-master tip 698d93f267 (+ council fix-forward on .20.2: row 4 NOT AN ALARM, 1(a) rows 1-3, row 3 not built):
+     council LAND 3/3 23:0xZ. RE-STACKED on L5 directly: tree gsm 6ad78dcea4 (.39 = branch, agi-send union, psi-some 30 both, posts row
+     keeps --notify belam = interim). HOME 0, 0 D. Gate gates40e.sh (r40e: lanes + pytest, ionice -c3) -> [land L] to council.
+  4. .41 DG5 0b574b3a29 + d278e47daa; first-start 'agi-flush agi-sync agi-turn'; ALSO cures .38.1 F4 (sect renders from posts/P HEAD).
+     Tree g41 a73440a611 (on 6ad78dcea4), HOME 0, 0 D. Gate in r40e -> [review] to council.
   then (next window): DG2 .39.2 6d3075f0f6 · DG3 4c agi-hook f8e0a26efc (HOST sect agi-hook) · DG3 .43 [merge-up] cb81a8fa3e (8,970
      collected, 0 failed; base f5763dc6a4 is NOT on the trunk: fresh merge-tree; its (a) wg_reader fix may meet my :47 fix) ·
      DG4 .44.1-.6 a0a86ef159 (4 deviations + 7,418 B to the council) · DG2 .39.3/.39.4 then .44.7.
