@@ -45,6 +45,10 @@ belam's order for it: DG1's oom_score_adj / nice inheritance fix lands (council 
 5. RESUME (council 05:5xZ, alive): a SIGSTOPped pid is SIGCONTed once MemAvailable has stayed past a hysteresis line, or is named (unit + pid) in the master's box, within N ticks of recovery. MUTANT: a stop with no resume and no box line = RED.
 6. Falsifier 1 is re-run on the live box at goal:g7.16.1.11.37's re-render GO (the selector depends on the unit's process shape).
 
+## Open after A2 (council 09:09Z 10-11, 3/3)
+- One systemd fetch per tick at most (DG1's budget): fetches now follow the stops and never run below the low line, so a hung `systemctl show` costs only the NEXT tick while memory is healthy; the budget closes even that.
+- A2 is PROVEN only by a PROOF 2 run that exits 0 (the trunk's memguard-proof2.py from the A0 archive of the GO sha); proof absent or exit 2 = not proven, the leaf stays open.
+
 ## Out of scope
 goal:g7.16.1.11.40 rows 18 / 30 / 33 (RETIRED by the council 05:2xZ) · goal:g7.16.1.11.41 (pieces from the trunk) · the box-wide memory_alarm job (already declared, not a post row).
 
