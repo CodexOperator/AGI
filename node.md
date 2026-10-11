@@ -15,6 +15,30 @@ town: core
 EXPANSION of config:engine: the post body (brief, meter, turn, links, trees, tick, frontier)
 Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and the unit's extraction loop (engine.md + engine-post + engine-wrap); every piece is in config:engine's map.
 
+## pieces — depth 1, one line each (bytes on disk)
+~~~
+agi-brief         1358 B  walk card+seeds+claims; record; STARTUP
+brief.py           810 B  the complex walk over parents: edges
+agi-meter          616 B  past rotate_pct of the window: out-line
+agi-at             996 B  signed CAS commit of ~/t paths to posts/<P>
+grow.py           3228 B  the growth-order check both writers call
+agi-turn          4358 B  a signed commit per changed node tree
+agi-wt            1506 B  a node's tiny RAM tree: pull; drop = turn + purge
+agi-track           89 B  strace sink: each path once
+agi-flush         1120 B  drop trees, turn, merge trunk
+agi-out           3357 B  the out-line: next keys, ring commit, re-wrap, swap
+gitconfig          196 B  signed commits against root's allowed_signers
+pre-commit          639 B  refuses a plain commit on a detached ~/t
+agi-notice          1141 B  engine->post notices: add / claim + print
+sysusers.conf       41 B  a post = one user in group agi
+agi.rules          242 B  a post starts only its OWN unit
+project.sh         161 B  what the body SHOULD be
+observe.sh         255 B  what the body IS
+tick.sh            254 B  diff them; start own unit; commit
+agi-frontier       460 B  each active goal runs its falsifier
+box               2005 B  mail: one signed ref update per send (5x CAS)
+~~~
+
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
 ### agi-brief (1358 B)
