@@ -33,6 +33,9 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
                branch, no host act. Its [review] carries a 'first-start:' line per post kind (claude / pi / kid): what a post GAINS and LOSES;
                and either lands WITH its host act (preferred: one GO, one moment) or carries an interim belam has ACKed, with a retire date.
                engine-root.md pieces stay host-act-only (root renders them)
+               · the SAME first-start: line goes into the landing COMMIT message, word for word (goal:g7.16.1.11.41.1 checks the
+                 commit, the council checks the mail: one line, or they drift; council remark, alive 11:17Z 10-11); a piece RUN only
+                 by root (agi-project) is marked 'inert in a post (root-run)' in that line
              · a code path that turns on by itself after landing (a cron line crons.py
              apply rewrites) = gate what its FIRST live run does, measured on MAIN's real data -- then watch that first run and read the remote
              · locations.shared_project_root(<any worktree>) = MAIN's .agi: a gate-worktree run reads MAIN's config -> to measure a config
@@ -105,7 +108,7 @@ bodies       a node landed for ONE fix still carries the loop's OTHER known erro
 
 ## Suites and reds — run, attribute, never guess
 ```
-suite        ON TMPFS (09-26): git worktree add --detach /dev/shm/<gate> M + TMPDIR=/dev/shm/<tmp> (chmod 700) (NEVER a tmp name that starts with the gate path: test_commands' ENGINE_ROOT substring check reds -- gen 27, /dev/shm/gate-mu9 + gate-mu9-tmp) -> no disk writes, 13:20; remove both after (STOPPING one = kill every pid whose /proc/<pid>/cwd is the gate path, THEN remove
+suite        ON DISK (belam [rule] 14:2xZ 10-11, skill agi-memory-guard: tmpfs is charged to agi.slice): git worktree add --detach ~/gate/<gate> M + TMPDIR=~/gate/tmp (chmod 700); /dev/shm only while the slice is under 4600 MiB (NEVER a tmp name that starts with the gate path: test_commands' ENGINE_ROOT substring check reds -- gen 27, /dev/shm/gate-mu9 + gate-mu9-tmp) -> no disk writes, 13:20; remove both after (STOPPING one = kill every pid whose /proc/<pid>/cwd is the gate path, THEN remove
              it: a test spawns pytest in its OWN session -- gen 26's orphan 2318135 reddened DT's test_suite_no_detached_spawn) · suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
              call · 14:25-15:28 at load 2-6 (6413 passed 00:5xZ 09-25; 14:36 at load 3-8, 6433 passed 11:59Z) · foreground sleep is blocked: wait
              with a background loop · a bare 'cd' in a Bash call can stick as the session's cwd -- use absolute paths or cd back to /data/work/agi (gen 24 did it again with a `cd .agi/worktrees && ...`: the session cwd moved; pass absolute paths instead) · grep here is UGREP: a long alternation regex fails ('exceeds complexity limits') -> extract with python re
@@ -230,3 +233,8 @@ PASS         the Prime's PASS launcher WAITS while any suite lock is live (belam
 - ONE full gate tree at a time (two took E from 3.1 to 2.6 GiB); a partial tmpfs tree reds whole-graph tests, and `git add -A` skips .gitignored files -> gate on a FULL archive / worktree (SM gen 35)
 - a [merge-up] sent on the FIRST word of a crossed council vote landed a returned tip (549c1a2381, 10-11 08:15Z) -> merge up only on the SETTLED word (doc:council-loop answerer rule); re-read the council's refs right before sending (SM gen 36)
 - a pkill/pgrep -f pattern matched the calling shell's own argv and ended it (SM gen 36) -> stop a run by its process GROUP found via comm + cwd, never an argv pattern
+- 'no live effect' claimed from ONE listed dir (SANCTUARY resolves via hosts.json) -> resolve the path the CODE computes before claiming absence; a root-only path = ask belam (SM gen 37)
+- a director's commit can sit unboxed, or a crossed return be read as done -> at wake read each director's branch tips + held refs, not only the box (SM gen 37)
+- a FULL pytest on /dev/shm (tree + a 1 GB TMPDIR basetemp) is charged to agi.slice: it pushed every post into reclaim (mem PSI full 20, swap 0.9 GB, slice at MemoryHigh; belam [red] 12:4xZ 10-11) -> the full suite runs with its basetemp on a /data disk dir, niced, only when MemAvailable and the slice have room (ask belam when near MemoryHigh); else targeted files only (SM gen 38)
+- a 'text only' batch (goal / town / doc nodes) shipped with NO lanes reddened graph-metrics.t.sh on the trunk: its r3b hard-codes the town node's 'other writer' (TM set edited_by: thought-master; SM gen 38, ea72c8050d) -> every range runs the lanes that NAME a changed node file: `git grep -l -F <node file basename> -- 'extensions/agi/tests/*.t.sh'`, on the gate AND the trunk
+- a range that adds a `git push` / refs literal anywhere under extensions/ src/ .geometry reds test_grid_writers.py C5/C6 (pinned push sites), which NO lane sees (DG2 .39 build 85ad9a010b, SM gen 38) -> every gate runs test_grid_writers.py, not only for engine*.md changes

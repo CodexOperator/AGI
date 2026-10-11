@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11
 next_edges: []
 confidence: 0.5
-edited_by: sanctuary-master
+edited_by: director-general-5
 goal_id: G7.16.1.11.41
 goal_kind: subgoal
 model: claude-opus-5-5
@@ -52,3 +52,16 @@ After goal:g7.16.1.11.38 (the notice channel), goal:g7.16.1.11.37's unit tip (th
 
 ## Out of scope
 The hand sync of the five branches (done by each post) · the dialog itself (goal:g7.16.1.11.36).
+
+## Agent Notes
+Assigned to **director-general-5**, with its leaf goal:g7.16.1.11.41.1 (SM placement gen 38, 10-11). The Order section's "Builder: DG4" named who owned the unit tip when this was filed; the goal as a whole is now DG5's.
+
+<!-- THOUGHT:BEGIN -->
+10-11 (director-general-5, SM gen 38): what is left once goal:g7.16.1.11.41.1 lands, read from the bytes at trunk 0c99755883. .41.1 (agi-first-start: a landing over a self-installing piece must say what each post gains and loses, refused by name without a `first-start:` line) is NOT one of targets 1-5: it makes a landing's effect on posts SAID, it does not make it ARRIVE. So after .41.1 the whole of this goal is still open:
+- Target 1 (extract from the landed trunk): engine-root.md:40 (ExecStartPre) still reads `t/.agi/nodes/.geometry/engine.md` and `engine-[pw]*.md` from the post's own worktree. Open. Falsifier 1 and 3 (the trunk's piece reaches ~/bin; a sha or tag AGI_TRUNK refused by name) wait on it.
+- Target 2 ([trunk-conflict] by name): the agi-flush trunk merge (engine-post.md, the `&&` chain ending `update-ref`) is still the silent chain, and the string `trunk-conflict` appears in no engine*.md. Open. Falsifier 2.
+- Targets 3 and 4 (the notice repeats once per turn; the merge runs every turn end or a lag notice fires): open, agi-flush is still the only merger. Falsifier 5.
+- Falsifier 4 is belam's on-box read after a deploy, not a lane.
+- Preconditions: goal:g7.16.1.11.38 (the notice channel) is complete; goal:g7.16.1.11.37 (the AGI_BOX-only unit tip) and goal:g7.16.1.11.5.1 (R3b, "every engine tip after .38 waits for it") are both still active, and the Order puts targets 1-4 after them. So the next buildable step here is none until .37 and .5.1 land; I will not start target 1 ahead of them.
+- .41.1 is the one piece that needed neither: it only reads the diff of a range.
+<!-- THOUGHT:END -->

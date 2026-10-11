@@ -10,7 +10,7 @@ scaffold_hash: 1a5628596065214d
 season: 2
 town: core
 ---
-# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 47 pieces (every `###` block in engine*.md)
+# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 49 pieces (every `###` block in engine*.md)
 Depth 0 = diagram · 1 = pieces · 2 = one piece: `sect <name>` (any `.geometry/engine*.md`: this node, config:engine-post, config:engine-wrap, config:engine-grow, config:engine-root) · 3 = this file. Pieces are small templates over raw commands; parameters are cells: a row's ONE `engine` object is projected as AGI_<KEY> env. Parity: doc:g716111-stage25-parity.
 
 ## diagram — depth 0
@@ -30,8 +30,8 @@ Depth 0 = diagram · 1 = pieces · 2 = one piece: `sect <name>` (any `.geometry/
 
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
-agi-post@.service 3006 B  a post = one unit: own uid, tree, key, pane
-agi-boxwake@.service 858 B  a claude post's mail-wake loop: its own unit
+agi-post@.service 3189 B  a post = one unit: own uid, tree, key, pane
+agi-boxwake@.service 896 B  a claude post's mail-wake loop: its own unit
 agi-project       2755 B  the genome: units + cells for v4 rows
 agi-gate           542 B  refuse a tip whose body would not regrow
 agi-vstore         856 B  root: fetches the pin into a re-hashed RAM store

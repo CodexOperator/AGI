@@ -30,12 +30,14 @@ agi-out           3357 B  the out-line: next keys, ring commit, re-wrap, swap
 gitconfig          196 B  signed commits against root's allowed_signers
 pre-commit          639 B  refuses a plain commit on a detached ~/t
 agi-notice          1141 B  engine->post notices: add / claim + print
+reference-transaction 1338 B  refuses a post moving a peer's ref (a mistake guard)
 sysusers.conf       41 B  a post = one user in group agi
 agi.rules          242 B  a post starts only its OWN unit
 project.sh         161 B  what the body SHOULD be
 observe.sh         255 B  what the body IS
 tick.sh            254 B  diff them; start own unit; commit
 agi-frontier       460 B  each active goal runs its falsifier
+agi-first-start  1251 B  pieces BASE..TIP changes: a post's next-start diff
 box               2005 B  mail: one signed ref update per send (5x CAS)
 ~~~
 
@@ -159,6 +161,20 @@ case $1 in add)[ -e ~/.notice ]||: >~/.notice;awk -v l="$2" 'function K(x,n,a,i,
 mv ~/.notice ~/.notice.$$ 2>/dev/null;f=$(ls ~/.notice.* 2>/dev/null)||exit 0;cat $f|awk '!s[$0]++';rm -f $f
 ~~~
 
+### reference-transaction (1338 B)
+~~~sh
+#!/bin/sh
+# reference-transaction (git runs it from core.hooksPath=~/bin; goal:g7.16.1.11.38.1): a post's MISTAKE cannot move a peer's ref. Git calls it for prepared, committed and aborted and honours a non-zero exit ONLY in prepared, so it acts only there: an agi-<p> user may not update refs/heads/posts/<q>, refs/box/<q>/* or refs/held/<q>/* with q != p (rc 1, one named line). Root, belam, agi-belam (the Prime's post, whose unit runs as agi-belam since the .10 move: it may move any ref), every other ref and every other user pass. It FAILS OPEN on its own error (rc 0, a stderr line, and an agi-notice once per post per day). A guard against mistakes, NOT a wall: any ref write run with git -c core.hooksPath=/dev/null still moves a peer's ref, and this file is the post's own, editable until the next unit start
+[ "$1" = prepared ]||exit 0
+f(){ echo "[ref-guard] fail open: $1">&2;agi-notice add "[ref-guard] fail open: $1 $(date +%Y%m%d)" 2>/dev/null;exit 0;}
+u=$(id -un)&&[ "$u" ]||f "no user"
+case $u in agi-belam)exit 0;;agi-?*);;*)exit 0;;esac
+while read o n r;do [ "$r" ]||f "unparsed input"
+ case $r in refs/heads/posts/*)q=${r#refs/heads/posts/};;refs/box/*|refs/held/*)q=${r#refs/*/};;*)continue;;esac
+ [ "${q%%/*}" = "${u#agi-}" ]||{ echo "[ref-guard] $u may not move $r (a peer's ref), nothing changed">&2;exit 1;}
+done
+~~~
+
 ### agi-wt (1506 B)
 ~~~sh
 #!/bin/sh
@@ -270,6 +286,19 @@ grep '^< unit' .agi/drift/$USER|cut -d' ' -f3|grep -x agi-post@${USER#agi-}|xarg
 r=$1;git grep --all-match -l -e '^type: goal$' -e '^status: active$' $r -- .agi|while IFS=: read _ f;do n=$(git show $r:$f);g=$(echo "$n"|sed -n 's/^id: goal://p')
 c=$(echo "$n"|sed -n '/^## Falsifier/,/^## Out/p'|grep -o '`[^`]*`'|tr -d '`'|grep -Em1 '^(grep|test|ls|getent|git (log|show|grep|rev-parse|ls-files|diff|for-each-ref)) ')
 [ "$c" ]||{ echo mute $g;continue;};timeout 30 sh -c "$c"</dev/null>/dev/null 2>&1&&echo met $g||echo red $g;done
+~~~
+
+### agi-first-start (1251 B)
+~~~sh
+#!/bin/sh
+set -f
+# agi-first-start BASE TIP [MSG|-]: FIRST-START: <pieces> = the fenced ### pieces BASE..TIP changes, adds or deletes in the files agi-post@'s ExecStartPre extracts (its own glob, read at each REV: engine.md engine-[pw]*.md, never root/grow); none = "none". With MSG (a file, or - for stdin): rc 1 + REFUSED unless a "first-start:" line says what a post gains and loses.
+g(){ git show $1:.agi/nodes/.geometry/engine-root.md|sed -n 's|.*for e in \(t/[^;]*\);do for x in.*|\1|p'|head -1|sed 's|^t/||;s| t/| |g';}
+for r in $1 $2;do [ "$(g $r)" ]||{ echo "[no-glob] the extraction line is not in engine-root.md at $r">&2;exit 2;};done
+p(){ G=$(g $1)
+git ls-tree --full-tree --name-only $1 .agi/nodes/.geometry/|while read f;do for g in $G;do case $f in $g)git show $1:$f|grep -o "^### [^ ]*"|cut -c5-|while read x;do echo "$x $(git show $1:$f|sed -n "/^### $x /,/^##/{/^~~~/,/^~~~/{//!p}}"|sha1sum)";done;; esac;done;done;}
+s=$({ p $1;p $2;}|sort|uniq -u|cut -d' ' -f1|sort -u|tr '\n' ' ');echo "FIRST-START: ${s:-none}"
+[ -z "$s" -o -z "$3" ]&&exit 0;grep -qi '^first-start: *[^ ]' $3||{ echo "REFUSED: $1..$2 changes ${s}self-installing piece(s); add a first-start: line (what each post kind gains and loses at its next start)";exit 1;}
 ~~~
 
 ### box (2005 B)

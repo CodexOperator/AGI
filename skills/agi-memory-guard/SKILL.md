@@ -73,8 +73,8 @@ records (manifests, trajectories) are data: move them to `.agi/sessions/harvest-
 ## 5 · Your own long jobs
 - `run_in_background` jobs sit in `run-*.scope` units that systemd-oomd kills in a memory spike — silently, no output.
   A long job runs in foreground chunks (`timeout 540`), resumable, logging each decision to a file.
-- A suite or gate tree goes on tmpfs (`/dev/shm/<gate>` + its own `TMPDIR`), removed after; stopping it = every pid whose cwd is the gate path.
-- ONE full suite on the box at a time, on tmpfs; SM's gate first; others run targeted rows; start only when MemAvailable >= the box's floor (6 GB; encryption-town 3 GB: no RAM disk, no stream stack, a gate tree is ~150 MB of tmpfs -- owner 10-09), memory PSI avg10 < 5 and io PSI avg60 < 50; each run removes its /dev/shm tree at its end (belam [rule] 18:4xZ 10-08: two tmpfs suites at once = box PSI full avg60 34.8%, the watchdog reboots at 40% for 5 min).
+- A suite or gate tree goes on DISK (`~/gate/<gate>` + its own `TMPDIR` there; tmpfs only while the slice has room, see the scratch rule below), removed after; stopping it = every pid whose cwd is the gate path.
+- ONE full suite on the box at a time, on disk; SM's gate first; others run targeted rows; start only when MemAvailable >= the box's floor (6 GB; encryption-town 3 GB: no RAM disk, no stream stack, a gate tree is ~150 MB of tmpfs -- owner 10-09), memory PSI avg10 < 5 and io PSI avg60 < 50; each run removes its /dev/shm tree at its end (belam [rule] 18:4xZ 10-08: two tmpfs suites at once = box PSI full avg60 34.8%, the watchdog reboots at 40% for 5 min).
 - starting a gate suite: assert the MemAvailable floor + PSI in the SAME command that starts it (exit if below); remove your finished
   /dev/shm trees BEFORE starting; never prune another's (SM gen 31 06:01Z: FULL at 2.7 GB under E's 3 GB floor).
 - a Bash call that prints "moved to the background" keeps running: stop it at once with TaskStop unless wanted; use foreground `timeout`
@@ -82,6 +82,8 @@ records (manifests, trajectories) are data: move them to `.agi/sessions/harvest-
 - a run with a wall-time cap: start the cap clock AFTER the box / suite-window wait, never before (DT1: t0 before it burned the cap on a 31 min wait).
 - briefing a compute subagent: say ONE process, no pools, `ulimit -v` (>= 4000000 for `import torch`), a PSI start gate; an unforbidden
   subagent fans out (thought-master 19:4xZ, near-reboot).
+
+**Scratch is DISK, never /dev/shm, while the slice is full (belam's box-resource rule, 14:2xZ 10-11; every post).** tmpfs pages are charged to agi.slice: a RAM-disk basetemp or gate tree pushes EVERY post into reclaim and swap (SM's full suite 12:4xZ: mem PSI full 20, swap 0.9 GB; DG2's /dev/shm/dg2 1 GB at 14:2xZ: the alarm flapped). While `cat /sys/fs/cgroup/agi.slice/memory.current` is above 4600 MiB: no test or lane scratch on /dev/shm -- basetemp, TMPDIR and gate trees on disk (your home or a /data dir); `nice -n 10`; ONE lane at a time; ONE heavy suite on the box at a time (say so in the box before a full pytest; start only at MemAvailable >= 2.5 GB AND the slice < 4600 MiB, read right before; stop it yourself at mem PSI full avg60 > 10). Clean your /dev/shm entries when done.
 
 ## 6 · Never print
 | source | carries | read it as |
