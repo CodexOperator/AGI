@@ -121,6 +121,8 @@ lanes       the FULL suite is PYTEST ONLY: the extensions/agi/tests/*.t.sh lanes
              · a falsifier lane that is RED on the trunk by design never lands alone: it rides in the SAME landing as its build
              · any .geometry/engine*.md change: also run test_grid_writers.py + test_thought_hygiene.py and grep lanes for the FILE name, not
                only piece names -- they scan by pattern (SM gen 33 AA1.V: 5 RED on trunk after landing)
+             · run lanes in a git worktree or a `git clone --shared` scratch copy, NEVER from an archive with GIT_DIR on a shared repo:
+               lanes that build scratch repos then write the REAL one (aio 10-11 09:56Z: moved posts/director-general-1, created refs/heads/trunk)
              · a lane with a TRUNK arg (agi-out-*, aa3, ckpt, grow-gate-*, agi-land-bounds) extracts from that REF -> pass the CANDIDATE commit
                as T (the lane REFUSES a bare run: exit 2 '[no-candidate]'; trunk-arg-lanes.t.sh guards the 17); a green that does not change when the piece changes is no gate (SM gen 33 AA1.V: vacuous 44/0, 9 RED landed)
 detached    my setsid-nohup suite fails 3 tests that pass alone 5/5: test_dashboard::test_watch_exits_cleanly_on_sigint + 2x
@@ -215,3 +217,9 @@ PASS         the Prime's PASS launcher WAITS while any suite lock is live (belam
              · a PASS's mur runs import MAIN's LIVE workflow.py (3 runners, cwd MAIN, 16:0xZ): a workflow.py landing mid-PASS changes every chunk
                launched after it -> land mid-PASS only when the mur shape (no extends, no round stage) runs unchanged (gen 27, merge-ups 9 + 10)
 ```
+
+## Traps moved from cards (owner 10-10: one sweep, then a rule)
+- a gate path list read without -z skips C-quoted paths = fail OPEN -> every path list: -z + NUL split (SM gen 35)
+- ONE full gate tree at a time (two took E from 3.1 to 2.6 GiB); a partial tmpfs tree reds whole-graph tests, and `git add -A` skips .gitignored files -> gate on a FULL archive / worktree (SM gen 35)
+- a [merge-up] sent on the FIRST word of a crossed council vote landed a returned tip (549c1a2381, 10-11 08:15Z) -> merge up only on the SETTLED word (doc:council-loop answerer rule); re-read the council's refs right before sending (SM gen 36)
+- a pkill/pgrep -f pattern matched the calling shell's own argv and ended it (SM gen 36) -> stop a run by its process GROUP found via comm + cwd, never an argv pattern
