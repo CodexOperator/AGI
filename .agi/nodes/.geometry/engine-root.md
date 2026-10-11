@@ -230,6 +230,17 @@ echo "$o $n $T"|AGI_ALLOWED=$A AGI_TRUNK=$o AGI_NOT=$o grow-gate||exit 1;agi-gat
 git update-ref $T $n $o
 ~~~
 
+### agi-hook (925 B)
+~~~sh
+#!/bin/sh
+# agi-hook [SHA]: root. Installs the engine piece `reference-transaction` AS OF a LANDED sha into this repo's .git/hooks (goal:g7.16.1.11.38.1, belam's host act 4c; posts run hooksPath=~/bin, so this guards only config-less runs). SHA must be an ancestor of $AGI_TRUNK and carry the piece. Bytes via sect; written beside the hook and renamed over it (git never runs a half hook), root-owned 0755. No SHA = print the installed sha256, write nothing. The same SHA twice = the same bytes
+d=$(git rev-parse --git-common-dir)/hooks;h=$d/reference-transaction
+[ "$1" ]||{ sha256sum<$h;exit;}
+n=$(git rev-parse -q --verify "$1^{commit}")&&git merge-base --is-ancestor $n ${AGI_TRUNK:?}||{ echo "refused: $1 is not on the trunk";exit 1;}
+mkdir -p $d;f=$d/.rt.$$;trap 'rm -f $f' EXIT;sect reference-transaction $n >$f;[ -s $f ]||{ echo "refused: no reference-transaction at $1";exit 1;}
+chmod 755 $f&&mv $f $h&&sha256sum<$h
+~~~
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 SPLIT (DG3 read sets): agi-post@.service moved here whole from engine-post; its ONE loop edit: for e in engine.md engine-[pw]*.md (was engine*.md), so a post reads engine + engine-post + engine-wrap only. G9 + G9.2 + G9.3 (hypothesis:g716111-g9-boot-install-brings-the-boot-set-up; owner 17:5xZ via belam): agi-boot.service + agi-boot run as root once at boot -- the agi-ram ACL pair, a projection of MAIN's checked-out HEAD (the local trunk; no trunk literal in the unit, WorkingDirectory is the one install-time literal) by REUSING the agi-project section, daemon-reload, then ONE start at a time of the boot:true rows that were projected, behind the shared de_live_parents load/io gate cells (fail-CLOSED on a missing or stale reading); every failure is named on stderr, boot CONTINUES, and any failure (ACL, reload, start, gate give-up) makes the unit exit non-zero; a boot row not yet on v5 is skipped by name (belam: by design until its move). G9.4: an unreadable or empty boot-row list is named and fails the unit.
 g1.41 A1 (hypothesis:g141-a1-agi-boot-and-its-reprojection-read-only-a-root-pinned-sha; owner 19:0xZ 'Leave it, fix via DG only'; host order: belam refreshes the pin in /etc/agi/carry.env BEFORE the unit swap, the installed pin f024955299 is 457 commits old and the new unit boots NOTHING without a good pin): root's boot chain reads only a 40-hex trunk sha pinned in carry.env, never HEAD. The unit loads EnvironmentFile=/etc/agi/carry.env and its ExecStart extracts this section from $AGI_TRUNK (0 HEAD); agi-boot starts with t=${AGI_TRUNK:?} and a case/length gate (the box-carry shape) BEFORE the first git read, ACL change or start, exit 1 on anything but 40 chars of [0-9a-f]; agi-project already bakes a sha as r (0 HEAD in its ExecStart), so engine.md is untouched. The word HEAD is gone from the boot chain; the pin does not move on a landing (belam's host act, or a later agi-land leaf). Sizes re-measured: agi-boot.service 447 -> 488 B, agi-boot 1477 -> 1532 B. test_agi_boot.py: its fixture exports AGI_TRUNK and one test asserted the old unit.
