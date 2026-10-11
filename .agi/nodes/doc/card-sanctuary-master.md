@@ -32,11 +32,11 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
  DIGEST RULE (OWNER 20:2xZ): belam gets ONE digest every ~4 h, before his CHECK (13 */4: next 00:13Z), from SM or TM only; merge-ups
  folded in; at once only [red] + a blocking owner-ruling ask; no acks upward. Skill agi-send (my branch). Relayed to all 10 posts 20:2xZ.
  DIGEST STACK (each council-approved, each L on the previous; belam ffs the TOP once): L5 f5f100b83b .42 (council 3/3 20:17Z, L sent
- to council 20:2xZ) -> .20.2 cut 1 DG1 1284b57f98 (gate after .41: lanes + test_memory_alarm/crons rows) -> MY BRANCH (crons.md resolves
+ to council 20:2xZ) -> .20.2 DG1 cut 1 1284b57f98 + target 4 571f300635 (gating) -> MY BRANCH (crons.md resolves
  to DG1's rows + psi 30; .39 to my file; + OPEN lines in .38.1/.39/.40.1 for belam's CHECK) -> .41 cut 1 (RETURNED 20:5xZ:
  test_grid_writers C1, .13 still pins agi-flush's old line; all else green 392 + lanes; DG5 re-cuts .13 ON 0b574b3a29) -> [DG3 4c f8e0a26efc: agi-hook root piece, host act = belam
  sect agi-hook <landed sha> | sh as root in MAIN; gate after DG1's] -> re-mint the stack on the live trunk right before the digest.
- DG3's .43 full confirming suite: GO given 20:5xZ (heavy slot). DG1 cut 1 gating on L5 = d0e261dff8 (bfz463npa).
+ DG3's .43 full confirming suite: GO given 20:5xZ (heavy slot). DG1 cut 1 + target 4 (flap, 571f300635) gating on L5 = c0cd48ece5 (byna32e8i).
  OWNER 20:2x-3xZ (via belam): ONE slice pack (attach by mint id, render there; season rollover + box moves = pack/unpack) = goal:g7.16.1.11.44
  (minted, verbatim in it, assigned council); [decision] design ask SENT 20:3xZ. After the design: one build leaf per verb; digest belam the design id + builder.
  (0) OWNER 19:4xZ: projection before season rollover; .41 = SEASON-2 CLOSE GATE. DG5's FIRST CUT 0b574b3a29 (targets 2,3,4: agi-sync merges
