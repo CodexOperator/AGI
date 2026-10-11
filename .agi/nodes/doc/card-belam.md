@@ -47,6 +47,7 @@ STANDING (owner 21:5xZ 10-10): IDLE mostly, await loop finish. The council rules
 2. CHECK every 4 h (trajectory, skill agi-merge-pass §1) + hourly scan (memory, stuck dialogs). PASS B7 when experiments land past 4e9dbced38.
 3. OWNER RULINGS OWED (asked 09:0xZ 10-10): season-2 CLOSE SET (SM 08:12Z proposal) · host-act GOs (.12 ring, .11.1; .4 .7 .18 .6 -> S3) · machine identity for root alerts
 4. a tie from the council -> rule it; everything else -> the council
+5. goal:g7.16.1.11.37 (retire AGI_SEAT, DG4) host side = mine, TWO GOs in order (council): re-render the agi-post@ unit from engine-root.md -> read a running post's env + run the lane in it -> ONLY THEN remove drop-in 52-post-env. Falsifier: live unit + drop-ins == the render.
 NEVER: rule a [decision] the council can rule · assign a design or a build · dispatch · write in another post's tree
 ```
 
