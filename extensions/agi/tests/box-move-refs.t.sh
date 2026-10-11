@@ -23,7 +23,7 @@ printf '#!/bin/sh\nwhile :;do case "$1" in -F|-o)shift 2;; -*)shift;; *)break;;e
 case $T in /dev/*|/run/*|/proc/*|/sys/*)echo "FAIL tmp: TMPDIR $T is under /dev /run /proc /sys, which the unit-path check does not read (a vacuous pass): use a disk dir";exit 99;; esac
 UP=${UP:-$(dirname $SRC)/unit-paths.sh};[ -s $UP ]||UP=$R0/extensions/agi/guard/unit-paths.sh
 SC=${SC:-$(dirname $SRC)/sysctl-check.sh};[ -s $SC ]||SC=$R0/extensions/agi/guard/sysctl-check.sh
-mkdir -p $T/host $T/us $T/ut;: >$T/host/agi-signers;: >$T/host/agi-signers-repoint;mkdir -p $T/host/rw;UNITS_S=$T/us;UNITS_T=$T/ut;export UNITS_S UNITS_T
+mkdir -p $T/host $T/us $T/ut;: >$T/host/box-carry;: >$T/host/agi-signers;: >$T/host/agi-signers-repoint;mkdir -p $T/host/rw;UNITS_S=$T/us;UNITS_T=$T/ut;export UNITS_S UNITS_T
 printf '#!/bin/sh\n[ "$1" = -n ]&&echo ${SYSCTL_LIVE:-200}\n' >$B/sysctl
 sysd(){ mkdir -p $1;printf '# the vfs cache stopgap\nvm.vfs_cache_pressure = 200\n' >$1/60-agi-vm.conf; }
 chmod +x $B/*;: >$T/sshconf
@@ -35,7 +35,7 @@ refs/remotes  a remote-tracking ref is a copy of origin's; the target fetches it
 XX
 printf '```sh move.unit-optional\nWorkingDirectory %s/hm/%%i  host-act move creates the post home after this check\nEnvironmentFile %s/hm/%%i.env  an env file a post may not have\n```\n' $T $T >>$T/node.md
 # units: the SAME good unit on both boxes by default; a row edits ONE side (the target's: ut)
-unitgood(){ printf '[Service]\nWorkingDirectory=%s/hm/%%i\nEnvironmentFile=-%s/hm/%%i.env\nExecStartPre=+/usr/bin/env -i PATH=/usr/bin:/bin %s/host/agi-signers %%i\nExecStartPre=-+%s/host/agi-signers-repoint %%i\nExecStart=sh -c x\nExecStopPost=sh -c agi-flush\nReadWritePaths=-%s/host/rw /run/agi-%%i\n' $T $T $T $T $T >$1/agi-post@p1.service; }
+unitgood(){ printf '[Service]\nWorkingDirectory=%s/hm/%%i\nEnvironmentFile=-%s/hm/%%i.env\nExecStartPre=+/usr/bin/env -i PATH=/usr/bin:/bin %s/host/agi-signers %%i\nExecStartPre=-+%s/host/agi-signers-repoint %%i\nExecStart=sh -c x\nExecStopPost=sh -c agi-flush\nReadWritePaths=-%s/host/rw /run/agi-%%i\n' $T $T $T $T $T >$1/agi-post@p1.service;printf '[Service]\nExecStart=%s/host/box-carry\n' $T >$1/agi-carry@p1.service; }
 unitgood $T/us;unitgood $T/ut
 # fix: a fresh source (s) + origin (o, bare) + target (w, a clone of s before the move) in $T/f; the source's refs are listed in $T/f/pre (name sha) before the run
 fix(){ rm -rf $T/f $T/sysd-s $T/sysd-t;mkdir -p $T/f;sysd $T/sysd-s;sysd $T/sysd-t;export SYSCTL_D=$T/sysd-s;unset SYSCTL_LIVE;: >$T/ctl.log;unitgood $T/us;unitgood $T/ut;cd $T/f;git init -q -b local-maxxing/season2/main s;git init -q --bare o
@@ -104,6 +104,9 @@ ut1 "s#$T/host/agi-signers %i#$T/host/gone-signers %i#"
 ok "refs-unit-paths-an-env-wrapped-command-is-checked ExecStartPre=+/usr/bin/env -i PATH=.. <path>/gone-signers %i: the command behind env is named missing ($(grep '^\[unit-path\]' $T/err|head -c 200)), rc $rc (want 7)" '[ $rc = 7 ]&&grep -q -F "ExecStartPre $T/host/gone-signers missing" $T/err'
 ut1 "s#^ReadWritePaths=-$T/host/rw #ReadWritePaths=-$T/host/gone-rw #"
 ok "refs-unit-paths-read-write-paths-are-checked a missing ReadWritePaths entry behind '-' ends rc $rc (want 7) naming $T/host/gone-rw ($(grep -c 'gone-rw missing' $T/err) line)" '[ $rc = 7 ]&&grep -q -F "ReadWritePaths $T/host/gone-rw missing" $T/err'
+ut2(){ fix;sed "$1" $T/ut/agi-carry@p1.service >$T/ut/x&&mv $T/ut/x $T/ut/agi-carry@p1.service;h0=$(git -C $T/f/s rev-parse HEAD);go; }
+ut2 "s#$T/host/box-carry#$T/host/gone-carry#"
+ok "refs-unit-paths-the-carry-unit-is-checked-too (goal:g7.16.1.11.39.2) the target's rendered agi-carry@p1.service names a missing ExecStart path: rc $rc (want 7) with '[unit-path] agi-carry@p1.service ExecStart $T/host/gone-carry missing on encryption-town' ($(grep -c 'agi-carry@p1.service ExecStart '$T'/host/gone-carry missing on encryption-town' $T/err) line), the post not stopped or started, the row unmoved" '[ $rc = 7 ]&&grep -q -F "[unit-path] agi-carry@p1.service ExecStart $T/host/gone-carry missing on encryption-town" $T/err&&untouched'
 fix;rm -f $T/ut/agi-post@p1.service;go
 ok "refs-unit-paths-an-unreadable-unit-refuses the target has no agi-post@p1.service to read: rc $rc (want 7), '[unit-path] agi-post@p1.service unreadable on encryption-town' ($(grep '^\[unit-path\]' $T/err|head -c 160)), nothing touched" '[ $rc = 7 ]&&grep -q -F "[unit-path] agi-post@p1.service unreadable on encryption-town" $T/err&&[ ! -s $T/ctl.log ]'
 printf '# config:guard (fixture)\n```sh move.exclude\nrefs/remotes  a copy of origin\n```\n' >$T/node-noopt.md;fix;go $T/node-noopt.md
