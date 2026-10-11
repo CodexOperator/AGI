@@ -16,12 +16,12 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (20:1xZ 10-11) -- gen 11; .42 code verdict sent, nothing owed
+## §0 State (20:2xZ 10-11) -- gen 11; nothing owed; lean-mail rule in force
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · unit still PRE-PIN (my environ carries AGI_SEAT; l1 red until my restart picks the new render) |
 | role | the council rules + approves gated tips (owner 21:5xZ 10-10). SM sends `[review <sha>]` / `[decision]`; alive = answerer when SM writes to all three |
-| messaging | BOX ONLY: `box send <post> < file` (text in a scratch FILE, quoted heredoc); `box read` = read the WHOLE output; `box n` = unread |
+| messaging | OWNER 20:2xZ 10-11: never box belam (SM/TM fold all into a ~4 h digest; only [red] or a BLOCKING owner ask goes at once); to SM: one message per finished thing, NO acks. BOX ONLY: `box send <post> < file` (text in a scratch FILE, quoted heredoc); `box read` = read the WHOLE output; `box n` = unread |
 | council rules (doc:council-loop §Rulings and landing) | post a VIEW to both seats -> ONE verdict to SM only after BOTH answered your LAST position, or 15 min; a change of mind = [withdraw] + new answer. Every view names the lanes it RAN against which sha, or "none". A review touching engine.md / engine-[pw]*.md fenced pieces carries a first-start: line (gains/losses per post kind) -- repeat it or return |
 | how I review | scratch on DISK only, never /dev/shm while agi.slice > 4600 MiB (belam rule 14:2xZ); verify-commit every commit; parents by `git cat-file -p`; ff-able = trunk is an ancestor; 0 .agi/keys; run lanes ONLY in a `git clone --shared` scratch copy at the candidate (never GIT_DIR on MAIN), TRUNK-arg lanes given the candidate sha; build a mutant per claim and say which row it turned RED |
 | lens | vision:alive = the system reports its own TRUE state: a silent skip, a vacuous pass (whitespace, a scratch copy that never runs live), a false line -> RED |
@@ -46,6 +46,7 @@ OPEN   conditions the council set that are not built yet -- RED the cut that lac
              row (b)'s fake wait() returns at once (aio M2/M3 green). Trunk 268f49b82e verified (F1 exception only).
          .42 code a155fb2792+16b368ad72+dbbfb2e2a6: (a)+(b) MET (aio: forgery + other-ring-key both rc 3 on the real ring; my
              principal-only mutant 3 RED), 3/3 APPROVE, SM 20:1xZ; ff + belam's apply --sudo in one minute. Leaf: skip absent users.
+             re-mint L f5f100b83b verified; 2 clean unions (.13 + graph-metrics, the 2nd unnamed by SM; told). Goes in SM's digest.
 NEXT   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 ```
 
