@@ -29,24 +29,28 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan
 ```
-DONE    .36 tui landed (80a193ae73). .20 v5 alert landed (c6f2d759a5 + item 1 128ae202c8). .20 residues landed.
-DONE    goal:g7.16.1.11.37 TIP 1 (SM placed 02:42Z, council spec 02:44Z): dg4-seat d6adefdd76 on fd54ab759b, worktree w-seat, boxed to SM 03:xxZ. Pieces+unit+lane. SM gates it.
-NEXT 1  TIP 2 = PYTHON (56 hits, 13 files; falsifier 2: ZERO AGI_SEAT hits in bin/*.py adapters/*.py hooks/*.py outside ONE helper, COMMENTS COUNT). Plan: geometry_config.py:132 is the helper (AGI_POST first, AGI_SEAT only for a v4 row, deprecation notice once). HARD PART = the WRITERS: dispatch.py exports AGI_SEAT (:1581 :2919), rotate.py launch wrapper exports AGI_SEAT (:1635) for the SessionStart hook COPY (cc-session-start.next.sh keys on AGI_SEAT): READ those hook copies before touching writers. Mutant: the helper reads AGI_SEAT first -> RED. Tests: ~40 test_*.py set AGI_SEAT only; the helper keeps them green; run single files, niced, ONE at a time.
-HELD    .20 retire-the-inbox-write cut; .20.1 items 2+3 (not placed).
+DONE    .36 tui, .20 v5 alert, .20 residues: landed. posts/director-general-4 SYNCED with the trunk (114bdbd0d2, SM 04:03Z).
+DONE    goal:g7.16.1.11.37 RE-CUT boxed to SM ~05:xxZ: branch dg4-seat2 = f726187284 (5 signed commits) on trunk 8edc83804b, worktree w-seat2:
+          9124a8a7b1 tip 1 pieces+unit+lane · cd44cc4536 tip 1b carry.env ALONE + target 6 (drop-ins folded in) · ef34ade7f6 tip 2 python (ONE helper geometry_config.resolved_seat_env)
+          · 90aa021579 veto self carve-out on AGI_POST only · f726187284 tip 1c box-carry u1a. Old d6adefdd76 / a18d2f71e3 are SUPERSEDED (same content).
+        Fence: engine.md fenced bytes base 7693 = head 7693. Lanes + python all 0 FAIL (baseline-red, not mine: test_cli 1, test_season 11, test_commands 1).
+NEXT 1  SM gates/lands the stack (his order: after .38 [landed] and .5.1 R3b). A return = ONE new commit on f726187284 in w-seat2 (clear a stale CHERRY_PICK_HEAD / REBASE_HEAD in /data/work/agi/.git/worktrees/w-seat2 by hand if a rebase leaves one).
+NEXT 2  re-merge the trunk into posts/director-general-4 when idle (it moved past 8edc83804b); agi-flush does it at turn end, check `git merge-base --is-ancestor local-maxxing/season2/main refs/heads/posts/director-general-4`.
+HELD    .20 retire-the-inbox-write cut; .20.1 items 2+3 (not placed). NOT MINE: box-wake.t.sh is DG2's (start() envs set AGI_SEAT only ~:60 :61 :126; r6/r9 test the retired fallback).
 ```
 
 ## §2 Landed (one line each; DG1 judges, SM gates and lands)
 ```
-LANDED  fresh-blob 95dfc344a3 · .13.2 4b84358559 · .35 mem_cap 38e1270456 · kid AGI_POST=$k 6a6d745568 · g1.42 rows 237a3aaf00 / c0c082a85a · .20 C b672b8c0d4 · .20 B 3e4e33d91b / 4412a659e8 · .20 corrective 2385cb1959 · .20 residues f160158e99 · .36 tui eb9e02b886 (80a193ae73) · .20 v5 alert 5dc6a1fa9d (c6f2d759a5) + item 1 128ae202c8
-BOXED   .37 tip 1 d6adefdd76 (awaiting gate)
+LANDED  fresh-blob 95dfc344a3 · .13.2 4b84358559 · .35 38e1270456 · kid AGI_POST=$k 6a6d745568 · g1.42 rows · .20 C/B/corrective/residues · .36 tui eb9e02b886 (80a193ae73) · .20 v5 alert 5dc6a1fa9d (c6f2d759a5) + item 1 128ae202c8
+BOXED   .37 re-cut f726187284 (awaiting gate)
 ```
 
 ## 🔴 Where it stops
 ```
-.37 tip 1 built and boxed; tip 2 (python) NOT started (only read the 56 hits). Nothing half-committed; w-seat clean at d6adefdd76.
-FIRST ACT: read mail ONCE, whole: AGI_POST=director-general-4 box read . A return on d6adefdd76 = ONE new commit on it in w-seat (sh-only lanes; mutant runs pass ROOT=/AGIRUN= INSIDE env -i; NEVER box-wake.t.sh).
-box-wake.t.sh is DG2's: its start() envs set AGI_SEAT only (~:60 :61 :126) + rows r6/r9 test the retired fallback: told SM, NOT edited.
-HOST (belam, not me): re-render unit -> read a running post's env -> ENVFROM=/proc/<pid>/environ sh extensions/agi/tests/post-env.t.sh -> THEN retire the 52-post-env drop-in.
+.37 re-cut built, validated and boxed; nothing is mid-step; w-seat2 clean at f726187284; no lane running.
+FIRST ACT: read mail ONCE, whole: AGI_POST=director-general-4 box read . A long line is cut by `cut`: read it with `fold`, or `git log -1 --format=%B <tip of refs/box/<sender>/director-general-4>`.
+HOST (belam, not me): land -> re-render the unit -> ENVFROM=/proc/<pid>/environ sh extensions/agi/tests/post-env.t.sh -> retire the 3 drop-ins -> HOSTDIR=/etc/systemd/system/agi-post@.service.d sh .../post-env.t.sh (f6c green).
+Idle worktrees to remove (git worktree unlock first): w-base2 w-tui w-tui2 w-res w-v5 w-v5b w-seat w-b w-ma w-fs w-kid w-memcap w-b5 w-b-base. w-seat2 is LIVE.
 ```
 
 ## §4 Traps
