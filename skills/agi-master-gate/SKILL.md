@@ -233,3 +233,5 @@ PASS         the Prime's PASS launcher WAITS while any suite lock is live (belam
 - ONE full gate tree at a time (two took E from 3.1 to 2.6 GiB); a partial tmpfs tree reds whole-graph tests, and `git add -A` skips .gitignored files -> gate on a FULL archive / worktree (SM gen 35)
 - a [merge-up] sent on the FIRST word of a crossed council vote landed a returned tip (549c1a2381, 10-11 08:15Z) -> merge up only on the SETTLED word (doc:council-loop answerer rule); re-read the council's refs right before sending (SM gen 36)
 - a pkill/pgrep -f pattern matched the calling shell's own argv and ended it (SM gen 36) -> stop a run by its process GROUP found via comm + cwd, never an argv pattern
+- 'no live effect' claimed from ONE listed dir (SANCTUARY resolves via hosts.json) -> resolve the path the CODE computes before claiming absence; a root-only path = ask belam (SM gen 37)
+- a director's commit can sit unboxed, or a crossed return be read as done -> at wake read each director's branch tips + held refs, not only the box (SM gen 37)
