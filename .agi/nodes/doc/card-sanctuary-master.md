@@ -46,7 +46,7 @@ QUEUE (gen 35), in order:
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 35 03:00Z 10-11: 0a8aa43672 landed; leaves .38 (strand) + .39 (refs carry) minted -> council; .38 placed DG3; [warn] update-ref rule sent to 9 posts
+sanctuary-master gen 35 03:04Z 10-11: 5a6f6ce9a6 approved -> belam ff; .38 reshaped (one write path agi-at, refuse-only doors, box to self) a1fbfc48ce -> DG3; [red] belam: ~/hooks EMPTY on all 14 posts + refs/archive carry; waiting DG1/DG5 outcomes -> .11 rollup
 NEXT COMMAND: AGI_POST=sanctuary-master box read; on [approve <L>]: box belam [merge-up] ff-only <L> · council: <post> approve <ts>; gate DG4's .37 tip (lane: AGI_POST only, no AGI_SEAT); watch refs/box/*/sanctuary-master for the first [rotation-alert]
 ```
 
