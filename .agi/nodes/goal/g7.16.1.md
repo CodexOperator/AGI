@@ -6,7 +6,7 @@ parents:
   - goal:g7.16
 next_edges: []
 confidence: 0.6
-edited_by: belam
+edited_by: sanctuary-master
 goal_id: G7.16.1
 goal_kind: subgoal
 heading_level: 3
@@ -37,6 +37,7 @@ goal:g7.16 (formations): the owner, 09-29 09:3x-10:1xZ (verbatim below), set a n
 - Measured over a few loops: does the council materially improve the results; the Prime reviews season 2's result by embodying the five morals.
 - Stop around noon ET 09-29 (16:00Z) if still active.
 
+- SEASON-2 CLOSE GATE (owner 19:4xZ 10-11, verbatim on goal:g7.16.1.11.41): the season-2 close waits on goal:g7.16.1.11.41 complete -- every landing projects cleanly to every post.
 ## Invariants
 - No parent/kid dispatch while this mode runs; every node is written through write.py.
 - One director works a given bundle at a time (the chain order above).
