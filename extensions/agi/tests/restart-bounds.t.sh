@@ -16,7 +16,8 @@ printf '[user]\n\tname=t\n\temail=t@t\n[commit]\n\tgpgsign=false\n[safe]\n\tdire
 # DEF (DG1 04:15Z, belam 04:14Z): the DEFAULT env of every unit-line row is the REAL ownership: an empty global/system git config and git's own different-owner seam, so a git read of a repo another uid owns is refused unless the line itself carries the safe.directory. $T/gitconfig (safe.directory=*) stays for the fixture's own git calls above and for the ONE explicit same-uid row (ra11-same-uid).
 DEF='GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1'
 # --- a3-post: every ExecCondition line of the post unit, run as sh would run the value (%i -> x), cwd without .ssh/out-refused
-grep '^ExecCondition=' $T/up|sed 's/^ExecCondition=//;s/%i/x/g' >$T/conds
+# the [wrong-box] condition (goal:g7.16.1.11.37) is a different rule -- it needs AGI_BOX and a trunk row, and post-env.t.sh w1..w4 run it -- so it is not one of the agi-run skip lines counted here
+grep '^ExecCondition=' $T/up|grep -v wrong-box|sed 's/^ExecCondition=//;s/%i/x/g' >$T/conds
 conds(){ rcs=;while IFS= read -r l;do (cd $T/cwd&&env -i PATH=$1:/usr/bin:/bin HOME=$T/hm $DEF sh -c "$l" >/dev/null 2>&1);rcs="$rcs $?";done <$T/conds;rcs=${rcs# };}
 conds $T/nobin;absent="$rcs";conds $T/withrun;present="$rcs";nc=$(wc -l <$T/conds|tr -d ' ')
 two=0;other=0;for r in $absent;do case $r in 0);;2)two=$((two+1));;*)other=$((other+1));;esac;done
@@ -86,10 +87,13 @@ dirs=$(ls -A $T/o4 2>/dev/null|sed -n 's/^agi-post@\(.*\)\.service\.d$/\1/p'|sor
 ok "a4-only-the-good-names-project rc $prc (want 0: the rest of the town stays up), the projected names [$dirs] (want exactly [$want])" '[ $prc = 0 ]&&[ "$dirs" = "$want" ]'
 miss=;for n in '../../escape' 'a/b' Good $A29 1abc -x;do grep -qF -- "$n" $T/cap/p.err||miss="$miss $n";done
 ok "a4-every-printable-bad-name-is-named-on-stderr missing from stderr: [${miss# }] (want none)" '[ -z "$miss" ]'
-d=$(diff $T/cap/before $T/cap/after|grep -c .);odd=$(ls -A $T/o4|grep -vxE "agi-post@\.service|agi-post@(good|$A28|a-b-1)\.service\.d|agi-project\.(service|path)|agi-users\.conf|multi-user\.target\.wants"|tr '\n' ' ')
+d=$(diff $T/cap/before $T/cap/after|grep -c .);odd=$(ls -A $T/o4|grep -vxE "agi-post@\.service|agi-boxwake@\.service|agi-post@(good|$A28|a-b-1)\.service\.d|agi-boxwake@(good|$A28|a-b-1)\.service\.d|agi-project\.(service|path)|agi-users\.conf|multi-user\.target\.wants"|tr '\n' ' ')
 ok "a4-nothing-is-written-outside-the-out-dir the tree around the out dir changed by $d line(s) (want 0), entries in the out dir that are not the good shape: [${odd% }] (want none)" '[ $d = 0 ]&&[ -z "$odd" ]'
 wn=$(ls -A $T/o4/multi-user.target.wants 2>/dev/null|grep -vxE "agi-post@(good|$A28|a-b-1)\.service|agi-project\.path"|tr '\n' ' ');uc=$(grep -vcE "agi-(good|$A28|a-b-1)([^a-z0-9-]|\$)" $T/o4/agi-users.conf 2>/dev/null);nu=$(grep -c . $T/o4/agi-users.conf 2>/dev/null)
 ok "a4-users-and-wants-hold-only-the-good-names wants entries outside the good set: [${wn% }] (want none); agi-users.conf lines $nu (want >= 3), lines naming a user outside the good set: $uc (want 0)" '[ -z "$wn" ]&&[ "$nu" -ge 3 ]&&[ "$uc" = 0 ]'
+# goal:g7.16.1.11.32: the wake unit is INSTALLED beside the post unit (bytes of the trunk's section), and every projected post gets the wake drop-in = ITS OWN h.conf (H, O and the AGI_* cells), nothing else
+bw=$(sed -n '/^### agi-boxwake@.service /,/^##/{/^~~~/,/^~~~/{//!p}}' $R0/.agi/nodes/.geometry/engine-root.md);bwd=0;for n in good $A28 a-b-1;do cmp -s $T/o4/agi-post@$n.service.d/h.conf $T/o4/agi-boxwake@$n.service.d/h.conf&&[ -s $T/o4/agi-boxwake@$n.service.d/h.conf ]&&bwd=$((bwd+1));done;nbw=$(ls -A $T/o4|grep -c '^agi-boxwake@.*\.service\.d$')
+ok "a4-the-wake-unit-is-projected-with-the-posts-own-drop-in the out dir holds agi-boxwake@.service equal to the trunk's ### agi-boxwake@.service section: $([ "$(cat $T/o4/agi-boxwake@.service 2>/dev/null)" = "$bw" ]&&[ -n "$bw" ]&&echo equal||echo DIFFERENT); $bwd of 3 good posts have a wake drop-in identical to their h.conf (want 3), $nbw wake drop-in dirs in all (want 3: none for a bad name)" '[ "$(cat $T/o4/agi-boxwake@.service 2>/dev/null)" = "$bw" ]&&[ -n "$bw" ]&&[ $bwd = 3 ]&&[ $nbw = 3 ]'
 ok "a4-no-hostile-name-reaches-any-file no output file holds the traversal, the slash, the quote or an uppercase name: $(grep -rlE 'escape|a/b|q.?uote|Good|1abc' $T/o4 2>/dev/null|wc -l|tr -d ' ') file(s) (want 0)" '[ "$(grep -rlE "escape|a/b|q.?uote|Good|1abc" $T/o4 2>/dev/null|wc -l|tr -d " ")" = 0 ]'
 # the boundary names one by one: 28 chars in, 29 out, a leading digit / hyphen out, a trailing hyphen in
 for pair in "$A28:in" "$A29:out" "1abc:out" "-x:out" "a-:in" "a:in" "ab-c9:in" "A:out" "a_b:out" "a.b:out";do n=${pair%:*};w=${pair#*:};{ printf -- '---\nposts:\n';row "\"$n\"";} >$T/cap/posts.in;proj <$T/cap/posts.in;[ -d $T/o4/agi-post@$n.service.d ]&&g=in||g=out
@@ -103,7 +107,7 @@ ok "a4-every-live-post-name-still-projects the $nl live names (want >= 30): rc $
 rowen(){ printf '  - {"name": %s, "boot": true, "engine": {"v": 4, "name": %s, "harness": "claude-code", "model": "m", "effort": "high"}, "role": "director", "tier": 1, "box": "local-town"}\n' "$1" "$2";}
 pdirs(){ ls -A $T/o4 2>/dev/null|sed -n 's/^agi-post@\(.*\)\.service\.d$/\1/p'|sort|tr '\n' ' ';}
 outside(){ diff $T/cap/before $T/cap/after|grep -c .;}
-odd(){ ls -A $T/o4 2>/dev/null|grep -vxE "agi-post@\.service|agi-post@($1)\.service\.d|agi-project\.(service|path)|agi-users\.conf|multi-user\.target\.wants"|tr '\n' ' ';}
+odd(){ ls -A $T/o4 2>/dev/null|grep -vxE "agi-post@\.service|agi-boxwake@\.service|agi-post@($1)\.service\.d|agi-boxwake@($1)\.service\.d|agi-project\.(service|path)|agi-users\.conf|multi-user\.target\.wants"|tr '\n' ' ';}
 { printf -- '---\nposts:\n';row '"good"';rowen '"outer-ok"' '"../../escape"';row '"BAD"';} >$T/cap/posts.in;proj <$T/cap/posts.in
 dirs=$(pdirs);d=$(outside);od=$(odd good);nu=$(grep -c . $T/o4/agi-users.conf 2>/dev/null);uc=$(grep -vcE "agi-good([^a-z0-9-]|\$)" $T/o4/agi-users.conf 2>/dev/null);lk=$(grep -rlE 'escape|outer-ok' $T/o4 2>/dev/null|wc -l|tr -d ' ')
 ok "ra10-1-engine-name-traversal-is-not-projected outer name valid, engine.name ../../escape: rc $prc (want 0), projected [$dirs] (want exactly [good ]), out-dir entries of another shape [${od% }] (want none: the stray agi-post@.. dir and escape.service.d)" '[ $prc = 0 ]&&[ "$dirs" = "good " ]&&[ -z "$od" ]'

@@ -15,7 +15,7 @@ card traps into skills). Each entry names its incident; the rule is the line aft
 Never commit a gated tree onto a moved HEAD: assert `HEAD^{tree}` == the gated base tree, else re-derive T2.
 
 ## Land a merge-up — gate, merge, push
-> **Council approves, belam only lands (owner 21:5xZ 10-10, doc:council-loop §Rulings and landing):** a gated tip goes to the council as `[review]`; ONE council post answers `[approve <sha>]` or `[return <sha>: why]` (a split / stuck council → belam breaks the tie). Only then box belam `[merge-up] … ff-only <sha> · council: <post> approve <ts>` — belam refuses a merge-up without that line and runs only the secret guard + the ff. That landing guard is the ONE anonymize gate before origin (belam 03:1xZ 10-11): the only auto-pushed branch is MAIN's trunk, posts/* are never pushed (posts/belam aside), and a post uid cannot run the secret class -- so no per-post pre-commit hook; keep the gate-time anonymize. FALSIFIER, belam runs it at every landing (council 03:1xZ): `git ls-remote origin` holds no refs/heads/posts/* but posts/belam and 0 refs/archive|box|held -- one hit voids the ruling: stop landing, [red] to SM + the owner. Every `[decision]` goes to the council, never belam; belam gets only what needs the owner.
+> **Council approves, belam only lands (owner 21:5xZ 10-10, doc:council-loop §Rulings and landing):** a gated tip goes to the council as `[review]`; ONE council post answers `[approve <sha>]` or `[return <sha>: why]` (a split / stuck council → belam breaks the tie). Only then box belam `[merge-up] … ff-only <sha> · council: <post> approve <ts>` — belam refuses a merge-up without that line and runs only the secret guard + the ff. That landing guard is the ONE anonymize gate before origin (belam 03:1xZ 10-11): the only auto-pushed branch is MAIN's trunk, posts/* are never pushed (posts/belam aside), and a post uid cannot run the secret class -- so no per-post pre-commit hook; keep the gate-time anonymize. FALSIFIER, belam runs it at every landing (council 03:1xZ): `git ls-remote origin` holds no refs/heads/posts/* but posts/belam and 0 refs/archive|box|held -- one hit voids the ruling: stop landing, [red] to SM + the owner. Right before the ff, re-read the NEWEST lines on the approver's ref AND your own box: a later [return]/[withdraw] for that sha wins over the earlier approve (belam 08:15Z 10-11 landed 549c1a2381 one minute before the council's own correction to RETURN). Every `[decision]` goes to the council, never belam; belam gets only what needs the owner.
 ```
 merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --merges HEAD..tip; one merge base = base..tip agrees) · merge by the
              NAMED tip · LAND WITHOUT A STAGED MERGE: gate M = commit-tree(merge-tree(HEAD, tip)) in a detached /tmp worktree; at landing
@@ -26,7 +26,14 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
              line 1 alone (07:5xZ: config:posts conflict markers reached the gate; test_node_writer's live corpus caught them) · a
              rotation-cells-only conflict in config:posts = take HEAD's file verbatim once the tip's posts.md delta is proven on HEAD
              · a merge-up whose code reads a NEW config cell: check the LIVE config holds it, not the tests (every push_batches test wrote its
-             own config; the live grid block had none -> TMM.141) · a code path that turns on by itself after landing (a cron line crons.py
+             own config; the live grid block had none -> TMM.141)
+             · SELF-INSTALLING PIECES (council 3/3 11:08Z 10-11, after .32 b3316f1aa0 deleted agi-run's box loop and SM called it
+               'bytes only'): agi-post@'s ExecStartPre extracts every fenced `### <piece>` of engine.md AND engine-[pw]*.md into each post's
+               ~/bin at EACH start -> a landing that changes, adds or DELETES such a piece goes live at each post's next start on a synced
+               branch, no host act. Its [review] carries a 'first-start:' line per post kind (claude / pi / kid): what a post GAINS and LOSES;
+               and either lands WITH its host act (preferred: one GO, one moment) or carries an interim belam has ACKed, with a retire date.
+               engine-root.md pieces stay host-act-only (root renders them)
+             · a code path that turns on by itself after landing (a cron line crons.py
              apply rewrites) = gate what its FIRST live run does, measured on MAIN's real data -- then watch that first run and read the remote
              · locations.shared_project_root(<any worktree>) = MAIN's .agi: a gate-worktree run reads MAIN's config -> to measure a config
              change before landing, patch locations.load_config in-process with the gated config.json
@@ -121,8 +128,10 @@ lanes       the FULL suite is PYTEST ONLY: the extensions/agi/tests/*.t.sh lanes
              · a falsifier lane that is RED on the trunk by design never lands alone: it rides in the SAME landing as its build
              · any .geometry/engine*.md change: also run test_grid_writers.py + test_thought_hygiene.py and grep lanes for the FILE name, not
                only piece names -- they scan by pattern (SM gen 33 AA1.V: 5 RED on trunk after landing)
+             · run lanes in a git worktree or a `git clone --shared` scratch copy, NEVER from an archive with GIT_DIR on a shared repo:
+               lanes that build scratch repos then write the REAL one (aio 10-11 09:56Z: moved posts/director-general-1, created refs/heads/trunk)
              · a lane with a TRUNK arg (agi-out-*, aa3, ckpt, grow-gate-*, agi-land-bounds) extracts from that REF -> pass the CANDIDATE commit
-               as T; a green that does not change when the piece changes is no gate (SM gen 33 AA1.V: vacuous 44/0, 9 RED landed)
+               as T (the lane REFUSES a bare run: exit 2 '[no-candidate]'; trunk-arg-lanes.t.sh guards the 17); a green that does not change when the piece changes is no gate (SM gen 33 AA1.V: vacuous 44/0, 9 RED landed)
 detached    my setsid-nohup suite fails 3 tests that pass alone 5/5: test_dashboard::test_watch_exits_cleanly_on_sigint + 2x
              test_suite_no_detached_spawn -- the LAUNCH, not the range (3 gates 09-26, 6455 passed each; a director's in-pane run = 6458/0)
              · gen 26 (a125bad37's gate, the tree with DH.381's conftest guard): 6642 passed / 0 failed -- NONE of the 3 appeared: re-attribute
@@ -215,3 +224,9 @@ PASS         the Prime's PASS launcher WAITS while any suite lock is live (belam
              · a PASS's mur runs import MAIN's LIVE workflow.py (3 runners, cwd MAIN, 16:0xZ): a workflow.py landing mid-PASS changes every chunk
                launched after it -> land mid-PASS only when the mur shape (no extends, no round stage) runs unchanged (gen 27, merge-ups 9 + 10)
 ```
+
+## Traps moved from cards (owner 10-10: one sweep, then a rule)
+- a gate path list read without -z skips C-quoted paths = fail OPEN -> every path list: -z + NUL split (SM gen 35)
+- ONE full gate tree at a time (two took E from 3.1 to 2.6 GiB); a partial tmpfs tree reds whole-graph tests, and `git add -A` skips .gitignored files -> gate on a FULL archive / worktree (SM gen 35)
+- a [merge-up] sent on the FIRST word of a crossed council vote landed a returned tip (549c1a2381, 10-11 08:15Z) -> merge up only on the SETTLED word (doc:council-loop answerer rule); re-read the council's refs right before sending (SM gen 36)
+- a pkill/pgrep -f pattern matched the calling shell's own argv and ended it (SM gen 36) -> stop a run by its process GROUP found via comm + cwd, never an argv pattern

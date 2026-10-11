@@ -15,12 +15,36 @@ town: core
 EXPANSION of config:engine: the post body (brief, meter, turn, links, trees, tick, frontier)
 Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and the unit's extraction loop (engine.md + engine-post + engine-wrap); every piece is in config:engine's map.
 
+## pieces — depth 1, one line each (bytes on disk)
+~~~
+agi-brief         1358 B  walk card+seeds+claims; record; STARTUP
+brief.py           810 B  the complex walk over parents: edges
+agi-meter          616 B  past rotate_pct of the window: out-line
+agi-at             996 B  signed CAS commit of ~/t paths to posts/<P>
+grow.py           3228 B  the growth-order check both writers call
+agi-turn          4358 B  a signed commit per changed node tree
+agi-wt            1506 B  a node's tiny RAM tree: pull; drop = turn + purge
+agi-track           89 B  strace sink: each path once
+agi-flush         1120 B  drop trees, turn, merge trunk
+agi-out           3357 B  the out-line: next keys, ring commit, re-wrap, swap
+gitconfig          196 B  signed commits against root's allowed_signers
+pre-commit          639 B  refuses a plain commit on a detached ~/t
+agi-notice          1141 B  engine->post notices: add / claim + print
+sysusers.conf       41 B  a post = one user in group agi
+agi.rules          242 B  a post starts only its OWN unit
+project.sh         161 B  what the body SHOULD be
+observe.sh         255 B  what the body IS
+tick.sh            254 B  diff them; start own unit; commit
+agi-frontier       460 B  each active goal runs its falsifier
+box               2005 B  mail: one signed ref update per send (5x CAS)
+~~~
+
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
 ### agi-brief (1358 B)
 ~~~sh
 #!/bin/sh
-ls ~/.notice* >/dev/null 2>&1&&agi-notice;p=$AGI_SEAT;cd ~/t;s=$(jq -r .source);case $AGI_HARNESS in pi*)B=${B:-40000};;esac
+ls ~/.notice* >/dev/null 2>&1&&agi-notice;p=$AGI_POST;cd ~/t;s=$(jq -r .source);case $AGI_HARNESS in pi*)B=${B:-40000};;esac
 sect brief.py|python3 - .agi/nodes doc:card-$p,$AGI_SEEDS$(find $(git rev-parse --git-common-dir)/refs/claims -user $USER -printf ,%f 2>/dev/null) ${K:-20}>~/.brief;cat ~/.brief;cut -d' ' -f4 ~/.brief|xargs tail -n+1|head -c ${B:-0}
 w=${AGI_WT:-$RUNTIME_DIRECTORY/wt};x=$(git rev-parse -q --verify refs/heads/posts/${AGI_POST:-$p});for r in $(git for-each-ref --format='%(refname)' refs/archive/${AGI_POST:-$p});do git log --format=%s $r ${x:+--not $x}|grep -q '^[^ ]*: kept '&&echo "[kept] $r: a stop left this tree whole; recover it, then git update-ref -d it";done;ls -d $w/*/ 2>/dev/null|sed 's/^/[tree] /'
 [ "$s" = compact ]&&exit;jq -n "{seat:\"$p\",rotation:\"engine-v4\",result:\"success\",source:\"$s\",pid:0,window:\"\",recorded_at:\"$(date -u +%FT%TZ)\"}">$O/.agi/sessions/rotations/$p.$(date -u +%Y%m%dT%H%M%SZ).json
@@ -168,7 +192,7 @@ if agi-turn strand;then git checkout -q --detach $b;else k=1;fi;exit $k
 ~~~sh
 #!/bin/sh
 # agi-out (ExecStartPre): the out-line g -> g+1 (AB; the full account is in the node). A ring in ~/t and .fresh newer than the key: new keys in ~/.ssh/n, the capsule share re-wrapped to the next seal FIRST, ONE ring commit signed by the CURRENT key (the self-revocation), then next moves over current. A refusal (any exit after the cd; an AGI_CAPSULE off [A-Za-z0-9._/-], absolute, with .., not resolving to ~/capsule or below) writes its reason to ~/.ssh/out-refused + stderr, exits 75; with that marker and no newer .fresh a start exits 75 silently and the unit's ExecCondition skips it; every other start clears it. Dir 0700, share 0600.
-cd||exit 1;m=.ssh/out-refused;[ -e $m ]&&{ [ .fresh -nt $m ]||exit 75;};rm -f $m;x(){ echo "agi-out: $*">&2;echo "$*">$m;exit 75;};P=$AGI_SEAT;R=.agi/nodes/.geometry/ring;N=.ssh/n;C=${AGI_CAPSULE:+$AGI_CAPSULE/$P}
+cd||exit 1;m=.ssh/out-refused;[ -e $m ]&&{ [ .fresh -nt $m ]||exit 75;};rm -f $m;x(){ echo "agi-out: $*">&2;echo "$*">$m;exit 75;};P=$AGI_POST;R=.agi/nodes/.geometry/ring;N=.ssh/n;C=${AGI_CAPSULE:+$AGI_CAPSULE/$P}
 [ -f t/$R ]&&{ [ -d $N ]||[ .fresh -nt .ssh/id_ed25519 ];}||exit 0
 c=$AGI_CAPSULE;[ -z "$c" ]||{ case $c in -*|/*|*..*|*[!A-Za-z0-9._/-]*)x "AGI_CAPSULE off the safe set";;esac;h=$(pwd -P);case $(readlink -m -- "$c") in "$h"/capsule|"$h"/capsule/?*);;*)x "AGI_CAPSULE must resolve under ~/capsule";;esac;}
 y='import sys,base64 as B,hashlib as H

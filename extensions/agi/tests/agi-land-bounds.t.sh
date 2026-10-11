@@ -1,7 +1,8 @@
 #!/bin/sh
 # agi-land-bounds.t.sh [TRUNK] [GITDIR]: agi-land follow-ups on a throwaway repo (0 shared refs written), scratch keys; tools from TRUNK by sect ($AGI_LAND tests a candidate). One ok/FAIL line per case; exit = number of FAILs.
 # l1 a parent CYCLE in posts.md ends (the signer walk is bounded: a refusal, never a hang) · l2 the lands-mask refusal names EVERY allowed child
-T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0
+T=$1;[ -n "$T" ]||{ echo "[no-candidate] pass the sha under test" >&2;exit 2;};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE   # a lane that builds a scratch repo owns its git env (an inherited GIT_DIR wrote MAIN, 10-11 09:56Z)
 o=$(git rev-parse $T)||exit 1;for x in sect grow-check grow-gate agi-fill agi-gate agi-project agi-land;do git ls-tree --full-tree --name-only $o .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$o:|"|git cat-file --batch --follow-symlinks|sed -n "/^###* $x /,/^###* /{/^~~~/,/^~~~/{//!p}}">$D/b/$x;done
 [ "$AGI_LAND" ]&&cp $AGI_LAND $D/b/agi-land;chmod +x $D/b/*;[ -s $D/b/agi-land ]||{ echo "FAIL no agi-land at $T";exit 99;}
 for p in cyc2 par;do ssh-keygen -qN "" -ted25519 -f$D/k/$p>/dev/null;echo "$p@agi namespaces=\"git\" $(cut -d' ' -f1,2 $D/k/$p.pub)">>$D/ring;done

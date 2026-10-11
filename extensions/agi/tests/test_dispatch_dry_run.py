@@ -380,42 +380,42 @@ def test_seat_row_wins_over_both_harness_and_ladder(project):
 
 def test_dry_run_exports_seat_from_flag(project):
     """hypothesis:l4-dispatch-exports-seat — `--seat NAME` must export
-    AGI_SEAT=NAME in the dry-report env line."""
+    AGI_POST=NAME in the dry-report env line."""
     r = _run(project, "--harness", "pi", "--tier", "parent",
              "--seat", "liaison", "--target", "hypothesis:x", "--dry-run")
     assert r.returncode == 0, r.stderr
-    assert "AGI_SEAT=liaison" in r.stdout, r.stdout
+    assert "AGI_POST=liaison" in r.stdout, r.stdout
 
 
-def test_dry_run_flag_wins_over_inherited_agi_seat(project):
-    """hypothesis:l4-dispatch-exports-seat — `--seat` WINS over an AGI_SEAT
+def test_dry_run_flag_wins_over_inherited_agi_post(project):
+    """hypothesis:l4-dispatch-exports-seat — `--seat` WINS over an AGI_POST
     already in the environment."""
     r = _run(project, "--harness", "pi", "--tier", "parent",
              "--seat", "liaison", "--target", "hypothesis:x", "--dry-run",
-             env={"AGI_SEAT": "inherited-seat"})
+             env={"AGI_POST": "inherited-seat"})
     assert r.returncode == 0, r.stderr
-    assert "AGI_SEAT=liaison" in r.stdout, r.stdout
-    assert "AGI_SEAT=inherited-seat" not in r.stdout, r.stdout
+    assert "AGI_POST=liaison" in r.stdout, r.stdout
+    assert "AGI_POST=inherited-seat" not in r.stdout, r.stdout
 
 
-def test_dry_run_inherited_agi_seat_survives_without_flag(project):
-    """hypothesis:l4-dispatch-exports-seat — without `--seat`, an AGI_SEAT
+def test_dry_run_inherited_agi_post_survives_without_flag(project):
+    """hypothesis:l4-dispatch-exports-seat — without `--seat`, an AGI_POST
     already in the env (the manual export the help text documents) survives."""
     r = _run(project, "--harness", "pi", "--tier", "parent",
              "--target", "hypothesis:x", "--dry-run",
-             env={"AGI_SEAT": "inherited-seat"})
+             env={"AGI_POST": "inherited-seat"})
     assert r.returncode == 0, r.stderr
-    assert "AGI_SEAT=inherited-seat" in r.stdout, r.stdout
+    assert "AGI_POST=inherited-seat" in r.stdout, r.stdout
 
 
 def test_dry_run_no_seat_leaves_key_absent(project):
     """hypothesis:l4-dispatch-exports-seat — neither `--seat` nor an
-    inherited AGI_SEAT means the key is ABSENT, never a placeholder."""
+    inherited AGI_POST means the key is ABSENT, never a placeholder."""
     r = _run(project, "--harness", "pi", "--tier", "parent",
              "--target", "hypothesis:x", "--dry-run",
-             env={"AGI_SEAT": None})
+             env={"AGI_POST": None, "AGI_SEAT": None})   # the helper falls back to the retired name: remove it too
     assert r.returncode == 0, r.stderr
-    assert "AGI_SEAT=" not in r.stdout, r.stdout
+    assert "AGI_POST=" not in r.stdout, r.stdout
 
 
 def test_dry_run_exports_identity_and_readers_agree(project, monkeypatch):

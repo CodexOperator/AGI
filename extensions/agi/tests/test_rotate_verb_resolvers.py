@@ -82,7 +82,7 @@ def test_no_identity_refuses_naming_both_sources(tmp_path, monkeypatch):
     monkeypatch.setattr(rotate, "_git_toplevel", lambda _c: None)
     post, row, why = rotate._caller_post(tmp_path)
     assert (post, row) == (None, None)
-    assert "AGI_SEAT" in why and "--post" in why
+    assert "AGI_POST" in why and "--post" in why
 
 
 # --- (3)/(4) key-holder gate ---------------------------------------------

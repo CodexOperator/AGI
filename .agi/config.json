@@ -366,7 +366,6 @@
       "PROTECT_CMD": "streamer-stub|rotate\\.py launch-wrapper|agi-memguard",
       "PROTECT_COMM": "{'claude', 'tmux: server', 'ffmpeg', 'tmux'}",
       "POST_CGROUP_RE": "^0::/agi\\.slice/agi-post@[^/\\n]+\\.service(/|$)",
-      "POST_PI_COMM": "pi",
       "SUSPEND_RATIO": "0.70",
       "SUSPEND_PCT": "70",
       "SPIKE_BYTES": "3",
@@ -374,7 +373,13 @@
       "LOW_AVAIL_GIB": "1",
       "HISTORY_S": "30",
       "INTERVAL_S": "5",
-      "ALERT_COOLDOWN_S": "600"
+      "ALERT_COOLDOWN_S": "600",
+      "MEMGUARD_ALERT_TO": "sanctuary-master belam",
+      "MEMGUARD_STORES": "/var/lib/agi",
+      "RESUME_FACTOR": "2",
+      "RESUME_HOLD_S": "30",
+      "RENOTIFY_S": "1800",
+      "BASELINE_REFRESH_S": "300"
     },
     "core": {
       "model_load_allowed_max_bytes": 67108864,

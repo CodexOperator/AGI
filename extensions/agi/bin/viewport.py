@@ -772,7 +772,7 @@ def _seat_sessions(root: Path, registry_rows) -> dict:
     """`{seat_name: pin_text}` from each seat's meter pin, best-effort.
 
     `.agi/sessions/<name>.meter` holds the transcript path the seat is
-    currently working on (seat-stable via AGI_SEAT, `config:seats` `pin_ref`).
+    currently working on (seat-stable via AGI_POST, `config:seats` `pin_ref`).
     Absent or unreadable pin -> the seat simply has no session, which is the
     honest "idle" state, never an error.
     """
