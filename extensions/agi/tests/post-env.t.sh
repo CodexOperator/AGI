@@ -40,15 +40,19 @@ cat >$T/r/.agi/nodes/.geometry/posts.md<<'POSTS'
   - {"name":"alive","parent":"council","harness":"claude","box":"encryption-town"}
   - {"name":"dg2","parent":"belam","harness":"claude","box":"core-town"}
 POSTS
+case $P in alive|belam|council|dg2);;*)   # LIVE as any other post: it needs a row and a seat on the council, or the sender is [off-matrix]
+ printf '  - {"name":"%s","parent":"council","harness":"claude","box":"encryption-town"}\n' $P>>$T/r/.agi/nodes/.geometry/posts.md
+ sed -i "s/\"members\":\[\"alive\"\]/\"members\":[\"alive\",\"$P\"]/" $T/r/.agi/nodes/.geometry/posts.md;;
+esac
 (cd $T/r&&$G add -A&&$G -c user.name=t -c user.email=t@t commit -q -m fixture)
 TR=$($G -C $T/r rev-parse HEAD)
 BASE="HOME=$T/hm PATH=$T/bin:/usr/bin:/bin:/usr/local/bin GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_SYSTEM=/dev/null"
-(cd $T/r&&printf 'hello\n'|env -i HOME=$T PATH=$T/bin:/usr/bin:/bin AGI_TRUNK=HEAD GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/belam GIT_CONFIG_SYSTEM=/dev/null AGI_POST=belam sh $T/bin/box send alive)
-[ -n "$($G -C $T/r for-each-ref refs/box/belam/alive)" ]||{ echo "FAIL fixture: no signed refs/box/belam/alive";exit 99;}
+(cd $T/r&&printf 'hello\n'|env -i HOME=$T PATH=$T/bin:/usr/bin:/bin AGI_TRUNK=HEAD GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/belam GIT_CONFIG_SYSTEM=/dev/null AGI_POST=belam sh $T/bin/box send $P)   # mail for the post under test (alive in unit mode; the running post when LIVE)
+[ -n "$($G -C $T/r for-each-ref refs/box/belam/$P)" ]||{ echo "FAIL fixture: no signed refs/box/belam/$P";exit 99;}
 # the post's ~/t: a repo whose branch posts/<P> holds one commit
 $G init -q -b posts/$P $T/hm/t;(cd $T/hm/t&&echo base>base&&$G add -A&&$G -c user.name=t -c user.email=t@t commit -q -m base)
 # run as the post: env -i + the post env + AGI_TRUNK/GIT config of the fixture; "$@" = [env words] cmd...; $T/bin is the piece dir
-as(){ (cd $T/r&&env -i $BASE AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive $(penv $P) "$@");}
+as(){ (cd $T/r&&env -i $BASE $(penv $P) AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive "$@");}   # the fixture words LAST: a running post carries its own AGI_TRUNK (local-maxxing/season2/main), which the scratch repo does not have
 ast(){ (cd $T/hm/t&&env -i $BASE GIT_CONFIG_GLOBAL=$T/c/alive AGI_WT=$T/wt $(penv $P) "$@");}   # from ~/t, the pieces' cwd
 # ---- l1 (LIVE only)
 if [ -n "$LIVE" ];then pe=$(penv)
@@ -116,7 +120,9 @@ ok "w2-another-box-is-refused-by-name the row says encryption-town, this box (ca
 ok "w3-an-unnamed-box-is-refused carry.env has no AGI_BOX: rc $w3 (want 2), says [$m3] (want '[wrong-box] row=encryption-town here=')" '[ $w3 = 2 ]&&[ "$m3" = "[wrong-box] row=encryption-town here=" ]'
 ok "w4-a-post-with-no-row-is-refused no row for nobody: rc $w4 (want 2)" '[ $w4 = 2 ]'
 ok "w5-an-unreadable-trunk-FAILS-the-unit-it-does-not-skip-it AGI_TRUNK names no ref (git show fails): rc $w5 (want 255 = failed, not the exit-2 skip), says [$m5] (want [wrong-box] posts.md unreadable at no-such-ref)" '[ $w5 = 255 ]&&[ "$m5" = "[wrong-box] posts.md unreadable at no-such-ref" ]'
-# ---- mutants of the REAL unit / pieces: each must go RED on the lane's own row for it
+# ---- mutants of the REAL unit / pieces: each must go RED on the lane's own row for it. They mutate the unit TEXT / a piece, so they build the post env from the unit even in a LIVE call (a running post's real environ cannot carry a mutant: m2 would never fire, and m3 / m4 need an env with no AGI_SEAT, which a v4 post has); LIVE is cleared here, after every LIVE row
+[ -z "$LIVE" ]||echo "info mutants m1-m8 run in UNIT mode (LIVE only reads the running post's environ; the LIVE rows are l1 u5-skip f6c e1-e4)"
+LIVE=
 mut(){ cp $2 $T/m.$1;sed -i "$3" $T/m.$1;cmp -s $2 $T/m.$1&&{ echo "FAIL mutant-$1-did-not-change-the-text";f=$((f+1));return 1;};return 0;}
 # m1: a start on another box goes ahead
 cp $T/unit $T/unit.good;mut m1 $T/unit.good 's/echo \[wrong-box\] row=$b here=$h>&2;exit 2;}/echo \[wrong-box\] row=$b here=$h>\&2;exit 0;}/'&&{ cp $T/m.m1 $T/unit;wb alive core-town;r=$?;cp $T/unit.good $T/unit;ok "mutant-m1-a-wrong-box-start-goes-ahead-is-RED the check's exit 2 -> 0: another box now exits $r (want 0 = it starts anyway, which w2 forbids)" '[ $r = 0 ]'; }
