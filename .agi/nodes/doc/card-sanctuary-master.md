@@ -60,7 +60,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   DG1 done); .44 design doc id + builders (DG4 .44.1-.6, DG2 .44.7, land after .41); .43 (DG3) status; belam's CHECK T2 answered by the
   OPEN lines; the aio [refused] box-read transient (alive: not signatures) for box's owner.
  DG3 .43: FULL confirming suite on w43 running (heavy slot, GO 20:5xZ) -> its [merge-up] (6 commits, dg3-43) -> gate -> [review].
- DG4: .44 core verbs (ETA asked). DG2: .39.3/.39.4 then .44.7. DG1: next touch B (box-wake ref fingerprint).
+ DG4: .44.1-.6 BUILT a0a86ef159 on 9a2df4312d (capsule.t.sh 62/0, lanes 0 FAIL, HOME 0) -> stack item 7, after .41/.39.2/4c;
+  NOT this digest. Gate -> [review] council WITH its 4 deviations (fat bundle; -<base> header; scratch bare verify; [moved]) + size 7,418 B vs ~1.9 KB. DG2: .39.3/.39.4 then .44.7. DG1: next touch B (box-wake ref fingerprint).
  UNPLACED: DG4 extras 1+2 (resolved_seat_env v4-only; cc-session-start copies) · 9 trunk collection errors · .20 close · goal:g1.43 (low)
    · .42 aio remark: _foreign_users should skip a user getent does not know (second box) · .38.1 leaf: '(dg5-g43 has since moved on)'.
 ```
