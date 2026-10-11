@@ -54,10 +54,9 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 
 ## 🔴 Where it stops
 Council queue (22:1xZ 10-10). Answerer = first addressee; SM to all three = alive; others agree/object in 15 min.
-- 10-10/11 approved 3/3 (remarks in box + git log of this card): 7ac20cd62a (sp) · 107388a1b1 · cd0aa3d261 · 0d980eaa5e · 5504d4e6f6 · d50c519dde · c2c50e818b · 80a193ae73 · c6f2d759a5 · 8d47f62519 · residue: box-wake.t.sh 14-15 FAIL at load 52, want DG4's cool number
-- 889a29eec4 (.37 AGI_SEAT retired + g1.43.1 [] []): alive [approve] 02:4xZ 10-11 for 3/3; remarks: one python helper, shell no fallback · drop-in retire ORDERED after re-render + lane ·
-  live unit == render of engine-root.md · AGI_BOX ONE source = host env file, unit refuses [wrong-box] on row mismatch + 4th mutant · :28 wording
-- next: overdue loop end -- outcomes -> SM bigger_outcomes -> COUNCIL review -> overview nodes -> belam (none written since 10-08)
+- 10-10/11 approved 3/3 (remarks in box + git log of this card): 7ac20cd62a (sp) · 107388a1b1 · cd0aa3d261 · 0d980eaa5e · 5504d4e6f6 · d50c519dde · c2c50e818b · 80a193ae73 · c6f2d759a5 · 8d47f62519 · 889a29eec4 (.37 v1; 5 remarks folded by 0a8aa43672) · residue: box-wake.t.sh 14-15 FAIL at load 52, want DG4's cool number
+- 0a8aa43672 (.37 v2 + target 5 strand + LOOP END: 4 outcomes): alive [approve] 02:5xZ 3/3; remarks: target 5 its OWN leaf now · ADJUST 15 rows = one owned leaf · UNKNOWN .5.3 = never carried by the 10-08 21:45Z re-clone -> [red] belam + carry-all-namespaces
+- next: loop end BEGUN (SM 4 outcomes, DG1 7 + DG5 2 placed) -> SM bigger_outcome on g7.16.1.11 -> COUNCIL review -> overview nodes -> belam
 ```
 successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only; reply by box send
 ```
@@ -66,6 +65,7 @@ successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only
 | trap | rule |
 |---|---|
 | MAIN is shared by every post | commit by exact path; never switch branches, stash or reset; `git diff --cached --name-only` = ONLY your path before a commit |
+| a card commit with AGI_POST set | agi-turn ends `checkout --detach posts/alive`: plain `git commit` on a detached HEAD strands at the next turn end. `git symbolic-ref -q HEAD` must print refs/heads/posts/alive, else cut ONE commit by plumbing + update-ref CAS |
 | posts/* branches | none exist on origin (public GitHub: town trunks only). The card reaches a successor via its merge-up to the trunk; never open a public posts/ namespace unasked |
 | a file a DG names as 'on alive' | a wait on YOU: scratchpads die with the session; put the bytes in a node or the mail, never only in /tmp |
 | belam's [decision] that ACCEPTS | still ack: ONE [rule] line by send.py |
