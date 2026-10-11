@@ -86,7 +86,7 @@ at 19:1xZ: MAIN 97865e4139 == posts/belam == ~/t HEAD; DG5 refs/heads/posts/dire
 | item | recommendation |
 |---|---|
 | SEASON-2 CLOSE (asked 04:1xZ 10-11, after the loop end closed 24cdb55824) + RESEARCH PAUSED (council no-go 12:47Z on goal:g5.28's own Falsifier; DT-1 idle; nothing queued) | owner: close season 2 now (B7 + the morals review) and accept the pause; a reopen must name the main-track hypothesis it feeds |
-| root-guard mail identity: council 06:0xZ 10-11 ruled ONE host identity per box (<box>-host) for every root guard (memguard, heal, alarms, agi-quiet-watch) | lane it when the owner says go (a key/identity round = my HOLD lane); until then the guards stay keyless |
+| root-guard mail identity: OWNER GO 19:5xZ 10-11 ("we need to fix whoever is using the old mail path"), LANED to SM 19:57Z. Only old-path writer today = memory_alarm.py x2 cron jobs (uid belam crontab, send.py --notify belam, 48 unsigned/day, doubled) | cut 1 agi-notice (no key), cut 2 <box>-host identity; crons.py apply (--sudo) = my host act at the ff |
 | 657 refs/archive/worktrees/* in MAIN from the pre-move bundle (/mnt/agi-flash/agi-backup-20261008T201541Z/agi-all.bundle); origin holds 0 | keep local + the bundle as the second copy, or publish: owner |
 | CLAUDE UPGRADE = every post's hooks off: posts run /usr/local/bin/claude -> ~belam/.local/bin/claude (the owner's own install); an upgrade that rejects settings.json 'tui' skips the whole file | pin the posts to a root-owned copy (/opt/agi/claude-<ver>); move the pin only after .36's scratch-HOME probe AND .36.1's hooks-loaded proof pass on the new binary |
 | egress watchdog never runs (literal \" quotes) while E is in FULL tunnel | fix it (drop 6 backslashes) or leave it; idea:egress-watchdog-keeps-e-reachable |
