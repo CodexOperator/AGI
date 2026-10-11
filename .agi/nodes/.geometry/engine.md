@@ -10,7 +10,7 @@ scaffold_hash: 1a5628596065214d
 season: 2
 town: core
 ---
-# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 44 pieces (every `###` block in engine*.md)
+# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 46 pieces (every `###` block in engine*.md)
 Depth 0 = diagram · 1 = pieces · 2 = one piece: `sect <name>` (any `.geometry/engine*.md`: this node, config:engine-post, config:engine-wrap, config:engine-grow, config:engine-root) · 3 = this file. Pieces are small templates over raw commands; parameters are cells: a row's ONE `engine` object is projected as AGI_<KEY> env. Parity: doc:g716111-stage25-parity.
 
 ## diagram — depth 0
@@ -36,17 +36,19 @@ settings.json      372 B  the ONE hook wiring: brief, meter, turn commit
 cccc.ts           1956 B  pi events -> the CC hooks; mail -> a turn
 agi-kid           2049 B  a pi-free kid in this unit: own HOME and tree
 agi-infer          1077 B  ONE chat call, OpenAI-compatible: stdin -> stdout
-agi-brief         1316 B  walk card+seeds+claims; record; STARTUP
+agi-brief         1358 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
-agi-meter          574 B  past rotate_pct of the window: out-line
+agi-meter          616 B  past rotate_pct of the window: out-line
 agi-at             996 B  signed CAS commit of ~/t paths to posts/<P>
 grow.py           3228 B  the growth-order check both writers call
-agi-turn          3349 B  a signed commit per changed node tree
+agi-turn          4358 B  a signed commit per changed node tree
 agi-wt            1506 B  a node's tiny RAM tree: pull; drop = turn + purge
 agi-track           89 B  strace sink: each path once
-agi-flush         1005 B  drop trees, turn, merge trunk
+agi-flush         1120 B  drop trees, turn, merge trunk
 agi-out           3357 B  the out-line: next keys, ring commit, re-wrap, swap
-gitconfig          198 B  signed commits against root's allowed_signers
+gitconfig          196 B  signed commits against root's allowed_signers
+pre-commit          639 B  refuses a plain commit on a detached ~/t
+agi-notice          1141 B  engine->post notices: add / claim + print
 sysusers.conf       41 B  a post = one user in group agi
 agi.rules          242 B  a post starts only its OWN unit
 project.sh         161 B  what the body SHOULD be

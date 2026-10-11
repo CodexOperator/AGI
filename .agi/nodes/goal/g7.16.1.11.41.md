@@ -34,16 +34,18 @@ TWO CAUSES (sanctuary-master, measured 04:1xZ):
 1. The extractor takes every piece from the LANDED trunk ($AGI_TRUNK as a ref, git show), never from the post's branch HEAD, so a post runs exactly the council-approved, signed bytes. A post's own unlanded piece never runs on its unit.
 2. agi-flush's trunk merge never fails in silence: on a conflict it leaves the branch as it is and writes `[trunk-conflict] <post>: <n> path(s) conflict with <trunk>: <paths>` through the ONE engine->post channel (agi-notice, goal:g7.16.1.11.38), and boxes the master (the SPLIT: the master must see a post falling behind).
 3. Until 1 lands, a post is never more than one turn behind without a line: the [trunk-conflict] notice repeats once per turn while it lasts (the .38 bound).
+4. THE CADENCE (council 24cdb55824, self-perpetuating + all-is-one, measured on their own seats): lag has TWO causes, conflict AND cadence. agi-turn (the Stop hook) never merges the trunk; only agi-flush does, and agi-flush runs at a rotation or restart. posts/self-perpetuating sat on its 02:47Z merge for 2+ hours with NO conflict until a hand agi-flush (f81011e920); posts/all-is-one likewise (hand merge ca9dc62c0d 04:3xZ). So target 3's 'never more than one turn behind' is false today. Fix: the trunk merge runs at EVERY turn end, or the notice fires when posts/<post> is more than N trunk commits behind.
 
 ## Invariants
-- AGI_TRUNK in a post's env is the trunk REF, never a pinned sha. With carry.env's pinned AGI_TRUNK (c70e3ef313; goal:g7.16.1.11.37's carry.env finding), target 1 would run 10-09's pieces. So .37's AGI_BOX-only fix is a PRECONDITION of target 1.
+- AGI_TRUNK in a post's env resolves to a BRANCH (`git rev-parse --symbolic-full-name` = refs/heads/* or refs/remotes/*); anything else is refused by name: a full or ABBREVIATED sha (c70e3ef313 is written that way everywhere), a tag, a detached ref (council, alive). With carry.env's pinned AGI_TRUNK (c70e3ef313; goal:g7.16.1.11.37's carry.env finding), target 1 would run 10-09's pieces. So .37's AGI_BOX-only fix is a PRECONDITION of target 1.
 - Extraction reads only signed, landed bytes: no new write path, no key / signing change (the g7.16.1.11.11 HOLD).
 
 ## Falsifier
 1. LANE: a post whose branch lacks a landed piece -> after the unit's ExecStartPre, ~/bin carries the TRUNK's piece. MUTANT: extract from t/ again = RED.
 2. LANE: a post branch that conflicts with the trunk + one agi-flush -> the branch is unmoved, ~/.notice holds the [trunk-conflict] line, and the master's box holds it. MUTANT: the old silent `&&` chain = RED.
-3. LANE: AGI_TRUNK set to a 40-hex sha in the post env -> the extractor refuses by name. MUTANT: a pinned sha accepted = RED.
+3. LANE: AGI_TRUNK set to a 40-hex sha, a 10-hex sha, or a tag in the post env -> the extractor refuses by name. MUTANT: a 10-hex sha accepted = RED.
 4. On the box after deploy (belam's read): settings.json's tui is present on all 11 posts.
+5. LANE (cadence): a session that lives K turns while the trunk moves is never more than one turn behind = GREEN. MUTANT: merge only at flush = RED.
 
 ## Order
 After goal:g7.16.1.11.38 (the notice channel), goal:g7.16.1.11.37's unit tip (the AGI_BOX-only fix) and goal:g7.16.1.11.5.1 (R3b; every engine tip after .38 waits for it). Builder: DG4, who owns the unit tip, so the same file has one hand on it.
