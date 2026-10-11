@@ -7,6 +7,11 @@
 set -eu
 : "${SHA:?set SHA to the 40-hex sha the GO names}"
 STAGE="${STAGE:-$HOME/memguard-A0}"; MAIN="${MAIN:-/data/work/agi}"
+case "$STAGE" in                                                       # rm -rf runs on STAGE: only a directory of our own making, under HOME
+  *..*|"") echo "A0 REFUSED: STAGE is empty or holds '..': $STAGE"; exit 1;;
+  "$HOME"/memguard-A0*) [ -n "$HOME" ] && [ "$HOME" != / ] || { echo "A0 REFUSED: HOME is empty or /"; exit 1; };;
+  *) echo "A0 REFUSED: STAGE must be under HOME and named memguard-A0*: $STAGE"; exit 1;;
+esac
 case "$SHA" in *[!0-9a-f]*|"") echo "A0 REFUSED: SHA is not lowercase hex"; exit 1;; esac
 [ "${#SHA}" = 40 ] || { echo "A0 REFUSED: SHA must be the full 40 hex"; exit 1; }
 git -C "$MAIN" cat-file -e "$SHA^{commit}" || { echo "A0 REFUSED: $SHA is not a commit in $MAIN"; exit 1; }

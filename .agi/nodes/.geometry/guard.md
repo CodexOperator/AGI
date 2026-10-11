@@ -18,9 +18,10 @@ The ONE cell for the sanctuary guard's per-box settings (goal:g7.16.1.7: "the
 guard is in the graph ... guard.env as a .geometry config node keyed by box
 class, never by host name"). `extensions/agi/guard/guard-init.sh` reads the
 fenced block below (opened by the line ```` ```sh guard.env ````, closed by a bare fence)
-and evaluates it as bash, exactly as it used to source `guard.env`. The file it
-replaces is kept on the box as `~/work/.sanctuary/guard/guard.env.pre-graph-20260930`
-and is read only when this node is missing.
+through `guard_env_load` (every line validated, nothing evaluated). The file it
+replaces may still sit under SANCTUARY on a box (`~/work/.sanctuary/guard/guard.env`; a
+`.pre-graph-20260930` copy was reported kept there, UNVERIFIED) until that box's layer-5
+install moves it aside; guard-init refuses it by name, never reads it.
 
 - **Key = the BOX name**, never the host name: `GUARD_<SETTING>_<box>` with every
   non-alphanumeric of the box turned into `_` (`local-town` -> `local_town`).
@@ -31,7 +32,7 @@ and is read only when this node is missing.
   The why, the layers and the kill switches: `extensions/agi/guard/GUARD.md`.
 
 ```sh guard.env
-# guard.env: per-BOX overrides for guard-init.sh (evaluated as bash; this block is config:guard).
+# guard.env: per-BOX overrides for guard-init.sh (read by guard_env_load: validated, never evaluated; this block is config:guard).
 # Key = the box name (GUARD_BOX, else /etc/sanctuary-guard/box, else the hosts.json town
 # whose host is this host) with every non-alphanumeric turned into _ (local-town -> local_town).
 # Sizes: 512M, 2G, 1.5G, or a bare number of MiB. Anything unset uses the default.
