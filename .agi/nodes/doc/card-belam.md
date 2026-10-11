@@ -77,6 +77,7 @@ belam-s2-V: the owner's projection gate is with SM (19:42Z: .41 stalled + unbloc
 |---|---|---|
 | 101 | "scratch on disk" read as a post HOME: SM's ~/gate/tmp filled the ROOT disk 71% -> 82% in ~1 h (17:0xZ) | say /data/work/gate-<p> by path; the hourly scan reads `df /` too |
 | 102 | a slice gate on agi.slice memory.current never opens: it counts reclaimable cache + kernel memory and sits at MemoryHigh | gate on memory.stat anon + shmem (< 3500 MiB) |
+| 104 | memory warns with NO suite: agi.slice AT MemoryHigh with anon 1.6 GB = 2.7 GB kernel SLAB (dentries) charged to the slice; reclaim swaps the posts (23:1xZ) | read agi.slice memory.stat slab; relief = sync + drop_caches=2 (23:19Z: 5104 -> 2571 MiB); durable fix laned to SM 23:2xZ |
 | 103 | a stopped transient unit stays loaded while a template's Wants= names it, so a plain stop restarts the transient | stop it AND move /run/systemd/transient/<unit> to a backup, daemon-reload, then start the template |
 
 ## §5 Verification
