@@ -6,7 +6,7 @@
 # Order: refuse without a landed SHA · REFUSE while the guard holds stopped pids (see below) · keep a2.since OUT of the stage · A0 on the sha (a refusal there touches nothing live) · stop the guard · a1.undo · a1 · a2 ·
 # put the ORIGINAL a2.since back, so the undo scope stays this A2's first start and not the re-stage's. The proofs are printed, never run: they are the next GO's.
 # STOPPED PIDS: the guard has no SIGTERM handler, so a pid it SIGSTOPped stays stopped when it is stopped, and the restarted guard's memory of it is EMPTY: it would never resume it.
-# So BEFORE anything is touched the log's SUSPENDED pids since a2.since (no a2.since = the whole log) are looked up in the kernel: one still in state T/t REFUSES the re-stage by name
+# So BEFORE anything is touched the log's SUSPENDED pids since a2.since (no a2.since = the whole log) are looked up in the kernel: one still in state T/t, with the START TIME the guard logged for it (a reused pid has another one), REFUSES the re-stage by name
 # (resume it, or memguard-a2.undo.sh, first); a log that exists but cannot be read REFUSES too (unreadable is not empty).
 # THE RACE: that check runs BEFORE A0 and the stop comes only AFTER A0 (seconds, longer under pressure), so a pid the guard stops in that window passes the first check and would stay
 # stopped for ever. So the SAME check runs AGAIN right after `systemctl stop` returns (the old guard is then dead and can stop nothing more) and every held pid is sent SIGCONT, one line each
@@ -35,12 +35,15 @@ scan_held() {                                                          # sets he
   held=
   if $SUDO test -e "$LOG"; then
     $SUDO test -f "$LOG" && $SUDO test -r "$LOG" || return 1
-    cand=$($SUDO awk -v s="$saved" '$1 >= s && $2 == "SUSPENDED" && $3 == "pid" {print $4}' "$LOG") || return 1
-    for p in $(printf '%s\n' "$cand" | sort -un); do
-      st=$(sed 's/.*) //' /proc/$p/stat 2>/dev/null | cut -c1)                # kernel state, first field after the last ')'
-      case "$st" in T|t) held="$held $p";; esac
+    cand=$($SUDO awk -v s="$saved" '$1 >= s && $2 == "SUSPENDED" && $3 == "pid" { r = ""; if (match($0, /start [0-9]+/)) r = substr($0, RSTART + 6, RLENGTH - 6); print $4 ":" r }' "$LOG") || return 1
+    for pr in $(printf '%s\n' "$cand" | sort -u); do
+      p=${pr%%:*}; rs=${pr#*:}                                                 # the pid and the START TIME the guard logged with it ('' = an older line without one)
+      cur=$(sed 's/.*) //' /proc/$p/stat 2>/dev/null | cut -d' ' -f1,20)      # kernel state, and field 22 (start time), after the last ')'
+      st=${cur%% *}; cs=${cur#* }
+      case "$st" in T|t) { [ -z "$rs" ] || [ "$rs" = "$cs" ]; } && held="$held $p";; esac     # a REUSED pid (another start time) is not the guard's stop
     done
   fi
+  return 0                                                             # the last case arm's status (a reused pid is NOT held) must not read as 'unreadable'
 }
 scan_held || fail "RESTAGE REFUSED: $LOG exists but cannot be read (not a readable file, or its read failed), so the stopped pids cannot be known; nothing touched"
 [ -z "$held" ] || fail "RESTAGE REFUSED: the guard holds stopped pids:$held -- resume them (memguard-a2.undo.sh resumes what this A2 stopped) before a re-stage; nothing touched"

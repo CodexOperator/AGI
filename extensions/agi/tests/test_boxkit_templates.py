@@ -673,12 +673,12 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
         if n[0] >= passes: raise SystemExit
         setavail(n[0])
     def _kill(pid, sig):
-        ev.seq.append(("kill", pid, int(sig)))
+        glog = tmp_path / "guard.log"; ev.seq.append(("kill", pid, int(sig), glog.read_text() if glog.exists() else ""))       # + what the guard's file held AT the kill
         if pid in kill_raises and sig == _sig.SIGSTOP: raise ProcessLookupError(pid)
         (ev.stops if sig == _sig.SIGSTOP else ev.conts).append(pid); ev.order.append(("stop" if sig == _sig.SIGSTOP else "cont", pid)); setstate(pid, "T" if sig == _sig.SIGSTOP else "S")
     class _P:
         def __init__(s, argv, **k):
-            ev.boxes.append([argv, argv[-1]])        # [argv, the notice text]: the text is the last argv word, never a shell string
+            ev.boxes.append([argv, argv[-1]]); ev.seq.append(("popen", argv[-1]))        # [argv, the notice text]: the text is the last argv word, never a shell string
         def poll(s): return 0
         def wait(s, timeout=None): return 0
     runs = []
@@ -2227,28 +2227,63 @@ def test_memguard_restage_resumes_a_pid_the_old_guard_stops_in_the_window_before
     assert r.returncode == 1 and "RESTAGE FAILED after the stop: THE GUARD IS STOPPED and" in r.stdout and len(said) == 2 and "memguard-a2.undo.sh" in said[0], (r.stdout, said)
 
 
-def test_memguard_writes_the_suspended_line_before_it_sends_the_sigstop(tmp_path):
-    import signal
-    stop = int(signal.SIGSTOP)
-    adj, stops, runs, ev = _guard_pass(tmp_path / "size", _post_unit(), passes=2, avails=[3 * GIB] * 2, grow={1: [(30, 7_000_000)]})      # an orphan over 70% of RAM: a size stop
-    assert stops == [30], stops
-    line = [i for i, e in enumerate(ev.seq) if e[0] == "log" and "SUSPENDED pid 30 " in e[1]]; kill = [i for i, e in enumerate(ev.seq) if e == ("kill", 30, stop)]
-    assert len(line) == 1 and len(kill) == 1 and line[0] < kill[0], ev.seq                                          # the line first: a stop with no line cannot happen
-    adj, stops, runs, ev = _guard_pass(tmp_path / "low", _post_unit(), passes=1, avails=[GIB // 2])                  # memory low: the largest unprotected pid is stopped
-    assert len(stops) == 1, stops
-    line = [i for i, e in enumerate(ev.seq) if e[0] == "log" and "SUSPENDED pid %d " % stops[0] in e[1]]; kill = [i for i, e in enumerate(ev.seq) if e == ("kill", stops[0], stop)]
-    assert len(line) == 1 and len(kill) == 1 and line[0] < kill[0], ev.seq
+def _kill_at(ev, pid):
+    ks = [i for i, e in enumerate(ev.seq) if e[0] == "kill" and e[1] == pid and e[2] == int(__import__("signal").SIGSTOP)]
+    assert len(ks) == 1, (pid, ev.seq)
+    return ks[0]
 
 
-def test_memguard_a_sigstop_that_fails_leaves_the_line_and_no_stopped_pid_and_says_so(tmp_path):
+def test_memguard_writes_the_suspended_line_before_the_sigstop_and_forks_nothing_before_it(tmp_path):
+    rows = _post_unit()
+    for name, kw, want in (("size", dict(avails=[3 * GIB] * 2, grow={1: [(30, 7_000_000)]}), 30), ("low", dict(avails=[GIB // 2]), None)):
+        adj, stops, runs, ev = _guard_pass(tmp_path / name, rows, passes=2 if name == "size" else 1, **kw)
+        pid = want or stops[0]; assert stops == [pid], stops
+        k = _kill_at(ev, pid); text = ev.seq[k][3]
+        assert "SUSPENDED pid %d " % pid in text and "start %s" % rows[pid][4] in text, text                       # the line is in the FILE when the SIGSTOP goes out, with the pid's start time
+        assert not any(e[0] in ("log", "popen") for e in ev.seq[:k]), ev.seq[:k]                                  # and nothing was forked before it: no logger, no notice (the stop never waits on a spawn)
+        after = ev.seq[k + 1:]
+        assert any(e[0] == "log" and "SUSPENDED pid %d " % pid in e[1] for e in after) and any(e[0] == "popen" and "SUSPENDED pid %d " % pid in e[1] for e in after), after      # the journal line and the notices follow
+
+
+def test_memguard_a_sigstop_that_fails_leaves_the_line_in_the_file_and_no_stopped_pid_and_says_so(tmp_path):
     tos = _vs()["MEMGUARD_ALERT_TO"].split()
     adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(), passes=3, avails=[3 * GIB] * 3, grow={1: [(30, 7_000_000)]}, kill_raises={30})
-    said = [a[0][-1] for a in runs]
-    first = [i for i, m in enumerate(said) if "SUSPENDED pid 30 " in m][0]
-    assert "the SIGSTOP failed" in said[first + 1] and "NOT stopped" in said[first + 1], said                          # the line, then the correction right behind it
-    assert sum("SUSPENDED pid 30 " in m for m in said) == sum("the SIGSTOP failed" in m for m in said) >= 1, said          # every attempt is paired (a pid still over 70% is tried again next tick)
-    assert 30 not in ev.stopped and stops == [], (ev.stopped, stops)                                                    # no pid is tracked as stopped
+    said = [a[0][-1] for a in runs]; filed = (tmp_path / "guard.log").read_text().splitlines()
+    assert sum("SUSPENDED pid 30 " in l for l in filed) == sum("the SIGSTOP failed" in m for m in said) >= 1, (filed, said)     # every attempt: the line in the file, the failure in the journal
+    assert not any("SUSPENDED pid 30 " in m for m in said), said                                                      # no journal line claims a stop that did not happen
+    assert 30 not in ev.stopped and stops == [], (ev.stopped, stops)                                                  # no pid is tracked as stopped
     assert not any("no longer tracked as stopped" in m for m in said), said                                           # and the next tick has nothing to prune
     for to in tos:
         kinds = [b[1].split(" ")[0] for b in ev.boxes if b[0][4] == "agi-" + to]
-        assert kinds.count("[memguard-susp-30]") == 1 and kinds.count("[memguard-stopfail-30]") == 1, (to, kinds)           # the master reads both
+        assert kinds.count("[memguard-susp-30]") == 0 and kinds.count("[memguard-stopfail-30]") == 1, (to, kinds)       # the master reads the failure, not a false SUSPENDED
+
+
+def _start_of(pid): return Path("/proc/%d/stat" % pid).read_text().rsplit(")", 1)[1].split()[19]
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="needs git")
+def test_memguard_restage_and_a2_undo_never_continue_a_reused_pid(tmp_path):
+    import signal, time
+    repo, g, sha, stage, sb, ud, env = _restage_world(tmp_path)
+    mine, reused = (subprocess.Popen(["sleep", "30"]) for _ in range(2))
+    state = lambda p: Path("/proc/%d/stat" % p).read_text().rsplit(")", 1)[1].split()[0]
+    try:
+        for q in (mine, reused): os.kill(q.pid, signal.SIGSTOP)
+        time.sleep(0.3)
+        log = Path(env["LOG"])
+        log.write_text("2026-10-11T08:41:00Z SUSPENDED pid %d (sleep, unit x, start 1): the guard stopped ANOTHER process under this pid, long ago\n" % reused.pid)
+        r = _sh("memguard-restage.sh", tmp_path, SHA=sha, **env)                                      # the pid is stopped now, but it is not the process the guard stopped
+        assert r.returncode == 0 and "RESTAGE OK" in r.stdout and state(reused.pid) == "T", r.stdout + r.stderr          # not held: restage goes on and does not touch it
+        repo, g, sha, stage, sb, ud, env = _restage_world(tmp_path / "w2")
+        Path(env["LOG"]).write_text("2026-10-11T08:41:00Z SUSPENDED pid %d (sleep, unit x, start %s): this one\n" % (mine.pid, _start_of(mine.pid)))
+        r = _sh("memguard-restage.sh", tmp_path / "w2", SHA=sha, **env)
+        assert r.returncode == 1 and "holds stopped pids: %d " % mine.pid in r.stdout + " ", r.stdout + r.stderr         # the matching start time: held, refused
+        stg = tmp_path / "undo"; stg.mkdir(); (stg / "a2.since").write_text("2026-10-11T08:30:00Z\n")
+        ulog = tmp_path / "undo.log"
+        ulog.write_text("2026-10-11T08:40:00Z SUSPENDED pid %d (sleep, unit x, start %s): ours\n2026-10-11T08:41:00Z SUSPENDED pid %d (sleep, unit x, start 1): another process then\n" % (mine.pid, _start_of(mine.pid), reused.pid))
+        r = _sh("memguard-a2.undo.sh", tmp_path / "undo", STAGE=stg, LOG=ulog, **_stubs(tmp_path / "undo", since="Sun 2026-10-11 09:00:00 UTC"))
+        time.sleep(0.3)
+        assert "resuming pid %d" % mine.pid in r.stdout and "NOT resuming pid %d" % reused.pid in r.stdout and "a reused pid" in r.stdout, r.stdout + r.stderr
+        assert state(mine.pid) == "S" and state(reused.pid) == "T", (state(mine.pid), state(reused.pid))
+    finally:
+        for q in (mine, reused): q.kill(); q.wait()
