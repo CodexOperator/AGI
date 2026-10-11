@@ -8,8 +8,11 @@ DESCENDANTS (tool calls, MCP servers, kids) and anything orphaned out of the tre
 -900 too (by command, outside the posts); every other pi worker gets +500 (the kernel kills them first);
 a process over 70% of RAM, or the largest unprotected one when MemAvailable < 1 GiB, is SIGSTOPped (suspended, never killed), a
 post's spine or harness over 70% only alerts (goal:g7.16.1.11.40.1);
-a drop of >= 3 GiB within 30 s alerts. Alerts: journal + /var/log/agi-memguard.log
-+ one [red] dm to box-owner (rate-limited 10 min)."""
+a drop of >= 3 GiB within 30 s alerts. Alerts: journal + /var/log/agi-memguard.log + one line in the ~/.notice of each of sanctuary-master belam
+(written BY that post's own uid through runuser, with its agi-notice when it has one: root signs nothing and holds no key; the file stays
+the post's own; one line per kind per 600 s). A pid stopped for low memory is SIGCONTed once MemAvailable has stayed above
+2x the low line for 30 s, and the box line names its unit + pid; a pid stopped for size is resumed by hand.
+The tree selection reads argv only as the exact tail equality between one unit's tracer and its child: never a pattern, never printed."""
 import os, re, time, signal, subprocess, collections
 PAGE = os.sysconf('SC_PAGE_SIZE'); ME = os.getpid()
 def meminfo(k): return int(re.search(rf'^{k}:\s+(\d+)', open('/proc/meminfo').read(), re.M).group(1)) * 1024
@@ -18,15 +21,24 @@ PROTECT_COMM = {'claude', 'tmux: server', 'ffmpeg', 'tmux'}
 PROTECT_CMD = re.compile(r'streamer-stub|rotate\.py launch-wrapper|agi-memguard')
 PI_CMD = re.compile(r'\.npm-global/(bin/pi\b|lib/node_modules/\S*pi)')
 POST_CG = re.compile(r'^0::/agi\.slice/agi-post@[^/\n]+\.service(/|$)', re.M)
-hist = collections.deque(); stopped = set(); warned = set(); noh = set(); last_alert = 0.0
-def log(msg, red=False):
-    global last_alert
+hist = collections.deque(); stopped = {}; warned = set(); noh = set(); unread = set(); last = {}; pend = []; rec = None
+SAFE = re.compile(r'^[A-Za-z0-9._-]+$')
+def notice(text):
+    for to in 'sanctuary-master belam'.split():
+        if not SAFE.match(to): continue
+        try:
+            pend.append(subprocess.Popen(['timeout', '30', 'runuser', '-u', 'agi-' + to, '--', 'env', 'HOME=/var/lib/agi/' + to, 'sh', '-c',
+                              '[ -x ~/bin/agi-notice ] && exec ~/bin/agi-notice add "$0" || echo "$0" >> ~/.notice', text],
+                             stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
+        except Exception as e: open('/var/log/agi-memguard.log', 'a').write(f'notice to {to} not written: {e!r}\n')
+def log(msg, red=False, kind='x'):
     line = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()) + ' ' + msg
     open('/var/log/agi-memguard.log', 'a').write(line + '\n'); subprocess.run(['logger', '-t', 'agi-memguard', msg])
-    if red and time.time() - last_alert > 600:
-        last_alert = time.time()
-        subprocess.run(['sudo', '-u', 'box-owner', '-H', 'python3', '/box/agi/extensions/agi/bin/send.py', 'send', '--from', 'box-owner', 'box-owner', '[red] memguard: ' + msg],
-                       cwd='/box/agi', timeout=60, capture_output=True)
+    if red and time.time() - last.get(kind, 0) > 600:
+        last[kind] = time.time(); notice(f'[memguard-{kind}] ' + msg + f' (ev {int(time.time()):08x})')
+def unit_of(pid):
+    try: return open(f'/proc/{pid}/cgroup').read().strip().split('\n')[-1].rsplit('/', 1)[-1] or '?'
+    except Exception: return '?'
 def procs():
     for d in os.listdir('/proc'):
         if not d.isdigit() or int(d) in (1, ME): continue
@@ -64,17 +76,18 @@ def setadj(pid, v):
         if int(open(p).read()) != v: open(p, 'w').write(str(v))
     except Exception: pass
 while True:
-    now = time.time(); avail = meminfo('MemAvailable'); hist.append((now, avail))
+    now = time.time(); avail = meminfo('MemAvailable'); hist.append((now, avail)); pend[:] = [q for q in pend if q.poll() is None]
     while hist and now - hist[0][0] > 30: hist.popleft()
     peak = max(a for _, a in hist)
-    if peak - avail >= 3 << 30: log(f'SPIKE: MemAvailable fell {(peak-avail)>>20} MiB in <=30 s, now {avail>>20} MiB', red=True); hist.clear(); hist.append((now, avail))
+    if peak - avail >= 3 << 30: log(f'SPIKE: MemAvailable fell {(peak-avail)>>20} MiB in <=30 s, now {avail>>20} MiB', red=True, kind='spike'); hist.clear(); hist.append((now, avail))
     unprot = []; snap = list(procs()); inpost = set(); keep = set()
     for unit, rows in post_rows(snap).items():
         inpost |= set(rows)
         try:
             g, found = guarded(rows); keep |= g
-            if not found and unit not in noh: noh.add(unit); log(f'ALERT {unit}: no harness found under its tracer (its argv is not the tail of the tracer\'s): only the spine chain is protected', red=True)
-        except Exception as e: log(f'ALERT {unit}: the process tree could not be read ({e!r}): nothing in it is protected this tick', red=True)
+            if not found and unit not in noh: noh.add(unit); log(f'ALERT {unit}: no harness found under its tracer (its argv is not the tail of the tracer\'s): only the spine chain is protected', red=True, kind='tree')
+        except Exception as e:
+            if unit not in unread: unread.add(unit); log(f'ALERT {unit}: the process tree could not be read ({e!r}): nothing in it is protected this tick', red=True, kind='tree')
     for pid, comm, cmd, rss in snap:
         prot = pid in keep or (pid not in inpost and (comm in PROTECT_COMM or bool(PROTECT_CMD.search(cmd))))
         if prot:
@@ -85,12 +98,22 @@ while True:
         elif PI_CMD.search(cmd): setadj(pid, 500)
         if not prot: unprot.append((rss, pid, comm))
         if pid in keep and rss > 0.70 * TOTAL and pid not in warned:
-            warned.add(pid); log(f'ALERT pid {pid} ({comm}) is a post\'s spine or harness: RSS {rss>>20} MiB > 70% of {TOTAL>>20} MiB -- not stopped', red=True)
+            warned.add(pid); log(f'ALERT pid {pid} ({comm}) is a post\'s spine or harness: RSS {rss>>20} MiB > 70% of {TOTAL>>20} MiB -- not stopped', red=True, kind='post')
         elif pid not in keep and rss > 0.70 * TOTAL and pid not in stopped:
-            os.kill(pid, signal.SIGSTOP); stopped.add(pid); log(f'SUSPENDED pid {pid} ({comm}): RSS {rss>>20} MiB > 70% of {TOTAL>>20} MiB -- resume: kill -CONT {pid}', red=True)
+            os.kill(pid, signal.SIGSTOP); u = unit_of(pid); stopped[pid] = ('size', comm, u); log(f'SUSPENDED pid {pid} ({comm}, unit {u}): RSS {rss>>20} MiB > 70% of {TOTAL>>20} MiB -- resume by hand: kill -CONT {pid}', red=True, kind='susp')
     if avail < 1 << 30 and unprot:
         rss, pid, comm = max(unprot)
         if pid not in stopped:
-            os.kill(pid, signal.SIGSTOP); stopped.add(pid); log(f'SUSPENDED pid {pid} ({comm}, RSS {rss>>20} MiB): MemAvailable {avail>>20} MiB < 1 GiB -- resume: kill -CONT {pid}', red=True)
-    stopped = {p for p in stopped if os.path.exists(f'/proc/{p}')}; warned = {p for p in warned if os.path.exists(f'/proc/{p}')}
+            os.kill(pid, signal.SIGSTOP); u = unit_of(pid); stopped[pid] = ('low', comm, u); log(f'SUSPENDED pid {pid} ({comm}, unit {u}, RSS {rss>>20} MiB): MemAvailable {avail>>20} MiB < 1 GiB -- resumed automatically once MemAvailable holds above 2x that for 30 s, or by hand: kill -CONT {pid}', red=True, kind='susp')
+    lows = [p for p, v in stopped.items() if v[0] == 'low']
+    if lows and avail > 2 * (1 << 30):
+        rec = rec or now
+        if now - rec >= 30:
+            for p in lows:
+                try: os.kill(p, signal.SIGCONT); how = 'resumed'
+                except Exception as e: how = f'could not resume ({e!r})'
+                log(f'RESUMED pid {p} ({stopped[p][1]}, unit {stopped[p][2]}): {how}; MemAvailable {avail>>20} MiB held above 2x the low line for 30 s', red=True, kind='resume'); del stopped[p]
+            rec = None
+    else: rec = None
+    stopped = {p: v for p, v in stopped.items() if os.path.exists(f'/proc/{p}')}; warned = {p for p in warned if os.path.exists(f'/proc/{p}')}
     time.sleep(5)

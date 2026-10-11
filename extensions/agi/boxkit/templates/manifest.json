@@ -416,7 +416,9 @@
     "INTERVAL_S",
     "LOW_AVAIL_BYTES",
     "LOW_AVAIL_GIB",
+    "MEMGUARD_ALERT_TO",
     "MEMGUARD_LOG",
+    "MEMGUARD_STORES",
     "OWNER_USER",
     "PI_CMD",
     "PI_OOM_ADJ",
@@ -425,13 +427,14 @@
     "PROTECT_COMM",
     "PROTECT_NICE",
     "PROTECT_OOM_ADJ",
-    "REPO_ROOT",
+    "RESUME_FACTOR",
+    "RESUME_HOLD_S",
     "SPIKE_BYTES",
     "SUSPEND_PCT",
     "SUSPEND_RATIO"
    ],
    "new_bytes": false,
-   "fixture_sha256": "b287692062dca44a7b8bca505b0ff608df04c9957557530d0fe8ff51382fc257"
+   "fixture_sha256": "e0c54b4815fbea9729a3f9ca1d6ecb032733b4c03325a8b703f5cf6e924f18e8"
   },
   {
    "name": "health-script",
