@@ -82,6 +82,7 @@ import os
 import pwd
 import re
 import shutil
+import subprocess
 import sys
 import types
 from pathlib import Path
@@ -629,15 +630,15 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
     src = R.rendered(piece, _vs(MEMGUARD_LOG=str(tmp_path / "guard.log"), **(over or {}))).replace("/proc", str(proc))
     assert "/var/log" not in src       # log() writes a tmp path here, never the live log
     assert "send.py" not in src        # the retired mail path is gone from the rendered guard
-    for c in ("time.sleep(", "time.time()", "os.kill(", "subprocess.run(", "subprocess.Popen(", "os.getpriority(", "os.setpriority(", "subprocess.check_output("):
+    for c in ("time.sleep(", "time.time()", "os.kill(", "subprocess.run(", "subprocess.Popen(", "os.getpriority(", "os.setpriority(", "subprocess.check_output(", "os.listdir("):
         assert c in src, c
     src = src.replace("time.sleep(", "_sleep(").replace("time.time()", "_now()")
     src = src.replace("os.kill(", "_kill(").replace("subprocess.run(", "_run(")
     if not real_box: src = src.replace("subprocess.Popen(", "_popen(")
-    src = src.replace("subprocess.check_output(", "_out(")
+    src = src.replace("subprocess.check_output(", "_out(").replace("os.listdir(", "_ls(")
     src = src.replace("os.getpriority(", "_gp(").replace("os.setpriority(", "_sp(")   # fake pids may be real ones
     import signal as _sig
-    clock, n, ev = [10_000.0], [0], types.SimpleNamespace(conts=[], boxes=[], stops=[], nice={}, sysd=[])
+    clock, n, ev = [10_000.0], [0], types.SimpleNamespace(conts=[], boxes=[], stops=[], nice={}, sysd=[], order=[])
     avails = avails or [33_000_000 * 1024]
     def setavail(i):
         a = avails[min(i, len(avails) - 1)]
@@ -664,7 +665,7 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
         if n[0] >= passes: raise SystemExit
         setavail(n[0])
     def _kill(pid, sig):
-        (ev.stops if sig == _sig.SIGSTOP else ev.conts).append(pid); setstate(pid, "T" if sig == _sig.SIGSTOP else "S")
+        (ev.stops if sig == _sig.SIGSTOP else ev.conts).append(pid); ev.order.append(("stop" if sig == _sig.SIGSTOP else "cont", pid)); setstate(pid, "T" if sig == _sig.SIGSTOP else "S")
     class _P:
         def __init__(s, argv, **k):
             ev.boxes.append([argv, argv[-1]])        # [argv, the notice text]: the text is the last argv word, never a shell string
@@ -672,10 +673,12 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
         def wait(s, timeout=None): return 0
     runs = []
     def _out(argv, **k):
-        ev.sysd.append(argv); got = (sysd or {}).get(argv[2], "OOMScoreAdjust=0\nNice=0\n")
+        ev.sysd.append(argv); ev.order.append(("fetch", argv[2])); got = (sysd or {}).get(argv[2], "OOMScoreAdjust=0\nNice=0\n")
+        if isinstance(got, list): got = got.pop(0) if len(got) > 1 else got[0]          # a sequence: one answer per call, the last repeats
         if isinstance(got, Exception): raise got
         return got
-    ns = {"__name__": "memguard_test", "_kill": _kill, "_out": _out, "_run": lambda *a, **k: runs.append(a), "_popen": _P,
+    ns = {"__name__": "memguard_test", "_kill": _kill, "_out": _out, "_ls": lambda d: sorted(os.listdir(d), key=lambda x: int(x) if x.isdigit() else 0),   # a fixed pid order
+           "_run": lambda *a, **k: runs.append(a), "_popen": _P,
           "_gp": lambda w, pid: ev.nice.get(pid, 0), "_sp": lambda w, pid, v: ev.nice.__setitem__(pid, v), "_sleep": _sleep, "_now": lambda: clock[0]}
     with pytest.raises(SystemExit):
         exec(compile(src, "memguard-rendered", "exec"), ns)
@@ -934,6 +937,109 @@ def test_memguard_a_pi_worker_inside_a_post_keeps_its_worker_value_not_the_unit_
     worker = [(62, 20, "node", "/x/.npm-global/bin/pi --model m")]
     adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(), passes=3, spawn={1: worker})
     assert _child(tmp_path, 62) == int(_vs()["PI_OOM_ADJ"]) and ev.sysd == []
+
+
+def _unit_b(): return _unit().replace("agi-post@a", "agi-post@b")
+
+
+def _two_units():
+    """Unit `a` plus a copy `b` (pids + 100, its own cgroup): two posts on one box."""
+    rows = _post_unit(); cg = _post_cg()
+    sel = [p for p, r in rows.items() if r[2] == cg]
+    for p in sel:
+        comm, cmd, cgl, ppid, start, pages = rows[p]
+        rows[p + 100] = (comm, cmd, cgl.replace("agi-post@a", "agi-post@b"), ppid + 100 if ppid in sel else ppid, start, pages)
+    return rows
+
+
+def test_memguard_the_reset_runs_after_the_stops_in_the_same_tick(tmp_path):
+    spawn = {1: [(19, 20, "bash", "/bin/bash -c leaked")]}                     # pid 19 sorts before the runaway: an inline reset would fetch first
+    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(), passes=2, avails=[3 * GIB] * 2, spawn=spawn, grow={1: [(21, 7_000_000)]})
+    assert ev.order == [("stop", 21), ("fetch", _unit())], ev.order            # SIGSTOP first, then systemd; a hung systemctl delays only the reset
+
+
+def test_memguard_asks_systemd_nothing_while_memory_is_under_the_low_line_but_a_cached_value_still_applies(tmp_path):
+    tool = lambda pid: [(pid, 20, "bash", "/bin/bash -c t%d" % pid)]
+    prot = int(_vs()["PROTECT_OOM_ADJ"])
+    adj, stops, runs, ev = _guard_pass(tmp_path / "low", _post_unit(), passes=2, avails=[3 * GIB, GIB // 2], spawn={1: tool(19)})
+    assert ev.sysd == [] and _child(tmp_path / "low", 19) == prot, ev.sysd                 # low, no cache: no fetch, left as it is
+    adj, stops, runs, ev = _guard_pass(tmp_path / "back", _post_unit(), passes=3, avails=[3 * GIB, GIB // 2, 3 * GIB], spawn={1: tool(19)})
+    assert len(ev.sysd) == 1 and _child(tmp_path / "back", 19) == 0                       # memory back: the pending reset happens
+    stale = int(_vs()["BASELINE_REFRESH_S"]) + 1
+    adj, stops, runs, ev = _guard_pass(tmp_path / "cache", _post_unit(), passes=3, tick=stale, avails=[3 * GIB, 3 * GIB, GIB // 2],
+                                       spawn={1: tool(19), 2: tool(18)}, sysd={_unit(): "OOMScoreAdjust=200\nNice=3\n"})
+    assert len(ev.sysd) == 1 and _child(tmp_path / "cache", 18) == 200 and ev.nice[18] == 3, ev.sysd   # low + a stale cache: still applied, not refetched
+
+
+def test_memguard_a_unit_whose_baseline_reads_again_gets_a_fresh_line_for_a_later_failure(tmp_path):
+    tos = _vs()["MEMGUARD_ALERT_TO"].split(); stale = int(_vs()["BASELINE_REFRESH_S"]) + 1
+    sysd = {_unit(): [OSError("down"), "OOMScoreAdjust=0\nNice=0\n", OSError("down again")]}
+    spawn = {1: [(19, 20, "bash", "/bin/bash -c a")], 3: [(18, 20, "bash", "/bin/bash -c b")]}
+    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(), passes=4, tick=stale, spawn=spawn, sysd=sysd)
+    for to in tos:
+        said = [b[1].split(" ")[0] for b in ev.boxes if b[0][4] == "agi-" + to]
+        assert said.count("[memguard-base]") == 2, (to, said)         # fail, read, fail: both failures named (the cooldown, 600 s, has passed)
+
+
+def test_memguard_base_and_tree_alerts_are_rate_limited_per_unit_not_per_kind(tmp_path):
+    tos = _vs()["MEMGUARD_ALERT_TO"].split()
+    rows = _two_units(); spawn = {1: [(19, 20, "bash", "/bin/bash -c a"), (119, 120, "bash", "/bin/bash -c b")]}
+    adj, stops, runs, ev = _guard_pass(tmp_path / "base", rows, passes=3, spawn=spawn, sysd={_unit(): OSError("x"), _unit_b(): OSError("y")})
+    for to in tos:                                                    # two units, one cooldown window: one line EACH
+        texts = [b[1] for b in ev.boxes if b[0][4] == "agi-" + to and b[1].startswith("[memguard-base]")]
+        assert len(texts) == 2 and _unit() in " ".join(texts) and _unit_b() in " ".join(texts), (to, texts)
+    rows = _two_units()
+    for pid in (20, 120): rows[pid] = rows[pid][:1] + ("zzz-new --title-rewritten",) + rows[pid][2:]      # no harness found in either
+    adj, kills, runs, ev = _guard_pass(tmp_path / "tree", rows, passes=2)
+    for to in tos:
+        texts = [b[1] for b in ev.boxes if b[0][4] == "agi-" + to and b[1].startswith("[memguard-tree]")]
+        assert len(texts) == 2, (to, texts)
+
+
+PROOF2 = KIT / "memguard-proof2.py"
+
+
+def _proof2(tmp_path, over=None, young=None, mut=None):
+    """The guard runs 2 passes on the fake box (it sets the adj values); then the PROOF reads that fake /proc."""
+    over = over or {}
+    _guard_pass(tmp_path, _post_unit(), passes=2, over=over)
+    proc = tmp_path / "proc"; (proc / "uptime").write_text("10000.00 0.00\n"); hz = os.sysconf("SC_CLK_TCK")
+    script = tmp_path / "guard.py"; script.write_text(R.rendered(BY_NAME["memguard-script"], _vs(MEMGUARD_LOG=str(tmp_path / "g.log"), **over)), encoding="utf-8")
+    for pid, age in (young or {}).items():                             # (pid -> its age in s): the start time in stat field 22
+        f = proc / str(pid) / "stat"; t = f.read_text()
+        f.write_text(re.sub(r"( 0){17} \d+ ", lambda m: m.group(0).rsplit(" ", 2)[0] + " %d " % int((10000 - age) * hz), t, count=1))
+    for pid, v in (mut or {}).items(): (proc / str(pid) / "oom_score_adj").write_text(str(v))
+    r = subprocess.run([sys.executable, "-I", str(PROOF2), str(script), str(proc)], capture_output=True, text=True)
+    return r.returncode, r.stdout
+
+
+def test_memguard_proof2_exits_0_on_a_box_the_guard_has_classified_and_reads_the_guards_own_functions(tmp_path):
+    rc, out = _proof2(tmp_path)
+    assert rc == 0 and "0 on the wrong side" in out and "0 pids" not in out, out
+
+
+def test_memguard_proof2_names_an_old_tool_that_holds_the_protect_value_and_an_old_spine_pid_that_lost_it(tmp_path):
+    prot = int(_vs()["PROTECT_OOM_ADJ"])
+    rc, out = _proof2(tmp_path / "tool", mut={21: prot})
+    assert rc == 1 and "WRONG agi-post@a.service 21 adj %d should NOT be protected" % prot in out, out
+    rc, out = _proof2(tmp_path / "spine", mut={12: 0})
+    assert rc == 1 and "WRONG agi-post@a.service 12 adj 0 should be protected" in out, out
+
+
+def test_memguard_proof2_skips_a_pid_younger_than_the_window_derived_from_the_guards_own_tick(tmp_path):
+    prot = int(_vs()["PROTECT_OOM_ADJ"])
+    rc, out = _proof2(tmp_path / "young", young={21: 3}, mut={21: prot})                       # 3 s old: not yet the guard's to have reset
+    assert rc == 0 and "1 younger than 11 s skipped" in out, out
+    rc, out = _proof2(tmp_path / "edge", young={21: 12}, mut={21: prot})                       # 12 s old with a 5 s tick: a real miss
+    assert rc == 1 and "should NOT be protected" in out, out
+    rc, out = _proof2(tmp_path / "slow", over={"INTERVAL_S": "7"}, young={21: 12}, mut={21: prot})   # the same 12 s with a 7 s tick: window 15, skipped
+    assert rc == 0 and "1 younger than 15 s skipped" in out, out
+
+
+def test_memguard_proof2_refuses_a_script_that_is_not_a_guard(tmp_path):
+    (tmp_path / "x.py").write_text("print(1)\n"); (tmp_path / "proc").mkdir()
+    r = subprocess.run([sys.executable, "-I", str(PROOF2), str(tmp_path / "x.py"), str(tmp_path / "proc")], capture_output=True, text=True)
+    assert r.returncode == 2 and "NOT A GUARD" in r.stdout, (r.returncode, r.stdout)
 
 
 def test_memguard_says_a_tree_it_cannot_read_once_per_unit(tmp_path):
