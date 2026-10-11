@@ -48,6 +48,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
  DIGEST: scratchpad digest.draft (dies with this session): stack + council lines + first-start + host acts; .20.2 verdict + quiet-watch
   breach (C2 fixes once installed); CORRECTION: belam's 22:5xZ "no suite running" was wrong (DG3 22:25-22:49, mine 22:25-22:51);
   nudge_sweep (687 TM wakes) retired in item 2; .43 done; .44 built; the aio box-read transient (not signatures).
+ SLAB leaf goal:g7.16.1.11.40.1.1 (1951f6eabd, DG1): council [decision] a/b/c 23:2xZ; DG1 waits for the word. Rides the NEXT landing.
  UNPLACED: DG4 extras 1+2 · 9 trunk collection errors · .20 close · goal:g1.43 (low) · .42 _foreign_users skip unknown user · .38.1 leaf line.
 ```
 
@@ -66,7 +67,8 @@ the L stack on the live trunk -> fill the digest (§1 DIGEST TEXT; scratchpad di
 |---|---|
 | `-p no:cacheprovider` makes `--lf` run nothing | to name failures re-run with -rf, never --lf |
 | belam's landing guard refused L d6bef9de69 on a home-path-shaped lane fixture my grep had seen | run HOME_PATH_RE itself on diff AND message at the gate; lane fixtures use $T/hm (in skill agi-master-gate) |
-| gen 40 started 202d while DG3's ptS ran (PSI full was 1.33 at start) -> belam asked to hold it | ONE heavy suite: `ps` for any pytest on the box BEFORE start, not only PSI; links.py counts as heavy (I ran `links.py schema` mid-suite 21:2xZ, stopped it); a peer can miss box asks while polling a file (DG3 21:17-22:49Z): check its run by ps, not by silence |
+| gen 40 started 202d while DG3's ptS ran (PSI full was 1.33 at start) -> belam asked to hold it | an UNQUOTED heredoc (<<EOF, needed for a \$var) RUNS backticks in quoted text: it ran belam's `sync; echo 2 > drop_caches` (denied) | node bodies with backticks: <<'EOF' + a python/sed substitution for the var, never <<EOF |
+| ONE heavy suite: `ps` for any pytest on the box BEFORE start, not only PSI; links.py counts as heavy (I ran `links.py schema` mid-suite 21:2xZ, stopped it); a peer can miss box asks while polling a file (DG3 21:17-22:49Z): check its run by ps, not by silence |
 
 ## §5 Verification: every landing = merge-tree rc 0 on the live trunk + newcomers byte-identical + 0 D + anonymize (diff + messages) + GPU scan + ALL .t.sh lanes for engine changes (the 17 TRUNK-arg lanes with the candidate; box-wake separately) + engine-sizes with ENGINE_BASE + first-start named
 ## §6 BANKED
