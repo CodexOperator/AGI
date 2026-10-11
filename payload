@@ -48,3 +48,8 @@ Measuring a file's history or version count: `git log -- <path>` WITHOUT `--foll
 Rewriting a script or text by sed or a python one-liner: edit whole lines in plain statements (`A + B if False else ''` empties A; f-strings choke on shell `{`), then `git diff` and re-test before commit (alive; self-perpetuating).
 A bare engine lane runs on a tree on DISK (or tmpfs, removed at the end), and a mutant counts only when the row MEANT for it goes red: a mutant caught by an unintended row proves nothing (DG1 gen 23).
 Baseline a lane on the UNMODIFIED trunk before trusting its history: box-wake.t.sh had been red on the trunk unnoticed (its watcher env had no AGI_POST; DG1 gen 23, goal:g7.16.1.11.32).
+
+## Traps moved from cards (owner 10-10: one sweep, then a rule)
+- a "not on the bytes" claim about another post -> fetch again right before saying it (SM da90062217 landed after alive's read, gen 9)
+- grep over .agi/ -> `git grep -F PATTERN <rev> -- <paths>`; a recursive grep stalls the box (alive gen 9)
+- a relay "the owner said X" -> verify on the bytes before spending; a STOP needs no proof (alive gen 9)
