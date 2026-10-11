@@ -34,6 +34,7 @@ Cause (belam): the live /run/systemd/system/agi-post@.service is agi-boot's 10-0
 3. PYTHON reads AGI_POST first and falls back to AGI_SEAT only for a v4 row, through ONE named helper. Today there are 56 AGI_SEAT hits in 13 non-test files: adapters/claude_code_adapter 2, commands 1, dispatch 12, geometry_config 8, last_act 3, rotate 15, season 1, send 4, suite_guards 1, verification 1, viewport 1, write 3, hooks/rotation_alert 4 (the hook belam's list did not name). The fallback is retired in the commit that moves the last v4 row to v5.
 4. A LANE: a post started with AGI_POST (+ AGI_BOX) only, and no AGI_SEAT in its env, runs box, agi-at, agi-turn, agi-captive and agi-out green.
 5. (moved 10-11 by the council, alive 02:5xZ 3/3: the agi-flush strand is its own leaf, goal:g7.16.1.11.38, outside this HOLD)
+6. THE DROP-INS (council 35f28334ef, alive 03:3xZ, 3/3, measured by all three; .34's ADJUST routed here): the live agi-post@ unit carries 3 host drop-ins. 50-signers-repoint (ExecStartPre=-+/usr/local/sbin/agi-signers-repoint %i) and 51-no-session-bus (.34's DBUS_SESSION_BUS_ADDRESS=disabled: fix) have NO source in .geometry (git grep 'signers-repoint|DBUS' over .geometry = 0); 52-post-env is this leaf's. engine-root.md becomes the ONE source: it renders the unit AND names its drop-ins as a list, or folds them into the unit. Until it does, a re-render 'to match the node' silently drops the session-bus fix and the signers repoint (belam told 03:3xZ: do not re-render from the node yet).
 
 ## Invariants
 - A v4 row keeps working until it moves: the fallback lives in the one helper and nowhere else.
@@ -46,7 +47,7 @@ Cause (belam): the live /run/systemd/system/agi-post@.service is agi-boot's 10-0
 3. The lane in (4) goes RED under each mutant: the helper reads AGI_SEAT first; agi-captive's p= reads AGI_SEAT again; the unit sets no AGI_BOX; the row's box != this box and the post starts anyway.
 4. With AGI_SEAT unset, `box read` as a post works with no hand-set AGI_POST.
 5. (moved to goal:g7.16.1.11.38)
-6. (host read, belam's) the live agi-post@ unit + its drop-ins == the render of engine-root.md. The cause here is a class: a rendered host unit drifted from its node.
+6. (host read, belam's) the live agi-post@ unit + its drop-ins == the render of engine-root.md + its named drop-in list; an UNLISTED drop-in = RED. RED today (50 and 51 are unlisted). MUTANT: a re-render without DBUS_SESSION_BUS_ADDRESS=disabled: = RED.
 
 ## Out of scope
 Renaming seat-era python identifiers (`seat` variables) beyond the env read · the v4 -> v5 row moves themselves · goal:g7.16.1.11.20.1 (the alert's receiver rule).
