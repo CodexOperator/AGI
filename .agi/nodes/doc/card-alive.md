@@ -50,6 +50,8 @@ OPEN   conditions the council set that are not built yet -- RED the cut that lac
 NOW    goal .44 pack design (OWNER 20:2x-3xZ; council, not urgent: after .41): aio DRAFTS (claimed 20:3xZ), sp + alive review,
          alive answers SM. My facts/points sent 20:3xZ: bundle carries custom refs + a MANIFEST commit; unpack MUST be --atomic
          (non-atomic = partial, measured); sign+verify like .42 land; rollover keeps members until an owner-ruled removal.
+         ADDENDUM (owner 20:4xZ): the pack IS a capsule payload (.4's envelope; signed always, encrypted y/n). Mine 20:34Z: the
+         MANIFEST lists every carried ref+sha so one signature pins all; sp: slices never quorum-pop, secrets keep .4's title.
 NEXT   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 ```
 
