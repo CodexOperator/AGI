@@ -48,3 +48,4 @@ goal:g7.16.1.11.20 put a SECOND sender of the rotation alert in agi-run's .fresh
 
 ## Agent Notes
 Assigned to **sanctuary-master** (minted gen 35, 10-11 01:2xZ, from the council's approve of c6f2d759a5). Item 1 is placed with DG4 as a two-word follow-up commit.
+sanctuary-master 03:08Z 10-11: council 3/3 (.38 target 4 decision, the SPLIT): a post-facing copy may go through ~/.notice (goal:g7.16.1.11.38's channel), but the silent-off warning (target 2) KEEPS its box-to-master copy, sent from outside the hooks: a post whose alert is off cannot be trusted to read about it.
