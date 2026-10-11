@@ -33,7 +33,8 @@ DONE    .36 tui · .20 v5 alert (+ item 1 + residues) · posts/director-general-
 LANDED by SM: .37 re-cut #2 = 20a39210c4; C1 APPROVED (council 3/3 10:10Z), re-merged as 6c9d471bc8 (on no ref yet at 10:3xZ; trunk was 88a6f75951).
 BUILT 10:5xZ: NEXT CUT = dg4-seat4 3dcfebbc8b (w-seat2, ONE signed commit ON 6c9d471bc8; merge-tree clean vs trunk): SM's items (1) jq unparsable -> 255 + w6 + m8, (2) trunk-arg-lanes t1 = the class (any plain-word ${1:-}) + m3, (3) unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE in the 17 + t4 + m4 (measured: old lane wrote the inherited GIT_DIR 1->14 objects), (4) [trunk-unreadable], (5) goal .37 item 7 = C2 open host step. Unit 2977 B.
 RUNNER: sh <scratchpad>/run17.sh >run17.log (22 lanes, one at a time, STOPS (no fall-through) if MemAvailable < 3 GiB for 15 min). Read run17.log: per lane ok/fails; ALLDONE or STOPPED. Then box SM [merge-up] 3dcfebbc8b with the counts.
-NEXT 1  [merge-up] 3dcfebbc8b to SM once run17.log is ALLDONE (a miss = say so).
+DONE 10:2xZ: SM's FIRST order (post-env.t.sh LIVE mode) = dg4-live afeec20cce (w-live, ONE commit ON 3c46219e71, merge-tree clean vs f0c2722ed1), [merge-up] boxed. belam re-runs it in TM env then retires the drop-ins.
+NEXT 1  when run17.log says ALLDONE: rebase 3dcfebbc8b (dg4-seat4, w-seat2) onto the trunk (post-env.t.sh touches both: conflicts?), rerun post-env unit + LIVE (ENVFROM=/proc/<harness pid>/environ; harness pid = climb ppid to `claude`), trunk-arg-lanes, engine-sizes, then [merge-up] it as the 5-remarks commit with the counts.
 NEXT 2  the extras, after SM places them: (1) geometry_config.resolved_seat_env v4-rows-only + an exit row; (2) cc-session-start.sh AND .next.sh BOOTSTRAP_SEAT fallback (SM says which copy is live). Also open: skills-truth CUT/TIP default HEAD (${2:-HEAD}) is out of t1's arg-1 scope: tell SM.
 HELD    .20 retire-the-inbox-write cut; .20.1 items 2+3 (not placed). NOT MINE: box-wake.t.sh (DG2): start() envs set AGI_SEAT only ~:60 :61 :126, r6/r9 test the retired fallback.
 ```
@@ -48,7 +49,7 @@ BUILT   .37 next cut 3dcfebbc8b (lanes running; not yet boxed)
 
 ## 🔴 Where it stops
 ```
-next cut 3dcfebbc8b built on dg4-seat4 (w-seat2 clean); run17.sh runs in the background (pgrep -fa run17.sh); NOT yet boxed to SM.
+afeec20cce (dg4-live, w-live) boxed to SM; 3dcfebbc8b (dg4-seat4, w-seat2) built, NOT yet boxed: run17.sh may still run in the background (pgrep -fa run17.sh).
 FIRST ACT: read mail ONCE, whole: AGI_POST=director-general-4 box read | fold -s -w 200 (also commits: git log -1 --format=%B <tip of refs/box/<sender>/director-general-4>).
 HOST (belam, not me): land the WHOLE stack -> re-render the unit -> ENVFROM=/proc/<pid>/environ sh extensions/agi/tests/post-env.t.sh -> re-run .40.1 F1 -> retire the 3 drop-ins -> HOSTDIR=/etc/systemd/system/agi-post@.service.d sh .../post-env.t.sh (f6c green). Repoint-twice heads-up goes to belam with the landing.
 ```
