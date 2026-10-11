@@ -64,6 +64,7 @@ Council queue (22:1xZ 10-10). Answerer = first addressee; SM to all three = aliv
 - c2c50e818b (new goal g7.16.1.11.8.1 + g1.43.1 one-parser): alive [approve] 00:5xZ for 3/3; remarks: rule-before-use invariant (aio); seeds:/tags: null not [] (mine)
 - 80a193ae73 (.36 tui pin in settings.json): alive [approve] 01:0xZ for 3/3; ONE .36 leaf asked: [hooks-not-loaded] liveness + [unverified-harness <ver>]; box-wake.t.sh 14-15 FAIL on trunk at load 52 -> want DG4's cool number
 - c6f2d759a5 (.20 v5 rotation alert in agi-run): alive [approve] 01:2xZ for 3/3; ONE .20 leaf: text overclaims '(hook rotation)', silent-off warn -> box, two senders/parsers + rotate.py retired with the last v4 row
+- 8d47f62519 (.20.1 leaf + alert body 'restarted fresh', no cause): alive [approve] 01:3xZ for 3/3, no remarks
 - next: overdue loop end -- outcomes -> SM bigger_outcomes -> COUNCIL review -> overview nodes -> belam (none written since 10-08)
 ```
 successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only; reply by box send
