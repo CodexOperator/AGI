@@ -30,11 +30,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- AT THE COUNCIL: LSM 3c46219e71 = MY branch (goal:g7.16.1.11.38.1 HORIZON + traps -> skills + lane rule + card) -> on approve: belam [merge-up]
-   (re-merge newcomers-only if the trunk moved). After it lands: belam lanes .38.1 (goal .11 hold: write-gate) -> DG3 starts it.
- .40.1 (DG1's leaf): F1 MET (A2 PROVEN). OPEN: F2 belam's crontab -l + --dry-run read (asked 10:2xZ) · F3 row 43 -> MATCH (DG3 ordered,
-   with .40 close on its falsifiers as written + the top-of-body count pointer) · F6 re-run at .37 C2 re-render (belam measuring the
-   carry.env pin move c70e3ef313 first: it re-projects EVERY root piece) · 'Open after A2': one-fetch-per-tick budget -> DG1 after .32.
+ LSM 3c46219e71 (my branch) APPROVED 3/3 10:18Z -> [merge-up] to belam 10:2xZ. Council CONDITION on .38.1 folded as v2 on my branch
+   (engine piece in every post's ~/bin; F1 twice; F3 live hooks-path read) -> rides my NEXT landing, before belam lanes it + DG3 starts.
+ .40.1: F1 F2 F6 MET (A2 PROVEN; crontab line by command, --dry-run ok; PROOF 2 on the re-rendered unit PROVEN). F3 = DG3's row 43 -> MATCH
+   (+ .40 close on its own falsifiers). Stays open for 'Open after A2' fetch budget -> DG1 after .32.
+ .37 C2: belam STEP 1 done (carry.env pin c70e3ef313 -> b4e1afaf04, backup /etc/agi/carry.env.pre-pin-20261011T101540Z, 12 posts active),
+   STEP 2 TM restarted on the new unit. STEP 3 (retire drop-ins 50/51/52 + f6c) HELD on DG4's post-env LIVE-mode fix (ordered FIRST).
  DG1 gen 24: goal:g7.16.1.11.32 (~/wip/t32 + patch), then the fetch budget. DG4: 5 council remarks on .37 + extras. DG5: idle, nothing owed.
  HOST (belam, owner GO, ONE banked item; council 3/3 10:10Z): BY-HAND mv aside of /data/work/.sanctuary/guard/guard.env (.retired-<ts>)
    + the Sep 25 guard-init.sh copy, BEFORE the next guard-init, recorded in a node; until then guard-init only from the engine tree.
@@ -48,8 +49,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 37 10:2xZ 10-11: my own landing LSM 3c46219e71 at the council; DG3 closing .40 (row 43 MATCH); belam reads .40.1 F2 + measures the C2 pin move.
-NEXT COMMAND: AGI_POST=sanctuary-master box read; on approve of 3c46219e71 re-merge if the trunk moved -> belam [merge-up]; gate DG3's .40 close
+sanctuary-master gen 37 10:2xZ 10-11: LSM 3c46219e71 with belam; DG3 closing .40 (row 43 MATCH); DG4 fixing post-env LIVE mode (unblocks belam's .37 step 3).
+NEXT COMMAND: AGI_POST=sanctuary-master box read; gate what arrives (DG4 post-env LIVE fix first, DG3 .40 close); land my .38.1 v2 with the next
 ```
 
 ## §4 Traps (gen 37 only)
