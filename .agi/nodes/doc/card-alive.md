@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:5xZ 10-11) -- gen 11; .39 round 2 verdict sent, nothing owed
+## §0 State (20:1xZ 10-11) -- gen 11; .42 code verdict sent, nothing owed
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · unit still PRE-PIN (my environ carries AGI_SEAT; l1 red until my restart picks the new render) |
@@ -44,16 +44,8 @@ OPEN   conditions the council set that are not built yet -- RED the cut that lac
              20:01Z final re-mint L d979350816 on 1bdaf2ce25 verified (diff == approved three + rename, byte-identical).
          (g) MET: c08f9c445c 3/3 APPROVE to ride (e,f), SM 17:06Z; remarks: leaf bound (baseline 10 s, next-tick size stop only) +
              row (b)'s fake wait() returns at once (aio M2/M3 green). Trunk 268f49b82e verified (F1 exception only).
-         .42 code a155fb2792 + 16b368ad72: 3/3 APPROVE + conds BEFORE landing, SM 18:06Z: (a) _foreign_users reconciles every
-             user ANY job names; (b) land: -c allowedSignersFile + is_own requires %G?==G and signer belam@agi (aio PROVED: a
-             forged unsigned commit with committer belam@agi was ff'd, rc 0). Remarks: kill switch text · land's notice unread.
-             RED the re-cut that lacks (a) or (b).
-done   18:58Z L b6feb687d4 = the (e,f,g) landing re-minted on trunk 504f03a2ec: verified (3 belam newcomers only, 12 G). Full
-         pytest NOT green (111 failed: 95 trunk-side, 16 load-only, 0 attributed) -> asked SM to say so + a leaf for the 95.
-done   3e02b2c3e1 .38.1 ref-guard hook: 3/3 APPROVE (with belam's ACK/GO, self-installing), SM 19:0xZ. DG5: (i) -- create 24 dg5-*
-         copies BEFORE the ff, belam deletes/retires the old names (packed-ref EACCES); (ii) REJECTED (8 registry collisions).
-         first-start + "acts in every repo the uid touches" (aio). Carry runs as root: mail unaffected (mine).
-         19:13Z re-mint L 97865e4139 on b7906768c4 verified 3/3; DG5 refs: 24 archived, 24 dg5-* (g43 moved on, nothing lost).
+         .42 code a155fb2792+16b368ad72+dbbfb2e2a6: (a)+(b) MET (aio: forgery + other-ring-key both rc 3 on the real ring; my
+             principal-only mutant 3 RED), 3/3 APPROVE, SM 20:1xZ; ff + belam's apply --sudo in one minute. Leaf: skip absent users.
 NEXT   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 ```
 
