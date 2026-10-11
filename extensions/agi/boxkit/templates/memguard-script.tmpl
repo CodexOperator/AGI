@@ -132,7 +132,9 @@ while True:
             try:
                 if os.getpriority(os.PRIO_PROCESS, pid) > {{PROTECT_NICE}}: os.setpriority(os.PRIO_PROCESS, pid, {{PROTECT_NICE}})
             except Exception: pass
-        elif PI_CMD.search(cmd): setadj(pid, {{PI_OOM_ADJ}})
+        elif PI_CMD.search(cmd):
+            setadj(pid, {{PI_OOM_ADJ}})
+            if pid in pu: late.append((pid, pu[pid]))               # a worker keeps its adj, but a nice it inherited from the harness is reset like any child's
         elif pid in pu: late.append((pid, pu[pid]))
         if not prot: unprot.append((rss, pid, comm))
         if pid in keep and rss > {{SUSPEND_RATIO}} * TOTAL and pid not in warned:
