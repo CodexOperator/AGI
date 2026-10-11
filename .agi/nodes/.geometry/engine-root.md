@@ -16,7 +16,7 @@ EXPANSION of config:engine: the unit template (root's agi-project reads it throu
 Read only through `sect <name> [REV]`.
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
-### agi-post@.service (2895 B)
+### agi-post@.service (2977 B)
 ~~~ini
 [Unit]
 After=agi-ram-main.service
@@ -30,7 +30,7 @@ Environment=DBUS_SESSION_BUS_ADDRESS=disabled:
 Environment=GIT_AUTHOR_NAME=%i GIT_COMMITTER_NAME=%i GIT_AUTHOR_EMAIL=%i@agi GIT_COMMITTER_EMAIL=%i@agi
 RuntimeDirectory=agi-%i
 RuntimeDirectoryPreserve=restart
-ExecCondition=sh -c "set -f;git -c safe.directory=$O -C $O show $AGI_TRUNK:.agi/nodes/.geometry/posts.md>/dev/null 2>&1||{ echo [wrong-box] posts.md unreadable at $AGI_TRUNK>&2;exit 255;};h=$(sed -n 's/^AGI_BOX=//p' /etc/agi/carry.env 2>/dev/null);b=$(git -c safe.directory=$O -C $O show $AGI_TRUNK:.agi/nodes/.geometry/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r --arg n %i 'select(.name==$n)|.box');[ x$b = x$h ]&&[ x != x$h ]||{ echo [wrong-box] row=$b here=$h>&2;exit 2;}"
+ExecCondition=sh -c "set -f;git -c safe.directory=$O -C $O show $AGI_TRUNK:.agi/nodes/.geometry/posts.md>/dev/null 2>&1||{ echo [trunk-unreadable] posts.md unreadable at $AGI_TRUNK>&2;exit 255;};h=$(sed -n 's/^AGI_BOX=//p' /etc/agi/carry.env 2>/dev/null);b=$(git -c safe.directory=$O -C $O show $AGI_TRUNK:.agi/nodes/.geometry/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r --arg n %i 'select(.name==$n)|.box')||{ echo [trunk-unreadable] posts.md unparsable at $AGI_TRUNK>&2;exit 255;};[ x$b = x$h ]&&[ x != x$h ]||{ echo [wrong-box] row=$b here=$h>&2;exit 2;}"
 ExecCondition=sh -c '[ ! -e .ssh/out-refused ]||[ .fresh -nt .ssh/out-refused ]||exit 2'
 ExecCondition=sh -c 'type agi-run>/dev/null||grep -qs "^### agi-run " t/.agi/nodes/.geometry/engine.md t/.agi/nodes/.geometry/engine-[pw]*.md||{ [ ! -d t ]&&{ git -c safe.directory=$O -C $O grep -q "^### agi-run " $AGI_TRUNK -- .agi/nodes/.geometry/engine.md ".agi/nodes/.geometry/engine-[pw]*.md";r=$?;[ $r -lt 2 ]||exit 255;[ $r = 0 ];};}||exit 2'
 ExecStartPre=awk -F"[= ]" "/some/{exit $$3>40}" /proc/pressure/memory
