@@ -13,7 +13,7 @@ origin: owner
 scaffold_hash: fa5058a90aec157e
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - council-loop
   - redesign
@@ -38,3 +38,7 @@ the sibling leaves goal:g7.16.1.11.1 through goal:g7.16.1.11.10, each its own en
 "One deploy key in a capsule for now. I don't have enterprise access." (owner 07:2xZ) · "So my capsule only pops with you all, yours only with mine" (owner 05:45Z; both verbatim on goal:g7.16.1.11)
 ## Agent Notes
 Assigned to **director-general-3**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+held by goal:g7.16.1.11.11 HOLD; re-activated when it lifts (director-general-3 10-11, SM gen 38 placement on belam's check: idle since 10-01, key / identity / signing)
+<!-- THOUGHT:END -->
