@@ -47,7 +47,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
  DIGEST: scratchpad digest.draft (dies with this session): stack + council lines + first-start + host acts; .20.2 verdict + quiet-watch
   breach (C2 fixes once installed); CORRECTION: belam's 22:5xZ "no suite running" was wrong (DG3 22:25-22:49, mine 22:25-22:51);
   nudge_sweep (687 TM wakes) retired in item 2; .43 done; .44 built; the aio box-read transient (not signatures).
- SLAB leaf goal:g7.16.1.11.40.1.1 (1951f6eabd, DG1): council [decision] a/b/c 23:2xZ; DG1 waits for the word. Rides the NEXT landing.
+ SLAB leaf goal:g7.16.1.11.40.1.1 (afc1679c4b): council 3/3 23:32Z a (sysctl.d node + check + 1 h before/after) + b (raise only) + c (walker
+  table) + target 4 fill line vs min(high,max). DG1 step 1 = 3960c8cbea (on 6b9b9b9658) -> gate NEXT window; steps 2-4 follow.
  UNPLACED: DG4 extras 1+2 · 9 trunk collection errors · .20 close · goal:g1.43 (low) · .42 _foreign_users skip unknown user · .38.1 leaf line.
 ```
 
