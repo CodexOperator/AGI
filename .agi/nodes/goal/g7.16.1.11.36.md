@@ -43,7 +43,7 @@ goal:g7.16.1.11: Claude Code opens a one-time dialog on a fresh home, "Try the n
 
 ## Falsifier
 The command that decides is the first backticked one (agi-frontier): it exits 0 only when the work is done.
-1. `test -n "$(git grep -n 'fullscreenUpsellSeenCount' -- .agi/nodes/.geometry extensions/agi/bin)"` (0 hits today). It is necessary, not sufficient: the lane below decides.
+1. `git grep -qF '"tui":"default"' -- .agi/nodes/.geometry/engine-wrap.md` (REOPENED 10-10: the settings.json piece carries the key the CLI reads; the count step alone did not suppress the dialog). It is necessary, not sufficient: `extensions/agi/tests/settings-tui.t.sh` decides (a the piece parses · b `.tui == "default"` EXACTLY, so absent / "Default" / "bogus" go RED · c the 4 live hooks survive · d no other renderer key); the count lane (2) stays.
 2. A lane on a scratch HOME (no claude, no network): (a) a fresh home with no `.claude.json` ends with it holding `fullscreenUpsellSeenCount` 3 after the step; (b) a second run leaves the file byte-identical (`cmp`); (c) a home whose file holds other keys and a count of 1 ends with count 3 and `jq -S 'del(.fullscreenUpsellSeenCount)'` equal before and after; (d) a home with count 3 or more is not rewritten (mtime and bytes unchanged); (e) an unparsable file is left byte-identical and the step exits 0. A mutant that writes no key, or writes 2, or rewrites a file that already holds 3, goes RED. The step is the piece extracted from the engine bytes (`sect`), never a copy in the lane.
 3. Negative: `git grep -n 'hasCompletedOnboarding\|oauthAccount\|projects' -- <the new piece>` is empty (no other key is touched).
 
