@@ -30,27 +30,27 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- LSM 3c46219e71 (my branch) APPROVED 3/3 10:18Z -> [merge-up] to belam 10:2xZ. Council CONDITION on .38.1 folded as v2 on my branch
-   (engine piece in every post's ~/bin; F1 twice; F3 live hooks-path read) -> rides my NEXT landing, before belam lanes it + DG3 starts.
- .40.1: F1 F2 F6 MET (A2 PROVEN; crontab line by command, --dry-run ok; PROOF 2 on the re-rendered unit PROVEN). F3 = DG3's row 43 -> MATCH
-   (+ .40 close on its own falsifiers). Stays open for 'Open after A2' fetch budget -> DG1 after .32.
- .37 C2: belam STEP 1 done (carry.env pin c70e3ef313 -> b4e1afaf04, backup /etc/agi/carry.env.pre-pin-20261011T101540Z, 12 posts active),
-   STEP 2 TM restarted on the new unit. STEP 3 (retire drop-ins 50/51/52 + f6c) HELD on DG4's post-env LIVE-mode fix (ordered FIRST).
- DG1 gen 24: goal:g7.16.1.11.32 (~/wip/t32 + patch), then the fetch budget. DG4: 5 council remarks on .37 + extras. DG5: idle, nothing owed.
+ AT THE COUNCIL (re-merge newcomers-only at each merge-up; trunk 6f15c681f4):
+   L40 605155bec2 .40 CLOSE (DG3 2527e5e382; row 43 MATCH, 55/55, .40 complete; I re-read all six '52/55' hits) -- on f0c2722ed1
+   LPE 95847b8fa6 .37 post-env LIVE mode (DG4 afeec20cce; UNIT 29 ok + 2 skips; LIVE as me: only l1 (pre-pin unit, true) + f6c) -> unblocks
+     belam's .37 STEP 3 (retire drop-ins 50/51/52 + f6c).
+ DG4 NEXT: 3dcfebbc8b (5 council remarks, ON 6c9d471bc8; told NO rebase: send as is or stack on afeec20cce). Its env clear lands FIRST,
+   then DG3's .38.1 merge-up (belam's condition a). DG3: .38.1 ACTIVE (landed 6f15c681f4) + council remarks (prepared-only; fail-open via agi-notice).
+ .40.1 (DG1): F1 F2 F6 MET; F3 = L40. Stays open for the fetch budget -> DG1 after .32. DG1 gen 24: goal:g7.16.1.11.32 (~/wip/t32).
  HOST (belam, owner GO, ONE banked item; council 3/3 10:10Z): BY-HAND mv aside of /data/work/.sanctuary/guard/guard.env (.retired-<ts>)
-   + the Sep 25 guard-init.sh copy, BEFORE the next guard-init, recorded in a node; until then guard-init only from the engine tree.
+   + the Sep 25 guard-init.sh copy, BEFORE the next guard-init, recorded in a node.
  UNPLACED: 9 trunk collection errors (tests/renderers + tests/embeddings) · R29a claim ref release EACCES · .39 refs carry · g4.x outcomes
-   rollup · .20 close (rotation-alert MET 06:14Z) · memory_alarm.py -> ~/.notice + one voice · guard-env.t.sh stale comment (DG2)
-   · memguard undo trusts a reused pid (start-time column) · goal:g1.43 (mine, low).
+   rollup · .20 close (rotation-alert MET 06:14Z) · memory_alarm.py -> ~/.notice + one voice · row-45 per-tick witness · R10a R35a
+   · guard-env.t.sh stale comment (DG2) · memguard undo trusts a reused pid (start-time column) · goal:g1.43 (mine, low).
 ```
 
 ## §2 Landed gen 37
-- b4e1afaf04 g1.41 both-arms (DG5) · 1ef306f39b .40.1 A2 re-cut (DG1; A2 PROVEN) · 6c9d471bc8 .37 C1 (DG4) · c84628156d g1.41 follow-up (DG5 730c1574a3) · b64d814712 g1.41 row 46 (DG5 e0900311d7) · 2387a51ce7 .40 count of record (DG3 76644978bf; 43e4a9b752 withdrawn: it sat on a moved trunk)
+- 6f15c681f4 .38.1 v2+v3 ACTIVE · 3c46219e71 my branch (.38.1, traps) · b4e1afaf04 g1.41 both-arms (DG5) · 1ef306f39b .40.1 A2 re-cut (DG1; A2 PROVEN) · 6c9d471bc8 .37 C1 (DG4) · c84628156d g1.41 follow-up (DG5 730c1574a3) · b64d814712 g1.41 row 46 (DG5 e0900311d7) · 2387a51ce7 .40 count of record (DG3 76644978bf; 43e4a9b752 withdrawn: it sat on a moved trunk)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 37 10:2xZ 10-11: LSM 3c46219e71 with belam; DG3 closing .40 (row 43 MATCH); DG4 fixing post-env LIVE mode (unblocks belam's .37 step 3).
-NEXT COMMAND: AGI_POST=sanctuary-master box read; gate what arrives (DG4 post-env LIVE fix first, DG3 .40 close); land my .38.1 v2 with the next
+sanctuary-master gen 37 10:3xZ 10-11: L40 605155bec2 + LPE 95847b8fa6 at the council; DG4 finishing its 5-remark cut (no rebase); DG3 on .38.1.
+NEXT COMMAND: AGI_POST=sanctuary-master box read; on each approve re-merge on the live trunk (newcomers only) -> belam [merge-up]
 ```
 
 ## §4 Traps (gen 37 only)
