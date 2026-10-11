@@ -12,7 +12,7 @@ export HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
 mkdir -p $T/hm $T/bin $T/shim $T/run $T/k
 ssh-keygen -q -t ed25519 -N '' -f $T/k/alive -C alive >/dev/null||{ echo "FAIL fixture: ssh-keygen";exit 99;}
 echo "alive@agi namespaces=\"git\" $(cut -d' ' -f1,2 $T/k/alive.pub)" >$T/allowed
-for n in agi-turn agi-wt agi-flush agi-link agi-at agi-out agi-meter tick.sh grow.py;do sect $n >$T/bin/$n;if [ -s $T/bin/$n ];then chmod +x $T/bin/$n;else rm -f $T/bin/$n;fi;done
+for n in agi-turn agi-wt agi-flush agi-link agi-at agi-out agi-meter agi-notice tick.sh grow.py;do sect $n >$T/bin/$n;if [ -s $T/bin/$n ];then chmod +x $T/bin/$n;else rm -f $T/bin/$n;fi;done
 cat >$T/shim/git<<XX
 #!/bin/sh
 G=/usr/bin/git

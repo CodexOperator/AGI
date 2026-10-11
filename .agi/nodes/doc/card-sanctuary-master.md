@@ -31,10 +31,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 QUEUE (gen 35), in order:
- (0) DONE: build_kind (A) landed 7ac20cd62a (council self-perpetuating 22:01:54Z, belam ff) -- first council-route landing. g1.43.1 + rows 14-18 LANDED 107388a1b1 (council alive 22:11Z). level3.py hand-run ban (both modes mint illegal shapes) = 3 lines: commands.md level3 reason, skill agi-node-write §3, CLAUDE.md:79-80 (landed 0d980eaa5e + 606f1ea445); TIME-BOXED by g1.43.1's close condition; no 4th copy in agi-verify (CLAUDE.md reaches v5). g1.43.1 residue text landed cd0aa3d261; council rows folded = DG1 cb662784c0 -> council [review] 23:1xZ
  (1) .8 LANDED d50c519dde (council alive 00:46Z; 3rd send, 2 returns: -z fail-open, CR+LF twin + new-deprecated parent). Residues = goal:g7.16.1.11.8.1 (mine, record only, HOLD); two-parser residue -> g1.43.1 (DG1 879e32e663)
  (2) LANDED 10-11: .36 tui 80a193ae73 (leaf .36.1 hooks-loaded; belam banked a claude pin, gate = RUN the new binary) · .20 v5 alert c6f2d759a5 (leaf .20.1; DG4 'restarted fresh' 128ae202c8 gating). MEASURE: first director restart -> [rotation-alert] in my box. box-wake.t.sh leaks under load (341 procs, DG4 01:0xZ) -> DG2 fixing. Inbox-retire cut HELD.
- (4) goal:g1.43 (mine; low): rows 2-19. Row 6: .34 body :38 still pre-fix. · (5) LOOP END (owner: not optional): outcomes -> MY bigger_outcomes -> council reviews -> overview nodes -> belam. None written since 10-08.
+ (3) goal:g7.16.1.11.37 retire AGI_SEAT (owner 02:4xZ: 'agi seat shouldn't be used anymore'; belam's drop-in 52-post-env = live half 299337b255) -> DG4: unit AGI_POST+AGI_BOX, pieces, ONE python helper (56 hits / 13 files), lane · .38 strand guard, both directions (council: own leaf NOW) -> DG3 · .39 refs carry (record; [red] to belam: local-town refs/archive?) · rollup on .11 must place ONE parity leaf (15 rows) + fence trend/eviction rule
+ (4) goal:g1.43 (mine; low): rows 2-19. Row 6: .34 body :38 still pre-fix. · (5) LOOP END: 15 outcomes written (mine 4, DG1 6, DG5 2 -- g4.x ones not yet rolled up) -> 3 bigger_outcomes (engine two debts · trust fails closed · host holds truth) -> council; NEXT: overview nodes -> belam. Parity leaf .40 placed-pending; close-on-falsifier rule in skill agi-goal
  WAITING: the OWNER via belam on host-act GOs (.4 .7 .11.1 .12 ring install .18 units) + the season-close set; .15 W = council design
 ```
 
@@ -46,8 +46,8 @@ QUEUE (gen 35), in order:
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 35 01:3xZ 10-11: .8/.36/.20 landed; DG4 128ae202c8 (alert body) + my leaves .20.1 to the council; DG2 box-wake fix pending
-NEXT COMMAND: AGI_POST=sanctuary-master box read; on [approve <L>]: box belam [merge-up] ff-only <L> · council: <post> approve <ts>; watch refs/box/*/sanctuary-master for the first [rotation-alert]
+sanctuary-master gen 35 04:05Z 10-11: e2b21c3bdd landed. OVERVIEWS: aio efc53afbdb + sp 4e5c935f1c (overview blob ONLY, no key/card) in; alive pending -> ONE landing -> [complete] belam. belam [red] stale pieces: 5 posts syncing by hand (alive DONE f373f24f60); leaf .41 (pieces from trunk). Lanes for DG3 .38: graph-metrics r2d/r2e to attribute
+NEXT COMMAND: AGI_POST=sanctuary-master box read; on [approve <L>]: box belam [merge-up] ff-only <L> · council: <post> approve <ts>; gate DG4's .37 tip (lane: AGI_POST only, no AGI_SEAT); watch refs/box/*/sanctuary-master for the first [rotation-alert]
 ```
 
 ## §4 Traps (rules live in skills)
@@ -63,13 +63,13 @@ NEXT COMMAND: AGI_POST=sanctuary-master box read; on [approve <L>]: box belam [m
 | a sed/grep mutant check that greps the mutated line | a trailing comment defeats `...$`: apply mutants with python asserts and print the line |
 | belam's board edits between mine | git status + re-read the row before a scripted replace; assert the old text, never blind-replace |
 | the privacy guard can REFUSE a card commit silently | git status --porcelain on the card after the commit; write 'home-path' in prose · grid commit is RETIRED (owner 01:3xZ 10-08): never run grid.py commit (belam 22:0xZ) |
-| inbox notices can VANISH (goal:g1.40) | a branch named in a later notice but never received = ask its sender |
+| a sha typed into a box message before reading it (gen 35: 'ce62..'/'4fb...'/'2abb...' sent 3x, each corrected) | name a sha only by pasting it from git output in the SAME command that sends; never a placeholder |
 | `send.py read ... | head` marks ALL read | redirect to a scratch file, then read it whole |
 | the old send.py route (owner 04:5xZ: box only) | never send.py send / inbox writes / SendMessage; box send as sanctuary-master only |
 | mur reviewers detached MAIN HEAD (3x) | after every mur: git symbolic-ref HEAD before any landing |
 | agi-merge-up-review review stage can be HOLLOW · a row I hand a director cited a DOCSTRING (gen 31 E: send.py:937-950 said AGI_AGENT_ID then AGI_SEAT; the code puts AGI_POST first -> g24 returned twice) | the FINAL verify stage decides; reproduce each unrefuted residue yourself before returning; read every citation I send -- returns AND placements -- down to the CODE line, never a header comment (broke it again 04:3xZ: --fetch 'retries a failed push' from engine-root.md:104's comment; the retry is hub-only at :118) |
 | a re-cut patched on patch (E2b0 returned 3x on parse classes) | after the 2nd return on one input class, return with a DESIGN direction, not a 4th shape list |
-| a bare `git read-tree` (no tree-ish) = EMPTIES the index, rc 0 (gen 32: I ran it in my live gate tree as a probe) | probe git semantics on a scratch repo only; restore with `git reset -q` |
+| agi-flush ends EVERY turn with `git checkout -q --detach posts/<post>` once AGI_POST is set (gen 35 02:48Z: ce62fd324d stranded to the reflog, no line) | after every commit in ~/t: `git update-ref refs/heads/posts/sanctuary-master HEAD <old>` (ff); a cherry-pick here cannot clear its state (packed-refs.lock) -> rm the worktree's CHERRY_PICK_HEAD |
 | `git merge-tree --write-tree` on CONFLICT prints the tree id + the list | read its rc; ALWAYS check D = 0 |
 | a .t.sh run with bash (false reds) · `env -i` drops the user-site pytest | run every .t.sh with sh (dash) · PYTHONPATH=$(python3 -c 'import pytest,os;print(os.path.dirname(os.path.dirname(pytest.__file__)))') |
 | a Bash call that hits its 120 s timeout is MOVED to the background and keeps running (gen 31: a grep -rl over .agi/ ran 19:00-21:01Z = belam's io storm; I reported it done) | never a recursive search over .agi/; on a 'moved to the background' notice, stop it at once (TaskStop) unless it is wanted |

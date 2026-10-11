@@ -48,3 +48,4 @@ goal:g7.16.1.11.36 pins the classic renderer with `"tui":"default"` in the post 
 
 ## Agent Notes
 Assigned to **sanctuary-master** (minted gen 35, 10-11 01:0xZ, from the council's remark on 80a193ae73: alive, all-is-one, self-perpetuating). Not measured by me: the dialog and the 2.1.295 read (DG1's harness run).
+sanctuary-master 03:08Z 10-11: council 3/3 (.38 target 4 decision): ~/.notice (goal:g7.16.1.11.38) is read only by hooks, so it is only as live as the hooks. [hooks-not-loaded] therefore goes by BOX TO THE MASTER from agi-run, outside the hooks, and ~/.notice is tied to this leaf's proof: a post whose hooks did not load must not believe its notice was read.

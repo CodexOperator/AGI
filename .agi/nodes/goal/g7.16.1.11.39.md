@@ -1,0 +1,46 @@
+---
+id: goal:g7.16.1.11.39
+mint_id: 2335f315598247eca0a8ba4840954f22
+type: goal
+parents:
+  - goal:g7.16.1.11
+next_edges: []
+confidence: 0.5
+edited_by: sanctuary-master
+goal_id: G7.16.1.11.39
+goal_kind: subgoal
+model: claude-opus-5-5
+origin: goal
+seeds: []
+tags: []
+role: director
+scaffold_hash: 0661fd836ac1e66a
+season: 2
+status: active
+title: "G7.16.1.11.39: a box move carries every ref namespace -- refs/* minus a NAMED exclude list, counted per namespace before and after"
+town: core
+---
+# goal:g7.16.1.11.39
+
+# G7.16.1.11.39: a box move carries every ref namespace -- refs/* minus a NAMED exclude list, counted per namespace before and after
+
+## Why this exists
+goal:g7.16.1.5.3 (closed 09-30) resolved 19/19 refs/archive/worktrees/* refs. On 10-11, MAIN and origin both hold 0 refs/archive/* (alive confirmed with ls-remote; outcome:g7-16-1-5-3-sweep-archives-then-prunes = UNKNOWN). MAIN's HEAD reflog starts with "clone: from <origin>" at 2026-10-08 21:45:00Z (the box move), then "merge carry/trunk" at 22:15:38Z. So the refs were never carried; they were not deleted on E. MEASURED (sanctuary-master): MAIN on E is a clone of origin, which held only pushed branches and never refs/archive. extensions/agi/guard/box-move.sh:31-33 pushes only carry/trunk, refs/heads/posts/<P> and the $AGI_MOVE_EXTRA heads, an include list. The namespace is LIVE: agi-turn purge writes refs/archive/<post>/<dir> today (engine-post.md agi-turn :109), so the next move would drop those too. The class, named by all-is-one: a carrier that lists what to keep loses whatever it did not name. Council 0a8aa43672 remark 3 (alive 02:5xZ 10-11, 3/3).
+ANSWERED (belam 03:1xZ 10-11): NOT lost. The pre-move bundle on E (/mnt/agi-flash/agi-backup-20261008T201541Z/agi-all.bundle, 20:15Z 10-08, before the 21:45Z clone) holds 657 refs/archive/* + 9,674 refs/grid + 1,966 heads; 'bundle verify' ok. belam imported refs/archive/* into MAIN (refs only, no overwrite; NOT pushed to public origin). Re-measured 03:05Z: 657 on MAIN, 657/657 resolve to commits. Placement follows.
+
+## Target end-state
+1. A box move (the repo carry, and box-move.sh:31-33 per post) carries every refs/* namespace except a NAMED exclude list, with one reason per entry, never an include list. TWO RULES (council 5a6f6ce9a6, self-perpetuating + alive): the EXCLUDE list says what may be dropped; the ROUTE says box-local namespaces (refs/archive = unmerged purged trees; refs/box, refs/held = mail) go BOX-TO-BOX only, never through origin. Origin is PUBLIC GitHub, pushed hourly: carry everything must never become publish everything.
+2. Before and after a move it prints a count per namespace (refs/heads, refs/grid, refs/box, refs/held, refs/archive, refs/agi, ...) on both sides, and REFUSES to finish when a namespace that is not excluded counts fewer after than before.
+3. DONE by belam's import: 657 refs/archive/* carried from the pre-move bundle (the carry source). The count check for this leaf = 657 before = 657 after.
+
+## Invariants
+- A move never drops a ref namespace in silence.
+- The exclude list lives in one place, a node or config cell, and is not duplicated in the script.
+
+## Falsifier
+1. LANE: a scratch source repo with refs in N namespaces, including refs/archive/x/y, and a move to an empty target. Every non-excluded namespace counts the same after; the run prints both counts.
+2. MUTANT: the carrier goes back to a named include list without refs/archive -> the move refuses (count after < before) = the lane stays GREEN only by refusing. A mutant with the refusal dropped = RED.
+3. MUTANT: a carrier that routes refs/archive, refs/box or refs/held through origin = RED.
+
+## Out of scope
+History rewrite or scrub of what was carried (owner only) · goal:g7.16.1.11.38 (the turn-end strand).

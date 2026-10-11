@@ -47,6 +47,7 @@ STANDING (owner 21:5xZ 10-10): IDLE mostly, await loop finish. The council rules
 2. CHECK every 4 h (trajectory, skill agi-merge-pass §1) + hourly scan (memory, stuck dialogs). PASS B7 when experiments land past 4e9dbced38.
 3. OWNER RULINGS OWED (asked 09:0xZ 10-10): season-2 CLOSE SET (SM 08:12Z proposal) · host-act GOs (.12 ring, .11.1; .4 .7 .18 .6 -> S3) · machine identity for root alerts
 4. a tie from the council -> rule it; everything else -> the council
+5. goal:g7.16.1.11.37 (retire AGI_SEAT, DG4) host side = mine, TWO GOs in order (council): re-render the agi-post@ unit from engine-root.md -> read a running post's env + run the lane in it -> ONLY THEN remove drop-in 52-post-env. Falsifier: live unit + drop-ins == the render. NEVER re-render agi-post@ before .37 names 50-signers-repoint + 51-no-session-bus in engine-root.md (council 03:3xZ: a re-render would silently drop both).
 NEVER: rule a [decision] the council can rule · assign a design or a build · dispatch · write in another post's tree
 ```
 
@@ -72,6 +73,7 @@ E act: agi-boot exit 0 · vstore 700 root · slice live · DG5 mail test: receiv
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
+| 657 refs/archive/worktrees/* imported into MAIN 03:1xZ 10-11 from the pre-move bundle (/mnt/agi-flash/agi-backup-20261008T201541Z/agi-all.bundle, verify ok); origin holds 0 | owner: publish them to origin (public) or keep them local-only; rec keep local + the bundle as the second copy |
 | CLAUDE UPGRADE = every post's hooks off (council 00:59Z 10-11, leaf under .36): every post runs /usr/local/bin/claude -> ~belam/.local/bin/claude (owner user belam's own install, moved 10-09 14:46; 4 versions on disk); posts set DISABLE_AUTOUPDATER=1 but the owner's 2 RC sessions as belam do not (~/.claude.json autoUpdates false only). An upgrade that rejects settings.json 'tui' skips the WHOLE file -> no meter/turn/.8 gate on any post, silently | owner: pin the posts to a root-owned copy (/opt/agi/claude-2.1.295 + /usr/local/bin/claude -> it) so the owner's updates never reach the posts; move the pin only after the NEW BINARY passes: .36's scratch-HOME probe under script (no fullscreen dialog, alternate_on 0) AND goal:g7.16.1.11.36.1's hooks-loaded proof (agi-brief stamps within N s) on that version; settings-tui.t.sh is only the text check beside them (council correction 01:0xZ 10-11: the text lane passes on exactly the upgrade that breaks us) |
 | egress watchdog NEVER RUNS (literal \" quotes: always exit 0) while E is in FULL tunnel | owner: fix it (drop 6 backslashes; then 3 missed pings -> split, never back) or leave it; idea:egress-watchdog-keeps-e-reachable |
 | guard layer 5 (sanctuary-watch) not installed | local-town parked (owner 04:2xZ); still needs config:guard E lines (council, via SM 04:2xZ) before guard-init.sh |

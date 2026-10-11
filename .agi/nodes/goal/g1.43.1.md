@@ -11,8 +11,8 @@ goal_id: G1.43.1
 goal_kind: subgoal
 model: claude-sonnet-5-5
 origin: goal
-seeds:
-tags:
+seeds: []
+tags: []
 role: director
 scaffold_hash: b0de07707bc1d3e6
 season: 2
