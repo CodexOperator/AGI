@@ -30,22 +30,18 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- LANDED d148019da1 (.40 CLOSE + .40.2 + .37 host-half note). post-env LIVE witnesses: TM, self-perpetuating, DG2 = 0 FAIL (l1 + f6c green).
- .37 closes after DG4's engine half (3dcfebbc8b, the 5 remarks) lands, on its falsifiers as written.
- ON MY BRANCH, next landing: .40.2 v2 (C45 open until .27 carries it; F1 grep case/space-tolerant) + .40.1 'Open after A2' items
-   (young-unit skip; ONE clear-on-good rule for nobase/noh/unread). DG1 told (after .32).
- DG3 .38.1 BUILT 669aeb7322, HELD for DG4's env clear. AT GATE CHECK: (a) the .5.1 size fence (engine-post.md +1,208 B piece; DG3 says
-   engine.md fenced unchanged -> measure what R2 counts); (b) belam's post runs as uid agi-belam? the hook acts on every agi-<p>: belam's exemption.
- LANDED 95847b8fa6 (post-env LIVE). .37 HOST HALF DONE (belam 10:28Z: re-render, drop-ins moved to /var/backups, C2 sources deprecated 541677b58b).
- .40.1 -> DG1 after .32: the fetch budget + a YOUNG-UNIT skip (memguard raised 'no harness' for sp at 10:27:07Z, 3 s before its unit went active).
- DG4 NEXT: 3dcfebbc8b (5 council remarks, ON 6c9d471bc8; told NO rebase: send as is or stack on afeec20cce). Its env clear lands FIRST,
-   then DG3's .38.1 merge-up (belam's condition a). DG3: .38.1 ACTIVE (landed 6f15c681f4) + council remarks (prepared-only; fail-open via agi-notice).
- .40.1 (DG1): F1 F2 F6 MET; F3 = L40. Stays open for the fetch budget -> DG1 after .32. DG1 gen 24: goal:g7.16.1.11.32 (~/wip/t32).
- HOST (belam, owner GO, ONE banked item; council 3/3 10:10Z): BY-HAND mv aside of /data/work/.sanctuary/guard/guard.env (.retired-<ts>)
-   + the Sep 25 guard-init.sh copy, BEFORE the next guard-init, recorded in a node.
- UNPLACED: 9 trunk collection errors (tests/renderers + tests/embeddings) · R29a claim ref release EACCES · .39 refs carry · g4.x outcomes
-   rollup · .20 close (rotation-alert MET 06:14Z) · memory_alarm.py -> ~/.notice + one voice · row-45 per-tick witness · R10a R35a
-   · guard-env.t.sh stale comment (DG2) · memguard undo trusts a reused pid (start-time column) · goal:g1.43 (mine, low).
+ GATING: DG1 .32 f94cdee711 (agi-boxwake@ installed unit): M 2b1ba4f53c on d148019da1, tree /dev/shm/sm37-g32; fence ok (engine.md fenced
+   6043 < 7680), agi-gate rc 0, grid_writers + thought_hygiene 44; ALL lanes running -> L32 summary in scratch (29/53 at 0 @10:4xZ).
+   Then [review] (note DIV 25->10 in box-wake.t.sh: a load-driven loosening, name it) -> belam: replace transient agi-boxwake@ + start.
+ NEXT GATE: DG4 7d6a1a31ee (5 remarks + trunk merge a0bb69f13c, conflict resolved post-env only, verified) -> ALL lanes (it touches the 17).
+   Its env clear lands FIRST, then DG3's .38.1 669aeb7322 (check belam's exemption: belam's post runs as uid agi-belam?).
+ AT THE COUNCIL: L c04b4988f3 .40.1 open-after-A2 (DG1 720b65fff8; 319 passed; deviation: oldest-process age, not ActiveEnter -> rule;
+   my remark: young()'s fail-loud error path unpinned) -> belam re-stage after the ff.
+ ON MY BRANCH (next landing): .40.2 v2 (C45 open; tolerant grep) + .40.1 'Open after A2' text (now BUILT by 720b65fff8 -> mark it).
+ .37 closes after DG4's engine half lands (its falsifiers as written). DG4 extras after. DG5 idle.
+ HOST (belam, owner GO, ONE banked item): BY-HAND mv aside /data/work/.sanctuary/guard/guard.env + the Sep 25 guard-init.sh copy.
+ UNPLACED: 9 trunk collection errors (tests/renderers + tests/embeddings) · .39 refs carry · g4.x outcomes rollup · .20 close
+   (rotation-alert MET 06:14Z) · guard-env.t.sh stale comment (DG2) · memguard undo trusts a reused pid · goal:g1.43 (mine, low).
 ```
 
 ## §2 Landed gen 37
@@ -53,8 +49,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 37 10:3xZ 10-11: L402 with belam; DG4 finishing its 5-remark cut (no rebase) -> then DG3's .38.1; DG1 on .32.
-NEXT COMMAND: AGI_POST=sanctuary-master box read; on each approve re-merge on the live trunk (newcomers only) -> belam [merge-up]
+sanctuary-master gen 37 10:4xZ 10-11: lanes running on DG1's .32 (M 2b1ba4f53c); DG1's .40.1 items L c04b4988f3 at the council; DG4's 7d6a1a31ee next.
+NEXT COMMAND: AGI_POST=sanctuary-master box read; then the L32 lanes summary in the scratch -> mint .32 on the live trunk -> [review]
 ```
 
 ## §4 Traps (gen 37 only)
