@@ -613,7 +613,7 @@ def _fake_proc(tmp_path, rows):
     return proc
 
 
-def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, over=None):
+def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, over=None, grow=None):
     """Run the RENDERED loop for `passes` passes on a fake clock (`tick` s per pass); avails[i] = MemAvailable in bytes
     for pass i (default: plenty). Returns (adj, stops, runs, ev): the SIGSTOPped pids, the logger/other run() calls and
     ev = what the loop did besides: conts (SIGCONT pids), boxes ([(argv, stdin text)] of every Popen), clock."""
@@ -635,6 +635,8 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
     def setavail(i):
         a = avails[min(i, len(avails) - 1)]
         (proc / "meminfo").write_text("MemTotal: 33554432 kB\nMemAvailable: %d kB\n" % (a // 1024))
+        for pid, pages in (grow or {}).get(i, []):          # a process that grows at pass i
+            (proc / str(pid) / "statm").write_text("10 %d 1 1 0 1 0\n" % pages)
     setavail(0)
     def _sleep(s):
         clock[0] += tick; n[0] += 1
@@ -732,10 +734,11 @@ def test_memguard_red_alerts_are_written_to_each_recipients_notice_by_their_own_
         assert argv[:4] == ["timeout", "30", "runuser", "-u"] and argv[5] == "--" and argv[6] == "env", argv
         assert argv[7] == "HOME=%s/%s" % (v["MEMGUARD_STORES"], argv[4][len("agi-"):]), argv       # the recipient's own home
         assert argv[8:10] == ["sh", "-c"] and "agi-notice add" in argv[10] and ".notice" in argv[10], argv
-        assert text.startswith("[memguard-susp] SUSPENDED pid 21") and "unit" in text and " (ev " in text, text
-    # one line per kind per cooldown: a second SUSPENDED in the same minute is journaled, not written again
+        assert text.startswith("[memguard-susp-21] SUSPENDED pid 21") and "unit" in text and " (ev " in text, text
+    # a stop line is keyed by its pid: a second stop in the same minute is NOT swallowed (a frozen pid in silence is the failure)
     adj, stops, runs, ev = _guard_pass(tmp_path / "two", _post_unit(big=(21, 23)))
-    assert stops == [21, 23] and len(ev.boxes) == len(tos), (stops, len(ev.boxes))
+    assert stops == [21, 23] and len(ev.boxes) == 2 * len(tos), (stops, len(ev.boxes))
+    assert sorted({b[1].split(" ")[0] for b in ev.boxes}) == ["[memguard-susp-21]", "[memguard-susp-23]"], ev.boxes
 
 
 def test_memguard_the_rendered_code_holds_no_signing_mail_or_key_path(tmp_path):
@@ -762,12 +765,31 @@ def test_memguard_a_red_alert_reaches_each_recipients_own_notice_through_the_rea
     for to in tos:
         f = stores / to / ".notice"
         lines = f.read_text().splitlines()
-        assert len(lines) == 1 and lines[0].startswith("[memguard-susp] SUSPENDED pid 21"), (to, lines)
+        assert len(lines) == 1 and lines[0].startswith("[memguard-susp-21] SUSPENDED pid 21"), (to, lines)
         assert f.stat().st_uid == os.getuid()            # created by the recipient's uid, not by the guard as root
     out = subprocess.run([str(stores / tos[0] / "bin" / "agi-notice")], env={"PATH": os.environ["PATH"], "HOME": str(stores / tos[0])},
                          capture_output=True, text=True).stdout       # the post's own printer shows it once
-    assert out.startswith("[memguard-susp] SUSPENDED pid 21"), out
+    assert out.startswith("[memguard-susp-21] SUSPENDED pid 21"), out
     assert not (stores / tos[0] / ".notice").exists()
+
+
+def test_memguard_a_low_stop_then_a_size_stop_of_another_pid_inside_the_cooldown_write_both_lines(tmp_path):
+    tos = _vs()["MEMGUARD_ALERT_TO"].split()
+    avails = [GIB // 2, 3 * GIB, 3 * GIB]                 # pass 0: low memory stops 50; pass 1: 21 grows past 70% (5 s later)
+    adj, stops, runs, ev = _guard_pass(tmp_path, _runaway_alone(), passes=3, avails=avails, grow={1: [(21, 7_000_000)]})
+    assert stops == [21, 50], stops
+    for to in tos:                                       # BOTH lines reach EACH recipient, the second inside the 600 s cooldown
+        said = sorted(b[1].split(" ")[0] for b in ev.boxes if b[0][4] == "agi-" + to)
+        assert said == ["[memguard-susp-21]", "[memguard-susp-50]"], (to, said)
+
+
+def test_memguard_a_size_stop_that_stays_stopped_is_named_again_after_the_renotify_interval(tmp_path):
+    again = int(_vs()["RENOTIFY_S"]); tos = _vs()["MEMGUARD_ALERT_TO"].split()
+    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(big=(21,)), passes=6, avails=[3 * GIB] * 6, tick=again // 2 + 1)
+    for to in tos:
+        said = [b[1].split(" ")[0] for b in ev.boxes if b[0][4] == "agi-" + to]
+        assert said[0] == "[memguard-susp-21]" and said.count("[memguard-still-21]") == 2, (to, said)   # at ~1x and ~2x, not every tick
+    assert any("STILL STOPPED pid 21" in b[1] and "resume by hand" in b[1] for b in ev.boxes)
 
 
 def test_memguard_resumes_a_low_memory_stop_after_the_hysteresis_and_names_unit_and_pid(tmp_path):
@@ -775,7 +797,7 @@ def test_memguard_resumes_a_low_memory_stop_after_the_hysteresis_and_names_unit_
     adj, stops, runs, ev = _guard_pass(tmp_path, _runaway_alone(), passes=10, avails=avails)
     assert stops == [50] and ev.conts == [50], (stops, ev.conts)        # stopped once, CONTed once (after 30 s held)
     texts = [b[1] for b in ev.boxes]
-    assert any(m.startswith("[memguard-resume] RESUMED pid 50") and "unit session-9.scope" in m for m in texts), texts
+    assert any(m.startswith("[memguard-resume-50] RESUMED pid 50") and "unit session-9.scope" in m for m in texts), texts
 
 
 def test_memguard_does_not_resume_on_a_flap_or_a_size_stop(tmp_path):
