@@ -132,13 +132,14 @@ def test_shell_cmd_exports_seat_only_when_seat_given():
         "--remote-control s")
     seated = rotate._shell_cmd(["claude", "--remote-control", "s"], None,
                                seat=SEAT)
-    # (a.2, amendment e) the AGI_POST/AGI_SEAT export still rides before the
+    # (a.2, amendment e) the AGI_POST export still rides before the
     # claude process — but claude is now WRAPPED, so the raw `&& claude`
     # adjacency is gone: the export launches `rotate.py launch-wrapper --seat
     # <seat> --` which is the direct parent of claude. The export (AGI_POST
-    # primary, AGI_SEAT deprecated alias) and the claude argv both survive;
-    # the wrapper insertion is the only change.
-    assert seated.index("AGI_SEAT=" ) < seated.index("claude")
+    # only; AGI_SEAT is retired, goal:g7.16.1.11.37) and the claude argv both
+    # survive; the wrapper insertion is the only change.
+    assert seated.index("AGI_POST=") < seated.index("claude")
+    assert "AGI_SEAT" not in seated
     assert "launch-wrapper" in seated
     assert " -- claude --remote-control s" in seated
 
