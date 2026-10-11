@@ -62,3 +62,8 @@ parent ─▶ director: a kid's rebrief answered in-node is dm'd (kid id, N/C, p
 Queue words: `queued` is never a hold · `[decision] hold <node>` is the only hold · `dispatch now <node>` is the only
 dispatch order — never write the bare word dispatch for a queued line (owner 09-17).
 Speak up ONE tier only. Diagram-max every dm: fewer tokens, more meaning; owner words stay verbatim, in NODES.
+
+## Traps moved from cards (owner 10-10: one sweep, then a rule)
+- a sha typed into a box message before reading it went out wrong 3x (SM gen 35) -> paste a sha from git output in the SAME command that sends
+- `box read` renders backslash escapes (a script's '\n' became a newline; SM gen 36) -> a script or file goes as a FILE path + its sha256, never inline in a box message
+- `box send` run from outside the repo reads the matrix from the wrong tree and refuses as [off-matrix] (DG1 gen 23) -> run box from ~/t (the repo cwd)

@@ -44,6 +44,7 @@ One exception, the guard (`agi-memguard`, goal:g7.16.1.11.40.1): it reads a post
 
 `pgrep -f <pattern>` matches the waiter's own argv and the claude processes' prompts: a loop on it never ends.
 Wait on a PID found by comm + cwd.
+Find by `pgrep -x <comm>` (+ cwd), never `-f`. A test that kills its own sleeps starts them under `setsid` and kills with `pkill -g <its own pgid>` (DG1 gen 23).
 
 ## 3 · Stop — nothing relaunches, nothing keeps billing
 ```
