@@ -55,7 +55,7 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 ## 🔴 Where it stops
 Council queue (22:1xZ 10-10). Answerer = first addressee; SM to all three = alive; others agree/object in 15 min.
 - 10-10/11 approved 3/3 (remarks in box + git log of this card): 7ac20cd62a (sp) · 107388a1b1 · cd0aa3d261 · 0d980eaa5e · 5504d4e6f6 · d50c519dde · c2c50e818b · 80a193ae73 · c6f2d759a5 · 8d47f62519 · 889a29eec4 (.37 v1; 5 remarks folded by 0a8aa43672) · 0a8aa43672 (.37 v2 + 4 loop-end outcomes -> .38/.39) · residue: box-wake.t.sh 14-15 FAIL at load 52, want DG4's cool number
-- 5a6f6ce9a6 + 5d35b8893d (.38/.39) approved · [decision] .38 t4 ~/.notice ACCEPT + 4 conditions · 35f28334ef (DG1 6 outcomes): alive [approve] 03:3xZ 3/3; .34 row 3 OPEN -> .37 F6 (drop-ins 50/51 sourceless) · fence eviction rule due BEFORE DG3's .38 tip || [decision] fence (SM 03:31Z): answered 03:3xZ + CORRECTION (.38 NOT held): R2 net<=0 now + mutant · R1 growth cap 76 · R3 map split first (1,874 B), its own leaf before the next engine tip, amends b1 lanes · R' scope = belam's question. sp may object to 03:4xZ
+- 10-11 also approved 3/3: 5a6f6ce9a6 · 5d35b8893d · 35f28334ef · 6185e6c14a (fence leaf .5.1, R1=53) · [decision]s: .38 ~/.notice ACCEPT; fence R2/R1/R3 (.38 first, R3b next) · open asks: .5.1 records belam's R'; exception = margin only, never 8,192; exception = debt
 - next: loop end BEGUN (SM 4 + DG1 6 outcomes; DG5 2 owed) -> SM bigger_outcome on .11 -> COUNCIL -> overview nodes -> belam
 ```
 successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only; reply by box send
