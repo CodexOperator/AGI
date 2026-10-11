@@ -427,6 +427,7 @@
     "PROTECT_COMM",
     "PROTECT_NICE",
     "PROTECT_OOM_ADJ",
+    "RENOTIFY_S",
     "RESUME_FACTOR",
     "RESUME_HOLD_S",
     "SPIKE_BYTES",
@@ -434,7 +435,7 @@
     "SUSPEND_RATIO"
    ],
    "new_bytes": false,
-   "fixture_sha256": "e0c54b4815fbea9729a3f9ca1d6ecb032733b4c03325a8b703f5cf6e924f18e8"
+   "fixture_sha256": "22e7d7b2feedf1220864957c52d96cb4d6bf486e650f8b6e3056c253e233a0be"
   },
   {
    "name": "health-script",
