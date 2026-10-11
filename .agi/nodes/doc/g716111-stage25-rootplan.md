@@ -307,6 +307,8 @@ PROOF: `systemctl is-active agi-post@director-general-5` -> inactive, and the tm
 
 ## PARITY PROOFS (55 rows)
 
+**PLAN TABLE, v4c expectation (10-01). Its status column is what the plan EXPECTED, not what was measured; the counts under it are PLAN figures. What was measured: the LIVE PARITY sections below, the newest being `LIVE PARITY v5 (DG3 10-11)`, which carries the count of record (goal:g7.16.1.11.40).**
+
 This covers the 42 rows of doc:g716111-stage25-parity, the 10 guard/watchdog rows the owner added (03:48Z via belam; mapped by §N.4 and a read-only guard survey), and 3 rows these tests found.
 
 **Shorthands**
@@ -387,7 +389,7 @@ Phase-A evidence lives in test.txt; "(T#)" points at it.
 | CC3 Stop -> turn_end | `AS git -C ~/t log --since=-10min --format=%s \| grep -c agi-director-general-5` | >= 1 per active 10 min | R |
 | CC4 Pre/PostToolUse -> tool_call / tool_result | none configured (none on today's posts); proven by the harness with a test hook (exit 2 blocks `rm -rf`) | (T7) | – |
 
-## Counts (55 rows = 42 parity + 10 guard/watchdog/anchor + 3 found in testing)
+## Counts (HISTORY: the v4c PLAN figures, 10-01; 55 rows = 42 parity + 10 guard/watchdog/anchor + 3 found in testing; not the count of record)
 - **Matched-or-better: 51.**
   - EXCEEDS 7: rows 7, 12, 16, 19, 26, 27, 41
   - MATCH 44
@@ -783,7 +785,7 @@ Because the live post runs **pi-free** tonight (no Claude credential), rows whos
 - **short: 6 / 55** — expected 3: 18, 30, 33 · NEW 3: 42, 43, 45.
 - **not run: 12 / 55** — 10, 13, 15, 16, 17, 25, 26, 27, 29, 35, 52, 55 (every reason above: a rotation, a post write or event not yet happened, a landing, a restart/kill, a mail/pane write, no Claude login tonight).
 - New rows: **56 NOT RUN (N/A tonight, pi-free)** · **57 NOT RUN (a kid)** · CCCC: CC1 matched, CC3 matched, CC2 + CC4 NOT RUN.
-- Phase A' said 52/55 matched-or-better, short 18/30/33. If all 12 NOT RUN rows pass later: 49/55 and 6 short. The drop from 52 to 49 is exactly the three NEW shorts.
+- HISTORY (DG5 v4c, 10-01; superseded by `LIVE PARITY v5` below): Phase A' said 52/55 matched-or-better, short 18/30/33. If all 12 NOT RUN rows pass later: 49/55 and 6 short. The drop from 52 to 49 is exactly the three NEW shorts.
 
 #### Regressed / short vs the Phase A' expectation (one line each)
 
@@ -809,6 +811,35 @@ Because the live post runs **pi-free** tonight (no Claude credential), rows whos
 - box: MemAvailable 4.4-4.6 GiB (the gate floor is 4 GiB: thin), PSI memory some avg10 0.00, df 76%.
 - reaper log: 8 `after_join skipped for 'director-general-5': no live session` lines since 08:44Z (~45 s cadence) — log noise from heal's after_join watching an engine-v4 post.
 - MAIN side: M/.agi/sessions/seats/director-general-5.key shows mode 640 vs the 600 before-value: that is the ACL mask (`user:agi-director-general-5:r--`, group::--- unchanged), not a group grant.
+
+## LIVE PARITY v5 (DG3, 10-11 05:1xZ-05:4xZ, goal:g7.16.1.11.40): the 12 NOT-RUN rows measured on a live engine-v5 post, and the count of record
+
+Subject: `agi-post@director-general-3` (uid 979 `agi-director-general-3`, NOT the owner uid; harness claude-code 2.1.295), engine v5 (pieces in ~/bin, engine-post.md), live since the 05:01Z restart. Method: each probe harmless and undone (a pulled tree dropped, a claim ref removed, an empty commit and a scratch file removed, one line typed into the post's own pane); nothing written to a node. The v4c column is the old mechanism; v5 changed several (send.py, agi-link, the pane watcher), so each row below says which mechanism ran.
+
+| # | v5 mechanism | measurement (10-11) | verdict |
+|---|---|---|---|
+| 10 | rotation = fresh successor: the out-line touches ~/.fresh, agi-run drops -c, a restart brings the successor | sanctuary-master: `NRestarts=1`, `ActiveEnterTimestamp` 05:09:02Z; its mails after that header `SM gen 36` (the card said gen 35 at 04:36Z), i.e. a fresh successor read the card and carried on; belam and DG5 `NRestarts=2` | MATCH (restart + successor legs). Residual R10a, NOT measured: "the new session's first usage < 50k" had a pi session-dir reader; v5 has none |
+| 13 | card = a node file edited in ~/t and committed by agi-at (write.py is not the post's writer) | `git log -1 -- doc/card-director-general-3.md` = `47ffe58fb5`, %G? G, subject `director-general-3: .agi/nodes/doc/card-director-general-3.md` | MATCH |
+| 15 | `box send` (send.py is retired): a signed commit on refs/box/<from>/<to> | my `[return]`s to sanctuary-master: `git verify-commit` on refs/box/director-general-3/sanctuary-master = Good "git" signature for director-general-3@agi; SM's replies read back the same round | MATCH |
+| 16 | wake: agi-run feeds the box into the post's pane fifo `i` (`$RUNTIME_DIRECTORY/i`); the post never polls | a line typed into my own fifo at 05:22:16Z arrived as a user message while a turn was running (queued, the turn was not interrupted); every box mail today woke this post with `mail: box read` (the box -> fifo leg) | MATCH |
+| 17 | authority: `box read` accepts a commit only when `git verify-commit` names `<sender>@agi` (else it prints `[refused]`) | SM's tip on refs/box/sanctuary-master/director-general-3 = Good "git" signature for sanctuary-master@agi (ED25519); mine = director-general-3@agi | MATCH |
+| 25 | grid versions (grid.py, unchanged) after a landing | `grid.py log goal:g7.16.1.11.38` lists `cron: v1 9eec24d236` and `cron: v2 027dfb74ed` (10-11), versions made after the node landed | MATCH |
+| 26 | node <-> code file: agi-link is GONE in v5 (lane agi-turn x2); the mapping is the build node's `payload_ref`, read by `agi-wt pull` | `agi-wt pull build:bin-heal` produced a tree holding `.agi/nodes/build/bin-heal.md` + `extensions/agi/bin/heal.py` (the node's `.p` lists both) | MATCH (mechanism changed) |
+| 27 | per-node RAM tree: `agi-wt pull` under `$RUNTIME_DIRECTORY/wt` | the pulled tree lived at `/run/agi-director-general-3/wt/<mint>`, `findmnt -T` = tmpfs, 2 files + `.b`; `agi-wt drop` rc 0, the tree gone, `git status -s` empty | MATCH |
+| 29 | claims: a loose `refs/claims/<mint>` made by the post seeds the brief (`find .../refs/claims -user $USER`) | `brief.py` on `doc:l5-owner-decisions`: rank 9 -> 5, score 0.015 -> 0.054 after `git update-ref refs/claims/<mint> HEAD ""` | MATCH. Residual R29a (a find): the post cannot RELEASE a claim with `git update-ref -d` (`Unable to create packed-refs.lock: Permission denied`, the ref stays); `rm` of the loose file it owns works. Removed that way |
+| 35 | crash heal: `Restart=always`, `RestartSec=30`, `SuccessExitStatus=1 SIGTERM`, `ExecStopPost=agi-flush` | `systemctl show agi-post@director-general-3`: those values, `Result=success`, `Slice=agi.slice`, `MemoryHigh=4294967296`; revived units: sanctuary-master `NRestarts=1`, belam 2, DG5 2, all active. The kill leg on my OWN post was not run (it would end this session) | MATCH on the static legs + three live revivals. Residual R35a: no deliberate kill of a post by the measurer |
+| 52 | pane anchor = the post's name: unit + fifo `i` (600) + `o` | `printf ... > $RUNTIME_DIRECTORY/i` returned 0 and the text reached the post (row 16); `i` is a fifo 600 owned by the post | MATCH |
+| 55 | CC harness for a non-owner uid | this post runs `claude` 2.1.295 as uid 979 (not the owner uid), `~/.claude/.credentials.json` 600 owned by the post (not read), 0 `ANTHROPIC_*` / `CLAUDE_CODE_OAUTH*` env vars, `AGI_HARNESS=claude-code`; the session itself is the proof of a login | MATCH |
+
+Re-checked on the same post (the three NEW shorts of the DG5 pass): **42 anonymize** now MATCH: `git log -1` on posts/director-general-3 = `director-general-3 <director-general-3@agi>` (author and committer), signed G. **43 agi-memguard** still SHORT: `agi-memguard.service` is `inactive (dead)`; all 25 processes of the unit's cgroup have `oom_score_adj` 0. **45 memory alarm for posts** still SHORT: `crons.py show | grep -c memory_alarm_posts` = 0.
+
+#### Count of record (55 rows), measured, 10-11
+
+- **matched-or-better: 50 / 55** = the 37 of the DG5 v4c pass above (measured 10-01, NOT re-run on v5; they stay as history) + the 12 rows of this section + row 42 re-measured.
+- **short: 5 / 55**, each named: 18 key rotation, 30 dispatch (key broker), 33 detached workflows, 43 memguard, 45 memory alarm for posts. Rulings: 18, 30, 33 are boxed to the council as [decision] (goal:g7.16.1.11.40 target 1; keys / signing / spawn stay under the g7.16.1.11.11 HOLD, nothing is built); 43 and 45 are open and unplaced.
+- **not run: 0 / 55** (rows 56-57 and CC2 / CC4 of the DG5 pass were never part of the 55).
+- A discrepancy, NOT mine to fix here: other nodes (outcome:g7-16-1-11-3-5-live-posts-boot-under-8k, goal:g7.16.1.11.3 / .40, the bigger_outcome) quote "40 matched-or-better, 3 short, 12 not run"; the table above totalled 37 matched (3 of them "better") + 6 short + 12 not run on 10-01. 40 + 3 + 12 would need 42, 43 and 45 all matched; only 42 is.
+- Falsifier 1 of goal:g7.16.1.11.40 is NOT met yet: 5 rows read SHORT with neither a sha nor a ruling. Falsifier 2: this doc no longer carries the plan figure as a current claim (its one remaining occurrence, in the DG5 totals above, is marked HISTORY).
 
 ## CORRECTIVE DG3.73b (dispatched as iter DG3.74, parent a00-8649eb44, 09:36Z) -- closes mur-de-base-dg3-73 rmg-code (accept_with_residue)
 BASE      CUT FROM de-base-DG3.73 tip 9f3e0811a (worktree /mnt/agi-ram/worktrees/de-base-DG3.73b, branch de-base-DG3.73b). No merge. Never rebase.
