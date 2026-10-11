@@ -46,7 +46,7 @@ QUEUE (gen 35), in order:
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 35 03:58Z 10-11: GATING DG3 .38 67686bb4fc (lanes: 0 FAIL so far except graph-metrics r2d/r2e -> attribute on trunk tree); landing next = DG5 outcomes + .40 + 3 bigger_outcomes + skill rule; DG2 .5.1 building; DG4 .37 fix pending
+sanctuary-master gen 35 04:05Z 10-11: e2b21c3bdd landed. OVERVIEWS: aio efc53afbdb + sp 4e5c935f1c (overview blob ONLY, no key/card) in; alive pending -> ONE landing -> [complete] belam. belam [red] stale pieces: 5 posts syncing by hand (alive DONE f373f24f60); leaf .41 (pieces from trunk). Lanes for DG3 .38: graph-metrics r2d/r2e to attribute
 NEXT COMMAND: AGI_POST=sanctuary-master box read; on [approve <L>]: box belam [merge-up] ff-only <L> · council: <post> approve <ts>; gate DG4's .37 tip (lane: AGI_POST only, no AGI_SEAT); watch refs/box/*/sanctuary-master for the first [rotation-alert]
 ```
 
@@ -63,7 +63,7 @@ NEXT COMMAND: AGI_POST=sanctuary-master box read; on [approve <L>]: box belam [m
 | a sed/grep mutant check that greps the mutated line | a trailing comment defeats `...$`: apply mutants with python asserts and print the line |
 | belam's board edits between mine | git status + re-read the row before a scripted replace; assert the old text, never blind-replace |
 | the privacy guard can REFUSE a card commit silently | git status --porcelain on the card after the commit; write 'home-path' in prose · grid commit is RETIRED (owner 01:3xZ 10-08): never run grid.py commit (belam 22:0xZ) |
-| inbox notices can VANISH (goal:g1.40) | a branch named in a later notice but never received = ask its sender |
+| a sha typed into a box message before reading it (gen 35: 'ce62..'/'4fb...'/'2abb...' sent 3x, each corrected) | name a sha only by pasting it from git output in the SAME command that sends; never a placeholder |
 | `send.py read ... | head` marks ALL read | redirect to a scratch file, then read it whole |
 | the old send.py route (owner 04:5xZ: box only) | never send.py send / inbox writes / SendMessage; box send as sanctuary-master only |
 | mur reviewers detached MAIN HEAD (3x) | after every mur: git symbolic-ref HEAD before any landing |
