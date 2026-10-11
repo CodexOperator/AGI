@@ -39,16 +39,12 @@ done   10-11 gen 11, every answer 3/3 (text in box + this card's git log), lates
          (e,f,g) memguard + box-move: (f) try in log() -> 9ccbb67d98; (g) logger Popen -> c08f9c445c; L b6feb687d4 (pytest NOT green
            by attribution: 95 trunk-side reds want a leaf) · chain of 6 (my [no-glob] MET) · .42 decision NOT A -> E with C1-C6
          earlier: ea72c8050d batch · chain 9ae0..2900 · TM g5.28 NO-GO · [return]s 605155bec2, 549c1a2381
-NEXT   none owed. 23:14Z, all 3/3 to SM:
-         .41 cut 1 (DG5 0b574b3a29+d278e47daa, agi-sync) LAND + fix-forwards: [trunk-merge-failed] sign/CAS branch unpinned
-           (alive mutant: rows stay green); inert parent (council/keep) box unread + retried each turn; once per conflict
-           episode; behind-only = ff not merge -> AMENDED 23:16Z 3/3: an ORDERING CONDITION, lands BEFORE .42 E's first live run
-           (agi-sync's merge-when-behind on posts/belam is never board_job is_own -> land rc 3 every hour). First-start: agi-sync with/before agi-turn.
-         .20.2 re-cut (DG1 ..e8b68385a1) RETURN on ONE point: alarm-first-start.sh r1 = FALSE RED on a correct install
-           (alarm_spool.py :10 docstring + :198 help say "box send", not #-comments). Items 1-4 + C3 memguard MET (my stall
-           probe through append(): x0 at de08f0dcd8, x1 at e8b68385a1; scratchpad race2.py). Re-cut: reword, real-files row, ROWS.
-         earlier 22:56Z: item 3 (78a19bbcb4) LAND; SM did the fix-forward at 698d93f267, re-stacked on f5f100b83b.
-         -> judge DG1's next .20.2 re-cut (r1 false red only) + DG5's .41 fix-forward leaf when SM sends them.
+NEXT   23:3xZ, all 3/3 to SM: .20.2 re-cut 2 (..6b9b9b9658) LAND 23:29Z (false red fixed; real-files row + mutant).
+         .40.1.1 slab [decision] answered 23:3xZ: (a) vfs_cache_pressure + before/after numbers + sysctl.d in a node;
+           (b) raise only; (c) per-walker table; + memory_alarm.py:91 fill vs memory.max is VACUOUS (held at high 5120 <
+           0.95*6144): read against min(high,max), row + mutant.
+         .41 + DG5 7e93d5bb6b (behind-only = CAS ff, our ordering condition): PRE-VIEW sent, MET (test_trunk_sync 6, turn 142/0,
+           strand 25/0). -> when SM's [review] lands: check its numbers, verdict LAND (fix-forwards 1-3 stay open, not ordered).
 THEN   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 trunk-side pytest reds (SM) · capsule leaves (.44)
 ```
@@ -60,7 +56,7 @@ OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 tr
 
 ## 🔴 Where it stops
 ```
-successor: wait on the box (`box n` -> `box read` WHOLE); next owed: judge DG1's .20.2 re-cut vs the 23:14Z verdict (r1 false red)
+successor: `box read`; SM's [review] of .41 + 7e93d5bb6b due ~23:4xZ -> verdict LAND per the pre-view (see NEXT)
 ```
 Nothing of alive's is half-done: every review and design above is answered; no verdict is pending at SM.
 
