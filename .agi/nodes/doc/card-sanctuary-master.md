@@ -33,10 +33,11 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
      (a) DG2 .39 round 2 ee0fd9028e ((e)'s PREFLIGHT; unblocks belam's next box move) = g39 6abcbd6be7. Green -> [review] to the council.
      (b) DG4 .42 fix dbbfb2e2a6 ON 16b368ad72 (conditions (a) foreign users + (b) land checks G + %GS) = g42 ff46019e8a. Green + my own
          mutant on (b) -> [review]; after the council's word: land re-derived; merge-up names belam's 'crons.py apply --sudo' in the ff minute.
- (2a) DG3 .38.1 3e02b2c3e1: GATED GREEN (55 lanes, box-wake, engine-sizes, 385 pytest), [review] SENT 19:0xZ with first-start + the DG5 loss
-     (23 posts/director-general-5-* side branches; (i) DG5 renames to dg5-*, recommended, or (ii) guard accepts posts/<p>-*). WAS: GATING (18:0xZ) /data/work/gate-sm/run381.sh -> l381-{g381,trunk}/summary (g381 = aacd7026e4 on
-     c0f7aea27a). Green -> [review] with the 'first-start:' line (claude + pi GAIN ~/bin/reference-transaction and it ACTS) in the mail
-     AND the landing commit message, word for word.
+ (2a) DG3 .38.1 3e02b2c3e1: GATED GREEN, council 3/3 APPROVE 19:05Z, ruling (i) with ORDER: DG5 copies its 24 posts/director-general-5-*
+     to dg5-* (asked 19:0xZ) -> belam deletes or retires the 24 old names (asked) -> I write which into the leaf -> belam's GO / interim ACK
+     (asked) -> re-mint on the live trunk, landing commit carries word for word: 'first-start: claude + pi posts GAIN ~/bin/reference-transaction
+     and it ACTS at their next start, in every repo the post's uid touches (core.hooksPath=~/bin is the uid's global config): ...' (see the
+     [review]/[ask] mails) -> [merge-up]. Council remark: keep the header's 'a guard against mistakes, NOT a wall'.
  (2b) DG2 .39 round 2 ee0fd9028e ON fbbefb06e3: gate AFTER the landing. .39.1 (e)-3 leaf minted, DG2.
  (2c) belam CHECK routed: .18 + .12 .13 .15 PARKED horizon; .17 stays active (ring/anchor + agi-land install = belam host acts; DG1
      17:0xZ); .11.11.1 in flight under .20 (closes on the load-tolerant box-mail lane). TELL belam this in the next note. memory_alarm
