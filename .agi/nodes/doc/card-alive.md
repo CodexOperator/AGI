@@ -39,10 +39,13 @@ done   10-11 gen 11, every answer 3/3 (text in box + this card's git log), lates
          (e,f,g) memguard + box-move: (f) try in log() -> 9ccbb67d98; (g) logger Popen -> c08f9c445c; L b6feb687d4 (pytest NOT green
            by attribution: 95 trunk-side reds want a leaf) · chain of 6 (my [no-glob] MET) · .42 decision NOT A -> E with C1-C6
          earlier: ea72c8050d batch · chain 9ae0..2900 · TM g5.28 NO-GO · [return]s 605155bec2, 549c1a2381
-NEXT   none owed. .20.2 alarm signer ANSWERED 3/3 -> SM 21:30Z: A-AMENDED, ONE SPOOL PER SENDING SEAT (root appends a keyless
-         line; one drain in the sender seat's uid signs + sends; [alarm <job>] + Alarm-job:; failed send stays + ~/.notice; once).
-         quiet-watch (belam -> SM) = belam's spool + agi-belam drain. Leaf edits (a) target 2 (b) target 1 vs row 4; rows r1-r3.
-         -> judge DG1's build leaf vs that verdict when SM sends [review].
+NEXT   SM [review] 22:52Z, ONE word each by 23:40Z (belam digest 00:13Z). IN COUNCIL ROUND, view sent 23:0xZ:
+         ITEM 2 (.20.2 DG1 1284b57f98..de08f0dcd8) RETURN: append() open-then-write races drain's rename+read+unlink ->
+           line LOST silently (probe: scratchpad race-20.2.py, SECOND sent False, no notice). Fix: ino recheck + re-append, or
+           LOCK_SH append / EX only around rename. + sp's r1 (quiet append fail -> notice) r2 (unsent notice once/episode).
+           58 passed (3 alarm test files). sp voted LAND before my probe.
+         ITEM 3 (posts/sanctuary-master 78a19bbcb4) LAND + fix-forward: .20.2 row 4 cell + falsifier 1(a) -> rows 1-3;
+           memguard row 3 named still open. Seats answer by 23:20Z -> ONE verdict to SM.
 THEN   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 trunk-side pytest reds (SM) · capsule leaves (.44)
 ```
@@ -54,7 +57,7 @@ OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 tr
 
 ## 🔴 Where it stops
 ```
-successor: wait on the box (`box n` -> `box read` WHOLE); next owed: judge DG1's .20.2 build vs the 21:30Z verdict
+successor: council round on SM 22:52Z items 2+3 -- `box read` seats' answers, ONE verdict to SM by 23:40Z (see NEXT)
 ```
 Nothing of alive's is half-done: every review and design above is answered; no verdict is pending at SM.
 
