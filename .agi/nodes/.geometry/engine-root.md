@@ -16,7 +16,7 @@ EXPANSION of config:engine: the unit template (root's agi-project reads it throu
 Read only through `sect <name> [REV]`.
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
-### agi-post@.service (2555 B)
+### agi-post@.service (2735 B)
 ~~~ini
 [Unit]
 After=agi-ram-main.service
@@ -24,13 +24,13 @@ After=agi-ram-main.service
 User=agi-%i
 StateDirectory=agi/%i
 WorkingDirectory=/var/lib/agi/%i
-EnvironmentFile=-/etc/agi/carry.env
 EnvironmentFile=-/var/lib/agi/%i.env
 Environment=PATH=/var/lib/agi/%i/bin:/opt/agi/bin:/usr/local/bin:/usr/bin:/bin SHELL=/bin/sh DISABLE_AUTOUPDATER=1 AGI_POST=%i
+Environment=DBUS_SESSION_BUS_ADDRESS=disabled:
 Environment=GIT_AUTHOR_NAME=%i GIT_COMMITTER_NAME=%i GIT_AUTHOR_EMAIL=%i@agi GIT_COMMITTER_EMAIL=%i@agi
 RuntimeDirectory=agi-%i
 RuntimeDirectoryPreserve=restart
-ExecCondition=sh -c "set -f;b=$(git -c safe.directory=$O -C $O show $AGI_TRUNK:.agi/nodes/.geometry/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r --arg n %i 'select(.name==$n)|.box');[ x$b = x$AGI_BOX ]&&[ x != x$AGI_BOX ]||{ echo [wrong-box] row=$b here=$AGI_BOX>&2;exit 2;}"
+ExecCondition=sh -c "set -f;h=$(sed -n 's/^AGI_BOX=//p' /etc/agi/carry.env 2>/dev/null);b=$(git -c safe.directory=$O -C $O show $AGI_TRUNK:.agi/nodes/.geometry/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r --arg n %i 'select(.name==$n)|.box');[ x$b = x$h ]&&[ x != x$h ]||{ echo [wrong-box] row=$b here=$h>&2;exit 2;}"
 ExecCondition=sh -c '[ ! -e .ssh/out-refused ]||[ .fresh -nt .ssh/out-refused ]||exit 2'
 ExecCondition=sh -c 'type agi-run>/dev/null||grep -qs "^### agi-run " t/.agi/nodes/.geometry/engine.md t/.agi/nodes/.geometry/engine-[pw]*.md||{ [ ! -d t ]&&{ git -c safe.directory=$O -C $O grep -q "^### agi-run " $AGI_TRUNK -- .agi/nodes/.geometry/engine.md ".agi/nodes/.geometry/engine-[pw]*.md";r=$?;[ $r -lt 2 ]||exit 255;[ $r = 0 ];};}||exit 2'
 ExecStartPre=awk -F"[= ]" "/some/{exit $$3>40}" /proc/pressure/memory
@@ -39,7 +39,8 @@ ExecStartPre=+/usr/bin/env -i PATH=/usr/sbin:/usr/bin:/bin /opt/agi/bin/agi-sign
 ExecStartPre=sh -c 'mkdir -p .ssh bin .claude hooks;git config --global safe.directory "*";[ -d t ]||{ git -C $O branch posts/%i $AGI_TRUNK;git -C $O worktree add -fqd $PWD/t posts/%i;};for e in t/.agi/nodes/.geometry/engine.md t/.agi/nodes/.geometry/engine-[pw]*.md;do for x in $(grep -o "^### [^ ]*" $e|cut -c5-);do sed -n "/^### $x /,/^##/{/^~~~/,/^~~~/{//!p}}" $e>bin/$x;done;done;chmod +x bin/*;mv bin/gitconfig .gitconfig;mv bin/settings.json .claude;mkfifo -m600 %t/agi-%i/i;[ -e o ]||install -m600 /dev/null o'
 ExecStartPre=sh -c '{ ls bin/agi-out||type agi-out;}>/dev/null 2>&1&&exec agi-out;echo agi-out skipped, stale t>&2'
 ExecStartPre=+/usr/bin/env -i PATH=/usr/sbin:/usr/bin:/bin /opt/agi/bin/agi-signers %i
-ExecStart=sh -c 'exec 3<>%t/agi-%i/i;exec script -qfaO$HOME/o -c agi-run <&3'
+ExecStartPre=-+/usr/local/sbin/agi-signers-repoint %i
+ExecStart=sh -c 'export AGI_BOX=$(sed -n "s/^AGI_BOX=//p" /etc/agi/carry.env 2>/dev/null);exec 3<>%t/agi-%i/i;exec script -qfaO$HOME/o -c agi-run <&3'
 StandardOutput=null
 ExecStopPost=sh -c agi-flush
 SuccessExitStatus=1 SIGTERM
@@ -50,6 +51,8 @@ MemoryHigh=4G
 [Install]
 WantedBy=multi-user.target
 ~~~
+
+Host drop-ins of agi-post@.service (the list; goal:g7.16.1.11.37 target 6): none. `50-signers-repoint` (the `agi-signers-repoint` ExecStartPre) and `51-no-session-bus` (`DBUS_SESSION_BUS_ADDRESS=disabled:`, the orphan session bus per gh poll, measured 10-09/10-10) are folded into the unit above, `52-post-env` is the unit's own AGI_POST line; AGI_BOX is exported by ExecStart from /etc/agi/carry.env ALONE (loading the whole file would put its pinned AGI_TRUNK / AGI_REPO / AGI_HUB / GIT_CONFIG_* into every post, and an EnvironmentFile overrides the per-post h.conf). A file under /etc/systemd/system/agi-post@.service.d/ that is not in this list is RED (post-env.t.sh, LIVE).
 
 
 ### agi-boot.service (826 B)
