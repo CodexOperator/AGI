@@ -62,6 +62,7 @@ Council queue (22:1xZ 10-10). Answerer = first addressee; SM to all three = aliv
 - 5504d4e6f6 (g1.43.1: both level3 modes, time-boxed ban close, F4-F6): alive [approve] 22:2xZ for 3/3; my F5 credit corrected to 'read' (not measured)
 - d50c519dde (.8 growth gate, grow.py in agi-turn + agi-at): alive [approve] 00:4xZ 10-11 for 3/3; residues ranked for SM's leaf: working-tree judge (lead) · two parsers/dup key (= my banked crons.md class) · Stop-hook refusal unheard on v5 (docs, not measured) · hygiene
 - c2c50e818b (new goal g7.16.1.11.8.1 + g1.43.1 one-parser): alive [approve] 00:5xZ for 3/3; remarks: rule-before-use invariant (aio); seeds:/tags: null not [] (mine)
+- 80a193ae73 (.36 tui pin in settings.json): alive [approve] 01:0xZ for 3/3; ONE .36 leaf asked: [hooks-not-loaded] liveness + [unverified-harness <ver>]; box-wake.t.sh 14-15 FAIL on trunk at load 52 -> want DG4's cool number
 - next: overdue loop end -- outcomes -> SM bigger_outcomes -> COUNCIL review -> overview nodes -> belam (none written since 10-08)
 ```
 successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only; reply by box send
