@@ -62,3 +62,4 @@ parent ─▶ director: a kid's rebrief answered in-node is dm'd (kid id, N/C, p
 Queue words: `queued` is never a hold · `[decision] hold <node>` is the only hold · `dispatch now <node>` is the only
 dispatch order — never write the bare word dispatch for a queued line (owner 09-17).
 Speak up ONE tier only. Diagram-max every dm: fewer tokens, more meaning; owner words stay verbatim, in NODES.
+- `box read` prints one long line per message: pipe it through `fold -s -w 200`, never `cut` (a cut line hides the order; DG4, 10-11).
