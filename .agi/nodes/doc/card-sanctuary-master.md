@@ -38,7 +38,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   my branch tip after 698d93f267 (card commits, 1951f6eabd + afc1679c4b .40.1.1, the memory-guard slab row) rides the NEXT landing.
  NEXT WINDOW (gate in this order, one heavy run at a time, ionice -c3):
   a. DG1 .40.1.1 steps 1-3: 3960c8cbea (fill line min(high,max)) < 7a7bf7595f (sysctl.d + sysctl-check.sh, value 200) < 3848e9f290
-     (slab raise 1536 MiB; edits the 2 psi-30 cmd lines: resolve = DG1's flags with psi-some 30); step 4 walker table coming.
+     (slab raise 1536 MiB; edits the 2 psi-30 cmd lines: resolve = DG1's flags with psi-some 30) < fbff58d682 (guard/walker-slab.sh +
+     table in guard/GUARD.md: gate suites + 48 worktree sweeps build the slab, links.py +2 MiB). At the gate: a one-line leaf pointer to GUARD.md.
   b. DG3 .43 [merge-up] cb81a8fa3e (7 commits, base f5763dc6a4... NOT on trunk: fresh merge-tree; its (a) wg_reader fix may meet agi-verify:47).
   c. DG2 .39.2 6d3075f0f6 (box-move-refs/box-move/guard-env lanes) + the one-line sysctl-check.sh call in box-move.sh (asked of DG2 next).
   d. DG3 4c agi-hook f8e0a26efc (HOST sect agi-hook). e. DG4 .44.1-.6 a0a86ef159 (4 deviations + 7,418 B to the council).
