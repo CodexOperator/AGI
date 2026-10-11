@@ -17,7 +17,7 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-run (1057 B)
+### agi-run (2070 B)
 ~~~sh
 #!/bin/sh
 cd ~/t;c=-c;[ -e ~/.fresh ]&&rm ~/.fresh&&c=;stty cols 200 rows 50;i=$RUNTIME_DIRECTORY/i;f=$O/.agi/sessions/inbox/$AGI_SEAT.md
@@ -25,6 +25,7 @@ cd ~/t;c=-c;[ -e ~/.fresh ]&&rm ~/.fresh&&c=;stty cols 200 rows 50;i=$RUNTIME_DI
 case $H in claude*)(s=$(stat -c%s $f 2>/dev/null||echo 0);while sleep 5;do n=$(stat -c%s $f 2>/dev/null||echo 0);[ $n -gt $s ]&&printf "mail: send.py read $AGI_SEAT">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
 case $H in claude*|pi*)(s=0;while sleep 5;do n=$(AGI_POST=${AGI_POST:-$AGI_SEAT} box n 2>/dev/null|grep -vc '^\[');[ $n -gt $s ]&&printf "mail: box read">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
 case $H in claude*)(umask 077;j=~/.claude.json;n=$j.n;jq -e '((.fullscreenUpsellSeenCount//0)|numbers)>=3' $j>/dev/null 2>&1||{ if [ -e $j ];then jq '.fullscreenUpsellSeenCount=3' $j;else echo '{"fullscreenUpsellSeenCount":3}';fi>$n 2>/dev/null&&[ -s $n ]&&mv $n $j;rm -f $n;});;esac
+[ -z "$c" ]&&(p=${AGI_POST:-$AGI_SEAT};r=$(git show ${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/rotations.md 2>/dev/null|awk -v p=$p '/^---$/{if(++n>1)exit;next}n!=1||/^[ ]*(#.*)?$/{next}/^alerts:[ ]*$/{a=s=1;next}/^[^ ]/{a=0}!a{next}/^  (audit|silent):[ ]*$/{k=$1;sub(/:/,"",k);m="l";next}/^  edges:[ ]*\{\}[ ]*$/{m="";next}/^  edges:[ ]*$/{m="e";next}m=="l"&&/^    - [a-z][a-z0-9-]*[ ]*$/{L[k]=L[k]" "$2;next}m=="e"&&/^    [a-z][a-z0-9-]*:[ ]*$/{e=$1;sub(/:/,"",e);next}m=="e"&&/^      - [a-z][a-z0-9-]*[ ]*$/{if(e==p)E=E" "$2;next}{b=1}END{if(!s||b)exit 1;n=split(L["audit"]E,w," ");z=split(L["silent"],y," ");for(i=1;i<=z;i++)S[y[i]];S[p];for(i=1;i<=n;i++)if(!(w[i] in S)){S[w[i]];print w[i]}}')||echo "warn: rotation alert: alerts cell unreadable, nothing sent" >&2;[ -n "$r" ]&&timeout -k 2 20 sh -c 'for x in $0;do printf "[rotation-alert] $1 restarted fresh (hook rotation) $(date -u +%FT%TZ)\n"|AGI_POST=$1 box send $x||echo "warn: rotation alert to $x failed" >&2;done' "$r" $p)2>>$RUNTIME_DIRECTORY/alert&
 exec strace -qqf -b execve -e%file -o'|agi-track' $H $c go
 ~~~
 
