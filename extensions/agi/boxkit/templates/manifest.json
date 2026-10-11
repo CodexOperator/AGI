@@ -412,6 +412,7 @@
    "reload": "none",
    "placeholders": [
     "ALERT_COOLDOWN_S",
+    "BASELINE_REFRESH_S",
     "HISTORY_S",
     "INTERVAL_S",
     "LOW_AVAIL_BYTES",
@@ -435,7 +436,7 @@
     "SUSPEND_RATIO"
    ],
    "new_bytes": false,
-   "fixture_sha256": "2127ab9aa44d72453220abfe2eedcc997aec2b0ea328ba51187dff8bb31294d3"
+   "fixture_sha256": "66f7f6e8e25d8993233b5256f205a49f503a5d2bfe73b18f4c1076d50d2b0c5f"
   },
   {
    "name": "health-script",

@@ -378,7 +378,8 @@
       "MEMGUARD_STORES": "/var/lib/agi",
       "RESUME_FACTOR": "2",
       "RESUME_HOLD_S": "30",
-      "RENOTIFY_S": "1800"
+      "RENOTIFY_S": "1800",
+      "BASELINE_REFRESH_S": "300"
     },
     "core": {
       "model_load_allowed_max_bytes": 67108864,
