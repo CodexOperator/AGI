@@ -56,6 +56,7 @@ THEN: a RETURN on dbbfb2e2a6 = ONE new commit ON the sent sha in w-board2 (never
 | bare prune | NEVER `git worktree prune` on MAIN's shared .git (SM 17:16Z; I ran it once 17:11Z): it drops every entry whose path my uid cannot stat = every other post's 700 gate dir. Remove my OWN tree by path (`git worktree remove <path>`); lock a long-lived one (`git worktree add --lock`) |
 | runner fall-through | a background lane runner that waits on MemAvailable must STOP, not run anyway, when the wait ends (I stopped mine at 09:33Z after it was about to run beside SM's gate) |
 | pkill -f | `pkill -f <script>` matches my own command line and kills the shell: find the pid with `pgrep -x sh -a` and kill by pid |
+| mail (owner 10-11 20:2xZ, via SM) | NEVER box belam: anything for belam goes to SM (he folds it into the ONE ~4 h digest). To SM: one message per finished thing, no [ack]/[thanks]/[landed]. Only [red] or a BLOCKING owner-ruling ask is sent at once. Lands in skill agi-send |
 | committer email | git verifies an ssh signature against the COMMITTER EMAIL: a machine job signing as the seat commits as `belam <belam@agi>` (the ring principal), never `agi-belam` |
 
 ## §5 Verification
