@@ -56,7 +56,7 @@ belam-s2-V 19:0xZ 10-11: woke 17:1xZ (crons re-armed: CHECK f1b8bceb, scan f8871
    e. MEMGUARD re-stage, DUE: b6feb687d4 landed the race fix + (f),(g); memguard-restage.sh now allowed, measured first; box SM before. By hand: save
       ~/memguard-A0/a2.since -> A0 on the LANDED sha -> restore -> sudo systemctl stop agi-memguard -> a1.undo -> a1 -> a1.proof
       -> a2.sh -> SHA=<sha> a2.proof.sh (PROVEN = 0 0 + healthy). Undo: sh ~/memguard-A0/src/extensions/agi/boxkit/memguard-a2.undo.sh
-   f. a post asking for scratch on /data: sudo mkdir /data/work/gate-<p>; chown agi-<p>:; chmod 700 (gate-sm made 17:09Z).
+   f. a post asking for scratch on /data: sudo mkdir /data/work/gate-<p>; chown agi-<p>:; chmod 700 (made: gate-sm 17:09Z, gate-director-general-5 19:02Z, gate-director-general-1 20:12Z).
 5. BOX RULE (mine, relayed by SM, in skill agi-memory-guard): no lane/test scratch on /dev/shm NOR in a post home (root disk);
    /data/work/gate-<p>; nice -n 10; ONE heavy suite on the box; a full suite starts only at agi.slice anon+shmem < 3500 MiB
    AND MemAvailable >= 2.5 GB AND PSI full avg60 < 2; it stops itself at full avg60 > 10.
@@ -86,7 +86,7 @@ at 19:1xZ: MAIN 97865e4139 == posts/belam == ~/t HEAD; DG5 refs/heads/posts/dire
 | item | recommendation |
 |---|---|
 | SEASON-2 CLOSE (asked 04:1xZ 10-11, after the loop end closed 24cdb55824) + RESEARCH PAUSED (council no-go 12:47Z on goal:g5.28's own Falsifier; DT-1 idle; nothing queued) | owner: close season 2 now (B7 + the morals review) and accept the pause; a reopen must name the main-track hypothesis it feeds |
-| root-guard mail identity: OWNER GO 19:5xZ 10-11 ("we need to fix whoever is using the old mail path"), LANED to SM 19:57Z. Only old-path writer today = memory_alarm.py x2 cron jobs (uid belam crontab, send.py --notify belam, 48 unsigned/day, doubled) | cut 1 agi-notice (no key), cut 2 <box>-host identity; crons.py apply (--sudo) = my host act at the ff |
+| root-guard mail identity: OWNER GO 19:5xZ 10-11 ("we need to fix whoever is using the old mail path"), LANED to SM 19:57Z = goal .20.2 (DG1: rows -> user: agi-belam + ~/bin/agi-notice, send.py out, ETA ~23:30Z, live only after .42 C1; interim: the user@ row loses --notify = 1 msg/alarm; flap = target 4). Only old-path writer today = memory_alarm.py x2 cron jobs (uid belam crontab, send.py --notify belam, 48 unsigned/day, doubled) | cut 1 agi-notice (no key), cut 2 <box>-host identity; crons.py apply (--sudo) = my host act at the ff |
 | 657 refs/archive/worktrees/* in MAIN from the pre-move bundle (/mnt/agi-flash/agi-backup-20261008T201541Z/agi-all.bundle); origin holds 0 | keep local + the bundle as the second copy, or publish: owner |
 | CLAUDE UPGRADE = every post's hooks off: posts run /usr/local/bin/claude -> ~belam/.local/bin/claude (the owner's own install); an upgrade that rejects settings.json 'tui' skips the whole file | pin the posts to a root-owned copy (/opt/agi/claude-<ver>); move the pin only after .36's scratch-HOME probe AND .36.1's hooks-loaded proof pass on the new binary |
 | egress watchdog never runs (literal \" quotes) while E is in FULL tunnel | fix it (drop 6 backslashes) or leave it; idea:egress-watchdog-keeps-e-reachable |
