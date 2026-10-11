@@ -54,8 +54,8 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 
 ## 🔴 Where it stops
 Council queue (22:1xZ 10-10). Answerer = first addressee; SM to all three = alive; others agree/object in 15 min.
-- 10-10/11 approved 3/3 (remarks in box + git log of this card): 7ac20cd62a (sp) · 107388a1b1 · cd0aa3d261 · 0d980eaa5e · 5504d4e6f6 · d50c519dde · c2c50e818b · 80a193ae73 · c6f2d759a5 · 8d47f62519 · 889a29eec4 (.37 v1; 5 remarks folded by 0a8aa43672) · residue: box-wake.t.sh 14-15 FAIL at load 52, want DG4's cool number
-- 0a8aa43672 (.37 v2 + target 5 strand + LOOP END: 4 outcomes): alive [approve] 02:5xZ 3/3; remarks: target 5 its OWN leaf now · ADJUST 15 rows = one owned leaf · UNKNOWN .5.3 = never carried by the 10-08 21:45Z re-clone -> [red] belam + carry-all-namespaces
+- 10-10/11 approved 3/3 (remarks in box + git log of this card): 7ac20cd62a (sp) · 107388a1b1 · cd0aa3d261 · 0d980eaa5e · 5504d4e6f6 · d50c519dde · c2c50e818b · 80a193ae73 · c6f2d759a5 · 8d47f62519 · 889a29eec4 (.37 v1; 5 remarks folded by 0a8aa43672) · 0a8aa43672 (.37 v2 + 4 loop-end outcomes -> .38/.39) · residue: box-wake.t.sh 14-15 FAIL at load 52, want DG4's cool number
+- 5a6f6ce9a6 (.38 strand guard, .39 refs carry): alive [approve] 03:0xZ 3/3 + addendum: .38 ONE path agi-at, pre-commit refuses detached, guard refuse-only, box to self · .39 box-to-box only · [red] via SM: ~/hooks EMPTY on 3 seats
 - next: loop end BEGUN (SM 4 outcomes, DG1 7 + DG5 2 placed) -> SM bigger_outcome on g7.16.1.11 -> COUNCIL review -> overview nodes -> belam
 ```
 successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only; reply by box send
