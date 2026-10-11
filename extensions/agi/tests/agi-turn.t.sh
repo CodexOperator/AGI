@@ -535,5 +535,110 @@ XX
  b0=$(tip);[ $v = faildi ]&&: >$T/faildi;run agi-at .agi/nodes/experiment/l1.md 2>$T/ega5$v;rga5=$?;rm -f $T/faildi
  ok "ga5-agi-at-fails-closed-$v a LEGAL new node via agi-at with $v: rc $rga5 (want 6), the tip $([ $(tip) = $b0 ]&&echo unchanged||echo MOVED) (want unchanged), the edit stays: $([ -f $T/hm/t/.agi/nodes/experiment/l1.md ]&&echo yes||echo NO), [spawn-gate-$lab] lines: $(grep -c "^\[spawn-gate-$lab\]" $T/ega5$v) (want 1), naming a rule: $(grep '^\[' $T/ega5$v|grep -cE 'allowed_parents|min_parents|max_parents|parent_shapes') (want 0)" '[ $rga5 = 6 ]&&[ $(tip) = $b0 ]&&[ -f $T/hm/t/.agi/nodes/experiment/l1.md ]&&[ "$(grep -c "^\[spawn-gate-$lab\]" $T/ega5$v)" = 1 ]&&[ "$(grep "^\[" $T/ega5$v|grep -cE "allowed_parents|min_parents|max_parents|parent_shapes")" = 0 ]'
 done
+# ---- DG1 rows (SM 00:0xZ 10-11, DG2 unresponsive; tests only, no grow.py edit): the growth gate's two reads and its three verdicts, each pinned by a mutant in the commit message. All through agi-at (the same grow.py agi-turn calls; the paths are arguments, so a path the shell can hold is a path the lane can land).
+# nexp: how many experiment nodes are on the tip (NUL-counted, so a path with a newline still counts once); the fixture starts with ONE (x1)
+nexp(){ $G -C $T/g ls-tree -r --name-only -z posts/alive -- .agi/nodes/experiment|tr -cd '\0'|wc -c|tr -d ' ';}
+# go10 / go10b / go10c / go10d: a node path with a DOUBLE QUOTE / a TAB / a BACKSLASH / a NEWLINE is JUDGED, never committed unchecked. git prints such a path C-quoted ("q\"x.md") unless diff-index runs with -z, and a quoted path no longer ends in .md, so a reader without -z skips the node: the illegal one (parent goal:g1) would land. -r = refused (rc 6, tip unchanged, tree kept, ONE line naming the node and allowed_parents); -c = control (a LEGAL node at the same path lands: rc 0, ONE signed commit), so the gate judged the path instead of refusing every odd name
+for v in quote:go10 tab:go10b backslash:go10c newline:go10d;do
+ lb=${v#*:};v=${v%:*}
+ case $v in quote)nm='q"x';;tab)nm=$(printf 'q\tx');;backslash)nm='q\x';;newline)nm=$(printf 'q\nx');;esac
+ p=".agi/nodes/experiment/$nm.md"
+ mkgo;gaf "$p" <<XX
+---
+id: experiment:q10$v
+mint_id: 0000000000000000000000000000d10$(echo $v|cut -c1)
+type: experiment
+parents:
+  - goal:g1
+---
+new q10 $v
+XX
+ b0=$(tip);run agi-at "$p" 2>$T/ega10r$v;rg=$?
+ ok "$lb-agi-at-judges-a-$v-in-the-path-and-refuses-the-illegal-node a NEW experiment (parent goal:g1) at a path with a $v: rc $rg (want 6), the tip $([ $(tip) = $b0 ]&&echo unchanged||echo MOVED) (want unchanged), experiment nodes on the tip: $(nexp) (want 1), the edit stays in ~/t: $([ -f "$T/hm/t/$p" ]&&echo yes||echo NO), bracketed lines: $(grep -c '^\[' $T/ega10r$v) (want 1) naming q10$v and allowed_parents: $(grep '^\[' $T/ega10r$v|grep -c "q10$v.*allowed_parents") (want 1)" '[ $rg = 6 ]&&[ $(tip) = $b0 ]&&[ "$(nexp)" = 1 ]&&[ -f "$T/hm/t/$p" ]&&[ "$(grep -c "^\[" $T/ega10r$v)" = 1 ]&&[ "$(grep "^\[" $T/ega10r$v|grep -c "q10$v.*allowed_parents")" = 1 ]'
+ mkgo;gaf "$p" <<XX
+---
+id: experiment:q10$v
+mint_id: 0000000000000000000000000000d10$(echo $v|cut -c1)
+type: experiment
+parents:
+  - hypothesis:h1
+---
+new q10 $v
+XX
+ b0=$(tip);run agi-at "$p" 2>$T/ega10c$v;rg=$?
+ ok "$lb-c-agi-at-lands-a-legal-node-at-a-$v-path a NEW experiment (parent hypothesis:h1) at the same path: rc $rg (want 0), $($G -C $T/g rev-list --count $b0..posts/alive) new commit(s) (want 1), experiment nodes on the tip: $(nexp) (want 2), signed: [$(sig posts/alive)] (want G), bracketed lines: $(grep -c '^\[' $T/ega10c$v) (want 0)" '[ $rg = 0 ]&&[ "$($G -C $T/g rev-list --count $b0..posts/alive)" = 1 ]&&[ "$(nexp)" = 2 ]&&[ "$(sig posts/alive)" = G ]&&[ "$(grep -c "^\[" $T/ega10c$v)" = 0 ]'
+done
+# gd1 (decoy): the parent hypothesis:hd exists ONLY as a file in ~/t, never staged: the gate resolves parents against the STAGED tree, so it is refused (rc 6, ONE line: the parent resolves nowhere in the staged tree). A reader of the working tree would find the decoy and land the child
+mkgo;gaf .agi/nodes/hypothesis/hd.md <<'XX'
+---
+id: hypothesis:hd
+mint_id: 000000000000000000000000000000b2
+type: hypothesis
+parents:
+  - goal:g1
+---
+a decoy: in ~/t, not staged
+XX
+gaf .agi/nodes/experiment/d1.md <<'XX'
+---
+id: experiment:d1
+mint_id: 000000000000000000000000000000d1
+type: experiment
+parents:
+  - hypothesis:hd
+---
+child of a decoy
+XX
+b0=$(tip);run agi-at .agi/nodes/experiment/d1.md 2>$T/egd1;rgd1=$?
+ok "gd1-agi-at-refuses-a-decoy-parent a NEW experiment parented by hypothesis:hd, a file in ~/t that agi-at was not asked to stage: rc $rgd1 (want 6), the tip $([ $(tip) = $b0 ]&&echo unchanged||echo MOVED) (want unchanged), experiment nodes on the tip: $(nexp) (want 1), the edit stays: $([ -f $T/hm/t/.agi/nodes/experiment/d1.md ]&&echo yes||echo NO), bracketed lines: $(grep -c '^\[' $T/egd1) (want 1) naming d1 and 'resolve nowhere': $(grep '^\[' $T/egd1|grep -c 'experiment:d1.*resolve nowhere') (want 1)" '[ $rgd1 = 6 ]&&[ $(tip) = $b0 ]&&[ "$(nexp)" = 1 ]&&[ -f $T/hm/t/.agi/nodes/experiment/d1.md ]&&[ "$(grep -c "^\[" $T/egd1)" = 1 ]&&[ "$(grep "^\[" $T/egd1|grep -c "experiment:d1.*resolve nowhere")" = 1 ]'
+# gs1 (same tree): a parent staged TOGETHER with its child resolves (the staged tree is the tree being committed, not the tip): hypothesis:hs and the experiment under it, one agi-at call: rc 0, ONE signed commit with both. A reader of the tip would refuse the child
+mkgo;gaf .agi/nodes/hypothesis/hs.md <<'XX'
+---
+id: hypothesis:hs
+mint_id: 000000000000000000000000000000b3
+type: hypothesis
+parents:
+  - goal:g1
+---
+a parent staged with its child
+XX
+gaf .agi/nodes/experiment/s1.md <<'XX'
+---
+id: experiment:s1
+mint_id: 000000000000000000000000000000d2
+type: experiment
+parents:
+  - hypothesis:hs
+---
+child of a same-tree parent
+XX
+b0=$(tip);run agi-at .agi/nodes/hypothesis/hs.md .agi/nodes/experiment/s1.md 2>$T/egs1;rgs1=$?
+ok "gs1-agi-at-resolves-a-parent-staged-in-the-same-tree hypothesis:hs and its child experiment:s1 in ONE agi-at: rc $rgs1 (want 0), $($G -C $T/g rev-list --count $b0..posts/alive) new commit(s) (want 1), both on the tip: $($G -C $T/g cat-file -e posts/alive:.agi/nodes/hypothesis/hs.md 2>/dev/null&&$G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/s1.md 2>/dev/null&&echo yes||echo NO), signed: [$(sig posts/alive)] (want G), bracketed lines: $(grep -c '^\[' $T/egs1) (want 0)" '[ $rgs1 = 0 ]&&[ "$($G -C $T/g rev-list --count $b0..posts/alive)" = 1 ]&&$G -C $T/g cat-file -e posts/alive:.agi/nodes/hypothesis/hs.md&&$G -C $T/g cat-file -e posts/alive:.agi/nodes/experiment/s1.md&&[ "$(sig posts/alive)" = G ]&&[ "$(grep -c "^\[" $T/egs1)" = 0 ]'
+# gu1 (unresolvable): a parent that exists NOWHERE (not on the tip, not in ~/t, not staged) is refused with the same distinct line, not committed
+mkgo;gaf .agi/nodes/experiment/u1.md <<'XX'
+---
+id: experiment:u1
+mint_id: 000000000000000000000000000000d3
+type: experiment
+parents:
+  - hypothesis:nope
+---
+child of nothing
+XX
+b0=$(tip);run agi-at .agi/nodes/experiment/u1.md 2>$T/egu1;rgu1=$?
+ok "gu1-agi-at-refuses-an-unresolvable-parent a NEW experiment parented by hypothesis:nope (exists nowhere): rc $rgu1 (want 6), the tip $([ $(tip) = $b0 ]&&echo unchanged||echo MOVED) (want unchanged), experiment nodes on the tip: $(nexp) (want 1), the edit stays: $([ -f $T/hm/t/.agi/nodes/experiment/u1.md ]&&echo yes||echo NO), bracketed lines: $(grep -c '^\[' $T/egu1) (want 1) naming u1 and 'resolve nowhere': $(grep '^\[' $T/egu1|grep -c 'experiment:u1.*resolve nowhere') (want 1)" '[ $rgu1 = 6 ]&&[ $(tip) = $b0 ]&&[ "$(nexp)" = 1 ]&&[ -f $T/hm/t/.agi/nodes/experiment/u1.md ]&&[ "$(grep -c "^\[" $T/egu1)" = 1 ]&&[ "$(grep "^\[" $T/egu1|grep -c "experiment:u1.*resolve nowhere")" = 1 ]'
+# goall: an UNKNOWN TYPE (goall, a typo of goal) whose parents all resolve is REFUSED, not passed as UNVERIFIED: rc 6, nothing committed, ONE bracketed line
+mkgo;gaf .agi/nodes/goall/z1.md <<'XX'
+---
+id: goall:z1
+mint_id: 000000000000000000000000000000d4
+type: goall
+parents:
+  - goal:g1
+---
+an unknown type
+XX
+b0=$(tip);run agi-at .agi/nodes/goall/z1.md 2>$T/egall;rgall=$?
+ok "goall-agi-at-refuses-an-unknown-type a NEW node of type goall (parent goal:g1 resolves): rc $rgall (want 6), the tip $([ $(tip) = $b0 ]&&echo unchanged||echo MOVED) (want unchanged), on the tip: $($G -C $T/g cat-file -e posts/alive:.agi/nodes/goall/z1.md 2>/dev/null&&echo YES||echo no) (want no), the edit stays: $([ -f $T/hm/t/.agi/nodes/goall/z1.md ]&&echo yes||echo NO), bracketed lines: $(grep -c '^\[' $T/egall) (want 1) [$(grep '^\[' $T/egall|head -1|cut -c1-120)], [spawn-gate-broken] lines: $(grep -c '^\[spawn-gate-broken\]' $T/egall) (want 0)" '[ $rgall = 6 ]&&[ $(tip) = $b0 ]&&! $G -C $T/g cat-file -e posts/alive:.agi/nodes/goall/z1.md 2>/dev/null&&[ -f $T/hm/t/.agi/nodes/goall/z1.md ]&&[ "$(grep -c "^\[" $T/egall)" = 1 ]&&[ "$(grep -c "^\[spawn-gate-broken\]" $T/egall)" = 0 ]'
 echo "agi-turn: $f FAIL"
 exit $f
