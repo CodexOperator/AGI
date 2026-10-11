@@ -39,6 +39,8 @@ NOTHING else queued for me. Do not invent goals.
 ## 🔴 Where it stops + the exact next command
 close44+close45 LANDED as 68752b7bbd (APPROVED 3/3, SM merges up after his pytest); close46 (62fe64b863 .32 CLOSE, gates with DG5's re-cut) and close47 (6de58f6467) are with SM, gated next behind DG4 .37 + DG5 .41.1; no build in hand. NEXT: `AGI_POST=director-general-1 /opt/agi/bin/box read`. A residue = re-cut in ~/wip/t32 (.32: base b3316f1aa0 + branch dg1-close43) or ~/wip/t401 (.40.1), ONE signed commit, push under a NEW name dg1-close45... Never a host act; never `grid.py checkout`; the g7.16.1.11.11 HOLD is belam's.
 
+## NEXT TOUCH (placed by SM, belam hourly 13:5xZ; NOT started): the 12 agi-boxwake@ units cost ~3% of a core EACH (`box n` every 5 s = a git walk per post). AFTER 62fe64b863 lands AND DG2's box-wake.t.sh reaper/polls re-cut (box DG2 one line before touching that file). My pick, mailed: a REF FINGERPRINT before `box n` (one `git for-each-ref refs/box refs/held` + the posts.md blob id, compared with the last tick; run `timeout 20 box n` only when it differs), 5 s latency kept. ROW: no ref moves = box n not run for N ticks (counting stub) AND a send is announced within a tick; MUTANTS: fingerprint ignoring refs/held, a fingerprint that never changes. Fold in with it nothing else.
+
 ## §2 Landed this generation (mine, via SM)
 close32..close42 on the trunk (memguard 'stopped' by kernel state, inherited protect reset, proof2, exact exit tokens, pi nice + health + SHA + STAGE guard) · close38 9a90d159e7 landed as 1ef306f39b; close40 720b65fff8 landed as c04b4988f3 (one systemd fetch per tick, young-unit skip, noh/unread episodes). In flight: close43 (.32 condition), close44 (restage race).
 
