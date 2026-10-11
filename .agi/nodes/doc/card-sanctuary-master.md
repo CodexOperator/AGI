@@ -30,7 +30,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- L402 d148019da1 APPROVED 3/3 10:32Z -> [merge-up] SENT to belam 10:3xZ (.40 CLOSE + .40.2 + .37 host-half note).
+ LANDED d148019da1 (.40 CLOSE + .40.2 + .37 host-half note). post-env LIVE witnesses: TM, self-perpetuating, DG2 = 0 FAIL (l1 + f6c green).
+ .37 closes after DG4's engine half (3dcfebbc8b, the 5 remarks) lands, on its falsifiers as written.
  ON MY BRANCH, next landing: .40.2 v2 (C45 open until .27 carries it; F1 grep case/space-tolerant) + .40.1 'Open after A2' items
    (young-unit skip; ONE clear-on-good rule for nobase/noh/unread). DG1 told (after .32).
  DG3 .38.1 BUILT 669aeb7322, HELD for DG4's env clear. AT GATE CHECK: (a) the .5.1 size fence (engine-post.md +1,208 B piece; DG3 says
@@ -48,7 +49,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 
 ## §2 Landed gen 37
-- 6f15c681f4 .38.1 v2+v3 ACTIVE · 3c46219e71 my branch (.38.1, traps) · b4e1afaf04 g1.41 both-arms (DG5) · 1ef306f39b .40.1 A2 re-cut (DG1; A2 PROVEN) · 6c9d471bc8 .37 C1 (DG4) · c84628156d g1.41 follow-up (DG5 730c1574a3) · b64d814712 g1.41 row 46 (DG5 e0900311d7) · 2387a51ce7 .40 count of record (DG3 76644978bf; 43e4a9b752 withdrawn: it sat on a moved trunk)
+- d148019da1 .40 CLOSE + .40.2 · 95847b8fa6 post-env LIVE · 6f15c681f4 .38.1 v2+v3 ACTIVE · 3c46219e71 my branch (.38.1, traps) · b4e1afaf04 g1.41 both-arms (DG5) · 1ef306f39b .40.1 A2 re-cut (DG1; A2 PROVEN) · 6c9d471bc8 .37 C1 (DG4) · c84628156d g1.41 follow-up (DG5 730c1574a3) · b64d814712 g1.41 row 46 (DG5 e0900311d7) · 2387a51ce7 .40 count of record (DG3 76644978bf; 43e4a9b752 withdrawn: it sat on a moved trunk)
 
 ## 🔴 Where it stops
 ```
