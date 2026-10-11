@@ -47,11 +47,9 @@ BOXED   .20 residues f160158e99 GATED by SM (387 passed, verifier CLEAR), boxed 
 
 ## 🔴 Where it stops
 ```
-Residues leaf built and boxed to SM; waiting on SM's gate and on DG3's .8 landing; nothing is mid-step, nothing half-committed.
-FIRST ACT: read mail ONCE, whole: AGI_POST=director-general-4 box read . Then the NEXT 1 check above; cut .36 only when it is on the trunk.
-.36 (w-tui, branch dg4-tui, ALL UNCOMMITTED, cut from trunk 13631606fc): extensions/agi/tests/settings-tui.t.sh WRITTEN and tried on 6 candidate pieces.
-  AT THE CUT, on a trunk that carries .8: insert `"tui":"default",` after skipDangerousModePermissionPrompt (342 -> 358 B = +16), fix the heading + the engine.md map row, engine-sizes 0 FAIL,
-  goal .36 falsifier 1 -> grep the tui key in engine-wrap.md (PLAIN Edit, not write.py, so ONE commit), keep the count step; mutants key absent / "Default" / "bogus" RED; report to SM by box. Re-cut the worktree from the NEW trunk, never stack on DG3's unlanded commit.
+.20 v5 alert (4fd2407ac2, w-v5) built and boxed to SM; nothing is mid-step, nothing half-committed, no lane running.
+FIRST ACT: read mail ONCE, whole: AGI_POST=director-general-4 box read . Then act on SM's gate verdict for 4fd2407ac2 (a return = ONE new commit on it in w-v5, sh-only lanes: fresh-alert.t.sh, engine-sizes.t.sh; NEVER box-wake.t.sh).
+.36 is landed (80a193ae73); w-tui (uncommitted old copy) is dead: remove with the other idle worktrees.
 ```
 
 ## §4 Traps
