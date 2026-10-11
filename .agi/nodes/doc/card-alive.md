@@ -46,7 +46,7 @@ OPEN   conditions the council set that are not built yet -- RED the cut that lac
              row (b)'s fake wait() returns at once (aio M2/M3 green). Trunk 268f49b82e verified (F1 exception only).
          .42 code a155fb2792+16b368ad72+dbbfb2e2a6: (a)+(b) MET (aio: forgery + other-ring-key both rc 3 on the real ring; my
              principal-only mutant 3 RED), 3/3 APPROVE, SM 20:1xZ; ff + belam's apply --sudo in one minute. Leaf: skip absent users.
-             re-mint L f5f100b83b verified; 2 clean unions (.13 + graph-metrics, the 2nd unnamed by SM; told). Goes in SM's digest.
+             re-mint L f5f100b83b verified; 2 clean unions (SM's 'only .13' held vs ITS gated tree; my note withdrawn). In SM's digest.
 NEXT   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 ```
 
