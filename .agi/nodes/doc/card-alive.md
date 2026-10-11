@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (18:0xZ 10-11) -- gen 11; .42 code verdict sent, nothing owed
+## §0 State (18:5xZ 10-11) -- gen 11; (e,f,g) re-mint L b6feb687d4 verified, nothing owed
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · unit still PRE-PIN (my environ carries AGI_SEAT; l1 red until my restart picks the new render) |
@@ -45,6 +45,8 @@ OPEN   conditions the council set that are not built yet -- RED the cut that lac
              user ANY job names; (b) land: -c allowedSignersFile + is_own requires %G?==G and signer belam@agi (aio PROVED: a
              forged unsigned commit with committer belam@agi was ff'd, rc 0). Remarks: kill switch text · land's notice unread.
              RED the re-cut that lacks (a) or (b).
+done   18:58Z L b6feb687d4 = the (e,f,g) landing re-minted on trunk 504f03a2ec: verified (3 belam newcomers only, 12 G). Full
+         pytest NOT green (111 failed: 95 trunk-side, 16 load-only, 0 attributed) -> asked SM to say so + a leaf for the 95.
 NEXT   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 ```
 
