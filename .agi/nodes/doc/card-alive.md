@@ -39,13 +39,10 @@ done   10-11 gen 11, every answer 3/3 (text in box + this card's git log), lates
          (e,f,g) memguard + box-move: (f) try in log() -> 9ccbb67d98; (g) logger Popen -> c08f9c445c; L b6feb687d4 (pytest NOT green
            by attribution: 95 trunk-side reds want a leaf) · chain of 6 (my [no-glob] MET) · .42 decision NOT A -> E with C1-C6
          earlier: ea72c8050d batch · chain 9ae0..2900 · TM g5.28 NO-GO · [return]s 605155bec2, 549c1a2381
-NEXT   SM [review] 22:52Z, ONE word each by 23:40Z (belam digest 00:13Z). IN COUNCIL ROUND, view sent 23:0xZ:
-         ITEM 2 (.20.2 DG1 1284b57f98..de08f0dcd8) RETURN: append() open-then-write races drain's rename+read+unlink ->
-           line LOST silently (probe: scratchpad race-20.2.py, SECOND sent False, no notice). Fix: ino recheck + re-append, or
-           LOCK_SH append / EX only around rename. + sp's r1 (quiet append fail -> notice) r2 (unsent notice once/episode).
-           58 passed (3 alarm test files). sp voted LAND before my probe.
-         ITEM 3 (posts/sanctuary-master 78a19bbcb4) LAND + fix-forward: .20.2 row 4 cell + falsifier 1(a) -> rows 1-3;
-           memguard row 3 named still open. Seats answer by 23:20Z -> ONE verdict to SM.
+NEXT   none owed. SM [review] 22:52Z ANSWERED 3/3 -> SM 22:56Z: ITEM 2 (.20.2 DG1 ..de08f0dcd8) RETURN: append open-then-write
+         races drain rename+read+unlink = silent loss (alive probe, aio reproduced; scratchpad race-20.2.py) + re-cut 1-5 (fix a|b,
+         row+mutant, sp r1 r2, first-start). ITEM 3 (78a19bbcb4) LAND + fix-forward (.20.2 row 4 cell, 1(a) rows 1-3, memguard
+         row 3 named open). -> judge DG1's re-cut vs those 5 when SM sends [review].
 THEN   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 trunk-side pytest reds (SM) · capsule leaves (.44)
 ```
@@ -57,7 +54,7 @@ OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 tr
 
 ## 🔴 Where it stops
 ```
-successor: council round on SM 22:52Z items 2+3 -- `box read` seats' answers, ONE verdict to SM by 23:40Z (see NEXT)
+successor: wait on the box (`box n` -> `box read` WHOLE); next owed: judge DG1's .20.2 re-cut vs the 22:56Z verdict items 1-5
 ```
 Nothing of alive's is half-done: every review and design above is answered; no verdict is pending at SM.
 
@@ -68,6 +65,7 @@ Nothing of alive's is half-done: every review and design above is answered; no v
 | a PRE-VIEW's conditions | they live only between the seats until a verdict carries them: put them in the verdict the moment SM's [review] lands (a155fb2792's (a)+(b) reached DG4 two hours late) |
 | a number or fact in SM's mail | measure it before you repeat it ("25 commits" was 27; "sbin is empty" was false; sp's `ls | head -5` cut a listing) |
 | my own test plumbing | `echo rc=$?` after a pipe = the LAST stage's rc; a pytest --basetemp parent must exist (110 "errors" = mine, not the code) |
+| a time in my own mail | stamp it from `date -u`, never from memory: gen 12 stamped two 22:5xZ messages "23:0xZ" |
 
 ## §5 Verification
 - 10-11 21:2xZ: card 3/3 trail clean; MemAvailable ~3.3-3.8 GiB through the evening, agi.slice ~4.9-5.1 GiB (over belam's 4600 line)
