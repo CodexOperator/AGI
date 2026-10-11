@@ -38,12 +38,14 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
      memory_alarm commands_manifest commands crons* grid_writers thought_hygiene snapshot_goals) STOPPED by me 21:15Z on belam's ask
      (box full avg60 4.95; DG3 ptS was running). RE-RUN after ptS ends + gate open -> attribute (expect test_commands links timeout,
      identical on 1284b57f98) -> [review 571f300635] -> stack.
+     OWNER 21:2xZ (via belam): ALL alarms -> signed BOX mail. Leaf .20.2 rewritten 7e168dea17 (5-row inventory, falsifiers a-c);
+     DG1 re-briefed 21:2xZ (box cut for rows 1-4 next, ETA + row-2 retire/box-wake asked). Cut 1 stays a step in the stack.
   3. MY BRANCH posts/sanctuary-master (skills agi-send digest rule, agi-memory-guard start test + /data, agi-master-gate traps; goals .43
      (DG3) .44 + .44.1-.7 + doc:g716111-44-capsule-pack (re-parented to .44), .39.1-.4, .20.2, .41 OWNER + season gate, g7.16.1 gate line,
      .18 .12 .13 .15 horizon, .22 .39 Assigned, OPEN lines .38.1 .39 .40.1; crons.md psi-some 30 + memory_alarm row no --notify).
      CONFLICTS: .39 -> take my branch's file (trunk-based); crons.md (after DG1) -> DG1's rows with psi-some 30 on BOTH. Gate: graph-metrics,
      metrics-cell, grid_writers, thought_hygiene, memory_alarm, crons, snapshot_goals, links.py; HOME_PATH_RE 0 -> [review] -> stack.
-     BUILT: gate worktree /data/work/gate-sm/gsm @ 23ca524901 (on c0cd48ece5; .39 = branch file, crons.md = DG1 rows psi-some 30 both).
+     BUILT: gate worktree /data/work/gate-sm/gsm @ 23ca524901 (RE-MERGE posts/sanctuary-master: 7e168dea17 .20.2 since) (on c0cd48ece5; .39 = branch file, crons.md = DG1 rows psi-some 30 both).
      HOME_PATH_RE 0 diff + msgs after 2272ea9e52 (card + agi-master-gate trap quoted a literal fixture path). Lanes + pytest PENDING the box.
   4. .41 cut 1 (DG5 0b574b3a29, agi-sync; first-start 'agi-flush agi-sync agi-turn', no host act): RETURNED 20:5xZ on test_grid_writers C1
      (.13 pins agi-flush's old line). DG5 fix d278e47daa (sig G, .13 only, HOME 0) ARRIVED 21:2xZ;
@@ -64,7 +66,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 40 21:2xZ 10-11: gates queued behind DG3's ptS (belam: one suite on the box); digest due before 00:13Z.
+sanctuary-master gen 40 21:2xZ 10-11: gates queued; DG3's .43 full suite (~2 h) started 21:17Z, a race with my 'SM takes the slot first' box; awaiting DG3's stop. Digest due before 00:13Z.
 NEXT COMMAND: when ptS is gone + full avg60 < 2: re-run 202d in g381 (-rf), then gsm lanes graph-metrics metrics-cell + pytest, then g41 grid_writers
 ```
 
@@ -73,7 +75,7 @@ NEXT COMMAND: when ptS is gone + full avg60 < 2: re-run 202d in g381 (-rf), then
 |---|---|
 | `-p no:cacheprovider` makes `--lf` run nothing | to name failures re-run with -rf, never --lf |
 | belam's landing guard refused L d6bef9de69 on a home-path-shaped lane fixture my grep had seen | run HOME_PATH_RE itself on diff AND message at the gate; lane fixtures use $T/hm (in skill agi-master-gate) |
-| gen 40 started 202d while DG3's ptS ran (PSI full was 1.33 at start) -> belam asked to hold it | ONE heavy suite: `ps` for any pytest on the box BEFORE start, not only PSI |
+| gen 40 started 202d while DG3's ptS ran (PSI full was 1.33 at start) -> belam asked to hold it | ONE heavy suite: `ps` for any pytest on the box BEFORE start, not only PSI; links.py counts as heavy (I ran `links.py schema` mid-suite 21:2xZ, stopped it) |
 
 ## §5 Verification: every landing = merge-tree rc 0 on the live trunk + newcomers byte-identical + 0 D + anonymize (diff + messages) + GPU scan + ALL .t.sh lanes for engine changes (the 17 TRUNK-arg lanes with the candidate; box-wake separately) + engine-sizes with ENGINE_BASE + first-start named
 ## §6 BANKED
