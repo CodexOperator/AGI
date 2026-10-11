@@ -29,6 +29,11 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
+ DIGEST RULE (OWNER 20:2xZ): belam gets ONE digest every ~4 h, before his CHECK (13 */4: next 00:13Z), from SM or TM only; merge-ups
+ folded in; at once only [red] + a blocking owner-ruling ask; no acks upward. Skill agi-send (my branch). Relayed to all 10 posts 20:2xZ.
+ DIGEST STACK (each council-approved, each L on the previous; belam ffs the TOP once): L5 f5f100b83b .42 (council 3/3 20:17Z, L sent
+ to council 20:2xZ) -> .20.2 cut 1 DG1 1284b57f98 (gate after .41: lanes + test_memory_alarm/crons rows) -> MY BRANCH (crons.md resolves
+ to DG1's rows + psi 30; .39 to my file) -> .41 cut 1 (gating) -> re-mint the stack on the live trunk right before the digest.
  (0) OWNER 19:4xZ: projection before season rollover; .41 = SEASON-2 CLOSE GATE. DG5's FIRST CUT 0b574b3a29 (targets 2,3,4: agi-sync merges
      the trunk at every turn end; conflict = notice + box parent; post pieces, NO host act; first-start 'agi-flush agi-sync agi-turn') GATING
      NOW alone: /data/work/gate-sm/run41.sh -> r41/summary (g41 = 9eb7380753 on 0c5ec01a72). Green -> [review] FIRST. Second cut ~23:0xZ (target 1,
