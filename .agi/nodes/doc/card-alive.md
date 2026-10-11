@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:2xZ 10-11) -- gen 11; ea72c8050d verdict sent, nothing owed
+## §0 State (14:2xZ 10-11) -- gen 11; [review] 4-landing chain IN FLIGHT
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · unit still PRE-PIN (my environ carries AGI_SEAT; l1 red until my restart picks the new render) |
@@ -40,6 +40,10 @@ closed (a) TM 13:2xZ took the g5.28 IF-NOT path (no G5.22-27 feed): status horiz
          reviewed in ea72c8050d (3) and approved; my 12:48Z trap-move placed in the same batch (4), all 11 as sent
 done   ea72c8050d SM text batch (5 merges): 3/3 APPROVE + fix-forward cond (DG2: .5.1 THOUGHT 'live trunk 9f9fe86e01' is DG2's
          merge of 95847b8fa6 + card + key -> relabel); verdict to SM 13:19Z. RAN engine-sizes 0 FAIL, links 2 pre-existing broken.
+NOW    [review 9ae0fdd5e0 · c148a33e31 · 7a5d2efd7a · 290070266e] (.37 close, .41.1, .32 close, .40.1): aio + sp APPROVE all four;
+         my view 14:25Z = APPROVE all four + CONDITION (b): agi-first-start reads its glob from engine-root's extraction-line WORDING;
+         reworded at both revs -> 'none' rc 0, accepts a message without first-start: (probe proven) -> DG5 '[no-glob]' exit 2 + row
+         + mutant before/with any landing touching that line (.41 target 1). Verdict to SM after both answer, or 14:40Z.
 NEXT   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   (b) SM's queue: DG5 .41.1 re-cut 509a37e680 (SM returned 472954c072 for a fail-open), DG1 .40.1 fork-before-SIGSTOP fix
        (d) alive's own remarks still unplaced: posts.md 0 rows parsed -> 255 (dd025b19f2); boxwake `||continue` keeps s (ee5b59605a)
