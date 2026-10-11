@@ -49,7 +49,7 @@ EOF
 WANT=2 go 1
 ok c-silent-and-self-excluded "[ \"\$(box_to)\" = 'dg2 sanctuary-master ' ]&&[ \$(warns) = 0 ]&&[ -e $T/exec ]"
 # e: as the post, with the block
-ok e-sender-and-body "[ \$(grep -c '^dg4 send ' $T/boxlog) = 2 ]&&[ \$(grep -c ':: \[rotation-alert\] dg4 restarted fresh' $T/boxlog) = 2 ]"
+ok e-sender-and-body "[ \$(grep -c '^dg4 send ' $T/boxlog) = 2 ]&&[ \$(grep -c ':: \[rotation-alert\] dg4 restarted fresh 20[0-9-]*T[0-9:]*Z\$' $T/boxlog) = 2 ]&&! grep -q 'hook\|rotation)' $T/boxlog"
 # d: a continue start sends nothing, and execs with -c
 go 0
 ok d-continue-sends-nothing "[ ! -s $T/boxlog ]&&[ \"\$(cat $T/exec)\" = 'x -c go' ]"
