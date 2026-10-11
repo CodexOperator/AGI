@@ -79,7 +79,7 @@ runh(){ (cd $T/hm&&env -i PATH=$T/shim:$T/bin:/usr/bin:/bin HOME=$T/hm USER=agi-
 # mkr: mk + a ring (alive's three lines + bob's) committed on posts/alive, an old ~/.ssh key and a newer ~/.fresh: agi-out's out-line has work to do
 mkr(){ mk;R=.agi/nodes/.geometry/ring;mkdir -p $T/hm/t/.agi/nodes/.geometry $T/hm/.ssh;printf 'alive ssh-ed25519 AAAAold\nalive pq-sha256 oldpq\nalive x25519 oldseal\nbob ssh-ed25519 AAAAbob\n' >$T/hm/t/$R;$G -C $T/hm/t add -A;$G -C $T/hm/t commit -qm ring;$G -C $T/g update-ref refs/heads/posts/alive $($G -C $T/hm/t rev-parse HEAD)
  ssh-keygen -q -t ed25519 -N '' -f $T/hm/.ssh/id_ed25519 -C old >/dev/null;touch -d '2026-01-01' $T/hm/.ssh/id_ed25519;touch $T/hm/.fresh;}
-[ -s $T/bin/agi-turn ]&&[ -s $T/bin/agi-wt ]||{ echo "FAIL extract: agi-turn $(wc -c <$T/bin/agi-turn 2>/dev/null) B, agi-wt $(wc -c <$T/bin/agi-wt 2>/dev/null) B in ${PIECES:-ROOT}";exit 99;}
+[ -s $T/bin/agi-turn ]&&[ -s $T/bin/agi-wt ]&&[ -s $T/bin/agi-at ]&&[ -s $T/bin/grow.py ]||{ echo "FAIL extract: agi-turn $(wc -c <$T/bin/agi-turn 2>/dev/null) B, agi-wt $(wc -c <$T/bin/agi-wt 2>/dev/null) B, agi-at $(wc -c <$T/bin/agi-at 2>/dev/null) B, grow.py $(wc -c <$T/bin/grow.py 2>/dev/null) B in ${PIECES:-ROOT}";exit 99;}
 # mkgo (used by the rows that land a NEW node, and by the go rows at the end): mk + a scratch repo that carries the engine's own extensions/agi/{bin,src}, .agi/context/schemas and a tiny corpus, so the growth-order check can run from ~/t
 mkgo(){ mk;mkdir -p $T/g/extensions/agi $T/g/.agi/context $T/g/.agi/nodes/goal $T/g/.agi/nodes/hypothesis $T/g/.agi/nodes/experiment;cp -r $R0/extensions/agi/bin $R0/extensions/agi/src $T/g/extensions/agi/;cp -r $R0/.agi/context/schemas $T/g/.agi/context/
  printf -- '---\nid: goal:g1\nmint_id: 000000000000000000000000000000a1\ntype: goal\nparents: []\n---\nroot goal\n' >$T/g/.agi/nodes/goal/g1.md
@@ -639,6 +639,82 @@ parents:
 an unknown type
 XX
 b0=$(tip);run agi-at .agi/nodes/goall/z1.md 2>$T/egall;rgall=$?
-ok "goall-agi-at-refuses-an-unknown-type a NEW node of type goall (parent goal:g1 resolves): rc $rgall (want 6), the tip $([ $(tip) = $b0 ]&&echo unchanged||echo MOVED) (want unchanged), on the tip: $($G -C $T/g cat-file -e posts/alive:.agi/nodes/goall/z1.md 2>/dev/null&&echo YES||echo no) (want no), the edit stays: $([ -f $T/hm/t/.agi/nodes/goall/z1.md ]&&echo yes||echo NO), bracketed lines: $(grep -c '^\[' $T/egall) (want 1) [$(grep '^\[' $T/egall|head -1|cut -c1-120)], [spawn-gate-broken] lines: $(grep -c '^\[spawn-gate-broken\]' $T/egall) (want 0)" '[ $rgall = 6 ]&&[ $(tip) = $b0 ]&&! $G -C $T/g cat-file -e posts/alive:.agi/nodes/goall/z1.md 2>/dev/null&&[ -f $T/hm/t/.agi/nodes/goall/z1.md ]&&[ "$(grep -c "^\[" $T/egall)" = 1 ]&&[ "$(grep -c "^\[spawn-gate-broken\]" $T/egall)" = 0 ]'
+ok "goall-agi-at-refuses-an-unknown-type a NEW node of type goall (parent goal:g1 resolves): rc $rgall (want 6), the tip $([ $(tip) = $b0 ]&&echo unchanged||echo MOVED) (want unchanged), on the tip: $($G -C $T/g cat-file -e posts/alive:.agi/nodes/goall/z1.md 2>/dev/null&&echo YES||echo no) (want no), the edit stays: $([ -f $T/hm/t/.agi/nodes/goall/z1.md ]&&echo yes||echo NO), bracketed lines: $(grep -c '^\[' $T/egall) (want 1) [$(grep '^\[' $T/egall|head -1|cut -c1-120)], naming the type goall: $(grep '^\[' $T/egall|grep -c goall) (want 1), [spawn-gate-broken] lines: $(grep -c '^\[spawn-gate-broken\]' $T/egall) (want 0)" '[ $rgall = 6 ]&&[ $(tip) = $b0 ]&&! $G -C $T/g cat-file -e posts/alive:.agi/nodes/goall/z1.md 2>/dev/null&&[ -f $T/hm/t/.agi/nodes/goall/z1.md ]&&[ "$(grep -c "^\[" $T/egall)" = 1 ]&&[ "$(grep "^\[" $T/egall|grep -c "goall")" = 1 ]&&[ "$(grep -c "^\[spawn-gate-broken\]" $T/egall)" = 0 ]'
+# ---- DG1 rows 2 (SM 00:4xZ 10-11, Sonnet L1 findings on 6f64095d0a): the CR twin and the forged deprecated parent
+# go10e: an ILLEGAL node at a path with a CARRIAGE RETURN ('a<CR>.md') and a LEGAL twin at the path with a LINEFEED ('a<LF>.md'), staged in ONE agi-at. diff-index -z read as TEXT turns '<CR>' into '<LF>' (universal newlines), so the list holds the twin's path twice, git show reads the twin twice, and the CR node is never read: it lands unchecked. REFUSED = rc 6, the tip unchanged, the CR node not on the tip, ONE line naming the CR node (experiment:c10) and allowed_parents
+mkgo;cr=$(printf 'a\r');lf=$(printf 'a\nX');lf=${lf%X};pc=".agi/nodes/experiment/$cr.md";pl=".agi/nodes/experiment/$lf.md"
+gaf "$pc" <<'XX'
+---
+id: experiment:c10
+mint_id: 000000000000000000000000000000d5
+type: experiment
+parents:
+  - goal:g1
+---
+the illegal node at the CR path
+XX
+gaf "$pl" <<'XX'
+---
+id: experiment:c11
+mint_id: 000000000000000000000000000000d6
+type: experiment
+parents:
+  - hypothesis:h1
+---
+the legal twin at the LF path
+XX
+b0=$(tip);run agi-at "$pc" "$pl" 2>$T/ega10e;rg=$?
+ok "go10e-agi-at-reads-the-cr-node-and-not-its-lf-twin an ILLEGAL experiment (parent goal:g1) at a path with a CR and a LEGAL twin (parent hypothesis:h1) at a path with an LF, in ONE agi-at: rc $rg (want 6), the tip $([ $(tip) = $b0 ]&&echo unchanged||echo MOVED) (want unchanged), experiment nodes on the tip: $(nexp) (want 1), both edits stay in ~/t: $([ -f "$T/hm/t/$pc" ]&&[ -f "$T/hm/t/$pl" ]&&echo yes||echo NO), bracketed lines: $(grep -c '^\[' $T/ega10e) (want 1) naming c10 and allowed_parents: $(grep '^\[' $T/ega10e|grep -c 'experiment:c10.*allowed_parents') (want 1)" '[ $rg = 6 ]&&[ $(tip) = $b0 ]&&[ "$(nexp)" = 1 ]&&[ -f "$T/hm/t/$pc" ]&&[ -f "$T/hm/t/$pl" ]&&[ "$(grep -c "^\[" $T/ega10e)" = 1 ]&&[ "$(grep "^\[" $T/ega10e|grep -c "experiment:c10.*allowed_parents")" = 1 ]'
+# go10f (control): the LEGAL twin ALONE, at the LF path, lands (rc 0, ONE signed commit): the gate did not start refusing every path with a control character
+mkgo;gaf "$pl" <<'XX'
+---
+id: experiment:c11
+mint_id: 000000000000000000000000000000d6
+type: experiment
+parents:
+  - hypothesis:h1
+---
+the legal twin at the LF path
+XX
+b0=$(tip);run agi-at "$pl" 2>$T/ega10f;rg=$?
+ok "go10f-agi-at-lands-the-lf-twin-alone the LEGAL twin alone at the LF path: rc $rg (want 0), $($G -C $T/g rev-list --count $b0..posts/alive) new commit(s) (want 1), experiment nodes on the tip: $(nexp) (want 2), signed: [$(sig posts/alive)] (want G), bracketed lines: $(grep -c '^\[' $T/ega10f) (want 0)" '[ $rg = 0 ]&&[ "$($G -C $T/g rev-list --count $b0..posts/alive)" = 1 ]&&[ "$(nexp)" = 2 ]&&[ "$(sig posts/alive)" = G ]&&[ "$(grep -c "^\[" $T/ega10f)" = 0 ]'
+# gd2 (forged deprecated parent): a parent id staged NEW under .agi/nodes/deprecated/ in THIS tree does not exist for the gate -- deprecated/ is exempt from the gate (a retire is a move), and an exemption must not mint a parent: hypothesis:hf is added under deprecated/ together with its child experiment:f1 in ONE agi-at: refused (rc 6, ONE line: the parent resolves nowhere), neither node on the tip
+mkgo;gaf .agi/nodes/deprecated/hypothesis/hf.md <<'XX'
+---
+id: hypothesis:hf
+mint_id: 000000000000000000000000000000b4
+type: hypothesis
+status: deprecated
+parents:
+  - goal:g1
+---
+a forged retired parent, new in this tree
+XX
+gaf .agi/nodes/experiment/f1.md <<'XX'
+---
+id: experiment:f1
+mint_id: 000000000000000000000000000000d7
+type: experiment
+parents:
+  - hypothesis:hf
+---
+child of a forged retired parent
+XX
+b0=$(tip);run agi-at .agi/nodes/deprecated/hypothesis/hf.md .agi/nodes/experiment/f1.md 2>$T/egd2;rgd2=$?
+ok "gd2-agi-at-refuses-a-parent-forged-under-deprecated hypothesis:hf added NEW under .agi/nodes/deprecated/ and its child experiment:f1 in ONE agi-at: rc $rgd2 (want 6), the tip $([ $(tip) = $b0 ]&&echo unchanged||echo MOVED) (want unchanged), experiment nodes on the tip: $(nexp) (want 1), the edits stay: $([ -f $T/hm/t/.agi/nodes/deprecated/hypothesis/hf.md ]&&[ -f $T/hm/t/.agi/nodes/experiment/f1.md ]&&echo yes||echo NO), bracketed lines: $(grep -c '^\[' $T/egd2) (want 1) naming f1 and 'resolve nowhere': $(grep '^\[' $T/egd2|grep -c 'experiment:f1.*resolve nowhere') (want 1)" '[ $rgd2 = 6 ]&&[ $(tip) = $b0 ]&&[ "$(nexp)" = 1 ]&&[ -f $T/hm/t/.agi/nodes/deprecated/hypothesis/hf.md ]&&[ -f $T/hm/t/.agi/nodes/experiment/f1.md ]&&[ "$(grep -c "^\[" $T/egd2)" = 1 ]&&[ "$(grep "^\[" $T/egd2|grep -c "experiment:f1.*resolve nowhere")" = 1 ]'
+# gd2b (control): a retired node ALREADY ON THE TIP still resolves as a parent: hypothesis:hr (on the tip under deprecated/) and a new child experiment:r1 in one agi-at: rc 0, ONE signed commit
+mkgo;mkdir -p $T/g/.agi/nodes/deprecated/hypothesis;printf -- '---\nid: hypothesis:hr\nmint_id: 000000000000000000000000000000b5\ntype: hypothesis\nstatus: deprecated\nparents:\n  - goal:g1\n---\na retired parent, already on the tip\n' >$T/g/.agi/nodes/deprecated/hypothesis/hr.md;$G -C $T/g add -A;$G -C $T/g commit -qm "a retired hypothesis";$G -C $T/g update-ref refs/heads/posts/alive trunk;$G -C $T/hm/t checkout -q --detach posts/alive
+gaf .agi/nodes/experiment/r1.md <<'XX'
+---
+id: experiment:r1
+mint_id: 000000000000000000000000000000d8
+type: experiment
+parents:
+  - hypothesis:hr
+---
+child of a retired parent already on the tip
+XX
+b0=$(tip);run agi-at .agi/nodes/experiment/r1.md 2>$T/egd2b;rgd2b=$?
+ok "gd2b-agi-at-resolves-a-retired-parent-already-on-the-tip a NEW experiment parented by hypothesis:hr (under deprecated/ on the tip): rc $rgd2b (want 0), $($G -C $T/g rev-list --count $b0..posts/alive) new commit(s) (want 1), experiment nodes on the tip: $(nexp) (want 2), signed: [$(sig posts/alive)] (want G), bracketed lines: $(grep -c '^\[' $T/egd2b) (want 0)" '[ $rgd2b = 0 ]&&[ "$($G -C $T/g rev-list --count $b0..posts/alive)" = 1 ]&&[ "$(nexp)" = 2 ]&&[ "$(sig posts/alive)" = G ]&&[ "$(grep -c "^\[" $T/egd2b)" = 0 ]'
 echo "agi-turn: $f FAIL"
 exit $f
