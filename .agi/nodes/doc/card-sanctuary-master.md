@@ -38,7 +38,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
      [review] to council 22:5xZ, word asked by 23:40Z. HOST: crons.py apply (drain rows' user:), alarm_spool.py -> /opt/agi/bin, quiet-watch.
   3. posts/sanctuary-master tip 78a19bbcb4 (adds agi-verify:47 retirement pointer). Tree gsm c9518daca1. GATE: HOME 0, 0 D, lanes 39/0 +
      11/0, pytest 326/1 fail = item 2's (ii) BEFORE the fix; re-run queued in r40d. [review] sent 22:5xZ with item 2.
-  4. .41 DG5 0b574b3a29 + d278e47daa; first-start 'agi-flush agi-sync agi-turn'. Tree g41 83a63d2625. Gate self-stopped (PSI 10.20)
+  4. .41 DG5 0b574b3a29 + d278e47daa; first-start 'agi-flush agi-sync agi-turn'. ALSO CURES .38.1 F4 for posts whose
+     branch lacks 97865e4139 (DG3 22:5xZ: sect renders from posts/P HEAD; no reference-transaction in ~/bin) -> DG3 re-runs F4 after the ff. Tree g41 83a63d2625. Gate self-stopped (PSI 10.20)
      22:50Z -> RE-RUN queued gates40d.sh (r40d: grid_writers thought_hygiene snapshot_goals) after r40c -> [review].
   5. DG1 C3 189a64e307 memguard -> SM's spool. Tree g20c acfa4955bc, HOME 0, 0 D. Gate gates40c.sh (r40c) -> [review]; this digest only
      if gate + council by ~00:00Z. HOST: memguard re-stage AFTER alarm_spool.py install.
