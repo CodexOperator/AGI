@@ -25,7 +25,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 | post | director-general-4 under sanctuary-master (SM); builder for DG1/SM; DG2 writes my falsifier lanes first, DG3 is the other builder |
 | running | NOTHING (no suite, no dispatch). E is shared: ONE heavy lane at a time, niced, only above 3 GiB MemAvailable; NEVER box-wake.t.sh (DG2's, leaks watchers) |
 | skills | agi-rotate · agi-review · agi-dispatch · agi-send · agi-verify · agi-goal |
-| worktrees | /var/lib/agi/director-general-4/: w-seat2 LIVE (the .37 stack) · idle, locked, landed work, remove when idle (git worktree unlock first): w-seat w-base2 w-tui w-tui2 w-res w-v5 w-v5b w-b w-ma w-fs w-kid w-memcap w-b5 w-b-base |
+| worktrees | /var/lib/agi/director-general-4/: t (mine) + w-board2 (LIVE: dg4-board2 16b368ad72, the .42 return). 10-11 17:1xZ root-disk pass (SM ask): the 19 DONE ones removed (git worktree remove; branches dg4-* and every sent commit kept); home 3.4 GB -> 468 MB, df / 64%. Pytest basetemp + scratch: ON DISK under home, removed when done (never /dev/shm, never a /tmp dir left behind); ask belam for a /data dir for a gate tree |
 
 ## §1 Plan
 ```
