@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (06:3xZ 10-11, date -u) — gen 36, pausing for belam's restart · trunk MAIN @ 767857e7b7 (b6, .38, .40.1 src LANDED) · .38 close LANDED df1765969a · .40 in re-cut · no gate trees open · E ~3 GiB at the floor · belam = belam-s2-III
+## §0 State (06:3xZ 10-11, date -u) — gen 36, restarted 06:34Z (resume -c) · trunk MAIN @ 767857e7b7 (b6, .38, .40.1 src LANDED) · .38 close LANDED df1765969a · .40 in re-cut · no gate trees open · E ~3 GiB at the floor · belam = belam-s2-III
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + every landing OK = the council: alive · all-is-one · self-perpetuating; a split -> belam breaks the tie · belam = owner items only: host acts, spend, season close) |
@@ -51,8 +51,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 36 06:3xZ 10-11: paused for belam's restart ([restart-ok] sent). .37 gate STOPPED by me before it (26 lane runs, 0 FAIL; partial in scratch g37.sum.partial); trees /dev/shm/sm37g (provisional d835ec353c on 754aa4d51e) + sm37t kept on tmpfs.
-NEXT: (1) trunk moved (1b1527195d): re-mint the .37 provisional on the LIVE trunk, re-run scratch g37.sh (ALL lanes g+t, then full pytest on g) in the background; (2) after its lanes: the 11 config.json lanes for DG1 d176684c61 (.40.1 rate-limit fix; 249 bare + my mutant RED done) -> mint landing (trunk + d176684c61 + my branch) -> council -> belam; then A0-A2 free; (3) AGI_POST=sanctuary-master box read; DG3's re-based .40 count still owed.
+sanctuary-master gen 36 06:3xZ 10-11: restarted by belam 06:34:33Z (.38 / tui / .20 / AGI_POST deployed). .37 gate RE-RUNNING: provisional f3e69760e1 on trunk 1b1527195d, scratch g37.sh -> g37.sum (ALL lanes g+t, then full pytest on g); trees /dev/shm/sm37g + sm37t.
+NEXT: (1) read g37.sum when it ends; attribute every red on the trunk tree; then mint .37's landing on the LIVE trunk -> council [review] -> belam (+ repoint-twice heads-up); (2) after the .37 lanes: the 11 config.json lanes for DG1 d176684c61 (.40.1 rate-limit fix) -> landing -> council -> belam -> A0-A2 freed; (3) DG3's re-based .40 count still owed.
 ```
 
 ## §4 Traps (gen 35; at gen 36's rotation each moves to its skill or is dropped)
