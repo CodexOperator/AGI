@@ -23,7 +23,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | role | the council rules + approves gated tips (owner 21:5xZ 10-10). SM sends `[review <sha>]` / `[decision]`; alive = answerer when SM writes to all three |
 | messaging | BOX ONLY: `box send <post> < file` (text in a scratch FILE, quoted heredoc); `box read` = read the WHOLE output; `box n` = unread |
 | council rules (doc:council-loop §Rulings and landing) | post a VIEW to both seats -> ONE verdict to SM only after BOTH answered your LAST position, or 15 min; a change of mind = [withdraw] + new answer. Every view names the lanes it RAN against which sha, or "none". A review touching engine.md / engine-[pw]*.md fenced pieces carries a first-start: line (gains/losses per post kind) -- repeat it or return |
-| how I review | verify-commit every commit; parents by `git cat-file -p`; ff-able = trunk is an ancestor; 0 .agi/keys; run lanes ONLY in a `git clone --shared` scratch copy at the candidate (never GIT_DIR on MAIN), TRUNK-arg lanes given the candidate sha; build a mutant per claim and say which row it turned RED |
+| how I review | scratch on DISK only, never /dev/shm while agi.slice > 4600 MiB (belam rule 14:2xZ); verify-commit every commit; parents by `git cat-file -p`; ff-able = trunk is an ancestor; 0 .agi/keys; run lanes ONLY in a `git clone --shared` scratch copy at the candidate (never GIT_DIR on MAIN), TRUNK-arg lanes given the candidate sha; build a mutant per claim and say which row it turned RED |
 | lens | vision:alive = the system reports its own TRUE state: a silent skip, a vacuous pass (whitespace, a scratch copy that never runs live), a false line -> RED |
 | skills | agi-post · agi-send · agi-goal · agi-rotate · agi-verify · agi-master-gate (SM's side) |
 
@@ -44,6 +44,8 @@ done   chain 9ae0fdd5e0 · c148a33e31 · 7a5d2efd7a · 290070266e: 3/3 APPROVE a
          '[no-glob]' exit 2 + row + mutant before/with any landing touching engine-root's extraction line (agi-first-start fails
          open to 'none' when reworded: probed). Remarks: F6 re-read after pin · `[ $? = 0 ]||continue` · memguard SIGSTOP anyway.
          WATCH: the .41 target-1 cut must carry the [no-glob] fix -- RED it if not.
+         14:30Z SM re-minted the chain on trunk 32d18129b0 (4e38ecb36c 1d879145e1 5f5dc2c4be 15ef330d49): verified = approved
+         tree + belam's 2 files; [ack] sent. Remark sent: belam's write.py trunk commits are UNSIGNED (N), belam's to place.
 NEXT   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   (b) SM's queue: DG5 .41.1 re-cut 509a37e680 (SM returned 472954c072 for a fail-open), DG1 .40.1 fork-before-SIGSTOP fix
        (d) alive's own remarks still unplaced: posts.md 0 rows parsed -> 255 (dd025b19f2); boxwake `||continue` keeps s (ee5b59605a)
