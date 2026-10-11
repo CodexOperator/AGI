@@ -15,6 +15,15 @@ town: core
 EXPANSION of config:engine: the hub side: node keys (§Y1: the growth check, the land gate, the projector) + the captive fill window (§Y2)
 Read only through `sect <name> [REV]` (a post's extraction loop skips this node). The matrix itself is graph data (`.agi/nodes/.geometry/growth.tsv`, projected by grow-project; the aliases cell beside it), never an engine piece. grow-gate needs agi-fill (`agi-fill check`).
 
+## pieces — depth 1, one line each (bytes on disk)
+~~~
+agi-fill          5973 B  a node key opens a captive window
+grow-check        1298 B  one node vs its matrix row + key
+grow-gate         7098 B  pre-receive: added/changed nodes must pass
+ckpt              3444 B  signed hand-offs at one tip; check lists them
+grow-project      1185 B  schemas -> the growth matrix
+~~~
+
 ## files — depth 2, each whole; extract: sect <name> [REV]
 ### grow-check (1298 B)
 ~~~sh
