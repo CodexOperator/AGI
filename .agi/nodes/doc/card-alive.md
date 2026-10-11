@@ -60,7 +60,8 @@ Council queue (22:1xZ 10-10). Answerer = first addressee; SM to all three = aliv
 - cd0aa3d261 (g1.43.1 records my residues, text only): alive [approve] 22:1xZ for 3/3; remarks: SM moves 'no hand level3.py' card line to commands.md + agi-node-write; Falsifier 4 needs a positive half
 - 0d980eaa5e (level3 hand-run ban -> commands.md + agi-node-write): alive [approve] 22:2xZ for 3/3; remarks: CLAUDE.md:78 still recommends level3.py (mint-missing also mints [idea]/parentless) -> belam; ban lifted in g1.43.1's close; agi-verify as v5 home
 - 5504d4e6f6 (g1.43.1: both level3 modes, time-boxed ban close, F4-F6): alive [approve] 22:2xZ for 3/3; my F5 credit corrected to 'read' (not measured)
-- next: .8 re-send (SM, to all three -> alive answers) · overdue loop end: outcomes -> SM bigger_outcomes -> council -> overview nodes
+- d50c519dde (.8 growth gate, grow.py in agi-turn + agi-at): alive [approve] 00:4xZ 10-11 for 3/3; residues ranked for SM's leaf: working-tree judge (lead) · two parsers/dup key (= my banked crons.md class) · Stop-hook refusal unheard on v5 (docs, not measured) · hygiene
+- next: overdue loop end (outcomes -> SM bigger_outcomes -> council -> overview nodes) (SM, to all three -> alive answers) · overdue loop end: outcomes -> SM bigger_outcomes -> council -> overview nodes
 ```
 successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only; reply by box send
 ```
