@@ -1093,6 +1093,8 @@ def _a2proof(tmp_path, codes, guard="time.sleep(5)\n", **env):
 
 @pytest.mark.parametrize("codes,verdict,rc", [([0, 0], "PROVEN", 0), ([1, 0], "UNDO A2", 1), ([0, 1], "UNDO A2", 1), ([1, 2], "UNDO A2", 1),
                                               ([2, 2], "NOT PROVEN", 3), ([0, 2], "NOT PROVEN", 3), ([2, 0], "NOT PROVEN", 3), ([7, 0], "NOT PROVEN", 3),
+                                              ([137, 0], "NOT PROVEN", 3), ([0, 124], "NOT PROVEN", 3), ([127, 0], "NOT PROVEN", 3),   # killed, timed out, not found
+                                              ([10, 0], "NOT PROVEN", 3), ([0, 11], "NOT PROVEN", 3), ([11, 1], "UNDO A2", 1), ([1, 137], "UNDO A2", 1),
                                               (None, "NOT PROVEN", 3)])
 def test_memguard_a2_proof_decides_proven_undo_or_not_proven_from_the_two_looks(tmp_path, codes, verdict, rc):
     r, stage = _a2proof(tmp_path, codes)

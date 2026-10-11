@@ -3,7 +3,7 @@
 # PROOF 2 runs the trunk's memguard-proof2.py FROM THE A0 ARCHIVE of the GO sha, TWICE, the gap between (and before the first look) DERIVED
 # from the installed guard: 2 x its time.sleep + 1. The verdict, from the two exit codes (a = first look, b = second):
 #   0 0                       PROVEN        exit 0
-#   either 1                  UNDO A2       exit 1   a pid is on the wrong side: sh memguard-a2.undo.sh
+#   either EXACTLY 1          UNDO A2       exit 1   a pid is on the wrong side: sh memguard-a2.undo.sh
 #   anything else             NOT PROVEN    exit 3   the proof is absent / exit 2 / unreadable, the staged tree is not the GO sha, or the gap cannot be derived:
 #                                                    NO undo, NO 'A2 proven'; a line for the master is printed and kept in $STAGE/not-proven.txt; the leaf stays open
 set -u
@@ -35,8 +35,8 @@ fi
 why=
 if [ -n "${SHA:-}" ] && [ "$(cat "$STAGE/SHA" 2>/dev/null)" != "$SHA" ]; then why="the staged tree is $(cat "$STAGE/SHA" 2>/dev/null || echo none), not the GO sha $SHA"; fi
 case "$ra $rb" in
-  *1*) verdict=UNDO ;;
   "0 0") verdict=PROVEN ;;
+  "1 "*|*" 1") verdict=UNDO ;;                                     # EXACT tokens: only the exit code 1 is a wrong side (137, 124, 127, 10 are not)
   *) verdict=NOTPROVEN ;;
 esac
 [ -n "$why" ] && [ "$verdict" != UNDO ] && verdict=NOTPROVEN
