@@ -20,9 +20,13 @@ Signals, all read from the kernel (never from a process list):
 
 Levels ok < warn < crit. On a rise, and every --repeat-mins while raised:
 one line to the guard's alerts.log (its `TS HOST MESSAGE` shape, so
-`guard-init.sh --status` lists it) and one [red] dm per --notify post through
-send.py (the 2-min wake surfaces it). On the
-fall back to ok: one CLEARED line + dm. A run that changes nothing writes
+`guard-init.sh --status` lists it) and one line per --notify post in that
+post's OWN ~/.notice through its `~/bin/agi-notice add` (the .38 channel
+memguard's notices use; goal:g7.16.1.11.20.2: the old inbox mail is not on
+this path any more). The job must run AS agi-<post> (config:crons `user:`, goal
+g7.16.1.11.42 C1): from any other uid the notice is NOT written, one stderr
+line and one alerts.log line say so, and nothing falls back to the old path.
+On the fall back to ok: one CLEARED line + notice. A run that changes nothing writes
 nothing (hypothesis:cron-layer-keeps-its-disk-footprint-bounded).
 """
 from __future__ import annotations
@@ -30,6 +34,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import pwd
 import socket
 import subprocess
 import sys
@@ -148,18 +153,26 @@ def _append_alert(log: Path, ts: str, msg: str) -> None:
         fh.write(f"{ts} {socket.gethostname().split('.')[0]} {msg}\n")
 
 
-def _dm(repo: Path, post: str, body: str) -> None:
-    """One [red] dm through the engine's own channel; a failure is printed, never raised."""
-    send = Path(__file__).resolve().parent / "send.py"
+def _uid_name() -> str:
+    """The user name this job runs as (a seam: the rows pin who may write whose notice)."""
+    return pwd.getpwuid(os.getuid()).pw_name
+
+
+def _notice(post: str, line: str, notice_bin: Path | None = None) -> str | None:
+    """The line in `post`'s own ~/.notice through its agi-notice, in its own uid. Returns None
+    when written, else WHY NOT (the caller says it; nothing here raises or falls back)."""
+    me = _uid_name()
+    if me != f"agi-{post}":
+        return (f"uid {me} cannot write {post}'s notice (the job must run as agi-{post}: "
+                f"config:crons `user:`, goal g7.16.1.11.42 C1)")
+    exe = notice_bin or Path(os.path.expanduser("~")) / "bin" / "agi-notice"
     try:
-        r = subprocess.run([sys.executable, str(send), "send", "--from", "memory-alarm",
-                            post, body], cwd=repo, capture_output=True, text=True,
-                           timeout=60)
-        if r.returncode != 0:
-            print(f"memory_alarm: dm to {post} failed (exit {r.returncode}): "
-                  f"{(r.stderr or r.stdout).strip()[:200]}")
+        r = subprocess.run([str(exe), "add", line], capture_output=True, text=True, timeout=30)
     except (OSError, subprocess.SubprocessError) as exc:
-        print(f"memory_alarm: dm to {post} failed: {exc}")
+        return f"{exe} add failed: {exc}"
+    if r.returncode != 0:
+        return f"{exe} add exit {r.returncode}: {(r.stderr or r.stdout).strip()[:200]}"
+    return None
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -172,7 +185,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--warn-cgroup-max-frac", type=float, required=True)
     ap.add_argument("--repeat-mins", type=float, required=True)
     ap.add_argument("--notify", action="append", default=[],
-                    help="a post to dm on each alert; repeatable")
+                    help="a post whose own ~/.notice gets a line on each alert; repeatable. "
+                         "Of the two cron rows ONE owns it (memory_alarm_posts): the other "
+                         "passes none, so one alarm is one notice")
+    ap.add_argument("--notice-bin", type=Path, default=None,
+                    help="the agi-notice to call (default ~/bin/agi-notice)")
     ap.add_argument("--cgroup", type=Path, default=None,
                     help="default: this uid's user@ service cgroup")
     ap.add_argument("--state", type=Path, default=None,
@@ -218,8 +235,14 @@ def main(argv: list[str] | None = None) -> int:
         tail = (" -- hold new dispatches; guard's watchdog reboots at PSI full "
                 ">= 40% for 5 min")
     _append_alert(alerts_log, ts, msg)
+    kind = "cleared" if act == "clear" else level
     for post in a.notify:
-        _dm(a.root.parent, post, f"[red] {ts} {msg}{tail}")
+        # `[memory-alarm-<kind>] <8 hex> ...`: agi-notice keys a line by its [..] and hex words, so the
+        # kinds do not eat each other (a CLEARED after an unread ALARM) and every event is its own line
+        why = _notice(post, f"[memory-alarm-{kind}] {int(now):08x} {ts} {msg}{tail}", a.notice_bin)
+        if why:
+            print(f"memory_alarm: notice to {post} NOT written: {why}", file=sys.stderr)
+            _append_alert(alerts_log, ts, f"NOTICE to {post} NOT written: {why}")
     if state.get("level", "ok") != level:
         state["since"] = ts
     state.update(level=level, last_alert=now)

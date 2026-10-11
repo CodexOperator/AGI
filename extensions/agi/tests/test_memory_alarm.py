@@ -67,7 +67,7 @@ def _args(tmp_path, *thresholds):
 
 def test_an_ok_run_writes_and_sends_nothing(tmp_path, capsys, monkeypatch):
     sent = []
-    monkeypatch.setattr(m, "_dm", lambda *a: sent.append(a))
+    monkeypatch.setattr(m, "_notice", lambda *a: sent.append(a))
     rc = m.main(_args(tmp_path, "--warn-avail-mib", "0", "--crit-avail-mib", "0",
                       "--warn-psi-some-avg60", "1000", "--crit-psi-full-avg60", "1000",
                       "--warn-cgroup-max-frac", "1000"))
@@ -77,14 +77,14 @@ def test_an_ok_run_writes_and_sends_nothing(tmp_path, capsys, monkeypatch):
 
 def test_a_raise_logs_once_dms_once_then_stays_quiet(tmp_path, monkeypatch):
     sent = []
-    monkeypatch.setattr(m, "_dm", lambda repo, post, body: sent.append((post, body)))
+    monkeypatch.setattr(m, "_notice", lambda post, body, nb=None: sent.append((post, body)))
     argv = _args(tmp_path, "--warn-avail-mib", "1e12", "--crit-avail-mib", "0",
                  "--warn-psi-some-avg60", "1000", "--crit-psi-full-avg60", "1000",
                  "--warn-cgroup-max-frac", "1000")
     assert m.main(argv) == 0
     lines = (tmp_path / "alerts.log").read_text().splitlines()
     assert len(lines) == 1 and " WARN memory warn: MemAvailable " in lines[0]
-    assert len(sent) == 1 and sent[0][0] == "belam" and sent[0][1].startswith("[red] ")
+    assert len(sent) == 1 and sent[0][0] == "belam" and sent[0][1].startswith("[memory-alarm-warn] ")
     assert m.main(argv) == 0  # same level inside the repeat window: silent
     assert len((tmp_path / "alerts.log").read_text().splitlines()) == 1 and len(sent) == 1
 
@@ -108,7 +108,7 @@ def test_the_default_alerts_log_lands_where_the_cap_looks(tmp_path, monkeypatch)
     (root / "agi-tree.config.json").write_text(json.dumps(
         {"logs": {"cap_mb": 1, "rotations": 3, "mode": "copytruncate",
                   "alerts_file": "memory-alarm-alerts.log"}}))
-    monkeypatch.setattr(m, "_dm", lambda *a: None)
+    monkeypatch.setattr(m, "_notice", lambda *a: None)
     argv = ["--root", str(root), "--warn-avail-mib", "1e12",
             "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000",
             "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000",
@@ -174,7 +174,7 @@ def test_the_state_path_comes_from_the_sessions_resolver(tmp_path, monkeypatch):
     root = tmp_path / "proj"
     (root / "sessions").mkdir(parents=True)
     (root / "agi-tree.config.json").write_text("{}")
-    monkeypatch.setattr(m, "_dm", lambda *a: None)
+    monkeypatch.setattr(m, "_notice", lambda *a: None)
     argv = ["--root", str(root), "--warn-avail-mib", "1e12",
             "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000",
             "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000",
@@ -184,3 +184,98 @@ def test_the_state_path_comes_from_the_sessions_resolver(tmp_path, monkeypatch):
     assert state.is_file() and json.loads(state.read_text())["level"] == "warn"
     src = Path(m.__file__).read_text()
     assert 'STATE_FILE' in src and '"sessions"' not in src.split("def main")[1]
+
+
+# --- goal:g7.16.1.11.20.2 cut 1: the old inbox mail is OUT of this path -------------------------------
+
+BIN = Path(m.__file__).resolve()
+REPO = BIN.parents[3]
+STUB_NOTICE = "#!/bin/sh\n[ \"$1\" = add ] || exit 2\nprintf '%s\\n' \"$2\" >> \"$NOTICE_OUT\"\n"
+
+
+def test_send_py_is_out_of_memory_alarm_entirely():
+    text = BIN.read_text()
+    assert "send.py" not in text and "_dm" not in text and "from send" not in text and "import send" not in text, "the old mail path is back"
+
+
+def _stub(tmp_path, monkeypatch, uid="agi-belam"):
+    out = tmp_path / "notices.out"; exe = tmp_path / "agi-notice"
+    exe.write_text(STUB_NOTICE); exe.chmod(0o755)
+    monkeypatch.setenv("NOTICE_OUT", str(out)); monkeypatch.setattr(m, "_uid_name", lambda: uid)
+    return exe, out
+
+
+def _forbid_send_py(monkeypatch):
+    real = m.subprocess.run
+    def guard(cmd, *a, **k):
+        assert "send.py" not in " ".join(map(str, cmd)), cmd           # a send.py spawn fails the row
+        return real(cmd, *a, **k)
+    monkeypatch.setattr(m.subprocess, "run", guard)
+
+
+def _warn_args(tmp_path, *extra, state="st.json", log="alerts.log"):
+    return ["--root", str(tmp_path), "--warn-avail-mib", "1e12", "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000",
+            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000", "--repeat-mins", "15",
+            "--cgroup", str(tmp_path / "no-cgroup"), "--state", str(tmp_path / state), "--alerts-log", str(tmp_path / log), *extra]
+
+
+def test_the_notice_is_the_posts_own_agi_notice_in_its_own_uid(tmp_path, monkeypatch):
+    exe, out = _stub(tmp_path, monkeypatch); _forbid_send_py(monkeypatch)
+    assert m.main(_warn_args(tmp_path, "--notify", "belam", "--notice-bin", str(exe))) == 0
+    lines = out.read_text().splitlines()
+    assert len(lines) == 1, lines
+    kind, ev, rest = lines[0].split(" ", 2)
+    assert kind == "[memory-alarm-warn]" and len(ev) == 8 and int(ev, 16) > 0 and "WARN memory warn: MemAvailable " in rest, lines[0]
+    assert m.main(_warn_args(tmp_path, "--notify", "belam", "--notice-bin", str(exe))) == 0               # inside the repeat window: silent
+    assert len(out.read_text().splitlines()) == 1
+    # kinds are separate agi-notice keys: a CLEARED is never eaten by an unread ALARM
+    assert m.main(["--root", str(tmp_path), "--warn-avail-mib", "0", "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000", "--crit-psi-full-avg60", "1000",
+                   "--warn-cgroup-max-frac", "1000", "--repeat-mins", "15", "--cgroup", str(tmp_path / "no-cgroup"), "--state", str(tmp_path / "st.json"),
+                   "--alerts-log", str(tmp_path / "alerts.log"), "--notify", "belam", "--notice-bin", str(exe)]) == 0
+    lines = out.read_text().splitlines()
+    assert len(lines) == 2 and lines[1].startswith("[memory-alarm-cleared] "), lines
+
+
+def test_from_the_wrong_uid_nothing_is_written_it_says_so_and_never_falls_back(tmp_path, monkeypatch, capsys):
+    exe, out = _stub(tmp_path, monkeypatch, uid="belam"); _forbid_send_py(monkeypatch)             # the cron job still running as uid belam
+    assert m.main(_warn_args(tmp_path, "--notify", "belam", "--notice-bin", str(exe))) == 0
+    assert not out.exists(), "a notice was written from the wrong uid"
+    err = capsys.readouterr().err
+    assert "notice to belam NOT written" in err and "must run as agi-belam" in err, err
+    assert "NOTICE to belam NOT written" in (tmp_path / "alerts.log").read_text()                   # and in the log: never a silent failure
+    capsys.readouterr()
+    exe.write_text("#!/bin/sh\nexit 3\n")                                                          # right uid, agi-notice fails: the same two places say so
+    monkeypatch.setattr(m, "_uid_name", lambda: "agi-belam")
+    assert m.main(_warn_args(tmp_path, "--notify", "belam", "--notice-bin", str(exe), state="st2.json", log="alerts2.log")) == 0
+    assert "exit 3" in capsys.readouterr().err and "exit 3" in (tmp_path / "alerts2.log").read_text()
+
+
+def _real_rows(tmp_path):
+    fm = crons._parse_frontmatter(crons._node_path(REPO / ".agi"))["cadences"]
+    out = {}
+    for name in ("memory_alarm", "memory_alarm_posts"):
+        row = fm[name]
+        cmd = row["cmd"].replace("{repo_root}", str(REPO)).replace("{root}", str(tmp_path))
+        argv = cmd.split()[2:]                                                                       # drop `python3 memory_alarm.py`
+        out[name] = (row, argv)
+    return out
+
+
+def test_one_alarm_through_both_real_cron_rows_is_exactly_one_notice(tmp_path, monkeypatch):
+    exe, out = _stub(tmp_path, monkeypatch); _forbid_send_py(monkeypatch)
+    rows = _real_rows(tmp_path)
+    for name, (row, argv) in rows.items():
+        assert row.get("user") == "agi-belam", (name, row.get("user"))                              # both rows run AS the Prime's own uid
+    for name, (row, argv) in rows.items():
+        argv = [a for a in argv]
+        i = argv.index("--warn-avail-mib"); argv[i + 1] = "1e12"                                      # force a warn on the box-wide signal both jobs read
+        argv += ["--alerts-log", str(tmp_path / f"{name}.log"), "--notice-bin", str(exe)]
+        if "--state" not in argv: argv += ["--state", str(tmp_path / f"{name}.state.json")]
+        else: argv[argv.index("--state") + 1] = str(tmp_path / f"{name}.state.json")
+        if "--cgroup" in argv: argv[argv.index("--cgroup") + 1] = str(tmp_path / "no-cgroup")
+        else: argv += ["--cgroup", str(tmp_path / "no-cgroup")]
+        assert m.main(argv) == 0
+    lines = out.read_text().splitlines()
+    assert len(lines) == 1, lines                                                                    # ONE alarm, ONE notice (memory_alarm_posts owns it)
+    assert all("--notify" not in a for a in rows["memory_alarm"][1]) and "--notify" in rows["memory_alarm_posts"][1]
+    assert (tmp_path / "memory_alarm.log").read_text().count("WARN memory warn") == 1 and (tmp_path / "memory_alarm_posts.log").read_text().count("WARN memory warn") == 1      # the user@ job still logs its own line
