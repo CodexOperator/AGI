@@ -35,8 +35,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
          DG2's open question: agi-carry@ (a .path unit) is not checked -> council.
      (b) DG4 .42 fix dbbfb2e2a6 ON 16b368ad72 (conditions (a) foreign users + (b) land checks G + %GS) = g42 a4ac45d2a5 (on b2634723ec). MY MUTANT on (b) ('if g == "B"') RED 4 rows. Green + my own
          mutant on (b) -> [review]; after the council's word: land re-derived; merge-up names belam's 'crons.py apply --sudo' in the ff minute.
- (2a) DG3 .38.1: [merge-up] SENT 19:1xZ ff-only L 97865e4139 (on b7906768c4; + my leaf line 61b75ca270 for belam's 24/24 retirement)
-     with the first-start line word for word in commit + mails. Wait belam [landed]; the MAIN .git/hooks install = belam's later host act.
+ (2a) .38.1 LANDED 97865e4139 (belam ff ~19:1xZ; council acked L 3/3 19:14Z). Next touch of its leaf: add "(dg5-g43 has since moved on)"
+     to "24/24 same sha" (alive remark). belam's MAIN .git/hooks install = his later host act.
  (2b) .39.1 (e)-3 leaf: DG2's c1cb27beb4 is in (1)(a).
  (2c) belam CHECK routed: .18 + .12 .13 .15 PARKED horizon; .17 stays active (ring/anchor + agi-land install = belam host acts; DG1
      17:0xZ); .11.11.1 in flight under .20 (closes on the load-tolerant box-mail lane). TELL belam this in the next note. memory_alarm
@@ -55,7 +55,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 
 ## §2 Landed gen 39
-- (pending ff) 97865e4139 .38.1
+- 97865e4139 .38.1 ref guard (DG3) + my leaf line 61b75ca270; self-installs at each post's next start
 - b6feb687d4 (e,f,g): .39 r1 + .40.1 + 9ccbb67d98 (f) + c08f9c445c (g), belam ff 19:00:08Z; suite NOT green: 111 = 95 trunk-side + 16 load-only, 0 the range's -> leaf .43 (DG5)
 - posts/sanctuary-master (ride the next landing): skills memory-guard (start test, /data rule) + master-gate (traps) · .22 .39 Assigned · .39.1 · .18 .12 .13 .15 horizon · crons.md psi-some 30
 
