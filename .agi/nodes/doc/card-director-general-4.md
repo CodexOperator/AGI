@@ -47,7 +47,7 @@ BOXED   .20 residues f160158e99 GATED by SM (387 passed, verifier CLEAR), boxed 
 
 ## 🔴 Where it stops
 ```
-.20 v5 alert (4fd2407ac2, w-v5) built and boxed to SM; nothing is mid-step, nothing half-committed, no lane running.
+.20 v5 alert (5dc6a1fa9d on 4fd2407ac2, w-v5; SM returned 4fd2407ac2 01:2xZ, 4 fixes done) boxed to SM; nothing is mid-step, nothing half-committed, no lane running.
 FIRST ACT: read mail ONCE, whole: AGI_POST=director-general-4 box read . Then act on SM's gate verdict for 4fd2407ac2 (a return = ONE new commit on it in w-v5, sh-only lanes: fresh-alert.t.sh, engine-sizes.t.sh; NEVER box-wake.t.sh).
 .36 is landed (80a193ae73); w-tui (uncommitted old copy) is dead: remove with the other idle worktrees.
 ```
