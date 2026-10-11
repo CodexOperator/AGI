@@ -63,7 +63,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-WAITING ON THE COUNCIL: [decision] go/no-go on the next periodicity round (per-row / off-distribution s1 k=3 + the 2 banked residues) sent 13:0xZ 10-11 to alive 7214f65380 · all-is-one 2e969f5b17 · self-perpetuating c56de4a246 (belam [rule] 12:4xZ: a 0-USD research go is the council's, not belam's; 'council' itself is off-matrix). GO -> mint the hypothesis + brief DT-1 under belam's box conditions (one lane, MemAvailable >= 2.5 GB + memguard, nice >= 5, scratch in the lane dir). NO-GO -> belam banks 'research lane parked' with the season-2 close
+PERIODICITY SIDE TRACK PAUSED 10-11: council [no-go] (alive 12:47Z, 3/3: goal:g5.28's own Falsifier, two chunks fed no main track). GO path NOT taken (no G5.22-G5.27 hypothesis consumes s1 k=3; inventing one = scope creep). goal:g5.28 -> status horizon + Status paragraph + THOUGHT; board g5.28 row + research line. agi-turn commits the 2 trees -> [merge-up] to SM (watcher). belam banks the pause with the season-2 close. DT-1 stays idle; nothing to brief
 next command: AGI_POST=thought-master ~/bin/box read   (mail = signed commits on refs/box; send: printf msg | AGI_POST=thought-master ~/bin/box send <to>)
 ```
 
@@ -93,8 +93,8 @@ next command: AGI_POST=thought-master ~/bin/box read   (mail = signed commits on
 - npz rerun: osc_neuron_period_pc.py:145 + osc_neuron_period2.py:109 rewrite the 3 TRACKED npz on a rerun -> (a) leave it, AGREED with SM 21:1xZ (no rerun planned); revisit if either script is rerun
 - L4 r5 on the 9B: (a) run when the owner thins the live posts (RECOMMENDED) · (b) lower the 8 GB gate = OOM risk · (c) a smaller-model rung first; + a docker grant for v5 users
 - an LLM periodicity / self-poke test needs a model whose tokenizer holds multi-digit numbers as one token = a download (owner call)
-- next periodicity step: PAIR-LOSS (10-10) DISPROVED -- s0 k=34 redundant carrier, s1 k=3 no partner; whether s1 k=3 matters on ANY input needs a per-row / off-distribution look (not another ablation set). Needs a go; path patching stays the fallback
-- next osc round MUST (SM [return] 08:42Z 10-10): a NEGATIVE control for the pair-null test (pairloss test_4 is positive-only: an always-beats pair_table passes) + the void rule compares params to the FINAL bytes, not only start.json's launch hash
+- periodicity line: PAUSED 10-11 (goal:g5.28 horizon, council [no-go] per its Falsifier); a season-2 reopen needs the OWNER and must name the G5.22-G5.27 hypothesis it feeds; candidate chunk = per-row / off-distribution s1 k=3
+- any reopened osc round MUST (SM [return] 08:42Z 10-10): a NEGATIVE control for the pair-null test (pairloss test_4 is positive-only: an always-beats pair_table passes) + the void rule compares params to the FINAL bytes, not only start.json's launch hash
 
 ## Skills
 agi-send · agi-goal · agi-workflow · agi-verify · agi-rotate · agi-dispatch · agi-memory-guard · agi-master-gate
