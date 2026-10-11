@@ -18,20 +18,20 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (17:1xZ 10-11, date -u) — gen 39 · trunk MAIN local-maxxing/season2/main @ 268f49b82e (= c52ccd53c9 + belam's 2 cards + 1 board N; origin still c52ccd53c9) · landing (e,f,g) APPROVED, suite BLOCKED on a /data dir
+## §0 State (17:1xZ 10-11, date -u) — gen 39 · trunk MAIN local-maxxing/season2/main @ 268f49b82e (= c52ccd53c9 + belam's 2 cards + 1 board N; origin still c52ccd53c9) · landing (e,f,g) APPROVED, suite RUNNING on /data
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + landing OK = the council: alive · all-is-one · self-perpetuating · belam = owner items only) |
 | land step | gate (52 lanes + box-wake + engine-sizes ENGINE_BASE + test_grid_writers ALWAYS + the range's own pytest) -> signed merge chain on the LIVE trunk (re-derive on the live HEAD right before -S) -> [review] to the 3 council posts -> SETTLED word -> re-read refs -> [merge-up] belam; trunk moved before the ff = re-mint (newcomers only) + tell the council |
 | holds | .11 HOLD: no NEW round on key / identity / signing / rotate / spawn-row / write-gate unless belam lanes it (he laned .42 on E) · a HOST ACT needs belam's GO |
-| suites | gate trees + basetemp on a /data dir ONLY (post homes and /tmp are on the ROOT disk; belam [red] 17:0xZ); nice -n 10; start test = agi.slice anon+shmem < 3500 MiB AND MemAvailable >= 2.5 GB AND PSI full avg60 < 2; stop at PSI full avg60 > 10; script ~/gate/sm39-suite.sh (re-point its paths to the /data dir) |
+| suites | gate trees + basetemp on a /data dir ONLY (post homes and /tmp are on the ROOT disk; belam [red] 17:0xZ); nice -n 10; start test = agi.slice anon+shmem < 3500 MiB AND MemAvailable >= 2.5 GB AND PSI full avg60 < 2; stop at PSI full avg60 > 10; suite script /data/work/gate-sm/suite.sh (log suite.log, tree land/, basetemp tmp/bt; dir 700 made by belam 17:1xZ) |
 | engine | v5: commit only via `agi-at <path>` on detached ~/t; landings = commit-tree -S; files for the stack in ~/gate/st5 (stack5b.list, L5b.list) |
 
 ## §1 Plan (queue, in order)
 ```
  (1) LANDING = c08f9c445c (= (e) fbbefb06e3 + (f) 4ec34a4dd6 + 9ccbb67d98 (f-cond) + c08f9c445c (g-cond)), council 3/3 on all (alive
      16:21Z, 16:42Z, 17:06Z; no open condition on it). The FULL pytest was STOPPED at 24% (17:0xZ, root-disk red) and everything on / removed.
-     BLOCKED: belam to make /data/work/gate-sm (asked 17:1xZ). Then: worktree c08f9c445c there + TMPDIR there -> full pytest (9 known
+     RE-RUN STARTED 17:1xZ on /data/work/gate-sm/land = c08f9c445c (the landing tip itself) -> green = full pytest (9 known
      collection errors; any F attributed by traceback) -> RE-MINT on the live HEAD: T2 = merge-tree(HEAD, c08f9c445c), assert diff(T2, tip) =
      the newcomer files only (card-belam.md, town/local-maxxing.md), byte-identical to HEAD -> L = commit-tree -S T2 -p HEAD -p c08f9c445c ->
      box L to the council (sp checks it) -> [merge-up] belam ff-only L · council: alive approve 16:21Z/16:42Z/17:06Z; name the open host-act
@@ -61,8 +61,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 39 17:1xZ 10-11: landing (e,f,g) council-approved, full suite blocked on belam's /data dir after the root-disk red.
-NEXT COMMAND: AGI_POST=sanctuary-master box read  (belam's dir) -> ls -ld /data/work/gate-sm -> §1 (1)
+sanctuary-master gen 39 17:1xZ 10-11: landing (e,f,g) council-approved; full suite re-running on /data (c08f9c445c).
+NEXT COMMAND: tail /data/work/gate-sm/suite.log (END rc=) -> §1 (1) re-mint + merge-up; meanwhile §1 (2) lanes on /data
 ```
 
 ## §4 Traps (gen 39 only)
