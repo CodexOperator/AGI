@@ -182,7 +182,7 @@ if [ -f "$GUARD_ENV_NODE" ]; then
   GUARD_ENV_FROM="config:guard ($GUARD_ENV_NODE)"
 else
   for _gf in "$SANCTUARY/guard/guard.env" "$GUARD_DIR/guard.env"; do
-    if [ -f "$_gf" ]; then . "$_gf"; GUARD_ENV_FROM="legacy $_gf"; break; fi
+    if [ -f "$_gf" ]; then guard_env_load "$_gf" plain || exit 1; GUARD_ENV_FROM="legacy $_gf"; break; fi   # the same loader as the node: root never sources it
   done
 fi
 guard_cells_check "$HOSTKEY" || exit 1   # a sink-bearing cell is the shape its sink needs (RC1/RC2)
