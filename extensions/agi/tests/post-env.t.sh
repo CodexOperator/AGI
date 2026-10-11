@@ -108,16 +108,20 @@ h1=$(helper AGI_POST=newpost AGI_SEAT=oldseat);h2=$(helper AGI_SEAT=oldseat);h3=
 ok "p1-the-helper-is-post-first-then-the-v4-fallback AGI_POST+retired name both set -> [$h1] (want newpost); only the retired name -> [$h2] (want oldseat, the v4 fallback); neither -> [$h3] (want None)" '[ "$h1" = newpost ]&&[ "$h2" = oldseat ]&&[ "$h3" = None ]'
 # ---- w: the [wrong-box] ExecCondition, the body exactly as systemd hands it to sh (the quoted word, %i substituted)
 body(){ grep '^ExecCondition=sh -c "set -f' $T/unit|sed 's/^ExecCondition=sh -c "//;s/"$//';}
-wb(){ if [ -n "$2" ];then printf 'AGI_HUB=\nAGI_BOX=%s\n' $2>$T/wcarry;else printf 'AGI_HUB=\n'>$T/wcarry;fi;b=$(body|sed "s/%i/$1/g;s|/etc/agi/carry.env|$T/wcarry|g");[ -n "$b" ]||return 99;(cd $T/r&&env -i PATH=/usr/bin:/bin O=$T/r AGI_TRUNK=$TR GIT_CONFIG_GLOBAL=/dev/null sh -c "$b" 2>$T/err);}
+wb(){ if [ -n "$2" ];then printf 'AGI_HUB=\nAGI_BOX=%s\n' $2>$T/wcarry;else printf 'AGI_HUB=\n'>$T/wcarry;fi;b=$(body|sed "s/%i/$1/g;s|/etc/agi/carry.env|$T/wcarry|g");[ -n "$b" ]||return 99;(cd $T/r&&env -i PATH=/usr/bin:/bin O=$T/r AGI_TRUNK=${3:-$TR} GIT_CONFIG_GLOBAL=/dev/null sh -c "$b" 2>$T/err);}
 wb alive $HERE;w1=$?;wb alive core-town;w2=$?;m2=$(cat $T/err);wb alive "";w3=$?;m3=$(cat $T/err);wb nobody $HERE;w4=$?
+wb alive $HERE no-such-ref;w5=$?;m5=$(cat $T/err)
 ok "w1-the-right-box-starts the row says encryption-town, this box is encryption-town: rc $w1 (want 0)" '[ $w1 = 0 ]'
 ok "w2-another-box-is-refused-by-name the row says encryption-town, this box (carry.env) is core-town: rc $w2 (want 2), says [$m2] (want '[wrong-box] row=encryption-town here=core-town')" '[ $w2 = 2 ]&&[ "$m2" = "[wrong-box] row=encryption-town here=core-town" ]'
 ok "w3-an-unnamed-box-is-refused carry.env has no AGI_BOX: rc $w3 (want 2), says [$m3] (want '[wrong-box] row=encryption-town here=')" '[ $w3 = 2 ]&&[ "$m3" = "[wrong-box] row=encryption-town here=" ]'
 ok "w4-a-post-with-no-row-is-refused no row for nobody: rc $w4 (want 2)" '[ $w4 = 2 ]'
+ok "w5-an-unreadable-trunk-FAILS-the-unit-it-does-not-skip-it AGI_TRUNK names no ref (git show fails): rc $w5 (want 255 = failed, not the exit-2 skip), says [$m5] (want [wrong-box] posts.md unreadable at no-such-ref)" '[ $w5 = 255 ]&&[ "$m5" = "[wrong-box] posts.md unreadable at no-such-ref" ]'
 # ---- mutants of the REAL unit / pieces: each must go RED on the lane's own row for it
 mut(){ cp $2 $T/m.$1;sed -i "$3" $T/m.$1;cmp -s $2 $T/m.$1&&{ echo "FAIL mutant-$1-did-not-change-the-text";f=$((f+1));return 1;};return 0;}
 # m1: a start on another box goes ahead
 cp $T/unit $T/unit.good;mut m1 $T/unit.good 's/echo \[wrong-box\] row=$b here=$h>&2;exit 2;}/echo \[wrong-box\] row=$b here=$h>\&2;exit 0;}/'&&{ cp $T/m.m1 $T/unit;wb alive core-town;r=$?;cp $T/unit.good $T/unit;ok "mutant-m1-a-wrong-box-start-goes-ahead-is-RED the check's exit 2 -> 0: another box now exits $r (want 0 = it starts anyway, which w2 forbids)" '[ $r = 0 ]'; }
+# m7: the unreadable-trunk probe exits 2 again (the old silent skip): w5 must fail on the mutated unit
+mut m7 $T/unit.good 's/unreadable at $AGI_TRUNK>&2;exit 255;/unreadable at $AGI_TRUNK>\&2;exit 2;/'&&{ cp $T/m.m7 $T/unit;wb alive $HERE no-such-ref;r=$?;cp $T/unit.good $T/unit;ok "mutant-m7-an-unreadable-trunk-skipping-again-is-RED the probe's exit 255 -> 2: an unreadable trunk now exits $r (want 2 = the silent skip, which w5 forbids)" '[ $r = 2 ]'; }
 # m2: the WHOLE carry.env loaded again as an EnvironmentFile (before the post's own file): a post env with no AGI_TRUNK of its own carries the 40-hex pin -> u5's predicate AND u2's must fail on the mutated unit
 mut m2 $T/unit.good 's/^EnvironmentFile=-\/var\/lib\/agi\/%i.env$/EnvironmentFile=-\/etc\/agi\/carry.env\n&/'&&{ cp $T/m.m2 $T/unit;u5ok;r5=$?;u2ok;r2=$?;pk=$(penv $P|sed -n 's/^AGI_TRUNK=//p');cp $T/unit.good $T/unit;ok "mutant-m2-the-whole-carry-env-is-RED loaded as an EnvironmentFile: the post env then carries AGI_TRUNK=[$pk] (the 40-hex pin) -> u5's predicate exits $r5 and u2's $r2 (want both non-zero)" '[ $r5 != 0 ]&&[ $r2 != 0 ]&&[ ${#pk} = 40 ]'; }
 # m2b: ExecStart exports no AGI_BOX -> the post env has no box
