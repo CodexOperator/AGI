@@ -2096,7 +2096,7 @@ def _restage_world(tmp_path):
     (ud / "multi-user.target.wants" / "agi-memguard.service").symlink_to(ud / "agi-memguard.service")
     stage = tmp_path / "memguard-A0"; stage.mkdir(); (stage / "a2.since").write_text("2026-10-11T08:30:00Z\n")
     ctl = tmp_path / "ctl"; ctl.write_text(_STUB_UNIT_CTL); ctl.chmod(0o755); (tmp_path / "active").write_text("")
-    env = dict(SUDO="env", OWN="", SBIN=sb, UNITDIR=ud, SYSTEMCTL=ctl, CALLS=tmp_path / "calls.log", STATE=tmp_path / "active", STAGE=stage, MAIN=repo)
+    env = dict(SUDO="env", OWN="", LOG=tmp_path / "guard.log", SBIN=sb, UNITDIR=ud, SYSTEMCTL=ctl, CALLS=tmp_path / "calls.log", STATE=tmp_path / "active", STAGE=stage, MAIN=repo)
     return repo, g, sha, stage, sb, ud, env
 
 
@@ -2140,3 +2140,34 @@ def test_memguard_restage_says_the_guard_is_stopped_when_a_step_fails_after_the_
     assert r.returncode == 1 and "RESTAGE FAILED at a1.undo: THE GUARD IS STOPPED" in r.stdout, r.stdout + r.stderr
     assert "stop agi-memguard.service" in (tmp_path / "calls.log").read_text().splitlines() and not (tmp_path / "active").exists()
     assert (stage / "a2.since").read_text().strip() == "2026-10-11T08:30:00Z"
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="needs git")
+def test_memguard_restage_refuses_while_the_guard_holds_stopped_pids_and_touches_nothing(tmp_path):
+    import signal, time
+    repo, g, sha, stage, sb, ud, env = _restage_world(tmp_path)
+    mine, older, running = (subprocess.Popen(["sleep", "30"]) for _ in range(3))
+    try:
+        for q in (mine, older): os.kill(q.pid, signal.SIGSTOP)
+        time.sleep(0.3)
+        log = Path(env["LOG"])                                                         # a2.since is 08:30:00Z
+        log.write_text("2026-10-11T08:00:00Z SUSPENDED pid %d (sleep): an EARLIER A2\n2026-10-11T08:41:00Z SUSPENDED pid %d (sleep): this A2, still stopped\n"
+                       "2026-10-11T08:42:00Z SUSPENDED pid %d (sleep): this A2, resumed since\n" % (older.pid, mine.pid, running.pid))
+        r = _sh("memguard-restage.sh", tmp_path, SHA=sha, **env)
+        assert r.returncode == 1 and "RESTAGE REFUSED: the guard holds stopped pids: %d " % mine.pid in r.stdout + " " and str(older.pid) not in r.stdout.split("holds stopped pids:")[1] and str(running.pid) not in r.stdout.split("holds stopped pids:")[1], r.stdout + r.stderr
+        assert not (tmp_path / "calls.log").exists() and (tmp_path / "active").exists() and (sb / "agi-memguard.py").read_text() == "old guard", "nothing touched"
+        assert (stage / "a2.since").read_text().strip() == "2026-10-11T08:30:00Z" and not (stage / "SHA").exists(), "not even A0 ran"
+        os.kill(mine.pid, signal.SIGCONT); time.sleep(0.3)                             # resumed: only an EARLIER A2's stopped pid is left, which is not this A2's to continue
+        r = _sh("memguard-restage.sh", tmp_path, SHA=sha, **env)
+        assert r.returncode == 0 and "RESTAGE OK" in r.stdout, r.stdout + r.stderr
+    finally:
+        for q in (mine, older, running): q.kill(); q.wait()
+    repo, g, sha, stage, sb, ud, env = _restage_world(tmp_path / "w2")             # a log that exists and cannot be read is not an empty one
+    (tmp_path / "w2" / "guard.log").mkdir()
+    r = _sh("memguard-restage.sh", tmp_path / "w2", SHA=sha, **env)
+    assert r.returncode == 1 and "cannot be read" in r.stdout and not (tmp_path / "w2" / "calls.log").exists(), r.stdout + r.stderr
+    repo, g, sha, stage, sb, ud, env = _restage_world(tmp_path / "w3")             # a regular file whose read FAILS (awk exits non-zero) is not an empty one either
+    (tmp_path / "w3" / "guard.log").write_text("2026-10-11T08:41:00Z SUSPENDED pid 1 (x)\n")
+    fb = tmp_path / "w3" / "fakebin"; fb.mkdir(); (fb / "awk").write_text("#!/bin/sh\nexit 2\n"); (fb / "awk").chmod(0o755)
+    r = _sh("memguard-restage.sh", tmp_path / "w3", SHA=sha, **env)
+    assert r.returncode == 1 and "cannot be read" in r.stdout and not (tmp_path / "w3" / "calls.log").exists(), r.stdout + r.stderr
