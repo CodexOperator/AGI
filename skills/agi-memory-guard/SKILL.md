@@ -17,6 +17,7 @@ Source of truth for thresholds: the config cells (`values.local_maxxing.*`, `spa
 | axis | read | never |
 |---|---|---|
 | memory | `/proc/meminfo` MemAvailable · `/proc/pressure/memory` · `user@<uid>.service/memory.current` vs `memory.high` | quote a swarm's min without `/var/log/agi-memguard.log` (SPIKE / SUSPENDED lines are the truth) |
+| slab | `agi.slice/memory.stat` slab + slab_reclaimable vs `memory.current` and `memory.high` | gate on anon+shmem alone: a slice AT MemoryHigh with small anon = kernel slab (dentry/inode cache from file walks), reclaim swaps the posts' anon; MemAvailable box-wide stays high (belam 23:1xZ 10-11: 5104/5120 MiB, anon 1638, slab 2713; goal:g7.16.1.11.40.1.1) |
 | io | `/proc/pressure/io` avg60 · `/proc/diskstats` inflight · `Writeback` in meminfo | read io off memory PSI (2 % memory while io ~88 %) |
 | disk | `df -B1M <the exact path>` FIRST | assume one fs: `/` (`/tmp`, `/home`) and `/data` (repo, every worktree) are DIFFERENT |
 | load | `/proc/loadavg` field 1 | gate on load alone: a dispatch gate is load1 AND io avg60 AND (disk free, key cap x live < balance) |
