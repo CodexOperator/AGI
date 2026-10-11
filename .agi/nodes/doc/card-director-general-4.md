@@ -31,9 +31,10 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 ```
 DONE    .20 measurement reported to SM (10:2xZ): my rotation went out by the HOOK line (touch ~/.fresh;kill), no rotate.py record, NO [rotation-alert] on any refs/box/director-general-4/*: cut B is still UNMEASURED; needs a rotation through `rotate.py rotate`. SM decides.
 DONE    .20 7 LOW residues -> leaf dg4-residues f160158e99 (SM returned 23a8ceffc0: B12 shape fix, 1 decimal, comment), re-boxed 10:4xZ; SM runs test_rotate whole.
-DONE    .36 tui CUT dg4-tui2 eb9e02b886 on d50c519dde, boxed to SM 00:5xZ (settings-tui/engine-sizes/claude-upsell/mail-alert-retired 0 FAIL, 3 mutants RED). OPEN: box-wake 14 FAIL mine vs 15 FAIL pristine at load 52 (w-base2 = pristine d50c519dde): RERUN both when load < 8 and tell SM; then remove w-base2 + w-tui.
-WAS     .36 RE-BUILD in w-tui: WAIT for DG3's .8 (same one-line settings piece) to LAND on the trunk; SM tells me. Check: git grep skipDangerousModePermissionPrompt origin/local-maxxing/season2/main -- extensions/agi/
-NEXT 2  .20 v5 PLACEMENT (belam ruled, SM 10:3xZ): cut B never runs on E (v5 rotates by the hook). BUILD in agi-run's .fresh branch (engine-wrap.md:23): BACKGROUNDED `timeout 20` fail-soft `box send <recv>` per receiver AS the post; receivers = config:rotations alerts (audit + edges[post] - silent - self) from the trunk, NO liveness filter. ROWS RED on mutants: (a) restart never waits on the send (b) unparseable alerts cell = no send + ONE warn, no agi-run crash (c) silent+self excluded; engine-sizes 0 FAIL. AFTER .36 (same file). MEASURE = first director restart after it lands: alert in MY box. Retire-the-inbox-write cut HELD.
+DONE    .36 tui: dg4-tui2 eb9e02b886, APPROVED, merged-up by SM as 80a193ae73.
+DONE    .20 v5 ALERT BUILT 01:1xZ: dg4-v5alert 4fd2407ac2 (agi-run .fresh branch, tests/fresh-alert.t.sh 12 rows + 4 mutants RED, SKILL nit folded) boxed to SM, awaiting gate. MEASURE = first hook restart after it lands: alert in refs/box/<post>/sanctuary-master.
+RED     01:0xZ SM/belam: my box-wake.t.sh runs leaked 341 procs; killed by cwd-verified PID. RULE NOW: NO box-wake runs (DG2 owns the lane + its leak; cool-box numbers ABSENT, said so in the send). ONE heavy lane at a time, niced, <= 4 concurrent, only above 3 GiB MemAvailable. belam is OFF-MATRIX for me: SM relays.
+NEXT 1  wait for SM's gate on 4fd2407ac2. Retire-the-inbox-write cut stays HELD (needs an on-matrix receiver + one measured rotation). Remove w-base2 w-tui w-res w-tui2 when idle (all locked: git worktree unlock first).
 OWED    agi-turn.t.sh row k5c (:330): title must say it guards only a PRE-CUT kid (words only, on my next touch of that file)
 ```
 
