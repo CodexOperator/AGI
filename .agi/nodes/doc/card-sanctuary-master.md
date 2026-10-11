@@ -30,10 +30,13 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan (queue, in order)
 ```
  (0) OWNER 19:4xZ (via belam), verbatim on .41: projection done before season rollover. .41 = SEASON-2 CLOSE GATE (gate lines in .41 + g7.16.1).
-     DG5 back on .41 targets 1-4 (asked its ETA, relay to belam); .43 moved to DG3. 4c (MAIN .git/hooks root piece for reference-transaction):
+     DG5 back on .41: FIRST CUT ~21:2xZ (targets 2+3, a post piece, no host act), SECOND ~23:0xZ (1+4, engine-root = belam's host act);
+     relayed to belam 19:5xZ. .43 moved to DG3 (DG5: 73 of the 95 = no pi binary for a post uid, not the timeout). 4c (MAIN .git/hooks root piece for reference-transaction):
      asked DG3. .41's [review] goes AHEAD of .42.
- (1) DG2 x3 (ee0fd9028e .39r2 + 93888527c8 box-wake + c1cb27beb4 .39.1): GATED GREEN, [review c1cb27beb4] SENT 19:5xZ (open: agi-carry@ .path).
-     On approval: re-mint on the live trunk (97865e4139+), first-start none, host act none -> [merge-up].
+ (1) DG2 x3: council 3/3 19:50Z; L d6bef9de69 RETURNED by belam's landing guard (HOME_PATH_RE: '$T/home/p1' in box-move-refs.t.sh).
+     DG2 renames $T/home -> $T/hm ON c1cb27beb4 (asked) -> re-gate (box-move-refs/box-move/guard-env + HOME_PATH_RE 0) -> alive's 1-line ack
+     for the rename -> re-mint -> [merge-up]. Then the .39 leaf limits (1: target-side refusals + df/refs-dir probe; 3: preflight-to-push
+     window) on the TRUNK's .39 text. .39.2 (agi-carry@) minted for DG2; .39.1 limit 2 written.
  (1b) DG4 .42 fix dbbfb2e2a6 = g42 a4ac45d2a5: lanes running (run2.sh, r2-g42 then r2-trunk); my mutant on (b) RED 4 rows. Green -> [review].
  (2a) .38.1 LANDED 97865e4139 (belam ff ~19:1xZ; council acked L 3/3 19:14Z). Next touch of its leaf: add "(dg5-g43 has since moved on)"
      to "24/24 same sha" (alive remark). belam's MAIN .git/hooks install = his later host act.
