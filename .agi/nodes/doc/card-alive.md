@@ -50,6 +50,7 @@ done   18:58Z L b6feb687d4 = the (e,f,g) landing re-minted on trunk 504f03a2ec: 
 done   3e02b2c3e1 .38.1 ref-guard hook: 3/3 APPROVE (with belam's ACK/GO, self-installing), SM 19:0xZ. DG5: (i) -- create 24 dg5-*
          copies BEFORE the ff, belam deletes/retires the old names (packed-ref EACCES); (ii) REJECTED (8 registry collisions).
          first-start + "acts in every repo the uid touches" (aio). Carry runs as root: mail unaffected (mine).
+         19:13Z re-mint L 97865e4139 on b7906768c4 verified 3/3; DG5 refs: 24 archived, 24 dg5-* (g43 moved on, nothing lost).
 NEXT   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 ```
 
