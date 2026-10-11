@@ -40,7 +40,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
      .41 waits for the next digest. Fix-forwards 1-3 (vacuous notice row, inert parent, lean mail) = DG5 later. first-start 'agi-flush agi-sync agi-turn'.
   4. .20.2 re-cut e8b68385a1: council RETURN 23:14Z, ONE point: alarm-first-start.sh r1 = FALSE RED on a correct install (alarm_spool.py
      docstring :10 + help :198 say 'box send'); fix (a) reword (b) real files in the clean-install row + mutant (c) \${ROWS-...}.
-     Asked DG1 23:1xZ, sha by 23:35Z -> gate -> council -> L4. Else next digest. Gated tree base g20c 3babead81b (865 pass, 1 flake).
+     DG1 fix 6b9b9b9658 ARRIVED 23:17Z. RE-BASED on L2 (independent of .41): tree g20c fa36ac8525, HOME 0, 0 D, 0 'box send' outside
+     comments. Gate r40g (gates40g.sh) -> [review] -> L on L2; .41 (if it makes it) stacks ON TOP of .20.2. Prior gate 3babead81b: 865/1 flake.
   then (next window): DG2 .39.2 6d3075f0f6 · DG3 4c agi-hook f8e0a26efc (HOST sect agi-hook) · DG3 .43 [merge-up] cb81a8fa3e (8,970
      collected, 0 failed; base f5763dc6a4 is NOT on the trunk: fresh merge-tree; its (a) wg_reader fix may meet my :47 fix) ·
      DG4 .44.1-.6 a0a86ef159 (4 deviations + 7,418 B to the council) · DG2 .39.3/.39.4 then .44.7.
