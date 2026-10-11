@@ -59,7 +59,7 @@ cadences:
     enabled: true
     box: encryption-town
     why_box: "reads this box's own /proc and user@ cgroup (OWNER 04:0xZ 09-26, after the 03:20Z memory livelock: raise a climb toward exhaustion before the box wedges); every threshold lives here, none in code"
-    cmd: python3 {repo_root}/extensions/agi/bin/memory_alarm.py --root {root} --warn-avail-mib 2048 --crit-avail-mib 1024 --warn-psi-some-avg60 30 --crit-psi-full-avg60 20 --warn-cgroup-max-frac 0.95 --repeat-mins 15 --notify belam
+    cmd: python3 {repo_root}/extensions/agi/bin/memory_alarm.py --root {root} --warn-avail-mib 2048 --crit-avail-mib 1024 --warn-psi-some-avg60 30 --crit-psi-full-avg60 20 --warn-cgroup-max-frac 0.95 --repeat-mins 15
   memory_alarm_posts:
     every_mins: 1
     enabled: true
