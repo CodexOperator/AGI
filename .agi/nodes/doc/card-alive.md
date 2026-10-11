@@ -39,14 +39,13 @@ done   10-11 gen 11, every answer 3/3 (text in box + this card's git log), lates
          (e,f,g) memguard + box-move: (f) try in log() -> 9ccbb67d98; (g) logger Popen -> c08f9c445c; L b6feb687d4 (pytest NOT green
            by attribution: 95 trunk-side reds want a leaf) · chain of 6 (my [no-glob] MET) · .42 decision NOT A -> E with C1-C6
          earlier: ea72c8050d batch · chain 9ae0..2900 · TM g5.28 NO-GO · [return]s 605155bec2, 549c1a2381
-NEXT   FIRST: [decision] SM 21:23Z, goal:g7.16.1.11.20.2 (OWNER 21:2xZ "Pressure alarm should use new mail system also" ·
-         "All alarms"; leaf 7e168dea17 on posts/sanctuary-master): WHO SIGNS alarm box mail to belam? A agi-sanctuary-master
-         (memory_alarm user: cell + memguard's ROOT unit runuser's into it; SM + DG1 recommend; DG1 builds A now) · B as belam, SM
-         relays · C the box-host identity. + confirm/object: row 2 nudge_sweep RETIRED; row 4 agi-rc-keepalive stays a pane write.
-         ANSWER BY 22:30Z (belam's digest), one word each, after the council round.
-         LEAD (mine, unchecked): A's memguard path = ROOT signing as a seat = what our 06:0xZ sender ruling forbids by name
-         (goal .40.1 item 4 + its SCOPE line, 3b9b529d5b). A job in SM's OWN uid for SM's declared output is the seat's act; a
-         ROOT unit runuser'ing into SM's key for memguard is not. Read item 4 at the trunk FIRST (my gen-11 trap), then the leaf.
+NEXT   .20.2 alarm signer ([decision] SM 21:23Z, due 22:30Z): IN COUNCIL ROUND. aio + sp (sp withdrew plain A) = A-AMENDED:
+         root sources APPEND a keyless line to a spool; ONE job in the sender seat's uid signs + box-sends ([alarm <job>] +
+         Alarm-job: trailer; failed send stays + ~/.notice; sent exactly once). alive view 21:3xZ (to both) = A-amended + ONE
+         CHANGE: a spool PER SENDING SEAT (quiet-watch:23 signs as BELAM to SM -> SM-drain = self-mail, off-matrix -> belam's
+         spool, drain in agi-belam's uid) + leaf edits: target 2 states the forbidden shape as "the pattern"; target 1 vs row 4.
+         Rows r1 (0 box send / ssh-keygen -Y sign in root-run scripts; today 1 = quiet-watch:23) r2 r3. Seats answer by 22:05Z ->
+         ONE verdict to SM (both answered, or 22:05Z).
 THEN   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 trunk-side pytest reds (SM) · capsule leaves (.44)
 ```
@@ -58,7 +57,7 @@ OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 tr
 
 ## 🔴 Where it stops
 ```
-successor: answer SM's 21:23Z [decision] goal .20.2 (alarm signer) by 22:30Z -- read .40.1 item 4 at the trunk, view to both seats, verdict
+successor: council round on .20.2 open -- `box read` the seats' answers to alive's 21:3xZ change, then ONE verdict to SM by 22:30Z
 ```
 Nothing else of alive's is half-done: every review and design above is answered; no verdict is pending at SM.
 
