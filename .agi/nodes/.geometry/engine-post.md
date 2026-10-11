@@ -26,7 +26,7 @@ agi-turn           4486 B  a signed commit per changed node tree
 agi-wt            1506 B  a node's tiny RAM tree: pull; drop = turn + purge
 agi-track           89 B  strace sink: each path once
 agi-flush           942 B  drop trees, turn (its agi-sync merges)
-agi-sync           1658 B  merge the trunk each turn; a conflict said by name
+agi-sync           1925 B  merge the trunk each turn; a conflict said by name
 agi-out           3357 B  the out-line: next keys, ring commit, re-wrap, swap
 gitconfig          196 B  signed commits against root's allowed_signers
 pre-commit          639 B  refuses a plain commit on a detached ~/t
@@ -204,14 +204,15 @@ cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;{ [ "$P" ]&&[ "$AGI_ROLE" != kid ]&&git
 if agi-turn strand;then git checkout -q --detach $b;else k=1;fi;exit $k
 ~~~
 
-### agi-sync (1658 B)
+### agi-sync (1925 B)
 ~~~sh
 #!/bin/sh
-# agi-sync: merge the trunk into posts/P and SAY a failure by name (goal:g7.16.1.11.41 targets 2-4). A clean merge = one signed commit (CAS); a CONFLICT leaves the branch as it is and writes [trunk-conflict] P: N path(s) conflict with TRUNK: paths to ~/.notice (agi-notice, so it comes back once per turn while it lasts) and, once per trunk tip (~/.trunk-boxed), boxes the post's parent; any other failure = [trunk-merge-failed]. Run at the end of EVERY agi-turn and by agi-flush. A kid or no posts/P = nothing. Always rc 0.
+# agi-sync: merge the trunk into posts/P and SAY a failure by name (goal:g7.16.1.11.41 targets 2-4). A posts/P merely BEHIND the trunk moves by CAS to the trunk tip, no commit (board_job.py land refuses a non-own commit); a clean divergence = one signed merge commit (CAS); a CONFLICT leaves the branch as it is and writes [trunk-conflict] P: N path(s) conflict with TRUNK: paths to ~/.notice (agi-notice, so it comes back once per turn while it lasts) and, once per trunk tip (~/.trunk-boxed), boxes the post's parent; any other failure = [trunk-merge-failed]. Run at the end of EVERY agi-turn and by agi-flush. A kid or no posts/P = nothing. Always rc 0.
 set -f;cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;R=${AGI_TRUNK:-trunk}
 { [ "$P" ]&&[ "$AGI_ROLE" != kid ]&&t=$(git rev-parse -q --verify $b);}||exit 0
 T=$(git rev-parse -q --verify $R^{commit})||{ agi-notice add "[trunk-merge-failed] $P: $R does not resolve to a commit";exit 0;}
 git merge-base --is-ancestor $T $b&&{ rm -f ~/.trunk-boxed;exit 0;}
+git merge-base --is-ancestor $b $T&&{ git update-ref $b $T $t||agi-notice add "[trunk-merge-failed] $P: cannot move posts/$P";exit 0;}
 n=$(git merge-tree --write-tree --name-only $b $T 2>/dev/null);r=$?
 case $r in 0)c=$(echo "$P: merge $R"|git commit-tree -S -p $t -p $T $n)&&git update-ref $b $c $t||agi-notice add "[trunk-merge-failed] $P: cannot sign or move posts/$P";;
 1)l=$(echo "$n"|sed 1d|sed '/^$/q'|grep .|sort -u);m="[trunk-conflict] $P: $(echo "$l"|grep -c .) path(s) conflict with $R: $(echo $l|cut -c1-300)";echo "$m">&2;agi-notice add "$m"

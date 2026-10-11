@@ -7,6 +7,7 @@ Rows: (a) a clean divergence is merged by ONE signed two-parent commit; (b) a co
 writes `[trunk-conflict] P: N path(s) conflict with TRUNK: paths` to ~/.notice AND boxes the post's parent; (c) it comes
 back once per turn while it lasts (the notice, claimed, is re-added), the box is sent once per trunk tip; (d) the
 cadence: a plain agi-turn (the Stop hook) carries the trunk, and so does agi-flush; (e) a kid and an unresolvable trunk.
+(a2) a posts/P merely behind the trunk moves by CAS to the trunk tip with 0 new commits.
 MUTANTS: the silent `&&` chain back (no notice) / the notice without the box / the box on every turn / agi-turn that
 does not call agi-sync (cadence) each go RED on their own row.
 """
@@ -144,6 +145,16 @@ def rows(overrides, tmp_path_factory) -> list[str]:
     r = b.run("agi-sync")
     chk("a-already carrying the trunk: nothing moves", b.tip() == new and r.returncode == 0 and b.notice() == "")
 
+    # (a2) BEHIND ONLY: posts/P is an ancestor of the trunk -> a CAS fast-forward, no commit (board_job.py land refuses a non-own commit)
+    b = Box(tmp_path_factory.mktemp("a2"), overrides)
+    b.on("trunk", write(b, "g.txt", "trunk side\n"), "trunk moves")
+    b.settle()
+    T, n0 = b.tip("trunk"), b.git("rev-list", "--all", "--count")
+    r = b.run("agi-sync")
+    chk("a2-behind: posts/p is the trunk tip", b.tip() == T and r.returncode == 0)
+    chk("a2-behind: 0 new commits", b.git("rev-list", "--all", "--count") == n0)
+    chk("a2-behind: no notice, no mail", b.notice() == "" and b.mailed() == "")
+
     # (b) a conflict: branch unmoved, named, boxed to the parent
     b = Box(tmp_path_factory.mktemp("b"), overrides)
     diverge_conflict(b)
@@ -210,6 +221,8 @@ MUTANTS = {
     "never-boxes-the-parent": lambda: mut("agi-sync", "&&echo \"$m (trunk", "&&true||echo \"$m (trunk"),
     # boxed on every turn, not once per trunk tip
     "boxes-every-turn": lambda: mut("agi-sync", '[ "$(cat ~/.trunk-boxed 2>/dev/null)" = $T ]||', ""),
+    # today's merge-when-behind: a behind posts/P gets a "P: merge <trunk>" commit (tree == the trunk's), never its own
+    "merges-when-behind": lambda: mut("agi-sync", 'git merge-base --is-ancestor $b $T&&{ git update-ref $b $T $t||agi-notice add "[trunk-merge-failed] $P: cannot move posts/$P";exit 0;}\n', ""),
     # the cadence: agi-turn no longer calls agi-sync
     "turn-does-not-sync": lambda: mut("agi-turn", "unset GIT_INDEX_FILE;agi-sync;", "unset GIT_INDEX_FILE;"),
 }

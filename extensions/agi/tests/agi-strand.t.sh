@@ -56,7 +56,7 @@ run agi-flush >$T/o1 2>$T/e1;r=$?
 ok s3-a-diverged-tip-is-refused-and-left-alone "[ $r != 0 ]&&grep -q '^\[strand-refused\]' $T/e1&&[ \"\$(head1)\" = $h ]&&[ \"\$(tipb)\" = $rt ]"
 # s4: trunk ahead of posts/alive, ~/t detached ON the trunk commit: reachable from a ref, not a strand
 mk;$G -C $T/g -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -q --allow-empty -m trunk2;$G -C $V checkout -q --detach trunk;run agi-flush >$T/o1 2>$T/e1;r=$?
-ok s4-a-commit-on-another-ref-is-not-a-strand "[ $r = 0 ]&&! grep -q 'strand-refused' $T/e1&&[ \"\$(head1)\" = $B0 ]"
+ok s4-a-commit-on-another-ref-is-not-a-strand "[ $r = 0 ]&&! grep -q 'strand-refused' $T/e1&&[ \"\$(tipb)\" = \"\$($G -C $T/g rev-parse trunk)\" ]&&[ \"\$(head1)\" = \"\$(tipb)\" ]"
 mk;run agi-flush >$T/o1 2>$T/e1;r=$?
 ok s5-a-clean-t-passes-silently "[ $r = 0 ]&&[ ! -s $T/e1 ]&&[ ! -e $H/.notice ]"
 mk;$G -C $V switch -q posts/alive;gc --allow-empty -m attached;run agi-flush >$T/o1 2>$T/e1;r=$?
