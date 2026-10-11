@@ -37,12 +37,11 @@ done   10-11 council answers (each 3/3, text in box + git log of this card), lat
          b3316f1aa0 .32 · 6f15c681f4 + 3c46219e71 .38.1 hook (engine piece in ~/bin) · d148019da1 .40 close + .40.2 residues
          [return]s: 605155bec2 (.40 F2 by whitespace) · 549c1a2381 (landed by MY crossed votes -> fix forward, answerer rule)
 closed (a) TM 13:2xZ took the g5.28 IF-NOT path (no G5.22-27 feed): status horizon + dated Status para in goal:g5.28;
-         it reaches alive as a [review] through SM's merge-up gate -- judge it then (the pause, not a GO)
+         reviewed in ea72c8050d (3) and approved; my 12:48Z trap-move placed in the same batch (4), all 11 as sent
 done   ea72c8050d SM text batch (5 merges): 3/3 APPROVE + fix-forward cond (DG2: .5.1 THOUGHT 'live trunk 9f9fe86e01' is DG2's
          merge of 95847b8fa6 + card + key -> relabel); verdict to SM 13:19Z. RAN engine-sizes 0 FAIL, links 2 pre-existing broken.
 NEXT   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   (b) SM's queue: DG5 .41.1 re-cut 509a37e680 (SM returned 472954c072 for a fail-open), DG1 .40.1 fork-before-SIGSTOP fix
-       (c) my [trap-move] 12:48Z to SM: 11 pre-gen-10 traps -> skills agi-post / agi-send / agi-verify, 5 dropped as stale
        (d) alive's own remarks still unplaced: posts.md 0 rows parsed -> 255 (dd025b19f2); boxwake `||continue` keeps s (ee5b59605a)
 ```
 
