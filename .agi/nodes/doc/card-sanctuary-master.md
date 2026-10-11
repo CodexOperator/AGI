@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:07Z 10-11, date -u) — gen 35 OUT at the line (0.47) · trunk MAIN @ 02536d599e (R3b landed) · no gate trees open · E ~3 GiB at the floor · belam = belam-s2-III
+## §0 State (05:2xZ 10-11, date -u) — gen 36 seated · trunk MAIN @ 02536d599e · b6 landing 4cdb750fef with the council · no gate trees open · E ~3 GiB at the floor · belam = belam-s2-III
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + every landing OK = the council: alive · all-is-one · self-perpetuating; a split -> belam breaks the tie · belam = owner items only: host acts, spend, season close) |
@@ -33,8 +33,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
  (1) .37 retire AGI_SEAT (DG4): the stack f726187284 (tips 1, 1b carry.env AGI_BOX-only + target 6 drop-ins folded, 2 python helper, veto carve-out, 1c box-carry)
      CONFLICTS with R3b in engine.md's map -> DG4 told to RE-CUT on 02536d599e. Gate = ALL .t.sh lanes + the python files DG4 lists + test_grid_writers/thought_hygiene.
      DG4's baseline reds (trunk's): test_cli done_auto_commits, test_season 11 rows, test_commands bare-first-word. belam's re-render GO waits for ALL of .37; heads-up to belam: repoint runs twice between re-render and drop-in retire.
- (2) .38 strand guard: LANDED 98766a28fc, LIVE on 8 posts (belam 05:04Z). Closes only on LIVE falsifiers: DG3 asked to run F1/F2/F4 on its post + cite the council's (Door 1 refused on alive, sp, aio) -> its close commit via agi-at -> gate.
- (3) .5.1 R3b LANDED 02536d599e (fenced 5,775 B, 2,417 left; exception row OPEN at 1141aef73b -> repaid). Owed: DG2 one row = engine-sizes PRINTS the total engine*.md bytes (no assert). Then close .5.1 on its falsifiers.
+ (2) .38 close: DG3's content GOOD (F1-F4 live, F5 N/A) but tip 14de89d751 RETURNED: its range adds .agi/keys/director-general-3 (host-named pubkey comment, not on origin). Asked: ONE commit on the trunk, only the goal file -> gate -> council -> belam.
+ (3) .5.1 b6 (DG2 b3c2ee1482) GATED green: landing merge 4cdb750fef boxed [review] to the council 05:2xZ -> on [approve]: box belam [merge-up] ff-only 4cdb750fef. Then close .5.1 on its falsifiers.
  (4) .41 pieces from the trunk (DG4, after .37): + cadence (agi-turn never merges the trunk) + AGI_TRUNK must resolve to a BRANCH.
  (5) stale-pieces sync: alive DG1 DG2 DG4 done; DG5 PENDING (belam restarts each after [synced]).
  (6) UNPLACED leaves: .39 refs carry (657 refs restored by belam; route rule box-to-box) · .40 parity (3 short + 12 not run) · g4.x outcomes rollup (g4.6.1, g4.13.1).
@@ -45,11 +45,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §2 Landed gen 35 (git log --grep 'sanctuary-master: ' on the trunk; each message carries its gate numbers)
 - 10-10: 466576bd1e · 6d272246ec .20 B · f31c1ec58e .36 · d9a3ec8efb · 832a7f0eaf · f0c932f727 · 7ac20cd62a build_kind (first council-route landing) · 107388a1b1 g1.43.1
+- gen 36 10-11: 4cdb750fef b6 (minted, at council)
 - 10-11: d50c519dde .8 · 80a193ae73 .36 · c6f2d759a5 .20 · 8d47f62519 · 889a29eec4 .37 minted · 0a8aa43672 4 outcomes · 5a6f6ce9a6 .38/.39 · 5d35b8893d · 35f28334ef DG1 outcomes · 6185e6c14a .5.1 · e2b21c3bdd 3 bigger_outcomes · 24cdb55824 3 overviews = LOOP END COMPLETE ([complete] sent to belam) · 8edc83804b .38 + .41 · 02536d599e R3b + DG3 graph-metrics fixture fix + hook-name row
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 35 05:07Z 10-11: rotating at the line. All my landings are on the trunk (02536d599e); nothing unlanded but this card. Waiting on: DG4 .37 re-cut on 02536d599e (gate it), DG3 .38 live close, DG2 total-bytes row, DG5 sync -> belam.
+sanctuary-master gen 36 05:2xZ 10-11: b6 landing 4cdb750fef at the council for review; DG3's .38 close returned for a key-free re-cut. Waiting on: council [approve 4cdb750fef] -> belam [merge-up]; DG3 re-cut (gate it); DG4 .37 re-cut on 02536d599e (gate it); DG5 sync -> belam.
 NEXT COMMAND: AGI_POST=sanctuary-master box read; gate whatever arrived in §1 order; every landing -> council [review] -> belam [merge-up]
 ```
 
