@@ -1,6 +1,7 @@
 #!/bin/sh
 # agi-out-stale.t.sh [TRUNK]: OUT.7 (belam 15:1xZ, DG1 15:13Z): a post whose t is STALE (no agi-out piece in t, so none in ~/bin, none on the unit's PATH) must still START. Today the unit's `ExecStartPre=sh -c 'agi-out'` exits 127 on every start and Restart=always loops (DG3 193 cycles, DG2 176). The unit is read from TRUNK's engine-root.md (UNIT=<file> tests a candidate unit text), and its ExecCondition / ExecStartPre / ExecStart lines are run IN ORDER as the unit runs them (sh -c with the unit's PATH, in a scratch HOME): the root `+` steps (agi-signers) and the /proc/pressure awk are stubs (they are not t-resident and the awk reads the host). Lanes: O7a stale t, O7b a 5-cycle Restart loop, O7c piece present (its own exit code passes through), O7d present but unrunnable (only ABSENT skips), O7e a restart through a conflicting t, O7f every other step on a stale t. sh + git, no network, nothing pushed
 T=$1;[ -n "$T" ]||{ echo "[no-candidate] pass the sha under test" >&2;exit 2;};D=$(mktemp -d);trap 'rm -rf $D' EXIT;f=0;GEO=.agi/nodes/.geometry
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE   # a lane that builds a scratch repo owns its git env (an inherited GIT_DIR wrote MAIN, 10-11 09:56Z)
 o=$(git rev-parse $T)||exit 1
 if [ "$UNIT" ];then cp $UNIT $D/unit;else git show $o:$GEO/engine-root.md|sed -n '/^### agi-post@.service/,/^~~~$/p'>$D/unit;fi
 [ -s $D/unit ]||{ echo "FAIL no agi-post@.service at $T";exit 99;}
