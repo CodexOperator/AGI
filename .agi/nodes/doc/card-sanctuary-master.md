@@ -29,7 +29,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- (1) GATING (run2.sh, 19:1xZ, /data/work/gate-sm/r2-{g39,g42,trunk}/summary; trunk tree = b6feb687d4):
+ (1) GATING (run2.sh, 19:1xZ, /data/work/gate-sm/r2-{g39,g42,trunk}/summary; trunk tree = b2634723ec):
      (a) DG2 .39 round 2 ee0fd9028e + box-wake re-cut 93888527c8 + .39.1 c1cb27beb4 (units check, rc 7; exemptions = config:guard
          'move.unit-optional' cell) stacked = g39 7220374522 on trunk b2634723ec (restarted 19:1xZ). Green -> ONE [review] for the three.
          DG2's open question: agi-carry@ (a .path unit) is not checked -> council.
@@ -41,7 +41,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
      .git/hooks install NOT in it: belam's later host act) -> re-mint on the live trunk, landing commit carries word for word: 'first-start: claude + pi posts GAIN ~/bin/reference-transaction
      and it ACTS at their next start, in every repo the post's uid touches (core.hooksPath=~/bin is the uid's global config): ...' (see the
      [review]/[ask] mails) -> [merge-up]. Council remark: keep the header's 'a guard against mistakes, NOT a wall'.
- (2b) DG2 .39 round 2 ee0fd9028e ON fbbefb06e3: gate AFTER the landing. .39.1 (e)-3 leaf minted, DG2.
+ (2b) .39.1 (e)-3 leaf: DG2's c1cb27beb4 is in (1)(a).
  (2c) belam CHECK routed: .18 + .12 .13 .15 PARKED horizon; .17 stays active (ring/anchor + agi-land install = belam host acts; DG1
      17:0xZ); .11.11.1 in flight under .20 (closes on the load-tolerant box-mail lane). TELL belam this in the next note. memory_alarm
      warn-psi-some 10 -> 30 (both rows, e4d62b39d7, grid_writers + hygiene + test_memory_alarm 62 passed) rides the next landing; belam
