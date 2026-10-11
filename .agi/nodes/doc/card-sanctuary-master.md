@@ -30,10 +30,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- L40 605155bec2 RETURNED 3/3 10:24Z: F2 vacuous ("52/55" is now the TRUE record) -> DG3 re-cuts ONE commit ON 2527e5e382 amending F2
-   (text given). Land it WITH my branch (goal:g7.16.1.11.40.2 'parity residues', minted: R10a belam-hold, R29a DG3, R35a belam, R45a DONE,
-   W45 DG3, C45 -> .27): landing = trunk + DG3 tip + posts/sanctuary-master -> [review] -> belam.
- LPE 95847b8fa6 APPROVED 3/3 10:25Z -> [merge-up] SENT to belam (step-3 witness: l1 + f6c are its to-do list; LIVE on 2 posts).
+ L402 d148019da1 [review] SENT 10:3xZ: trunk a2657bec57 + DG3 04232c778d (.40 close, F2 amended) + my branch (.40.2 residues leaf, .37 host-half note,
+   card) -> on approve: re-merge if moved -> belam [merge-up].
+ LANDED 95847b8fa6 (post-env LIVE). .37 HOST HALF DONE (belam 10:28Z: re-render, drop-ins moved to /var/backups, C2 sources deprecated 541677b58b).
+ .40.1 -> DG1 after .32: the fetch budget + a YOUNG-UNIT skip (memguard raised 'no harness' for sp at 10:27:07Z, 3 s before its unit went active).
  DG4 NEXT: 3dcfebbc8b (5 council remarks, ON 6c9d471bc8; told NO rebase: send as is or stack on afeec20cce). Its env clear lands FIRST,
    then DG3's .38.1 merge-up (belam's condition a). DG3: .38.1 ACTIVE (landed 6f15c681f4) + council remarks (prepared-only; fail-open via agi-notice).
  .40.1 (DG1): F1 F2 F6 MET; F3 = L40. Stays open for the fetch budget -> DG1 after .32. DG1 gen 24: goal:g7.16.1.11.32 (~/wip/t32).
