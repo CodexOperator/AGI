@@ -168,6 +168,29 @@ def rows(script, repo):
     chk("d-an empty first-start: line is not enough", r.returncode == 1)
     r = run(script, repo, base6, base6, msgfile(repo, "LAND x\n"))
     chk("d-a range with no piece change needs no line", r.returncode == 0)
+    # the extraction line REWORDED (alive's probe: one extra space) -> the glob is empty at that rev. Never 'none' / rc 0:
+    # rc 2 + [no-glob] naming the rev, at BASE, at TIP, and at both (a changed piece + NO first-start: line is not accepted)
+    er = repo / GEO / "engine-root.md"
+    keep = er.read_text()
+    good = tip
+    er.write_text(keep.replace("for e in t/", "for e  in t/"))
+    reworded = commit(repo, "reword the extraction line")
+    wrap.write_text(wrap.read_text().replace("echo again", "echo third", 1))
+    reworded2 = commit(repo, "a box piece changes")
+    r = run(script, repo, good, reworded)
+    chk("n-a glob empty at TIP exits 2 [no-glob]", r.returncode == 2 and "[no-glob]" in r.stderr and "FIRST-START" not in r.stdout)
+    git(repo, "checkout", "-q", reworded2)
+    wrap.write_text(wrap.read_text().replace("echo third", "echo fourth", 1))
+    t5 = commit(repo, "another change on the reworded line")
+    r = run(script, repo, reworded, t5)
+    chk("n-a glob empty at BOTH revs exits 2, not none", r.returncode == 2 and "[no-glob]" in r.stderr)
+    r = run(script, repo, reworded, t5, msgfile(repo, "LAND x\n\nno such line\n"))
+    chk("n-a changed piece with NO first-start: line over a reworded line is not accepted",
+        r.returncode == 2 and "REFUSED" not in r.stdout and "[no-glob]" in r.stderr)
+    r = run(script, repo, reworded, good)
+    chk("n-a glob empty at BASE exits 2", r.returncode == 2 and "[no-glob]" in r.stderr)
+    r = run(script, repo, good, good)
+    chk("n-control: the unreworded line still reads", r.returncode == 0 and "FIRST-START: none" in r.stdout)
     return bad
 
 
@@ -176,16 +199,18 @@ def test_the_shipped_piece_passes_every_row(repo):
 
 
 MUTANTS = {
+    # the empty-glob guard dropped: a reworded extraction line reads as 'none', rc 0
+    "no-glob-guard-dropped": ("for r in $1 $2;do [ \"$(g $r)\" ]||{ echo \"[no-glob] the extraction line is not in engine-root.md at $r\">&2;exit 2;};done\n", ""),
     # globbing left on: the pattern expands against the cwd's files, not the rev's tree
     "glob-expands-in-the-cwd": ("set -f\n", ""),
     # deletions not counted: only pieces present at TIP can be named
     "deletions-not-counted": ("s=$({ p $1;p $2;}|sort|uniq -u|cut -d' ' -f1|sort -u|tr '\\n' ' ')",
                               "T=$(p $2|cut -d' ' -f1);s=$({ p $1;p $2;}|sort|uniq -u|cut -d' ' -f1|sort -u|grep -xF \"$T\"|tr '\\n' ' ')"),
     # a hand list instead of the unit's glob (a new engine-p9.md is missed)
-    "a-hand-list": ("G=$(git show $1:.agi/nodes/.geometry/engine-root.md|sed -n 's|.*for e in \\(t/[^;]*\\);do for x in.*|\\1|p'|head -1|sed 's|^t/||;s| t/| |g')",
+    "a-hand-list": ("G=$(g $1)",
                     "G='.agi/nodes/.geometry/engine.md .agi/nodes/.geometry/engine-post.md .agi/nodes/.geometry/engine-wrap.md'"),
     # engine-root.md and engine-grow.md counted (engine*.md instead of engine-[pw]*.md)
-    "root-counted": ("G=$(git show $1:.agi/nodes/.geometry/engine-root.md|sed -n 's|.*for e in \\(t/[^;]*\\);do for x in.*|\\1|p'|head -1|sed 's|^t/||;s| t/| |g')",
+    "root-counted": ("G=$(g $1)",
                      "G='.agi/nodes/.geometry/engine*.md'"),
 }
 
