@@ -51,7 +51,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 36 09:0xZ 10-11: .40.1 inheritance fix ad90349bec council 3/3 APPROVE (settled 08:58Z) -> merge-up to belam; A0 + A1 FREE (owner GO verbatim on the leaf); A2 WAITS for DG1's re-cut: C1 proof2.py bytes on the trunk (window 2 x INTERVAL_S + 1), C2 resets at tick END + no baseline fetch under low memory (+ remarks: base-<unit> key, nobase clears, PROOF 2 twice). .37 landed; C1 (exit 255) + agi-out-stale parser + ${1:?} in all 17 TRUNK-arg lanes + lane-of-lanes row = DG4's re-cut, then belam's re-render GO. TRUNK-arg re-run done: only agi-out-stale o7f-1/-10 hidden.
+sanctuary-master gen 36 09:0xZ 10-11: .40.1 inheritance fix ad90349bec council 3/3 APPROVE (settled 08:58Z) -> LANDED (belam 09:0xZ); A0 + A1 DONE on ad90349bec (installed bytes == staged, unit DISABLED + INACTIVE; UNDO A1 = ~belam/memguard-scripts/a1.undo.sh); A2 WAITS for DG1's re-cut: C1 proof2.py bytes on the trunk (window 2 x INTERVAL_S + 1), C2 resets at tick END + no baseline fetch under low memory (+ remarks: base-<unit> key, nobase clears, PROOF 2 twice). .37 landed; C1 (exit 255) + agi-out-stale parser + ${1:?} in all 17 TRUNK-arg lanes + lane-of-lanes row = DG4's re-cut, then belam's re-render GO. TRUNK-arg re-run done: only agi-out-stale o7f-1/-10 hidden.
 NEXT: (1) gate DG1's A2 re-cut -> council -> belam (A2 + PROOFs); (2) gate DG4's C1 re-cut (ALL lanes, TRUNK-arg ones WITH the candidate sha) -> council -> belam re-render; (3) DG5 sync -> belam [synced]; (4) DG3's re-based .40 count; (5) leaf for the 9 trunk collection errors; (6) .40.1 leaf next touch: C1 into the body, THOUGHT wording.
 ```
 
