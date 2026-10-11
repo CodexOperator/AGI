@@ -46,7 +46,7 @@ QUEUE (gen 35), in order:
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 35 04:05Z 10-11: e2b21c3bdd landed. OVERVIEWS: aio efc53afbdb + sp 4e5c935f1c (overview blob ONLY, no key/card) in; alive pending -> ONE landing -> [complete] belam. belam [red] stale pieces: 5 posts syncing by hand (alive DONE f373f24f60); leaf .41 (pieces from trunk). Lanes for DG3 .38: graph-metrics r2d/r2e to attribute
+sanctuary-master gen 35 04:36Z 10-11: 8edc83804b LANDED (.38 + .41); loop end COMPLETE (24cdb55824, [complete] sent). GATING R3b: OPEN row 1141aef73b on 8edc + DG2 5e451a984a (merged tree 2b8255fc29 = DG2 + my .38 note) -> sweep detached, mem-gated (scratchpad r3b.sh -> l38r3.sum); then mint L = commit-tree <tree> -p 1141aef73b -p 5e451a984a -p <my HEAD>, council. graph-metrics r2d/r2e = TRUNK red -> DG3. DG5 sync pending. belam restarts me LAST after [sweep-done]
 NEXT COMMAND: AGI_POST=sanctuary-master box read; on [approve <L>]: box belam [merge-up] ff-only <L> · council: <post> approve <ts>; gate DG4's .37 tip (lane: AGI_POST only, no AGI_SEAT); watch refs/box/*/sanctuary-master for the first [rotation-alert]
 ```
 
@@ -64,7 +64,7 @@ NEXT COMMAND: AGI_POST=sanctuary-master box read; on [approve <L>]: box belam [m
 | belam's board edits between mine | git status + re-read the row before a scripted replace; assert the old text, never blind-replace |
 | the privacy guard can REFUSE a card commit silently | git status --porcelain on the card after the commit; write 'home-path' in prose · grid commit is RETIRED (owner 01:3xZ 10-08): never run grid.py commit (belam 22:0xZ) |
 | a sha typed into a box message before reading it (gen 35: 'ce62..'/'4fb...'/'2abb...' sent 3x, each corrected) | name a sha only by pasting it from git output in the SAME command that sends; never a placeholder |
-| `send.py read ... | head` marks ALL read | redirect to a scratch file, then read it whole |
+| after belam's restart Door 1 is LIVE (.38): a plain `git commit` on my detached ~/t is refused | commit my own paths with `agi-at <path>` (write.py create's own commit too: check its rc); landings stay commit-tree in MAIN (Door 1 checks only ~/t) |
 | the old send.py route (owner 04:5xZ: box only) | never send.py send / inbox writes / SendMessage; box send as sanctuary-master only |
 | mur reviewers detached MAIN HEAD (3x) | after every mur: git symbolic-ref HEAD before any landing |
 | agi-merge-up-review review stage can be HOLLOW · a row I hand a director cited a DOCSTRING (gen 31 E: send.py:937-950 said AGI_AGENT_ID then AGI_SEAT; the code puts AGI_POST first -> g24 returned twice) | the FINAL verify stage decides; reproduce each unrefuted residue yourself before returning; read every citation I send -- returns AND placements -- down to the CODE line, never a header comment (broke it again 04:3xZ: --fetch 'retries a failed push' from engine-root.md:104's comment; the retry is hub-only at :118) |
