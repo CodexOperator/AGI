@@ -87,11 +87,11 @@ def commit(repo, msg="c"):
     return git(repo, "rev-parse", "HEAD")
 
 
-def run(script, repo, base, tip, msg=None):
+def run(script, repo, base, tip, msg=None, cwd=None):
     s = repo.parent / "afs.sh"
     s.write_text(script)
     args = ["sh", str(s), base, tip] + ([str(msg)] if msg else [])
-    return subprocess.run(args, cwd=repo, env=ENV, capture_output=True, text=True)
+    return subprocess.run(args, cwd=cwd or repo, env=ENV, capture_output=True, text=True)
 
 
 def msgfile(repo, text):
@@ -145,9 +145,15 @@ def rows(script, repo):
     base6 = tip
     put(repo, "engine-p9.md", HEAD + piece("p-nine"))
     put(repo, "engine-z.md", HEAD + piece("p-zed"))
-    tip = commit(repo)
+    tip = tip_g = commit(repo)
     chk("g-a file joining the glob is covered, one outside it is not",
         run(script, repo, base6, tip).stdout.strip() == "FIRST-START: p-nine")
+    # the glob must not expand against the CWD's files (SM 12:2xZ): from a checkout of BASE, which holds no
+    # engine-p9.md, the pattern engine-[pw]*.md would turn into the on-disk list and miss the new file at TIP
+    wt = repo.parent / "base-checkout"
+    git(repo, "worktree", "add", "-q", "--detach", str(wt), base6)
+    r = run(script, repo, base6, tip_g, cwd=wt)
+    chk("g-from a checkout of BASE a new file in the glob is still named", r.stdout.strip() == "FIRST-START: p-nine")
     # (d) the landing message: refused by name without first-start:, passes with it, none needs none
     wrap = repo / GEO / "engine-wrap.md"
     base7 = tip
@@ -170,6 +176,8 @@ def test_the_shipped_piece_passes_every_row(repo):
 
 
 MUTANTS = {
+    # globbing left on: the pattern expands against the cwd's files, not the rev's tree
+    "glob-expands-in-the-cwd": ("set -f\n", ""),
     # deletions not counted: only pieces present at TIP can be named
     "deletions-not-counted": ("s=$({ p $1;p $2;}|sort|uniq -u|cut -d' ' -f1|sort -u|tr '\\n' ' ')",
                               "T=$(p $2|cut -d' ' -f1);s=$({ p $1;p $2;}|sort|uniq -u|cut -d' ' -f1|sort -u|grep -xF \"$T\"|tr '\\n' ' ')"),
