@@ -16,6 +16,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 BIN = Path(__file__).resolve().parent.parent / "bin"
 SRC = Path(__file__).resolve().parent.parent / "src"
@@ -40,6 +41,7 @@ ROWS = [
 def _write_posts_node(project, rows):
     d = project / "nodes" / ".geometry"
     d.mkdir(parents=True, exist_ok=True)
+    write_free_veto(d)
     body = "\n".join(f"  - {json.dumps(r)}" for r in rows)
     (d / "posts.md").write_text(
         "---\nid: config:posts\nmint_id: 3e88873e3c204c5088f6ab81322a26de\n"
@@ -50,6 +52,7 @@ def _write_posts_node(project, rows):
 def _write_ladder(project):
     d = project / "nodes" / ".geometry"
     d.mkdir(parents=True, exist_ok=True)
+    write_free_veto(d)
     (d / "ladder.md").write_text(
         "---\nid: ladder:ladder\ncurrent_season: 2\ntowns:\n"
         "  - core\n  - sanctuary\n  - streaming-suite\n---\n\n# ladder\n",

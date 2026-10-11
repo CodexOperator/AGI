@@ -11,6 +11,7 @@ location: repo_root
 payload_ref: .agi/context/season-ladder-and-morals-brief.md
 scaffold_hash: 8c45e558180acf77
 season: 2
+tags: []
 thought_session: L3.22
 title: "Design doc: season-ladder-and-morals-brief.md (owner text verbatim + director proposals)"
 ---

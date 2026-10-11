@@ -16,6 +16,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import migrate_channel, rotate  # noqa: E402
+from tests.veto_cell import write_free_veto  # noqa: E402
 import send  # noqa: E402 -- the module rotate's lazy `import send` resolves
 
 
@@ -467,6 +468,7 @@ def _real_repo(tmp_path):
     root = Path(__file__).resolve().parents[3]
     (repo / ".agi" / "context" / "schemas").mkdir(parents=True)
     (repo / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(repo / ".agi" / "nodes" / ".geometry")
     (repo / ".agi" / "context" / "schemas" / "[config].md").write_text(
         (root / ".agi" / "context" / "schemas" / "[config].md")
         .read_text(encoding="utf-8"), encoding="utf-8")
@@ -584,6 +586,7 @@ def _config_root(tmp_path):
     agi = tmp_path / ".agi"
     (agi / "context" / "schemas").mkdir(parents=True)
     (agi / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(agi / "nodes" / ".geometry")
     (agi / "config.json").write_text("{}", encoding="utf-8")
     (agi / "context" / "schemas" / "[config].md").write_text(
         (root / ".agi" / "context" / "schemas" / "[config].md")

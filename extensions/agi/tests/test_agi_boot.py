@@ -150,7 +150,7 @@ def test_missing_space_cell_is_named_and_fails(box):
     run, log, *_ = box
     p = run.repo / ".agi/config.json"; cfg = json.loads(p.read_text()); del cfg["values"]["local_maxxing"]["agi_boot"]["space_s"]
     p.write_text(json.dumps(cfg)); subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t.invalid", "commit", "-qam", "y"], cwd=run.repo, check=True, capture_output=True)
-    r = run(); assert r.returncode != 0 and "agi-boot: failed: sleep null" in r.stderr
+    r = run(); assert r.returncode != 0 and "space_s" in r.stderr  # A2: the cell is named and refused before any setfacl, unit or start
 
 
 def test_non_boot_row_gets_no_wants_link_boot_rows_do(box):
@@ -164,7 +164,9 @@ def test_non_boot_row_gets_no_wants_link_boot_rows_do(box):
 def test_gate_checks_projected_dropin_not_wants_links(box):
     run, log, la, io, tp = box
     (tp / "fk" / "sect").write_text("#!/bin/sh\n" + section("sect", "engine.md") + "\n"); (tp / "fk" / "sect").chmod(0o755)
-    gate = lambda: subprocess.run(["sh", "-s", "HEAD"], input=section("agi-gate", "engine.md"), cwd=run.repo, env={**run.env, "TMPDIR": str(tp)}, capture_output=True, text=True, timeout=60)
+    (tp / "fk" / "id").write_text('#!/bin/sh\n[ "$1" = -u ]&&{ echo 1000;exit 0;}\nexec /usr/bin/id "$@"\n'); (tp / "fk" / "id").chmod(0o755)  # the gate re-execs itself as nobody when `id -u` is 0 (and "$0" must then be a file): this test pins the DROP-IN check, so it never takes the root branch, whoever runs the suite
+    gf = tp / "agi-gate"; gf.write_text(section("agi-gate", "engine.md")); gf.chmod(0o755)  # a FILE, not `sh -s` ("$0" = sh there: root's re-exec would run `sh HEAD`)
+    gate = lambda: subprocess.run(["sh", str(gf), "HEAD"], cwd=run.repo, env={**run.env, "TMPDIR": str(tp)}, capture_output=True, text=True, timeout=60)
     ci = lambda: subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t.invalid", "commit", "-qam", "y"], cwd=run.repo, check=True, capture_output=True)
     pf = run.repo / GEO / "posts.md"; rows = pf.read_text()
     assert gate().returncode == 0  # boot rows present
@@ -185,7 +187,8 @@ def test_project_service_execstart_checks_dropin_not_wants_links(box):
         assert subprocess.run(["sh", "-s", str(o), "HEAD"], input=section("agi-project", "engine.md"), cwd=run.repo, env=run.env, capture_output=True, text=True, timeout=60).returncode == 0
         frag = re.search(r'^ExecStart=sh -c "(.*)"$', (o / "agi-project.service").read_text(), re.M).group(1)
         assert "ls " in frag and "systemctl daemon-reload" in frag and "systemd-sysusers" in frag
-        return subprocess.run(["sh", "-c", frag], cwd=run.repo, env=run.env, capture_output=True, text=True, timeout=60).returncode
+        pin = subprocess.run(["git", "rev-parse", "HEAD"], cwd=run.repo, check=True, capture_output=True, text=True).stdout.strip()  # A1b: the baked unit reads the pin from carry.env at run time, not a baked sha
+        return subprocess.run(["sh", "-c", frag], cwd=run.repo, env={**run.env, "AGI_TRUNK": pin}, capture_output=True, text=True, timeout=60).returncode
     assert execstart("o1") == 0  # boot rows present
     pf.write_text(rows.replace('"boot": true, ', "")); ci()
     assert execstart("o2") == 0  # v4 rows, no boot row: no wants link, h.conf drop-ins exist

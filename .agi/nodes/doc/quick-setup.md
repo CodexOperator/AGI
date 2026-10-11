@@ -8,6 +8,7 @@ next_edges: []
 edited_by: director-general-3
 scaffold_hash: eae2cd2781042856
 season: 2
+tags: []
 thought_session: belam-S2-L5-V
 title: doc:quick-setup -- box setup + startup runbook (interim; the engine init route after the g1.25 registry)
 town: local-maxxing

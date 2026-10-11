@@ -11,6 +11,7 @@ fields:
   moral_adherence: {type: dict}  # one entry per moral parent: aligned | violated | unknown
   next_edges: {type: list}
   tags: {type: list}
+  nest: {type: str|list}      # OPTIONAL, never required: `subtree` (every node down the parents edges) or a list of ids -- this node holds a slice (nest.py)
   status: {type: str}        # open | active | closed
   confidence: {type: float}
   subgraph: {type: bool}

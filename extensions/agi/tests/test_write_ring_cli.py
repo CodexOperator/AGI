@@ -37,6 +37,7 @@ import time
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 BIN = Path(__file__).resolve().parent.parent / "bin"
 SRC = Path(__file__).resolve().parent.parent / "src"
@@ -108,6 +109,7 @@ def _ring_root(tmp_path, written_by="prime", ring="approval",
     keys = {nm: scheme.keygen() for nm in ("alice", "bob", "carol")}
     pubkeys = {nm: priv.hex() for nm, (priv, _pub) in keys.items()}
     (agi / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(agi / "nodes" / ".geometry")
     (agi / "nodes" / ".geometry" / "rings.md").write_text(
         "---\ntype: cell\nrings:\n"
         f"  - name: approval\n    m: {m}\n"
@@ -613,3 +615,139 @@ def test_g131_37_unset_literal_marker_never_signs_the_bytes_of_setting_it():
     for set_fm, unset_fm in (({"_unset": '["a"]'}, None), (None, ["_unset"])):
         with pytest.raises(write.EditError, match="'_unset'.*REFUSED"):
             write._config_write_fields("config:seats", set_fm, unset_fm)
+
+
+# goal:g1.41 D1 -- the ring gate answers "no ring, write it" when it COULD NOT LOOK. REAL load failures (a
+# rings file the uid cannot read, a corrupt one, one whose value is bad, a seatsig.rings that will not
+# import), never a stub of ring_by_name. NOTE for the builder: seatsig.rings.load_rings itself degrades an
+# unreadable / unparseable cell to [] ("an unreadable cell is an absent cell"), so a write.py-side split of
+# `except Exception` alone cannot see a mode-000 or a corrupt file: the gate must look at the cell itself
+# (or load_rings must stop swallowing). The opt-outs below are the ONLY intended passes.
+import os
+import re as _re
+
+_SET = {"seats": [{"name": "x"}]}
+_RINGS_REL = Path("nodes") / ".geometry" / "rings.md"
+
+
+def _unsigned_write(root, preview=False, out=None):
+    return write._enforce_written_by(root, "config", "director1", "config:seats", role="prime",
+                                     set_fm=_SET, preview=preview, out_decision=out)
+
+
+def _break_rings(root, how, monkeypatch):
+    cell = root / _RINGS_REL
+    if how == "mode000":
+        os.chmod(cell, 0)
+    elif how == "corrupt":
+        cell.write_text("---\ntype: cell\nrings: [ {name: approval, m: 2\n---\n", encoding="utf-8")
+    elif how == "not-a-list":
+        cell.write_text("---\ntype: cell\nrings: approval\n---\n", encoding="utf-8")
+    elif how == "bad-m":
+        cell.write_text("---\ntype: cell\nrings:\n  - name: approval\n    m: abc\n"
+                        "    members: [alice, bob, carol]\n---\n", encoding="utf-8")
+    elif how == "import":
+        monkeypatch.delattr(seatsig, "rings", raising=False)
+        monkeypatch.setitem(sys.modules, "seatsig.rings", None)
+
+
+REAL_FAILURES = ["mode000", "corrupt", "not-a-list", "bad-m", "import"]
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="a mode-000 file is readable by root")
+@pytest.mark.parametrize("how", REAL_FAILURES)
+def test_d1_a_real_rings_load_failure_refuses_the_unsigned_config_write_by_name(tmp_path, monkeypatch, how):
+    root, _s = _ring_root(tmp_path)
+    _break_rings(root, how, monkeypatch)
+    try:
+        with pytest.raises(write.EditError) as ei:
+            _unsigned_write(root)
+    finally:
+        os.chmod(root / _RINGS_REL, 0o644)
+    msg = str(ei.value)
+    assert "approval" in msg, msg                      # names the ring
+    assert _re.search(r"[A-Za-z]+Error", msg), msg     # names the error class
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="a mode-000 file is readable by root")
+@pytest.mark.parametrize("how", ["mode000", "corrupt", "import"])
+def test_d1_a_dry_run_of_a_load_failure_previews_the_refusal(tmp_path, monkeypatch, how):
+    root, _s = _ring_root(tmp_path)
+    _break_rings(root, how, monkeypatch)
+    out = {}
+    try:
+        _unsigned_write(root, preview=True, out=out)
+    finally:
+        os.chmod(root / _RINGS_REL, 0o644)
+    assert out.get("refusal") and "approval" in out["refusal"], out
+
+
+def test_d1_control_a_schema_with_no_ring_still_writes(tmp_path):
+    root, _s = _ring_root(tmp_path, ring=None)
+    _unsigned_write(root)          # no ring: line -> no quorum asked, no refusal
+
+
+def test_d1_control_a_rings_cell_that_is_absent_still_writes(tmp_path):
+    root, _s = _ring_root(tmp_path)
+    (root / _RINGS_REL).unlink()
+    _unsigned_write(root)          # the geometry names no ring at all: the documented opt-out
+
+
+def test_d1_control_a_ring_the_geometry_does_not_name_still_writes(tmp_path):
+    root, _s = _ring_root(tmp_path)
+    (root / _RINGS_REL).write_text("---\ntype: cell\nrings:\n  - name: other\n    m: 2\n"
+                                   "    members: [alice, bob]\n---\n", encoding="utf-8")
+    _unsigned_write(root)          # ring_by_name -> None: the opt-out
+    out = {}
+    _unsigned_write(root, preview=True, out=out)
+    assert not out.get("refusal"), out
+
+
+def test_d1_control_a_signed_quorum_still_writes_beside_a_broken_unrelated_cell(tmp_path):
+    root, signers = _ring_root(tmp_path)
+    ts, nonce = _now(), "write-d1"
+    fields = _cell_fields(root, "config:seats", _SET, ts=ts, nonce=nonce)
+    canonical = rings.canonical_bytes("config-write", fields)
+    sigs = _sigs(signers, canonical, ["alice", "bob"])
+    write._enforce_written_by(root, "config", "director1", "config:seats", role="prime",
+                              set_fm=_SET, signatures=sigs, ring_fresh=(ts, nonce))
+
+
+# goal:g1.41 RD4 -- seatsig.rings.load_rings drops every non-dict row BEFORE its strict loop: `rings: [approval]`
+# (a list of STRINGS) loads as no ring, ring_by_name answers None and the unsigned config write goes through the opt-out.
+_RD4_ONE = "  - name: approval\n    m: 1\n    members: [alice]\n"
+_RD4_CELLS = {
+    "all-strings": "rings:\n  - approval\n",
+    "inline-strings": "rings: [approval, other]\n",
+    "mixed": "rings:\n" + _RD4_ONE + "  - approval\n",
+    "string-first": "rings:\n  - approval\n" + _RD4_ONE,
+}
+
+
+@pytest.mark.parametrize("shape", list(_RD4_CELLS))
+def test_rd4_a_rings_cell_holding_a_non_ring_row_refuses_the_unsigned_config_write_by_name(tmp_path, shape):
+    root, _s = _ring_root(tmp_path)
+    (root / _RINGS_REL).write_text("---\ntype: cell\n" + _RD4_CELLS[shape] + "---\n", encoding="utf-8")
+    with pytest.raises(write.EditError) as ei:
+        _unsigned_write(root)
+    msg = str(ei.value)
+    assert "approval" in msg, msg
+    assert _re.search(r"[A-Za-z]+Error", msg), msg
+    out = {}
+    _unsigned_write(root, preview=True, out=out)
+    assert out.get("refusal") and "approval" in out["refusal"], out
+
+
+def test_rd4_control_an_empty_rings_list_still_writes(tmp_path):
+    root, _s = _ring_root(tmp_path)
+    (root / _RINGS_REL).write_text("---\ntype: cell\nrings: []\n---\n", encoding="utf-8")
+    _unsigned_write(root)          # `rings: []` and an absent cell stay the documented opt-out
+
+
+def test_rd4_control_an_all_dict_list_naming_the_ring_still_refuses_on_the_count(tmp_path):
+    root, _s = _ring_root(tmp_path)
+    (root / _RINGS_REL).write_text("---\ntype: cell\nrings:\n  - name: other\n    m: 1\n    members: [alice]\n"
+                                   "  - name: approval\n    m: 2\n    members: [alice, bob]\n---\n", encoding="utf-8")
+    with pytest.raises(write.EditError) as ei:
+        _unsigned_write(root)
+    assert "approval" in str(ei.value) and "got 0" in str(ei.value), str(ei.value)      # the count, not a load error

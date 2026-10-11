@@ -18,6 +18,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 import heal  # noqa: E402
 import rotate  # noqa: E402
@@ -34,6 +35,7 @@ def _fix(tmp_path, monkeypatch):
                         else d)
     g = root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (g / "rotations.md").write_text(
         "---\nid: config:rotations\ntype: config\ntemplates:\n"
         "  parent: {brief_file: extensions/agi/briefs/parent-successor.md, "

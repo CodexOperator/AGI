@@ -43,6 +43,7 @@ sys.path.insert(0, str(_REPO / "extensions"))
 sys.path.insert(0, str(_BIN))
 
 from agi.bin import rotate  # noqa: E402
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 
 def _fake_seams(runner_table):
@@ -105,7 +106,8 @@ def test_unknown_step_refused_by_name():
     assert [e["step"] for e in entries] == ["post_verify", "nope"]
 
 
-def test_merge_up_refuses_without_resolvable_main_and_constant_is_season2_main():
+def test_merge_up_refuses_without_resolvable_main_and_constant_is_season2_main(
+        tmp_path):
     """Re-aimed from the pre-fix merge-target test: the NEW merge_up
     resolves MAIN (the shared graph root's git toplevel) and gates on MAIN's
     checked-out branch/Main tree -- so a gitless fixture (no MAIN to resolve)
@@ -113,7 +115,8 @@ def test_merge_up_refuses_without_resolvable_main_and_constant_is_season2_main()
     `_perform_season_merge`, the sync-direction helper the claim retires).
     The one-constant gate survives: season2/main, never origin/season/s2."""
     assert rotate._CLOSEOUT_MERGE_TARGET == "season2/main"
-    seams = rotate._make_closeout_seams(Path("/tmp/co-root"), {})
+    write_free_veto(tmp_path / "nodes" / ".geometry")  # a FREE cell: the gate passes, MAIN is what is missing
+    seams = rotate._make_closeout_seams(tmp_path, {})
     ok, result, detail = seams["merge_up"]()
     assert ok is False and result == "refused"
     assert "merge_up" in detail and "MAIN" in detail and "refused" in detail
@@ -229,6 +232,7 @@ def _co_rs(tmp_path, monkeypatch):
     def _write_seats(rows):
         g = root / "nodes" / ".geometry"
         g.mkdir(parents=True, exist_ok=True)
+        write_free_veto(g)
         (root / "sessions").mkdir(parents=True, exist_ok=True)
         body = "---\nid: config:seats\ntype: config\nseats:\n"
         for r in rows:
@@ -239,6 +243,7 @@ def _co_rs(tmp_path, monkeypatch):
     def _write_templates():
         g = root / "nodes" / ".geometry"
         g.mkdir(parents=True, exist_ok=True)
+        write_free_veto(g)
         (g / "rotations.md").write_text(
             "---\nid: config:rotations\ntype: config\ntemplates:\n"
             "  parent:\n    brief_file: extensions/agi/briefs/parent-successor.md\n"
@@ -439,6 +444,7 @@ def _co_rs_kind(tmp_path, monkeypatch):
     def _write_seats(rows):
         g = root / "nodes" / ".geometry"
         g.mkdir(parents=True, exist_ok=True)
+        write_free_veto(g)
         (root / "sessions").mkdir(parents=True, exist_ok=True)
         body = "---\nid: config:seats\ntype: config\nseats:\n"
         for r in rows:
@@ -449,6 +455,7 @@ def _co_rs_kind(tmp_path, monkeypatch):
     def _write_templates():
         g = root / "nodes" / ".geometry"
         g.mkdir(parents=True, exist_ok=True)
+        write_free_veto(g)
         (g / "rotations.md").write_text(
             "---\nid: config:rotations\ntype: config\ntemplates:\n"
             "  parent:\n    brief_file: extensions/agi/briefs/parent-successor.md\n"
@@ -525,6 +532,7 @@ def test_prime_cli_drives_only_g17_1_note_push(
     root, win = _co_rs_kind
     g = root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (g / "seats.md").write_text(
         "---\nid: config:seats\ntype: config\nseats:\n"
         "  - {\"name\": \"adv-alive\", \"role\": \"prime_director\", "
@@ -553,6 +561,7 @@ def test_pathspec_commit_real_runner_commits_only_card_and_own_row(tmp_path):
     (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
     nodes = root / "nodes" / ".geometry"
     nodes.mkdir(parents=True)
+    write_free_veto(nodes)
     seats = nodes / "seats.md"
     seats.write_text("---\nid: config:seats\ntype: config\nseats:\n"
                      "  - {\"name\": \"s1\", \"role\": \"parent\"}\n"
@@ -664,6 +673,7 @@ def _git_sole_repo(tmp_path):
     sp.run(["git", "-C", str(r), "commit", "-q", "-m", "init"], check=True)
     g = r / ".agi"
     g.mkdir(parents=True)
+    write_free_veto(g / "nodes" / ".geometry")
     (g / "agi-tree.config.json").write_text("{}", encoding="utf-8")
     return g, r
 
@@ -707,6 +717,7 @@ def _merge_fixture(tmp_path):
     (g / "agi-tree.config.json").write_text("{}", encoding="utf-8")
     gt = g / "nodes" / ".geometry"
     gt.mkdir(parents=True)
+    write_free_veto(gt)
     wt = tmp_path / "wt-adv"
     sp.run(["git", "-C", str(main), "worktree", "add", "-q", "-b",
             "season2/posts/adv", str(wt), "season2/main"], check=True)
@@ -1175,6 +1186,7 @@ def test_pathspec_commit_refuses_naming_a_failed_record_commit(tmp_path):
     root = tmp_path
     (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
     (root / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(root / "nodes" / ".geometry")
     (root / "nodes" / ".geometry" / "seats.md").write_text(
         "---\nid: config:seats\ntype: config\nseats:\n"
         "  - {\"name\": \"s1\", \"role\": \"parent\"}\n"
@@ -1202,6 +1214,7 @@ def test_push_real_runner_refuses_by_name_on_a_gitless_fixture(tmp_path):
     resolvable MAIN, REFUSES BY NAME without attempting a push -- the named
     refusal is the observable (a dry real-run drive of the shared runner
     that the worktree-post list shares with the Prime/MAIN-post lists)."""
+    write_free_veto(tmp_path / "nodes" / ".geometry")
     seams = rotate._make_closeout_seams(tmp_path, {})
     ok, result, detail = seams["push"]()
     assert ok is False and result == "refused"
@@ -1314,6 +1327,7 @@ def test_unfrozen_prime_reaches_the_closeout_merge_up_and_push(
     not a blanket refusal."""
     calls = []
     _faked_closeout_git(tmp_path, monkeypatch, calls, frozen=False)
+    write_free_veto(tmp_path / "nodes" / ".geometry")
     seams = rotate._make_closeout_seams(tmp_path, {}, seat="adv")
     entries, err = rotate._closeout_run_steps(
         tmp_path, "adv", "parent",
@@ -1452,6 +1466,7 @@ def test_unfrozen_prime_pushes_a_trunk_resolved_stops_push(
     """The gate is CONDITIONAL, not a blanket refusal: with the veto cell
     unfrozen, a trunk-resolved push carries through."""
     _freeze(monkeypatch, False)
+    write_free_veto(tmp_path / "nodes" / ".geometry")
     calls = _faked_stops_push_git(monkeypatch, "season2/main")
     assert rotate._stops_push(tmp_path, "stops") is None
     assert _pushed(calls), "an unfrozen prime's trunk push must proceed"

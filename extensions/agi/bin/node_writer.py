@@ -178,6 +178,17 @@ def node_dir(root, node_type) -> Path:
 _ID_INDEX: dict = {}
 
 
+def _retired(nd: Path, p: Path) -> bool:
+    return p.relative_to(nd).parts[:1] == ("deprecated",)
+
+
+def _id_index(root) -> dict:
+    key = str(Path(root).resolve())
+    if key not in _ID_INDEX:
+        _ID_INDEX[key] = _build_id_index(Path(root))
+    return _ID_INDEX[key]
+
+
 def _build_id_index(root: Path) -> dict:
     """id -> path, over the whole node tree. The last-resort lookup."""
     index: dict = {}
@@ -185,7 +196,7 @@ def _build_id_index(root: Path) -> dict:
     if not nd.is_dir():
         return index
     from graph_core.persistence import frontmatter as fm_reader
-    for nf in sorted(nd.rglob("*.md")):
+    for nf in sorted(nd.rglob("*.md"), key=lambda p: (_retired(nd, p), p)):  # live first
         try:
             fm = fm_reader.load_node_file(nf, body=False).frontmatter
         except Exception:
@@ -244,10 +255,14 @@ def find_node_file(root, node_id, *, tree_wide: bool = True) -> Path | None:
             if d not in dirs:
                 dirs.append(d)
 
+    def live_first(hit):  # a retired hit yields to a live namesake anywhere (.geometry is in no type dir)
+        other = _id_index(root).get(node_id) if tree_wide and _retired(root / "nodes", hit) else None
+        return other if other is not None and other.exists() and not _retired(root / "nodes", other) else hit
+
     for d in dirs:
         f = d / f"{slug}.md"
         if f.exists():
-            return f
+            return live_first(f)
 
     for d in dirs:
         if not d.is_dir():
@@ -259,14 +274,15 @@ def find_node_file(root, node_id, *, tree_wide: bool = True) -> Path | None:
             except Exception:
                 continue
             if isinstance(fm, dict) and fm.get("id") == node_id:
-                return nf
+                return live_first(nf)
 
     if not tree_wide:
         return None   # goal:g7.33.20 B3: the caller asked for the type directories only
-    key = str(root.resolve())
-    if key not in _ID_INDEX:
-        _ID_INDEX[key] = _build_id_index(root)
-    return _ID_INDEX[key].get(node_id)
+    hit = _id_index(root).get(node_id)
+    if hit is not None and not hit.exists():  # stale (the index drops only in write_node): rebuild once, never a missing path
+        _ID_INDEX.pop(str(Path(root).resolve()), None)
+        hit = _id_index(root).get(node_id)
+    return hit
 
 
 def _needs_quoting(sval: str) -> bool:

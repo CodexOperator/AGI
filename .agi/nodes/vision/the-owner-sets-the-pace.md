@@ -14,6 +14,7 @@ edited_by: belam-S1-L4-VI
 proposes_goals: []
 scaffold_hash: 5603ccfa99fcb1a8
 season: 2
+tags: []
 thought_session: belam-S1-L4-VI
 title: The Owner Sets the Pace — a sanctuary runs at the pace its owner set and never demands more than they asked to give
 town: web-app-suite

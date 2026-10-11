@@ -1,0 +1,5 @@
+[Unit]
+Description=agi: keep idle posts claude.ai logins fresh (Remote Control)
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/agi-rc-keepalive

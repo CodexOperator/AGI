@@ -2,7 +2,7 @@
 # box-wake.t.sh: goal:g7.16.1.11.20 (DG1 16:14Z; design = doc:rse-aa1-boxes AA1 wake line + AA1.M, council placement 14:54Z): messaging is box mail in the AA1.M math. A v5 post is WOKEN by polling its box (`box n|wc -l` grows -> the pane is typed `mail: box read`), in the agi-run piece (claude / pi panes) AND in the cccc.ts piece (the pi extension); the unread count is right and falls to 0 after the read; the ~/o cap is KEPT; send.py is neither touched nor left dangling.
 # THE BUG (council 10-07 15:02Z, alive): the pilot's cccc.ts poll is `let s=0;setInterval(()=>{...n=+x("box n|wc -l"...);n>s&&(s=n,p.sendUserMessage("mail: box read",...))},5e3)`: s moves only UP, so after a read drops the count the NEXT mail (n <= the old maximum) never wakes the pane. agi-run's line (`...;s=$n;done`) resets s every tick and is right. Lane w4 is the bug itself: send 2, read both, send 1 = exactly ONE more wake.
 # sh + git + jq + ssh-keygen + node (v24, no TypeScript syntax in the piece: the driver loads a .mjs copy) on a SCRATCH repo, throwaway keys, no live ref, no network, 0 USD. It runs the REAL pieces extracted with `sect` from the .geometry/engine*.md of ROOT (the box-mail.t.sh recipe): `box` (the AA1 sender/reader), `agi-run` (under stubs: strace, stty, a harness that idles; a `sleep` shim that divides every sleep by DIV so the 5 s poll is 0.2 s) and `cccc.ts` (under a driver.mjs that gives it a fake pi API: p.on records the handlers, p.sendUserMessage logs the wake; setInterval is divided by DIV). Wakes are counted, never assumed: agi-run's typed text goes into a FIFO this file reads; cccc.ts's sendUserMessage goes to a log.
-# AGIRUN=<file> CCCC=<file> BOX=<file> test other pieces than ROOT's (mutants / the pilot's); ROOT=<repo> where the pieces are read; DIV=<n> time scale (default 25). One ok/FAIL line per case; exit = FAIL count.
+# AGIRUN=<file> CCCC=<file> BOX=<file> AGIKID=<file> test other pieces than ROOT's (mutants / the pilot's); ROOT=<repo> where the pieces are read; DIV=<n> time scale (default 25). One ok/FAIL line per case; exit = FAIL count.
 # Lanes: w1 one message wakes ONCE (and not again while it stays unread) · w2 a burst of 3 = ONE wake and the unread count is 3, then 0 after the read · w3 no mail = no wake · w4 THE BUG: send 2, read both, send 1 = exactly ONE more wake (w4b: send 1, read, send 1) · w5 a successor wakes on mail its predecessor never read (s=0 at start) · w6 an off-matrix send never wakes · w7 (agi-run) the typed line is followed by the Enter · w8 (agi-run) a PI harness (H=pi-x) wakes with the same counts as claude-x · c1-c3 the ~/o cap is KEPT (over the cap trimmed to HALF keeping the TAIL; under it untouched; the default is 64 MiB) · s1 s2 s4 DUAL ROUTE (DG1 17:54Z): the inbox file growing wakes with `mail: send.py read <seat>`, box n growing wakes with `mail: box read`, each source types its OWN line, both at once = one wake each; s3 send.py itself still resolves (control). Each lane runs on agi-run (a*) and on cccc.ts (p*) where it applies.
 # Honest limits: the poll interval and the 1 s typing pause are scaled, so the lanes pin the COMPARISON, not the wall-clock cadence; a wake is counted by the text typed / sent, not by a model turn. cccc.ts is run with node as an ES module (the real expression, not a transcription); the harness stub idles, it is not claude.
 T=$(mktemp -d);trap 'for p in $(cat $T/pids 2>/dev/null);do kill -TERM -$p 2>/dev/null;kill $p 2>/dev/null;done;rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};DIV=${DIV:-25}
@@ -21,7 +21,7 @@ chmod +x $T/bin/box
 for u in belam alive dg9;do
  ssh-keygen -q -t ed25519 -N '' -f $T/k/$u -C $u>/dev/null
  echo "$u@agi namespaces=\"git\" $(cut -d' ' -f1,2 $T/k/$u.pub)">>$T/signers
- printf '[user]\n\tname=%s\n\temail=%s@agi\n\tsigningkey=%s\n[gpg]\n\tformat=ssh\n[gpg "ssh"]\n\tallowedSignersFile=%s\n[commit]\n\tgpgsign=false\n' $u $u $T/k/$u $T/signers>$T/c/$u
+ printf '[user]\n\tname=%s\n\temail=%s@agi\n\tsigningkey=%s\n[gpg]\n\tformat=ssh\n[gpg "ssh"]\n\tallowedSignersFile=%s\n[commit]\n\tgpgsign=false\n[safe]\n\tdirectory=*\n' $u $u $T/k/$u $T/signers>$T/c/$u
 done
 $G init -q $T/r;mkdir -p $T/r/.agi/nodes/.geometry
 cat >$T/r/.agi/nodes/.geometry/posts.md<<'EOF'
@@ -31,8 +31,8 @@ cat >$T/r/.agi/nodes/.geometry/posts.md<<'EOF'
   - {"name":"dg9","parent":"alive","harness":"claude"}
 EOF
 $G -C $T/r add -A;$G -C $T/r -c user.name=x -c user.email=x@x commit -qm fixture
-# a post's environment: its git identity + the matrix trunk; PATH = the scratch bin (box, the stubs)
-as(){ u=$1;shift;(cd $T/r&&AGI_POST=$u AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/$u GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@");}
+# a post's environment (DG1 04:15Z: the REAL ownership): its git identity + safe.directory=* (agi-post@.service ExecStartPre #4 runs `git config --global safe.directory "*"` in the post's own HOME before any box call) under git's different-owner seam + the matrix trunk; PATH = the scratch bin (box, the stubs)
+as(){ u=$1;shift;(cd $T/r&&AGI_POST=$u AGI_TRUNK=HEAD GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/$u GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@");}
 snd(){ printf '%s\n' "$3"|as $1 sh $T/bin/box send $2;}        # snd FROM TO MSG
 unread(){ as $1 sh $T/bin/box n|wc -l|tr -d ' ';}
 rd(){ as $1 sh $T/bin/box read >/dev/null 2>&1;}
@@ -57,8 +57,8 @@ EOF
 start(){ nm=$1;kd=$2;shift 2;: >$T/typed.$nm;: >$T/wakes.$nm
  case $kd in
  agirun)rm -f $T/run/i;mkfifo $T/run/i;exec 3<>$T/run/i;cat <&3 >>$T/typed.$nm &echo $! >>$T/pids
-  (cd $T/hm&&env HOME=$T/hm H=claude-x RUNTIME_DIRECTORY=$T/run O=$T/r AGI_SEAT=alive AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" setsid sh $AGIRUN >$T/ar.out.$nm 2>&1 &echo $! >>$T/pids);;
- cccc)(cd $T/r&&env HOME=$T/hm DIV=$DIV O=$T/r AGI_SEAT=alive AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" node $T/drv.mjs $CCCC >$T/wakes.$nm 2>$T/node.err.$nm &echo $! >>$T/pids);;
+  (cd $T/hm&&env HOME=$T/hm H=claude-x RUNTIME_DIRECTORY=$T/run O=$T/r AGI_SEAT=alive AGI_TRUNK=HEAD GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" setsid sh $AGIRUN >$T/ar.out.$nm 2>&1 &echo $! >>$T/pids);;
+ cccc)(cd $T/r&&env HOME=$T/hm DIV=$DIV O=$T/r AGI_SEAT=alive AGI_TRUNK=HEAD GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" node $T/drv.mjs $CCCC >$T/wakes.$nm 2>$T/node.err.$nm &echo $! >>$T/pids);;
  esac;}
 stop(){ for p in $(cat $T/pids 2>/dev/null);do kill -TERM -$p 2>/dev/null;kill $p 2>/dev/null;done;: >$T/pids;exec 3<&-;/bin/sleep 0.3;}
 wakes(){ case $1 in a*)grep -o 'mail: box read' $T/typed.$1|wc -l|tr -d ' ';;*)grep -c '^WAKE mail: box read' $T/wakes.$1|tr -d ' ';;esac;}
@@ -123,9 +123,9 @@ done
 reset
 # n10: cccc.ts's own timers must not keep node alive (agi-kid runs `pi -e cccc.ts -p`; pi drains, the process must exit): the driver WITHOUT its keep-alive line exits on its own
 grep -v '^real(() => {}, 1e6);' $T/drv.mjs >$T/drv-nokeep.mjs
-(cd $T/r&&env HOME=$T/hm DIV=$DIV O=$T/r AGI_SEAT=alive AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH timeout 6 node $T/drv-nokeep.mjs $CCCC >$T/nk.out 2>&1);nkrc=$?
+(cd $T/r&&env HOME=$T/hm DIV=$DIV O=$T/r AGI_SEAT=alive AGI_TRUNK=HEAD GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH timeout 6 node $T/drv-nokeep.mjs $CCCC >$T/nk.out 2>&1);nkrc=$?
 ok "n10-cccc-timers-alone-do-not-keep-node-alive the fake pi driver WITHOUT its own keep-alive, after the last event: node exits by itself (rc $nkrc, want 0; 124 = still running at the 6 s limit: the poll interval keeps a drained pi alive)" '[ $nkrc = 0 ]'
-# ---- R9 (DG1 20:37Z, SM mur residue on f8c0ba9ef2): in a KID the env carries AGI_POST=<parent> (inherited) AND AGI_SEAT=<kid>. The cccc.ts poll must ask `box n` as the KID: env AGI_POST = AGI_SEAT||AGI_POST (ruled), not AGI_POST||AGI_SEAT, which asks as the parent and wakes the kid for the parent's mail. The stub box answers n>0 ONLY for the asker named in $T/who; in a post (POST=SEAT) and a pre-unit post (SEAT only) both orders agree
+# ---- R9 (DG1 20:37Z, SM mur residue on f8c0ba9ef2): in a KID started BEFORE goal:g7.16.1.11.24 (a pre-cut agi-kid) the env carried AGI_POST=<parent> (inherited) AND AGI_SEAT=<kid>; since that cut agi-kid sets AGI_POST=$k itself (the p44/p45 rows below take the kid env FROM agi-kid's own text), and these p40..p43 rows stay as the ORDER guard of cccc.ts (AGI_SEAT first, never flipped). The cccc.ts poll must ask `box n` as the KID: env AGI_POST = AGI_SEAT||AGI_POST (ruled), not AGI_POST||AGI_SEAT, which asks as the parent and wakes the kid for the parent's mail. The stub box answers n>0 ONLY for the asker named in $T/who; in a post (POST=SEAT) and a pre-unit post (SEAT only) both orders agree
 mkdir -p $T/binK;cp $T/bin/strace $T/bin/stty $T/bin/claude-x $T/bin/sleep $T/binK/
 printf '#!/bin/sh\n[ "$1" = n ]&&[ "$AGI_POST" = "$(cat %s/who)" ]&&echo from-someone\nexit 0\n' $T >$T/binK/box;chmod +x $T/binK/box
 reset;echo alive >$T/who;start p40 cccc AGI_SEAT=kid9 AGI_POST=alive PATH=$T/binK:$PATH;wt 2.5;k1=$(wakes p40);stop
@@ -134,6 +134,13 @@ reset;echo alive >$T/who;start p42 cccc AGI_SEAT=alive PATH=$T/binK:$PATH;wt 2.5
 reset;echo kid9 >$T/who;start p43 cccc AGI_SEAT=kid9 AGI_POST=alive PATH=$T/binK:$PATH;wt 2.5;k4=$(wakes p43);stop
 ok "r9-cccc-kid-env-asks-box-as-the-kid a KID env (AGI_POST=alive inherited from the parent, AGI_SEAT=kid9) with a box that answers n>0 ONLY for the asker 'alive': $k1 wake(s) (want 0: the parent's mail is not the kid's); and ONLY for 'kid9' (the kid's own mail): $k4 wake (want 1: the poll is not just silenced)" '[ "$k1" = 0 ]&&[ "$k4" = 1 ]'
 ok "r9-cccc-post-env-wakes (control) a POST env (AGI_POST=AGI_SEAT=alive, box answers for 'alive'): $k2 wake (want 1); a pre-unit post (AGI_SEAT=alive only): $k3 wake (want 1): the fix cannot pass by silencing the poll or by reading only AGI_POST" '[ "$k2" = 1 ]&&[ "$k3" = 1 ]'
+# ---- goal:g7.16.1.11.24 (belam-s2-II 02:4xZ 10-10): the kid env is TAKEN FROM agi-kid's own text, never hand-written -- the words of its `exec pi` line that read AGI_*=$k, $k = kid9. The cccc.ts poll in that env asks `box n` as the KID: a box that answers ONLY for the parent 'alive' wakes it 0 times; one that answers for 'kid9' wakes it once
+[ -n "$AGIKID" ]||{ sect agi-kid>$T/agi-kid;AGIKID=$T/agi-kid;}
+grep 'exec pi' $AGIKID|tr ' ' '\n'|grep -E '^AGI_[A-Z_]+=\$k$'|sed 's/\$k/kid9/'>$T/kidenv;KENV=$(cat $T/kidenv)
+reset;echo alive >$T/who;start p44 cccc $KENV PATH=$T/binK:$PATH;wt 2.5;k5=$(wakes p44);stop
+reset;echo kid9 >$T/who;start p45 cccc $KENV PATH=$T/binK:$PATH;wt 2.5;k6=$(wakes p45);stop
+ok "r9-kid-env-from-agi-kid-sets-both agi-kid's own exec line carries AGI_SEAT=\$k AND AGI_POST=\$k (the words read: [$(echo $KENV)]; want AGI_SEAT=kid9 AGI_POST=kid9), so no identity reader in a kid's env resolves to the parent" '[ "$(echo $KENV)" = "AGI_SEAT=kid9 AGI_POST=kid9" ]'
+ok "r9-kid-env-from-agi-kid-asks-as-the-kid cccc.ts in the env agi-kid builds, a box that answers n>0 ONLY for the parent 'alive': $k5 wake(s) (want 0); ONLY for 'kid9': $k6 wake (want 1)" '[ "$k5" = 0 ]&&[ "$k6" = 1 ]'
 # ---- the ~/o cap (agi-run only): the 5-minute loop trims ~/o to HALF the cap keeping the TAIL when it is over AGI_PANE_MAX_MB (default 64); DIV scales the 300 s
 capsz(){ stat -c%s $T/hm/o 2>/dev/null||echo 0;}
 mkbig(){ rm -f $T/hm/o;awk -v n=$1 'BEGIN{for(i=0;i<n;i++)printf "%07d line of the pane log, padding padding padding padding padding\n", i}' >$T/hm/o;}
@@ -148,5 +155,8 @@ ok "c3-default-cap-is-64-MiB with AGI_PANE_MAX_MB unset a 70 MiB ~/o is trimmed 
 # ---- send.py: no dangling caller in the two pieces; send.py itself resolves
 SP=$R0/extensions/agi/bin/send.py;python3 $SP --help >/dev/null 2>&1;sprc=$?
 ok "s3-send-py-still-resolves (control) extensions/agi/bin/send.py is there ($([ -f $SP ]&&echo yes||echo NO)) and answers --help (rc $sprc): this goal retires no send.py caller it has not replaced" '[ -f $SP ]&&[ $sprc = 0 ]'
+# z1 (DG1 04:44Z re-scope: the real-ownership env is the DEFAULT of every A-range lane): box and agi-run read the post's OWN repo under the post's OWN global (identity + safe.directory=*, what ExecStartPre #4 and the engine gitconfig piece give it), never a foreign-uid repo, so the env is on by default and ONE row proves it: with an empty config and git's different-owner seam a plain read of the lane's repo is refused as dubious ownership; with the post's lane config it works
+sn=$(cd $T/r&&env -i PATH=$PATH HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 git rev-parse HEAD 2>&1|grep -c 'dubious ownership');gn=$(cd $T/r&&env -i PATH=$PATH HOME=$T/hm GIT_CONFIG_GLOBAL=$T/c/belam GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 git rev-parse HEAD >/dev/null 2>&1;echo $?)
+ok "z1-real-ownership-default-is-on a plain git read of the lane's repo under an empty config + GIT_TEST_ASSUME_DIFFERENT_OWNER=1: $sn dubious-ownership line(s) (want 1: the seam bites); with a post's lane config (safe.directory=*): rc $gn (want 0)" '[ "$sn" = 1 ]&&[ "$gn" = 0 ]'
 echo "box-wake: $f FAIL"
 exit $f

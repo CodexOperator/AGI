@@ -28,6 +28,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 BIN = Path(__file__).resolve().parent.parent / "bin"
 SRC = Path(__file__).resolve().parent.parent / "src"
@@ -110,6 +111,7 @@ def project(tmp_path: Path) -> Path:
            "towns: [core, sanctuary, streaming-suite]\n---\n\n# ladder\n")
     _write(agi, "nodes/.geometry/posts.md", _posts_node(ROWS))
     _write(agi, "nodes/.geometry/rotations.md", _rotations_node())
+    write_free_veto(agi / "nodes" / ".geometry")
     _write(agi, "nodes/town/core.md",
            "---\nid: town:core\ntype: town\nvisions: [vision:a]\n"
            "council: council-core\nseason: 2\nmaster: ''\n---\n\n# town\n")

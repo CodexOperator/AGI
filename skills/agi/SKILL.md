@@ -66,7 +66,7 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 
 > **LEGACY: the `workflow.py` route.** Owner 10-02 14:01Z: "we just need to retire workflow.py entirely and stop wasting time on it". goal:g5.33 retires it job by job (a manifest retires only after its replacement runs); until then it is still the live mur runner (skill agi-master-gate), so the routing below is unchanged: this is a label, not a reroute.
 
-A workflow is a harness-agnostic script + stage manifest under `extensions/agi/workflows/`. **Register it as it runs** — `workflow.py register <name> --script <path>` lands an inline script as a proper `agi-<name>.js` + `<name>.json` pair in the same action that runs it (an inline script with no registration is the failure this closes: it runs on one harness and evaporates with the session) — and **dispatch every workflow through `workflow.py run <name>`**, the one sanctioned route. There is no second path that also works: a second path is what goes stale. `review` and `drafting` are the working reference pairs. Write a workflow inline without registering it and you have re-opened the defect this rule exists to shut.
+A workflow is a harness-agnostic script + stage manifest under `extensions/agi/workflows/`. **Register it as it runs** — `workflow.py register <name> --script <path>` lands an inline script as a proper `agi-<name>.js` + `<name>.json` pair in the same action that runs it (an inline script with no registration is the failure this closes: it runs on one harness and evaporates with the session) — and **dispatch every workflow through `workflow.py run <name>`**, the one sanctioned route WHILE it is live (the LEGACY banner above: goal:g5.33 retires it job by job, and a job moves only when its replacement runs; until then there is no second path that also works): a second path is what goes stale. `review` and `drafting` are the working reference pairs. Write a workflow inline without registering it and you have re-opened the defect this rule exists to shut.
 
 ## Choosing a runtime
 
@@ -275,6 +275,8 @@ across a handoff instead of fixed in-loop became `goal:s34`.
 ## Every node edit goes through `write.py` (`goal:g4.18`)
 
 > **OLD SETUP:** a post whose row has engine.v 4 edits node files with plain Write/Edit and agi-turn commits; owner 10-01 23:3xZ. The rest of this section is that setup's rule, unchanged.
+
+> **Never rename this heading:** `rolslice.py:102,109,117` match it verbatim -- add a label under it instead (DG5).
 
 **One way in (old setup).** Creating a node, editing its frontmatter, appending a body note,
 rewriting its `THOUGHT` or `FEELING` region — all of it is
