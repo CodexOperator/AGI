@@ -29,9 +29,9 @@ cat >$T/node.md <<'XX'
 refs/remotes  a remote-tracking ref is a copy of origin's; the target fetches its own
 ```
 XX
-printf '```sh move.unit-optional\nWorkingDirectory %s/home/%%i  host-act move creates the post home after this check\nEnvironmentFile %s/home/%%i.env  an env file a post may not have\n```\n' $T $T >>$T/node.md
+printf '```sh move.unit-optional\nWorkingDirectory %s/hm/%%i  host-act move creates the post home after this check\nEnvironmentFile %s/hm/%%i.env  an env file a post may not have\n```\n' $T $T >>$T/node.md
 # units: the SAME good unit on both boxes by default; a row edits ONE side (the target's: ut)
-unitgood(){ printf '[Service]\nWorkingDirectory=%s/home/%%i\nEnvironmentFile=-%s/home/%%i.env\nExecStartPre=+/usr/bin/env -i PATH=/usr/bin:/bin %s/host/agi-signers %%i\nExecStartPre=-+%s/host/agi-signers-repoint %%i\nExecStart=sh -c x\nExecStopPost=sh -c agi-flush\nReadWritePaths=-%s/host/rw /run/agi-%%i\n' $T $T $T $T $T >$1/agi-post@p1.service; }
+unitgood(){ printf '[Service]\nWorkingDirectory=%s/hm/%%i\nEnvironmentFile=-%s/hm/%%i.env\nExecStartPre=+/usr/bin/env -i PATH=/usr/bin:/bin %s/host/agi-signers %%i\nExecStartPre=-+%s/host/agi-signers-repoint %%i\nExecStart=sh -c x\nExecStopPost=sh -c agi-flush\nReadWritePaths=-%s/host/rw /run/agi-%%i\n' $T $T $T $T $T >$1/agi-post@p1.service; }
 unitgood $T/us;unitgood $T/ut
 # fix: a fresh source (s) + origin (o, bare) + target (w, a clone of s before the move) in $T/f; the source's refs are listed in $T/f/pre (name sha) before the run
 fix(){ rm -rf $T/f;mkdir -p $T/f;: >$T/ctl.log;unitgood $T/us;unitgood $T/ut;cd $T/f;git init -q -b local-maxxing/season2/main s;git init -q --bare o
@@ -103,7 +103,7 @@ ok "refs-unit-paths-read-write-paths-are-checked a missing ReadWritePaths entry 
 fix;rm -f $T/ut/agi-post@p1.service;go
 ok "refs-unit-paths-an-unreadable-unit-refuses the target has no agi-post@p1.service to read: rc $rc (want 7), '[unit-path] agi-post@p1.service unreadable on encryption-town' ($(grep '^\[unit-path\]' $T/err|head -c 160)), nothing touched" '[ $rc = 7 ]&&grep -q -F "[unit-path] agi-post@p1.service unreadable on encryption-town" $T/err&&[ ! -s $T/ctl.log ]'
 printf '# config:guard (fixture)\n```sh move.exclude\nrefs/remotes  a copy of origin\n```\n' >$T/node-noopt.md;fix;go $T/node-noopt.md
-ok "refs-unit-paths-the-exemptions-are-the-cells-and-nothing-else with NO move.unit-optional block the target's home paths ($T/home/p1) are not exempt: rc $rc (want 7), '[unit-path] ... WorkingDirectory $T/home/p1 missing' ($(grep -c 'WorkingDirectory '$T'/home/p1 missing' $T/err) line)" '[ $rc = 7 ]&&grep -q -F "WorkingDirectory $T/home/p1 missing" $T/err'
+ok "refs-unit-paths-the-exemptions-are-the-cells-and-nothing-else with NO move.unit-optional block the target's home paths ($T/hm/p1) are not exempt: rc $rc (want 7), '[unit-path] ... WorkingDirectory $T/hm/p1 missing' ($(grep -c 'WorkingDirectory '$T'/hm/p1 missing' $T/err) line)" '[ $rc = 7 ]&&grep -q -F "WorkingDirectory $T/hm/p1 missing" $T/err'
 
 # the cell is the ONLY list
 sed 's#^refs/remotes .*#&\nrefs/agi  scratch bookkeeping the target rebuilds#' $T/node.md >$T/node-add.md;fix;go $T/node-add.md
