@@ -1,12 +1,17 @@
 #!/bin/sh
 # A0 -- STAGE (inert: reads MAIN, writes only under $STAGE; no sudo, nothing under /usr, /etc, /var). The ONE source of every act below:
-# this file and its siblings (memguard-a1.sh, -a1.proof.sh, -a1.undo.sh, -a2.sh, -a2.proof.sh, -a2.undo.sh, memguard-proof2.py) are the
+# this file and its siblings (memguard-a1.sh, -a1.proof.sh, -a1.undo.sh, -a2.sh, -a2.proof.sh, -a2.undo.sh, -restage.sh, memguard-proof2.py) are the
 # bytes AT the GO sha; A0 archives that tree to $STAGE/src and every later act runs from there, never from a copy in a home.
 # usage: SHA=<the 40-hex GO sha> [STAGE=$HOME/memguard-A0] [MAIN=/data/work/agi] sh memguard-a0.sh
 #   bootstrap: git -C $MAIN show $SHA:extensions/agi/boxkit/memguard-a0.sh > $HOME/memguard-a0.sh   (A0 itself cannot come from the archive it makes)
 set -eu
 : "${SHA:?set SHA to the 40-hex sha the GO names}"
 STAGE="${STAGE:-$HOME/memguard-A0}"; MAIN="${MAIN:-/data/work/agi}"
+case "$STAGE" in                                                       # rm -rf runs on STAGE: only a directory of our own making, under HOME
+  *..*|"") echo "A0 REFUSED: STAGE is empty or holds '..': $STAGE"; exit 1;;
+  "$HOME"/memguard-A0*) [ -n "$HOME" ] && [ "$HOME" != / ] || { echo "A0 REFUSED: HOME is empty or /"; exit 1; };;
+  *) echo "A0 REFUSED: STAGE must be under HOME and named memguard-A0*: $STAGE"; exit 1;;
+esac
 case "$SHA" in *[!0-9a-f]*|"") echo "A0 REFUSED: SHA is not lowercase hex"; exit 1;; esac
 [ "${#SHA}" = 40 ] || { echo "A0 REFUSED: SHA must be the full 40 hex"; exit 1; }
 git -C "$MAIN" cat-file -e "$SHA^{commit}" || { echo "A0 REFUSED: $SHA is not a commit in $MAIN"; exit 1; }
