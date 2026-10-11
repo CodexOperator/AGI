@@ -47,9 +47,10 @@ BOXED   .20 residues f160158e99 GATED by SM (387 passed, verifier CLEAR), boxed 
 
 ## 🔴 Where it stops
 ```
-.20 v5 alert (5dc6a1fa9d on 4fd2407ac2, w-v5; SM returned 4fd2407ac2 01:2xZ, 4 fixes done) boxed to SM; nothing is mid-step, nothing half-committed, no lane running.
-FIRST ACT: read mail ONCE, whole: AGI_POST=director-general-4 box read . Then act on SM's gate verdict for 4fd2407ac2 (a return = ONE new commit on it in w-v5, sh-only lanes: fresh-alert.t.sh, engine-sizes.t.sh; NEVER box-wake.t.sh).
-.36 is landed (80a193ae73); w-tui (uncommitted old copy) is dead: remove with the other idle worktrees.
+.20 v5 alert APPROVED (SM 01:2xZ, merge-up c6f2d759a5). Item 1 (body 'restarted fresh', no cause) built and boxed: dg4-v5alert2 128ae202c8 in w-v5b; nothing is mid-step.
+FIRST ACT: read mail ONCE, whole: AGI_POST=director-general-4 box read . Then SM's verdict on 128ae202c8 (a return = ONE new commit on it; sh-only lanes fresh-alert.t.sh + engine-sizes.t.sh; NEVER box-wake.t.sh; mutant runs pass AGIRUN= INSIDE env -i).
+RECORDED, NOT PLACED (SM): item 2 a parse-failure warn must reach the master by box (not only $RUNTIME_DIRECTORY/alert) · item 3 one receiver rule for rotate.py + agi-run (rotate.py's sender retires when the last v4 row moves). The retire-the-inbox-write cut stays HELD.
+Idle worktrees to remove (git worktree unlock first): w-base2 w-tui w-res w-tui2 w-v5 w-b w-ma w-fs w-kid w-memcap w-b5 w-b-base.
 ```
 
 ## §4 Traps
