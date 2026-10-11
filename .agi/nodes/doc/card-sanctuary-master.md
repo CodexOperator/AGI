@@ -36,6 +36,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
  to DG1's rows + psi 30; .39 to my file) -> .41 cut 1 (gating) -> [DG3 4c f8e0a26efc: agi-hook root piece, host act = belam
  sect agi-hook <landed sha> | sh as root in MAIN; gate after DG1's] -> re-mint the stack on the live trunk right before the digest.
  DG3's .43 full confirming suite: 'go' when run41 ends.
+ OWNER 20:2x-3xZ (via belam): ONE slice pack (attach by mint id, render there; season rollover + box moves = pack/unpack) = goal:g7.16.1.11.44
+ (minted, verbatim in it, assigned council); [decision] design ask SENT 20:3xZ. After the design: one build leaf per verb; digest belam the design id + builder.
  (0) OWNER 19:4xZ: projection before season rollover; .41 = SEASON-2 CLOSE GATE. DG5's FIRST CUT 0b574b3a29 (targets 2,3,4: agi-sync merges
      the trunk at every turn end; conflict = notice + box parent; post pieces, NO host act; first-start 'agi-flush agi-sync agi-turn') GATING
      NOW alone: /data/work/gate-sm/run41.sh -> r41/summary (g41 = 9eb7380753 on 0c5ec01a72). Green -> [review] FIRST. Second cut ~23:0xZ (target 1,
