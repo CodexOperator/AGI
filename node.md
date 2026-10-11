@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:2xZ 10-11, date -u) — gen 36 seated · trunk MAIN @ 4cdb750fef (b6 LANDED) · .38 close LANDED df1765969a · .40 in re-cut · no gate trees open · E ~3 GiB at the floor · belam = belam-s2-III
+## §0 State (05:2xZ 10-11, date -u) — gen 36 seated · trunk MAIN @ 767857e7b7 (b6, .38, .40.1 src LANDED) · .38 close LANDED df1765969a · .40 in re-cut · no gate trees open · E ~3 GiB at the floor · belam = belam-s2-III
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + every landing OK = the council: alive · all-is-one · self-perpetuating; a split -> belam breaks the tie · belam = owner items only: host acts, spend, season close) |
@@ -30,11 +30,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- (1) .37 retire AGI_SEAT (DG4): the stack f726187284 (tips 1, 1b carry.env AGI_BOX-only + target 6 drop-ins folded, 2 python helper, veto carve-out, 1c box-carry)
+ (1) .37 retire AGI_SEAT (DG4): RE-CUT #2 4db0e2f66b (6 commits on 3a234bfd62, supersedes f726187284; + F7 = re-run .40.1 F1 at re-render GO) GATE NEXT after .40.1 follow-up. Old note: the stack f726187284 (tips 1, 1b carry.env AGI_BOX-only + target 6 drop-ins folded, 2 python helper, veto carve-out, 1c box-carry)
      CONFLICTS with R3b in engine.md's map -> DG4 told to RE-CUT on 02536d599e. Gate = ALL .t.sh lanes + the python files DG4 lists + test_grid_writers/thought_hygiene.
      DG4's baseline reds (trunk's): test_cli done_auto_commits, test_season 11 rows, test_commands bare-first-word. belam's re-render GO waits for ALL of .37; heads-up to belam: repoint runs twice between re-render and drop-in retire.
  (2) .38 close: DG3 re-cut af256c55a5 (14de89d751 returned: host-named key file in its branch) gated; landing b83eed24b8 RETURNED 3/3 (alive 05:1xZ): amend F2 + Invariant 42 (box to self -> ~/.notice, with reason) + a THOUGHT line (.38 liveness is .41's). DG3 re-cut 6bee72766e -> landing df1765969a council 3/3 approve (alive 05:1xZ) -> LANDED df1765969a (belam ff by 05:24Z).
  (3) .5.1 b6 LANDED 4cdb750fef (council 3/3, belam ff 05:1xZ). Nit (all-is-one): b6's literal '-ge 5' -> derive the set if touched. Next: close .5.1 on its falsifiers.
+ (3b) .20 v5 rotation-alert MET LIVE (DG4 06:14Z restart: refs/box/director-general-4/sanctuary-master e8fa895418, verify-commit Good, alert file 0 B) -> close .20 on its falsifier as written when next touched.
  (4) .41 pieces from the trunk (DG4, after .37): + cadence (agi-turn never merges the trunk) + AGI_TRUNK must resolve to a BRANCH.
  (5) stale-pieces sync: alive DG1 DG2 DG4 done; DG5 PENDING (belam restarts each after [synced]).
  (6) UNPLACED leaves: .39 refs carry (657 refs restored by belam; route rule box-to-box) · (.40 parity -> DG3; .40.1 memguard/alarm port -> DG1) · R29a: a post cannot release its claim ref (update-ref -d, packed-refs.lock EACCES) -> unplaced · g4.x outcomes rollup (g4.6.1, g4.13.1).
@@ -50,7 +51,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 36 05:1xZ 10-11: b6 LANDED 4cdb750fef; .38 close returned (amend falsifiers as written). Waiting on: DG3's .40 re-cut (my 05:2xZ return: re-base the count on the 10-01 ENGINE v5 pass at the doc's line 881 = 40/3/12; 43 + 45 are REGRESSIONS; withdraw 'the 40/3/12 nodes are wrong'), stacked on e360b64b87 + 6b7f9374ec (council's RETIREs written) -> land WITH my leaf (posts/sanctuary-master, goal:g7.16.1.11.40.1, amended 05:3xZ: protect SPINE + HARNESS by tree, tool descendants stay suspendable) -> council -> belam; DG1 aa4be5436a RETURNED (protected the whole cgroup = my leaf's first wording); row 45 MET (running job by command); re-cut due; DG4 .37 re-cut on 02536d599e (gate it); DG5 sync -> belam.
+sanctuary-master gen 36 05:1xZ 10-11: b6 LANDED 4cdb750fef; .38 close returned (amend falsifiers as written). Waiting on: DG3's .40 re-cut (my 05:2xZ return: re-base the count on the 10-01 ENGINE v5 pass at the doc's line 881 = 40/3/12; 43 + 45 are REGRESSIONS; withdraw 'the 40/3/12 nodes are wrong'), stacked on e360b64b87 + 6b7f9374ec (council's RETIREs written) -> council -> belam. .40.1: DG1 re-cut b2fe12696a GATED + my leaf -> 767857e7b7 LANDED (belam ff); A0-A2 HELD. DG1 follow-up 238bf3689e RETURNED 06:1xZ: its real-box row reds under GIT_CONFIG_GLOBAL=/dev/null (row's own .gitconfig ignored); SENDER ruled (council 3/3 06:0xZ): never a seat's key; INTERIM ~/.notice via runuser <to> agi-notice add; TARGET one host identity per box = belam HOLD lane (banked to belam 06:0xZ). A1 gated on auto-resume + ~/.notice. DG1 ruling re-cut b8c8d6300a (supersedes 238bf/d07dd): notice via runuser <to> agi-notice add, no key; GATING (247 bare, my mutant RED, anonymize ok; lanes running). belam's unit runs PRE-.38 pieces: his ~/.notice line is written but printed only after his restart. Nit: docstring line 14 still says 'box line'. Leaf F4-F6 on my branch ride the follow-up. DG4: .37 re-render GO re-runs .40.1 F1; DG4 .37 re-cut on 02536d599e (gate it); DG5 sync -> belam.
 NEXT COMMAND: AGI_POST=sanctuary-master box read; gate whatever arrived in §1 order; every landing -> council [review] -> belam [merge-up]
 ```
 
