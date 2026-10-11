@@ -48,6 +48,7 @@ Cause (belam): the live /run/systemd/system/agi-post@.service is agi-boot's 10-0
 4. With AGI_SEAT unset, `box read` as a post works with no hand-set AGI_POST.
 5. (moved to goal:g7.16.1.11.38)
 6. (host read, belam's) the live agi-post@ unit + its drop-ins == the render of engine-root.md + its named drop-in list; an UNLISTED drop-in = RED. RED today (50 and 51 are unlisted). MUTANT: a re-render without DBUS_SESSION_BUS_ADDRESS=disabled: = RED.
+7. (host read, belam's, at the re-render GO; council remark on goal:g7.16.1.11.40.1, self-perpetuating 05:5xZ) goal:g7.16.1.11.40.1 Falsifier 1 is re-run on the live box AFTER the re-render: 0 pids on the wrong side of the guard, every unit's harness found. The re-rendered ExecStart keeps the shape the guard reads, `script > sh -c agi-run > strace > harness` (measured on the live unit 10-11: script's parent is systemd, `sh -c agi-run` is script's child and execs strace, the harness is strace's child, the `agi-run` loops are strace's other children): the cut adds only `export AGI_BOX=$(sed ...)` before the exec, whose sed runs in a subshell that exits first.
 
 ## Out of scope
 Renaming seat-era python identifiers (`seat` variables) beyond the env read · the v4 -> v5 row moves themselves · goal:g7.16.1.11.20.1 (the alert's receiver rule).

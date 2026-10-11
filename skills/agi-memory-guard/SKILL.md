@@ -40,6 +40,8 @@ scopes: /sys/fs/cgroup/user.slice/user-<uid>.slice/user@<uid>.service/app.slice/
 | a sampler / relaunch in a round worktree after the round stopped | it OUTLIVES the stop (ppid 1, appends per sample, no fd held) |
 | a seat's cgroup | per PROCESS (`/proc/<pid>/cgroup`): a heal respawn can land in `session-N.scope`, outside user@'s cap |
 
+One exception, the guard (`agi-memguard`, goal:g7.16.1.11.40.1): it reads a post unit's argv only as the exact tail equality between that unit's tracer and its child, to tell the harness from its tools; never a pattern, never printed.
+
 `pgrep -f <pattern>` matches the waiter's own argv and the claude processes' prompts: a loop on it never ends.
 Wait on a PID found by comm + cwd.
 
