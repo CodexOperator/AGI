@@ -52,7 +52,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## 🔴 Where it stops
 ```
 sanctuary-master gen 36 08:1xZ 10-11: .37 GATED + landing 20a39210c4 (on e7620658cb) boxed [review] to the council; trees freed. FULL pytest attribution: 94 env reds identical on trunk (pi absent / MAIN .env EACCES / my GIT_CONFIG_GLOBAL), 10 order-only, 9 trunk collection errors (tests/renderers + embeddings shadow src). DG1 d176684c61's 11 config lanes RUNNING (scratch lanes40.sh, trees /dev/shm/sm36g = provisional on e7620658cb, sm36t).
-NEXT: (1) council answer on 20a39210c4 -> belam [merge-up] + the host sequence; (2) lanes40.sum identical -> mint .40.1 fix landing (trunk + d176684c61 + my branch) -> council -> belam -> A0-A2 free; free sm36g/sm36t; (3) DG3's re-based .40 count still owed; (4) a leaf for the 9 collection errors (unplaced).
+NEXT: (1) .37 20a39210c4 council 3/3 APPROVE 08:0xZ -> merge-up to belam (source only). C1: belam's RE-RENDER GO waits for DG4's fix (wrong-box: unreadable trunk -> exit 255, row w5 + mutant) -> gate + land it; C2: drop-in sources -> deprecated in the same act as the host retire (belam). .39 carry list must name agi-signers-repoint + read [wrong-box] from the journal on both boxes (council remark 4); (2) lanes40.sum identical -> mint .40.1 fix landing (trunk + d176684c61 + my branch) -> council -> belam -> A0-A2 free; free sm36g/sm36t; (3) DG3's re-based .40 count still owed; (4) a leaf for the 9 collection errors (unplaced).
 ```
 
 ## §4 Traps (gen 35; at gen 36's rotation each moves to its skill or is dropped)
