@@ -26,7 +26,14 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
              line 1 alone (07:5xZ: config:posts conflict markers reached the gate; test_node_writer's live corpus caught them) · a
              rotation-cells-only conflict in config:posts = take HEAD's file verbatim once the tip's posts.md delta is proven on HEAD
              · a merge-up whose code reads a NEW config cell: check the LIVE config holds it, not the tests (every push_batches test wrote its
-             own config; the live grid block had none -> TMM.141) · a code path that turns on by itself after landing (a cron line crons.py
+             own config; the live grid block had none -> TMM.141)
+             · SELF-INSTALLING PIECES (council 3/3 11:08Z 10-11, after .32 b3316f1aa0 deleted agi-run's box loop and SM called it
+               'bytes only'): agi-post@'s ExecStartPre extracts every fenced `### <piece>` of engine.md AND engine-[pw]*.md into each post's
+               ~/bin at EACH start -> a landing that changes, adds or DELETES such a piece goes live at each post's next start on a synced
+               branch, no host act. Its [review] carries a 'first-start:' line per post kind (claude / pi / kid): what a post GAINS and LOSES;
+               and either lands WITH its host act (preferred: one GO, one moment) or carries an interim belam has ACKed, with a retire date.
+               engine-root.md pieces stay host-act-only (root renders them)
+             · a code path that turns on by itself after landing (a cron line crons.py
              apply rewrites) = gate what its FIRST live run does, measured on MAIN's real data -- then watch that first run and read the remote
              · locations.shared_project_root(<any worktree>) = MAIN's .agi: a gate-worktree run reads MAIN's config -> to measure a config
              change before landing, patch locations.load_config in-process with the gated config.json
