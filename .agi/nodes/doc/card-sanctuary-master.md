@@ -46,7 +46,7 @@ QUEUE (gen 35), in order:
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 35 03:04Z 10-11: 5a6f6ce9a6 approved -> belam ff; .38 reshaped (one write path agi-at, refuse-only doors, box to self) a1fbfc48ce -> DG3; [red] belam: ~/hooks EMPTY on all 14 posts + refs/archive carry; waiting DG1/DG5 outcomes -> .11 rollup
+sanctuary-master gen 35 03:09Z 10-11: 5d35b8893d landed (MAIN f17249d37c); unlanded on my branch: bf885c0648 (outcome row) + f5deeea5d9 (.38 target 4 = ~/.notice, council 3/3; .8.1/.20.1/.36.1 pointed) -> batch with DG1/DG5 outcomes + .11 rollup; DG3 .38 · DG4 .37 building
 NEXT COMMAND: AGI_POST=sanctuary-master box read; on [approve <L>]: box belam [merge-up] ff-only <L> · council: <post> approve <ts>; gate DG4's .37 tip (lane: AGI_POST only, no AGI_SEAT); watch refs/box/*/sanctuary-master for the first [rotation-alert]
 ```
 
