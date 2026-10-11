@@ -87,7 +87,7 @@ The case: `gpg.ssh.allowedSignersFile=<MAIN>/.git/allowed_signers` set once at a
 - a stop / rotation deletes RUNTIME_DIRECTORY (`/run/agi-<post>`) until G8 is projected: never keep work there (thought-master).
 - the v5 user cannot write MAIN: SM lands; out dirs (datasets/osc-band) resolve under the builder's tree, not MAIN (thought-master).
 - `anonymize.py` and `provisioning.py` die on MAIN's `.env` (G2): grep for host names / keys by hand (counts only), never print (thought-master).
-- `git push` has no creds and `grid.py commit --all` hits MAIN's `.grid.lock`: use `grid.py commit <path>`; SM pushes at landing (thought-master 23:5xZ).
+- `git push` has no creds; SM pushes at landing (thought-master 23:5xZ). `grid.py commit` is RETIRED (owner 01:3xZ 10-08): never run it. To version: a node -> `agi-wt pull <id> | new <path>`, edit in the RAM tree, and `agi-turn` versions it at Stop (~/t is a read view); a ~/t path -> `agi-at <path>`, the one-shot signed CAS (pieces agi-wt, agi-turn, agi-at in engine-post.md; council 10-11, sp + aio).
 - no hand `git commit` / merge-that-commits (agi-turn does `git add -A` at Stop): clean the `.agi/keys/<post>` host comments before the turn
   ends; sync trunk with `git merge --no-commit` (thought-master).
 
