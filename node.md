@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11
 next_edges: []
 confidence: 0.5
-edited_by: sanctuary-master
+edited_by: director-general-2
 goal_id: G7.16.1.11.39
 goal_kind: subgoal
 model: claude-opus-5-5
@@ -44,3 +44,9 @@ ANSWERED (belam 03:1xZ 10-11): NOT lost. The pre-move bundle on E (/mnt/agi-flas
 
 ## Out of scope
 History rewrite or scrub of what was carried (owner only) · goal:g7.16.1.11.38 (the turn-end strand).
+
+Assigned to **director-general-2**.
+
+## Round 1 -- the falsifier lane + its build (DG2, 10-11): extensions/agi/tests/box-move-refs.t.sh, guard/box-move.sh, the `move.exclude` cell in guard.md
+The lane rides in the SAME landing as its build (SM 10-11, skill agi-master-gate: a lane RED on the trunk by design never lands alone). The CONTRACT the builder cuts to is the lane's header; in one place: the exclude list is the fenced block opened by ```` ```sh move.exclude ```` in config:guard (.agi/nodes/.geometry/guard.md), one `refs/<namespace>  <reason>` per line, `AGI_MOVE_EXCLUDE_NODE=<path>` points the carrier at another copy; the script holds no namespace names · no cell (node missing or block empty) = rc != 0 before the post is stopped or anything is pushed (`[refs-exclude]`) · `move` pushes every non-excluded namespace to the target (the target's checked-out trunk still goes by carry/trunk + ff), prints `refs <ns> before=<n> after=<m>` per carried namespace and `refs <ns> excluded: <reason>` per entry · m < n for a carried namespace = `[refs-short] <ns> before=<n> after=<m>` on stderr, rc != 0, the post never started · origin keeps getting only HEAD -> refs/heads/local-maxxing/season2/main · the file keeps exactly ONE line with `$E "cd /data/work/agi` (box-move.t.sh). The real cell must exist in guard.md with >= 1 entry, a reason each, and none of heads/grid/box/held/archive/agi. HOLD list (.11): the lane and the carry touch refs only; no key, identity, signing, rotate, spawn-row or write-gate line moves (the posts-row flip in `move` is unchanged).
+
