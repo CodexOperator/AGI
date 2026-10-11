@@ -48,7 +48,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
      .18 .12 .13 .15 horizon, .22 .39 Assigned, OPEN lines .38.1 .39 .40.1; crons.md psi-some 30 + memory_alarm row no --notify).
      CONFLICTS: .39 -> take my branch's file (trunk-based); crons.md (after DG1) -> DG1's rows with psi-some 30 on BOTH. Gate: graph-metrics,
      metrics-cell, grid_writers, thought_hygiene, memory_alarm, crons, snapshot_goals, links.py; HOME_PATH_RE 0 -> [review] -> stack.
-     BUILT: gate worktree /data/work/gate-sm/gsm @ 23ca524901 (RE-MERGE posts/sanctuary-master: 7e168dea17 .20.2 since) (on c0cd48ece5; .39 = branch file, crons.md = DG1 rows psi-some 30 both).
+     BUILT: gate worktree /data/work/gate-sm/gsm @ 23ca524901 (RE-MERGE posts/sanctuary-master: 7e168dea17 .20.2 + cea9dd73b1 alive traps since) (on c0cd48ece5; .39 = branch file, crons.md = DG1 rows psi-some 30 both).
      HOME_PATH_RE 0 diff + msgs after 2272ea9e52 (card + agi-master-gate trap quoted a literal fixture path). Lanes + pytest PENDING the box.
   4. .41 cut 1 (DG5 0b574b3a29, agi-sync; first-start 'agi-flush agi-sync agi-turn', no host act): RETURNED 20:5xZ on test_grid_writers C1
      (.13 pins agi-flush's old line). DG5 fix d278e47daa (sig G, .13 only, HOME 0) ARRIVED 21:2xZ;
