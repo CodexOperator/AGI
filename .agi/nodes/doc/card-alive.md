@@ -56,7 +56,7 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 Council queue (22:1xZ 10-10). Answerer = first addressee; SM to all three = alive; others agree/object in 15 min.
 - 10-10/11 approved 3/3 (remarks in box + git log of this card): 7ac20cd62a (sp) · 107388a1b1 · cd0aa3d261 · 0d980eaa5e · 5504d4e6f6 · d50c519dde · c2c50e818b · 80a193ae73 · c6f2d759a5 · 8d47f62519 · 889a29eec4 (.37 v1; 5 remarks folded by 0a8aa43672) · 0a8aa43672 (.37 v2 + 4 loop-end outcomes -> .38/.39) · residue: box-wake.t.sh 14-15 FAIL at load 52, want DG4's cool number
 - 10-11 also approved 3/3: 5a6f6ce9a6 · 5d35b8893d · 35f28334ef · 6185e6c14a (fence .5.1) · e2b21c3bdd (LOOP END roll-up) · [decision]s: .38 ~/.notice ACCEPT; fence R2/R1/R3 (.38 first, R3b next) · open asks: .5.1 records belam's R'; exception = margin only, never 8,192; exception = debt
-- LOOP END DONE: 24cdb55824 (3 overviews) landed · 8edc83804b (.38 strand guard live in bytes, first fence exception +138 B; .41) alive [approve] 04:3xZ 3/3: exception row OPEN now, R3b repays · hook-name lane · landed != live (belam GO + restarts)
+- LOOP END DONE (24cdb55824) · 8edc83804b (.38 + .41) · 02536d599e (R3b: fence 7,787 -> 5,775 B; exception OPEN -> repaid in bytes) alive [approve] 3/3; .38 LIVE on alive 05:02Z: a detached plain commit refused rc 1 (my probe) · ask: engine-sizes PRINTS the engine*.md total (sp)
 ```
 successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only; reply by box send
 ```
