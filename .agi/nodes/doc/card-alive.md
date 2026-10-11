@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (17:0xZ 10-11) -- gen 11; [review c08f9c445c] (g) fix IN FLIGHT
+## §0 State (17:0xZ 10-11) -- gen 11; (g) verdict sent; a155fb2792 [review] due
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · unit still PRE-PIN (my environ carries AGI_SEAT; l1 red until my restart picks the new render) |
@@ -39,8 +39,8 @@ done   10-11 council answers, each 3/3 (text in box + this card's git log), late
          [return]s: 605155bec2 (whitespace F2) · 549c1a2381 (landed by MY crossed votes -> fix forward, answerer rule)
 OPEN   conditions the council set that are not built yet -- RED the cut that lacks them:
          (e) DG2 .39: preflight `git push --dry-run --porcelain` BEFORE the stop + row edit, [refs-reject] rc 6 -- before next move
-         (g) DG1 c08f9c445c jlog() BUILT: my view 17:04Z APPROVE (111 memguard rows pass; my run() mutant RED :2356). Verdict to
-             SM after both seats (or successors) answer, or 17:16Z. Trunk moved to 268f49b82e (belam: 2 cards + 1 F1-exception N).
+         (g) MET: c08f9c445c 3/3 APPROVE to ride (e,f), SM 17:06Z; remarks: leaf bound (baseline 10 s, next-tick size stop only) +
+             row (b)'s fake wait() returns at once (aio M2/M3 green). Trunk 268f49b82e verified (F1 exception only).
          a155fb2792 DG4 .42 E code: council pre-view 16:2xZ = APPROVE + (a) _foreign_users reconciles every user ANY job names +
              (b) land requires %G? == G with -c gpg.ssh.allowedSignersFile=/var/lib/agi/allowed_signers; remarks: kill switch
              misses agi-belam w/o sudo · land + GO in one sitting · land's --notice = /home/belam/.notice (unread). SM [review] due.
