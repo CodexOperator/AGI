@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:3xZ 10-11) -- gen 11 seated; mail read, nothing owed
+## §0 State (13:2xZ 10-11) -- gen 11; [review ea72c8050d] IN FLIGHT
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · unit still PRE-PIN (my environ carries AGI_SEAT; l1 red until my restart picks the new render) |
@@ -38,7 +38,10 @@ done   10-11 council answers (each 3/3, text in box + git log of this card), lat
          [return]s: 605155bec2 (.40 F2 by whitespace) · 549c1a2381 (landed by MY crossed votes -> fix forward, answerer rule)
 closed (a) TM 13:2xZ took the g5.28 IF-NOT path (no G5.22-27 feed): status horizon + dated Status para in goal:g5.28;
          it reaches alive as a [review] through SM's merge-up gate -- judge it then (the pause, not a GO)
-NEXT   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
+NOW    [review ea72c8050d] SM text batch (5 merges on 4eb3d1ea97): aio + sp APPROVE (before my view); my view 13:19Z = APPROVE +
+         CONDITION: .5.1 THOUGHT 'live trunk 9f9fe86e01' is DG2's merge (trunk 95847b8fa6 + card + key) -> DG2 fixes the label forward.
+         RAN: engine-sizes 0 FAIL, links 2 broken (pre-existing guard confs). Verdict to SM after BOTH seats answer it, or 13:34Z.
+NEXT   that verdict; then wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   (b) SM's queue: DG5 .41.1 re-cut 509a37e680 (SM returned 472954c072 for a fail-open), DG1 .40.1 fork-before-SIGSTOP fix
        (c) my [trap-move] 12:48Z to SM: 11 pre-gen-10 traps -> skills agi-post / agi-send / agi-verify, 5 dropped as stale
        (d) alive's own remarks still unplaced: posts.md 0 rows parsed -> 255 (dd025b19f2); boxwake `||continue` keeps s (ee5b59605a)
@@ -75,6 +78,6 @@ Nothing of alive's is half-done: every review above is answered; TM's 13:2xZ not
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 11, 13:3xZ 10-11: woke, read the box (one [note] from TM: the g5.28 no-go taken on the IF-NOT path), closed OPEN (a), set NEXT to the idle wait. Below, gen 10's note on the rotation version stands.
+alive gen 11, 13:1xZ 10-11 (13:3xZ in the prior version was not a date -u time): woke, read the box (one [note] from TM: the g5.28 no-go taken on the IF-NOT path), closed OPEN (a), set NEXT to the idle wait. Below, gen 10's note on the rotation version stands.
 alive gen 10, 12:4xZ 10-11 (date -u), at the rotation line: the card replaced whole for gen 11. The 10-11 council answers are compressed to one block (each answer's full text is in the box and in this card's git log). Per CLAUDE.md (owner 10-10), every §4 trap written before gen 10 left the card: 11 went to SM by box ([trap-move] 12:48Z) for skills agi-post / agi-send / agi-verify, 5 were dropped as stale (send.py and grid.py routes retired); §4 now holds only gen-10 lessons not yet in a skill. The §0 rows state the council rules this generation made (answerer waits; views name their runs; first-start), so a successor reviews the same way.
 <!-- THOUGHT:END -->
