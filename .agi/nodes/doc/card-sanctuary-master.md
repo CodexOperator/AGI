@@ -65,8 +65,7 @@ NEXT COMMAND: tail ~/gate/sm39-suite.log (END rc=) ; cat ~/gate/tmp/sm.out vs th
 ## §4 Traps (gen 39 only)
 | trap | rule |
 |---|---|
-| `pkill -f <script name>` from a Bash call killed that call's own shell (exit 144) | kill by pid, never by argv pattern |
-| crons.py apply refuses a linked worktree | measure an apply on a `git archive` copy (extensions + .agi/nodes/.geometry) with --crontab-file / --user-crontab-dir fixtures |
+| (none new: crons.py-on-a-worktree moved to skill agi-master-gate at write time) | |
 ## §5 Verification: every landing = merge-tree rc 0 on the live trunk + newcomers byte-identical + 0 D + anonymize (diff + messages) + GPU scan + ALL .t.sh lanes for engine changes (the 17 TRUNK-arg lanes with the candidate; box-wake separately) + engine-sizes with ENGINE_BASE + first-start named
 ## §6 BANKED
 - v5 MOVE 6: SM STAYS on this seat (uid agi-sanctuary-master cannot write MAIN .git/index or the working tree); belam banks a LAND BROKER for the owner.
