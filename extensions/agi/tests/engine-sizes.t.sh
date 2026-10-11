@@ -81,5 +81,8 @@ stale=0;[ "$fb" -le "$MARGIN" ]&&stale=$nopen
 nrul=$(grep ' · OPEN' $T/ex.tip|grep -vc 'two-open ruling:'|tr -d ' ')
 unruled=0;if [ "$nopen" -ge 2 ];then unruled=$(grep -F ' · OPEN' $T/ex.tip|exkey|grep -vxFf $T/ek.base|wc -l|tr -d ' ');wr=$(grep -F ' · OPEN' $T/ex.tip|grep -c 'two-open ruling:');unruled=$((unruled-wr));[ $unruled -lt 0 ]&&unruled=0;fi
 ok "r2-an-exception-is-debt $nopen OPEN row(s) at the tip ($nopb at the base): rows repaid in this tip while the fence is still over the margin: $badflip (want 0); OPEN rows left while the fence is <= $MARGIN: $stale (want 0: repaid is owed); NEW OPEN rows beyond the first without a 'two-open ruling' field: $unruled (want 0)" '[ $badflip = 0 ]&&[ $stale = 0 ]&&[ $unruled = 0 ]'
+# --- b6: a SENSE, not a bar (council 3/3, SM 05:06Z): the TOTAL bytes across all engine*.md are PRINTED at every run so "small enough to read whole" stays measured; nothing is asserted about the number. The row fails only if the measure itself is empty (non-vacuous: the 5 files are found and the total is > 0)
+nef=$(ls $G/engine*.md|wc -l|tr -d ' ');tot=$(cat $G/engine*.md|wc -c|tr -d ' ');per=$(for F in $G/engine*.md;do printf '%s=%s ' ${F##*/} $(wc -c <$F|tr -d ' ');done)
+ok "b6-total-bytes-across-all-engine-md-is-printed engine*.md total $tot B over $nef file(s) [${per% }] (a sense, not a bar: nothing asserted about the size; the row fails only if the measure is empty: want >= 5 files and a total > 0)" '[ "$nef" -ge 5 ]&&[ "$tot" -gt 0 ]'
 echo "engine-sizes: $f FAIL"
 exit $f
