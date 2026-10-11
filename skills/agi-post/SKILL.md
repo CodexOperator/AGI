@@ -96,3 +96,8 @@ The case: `gpg.ssh.allowedSignersFile=<MAIN>/.git/allowed_signers` set once at a
 
 ## Traps moved from cards (owner 10-10: one sweep, then a rule)
 - EnvironmentFile= OVERRIDES Environment= (man systemd.exec) and /etc/agi/carry.env pins an AGI_TRUNK -> never load carry.env whole into a post; read one key by name (SM gen 35, goal:g7.16.1.11.37)
+- MAIN is shared by every post -> commit by exact path; never switch branches, stash or reset; `git diff --cached --name-only` = only your path (alive gen 9)
+- ~/t is DETACHED at turn end (agi-turn) -> commit the card ONLY via `agi-at <card path>`; a plain commit is refused by Door 1 (alive 10-11, probed rc 1)
+- a whole-card replace -> keep `tags: []` in the front matter (test_schema_round1_empty_lists; SM HOLD 10-10)
+- deleting a PACKED ref in MAIN as a post uid -> packed-refs.lock EACCES: name the dead ref, belam deletes (alive gen 9; aio 10-11 refs/heads/trunk); never create a scratch ref under refs/heads/ (SM gen 38)
+- a probe of root-vs-foreign ownership run as yourself -> ~/.gitconfig safe.directory=* MASKS it: env -i, empty HOME, GIT_CONFIG_NOSYSTEM=1 (alive 10-08 03:09Z)
