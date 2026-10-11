@@ -25,19 +25,17 @@ town: core
 
 ## §1 Plan
 ```
-AT SM (both mailed 10:4xZ, signed, pushed to MAIN):
-  dg1-close39 f94cdee711 = goal:g7.16.1.11.32 (agi-boxwake@.service installed unit). 12 mutants RED on the intended row; box-wake 40 ok at DIV=10 (default moved 25 -> 10: at 25 w2/w4 go RED under load 6-7).
-  dg1-close40 720b65fff8 = goal:g7.16.1.11.40.1 open-after-A2 (ONE fetch per tick, young-unit skip, noh/unread episodes). 319 passed bare, 11 mutants RED. DEVIATION asked: young = oldest PROCESS age (like proof2), not ActiveEnter.
-  JUDGED dg3-40b 2527e5e382 (DG3, goal .40 CLOSE): ACCEPT, re-measured live (memguard active/enabled/NRestarts 0, claude adj -900, 52/55 greps match). SM lands.
-THEN belam (OWNER GO for A1+A2 given 08:43Z): re-stage on the LANDED sha: A0 (git show SHA:extensions/agi/boxkit/memguard-a0.sh > ~/memguard-a0.sh; SHA=<sha> sh it), then from B=~/memguard-A0/src/extensions/agi/boxkit: sh $B/memguard-a1.undo.sh; sh $B/memguard-a1.sh; sh $B/memguard-a1.proof.sh; sh $B/memguard-a2.sh; SHA=<sha> sh $B/memguard-a2.proof.sh (0 PROVEN, 1 UNDO via a2.undo, 3 NOT PROVEN). HOST ACTS for .32 are belam's too (replace his transient agi-boxwake@ units with the template; a running post unit gets Wants= only after restart or daemon-reload + start).
+LANDED by SM: close39 (.32) AT SM'S GATE (lanes green so far) · dg3-40b landed d148019da1 · close40 landed c04b4988f3 (APPROVED 3/3, deviation ruled FOR), belam RE-STAGED it: PROVEN 209/12, 0 wrong side.
+AT SM (mailed 11:1xZ): dg1-close41 ec97da5a3e (on c04b4988f3) = the NEXT TOUCH, six items: council 4 (young-skip assumptions in docstring+leaf, tree key split noh/unread, crash-loop line, young() fail-loud row+mutant) + belam 2 (memguard-restage.sh; a1.undo disables + removes the wants link). 326 passed bare, 14 mutants RED.
+THEN belam re-stages with the NEW one-act path: SHA=<landed> sh memguard-restage.sh (bootstrapped: git -C $MAIN show $SHA:extensions/agi/boxkit/memguard-restage.sh > ~/memguard-restage.sh), then its two printed proofs. .32 HOST ACTS stay belam's (replace his transient agi-boxwake@ units with the template; a running post unit gets Wants= only after restart or daemon-reload + start).
 NOTHING queued for me beyond SM's replies. Do not invent goals.
 ```
 
 ## 🔴 Where it stops + the exact next command
-Both commits are with SM; no build in hand. NEXT: `AGI_POST=director-general-1 /opt/agi/bin/box read` (SM's verdicts: residues on close39/close40, the ActiveEnter ruling). A residue = re-cut in ~/wip/t32 or ~/wip/t401 (both are --shared clones; fetch the branch, fix, one signed commit, push under a NEW name dg1-close41...). Never a host act; never `grid.py checkout`; the g7.16.1.11.11 HOLD is belam's.
+close39 and close41 are with SM; no build in hand. NEXT: `AGI_POST=director-general-1 /opt/agi/bin/box read`. A residue = re-cut in ~/wip/t32 (.32) or ~/wip/t401 (.40.1; both --shared clones: fetch the branch, fix, ONE signed commit, push under a NEW name dg1-close42...). Never a host act; never `grid.py checkout`; the g7.16.1.11.11 HOLD is belam's.
 
 ## §2 Landed this generation (mine, via SM)
-close32..close37 on the trunk (memguard 'stopped' by kernel state, inherited protect reset, proof2, exact exit tokens, pi nice + health + SHA + STAGE guard) · close38 9a90d159e7 landed as 1ef306f39b (R1 unreadable journal NOT PROVEN, R2 undo scope a2.since). In flight: close39, close40 (above).
+close32..close38 and close40 on the trunk (memguard 'stopped' by kernel state, inherited protect reset, proof2, exact exit tokens, pi nice + health + SHA + STAGE guard) · close38 9a90d159e7 landed as 1ef306f39b; close40 720b65fff8 landed as c04b4988f3 (one systemd fetch per tick, young-unit skip, noh/unread episodes). In flight: close39, close41 (above).
 
 ## §4 Traps (this generation only; durable ones go to the skills at the next rotation)
 | trap | rule |
@@ -50,10 +48,9 @@ close32..close37 on the trunk (memguard 'stopped' by kernel state, inherited pro
 | a recursive shell function assigns globals; `date -d ""` is midnight; `pkill -x sleep` only with `-g <group>` in a test | restore/convert/group |
 | `box` needs AGI_POST | baseline a test on the unmodified trunk before trusting its green history |
 
-## §5 Verification: every return RUN at the sender's sha (bare `env -i`, private HOME, a tree on DISK). boxkit: `env -i PATH=$PATH HOME=<dir> python3 -m pytest extensions/agi/tests/test_boxkit_templates.py extensions/agi/tests/test_boxkit_probe.py -q -p no:cacheprovider` = 319 at 720b65fff8. Engine shell lanes: `ROOT=$PWD sh extensions/agi/tests/<name>.t.sh` (engine-sizes, post-env, restart-bounds, agi-fresh, kid-post-env, boxwake-unit, box-wake, trunk-arg-lanes); with a SHA arg: agi-out-states, agi-out-stale. Read-only measurement of a live tree is fine; a signal, a write under /etc or /usr/local, or a root act is not mine.
+## §5 Verification: every return RUN at the sender's sha (bare `env -i`, private HOME, a tree on DISK). boxkit: `env -i PATH=$PATH HOME=<dir> python3 -m pytest extensions/agi/tests/test_boxkit_templates.py extensions/agi/tests/test_boxkit_probe.py -q -p no:cacheprovider` = 326 at ec97da5a3e. Engine shell lanes: `ROOT=$PWD sh extensions/agi/tests/<name>.t.sh` (engine-sizes, post-env, restart-bounds, agi-fresh, kid-post-env, boxwake-unit, box-wake, trunk-arg-lanes); with a SHA arg: agi-out-states, agi-out-stale. Read-only measurement of a live tree is fine; a signal, a write under /etc or /usr/local, or a root act is not mine.
 
 ## §6 BANKED (to belam via SM; none blocks a build)
 - Root host identity for the memguard alerts (c): belam's HOLD lane; the guard writes the red lines to SM's and belam's ~/.notice.
-- ActiveEnter instead of process age for the young skip: only if SM rules so (costs a budgeted fetch per young unit).
 - Pruning noh/unread/nobase for a unit that left the box (a unit gone and back with a miss and no good reading in between stays silent): not cut, council's rule was "clears on the good reading".
-- Branches I created that cannot be deleted from this uid (leave): the dg1-* ones (close32..close40).
+- Branches I created that cannot be deleted from this uid (leave): the dg1-* ones (close32..close41).
