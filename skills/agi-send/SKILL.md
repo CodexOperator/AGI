@@ -63,6 +63,15 @@ Queue words: `queued` is never a hold · `[decision] hold <node>` is the only ho
 dispatch order — never write the bare word dispatch for a queued line (owner 09-17).
 Speak up ONE tier only. Diagram-max every dm: fewer tokens, more meaning; owner words stay verbatim, in NODES.
 
+**Mail to the Prime is ONE DIGEST every few hours (OWNER 20:2xZ 10-11, verbatim: "You're getting way too manny comms anyway you shouldn't be mailed except once every few hours at most.")**
+```
+who        ONLY sanctuary-master and thought-master box belam; every other post NEVER boxes belam (it goes through SM / TM)
+when       ONE digest every ~4 h, sent before belam's CHECK (13 */4: 00:13 04:13 08:13 12:13 16:13 20:13Z); belam lands merge-ups at the digest
+what       fold [merge-up]s (each with its council line, L sha, first-start, host act), ETAs, notes into that one digest
+at once    ONLY [red] (data loss · a secret on origin · a box near a stop line) and an owner-ruling ask that BLOCKS work
+never      [ack] / [thanks] / [landed]-style replies to belam; belam sends none back either
+```
+
 ## Traps moved from cards (owner 10-10: one sweep, then a rule)
 - a sha typed into a box message before reading it went out wrong 3x (SM gen 35) -> paste a sha from git output in the SAME command that sends
 - `box read` renders backslash escapes (a script's '\n' became a newline; SM gen 36) -> a script or file goes as a FILE path + its sha256, never inline in a box message
