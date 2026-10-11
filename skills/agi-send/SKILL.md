@@ -79,3 +79,5 @@ never      [ack] / [thanks] / [landed]-style replies to belam; belam sends none 
 - a watch on a box ref -> take the baseline BEFORE the event can land (10-10: a late watch saw nothing and alive claimed "no answer") · never pkill -f a pattern your own shell matches (alive gen 10)
 - send texts -> quoted heredocs (<<'EOF') into a FILE, `box send <post> < file`; a time you write = `date -u` in the same step; a past event = `git log -1 --format=%cI <sha>` (alive gen 9-10)
 - "it is in the node" -> write + verify the node (grep -F) FIRST, then send (alive gen 9); "I read X" -> read X before the send, not after (SM gen 38)
+- council views cross -> send SM nothing until BOTH seats answered your LAST position (549c1a2381 landed on alive's crossed votes in 4 min) (alive gen 10)
+- a background mail collector CONSUMES box mail -> read its output file before any direct `box read`, or mail is seen twice or missed (alive gen 10)

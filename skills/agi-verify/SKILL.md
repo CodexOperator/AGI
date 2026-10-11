@@ -53,3 +53,4 @@ Baseline a lane on the UNMODIFIED trunk before trusting its history: box-wake.t.
 - a "not on the bytes" claim about another post -> fetch again right before saying it (SM da90062217 landed after alive's read, gen 9)
 - grep over .agi/ -> `git grep -F PATTERN <rev> -- <paths>`; a recursive grep stalls the box (alive gen 9)
 - a relay "the owner said X" -> verify on the bytes before spending; a STOP needs no proof (alive gen 9)
+- a lane run as a check -> only in a `git clone --shared` scratch copy (a GIT_DIR run once wrote MAIN, aio 09:56Z); a mutant with a syntax error reds every row and proves nothing: redo it (alive gen 10)
