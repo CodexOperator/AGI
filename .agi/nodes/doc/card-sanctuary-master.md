@@ -33,9 +33,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
  DIGEST STACK for belam (each council-approved; each L on the previous; belam ffs the TOP once; re-mint ALL on the live trunk right before):
   1. .42 E (DG4 a155fb2792 -> 16b368ad72 -> dbbfb2e2a6): council 3/3 20:17Z; L f5f100b83b on 0c5ec01a72 (alive acked 20:26Z) -> RE-MINT.
      HOST ACT in the ff minute: belam 'crons.py apply --sudo'. After E's first live run: .42 C4 boundary sha into the leaf (mine).
-  2. .20.2 cut 1 + t4 + C1 spool/drain + C2 quiet-watch/dead-letter = 9b7ca099b0 (HOME RED returned 22:2xZ: crons.md alarm_drain
-     why_box literal seat-home path; await DG1's fix on 9b7ca099b0) [was f09ed75f32] (571f300635 ALONE is RED on grid_writers: .13 C4 pin; DG1 1284b57f98 -> 571f300635: memory_alarm as agi-belam via .42's user:, notice via agi-notice, send.py gone,
-     ONE notice per alarm, flap hold): stack tree NOW g381 @ 540071cd8f (+C2). Lanes graph-metrics 39/0, metrics-cell 11/0. 202c died with the rotation; 202d (-rf, g381:
+  2. .20.2 cut 1 + t4 + C1 spool/drain + C2 quiet-watch/dead-letter = de08f0dcd8 (HOME fix on 9b7ca099b0; HOME 0 + 0 D on all 3 items
+     22:2xZ) [was f09ed75f32] (571f300635 ALONE is RED on grid_writers: .13 C4 pin; DG1 1284b57f98 -> 571f300635: memory_alarm as agi-belam via .42's user:, notice via agi-notice, send.py gone,
+     ONE notice per alarm, flap hold): stack tree NOW g381 @ 2fc01a7009 (+C2 +HOME fix). Lanes graph-metrics 39/0, metrics-cell 11/0. 202c died with the rotation; 202d (-rf, g381:
      memory_alarm commands_manifest commands crons* grid_writers thought_hygiene snapshot_goals) STOPPED by me 21:15Z on belam's ask
      (box full avg60 4.95; DG3 ptS was running). RE-RUN after ptS ends + gate open -> attribute (expect test_commands links timeout,
      identical on 1284b57f98) -> [review 571f300635] -> stack.
@@ -54,7 +54,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
      HOME_PATH_RE 0 diff + msgs after 2272ea9e52 (card + agi-master-gate trap quoted a literal fixture path). Lanes + pytest PENDING the box.
   4. .41 cut 1 (DG5 0b574b3a29, agi-sync; first-start 'agi-flush agi-sync agi-turn', no host act): RETURNED 20:5xZ on test_grid_writers C1
      (.13 pins agi-flush's old line). DG5 fix d278e47daa (sig G, .13 only, HOME 0) ARRIVED 21:2xZ;
-     gate tree g41 @ e9864f04c2 (+C2) -> test_grid_writers + thought_hygiene -> [review] (all else green: lanes, 392 pytest).
+     gate tree g41 @ 71a0ce9a94 (+C2 +fix) -> test_grid_writers + thought_hygiene -> [review] (all else green: lanes, 392 pytest).
   5. DG2 .39.2 RE-CUT 6d3075f0f6 on 221fb9e308 (agi-carry@ in unit-paths): gate (box-move-refs/box-move/guard-env + HOME 0) -> [review].
   6. DG3 4c agi-hook f8e0a26efc (root piece; host act = belam 'sect agi-hook <landed sha> | sh' as root in MAIN): gate -> [review].
  DIGEST TEXT (one mail): each L with its council line + first-start + host act; ETAs (DG5 .41 2nd cut ~23:0xZ, engine-root = host act;
