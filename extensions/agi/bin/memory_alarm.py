@@ -20,12 +20,15 @@ Signals, all read from the kernel (never from a process list):
 
 Levels ok < warn < crit. On a rise, and every --repeat-mins while raised:
 one line to the guard's alerts.log (its `TS HOST MESSAGE` shape, so
-`guard-init.sh --status` lists it) and one line per --notify post in that
-post's OWN ~/.notice through its `~/bin/agi-notice add` (the .38 channel
-memguard's notices use; goal:g7.16.1.11.20.2: the old inbox mail is not on
-this path any more). The job must run AS agi-<post> (config:crons `user:`, goal
-g7.16.1.11.42 C1): from any other uid the notice is NOT written, one stderr
-line and one alerts.log line say so, and nothing falls back to the old path.
+`guard-init.sh --status` lists it) and ONE line in the sending seat's alarm spool
+(goal:g7.16.1.11.20.2: every alarm is a signed box message, never the old mail path and
+never a pane write). This job only APPENDS, no key: alarm_spool.py's drain, a cron row in
+the seat's own uid, signs and box-sends it, exactly once. The seat is a cell in config:crons
+(--alarm-seat) and the job must run as agi-<seat> (its spool is in that uid): box refuses
+self-mail and mails only adjacent levels, so belam is mailed by sanctuary-master's drain.
+Of the two cron rows ONE owns the alarm (memory_alarm_posts); the user@ job passes no
+--alarm flags. From any other uid nothing is spooled, one stderr line and one alerts.log
+line say so, and nothing falls back.
 On the fall back to ok: one CLEARED line + notice -- but only once the reading has stayed
 past the CLEAR line (--clear-margin-frac: each warn/crit line moved toward calm) for
 --clear-hold-mins without a break, so a reading hovering at the warn line cannot flap. A run that changes nothing writes
@@ -43,6 +46,7 @@ import sys
 import time
 from pathlib import Path
 
+import alarm_spool
 import locations
 
 #: The alarm's state file, a bare NAME inside the sessions room the ONE
@@ -177,23 +181,6 @@ def _uid_name() -> str:
     return pwd.getpwuid(os.getuid()).pw_name
 
 
-def _notice(post: str, line: str, notice_bin: Path | None = None) -> str | None:
-    """The line in `post`'s own ~/.notice through its agi-notice, in its own uid. Returns None
-    when written, else WHY NOT (the caller says it; nothing here raises or falls back)."""
-    me = _uid_name()
-    if me != f"agi-{post}":
-        return (f"uid {me} cannot write {post}'s notice (the job must run as agi-{post}: "
-                f"config:crons `user:`, goal g7.16.1.11.42 C1)")
-    exe = notice_bin or Path(os.path.expanduser("~")) / "bin" / "agi-notice"
-    try:
-        r = subprocess.run([str(exe), "add", line], capture_output=True, text=True, timeout=30)
-    except (OSError, subprocess.SubprocessError) as exc:
-        return f"{exe} add failed: {exc}"
-    if r.returncode != 0:
-        return f"{exe} add exit {r.returncode}: {(r.stderr or r.stdout).strip()[:200]}"
-    return None
-
-
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     ap.add_argument("--root", required=True, type=Path, help="the graph root (.agi)")
@@ -208,12 +195,14 @@ def main(argv: list[str] | None = None) -> int:
                          "(PSI / cgroup-fill x f, MemAvailable / f); 1 = no band")
     ap.add_argument("--clear-hold-mins", type=float, required=True,
                     help="...and only after the reading has stayed below that line this long, unbroken; 0 = first tick")
-    ap.add_argument("--notify", action="append", default=[],
-                    help="a post whose own ~/.notice gets a line on each alert; repeatable. "
-                         "Of the two cron rows ONE owns it (memory_alarm_posts): the other "
-                         "passes none, so one alarm is one notice")
-    ap.add_argument("--notice-bin", type=Path, default=None,
-                    help="the agi-notice to call (default ~/bin/agi-notice)")
+    ap.add_argument("--alarm-seat", default=None,
+                    help="the SENDING seat: the alarm is appended to its spool and its drain signs it (the job "
+                         "must run as agi-<it>); of the two cron rows ONE owns it (memory_alarm_posts): the "
+                         "other passes none, so one alarm is one message")
+    ap.add_argument("--alarm-to", default=None, help="the post that reads the alarm (the drain box-sends to it)")
+    ap.add_argument("--alarm-job", default=None, help="the job name in the message subject (default: this cron row's name is not known here, so it is required with --alarm-to)")
+    ap.add_argument("--alarm-spool-max", type=int, default=None, help="refuse to spool beyond this many lines (required with --alarm-to)")
+    ap.add_argument("--alarm-spool", type=Path, default=None, help="default: ~/alarm.spool")
     ap.add_argument("--cgroup", type=Path, default=None,
                     help="default: this uid's user@ service cgroup")
     ap.add_argument("--state", type=Path, default=None,
@@ -232,6 +221,9 @@ def main(argv: list[str] | None = None) -> int:
     import crons  # noqa: PLC0415 -- after the parser, so a probe never pays for it
     alerts_log = a.alerts_log or crons.alerts_log(a.root)
     cg = a.cgroup or Path(f"/sys/fs/cgroup/user.slice/user-{uid}.slice/user@{uid}.service")
+    alarm = (a.alarm_seat, a.alarm_to, a.alarm_job, a.alarm_spool_max)
+    if any(v is not None for v in alarm) and not all(v is not None for v in alarm):
+        ap.error("--alarm-seat --alarm-to --alarm-job --alarm-spool-max go together (or none: the job logs only)")
     if not 0 < a.clear_margin_frac <= 1 or a.clear_hold_mins < 0:
         ap.error("--clear-margin-frac must be in (0, 1] and --clear-hold-mins >= 0")
     state_path = a.state or (locations.sessions_dir(a.root) / STATE_FILE)
@@ -271,13 +263,17 @@ def main(argv: list[str] | None = None) -> int:
                 ">= 40% for 5 min")
     _append_alert(alerts_log, ts, msg)
     kind = "cleared" if act == "clear" else level
-    for post in a.notify:
-        # `[memory-alarm-<kind>] <8 hex> ...`: agi-notice keys a line by its [..] and hex words, so the
-        # kinds do not eat each other (a CLEARED after an unread ALARM) and every event is its own line
-        why = _notice(post, f"[memory-alarm-{kind}] {int(now):08x} {ts} {msg}{tail}", a.notice_bin)
+    if a.alarm_to:
+        me = _uid_name()
+        if me != f"agi-{a.alarm_seat}":
+            why = (f"uid {me} cannot spool for {a.alarm_seat} (the job must run as agi-{a.alarm_seat}: "
+                   f"config:crons `user:`, goal g7.16.1.11.42 C1)")
+        else:   # `[memory-alarm-<kind>] ...`: one line per event, kinds apart so a CLEARED never reads as the ALARM
+            why = alarm_spool.append(a.alarm_job, a.alarm_to, f"[memory-alarm-{kind}] {ts} {msg}{tail}",
+                                     spool=a.alarm_spool, max_lines=a.alarm_spool_max, now=now)
         if why:
-            print(f"memory_alarm: notice to {post} NOT written: {why}", file=sys.stderr)
-            _append_alert(alerts_log, ts, f"NOTICE to {post} NOT written: {why}")
+            print(f"memory_alarm: alarm to {a.alarm_to} NOT spooled: {why}", file=sys.stderr)
+            _append_alert(alerts_log, ts, f"ALARM to {a.alarm_to} NOT spooled: {why}")
     if state.get("level", "ok") != level:
         state["since"] = ts
     state.update(level=level, last_alert=now)

@@ -335,6 +335,9 @@ _LISTED_CLIS += ["verification.py", "write_guard.py"]
 #: `command:commands` with that reason, never proposable.
 _LISTED_CLIS += ["memory_alarm.py"]
 
+#: `alarm_spool.py` (goal:g7.16.1.11.20.2): `append` and `drain`, declared as `alarm_spool.py:<verb>` in `command:commands`, never proposable.
+_LISTED_CLIS += ["alarm_spool.py"]
+
 #: `reds.py` (goal:g7.16.1.10.3): the merge gate's pre-model range check, declared
 #: as `reds.py:check` in `command:commands`, never proposable.
 _LISTED_CLIS += ["reds.py"]
