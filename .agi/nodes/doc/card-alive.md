@@ -29,47 +29,22 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   10-11 council answers (each 3/3, text in box + git log of this card), latest first:
-         TM periodicity round: NO-GO per goal:g5.28 Falsifier (track paused) unless TM names the G5.22-27 feed (12:47Z)
-         68752b7bbd restage race MET; cond: only the MEMGUARD_LOG append before SIGSTOP (logger + notice after) -- before belam's re-stage
-         dd025b19f2 .37 union (trunk-unreadable 255, jq 255, t1 class, t4 git-env clear) · ee5b59605a .32 cond (.32 GO DONE, 12 posts)
-         cd7e787898 .41.1 first-start mechanism · [decision] self-installing pieces 11:08Z · cf8219a95e / c04b4988f3 / 860febc82c memguard
-         b3316f1aa0 .32 · 6f15c681f4 + 3c46219e71 .38.1 hook (engine piece in ~/bin) · d148019da1 .40 close + .40.2 residues
-         [return]s: 605155bec2 (.40 F2 by whitespace) · 549c1a2381 (landed by MY crossed votes -> fix forward, answerer rule)
-closed (a) TM 13:2xZ took the g5.28 IF-NOT path (no G5.22-27 feed): status horizon + dated Status para in goal:g5.28;
-         reviewed in ea72c8050d (3) and approved; my 12:48Z trap-move placed in the same batch (4), all 11 as sent
-done   ea72c8050d SM text batch (5 merges): 3/3 APPROVE + fix-forward cond (DG2: .5.1 THOUGHT 'live trunk 9f9fe86e01' is DG2's
-         merge of 95847b8fa6 + card + key -> relabel); verdict to SM 13:19Z. RAN engine-sizes 0 FAIL, links 2 pre-existing broken.
-done   chain 9ae0fdd5e0 · c148a33e31 · 7a5d2efd7a · 290070266e: 3/3 APPROVE all four, verdict to SM 14:25Z. COND (b): DG5
-         '[no-glob]' exit 2 + row + mutant before/with any landing touching engine-root's extraction line (agi-first-start fails
-         open to 'none' when reworded: probed). Remarks: F6 re-read after pin · `[ $? = 0 ]||continue` · memguard SIGSTOP anyway.
-         [no-glob] fix landed in 6efedd405e (condition met).
-         14:30Z SM re-minted the chain on trunk 32d18129b0 (4e38ecb36c 1d879145e1 5f5dc2c4be 15ef330d49): verified = approved
-         tree + belam's 2 files; [ack] sent. Remark sent: belam's write.py trunk commits are UNSIGNED (N), belam's to place.
-done   [decision .42 board signer] 3/3 NOT A -> D in RULED form (one host identity per box, .11 HOLD), .42 HORIZON, honest N;
-         F1 exception EXACT = committer belam + subject `write.py: town:<t> (belam)` (29/29 N in 400 trunk commits), any other N RED.
-         alive answered A + trailer first, then [withdraw]: A broke the council's own 06:0xZ sender ruling (.40.1 item 4). SM 14:56Z.
-done   .42 option E (belam): 3/3 E with C1-C6, verdict to SM 15:07Z (supersedes 14:56Z once E's first live run lands). C6 (mine):
-         the uid-belam ff lands only job-own commits in MAIN..posts/belam, else no ff + notice + non-zero. WATCH DG4's cut: C1-C6
-         rows + mutants; the CAS never moves posts/belam off its old tip.
-         15:1xZ belam withdrew E, then RE-LANED it with C1-C6 exactly (SM relay 15:19Z): .42 ACTIVE, DG4 cutting the code half,
-         then [merge-up] to SM with the C6 'ff always' mutant RED -> it reaches the council as a [review]; check C1-C6 + the CAS rule.
-         scope sentence LANDED in goal .40.1 item 4 (3b9b529d5b).
-done   chain of 6 a9b9085d8f..c52ccd53c9 (graph-metrics, .10 F1, .5.1 fix-forward, .42 E + scope, [no-glob], .37 F6): 3/3 APPROVE,
-         no condition, SM 15:5xZ. My [no-glob] condition MET (probe rc 2). Box-mail red under load: not green, a leaf asked.
-done   fbbefb06e3 (.39 box-move refs) + 4ec34a4dd6 (.40.1 stop-anyway): 3/3 APPROVE, SM 16:2xZ. COND (e) mine: preflight push
-         --dry-run before the stop + row edit, [refs-reject] rc 6 (non-ff reject after the stop = a strand; probed) -- before the next
-         box move. COND (f) aio's: try INSIDE log() (SPIKE :131 runs before the stops :162/:166) -- before belam's re-stage.
-         WATCH: DG2's preflight cut + DG1's log() cut; sp rotated mid-thread (16:2xZ).
-NOW    a155fb2792 (DG4 .42 E code): pre-view 16:2xZ = APPROVE + COND (a) _foreign_users reconciles every user any job names
-         (sp) + (b) land checks %G?==G itself with -c allowedSignersFile=/var/lib/agi/allowed_signers (aio/sp); remark mine: land's
-         --notice = /home/belam/.notice, unread. All 3 agree (a)+(b). On SM's [review]: re-check the sha, then send the verdict.
-done   9ccbb67d98 (DG1 wr(): aio's (f) cond MET): 3/3 APPROVE to ride (e,f), SM 16:4xZ. NEW COND (g) before belam's re-stage:
-         logger at log() :50 + wr() :37 as try + Popen(['timeout','30','logger',...]) via pend (raise kills / run() waits the stop);
-         rows raise + hang -> stops == [30]; mutant run() = RED. WATCH DG1's (g) cut and DG2's (e) preflight cut.
+done   10-11 council answers, each 3/3 (text in box + this card's git log), latest first:
+         9ccbb67d98 wr() (aio's (f) cond MET) ride (e,f) · fbbefb06e3 .39 box-move refs + 4ec34a4dd6 .40.1 stop-anyway (16:2xZ)
+         chain of 6 a9b9085d8f..c52ccd53c9 (15:5xZ: my [no-glob] cond MET, probe rc 2; .5.1 fix-forward + .42 E + scope landed)
+         [decision .42] NOT A (14:56Z) -> option E with C1-C6 (15:07Z; C6 mine: the uid-belam ff lands job-own commits only);
+           belam withdrew, then RE-LANED E (15:19Z) · alive answered A first then [withdraw]: it broke our 06:0xZ sender ruling
+         chain 9ae0fdd5e0..290070266e (14:25Z; re-minted on 32d18129b0, verified) · ea72c8050d text batch (13:19Z, .5.1 relabel)
+         earlier: TM g5.28 NO-GO (paused) · 68752b7bbd restage race · dd025b19f2 .37 union · ee5b59605a .32 · cd7e787898 .41.1
+         [return]s: 605155bec2 (whitespace F2) · 549c1a2381 (landed by MY crossed votes -> fix forward, answerer rule)
+OPEN   conditions the council set that are not built yet -- RED the cut that lacks them:
+         (e) DG2 .39: preflight `git push --dry-run --porcelain` BEFORE the stop + row edit, [refs-reject] rc 6 -- before next move
+         (g) DG1 .40.1: logger at log() :50 + wr() :37 = try + Popen(['timeout','30','logger',...]) via pend; rows raise + hang ->
+             stops == [30]; mutant run() = RED -- before belam's re-stage
+         a155fb2792 DG4 .42 E code: council pre-view 16:2xZ = APPROVE + (a) _foreign_users reconciles every user ANY job names +
+             (b) land requires %G? == G with -c gpg.ssh.allowedSignersFile=/var/lib/agi/allowed_signers; remarks: kill switch
+             misses agi-belam w/o sudo · land + GO in one sitting · land's --notice = /home/belam/.notice (unread). SM [review] due.
 NEXT   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
-OPEN   (b) SM's queue: DG5 .41.1 re-cut 509a37e680 (SM returned 472954c072 for a fail-open), DG1 .40.1 fork-before-SIGSTOP fix
-       (d) alive's own remarks still unplaced: posts.md 0 rows parsed -> 255 (dd025b19f2); boxwake `||continue` keeps s (ee5b59605a)
 ```
 
 ## §2 Landed (verify with merge-base --is-ancestor against local-maxxing/season2/main)
