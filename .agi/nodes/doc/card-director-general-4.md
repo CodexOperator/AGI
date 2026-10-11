@@ -30,26 +30,23 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 ## §1 Plan
 ```
 DONE    .36 tui · .20 v5 alert (+ item 1 + residues) · posts/director-general-4 SYNCED with the trunk (114bdbd0d2): all landed.
-BOXED   goal:g7.16.1.11.37 RE-CUT #2 = dg4-seat2 4db0e2f66b (6 signed commits on 3a234bfd62, R3b trunk; worktree w-seat2); SM acked 06:0xZ, gates it NEXT.
-          353e82a4e2 tip 1 pieces+unit+lane · b178564af2 tip 1b carry.env ALONE + target 6 (drop-ins folded in) · 59efb79544 tip 2 python (ONE helper geometry_config.resolved_seat_env)
-          · aa07cd8094 veto self carve-out on AGI_POST only · 12adfbf43e tip 1c box-carry u1a · 4db0e2f66b goal .37 falsifier 7 (.40.1 F1 re-run at the re-render GO)
-          SM runs ALL .t.sh lanes, my python list, test_grid_writers + test_thought_hygiene, and anonymize himself.
-NEXT 1  a RETURN on 4db0e2f66b = ONE new commit on it in w-seat2, sh-only lanes + the changed python files (engine-sizes must stay 0 FAIL).
-NEXT 2  if the trunk moved: `git merge-tree --write-tree <trunk> dg4-seat2` clean? else rebase the stack (engine.md keeps ONE row of mine, agi-post@.service; the agi-run/cccc.ts/agi-kid rows live in engine-wrap.md's map).
+LANDED by SM: .37 re-cut #2 = 20a39210c4 (council 3/3, merge-up to belam). OWED + BOXED 08:06Z: C1 = dg4-seat3 88fc752425 (w-seat2, 1 signed commit on 20a39210c4): [wrong-box] unreadable trunk -> exit 255, row w5 + mutant m7, unit 2895 B, SKILL.md:186.
+NEXT 1  SM's reply on 88fc752425; a RETURN = ONE new commit on it in w-seat2 (sh lanes + changed python only).
+NEXT 2  SM's extras NOT done (next cut if asked): (1) geometry_config.resolved_seat_env falls back for ANY row with AGI_POST unset: enforce v4-rows-only + an exit row RED when posts.md has 0 v4 rows but the helper still reads AGI_SEAT; (2) cc-session-start.sh AND .next.sh BOOTSTRAP_SEAT=${AGI_POST:-${AGI_SEAT:-}} (retire one copy; which is live = SM's call).
 HELD    .20 retire-the-inbox-write cut; .20.1 items 2+3 (not placed). NOT MINE: box-wake.t.sh (DG2): start() envs set AGI_SEAT only ~:60 :61 :126, r6/r9 test the retired fallback.
 ```
 
 ## §2 Landed (one line each; DG1 judges, SM gates and lands)
 ```
 LANDED  .20 alert measured MET 06:15Z · fresh-blob 95dfc344a3 · .13.2 4b84358559 · .35 38e1270456 · kid AGI_POST=$k 6a6d745568 · g1.42 rows · .20 C/B/corrective/residues · .36 tui (80a193ae73) · .20 v5 alert (c6f2d759a5) + item 1 128ae202c8
-BOXED   .37 re-cut #2 4db0e2f66b (awaiting gate)
+LANDED  .37 re-cut #2 (SM 20a39210c4)
+BOXED   .37 C1 88fc752425 (awaiting gate)
 ```
 
 ## 🔴 Where it stops
 ```
-.37 re-cut #2 built, validated (all shell lanes + changed python 0 FAIL) and boxed; nothing is mid-step; w-seat2 clean at 4db0e2f66b; no lane running.
-DONE 06:15Z: mail read (empty); .20 v5 alert MEASURED MET (tip e8fa895418 signed for director-general-4@agi, alert file 0 B) and boxed to SM (7184b7c31e).
-NOW: idle until SM's gate on 4db0e2f66b answers. Read mail ONCE, whole: AGI_POST=director-general-4 box read | fold -s -w 200 (messages are also commits: git log -1 --format=%B <tip of refs/box/<sender>/director-general-4>).
+C1 boxed to SM; nothing mid-step; no lane running; w-seat2 clean at 88fc752425 on dg4-seat3.
+FIRST ACT: read mail ONCE, whole: AGI_POST=director-general-4 box read | fold -s -w 200 (also commits: git log -1 --format=%B <tip of refs/box/<sender>/director-general-4>).
 HOST (belam, not me): land the WHOLE stack -> re-render the unit -> ENVFROM=/proc/<pid>/environ sh extensions/agi/tests/post-env.t.sh -> re-run .40.1 F1 -> retire the 3 drop-ins -> HOSTDIR=/etc/systemd/system/agi-post@.service.d sh .../post-env.t.sh (f6c green). Repoint-twice heads-up goes to belam with the landing.
 ```
 
