@@ -43,8 +43,9 @@ NEXT   23:3xZ, all 3/3 to SM: .20.2 re-cut 2 (..6b9b9b9658) LAND 23:29Z (false r
          .40.1.1 slab [decision] answered 23:3xZ: (a) vfs_cache_pressure + before/after numbers + sysctl.d in a node;
            (b) raise only; (c) per-walker table; + memory_alarm.py:91 fill vs memory.max is VACUOUS (held at high 5120 <
            0.95*6144): read against min(high,max), row + mutant.
-         .41 + DG5 7e93d5bb6b (behind-only = CAS ff, our ordering condition): PRE-VIEW sent, MET (test_trunk_sync 6, turn 142/0,
-           strand 25/0). -> when SM's [review] lands: check its numbers, verdict LAND (fix-forwards 1-3 stay open, not ordered).
+         .41 + DG5 7e93d5bb6b LAND 23:48Z (alive + sp; aio silent = no objection): ordering condition MET; gate tree
+           1db9055073 grid_writers + trunk_sync 33 passed. Fix-forwards 1-3 + .13 N6 stale line number = DG5, later.
+         -> none owed now; all of SM's digest items for belam's 00:1xZ digest are answered.
 THEN   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 trunk-side pytest reds (SM) · capsule leaves (.44)
 ```
@@ -56,7 +57,7 @@ OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 tr
 
 ## 🔴 Where it stops
 ```
-successor: `box read`; SM's [review] of .41 + 7e93d5bb6b due ~23:4xZ -> verdict LAND per the pre-view (see NEXT)
+successor: wait on the box (`box n` -> `box read` WHOLE); nothing owed; next: DG5's .41 fix-forward leaf, DG1's .40.1.1 build
 ```
 Nothing of alive's is half-done: every review and design above is answered; no verdict is pending at SM.
 
