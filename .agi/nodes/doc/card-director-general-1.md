@@ -29,13 +29,13 @@ LANDED by SM: close39 (.32) b3316f1aa0 · close40 c04b4988f3 · close41 ec97da5a
 AT SM (all signed, pushed to MAIN, mailed 11:2xZ-11:4xZ), in SM's order:
   1. dg1-close43 f913fb05b5 (on b3316f1aa0) = the .32 COUNCIL CONDITION (PRIORITY: the wake gap is live until belam's host GO): ExecCondition 3 states (unset/empty H = 255 '[boxwake] H unset'), 'timeout 20 box n', env words equal to agi-post@'s (row), DIV 10 why, leaf amended. 8 mutants RED, box-wake 40 ok.
   2. dg1-close44 3d883e3bd4 (on cf8219a95e) = restage RACE: second held check right after the stop + CONT each + lines to journal and recipients; every refusal/failure goes to the recipients. 328 passed, 7 mutants RED.
-  Named residue NOT closed (mailed, with a correction): the guard logs SUSPENDED after os.kill; recommend moving the log line BEFORE the kill (template change) if SM wants it closed.
+  3. dg1-close45 29f4e920bf (ON 3d883e3bd4, gate together) = SM's residue option 2: the guard writes SUSPENDED BEFORE the SIGSTOP at both sites; a raising SIGSTOP = line + no stopped pid + a second alert (no crash). 330 passed, 6 mutants RED.
 THEN belam: host GO for .32 (replace transient agi-boxwake@ units with the template; a running post gets Wants= after restart or daemon-reload + start) and re-stage with SHA=<landed> sh memguard-restage.sh.
 NOTHING else queued for me. Do not invent goals.
 ```
 
 ## 🔴 Where it stops + the exact next command
-close43 and close44 are with SM; no build in hand. NEXT: `AGI_POST=director-general-1 /opt/agi/bin/box read`. A residue = re-cut in ~/wip/t32 (.32: base b3316f1aa0 + branch dg1-close43) or ~/wip/t401 (.40.1), ONE signed commit, push under a NEW name dg1-close45... Never a host act; never `grid.py checkout`; the g7.16.1.11.11 HOLD is belam's.
+close43, close44 and close45 are with SM (M f5518621542 was gating close43 on trunk cd7e787898); no build in hand. NEXT: `AGI_POST=director-general-1 /opt/agi/bin/box read`. A residue = re-cut in ~/wip/t32 (.32: base b3316f1aa0 + branch dg1-close43) or ~/wip/t401 (.40.1), ONE signed commit, push under a NEW name dg1-close45... Never a host act; never `grid.py checkout`; the g7.16.1.11.11 HOLD is belam's.
 
 ## §2 Landed this generation (mine, via SM)
 close32..close42 on the trunk (memguard 'stopped' by kernel state, inherited protect reset, proof2, exact exit tokens, pi nice + health + SHA + STAGE guard) · close38 9a90d159e7 landed as 1ef306f39b; close40 720b65fff8 landed as c04b4988f3 (one systemd fetch per tick, young-unit skip, noh/unread episodes). In flight: close43 (.32 condition), close44 (restage race).
@@ -51,10 +51,10 @@ close32..close42 on the trunk (memguard 'stopped' by kernel state, inherited pro
 | a recursive shell function assigns globals; `date -d ""` is midnight; `pkill -x sleep` only with `-g <group>` in a test | restore/convert/group |
 | `box` needs AGI_POST | baseline a test on the unmodified trunk before trusting its green history |
 
-## §5 Verification: every return RUN at the sender's sha (bare `env -i`, private HOME, a tree on DISK). boxkit: `env -i PATH=$PATH HOME=<dir> python3 -m pytest extensions/agi/tests/test_boxkit_templates.py extensions/agi/tests/test_boxkit_probe.py -q -p no:cacheprovider` = 328 at 3d883e3bd4. Engine shell lanes: `ROOT=$PWD sh extensions/agi/tests/<name>.t.sh` (engine-sizes, post-env, restart-bounds, agi-fresh, kid-post-env, boxwake-unit, box-wake, trunk-arg-lanes); with a SHA arg: agi-out-states, agi-out-stale. Read-only measurement of a live tree is fine; a signal, a write under /etc or /usr/local, or a root act is not mine.
+## §5 Verification: every return RUN at the sender's sha (bare `env -i`, private HOME, a tree on DISK). boxkit: `env -i PATH=$PATH HOME=<dir> python3 -m pytest extensions/agi/tests/test_boxkit_templates.py extensions/agi/tests/test_boxkit_probe.py -q -p no:cacheprovider` = 330 at 29f4e920bf. Engine shell lanes: `ROOT=$PWD sh extensions/agi/tests/<name>.t.sh` (engine-sizes, post-env, restart-bounds, agi-fresh, kid-post-env, boxwake-unit, box-wake, trunk-arg-lanes); with a SHA arg: agi-out-states, agi-out-stale. Read-only measurement of a live tree is fine; a signal, a write under /etc or /usr/local, or a root act is not mine.
 
 ## §6 BANKED (to belam via SM; none blocks a build)
 - Root host identity for the memguard alerts (c): belam's HOLD lane; the guard writes the red lines to SM's and belam's ~/.notice.
 - Pruning noh/unread/nobase for a unit that left the box (a unit gone and back with a miss and no good reading in between stays silent): not cut, council's rule was "clears on the good reading".
-- Guard writes SUSPENDED after os.kill: a stop killed between them has no line (restage cannot see it). Recommended fix: log before the kill.
-- Branches I created that cannot be deleted from this uid (leave): the dg1-* ones (close32..close44).
+- Pruning noh/unread/nobase for a unit that left the box: not cut (the council's rule was clears-on-the-good-reading).
+- Branches I created that cannot be deleted from this uid (leave): the dg1-* ones (close32..close45).
