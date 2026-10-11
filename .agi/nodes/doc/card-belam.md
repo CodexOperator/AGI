@@ -21,7 +21,7 @@ town: core
 Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.agi/sessions/quorum/belam.md` are symlinks to it. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs; progress lives on the town board. Skills: agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-post · agi-memory-guard · agi-node-write · agi-goal · agi-master-gate.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-s2-III 09:2xZ 10-10, at wake: crons re-armed (CHECK 13b11552 13 */4 trajectory-first, hourly 7647814e 47 *); SM's .13.3 COMPLETE land taken as merge a65c401470 (MAIN had moved to my card, ff-only impossible); ruled .8's Stop hook = explicit timeout 180 in the same cut; B6 verifier (Sonnet) CLEAR, 12/12 findings confirmed -> B6 merged ef9b043e68, residues goal:g1.43 to SM; agi-at ruled to call the same growth check as agi-turn. B6 merge shape checked: season2/main 7276f11d36 tree == B5 TIP tree, B5 TIP is an ancestor of B6 TIP -> M6 = commit-tree TIP^{tree} -p 7276f11d36 -p TIP drops nothing. Owner verbatim carried from belam-s2-II: "Nah just use sonnet subagents and we retired workflows.py in favor of shel scripts already" · "Yes always. Thats your main check every 4 hours is to see what’s stuck if anything and keep town on trajectory and moving toward season completion" · "I’m fine with the Nvidia pick yes" · "We don’t use the ladder anymore" / "It needs to be deprecated" · "The bazzite vm is temporary just doing a local town related project in the background".
+belam-s2-III 22:3xZ 10-10: OWNER verbatim 21:5xZ: "Need to make council do all this review work while you idle mostly and await loop finish. I think council is being skipped on final loop step and I think a lot of the traps across various cards could go into skills or whatever other relevant docs" -- answers: "Council, but I break ties" · "I ff on council OK only" · "One sweep, then a rule". Done: doc:council-loop §Rulings and landing; skill agi-master-gate council step; SM + council switched (first council landing 7ac20cd62a, self-perpetuating approve 22:01:54Z); trap sweep 0ed3a367ae; standing rule in CLAUDE.md + agi-rotate §2. This card's traps dropped to the 2 that are still live. Earlier this gen: B6 merged ef9b043e68, g1.43, .8/.20/.36 rulings (now the council's kind of work).
 <!-- THOUGHT:END -->
 
 ## §0 State (01:1xZ 10-09, read from date -u)
@@ -37,41 +37,35 @@ belam-s2-III 09:2xZ 10-10, at wake: crons re-armed (CHECK 13b11552 13 */4 trajec
 | GitHub | E login user's gh (repo) wired to git (gh auth setup-git); post uids have none -> push via `sudo -n -u belam git -C /data/work/agi push origin <ref>` |
 | crons | box: user belam's crontab on E is LIVE (10 lines = the graph; crons_apply 02:05Z no-op): grid_sync */5 · ref pushes */5 · trunk push :07 · send.py wake */2 (the L note "E has no crontab" was wrong) · session-only (re-arm at wake): CHECK 13b11552 (13 */4, trajectory-first) · hourly 7647814e (47 *: memory + stuck-dialog scan + box read) |
 | host act E | installed 22:22Z 10-08 at dd1563bc3c: rollback `sh /var/backups/agi-act-20261008T222239Z/rollback.sh` |
-| landing | belam commits on posts/belam, pushes posts/belam, then as user belam `merge --ff-only posts/belam` in MAIN; the TRUNK (local-maxxing/season2/main) is carried by the branch_push cron at :07 -- no post pushes it by hand (TM 09:3xZ 10-10: TM's uid has no GitHub credential on E) |
+| landing | belam commits on posts/belam, pushes posts/belam, then as user belam `merge --ff-only posts/belam` in MAIN; a director tip lands ONLY with a council approve line (doc:council-loop); the TRUNK (local-maxxing/season2/main) is carried by the branch_push cron at :07 -- no post pushes it by hand (TM 09:3xZ 10-10: TM's uid has no GitHub credential on E) |
 | merge pass | B6 MERGED 09:4xZ 10-10: season2/main ef9b043e68 = trunk 4e9dbced38 (176 commits; 6 Sonnet lanes + verifier CLEAR; RED 0 · demote 3 · residue 9 -> goal:g1.43, SM); local-maxxing/main 4e9dbced38; state file closed (BASE for B7 = 4e9dbced38); kit ~/pass-b6 |
 
 ## §1 Plan
 ```
-1. PASS B7 when the CHECK finds landed experiments past 4e9dbced38 (notice -> Sonnet lanes + verifier -> merge as B6: M = commit-tree TIP^{tree} -p season2/main -p TIP after checking season2/main's tree == an ancestor TIP's tree)
-2. TRAJECTORY (standing): DG1-5 work .5-done/.8 lane/.13/.20 B (rotate alert, fail-soft)/.24/.12 key-fix landed; DT-1 g5.28 next lens (torch CPU wheel in its scratch)
-3. OWNER RULINGS OWED (asked 09:0xZ, unanswered): (a) season-2 CLOSE SET = SM 08:12Z proposal (.3 .5 .12-ring .13 .13.3 .17 .19 .21 .36 + overview nodes; the rest S3)
-   (b) host-act GOs: my rec GO .12 ring install + .11.1 install this season; .4 .7 .18 .6 -> S3 (c) machine identity for root alerts -> S3
-4. live probes owed at the next FRESH post start: ~/.claude.json fullscreenUpsellSeenCount = 3 and no dialog (.36); DBUS_SESSION_BUS_ADDRESS=disabled: in the unit env; signers line re-pointed
-5. agi-boxwake@ stopgap units (5; DG1 sticky Restart=always) until the engine-wrap `while :;do sleep 5` fix lands: then stop them by hand
-NEVER: assign a design or a build (council) · dispatch · write in another post's tree
+STANDING (owner 21:5xZ 10-10): IDLE mostly, await loop finish. The council rules; belam breaks ties only.
+1. [merge-up] with 'council: <post> approve <ts>' -> verify the approve on refs/box/<council>/sanctuary-master -> FULL anonymize guard -> ff MAIN. Nothing else.
+2. CHECK every 4 h (trajectory, skill agi-merge-pass §1) + hourly scan (memory, stuck dialogs). PASS B7 when experiments land past 4e9dbced38.
+3. OWNER RULINGS OWED (asked 09:0xZ 10-10): season-2 CLOSE SET (SM 08:12Z proposal) · host-act GOs (.12 ring, .11.1; .4 .7 .18 .6 -> S3) · machine identity for root alerts
+4. a tie from the council -> rule it; everything else -> the council
+5. goal:g7.16.1.11.37 (retire AGI_SEAT, DG4) host side = mine, TWO GOs in order (council): re-render the agi-post@ unit from engine-root.md -> read a running post's env + run the lane in it -> ONLY THEN remove drop-in 52-post-env. Falsifier: live unit + drop-ins == the render.
+NEVER: rule a [decision] the council can rule · assign a design or a build · dispatch · write in another post's tree
 ```
 
-## §2 Landed (belam-s2-III: .13.3 COMPLETE land a65c401470 · PASS B6 ef9b043e68 + goal:g1.43 · .8 rulings to SM (Stop-hook timeout 180; agi-at calls the same growth check). belam-s2-II below; detail in git + the goal notes)
+## §2 Landed (belam-s2-III: council route (doc:council-loop 82ee392646, agi-master-gate) · first council landing 7ac20cd62a · trap sweep 0ed3a367ae (98 rules into skills) · .13.3 COMPLETE land a65c401470 · PASS B6 ef9b043e68 + goal:g1.43 · .8 rulings to SM (Stop-hook timeout 180; agi-at calls the same growth check). belam-s2-II below; detail in git + the goal notes)
 B5 7276f11d36 · .35 RLIMIT_DATA · AA1.V v5f/g · kid identity · key-stranding fix + rows · .13.1/.13.2/.11.1.1/.3/.21/.36/.5/.34/.19/.13.3 closes (all via SM, full guard each)
 mine: free tier -> nvidia/nemotron-3-ultra-550b-a55b:free · skill agi-review + review-lanes.sh + doc:agi-review-brief · goal:g1.42 (B5 residues; open 11/12/25 owner + 15 mine) · rc-keepalive title heal + rate limit · signers-repoint + no-session-bus drop-ins (/etc/systemd/system/agi-post@.service.d/50-,51-) · crons._systemd_bus_env disabled: fix · ladder goal .15 active
 
 ## 🔴 Where it stops
-belam-s2-III idle between CHECKs after B6 merged; .8 held at SM for a re-cut (Stop-hook timeout 180 + agi-at gated by the same check = my rulings 09:3xZ).
-- next command: wait for the CHECK cron (13 */4) or mail; at a rotation, re-arm crons first (CronList)
+belam-s2-III idle under the council route (owner 21:5xZ 10-10); first council-approved landing 7ac20cd62a done; trap sweep landed 0ed3a367ae.
+- next command: wait for mail / the CHECK cron (13 */4) / the hourly scan (47 *); at a rotation re-arm both crons first (CronList)
 
-## §4 Traps (the rest live in the skills)
+## §4 Traps (the rest live in the skills since the sweep 0ed3a367ae)
 | # | trap | rule |
 |---|---|---|
-| 46 | `pkill -f` / `pgrep -f` matches your OWN shell | match by comm + /proc environ |
-| 98 | a fresh claude start can open a one-time dialog ("Try the new fullscreen renderer? 1. Yes / 2. Not now", Enter/Esc) that swallows every wake line: DG1 sat on it 22:22-23:50Z 10-09 with 7 unread | hourly: scan each post's ~/o tail for 'Esc to cancel' (hit DG1 22:22Z + DG3 02:25Z 10-10); ENGINE FIX landed d9cc770069 (leaf .36: agi-run pre-sets fullscreenUpsellSeenCount 3) -- verify live at the next fresh post start: `sudo jq .fullscreenUpsellSeenCount /var/lib/agi/<p>/.claude.json` = 3 and no dialog; Esc (\033) into /run/agi-<post>/i, then wake. DG1's agi-boxwake@ is STICKY (Restart=always, no BindsTo: its own loop dies minutes after every restart) -- stop it by hand when the engine-wrap fix lands |
-| 97 | E runs HOT (91C, intel_powerclamp idle injection = load 16-50 with 4 R procs) and post users leak dbus session buses | read thermal_zone temp with load; `ps -C dbus-daemon` count (reaper keeps it low); one heavy lane at a time |
-| 96 | agi-run's 'while sleep 5' wake loops die for good when the sleep is killed (5 posts lost the box wake 10-09; DG1 sat on 8 unread for 14 h); typing /remote-control in a connected pane opens a menu that eats the next line | a post with no `box` exec in a 12 s bpftrace = dead loop -> `systemd-run` an agi-boxwake@<post> (belam-s2-II 21:0xZ, until DG1's engine-wrap.md fix); Esc closes the RC menu; engine fix via SM 19:1xZ |
-| 95 | RC dropped for half the posts 09:06-10:00Z 10-09: claude.ai access tokens live 8 h; every post was logged in within ~2 h last night, so all expired 06:38-09:20Z, and a post idle at expiry never refreshed -> its RC link died ('login was rejected' / 'could not reach RC ~30 min'); busy posts refreshed fine. Refresh tokens unique + valid to 11-05..11-07; clock synced | not the box: re-login or `/remote-control <post>` (bare /remote-control names the session after its first prompt, 'go'); FIXED 15:0xZ: root timer agi-rc-keepalive (30 min; one turn only when a token is < 2 h from expiry; a122028fee, idea:rc-keepalive-refreshes-idle-posts); the 4 expired posts refreshed without a login; 6 dropped links reconnected with `/remote-control <post>` |
-| 94 | other uids cannot read MAIN .env (by design) -> their anonymize secret class crashes | until the hashed denylist lands, belam runs the FULL guard (`anonymize.py check --root /data/work/agi --diff-file F`) before every ff |
-| 93 | a post home (/var/lib/agi/<post>) in a node = an anonymize RED (test_anonymize_guard) | write `~` in nodes and cards |
-| 92 | re-running the UNCHANGED E act re-enables agi-carry-fetch.timer (host-act-encryption-town.sh:88; its verify :87 dies if the unit is gone) | never re-run the act until goal:g7.16.1.11.25 lands (SM 04:4xZ) |
-| 86 | send.py in a shell on E calls E rows FOREIGN | `AGI_BOX=encryption-town` in that shell |
-| 89 | a dir default ACL does not reach a file made before it (.grid.lock) | set the file's own entry too |
+| 92 | re-running the UNCHANGED E act re-enables agi-carry-fetch.timer (host-act-encryption-town.sh:88) | never re-run the act until goal:g7.16.1.11.25 lands |
+| 99 | a [merge-up] with no council line | refuse it, send it back to the council route (doc:council-loop §Rulings and landing) |
+
+| 100 | the whole team idle at their prompts, 0 unread, each waiting on another (02:3xZ 10-11: SM idle after a compaction; council waiting on SM's bigger outcomes) -- the hourly dialog scan cannot see it | root timer agi-quiet-watch (1 min; extensions/agi/guard/quiet-watch): every post but belam quiet >= 5 min with no claude descendant -> box [quiet] to SM, then <= 1 per 30 min until a post is busy; `journalctl -t agi-quiet-watch` |
 
 ## §5 Verification
 E act: agi-boot exit 0 · vstore 700 root · slice live · DG5 mail test: received + woke + replied 22:43:53Z · 11 posts active on E, 0 restarts at each login
@@ -79,6 +73,7 @@ E act: agi-boot exit 0 · vstore 700 root · slice live · DG5 mail test: receiv
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
+| CLAUDE UPGRADE = every post's hooks off (council 00:59Z 10-11, leaf under .36): every post runs /usr/local/bin/claude -> ~belam/.local/bin/claude (owner user belam's own install, moved 10-09 14:46; 4 versions on disk); posts set DISABLE_AUTOUPDATER=1 but the owner's 2 RC sessions as belam do not (~/.claude.json autoUpdates false only). An upgrade that rejects settings.json 'tui' skips the WHOLE file -> no meter/turn/.8 gate on any post, silently | owner: pin the posts to a root-owned copy (/opt/agi/claude-2.1.295 + /usr/local/bin/claude -> it) so the owner's updates never reach the posts; move the pin only after the NEW BINARY passes: .36's scratch-HOME probe under script (no fullscreen dialog, alternate_on 0) AND goal:g7.16.1.11.36.1's hooks-loaded proof (agi-brief stamps within N s) on that version; settings-tui.t.sh is only the text check beside them (council correction 01:0xZ 10-11: the text lane passes on exactly the upgrade that breaks us) |
 | egress watchdog NEVER RUNS (literal \" quotes: always exit 0) while E is in FULL tunnel | owner: fix it (drop 6 backslashes; then 3 missed pings -> split, never back) or leave it; idea:egress-watchdog-keeps-e-reachable |
 | guard layer 5 (sanctuary-watch) not installed | local-town parked (owner 04:2xZ); still needs config:guard E lines (council, via SM 04:2xZ) before guard-init.sh |
 | guard layer 1 FAIL = oomd on user@1000/agi.slice (the OLD engine slice) | moot on v5: system /agi.slice is fenced 5G/6G, oomd kill at 40%; the E guard line says so |

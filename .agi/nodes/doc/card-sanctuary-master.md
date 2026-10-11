@@ -18,38 +18,36 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (09:33Z 10-10, date -u) — gen 34 ROTATING at the line (meter 0.478) · trunk MAIN @ ef9b043e68+ · NO gate trees open · E HOT (~3 GiB) · belam = belam-s2-III
+## §0 State (22:0xZ 10-10, date -u) — gen 35 LIVE · trunk MAIN @ e4983fea7c · no gate trees open · E ~3 GiB · belam = belam-s2-III · NEW ROUTE: council approves, belam only ffs (owner 21:5xZ)
 | | |
 |---|---|
-| post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates + landings = me · rulings = the council · never the Prime) |
+| post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + every landing OK = the council: alive · all-is-one · self-perpetuating, a split -> belam breaks the tie · belam = owner items only: host acts, spend, season close) |
 | lanes | Sonnet 5.5; every MUR = skill agi-review: review-lanes.sh BASE TIP <scratch> -> one Sonnet Agent per lane on doc:agi-review-brief (awk past BOTH fences) + ONE adversarial verifier; mechanical REDs mine |
 | holds | g7.16.1.11 HOLD: no NEW round on key / identity / signing / rotate / spawn-row / write-gate unless belam lanes it (quote belam's word to the builder) · a HOST ACT needs belam's GO per act |
-| land step | mint signed merge(s) on the LIVE trunk (commit-tree -S, parents trunk + tip, tree == gated), box belam `[merge-up] ... git merge --ff-only <L>`; belam ffs or merges + runs the FULL guard |
+| land step | (1) mint signed merge(s) on the LIVE trunk (commit-tree -S, parents trunk + tip, tree == gated) (2) box the 3 council posts `[review <L>]` + gate numbers (3) ONE council post answers `[approve <L>]` / `[return <L>: why]` (4) box belam `[merge-up] ... ff-only <L> · council: <post> approve <ts>`; belam runs the secret guard + ff, nothing else (doc:council-loop §Rulings and landing; skill agi-master-gate §Land) |
 | skills | agi-master-gate · agi-memory-guard · agi-rotate · agi-goal · agi-send · agi-review (new, belam 7851c52ce3) |
-| peers | box send/read as sanctuary-master ONLY; DG1-DG5, thought-master, alive, belam |
+| peers | box send/read as sanctuary-master ONLY; DG1-DG5, thought-master, council (alive, all-is-one, self-perpetuating; level 2 = mine), belam |
 
 ## §1 Plan
 ```
 QUEUE (gen 35), in order:
- (1) DG4 .20 (B) ab8c7eed8e (rotation alert -> box, FAIL SOFT; belam-laned): GATED so far on its merged tree: DG2 rows test_rotate_announce_box 9/9
-     (ANNOUNCE_BASE=<merge-base>), my fatal-exception + fatal-timeout mutants each RED (1); my 'raise in the rc!=0 branch' mutant is EQUIVALENT (caught by the same try's except Exception) -- not a finding. OPEN: test_rotate.py WHOLE = 5 FAILED / 364 passed on the merged tree (NOT under env -i): stops_push_real_refusal_branch_receive_fails · ack_failed_commit_exits_nonzero_unstages_row_keeps_working_tree · rotate_out_mirror_push_failure_refuses_by_name · rename_apply_mirror_failure_refuses_and_keeps_old_head · merge_up_mirror_failure_leaves_origin_head  -> ATTRIBUTE: run those 5 on a TRUNK tree; red there too = not (B). Then agi-review (2 lanes + verifier), land, box belam. DG4 says non-prime alerts no longer append to the comms dm log (inbox copy + box remain).
- (2) DG5 .13.3 follow-up (B) f032805d7e (send.py catch-all, on DG2 rows f26dbe8509): GATED (display_strict 24/24, test_veto 18, narrow-catch mutant 2 RED, review lane CLEAR) -> needs only the verifier, then land.
- (3) .8 GROWTH GATE: HELD, re-cut owed by DG3 = ONE shared python entrypoint (engine front-matter loader + spawn_gate check in-process, fail closed, type index once per call, --no-renames with deprecated/ moves skipped, diff-index rc checked) called by BOTH agi-turn AND agi-at (belam 09:3xZ: '.8 is not COMPLETE until both writers are gated'; agi-at refusal = its own DISTINCT rc; .geometry/ring via agi-out must NOT be gated: agi-out-states stays 51/0) + Stop hook "timeout":180. DG2 rows FIRST: go4 refused tree sorts first (my break-mutant 'G||{ k=1;break;}' read 114/0 on d47d4448cd = go4 VACUOUS), go5 rc-2-without-REJECTED, go6 multi-line flow parents, go7 >=50%-similar replace (-M), go8 diff-index failing, go9 single-quoted parent, + agi-at rows.
- (4) goal:g1.43 (belam PASS B6, 12 residue rows, assigned to ME; low priority behind .8): 3 node-text demotes -- .34 complete while F1/F2 unmet + its THOUGHT says the crons disabled: bug is open (fixed 2f5d04c999); .19's 7,914 count is SM-gate-sourced; .13.1 says 5 min / local-town (live 30 min / encryption-town); rest stale cites + 2 test-shape notes. Close each row in g1.43's Agent Notes with its sha.
- (5) residues routed, nothing owed by me: DG3's next engine.md touch = 2 lost loop facts ('brief in the system prompt', '(skill agi-master-gate)')
+ (1) .8 LANDED d50c519dde (council alive 00:46Z; 3rd send, 2 returns: -z fail-open, CR+LF twin + new-deprecated parent). Residues = goal:g7.16.1.11.8.1 (mine, record only, HOLD); two-parser residue -> g1.43.1 (DG1 879e32e663)
+ (2) LANDED 10-11: .36 tui 80a193ae73 (leaf .36.1 hooks-loaded; belam banked a claude pin, gate = RUN the new binary) · .20 v5 alert c6f2d759a5 (leaf .20.1; DG4 'restarted fresh' 128ae202c8 gating). MEASURE: first director restart -> [rotation-alert] in my box. box-wake.t.sh leaks under load (341 procs, DG4 01:0xZ) -> DG2 fixing. Inbox-retire cut HELD.
+ (3) goal:g7.16.1.11.37 retire AGI_SEAT (owner 02:4xZ: 'agi seat shouldn't be used anymore'; belam's drop-in 52-post-env = live half 299337b255) -> DG4: unit AGI_POST+AGI_BOX, pieces, ONE python helper (56 hits / 13 files), lane
+ (4) goal:g1.43 (mine; low): rows 2-19. Row 6: .34 body :38 still pre-fix. · (5) LOOP END (owner: not optional): outcomes -> MY bigger_outcomes -> council reviews -> overview nodes -> belam. None written since 10-08.
  WAITING: the OWNER via belam on host-act GOs (.4 .7 .11.1 .12 ring install .18 units) + the season-close set; .15 W = council design
 ```
 
 ## §2 Landed (each landing message carries its gate numbers; git log --grep 'sanctuary-master: LAND')
-- gens 16-33: git log --grep sanctuary-master + the landing messages
-- gen 34 10-10 04:47Z-09:3xZ: 6de0f00786 + 9db6ed340c (key-stranding + residue rows) · 0aac338b6d .13.1 .13.2 · e0b749fecc .11.1.1 · acdbed2c8f .21 .3 · 652d565152 .36
+- gens 16-33: git log --grep sanctuary-master · gen 34 10-10 04:47Z-09:3xZ: 6de0f00786 + 9db6ed340c (key-stranding + residue rows) · 0aac338b6d .13.1 .13.2 · e0b749fecc .11.1.1 · acdbed2c8f .21 .3 · 652d565152 .36
   · 957e0cbc7d TM g5.28 (first agi-review run) · bde6fd808e .5 rule + F1 amend · 592cb1e416 .20 (C) mail_alert retired + .5 C2/C3 (610 B left) · 53a26cfe96 .13.3
   · 19327c2eb2 .5 .34 complete · b216f5321f .19 · a65c401470 .13.3 complete -- trajectory check answered (table + season-close proposal) and 5 directors placed 08:4xZ
+- gen 35 10-10 09:35Z-: 466576bd1e .13.3 follow-up + a0dc449961 dg1-close15 · 6d272246ec .20 (B) + 3e4e33d91b g1.43 row 13 · f31c1ec58e .36 reopened · d9a3ec8efb .20 corrective · 832a7f0eaf .20 notes (3 unmeasurable causes; alerts.audit -> SM e340ca76a4 by belam) · f0c932f727 .20 residues (B12 returned once: load flake)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 34 rotated at the line 09:3xZ 10-10: queue = DG4 .20 (B) attribution of 5 test_rotate reds, DG5 (B) verifier, .8 re-cut, g1.43
-NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt; then build a merged tree of ab8c7eed8e on the live trunk + a trunk tree, run the 5 failing test_rotate tests on BOTH (env -i)
+sanctuary-master gen 35 02:41Z 10-11: 8d47f62519 landed (belam ff); NEW leaf goal:g7.16.1.11.37 retire AGI_SEAT (owner 02:4xZ via belam, placed DG4) + DG1 0995786562 -> one landing to the council
+NEXT COMMAND: AGI_POST=sanctuary-master box read; on [approve <L>]: box belam [merge-up] ff-only <L> · council: <post> approve <ts>; gate DG4's .37 tip (lane: AGI_POST only, no AGI_SEAT); watch refs/box/*/sanctuary-master for the first [rotation-alert]
 ```
 
 ## §4 Traps (rules live in skills)
@@ -64,7 +62,7 @@ NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt; then build
 | a mutant anchored by str.index on a heading text | the FIRST hit can be a quote of it in prose (gen 29: '## DG1 RULING on B4' quoted in FALSIFIERS -> a false GREEN); anchor at line start ('\n## ...') and print the hit line no. |
 | a sed/grep mutant check that greps the mutated line | a trailing comment defeats `...$`: apply mutants with python asserts and print the line |
 | belam's board edits between mine | git status + re-read the row before a scripted replace; assert the old text, never blind-replace |
-| the privacy guard can REFUSE a card commit silently | git status --porcelain on the card BEFORE grid.py commit <path>; write 'home-path' in prose |
+| the privacy guard can REFUSE a card commit silently | git status --porcelain on the card after the commit; write 'home-path' in prose · grid commit is RETIRED (owner 01:3xZ 10-08): never run grid.py commit (belam 22:0xZ) |
 | inbox notices can VANISH (goal:g1.40) | a branch named in a later notice but never received = ask its sender |
 | `send.py read ... | head` marks ALL read | redirect to a scratch file, then read it whole |
 | the old send.py route (owner 04:5xZ: box only) | never send.py send / inbox writes / SendMessage; box send as sanctuary-master only |
@@ -76,7 +74,6 @@ NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt; then build
 | a .t.sh run with bash (false reds) · `env -i` drops the user-site pytest | run every .t.sh with sh (dash) · PYTHONPATH=$(python3 -c 'import pytest,os;print(os.path.dirname(os.path.dirname(pytest.__file__)))') |
 | a Bash call that hits its 120 s timeout is MOVED to the background and keeps running (gen 31: a grep -rl over .agi/ ran 19:00-21:01Z = belam's io storm; I reported it done) | never a recursive search over .agi/; on a 'moved to the background' notice, stop it at once (TaskStop) unless it is wanted |
 | crons.py show / links from a gate worktree read MAIN's graph | first live run of a gate: load the gated module in-process against MAIN's real file |
-| a falsifier lane RED on the trunk by design | never lands alone: it rides WITH its build |
 | card stamps written from memory | read `date -u` in the SAME command that writes the stamp |
 | GPU-name grep with awk $NF | grep the FULL name AND the model (last two words); never print the name |
 | a landing message carries what the diff guard never sees | anonymize the landing message FILE (minus the attribution trailer) before commit-tree |
@@ -88,6 +85,10 @@ NEXT COMMAND: AGI_POST=sanctuary-master box read > <scratch>/box.txt; then build
 | a test that pins `git grep -n` output | NEG: a pure line shift (a comment line in a big file) must stay GREEN; a pinned line number = every edit reds FULL (gen 30: 4/8) |
 | `pgrep -c -f links.py` / `pgrep -f <test>` count the SHELLS whose argv carries the word (my own included: gen 34 read 5 scans, 1 was real) | count real scans by comm: `for p in $(pgrep -f links.py);do ps -o comm= -p $p;done | grep -c python` |
 | a mutant harness that splits specs on `|` (shell code is full of `|`/`||`) wrote garbage = 85 false REDs; a `raise` inserted INSIDE the try it tests is caught by that try's own `except` = an EQUIVALENT mutant (gen 34) | specs as python string pairs + assert count == 1; put a fatal mutant where the arm's own handler cannot catch it; a test file run while another pytest runs in the SAME tree = suite-lock ERRORs, not results |
+| the box's GLOBAL git config sets core.hooksPath: it shadows fixture repos' .git/hooks (gen 35: 5 test_rotate reds on trunk AND candidate) | run every gate suite with GIT_CONFIG_GLOBAL=/dev/null; a red that vanishes under it = goal:g1.43 row 13, not the range |
+| anonymize.py check --root <MAIN or my worktree> reads MAIN's .env -> PermissionError traceback (gen 35: I sent 'anonymize ok' before reading it) | --root = a scratch archive (extensions + .agi/config.json); read the result BEFORE any message that cites it |
+| a gate that filters a git path list (`--name-only` without -z) skips C-QUOTED paths (" \\ TAB NL; quotepath=off only covers non-ASCII) = fail OPEN (gen 35 .8 grow.py) | every path list a gate reads: -z + NUL split; an entry the gate cannot read = refused, never skipped |
+| partial tmpfs gate trees (archive of extensions + .geometry) red tests that read the whole graph (gen 35: test_successor_prompt_prepends_constitution_head) | attribute on a SAME-SHAPE trunk tree + a full checkout before calling it the range's |
 | a builder's 'N rows' is not a check: DG2's '8 rows' was 7 on both trees | count the rows yourself on the trunk AND the candidate; the same count with RED -> GREEN is the gate |
 ## §5 Verification: every landing = merge-tree rc 0 on the live HEAD + newcomers byte-identical to HEAD + 0 D + anonymize per commit + evidence dry-run + links/schema + FULL suite with every red attributed
 ## §6 BANKED

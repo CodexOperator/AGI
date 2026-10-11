@@ -58,10 +58,10 @@ MINT=0123456789abcdef0123456789abcdef
 # v4 (AA1.V): agi-wt drop hands the tree to agi-turn, which archives under refs/archive/$AGI_POST/<mint> (agi-turn.t.sh g8 / x10*); the AGI_SEAT split and refs/archive/worktrees are retired, so the four rows above have nothing to pin
 ok "w-the-v4-agi-wt-has-no-seat-split the piece names AGI_SEAT $(grep -c AGI_SEAT $T/agiwt) time(s) (want 0), refs/archive/worktrees $(grep -c "archive/worktrees" $T/agiwt) (want 0), hands the drop to agi-turn $(grep -c "drop).*agi-turn&&" $T/agiwt) time(s) (want 1)" '[ $(grep -c AGI_SEAT $T/agiwt) = 0 ]&&[ $(grep -c "archive/worktrees" $T/agiwt) = 0 ]&&[ $(grep -c "drop).*agi-turn&&" $T/agiwt) = 1 ]'
 # t (RB-1): tick.sh starts ONLY its own unit. The real tick.sh piece under a stub `sect` (project.sh lists TWO down units, p1 and p2; observe.sh lists none) and a stub `systemctl` that logs argv, run as USER=agi-p1 in a scratch $HOME/t repo: only the unit of agi-p1 is started; the drift file still lists BOTH (the drift is evidence, not an order). The at sign is built at run time (the anonymize email class).
-sect tick.sh >$T/tick.sh;sect agi-at >$T/agi-at;AT=$(printf '\100');U1=agi-post${AT}p1;U2=agi-post${AT}p2
+sect tick.sh >$T/tick.sh;sect agi-at >$T/agi-at;sect grow.py >$T/grow.py;AT=$(printf '\100');U1=agi-post${AT}p1;U2=agi-post${AT}p2
 tk(){ args=;for u in "$@";do args="$args agi-post${AT}$u";done;rm -rf $T/tk;mkdir -p $T/tk/bin $T/tk/hm/t;$G init -q $T/tk/hm/t;$G -C $T/tk/hm/t commit -q --allow-empty -m base;: >$T/tk/log
  if [ -s $T/agi-at ];then # the tick ends in `agi-at` (AA1.V): the REAL piece, a detached ~/t, a throwaway ssh signer, posts/p1 = the tip it commits onto
-  cp $T/agi-at $T/tk/bin/agi-at;chmod +x $T/tk/bin/agi-at;ssh-keygen -q -t ed25519 -N '' -f $T/tk/key -C p1 >/dev/null;tg="$G -C $T/tk/hm/t";$tg config gpg.format ssh;$tg config user.signingkey $T/tk/key;$tg branch posts/p1;$tg checkout -q --detach posts/p1;fi
+  cp $T/agi-at $T/tk/bin/agi-at;chmod +x $T/tk/bin/agi-at;[ -s $T/grow.py ]&&{ cp $T/grow.py $T/tk/bin/grow.py;chmod +x $T/tk/bin/grow.py;};ssh-keygen -q -t ed25519 -N '' -f $T/tk/key -C p1 >/dev/null;tg="$G -C $T/tk/hm/t";$tg config gpg.format ssh;$tg config user.signingkey $T/tk/key;$tg branch posts/p1;$tg checkout -q --detach posts/p1;fi
  cat >$T/tk/bin/sect<<XX
 #!/bin/sh
 case "\$1" in project.sh) printf '%s\\n' 'printf "unit %s\\n" $args';; *) echo true;; esac

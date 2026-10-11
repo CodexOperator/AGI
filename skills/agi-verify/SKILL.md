@@ -21,6 +21,8 @@ python3 extensions/agi/bin/commands.py run verify
 | write-guard · dispatch-help · budget · anonymize · seat-model · node-dirs | each tool's own invariant |
 | bin-suite-fresh | a bin/*.py is newer than the last suite run → the SUITE is owed (known FAIL until a suite window runs) |
 
+`links.py links` can exceed 580 s (exit 124) at load 8-9: run it on a quiet box, or leave it to the lander (thought-master 10-09).
+
 ## 2 · The suite
 ```bash
 python3 extensions/agi/bin/verification.py window      # lock free? tip? baseline?
@@ -29,6 +31,9 @@ env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/<file>.py -q   #
 - The lock is `.agi/sessions/<values.core.suite_lock.file>` (today `verify-suite.lock`, read by `verification.suite_lock_name` — never a literal path); "free" = absent in MAIN AND every post worktree (F7).
 - Never merge into a tree while a suite runs in it: getsource tests read the moved file (2 false reds, measured).
 - local-maxxing context tests: `PYTHONPATH=` the cell `paths.local_maxxing.osc_test_pythonpath` + system python3 (the venv has no pytest).
+- conftest "suite window refused" (live short suites rotate the pid): retry with backoff, 7 tries ~90 s; a printed LOCKED is no guard, the refusal is (DG4).
+- The context suite refuses `torch.load` by construction (no declared dir helps): a test builds and declares its OWN safetensors checkpoint (director-thought-1).
+- A scope/unit fix proved only by a test fake: run a live 3-path check against the real manager on MAIN's bytes before calling it proved (DG2 row 60: the fake systemctl took any name).
 - The Prime grants ONE suite window at a time; a probe never calls rotate/heal/send/dispatch functions (a probe
   once TERM'd the Prime's pane from inside it).
 
@@ -37,3 +42,7 @@ env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/<file>.py -q   #
 `envfile.py --check` (presence, not validity) · `provisioning.py status` · `spawn_budget.py status` ·
 `crons.py show` · guard: `~/work/.sanctuary/guard/guard-init.sh --status` + `tail ~/logs/memory-alarm-alerts.log | cut -d" " -f1,3-` (drop column 2: every line carries the host name, TM [red] 02:36Z 09-27).
 Report outcomes faithfully: a FAIL is quoted with its line, never summarised away.
+A tool run with `--root <repo>` instead of `<repo>/.agi` reads 0 nodes and prints CLEAN: print the node count before trusting any 0 / CLEAN from links, schema, census or evidence dry-runs (SM gen 28, gen 24).
+Before asserting a claim about another post's bytes: `git fetch origin` AGAIN; a number carried from an earlier round or card: re-measure it; on a mismatch ask for the cmp, never assert it (alive da90062217 landed after my read; self-perp "8,186" never reproduced).
+Measuring a file's history or version count: `git log -- <path>` WITHOUT `--follow` (it follows COPY guesses into other nodes and inflates the count; alive: build:GOALS.md "14th commit" was the src-init birth).
+Rewriting a script or text by sed or a python one-liner: edit whole lines in plain statements (`A + B if False else ''` empties A; f-strings choke on shell `{`), then `git diff` and re-test before commit (alive; self-perpetuating).

@@ -20,10 +20,13 @@ Source of truth for thresholds: the config cells (`values.local_maxxing.*`, `spa
 | io | `/proc/pressure/io` avg60 · `/proc/diskstats` inflight · `Writeback` in meminfo | read io off memory PSI (2 % memory while io ~88 %) |
 | disk | `df -B1M <the exact path>` FIRST | assume one fs: `/` (`/tmp`, `/home`) and `/data` (repo, every worktree) are DIFFERENT |
 | load | `/proc/loadavg` field 1 | gate on load alone: a dispatch gate is load1 AND io avg60 AND (disk free, key cap x live < balance) |
+| load, hot box | `thermal_zone` temp WITH loadavg | read load alone on E: powerclamp idle injection inflates it (91C, load 16-50, belam 10-10); count `ps -C dbus-daemon` per user (the reaper keeps it low); one heavy lane at a time |
 
 UNITS: every cgroup number in MiB = bytes / 1048576. A figure ~4.9 % above its own row is MB mislabelled.
 VmHWM includes file-backed pages (torch libs, the safetensors mmap) the cgroup books as cache: read VmHWM AND the
 hard rise; before claiming a kill frees MiB, read the scope's `memory.stat` anon vs file.
+A cgroup `file` figure can be SHMEM (a RAM disk) that reclaim cannot free: read `memory.stat` shmem before calling file pages
+reclaimable (DG4; `heal.py` now nets shmem out).
 
 ## 2 · Find the process — comm + cwd, never argv
 ```
@@ -61,12 +64,21 @@ Worktrees live on `/data`: removing one frees nothing on `/`. A kid worktree is 
 is reachable from another ref AND `status --porcelain --ignored` shows nothing but caches — its ignored round
 records (manifests, trajectories) are data: move them to `.agi/sessions/harvest-<date>/<wt>/` first; plain
 `git worktree remove`, never `--force`. Never a recursive grep / find over MAIN's `.agi/` (every worktree checkout).
+- dispatch holds when the RAM disk is >= the guard line (60 %): remove finished RAM round worktrees with `git worktree remove`; never bare
+  `git worktree prune` (DG3 dispatch hold, `dispatch.py`).
 
 ## 5 · Your own long jobs
 - `run_in_background` jobs sit in `run-*.scope` units that systemd-oomd kills in a memory spike — silently, no output.
   A long job runs in foreground chunks (`timeout 540`), resumable, logging each decision to a file.
 - A suite or gate tree goes on tmpfs (`/dev/shm/<gate>` + its own `TMPDIR`), removed after; stopping it = every pid whose cwd is the gate path.
 - ONE full suite on the box at a time, on tmpfs; SM's gate first; others run targeted rows; start only when MemAvailable >= the box's floor (6 GB; encryption-town 3 GB: no RAM disk, no stream stack, a gate tree is ~150 MB of tmpfs -- owner 10-09), memory PSI avg10 < 5 and io PSI avg60 < 50; each run removes its /dev/shm tree at its end (belam [rule] 18:4xZ 10-08: two tmpfs suites at once = box PSI full avg60 34.8%, the watchdog reboots at 40% for 5 min).
+- starting a gate suite: assert the MemAvailable floor + PSI in the SAME command that starts it (exit if below); remove your finished
+  /dev/shm trees BEFORE starting; never prune another's (SM gen 31 06:01Z: FULL at 2.7 GB under E's 3 GB floor).
+- a Bash call that prints "moved to the background" keeps running: stop it at once with TaskStop unless wanted; use foreground `timeout`
+  chunks; never a recursive search over `.agi/` (SM gen 31: `grep -rl` over `.agi/` 19:00-21:01Z, io storm).
+- a run with a wall-time cap: start the cap clock AFTER the box / suite-window wait, never before (DT1: t0 before it burned the cap on a 31 min wait).
+- briefing a compute subagent: say ONE process, no pools, `ulimit -v` (>= 4000000 for `import torch`), a PSI start gate; an unforbidden
+  subagent fans out (thought-master 19:4xZ, near-reboot).
 
 ## 6 · Never print
 | source | carries | read it as |
