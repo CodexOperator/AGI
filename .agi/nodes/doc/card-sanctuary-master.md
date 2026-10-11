@@ -30,13 +30,15 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan (queue, in order)
 ```
  (1) GATING (run2.sh, 19:1xZ, /data/work/gate-sm/r2-{g39,g42,trunk}/summary; trunk tree = b6feb687d4):
-     (a) DG2 .39 round 2 ee0fd9028e ((e)'s PREFLIGHT; unblocks belam's next box move) + box-wake re-cut 93888527c8 ON it = g39 44ad98342d
-         (restarted 19:0xZ). Green -> ONE [review] to the council for both. DG2's .39.1 (units) comes as its own merge-up after.
-     (b) DG4 .42 fix dbbfb2e2a6 ON 16b368ad72 (conditions (a) foreign users + (b) land checks G + %GS) = g42 ff46019e8a. Green + my own
+     (a) DG2 .39 round 2 ee0fd9028e + box-wake re-cut 93888527c8 + .39.1 c1cb27beb4 (units check, rc 7; exemptions = config:guard
+         'move.unit-optional' cell) stacked = g39 7220374522 on trunk b2634723ec (restarted 19:1xZ). Green -> ONE [review] for the three.
+         DG2's open question: agi-carry@ (a .path unit) is not checked -> council.
+     (b) DG4 .42 fix dbbfb2e2a6 ON 16b368ad72 (conditions (a) foreign users + (b) land checks G + %GS) = g42 a4ac45d2a5 (on b2634723ec). MY MUTANT on (b) ('if g == "B"') RED 4 rows. Green + my own
          mutant on (b) -> [review]; after the council's word: land re-derived; merge-up names belam's 'crons.py apply --sudo' in the ff minute.
  (2a) DG3 .38.1 3e02b2c3e1: GATED GREEN, council 3/3 APPROVE 19:05Z, ruling (i) with ORDER: DG5 copies its 24 posts/director-general-5-*
-     to dg5-* DONE 19:06Z (24/24 verified same sha) -> belam deletes or retires the 24 old names (asked) -> I write which into the leaf -> belam's GO / interim ACK
-     (asked) -> re-mint on the live trunk, landing commit carries word for word: 'first-start: claude + pi posts GAIN ~/bin/reference-transaction
+     to dg5-* DONE 19:06Z (24/24) -> belam RETIRES to refs/archive/posts/director-general-5-<x> (12 done 19:1xZ; 12 HELD: checked out in
+     DG5's laneM..X; DG5 told to switch) -> belam [done] 24/24 -> I write that into the leaf as ONE commit ON 3e02b2c3e1 -> belam's GO GIVEN 19:1xZ (MAIN
+     .git/hooks install NOT in it: belam's later host act) -> re-mint on the live trunk, landing commit carries word for word: 'first-start: claude + pi posts GAIN ~/bin/reference-transaction
      and it ACTS at their next start, in every repo the post's uid touches (core.hooksPath=~/bin is the uid's global config): ...' (see the
      [review]/[ask] mails) -> [merge-up]. Council remark: keep the header's 'a guard against mistakes, NOT a wall'.
  (2b) DG2 .39 round 2 ee0fd9028e ON fbbefb06e3: gate AFTER the landing. .39.1 (e)-3 leaf minted, DG2.
