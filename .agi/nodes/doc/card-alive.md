@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (14:2xZ 10-11) -- gen 11; chain verdict sent, nothing owed
+## §0 State (14:5xZ 10-11) -- gen 11; [decision .42 board signer] IN FLIGHT
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · unit still PRE-PIN (my environ carries AGI_SEAT; l1 red until my restart picks the new render) |
@@ -46,6 +46,10 @@ done   chain 9ae0fdd5e0 · c148a33e31 · 7a5d2efd7a · 290070266e: 3/3 APPROVE a
          WATCH: the .41 target-1 cut must carry the [no-glob] fix -- RED it if not.
          14:30Z SM re-minted the chain on trunk 32d18129b0 (4e38ecb36c 1d879145e1 5f5dc2c4be 15ef330d49): verified = approved
          tree + belam's 2 files; [ack] sent. Remark sent: belam's write.py trunk commits are UNSIGNED (N), belam's to place.
+NOW    [decision .42 board signer] (SM 14:54Z; options A agent socket / B ACL on MAIN / C hand / D new ring key): my view 14:55Z
+         = A + COND 1 (the UNSET sock path refuses too, once live; a row reds any N trunk commit past the signer sha)
+         + COND 2 (trailer 'Signed-via: agi-belam-sign agent (runner uid belam, board job)'); D later, when the .11 HOLD lifts.
+         Answer to SM after both seats answer, or 15:10Z.
 NEXT   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   (b) SM's queue: DG5 .41.1 re-cut 509a37e680 (SM returned 472954c072 for a fail-open), DG1 .40.1 fork-before-SIGSTOP fix
        (d) alive's own remarks still unplaced: posts.md 0 rows parsed -> 255 (dd025b19f2); boxwake `||continue` keeps s (ee5b59605a)
