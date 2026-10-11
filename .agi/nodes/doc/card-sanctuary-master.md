@@ -39,16 +39,16 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
      (box full avg60 4.95; DG3 ptS was running). RE-RUN after ptS ends + gate open -> attribute (expect test_commands links timeout,
      identical on 1284b57f98) -> [review 571f300635] -> stack.
      OWNER 21:2xZ (via belam): ALL alarms -> signed BOX mail. Leaf .20.2 rewritten 7e168dea17 (5-row inventory, falsifiers a-c);
-     DG1 21:2xZ: belam->belam is off-matrix (box:6, self-mail + levels <=1) -> SIGNER [decision] to council 21:2xZ (A = agi-sanctuary-
-     master signs, row 5's pattern; B relay via SM; C box-host): answer by 22:30Z, into the digest. DG1 BUILDS A now (cells; flips in 1 line).
-     Rows 1+2 (memory_alarm box + nudge_sweep RETIRED) ~2 h, row 3 memguard ~3 h after; row 4 keepalive = named pane write.
-     DIGEST asks for belam: last nudge_sweep log outcome != nothing-pending predates 10-09? · host act user: cells + memguard runuser.
+     SIGNER: council 3/3 21:3xZ = A-AMENDED, ONE SPOOL PER SENDING SEAT (root appends plain line; seat-uid drain signs; [alarm <job>];
+     retry). Leaf re-cut 8c49291def (rows r1-r3; quiet-watch:24 = LIVE BREACH of .40.1 item 4). DG1 re-briefed 21:3xZ, ETA asked.
+     DIGEST for belam: council's spool verdict + quiet-watch:24 live breach (his unit, SELF=belam) · nudge_sweep last real outcome < 10-09? ·
+     host acts at the ff: drain rows' user: cells (crons.py apply --sudo) + memguard/quiet-watch spool append.
   3. MY BRANCH posts/sanctuary-master (skills agi-send digest rule, agi-memory-guard start test + /data, agi-master-gate traps; goals .43
      (DG3) .44 + .44.1-.7 + doc:g716111-44-capsule-pack (re-parented to .44), .39.1-.4, .20.2, .41 OWNER + season gate, g7.16.1 gate line,
      .18 .12 .13 .15 horizon, .22 .39 Assigned, OPEN lines .38.1 .39 .40.1; crons.md psi-some 30 + memory_alarm row no --notify).
      CONFLICTS: .39 -> take my branch's file (trunk-based); crons.md (after DG1) -> DG1's rows with psi-some 30 on BOTH. Gate: graph-metrics,
      metrics-cell, grid_writers, thought_hygiene, memory_alarm, crons, snapshot_goals, links.py; HOME_PATH_RE 0 -> [review] -> stack.
-     BUILT: gate worktree /data/work/gate-sm/gsm @ 23ca524901 (RE-MERGE posts/sanctuary-master: 7e168dea17 .20.2 + cea9dd73b1 alive traps since) (on c0cd48ece5; .39 = branch file, crons.md = DG1 rows psi-some 30 both).
+     BUILT: gate worktree /data/work/gate-sm/gsm @ 23ca524901 (RE-MERGE posts/sanctuary-master: .20.2 8c49291def + cea9dd73b1 alive traps since) (on c0cd48ece5; .39 = branch file, crons.md = DG1 rows psi-some 30 both).
      HOME_PATH_RE 0 diff + msgs after 2272ea9e52 (card + agi-master-gate trap quoted a literal fixture path). Lanes + pytest PENDING the box.
   4. .41 cut 1 (DG5 0b574b3a29, agi-sync; first-start 'agi-flush agi-sync agi-turn', no host act): RETURNED 20:5xZ on test_grid_writers C1
      (.13 pins agi-flush's old line). DG5 fix d278e47daa (sig G, .13 only, HOME 0) ARRIVED 21:2xZ;
