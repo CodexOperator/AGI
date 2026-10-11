@@ -32,11 +32,14 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
  GATING: DG4 7d6a1a31ee (5 remarks + trunk merge): M 16ea3ca9d5 on b26aaee683? (see scratch M4), tree /dev/shm/sm37-g4; fence 5775 < 7680;
    ALL lanes running -> L4 summary in scratch; box-wake separately (the runner skips it). Then [review]. Its env clear lands BEFORE DG3's .38.1.
- WITH belam: .32 b3316f1aa0 (approved 3/3 11:05Z; bytes only). HOST GO WAITS for DG1's condition commit (H unset = 255, timeout 20 box n,
-   + remarks: env words rendered once, DIV why in header, .32 leaf text amended).
- RETURNED to DG1: ec97da5a3e (6 items, 326 passed) -- restage.sh stops the guard without resuming / refusing its SIGSTOPped pids.
+ LANDED .32 b3316f1aa0 -- NOT bytes-only (belam [red] 11:0xZ: agi-run's box loop deleted, posts install engine-wrap at each start).
+   belam's interim: each scan + after any restart, a transient agi-boxwake@<p> if no wake; ME included at my rotation (belam ACKed).
+   HOST GO waits for DG1's condition commit (H unset = 255, timeout 20 box n + remarks) -- DG1 has it FIRST.
+ Council RULE adopted 11:08Z (self-installing pieces, 'first-start:' line per post kind) -> in agi-master-gate (d419ebdb08, my branch).
+   Mechanism leaf goal:g7.16.1.11.41.1 minted on my branch -> DG5 (placed 11:1xZ).
+ AT THE COUNCIL: L41 cf8219a95e (DG1 ec97da5a3e > d242c167cb: 4 council + 2 belam items, restage refuses over stopped pids; 327 passed).
  THEN: DG3 .38.1 669aeb7322 (check belam's exemption: belam's post runs as uid agi-belam?).
- ON MY BRANCH (next landing): .40.2 v2 + .40.1 'Open after A2' text -- CONFLICT RISK: DG1's ec97da5a3e edits .40.1 too; re-merge then.
+ ON MY BRANCH (next landing): .40.2 v2 + .40.1 'Open after A2' text (CONFLICT RISK with DG1's .40.1 edit) + skill rule + .41.1 leaf.
  .37 closes after DG4's engine half lands. DG4 extras after. DG5 idle.
  HOST (belam, owner GO, ONE banked item): BY-HAND mv aside /data/work/.sanctuary/guard/guard.env + the Sep 25 guard-init.sh copy.
  UNPLACED: 9 trunk collection errors (tests/renderers + tests/embeddings) · .39 refs carry · g4.x outcomes rollup · .20 close
