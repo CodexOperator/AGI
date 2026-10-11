@@ -37,7 +37,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
      box L to the council (sp checks it) -> [merge-up] belam ff-only L · council: alive approve 16:21Z/16:42Z/17:06Z; name the open host-act
      condition (e) (DG2 preflight before the NEXT BOX MOVE = .39 round 2, next gate). My posts/sanctuary-master commits ride the NEXT landing.
  (2) DG4 .42 = a155fb2792 + 16b368ad72: GATE DONE (54 lanes 0 FAIL gate + trunk, box-wake 41/0, engine-sizes 0, 72 pytest),
-     [review 16b368ad72] SENT 18:0xZ. Lands AFTER (e,f,g), re-derived; merge-up names belam's 'crons.py apply --sudo' in the ff minute;
+     council 3/3 APPROVE 18:06Z WITH 2 CONDITIONS BEFORE LANDING, placed with DG4 18:0xZ: (a) crons.py _foreign_users reconciles
+     every user any job names; (b) land checks %G? == G + %GS == belam@agi with the allowed_signers file (aio forged an N commit -> land
+     rc 0). Gate DG4's next commit ON 16b368ad72 (rows + mutants), then [review]. Lands AFTER (e,f,g), re-derived; merge-up names belam's 'crons.py apply --sudo' in the ff minute;
      after E's first live run: C4 boundary sha into the leaf (mine).
  (2a) DG3 .38.1 re-cut #3 3e02b2c3e1: GATING (18:0xZ) /data/work/gate-sm/run381.sh -> l381-{g381,trunk}/summary (g381 = aacd7026e4 on
      c0f7aea27a). Green -> [review] with the 'first-start:' line (claude + pi GAIN ~/bin/reference-transaction and it ACTS) in the mail
