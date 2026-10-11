@@ -366,7 +366,6 @@
       "PROTECT_CMD": "streamer-stub|rotate\\.py launch-wrapper|agi-memguard",
       "PROTECT_COMM": "{'claude', 'tmux: server', 'ffmpeg', 'tmux'}",
       "POST_CGROUP_RE": "^0::/agi\\.slice/agi-post@[^/\\n]+\\.service(/|$)",
-      "POST_PI_COMM": "pi",
       "SUSPEND_RATIO": "0.70",
       "SUSPEND_PCT": "70",
       "SPIKE_BYTES": "3",
