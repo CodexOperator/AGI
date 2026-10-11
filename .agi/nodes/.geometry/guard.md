@@ -19,8 +19,9 @@ guard is in the graph ... guard.env as a .geometry config node keyed by box
 class, never by host name"). `extensions/agi/guard/guard-init.sh` reads the
 fenced block below (opened by the line ```` ```sh guard.env ````, closed by a bare fence)
 through `guard_env_load` (every line validated, nothing evaluated). The file it
-replaces is kept on the box as `~/work/.sanctuary/guard/guard.env.pre-graph-20260930`;
-a legacy `guard.env` still in place is refused by name, never read.
+replaces may still sit under SANCTUARY on a box (`~/work/.sanctuary/guard/guard.env`; a
+`.pre-graph-20260930` copy was reported kept there, UNVERIFIED) until that box's layer-5
+install moves it aside; guard-init refuses it by name, never reads it.
 
 - **Key = the BOX name**, never the host name: `GUARD_<SETTING>_<box>` with every
   non-alphanumeric of the box turned into `_` (`local-town` -> `local_town`).

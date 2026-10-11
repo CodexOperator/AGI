@@ -177,7 +177,7 @@ if [ -z "$GUARD_ENV_NODE" ]; then
   [ -f "$GUARD_ENV_NODE" ] || GUARD_ENV_NODE=/data/work/agi/.agi/nodes/.geometry/guard.md
 fi
 GUARD_ENV_FROM=defaults
-# RETIRED (goal:g1.41 C; the box's file was set aside on 09-30, config:guard replaced it): root never sources a file, and a stray one is named in BOTH cases (node present or missing), never silently ignored
+# RETIRED (goal:g1.41 C; config:guard replaced it; a box may still carry the file under SANCTUARY until its layer-5 install moves it aside, and this refusal is what names it): root never sources a file, and a stray one is named in BOTH cases (node present or missing), never silently ignored
 for _gf in "$SANCTUARY/guard/guard.env" "$GUARD_DIR/guard.env"; do
   [ -f "$_gf" ] && die "$_gf: legacy file predates box-keyed cells (GUARD_<CELL>_<box key>) and is retired: put its lines in config:guard's \`\`\`sh guard.env block, then remove the file"
 done

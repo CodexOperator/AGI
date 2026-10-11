@@ -1,6 +1,6 @@
 """goal:g1.41 lane C, the LEGACY arm -- RETIRED. guard-init.sh runs as root; it used to `.`-source a legacy guard.env
-when config:guard was missing. The box's file was set aside on 09-30 and a legacy file predates box-keyed cells
-(GUARD_<CELL>_<box key>), so the arm is gone: a stray file is REFUSED BY NAME and never read. A box that still
+when config:guard was missing. A legacy file predates box-keyed cells (GUARD_<CELL>_<box key>) and a box may
+still carry one until its layer-5 install moves it aside, so the arm is gone: a stray file is REFUSED BY NAME and never read. A box that still
 carries one learns it at the next run instead of having it sourced or silently ignored.
 (The node block's own rows live in guard-env.t.sh.)
 """
