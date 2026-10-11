@@ -615,7 +615,7 @@ def _fake_proc(tmp_path, rows):
     return proc
 
 
-def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, over=None, grow=None, flips=None, spawn=None, sysd=None, rewrite=None, no_uptime=False):
+def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, over=None, grow=None, flips=None, spawn=None, sysd=None, rewrite=None, no_uptime=False, kill_raises=(), break_log_at=None, fix_log_at=(), popen_raises=False, logger_raises=False, logger_hangs=False):
     """Run the RENDERED loop for `passes` passes on a fake clock (`tick` s per pass); avails[i] = MemAvailable in bytes
     for pass i (default: plenty). Returns (adj, stops, runs, ev): the SIGSTOPped pids, the logger/other run() calls and
     ev = what the loop did besides: conts (SIGCONT pids), boxes ([(argv, stdin text)] of every Popen), clock.
@@ -625,6 +625,7 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
     parent's cgroup that INHERITS the parent's oom_score_adj and nice as they are at that moment. sysd = what `systemctl show`
     says for a unit ({unit: "OOMScoreAdjust=..\\nNice=.."}, an Exception instance to fail); every call lands in ev.sysd.
     rewrite = {pass: [(pid, 'cmd', text) | (pid, 'ppid', n)]} changes a process's argv or parent at that pass (a harness that loses its argv, a tree that cannot be read);
+    ev.seq = [('log', text) | ('kill', pid, signal)] in the order they happened; kill_raises = pids whose SIGSTOP raises; ev.stopped = the guard's stopped map at the end.
     /proc/uptime follows the fake clock, so a process's age is the clock minus its start ticks."""
     piece = BY_NAME["memguard-script"]
     tmp_path.mkdir(parents=True, exist_ok=True)
@@ -632,18 +633,20 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
     src = R.rendered(piece, _vs(MEMGUARD_LOG=str(tmp_path / "guard.log"), **(over or {}))).replace("/proc", str(proc))
     assert "/var/log" not in src       # log() writes a tmp path here, never the live log
     assert "send.py" not in src        # the retired mail path is gone from the rendered guard
-    for c in ("time.sleep(", "time.time()", "os.kill(", "subprocess.run(", "subprocess.Popen(", "os.getpriority(", "os.setpriority(", "subprocess.check_output(", "os.listdir("):
+    for c in ("time.sleep(", "time.time()", "os.kill(", "subprocess.Popen(", "os.getpriority(", "os.setpriority(", "subprocess.check_output(", "os.listdir("):
         assert c in src, c
     src = src.replace("time.sleep(", "_sleep(").replace("time.time()", "_now()")
     src = src.replace("os.kill(", "_kill(").replace("subprocess.run(", "_run(")
-    if not real_box: src = src.replace("subprocess.Popen(", "_popen(")
+    src = src.replace("subprocess.Popen(", "_popen(")             # the journal line (logger) is ALWAYS the fake: a real_box run spawns only the real notice children
     src = src.replace("subprocess.check_output(", "_out(").replace("os.listdir(", "_ls(")
     src = src.replace("os.getpriority(", "_gp(").replace("os.setpriority(", "_sp(")   # fake pids may be real ones
     import signal as _sig
-    clock, n, ev = [10_000.0], [0], types.SimpleNamespace(conts=[], boxes=[], stops=[], nice={}, sysd=[], order=[])
+    clock, n, ev = [10_000.0], [0], types.SimpleNamespace(conts=[], boxes=[], stops=[], nice={}, sysd=[], order=[], seq=[], stopped={}, largv=[], pend=[])
     avails = avails or [33_000_000 * 1024]
     def setavail(i):
         a = avails[min(i, len(avails) - 1)]
+        if i in fix_log_at and (tmp_path / "guard.log").is_dir(): (tmp_path / "guard.log").rmdir(); (tmp_path / "guard.log").write_text("")
+        if i == break_log_at or (isinstance(break_log_at, (set, tuple, list)) and i in break_log_at): (tmp_path / "guard.log").unlink(missing_ok=True); (tmp_path / "guard.log").mkdir()          # the guard's log cannot be appended to from here on (a full disk, EACCES)
         if not no_uptime: (proc / "uptime").write_text("%.2f 0.00\n" % clock[0])
         for pid, what, v in (rewrite or {}).get(i, []):
             if what == "cmd": (proc / str(pid) / "cmdline").write_text(v.replace(" ", "\0") + "\0")
@@ -672,12 +675,28 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
         if n[0] >= passes: raise SystemExit
         setavail(n[0])
     def _kill(pid, sig):
+        glog = tmp_path / "guard.log"; ev.seq.append(("kill", pid, int(sig), glog.read_text() if glog.is_file() else ""))       # + what the guard's file held AT the kill
+        if pid in kill_raises and sig == _sig.SIGSTOP: raise ProcessLookupError(pid)
         (ev.stops if sig == _sig.SIGSTOP else ev.conts).append(pid); ev.order.append(("stop" if sig == _sig.SIGSTOP else "cont", pid)); setstate(pid, "T" if sig == _sig.SIGSTOP else "S")
     class _P:
         def __init__(s, argv, **k):
-            ev.boxes.append([argv, argv[-1]])        # [argv, the notice text]: the text is the last argv word, never a shell string
+            if popen_raises: raise OSError("no runuser")
+            ev.boxes.append([argv, argv[-1]]); ev.seq.append(("popen", argv[-1]))        # [argv, the notice text]: the text is the last argv word, never a shell string
         def poll(s): return 0
         def wait(s, timeout=None): return 0
+    class _L:
+        """The journal line: `timeout 30 logger -t agi-memguard MSG`, fire-and-forget (ev.seq 'log'); logger_raises = the spawn itself fails."""
+        def __init__(s, argv, **k):
+            if logger_raises: raise OSError("no logger")
+            ev.largv.append((argv, k)); runs.append((argv[2:],)); ev.seq.append(("log", argv[-1]))
+        def poll(s): return None if logger_hangs else 0               # a hung logger stays in the pending list (the real one is killed by `timeout 30`)
+        def wait(s, timeout=None): return 0
+    def _popen(argv, **k):
+        if argv[2:3] == ["logger"]: return _L(argv, **k)
+        return _P(argv, **k) if not real_box else subprocess.Popen(argv, **k)
+    def _run(*a, **k):                    # a BLOCKING subprocess.run: the guard no longer has a call that waits on a child, so any entry here is a wait on the stop path
+        ev.seq.append(("run", a[0][-1])); runs.append(a)
+        if logger_raises: raise OSError("no logger")
     runs = []
     def _out(argv, **k):
         ev.sysd.append(argv); ev.order.append(("fetch", argv[2])); got = (sysd or {}).get(argv[2], "OOMScoreAdjust=0\nNice=0\n")
@@ -685,13 +704,13 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
         if isinstance(got, Exception): raise got
         return got
     ns = {"__name__": "memguard_test", "_kill": _kill, "_out": _out, "_ls": lambda d: sorted(os.listdir(d), key=lambda x: int(x) if x.isdigit() else 0),   # a fixed pid order
-           "_run": lambda *a, **k: runs.append(a), "_popen": _P,
+           "_run": _run, "_popen": _popen,
           "_gp": lambda w, pid: ev.nice.get(pid, 0), "_sp": lambda w, pid, v: ev.nice.__setitem__(pid, v), "_sleep": _sleep, "_now": lambda: clock[0]}
     with pytest.raises(SystemExit):
         exec(compile(src, "memguard-rendered", "exec"), ns)
     for q in ns.get("pend", []): q.wait(timeout=60)      # only non-empty with real_box: the real children finish
     adj = {pid: int((tmp_path / "proc" / str(pid) / "oom_score_adj").read_text()) for pid in rows if (tmp_path / "proc" / str(pid)).exists()}
-    ev.clock = clock[0]
+    ev.clock = clock[0]; ev.stopped = dict(ns.get("stopped", {})); ev.pend = list(ns.get("pend", []))
     return adj, sorted(ev.stops), runs, ev
 
 
@@ -2064,7 +2083,7 @@ _STUB_UNIT_CTL = """#!/bin/sh
 echo "$*" >> "$CALLS"
 case "$*" in
   "is-active "*) [ -e "$STATE" ]; exit $?;;
-  "stop "*) rm -f "$STATE";;
+  "stop "*) if [ -n "$BREAK_LOG" ]; then rm -f "$LOG"; mkdir "$LOG"; fi; if [ -n "$RACE_PID" ]; then kill -STOP "$RACE_PID"; echo "2026-10-11T09:00:00Z SUSPENDED pid $RACE_PID (sleep): in the window" >> "$LOG"; fi; rm -f "$STATE";;
   "enable --now "*) : > "$STATE";;
   "disable"*) rm -f "$STATE";;
 esac
@@ -2088,15 +2107,21 @@ def test_memguard_a1_undo_disables_and_removes_the_wants_link_a_hand_stop_leaves
     assert r.returncode == 1 and "UNDO A1 REFUSED: the unit is active" in r.stdout and (sb / "agi-memguard.py").exists()
 
 
+_OLD_GUARD = "old guard\n    for to in 'master belam'.split():\n        x = 'HOME=/stores/' + to\n"                       # the recipients and the stores the real guard source carries
+_STUB_NOTICE = "#!/bin/sh\necho \"$1 $2\" >> \"$NOTICES\"\n"
+
+
 def _restage_world(tmp_path):
     """A MAIN with the real boxkit, a box that already runs an OLDER guard (installed, enabled, active, a2.since = ORIG), and the stub systemctl."""
     repo, g = _mini_repo(tmp_path); sha = g("rev-parse", "HEAD")
     sb, ud = tmp_path / "sbin", tmp_path / "units"; (ud / "multi-user.target.wants").mkdir(parents=True); sb.mkdir()
-    (sb / "agi-memguard.py").write_text("old guard"); (ud / "agi-memguard.service").write_text("old unit")
+    (sb / "agi-memguard.py").write_text(_OLD_GUARD); (ud / "agi-memguard.service").write_text("old unit")
     (ud / "multi-user.target.wants" / "agi-memguard.service").symlink_to(ud / "agi-memguard.service")
     stage = tmp_path / "memguard-A0"; stage.mkdir(); (stage / "a2.since").write_text("2026-10-11T08:30:00Z\n")
     ctl = tmp_path / "ctl"; ctl.write_text(_STUB_UNIT_CTL); ctl.chmod(0o755); (tmp_path / "active").write_text("")
-    env = dict(SUDO="env", OWN="", LOG=tmp_path / "guard.log", SBIN=sb, UNITDIR=ud, SYSTEMCTL=ctl, CALLS=tmp_path / "calls.log", STATE=tmp_path / "active", STAGE=stage, MAIN=repo)
+    nb = tmp_path / "notice-bin"; nb.write_text(_STUB_NOTICE); nb.chmod(0o755)
+    env = dict(SUDO="env", OWN="", LOG=tmp_path / "guard.log", SBIN=sb, UNITDIR=ud, SYSTEMCTL=ctl, CALLS=tmp_path / "calls.log", STATE=tmp_path / "active", STAGE=stage, MAIN=repo,
+               NOTICE_BIN=nb, NOTICES=tmp_path / "notices.log", RACE_PID="")
     return repo, g, sha, stage, sb, ud, env
 
 
@@ -2107,7 +2132,7 @@ def test_memguard_restage_moves_a_running_guard_to_the_new_sha_and_keeps_the_und
     calls = (tmp_path / "calls.log").read_text().splitlines()
     assert r.returncode == 0 and "RESTAGE OK" in r.stdout, r.stdout + r.stderr
     assert (stage / "a2.since").read_text().strip() == "2026-10-11T08:30:00Z", (stage / "a2.since").read_text()     # the ORIGINAL scope, not the re-stage's stamp
-    assert (sb / "agi-memguard.py").read_text() != "old guard" and (stage / "SHA").read_text().strip() == sha        # the new bytes are in
+    assert (sb / "agi-memguard.py").read_text() != _OLD_GUARD and (stage / "SHA").read_text().strip() == sha        # the new bytes are in
     assert not (ud / "multi-user.target.wants" / "agi-memguard.service").is_symlink()                                 # a1.undo took the stale wants link
     order = [calls.index(c) for c in ("stop agi-memguard.service", "disable agi-memguard.service", "enable --now agi-memguard.service")]
     assert order == sorted(order) and (tmp_path / "active").exists(), calls                                        # stopped first, running again at the end
@@ -2127,7 +2152,7 @@ def test_memguard_restage_refuses_without_a_landed_sha_and_touches_nothing_when_
     assert r.returncode == 1 and "RESTAGE STOPPED at A0" in r.stdout and "the guard was not touched" in r.stdout, r.stdout + r.stderr
     assert not (tmp_path / "calls.log").exists() and (tmp_path / "active").exists(), "the guard was never stopped"
     assert (stage / "a2.since").read_text().strip() == "2026-10-11T08:30:00Z"                                      # and the scope A0 wiped is back
-    assert (sb / "agi-memguard.py").read_text() == "old guard"
+    assert (sb / "agi-memguard.py").read_text() == _OLD_GUARD
 
 
 @pytest.mark.skipif(shutil.which("git") is None, reason="needs git")
@@ -2155,7 +2180,9 @@ def test_memguard_restage_refuses_while_the_guard_holds_stopped_pids_and_touches
                        "2026-10-11T08:42:00Z SUSPENDED pid %d (sleep): this A2, resumed since\n" % (older.pid, mine.pid, running.pid))
         r = _sh("memguard-restage.sh", tmp_path, SHA=sha, **env)
         assert r.returncode == 1 and "RESTAGE REFUSED: the guard holds stopped pids: %d " % mine.pid in r.stdout + " " and str(older.pid) not in r.stdout.split("holds stopped pids:")[1] and str(running.pid) not in r.stdout.split("holds stopped pids:")[1], r.stdout + r.stderr
-        assert not (tmp_path / "calls.log").exists() and (tmp_path / "active").exists() and (sb / "agi-memguard.py").read_text() == "old guard", "nothing touched"
+        assert not (tmp_path / "calls.log").exists() and (tmp_path / "active").exists() and (sb / "agi-memguard.py").read_text() == _OLD_GUARD, "nothing touched"
+        said = (tmp_path / "notices.log").read_text().splitlines()
+        assert [l.split(" ")[0] for l in said] == ["master", "belam"] and all("[memguard-restage] RESTAGE REFUSED: the guard holds stopped pids:" in l for l in said), said      # a refusal reaches both recipients
         assert (stage / "a2.since").read_text().strip() == "2026-10-11T08:30:00Z" and not (stage / "SHA").exists(), "not even A0 ran"
         os.kill(mine.pid, signal.SIGCONT); time.sleep(0.3)                             # resumed: only an EARLIER A2's stopped pid is left, which is not this A2's to continue
         r = _sh("memguard-restage.sh", tmp_path, SHA=sha, **env)
@@ -2171,3 +2198,165 @@ def test_memguard_restage_refuses_while_the_guard_holds_stopped_pids_and_touches
     fb = tmp_path / "w3" / "fakebin"; fb.mkdir(); (fb / "awk").write_text("#!/bin/sh\nexit 2\n"); (fb / "awk").chmod(0o755)
     r = _sh("memguard-restage.sh", tmp_path / "w3", SHA=sha, **env)
     assert r.returncode == 1 and "cannot be read" in r.stdout and not (tmp_path / "w3" / "calls.log").exists(), r.stdout + r.stderr
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="needs git")
+def test_memguard_restage_resumes_a_pid_the_old_guard_stops_in_the_window_before_its_stop_and_says_so(tmp_path):
+    import signal, time
+    repo, g, sha, stage, sb, ud, env = _restage_world(tmp_path)
+    racer = subprocess.Popen(["sleep", "30"])
+    state = lambda p: Path("/proc/%d/stat" % p).read_text().rsplit(")", 1)[1].split()[0]
+    try:
+        r = _sh("memguard-restage.sh", tmp_path, SHA=sha, **{**env, "RACE_PID": racer.pid})          # the stub `systemctl stop` SIGSTOPs the pid and logs it: the first check saw nothing
+        time.sleep(0.3)
+        assert r.returncode == 0 and "RESTAGE OK" in r.stdout and "RESTAGE RESUMED pid %d" % racer.pid in r.stdout, r.stdout + r.stderr
+        assert state(racer.pid) == "S", state(racer.pid)                                          # THE FALSIFIER: after the script returns, no pid the old guard stopped is still T/t
+        said = (tmp_path / "notices.log").read_text().splitlines()
+        assert [l.split(" ")[0] for l in said] == ["sanctuary-master", "belam"] and all("RESUMED pid %d" % racer.pid in l and "kill -CONT %d" % racer.pid in l for l in said), said
+        assert (stage / "a2.since").read_text().strip() == "2026-10-11T08:30:00Z"
+    finally:
+        racer.kill(); racer.wait()
+    # a pid that CANNOT be resumed is named WITH its resume command (the falsifier's other arm), and the restage goes on
+    repo, g, sha, stage, sb, ud, env = _restage_world(tmp_path / "w2")
+    fb = tmp_path / "w2" / "fakebin"; fb.mkdir(parents=True); (fb / "kill").write_text("#!/bin/sh\nexit 1\n"); (fb / "kill").chmod(0o755)        # `env kill -CONT` finds this one first
+    racer = subprocess.Popen(["sleep", "30"])
+    try:
+        r = _sh("memguard-restage.sh", tmp_path / "w2", SHA=sha, **{**env, "RACE_PID": racer.pid})
+        time.sleep(0.3)
+        assert r.returncode == 0 and "RESTAGE COULD NOT RESUME pid %d" % racer.pid in r.stdout and "RESTAGE OK" in r.stdout, r.stdout + r.stderr
+        assert state(racer.pid) == "T"                                                                # still stopped: so the line must carry the command
+        said = (tmp_path / "w2" / "notices.log").read_text().splitlines()
+        assert len(said) == 2 and all("STILL STOPPED" in l and "resume it by hand: kill -CONT %d" % racer.pid in l for l in said), said
+    finally:
+        os.kill(racer.pid, signal.SIGCONT); racer.kill(); racer.wait()
+    # a failure AFTER the stop reaches the recipients too
+    repo, g, sha, stage, sb, ud, env = _restage_world(tmp_path / "w3"); (tmp_path / "w3" / "sbin").chmod(0o555)
+    try:
+        r = _sh("memguard-restage.sh", tmp_path / "w3", SHA=sha, **env)
+    finally: (tmp_path / "w3" / "sbin").chmod(0o755)
+    said = (tmp_path / "w3" / "notices.log").read_text().splitlines()
+    assert r.returncode == 1 and len(said) == 2 and all("THE GUARD IS STOPPED" in l for l in said), (r.stdout, said)
+    # the log readable at the first check and NOT after the stop: the stopped pids are unknown, THE GUARD IS STOPPED is said to the recipients, nothing is guessed
+    repo, g, sha, stage, sb, ud, env = _restage_world(tmp_path / "w4"); Path(env["LOG"]).write_text("")
+    r = _sh("memguard-restage.sh", tmp_path / "w4", SHA=sha, **{**env, "BREAK_LOG": "1"})
+    said = (tmp_path / "w4" / "notices.log").read_text().splitlines()
+    assert r.returncode == 1 and "RESTAGE FAILED after the stop: THE GUARD IS STOPPED and" in r.stdout and len(said) == 2 and "memguard-a2.undo.sh" in said[0], (r.stdout, said)
+
+
+def _kill_at(ev, pid):
+    ks = [i for i, e in enumerate(ev.seq) if e[0] == "kill" and e[1] == pid and e[2] == int(__import__("signal").SIGSTOP)]
+    assert len(ks) == 1, (pid, ev.seq)
+    return ks[0]
+
+
+def test_memguard_writes_the_suspended_line_before_the_sigstop_and_forks_nothing_before_it(tmp_path):
+    rows = _post_unit()
+    for name, kw, want in (("size", dict(avails=[3 * GIB] * 2, grow={1: [(30, 7_000_000)]}), 30), ("low", dict(avails=[GIB // 2]), None)):
+        adj, stops, runs, ev = _guard_pass(tmp_path / name, rows, passes=2 if name == "size" else 1, **kw)
+        pid = want or stops[0]; assert stops == [pid], stops
+        k = _kill_at(ev, pid); text = ev.seq[k][3]
+        assert "SUSPENDED pid %d " % pid in text and "start %s" % rows[pid][4] in text, text                       # the line is in the FILE when the SIGSTOP goes out, with the pid's start time
+        assert not any(e[0] in ("log", "popen", "run") for e in ev.seq[:k]), ev.seq[:k]                                  # and nothing was forked before it: no logger, no notice (the stop never waits on a spawn)
+        after = ev.seq[k + 1:]
+        assert any(e[0] == "log" and "SUSPENDED pid %d " % pid in e[1] for e in after) and any(e[0] == "popen" and "SUSPENDED pid %d " % pid in e[1] for e in after), after      # the journal line and the notices follow
+
+
+def test_memguard_a_sigstop_that_fails_leaves_the_line_in_the_file_and_no_stopped_pid_and_says_so(tmp_path):
+    tos = _vs()["MEMGUARD_ALERT_TO"].split()
+    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(), passes=3, avails=[3 * GIB] * 3, grow={1: [(30, 7_000_000)]}, kill_raises={30})
+    said = [a[0][-1] for a in runs]; filed = (tmp_path / "guard.log").read_text().splitlines()
+    assert sum("SUSPENDED pid 30 " in l for l in filed) == sum("the SIGSTOP failed" in m for m in said) >= 1, (filed, said)     # every attempt: the line in the file, the failure in the journal
+    assert not any("SUSPENDED pid 30 " in m for m in said), said                                                      # no journal line claims a stop that did not happen
+    assert 30 not in ev.stopped and stops == [], (ev.stopped, stops)                                                  # no pid is tracked as stopped
+    assert not any("no longer tracked as stopped" in m for m in said), said                                           # and the next tick has nothing to prune
+    for to in tos:
+        kinds = [b[1].split(" ")[0] for b in ev.boxes if b[0][4] == "agi-" + to]
+        assert kinds.count("[memguard-susp-30]") == 0 and kinds.count("[memguard-stopfail-30]") == 1, (to, kinds)       # the master reads the failure, not a false SUSPENDED
+
+
+def _start_of(pid): return Path("/proc/%d/stat" % pid).read_text().rsplit(")", 1)[1].split()[19]
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="needs git")
+def test_memguard_restage_and_a2_undo_never_continue_a_reused_pid(tmp_path):
+    import signal, time
+    repo, g, sha, stage, sb, ud, env = _restage_world(tmp_path)
+    mine, reused = (subprocess.Popen(["sleep", "30"]) for _ in range(2))
+    state = lambda p: Path("/proc/%d/stat" % p).read_text().rsplit(")", 1)[1].split()[0]
+    try:
+        for q in (mine, reused): os.kill(q.pid, signal.SIGSTOP)
+        time.sleep(0.3)
+        log = Path(env["LOG"])
+        log.write_text("2026-10-11T08:41:00Z SUSPENDED pid %d (sleep, unit x, start 1): the guard stopped ANOTHER process under this pid, long ago\n" % reused.pid)
+        r = _sh("memguard-restage.sh", tmp_path, SHA=sha, **env)                                      # the pid is stopped now, but it is not the process the guard stopped
+        assert r.returncode == 0 and "RESTAGE OK" in r.stdout and state(reused.pid) == "T", r.stdout + r.stderr          # not held: restage goes on and does not touch it
+        repo, g, sha, stage, sb, ud, env = _restage_world(tmp_path / "w2")
+        Path(env["LOG"]).write_text("2026-10-11T08:41:00Z SUSPENDED pid %d (sleep, unit x, start %s): this one\n" % (mine.pid, _start_of(mine.pid)))
+        r = _sh("memguard-restage.sh", tmp_path / "w2", SHA=sha, **env)
+        assert r.returncode == 1 and "holds stopped pids: %d " % mine.pid in r.stdout + " ", r.stdout + r.stderr         # the matching start time: held, refused
+        stg = tmp_path / "undo"; stg.mkdir(); (stg / "a2.since").write_text("2026-10-11T08:30:00Z\n")
+        ulog = tmp_path / "undo.log"
+        ulog.write_text("2026-10-11T08:40:00Z SUSPENDED pid %d (sleep, unit x, start %s): ours\n2026-10-11T08:41:00Z SUSPENDED pid %d (sleep, unit x, start 1): another process then\n" % (mine.pid, _start_of(mine.pid), reused.pid))
+        r = _sh("memguard-a2.undo.sh", tmp_path / "undo", STAGE=stg, LOG=ulog, **_stubs(tmp_path / "undo", since="Sun 2026-10-11 09:00:00 UTC"))
+        time.sleep(0.3)
+        assert "resuming pid %d" % mine.pid in r.stdout and "NOT resuming pid %d" % reused.pid in r.stdout and "a reused pid" in r.stdout, r.stdout + r.stderr
+        assert state(mine.pid) == "S" and state(reused.pid) == "T", (state(mine.pid), state(reused.pid))
+    finally:
+        for q in (mine, reused): q.kill(); q.wait()
+
+
+def test_memguard_stops_the_runaway_anyway_when_the_log_append_raises_and_says_it_could_not_log_it(tmp_path):
+    tos = _vs()["MEMGUARD_ALERT_TO"].split()
+    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(), passes=2, avails=[3 * GIB] * 2, grow={1: [(30, 7_000_000)]}, break_log_at=1)
+    assert stops == [30], stops                                                                          # the SIGSTOP went out although the append raised, and the guard did not die
+    said = [a[0][-1] for a in runs]
+    assert sum("STOPPED WITHOUT a log line" in m and "kill -CONT 30" in m and "restage and a2.undo cannot see it" in m for m in said) == 1, said     # and one journal line names the pid, the error and the resume command
+    assert not any(m.startswith("SUSPENDED pid 30 ") for m in said), said                                # no ordinary line claims a log that does not exist
+    assert 30 in ev.stopped, ev.stopped                                                                  # it IS stopped, and the guard knows
+    for to in tos:
+        texts = [b[1] for b in ev.boxes if b[0][4] == "agi-" + to and b[1].startswith("[memguard-susp-30]")]
+        assert len(texts) == 1 and "STOPPED WITHOUT a log line" in texts[0] and "kill -CONT 30" in texts[0], (to, texts)      # the master reads it
+
+
+def test_memguard_an_unwritable_log_never_costs_a_stop_and_is_said_once_per_episode(tmp_path):
+    tos = _vs()["MEMGUARD_ALERT_TO"].split()
+    hide = {1: [(20, "cmd", "zzz-new --title-rewritten")]}                       # a SECOND red alert (no harness found) in the same tick
+    # ONE tick holds a SPIKE (30 -> 20 GiB), the no-harness alert and a runaway; the log is a directory since the tick began
+    adj, stops, runs, ev = _guard_pass(tmp_path / "a", _post_unit(), passes=2, avails=[30 * GIB, 20 * GIB], grow={1: [(30, 7_000_000)]}, rewrite=hide, break_log_at=1)
+    assert stops == [30], stops                                                       # the runaway was stopped although the first red alerts of the tick could not be logged
+    said = [a[0][-1] for a in runs]
+    assert any(m.startswith("SPIKE") for m in said) and any("no harness found" in m for m in said), said          # the other alerts still reached the journal
+    assert sum("[memguard-log] unwritable" in m for m in said) == 1, said                 # and the unwritable log is said ONCE for the episode, not once per failed line
+    for to in tos:
+        kinds = [b[1].split(" ")[0] for b in ev.boxes if b[0][4] == "agi-" + to]
+        assert kinds.count("[memguard-log]") == 1 and kinds.count("[memguard-spike]") == 1, (to, kinds)
+    # an episode ends at the first good write: broken at pass 1, repaired and written at pass 2, broken again at pass 3 = a SECOND line
+    adj, stops, runs, ev = _guard_pass(tmp_path / "b", _post_unit(), passes=4, avails=[30 * GIB, 20 * GIB, 15 * GIB, 8 * GIB], break_log_at={1, 3}, fix_log_at={2})        # a SPIKE at every pass but the first
+    said = [a[0][-1] for a in runs]
+    assert sum(m.startswith("SPIKE") for m in said) == 3, said                         # pass 2's line is WRITTEN (the good write that ends the episode), passes 1 and 3 are not
+    for to in tos:
+        kinds = [b[1].split(" ")[0] for b in ev.boxes if b[0][4] == "agi-" + to]
+        assert kinds.count("[memguard-log]") == 2, (to, kinds)
+    # and when the notice cannot even be SPAWNED (runuser missing) while the log is unwritable: the failed-notice line goes through the same best-effort write
+    adj, stops, runs, ev = _guard_pass(tmp_path / "c", _post_unit(), passes=2, avails=[30 * GIB, 20 * GIB], grow={1: [(30, 7_000_000)]}, break_log_at=1, popen_raises=True)
+    assert stops == [30], stops
+
+
+def test_memguard_the_stop_neither_waits_on_logger_nor_dies_of_it(tmp_path):
+    spike = dict(avails=[30 * GIB, 20 * GIB], grow={1: [(30, 7_000_000)]})            # ONE tick: a SPIKE (its line is logged BEFORE the stop sites) and a runaway
+    # (a) logger cannot be spawned (fork EAGAIN, logger missing): the tick lives, the runaway is stopped, the journal failure is written to the file
+    adj, stops, runs, ev = _guard_pass(tmp_path / "a", _post_unit(), passes=2, logger_raises=True, **spike)
+    assert stops == [30], stops
+    filed = (tmp_path / "a" / "guard.log").read_text()
+    assert "SPIKE" in filed and "SUSPENDED pid 30 " in filed and "journal line not written" in filed, filed
+    assert any(b[1].startswith("[memguard-spike]") for b in ev.boxes) and any(b[1].startswith("[memguard-susp-30]") for b in ev.boxes), [b[1][:30] for b in ev.boxes]      # the notices still go out
+    # (b) logger HANGS (journald's /dev/log slow under the reclaim): no call in the guard WAITS on it, so the stop is in the same tick, and the hung child is only held in the pending list
+    adj, stops, runs, ev = _guard_pass(tmp_path / "b", _post_unit(), passes=2, logger_hangs=True, **spike)
+    assert stops == [30], stops
+    assert not any(e[0] == "run" for e in ev.seq), [e for e in ev.seq if e[0] == "run"]          # no blocking subprocess.run anywhere: a hung logger cannot hold the tick
+    k = _kill_at(ev, 30)
+    assert any(e[0] == "log" and e[1].startswith("SPIKE") for e in ev.seq[:k]), ev.seq[:k]         # the SPIKE line WAS spawned before the stop, and the stop did not wait for it
+    assert ev.largv and all(a[:3] == ["timeout", "30", "logger"] for a, kw in ev.largv), ev.largv          # a hung logger is killed at 30 s ...
+    assert all(kw.get("stdin") is subprocess.DEVNULL and kw.get("stdout") is subprocess.DEVNULL and kw.get("stderr") is subprocess.DEVNULL for a, kw in ev.largv)      # ... and owns no pipe of the guard
+    held = [q for q in ev.pend if type(q).__name__ == "_L"]
+    assert len(held) >= 1 and all(q.poll() is None for q in held), ev.pend                          # ... and is REAPED through the pending list, not forgotten (the hung ones are still in it)

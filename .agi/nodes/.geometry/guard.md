@@ -130,6 +130,23 @@ GUARD_RAM_WT_HOLD_PCT_local_town=60
 GUARD_ENGINE_MAX_local_town=3G
 ```
 
+## move.exclude -- the namespaces a box move may drop
+
+`extensions/agi/guard/box-move.sh move` carries every ref namespace of the source except the ones named here, one reason each (goal:g7.16.1.11.39). Entry = `refs/<namespace>  <reason>`; the list lives only here.
+
+```sh move.exclude
+refs/remotes  a remote-tracking ref is a copy of origin's; the target fetches its own
+```
+
+## move.unit-optional -- the unit paths a box move may find absent on the target
+
+`extensions/agi/guard/unit-paths.sh` (goal:g7.16.1.11.39.1) reads the target's RENDERED agi-post@ / agi-boxwake@ units BEFORE the stop and the row edit and refuses (`[unit-path]`, rc 7) when a host path they name does not exist. A leading `-` is not a pass. These are the named exemptions, `Key path  reason` (`%i` = the post), the only paths that may be absent at that moment; nothing here may name a command (an ExecStart* word) or the signers.
+
+```sh move.unit-optional
+WorkingDirectory /var/lib/agi/%i  host-act move creates the post home AFTER this check
+EnvironmentFile /var/lib/agi/%i.env  an env file a post may not have (the unit says EnvironmentFile=-)
+```
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 GUARD_ENGINE_MAX_local_town 2G -> 3G (belam-S2-L5-XX 03:1xZ 09-30), stopgap until goal:g7.16.1.5.5 gives the RAM disk its own budget line. MEASURED 03:10Z: after heal restarted onto DG4's reclaim commits (03:07:49Z) its sweep HOMED session dirs into MAIN's .agi/sessions on the RAM disk: agi-engine.slice shmem 700M -> 1276M (iter-OSC.07 485M, iter-OSC.01 356M), current 1599M vs the 2G cell's 1536M high, PSI full avg10 36-41%. The shmem is legitimate data, not reclaimable without swap, and session-sweep.sh (goal:g7.16.1.5.2) moves it cold only after 120 min idle (the homed copies carry fresh mtimes), so the engine line must cover it until then. 3G -> high 2304M; applied live (before: 1536M / 2G). Residue to DG4: homing should land in the cold sessions home with a symlink, never a real dir on tmpfs. History: 512M -> 1G (02:5xZ, reaper throttled at 384M) -> 2G (03:0xZ, 700M shmem) -> 3G.
 <!-- THOUGHT:END -->
