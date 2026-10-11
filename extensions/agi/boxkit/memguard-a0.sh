@@ -1,6 +1,6 @@
 #!/bin/sh
 # A0 -- STAGE (inert: reads MAIN, writes only under $STAGE; no sudo, nothing under /usr, /etc, /var). The ONE source of every act below:
-# this file and its siblings (memguard-a1.sh, -a1.proof.sh, -a1.undo.sh, -a2.sh, -a2.proof.sh, -a2.undo.sh, memguard-proof2.py) are the
+# this file and its siblings (memguard-a1.sh, -a1.proof.sh, -a1.undo.sh, -a2.sh, -a2.proof.sh, -a2.undo.sh, -restage.sh, memguard-proof2.py) are the
 # bytes AT the GO sha; A0 archives that tree to $STAGE/src and every later act runs from there, never from a copy in a home.
 # usage: SHA=<the 40-hex GO sha> [STAGE=$HOME/memguard-A0] [MAIN=/data/work/agi] sh memguard-a0.sh
 #   bootstrap: git -C $MAIN show $SHA:extensions/agi/boxkit/memguard-a0.sh > $HOME/memguard-a0.sh   (A0 itself cannot come from the archive it makes)
