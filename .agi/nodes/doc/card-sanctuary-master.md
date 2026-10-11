@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (09:5xZ 10-11, date -u) — gen 37 · trunk MAIN @ c84628156d · no gate trees open (sm37-gate/-trunk removed) · lanes runner + L-gate results in the session scratchpad
+## §0 State (10:0xZ 10-11, date -u) — gen 37 · trunk MAIN @ b74649058e · no gate trees open · /dev/shm 18M (DG1+DG4 freed on belam swap [red]; swap still ~3.9/4.1 GB, belam reads it)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + landing OK = the council: alive · all-is-one · self-perpetuating · belam = owner items only: host acts, spend, season close) |
@@ -30,19 +30,17 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- (1) .37 C1 (DG4) 4ae32a8241: L4 34dde5b05f (parents trunk c84628156d + tip, re-derived: newcomers only, byte-identical) -> [review] SENT 09:5xZ
-     (ALL 53 lanes on the gated tree, candidate sha: 51 at 0 FAIL, 2 named skips; my 3 mutants RED). On SETTLED approve -> belam [merge-up] + the
-     C2 re-render GO line. Then DG4 extras: resolved_seat_env v4-only; cc-session-start copies.
- (2) g1.41 row 46 (DG5): LANDED b64d814712 + c84628156d (legacy arm RETIRED). DG5 NEXT: die in BOTH arms + guard.md:34 + guard-init.sh:12 comments.
-     HOST (belam, owner GO, banked as ONE item): /data/work/.sanctuary/guard/guard.env EXISTS + an old Sep 25 guard-init.sh copy -> mv aside
-     (.retired-<ts>) at the layer-5 install; until then nobody runs sudo guard-init. My 09:45 'no legacy file' was wrong: corrected to the council.
- (3) .40.1 A2 (DG1) 959a9cf102: RETURNED 09:4xZ for R1 tracebacks fail-open (unreadable journal -> PROVEN, stub counterexample) + R2 undo
-     scope (Restart=always moves ActiveEnterTimestamp; fix = $STAGE/a2.since by the A2 act). Then DG1 -> goal:g7.16.1.11.32 (.27 does not block).
- (4) Open remark to DG3 at its next touch: a 3-line count-of-record pointer at the top of doc:g716111-stage25-rootplan.
- (5) UNPLACED: 9 trunk collection errors (tests/renderers + tests/embeddings shadow src) · R29a claim ref release EACCES · .39 refs carry
-     · g4.x outcomes rollup · .20 close (rotation-alert MET live 06:14Z) · memory_alarm.py -> ~/.notice port + one voice for 'box is low'
-     · guard-env.t.sh stale comment (DG2) · trunk-arg-lanes t1 matches only a season2/main default.
- (6) goal:g1.43 (mine, low).
+ AT THE COUNCIL (all on trunk b74649058e or c84628156d; pairwise merge clean; the later lander = newcomer-only re-merge, name it):
+   L4 34dde5b05f .37 C1 (DG4 4ae32a8241; 53 lanes, 51 at 0 FAIL, 2 named skips) -> needs re-merge on b74649058e (belam card only moved)
+   L8 860febc82c .40.1 A2 re-cut (DG1 959a9cf102 > 9a90d159e7; 315 passed; R1+R2 closed) -> belam host act A2 after the ff (owner GO)
+   L9 4dba539fba g1.41 row 46 follow-up (DG5 e2769d9ecd > ac0aa46ac5; 82 passed)
+   On each SETTLED approve: re-read the council refs -> re-merge if the trunk moved -> belam [merge-up] (C2 re-render GO line for L4).
+ DG1 NEXT: goal:g7.16.1.11.32 (wip 12 KB on disk; finds: wake unit carries AGI_POST only, restart-bounds projector shape). DG4 NEXT: extras.
+ HOST (belam, owner GO, ONE banked item): /data/work/.sanctuary/guard/guard.env + old Sep 25 guard-init.sh copy -> mv aside at layer-5.
+ Open remark to DG3 at its next touch: a 3-line count-of-record pointer at the top of doc:g716111-stage25-rootplan.
+ UNPLACED: 9 trunk collection errors (tests/renderers + tests/embeddings) · R29a claim ref release EACCES · .39 refs carry · g4.x outcomes
+   rollup · .20 close (rotation-alert MET 06:14Z) · memory_alarm.py -> ~/.notice + one voice · guard-env.t.sh stale comment (DG2)
+   · trunk-arg-lanes t1 matches only a season2/main default · memguard undo trusts a reused pid (start-time column) · goal:g1.43 (mine, low).
 ```
 
 ## §2 Landed gen 37
@@ -50,8 +48,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 37 09:5xZ 10-11: DG4's .37 C1 L4 34dde5b05f at the council; DG1 re-cutting A2 (R1 R2); DG5 on the both-arms cut.
-NEXT COMMAND: AGI_POST=sanctuary-master box read; council approve on 34dde5b05f -> re-read their refs -> belam [merge-up]; gate what arrives in §1 order
+sanctuary-master gen 37 10:0xZ 10-11: three landings at the council (L4 34dde5b05f, L8 860febc82c, L9 4dba539fba); nothing being gated.
+NEXT COMMAND: AGI_POST=sanctuary-master box read; on each approve re-merge on the live trunk if it moved, then belam [merge-up]
 ```
 
 ## §4 Traps (gen 37 only)
