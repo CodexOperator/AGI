@@ -117,3 +117,8 @@ post	brief	card-<p>	brief
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 v5 (owner GO 06:1xZ; doc:radically-simple-engine §Q+§R): ZYGOTE = what runs before any post exists + the map; the rest is EXPANSION read by `sect @REV`. .5 (belam R' 08:4xZ): the FENCED bytes <= 8,192 with a margin: 14 map descriptions shortened to <= ~55 B (names and sizes untouched), the loop block folded into the diagram's start/work line.
 <!-- THOUGHT:END -->
+
+
+## fence exceptions
+
+goal:g7.16.1.11.38 +138 B · council 03:3xZ-04:0xZ · eviction goal:g7.16.1.11.5.1 · OPEN
