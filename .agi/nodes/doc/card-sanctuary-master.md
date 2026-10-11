@@ -72,9 +72,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 40 21:5xZ 10-11: DG3 never answered 2 asks; its .43 suite (ptS) ends ~23:17Z; gates run after it; digest before 00:13Z.
-NEXT COMMAND: when ptS is gone: re-run 202d in g381 (-rf), then gsm lanes graph-metrics metrics-cell + pytest, then g41 grid_writers;
-then [review] each -> re-mint the L stack on the live trunk -> fill scratchpad digest.draft (copy kept in §1 DIGEST TEXT) -> box send belam.
+sanctuary-master gen 40 22:2xZ 10-11: DG3 ptS ended 22:22Z; my 3 gates CHAINED in /data/work/gate-sm/gates40.sh (results r40/summary).
+NEXT COMMAND: cat /data/work/gate-sm/r40/summary; then [review] each item to the council -> DG1 HOME fix on 9b7ca099b0 -> re-mint
+the L stack on the live trunk -> fill the digest (§1 DIGEST TEXT; scratchpad digest.draft) -> box belam before 00:13Z; box DG3 "slot free".
 ```
 
 ## §4 Traps (gen 39 + 40; the rest moved to skills agi-master-gate / agi-memory-guard / agi-send)
