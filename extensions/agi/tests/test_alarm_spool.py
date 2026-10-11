@@ -1,5 +1,6 @@
 """alarm_spool.py (goal:g7.16.1.11.20.2): one spool per sending seat; the seat's own uid signs; exactly once."""
 import json
+import os
 import subprocess
 import sys
 import threading
@@ -236,10 +237,58 @@ def _other_uid(s, mod, monkeypatch):
     return len(_sent(s))
 
 
+def _race(s, mod, monkeypatch, when):
+    """The lost-line interleaving (alive 22:5xZ): an appender opened alarm.spool BEFORE the drain's rename and writes AFTER it.
+    `when` = 'open': the whole drain runs between the appender's open and its write; 'write': between its write and its check.
+    Returns how many times the line SECOND reached the reader after the dust settled."""
+    mod.append("j", "belam", "first", max_lines=50)
+    real_open, real_write, state = os.open, os.write, {"fired": False}
+    def drain():
+        state["fired"] = True
+        assert mod.drain("sanctuary-master", box_bin=s.box, max_tries=60) == 0
+    def op(path, flags, *x, **k):
+        fd = real_open(path, flags, *x, **k)
+        if when == "open" and not state["fired"] and flags & os.O_APPEND and str(path).endswith("alarm.spool"):
+            drain()
+        return fd
+    def wr(fd, data):
+        n = real_write(fd, data)
+        if when == "write" and not state["fired"] and data.startswith(b'{"id"') and b"SECOND" in data:
+            drain()
+        return n
+    monkeypatch.setattr(os, "open", op); monkeypatch.setattr(os, "write", wr)
+    assert mod.append("j", "belam", "SECOND", max_lines=50) is None
+    monkeypatch.setattr(os, "open", real_open); monkeypatch.setattr(os, "write", real_write)
+    assert state["fired"]
+    for _ in range(2):                                                                   # the drain cron's next minutes
+        mod.drain("sanctuary-master", box_bin=s.box, max_tries=60)
+    return sum("SECOND" in m for m in _refmsgs(s))
+
+
+@pytest.mark.parametrize("when", ["open", "write"])
+def test_a_line_written_through_an_fd_opened_before_the_drains_rename_is_sent_exactly_once(seat, monkeypatch, when):
+    assert _race(seat, a, monkeypatch, when) == 1
+    assert len(_refmsgs(seat)) == 2 and not seat.spool.exists()                           # first + SECOND, nothing left, nothing doubled
+
+
+def test_a_failed_line_notices_once_per_episode_not_every_failed_minute(seat, monkeypatch):
+    a.append("j", "belam", "one", max_lines=5)
+    monkeypatch.setenv("BOX_FAIL", "[unsent] x")
+    for _ in range(4):
+        assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0
+    assert seat.notice.read_text().count("[alarm-unsent] ") == 1                          # the first failure only
+    assert json.loads(seat.spool.read_text().splitlines()[0])["tries"] == 4                # and it is still retried
+
+
+def _race_open(s, mod, monkeypatch):
+    return _race(s, mod, monkeypatch, "open")
+
+
 @pytest.mark.parametrize("old,new,scenario,real", [
     ('if already_sent(tree, seat, rec["to"], rec["id"]):', "if False:", _crash_then_rerun, 1),   # M1: a drain that re-sends a sent line
     ('            kept.append(json.dumps(rec, separators=(",", ":")))\n', "            pass\n", _failed_then_fixed, 1),              # M2: a failed line is dropped, never retried
     ('if rec["tries"] >= max_tries:', "if False:", _dead_after_three, 0),                # M4: retries for ever
+    ("            if same:\n                return None\n", "            return None\n", _race_open, 1),   # M5: today's append, no check after the write = the line is lost
     ("    if me != f\"agi-{seat}\":", "    if False:", _other_uid, 0),                          # M3: any uid may drain (root signing as a seat)
 ])
 def test_each_mutant_goes_red_on_the_row_meant_for_it(seat, monkeypatch, old, new, scenario, real):

@@ -16,6 +16,9 @@ rewrite never races an append); a line that fails stays and is put back by APPEN
 line, and is retried next run. Before every send the seat's own refs/box/<seat>/<to> is searched for the line's
 Alarm-id: a crash between the send and the unlink re-reads the line next run, finds the id, and sends nothing twice.
 A drain that finds a lock held prints `[busy]` and does nothing (rc 0).
+An APPENDER cannot be locked out (a root source must never wait on the seat), so it checks instead: after its write it compares
+the inode behind its fd with the spool's (ENOENT = different); a different one means the drain moved the spool aside between the
+open and the write, and the same line goes in again (a copy the drain already sent is a no-op, its Alarm-id is on the seat's ref).
 
 DEAD LETTER. Each failed pass counts on the line (`tries`); at --max-tries (a config:crons cell) the line moves to
 alarm.spool.dead with ONE ~/.notice line and is never retried: a reader that can never be reached (off-matrix, a
@@ -36,6 +39,7 @@ from pathlib import Path
 SPOOL_NAME = "alarm.spool"
 DRAINING = SPOOL_NAME + ".draining"
 LINE_MAX = 3800        # one write(2) under PIPE_BUF (4096): an O_APPEND write of this size is atomic
+REAPPENDS = 5          # an append whose spool was drained under it goes in again this many times at most
 GIT_LOOKBACK = 500     # messages of the seat's own out-ref searched for an Alarm-id
 
 
@@ -73,14 +77,24 @@ def append(job: str, to: str, text: str, *, spool: Path | None = None, max_lines
         have = sum(1 for _ in spool.open("rb")) if spool.exists() else 0
         if have >= max_lines:
             return f"{spool} holds {have} lines (>= --max-lines {max_lines}): the drain is not keeping up"
-        fd = os.open(spool, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o600)
-        try:
-            os.write(fd, line.encode())
-        finally:
-            os.close(fd)
+        for _ in range(REAPPENDS):
+            fd = os.open(spool, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o600)
+            try:
+                os.write(fd, line.encode())
+                # The drain renames the spool aside, reads it and unlinks it. A write through an fd opened BEFORE that rename
+                # lands in a file about to be deleted (or already read): the inode behind the fd is no longer the spool's.
+                # Then the SAME line (same Alarm-id) goes in again; a double the drain already sent is a no-op (the id is searched).
+                try:
+                    same = os.fstat(fd).st_ino == os.stat(spool).st_ino
+                except FileNotFoundError:
+                    same = False
+            finally:
+                os.close(fd)
+            if same:
+                return None
+        return f"{spool} was replaced {REAPPENDS} times while appending"
     except OSError as exc:
         return f"{spool}: {exc}"
-    return None
 
 
 def message(rec: dict) -> str:
@@ -162,7 +176,8 @@ def drain(seat: str, *, max_tries: int, spool: Path | None = None, box_bin: Path
                 continue
             kept.append(json.dumps(rec, separators=(",", ":")))
             print(f"alarm_spool: {rec['id']} [alarm {rec['job']}] -> {rec['to']} NOT sent, kept (try {rec['tries']} of {max_tries}): {why}", file=sys.stderr)
-            _notice(notice_bin, f"[alarm-unsent] {rec['id']} {rec['job']} -> {rec['to']}: {why}")
+            if rec["tries"] == 1:                           # ONE notice per line per episode: the first failure (then [alarm-dead] at the end), not every failed minute
+                _notice(notice_bin, f"[alarm-unsent] {rec['id']} {rec['job']} -> {rec['to']}: {why}")
         if kept:
             fd = os.open(spool, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o600)
             try:
