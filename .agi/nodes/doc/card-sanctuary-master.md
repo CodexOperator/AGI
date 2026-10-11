@@ -29,23 +29,16 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- (0) OWNER 19:4xZ (via belam), verbatim on .41: projection done before season rollover. .41 = SEASON-2 CLOSE GATE (gate lines in .41 + g7.16.1).
-     DG5 back on .41: FIRST CUT ~21:2xZ (targets 2+3, a post piece, no host act), SECOND ~23:0xZ (1+4, engine-root = belam's host act);
-     relayed to belam 19:5xZ. .43 moved to DG3 (DG5: 73 of the 95 = no pi binary for a post uid, not the timeout). 4c (MAIN .git/hooks root piece for reference-transaction):
-     asked DG3. .41's [review] goes AHEAD of .42.
- (1) DG2 x3: council 3/3 19:50Z; L d6bef9de69 RETURNED by belam's landing guard (HOME_PATH_RE: '$T/home/p1' in box-move-refs.t.sh).
-     DG2 renames $T/home -> $T/hm ON c1cb27beb4 (asked) -> re-gate (box-move-refs/box-move/guard-env + HOME_PATH_RE 0) -> alive's 1-line ack
-     for the rename -> re-mint -> [merge-up]. Then the .39 leaf limits (1: target-side refusals + df/refs-dir probe; 3: preflight-to-push
-     window) on the TRUNK's .39 text. .39.2 (agi-carry@) minted for DG2; .39.1 limit 2 written.
- (1b) DG4 .42 fix dbbfb2e2a6 = g42 a4ac45d2a5: lanes running (run2.sh, r2-g42 then r2-trunk); my mutant on (b) RED 4 rows. Green -> [review].
- (2a) .38.1 LANDED 97865e4139 (belam ff ~19:1xZ; council acked L 3/3 19:14Z). Next touch of its leaf: add "(dg5-g43 has since moved on)"
-     to "24/24 same sha" (alive remark). belam's MAIN .git/hooks install = his later host act.
- (2b) .39.1 (e)-3 leaf: DG2's c1cb27beb4 is in (1)(a).
- (2c) belam CHECK routed: .18 + .12 .13 .15 PARKED horizon; .17 stays active (ring/anchor + agi-land install = belam host acts; DG1
-     17:0xZ); .11.11.1 in flight under .20 (closes on the load-tolerant box-mail lane). TELL belam this in the next note. memory_alarm
-     warn-psi-some 10 -> 30 (both rows, e4d62b39d7, grid_writers + hygiene + test_memory_alarm 62 passed) rides the next landing; belam
-     runs crons.py apply after it. belam ROTATED 17:1xZ (successor belam-s2-V, same box name 'belam'; owed: (e,f,g) ff, memory_alarm apply,
-     .42 apply --sudo in the ff minute, .38.1 install GO). /data/work/gate-director-general-{2,3,4} exist (told 17:1xZ).
+ (0) OWNER 19:4xZ: projection before season rollover; .41 = SEASON-2 CLOSE GATE. DG5's FIRST CUT 0b574b3a29 (targets 2,3,4: agi-sync merges
+     the trunk at every turn end; conflict = notice + box parent; post pieces, NO host act; first-start 'agi-flush agi-sync agi-turn') GATING
+     NOW alone: /data/work/gate-sm/run41.sh -> r41/summary (g41 = 9eb7380753 on 0c5ec01a72). Green -> [review] FIRST. Second cut ~23:0xZ (target 1,
+     engine-root = belam's host act). OWNER 19:5xZ: old mail path -> .20.2 DG1 (cut 1 ~23:30Z, after .42 C1; interim in my branch).
+ (1) .42 (a155fb2792 + 16b368ad72 + dbbfb2e2a6): GATED GREEN (all lanes, 384 pytest, my mutant RED), [review dbbfb2e2a6] SENT 20:1xZ.
+     On approval: re-mint, merge-up naming 'crons.py apply --sudo' in the ff minute; then tell DG1 the sha.
+ (1c) MY BRANCH: landing tree TS 2e0e893cf5 on 0c5ec01a72 (.39 conflict resolved to my trunk-based file: limits 1+3 + '## Agent Notes').
+     18 files, 0 D, 0 markers (test_season_merge_kids = trunk fixture). After run41: lanes graph-metrics, metrics-cell, skills-truth +
+     grid_writers, thought_hygiene, memory_alarm, crons, snapshot_goals; HOME_PATH_RE 0 -> [review] -> land.
+ LANDED gen 39: b6feb687d4 (e,f,g) · 97865e4139 .38.1 · d979350816 .39 r2 + .39.1 + box-wake.
  (3) DG3 .38.1 RETURNED twice (agi-outline fixed; now test_grid_writers C1: its piece header matches the writer scan). Prime exemption
      (agi-belam moves any ref) ACCEPTED. first-start: claude + pi GAIN ~/bin/reference-transaction and it ACTS (core.hooksPath=~/bin).
  (4) Placed, coming: DG1 ref-fingerprint + '[ $? = 0 ]||continue' (.32), then a load-tolerant box-mail leaf under .20 · DG2 box-wake.t.sh
