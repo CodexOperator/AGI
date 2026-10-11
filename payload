@@ -9,7 +9,8 @@
 # config node .agi/nodes/.geometry/guard.md (config:guard), keyed by BOX name
 # (GUARD_BOX, else /etc/sanctuary-guard/box, else the hosts.json town whose
 # host is this one, else hostname -s). GUARD_ENV_NODE overrides the node path;
-# a legacy guard.env beside the script is read only when the node is missing.
+# a legacy guard.env is RETIRED: one beside the script or in $SANCTUARY/guard is refused by
+# name (never read), whether or not the node is present.
 #
 #   sudo ~/work/.sanctuary/guard/guard-init.sh              apply every layer
 #        ~/work/.sanctuary/guard/guard-init.sh --dry-run    print the plan, change nothing
@@ -176,15 +177,14 @@ if [ -z "$GUARD_ENV_NODE" ]; then
   [ -f "$GUARD_ENV_NODE" ] || GUARD_ENV_NODE=/data/work/agi/.agi/nodes/.geometry/guard.md
 fi
 GUARD_ENV_FROM=defaults
+# RETIRED (goal:g1.41 C; config:guard replaced it; a box may still carry the file under SANCTUARY until its layer-5 install moves it aside, and this refusal is what names it): root never sources a file, and a stray one is named in BOTH cases (node present or missing), never silently ignored
+for _gf in "$SANCTUARY/guard/guard.env" "$GUARD_DIR/guard.env"; do
+  [ -f "$_gf" ] && die "$_gf: legacy file predates box-keyed cells (GUARD_<CELL>_<box key>) and is retired: put its lines in config:guard's \`\`\`sh guard.env block, then remove the file"
+done
 if [ -f "$GUARD_ENV_NODE" ]; then
   guard_env_load "$GUARD_ENV_NODE" || exit 1
   [ "$_GE_LINES" -gt 0 ] || die "$GUARD_ENV_NODE has no \`\`\`sh guard.env block"
   GUARD_ENV_FROM="config:guard ($GUARD_ENV_NODE)"
-else
-  for _gf in "$SANCTUARY/guard/guard.env" "$GUARD_DIR/guard.env"; do
-    # RETIRED (goal:g1.41 C; the box's file was set aside on 09-30, config:guard replaced it): root never sources a file, but a stray one is named, not ignored
-    [ -f "$_gf" ] && die "$_gf: legacy file predates box-keyed cells (GUARD_<CELL>_<box key>) and is retired: put its lines in config:guard's \`\`\`sh guard.env block, then remove the file"
-  done
 fi
 guard_cells_check "$HOSTKEY" || exit 1   # a sink-bearing cell is the shape its sink needs (RC1/RC2)
 hostvar() { local n="GUARD_$1_$HOSTKEY"; printf '%s' "${!n:-${2:-}}"; }
