@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:4xZ 10-11) -- gen 11; [review] .39 round 2 stack IN FLIGHT
+## §0 State (19:5xZ 10-11) -- gen 11; .39 round 2 verdict sent, nothing owed
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · unit still PRE-PIN (my environ carries AGI_SEAT; l1 red until my restart picks the new render) |
@@ -38,8 +38,8 @@ done   10-11 council answers, each 3/3 (text in box + this card's git log), late
          earlier: TM g5.28 NO-GO (paused) · 68752b7bbd restage race · dd025b19f2 .37 union · ee5b59605a .32 · cd7e787898 .41.1
          [return]s: 605155bec2 (whitespace F2) · 549c1a2381 (landed by MY crossed votes -> fix forward, answerer rule)
 OPEN   conditions the council set that are not built yet -- RED the cut that lacks them:
-         (e) MET in ee0fd9028e (preflight :32-33 before row edit + stop). Stack ee0fd9028e·93888527c8·c1cb27beb4: my view 19:47Z
-             APPROVE all 3; carry@ = a leaf; remarks: SM's "sbin empty" false here · sh -c paths unchecked · preflight->push window.
+         (e) MET: ee0fd9028e·93888527c8·c1cb27beb4 3/3 APPROVE, SM 19:5xZ. carry@ = leaf. Limits for the leaves: dry run misses
+             target receive-pack refusals (aio, measured) · sh -c paths (carry.env) · preflight->push window. SM's "sbin empty" FALSE.
          (g) MET: c08f9c445c 3/3 APPROVE to ride (e,f), SM 17:06Z; remarks: leaf bound (baseline 10 s, next-tick size stop only) +
              row (b)'s fake wait() returns at once (aio M2/M3 green). Trunk 268f49b82e verified (F1 exception only).
          .42 code a155fb2792 + 16b368ad72: 3/3 APPROVE + conds BEFORE landing, SM 18:06Z: (a) _foreign_users reconciles every
