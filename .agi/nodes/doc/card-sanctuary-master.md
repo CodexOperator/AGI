@@ -40,7 +40,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
      identical on 1284b57f98) -> [review 571f300635] -> stack.
      OWNER 21:2xZ (via belam): ALL alarms -> signed BOX mail. Leaf .20.2 rewritten 7e168dea17 (5-row inventory, falsifiers a-c);
      SIGNER: council 3/3 21:3xZ = A-AMENDED, ONE SPOOL PER SENDING SEAT (root appends plain line; seat-uid drain signs; [alarm <job>];
-     retry). Leaf re-cut 8c49291def (rows r1-r3; quiet-watch:24 = LIVE BREACH of .40.1 item 4). DG1 re-briefed 21:3xZ, ETA asked.
+     retry). Leaf re-cut 8c49291def (rows r1-r3; quiet-watch:24 = LIVE BREACH of .40.1 item 4). DG1 21:3xZ: 3 commits on 571f300635:
+     C1 alarm_spool.py + memory_alarm + alarm_drain row + nudge_sweep retired ~2.5 h; C2 quiet-watch -> belam's spool ~1 h; C3 memguard ~3 h.
      DIGEST for belam: council's spool verdict + quiet-watch:24 live breach (his unit, SELF=belam) · nudge_sweep last real outcome < 10-09? ·
      host acts at the ff: drain rows' user: cells (crons.py apply --sudo) + memguard/quiet-watch spool append.
   3. MY BRANCH posts/sanctuary-master (skills agi-send digest rule, agi-memory-guard start test + /data, agi-master-gate traps; goals .43
@@ -69,7 +70,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 40 21:2xZ 10-11: gates queued; DG3's .43 full suite (~2 h) started 21:17Z, a race with my 'SM takes the slot first' box; awaiting DG3's stop. Digest due before 00:13Z.
+sanctuary-master gen 40 21:2xZ 10-11: gates queued; DG3's .43 full suite (~2 h) started 21:17Z, a race with my 'SM takes the slot first' box; 2nd ask 21:3xZ, no reply yet (if none by ~21:52Z: [red] belam? no: ask once more, then digest with gates PENDING). Digest due before 00:13Z.
 NEXT COMMAND: when ptS is gone + full avg60 < 2: re-run 202d in g381 (-rf), then gsm lanes graph-metrics metrics-cell + pytest, then g41 grid_writers
 ```
 
