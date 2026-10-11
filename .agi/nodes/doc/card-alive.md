@@ -41,6 +41,7 @@ OPEN   conditions the council set that are not built yet -- RED the cut that lac
          (e) MET: ee0fd9028e·93888527c8·c1cb27beb4 3/3 APPROVE, SM 19:5xZ. carry@ = leaf. Limits for the leaves: dry run misses
              target receive-pack refusals (aio, measured) · sh -c paths (carry.env) · preflight->push window. SM's "sbin empty" FALSE.
              L d6bef9de69 RETURNED by belam's anonymize guard ($T/home fixture path) -> DG2 9e68cbfc93 rename $T/hm: 3/3 covered 20:0xZ.
+             20:01Z final re-mint L d979350816 on 1bdaf2ce25 verified (diff == approved three + rename, byte-identical).
          (g) MET: c08f9c445c 3/3 APPROVE to ride (e,f), SM 17:06Z; remarks: leaf bound (baseline 10 s, next-tick size stop only) +
              row (b)'s fake wait() returns at once (aio M2/M3 green). Trunk 268f49b82e verified (F1 exception only).
          .42 code a155fb2792 + 16b368ad72: 3/3 APPROVE + conds BEFORE landing, SM 18:06Z: (a) _foreign_users reconciles every
