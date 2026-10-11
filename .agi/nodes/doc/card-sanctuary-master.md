@@ -37,12 +37,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   3. .41 DG5 0b574b3a29 + d278e47daa + 7e93d5bb6b (BEHIND-ONLY CAS ff, 23:27Z): council LAND 23:14Z, AMENDED 23:15Z (behind-only must
      land before E goes live: it now does). Stacked ON TOP of .20.2: tree g41 1db9055073 (.13 C1 block = the pinned command RE-RUN on the
      merged tree; E's N6 row ':180' is stale text E carried, board_job.py identical everywhere, :206). HOME 0, 0 D. Gate r40h (lanes
-     agi-turn agi-strand + trunk_sync grid_writers thought_hygiene snapshot_goals) -> [review] 7e93d5bb6b -> L on .20.2's L.
+     agi-turn agi-strand + trunk_sync grid_writers thought_hygiene snapshot_goals) -> [review] 7e93d5bb6b -> L4 on L3.
      If .20.2 returns: rebuild .41 on L2. Fix-forwards 1-3 (vacuous notice row, inert parent, lean mail) = DG5 later.
-  4. .20.2 re-cut e8b68385a1: council RETURN 23:14Z, ONE point: alarm-first-start.sh r1 = FALSE RED on a correct install (alarm_spool.py
-     docstring :10 + help :198 say 'box send'); fix (a) reword (b) real files in the clean-install row + mutant (c) \${ROWS-...}.
-     DG1 fix 6b9b9b9658 ARRIVED 23:17Z. RE-BASED on L2 (independent of .41): tree g20c fa36ac8525, HOME 0, 0 D, 0 'box send' outside
-     comments. Gate r40g (gates40g.sh) -> [review] -> L on L2; .41 (if it makes it) stacks ON TOP of .20.2. Prior gate 3babead81b: 865/1 flake.
+  4. .20.2 DG1 ..6b9b9b9658: council LAND 3/3 23:29Z. L3 fa7e71b1df (G) on L2, tree = gated fa36ac8525 (868/0). first-start =
+     'sh extensions/agi/guard/alarm-first-start.sh' after belam's 5 host acts (alarm_spool.py, quiet-watch, memguard, crons.py apply, script).
   then (next window): DG2 .39.2 6d3075f0f6 · DG3 4c agi-hook f8e0a26efc (HOST sect agi-hook) · DG3 .43 [merge-up] cb81a8fa3e (8,970
      collected, 0 failed; base f5763dc6a4 is NOT on the trunk: fresh merge-tree; its (a) wg_reader fix may meet my :47 fix) ·
      DG4 .44.1-.6 a0a86ef159 (4 deviations + 7,418 B to the council) · DG2 .39.3/.39.4 then .44.7.
