@@ -118,6 +118,12 @@ ok "f2-unit-loop-survives-a-killed-sleep the wake unit's loop body, its sleep SI
 reset;rm -f $ibf;start a51 agirun;wt 0.6;killsl;ib killed;wt 1.5;i50=$(sw a51)
 ok "f2-agi-run-inbox-loop-survives-a-killed-sleep agi-run's send.py inbox loop (goal:g7.16.1.11.27 retires it later), its sleep SIGKILLed: an inbox append afterwards still types 'mail: send.py read alive' ONCE ($i50, want 1)" '[ "$i50" = 1 ]'
 reset;rm -f $ibf
+# ---- w9 (council remark 11:46Z): a HUNG `box n` (timeout 20, scaled by DIV) neither loses the wake nor repeats it: s is KEPT on a failed count. A hang that set n=0 and s=0 re-typed 'mail: box read' for mail already announced.
+mkdir -p $T/binH;printf '#!/bin/sh\n[ "$1" = n ]&&[ -e %s/hang ]&&exec /bin/sleep 60\nexec %s/bin/box "$@"\n' $T/hm $T >$T/binH/box;printf '#!/bin/sh\nt=$1;shift\nexec /usr/bin/timeout $(awk "BEGIN{print $t/%s}") "$@"\n' $DIV >$T/binH/timeout;chmod +x $T/binH/box $T/binH/timeout
+reset;rm -f $T/hm/hang;start u70 unit PATH=$T/binH:$T/bin:/usr/bin:/bin;wt 0.6;snd belam alive h1;wt 1.5;h1=$(wakes u70)
+: >$T/hm/hang;wt 5;h2=$(wakes u70);rm -f $T/hm/hang;wt 2;h3=$(wakes u70);snd belam alive h2;wt 1.5;h4=$(wakes u70)
+ok "w9-unit-a-hung-box-n-neither-loses-nor-repeats-the-wake one send: $h1 wake (want 1); the box hung for 5 s (every count times out): still $h2 (want 1); the box back: still $h3 (want 1: the hang did not reset s, so the announced mail is not re-announced); a second send wakes ($h4, want 2: the loop lived through the hang)" '[ "$h1" = 1 ]&&[ "$h2" = 1 ]&&[ "$h3" = 1 ]&&[ "$h4" = 2 ]'
+reset;rm -f $T/hm/hang
 # ---- F4b: the unit's loop on the REAL box piece with the env agi-project WRITES (H, AGI_TRUNK, AGI_BOX from agi-boxwake@alive.service.d/h.conf, never set by hand), plus the unit's OWN Environment= lines, under env -i: a silent count of 0 (a wrong cwd, a missing variable) cannot pass
 mkdir -p $T/pr/.agi/nodes/.geometry $T/pj $T/fk;cp $R0/.agi/nodes/.geometry/engine*.md $T/pr/.agi/nodes/.geometry/
 { printf -- '---\nposts:\n';printf '  - {"name": "alive", "boot": true, "engine": {"v": 4, "harness": "claude-code", "model": "m", "effort": "high", "trunk": "HEAD"}, "role": "director", "tier": 1, "box": "local-town"}\n';} >$T/pr/.agi/nodes/.geometry/posts.md
