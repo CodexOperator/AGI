@@ -615,7 +615,7 @@ def _fake_proc(tmp_path, rows):
     return proc
 
 
-def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, over=None, grow=None, flips=None, spawn=None, sysd=None, rewrite=None, no_uptime=False, kill_raises=()):
+def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, over=None, grow=None, flips=None, spawn=None, sysd=None, rewrite=None, no_uptime=False, kill_raises=(), break_log_at=None):
     """Run the RENDERED loop for `passes` passes on a fake clock (`tick` s per pass); avails[i] = MemAvailable in bytes
     for pass i (default: plenty). Returns (adj, stops, runs, ev): the SIGSTOPped pids, the logger/other run() calls and
     ev = what the loop did besides: conts (SIGCONT pids), boxes ([(argv, stdin text)] of every Popen), clock.
@@ -645,6 +645,7 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
     avails = avails or [33_000_000 * 1024]
     def setavail(i):
         a = avails[min(i, len(avails) - 1)]
+        if i == break_log_at: (tmp_path / "guard.log").unlink(missing_ok=True); (tmp_path / "guard.log").mkdir()          # the guard's log cannot be appended to from here on (a full disk, EACCES)
         if not no_uptime: (proc / "uptime").write_text("%.2f 0.00\n" % clock[0])
         for pid, what, v in (rewrite or {}).get(i, []):
             if what == "cmd": (proc / str(pid) / "cmdline").write_text(v.replace(" ", "\0") + "\0")
@@ -673,7 +674,7 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
         if n[0] >= passes: raise SystemExit
         setavail(n[0])
     def _kill(pid, sig):
-        glog = tmp_path / "guard.log"; ev.seq.append(("kill", pid, int(sig), glog.read_text() if glog.exists() else ""))       # + what the guard's file held AT the kill
+        glog = tmp_path / "guard.log"; ev.seq.append(("kill", pid, int(sig), glog.read_text() if glog.is_file() else ""))       # + what the guard's file held AT the kill
         if pid in kill_raises and sig == _sig.SIGSTOP: raise ProcessLookupError(pid)
         (ev.stops if sig == _sig.SIGSTOP else ev.conts).append(pid); ev.order.append(("stop" if sig == _sig.SIGSTOP else "cont", pid)); setstate(pid, "T" if sig == _sig.SIGSTOP else "S")
     class _P:
@@ -2287,3 +2288,16 @@ def test_memguard_restage_and_a2_undo_never_continue_a_reused_pid(tmp_path):
         assert state(mine.pid) == "S" and state(reused.pid) == "T", (state(mine.pid), state(reused.pid))
     finally:
         for q in (mine, reused): q.kill(); q.wait()
+
+
+def test_memguard_stops_the_runaway_anyway_when_the_log_append_raises_and_says_it_could_not_log_it(tmp_path):
+    tos = _vs()["MEMGUARD_ALERT_TO"].split()
+    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(), passes=2, avails=[3 * GIB] * 2, grow={1: [(30, 7_000_000)]}, break_log_at=1)
+    assert stops == [30], stops                                                                          # the SIGSTOP went out although the append raised, and the guard did not die
+    said = [a[0][-1] for a in runs]
+    assert sum("STOPPED WITHOUT a log line" in m and "kill -CONT 30" in m and "restage and a2.undo cannot see it" in m for m in said) == 1, said     # and one journal line names the pid, the error and the resume command
+    assert not any(m.startswith("SUSPENDED pid 30 ") for m in said), said                                # no ordinary line claims a log that does not exist
+    assert 30 in ev.stopped, ev.stopped                                                                  # it IS stopped, and the guard knows
+    for to in tos:
+        texts = [b[1] for b in ev.boxes if b[0][4] == "agi-" + to and b[1].startswith("[memguard-susp-30]")]
+        assert len(texts) == 1 and "STOPPED WITHOUT a log line" in texts[0] and "kill -CONT 30" in texts[0], (to, texts)      # the master reads it
