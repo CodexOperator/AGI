@@ -31,15 +31,16 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
  (1) LANDING = c08f9c445c (= (e) fbbefb06e3 + (f) 4ec34a4dd6 + 9ccbb67d98 (f-cond) + c08f9c445c (g-cond)), council 3/3 on all (alive
      16:21Z, 16:42Z, 17:06Z; no open condition on it). The FULL pytest was STOPPED at 24% (17:0xZ, root-disk red) and everything on / removed.
-     RE-RUN STARTED 17:13:33Z on /data/work/gate-sm/land = c08f9c445c (the landing tip itself; ETA ~19:3xZ) -> green = full pytest (9 known
+     RUN #3 (17:2xZ; #2 voided: a bare 'git worktree prune' by DG2+DG4 on MY ask dropped my /data trees' entries ~17:12Z) on /data/work/gate-sm/land = c08f9c445c, trees now --lock -> green = full pytest (9 known
      collection errors; any F attributed by traceback) -> RE-MINT on the live HEAD: T2 = merge-tree(HEAD, c08f9c445c), assert diff(T2, tip) =
      the newcomer files only (card-belam.md, town/local-maxxing.md; belam's rotation card 7446dac379 moved MAIN again 17:1xZ), byte-identical to HEAD -> L = commit-tree -S T2 -p HEAD -p c08f9c445c ->
      box L to the council (sp checks it) -> [merge-up] belam ff-only L · council: alive approve 16:21Z/16:42Z/17:06Z; name the open host-act
      condition (e) (DG2 preflight before the NEXT BOX MOVE = .39 round 2, next gate). My posts/sanctuary-master commits ride the NEXT landing.
- (2) DG4 .42: re-cut 16b368ad72 ON a155fb2792 (.13 C1+C5 re-cut, N6 + P9; -X theirs + notice rows). GATED so far: 1 G, mt rc 0 on 268f49b82e,
+ (2) DG4 .42: re-cut 16b368ad72 ON a155fb2792 (lanes re-running: g42 = c2cf585b70 merge on 7446dac379, trunk tree 7446dac379; summaries /data/work/gate-sm/lanes-{g42,trunk}/summary; agi-out-states c0/c1 RED on the voided run -> compare with trunk) (.13 C1+C5 re-cut, N6 + P9; -X theirs + notice rows). GATED so far: 1 G, mt rc 0 on 268f49b82e,
      anonymize hit = a /data/work path in .13's P8 row (box-move.sh's ssh target, already on the trunk: check git grep at the trunk), board_job
      + crons_job_user + grid_writers + thought_hygiene 72 passed. LEFT: ALL .t.sh lanes on gate + trunk (on /data), then [review] to the
      council (a155fb2792's was never sent) with the first-live-act line: belam's `crons.py apply --sudo` in the same minute as the ff.
+ (2a) DG3 .38.1 re-cut #3 3e02b2c3e1 (prose reworded, no .13 widening: accepted): gate after (2), ONE gate at a time.
  (2b) DG2 .39 round 2 ee0fd9028e ON fbbefb06e3: gate AFTER the landing. .39.1 (e)-3 leaf minted, DG2.
  (2c) belam CHECK routed: .18 + .12 .13 .15 PARKED horizon; .17 stays active (ring/anchor + agi-land install = belam host acts; DG1
      17:0xZ); .11.11.1 in flight under .20 (closes on the load-tolerant box-mail lane). TELL belam this in the next note. memory_alarm
