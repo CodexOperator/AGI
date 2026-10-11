@@ -63,32 +63,32 @@ grow.py $t>&2||exit 6
 unset GIT_INDEX_FILE;git reset -q $b||echo "[reset] $b: the commit landed, HEAD not moved">&2
 ~~~
 
-### grow.py (3056 B)
+### grow.py (3228 B)
 ~~~python
 #!/usr/bin/env python3
-# grow.py TIP: the ONE growth-order check agi-turn and agi-at call on the temp index (GIT_INDEX_FILE) after the tree is written and before the commit. Every NEW .agi/nodes/**.md (an add against TIP, --no-renames, not under deprecated/; an edit is never gated) is read from its STAGED blob (diff-index -z: raw NUL-split paths, never C-quoted) and checked in-process: its parents must resolve in the STAGED tree (a parent added in the same tree counts; a decoy file in ~/t does not; none = refused), then spawn_gate.check_spawn must APPROVE it (REJECTED, UNVERIFIED and an unknown type are all refused), so a new node is APPROVED or REFUSED, never committed unchecked. rc 0 = pass; 1 = [growth-order] <node> (one line per refusal); 3 = [spawn-gate-missing] / [spawn-gate-broken] (an absent or crashing checker, a failed git, a non-UTF-8 path or blob: FAILS CLOSED)
+# grow.py TIP: the ONE growth-order check agi-turn and agi-at call on the temp index (GIT_INDEX_FILE) after the tree is written and before the commit. Every NEW .agi/nodes/**.md (an add against TIP, --no-renames, not under deprecated/; an edit is never gated) is read from its STAGED blob (diff-index -z read as BYTES: raw NUL-split paths, never C-quoted, no newline translation; strict UTF-8) and checked in-process: its parents must resolve in the STAGED tree (a parent added in the same tree counts, except a NEW add under deprecated/; a decoy file in ~/t does not; none = refused), then spawn_gate.check_spawn must APPROVE it (REJECTED, UNVERIFIED and an unknown type are all refused), so a new node is APPROVED or REFUSED, never committed unchecked. rc 0 = pass; 1 = [growth-order] <node> (one line per refusal); 3 = [spawn-gate-missing] / [spawn-gate-broken] (an absent or crashing checker, a failed git, a non-UTF-8 path or blob: FAILS CLOSED)
 import sys,os,re,subprocess as S
 sys.dont_write_bytecode=True
 b=0
 try:
- L=[p for p in S.run(["git","diff-index","-z","--cached","--no-renames","--name-only","--diff-filter=A",sys.argv[1],"--",".agi/nodes"],capture_output=True,text=True,check=True).stdout.split("\0") if p.endswith(".md") and not p.startswith(".agi/nodes/deprecated/")]
+ A=[p for p in(q.decode() for q in S.run(["git","diff-index","-z","--cached","--no-renames","--name-only","--diff-filter=A",sys.argv[1],"--",".agi/nodes"],capture_output=True,check=True).stdout.split(b"\0")) if p.endswith(".md")]
+ L=[p for p in A if not p.startswith(".agi/nodes/deprecated/")];D={p.encode() for p in A}-{p.encode() for p in L}
  if L and not os.path.exists("extensions/agi/bin/spawn_gate.py"):print("[spawn-gate-missing] extensions/agi/bin/spawn_gate.py is not in ~/t: %d new node(s) not checked"%len(L));b=3
  elif L:
   sys.path.insert(0,"extensions/agi/bin");import spawn_gate as g,frontmatter as f
   d=g.Path(".agi").joinpath(*g.SCHEMAS_SUBDIR);R=g.load_spawn_rules(d,root=g.Path(".agi"));C=g.read_ladder_season(g.resolve_nodes_root(g.Path(".agi"),d))
   r=S.run(["git","grep","--cached","-aznE",r"^(---\s*$|(id|mint_id|type):)","--",".agi/nodes/*.md"],capture_output=True);assert r.returncode<2,r.stderr
   F={};I={}
-  for l in r.stdout.decode("utf-8","surrogateescape").split("\n"):
-   x=l.split("\0",2)
-   if len(x)<3:continue
-   e=F.setdefault(x[0],{"f":0})
-   if x[2].rstrip()=="---":e["f"]+=1 if(e["f"] or x[1]=="1")else 2
-   elif e["f"]==1:k,_,v=x[2].partition(":");e.setdefault(k,v.strip().strip("\"'"))
+  for x,n,t in re.findall(rb"([^\0]+)\0(\d+)\0([^\n]*)\n",r.stdout):
+   if x in D:continue
+   e=F.setdefault(x,{"f":0});t=t.decode("utf-8","surrogateescape")
+   if t.rstrip()=="---":e["f"]+=1 if(e["f"] or n==b"1")else 2
+   elif e["f"]==1:k,_,v=t.partition(":");e.setdefault(k,v.strip().strip("\"'"))
   for e in F.values():
    for k in("id","mint_id"):
     if e.get(k):I[e[k]]=g.canonical_type(e.get("type"))
   for p in L:
-   m=f.read_frontmatter(S.run(["git","show",":"+p],capture_output=True,text=True,check=True).stdout)
+   m=f.read_frontmatter(S.run(["git","show",":"+p],capture_output=True,check=True).stdout.decode())
    if m is None:print("[growth-order] "+p+": no readable front matter");b=1;continue
    q=m.get("parents") or []
    if not isinstance(q,list) or [y for y in q if y not in I]:print("[growth-order] %s: parent(s) %s resolve nowhere in the staged tree"%(m.get("id") or p,q if not isinstance(q,list) else [y for y in q if y not in I]));b=1;continue
