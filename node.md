@@ -68,6 +68,9 @@ a host act (owner GO) runs from LANDED bytes only: the GO line names a TRUNK sha
 every [decision] SM has today ─► the council, never belam; belam gets only what needs the OWNER (host acts, spend, season close) to bank
 loop end is NOT optional: outcomes ─► SM bigger_outcomes ─► COUNCIL reviews them ─► overview nodes ─► belam
 ```
+- a [review] whose landing touches the extraction glob (fenced pieces of engine.md + engine-[pw]*.md) carries 'first-start:' per post kind (what a post gains and loses at its next start); the council's answer repeats the line it checked, or returns the review for lacking one; an interim needs belam's ACK and a retire date (council 3/3 11:08Z 10-11).
+- every council view names the lanes / tests it RAN and against which sha, or says 'none' -- a view never implies a run it did not do (council 08:22Z 10-11, after the vacuous .37 gate).
+
 Later (council designs, a director builds, owner GO for the host act): a LAND BROKER so belam is out of the landing path entirely.
 
 ## Order of work (owner 09-29)
