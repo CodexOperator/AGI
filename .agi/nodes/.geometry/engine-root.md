@@ -16,7 +16,7 @@ EXPANSION of config:engine: the unit template (root's agi-project reads it throu
 Read only through `sect <name> [REV]`.
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
-### agi-post@.service (2251 B)
+### agi-post@.service (2555 B)
 ~~~ini
 [Unit]
 After=agi-ram-main.service
@@ -24,11 +24,13 @@ After=agi-ram-main.service
 User=agi-%i
 StateDirectory=agi/%i
 WorkingDirectory=/var/lib/agi/%i
+EnvironmentFile=-/etc/agi/carry.env
 EnvironmentFile=-/var/lib/agi/%i.env
-Environment=PATH=/var/lib/agi/%i/bin:/opt/agi/bin:/usr/local/bin:/usr/bin:/bin SHELL=/bin/sh DISABLE_AUTOUPDATER=1 AGI_SEAT=%i AGI_POST=%i
+Environment=PATH=/var/lib/agi/%i/bin:/opt/agi/bin:/usr/local/bin:/usr/bin:/bin SHELL=/bin/sh DISABLE_AUTOUPDATER=1 AGI_POST=%i
 Environment=GIT_AUTHOR_NAME=%i GIT_COMMITTER_NAME=%i GIT_AUTHOR_EMAIL=%i@agi GIT_COMMITTER_EMAIL=%i@agi
 RuntimeDirectory=agi-%i
 RuntimeDirectoryPreserve=restart
+ExecCondition=sh -c "set -f;b=$(git -c safe.directory=$O -C $O show $AGI_TRUNK:.agi/nodes/.geometry/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r --arg n %i 'select(.name==$n)|.box');[ x$b = x$AGI_BOX ]&&[ x != x$AGI_BOX ]||{ echo [wrong-box] row=$b here=$AGI_BOX>&2;exit 2;}"
 ExecCondition=sh -c '[ ! -e .ssh/out-refused ]||[ .fresh -nt .ssh/out-refused ]||exit 2'
 ExecCondition=sh -c 'type agi-run>/dev/null||grep -qs "^### agi-run " t/.agi/nodes/.geometry/engine.md t/.agi/nodes/.geometry/engine-[pw]*.md||{ [ ! -d t ]&&{ git -c safe.directory=$O -C $O grep -q "^### agi-run " $AGI_TRUNK -- .agi/nodes/.geometry/engine.md ".agi/nodes/.geometry/engine-[pw]*.md";r=$?;[ $r -lt 2 ]||exit 255;[ $r = 0 ];};}||exit 2'
 ExecStartPre=awk -F"[= ]" "/some/{exit $$3>40}" /proc/pressure/memory
