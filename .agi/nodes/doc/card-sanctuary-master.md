@@ -34,10 +34,11 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   1. .42 E: L1 2bb08327ab (G) = commit-tree T2 -p trunk f5763dc6a4 -p dbbfb2e2a6; T2 = gated + newcomers (card-belam, town) byte-identical.
      HOST: 'crons.py apply --sudo' in the ff minute (E goes live by itself within 5 min anyway).
   2. SM branch 698d93f267: council LAND 3/3 23:0xZ; L2 e932484bb4 (G) on L1 (= gated 6ad78dcea4 + newcomers). first-start none.
-  3. .41 DG5 0b574b3a29 + d278e47daa: council LAND 23:14Z, AMENDED 23:15Z: fix-forward 4 BEHIND-ONLY (agi-sync CAS-ff when posts/P is
-     behind, no merge commit) MUST land BEFORE E's first live run (board_job is_own refuses agi-sync's merge on posts/belam). Asked DG5
-     23:1xZ, sha by 23:40Z -> gate (grid_writers, thought_hygiene, trunk_sync + agi-turn/agi-strand lanes) -> council -> L3 on L2. ELSE
-     .41 waits for the next digest. Fix-forwards 1-3 (vacuous notice row, inert parent, lean mail) = DG5 later. first-start 'agi-flush agi-sync agi-turn'.
+  3. .41 DG5 0b574b3a29 + d278e47daa + 7e93d5bb6b (BEHIND-ONLY CAS ff, 23:27Z): council LAND 23:14Z, AMENDED 23:15Z (behind-only must
+     land before E goes live: it now does). Stacked ON TOP of .20.2: tree g41 1db9055073 (.13 C1 block = the pinned command RE-RUN on the
+     merged tree; E's N6 row ':180' is stale text E carried, board_job.py identical everywhere, :206). HOME 0, 0 D. Gate r40h (lanes
+     agi-turn agi-strand + trunk_sync grid_writers thought_hygiene snapshot_goals) -> [review] 7e93d5bb6b -> L on .20.2's L.
+     If .20.2 returns: rebuild .41 on L2. Fix-forwards 1-3 (vacuous notice row, inert parent, lean mail) = DG5 later.
   4. .20.2 re-cut e8b68385a1: council RETURN 23:14Z, ONE point: alarm-first-start.sh r1 = FALSE RED on a correct install (alarm_spool.py
      docstring :10 + help :198 say 'box send'); fix (a) reword (b) real files in the clean-install row + mutant (c) \${ROWS-...}.
      DG1 fix 6b9b9b9658 ARRIVED 23:17Z. RE-BASED on L2 (independent of .41): tree g20c fa36ac8525, HOME 0, 0 D, 0 'box send' outside
