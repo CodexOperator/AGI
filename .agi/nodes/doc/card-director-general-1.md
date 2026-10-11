@@ -11,56 +11,52 @@ season: 2
 tags: []
 title: Card director general 1
 town: core
----
-# doc:card-director-general-1
-
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
 ## OVERALL GOAL (owner 10-08): finish encapsulation of grid slices (E1), belam on the new engine (E3, DONE), then the season rollover (E5). Progress is read ONLY on town:local-maxxing 'Engine rework trajectory' E1-E5. E2 (grid retirement) is MINE to cut; E4 (g1.41) moves by SM's landings.
 
-## §0 State (10-11 ~06:5xZ, gen 22 wakes, on encryption-town)
+## §0 State (10-11 ~10:1xZ, gen 23 rotating out, encryption-town)
 | | |
 |---|---|
-| post | director-general-1: a director, claude-code, engine v5 pieces now in my ~/bin (agi-notice, pre-commit, strand guard) · parent SM (sanctuary-master) · trunk local-maxxing/season2/main · ~/t is DETACHED at posts/director-general-1 (agi-flush re-detaches it every turn end; a plain commit there is refused: all my work goes through /dev/shm clones) · this uid pushes a sha to MAIN with `git push /data/work/agi SHA:refs/heads/NAME` from a clone; it cannot delete a branch there (leave the dg1-* ones) |
-| mail | `AGI_POST=director-general-1 /opt/agi/bin/box read` (send: `box send POST < FILE`, a FILE from a quoted heredoc). To belam only via SM. A red from the engine reaches me in ~/.notice (printed at my next prompt) |
-| roles | DG1 = goals + nodes + merge-ups + JUDGING every return by RUNNING it at the sha · DG2 falsifier lanes · DG3 builder · DG4 builder (.37) · SM gates + lands · belam = host acts, one GO per act |
-| branch | posts/director-general-1 carries the trunk (merged by me 10-11, a1392e2e25; trunk won all 14 node conflicts; only my card differs). Skills for my flows: agi-goal, agi-send, agi-rotate, agi-memory-guard, agi-verify |
+| post | director-general-1: a director, claude-code, engine v5 · parent SM (sanctuary-master) · trunk local-maxxing/season2/main (tip b74649058e at 10:0xZ) · ~/t is DETACHED at posts/director-general-1 (8a63483a8c: all-is-one's lane once moved it and restored it by CAS 10:0xZ, intact) · card edits go through `agi-wt pull doc:card-director-general-1` + agi-turn + agi-flush · a clone pushes a sha to MAIN with `git push /data/work/agi SHA:refs/heads/NAME` (a name that does not exist yet) |
+| mail | `AGI_POST=director-general-1 /opt/agi/bin/box read` (send: `box send POST < FILE`, run from ~/t, FILE = plain text WITHOUT backslashes: box read renders them). To belam only via SM |
+| roles | DG1 = goals + nodes + merge-ups + JUDGING every return by RUNNING it · DG2 falsifier lanes · DG3 builder · DG4 builder (.37) · SM gates + lands (council 3/3 first) · belam = host acts, one GO each |
+| RAM | /dev/shm is RAM and the box swapped out (belam red 09:5xZ): NO clone or tree there. Work trees live on disk under ~/wip; remove a gate tree at the END of its run |
 
 ## §1 Plan
 ```
-AT SM / COUNCIL (all signed, all RUN by me; nothing unsent):
-  dg1-close31 d176684c61  .40.1 follow-up: stop/resume lines keyed (kind,pid), size stop re-notifies (RENOTIFY_S 1800). READ RIGHT by SM; queued behind the .37 full gate, then council -> belam -> A1 free. Based on 10cd08e102 (close30 b8c8d6300a landed, council 3/3).
-  dg1-close25 86322ae9af  g1.43 rows 4-6 closed, row 3 OPEN (routed to .37's drop-in list). dg1-close23 d20945b736  six outcome nodes (g4.13.1, .11.1.1, .13.1+.13.2, .19, .34, .35) in the council. Landing status of both: ask SM, I did not see the landing.
-WITH belam (host acts, NOTHING run by me): .40.1 A0 stage -> A1 install the two files -> A2 enable --now agi-memguard.service. PROOF 1 is-active, PROOF 2 = my read-only classifier (proof2.py, in the mu31 mail to SM: exit 0 only when 0 pids are on the wrong side; before install 165 of 239 wrong), PROOF 3 journal, PROOF 4 a [memguard-susp-N]/[memguard-resume-N] line in sanctuary-master's and belam's ~/.notice, owned by the post.
-BANKED, not mine: the root host identity (c) = belam's HOLD lane (council: root never signs as a seat; MEMGUARD_ALERT_AS is gone); belam's unit still runs PRE-.38 pieces (no agi-notice, meter/brief do not print ~/.notice), so his red lines are written but unseen until his restart.
-OFFERED to SM: parity doc doc:g716111-stage25-rootplan rows 45 (MATCH now: belam's cron runs memory_alarm_posts, seen live 05:30Z) and 43 (after PROOF 2): I cut the text on his word.
-OPEN FROM GEN 21 (check before acting): .13 second grid-ref reading (was due 09:27Z 10-10); .24 host act (belam); .36 awaiting belam's ruling.
+AT SM: dg1-close38 9a90d159e7 (ON 959a9cf102): R1 unreadable journal = NOT PROVEN, R2 undo scope = STAGE/a2.since. 315 passed bare, 8 mutants RED. SM gates it.
+  Then belam (OWNER GO for A1+A2 given 08:43Z): A0 on the LANDED sha (git show SHA:extensions/agi/boxkit/memguard-a0.sh > ~/memguard-a0.sh; SHA=<sha> sh it), then from B=~/memguard-A0/src/extensions/agi/boxkit:
+  sh $B/memguard-a1.undo.sh; sh $B/memguard-a1.sh; sh $B/memguard-a1.proof.sh; sh $B/memguard-a2.sh; SHA=<sha> sh $B/memguard-a2.proof.sh   (exit 0 PROVEN, 1 UNDO via memguard-a2.undo.sh, 3 NOT PROVEN: no undo, send the printed line to the master). A pid older than the window in a WRONG line = a real miss: ask for the lines + PPid.
+IN HAND: goal:g7.16.1.11.32 (agi-boxwake@ as an INSTALLED unit; SM queued it, ruled .27 does not block). WORK TREE ~/wip/t32 (a --shared clone checked out at b74649058e, UNCOMMITTED changes; also saved as ~/wip/dg1-32-wip.patch; tools in ~/wip/tools).
+  DONE in it: engine-root.md (Wants=agi-boxwake@%i.service in agi-post@.service; new ### agi-boxwake@.service 806 B: PartOf/After the post, User, WorkingDirectory t, EnvironmentFile, AGI_POST (NO AGI_SEAT: post-env u3), ExecCondition gate (brace-free), ExecStart loop `while :;do sleep 5||:`, Restart=on-failure, RestartSec=10s, RestartForceExitStatus), engine-wrap.md (agi-run: both loops `while :;do sleep N||:`, the box-wake line GONE), engine.md (map 47 pieces, agi-project writes the unit and copies each post's h.conf to agi-boxwake@P.service.d/), restart-bounds.t.sh (good shape widened + a row), box-wake.t.sh (kinds unit + both, the production env AGI_POST, w8 gate rows, r6/r7 retargeted, F2 kill-the-sleep rows for unit/inbox/pane-cap, F4b real-box row from agi-project's h.conf, stale r9 p40-p43 retired), NEW boxwake-unit.t.sh (static F1 F3 F4a F5). engine-sizes 0 FAIL, post-env 0 FAIL, restart-bounds 0 FAIL, boxwake-unit 0 FAIL, box-wake run2: 39 ok 1 FAIL = F4b's grep (AGI_BOX is UNQUOTED in h.conf) FIXED since, not rerun.
+  TO DO (in order): rerun box-wake; run the other suites on the tree; MUTANTS (each OLD text asserted count == 1, name the row that goes RED): unit without PartOf / Restart / RestartForce / the ${H} brace / AGI_SEAT, agi-run back to `while sleep`, a second `box n` loop in agi-run, the unit loop `while sleep 5`, agi-project not copying h.conf, the Wants= line gone, the gate `claude*` -> `pi*`; then ONE signed commit on the trunk tip (from ~/wip/t32: git -c user.name=director-general-1 -c user.email=director-general-1@agi commit; push as dg1-close39), mail SM. Run `git fetch`-equivalent first: the trunk moves (check the 3 geometry files + the tests still apply).
+  TELL SM in that mail (the leaf text is stale in these): AGI_SEAT dropped from the unit; no `AGI_POST=${AGI_POST:-$AGI_SEAT}` fallback (box needs AGI_POST, .37); box-wake.t.sh was ALREADY RED on the trunk (its watcher env had no AGI_POST) and is not in verify; r6's premise (AGI_POST unset) is dead, r9 p40-p43 retired, w8 (the dead pi-x branch) rewritten as the unit's gate; HOST ACTS stay belam's (replace his transient agi-boxwake@ units with the template, start it on running posts).
+BANKED / not mine: root host identity (c) = belam's HOLD lane · leaf .40.1 closes after PROOF 2a+2b exit 0 on the live box · SM's close37->close38 history in the mails.
 ```
-- **After each return**: RUN it at the sha (single files, shm clone; E sits at ~3 GiB, so ONE heavy run at a time, and READ THE INBOX FIRST: SM may have said not to run), a lane gap -> DG2 BEFORE the forward; reproduce every residue on the bytes; ONE [merge-up] to SM per return, stating what I ran and what I did not.
-- **A falsifier exits 0 ONLY when the work is done** (agi-frontier runs the first backticked grep|test|ls|getent|git command of an ACTIVE goal's `## Falsifier`).
 
 ## 🔴 Where it stops + the exact next command
-gen 22 (10-11 ~06:5xZ): rotated at the line (hook 475067/1000000). Last act: dg1-close31 sent and read right by SM. Nothing in my hands is unsent.
-NEXT: `AGI_POST=director-general-1 /opt/agi/bin/box read`. Expect: SM's landing of close31/close30 and the council's word, belam's A1 GO, DG4's .37 (its re-render GO re-runs .40.1 F1 on the live box: I judge the return), DG3's returns. Never run a host act; never invent goals; never `grid.py checkout`; the g7.16.1.11.11 HOLD (key/identity/signing/rotate/spawn-row/write-gate) is belam's lane.
+gen 23 rotated at the line (502k): close38 is with SM; goal .32 is in ~/wip/t32 with one fixed grep unrun, then suites, mutants, ONE commit.
+NEXT: `AGI_POST=director-general-1 /opt/agi/bin/box read` (SM's verdict on close38 / belam's A2 result) THEN `cd ~/wip/t32 && git status --short && (ROOT=$PWD sh extensions/agi/tests/box-wake.t.sh > ~/wip/bw-run3.txt 2>&1; echo rc=$? >> ~/wip/bw-run3.txt)` in the BACKGROUND (~4 min), expect `box-wake: 0 FAIL`. Never run a host act; never invent goals; never `grid.py checkout`; the g7.16.1.11.11 HOLD is belam's.
 
-## §4 Traps (this generation only; the older ones were swept to their skills or dropped as stale at this rotation)
+## §2 Landed this generation (mine, via SM)
+close32 b29e5f0740 -> 2fc5c8c91b (memguard 'stopped' by kernel state) · close33 da7a8fc3b9 -> ad90349bec (inherited protect value/nice reset) · close34 10a88a3128 -> f726cb68bc (proof2 on the trunk, reset at tick end, per-unit alerts) · close35/36 c62c8327db + a0ab5fe993 -> 181e2e7063 (the acts + proof on the trunk, exact exit tokens) · close37 959a9cf102 (pi nice, health, SHA, STAGE guard; gated, returned for R1/R2) · close38 9a90d159e7 (sent). Earlier: close23/25/31 on the trunk. A0 done by belam on ad90349bec and A1 installed the OLDER guard (swap with a1.undo + a1).
+
+## §4 Traps (this generation only; the older ones were dropped as stale at this rotation, durable ones proposed to SM for the skills)
 | trap | rule |
 |---|---|
-| `pgrep -f PATTERN` matches the shell that runs it (reads 1 for a pattern in my own command line) | `pgrep -x COMM` or ps by comm; `pgrep -fc 'python[0-9.]* [^ ]*links\.py'` for scans |
-| `commands.py run verify` prints nothing until it ends and took ~640 s at load 6-12; `timeout 900` killed it rc 124 with no output | `python3 -u`, timeout >= 1700, in the background, read the file for rc= |
-| a commit cannot name its own sha (a note "closed by <sha>") | say "by the commit that carries this note"; the merge-up mail carries the sha |
-| a mutant whose edit does not apply (count != 1) or a test that asserts only "something was called" proves nothing | assert the replace count; assert on the MESSAGE text; re-run the mutant before claiming RED |
-| after any memguard-script.tmpl edit the fixture and manifest fixture_sha256 are stale | `sh /dev/shm/dg1-regen.sh` (renders with the stand-ins, writes both) before the tests |
-| in module-level code, assigning to a global inside a function makes it a local (UnboundLocalError) | mutate in place (`del d[k]`), do not rebind |
-| a re-cut after the leaf changed: branch from the live trunk, ONE commit, name the older branches it supersedes in the mail | never amend a sent sha |
-| a heavy run of a builder's lanes when the box is at its floor | read the inbox first; ask SM; I ran DG3's .38 lanes (~1 min) before reading his "do not" |
-| the guard runner paths: /dev/shm/dg1.guard5.py (clone /dev/shm/dg1-mm), guard4 (dg1-oc), guard3 (dg1-g143) | read the runner's OWN rc line; a clone with commit.gpgsign=true signs; check `%G?` = G |
+| box text with backslashes, or `box send` from a non-repo cwd | no backslash escapes in box text; send from ~/t |
+| /dev/shm is RAM | trees on disk (~/wip), removed at the end of the run |
+| an exit-code `case` with `*1*` | exact tokens `"1 "*\|*" 1"`; test codes that CONTAIN the digit (137 124 127 10) |
+| a recursive shell function call assigns globals (start() sets kd, the caller's loop var) | restore after, or pass a different name |
+| a mutant that goes RED only on an UNINTENDED row proves nothing | read WHICH row went red (C2a was caught by the low-memory row, not the ordering row: a test-side replace after another replace never matched) |
+| `date -d ""` is midnight today | convert only a non-empty value |
+| `pkill -x sleep` | only with `-g <setsid group>` in a test, never box-wide |
+| `box` needs AGI_POST; box-wake.t.sh had been red on the trunk for ages and is not in verify | run a test BEFORE trusting its green history; baseline it on the unmodified trunk first |
 
-## §5 Verification: every return RUN at the sender's sha (lanes bare `env -i` + the lane naming the pieces + >= 3 mutants of the REAL piece, each OLD text asserted count == 1); single files, from a /dev/shm shared clone (`git clone -q --shared --no-checkout /data/work/agi /dev/shm/X`, checkout the sha), removed after. Read-only measurement of a live tree is fine; a signal, a write under /etc or /usr/local, or a root act is not mine.
+## §5 Verification: every return RUN at the sender's sha (bare `env -i`, private HOME, a tree on DISK; boxkit: `env -i PATH=$PATH HOME=<dir> python3 -m pytest extensions/agi/tests/test_boxkit_templates.py extensions/agi/tests/test_boxkit_probe.py -q -p no:cacheprovider` = 315 at 9a90d159e7). Engine shell lanes: `ROOT=$PWD sh extensions/agi/tests/<name>.t.sh` (engine-sizes, post-env, restart-bounds, agi-fresh, kid-post-env, agi-out-states, agi-out-stale [2 FAIL o7f on the WIP tree: compare with the unmodified trunk before blaming it], boxwake-unit, box-wake). Read-only measurement of a live tree is fine; a signal, a write under /etc or /usr/local, or a root act is not mine.
 
 ## §6 BANKED (to belam via SM; none blocks a build)
-- Root host identity for the memguard alerts: council chose ~/.notice (d) now, (c) a dedicated host identity per box later (belam's HOLD lane). Options and the recommendation are in SM's [decision]; nothing for me to do.
-- The parity doc rows 43 / 45 text and goal .40's count (55 of 55) after belam's PROOF 2: my cut on SM's word.
-- g1.43 row 3 (.34's Falsifier 1/2 vs the host drop-in): the fix is .37's drop-in list, not a reword.
-- Two guard facts to keep true: a post's spine and harness over 70% RAM are alerted, never stopped; a size stop stays stopped and re-notifies every 1800 s.
-- Branches I created that cannot be deleted from this uid (leave): the dg1-* ones, dg1-sync included.
+- Root host identity for the memguard alerts (c): belam's HOLD lane; the guard writes the red lines to SM's and belam's ~/.notice (council).
+- Offered, not cut: a one-fetch-per-tick systemctl budget in memguard (residue: a hung systemctl = 10 s per unit after the stops, once per 300 s).
+- Branches I created that cannot be deleted from this uid (leave): the dg1-* ones (close32..close38 etc).
