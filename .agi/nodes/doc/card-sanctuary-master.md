@@ -31,8 +31,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
  (1) LANDING = c08f9c445c (= (e) fbbefb06e3 + (f) 4ec34a4dd6 + 9ccbb67d98 (f-cond) + c08f9c445c (g-cond)), council 3/3 on all (alive
      16:21Z, 16:42Z, 17:06Z; no open condition on it). The FULL pytest was STOPPED at 24% (17:0xZ, root-disk red) and everything on / removed.
-     RUN #3 (17:2xZ; #2 voided: a bare 'git worktree prune' by DG2+DG4 on MY ask dropped my /data trees' entries ~17:12Z) on /data/work/gate-sm/land = c08f9c445c, trees now --lock -> green = full pytest (9 known
-     collection errors; any F attributed by traceback) -> RE-MINT on the live HEAD: T2 = merge-tree(HEAD, c08f9c445c), assert diff(T2, tip) =
+     RUN #3 ENDED 18:33:30Z rc 1, 111 FAILED (log /data/work/gate-sm/suite.log; ids failed-land.txt). Causes read: workflow* = context-build
+     timeout 60 s (load), provisioning = PermissionError on MAIN .env (uid), env-strip = my GIT_CONFIG_GLOBAL, wg_reader = trunk-side. ATTRIBUTING: same
+     ids on /data/work/gate-sm/base (c0f7aea27a) -> base-rerun.log; comm -23 = the range's (want 0; any -> re-run alone on land). Then (9 known collection errors; any F attributed by traceback) -> RE-MINT on the live HEAD: T2 = merge-tree(HEAD, c08f9c445c), assert diff(T2, tip) =
      the newcomer files only (card-belam.md, town/local-maxxing.md; belam's rotation card 7446dac379 moved MAIN again 17:1xZ), byte-identical to HEAD -> L = commit-tree -S T2 -p HEAD -p c08f9c445c ->
      box L to the council (sp checks it) -> [merge-up] belam ff-only L · council: alive approve 16:21Z/16:42Z/17:06Z; name the open host-act
      condition (e) (DG2 preflight before the NEXT BOX MOVE = .39 round 2, next gate). My posts/sanctuary-master commits ride the NEXT landing.
