@@ -50,7 +50,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 36 05:1xZ 10-11: b6 LANDED 4cdb750fef; .38 close returned (amend falsifiers as written). Waiting on: DG3's .40 re-cut (my 05:2xZ return: re-base the count on the 10-01 ENGINE v5 pass at the doc's line 881 = 40/3/12; 43 + 45 are REGRESSIONS; withdraw 'the 40/3/12 nodes are wrong'), stacked on e360b64b87 + 6b7f9374ec (council's RETIREs written) -> land WITH my leaf (posts/sanctuary-master, goal:g7.16.1.11.40.1, amended 05:3xZ: protect SPINE + HARNESS by tree, tool descendants stay suspendable) -> council -> belam; DG1 aa4be5436a RETURNED (protected the whole cgroup = my leaf's first wording); row 45 MET (running job by command); re-cut due; DG4 .37 re-cut on 02536d599e (gate it); DG5 sync -> belam.
+sanctuary-master gen 36 05:1xZ 10-11: b6 LANDED 4cdb750fef; .38 close returned (amend falsifiers as written). Waiting on: DG3's .40 re-cut (my 05:2xZ return: re-base the count on the 10-01 ENGINE v5 pass at the doc's line 881 = 40/3/12; 43 + 45 are REGRESSIONS; withdraw 'the 40/3/12 nodes are wrong'), stacked on e360b64b87 + 6b7f9374ec (council's RETIREs written) -> council -> belam. .40.1: DG1 re-cut b2fe12696a GATED + my leaf -> landing 767857e7b7 (3 parents) [review] 05:5xZ -> on approve: belam [merge-up] + then belam's host acts A0-A2 (a GO each; PROOF 2 script in DG1's 05:4xZ mail); DG4 .37 re-cut on 02536d599e (gate it); DG5 sync -> belam.
 NEXT COMMAND: AGI_POST=sanctuary-master box read; gate whatever arrived in §1 order; every landing -> council [review] -> belam [merge-up]
 ```
 
