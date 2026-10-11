@@ -30,18 +30,17 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- DIGEST STACK (each L on the previous; belam ffs the TOP once; RE-MINT ALL on the live trunk right before the digest):
-  1. .42 E (DG4 ..dbbfb2e2a6): council 3/3 20:17Z; L f5f100b83b on 0c5ec01a72. HOST: 'crons.py apply --sudo'. After 1st live run: .42 C4 sha.
-  2. posts/sanctuary-master tip 698d93f267 (+ council fix-forward on .20.2): council LAND 3/3 23:0xZ. Tree gsm 6ad78dcea4 on L5
-     (.39 = branch, agi-send union, psi-some 30 both, posts row keeps --notify belam = interim). HOME 0, 0 D, lanes 39/0 + 11/0,
-     pytest 294/0 (r40e). Status sent to council 23:0xZ.
-  3. .41 DG5 0b574b3a29 + d278e47daa; first-start 'agi-flush agi-sync agi-turn'; ALSO cures .38.1 F4 (sect renders from posts/P HEAD).
-     Tree g41 a73440a611, HOME 0, 0 D, pytest 63/0 (r40e). [review] to council 23:0xZ, word asked by 23:35Z.
-  4. .20.2 RE-CUT DG1 dg1-close57 e8b68385a1 (572e69d369 inode check + probe rows; d09a3d1ed4 quiet-watch append notice; 4caabd13de
-     guard/alarm-first-start.sh; e8b68385a1 C3 memguard) after the council's 23:0xZ RETURN (silent loss). Stacked LAST: tree g20c
-     3babead81b (crons.md = DG1 rows psi-some 30; .13 THOUGHT union), HOME 0, 0 D. Gate gates40f.sh (r40f) -> [review] -> this digest
-     only if the word comes by ~23:50Z. HOST order: alarm_spool.py -> /opt/agi/bin, quiet-watch re-install, memguard re-stage, crons.py
-     apply, then 'sh extensions/agi/guard/alarm-first-start.sh'.
+ DIGEST STACK (each L on the previous; belam ffs the TOP once). L pins: refs/held/sanctuary-master/L<n> (box reads only real senders there).
+  1. .42 E: L1 2bb08327ab (G) = commit-tree T2 -p trunk f5763dc6a4 -p dbbfb2e2a6; T2 = gated + newcomers (card-belam, town) byte-identical.
+     HOST: 'crons.py apply --sudo' in the ff minute (E goes live by itself within 5 min anyway).
+  2. SM branch 698d93f267: council LAND 3/3 23:0xZ; L2 e932484bb4 (G) on L1 (= gated 6ad78dcea4 + newcomers). first-start none.
+  3. .41 DG5 0b574b3a29 + d278e47daa: council LAND 23:14Z, AMENDED 23:15Z: fix-forward 4 BEHIND-ONLY (agi-sync CAS-ff when posts/P is
+     behind, no merge commit) MUST land BEFORE E's first live run (board_job is_own refuses agi-sync's merge on posts/belam). Asked DG5
+     23:1xZ, sha by 23:40Z -> gate (grid_writers, thought_hygiene, trunk_sync + agi-turn/agi-strand lanes) -> council -> L3 on L2. ELSE
+     .41 waits for the next digest. Fix-forwards 1-3 (vacuous notice row, inert parent, lean mail) = DG5 later. first-start 'agi-flush agi-sync agi-turn'.
+  4. .20.2 re-cut e8b68385a1: council RETURN 23:14Z, ONE point: alarm-first-start.sh r1 = FALSE RED on a correct install (alarm_spool.py
+     docstring :10 + help :198 say 'box send'); fix (a) reword (b) real files in the clean-install row + mutant (c) \${ROWS-...}.
+     Asked DG1 23:1xZ, sha by 23:35Z -> gate -> council -> L4. Else next digest. Gated tree base g20c 3babead81b (865 pass, 1 flake).
   then (next window): DG2 .39.2 6d3075f0f6 · DG3 4c agi-hook f8e0a26efc (HOST sect agi-hook) · DG3 .43 [merge-up] cb81a8fa3e (8,970
      collected, 0 failed; base f5763dc6a4 is NOT on the trunk: fresh merge-tree; its (a) wg_reader fix may meet my :47 fix) ·
      DG4 .44.1-.6 a0a86ef159 (4 deviations + 7,418 B to the council) · DG2 .39.3/.39.4 then .44.7.
