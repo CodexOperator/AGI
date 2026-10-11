@@ -81,6 +81,7 @@ import json
 import os
 import pwd
 import re
+import shutil
 import sys
 import types
 from pathlib import Path
@@ -613,10 +614,12 @@ def _fake_proc(tmp_path, rows):
     return proc
 
 
-def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, over=None, grow=None):
+def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, over=None, grow=None, flips=None):
     """Run the RENDERED loop for `passes` passes on a fake clock (`tick` s per pass); avails[i] = MemAvailable in bytes
     for pass i (default: plenty). Returns (adj, stops, runs, ev): the SIGSTOPped pids, the logger/other run() calls and
-    ev = what the loop did besides: conts (SIGCONT pids), boxes ([(argv, stdin text)] of every Popen), clock."""
+    ev = what the loop did besides: conts (SIGCONT pids), boxes ([(argv, stdin text)] of every Popen), clock.
+    The fake kernel follows the signals (SIGSTOP -> state T in /proc/N/stat, SIGCONT -> S); flips = {pass: [(pid, state, start)]}
+    is a hand: state 'S' resumes it, None removes the process, start (optional) is a new start time (a reused pid)."""
     piece = BY_NAME["memguard-script"]
     tmp_path.mkdir(parents=True, exist_ok=True)
     proc = _fake_proc(tmp_path, rows)
@@ -637,13 +640,21 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
         (proc / "meminfo").write_text("MemTotal: 33554432 kB\nMemAvailable: %d kB\n" % (a // 1024))
         for pid, pages in (grow or {}).get(i, []):          # a process that grows at pass i
             (proc / str(pid) / "statm").write_text("10 %d 1 1 0 1 0\n" % pages)
+        for pid, state, *start in (flips or {}).get(i, []):
+            if state is None: shutil.rmtree(proc / str(pid))
+            else: setstate(pid, state, *start)
+    def setstate(pid, state, start=None):
+        f = proc / str(pid) / "stat"; t = f.read_text()
+        t = re.sub(r"\) [A-Za-z] ", ") %s " % state, t, count=1)
+        if start is not None: t = re.sub(r"( 0){17} \d+ ", lambda m: m.group(0).rsplit(" ", 2)[0] + " %d " % start, t, count=1)
+        f.write_text(t)
     setavail(0)
     def _sleep(s):
         clock[0] += tick; n[0] += 1
         if n[0] >= passes: raise SystemExit
         setavail(n[0])
     def _kill(pid, sig):
-        (ev.stops if sig == _sig.SIGSTOP else ev.conts).append(pid)
+        (ev.stops if sig == _sig.SIGSTOP else ev.conts).append(pid); setstate(pid, "T" if sig == _sig.SIGSTOP else "S")
     class _P:
         def __init__(s, argv, **k):
             ev.boxes.append([argv, argv[-1]])        # [argv, the notice text]: the text is the last argv word, never a shell string
@@ -655,7 +666,7 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
     with pytest.raises(SystemExit):
         exec(compile(src, "memguard-rendered", "exec"), ns)
     for q in ns.get("pend", []): q.wait(timeout=60)      # only non-empty with real_box: the real children finish
-    adj = {pid: int((tmp_path / "proc" / str(pid) / "oom_score_adj").read_text()) for pid in rows}
+    adj = {pid: int((tmp_path / "proc" / str(pid) / "oom_score_adj").read_text()) for pid in rows if (tmp_path / "proc" / str(pid)).exists()}
     ev.clock = clock[0]
     return adj, sorted(ev.stops), runs, ev
 
@@ -807,6 +818,63 @@ def test_memguard_does_not_resume_on_a_flap_or_a_size_stop(tmp_path):
     adj, stops, runs, ev = _guard_pass(tmp_path / "size", _post_unit(big=(21,)), passes=10, avails=[3 * GIB] * 10)
     assert stops == [21] and ev.conts == [], (stops, ev.conts)          # a size stop stays stopped: resumed by hand
     assert any("resume by hand: kill -CONT 21" in a[0][-1] for a in runs), [a[0][-1] for a in runs]
+
+
+def _journal(runs): return [a[0][-1] for a in runs if a[0][:1] == ["logger"]]
+
+
+def test_memguard_a_size_stop_resumed_by_hand_is_dropped_by_the_kernel_state_not_named_still_stopped(tmp_path):
+    again = int(_vs()["RENOTIFY_S"])
+    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(big=(21,)), passes=4, avails=[3 * GIB] * 4, tick=again // 2 + 1,
+                                       grow={1: [(21, 10)]}, flips={1: [(21, "S")]})       # a hand CONTs 21 and it shrinks
+    assert stops == [21], stops
+    assert not any("[memguard-still-21]" in b[1] for b in ev.boxes), [b[1] for b in ev.boxes]     # no false red for a RUNNING process
+    assert not any("STILL STOPPED" in m for m in _journal(runs))
+    mine = [m for m in _journal(runs) if "pid 21 " in m and "resumed by hand" in m]
+    assert len(mine) == 1, _journal(runs)                                                          # ONE journal line ...
+    assert not any("resumed by hand" in b[1] for b in ev.boxes)                                    # ... and not a red notice
+
+
+def test_memguard_a_hog_resumed_by_hand_that_grows_again_is_stopped_again_with_a_fresh_line(tmp_path):
+    tos = _vs()["MEMGUARD_ALERT_TO"].split()
+    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(big=(21,)), passes=3, avails=[3 * GIB] * 3, flips={1: [(21, "S")]})   # 5 s later, huge again
+    assert stops == [21, 21], stops                         # the second SIGSTOP is not swallowed by "pid in stopped"
+    for to in tos:                                          # and its line is fresh although inside the 600 s cooldown
+        said = [b[1].split(" ")[0] for b in ev.boxes if b[0][4] == "agi-" + to]
+        assert said.count("[memguard-susp-21]") == 2, (to, said)
+
+
+def test_memguard_a_low_stop_resumed_by_hand_gets_no_second_sigcont_and_no_false_resumed_line(tmp_path):
+    avails = [GIB // 2] + [3 * GIB] * 9
+    adj, stops, runs, ev = _guard_pass(tmp_path, _runaway_alone(), passes=10, avails=avails, flips={2: [(50, "S")]})
+    assert stops == [50] and ev.conts == [], (stops, ev.conts)           # the guard never CONTs what a hand already CONTed
+    assert not any("RESUMED" in b[1] for b in ev.boxes) and not any("RESUMED" in m for m in _journal(runs))
+    assert any("pid 50 " in m and "resumed by hand" in m for m in _journal(runs))
+
+
+def test_memguard_a_reused_pid_that_grows_is_a_new_process_with_its_own_stop_and_its_own_line(tmp_path):
+    tos = _vs()["MEMGUARD_ALERT_TO"].split()      # pass 1: pid 21 is another process (start time 9999), huge again, 5 s inside the cooldown
+    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(big=(21,)), passes=3, avails=[3 * GIB] * 3, flips={1: [(21, "T", 9999)]})
+    assert stops == [21, 21], stops
+    for to in tos:
+        said = [b[1].split(" ")[0] for b in ev.boxes if b[0][4] == "agi-" + to]
+        assert said.count("[memguard-susp-21]") == 2, (to, said)
+
+
+def test_memguard_a_ptrace_stopped_pid_is_still_a_stopped_pid(tmp_path):
+    again = int(_vs()["RENOTIFY_S"])           # state t (stopped under a tracer) is the kernel's "stopped" too: still named, never dropped
+    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(big=(21,)), passes=4, avails=[3 * GIB] * 4, tick=again // 2 + 1,
+                                       grow={1: [(21, 10)]}, flips={1: [(21, "t")]})
+    assert any("[memguard-still-21]" in b[1] for b in ev.boxes) and not any("resumed by hand" in m for m in _journal(runs))
+
+
+def test_memguard_a_stopped_pid_that_died_or_was_reused_leaves_the_list_with_its_cooldown_key(tmp_path):
+    again = int(_vs()["RENOTIFY_S"])
+    for tag, flip, word in (("dead", (21, None), "gone"), ("reused", (21, "T", 9999), "different process")):
+        adj, stops, runs, ev = _guard_pass(tmp_path / tag, _post_unit(big=(21,)), passes=4, avails=[3 * GIB] * 4, tick=again // 2 + 1,
+                                           grow={1: [(21, 10)]}, flips={1: [flip]})
+        assert not any("[memguard-still-21]" in b[1] for b in ev.boxes), (tag, [b[1] for b in ev.boxes])
+        assert sum(1 for m in _journal(runs) if "pid 21 " in m and word in m) == 1, (tag, _journal(runs))
 
 
 def test_memguard_says_a_tree_it_cannot_read_once_per_unit(tmp_path):
