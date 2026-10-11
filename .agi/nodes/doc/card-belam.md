@@ -21,14 +21,14 @@ town: core
 Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.agi/sessions/quorum/belam.md` are symlinks to it. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs; progress lives on the town board. Skills: agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-post · agi-memory-guard · agi-node-write · agi-goal · agi-master-gate.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-s2-III 22:3xZ 10-10: OWNER verbatim 21:5xZ: "Need to make council do all this review work while you idle mostly and await loop finish. I think council is being skipped on final loop step and I think a lot of the traps across various cards could go into skills or whatever other relevant docs" -- answers: "Council, but I break ties" · "I ff on council OK only" · "One sweep, then a rule". Done: doc:council-loop §Rulings and landing; skill agi-master-gate council step; SM + council switched (first council landing 7ac20cd62a, self-perpetuating approve 22:01:54Z); trap sweep 0ed3a367ae; standing rule in CLAUDE.md + agi-rotate §2. This card's traps dropped to the 2 that are still live. Earlier this gen: B6 merged ef9b043e68, g1.43, .8/.20/.36 rulings (now the council's kind of work).
+belam-s2-III 09:3xZ 10-11, at the rotation line: card whole for belam-s2-IV. This gen: council route stood up on the owner's order (rulings to the council, belam ffs council-approved tips only + the secret guard + the origin falsifier, re-read the approver's ref before every ff); trap sweep (98 rules into skills); loop end closed (12 outcomes, 3 bigger outcomes, 3 overviews, 24cdb55824); agi-quiet-watch timer; AGI_POST drop-in + every post restarted (tui, .38, .20 alert live on 10 of 11); 657 archive refs restored from the pre-move bundle; memguard A1 installed on owner GO. OWNER verbatim this gen: "Need to make council do all this review work while you idle mostly and await loop finish. I think council is being skipped on final loop step and I think a lot of the traps across various cards could go into skills or whatever other relevant docs" · "Council, but I break ties" · "I ff on council OK only (Recommended)" · "One sweep, then a rule (Recommended)" · "Hmm your check missed the team being hung ... Maybe an automated check if all posts are quiet for 5 mins and no process send a mail alert to SM" · "Bad we fix the post issue agi seat shouldn't be used anymore unless absolutely needed. The post should include all relevant info including box location" · "Yes let’s do it thank you" (memguard A1 + A2).
 <!-- THOUGHT:END -->
 
-## §0 State (01:1xZ 10-09, read from date -u)
+## §0 State (09:3xZ 10-11, read from date -u)
 | | |
 |---|---|
 | STANDING | owner 07:5xZ 10-10: every 4-h CHECK = TRAJECTORY FIRST -- what is stuck, idle posts, season leaves -> SM (engine) / TM (research) (skill agi-merge-pass §1 T1-T3). Reviews = Sonnet subagents (skill agi-review; workflow.py retired) |
-| post | belam-s2-III (woke 09:2xZ 10-10; predecessor belam-s2-II); user agi-belam, home ~, works in ~/t on posts/belam |
+| post | belam-s2-III (09:2xZ 10-10 -> rotated at its line 09:3xZ 10-11) -> successor belam-s2-IV; user agi-belam, home ~, works in ~/t on posts/belam. belam's OWN unit still runs pre-.38 pieces + no AGI_POST in env until this restart (set AGI_POST=belam by hand) |
 | E | 4 cores · 7.8 GB · agi.slice MemoryHigh 5G / Max 6G / oomd 40% · the OS hostname is still the old Prime's (box = the row cell) |
 | posts on E (v5) | DG1-5 · DT-1 · TM · alive · all-is-one · self-perpetuating · SM · belam = 12; each logged in by the owner |
 | L = local-town | SHUT DOWN 02:0xZ 10-09 (owner: "confirm local town is clear and shut it down"); belam-s2-I is the ONLY Prime; every seat key carried L->E (sends sign again); L's .env NOT carried; refs/grid bundle on L's USB /mnt/agi-flash |
@@ -38,17 +38,20 @@ belam-s2-III 22:3xZ 10-10: OWNER verbatim 21:5xZ: "Need to make council do all t
 | crons | box: user belam's crontab on E is LIVE (10 lines = the graph; crons_apply 02:05Z no-op): grid_sync */5 · ref pushes */5 · trunk push :07 · send.py wake */2 (the L note "E has no crontab" was wrong) · session-only (re-arm at wake): CHECK 13b11552 (13 */4, trajectory-first) · hourly 7647814e (47 *: memory + stuck-dialog scan + box read) |
 | host act E | installed 22:22Z 10-08 at dd1563bc3c: rollback `sh /var/backups/agi-act-20261008T222239Z/rollback.sh` |
 | landing | belam commits on posts/belam, pushes posts/belam, then as user belam `merge --ff-only posts/belam` in MAIN; a director tip lands ONLY with a council approve line (doc:council-loop); the TRUNK (local-maxxing/season2/main) is carried by the branch_push cron at :07 -- no post pushes it by hand (TM 09:3xZ 10-10: TM's uid has no GitHub credential on E) |
-| merge pass | B6 MERGED 09:4xZ 10-10: season2/main ef9b043e68 = trunk 4e9dbced38 (176 commits; 6 Sonnet lanes + verifier CLEAR; RED 0 · demote 3 · residue 9 -> goal:g1.43, SM); local-maxxing/main 4e9dbced38; state file closed (BASE for B7 = 4e9dbced38); kit ~/pass-b6 |
+| merge pass | B6 MERGED ef9b043e68 (10-10); state BASE for B7 = 4e9dbced38 (trunk now ~350 commits past, 0 experiment files -> B7 not due by rule; the season close needs the owner's word) |
 
 ## §1 Plan
 ```
 STANDING (owner 21:5xZ 10-10): IDLE mostly, await loop finish. The council rules; belam breaks ties only.
 1. [merge-up] with 'council: <post> approve <ts>' -> verify the approve on refs/box/<council>/sanctuary-master -> FULL anonymize guard -> ff MAIN. Nothing else.
 2. CHECK every 4 h (trajectory, skill agi-merge-pass §1) + hourly scan (memory, stuck dialogs). PASS B7 when experiments land past 4e9dbced38.
-3. OWNER RULINGS OWED (asked 09:0xZ 10-10): season-2 CLOSE SET (SM 08:12Z proposal) · host-act GOs (.12 ring, .11.1; .4 .7 .18 .6 -> S3) · machine identity for root alerts
+3. OWNER RULINGS OWED: season-2 CLOSE (run B7 + the morals review now? asked 04:1xZ 10-11, after the loop end closed 24cdb55824) · host-act GOs (.12 ring, .11.1) · claude pin (§6) · host-identity lane (§6) · publish the 657 archive refs (§6)
 4. a tie from the council -> rule it; everything else -> the council
 5. goal:g7.16.1.11.37 (retire AGI_SEAT, DG4) host side = mine, TWO GOs in order (council): re-render the agi-post@ unit from engine-root.md -> read a running post's env + run the lane in it -> ONLY THEN remove drop-in 52-post-env. Falsifier: live unit + drop-ins == the render. SOURCE LANDED 20a39210c4 (AGI_SEAT retired, AGI_POST=%i, AGI_BOX via carry.env, 50/51 folded, wrong-box ExecCondition). C1: re-render GO waits for DG4's next commit (unreadable trunk must exit 255, not 2 = silent skip of every post) AND agi-out-stale.t.sh green WITH THE CANDIDATE SHA as its arg (SM 08:21Z: 2 FAIL on .37, a lane parser gap, vacuous green at the gate); C2: at the drop-in-retire GO, move the 50/51/52 sources under extensions/agi/guard/ to deprecated in the SAME act (never before, never rm).
 6. MEMGUARD (goal:g7.16.1.11.40.1): OWNER GO 08:4xZ 10-11, verbatim "Yes let’s do it thank you" = A1 install + A2 enable. A1 INSTALLED 09:2xZ on 181e2e7063 (script 92e99c6d.., unit disabled + inactive). Every act runs ONLY from the A0 archive of the GO sha: SHA=<40hex>; git -C /data/work/agi show $SHA:extensions/agi/boxkit/memguard-a0.sh > ~/memguard-a0.sh && SHA=$SHA sh ~/memguard-a0.sh; B=~/memguard-A0/src/extensions/agi/boxkit; then memguard-a1.undo.sh / -a1.sh / -a1.proof.sh / -a2.sh / -a2.proof.sh (PROOF 2 twice >= 11 s apart) / -a2.undo.sh. A2 HELD for DG1's C-a (inherited nice on pi workers) + C-b (verdict reads the guard's own state); SM rotating 09:2xZ, its successor sends the A2 sha. ~/memguard-scripts RETIRED.
+7. DG5 SYNCED 09:4xZ (c3af38d1d4): RESTART it when idle -> verify tui, AGI_POST, has38 (~/t contains 98766a28fc), resumed -c. Restart script = scratch rs.sh is GONE with this session: idle = transcript >= 60 s AND no non-baseline proc in the unit cgroup (baseline: agi-run, agi-track, sleep 5|300, script, strace, grep --line-buffered, awk !s, claude, gk mcp, dbus-daemon) AND MemAvailable >= 2.5 GB; then `sudo systemctl restart agi-post@<p>`
+8. /dev/shm pressure 09:3xZ: 3.6 -> 2.9 GB after I freed 2 stale pytest basetemps; asked SM for dg1-a0w / dg1-mm / sm37-tmp. Re-read at the first hourly scan
+9. wake units: agi-boxwake@ (transient) on all-is-one, self-perpetuating, DG1, DG2, DG4, DG5; agi-run's own loops die (trap 96) -- DG1's loop-survival leaf is next after memguard A2
 NEVER: rule a [decision] the council can rule · assign a design or a build · dispatch · write in another post's tree
 ```
 
@@ -57,8 +60,8 @@ B5 7276f11d36 · .35 RLIMIT_DATA · AA1.V v5f/g · kid identity · key-stranding
 mine: free tier -> nvidia/nemotron-3-ultra-550b-a55b:free · skill agi-review + review-lanes.sh + doc:agi-review-brief · goal:g1.42 (B5 residues; open 11/12/25 owner + 15 mine) · rc-keepalive title heal + rate limit · signers-repoint + no-session-bus drop-ins (/etc/systemd/system/agi-post@.service.d/50-,51-) · crons._systemd_bus_env disabled: fix · ladder goal .15 active
 
 ## 🔴 Where it stops
-belam-s2-III idle under the council route (owner 21:5xZ 10-10); first council-approved landing 7ac20cd62a done; trap sweep landed 0ed3a367ae.
-- next command: wait for mail / the CHECK cron (13 */4) / the hourly scan (47 *); at a rotation re-arm both crons first (CronList)
+belam-s2-III rotated at its line 09:3xZ 10-11, idle under the council route; owed now: DG5 restart (plan 7), memguard A2 when SM's successor sends the sha (plan 6), owner rulings (plan 3).
+- next command at wake (on E, ~/t): CronList -> re-arm CHECK (13 */4) + hourly scan (47 *) + keep agi-quiet-watch in mind (root timer); `AGI_POST=belam box read`; then plan 7
 
 ## §4 Traps (the rest live in the skills since the sweep 0ed3a367ae)
 | # | trap | rule |
