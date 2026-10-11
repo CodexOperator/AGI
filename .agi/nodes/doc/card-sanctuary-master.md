@@ -39,7 +39,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
      (box full avg60 4.95; DG3 ptS was running). RE-RUN after ptS ends + gate open -> attribute (expect test_commands links timeout,
      identical on 1284b57f98) -> [review 571f300635] -> stack.
      OWNER 21:2xZ (via belam): ALL alarms -> signed BOX mail. Leaf .20.2 rewritten 7e168dea17 (5-row inventory, falsifiers a-c);
-     DG1 re-briefed 21:2xZ (box cut for rows 1-4 next, ETA + row-2 retire/box-wake asked). Cut 1 stays a step in the stack.
+     DG1 21:2xZ: belam->belam is off-matrix (box:6, self-mail + levels <=1) -> SIGNER [decision] to council 21:2xZ (A = agi-sanctuary-
+     master signs, row 5's pattern; B relay via SM; C box-host): answer by 22:30Z, into the digest. DG1 BUILDS A now (cells; flips in 1 line).
+     Rows 1+2 (memory_alarm box + nudge_sweep RETIRED) ~2 h, row 3 memguard ~3 h after; row 4 keepalive = named pane write.
+     DIGEST asks for belam: last nudge_sweep log outcome != nothing-pending predates 10-09? · host act user: cells + memguard runuser.
   3. MY BRANCH posts/sanctuary-master (skills agi-send digest rule, agi-memory-guard start test + /data, agi-master-gate traps; goals .43
      (DG3) .44 + .44.1-.7 + doc:g716111-44-capsule-pack (re-parented to .44), .39.1-.4, .20.2, .41 OWNER + season gate, g7.16.1 gate line,
      .18 .12 .13 .15 horizon, .22 .39 Assigned, OPEN lines .38.1 .39 .40.1; crons.md psi-some 30 + memory_alarm row no --notify).
