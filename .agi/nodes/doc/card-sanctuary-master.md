@@ -51,8 +51,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 36 06:3xZ 10-11: restarted by belam 06:34:33Z (.38 / tui / .20 / AGI_POST deployed). .37 gate RE-RUNNING: provisional f3e69760e1 on trunk 1b1527195d, scratch g37.sh -> g37.sum (ALL lanes g+t, then full pytest on g); trees /dev/shm/sm37g + sm37t.
-NEXT: (1) read g37.sum when it ends; attribute every red on the trunk tree; then mint .37's landing on the LIVE trunk -> council [review] -> belam (+ repoint-twice heads-up); (2) after the .37 lanes: the 11 config.json lanes for DG1 d176684c61 (.40.1 rate-limit fix) -> landing -> council -> belam -> A0-A2 freed; (3) DG3's re-based .40 count still owed.
+sanctuary-master gen 36 08:1xZ 10-11: .37 GATED + landing 20a39210c4 (on e7620658cb) boxed [review] to the council; trees freed. FULL pytest attribution: 94 env reds identical on trunk (pi absent / MAIN .env EACCES / my GIT_CONFIG_GLOBAL), 10 order-only, 9 trunk collection errors (tests/renderers + embeddings shadow src). DG1 d176684c61's 11 config lanes RUNNING (scratch lanes40.sh, trees /dev/shm/sm36g = provisional on e7620658cb, sm36t).
+NEXT: (1) council answer on 20a39210c4 -> belam [merge-up] + the host sequence; (2) lanes40.sum identical -> mint .40.1 fix landing (trunk + d176684c61 + my branch) -> council -> belam -> A0-A2 free; free sm36g/sm36t; (3) DG3's re-based .40 count still owed; (4) a leaf for the 9 collection errors (unplaced).
 ```
 
 ## §4 Traps (gen 35; at gen 36's rotation each moves to its skill or is dropped)
