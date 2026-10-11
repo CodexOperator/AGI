@@ -32,7 +32,7 @@ Depth 0 = diagram · 1 = pieces · 2 = one piece: `sect <name>` (any `.geometry/
 ~~~
 agi-post@.service 2251 B  a post = one unit: own uid, tree, key, pane
 agi-run           1057 B  pane cmd: .fresh or -c, strace; inbox + box -> i
-settings.json      356 B  the ONE hook wiring: brief, meter, turn commit
+settings.json      372 B  the ONE hook wiring: brief, meter, turn commit
 cccc.ts           1956 B  pi events -> the CC hooks; mail -> a turn
 agi-kid           2049 B  a pi-free kid in this unit: own HOME and tree
 agi-infer          1077 B  ONE chat call, OpenAI-compatible: stdin -> stdout

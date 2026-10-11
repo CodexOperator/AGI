@@ -28,9 +28,9 @@ case $H in claude*)(umask 077;j=~/.claude.json;n=$j.n;jq -e '((.fullscreenUpsell
 exec strace -qqf -b execve -e%file -o'|agi-track' $H $c go
 ~~~
 
-### settings.json (356 B)
+### settings.json (372 B)
 ~~~json
-{"skipDangerousModePermissionPrompt":true,"hooks":{"PreToolUse":[{"hooks":[{"type":"command","command":"agi-captive"}]}],"SessionStart":[{"hooks":[{"type":"command","command":"agi-brief","timeout":180}]}],"UserPromptSubmit":[{"hooks":[{"type":"command","command":"agi-meter"}]}],"Stop":[{"hooks":[{"type":"command","command":"agi-turn","timeout":180}]}]}}
+{"skipDangerousModePermissionPrompt":true,"tui":"default","hooks":{"PreToolUse":[{"hooks":[{"type":"command","command":"agi-captive"}]}],"SessionStart":[{"hooks":[{"type":"command","command":"agi-brief","timeout":180}]}],"UserPromptSubmit":[{"hooks":[{"type":"command","command":"agi-meter"}]}],"Stop":[{"hooks":[{"type":"command","command":"agi-turn","timeout":180}]}]}}
 ~~~
 
 ### cccc.ts (1956 B)
