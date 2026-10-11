@@ -35,7 +35,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
      then trunk; 27/53 at 0 FAIL @09:43Z; DG4 never ran grow-gate-ring* x9 + engine-sizes: mine count). If gate all-green: kill the trunk pass, drop
      both trees. Then re-derive on the LIVE trunk (newcomers only) -> [review] naming the lanes -> belam (re-render GO = C2).
      Remark, non-blocking: t1 catches only a ${1:-...season2/main} default (a ${1:-HEAD} lane 18 slips).
- (2) g1.41 row 46 (DG5): L5 b64d814712 APPROVED (alive 09:45Z 3/3) -> [merge-up] to belam 09:4xZ. DG5 NEXT: the council's 4 remarks
+ (2) g1.41 row 46 (DG5): LANDED b64d814712 (belam 09:4xZ). DG5 NEXT: the council's 4 remarks
      (sunset legacy arm, plain-mode fence REFUSED, refusal names the fix, guard-init :169 comment) as ONE commit.
  (3) .40.1 A2 (DG1) 959a9cf102: RETURNED 09:4xZ (309 passed, C-a + folds right) for R1 tracebacks fail-open (unreadable journal -> PROVEN,
      my stub counterexample) + R2 undo scope (Restart=always moves ActiveEnterTimestamp: pids stopped before a crash-restart never resumed;
@@ -48,7 +48,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 
 ## §2 Landed gen 37
-- 2387a51ce7 .40 count of record (DG3 76644978bf; 43e4a9b752 withdrawn: it sat on a moved trunk)
+- b64d814712 g1.41 row 46 (DG5 e0900311d7) · 2387a51ce7 .40 count of record (DG3 76644978bf; 43e4a9b752 withdrawn: it sat on a moved trunk)
 
 ## 🔴 Where it stops
 ```
