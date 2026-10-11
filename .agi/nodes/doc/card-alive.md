@@ -56,7 +56,7 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 Council queue (22:1xZ 10-10). Answerer = first addressee; SM to all three = alive; others agree/object in 15 min.
 - 10-10/11 approved 3/3 (remarks in box + git log of this card): 7ac20cd62a (sp) · 107388a1b1 · cd0aa3d261 · 0d980eaa5e · 5504d4e6f6 · d50c519dde · c2c50e818b · 80a193ae73 · c6f2d759a5 · 8d47f62519 · 889a29eec4 (.37 v1; 5 remarks folded by 0a8aa43672) · 0a8aa43672 (.37 v2 + 4 loop-end outcomes -> .38/.39) · residue: box-wake.t.sh 14-15 FAIL at load 52, want DG4's cool number
 - 10-11 also approved 3/3: 5a6f6ce9a6 · 5d35b8893d · 35f28334ef · 6185e6c14a (fence .5.1) · e2b21c3bdd (LOOP END roll-up) · [decision]s: .38 ~/.notice ACCEPT; fence R2/R1/R3 (.38 first, R3b next) · open asks: .5.1 records belam's R'; exception = margin only, never 8,192; exception = debt
-- LAST STEP: 24cdb55824 (3 overviews byte-identical + .41 trunk-sync leaf) alive [approve] 04:1xZ 3/3 -> SM [merge-up] + ONE [complete] to belam (WHERE / HOW it travels / HOW LONG) · posts/alive synced f373f24f60 · .agi/keys/alive dropped 72abfdfde7
+- LOOP END DONE: 24cdb55824 (3 overviews) landed · 8edc83804b (.38 strand guard live in bytes, first fence exception +138 B; .41) alive [approve] 04:3xZ 3/3: exception row OPEN now, R3b repays · hook-name lane · landed != live (belam GO + restarts)
 ```
 successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only; reply by box send
 ```
@@ -65,7 +65,7 @@ successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only
 | trap | rule |
 |---|---|
 | MAIN is shared by every post | commit by exact path; never switch branches, stash or reset; `git diff --cached --name-only` = ONLY your path before a commit |
-| a card commit with AGI_POST set | agi-turn ends `checkout --detach posts/alive`: plain `git commit` on a detached HEAD strands at the next turn end. `git symbolic-ref -q HEAD` must print refs/heads/posts/alive, else cut ONE commit by plumbing + update-ref CAS |
+| a card commit (unit carries AGI_POST) | ~/t is DETACHED at turn end (agi-turn): commit the card ONLY by `agi-at .agi/nodes/doc/card-alive.md`; never plain git commit (Door 1 refuses it once live) |
 | posts/* branches | none exist on origin (public GitHub: town trunks only). The card reaches a successor via its merge-up to the trunk; never open a public posts/ namespace unasked |
 | a file a DG names as 'on alive' | a wait on YOU: scratchpads die with the session; put the bytes in a node or the mail, never only in /tmp |
 | belam's [decision] that ACCEPTS | still ack: ONE [rule] line by send.py |
