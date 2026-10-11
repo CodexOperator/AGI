@@ -27,7 +27,7 @@ belam-s2-V 19:0xZ 10-11: woke 17:1xZ (crons re-armed: CHECK f1b8bceb, scan f8871
 ## §0 State (19:0xZ 10-11, read from date -u)
 | | |
 |---|---|
-| STANDING | owner 07:5xZ 10-10: every 4-h CHECK = TRAJECTORY FIRST (skill agi-merge-pass §1 T1-T3); owner 21:5xZ 10-10: IDLE mostly, the council rules, belam ffs council-approved tips + breaks ties |
+| STANDING | OWNER 19:4xZ 10-11 (verbatim, relayed to SM for goal .41): "Make sure that the projection work is done before season rollover. Everything must be able to project cleanly." = .41 gates the season-2 close · owner 07:5xZ 10-10: every 4-h CHECK = TRAJECTORY FIRST (skill agi-merge-pass §1 T1-T3); owner 21:5xZ 10-10: IDLE mostly, the council rules, belam ffs council-approved tips + breaks ties |
 | post | belam-s2-V (since 17:1xZ 10-11; IV 09:3xZ-17:1xZ); user agi-belam, works in ~/t (detached) on posts/belam; env now carries AGI_POST=belam + RUNTIME_DIRECTORY=/run/agi-belam |
 | E | 4 cores · 7.8 GB · agi.slice MemoryHigh 5120 / Max 6144 MiB · ROOT disk vg0-root 60 GB holds every post home + /tmp (52% at 19:0xZ) · /data 360 GB (313 GB free) |
 | posts (12, all claude) | DG1-5 · DT-1 · TM · alive · all-is-one · self-perpetuating · SM · belam; each has agi-post@<p> + agi-boxwake@<p> (template, Wants=) |
@@ -69,7 +69,7 @@ belam-s2-V (17:1xZ-): ff b6feb687d4 19:00:08Z (.39 r1 + .40.1 memguard; council 
 belam-s2-IV (09:3xZ-17:1xZ): 18 ffs 2387a51ce7 .. c52ccd53c9 · memguard A2 PROVEN · .37 re-render + drop-ins 50-52 retired · .32 agi-boxwake@ x12 · pins -> 5f5dc2c4be · rulings .38.1, .42 laned; box rule (detail: git + goal notes + refs/box/belam/sanctuary-master)
 
 ## 🔴 Where it stops
-belam-s2-V idle after landing 97865e4139 (.38.1). 4c (MAIN .git/hooks copy) WAITS for a root piece that renders it (none in engine-root.md at 97865e4139; never by hand). Also owed: 4e memguard re-stage (scratch-measure at b6feb687d4 FIRST, box SM before); then SM's queue: .38.1 (DG3 [review] next) · .42 E (DG4 dbbfb2e2a6; needs `crons.py apply --sudo` in the SAME minute as its ff) · SM's own branch (memory_alarm psi 10 -> 30 -> `crons.py apply`). (e) open: NO box move before DG2's preflight (ee0fd9028e) lands.
+belam-s2-V: the owner's projection gate is with SM (19:42Z: .41 stalled + unblocked, dispatch asked; root projection CLEAN at pin == tip; post projection NOT clean: t 22-271 behind, ~/bin stale 1-8 pieces, 0/12 carry the .38.1 hook). Await SM's builder + ETA, then report it to the owner; after .41 lands: re-measure per-post ~/bin == trunk pieces (0 stale) + .41 F4. TM nudged on DT-1 (silent since 05:01Z). 4c (MAIN .git/hooks copy) WAITS for a root piece that renders it (none in engine-root.md at 97865e4139; never by hand). Also owed: 4e memguard re-stage (scratch-measure at b6feb687d4 FIRST, box SM before); then SM's queue: .38.1 (DG3 [review] next) · .42 E (DG4 dbbfb2e2a6; needs `crons.py apply --sudo` in the SAME minute as its ff) · SM's own branch (memory_alarm psi 10 -> 30 -> `crons.py apply`). (e) open: NO box move before DG2's preflight (ee0fd9028e) lands.
 - next command: `AGI_POST=belam box read`; at a merge-up run §1 item 1 (the approver ref = refs/box/alive/sanctuary-master; anonymize as agi-belam with --root = a scratch `git archive` of the tip, never as uid belam: it cannot read your scratchpad)
 
 ## §4 Traps (this generation's only)
