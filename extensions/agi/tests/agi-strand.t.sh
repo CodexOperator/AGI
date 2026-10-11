@@ -14,7 +14,7 @@
 #   o1 an uncommitted edit in ~/t -> [out-of-tree] on stderr AND in ~/.notice       n1 agi-meter prints each notice line ONCE (4 retries = 1 line) and clears the file; a second prompt prints nothing
 #   n2 agi-brief calls the printer first   n3 CLAIM then print: a line appended WHILE the print runs lands in a fresh ~/.notice (kept for the next prompt); only the claimed lines are removed
 #   b1 BOUNDED: 4 flushes of one strand + 2 turns of a growing out-of-tree = ONE line each (one line per label+sha)   b2 a DIFFERENT sha is a new line, the same sha is not   c1 a claim left by a crashed printer (~/.notice.PID) is printed with the next one
-#   h1 core.hooksPath=~/bin makes EVERY piece name a git-hook candidate: no `### name` in engine*.md is a git hook name (githooks(5)) except pre-commit
+#   h1 core.hooksPath=~/bin makes EVERY piece name a git-hook candidate: no `### name` in engine*.md is a git hook name (githooks(5)) except pre-commit (Door 1) and reference-transaction (goal:g7.16.1.11.38.1, the ref guard)
 #   r1 the notice survives the ROTATION path: the REAL unit ExecStartPre line (engine-root) runs against the scratch HOME, then the successor's first SessionStart (agi-brief) prints it on STDOUT first
 # MUTANTS (PIECES=<engine*.md with the piece edited, each OLD text asserted count == 1): m1 both call sites `if agi-turn strand` -> `if :` (guard dropped: s1 s2 s3 RED) · m2 the `>>~/.notice` writes cut (stderr only: s1 o1 n1 RED) · m3 the pre-commit piece renamed away (d1 RED) · m4 the strand count against posts/<post> ONLY (s4 RED: a post sitting on the trunk would be refused every turn) · m5 the printer to stderr only (n1 n3 r1 RED: the model never reads it) · m6 print-then-truncate, no claim (n3 RED: the late append is lost) · m7 `add` without the key test (b1 b2 RED) · m8 a piece named post-checkout (h1 RED: git would run it after every checkout)
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-${1:-$(cd "$(dirname "$0")/../../.." && pwd)}}
@@ -85,8 +85,8 @@ ok r1-the-notice-survives-the-restart-and-the-successors-first-sessionstart-prin
 # h1: hooksPath=~/bin -- a piece named like a git hook would RUN as one (the lane's own PIECES / ROOT text is the list of piece names)
 HOOKS=" applypatch-msg pre-applypatch post-applypatch pre-commit pre-merge-commit prepare-commit-msg commit-msg post-commit pre-rebase post-checkout post-merge pre-push pre-receive update proc-receive post-receive post-update reference-transaction push-to-checkout pre-auto-gc post-rewrite sendemail-validate fsmonitor-watchman p4-changelist p4-prepare-changelist p4-post-changelist p4-pre-submit post-index-change "
 if [ -n "$PIECES" ];then cat "$PIECES";else cat $R0/.agi/nodes/.geometry/engine*.md;fi|grep -o '^### [^ ]*'|cut -c5- >$T/pnames
-hk=;for n in $(cat $T/pnames);do case "$HOOKS" in *" $n "*)[ $n = pre-commit ]||hk="$hk $n";; esac;done
-ok h1-no-piece-is-named-like-a-git-hook-but-pre-commit "[ -s $T/pnames ]&&[ -z '$hk' ]&&grep -qx pre-commit $T/pnames" 
+hk=;for n in $(cat $T/pnames);do case "$HOOKS" in *" $n "*)case $n in pre-commit|reference-transaction);;*)hk="$hk $n";;esac;; esac;done
+ok h1-no-piece-is-named-like-a-git-hook-but-pre-commit-and-reference-transaction "[ -s $T/pnames ]&&[ -z '$hk' ]&&grep -qx pre-commit $T/pnames"
 # b1 / b2 / c1: bounded, keyed, crash-safe
 mk;gc --no-verify --allow-empty -m stranded;run agi-flush >/dev/null 2>&1;run agi-flush >/dev/null 2>&1;run agi-turn >/dev/null 2>&1;echo one >$V/n1.txt;run agi-turn >/dev/null 2>&1;echo two >$V/n2.txt;run agi-turn >/dev/null 2>&1
 ok b1-a-stuck-condition-is-one-line-per-key "[ \$(grep -c '^\[strand-refused\]' $H/.notice) = 1 ]&&[ \$(grep -c '^\[out-of-tree\]' $H/.notice) = 1 ]"
