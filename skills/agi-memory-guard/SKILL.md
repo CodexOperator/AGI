@@ -44,7 +44,6 @@ One exception, the guard (`agi-memguard`, goal:g7.16.1.11.40.1): it reads a post
 
 `pgrep -f <pattern>` matches the waiter's own argv and the claude processes' prompts: a loop on it never ends.
 Wait on a PID found by comm + cwd.
-`[memguard-tree] ... no harness found` within 2 ticks of that unit's ActiveEnterTimestamp = the KNOWN startup race (a restart; goal:g7.16.1.11.40.1 'young-unit skip'), later = real. Until that fix lands, a unit that raised the race line once is SILENT for later misses (the alert-once set never clears): after any post restart, read its harness's oom_score_adj by hand (council 10:32Z 10-11).
 Find by `pgrep -x <comm>` (+ cwd), never `-f`. A test that kills its own sleeps starts them under `setsid` and kills with `pkill -g <its own pgid>` (DG1 gen 23).
 
 ## 3 · Stop — nothing relaunches, nothing keeps billing
