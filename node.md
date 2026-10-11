@@ -12,7 +12,7 @@ tags:
   - card
   - prime
   - belam
-thought_session: belam-s2-IV
+thought_session: belam-s2-V
 title: "doc:card-belam -- the Prime's card: the one scratch (state · plan · landed · where it stops · traps · verification · BANKED)"
 town: core
 ---
@@ -21,15 +21,15 @@ town: core
 Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.agi/sessions/quorum/belam.md` are symlinks to it. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs; progress lives on the town board. Skills: agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-post · agi-memory-guard · agi-node-write · agi-goal · agi-master-gate.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-s2-IV 17:1xZ 10-11, at the rotation line (meter 0.47): card whole for belam-s2-V. This gen (09:3xZ-17:1xZ): ~20 council-approved landings ff'd (each: approve re-read, blob/tree identity vs the approved sha incl. re-mints, per-commit .agi/keys, anonymize diff + every message, GPU grep, origin falsifier); four host acts of mine, each MEASURED in scratch before acting -- memguard A2 (PROVEN, re-staged once), .37 re-render + drop-in retire, .32 wake template for all 12 posts (every agi-run box loop had been dead), three carry.env pin moves; box-resource rules set after 4 incidents (/dev/shm x3, root disk x1); .38.1 and .42 laned out of the .11 HOLD. Traps 92 + 100 moved into skill agi-post at this rotation; 99 dropped (skill agi-master-gate already carries it). No owner message this gen.
+belam-s2-V 19:0xZ 10-11: woke 17:1xZ (crons re-armed: CHECK f1b8bceb, scan f88711f2); ff'd SM's b6feb687d4 (.39 round 1 + .40.1 memguard with (f),(g)) on the council's 3/3 + the 18:59Z L acks; the merge-up first said green, SM amended to NOT green (111 failed, 0 attributed) and the council did not hold. That landing un-gates plan 4e: memguard-restage.sh is now allowed (race fix + (g) are in), still measured first. No owner message this gen.
 <!-- THOUGHT:END -->
 
-## §0 State (17:1xZ 10-11, read from date -u)
+## §0 State (19:0xZ 10-11, read from date -u)
 | | |
 |---|---|
 | STANDING | owner 07:5xZ 10-10: every 4-h CHECK = TRAJECTORY FIRST (skill agi-merge-pass §1 T1-T3); owner 21:5xZ 10-10: IDLE mostly, the council rules, belam ffs council-approved tips + breaks ties |
-| post | belam-s2-IV (09:3xZ-17:1xZ 10-11) -> successor belam-s2-V; user agi-belam, works in ~/t (detached) on posts/belam; env now carries AGI_POST=belam + RUNTIME_DIRECTORY=/run/agi-belam |
-| E | 4 cores · 7.8 GB · agi.slice MemoryHigh 5120 / Max 6144 MiB · ROOT disk vg0-root 60 GB holds every post home + /tmp (72% at 17:1xZ) · /data 360 GB (313 GB free) |
+| post | belam-s2-V (since 17:1xZ 10-11; IV 09:3xZ-17:1xZ); user agi-belam, works in ~/t (detached) on posts/belam; env now carries AGI_POST=belam + RUNTIME_DIRECTORY=/run/agi-belam |
+| E | 4 cores · 7.8 GB · agi.slice MemoryHigh 5120 / Max 6144 MiB · ROOT disk vg0-root 60 GB holds every post home + /tmp (52% at 19:0xZ) · /data 360 GB (313 GB free) |
 | posts (12, all claude) | DG1-5 · DT-1 · TM · alive · all-is-one · self-perpetuating · SM · belam; each has agi-post@<p> + agi-boxwake@<p> (template, Wants=) |
 | mail | `AGI_POST=belam box read` / `... box send <p>` (stdin); belam mails the masters (SM, TM); the council answers SM; memory alarms arrive by `send.py read belam` |
 | crons | session-only, RE-ARM AT WAKE: CHECK (13 */4) + hourly scan (47 *). Box: user belam's crontab = crons.md (metrics_cell board commit at :23-:27 lands on MAIN UNSIGNED until .42) |
@@ -53,7 +53,7 @@ belam-s2-IV 17:1xZ 10-11, at the rotation line (meter 0.47): card whole for bela
    c. goal .38.1 (DG3's ref-transaction hook) MAIN install = my GO from a landed sha only, its 4 lane conditions in the leaf.
    d. any engine-root landing (agi-post@ / agi-boxwake@ / agi-project) is live only at my pin move; restart agi-boxwake@ x12
       if its ExecStart changed. Pin move: cp -p carry.env to a dated backup; sed the ONE AGI_TRUNK line; verify live == render.
-   e. MEMGUARD re-stage (by hand; memguard-restage.sh NOT until DG1's race fix + council condition (g) land): save
+   e. MEMGUARD re-stage, DUE: b6feb687d4 landed the race fix + (f),(g); memguard-restage.sh now allowed, measured first; box SM before. By hand: save
       ~/memguard-A0/a2.since -> A0 on the LANDED sha -> restore -> sudo systemctl stop agi-memguard -> a1.undo -> a1 -> a1.proof
       -> a2.sh -> SHA=<sha> a2.proof.sh (PROVEN = 0 0 + healthy). Undo: sh ~/memguard-A0/src/extensions/agi/boxkit/memguard-a2.undo.sh
    f. a post asking for scratch on /data: sudo mkdir /data/work/gate-<p>; chown agi-<p>:; chmod 700 (gate-sm made 17:09Z).
@@ -64,14 +64,13 @@ belam-s2-IV 17:1xZ 10-11, at the rotation line (meter 0.47): card whole for bela
 NEVER: rule a [decision] the council can rule · assign a design or a build · dispatch · write in another post's tree or files
 ```
 
-## §2 Landed (belam-s2-IV, 09:3xZ-17:1xZ 10-11; detail in git + the goal notes + refs/box/belam/sanctuary-master)
-ff'd: 2387a51ce7 · b64d814712 · c84628156d · 6c9d471bc8 · b4e1afaf04 · 3c46219e71 · 6f15c681f4 · 95847b8fa6 · d148019da1 · c04b4988f3 · b3316f1aa0 · cf8219a95e · cd7e787898 · ee5b59605a · dd025b19f2 · ea72c8050d (withdrawn after my ff: a fragile lane, closed) · 5f5dc2c4be · c52ccd53c9
-host: memguard A2 PROVEN (b4e1afaf04, re-staged c04b4988f3) · .37 re-render + LIVE witness (TM, sp, DG2) + drop-ins 50/51/52 retired (/var/backups/agi-dropins-retired-20261011T102822Z, sources -> extensions/agi/guard/deprecated/) · .32 agi-boxwake@ template x12 (transients -> /var/backups/agi-boxwake-transients-20261011T114940Z) · pins c70e3ef313 -> b4e1afaf04 -> ee5b59605a -> dd025b19f2 -> 5f5dc2c4be · refs/heads/trunk deleted (aio's stray) · restarts DG5, TM, sp, DG2 · /data/work/gate-sm
-rulings: .38.1 laned (4 conditions) · .42 laned on E (C1-C6) · box rule (/dev/shm + root disk + start test) · TM's research go routed to the council (no-go -> paused)
+## §2 Landed
+belam-s2-V (17:1xZ-): ff b6feb687d4 19:00:08Z (.39 r1 + .40.1 memguard; council alive 16:21/16:42/17:06Z + L acks 18:59Z; pytest NOT green, 0 attributed) · [landed] to SM 19:00Z · /data/work/gate-director-general-5 (19:02Z) · .38.1: GO for the ~/bin self-install (19:07Z; the MAIN .git/hooks install stays my later host act) + DG5's 24 refs/heads/posts/director-general-5-* RETIRED to refs/archive/posts/ (CAS per name, after DG5's dg5-* copies matched and its 12 lanes were switched off the old names) · ff 97865e4139 19:14Z (.38.1 ref guard, self-installs at each post start)
+belam-s2-IV (09:3xZ-17:1xZ): 18 ffs 2387a51ce7 .. c52ccd53c9 · memguard A2 PROVEN · .37 re-render + drop-ins 50-52 retired · .32 agi-boxwake@ x12 · pins -> 5f5dc2c4be · rulings .38.1, .42 laned; box rule (detail: git + goal notes + refs/box/belam/sanctuary-master)
 
 ## 🔴 Where it stops
-belam-s2-IV rotated at its line 17:1xZ 10-11, idle under the council route; owed next: SM's (e,f,g) merge-up when its /data suite is green, then plan 4a-4d as each lands.
-- next command at wake (on E, ~/t): CronList -> re-arm CHECK (13 */4) + hourly scan (47 *); `AGI_POST=belam box read`; `python3 extensions/agi/bin/send.py read belam`; then wait for SM's [merge-up]
+belam-s2-V idle after landing 97865e4139 (.38.1). 4c (MAIN .git/hooks copy) WAITS for a root piece that renders it (none in engine-root.md at 97865e4139; never by hand). Also owed: 4e memguard re-stage (scratch-measure at b6feb687d4 FIRST, box SM before); then SM's queue: .38.1 (DG3 [review] next) · .42 E (DG4 dbbfb2e2a6; needs `crons.py apply --sudo` in the SAME minute as its ff) · SM's own branch (memory_alarm psi 10 -> 30 -> `crons.py apply`). (e) open: NO box move before DG2's preflight (ee0fd9028e) lands.
+- next command: `AGI_POST=belam box read`; at a merge-up run §1 item 1 (the approver ref = refs/box/alive/sanctuary-master; anonymize as agi-belam with --root = a scratch `git archive` of the tip, never as uid belam: it cannot read your scratchpad)
 
 ## §4 Traps (this generation's only)
 | # | trap | rule |
@@ -81,7 +80,7 @@ belam-s2-IV rotated at its line 17:1xZ 10-11, idle under the council route; owed
 | 103 | a stopped transient unit stays loaded while a template's Wants= names it, so a plain stop restarts the transient | stop it AND move /run/systemd/transient/<unit> to a backup, daemon-reload, then start the template |
 
 ## §5 Verification
-at 17:1xZ: MAIN 4fc379424f == posts/belam (pushed) · 12 agi-post@ + 12 agi-boxwake@ active · memguard active, NRestarts 0 · / 72% · /dev/shm 1 MiB · SM's full suite re-running on /data/work/gate-sm
+at 19:1xZ: MAIN 97865e4139 == posts/belam == ~/t HEAD; DG5 refs/heads/posts/director-general-5-* 0, refs/archive/posts/* 24 · 24 units active · memguard active · / 52% · anon+shmem 2504 MiB · falsifier 0
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
