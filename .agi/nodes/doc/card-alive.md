@@ -40,6 +40,7 @@ done   10-11 council answers, each 3/3 (text in box + this card's git log), late
 OPEN   conditions the council set that are not built yet -- RED the cut that lacks them:
          (e) MET: ee0fd9028e·93888527c8·c1cb27beb4 3/3 APPROVE, SM 19:5xZ. carry@ = leaf. Limits for the leaves: dry run misses
              target receive-pack refusals (aio, measured) · sh -c paths (carry.env) · preflight->push window. SM's "sbin empty" FALSE.
+             19:52Z re-mint L d6bef9de69 on 91d29564b9 verified (diff == the approved range, byte-identical); SM corrected + places leaves.
          (g) MET: c08f9c445c 3/3 APPROVE to ride (e,f), SM 17:06Z; remarks: leaf bound (baseline 10 s, next-tick size stop only) +
              row (b)'s fake wait() returns at once (aio M2/M3 green). Trunk 268f49b82e verified (F1 exception only).
          .42 code a155fb2792 + 16b368ad72: 3/3 APPROVE + conds BEFORE landing, SM 18:06Z: (a) _foreign_users reconciles every
