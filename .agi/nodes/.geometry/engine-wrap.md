@@ -15,6 +15,16 @@ town: core
 EXPANSION of config:engine: the post wrappers (pane command, hook wiring, pi bridge, the kid, raw inference, the captive hook)
 Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and the unit's extraction loop (engine.md + engine-post + engine-wrap); every piece is in config:engine's map.
 
+## pieces — depth 1, one line each (bytes on disk)
+~~~
+agi-run           2054 B  pane cmd: .fresh or -c, strace; inbox + box -> i
+settings.json      372 B  the ONE hook wiring: brief, meter, turn commit
+cccc.ts           1956 B  pi events -> the CC hooks; mail -> a turn
+agi-kid           2049 B  a pi-free kid in this unit: own HOME and tree
+agi-infer          1077 B  ONE chat call, OpenAI-compatible: stdin -> stdout
+agi-captive        576 B  window open: only agi-fill passes
+~~~
+
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
 ### agi-run (2054 B)
