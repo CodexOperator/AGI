@@ -8,7 +8,7 @@ DESCENDANTS (tool calls, MCP servers, kids) and anything orphaned out of the tre
 -900 too (by command, outside the posts); every other pi worker gets +500 (the kernel kills them first);
 a process over 70% of RAM, or the largest unprotected one when MemAvailable < 1 GiB, is SIGSTOPped (suspended, never killed), a
 post's spine or harness over 70% only alerts (goal:g7.16.1.11.40.1);
-a drop of >= 3 GiB within 30 s alerts. Alerts: journal + {{MEMGUARD_LOG}} + one line in the ~/.notice of each of {{MEMGUARD_ALERT_TO}}
+a drop of >= 3 GiB within 30 s alerts. Alerts: journal + {{MEMGUARD_LOG}} (best effort: an unwritable log costs ONE red '[memguard-log] unwritable' line per episode, never a stop) + one line in the ~/.notice of each of {{MEMGUARD_ALERT_TO}}
 (written BY that post's own uid through runuser, with its agi-notice when it has one: root signs nothing and holds no key; the file stays
 the post's own; one line per kind per {{ALERT_COOLDOWN_S}} s, but a stop or resume line is keyed by its pid too, so a second stop is never swallowed). A pid stopped for
 low memory is SIGCONTed once MemAvailable has stayed above {{RESUME_FACTOR}}x the low line for {{RESUME_HOLD_S}} s, and the notice line names its unit + pid;
@@ -27,6 +27,15 @@ PI_CMD = re.compile(r'{{PI_CMD}}')
 POST_CG = re.compile(r'{{POST_CGROUP_RE}}', re.M)
 hist = collections.deque(); stopped = {}; base = {}; nobase = set(); warned = set(); noh = set(); unread = set(); last = {}; last_re = {}; pend = []; rec = None
 SAFE = re.compile(r'^[A-Za-z0-9._-]+$')
+logbad = False
+def wr(line):
+    global logbad
+    try: open('{{MEMGUARD_LOG}}', 'a').write(line + '\n'); logbad = False
+    except Exception as e:
+        if not logbad:
+            logbad = True; m = f'[memguard-log] unwritable ({e!r}): {{MEMGUARD_LOG}} takes no lines until it is writable again; alerts still go to the journal and the notices'
+            try: subprocess.run(['logger', '-t', 'agi-memguard', m]); notice(m)
+            except Exception: pass
 def notice(text):
     for to in '{{MEMGUARD_ALERT_TO}}'.split():
         if not SAFE.match(to): continue
@@ -34,10 +43,10 @@ def notice(text):
             pend.append(subprocess.Popen(['timeout', '30', 'runuser', '-u', 'agi-' + to, '--', 'env', 'HOME={{MEMGUARD_STORES}}/' + to, 'sh', '-c',
                               '[ -x ~/bin/agi-notice ] && exec ~/bin/agi-notice add "$0" || echo "$0" >> ~/.notice', text],
                              stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
-        except Exception as e: open('{{MEMGUARD_LOG}}', 'a').write(f'notice to {to} not written: {e!r}\n')
+        except Exception as e: wr(f'notice to {to} not written: {e!r}')
 def stamp(msg): return time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()) + ' ' + msg
 def log(msg, red=False, kind='x', key=None, wrote=False):
-    if not wrote: open('{{MEMGUARD_LOG}}', 'a').write(stamp(msg) + '\n')
+    if not wrote: wr(stamp(msg))
     subprocess.run(['logger', '-t', 'agi-memguard', msg])
     key = key or kind
     if red and time.time() - last.get(key, 0) > {{ALERT_COOLDOWN_S}}:

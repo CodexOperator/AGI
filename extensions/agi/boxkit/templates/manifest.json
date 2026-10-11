@@ -436,7 +436,7 @@
     "SUSPEND_RATIO"
    ],
    "new_bytes": false,
-   "fixture_sha256": "fceeb455fa6ee8ecbf2f9c5675748ceeac14c29210f829e4d0d3c2a66301a75d"
+   "fixture_sha256": "9b5a5a7a9b90f84a8407a469027de101723f18661d7e81a26a8376770e00bb6a"
   },
   {
    "name": "health-script",

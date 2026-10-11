@@ -615,7 +615,7 @@ def _fake_proc(tmp_path, rows):
     return proc
 
 
-def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, over=None, grow=None, flips=None, spawn=None, sysd=None, rewrite=None, no_uptime=False, kill_raises=(), break_log_at=None):
+def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, over=None, grow=None, flips=None, spawn=None, sysd=None, rewrite=None, no_uptime=False, kill_raises=(), break_log_at=None, fix_log_at=(), popen_raises=False):
     """Run the RENDERED loop for `passes` passes on a fake clock (`tick` s per pass); avails[i] = MemAvailable in bytes
     for pass i (default: plenty). Returns (adj, stops, runs, ev): the SIGSTOPped pids, the logger/other run() calls and
     ev = what the loop did besides: conts (SIGCONT pids), boxes ([(argv, stdin text)] of every Popen), clock.
@@ -645,7 +645,8 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
     avails = avails or [33_000_000 * 1024]
     def setavail(i):
         a = avails[min(i, len(avails) - 1)]
-        if i == break_log_at: (tmp_path / "guard.log").unlink(missing_ok=True); (tmp_path / "guard.log").mkdir()          # the guard's log cannot be appended to from here on (a full disk, EACCES)
+        if i in fix_log_at and (tmp_path / "guard.log").is_dir(): (tmp_path / "guard.log").rmdir(); (tmp_path / "guard.log").write_text("")
+        if i == break_log_at or (isinstance(break_log_at, (set, tuple, list)) and i in break_log_at): (tmp_path / "guard.log").unlink(missing_ok=True); (tmp_path / "guard.log").mkdir()          # the guard's log cannot be appended to from here on (a full disk, EACCES)
         if not no_uptime: (proc / "uptime").write_text("%.2f 0.00\n" % clock[0])
         for pid, what, v in (rewrite or {}).get(i, []):
             if what == "cmd": (proc / str(pid) / "cmdline").write_text(v.replace(" ", "\0") + "\0")
@@ -679,6 +680,7 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
         (ev.stops if sig == _sig.SIGSTOP else ev.conts).append(pid); ev.order.append(("stop" if sig == _sig.SIGSTOP else "cont", pid)); setstate(pid, "T" if sig == _sig.SIGSTOP else "S")
     class _P:
         def __init__(s, argv, **k):
+            if popen_raises: raise OSError("no runuser")
             ev.boxes.append([argv, argv[-1]]); ev.seq.append(("popen", argv[-1]))        # [argv, the notice text]: the text is the last argv word, never a shell string
         def poll(s): return 0
         def wait(s, timeout=None): return 0
@@ -2301,3 +2303,27 @@ def test_memguard_stops_the_runaway_anyway_when_the_log_append_raises_and_says_i
     for to in tos:
         texts = [b[1] for b in ev.boxes if b[0][4] == "agi-" + to and b[1].startswith("[memguard-susp-30]")]
         assert len(texts) == 1 and "STOPPED WITHOUT a log line" in texts[0] and "kill -CONT 30" in texts[0], (to, texts)      # the master reads it
+
+
+def test_memguard_an_unwritable_log_never_costs_a_stop_and_is_said_once_per_episode(tmp_path):
+    tos = _vs()["MEMGUARD_ALERT_TO"].split()
+    hide = {1: [(20, "cmd", "zzz-new --title-rewritten")]}                       # a SECOND red alert (no harness found) in the same tick
+    # ONE tick holds a SPIKE (30 -> 20 GiB), the no-harness alert and a runaway; the log is a directory since the tick began
+    adj, stops, runs, ev = _guard_pass(tmp_path / "a", _post_unit(), passes=2, avails=[30 * GIB, 20 * GIB], grow={1: [(30, 7_000_000)]}, rewrite=hide, break_log_at=1)
+    assert stops == [30], stops                                                       # the runaway was stopped although the first red alerts of the tick could not be logged
+    said = [a[0][-1] for a in runs]
+    assert any(m.startswith("SPIKE") for m in said) and any("no harness found" in m for m in said), said          # the other alerts still reached the journal
+    assert sum("[memguard-log] unwritable" in m for m in said) == 1, said                 # and the unwritable log is said ONCE for the episode, not once per failed line
+    for to in tos:
+        kinds = [b[1].split(" ")[0] for b in ev.boxes if b[0][4] == "agi-" + to]
+        assert kinds.count("[memguard-log]") == 1 and kinds.count("[memguard-spike]") == 1, (to, kinds)
+    # an episode ends at the first good write: broken at pass 1, repaired and written at pass 2, broken again at pass 3 = a SECOND line
+    adj, stops, runs, ev = _guard_pass(tmp_path / "b", _post_unit(), passes=4, avails=[30 * GIB, 20 * GIB, 15 * GIB, 8 * GIB], break_log_at={1, 3}, fix_log_at={2})        # a SPIKE at every pass but the first
+    said = [a[0][-1] for a in runs]
+    assert sum(m.startswith("SPIKE") for m in said) == 3, said                         # pass 2's line is WRITTEN (the good write that ends the episode), passes 1 and 3 are not
+    for to in tos:
+        kinds = [b[1].split(" ")[0] for b in ev.boxes if b[0][4] == "agi-" + to]
+        assert kinds.count("[memguard-log]") == 2, (to, kinds)
+    # and when the notice cannot even be SPAWNED (runuser missing) while the log is unwritable: the failed-notice line goes through the same best-effort write
+    adj, stops, runs, ev = _guard_pass(tmp_path / "c", _post_unit(), passes=2, avails=[30 * GIB, 20 * GIB], grow={1: [(30, 7_000_000)]}, break_log_at=1, popen_raises=True)
+    assert stops == [30], stops
