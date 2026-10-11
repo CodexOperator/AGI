@@ -8,7 +8,7 @@ DESCENDANTS (tool calls, MCP servers, kids) and anything orphaned out of the tre
 -900 too (by command, outside the posts); every other pi worker gets +500 (the kernel kills them first);
 a process over 70% of RAM, or the largest unprotected one when MemAvailable < 1 GiB, is SIGSTOPped (suspended, never killed), a
 post's spine or harness over 70% only alerts (goal:g7.16.1.11.40.1);
-a drop of >= 3 GiB within 30 s alerts. Alerts: journal + /var/log/agi-memguard.log (best effort: an unwritable log costs ONE red '[memguard-log] unwritable' line per episode, never a stop) + one line in the ~/.notice of each of sanctuary-master belam
+a drop of >= 3 GiB within 30 s alerts. Alerts: journal + /var/log/agi-memguard.log (best effort: an unwritable log costs ONE red '[memguard-log] unwritable' line per episode, never a stop; the journal line is a fire-and-forget `timeout 30 logger` reaped through the pending list, never waited on and never fatal, so a slow journald or a missing logger cannot hold or kill a stop) + one line in the ~/.notice of each of sanctuary-master belam
 (written BY that post's own uid through runuser, with its agi-notice when it has one: root signs nothing and holds no key; the file stays
 the post's own; one line per kind per 600 s, but a stop or resume line is keyed by its pid too, so a second stop is never swallowed). A pid stopped for
 low memory is SIGCONTed once MemAvailable has stayed above 2x the low line for 30 s, and the notice line names its unit + pid;
@@ -34,7 +34,7 @@ def wr(line):
     except Exception as e:
         if not logbad:
             logbad = True; m = f'[memguard-log] unwritable ({e!r}): /var/log/agi-memguard.log takes no lines until it is writable again; alerts still go to the journal and the notices'
-            try: subprocess.run(['logger', '-t', 'agi-memguard', m]); notice(m)
+            try: jlog(m); notice(m)
             except Exception: pass
 def notice(text):
     for to in 'sanctuary-master belam'.split():
@@ -44,10 +44,13 @@ def notice(text):
                               '[ -x ~/bin/agi-notice ] && exec ~/bin/agi-notice add "$0" || echo "$0" >> ~/.notice', text],
                              stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
         except Exception as e: wr(f'notice to {to} not written: {e!r}')
+def jlog(msg):                                                       # the journal line, fire-and-forget like the notice: never waited on (a slow /dev/log must not hold a stop), never fatal (fork EAGAIN, logger missing), a hung logger is killed at 30 s and reaped through pend
+    try: pend.append(subprocess.Popen(['timeout', '30', 'logger', '-t', 'agi-memguard', msg], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
+    except Exception as e: wr(f'journal line not written ({e!r}): {msg}')
 def stamp(msg): return time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()) + ' ' + msg
 def log(msg, red=False, kind='x', key=None, wrote=False):
     if not wrote: wr(stamp(msg))
-    subprocess.run(['logger', '-t', 'agi-memguard', msg])
+    jlog(msg)
     key = key or kind
     if red and time.time() - last.get(key, 0) > 600:
         last[key] = time.time()

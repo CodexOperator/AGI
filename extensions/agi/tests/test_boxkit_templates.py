@@ -615,7 +615,7 @@ def _fake_proc(tmp_path, rows):
     return proc
 
 
-def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, over=None, grow=None, flips=None, spawn=None, sysd=None, rewrite=None, no_uptime=False, kill_raises=(), break_log_at=None, fix_log_at=(), popen_raises=False):
+def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, over=None, grow=None, flips=None, spawn=None, sysd=None, rewrite=None, no_uptime=False, kill_raises=(), break_log_at=None, fix_log_at=(), popen_raises=False, logger_raises=False, logger_hangs=False):
     """Run the RENDERED loop for `passes` passes on a fake clock (`tick` s per pass); avails[i] = MemAvailable in bytes
     for pass i (default: plenty). Returns (adj, stops, runs, ev): the SIGSTOPped pids, the logger/other run() calls and
     ev = what the loop did besides: conts (SIGCONT pids), boxes ([(argv, stdin text)] of every Popen), clock.
@@ -633,15 +633,15 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
     src = R.rendered(piece, _vs(MEMGUARD_LOG=str(tmp_path / "guard.log"), **(over or {}))).replace("/proc", str(proc))
     assert "/var/log" not in src       # log() writes a tmp path here, never the live log
     assert "send.py" not in src        # the retired mail path is gone from the rendered guard
-    for c in ("time.sleep(", "time.time()", "os.kill(", "subprocess.run(", "subprocess.Popen(", "os.getpriority(", "os.setpriority(", "subprocess.check_output(", "os.listdir("):
+    for c in ("time.sleep(", "time.time()", "os.kill(", "subprocess.Popen(", "os.getpriority(", "os.setpriority(", "subprocess.check_output(", "os.listdir("):
         assert c in src, c
     src = src.replace("time.sleep(", "_sleep(").replace("time.time()", "_now()")
     src = src.replace("os.kill(", "_kill(").replace("subprocess.run(", "_run(")
-    if not real_box: src = src.replace("subprocess.Popen(", "_popen(")
+    src = src.replace("subprocess.Popen(", "_popen(")             # the journal line (logger) is ALWAYS the fake: a real_box run spawns only the real notice children
     src = src.replace("subprocess.check_output(", "_out(").replace("os.listdir(", "_ls(")
     src = src.replace("os.getpriority(", "_gp(").replace("os.setpriority(", "_sp(")   # fake pids may be real ones
     import signal as _sig
-    clock, n, ev = [10_000.0], [0], types.SimpleNamespace(conts=[], boxes=[], stops=[], nice={}, sysd=[], order=[], seq=[], stopped={})
+    clock, n, ev = [10_000.0], [0], types.SimpleNamespace(conts=[], boxes=[], stops=[], nice={}, sysd=[], order=[], seq=[], stopped={}, largv=[], pend=[])
     avails = avails or [33_000_000 * 1024]
     def setavail(i):
         a = avails[min(i, len(avails) - 1)]
@@ -684,6 +684,19 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
             ev.boxes.append([argv, argv[-1]]); ev.seq.append(("popen", argv[-1]))        # [argv, the notice text]: the text is the last argv word, never a shell string
         def poll(s): return 0
         def wait(s, timeout=None): return 0
+    class _L:
+        """The journal line: `timeout 30 logger -t agi-memguard MSG`, fire-and-forget (ev.seq 'log'); logger_raises = the spawn itself fails."""
+        def __init__(s, argv, **k):
+            if logger_raises: raise OSError("no logger")
+            ev.largv.append((argv, k)); runs.append((argv[2:],)); ev.seq.append(("log", argv[-1]))
+        def poll(s): return None if logger_hangs else 0               # a hung logger stays in the pending list (the real one is killed by `timeout 30`)
+        def wait(s, timeout=None): return 0
+    def _popen(argv, **k):
+        if argv[2:3] == ["logger"]: return _L(argv, **k)
+        return _P(argv, **k) if not real_box else subprocess.Popen(argv, **k)
+    def _run(*a, **k):                    # a BLOCKING subprocess.run: the guard no longer has a call that waits on a child, so any entry here is a wait on the stop path
+        ev.seq.append(("run", a[0][-1])); runs.append(a)
+        if logger_raises: raise OSError("no logger")
     runs = []
     def _out(argv, **k):
         ev.sysd.append(argv); ev.order.append(("fetch", argv[2])); got = (sysd or {}).get(argv[2], "OOMScoreAdjust=0\nNice=0\n")
@@ -691,13 +704,13 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
         if isinstance(got, Exception): raise got
         return got
     ns = {"__name__": "memguard_test", "_kill": _kill, "_out": _out, "_ls": lambda d: sorted(os.listdir(d), key=lambda x: int(x) if x.isdigit() else 0),   # a fixed pid order
-           "_run": lambda *a, **k: (runs.append(a), ev.seq.append(("log", a[0][-1]))) and None, "_popen": _P,
+           "_run": _run, "_popen": _popen,
           "_gp": lambda w, pid: ev.nice.get(pid, 0), "_sp": lambda w, pid, v: ev.nice.__setitem__(pid, v), "_sleep": _sleep, "_now": lambda: clock[0]}
     with pytest.raises(SystemExit):
         exec(compile(src, "memguard-rendered", "exec"), ns)
     for q in ns.get("pend", []): q.wait(timeout=60)      # only non-empty with real_box: the real children finish
     adj = {pid: int((tmp_path / "proc" / str(pid) / "oom_score_adj").read_text()) for pid in rows if (tmp_path / "proc" / str(pid)).exists()}
-    ev.clock = clock[0]; ev.stopped = dict(ns.get("stopped", {}))
+    ev.clock = clock[0]; ev.stopped = dict(ns.get("stopped", {})); ev.pend = list(ns.get("pend", []))
     return adj, sorted(ev.stops), runs, ev
 
 
@@ -2243,7 +2256,7 @@ def test_memguard_writes_the_suspended_line_before_the_sigstop_and_forks_nothing
         pid = want or stops[0]; assert stops == [pid], stops
         k = _kill_at(ev, pid); text = ev.seq[k][3]
         assert "SUSPENDED pid %d " % pid in text and "start %s" % rows[pid][4] in text, text                       # the line is in the FILE when the SIGSTOP goes out, with the pid's start time
-        assert not any(e[0] in ("log", "popen") for e in ev.seq[:k]), ev.seq[:k]                                  # and nothing was forked before it: no logger, no notice (the stop never waits on a spawn)
+        assert not any(e[0] in ("log", "popen", "run") for e in ev.seq[:k]), ev.seq[:k]                                  # and nothing was forked before it: no logger, no notice (the stop never waits on a spawn)
         after = ev.seq[k + 1:]
         assert any(e[0] == "log" and "SUSPENDED pid %d " % pid in e[1] for e in after) and any(e[0] == "popen" and "SUSPENDED pid %d " % pid in e[1] for e in after), after      # the journal line and the notices follow
 
@@ -2327,3 +2340,23 @@ def test_memguard_an_unwritable_log_never_costs_a_stop_and_is_said_once_per_epis
     # and when the notice cannot even be SPAWNED (runuser missing) while the log is unwritable: the failed-notice line goes through the same best-effort write
     adj, stops, runs, ev = _guard_pass(tmp_path / "c", _post_unit(), passes=2, avails=[30 * GIB, 20 * GIB], grow={1: [(30, 7_000_000)]}, break_log_at=1, popen_raises=True)
     assert stops == [30], stops
+
+
+def test_memguard_the_stop_neither_waits_on_logger_nor_dies_of_it(tmp_path):
+    spike = dict(avails=[30 * GIB, 20 * GIB], grow={1: [(30, 7_000_000)]})            # ONE tick: a SPIKE (its line is logged BEFORE the stop sites) and a runaway
+    # (a) logger cannot be spawned (fork EAGAIN, logger missing): the tick lives, the runaway is stopped, the journal failure is written to the file
+    adj, stops, runs, ev = _guard_pass(tmp_path / "a", _post_unit(), passes=2, logger_raises=True, **spike)
+    assert stops == [30], stops
+    filed = (tmp_path / "a" / "guard.log").read_text()
+    assert "SPIKE" in filed and "SUSPENDED pid 30 " in filed and "journal line not written" in filed, filed
+    assert any(b[1].startswith("[memguard-spike]") for b in ev.boxes) and any(b[1].startswith("[memguard-susp-30]") for b in ev.boxes), [b[1][:30] for b in ev.boxes]      # the notices still go out
+    # (b) logger HANGS (journald's /dev/log slow under the reclaim): no call in the guard WAITS on it, so the stop is in the same tick, and the hung child is only held in the pending list
+    adj, stops, runs, ev = _guard_pass(tmp_path / "b", _post_unit(), passes=2, logger_hangs=True, **spike)
+    assert stops == [30], stops
+    assert not any(e[0] == "run" for e in ev.seq), [e for e in ev.seq if e[0] == "run"]          # no blocking subprocess.run anywhere: a hung logger cannot hold the tick
+    k = _kill_at(ev, 30)
+    assert any(e[0] == "log" and e[1].startswith("SPIKE") for e in ev.seq[:k]), ev.seq[:k]         # the SPIKE line WAS spawned before the stop, and the stop did not wait for it
+    assert ev.largv and all(a[:3] == ["timeout", "30", "logger"] for a, kw in ev.largv), ev.largv          # a hung logger is killed at 30 s ...
+    assert all(kw.get("stdin") is subprocess.DEVNULL and kw.get("stdout") is subprocess.DEVNULL and kw.get("stderr") is subprocess.DEVNULL for a, kw in ev.largv)      # ... and owns no pipe of the guard
+    held = [q for q in ev.pend if type(q).__name__ == "_L"]
+    assert len(held) >= 1 and all(q.poll() is None for q in held), ev.pend                          # ... and is REAPED through the pending list, not forgotten (the hung ones are still in it)
