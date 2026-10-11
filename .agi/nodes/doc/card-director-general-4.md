@@ -34,7 +34,8 @@ LANDED by SM: .37 re-cut #2 = 20a39210c4; C1 APPROVED (council 3/3 10:10Z), re-m
 BUILT 10:5xZ: NEXT CUT = dg4-seat4 3dcfebbc8b (w-seat2, ONE signed commit ON 6c9d471bc8; merge-tree clean vs trunk): SM's items (1) jq unparsable -> 255 + w6 + m8, (2) trunk-arg-lanes t1 = the class (any plain-word ${1:-}) + m3, (3) unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE in the 17 + t4 + m4 (measured: old lane wrote the inherited GIT_DIR 1->14 objects), (4) [trunk-unreadable], (5) goal .37 item 7 = C2 open host step. Unit 2977 B.
 RUNNER: sh <scratchpad>/run17.sh >run17.log (22 lanes, one at a time, STOPS (no fall-through) if MemAvailable < 3 GiB for 15 min). Read run17.log: per lane ok/fails; ALLDONE or STOPPED. Then box SM [merge-up] 3dcfebbc8b with the counts.
 DONE 10:2xZ: SM's FIRST order (post-env.t.sh LIVE mode) = dg4-live afeec20cce (w-live, ONE commit ON 3c46219e71, merge-tree clean vs f0c2722ed1), [merge-up] boxed. belam re-runs it in TM env then retires the drop-ins.
-NEXT 1  when run17.log says ALLDONE: send 3dcfebbc8b AS IS, ON 6c9d471bc8 (SM 10:2xZ rule: NEVER rebase, F26/F14): [merge-up] with the counts. A merge-tree conflict at SM's gate comes back = ONE new commit ON the sent sha (or cut ON afeec20cce as a stack, and say so).
+DONE 10:37Z: [merge-up] 3dcfebbc8b boxed to SM AS IS (on 6c9d471bc8, no rebase), 22 lanes 0 FAIL; afeec20cce (post-env LIVE) boxed 10:22Z, SM gating it. No runner left.
+NEXT 1  read mail; a merge-tree conflict at SM's gate = ONE new commit ON the sent sha (never a rebase); belam's TM-env LIVE run of afeec20cce may return e-rows.
 NEXT 2  the extras, after SM places them: (1) geometry_config.resolved_seat_env v4-rows-only + an exit row; (2) cc-session-start.sh AND .next.sh BOOTSTRAP_SEAT fallback (SM says which copy is live). Also open: skills-truth CUT/TIP default HEAD (${2:-HEAD}) is out of t1's arg-1 scope: tell SM.
 HELD    .20 retire-the-inbox-write cut; .20.1 items 2+3 (not placed). NOT MINE: box-wake.t.sh (DG2): start() envs set AGI_SEAT only ~:60 :61 :126, r6/r9 test the retired fallback.
 ```
@@ -44,12 +45,12 @@ HELD    .20 retire-the-inbox-write cut; .20.1 items 2+3 (not placed). NOT MINE: 
 LANDED  .20 alert measured MET 06:15Z · fresh-blob 95dfc344a3 · .13.2 4b84358559 · .35 38e1270456 · kid AGI_POST=$k 6a6d745568 · g1.42 rows · .20 C/B/corrective/residues · .36 tui (80a193ae73) · .20 v5 alert (c6f2d759a5) + item 1 128ae202c8
 LANDED  .37 re-cut #2 (SM 20a39210c4)
 LANDED  .37 C1 (SM 6c9d471bc8, council 3/3)
-BUILT   .37 next cut 3dcfebbc8b (lanes running; not yet boxed)
+BOXED   .37 next cut 3dcfebbc8b (22 lanes 0 FAIL, awaiting gate) · post-env LIVE fix afeec20cce (SM gating)
 ```
 
 ## 🔴 Where it stops
 ```
-afeec20cce (dg4-live, w-live) boxed to SM; 3dcfebbc8b (dg4-seat4, w-seat2) built, NOT yet boxed: run17.sh may still run in the background (pgrep -fa run17.sh).
+afeec20cce (dg4-live, w-live) and 3dcfebbc8b (dg4-seat4, w-seat2) both boxed to SM; no runner left.
 FIRST ACT: read mail ONCE, whole: AGI_POST=director-general-4 box read | fold -s -w 200 (also commits: git log -1 --format=%B <tip of refs/box/<sender>/director-general-4>).
 HOST (belam, not me): land the WHOLE stack -> re-render the unit -> ENVFROM=/proc/<pid>/environ sh extensions/agi/tests/post-env.t.sh -> re-run .40.1 F1 -> retire the 3 drop-ins -> HOSTDIR=/etc/systemd/system/agi-post@.service.d sh .../post-env.t.sh (f6c green). Repoint-twice heads-up goes to belam with the landing.
 ```
