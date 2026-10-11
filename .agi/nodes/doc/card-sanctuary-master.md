@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:1xZ 10-11, date -u) — gen 39 OUT at the line · trunk local-maxxing/season2/main @ 221fb9e308 · DIGEST to belam due BEFORE 00:13Z
+## §0 State (21:2xZ 10-11, date -u) — gen 40 seated 21:1xZ · trunk local-maxxing/season2/main @ 221fb9e308 · DIGEST to belam due BEFORE 00:13Z
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + landing OK = the council: alive · all-is-one · self-perpetuating · belam = owner items only) |
@@ -34,16 +34,20 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   1. .42 E (DG4 a155fb2792 -> 16b368ad72 -> dbbfb2e2a6): council 3/3 20:17Z; L f5f100b83b on 0c5ec01a72 (alive acked 20:26Z) -> RE-MINT.
      HOST ACT in the ff minute: belam 'crons.py apply --sudo'. After E's first live run: .42 C4 boundary sha into the leaf (mine).
   2. .20.2 cut 1 + target 4 (DG1 1284b57f98 -> 571f300635: memory_alarm as agi-belam via .42's user:, notice via agi-notice, send.py gone,
-     ONE notice per alarm, flap hold): stack tree c0cd48ece5 (on L5). Lanes graph-metrics 39/0, metrics-cell 11/0. pytest 8 FAILED / 465 —
-     ATTRIBUTE: /data/work/gate-sm/tmp/202c.log (re-run with -rf; if it died with my rotation, re-run it in /data/work/gate-sm/g381). Expect
-     test_commands links timeout + post-uid env reds (DG1: identical on 1284b57f98). Green/attributed -> [review 571f300635] -> stack.
+     ONE notice per alarm, flap hold): stack tree c0cd48ece5 (on L5). Lanes graph-metrics 39/0, metrics-cell 11/0. 202c died with the rotation; 202d (-rf, g381:
+     memory_alarm commands_manifest commands crons* grid_writers thought_hygiene snapshot_goals) STOPPED by me 21:15Z on belam's ask
+     (box full avg60 4.95; DG3 ptS was running). RE-RUN after ptS ends + gate open -> attribute (expect test_commands links timeout,
+     identical on 1284b57f98) -> [review 571f300635] -> stack.
   3. MY BRANCH posts/sanctuary-master (skills agi-send digest rule, agi-memory-guard start test + /data, agi-master-gate traps; goals .43
      (DG3) .44 + .44.1-.7 + doc:g716111-44-capsule-pack (re-parented to .44), .39.1-.4, .20.2, .41 OWNER + season gate, g7.16.1 gate line,
      .18 .12 .13 .15 horizon, .22 .39 Assigned, OPEN lines .38.1 .39 .40.1; crons.md psi-some 30 + memory_alarm row no --notify).
      CONFLICTS: .39 -> take my branch's file (trunk-based); crons.md (after DG1) -> DG1's rows with psi-some 30 on BOTH. Gate: graph-metrics,
      metrics-cell, grid_writers, thought_hygiene, memory_alarm, crons, snapshot_goals, links.py; HOME_PATH_RE 0 -> [review] -> stack.
+     BUILT: gate worktree /data/work/gate-sm/gsm @ 23ca524901 (on c0cd48ece5; .39 = branch file, crons.md = DG1 rows psi-some 30 both).
+     HOME_PATH_RE 0 diff + msgs after 2272ea9e52 (card + agi-master-gate trap quoted a literal fixture path). Lanes + pytest PENDING the box.
   4. .41 cut 1 (DG5 0b574b3a29, agi-sync; first-start 'agi-flush agi-sync agi-turn', no host act): RETURNED 20:5xZ on test_grid_writers C1
-     (.13 pins agi-flush's old line). Wait DG5's fix ON 0b574b3a29 -> grid_writers alone -> [review] (all else green: lanes, 392 pytest).
+     (.13 pins agi-flush's old line). DG5 fix d278e47daa (sig G, .13 only, HOME 0) ARRIVED 21:2xZ;
+     gate tree g41 @ 1eacb8300a (on 23ca524901) -> test_grid_writers + thought_hygiene -> [review] (all else green: lanes, 392 pytest).
   5. DG2 .39.2 RE-CUT 6d3075f0f6 on 221fb9e308 (agi-carry@ in unit-paths): gate (box-move-refs/box-move/guard-env + HOME 0) -> [review].
   6. DG3 4c agi-hook f8e0a26efc (root piece; host act = belam 'sect agi-hook <landed sha> | sh' as root in MAIN): gate -> [review].
  DIGEST TEXT (one mail): each L with its council line + first-start + host act; ETAs (DG5 .41 2nd cut ~23:0xZ, engine-root = host act;
@@ -60,15 +64,16 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 39 21:1xZ 10-11: OUT at the line; the digest stack is half built; digest due before 00:13Z.
-NEXT COMMAND: AGI_POST=sanctuary-master box read; then cat /data/work/gate-sm/tmp/202c.log | grep -E '^FAILED|passed' (§1 item 2)
+sanctuary-master gen 40 21:2xZ 10-11: gates queued behind DG3's ptS (belam: one suite on the box); digest due before 00:13Z.
+NEXT COMMAND: when ptS is gone + full avg60 < 2: re-run 202d in g381 (-rf), then gsm lanes graph-metrics metrics-cell + pytest, then g41 grid_writers
 ```
 
-## §4 Traps (gen 39 only; the rest moved to skills agi-master-gate / agi-memory-guard / agi-send)
+## §4 Traps (gen 39 + 40; the rest moved to skills agi-master-gate / agi-memory-guard / agi-send)
 | trap | rule |
 |---|---|
 | `-p no:cacheprovider` makes `--lf` run nothing | to name failures re-run with -rf, never --lf |
 | belam's landing guard refused L d6bef9de69 on a home-path-shaped lane fixture my grep had seen | run HOME_PATH_RE itself on diff AND message at the gate; lane fixtures use $T/hm (in skill agi-master-gate) |
+| gen 40 started 202d while DG3's ptS ran (PSI full was 1.33 at start) -> belam asked to hold it | ONE heavy suite: `ps` for any pytest on the box BEFORE start, not only PSI |
 
 ## §5 Verification: every landing = merge-tree rc 0 on the live trunk + newcomers byte-identical + 0 D + anonymize (diff + messages) + GPU scan + ALL .t.sh lanes for engine changes (the 17 TRUNK-arg lanes with the candidate; box-wake separately) + engine-sizes with ENGINE_BASE + first-start named
 ## §6 BANKED
