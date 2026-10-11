@@ -47,6 +47,7 @@ STANDING (owner 21:5xZ 10-10): IDLE mostly, await loop finish. The council rules
 2. CHECK every 4 h (trajectory, skill agi-merge-pass §1) + hourly scan (memory, stuck dialogs). PASS B7 when experiments land past 4e9dbced38.
 3. OWNER RULINGS OWED (asked 09:0xZ 10-10): season-2 CLOSE SET (SM 08:12Z proposal) · host-act GOs (.12 ring, .11.1; .4 .7 .18 .6 -> S3) · machine identity for root alerts
 4. a tie from the council -> rule it; everything else -> the council
+5. goal:g7.16.1.11.37 (retire AGI_SEAT, DG4) host side = mine, TWO GOs in order (council): re-render the agi-post@ unit from engine-root.md -> read a running post's env + run the lane in it -> ONLY THEN remove drop-in 52-post-env. Falsifier: live unit + drop-ins == the render.
 NEVER: rule a [decision] the council can rule · assign a design or a build · dispatch · write in another post's tree
 ```
 
@@ -63,6 +64,8 @@ belam-s2-III idle under the council route (owner 21:5xZ 10-10); first council-ap
 |---|---|---|
 | 92 | re-running the UNCHANGED E act re-enables agi-carry-fetch.timer (host-act-encryption-town.sh:88) | never re-run the act until goal:g7.16.1.11.25 lands |
 | 99 | a [merge-up] with no council line | refuse it, send it back to the council route (doc:council-loop §Rulings and landing) |
+
+| 100 | the whole team idle at their prompts, 0 unread, each waiting on another (02:3xZ 10-11: SM idle after a compaction; council waiting on SM's bigger outcomes) -- the hourly dialog scan cannot see it | root timer agi-quiet-watch (1 min; extensions/agi/guard/quiet-watch): every post but belam quiet >= 5 min with no claude descendant -> box [quiet] to SM, then <= 1 per 30 min until a post is busy; `journalctl -t agi-quiet-watch` |
 
 ## §5 Verification
 E act: agi-boot exit 0 · vstore 700 root · slice live · DG5 mail test: received + woke + replied 22:43:53Z · 11 posts active on E, 0 restarts at each login
