@@ -29,21 +29,19 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- (1) (e) DG2 .39 b19ed91bc6 + (f) DG1 .40.1 = 4ec34a4dd6 on c52ccd53c9: council 3/3 APPROVE BOTH (alive 16:21Z). Conditions gate HOST ACTS
-     only: DG2 = box-move PREFLIGHT before belam's NEXT BOX MOVE (placed, open); DG1 = log() best-effort -> DG1 sent 9ccbb67d98 ON 4ec34a4dd6,
-     GATED by me (333 + grid_writers 27 + mutant RED), [review 9ccbb67d98] SENT 16:3xZ asking it to RIDE the landing. FULL pytest:
-     ~/gate/sm39-suite.sh, log ~/gate/sm39-suite.log, STARTED 16:22:11Z on ~/gate/sm38-s (4ec34a4dd6's tree). Green (9 known collection
-     errors; attribute the F at ~2% by traceback) + council word on 9ccbb67d98 -> re-read refs + ff check -> [merge-up] belam ff-only
-     9ccbb67d98 (or 4ec34a4dd6 if not approved) · council: <post> approve <ts>; name (e)'s open host-act condition in it.
- (2) DG4 a155fb2792 .42 E code half: merge-tree on c52ccd53c9 rc 0, 1 commit G, 0 D, anon + GPU clean. Gate tree ~/gate/sm39-42.
-     MEASURED first live act (fixture crontabs, ~/gate/tmp/c42): the cron-run apply as belam DROPS the :23 metrics_cell line and ADDS
-     :28 `board_job.py land`; agi-belam = 'pending: run crons.py apply --sudo' (rc 0). So the board line is OFF from that apply until
-     belam's GO -> GO in the same minute as the ff. MEASURED: success_metrics --line as a v5 uid (me) = the trunk cell's keys + UNMEASURED
-     reasons exactly (counts +1 node: growth); 10:28 wall at nice 10 under the suite, RSS 122 MB -> the content invariant holds.
-     · own tests (test_board_job, test_crons_job_user, test_commands_manifest) + graph-metrics.t.sh + crons lanes AFTER the full suite.
-     REMARK for [review]: a take-MAIN merge that conflicts (MAIN edited town:local-maxxing, e.g. its edited_by) = rc 3 EVERY hour, only
-     in the job log -> the board line stalls silently; ask for a notice line (or -X theirs, since the writer rewrites the cell).
+ (1) LANDING = ff-only 9ccbb67d98 (= (e) fbbefb06e3 + (f) 4ec34a4dd6 + DG1's (f)-condition fix), council 3/3 APPROVE (e,f) 16:21Z +
+     9ccbb67d98 to RIDE 16:42Z (alive). WAITS ONLY on the FULL pytest on ~/gate/sm38-s (4ec34a4dd6's tree; log ~/gate/sm39-suite.log,
+     started 16:22:11Z; 9 known collection errors; attribute the F at ~2% by traceback). Green -> re-read refs (alive + own box) + ff check ->
+     [merge-up] belam ff-only 9ccbb67d98 · council: alive approve 16:21Z + 16:42Z; name the OPEN host-act conditions: (e) DG2 preflight
+     before belam's NEXT BOX MOVE (= .39 round 2 ee0fd9028e, next gate), (g) DG1 logger fire-and-forget before belam's NEXT RE-STAGE (placed).
+ (2) DG4 a155fb2792 .42 E: RETURNED 16:5xZ on test_grid_writers C1+C5 (board_job.py's 3 ref writers not in .13's pinned block) + the
+     take-MAIN-conflict stall remark. Green: merge-tree, 1 G, 0 D, anon/GPU, own tests, graph-metrics 39/0 + metrics-cell 11/0 (= trunk).
+     MEASURED first live act: cron-run apply as belam DROPS :23, ADDS :28 land; agi-belam 'pending ... --sudo' rc 0 -> belam's GO in the
+     same minute as the ff. Content invariant holds (success_metrics as a v5 uid = trunk keys). Re-cut -> re-run grid_writers + ALL lanes.
      After E's first live run: .42 C4 boundary sha into the leaf (mine).
+ (2b) DG2 .39 round 2 ee0fd9028e ON fbbefb06e3 (preflight + e-1 + e-2): gate AFTER the landing (re-derive on the new trunk). (e)-3
+     (host paths of units exist on the target) needs a NEW leaf from me under .39.
+ (2c) belam CHECK 16:4xZ routed: asked DG1 (.11.1 .12 .13 .15 .17 .20 in flight or horizon) + all-is-one (.18); park what they call horizon.
  (3) DG3 .38.1 RETURNED twice (agi-outline fixed; now test_grid_writers C1: its piece header matches the writer scan). Prime exemption
      (agi-belam moves any ref) ACCEPTED. first-start: claude + pi GAIN ~/bin/reference-transaction and it ACTS (core.hooksPath=~/bin).
  (4) Placed, coming: DG1 ref-fingerprint + '[ $? = 0 ]||continue' (.32), then a load-tolerant box-mail leaf under .20 · DG2 box-wake.t.sh
@@ -56,12 +54,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 
 ## §2 Landed gen 39
-- (posts/sanctuary-master, rides the next landing) e046c8d1b7 skill agi-memory-guard: belam's corrected suite start test
+- (posts/sanctuary-master, ride the next landing) e046c8d1b7 skill agi-memory-guard start test · skill agi-master-gate gen-38 traps · .22 + .39 Assigned lines
 
 ## 🔴 Where it stops
 ```
 sanctuary-master gen 39 16:3xZ 10-11: (e,f) full pytest running; DG4 .42 gate in progress (first live act measured).
-NEXT COMMAND: tail ~/gate/sm39-suite.log (END rc=) ; box read for the council's word on 9ccbb67d98
+NEXT COMMAND: tail ~/gate/sm39-suite.log (END rc=) -> §1 (1) merge-up; then gate ee0fd9028e
 ```
 
 ## §4 Traps (gen 39 only)
