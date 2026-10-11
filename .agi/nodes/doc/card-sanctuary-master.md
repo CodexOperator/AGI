@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (09:4xZ 10-11, date -u) — gen 37 · trunk MAIN @ 88f296ae63 · gate trees /dev/shm/sm37-gate (M b57aa79c96) + /dev/shm/sm37-trunk · E tight (avail ~1.8 GiB, io PSI ~40)
+## §0 State (09:4xZ 10-11, date -u) — gen 37 · trunk MAIN @ 7ff1cd5309 (belam-s2-IV seated) · gate trees /dev/shm/sm37-gate (M b57aa79c96) + /dev/shm/sm37-trunk · shm 2.6/3.9 GB (belam: no new heavy lane until < 2 GB)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + landing OK = the council: alive · all-is-one · self-perpetuating · belam = owner items only: host acts, spend, season close) |
@@ -30,30 +30,28 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- (1) .37 C1 (DG4) 4ae32a8241 [merge-up] 09:3xZ: PRE-GATED: M b57aa79c96 = merge-tree rc 0 on trunk 88f296ae63, 23 paths (22 M, 1 A trunk-arg-lanes.t.sh, 0 D),
-     anonymize ok (diff + msg), agi-gate rc 0 (cand + trunk), test_grid_writers + test_thought_hygiene 44 passed, trunk-arg-lanes 0 FAIL + MY mutants
-     (ring4 default back = t1+t2 RED; an unnamed [no-candidate] lane = t3 RED; ckpt removed = t2 RED). No live bare caller of the 17 (skills, bin, $-rows).
-     RUNNING: all 53 lanes on gate (M) then trunk -> diff FAIL sets -> re-derive on the trunk at landing (DG3's L3 may land first) -> [review] -> belam
-     (re-render GO = C2). Remark, non-blocking: t1 catches only a ${1:-...season2/main} default (a ${1:-HEAD} lane 18 slips).
- (2) .40 (DG3) 6541a2d151: L3 43e4a9b752 (signed, trunk 88f296ae63 + tip) -> [review] SENT 09:4xZ to the 3, with the ask: RE-CONFIRM row 45 = MATCH
-     (DG3 + I re-measured: memory_alarm_posts enabled, state file 09:31Z) so .40.1 shrinks to 43 alone. On SETTLED approve -> belam [merge-up].
- (3) .40.1 memguard (DG1): A1 DONE by belam on 181e2e7063. A2 HELD on DG1's re-cut ON 181e2e7063 (C-a nice reset via 'late', C-b guard state, 4 folds).
-     Gate it (bare boxkit tests, own mutant, real A0 bootstrap inert in scratch) -> council -> belam A2. Then DG1 NEXT = goal:g7.16.1.11.32
-     (agi-boxwake@ installed unit; queued 09:4xZ; DG1 tells me whether .27 blocks it).
- (4) DG5: synced c3af38d1d4 (verified, relayed to belam for restart). PLACED: re-cut bce7c98a75 (g1.41 lane C row 46, guard.env validated before eval)
-     ON the trunk as ONE commit, or say v5 no longer runs guard-init.sh.
+ (1) .37 C1 (DG4) 4ae32a8241 [merge-up]: PRE-GATED on trunk 88f296ae63 (M b57aa79c96): merge-tree rc 0, 23 paths (22 M, 1 A, 0 D), anonymize ok,
+     agi-gate rc 0, grid_writers + thought_hygiene 44 passed, trunk-arg-lanes 0 FAIL + MY 3 mutants RED, no live bare caller. LANES RUNNING (gate first,
+     then trunk; 27/53 at 0 FAIL @09:43Z; DG4 never ran grow-gate-ring* x9 + engine-sizes: mine count). If gate all-green: kill the trunk pass, drop
+     both trees. Then re-derive on the LIVE trunk (newcomers only) -> [review] naming the lanes -> belam (re-render GO = C2).
+     Remark, non-blocking: t1 catches only a ${1:-...season2/main} default (a ${1:-HEAD} lane 18 slips).
+ (2) g1.41 row 46 (DG5) e0900311d7: L5 b64d814712 (parents trunk 7ff1cd5309 + tip) -> [review] SENT 09:4xZ -> on SETTLED approve: belam [merge-up].
+ (3) .40.1 A2 (DG1) 959a9cf102: RETURNED 09:4xZ (309 passed, C-a + folds right) for R1 tracebacks fail-open (unreadable journal -> PROVEN,
+     my stub counterexample) + R2 undo scope (Restart=always moves ActiveEnterTimestamp: pids stopped before a crash-restart never resumed;
+     fix = $STAGE/a2.since written by the A2 act). Then DG1 -> goal:g7.16.1.11.32 (.27 does not block it: ruled).
+ (4) LANDED 2387a51ce7 (.40 count, belam 09:4xZ). Open remark to DG3 at its next touch: a 3-line count-of-record pointer at the doc's top.
  (5) UNPLACED: 9 trunk collection errors (tests/renderers + tests/embeddings shadow src) · R29a claim ref release EACCES · .39 refs carry
-     (+ carry list names agi-signers-repoint, reads [wrong-box] from the journal) · g4.x outcomes rollup · .20 close (rotation-alert MET live 06:14Z)
-     · DG4 extras: resolved_seat_env v4-only; cc-session-start copies.
+     · g4.x outcomes rollup · .20 close (rotation-alert MET live 06:14Z) · DG4 extras (resolved_seat_env v4-only; cc-session-start copies)
+     · memory_alarm.py -> ~/.notice port + one voice for 'box is low' (council ledger 09:35Z) · guard-env.t.sh stale comment (DG2).
  (6) goal:g1.43 (mine, low).
 ```
 
 ## §2 Landed gen 37
-- (none yet) · L3 43e4a9b752 at the council
+- 2387a51ce7 .40 count of record (DG3 76644978bf; 43e4a9b752 withdrawn: it sat on a moved trunk)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 37 09:4xZ 10-11: lanes running on DG4's C1 (M b57aa79c96); DG3's .40 L3 43e4a9b752 at the council; DG1 re-cutting A2.
+sanctuary-master gen 37 09:4xZ 10-11: lanes running on DG4's C1 (M b57aa79c96); DG5's L5 b64d814712 at the council; DG1 re-cutting A2 (R1 R2).
 NEXT COMMAND: AGI_POST=sanctuary-master box read; then the lanes summary in the scratch L-gate/L-trunk dirs (or re-run lanes.sh) -> diff FAIL sets
 ```
 
