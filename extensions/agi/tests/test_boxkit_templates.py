@@ -615,7 +615,7 @@ def _fake_proc(tmp_path, rows):
     return proc
 
 
-def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, over=None, grow=None, flips=None, spawn=None, sysd=None):
+def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, over=None, grow=None, flips=None, spawn=None, sysd=None, rewrite=None):
     """Run the RENDERED loop for `passes` passes on a fake clock (`tick` s per pass); avails[i] = MemAvailable in bytes
     for pass i (default: plenty). Returns (adj, stops, runs, ev): the SIGSTOPped pids, the logger/other run() calls and
     ev = what the loop did besides: conts (SIGCONT pids), boxes ([(argv, stdin text)] of every Popen), clock.
@@ -623,7 +623,9 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
     is a hand: state 'S' resumes it, None removes the process, start (optional) is a new start time (a reused pid).
     The fake kernel also keeps nice per pid (ev.nice) and FORKS: spawn = {pass: [(pid, ppid, comm, cmd)]} makes a child in its
     parent's cgroup that INHERITS the parent's oom_score_adj and nice as they are at that moment. sysd = what `systemctl show`
-    says for a unit ({unit: "OOMScoreAdjust=..\\nNice=.."}, an Exception instance to fail); every call lands in ev.sysd."""
+    says for a unit ({unit: "OOMScoreAdjust=..\\nNice=.."}, an Exception instance to fail); every call lands in ev.sysd.
+    rewrite = {pass: [(pid, 'cmd', text) | (pid, 'ppid', n)]} changes a process's argv or parent at that pass (a harness that loses its argv, a tree that cannot be read);
+    /proc/uptime follows the fake clock, so a process's age is the clock minus its start ticks."""
     piece = BY_NAME["memguard-script"]
     tmp_path.mkdir(parents=True, exist_ok=True)
     proc = _fake_proc(tmp_path, rows)
@@ -642,6 +644,11 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
     avails = avails or [33_000_000 * 1024]
     def setavail(i):
         a = avails[min(i, len(avails) - 1)]
+        (proc / "uptime").write_text("%.2f 0.00\n" % clock[0])
+        for pid, what, v in (rewrite or {}).get(i, []):
+            if what == "cmd": (proc / str(pid) / "cmdline").write_text(v.replace(" ", "\0") + "\0")
+            else:
+                f = proc / str(pid) / "stat"; f.write_text(re.sub(r"(\) [A-Za-z] )\d+", lambda m: m.group(1) + str(v), f.read_text(), count=1))
         (proc / "meminfo").write_text("MemTotal: 33554432 kB\nMemAvailable: %d kB\n" % (a // 1024))
         for pid, pages in (grow or {}).get(i, []):          # a process that grows at pass i
             (proc / str(pid) / "statm").write_text("10 %d 1 1 0 1 0\n" % pages)
@@ -1971,3 +1978,64 @@ def test_a_later_non_email_hit_fails_while_an_earlier_email_only_hit_exists(
         "the loop never reached every template; it scanned: %s" % (scanned,)
     assert emailed == ["early-kit-template"], emailed
     assert failed == [("late-kit-template", ["ip"])], failed
+
+
+def _tree_lines(ev, kind="tree"):
+    return [[b[1] for b in ev.boxes if b[0][4] == "agi-" + to and b[1].startswith("[memguard-%s]" % kind)] for to in _vs()["MEMGUARD_ALERT_TO"].split()]
+
+
+def _youngs(rows, age_s, pids=None):
+    """Start every process of the unit `age_s` seconds before the fake clock's first reading (10000 s)."""
+    hz = os.sysconf("SC_CLK_TCK"); out = dict(rows)
+    for p, r in rows.items():
+        if r[2] == _post_cg() and (pids is None or p in pids): out[p] = r[:4] + (int((10_000 - age_s) * hz),) + r[5:]
+    return out
+
+
+def test_memguard_asks_systemd_for_one_unit_baseline_per_tick(tmp_path):
+    rows = _two_units(); spawn = {1: [(19, 20, "bash", "/bin/bash -c a"), (119, 120, "bash", "/bin/bash -c b")]}
+    adj, stops, runs, ev = _guard_pass(tmp_path / "one", rows, passes=2, spawn=spawn)
+    assert len(ev.sysd) == 1, ev.sysd                                       # two units owe a read, one tick: ONE systemctl (a hung one costs one timeout, not one per unit)
+    adj, stops, runs, ev = _guard_pass(tmp_path / "two", _two_units(), passes=3, spawn=spawn)
+    assert len(ev.sysd) == 2 and {a[2] for a in ev.sysd} == {_unit(), _unit_b()}, ev.sysd         # the other unit's turn is the next tick
+    assert _child(tmp_path / "two", 19) == 0 and _child(tmp_path / "two", 119) == 0                # and both children are reset in the end
+
+
+def test_memguard_does_not_judge_a_unit_younger_than_two_ticks_plus_a_second(tmp_path):
+    iv = int(_vs()["INTERVAL_S"])
+    rows = _post_unit(); rows[20] = rows[20][:1] + ("zzz-new --title-rewritten",) + rows[20][2:]               # no harness found
+    fresh = _youngs(rows, iv + 0.5)                                                                             # pass 1 sees 2 ticks + 0.5 s (inside 2 ticks + 1), pass 2 sees 3 ticks + 0.5
+    adj, kills, runs, ev = _guard_pass(tmp_path / "young", fresh, passes=2)
+    assert not any("no harness found" in a[0][-1] for a in runs) and _tree_lines(ev) == [[]] * len(_tree_lines(ev)), [a[0][-1] for a in runs]
+    prot = int(_vs()["PROTECT_OOM_ADJ"])
+    assert [adj[p] for p in (10, 11, 12)] == [prot] * 3, adj                                                    # the spine is protected all the same
+    adj, kills, runs, ev = _guard_pass(tmp_path / "grown", fresh, passes=3)                        # the window passes: the next tick asks again and says it ONCE
+    assert sum("no harness found" in a[0][-1] for a in runs) == 1 and all(len(t) == 1 for t in _tree_lines(ev)), ([a[0][-1] for a in runs], _tree_lines(ev))
+    adj, kills, runs, ev = _guard_pass(tmp_path / "old", rows, passes=1)
+    assert sum("no harness found" in a[0][-1] for a in runs) == 1                                                # an old unit is judged at once
+    one_old = _youngs(rows, 3, pids={20})                                                                       # a young harness under an OLD tracer: the unit's oldest process decides
+    adj, kills, runs, ev = _guard_pass(tmp_path / "mixed", one_old, passes=1)
+    assert sum("no harness found" in a[0][-1] for a in runs) == 1
+
+
+def test_memguard_does_not_judge_a_young_unit_whose_tree_cannot_be_read(tmp_path):
+    rows = _post_unit(); rows[10] = rows[10][:3] + (11,) + rows[10][4:]; rows[30] = rows[30][:3] + (21,) + rows[30][4:]
+    adj, stops, runs, ev = _guard_pass(tmp_path / "young", _youngs(rows, 3), passes=2)
+    assert not any("could not be read" in a[0][-1] for a in runs), [a[0][-1] for a in runs]
+    adj, stops, runs, ev = _guard_pass(tmp_path / "old", rows, passes=2)
+    assert sum("could not be read" in a[0][-1] for a in runs) == 1
+
+
+def test_memguard_a_unit_that_is_found_again_gets_a_fresh_line_for_a_later_miss(tmp_path):
+    tick = int(_vs()["ALERT_COOLDOWN_S"]) + 1
+    good = _post_unit()[20][1]
+    hide = (20, "cmd", "zzz-new --title-rewritten"); show = (20, "cmd", good)
+    adj, kills, runs, ev = _guard_pass(tmp_path / "noh", _post_unit(), passes=4, tick=tick, rewrite={0: [hide], 1: [show], 2: [hide], 3: [hide]})
+    assert sum("no harness found" in a[0][-1] for a in runs) == 2 and all(len(t) == 2 for t in _tree_lines(ev)), ([a[0][-1] for a in runs], _tree_lines(ev))      # race, found, later miss: two lines; a miss that goes on is still ONE
+    adj, kills, runs, ev = _guard_pass(tmp_path / "noh-steady", _post_unit(), passes=4, tick=tick, rewrite={0: [hide], 1: [hide], 2: [hide], 3: [hide]})
+    assert sum("no harness found" in a[0][-1] for a in runs) == 1
+    cut = [(10, "ppid", 11), (30, "ppid", 21)]; mend = [(10, "ppid", 1), (30, "ppid", 1)]
+    adj, kills, runs, ev = _guard_pass(tmp_path / "unread", _post_unit(), passes=4, tick=tick, rewrite={0: cut, 1: mend, 2: cut, 3: cut})
+    assert sum("could not be read" in a[0][-1] for a in runs) == 2 and all(len(t) == 2 for t in _tree_lines(ev)), ([a[0][-1] for a in runs], _tree_lines(ev))
+    adj, kills, runs, ev = _guard_pass(tmp_path / "unread-steady", _post_unit(), passes=4, tick=tick, rewrite={0: cut, 1: cut, 2: cut, 3: cut})
+    assert sum("could not be read" in a[0][-1] for a in runs) == 1

@@ -15,7 +15,7 @@ low memory is SIGCONTed once MemAvailable has stayed above {{RESUME_FACTOR}}x th
 a pid stopped for size is resumed by hand and says so again every {{RENOTIFY_S}} s while it stays stopped.
 The kernel is the one home of "stopped": every tick, before anything else reads the list, a pid whose /proc/N/stat state is not T/t (resumed by hand),
 whose start time changed (the pid was reused) or that is gone is dropped from it with one journal line and no alert, with its cooldown keys.
-A pid inside a post that is neither spine nor harness but carries the protect value or nice is a CHILD that inherited them (the kernel passes both to every fork): it goes back to its unit's own OOMScoreAdjust and Nice, read from systemd (cached {{BASELINE_REFRESH_S}} s), so a tool the harness runs stays an ordinary OOM and SIGSTOP candidate. The reset runs at the END of the tick, after every stop and resume path, and asks systemd nothing while MemAvailable is under the low line (a cached value still applies): a hung systemctl can never delay a SIGSTOP. Alerts of a kind that name a unit (tree, base) are rate-limited per unit.
+A pid inside a post that is neither spine nor harness but carries the protect value or nice is a CHILD that inherited them (the kernel passes both to every fork): it goes back to its unit's own OOMScoreAdjust and Nice, read from systemd (cached {{BASELINE_REFRESH_S}} s), so a tool the harness runs stays an ordinary OOM and SIGSTOP candidate. The reset runs at the END of the tick, after every stop and resume path, and asks systemd nothing while MemAvailable is under the low line (a cached value still applies): a hung systemctl can never delay a SIGSTOP. Alerts of a kind that name a unit (tree, base) are rate-limited per unit. Each of the three alert-once sets (nobase, noh, unread) is an EPISODE: it leaves the set on the first good reading (the base read again, the harness found again, the tree read again), so a later real miss of the same unit says so again (still under the per-unit cooldown). A unit whose oldest process is younger than 2 ticks + 1 s (a restart in flight: its cgroup exists before its harness does) is not judged this tick: no 'no harness' / 'tree unreadable' line, no set entry, the next tick asks again; its spine is protected as always. systemd is asked for ONE unit baseline per tick, so a hung systemctl costs one 10 s timeout per tick, never one per unit.
 The tree selection reads argv only as the exact tail equality between one unit's tracer and its child: never a pattern, never printed."""
 import os, re, time, signal, subprocess, collections
 PAGE = os.sysconf('SC_PAGE_SIZE'); ME = os.getpid()
@@ -80,9 +80,15 @@ def guarded(rows):
 def pstat(pid):
     try: s = open(f'/proc/{pid}/stat').read(); r = s[s.rindex(')') + 2:].split(); return r[0], r[19]
     except Exception: return None
+HZ = os.sysconf('SC_CLK_TCK'); YOUNG_S = 2 * {{INTERVAL_S}} + 1; fetched = False
+def young(rows):
+    try: return float(open('/proc/uptime').read().split()[0]) - min(v[1] for v in rows.values()) / HZ < YOUNG_S
+    except Exception: return False
 def baseline(unit, now, fetch):
+    global fetched
     b = base.get(unit)
-    if fetch and (b is None or now - b[2] >= {{BASELINE_REFRESH_S}}):
+    if fetch and not fetched and (b is None or now - b[2] >= {{BASELINE_REFRESH_S}}):
+        fetched = True
         try:
             kv = dict(l.split('=', 1) for l in subprocess.check_output(['systemctl', 'show', unit, '-p', 'OOMScoreAdjust', '-p', 'Nice'], text=True, timeout=10, stderr=subprocess.DEVNULL).split('\n') if '=' in l)
             b = (int(kv['OOMScoreAdjust']), int(kv['Nice']), now); nobase.discard(unit)
@@ -111,7 +117,7 @@ while True:
     while hist and now - hist[0][0] > {{HISTORY_S}}: hist.popleft()
     peak = max(a for _, a in hist)
     if peak - avail >= {{SPIKE_BYTES}} << 30: log(f'SPIKE: MemAvailable fell {(peak-avail)>>20} MiB in <=30 s, now {avail>>20} MiB', red=True, kind='spike'); hist.clear(); hist.append((now, avail))
-    unprot = []; snap = list(procs()); inpost = set(); keep = set(); pu = {}; late = []
+    unprot = []; fetched = False; snap = list(procs()); inpost = set(); keep = set(); pu = {}; late = []
     for p in list(stopped):
         st = pstat(p)
         if st is None or st[0] not in 'Tt' or st[1] != stopped[p][4]:
@@ -121,10 +127,11 @@ while True:
     for unit, rows in post_rows(snap).items():
         inpost |= set(rows); pu.update((p, unit.rsplit('/', 1)[-1]) for p in rows)
         try:
-            g, found = guarded(rows); keep |= g
-            if not found and unit not in noh: noh.add(unit); log(f'ALERT {unit}: no harness found under its tracer (its argv is not the tail of the tracer\'s): only the spine chain is protected', red=True, kind='tree', key=f'tree-{unit}')
+            g, found = guarded(rows); keep |= g; unread.discard(unit)
+            if found: noh.discard(unit)
+            elif unit not in noh and not young(rows): noh.add(unit); log(f'ALERT {unit}: no harness found under its tracer (its argv is not the tail of the tracer\'s): only the spine chain is protected', red=True, kind='tree', key=f'tree-{unit}')
         except Exception as e:
-            if unit not in unread: unread.add(unit); log(f'ALERT {unit}: the process tree could not be read ({e!r}): nothing in it is protected this tick', red=True, kind='tree', key=f'tree-{unit}')
+            if unit not in unread and not young(rows): unread.add(unit); log(f'ALERT {unit}: the process tree could not be read ({e!r}): nothing in it is protected this tick', red=True, kind='tree', key=f'tree-{unit}')
     for pid, comm, cmd, rss in snap:
         prot = pid in keep or (pid not in inpost and (comm in PROTECT_COMM or bool(PROTECT_CMD.search(cmd))))
         if prot:
