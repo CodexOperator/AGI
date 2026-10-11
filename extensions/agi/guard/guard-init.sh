@@ -166,8 +166,8 @@ to_mib() {  # 512M | 2G | 1.5G | 1024 (MiB) -> integer MiB
     *)  awk -v x="$v" 'BEGIN{printf "%d", x}' ;;
   esac
 }
-# The settings: the ```sh guard.env fenced block of config:guard, evaluated as
-# bash (the same assignments guard.env held). Default node: the repo this script
+# The settings: the ```sh guard.env fenced block of config:guard, read by guard_env_load
+# (validated line by line, NEVER evaluated). Default node: the repo this script
 # really lives in, else the main checkout.
 . "$GUARD_DIR/guard-env.sh"   # guard_env_load: validates the block line by line, no evaluation
 GUARD_ENV_NODE=${GUARD_ENV_NODE:-}
@@ -182,7 +182,8 @@ if [ -f "$GUARD_ENV_NODE" ]; then
   GUARD_ENV_FROM="config:guard ($GUARD_ENV_NODE)"
 else
   for _gf in "$SANCTUARY/guard/guard.env" "$GUARD_DIR/guard.env"; do
-    if [ -f "$_gf" ]; then guard_env_load "$_gf" plain || exit 1; GUARD_ENV_FROM="legacy $_gf"; break; fi   # the same loader as the node: root never sources it
+    # RETIRED (goal:g1.41 C; the box's file was set aside on 09-30, config:guard replaced it): root never sources a file, but a stray one is named, not ignored
+    [ -f "$_gf" ] && die "$_gf: legacy file predates box-keyed cells (GUARD_<CELL>_<box key>) and is retired: put its lines in config:guard's \`\`\`sh guard.env block, then remove the file"
   done
 fi
 guard_cells_check "$HOSTKEY" || exit 1   # a sink-bearing cell is the shape its sink needs (RC1/RC2)
