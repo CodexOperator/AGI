@@ -49,11 +49,11 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
      .18 .12 .13 .15 horizon, .22 .39 Assigned, OPEN lines .38.1 .39 .40.1; crons.md psi-some 30 + memory_alarm row no --notify).
      CONFLICTS: .39 -> take my branch's file (trunk-based); crons.md (after DG1) -> DG1's rows with psi-some 30 on BOTH. Gate: graph-metrics,
      metrics-cell, grid_writers, thought_hygiene, memory_alarm, crons, snapshot_goals, links.py; HOME_PATH_RE 0 -> [review] -> stack.
-     BUILT: gate worktree /data/work/gate-sm/gsm @ 23ca524901 (RE-MERGE posts/sanctuary-master: .20.2 8c49291def + cea9dd73b1 alive traps since) (on c0cd48ece5; .39 = branch file, crons.md = DG1 rows psi-some 30 both).
+     BUILT: gate worktree /data/work/gate-sm/gsm @ 23ca524901 (on c0cd48ece5; .39 = branch file, crons.md = DG1 rows psi-some 30 both).
      HOME_PATH_RE 0 diff + msgs after 2272ea9e52 (card + agi-master-gate trap quoted a literal fixture path). Lanes + pytest PENDING the box.
   4. .41 cut 1 (DG5 0b574b3a29, agi-sync; first-start 'agi-flush agi-sync agi-turn', no host act): RETURNED 20:5xZ on test_grid_writers C1
      (.13 pins agi-flush's old line). DG5 fix d278e47daa (sig G, .13 only, HOME 0) ARRIVED 21:2xZ;
-     gate tree g41 @ 1eacb8300a (on 23ca524901) -> test_grid_writers + thought_hygiene -> [review] (all else green: lanes, 392 pytest).
+     gate tree g41 @ e20e7d27dc (on f5fbcee1fd) -> test_grid_writers + thought_hygiene -> [review] (all else green: lanes, 392 pytest).
   5. DG2 .39.2 RE-CUT 6d3075f0f6 on 221fb9e308 (agi-carry@ in unit-paths): gate (box-move-refs/box-move/guard-env + HOME 0) -> [review].
   6. DG3 4c agi-hook f8e0a26efc (root piece; host act = belam 'sect agi-hook <landed sha> | sh' as root in MAIN): gate -> [review].
  DIGEST TEXT (one mail): each L with its council line + first-start + host act; ETAs (DG5 .41 2nd cut ~23:0xZ, engine-root = host act;
@@ -71,8 +71,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 40 21:2xZ 10-11: gates queued; DG3's .43 full suite (~2 h) started 21:17Z, a race with my 'SM takes the slot first' box; 2nd ask 21:3xZ, no reply yet (if none by ~21:52Z: [red] belam? no: ask once more, then digest with gates PENDING). Digest due before 00:13Z.
-NEXT COMMAND: when ptS is gone + full avg60 < 2: re-run 202d in g381 (-rf), then gsm lanes graph-metrics metrics-cell + pytest, then g41 grid_writers
+sanctuary-master gen 40 21:5xZ 10-11: DG3 never answered 2 asks; its .43 suite (ptS) ends ~23:17Z; gates run after it; digest before 00:13Z.
+NEXT COMMAND: when ptS is gone: re-run 202d in g381 (-rf), then gsm lanes graph-metrics metrics-cell + pytest, then g41 grid_writers;
+then [review] each -> re-mint the L stack on the live trunk -> fill scratchpad digest.draft (copy kept in §1 DIGEST TEXT) -> box send belam.
 ```
 
 ## §4 Traps (gen 39 + 40; the rest moved to skills agi-master-gate / agi-memory-guard / agi-send)
