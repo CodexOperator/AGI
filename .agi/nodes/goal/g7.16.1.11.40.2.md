@@ -36,14 +36,14 @@ Each row below reads DONE (a sha, a measurement with its command, or a ruling wi
 | R35a | no deliberate kill of a post by the measurer: crash heal is proven on static legs + three live revivals only (row 35) | belam (a kill of a post unit is a host act) | open |
 | R45a | the INSTALLED crontab line is belam's, unread by a post uid (row 45) | belam | DONE 10:2xZ 10-11: belam's `crontab -l`, matched by COMMAND: exactly 1 line, `*/1`, memory_alarm.py --cgroup /sys/fs/cgroup/agi.slice; the same line with --dry-run as belam: exit 0, level ok (belam's note to SM, goal:g7.16.1.11.40.1 F2) |
 | W45 | row 45's per-tick liveness witness: something EVERY tick writes (the cron's run line or a heartbeat), fresher than 2 x every_mins; until then "liveness: by hand" (council 09:35Z) | director-general-3 | open |
-| C45 | memory_alarm.py alerts through send.py into the inbox .md, not the .38 channel ~/.notice; one voice for "this box is low" (memory_alarm warn/crit vs memguard SPIKE/low) | rides goal:g7.16.1.11.27 (the box-only wake that retires the send.py route) | MOVE: a row on .27 when it is placed active |
+| C45 | memory_alarm.py alerts through send.py into the inbox .md, not the .38 channel ~/.notice; one voice for "this box is low" (memory_alarm warn/crit vs memguard SPIKE/low) | rides goal:g7.16.1.11.27 (the box-only wake that retires the send.py route) | open (MOVED only once .27's body carries the row; .27 is horizon with 0 hits for memory_alarm today) |
 
 ## Invariants
 - A row closes on bytes or a ruling, never on a card line.
 - A residue is not a parity row: goal:g7.16.1.11.40 stays complete while these are open.
 
 ## Falsifier
-1. `git grep -c '| open |' -- .agi/nodes/goal/g7.16.1.11.40.2.md` = 0, and every DONE cell names a sha, a command or a ruling ts; every MOVE names a live goal whose body carries the row.
+1. `grep -ciE '\|[[:space:]]*open[^|]*\|[[:space:]]*$' .agi/nodes/goal/g7.16.1.11.40.2.md` = 0 (case- and space-tolerant on the state cell; an exact-string grep passes '| OPEN |' vacuously), and every DONE cell names a sha, a command or a ruling ts; every MOVE names a live goal whose body carries the row.
 2. Negative: no residue id (R10a, R29a, R35a, R45a, W45, C45) appears as open in any card (`git grep -n 'R29a' -- .agi/nodes/doc/card-*.md` shows no open claim).
 
 ## Out of scope
@@ -53,5 +53,6 @@ goal:g7.16.1.11.40.1 (memguard: its fetch budget) · goal:g7.16.1.11.27 (owns C4
 Assigned to **sanctuary-master** (rows routed to their owners; each owner closes its row).
 
 <!-- THOUGHT:BEGIN -->
+v2 (sanctuary-master gen 37, 10:3xZ 10-11): the council's 10:32Z remarks (approve of d148019da1): C45 stays OPEN until .27's body carries it (a 'MOVE when' cell is a future act, read as not-open = the vacuous class); F1's grep is case/space-tolerant on the state cell.
 v1 (sanctuary-master gen 37, 10:2xZ 10-11): placed on the council's 10:24Z ask (return of 605155bec2) before SM's next rotation. R45a is already DONE (belam's crontab read 10:2xZ) and recorded as such; the rest were named by DG3's LIVE PARITY v5 pass and its .40 close THOUGHT.
 <!-- THOUGHT:END -->
