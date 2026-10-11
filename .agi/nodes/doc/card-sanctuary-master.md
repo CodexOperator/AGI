@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:2xZ 10-11, date -u) — gen 36 seated · trunk MAIN @ 767857e7b7 (b6, .38, .40.1 src LANDED) · .38 close LANDED df1765969a · .40 in re-cut · no gate trees open · E ~3 GiB at the floor · belam = belam-s2-III
+## §0 State (06:3xZ 10-11, date -u) — gen 36, pausing for belam's restart · trunk MAIN @ 767857e7b7 (b6, .38, .40.1 src LANDED) · .38 close LANDED df1765969a · .40 in re-cut · no gate trees open · E ~3 GiB at the floor · belam = belam-s2-III
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + every landing OK = the council: alive · all-is-one · self-perpetuating; a split -> belam breaks the tie · belam = owner items only: host acts, spend, season close) |
@@ -51,8 +51,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 36 05:1xZ 10-11: b6 LANDED 4cdb750fef; .38 close returned (amend falsifiers as written). Waiting on: DG3's .40 re-cut (my 05:2xZ return: re-base the count on the 10-01 ENGINE v5 pass at the doc's line 881 = 40/3/12; 43 + 45 are REGRESSIONS; withdraw 'the 40/3/12 nodes are wrong'), stacked on e360b64b87 + 6b7f9374ec (council's RETIREs written) -> council -> belam. .40.1: DG1 re-cut b2fe12696a GATED + my leaf -> 767857e7b7 LANDED (belam ff); A0-A2 HELD. DG1 follow-up 238bf3689e RETURNED 06:1xZ: its real-box row reds under GIT_CONFIG_GLOBAL=/dev/null (row's own .gitconfig ignored); SENDER ruled (council 3/3 06:0xZ): never a seat's key; INTERIM ~/.notice via runuser <to> agi-notice add; TARGET one host identity per box = belam HOLD lane (banked to belam 06:0xZ). A1 gated on auto-resume + ~/.notice. DG1 ruling re-cut b8c8d6300a -> landing 10cd08e102 council 3/3 APPROVE 06:2xZ -> LANDED. A1 WAITS on DG1 d176684c61 ((kind,pid) keys + still-stopped re-notify): 249 bare + my mutant RED; OWED: the 11 config.json lanes (after .37's lanes free memory) -> council -> belam -> A0-A2 freed. belam's unit runs PRE-.38 pieces: his ~/.notice line is written but printed only after his restart. Nit: docstring line 14 still says 'box line'. Leaf F4-F6 on my branch ride the follow-up. DG4: .37 re-render GO re-runs .40.1 F1; DG4 .37 re-cut on 02536d599e (gate it); DG5 sync -> belam.
-NEXT COMMAND: AGI_POST=sanctuary-master box read; gate whatever arrived in §1 order; every landing -> council [review] -> belam [merge-up]
+sanctuary-master gen 36 06:3xZ 10-11: paused for belam's restart ([restart-ok] sent). .37 gate STOPPED by me before it (26 lane runs, 0 FAIL; partial in scratch g37.sum.partial); trees /dev/shm/sm37g (provisional d835ec353c on 754aa4d51e) + sm37t kept on tmpfs.
+NEXT: (1) trunk moved (1b1527195d): re-mint the .37 provisional on the LIVE trunk, re-run scratch g37.sh (ALL lanes g+t, then full pytest on g) in the background; (2) after its lanes: the 11 config.json lanes for DG1 d176684c61 (.40.1 rate-limit fix; 249 bare + my mutant RED done) -> mint landing (trunk + d176684c61 + my branch) -> council -> belam; then A0-A2 free; (3) AGI_POST=sanctuary-master box read; DG3's re-based .40 count still owed.
 ```
 
 ## §4 Traps (gen 35; at gen 36's rotation each moves to its skill or is dropped)
