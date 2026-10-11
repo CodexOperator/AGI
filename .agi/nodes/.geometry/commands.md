@@ -560,6 +560,7 @@ excluded:
       - <seat>
     args:
       - {"name": "seat", "type": "str", "required": true, "choices": []}
+      - {"name": "max_tries", "type": "int", "required": true, "choices": []}
       - {"name": "spool", "type": "str", "required": false, "choices": []}
       - {"name": "box_bin", "type": "str", "required": false, "choices": []}
       - {"name": "notice_bin", "type": "str", "required": false, "choices": []}

@@ -16,6 +16,10 @@ rewrite never races an append); a line that fails stays and is put back by APPEN
 line, and is retried next run. Before every send the seat's own refs/box/<seat>/<to> is searched for the line's
 Alarm-id: a crash between the send and the unlink re-reads the line next run, finds the id, and sends nothing twice.
 A drain that finds a lock held prints `[busy]` and does nothing (rc 0).
+
+DEAD LETTER. Each failed pass counts on the line (`tries`); at --max-tries (a config:crons cell) the line moves to
+alarm.spool.dead with ONE ~/.notice line and is never retried: a reader that can never be reached (off-matrix, a
+squatted ref) cannot hold the spool, or a minute-by-minute retry, for ever.
 """
 from __future__ import annotations
 
@@ -111,7 +115,7 @@ def _notice(notice_bin: Path, line: str) -> None:
         print(f"alarm_spool: ~/.notice line NOT written: {exc}", file=sys.stderr)
 
 
-def drain(seat: str, *, spool: Path | None = None, box_bin: Path = Path("/opt/agi/bin/box"),
+def drain(seat: str, *, max_tries: int, spool: Path | None = None, box_bin: Path = Path("/opt/agi/bin/box"),
           notice_bin: Path | None = None, tree: Path | None = None) -> int:
     me = _uid_name()
     if me != f"agi-{seat}":
@@ -149,8 +153,15 @@ def drain(seat: str, *, spool: Path | None = None, box_bin: Path = Path("/opt/ag
             if why is None:
                 print(f"alarm_spool: sent {rec['id']} [alarm {rec['job']}] -> {rec['to']}")
                 continue
-            kept.append(raw)
-            print(f"alarm_spool: {rec['id']} [alarm {rec['job']}] -> {rec['to']} NOT sent, kept: {why}", file=sys.stderr)
+            rec["tries"] = int(rec.get("tries", 0)) + 1
+            if rec["tries"] >= max_tries:
+                with spool.with_name(spool.name + ".dead").open("a") as dead:
+                    dead.write(json.dumps(rec, separators=(",", ":")) + "\n")
+                print(f"alarm_spool: {rec['id']} [alarm {rec['job']}] -> {rec['to']} DEAD after {rec['tries']} tries: {why}", file=sys.stderr)
+                _notice(notice_bin, f"[alarm-dead] {rec['id']} {rec['job']} -> {rec['to']} after {rec['tries']} tries: {why}")
+                continue
+            kept.append(json.dumps(rec, separators=(",", ":")))
+            print(f"alarm_spool: {rec['id']} [alarm {rec['job']}] -> {rec['to']} NOT sent, kept (try {rec['tries']} of {max_tries}): {why}", file=sys.stderr)
             _notice(notice_bin, f"[alarm-unsent] {rec['id']} {rec['job']} -> {rec['to']}: {why}")
         if kept:
             fd = os.open(spool, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o600)
@@ -175,6 +186,7 @@ def main(argv: list[str] | None = None) -> int:
     ap_a.add_argument("--spool", type=Path, default=None)
     ap_d = sub.add_parser("drain", help="sign + box-send every spooled line, as the sending seat")
     ap_d.add_argument("--seat", required=True)
+    ap_d.add_argument("--max-tries", type=int, required=True, help="failed passes before a line is dead-lettered to alarm.spool.dead")
     ap_d.add_argument("--spool", type=Path, default=None)
     ap_d.add_argument("--box-bin", type=Path, default=Path("/opt/agi/bin/box"))
     ap_d.add_argument("--notice-bin", type=Path, default=None)
@@ -186,7 +198,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"alarm_spool: NOT appended: {why}", file=sys.stderr)
             return 3
         return 0
-    return drain(a.seat, spool=a.spool, box_bin=a.box_bin, notice_bin=a.notice_bin, tree=a.tree)
+    return drain(a.seat, max_tries=a.max_tries, spool=a.spool, box_bin=a.box_bin, notice_bin=a.notice_bin, tree=a.tree)
 
 
 if __name__ == "__main__":

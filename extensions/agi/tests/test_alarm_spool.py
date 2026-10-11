@@ -94,7 +94,7 @@ def test_an_over_long_text_is_cut_to_one_atomic_write(seat):
 
 def test_the_drain_sends_as_the_seat_from_its_own_tree_with_subject_and_trailers(seat):
     a.append("memory_alarm_posts", "belam", "[memory-alarm-warn] WARN memory warn: x", max_lines=10)
-    assert a.drain("sanctuary-master", box_bin=seat.box) == 0
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0
     assert _sent(seat) == [f"sanctuary-master belam {seat.tree}"]                      # AS the seat, from ITS ~/t, to the reader
     (msg,) = _refmsgs(seat)
     first, *rest = msg.splitlines()
@@ -107,15 +107,15 @@ def test_r2_a_drain_in_any_other_uid_signs_and_sends_nothing(seat, monkeypatch, 
     a.append("j", "belam", "t", max_lines=5)
     for uid in ("root", "agi-belam", "agi-director-general-1"):
         monkeypatch.setattr(a, "_uid_name", lambda uid=uid: uid)
-        assert a.drain("sanctuary-master", box_bin=seat.box) == 2
+        assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 2
         assert f"uid {uid} cannot drain sanctuary-master's spool" in capsys.readouterr().err
     assert _sent(seat) == [] and len(seat.spool.read_text().splitlines()) == 1         # untouched, still spooled
 
 
 def test_r3_a_spooled_line_is_sent_exactly_once(seat):
     a.append("j", "belam", "one", max_lines=5)
-    assert a.drain("sanctuary-master", box_bin=seat.box) == 0
-    assert a.drain("sanctuary-master", box_bin=seat.box) == 0                          # nothing left: nothing sent
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0                          # nothing left: nothing sent
     assert len(_sent(seat)) == 1 and len(_refmsgs(seat)) == 1
 
 
@@ -128,34 +128,50 @@ def test_r3_a_crash_between_the_send_and_the_unlink_never_sends_it_twice(seat, m
         return real(self, *x, **k)
     monkeypatch.setattr(Path, "unlink", boom)
     with pytest.raises(OSError):
-        a.drain("sanctuary-master", box_bin=seat.box)
+        a.drain("sanctuary-master", box_bin=seat.box, max_tries=60)
     monkeypatch.setattr(Path, "unlink", real)
     assert len(_sent(seat)) == 1 and (seat.home / a.DRAINING).exists()                 # sent, but the line is still there
-    assert a.drain("sanctuary-master", box_bin=seat.box) == 0                          # the next run finds its Alarm-id on the seat's ref
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0                          # the next run finds its Alarm-id on the seat's ref
     assert len(_sent(seat)) == 1 and len(_refmsgs(seat)) == 1 and not (seat.home / a.DRAINING).exists()
 
 
 def test_a_failed_send_stays_spooled_notices_once_and_is_retried_then_sent_once(seat, monkeypatch, capsys):
     a.append("j", "belam", "one", max_lines=5)
     monkeypatch.setenv("BOX_FAIL", "[off-matrix] sanctuary-master -> belam: not adjacent, nothing sent")
-    assert a.drain("sanctuary-master", box_bin=seat.box) == 0
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0
     assert "NOT sent, kept" in capsys.readouterr().err and _sent(seat) == []
-    assert len(seat.spool.read_text().splitlines()) == 1                               # kept, byte for byte
+    assert len(seat.spool.read_text().splitlines()) == 1                               # kept, with its try counted
     note = seat.notice.read_text()
     assert note.startswith("[alarm-unsent] ") and "[off-matrix]" in note              # a ~/.notice line: never silent
     monkeypatch.delenv("BOX_FAIL")
-    assert a.drain("sanctuary-master", box_bin=seat.box) == 0                          # retried next run
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0                          # retried next run
     assert len(_sent(seat)) == 1 and not seat.spool.exists()
-    assert a.drain("sanctuary-master", box_bin=seat.box) == 0 and len(_sent(seat)) == 1
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0 and len(_sent(seat)) == 1
+
+
+def test_a_line_that_fails_max_tries_times_is_dead_lettered_with_one_notice_and_never_retried(seat, monkeypatch, capsys):
+    a.append("j", "belam", "one", max_lines=5)
+    monkeypatch.setenv("BOX_FAIL", "[squatted] refs/box/sanctuary-master/belam x: not mine, nothing sent")
+    for n in (1, 2):
+        assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=3) == 0
+        assert json.loads(seat.spool.read_text().splitlines()[0])["tries"] == n          # counted on the line, still spooled
+    assert "[alarm-dead]" not in (seat.notice.read_text() if seat.notice.exists() else "")
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=3) == 0
+    assert not seat.spool.exists()
+    (dead,) = (seat.home / "alarm.spool.dead").read_text().splitlines()
+    assert json.loads(dead)["tries"] == 3 and "DEAD after 3 tries" in capsys.readouterr().err
+    assert seat.notice.read_text().count("[alarm-dead] ") == 1                           # ONE line, not one per pass
+    monkeypatch.delenv("BOX_FAIL")
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=3) == 0 and _sent(seat) == []
 
 
 def test_a_line_appended_while_the_drain_sends_is_kept_for_the_next_run(seat, monkeypatch):
     a.append("j", "belam", "first", max_lines=5)
     monkeypatch.setenv("BOX_HOOK", f"""printf '%s\\n' '{json.dumps({"id": "ffffffff-0001", "job": "j", "to": "belam", "text": "late", "ts": "t"})}' >> {seat.spool}""")
-    assert a.drain("sanctuary-master", box_bin=seat.box) == 0
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0
     assert [json.loads(l)["text"] for l in seat.spool.read_text().splitlines()] == ["late"]   # not lost to a rewrite
     monkeypatch.delenv("BOX_HOOK")
-    assert a.drain("sanctuary-master", box_bin=seat.box) == 0 and len(_sent(seat)) == 2 and not seat.spool.exists()
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0 and len(_sent(seat)) == 2 and not seat.spool.exists()
 
 
 def test_a_held_lock_is_busy_and_does_nothing(seat, capsys):
@@ -163,7 +179,7 @@ def test_a_held_lock_is_busy_and_does_nothing(seat, capsys):
     a.append("j", "belam", "one", max_lines=5)
     fd = os.open(seat.home / "alarm.spool.lock", os.O_WRONLY | os.O_CREAT); fcntl.flock(fd, fcntl.LOCK_EX)
     try:
-        assert a.drain("sanctuary-master", box_bin=seat.box) == 0
+        assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0
     finally:
         os.close(fd)
     assert "[busy]" in capsys.readouterr().out and _sent(seat) == []
@@ -172,7 +188,7 @@ def test_a_held_lock_is_busy_and_does_nothing(seat, capsys):
 def test_an_unreadable_line_is_dropped_loudly_and_the_rest_is_sent(seat, capsys):
     seat.spool.write_text("this is not json\n")
     a.append("j", "belam", "good", max_lines=5)
-    assert a.drain("sanctuary-master", box_bin=seat.box) == 0
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0
     assert "unreadable spool line dropped" in capsys.readouterr().err and len(_sent(seat)) == 1
     assert "[alarm-spool-bad]" in seat.notice.read_text()
 
@@ -188,31 +204,42 @@ def _crash_then_rerun(s, mod, monkeypatch):
         return real(self, *x, **k)
     monkeypatch.setattr(Path, "unlink", boom)
     with pytest.raises(OSError):
-        mod.drain("sanctuary-master", box_bin=s.box)
+        mod.drain("sanctuary-master", box_bin=s.box, max_tries=60)
     monkeypatch.setattr(Path, "unlink", real)
-    mod.drain("sanctuary-master", box_bin=s.box)
+    mod.drain("sanctuary-master", box_bin=s.box, max_tries=60)
     return len(_sent(s))
 
 
 def _failed_then_fixed(s, mod, monkeypatch):
     a.append("j", "belam", "one", max_lines=5)
     monkeypatch.setenv("BOX_FAIL", "[unsent] x")
-    mod.drain("sanctuary-master", box_bin=s.box)
+    mod.drain("sanctuary-master", box_bin=s.box, max_tries=60)
     monkeypatch.delenv("BOX_FAIL")
-    mod.drain("sanctuary-master", box_bin=s.box)
+    mod.drain("sanctuary-master", box_bin=s.box, max_tries=60)
+    return len(_sent(s))
+
+
+def _dead_after_three(s, mod, monkeypatch):
+    a.append("j", "belam", "one", max_lines=5)
+    monkeypatch.setenv("BOX_FAIL", "[off-matrix] x")
+    for _ in range(3):
+        mod.drain("sanctuary-master", box_bin=s.box, max_tries=3)
+    monkeypatch.delenv("BOX_FAIL")
+    mod.drain("sanctuary-master", box_bin=s.box, max_tries=3)                           # the reader became reachable: a dead line is not retried
     return len(_sent(s))
 
 
 def _other_uid(s, mod, monkeypatch):
     a.append("j", "belam", "one", max_lines=5)
     mod._uid_name = lambda: "root"
-    mod.drain("sanctuary-master", box_bin=s.box)
+    mod.drain("sanctuary-master", box_bin=s.box, max_tries=60)
     return len(_sent(s))
 
 
 @pytest.mark.parametrize("old,new,scenario,real", [
     ('if already_sent(tree, seat, rec["to"], rec["id"]):', "if False:", _crash_then_rerun, 1),   # M1: a drain that re-sends a sent line
-    ("            kept.append(raw)\n", "            pass\n", _failed_then_fixed, 1),              # M2: a failed line is dropped, never retried
+    ('            kept.append(json.dumps(rec, separators=(",", ":")))\n', "            pass\n", _failed_then_fixed, 1),              # M2: a failed line is dropped, never retried
+    ('if rec["tries"] >= max_tries:', "if False:", _dead_after_three, 0),                # M4: retries for ever
     ("    if me != f\"agi-{seat}\":", "    if False:", _other_uid, 0),                          # M3: any uid may drain (root signing as a seat)
 ])
 def test_each_mutant_goes_red_on_the_row_meant_for_it(seat, monkeypatch, old, new, scenario, real):
