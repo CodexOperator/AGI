@@ -38,7 +38,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
  sect agi-hook <landed sha> | sh as root in MAIN; gate after DG1's] -> re-mint the stack on the live trunk right before the digest.
  DG3's .43 full confirming suite: GO given 20:5xZ (heavy slot). DG1 cut 1 + target 4 (flap, 571f300635) gating on L5 = c0cd48ece5 (byna32e8i).
  OWNER 20:2x-3xZ (via belam): ONE slice pack (attach by mint id, render there; season rollover + box moves = pack/unpack) = goal:g7.16.1.11.44
- (minted, verbatim in it, assigned council); [decision] design ask SENT 20:3xZ. After the design: one build leaf per verb; digest belam the design id + builder.
+ (verbatim in it). DESIGN doc:g716111-44-capsule-pack (council 3/3 21:04Z, from posts/all-is-one a3387fea20) re-parented to .44 on my
+ branch; leaves .44.1-.44.6 (pack out verify in regrow repoint) -> DG4, .44.7 move -> DG2 (after core + .39.2-.4); all LAND after .41.
+ Digest to belam: the doc id + builders.
  (0) OWNER 19:4xZ: projection before season rollover; .41 = SEASON-2 CLOSE GATE. DG5's FIRST CUT 0b574b3a29 (targets 2,3,4: agi-sync merges
      the trunk at every turn end; conflict = notice + box parent; post pieces, NO host act; first-start 'agi-flush agi-sync agi-turn') GATING
      NOW alone: /data/work/gate-sm/run41.sh -> r41/summary (g41 = 9eb7380753 on 0c5ec01a72). Green -> [review] FIRST. Second cut ~23:0xZ (target 1,
