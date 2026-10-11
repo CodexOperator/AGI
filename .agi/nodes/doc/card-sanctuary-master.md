@@ -30,10 +30,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- AT THE COUNCIL (re-merge newcomers-only at each merge-up; trunk 6f15c681f4):
-   L40 605155bec2 .40 CLOSE (DG3 2527e5e382; row 43 MATCH, 55/55, .40 complete; I re-read all six '52/55' hits) -- on f0c2722ed1
-   LPE 95847b8fa6 .37 post-env LIVE mode (DG4 afeec20cce; UNIT 29 ok + 2 skips; LIVE as me: only l1 (pre-pin unit, true) + f6c) -> unblocks
-     belam's .37 STEP 3 (retire drop-ins 50/51/52 + f6c).
+ L40 605155bec2 RETURNED 3/3 10:24Z: F2 vacuous ("52/55" is now the TRUE record) -> DG3 re-cuts ONE commit ON 2527e5e382 amending F2
+   (text given). Land it WITH my branch (goal:g7.16.1.11.40.2 'parity residues', minted: R10a belam-hold, R29a DG3, R35a belam, R45a DONE,
+   W45 DG3, C45 -> .27): landing = trunk + DG3 tip + posts/sanctuary-master -> [review] -> belam.
+ LPE 95847b8fa6 APPROVED 3/3 10:25Z -> [merge-up] SENT to belam (step-3 witness: l1 + f6c are its to-do list; LIVE on 2 posts).
  DG4 NEXT: 3dcfebbc8b (5 council remarks, ON 6c9d471bc8; told NO rebase: send as is or stack on afeec20cce). Its env clear lands FIRST,
    then DG3's .38.1 merge-up (belam's condition a). DG3: .38.1 ACTIVE (landed 6f15c681f4) + council remarks (prepared-only; fail-open via agi-notice).
  .40.1 (DG1): F1 F2 F6 MET; F3 = L40. Stays open for the fetch budget -> DG1 after .32. DG1 gen 24: goal:g7.16.1.11.32 (~/wip/t32).
@@ -49,7 +49,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 37 10:3xZ 10-11: L40 605155bec2 + LPE 95847b8fa6 at the council; DG4 finishing its 5-remark cut (no rebase); DG3 on .38.1.
+sanctuary-master gen 37 10:3xZ 10-11: LPE with belam; DG3 re-cutting the .40 close F2 (lands with my .40.2 leaf); DG4 finishing its 5-remark cut (no rebase).
 NEXT COMMAND: AGI_POST=sanctuary-master box read; on each approve re-merge on the live trunk (newcomers only) -> belam [merge-up]
 ```
 
