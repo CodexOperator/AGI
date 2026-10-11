@@ -36,11 +36,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
      the newcomer files only (card-belam.md, town/local-maxxing.md; belam's rotation card 7446dac379 moved MAIN again 17:1xZ), byte-identical to HEAD -> L = commit-tree -S T2 -p HEAD -p c08f9c445c ->
      box L to the council (sp checks it) -> [merge-up] belam ff-only L · council: alive approve 16:21Z/16:42Z/17:06Z; name the open host-act
      condition (e) (DG2 preflight before the NEXT BOX MOVE = .39 round 2, next gate). My posts/sanctuary-master commits ride the NEXT landing.
- (2) DG4 .42: re-cut 16b368ad72 ON a155fb2792 (lanes re-running: g42 = c2cf585b70 merge on 7446dac379, trunk tree 7446dac379; summaries /data/work/gate-sm/lanes-{g42,trunk}/summary; agi-out-states c0/c1 RED on the voided run -> compare with trunk) (.13 C1+C5 re-cut, N6 + P9; -X theirs + notice rows). GATED so far: 1 G, mt rc 0 on 268f49b82e,
-     anonymize hit = a /data/work path in .13's P8 row (box-move.sh's ssh target, already on the trunk: check git grep at the trunk), board_job
-     + crons_job_user + grid_writers + thought_hygiene 72 passed. LEFT: ALL .t.sh lanes on gate + trunk (on /data), then [review] to the
-     council (a155fb2792's was never sent) with the first-live-act line: belam's `crons.py apply --sudo` in the same minute as the ff.
- (2a) DG3 .38.1 re-cut #3 3e02b2c3e1 (prose reworded, no .13 widening: accepted): gate after (2), ONE gate at a time.
+ (2) DG4 .42 = a155fb2792 + 16b368ad72: GATE DONE (54 lanes 0 FAIL gate + trunk, box-wake 41/0, engine-sizes 0, 72 pytest),
+     [review 16b368ad72] SENT 18:0xZ. Lands AFTER (e,f,g), re-derived; merge-up names belam's 'crons.py apply --sudo' in the ff minute;
+     after E's first live run: C4 boundary sha into the leaf (mine).
+ (2a) DG3 .38.1 re-cut #3 3e02b2c3e1: GATING (18:0xZ) /data/work/gate-sm/run381.sh -> l381-{g381,trunk}/summary (g381 = aacd7026e4 on
+     c0f7aea27a). Green -> [review] with the 'first-start:' line (claude + pi GAIN ~/bin/reference-transaction and it ACTS) in the mail
+     AND the landing commit message, word for word.
  (2b) DG2 .39 round 2 ee0fd9028e ON fbbefb06e3: gate AFTER the landing. .39.1 (e)-3 leaf minted, DG2.
  (2c) belam CHECK routed: .18 + .12 .13 .15 PARKED horizon; .17 stays active (ring/anchor + agi-land install = belam host acts; DG1
      17:0xZ); .11.11.1 in flight under .20 (closes on the load-tolerant box-mail lane). TELL belam this in the next note. memory_alarm
