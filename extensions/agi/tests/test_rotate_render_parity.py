@@ -32,6 +32,7 @@ REPO = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO / "extensions"))
 
 from agi.bin import rotate  # noqa: E402
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 BIN = Path(__file__).resolve().parent.parent / "bin"
 sys.path.insert(0, str(BIN))
@@ -97,6 +98,7 @@ def _root(tmp_path: Path) -> Path:
     _write(tmp_path, "nodes/.geometry/ladder.md",
            "---\nid: config:ladder\ncurrent_season: 2\ncurrent_loop: 1\n"
            "ladder: {}\n---\n")
+    write_free_veto(tmp_path / "nodes" / ".geometry")
     return tmp_path
 
 

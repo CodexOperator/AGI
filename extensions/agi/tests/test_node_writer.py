@@ -1793,7 +1793,10 @@ def test_r3_a_string_that_reads_back_as_another_type_keeps_its_quotes(s):
     lines = nw.render_frontmatter({"k": s, "items": [s, "plain"]})
     back = yaml.safe_load("\n".join(lines))
     assert back == {"k": s, "items": [s, "plain"]} and type(back["k"]) is str, (s, lines)
-    assert nw._scalar(yaml.safe_load(s)) != f'"{s}"' or isinstance(yaml.safe_load(s), str)   # a typed value stays bare
+    typed = yaml.safe_load(s)
+    if not isinstance(typed, str):   # the typed twin of the same spelling stays BARE: only the string is quoted
+        as_str, as_typed = nw.render_frontmatter({"k": s}), nw.render_frontmatter({"k": typed})
+        assert '"' not in as_typed[0] and as_typed != as_str, (s, as_str, as_typed)
 
 
 def test_r3_typed_values_and_plain_strings_render_exactly_as_before(tmp_path):

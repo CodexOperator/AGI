@@ -48,6 +48,7 @@ def _load(name):
 
 
 heal = _load("heal")
+_REAL_PRESSURE_OK = heal._sweep_pressure_ok   # the autouse stub below hides it from every other row
 
 
 @pytest.fixture(autouse=True)
@@ -311,6 +312,55 @@ def test_sweep_deferred_under_pressure_removes_nothing(
     assert heal._sweep_finished_worktrees(_graph(repo_root)) == (0, 0, 0)
     assert all(w.exists() for w in four_worktrees.values())
     assert "[sweep] deferred: io psi some.avg10 55 >= 40" in log.read_text()
+
+
+def _pressure_root(tmp_path, cells=None):
+    graph = tmp_path / ".agi"
+    graph.mkdir()
+    (graph / "config.json").write_text(json.dumps({"reaper": cells or {}}))
+    return graph
+
+
+def _pressure_box(monkeypatch, mem, io):
+    """memory_alarm.read_psi (the ONE reader) answers per path; a number is the
+    `some.avg10`, a dict is returned as is ({} = an unreadable file)."""
+    import memory_alarm
+    table = {str(memory_alarm.BOX_PSI): mem, "/proc/pressure/io": io}
+    monkeypatch.setattr(memory_alarm, "read_psi", lambda path: (
+        {"some": {"avg10": table[str(path)]}}
+        if isinstance(table[str(path)], (int, float)) else table[str(path)]))
+
+
+@pytest.mark.parametrize("mem,io,cells,ok,why", [
+    (3.0, 2.0, None, True, "pressure under both lines"),
+    (39.99, 39.99, None, True, "pressure under both lines"),
+    (40.0, 1.0, None, False, "memory psi some.avg10 40 >= 40"),
+    (1.0, 40.0, None, False, "io psi some.avg10 40 >= 40"),
+    (55.0, 1.0, None, False, "memory psi some.avg10 55 >= 40"),
+    (60.0, 70.0, None, False, "memory psi some.avg10 60 >= 40"),
+    (15.0, 1.0, {"sweep_mem_psi_max_pct": 10}, False, "memory psi some.avg10 15 >= 10"),
+    (1.0, 55.0, {"sweep_io_psi_max_pct": 90}, True, "pressure under both lines"),
+    (1.0, 55.0, {"sweep_io_psi_max_pct": "50"}, False, "io psi some.avg10 55 >= 50"),
+    (45.0, 1.0, {"sweep_mem_psi_max_pct": 0}, False, "memory psi some.avg10 45 >= 40"),
+    (45.0, 1.0, {"sweep_mem_psi_max_pct": 101}, False, "memory psi some.avg10 45 >= 40"),
+    (45.0, 1.0, {"sweep_mem_psi_max_pct": "x"}, False, "memory psi some.avg10 45 >= 40"),
+    (99.0, 1.0, {"sweep_mem_psi_max_pct": 100}, True, "pressure under both lines"),
+    (100.0, 1.0, {"sweep_mem_psi_max_pct": 100}, False, "memory psi some.avg10 100 >= 100"),
+    (1.0, 99.0, {"sweep_io_psi_max_pct": 100}, True, "pressure under both lines"),
+    (1.0, 100.0, {"sweep_io_psi_max_pct": 100}, False, "io psi some.avg10 100 >= 100"),
+    ({}, 1.0, None, False, "memory psi unreadable (no some.avg10): fails closed"),
+    ({"some": {}}, 1.0, None, False, "memory psi unreadable (no some.avg10): fails closed"),
+    (1.0, {}, None, False, "io psi unreadable (no some.avg10): fails closed"),
+    (1.0, {"full": {"avg10": 1.0}}, None, False, "io psi unreadable (no some.avg10): fails closed"),
+])
+def test_the_real_pressure_gate_reads_both_psi_lines_and_fails_closed(
+        tmp_path, monkeypatch, mem, io, cells, ok, why):
+    """goal:g7.16.1.5.3 (g1.41 PASS B4 residue: every other row here stubs the
+    gate away) -- the REAL `_sweep_pressure_ok`: a line is the cell when it is a
+    number in (0, 100], else 40; AT the line refuses; memory is read before io;
+    a blind read of either file fails closed by name."""
+    _pressure_box(monkeypatch, mem, io)
+    assert _REAL_PRESSURE_OK(_pressure_root(tmp_path, cells)) == (ok, why)
 
 
 def test_sweep_failed_archive_never_removes(repo_root, four_worktrees,

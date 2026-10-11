@@ -2502,7 +2502,7 @@ def _card_provenance(root: Path, path: Path) -> str:
         import grid  # noqa: PLC0415 -- same bin dir
         ref = grid._resolve_read_ref(root, path, str(node_id))
         tip = grid.ref_tip(root, ref) if ref else None
-        ver = grid.git(root, "rev-list", "--count", tip).strip() if tip else "0"
+        ver = grid.git(root, "rev-list", "--count", "--first-parent", tip).strip() if tip else "0"
     except Exception:  # noqa: BLE001 -- provenance never blocks a render
         pass
     sha = ""

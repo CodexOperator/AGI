@@ -19,6 +19,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 BIN = Path(__file__).resolve().parent.parent / "bin"
 sys.path.insert(0, str(BIN))
@@ -44,6 +45,7 @@ def _graph(tmp_path: Path, *, env_box: str | None = "local-town",
     """A temp project root (.agi) with the schema, a posts list and an env."""
     agi = tmp_path / ".agi"
     (agi / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    write_free_veto(agi / "nodes" / ".geometry")
     (agi / "context" / "schemas").mkdir(parents=True, exist_ok=True)
     (agi / "config.json").write_text("{}")
     assert LIVE_SCHEMA.is_file()

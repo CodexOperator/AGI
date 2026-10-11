@@ -1,0 +1,8 @@
+#!/bin/bash
+# belam-egress full|split|status  — switch outbound between the overlay gateway (full tunnel) and direct (split)
+set -e
+case $1 in
+  full|split) systemctl stop wg-quick@wg0; ln -sf /etc/wireguard/wg0-$1.conf /etc/wireguard/wg0.conf; systemctl start wg-quick@wg0; echo mode=$1 ;;
+  status) readlink /etc/wireguard/wg0.conf; wg show wg0 | grep -E "handshake|transfer"; echo public-ip=$(curl -s --max-time 5 ifconfig.me || echo none) ;;
+  *) echo usage: belam-egress full\|split\|status; exit 1 ;;
+esac

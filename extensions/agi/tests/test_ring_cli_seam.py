@@ -34,6 +34,7 @@ from io import StringIO
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 BIN = Path(__file__).resolve().parent.parent / "bin"
 SRC = Path(__file__).resolve().parent.parent / "src"
@@ -102,6 +103,7 @@ def _ring_root(tmp_path):
         "---\ntype: config\nwritten_by: prime\nring: approval\n---\n",
         encoding="utf-8")
     (agi / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(agi / "nodes" / ".geometry")
     (agi / "nodes" / ".geometry" / "rings.md").write_text(
         "---\ntype: cell\nrings:\n"
         "  - name: approval\n    m: 2\n    members: [alice, bob, carol]\n"

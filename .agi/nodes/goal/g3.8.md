@@ -1,0 +1,56 @@
+---
+id: goal:g3.8
+mint_id: 96c2c249c0f34049b6254296162cac64
+type: goal
+parents:
+  - goal:g3
+next_edges: []
+confidence: 0.5
+edited_by: director-general-1
+goal_id: G3.8
+goal_kind: subgoal
+model: claude-sonnet-5-5
+origin: goal
+role: director
+scaffold_hash: 1666961e76fb943a
+season: 2
+seeds:
+  - goal:g3
+status: active
+tags:
+  - council
+  - metrics
+  - g3
+title: "G3.8: the old metrics are read again -- one cron job as belam runs metrics.py and success_metrics.py and writes ONE graph_metrics cell on the town node; metrics.py refuses a root with no nodes/; success_metrics null counters named or fed"
+town: core
+---
+# goal:g3.8
+
+## Why this exists
+goal:g3: the owner asked on 10-07 14:4xZ for the old metrics back ("a bunch of metrics and stats we tracked with then python files"). The council measured them (alive, 14:54Z): metrics.py WORKS (read-only, about 1 min; run 10-07: node_count 5,813 = active 5,574 + deprecated 239, edges 6,649, evidence_fraction 0.898, decisive_verdicts 1,235 at 1.0, broken_links 0, thought_coverage 0.521, longest chain 20, outcome_coverage 0.062) and STOPPED because nothing runs it on the new system: its callers are driver.sh's per-iteration emit (the old loop, unrun since the last report COMPLETE.md 09-17) and the SessionStart hook's counts, with no cron. success_metrics.py has NEVER recorded (no success-metrics-<n>.json exists): 1 of its 7 metrics has a value (conclusive_verdicts 1,235), 6 read null for want of a live counter. telemetry_rollup.py has no caller. seat_status.py runs as a v5 uid but warns on the spawn-budget lock (PermissionError).
+
+## OWNER 2026-10-07 14:4xZ, verbatim (relayed by belam gen 27)
+"Also I know we used to have a bunch of metrics and stats we tracked with then python files. Can we bring those back? We don't have to rewrite them as scripts in this season just the next."
+
+## Target end-state
+- ONE cron job, run as belam (the uid that reads every uid's files), runs metrics.py and success_metrics.py and writes the numbers as ONE frontmatter CELL `graph_metrics` on town:local-maxxing (replaced whole by one writer; the town node's existing trajectory_standin entry 'metrics: HEAD + KV' is left alone; council design alive 10-07 15:08Z, doc:rse-aa1-boxes AA1.S: hourly at :23, `success_metrics.py --line | write.py set graph_metrics`, nulls NAMED on the line); the cadence lives in the graph (`.agi/nodes/.geometry/crons.md`), applied by `crons.py apply`.
+- metrics.py given a root with no nodes/ REFUSES (non-zero exit, one reason line); today it prints all-zero METRIC lines and exits 0.
+- Each of success_metrics.py's 6 null metrics is either given a live counter or named as unmeasured with its reason on the line; none reads as a number it does not have.
+
+## Invariants
+- Python stays this season (metrics.py, success_metrics.py); the shell rewrite is season 3 (owner 10-07).
+- Progress numbers live on the town node only, never on a goal or a card.
+
+## Falsifier
+1. `python3 extensions/agi/bin/crons.py show` lists the metrics job; the `graph_metrics` cell on town:local-maxxing holds the node_count and the success metrics' values (or their named nulls); `python3 extensions/agi/bin/metrics.py` on a root with no nodes/ exits non-zero.
+2. Negative: `git grep -n 'metrics.py' -- .agi/nodes/.geometry/crons.md` finds the job exactly once; no second writer of the cell (one `graph_metrics` key on the town node).
+
+## Out of scope
+telemetry_rollup.py's missing caller (named, decided by its own round) · seat_status.py's spawn-budget lock warning · the shell rewrite of any metric (season 3) · goal:g3.2 / g3.5 (what new metrics to invent).
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+10-07 15:5xZ: active = worked now (lanes brief to DG2 sent 15:5xZ; design alive AA1.S: cron graph_metrics hourly :23 as belam, success_metrics.py --line, metrics.py refuses a root with no nodes/).
+<!-- THOUGHT:END -->

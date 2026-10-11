@@ -91,7 +91,7 @@ from frontmatter import split_frontmatter  # noqa: E402
 # which is what makes "running apply twice is byte-identical" true regardless
 # of how the node happens to order its `cadences:` mapping.
 # publish_engine left with publish-engine.sh (goal:g7.16.1.4.1.1).
-KNOWN_JOBS = ("grid_sync", "branch_push", "engine_push",
+KNOWN_JOBS = ("grid_sync", "town_mirror", "branch_push", "engine_push",
               "mail_poll", "nudge_sweep")
 
 #: Relative to the project root `locations.find_project_root` resolves.
@@ -203,7 +203,7 @@ def _resolve_cadence(path: Path, name: str, job: dict) -> dict:
     # Optional `box` (hypothesis:l4-remote-thought-town): a job with NO `box`
     # key renders on EVERY box; an explicit string or list of strings
     # RESTRICTS the job to exactly those boxes. Refused BY NAME when
-    # malformed (same pattern as mirror_towns).
+    # malformed (same pattern as every_mins).
     raw_box = job.get("box")
     if raw_box is not None:
         vals = raw_box if isinstance(raw_box, list) else [raw_box]
@@ -278,20 +278,14 @@ def load_crons_node(root: Path) -> dict:
                 raise CronsError(
                     f"{path}: cadences.{name}.cmd must be a non-empty string")
             jobs[name]["cmd"] = cmd
-        if name == "grid_sync":
-            # The town MIRROR flag (item 2 of the I-3a-2 order): when true,
-            # `render_managed_lines` appends one GUARDED push per declared
-            # town publishing `refs/heads/<town>/*` -> `refs/agi/<town>/*`.
-            # Declared under the grid_sync cadence so the mirror runs on the
-            # same 5-minute heartbeat as the grid ref push. Absent means
-            # false. Any non-bool value is refused BY NAME.
-            mirror = job.get("mirror_towns", False)
-            if not isinstance(mirror, bool):
-                raise CronsError(
-                    f"{path}: cadences.grid_sync.mirror_towns must be "
-                    f"true/false, got {mirror!r}"
-                )
-            jobs[name]["mirror_towns"] = mirror
+        if name == "grid_sync" and "mirror_towns" in job:
+            # goal:g7.16.1.11.13.1: the town mirror is the `town_mirror` job
+            # of its own, so grid_sync off cannot stop it. A node still
+            # carrying the old flag would LOSE the mirror silently: refused BY NAME.
+            raise CronsError(
+                f"{path}: cadences.grid_sync.mirror_towns moved to the "
+                f"town_mirror job (cadences.town_mirror: every_mins/enabled)"
+            )
 
     # Generic entries: any name outside KNOWN_JOBS that carries a `cmd`. Same
     # schedule rules and same box gate as a built-in; rendered by the same
@@ -905,17 +899,16 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
         )
         lines.append(f"{sched} cd {root} && {cmd}")
 
-        # The town MIRROR (item 2): when grid_sync's `mirror_towns` is true,
-        # append one GUARDED push per declared town. Runs on the same
-        # grid_sync schedule. Each line is inert (rc 0, no push, no log
-        # noise) while no `refs/heads/<town>/*` exists — the live state
-        # today — and lands under `refs/agi/<town>/*` only when the branch
-        # reshuffle actually creates town branches.
-        if jobs["grid_sync"].get("mirror_towns"):
-            for tn in _mirror_towns(root):
-                lines.append(
-                    _mirror_push_line(tn, root, repo_root, log, sched)
-                )
+    # The town MIRROR (goal:g7.16.1.11.13.1; it ran inside grid_sync's block
+    # before, so grid_sync off stopped it): its own job, any box. One GUARDED
+    # push per declared town. Each line is inert (rc 0, no push, no log
+    # noise) while no `refs/heads/<town>/*` exists and lands under
+    # `refs/agi/<town>/*` only when the branch reshuffle creates town branches.
+    if "town_mirror" in jobs and jobs["town_mirror"]["enabled"] and _on_this_box(jobs["town_mirror"], own):
+        _require_git_repo(repo_root, "town_mirror")
+        sched = _schedule_expr(jobs["town_mirror"])
+        for tn in _mirror_towns(root):
+            lines.append(_mirror_push_line(tn, root, repo_root, log, sched))
 
     if "branch_push" in jobs and jobs["branch_push"]["enabled"] and _on_this_box(jobs["branch_push"], own):
         _require_git_repo(repo_root, "branch_push")
@@ -962,6 +955,13 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
             f"python3 {rotate_py} migrate --receive >> {log} 2>&1")
         for token, value in (("{engine_root}", engine_root), ("{log}", log)):
             text = text.replace(token, str(value))
+        if jobs.get("grid_sync", {}).get("enabled") is False:
+            # goal:g7.16.1.11.13.1 F2: a plain `fetch origin` also fetches the
+            # clone's configured grid refspec, a grid-ref write nobody gates.
+            # With grid_sync retired the line fetches the heads only (an
+            # explicit refspec replaces the configured ones); the cell and the
+            # built-in text are both covered by this one render step.
+            text = text.replace("fetch -q origin", "fetch -q origin '+refs/heads/*:refs/remotes/origin/*'", 1)
         lines.append(f"{sched} cd {root} && "
                      f"{_substitute(text, root, repo_root, own)}")
 
@@ -1049,7 +1049,9 @@ def _systemd_bus_env() -> dict[str, str] | None:
       FAILED actions, because a healing step that only runs when the bus is
       up and then FAILs is not a healing step (CLAUDE.md).
     """
-    if os.environ.get("DBUS_SESSION_BUS_ADDRESS"):
+    # "disabled:" (the agi-post@ drop-in 51-no-session-bus.conf) names NO bus: fall through to the socket probe
+    addr = os.environ.get("DBUS_SESSION_BUS_ADDRESS", "")
+    if addr and not addr.startswith("disabled:"):
         return {}
     runtime = os.environ.get("XDG_RUNTIME_DIR") or f"/run/user/{os.getuid()}"
     if os.path.exists(f"{runtime}/bus"):

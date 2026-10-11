@@ -8,6 +8,7 @@ next_edges: []
 edited_by: belam
 scaffold_hash: 62a287c4a4a66029
 season: 2
+tags: []
 thought_session: belam-S2-L5-I
 title: L6 plan
 town: core

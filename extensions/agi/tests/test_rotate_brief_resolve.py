@@ -21,11 +21,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import rotate  # noqa: E402
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 
 def _seats(root, rows):
     geo = root / "nodes" / ".geometry"
     geo.mkdir(parents=True, exist_ok=True)
+    write_free_veto(geo)
     lines = ["---", "id: config:seats", "type: config", "seats:"]
     for r in rows:
         lines.append("  - " + json.dumps(r, sort_keys=True))
@@ -36,6 +38,7 @@ def _seats(root, rows):
 def _rotations(root, brief_file):
     geo = root / "nodes" / ".geometry"
     geo.mkdir(parents=True, exist_ok=True)
+    write_free_veto(geo)
     # `brief_file` is QUOTED: an unquoted value holding `{seat}` parses as a
     # YAML flow mapping and the whole frontmatter is rejected as malformed.
     (geo / "rotations.md").write_text(
@@ -303,6 +306,7 @@ def test_pre_fix_brief_stays_cwd_relative(tmp_path, monkeypatch):
 def _rotations_prime(root, brief_file):
     geo = root / "nodes" / ".geometry"
     geo.mkdir(parents=True, exist_ok=True)
+    write_free_veto(geo)
     (geo / "rotations.md").write_text(
         "---\nid: config:rotations\ntype: config\ntemplates:\n"
         f'  prime_director: {{brief_file: "{brief_file}", steps: [handoff, spawn], '

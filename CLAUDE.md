@@ -35,6 +35,7 @@ fantasia/                   any other project: its own .agi/; agi/ cloned in (gi
 | `.agi/context/schemas/` | node-type schemas; `schema_registry` reads `[name].md` |
 | `.agi/config.json` | project marker + loop tuning |
 | `refs/grid/*` | per-node version history |
+| `.github/workflows/seal.yml` | on `master` ONLY (GitHub runs schedule + dispatch from the default branch): the §AB.6 outward sealer, attesting block digests to the public Sigstore log every 30 min, never a key (owner 2026-10-03: "Could we have GitHub actions be the sealer for us as proof of concept? ... Just have it retry gracefully"; "Merge it in": master stays merges-only). `.github/*` is a RULES path |
 | `COMPLETE.md` | post-loop report (`goal:g1.13`), **replaced whole at each loop close** (owner 2026-09-05, reaffirmed 09-11: "Complete should be a whole replacement as it's already versioned anyway"); appended only when the owner asks. Shape in `skills/agi/SKILL.md` |
 | `HANDOFF.md` | symlink to the Prime's card (`doc:card-belam`); every post's card = `.agi/sessions/quorum/<post>.md` → its doc node |
 | `QUICKSTART.md` | standing bootstrap: clone, deps, install, safety rail, one iteration |
@@ -57,6 +58,8 @@ resumable), **replaced whole**, never appended — every prior version is in git
 (done/next/blocked) · §2 landed, one line each · 🔴 where it stops + the exact next command · §4 traps · §5 verification ·
 §6 BANKED. ≤ 100 lines. **A card lists its post's skills; it never copies their rules**, and never tracks goals
 (goals are trackers). Standing truths go in `QUICKSTART.md`, this file, a role template or a node — never a card.
+**A trap is a rule, and a rule never outlives one rotation on a card** (owner 2026-10-10): at your rotation, every §4 trap
+written before this generation moves to the skill or role doc that owns its flow (one line: trigger → rule, incident), or is dropped as stale.
 Standing, owner 2026-09-09: trim + diagram-max, for every role, all the time; owner verbatim lives in NODES.
 
 ## Delegated authority — when the owner steps away mid-run
@@ -72,8 +75,9 @@ Standing, owner 2026-09-09: trim + diagram-max, for every role, all the time; ow
 
 ## Editing the engine — one commit
 Edit the file in place · run its tests · `git commit` · `python3 extensions/agi/bin/grid.py commit --all`.
-A new file is written directly under `extensions/`, `skills/` or `src/`; `level3.py` (via `git ls-files`) or
-`write.py create build … --payload` gives it a node. **Never `grid.py checkout`** — it silently reverted another
+A new file is written directly under `extensions/`, `skills/` or `src/`; `write.py create build … --payload` gives it a node
+with a legal parent set: [mvp] · [build, goal] · [goal, mvp] · [goal, idea] (checked at mint; a goal alone is refused). Never `level3.py`
+for this until goal:g1.43.1 lands: both its modes mint illegal parent shapes today (council, alive 10-10). **Never `grid.py checkout`** — it silently reverted another
 agent's uncommitted work twice (`goal:g4.1`). `stitch.py --from-grid --grid-version N --out DIR` (writes OUT) survives.
 
 ## The two rules this project has already paid for

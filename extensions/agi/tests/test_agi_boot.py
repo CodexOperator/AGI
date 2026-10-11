@@ -38,9 +38,9 @@ def box(tmp_path):
     for f in fk.iterdir():
         f.chmod(0o755)
     la.write_text("0.50 0.5 0.5 1/1 1\n"); io.write_text("some avg10=0.00 avg60=1.00 avg300=0.00 total=1\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=1\n")
-    env = {"PATH": f"{fk}:/usr/bin:/bin", "AGI_TRUNK": "HEAD", "AGI_RAM": str(tmp_path / "ram"), "AGI_BOOT_OUT": str(tmp_path / "out"),
+    env = {"PATH": f"{fk}:/usr/bin:/bin", "AGI_TRUNK": g("rev-parse", "HEAD").stdout.strip(), "AGI_RAM": str(tmp_path / "ram"), "AGI_BOOT_OUT": str(tmp_path / "out"),
            "AGI_LOADAVG": str(la), "AGI_PSI_IO": str(io)}
-    run = lambda: subprocess.run(["sh", "-s"], input=section("agi-boot"), cwd=repo, env=env, capture_output=True, text=True, timeout=60)
+    run = lambda: subprocess.run(["sh", "-s"], input=section("agi-boot"), cwd=repo, env={**env, "AGI_TRUNK": g("rev-parse", "HEAD").stdout.strip()}, capture_output=True, text=True, timeout=60)  # the pin is the sha HEAD has NOW (A1: the unit reads a pinned sha, never HEAD)
     run.env, run.repo = env, repo
     return run, log, la, io, tmp_path
 
@@ -115,15 +115,15 @@ def test_unreadable_or_empty_boot_list_is_named_and_fails(box, which):
     pm = run.repo / GEO / "posts.md"
     pm.write_text(pm.read_text().replace('"boot": true, ', "")) if which == "noboot" else pm.unlink()
     g("add", "-A"); g("commit", "-qm", "y")
-    r = run(); assert r.returncode != 0 and "agi-boot: no boot rows read from HEAD" in r.stderr and not any(l.startswith("b ") for l in lines(log))
+    r = run(); assert r.returncode != 0 and "agi-boot: no boot rows read from " + g("rev-parse", "HEAD").stdout.decode().strip() in r.stderr and not any(l.startswith("b ") for l in lines(log))
 
 
-def test_unit_execstart_reads_head_no_trunk_literal(box):
+def test_unit_execstart_reads_the_pinned_sha_never_head(box):  # g1.41 A1 (was: reads HEAD, no trunk literal)
     run, log, la, io, tp = box
-    u = section("agi-boot.service"); assert "AGI_TRUNK" not in u
+    u = section("agi-boot.service"); assert u.splitlines().count("EnvironmentFile=/etc/agi/carry.env") == 1
     cmd = next(l for l in u.splitlines() if l.startswith("ExecStart=")).split("=", 1)[1]
-    env = {k: v for k, v in run.env.items() if k != "AGI_TRUNK"}
-    assert subprocess.run(cmd, shell=True, cwd=run.repo, env=env, capture_output=True, text=True, timeout=60).returncode == 0
+    assert "HEAD" not in cmd and "$AGI_TRUNK:" in cmd
+    assert subprocess.run(cmd, shell=True, cwd=run.repo, env=run.env, capture_output=True, text=True, timeout=60).returncode == 0
     assert sum(l.startswith("b ") for l in lines(log)) == 2
 
 
@@ -150,7 +150,7 @@ def test_missing_space_cell_is_named_and_fails(box):
     run, log, *_ = box
     p = run.repo / ".agi/config.json"; cfg = json.loads(p.read_text()); del cfg["values"]["local_maxxing"]["agi_boot"]["space_s"]
     p.write_text(json.dumps(cfg)); subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t.invalid", "commit", "-qam", "y"], cwd=run.repo, check=True, capture_output=True)
-    r = run(); assert r.returncode != 0 and "agi-boot: failed: sleep null" in r.stderr
+    r = run(); assert r.returncode != 0 and "space_s" in r.stderr  # A2: the cell is named and refused before any setfacl, unit or start
 
 
 def test_non_boot_row_gets_no_wants_link_boot_rows_do(box):
@@ -164,7 +164,9 @@ def test_non_boot_row_gets_no_wants_link_boot_rows_do(box):
 def test_gate_checks_projected_dropin_not_wants_links(box):
     run, log, la, io, tp = box
     (tp / "fk" / "sect").write_text("#!/bin/sh\n" + section("sect", "engine.md") + "\n"); (tp / "fk" / "sect").chmod(0o755)
-    gate = lambda: subprocess.run(["sh", "-s", "HEAD"], input=section("agi-gate", "engine.md"), cwd=run.repo, env={**run.env, "TMPDIR": str(tp)}, capture_output=True, text=True, timeout=60)
+    (tp / "fk" / "id").write_text('#!/bin/sh\n[ "$1" = -u ]&&{ echo 1000;exit 0;}\nexec /usr/bin/id "$@"\n'); (tp / "fk" / "id").chmod(0o755)  # the gate re-execs itself as nobody when `id -u` is 0 (and "$0" must then be a file): this test pins the DROP-IN check, so it never takes the root branch, whoever runs the suite
+    gf = tp / "agi-gate"; gf.write_text(section("agi-gate", "engine.md")); gf.chmod(0o755)  # a FILE, not `sh -s` ("$0" = sh there: root's re-exec would run `sh HEAD`)
+    gate = lambda: subprocess.run(["sh", str(gf), "HEAD"], cwd=run.repo, env={**run.env, "TMPDIR": str(tp)}, capture_output=True, text=True, timeout=60)
     ci = lambda: subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t.invalid", "commit", "-qam", "y"], cwd=run.repo, check=True, capture_output=True)
     pf = run.repo / GEO / "posts.md"; rows = pf.read_text()
     assert gate().returncode == 0  # boot rows present
@@ -185,7 +187,8 @@ def test_project_service_execstart_checks_dropin_not_wants_links(box):
         assert subprocess.run(["sh", "-s", str(o), "HEAD"], input=section("agi-project", "engine.md"), cwd=run.repo, env=run.env, capture_output=True, text=True, timeout=60).returncode == 0
         frag = re.search(r'^ExecStart=sh -c "(.*)"$', (o / "agi-project.service").read_text(), re.M).group(1)
         assert "ls " in frag and "systemctl daemon-reload" in frag and "systemd-sysusers" in frag
-        return subprocess.run(["sh", "-c", frag], cwd=run.repo, env=run.env, capture_output=True, text=True, timeout=60).returncode
+        pin = subprocess.run(["git", "rev-parse", "HEAD"], cwd=run.repo, check=True, capture_output=True, text=True).stdout.strip()  # A1b: the baked unit reads the pin from carry.env at run time, not a baked sha
+        return subprocess.run(["sh", "-c", frag], cwd=run.repo, env={**run.env, "AGI_TRUNK": pin}, capture_output=True, text=True, timeout=60).returncode
     assert execstart("o1") == 0  # boot rows present
     pf.write_text(rows.replace('"boot": true, ', "")); ci()
     assert execstart("o2") == 0  # v4 rows, no boot row: no wants link, h.conf drop-ins exist

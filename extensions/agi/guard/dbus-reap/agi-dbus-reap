@@ -1,0 +1,9 @@
+#!/bin/sh
+# agi-dbus-reap (root, every 30 min): a v5 post user has no session bus, so something its claude runs on a timer
+# makes libdbus AUTOLAUNCH a private `dbus-daemon --fork --print-pid N --print-address M --session` that outlives
+# its one client, re-parented to init (measured 10-09: 541 of them, 1.27 GB RSS, ~1 per post per 10-30 min).
+# Stop ONLY those: owner agi-*, parent 1, --session + --print-pid, older than AGE seconds. A desktop/login bus
+# (user belam, --exit-with-session) is never touched. Interim until the post unit stops the autolaunch.
+AGE=${AGE:-1800};n=0
+for p in $(ps -C dbus-daemon -o pid=,user=,etimes=,ppid=,args= | awk -v a=$AGE '$2 ~ /^agi-/ && $3 > a && $4 == 1 && /--session/ && /--print-pid/ {print $1}');do kill -TERM $p 2>/dev/null&&n=$((n+1));done
+[ $n -gt 0 ]&&logger -t agi-dbus-reap "stopped $n orphan session bus(es)";:

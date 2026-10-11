@@ -12,6 +12,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import rotate
+from tests.veto_cell import write_free_veto  # noqa: E402
 from agi.bin import brief
 
 
@@ -906,6 +907,7 @@ def _seed_key_history_graph(root, rows):
         (sd / "[config].md").write_text(live.read_text(encoding="utf-8"))
     d = graph / "nodes" / ".geometry"
     d.mkdir(parents=True, exist_ok=True)
+    write_free_veto(d)
     body = "\n".join(f"  - {r!r}" for r in rows)
     (d / "seats.md").write_text(
         "---\nid: config:seats\n"
@@ -1240,6 +1242,7 @@ def fake_ladder(tmp_path, monkeypatch):
     # pins is code, suite after the .geometry write".
     g = root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (g / "rotations.md").write_text(
         "---\nid: config:rotations\ntype: config\ntemplates:\n"
         "  parent: {brief_file: extensions/agi/briefs/parent-successor.md, "
@@ -1401,6 +1404,7 @@ def _proj(tmp_path, ladder_roles=""):
     returns) with a ladder node under nodes/.geometry."""
     root = tmp_path / "proj"
     (root / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(root / "nodes" / ".geometry")
     lines = ["---"]
     if ladder_roles:
         lines.append("roles:")
@@ -2728,6 +2732,7 @@ def _write_seats_sheet(root, rows):
     """Write a minimal seals-md-style registry the loader can parse."""
     nodes = root / "nodes" / ".geometry"
     nodes.mkdir(parents=True, exist_ok=True)
+    write_free_veto(nodes)
     (root / "sessions").mkdir(parents=True, exist_ok=True)
     body = "---\nid: config:seats\ntype: config\nseats:\n"
     for r in rows:
@@ -3264,6 +3269,7 @@ def test_commit_stops_row_commits_card_and_own_row_nothing_else(tmp_path):
     from agi.bin import rotate as _r
     nodes = tmp_path / "nodes" / ".geometry"
     nodes.mkdir(parents=True)
+    write_free_veto(nodes)
     seats = nodes / "seats.md"
     seats.write_text("---\nid: config:seats\ntype: config\nseats:\n"
                      "  - {\"name\": \"s1\", \"role\": \"parent\"}\n"
@@ -4648,6 +4654,7 @@ def test_rotate_self_without_throwaway_still_refuses_unregistered(
     an unregistered name without --throwaway must still error `no seat`."""
     mk = tmp_path / "nodes" / ".geometry"
     mk.mkdir(parents=True, exist_ok=True)
+    write_free_veto(mk)
     # an empty registry sheet: adv-alive not present
     (mk / "seats.md").write_text("---\nid: config:seats\ntype: config\n---\n",
                                  encoding="utf-8")
@@ -5121,6 +5128,7 @@ def _write_first_seating_rotations(tmp_path):
     composes. The probe file is real so the command is a genuine first_turn."""
     g = tmp_path / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (tmp_path / "bin").mkdir(parents=True, exist_ok=True)
     (tmp_path / "bin" / "probe_first_seating.py").write_text(
         "import sys\nprint(','.join(sys.argv[1:]))\n", encoding="utf-8")
@@ -5343,8 +5351,8 @@ def test_spawn_first_seating_emits_seating_alert_and_record(tmp_path, monkeypatc
     wins.write_text("@42 director-seat\nsensei-peer\n", encoding="utf-8")
     reg = _seating_registry(tmp_path)
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
     monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
     args = SimpleNamespace(name="director-seat", tier="director",
@@ -5401,8 +5409,8 @@ def test_spawn_first_seating_default_ack_source_seating_wake_zero(
     wins.write_text("@42 director-seat\nsensei-peer\n", encoding="utf-8")
     reg = _seating_registry(tmp_path)
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender:
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw:
                         sent.append((other, text)) or tmp_path)
     monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
     args = SimpleNamespace(name="director-seat", tier="director",
@@ -5447,6 +5455,7 @@ def test_first_seating_bootstrap_ack_is_truthful_at_turn_one(tmp_path):
     _write_seats_sheet(tmp_path, rows)
     g = tmp_path / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (tmp_path / "bin").mkdir(parents=True, exist_ok=True)
     (tmp_path / "bin" / "probe_fs_ack.py").write_text(
         "import sys\nprint(','.join(sys.argv[1:]))\n", encoding="utf-8")
@@ -5505,8 +5514,8 @@ def test_spawn_first_seating_ask_diff_prints_exact_ack_line(
     wins.write_text("@42 director-seat\nsensei-peer\n", encoding="utf-8")
     reg = _seating_registry(tmp_path)
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender:
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw:
                         sent.append((other, text)) or tmp_path)
     monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
     args = SimpleNamespace(name="director-seat", tier="director",
@@ -5552,6 +5561,7 @@ def test_first_seating_turn_one_ack_tracks_ask_diff_mode(tmp_path, monkeypatch):
     # bootstrap record actually carries the ack fact (SL7.42 overrides).
     g = tmp_path / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     (tmp_path / "bin").mkdir(parents=True, exist_ok=True)
     (tmp_path / "bin" / "probe_first_seating.py").write_text(
         "import sys\nprint(','.join(sys.argv[1:]))\n", encoding="utf-8")
@@ -5564,10 +5574,6 @@ def test_first_seating_turn_one_ack_tracks_ask_diff_mode(tmp_path, monkeypatch):
     wins = tmp_path / "windows.txt"
     wins.write_text("@42 director-seat\nsensei-peer\n", encoding="utf-8")
     reg = _seating_registry(tmp_path)
-    sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender:
-                        sent.append((other, text)) or tmp_path)
     monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
 
     def _run(args):
@@ -5742,8 +5748,8 @@ def test_seats_launch_first_seating_emits_seating_alert(tmp_path, monkeypatch):
     wins.write_text("@42 director-seat\nsensei-peer\n", encoding="utf-8")
     reg = _seating_registry(tmp_path)
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
     monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
     args = SimpleNamespace(prompt_file=None, tmux_session="agi-rc",
@@ -5772,8 +5778,8 @@ def test_ack_gen1_first_seating_announces_once_dedup(tmp_path, monkeypatch):
     ]
     _write_seats_sheet(tmp_path, rows)
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
     monkeypatch.setattr(rotate, "_existing_windows",
                         lambda s, wp: ["hand-seat", "sensei-peer"])
@@ -5813,8 +5819,8 @@ def test_ack_gen1_diff_empty_announces_once(tmp_path, monkeypatch):
             {"name": "sensei-peer", "role": "prime_director"}]
     _write_seats_sheet(tmp_path, rows)
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
     monkeypatch.setattr(rotate, "_existing_windows",
                         lambda s, wp: ["diff-seat", "sensei-peer"])
@@ -5831,6 +5837,20 @@ def test_ack_gen1_diff_empty_announces_once(tmp_path, monkeypatch):
     assert len(recs) == 1, f"exactly ONE seating record, got {recs}"
 
 
+def _box_seam(monkeypatch, seat):
+    """Record rotate's BOX leg (goal:g7.16.1.11.20 cut B): AGI_POST=<seat> so the
+    guard passes, `_box_send_announce` stubbed to append (recv, text). A test
+    that says "no alert went out" asserts on THIS list, not on the retired
+    send_dm seam."""
+    boxed = []
+    monkeypatch.setenv("AGI_POST", seat)
+    monkeypatch.setattr(
+        rotate, "_box_send_announce",
+        lambda recv, seat_, text, declared, deadline=None: boxed.append(
+            (recv, text)) or True)
+    return boxed
+
+
 def test_ack_gen1_diff_with_text_does_not_announce(tmp_path, monkeypatch):
     """g15.24 FIX-ONLY falsifier — a gen-1 ack answered `diff` WITH text never
     commits (the successor still edits), so by the SAME predicate it announces
@@ -5839,10 +5859,7 @@ def test_ack_gen1_diff_with_text_does_not_announce(tmp_path, monkeypatch):
     rows = [{"name": "diff-t", "role": "director"},
             {"name": "sensei-peer", "role": "prime_director"}]
     _write_seats_sheet(tmp_path, rows)
-    sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
-                            (other, text)) or tmp_path)
+    sent = _box_seam(monkeypatch, "diff-t")
     monkeypatch.setattr(rotate, "_existing_windows",
                         lambda s, wp: ["diff-t", "sensei-peer"])
     monkeypatch.setattr(rotate, "_successor_window_id", lambda *a, **k: None)
@@ -5867,8 +5884,8 @@ def test_ack_gen1_continue_no_commit_still_announces_and_records(tmp_path, monke
             {"name": "sensei-peer", "role": "prime_director"}]
     _write_seats_sheet(tmp_path, rows)
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
     monkeypatch.setattr(rotate, "_existing_windows",
                         lambda s, wp: ["noct-seat", "sensei-peer"])
@@ -5900,10 +5917,7 @@ def test_ack_gen1_diff_with_text_no_commit_still_sends_nothing(tmp_path, monkeyp
     rows = [{"name": "diff-nc", "role": "director"},
             {"name": "sensei-peer", "role": "prime_director"}]
     _write_seats_sheet(tmp_path, rows)
-    sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
-                            (other, text)) or tmp_path)
+    sent = _box_seam(monkeypatch, "diff-nc")
     monkeypatch.setattr(rotate, "_existing_windows",
                         lambda s, wp: ["diff-nc", "sensei-peer"])
     monkeypatch.setattr(rotate, "_successor_window_id", lambda *a, **k: None)
@@ -5935,18 +5949,22 @@ def test_ack_gen1_does_not_announce_for_non_first_generation(tmp_path, monkeypat
     """Only --gen 1 (the no-predecessor first generation) is a hand-seating;
     a rotation ack at a later generation never re-announces it."""
     import send as _send
-    rows = [{"name": "seat-x", "role": "director"}]
+    rows = [{"name": "seat-x", "role": "director"},
+            {"name": "sensei-peer", "role": "prime_director"}]   # a derived receiver: the asserts below CAN fail
     _write_seats_sheet(tmp_path, rows)
-    sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
+    sent = _box_seam(monkeypatch, "seat-x")
+    inboxed = []
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: inboxed.append(
                             (other, text)) or tmp_path)
-    monkeypatch.setattr(rotate, "_existing_windows", lambda s, wp: ["seat-x"])
+    monkeypatch.setattr(rotate, "_existing_windows",
+                        lambda s, wp: ["seat-x", "sensei-peer"])
     monkeypatch.setattr(rotate, "_successor_window_id", lambda *a, **k: None)
     rc = rotate.cmd_ack(SimpleNamespace(seat="seat-x", gen=4, ref="ff",
                                         answer="continue", text=None), tmp_path)
     assert rc == 0
     assert sent == [], f"a gen-4 rotation ack must not announce a seating: {sent}"
+    assert inboxed == [], f"a gen-4 rotation ack must not announce a seating: {inboxed}"
     assert not list(rotate._rotations_dir(tmp_path).glob("seat-x.*.seating.json"))
 
 
@@ -5960,13 +5978,14 @@ def test_announce_rotation_same_composer_writes_seating_record(tmp_path, monkeyp
             {"name": "hand-seat", "role": "parent"}]
     _write_seats_sheet(tmp_path, rows)
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
     seating = rotate._seating_record(
         seat="hand-seat", role="parent", source="cmd_ack", window_id="@7",
         ref="caa927", pid=11, session_id="s1", transcript_path="t.jsonl",
         first_turn=[])
+    boxed = _box_seam(monkeypatch, "hand-seat")
     delivered = rotate._announce_rotation(
         root=tmp_path, croot=tmp_path / "comms", seat="hand-seat",
         successor="hand-seat", gen_before=0, gen_after=1,
@@ -5976,6 +5995,7 @@ def test_announce_rotation_same_composer_writes_seating_record(tmp_path, monkeyp
     assert delivered == ["kid-a"]
     (_, text), = sent
     assert "trigger: first-seating" in text and "first seating hand-seat @7" in text
+    assert boxed == sent, "the box leg carries the SAME first-seating payload"
     recs = list(rotate._rotations_dir(tmp_path).glob("hand-seat.*.seating.json"))
     assert len(recs) == 1, "one seating record shared with the alert"
 
@@ -6001,6 +6021,7 @@ def test_tile_command_dry_run_prints_one_rect_per_window(monkeypatch, tmp_path,
     monkeypatch.setattr(rotate, "find_project_root", lambda: tmp_path)
     root = tmp_path / "nodes" / ".geometry"
     root.mkdir(parents=True, exist_ok=True)
+    write_free_veto(root)
     rc = rotate.main(["tile", "--count", "4", "--width", "100", "--height", "100",
                       "--dry-run"])
     assert rc == 0
@@ -6209,9 +6230,10 @@ def test_announce_rotation_dms_post_join_address(monkeypatch, tmp_path):
     _write_seats_sheet(tmp_path, rows)
     sent = []
     import send as _send
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
+    boxed = _box_seam(monkeypatch, "belam-II")
     delivered = rotate._announce_rotation(
         root=tmp_path, croot=tmp_path / "comms", seat="belam-II",
         successor="belam-III", gen_before=2, gen_after=3, trigger="rotate-self",
@@ -6222,6 +6244,7 @@ def test_announce_rotation_dms_post_join_address(monkeypatch, tmp_path):
     assert len(sent) == 1
     _, text = sent[0]
     assert "belam-II -> belam-III [f52a4c] @9 |" in text
+    assert boxed == sent, "the box leg carries the SAME payload to the same receiver"
 
 
 def test_derive_receivers_drops_gone_window_and_self(tmp_path):
@@ -6243,9 +6266,10 @@ def test_announce_rotation_dms_every_derived_recipient(monkeypatch, tmp_path):
     _write_seats_sheet(tmp_path, rows)
     sent = []
     import send as _send  # the SAME top-level module rotate's lazy import binds to
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
+    boxed = _box_seam(monkeypatch, "liason")
     delivered = rotate._announce_rotation(
         root=tmp_path, croot=tmp_path / "comms", seat="liason",
         successor="liason", gen_before=1, gen_after=2, trigger="rotate-self",
@@ -6256,6 +6280,7 @@ def test_announce_rotation_dms_every_derived_recipient(monkeypatch, tmp_path):
     for _, text in sent:
         assert "trigger: rotate-self" in text
         assert "in flight: none" in text
+    assert boxed == sent, "the box leg carries the SAME payload to every receiver"
 
 
 def test_announce_rotation_prime_routes_to_alert_room_never_quorum(
@@ -6300,18 +6325,23 @@ def test_announce_rotation_prime_routes_to_alert_room_never_quorum(
 def test_announce_rotation_lands_alert_in_each_recipient_inbox(
         monkeypatch, tmp_path):
     """Clause 1 non-prime leg: every derived recipient's INBOX file holds the
-    [rotation-alert] block that `send.py read <recv>` shows, while the dm-log
-    hop (send_dm) still happens with the same payload. Falsifier: an alert
-    absent from a recipient's inbox."""
+    [rotation-alert] block that `send.py read <recv>` shows, while the second
+    hop is now the box message (goal:g7.16.1.11.20 cut B; send_dm is no longer
+    called) with the same payload. Falsifier: an alert absent from a
+    recipient's inbox."""
     rows = [{"name": "kid-a", "role": "director"},
             {"name": "liason", "role": "parent"},
             {"name": "kid-b", "role": "director"}]
     _write_seats_sheet(tmp_path, rows)
-    dms = []
+    dms, boxed = [], []
     import send as _send
     monkeypatch.setattr(_send, "send_dm",
                         lambda croot, me, other, text, sender: dms.append(
                             (other, text)) or tmp_path)
+    monkeypatch.setenv("AGI_POST", "liason")     # the guard: this process IS the rotating post
+    monkeypatch.setattr(rotate, "_box_send_announce",
+                        lambda recv, seat, text, declared, deadline=None: boxed.append(
+                            (recv, seat, text)) or True)
     rotate._announce_rotation(
         root=tmp_path, croot=tmp_path / "comms", seat="liason",
         successor="liason", gen_before=1, gen_after=2, trigger="rotate-self",
@@ -6325,9 +6355,10 @@ def test_announce_rotation_lands_alert_in_each_recipient_inbox(
         assert "[rotation-alert]" in body, f"{recv} inbox lacks the alert"
         assert "trigger: rotate-self" in body
         assert "in flight: none" in body
-    # dm-log hop unchanged, same payload.
-    assert [to for to, _ in dms] == ["kid-a", "kid-b"]
-    for _, text in dms:
+    # the second hop is the box message, signed by the rotating post, same payload.
+    assert dms == [], "send_dm is replaced by the box message"
+    assert [(r, st) for r, st, _ in boxed] == [("kid-a", "liason"), ("kid-b", "liason")]
+    for _, _, text in boxed:
         assert "[rotation-alert]" in text
 
 
@@ -6480,9 +6511,10 @@ def test_announce_stamps_payload_with_seq_and_writes_sequence_file(
     _write_seats_sheet(root, rows)
     import send as _send
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender: sent.append(
+    monkeypatch.setattr(_send, "send",
+                        lambda root, other, text, sender=None, **kw: sent.append(
                             (other, text)) or tmp_path)
+    boxed = _box_seam(monkeypatch, "liason")
     delivered = rotate._announce_rotation(
         root=root, croot=tmp_path / "comms", seat="liason",
         successor="liason", gen_before=1, gen_after=2, trigger="rotate-self",
@@ -6492,6 +6524,7 @@ def test_announce_stamps_payload_with_seq_and_writes_sequence_file(
     assert rotate._current_sequence(root) == 1
     (_, text), = sent
     assert "seq: 1" in text
+    assert boxed == sent, "the box leg carries the SAME seq-stamped payload"
 
 
 def test_cmd_sequence_is_the_seat_visible_one_read(tmp_path, capsys):
@@ -6898,6 +6931,7 @@ def _rs_tmpl_fixture(tmp_path, tmpls):
           "model": "x", "effort": "max", "settings": ""}])
     g = tmp_path / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     lines = ["---", "id: config:rotations", "type: config", "templates:"]
     for name, ent in tmpls.items():
         lines.append(f"  {name}:")
@@ -8437,6 +8471,7 @@ def test_commit_spawn_row_records_skip_no_change_or_no_repo(
     # -> records SKIPPED, no commit.
     bare = tmp_path.parent / "gitless"
     (bare / "nodes" / ".geometry").mkdir(parents=True)
+    write_free_veto(bare / "nodes" / ".geometry")
     gitless = rotate._commit_spawn_row(
         bare, seat="belam", generation=4, session_id="sess-9",
         window="@w9", pid=4242)
@@ -11026,3 +11061,158 @@ def test_find_pin_log_is_none_when_the_sessions_dir_is_unreadable(tmp_path):
         assert rotate._seat_fraction(g, {"name": "sealed-seat"}) is None
     finally:
         sessions.chmod(0o755)
+
+
+# ── goal:g1.31.4.2.1.2 — the guard sits ABOVE the first syscall that can
+# raise. MEASURED 21:3xZ on py3.12: `Path.is_dir()` RE-RAISES EACCES (it does
+# not answer False), and the sessions RESOLVER itself probes the path, so the
+# first raiser can be `_sessions_dir` rather than the is_dir() this leaf
+# names. Either way the answer must be UNKNOWN, never a traceback out of a
+# meter caller.
+
+def _unreadable_graph(tmp_path, mode=0o000, name="graph"):
+    """A graph dir (pins live at `<graph>/sessions/`) that cannot be entered,
+    with one pin inside, plus a restore hook -- a mode-000 dir left behind
+    makes pytest's tmp_path cleanup warn (pin-leaf residue 4)."""
+    graph = tmp_path / name
+    sessions = graph / "sessions"
+    sessions.mkdir(parents=True)
+    (sessions / "director.meter").write_text("/some/transcript\n",
+                                             encoding="utf-8")
+    graph.chmod(mode)
+    return graph, sessions
+
+
+def test_find_pin_log_answers_unknown_under_an_unreadable_parent(tmp_path):
+    """The named claim: an unreadable graph PARENT yields None (UNKNOWN), it
+    never raises. Both arms -- the seat's own pin and the newest-pin scan."""
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
+    graph, _sessions = _unreadable_graph(tmp_path)
+    try:
+        assert rotate.find_pin_log(graph, "director") is None
+        assert rotate.find_pin_log(graph) is None
+    finally:
+        graph.chmod(0o755)
+
+
+def test_find_pin_log_answers_unknown_under_an_unreadable_sessions_dir(
+        tmp_path):
+    """The same seam one level down: the sessions dir itself unreadable. The
+    guard must not sit only around the PARENT's stat."""
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
+    graph, sessions = _unreadable_graph(tmp_path, mode=0o755)
+    sessions.chmod(0o000)
+    try:
+        assert rotate.find_pin_log(graph, "director") is None
+        assert rotate.find_pin_log(graph) is None
+    finally:
+        sessions.chmod(0o755)
+
+
+def test_find_pin_log_answers_unknown_under_a_symlink_loop(tmp_path):
+    """CONTROL, and an honest one: MEASURED 21:3xZ, a real `a->b->a` loop makes
+    `Path.is_dir()` answer FALSE (py3.12 swallows the ELOOP), so the loop
+    arrives here as "not a sessions dir" -> None, never a raise. This test is
+    therefore NOT a falsifier for the new guard (it is green before and after,
+    and dropping the `RuntimeError` arm leaves it green) -- it is pinned so
+    nobody later reads "loop" as a crash path at THIS seam. The measured
+    RuntimeError raiser lives in the pin leaf's `resolve()` calls, not here."""
+    root = tmp_path / "loopgraph"
+    root.mkdir()
+    (root / "a").symlink_to(root / "b")
+    (root / "b").symlink_to(root / "a")
+    assert rotate.find_pin_log(root, "director") is None
+    assert rotate.find_pin_log(root) is None
+
+
+def test_find_pin_log_still_reads_a_pin_that_is_there(tmp_path):
+    """The control: the guard must not turn a readable graph into a silent
+    None. Without this, a guard that always returned None would pass the three
+    tests above."""
+    graph, sessions = _unreadable_graph(tmp_path, mode=0o755, name="graph2")
+    assert rotate.find_pin_log(graph, "director") == \
+        sessions / "director.meter"
+    assert rotate.find_pin_log(graph) == sessions / "director.meter"
+
+
+# goal:g1.31.4.2.1.2 corrective (mur-sm23-dg5-findpinlog, residues R1 R3 R4). FIXTURES ONLY: tmp dirs, no pane.
+def _sealed_graph(tmp_path):
+    """<tmp>/proj/.agi with nodes/ (so it is a graph dir), then its PARENT sealed mode 000: the box shape."""
+    proj = tmp_path / "proj"
+    g = proj / ".agi"
+    (g / "nodes").mkdir(parents=True)
+    (g / "sessions").mkdir()
+    proj.chmod(0o000)
+    return proj, g
+
+
+def test_pinfix_r1_an_unreadable_sessions_resolution_prints_one_unknown_line_with_the_errno(tmp_path, capsys):
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
+    proj, g = _sealed_graph(tmp_path)
+    getattr(rotate, "_PIN_UNKNOWN_SEEN", set()).clear()
+    try:
+        assert rotate.find_pin_log(g) is None
+        assert rotate.find_pin_log(g) is None   # a second call must NOT print a second line
+        err = capsys.readouterr().err
+    finally:
+        proj.chmod(0o755)
+    lines = [l for l in err.splitlines() if "UNKNOWN" in l]
+    assert len(lines) == 1, err
+    assert "EACCES" in lines[0] and "proj" in lines[0], lines[0]
+
+
+def test_pinfix_r3_meter_end_to_end_on_a_mode_000_parent_prints_a_reason_and_never_raises(tmp_path, monkeypatch, capsys):
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
+    proj, g = _sealed_graph(tmp_path)
+    monkeypatch.setattr(rotate, "find_project_root", lambda *a, **k: g)
+    monkeypatch.delenv(rotate.AGI_SESSION_LOG_VAR, raising=False)
+    monkeypatch.setenv("HOME", str(tmp_path / "emptyhome"))
+    getattr(rotate, "_PIN_UNKNOWN_SEEN", set()).clear()
+    try:
+        code = rotate.main(["meter"])
+    finally:
+        proj.chmod(0o755)
+    err = capsys.readouterr().err
+    assert code != 0 and "UNKNOWN" in err, (code, err)
+    assert "Traceback" not in err
+
+
+def test_pinfix_r4_one_dangling_pin_does_not_hide_the_valid_newest_pin(tmp_path):
+    g = tmp_path / ".agi"
+    (g / "nodes").mkdir(parents=True)
+    sessions = g / "sessions"
+    sessions.mkdir()
+    old = sessions / "old.meter"
+    old.write_text("4\t/x\n", encoding="utf-8")
+    good = sessions / "good.meter"
+    good.write_text("4\t/y\n", encoding="utf-8")
+    os.utime(old, (1, 1))
+    os.utime(good, (2, 2))
+    (sessions / "dangling.meter").symlink_to(tmp_path / "nowhere")
+    assert rotate.find_pin_log(g) == good, "a dangling pin is skipped; the newest VALID pin is kept"
+
+
+def test_pinfix_r6_a_seatless_scan_of_a_mode_000_sessions_dir_prints_one_unknown_line(tmp_path, capsys):
+    """mur R6: Path.glob SWALLOWS EACCES (is_dir True, glob -> [] with no exception), so the seatless arm answered a
+    silent None. A listing call that raises (os.scandir) inside the guard makes the except arm warn."""
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
+    g = tmp_path / ".agi"
+    (g / "nodes").mkdir(parents=True)
+    sessions = g / "sessions"
+    sessions.mkdir()
+    (sessions / "seat.meter").write_text("4\t/x\n", encoding="utf-8")
+    sessions.chmod(0o000)
+    getattr(rotate, "_PIN_UNKNOWN_SEEN", set()).clear()
+    try:
+        assert rotate.find_pin_log(g) is None
+        err = capsys.readouterr().err
+    finally:
+        sessions.chmod(0o755)
+    lines = [l for l in err.splitlines() if "UNKNOWN" in l]
+    assert len(lines) == 1, err
+    assert "EACCES" in lines[0] and "sessions" in lines[0], lines[0]

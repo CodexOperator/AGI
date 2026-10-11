@@ -15,6 +15,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import rotate
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 _CHAIN_RE = re.compile(r"belam-S[0-9]+-L[0-9]+")
 
@@ -22,6 +23,7 @@ _CHAIN_RE = re.compile(r"belam-S[0-9]+-L[0-9]+")
 def _ladder(root, season=None, loop=None):
     g = root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
     fm = ["---", "id: ladder:ladder", "type: ladder"]
     if season is not None:
         fm.append(f"current_season: {season}")

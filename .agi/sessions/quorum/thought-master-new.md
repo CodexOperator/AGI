@@ -1,1 +1,1 @@
-../../nodes/doc/card-thought-master-new.md
+../../nodes/doc/card-thought-master.md

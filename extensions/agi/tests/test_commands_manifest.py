@@ -312,10 +312,10 @@ _LISTED_CLIS += [
 ]
 
 # EF.54 CLI GROUP E. Appended, like GROUP C/D, so sibling edits cannot collide.
-# The 12 last engine CLIs whose parser is a plain module-level `main`; every
+# The 10 last engine CLIs whose parser is a plain module-level `main`; every
 # verb is declared or excluded BY NAME in `command:commands`.
 _LISTED_CLIS += [
-    "lm_bench.py", "mail_alert.py", "payload_boundary.py", "plan_master.py",
+    "lm_bench.py", "payload_boundary.py", "plan_master.py",
     "reconciler.py", "rolslice.py", "seat_status.py", "stall_detect.py",
     "success_metrics.py", "telemetry_rollup.py",
     "ws_raw_client.py",
@@ -1122,6 +1122,8 @@ def test_drift_catches_a_declared_arity_the_cli_does_not_have(tmp_path):
 _OUTSIDE_CLIS = {
     "analyze-chat-structure.py": "one-off transcript analysis, not an engine verb",
     "snapshot-build-site.py": "retired build-site generator; its inputs are gone and must not return",
+    "metrics_cell.py": "the graph_metrics cron job's guarded cell write (goal:g3.8 R2), run by crons.md only; not an operator verb",
+    "nest.py": "read-only slice | log helper over a container's nest: cell (goal:g7.16.1.11.21 D1), raw argv with its own usage line; not a proposable choice-surface verb",
 }
 
 

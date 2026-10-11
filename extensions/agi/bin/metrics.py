@@ -539,6 +539,11 @@ def evidence_stats(nodes_dir: Path) -> dict:
         # `unevidenced_decisive_verdicts` — a number whose only healthy value
         # is zero, naming a specific repairable defect.
         "broken_links": _broken_links(nodes_dir),
+        # goal:g7.16.1.11.21 -- a `nest:` list id that names no node; its own
+        # cell, never folded into broken_links (healthy value 0).
+        "nest_unresolved": _nest_unresolved(nodes_dir),
+        # a `nest:` value that is neither `subtree` nor a list (healthy value 0).
+        "nest_malformed": _nest_malformed(nodes_dir),
     }
 
 
@@ -560,6 +565,28 @@ def _broken_links(nodes_dir) -> int:
         return links.count_broken_links(Path(nodes_dir).parent)
     except Exception as exc:
         print(f"METRIC_WARNING broken_links_unavailable={type(exc).__name__}: "
+              f"{exc}", file=sys.stderr)
+        return 0
+
+
+def _nest_unresolved(nodes_dir) -> int:
+    """`len(links.nest_unresolved)`, defensively -- same contract as `_broken_links`."""
+    try:
+        import links
+        return len(links.nest_unresolved(Path(nodes_dir).parent))
+    except Exception as exc:
+        print(f"METRIC_WARNING nest_unresolved_unavailable={type(exc).__name__}: "
+              f"{exc}", file=sys.stderr)
+        return 0
+
+
+def _nest_malformed(nodes_dir) -> int:
+    """`len(links.nest_malformed)`, defensively -- same contract as `_broken_links`."""
+    try:
+        import links
+        return len(links.nest_malformed(Path(nodes_dir).parent))
+    except Exception as exc:
+        print(f"METRIC_WARNING nest_malformed_unavailable={type(exc).__name__}: "
               f"{exc}", file=sys.stderr)
         return 0
 
@@ -1140,7 +1167,14 @@ def _find_root(start: Path) -> Path:
 
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] in ("-h", "--help"):
+        print("usage: metrics.py [<repo>/.agi]  (print the graph root's metrics as k=v lines)")
+        return 0
     root = Path(argv[0]) if argv else _find_root(Path.cwd())
+    if not (root / "nodes").is_dir():   # goal:g3.8: the repo root, not <repo>/.agi, read all-zero
+        print(f"ERR: metrics.py: {root} has no nodes/ (pass <repo>/.agi, the graph root)",
+              file=sys.stderr)
+        return 2
     emit(root)
     return 0
 

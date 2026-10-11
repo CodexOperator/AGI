@@ -6,9 +6,21 @@ parents:
   - goal:g2.25
 cadences:
   grid_sync:
+    every_mins: 30
+    enabled: true
+  town_mirror:
     every_mins: 5
     enabled: true
-    mirror_towns: true
+  evidence_enforce:
+    every_mins: 30
+    enabled: true
+    box: encryption-town
+    why_box: "edits node files on MAIN, and MAIN lives on encryption-town (local-town is parked, owner 04:2xZ 10-09; belam decision 19:5xZ 10-09): evidence_gate demotes an unbacked verdict in place; the grid_sync commit step used to run it, so grid_sync off would stop it (goal:g7.16.1.11.13.1)"
+    cmd: python3 {repo_root}/extensions/agi/bin/evidence_gate.py enforce --root {root}
+  crons_apply:
+    every_mins: 5
+    enabled: true
+    cmd: python3 {repo_root}/extensions/agi/bin/crons.py apply --unit-dir $HOME/.config/systemd/user
   branch_push:
     schedule: 7 * * * *
     enabled: true
@@ -27,8 +39,8 @@ cadences:
   maint_gc:
     schedule: 41 4 * * *
     enabled: true
-    box: local-town
-    why_box: the object store is the local box's; gc on any other box would repack a store this job does not own
+    box: encryption-town
+    why_box: the object store is encryption-town's (MAIN moved there 10-09); gc on any other box would repack a store this job does not own
     cmd: git -C {repo_root} gc --quiet
   prime_merge:
     schedule: 13 */4 * * *
@@ -36,16 +48,22 @@ cadences:
     box: local-town
     why_box: the Prime's town->season2/main merge routine runs where the Prime and the town trunk live (owner 01:2xZ 09-21, goal:g5; every 4 hours, owner 09-23 15:0xZ); inert until extensions/agi/bin/prime_merge.py lands (director-engine round)
     cmd: test -f {repo_root}/extensions/agi/bin/prime_merge.py && PI_BIN=$HOME/.npm-global/bin/pi python3 {repo_root}/extensions/agi/bin/prime_merge.py tick --root {root}
+  graph_metrics:
+    schedule: 23 * * * *
+    enabled: true
+    box: encryption-town
+    why_box: "belam's crontab reads every uid's files and writes the town node; a v5 uid reads only its own (goal:g3.8, AA1.S)"
+    cmd: python3 {repo_root}/extensions/agi/bin/metrics_cell.py {root} town:local-maxxing metrics_line --actor belam -- python3 {repo_root}/extensions/agi/bin/success_metrics.py --line {root}
   memory_alarm:
     every_mins: 1
     enabled: true
-    box: local-town
+    box: encryption-town
     why_box: "reads this box's own /proc and user@ cgroup (OWNER 04:0xZ 09-26, after the 03:20Z memory livelock: raise a climb toward exhaustion before the box wedges); every threshold lives here, none in code"
     cmd: python3 {repo_root}/extensions/agi/bin/memory_alarm.py --root {root} --warn-avail-mib 2048 --crit-avail-mib 1024 --warn-psi-some-avg60 10 --crit-psi-full-avg60 20 --warn-cgroup-max-frac 0.95 --repeat-mins 15 --notify belam
   memory_alarm_posts:
     every_mins: 1
     enabled: true
-    box: local-town
+    box: encryption-town
     why_box: same reader as memory_alarm, pointed at the SYSTEM agi.slice where the pi-engine posts (agi-post@*) live; reads this box's cgroup, so it runs on this box only (stage-2.5 rootplan C3, parity row 45)
     cmd: python3 {repo_root}/extensions/agi/bin/memory_alarm.py --root {root} --warn-avail-mib 2048 --crit-avail-mib 1024 --warn-psi-some-avg60 10 --crit-psi-full-avg60 20 --warn-cgroup-max-frac 0.95 --repeat-mins 15 --notify belam --cgroup /sys/fs/cgroup/agi.slice --state {root}/sessions/memory-alarm-posts.json
 crons_live: true
@@ -73,7 +91,7 @@ thought_session: season
 title: Cron cadence declaration
 ---
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-goal:g7.16.1.4.1.2 (DG2's L2a config finding, re-read by DG1): the body said publish_engine and engine_push 'stay out ... because their own enabled is false', but de5507a17 removed the publish_engine cadence, so only engine_push still has an enabled. The kill-switch paragraph now says engine_push stays out and publish_engine no longer exists; the g11 race scenario is put in the past tense. Prose only: crons.py show output byte-identical before and after.
+goal:g7.16.1.11.13.1 (DG1 order 17:22Z, rows test_crons_flip_successors.py c3a114bd3a by DG2; re-cut 10-10 on the trunk 38e1270456 with SM's 21:4xZ A1-A4): turning `grid_sync.enabled` false must stop ONLY the grid, but two things rode on its cron line: (1) the on-disk evidence demotion (the grid_sync commit step ran the on-disk evidence gate) and (2) the town MIRROR (`mirror_towns: true` on the grid_sync cell). This version gives each a job of its own: `evidence_enforce` (every 30, box encryption-town because it edits node files on MAIN and MAIN lives there; a generic `cmd` cell: `evidence_gate.py enforce --root {root}`, the GRAPH root) and `town_mirror` (every 5, any box, a KNOWN job: crons.py renders one guarded push per declared town, byte for byte as before). `mirror_towns` is gone from the grid_sync cell and crons.py REFUSES a node that still carries it, by name (ignoring it would lose the mirror silently). Neither new job names grid.py, so the E2b0 writer list does not move. grid_sync's own line is unchanged. CADENCE 30, not 5 (A1, SM measured: one dry pass over MAIN = 134 s at load 8 and can pass 300 s at E's throttled load 16-50; overlapping runs are two writers on MAIN's node files plus heat, the pathology belam cut for grid_sync 5 -> 30): the lock is INSIDE `evidence_gate.py enforce` (a non-blocking flock, a held lock prints one `[busy]` line, rc 0), so the cron AND the manual verb both refuse to overlap. The build around the cells: `evidence_gate.py enforce` keeps the suite-lock deferral the grid_sync commit step had (a live foreign pid defers the tick, rc 0, nothing rewritten; it commits NOTHING: an in-place edit the next by-path commit versions); the three migrate verbs refuse `--write` by name while grid_sync is retired; with grid_sync retired the rendered mail_poll line fetches `+refs/heads/*:refs/remotes/origin/*` only, because a plain `fetch origin` also fetched the clone's grid refspec; grid_retired() is SILENT for a project with no crons node and NAMES an invalid one. Builder: director-general-3. Previous version's thought: belam-s2-I 20:0xZ 10-09: grid_sync every 5 -> 30 min. MEASURED on encryption-town: one `grid.py commit --all` run takes > 6 min (only 6 completions logged all day), so the */5 runs overlapped and queued on .grid.lock, holding a core at ~20% non-stop while the CPU package sat at 91°C with 153 powerclamp idle injections (thermal throttling). Grid commit is being retired (owner 01:3xZ 10-08: "We don't need the grid commit work we're retiring grid commit"); a slower cadence loses no version (each run versions everything changed since the last). Previous version's thought: belam-s2-I 19:4xZ 10-09: box local-town -> encryption-town for maint_gc, graph_metrics, memory_alarm, memory_alarm_posts. Why: MAIN, the Prime and every post moved to encryption-town 10-08/09 and the owner parked local-town ("Local town will remain down for the foreseeable future", 04:2xZ 10-09), so _on_this_box refused all four and E had no memory alarm, no hourly metrics line and no gc. Kept on local-town (= off): mail_poll (the hub reader; owner 04:0xZ: "Hub is old design") and prime_merge (the Prime's session CHECK covers it; the cron would start a PASS unattended). Previous version's thought: goal:g7.16.1.11.13 E2a (hypothesis g716111-aa3-the-crontab-applier-survives-grid-syncs-retirement, V3; DG1 cut, belam [rule] 05:1xZ 10-08, SM RE5/RE6): this version adds ONE cell, `cadences.crons_apply` (every_mins 5, enabled, NO `box` and so no `why_box`, cmd `crons.py apply --unit-dir $HOME/.config/systemd/user`), so the crontab self-heal no longer lives only in the tail of grid_sync's line and retiring grid_sync cannot lose it. It is boxless on purpose: it renders on every box, AGI_BOX unset included. grid_sync's own apply step STAYS until the switch round (E2b0 and after), so there is no gap. The 'self-reapply property' prose now names crons_apply instead of grid_sync as what runs the applier. The earlier thought (goal:g7.16.1.4.1.2: only engine_push still carries an enabled of its own, publish_engine is gone) is unchanged and lives in the body's kill-switch paragraph. Builder: director-general-3 (DG4 silent, DG1 08:32Z).
 <!-- THOUGHT:END -->
 
 The scheduling cadence for this project's four recurring jobs, declared as
@@ -117,17 +135,21 @@ off, `true` defers to each job's own flag.
 
 ## The self-reapply property
 
-`grid_sync` itself runs every 5 minutes, and what it runs is the applier
-that reconciles the real scheduled-job table against this node. So editing
+`crons_apply` runs every 5 minutes, and what it runs is the applier
+(`crons.py apply`) that reconciles the real scheduled-job table against this
+node. It is a cadence of its own, with no `box` key (so no `why_box`): it
+renders on every box, and retiring `grid_sync` no longer takes the self-heal
+with it. `grid_sync`'s own last step still runs the same applier until the
+switch round removes it. So editing
 `cadences` or `crons_live` here and letting the graph get committed is
 usually the whole change: within 5 minutes the running schedule matches what
 this node says, with no command typed against the schedule itself. The one
 edge case worth naming, because it is where that stops being automatic: the
-kill-switch above removes `grid_sync` along with the other three, so once it
-has run, nothing on this machine is left to notice the *next* edit. Setting
-the boolean back on therefore needs one manual re-run of the applier to
-install that first round of lines — after which `grid_sync` is live again
-and every later edit resumes self-applying as usual.
+kill-switch above removes `crons_apply` and `grid_sync` along with the other
+jobs, so once it has run, nothing on this machine is left to notice the *next*
+edit. Setting the boolean back on therefore needs one manual re-run of the
+applier to install that first round of lines — after which `crons_apply` is
+live again and every later edit resumes self-applying as usual.
 
 ## Two cadences the migration made meaningless
 

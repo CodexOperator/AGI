@@ -28,6 +28,7 @@ from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
 
 BIN = Path(__file__).resolve().parent.parent / "bin"
 sys.path.insert(0, str(BIN))
@@ -94,6 +95,7 @@ def project(tmp_path: Path) -> Path:
     (graph / "nodes" / "goal").mkdir(parents=True)
     (graph / "context" / "schemas").mkdir(parents=True)
     (graph / "config.json").write_text("{}")
+    write_free_veto(graph / "nodes" / ".geometry")
     (graph / "context" / "schemas" / "[goal].md").write_text(GOAL_SCHEMA)
     (graph / "nodes" / "goal" / "g1.md").write_text(GOAL_NODE)
     return graph

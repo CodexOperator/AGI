@@ -14,6 +14,7 @@ edited_by: belam-S1-L4-VI
 proposes_goals: []
 scaffold_hash: ec6a157654eac211
 season: 2
+tags: []
 thought_session: belam-S1-L4-VI
 title: Shown, Not Told — what airs is the work itself, never a narration or a performance of it
 town: streaming-suite

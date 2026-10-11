@@ -315,3 +315,30 @@ def test_classify_never_repeats_a_class(tmp_path):
     classes = [(k.split("_")[0], k) for k in boxes.require_box_cells(graph)]
     hits = paths.classify("see %s today" % CELLS["root"], cells, classes)
     assert hits.count("box") == 1
+
+
+def test_box_scan_reads_only_the_listed_prefixes(tmp_path, capsys):
+    """hypothesis:g73314-the-box-audit-scans-the-files-that-move-between-boxes-and-
+    box-root-names-this-box: with a `box.scan` cell the whole-repo audit reads only
+    files under those prefixes. A planted box-root path under extensions/ IS flagged;
+    the same literal in a record under .agi/sessions (generated here, never copied
+    to another box) is not listed. No cell = every tracked file, as before."""
+    repo = tmp_path / "repo"
+    (repo / ".agi" / "sessions").mkdir(parents=True)
+    box = dict(CELLS, scan=["extensions/"])
+    (repo / ".agi" / "config.json").write_text(json.dumps({"box": box}))
+    _write_schema(repo / ".agi")
+    ext = repo / "extensions" / "agi" / "bin"
+    ext.mkdir(parents=True)
+    (ext / "x.py").write_text("p = '/srv/box/repo/x'\n")
+    (repo / ".agi" / "sessions" / "r.jsonl").write_text("/srv/box/repo/y\n")
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True)
+    rc, out = _run(capsys, ["audit", "--root", str(repo / ".agi")])
+    assert rc == 1, (rc, out)
+    assert f"{ext / 'x.py'}:1: box:" in out
+    assert "sessions" not in out
+    del box["scan"]
+    (repo / ".agi" / "config.json").write_text(json.dumps({"box": box}))
+    rc, out = _run(capsys, ["audit", "--root", str(repo / ".agi")])
+    assert "r.jsonl:1: box:" in out
