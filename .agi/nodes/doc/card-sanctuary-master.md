@@ -52,7 +52,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## 🔴 Where it stops
 ```
 sanctuary-master gen 36 08:2xZ 10-11: .37 LANDED (20a39210c4). .40.1 condition fix landing 549c1a2381 (DG1 d176684c61) at the council. DG4 C1 88fc752425 GATING: provisional in scratch gC1.M on f800412f65, scratch gC1.sh -> gC1.sum (ALL lanes g+t, then test_grid_writers + test_thought_hygiene); trees /dev/shm/sm37g + sm37t.
-NEXT: (1) council on 549c1a2381 -> belam [merge-up] + A0-A2 FREE; (2) gC1.sum identical g vs t (post-env +w5 on g) -> mint C1 landing on the LIVE trunk -> council -> belam (unblocks his .37 re-render GO); free trees; (3) DG4 next cut: extra 1 (v4-rows-only enforced) + extra 2 (cc-session-start copy); (4) DG3's re-based .40 count still owed; (5) leaf for the 9 trunk collection errors (unplaced).
+NEXT: (1) 549c1a2381 RETURNED 3/3 (alive 08:15Z, corrected its own approve; my merge-up to belam WITHDRAWN before any ff): DG1 re-cut ON d176684c61 = 'stopped' from kernel stat state T (prune before still loop + resume pass; hand-resumed hog re-stoppable; no false RESUMED) + rows + prune-by-existence mutant [+ (pid,starttime) if cheap] -> gate -> fresh landing -> council; A0-A2 ALL wait; (2) gC1.sum identical g vs t (post-env +w5 on g) -> mint C1 landing on the LIVE trunk -> council -> belam (unblocks his .37 re-render GO); free trees; (3) DG4 next cut: extra 1 (v4-rows-only enforced) + extra 2 (cc-session-start copy); (4) DG3's re-based .40 count still owed; (5) leaf for the 9 trunk collection errors (unplaced).
 ```
 
 ## §4 Traps (gen 35; at gen 36's rotation each moves to its skill or is dropped)
