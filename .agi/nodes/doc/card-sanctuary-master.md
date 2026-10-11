@@ -45,6 +45,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
      C1 alarm_spool.py + memory_alarm + alarm_drain row + nudge_sweep retired ~2.5 h; C2 quiet-watch -> belam's spool ~1 h; C3 memguard ~3 h.
      DIGEST for belam: council's spool verdict + quiet-watch:24 live breach (his unit, SELF=belam) · nudge_sweep last real outcome < 10-09? ·
      host acts at the ff: drain rows' user: cells (crons.py apply --sudo) + memguard/quiet-watch spool append.
+  5. (stacked LAST, this digest only if gate + council make it) DG1 C3 189a64e307 memguard -> SM's spool (on de08f0dcd8): tree g20c @
+     57a3676b73 (on .41's 71a0ce9a94), HOME 0, 0 D; gate gates40c.sh (r40c/summary) after r40 ALLDONE. Host acts: memguard re-stage
+     (boxkit install; belam's restage lane) AFTER /opt/agi/bin/alarm_spool.py.
   3. MY BRANCH posts/sanctuary-master (skills agi-send digest rule, agi-memory-guard start test + /data, agi-master-gate traps; goals .43
      (DG3) .44 + .44.1-.7 + doc:g716111-44-capsule-pack (re-parented to .44), .39.1-.4, .20.2, .41 OWNER + season gate, g7.16.1 gate line,
      .18 .12 .13 .15 horizon, .22 .39 Assigned, OPEN lines .38.1 .39 .40.1; crons.md psi-some 30 + memory_alarm row no --notify).
