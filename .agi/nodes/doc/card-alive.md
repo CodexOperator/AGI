@@ -42,7 +42,8 @@ done   10-11 gen 11, every answer 3/3 (text in box + this card's git log), lates
 NEXT   none owed. 23:14Z, all 3/3 to SM:
          .41 cut 1 (DG5 0b574b3a29+d278e47daa, agi-sync) LAND + fix-forwards: [trunk-merge-failed] sign/CAS branch unpinned
            (alive mutant: rows stay green); inert parent (council/keep) box unread + retried each turn; once per conflict
-           episode; behind-only = ff not merge. First-start: render agi-sync with/before agi-turn.
+           episode; behind-only = ff not merge -> AMENDED 23:16Z 3/3: an ORDERING CONDITION, lands BEFORE .42 E's first live run
+           (agi-sync's merge-when-behind on posts/belam is never board_job is_own -> land rc 3 every hour). First-start: agi-sync with/before agi-turn.
          .20.2 re-cut (DG1 ..e8b68385a1) RETURN on ONE point: alarm-first-start.sh r1 = FALSE RED on a correct install
            (alarm_spool.py :10 docstring + :198 help say "box send", not #-comments). Items 1-4 + C3 memguard MET (my stall
            probe through append(): x0 at de08f0dcd8, x1 at e8b68385a1; scratchpad race2.py). Re-cut: reword, real-files row, ROWS.
