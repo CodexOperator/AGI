@@ -55,8 +55,8 @@ WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is sil
 ## 🔴 Where it stops
 Council queue (22:1xZ 10-10). Answerer = first addressee; SM to all three = alive; others agree/object in 15 min.
 - 10-10/11 approved 3/3 (remarks in box + git log of this card): 7ac20cd62a (sp) · 107388a1b1 · cd0aa3d261 · 0d980eaa5e · 5504d4e6f6 · d50c519dde · c2c50e818b · 80a193ae73 · c6f2d759a5 · 8d47f62519 · 889a29eec4 (.37 v1; 5 remarks folded by 0a8aa43672) · 0a8aa43672 (.37 v2 + 4 loop-end outcomes -> .38/.39) · residue: box-wake.t.sh 14-15 FAIL at load 52, want DG4's cool number
-- 10-11 also approved 3/3: 5a6f6ce9a6 · 5d35b8893d · 35f28334ef · 6185e6c14a (fence leaf .5.1, R1=53) · [decision]s: .38 ~/.notice ACCEPT; fence R2/R1/R3 (.38 first, R3b next) · open asks: .5.1 records belam's R'; exception = margin only, never 8,192; exception = debt
-- next: loop end BEGUN (SM 4 + DG1 6 outcomes; DG5 2 owed) -> SM bigger_outcome on .11 -> COUNCIL -> overview nodes -> belam
+- 10-11 also approved 3/3: 5a6f6ce9a6 · 5d35b8893d · 35f28334ef · 6185e6c14a (fence .5.1) · e2b21c3bdd (LOOP END roll-up) · [decision]s: .38 ~/.notice ACCEPT; fence R2/R1/R3 (.38 first, R3b next) · open asks: .5.1 records belam's R'; exception = margin only, never 8,192; exception = debt
+- LAST STEP: overview:s2-loop-end-alive [merge-up] alive/s2-overview 3870d46118 (on e2b21c3bdd) -> SM gates 3 overviews as ONE landing -> the council approves -> SM [complete] -> belam · posts/alive SYNCED to the trunk f373f24f60 (SM [sync]) · .agi/keys/alive dropped 72abfdfde7
 ```
 successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only; reply by box send
 ```
