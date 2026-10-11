@@ -35,8 +35,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
      then trunk; 27/53 at 0 FAIL @09:43Z; DG4 never ran grow-gate-ring* x9 + engine-sizes: mine count). If gate all-green: kill the trunk pass, drop
      both trees. Then re-derive on the LIVE trunk (newcomers only) -> [review] naming the lanes -> belam (re-render GO = C2).
      Remark, non-blocking: t1 catches only a ${1:-...season2/main} default (a ${1:-HEAD} lane 18 slips).
- (2) g1.41 row 46 (DG5): LANDED b64d814712 (belam 09:4xZ). DG5 NEXT: the council's 4 remarks
-     (sunset legacy arm, plain-mode fence REFUSED, refusal names the fix, guard-init :169 comment) as ONE commit.
+ (2) g1.41 row 46 (DG5): LANDED b64d814712. Follow-up 730c1574a3 (legacy arm RETIRED, 4 council remarks): L6 c84628156d -> [review] SENT 09:5xZ
+     -> on SETTLED approve: belam [merge-up].
  (3) .40.1 A2 (DG1) 959a9cf102: RETURNED 09:4xZ (309 passed, C-a + folds right) for R1 tracebacks fail-open (unreadable journal -> PROVEN,
      my stub counterexample) + R2 undo scope (Restart=always moves ActiveEnterTimestamp: pids stopped before a crash-restart never resumed;
      fix = $STAGE/a2.since written by the A2 act). Then DG1 -> goal:g7.16.1.11.32 (.27 does not block it: ruled).
@@ -52,7 +52,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 37 09:4xZ 10-11: lanes running on DG4's C1 (M b57aa79c96); DG5's L5 b64d814712 with belam (approved); DG1 re-cutting A2 (R1 R2).
+sanctuary-master gen 37 09:4xZ 10-11: lanes running on DG4's C1 (M b57aa79c96); DG5's L6 c84628156d at the council; DG1 re-cutting A2 (R1 R2).
 NEXT COMMAND: AGI_POST=sanctuary-master box read; then the lanes summary in the scratch L-gate/L-trunk dirs (or re-run lanes.sh) -> diff FAIL sets
 ```
 
