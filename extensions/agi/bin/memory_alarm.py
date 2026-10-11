@@ -95,11 +95,12 @@ def read_int(path: Path) -> int | None:
 def read_signals(cgroup: Path | None) -> dict:
     sig = {"avail_mib": read_meminfo_mib("MemAvailable"),
            "box_psi": read_psi(BOX_PSI),
-           "cg_psi": {}, "cg_current": None, "cg_max": None}
+           "cg_psi": {}, "cg_current": None, "cg_max": None, "cg_high": None}
     if cgroup is not None:
         sig["cg_psi"] = read_psi(cgroup / "memory.pressure")
         sig["cg_current"] = read_int(cgroup / "memory.current")
         sig["cg_max"] = read_int(cgroup / "memory.max")
+        sig["cg_high"] = read_int(cgroup / "memory.high")
     return sig
 
 
@@ -135,11 +136,16 @@ def decide(sig: dict, th: argparse.Namespace, prev: str = "ok") -> tuple[str, li
             crit.append(f"{label} PSI full avg60 {full60:.1f}% >= {th.crit_psi_full_avg60:g}")
         elif some60 is not None and some60 >= th.warn_psi_some_avg60:
             warn.append(f"{label} PSI some avg60 {some60:.1f}% >= {th.warn_psi_some_avg60:g}")
-    cur, cap = sig.get("cg_current"), sig.get("cg_max")
-    if cur is not None and cap:
+    # The fill is read against the LOWER of memory.high and memory.max, and the reason names which: a slice HELD at memory.high
+    # (agi.slice: high 5120 of max 6144 MiB) never passes ~0.83 of its max, so a line read against max alone can never fire there
+    # (goal:g7.16.1.11.40.1.1 target 4: tonight 5104/5120 = 0.83 of max, silent by construction). `max` (unset) reads as None.
+    cur = sig.get("cg_current")
+    limits = [(v, n) for n, v in (("memory.high", sig.get("cg_high")), ("memory.max", sig.get("cg_max"))) if v]
+    if cur is not None and limits:
+        cap, which = min(limits)
         frac = cur / cap
         if frac >= th.warn_cgroup_max_frac:
-            warn.append(f"user@ at {frac:.0%} of its cap "
+            warn.append(f"user@ at {frac:.0%} of its {which} "
                         f"({cur / 1048576:.0f}/{cap / 1048576:.0f} MiB)")
     if crit:
         return "crit", crit + warn
@@ -188,7 +194,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--crit-avail-mib", type=float, required=True)
     ap.add_argument("--warn-psi-some-avg60", type=float, required=True)
     ap.add_argument("--crit-psi-full-avg60", type=float, required=True)
-    ap.add_argument("--warn-cgroup-max-frac", type=float, required=True)
+    ap.add_argument("--warn-cgroup-max-frac", type=float, required=True,
+                    help="warn when the cgroup's memory.current is this fraction of min(memory.high, memory.max); the reason names which")
     ap.add_argument("--repeat-mins", type=float, required=True)
     ap.add_argument("--clear-margin-frac", type=float, required=True,
                     help="a raised alarm clears only below its warn line moved this fraction toward calm "

@@ -21,11 +21,11 @@ TH = argparse.Namespace(warn_avail_mib=2048, crit_avail_mib=1024,
                         warn_cgroup_max_frac=0.95, clear_margin_frac=0.8)
 
 
-def sig(avail=8000.0, box=(0.0, 0.0), cg=(0.0, 0.0), cur=None, cap=None):
+def sig(avail=8000.0, box=(0.0, 0.0), cg=(0.0, 0.0), cur=None, cap=None, high=None):
     def psi(some, full):
         return {"some": {"avg10": some, "avg60": some}, "full": {"avg10": full, "avg60": full}}
     return {"avail_mib": avail, "box_psi": psi(*box), "cg_psi": psi(*cg),
-            "cg_current": cur, "cg_max": cap}
+            "cg_current": cur, "cg_max": cap, "cg_high": high}
 
 
 def test_quiet_box_is_ok():
@@ -449,3 +449,44 @@ def test_both_real_rows_declare_the_margin_and_the_hold():
     for name in ("memory_alarm", "memory_alarm_posts"):
         cmd = crons._parse_frontmatter(crons._node_path(REPO / ".agi"))["cadences"][name]["cmd"].split()
         assert cmd[cmd.index("--clear-margin-frac") + 1] == "0.8" and cmd[cmd.index("--clear-hold-mins") + 1] == "3", name
+
+
+# --- goal:g7.16.1.11.40.1.1 target 4: the cgroup-fill line reads against min(memory.high, memory.max) and names which ----------
+# Falsifier, pre-fix: agi.slice is HELD at memory.high 5120 of memory.max 6144 MiB; at 5104 MiB (0.83 of max, 0.997 of high) the line,
+# read against max, was silent by construction while the slice thrashed (slab 2713 MiB, 2.2 GB of the posts' anon swapped out).
+
+MIB = 1 << 20
+
+
+def test_a_slice_at_099_of_memory_high_warns_and_names_the_limit_it_was_read_against():
+    level, reasons = m.decide(sig(cur=int(5069 * MIB), cap=6144 * MIB, high=5120 * MIB), TH)        # 0.99 of high, 0.825 of max
+    assert level == "warn" and reasons == ["user@ at 99% of its memory.high (5069/5120 MiB)"], (level, reasons)
+
+
+def test_tonights_reading_5104_of_5120_is_a_warn():
+    assert m.decide(sig(cur=5104 * MIB, cap=6144 * MIB, high=5120 * MIB), TH)[0] == "warn"
+
+
+def test_the_lower_of_the_two_limits_wins_and_an_unset_high_falls_back_to_max():
+    assert m.decide(sig(cur=5900 * MIB, cap=6144 * MIB, high=7000 * MIB), TH)[1] == ["user@ at 96% of its memory.max (5900/6144 MiB)"]   # high ABOVE max: max is the limit
+    assert m.decide(sig(cur=5900 * MIB, cap=6144 * MIB, high=None), TH)[0] == "warn"                                                      # memory.high = max (unset)
+    assert m.decide(sig(cur=5900 * MIB, cap=None, high=None), TH) == ("ok", [])                                                           # no limit at all: no fill line
+    assert m.decide(sig(cur=4000 * MIB, cap=6144 * MIB, high=5120 * MIB), TH)[0] == "ok"                                                  # 0.78 of high: quiet
+
+
+def test_read_signals_reads_memory_high_from_the_cgroup(tmp_path):
+    cg = tmp_path / "cg"; cg.mkdir()
+    (cg / "memory.current").write_text("5352366080\n"); (cg / "memory.max").write_text("6442450944\n"); (cg / "memory.high").write_text("5368709120\n")
+    (cg / "memory.pressure").write_text("some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n")
+    got = m.read_signals(cg)
+    assert (got["cg_current"], got["cg_max"], got["cg_high"]) == (5352366080, 6442450944, 5368709120)
+    (cg / "memory.high").write_text("max\n")
+    assert m.read_signals(cg)["cg_high"] is None                                                       # `max` is no limit
+
+
+def test_the_mutant_that_reads_against_max_goes_red_on_the_high_row():
+    old = "cap, which = min(limits)"
+    src = Path(m.__file__).read_text(); assert src.count(old) == 1, old
+    mut = _fresh(src.replace(old, "cap, which = [l for l in limits if l[1] == 'memory.max'][0] if any(l[1] == 'memory.max' for l in limits) else limits[0]"))
+    s = sig(cur=int(5069 * MIB), cap=6144 * MIB, high=5120 * MIB)
+    assert m.decide(s, TH)[0] == "warn" and mut.decide(s, TH)[0] == "ok", "today's /max reading must be silent: the row would prove nothing"
