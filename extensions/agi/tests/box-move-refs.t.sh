@@ -7,6 +7,7 @@
 #   `move` pushes every namespace of the source that is not excluded to the TARGET (never the target's checked-out trunk branch by name: that one goes through carry/trunk + ff, as now), and prints, to stdout, one line per carried namespace `refs <ns> before=<n> after=<m>` (n = the SOURCE count before the first push, m = the TARGET count after the last) and one `refs <ns> excluded: <reason>` per excluded entry.
 #   a carried namespace with m < n = `[refs-short] <ns> before=<n> after=<m>` on stderr, rc != 0, and the post is NOT started on the target (the ff + host-act line is never reached). An excluded namespace may come up short without a refusal.
 #   origin (public) gets exactly what it gets today: HEAD to refs/heads/local-maxxing/season2/main, no other ref.
+#   (goal:g7.16.1.11.39 round 2, council 16:21Z) PREFLIGHT: BEFORE `systemctl stop` and BEFORE the posts-row edit, `git push --dry-run --porcelain` of the SAME refspecs; any '!' line = `[refs-reject] <ref> ...` on stderr, rc 6, nothing touched (the post still runs, the row is unmoved, origin and target are written nothing). A TWO-PART ref (refs/stash) cannot be pushed at all (git receive-pack refuses a 'funny ref'): it is not counted, and each one is REPORTED on stdout as `refs <ref> skipped: ...`, never lost silently (the alternative the council named: exclude it with its reason). The after-check is an IDENTITY check of ref NAMES (a carried namespace with m >= n but one source ref name absent on the target = `[refs-short] <ns> before=<n> after=<m> missing=<k> first=<ref>`); a ref present at another sha is a live writer's race and is not refused (the limit, named).
 #   box-move.t.sh stays green: the file keeps exactly ONE line holding `$E "cd /data/work/agi`.
 # One ok/FAIL line per case; exit = number of FAILs.
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};SRC=${SRC:-$R0/extensions/agi/guard/box-move.sh}
@@ -30,7 +31,7 @@ fix(){ rm -rf $T/f;mkdir -p $T/f;: >$T/ctl.log;cd $T/f;git init -q -b local-maxx
   printf '%s\n' '  - {"name": "p1", "engine": {"v": 4}, "box": "local-town"}' '  - {"name": "p2", "engine": {"v": 4}, "box": "local-town"}' >.agi/nodes/.geometry/posts.md
   printf 'echo act\nexit 0\n' >extensions/agi/guard/host-act-encryption-town.sh;git add .;git commit -q -m base;git remote add origin $T/f/o )
  git clone -q s w;git -C w remote remove origin
- ( cd s;t=$(git rev-parse HEAD^{tree});for r in heads/posts/p1 heads/dg4-x heads/other grid/n1/1 grid/n2/1 box/a/b/1 box/a/b/2 held/a/b/1 archive/p1/dir1 archive/p2/dir2 agi/x tags/v1 novel/q/r remotes/origin/main;do git update-ref refs/$r $(git commit-tree -m $r $t);done )
+ ( cd s;t=$(git rev-parse HEAD^{tree});for r in heads/posts/p1 heads/dg4-x heads/other grid/n1/1 grid/n2/1 box/a/b/1 box/a/b/2 held/a/b/1 archive/p1/dir1 archive/p2/dir2 agi/x tags/v1 novel/q/r remotes/origin/main stash;do git update-ref refs/$r $(git commit-tree -m $r $t);done )
  git -C s for-each-ref --format='%(refname) %(objectname)' >$T/f/pre; }
 # go NODE: run the move in the source; sets rc, $T/out, $T/err
 go(){ ( cd $T/f/s&&PATH=$B:$PATH AGI_MOVE_SSH=$T/sshconf AGI_MOVE_EXCLUDE_NODE=${1:-$T/node.md} sh $SRC move $P >$T/out 2>$T/err );rc=$?; }
@@ -41,7 +42,7 @@ line(){ grep -F '$E "cd /data/work/agi' "$SRC";}
 [ -s $SRC ]||{ echo "FAIL extract: no $SRC";exit 99;}
 
 fix;go;ns="heads grid box held archive agi tags novel";nd="";for n in $ns;do a=$(cnt $T/f/w $n);b=$(cnt $T/f/s $n);[ $n = heads ]&&b=$(git -C $T/f/s for-each-ref --format='%(refname)' refs/heads/|grep -c -v carry/trunk);[ "$a" -ge "$b" ]||nd="$nd $n($a/$b)";done
-miss=$(while read -r r s;do case $r in refs/remotes/*|refs/heads/local-maxxing/season2/main)continue;; esac;[ "$(git -C $T/f/w rev-parse -q --verify $r 2>/dev/null)" = "$s" ]||echo $r;done <$T/f/pre|tr '\n' ' ')
+miss=$(while read -r r s;do case $r in refs/remotes/*|refs/heads/local-maxxing/season2/main|refs/stash)continue;; esac;[ "$(git -C $T/f/w rev-parse -q --verify $r 2>/dev/null)" = "$s" ]||echo $r;done <$T/f/pre|tr '\n' ' ')
 ok "refs-the-move-succeeds-and-starts-the-post a move with every namespace present ends rc 0 and starts agi-post@$P (rc $rc; ctl: $(tr '\n' '|' <$T/ctl.log); err: $(head -c 200 $T/err|tr '\n' ' '))" '[ $rc = 0 ]&&started'
 ok "refs-every-named-ref-arrives-with-its-sha $(echo $miss|wc -w|tr -d ' ') source ref(s) missing or at another sha on the target (want 0): [${miss% }]" '[ -z "$miss" ]'
 ok "refs-trunk-still-ffs-on-the-target the target's trunk is the source's moved trunk ($(git -C $T/f/w rev-parse --short HEAD) vs $(git -C $T/f/s rev-parse --short HEAD))" '[ "$(git -C $T/f/w rev-parse HEAD)" = "$(git -C $T/f/s rev-parse HEAD)" ]'
@@ -64,6 +65,19 @@ ok "refs-short-namespace-names-only-the-short-one refs/grid (not short) is not n
 # an EXCLUDED namespace that comes up short is not a refusal
 fix;mkdir -p $T/f/w/.git/hooks;printf '#!/bin/sh\ngit for-each-ref --format="%%(refname)" refs/remotes/|while read -r r;do git update-ref -d $r;done\n' >$T/f/w/.git/hooks/post-receive;chmod +x $T/f/w/.git/hooks/post-receive;go
 ok "refs-an-excluded-namespace-may-be-short a target with 0 refs/remotes/* (excluded) still ends rc 0 and starts the post (rc $rc; started: $(started&&echo yes||echo no))" '[ $rc = 0 ]&&started'
+
+# round 2 (e)-2: counts can hide a missing NAME (refs/heads gets carry/trunk on the target, so 5 >= 4 even with refs/heads/other gone)
+fix;mkdir -p $T/f/w/.git/hooks;printf '#!/bin/sh\ngit update-ref -d refs/heads/other\n' >$T/f/w/.git/hooks/post-receive;chmod +x $T/f/w/.git/hooks/post-receive;go
+ok "refs-the-after-check-is-an-identity-check one NAME (refs/heads/other) gone on the target while the refs/heads COUNT stays >= the source's ends rc != 0 ($rc) with '[refs-short] refs/heads ... missing=1 first=refs/heads/other' ($(head -c 200 $T/err|tr '\n' ' ')) and the post is not started" '[ $rc != 0 ]&&grep -q "^\[refs-short\] refs/heads before=[0-9]* after=[0-9]* missing=1 first=refs/heads/other" $T/err&&! started'
+# round 2 (e)-1: a two-part ref cannot be pushed: it is reported, not counted, and the move does not refuse after the stop
+fix;go
+ok "refs-a-two-part-ref-is-reported-not-lost refs/stash (two path parts: git refuses to push a 'funny ref') ends rc $rc (want 0, no [refs-short]: $(head -c 100 $T/err|tr '\n' ' ')) and stdout says 'refs refs/stash skipped: ...' ($(grep -c '^refs refs/stash skipped: ' $T/out) line, want 1)" '[ $rc = 0 ]&&! grep -q refs-short $T/err&&[ $(grep -c "^refs refs/stash skipped: " $T/out) = 1 ]'
+# round 2: THE PREFLIGHT. The target holds refs/archive/p1/dir1 one commit AHEAD of the source's: a non-force push of it is rejected. Nothing may be touched.
+fix;git -C $T/f/w fetch -q $T/f/s refs/archive/p1/dir1:refs/archive/p1/dir1;git -C $T/f/w update-ref refs/archive/p1/dir1 $(git -C $T/f/w commit-tree -m ahead -p refs/archive/p1/dir1 $(git -C $T/f/w rev-parse refs/archive/p1/dir1^{tree})) ;h0=$(git -C $T/f/s rev-parse HEAD);go
+ok "refs-preflight-rejects-and-names-the-ref a target ref AHEAD of the source's (refs/archive/p1/dir1) ends rc 6 ($rc) with '[refs-reject] refs/archive/p1/dir1' on stderr ($(head -c 200 $T/err|tr '\n' ' '))" '[ $rc = 6 ]&&grep -q "^\[refs-reject\] refs/archive/p1/dir1" $T/err'
+ok "refs-preflight-runs-before-the-stop the post is NOT stopped and NOT started (ctl: $(tr '\n' '|' <$T/ctl.log))" '[ ! -s $T/ctl.log ]'
+ok "refs-preflight-runs-before-the-row-edit the source repo is untouched: HEAD $(git -C $T/f/s rev-parse --short HEAD) (want $(echo $h0|cut -c1-7)), posts.md clean ($(git -C $T/f/s status --short|wc -l|tr -d ' ') change(s), want 0), the row still says local-town ($(grep -c local-town $T/f/s/.agi/nodes/.geometry/posts.md) line(s), want 2)" '[ "$(git -C $T/f/s rev-parse HEAD)" = "$h0" ]&&[ -z "$(git -C $T/f/s status --short)" ]&&[ $(grep -c local-town $T/f/s/.agi/nodes/.geometry/posts.md) = 2 ]'
+ok "refs-preflight-writes-nothing origin holds $(git -C $T/f/o for-each-ref|wc -l|tr -d ' ') ref(s) and the target $(cnt $T/f/w grid) refs/grid + $(cnt $T/f/w box) refs/box refs (want 0 0 0: the dry run carried nothing, the OTHER refs did not go ahead of the rejected one)" '[ $(git -C $T/f/o for-each-ref|wc -l|tr -d " ") = 0 ]&&[ $(cnt $T/f/w grid) = 0 ]&&[ $(cnt $T/f/w box) = 0 ]'
 
 # the cell is the ONLY list
 sed 's#^refs/remotes .*#&\nrefs/agi  scratch bookkeeping the target rebuilds#' $T/node.md >$T/node-add.md;fix;go $T/node-add.md
