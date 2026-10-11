@@ -7,7 +7,7 @@ only in the seat's own uid, root signing as a seat is RED under .40.1 item 4).
   append  a plain JSON line {id, job, to, text, ts} appended to THIS uid's ~/alarm.spool. No key, no box, one write
           under PIPE_BUF so concurrent appenders (a root source's `runuser -u agi-<seat> -- ... append`, a cron row in
           the seat's uid) never interleave. Refuses beyond --max-lines (stderr, rc 3): the spool is bounded.
-  drain   in the SENDING seat's own uid (refuses any other, rc 2): for every spooled line `cd ~/t && box send <to>` with
+  drain   in the SENDING seat's own uid (refuses any other, rc 2): for every spooled line the box tool, run from ~/t, mails it to <to> with
           AGI_POST=<seat>, so the seat's own key signs. The message is `[alarm <job>] <text>` plus the trailers
           `Alarm-job: <job>` and `Alarm-id: <id>`, so a reader tells the seat's word from its machine.
 
@@ -195,7 +195,7 @@ def main(argv: list[str] | None = None) -> int:
     sub = ap.add_subparsers(dest="verb", required=True)
     ap_a = sub.add_parser("append", help="append one alarm line to this uid's spool (no key, no box)")
     ap_a.add_argument("--job", required=True)
-    ap_a.add_argument("--to", required=True, help="the reader (box send <it>)")
+    ap_a.add_argument("--to", required=True, help="the reader: the post the seat's drain mails it to")
     ap_a.add_argument("--text", required=True)
     ap_a.add_argument("--max-lines", type=int, required=True)
     ap_a.add_argument("--spool", type=Path, default=None)

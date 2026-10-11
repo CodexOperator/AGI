@@ -8,9 +8,9 @@
 #       alarm_drain_belam cron row runs), then the seat's out-ref refs/box/<seat>/<reader> must carry a commit with the marker, both
 #       trailers, and a signature "for <seat>@agi with" (what box read checks). A miss = rc 2.
 # The reader then sees it with: AGI_POST=<reader> box read.
-# Env (defaults are the box's): SBIN OPTBIN STORES AS RUNUSER BOXBIN VERIFY ROWS ("seat:reader seat:reader").
+# Env (defaults are the box's): SBIN OPTBIN STORES AS RUNUSER BOXBIN VERIFY ROWS ("seat:reader seat:reader"; an EMPTY ROWS skips the drain rows, only r1 runs).
 SBIN=${SBIN:-/usr/local/sbin};OPTBIN=${OPTBIN:-/opt/agi/bin};STORES=${STORES:-/var/lib/agi};AS=${AS:-/opt/agi/bin/alarm_spool.py}
-RUNUSER=${RUNUSER:-runuser};ROWS=${ROWS:-"sanctuary-master:belam belam:sanctuary-master"};VERIFY=${VERIFY:-"git verify-commit --raw"}
+RUNUSER=${RUNUSER:-runuser};ROWS=${ROWS-"sanctuary-master:belam belam:sanctuary-master"};VERIFY=${VERIFY:-"git verify-commit --raw"}
 rc=0
 # (1) the root scripts carry no signing and no mail send
 hits=$(grep -rInE 'box[[:space:]]+send|ssh-keygen[[:space:]]+-Y[[:space:]]+sign' "$SBIN" "$OPTBIN" 2>/dev/null | grep -vE '^[^:]*:[0-9]+:[[:space:]]*#')

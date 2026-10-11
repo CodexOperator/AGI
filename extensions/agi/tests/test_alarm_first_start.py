@@ -40,6 +40,10 @@ def box(tmp_path):
         (stores / seat / "t").mkdir(parents=True)
         subprocess.run(["git", "init", "-q", str(stores / seat / "t")], check=True)
     sbin, optbin = tmp_path / "sbin", tmp_path / "optbin"; sbin.mkdir(); optbin.mkdir()
+    import shutil
+    shutil.copy(BIN / "alarm_spool.py", optbin / "alarm_spool.py")                              # what host act 1 INSTALLS there, prose and all
+    shutil.copy(REPO / "extensions" / "agi" / "guard" / "quiet-watch" / "agi-quiet-watch", sbin / "agi-quiet-watch")
+    shutil.copy(REPO / "extensions" / "agi" / "tests" / "fixtures" / "boxkit" / "memguard-script.fixture", sbin / "agi-memguard.py")
     (sbin / "agi-clean").write_text("#!/bin/sh\n# box send is mentioned only in this comment\n   # and ssh-keygen -Y sign in this one\necho fine\n")
     (optbin / "box").write_text("#!/bin/sh\n# box send TO <msg>\nsend)echo x;;\n")
     env = {"PATH": os.environ["PATH"], "SBIN": str(sbin), "OPTBIN": str(optbin), "STORES": str(stores),
@@ -84,3 +88,22 @@ def test_a_drain_that_sends_nothing_or_an_unsigned_commit_is_red(box):
         (stores2 / seat / "t").mkdir(parents=True); subprocess.run(["git", "init", "-q", str(stores2 / seat / "t")], check=True)
     r = _run(env, STORES=str(stores2))
     assert r.returncode == 2 and r.stdout.count("is not signed by") == 2, r.stdout            # delivered, with trailers, but not signed by the seat
+
+
+def test_the_shipped_install_is_green_and_todays_old_prose_in_alarm_spool_is_red(box):
+    env, sbin, optbin, stores = box
+    assert (optbin / "alarm_spool.py").read_text() == (BIN / "alarm_spool.py").read_text()      # the fixture really carries the real installed file
+    r = _run(env, ROWS="")
+    assert r.returncode == 0 and "ok r1:" in r.stdout, r.stdout                                  # the shipped agi-quiet-watch + alarm_spool.py + memguard render: GREEN
+    text = (optbin / "alarm_spool.py").read_text()
+    old = "for every spooled line the box tool, run from ~/t, mails it to <to> with"
+    assert text.count(old) == 1
+    (optbin / "alarm_spool.py").write_text(text.replace(old, "for every spooled line `cd ~/t && box send <to>` with"))      # MUTANT: the docstring as it was at e8b68385a1
+    r = _run(env, ROWS="")
+    assert r.returncode == 1 and "alarm_spool.py:10:" in r.stdout, r.stdout
+
+
+def test_an_empty_rows_skips_the_drain_rows_and_only_r1_runs(box):
+    env, *_ = box
+    r = _run(env, ROWS="")
+    assert r.returncode == 0 and "ok r1:" in r.stdout and "->" not in r.stdout, r.stdout
