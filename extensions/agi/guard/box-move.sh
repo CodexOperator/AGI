@@ -6,6 +6,7 @@
 #   printf %s CODE | sh box-move.sh login POST   the code on STDIN, never argv: type it into the post's fifo, step Enter / Security notes,
 #                                            answer the workspace-trust prompt Yes (Down + Enter), stop on anything unknown
 #   sh box-move.sh url POST                  step the theme / login-method screens and print the login URL for the owner
+# Refs (goal:g7.16.1.11.39): `move` carries EVERY ref namespace (refs/<ns>/*, the first two path parts) to the target except those the exclude cell names (the fenced block `sh move.exclude` of config:guard, .agi/nodes/.geometry/guard.md; AGI_MOVE_EXCLUDE_NODE=<path> = another copy; no cell = rc 5 before the post is stopped), never a list of what to keep; it prints `refs <ns> before=<n> after=<m>` (source before, target after) per carried namespace and `refs <ns> excluded: <reason>` per entry, and a carried namespace with m < n = `[refs-short]`, rc 4, the post never started. Origin (public) still gets the trunk branch only: refs/archive, refs/box, refs/held and the grid go box-to-box.
 # Cells (env): AGI_MOVE_TO (default encryption-town) · AGI_MOVE_FROM (default local-town) · AGI_MOVE_SSH (the ssh config holding the target
 # host; default the sanctuary mesh config) · AGI_MOVE_EXTRA (more branch globs for the post, e.g. 'dg4-*').
 # Requires on the target (the gaps the pilot found, G1-G5): the host act (host-act-<box>.sh act) carries ALL of them: group agi + user belam
@@ -15,10 +16,14 @@ P=$2;TO=${AGI_MOVE_TO:-encryption-town};FROM=${AGI_MOVE_FROM:-local-town}
 case $P in ""|*[!a-z0-9-]*)echo "usage: move|login|url POST">&2;exit 1;;esac
 C=${AGI_MOVE_SSH:-$(ls -d /home/*/work/.sanctuary/ssh/config 2>/dev/null|head -1)};[ -f "$C" ]||{ echo "no ssh config (AGI_MOVE_SSH)">&2;exit 1;}
 E="ssh -F $C -o BatchMode=yes $TO"
+N=${AGI_MOVE_EXCLUDE_NODE:-$(git rev-parse --show-toplevel 2>/dev/null)/.agi/nodes/.geometry/guard.md}
+cnt(){ echo "$1"|awk -F/ 'NF{c[$1"/"$2]++} END{for(k in c)print k,c[k]}'|sort;}
 SCR='f=/var/lib/agi/'$P'/o;k(){ sudo -n sh -c "printf \"$1\" > /run/agi-'$P'/i";};scr(){ sudo -n tail -c ${1:-4000} $f|tr -d "\r\n"|sed -E "s/\x1b\[[0-9;?]*[a-zA-Z]//g;s/\x1b\][^\a]*\a//g;s/\x1b[()][0-9A-Za-z]//g";}'
 case $1 in
 move)
-set -e;cd "$(git rev-parse --show-toplevel)";[ "$(git branch --show-current)" = local-maxxing/season2/main ];git diff --quiet -- .agi/nodes/.geometry/posts.md
+set -e;X=$(sed -n '/^```sh move.exclude/,/^```$/p' "$N" 2>/dev/null|grep -E '^refs/[a-z0-9_-]+  *[^ ]'||true);[ -n "$X" ]||{ echo "[refs-exclude] no move.exclude cell in $N: nothing moved">&2;exit 5;}
+NS=$(cnt "$(git for-each-ref --format='%(refname)')"|awk -v X="$X" 'BEGIN{n=split(X,xl,"\n");for(i=1;i<=n;i++){split(xl[i],t," ");e[t[1]]=1}} !($1 in e)')
+cd "$(git rev-parse --show-toplevel)";[ "$(git branch --show-current)" = local-maxxing/season2/main ];git diff --quiet -- .agi/nodes/.geometry/posts.md
 python3 - "$P" "$FROM" "$TO" <<'PY'
 import sys,json;P,F,T=sys.argv[1:];f='.agi/nodes/.geometry/posts.md';L=open(f).read().split('\n')
 h=[i for i,l in enumerate(L) if l.startswith('  - {"name": "%s"'%P)];assert len(h)==1,h
@@ -31,6 +36,13 @@ sudo -n systemctl stop agi-post@$P;echo "$FROM stop: $(systemctl show agi-post@$
 git push -q origin HEAD:local-maxxing/season2/main
 x=;for g in $AGI_MOVE_EXTRA;do x="$x refs/heads/$g:refs/heads/$g";done
 GIT_SSH_COMMAND="ssh -F $C -o BatchMode=yes" git push -q ssh://$TO/data/work/agi "$(git rev-parse HEAD):refs/heads/carry/trunk" "refs/heads/posts/$P:refs/heads/posts/$P" $x
+GIT_SSH_COMMAND="ssh -F $C -o BatchMode=yes" git push -q ssh://$TO/data/work/agi $(echo "$NS"|awk '{print $1"/*:"$1"/*"}') ^refs/heads/local-maxxing/season2/main
+A=$(cnt "$($E "git -C /data/work/agi for-each-ref --format='%(refname)'")")
+echo "$X"|awk '{n=$1;sub(/^[^ ]+ +/,"");print "refs " n " excluded: " $0}'
+R=$(awk -v A="$A" -v B="$NS" 'BEGIN{n=split(A,al,"\n");for(i=1;i<=n;i++){split(al[i],t," ");a[t[1]]=t[2]+0} n=split(B,bl,"\n");for(i=1;i<=n;i++){split(bl[i],t," ");af=a[t[1]]+0;print "refs " t[1] " before=" t[2] " after=" af;if(af<t[2]&&!s)s="[refs-short] " t[1] " before=" t[2] " after=" af ": move refused, post not started"} if(s)print s}')
+echo "$R"|grep -v '^\[refs-short\]'
+! echo "$R"|grep '^\[refs-short\]'>&2||:
+echo "$R"|grep -q '^\[refs-short\]'&&exit 4
 echo "trunk $(git rev-parse --short HEAD) · posts/$P $(git rev-parse --short posts/$P)"
 $E "cd /data/work/agi&&git merge -q --ff-only carry/trunk&&{ o=\$(mktemp);sudo -n env PIN=\$(git rev-parse HEAD) sh extensions/agi/guard/host-act-$TO.sh move $P >\$o 2>&1;r=\$?;tail -2 \$o;rm -f \$o;[ \$r = 0 ]||{ echo host-act move failed rc=\$r: post not started >&2;exit \$r;};}&&{ sudo -n test -f /run/systemd/system/agi-post@$P.service.d/h.conf&&sudo -n systemctl enable --now agi-carry@$P.path&&sudo -n systemctl reset-failed agi-post@$P 2>/dev/null;sudo -n systemctl is-active -q agi-post@$P||sudo -n systemctl start agi-post@$P;systemctl show agi-post@$P -p SubState -p NRestarts --value|tr '\n' ' ';}";;
 url)
