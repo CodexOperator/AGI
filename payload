@@ -373,7 +373,11 @@
       "LOW_AVAIL_GIB": "1",
       "HISTORY_S": "30",
       "INTERVAL_S": "5",
-      "ALERT_COOLDOWN_S": "600"
+      "ALERT_COOLDOWN_S": "600",
+      "MEMGUARD_ALERT_TO": "sanctuary-master belam",
+      "MEMGUARD_STORES": "/var/lib/agi",
+      "RESUME_FACTOR": "2",
+      "RESUME_HOLD_S": "30"
     },
     "core": {
       "model_load_allowed_max_bytes": 67108864,
