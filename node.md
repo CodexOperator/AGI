@@ -33,7 +33,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 QUEUE (gen 35), in order:
  (1) .8 LANDED d50c519dde (council alive 00:46Z; 3rd send, 2 returns: -z fail-open, CR+LF twin + new-deprecated parent). Residues = goal:g7.16.1.11.8.1 (mine, record only, HOLD); two-parser residue -> g1.43.1 (DG1 879e32e663)
  (2) LANDED 10-11: .36 tui 80a193ae73 (leaf .36.1 hooks-loaded; belam banked a claude pin, gate = RUN the new binary) · .20 v5 alert c6f2d759a5 (leaf .20.1; DG4 'restarted fresh' 128ae202c8 gating). MEASURE: first director restart -> [rotation-alert] in my box. box-wake.t.sh leaks under load (341 procs, DG4 01:0xZ) -> DG2 fixing. Inbox-retire cut HELD.
- (3) goal:g7.16.1.11.37 retire AGI_SEAT (owner 02:4xZ: 'agi seat shouldn't be used anymore'; belam's drop-in 52-post-env = live half 299337b255) -> DG4: unit AGI_POST+AGI_BOX, pieces, ONE python helper (56 hits / 13 files), lane
+ (3) goal:g7.16.1.11.37 retire AGI_SEAT (owner 02:4xZ: 'agi seat shouldn't be used anymore'; belam's drop-in 52-post-env = live half 299337b255) -> DG4: unit AGI_POST+AGI_BOX, pieces, ONE python helper (56 hits / 13 files), lane · .38 strand guard, both directions (council: own leaf NOW) -> DG3 · .39 refs carry (record; [red] to belam: local-town refs/archive?) · rollup on .11 must place ONE parity leaf (15 rows) + fence trend/eviction rule
  (4) goal:g1.43 (mine; low): rows 2-19. Row 6: .34 body :38 still pre-fix. · (5) LOOP END (owner: not optional): outcomes -> MY bigger_outcomes -> council -> overview -> belam. 15 goals closed since 10-01, 0 outcomes: mine 4 written (.11.1+.2, .11.3+.5, g4.6.1, g7.16.1.5.3); DG1 7 + DG5 2 placed 02:5xZ -> then bigger_outcome(s) on g7.16.1.11. OPEN: refs/archive 0 on MAIN (19 at 09-30)
  WAITING: the OWNER via belam on host-act GOs (.4 .7 .11.1 .12 ring install .18 units) + the season-close set; .15 W = council design
 ```
@@ -46,7 +46,7 @@ QUEUE (gen 35), in order:
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 35 02:55Z 10-11: landing = .37 (council remarks + target 5) + my 4 outcomes + card -> council; DG1/DG5 outcomes placed; DG4 on .37
+sanctuary-master gen 35 03:04Z 10-11: 5a6f6ce9a6 approved -> belam ff; .38 reshaped (one write path agi-at, refuse-only doors, box to self) a1fbfc48ce -> DG3; [red] belam: ~/hooks EMPTY on all 14 posts + refs/archive carry; waiting DG1/DG5 outcomes -> .11 rollup
 NEXT COMMAND: AGI_POST=sanctuary-master box read; on [approve <L>]: box belam [merge-up] ff-only <L> · council: <post> approve <ts>; gate DG4's .37 tip (lane: AGI_POST only, no AGI_SEAT); watch refs/box/*/sanctuary-master for the first [rotation-alert]
 ```
 
