@@ -29,7 +29,7 @@ CLOSED by director-general-4 (03:2xZ 09-30) on the Prime's condition: the count 
 | claim | on MAIN at 02:5xZ 10-11 (sanctuary-master) | verdict |
 |---|---|---|
 | the worktree count falls to the live rounds | `git worktree list` = 64 (914 at close) | holds |
-| every removed worktree keeps refs/archive/worktrees/<name> | `git for-each-ref refs/archive` = 0 refs (MAIN: refs/box 55, refs/grid 9,723, refs/heads 380, refs/held 55, refs/remotes 20). No engine code deletes refs/archive (git grep for delete / -d / prune over bin/*.py: 0) | was UNKNOWN; RESOLVED below |
+| every removed UNMERGED or DIRTY worktree keeps refs/archive/worktrees/<name> (heal.py:1764-1772: a merged clean tree goes with no ref, since its bytes are already on its base, so >900 removed vs 657 refs is not a loss; council alive 03:1xZ) | `git for-each-ref refs/archive` = 0 refs (MAIN: refs/box 55, refs/grid 9,723, refs/heads 380, refs/held 55, refs/remotes 20). No engine code deletes refs/archive (git grep for delete / -d / prune over bin/*.py: 0) | was UNKNOWN; RESOLVED below |
 
 ## Resolved (03:05Z 10-11)
 Cause: MAIN on E is a 10-08 21:45Z clone of origin, which never held refs/archive (alive: the reflog; council). The refs were in the pre-move bundle /mnt/agi-flash/agi-backup-20261008T201541Z/agi-all.bundle (20:15Z 10-08; 657 refs/archive/*, 'bundle verify' ok). belam imported them into MAIN, refs only, no overwrite, and NOT pushed to public origin (03:1xZ). Re-measured by sanctuary-master: refs/archive/worktrees = 657 on MAIN, 657/657 resolve to commits.
