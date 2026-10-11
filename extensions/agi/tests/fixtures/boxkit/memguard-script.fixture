@@ -132,7 +132,9 @@ while True:
             try:
                 if os.getpriority(os.PRIO_PROCESS, pid) > -5: os.setpriority(os.PRIO_PROCESS, pid, -5)
             except Exception: pass
-        elif PI_CMD.search(cmd): setadj(pid, 500)
+        elif PI_CMD.search(cmd):
+            setadj(pid, 500)
+            if pid in pu: late.append((pid, pu[pid]))               # a worker keeps its adj, but a nice it inherited from the harness is reset like any child's
         elif pid in pu: late.append((pid, pu[pid]))
         if not prot: unprot.append((rss, pid, comm))
         if pid in keep and rss > 0.70 * TOTAL and pid not in warned:

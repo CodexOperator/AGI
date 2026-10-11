@@ -933,10 +933,18 @@ def test_memguard_with_no_readable_baseline_leaves_the_child_and_says_so_once_pe
         assert said.count("[memguard-base]") == 1, (to, said)
 
 
-def test_memguard_a_pi_worker_inside_a_post_keeps_its_worker_value_not_the_unit_baseline(tmp_path):
+def test_memguard_a_pi_worker_inside_a_post_keeps_its_worker_adj_but_loses_the_nice_it_inherited(tmp_path):
+    worker = [(62, 20, "node", "/x/.npm-global/bin/pi --model m")]                     # forked by the protected harness: born at adj -900, nice -5
+    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(), passes=3, spawn={1: worker}, sysd={_unit(): "OOMScoreAdjust=0\nNice=3\n"})
+    assert _child(tmp_path, 62) == int(_vs()["PI_OOM_ADJ"]), _child(tmp_path, 62)       # the adj is the worker value, not the unit's
+    assert ev.nice[62] == 3 and len(ev.sysd) == 1, (ev.nice[62], ev.sysd)               # the nice is the unit's: it was inherited, not the guard's to give
+    assert ev.nice[20] == int(_vs()["PROTECT_NICE"])                                    # the harness keeps its own
+
+
+def test_memguard_proof2_does_not_call_a_pi_worker_wrong_when_the_guard_has_reset_its_inherited_nice(tmp_path):
     worker = [(62, 20, "node", "/x/.npm-global/bin/pi --model m")]
-    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(), passes=3, spawn={1: worker})
-    assert _child(tmp_path, 62) == int(_vs()["PI_OOM_ADJ"]) and ev.sysd == []
+    rc, out = _proof2(tmp_path, spawn={1: worker})
+    assert rc == 0 and "62" not in out, out                                              # a false UNDO here would undo a working guard
 
 
 def _unit_b(): return _unit().replace("agi-post@a", "agi-post@b")
@@ -999,10 +1007,10 @@ def test_memguard_base_and_tree_alerts_are_rate_limited_per_unit_not_per_kind(tm
 PROOF2 = KIT / "memguard-proof2.py"
 
 
-def _proof2(tmp_path, over=None, young=None, mut=None, nice=None, edit=None):
+def _proof2(tmp_path, over=None, young=None, mut=None, nice=None, edit=None, spawn=None):
     """The guard runs 2 passes on the fake box (it sets the adj values); then the PROOF reads that fake /proc."""
     over = over or {}
-    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(), passes=2, over=over)
+    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(), passes=2, over=over, spawn=spawn)
     proc = tmp_path / "proc"; (proc / "uptime").write_text("10000.00 0.00\n"); hz = os.sysconf("SC_CLK_TCK")
     for d in proc.iterdir():                                             # the fake kernel's nice, as the guard left it, into stat field 19
         if d.name.isdigit():
@@ -1080,9 +1088,39 @@ def _sh(script, tmp_path, **env):
     return subprocess.run(["sh", str(KIT / script)], env=e, capture_output=True, text=True)
 
 
-def _a2proof(tmp_path, codes, guard="time.sleep(5)\n", **env):
+_STUB_SYSTEMCTL = """#!/bin/sh
+case "$*" in
+  "is-active "*) echo "$HEALTH_ACTIVE"; [ "$HEALTH_ACTIVE" = active ];;
+  *NRestarts*) echo "$HEALTH_NREST";;
+  *ActiveEnterTimestamp*) [ -n "$HEALTH_SINCE" ] && echo "$HEALTH_SINCE";;
+  *) echo "stub systemctl: $*";;
+esac
+"""
+_STUB_JOURNALCTL = """#!/bin/sh
+echo "$*" >> "${JARGS:-/dev/null}"
+[ -z "$HEALTH_JEMPTY" ] || exit 0
+echo "Oct 11 09:00:00 box systemd[1]: Started agi-memguard.service."
+i=0; while [ "$i" -lt "${HEALTH_TB:-0}" ]; do echo "Traceback (most recent call last):"; i=$((i + 1)); done
+[ "${HEALTH_JRC:-0}" = 0 ] || { echo "Failed to read the journal: permission denied" >&2; exit "$HEALTH_JRC"; }
+"""
+GO_SHA = "a" * 40
+
+
+def _stubs(tmp_path, **health):
+    """A healthy guard by default: stub systemctl / journalctl on disk, the health in HEALTH_* (active, NRestarts, tracebacks, since)."""
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    for n, t in (("systemctl", _STUB_SYSTEMCTL), ("journalctl", _STUB_JOURNALCTL)): (tmp_path / ("stub-" + n)).write_text(t); (tmp_path / ("stub-" + n)).chmod(0o755)
+    h = dict(active="active", nrest="0", tb="0", since="Sun 2026-10-11 08:30:00 UTC", jrc="0", jempty=""); h.update(health)
+    return dict(SYSTEMCTL=tmp_path / "stub-systemctl", JOURNALCTL=tmp_path / "stub-journalctl", SUDO="", HEALTH_ACTIVE=h["active"], HEALTH_NREST=h["nrest"],
+                HEALTH_TB=h["tb"], HEALTH_SINCE=h["since"], HEALTH_JRC=h["jrc"], HEALTH_JEMPTY=h["jempty"], JARGS=tmp_path / "journalctl.args")
+
+
+def _a2proof(tmp_path, codes, guard="time.sleep(5)\n", health=None, staged=GO_SHA, sha=GO_SHA, a2since=None, **env):
     """codes = the exit code each look of a STUB proof2 gives, in order (None = the proof file is absent)."""
     tmp_path.mkdir(parents=True, exist_ok=True); stage = tmp_path / "stage"; stage.mkdir(); (tmp_path / "guard.py").write_text(guard)
+    (stage / "SHA").write_text(staged + "\n")
+    if a2since: (stage / "a2.since").write_text(a2since + "\n")
+    env = {**_stubs(tmp_path, **(health or {})), **({"SHA": sha} if sha else {}), **env}
     stub = tmp_path / "proof2-stub.py"
     if codes is not None:
         stub.write_text("import sys, pathlib\nc = pathlib.Path(%r)\nn = int(c.read_text()) if c.exists() else 0\nc.write_text(str(n + 1))\nsys.exit(%r[min(n, %d)])\n"
@@ -1110,17 +1148,46 @@ def test_memguard_a2_proof_gap_is_derived_from_the_installed_guard_never_a_liter
         assert (tmp_path / ("t" + tick) / "sleeps.log").read_text().split() == [gap], tick     # one wait between the two looks (PROOF_ONLY=2)
 
 
-def test_memguard_a2_proof_is_not_proven_when_the_gap_cannot_be_derived_or_the_staged_tree_is_not_the_go_sha(tmp_path):
+def test_memguard_a2_proof_is_not_proven_when_the_gap_cannot_be_derived(tmp_path):
     r, stage = _a2proof(tmp_path / "nogap", [0, 0], guard="no tick here\n")
     assert r.returncode == 3 and "a=nogap b=nogap" in r.stdout and not (stage / "proof2a.out").exists(), r.stdout       # the proof is not even run on a guessed gap
     r, stage = _a2proof(tmp_path / "two", [0, 0], guard="time.sleep(5)\ntime.sleep(6)\n")
     assert r.returncode == 3 and "nogap" in r.stdout
-    (tmp_path / "sha").mkdir(); stage = tmp_path / "sha" / "stage"; stage.mkdir(); (stage / "SHA").write_text("a" * 40 + "\n")
-    (tmp_path / "sha" / "guard.py").write_text("time.sleep(5)\n"); (tmp_path / "sha" / "ok.py").write_text("import sys\nsys.exit(0)\n")
-    r = _sh("memguard-a2.proof.sh", tmp_path / "sha", PROOF_ONLY=2, STAGE=stage, GUARD=tmp_path / "sha" / "guard.py", PROOF2=tmp_path / "sha" / "ok.py", SHA="b" * 40)
-    assert r.returncode == 3 and "not the GO sha" in r.stdout, r.stdout                                                 # a good proof from the WRONG tree proves nothing
-    r = _sh("memguard-a2.proof.sh", tmp_path / "sha", PROOF_ONLY=2, STAGE=stage, GUARD=tmp_path / "sha" / "guard.py", PROOF2=tmp_path / "sha" / "ok.py", SHA="a" * 40)
+
+
+def test_memguard_a2_proof_needs_the_go_sha_and_a_proof_from_the_wrong_bytes_proves_nothing_either_way(tmp_path):
+    r, stage = _a2proof(tmp_path / "nosha", [0, 0], sha="")
+    assert r.returncode == 3 and "set SHA" in r.stdout and not (stage / "proof2a.out").exists(), r.stdout                  # refused before any look; exit 1 stays UNDO's alone
+    for i, codes in enumerate(([0, 0], [1, 0], [0, 1], [2, 2])):                                                           # a good, a wrong-side and a dead proof: all NOT PROVEN
+        r, stage = _a2proof(tmp_path / ("wrong%d" % i), codes, staged="b" * 40)
+        assert r.returncode == 3 and "not the GO sha" in r.stdout, (codes, r.returncode, r.stdout)
+    r, stage = _a2proof(tmp_path / "right", [0, 0])
     assert r.returncode == 0 and "VERDICT: PROVEN" in r.stdout, r.stdout
+
+
+@pytest.mark.parametrize("health", [dict(active="inactive"), dict(active="failed"), dict(active=""), dict(nrest="1"), dict(nrest="5"), dict(nrest=""), dict(tb="1"), dict(tb="3")])
+def test_memguard_a2_proof_is_not_proven_when_the_guard_is_not_alive_even_if_proof_2_passes(tmp_path, health):
+    r, stage = _a2proof(tmp_path, [0, 0], health=health)                  # a guard that set -900 on tick 1 and then died or crash-loops
+    assert r.returncode == 3 and "the guard is not healthy" in r.stdout and (stage / "not-proven.txt").exists(), (health, r.returncode, r.stdout)
+
+
+@pytest.mark.parametrize("health", [dict(jrc="1"), dict(jrc="2"), dict(jrc="141"), dict(jempty="1")])
+def test_memguard_a2_proof_an_unreadable_journal_is_not_zero_tracebacks(tmp_path, health):
+    r, stage = _a2proof(tmp_path, [0, 0], health=health)                     # journalctl / sudo fails, or answers nothing at all
+    assert r.returncode == 3 and "tracebacks=unreadable" in r.stdout and "the guard is not healthy" in r.stdout, (health, r.returncode, r.stdout)
+
+
+def test_memguard_a2_proof_reads_the_journal_since_the_a2_act_not_the_units_latest_start(tmp_path):
+    r, stage = _a2proof(tmp_path / "act", [0, 0], a2since="2026-10-11T08:10:20Z")        # the unit's ActiveEnterTimestamp (stub) is 08:30:00: a restart moved it
+    assert r.returncode == 0, r.stdout
+    assert "--since 2026-10-11 08:10:20 UTC" in (tmp_path / "act" / "journalctl.args").read_text(), (tmp_path / "act" / "journalctl.args").read_text()
+    r, stage = _a2proof(tmp_path / "unit", [0, 0])                                          # no a2.since: the unit's own start, as before
+    assert "--since Sun 2026-10-11 08:30:00 UTC" in (tmp_path / "unit" / "journalctl.args").read_text()
+
+
+def test_memguard_a2_proof_a_wrong_side_is_still_undo_whatever_the_guards_health(tmp_path):
+    r, stage = _a2proof(tmp_path, [1, 0], health=dict(active="inactive"))
+    assert r.returncode == 1 and "VERDICT: UNDO A2" in r.stdout, r.stdout
 
 
 def _staged(tmp_path, tamper=False):
@@ -1148,21 +1215,47 @@ def test_memguard_a1_installs_the_staged_bytes_proves_them_and_refuses_a_tampere
     assert r.returncode != 0 and not list(sb2.iterdir()) and not list(ud2.iterdir()), r.stdout + r.stderr        # sha256sum -c refuses; nothing installed
 
 
-def test_memguard_a2_undo_resumes_only_what_the_guard_named_and_the_kernel_still_has_stopped(tmp_path):
+def test_memguard_a2_undo_resumes_what_this_a2_stopped_across_a_restart_and_nothing_older(tmp_path):
     import signal, time
-    stopped = subprocess.Popen(["sleep", "30"]); running = subprocess.Popen(["sleep", "30"])
+    before, crashed, running = (subprocess.Popen(["sleep", "30"]) for _ in range(3))
     try:
-        os.kill(stopped.pid, signal.SIGSTOP); time.sleep(0.3)
-        state = lambda p: Path("/proc/%d/stat" % p).read_text().rsplit(")", 1)[1].split()[0]
-        assert state(stopped.pid) == "T" and state(running.pid) == "S"
-        log = tmp_path / "guard.log"
-        log.write_text("t SUSPENDED pid %d (sleep, unit x): ...\nt SUSPENDED pid %d (sleep)\nt SUSPENDED pid 999999 (gone)\n" % (stopped.pid, running.pid))
-        r = _sh("memguard-a2.undo.sh", tmp_path, SUDO="env", SYSTEMCTL="true", LOG=log)
+        for q in (before, crashed): os.kill(q.pid, signal.SIGSTOP)
         time.sleep(0.3)
-        assert "resuming pid %d" % stopped.pid in r.stdout and "resuming pid %d" % running.pid not in r.stdout, r.stdout + r.stderr
-        assert state(stopped.pid) == "S" and state(running.pid) == "S"
+        state = lambda p: Path("/proc/%d/stat" % p).read_text().rsplit(")", 1)[1].split()[0]
+        assert state(before.pid) == "T" and state(crashed.pid) == "T" and state(running.pid) == "S"
+        stage = tmp_path / "stage"; stage.mkdir(); (stage / "a2.since").write_text("2026-10-11T08:30:00Z\n")
+        log = tmp_path / "guard.log"
+        log.write_text("2026-10-11T08:00:00Z SUSPENDED pid %d (sleep, unit x): an EARLIER A2\n2026-10-11T08:40:00Z SUSPENDED pid %d (sleep, unit x): this A2, before the crash\n"
+                       "2026-10-11T08:41:00Z SUSPENDED pid %d (sleep)\n2026-10-11T08:42:00Z SUSPENDED pid 999999 (gone)\n" % (before.pid, crashed.pid, running.pid))
+        env = _stubs(tmp_path, since="Sun 2026-10-11 09:00:00 UTC")       # the unit RESTARTED at 09:00, after the stop at 08:40: the guard's own start time would skip it
+        r = _sh("memguard-a2.undo.sh", tmp_path, STAGE=stage, LOG=log, **env)
+        time.sleep(0.3)
+        assert "resuming pid %d" % crashed.pid in r.stdout and "resuming pid %d" % running.pid not in r.stdout and "resuming pid %d" % before.pid not in r.stdout, r.stdout + r.stderr
+        assert state(crashed.pid) == "S" and state(before.pid) == "T" and state(running.pid) == "S"      # an earlier A2's stop is left alone
+        assert not (stage / "a2.since").exists()                                                     # the next A2 starts its own scope
+        r = _sh("memguard-a2.undo.sh", tmp_path, STAGE=stage, LOG=log, **env)                          # no a2.since: nothing resumed, candidates listed
+        time.sleep(0.3)
+        assert "NOTHING resumed" in r.stdout and "pid %d" % before.pid in r.stdout and state(before.pid) == "T", r.stdout + r.stderr
     finally:
-        for q in (stopped, running): q.kill(); q.wait()
+        for q in (before, crashed, running): q.kill(); q.wait()
+
+
+def test_memguard_a2_writes_the_undo_scope_before_the_first_start_and_keeps_it_on_a_rerun(tmp_path):
+    sb, ud = tmp_path / "sbin", tmp_path / "units"; sb.mkdir(); ud.mkdir(); stage = tmp_path / "stage"; stage.mkdir()
+    stub = tmp_path / "stub-systemctl"
+    stub.write_text('#!/bin/sh\n[ -s "$STAGE/a2.since" ] && echo "since-present-at-start: $*" >> "$LOGF" || echo "since-ABSENT-at-start: $*" >> "$LOGF"\n'); stub.chmod(0o755)
+    env = dict(SUDO="", SYSTEMCTL=stub, SBIN=sb, UNITDIR=ud, STAGE=stage, LOGF=tmp_path / "calls.log")
+    r = _sh("memguard-a2.sh", tmp_path, **env)
+    assert r.returncode == 1 and "A1 has not run" in r.stdout and not (stage / "a2.since").exists(), r.stdout          # refused: nothing written
+    (sb / "agi-memguard.py").write_text("x"); (ud / "agi-memguard.service").write_text("x")
+    r = _sh("memguard-a2.sh", tmp_path, **env)
+    assert r.returncode == 0, r.stdout + r.stderr
+    first = (stage / "a2.since").read_text().strip()
+    assert re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ", first), first
+    assert (tmp_path / "calls.log").read_text().strip() == "since-present-at-start: enable --now agi-memguard.service"      # written BEFORE the start
+    (stage / "a2.since").write_text("2026-10-11T08:00:00Z\n")
+    r = _sh("memguard-a2.sh", tmp_path, **env)
+    assert (stage / "a2.since").read_text().strip() == "2026-10-11T08:00:00Z", "a re-run keeps the first stamp"
 
 
 @pytest.mark.parametrize("name", ["a0", "a1", "a1.proof", "a1.undo", "a2", "a2.proof", "a2.undo"])
@@ -1185,7 +1278,7 @@ def _mini_repo(tmp_path):
 @pytest.mark.skipif(shutil.which("git") is None, reason="needs git")
 def test_memguard_a0_stages_what_hashes_to_its_fixtures_and_refuses_a_template_that_does_not(tmp_path):
     repo, g = _mini_repo(tmp_path); sha = g("rev-parse", "HEAD")
-    stage = tmp_path / "stage"
+    stage = tmp_path / "memguard-A0"
     r = _sh("memguard-a0.sh", tmp_path, SHA=sha, STAGE=stage, MAIN=repo)
     assert r.returncode == 0 and "A0 OK" in r.stdout, r.stdout + r.stderr
     assert "C1 memguard-script" in r.stdout and "C1 memguard-service" in r.stdout
@@ -1193,11 +1286,22 @@ def test_memguard_a0_stages_what_hashes_to_its_fixtures_and_refuses_a_template_t
     assert (stage / "src/extensions/agi/boxkit/memguard-proof2.py").is_file() and (stage / "src/extensions/agi/boxkit/memguard-a2.proof.sh").is_file()   # the acts ride the archive
     t = repo / "extensions/agi/boxkit/templates/memguard-script.tmpl"; t.write_text(t.read_text().replace("stays stopped", "stays STOPPED", 1))
     g("commit", "-qam", "tamper"); bad = g("rev-parse", "HEAD")
-    r = _sh("memguard-a0.sh", tmp_path, SHA=bad, STAGE=tmp_path / "stage-bad", MAIN=repo)
-    assert r.returncode == 1 and "A0 REFUSED (C1)" in r.stdout and not (tmp_path / "stage-bad" / "out" / "agi-memguard.py").exists(), r.stdout
+    r = _sh("memguard-a0.sh", tmp_path, SHA=bad, STAGE=tmp_path / "memguard-A0-bad", MAIN=repo)
+    assert r.returncode == 1 and "A0 REFUSED (C1)" in r.stdout and not (tmp_path / "memguard-A0-bad" / "out" / "agi-memguard.py").exists(), r.stdout
     for bogus in ("main", "abc123", "Z" * 40):
-        r = _sh("memguard-a0.sh", tmp_path, SHA=bogus, STAGE=tmp_path / "stage-x", MAIN=repo)
+        r = _sh("memguard-a0.sh", tmp_path, SHA=bogus, STAGE=tmp_path / "memguard-A0-x", MAIN=repo)
         assert r.returncode == 1 and "A0 REFUSED" in r.stdout, (bogus, r.stdout)
+    # rm -rf runs on STAGE: only a directory under HOME named memguard-A0*, no '..', never HOME or / -- and the victim is untouched
+    victim = tmp_path / "victim"; victim.mkdir(); (victim / "keep.txt").write_text("x")
+    (tmp_path / "memguard-A0" / "inner").mkdir(exist_ok=True)
+    for bad_stage in (victim, tmp_path, tmp_path / "memguard-A0" / ".." / "victim", "/tmp/memguard-A0-elsewhere", "/", tmp_path / "other-A0", tmp_path / "x" / "memguard-A0"):
+        r = _sh("memguard-a0.sh", tmp_path, SHA=sha, STAGE=bad_stage, MAIN=repo)
+        assert r.returncode == 1 and "A0 REFUSED" in r.stdout and "STAGE" in r.stdout, (str(bad_stage), r.stdout)
+        assert (victim / "keep.txt").exists() and (tmp_path / "memguard-A0" / "SHA").exists(), str(bad_stage)
+    for home in ("/", ""):                                                                    # HOME empty makes "/memguard-A0*" match: that is the check's job
+        r = _sh("memguard-a0.sh", tmp_path, SHA=sha, STAGE=Path(home + "/memguard-A0-test"), MAIN=repo, HOME=home)
+        assert r.returncode == 1 and "A0 REFUSED" in r.stdout, (home, r.stdout)
+    assert (tmp_path / "memguard-A0" / "SHA").exists()
 
 
 def test_memguard_says_a_tree_it_cannot_read_once_per_unit(tmp_path):
