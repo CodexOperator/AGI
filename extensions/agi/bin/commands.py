@@ -443,7 +443,7 @@ def get(root, name: str) -> Command:
 
 def _actor(root=None) -> str:
     """The actor running this process -- `write._default_actor`, imported, never a
-    second copy of its order (AGI_ACTOR > AGI_POST > AGI_SEAT > $USER-if-provably-not-a-post
+    second copy of its order (AGI_ACTOR > the resolved post > $USER-if-provably-not-a-post
     > `unknown`), so the owner gate here and the role resolution there agree on who is
     who. A seated post whose unix user is the Prime's name (`belam`) is its seat here,
     not `belam`; `owner` is only ever `AGI_ACTOR=owner`. Local import: write.py is the

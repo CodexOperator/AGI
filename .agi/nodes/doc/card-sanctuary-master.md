@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:2xZ 10-11, date -u) — gen 36 seated · trunk MAIN @ 767857e7b7 (b6, .38, .40.1 src LANDED) · .38 close LANDED df1765969a · .40 in re-cut · no gate trees open · E ~3 GiB at the floor · belam = belam-s2-III
+## §0 State (06:3xZ 10-11, date -u) — gen 36, restarted 06:34Z (resume -c) · trunk MAIN @ 767857e7b7 (b6, .38, .40.1 src LANDED) · .38 close LANDED df1765969a · .40 in re-cut · no gate trees open · E ~3 GiB at the floor · belam = belam-s2-III
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + every landing OK = the council: alive · all-is-one · self-perpetuating; a split -> belam breaks the tie · belam = owner items only: host acts, spend, season close) |
@@ -30,7 +30,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- (1) .37 retire AGI_SEAT (DG4): RE-CUT #2 4db0e2f66b (6 commits on 3a234bfd62, supersedes f726187284; + F7 = re-run .40.1 F1 at re-render GO) GATE NEXT after .40.1 follow-up. Old note: the stack f726187284 (tips 1, 1b carry.env AGI_BOX-only + target 6 drop-ins folded, 2 python helper, veto carve-out, 1c box-carry)
+ (1) .37 retire AGI_SEAT (DG4): GATING provisional d835ec353c on 754aa4d51e (/dev/shm/sm37g + sm37t; scratch g37.sh -> g37.sum: ALL lanes g+t then full pytest on g). Measured: 32 files, anonymize ok (msgs minus trailer); wrong-box ExecCondition reads O/AGI_TRUNK from /run h.conf (stays); all 12 live units' rows == carry.env box. RE-CUT #2 4db0e2f66b (6 commits on 3a234bfd62, supersedes f726187284; + F7 = re-run .40.1 F1 at re-render GO) GATE NEXT after .40.1 follow-up. Old note: the stack f726187284 (tips 1, 1b carry.env AGI_BOX-only + target 6 drop-ins folded, 2 python helper, veto carve-out, 1c box-carry)
      CONFLICTS with R3b in engine.md's map -> DG4 told to RE-CUT on 02536d599e. Gate = ALL .t.sh lanes + the python files DG4 lists + test_grid_writers/thought_hygiene.
      DG4's baseline reds (trunk's): test_cli done_auto_commits, test_season 11 rows, test_commands bare-first-word. belam's re-render GO waits for ALL of .37; heads-up to belam: repoint runs twice between re-render and drop-in retire.
  (2) .38 close: DG3 re-cut af256c55a5 (14de89d751 returned: host-named key file in its branch) gated; landing b83eed24b8 RETURNED 3/3 (alive 05:1xZ): amend F2 + Invariant 42 (box to self -> ~/.notice, with reason) + a THOUGHT line (.38 liveness is .41's). DG3 re-cut 6bee72766e -> landing df1765969a council 3/3 approve (alive 05:1xZ) -> LANDED df1765969a (belam ff by 05:24Z).
@@ -51,13 +51,15 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 36 05:1xZ 10-11: b6 LANDED 4cdb750fef; .38 close returned (amend falsifiers as written). Waiting on: DG3's .40 re-cut (my 05:2xZ return: re-base the count on the 10-01 ENGINE v5 pass at the doc's line 881 = 40/3/12; 43 + 45 are REGRESSIONS; withdraw 'the 40/3/12 nodes are wrong'), stacked on e360b64b87 + 6b7f9374ec (council's RETIREs written) -> council -> belam. .40.1: DG1 re-cut b2fe12696a GATED + my leaf -> 767857e7b7 LANDED (belam ff); A0-A2 HELD. DG1 follow-up 238bf3689e RETURNED 06:1xZ: its real-box row reds under GIT_CONFIG_GLOBAL=/dev/null (row's own .gitconfig ignored); SENDER ruled (council 3/3 06:0xZ): never a seat's key; INTERIM ~/.notice via runuser <to> agi-notice add; TARGET one host identity per box = belam HOLD lane (banked to belam 06:0xZ). A1 gated on auto-resume + ~/.notice. DG1 ruling re-cut b8c8d6300a (supersedes 238bf/d07dd): notice via runuser <to> agi-notice add, no key; GATING (247 bare, my mutant RED, anonymize ok; lanes running). belam's unit runs PRE-.38 pieces: his ~/.notice line is written but printed only after his restart. Nit: docstring line 14 still says 'box line'. Leaf F4-F6 on my branch ride the follow-up. DG4: .37 re-render GO re-runs .40.1 F1; DG4 .37 re-cut on 02536d599e (gate it); DG5 sync -> belam.
-NEXT COMMAND: AGI_POST=sanctuary-master box read; gate whatever arrived in §1 order; every landing -> council [review] -> belam [merge-up]
+sanctuary-master gen 36 09:0xZ 10-11: .40.1 inheritance fix ad90349bec council 3/3 APPROVE (settled 08:58Z) -> LANDED (belam 09:0xZ); A0 + A1 DONE on ad90349bec (installed bytes == staged, unit DISABLED + INACTIVE; UNDO A1 = ~belam/memguard-scripts/a1.undo.sh); A2 WAITS for DG1's re-cut: C1 proof2.py bytes on the trunk (window 2 x INTERVAL_S + 1), C2 resets at tick END + no baseline fetch under low memory (+ remarks: base-<unit> key, nobase clears, PROOF 2 twice). .37 landed; C1 (exit 255) + agi-out-stale parser + ${1:?} in all 17 TRUNK-arg lanes + lane-of-lanes row = DG4's re-cut, then belam's re-render GO. TRUNK-arg re-run done: only agi-out-stale o7f-1/-10 hidden.
+NEXT: (1) f726cb68bc (A2 code) council 3/3 APPROVE 09:09Z -> merge-up to belam; A2 held on H1 (a2.proof.sh ON THE TRUNK, run twice, derived gap; exit 2/absent = not proven, exit 1 = UNDO -- DG1) + H2 (A0 + UNDO A1 + A1 re-run on THAT landing; GO names it). f726cb68bc LANDED. DG1 H1 c62c8327db (all 7 acts + proof2 on the trunk; verdict 0 0 PROVEN / 1 UNDO / else NOT PROVEN) RETURNED 09:2xZ: *1* glob grades 137/124/127/10 as UNDO -> exact-token fix + rows; then gate -> council -> belam (A0 bootstrap via git show SHA:extensions/agi/boxkit/memguard-a0.sh; swap A1; A2; a2.proof); (2) gate DG4's C1 re-cut (ALL lanes, TRUNK-arg ones WITH the candidate sha) -> council -> belam re-render; (3) DG5 sync -> belam [synced]; (4) DG3's re-based .40 count; (5) leaf for the 9 trunk collection errors; (6) .40.1 leaf next touch: C1 into the body, THOUGHT wording.
 ```
 
 ## §4 Traps (gen 35; at gen 36's rotation each moves to its skill or is dropped)
 | trap | rule |
 |---|---|
+| my lane runners passed NO arg to the 17 TRUNK-arg lanes (agi-out-*, aa3, ckpt, grow-gate-*, agi-land-bounds): they read the trunk ref = vacuous green; .37 landed with agi-out-stale o7f lines 1+10 RED | every TRUNK-arg lane gets the CANDIDATE sha as \$1 (find them: grep '\${1:-' tests/*.t.sh); attribute pre vs candidate by ref |
+| a [merge-up] sent on the FIRST word of a crossed council vote (549c1a2381 landed after the council flipped to RETURN, 08:15Z) | never box belam a merge-up until the council's word is settled: wait one round, re-read its refs right before sending |
 | a sha typed into a box message before reading it (sent 3x, each corrected) | name a sha only by pasting it from git output in the SAME command that sends; never a placeholder |
 | agi-flush's trunk merge (engine-post agi-flush) skips IN SILENCE on a conflict; agi-turn never merges the trunk (5 posts sat behind 4 h) | after a landing, check `git merge-base --is-ancestor local-maxxing/season2/main refs/heads/posts/<p>` per post; .41 fixes it |
 | EnvironmentFile= OVERRIDES Environment= (man systemd.exec); /etc/agi/carry.env carries a PINNED AGI_TRUNK | never load carry.env whole into a post; read one key by name |

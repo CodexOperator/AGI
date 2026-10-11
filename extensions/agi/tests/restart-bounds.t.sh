@@ -16,7 +16,8 @@ printf '[user]\n\tname=t\n\temail=t@t\n[commit]\n\tgpgsign=false\n[safe]\n\tdire
 # DEF (DG1 04:15Z, belam 04:14Z): the DEFAULT env of every unit-line row is the REAL ownership: an empty global/system git config and git's own different-owner seam, so a git read of a repo another uid owns is refused unless the line itself carries the safe.directory. $T/gitconfig (safe.directory=*) stays for the fixture's own git calls above and for the ONE explicit same-uid row (ra11-same-uid).
 DEF='GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1'
 # --- a3-post: every ExecCondition line of the post unit, run as sh would run the value (%i -> x), cwd without .ssh/out-refused
-grep '^ExecCondition=' $T/up|sed 's/^ExecCondition=//;s/%i/x/g' >$T/conds
+# the [wrong-box] condition (goal:g7.16.1.11.37) is a different rule -- it needs AGI_BOX and a trunk row, and post-env.t.sh w1..w4 run it -- so it is not one of the agi-run skip lines counted here
+grep '^ExecCondition=' $T/up|grep -v wrong-box|sed 's/^ExecCondition=//;s/%i/x/g' >$T/conds
 conds(){ rcs=;while IFS= read -r l;do (cd $T/cwd&&env -i PATH=$1:/usr/bin:/bin HOME=$T/hm $DEF sh -c "$l" >/dev/null 2>&1);rcs="$rcs $?";done <$T/conds;rcs=${rcs# };}
 conds $T/nobin;absent="$rcs";conds $T/withrun;present="$rcs";nc=$(wc -l <$T/conds|tr -d ' ')
 two=0;other=0;for r in $absent;do case $r in 0);;2)two=$((two+1));;*)other=$((other+1));;esac;done
