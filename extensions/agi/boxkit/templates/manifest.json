@@ -421,7 +421,6 @@
     "PI_CMD",
     "PI_OOM_ADJ",
     "POST_CGROUP_RE",
-    "POST_PI_COMM",
     "PROTECT_CMD",
     "PROTECT_COMM",
     "PROTECT_NICE",
@@ -432,7 +431,7 @@
     "SUSPEND_RATIO"
    ],
    "new_bytes": false,
-   "fixture_sha256": "4a27fba446ca202c308b7566f134fa3a4381f2e233cef757fe61697f1565ba52"
+   "fixture_sha256": "b287692062dca44a7b8bca505b0ff608df04c9957557530d0fe8ff51382fc257"
   },
   {
    "name": "health-script",

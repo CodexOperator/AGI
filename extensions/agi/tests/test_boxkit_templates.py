@@ -590,52 +590,110 @@ def test_the_collision_fallback_re_renders_with_the_whole_stand_in_set():
     assert not [t for t in HOST_TOKENS if t and t in got], piece["name"]
 
 
-# 7g -- R-MG: A POST'S pi IS PROTECTED LIKE claude, A pi WORKER ELSEWHERE KEEPS +500.
-# The guard's loop is module-level (not importable), so this runs the RENDERED loop for one
-# pass over a FAKE /proc tree in tmp (every "/proc" in the source re-pointed at it, one
-# sleep raising to end the pass): protected = comm claude or a pi whose cgroup is under
-# /agi.slice/agi-post@<name>.service; a pi in any other cgroup keeps the worker +500.
-def test_memguard_protects_a_posts_pi_and_leaves_other_pi_workers_at_worker_adj(tmp_path):
-    piece = BY_NAME["memguard-script"]
-    proc = tmp_path / "proc"
-    pi_cmd = "/x/.npm-global/bin/pi --model m"
-    rows = {   # pid: (comm, cmdline, cgroup line, start adj)
-        101: ("pi", "/opt/agi/bin/pi --pi-free", _post_cg(), 0),
-        102: ("pi", "/opt/agi/bin/pi", _post_cg("/child.scope"), 0),
-        103: ("node", pi_cmd, "0::/user.slice/user-1.slice/app.slice/worker.scope", 0),
-        104: ("pi", "/opt/agi/bin/pi", "0::/user.slice/user-1.slice/app.slice/x.scope", 0),
-        105: ("claude", "claude", "0::/user.slice/user-1.slice/session-1.scope", 0),
-        106: ("bash", "bash", _post_cg(), 0),
-        107: ("pi", "/opt/agi/bin/pi", "0::/agi.slice/agi-postX/" + "agi-post@{}.service".format("a"), 0),
-        108: ("pi", "/opt/agi/bin/pi", "0::/agi.slice", 0),
-    }
-    (proc).mkdir()
+# 7g -- goal:g7.16.1.11.40.1: A POST'S SPINE AND HARNESS ARE PROTECTED BY CGROUP + PLACE IN THE UNIT'S TREE.
+# The guard's loop is module-level (not importable), so this runs the RENDERED loop for one pass over a FAKE /proc
+# tree in tmp (every "/proc" re-pointed at it, one sleep raising to end the pass, os.kill / subprocess.run / the
+# priority calls replaced by recorders). The fake post unit has the shape measured on a v5 post:
+#   script > sh > TRACER > { poller > sleep, sh > track > grep, HARNESS > { bash > sleep, mcp node, a child named like the harness } }
+# where the HARNESS's argv is the tail of the TRACER's, and one ORPHAN tool sits in the cgroup under pid 1.
+# Protected: the chain, the tracer's plumbing and the harness, whatever the harness is called. Not protected: every
+# descendant of the harness, the orphan, anything outside every post. Nothing is selected by a command name inside a post.
+def _fake_proc(tmp_path, rows):
+    """rows: pid -> (comm, argv, cgroup line, ppid, start, resident pages)."""
+    proc = tmp_path / "proc"; proc.mkdir()
     (proc / "meminfo").write_text("MemTotal: 33554432 kB\nMemAvailable: 33000000 kB\n")
-    for pid, (comm, cmd, cg, adj) in rows.items():
+    for pid, (comm, cmd, cg, ppid, start, pages) in rows.items():
         d = proc / str(pid); d.mkdir()
         (d / "comm").write_text(comm + "\n"); (d / "cmdline").write_text(cmd.replace(" ", "\0") + "\0")
-        (d / "statm").write_text("10 10 1 1 0 1 0\n"); (d / "cgroup").write_text(cg + "\n")
-        (d / "oom_score_adj").write_text(str(adj))
+        (d / "statm").write_text("10 %d 1 1 0 1 0\n" % pages); (d / "cgroup").write_text(cg + "\n")
+        (d / "stat").write_text("%d (%s) S %d %s %d 0 0\n" % (pid, comm, ppid, " ".join(["0"] * 17), start))
+        (d / "oom_score_adj").write_text("0")
+    return proc
+
+
+def _guard_pass(tmp_path, rows):
+    piece = BY_NAME["memguard-script"]
+    proc = _fake_proc(tmp_path, rows)
     src = R.rendered(piece, _vs(MEMGUARD_LOG=str(tmp_path / "guard.log"))).replace("/proc", str(proc))
     assert "/var/log" not in src       # log() writes a tmp path here, never the live log
     src = src.replace("time.sleep(", "(_ for _ in ()).throw(SystemExit)  # (")
-    calls = []   # recorders stand in for os.kill / subprocess.run: no real signal, no spawn
     assert all(c in src for c in ("os.kill(", "subprocess.run(", "os.getpriority(", "os.setpriority("))
     src = src.replace("os.kill(", "_kill(").replace("subprocess.run(", "_run(")
     src = src.replace("os.getpriority(", "_gp(").replace("os.setpriority(", "_sp(")   # fake pids may be real ones
-    ns = {"__name__": "memguard_test", "_kill": lambda *a, **k: calls.append(("kill", a)),
-          "_run": lambda *a, **k: calls.append(("run", a)), "_gp": lambda *a: 0, "_sp": lambda *a: None}
+    kills, runs = [], []
+    ns = {"__name__": "memguard_test", "_kill": lambda pid, sig: kills.append(pid),
+          "_run": lambda *a, **k: runs.append(a), "_gp": lambda *a: 0, "_sp": lambda *a: None}
     with pytest.raises(SystemExit):
         exec(compile(src, "memguard-rendered", "exec"), ns)
-    assert calls == [], calls                               # nothing was signalled or spawned
-    adj = {pid: int((proc / str(pid) / "oom_score_adj").read_text()) for pid in rows}
+    adj = {pid: int((tmp_path / "proc" / str(pid) / "oom_score_adj").read_text()) for pid in rows}
+    return adj, sorted(kills), runs
+
+
+def _post_unit(harness_comm="zzz-new", tracee="zzz-new --model m -c go", big=()):
+    """The fake post unit; `big` = pids given a huge resident set (over 70% of the fake MemTotal)."""
+    cg = _post_cg(); huge = 7_000_000
+    def r(comm, cmd, ppid, start, pid, cgl=cg):
+        return (comm, cmd, cgl, ppid, start, huge if pid in big else 10)
+    rows = {
+        10: r("script", "script -qfaO/h/o -c agi-run", 1, 100, 10),
+        11: r("sh", "sh -c agi-run", 10, 101, 11),
+        12: r("strace", "strace -qqf -b execve -e%file -o|agi-track " + tracee, 11, 102, 12),
+        13: r("agi-run", "/bin/sh /h/bin/agi-run", 12, 103, 13), 14: r("sleep", "sleep 300", 13, 104, 14),
+        15: r("sh", "sh -c agi-track", 12, 105, 15), 16: r("agi-track", "/bin/sh /h/bin/agi-track", 15, 106, 16),
+        17: r("grep", "grep --line-buffered -o x", 16, 107, 17),
+        20: r(harness_comm, tracee, 12, 110, 20),
+        21: r("bash", "/bin/bash -c tool", 20, 120, 21), 22: r("sleep", "sleep 5", 21, 121, 22),
+        23: r("node", "node mcp-server", 20, 122, 23), 24: r("claude", "claude -p child", 20, 123, 24),
+        30: r("bash", "/bin/bash -c orphan", 1, 900, 30),
+    }
+    out = "0::/user.slice/user-1.slice/session-1.scope"
+    rows[40] = ("claude", "claude", out, 1, 5, huge if 40 in big else 10)              # outside the posts, by comm as before
+    rows[41] = ("node", "/x/.npm-global/bin/pi --model m", out, 1, 6, 10)               # a pi worker outside: +500
+    rows[42] = ("pi", "/opt/agi/bin/pi", "0::/agi.slice/agi-postX/agi-post@a.service", 1, 7, 10)   # prefix lookalike
+    rows[43] = ("pi", "/opt/agi/bin/pi", "0::/agi.slice", 1, 8, 10)
+    return rows
+
+
+def test_memguard_protects_a_posts_spine_and_harness_by_tree_and_nothing_under_the_harness(tmp_path):
+    adj, kills, runs = _guard_pass(tmp_path, _post_unit())
     prot, worker = int(_vs()["PROTECT_OOM_ADJ"]), int(_vs()["PI_OOM_ADJ"])
-    assert adj[101] == prot and adj[102] == prot, adj       # a post's pi (and one in a child scope)
-    assert adj[103] == worker, adj                          # a pi worker by cmdline, outside agi.slice
-    assert adj[104] == 0, adj                               # a pi by comm only, outside agi.slice: untouched as today
-    assert adj[105] == prot, adj                            # claude, as before
-    assert adj[106] == 0, adj                               # a non-pi in the post's cgroup: not widened
-    assert adj[107] == 0 and adj[108] == 0, adj             # prefix lookalikes do not match
+    assert [adj[p] for p in (10, 11, 12, 13, 14, 15, 16, 17)] == [prot] * 8, adj    # the spine, incl. the tracer's plumbing
+    assert adj[20] == prot, adj                       # the harness, under a command name nothing lists
+    assert [adj[p] for p in (21, 22, 23)] == [0, 0, 0], adj      # tool descendants: unprotected
+    assert adj[24] == 0, adj                          # a child NAMED like a protected comm, under the harness: unprotected
+    assert adj[30] == 0, adj                          # an orphan in the cgroup (parent 1): not in the unit's tree
+    assert adj[40] == prot, adj                       # claude outside every post: by comm, as before
+    assert adj[41] == worker, adj                     # a pi worker outside the posts keeps +500
+    assert adj[42] == 0 and adj[43] == 0, adj         # prefix lookalikes do not match
+    assert kills == [], kills
+
+
+def test_memguard_a_new_harness_name_is_protected_and_a_by_name_selector_is_red(tmp_path):
+    for comm in ("claude", "pi", "zzz-other"):
+        (tmp_path / comm).mkdir()
+        adj, _, _ = _guard_pass(tmp_path / comm, _post_unit(harness_comm=comm, tracee=comm + " --model m -c go"))
+        assert adj[20] == int(_vs()["PROTECT_OOM_ADJ"]) and adj[24] == 0, (comm, adj)
+
+
+def test_memguard_stops_a_runaway_tool_but_never_a_posts_spine_or_harness(tmp_path):
+    # tool 21, harness 20, tracer 12 and the outside process 40 all over 70% of RAM: only the tool and the outsider stop
+    adj, kills, runs = _guard_pass(tmp_path, _post_unit(big=(21, 20, 12, 40)))
+    assert kills == [21, 40], kills
+    assert adj[20] == int(_vs()["PROTECT_OOM_ADJ"]) and adj[21] == 0, adj
+    said = [a[0][-1] for a in runs]
+    assert sum("spine or harness" in m for m in said) >= 2, said   # the harness and the tracer each alert (journal line), not silence
+
+
+def test_memguard_with_no_harness_found_protects_only_the_spine_chain_and_alerts(tmp_path):
+    rows = _post_unit()
+    rows[20] = rows[20][:1] + ("zzz-new --title-rewritten",) + rows[20][2:]      # the harness rewrote its argv
+    adj, kills, runs = _guard_pass(tmp_path, rows)
+    prot = int(_vs()["PROTECT_OOM_ADJ"])
+    assert [adj[p] for p in (10, 11, 12)] == [prot] * 3, adj     # the chain down to the tracer
+    assert [adj[p] for p in (13, 15, 20, 21)] == [0, 0, 0, 0], adj    # nothing else: the harness cannot be told from a tool
+    assert any("no harness found" in a[0][-1] for a in runs), [a[0][-1] for a in runs]   # an unidentified harness alerts by name
+    assert kills == [], kills
+
 
 
 # 7d -- FIXTURE PROVENANCE. By design no committed test may read a live unit, so nothing
