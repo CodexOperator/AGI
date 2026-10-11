@@ -40,15 +40,14 @@ def _run(tmp_path, script=SCRIPT, extra_env=None):
     if not (tmp_path / "stubs").exists():
         _stubs(tmp_path)
     env = {"PATH": f"{tmp_path / 'stubs'}:/usr/bin:/bin", "HOME": str(tmp_path),
-           "S": str(tmp_path / "state"), "STUB_LOG": str(tmp_path / "log"), "AS": str(SPOOL_PY), **(extra_env or {})}
+           "S": str(tmp_path / "state"), "STUB_LOG": str(tmp_path / "log"), "AS": str(SPOOL_PY), "STORES": str(tmp_path), **(extra_env or {})}
     return subprocess.run(["sh", str(script)], env=env, capture_output=True, text=True, timeout=60)
 
 
 def _spool_for(tmp_path):
-    """SELF's spool is /var/lib/agi/<SELF>/alarm.spool: point SELF at a name whose dir is tmp via a patched copy of the script."""
-    text = SCRIPT.read_text().replace('/var/lib/agi/$SELF/alarm.spool', f'{tmp_path}/alarm.spool')
-    p = tmp_path / "agi-quiet-watch"; p.write_text(text)
-    return p, tmp_path / "alarm.spool"
+    """SELF (belam)'s spool is $STORES/belam/alarm.spool: STORES points at tmp, so the real script runs unpatched."""
+    (tmp_path / "belam").mkdir(exist_ok=True)
+    return SCRIPT, tmp_path / "belam" / "alarm.spool"
 
 
 def test_a_quiet_town_appends_one_plain_line_to_belams_spool_and_root_touches_no_box(tmp_path):
@@ -110,6 +109,7 @@ def test_r1_a_signing_command_in_any_script_is_red():
 def test_the_runtime_row_catches_a_root_script_that_reaches_box(tmp_path):
     script, spool = _spool_for(tmp_path)
     text = script.read_text(); assert text.count("# ROOT NEVER SIGNS") == 1
+    script = tmp_path / "agi-quiet-watch"
     script.write_text(text.replace("# ROOT NEVER SIGNS", 'box send "$TO" </dev/null\n# ROOT NEVER SIGNS', 1))   # MUTANT: root calls box
     assert _run(tmp_path, script).returncode == 0
     assert (tmp_path / "log.box").exists(), "the stub box was never reached: the runtime row proves nothing"
@@ -124,3 +124,15 @@ def test_r2_the_seat_whose_spool_quiet_watch_fills_has_its_own_uid_drain_row():
     assert len(rows) == 1 and rows[0].get("user") == f"agi-{seat}" and rows[0].get("enabled") is True, rows   # belam's spool is signed in belam's uid
     assert "--max-tries" in rows[0]["cmd"]
     assert f"agi-{seat}" in SCRIPT.read_text().replace('"agi-$SELF"', f"agi-{seat}")                              # and the append is runuser'd as that same seat
+
+
+def test_a_failed_append_is_also_one_notice_line_in_the_seats_own_file_and_is_retried(tmp_path):
+    script, spool = _spool_for(tmp_path)
+    r = _run(tmp_path, script, {"AS": str(tmp_path / "no-such-alarm_spool.py")})                  # the append fails (python cannot open its script)
+    assert r.returncode == 0 and not spool.exists()
+    note = (tmp_path / "belam" / ".notice").read_text().splitlines()                              # HOME=$STORES/belam: the seat's own file, no agi-notice there
+    assert len(note) == 1 and note[0].startswith("[quiet-watch-unspooled] ") and "NOT spooled" in note[0], note
+    assert "spool append for sanctuary-master FAILED" in (tmp_path / "log.logger").read_text()
+    assert (tmp_path / "log.runuser").read_text().split() == ["agi-belam", "agi-belam"]           # both the append and the notice ran AS the seat
+    assert not (tmp_path / "state" / "last").exists()                                              # no stamp: the next minute tries again, no 30-minute silence
+    assert _run(tmp_path, script).returncode == 0 and len(spool.read_text().splitlines()) == 1    # and the retry lands

@@ -6,7 +6,7 @@
 # **/*.jsonl) is younger than Q seconds, or its claude has any descendant other than the MCP server (a tool call, a
 # background task, a Monitor). When EVERY running post but belam is quiet, spool ONE alarm for sanctuary-master (belam's spool; belam's
 # drain signs and sends it as belam: the matrix allows belam -> SM); then at most once per GAP seconds until some post is busy again.
-Q=${Q:-300};GAP=${GAP:-1800};S=${S:-/run/agi-quiet-watch};SELF=${SELF:-belam};TO=${TO:-sanctuary-master};AS=${AS:-/opt/agi/bin/alarm_spool.py};mkdir -p "$S"
+Q=${Q:-300};GAP=${GAP:-1800};S=${S:-/run/agi-quiet-watch};SELF=${SELF:-belam};TO=${TO:-sanctuary-master};AS=${AS:-/opt/agi/bin/alarm_spool.py};STORES=${STORES:-/var/lib/agi};mkdir -p "$S"
 now=$(date +%s);list=;n=0
 desc(){ for c in $(pgrep -P "$1");do case "$(tr '\0' ' ' </proc/$c/cmdline 2>/dev/null)" in *@gitkraken*|*'gk mcp'*)continue;;esac;echo "$c";desc "$c";done;}
 for u in $(systemctl list-units 'agi-post@*.service' --state=running --no-legend --plain | awk '{print $1}');do
@@ -23,6 +23,8 @@ m="[quiet] agi-quiet-watch $(date -u +%H:%MZ) -> $TO: every post is idle at its 
 # ROOT NEVER SIGNS (council 3/3 21:3xZ, .40.1 item 4): this unit only APPENDS a plain line, no key, to the sending seat's
 # spool by runuser as that seat; the seat's own drain (config:crons alarm_drain_belam, user agi-belam) signs and box-sends it
 # exactly once. alarm_spool.py is installed to /opt/agi/bin (stdlib only): the engine tree of a seat may lag or move.
-if runuser -u "agi-$SELF" -- python3 "$AS" append --job quiet-watch --to "$TO" --text "$m" --max-lines 500 --spool "/var/lib/agi/$SELF/alarm.spool";then
+if runuser -u "agi-$SELF" -- python3 "$AS" append --job quiet-watch --to "$TO" --text "$m" --max-lines 500 --spool "$STORES/$SELF/alarm.spool";then
  echo "$now" >"$S/last";logger -t agi-quiet-watch "quiet alert spooled for $TO:$list"
-else logger -t agi-quiet-watch "spool append for $TO FAILED:$list";fi
+else logger -t agi-quiet-watch "spool append for $TO FAILED:$list"
+ # a failed append is also ONE ~/.notice line in the seat's own file (written BY the seat's uid, root signs nothing), never the journal alone; no `last` stamp, so the next minute tries again
+ runuser -u "agi-$SELF" -- env HOME="$STORES/$SELF" sh -c '[ -x ~/bin/agi-notice ] && exec ~/bin/agi-notice add "$0" || echo "$0" >> ~/.notice' "[quiet-watch-unspooled] $(printf %08x "$now") $(date -u +%H:%MZ) the quiet alert for $TO was NOT spooled ($n posts idle:$list)" >/dev/null 2>&1;fi
