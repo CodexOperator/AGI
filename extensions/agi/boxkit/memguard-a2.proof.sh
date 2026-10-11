@@ -3,7 +3,7 @@
 # PROOF 2 runs the trunk's memguard-proof2.py FROM THE A0 ARCHIVE of the GO sha, TWICE, the gap between (and before the first look) DERIVED
 # from the installed guard: 2 x its time.sleep + 1. The guard must also be ALIVE: a guard that set the values on tick 1 and then died or crash-loops
 # would pass PROOF 2 alone. The verdict, from the two exit codes (a = first look, b = second) and the guard's health:
-#   0 0 and the unit active, NRestarts 0, 0 tracebacks since it started      PROVEN       exit 0
+#   0 0 and the unit active, NRestarts 0, 0 tracebacks since the A2 act began (an UNREADABLE journal is not 0)   PROVEN   exit 0
 #   either EXACTLY 1 (and the staged tree is the GO sha)                     UNDO A2      exit 1   a pid is on the wrong side: sh memguard-a2.undo.sh
 #   anything else (the proof absent / killed / timed out / exit 2, an unhealthy guard, no derivable gap, a staged tree that is not the GO sha, no SHA given)
 #                                                                            NOT PROVEN   exit 3   NO undo, NO 'A2 proven'; a line for the master is printed and kept in $STAGE/not-proven.txt; the leaf stays open
@@ -29,8 +29,12 @@ echo "== PROOF 2a: pids on the wrong side (exit 0 only when 0)"; ra=$(look a); e
 echo "== PROOF 2b"; rb=$(look b); echo "PROOF 2b exit=$rb"; tail -8 "$STAGE/proof2b.out" 2>/dev/null
 # the guard's health: part of the verdict, shown in every mode
 active=$($SYSTEMCTL is-active agi-memguard.service 2>/dev/null); nrest=$($SYSTEMCTL show agi-memguard.service -p NRestarts --value 2>/dev/null)
-since=$($SYSTEMCTL show agi-memguard.service -p ActiveEnterTimestamp --value 2>/dev/null)
-tb=$($SUDO $JOURNALCTL -u agi-memguard.service --since "${since:--3 min}" --no-pager -q 2>/dev/null | grep -c Traceback)
+# the window is the A2 ACT's, not the unit's latest start: every auto-restart (Restart=always) moves ActiveEnterTimestamp and would hide an earlier traceback
+a2since=$(cat "$STAGE/a2.since" 2>/dev/null)
+if [ -n "$a2since" ]; then since=$(date -u -d "$a2since" '+%Y-%m-%d %H:%M:%S UTC' 2>/dev/null); else since=$($SYSTEMCTL show agi-memguard.service -p ActiveEnterTimestamp --value 2>/dev/null); fi
+# an UNREADABLE journal is not zero tracebacks: journalctl's own exit status (not the pipe's) and a non-empty answer (a running guard has at least its Started line)
+jout=$($SUDO $JOURNALCTL -u agi-memguard.service --since "${since:--3 min}" --no-pager -q 2>/dev/null); jrc=$?
+if [ "$jrc" != 0 ] || [ -z "$jout" ]; then tb="unreadable(rc=$jrc)"; else tb=$(printf '%s\n' "$jout" | grep -c Traceback); fi
 echo "== guard health: active=$active NRestarts=$nrest tracebacks=$tb (since ${since:-the last 3 min})"
 if [ "${PROOF_ONLY:-}" != 2 ]; then
   echo "== PROOF 3: journal"; $SUDO $JOURNALCTL -u agi-memguard.service --since '-3 min' --no-pager -q | tail -8
