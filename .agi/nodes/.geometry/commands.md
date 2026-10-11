@@ -511,6 +511,8 @@ excluded:
       - {"name": "crit_psi_full_avg60", "type": "float", "required": true, "choices": []}
       - {"name": "warn_cgroup_max_frac", "type": "float", "required": true, "choices": []}
       - {"name": "repeat_mins", "type": "float", "required": true, "choices": []}
+      - {"name": "clear_margin_frac", "type": "float", "required": true, "choices": []}
+      - {"name": "clear_hold_mins", "type": "float", "required": true, "choices": []}
       - {"name": "notify", "type": "str", "required": false, "choices": []}
       - {"name": "cgroup", "type": "str", "required": false, "choices": []}
       - {"name": "state", "type": "str", "required": false, "choices": []}

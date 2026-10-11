@@ -13,7 +13,7 @@ import memory_alarm as m  # noqa: E402
 
 TH = argparse.Namespace(warn_avail_mib=2048, crit_avail_mib=1024,
                         warn_psi_some_avg60=10, crit_psi_full_avg60=20,
-                        warn_cgroup_max_frac=0.95)
+                        warn_cgroup_max_frac=0.95, clear_margin_frac=0.8)
 
 
 def sig(avail=8000.0, box=(0.0, 0.0), cg=(0.0, 0.0), cur=None, cap=None):
@@ -69,7 +69,7 @@ def test_an_ok_run_writes_and_sends_nothing(tmp_path, capsys, monkeypatch):
     sent = []
     monkeypatch.setattr(m, "_notice", lambda *a: sent.append(a))
     rc = m.main(_args(tmp_path, "--warn-avail-mib", "0", "--crit-avail-mib", "0",
-                      "--warn-psi-some-avg60", "1000", "--crit-psi-full-avg60", "1000",
+                      "--warn-psi-some-avg60", "1000", "--clear-margin-frac", "1", "--clear-hold-mins", "0", "--crit-psi-full-avg60", "1000",
                       "--warn-cgroup-max-frac", "1000"))
     assert rc == 0 and sent == [] and capsys.readouterr().out == ""
     assert not (tmp_path / "alerts.log").exists() and not (tmp_path / "st.json").exists()
@@ -79,7 +79,7 @@ def test_a_raise_logs_once_dms_once_then_stays_quiet(tmp_path, monkeypatch):
     sent = []
     monkeypatch.setattr(m, "_notice", lambda post, body, nb=None: sent.append((post, body)))
     argv = _args(tmp_path, "--warn-avail-mib", "1e12", "--crit-avail-mib", "0",
-                 "--warn-psi-some-avg60", "1000", "--crit-psi-full-avg60", "1000",
+                 "--warn-psi-some-avg60", "1000", "--clear-margin-frac", "1", "--clear-hold-mins", "0", "--crit-psi-full-avg60", "1000",
                  "--warn-cgroup-max-frac", "1000")
     assert m.main(argv) == 0
     lines = (tmp_path / "alerts.log").read_text().splitlines()
@@ -110,7 +110,7 @@ def test_the_default_alerts_log_lands_where_the_cap_looks(tmp_path, monkeypatch)
                   "alerts_file": "memory-alarm-alerts.log"}}))
     monkeypatch.setattr(m, "_notice", lambda *a: None)
     argv = ["--root", str(root), "--warn-avail-mib", "1e12",
-            "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000",
+            "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000", "--clear-margin-frac", "1", "--clear-hold-mins", "0",
             "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000",
             "--repeat-mins", "15", "--cgroup", str(tmp_path / "no-cgroup"),
             "--state", str(tmp_path / "st.json"), "--notify", "belam"]
@@ -176,7 +176,7 @@ def test_the_state_path_comes_from_the_sessions_resolver(tmp_path, monkeypatch):
     (root / "agi-tree.config.json").write_text("{}")
     monkeypatch.setattr(m, "_notice", lambda *a: None)
     argv = ["--root", str(root), "--warn-avail-mib", "1e12",
-            "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000",
+            "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000", "--clear-margin-frac", "1", "--clear-hold-mins", "0",
             "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000",
             "--repeat-mins", "15", "--cgroup", str(tmp_path / "no-cgroup")]
     assert m.main(argv) == 0
@@ -214,7 +214,7 @@ def _forbid_send_py(monkeypatch):
 
 
 def _warn_args(tmp_path, *extra, state="st.json", log="alerts.log"):
-    return ["--root", str(tmp_path), "--warn-avail-mib", "1e12", "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000",
+    return ["--root", str(tmp_path), "--warn-avail-mib", "1e12", "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000", "--clear-margin-frac", "1", "--clear-hold-mins", "0",
             "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000", "--repeat-mins", "15",
             "--cgroup", str(tmp_path / "no-cgroup"), "--state", str(tmp_path / state), "--alerts-log", str(tmp_path / log), *extra]
 
@@ -229,7 +229,7 @@ def test_the_notice_is_the_posts_own_agi_notice_in_its_own_uid(tmp_path, monkeyp
     assert m.main(_warn_args(tmp_path, "--notify", "belam", "--notice-bin", str(exe))) == 0               # inside the repeat window: silent
     assert len(out.read_text().splitlines()) == 1
     # kinds are separate agi-notice keys: a CLEARED is never eaten by an unread ALARM
-    assert m.main(["--root", str(tmp_path), "--warn-avail-mib", "0", "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000", "--crit-psi-full-avg60", "1000",
+    assert m.main(["--root", str(tmp_path), "--warn-avail-mib", "0", "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000", "--clear-margin-frac", "1", "--clear-hold-mins", "0", "--crit-psi-full-avg60", "1000",
                    "--warn-cgroup-max-frac", "1000", "--repeat-mins", "15", "--cgroup", str(tmp_path / "no-cgroup"), "--state", str(tmp_path / "st.json"),
                    "--alerts-log", str(tmp_path / "alerts.log"), "--notify", "belam", "--notice-bin", str(exe)]) == 0
     lines = out.read_text().splitlines()
@@ -279,3 +279,101 @@ def test_one_alarm_through_both_real_cron_rows_is_exactly_one_notice(tmp_path, m
     assert len(lines) == 1, lines                                                                    # ONE alarm, ONE notice (memory_alarm_posts owns it)
     assert all("--notify" not in a for a in rows["memory_alarm"][1]) and "--notify" in rows["memory_alarm_posts"][1]
     assert (tmp_path / "memory_alarm.log").read_text().count("WARN memory warn") == 1 and (tmp_path / "memory_alarm_posts.log").read_text().count("WARN memory warn") == 1      # the user@ job still logs its own line
+
+
+# --- goal:g7.16.1.11.20.2 target 4: the alarm CLEARS only below a clear line, held for a time ----------
+# Falsifier, pre-fix: WARN 20:04:02Z (box some avg60 27.5) -> CLEARED 20:06:01Z, and a reading at 10.8 against a line of 10:
+# it cleared on the FIRST tick under the line it raised at, so a reading hovering there raised and cleared every few minutes.
+
+import types  # noqa: E402
+
+from_cells = {"warn_avail_mib": 0, "crit_avail_mib": 0, "warn_psi_some_avg60": 10, "crit_psi_full_avg60": 1000,
+              "warn_cgroup_max_frac": 1000}
+
+
+def _flap_argv(tmp_path, margin="0.8", hold="3"):
+    return ["--root", str(tmp_path), "--warn-avail-mib", "0", "--crit-avail-mib", "0", "--warn-psi-some-avg60", "10",
+            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000", "--repeat-mins", "1000",
+            "--clear-margin-frac", margin, "--clear-hold-mins", hold, "--cgroup", str(tmp_path / "no-cgroup"),
+            "--state", str(tmp_path / "st.json"), "--alerts-log", str(tmp_path / "alerts.log")]
+
+
+def _drive(mod, tmp_path, ticks, **kw):
+    """Run one tick per (minute, box some avg60) against `mod`; return the alerts-log lines."""
+    clock = [0.0]; psi = [0.0]
+    mod.time = types.SimpleNamespace(time=lambda: clock[0], strftime=__import__("time").strftime, gmtime=__import__("time").gmtime)
+    mod.read_signals = lambda cg: {"avail_mib": 8000.0, "box_psi": {"some": {"avg60": psi[0]}, "full": {"avg60": 0.0}},
+                                   "cg_psi": {}, "cg_current": None, "cg_max": None}
+    mod._notice = lambda *a: None
+    for minute, v in ticks:
+        clock[0] = 1_000_000.0 + minute * 60; psi[0] = v
+        assert mod.main(_flap_argv(tmp_path, **kw)) == 0
+    log = tmp_path / "alerts.log"
+    return log.read_text().splitlines() if log.exists() else []
+
+
+def _fresh(src=None):
+    text = src if src is not None else Path(m.__file__).read_text()
+    mod = types.ModuleType("memory_alarm_probe"); mod.__file__ = m.__file__
+    exec(compile(text, m.__file__, "exec"), mod.__dict__)
+    return mod
+
+
+HOVER = [(0, 12.0), (1, 9.0), (2, 9.0), (3, 9.5), (4, 9.0), (5, 9.0), (6, 9.5), (7, 9.0)]   # sits between the clear line (8) and the warn line (10) for 7 minutes, over the hold
+
+
+def test_a_reading_hovering_at_the_line_never_clears(tmp_path, monkeypatch):
+    lines = _drive(_fresh(), tmp_path, HOVER)
+    assert [l for l in lines if "CLEARED" in l] == [] and sum("WARN memory warn" in l for l in lines) == 1, lines
+
+
+def test_it_clears_only_after_the_hold_below_the_clear_line(tmp_path):
+    lines = _drive(_fresh(), tmp_path, [(0, 12.0), (1, 7.0), (2, 7.0), (3, 7.0), (3.9, 7.0)])    # below 8 since minute 1: 2.9 min < 3
+    assert not any("CLEARED" in l for l in lines), lines
+    (tmp_path / "b").mkdir()
+    lines = _drive(_fresh(), tmp_path / "b", [(0, 12.0), (1, 7.0), (2, 7.0), (3, 7.0), (4.1, 7.0)])
+    assert sum("CLEARED memory back to ok" in l for l in lines) == 1, lines
+
+
+def test_a_tick_back_over_the_clear_line_restarts_the_hold(tmp_path):
+    ticks = BREAK                                                                              # hold restarts at 3.0: 5.9 is 2.9 min on
+    assert not any("CLEARED" in l for l in _drive(_fresh(), tmp_path, ticks))
+    (tmp_path / "b").mkdir()
+    assert any("CLEARED" in l for l in _drive(_fresh(), tmp_path / "b", ticks + [(6.1, 7.0)]))
+
+
+def test_the_clear_line_is_in_the_raise_units(tmp_path):
+    up = m.clear_line(argparse.Namespace(**{**from_cells, "warn_avail_mib": 2048, "crit_avail_mib": 1024, "clear_margin_frac": 0.8}))
+    assert up.warn_psi_some_avg60 == 8 and up.warn_avail_mib == 2560 and up.crit_avail_mib == 1280, up   # PSI down, MemAvailable up
+    th = argparse.Namespace(**{**from_cells, "clear_margin_frac": 0.8})
+    assert m.decide(sig(box=(9.0, 0.0)), th, "warn")[0] == "warn" and m.decide(sig(box=(9.0, 0.0)), th, "ok")[0] == "ok"
+    assert m.decide(sig(box=(7.0, 0.0)), th, "warn")[0] == "ok"
+
+
+BREAK = [(0, 12.0), (1, 7.0), (2, 7.0), (2.5, 8.5), (3, 7.0), (5.9, 7.0)]
+# HOVER sits in the band for longer than the hold, so only the no-band mutant (M1) shows there; BREAK needs the band AND the hold (all four)
+HOVER_MUTANTS = {'th = clear_line(th)'}
+BREAK_MUTANTS = {'th = clear_line(th)', 'a.clear_hold_mins * 60', '"clear" if now - float(state.get("ok_since", now)) >= hold_s else None', 'del state["ok_since"]'}
+
+
+@pytest.mark.parametrize("old,new", [
+    ('th = clear_line(th)', 'pass'),                                                    # M1: clear against the raise line again
+    ('a.clear_hold_mins * 60', '0'),                                                    # M2: clear on the first tick below the line
+    ('"clear" if now - float(state.get("ok_since", now)) >= hold_s else None', '"clear"'),   # M3: transition ignores the hold
+    ('del state["ok_since"]', 'pass'),                                                  # M4: a break never restarts the hold
+])
+def test_each_mutant_of_the_clear_rule_goes_red_on_the_row_meant_for_it(tmp_path, old, new):
+    src = Path(m.__file__).read_text()
+    assert src.count(old) == 1, old                                                     # anchor: a mutant that matches 0 or 2 places proves nothing
+    mut = src.replace(old, new)
+    (tmp_path / "h").mkdir(); (tmp_path / "x").mkdir()
+    hover = _drive(_fresh(mut), tmp_path / "h", HOVER)
+    brk = _drive(_fresh(mut), tmp_path / "x", BREAK)
+    assert any("CLEARED" in l for l in hover) == (old in HOVER_MUTANTS), (old, "hover row")      # the row meant for it, and ONLY it
+    assert any("CLEARED" in l for l in brk) == (old in BREAK_MUTANTS), (old, "break row")
+
+
+def test_both_real_rows_declare_the_margin_and_the_hold():
+    for name in ("memory_alarm", "memory_alarm_posts"):
+        cmd = crons._parse_frontmatter(crons._node_path(REPO / ".agi"))["cadences"][name]["cmd"].split()
+        assert cmd[cmd.index("--clear-margin-frac") + 1] == "0.8" and cmd[cmd.index("--clear-hold-mins") + 1] == "3", name
