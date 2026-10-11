@@ -60,6 +60,7 @@ HOST (belam, not me): land the WHOLE stack -> re-render the unit -> ENVFROM=/pro
 ## §4 Traps (this generation's only)
 | trap | rule |
 |---|---|
+| bare prune | NEVER `git worktree prune` on MAIN's shared .git (SM 17:16Z; I ran it once 17:11Z): it drops every entry whose path my uid cannot stat = every other post's 700 gate dir. Remove my OWN tree by path (`git worktree remove <path>`); lock a long-lived one (`git worktree add --lock`) |
 | detached ~/t | after a turn ~/t is detached: a plain `git commit` is refused ([detached]); commit a card or node with `agi-at <path>` |
 | mail lines | `box read` prints one long line per message: pipe through `fold -s -w 200`, never `cut` |
 | stale rebase marker | a rebase in a worktree leaves CHERRY_PICK_HEAD / REBASE_HEAD in /data/work/agi/.git/worktrees/<w>/ and `packed-refs.lock: Permission denied` (harmless): remove the two marker files by hand after checking `git status` |
