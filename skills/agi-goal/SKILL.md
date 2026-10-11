@@ -59,6 +59,7 @@ round_commit: false  — a round's `cli.py done` never sweeps a goal node
 Owner words are copied VERBATIM into the body (a `## OWNER <date> <time>, verbatim` section) — the node is
 where owner verbatim lives, never a card. Framing: a target end-state, never "finish today or failed".
 Progress on a goal is never written on the goal or a card: one numbers-only line on the town board (skill agi-dispatch §5 "progress → board").
+A negative-grep falsifier over `.agi/nodes` -> exclude the nodes that quote the pattern or anchor it, and run the falsifier once before committing the leaf: it hits its own title/quotes (DG1 g1.31.3 x3 10-01: 19 quotes, 0 pointers).
 
 ## 4 · Edit · retire · renumber
 | op | how |
@@ -69,6 +70,7 @@ Progress on a goal is never written on the goal or a card: one numbers-only line
 | renumber (owner 09-23) | keep `mint_id`; re-point EVERY frontmatter reference in the SAME commit; old → new in the moved node's THOUGHT; a retired id is never reused |
 | decompose | one subgoal per leaf (§1), nest rather than widen; each is driven by a dispatched parent (skill `agi-dispatch`) and judged with `season.py judge <outcome> --against goal:<id>` |
 
+Renumber -> `write.py`, or a script anchored on the FULL line; never `str.replace` an id/Why prefix (it hit the id row of .5.5.5; DG4 d1eb5ecad). Order: `write.py` edits FIRST, THEN `git mv` + id/parents/goal_id as ONE commit, THEN re-point refs (id is protected, there is no verb); keep `mint_id` (all-is-one 09-23).
 Every version's why goes in the `THOUGHT` block (`thought <text>`, rewritten whole, never appended;
 absent = empty, never fabricated). Mechanism-not-wording: (1) the instruction quoted, (2) what the machine
 does at file:line, (3) the near miss, (4) the property that made a standing rule not apply.
@@ -84,6 +86,7 @@ goal:gX (assigned to you)
  └─ batch as resources allow; spawn parents ONLY against sketched leaves (skill agi-dispatch)
 NEVER a new top-level goal (the Prime mints those, on the owner's word) · a loop your card names R&D needs no nesting (owner 09-23)
 ```
+A count or claim shared by several leaves -> measure it ONCE per row with its own command; never copy a Measured line into each leaf (DG1 W2: the wrong 8654 line sat in 5 leaves).
 Next free id under a goal: the highest existing `goal_id` child + 1 (`git grep -h '^goal_id: GX\.' -- .agi/nodes/goal`). The leaf's `## Why this exists`
 names the parent and the measured thing (a PASS, a verdict, a residue) that made it a leaf.
 

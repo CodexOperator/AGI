@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:bin-mail-alert"
+id: build:bin-mail-alert
 mint_id: 68d1a10119784516acf110f0c6f88406
-origin: build-scan
+type: build
 parents:
   - mvp:bin-modules
+build_kind: code
+confidence: 1.0
+deprecated_on: "2026-10-10"
+edited_by: director-general-4
+origin: build-scan
 payload_ref: extensions/agi/bin/mail_alert.py
+status: deprecated
 tags:
   - build
   - code
   - g2.1
 title: "Build: extensions/agi/bin/mail_alert.py"
-type: build
 ---
-
 `extensions/agi/bin/mail_alert.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `mvp:bin-modules`.

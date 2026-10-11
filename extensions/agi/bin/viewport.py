@@ -1197,21 +1197,29 @@ def main() -> int:
 
     # RUNG 3 human gate visibility (hypothesis:l4-a-veto-freezes-never-frees):
     # a frozen scope shows up in `--live` by name. Read-only from the vetoes
-    # geometry cell; fails open to silence, never a traceback.
+    # geometry cell, read STRICT from MAIN's graph root (the cell the gated acts read,
+    # goal:g7.16.1.11.13.3): an unreadable cell shows a HOLD with its cause, never silence.
     freeze_lines = []
     if args.live:
         try:
             from seatsig import veto as _veto
 
-            _g = _veto.read(root)
+            _vg = locations.find_project_root(root) or root
+            _vm = locations.git_common_root(_vg)
+            _vroot = (locations.find_project_root(_vm) if _vm else None) or _vg
+            try:
+                _g = _veto.read(_vroot, strict=True)
+            except _veto.VetoCellUnreadable as _exc:
+                _g = {}
+                freeze_lines.append(f"HOLD veto cell: {_exc}")
             for _gate in _g.get("active_gates") or []:
                 if isinstance(_gate, dict) and not _gate.get("answered"):
                     freeze_lines.append(
                         f"GATE-FROZEN scope={_gate.get('scope')} since="
                         f"{_gate.get('since')} veto={_gate.get('veto_ref')} "
                         f"(human gate; waits for an owner answer)")
-        except Exception:  # noqa: BLE001  (read-only, never a crash)
-            freeze_lines = []
+        except Exception as _exc:  # noqa: BLE001  (read-only, never a crash; goal:g7.16.1.11.13.3: and never silence)
+            freeze_lines = [f"HOLD veto cell: {_exc}"]
 
     frames = _with_legacy(frames, root, args.top, args.height,
                           len(hierarchy_lines(anchors)) if (anchors is not None and args.layer == "hierarchy") else 0)

@@ -6286,11 +6286,11 @@ def _loop_record(*, name: str, result: str, refusal: str | None = None,
 # prime, which is inbox-only and must never post into quorum — the audience
 # door is the claim's word for it). This module owns the payload and the
 # recipient derivation; the transport verb is the swap point for
-# channel:l3w4-shared-mail-alert when it lands. A refused or inconclusive
+# box mail (goal:g7.16.1.11.20) when its caller lands. A refused or inconclusive
 # rotation writes its record and announces NOTHING.
 
 #: Tags every rotation alert so a reader can tell a machine rotation from the
-#: owner speaking (hypothesis:l3w4-shared-mail-alert constraint 3).
+#: owner speaking (hypothesis:l3w4-rotation-announces-itself).
 ROTATION_ALERT_TAG = "[rotation-alert]"
 
 #: The PRIME's only announce door — a dedicated alert room, NOT quorum. The
@@ -6551,6 +6551,81 @@ def _derive_receivers(root: Path, *, seat: str,
     return sorted(n for n in out if _alert_allowed(root, n))
 
 
+#: goal:g7.16.1.11.20 (cut B, belam LANED): the hard bound on the rotation
+#: alert's `box send`, so a hung box can never hold a rotation. ONE TOTAL
+#: budget for the whole announce (not per receiver): see `_box_send_announce`.
+BOX_ANNOUNCE_TIMEOUT_S = 20
+
+
+def _box_announce_guard(seat: str, declared: str) -> bool:
+    """True when this process IS the rotating post (ambient AGI_POST == seat),
+    the only identity whose key signs a box message as `<seat>@agi`. Anything
+    else prints ONE line and sends nothing: a message signed by another key
+    would sit as the tip of refs/box/<seat>/<recv> and make the real post's
+    later sends refuse `[squatted]`.
+
+    NAMED (corrective leaf, SM 09:5xZ): a captive / master-path rotation
+    (`_spawn_master_rotate`) runs `rotate.py rotate --post <seat>` AS THE
+    HOLDER (AGI_POST=<holder>) with stderr to /dev/null, so it sends NO box
+    message (the holder's key cannot sign as the seat) and this skip line is
+    never seen; the inbox copy and the wake still land. By design, written
+    here rather than left to be discovered."""
+    got = os.environ.get("AGI_POST")
+    if got == seat:
+        return True
+    print(f"warn: box send of the {declared} skipped: AGI_POST is {got!r}, "
+          f"not the rotating post {seat!r}", file=sys.stderr)
+    return False
+
+
+def _box_send_announce(recv: str, seat: str, text: str, declared: str,
+                       deadline: float | None = None) -> bool:
+    """`box send <recv>` with the alert on STDIN, AGI_POST=<seat>, a hard
+    timeout that kills box AND its children. FAIL SOFT: every failure prints
+    ONE `warn:` line naming `recv` and returns False; it never raises and
+    never decides `delivered` (the inbox copy does). `deadline` (a
+    time.monotonic() value, set ONCE per announce) makes the bound TOTAL: each
+    call gets what is left, and a call that finds the budget spent sends
+    nothing and says so, so N receivers can never cost N x the timeout. A
+    timeout adds up to 5 s of reap (kill the group, wait) on top of the budget."""
+    proc = None
+    try:
+        left = (BOX_ANNOUNCE_TIMEOUT_S if deadline is None
+                else deadline - time.monotonic())
+        if left <= 0:
+            print(f"warn: box send of the {declared} to {recv!r} skipped: "
+                  f"the {BOX_ANNOUNCE_TIMEOUT_S}s total budget is spent",
+                  file=sys.stderr)
+            return False
+        proc = subprocess.Popen(
+            ["box", "send", recv], stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+            env=dict(os.environ, AGI_POST=seat), start_new_session=True)
+        out, _ = proc.communicate(text, timeout=left)
+        if proc.returncode == 0:
+            return True
+        why = (out or "").strip().replace("\n", " ")[:160]
+        print(f"warn: box send of the {declared} to {recv!r} failed "
+              f"(rc {proc.returncode}): {why}", file=sys.stderr)
+    except subprocess.TimeoutExpired:
+        with contextlib.suppress(Exception):
+            os.killpg(proc.pid, signal.SIGKILL)
+            proc.communicate(timeout=5)
+        print(f"warn: box send of the {declared} to {recv!r} timed out "
+              f"after {left:.1f}s (the budget left for this call)", file=sys.stderr)
+    except Exception as exc:  # noqa: BLE001 -- fail soft, whatever it is
+        print(f"warn: box send of the {declared} to {recv!r} failed: {exc}",
+              file=sys.stderr)
+    finally:
+        # any exit that left box running (a non-timeout error after Popen)
+        # kills its group and reaps it: no orphan, no zombie
+        if proc is not None and proc.poll() is None:
+            with contextlib.suppress(Exception):
+                os.killpg(proc.pid, signal.SIGKILL)
+                proc.wait(timeout=5)
+    return False
+
+
 def _announce_stamp_announced_to(root: Path, record_path: str | None,
                                  delivered: list) -> None:
     """Conjunct 4 (hypothesis:l4-rotation-alerts-follow-a-routing-matrix-...):
@@ -6588,9 +6663,10 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
 
     The PRIME is inbox-only (send_dm refuses it), so it posts the same payload
     once to ROTATION_ALERT_ROOM instead — never into quorum. Every non-prime
-    seat dms each derived recipient via send.send_dm, which also nudges the
-    recipient's tmux window on the existing seat-transport hop. A delivery
-    failure is logged and NEVER fails the rotation — the announcement is the
+    seat lands the alert in each derived recipient's inbox (send.send, which
+    also nudges the tmux window) and mails it over box, signed by this post
+    (goal:g7.16.1.11.20 cut B, fail soft). A delivery failure is logged and
+    NEVER fails the rotation — the announcement is the
     proof, not a gate. Returns the recipients reached.
     """
     import send  # local: same dir
@@ -6684,23 +6760,27 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
         _announce_stamp_announced_to(root, record_path, delivered)
         return delivered
     delivered = []
+    _box_on = bool(receivers) and _box_announce_guard(seat, declared)
+    _box_deadline = None   # armed at the FIRST box call: send.send's time BEFORE it is not charged (later sends are)
     for recv in receivers:
         try:
             # CLAUSE 1: land the SAME [rotation-alert] block in the
             # recipient's INBOX (`<sessions>/inbox/<recv>.md`, the writer
-            # `send.send` uses -- the reader `send.py read <recv>` shows)
-            # IN ADDITION to the pairwise dm log, so an alert is never
-            # absent from a recipient's inbox and nothing depends on the
-            # nudge (it is delivery, the inbox is the record). send() also
-            # physically types its own wake; send_dm adds the dm-log block
-            # plus its own pane line. A `send.py send` to the prime would be
-            # rejected downstream but send() itself has no prime restriction,
-            # so this stays the non-prime loop.
+            # `send.send` uses -- the reader `send.py read <recv>` shows) so
+            # an alert is never absent from a recipient's inbox and nothing
+            # depends on the nudge (it is delivery, the inbox is the record).
+            # send() also physically types its own wake. The pairwise dm log
+            # (send_dm) is replaced by a box message signed by this post
+            # (goal:g7.16.1.11.20 cut B): FAIL SOFT, one warn line on any
+            # failure, never part of `delivered`, never a gate on the rotation.
             send.send(root, recv, text, sender=seat)
-            send.send_dm(croot, seat, recv, text, sender=seat)
+            if _box_on:
+                if _box_deadline is None:
+                    _box_deadline = time.monotonic() + BOX_ANNOUNCE_TIMEOUT_S
+                _box_send_announce(recv, seat, text, declared, _box_deadline)
             delivered.append(recv)
         except SystemExit as exc:
-            print(f"warn: could not dm {recv!r} the {declared}: {exc}",
+            print(f"warn: could not land the {declared} in the inbox of {recv!r}: {exc}",
                   file=sys.stderr)
             continue
     print(f"announced {declared} -> {len(delivered)} recipient(s) "

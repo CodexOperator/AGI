@@ -50,6 +50,7 @@ never re-run the whole mur just to get a verify the corrective will supersede.
 | `config_max` / `template_max` = yes | corrective naming the EXACT cell or line (never accepted as code) |
 | a `note`, or a refuted defect | demote: the measured reason (command + number) in the merge commit and the card's chain line |
 | a ceiling breach alone (kids, lines) | not a corrective: a findings row (the parent ignored the CEILING) |
+| the SAME input class returned twice (E2b0 returned 3x on parse classes) | the next return carries a DESIGN direction (what the class needs), never a 3rd/4th shape list (SM) |
 | rule-changing · design above the node · cost/model · Prime/owner-only | `[red]` to your master, named MAJOR — never a corrective |
 
 ### 3a · Pure-text residue: a claude-code TEXT-FIX KID, all in parallel (owner 2026-09-28 05:0xZ + 05:1xZ)
@@ -107,3 +108,4 @@ cd .agi/worktrees/de-base-<N> && python3 extensions/agi/bin/dispatch.py . DH.<N>
 Every re-mur: `workflow.py run merge-up-review --harness pi-free` -- EXPLICIT (bare `pi` = the free default row since 37d8a473d; the paid lane is `pi:paid`, TMM.291).
 The card's chain row gets the new tip (`<chain> <N> LIVE`). On harvest: agi-dispatch §5 traps → mur over `<prev tip>..<new tip>` only
 (skill agi-workflow) → back to §2. A chain merges only at its LAST cleared tip, in the order the card names.
+A chain whose merge-tree vs the trunk HEAD is rc 1: merge the trunk INTO the loop branch in its worktree (keep both CORRECTIVE sections, the newer THOUGHT), re-test, re-gate (DG3 chain landing conflicts).
