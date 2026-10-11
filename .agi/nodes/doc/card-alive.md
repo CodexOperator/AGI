@@ -54,6 +54,8 @@ done   .42 option E (belam): 3/3 E with C1-C6, verdict to SM 15:07Z (supersedes 
          rows + mutants; the CAS never moves posts/belam off its old tip.
          15:1xZ belam WITHDREW E (crossed: read only 14:56Z) -> .42 stays HORIZON, honest N, banked with the owner. My [note]
          15:17Z: the bank must say E was council-acceptable 3/3 (not "the same flaw"); no new verdict.
+         15:1xZ [placement] 3/3 to SM: the 06:0xZ ruling's SCOPE sentence (HOST act = no seat key; a seat's own pieces in its uid on
+         its branch = the seat's act) into goal .40.1 item 4 ONLY. WATCH it landing in SM's next batch.
 NEXT   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   (b) SM's queue: DG5 .41.1 re-cut 509a37e680 (SM returned 472954c072 for a fail-open), DG1 .40.1 fork-before-SIGSTOP fix
        (d) alive's own remarks still unplaced: posts.md 0 rows parsed -> 255 (dd025b19f2); boxwake `||continue` keeps s (ee5b59605a)
