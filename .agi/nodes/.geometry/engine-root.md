@@ -16,7 +16,7 @@ EXPANSION of config:engine: the unit template (root's agi-project reads it throu
 Read only through `sect <name> [REV]`.
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
-### agi-post@.service (2924 B)
+### agi-post@.service (3189 B)
 ~~~ini
 [Unit]
 After=agi-ram-main.service
@@ -31,7 +31,7 @@ Environment=DBUS_SESSION_BUS_ADDRESS=disabled:
 Environment=GIT_AUTHOR_NAME=%i GIT_COMMITTER_NAME=%i GIT_AUTHOR_EMAIL=%i@agi GIT_COMMITTER_EMAIL=%i@agi
 RuntimeDirectory=agi-%i
 RuntimeDirectoryPreserve=restart
-ExecCondition=sh -c "set -f;git -c safe.directory=$O -C $O show $AGI_TRUNK:.agi/nodes/.geometry/posts.md>/dev/null 2>&1||{ echo [wrong-box] posts.md unreadable at $AGI_TRUNK>&2;exit 255;};h=$(sed -n 's/^AGI_BOX=//p' /etc/agi/carry.env 2>/dev/null);b=$(git -c safe.directory=$O -C $O show $AGI_TRUNK:.agi/nodes/.geometry/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r --arg n %i 'select(.name==$n)|.box');[ x$b = x$h ]&&[ x != x$h ]||{ echo [wrong-box] row=$b here=$h>&2;exit 2;}"
+ExecCondition=sh -c "set -f;git -c safe.directory=$O -C $O show $AGI_TRUNK:.agi/nodes/.geometry/posts.md>/dev/null 2>&1||{ echo [trunk-unreadable] posts.md unreadable at $AGI_TRUNK>&2;exit 255;};[ $(git -c safe.directory=$O -C $O show $AGI_TRUNK:.agi/nodes/.geometry/posts.md|grep -c '^  - {') -gt 0 ]||{ echo [trunk-unreadable] posts.md has no rows at $AGI_TRUNK>&2;exit 255;};h=$(sed -n 's/^AGI_BOX=//p' /etc/agi/carry.env 2>/dev/null);b=$(git -c safe.directory=$O -C $O show $AGI_TRUNK:.agi/nodes/.geometry/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r --arg n %i 'select(.name==$n)|.box')||{ echo [trunk-unreadable] posts.md unparsable at $AGI_TRUNK>&2;exit 255;};[ x$b = x$h ]&&[ x != x$h ]||{ echo [wrong-box] row=$b here=$h>&2;exit 2;}"
 ExecCondition=sh -c '[ ! -e .ssh/out-refused ]||[ .fresh -nt .ssh/out-refused ]||exit 2'
 ExecCondition=sh -c 'type agi-run>/dev/null||grep -qs "^### agi-run " t/.agi/nodes/.geometry/engine.md t/.agi/nodes/.geometry/engine-[pw]*.md||{ [ ! -d t ]&&{ git -c safe.directory=$O -C $O grep -q "^### agi-run " $AGI_TRUNK -- .agi/nodes/.geometry/engine.md ".agi/nodes/.geometry/engine-[pw]*.md";r=$?;[ $r -lt 2 ]||exit 255;[ $r = 0 ];};}||exit 2'
 ExecStartPre=awk -F"[= ]" "/some/{exit $$3>40}" /proc/pressure/memory
@@ -56,7 +56,7 @@ WantedBy=multi-user.target
 Host drop-ins of agi-post@.service (the list; goal:g7.16.1.11.37 target 6): none. `50-signers-repoint` (the `agi-signers-repoint` ExecStartPre) and `51-no-session-bus` (`DBUS_SESSION_BUS_ADDRESS=disabled:`, the orphan session bus per gh poll, measured 10-09/10-10) are folded into the unit above, `52-post-env` is the unit's own AGI_POST line; AGI_BOX is exported by ExecStart from /etc/agi/carry.env ALONE (loading the whole file would put its pinned AGI_TRUNK / AGI_REPO / AGI_HUB / GIT_CONFIG_* into every post, and an EnvironmentFile overrides the per-post h.conf). A file under /etc/systemd/system/agi-post@.service.d/ that is not in this list is RED (post-env.t.sh, LIVE).
 
 
-### agi-boxwake@.service (806 B)
+### agi-boxwake@.service (896 B)
 ~~~ini
 [Unit]
 Description=agi box-wake loop of %i: types "mail: box read" into the post pane when its box has mail
@@ -68,15 +68,15 @@ WorkingDirectory=/var/lib/agi/%i/t
 EnvironmentFile=-/var/lib/agi/%i.env
 Environment=PATH=/var/lib/agi/%i/bin:/opt/agi/bin:/usr/local/bin:/usr/bin:/bin SHELL=/bin/sh AGI_POST=%i
 Environment=GIT_AUTHOR_NAME=%i GIT_COMMITTER_NAME=%i GIT_AUTHOR_EMAIL=%i@agi GIT_COMMITTER_EMAIL=%i@agi
-ExecCondition=sh -c 'case $H in claude*)exit 0;;esac;exit 2'
-ExecStart=sh -c 's=0;while :;do sleep 5||:;n=$(box n 2>/dev/null|grep -vc "^[[]");[ $n -gt $s ]&&printf "mail: box read">%t/agi-%i/i&&sleep 1&&printf "\r">%t/agi-%i/i;s=$n;done'
+ExecCondition=sh -c 'case $H in claude*)exit 0;;?*)exit 2;;esac;echo "[boxwake] H unset">&2;exit 255'
+ExecStart=sh -c 's=0;while :;do sleep 5||:;o=$(timeout 20 box n 2>/dev/null);[ $? = 124 ]&&continue;n=$(echo "$o"|grep -c "^[^[]");[ $n -gt $s ]&&printf "mail: box read">%t/agi-%i/i&&sleep 1&&printf "\r">%t/agi-%i/i;s=$n;done'
 Restart=on-failure
 RestartSec=10s
 RestartForceExitStatus=SIGTERM SIGHUP SIGINT SIGPIPE
 Slice=agi.slice
 ~~~
 
-The wake loop of a claude post is its OWN unit, not a background of agi-run (goal:g7.16.1.11.32): a loop backgrounded from agi-run dies with its `sleep` and nothing restarted it (5 posts lost it, DG1 sat on 8 unread for 14 h). Here the loop never ends on its own (`sleep 5||:`), systemd re-spawns it if it dies (`Restart=on-failure`; `RestartForceExitStatus` because a TERM/HUP/INT/PIPE is a CLEAN exit to systemd and a `pkill` of the group would otherwise leave it dead), and it stops and starts with the post (`PartOf=`, and `Wants=agi-boxwake@%i.service` in agi-post@.service). INSTALLED by agi-project like the post unit (this node is outside a post's extraction glob); H, O and the AGI_* cells come from the per-post drop-in agi-project writes (`agi-boxwake@<p>.service.d/h.conf`, the same file the post gets). The unit GATES ITSELF: the shared template stays unconditional and `ExecCondition` skips (exit 2) a post whose `H` is not claude, because a pi post is woken by the cccc.ts interval alone (no double wake). The ExecCondition carries NO brace: systemd would substitute `${H}` with the value of H, spaces and all, `case` would fail to parse, and EVERY claude post would be skipped. `%t/agi-%i/i` is the post's pane fifo (RuntimeDirectory of agi-post@). The unit needs the post's tree as its cwd (`box` reads ~/t) and the post's identity: hence WorkingDirectory, EnvironmentFile and AGI_POST (no AGI_SEAT: goal:g7.16.1.11.37 retires it from every fenced piece).
+The wake loop of a claude post is its OWN unit, not a background of agi-run (goal:g7.16.1.11.32): a loop backgrounded from agi-run dies with its `sleep` and nothing restarted it (5 posts lost it, DG1 sat on 8 unread for 14 h). Here the loop never ends on its own (`sleep 5||:`), systemd re-spawns it if it dies (`Restart=on-failure`; `RestartForceExitStatus` because a TERM/HUP/INT/PIPE is a CLEAN exit to systemd and a `pkill` of the group would otherwise leave it dead), and it stops and starts with the post (`PartOf=`, and `Wants=agi-boxwake@%i.service` in agi-post@.service). INSTALLED by agi-project like the post unit (this node is outside a post's extraction glob); H, O and the AGI_* cells come from the per-post drop-in agi-project writes (`agi-boxwake@<p>.service.d/h.conf`, the same file the post gets). The unit GATES ITSELF: the shared template stays unconditional and `ExecCondition` skips (exit 2) a post whose `H` is SET and not claude, and FAILS (exit 255, `[boxwake] H unset` on stderr) when `H` is empty or unset (a unit that cannot tell its harness must be seen, never skipped silently), because a pi post is woken by the cccc.ts interval alone (no double wake). The ExecCondition carries NO brace: systemd would substitute `${H}` with the value of H, spaces and all, `case` would fail to parse, and EVERY claude post would be skipped. `%t/agi-%i/i` is the post's pane fifo (RuntimeDirectory of agi-post@). The unit needs the post's tree as its cwd (`box` reads ~/t) and the post's identity: hence WorkingDirectory, EnvironmentFile and AGI_POST (no AGI_SEAT: goal:g7.16.1.11.37 retires it from every fenced piece).
 
 ### agi-boot.service (826 B)
 ~~~ini

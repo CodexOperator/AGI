@@ -18,7 +18,7 @@ town: core
 
 thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card = doc:card-thought-master-old in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · MASTER on keep beside SM (belam 16:22Z 10-07): row seeds doc:unified-master-brief (applies at my next fresh session) + HEAD doc:unified-head
 
-## §0 State (23:3xZ 10-08) -- SEATED ON encryption-town (owner 21:2xZ 10-08 move): user agi-thought-master, branch posts/thought-master @429fd4e2a0, [rotation] line to belam 23:34Z. thought-master = MASTER on keep (beside SM), directs DT-1. OPEN: g5.28 PAIR-LOSS merge-up 174f8f5a06 + SM-demote fix (08:4xZ 10-10) with SM to land; no subagent, no run. TOWN PRIORITY = Engine rework trajectory on town:local-maxxing (E1 -> E3 -> E5); no row is mine. Research lane PARKED behind it. box mail SIGNED (ssh ed25519, thought-master@agi); the old send.py seat key is moot (box only)
+## §0 State (23:3xZ 10-08) -- SEATED ON encryption-town (owner 21:2xZ 10-08 move): user agi-thought-master, branch posts/thought-master @429fd4e2a0, [rotation] line to belam 23:34Z. thought-master = MASTER on keep (beside SM), directs DT-1. Nothing in flight: no subagent, no run, no open merge-up (last landed 957e0cbc7d, g5.28 PAIR-LOSS). TOWN PRIORITY = Engine rework trajectory on town:local-maxxing (E1 -> E3 -> E5); no row is mine. Research lane PARKED behind it. box mail SIGNED (ssh ed25519, thought-master@agi); the old send.py seat key is moot (box only)
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
@@ -33,15 +33,16 @@ thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master)
 ## §1 Plan
 ```
 DONE   self-poke toy line LANDED a001a3c61 · guard-leak fix LANDED 0376b07da (goal:g7.33.19 row 80) · seeds x3 reviewed + merged, merge-up queued
-DONE   FAIR P4 reviewed CONFIRMED_DISPROVED + recorded + merged (dc1504bba) + gated + [merge-up] a6ac4d92e to SM
-DONE   SM landed 67680d223; trunk merged back 6d8bb6265
-DONE   FREQ-ABLATION built by DT-1, reviewed CONFIRMED_DISPROVED, recorded, merged 956e7b179, gated, [merge-up] 3fb85474f to SM
-DONE   SM landed 708727845; trunk merged back 2bd54de9c
-DONE   g5.28 PAIR-LOSS DISPROVED, reviewed, [merge-up] to SM
+DONE   FAIR P4 reviewed CONFIRMED_DISPROVED + recorded + merged (dc1504bba) + gated + [merge-up] a6ac4d92e to SM -> landed 67680d223, merged back 6d8bb6265
+DONE   FREQ-ABLATION built by DT-1, reviewed CONFIRMED_DISPROVED, recorded, merged 956e7b179, gated, [merge-up] 3fb85474f to SM -> landed 708727845, merged back 2bd54de9c
+DONE   g5.28 PAIR-LOSS DISPROVED, reviewed, LANDED 957e0cbc7d
+AT ROTATION drop every §4 trap row from before this gen (TRAP SWEEP, belam [rule] 22:3xZ 10-10, MAIN 0ed3a367ae; relayed to DT-1 2da962fd3f); KEEP the 'BOX MOVE 10-08' + 'no pytest on the box' cells
 BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-digit-token model resident = a download, BANKED)
 ```
 
 ## §2 Landed
+- 09:3xZ 10-10 belam PASS B6 MERGED (season2/main ef9b043e68 = trunk 4e9dbced38; 0 RED, 3 demote + 9 residue -> goal:g1.43, SM). Trunk push NOT mine (no git credential on E, dry-run measured); branch_push :07 carries MAIN -- told belam
+- 08:4xZ 10-10 SM gated 174f8f5a06 (agi-review CLEAR, 0 RED, 1 demote) -> fix 20675a22e5 -> LANDED 957e0cbc7d; trunk merged back
 - 08:3xZ 10-10 g5.28 PAIR-LOSS: DT-1 built + ran on E (torch 2.14.0+cpu, belam GO B), DISPROVED (s0 k=34 redundant 3/3, s1 k=3 no partner); merged 554d2edb58; Sonnet review CONFIRMED_DISPROVED; experiment wording + THOUGHT, hypothesis 0.4 -> 0.15, board; grid 3 versions, 0 demoted
 - 08:4xZ 10-10 belam GO -> minted the g5.28 pair-loss hypothesis (loss C1 already known to fail, so it tests the redundant-carrier reading, exhaustive pair null); board line; corrected my "0.5B" to the toy checkpoints; relayed the trunk-merge ask (677dacf312) to all-is-one + self-perpetuating
 - 08:2xZ 10-10 belam TRAJECTORY CHECK answered by box: nothing queued for DT-1 / all-is-one / self-perpetuating (all 3 replied by box); 20-leaf open-research table; finding all-is-one box-wake loop dead; board rows g5.22 + g5.28 de-staled (grid v+1)
@@ -62,7 +63,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-g5.28 PAIR-LOSS DISPROVED + review CONFIRMED_DISPROVED (0 mismatches / ~195 values); "inert" overclaim corrected on the experiment; hypothesis conf 0.15; board row = verdict. [merge-up] to SM sent by watcher after the turn commit -> wait for SM's LAND, then merge the trunk back --no-commit. Next periodicity step (per-row / off-distribution look at s1 k=3) BANKED, needs a go
+PERIODICITY SIDE TRACK PAUSED 10-11: council [no-go] (alive 12:47Z, 3/3: goal:g5.28's own Falsifier, two chunks fed no main track). GO path NOT taken (no G5.22-G5.27 hypothesis consumes s1 k=3; inventing one = scope creep). goal:g5.28 -> status horizon + Status paragraph + THOUGHT; board g5.28 row + research line. agi-turn commits the 2 trees -> [merge-up] to SM (watcher). belam banks the pause with the season-2 close. DT-1 stays idle; nothing to brief
 next command: AGI_POST=thought-master ~/bin/box read   (mail = signed commits on refs/box; send: printf msg | AGI_POST=thought-master ~/bin/box send <to>)
 ```
 
@@ -80,10 +81,10 @@ next command: AGI_POST=thought-master ~/bin/box read   (mail = signed commits on
 - anonymize.py and provisioning.py die on MAIN .env (G2) -- grep by hand instead
 - tests: NO pytest anywhere on the box -> scratch shim (scratch is under /tmp: a reboot WIPES it, so rebuild it) (pytest.py with importorskip/approx/mark.parametrize + a runner) on PYTHONPATH with /data/ml/scratch/osc03/pylib, run by /data/ml/.venv/bin/python3; never pip install
 - import torch needs ulimit -v >= 4000000 (2000000 fails to map); brief subagents with 4000000
-- git push fails (no creds for a v5 user); grid.py commit --all fails (MAIN .grid.lock), but `grid.py commit <path>` WORKS (card v5, 23:5xZ) -- SM pushes at landing
+- git push fails (no creds for a v5 user; re-measured on E 09:3xZ 10-10 by --dry-run); grid.py commit --all fails (MAIN .grid.lock), but `grid.py commit <path>` WORKS (card v5, 23:5xZ) -- SM pushes at landing
 - NO hand `git commit` / `git merge` that commits: agi-turn makes the ONE commit per turn (git add -A at Stop), so anything dirty gets committed -- clean the .agi/keys/<post> host comment BEFORE the turn ends; sync the trunk with `git merge --no-commit`
 - a THOUGHT block is edited in place between its BEGIN / END markers, rewritten whole; a new node needs its own mint_id (32 hex)
-- box needs AGI_POST set (dies "parameter not set" without it); a post mails only matrix-adjacent rows (levels differ <= 1)
+- box needs AGI_POST set (dies "parameter not set" without it); a post mails only matrix-adjacent rows (levels differ <= 1) · DETACHED HEAD (SM [warn] 02:58Z 10-11, until goal:g7.16.1.11.38): agi-flush ends each turn with checkout --detach posts/$AGI_POST, so a commit can strand off the branch -- check `git rev-parse HEAD refs/heads/posts/thought-master` match; if HEAD is ahead: is-ancestor then `git update-ref refs/heads/posts/thought-master HEAD` (checked 03:0xZ 10-11: equal at a7c8292c29) · ~/t IS A DETACHED READ VIEW now: an edit there is [out-of-tree], never committed (3 turns lost 10-11) -- edit a node only in `D=$(~/bin/agi-wt pull <id>)` (/run/agi-thought-master/wt/<mint>), agi-turn commits that tree
 
 ## §5 Verification
 - every round: an adversarial Sonnet review recomputes the verdict from the raw files; my own test run from the repo root; evidence dry-run []; links 0 broken (5648 resolved at 17:5xZ)
@@ -92,8 +93,8 @@ next command: AGI_POST=thought-master ~/bin/box read   (mail = signed commits on
 - npz rerun: osc_neuron_period_pc.py:145 + osc_neuron_period2.py:109 rewrite the 3 TRACKED npz on a rerun -> (a) leave it, AGREED with SM 21:1xZ (no rerun planned); revisit if either script is rerun
 - L4 r5 on the 9B: (a) run when the owner thins the live posts (RECOMMENDED) · (b) lower the 8 GB gate = OOM risk · (c) a smaller-model rung first; + a docker grant for v5 users
 - an LLM periodicity / self-poke test needs a model whose tokenizer holds multi-digit numbers as one token = a download (owner call)
-- next periodicity step: PAIR-LOSS (10-10) DISPROVED -- s0 k=34 redundant carrier, s1 k=3 no partner; whether s1 k=3 matters on ANY input needs a per-row / off-distribution look (not another ablation set). Needs a go; path patching stays the fallback
-- next osc round MUST (SM [return] 08:42Z 10-10): a NEGATIVE control for the pair-null test (pairloss test_4 is positive-only: an always-beats pair_table passes) + the void rule compares params to the FINAL bytes, not only start.json's launch hash
+- periodicity line: PAUSED 10-11 (goal:g5.28 horizon, council [no-go] per its Falsifier); a season-2 reopen needs the OWNER and must name the G5.22-G5.27 hypothesis it feeds; candidate chunk = per-row / off-distribution s1 k=3
+- any reopened osc round MUST (SM [return] 08:42Z 10-10): a NEGATIVE control for the pair-null test (pairloss test_4 is positive-only: an always-beats pair_table passes) + the void rule compares params to the FINAL bytes, not only start.json's launch hash
 
 ## Skills
 agi-send · agi-goal · agi-workflow · agi-verify · agi-rotate · agi-dispatch · agi-memory-guard · agi-master-gate
