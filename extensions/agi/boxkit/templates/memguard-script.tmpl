@@ -10,7 +10,7 @@ a process over 70% of RAM, or the largest unprotected one when MemAvailable < 1 
 post's spine or harness over 70% only alerts (goal:g7.16.1.11.40.1);
 a drop of >= 3 GiB within 30 s alerts. Alerts: journal + {{MEMGUARD_LOG}} (best effort: an unwritable log costs ONE red '[memguard-log] unwritable' line per episode, never a stop; the journal line is a fire-and-forget `timeout 30 logger` reaped through the pending list, never waited on and never fatal, so a slow journald or a missing logger cannot hold or kill a stop) + one line in the ~/.notice of each of {{MEMGUARD_ALERT_TO}}
 (written BY that post's own uid through runuser, with its agi-notice when it has one: root signs nothing and holds no key; the file stays
-the post's own; one line per kind per {{ALERT_COOLDOWN_S}} s, but a stop or resume line is keyed by its pid too, so a second stop is never swallowed). A pid stopped for
+the post's own; one line per kind per {{ALERT_COOLDOWN_S}} s, but a stop or resume line is keyed by its pid too, so a second stop is never swallowed). Each of those alerts is ALSO ONE signed message to {{MEMGUARD_ALARM_TO}} (goal:g7.16.1.11.20.2, council 3/3 21:3xZ): root appends a plain line, no key, to {{MEMGUARD_ALARM_SEAT}}'s alarm spool by runuser as that seat, fire-and-forget like the notice, and the seat's own drain signs and sends it, exactly once. A pid stopped for
 low memory is SIGCONTed once MemAvailable has stayed above {{RESUME_FACTOR}}x the low line for {{RESUME_HOLD_S}} s, and the notice line names its unit + pid;
 a pid stopped for size is resumed by hand and says so again every {{RENOTIFY_S}} s while it stays stopped.
 The kernel is the one home of "stopped": every tick, before anything else reads the list, a pid whose /proc/N/stat state is not T/t (resumed by hand),
@@ -44,6 +44,14 @@ def notice(text):
                               '[ -x ~/bin/agi-notice ] && exec ~/bin/agi-notice add "$0" || echo "$0" >> ~/.notice', text],
                              stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
         except Exception as e: wr(f'notice to {to} not written: {e!r}')
+def spool(text):                                                     # goal:g7.16.1.11.20.2: the alarm as a SIGNED message. Root signs nothing and holds no key: it APPENDS one plain line to the sending seat's spool by runuser as that seat (like the notice above), fire-and-forget; the seat's own drain row signs and sends it to the reader, exactly once. ONE line per alarm, not one per notice recipient
+    seat = '{{MEMGUARD_ALARM_SEAT}}'
+    if not SAFE.match(seat): return
+    try:
+        pend.append(subprocess.Popen(['timeout', '30', 'runuser', '-u', 'agi-' + seat, '--', 'python3', '{{ALARM_SPOOL_PY}}', 'append', '--job', 'memguard', '--to', '{{MEMGUARD_ALARM_TO}}',
+                          '--max-lines', '{{ALARM_SPOOL_MAX}}', '--spool', '{{MEMGUARD_STORES}}/' + seat + '/alarm.spool', '--text', text],
+                         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
+    except Exception as e: wr(f'alarm spool for {seat} not appended: {e!r}')
 def jlog(msg):                                                       # the journal line, fire-and-forget like the notice: never waited on (a slow /dev/log must not hold a stop), never fatal (fork EAGAIN, logger missing), a hung logger is killed at 30 s and reaped through pend
     try: pend.append(subprocess.Popen(['timeout', '30', 'logger', '-t', 'agi-memguard', msg], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
     except Exception as e: wr(f'journal line not written ({e!r}): {msg}')
@@ -55,7 +63,8 @@ def log(msg, red=False, kind='x', key=None, wrote=False):
     if red and time.time() - last.get(key, 0) > {{ALERT_COOLDOWN_S}}:
         last[key] = time.time()
         for k in [k for k, v in last.items() if len(last) > 200 and time.time() - v > {{ALERT_COOLDOWN_S}}]: del last[k]
-        notice(f'[memguard-{kind}] ' + msg + f' (ev {int(time.time()):08x})')
+        line = f'[memguard-{kind}] ' + msg + f' (ev {int(time.time()):08x})'
+        notice(line); spool(line)
 def unit_of(pid):
     try: return open(f'/proc/{pid}/cgroup').read().strip().split('\n')[-1].rsplit('/', 1)[-1] or '?'
     except Exception: return '?'
