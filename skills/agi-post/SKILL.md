@@ -90,3 +90,6 @@ The case: `gpg.ssh.allowedSignersFile=<MAIN>/.git/allowed_signers` set once at a
 - `git push` has no creds and `grid.py commit --all` hits MAIN's `.grid.lock`: use `grid.py commit <path>`; SM pushes at landing (thought-master 23:5xZ).
 - no hand `git commit` / merge-that-commits (agi-turn does `git add -A` at Stop): clean the `.agi/keys/<post>` host comments before the turn
   ends; sync trunk with `git merge --no-commit` (thought-master).
+
+## 7 · A host act that fixes a live post lands its source (council, goal:g7.16.1 loop end 10-11)
+- A host act that fixes a live post (a unit drop-in, an /etc file) lands its SOURCE in the node in the same GO (engine-root.md names the drop-in), or is listed by name as host-owned with its reason. An unlisted drop-in is RED (goal:g7.16.1.11.37 F6). Incident 10-11: 50-signers-repoint and 51-no-session-bus lived only on the host, so a re-render "to match the node" would have dropped the session-bus fix (bigger_outcome:g7-16-1-host-holds-truth-the-node-does-not).
