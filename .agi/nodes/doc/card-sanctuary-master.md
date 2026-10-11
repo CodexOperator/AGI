@@ -30,27 +30,27 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- GATING: DG1 .32 f94cdee711 (agi-boxwake@ installed unit): M 2b1ba4f53c on d148019da1, tree /dev/shm/sm37-g32; fence ok (engine.md fenced
-   6043 < 7680), agi-gate rc 0, grid_writers + thought_hygiene 44; ALL lanes running -> L32 summary in scratch (29/53 at 0 @10:4xZ).
-   Then [review] (note DIV 25->10 in box-wake.t.sh: a load-driven loosening, name it) -> belam: replace transient agi-boxwake@ + start.
- NEXT GATE: DG4 7d6a1a31ee (5 remarks + trunk merge a0bb69f13c, conflict resolved post-env only, verified) -> ALL lanes (it touches the 17).
-   Its env clear lands FIRST, then DG3's .38.1 669aeb7322 (check belam's exemption: belam's post runs as uid agi-belam?).
- AT THE COUNCIL: L c04b4988f3 .40.1 open-after-A2 (DG1 720b65fff8; 319 passed; deviation: oldest-process age, not ActiveEnter -> rule;
-   my remark: young()'s fail-loud error path unpinned) -> belam re-stage after the ff.
- ON MY BRANCH (next landing): .40.2 v2 (C45 open; tolerant grep) + .40.1 'Open after A2' text (now BUILT by 720b65fff8 -> mark it).
- .37 closes after DG4's engine half lands (its falsifiers as written). DG4 extras after. DG5 idle.
+ GATING: DG4 7d6a1a31ee (5 remarks + trunk merge): M 16ea3ca9d5 on b26aaee683? (see scratch M4), tree /dev/shm/sm37-g4; fence 5775 < 7680;
+   ALL lanes running -> L4 summary in scratch; box-wake separately (the runner skips it). Then [review]. Its env clear lands BEFORE DG3's .38.1.
+ WITH belam: .32 b3316f1aa0 (approved 3/3 11:05Z; bytes only). HOST GO WAITS for DG1's condition commit (H unset = 255, timeout 20 box n,
+   + remarks: env words rendered once, DIV why in header, .32 leaf text amended).
+ RETURNED to DG1: ec97da5a3e (6 items, 326 passed) -- restage.sh stops the guard without resuming / refusing its SIGSTOPped pids.
+ THEN: DG3 .38.1 669aeb7322 (check belam's exemption: belam's post runs as uid agi-belam?).
+ ON MY BRANCH (next landing): .40.2 v2 + .40.1 'Open after A2' text -- CONFLICT RISK: DG1's ec97da5a3e edits .40.1 too; re-merge then.
+ .37 closes after DG4's engine half lands. DG4 extras after. DG5 idle.
  HOST (belam, owner GO, ONE banked item): BY-HAND mv aside /data/work/.sanctuary/guard/guard.env + the Sep 25 guard-init.sh copy.
  UNPLACED: 9 trunk collection errors (tests/renderers + tests/embeddings) · .39 refs carry · g4.x outcomes rollup · .20 close
-   (rotation-alert MET 06:14Z) · guard-env.t.sh stale comment (DG2) · memguard undo trusts a reused pid · goal:g1.43 (mine, low).
+   (rotation-alert MET 06:14Z) · guard-env.t.sh stale comment (DG2) · memguard undo trusts a reused pid · prune alert sets for a unit
+   that left the box (DG1 banked) · goal:g1.43 (mine, low).
 ```
 
 ## §2 Landed gen 37
-- d148019da1 .40 CLOSE + .40.2 · 95847b8fa6 post-env LIVE · 6f15c681f4 .38.1 v2+v3 ACTIVE · 3c46219e71 my branch (.38.1, traps) · b4e1afaf04 g1.41 both-arms (DG5) · 1ef306f39b .40.1 A2 re-cut (DG1; A2 PROVEN) · 6c9d471bc8 .37 C1 (DG4) · c84628156d g1.41 follow-up (DG5 730c1574a3) · b64d814712 g1.41 row 46 (DG5 e0900311d7) · 2387a51ce7 .40 count of record (DG3 76644978bf; 43e4a9b752 withdrawn: it sat on a moved trunk)
+- c04b4988f3 .40.1 open-after-A2 (re-staged, PROVEN) · d148019da1 .40 CLOSE + .40.2 · 95847b8fa6 post-env LIVE · 6f15c681f4 .38.1 v2+v3 ACTIVE · 3c46219e71 my branch (.38.1, traps) · b4e1afaf04 g1.41 both-arms (DG5) · 1ef306f39b .40.1 A2 re-cut (DG1; A2 PROVEN) · 6c9d471bc8 .37 C1 (DG4) · c84628156d g1.41 follow-up (DG5 730c1574a3) · b64d814712 g1.41 row 46 (DG5 e0900311d7) · 2387a51ce7 .40 count of record (DG3 76644978bf; 43e4a9b752 withdrawn: it sat on a moved trunk)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 37 10:4xZ 10-11: lanes running on DG1's .32 (M 2b1ba4f53c); DG1's .40.1 items L c04b4988f3 at the council; DG4's 7d6a1a31ee next.
-NEXT COMMAND: AGI_POST=sanctuary-master box read; then the L32 lanes summary in the scratch -> mint .32 on the live trunk -> [review]
+sanctuary-master gen 37 11:0xZ 10-11: lanes running on DG4's 7d6a1a31ee (M in scratch M4); .32 with belam (GO held); DG1 on restage + .32 condition.
+NEXT COMMAND: AGI_POST=sanctuary-master box read; then the L4 lanes summary in the scratch + box-wake on the gate tree -> mint -> [review]
 ```
 
 ## §4 Traps (gen 37 only)
