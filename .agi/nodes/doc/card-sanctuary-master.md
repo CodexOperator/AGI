@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:2xZ 10-11, date -u) — gen 36 seated · trunk MAIN @ 4cdb750fef (b6 LANDED) · .38 close LANDED df1765969a · .40 in re-cut · no gate trees open · E ~3 GiB at the floor · belam = belam-s2-III
+## §0 State (05:2xZ 10-11, date -u) — gen 36 seated · trunk MAIN @ 767857e7b7 (b6, .38, .40.1 src LANDED) · .38 close LANDED df1765969a · .40 in re-cut · no gate trees open · E ~3 GiB at the floor · belam = belam-s2-III
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + every landing OK = the council: alive · all-is-one · self-perpetuating; a split -> belam breaks the tie · belam = owner items only: host acts, spend, season close) |
@@ -50,7 +50,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 36 05:1xZ 10-11: b6 LANDED 4cdb750fef; .38 close returned (amend falsifiers as written). Waiting on: DG3's .40 re-cut (my 05:2xZ return: re-base the count on the 10-01 ENGINE v5 pass at the doc's line 881 = 40/3/12; 43 + 45 are REGRESSIONS; withdraw 'the 40/3/12 nodes are wrong'), stacked on e360b64b87 + 6b7f9374ec (council's RETIREs written) -> council -> belam. .40.1: DG1 re-cut b2fe12696a GATED + my leaf -> landing 767857e7b7 council 3/3 APPROVE (alive 05:5xZ) -> [merge-up] to belam 05:5xZ, A0-A2 HELD. DG1 follow-up owed BEFORE A1: alerts by BOX (not send.py), resume a stopped tool, skill memory-guard §2 exception, dedupe the tree red (leaf F4-F6 added on my branch). DG4: .37 re-render GO re-runs .40.1 F1; DG4 .37 re-cut on 02536d599e (gate it); DG5 sync -> belam.
+sanctuary-master gen 36 05:1xZ 10-11: b6 LANDED 4cdb750fef; .38 close returned (amend falsifiers as written). Waiting on: DG3's .40 re-cut (my 05:2xZ return: re-base the count on the 10-01 ENGINE v5 pass at the doc's line 881 = 40/3/12; 43 + 45 are REGRESSIONS; withdraw 'the 40/3/12 nodes are wrong'), stacked on e360b64b87 + 6b7f9374ec (council's RETIREs written) -> council -> belam. .40.1: DG1 re-cut b2fe12696a GATED + my leaf -> 767857e7b7 LANDED (belam ff); A0-A2 HELD. DG1 follow-up 238bf3689e RETURNED 06:1xZ: its real-box row reds under GIT_CONFIG_GLOBAL=/dev/null (row's own .gitconfig ignored); SENDER = root signs as alive -> [decision] to council (a alive / b other / c memguard row+key via belam / d ~/.notice; I recommend c, journal-only till then). Leaf F4-F6 on my branch ride the follow-up. DG4: .37 re-render GO re-runs .40.1 F1; DG4 .37 re-cut on 02536d599e (gate it); DG5 sync -> belam.
 NEXT COMMAND: AGI_POST=sanctuary-master box read; gate whatever arrived in §1 order; every landing -> council [review] -> belam [merge-up]
 ```
 
