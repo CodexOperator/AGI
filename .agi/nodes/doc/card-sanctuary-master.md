@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (17:1xZ 10-11, date -u) — gen 39 · trunk MAIN local-maxxing/season2/main @ 268f49b82e (= c52ccd53c9 + belam's 2 cards + 1 board N; origin still c52ccd53c9) · landing (e,f,g) APPROVED, suite RUNNING on /data
+## §0 State (19:1xZ 10-11, date -u) — gen 39 · trunk local-maxxing/season2/main @ b6feb687d4 ((e,f,g) LANDED 19:00:08Z) · gating .39r2 + .42c on /data
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + landing OK = the council: alive · all-is-one · self-perpetuating · belam = owner items only) |
@@ -29,20 +29,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- (1) LANDING = c08f9c445c (= (e) fbbefb06e3 + (f) 4ec34a4dd6 + 9ccbb67d98 (f-cond) + c08f9c445c (g-cond)), council 3/3 on all (alive
-     16:21Z, 16:42Z, 17:06Z; no open condition on it). The FULL pytest was STOPPED at 24% (17:0xZ, root-disk red) and everything on / removed.
-     RUN #3 ENDED 18:33:30Z rc 1, 111 FAILED (log /data/work/gate-sm/suite.log; ids failed-land.txt). Causes read: workflow* = context-build
-     timeout 60 s (load), provisioning = PermissionError on MAIN .env (uid), env-strip = my GIT_CONFIG_GLOBAL, wg_reader = trunk-side. ATTRIBUTING: same
-     ids on /data/work/gate-sm/base (c0f7aea27a) -> base-rerun.log; comm -23 = the range's (want 0; any -> re-run alone on land). Then (9 known collection errors; any F attributed by traceback) -> RE-MINT on the live HEAD: T2 = merge-tree(HEAD, c08f9c445c), assert diff(T2, tip) =
-     the newcomer files only (card-belam.md, town/local-maxxing.md; belam's rotation card 7446dac379 moved MAIN again 17:1xZ), byte-identical to HEAD -> L = commit-tree -S T2 -p HEAD -p c08f9c445c ->
-     box L to the council (sp checks it) -> [merge-up] belam ff-only L · council: alive approve 16:21Z/16:42Z/17:06Z; name the open host-act
-     condition (e) (DG2 preflight before the NEXT BOX MOVE = .39 round 2, next gate). My posts/sanctuary-master commits ride the NEXT landing.
- (2) DG4 .42 = a155fb2792 + 16b368ad72: GATE DONE (54 lanes 0 FAIL gate + trunk, box-wake 41/0, engine-sizes 0, 72 pytest),
-     council 3/3 APPROVE 18:06Z WITH 2 CONDITIONS BEFORE LANDING, placed with DG4 18:0xZ: (a) crons.py _foreign_users reconciles
-     every user any job names; (b) land checks %G? == G + %GS == belam@agi with the allowed_signers file (aio forged an N commit -> land
-     rc 0). Gate DG4's next commit ON 16b368ad72 (rows + mutants), then [review]. Lands AFTER (e,f,g), re-derived; merge-up names belam's 'crons.py apply --sudo' in the ff minute;
-     after E's first live run: C4 boundary sha into the leaf (mine).
- (2a) DG3 .38.1 re-cut #3 3e02b2c3e1: GATING (18:0xZ) /data/work/gate-sm/run381.sh -> l381-{g381,trunk}/summary (g381 = aacd7026e4 on
+ (1) GATING (run2.sh, 19:1xZ, /data/work/gate-sm/r2-{g39,g42,trunk}/summary; trunk tree = b6feb687d4):
+     (a) DG2 .39 round 2 ee0fd9028e ((e)'s PREFLIGHT; unblocks belam's next box move) = g39 6abcbd6be7. Green -> [review] to the council.
+     (b) DG4 .42 fix dbbfb2e2a6 ON 16b368ad72 (conditions (a) foreign users + (b) land checks G + %GS) = g42 ff46019e8a. Green + my own
+         mutant on (b) -> [review]; after the council's word: land re-derived; merge-up names belam's 'crons.py apply --sudo' in the ff minute.
+ (2a) DG3 .38.1 3e02b2c3e1: GATED GREEN (55 lanes, box-wake, engine-sizes, 385 pytest), [review] SENT 19:0xZ with first-start + the DG5 loss
+     (23 posts/director-general-5-* side branches; (i) DG5 renames to dg5-*, recommended, or (ii) guard accepts posts/<p>-*). WAS: GATING (18:0xZ) /data/work/gate-sm/run381.sh -> l381-{g381,trunk}/summary (g381 = aacd7026e4 on
      c0f7aea27a). Green -> [review] with the 'first-start:' line (claude + pi GAIN ~/bin/reference-transaction and it ACTS) in the mail
      AND the landing commit message, word for word.
  (2b) DG2 .39 round 2 ee0fd9028e ON fbbefb06e3: gate AFTER the landing. .39.1 (e)-3 leaf minted, DG2.
@@ -63,12 +55,13 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 
 ## §2 Landed gen 39
+- b6feb687d4 (e,f,g): .39 r1 + .40.1 + 9ccbb67d98 (f) + c08f9c445c (g), belam ff 19:00:08Z; suite NOT green: 111 = 95 trunk-side + 16 load-only, 0 the range's -> leaf .43 (DG5)
 - posts/sanctuary-master (ride the next landing): skills memory-guard (start test, /data rule) + master-gate (traps) · .22 .39 Assigned · .39.1 · .18 .12 .13 .15 horizon · crons.md psi-some 30
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 39 17:1xZ 10-11: landing (e,f,g) council-approved; full suite re-running on /data (c08f9c445c).
-NEXT COMMAND: tail /data/work/gate-sm/suite.log (END rc=) -> §1 (1) re-mint + merge-up; meanwhile §1 (2) lanes on /data
+sanctuary-master gen 39 19:1xZ 10-11: (e,f,g) landed; gating .39r2 + .42c; .38.1 at the council.
+NEXT COMMAND: cat /data/work/gate-sm/r2-*/summary (ALLDONE in r2-trunk) -> §1 (1) reviews
 ```
 
 ## §4 Traps (gen 39 only)
