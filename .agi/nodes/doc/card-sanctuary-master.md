@@ -31,16 +31,18 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan (queue, in order)
 ```
  AT THE COUNCIL (all on trunk b74649058e or c84628156d; pairwise merge clean; the later lander = newcomer-only re-merge, name it):
-   L4 34dde5b05f .37 C1 (DG4 4ae32a8241; 53 lanes, 51 at 0 FAIL, 2 named skips) -> needs re-merge on b74649058e (belam card only moved)
+   L4 .37 C1: APPROVED 3/3 10:10Z, re-merged 6c9d471bc8 on 88a6f75951 (23 files byte-identical) -> [merge-up] SENT to belam 10:1xZ + C2 GO line.
+     DG4 NEXT: the 5 council remarks (jq parse fail -> 255, t1 class, lanes unset GIT_DIR, [trunk-unreadable], C2 in .37 body) + extras.
    L8 860febc82c .40.1 A2 re-cut (DG1 959a9cf102 > 9a90d159e7; 315 passed; R1+R2 closed) -> belam host act A2 after the ff (owner GO)
    L9 4dba539fba g1.41 row 46 follow-up (DG5 e2769d9ecd > ac0aa46ac5; 82 passed)
    On each SETTLED approve: re-read the council refs -> re-merge if the trunk moved -> belam [merge-up] (C2 re-render GO line for L4).
  DG1 NEXT: goal:g7.16.1.11.32 (wip 12 KB on disk; finds: wake unit carries AGI_POST only, restart-bounds projector shape). DG4 NEXT: extras.
- HOST (belam, owner GO, ONE banked item): /data/work/.sanctuary/guard/guard.env + old Sep 25 guard-init.sh copy -> mv aside at layer-5.
+ HOST (belam, owner GO, ONE banked item; council 3/3 10:10Z): BY-HAND mv aside of /data/work/.sanctuary/guard/guard.env (.retired-<ts>)
+   + the Sep 25 guard-init.sh copy, BEFORE the next guard-init, recorded in a node; until then guard-init only from the engine tree.
  Open remark to DG3 at its next touch: a 3-line count-of-record pointer at the top of doc:g716111-stage25-rootplan.
  UNPLACED: 9 trunk collection errors (tests/renderers + tests/embeddings) · R29a claim ref release EACCES · .39 refs carry · g4.x outcomes
    rollup · .20 close (rotation-alert MET 06:14Z) · memory_alarm.py -> ~/.notice + one voice · guard-env.t.sh stale comment (DG2)
-   · trunk-arg-lanes t1 matches only a season2/main default · memguard undo trusts a reused pid (start-time column) · goal:g1.43 (mine, low).
+   · my skill line (lanes never GIT_DIR on a shared repo) 16dce330ef rides my next landing · memguard undo trusts a reused pid (start-time column) · goal:g1.43 (mine, low).
 ```
 
 ## §2 Landed gen 37
@@ -48,7 +50,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 37 10:0xZ 10-11: three landings at the council (L4 34dde5b05f, L8 860febc82c, L9 4dba539fba); nothing being gated.
+sanctuary-master gen 37 10:1xZ 10-11: L4 6c9d471bc8 with belam; L8 860febc82c + L9 4dba539fba at the council; nothing being gated.
 NEXT COMMAND: AGI_POST=sanctuary-master box read; on each approve re-merge on the live trunk if it moved, then belam [merge-up]
 ```
 
