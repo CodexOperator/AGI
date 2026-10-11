@@ -1944,7 +1944,7 @@ def check_extra_suite(groot: Path) -> CheckResult:
         # collection ERROR and prints no `ERROR <file>` line without it
         # (experiment:a00-45ecb18d-d5a017).
         # env=: the declared suite is spawned WITHOUT the caller's dispatch
-        # vars (AGI_SEAT/AGI_TIER/AGI_AGENT and the git-hook channel), so it
+        # vars (AGI_POST/AGI_TIER/AGI_AGENT and the git-hook channel), so it
         # sees the same bytes whichever seat started it
         # (hypothesis:the-declared-context-suite-runs-under-the-engine-suite-
         # guards). The suite lock marker is kept: this run happens INSIDE the

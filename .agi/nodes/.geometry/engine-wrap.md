@@ -17,25 +17,25 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
-agi-run           2054 B  pane cmd: .fresh or -c, strace; inbox + box -> i
+agi-run           2009 B  pane cmd: .fresh or -c, strace; inbox + box -> i
 settings.json      372 B  the ONE hook wiring: brief, meter, turn commit
-cccc.ts           1956 B  pi events -> the CC hooks; mail -> a turn
-agi-kid           2049 B  a pi-free kid in this unit: own HOME and tree
+cccc.ts           1913 B  pi events -> the CC hooks; mail -> a turn
+agi-kid           2037 B  a pi-free kid in this unit: own HOME and tree
 agi-infer          1077 B  ONE chat call, OpenAI-compatible: stdin -> stdout
 agi-captive        576 B  window open: only agi-fill passes
 ~~~
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-run (2054 B)
+### agi-run (2009 B)
 ~~~sh
 #!/bin/sh
-cd ~/t;c=-c;[ -e ~/.fresh ]&&rm ~/.fresh&&c=;stty cols 200 rows 50;i=$RUNTIME_DIRECTORY/i;f=$O/.agi/sessions/inbox/$AGI_SEAT.md
+cd ~/t;c=-c;[ -e ~/.fresh ]&&rm ~/.fresh&&c=;stty cols 200 rows 50;i=$RUNTIME_DIRECTORY/i;f=$O/.agi/sessions/inbox/$AGI_POST.md
 (while sleep 300;do m=$((${AGI_PANE_MAX_MB:-64}<<20));[ $(stat -c%s ~/o 2>/dev/null||echo 0) -gt $m ]&&tail -c $((m/2)) ~/o>~/o.t&&cat ~/o.t>~/o;rm -f ~/o.t;done)&
-case $H in claude*)(s=$(stat -c%s $f 2>/dev/null||echo 0);while sleep 5;do n=$(stat -c%s $f 2>/dev/null||echo 0);[ $n -gt $s ]&&printf "mail: send.py read $AGI_SEAT">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
-case $H in claude*|pi*)(s=0;while sleep 5;do n=$(AGI_POST=${AGI_POST:-$AGI_SEAT} box n 2>/dev/null|grep -vc '^\[');[ $n -gt $s ]&&printf "mail: box read">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
+case $H in claude*)(s=$(stat -c%s $f 2>/dev/null||echo 0);while sleep 5;do n=$(stat -c%s $f 2>/dev/null||echo 0);[ $n -gt $s ]&&printf "mail: send.py read $AGI_POST">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
+case $H in claude*|pi*)(s=0;while sleep 5;do n=$(box n 2>/dev/null|grep -vc '^\[');[ $n -gt $s ]&&printf "mail: box read">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
 case $H in claude*)(umask 077;j=~/.claude.json;n=$j.n;jq -e '((.fullscreenUpsellSeenCount//0)|numbers)>=3' $j>/dev/null 2>&1||{ if [ -e $j ];then jq '.fullscreenUpsellSeenCount=3' $j;else echo '{"fullscreenUpsellSeenCount":3}';fi>$n 2>/dev/null&&[ -s $n ]&&mv $n $j;rm -f $n;});;esac
-[ -z "$c" ]&&(p=${AGI_POST:-$AGI_SEAT};r=$(git show ${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/rotations.md 2>/dev/null|awk -v p=$p '/^---$/{if(++n>1)exit;next}n!=1||/^[ ]*(#.*)?$/{next}/^alerts:[ ]*$/{a=s=1;next}/^[^ ]/{a=0}!a{next}/^  (audit|silent):[ ]*$/{k=$1;sub(/:/,"",k);m="l";next}/^  edges:[ ]*\{\}[ ]*$/{m="";next}/^  edges:[ ]*$/{m="e";next}m=="l"&&/^    - [a-z][a-z0-9-]*[ ]*$/{L[k]=L[k]" "$2;next}m=="e"&&/^    [a-z][a-z0-9-]*:[ ]*$/{e=$1;sub(/:/,"",e);next}m=="e"&&/^      - [a-z][a-z0-9-]*[ ]*$/{if(e==p)E=E" "$2;next}{b=1}END{if(!s||b)exit 1;n=split(L["audit"]E,w," ");z=split(L["silent"],y," ");for(i=1;i<=z;i++)S[y[i]];S[p];for(i=1;i<=n;i++)if(!(w[i] in S)){S[w[i]];print w[i]}}')||echo "warn: rotation alert: alerts cell unreadable, nothing sent" >&2;[ -n "$r" ]&&timeout -k 2 20 sh -c 'for x in $0;do printf "[rotation-alert] $1 restarted fresh $(date -u +%FT%TZ)\n"|AGI_POST=$1 box send $x||echo "warn: rotation alert to $x failed" >&2;done' "$r" $p)2>>$RUNTIME_DIRECTORY/alert&
+[ -z "$c" ]&&(p=$AGI_POST;r=$(git show ${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/rotations.md 2>/dev/null|awk -v p=$p '/^---$/{if(++n>1)exit;next}n!=1||/^[ ]*(#.*)?$/{next}/^alerts:[ ]*$/{a=s=1;next}/^[^ ]/{a=0}!a{next}/^  (audit|silent):[ ]*$/{k=$1;sub(/:/,"",k);m="l";next}/^  edges:[ ]*\{\}[ ]*$/{m="";next}/^  edges:[ ]*$/{m="e";next}m=="l"&&/^    - [a-z][a-z0-9-]*[ ]*$/{L[k]=L[k]" "$2;next}m=="e"&&/^    [a-z][a-z0-9-]*:[ ]*$/{e=$1;sub(/:/,"",e);next}m=="e"&&/^      - [a-z][a-z0-9-]*[ ]*$/{if(e==p)E=E" "$2;next}{b=1}END{if(!s||b)exit 1;n=split(L["audit"]E,w," ");z=split(L["silent"],y," ");for(i=1;i<=z;i++)S[y[i]];S[p];for(i=1;i<=n;i++)if(!(w[i] in S)){S[w[i]];print w[i]}}')||echo "warn: rotation alert: alerts cell unreadable, nothing sent" >&2;[ -n "$r" ]&&timeout -k 2 20 sh -c 'for x in $0;do printf "[rotation-alert] $1 restarted fresh $(date -u +%FT%TZ)\n"|AGI_POST=$1 box send $x||echo "warn: rotation alert to $x failed" >&2;done' "$r" $p)2>>$RUNTIME_DIRECTORY/alert&
 exec strace -qqf -b execve -e%file -o'|agi-track' $H $c go
 ~~~
 
@@ -44,22 +44,22 @@ exec strace -qqf -b execve -e%file -o'|agi-track' $H $c go
 {"skipDangerousModePermissionPrompt":true,"tui":"default","hooks":{"PreToolUse":[{"hooks":[{"type":"command","command":"agi-captive"}]}],"SessionStart":[{"hooks":[{"type":"command","command":"agi-brief","timeout":180}]}],"UserPromptSubmit":[{"hooks":[{"type":"command","command":"agi-meter"}]}],"Stop":[{"hooks":[{"type":"command","command":"agi-turn","timeout":180}]}]}}
 ~~~
 
-### cccc.ts (1956 B)
+### cccc.ts (1913 B)
 ~~~ts
 import{execSync as x}from"node:child_process";import{readFileSync as R,watchFile as W,unwatchFile as U}from"node:fs"
 const E=process.env,H=JSON.parse(R(E.HOME+"/.claude/settings.json","utf8")).hooks,N={bash:"Bash",read:"Read",edit:"Edit",write:"Write"};let b="",v
 const h=(n,j={})=>{let o="",k=0;for(const g of H[n]||[])if(!g.matcher||RegExp(g.matcher).test(j.tool_name))for(const c of g.hooks)try{o+=x(c.command,{input:JSON.stringify({hook_event_name:n,cwd:process.cwd(),...j}),encoding:"utf8",stdio:"pipe",timeout:(c.timeout||60)*1e3})}catch(e){if(e.status==2)k=2,o+=e.stderr}return{o,k}}
 const t=e=>({tool_name:N[e.toolName]||e.toolName,tool_input:e.input}),S=s=>{b=h("SessionStart",{source:s}).o}
 export default p=>{const on=(e,f)=>p.on(e,f);on("session_start",e=>{S({new:"clear",fork:"resume",reload:"resume"}[e.reason]||e.reason)
-const f=`${E.O}/.agi/sessions/inbox/${E.AGI_SEAT}.md`;U(f);W(f,{interval:5e3,persistent:!1},(n,o)=>n.size>o.size&&p.sendUserMessage("mail: send.py read "+E.AGI_SEAT,{deliverAs:"followUp"}))
-let s=0;clearInterval(v);v=setInterval(()=>{try{const n=+x("box n 2>/dev/null|grep -vc '^\\['||:",{encoding:"utf8",stdio:["ignore","pipe","ignore"],env:{...E,AGI_POST:E.AGI_SEAT||E.AGI_POST}}).trim();n>s&&p.sendUserMessage("mail: box read",{deliverAs:"followUp"});s=n}catch{}},5e3).unref()})
+const f=`${E.O}/.agi/sessions/inbox/${E.AGI_POST}.md`;U(f);W(f,{interval:5e3,persistent:!1},(n,o)=>n.size>o.size&&p.sendUserMessage("mail: send.py read "+E.AGI_POST,{deliverAs:"followUp"}))
+let s=0;clearInterval(v);v=setInterval(()=>{try{const n=+x("box n 2>/dev/null|grep -vc '^\\['||:",{encoding:"utf8",stdio:["ignore","pipe","ignore"]}).trim();n>s&&p.sendUserMessage("mail: box read",{deliverAs:"followUp"});s=n}catch{}},5e3).unref()})
 on("session_compact",()=>S("compact"));on("before_agent_start",e=>b&&{systemPrompt:e.systemPrompt+"\n\n"+b})
 on("input",(e,c)=>{const u=c.getContextUsage()||{},r=h("UserPromptSubmit",{prompt:e.text,tokens:u.tokens,context_window:u.contextWindow});return r.k?{action:"handled"}:r.o&&{action:"transform",text:e.text+"\n\n"+r.o}})
 on("tool_call",e=>{const r=h("PreToolUse",t(e));return r.k&&{block:true,reason:r.o}});on("tool_result",e=>{h("PostToolUse",t(e))})
 on("session_before_compact",()=>{h("PreCompact",{trigger:"auto"})});on("turn_end",()=>{h("Stop")});on("session_shutdown",()=>{clearInterval(v);h("SessionEnd",{reason:"other"})})}
 ~~~
 
-### agi-kid (2049 B)
+### agi-kid (2037 B)
 ~~~sh
 #!/bin/sh
 K="--provider openrouter --model $AGI_KID_MODEL"
@@ -77,7 +77,7 @@ fl(){ x=$(git show HEAD:extensions/agi/workflows/$1.json|jq -r --argjson a "$A" 
 V=1;fl $M;V=;fl $M;(export GIT_DIR=$PWD/.git GIT_WORK_TREE=$D GIT_INDEX_FILE=$(mktemp -u);cd $D&&git add -A&&git update-ref $R $(git commit-tree -S -m $s $(git write-tree)));exit $?;fi
 k=$1;shift;h=~/k/$k;mkdir -p $h/.claude;cd ~/t;[ -d $h/t ]||git worktree add -q $h/t -b kids/$k
 for x in .gitconfig .ssh hooks .claude/settings.json;do ln -sfn ~/$x $h/$x;done
-cd $h/t;HOME=$h AGI_SEAT=$k AGI_POST=$k AGI_ROLE=kid AGI_HARNESS=pi-free AGI_WT=$RUNTIME_DIRECTORY/k-$k exec pi $K --skill skills -e ~/bin/cccc.ts -p "$*"</dev/null
+cd $h/t;HOME=$h AGI_POST=$k AGI_ROLE=kid AGI_HARNESS=pi-free AGI_WT=$RUNTIME_DIRECTORY/k-$k exec pi $K --skill skills -e ~/bin/cccc.ts -p "$*"</dev/null
 ~~~
 
 ### agi-infer (1077 B)
