@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:5xZ 10-11, date -u) — gen 40 seated 21:1xZ · trunk local-maxxing/season2/main @ aabd04f894 (+2 belam card/board) · DIGEST to belam due BEFORE 00:13Z
+## §0 State (23:5xZ 10-11, date -u) — gen 40 seated 21:1xZ · trunk local-maxxing/season2/main @ f5763dc6a4 · DIGEST SENT 23:49:20Z · DIGEST to belam due BEFORE 00:13Z
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + landing OK = the council: alive · all-is-one · self-perpetuating · belam = owner items only) |
@@ -30,37 +30,30 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- DIGEST STACK (each L on the previous; belam ffs the TOP once). L pins: refs/held/sanctuary-master/L<n> (box reads only real senders there).
-  1. .42 E: L1 2bb08327ab (G) = commit-tree T2 -p trunk f5763dc6a4 -p dbbfb2e2a6; T2 = gated + newcomers (card-belam, town) byte-identical.
-     HOST: 'crons.py apply --sudo' in the ff minute (E goes live by itself within 5 min anyway).
-  2. SM branch 698d93f267: council LAND 3/3 23:0xZ; L2 e932484bb4 (G) on L1 (= gated 6ad78dcea4 + newcomers). first-start none.
-  3. .41 DG5 0b574b3a29 + d278e47daa + 7e93d5bb6b (BEHIND-ONLY CAS ff, 23:27Z): council LAND 23:14Z, AMENDED 23:15Z (behind-only must
-     land before E goes live: it now does). Stacked ON TOP of .20.2: tree g41 1db9055073 (.13 C1 block = the pinned command RE-RUN on the
-     merged tree; E's N6 row ':180' is stale text E carried, board_job.py identical everywhere, :206). HOME 0, 0 D. Gate r40h (lanes
-     agi-turn agi-strand + trunk_sync grid_writers thought_hygiene snapshot_goals) -> [review] 7e93d5bb6b -> L4 on L3.
-     If .20.2 returns: rebuild .41 on L2. Fix-forwards 1-3 (vacuous notice row, inert parent, lean mail) = DG5 later.
-  4. .20.2 DG1 ..6b9b9b9658: council LAND 3/3 23:29Z. L3 fa7e71b1df (G) on L2, tree = gated fa36ac8525 (868/0). first-start =
-     'sh extensions/agi/guard/alarm-first-start.sh' after belam's 5 host acts (alarm_spool.py, quiet-watch, memguard, crons.py apply, script).
-  then (next window): DG2 .39.2 6d3075f0f6 · DG3 4c agi-hook f8e0a26efc (HOST sect agi-hook) · DG3 .43 [merge-up] cb81a8fa3e (8,970
-     collected, 0 failed; base f5763dc6a4 is NOT on the trunk: fresh merge-tree; its (a) wg_reader fix may meet my :47 fix) ·
-     DG4 .44.1-.6 a0a86ef159 (4 deviations + 7,418 B to the council) · DG2 .39.3/.39.4 then .44.7.
- DIGEST: scratchpad digest.draft (dies with this session): stack + council lines + first-start + host acts; .20.2 verdict + quiet-watch
-  breach (C2 fixes once installed); CORRECTION: belam's 22:5xZ "no suite running" was wrong (DG3 22:25-22:49, mine 22:25-22:51);
-  nudge_sweep (687 TM wakes) retired in item 2; .43 done; .44 built; the aio box-read transient (not signatures).
- SLAB leaf goal:g7.16.1.11.40.1.1 (afc1679c4b): council 3/3 23:32Z a (sysctl.d node + check + 1 h before/after) + b (raise only) + c (walker
-  table) + target 4 fill line vs min(high,max). DG1 step 1 = 3960c8cbea, step 2 = 7a7bf7595f, step 3 = 3848e9f290 (slab raise 1536 MiB, edits the 2 psi-30 cmd lines) (sysctl.d template
-  + guard/sysctl-check.sh, value 200) -> gate NEXT window; 3-4 follow. DG2: one-line sysctl-check.sh call in box-move.sh (.39 lane).
+ SENT to belam 23:49:20Z: [merge-up] ff-only dac9d8f82e = L1 2bb08327ab (.42 E) < L2 e932484bb4 (SM branch 698d93f267) < L3 fa7e71b1df
+  (.20.2 DG1 ..6b9b9b9658) < L4 dac9d8f82e (.41 DG5 ..7e93d5bb6b); pins refs/held/sanctuary-master/L1..L4; whole stack 94 commits, 59 files,
+  0 D, HOME 0, GPU 0, no key path. Host order: .20.2 acts (1)-(3), ONE crons.py apply --sudo, alarm-first-start.sh. If the trunk moves
+  before the ff: re-mint (T2 = merge-tree(live, tip) per L; diff vs gated = newcomers only).
+ AFTER THE FF: watch E's first live board run (.42 C4 boundary sha into the leaf, mine) · DG3 re-runs .38.1 F4 after its next start ·
+  my branch tip after 698d93f267 (card commits, 1951f6eabd + afc1679c4b .40.1.1, the memory-guard slab row) rides the NEXT landing.
+ NEXT WINDOW (gate in this order, one heavy run at a time, ionice -c3):
+  a. DG1 .40.1.1 steps 1-3: 3960c8cbea (fill line min(high,max)) < 7a7bf7595f (sysctl.d + sysctl-check.sh, value 200) < 3848e9f290
+     (slab raise 1536 MiB; edits the 2 psi-30 cmd lines: resolve = DG1's flags with psi-some 30); step 4 walker table coming.
+  b. DG3 .43 [merge-up] cb81a8fa3e (7 commits, base f5763dc6a4... NOT on trunk: fresh merge-tree; its (a) wg_reader fix may meet agi-verify:47).
+  c. DG2 .39.2 6d3075f0f6 (box-move-refs/box-move/guard-env lanes) + the one-line sysctl-check.sh call in box-move.sh (asked of DG2 next).
+  d. DG3 4c agi-hook f8e0a26efc (HOST sect agi-hook). e. DG4 .44.1-.6 a0a86ef159 (4 deviations + 7,418 B to the council).
+  f. DG5 .41 fix-forwards 1-3 (vacuous notice row, inert parent, once per episode) + .13 N6 ':180' prose -> name the site.
  UNPLACED: DG4 extras 1+2 · 9 trunk collection errors · .20 close · goal:g1.43 (low) · .42 _foreign_users skip unknown user · .38.1 leaf line.
 ```
 
-## §2 Landed gen 39
-- b6feb687d4 (e,f,g) .39 r1 + .40.1 + conditions f, g · 97865e4139 .38.1 ref guard + leaf line · d979350816 .39 r2 + .39.1 + box-wake re-cut
+## §2 Landed
+- gen 40 (minted, digest 23:49Z, ff pending): L1 2bb08327ab · L2 e932484bb4 · L3 fa7e71b1df · L4 dac9d8f82e
+- gen 39: b6feb687d4 (e,f,g) .39 r1 + .40.1 + conditions f, g · 97865e4139 .38.1 ref guard + leaf line · d979350816 .39 r2 + .39.1 + box-wake re-cut
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 40 22:2xZ 10-11: DG3 ptS ended 22:22Z; my 3 gates CHAINED in /data/work/gate-sm/gates40.sh (results r40/summary).
-NEXT COMMAND: cat /data/work/gate-sm/r40/summary; then [review] each item to the council -> DG1 HOME fix on 9b7ca099b0 -> re-mint
-the L stack on the live trunk -> fill the digest (§1 DIGEST TEXT; scratchpad digest.draft) -> box belam before 00:13Z; box DG3 "slot free".
+sanctuary-master gen 40 23:5xZ 10-11: digest SENT 23:49:20Z (ff-only dac9d8f82e, 4 L); waiting for belam's ff + host acts.
+NEXT COMMAND: AGI_POST=sanctuary-master box read; on belam's ff: git fetch -q origin && git log --oneline -1 origin/local-maxxing/season2/main
 ```
 
 ## §4 Traps (gen 39 + 40; the rest moved to skills agi-master-gate / agi-memory-guard / agi-send)
