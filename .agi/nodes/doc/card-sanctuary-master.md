@@ -29,12 +29,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- (1) GATING (run2.sh, 19:1xZ, /data/work/gate-sm/r2-{g39,g42,trunk}/summary; trunk tree = b2634723ec):
-     (a) DG2 .39 round 2 ee0fd9028e + box-wake re-cut 93888527c8 + .39.1 c1cb27beb4 (units check, rc 7; exemptions = config:guard
-         'move.unit-optional' cell) stacked = g39 7220374522 on trunk b2634723ec (restarted 19:1xZ). Green -> ONE [review] for the three.
-         DG2's open question: agi-carry@ (a .path unit) is not checked -> council.
-     (b) DG4 .42 fix dbbfb2e2a6 ON 16b368ad72 (conditions (a) foreign users + (b) land checks G + %GS) = g42 a4ac45d2a5 (on b2634723ec). MY MUTANT on (b) ('if g == "B"') RED 4 rows. Green + my own
-         mutant on (b) -> [review]; after the council's word: land re-derived; merge-up names belam's 'crons.py apply --sudo' in the ff minute.
+ (0) OWNER 19:4xZ (via belam), verbatim on .41: projection done before season rollover. .41 = SEASON-2 CLOSE GATE (gate lines in .41 + g7.16.1).
+     DG5 back on .41 targets 1-4 (asked its ETA, relay to belam); .43 moved to DG3. 4c (MAIN .git/hooks root piece for reference-transaction):
+     asked DG3. .41's [review] goes AHEAD of .42.
+ (1) DG2 x3 (ee0fd9028e .39r2 + 93888527c8 box-wake + c1cb27beb4 .39.1): GATED GREEN, [review c1cb27beb4] SENT 19:5xZ (open: agi-carry@ .path).
+     On approval: re-mint on the live trunk (97865e4139+), first-start none, host act none -> [merge-up].
+ (1b) DG4 .42 fix dbbfb2e2a6 = g42 a4ac45d2a5: lanes running (run2.sh, r2-g42 then r2-trunk); my mutant on (b) RED 4 rows. Green -> [review].
  (2a) .38.1 LANDED 97865e4139 (belam ff ~19:1xZ; council acked L 3/3 19:14Z). Next touch of its leaf: add "(dg5-g43 has since moved on)"
      to "24/24 same sha" (alive remark). belam's MAIN .git/hooks install = his later host act.
  (2b) .39.1 (e)-3 leaf: DG2's c1cb27beb4 is in (1)(a).
