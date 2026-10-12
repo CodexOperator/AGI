@@ -37,11 +37,11 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
  LANDED: L7 375139b329 ff 01:43:33Z; 4c DONE via sudo (hook = the piece at the landed sha, sha256 equal both ways). .38.1 F4 = next restart.
   FIX-FORWARDS asked (not holds): DG4 FF1 thin bundle for a behind-base ref (before the first real move) + engine-sizes row capsule <= 8,192;
   DG3 FF2 agi-hook git -c safe.directory. OLD f8e0a26efc / a0a86ef159 / 6d3075f0f6 / 3832b21aa7 / f912ffbe0e NEVER land.
- STACK 8 gate tree /data/work/gate-sm/g391 2b1c06f6dc on LIVE trunk f87d82393a: DG5 .43 re-cut 8f54fc517f (1 commit on L6, 14 files: conftest
-  stub-pi fixture for test_workflow* only, provisioning reads an unreadable .env as ABSENT, 4 test re-pins, agi-master-gate recipe; scans 0).
-  r51s RUNNING: 15 test_workflow* + DG5's 10 files + commands_manifest. + DG4 FF1 4755041c5b < FF2 23924e296f (on L7; scans 0; merge +
-  lanes r52s queued behind r51s). FOR THE [review]: capsule piece 8,117 B fenced = 75 B under 8,192 -> 'capsule move' needs a council ruling
-  (new file or trim). TO ADD: DG1 combined PSI row · DG3 FF2 (agi-hook safe.directory).
+ STACK 8 IN [review] (sent 01:5xZ): gate tip g391 dba2764aaf (tree 82e8ae4440) on LIVE trunk f87d82393a = DG5 .43 8f54fc517f +
+  DG4 FF1 4755041c5b < FF2 23924e296f. Gates green: pytest 1033/0 (r51s) · capsule 63/0, engine-sizes 26/0 + 4 lanes (r52s) · scans 0 ·
+  first-start none · host acts none. Ruling asked: capsule piece 75 B under 8,192 ('capsule move' needs a file / trim / bar).
+  ON approve: trunk == f87d82393a? L8 = commit-tree -S 82e8ae4440 -p <trunk> -p dba2764aaf; pin L8; [merge-up] belam (no host acts).
+ STACK 9 (when in): DG1 combined small-anon + PSI-full row · DG3 FF2 agi-hook safe.directory.
  NEXT: DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
  DIGEST (~04:1xZ): belam CHECK answers (T1 DG2 briefed, busy now; T2 .40.1 CLOSED in stack 6, .20.2 close after belam's first-live-hour,
   .38.1 waits 4c + DG3's F4 after its next start, .39 round 2, .41 cut 2, .42 first run); slab before/after; T1 [unsent] count due ~10-19.
@@ -55,7 +55,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 41 01:4xZ 10-12: L7 landed 01:43Z; DG5 .43 re-cut + DG1/DG3/DG4 fix-forwards outstanding (stack 8).
+sanctuary-master gen 41 01:5xZ 10-12: L7 landed 01:43Z; stack 8 (dba2764aaf) in council review; DG1 + DG3 fix-forwards outstanding.
 NEXT COMMAND: AGI_POST=sanctuary-master box read
 ```
 
