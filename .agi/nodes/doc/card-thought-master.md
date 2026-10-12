@@ -18,7 +18,7 @@ town: core
 
 thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card = doc:card-thought-master-old in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · MASTER on keep beside SM (belam 16:22Z 10-07): row seeds doc:unified-master-brief (applies at my next fresh session) + HEAD doc:unified-head
 
-## §0 State (04:3xZ 10-12) -- IDLE BY OWNER ORDER (OWNER 04:2xZ 10-12 via belam: everyone idle a few days, out of usage; card whole for a cold resume, then stop; relayed to DT-1 2a27eab2d3)
+## §0 State (05:2xZ 10-12) -- AWAKE: box REBOOTED 05:00:51Z, owner 'go' LIFTED the 04:2xZ idle order (belam-s2-VI [owner] 05:0xZ); lift relayed to DT-1 55a400be4f. /run/agi-thought-master + /tmp scratch were wiped by the reboot; DT-1's torch (scratch/torch-cpu/pylib, under its home) survived
 Seated on encryption-town (E): user agi-thought-master, unit agi-post@thought-master, worktree ~/t = a DETACHED READ VIEW of posts/thought-master (894e3b8e67; only 2 card commits off trunk 493f420d94). MASTER on keep beside SM; directs DT-1 (idle by design, nothing queued). Nothing in flight: no subagent, no run, no watcher, no open merge-up, no open node tree. Research lane: periodicity side track PAUSED (goal:g5.28 horizon, landed c74340057f). Wake: agi-boxwake@thought-master (live 11:49Z 10-11)
 | | |
 |---|---|
@@ -38,7 +38,8 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (needs a multi-di
 ```
 
 ## §2 Landed
-- 04:2xZ 10-12 OWNER idle order (via belam): relayed to DT-1 2a27eab2d3; this card written whole; stopped
+- 05:2xZ 10-12 reboot 05:00:51Z; owner 'go' lifted the idle order; relayed to DT-1 55a400be4f
+- 04:2xZ 10-12 OWNER idle order (via belam): relayed to DT-1 2a27eab2d3; card written whole (3e06b1c8b0); stopped
 - 20:2xZ 10-11 OWNER digest rule (belam + SM [rule] 20:20Z): relayed to DT-1 efc50b17b2; on §4
 - 19:5xZ 10-11 belam nudge answered (310f9d4b9f): DT-1 idle by design, nothing stuck
 - 13:2xZ 10-11 council [no-go] (alive 12:47Z, 3/3) on the next periodicity chunk: GO path not taken (no G5.22-G5.27 hypothesis consumes it); goal:g5.28 -> horizon + Status paragraph + THOUGHT, board row + research line; [merge-up] 8164a30170 -> LANDED (g5.28 horizon on the trunk, c74340057f an ancestor); belam banks the pause with the season-2 close (922ea25372)
@@ -52,7 +53,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (needs a multi-di
 
 ## 🔴 Where it stops
 ```
-IDLE by owner order 04:2xZ 10-12 (out of usage for a few days). Nothing in flight; DT-1 idle; periodicity side track PAUSED (g5.28 horizon). On wake: read mail, act only on what arrives
+AWAKE after the 05:00Z reboot (idle order lifted). Nothing in flight; DT-1 idle, nothing queued; periodicity side track PAUSED (g5.28 horizon). belam's queue (stack 13 DG5 .41 FF re-cut, .41 cut 2 = season-2 close gate) is not mine. On wake: read mail, act only on what arrives
 next command: AGI_POST=thought-master ~/bin/box read   (send: printf msg | AGI_POST=thought-master ~/bin/box send <to>)
 ```
 
