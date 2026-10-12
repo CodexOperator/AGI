@@ -18,7 +18,7 @@ town: core
 ## §0 State (10-12 ~00:5xZ, gen 26, encryption-town; trunk local-maxxing/season2/main tip 7693feb76b)
 | | |
 |---|---|
-| post | director-general-1: a director, claude-code, engine v5 · parent SM (sanctuary-master) · ~/t is DETACHED at posts/director-general-1: NEVER `git checkout` in it · card edits: `agi-wt pull doc:card-director-general-1` + agi-turn + agi-flush (the pull dir vanishes after agi-turn: pull again for each edit) · a clone pushes a sha to MAIN with `git push /data/work/agi SHA:refs/heads/NAME` (a NEW name; next is dg1-close69; a `gc.pid.lock Permission denied` line after the push is harmless, check with `git ls-remote`) |
+| post | director-general-1: a director, claude-code, engine v5 · parent SM (sanctuary-master) · ~/t is DETACHED at posts/director-general-1: NEVER `git checkout` in it · card edits: `agi-wt pull doc:card-director-general-1` + agi-turn + agi-flush (the pull dir vanishes after agi-turn: pull again for each edit) · a clone pushes a sha to MAIN with `git push /data/work/agi SHA:refs/heads/NAME` (a NEW name; next is dg1-close70; a `gc.pid.lock Permission denied` line after the push is harmless, check with `git ls-remote`) |
 | mail | `AGI_POST=director-general-1 /opt/agi/bin/box read` (send: `box send POST < FILE`, from ~/t, plain text WITHOUT backslashes). **OWNER RULE 20:2xZ: NEVER box belam**; I box SM only, ONE message per finished thing, NO acks. A "mail: box read" typed into my pane is my own wake unit: read the mail |
 | roles | DG1 = goals + nodes + merge-ups + JUDGING every return by RUNNING it · DG2 falsifier lanes (re-cuts box-wake.t.sh) · DG3 builder · DG4 builder (.42 C1) · SM gates + lands (council 3/3 first) · belam = host acts, one GO each |
 | SCRATCH | **/data/work/gate-director-general-1/wip**: t401 (the working clone, --shared, alternates = /data/work/agi), mail-sm-*.txt, home401 (HOME for `env -i` runs), pt (basetemp). Gate trees: `git worktree add --lock` then `git worktree unlock` + `remove --force`. Plain `rm -rf <absolute path>` |
@@ -31,6 +31,7 @@ ALL BUILT, MAILED, AT SM (nothing for me to build; a RED returns as ONE fix comm
  b. goal:g7.16.1.11.40.1.1 (kernel SLAB; owner DG1): chain 3960c8cbea (4: fill vs min(high,max)) < 7a7bf7595f (3a: vm.vfs_cache_pressure 200 as boxkit bytes + sysctl-check.sh) < 3848e9f290 (3b: --warn-slab-mib 1536 raise via the spool, no drop) < fbff58d682 (3c: walker-slab.sh + the table in GUARD.md); branches dg1-close59..62. IN SM's GATE at 00:44Z (crons.md = my lines + his psi 30). belam needs the sysctl soon (slab back at ~650 MiB/h).
  c. box-mail.t.sh (touch C): 20ada969d6 (dg1-close63, on trunk 5a617a0946) < a594cd8038 (dg1-close64: leaf .11.11.1 corrected + machine-callers list). Solo 70 ok 2m39s; M3_UNSENT_PCT=5; council 00:08Z YES. NOT measured at load 13. I CLOSE goal .11.11.1 after SM's green gate of 20ada969d6.
  d. the trap sweep d3521e286f (dg1-close65, ON trunk 7693feb76b): older traps moved into skills agi-verify + agi-send.
+g. .40.1 CLOSE re-cut f7b95b6dce (dg1-close69, ONE G commit on trunk 2f2033785c; SM refused the posts-branch 3832b21aa7: 525 commits + an old key blob); mailed.
 f. SM 00:58Z false-RED fixes, chain fbff58d682 < 4e63b3a003 (close66) < 0ec034f08e (close67: sysctl-check reads /proc/sys) < 7cb3fc78cc (close68: memory_alarm fill = anon+shmem+slab_unreclaimable, cgroup named); mailed, SM stack 6.
 e. sysctl-check.sh 'bytes: not checked' remark (SM 00:53Z, after .40.1.1 LANDED 3/3): 4e63b3a003 (dg1-close66) on the slab tip fbff58d682; mailed.
 DONE 00:5xZ: OPEN 1 = goal .40.1 CLOSED (complete) at 3832b21aa7, F2 crontab half amended in THOUGHT (unreadable from my uid), mailed to SM once.
@@ -48,6 +49,7 @@ close32..close51 (memguard stack, .32 condition + CLOSE, .40.1 start-time/append
 ## §4 Traps (this generation only; the older ones moved to agi-verify / agi-send in d3521e286f)
 | trap | rule |
 |---|---|
+| a node edit made via agi-wt/agi-turn on the posts branch | NEVER mailed as a sha for landing: it drags the whole post history (a key blob, 10-01) into the range, SM returns it. Re-cut the final blob as ONE commit on a worktree of the live trunk (blob equals its base there = clean), push dg1-closeNN |
 | a hysteresis/hold row | the hover input must outlast the hold or only the band mutant shows: derive the mutant x row matrix by reasoning, then assert it |
 | test_commands::test_a_bare_first_word_runs_a_declared_command | times out (180 s `agi links`) on the BARE trunk too: not a regression signal |
 | a root unit/script that touches a seat's key or `box send` | r1 (test_quiet_watch_spool.py) RED: root only APPENDS to the seat's spool by runuser; the seat's drain row signs |
