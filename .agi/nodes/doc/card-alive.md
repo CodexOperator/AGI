@@ -16,97 +16,65 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:2xZ 10-11, rotation line 472k) -- gen 11 -> gen 12, encryption-town
+## §0 State (04:3xZ 10-12) -- gen 12, IDLE by OWNER order, encryption-town, meter f ~0.37 (line 0.47)
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town (host belam-prime) |
-| role | the council rules + approves gated tips (owner 21:5xZ 10-10). SM sends `[review <sha>]` / `[decision]` / `[land L]`; alive = the ANSWERER: the one voice to SM |
-| messaging | OWNER 20:2xZ 10-11: never box belam (SM/TM fold all into a ~4 h digest; only [red] or a BLOCKING owner ask goes at once); to SM: one message per finished thing, NO acks. BOX ONLY: `box send <post> < file` (text in a scratch FILE, quoted heredoc); `box read` = read the WHOLE output; `box n` = unread |
-| council rules (doc:council-loop §Rulings and landing) | post a VIEW to both seats -> ONE verdict to SM only after BOTH answered your LAST position, or 15 min; a change of mind = [withdraw] + new answer. Every view names what it RAN against which sha, or "none". An engine-piece landing carries a first-start: line. Seats now stay SILENT on pure acks (sp 20:2xZ): silence in the window = no objection |
-| how I review | scratch on DISK (the scratchpad), never /dev/shm while agi.slice > 4600 MiB; one lane at a time, nice 10, env -i, in a `git clone --shared` at the candidate; verify-commit every commit; parents by %p; ff-able = trunk is an ancestor; 0 .agi/keys; a mutant per claim, naming the row it reds; a re-mint L: diff(trunk, L) byte-identical to the approved range's diff |
-| lens | vision:alive = the system reports its own TRUE state: a silent skip, a vacuous pass, a false line (a mail line too) -> RED |
+| IDLE | OWNER 04:2xZ 10-12 via belam/SM 04:3xZ: "We're about outta usage ... everyone goes into idle for a clean resume in a few days". No gate, review, dispatch or build until the owner resumes us; do not box belam |
+| role | the council rules + approves gated tips (owner 21:5xZ 10-10). SM sends `[review <sha>]` / `[decision]` / `[red]`; alive = the ANSWERER: the one voice to SM |
+| messaging | OWNER 20:2xZ 10-11: never box belam (only [red] or a BLOCKING owner ask, at once); to SM one message per finished thing, NO acks. `box send <post> < file` (text in a scratch FILE); `box read` = read WHOLE; `box n` = unread |
+| council rules | VIEW to both seats -> ONE verdict to SM after BOTH answered my LAST position, or 15 min (silence = no objection; a rotating seat's abstain is NOT counted). A change of mind = [withdraw]. Every view names what it RAN against which sha, or "none" |
+| how I review | git-only first (tree, ff-able = trunk ancestor, %G? all G, no key path in any commit's file list); lanes from a small `git archive` (disk, nice 10, env -i), never a 30k-file clone while agi.slice is near memory.high; a mutant per claim |
+| lens | vision:alive = the system reports its own TRUE state: a silent skip, a vacuous pass, a false line -> RED |
 | skills | agi-post · agi-send · agi-goal · agi-rotate · agi-verify · agi-master-gate (SM's side) · agi-memory-guard |
 
 ## §1 Plan
 ```
-done   10-11 gen 11, every answer 3/3 (text in box + this card's git log), latest first:
-         .44 capsule/pack DESIGN (owner 20:2x-4xZ): doc:g716111-44-capsule-pack @ posts/all-is-one a3387fea20 (aio drafted, sp +
-           alive 7 amendments folded), to SM 21:0xZ; SM places one build leaf per verb AFTER .41 -> judge those leaves vs the doc
-         .42 E code a155fb2792+16b368ad72+dbbfb2e2a6: our (a) _foreign_users every user + (b) land checks %G?==G AND %GS (aio's forgery
-           + other-ring-key both rc 3) MET; re-mint L f5f100b83b verified, in SM's digest (re-mints again if the trunk moved)
-         .39 r2 ee0fd9028e·93888527c8·c1cb27beb4 (my (e) preflight MET) + 9e68cbfc93 rename -> L d979350816 verified
-         .38.1 ref-guard 3e02b2c3e1 (DG5 rule (i): 24 -> dg5-*, archived; (ii) rejected, 8 registry collisions) -> L 97865e4139
-         (e,f,g) memguard + box-move: (f) try in log() -> 9ccbb67d98; (g) logger Popen -> c08f9c445c; L b6feb687d4 (pytest NOT green
-           by attribution: 95 trunk-side reds want a leaf) · chain of 6 (my [no-glob] MET) · .42 decision NOT A -> E with C1-C6
-         earlier: ea72c8050d batch · chain 9ae0..2900 · TM g5.28 NO-GO · [return]s 605155bec2, 549c1a2381
-NEXT   23:3xZ, all 3/3 to SM: .20.2 re-cut 2 (..6b9b9b9658) LAND 23:29Z (false red fixed; real-files row + mutant).
-         .40.1.1 slab [decision] answered 23:3xZ: (a) vfs_cache_pressure + before/after numbers + sysctl.d in a node;
-           (b) raise only; (c) per-walker table; + memory_alarm.py:91 fill vs memory.max is VACUOUS (held at high 5120 <
-           0.95*6144): read against min(high,max), row + mutant.
-         .41 + DG5 7e93d5bb6b LAND 23:48Z (alive + sp; aio silent = no objection): ordering condition MET; gate tree
-           1db9055073 grid_writers + trunk_sync 33 passed. Fix-forwards 1-3 + .13 N6 stale line number = DG5, later.
-         m3-overlap [decision] (SM 00:07Z) answered 3/3 00:1xZ: (a) strict loud rows + M3_UNSENT_PCT 5 printed, n >= 300/run;
-           (b) on TRIGGERS T1 (7 d of [unsent] on SM<->belam, any hand-send) / T2 (a non-retrying machine sender); (c) no.
-         .42 E re-cut b1d83acb51 (home path -> ~) ACK 3/3 00:17Z: 2 files vs the approved E, same rendered paths, 12 passed.
-         .42 E + DG4 eb944f41c9 + ae0237b3d3 (foreign-row log = ~/logs) ACK 3/3 00:29Z, re-mint L1..L4; ORDERED fix-forwards:
-           cap in-uid per tick (SM's "own apply" FALSE: only_bound blocks never hold crons_apply) before a week; mkdir before a box move.
-         .40.1.1 slab DG1 3960c8cbea..fbff58d682 LAND 3/3 00:53Z (urgent: slab ~650 MiB/h): fill vs min(high,max), slab raise,
-           sysctl.d 200 in boxkit + sysctl-check.sh. No clone by alive/aio (a checkout is a walker); sp 54 + SM 786.
-           MY 23:32Z fill design (current/min(high,max)) = FALSE ALARM (cache always fills to high; belam 00:58Z). DG1 re-cuts:
-           anon+shmem+slab_unrec. My view 00:5xZ: agree + a PSI-owns-the-thrash row (swap keeps anon low). SM [review] of stack 6 next.
-         STACK 6 gate tip 46e9c898bf (57 G, ff on 2f2033785c) APPROVE 3/3 01:2xZ: caps in-uid + mkdir MET, fill fix MET (quiet row +
-           mutant), sysctl-check on box-move target MET. Fix-forward DG1: combined thrash row + leaf reading->case map.
-         STACK 7 b9cc371dc1 APPROVE 2/3 01:4xZ (sp abstains, rotating): .44 D1-D4 + 7,418 B ACCEPT; FF1 fat bundle = whole history
-           (287 MiB) -> behind-base ref as MANIFEST line only; FF2 agi-hook no safe.directory -> false "not on the trunk" reason.
-         STACK 8 dba2764aaf APPROVE 2/3 01:5xZ: FF1 MET (thin + atomic, capsule 63/0); RULING move = box-move.sh as caller (aio);
-           FF DG5: unreadable .env printed as "not set" (false) -> "not checked (EACCES)"; 3/3 with sp gen 6 (row via main([status])).
-         vfs 200 keep/revert [decision] 3/3 02:0xZ: KEEP, no 500, DECIDING test = A/B per gate run at 100 vs 200 (median
-           slab delta; revert if 200 >= 100), hours recorded only (sp amend 02:0xZ). I corrected my own unmeasured "before-hour load 13" claim.
-         vfs A/B (belam 02:01Z: 5 vs 4 MiB, light walker) -> 3/3 02:0xZ: INCONCLUSIVE, 200 kept on cost, no heavy A/B; falsifier 1
-           24 h line set (slab raise w/ walkers <= tonight, or PSI full >= 0.11/h -> revert; RED -> heavy A/B at a 20 % gap).
-         STACK 9 f075ee6057 APPROVE 3/3 02:1xZ: DG5 status 3-state MET (aio ran it non-root: row runs), DG4 fixture runner MET;
-           FF (DG5): test name / mutant match. STACK 10 8cd64ae3dc (tests only) APPROVE 03:01Z (aio silent): both MET.
-         STACK 11 387198c54b APPROVE 3/3 03:0xZ: DG3 agi-hook env safe.directory MET (12/0, i9 i10), DG1 thrash row MET;
-           FF DG3: i10 '/hooks' clause vacuous non-root; WATCH: PWD = repo top only, COUNT=1 clobbers caller's env config.
-         SM [red] 03:1xZ: trunk RED on test_grid_writers since L7 (capsule writers unclassified in .13); DG4 re-cuts .13; our miss too.
-         gate-selection RULE to SM 3/3 03:1xZ: derived list at the gate sha + full suite once per landed stack (sp).
-         capsule x refs/grid [decision] 3/3 03:2xZ: (b) TRANSPORT not author (box-move already pushes grid; grid_sync 5-min gap);
-           falsifier 5 grep was VACUOUS (0 hits) -> 3 behaviour rows in doc v5 ff02306eea (aio gen 8). sp + aio rotated (new gens).
-         STACK 12 db25627954 3/3 04:0xZ: RETURN DG5 4037d8b420 ALONE (agi-sync conflict box walks to belam for 5 posts: owner
-           rule; OUR stack-8 FF2 caused it) -> stop below role prime_director, notice only; APPROVE rest (closes trunk red). (c) = gate on box-move-as-caller.
-         -> none owed now.
-THEN   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
-OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 trunk-side pytest reds (SM) · capsule leaves (.44)
+done   gen 12 (10-11 21:3xZ -> 10-12 04:0xZ), every answer to SM in box text + this card's git log, latest first:
+         stack 12 db25627954: RETURN DG5 4037d8b420 ALONE (agi-sync conflict box walks to belam for alive/aio/sp/SM/TM: owner
+           rule; OUR stack-8 FF2 caused it) -> stop below role prime_director, notice only + stamp; APPROVE rest (closes the red)
+         capsule x refs/grid: (b) TRANSPORT not author; falsifier 5's grep was VACUOUS -> rows g4a/g4b (+ c pre-stop = a GATE on
+           box-move.sh-as-caller); doc v5 ff02306eea
+         gate-selection rule (03:1xZ): DERIVED pytest list at the gate sha + full suite once per landed stack (SM adopted, stack 12)
+         stacks 6-11 APPROVE (6: fill line fix; 7: capsule D1-D4 accepted, FF1 fat bundle 287 MiB, FF2 agi-hook; 8: FF1 thin+atomic,
+           move = box-move.sh as caller; 9-11: the fix-forwards MET); .20.2 alarms: spool per sending seat (race found + fixed)
+         decisions: alarm signer (spool per seat) · m3-overlap (5 % cell, triggers T1/T2) · slab (a)+(b)+(c) · vfs 200 KEEP,
+           A/B INCONCLUSIVE, falsifier 1 24 h line · .42 E acks (home path -> ~, foreign-row log cap in-uid + mkdir)
+NEXT   NONE until the owner resumes. Queued at SM for the resume: stack 13 (DG4 63b21a5b90 + DG5 7970370e55 + DG2 e52540c669,
+         gate tree g397) · DG3's i10 fix · DG5's re-cut of 4037d8b420 (below-Prime stop) · full engine suite at L12's tip (rule 2)
+OPEN   gates the council set: box-move.sh-as-caller needs the PRE-STOP grid ff check (row 5c) · vfs falsifier 1 24 h watch
+         (revert line in the .40.1.1 THOUGHT) · DG4's .13 N7 cites doc v5 (lands at aio's next sync)
 ```
 
 ## §2 Landed (verify with merge-base --is-ancestor against local-maxxing/season2/main)
 - 10-02..10-08: 3a33c71b9 level rule · 9778def43 act1.sh · a7705f2d2 AA1.C · 1b4fdbe13 AA1.K · 5a1760e82 AA1.N · 01fb4669a3 AA1.S
   · 38986aa967 doc:rse-d1-nest v3 (D1) · eb55f973e2 A1b v3 (agi-vstore 856 B f60191fd...)
-- 10-10/11: 24cdb55824 overview s2-loop-end-alive (my node) · the council answers above landed through SM's gate
+- 10-10/12: 24cdb55824 overview s2-loop-end-alive (my node) · the council answers above landed through SM's gate (L6..L11)
 
 ## 🔴 Where it stops
 ```
-successor: wait on the box (`box n` -> `box read` WHOLE); nothing owed; next: DG5's .41 fix-forward leaf, DG1's .40.1.1 build
+IDLE by owner order (04:2xZ 10-12): on resume, FIRST `box n` -> `box read` (WHOLE), then answer SM's queued stack 13 [review]
 ```
-Nothing of alive's is half-done: every review and design above is answered; no verdict is pending at SM.
+Nothing of alive's is half-done: every review and decision SM sent is answered; no verdict is pending at SM.
 
-## §4 Traps (gen 11 only; the gen-10 ones went to SM for their skills at this rotation, 21:2xZ)
+## §4 Traps (gen 11 + gen 12; to their skills at my next rotation, owner 10-10)
 | trap | rule |
 |---|---|
-| a decision on keys / signing / identity | read the council's own rulings on the trunk FIRST (git grep -n 'ruling' in the goal leaves): gen 11 answered A against our 06:0xZ sender ruling and had to withdraw |
-| a PRE-VIEW's conditions | they live only between the seats until a verdict carries them: put them in the verdict the moment SM's [review] lands (a155fb2792's (a)+(b) reached DG4 two hours late) |
-| a number or fact in SM's mail | measure it before you repeat it ("25 commits" was 27; "sbin is empty" was false; sp's `ls | head -5` cut a listing) |
-| my own test plumbing | `echo rc=$?` after a pipe = the LAST stage's rc; a pytest --basetemp parent must exist (110 "errors" = mine, not the code) |
-| a test run while the slice is near its high | it is itself a dentry walker (gate suites +27 MiB): rely on a peer's run or a partial export, never a 30k-file clone |
-| an alarm line I propose | test it on a stressed fixture AND tonight's real quiet reading (must stay ok): gen 12's fill line was vacuous, then noisy |
+| a decision on keys / signing / identity | read the council's own rulings on the trunk FIRST (git grep -n 'ruling' in the goal leaves) |
+| a PRE-VIEW's conditions | they live only between the seats until a verdict carries them: put them in the verdict when SM's [review] lands |
+| a number or fact in SM's mail | measure it before repeating it (gen 12: "47 commits" was 57; "capped by its own apply" was false) |
+| my own test plumbing | rc after a pipe = the last stage's; a test needing a git repo fails in a bare archive: git init it; src/ is not in every tree |
+| a test run while the slice is near its high | it is itself a dentry walker (gate suites +27 MiB): a peer's run or a small archive |
+| an alarm line I propose | test it on a stressed fixture AND a real quiet reading (gen 12's fill line was vacuous, then noisy) |
 | a load or rate I cite for an hour | measure it for THAT hour or say whose number it is (gen 12 cited DG1's load 13 as the before-hour's) |
 | a decision line I write for an A/B | it carries a MINIMUM EFFECT SIZE above the reading's resolution, or it passes on noise |
-| a gate line for a range touching extensions/ src/ .agi/nodes/.geometry/ | it must print the DERIVED pytest selection (test files naming the changed top dirs + every scanner) with counts, else ask before the word: stacks 7-8 went RED on grid_writers through our approve (3/3 rule 03:1xZ) |
-| a fix-forward I write that routes MAIL | check the route against the owner's mail rule on the REAL posts.md rows (gen 12's stack-8 FF2 sent 5 posts' conflicts to belam) |
-| a time in my own mail | stamp it from `date -u`, never from memory: gen 12 stamped two 22:5xZ messages "23:0xZ" |
+| a gate line for a range touching extensions/ src/ .agi/nodes/.geometry/ | it must print the DERIVED pytest selection with counts, else ask before the word (stacks 7-8 went RED on grid_writers) |
+| a fix-forward I write that routes MAIL | check the route against the owner's mail rule on the REAL posts.md rows (stack-8 FF2 sent 5 posts' conflicts to belam) |
+| a grep-shaped falsifier | check it can FAIL against the bytes (falsifier 5 grepped 'refs/grid' in a piece that never names it) |
+| a time in my own mail | stamp it from `date -u`, never from memory |
 
 ## §5 Verification
-- 10-11 21:2xZ: card 3/3 trail clean; MemAvailable ~3.3-3.8 GiB through the evening, agi.slice ~4.9-5.1 GiB (over belam's 4600 line)
+- 10-12 04:3xZ: card trail clean (every agi-at commit G); trunk tip 21f5d44a35; agi.slice ~4.5-5.1 GiB through the night (high 5120)
 
 ## §6 BANKED
 | question | options | recommendation |
@@ -115,5 +83,5 @@ Nothing of alive's is half-done: every review and design above is answered; no v
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 11, 21:2xZ 10-11 (date -u), at the rotation line (472k): the card replaced whole for gen 12. Gen 11 answered every SM review and decision of the afternoon and evening 3/3, and ended with the .44 capsule design. The one item handed on WHOLE is SM's 21:23Z alarm-signer [decision] (due 22:30Z): it arrived at the line, and a council round cannot finish before it, so it was not started; my unchecked lead is on it. Per CLAUDE.md (owner 10-10), the five gen-10 traps left the card for their skills ([trap-move] to SM); §4 holds only gen-11 lessons.
+alive gen 12, 04:3xZ 10-12 (date -u): the card replaced whole for a COLD resume, on the owner's idle order (04:2xZ via belam/SM). Gen 12 answered SM's alarm-signer decision and every stack (6-12) and decision of the night, mostly 3/3; the recurring lesson is in §4: four times a check passed without being able to fail (a fill line, an A/B line, a grep falsifier, a fixture-only mail route). Nothing is in flight; the queue for the resume is in §1 NEXT.
 <!-- THOUGHT:END -->
