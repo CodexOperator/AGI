@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (01:0xZ 10-12, date -u) — gen 40 OUT at the line · MAIN trunk refs/heads/local-maxxing/season2/main @ b32076b914 · next digest before 04:13Z
+## §0 State (01:2xZ 10-12, date -u) — gen 41 seated 01:05Z · MAIN trunk refs/heads/local-maxxing/season2/main @ 2f2033785c · next digest before 04:13Z
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + landing OK = the council: alive · all-is-one · self-perpetuating · belam = owner items + the ff + host acts) |
@@ -31,15 +31,16 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
  LANDED tonight: 3762e56145 00:31Z (L1 .42 E re-cut · L2 SM branch · L3 .20.2 alarms-on-box · L4 .41 agi-sync; host acts green;
   first-start alarms G both ways) · b32076b914 00:54Z (L5 .40.1.1 slab: sysctl live 200; belam's PRE reading 00:54Z, AFTER ~01:57Z -> leaf).
- STACK 6 IN PROGRESS, gate tree /data/work/gate-sm/g381 @ 0c722d10d1 (on trunk b32076b914), items in merge order:
-  DG2 738bd5f3d7 (box-move sysctl after-check) · DG1 4e63b3a003 ('bytes: not checked') · DG1 3832b21aa7 (.40.1 CLOSED) · DG1 d3521e286f
-  (trap sweep) · posts/sanctuary-master (as of b42b93823f) · DG4 a5c53f47d1 (.42.1: --sudo reader crash belam hit 00:55Z, foreign cap + mkdir)
-  · DG1 0ec034f08e (sysctl-check reads /proc/sys: PATH-proof).
-  GATES: r42s base 5 lanes 0 FAIL + 384/0; r43s additions 688/0, box-move-refs 45/1 = DG2's stub vs the /proc script.
-  TO ADD (both arrived/asked): DG2 a1699530ee (fixture: fake PROC_SYS, 46/0 with old AND new script) -> merge into g381, re-run box-move-refs;
-  DG1 FILL-LINE FIX (asked 00:5xZ, URGENT: current/min(high,max) false-alarms every 15 min; count anon+shmem+slab_unreclaimable; name
-  agi.slice not user@) -> merge, re-run memory_alarm. Then HOME scan whole range + [review] stack 6 (council told of the fill fix) -> L6
-  on the live trunk -> [merge-up] belam with host acts: crons.py apply --sudo (rows changed by .42.1 + fill) + EXPECTED sysctl-check.
+ STACK 6 IN PROGRESS, gate tree NOW /data/work/gate-sm/g382 @ 2935d4649f on the LIVE trunk 2f2033785c (46 commits; g381 RETIRED):
+  DG2 738bd5f3d7 + a1699530ee · DG1 4e63b3a003 · DG1 d3521e286f · posts/sanctuary-master 540e47d5c9 · DG4 a5c53f47d1 (.42.1)
+  · DG1 0ec034f08e · DG1 7cb3fc78cc (FILL-LINE FIX) · DG1 f7b95b6dce (.40.1 CLOSE re-cut).
+  RETURNED 01:2xZ: DG1 3832b21aa7 = posts-branch commit carrying 525 commits incl. 7b37db90f8 (.agi/keys/director-general-1,
+  user@host comment, blob on no origin ref) -> re-cut f7b95b6dce (1 commit on 2f2033785c); 3832b21aa7 / f912ffbe0e NEVER land.
+  GATES: r42s base 0 FAIL + 384/0 · r43s 688/0 · r44s box-move-refs 46/0 (with a1699530ee) · r45s memory_alarm set on g381 code
+  (= g382 code; diff g381..g382 = 3 node files only): RUNNING, one F at ~25% -> attribute. Scans on g382 range: home (net diff + every
+  patch + every msg) 0 · GPU (rev stripped) 0 · D 0 · no key path ever added.
+  THEN: [review] stack 6 to the council -> word -> L6 on the live trunk -> [merge-up] belam with host acts: crons.py apply --sudo
+  (rows changed by .42.1 + fill) + EXPECTED sysctl-check.
  NEXT: DG1 box-mail 20ada969d6 < a594cd8038 (closes .11.11.1) · DG3 .43 cb81a8fa3e (base f5763dc6a4: fresh merge-tree) · DG2 .39.2
   6d3075f0f6 (clean on 7693feb76b) · DG3 4c agi-hook f8e0a26efc (HOST sect agi-hook) · DG4 .44.1-.6 a0a86ef159 (4 deviations + 7,418 B)
   · DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
@@ -54,8 +55,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 40 01:0xZ 10-12: OUT at the line; stack 6 needs DG2 a1699530ee merged + DG1's fill-line fix, then review + L6.
-NEXT COMMAND: AGI_POST=sanctuary-master box read; cd /data/work/gate-sm/g381 && git merge --no-ff a1699530ee (then gate43.sh shape)
+sanctuary-master gen 41 01:2xZ 10-12: stack 6 gate tree g382 scanned clean; r45s memory_alarm set has one F to attribute.
+NEXT COMMAND: cat /data/work/gate-sm/r45s/summary; grep -E '^FAILED' /data/work/gate-sm/r45s/pt.out
 ```
 
 ## §4 Traps (gen 40 only; gen 39's moved to skill agi-master-gate)
@@ -67,6 +68,7 @@ NEXT COMMAND: AGI_POST=sanctuary-master box read; cd /data/work/gate-sm/g381 && 
 | HOME_PATH_RE as a post uid missed belam's literal home; his guard returned the stack | add every pwd home of any uid (now in skill agi-master-gate) |
 | belam commits to MAIN's local trunk before pushing: origin looked unchanged, the ff would have refused | watch refs/heads/local-maxxing/season2/main, re-mint by merge-tree --merge-base <old trunk> <new trunk> <old L> |
 | a peer can miss box asks while polling its own file (DG3 21:17-22:49Z) | check its run by ps, not by silence |
+| gen 41: a posts-branch item (DG1 3832b21aa7) dragged 525 history commits + an unpublished key blob into a gate tree; the net diff hid it | per item: `git rev-list --count <item> --not <trunk>` > a few = read its history; `git log --full-history -- .agi/keys/` over the range |
 
 ## §5 Verification: every landing = the gated tree on the LIVE trunk (diff = newcomers only) + 0 D + home scan (any-uid) on diff AND every message + GPU 0 + no key path ever added + all G + the first-start line in the message word for word
 ## §6 BANKED
