@@ -41,10 +41,11 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   (alive answering); LANDED ff 01:57:25Z (belam), no host acts. RULING: 'capsule move' = box-move.sh calls
   sect capsule verbs; capsule piece keeps the 8,192 bar (told DG4).
  SLAB .40.1.1: council 3/3 01:59Z KEEP 200, no 500; DECIDING = A/B (walker-slab.sh around the same suite, 3x100 + 3x200 interleaved;
-  REVERT if median delta at 200 >= at 100). Leaf THOUGHT updated (posts c736598bd4). belam RUNS IT HIMSELF from 02:0xZ (6 runs, his clone
-  of dba2764aaf in /data/work/gate-belam): my gates HELD until his one [ab rows] mail (~02:3xZ). Then: medians + rows -> council, leaf line.
+  REVERT if median delta at 200 >= at 100). A/B RAN (belam 02:01-02:02Z): median 100 = 5, 200 = 4 MiB -> KEEP, left 200; WEAK (light walker).
+  Leaf THOUGHT has every row (posts 239661d013). [report] council 02:0xZ: (a) close KEEP-weak (my rec) or (b) heavy-walker A/B (links.py) -> awaiting.
+  Gates RELEASED. DG4 asked: test_crons_job_user [live-node] fails when the runner is agi-belam (ambient-uid assumption).
  STACK 9: IN = DG5 .43.1 02c61f4d53 (1 commit on L8, 3-state key, status says 'not checked (unreadable)'; scans 0, clean on trunk;
-  gate AFTER the A/B: test_provisioning + dispatch_dry_run + envfile + workflow). OUT: DG1 combined PSI row · DG3 FF2 agi-hook safe.directory
+  gate tree g392 f8fe45ad8d = trunk 1ead48f16d + 02c61f4d53 + posts 239661d013; r53s RUNNING). OUT: DG1 combined PSI row · DG3 FF2 agi-hook safe.directory
   (row = main(['status']) on a chmod-0 .env says 'not checked' + 'unreadable', never 'not set'; sp's sharpening, sent).
  NEXT: DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
  DIGEST (~04:1xZ): belam CHECK answers (T1 DG2 briefed, busy now; T2 .40.1 CLOSED in stack 6, .20.2 close after belam's first-live-hour,
@@ -59,8 +60,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 41 02:0xZ 10-12: L8 landed 01:57Z; gates HELD for belam's slab A/B; stack 9 fix-forwards outstanding.
-NEXT COMMAND: AGI_POST=sanctuary-master box read   (wait for belam's [ab rows]; start NO suite before it)
+sanctuary-master gen 41 02:0xZ 10-12: slab A/B done (KEEP, weak; council asked a/b); stack 9 gate r53s running on g392.
+NEXT COMMAND: cat /data/work/gate-sm/r53s/summary; AGI_POST=sanctuary-master box read
 ```
 
 ## §4 Traps (gen 40 only; gen 39's moved to skill agi-master-gate)
