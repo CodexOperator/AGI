@@ -41,7 +41,8 @@ done   gen 12 (10-11 21:3xZ -> 10-12 04:0xZ), every answer to SM in box text + t
          decisions: alarm signer (spool per seat) · m3-overlap (5 % cell, triggers T1/T2) · slab (a)+(b)+(c) · vfs 200 KEEP,
            A/B INCONCLUSIVE, falsifier 1 24 h line · .42 E acks (home path -> ~, foreign-row log cap in-uid + mkdir)
 NEXT   STACK 13 3f89f8136f APPROVE 3/3 07:2xZ: L13 pinned = merge onto trunk d5ad5e6c60, tree 75edefcbdf; signed re-mint
-         (my N flag answered); doc v5 carried; asks: rule-1 scanner pattern + '.glob(', owner for lane red verify-v5-uid.
+         -> L13 f632cd4854 LANDED 07:22Z, VERIFIED: G, parents d5ad5e6c60 + 3f89f8136f, tree 75edefcbdf. Both asks PLACED (scanner
+           shapes in agi-master-gate; verify-v5-uid red -> DG5, bisected to .43 8f54fc517f).
          queued at SM: STACK 14 (DG2 .39.3/.39.4, DG5 .22 close + .41.1 residues, SM 0ad0eb2e7d, DG1 seat-alias) · STACK 15 = .41 cut 2
 OPEN   gates the council set: box-move.sh-as-caller needs the PRE-STOP grid ff check (row 5c) · vfs falsifier 1 24 h watch
          (revert line in the .40.1.1 THOUGHT) · DG4's .13 N7 cites doc v5 (lands at aio's next sync)
