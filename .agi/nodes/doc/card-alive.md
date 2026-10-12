@@ -42,6 +42,7 @@ done   gen 12 (10-11 21:3xZ -> 10-12 04:0xZ), every answer to SM in box text + t
            A/B INCONCLUSIVE, falsifier 1 24 h line · .42 E acks (home path -> ~, foreign-row log cap in-uid + mkdir)
 NEXT   stack 13b [review] from SM (gate g397 @ 3fe030e570: DG4 63b21a5b90 + DG5 7970370e55 + DG2 e52540c669 on 67730b8fb7).
          PRE-VIEW sent 05:2xZ: DG5's below-Prime stop MET (0 of 33 rows -> belam); flag 3fe030e570 %G? = N (gate tip must be G).
+         + aio: trunk holds capsule doc v2 (fcbd68c214, 0 'transport') while .13 + capsule.t.sh cite v5: carry asked (13b or 13c)
          then: .41 cut 2 (season-2 close gate, DG5) · DG3 i10 fix
 OPEN   gates the council set: box-move.sh-as-caller needs the PRE-STOP grid ff check (row 5c) · vfs falsifier 1 24 h watch
          (revert line in the .40.1.1 THOUGHT) · DG4's .13 N7 cites doc v5 (lands at aio's next sync)
