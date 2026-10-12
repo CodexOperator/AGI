@@ -30,6 +30,7 @@ RS=$(echo "$NS"|awk '{print $1"/*:"$1"/*"}')
 x=;for g in $AGI_MOVE_EXTRA;do x="$x refs/heads/$g:refs/heads/$g";done
 cd "$(git rev-parse --show-toplevel)";[ "$(git branch --show-current)" = local-maxxing/season2/main ];git diff --quiet -- .agi/nodes/.geometry/posts.md
 UO=$(sed -n '/^```sh move.unit-optional/,/^```$/p' "$N" 2>/dev/null|grep -E '^(Exec[A-Za-z]*|WorkingDirectory|EnvironmentFile|ReadWritePaths|ReadOnlyPaths)  *[^ ]'|awk '{print $1"="$2}'|tr '\n' ' ')
+UR=$(sed -n '/^```sh move.unit-required/,/^```$/p' "$N" 2>/dev/null|grep -E '^/[^ ]+  *[^ ]'|awk '{print "required="$1}'|tr '\n' ' ');UO="$UO$UR"
 FIT=$(sed -n '/^```sh move.target-fit/,/^```$/p' "$N" 2>/dev/null|awk '$1=="data-free-min-kb"{print $2}');case $FIT in ""|*[!0-9]*)echo "[target-unfit] no data-free-min-kb in the move.target-fit cell of $N: nothing moved">&2;exit 5;;esac
 [ -s extensions/agi/guard/target-fit.sh ]||{ echo "[target-unfit] extensions/agi/guard/target-fit.sh is missing here: nothing moved">&2;exit 5;}
 { cat extensions/agi/guard/target-fit.sh extensions/agi/guard/unit-paths.sh|$E "AGI_BOX=$TO TF_REPO=/data/work/agi TF_MIN_KB=$FIT sh -s $P $UO";}||{ r=$?;[ $r != 9 ]||{ echo "[target-unfit] nothing touched: the post still runs on $FROM, the row is unmoved (rc 9)">&2;exit 9;};echo "[unit-path] nothing touched: the post still runs on $FROM, the row is unmoved (rc 7)">&2;exit 7;}

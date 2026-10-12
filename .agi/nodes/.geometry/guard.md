@@ -146,6 +146,14 @@ refs/remotes  a remote-tracking ref is a copy of origin's; the target fetches it
 data-free-min-kb 2097152  2 GiB: the carry is at most the whole repo, and MAIN's .git measured 421,612 KB on 10-12 (a 286 MiB pack + loose objects + the grid refs); the floor is ~5x that, so a full or near-full disk refuses before the stop instead of at the after-check
 ```
 
+## move.unit-required -- host paths the units use INSIDE sh -c strings, which must exist on the target
+
+`extensions/agi/guard/unit-paths.sh` (goal:g7.16.1.11.39.4) checks the paths the units name as Exec words, WorkingDirectory and the like; a path inside an `sh -c '...'` string is invisible to it (8 of agi-post@'s 12 Exec lines show only the word `sh`). Each path listed here (`path  reason`, `%i` = the post) must exist on the target before the stop and the row edit, else `[unit-path] required <path> missing on <box>`, rc 7. The list lives only here.
+
+```sh move.unit-required
+/etc/agi/carry.env  agi-post@'s ExecStart reads it with 2>/dev/null, so a target without it starts the post with AGI_BOX EMPTY and no word of it
+```
+
 ## move.unit-optional -- the unit paths a box move may find absent on the target
 
 `extensions/agi/guard/unit-paths.sh` (goal:g7.16.1.11.39.1) reads the target's RENDERED agi-post@ / agi-boxwake@ units BEFORE the stop and the row edit and refuses (`[unit-path]`, rc 7) when a host path they name does not exist. A leading `-` is not a pass. These are the named exemptions, `Key path  reason` (`%i` = the post), the only paths that may be absent at that moment; nothing here may name a command (an ExecStart* word) or the signers.

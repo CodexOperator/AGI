@@ -11,6 +11,7 @@
 #   (goal:g7.16.1.11.39.1) UNIT PATHS: BEFORE the stop and the row edit, extensions/agi/guard/unit-paths.sh runs ON THE TARGET (ssh `sh -s POST Key=path...` < the script, AGI_BOX=<target>) and reads the units as RENDERED there (`systemctl cat agi-post@POST.service`, agi-boxwake@POST.service): every host path they name must exist: the command word of each Exec* line (past the - @ + ! : prefixes, and past `env` options / VAR=val), WorkingDirectory, EnvironmentFile, ReadWritePaths, ReadOnlyPaths. A leading '-' is NOT a pass. A missing one = `[unit-path] <unit> <Key> <path> missing on <box>` on stderr, rc 7, nothing touched; agi-post@ unreadable = `[unit-path] <unit> unreadable on <box>`, rc 7. The NAMED exemptions (a path host-act creates after the check, one a post may lack) are the fenced block ```sh move.unit-optional``` of the same config:guard node, `Key path  reason`. /run /proc /dev /sys, non-absolute words and $-words are not checked (the script header says so). It only READS.
 #   (goal:g7.16.1.11.40.1.1 target 3a) SYSCTL AFTER-CHECK (the kernel is faked TWICE, a stub `sysctl` on PATH AND a proc dir PROC_SYS=$T/proc, both answering ${SYSCTL_LIVE:-200}, so the lane is green with the sysctl-reading script and with the /proc/sys-reading one): after the refs after-check and BEFORE the post starts, guard/sysctl-check.sh runs ON THE TARGET (`ssh sh -s` < the script): its /etc/sysctl.d/60-agi-vm.conf must be there and agree with the live kernel; else `[sysctl-check]` on stderr, rc 8, the post not started.
 #   (goal:g7.16.1.11.39.3) TARGET FIT: BEFORE the stop and the row edit, in the SAME ssh as unit-paths.sh (target-fit.sh is streamed first), the target must have the free space under /data/work/agi that the `sh move.target-fit` cell names (data-free-min-kb) AND a probe file must be creatable and removable in its .git/refs/heads as the pushing uid; else `[target-unfit] <box> df|refs-write <reading>`, rc 9, nothing touched. No cell = rc 5 before anything. A pre-receive hook's verdict and a ref that advances between the dry run and the push are NOT caught (named in the script).
+#   (goal:g7.16.1.11.39.4) UNIT REQUIRED: the paths a unit uses INSIDE sh -c strings (invisible to the Exec check; carry.env first) are the fenced block ```sh move.unit-required``` of the same node, `path  reason`, `%i` = the post; each must exist on the target, else `[unit-path] required <path> missing on <box>`, rc 7, nothing touched (same ssh, same refusal shape).
 #   box-move.t.sh stays green: the file keeps exactly ONE line holding `$E "cd /data/work/agi`.
 # One ok/FAIL line per case; exit = number of FAILs.
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};SRC=${SRC:-$R0/extensions/agi/guard/box-move.sh}
@@ -36,6 +37,8 @@ cat >$T/node.md <<'XX'
 refs/remotes  a remote-tracking ref is a copy of origin's; the target fetches its own
 ```
 XX
+mkdir -p $T/etc;: >$T/etc/carry.env;: >$T/etc/p1.pin
+printf '```sh move.unit-required\n%s/etc/carry.env  the fixture unit reads it in an sh -c string\n%s/etc/%%i.pin  a per-post required path (tests %%i)\n```\n' $T $T >>$T/node.md
 printf '```sh move.target-fit\ndata-free-min-kb 1000  the fixture floor\n```\n' >>$T/node.md
 printf '```sh move.unit-optional\nWorkingDirectory %s/hm/%%i  host-act move creates the post home after this check\nEnvironmentFile %s/hm/%%i.env  an env file a post may not have\n```\n' $T $T >>$T/node.md
 # units: the SAME good unit on both boxes by default; a row edits ONE side (the target's: ut)
@@ -137,6 +140,15 @@ ok "refs-target-fit-no-cell-no-move with no move.target-fit block: rc $rc (want 
 fix;rm -f $T/f/s/extensions/agi/guard/target-fit.sh;h0=$(git -C $T/f/s rev-parse HEAD);go
 ok "refs-target-fit-a-missing-script-fails-closed the source has no extensions/agi/guard/target-fit.sh: rc $rc (want 5), '[target-unfit] ... is missing here' ($(grep -c 'target-fit.sh is missing here' $T/err) line), the check does NOT silently vanish, nothing touched (ctl: $(tr '\n' '|' <$T/ctl.log))" '[ $rc = 5 ]&&grep -q "target-fit.sh is missing here" $T/err&&[ ! -s $T/ctl.log ]'
 
+# goal:g7.16.1.11.39.4: paths used INSIDE sh -c strings are required by the move.unit-required cell.
+fix;go
+ok "refs-unit-required-present-the-move-completes carry.env and the per-post pin exist: rc $rc (want 0), the post started ($(started&&echo yes||echo no)), no '[unit-path] required' line ($(grep -c 'unit-path\] required' $T/err))" '[ $rc = 0 ]&&started&&! grep -q "unit-path\] required" $T/err'
+fix;rm -f $T/etc/carry.env;h0=$(git -C $T/f/s rev-parse HEAD);go
+ok "refs-unit-required-a-missing-carry-env-refuses a target without carry.env (the post would start with AGI_BOX EMPTY): rc $rc (want 7), '[unit-path] required $T/etc/carry.env missing on encryption-town' ($(grep -c 'unit-path\] required '$T'/etc/carry.env missing on encryption-town' $T/err) line), nothing touched" '[ $rc = 7 ]&&grep -q -F "[unit-path] required $T/etc/carry.env missing on encryption-town" $T/err&&untouched'
+fix;rm -f $T/etc/p1.pin;h0=$(git -C $T/f/s rev-parse HEAD);go
+ok "refs-unit-required-%i-is-the-post a required path with %i (…/etc/%i.pin) missing: rc $rc (want 7), the line names $T/etc/p1.pin ($(grep -c 'required '$T'/etc/p1.pin missing' $T/err) line)" '[ $rc = 7 ]&&grep -q -F "[unit-path] required $T/etc/p1.pin missing on" $T/err&&untouched'
+: >$T/etc/p1.pin;: >$T/etc/carry.env
+
 # the cell is the ONLY list
 sed 's#^refs/remotes .*#&\nrefs/agi  scratch bookkeeping the target rebuilds#' $T/node.md >$T/node-add.md;fix;go $T/node-add.md
 ok "refs-the-cell-is-the-only-list-add an entry added to the cell (refs/agi) is NOT carried: target refs/agi/*: $(cnt $T/f/w agi) (want 0), printed 'excluded: scratch bookkeeping' ($(grep -c 'refs refs/agi excluded: scratch bookkeeping' $T/out)), rc $rc" '[ $rc = 0 ]&&[ $(cnt $T/f/w agi) = 0 ]&&grep -q "refs refs/agi excluded: scratch bookkeeping" $T/out'
@@ -159,4 +171,6 @@ ub=$(echo "$uo"|awk '{k=$1;p=$2;sub(/^[^ ]+ +[^ ]+ +/,"");if(length($0)<8)print 
 ok "refs-the-real-unit-optional-cell-exists-and-exempts-no-command $G holds the move.unit-optional block with $nu entr(ies) (want >= 1), each with a reason of >= 8 chars, none an Exec* key and none naming the signers / a host tool: [${ub% }]" '[ $nu -ge 1 ]&&[ -z "$ub" ]'
 tf=$(sed -n '/^```sh move.target-fit/,/^```$/p' $G 2>/dev/null|awk '$1=="data-free-min-kb"{print $2}');tr_=$(sed -n '/^```sh move.target-fit/,/^```$/p' $G 2>/dev/null|grep -c 'measured')
 ok "refs-the-real-target-fit-cell-exists-with-a-measured-floor $G holds move.target-fit with data-free-min-kb=[$tf] (want a number >= 1048576) and a reason naming the measured size ($tr_ line with 'measured', want >= 1)" 'case $tf in ""|*[!0-9]*)false;; *)[ $tf -ge 1048576 ];; esac&&[ $tr_ -ge 1 ]'
+ur=$(sed -n '/^```sh move.unit-required/,/^```$/p' $G 2>/dev/null|grep -E '^/[^ ]+  *[^ ]');ur1=$(echo "$ur"|head -1|awk '{print $1}');urr=$(echo "$ur"|head -1|sed 's/^[^ ]* *//'|wc -c)
+ok "refs-the-real-unit-required-cell-names-carry-env-first $G holds move.unit-required whose first entry is [$ur1] (want /etc/agi/carry.env) with a reason of $urr chars (want >= 12)" '[ "$ur1" = /etc/agi/carry.env ]&&[ $urr -ge 12 ]'
 echo "box-move-refs: $f FAIL";exit $f
