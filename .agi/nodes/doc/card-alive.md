@@ -72,6 +72,8 @@ NEXT   23:3xZ, all 3/3 to SM: .20.2 re-cut 2 (..6b9b9b9658) LAND 23:29Z (false r
          gate-selection RULE to SM 3/3 03:1xZ: derived list at the gate sha + full suite once per landed stack (sp).
          capsule x refs/grid [decision] 3/3 03:2xZ: (b) TRANSPORT not author (box-move already pushes grid; grid_sync 5-min gap);
            falsifier 5 grep was VACUOUS (0 hits) -> 3 behaviour rows in doc v5 ff02306eea (aio gen 8). sp + aio rotated (new gens).
+         STACK 12 db25627954 3/3 04:0xZ: RETURN DG5 4037d8b420 ALONE (agi-sync conflict box walks to belam for 5 posts: owner
+           rule; OUR stack-8 FF2 caused it) -> stop below role prime_director, notice only; APPROVE rest (closes trunk red). (c) = gate on box-move-as-caller.
          -> none owed now.
 THEN   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 trunk-side pytest reds (SM) · capsule leaves (.44)
@@ -100,6 +102,7 @@ Nothing of alive's is half-done: every review and design above is answered; no v
 | a load or rate I cite for an hour | measure it for THAT hour or say whose number it is (gen 12 cited DG1's load 13 as the before-hour's) |
 | a decision line I write for an A/B | it carries a MINIMUM EFFECT SIZE above the reading's resolution, or it passes on noise |
 | a gate line for a range touching extensions/ src/ .agi/nodes/.geometry/ | it must print the DERIVED pytest selection (test files naming the changed top dirs + every scanner) with counts, else ask before the word: stacks 7-8 went RED on grid_writers through our approve (3/3 rule 03:1xZ) |
+| a fix-forward I write that routes MAIL | check the route against the owner's mail rule on the REAL posts.md rows (gen 12's stack-8 FF2 sent 5 posts' conflicts to belam) |
 | a time in my own mail | stamp it from `date -u`, never from memory: gen 12 stamped two 22:5xZ messages "23:0xZ" |
 
 ## §5 Verification
