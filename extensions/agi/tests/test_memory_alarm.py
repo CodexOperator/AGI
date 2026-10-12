@@ -473,6 +473,23 @@ def test_a_slice_filled_to_memory_high_by_cache_is_quiet():
     assert m.decide(hot, TH)[0] == "warn"
 
 
+def test_a_thrash_with_small_anon_is_seen_by_psi_alone_and_crits_by_the_psi_reason():
+    # council alive 01:24Z, SM 02:4xZ: 2026-10-11's thrash (anon 1638 MiB, ~2.2 GB of the posts' anon swapped, high 5120) reads 0.32 under the
+    # fill line, so PSI is its ONLY witness. COMBINED row: small anon + PSI full over its line = crit, and the reasons are the PSI one alone.
+    thrash = sig(cur=5104 * MIB, anon=1638 * MIB, unrec=15 * MIB, cap=6144 * MIB, high=5120 * MIB, cg=(60.0, 25.0))
+    level, reasons = m.decide(thrash, TH)
+    assert level == "crit" and reasons == ["agi.slice PSI full avg60 25.0% >= 20"], (level, reasons)
+    assert m.decide(sig(cur=5104 * MIB, anon=1638 * MIB, unrec=15 * MIB, cap=6144 * MIB, high=5120 * MIB, cg=(0.31, 0.31)), TH) == ("ok", [])   # the same memory, no pressure
+
+
+def test_the_mutant_that_drops_the_psi_line_goes_red_on_the_thrash_row():
+    old = "if full60 is not None and full60 >= th.crit_psi_full_avg60:"
+    src = Path(m.__file__).read_text(); assert src.count(old) == 1, old
+    mut = _fresh(src.replace(old, "if False:"))
+    thrash = sig(cur=5104 * MIB, anon=1638 * MIB, unrec=15 * MIB, cap=6144 * MIB, high=5120 * MIB, cg=(60.0, 25.0))
+    assert m.decide(thrash, TH)[0] == "crit" and mut.decide(thrash, TH)[0] != "crit", "with the PSI line dropped nothing else may see the thrash"
+
+
 def test_without_memory_stat_the_fill_falls_back_to_memory_current_and_says_so():
     level, reasons = m.decide(sig(cur=5104 * MIB, cap=6144 * MIB, high=5120 * MIB), TH)
     assert level == "warn" and reasons == ["agi.slice memory.current at 100% of its memory.high (5104/5120 MiB; memory.stat unreadable, so cache is counted too)"], reasons
