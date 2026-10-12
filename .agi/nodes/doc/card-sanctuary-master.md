@@ -37,11 +37,11 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
  LANDED: L7 375139b329 ff 01:43:33Z; 4c DONE via sudo (hook = the piece at the landed sha, sha256 equal both ways). .38.1 F4 = next restart.
   FIX-FORWARDS asked (not holds): DG4 FF1 thin bundle for a behind-base ref (before the first real move) + engine-sizes row capsule <= 8,192;
   DG3 FF2 agi-hook git -c safe.directory. OLD f8e0a26efc / a0a86ef159 / 6d3075f0f6 / 3832b21aa7 / f912ffbe0e NEVER land.
- STACK 8 IN [review] (sent 01:5xZ): gate tip g391 dba2764aaf (tree 82e8ae4440) on LIVE trunk f87d82393a = DG5 .43 8f54fc517f +
-  DG4 FF1 4755041c5b < FF2 23924e296f. Gates green: pytest 1033/0 (r51s) · capsule 63/0, engine-sizes 26/0 + 4 lanes (r52s) · scans 0 ·
-  first-start none · host acts none. Ruling asked: capsule piece 75 B under 8,192 ('capsule move' needs a file / trim / bar).
-  ON approve: trunk == f87d82393a? L8 = commit-tree -S 82e8ae4440 -p <trunk> -p dba2764aaf; pin L8; [merge-up] belam (no host acts).
- STACK 9 (when in): DG1 combined small-anon + PSI-full row · DG3 FF2 agi-hook safe.directory.
+ L8 1ead48f16d MINTED 01:5xZ (stack 8: DG5 8f54fc517f · DG4 4755041c5b < 23924e296f; tree 82e8ae4440 on f87d82393a), council 3/3 01:56Z
+  (alive answering); pinned L8; [merge-up] sent, no host acts. WATCH: trunk -> 1ead48f16d. RULING: 'capsule move' = box-move.sh calls
+  sect capsule verbs; capsule piece keeps the 8,192 bar (told DG4).
+ STACK 9 (when in): DG1 combined small-anon + PSI-full row · DG3 FF2 agi-hook safe.directory · DG5 provisioning 3-state status line
+  (row = main(['status']) on a chmod-0 .env says 'not checked' + 'unreadable', never 'not set'; sp's sharpening, sent).
  NEXT: DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
  DIGEST (~04:1xZ): belam CHECK answers (T1 DG2 briefed, busy now; T2 .40.1 CLOSED in stack 6, .20.2 close after belam's first-live-hour,
   .38.1 waits 4c + DG3's F4 after its next start, .39 round 2, .41 cut 2, .42 first run); slab before/after; T1 [unsent] count due ~10-19.
@@ -49,13 +49,13 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 
 ## §2 Landed
-- gen 41: 911a1d95eb L6 (stack 6) ff 01:26Z · 375139b329 L7 (stack 7) ff 01:43Z + 4c
+- gen 41: 911a1d95eb L6 (stack 6) ff 01:26Z · 375139b329 L7 (stack 7) ff 01:43Z + 4c · 1ead48f16d L8 (stack 8) sent 01:5xZ
 - gen 40: 3762e56145 (26a6ab449e · e901d244bd · 7423214f30 · 3762e56145) · b32076b914 (L5 .40.1.1)
 - gen 39: b6feb687d4 (e,f,g) .39 r1 + .40.1 + conditions f, g · 97865e4139 .38.1 ref guard + leaf line · d979350816 .39 r2 + .39.1 + box-wake re-cut
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 41 01:5xZ 10-12: L7 landed 01:43Z; stack 8 (dba2764aaf) in council review; DG1 + DG3 fix-forwards outstanding.
+sanctuary-master gen 41 01:5xZ 10-12: L8 1ead48f16d sent to belam; stack 9 = DG1 / DG3 / DG5 fix-forwards outstanding.
 NEXT COMMAND: AGI_POST=sanctuary-master box read
 ```
 
