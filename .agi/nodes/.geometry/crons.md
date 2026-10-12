@@ -53,7 +53,16 @@ cadences:
     enabled: true
     box: encryption-town
     why_box: "belam's crontab reads every uid's files and writes the town node; a v5 uid reads only its own (goal:g3.8, AA1.S)"
-    cmd: python3 {repo_root}/extensions/agi/bin/metrics_cell.py {root} town:local-maxxing metrics_line --actor belam -- python3 {repo_root}/extensions/agi/bin/success_metrics.py --line {root}
+    user: agi-belam
+    why_user: "goal:g7.16.1.11.42 option E (belam 15:1xZ 10-11, council 3/3 15:07Z): the board commit is made in the Prime's OWN uid, the hand agi-at and agi-turn already sign with (agi-belam's git signs every commit, committer belam@agi), on posts/belam in a job-owned clone, never ~/t; uid belam keeps only graph_metrics_land, an ff that makes no commit. crons.py apply installs this line through `crontab -u agi-belam` (apply --sudo)"
+    log: ~/logs/board_job.log
+    cmd: mkdir -p ~/logs && python3 {repo_root}/extensions/agi/bin/board_job.py commit --main {repo_root} --post belam --job metrics_cell --work ~/board-work -- python3 {repo_root}/extensions/agi/bin/metrics_cell.py @WROOT@ town:local-maxxing metrics_line --actor belam -- python3 {repo_root}/extensions/agi/bin/success_metrics.py --line {root}
+  graph_metrics_land:
+    schedule: 28 * * * *
+    enabled: true
+    box: encryption-town
+    why_box: "MAIN lives on encryption-town; this is uid belam's ONE step of the board job: git merge --ff-only posts/belam into MAIN, only when every commit in MAIN..posts/belam is the job's own (goal:g7.16.1.11.42 C6); it makes no commit"
+    cmd: python3 {repo_root}/extensions/agi/bin/board_job.py land --main {repo_root} --post belam
   memory_alarm:
     every_mins: 1
     enabled: true
