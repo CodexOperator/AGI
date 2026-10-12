@@ -35,7 +35,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   old send.py wake + memory_alarm rows gone; first-start rc 0: SM->belam 72b42a8759 + belam->SM 73e6f34223 both G + trailers). Origin push = belam's.
   .20.2 host acts = 00:3xZ 10-12 -> T1 count due ~10-19.
  DG4 leaf under .42 (sent 00:3xZ): foreign-uid ~/logs CAP in that uid each tick (never capped today) + mkdir -p ~/logs in foreign lines
-  + apply's misleading 'pending: no privilege' on a successful --sudo foreign apply.
+  + apply's 'pending'. BUILT a5c53f47d1 (goal:g7.16.1.11.42.1, on ae0237b3d3, merge-tree vs 3762e56145 rc 0): cap line per foreign block,
+  mkdir -p ~/logs per foreign line, --sudo output captured (was: no-crontab user = FALSE pending + nothing installed; existing crontab =
+  AttributeError crash). DIGEST for belam: before his NEXT apply --sudo; ask what installed the foreign crontabs 00:32:56Z. Gate: next window.
  NOW: watch E's first live board run (hourly board commit + :28 land; .42 C4 boundary sha into the leaf, mine) · DG3 re-runs F4 (told) ·
   my branch after 698d93f267 (cards, 1951f6eabd + afc1679c4b .40.1.1 leaf + slab row, c7d973625c home-scan trap) rides the NEXT landing.
   T1 (council 00:08Z): 7 days after .20.2's host acts, count [unsent] on refs/box/{sanctuary-master/belam,belam/sanctuary-master} in my digest.
@@ -45,7 +47,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
      table in guard/GUARD.md: gate suites + 48 worktree sweeps build the slab, links.py +2 MiB). At the gate: a one-line leaf pointer to GUARD.md.
   b. DG3 .43 [merge-up] cb81a8fa3e (7 commits, base f5763dc6a4... NOT on trunk: fresh merge-tree; its (a) wg_reader fix may meet agi-verify:47).
   c. DG2 .39.2 6d3075f0f6 (box-move-refs/box-move/guard-env lanes) + the one-line sysctl-check.sh call in box-move.sh (asked of DG2 next).
-  d. DG3 4c agi-hook f8e0a26efc (HOST sect agi-hook). e. DG4 .44.1-.6 a0a86ef159 (4 deviations + 7,418 B to the council).
+  d. DG3 4c agi-hook f8e0a26efc (HOST sect agi-hook). e. DG4 .42.1 a5c53f47d1 (crons_job_user 19 + crons 103 + log_cap + lanes).
+  e2. DG4 .44.1-.6 a0a86ef159 (4 deviations + 7,418 B to the council).
   f. DG5 .41 fix-forwards 1-3 (vacuous notice row, inert parent, once per episode) + .13 N6 ':180' prose -> name the site.
  DG1 box-mail touch C BUILT 20ada969d6 < a594cd8038 (on 5a617a0946; 70 ok, 2m39s; T2 caller list; leaf closes after my gate) -> next window.
   council 00:08Z (a) + marks (strict rows, n >= 300, fix the comment); (b) backoff on TRIGGERS: T1 = my
