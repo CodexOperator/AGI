@@ -16,9 +16,9 @@ Signals, all read from the kernel (never from a process list):
   * box memory pressure           /proc/pressure/memory (some/full avg60)
   * the cgroup's kernel SLAB       memory.stat slab against --warn-slab-mib: a slice held at memory.high by dentry/inode cache
                                   with small anon (goal:g7.16.1.11.40.1.1) is raised as SLAB, by name; never dropped from here
-  * the user manager's cgroup     memory.pressure, and memory.current against
-                                  memory.max. Guard caps user@<uid>; a thrash
-                                  inside that cap never shows box-wide.
+  * the cgroup it is pointed at   memory.pressure, and the UNRECLAIMABLE part (anon + shmem + slab_unreclaimable, memory.stat)
+                                  against min(memory.high, memory.max); never memory.current, which counts cache that
+                                  reclaim gives back. Guard caps user@<uid>; a thrash inside that cap never shows box-wide.
 
 Levels ok < warn < crit. On a rise, and every --repeat-mins while raised:
 one line to the guard's alerts.log (its `TS HOST MESSAGE` shape, so
@@ -111,15 +111,17 @@ def read_signals(cgroup: Path | None) -> dict:
     sig = {"avail_mib": read_meminfo_mib("MemAvailable"),
            "box_psi": read_psi(BOX_PSI),
            "cg_psi": {}, "cg_current": None, "cg_max": None, "cg_high": None,
-           "cg_name": None, "cg_slab": None, "cg_slab_rec": None, "cg_anon": None}
+           "cg_name": None, "cg_slab": None, "cg_slab_rec": None, "cg_anon": None,
+           "cg_shmem": None, "cg_slab_unrec": None}
     if cgroup is not None:
         sig["cg_psi"] = read_psi(cgroup / "memory.pressure")
         sig["cg_current"] = read_int(cgroup / "memory.current")
         sig["cg_max"] = read_int(cgroup / "memory.max")
         sig["cg_high"] = read_int(cgroup / "memory.high")
+        sig["cg_name"] = cgroup.name
         st = read_stat(cgroup / "memory.stat")
         if st:       # kernel slab charged to the cgroup (dentry/inode cache): `slab` is the sum, else the two parts
-            sig["cg_name"] = cgroup.name
+            sig["cg_shmem"], sig["cg_slab_unrec"] = st.get("shmem", 0), st.get("slab_unreclaimable")
             sig["cg_slab"] = st.get("slab", st.get("slab_reclaimable", 0) + st.get("slab_unreclaimable", 0))
             sig["cg_slab_rec"], sig["cg_anon"] = st.get("slab_reclaimable"), st.get("anon")
     return sig
@@ -150,8 +152,9 @@ def decide(sig: dict, th: argparse.Namespace, prev: str = "ok") -> tuple[str, li
             crit.append(f"MemAvailable {avail:.0f} MiB < {th.crit_avail_mib:g}")
         elif avail < th.warn_avail_mib:
             warn.append(f"MemAvailable {avail:.0f} MiB < {th.warn_avail_mib:g}")
+    cgn = sig.get("cg_name") or "user@"        # the cgroup this run READ (agi.slice on the posts row), never a hard-coded user@
     for label, psi in (("box", sig.get("box_psi") or {}),
-                       ("user@", sig.get("cg_psi") or {})):
+                       (cgn, sig.get("cg_psi") or {})):
         full60 = psi.get("full", {}).get("avg60")
         some60 = psi.get("some", {}).get("avg60")
         if full60 is not None and full60 >= th.crit_psi_full_avg60:
@@ -161,14 +164,27 @@ def decide(sig: dict, th: argparse.Namespace, prev: str = "ok") -> tuple[str, li
     # The fill is read against the LOWER of memory.high and memory.max, and the reason names which: a slice HELD at memory.high
     # (agi.slice: high 5120 of max 6144 MiB) never passes ~0.83 of its max, so a line read against max alone can never fire there
     # (goal:g7.16.1.11.40.1.1 target 4: tonight 5104/5120 = 0.83 of max, silent by construction). `max` (unset) reads as None.
+    # WHAT FILLS IS WHAT RECLAIM CANNOT TAKE BACK (SM 00:58Z 10-12, belam's first real alarm): a slice ALWAYS fills to memory.high with
+    # reclaimable page cache and slab, so memory.current at 5118/5120 MiB said "full" every 15 minutes while PSI full avg60 was 0.31. The line
+    # reads anon + shmem + slab_unreclaimable (memory.stat) against the lower limit; PSI and the SLAB line below cover the rest. Only when
+    # memory.stat cannot be read does it fall back to memory.current, and the reason says so.
     cur = sig.get("cg_current")
     limits = [(v, n) for n, v in (("memory.high", sig.get("cg_high")), ("memory.max", sig.get("cg_max"))) if v]
-    if cur is not None and limits:
+    anon, shmem, unrec = sig.get("cg_anon"), sig.get("cg_shmem"), sig.get("cg_slab_unrec")
+    if limits and anon is not None and unrec is not None:
+        cap, which = min(limits)
+        used = anon + (shmem or 0) + unrec
+        frac = used / cap
+        if frac >= th.warn_cgroup_max_frac:
+            warn.append(f"{cgn} unreclaimable memory at {frac:.0%} of its {which} "
+                        f"({used / 1048576:.0f}/{cap / 1048576:.0f} MiB = anon {anon / 1048576:.0f} + shmem {(shmem or 0) / 1048576:.0f} "
+                        f"+ slab_unreclaimable {unrec / 1048576:.0f})")
+    elif cur is not None and limits:
         cap, which = min(limits)
         frac = cur / cap
         if frac >= th.warn_cgroup_max_frac:
-            warn.append(f"user@ at {frac:.0%} of its {which} "
-                        f"({cur / 1048576:.0f}/{cap / 1048576:.0f} MiB)")
+            warn.append(f"{cgn} memory.current at {frac:.0%} of its {which} "
+                        f"({cur / 1048576:.0f}/{cap / 1048576:.0f} MiB; memory.stat unreadable, so cache is counted too)")
     # KERNEL SLAB charged to the cgroup (goal:g7.16.1.11.40.1.1 target 3b): a slice can sit AT its memory.high with SMALL anon because the dentry
     # and inode caches filled it (2026-10-11: slab 2713 MiB, anon 1638, high 5120) and reclaim then swaps the posts' anon out. Neither
     # MemAvailable nor PSI-by-name says so: the alarm names the slab. It only RAISES; dropping the caches is a box-wide root act on every
@@ -227,7 +243,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--warn-psi-some-avg60", type=float, required=True)
     ap.add_argument("--crit-psi-full-avg60", type=float, required=True)
     ap.add_argument("--warn-cgroup-max-frac", type=float, required=True,
-                    help="warn when the cgroup's memory.current is this fraction of min(memory.high, memory.max); the reason names which")
+                    help="warn when the cgroup's anon + shmem + slab_unreclaimable (memory.stat; memory.current only if that is unreadable) is this fraction of min(memory.high, memory.max); the reason names which and the cgroup")
     ap.add_argument("--warn-slab-mib", type=float, required=True,
                     help="warn when the cgroup's kernel slab (memory.stat slab) is at least this many MiB")
     ap.add_argument("--repeat-mins", type=float, required=True)

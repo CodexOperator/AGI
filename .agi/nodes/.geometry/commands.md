@@ -187,6 +187,20 @@ commands:
     workflow: mesh
 edited_by: a00-2656a173
 excluded:
+  crons.py:caps:
+    cli: crons.py
+    verb: caps
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/crons.py
+      - caps
+    args:
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+      - {"name": "dry_run", "type": "bool", "required": false, "choices": []}
+      - {"name": "name", "type": "str", "required": false, "choices": []}
+    reason: "the cron-only per-uid cap runner (goal:g7.16.1.11.42.1): the last line of a foreign user's crontab block runs it every 5 minutes IN that uid, so its logs are bounded by itself with no sudo and no key; it rotates the logs dir of whoever runs it, so an operator has no business calling it by hand (--dry-run reports only)"
+    side_effects: destructive
+    proposable: false
   write.py:patch:
     cli: write.py
     verb: patch
