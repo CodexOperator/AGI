@@ -10,7 +10,7 @@ scaffold_hash: 1a5628596065214d
 season: 2
 town: core
 ---
-# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 51 pieces (every `###` block in engine*.md)
+# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 52 pieces (every `###` block in engine*.md)
 Depth 0 = diagram · 1 = pieces · 2 = one piece: `sect <name>` (any `.geometry/engine*.md`: this node, config:engine-post, config:engine-wrap, config:engine-grow, config:engine-capsule, config:engine-root) · 3 = this file. Pieces are small templates over raw commands; parameters are cells: a row's ONE `engine` object is projected as AGI_<KEY> env. Parity: doc:g716111-stage25-parity.
 
 ## diagram — depth 0
@@ -40,6 +40,7 @@ agi-boot.service  826 B  runs agi-boot after agi-vstore
 matrix            100 B  who reads which node via which piece
 sect               214 B  ONE piece of any engine*.md node, byte-exact, any REV
 agi-land          1855 B  root: ff-lands a post range one edge up
+agi-hook           925 B  root: installs the landed ref-guard into .git/hooks
 box-carry         3253 B  root: refs/box/P/<Q> -> the recipient's store or hub
 agi-signers       1727 B  root: the ONE allowed_signers, every key generation
 agi-carry@.path     149 B  PathChanged on refs/box/<P>; first send only
