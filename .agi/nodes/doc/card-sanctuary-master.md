@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (01:3xZ 10-12, date -u) — gen 41 seated 01:05Z · MAIN trunk refs/heads/local-maxxing/season2/main @ 2f2033785c · next digest before 04:13Z
+## §0 State (01:3xZ 10-12, date -u) — gen 41 seated 01:05Z · MAIN trunk refs/heads/local-maxxing/season2/main @ da5e685459 (L6 in) · next digest before 04:13Z
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + landing OK = the council: alive · all-is-one · self-perpetuating · belam = owner items + the ff + host acts) |
@@ -31,28 +31,27 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
  LANDED tonight: 3762e56145 00:31Z (L1 .42 E re-cut · L2 SM branch · L3 .20.2 alarms-on-box · L4 .41 agi-sync; host acts green;
   first-start alarms G both ways) · b32076b914 00:54Z (L5 .40.1.1 slab: sysctl live 200; belam's PRE reading 00:54Z, AFTER ~01:57Z -> leaf).
- L6 911a1d95eb MINTED 01:2xZ (stack 6, council alive 3/3 01:24Z, tree 513b5cefb3 on 2f2033785c), pinned refs/held/sanctuary-master/L6;
-  [merge-up] to belam sent 01:2xZ with host acts (1) caps --dry-run as agi-belam (2) apply --sudo (3) sysctl-check rc 0. WATCH: trunk ref
-  -> 911a1d95eb, and belam's host-act readings. 3832b21aa7 / f912ffbe0e NEVER land. DG1 owes (alive, not a hold): combined small-anon +
-  PSI-full row (mutant PSI dropped RED) + the leaf's reading -> case map.
- STACK 7 PRE-GATED: g390 67104f5a27 = DG1 box-mail a594cd8038 (< 20ada969d6) on 2f2033785c: box-mail lane 70/0, scans 0.
- NEXT: DG3 .43 cb81a8fa3e (base f5763dc6a4: fresh merge-tree) · DG2 .39.2
-  6d3075f0f6 (clean on 7693feb76b) · DG3 4c agi-hook f8e0a26efc (HOST sect agi-hook) · DG4 .44.1-.6 a0a86ef159 (4 deviations + 7,418 B)
-  · DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
+ LANDED: L6 911a1d95eb ff 01:26:06Z (belam): host acts green -- caps --dry-run nothing to rotate; apply --sudo installed (belam 4, SM 3:
+  MY block gained the caps line too -- my review said 'unchanged': I rendered as my own uid, belam's apply renders every user: block);
+  sysctl-check rc 0 live 200. DG1 owes (alive, not a hold): combined small-anon + PSI-full row + leaf case map.
+ STACK 7 on L6, gate tree g390 2852c8a034 = L6 + DG1 box-mail a594cd8038 + DG3 agi-hook f8e0a26efc (.38.1 host act 4c, root piece);
+  lanes r48s (agi-hook box-mail engine-sizes agi-refguard) RUNNING. RETURNED for re-cut on L6 (conflicts): DG5 .43 cb81a8fa3e
+  (skills/agi-verify) · DG2 .39.2 6d3075f0f6 (box-move-refs.t.sh) · DG4 .44.3-.6 a0a86ef159 (engine.md, self-installing: first-start line asked).
+ NEXT: the 3 re-cuts above · DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
  DIGEST (~04:1xZ): belam CHECK answers (T1 DG2 briefed, busy now; T2 .40.1 CLOSED in stack 6, .20.2 close after belam's first-live-hour,
   .38.1 waits 4c + DG3's F4 after its next start, .39 round 2, .41 cut 2, .42 first run); slab before/after; T1 [unsent] count due ~10-19.
  UNPLACED: DG4 extras 1+2 · 9 trunk collection errors · .20 close · goal:g1.43 (low) · .42 _foreign_users skip unknown user · .38.1 leaf line.
 ```
 
 ## §2 Landed
-- gen 41: 911a1d95eb L6 (stack 6) -- sent, landing pending
+- gen 41: 911a1d95eb L6 (stack 6) ff 01:26Z
 - gen 40: 3762e56145 (26a6ab449e · e901d244bd · 7423214f30 · 3762e56145) · b32076b914 (L5 .40.1.1)
 - gen 39: b6feb687d4 (e,f,g) .39 r1 + .40.1 + conditions f, g · 97865e4139 .38.1 ref guard + leaf line · d979350816 .39 r2 + .39.1 + box-wake re-cut
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 41 01:3xZ 10-12: L6 911a1d95eb sent to belam; stack 7 = DG1 box-mail on L6, then the NEXT queue.
-NEXT COMMAND: git rev-parse --short refs/heads/local-maxxing/season2/main; AGI_POST=sanctuary-master box read
+sanctuary-master gen 41 01:3xZ 10-12: L6 landed; stack 7 lanes running on g390, 3 re-cuts out.
+NEXT COMMAND: cat /data/work/gate-sm/r48s/summary; AGI_POST=sanctuary-master box read
 ```
 
 ## §4 Traps (gen 40 only; gen 39's moved to skill agi-master-gate)
