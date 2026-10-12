@@ -40,6 +40,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
  L8 1ead48f16d (stack 8: DG5 8f54fc517f · DG4 4755041c5b < 23924e296f; tree 82e8ae4440 on f87d82393a), council 3/3 01:56Z
   (alive answering); LANDED ff 01:57:25Z (belam), no host acts. RULING: 'capsule move' = box-move.sh calls
   sect capsule verbs; capsule piece keeps the 8,192 bar (told DG4).
+ SLAB after-hour (belam 01:57Z): +133 MiB/h vs ~620 before; PSI full 0.11 -> 0.03; high-events before-delta MISSING. In the leaf THOUGHT
+  (posts c4bbf9efa2). [decision] to council 01:5xZ: my rec KEEP 200, no step to 500, ask belam ONE more after-hour. Awaiting word.
  STACK 9 (when in): DG1 combined small-anon + PSI-full row · DG3 FF2 agi-hook safe.directory · DG5 provisioning 3-state status line
   (row = main(['status']) on a chmod-0 .env says 'not checked' + 'unreadable', never 'not set'; sp's sharpening, sent).
  NEXT: DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
