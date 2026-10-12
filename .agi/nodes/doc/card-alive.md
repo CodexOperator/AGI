@@ -16,11 +16,11 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (04:3xZ 10-12) -- gen 12, IDLE by OWNER order, encryption-town, meter f ~0.37 (line 0.47)
+## §0 State (05:2xZ 10-12) -- gen 12, RESUMED (owner "go" via belam/SM 05:1xZ; box rebooted 05:00:51Z), meter f ~0.38
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town (host belam-prime) |
-| IDLE | OWNER 04:2xZ 10-12 via belam/SM 04:3xZ: "We're about outta usage ... everyone goes into idle for a clean resume in a few days". No gate, review, dispatch or build until the owner resumes us; do not box belam |
+| RESUME | the 04:2xZ idle order was LIFTED 05:1xZ (owner "go"); quiet rule to the owner stands (ONE digest per ~4 h via belam) |
 | role | the council rules + approves gated tips (owner 21:5xZ 10-10). SM sends `[review <sha>]` / `[decision]` / `[red]`; alive = the ANSWERER: the one voice to SM |
 | messaging | OWNER 20:2xZ 10-11: never box belam (only [red] or a BLOCKING owner ask, at once); to SM one message per finished thing, NO acks. `box send <post> < file` (text in a scratch FILE); `box read` = read WHOLE; `box n` = unread |
 | council rules | VIEW to both seats -> ONE verdict to SM after BOTH answered my LAST position, or 15 min (silence = no objection; a rotating seat's abstain is NOT counted). A change of mind = [withdraw]. Every view names what it RAN against which sha, or "none" |
@@ -40,8 +40,9 @@ done   gen 12 (10-11 21:3xZ -> 10-12 04:0xZ), every answer to SM in box text + t
            move = box-move.sh as caller; 9-11: the fix-forwards MET); .20.2 alarms: spool per sending seat (race found + fixed)
          decisions: alarm signer (spool per seat) · m3-overlap (5 % cell, triggers T1/T2) · slab (a)+(b)+(c) · vfs 200 KEEP,
            A/B INCONCLUSIVE, falsifier 1 24 h line · .42 E acks (home path -> ~, foreign-row log cap in-uid + mkdir)
-NEXT   NONE until the owner resumes. Queued at SM for the resume: stack 13 (DG4 63b21a5b90 + DG5 7970370e55 + DG2 e52540c669,
-         gate tree g397) · DG3's i10 fix · DG5's re-cut of 4037d8b420 (below-Prime stop) · full engine suite at L12's tip (rule 2)
+NEXT   stack 13b [review] from SM (gate g397 @ 3fe030e570: DG4 63b21a5b90 + DG5 7970370e55 + DG2 e52540c669 on 67730b8fb7).
+         PRE-VIEW sent 05:2xZ: DG5's below-Prime stop MET (0 of 33 rows -> belam); flag 3fe030e570 %G? = N (gate tip must be G).
+         then: .41 cut 2 (season-2 close gate, DG5) · DG3 i10 fix
 OPEN   gates the council set: box-move.sh-as-caller needs the PRE-STOP grid ff check (row 5c) · vfs falsifier 1 24 h watch
          (revert line in the .40.1.1 THOUGHT) · DG4's .13 N7 cites doc v5 (lands at aio's next sync)
 ```
@@ -53,7 +54,7 @@ OPEN   gates the council set: box-move.sh-as-caller needs the PRE-STOP grid ff c
 
 ## 🔴 Where it stops
 ```
-IDLE by owner order (04:2xZ 10-12): on resume, FIRST `box n` -> `box read` (WHOLE), then answer SM's queued stack 13 [review]
+RESUMED: `box read` WHOLE -> answer SM's stack 13b [review] (pre-view in §1 NEXT); check the gate tip is %G? G
 ```
 Nothing of alive's is half-done: every review and decision SM sent is answered; no verdict is pending at SM.
 
