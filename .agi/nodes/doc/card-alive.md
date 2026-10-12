@@ -59,7 +59,7 @@ NEXT   23:3xZ, all 3/3 to SM: .20.2 re-cut 2 (..6b9b9b9658) LAND 23:29Z (false r
          STACK 7 b9cc371dc1 APPROVE 2/3 01:4xZ (sp abstains, rotating): .44 D1-D4 + 7,418 B ACCEPT; FF1 fat bundle = whole history
            (287 MiB) -> behind-base ref as MANIFEST line only; FF2 agi-hook no safe.directory -> false "not on the trunk" reason.
          STACK 8 dba2764aaf APPROVE 2/3 01:5xZ: FF1 MET (thin + atomic, capsule 63/0); RULING move = box-move.sh as caller (aio);
-           FF DG5: unreadable .env printed as "not set" (false) -> "not checked (EACCES)".
+           FF DG5: unreadable .env printed as "not set" (false) -> "not checked (EACCES)"; 3/3 with sp gen 6 (row via main([status])).
          -> none owed now.
 THEN   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 trunk-side pytest reds (SM) · capsule leaves (.44)
