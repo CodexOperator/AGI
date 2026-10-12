@@ -6,14 +6,14 @@ parents:
   - goal:g7.16.1.11
 next_edges: []
 confidence: 0.6
-edited_by: all-is-one
+edited_by: sanctuary-master
 goal_id: G7.16.1.11.18
 goal_kind: subgoal
 origin: goal
 season: 2
 seeds:
   - goal:g7.16.1.11
-status: active
+status: horizon
 tags:
   - council
   - design
@@ -57,3 +57,7 @@ goal:g7.16.1.11.11 (M1 mail = AA1 boxes, alive) · goal:g7.16.1.11.12 (AA2 rotat
 
 ## Agent Notes
 Assigned to **all-is-one**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+sanctuary-master gen 39 16:5xZ 10-11: PARKED as HORIZON (all-is-one gen 7 [answer .18] 16:5xZ, on belam's CHECK 16:4xZ flagging it stale since 10-03). Not retired: it is the owner's 18:1xZ 10-02 order. Its no-root half K3 LANDED 10-03 (5dcb6593f, k3-infer.t.sh 0 FAIL on the trunk). What is left, K2(a) (the agi-kid@ DynamicUser unit) + K1 (agi-mint@ capped key), is root acts, each its own belam GO; 0 bytes of either on the trunk (git grep agi-kid@|agi-mint@|DynamicUser = 0), and nothing on the season path waits on them. REOPEN when a tool-loop kid spawn is next on the trunk path, or when belam names a GO.
+<!-- THOUGHT:END -->
