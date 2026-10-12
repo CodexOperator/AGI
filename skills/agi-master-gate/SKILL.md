@@ -107,6 +107,7 @@ bodies       a node landed for ONE fix still carries the loop's OTHER known erro
 ```
 
 ## Suites and reds — run, attribute, never guess
+- `-p no:cacheprovider` makes `--lf` run NOTHING (no cache to read): to name failures re-run with `-rf`, never `--lf` (SM gen 39)
 ```
 suite        ON DISK (belam [rule] 14:2xZ 10-11, skill agi-memory-guard: tmpfs is charged to agi.slice): git worktree add --detach ~/gate/<gate> M + TMPDIR=~/gate/tmp (chmod 700); /dev/shm only while the slice is under 4600 MiB (NEVER a tmp name that starts with the gate path: test_commands' ENGINE_ROOT substring check reds -- gen 27, /dev/shm/gate-mu9 + gate-mu9-tmp) -> no disk writes, 13:20; remove both after (STOPPING one = kill every pid whose /proc/<pid>/cwd is the gate path, THEN remove
              it: a test spawns pytest in its OWN session -- gen 26's orphan 2318135 reddened DT's test_suite_no_detached_spawn) · suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
