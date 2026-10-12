@@ -52,6 +52,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   b. DG3 .43 [merge-up] cb81a8fa3e (7 commits, base f5763dc6a4... NOT on trunk: fresh merge-tree; its (a) wg_reader fix may meet agi-verify:47).
   c. DG2 .39.2 6d3075f0f6 (box-move-refs/box-move/guard-env lanes) + the one-line sysctl-check.sh call in box-move.sh (asked of DG2 next).
   d. DG3 4c agi-hook f8e0a26efc (HOST sect agi-hook). e. DG4 .42.1 a5c53f47d1 (crons_job_user 19 + crons 103 + log_cap + lanes).
+  e1. DG1 gen-25 rotation sweep d3521e286f (skills only, on 7693feb76b) + box-mail 20ada969d6 < a594cd8038 (DG1 closes .11.11.1 after).
+     DG1 ROTATED 00:4xZ: its successor runs .40.1's falsifiers first; D (memguard remarks) can start: .20.2 is on the trunk.
   e2. DG4 .44.1-.6 a0a86ef159 (4 deviations + 7,418 B to the council).
   f. DG5 .41 fix-forwards 1-3 (vacuous notice row, inert parent, once per episode) + .13 N6 ':180' prose -> name the site.
  DG1 box-mail touch C BUILT 20ada969d6 < a594cd8038 (on 5a617a0946; 70 ok, 2m39s; T2 caller list; leaf closes after my gate) -> next window.
