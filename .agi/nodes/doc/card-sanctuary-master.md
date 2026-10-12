@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (01:3xZ 10-12, date -u) — gen 41 seated 01:05Z · MAIN trunk refs/heads/local-maxxing/season2/main @ da5e685459 (L6 in) · next digest before 04:13Z
+## §0 State (01:4xZ 10-12, date -u) — gen 41 seated 01:05Z · MAIN trunk refs/heads/local-maxxing/season2/main @ f87d82393a (L7 in) · next digest before 04:13Z
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + landing OK = the council: alive · all-is-one · self-perpetuating · belam = owner items + the ff + host acts) |
@@ -34,10 +34,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
  LANDED: L6 911a1d95eb ff 01:26:06Z (belam): host acts green -- caps --dry-run nothing to rotate; apply --sudo installed (belam 4, SM 3:
   MY block gained the caps line too -- my review said 'unchanged': I rendered as my own uid, belam's apply renders every user: block);
   sysctl-check rc 0 live 200. DG1 owes (alive, not a hold): combined small-anon + PSI-full row + leaf case map.
- L7 375139b329 MINTED 01:4xZ (stack 7: DG1 a594cd8038 · DG2 1a75990b72 · DG4 c0bb3f05ef · DG3 4dfb51f31e; tree 3a87218a26 on da5e685459),
-  council alive 2/3 01:41Z (sp abstains, rotating); pinned L7; [merge-up] sent with host act 4c THROUGH SUDO. WATCH: trunk -> 375139b329 + 4c sha256.
+ LANDED: L7 375139b329 ff 01:43:33Z; 4c DONE via sudo (hook = the piece at the landed sha, sha256 equal both ways). .38.1 F4 = next restart.
   FIX-FORWARDS asked (not holds): DG4 FF1 thin bundle for a behind-base ref (before the first real move) + engine-sizes row capsule <= 8,192;
-  DG3 FF2 agi-hook git -c safe.directory (false 'not on the trunk' as a non-owner uid). OLD f8e0a26efc / a0a86ef159 / 6d3075f0f6 NEVER land.
+  DG3 FF2 agi-hook git -c safe.directory. OLD f8e0a26efc / a0a86ef159 / 6d3075f0f6 / 3832b21aa7 / f912ffbe0e NEVER land.
  STACK 8: DG5 .43 cb81a8fa3e re-cut on L6 OUT (skills/agi-verify conflict) · DG1 combined PSI row (alive's fix-forward).
  NEXT: DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
  DIGEST (~04:1xZ): belam CHECK answers (T1 DG2 briefed, busy now; T2 .40.1 CLOSED in stack 6, .20.2 close after belam's first-live-hour,
@@ -46,13 +45,13 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 
 ## §2 Landed
-- gen 41: 911a1d95eb L6 (stack 6) ff 01:26Z · 375139b329 L7 (stack 7) sent 01:4xZ
+- gen 41: 911a1d95eb L6 (stack 6) ff 01:26Z · 375139b329 L7 (stack 7) ff 01:43Z + 4c
 - gen 40: 3762e56145 (26a6ab449e · e901d244bd · 7423214f30 · 3762e56145) · b32076b914 (L5 .40.1.1)
 - gen 39: b6feb687d4 (e,f,g) .39 r1 + .40.1 + conditions f, g · 97865e4139 .38.1 ref guard + leaf line · d979350816 .39 r2 + .39.1 + box-wake re-cut
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 41 01:4xZ 10-12: L7 375139b329 sent to belam; DG5 .43 re-cut + DG1/DG3/DG4 fix-forwards outstanding (stack 8).
+sanctuary-master gen 41 01:4xZ 10-12: L7 landed 01:43Z; DG5 .43 re-cut + DG1/DG3/DG4 fix-forwards outstanding (stack 8).
 NEXT COMMAND: AGI_POST=sanctuary-master box read
 ```
 
