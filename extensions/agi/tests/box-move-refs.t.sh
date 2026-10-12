@@ -197,6 +197,13 @@ recov_fix;mutgo 's#;sudo -n systemctl start agi-post@\$P;exit 10#;exit 10#' no-r
 ok "capsule-recovery-mutant-no-restart-is-RED a RECOVERY that never starts the post on FROM: start logged ($(grep -c '^start agi-post@'$P $T/ctl.log)); the clean row wants 1: this one must NOT log one" '! grep -q "^start agi-post@$P" $T/ctl.log'
 ok "capsule-the-probe-left-target-fit-and-lives-in-the-prestop-step target-fit.sh holds $(grep -c unfit-probe $TF) probe line(s) (want 0, the df floor stays: $(grep -c 'df -Pk' $TF)), box-move.sh holds $(grep -c 'unfit-probe' $SRC) (want 1)" '[ $(grep -c unfit-probe $TF) = 0 ]&&[ $(grep -c "df -Pk" $TF) -ge 1 ]&&[ $(grep -c unfit-probe $SRC) = 1 ]'
 
+# SSH'S OWN rc 255 (council, L14 residue): ssh that cannot reach the target is not a unit-path refusal; it is named [ssh] rc 255, nothing touched
+sshdown(){ fix;cp $B/ssh $T/ssh.real;printf '#!/bin/sh\nexit 255\n' >$B/ssh;h0=$(git -C $T/f/s rev-parse HEAD);go; }
+sshup(){ cp $T/ssh.real $B/ssh;chmod +x $B/ssh; }
+sshdown;r1=$rc;e1=$(grep -c '^\[ssh\] rc 255' $T/err);u1=$(grep -c '^\[unit-path\]' $T/err);sshup
+ok "ssh-an-unreachable-target-is-named-ssh-rc-255-not-a-unit-path ssh exits 255: rc $r1 (want 255), '[ssh] rc 255' on stderr ($e1 line, want 1), no '[unit-path]' line ($u1, want 0), the post not stopped or started, the row unmoved" '[ $r1 = 255 ]&&[ $e1 = 1 ]&&[ $u1 = 0 ]&&untouched'
+sshdown;mutgo 's#\[ \$r != 255 \]||{ echo "\[ssh\][^;]*;exit 255;};##' no-ssh-branch;sshup
+ok "ssh-mutant-the-255-branch-dropped-is-RED a box-move.sh that never names ssh's own rc ends rc $rc and prints $(grep -c '^\[unit-path\]' $T/err) '[unit-path]' line(s) for an unreachable target (the clean row wants rc 255 and 0: this one must NOT be rc 255)" '[ $rc != 255 ]'
 # the tree under test
 n=$(grep -c -F '$E "cd /data/work/agi' $SRC)
 ok "refs-the-host-act-line-stays-one $SRC holds $n line(s) with \$E \"cd /data/work/agi (want 1: box-move.t.sh extracts it)" '[ $n = 1 ]'
