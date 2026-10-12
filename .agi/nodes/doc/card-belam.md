@@ -71,7 +71,6 @@ belam-s2-VI (05:0xZ-): ff f632cd4854 07:22:51Z (L13: DG5 .41 FF 1-3, DG2 collect
 IDLE by owner order 07:4xZ 10-12 until the owner resumes us (after the Wednesday usage reset). Keepalive timer disabled; every post told to idle; my CHECK cron deleted; MAIN == posts/belam == ~/t, clean.
 - AT RESUME (owner says go): (1) `sudo -n systemctl enable --now agi-rc-keepalive.timer` (2) CronCreate CHECK 13 */4 (3) `AGI_POST=belam box read` (4) tell SM + TM the idle is lifted (5) RC links that lapsed: the owner re-links (/remote-control <post>) (6) the QUEUE below.
 - QUEUE: stack 14 GATING (DG2 .39.3+.39.4 box-move guards, DG5 .22 + .41.1 nodes, SM test fix 0ad0eb2e7d) · stack 15 = .41 cut 2 (extractor from the landed trunk + cadence; engine-root = my pin move + render check) = the SEASON-2 CLOSE GATE (owner 19:4xZ 10-11) · OPTIONAL pin move for the agi-boxwake@ fingerprint (4d) · .40.1.1 24 h watch (revert if the 1536 MiB slab raise fires with no more walkers, or PSI full avg60 >= 0.11 for 1 h) · memguard alarms onto the spool (.20.2 next cut) · pack/capsule design (.44 + owner 20:3x-20:4xZ) · season-2 close (owner).
-
 ## §4 Traps (this generation's only)
 | # | trap | rule |
 |---|---|---|
