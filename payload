@@ -75,7 +75,7 @@ def test_availability_is_false_when_the_env_file_is_unreadable_and_never_raises(
 
 def _status_on_env(tmp_path, monkeypatch, capsys, *, text, mode):
     """`provisioning.py status` on a scratch project whose .env holds `text` at `mode`; returns (rc, stdout)."""
-    (tmp_path / ".agi").mkdir()
+    (tmp_path / ".agi").mkdir(parents=True)
     (tmp_path / ".agi" / "config.json").write_text("{}")
     env = tmp_path / ".env"
     env.write_text(text)
@@ -100,16 +100,22 @@ def test_status_names_an_unreadable_env_file_never_as_not_set(tmp_path, monkeypa
                                text="%s=sk-prov\n" % provisioning.PROVISIONING_KEY_VAR, mode=0)
     line = next(ln for ln in out.splitlines() if ln.startswith("provisioning:"))
     assert code == 0
-    assert "not checked" in line and "unreadable" in line and "EACCES" in line, line
-    assert "not set" not in line and "unavailable" not in line, line
+    assert "not checked" in line and "unreadable" in line and "EACCES" in line, f"status must say 'not checked' (unreadable, EACCES), got: {line}"
+    assert "not set" not in line and "unavailable" not in line, f"an unreadable file is never 'not set' / 'unavailable', got: {line}"
     assert str(tmp_path) not in out, "the file is named as MAIN's .env, never a path"
 
 
 def test_status_still_says_not_set_for_an_absent_key_and_available_for_a_set_one(tmp_path, monkeypatch, capsys):
     """controls: a READABLE env file without the key keeps the old "not set" line; with it, "available"."""
-    code, out = _status_on_env(tmp_path, monkeypatch, capsys, text="OTHER=1\n", mode=0o600)
+    code, out = _status_on_env(tmp_path / "absent", monkeypatch, capsys, text="OTHER=1\n", mode=0o600)
     line = next(ln for ln in out.splitlines() if ln.startswith("provisioning:"))
-    assert "not set" in line and "not checked" not in line, line
+    assert code == 0 and "not set" in line and "not checked" not in line, line
+    monkeypatch.setattr(provisioning, "list_all_keys", lambda root=None: [])   # a SET key lists keys: no HTTP
+    code, out = _status_on_env(tmp_path / "set", monkeypatch, capsys,
+                               text="%s=sk-prov\n" % provisioning.PROVISIONING_KEY_VAR, mode=0o600)
+    line = next(ln for ln in out.splitlines() if ln.startswith("provisioning:"))
+    assert code == 0 and line.startswith("provisioning: available"), line
+    assert "not set" not in line and "not checked" not in line, line
 
 
 def test_the_none_conflation_mutant_goes_red(tmp_path, monkeypatch, capsys):
@@ -118,7 +124,7 @@ def test_the_none_conflation_mutant_goes_red(tmp_path, monkeypatch, capsys):
     if os.geteuid() == 0:
         pytest.skip("root reads a chmod 000 file: the condition (a non-root uid) cannot be built")
     monkeypatch.setattr(provisioning, "_provisioning_key_state", lambda root=None: (None, None))
-    with pytest.raises(AssertionError):
+    with pytest.raises(AssertionError, match="status must say 'not checked'"):   # the ROW's own claim, not its resolver precondition
         test_status_names_an_unreadable_env_file_never_as_not_set(tmp_path, monkeypatch, capsys)
 
 
