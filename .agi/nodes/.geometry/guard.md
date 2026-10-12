@@ -138,6 +138,14 @@ GUARD_ENGINE_MAX_local_town=3G
 refs/remotes  a remote-tracking ref is a copy of origin's; the target fetches its own
 ```
 
+## move.target-fit -- what the target must have free before a box move touches anything
+
+`extensions/agi/guard/target-fit.sh` (goal:g7.16.1.11.39.3, the council's limit 1) runs on the target in the unit-paths ssh, before the stop and the row edit: the free space under the target repo must be at least `data-free-min-kb`, and a probe file must be creatable and removable in its refs dir. Else `[target-unfit]`, rc 9, nothing touched. `Key value  reason`.
+
+```sh move.target-fit
+data-free-min-kb 2097152  2 GiB: the carry is at most the whole repo, and MAIN's .git measured 421,612 KB on 10-12 (a 286 MiB pack + loose objects + the grid refs); the floor is ~5x that, so a full or near-full disk refuses before the stop instead of at the after-check
+```
+
 ## move.unit-optional -- the unit paths a box move may find absent on the target
 
 `extensions/agi/guard/unit-paths.sh` (goal:g7.16.1.11.39.1) reads the target's RENDERED agi-post@ / agi-boxwake@ units BEFORE the stop and the row edit and refuses (`[unit-path]`, rc 7) when a host path they name does not exist. A leading `-` is not a pass. These are the named exemptions, `Key path  reason` (`%i` = the post), the only paths that may be absent at that moment; nothing here may name a command (an ExecStart* word) or the signers.
