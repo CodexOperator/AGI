@@ -444,6 +444,23 @@ def _no_real_provisioning_call(monkeypatch):
     monkeypatch.setattr(provisioning, "_call", _refuse)
 
 
+@pytest.fixture(autouse=True)
+def _workflow_tests_do_not_need_pi_installed(request, monkeypatch, tmp_path_factory):
+    """goal:g7.16.1.11.43 -- the test_workflow* files drive workflow.py through its stage runner with the model call
+    faked, but the runner first RESOLVES the harness binary (`pi`: $PI_BIN, else ~/.npm-global/bin/pi) and refuses by
+    name when it does not exist. A post uid has no pi installed, so 73 of them died 'cannot resolve binary' before
+    reaching the behaviour they pin. They need a resolvable binary, never a real one: PI_BIN points at a stub that
+    does nothing. A test that pins the resolution itself sets PI_BIN in its own body (monkeypatch there runs after
+    this and wins)."""
+    if not request.node.fspath.basename.startswith("test_workflow"):
+        return
+    stub = tmp_path_factory.getbasetemp() / "pi-stub"
+    if not stub.exists():
+        stub.write_text("#!/bin/sh\nexit 0\n")
+        stub.chmod(0o755)
+    monkeypatch.setenv("PI_BIN", str(stub))
+
+
 # --- the suite lock belongs to the resource, not a caller -------------------
 # `hypothesis:l4-the-suite-lock-belongs-to-pytest-not-its-caller`. Every path
 # that starts the pytest suite goes THROUGH this conftest (commands.py run

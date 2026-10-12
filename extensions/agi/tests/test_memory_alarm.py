@@ -21,12 +21,12 @@ TH = argparse.Namespace(warn_avail_mib=2048, crit_avail_mib=1024,
                         warn_cgroup_max_frac=0.95, warn_slab_mib=1536, clear_margin_frac=0.8)
 
 
-def sig(avail=8000.0, box=(0.0, 0.0), cg=(0.0, 0.0), cur=None, cap=None, high=None, slab=None, anon=None, rec=None, name="agi.slice"):
+def sig(avail=8000.0, box=(0.0, 0.0), cg=(0.0, 0.0), cur=None, cap=None, high=None, slab=None, anon=None, rec=None, name="agi.slice", shmem=0, unrec=None):
     def psi(some, full):
         return {"some": {"avg10": some, "avg60": some}, "full": {"avg10": full, "avg60": full}}
     return {"avail_mib": avail, "box_psi": psi(*box), "cg_psi": psi(*cg),
             "cg_current": cur, "cg_max": cap, "cg_high": high,
-            "cg_name": name, "cg_slab": slab, "cg_slab_rec": rec, "cg_anon": anon}
+            "cg_name": name, "cg_slab": slab, "cg_slab_rec": rec, "cg_anon": anon, "cg_shmem": shmem, "cg_slab_unrec": unrec}
 
 
 def test_quiet_box_is_ok():
@@ -41,12 +41,12 @@ def test_low_available_warns_then_crits():
 def test_pressure_inside_the_user_cap_is_seen_while_the_box_is_calm():
     assert m.decide(sig(cg=(12.0, 0.0)), TH)[0] == "warn"
     level, reasons = m.decide(sig(cg=(50.0, 25.0)), TH)
-    assert level == "crit" and any(r.startswith("user@ PSI full") for r in reasons)
+    assert level == "crit" and any(r.startswith("agi.slice PSI full") for r in reasons)
 
 
 def test_user_cap_fill_warns_only_near_the_hard_cap():
-    assert m.decide(sig(cur=5600 << 20, cap=5829 << 20), TH)[0] == "warn"
-    assert m.decide(sig(cur=4000 << 20, cap=5829 << 20), TH)[0] == "ok"
+    assert m.decide(sig(anon=5600 << 20, unrec=10 << 20, cap=5829 << 20), TH)[0] == "warn"
+    assert m.decide(sig(anon=4000 << 20, unrec=10 << 20, cap=5829 << 20), TH)[0] == "ok"
 
 
 def test_unreadable_signals_never_raise(tmp_path):
@@ -460,19 +460,44 @@ MIB = 1 << 20
 
 
 def test_a_slice_at_099_of_memory_high_warns_and_names_the_limit_it_was_read_against():
-    level, reasons = m.decide(sig(cur=int(5069 * MIB), cap=6144 * MIB, high=5120 * MIB), TH)        # 0.99 of high, 0.825 of max
-    assert level == "warn" and reasons == ["user@ at 99% of its memory.high (5069/5120 MiB)"], (level, reasons)
+    level, reasons = m.decide(sig(anon=int(5000 * MIB), shmem=40 * MIB, unrec=29 * MIB, cap=6144 * MIB, high=5120 * MIB), TH)        # 0.99 of high, 0.825 of max
+    assert level == "warn" and reasons == ["agi.slice unreclaimable memory at 99% of its memory.high (5069/5120 MiB = anon 5000 + shmem 40 + slab_unreclaimable 29)"], (level, reasons)
 
 
-def test_tonights_reading_5104_of_5120_is_a_warn():
-    assert m.decide(sig(cur=5104 * MIB, cap=6144 * MIB, high=5120 * MIB), TH)[0] == "warn"
+def test_a_slice_filled_to_memory_high_by_cache_is_quiet():
+    # belam 01:0xZ 10-12, the first real alarm: memory.current 5118/5120 MiB, but anon 2542 + shmem 0 + slab_unreclaimable 14 and PSI full 0.31:
+    # the rest is page cache and reclaimable slab that reclaim gives back. The old line (memory.current) fired every 15 minutes, for ever.
+    quiet = sig(cur=5118 * MIB, anon=2542 * MIB, unrec=14 * MIB, cap=6144 * MIB, high=5120 * MIB, cg=(0.31, 0.31))
+    assert m.decide(quiet, TH) == ("ok", [])
+    hot = sig(cur=5118 * MIB, anon=5000 * MIB, shmem=60 * MIB, unrec=14 * MIB, cap=6144 * MIB, high=5120 * MIB)        # 5074/5120 = 0.991
+    assert m.decide(hot, TH)[0] == "warn"
+
+
+def test_without_memory_stat_the_fill_falls_back_to_memory_current_and_says_so():
+    level, reasons = m.decide(sig(cur=5104 * MIB, cap=6144 * MIB, high=5120 * MIB), TH)
+    assert level == "warn" and reasons == ["agi.slice memory.current at 100% of its memory.high (5104/5120 MiB; memory.stat unreadable, so cache is counted too)"], reasons
+
+
+def test_the_mutant_that_reads_memory_current_goes_red_on_the_quiet_row():
+    old = "used = anon + (shmem or 0) + unrec"
+    src = Path(m.__file__).read_text(); assert src.count(old) == 1, old
+    mut = _fresh(src.replace(old, "used = cur"))
+    quiet = sig(cur=5118 * MIB, anon=2542 * MIB, unrec=14 * MIB, cap=6144 * MIB, high=5120 * MIB)
+    assert m.decide(quiet, TH)[0] == "ok" and mut.decide(quiet, TH)[0] == "warn", "the memory.current reading must warn on the quiet row"
+
+
+def test_the_alarm_text_names_the_cgroup_it_read_not_user_at():
+    reasons = m.decide(sig(anon=5100 * MIB, unrec=10 * MIB, cap=6144 * MIB, high=5120 * MIB, cg=(40.0, 0.0), name="agi.slice"), TH)[1]
+    assert reasons and all("user@" not in r and r.startswith("agi.slice") for r in reasons), reasons
+    reasons = m.decide(sig(anon=5900 * MIB, unrec=10 * MIB, cap=6144 * MIB, name="user@1000.service"), TH)[1]
+    assert reasons and reasons[0].startswith("user@1000.service unreclaimable"), reasons
 
 
 def test_the_lower_of_the_two_limits_wins_and_an_unset_high_falls_back_to_max():
-    assert m.decide(sig(cur=5900 * MIB, cap=6144 * MIB, high=7000 * MIB), TH)[1] == ["user@ at 96% of its memory.max (5900/6144 MiB)"]   # high ABOVE max: max is the limit
-    assert m.decide(sig(cur=5900 * MIB, cap=6144 * MIB, high=None), TH)[0] == "warn"                                                      # memory.high = max (unset)
-    assert m.decide(sig(cur=5900 * MIB, cap=None, high=None), TH) == ("ok", [])                                                           # no limit at all: no fill line
-    assert m.decide(sig(cur=4000 * MIB, cap=6144 * MIB, high=5120 * MIB), TH)[0] == "ok"                                                  # 0.78 of high: quiet
+    assert m.decide(sig(anon=5890 * MIB, unrec=10 * MIB, cap=6144 * MIB, high=7000 * MIB), TH)[1] == ["agi.slice unreclaimable memory at 96% of its memory.max (5900/6144 MiB = anon 5890 + shmem 0 + slab_unreclaimable 10)"]   # high ABOVE max: max is the limit
+    assert m.decide(sig(anon=5890 * MIB, unrec=10 * MIB, cap=6144 * MIB, high=None), TH)[0] == "warn"                                                      # memory.high = max (unset)
+    assert m.decide(sig(anon=5890 * MIB, unrec=10 * MIB, cap=None, high=None), TH) == ("ok", [])                                                           # no limit at all: no fill line
+    assert m.decide(sig(anon=3990 * MIB, unrec=10 * MIB, cap=6144 * MIB, high=5120 * MIB), TH)[0] == "ok"                                                  # 0.78 of high: quiet
 
 
 def test_read_signals_reads_memory_high_from_the_cgroup(tmp_path):
@@ -486,10 +511,10 @@ def test_read_signals_reads_memory_high_from_the_cgroup(tmp_path):
 
 
 def test_the_mutant_that_reads_against_max_goes_red_on_the_high_row():
-    old = "cap, which = min(limits)"
-    src = Path(m.__file__).read_text(); assert src.count(old) == 1, old
+    old = "cap, which = min(limits)"                                                                  # the unreclaimable branch and the memory.current fallback
+    src = Path(m.__file__).read_text(); assert src.count(old) == 2, old
     mut = _fresh(src.replace(old, "cap, which = [l for l in limits if l[1] == 'memory.max'][0] if any(l[1] == 'memory.max' for l in limits) else limits[0]"))
-    s = sig(cur=int(5069 * MIB), cap=6144 * MIB, high=5120 * MIB)
+    s = sig(anon=int(5040 * MIB), unrec=29 * MIB, cap=6144 * MIB, high=5120 * MIB)
     assert m.decide(s, TH)[0] == "warn" and mut.decide(s, TH)[0] == "ok", "today's /max reading must be silent: the row would prove nothing"
 
 

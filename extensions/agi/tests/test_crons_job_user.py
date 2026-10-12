@@ -56,8 +56,10 @@ def test_the_applying_users_block_has_no_foreign_job_and_the_foreign_block_only_
     mine = crons.render_managed_lines(root, root, root, node)
     assert any("echo plain" in l for l in mine) and not any("echo board" in l for l in mine)
     theirs = crons.render_managed_lines(root, root, root, node, user=OTHER, only_bound=True)
-    assert len(theirs) == 1 and "echo board" in theirs[0] and "echo plain" not in theirs[0]   # an unbound job is never duplicated
-    assert ">> /tmp/board.log 2>&1" in theirs[0]
+    job = [l for l in theirs if "echo board" in l]
+    assert len(job) == 1 and not any("echo plain" in l for l in theirs)                   # an unbound job is never duplicated
+    assert ">> /tmp/board.log 2>&1" in job[0]
+    assert len(theirs) == 2 and " caps --root " in theirs[1]                                 # the block's ONE cap line, below
 
 
 def test_apply_installs_the_foreign_block_beside_their_own_lines_and_is_idempotent(tmp_path):
@@ -175,6 +177,7 @@ def test_the_rendered_board_line_writes_under_the_applying_users_own_home(tmp_pa
     home. The board line is selected BY CONTENT (the stack adds agi-belam rows: alarm_drain_belam, a user@ alarm row), exactly one carries
     `board_job.py commit`, and NO rendered agi-belam line, whichever job it is, carries a state-root path."""
     monkeypatch.setenv("HOME", str(tmp_path / "renderer-home"))                # the uid running crons.py: its home must appear in NO agi-belam line
+    monkeypatch.setattr(crons, "_invoking_user", lambda: "agi-test-runner")    # a FIXTURE runner: agi-belam's block is FOREIGN whoever runs the suite (when the runner IS agi-belam it is the OWN block: no mkdir, no cap line)
     live = yaml.safe_load(LIVE_CRONS.read_text().split("---")[1])["cadences"]
     if extra:
         more = {"alarm_drain_x": {"schedule": "*/5 * * * *", "cmd": "echo drain", "user": "agi-belam", "box": "encryption-town"},
@@ -204,10 +207,137 @@ def test_a_foreign_users_default_log_is_a_tilde_word_not_the_renderers_home(tmp_
         "mine": {"schedule": "2 * * * *", "cmd": "echo mine {logs}/x", "user": ME},
         "plain": {"schedule": "3 * * * *", "cmd": "echo plain {logs}/x"}})
     node = crons.load_crons_node(root)
-    (theirs,) = crons.render_managed_lines(root, root, root, node, user=OTHER, only_bound=True)
+    (theirs,) = [l for l in crons.render_managed_lines(root, root, root, node, user=OTHER, only_bound=True) if "echo drain" in l]
     assert f">> ~/logs/{crons._log_path(root).name} 2>&1" in theirs and "echo drain ~/logs/x" in theirs     # default log AND {logs}
     assert str(renderer_home) not in theirs
     mine = crons.render_managed_lines(root, root, root, node)
     for job in ("echo mine", "echo plain"):                                                              # own-user: today's behaviour, byte for byte
         (l,) = [x for x in mine if job in x]
         assert f"{job} {renderer_home}/logs/x" in l and f">> {crons._log_path(root)} 2>&1" in l and "~/logs" not in l
+
+
+# ---- the council's two ordered fix-forwards (00:28Z): the CAP of a foreign user's logs, and the MKDIR of its ~/logs
+
+import json
+import subprocess
+
+
+def _foreign_project(tmp_path, monkeypatch, cap_mb=1):
+    """A project whose node binds two jobs to OTHER (one with the default log, one with a custom ~/logs/ name), a 1 MB cap, and HOME redirected."""
+    home = tmp_path / "otherhome"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    root = make_project(tmp_path, cadences={**GENERIC_ONLY,
+        "drain": {"schedule": "1 * * * *", "cmd": "echo drain-ran", "user": OTHER},
+        "board": {"schedule": "2 * * * *", "cmd": "echo board-ran", "user": OTHER, "log": "~/logs/board.log"}})
+    (root / "agi-tree.config.json").write_text(json.dumps({"logs": {"cap_mb": cap_mb, "rotations": 2, "mode": "copytruncate"}}))
+    node = crons.load_crons_node(root)
+    engine = Path(__file__).resolve().parents[3]                                       # the real crons.py the cap line runs
+    lines = crons.render_managed_lines(root, root, engine, node, user=OTHER, only_bound=True)
+    return root, home, lines
+
+
+def _run(line, home):
+    """Run a rendered cron line the way cron does: the 5 schedule fields dropped, /bin/sh, HOME = the row's user's home, a bare env."""
+    cmd = line.split(" ", 5)[5]
+    return subprocess.run(["/bin/sh", "-c", cmd], env={"HOME": str(home), "PATH": os.environ["PATH"]}, capture_output=True, text=True, timeout=60)
+
+
+def test_the_foreign_block_caps_its_own_logs_in_its_own_uid_after_one_tick(tmp_path, monkeypatch):
+    """CAP (council 00:28Z fix-forward 1): `apply` caps only the applying uid's logs and a foreign user never runs apply, so its default log and
+    its custom log grew forever. The block now ends with ONE cap line that runs `crons.py caps` as that uid (no sudo, no key); one tick bounds both."""
+    root, home, lines = _foreign_project(tmp_path, monkeypatch)
+    cap = [l for l in lines if " caps --root " in l]
+    assert len(cap) == 1 and lines[-1] == cap[0] and cap[0].startswith("*/5 * * * * ") and " --name board.log " in cap[0]
+    (home / "logs").mkdir()
+    over = b"x" * (1024 * 1024 + 8192)
+    default = home / "logs" / crons._log_path(root).name
+    custom = home / "logs" / "board.log"
+    other = home / "logs" / "unrelated.log"
+    for f in (default, custom, other):
+        f.write_bytes(over)
+    r = _run(cap[0], home)
+    assert r.returncode == 0, r.stderr
+    assert default.stat().st_size <= 1024 * 1024 and custom.stat().st_size <= 1024 * 1024
+    assert other.stat().st_size == len(over)                                              # the scope is the DECLARED names, never a glob
+
+
+def test_a_block_with_no_job_has_no_cap_line_and_the_kill_switch_stays_empty(tmp_path, monkeypatch):
+    root, home, lines = _foreign_project(tmp_path, monkeypatch)
+    node = crons.load_crons_node(root)
+    assert crons.render_managed_lines(root, root, root, node, user="agi-nobody", only_bound=True) == []
+    node["crons_live"] = False
+    assert crons.render_managed_lines(root, root, root, node, user=OTHER, only_bound=True) == []
+
+
+def test_an_absent_home_logs_dir_still_runs_the_foreign_job(tmp_path, monkeypatch):
+    """MKDIR (council 00:28Z fix-forward 2): the redirect `>> ~/logs/x` fails as silently on a MISSING dir as on an unwritable one, and the only
+    mkdirs were the invoking uid's. Every foreign line makes ~/logs first."""
+    root, home, lines = _foreign_project(tmp_path, monkeypatch)
+    assert not (home / "logs").exists()
+    for l in lines:
+        assert " && mkdir -p ~/logs && " in l
+    r = _run([l for l in lines if "drain-ran" in l][0], home)
+    assert r.returncode == 0 and "drain-ran" in (home / "logs" / crons._log_path(root).name).read_text()
+    r = _run([l for l in lines if "board-ran" in l][0], home)
+    assert r.returncode == 0 and "board-ran" in (home / "logs" / "board.log").read_text()
+
+
+# ---- SM 00:34Z: a successful `apply --sudo` of a foreign block must not print `pending`; a real refusal still does
+
+STATEFUL_SUDO = """#!/bin/sh
+# a fake `sudo [-n] crontab -u USER (-l | -)` over a dir of per-user crontabs: the real tool's contract (stdout the crontab, `no crontab for U` rc 1)
+[ "$1" = -n ] && shift
+[ "$1" = crontab ] && shift
+shift; u=$1; shift; f=$FAKE_CRON_DIR/$u
+case $1 in
+-l) [ -f $f ] && { cat $f; exit 0; }; echo "no crontab for $u" >&2; exit 1;;
+-) cat > $f; exit 0;;
+esac
+exit 2
+"""
+
+
+def _stateful_sudo(tmp_path, monkeypatch):
+    fake, state = tmp_path / "fakebin", tmp_path / "crontabs"
+    fake.mkdir()
+    state.mkdir()
+    sudo = fake / "sudo"
+    sudo.write_text(STATEFUL_SUDO)
+    sudo.chmod(sudo.stat().st_mode | stat.S_IXUSR)
+    monkeypatch.setenv("PATH", f"{fake}:{os.environ['PATH']}")
+    monkeypatch.setenv("FAKE_CRON_DIR", str(state))
+    return state
+
+
+def test_a_successful_sudo_apply_installs_and_never_says_pending(tmp_path, monkeypatch):
+    """The `--sudo` path ran `sudo crontab -u U` WITHOUT capturing output: a user with no crontab (the first install) read as a refusal (`pending`,
+    nothing installed) and a user WITH one crashed the reader on `None.splitlines()`. Both installs, then a second apply, say installed / unchanged."""
+    state = _stateful_sudo(tmp_path, monkeypatch)
+    root = make_project(tmp_path, cadences={**CADENCES})
+    own = tmp_path / "own.cron"
+    own.write_text("")
+    first = crons.cmd_apply(root, own, sudo=True)["foreign_users"][OTHER]                  # no crontab yet
+    assert first["status"] == "installed" and "echo board" in (state / OTHER).read_text()
+    (state / OTHER).write_text("5 5 * * * their-own-job\n" + (state / OTHER).read_text())
+    again = crons.cmd_apply(root, own, sudo=True)["foreign_users"][OTHER]                  # one WITH lines of its own
+    assert again["status"] == "unchanged" and "their-own-job" in (state / OTHER).read_text()
+    write_crons_node(root, False, {**CADENCES})                                              # the kill switch empties the block, keeps theirs
+    off = crons.cmd_apply(root, own, sudo=True)["foreign_users"][OTHER]
+    assert off["status"] == "installed" and "echo board" not in (state / OTHER).read_text() and "their-own-job" in (state / OTHER).read_text()
+    for st in (first, again, off):
+        assert "pending" not in st["status"]
+
+
+def test_a_real_refusal_under_sudo_is_still_pending(tmp_path, monkeypatch):
+    fake = tmp_path / "fakebin"
+    fake.mkdir()
+    sudo = fake / "sudo"
+    sudo.write_text("#!/bin/sh\necho 'sudo: a password is required' >&2\nexit 1\n")
+    sudo.chmod(sudo.stat().st_mode | stat.S_IXUSR)
+    monkeypatch.setenv("PATH", f"{fake}:{os.environ['PATH']}")
+    root = make_project(tmp_path, cadences={**CADENCES})
+    own = tmp_path / "own.cron"
+    own.write_text("")
+    st = crons.cmd_apply(root, own, sudo=True)["foreign_users"][OTHER]
+    assert st["status"].startswith("pending") and "a password is required" in st["status"] and st["changed"] is None

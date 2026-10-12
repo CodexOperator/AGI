@@ -56,7 +56,7 @@ cadences:
     user: agi-belam
     why_user: "goal:g7.16.1.11.42 option E (belam 15:1xZ 10-11, council 3/3 15:07Z): the board commit is made in the Prime's OWN uid, the hand agi-at and agi-turn already sign with (agi-belam's git signs every commit, committer belam@agi), on posts/belam in a job-owned clone, never ~/t; uid belam keeps only graph_metrics_land, an ff that makes no commit. crons.py apply installs this line through `crontab -u agi-belam` (apply --sudo)"
     log: ~/logs/board_job.log
-    cmd: mkdir -p ~/logs && python3 {repo_root}/extensions/agi/bin/board_job.py commit --main {repo_root} --post belam --job metrics_cell --work ~/board-work -- python3 {repo_root}/extensions/agi/bin/metrics_cell.py @WROOT@ town:local-maxxing metrics_line --actor belam -- python3 {repo_root}/extensions/agi/bin/success_metrics.py --line {root}
+    cmd: python3 {repo_root}/extensions/agi/bin/board_job.py commit --main {repo_root} --post belam --job metrics_cell --work ~/board-work -- python3 {repo_root}/extensions/agi/bin/metrics_cell.py @WROOT@ town:local-maxxing metrics_line --actor belam -- python3 {repo_root}/extensions/agi/bin/success_metrics.py --line {root}
   graph_metrics_land:
     schedule: 28 * * * *
     enabled: true
