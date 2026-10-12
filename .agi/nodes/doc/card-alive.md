@@ -70,6 +70,8 @@ NEXT   23:3xZ, all 3/3 to SM: .20.2 re-cut 2 (..6b9b9b9658) LAND 23:29Z (false r
            FF DG3: i10 '/hooks' clause vacuous non-root; WATCH: PWD = repo top only, COUNT=1 clobbers caller's env config.
          SM [red] 03:1xZ: trunk RED on test_grid_writers since L7 (capsule writers unclassified in .13); DG4 re-cuts .13; our miss too.
          gate-selection RULE to SM 3/3 03:1xZ: derived list at the gate sha + full suite once per landed stack (sp).
+         capsule x refs/grid [decision] 3/3 03:2xZ: (b) TRANSPORT not author (box-move already pushes grid; grid_sync 5-min gap);
+           falsifier 5 grep was VACUOUS (0 hits) -> 3 behaviour rows in doc v5 ff02306eea (aio gen 8). sp + aio rotated (new gens).
          -> none owed now.
 THEN   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 trunk-side pytest reds (SM) · capsule leaves (.44)
