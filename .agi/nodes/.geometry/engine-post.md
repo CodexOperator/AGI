@@ -38,7 +38,7 @@ project.sh         161 B  what the body SHOULD be
 observe.sh         255 B  what the body IS
 tick.sh            254 B  diff them; start own unit; commit
 agi-frontier       460 B  each active goal runs its falsifier
-agi-first-start  1251 B  pieces BASE..TIP changes: a post's next-start diff
+agi-first-start  1394 B  pieces BASE..TIP changes: a post's next-start diff
 box               2005 B  mail: one signed ref update per send (5x CAS)
 ~~~
 
@@ -304,15 +304,15 @@ c=$(echo "$n"|sed -n '/^## Falsifier/,/^## Out/p'|grep -o '`[^`]*`'|tr -d '`'|gr
 [ "$c" ]||{ echo mute $g;continue;};timeout 30 sh -c "$c"</dev/null>/dev/null 2>&1&&echo met $g||echo red $g;done
 ~~~
 
-### agi-first-start (1251 B)
+### agi-first-start (1394 B)
 ~~~sh
 #!/bin/sh
 set -f
-# agi-first-start BASE TIP [MSG|-]: FIRST-START: <pieces> = the fenced ### pieces BASE..TIP changes, adds or deletes in the files agi-post@'s ExecStartPre extracts (its own glob, read at each REV: engine.md engine-[pw]*.md, never root/grow); none = "none". With MSG (a file, or - for stdin): rc 1 + REFUSED unless a "first-start:" line says what a post gains and loses.
-g(){ git show $1:.agi/nodes/.geometry/engine-root.md|sed -n 's|.*for e in \(t/[^;]*\);do for x in.*|\1|p'|head -1|sed 's|^t/||;s| t/| |g';}
+# agi-first-start BASE TIP [MSG|-]: FIRST-START: <pieces> = the fenced ### pieces BASE..TIP changes, adds or deletes in the files agi-post@'s ExecStartPre extracts (the unit's AGI_PIECE_GLOB cell, read at each REV: engine.md engine-[pw]*.md, never root/grow); none = "none". With MSG (a file, or - for stdin): rc 1 + REFUSED unless a "first-start:" line says what a post gains and loses.
+g(){ git show $1:.agi/nodes/.geometry/engine-root.md|sed -n 's|^Environment="AGI_PIECE_GLOB=\(.*\)"$|\1|p;s|.*for e in \(t/[^;]*\);do for x in.*|\1|;t o;b;:o;s|t/.agi/nodes/.geometry/||g;p'|head -1;}   # the cell; a REV before the cell is read by the old wording
 for r in $1 $2;do [ "$(g $r)" ]||{ echo "[no-glob] the extraction line is not in engine-root.md at $r">&2;exit 2;};done
 p(){ G=$(g $1)
-git ls-tree --full-tree --name-only $1 .agi/nodes/.geometry/|while read f;do for g in $G;do case $f in $g)git show $1:$f|grep -o "^### [^ ]*"|cut -c5-|while read x;do echo "$x $(git show $1:$f|sed -n "/^### $x /,/^##/{/^~~~/,/^~~~/{//!p}}"|sha1sum)";done;; esac;done;done;}
+git ls-tree --full-tree --name-only $1 .agi/nodes/.geometry/|while read f;do for g in $G;do case $f in */$g)git show $1:$f|grep -o "^### [^ ]*"|cut -c5-|while read x;do echo "$x $(git show $1:$f|sed -n "/^### $x /,/^##/{/^~~~/,/^~~~/{//!p}}"|sha1sum)";done;; esac;done;done;}
 s=$({ p $1;p $2;}|sort|uniq -u|cut -d' ' -f1|sort -u|tr '\n' ' ');echo "FIRST-START: ${s:-none}"
 [ -z "$s" -o -z "$3" ]&&exit 0;grep -qi '^first-start: *[^ ]' $3||{ echo "REFUSED: $1..$2 changes ${s}self-installing piece(s); add a first-start: line (what each post kind gains and loses at its next start)";exit 1;}
 ~~~
