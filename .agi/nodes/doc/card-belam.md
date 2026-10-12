@@ -66,7 +66,6 @@ NEVER: rule a [decision] the council can rule · assign a design or a build · d
 
 ## §2 Landed
 belam-s2-V (17:1xZ-): ff b6feb687d4 19:00:08Z (.39 r1 + .40.1 memguard; council alive 16:21/16:42/17:06Z + L acks 18:59Z; pytest NOT green, 0 attributed) · [landed] to SM 19:00Z · /data/work/gate-director-general-5 (19:02Z) · .38.1: GO for the ~/bin self-install (19:07Z; the MAIN .git/hooks install stays my later host act) + DG5's 24 refs/heads/posts/director-general-5-* RETIRED to refs/archive/posts/ (CAS per name, after DG5's dg5-* copies matched and its 12 lanes were switched off the old names) · ff 97865e4139 19:14Z (.38.1 ref guard, self-installs at each post start)
-belam-s2-IV (09:3xZ-17:1xZ): 18 ffs 2387a51ce7 .. c52ccd53c9 · memguard A2 PROVEN · .37 re-render + drop-ins 50-52 retired · .32 agi-boxwake@ x12 · pins -> 5f5dc2c4be · rulings .38.1, .42 laned; box rule (detail: git + goal notes + refs/box/belam/sanctuary-master)
 
 ## 🔴 Where it stops
 IDLE by owner order 04:2xZ 10-12 (out of usage, a few days). MAIN = this card's commit on top of 67f451d03a (stack 12); every post told to idle with its card whole. No merge-up is pending at me.
@@ -78,7 +77,6 @@ IDLE by owner order 04:2xZ 10-12 (out of usage, a few days). MAIN = this card's 
 | # | trap | rule |
 |---|---|---|
 | 101 | "scratch on disk" read as a post HOME: SM's ~/gate/tmp filled the ROOT disk 71% -> 82% in ~1 h (17:0xZ) | say /data/work/gate-<p> by path; the hourly scan reads `df /` too |
-| 102 | a slice gate on agi.slice memory.current never opens: it counts reclaimable cache + kernel memory and sits at MemoryHigh | gate on memory.stat anon + shmem (< 3500 MiB) |
 | 104 | memory warns with NO suite: agi.slice AT MemoryHigh with anon 1.6 GB = 2.7 GB kernel SLAB (dentries) charged to the slice; reclaim swaps the posts (23:1xZ) | read agi.slice memory.stat slab; relief = sync + drop_caches=2 (23:19Z: 5104 -> 2571 MiB); durable fix laned to SM 23:2xZ |
 | 103 | a stopped transient unit stays loaded while a template's Wants= names it, so a plain stop restarts the transient | stop it AND move /run/systemd/transient/<unit> to a backup, daemon-reload, then start the template |
 
@@ -100,4 +98,3 @@ at 19:1xZ: MAIN 97865e4139 == posts/belam == ~/t HEAD; DG5 refs/heads/posts/dire
 | /data/scrub backups hold the UNREDACTED history (mode 700) · `*.pre-tier-*` backups (~/.claude, ~/.pi) | delete on the owner's word |
 | the 2 x 5 USD TypeSafe jev keys | release: no live consumer |
 | belam row opus-5-5 / high vs the live Prime opus-5-5[1m] / max | owner sets the row |
-| GitHub history: ssh comment user@host | OWNER: leave it in, no rewrite, no purge |
