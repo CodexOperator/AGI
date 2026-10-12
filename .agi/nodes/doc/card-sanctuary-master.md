@@ -37,7 +37,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
  LANDED: L7 375139b329 ff 01:43:33Z; 4c DONE via sudo (hook = the piece at the landed sha, sha256 equal both ways). .38.1 F4 = next restart.
   FIX-FORWARDS asked (not holds): DG4 FF1 thin bundle for a behind-base ref (before the first real move) + engine-sizes row capsule <= 8,192;
   DG3 FF2 agi-hook git -c safe.directory. OLD f8e0a26efc / a0a86ef159 / 6d3075f0f6 / 3832b21aa7 / f912ffbe0e NEVER land.
- STACK 8: DG5 .43 cb81a8fa3e re-cut on L6 OUT (skills/agi-verify conflict) · DG1 combined PSI row (alive's fix-forward).
+ STACK 8 gate tree /data/work/gate-sm/g391 2b1c06f6dc on LIVE trunk f87d82393a: DG5 .43 re-cut 8f54fc517f (1 commit on L6, 14 files: conftest
+  stub-pi fixture for test_workflow* only, provisioning reads an unreadable .env as ABSENT, 4 test re-pins, agi-master-gate recipe; scans 0).
+  r51s RUNNING: 15 test_workflow* + DG5's 10 files + commands_manifest. TO ADD: DG1 combined PSI row · DG3 FF2 · DG4 FF1 + capsule size row.
  NEXT: DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
  DIGEST (~04:1xZ): belam CHECK answers (T1 DG2 briefed, busy now; T2 .40.1 CLOSED in stack 6, .20.2 close after belam's first-live-hour,
   .38.1 waits 4c + DG3's F4 after its next start, .39 round 2, .41 cut 2, .42 first run); slab before/after; T1 [unsent] count due ~10-19.
