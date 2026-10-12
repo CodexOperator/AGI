@@ -177,6 +177,7 @@ def test_the_rendered_board_line_writes_under_the_applying_users_own_home(tmp_pa
     home. The board line is selected BY CONTENT (the stack adds agi-belam rows: alarm_drain_belam, a user@ alarm row), exactly one carries
     `board_job.py commit`, and NO rendered agi-belam line, whichever job it is, carries a state-root path."""
     monkeypatch.setenv("HOME", str(tmp_path / "renderer-home"))                # the uid running crons.py: its home must appear in NO agi-belam line
+    monkeypatch.setattr(crons, "_invoking_user", lambda: "agi-test-runner")    # a FIXTURE runner: agi-belam's block is FOREIGN whoever runs the suite (when the runner IS agi-belam it is the OWN block: no mkdir, no cap line)
     live = yaml.safe_load(LIVE_CRONS.read_text().split("---")[1])["cadences"]
     if extra:
         more = {"alarm_drain_x": {"schedule": "*/5 * * * *", "cmd": "echo drain", "user": "agi-belam", "box": "encryption-town"},
