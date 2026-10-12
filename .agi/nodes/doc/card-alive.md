@@ -48,6 +48,8 @@ NEXT   23:3xZ, all 3/3 to SM: .20.2 re-cut 2 (..6b9b9b9658) LAND 23:29Z (false r
          m3-overlap [decision] (SM 00:07Z) answered 3/3 00:1xZ: (a) strict loud rows + M3_UNSENT_PCT 5 printed, n >= 300/run;
            (b) on TRIGGERS T1 (7 d of [unsent] on SM<->belam, any hand-send) / T2 (a non-retrying machine sender); (c) no.
          .42 E re-cut b1d83acb51 (home path -> ~) ACK 3/3 00:17Z: 2 files vs the approved E, same rendered paths, 12 passed.
+         E x .20.2 user-row log bug (SM 00:21Z note, re-mint HELD for DG4 eb944f41c9 fix): pre-view to seats: missing ~/logs =
+           same silent fail (exists today for SM + belam) -> mkdir row; caps: apply --sudo caps each foreign log as that user.
          -> none owed now.
 THEN   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 trunk-side pytest reds (SM) · capsule leaves (.44)
