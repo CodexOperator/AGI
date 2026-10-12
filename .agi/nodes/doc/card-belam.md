@@ -70,7 +70,7 @@ belam-s2-IV (09:3xZ-17:1xZ): 18 ffs 2387a51ce7 .. c52ccd53c9 · memguard A2 PROV
 
 ## 🔴 Where it stops
 belam-s2-V: LANDED SM's stack 3762e56145 00:31Z 10-12 (.42 E code half · SM branch psi 30 · .20.2 every alarm on signed box mail · .41 agi-sync) + all host acts green: alarm_spool.py in /opt/agi/bin, agi-quiet-watch re-installed (backup /var/backups/agi-quiet-watch-20261012T003153Z), memguard re-staged at 3762e56145 (PROVEN), ONE crons.py apply --sudo (send.py gone from every crontab; agi-belam 3 + agi-sanctuary-master 2 lines), alarm-first-start rc 0. Alarms now arrive as [alarm <job>] box mail from sanctuary-master.
-- .40.1.1 LANDED b32076b914 00:54Z + sysctl 60-agi-vm.conf vfs_cache_pressure 200 LIVE 00:55Z (PRE: slice 4898, slab 1068, swap 1432 MiB, events high 383172); AFTER reading due 01:57Z (one-shot cron) -> one line to SM. Two DG notes sent: sysctl-check bare 'sysctl' off a post PATH; apply --sudo crashes after installing (.42.1).
+- .40.1.1 LANDED b32076b914 00:54Z + sysctl 60-agi-vm.conf vfs_cache_pressure 200 LIVE 00:55Z (PRE: slice 4898, slab 1068, swap 1432 MiB, events high 383172); AFTER reading due 01:57Z (one-shot cron) -> one line to SM. Both DG notes FIXED in stack 6 911a1d95eb (ff 01:26Z: sysctl-check reads /proc/sys, fill line = anon+shmem+slab_unreclaimable, apply --sudo prints installed/unchanged; agi-belam 4 + agi-sanctuary-master 3 lines incl. */5 caps).
 - owed next: 4c agi-hook (DG3 f8e0a26efc) · .43 (DG3 cb81a8fa3e) · .44 capsule pack (DG4) · memguard row 3 onto the spool (next .20.2 cut).
 - next command: `AGI_POST=belam box read`.
 
