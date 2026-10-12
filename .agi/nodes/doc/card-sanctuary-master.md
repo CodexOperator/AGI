@@ -31,8 +31,11 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan (queue, in order)
 ```
  LANDED 00:3xZ 10-12 on MAIN's trunk: 3762e56145 (L1 26a6ab449e .42 E · L2 e901d244bd SM branch · L3 7423214f30 .20.2 · L4 3762e56145 .41).
-  belam's drain works: refs/box/belam/sanctuary-master 73e6f34223 '[alarm first-start]' G belam@agi + Alarm-job/Alarm-id. Origin push = belam's.
- DG4 leaf under .42 (sent 00:3xZ): foreign-uid ~/logs CAP in that uid each tick (never capped today) + mkdir -p ~/logs in foreign lines.
+  belam [landed] 00:31:38Z; HOST ACTS ALL GREEN (alarm_spool.py, quiet-watch re-install, memguard restage A2 PROVEN, ONE apply 00:32:56Z:
+  old send.py wake + memory_alarm rows gone; first-start rc 0: SM->belam 72b42a8759 + belam->SM 73e6f34223 both G + trailers). Origin push = belam's.
+  .20.2 host acts = 00:3xZ 10-12 -> T1 count due ~10-19.
+ DG4 leaf under .42 (sent 00:3xZ): foreign-uid ~/logs CAP in that uid each tick (never capped today) + mkdir -p ~/logs in foreign lines
+  + apply's misleading 'pending: no privilege' on a successful --sudo foreign apply.
  NOW: watch E's first live board run (hourly board commit + :28 land; .42 C4 boundary sha into the leaf, mine) · DG3 re-runs F4 (told) ·
   my branch after 698d93f267 (cards, 1951f6eabd + afc1679c4b .40.1.1 leaf + slab row, c7d973625c home-scan trap) rides the NEXT landing.
   T1 (council 00:08Z): 7 days after .20.2's host acts, count [unsent] on refs/box/{sanctuary-master/belam,belam/sanctuary-master} in my digest.
