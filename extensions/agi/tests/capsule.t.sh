@@ -18,7 +18,7 @@ node(){ printf -- '---\nid: %s\nmint_id: %s\ntype: %s\nparents:\n%s\nnext_edges:
 node goal:a $M1 '  - goal:root' '';node goal:b $M2 '  - goal:a' '';node goal:c $M3 '  - goal:zzz' '';node build:f $M4 '  - goal:b' 'payload_ref: src/f.py
 ';node goal:d $M5 '  - goal:other' '';mkdir -p .agi/nodes/deprecated/goal;printf -- '---\nid: goal:dep\nmint_id: %s\ntype: goal\nparents:\n  - goal:b\nnext_edges: []\nstatus: deprecated\n---\nretired\n' $M6>.agi/nodes/deprecated/goal/dep.md
 sed -i 's/^parents:$/parents:/' .agi/nodes/goal/b.md;echo 'print(1)'>src/f.py
-$G add -A;$G -c user.name=x -c user.email=x@x commit -qm base;BASE=$($G rev-parse HEAD)
+head -c 300000 /dev/urandom >src/ballast.bin;$G add -A;$G -c user.name=x -c user.email=x@x commit -qm ballast;$G rm -q src/ballast.bin;$G -c user.name=x -c user.email=x@x commit -qm base;BASE=$($G rev-parse HEAD)
 $G -c user.name=x -c user.email=x@x commit -qm p1 --allow-empty;$G update-ref refs/heads/posts/p HEAD;$G update-ref refs/box/p/q HEAD;$G update-ref refs/held/p/x HEAD;$G update-ref refs/heads/posts/other HEAD;$G update-ref refs/grid/n1 HEAD
 $G reset -q --hard $BASE;cd $T
 cap(){ u=$1;r=$2;shift 2;(cd $r&&AGI_POST=$u AGI_TRUNK=HEAD AGI_ALLOWED=$T/allowed GIT_CONFIG_GLOBAL=$T/c/$u sh ${PIECE:-$CAPSULE} "$@");}
@@ -60,10 +60,16 @@ cap dg4 $T/r out $PC >$T/p.bundle 2>$T/o2.err
 ok o2-the-post-bundle-carries-exactly-the-ref-lines '[ "$($G bundle list-heads $T/p.bundle|sort)" = "$({ echo "$($G -C $T/r rev-parse refs/capsule/$PC) refs/capsule/$PC";echo "$PM"|sed -n "s/^ref \(.*\) \(.*\)/\2 \1/p";}|sort)" ]'
 ok o3-out-refuses-a-ref-moved-since-pack '$G -C $T/r update-ref refs/box/p/q $BASE;! cap dg4 $T/r out $PC >/dev/null 2>$T/o3.err&&grep -qF "[moved] refs/box/p/q" $T/o3.err'
 $G -C $T/r update-ref refs/box/p/q "$($G -C $T/r rev-parse refs/heads/posts/p)"
-# a post ref BEHIND base cannot ride a thin bundle (git drops it): out says [fat] and drops the prerequisite, the bundle still carries every ref line, verify and in pass
-$G -C $T/r update-ref refs/archive/posts/old1 $BASE;FC=$(cap dg4 $T/r pack $M1 post old 2>/dev/null);cap dg4 $T/r out $FC >$T/fat.bundle 2>$T/fat.err
-ok o4-a-ref-behind-base-makes-a-fat-bundle-and-says-so 'grep -qF "[fat] refs/archive/posts/old1" $T/fat.err&&$G bundle list-heads $T/fat.bundle|grep -q " refs/archive/posts/old1$"&&$G -C $T/empty.git bundle verify $T/fat.bundle >/dev/null 2>&1'
-new t3;ok o4b-the-fat-bundle-verifies-and-lands '(cd $T/t3.git&&AGI_ALLOWED=$T/allowed AGI_TRUNK=refs/heads/main sh $CAPSULE in $T/fat.bundle)&&[ "$($G -C $T/t3.git rev-parse refs/archive/posts/old1)" = "$BASE" ]'
+# FF1 (council 01:41Z): a post ref BEHIND base rides as its MANIFEST ref line ONLY: the bundle is THIN (no fat bundle, no `--not base` drop), verify = heads == the ref lines less
+# the behind-base ones (each checked on the target by cat-file -e + merge-base --is-ancestor), and `in` sets it in the SAME atomic transaction as the carried refs
+$G -C $T/r update-ref refs/archive/posts/old1 $BASE;FC=$(cap dg4 $T/r pack $M1 post old 2>/dev/null);cap dg4 $T/r out $FC >$T/thin.bundle 2>$T/thin.err
+ok o4-a-ref-behind-base-is-a-line-not-a-head-and-the-bundle-is-thin '[ ! -s $T/thin.err ]&&! $G bundle list-heads $T/thin.bundle|grep -q " refs/archive/posts/old1$"&&$G -C $T/r show refs/capsule/$FC:MANIFEST|grep -q "^ref refs/archive/posts/old1 $BASE$"&&! $G -C $T/empty.git bundle verify $T/thin.bundle >/dev/null 2>&1'
+PB=$(cap dg4 $T/r pack $M1 post p 2>/dev/null);cap dg4 $T/r out $PB >$T/pb.bundle
+ok o4s-the-size-row-a-thin-bundle-leaves-the-base-history-out '[ $(wc -c <$T/thin.bundle) -lt 100000 ]&&[ $(wc -c <$T/pb.bundle) -lt 100000 ]'
+mut 's/git bundle create \$d\/b refs\/capsule\/\$c \$K --not \$b/git bundle create $d\/b refs\/capsule\/$c $K/' o;ok o4s-mutant-RED-a-fat-bundle-carries-the-300-KB-of-history '! { PIECE=$T/mut cap dg4 $T/r out $PB >$T/fat.bundle 2>/dev/null;[ $(wc -c <$T/fat.bundle) -lt 100000 ];}'
+new t3;ok o4b-a-behind-base-ref-and-a-thin-bundle-land-every-ref '(cd $T/t3.git&&AGI_ALLOWED=$T/allowed AGI_TRUNK=refs/heads/main sh $CAPSULE in $T/thin.bundle)&&[ "$($G -C $T/t3.git rev-parse refs/archive/posts/old1)" = "$BASE" ]&&$G -C $T/t3.git rev-parse -q --verify refs/capsule/$FC >/dev/null'
+new t6;$G -C $T/t6.git update-ref refs/archive/posts/old1 $($G -C $T/t6.git commit-tree -m diverged $($G -C $T/t6.git rev-parse $BASE^{tree}));s6=$($G -C $T/t6.git for-each-ref)
+ok o4c-a-non-ff-behind-base-ref-aborts-the-whole-transaction 'cd $T/t6.git;! AGI_ALLOWED=$T/allowed AGI_TRUNK=refs/heads/main sh $CAPSULE in $T/thin.bundle >/dev/null 2>$T/o4c.err;grep -qF "[non-ff] refs/archive/posts/old1" $T/o4c.err&&[ "$s6" = "$($G -C $T/t6.git for-each-ref)" ]'
 # --- V: verify
 ok v0-an-untouched-bundle-passes-and-the-target-is-byte-identical 's0=$(snap $T/t.git);(cd $T/t.git&&AGI_ALLOWED=$T/allowed AGI_TRUNK=refs/heads/main sh $CAPSULE verify $T/c.bundle)&&[ "$s0" = "$(snap $T/t.git)" ]'
 vt(){ (cd $T/t.git&&AGI_ALLOWED=$T/allowed AGI_TRUNK=${TRK:-refs/heads/main} sh ${PIECE:-$CAPSULE} "$@");}
@@ -77,6 +83,8 @@ $G -C $T/fr update-ref refs/capsule/$CID $c1;$G -C $T/fr bundle create $T/f1.bun
 ok v2-a-manifest-edited-under-the-same-signature-is-refused '! vt verify $T/f1.bundle >/dev/null 2>$T/v2.err&&grep -qF "[sig]" $T/v2.err'
 forge;pb=$($G -C $T/fr rev-parse refs/capsule/$PC);$G -C $T/fr update-ref refs/box/p/q $($G -C $T/fr commit-tree -p $BASE -m swapped $($G -C $T/fr rev-parse $BASE^{tree}));$G -C $T/fr bundle create $T/f2.bundle refs/capsule/$PC refs/heads/posts/p refs/box/p/q refs/held/p/x refs/heads/posts/other --not $BASE 2>/dev/null
 ok v3-a-carried-ref-swapped-to-another-sha-is-refused '! vt verify $T/f2.bundle >/dev/null 2>$T/v3.err&&grep -qF "[heads]" $T/v3.err'
+forge;$G -C $T/fr bundle create $T/f7.bundle refs/capsule/$PC refs/heads/posts/p refs/held/p/x refs/heads/posts/other --not $BASE 2>/dev/null
+ok v3b-a-bundle-missing-an-ahead-ref-is-refused '! vt verify $T/f7.bundle >/dev/null 2>$T/v3b.err&&grep -qF "[heads]" $T/v3b.err'
 forge;t0=$($G -C $T/fr rev-parse refs/capsule/$CID^{tree});ex=$($G -C $T/fr hash-object -w --stdin<<XX
 x
 XX
@@ -100,7 +108,9 @@ ok i0b-in-twice-is-idempotent 's0=$(snap $T/t2.git);it in $T/p.bundle&&[ "$s0" =
 # atomic (refs, not bytes: a fetch leaves unreachable objects and FETCH_HEAD): one non-ff ref (the target holds a diverged refs/held/p/x) -> nothing moves; the mutant without --atomic advances a sibling
 atom(){ new ta;$G -C $T/ta.git update-ref refs/held/p/x $($G -C $T/ta.git commit-tree -m diverged $($G -C $T/ta.git rev-parse $BASE^{tree}));s0=$($G -C $T/ta.git for-each-ref);(cd $T/ta.git&&AGI_ALLOWED=$T/allowed AGI_TRUNK=refs/heads/main sh $1 in $T/p.bundle >/dev/null 2>&1);ra=$?;[ $ra != 0 ]&&[ "$s0" = "$($G -C $T/ta.git for-each-ref)" ]&&! $G -C $T/ta.git rev-parse -q --verify refs/capsule/$PC >/dev/null;ra=$?;rm -rf $T/ta.git;return $ra;}
 ok i1-atomic-one-non-ff-ref-moves-nothing 'atom $CAPSULE'
-mut 's/ --atomic//' i;ok i1-mutant-RED-without-atomic-a-sibling-advances '! atom $T/mut'
+mut 's/echo "update \$r \$n \${o:-\$Z}">>\$s\/u/git update-ref $r $n ${o:-$Z}/' i;ok i1-mutant-RED-applied-one-by-one-a-sibling-advances-before-the-non-ff-ref-is-seen '! atom $T/mut'
+mut 's/||git merge-base --is-ancestor \$o \$n||echo "\[non-ff\] \$r">>\$s\/e//' i;ok i1b-mutant-RED-without-the-non-ff-check-the-held-ref-is-clobbered '! atom $T/mut'
+
 ok i2-in-refuses-a-tampered-bundle-and-moves-nothing 'new tb;s0=$(snap $T/tb.git);! (cd $T/tb.git&&AGI_ALLOWED=$T/allowed AGI_TRUNK=refs/heads/main sh $CAPSULE in $T/f2.bundle >/dev/null 2>&1)&&[ "$s0" = "$(snap $T/tb.git)" ]'
 ok i3-in-needs-a-file '! it in $CID >/dev/null 2>&1'
 # --- R: regrow (REGROW 1a files, 1b refs) and repoint (R1 parent, R2 absent mint)

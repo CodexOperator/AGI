@@ -53,6 +53,26 @@ live = pytest.mark.skip(
 # Absence is a supported state (the goal's own last falsifier clause)
 # --------------------------------------------------------------------------
 
+def test_availability_is_false_when_the_env_file_is_unreadable_and_never_raises(tmp_path):
+    """goal:g7.16.1.11.43: a post uid cannot read MAIN's .env (EACCES). `available` is documented never to raise,
+    so an unreadable env file reads as ABSENT (the supported state), not as a PermissionError into dispatch."""
+    import os
+    if os.geteuid() == 0:
+        pytest.skip("root reads a chmod 000 file: the condition (a non-root uid) cannot be built")
+    (tmp_path / ".agi").mkdir()
+    (tmp_path / ".agi" / "config.json").write_text("{}")
+    env = tmp_path / ".env"
+    env.write_text("%s=sk-prov\n" % provisioning.PROVISIONING_KEY_VAR)
+    res = envfile.resolve(str(tmp_path))
+    assert res.env_file == env, "the test must point the resolver at the file it makes unreadable"
+    env.chmod(0)
+    try:
+        assert provisioning.available(tmp_path) is False
+    finally:
+        env.chmod(0o600)
+    assert provisioning.available(tmp_path) is True   # control: readable again, the key is seen
+
+
 def test_availability_is_false_without_a_key_and_never_raises(tmp_path):
     (tmp_path / ".agi").mkdir()
     (tmp_path / ".agi" / "config.json").write_text("{}")

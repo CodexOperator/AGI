@@ -136,6 +136,16 @@ lanes       the FULL suite is PYTEST ONLY: the extensions/agi/tests/*.t.sh lanes
                lanes that build scratch repos then write the REAL one (aio 10-11 09:56Z: moved posts/director-general-1, created refs/heads/trunk)
              · a lane with a TRUNK arg (agi-out-*, aa3, ckpt, grow-gate-*, agi-land-bounds) extracts from that REF -> pass the CANDIDATE commit
                as T (the lane REFUSES a bare run: exit 2 '[no-candidate]'; trunk-arg-lanes.t.sh guards the 17); a green that does not change when the piece changes is no gate (SM gen 33 AA1.V: vacuous 44/0, 9 RED landed)
+post uid    the full engine pytest as a POST uid on a /data gate tree (goal:g7.16.1.11.43, DG3 10-11: 8,970 collected, 0 failed, the 9 embeddings / renderers
+             collection errors on their own line) · env -u TMUX -u TMUX_PANE, GIT_CONFIG_GLOBAL=/dev/null (the leak asserts read the spawn-channel family only), nice 10,
+             TMPDIR and --basetemp in /data/work/gate-<post> (the workflow leak guard accepts the basetemp as a tmp root) · a post uid's env carries
+             GIT_AUTHOR_* / GIT_COMMITTER_*: a fixture that commits inherits that identity (test_rotate_prepare's 'unpushed by author' read 'other author');
+             a test that needs an identity sets its own · a post uid cannot read MAIN's .env and has no pi: provisioning.available() reads EACCES as ABSENT,
+             the conftest points PI_BIN at a stub for test_workflow* (a test that runs a fake pi sets PI_BIN to it) · a stage-return test stubs
+             _stage_context: the real build is viewport.py over the whole graph, 70-160 s at box load vs the 60 s context cap · a SPLIT run (a self-stop at PSI full
+             avg60 > 10 cut one at 35%) is order-sensitive: `chain_engine` (the engine package) and tests/chain_engine/ share a name, so a resume that skips
+             test_chain_engine.py reads 14 false reds in test_links + tests/chain_engine/ -> resume from the failing file's EARLIEST importer, or re-run the three together
+             · kill the python CHILD of `timeout` on a self-stop (kill $timeout_pid alone leaves pytest running)
 detached    my setsid-nohup suite fails 3 tests that pass alone 5/5: test_dashboard::test_watch_exits_cleanly_on_sigint + 2x
              test_suite_no_detached_spawn -- the LAUNCH, not the range (3 gates 09-26, 6455 passed each; a director's in-pane run = 6458/0)
              · gen 26 (a125bad37's gate, the tree with DH.381's conftest guard): 6642 passed / 0 failed -- NONE of the 3 appeared: re-attribute
