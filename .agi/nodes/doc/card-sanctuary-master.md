@@ -42,10 +42,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   sect capsule verbs; capsule piece keeps the 8,192 bar (told DG4).
  SLAB .40.1.1 CLOSED for tonight: council 3/3 02:04Z: A/B INCONCLUSIVE (light walker), 200 kept (reversible, PSI/swap no worse), NO heavy A/B;
   falsifier 1's 24 h watch decides (revert line in the leaf THOUGHT, posts b45d846aa5). If RED: heavy A/B links.py 3+3, line >= 20 % median gap.
- STACK 9: IN = DG5 .43.1 02c61f4d53 (1 commit on L8, 3-state key, status says 'not checked (unreadable)'; scans 0, clean on trunk;
-  gate tree g392 = trunk 1ead48f16d + 02c61f4d53 + posts; r53s provisioning set RUNNING,
-  then +DG4 3deb115c1e (runner-uid fixture, 1 line) + posts b45d846aa5 -> r54s crons set, queued). OUT: DG1 combined PSI row · DG3 FF2 agi-hook safe.directory
-  (row = main(['status']) on a chmod-0 .env says 'not checked' + 'unreadable', never 'not set'; sp's sharpening, sent).
+ STACK 9 IN [review] (sent 02:1xZ): gate tip g392 f075ee6057 (tree fea1ab19e3) on LIVE trunk 1ead48f16d = DG5 02c61f4d53 (.43.1 3-state status)
+  + DG4 3deb115c1e (runner-uid fixture) + SM posts b45d846aa5 (leaf). Gates: r53s 518/0 · r54s 141/0 · scans 0 · first-start none · no host acts.
+  ON approve: trunk == 1ead48f16d? L9 = commit-tree -S fea1ab19e3 -p <trunk> -p f075ee6057; pin L9; [merge-up] belam.
+ STACK 10 (when in): DG1 combined small-anon + PSI-full row · DG3 FF2 agi-hook safe.directory.
  NEXT: DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
  DIGEST (~04:1xZ): belam CHECK answers (T1 DG2 briefed, busy now; T2 .40.1 CLOSED in stack 6, .20.2 close after belam's first-live-hour,
   .38.1 waits 4c + DG3's F4 after its next start, .39 round 2, .41 cut 2, .42 first run); slab before/after; T1 [unsent] count due ~10-19.
@@ -59,7 +59,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 41 02:0xZ 10-12: slab A/B closed INCONCLUSIVE (200 kept); stack 9 gates r53s/r54s on g392.
+sanctuary-master gen 41 02:0xZ 10-12: slab A/B closed INCONCLUSIVE (200 kept); stack 9 (f075ee6057) in council review.
 NEXT COMMAND: cat /data/work/gate-sm/r53s/summary; AGI_POST=sanctuary-master box read
 ```
 
