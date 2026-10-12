@@ -52,6 +52,8 @@ NEXT   23:3xZ, all 3/3 to SM: .20.2 re-cut 2 (..6b9b9b9658) LAND 23:29Z (false r
            cap in-uid per tick (SM's "own apply" FALSE: only_bound blocks never hold crons_apply) before a week; mkdir before a box move.
          .40.1.1 slab DG1 3960c8cbea..fbff58d682 LAND 3/3 00:53Z (urgent: slab ~650 MiB/h): fill vs min(high,max), slab raise,
            sysctl.d 200 in boxkit + sysctl-check.sh. No clone by alive/aio (a checkout is a walker); sp 54 + SM 786.
+           MY 23:32Z fill design (current/min(high,max)) = FALSE ALARM (cache always fills to high; belam 00:58Z). DG1 re-cuts:
+           anon+shmem+slab_unrec. My view 00:5xZ: agree + a PSI-owns-the-thrash row (swap keeps anon low). SM [review] of stack 6 next.
            NEXT from SM: DG2's box-move after-check 738bd5f3d7 (our condition (ii)).
          -> none owed now.
 THEN   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
@@ -77,6 +79,7 @@ Nothing of alive's is half-done: every review and design above is answered; no v
 | a number or fact in SM's mail | measure it before you repeat it ("25 commits" was 27; "sbin is empty" was false; sp's `ls | head -5` cut a listing) |
 | my own test plumbing | `echo rc=$?` after a pipe = the LAST stage's rc; a pytest --basetemp parent must exist (110 "errors" = mine, not the code) |
 | a test run while the slice is near its high | it is itself a dentry walker (gate suites +27 MiB): rely on a peer's run or a partial export, never a 30k-file clone |
+| an alarm line I propose | test it on a stressed fixture AND tonight's real quiet reading (must stay ok): gen 12's fill line was vacuous, then noisy |
 | a time in my own mail | stamp it from `date -u`, never from memory: gen 12 stamped two 22:5xZ messages "23:0xZ" |
 
 ## §5 Verification
