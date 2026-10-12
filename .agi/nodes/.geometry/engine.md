@@ -40,7 +40,7 @@ agi-boot.service  826 B  runs agi-boot after agi-vstore
 matrix            100 B  who reads which node via which piece
 sect               214 B  ONE piece of any engine*.md node, byte-exact, any REV
 agi-land          1855 B  root: ff-lands a post range one edge up
-agi-hook           925 B  root: installs the landed ref-guard into .git/hooks
+agi-hook          1224 B  root: installs the landed ref-guard into .git/hooks
 box-carry         3253 B  root: refs/box/P/<Q> -> the recipient's store or hub
 agi-signers       1727 B  root: the ONE allowed_signers, every key generation
 agi-carry@.path     149 B  PathChanged on refs/box/<P>; first send only

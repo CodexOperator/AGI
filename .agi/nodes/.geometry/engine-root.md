@@ -230,11 +230,12 @@ echo "$o $n $T"|AGI_ALLOWED=$A AGI_TRUNK=$o AGI_NOT=$o grow-gate||exit 1;agi-gat
 git update-ref $T $n $o
 ~~~
 
-### agi-hook (925 B)
+### agi-hook (1224 B)
 ~~~sh
 #!/bin/sh
-# agi-hook [SHA]: root. Installs the engine piece `reference-transaction` AS OF a LANDED sha into this repo's .git/hooks (goal:g7.16.1.11.38.1, belam's host act 4c; posts run hooksPath=~/bin, so this guards only config-less runs). SHA must be an ancestor of $AGI_TRUNK and carry the piece. Bytes via sect; written beside the hook and renamed over it (git never runs a half hook), root-owned 0755. No SHA = print the installed sha256, write nothing. The same SHA twice = the same bytes
-d=$(git rev-parse --git-common-dir)/hooks;h=$d/reference-transaction
+# agi-hook [SHA]: root. Installs the engine piece `reference-transaction` AS OF a LANDED sha into this repo's .git/hooks (goal:g7.16.1.11.38.1, belam's host act 4c; posts run hooksPath=~/bin, so this guards only config-less runs). SHA must be an ancestor of $AGI_TRUNK and carry the piece. Bytes via sect; written beside the hook and renamed over it (git never runs a half hook), root-owned 0755. No SHA = print the installed sha256, write nothing. The same SHA twice = the same bytes. Any uid: safe.directory=$PWD by env covers git AND sect, so a non-owner reads the repo; a git that still cannot is named, never "not on the trunk"
+export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=$PWD
+d=$(git rev-parse --git-common-dir)||{ echo "refused: git will not read $PWD (ownership?)";exit 1;};d=$d/hooks;h=$d/reference-transaction
 [ "$1" ]||{ sha256sum<$h;exit;}
 n=$(git rev-parse -q --verify "$1^{commit}")&&git merge-base --is-ancestor $n ${AGI_TRUNK:?}||{ echo "refused: $1 is not on the trunk";exit 1;}
 mkdir -p $d;f=$d/.rt.$$;trap 'rm -f $f' EXIT;sect reference-transaction $n >$f;[ -s $f ]||{ echo "refused: no reference-transaction at $1";exit 1;}
