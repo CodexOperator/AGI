@@ -1429,11 +1429,11 @@ def test_install_writes_under_a_tmp_install_root_only(tmp_path):
 # says what it means and steers the one thing it steers: the falsifier's LIVE set.
 def test_new_bytes_rows_are_flagged_and_excluded_from_the_live_comparison():
     rows = [p for p in PIECES if p.get("new_bytes")]
-    assert {p["name"] for p in rows} == set(DRIFT_ROWS) | {"agi-survival-conf"}
+    assert {p["name"] for p in rows} == set(DRIFT_ROWS) | {"agi-survival-conf", "agi-vm-sysctl"}
     assert not [p for p in rows if p in LIVE], "a new_bytes row must not be compared as a copy"
     assert len(LIVE) == len(PIECES) - len(rows)
     for p in rows:
-        assert "OOMPolicy=" in R.rendered(p, _v()), p["name"]
+        assert ("vm.vfs_cache_pressure = " if p["name"] == "agi-vm-sysctl" else "OOMPolicy=") in R.rendered(p, _v()), p["name"]
 
 
 # 10 -- the no-cascade coverage closure (kid a00-057a8121). The goal TABLE is the spec,
@@ -2426,3 +2426,17 @@ def test_memguard_each_spool_mutant_is_red_on_the_one_append_row(tmp_path, old, 
         return src.replace(old, new)
     ev = _guard_pass(tmp_path / "mut", _post_unit(big=(21,)), mutate=mutate)[3]
     assert not _one_append_per_alert(ev), f"mutant {new!r} survived: {len(ev.spools)} appends for {len(ev.boxes)} notices"
+
+
+# --- goal:g7.16.1.11.40.1.1 target 3a: the vfs_cache_pressure stopgap lives in /etc/sysctl.d as BYTES (a node), not a hand-typed sysctl -----------
+
+def test_the_sysctl_row_is_a_conf_in_sysctl_d_carrying_the_configured_value_only():
+    piece = BY_NAME["agi-vm-sysctl"]
+    assert piece["dest_cell"] == "sysctl_d_dir" and piece["dest_rel"] == "60-agi-vm.conf" and piece["mode"] == "0644" and piece["placeholders"] == ["VFS_CACHE_PRESSURE"]
+    assert CELLS["sysctl_d_dir"] == "etc/sysctl.d"
+    v = _vs()
+    got = R.rendered(piece, v)
+    live = [l for l in got.splitlines() if l and not l.startswith("#")]
+    assert live == ["vm.vfs_cache_pressure = " + v["VFS_CACHE_PRESSURE"]], live                   # one setting, no stray key
+    assert 100 < int(v["VFS_CACHE_PRESSURE"]) <= 500                                               # above the default, inside the council's 200-500
+    assert R.rendered(piece, {**v, "VFS_CACHE_PRESSURE": "350"}).splitlines()[-1] == "vm.vfs_cache_pressure = 350"   # the value is the cell, none in the template

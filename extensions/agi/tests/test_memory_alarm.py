@@ -18,14 +18,15 @@ def _runs_as_the_sending_seat(monkeypatch):
 
 TH = argparse.Namespace(warn_avail_mib=2048, crit_avail_mib=1024,
                         warn_psi_some_avg60=10, crit_psi_full_avg60=20,
-                        warn_cgroup_max_frac=0.95, clear_margin_frac=0.8)
+                        warn_cgroup_max_frac=0.95, warn_slab_mib=1536, clear_margin_frac=0.8)
 
 
-def sig(avail=8000.0, box=(0.0, 0.0), cg=(0.0, 0.0), cur=None, cap=None):
+def sig(avail=8000.0, box=(0.0, 0.0), cg=(0.0, 0.0), cur=None, cap=None, high=None, slab=None, anon=None, rec=None, name="agi.slice"):
     def psi(some, full):
         return {"some": {"avg10": some, "avg60": some}, "full": {"avg10": full, "avg60": full}}
     return {"avail_mib": avail, "box_psi": psi(*box), "cg_psi": psi(*cg),
-            "cg_current": cur, "cg_max": cap}
+            "cg_current": cur, "cg_max": cap, "cg_high": high,
+            "cg_name": name, "cg_slab": slab, "cg_slab_rec": rec, "cg_anon": anon}
 
 
 def test_quiet_box_is_ok():
@@ -75,7 +76,7 @@ def test_an_ok_run_writes_and_sends_nothing(tmp_path, capsys, monkeypatch):
     monkeypatch.setattr(m.alarm_spool, "append", lambda *a, **k: sent.append(a))
     rc = m.main(_args(tmp_path, "--warn-avail-mib", "0", "--crit-avail-mib", "0",
                       "--warn-psi-some-avg60", "1000", "--clear-margin-frac", "1", "--clear-hold-mins", "0", "--crit-psi-full-avg60", "1000",
-                      "--warn-cgroup-max-frac", "1000"))
+                      "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12"))
     assert rc == 0 and sent == [] and capsys.readouterr().out == ""
     assert not (tmp_path / "alerts.log").exists() and not (tmp_path / "st.json").exists()
 
@@ -85,7 +86,7 @@ def test_a_raise_logs_once_dms_once_then_stays_quiet(tmp_path, monkeypatch):
     monkeypatch.setattr(m.alarm_spool, "append", lambda job, to, body, **k: sent.append((to, body)))
     argv = _args(tmp_path, "--warn-avail-mib", "1e12", "--crit-avail-mib", "0",
                  "--warn-psi-some-avg60", "1000", "--clear-margin-frac", "1", "--clear-hold-mins", "0", "--crit-psi-full-avg60", "1000",
-                 "--warn-cgroup-max-frac", "1000")
+                 "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12")
     assert m.main(argv) == 0
     lines = (tmp_path / "alerts.log").read_text().splitlines()
     assert len(lines) == 1 and " WARN memory warn: MemAvailable " in lines[0]
@@ -116,7 +117,7 @@ def test_the_default_alerts_log_lands_where_the_cap_looks(tmp_path, monkeypatch)
     monkeypatch.setattr(m.alarm_spool, "append", lambda *a, **k: None)
     argv = ["--root", str(root), "--warn-avail-mib", "1e12",
             "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000", "--clear-margin-frac", "1", "--clear-hold-mins", "0",
-            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000",
+            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12",
             "--repeat-mins", "15", "--cgroup", str(tmp_path / "no-cgroup"),
             "--state", str(tmp_path / "st.json"), "--alarm-seat", "sanctuary-master", "--alarm-to", "belam", "--alarm-job", "memory_alarm_posts", "--alarm-spool-max", "500"]
     assert m.main(argv) == 0
@@ -182,7 +183,7 @@ def test_the_state_path_comes_from_the_sessions_resolver(tmp_path, monkeypatch):
     monkeypatch.setattr(m.alarm_spool, "append", lambda *a, **k: None)
     argv = ["--root", str(root), "--warn-avail-mib", "1e12",
             "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000", "--clear-margin-frac", "1", "--clear-hold-mins", "0",
-            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000",
+            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12",
             "--repeat-mins", "15", "--cgroup", str(tmp_path / "no-cgroup")]
     assert m.main(argv) == 0
     state = locations.sessions_dir(root) / m.STATE_FILE
@@ -224,7 +225,7 @@ def _forbid_send_py(monkeypatch):
 
 def _warn_args(tmp_path, *extra, state="st.json", log="alerts.log"):
     return ["--root", str(tmp_path), "--warn-avail-mib", "1e12", "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000",
-            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000", "--repeat-mins", "15",
+            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12", "--repeat-mins", "15",
             "--clear-margin-frac", "1", "--clear-hold-mins", "0",
             "--cgroup", str(tmp_path / "no-cgroup"), "--state", str(tmp_path / state), "--alerts-log", str(tmp_path / log), *extra]
 
@@ -248,7 +249,7 @@ def test_the_alarm_is_one_plain_spool_line_in_the_sending_seats_spool_and_nothin
     assert len(_records(tmp_path)) == 1
     # kinds are separate lines: a CLEARED is its own alarm, never a repeat of the WARN
     assert m.main(["--root", str(tmp_path), "--warn-avail-mib", "0", "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000", "--crit-psi-full-avg60", "1000",
-                   "--warn-cgroup-max-frac", "1000", "--repeat-mins", "15", "--clear-margin-frac", "1", "--clear-hold-mins", "0", "--cgroup", str(tmp_path / "no-cgroup"),
+                   "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12", "--repeat-mins", "15", "--clear-margin-frac", "1", "--clear-hold-mins", "0", "--cgroup", str(tmp_path / "no-cgroup"),
                    "--state", str(tmp_path / "st.json"), "--alerts-log", str(tmp_path / "alerts.log"), *_alarm(tmp_path)]) == 0
     recs = _records(tmp_path)
     assert len(recs) == 2 and recs[1]["text"].startswith("[memory-alarm-cleared] "), recs
@@ -360,12 +361,12 @@ def test_the_real_nudge_sweep_cell_is_off_and_renders_no_wake_line_while_the_ena
 import types  # noqa: E402
 
 from_cells = {"warn_avail_mib": 0, "crit_avail_mib": 0, "warn_psi_some_avg60": 10, "crit_psi_full_avg60": 1000,
-              "warn_cgroup_max_frac": 1000}
+              "warn_cgroup_max_frac": 1000, "warn_slab_mib": 1e12}
 
 
 def _flap_argv(tmp_path, margin="0.8", hold="3"):
     return ["--root", str(tmp_path), "--warn-avail-mib", "0", "--crit-avail-mib", "0", "--warn-psi-some-avg60", "10",
-            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000", "--repeat-mins", "1000",
+            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12", "--repeat-mins", "1000",
             "--clear-margin-frac", margin, "--clear-hold-mins", hold, "--cgroup", str(tmp_path / "no-cgroup"),
             "--state", str(tmp_path / "st.json"), "--alerts-log", str(tmp_path / "alerts.log")]
 
@@ -449,3 +450,102 @@ def test_both_real_rows_declare_the_margin_and_the_hold():
     for name in ("memory_alarm", "memory_alarm_posts"):
         cmd = crons._parse_frontmatter(crons._node_path(REPO / ".agi"))["cadences"][name]["cmd"].split()
         assert cmd[cmd.index("--clear-margin-frac") + 1] == "0.8" and cmd[cmd.index("--clear-hold-mins") + 1] == "3", name
+
+
+# --- goal:g7.16.1.11.40.1.1 target 4: the cgroup-fill line reads against min(memory.high, memory.max) and names which ----------
+# Falsifier, pre-fix: agi.slice is HELD at memory.high 5120 of memory.max 6144 MiB; at 5104 MiB (0.83 of max, 0.997 of high) the line,
+# read against max, was silent by construction while the slice thrashed (slab 2713 MiB, 2.2 GB of the posts' anon swapped out).
+
+MIB = 1 << 20
+
+
+def test_a_slice_at_099_of_memory_high_warns_and_names_the_limit_it_was_read_against():
+    level, reasons = m.decide(sig(cur=int(5069 * MIB), cap=6144 * MIB, high=5120 * MIB), TH)        # 0.99 of high, 0.825 of max
+    assert level == "warn" and reasons == ["user@ at 99% of its memory.high (5069/5120 MiB)"], (level, reasons)
+
+
+def test_tonights_reading_5104_of_5120_is_a_warn():
+    assert m.decide(sig(cur=5104 * MIB, cap=6144 * MIB, high=5120 * MIB), TH)[0] == "warn"
+
+
+def test_the_lower_of_the_two_limits_wins_and_an_unset_high_falls_back_to_max():
+    assert m.decide(sig(cur=5900 * MIB, cap=6144 * MIB, high=7000 * MIB), TH)[1] == ["user@ at 96% of its memory.max (5900/6144 MiB)"]   # high ABOVE max: max is the limit
+    assert m.decide(sig(cur=5900 * MIB, cap=6144 * MIB, high=None), TH)[0] == "warn"                                                      # memory.high = max (unset)
+    assert m.decide(sig(cur=5900 * MIB, cap=None, high=None), TH) == ("ok", [])                                                           # no limit at all: no fill line
+    assert m.decide(sig(cur=4000 * MIB, cap=6144 * MIB, high=5120 * MIB), TH)[0] == "ok"                                                  # 0.78 of high: quiet
+
+
+def test_read_signals_reads_memory_high_from_the_cgroup(tmp_path):
+    cg = tmp_path / "cg"; cg.mkdir()
+    (cg / "memory.current").write_text("5352366080\n"); (cg / "memory.max").write_text("6442450944\n"); (cg / "memory.high").write_text("5368709120\n")
+    (cg / "memory.pressure").write_text("some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n")
+    got = m.read_signals(cg)
+    assert (got["cg_current"], got["cg_max"], got["cg_high"]) == (5352366080, 6442450944, 5368709120)
+    (cg / "memory.high").write_text("max\n")
+    assert m.read_signals(cg)["cg_high"] is None                                                       # `max` is no limit
+
+
+def test_the_mutant_that_reads_against_max_goes_red_on_the_high_row():
+    old = "cap, which = min(limits)"
+    src = Path(m.__file__).read_text(); assert src.count(old) == 1, old
+    mut = _fresh(src.replace(old, "cap, which = [l for l in limits if l[1] == 'memory.max'][0] if any(l[1] == 'memory.max' for l in limits) else limits[0]"))
+    s = sig(cur=int(5069 * MIB), cap=6144 * MIB, high=5120 * MIB)
+    assert m.decide(s, TH)[0] == "warn" and mut.decide(s, TH)[0] == "ok", "today's /max reading must be silent: the row would prove nothing"
+
+
+# --- goal:g7.16.1.11.40.1.1 target 3b: a slice held at memory.high by KERNEL SLAB is raised as SLAB, by name; nothing here drops caches ----------
+# Falsifier, pre-fix: 2026-10-11 agi.slice sat at 5104/5120 MiB with 1638 MiB anon and 2713 MiB slab; MemAvailable was 4.3 GB free, PSI named no
+# cause: the alarm said nothing about the dentry/inode cache that was swapping the posts' anon out.
+
+def test_a_slab_over_the_line_raises_a_slab_named_alarm_while_anon_is_small_and_memory_is_free():
+    s = sig(slab=2713 * MIB, rec=2698 * MIB, anon=1638 * MIB, avail=4371.0)                       # tonight's reading
+    level, reasons = m.decide(s, TH)
+    assert level == "warn" and reasons == ["agi.slice kernel SLAB 2713 MiB >= 1536 (reclaimable 2698, anon 1638 MiB) -- dentry/inode cache; the box owner drops caches, nothing here does"], reasons
+
+
+def test_a_slab_under_the_line_is_quiet_and_a_missing_stat_is_no_signal():
+    assert m.decide(sig(slab=130 * MIB, rec=100 * MIB, anon=1600 * MIB), TH) == ("ok", [])         # after the drop
+    assert m.decide(sig(slab=None), TH) == ("ok", [])
+
+
+def test_a_raised_slab_alarm_is_held_to_the_clear_line_not_the_raise_line():
+    th = argparse.Namespace(**{**vars(TH), "warn_slab_mib": 1536})
+    assert m.decide(sig(slab=1400 * MIB), th, "warn")[0] == "warn"                                   # 1400 > 1536 * 0.8 = 1229: still raised
+    assert m.decide(sig(slab=1100 * MIB), th, "warn")[0] == "ok"
+    assert m.decide(sig(slab=1400 * MIB), th, "ok")[0] == "ok"                                       # but 1400 never RAISES it
+
+
+def test_read_signals_reads_the_slab_and_anon_from_memory_stat(tmp_path):
+    cg = tmp_path / "agi.slice"; cg.mkdir()
+    (cg / "memory.stat").write_text("anon 1717567488\nfile 100\nslab_reclaimable 2829156352\nslab_unreclaimable 15728640\nslab 2844884992\n")
+    got = m.read_signals(cg)
+    assert (got["cg_name"], got["cg_slab"], got["cg_slab_rec"], got["cg_anon"]) == ("agi.slice", 2844884992, 2829156352, 1717567488)
+    (cg / "memory.stat").write_text("slab_reclaimable 10\nslab_unreclaimable 5\n")                    # no `slab` sum: the two parts
+    assert m.read_signals(cg)["cg_slab"] == 15
+    (cg / "memory.stat").unlink()
+    assert m.read_signals(cg)["cg_slab"] is None
+
+
+def test_the_slab_alarm_reaches_the_spool_once_and_stays_quiet_inside_the_repeat_window(tmp_path, monkeypatch):
+    _stub(tmp_path, monkeypatch)
+    monkeypatch.setattr(m, "read_signals", lambda cg: sig(slab=2713 * MIB, rec=2698 * MIB, anon=1638 * MIB, avail=4371.0))
+    argv = ["--root", str(tmp_path), "--warn-avail-mib", "0", "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000", "--crit-psi-full-avg60", "1000",
+            "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1536", "--repeat-mins", "15", "--clear-margin-frac", "0.8", "--clear-hold-mins", "3",
+            "--cgroup", str(tmp_path / "no-cgroup"), "--state", str(tmp_path / "st.json"), "--alerts-log", str(tmp_path / "alerts.log"), *_alarm(tmp_path)]
+    assert m.main(argv) == 0 and m.main(argv) == 0
+    (rec,) = _records(tmp_path)
+    assert rec["text"].startswith("[memory-alarm-warn] ") and "kernel SLAB 2713 MiB" in rec["text"], rec
+
+
+def test_the_mutant_that_looks_at_anon_only_goes_red_on_the_slab_row():
+    old = "if slab is not None and slab / 1048576 >= th.warn_slab_mib:"
+    src = Path(m.__file__).read_text(); assert src.count(old) == 1, old
+    mut = _fresh(src.replace(old, "if False:"))                                                      # MUTANT: the alarm ignores slab (anon-only, as before)
+    s = sig(slab=2713 * MIB, rec=2698 * MIB, anon=1638 * MIB, avail=4371.0)
+    assert m.decide(s, TH)[0] == "warn" and mut.decide(s, TH)[0] == "ok"
+
+
+def test_both_real_rows_carry_the_slab_line():
+    for name in ("memory_alarm", "memory_alarm_posts"):
+        cmd = crons._parse_frontmatter(crons._node_path(REPO / ".agi"))["cadences"][name]["cmd"].split()
+        assert cmd[cmd.index("--warn-slab-mib") + 1] == "1536", name

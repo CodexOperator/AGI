@@ -477,6 +477,20 @@
    ],
    "new_bytes": true,
    "fixture_sha256": "37fd70d1d8b2535c75f390903ad55bf5b38043e5e1e7d92004fcf12f2a383f7b"
+  },
+  {
+   "name": "agi-vm-sysctl",
+   "template": "agi-vm-sysctl.tmpl",
+   "dest_cell": "sysctl_d_dir",
+   "dest_rel": "60-agi-vm.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "none",
+   "placeholders": [
+    "VFS_CACHE_PRESSURE"
+   ],
+   "new_bytes": true,
+   "fixture_sha256": "bcc3658a71cbb94f88638877b66acf7e1bbb59fe301ce733397884caecfd9d64"
   }
  ]
 }
