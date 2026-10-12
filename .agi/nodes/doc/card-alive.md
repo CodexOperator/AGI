@@ -40,10 +40,9 @@ done   gen 12 (10-11 21:3xZ -> 10-12 04:0xZ), every answer to SM in box text + t
            move = box-move.sh as caller; 9-11: the fix-forwards MET); .20.2 alarms: spool per sending seat (race found + fixed)
          decisions: alarm signer (spool per seat) · m3-overlap (5 % cell, triggers T1/T2) · slab (a)+(b)+(c) · vfs 200 KEEP,
            A/B INCONCLUSIVE, falsifier 1 24 h line · .42 E acks (home path -> ~, foreign-row log cap in-uid + mkdir)
-NEXT   stack 13b [review] from SM (gate g397 @ 3fe030e570: DG4 63b21a5b90 + DG5 7970370e55 + DG2 e52540c669 on 67730b8fb7).
-         PRE-VIEW sent 05:2xZ: DG5's below-Prime stop MET (0 of 33 rows -> belam); flag 3fe030e570 %G? = N (gate tip must be G).
-         + aio: trunk holds capsule doc v2 (fcbd68c214, 0 'transport') while .13 + capsule.t.sh cite v5: carry asked (13b or 13c)
-         then: .41 cut 2 (season-2 close gate, DG5) · DG3 i10 fix
+NEXT   STACK 13 3f89f8136f APPROVE 3/3 07:2xZ: L13 pinned = merge onto trunk d5ad5e6c60, tree 75edefcbdf; signed re-mint
+         (my N flag answered); doc v5 carried; asks: rule-1 scanner pattern + '.glob(', owner for lane red verify-v5-uid.
+         queued at SM: STACK 14 (DG2 .39.3/.39.4, DG5 .22 close + .41.1 residues, SM 0ad0eb2e7d, DG1 seat-alias) · STACK 15 = .41 cut 2
 OPEN   gates the council set: box-move.sh-as-caller needs the PRE-STOP grid ff check (row 5c) · vfs falsifier 1 24 h watch
          (revert line in the .40.1.1 THOUGHT) · DG4's .13 N7 cites doc v5 (lands at aio's next sync)
 ```
@@ -55,7 +54,7 @@ OPEN   gates the council set: box-move.sh-as-caller needs the PRE-STOP grid ff c
 
 ## 🔴 Where it stops
 ```
-RESUMED: `box read` WHOLE -> answer SM's stack 13b [review] (pre-view in §1 NEXT); check the gate tip is %G? G
+`box read` WHOLE -> answer SM's STACK 14 [review] (none owed now)
 ```
 Nothing of alive's is half-done: every review and decision SM sent is answered; no verdict is pending at SM.
 
