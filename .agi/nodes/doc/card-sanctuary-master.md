@@ -43,7 +43,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
  SLAB .40.1.1: council 3/3 01:59Z KEEP 200, no 500; DECIDING = A/B (walker-slab.sh around the same suite, 3x100 + 3x200 interleaved;
   REVERT if median delta at 200 >= at 100). Leaf THOUGHT updated (posts c736598bd4). belam RUNS IT HIMSELF from 02:0xZ (6 runs, his clone
   of dba2764aaf in /data/work/gate-belam): my gates HELD until his one [ab rows] mail (~02:3xZ). Then: medians + rows -> council, leaf line.
- STACK 9 (when in): DG1 combined small-anon + PSI-full row · DG3 FF2 agi-hook safe.directory · DG5 provisioning 3-state status line
+ STACK 9: IN = DG5 .43.1 02c61f4d53 (1 commit on L8, 3-state key, status says 'not checked (unreadable)'; scans 0, clean on trunk;
+  gate AFTER the A/B: test_provisioning + dispatch_dry_run + envfile + workflow). OUT: DG1 combined PSI row · DG3 FF2 agi-hook safe.directory
   (row = main(['status']) on a chmod-0 .env says 'not checked' + 'unreadable', never 'not set'; sp's sharpening, sent).
  NEXT: DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
  DIGEST (~04:1xZ): belam CHECK answers (T1 DG2 briefed, busy now; T2 .40.1 CLOSED in stack 6, .20.2 close after belam's first-live-hour,
