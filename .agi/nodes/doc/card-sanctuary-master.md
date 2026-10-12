@@ -40,8 +40,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
  L8 1ead48f16d (stack 8: DG5 8f54fc517f · DG4 4755041c5b < 23924e296f; tree 82e8ae4440 on f87d82393a), council 3/3 01:56Z
   (alive answering); LANDED ff 01:57:25Z (belam), no host acts. RULING: 'capsule move' = box-move.sh calls
   sect capsule verbs; capsule piece keeps the 8,192 bar (told DG4).
- SLAB after-hour (belam 01:57Z): +133 MiB/h vs ~620 before; PSI full 0.11 -> 0.03; high-events before-delta MISSING. In the leaf THOUGHT
-  (posts c4bbf9efa2). [decision] to council 01:5xZ: my rec KEEP 200, no step to 500, ask belam ONE more after-hour. Awaiting word.
+ SLAB .40.1.1: council 3/3 01:59Z KEEP 200, no 500; DECIDING = A/B (walker-slab.sh around the same suite, 3x100 + 3x200 interleaved;
+  REVERT if median delta at 200 >= at 100). Leaf THOUGHT updated (posts c736598bd4). [ask] belam 02:0xZ: per run he sets the value + drop_caches
+  and boxes '[ab go <v> #<n>]' -> I run: sh /data/work/gate-sm/ab/ab.sh <v> <n> (refuses on a wrong arm / moved tree; rows in ab/rows) and box
+  him the row. HOLD stack 9 gates while the A/B runs. After 6: medians -> council.
  STACK 9 (when in): DG1 combined small-anon + PSI-full row · DG3 FF2 agi-hook safe.directory · DG5 provisioning 3-state status line
   (row = main(['status']) on a chmod-0 .env says 'not checked' + 'unreadable', never 'not set'; sp's sharpening, sent).
  NEXT: DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
