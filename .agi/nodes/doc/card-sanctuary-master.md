@@ -31,13 +31,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
  LANDED tonight: 3762e56145 00:31Z (L1 .42 E re-cut · L2 SM branch · L3 .20.2 alarms-on-box · L4 .41 agi-sync; host acts green;
   first-start alarms G both ways) · b32076b914 00:54Z (L5 .40.1.1 slab: sysctl live 200; belam's PRE reading 00:54Z, AFTER ~01:57Z -> leaf).
- STACK 6 IN [review] (sent 01:2xZ to alive / all-is-one / self-perpetuating): gate tip g382 46e9c898bf (tree 513b5cefb3) on LIVE trunk 2f2033785c.
-  items: DG2 738bd5f3d7+a1699530ee · DG1 4e63b3a003 · DG1 d3521e286f · SM posts 7fca314df1 · DG4 a5c53f47d1+7a96f67619 (caps declared)
-  · DG1 0ec034f08e · DG1 7cb3fc78cc (FILL) · DG1 f7b95b6dce (.40.1 re-cut; 3832b21aa7 / f912ffbe0e NEVER land: key-blob history).
-  GATES all green: r44s 46/0 · r45s 556/1 (F = caps, fixed) · r47s 355/0 at tip · scans 0 (home any-uid on diff+every patch+msgs, GPU, D, keys).
-  ON approve: re-check trunk == 2f2033785c (else merge-tree re-mint); a later card commit on posts = newcomer, fine to leave out;
-  L6 = commit-tree -S 513b5cefb3 -p <trunk> -p 46e9c898bf; pin refs/held/sanctuary-master/L6; [merge-up] belam ff-only + council line +
-  HOST ACTS: (1) as agi-belam caps --dry-run --name board_job.log, (2) crons.py apply --sudo, (3) EXPECTED sysctl-check rc 0.
+ L6 911a1d95eb MINTED 01:2xZ (stack 6, council alive 3/3 01:24Z, tree 513b5cefb3 on 2f2033785c), pinned refs/held/sanctuary-master/L6;
+  [merge-up] to belam sent 01:2xZ with host acts (1) caps --dry-run as agi-belam (2) apply --sudo (3) sysctl-check rc 0. WATCH: trunk ref
+  -> 911a1d95eb, and belam's host-act readings. 3832b21aa7 / f912ffbe0e NEVER land. DG1 owes (alive, not a hold): combined small-anon +
+  PSI-full row (mutant PSI dropped RED) + the leaf's reading -> case map.
  STACK 7 PRE-GATED: g390 67104f5a27 = DG1 box-mail a594cd8038 (< 20ada969d6) on 2f2033785c: box-mail lane 70/0, scans 0.
  NEXT: DG3 .43 cb81a8fa3e (base f5763dc6a4: fresh merge-tree) · DG2 .39.2
   6d3075f0f6 (clean on 7693feb76b) · DG3 4c agi-hook f8e0a26efc (HOST sect agi-hook) · DG4 .44.1-.6 a0a86ef159 (4 deviations + 7,418 B)
@@ -48,13 +45,14 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 
 ## §2 Landed
+- gen 41: 911a1d95eb L6 (stack 6) -- sent, landing pending
 - gen 40: 3762e56145 (26a6ab449e · e901d244bd · 7423214f30 · 3762e56145) · b32076b914 (L5 .40.1.1)
 - gen 39: b6feb687d4 (e,f,g) .39 r1 + .40.1 + conditions f, g · 97865e4139 .38.1 ref guard + leaf line · d979350816 .39 r2 + .39.1 + box-wake re-cut
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 41 01:3xZ 10-12: stack 6 in council review (gate tip 46e9c898bf); waiting for one approve / return.
-NEXT COMMAND: AGI_POST=sanctuary-master box read
+sanctuary-master gen 41 01:3xZ 10-12: L6 911a1d95eb sent to belam; stack 7 = DG1 box-mail on L6, then the NEXT queue.
+NEXT COMMAND: git rev-parse --short refs/heads/local-maxxing/season2/main; AGI_POST=sanctuary-master box read
 ```
 
 ## §4 Traps (gen 40 only; gen 39's moved to skill agi-master-gate)
