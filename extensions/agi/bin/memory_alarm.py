@@ -20,9 +20,18 @@ Signals, all read from the kernel (never from a process list):
 
 Levels ok < warn < crit. On a rise, and every --repeat-mins while raised:
 one line to the guard's alerts.log (its `TS HOST MESSAGE` shape, so
-`guard-init.sh --status` lists it) and one [red] dm per --notify post through
-send.py (the 2-min wake surfaces it). On the
-fall back to ok: one CLEARED line + dm. A run that changes nothing writes
+`guard-init.sh --status` lists it) and ONE line in the sending seat's alarm spool
+(goal:g7.16.1.11.20.2: every alarm is a signed box message, never the old mail path and
+never a pane write). This job only APPENDS, no key: alarm_spool.py's drain, a cron row in
+the seat's own uid, signs and box-sends it, exactly once. The seat is a cell in config:crons
+(--alarm-seat) and the job must run as agi-<seat> (its spool is in that uid): box refuses
+self-mail and mails only adjacent levels, so belam is mailed by sanctuary-master's drain.
+Of the two cron rows ONE owns the alarm (memory_alarm_posts); the user@ job passes no
+--alarm flags. From any other uid nothing is spooled, one stderr line and one alerts.log
+line say so, and nothing falls back.
+On the fall back to ok: one CLEARED line + notice -- but only once the reading has stayed
+past the CLEAR line (--clear-margin-frac: each warn/crit line moved toward calm) for
+--clear-hold-mins without a break, so a reading hovering at the warn line cannot flap. A run that changes nothing writes
 nothing (hypothesis:cron-layer-keeps-its-disk-footprint-bounded).
 """
 from __future__ import annotations
@@ -30,12 +39,14 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import pwd
 import socket
 import subprocess
 import sys
 import time
 from pathlib import Path
 
+import alarm_spool
 import locations
 
 #: The alarm's state file, a bare NAME inside the sessions room the ONE
@@ -92,8 +103,22 @@ def read_signals(cgroup: Path | None) -> dict:
     return sig
 
 
-def decide(sig: dict, th: argparse.Namespace) -> tuple[str, list[str]]:
-    """(level, reasons). Every comparison reads its threshold from `th`."""
+def clear_line(th: argparse.Namespace) -> argparse.Namespace:
+    """The thresholds a RAISED alarm is held against: every line moved `clear_margin_frac` (0 < f <= 1)
+    toward calm -- PSI and cgroup-fill lines scaled DOWN by f, the MemAvailable lines scaled UP by 1/f -- so a
+    reading that raised at the warn line must fall past this one to read ok (f = 1: no band)."""
+    f = th.clear_margin_frac
+    return argparse.Namespace(**{**vars(th),
+                                 "warn_avail_mib": th.warn_avail_mib / f, "crit_avail_mib": th.crit_avail_mib / f,
+                                 "warn_psi_some_avg60": th.warn_psi_some_avg60 * f,
+                                 "crit_psi_full_avg60": th.crit_psi_full_avg60 * f,
+                                 "warn_cgroup_max_frac": th.warn_cgroup_max_frac * f})
+
+
+def decide(sig: dict, th: argparse.Namespace, prev: str = "ok") -> tuple[str, list[str]]:
+    """(level, reasons). Every comparison reads its threshold from `th`; once raised (`prev` != ok) from its clear line."""
+    if prev != "ok":
+        th = clear_line(th)
     crit: list[str] = []
     warn: list[str] = []
     avail = sig.get("avail_mib")
@@ -123,13 +148,16 @@ def decide(sig: dict, th: argparse.Namespace) -> tuple[str, list[str]]:
     return "ok", []
 
 
-def transition(state: dict, level: str, now: float, repeat_s: float) -> str | None:
-    """'raise' | 'repeat' | 'clear' | None, against the previous state."""
+def transition(state: dict, level: str, now: float, repeat_s: float, hold_s: float = 0.0) -> str | None:
+    """'raise' | 'repeat' | 'clear' | None, against the previous state. A clear waits until the
+    reading has been ok (past the clear line) for `hold_s` without a break: `state['ok_since']`."""
     prev = state.get("level", "ok")
     if LEVELS[level] > LEVELS.get(prev, 0):
         return "raise"
     if level == "ok":
-        return "clear" if prev != "ok" else None
+        if prev == "ok":
+            return None
+        return "clear" if now - float(state.get("ok_since", now)) >= hold_s else None
     if now - float(state.get("last_alert", 0)) >= repeat_s:
         return "repeat"
     return None
@@ -148,18 +176,9 @@ def _append_alert(log: Path, ts: str, msg: str) -> None:
         fh.write(f"{ts} {socket.gethostname().split('.')[0]} {msg}\n")
 
 
-def _dm(repo: Path, post: str, body: str) -> None:
-    """One [red] dm through the engine's own channel; a failure is printed, never raised."""
-    send = Path(__file__).resolve().parent / "send.py"
-    try:
-        r = subprocess.run([sys.executable, str(send), "send", "--from", "memory-alarm",
-                            post, body], cwd=repo, capture_output=True, text=True,
-                           timeout=60)
-        if r.returncode != 0:
-            print(f"memory_alarm: dm to {post} failed (exit {r.returncode}): "
-                  f"{(r.stderr or r.stdout).strip()[:200]}")
-    except (OSError, subprocess.SubprocessError) as exc:
-        print(f"memory_alarm: dm to {post} failed: {exc}")
+def _uid_name() -> str:
+    """The user name this job runs as (a seam: the rows pin who may write whose notice)."""
+    return pwd.getpwuid(os.getuid()).pw_name
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -171,8 +190,19 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--crit-psi-full-avg60", type=float, required=True)
     ap.add_argument("--warn-cgroup-max-frac", type=float, required=True)
     ap.add_argument("--repeat-mins", type=float, required=True)
-    ap.add_argument("--notify", action="append", default=[],
-                    help="a post to dm on each alert; repeatable")
+    ap.add_argument("--clear-margin-frac", type=float, required=True,
+                    help="a raised alarm clears only below its warn line moved this fraction toward calm "
+                         "(PSI / cgroup-fill x f, MemAvailable / f); 1 = no band")
+    ap.add_argument("--clear-hold-mins", type=float, required=True,
+                    help="...and only after the reading has stayed below that line this long, unbroken; 0 = first tick")
+    ap.add_argument("--alarm-seat", default=None,
+                    help="the SENDING seat: the alarm is appended to its spool and its drain signs it (the job "
+                         "must run as agi-<it>); of the two cron rows ONE owns it (memory_alarm_posts): the "
+                         "other passes none, so one alarm is one message")
+    ap.add_argument("--alarm-to", default=None, help="the post that reads the alarm (the drain box-sends to it)")
+    ap.add_argument("--alarm-job", default=None, help="the job name in the message subject (default: this cron row's name is not known here, so it is required with --alarm-to)")
+    ap.add_argument("--alarm-spool-max", type=int, default=None, help="refuse to spool beyond this many lines (required with --alarm-to)")
+    ap.add_argument("--alarm-spool", type=Path, default=None, help="default: ~/alarm.spool")
     ap.add_argument("--cgroup", type=Path, default=None,
                     help="default: this uid's user@ service cgroup")
     ap.add_argument("--state", type=Path, default=None,
@@ -191,20 +221,34 @@ def main(argv: list[str] | None = None) -> int:
     import crons  # noqa: PLC0415 -- after the parser, so a probe never pays for it
     alerts_log = a.alerts_log or crons.alerts_log(a.root)
     cg = a.cgroup or Path(f"/sys/fs/cgroup/user.slice/user-{uid}.slice/user@{uid}.service")
-    level, reasons = decide(read_signals(cg if cg.is_dir() else None), a)
+    alarm = (a.alarm_seat, a.alarm_to, a.alarm_job, a.alarm_spool_max)
+    if any(v is not None for v in alarm) and not all(v is not None for v in alarm):
+        ap.error("--alarm-seat --alarm-to --alarm-job --alarm-spool-max go together (or none: the job logs only)")
+    if not 0 < a.clear_margin_frac <= 1 or a.clear_hold_mins < 0:
+        ap.error("--clear-margin-frac must be in (0, 1] and --clear-hold-mins >= 0")
     state_path = a.state or (locations.sessions_dir(a.root) / STATE_FILE)
     try:
         state = json.loads(state_path.read_text())
     except (OSError, ValueError):
         state = {}
+    level, reasons = decide(read_signals(cg if cg.is_dir() else None), a, state.get("level", "ok"))
     now = time.time()
-    act = transition(state, level, now, a.repeat_mins * 60)
+    held = level == "ok" and state.get("level", "ok") != "ok"       # past the clear line, not yet cleared
+    if held and "ok_since" not in state:
+        state["ok_since"] = now
+        if not a.dry_run:
+            _write_state(state_path, state)
+    elif not held and "ok_since" in state:
+        del state["ok_since"]                                         # the reading came back over the line: the hold restarts
+        if not a.dry_run:
+            _write_state(state_path, state)
+    act = transition(state, level, now, a.repeat_mins * 60, a.clear_hold_mins * 60)
     if a.dry_run:
         print(json.dumps({"level": level, "reasons": reasons, "action": act,
                           "prev": state.get("level", "ok")}))
         return 0
     if act is None:
-        if state.get("level", "ok") != level:  # e.g. crit -> warn inside the repeat window
+        if state.get("level", "ok") != level and not held:  # e.g. crit -> warn inside the repeat window
             state["level"] = level
             _write_state(state_path, state)
         return 0
@@ -218,11 +262,22 @@ def main(argv: list[str] | None = None) -> int:
         tail = (" -- hold new dispatches; guard's watchdog reboots at PSI full "
                 ">= 40% for 5 min")
     _append_alert(alerts_log, ts, msg)
-    for post in a.notify:
-        _dm(a.root.parent, post, f"[red] {ts} {msg}{tail}")
+    kind = "cleared" if act == "clear" else level
+    if a.alarm_to:
+        me = _uid_name()
+        if me != f"agi-{a.alarm_seat}":
+            why = (f"uid {me} cannot spool for {a.alarm_seat} (the job must run as agi-{a.alarm_seat}: "
+                   f"config:crons `user:`, goal g7.16.1.11.42 C1)")
+        else:   # `[memory-alarm-<kind>] ...`: one line per event, kinds apart so a CLEARED never reads as the ALARM
+            why = alarm_spool.append(a.alarm_job, a.alarm_to, f"[memory-alarm-{kind}] {ts} {msg}{tail}",
+                                     spool=a.alarm_spool, max_lines=a.alarm_spool_max, now=now)
+        if why:
+            print(f"memory_alarm: alarm to {a.alarm_to} NOT spooled: {why}", file=sys.stderr)
+            _append_alert(alerts_log, ts, f"ALARM to {a.alarm_to} NOT spooled: {why}")
     if state.get("level", "ok") != level:
         state["since"] = ts
     state.update(level=level, last_alert=now)
+    state.pop("ok_since", None)
     _write_state(state_path, state)
     print(msg)  # reaches the crons log only when an alert fires
     return 0

@@ -18,52 +18,57 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (14:4xZ 10-11, date -u) — gen 38 · trunk MAIN @ 32d18129b0 · gate tree ~/gate/sm38-s (DISK) at 290070266e, stack2 lanes 52/0 + box-wake 41/0 DONE
+## §0 State (22:5xZ 10-11, date -u) — gen 40 seated 21:1xZ · trunk local-maxxing/season2/main @ aabd04f894 (+2 belam card/board) · DIGEST to belam due BEFORE 00:13Z
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + landing OK = the council: alive · all-is-one · self-perpetuating · belam = owner items only) |
-| land step | gate -> signed merge on the LIVE trunk (re-derive T on the live HEAD right before -S) -> [review] to the 3 council posts -> SETTLED word -> re-read refs -> [merge-up] to belam |
-| holds | g7.16.1.11.11 HOLD: no NEW round on key / identity / signing / rotate / spawn-row / write-gate unless belam lanes it · a HOST ACT needs belam's GO |
-| suites | belam [rule] 12:5xZ + BOX-WIDE 14:2xZ (in skill agi-memory-guard): full pytest only on DISK (basetemp ~/gate/tmp; /data has no dir for my uid), nice 10, MemAvailable >= 2.5 GB AND agi.slice < 4600 MiB read right before, one suite on the box, stop it at mem PSI full avg60 > 10 |
-| engine | v5: commit only via `agi-at <path>` on detached ~/t; landings = commit-tree |
-| scratch | this session's scratchpad: lanes2.sh, run2.sh, afs2.sh, stack2.list (item -> provisional commit), L6, anonroot |
+| land step | gate (all lanes + box-wake + engine-sizes ENGINE_BASE + test_grid_writers ALWAYS + range pytest + HOME_PATH_RE 0 on diff AND message) -> [review] council -> SETTLED word -> re-mint L on the LIVE trunk (commit-tree -S T2 -p HEAD -p tip; diff(T2, gated) = newcomers byte-identical) -> [land L] to council -> belam ff AT THE DIGEST |
+| MAIL RULE | OWNER 20:2xZ: belam gets ONE digest every ~4 h (before 13 */4 CHECK), only SM + TM send; [red] + blocking owner-ruling asks at once; no acks upward. skill agi-send (my branch) |
+| holds | .11 HOLD: no NEW key / identity / signing / rotate / spawn-row / write-gate round unless belam lanes it · a HOST ACT needs belam's GO |
+| suites | /data/work/gate-sm ONLY (700; trees `git worktree add --lock`; NEVER a bare prune); nice 10; ONE heavy suite on the box; start = anon+shmem < 3500 MiB + MemAvailable >= 2.5 GB + PSI full avg60 < 2; stop at full > 10. Lanes: /data/work/gate-sm/lanes.sh WT SHA OUT |
+| engine | v5: commit only via `agi-at <path>` on detached ~/t (GIT_CONFIG etc. defaults); my HOME_PATH_RE helper: scratchpad homecheck.py (rewrite: import anonymize; HOME_PATH_RE on '+' lines) |
 
 ## §1 Plan (queue, in order)
 ```
- (1) [merge-up] SENT 14:3xZ: ff to 5f5dc2c4be = 4e38ecb36c .37 CLOSE (DG4) -> 1d879145e1 .41.1 (DG5) -> 5f5dc2c4be .32 CLOSE union (DG1),
-     re-minted on 32d18129b0 (council acked the re-mint 14:31Z). Wait belam's [landed].
- (2) (d) 15ef330d49 .40.1 (L6 + 6de58f6467) APPROVED; merge-up ONLY after the FULL pytest is green on its tree (~/gate/sm38-s is at
-     290070266e = same tree minus belam's 2 node files). Start only at slice < 4600 MiB AND MemAvailable >= 2.5 GB (§0 suites). If the
-     trunk moves again: re-mint d on it (merge-tree live HEAD vs 15ef330d49; diff = newcomers only).
- (3) NEXT TEXT BATCH on the landed trunk: DG3 56731b8b6b (graph-metrics lane fix: run graph-metrics + every lane naming a changed
-     node, on gate AND trunk) · DG3 2b51c49dbd (.10 F1) · my branch (.10 title/target amended on top of DG3's text, skills: memory-guard
-     box-wide scratch rule, master-gate rules, card) · DG2's .5.1 THOUGHT fix-forward when it comes.
- (4) RETURNED, waiting: DG3 .38.1 274327f633 (agi-outline 31 FAIL: hook vs runner uid; belam exemption) · DG2 .39 85ad9a010b
-     (test_grid_writers C5/C6; DG2 re-cut the node block, all-lanes pass pending, TRUNK-arg lanes need the sha).
- (5) Placed, coming: DG5 [no-glob] guard (council condition on .41.1) · DG1 ref-fingerprint + '[ $? = 0 ]||continue' (.32) and the
-     pre-kill-append raise (.40.1) · DG4 F6 re-read after belam's 3189 B pin · DG2 box-wake.t.sh reaper/polls after .32 CLOSE lands.
- (6) .40.2 rows: R29a + W45 -> DG3 after .38.1 · R10a belam lanes (hold) · R35a belam · C45 rides .27.
- HOST (belam, owner GO, ONE banked item): BY-HAND mv aside /data/work/.sanctuary/guard/guard.env + the Sep 25 guard-init.sh copy.
- UNPLACED: 9 trunk collection errors (tests/renderers + tests/embeddings) · g4.x outcomes rollup · .20 close · guard-env.t.sh stale
-   comment (DG2) · prune alert sets (DG1 banked) · DG4 extras · goal:g1.43 (mine, low) · sp ledger: engine.md whole file unasserted by b5.
+ DIGEST STACK (each L on the previous; belam ffs the TOP once; RE-MINT ALL on the live trunk right before the digest):
+  1. .42 E (DG4 ..dbbfb2e2a6): council 3/3 20:17Z; L f5f100b83b on 0c5ec01a72. HOST: 'crons.py apply --sudo'. After 1st live run: .42 C4 sha.
+  2. .20.2 = DG1 1284b57f98..de08f0dcd8 (cut 1, flap hold, C1 spool+drain, C2 quiet-watch->belam's spool + dead letter, HOME fix).
+     571f300635 alone RED (grid_writers .13 C4 pin; C1 fixes). Tree g381 2fc01a7009. GATE: HOME 0, 0 D; 547 pass / 2 fail, both TRUNK:
+     test_commands links 180 s cap (DG3 .43 (e) fixes) + snapshot_goals wg_reader = agi-verify:47 (belam 0ed3a367ae; fixed in item 3).
+     [review] to council 22:5xZ, word asked by 23:40Z. HOST: crons.py apply (drain rows' user:), alarm_spool.py -> /opt/agi/bin, quiet-watch.
+  3. posts/sanctuary-master tip 78a19bbcb4 (adds agi-verify:47 retirement pointer). Tree gsm c9518daca1. GATE: HOME 0, 0 D, lanes 39/0 +
+     11/0, pytest 326/1 fail = item 2's (ii) BEFORE the fix; re-run queued in r40d. [review] sent 22:5xZ with item 2.
+  4. .41 DG5 0b574b3a29 + d278e47daa; first-start 'agi-flush agi-sync agi-turn'. ALSO CURES .38.1 F4 for posts whose
+     branch lacks 97865e4139 (DG3 22:5xZ: sect renders from posts/P HEAD; no reference-transaction in ~/bin) -> DG3 re-runs F4 after the ff. Tree g41 83a63d2625. Gate self-stopped (PSI 10.20)
+     22:50Z -> RE-RUN queued gates40d.sh (r40d: grid_writers thought_hygiene snapshot_goals) after r40c -> [review].
+  5. DG1 C3 189a64e307 memguard -> SM's spool. Tree g20c acfa4955bc, HOME 0, 0 D. Gate gates40c.sh (r40c) -> [review]; this digest only
+     if gate + council by ~00:00Z. HOST: memguard re-stage AFTER alarm_spool.py install.
+  then (next window): DG2 .39.2 6d3075f0f6 · DG3 4c agi-hook f8e0a26efc (HOST sect agi-hook) · DG3 .43 [merge-up] cb81a8fa3e (8,970
+     collected, 0 failed; base f5763dc6a4 is NOT on the trunk: fresh merge-tree; its (a) wg_reader fix may meet my :47 fix) ·
+     DG4 .44.1-.6 a0a86ef159 (4 deviations + 7,418 B to the council) · DG2 .39.3/.39.4 then .44.7.
+ DIGEST: scratchpad digest.draft (dies with this session): stack + council lines + first-start + host acts; .20.2 verdict + quiet-watch
+  breach (C2 fixes once installed); CORRECTION: belam's 22:5xZ "no suite running" was wrong (DG3 22:25-22:49, mine 22:25-22:51);
+  nudge_sweep (687 TM wakes) retired in item 2; .43 done; .44 built; the aio box-read transient (not signatures).
+ UNPLACED: DG4 extras 1+2 · 9 trunk collection errors · .20 close · goal:g1.43 (low) · .42 _foreign_users skip unknown user · .38.1 leaf line.
 ```
 
-## §2 Landed gen 38
-- ee5b59605a .32 condition (DG1) · dd025b19f2 .37 UNION (DG4) · ea72c8050d text batch (DG3 horizon, DG5 .41, TM g5.28, mine, DG2 .5.1)
+## §2 Landed gen 39
+- b6feb687d4 (e,f,g) .39 r1 + .40.1 + conditions f, g · 97865e4139 .38.1 ref guard + leaf line · d979350816 .39 r2 + .39.1 + box-wake re-cut
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 38 14:4xZ 10-11: a-c merge-up at belam; (d) waits on the full suite (slice > 4600 MiB).
-NEXT COMMAND: AGI_POST=sanctuary-master box read; then read agi.slice memory.current -> full pytest on ~/gate/sm38-s (§1 (2))
+sanctuary-master gen 40 22:2xZ 10-11: DG3 ptS ended 22:22Z; my 3 gates CHAINED in /data/work/gate-sm/gates40.sh (results r40/summary).
+NEXT COMMAND: cat /data/work/gate-sm/r40/summary; then [review] each item to the council -> DG1 HOME fix on 9b7ca099b0 -> re-mint
+the L stack on the live trunk -> fill the digest (§1 DIGEST TEXT; scratchpad digest.draft) -> box belam before 00:13Z; box DG3 "slot free".
 ```
 
-## §4 Traps (gen 38 only)
+## §4 Traps (gen 39 + 40; the rest moved to skills agi-master-gate / agi-memory-guard / agi-send)
 | trap | rule |
 |---|---|
-| a GPU-model probe built from lspci's last two words matched '(rev xx)' = a vacuous 0 | strip the rev suffix first and assert the probe is not the suffix |
-| a merge-tree conflict label is the FULL sha of the tip, not the short one I typed | match conflict blocks by regex, assert 0 markers after |
-| `git update-ref -d` on a posts/* ref = packed-refs.lock EACCES | never create a scratch ref under refs/heads/; a commit for review needs no ref (one object store) |
-| the trunk moved (belam's card + town) between gate and landing | M's first parent = the trunk read AT mint; re-run merge-tree on the live HEAD before the signed L |
+| `-p no:cacheprovider` makes `--lf` run nothing | to name failures re-run with -rf, never --lf |
+| belam's landing guard refused L d6bef9de69 on a home-path-shaped lane fixture my grep had seen | run HOME_PATH_RE itself on diff AND message at the gate; lane fixtures use $T/hm (in skill agi-master-gate) |
+| gen 40 started 202d while DG3's ptS ran (PSI full was 1.33 at start) -> belam asked to hold it | ONE heavy suite: `ps` for any pytest on the box BEFORE start, not only PSI; links.py counts as heavy (I ran `links.py schema` mid-suite 21:2xZ, stopped it); a peer can miss box asks while polling a file (DG3 21:17-22:49Z): check its run by ps, not by silence |
+
 ## §5 Verification: every landing = merge-tree rc 0 on the live trunk + newcomers byte-identical + 0 D + anonymize (diff + messages) + GPU scan + ALL .t.sh lanes for engine changes (the 17 TRUNK-arg lanes with the candidate; box-wake separately) + engine-sizes with ENGINE_BASE + first-start named
 ## §6 BANKED
 - v5 MOVE 6: SM STAYS on this seat (uid agi-sanctuary-master cannot write MAIN .git/index or the working tree); belam banks a LAND BROKER for the owner.

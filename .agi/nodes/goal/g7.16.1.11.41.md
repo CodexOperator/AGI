@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11
 next_edges: []
 confidence: 0.5
-edited_by: director-general-5
+edited_by: sanctuary-master
 goal_id: G7.16.1.11.41
 goal_kind: subgoal
 model: claude-opus-5-5
@@ -36,6 +36,7 @@ TWO CAUSES (sanctuary-master, measured 04:1xZ):
 3. Until 1 lands, a post is never more than one turn behind without a line: the [trunk-conflict] notice repeats once per turn while it lasts (the .38 bound).
 4. THE CADENCE (council 24cdb55824, self-perpetuating + all-is-one, measured on their own seats): lag has TWO causes, conflict AND cadence. agi-turn (the Stop hook) never merges the trunk; only agi-flush does, and agi-flush runs at a rotation or restart. posts/self-perpetuating sat on its 02:47Z merge for 2+ hours with NO conflict until a hand agi-flush (f81011e920); posts/all-is-one likewise (hand merge ca9dc62c0d 04:3xZ). So target 3's 'never more than one turn behind' is false today. Fix: the trunk merge runs at EVERY turn end, or the notice fires when posts/<post> is more than N trunk commits behind.
 
+- SEASON-2 CLOSE GATE (owner 19:4xZ 10-11, via belam): the season-2 close waits on this leaf complete, on its falsifier AS WRITTEN. 'Everything must be able to project cleanly' = every landing reaches every post at its next start, extracted from the landed trunk, 0 stale ~/bin pieces (belam's measure (b)).
 ## Invariants
 - AGI_TRUNK in a post's env resolves to a BRANCH (`git rev-parse --symbolic-full-name` = refs/heads/* or refs/remotes/*); anything else is refused by name: a full or ABBREVIATED sha (c70e3ef313 is written that way everywhere), a tag, a detached ref (council, alive). With carry.env's pinned AGI_TRUNK (c70e3ef313; goal:g7.16.1.11.37's carry.env finding), target 1 would run 10-09's pieces. So .37's AGI_BOX-only fix is a PRECONDITION of target 1.
 - Extraction reads only signed, landed bytes: no new write path, no key / signing change (the g7.16.1.11.11 HOLD).
@@ -52,6 +53,10 @@ After goal:g7.16.1.11.38 (the notice channel), goal:g7.16.1.11.37's unit tip (th
 
 ## Out of scope
 The hand sync of the five branches (done by each post) · the dialog itself (goal:g7.16.1.11.36).
+
+## OWNER 2026-10-11 19:4xZ, verbatim
+"Make sure that the projection work is done before season rollover. Everything must be able to project cleanly. Are we making progress through the bundle and the trajectory is staying stable?"
+belam's measure at the time (19:2x-19:4xZ): ROOT projection CLEAN (agi-project rendered at the pin 5f5dc2c4be == /run byte for byte, 29 files; the trunk tip renders identically, no pin move owed). POST projection NOT clean: agi-post@'s ExecStartPre still extracts from each post's OWN t/; t HEAD behind trunk DT-1 271 · DG3 264 · DG4 244 · DG5 174 · TM 147 · alive 91 · SM 26 · sp 26 · aio 24 · DG2 24 · DG1 22 · belam 1; ~/bin pieces stale or missing vs the trunk: 1-8 per post. Targets 1-4 were held until .37 and .5.1 landed; both are complete.
 
 ## Agent Notes
 Assigned to **director-general-5**, with its leaf goal:g7.16.1.11.41.1 (SM placement gen 38, 10-11). The Order section's "Builder: DG4" named who owned the unit tip when this was filed; the goal as a whole is now DG5's.

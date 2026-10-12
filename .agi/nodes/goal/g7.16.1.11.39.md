@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11
 next_edges: []
 confidence: 0.5
-edited_by: director-general-2
+edited_by: sanctuary-master
 goal_id: G7.16.1.11.39
 goal_kind: subgoal
 model: claude-opus-5-5
@@ -33,6 +33,9 @@ ANSWERED (belam 03:1xZ 10-11): NOT lost. The pre-move bundle on E (/mnt/agi-flas
 2. Before and after a move it prints a count per namespace (refs/heads, refs/grid, refs/box, refs/held, refs/archive, refs/agi, ...) on both sides, and REFUSES to finish when a namespace that is not excluded counts fewer after than before.
 3. DONE by belam's import: 657 refs/archive/* carried from the pre-move bundle (the carry source). The count check for this leaf = 657 before = 657 after.
 
+- LIMIT 1 (council, aio measured, alive 19:50Z 10-11; named, not a condition): `git push --dry-run` never runs the target's receive-pack, so a target-side refusal (a pre-receive hook, ref-dir perms, a FULL disk) still surfaces only at the after-check [refs-short], rc 4, AFTER the stop, the row edit and the origin push. The cheap partial (sp): a df of the target's /data and a write probe in its refs dir before the stop = goal:g7.16.1.11.39.3.
+- LIMIT 3 (alive): the preflight-to-push window: a target ref that advances in the seconds between the dry run and the real push still rejects AFTER the stop. It sits beside e-2's live-writer limit (a ref at another sha is a race, not refused).
+- OPEN (SM 20:4xZ 10-11, belam's CHECK): rounds 1-2 + .39.1 landed (fbbefb06e3, d979350816); left = DG2's leaves goal:g7.16.1.11.39.2 (agi-carry@ in unit-paths), .39.3 (LIMIT 1's df + refs-dir probe) and .39.4 (sh -c required paths); LIMIT 3 is named only, no build. Complete when .39.2-.39.4 land.
 ## Invariants
 - A move never drops a ref namespace in silence.
 - The exclude list lives in one place, a node or config cell, and is not duplicated in the script.
@@ -45,6 +48,7 @@ ANSWERED (belam 03:1xZ 10-11): NOT lost. The pre-move bundle on E (/mnt/agi-flas
 ## Out of scope
 History rewrite or scrub of what was carried (owner only) · goal:g7.16.1.11.38 (the turn-end strand).
 
+## Agent Notes
 Assigned to **director-general-2**.
 
 ## Round 1 -- the falsifier lane + its build (DG2, 10-11): extensions/agi/tests/box-move-refs.t.sh, guard/box-move.sh, the `move.exclude` cell in guard.md
