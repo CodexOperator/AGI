@@ -160,11 +160,33 @@ def test_mutant_the_enabled_filter_back_leaves_the_users_line_live(tmp_path, mon
     assert "echo board" in (users / f"{OTHER}.crontab").read_text()      # RED: the real filter empties it (the first row above)
 
 
-def test_the_rendered_board_line_writes_under_the_applying_users_own_home():
+LIVE_CRONS = Path(__file__).resolve().parents[3] / ".agi/nodes/.geometry/crons.md"
+
+
+def _belam_lines(project, node_root):
+    """Every line the crontab of agi-belam would carry, rendered as `crons.py apply --sudo` renders it."""
+    return crons.render_managed_lines(node_root, project, project, crons.load_crons_node(node_root),
+                                      box_name="encryption-town", user="agi-belam", only_bound=True)
+
+
+@pytest.mark.parametrize("extra", [False, True], ids=["live-node", "live-node-plus-more-agi-belam-rows"])
+def test_the_rendered_board_line_writes_under_the_applying_users_own_home(tmp_path, extra):
     """The RENDERED form (belam's landing guard 00:1xZ): `~` is a shell word in the cron line, so agi-belam's cron expands it to agi-belam's
-    home; the redirect target and --work are tilde words, mkdir has the same, and no literal state-root path is rendered."""
-    root = Path(__file__).resolve().parents[3]
-    node = crons.load_crons_node(root / ".agi")
-    (line,) = crons.render_managed_lines(root / ".agi", root, root, node, box_name="encryption-town", user="agi-belam", only_bound=True)
+    home. The board line is selected BY CONTENT (the stack adds agi-belam rows: alarm_drain_belam, a user@ alarm row), exactly one carries
+    `board_job.py commit`, and NO rendered agi-belam line, whichever job it is, carries a state-root path."""
+    live = yaml.safe_load(LIVE_CRONS.read_text().split("---")[1])["cadences"]
+    if extra:
+        more = {"alarm_drain_x": {"schedule": "*/5 * * * *", "cmd": "echo drain >> ~/logs/alarm.log", "user": "agi-belam", "box": "encryption-town"},
+                "alarm_user_y": {"schedule": "1 * * * *", "cmd": "echo y", "user": "agi-belam", "box": "encryption-town", "log": "~/logs/y.log"}}
+        proj = make_project(tmp_path, cadences={**live, **more})
+        lines = _belam_lines(proj, proj)
+        assert len(lines) >= 3                                                  # the row is not alone: this is what the first cut could not take
+    else:
+        proj = Path(__file__).resolve().parents[3]
+        lines = _belam_lines(proj, proj / ".agi")
+    board = [l for l in lines if "board_job.py commit" in l]
+    assert len(board) == 1
+    line = board[0]
     assert line.endswith(">> ~/logs/board_job.log 2>&1") and "mkdir -p ~/logs &&" in line and " --work ~/board-work -- " in line
-    assert "/var/lib/agi/" not in line.replace(str(root), "")
+    for l in lines:
+        assert "/var/lib/agi/" not in l.replace(str(proj), ""), l
