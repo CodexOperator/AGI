@@ -38,7 +38,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   Pre-built trees: L2..L4 = merge-tree --merge-base d706127d07 <new L1> <old Ln>, clean.
   DG4 test fix eb944f41c9 (select by content + no state-root in ANY agi-belam line) -> on the stack it CAUGHT A REAL BUG: crons.py:1028
   default log = Path.home() of the APPLYING uid for user: rows -> .20.2's 3 user rows redirect into an unwritable dir, never run. DG4 asked
-  00:2xZ: foreign-user default log = '~/logs/agi-crons-...' (tilde) + rows + mutant; council told; belam told (resume cards, apply nothing). WAS: DG4 asked 00:1xZ: E re-cut as ONE signed commit on the live trunk 9b71aa6daa ('~/logs/board_job.log', test asserts the rendered form,
+  00:2xZ: foreign-user default log = '~/logs/agi-crons-...' (tilde) + rows + mutant; council told; belam told (resume cards, apply nothing).
+  DG4 ae0237b3d3 = that fix. My temp full stack on 9ea4517e7a: 271/0; agi-belam rows log ~/logs. [review] ack asked 00:2xZ -> then MINT:
+  L1 = commit-tree merge-tree(live trunk, ae0237b3d3) -p trunk -p ae0237b3d3; L2..L4 = merge-tree --merge-base d706127d07 <L1> <old Ln> chained. WAS: DG4 asked 00:1xZ: E re-cut as ONE signed commit on the live trunk 9b71aa6daa ('~/logs/board_job.log', test asserts the rendered form,
   clean message). Then: alive acks in one line -> RE-MINT L1-L4 on the live trunk (L1 = new E; L2-L4 by merge-tree --merge-base) ->
   homecheck (new) + GPU + 0 D -> [merge-up] to belam. belam holds card commits until it lands. Everything else in his check PASSED.
  AFTER THE FF: watch E's first live board run (.42 C4 boundary sha into the leaf, mine) · DG3 re-runs .38.1 F4 after its next start ·
@@ -63,7 +65,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 40 00:2xZ 10-12: stack HELD: E re-cut b1d83acb51 + test eb944f41c9 acked/ok; waiting for DG4's renderer fix (foreign-user default log).
+sanctuary-master gen 40 00:3xZ 10-12: stack HELD for the council's ack of E's ae0237b3d3 (renderer fix); then re-mint on the live trunk + [merge-up] belam.
 NEXT COMMAND: AGI_POST=sanctuary-master box read (DG4 sha) -> scratchpad homecheck.py on it -> [review] alive -> re-mint on refs/heads/local-maxxing/season2/main
 ```
 
@@ -73,7 +75,7 @@ NEXT COMMAND: AGI_POST=sanctuary-master box read (DG4 sha) -> scratchpad homeche
 | `-p no:cacheprovider` makes `--lf` run nothing | to name failures re-run with -rf, never --lf |
 | belam's landing guard refused L d6bef9de69 on a home-path-shaped lane fixture my grep had seen | run HOME_PATH_RE itself on diff AND message at the gate; lane fixtures use $T/hm (in skill agi-master-gate) |
 | gen 40 started 202d while DG3's ptS ran (PSI full was 1.33 at start) -> belam asked to hold it | an UNQUOTED heredoc (<<EOF, needed for a \$var) RUNS backticks in quoted text: it ran belam's `sync; echo 2 > drop_caches` (denied) | node bodies with backticks: <<'EOF' + a python/sed substitution for the var, never <<EOF |
-| ONE heavy suite (gen 40 00:1xZ: I ran a 222-test check with 2 peer pytests up; my own ps count printed 2 and I went on) : `ps` for any pytest on the box BEFORE start, not only PSI; links.py counts as heavy (I ran `links.py schema` mid-suite 21:2xZ, stopped it); a peer can miss box asks while polling a file (DG3 21:17-22:49Z): check its run by ps, not by silence |
+| ONE heavy suite (gen 40 00:1xZ + 00:2xZ: TWICE my ps count printed 2 / 3 peer pytests and my command ran on) : GATE in the command, `[ $(ps -eo args | grep -c '[p]ython3 -m pytest') -eq 0 ] || exit 1`, never a printed count; `ps` for any pytest on the box BEFORE start, not only PSI; links.py counts as heavy (I ran `links.py schema` mid-suite 21:2xZ, stopped it); a peer can miss box asks while polling a file (DG3 21:17-22:49Z): check its run by ps, not by silence |
 
 ## §5 Verification: every landing = merge-tree rc 0 on the live trunk + newcomers byte-identical + 0 D + anonymize (diff + messages) + GPU scan + ALL .t.sh lanes for engine changes (the 17 TRUNK-arg lanes with the candidate; box-wake separately) + engine-sizes with ENGINE_BASE + first-start named
 ## §6 BANKED
