@@ -34,6 +34,7 @@ log-only in effect (the cron log carries them too).
 from __future__ import annotations
 
 import argparse
+import datetime
 import os
 import re
 import subprocess
@@ -114,14 +115,29 @@ def not_own(repo, base: str, tip: str, post: str, signers: str = SIGNERS) -> lis
     return [c for c in out.stdout.split() if not is_own(repo, c, post, signers)]
 
 
+
+def _now() -> str:
+    """The UTC stamp every log line of this job carries (the log had none, so a run could not be placed against a ref move; goal:g7.16.1.11.42)."""
+    return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _say(line: str, err: bool = True) -> None:
+    """ONE line of the job's log: `<UTC stamp> <line>`. Every print of this file goes through it."""
+    print(f"{_now()} {line}", file=sys.stderr if err else sys.stdout)
+
+
+def _sh(rev) -> str:
+    return (rev or "?")[:12]
+
+
 def _notice(path: Path | None, line: str) -> None:
-    print(line, file=sys.stderr)
+    _say(line)
     if path is not None:
         try:
             with open(path, "a", encoding="utf-8") as fh:
                 fh.write(line + "\n")
         except OSError as exc:
-            print(f"[board] could not write the notice file {path}: {exc}", file=sys.stderr)
+            _say(f"[board] could not write the notice file {path}: {exc}")
 
 
 def _staged_line(post: str, n: int, repo=None, first: str = "", signers: str = SIGNERS) -> str:
@@ -140,7 +156,7 @@ def cmd_land(args) -> int:
     ref = f"refs/heads/posts/{post}"
     tip, head = _rev(main, ref), _main_head(main)
     if not tip or not head:
-        print(f"[no-branch] posts/{post} or MAIN's HEAD is unreadable: nothing landed", file=sys.stderr)
+        _say(f"[no-branch] posts/{post} or MAIN's HEAD is unreadable: nothing landed")
         return 5
     if tip == head or _is_ancestor(main, tip, head):
         return 0   # nothing to land: MAIN already has everything on the branch
@@ -158,13 +174,13 @@ def cmd_land(args) -> int:
     except Exception:  # noqa: BLE001 -- no lock reading: the ff itself refuses a dirty tree
         holder = None
     if holder:
-        print(f"skip: the suite lock is held by live pid {holder}; posts/{post} not landed", file=sys.stderr)
+        _say(f"skip: the suite lock is held by live pid {holder}; posts/{post} not landed")
         return 0
     done = _git(main, "merge", "--ff-only", "-q", ref)
     if done.returncode or _main_head(main) != tip:
-        print(f"[board] ff refused: {(done.stderr or done.stdout).strip()[:160]}", file=sys.stderr)
+        _say(f"[board] ff refused: {(done.stderr or done.stdout).strip()[:160]}")
         return 3
-    print(f"board: MAIN {head[:7]} -> {tip[:7]} (ff, no commit)")
+    _say(f"board: MAIN {head[:7]} -> {tip[:7]} (ff, no commit)", err=False)
     return 0
 
 
@@ -190,21 +206,21 @@ def cmd_commit(args) -> int:
     if cmd[:1] == ["--"]:
         cmd = cmd[1:]
     if not cmd:
-        print("ERR: board_job.py commit: no writer command after --", file=sys.stderr)
+        _say("ERR: board_job.py commit: no writer command after --")
         return 2
     if not _work_ok(work):
-        print(f"[board] {work} is the Prime's own tree (~/t): the job never works there", file=sys.stderr)
+        _say(f"[board] {work} is the Prime's own tree (~/t): the job never works there")
         return 2
     ref = f"refs/heads/posts/{post}"
     tip, head = _rev(main, ref), _main_head(main)
     if not tip or not head:
-        print(f"[no-branch] posts/{post} or MAIN's HEAD is unreadable: nothing committed", file=sys.stderr)
+        _say(f"[no-branch] posts/{post} or MAIN's HEAD is unreadable: nothing committed")
         return 5
     env = _identity_env(post)
     # the base: posts/<post>'s tip, or MAIN when MAIN is ahead (a pure ref move: no commit)
     if tip != head and _is_ancestor(main, tip, head):
         if _git(main, "update-ref", ref, head, tip).returncode:
-            print("[raced] posts/%s moved while the job took MAIN" % post, file=sys.stderr)
+            _say(f"[raced] posts/{post} moved while the job took MAIN: old {_sh(tip)} -> seen {_sh(_rev(main, ref))}")
             return 4
         tip = head
     take = False
@@ -219,12 +235,12 @@ def cmd_commit(args) -> int:
             _notice(args.notice, _staged_line(post, len(staged), main, staged[0], args.signers))
             return 3
     if not _ensure_clone(main, work, env):
-        print(f"[board] could not make the job's clone at {work}", file=sys.stderr)
+        _say(f"[board] could not make the job's clone at {work}")
         return 2
     for c in (["reset", "-q", "--hard"], ["clean", "-fdq"]):
         _git(work, *c, env=env)
     if _git(work, "checkout", "-q", "--detach", tip, env=env).returncode:
-        print(f"[board] could not check out {tip[:7]} in {work}", file=sys.stderr)
+        _say(f"[board] could not check out {tip[:7]} in {work}")
         return 2
     base = tip
     if take:
@@ -245,43 +261,44 @@ def cmd_commit(args) -> int:
         # the board commit's parent is the tip posts/<post> really has
         sig = _git(work, "log", "-1", "--format=%G?", base, env=env).stdout.strip()
         if sig != "G":
-            print(f"[board] the take-MAIN merge {base[:7]} is not G (%G?={sig or '?'}): not published", file=sys.stderr)
+            _say(f"[board] the take-MAIN merge {base[:7]} is not G (%G?={sig or '?'}): not published")
             return 3
         pushed = _git(work, "push", "-q", f"--force-with-lease={ref}:{tip}", str(main), f"{base}:{ref}", env=env)
         if pushed.returncode:
-            print(f"[raced] the take-MAIN push lost the CAS: {(pushed.stderr or '').strip()[-120:]}", file=sys.stderr)
+            _say(f"[raced] the take-MAIN push lost the CAS: old {_sh(tip)} -> seen {_sh(_rev(main, ref))}: {(pushed.stderr or '').strip()[-120:]}")
             return 4
     run = [c.replace(WROOT, str(work / ".agi")) for c in cmd]
-    done = subprocess.run(run, cwd=str(work), env=env)
+    done = subprocess.run(run, cwd=str(work), env=env, capture_output=True, text=True)
+    for line in done.stdout.splitlines():   # the writer's own lines carry the stamp too: the log is ONE timeline
+        _say(line, err=False)
+    for line in done.stderr.splitlines():
+        _say(line)
     if done.returncode:
         return done.returncode
     new = _rev(work, "HEAD")
     if new == base:
         return 0   # the writer skipped (a held lock, a dirty node): nothing to publish
     if _rev(work, f"{new}^") != base or _git(work, "rev-list", "--count", f"{base}..{new}").stdout.strip() != "1":
-        print(f"[board] the writer made more than ONE commit on {base[:7]}: nothing published", file=sys.stderr)
+        _say(f"[board] the writer made more than ONE commit on {base[:7]}: nothing published")
         return 3
     msg = _git(work, "log", "-1", "--format=%s", new).stdout.strip()
     amended = _git(work, "commit", "-q", "--amend", "-m", msg, "-m", f"{TRAILER} {args.job}", env=env)
     if amended.returncode:
-        print(f"[board] could not sign the commit: {(amended.stderr or amended.stdout).strip()[:160]}",
-              file=sys.stderr)
+        _say(f"[board] could not sign the commit: {(amended.stderr or amended.stdout).strip()[:160]}")
         return 3
     new = _rev(work, "HEAD")
     sig = _git(work, "log", "-1", "--format=%G?", new, env=env).stdout.strip()
     if sig != "G":   # C2: an N is never published
-        print(f"[board] the commit {new[:7]} is not G (%G?={sig or '?'}): not published, the node is unchanged",
-              file=sys.stderr)
+        _say(f"[board] the commit {new[:7]} is not G (%G?={sig or '?'}): not published, the node is unchanged")
         return 3
     if _rev(work, f"{new}^") != _rev(main, ref):   # new^1 must be the CURRENT tip
-        print("[raced] posts/%s moved under the job: next hour" % post, file=sys.stderr)
+        _say(f"[raced] posts/{post} moved under the job: next hour (old {_sh(base)} -> seen {_sh(_rev(main, ref))})")
         return 4
     pushed = _git(work, "push", "-q", f"--force-with-lease={ref}:{base}", str(main), f"{new}:{ref}", env=env)
     if pushed.returncode:
-        print(f"[raced] the push to posts/{post} lost the CAS: {(pushed.stderr or '').strip()[-120:]}",
-              file=sys.stderr)
+        _say(f"[raced] the push to posts/{post} lost the CAS: old {_sh(base)} -> seen {_sh(_rev(main, ref))}: {(pushed.stderr or '').strip()[-120:]}")
         return 4
-    print(f"board: posts/{post} {base[:7]} -> {new[:7]} (G, {args.job})")
+    _say(f"board: posts/{post} {base[:7]} -> {new[:7]} (G, {args.job})", err=False)
     return 0
 
 
