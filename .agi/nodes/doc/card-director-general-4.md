@@ -19,56 +19,61 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (10-12 ~00:4xZ)
+## §0 State (10-12 04:3xZ) — IDLE, owner order: "We're about outta usage ... everyone goes into idle for a clean resume in a few days"
 | | |
 |---|---|
 | post | director-general-4 under sanctuary-master (SM); builder for DG1/SM; DG2 writes my falsifier lanes first, DG3 is the other builder |
-| running | NOTHING (no suite, no runner, no dispatch). ONE heavy lane at a time, niced, only above 3 GiB MemAvailable (cat /proc/meminfo); no scratch on /dev/shm while agi.slice > 4600 MiB |
-| skills | agi-rotate · agi-review · agi-dispatch · agi-send · agi-verify · agi-goal · agi-post |
-| worktrees | /var/lib/agi/director-general-4/: t (mine) + w-board3 (LIVE, locked: dg4-board3 = 7a96f67619 (commands.md: crons.py caps excluded) on a5c53f47d1 (the .42.1 leaf: cap + mkdir + sudo-pending, on ae0237b3d3) on ae0237b3d3 (renderer fix: a foreign user's default log is ~/logs) on eb944f41c9 (test fix) on b1d83acb51 (the .42 RE-CUT, ONE commit on 9b71aa6daa) + the test fix) + w-board2 (locked, SUPERSEDED: dbbfb2e2a6) + w-capsule3 (LIVE, locked: dg4-capsule3 = 23924e296f FF2 on 4755041c5b FF1 on L7 375139b329; c0bb3f05ef is in L7; w-capsule + w-capsule2 SUPERSEDED). Every other dg4-* branch kept, its worktree removed 17:1xZ |
-| scratch | pytest --basetemp, TMPDIR, lane temp, gate trees: ONLY /data/work/gate-director-general-4 (700, my uid); home and /tmp are on the ROOT disk; remove each run's tree when done |
+| running | NOTHING: no suite, no runner, no dispatch, no build, no review. Do NOT box belam until the owner resumes us (SM 04:3xZ); no reply to SM needed |
+| skills | agi-rotate · agi-send · agi-verify · agi-goal · agi-post (+ agi-review / agi-dispatch only if SM dispatches) |
+| worktrees | /var/lib/agi/director-general-4/: t (mine, detached = posts/director-general-4) + LIVE locked: w-boardlog (dg4-boardlog 63b21a5b90) · w-pins (dg4-pins 5b6e7b00cb) · w-ownrow (d37799e298) · w-fixrunner (3deb115c1e) · w-capsule3 (23924e296f) · w-board3 (7a96f67619). SUPERSEDED, safe to `git worktree remove <path>` BY PATH: w-board2 (dbbfb2e2a6), w-capsule (a0a86ef159), w-capsule2 (c0bb3f05ef). Every dg4-* branch is kept |
+| scratch | pytest --basetemp, TMPDIR, lane temp, gate trees: ONLY /data/work/gate-director-general-4 (700, my uid); home and /tmp are on the ROOT disk. One heavy lane at a time, niced, only above 3 GiB MemAvailable |
 
-## §1 Plan
+## §1 Plan (nothing in flight)
 ```
-WAIT    (1) SM re-mints the stack on .42 E eb944f41c9 ON b1d83acb51 (council ACKed b1d83acb51 00:16Z; SM 00:17Z: the rendered-line test went RED in the stack, fixed in eb944f41c9; belam's guard had REFUSED the old three commits: a literal belam home in the crons row, its test and a message; alive acks the edit in one line). (2) SM's gate of the capsule cuts (a0a86ef159), after .41; the council gets the 4 deviations + 7,418 B. Do NOT cut `list`.
-HOST    belam: `python3 extensions/agi/bin/crons.py apply --sudo` from MAIN in the SAME MINUTE as the ff of posts/belam; the FIRST live run is the proof.
-CAPSULE goal:g7.16.1.11.44 (owner's one container, design doc:g716111-44-capsule-pack, `git show posts/sanctuary-master:.agi/nodes/doc/g716111-44-capsule-pack.md`). ALL SIX leaves .44.1-.6 built in w-capsule: ONE piece `capsule` in engine-capsule.md (pack out verify in regrow repoint) + lane extensions/agi/tests/capsule.t.sh (62 rows, mutants RED, incl. the landing lane). Boxed to SM 22:0xZ with FOUR deviations (fat bundle for a ref behind base; header prerequisite; scratch-repo verify; [moved]) and the size (7,418 B vs ~1.9 KB; I'd drop `list` first). board_job log stamp + raced old->seen 63b21a5b90 on trunk b71fbe86d5 (dg4-boardlog, w-boardlog; test_board_job 29); .13 N7 TRANSPORT 4f1009ca58 + GRID=TRANSPORT rows 5b6e7b00cb (dg4-pins; ask 2 (c) = ff in verify NOT built, ~+110 B vs 75 B headroom, rides box-move caller); .13 pin re-cut 1ecd97928f on trunk 9ec6a3aa63 (dg4-pins, w-pins; test_grid_writers 27); own-block row d37799e298 on L9 ab745407e7 (dg4-ownrow, w-ownrow); runner-uid fix 3deb115c1e (in L9) on L8 (dg4-fixrunner, w-fixrunner; belam slab A/B find: the rendered-board row pins a fixture runner). FF1+FF2 are in L8 1ead48f16d (council 01:56Z: FF1 MET). RULING 01:56Z: `capsule move` is NOT a capsule verb: box-move.sh becomes the CALLER of `sect capsule | sh -s -- pack|out|verify|in` (dry pack in a job clone + target verify + scratch pre-stop; real pack/out/carry/in post-stop; the recovery lines; replaces box-move.sh :32-:45). The piece keeps its 8,192 bar (75 B left). No leaf placed yet: only on SM's word.
-EXTRAS  on SM's word (not placed): (1) geometry_config.resolved_seat_env v4-rows-only; (2) cc-session-start.sh BOOTSTRAP_SEAT=${AGI_POST:-${AGI_SEAT:-}}; skills-truth CUT/TIP defaults. HELD: .20 retire-the-inbox-write; .20.1 items 2+3. NOT MINE: box-wake.t.sh (DG2).
+WAIT    SM's stack 13 (gate tree g397): my board_job log commit 63b21a5b90 (every line UTC-stamped incl. the writer's; [raced] names old -> seen sha12) with DG5 7970370e55 + DG2 e52540c669; and DG3's i10 fix.
+        My pin commits 1ecd97928f (.13 C1/C7 + N7) + 4f1009ca58 (N7 = `in` is a TRANSPORT writer) + 5b6e7b00cb (capsule.t.sh GRID=TRANSPORT g4a/g4b) are in posts/sanctuary-master, council-approved 04:05Z, riding L12.
+NEXT    (on SM's word only, never invented) box-move.sh becomes the CALLER of `sect capsule | sh -s -- pack|out|verify|in` (council ruling 01:56Z: design section 6 replaces box-move.sh :32-:45; NOT a capsule verb; the piece keeps its 8,192 bar).
+        GATE on that caller (council 04:05Z, my deferred (c) accepted): the PRE-STOP scratch on the target holds MAIN's refs/grid as a MIRROR (not a plain clone), so the dry `in`'s own CAS ancestor check is row 5c: a non-ff refs/grid line -> PRE-STOP rc 6, the post still on FROM. 0 piece bytes.
+EXTRAS  on SM's word (not placed): geometry_config.resolved_seat_env v4-rows-only; cc-session-start.sh BOOTSTRAP_SEAT=${AGI_POST:-${AGI_SEAT:-}}; skills-truth CUT/TIP defaults. HELD: .20 retire-the-inbox-write; .20.1 items 2+3. NOT MINE: box-wake.t.sh (DG2).
 ```
 
 ## §2 Landed / boxed (one line each; DG1 judges, SM gates and lands)
 ```
-CAPSULE .44.1-.6 cut 1 b86473037c + cut 2 a0a86ef159 (dg4-capsule), boxed to SM, not yet gated
-LANDED  .36 tui · .20 v5 alert · .37 (20a39210c4, C1 6c9d471bc8, next cut + CLOSE 4e38ecb36c, post-env LIVE fix afeec20cce, F6 re-read 72a2678064) · fresh-blob · .13.2 · .35 · kid AGI_POST=$k
-REVIEW  .42 option E (SUPERSEDED by b1d83acb51, 00:4xZ): a155fb2792 (code half: crons.py `user:` + `apply --sudo`, board_job.py commit/land, crons.md rows) -> 16b368ad72 (grid_writers pins .13 C1/C5 + N6/P9, `-X theirs`, take-MAIN refusals to the notice) -> dbbfb2e2a6 (council 18:06Z conditions: every user any job names is reconciled; land checks %G?==G AND %GS==belam@agi itself with -c gpg.ssh.allowedSignersFile). APPROVED 3/3 with those two conditions.
-ROOT    disk pass done 17:1xZ: home 3.4 GB -> 468 MB, df / 64%.
+ON THE TRUNK b71fbe86d5 (checked 04:3xZ)  .42 E + its fix-forwards (b1d83acb51, eb944f41c9, ae0237b3d3 renderer, a5c53f47d1 the .42.1 leaf cap/mkdir/sudo-pending, 7a96f67619 commands.md caps) · .44.1-.6 capsule (c0bb3f05ef in L7; FF1 4755041c5b + FF2 23924e296f: behind-base refs ride as ref lines, thin bundle, ONE update-ref transaction; engine-sizes b7) · 3deb115c1e runner-uid pin · d37799e298 own-block row.
+        earlier: .36 tui · .20 v5 alert · .37 · fresh-blob · .13.2 · .35 · kid AGI_POST=$k
+NOT YET ON THE TRUNK  1ecd97928f 4f1009ca58 5b6e7b00cb (SM's branch, L12) · 63b21a5b90 (stack 13)
 ```
 
 ## 🔴 Where it stops
 ```
-Everything of mine is boxed and idle: dbbfb2e2a6 (.42) and a0a86ef159 (.44) await SM; nothing is mid-step, no lane or runner is running.
-FIRST ACT: read mail ONCE, whole: AGI_POST=director-general-4 box read | fold -s -w 200 (messages are also commits: git log -1 --format=%B <tip of refs/box/<sender>/director-general-4>).
-THEN: a RETURN = ONE new signed commit ON the sent sha in the matching worktree (w-board2 / w-capsule; never a rebase, F26/F14). Gate dir for any run: /data/work/gate-director-general-4. Run the capsule lane: env -u AGI_TRUNK -u AGI_POST sh extensions/agi/tests/capsule.t.sh (AGI_TRUNK in a post's env leaks into the fixture otherwise). Extras only on SM's word.
+Idle by the owner's order. Nothing is mid-step; no lane, runner or gate slot is held.
+FIRST ACT on resume: read mail ONCE, whole: AGI_POST=director-general-4 box read | fold -s -w 200  (messages are also commits: git log -1 --format=%B <tip of refs/box/<sender>/director-general-4>).
+THEN: wait for SM's word. A RETURN on a cut = ONE new signed commit ON the sent sha in the matching worktree (never a rebase, F26/F14), commit with plain `git commit` there (a worktree on a dg4-* branch signs: commit.gpgsign) and `agi-at <path>` ONLY in ~/t (the card, a node).
+Capsule lane: env -u AGI_TRUNK -u AGI_POST sh extensions/agi/tests/capsule.t.sh (66 ok); landing mode: LANDING_REPO=<repo> LAND_TRUNK=<ref> CAPSULE_FLOOR=<n> sh capsule.t.sh.
 ```
 
-## §4 Traps (this generation's only)
+## §4 Traps (this generation's only; at the next rotation each moves to the skill that owns its flow)
 | trap | rule |
 |---|---|
-| bare prune | NEVER `git worktree prune` on MAIN's shared .git (SM 17:16Z; I ran it once 17:11Z): it drops every entry whose path my uid cannot stat = every other post's 700 gate dir. Remove my OWN tree by path (`git worktree remove <path>`); lock a long-lived one (`git worktree add --lock`) |
-| runner fall-through | a background lane runner that waits on MemAvailable must STOP, not run anyway, when the wait ends (I stopped mine at 09:33Z after it was about to run beside SM's gate) |
-| pkill -f | `pkill -f <script>` matches my own command line and kills the shell: find the pid with `pgrep -x sh -a` and kill by pid |
-| mail (owner 10-11 20:2xZ, via SM) | NEVER box belam: anything for belam goes to SM (he folds it into the ONE ~4 h digest). To SM: one message per finished thing, no [ack]/[thanks]/[landed]. Only [red] or a BLOCKING owner-ruling ask is sent at once. Lands in skill agi-send |
-| home literals | belam's landing guard knows EVERY seat's home (HOME_PATH_RE under a post uid knows only its own): grep the added lines AND the commit message for /var/lib/agi/<any name>, /home/, /data/home = 0 before sending; a crons row writes `~/...` (cron expands it as the row's user). Diff a re-cut against the commits' own net (merge-base), never a named sha SM typed |
-| new CLI verb | adding a subparser to a bin (crons.py caps) needs a `commands.md` entry (manifest: or excluded: with a reason): run test_commands_manifest.py (4m48s, ~180 rows) before sending, not just the file's own tests |
-| scanned sites | a NEW engine piece/bin line with update-ref / commit-tree / mktree / hash-object -w / fetch moves test_grid_writers C1/C7 (goal:g7.16.1.11.13 pinned blocks): run it BEFORE sending a piece, re-cut the blocks with the test's own norm/run and classify each site in a row (I sent the capsule piece without it and the trunk went red from L7) |
-| the sha in a box message | I sent a [cut] twice with 'the sha is below' and no sha (the sha was only printed to my terminal): read `git rev-parse HEAD` FIRST, then compose the heredoc with it inline; a message without its sha costs SM a second read |
-| capsule lane | env -u AGI_TRUNK first (a post's AGI_TRUNK=<ref> made every fixture `at` read the wrong trunk); a function's last command is its status (a trailing rm made a mutant row pass). Both live in the lane's comments |
-| committer email | git verifies an ssh signature against the COMMITTER EMAIL: a machine job signing as the seat commits as `belam <belam@agi>` (the ring principal), never `agi-belam` |
+| bare prune | NEVER `git worktree prune` on MAIN's shared .git: it drops every entry whose path my uid cannot stat = every other post's 700 gate dir. Remove my OWN tree by path; lock a long-lived one (`git worktree add --lock`) |
+| runner fall-through | a background lane runner that waits on MemAvailable must STOP, not run anyway, when the wait ends |
+| pkill -f | matches my own command line and kills the shell: find the pid with `pgrep -x sh -a`, kill by pid |
+| mail (owner 10-11) | NEVER box belam; to SM one message per finished thing, no [ack]/[thanks]/[landed]; only [red] or a BLOCKING owner-ruling ask at once |
+| the sha in a box message | `git rev-parse HEAD` FIRST, then compose the heredoc with it inline (I sent two [cut]s with "the sha is below" and no sha) |
+| home literals | belam's guard knows EVERY seat's home: grep the added lines AND the message for /var/lib/agi/<name>, /home/, /data/home (anonymize.HOME_PATH_RE itself, in python; allowed_signers is not a home); a crons row writes `~/...` |
+| new CLI verb | a subparser added to a bin needs a commands.md entry (manifest: or excluded: + reason): run test_commands_manifest.py (4m48s) before sending |
+| scanned sites | a new engine piece/bin line with update-ref / commit-tree / mktree / hash-object -w / fetch moves test_grid_writers C1/C7 (goal:g7.16.1.11.13 pins): run it before sending; re-cut the blocks with the test's own norm/run, classify each site in a row |
+| ambient uid | a test must pin its runner (monkeypatch crons._invoking_user), never assert on the uid running pytest (belam's slab A/B found it) |
+| capsule lane | env -u AGI_TRUNK first; a shell function's last command is its status (a trailing rm made a mutant row pass) |
+| committer email | git verifies an ssh signature against the COMMITTER EMAIL: a machine job signing as the seat commits as `belam <belam@agi>`, never `agi-belam` |
 
 ## §5 Verification
-Last green (bare env -i, niced, one at a time, scratch on /data): on dbbfb2e2a6: test_board_job 25 · test_crons_job_user 11 · test_grid_writers 27 · test_crons 103 · test_crons_apply_cell 19 · test_thought_hygiene 17 · test_bin_help_smoke 75 · test_agi_bin_absent 17 · test_stand_up 54 · graph-metrics.t.sh / metrics-cell.t.sh / mail-alert-retired.t.sh 0 FAIL. Not mine, red on the trunk side too: test_snapshot_goals::test_wg_reader_lines_only_point_at_the_retirement (SM attributes it from the full suite). Baseline-red earlier: test_cli 1, test_season 11, test_commands 1.
+Last green (bare env -i, niced, one at a time): test_board_job 29 · test_crons_job_user 20 · test_crons 103 · test_crons_apply_cell 19 · test_crons_log_cap_declared_scope 17 · test_grid_writers 27 · test_thought_hygiene 17 · test_bin_help_smoke 76 · test_commands_manifest 182 · capsule.t.sh 66 ok / 0 FAIL · engine-sizes 0 FAIL (engine-capsule.md fenced 8,117 B = 75 B under its bar) · graph-metrics / metrics-cell / mail-alert-retired 0 FAIL.
 
 ## §6 BANKED
-(none for me) · .42's HOST half is belam's ONE GO above · SM banked with belam: a machine identity in the box ring (heal / memory-alarm senders), the owner's call for S3.
+- `capsule move` is box-move.sh's caller work, not a verb (council 01:56Z); its gate (c) is above. `list` selector stays (SM: do not cut).
+- RESIDUES named, not fixed: a cron row's custom `log:` outside `~/logs/` is neither capped nor mkdir'd; `in` transports refs/grid verbatim when a packer passes `--ref 'refs/grid/*'` (council 03:25Z (b), ruled, not a refusal).
+- UNEXPLAINED: belam's first live `apply --sudo` (00:32Z) printed `pending` for both foreign users although their crontabs read back == desired; my reproduction (a stateful fake `sudo crontab -u`) showed the old path installs NOTHING for a user with no crontab, so something else installed them. Fixed the path (a5c53f47d1); the mystery is SM's/belam's to look at.
+- SM banked with belam: a machine identity in the box ring (heal / memory-alarm senders), the owner's call for S3.
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
