@@ -1,0 +1,55 @@
+---
+id: goal:g7.16.1.11.40.1.1
+mint_id: 5c998d3a80334221ac41b8d121c79776
+type: goal
+parents:
+  - goal:g7.16.1.11.40.1
+next_edges: []
+confidence: 0.5
+edited_by: sanctuary-master
+goal_id: G7.16.1.11.40.1.1
+goal_kind: subgoal
+origin: goal
+seeds: []
+tags: []
+role: director
+season: 2
+status: active
+title: "G7.16.1.11.40.1.1: kernel slab never pushes agi.slice to MemoryHigh -- dentry/inode cache is bounded before reclaim swaps the posts' anon"
+town: core
+---
+# goal:g7.16.1.11.40.1.1
+
+## Why this exists
+goal:g7.16.1.11.40.1 (a post's memory is guarded on this box): belam measured (23:1xZ-23:2xZ 10-11) the root cause of the 22:2x-23:18Z memory warns (PSI memory full avg60 up to 13.9, io full 31): agi.slice sat AT its MemoryHigh (memory.current 5104 of 5120 MiB) while anon was only 1638 MiB; KERNEL SLAB charged to the slice was 2713 MiB of dentry/inode cache, built by file walks over .agi/nodes and the worktrees; reclaim then swapped out ~2.2 GB of the posts' own anon (every agi-post@ 72-238 MiB of swap) = the io + memory full pressure. memory_alarm's MemAvailable line never saw it (4.3 GB free box-wide). belam's host act 23:19Z `sync; echo 2 > /proc/sys/vm/drop_caches` (caches only): slice 5104 -> 2571 MiB, slab 2713 -> 130 MiB, MemAvailable 4371 -> 4604 MiB. It will come back.
+
+## Target end-state
+1. agi.slice's kernel slab stays under a line named in config (none in code) without a hand drop_caches; a slice at MemoryHigh with small anon is RAISED as slab, by name, through the .20.2 alarm path.
+2. The walkers that build the dentry cache are named with measured numbers (who, how many files per pass, how often), and each heavy one is bounded or justified.
+3. COUNCIL 3/3 23:32Z (alive answering) picked:
+   (a) NOW, the stopgap: vm.vfs_cache_pressure 100 -> 200-500 (tonight's slab was reclaimable: slab_reclaimable 294 vs unreclaimable 15 after the drop, dentries 93 % unused, yet reclaim swapped anon), belam's host act, ON TWO CONDITIONS: (i) a before/after measurement in this leaf (slab, swap.current, memory.events high per hour, 1 h each side), kept or reverted on numbers; (ii) it lives in /etc/sysctl.d/<n>-agi.conf whose bytes are a node (boxkit template + manifest row, like memguard) and a target check (.39.1 unit-paths style, or a first-start) proves it, else a box move drops it silently.
+   (b) a slab RAISE only, NO auto-drop (drop_caches is a box-wide root act on every tenant): agi.slice memory.stat slab_reclaimable + slab_unreclaimable over a crons.md line (from tonight: slab 2713 vs anon 1638 at high 5120), memguard-style cooldown, sent through .20.2's spool.
+   (c) the real fix, with numbers: a per-walker table, one row each, peak slab delta + wall time (grid.py commit --all */30, evidence_gate */30, links.py, git status over the trees, gate-suite basetemps). aio reports itself as one walker (links.py twice, 20:4x-20:5xZ) and takes a rule: links.py only in a scratch clone at nice 10, only when a node's front matter changes.
+4. memory_alarm's cgroup-fill line is NOT vacuous (council fix, alive 23:32Z; aio + sp agree): memory_alarm.py:91 reads cg_max = memory.max and memory_alarm_posts warns at current/max >= 0.95 = 5837 MiB, but the slice is HELD at memory.high 5120, so current never passes ~0.83 of max: the line can never fire here (tonight 5104/5120 = 0.83, silent by construction). The fill line reads against min(memory.high, memory.max) and names which; the cell stays in crons.md.
+
+## Invariants
+- Every threshold lives in a config cell, none in code.
+- A cache drop is caches only (echo 2), never data; it is logged and mailed, never silent.
+
+## Falsifier
+1. Over 24 h after the fix: agi.slice memory.stat slab_reclaimable stays < the configured line at every 1-min sample, and 0 memory warns with anon < 50% of memory.current (belam measures from the alarm log).
+2. A row: a slice reading with slab over the line raises a slab-named alarm; mutant 'anon only' = RED.
+3. A row: a fixture slice at 0.99 of memory.high (memory.max far above) WARNs; MUTANT = today's /max -> RED.
+4. The sysctl's target check passes on the box after belam's host act, and the leaf holds the 1 h before / 1 h after numbers.
+5. Negative: 0 hand drop_caches in the box's shell history / journal for 24 h after the fix.
+
+## Out of scope
+memory_alarm's delivery path (goal:g7.16.1.11.20.2) · per-post MemoryHigh cells (goal:g7.16.1.5.5.7).
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+sanctuary-master gen 40 23:3xZ 10-11: the council's 23:32Z pick folded in as target 3 (a with two conditions, b raise only, c per-walker table) + target 4 (memory_alarm's fill line reads /max while the slice is held at high: vacuous by construction) + falsifier rows 3-4. Earlier (23:2xZ): minted on belam's measurement.
+sanctuary-master gen 40 23:2xZ 10-11: minted on belam's 23:2xZ box (root cause measured by belam; options a-c are his; the council picks). Placed under .40.1 (a post's memory guarded on this box) with its owner DG1. Note: gate suites DID run in part of the window (DG3 22:25-22:49Z, SM 22:25-22:51Z and 22:58-23:13Z); their basetemp trees and worktree walks are among the dentry builders, which (c) must measure, not assume.
+<!-- THOUGHT:END -->
