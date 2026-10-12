@@ -247,7 +247,7 @@ G-E2 = `grid_retired()` (grid.py:240; guards grid.py:1150 and :269): EXISTS, rea
 | N3 | engine-wrap.md:65 (`update-ref $R`, R=refs/spawn/$M/$s, engine-wrap.md:54) | writes | no | n/a | n/a |
 | N4 | heal.py:1701, :1728, :1737 (SWEEP_ARCHIVE_NS + name, refs/archive/worktrees/...) | writes | no | n/a | n/a |
 | N5 | rotate.py:11065 commit-tree (an index tree; pushed at :11072 as a branch) | writes | no | n/a | n/a |
-| N6 | board_job.py:180 (`update-ref refs/heads/posts/<post> <MAIN head> <old tip>`: the board job's MAIN-ahead move, a pure CAS ref move of the seat's own branch to a descendant; no commit; goal:g7.16.1.11.42) | writes | no | n/a | n/a |
+| N6 | board_job.py cmd_land (`update-ref refs/heads/posts/<post> <MAIN head> <old tip>`: the board job's MAIN-ahead move, a pure CAS ref move of the seat's own branch to a descendant; no commit; goal:g7.16.1.11.42) | writes | no | n/a | n/a |
 | P1 | cli.py (37 matching lines of C5: `git push origin <branch>` / `--delete <ref>` / `<old>:<new>`, branch rename and delete verbs) | pushes | no | n/a | n/a |
 | P2 | rotate.py (44 matching lines of C5, minus W4: branch pushes, `HEAD:<mirror>` refs/agi/*, `:refs/heads/*` deletes, :9655 the merge target) | pushes | no | n/a | n/a |
 | P3 | season.py:1158 `<sha>:refs/heads/<head>`; branches.py:425 `<sha>:<refs/agi/..>` | pushes | no | n/a | n/a |
