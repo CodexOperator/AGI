@@ -45,7 +45,7 @@ cap dg4 $T/r pack 00000000000000000000000000000000 subtree $M1 >/dev/null 2>$T/e
 ok p5-an-absent-attach-mint-is-rc-3 '[ $r5 = 3 ]&&grep -qF "[attach-absent]" $T/e5'
 PC=$(cap dg4 $T/r pack $M1 post p --ref 'refs/heads/posts/o*' 2>/dev/null);PM=$($G -C $T/r show refs/capsule/$PC:MANIFEST)
 ok p6-post-is-its-refs-only-and-no-member-lines 'echo "$PM"|grep -q "^ref refs/heads/posts/p "&&echo "$PM"|grep -q "^ref refs/box/p/q "&&echo "$PM"|grep -q "^ref refs/held/p/x "&&echo "$PM"|grep -q "^ref refs/heads/posts/other "&&! echo "$PM"|grep -q "^member "&&! echo "$PM"|grep -q "^ref refs/capsule/"'
-ok p7-negative-the-piece-writes-no-grid-ref-and-no-nest-cell '! grep -q "refs/grid" $CAPSULE&&! grep -q "^nest:" $CAPSULE'
+ok p7-negative-no-nest-cell-is-written '! grep -q "^nest:" $CAPSULE'
 ok p8-pack-never-deletes-a-source-ref 'for r in refs/heads/posts/p refs/box/p/q refs/held/p/x;do $G -C $T/r rev-parse -q --verify $r>/dev/null||false;done'
 mut 's/die 2 "\[class\] a slice/true 2 "[class] a slice/' p4;cp $T/mut $T/m-class
 PIECE=$T/m-class cap dg4 $T/r pack $M1 subtree $M1 --encrypt quorum >/dev/null 2>$T/em;
@@ -123,7 +123,18 @@ mut 's/git archive refs\/capsule\/\$1/git archive $T/' g;ok g1-mutant-RED-regrow
 ok g1b-regrow-refuses-a-capsule-that-does-not-verify '! (cd $T/r&&AGI_ALLOWED=$T/mal-none AGI_TRUNK=HEAD sh $CAPSULE regrow $GC $T/rg2 >/dev/null 2>&1)&&[ ! -e $T/rg2 ]'
 GG=$(cap dg4 $T/r pack $M1 post p --ref "refs/grid/*" 2>/dev/null);cap dg4 $T/r out $GG >$T/gg.bundle;new t5;(cd $T/t5.git&&AGI_ALLOWED=$T/allowed AGI_TRUNK=refs/heads/main sh $CAPSULE in $T/gg.bundle)
 ok g2-regrow-1b-refs-after-in-equal-the-ref-lines-none-missing-none-extra '[ "$($G -C $T/t5.git for-each-ref --format="%(objectname) %(refname)"|grep -v " refs/heads/main$"|sort)" = "$({ echo "$($G -C $T/r rev-parse refs/capsule/$GG) refs/capsule/$GG";$G -C $T/r show refs/capsule/$GG:MANIFEST|sed -n "s/^ref \(.*\) \(.*\)/\2 \1/p";}|sort)" ]&&$G -C $T/r show refs/capsule/$GG:MANIFEST|grep -q "^ref refs/grid/n1 "'
-ok g3-the-carrier-writes-the-grid-ref-it-carries-without-a-writer-of-its-own '! grep -n "update-ref refs/grid\|refs/grid/" $CAPSULE | grep -q .'
+# --- GRID = TRANSPORT (council 03:25Z (b), doc:g716111-44-capsule-pack v5 8.5): `in` never AUTHORS a grid version, it CARRIES grid refs verbatim -- a ref set to the EXACT sha the signed MANIFEST names
+# (the old "the piece spells no refs/grid" grep rows were struck as vacuous: `in` sets any carried ref)
+gl(){ $G -C $T/r show refs/capsule/$GG:MANIFEST|sed -n 's/^ref refs\/grid\/n1 //p';}
+ok g4a-the-targets-grid-ref-is-the-manifest-line-and-no-grid-commit-is-new '[ "$($G -C $T/t5.git rev-parse refs/grid/n1)" = "$(gl)" ]&&$G -C $T/t5.git rev-list refs/grid/n1|sort>$T/tg&&$G -C $T/r rev-list refs/grid/n1|sort>$T/sg&&[ -s $T/tg ]&&[ -z "$(comm -13 $T/sg $T/tg)" ]'
+mut 's/echo "update \$r \$n /echo "update $r $(git rev-parse refs\/heads\/main) /' g;new t8;(cd $T/t8.git&&AGI_ALLOWED=$T/allowed AGI_TRUNK=refs/heads/main sh $T/mut in $T/gg.bundle)
+ok g4a-mutant-RED-any-other-sha-than-the-line-is-caught '[ "$($G -C $T/t8.git rev-parse refs/grid/n1)" != "$(gl)" ]'
+# (b) a grid line whose sha is in NEITHER the bundle nor the target: refused by name at verify, every ref unchanged
+$G -C $T/r update-ref refs/grid/n2 "$($G -C $T/r commit-tree -p refs/grid/n1 -m grid-n2 $($G -C $T/r rev-parse refs/grid/n1^{tree}))"
+GB=$(cap dg4 $T/r pack $M1 post p --ref "refs/grid/*" 2>/dev/null);$G -C $T/r bundle create $T/gb.bundle refs/capsule/$GB refs/heads/posts/p refs/box/p/q refs/held/p/x refs/heads/posts/other refs/grid/n1 --not $BASE 2>/dev/null
+new t7;s7=$($G -C $T/t7.git for-each-ref)
+ok g4b-a-grid-line-in-neither-the-bundle-nor-the-target-is-refused-and-nothing-moves '$G -C $T/r show refs/capsule/$GB:MANIFEST|grep -q "^ref refs/grid/n2 "&&! (cd $T/t7.git&&AGI_ALLOWED=$T/allowed AGI_TRUNK=refs/heads/main sh $CAPSULE in $T/gb.bundle >/dev/null 2>$T/g4b.err)&&grep -qF "[heads]" $T/g4b.err&&[ "$s7" = "$($G -C $T/t7.git for-each-ref)" ]'
+ok g4b-mutant-RED-without-the-heads-check-the-refusal-is-no-longer-verifys '! { (cd $T/t7.git&&AGI_ALLOWED=$T/allowed AGI_TRUNK=refs/heads/main sh $T/m-heads in $T/gb.bundle >/dev/null 2>$T/g4bm.err);grep -qF "[heads]" $T/g4bm.err;}'
 o0=$($G -C $T/r rev-parse refs/capsule/$GC);N1=$(cap dg4 $T/r repoint $GC $M2 2>$T/rp.err);rp=$?
 $G -C $T/r show $o0:MANIFEST>$T/mo;$G -C $T/r show $N1:MANIFEST>$T/mn
 ok r1-the-old-tip-is-the-new-tips-parent-and-only-attach-differs '[ $rp = 0 ]&&[ "$($G -C $T/r rev-parse refs/capsule/$GC)" = "$N1" ]&&[ "$($G -C $T/r rev-parse $N1^)" = "$o0" ]&&[ "$(diff $T/mo $T/mn|grep -c "^[<>]")" = 2 ]&&$G -C $T/r show $N1:MANIFEST|grep -qx "attach $M2"'

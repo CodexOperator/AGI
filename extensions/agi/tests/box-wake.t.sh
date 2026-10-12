@@ -19,7 +19,9 @@ mkdir -p $T/bin $T/c $T/k $T/run $T/hm/.claude
 [ -n "$AGIRUN" ]||{ sect agi-run>$T/agi-run;AGIRUN=$T/agi-run;}
 [ -n "$CCCC" ]||{ sect cccc.ts>$T/cccc.mjs;CCCC=$T/cccc.mjs;};case $CCCC in *.mjs);;*)cp $CCCC $T/cccc.mjs;CCCC=$T/cccc.mjs;;esac
 [ -s $BOX ]&&[ -s $AGIRUN ]&&[ -s $CCCC ]||{ echo "FAIL extract: box $(wc -c<$BOX) agi-run $(wc -c<$AGIRUN) cccc.ts $(wc -c<$CCCC)";exit 99;}
-mv $T/bin/box $T/bin/box.real;printf '#!/bin/sh\n[ "$1" = n ]&&echo >>%s/polls\nexec sh %s/bin/box.real "$@"\n' $T $T >$T/bin/box   # the poll log: one line per `box n` the watchers (or anyone) run through $T/bin
+mv $T/bin/box $T/bin/box.real;printf '#!/bin/sh\n[ "$1" = n ]&&{ [ -n "$BW_UNIT" ]&&echo >>%s/boxn||echo >>%s/polls;}\nexec sh %s/bin/box.real "$@"\n' $T $T $T >$T/bin/box
+# goal:g7.16.1.11.32 B (fingerprint): the unit's idle ticks no longer run `box n`, so the unit's POLL is its tick: a git shim logs the loop's one `git for-each-ref refs/box ...` per iteration (the fingerprint, $2 = refs/box; box's own call has --format as $2) into polls when the loop runs with BW_UNIT; its `box n` calls go to boxn
+printf '#!/bin/sh\n[ -n "$BW_UNIT" ]&&[ "$1" = for-each-ref ]&&[ "$2" = refs/box ]&&echo >>%s/polls\nexec /usr/bin/git "$@"\n' $T >$T/bin/git;chmod +x $T/bin/git   # the poll log: one line per `box n` the watchers (or anyone) run through $T/bin
 # goal:g7.16.1.11.32: the box-wake loop is the loop of agi-boxwake@.service (engine-root.md), not a background of agi-run: its body is the unit's ExecStart with %t/agi-%i -> the lane's run dir and %i -> alive; UGATE is its ExecCondition
 sect agi-boxwake@.service>$T/unit;UBODY=$(sed -n "s/^ExecStart=sh -c '\(.*\)'\$/\1/p" $T/unit|sed "s,%t/agi-%i,$T/run,g;s,%i,alive,g");UGATE=$(sed -n "s/^ExecCondition=sh -c '\(.*\)'\$/\1/p" $T/unit)
 [ -s $T/unit ]&&[ -n "$UBODY" ]&&[ -n "$UGATE" ]||{ echo "FAIL extract: wake unit $(wc -c<$T/unit) B, loop body $(printf %s "$UBODY"|wc -c) B, gate $(printf %s "$UGATE"|wc -c) B";exit 99;}
@@ -62,8 +64,8 @@ mod.default({ on: (e, f) => { h[e] = f; }, sendUserMessage: (t) => { console.log
 h.session_start({ reason: "new" });
 EOF
 # start NAME KIND [env...]: one wake-watcher for post alive. KIND = agirun | cccc. Wakes accumulate in $T/typed.NAME (agirun: the FIFO's text) / $T/wakes.NAME (cccc: one WAKE line each)
-unitloop(){ (cd $T/hm/t&&env HOME=$T/hm H=claude-x O=$T/r AGI_POST=alive AGI_TRUNK=HEAD GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" setsid sh -c "$UBODY" >$OUT 2>&1 &echo $! >>$T/pids);}
-start(){ nm=$1;kd=$2;shift 2;: >$T/typed.$nm;: >$T/wakes.$nm;: >$T/polls
+unitloop(){ (cd $T/hm/t&&env BW_UNIT=1 HOME=$T/hm H=claude-x O=$T/r AGI_POST=alive AGI_TRUNK=HEAD GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" setsid sh -c "$UBODY" >$OUT 2>&1 &echo $! >>$T/pids);}
+start(){ nm=$1;kd=$2;shift 2;: >$T/typed.$nm;: >$T/wakes.$nm;: >$T/polls;: >$T/boxn
  case $kd in
  agirun)rm -f $T/run/i;mkfifo $T/run/i;exec 3<>$T/run/i;(cd $T/run&&cat <&3 >>$T/typed.$nm &echo $! >>$T/pids)
   (cd $T/hm&&env HOME=$T/hm H=claude-x RUNTIME_DIRECTORY=$T/run O=$T/r AGI_POST=alive AGI_SEAT=alive AGI_TRUNK=HEAD GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" setsid sh $AGIRUN >$T/ar.out.$nm 2>&1 &echo $! >>$T/pids);;
@@ -138,6 +140,17 @@ reset;rm -f $T/hm/hang;start u70 unit PATH=$T/binH:$T/bin:/usr/bin:/bin;arm;snd 
 : >$T/hm/hang;wt 5;h2=$(wakes u70);rm -f $T/hm/hang;wt 2;h3=$(wakes u70);snd belam alive h2;wk u70 2;tick 3;h4=$(wakes u70)
 ok "w9-unit-a-hung-box-n-neither-loses-nor-repeats-the-wake one send: $h1 wake (want 1); the box hung for 5 s (every count times out): still $h2 (want 1); the box back: still $h3 (want 1: the hang did not reset s, so the announced mail is not re-announced); a second send wakes ($h4, want 2: the loop lived through the hang)" '[ "$h1" = 1 ]&&[ "$h2" = 1 ]&&[ "$h3" = 1 ]&&[ "$h4" = 2 ]'
 reset;rm -f $T/hm/hang
+# ---- w9b (goal:g7.16.1.11.32 B): the fingerprint changes while the box HANGS: the mail is neither lost nor announced early. A send during the hang changes the refs, every tick then tries `box n` (timeout, scaled), `||continue` keeps p and s, and when the box answers the wake comes ONCE.
+reset;rm -f $T/hm/hang;start u71 unit PATH=$T/binH:$T/bin:/usr/bin:/bin;arm;snd belam alive g1;wk u71 1;tick 3;c0=$(wakes u71)
+: >$T/hm/hang;snd belam alive g2;wt 4;c1=$(wakes u71);rm -f $T/hm/hang;wk u71 2;tick 4;c2=$(wakes u71)
+ok "w9b-unit-a-send-during-a-hang-wakes-once-when-the-box-answers one send: $c0 wake (want 1); a second send while every box n hangs (4 s): still $c1 (want 1: no wake before the count exists); the box back: $c2 (want 2: ONE wake for it, not lost, not repeated)" '[ "$c0" = 1 ]&&[ "$c1" = 1 ]&&[ "$c2" = 2 ]'
+reset;rm -f $T/hm/hang
+# ---- w10 (goal:g7.16.1.11.32 B, belam: ~3% of a core per unit x 12): an IDLE unit loop runs `box n` once per twelve ticks (the bounded refresh: the matrix and the signers are not in the fingerprint), not once per tick. 24 ticks with nothing changing: at most 3 box n (2 by design), at least 1; MUTANT: the fingerprint compare removed = a box n every tick.
+reset;start u80 unit;arm;tick 1;b0=$(wc -l <$T/boxn|tr -d ' ');tick 24;b1=$(wc -l <$T/boxn|tr -d ' ');idle=$((b1-b0));stop
+UB0=$UBODY;UBODY=$(printf '%s' "$UBODY"|sed 's/\[ "\$f" = "\$p" \]&&\[ \$k -lt 12 \]&&continue;//');[ "$UBODY" != "$UB0" ]&&mut=cut||mut=NOT-CUT
+reset;start u81 unit;arm;tick 1;m0=$(wc -l <$T/boxn|tr -d ' ');tick 24;m1=$(wc -l <$T/boxn|tr -d ' ');midle=$((m1-m0));stop;UBODY=$UB0
+ok "w10-unit-an-idle-loop-runs-box-n-once-per-twelve-ticks 24 idle ticks ran box n $idle time(s) (want 1..3); the mutant without the skip line ($mut) ran it $midle (want >= 20: a box n every tick)" '[ "$idle" -ge 1 ]&&[ "$idle" -le 3 ]&&[ "$mut" = cut ]&&[ "$midle" -ge 20 ]'
+reset
 # ---- F4b: the unit's loop on the REAL box piece with the env agi-project WRITES (H, AGI_TRUNK, AGI_BOX from agi-boxwake@alive.service.d/h.conf, never set by hand), plus the unit's OWN Environment= lines, under env -i: a silent count of 0 (a wrong cwd, a missing variable) cannot pass
 mkdir -p $T/pr/.agi/nodes/.geometry $T/pj $T/fk;cp $R0/.agi/nodes/.geometry/engine*.md $T/pr/.agi/nodes/.geometry/
 { printf -- '---\nposts:\n';printf '  - {"name": "alive", "boot": true, "engine": {"v": 4, "harness": "claude-code", "model": "m", "effort": "high", "trunk": "HEAD"}, "role": "director", "tier": 1, "box": "local-town"}\n';} >$T/pr/.agi/nodes/.geometry/posts.md
@@ -145,7 +158,7 @@ $G init -q $T/pr;$G -C $T/pr add -A;$G -C $T/pr -c user.name=x -c user.email=x@x
 (cd $T/pr&&env -i PATH=$T/fk:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null AGI_BOX=local-town GIT_TEST_ASSUME_DIFFERENT_OWNER=1 timeout 60 sh -s $T/pj $PRR <$T/proj.sh >$T/pj.out 2>$T/pj.err);pjrc=$?
 hc=$T/pj/agi-boxwake@alive.service.d/h.conf;UENV=$(sed -n 's/^Environment=//p' $T/unit|sed "s,%i,alive,g;s,PATH=[^ ]*,PATH=$T/bin:/usr/bin:/bin,"|tr '\n' ' ')
 reset;rm -f $T/run/i;mkfifo $T/run/i;exec 3<>$T/run/i;: >$T/typed.u60;cat <&3 >>$T/typed.u60 &echo $! >>$T/pids
-(cd $T/hm/t&&eval "set -- $(sed -n 's/^Environment=//p' $hc 2>/dev/null)"&&env -i HOME=$T/hm "$@" O=$T/r $UENV GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null setsid sh -c "$UBODY" >$T/ar.out.u60 2>&1 &echo $! >>$T/pids)
+(cd $T/hm/t&&eval "set -- $(sed -n 's/^Environment=//p' $hc 2>/dev/null)"&&env -i BW_UNIT=1 HOME=$T/hm "$@" O=$T/r $UENV GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null setsid sh -c "$UBODY" >$T/ar.out.u60 2>&1 &echo $! >>$T/pids)
 hh=$(sed -n 's/^Environment="\(H=[^"]*\)".*/\1/p' $hc 2>/dev/null);hgate=$(env -i PATH=/usr/bin:/bin "$hh" sh -c "$UGATE" >/dev/null 2>&1;echo $?);htr=$(grep -c '"AGI_TRUNK=HEAD"' $hc 2>/dev/null);hbx=$(grep -c 'AGI_BOX=local-town' $hc 2>/dev/null)
 arm;snd belam alive real1;wk u60 1;tick 3;ur=$(wakes u60);stop
 ok "f4b-unit-loop-on-the-real-box-in-the-env-agi-project-wrote agi-project (rc $pjrc, want 0) wrote agi-boxwake@.service ($([ -s $T/pj/agi-boxwake@.service ]&&echo yes||echo NO)) and the wake drop-in h.conf ($([ -s $hc ]&&echo yes||echo NO)): its H passes the unit's own ExecCondition (rc $hgate, want 0), it carries AGI_TRUNK=HEAD ($htr) and AGI_BOX=local-town ($hbx) (want 1 1); the loop body under env -i plus that file plus the unit's Environment lines, with the REAL box piece and one unread message, types 'mail: box read' ONCE ($ur, want 1)" '[ "$pjrc" = 0 ]&&[ -s $T/pj/agi-boxwake@.service ]&&[ -s $hc ]&&[ "$hgate" = 0 ]&&[ "$htr" = 1 ]&&[ "$hbx" = 1 ]&&[ "$ur" = 1 ]'

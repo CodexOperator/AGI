@@ -642,7 +642,7 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
     src = src.replace("subprocess.check_output(", "_out(").replace("os.listdir(", "_ls(")
     src = src.replace("os.getpriority(", "_gp(").replace("os.setpriority(", "_sp(")   # fake pids may be real ones
     import signal as _sig
-    clock, n, ev = [10_000.0], [0], types.SimpleNamespace(conts=[], boxes=[], stops=[], nice={}, sysd=[], order=[], seq=[], stopped={}, largv=[], pend=[], spools=[])
+    clock, n, ev = [10_000.0], [0], types.SimpleNamespace(conts=[], boxes=[], stops=[], nice={}, sysd=[], sysd_kw=[], order=[], seq=[], stopped={}, largv=[], pend=[], spools=[])
     avails = avails or [33_000_000 * 1024]
     def setavail(i):
         a = avails[min(i, len(avails) - 1)]
@@ -684,31 +684,34 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
             if popen_raises: raise OSError("no runuser")
             ev.boxes.append([argv, argv[-1]]); ev.seq.append(("popen", argv[-1]))        # [argv, the notice text]: the text is the last argv word, never a shell string
         def poll(s): return 0
-        def wait(s, timeout=None): return 0
+        def wait(s, timeout=None): ev.seq.append(("wait", "notice")); return 0
+        def communicate(s, *a, **k): ev.seq.append(("wait", "notice")); return (None, None)
     class _L:
         """The journal line: `timeout 30 logger -t agi-memguard MSG`, fire-and-forget (ev.seq 'log'); logger_raises = the spawn itself fails."""
         def __init__(s, argv, **k):
             if logger_raises: raise OSError("no logger")
             ev.largv.append((argv, k)); runs.append((argv[2:],)); ev.seq.append(("log", argv[-1]))
         def poll(s): return None if logger_hangs else 0               # a hung logger stays in the pending list (the real one is killed by `timeout 30`)
-        def wait(s, timeout=None): return 0
+        def wait(s, timeout=None): ev.seq.append(("wait", "logger")); return 0            # a WAIT on the logger is an event: row (b) asserts none before the stop
+        def communicate(s, *a, **k): ev.seq.append(("wait", "logger")); return (None, None)
     class _S:
         """The alarm spool append (goal:g7.16.1.11.20.2): `timeout 30 runuser -u agi-SEAT -- python3 alarm_spool.py append ... --text TEXT`, fire-and-forget; recorded APART from the notices (ev.spools) so every notice-count row keeps its exact meaning."""
         def __init__(s, argv, **k):
             if popen_raises: raise OSError("no runuser")
             ev.spools.append(argv)
         def poll(s): return 0
-        def wait(s, timeout=None): return 0
+        def wait(s, timeout=None): ev.seq.append(("wait", "spool")); return 0
+        def communicate(s, *a, **k): ev.seq.append(("wait", "spool")); return (None, None)
     def _popen(argv, **k):
         if argv[2:3] == ["logger"]: return _L(argv, **k)
         if any(str(a).endswith("alarm_spool.py") for a in argv): return _S(argv, **k)
         return _P(argv, **k) if not real_box else subprocess.Popen(argv, **k)
-    def _run(*a, **k):                    # a BLOCKING subprocess.run: the guard no longer has a call that waits on a child, so any entry here is a wait on the stop path
+    def _run(*a, **k):                    # a BLOCKING subprocess.run: the guard has none; its one blocking call is baseline()'s `systemctl show` (check_output, timeout 10, at the tick END: _out below), so any entry here is a wait on the stop path
         ev.seq.append(("run", a[0][-1])); runs.append(a)
         if logger_raises: raise OSError("no logger")
     runs = []
     def _out(argv, **k):
-        ev.sysd.append(argv); ev.order.append(("fetch", argv[2])); got = (sysd or {}).get(argv[2], "OOMScoreAdjust=0\nNice=0\n")
+        ev.sysd.append(argv); ev.sysd_kw.append(k); ev.order.append(("fetch", argv[2])); got = (sysd or {}).get(argv[2], "OOMScoreAdjust=0\nNice=0\n")
         if isinstance(got, list): got = got.pop(0) if len(got) > 1 else got[0]          # a sequence: one answer per call, the last repeats
         if isinstance(got, Exception): raise got
         return got
@@ -2365,10 +2368,32 @@ def test_memguard_the_stop_neither_waits_on_logger_nor_dies_of_it(tmp_path):
     assert not any(e[0] == "run" for e in ev.seq), [e for e in ev.seq if e[0] == "run"]          # no blocking subprocess.run anywhere: a hung logger cannot hold the tick
     k = _kill_at(ev, 30)
     assert any(e[0] == "log" and e[1].startswith("SPIKE") for e in ev.seq[:k]), ev.seq[:k]         # the SPIKE line WAS spawned before the stop, and the stop did not wait for it
+    assert not any(e[0] == "wait" for e in ev.seq[:k]), [e for e in ev.seq[:k] if e[0] == "wait"]      # council 3/3 00:31Z remark: no wait()/communicate() on any child, logger included, before the SIGSTOP
     assert ev.largv and all(a[:3] == ["timeout", "30", "logger"] for a, kw in ev.largv), ev.largv          # a hung logger is killed at 30 s ...
     assert all(kw.get("stdin") is subprocess.DEVNULL and kw.get("stdout") is subprocess.DEVNULL and kw.get("stderr") is subprocess.DEVNULL for a, kw in ev.largv)      # ... and owns no pipe of the guard
     held = [q for q in ev.pend if type(q).__name__ == "_L"]
     assert len(held) >= 1 and all(q.poll() is None for q in held), ev.pend                          # ... and is REAPED through the pending list, not forgotten (the hung ones are still in it)
+
+
+def test_memguard_a_wait_on_the_logger_before_the_stop_is_red_on_row_b(tmp_path):
+    """MUTANT of row (b): the journal line is waited on (p.wait()) right after its Popen. The fake logger records the wait, and the stop's tick shows it BEFORE the SIGSTOP."""
+    old = "pend.append(subprocess.Popen(['timeout', '30', 'logger', '-t', 'agi-memguard', msg], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))"
+    src = R.rendered(BY_NAME["memguard-script"], _vs())
+    assert src.count(old) == 1, old
+    spike = dict(avails=[30 * GIB, 20 * GIB], grow={1: [(30, 7_000_000)]})
+    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(), passes=2, logger_hangs=True, mutate=lambda t: t.replace(old, old[:-1] + "); pend[-1].wait(" + ")"), **spike)
+    assert stops == [30], stops
+    assert any(e[0] == "wait" and e[1] == "logger" for e in ev.seq[:_kill_at(ev, 30)]), ev.seq      # the mutant waits before the stop: row (b)'s predicate sees it
+
+
+def test_memguard_the_one_blocking_call_is_the_systemctl_show_at_the_tick_end_with_timeout_10(tmp_path):
+    """The council's correction (00:31Z 10-12, goal:g7.16.1.11.40.1): 'the guard has NO blocking child call' was false. baseline()'s `systemctl show` is check_output with timeout=10, ONE per tick, and it runs AFTER every stop of its tick: a size stop in the NEXT tick can wait at most 10 s behind it, a low stop never (fetches never run below the low line)."""
+    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(big=(21,)), passes=3, spawn={1: _TOOL}, sysd={_unit(): "OOMScoreAdjust=200\nNice=3\n"})
+    assert stops == [21], stops
+    assert len(ev.sysd) == 1 and ev.sysd_kw[0].get("timeout") == 10, (ev.sysd, ev.sysd_kw)           # one fetch, bounded at 10 s
+    kinds = [o[0] for o in ev.order]
+    assert "stop" in kinds and "fetch" in kinds and kinds.index("stop") < kinds.index("fetch"), ev.order       # the stop of the tick is out before the fetch begins
+    assert not any(e[0] == "run" for e in ev.seq), ev.seq                                                  # and no subprocess.run anywhere
 
 
 # --- goal:g7.16.1.11.20.2 C3: every alert is ALSO one alarm line in the sending seat's spool; root signs nothing ----------

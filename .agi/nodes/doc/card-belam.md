@@ -21,14 +21,14 @@ town: core
 Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.agi/sessions/quorum/belam.md` are symlinks to it. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs; progress lives on the town board. Skills: agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-post · agi-memory-guard · agi-node-write · agi-goal · agi-master-gate.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-s2-V 19:0xZ 10-11: woke 17:1xZ (crons re-armed: CHECK f1b8bceb, scan f88711f2); ff'd SM's b6feb687d4 (.39 round 1 + .40.1 memguard with (f),(g)) on the council's 3/3 + the 18:59Z L acks; the merge-up first said green, SM amended to NOT green (111 failed, 0 attributed) and the council did not hold. That landing un-gates plan 4e: memguard-restage.sh is now allowed (race fix + (g) are in), still measured first. No owner message this gen.
+belam-s2-V 04:2xZ 10-12, OWNER IDLE ORDER ("about outta usage ... everyone goes into idle for a clean resume ima few days"): card whole for a cold resume. This gen (17:1xZ 10-11 - 04:2xZ 10-12): 13 council-approved landings ff'd (b6feb687d4 .. 67f451d03a; 3 returns on the anonymize home class / a renderer bug), every host act measured and green: .38.1 DG5 refs retired + MAIN hook, memguard re-staged (PROVEN), alarms moved to signed box mail (send.py gone from every crontab), slab root cause found + vfs_cache_pressure 200, .42 board job signing. Owner set: quiet mail (one digest per ~4 h), projection (.41) gates the season close, the unified pack/capsule design (council), all alarms on box mail.
 <!-- THOUGHT:END -->
 
-## §0 State (19:0xZ 10-11, read from date -u)
+## §0 State (04:2xZ 10-12, read from date -u)
 | | |
 |---|---|
 | STANDING | OWNER 20:2xZ 10-11 QUIET: "you shouldn't be mailed except once every few hours at most" -> masters send ONE digest per ~4 h, exceptions [red] + blocking owner asks (told SM + TM 20:2xZ); hourly scan cron DROPPED, CHECK 13 */4 only · OWNER 19:4xZ 10-11 (verbatim, relayed to SM for goal .41): "Make sure that the projection work is done before season rollover. Everything must be able to project cleanly." = .41 gates the season-2 close · owner 07:5xZ 10-10: every 4-h CHECK = TRAJECTORY FIRST (skill agi-merge-pass §1 T1-T3); owner 21:5xZ 10-10: IDLE mostly, the council rules, belam ffs council-approved tips + breaks ties |
-| post | belam-s2-V (since 17:1xZ 10-11; IV 09:3xZ-17:1xZ); user agi-belam, works in ~/t (detached) on posts/belam; env now carries AGI_POST=belam + RUNTIME_DIRECTORY=/run/agi-belam |
+| post | belam-s2-V (17:1xZ 10-11 - 04:2xZ 10-12, IDLE by owner order); user agi-belam, works in ~/t (detached) on posts/belam; env now carries AGI_POST=belam + RUNTIME_DIRECTORY=/run/agi-belam |
 | E | 4 cores · 7.8 GB · agi.slice MemoryHigh 5120 / Max 6144 MiB · ROOT disk vg0-root 60 GB holds every post home + /tmp (52% at 19:0xZ) · /data 360 GB (313 GB free) |
 | posts (12, all claude) | DG1-5 · DT-1 · TM · alive · all-is-one · self-perpetuating · SM · belam; each has agi-post@<p> + agi-boxwake@<p> (template, Wants=) |
 | mail | `AGI_POST=belam box read` / `... box send <p>` (stdin); belam mails the masters (SM, TM); the council answers SM; memory alarms arrive by `send.py read belam` |
@@ -66,20 +66,17 @@ NEVER: rule a [decision] the council can rule · assign a design or a build · d
 
 ## §2 Landed
 belam-s2-V (17:1xZ-): ff b6feb687d4 19:00:08Z (.39 r1 + .40.1 memguard; council alive 16:21/16:42/17:06Z + L acks 18:59Z; pytest NOT green, 0 attributed) · [landed] to SM 19:00Z · /data/work/gate-director-general-5 (19:02Z) · .38.1: GO for the ~/bin self-install (19:07Z; the MAIN .git/hooks install stays my later host act) + DG5's 24 refs/heads/posts/director-general-5-* RETIRED to refs/archive/posts/ (CAS per name, after DG5's dg5-* copies matched and its 12 lanes were switched off the old names) · ff 97865e4139 19:14Z (.38.1 ref guard, self-installs at each post start)
-belam-s2-IV (09:3xZ-17:1xZ): 18 ffs 2387a51ce7 .. c52ccd53c9 · memguard A2 PROVEN · .37 re-render + drop-ins 50-52 retired · .32 agi-boxwake@ x12 · pins -> 5f5dc2c4be · rulings .38.1, .42 laned; box rule (detail: git + goal notes + refs/box/belam/sanctuary-master)
 
 ## 🔴 Where it stops
-belam-s2-V: LANDED SM's stack 3762e56145 00:31Z 10-12 (.42 E code half · SM branch psi 30 · .20.2 every alarm on signed box mail · .41 agi-sync) + all host acts green: alarm_spool.py in /opt/agi/bin, agi-quiet-watch re-installed (backup /var/backups/agi-quiet-watch-20261012T003153Z), memguard re-staged at 3762e56145 (PROVEN), ONE crons.py apply --sudo (send.py gone from every crontab; agi-belam 3 + agi-sanctuary-master 2 lines), alarm-first-start rc 0. Alarms now arrive as [alarm <job>] box mail from sanctuary-master.
-- .40.1.1 LANDED b32076b914 00:54Z + sysctl 60-agi-vm.conf vfs_cache_pressure 200 LIVE 00:55Z (PRE: slice 4898, slab 1068, swap 1432 MiB, events high 383172); AFTER 01:57Z: slab +133 MiB/h (was ~620), swap -71. A/B 02:01Z (mine, light suite): medians 5 vs 4 MiB -> council 02:04Z: INCONCLUSIVE, 200 KEPT, no heavy A/B now. Both DG notes FIXED in stack 6 911a1d95eb (ff 01:26Z: sysctl-check reads /proc/sys, fill line = anon+shmem+slab_unreclaimable, apply --sudo prints installed/unchanged; agi-belam 4 + agi-sanctuary-master 3 lines incl. */5 caps).
-- LANDED cba4d93fe7 03:02Z (stack 10, tests) + 9433362999 03:04Z (stack 11: agi-hook FF2, combined PSI row; every stack 6-7 fix-forward in). LANDED 1ead48f16d 01:57Z (stack 8: .43 post-uid pytest, capsule FF1) + ab745407e7 02:14Z (stack 9: .43.1 provisioning status, A/B test fix, .40.1.1 leaf). LANDED 375139b329 01:43Z (stack 7: box-mail lane, unit-paths carry check, config:engine-capsule, agi-hook) + 4c installed.
-- owed next: 4c agi-hook (DG3 f8e0a26efc) · .43 (DG3 cb81a8fa3e) · .44 capsule pack (DG4) · memguard row 3 onto the spool (next .20.2 cut).
-- next command: `AGI_POST=belam box read`.
+IDLE by owner order 04:2xZ 10-12 (out of usage, a few days). MAIN = this card's commit on top of 67f451d03a (stack 12); every post told to idle with its card whole. No merge-up is pending at me.
+- AT RESUME (on E, ~/t), in order: (1) CronList -> re-arm CHECK (13 */4) ONLY (quiet); (2) `AGI_POST=belam box read`; (3) read SM's first digest; (4) then the queue below.
+- QUEUE: stack 13 (DG5 c608cc2b25 .41 FF re-cut + whatever SM gated) · .41 cut 2 (extractor from the landed trunk + cadence; touches engine-root = my pin move + render check) = the SEASON-2 CLOSE GATE (owner 19:4xZ) · OPTIONAL pin move 5f5dc2c4be -> landed sha for the agi-boxwake@ fingerprint (4d) · .40.1.1 24 h watch (revert if the 1536 MiB slab raise fires with no more walkers, or PSI full avg60 >= 0.11 for 1 h) · memguard alarms onto the spool (.20.2 next cut) · pack/capsule design (.44 + owner 20:3x-20:4xZ) · season-2 close (owner).
+- box usage while idle: the scripts (board job :23/:28, alarms, grid */30, caps) cost no model usage; a box mail to a post (an [alarm]) DOES wake that post (agi-boxwake@) and spends a turn.
 
 ## §4 Traps (this generation's only)
 | # | trap | rule |
 |---|---|---|
 | 101 | "scratch on disk" read as a post HOME: SM's ~/gate/tmp filled the ROOT disk 71% -> 82% in ~1 h (17:0xZ) | say /data/work/gate-<p> by path; the hourly scan reads `df /` too |
-| 102 | a slice gate on agi.slice memory.current never opens: it counts reclaimable cache + kernel memory and sits at MemoryHigh | gate on memory.stat anon + shmem (< 3500 MiB) |
 | 104 | memory warns with NO suite: agi.slice AT MemoryHigh with anon 1.6 GB = 2.7 GB kernel SLAB (dentries) charged to the slice; reclaim swaps the posts (23:1xZ) | read agi.slice memory.stat slab; relief = sync + drop_caches=2 (23:19Z: 5104 -> 2571 MiB); durable fix laned to SM 23:2xZ |
 | 103 | a stopped transient unit stays loaded while a template's Wants= names it, so a plain stop restarts the transient | stop it AND move /run/systemd/transient/<unit> to a backup, daemon-reload, then start the template |
 
@@ -101,4 +98,3 @@ at 19:1xZ: MAIN 97865e4139 == posts/belam == ~/t HEAD; DG5 refs/heads/posts/dire
 | /data/scrub backups hold the UNREDACTED history (mode 700) · `*.pre-tier-*` backups (~/.claude, ~/.pi) | delete on the owner's word |
 | the 2 x 5 USD TypeSafe jev keys | release: no live consumer |
 | belam row opus-5-5 / high vs the live Prime opus-5-5[1m] / max | owner sets the row |
-| GitHub history: ssh comment user@host | OWNER: leave it in, no rewrite, no purge |
