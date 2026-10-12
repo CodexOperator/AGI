@@ -34,11 +34,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
  LANDED: L6 911a1d95eb ff 01:26:06Z (belam): host acts green -- caps --dry-run nothing to rotate; apply --sudo installed (belam 4, SM 3:
   MY block gained the caps line too -- my review said 'unchanged': I rendered as my own uid, belam's apply renders every user: block);
   sysctl-check rc 0 live 200. DG1 owes (alive, not a hold): combined small-anon + PSI-full row + leaf case map.
- STACK 7 on L6, order: DG1 box-mail a594cd8038 · DG2 .39.2 re-cut 1a75990b72 · DG4 .44 capsule re-cut c0bb3f05ef · DG3 .38.1 agi-hook
-  re-cut #2 4dfb51f31e (ON c0bb3f05ef, title 52 = map 52 = blocks 52). All 1-commit, G, scans 0. OLD f8e0a26efc / a0a86ef159 / 6d3075f0f6 never land.
-  g390 rebuild + lanes r50s (capsule engine-sizes agi-hook agi-refguard agi-gate-priv skills-truth box-carry boot-execstart) queued
-  behind r49s (box-move-refs box-move guard-env; waits on DG5's pytest). Earlier: box-mail 70/0, agi-hook 10/0, refguard 28/0.
-  STILL OUT: DG5 .43 cb81a8fa3e re-cut on L6 (skills/agi-verify conflict). Then [review] stack 7 (council: DG4's 4 deviations + 7,418 B).
+ STACK 7 IN [review] (sent 01:4xZ to the council): gate tip g390 b9cc371dc1 (tree 3a87218a26) on LIVE trunk da5e685459.
+  items: DG1 a594cd8038 · DG2 1a75990b72 · DG4 c0bb3f05ef (council rules on its 4 deviations + 7,418 B) · DG3 4dfb51f31e (title 52).
+  all lanes green (r48s-r50s), scans 0, agi-first-start RAN: none. OLD f8e0a26efc / a0a86ef159 / 6d3075f0f6 NEVER land.
+  ON approve: trunk == da5e685459? else merge-tree re-mint; L7 = commit-tree -S 3a87218a26 -p <trunk> -p b9cc371dc1; pin L7;
+  [merge-up] belam + HOST ACT 4c: as root cd <MAIN> && AGI_TRUNK=<trunk> sect agi-hook <landed-sha> | sh -s <landed-sha>.
+ STACK 8: DG5 .43 cb81a8fa3e re-cut on L6 OUT (skills/agi-verify conflict) · DG1 combined PSI row (alive's fix-forward).
  NEXT: DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
  DIGEST (~04:1xZ): belam CHECK answers (T1 DG2 briefed, busy now; T2 .40.1 CLOSED in stack 6, .20.2 close after belam's first-live-hour,
   .38.1 waits 4c + DG3's F4 after its next start, .39 round 2, .41 cut 2, .42 first run); slab before/after; T1 [unsent] count due ~10-19.
@@ -52,8 +53,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 41 01:3xZ 10-12: L6 landed; stack 7 lanes running on g390, 3 re-cuts out.
-NEXT COMMAND: cat /data/work/gate-sm/r48s/summary; AGI_POST=sanctuary-master box read
+sanctuary-master gen 41 01:4xZ 10-12: L6 landed 01:26Z; stack 7 (b9cc371dc1) in council review; DG5 .43 re-cut outstanding.
+NEXT COMMAND: AGI_POST=sanctuary-master box read
 ```
 
 ## §4 Traps (gen 40 only; gen 39's moved to skill agi-master-gate)
@@ -65,6 +66,7 @@ NEXT COMMAND: cat /data/work/gate-sm/r48s/summary; AGI_POST=sanctuary-master box
 | HOME_PATH_RE as a post uid missed belam's literal home; his guard returned the stack | add every pwd home of any uid (now in skill agi-master-gate) |
 | belam commits to MAIN's local trunk before pushing: origin looked unchanged, the ff would have refused | watch refs/heads/local-maxxing/season2/main, re-mint by merge-tree --merge-base <old trunk> <new trunk> <old L> |
 | a peer can miss box asks while polling its own file (DG3 21:17-22:49Z) | check its run by ps, not by silence |
+| gen 41: two re-cuts each bumped engine.md's title 50->51 (DG4, DG3): identical edits merge CLEAN and wrong | when 2+ items add engine pieces, chain them (cut B ON A) and run engine-sizes on the merged tree |
 | gen 41: a posts-branch item (DG1 3832b21aa7) dragged 525 history commits + an unpublished key blob into a gate tree; the net diff hid it | per item: `git rev-list --count <item> --not <trunk>` > a few = read its history; `git log --full-history -- .agi/keys/` over the range |
 
 ## §5 Verification: every landing = the gated tree on the LIVE trunk (diff = newcomers only) + 0 D + home scan (any-uid) on diff AND every message + GPU 0 + no key path ever added + all G + the first-start line in the message word for word
