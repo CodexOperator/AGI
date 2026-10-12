@@ -15,7 +15,7 @@ town: core
 
 ## OVERALL GOAL (owner 10-08): finish encapsulation of grid slices (E1), belam on the new engine (E3, DONE), then the season rollover (E5). Progress is read ONLY on town:local-maxxing 'Engine rework trajectory' E1-E5. E2 (grid retirement) is MINE to cut; E4 (g1.41) moves by SM's landings.
 
-## §0 State (10-12 ~00:5xZ, gen 26, encryption-town; trunk local-maxxing/season2/main tip 7693feb76b)
+## §0 State (10-12 ~04:4xZ, gen 26, IDLE by the owner's order (usage out); encryption-town; trunk local-maxxing/season2/main tip 7693feb76b)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, engine v5 · parent SM (sanctuary-master) · ~/t is DETACHED at posts/director-general-1: NEVER `git checkout` in it · card edits: `agi-wt pull doc:card-director-general-1` + agi-turn + agi-flush (the pull dir vanishes after agi-turn: pull again for each edit) · a clone pushes a sha to MAIN with `git push /data/work/agi SHA:refs/heads/NAME` (a NEW name; next is dg1-close73; a `gc.pid.lock Permission denied` line after the push is harmless, check with `git ls-remote`) |
@@ -26,25 +26,23 @@ town: core
 
 ## §1 Plan
 ```
-ALL BUILT, MAILED, AT SM (nothing for me to build; a RED returns as ONE fix commit ON the tip of its chain):
- a. goal:g7.16.1.11.20.2 (every alarm = signed box mail, one spool per sending seat): re-cut tip 6b9b9b9658 (branch dg1-close58) on e8b68385a1 on de08f0dcd8 ... = L3 fa7e71b1df in belam's 00:1xZ digest (council 23:29Z LAND).
- b. goal:g7.16.1.11.40.1.1 (kernel SLAB; owner DG1): chain 3960c8cbea (4: fill vs min(high,max)) < 7a7bf7595f (3a: vm.vfs_cache_pressure 200 as boxkit bytes + sysctl-check.sh) < 3848e9f290 (3b: --warn-slab-mib 1536 raise via the spool, no drop) < fbff58d682 (3c: walker-slab.sh + the table in GUARD.md); branches dg1-close59..62. IN SM's GATE at 00:44Z (crons.md = my lines + his psi 30). belam needs the sysctl soon (slab back at ~650 MiB/h).
- c. box-mail.t.sh (touch C): 20ada969d6 (dg1-close63, on trunk 5a617a0946) < a594cd8038 (dg1-close64: leaf .11.11.1 corrected + machine-callers list). Solo 70 ok 2m39s; M3_UNSENT_PCT=5; council 00:08Z YES. NOT measured at load 13. I CLOSE goal .11.11.1 after SM's green gate of 20ada969d6.
- d. the trap sweep d3521e286f (dg1-close65, ON trunk 7693feb76b): older traps moved into skills agi-verify + agi-send.
-g. .40.1 CLOSE re-cut f7b95b6dce (dg1-close69, ONE G commit on trunk 2f2033785c; SM refused the posts-branch 3832b21aa7: 525 commits + an old key blob); mailed.
-f. SM 00:58Z false-RED fixes, chain fbff58d682 < 4e63b3a003 (close66) < 0ec034f08e (close67: sysctl-check reads /proc/sys) < 7cb3fc78cc (close68: memory_alarm fill = anon+shmem+slab_unreclaimable, cgroup named); mailed, SM stack 6.
-e. sysctl-check.sh 'bytes: not checked' remark (SM 00:53Z, after .40.1.1 LANDED 3/3): 4e63b3a003 (dg1-close66) on the slab tip fbff58d682; mailed.
-DONE 00:5xZ: OPEN 1 = goal .40.1 CLOSED (complete) at 3832b21aa7, F2 crontab half amended in THOUGHT (unreadable from my uid), mailed to SM once.
-h. SM 03:1xZ orders B + D both BUILT, mailed: B f7b86a1229 (dg1-close71, boxwake ref fingerprint), D 0800de802f (dg1-close72, memguard remarks); .40.1 CLOSE f7b95b6dce + f1bd0a8362 are LANDED. Nothing OPEN; a RED returns as ONE fix commit on the tip of its chain.
+IDLE since SM 04:3xZ (owner: "We're about outta usage ... everyone goes into idle for a clean resume in a few days"). No gate, dispatch, build or box send until the owner resumes; do NOT box belam. Nothing of mine is in flight.
+AT SM, waiting for the resume (a RED returns as ONE fix commit ON the tip of its chain, from a worktree of the LIVE trunk, signed, branch dg1-close73+):
+ a. B f7b86a1229 (dg1-close71): agi-boxwake@ ref fingerprint (engine-root.md unit 896 -> 1013 B; box-wake.t.sh 46 ok, boxwake-unit/engine-sizes/restart-bounds 0 FAIL). Live only at belam's next agi-project re-projection (host act).
+ b. D 0800de802f (dg1-close72): memguard council remarks (leaf .40.1 corrected; wait events + mutant; 368 passed).
+ c. DONE + LANDED: .40.1 CLOSED (f7b95b6dce), the slab chain .40.1.1 (+ sysctl-check /proc/sys fix 0ec034f08e, fill line 7cb3fc78cc, thrash row f1bd0a8362 in L11), .20.2 alarm spool stack.
+ d. NOT MINE / waiting on the resume: stack 13 (DG4 63b21a5b90 + DG5 7970370e55 + DG2 e52540c669, gate tree g397), DG3's i10 fix.
+PARKED: .12 .15 .13 (DG2 runs the 17 aa3 lanes, I close .13) - .17 ACTIVE (falsifier-1 misses: no ring file/ckpt block, agi-land not installed: belam's host acts) - goal .11.11.1: I CLOSE it after SM's green gate of 20ada969d6 (box-mail.t.sh lane).
+```
 HOST ACTS (belam, never mine): install alarm_spool.py to /opt/agi/bin, re-install agi-quiet-watch, crons.py apply (needs .42 C1 `user:`), then `sh extensions/agi/guard/alarm-first-start.sh`; render+install /etc/sysctl.d/60-agi-vm.conf, sysctl --system, sysctl-check.sh, 1 h before/after numbers into the .40.1.1 leaf; a cold-cache `walker-slab.sh` pass; box-move.sh after-check (DG2's file, SM places the call).
 PARKED: .12 .15 .13 (DG2 runs the 17 aa3 lanes, I close .13) · .17 ACTIVE (its falsifier-1 misses: no ring file/ckpt block, agi-land not installed: belam's host acts).
 ```
 
 ## 🔴 Where it stops + the exact next command
-Nothing in hand; all builds at SM's gates (a, b, c, d). NEXT: `AGI_POST=director-general-1 /opt/agi/bin/box read` for SM's gate verdicts; on a RED run it at the sender's sha and return ONE fix commit on the chain tip; after SM's green gate of 20ada969d6 CLOSE goal .11.11.1. Items 2 and 3 above wait on their named triggers. Never a host act; never `grid.py checkout`; never invent goals.
+IDLE, tree clean, nothing unsent. ON RESUME: `AGI_POST=director-general-1 /opt/agi/bin/box read` (SM's verdicts on dg1-close71/72 and on 20ada969d6); on a RED run it at the sender's sha (env -i, tree + basetemp on DISK, nice 10) and return ONE fix commit; on green close goal .11.11.1 (a node edit re-cut as ONE commit on the live trunk, see §4). Never a host act; never `grid.py checkout`; never invent goals; box SM only, one message per finished thing, no acks.
 
 ## §2 Landed this generation (mine, via SM)
-close32..close51 (memguard stack, .32 condition + CLOSE, .40.1 start-time/append/log fixes, .20.2 cut 1) · close52 flap hold (571f300635) · close53..58 the .20.2 spool stack (alarm_spool.py, memory_alarm appends, alarm_drain rows, quiet-watch, memguard append, first-start) · close59..62 the slab chain · close63..64 box-mail lane + leaf · close65 the sweep · close66..68 sysctl remark, /proc/sys read, fill line. Judged by running: dg3-40b ACCEPT.
+close32..close51 (memguard stack, .32 condition + CLOSE, .40.1 start-time/append/log fixes, .20.2 cut 1) · close52 flap hold (571f300635) · close53..58 the .20.2 spool stack (alarm_spool.py, memory_alarm appends, alarm_drain rows, quiet-watch, memguard append, first-start) · close59..62 the slab chain · close63..64 box-mail lane + leaf · close65 the sweep · close66..68 sysctl remark, /proc/sys read, fill line · close69 .40.1 CLOSE re-cut · close70 thrash row + case map · close71 boxwake fingerprint · close72 memguard remarks. Judged by running: dg3-40b ACCEPT.
 
 ## §4 Traps (this generation only; the older ones moved to agi-verify / agi-send in d3521e286f)
 | trap | rule |
