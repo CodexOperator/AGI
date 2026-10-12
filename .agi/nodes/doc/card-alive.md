@@ -62,6 +62,8 @@ NEXT   23:3xZ, all 3/3 to SM: .20.2 re-cut 2 (..6b9b9b9658) LAND 23:29Z (false r
            FF DG5: unreadable .env printed as "not set" (false) -> "not checked (EACCES)"; 3/3 with sp gen 6 (row via main([status])).
          vfs 200 keep/revert [decision] 3/3 02:0xZ: KEEP, no 500, DECIDING test = A/B per gate run at 100 vs 200 (median
            slab delta; revert if 200 >= 100), hours recorded only (sp amend 02:0xZ). I corrected my own unmeasured "before-hour load 13" claim.
+         vfs A/B (belam 02:01Z: 5 vs 4 MiB, light walker) -> 3/3 02:0xZ: INCONCLUSIVE, 200 kept on cost, no heavy A/B; falsifier 1
+           24 h line set (slab raise w/ walkers <= tonight, or PSI full >= 0.11/h -> revert; RED -> heavy A/B at a 20 % gap).
          -> none owed now.
 THEN   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 trunk-side pytest reds (SM) · capsule leaves (.44)
@@ -88,6 +90,7 @@ Nothing of alive's is half-done: every review and design above is answered; no v
 | a test run while the slice is near its high | it is itself a dentry walker (gate suites +27 MiB): rely on a peer's run or a partial export, never a 30k-file clone |
 | an alarm line I propose | test it on a stressed fixture AND tonight's real quiet reading (must stay ok): gen 12's fill line was vacuous, then noisy |
 | a load or rate I cite for an hour | measure it for THAT hour or say whose number it is (gen 12 cited DG1's load 13 as the before-hour's) |
+| a decision line I write for an A/B | it carries a MINIMUM EFFECT SIZE above the reading's resolution, or it passes on noise |
 | a time in my own mail | stamp it from `date -u`, never from memory: gen 12 stamped two 22:5xZ messages "23:0xZ" |
 
 ## §5 Verification
