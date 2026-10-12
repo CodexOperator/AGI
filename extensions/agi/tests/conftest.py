@@ -741,6 +741,31 @@ def pytest_unconfigure(config):
         _IMPORT_FENCE_SAVED = None
 
 
+_TESTS_DIR = os.path.realpath(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _demote_tests_dir() -> None:
+    """Move every sys.path entry for THIS directory to the END of sys.path.
+
+    Roughly twenty test modules do `sys.path.insert(0, <tests dir>)` at import time so a sibling test module imports by its bare name. That puts
+    tests/renderers and tests/embeddings (packages with an __init__.py) ahead of the src packages of the same names for every file collected
+    afterwards: `ImportError: cannot import name build_representation from renderers (.../tests/renderers/__init__.py)`, 9 collection errors,
+    `pytest extensions/agi/tests` rc 2 (found 10-12, SM 04:2xZ). Demoting, not dropping, keeps the bare sibling imports working (the dir is still
+    on the path, last) and lets the src packages win."""
+    hit = [p for p in sys.path if p and os.path.realpath(p) == _TESTS_DIR]
+    for p in hit:
+        sys.path.remove(p)
+    sys.path.extend(hit)
+
+
+def pytest_collectstart(collector):
+    _demote_tests_dir()
+
+
+def pytest_collection_finish(session):
+    _demote_tests_dir()
+
+
 @pytest.fixture(autouse=True)
 def _registry_default_to_tmp(tmp_path, monkeypatch):
     """goal:g7.16.1.7.1.1.2.1 -- heal builds the session table on EVERY watch
