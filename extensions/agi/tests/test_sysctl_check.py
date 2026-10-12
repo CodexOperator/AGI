@@ -62,3 +62,13 @@ def test_an_empty_conf_and_an_unreadable_key_are_red(box):
     (d / "60-agi-vm.conf").write_text("vm.no_such_key = 5\n")
     r = _run(env, EXPECTED="")
     assert r.returncode == 1 and "<unreadable>" in r.stdout, r.stdout
+
+
+def test_an_unset_expected_says_the_bytes_were_not_checked_and_is_not_a_full_pass(box):
+    env, d, _ = box
+    for over in ({"EXPECTED": ""}, {}):
+        e = {k: v for k, v in env.items() if k != "EXPECTED"}; e.update(over)
+        r = _run(e)
+        assert r.returncode == 0 and "bytes: not checked (EXPECTED unset)" in r.stdout and "equals the rendered row" not in r.stdout, r.stdout
+    r = _run(env)                                                    # EXPECTED named: the line is absent and the bytes are compared
+    assert "not checked" not in r.stdout and "equals the rendered row" in r.stdout, r.stdout

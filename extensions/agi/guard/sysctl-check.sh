@@ -6,7 +6,7 @@
 # Env (defaults are the box's): SYSCTL_D SYSCTL_FILE SYSCTL EXPECTED.
 D=${SYSCTL_D:-/etc/sysctl.d};F=${SYSCTL_FILE:-60-agi-vm.conf};SYSCTL=${SYSCTL:-sysctl};EXPECTED=${EXPECTED:-};rc=0
 [ -r "$D/$F" ] || { echo "RED sysctl: $D/$F is missing or unreadable (installed by the box owner; a box move or a reinstall drops it)";exit 1;}
-if [ -n "$EXPECTED" ];then cmp -s "$EXPECTED" "$D/$F" && echo "ok bytes: $D/$F equals the rendered row" || { echo "RED bytes: $D/$F differs from $EXPECTED";rc=1;};fi
+if [ -n "$EXPECTED" ];then cmp -s "$EXPECTED" "$D/$F" && echo "ok bytes: $D/$F equals the rendered row" || { echo "RED bytes: $D/$F differs from $EXPECTED";rc=1;};else echo "bytes: not checked (EXPECTED unset)";fi
 tmp=$(mktemp) || exit 2;trap 'rm -f "$tmp"' EXIT
 awk '/^[ \t]*(#|$)/{next} {i=index($0,"="); if(!i)next; k=substr($0,1,i-1); v=substr($0,i+1); gsub(/^[ \t]+|[ \t]+$/,"",k); gsub(/^[ \t]+|[ \t]+$/,"",v); print k "\t" v}' "$D/$F" >"$tmp"
 [ -s "$tmp" ] || { echo "RED sysctl: $D/$F sets nothing";exit 1;}
