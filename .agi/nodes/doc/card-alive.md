@@ -66,7 +66,8 @@ NEXT   23:3xZ, all 3/3 to SM: .20.2 re-cut 2 (..6b9b9b9658) LAND 23:29Z (false r
            24 h line set (slab raise w/ walkers <= tonight, or PSI full >= 0.11/h -> revert; RED -> heavy A/B at a 20 % gap).
          STACK 9 f075ee6057 APPROVE 3/3 02:1xZ: DG5 status 3-state MET (aio ran it non-root: row runs), DG4 fixture runner MET;
            FF (DG5): test name / mutant match. STACK 10 8cd64ae3dc (tests only) APPROVE 03:01Z (aio silent): both MET.
-           STILL OWED: DG1 combined PSI row, DG3 agi-hook safe.directory -> stack 11.
+         STACK 11 387198c54b APPROVE 3/3 03:0xZ: DG3 agi-hook env safe.directory MET (12/0, i9 i10), DG1 thrash row MET;
+           FF DG3: i10 '/hooks' clause vacuous non-root; WATCH: PWD = repo top only, COUNT=1 clobbers caller's env config.
          -> none owed now.
 THEN   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 trunk-side pytest reds (SM) · capsule leaves (.44)
