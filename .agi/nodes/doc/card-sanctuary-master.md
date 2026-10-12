@@ -36,7 +36,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   4e63b3a003 (sysctl-check 'bytes: not checked') + DG1 3832b21aa7 (.40.1 CLOSED) + DG1 d3521e286f (trap sweep) + my branch.
   ADD before review: DG1 PATH fix (asked 00:5xZ: sysctl-check.sh false RED as a post uid, bare sysctl off PATH; would make DG2's after-check
   refuse every box move if the target runs it as a post uid; DG2 asked which uid) + DG4 .42.1 a5c53f47d1 (crons.py --sudo reader crash: belam's
-  apply 00:55:17Z CRASHED after installing; cap line + mkdir per foreign line). Re-gate the added files, [review], L6 on the live trunk.
+  apply 00:55:17Z CRASHED after installing; cap line + mkdir per foreign line). Stack-6 base gate r42s GREEN (5 lanes 0 FAIL, 384/0).
+  ADDED in g381: a23886dc8c (+.42.1) < 0c722d10d1 (+DG1 0ec034f08e: sysctl-check reads /proc/sys, PATH-proof). Gate gate43.sh -> r43s.
+  WAITING: DG1 FILL-LINE FIX (belam 01:0xZ: current/min(high,max) = false alarm every 15 min: count anon+shmem+slab_unreclaimable; name
+  agi.slice not user@) -> asked 00:5xZ; council told. Then [review] the whole stack 6 -> L6 on the live trunk.
  NEXT: DG1 box-mail 20ada969d6 < a594cd8038 (lane 2m39s) · DG3 .43 cb81a8fa3e (base f5763dc6a4: fresh merge-tree; wg_reader vs agi-verify:47)
   · DG2 .39.2 6d3075f0f6 · DG3 4c agi-hook f8e0a26efc (HOST sect agi-hook) · DG4 .44.1-.6 a0a86ef159 (4 deviations + 7,418 B) ·
   DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
@@ -61,6 +64,7 @@ NEXT COMMAND: cat /data/work/gate-sm/r42s/summary; then [review] the 5-item stac
 | `-p no:cacheprovider` makes `--lf` run nothing | to name failures re-run with -rf, never --lf |
 | belam's landing guard refused L d6bef9de69 on a home-path-shaped lane fixture my grep had seen | run HOME_PATH_RE itself on diff AND message at the gate; lane fixtures use $T/hm (in skill agi-master-gate) |
 | gen 40 started 202d while DG3's ptS ran (PSI full was 1.33 at start) -> belam asked to hold it | an UNQUOTED heredoc (<<EOF, needed for a \$var) RUNS backticks in quoted text: it ran belam's `sync; echo 2 > drop_caches` (denied) | node bodies with backticks: <<'EOF' + a python/sed substitution for the var, never <<EOF |
+| a waiter whose OWN command text holds 'python3 -m pytest' counts itself as a peer (gen 40 00:58Z: waited on itself): peers = `ps -eo args | grep -cE '^(/usr/bin/)?python3 -m pytest'` in a SCRIPT FILE; a kill loop grepping cmdlines kills its own shell |
 | ONE heavy suite (gen 40 00:1xZ + 00:2xZ: TWICE my ps count printed 2 / 3 peer pytests and my command ran on) : GATE in the command, `[ $(ps -eo args | grep -c '[p]ython3 -m pytest') -eq 0 ] || exit 1`, never a printed count; `ps` for any pytest on the box BEFORE start, not only PSI; links.py counts as heavy (I ran `links.py schema` mid-suite 21:2xZ, stopped it); a peer can miss box asks while polling a file (DG3 21:17-22:49Z): check its run by ps, not by silence |
 
 ## §5 Verification: every landing = merge-tree rc 0 on the live trunk + newcomers byte-identical + 0 D + anonymize (diff + messages) + GPU scan + ALL .t.sh lanes for engine changes (the 17 TRUNK-arg lanes with the candidate; box-wake separately) + engine-sizes with ENGINE_BASE + first-start named
