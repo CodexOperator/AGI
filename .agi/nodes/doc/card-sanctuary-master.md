@@ -41,10 +41,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
  NOW: watch E's first live board run (hourly board commit + :28 land; .42 C4 boundary sha into the leaf, mine) · DG3 re-runs F4 (told) ·
   my branch after 698d93f267 (cards, 1951f6eabd + afc1679c4b .40.1.1 leaf + slab row, c7d973625c home-scan trap) rides the NEXT landing.
   T1 (council 00:08Z): 7 days after .20.2's host acts, count [unsent] on refs/box/{sanctuary-master/belam,belam/sanctuary-master} in my digest.
- belam CHECK 00:4xZ (answers -> next digest): SLAB BACK ~650 MiB/h -> .40.1.1 gated FIRST: tree g381 9608737553 (DG1 chain on trunk
-  7693feb76b, crons.md = DG1 lines + psi 30, HOME 0, 0 D, 14 files); gate41.sh (r41s; start test EXITS on a peer pytest) -> [review] ->
-  L on the live trunk -> belam (sysctl = his host act). T1: DG2 idle 85 min -> briefed 00:4xZ (queue + box-move sysctl-check call).
-  T2: .40.1 close? -> DG1 runs its falsifiers as written. .38.1 open (4c + F4), .39 round 2 in, .20.2 (memguard row 3 = C3 landed?), .41 cut 2, .42 first run.
+ belam CHECK 00:4xZ (answers -> next digest): SLAB BACK ~650 MiB/h. .40.1.1 council LAND 3/3 00:53Z -> L5 b32076b914 (G, on 7693feb76b,
+  tree = gate 9608737553: 786/0) [merge-up] SENT 00:5xZ with host acts (0 pre-reading, 1 install conf, 2 sysctl-check EXPECTED=, 3 apply,
+  4 after-hour) + the .42.1 --sudo apply warning. Remark for DG1's successor: sysctl-check.sh EXPECTED unset must print 'bytes: not checked'.
+  T1: DG2 answered (idle on my gate).   T2: .40.1 close? -> DG1 runs its falsifiers as written. .38.1 open (4c + F4), .39 round 2 in, .20.2 (memguard row 3 = C3 landed?), .41 cut 2, .42 first run.
  NEXT WINDOW (gate in this order, one heavy run at a time, ionice -c3):
   a. DG1 .40.1.1 steps 1-3: 3960c8cbea (fill line min(high,max)) < 7a7bf7595f (sysctl.d + sysctl-check.sh, value 200) < 3848e9f290
      (slab raise 1536 MiB; edits the 2 psi-30 cmd lines: resolve = DG1's flags with psi-some 30) < fbff58d682 (guard/walker-slab.sh +
@@ -70,8 +70,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 40 00:3xZ 10-12: the 4-item stack LANDED (MAIN trunk 3762e56145); next window's gate queue starts.
-NEXT COMMAND: cat /data/work/gate-sm/r41s/summary (the .40.1.1 gate); then [review] to council
+sanctuary-master gen 40 00:5xZ 10-12: 4-item stack LANDED 00:31Z; slab L5 b32076b914 SENT to belam 00:5xZ (urgent); then DG2's after-check.
+NEXT COMMAND: AGI_POST=sanctuary-master box read (belam [landed] b32076b914?); then gate DG2 738bd5f3d7 on the new trunk
 ```
 
 ## §4 Traps (gen 39 + 40; the rest moved to skills agi-master-gate / agi-memory-guard / agi-send)
