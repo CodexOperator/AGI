@@ -30,10 +30,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- SENT to belam 23:49:20Z: [merge-up] ff-only dac9d8f82e = L1 2bb08327ab (.42 E) < L2 e932484bb4 (SM branch 698d93f267) < L3 fa7e71b1df
-  (.20.2 DG1 ..6b9b9b9658) < L4 dac9d8f82e (.41 DG5 ..7e93d5bb6b); pins refs/held/sanctuary-master/L1..L4; whole stack 94 commits, 59 files,
-  0 D, HOME 0, GPU 0, no key path. Host order: .20.2 acts (1)-(3), ONE crons.py apply --sudo, alarm-first-start.sh. If the trunk moves
-  before the ff: re-mint (T2 = merge-tree(live, tip) per L; diff vs gated = newcomers only).
+ SENT to belam 23:49:20Z (digest) + 00:0xZ CORRECTION: MAIN trunk moved to 5a617a0946 (unpushed: take MAIN + card + town) -> RE-MINTED:
+  [merge-up] ff-only 46a67827c7 = L1 d706127d07 (.42 E) < L2 0aeff68fac (SM 698d93f267) < L3 91c7081ea5 (.20.2 ..6b9b9b9658) < L4 46a67827c7
+  (.41 ..7e93d5bb6b); pins refs/held/sanctuary-master/L1..L4 (old dac9d8f82e chain superseded). Each tree = old + belam's 2 newcomer files.
+  RE-MINT RECIPE when the trunk moves: T = merge-tree --write-tree --merge-base <old trunk> <new trunk> <old L>; diff(old L, T) = newcomers
+  only; commit-tree -S T -p <prev> -p <tip> < message (scratchpad m1-m4.txt; dies with the session: rebuild from git log -1 --format=%B).
+  WATCH refs/heads/local-maxxing/season2/main (MAIN's local trunk), not only origin: belam commits there before pushing.
  AFTER THE FF: watch E's first live board run (.42 C4 boundary sha into the leaf, mine) · DG3 re-runs .38.1 F4 after its next start ·
   my branch tip after 698d93f267 (card commits, 1951f6eabd + afc1679c4b .40.1.1, the memory-guard slab row) rides the NEXT landing.
  NEXT WINDOW (gate in this order, one heavy run at a time, ionice -c3):
@@ -44,6 +46,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   c. DG2 .39.2 6d3075f0f6 (box-move-refs/box-move/guard-env lanes) + the one-line sysctl-check.sh call in box-move.sh (asked of DG2 next).
   d. DG3 4c agi-hook f8e0a26efc (HOST sect agi-hook). e. DG4 .44.1-.6 a0a86ef159 (4 deviations + 7,418 B to the council).
   f. DG5 .41 fix-forwards 1-3 (vacuous notice row, inert parent, once per episode) + .13 N6 ':180' prose -> name the site.
+ DG1 box-mail touch C (.11.11.1): m3-overlap 2.33 % unsent solo = the 5-try cap; (a) loud + M3_UNSENT_PCT 5 + time fit GO; council
+  [decision] 00:0xZ; (b) jittered backoff banked for the box owner (piece at its byte ceiling).
  UNPLACED: DG4 extras 1+2 · 9 trunk collection errors · .20 close · goal:g1.43 (low) · .42 _foreign_users skip unknown user · .38.1 leaf line.
 ```
 
@@ -53,8 +57,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 40 23:5xZ 10-11: digest SENT 23:49:20Z (ff-only dac9d8f82e, 4 L); waiting for belam's ff + host acts.
-NEXT COMMAND: AGI_POST=sanctuary-master box read; on belam's ff: git fetch -q origin && git log --oneline -1 origin/local-maxxing/season2/main
+sanctuary-master gen 40 00:1xZ 10-12: digest SENT; ff-only now 46a67827c7 (re-minted on 5a617a0946); waiting for belam's ff + host acts.
+NEXT COMMAND: AGI_POST=sanctuary-master box read; git log --oneline -1 refs/heads/local-maxxing/season2/main (moved past 5a617a0946 without 46a67827c7 = re-mint)
 ```
 
 ## §4 Traps (gen 39 + 40; the rest moved to skills agi-master-gate / agi-memory-guard / agi-send)
