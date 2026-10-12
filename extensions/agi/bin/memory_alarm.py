@@ -14,6 +14,8 @@ that one declared place, never as a literal here.
 Signals, all read from the kernel (never from a process list):
   * MemAvailable                  /proc/meminfo
   * box memory pressure           /proc/pressure/memory (some/full avg60)
+  * the cgroup's kernel SLAB       memory.stat slab against --warn-slab-mib: a slice held at memory.high by dentry/inode cache
+                                  with small anon (goal:g7.16.1.11.40.1.1) is raised as SLAB, by name; never dropped from here
   * the user manager's cgroup     memory.pressure, and memory.current against
                                   memory.max. Guard caps user@<uid>; a thrash
                                   inside that cap never shows box-wide.
@@ -92,14 +94,34 @@ def read_int(path: Path) -> int | None:
     return int(raw) if raw.isdigit() else None
 
 
+def read_stat(path: Path) -> dict:
+    """memory.stat as {name: int bytes}; {} when unreadable."""
+    out: dict = {}
+    try:
+        for line in path.read_text().splitlines():
+            name, _, val = line.partition(" ")
+            if val.strip().isdigit():
+                out[name] = int(val)
+    except OSError:
+        return {}
+    return out
+
+
 def read_signals(cgroup: Path | None) -> dict:
     sig = {"avail_mib": read_meminfo_mib("MemAvailable"),
            "box_psi": read_psi(BOX_PSI),
-           "cg_psi": {}, "cg_current": None, "cg_max": None}
+           "cg_psi": {}, "cg_current": None, "cg_max": None, "cg_high": None,
+           "cg_name": None, "cg_slab": None, "cg_slab_rec": None, "cg_anon": None}
     if cgroup is not None:
         sig["cg_psi"] = read_psi(cgroup / "memory.pressure")
         sig["cg_current"] = read_int(cgroup / "memory.current")
         sig["cg_max"] = read_int(cgroup / "memory.max")
+        sig["cg_high"] = read_int(cgroup / "memory.high")
+        st = read_stat(cgroup / "memory.stat")
+        if st:       # kernel slab charged to the cgroup (dentry/inode cache): `slab` is the sum, else the two parts
+            sig["cg_name"] = cgroup.name
+            sig["cg_slab"] = st.get("slab", st.get("slab_reclaimable", 0) + st.get("slab_unreclaimable", 0))
+            sig["cg_slab_rec"], sig["cg_anon"] = st.get("slab_reclaimable"), st.get("anon")
     return sig
 
 
@@ -112,7 +134,8 @@ def clear_line(th: argparse.Namespace) -> argparse.Namespace:
                                  "warn_avail_mib": th.warn_avail_mib / f, "crit_avail_mib": th.crit_avail_mib / f,
                                  "warn_psi_some_avg60": th.warn_psi_some_avg60 * f,
                                  "crit_psi_full_avg60": th.crit_psi_full_avg60 * f,
-                                 "warn_cgroup_max_frac": th.warn_cgroup_max_frac * f})
+                                 "warn_cgroup_max_frac": th.warn_cgroup_max_frac * f,
+                                 "warn_slab_mib": th.warn_slab_mib * f})
 
 
 def decide(sig: dict, th: argparse.Namespace, prev: str = "ok") -> tuple[str, list[str]]:
@@ -135,12 +158,27 @@ def decide(sig: dict, th: argparse.Namespace, prev: str = "ok") -> tuple[str, li
             crit.append(f"{label} PSI full avg60 {full60:.1f}% >= {th.crit_psi_full_avg60:g}")
         elif some60 is not None and some60 >= th.warn_psi_some_avg60:
             warn.append(f"{label} PSI some avg60 {some60:.1f}% >= {th.warn_psi_some_avg60:g}")
-    cur, cap = sig.get("cg_current"), sig.get("cg_max")
-    if cur is not None and cap:
+    # The fill is read against the LOWER of memory.high and memory.max, and the reason names which: a slice HELD at memory.high
+    # (agi.slice: high 5120 of max 6144 MiB) never passes ~0.83 of its max, so a line read against max alone can never fire there
+    # (goal:g7.16.1.11.40.1.1 target 4: tonight 5104/5120 = 0.83 of max, silent by construction). `max` (unset) reads as None.
+    cur = sig.get("cg_current")
+    limits = [(v, n) for n, v in (("memory.high", sig.get("cg_high")), ("memory.max", sig.get("cg_max"))) if v]
+    if cur is not None and limits:
+        cap, which = min(limits)
         frac = cur / cap
         if frac >= th.warn_cgroup_max_frac:
-            warn.append(f"user@ at {frac:.0%} of its cap "
+            warn.append(f"user@ at {frac:.0%} of its {which} "
                         f"({cur / 1048576:.0f}/{cap / 1048576:.0f} MiB)")
+    # KERNEL SLAB charged to the cgroup (goal:g7.16.1.11.40.1.1 target 3b): a slice can sit AT its memory.high with SMALL anon because the dentry
+    # and inode caches filled it (2026-10-11: slab 2713 MiB, anon 1638, high 5120) and reclaim then swaps the posts' anon out. Neither
+    # MemAvailable nor PSI-by-name says so: the alarm names the slab. It only RAISES; dropping the caches is a box-wide root act on every
+    # tenant and is the box owner's, never taken here.
+    slab, name = sig.get("cg_slab"), sig.get("cg_name") or "cgroup"
+    if slab is not None and slab / 1048576 >= th.warn_slab_mib:
+        anon, rec = sig.get("cg_anon"), sig.get("cg_slab_rec")
+        warn.append(f"{name} kernel SLAB {slab / 1048576:.0f} MiB >= {th.warn_slab_mib:g}"
+                    + (f" (reclaimable {rec / 1048576:.0f}, anon {anon / 1048576:.0f} MiB)" if rec is not None and anon is not None else "")
+                    + " -- dentry/inode cache; the box owner drops caches, nothing here does")
     if crit:
         return "crit", crit + warn
     if warn:
@@ -188,7 +226,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--crit-avail-mib", type=float, required=True)
     ap.add_argument("--warn-psi-some-avg60", type=float, required=True)
     ap.add_argument("--crit-psi-full-avg60", type=float, required=True)
-    ap.add_argument("--warn-cgroup-max-frac", type=float, required=True)
+    ap.add_argument("--warn-cgroup-max-frac", type=float, required=True,
+                    help="warn when the cgroup's memory.current is this fraction of min(memory.high, memory.max); the reason names which")
+    ap.add_argument("--warn-slab-mib", type=float, required=True,
+                    help="warn when the cgroup's kernel slab (memory.stat slab) is at least this many MiB")
     ap.add_argument("--repeat-mins", type=float, required=True)
     ap.add_argument("--clear-margin-frac", type=float, required=True,
                     help="a raised alarm clears only below its warn line moved this fraction toward calm "

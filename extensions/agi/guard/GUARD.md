@@ -13,6 +13,9 @@ holds symlinks into it, so every command below works from either path:
 | `guard/guard-env.sh` | the ONE reader of that block (`guard_env_load <node>`), sourced by guard-init, ram-main, ram-tier and session-sweep: only blank lines, `#` comments and `GUARD_<NAME>=<value>` (bare, or single-quoted with the literal `$HOME`) are accepted, anything else exits 1 naming the node and line before any side effect; nothing is evaluated. Names are CELLS only, `GUARD_<UPPER_WORDS>_<lowercase box key>` (so a block can never set `GUARD_DIR`, `GUARD_BOX`, `GUARD_ENV_NODE`); a box whose key has a capital would be refused by name |
 | `guard/sanctuary-health` | the watchdog's health check (installed to `/usr/local/sbin`) |
 | `guard/sanctuary-watch` | the 2-minute watcher: cap-kill alerts + peer checks (installed to `~/.local/bin`) |
+| `guard/alarm-first-start.sh` | the box owner's one host act after the alarm installs (goal:g7.16.1.11.20.2): r1 over the installed scripts + one signed test line per drain row |
+| `guard/sysctl-check.sh` | read-only: the `/etc/sysctl.d` stopgap file is there and equals the live kernel (goal:g7.16.1.11.40.1.1) |
+| `guard/walker-slab.sh` | read-only, non-root: one row of the per-walker kernel-slab table (below) |
 
 ## Why: local-town, 2026-09-25
 
@@ -300,3 +303,27 @@ daemon does not start on its own either. To use the stock watchdog without guard
 afterwards: `sudo dpkg-reconfigure watchdog`. `softdog` stays loaded
 until reboot, disarmed. Engine units already running inside `agi-*.slice` stay
 there until they restart.
+
+## Kernel slab: what builds it, per walker (goal:g7.16.1.11.40.1.1 target 3c, measured 2026-10-11 23:4xZ-23:5xZ)
+
+On 2026-10-11 agi.slice sat AT its memory.high (5104 of 5120 MiB) with 1638 MiB of anon and **2713 MiB of kernel slab** (dentry and inode
+cache); reclaim then swapped the posts' anon out. The alarm now raises a slab over `--warn-slab-mib` (crons.md) and the sysctl stopgap is
+`vm.vfs_cache_pressure` (boxkit row `agi-vm-sysctl`); this table is which walkers feed the cache. Every row is one `guard/walker-slab.sh`
+run (nice 10, low load) or a count; the cache was WARM, so a walker over paths already cached adds ~nothing, and a delta is only real on a
+COLD cache (right after the box owner's drop) or when the walker CREATES paths.
+
+| walker | cadence | walks | wall | slab peak delta | what it says |
+|---|---|---|---|---|---|
+| `evidence_gate.py --dry-run enforce` (the `evidence_enforce` job) | */30, encryption-town | MAIN's 5,928 node files | 26.1 s warm (SM: 134 s at load 8, 300+ at 16-50) | +1 MiB warm | est. ~9 MiB cold (5,928 paths x ~1.5 KiB); heavy on wall time and load, light on slab |
+| `links.py links` (`agi links`, the verify pass) | on demand; twice in one gate window 20:4x-20:5xZ | every node and link, 5,928 files | 137.9 s warm | +2 MiB warm | est. ~9 MiB cold; a clone at nice 10 only when a node's front matter changed is cheap insurance, not the main builder |
+| **pytest gate suites** (basetemp on disk) | a gate window, 18+ min for a full suite | CREATES paths: boxkit templates + probe (346 tests) made **17,990** basetemp entries | 48.9 s | **+27 MiB** (+20.7k dentries, +18.1k inodes) | ~1.5 KiB per created path; `rm -rf` of the basetemp did NOT hand it back (slab stayed at the peak): unlinked paths leave negative dentries. A full suite is hundreds of times the files |
+| `git status` and tree walks over the worktrees | per `agi-turn`, per gate, per check | 48 worktrees of MAIN x 13,486 tracked files = **~647k paths** | 0.04 s warm in one tree | 0 warm | the largest SINGLE pool if every tree is stat'ed cold: est. ~970 MiB (647k x ~1.5 KiB) |
+| `grid_sync` (`grid.py commit --all`) | */30 | .agi/nodes, 5,928 files + payloads | > 6 min per run (10-09) | not run (it writes versions) | est. ~9 MiB cold; retiring |
+| `graph_metrics` | hourly :23 | the nodes | not run (writes a metrics line) | not run | est. ~9 MiB cold |
+| `maint_gc` | daily 04:41 | MAIN's object store: 258 object dirs, 2,171 loose objects, 68 refs | not run | not run | est. < 5 MiB |
+| `memory_alarm` x2, `alarm_drain` x2, `crons_apply` | every 1 / 5 min | /proc, memory.stat, one spool file | ms | 0 | none |
+
+Rates seen: 130 MiB right after the 23:19Z drop to 758 MiB by ~23:40Z while two gate suites and a verify ran (~30 MiB/min when busy);
+the kernel then took 758 -> 634 back on its own once the suites ended. So the shape is **suites + worktree sweeps build it, the high
+line stops it**, not a slow leak. The reading to decide on is the box owner's 1 h before / 1 h after pair around the sysctl; to take a
+cold delta for any walker: `echo 2 > /proc/sys/vm/drop_caches` (box owner), then `sh guard/walker-slab.sh LABEL CMD...`.
