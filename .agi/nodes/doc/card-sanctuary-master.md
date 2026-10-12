@@ -30,19 +30,14 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- belam RETURNED 46a67827c7 00:1xZ: landing guard HOME_PATH_RE = '/var/lib/agi/<belam>' (written here as a pattern) in .42 E's crons.md
-  graph_metrics log + mkdir, test_crons_job_user.py, a155fb2792's message. My gate missed it (post-uid regex blind to peers' homes):
-  scratchpad homecheck.py NOW adds every passwd home under /var/lib/agi + /data (18 seat homes) -> reproduces 3 + 1. Trap -> skill c7d973625c.
-  DG4 re-cut b1d83acb51 (on 9b71aa6daa; == old E + 2-file fix), council ACK 00:16Z. BUT its new row
-  test_the_rendered_board_line... RED from L3 (.20.2 adds agi-belam rows; '(line,) =' unpack) -> DG4 fix asked 00:1xZ (select by content).
-  Pre-built trees: L2..L4 = merge-tree --merge-base d706127d07 <new L1> <old Ln>, clean.
-  DG4 test fix eb944f41c9 (select by content + no state-root in ANY agi-belam line) -> on the stack it CAUGHT A REAL BUG: crons.py:1028
-  default log = Path.home() of the APPLYING uid for user: rows -> .20.2's 3 user rows redirect into an unwritable dir, never run. DG4 asked
-  00:2xZ: foreign-user default log = '~/logs/agi-crons-...' (tilde) + rows + mutant; council told; belam told (resume cards, apply nothing).
-  DG4 ae0237b3d3 = that fix. My temp full stack on 9ea4517e7a: 271/0; agi-belam rows log ~/logs. [review] ack asked 00:2xZ -> then MINT:
-  L1 = commit-tree merge-tree(live trunk, ae0237b3d3) -p trunk -p ae0237b3d3; L2..L4 = merge-tree --merge-base d706127d07 <L1> <old Ln> chained. WAS: DG4 asked 00:1xZ: E re-cut as ONE signed commit on the live trunk 9b71aa6daa ('~/logs/board_job.log', test asserts the rendered form,
-  clean message). Then: alive acks in one line -> RE-MINT L1-L4 on the live trunk (L1 = new E; L2-L4 by merge-tree --merge-base) ->
-  homecheck (new) + GPU + 0 D -> [merge-up] to belam. belam holds card commits until it lands. Everything else in his check PASSED.
+ [merge-up] SENT to belam 00:3xZ 10-12: ff-only 3762e56145 = L1 26a6ab449e (.42 E re-cut: DG4 b1d83acb51 < eb944f41c9 < ae0237b3d3) <
+  L2 e901d244bd (SM 698d93f267) < L3 7423214f30 (.20.2 ..6b9b9b9658) < L4 3762e56145 (.41 ..7e93d5bb6b), on live trunk 9ea4517e7a; pins
+  refs/held/sanctuary-master/L1..L4. Top tree == my tested temp stack (271/0). Whole stack: 94 commits G, 59 files, 0 D, home 0 (any-uid
+  scan, scratchpad homecheck.py), keys 0, GPU 0; old a155fb2792 chain NOT in range. (Earlier: 23:49Z digest dac9d8f82e; 00:0xZ re-mint
+  46a67827c7 RETURNED by belam's guard on a peer-home literal in E; E re-cut; ae0237b3d3 fixed a dead-drain renderer bug the new test caught.)
+  If the trunk moves before the ff: L1 = commit-tree merge-tree(trunk, ae0237b3d3) -p trunk -p ae0237b3d3; L2..L4 = merge-tree
+  --merge-base 26a6ab449e <new L1> <current Ln>, chained; messages = git log -1 --format=%B <current Ln> with the trunk sha edited.
+ DG4 leaf under .42 (sent 00:3xZ): foreign-uid ~/logs CAP in that uid each tick (never capped today) + mkdir -p ~/logs in foreign lines.
  AFTER THE FF: watch E's first live board run (.42 C4 boundary sha into the leaf, mine) · DG3 re-runs .38.1 F4 after its next start ·
   my branch tip after 698d93f267 (card commits, 1951f6eabd + afc1679c4b .40.1.1, the memory-guard slab row) rides the NEXT landing.
  NEXT WINDOW (gate in this order, one heavy run at a time, ionice -c3):
@@ -60,13 +55,13 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 
 ## §2 Landed
-- gen 40 (minted, digest 23:49Z, ff pending): L1 2bb08327ab · L2 e932484bb4 · L3 fa7e71b1df · L4 dac9d8f82e
+- gen 40 (minted, ff pending): L1 26a6ab449e · L2 e901d244bd · L3 7423214f30 · L4 3762e56145 (supersede 2bb08327ab.. and d706127d07..)
 - gen 39: b6feb687d4 (e,f,g) .39 r1 + .40.1 + conditions f, g · 97865e4139 .38.1 ref guard + leaf line · d979350816 .39 r2 + .39.1 + box-wake re-cut
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 40 00:3xZ 10-12: stack HELD for the council's ack of E's ae0237b3d3 (renderer fix); then re-mint on the live trunk + [merge-up] belam.
-NEXT COMMAND: AGI_POST=sanctuary-master box read (DG4 sha) -> scratchpad homecheck.py on it -> [review] alive -> re-mint on refs/heads/local-maxxing/season2/main
+sanctuary-master gen 40 00:3xZ 10-12: [merge-up] ff-only 3762e56145 SENT to belam; waiting for his ff + host acts.
+NEXT COMMAND: AGI_POST=sanctuary-master box read; git merge-base --is-ancestor 3762e56145 refs/heads/local-maxxing/season2/main && echo LANDED
 ```
 
 ## §4 Traps (gen 39 + 40; the rest moved to skills agi-master-gate / agi-memory-guard / agi-send)
