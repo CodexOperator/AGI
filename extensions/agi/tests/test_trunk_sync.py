@@ -5,7 +5,7 @@ The shipped pieces (agi-sync, agi-turn, agi-flush, agi-notice: the bytes in engi
 extraction extracts a piece) run in a scratch ~/t with a real git repo, a throwaway ssh signing key and a stub `box`.
 Rows: (a) a clean divergence is merged by ONE signed two-parent commit; (b) a conflict leaves the branch unmoved and
 writes `[trunk-conflict] P: N path(s) conflict with TRUNK: paths` to ~/.notice AND boxes the post's parent; (c) it comes
-back once per turn while it lasts (the notice, claimed, is re-added), the box is sent once per trunk tip; (d) the
+back once per turn while it lasts (the notice, claimed, is re-added), the box is sent once per conflict EPISODE (the path set; a clear or a clean merge ends it); (d) the
 cadence: a plain agi-turn (the Stop hook) carries the trunk, and so does agi-flush; (e) a kid and an unresolvable trunk.
 (a2) a posts/P merely behind the trunk moves by CAS to the trunk tip with 0 new commits.
 MUTANTS: the silent `&&` chain back (no notice) / the notice without the box / the box on every turn / agi-turn that
@@ -22,6 +22,16 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[3]
 POST_MD = ROOT / ".agi" / "nodes" / ".geometry" / "engine-post.md"
+
+
+# the post p, its parent mast (HARNESSED: a reader), and the inert rows the real tree has (council / keep: no harness)
+MAST_ROWS = ('  - {"name": "p", "parent": "mast", "harness": "claude-code", "engine": {"v": 4}}\n'
+             '  - {"name": "mast", "parent": "owner", "harness": "claude-code"}\n')
+KEEP_ROWS = ('  - {"name": "p", "parent": "keep", "harness": "claude-code", "engine": {"v": 4}}\n'
+             '  - {"name": "keep", "parent": "mast", "role": "council"}\n'
+             '  - {"name": "mast", "parent": "owner", "harness": "claude-code"}\n')
+NOREADER_ROWS = ('  - {"name": "p", "parent": "council", "harness": "claude-code", "engine": {"v": 4}}\n'
+                 '  - {"name": "council", "parent": "owner", "role": "council"}\n')
 
 
 def piece(name: str) -> str:
@@ -44,7 +54,7 @@ def piece(name: str) -> str:
 class Box:
     """A scratch post: ~/t (a repo on `trunk` with posts/p), bin/ with the pieces, a stub box that records its mail."""
 
-    def __init__(self, tmp: Path, overrides: dict | None = None):
+    def __init__(self, tmp: Path, overrides: dict | None = None, rows: str | None = None):
         self.home = tmp / "h"
         self.t = self.home / "t"
         self.bin = tmp / "bin"
@@ -56,8 +66,12 @@ class Box:
         for n, body in pieces.items():
             (self.bin / n).write_text(body)
             (self.bin / n).chmod(0o755)
-        (self.bin / "box").write_text(f'#!/bin/sh\necho "$@" >>{self.mail}\ncat >>{self.mail}\n')
+        (self.bin / "box").write_text(f'#!/bin/sh\necho "$@" >>{self.mail}\ncat >>{self.mail}\nexit ${{BOX_RC:-0}}\n')
         (self.bin / "box").chmod(0o755)
+        # a git shim: AGI_TEST_FAIL=<subcommand> makes ONLY that subcommand fail (rc 128), the way a failing signer, a raced ref
+        # or a broken merge-tree would; unset = the real git. Set per run(), so the fixture's own git calls never see it.
+        (self.bin / "git").write_text('#!/bin/sh\n[ "$1" = "$AGI_TEST_FAIL" ]&&exit 128\nexec /usr/bin/git "$@"\n')
+        (self.bin / "git").chmod(0o755)
         key = tmp / "key"
         subprocess.run(["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", str(key)], check=True)
         self.env = {"PATH": f"{self.bin}:/usr/bin:/bin", "HOME": str(self.home), "AGI_POST": "p", "AGI_TRUNK": "trunk",
@@ -70,7 +84,7 @@ class Box:
         self.git("config", "user.signingkey", str(key) + ".pub")
         geo = self.t / ".agi" / "nodes" / ".geometry"
         geo.mkdir(parents=True)
-        (geo / "posts.md").write_text('---\n---\n  - {"name": "p", "parent": "mast", "engine": {"v": 4}}\n')
+        (geo / "posts.md").write_text("---\n---\n" + (rows or MAST_ROWS))
         (self.t / "f.txt").write_text("base\n")
         self.commit("base")
         self.git("branch", "posts/p")
@@ -168,7 +182,7 @@ def rows(overrides, tmp_path_factory) -> list[str]:
     chk("b-the line is on stderr too", "[trunk-conflict] p: 1 path(s)" in r.stderr)
     chk("b-the parent is boxed: send mast + the line", b.mailed().startswith("send mast") and "[trunk-conflict] p:" in b.mailed())
 
-    # (c) once per turn while it lasts; boxed once per trunk tip
+    # (c) once per turn while it lasts; boxed once per conflict EPISODE (the path set), not once per trunk tip
     b.run("agi-notice")                                         # the post reads (claims) its notice
     chk("c-the notice is gone once read", b.notice() == "")
     b.run("agi-sync")
@@ -177,7 +191,79 @@ def rows(overrides, tmp_path_factory) -> list[str]:
     b.on("trunk", write(b, "f.txt", "trunk edit again\n"), "trunk moves again")
     b.settle()
     b.run("agi-sync")
-    chk("c-a NEW trunk tip is boxed again", b.mailed().count("send mast") == 2)
+    chk("c-a NEW trunk tip with the SAME path set is not boxed again (the notice carries the reminder)",
+        b.mailed().count("send mast") == 1 and "[trunk-conflict] p: 1 path(s)" in b.notice())
+    b.on("trunk", write(b, "k.txt", "trunk k\n"), "trunk adds k")
+    b.on("posts/p", write(b, "k.txt", "post k\n"), "post adds k")
+    b.settle()
+    b.run("agi-sync")
+    chk("c-a CHANGED path set is a new episode: boxed again", b.mailed().count("send mast") == 2 and "2 path(s)" in b.mailed())
+    b.git("branch", "-f", "posts/p", "trunk")                   # the conflict is resolved (the post took the trunk)
+    b.run("agi-sync")
+    chk("c-a clear ends the episode (the stamp is gone)", not (b.home / ".trunk-boxed").exists())
+    b.on("trunk", write(b, "f.txt", "trunk edit 3\n"), "trunk edits f 3")
+    b.on("posts/p", write(b, "f.txt", "post edit 3\n"), "post edits f 3")
+    b.settle()
+    b.run("agi-sync")
+    chk("c-the same paths after a clear are a NEW episode: boxed again", b.mailed().count("send mast") == 3)
+    b.git("branch", "-f", "posts/p", "trunk")
+    b.on("posts/p", write(b, "m.txt", "post\n"), "post work")
+    b.on("trunk", write(b, "n.txt", "trunk\n"), "trunk work")
+    b.settle()
+    b.run("agi-sync")
+    chk("c-a clean merge ends the episode too", not (b.home / ".trunk-boxed").exists())
+
+    # (c2) the reader: an inert parent (council / keep) maps to the nearest HARNESSED ancestor; none = notice only, stamped
+    b = Box(tmp_path_factory.mktemp("c2k"), overrides, rows=KEEP_ROWS)
+    diverge_conflict(b)
+    b.run("agi-sync")
+    chk("c2-an inert parent (keep) is boxed through to its harnessed ancestor", b.mailed().startswith("send mast"))
+    b = Box(tmp_path_factory.mktemp("c2n"), overrides, rows=NOREADER_ROWS)
+    diverge_conflict(b)
+    b.run("agi-sync")
+    b.run("agi-sync")
+    chk("c2-no harnessed ancestor: notice only, nothing boxed, stamped", b.mailed() == "" and (b.home / ".trunk-boxed").exists()
+        and "[trunk-conflict] p:" in b.notice())
+    b = Box(tmp_path_factory.mktemp("c2r"), overrides)
+    diverge_conflict(b)
+    b.run("agi-sync", BOX_RC="1")
+    b.run("agi-sync", BOX_RC="1")
+    b.run("agi-sync", BOX_RC="1")
+    chk("c2-a refused box (off-matrix) is NOT retried every turn", b.mailed().count("send mast") == 1)
+
+    # (c3) the REAL rows (this tree's posts.md, the post renamed p): the walk never reaches the Prime (owner 10-11: never box belam).
+    # Every council / keep seat resolves to belam = a notice only, stamped; a director-general is boxed through to its parent.
+    real = (ROOT / ".agi" / "nodes" / ".geometry" / "posts.md").read_text()
+    real_rows = "\n".join(ln for ln in real.splitlines() if ln.startswith("  - {")) + "\n"
+    assert '"role": "prime_director"' in real_rows, "the real posts.md must mark the Prime by role"
+    for who, reader in (("alive", None), ("all-is-one", None), ("self-perpetuating", None), ("sanctuary-master", None),
+                        ("thought-master", None), ("director-general-5", "sanctuary-master")):
+        assert f'"name": "{who}"' in real_rows, who
+        b = Box(tmp_path_factory.mktemp("c3" + who), overrides, rows=real_rows.replace(f'"name": "{who}"', '"name": "p"', 1))
+        diverge_conflict(b)
+        b.run("agi-sync")
+        if reader is None:
+            chk(f"c3-{who}: the Prime is never boxed: notice only, stamped",
+                b.mailed() == "" and (b.home / ".trunk-boxed").exists() and "[trunk-conflict] p:" in b.notice())
+        else:
+            chk(f"c3-{who}: boxed through to {reader}", b.mailed().startswith(f"send {reader}"))
+
+    # (g) a failure is SAID (the notice cannot be deleted without a row going RED): a signer that fails, a raced ref, a broken merge-tree
+    for what, setup, fail, want in (
+            ("signer", diverge_clean, "commit-tree", "[trunk-merge-failed] p: cannot sign or move posts/p"),
+            ("raced-ref", diverge_clean, "update-ref", "[trunk-merge-failed] p: cannot sign or move posts/p"),
+            ("behind-ref", None, "update-ref", "[trunk-merge-failed] p: cannot move posts/p"),
+            ("merge-tree", diverge_clean, "merge-tree", "[trunk-merge-failed] p: git merge-tree rc 128 against trunk")):
+        b = Box(tmp_path_factory.mktemp("g" + what), overrides)
+        if setup:
+            setup(b)
+        else:
+            b.on("trunk", write(b, "g.txt", "trunk side\n"), "trunk moves")
+            b.settle()
+        old = b.tip()
+        r = b.run("agi-sync", AGI_TEST_FAIL=fail)
+        chk(f"g-{what}: rc 0, the branch is unmoved, and the failure is SAID in the notice",
+            r.returncode == 0 and b.tip() == old and want in b.notice())
 
     # (d) the cadence: a plain agi-turn (the Stop hook) and agi-flush both carry the trunk
     for who in ("agi-turn", "agi-flush"):
@@ -220,9 +306,23 @@ MUTANTS = {
     # the notice is written but the parent is never boxed
     "never-boxes-the-parent": lambda: mut("agi-sync", "&&echo \"$m (trunk", "&&true||echo \"$m (trunk"),
     # boxed on every turn, not once per trunk tip
-    "boxes-every-turn": lambda: mut("agi-sync", '[ "$(cat ~/.trunk-boxed 2>/dev/null)" = $T ]||', ""),
+    "boxes-every-turn": lambda: mut("agi-sync", '[ "$(cat ~/.trunk-boxed 2>/dev/null)" = $e ]||', ""),
+    # the old stamp: one box per TRUNK TIP, not per conflict episode
+    "boxes-per-trunk-tip": lambda: mut("agi-sync", 'e=$(echo "$l"|git hash-object --stdin)', "e=$T"),
+    # an inert parent is boxed as it is (council / keep: unread forever)
+    "inert-parent-unmapped": lambda: mut("agi-sync", 'if ($r[$q]//{}|has("harness")) then', "if true then"),
+    # stamped only on a successful send: an off-matrix parent is retried every turn
+    "retries-a-refused-box": lambda: mut("agi-sync", "|box send $u;echo $e>~/.trunk-boxed;}", "|box send $u&&echo $e>~/.trunk-boxed;}"),
+    # a clean merge / a clear does not end the episode
+    "stamp-survives-a-clear": lambda: mut("agi-sync", "r=$?;[ $r = 1 ]||rm -f ~/.trunk-boxed\n", "r=$?\n"),
+    # the walk reaches the Prime: five seats box belam (the pre-04:05Z walk)
+    "boxes-the-prime": lambda: mut("agi-sync", '(if $r[$q].role=="prime_director" then empty else $q end)', "$q"),
+    # a failure that is not SAID (the ||agi-notice deleted)
+    "silent-on-sign-failure": lambda: mut("agi-sync", '||agi-notice add "[trunk-merge-failed] $P: cannot sign or move posts/$P";;', ";;"),
+    "silent-on-merge-tree-rc": lambda: mut("agi-sync", '*)agi-notice add "[trunk-merge-failed] $P: git merge-tree rc $r against $R";;esac', "*):;;esac"),
+    "silent-on-behind-ref-failure": lambda: mut("agi-sync", '||agi-notice add "[trunk-merge-failed] $P: cannot move posts/$P";rm', ";rm"),
     # today's merge-when-behind: a behind posts/P gets a "P: merge <trunk>" commit (tree == the trunk's), never its own
-    "merges-when-behind": lambda: mut("agi-sync", 'git merge-base --is-ancestor $b $T&&{ git update-ref $b $T $t||agi-notice add "[trunk-merge-failed] $P: cannot move posts/$P";exit 0;}\n', ""),
+    "merges-when-behind": lambda: mut("agi-sync", 'git merge-base --is-ancestor $b $T&&{ git update-ref $b $T $t||agi-notice add "[trunk-merge-failed] $P: cannot move posts/$P";rm -f ~/.trunk-boxed;exit 0;}\n', ""),
     # the cadence: agi-turn no longer calls agi-sync
     "turn-does-not-sync": lambda: mut("agi-turn", "unset GIT_INDEX_FILE;agi-sync;", "unset GIT_INDEX_FILE;"),
 }
