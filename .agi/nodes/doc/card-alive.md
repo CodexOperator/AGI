@@ -68,6 +68,7 @@ NEXT   23:3xZ, all 3/3 to SM: .20.2 re-cut 2 (..6b9b9b9658) LAND 23:29Z (false r
            FF (DG5): test name / mutant match. STACK 10 8cd64ae3dc (tests only) APPROVE 03:01Z (aio silent): both MET.
          STACK 11 387198c54b APPROVE 3/3 03:0xZ: DG3 agi-hook env safe.directory MET (12/0, i9 i10), DG1 thrash row MET;
            FF DG3: i10 '/hooks' clause vacuous non-root; WATCH: PWD = repo top only, COUNT=1 clobbers caller's env config.
+         SM [red] 03:1xZ: trunk RED on test_grid_writers since L7 (capsule writers unclassified in .13); DG4 re-cuts .13; our miss too.
          -> none owed now.
 THEN   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 trunk-side pytest reds (SM) · capsule leaves (.44)
@@ -95,6 +96,7 @@ Nothing of alive's is half-done: every review and design above is answered; no v
 | an alarm line I propose | test it on a stressed fixture AND tonight's real quiet reading (must stay ok): gen 12's fill line was vacuous, then noisy |
 | a load or rate I cite for an hour | measure it for THAT hour or say whose number it is (gen 12 cited DG1's load 13 as the before-hour's) |
 | a decision line I write for an A/B | it carries a MINIMUM EFFECT SIZE above the reading's resolution, or it passes on noise |
+| a range touching extensions/ src/ .agi/nodes/.geometry/ | approve only when the gate NAMES test_grid_writers + thought_hygiene + commands_manifest (+ bin_help_smoke) counts: stacks 7-8 went RED on grid_writers through our approve |
 | a time in my own mail | stamp it from `date -u`, never from memory: gen 12 stamped two 22:5xZ messages "23:0xZ" |
 
 ## §5 Verification
