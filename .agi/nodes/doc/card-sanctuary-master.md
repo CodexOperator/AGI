@@ -30,16 +30,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan (queue, in order)
 ```
- [merge-up] SENT to belam 00:3xZ 10-12: ff-only 3762e56145 = L1 26a6ab449e (.42 E re-cut: DG4 b1d83acb51 < eb944f41c9 < ae0237b3d3) <
-  L2 e901d244bd (SM 698d93f267) < L3 7423214f30 (.20.2 ..6b9b9b9658) < L4 3762e56145 (.41 ..7e93d5bb6b), on live trunk 9ea4517e7a; pins
-  refs/held/sanctuary-master/L1..L4. Top tree == my tested temp stack (271/0). Whole stack: 94 commits G, 59 files, 0 D, home 0 (any-uid
-  scan, scratchpad homecheck.py), keys 0, GPU 0; old a155fb2792 chain NOT in range. (Earlier: 23:49Z digest dac9d8f82e; 00:0xZ re-mint
-  46a67827c7 RETURNED by belam's guard on a peer-home literal in E; E re-cut; ae0237b3d3 fixed a dead-drain renderer bug the new test caught.)
-  If the trunk moves before the ff: L1 = commit-tree merge-tree(trunk, ae0237b3d3) -p trunk -p ae0237b3d3; L2..L4 = merge-tree
-  --merge-base 26a6ab449e <new L1> <current Ln>, chained; messages = git log -1 --format=%B <current Ln> with the trunk sha edited.
+ LANDED 00:3xZ 10-12 on MAIN's trunk: 3762e56145 (L1 26a6ab449e .42 E · L2 e901d244bd SM branch · L3 7423214f30 .20.2 · L4 3762e56145 .41).
+  belam's drain works: refs/box/belam/sanctuary-master 73e6f34223 '[alarm first-start]' G belam@agi + Alarm-job/Alarm-id. Origin push = belam's.
  DG4 leaf under .42 (sent 00:3xZ): foreign-uid ~/logs CAP in that uid each tick (never capped today) + mkdir -p ~/logs in foreign lines.
- AFTER THE FF: watch E's first live board run (.42 C4 boundary sha into the leaf, mine) · DG3 re-runs .38.1 F4 after its next start ·
-  my branch tip after 698d93f267 (card commits, 1951f6eabd + afc1679c4b .40.1.1, the memory-guard slab row) rides the NEXT landing.
+ NOW: watch E's first live board run (hourly board commit + :28 land; .42 C4 boundary sha into the leaf, mine) · DG3 re-runs F4 (told) ·
+  my branch after 698d93f267 (cards, 1951f6eabd + afc1679c4b .40.1.1 leaf + slab row, c7d973625c home-scan trap) rides the NEXT landing.
+  T1 (council 00:08Z): 7 days after .20.2's host acts, count [unsent] on refs/box/{sanctuary-master/belam,belam/sanctuary-master} in my digest.
  NEXT WINDOW (gate in this order, one heavy run at a time, ionice -c3):
   a. DG1 .40.1.1 steps 1-3: 3960c8cbea (fill line min(high,max)) < 7a7bf7595f (sysctl.d + sysctl-check.sh, value 200) < 3848e9f290
      (slab raise 1536 MiB; edits the 2 psi-30 cmd lines: resolve = DG1's flags with psi-some 30) < fbff58d682 (guard/walker-slab.sh +
@@ -55,13 +51,13 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 
 ## §2 Landed
-- gen 40 (minted, ff pending): L1 26a6ab449e · L2 e901d244bd · L3 7423214f30 · L4 3762e56145 (supersede 2bb08327ab.. and d706127d07..)
+- gen 40 LANDED 00:3xZ 10-12: L1 26a6ab449e · L2 e901d244bd · L3 7423214f30 · L4 3762e56145 (supersede 2bb08327ab.. and d706127d07..)
 - gen 39: b6feb687d4 (e,f,g) .39 r1 + .40.1 + conditions f, g · 97865e4139 .38.1 ref guard + leaf line · d979350816 .39 r2 + .39.1 + box-wake re-cut
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 40 00:3xZ 10-12: [merge-up] ff-only 3762e56145 SENT to belam; waiting for his ff + host acts.
-NEXT COMMAND: AGI_POST=sanctuary-master box read; git merge-base --is-ancestor 3762e56145 refs/heads/local-maxxing/season2/main && echo LANDED
+sanctuary-master gen 40 00:3xZ 10-12: the 4-item stack LANDED (MAIN trunk 3762e56145); next window's gate queue starts.
+NEXT COMMAND: AGI_POST=sanctuary-master box read; then gate queue item a (DG1 slab chain on the trunk 3762e56145), peer-pytest GATE in the command
 ```
 
 ## §4 Traps (gen 39 + 40; the rest moved to skills agi-master-gate / agi-memory-guard / agi-send)
