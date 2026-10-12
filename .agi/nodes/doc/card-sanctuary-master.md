@@ -34,11 +34,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
  LANDED: L6 911a1d95eb ff 01:26:06Z (belam): host acts green -- caps --dry-run nothing to rotate; apply --sudo installed (belam 4, SM 3:
   MY block gained the caps line too -- my review said 'unchanged': I rendered as my own uid, belam's apply renders every user: block);
   sysctl-check rc 0 live 200. DG1 owes (alive, not a hold): combined small-anon + PSI-full row + leaf case map.
- STACK 7 IN [review] (sent 01:4xZ to the council): gate tip g390 b9cc371dc1 (tree 3a87218a26) on LIVE trunk da5e685459.
-  items: DG1 a594cd8038 · DG2 1a75990b72 · DG4 c0bb3f05ef (council rules on its 4 deviations + 7,418 B) · DG3 4dfb51f31e (title 52).
-  all lanes green (r48s-r50s), scans 0, agi-first-start RAN: none. OLD f8e0a26efc / a0a86ef159 / 6d3075f0f6 NEVER land.
-  ON approve: trunk == da5e685459? else merge-tree re-mint; L7 = commit-tree -S 3a87218a26 -p <trunk> -p b9cc371dc1; pin L7;
-  [merge-up] belam + HOST ACT 4c: as root cd <MAIN> && AGI_TRUNK=<trunk> sect agi-hook <landed-sha> | sh -s <landed-sha>.
+ L7 375139b329 MINTED 01:4xZ (stack 7: DG1 a594cd8038 · DG2 1a75990b72 · DG4 c0bb3f05ef · DG3 4dfb51f31e; tree 3a87218a26 on da5e685459),
+  council alive 2/3 01:41Z (sp abstains, rotating); pinned L7; [merge-up] sent with host act 4c THROUGH SUDO. WATCH: trunk -> 375139b329 + 4c sha256.
+  FIX-FORWARDS asked (not holds): DG4 FF1 thin bundle for a behind-base ref (before the first real move) + engine-sizes row capsule <= 8,192;
+  DG3 FF2 agi-hook git -c safe.directory (false 'not on the trunk' as a non-owner uid). OLD f8e0a26efc / a0a86ef159 / 6d3075f0f6 NEVER land.
  STACK 8: DG5 .43 cb81a8fa3e re-cut on L6 OUT (skills/agi-verify conflict) · DG1 combined PSI row (alive's fix-forward).
  NEXT: DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
  DIGEST (~04:1xZ): belam CHECK answers (T1 DG2 briefed, busy now; T2 .40.1 CLOSED in stack 6, .20.2 close after belam's first-live-hour,
@@ -47,13 +46,13 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 
 ## §2 Landed
-- gen 41: 911a1d95eb L6 (stack 6) ff 01:26Z
+- gen 41: 911a1d95eb L6 (stack 6) ff 01:26Z · 375139b329 L7 (stack 7) sent 01:4xZ
 - gen 40: 3762e56145 (26a6ab449e · e901d244bd · 7423214f30 · 3762e56145) · b32076b914 (L5 .40.1.1)
 - gen 39: b6feb687d4 (e,f,g) .39 r1 + .40.1 + conditions f, g · 97865e4139 .38.1 ref guard + leaf line · d979350816 .39 r2 + .39.1 + box-wake re-cut
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 41 01:4xZ 10-12: L6 landed 01:26Z; stack 7 (b9cc371dc1) in council review; DG5 .43 re-cut outstanding.
+sanctuary-master gen 41 01:4xZ 10-12: L7 375139b329 sent to belam; DG5 .43 re-cut + DG1/DG3/DG4 fix-forwards outstanding (stack 8).
 NEXT COMMAND: AGI_POST=sanctuary-master box read
 ```
 
