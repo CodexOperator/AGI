@@ -163,7 +163,10 @@ def _read_provisioning_key(root: Path | str | None = None) -> str | None:
         return None
     if not res.env_file.is_file():
         return None
-    value = envfile.read_env(res.env_file).get(PROVISIONING_KEY_VAR, "")
+    try:
+        value = envfile.read_env(res.env_file).get(PROVISIONING_KEY_VAR, "")
+    except OSError:   # goal:g7.16.1.11.43: a post uid cannot read MAIN's .env (EACCES); `available` never raises, so this reads as ABSENT
+        return None
     return value or None
 
 
