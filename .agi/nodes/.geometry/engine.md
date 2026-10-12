@@ -31,7 +31,7 @@ Depth 0 = diagram · 1 = pieces · 2 = one piece: `sect <name>` (any `.geometry/
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
 agi-post@.service 3189 B  a post = one unit: own uid, tree, key, pane
-agi-boxwake@.service 896 B  a claude post's mail-wake loop: its own unit
+agi-boxwake@.service 1013 B a claude post's mail-wake loop: its own unit
 agi-project       2755 B  the genome: units + cells for v4 rows
 agi-gate           542 B  refuse a tip whose body would not regrow
 agi-vstore         856 B  root: fetches the pin into a re-hashed RAM store
