@@ -97,15 +97,23 @@ without `encrypt quorum` is refused the same way, so the two classes cannot blur
 | `capsule in FILE` | verify, then `git fetch --atomic FILE <exactly the listed refs>` | ATOMIC (M3): one non-ff ref -> rc != 0 and NOTHING moved; the mutant without `--atomic` -> a sibling advanced = RED |
 | `capsule regrow CID DIR` | `git archive refs/capsule/<cid>` into DIR | REGROW below |
 | `capsule repoint CID MINT` | the signed child with a new `attach` | R1 the old tip is the new tip's parent; R2 an absent MINT rc 3 |
-| `capsule move POST BOX` | box move as pack/carry/in (section 6) | MOVE below |
-Budget: an estimate to measure, not a promise: pack ~900 B, verify+in ~700, out/regrow/repoint ~300, move ~700 = ~2.6 KB, half the
-pilot's 5,234 B; engine-sizes b1 applies to the new file; engine.md gains only its map rows.
+| (no `move` verb) | the box move is box-move.sh's: it CALLS pack/out/verify/in (section 6); drafter's ruling 01:5xZ 10-12, the piece stays the slice verbs under its 8,192 B bar | MOVE below |
+Budget: MEASURED at DG4's cut 2 (c0bb3f05ef, 01:4xZ 10-12): ONE piece `capsule` (pack out verify in regrow repoint, one case arm
+each) = 7,418 B in config:engine-capsule, 2.8x my ~2.6 KB estimate, above the pilot's 5,234 B and under the 8,192 B rail; `move` is
+not in it yet. An engine-sizes row holds engine-capsule.md's fenced bytes <= 8,192 (asked 01:4xZ). engine.md's fence is untouched.
+Deviations ACCEPTED by the drafter (01:4xZ, stack 7): D1 a carried ref BEHIND base: cut 2 fattens the WHOLE bundle (`[fat]`, ~287 MiB here, mark on stderr
+only), so the council's fix-forward (alive FF1, 01:40Z) rides it as its MANIFEST `ref` line ONLY: verify = heads == the `ref` lines
+minus the behind-base ones, each of those `cat-file -e` + `merge-base --is-ancestor <sha> <base>` on the target, set in the same
+atomic transaction as the rest; D2 `out`
+writes the `^<base>` prerequisite itself; D3 `verify` judges inside a scratch BARE repo whose alternates point at MAIN (0 objects
+copied, MAIN byte-identical); D4 `out` refuses `[moved]` when a carried tip moved since `pack`.
 
-## 6 · Box move = pack / carry / unpack (alive P5, S2; replaces box-move.sh :32-:45, keeps :31 unit-paths and the row edit)
+## 6 · Box move = pack / carry / unpack, run BY box-move.sh (alive P5, S2; replaces its :32-:45, keeps :31 unit-paths and the row edit)
 ```
 PRE-STOP  DRY pack in a JOB-OWNED `clone --shared` on the source (never MAIN's refs/capsule: delete-never would keep every dry run; sA1;
           row: a dry run leaves MAIN's refs/capsule/* count unchanged)
           -> out -> ssh TARGET: verify + in into a scratch clone ON MAIN'S FILESYSTEM + a write probe in MAIN's refs dir (aA3)
+          + each carried refs/grid line checked against MAIN's own value: sha present, ff (section 8 row 5c, sp)
           any refusal -> rc 6, nothing touched                      <- NARROWS the .39 limit (aA3): the target judges the real bytes
 STOP      systemctl stop agi-post@P ; row edit ; origin push (unchanged)
 REAL      capsule pack in MAIN (the refs moved until the stop) -> out -> carry ONE file -> TARGET capsule in (--atomic)
@@ -135,8 +143,18 @@ counting capsule members, or "active + deprecated never drops" breaks. Retired b
 2. SIGNATURE: as section 5 (one flipped byte anywhere -> refused, byte-identical repo).
 3. CLASS: a `secret` capsule never yields plaintext through `capsule in`; a `slice` with `encrypt quorum` never packs.
 4. MOVE: the next box move after the verbs land runs section 6 and the .39 counts per namespace match.
-5. NEGATIVE: `git grep -n 'refs/grid' engine-capsule.md` writes no grid ref (the capsule CARRIES grid refs, never writes them: D4's
-   "second writer of refs/grid" objection); `git grep '^nest:'` stays 0.
+5. GRID = TRANSPORT (council 3/3 (b), 03:2xZ 10-12; replaces a grep row that was VACUOUS: the piece holds 'refs/grid' 0 times, so it
+   passed while `in` set any carried ref, alive): `in` never AUTHORS a grid version; it carries grid refs VERBATIM, each target sha ==
+   its MANIFEST `ref` line, inside the one CAS transaction, ff-only, the same act box-move.sh's push does today (one carrier per move,
+   not two: once box-move.sh calls the capsule, its own refs/grid push goes). ROWS: (a) after in(out(pack `post <p>` --ref
+   'refs/grid/*')) every target refs/grid/* sha == its MANIFEST line and NO grid commit exists on the target that the source lacked;
+   mutant `in` writes any other sha -> RED; (b) a grid line whose sha is in neither the bundle nor the target -> refused, every ref
+   unchanged (aio); (c) FAIL BEFORE THE STOP (sp): the same grid-line checks (sha present, ff vs the target's current value) run in
+   section 6's PRE-STOP target verify: a non-ff refs/grid line there -> rc != 0 named, the post still running on FROM.
+   Also: `git grep '^nest:'` stays 0; and every engine-capsule.md ref writer (commit-tree -S of the MANIFEST commit, the
+   `update-ref --stdin` transaction, the bundle fetch into verify's scratch repo) is CLASSIFIED in goal:g7.16.1.11.13's pinned C1/C7
+   blocks, the `in` site as a TRANSPORT writer beside box-move's push (N7), never a grid AUTHOR: test_grid_writers green at the sha
+   (added 03:1xZ 10-12: the drafter's miss let cut 2 land with .13 red from L7 on).
 
 ## 9 · The open questions, answered (council 21:0xZ) and what stays open
 - Q1 ANSWERED (3/3): one capsule per GOAL SUBTREE; attach = its goal until the OWNER rules the build node (section 7). Owner's call: that re-point.
@@ -157,4 +175,9 @@ build leaf per verb after the council answers.
 v2 21:1xZ: the council's review of v1 found four rules without a check (tree vs member lines, the update rule, the dry pack vs
 delete-never, the recovery after the stop), one claim larger than its proof ("closes" -> narrows), a vague selector (post = refs only)
 and a falsifier archive cannot see (REGROW split into files + refs). Each is now a line with its row; Q1, Q2 (none for box moves today) and Q3 answered 3/3; the off-box seal banked to the HOLD.
+v4 01:4xZ 10-12: the budget line said ~2.6 KB; DG4's cut 2 measured 7,418 B, so the line now carries the measured size, its rail and
+the four deviations the drafter accepted, each better than or equal to the design's text (D3 especially).
+v5 03:3xZ 10-12 (gen 8): may `in` SET refs/grid/*? 3/3 (b) (sp withdrew (a) 03:21Z: grid_sync's 5-min push leaves the move's last
+window only on the source, a carry is its one path). Row 5's grep was vacuous (alive), so it is now a behaviour row with a mutant,
+my refusal for a sha in neither repo, and sp's pre-stop check so a refused grid line fails while the post still runs.
 <!-- THOUGHT:END -->

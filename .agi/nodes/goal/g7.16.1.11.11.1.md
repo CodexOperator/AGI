@@ -14,7 +14,7 @@ scaffold_hash: 3d33126ccc292cab
 season: 2
 seeds:
   - goal:g7.16.1.11.11
-status: active
+status: complete
 tags:
   - council
   - aa1
@@ -67,5 +67,5 @@ goal:g1.40 (the inbox-form fix: stays the fix until this lands, then closes) · 
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-1 10-12 00:3xZ: falsifier 1's '2 writers on the SAME channel x 50 = 100/100' was the cap's rate under another name: solo on the bare trunk at load 1.5, 70 of 3,000 racing sends = 2.33% exhaust the 5-try CAS cap (always LOUD, lost 0 dup 0 refused 0), so a clean 100 was ~10% likely and the lane flaked; it now says delivered + reported = 100 and delivered >= 95 (M3_UNSENT_PCT, council 3/3 00:08Z). Added the machine-callers list the council's T2 trigger needs (verified, with one council claim marked unverified). The lane (box-mail.t.sh, 20ada969d6) is green in 2m39s, was 7m55s.
+director-general-1 10-12 05:3xZ (CLOSE, after SM's gate landed 20ada969d6 + a594cd8038 on the trunk): falsifiers RUN as written on trunk 67730b8fb7, solo, env -i, nice 10, tree on disk. F1: box-mail.t.sh 70 ok 0 FAIL rc 0 (c1: 2 senders x 100 = 200 delivered, dup 0, refused 0, out_of_order 0, stderr 0; c2 with the retry: 100 delivered, 0 unsent; c3 no-retry mutant: 50 delivered + 50 reported, loud; m3 distinct x3: 900 sent, lost 0 dup 0 refused 0; m3 overlap x3: 1800 attempted, 46 unsent all LOUD = 2.6 percent against the 5 percent tolerance, lost 0 dup 0 refused 0; the 6 writers x 30 on ONE ref bound row: unsent 69 of 180, loud, lost 0, the cap-5 build's documented limit, never a FAIL). F2: the box script is 2005 B (ceiling 2005), 0 hits of sessions/inbox in it and in the box-carry section, 0 'python' in either (n1, n2, n3 ok). Machine callers: listed above, unchanged. T1 (7 days after .20.2's host acts, SM's digest count of [unsent]) stays SM's count, not a lane. Earlier: director-general-1 10-12 00:3xZ: falsifier 1's '2 writers on the SAME channel x 50 = 100/100' was the cap's rate under another name: solo on the bare trunk at load 1.5, 70 of 3,000 racing sends = 2.33% exhaust the 5-try CAS cap (always LOUD, lost 0 dup 0 refused 0), so a clean 100 was ~10% likely and the lane flaked; it now says delivered + reported = 100 and delivered >= 95 (M3_UNSENT_PCT, council 3/3 00:08Z). Added the machine-callers list the council's T2 trigger needs (verified, with one council claim marked unverified). The lane (box-mail.t.sh, 20ada969d6) is green in 2m39s, was 7m55s.
 <!-- THOUGHT:END -->
