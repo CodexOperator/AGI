@@ -844,7 +844,7 @@ def _this_box(root: Path, box_name: str | None = None) -> str:
         return ""
 
 
-def _substitute(text, root: Path, repo_root: Path, own: str):
+def _substitute(text, root: Path, repo_root: Path, own: str, logs_dir: str | None = None):
     """Resolve `{root}`, `{repo_root}`, `{logs}`, `{box}` through the ONE
     schema-declared map (`boxes.resolve_placeholders`), never a second literal
     token list here. Values come from what the renderers already compute --
@@ -855,7 +855,7 @@ def _substitute(text, root: Path, repo_root: Path, own: str):
         return text
     import boxes
     cells = {"root": str(root),
-             "logs_dir": str(_log_path(repo_root).parent),
+             "logs_dir": logs_dir or str(_log_path(repo_root).parent),
              "repo_root": str(repo_root),
              "box": own}
     try:
@@ -896,6 +896,13 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
             if (j.get("user") == me if only_bound else j.get("user") in (None, me))}
     own = _this_box(root, box_name)
     log = _log_path(repo_root)
+    # goal:g7.16.1.11.42 E (SM 00:21Z): the home in `_log_path` / `{logs_dir}` is the home of the uid RUNNING this code. A block rendered for
+    # a FOREIGN user is run by THAT user's cron, so its default log and {logs_dir} are a TILDE word (the shell expands it as the row's user);
+    # the own-user path is unchanged. Cap: `enforce_log_caps` bounds the logs of the user who runs `apply`, so a foreign user's default log
+    # (the same agi-crons-<repo>-<hash>.log name) is capped by that user's OWN apply; a row's custom log: name is outside the declared-name
+    # scope unless `logs.also_manage` lists it (residue, named).
+    foreign = me != _invoking_user()
+    tilde_logs = "~/logs" if foreign else None
     lines: list[str] = []
 
     if "grid_sync" in jobs and jobs["grid_sync"]["enabled"] and _on_this_box(jobs["grid_sync"], own):
@@ -1024,8 +1031,9 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
         if not (job["enabled"] and _on_this_box(job, own)):
             continue
         sched = _schedule_expr(job)
-        cmd = _substitute(job["cmd"], root, repo_root, own)
-        glog = Path(job["log"]) if job.get("log") else _log_path(repo_root)
+        cmd = _substitute(job["cmd"], root, repo_root, own, **({"logs_dir": tilde_logs} if foreign else {}))
+        glog = Path(job["log"]) if job.get("log") else (
+            Path(tilde_logs) / _log_path(repo_root).name if foreign else _log_path(repo_root))
         lines.append(f"{sched} cd {root} && {cmd} >> {glog} 2>&1")
 
     if not own:

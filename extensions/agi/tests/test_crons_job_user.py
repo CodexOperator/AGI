@@ -170,13 +170,14 @@ def _belam_lines(project, node_root):
 
 
 @pytest.mark.parametrize("extra", [False, True], ids=["live-node", "live-node-plus-more-agi-belam-rows"])
-def test_the_rendered_board_line_writes_under_the_applying_users_own_home(tmp_path, extra):
+def test_the_rendered_board_line_writes_under_the_applying_users_own_home(tmp_path, monkeypatch, extra):
     """The RENDERED form (belam's landing guard 00:1xZ): `~` is a shell word in the cron line, so agi-belam's cron expands it to agi-belam's
     home. The board line is selected BY CONTENT (the stack adds agi-belam rows: alarm_drain_belam, a user@ alarm row), exactly one carries
     `board_job.py commit`, and NO rendered agi-belam line, whichever job it is, carries a state-root path."""
+    monkeypatch.setenv("HOME", str(tmp_path / "renderer-home"))                # the uid running crons.py: its home must appear in NO agi-belam line
     live = yaml.safe_load(LIVE_CRONS.read_text().split("---")[1])["cadences"]
     if extra:
-        more = {"alarm_drain_x": {"schedule": "*/5 * * * *", "cmd": "echo drain >> ~/logs/alarm.log", "user": "agi-belam", "box": "encryption-town"},
+        more = {"alarm_drain_x": {"schedule": "*/5 * * * *", "cmd": "echo drain", "user": "agi-belam", "box": "encryption-town"},
                 "alarm_user_y": {"schedule": "1 * * * *", "cmd": "echo y", "user": "agi-belam", "box": "encryption-town", "log": "~/logs/y.log"}}
         proj = make_project(tmp_path, cadences={**live, **more})
         lines = _belam_lines(proj, proj)
@@ -189,4 +190,24 @@ def test_the_rendered_board_line_writes_under_the_applying_users_own_home(tmp_pa
     line = board[0]
     assert line.endswith(">> ~/logs/board_job.log 2>&1") and "mkdir -p ~/logs &&" in line and " --work ~/board-work -- " in line
     for l in lines:
-        assert "/var/lib/agi/" not in l.replace(str(proj), ""), l
+        assert "/var/lib/agi/" not in l.replace(str(proj), "") and str(tmp_path / "renderer-home") not in l, l
+
+
+def test_a_foreign_users_default_log_is_a_tilde_word_not_the_renderers_home(tmp_path, monkeypatch):
+    """SM 00:21Z: the default log (and {logs}) was the home of the uid RUNNING crons.py, so a user-bound row without a log: cell redirected into
+    the APPLYING uid's ~/logs, where the row's own uid cannot write: the redirect fails and the job never runs. A FOREIGN row now gets
+    `~/logs/agi-crons-...` (expanded by that user's own cron); the own-user path is unchanged."""
+    renderer_home = tmp_path / "renderer-home"
+    monkeypatch.setenv("HOME", str(renderer_home))
+    root = make_project(tmp_path, cadences={**GENERIC_ONLY,
+        "drain": {"schedule": "1 * * * *", "cmd": "echo drain {logs}/x", "user": OTHER},
+        "mine": {"schedule": "2 * * * *", "cmd": "echo mine {logs}/x", "user": ME},
+        "plain": {"schedule": "3 * * * *", "cmd": "echo plain {logs}/x"}})
+    node = crons.load_crons_node(root)
+    (theirs,) = crons.render_managed_lines(root, root, root, node, user=OTHER, only_bound=True)
+    assert f">> ~/logs/{crons._log_path(root).name} 2>&1" in theirs and "echo drain ~/logs/x" in theirs     # default log AND {logs}
+    assert str(renderer_home) not in theirs
+    mine = crons.render_managed_lines(root, root, root, node)
+    for job in ("echo mine", "echo plain"):                                                              # own-user: today's behaviour, byte for byte
+        (l,) = [x for x in mine if job in x]
+        assert f"{job} {renderer_home}/logs/x" in l and f">> {crons._log_path(root)} 2>&1" in l and "~/logs" not in l
