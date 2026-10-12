@@ -19,18 +19,18 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (10-12 05:2xZ) — RESUMED (the 04:2xZ idle order is LIFTED; box rebooted 05:00:51Z, owner typed "go"; worktrees intact)
+## §0 State (10-12 07:4xZ) — IDLE until the owner resumes us. Owner verbatim (via belam 07:4xZ): "Can we disable the keep alive message and have everyone go idle? ... Be back next week once usage resets on Wednesday" + "Disable keep alive for all posts"
 | | |
 |---|---|
 | post | director-general-4 under sanctuary-master (SM); builder for DG1/SM; DG2 writes my falsifier lanes first, DG3 is the other builder |
-| running | NOTHING: no suite, no runner, no dispatch, no build, no review. Quiet rule stands: NEVER box belam; to SM only one message per finished thing, no acks |
+| running | NOTHING: no suite, no runner, no dispatch, no build, no review, no council round. I own NO session cron (CronList empty 07:4xZ). RULE: SEND NOTHING until the owner resumes us (every box mail wakes a post); `[red]` only for a box-safety emergency; never box belam |
 | skills | agi-rotate · agi-send · agi-verify · agi-goal · agi-post (+ agi-review / agi-dispatch only if SM dispatches) |
 | worktrees | /var/lib/agi/director-general-4/: t (mine, detached = posts/director-general-4) + LIVE locked: w-boardlog (dg4-boardlog 63b21a5b90) · w-pins (dg4-pins 5b6e7b00cb) · w-ownrow (d37799e298) · w-fixrunner (3deb115c1e) · w-capsule3 (23924e296f) · w-board3 (7a96f67619). SUPERSEDED, safe to `git worktree remove <path>` BY PATH: w-board2 (dbbfb2e2a6), w-capsule (a0a86ef159), w-capsule2 (c0bb3f05ef). Every dg4-* branch is kept |
 | scratch | pytest --basetemp, TMPDIR, lane temp, gate trees: ONLY /data/work/gate-director-general-4 (700, my uid); home and /tmp are on the ROOT disk. One heavy lane at a time, niced, only above 3 GiB MemAvailable |
 
 ## §1 Plan (nothing in flight)
 ```
-WAIT    SM's stack 13b (trunk 67730b8fb7 + my 63b21a5b90 board_job log + DG5 7970370e55 + DG2 e52540c669; g397 @ 3fe030e570, suite + lanes running since 05:14Z, then a council [review]). My pins 1ecd97928f 4f1009ca58 5b6e7b00cb are ON the trunk 67730b8fb7. Next on the board is DG5's .41 cut 2 (the season-2 close gate); DG3 owes the i10 assert.
+BOARD   (SM 07:4xZ, waiting as is) L13 f632cd4854 LANDED 07:22:51Z and carries my 63b21a5b90 (board_job log: UTC stamps + [raced] old->seen); origin's trunk is d5ad5e6c60 and has not taken it yet (belam's push). Stack 14 (DG2 .39.3+.39.4, DG5 .22+.41.1, SM 0ad0eb2e7d) built at b522328480, its run STOPPED by the order; stack 15 = DG5 .41 cut 2 (the season-2 close gate). Open reds with owners: DG1 test_seat_alias_notice, DG5 verify-v5-uid l3-credentials, DG3's i10 assert. None are mine.
 NEXT    (on SM's word only, never invented) box-move.sh becomes the CALLER of `sect capsule | sh -s -- pack|out|verify|in` (council ruling 01:56Z: design section 6 replaces box-move.sh :32-:45; NOT a capsule verb; the piece keeps its 8,192 bar).
         GATE on that caller (council 04:05Z, my deferred (c) accepted): the PRE-STOP scratch on the target holds MAIN's refs/grid as a MIRROR (not a plain clone), so the dry `in`'s own CAS ancestor check is row 5c: a non-ff refs/grid line -> PRE-STOP rc 6, the post still on FROM. 0 piece bytes.
 EXTRAS  on SM's word (not placed): geometry_config.resolved_seat_env v4-rows-only; cc-session-start.sh BOOTSTRAP_SEAT=${AGI_POST:-${AGI_SEAT:-}}; skills-truth CUT/TIP defaults. HELD: .20 retire-the-inbox-write; .20.1 items 2+3. NOT MINE: box-wake.t.sh (DG2).
@@ -40,14 +40,14 @@ EXTRAS  on SM's word (not placed): geometry_config.resolved_seat_env v4-rows-onl
 ```
 ON THE TRUNK b71fbe86d5 (checked 04:3xZ)  .42 E + its fix-forwards (b1d83acb51, eb944f41c9, ae0237b3d3 renderer, a5c53f47d1 the .42.1 leaf cap/mkdir/sudo-pending, 7a96f67619 commands.md caps) · .44.1-.6 capsule (c0bb3f05ef in L7; FF1 4755041c5b + FF2 23924e296f: behind-base refs ride as ref lines, thin bundle, ONE update-ref transaction; engine-sizes b7) · 3deb115c1e runner-uid pin · d37799e298 own-block row.
         earlier: .36 tui · .20 v5 alert · .37 · fresh-blob · .13.2 · .35 · kid AGI_POST=$k
-NOT YET ON THE TRUNK  63b21a5b90 (stack 13b, in the council review). The pins 1ecd97928f 4f1009ca58 5b6e7b00cb are on it (67730b8fb7)
+IN L13 f632cd4854 (SM's line; origin trunk catches up)  63b21a5b90. The pins 1ecd97928f 4f1009ca58 5b6e7b00cb landed earlier (trunk 67730b8fb7)
 ```
 
 ## 🔴 Where it stops
 ```
-Resumed and waiting on SM's word; nothing is mid-step; no lane, runner or gate slot is held. Re-check my shas against the trunk before sending anything (SM 05:1xZ).
+Idle by the owner's order (twice: 04:2xZ lifted 05:1xZ; again 07:4xZ, until he resumes us, expected after Wednesday's usage reset). Nothing is mid-step; no lane, runner, gate slot or cron is held. On resume re-check my shas against the trunk before sending anything.
 FIRST ACT on resume: read mail ONCE, whole: AGI_POST=director-general-4 box read | fold -s -w 200  (messages are also commits: git log -1 --format=%B <tip of refs/box/<sender>/director-general-4>).
-THEN: wait for SM's word. A RETURN on a cut = ONE new signed commit ON the sent sha in the matching worktree (never a rebase, F26/F14), commit with plain `git commit` there (a worktree on a dg4-* branch signs: commit.gpgsign) and `agi-at <path>` ONLY in ~/t (the card, a node).
+THEN: wait for SM's word (he re-issues the board; DG5's .41 cut 2 is first). A RETURN on a cut = ONE new signed commit ON the sent sha in the matching worktree (never a rebase, F26/F14), commit with plain `git commit` there (a worktree on a dg4-* branch signs: commit.gpgsign) and `agi-at <path>` ONLY in ~/t (the card, a node).
 Capsule lane: env -u AGI_TRUNK -u AGI_POST sh extensions/agi/tests/capsule.t.sh (66 ok); landing mode: LANDING_REPO=<repo> LAND_TRUNK=<ref> CAPSULE_FLOOR=<n> sh capsule.t.sh.
 ```
 
