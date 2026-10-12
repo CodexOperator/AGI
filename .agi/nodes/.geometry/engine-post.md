@@ -26,7 +26,7 @@ agi-turn           4486 B  a signed commit per changed node tree
 agi-wt            1506 B  a node's tiny RAM tree: pull; drop = turn + purge
 agi-track           89 B  strace sink: each path once
 agi-flush           942 B  drop trees, turn (its agi-sync merges)
-agi-sync           1925 B  merge the trunk each turn; a conflict said by name
+agi-sync           2579 B  merge the trunk each turn; a conflict said by name
 agi-out           3357 B  the out-line: next keys, ring commit, re-wrap, swap
 gitconfig          196 B  signed commits against root's allowed_signers
 pre-commit          639 B  refuses a plain commit on a detached ~/t
@@ -204,19 +204,19 @@ cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;{ [ "$P" ]&&[ "$AGI_ROLE" != kid ]&&git
 if agi-turn strand;then git checkout -q --detach $b;else k=1;fi;exit $k
 ~~~
 
-### agi-sync (1925 B)
+### agi-sync (2579 B)
 ~~~sh
 #!/bin/sh
-# agi-sync: merge the trunk into posts/P and SAY a failure by name (goal:g7.16.1.11.41 targets 2-4). A posts/P merely BEHIND the trunk moves by CAS to the trunk tip, no commit (board_job.py land refuses a non-own commit); a clean divergence = one signed merge commit (CAS); a CONFLICT leaves the branch as it is and writes [trunk-conflict] P: N path(s) conflict with TRUNK: paths to ~/.notice (agi-notice, so it comes back once per turn while it lasts) and, once per trunk tip (~/.trunk-boxed), boxes the post's parent; any other failure = [trunk-merge-failed]. Run at the end of EVERY agi-turn and by agi-flush. A kid or no posts/P = nothing. Always rc 0.
+# agi-sync: merge the trunk into posts/P and SAY a failure by name (goal:g7.16.1.11.41 targets 2-4). A posts/P merely BEHIND the trunk moves by CAS to the trunk tip, no commit (board_job.py land refuses a non-own commit); a clean divergence = one signed merge commit (CAS); a CONFLICT leaves the branch as it is and writes [trunk-conflict] P: N path(s) conflict with TRUNK: paths to ~/.notice (agi-notice, so it comes back once per turn while it lasts) and boxes the nearest HARNESSED ancestor (an inert council / keep row is skipped; the walk stops BELOW the row whose role is prime_director: a chain that reaches the Prime = notice only, owner 10-11 never box belam; none = notice only) once per conflict EPISODE (~/.trunk-boxed = a hash of the path set: it changes or clears when the paths do or a merge goes through; stamped even when the box is refused, so never retried every turn); any other failure = [trunk-merge-failed]. Run at the end of EVERY agi-turn and by agi-flush. A kid or no posts/P = nothing. Always rc 0.
 set -f;cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;R=${AGI_TRUNK:-trunk}
 { [ "$P" ]&&[ "$AGI_ROLE" != kid ]&&t=$(git rev-parse -q --verify $b);}||exit 0
 T=$(git rev-parse -q --verify $R^{commit})||{ agi-notice add "[trunk-merge-failed] $P: $R does not resolve to a commit";exit 0;}
 git merge-base --is-ancestor $T $b&&{ rm -f ~/.trunk-boxed;exit 0;}
-git merge-base --is-ancestor $b $T&&{ git update-ref $b $T $t||agi-notice add "[trunk-merge-failed] $P: cannot move posts/$P";exit 0;}
-n=$(git merge-tree --write-tree --name-only $b $T 2>/dev/null);r=$?
+git merge-base --is-ancestor $b $T&&{ git update-ref $b $T $t||agi-notice add "[trunk-merge-failed] $P: cannot move posts/$P";rm -f ~/.trunk-boxed;exit 0;}
+n=$(git merge-tree --write-tree --name-only $b $T 2>/dev/null);r=$?;[ $r = 1 ]||rm -f ~/.trunk-boxed
 case $r in 0)c=$(echo "$P: merge $R"|git commit-tree -S -p $t -p $T $n)&&git update-ref $b $c $t||agi-notice add "[trunk-merge-failed] $P: cannot sign or move posts/$P";;
 1)l=$(echo "$n"|sed 1d|sed '/^$/q'|grep .|sort -u);m="[trunk-conflict] $P: $(echo "$l"|grep -c .) path(s) conflict with $R: $(echo $l|cut -c1-300)";echo "$m">&2;agi-notice add "$m"
- [ "$(cat ~/.trunk-boxed 2>/dev/null)" = $T ]||{ u=$(git show $T:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r --arg p $P 'select(.name==$p).parent//empty'|head -1);[ "$u" ]&&echo "$m (trunk $(echo $T|cut -c1-10))"|box send $u&&echo $T>~/.trunk-boxed;};;
+ e=$(echo "$l"|git hash-object --stdin);[ "$(cat ~/.trunk-boxed 2>/dev/null)" = $e ]||{ u=$(git show $T:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -sr --arg p $P 'map({(.name):.})|add as $r|def up(x;n):if n>20 then empty else (($r[x]//{}).parent//empty) as $q|if ($r[$q]//{}|has("harness")) then (if $r[$q].role=="prime_director" then empty else $q end) else up($q;n+1) end end;up($p;0)'|head -1);[ "$u" ]&&echo "$m (trunk $(echo $T|cut -c1-10))"|box send $u;echo $e>~/.trunk-boxed;};;
 *)agi-notice add "[trunk-merge-failed] $P: git merge-tree rc $r against $R";;esac;exit 0
 ~~~
 

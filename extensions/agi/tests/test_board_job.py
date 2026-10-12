@@ -8,6 +8,7 @@ text; each must break the row it names (the assertion the REAL file passes fails
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -183,6 +184,52 @@ def test_mutant_without_the_cas_overwrites_the_other_writers_tip(box):
     m.write_text(text)
     box.job(src=m, writer=["sh", "-c", script])
     assert box.tip() != peer_tip                                          # the mutant drops the peer's staged commit: the real file keeps it
+
+
+# ---- the job's LOG (belam 04:0xZ, goal:g7.16.1.11.42): every line is stamped UTC, a [raced] line names old -> seen
+STAMP = re.compile(r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ ")
+
+
+def _raced_run(box, src=SRC):
+    """A writer commits, then a peer (agi-at) advances posts/belam under the job; returns (the tip the job started from, the peer's tip, the run)."""
+    start = box.tip()
+    peer = box.tmp / "peer"
+    box.g("worktree", "add", "-q", "--detach", str(peer), "posts/belam")
+    box.commit("peer card", cwd=peer, extra=("--allow-empty",))
+    peer_tip = box.rev("HEAD", peer)
+    script = (f'date +%s%N > .agi/cell.txt && git add -A && git commit -q -m "{SUBJECT}" && echo "writer says hi" && '
+              f'git --git-dir={box.main}/.git update-ref refs/heads/posts/belam {peer_tip}')
+    return start, peer_tip, box.job(src=src, writer=["sh", "-c", script])
+
+
+def test_every_line_of_a_run_carries_a_utc_stamp_the_writers_own_included(box):
+    got = box.job(writer=["sh", "-c", WRITER[2] + ' && echo "updated: town:local-maxxing"'])
+    lines = [l for l in (got.stdout + got.stderr).splitlines() if l.strip()]
+    assert got.returncode == 0 and len(lines) >= 2
+    assert all(STAMP.match(l) for l in lines), lines
+    assert any(l.endswith("updated: town:local-maxxing") for l in lines)                 # the writer's line, stamped by the job
+
+
+def test_a_raced_runs_line_carries_the_stamp_and_both_shas(box):
+    start, peer_tip, got = _raced_run(box)
+    assert got.returncode == 4
+    (raced,) = [l for l in got.stderr.splitlines() if "[raced]" in l]
+    m = re.match(r"^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ) \[raced\] posts/belam moved under the job: next hour \(old ([0-9a-f]{12}) -> seen ([0-9a-f]{12})\)$", raced)
+    assert m, raced
+    assert m.group(2) == start[:12] and m.group(3) == peer_tip[:12]                      # old = the tip the job built on, seen = what the ref is now
+
+
+def test_mutant_without_the_stamp_a_line_cannot_be_placed_in_time(box):
+    m = mutant(box.tmp, 'print(f"{_now()} {line}", file=sys.stderr if err else sys.stdout)', 'print(f"{line}", file=sys.stderr if err else sys.stdout)')
+    got = box.job(src=m)
+    assert not all(STAMP.match(l) for l in (got.stdout + got.stderr).splitlines() if l.strip())      # the real file stamps them all (row above)
+
+
+def test_mutant_a_raced_line_without_the_shas_is_red(box):
+    m = mutant(box.tmp, 'next hour (old {_sh(base)} -> seen {_sh(_rev(main, ref))})")', 'next hour")')
+    _, _, got = _raced_run(box, src=m)
+    (raced,) = [l for l in got.stderr.splitlines() if "[raced]" in l]
+    assert not re.search(r"old [0-9a-f]{12} -> seen [0-9a-f]{12}", raced)                 # the real file names both (row above)
 
 
 # ---- C6: the second-lander guard
