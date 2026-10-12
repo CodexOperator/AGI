@@ -56,6 +56,8 @@ NEXT   23:3xZ, all 3/3 to SM: .20.2 re-cut 2 (..6b9b9b9658) LAND 23:29Z (false r
            anon+shmem+slab_unrec. My view 00:5xZ: agree + a PSI-owns-the-thrash row (swap keeps anon low). SM [review] of stack 6 next.
          STACK 6 gate tip 46e9c898bf (57 G, ff on 2f2033785c) APPROVE 3/3 01:2xZ: caps in-uid + mkdir MET, fill fix MET (quiet row +
            mutant), sysctl-check on box-move target MET. Fix-forward DG1: combined thrash row + leaf reading->case map.
+         STACK 7 b9cc371dc1 APPROVE 2/3 01:4xZ (sp abstains, rotating): .44 D1-D4 + 7,418 B ACCEPT; FF1 fat bundle = whole history
+           (287 MiB) -> behind-base ref as MANIFEST line only; FF2 agi-hook no safe.directory -> false "not on the trunk" reason.
          -> none owed now.
 THEN   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 trunk-side pytest reds (SM) · capsule leaves (.44)
