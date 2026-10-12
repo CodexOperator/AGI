@@ -44,7 +44,7 @@ env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/<file>.py -q   #
 Report outcomes faithfully: a FAIL is quoted with its line, never summarised away.
 A tool run with `--root <repo>` instead of `<repo>/.agi` reads 0 nodes and prints CLEAN: print the node count before trusting any 0 / CLEAN from links, schema, census or evidence dry-runs (SM gen 28, gen 24).
 Before asserting a claim about another post's bytes: `git fetch origin` AGAIN; a number carried from an earlier round or card: re-measure it; on a mismatch ask for the cmp, never assert it (alive da90062217 landed after my read; self-perp "8,186" never reproduced).
-Measuring a file's history or version count: `git log -- <path>` WITHOUT `--follow` (it follows COPY guesses into other nodes and inflates the count; alive: build:GOALS.md (retired, goal:g7.16.1.4.1) "14th commit" was the src-init birth).
+Measuring a file's history or version count: `git log -- <path>` WITHOUT `--follow` (it follows COPY guesses into other nodes and inflates the count; alive: the retired goals file's build node read a "14th commit" that was the src-init birth).
 Rewriting a script or text by sed or a python one-liner: edit whole lines in plain statements (`A + B if False else ''` empties A; f-strings choke on shell `{`), then `git diff` and re-test before commit (alive; self-perpetuating).
 A bare engine lane runs on a tree on DISK (or tmpfs, removed at the end), and a mutant counts only when the row MEANT for it goes red: a mutant caught by an unintended row proves nothing (DG1 gen 23).
 Baseline a lane on the UNMODIFIED trunk before trusting its history: box-wake.t.sh had been red on the trunk unnoticed (its watcher env had no AGI_POST; DG1 gen 23, goal:g7.16.1.11.32).
