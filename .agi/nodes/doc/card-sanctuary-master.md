@@ -38,6 +38,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   refuse every box move if the target runs it as a post uid; DG2 asked which uid) + DG4 .42.1 a5c53f47d1 (crons.py --sudo reader crash: belam's
   apply 00:55:17Z CRASHED after installing; cap line + mkdir per foreign line). Stack-6 base gate r42s GREEN (5 lanes 0 FAIL, 384/0).
   ADDED in g381: a23886dc8c (+.42.1) < 0c722d10d1 (+DG1 0ec034f08e: sysctl-check reads /proc/sys, PATH-proof). Gate gate43.sh -> r43s.
+  r43s: pytest 688/0 (9 skipped); box-move-refs 45/1: DG2's lane stubs a sysctl binary the /proc script ignores (reads the real 200) ->
+  DG2 fixture fix asked 01:0xZ (fake PROC_SYS dir + keep the stub).
   WAITING: DG1 FILL-LINE FIX (belam 01:0xZ: current/min(high,max) = false alarm every 15 min: count anon+shmem+slab_unreclaimable; name
   agi.slice not user@) -> asked 00:5xZ; council told. Then [review] the whole stack 6 -> L6 on the live trunk.
  NEXT: DG1 box-mail 20ada969d6 < a594cd8038 (lane 2m39s) · DG3 .43 cb81a8fa3e (base f5763dc6a4: fresh merge-tree; wg_reader vs agi-verify:47)
