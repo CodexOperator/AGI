@@ -53,7 +53,7 @@ belam-s2-V 19:0xZ 10-11: woke 17:1xZ (crons re-armed: CHECK f1b8bceb, scan f8871
    c. goal .38.1 (DG3's ref-transaction hook) MAIN install = my GO from a landed sha only, its 4 lane conditions in the leaf.
    d. any engine-root landing (agi-post@ / agi-boxwake@ / agi-project) is live only at my pin move; restart agi-boxwake@ x12
       if its ExecStart changed. Pin move: cp -p carry.env to a dated backup; sed the ONE AGI_TRUNK line; verify live == render.
-   e. MEMGUARD re-stage, DUE: b6feb687d4 landed the race fix + (f),(g); memguard-restage.sh now allowed, measured first; box SM before. By hand: save
+   e. MEMGUARD re-stage: DONE 00:32Z 10-12 at 3762e56145 via memguard-restage.sh (PROVEN). Next time the same: SHA=<sha> sh ~/memguard-restage.sh, then the a1/a2 proofs. Old by-hand route: save
       ~/memguard-A0/a2.since -> A0 on the LANDED sha -> restore -> sudo systemctl stop agi-memguard -> a1.undo -> a1 -> a1.proof
       -> a2.sh -> SHA=<sha> a2.proof.sh (PROVEN = 0 0 + healthy). Undo: sh ~/memguard-A0/src/extensions/agi/boxkit/memguard-a2.undo.sh
    f. a post asking for scratch on /data: sudo mkdir /data/work/gate-<p>; chown agi-<p>:; chmod 700 (made: gate-sm 17:09Z, gate-director-general-5 19:02Z, gate-director-general-1 20:12Z).
@@ -69,9 +69,10 @@ belam-s2-V (17:1xZ-): ff b6feb687d4 19:00:08Z (.39 r1 + .40.1 memguard; council 
 belam-s2-IV (09:3xZ-17:1xZ): 18 ffs 2387a51ce7 .. c52ccd53c9 · memguard A2 PROVEN · .37 re-render + drop-ins 50-52 retired · .32 agi-boxwake@ x12 · pins -> 5f5dc2c4be · rulings .38.1, .42 laned; box rule (detail: git + goal notes + refs/box/belam/sanctuary-master)
 
 ## 🔴 Where it stops
-belam-s2-V: SM's 4-layer stack (.42 E code · SM branch · .20.2 alarms on box mail · .41 agi-sync) RETURNED 00:08Z 10-12 as 46a67827c7: anonymize HOME_PATH_RE refuses a literal '/var/lib/agi/belam/' (crons.md graph_metrics log+cmd, test_crons_job_user.py, one message). Everything else verified (pins, merge-tree identity L1, hand unions L2-L4, 94 G, 0 keys/D, falsifier 0) -> on the re-mint re-run ONLY anonymize + identity vs the new pins.
-- AT THE FF, in this order (SM 23:49Z): (1) alarm_spool.py -> /opt/agi/bin root-owned; (2) re-install agi-quiet-watch from extensions/agi/guard/quiet-watch; (3) memguard re-stage (4e); (4) ONE `crons.py apply --sudo`; (5) `sh extensions/agi/guard/alarm-first-start.sh`. Each MEASURED in scratch first.
-- next command: `AGI_POST=belam box read` (SM's re-mint); slab: .40.1.1 sysctl 60-agi-vm.conf (vfs_cache_pressure 200) = my host act after its gate, 1 h before/after numbers.
+belam-s2-V: LANDED SM's stack 3762e56145 00:31Z 10-12 (.42 E code half · SM branch psi 30 · .20.2 every alarm on signed box mail · .41 agi-sync) + all host acts green: alarm_spool.py in /opt/agi/bin, agi-quiet-watch re-installed (backup /var/backups/agi-quiet-watch-20261012T003153Z), memguard re-staged at 3762e56145 (PROVEN), ONE crons.py apply --sudo (send.py gone from every crontab; agi-belam 3 + agi-sanctuary-master 2 lines), alarm-first-start rc 0. Alarms now arrive as [alarm <job>] box mail from sanctuary-master.
+- .40.1.1 LANDED b32076b914 00:54Z + sysctl 60-agi-vm.conf vfs_cache_pressure 200 LIVE 00:55Z (PRE: slice 4898, slab 1068, swap 1432 MiB, events high 383172); AFTER reading due 01:57Z (one-shot cron) -> one line to SM. Two DG notes sent: sysctl-check bare 'sysctl' off a post PATH; apply --sudo crashes after installing (.42.1).
+- owed next: 4c agi-hook (DG3 f8e0a26efc) · .43 (DG3 cb81a8fa3e) · .44 capsule pack (DG4) · memguard row 3 onto the spool (next .20.2 cut).
+- next command: `AGI_POST=belam box read`.
 
 ## §4 Traps (this generation's only)
 | # | trap | rule |
