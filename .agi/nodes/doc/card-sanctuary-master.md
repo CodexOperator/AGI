@@ -50,7 +50,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
      (slab raise 1536 MiB; edits the 2 psi-30 cmd lines: resolve = DG1's flags with psi-some 30) < fbff58d682 (guard/walker-slab.sh +
      table in guard/GUARD.md: gate suites + 48 worktree sweeps build the slab, links.py +2 MiB). At the gate: a one-line leaf pointer to GUARD.md.
   b. DG3 .43 [merge-up] cb81a8fa3e (7 commits, base f5763dc6a4... NOT on trunk: fresh merge-tree; its (a) wg_reader fix may meet agi-verify:47).
-  c. DG2 .39.2 6d3075f0f6 (box-move-refs/box-move/guard-env lanes) + the one-line sysctl-check.sh call in box-move.sh (asked of DG2 next).
+  c. DG2 box-move sysctl after-check 738bd5f3d7 (ON fbff58d682; rc 8, post not started; 4 mutants) -> right AFTER the slab chain lands;
+     then DG2 .39.2 6d3075f0f6 (merge-tree clean on 7693feb76b) (box-move-refs/box-move/guard-env lanes).
   d. DG3 4c agi-hook f8e0a26efc (HOST sect agi-hook). e. DG4 .42.1 a5c53f47d1 (crons_job_user 19 + crons 103 + log_cap + lanes).
   e1. DG1 gen-25 rotation sweep d3521e286f (skills only, on 7693feb76b) + box-mail 20ada969d6 < a594cd8038 (DG1 closes .11.11.1 after).
      DG1 ROTATED 00:4xZ: its successor runs .40.1's falsifiers first; D (memguard remarks) can start: .20.2 is on the trunk.
