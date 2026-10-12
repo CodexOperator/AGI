@@ -34,12 +34,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
  LANDED: L6 911a1d95eb ff 01:26:06Z (belam): host acts green -- caps --dry-run nothing to rotate; apply --sudo installed (belam 4, SM 3:
   MY block gained the caps line too -- my review said 'unchanged': I rendered as my own uid, belam's apply renders every user: block);
   sysctl-check rc 0 live 200. DG1 owes (alive, not a hold): combined small-anon + PSI-full row + leaf case map.
- STACK 7 on L6, gate tree g390 2852c8a034 = L6 + DG1 box-mail a594cd8038 + DG3 agi-hook f8e0a26efc (.38.1 host act 4c, root piece);
-  r48s: agi-hook 10/0 · box-mail 70/0 · agi-refguard 28/0 · engine-sizes 23/1 = DG3's title 49->50 vs trunk's own 50 (want 51): DG3 RETURNED
-  01:3xZ for a re-cut on L6. DG2 .39.2 re-cut 1a75990b72 IN (r49s box-move-refs/box-move/guard-env). REBUILD g390 when DG3's re-cut lands
-  (drop f8e0a26efc). STILL OUT for re-cut on L6 (conflicts): DG5 .43 cb81a8fa3e
-  (skills/agi-verify) · DG4 .44.3-.6 a0a86ef159 (engine.md, self-installing: first-start line asked).
- NEXT: the 3 re-cuts above · DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
+ STACK 7 on L6, order: DG1 box-mail a594cd8038 · DG2 .39.2 re-cut 1a75990b72 · DG4 .44 capsule re-cut c0bb3f05ef · DG3 .38.1 agi-hook
+  re-cut #2 4dfb51f31e (ON c0bb3f05ef, title 52 = map 52 = blocks 52). All 1-commit, G, scans 0. OLD f8e0a26efc / a0a86ef159 / 6d3075f0f6 never land.
+  g390 rebuild + lanes r50s (capsule engine-sizes agi-hook agi-refguard agi-gate-priv skills-truth box-carry boot-execstart) queued
+  behind r49s (box-move-refs box-move guard-env; waits on DG5's pytest). Earlier: box-mail 70/0, agi-hook 10/0, refguard 28/0.
+  STILL OUT: DG5 .43 cb81a8fa3e re-cut on L6 (skills/agi-verify conflict). Then [review] stack 7 (council: DG4's 4 deviations + 7,418 B).
+ NEXT: DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
  DIGEST (~04:1xZ): belam CHECK answers (T1 DG2 briefed, busy now; T2 .40.1 CLOSED in stack 6, .20.2 close after belam's first-live-hour,
   .38.1 waits 4c + DG3's F4 after its next start, .39 round 2, .41 cut 2, .42 first run); slab before/after; T1 [unsent] count due ~10-19.
  UNPLACED: DG4 extras 1+2 · 9 trunk collection errors · .20 close · goal:g1.43 (low) · .42 _foreign_users skip unknown user · .38.1 leaf line.
