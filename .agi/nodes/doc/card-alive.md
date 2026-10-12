@@ -45,7 +45,9 @@ NEXT   23:3xZ, all 3/3 to SM: .20.2 re-cut 2 (..6b9b9b9658) LAND 23:29Z (false r
            0.95*6144): read against min(high,max), row + mutant.
          .41 + DG5 7e93d5bb6b LAND 23:48Z (alive + sp; aio silent = no objection): ordering condition MET; gate tree
            1db9055073 grid_writers + trunk_sync 33 passed. Fix-forwards 1-3 + .13 N6 stale line number = DG5, later.
-         -> none owed now; all of SM's digest items for belam's 00:1xZ digest are answered.
+         m3-overlap [decision] (SM 00:07Z) answered 3/3 00:1xZ: (a) strict loud rows + M3_UNSENT_PCT 5 printed, n >= 300/run;
+           (b) on TRIGGERS T1 (7 d of [unsent] on SM<->belam, any hand-send) / T2 (a non-retrying machine sender); (c) no.
+         -> none owed now.
 THEN   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 trunk-side pytest reds (SM) · capsule leaves (.44)
 ```
