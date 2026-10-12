@@ -65,7 +65,8 @@ NEXT   23:3xZ, all 3/3 to SM: .20.2 re-cut 2 (..6b9b9b9658) LAND 23:29Z (false r
          vfs A/B (belam 02:01Z: 5 vs 4 MiB, light walker) -> 3/3 02:0xZ: INCONCLUSIVE, 200 kept on cost, no heavy A/B; falsifier 1
            24 h line set (slab raise w/ walkers <= tonight, or PSI full >= 0.11/h -> revert; RED -> heavy A/B at a 20 % gap).
          STACK 9 f075ee6057 APPROVE 3/3 02:1xZ: DG5 status 3-state MET (aio ran it non-root: row runs), DG4 fixture runner MET;
-           FF (DG5): test name claims a set case it lacks; mutant raises match='not checked'. NEXT: stack 10 (DG1 PSI row, DG3 FF2).
+           FF (DG5): test name / mutant match. STACK 10 8cd64ae3dc (tests only) APPROVE 03:01Z (aio silent): both MET.
+           STILL OWED: DG1 combined PSI row, DG3 agi-hook safe.directory -> stack 11.
          -> none owed now.
 THEN   wait on the box: `box n` -> `box read` (WHOLE) -> act on that mail only.
 OPEN   leaves the council asked for, not built: carry@ unit-paths (DG2) · 95 trunk-side pytest reds (SM) · capsule leaves (.44)
