@@ -21,14 +21,14 @@ town: core
 Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.agi/sessions/quorum/belam.md` are symlinks to it. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs; progress lives on the town board. Skills: agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-post · agi-memory-guard · agi-node-write · agi-goal · agi-master-gate.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-s2-V 05:0xZ 10-12, AT THE ROTATION LINE (meter 0.472): the owner resumed us with "go" right after the box REBOOTED (05:00:51Z, kernel 6.8.0-146). Card whole for belam-s2-VI; I start no act. This gen (17:1xZ 10-11 - 05:0xZ 10-12): 13 council-approved landings b6feb687d4 .. 67f451d03a, every host act measured + green (MAIN hook, memguard re-stage PROVEN, alarms on signed box mail with send.py gone from every crontab, slab root cause + vfs_cache_pressure 200, .42 board signing), then the owner's idle order 04:2xZ.
+belam-s2-VI 05:2xZ 10-12, the wake after the REBOOT (05:00:51Z): owner "go" = idle order lifted. agi-boot started only the 8 boot:true OWNER rows (G9 afcd4e53d0); DG2-5 carry no boot cell (engine v4 = systemd-owned, rotate.py stand-up refuses them) -> hand-started by `sudo systemctl start agi-post@<p>` one at a time behind a MemAvailable >= 2.5 GB gate, because the card's queue needs DG5 (.41) + DG4 (.42). Predecessor's work: 13 landings b6feb687d4 .. 67f451d03a.
 <!-- THOUGHT:END -->
 
-## §0 State (05:0xZ 10-12, read from date -u)
+## §0 State (05:2xZ 10-12, read from date -u)
 | | |
 |---|---|
 | STANDING | OWNER 20:2xZ 10-11 QUIET: "you shouldn't be mailed except once every few hours at most" -> masters send ONE digest per ~4 h, exceptions [red] + blocking owner asks (told SM + TM 20:2xZ); hourly scan cron DROPPED, CHECK 13 */4 only · OWNER 19:4xZ 10-11 (verbatim, relayed to SM for goal .41): "Make sure that the projection work is done before season rollover. Everything must be able to project cleanly." = .41 gates the season-2 close · owner 07:5xZ 10-10: every 4-h CHECK = TRAJECTORY FIRST (skill agi-merge-pass §1 T1-T3); owner 21:5xZ 10-10: IDLE mostly, the council rules, belam ffs council-approved tips + breaks ties |
-| post | belam-s2-V (17:1xZ 10-11 - 05:0xZ 10-12) -> successor belam-s2-VI; user agi-belam, works in ~/t (detached) on posts/belam; env now carries AGI_POST=belam + RUNTIME_DIRECTORY=/run/agi-belam |
+| post | belam-s2-VI (05:0xZ 10-12 -); CHECK cron id bbcd79e5 (13 */4, session-only); user agi-belam, works in ~/t (detached) on posts/belam; env now carries AGI_POST=belam + RUNTIME_DIRECTORY=/run/agi-belam |
 | E | 4 cores · 7.8 GB · agi.slice MemoryHigh 5120 / Max 6144 MiB · ROOT disk vg0-root 60 GB holds every post home + /tmp (52% at 19:0xZ) · /data 360 GB (313 GB free) |
 | posts (12, all claude) | DG1-5 · DT-1 · TM · alive · all-is-one · self-perpetuating · SM · belam; each has agi-post@<p> + agi-boxwake@<p> (template, Wants=) |
 | mail | `AGI_POST=belam box read` / `... box send <p>` (stdin); belam mails the masters (SM, TM); the council answers SM; memory alarms arrive by `send.py read belam` |
@@ -68,8 +68,8 @@ NEVER: rule a [decision] the council can rule · assign a design or a build · d
 belam-s2-V (17:1xZ-): ff b6feb687d4 19:00:08Z (.39 r1 + .40.1 memguard; council alive 16:21/16:42/17:06Z + L acks 18:59Z; pytest NOT green, 0 attributed) · [landed] to SM 19:00Z · /data/work/gate-director-general-5 (19:02Z) · .38.1: GO for the ~/bin self-install (19:07Z; the MAIN .git/hooks install stays my later host act) + DG5's 24 refs/heads/posts/director-general-5-* RETIRED to refs/archive/posts/ (CAS per name, after DG5's dg5-* copies matched and its 12 lanes were switched off the old names) · ff 97865e4139 19:14Z (.38.1 ref guard, self-installs at each post start)
 
 ## 🔴 Where it stops
-belam-s2-V rotated at its line 05:0xZ 10-12. OWNER RESUMED ("go", 05:0xZ) after a REBOOT at 05:00:51Z. At 05:03Z: agi-boot ACTIVATING (it starts the boot:true rows one at a time behind the load/io gate); only agi-post@belam + agi-boxwake@belam active; NEW unit names exist (director-general-6..9, plan-master: read posts.md at the pin before touching them); vfs_cache_pressure 200 survived (sysctl.d); / 50%; MAIN == ~/t == 21f5d44a35, clean; carry.env pin 5f5dc2c4be.
-- next commands at wake (on E, ~/t): (1) CronList -> re-arm CHECK (13 */4) ONLY; (2) `systemctl is-active agi-boot` until it ends, then `journalctl -u agi-boot -b` (which rows it started, any refusal by name); (3) a post NOT started by agi-boot = skill agi-post 'hand restart after a reboot' (only when idle rules hold); (4) `AGI_POST=belam box read`; tell SM + TM the owner resumed (the idle order 04:2xZ is LIFTED by 'go'); (5) the QUEUE below.
+belam-s2-VI seated after the 05:00:51Z reboot; all 12 posts up, CHECK re-armed, masters told; the QUEUE below is the council's. 05:17Z agi-boot ended active (8 boot:true rows) · 05:17-05:21Z DG5, DG4, DG2, DG3 hand-started (systemctl start agi-post@<p>, boxwake came with each; Esc-dialog scan 0/11) · SM self-rotated at 05:12Z (~/.fresh, normal) · [owner] resume mail to SM + TM 05:11Z.
+- watch: agi.slice 4764 MiB (anon 3225, slab 523) vs MemoryHigh 5120 at 05:21Z = 12 sessions resuming; recheck at the next CHECK, relief per trap 104 if slab-led. Next command: `AGI_POST=belam box read` on the box-wake line.
 - QUEUE: stack 13 (DG5 c608cc2b25 .41 FF re-cut + whatever SM gates) · .41 cut 2 (extractor from the landed trunk + cadence; engine-root = my pin move + render check) = the SEASON-2 CLOSE GATE (owner 19:4xZ 10-11) · OPTIONAL pin move for the agi-boxwake@ fingerprint (4d) · .40.1.1 24 h watch (revert if the 1536 MiB slab raise fires with no more walkers, or PSI full avg60 >= 0.11 for 1 h) · memguard alarms onto the spool (.20.2 next cut) · pack/capsule design (.44 + owner 20:3x-20:4xZ) · season-2 close (owner).
 
 ## §4 Traps (this generation's only)
@@ -78,9 +78,10 @@ belam-s2-V rotated at its line 05:0xZ 10-12. OWNER RESUMED ("go", 05:0xZ) after 
 | 101 | "scratch on disk" read as a post HOME: SM's ~/gate/tmp filled the ROOT disk 71% -> 82% in ~1 h (17:0xZ) | say /data/work/gate-<p> by path; the hourly scan reads `df /` too |
 | 104 | memory warns with NO suite: agi.slice AT MemoryHigh with anon 1.6 GB = 2.7 GB kernel SLAB (dentries) charged to the slice; reclaim swaps the posts (23:1xZ) | read agi.slice memory.stat slab; relief = sync + drop_caches=2 (23:19Z: 5104 -> 2571 MiB); durable fix laned to SM 23:2xZ |
 | 103 | a stopped transient unit stays loaded while a template's Wants= names it, so a plain stop restarts the transient | stop it AND move /run/systemd/transient/<unit> to a backup, daemon-reload, then start the template |
+| 105 | after a reboot agi-boot starts ONLY the boot:true rows (the 8 owner rows); DG2-5 stay down, and rotate.py stand-up refuses them (engine v4) | `sudo -n systemctl start agi-post@<p>` one at a time, MemAvailable >= 2.5 GB, then the Esc-dialog scan (s2-VI 05:17Z) |
 
 ## §5 Verification
-at 19:1xZ: MAIN 97865e4139 == posts/belam == ~/t HEAD; DG5 refs/heads/posts/director-general-5-* 0, refs/archive/posts/* 24 · 24 units active · memguard active · / 52% · anon+shmem 2504 MiB · falsifier 0
+at 05:21Z: 12 agi-post@ + 12 agi-boxwake@ active · agi-boot active · memguard active · MemAvailable 3330 MiB · PSI full avg60 0.16 · / 50% · MAIN == ~/t == 67730b8fb7, clean · pin 5f5dc2c4be
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
