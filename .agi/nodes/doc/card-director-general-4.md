@@ -25,7 +25,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 | post | director-general-4 under sanctuary-master (SM); builder for DG1/SM; DG2 writes my falsifier lanes first, DG3 is the other builder |
 | running | NOTHING (no suite, no runner, no dispatch). ONE heavy lane at a time, niced, only above 3 GiB MemAvailable (cat /proc/meminfo); no scratch on /dev/shm while agi.slice > 4600 MiB |
 | skills | agi-rotate · agi-review · agi-dispatch · agi-send · agi-verify · agi-goal · agi-post |
-| worktrees | /var/lib/agi/director-general-4/: t (mine) + w-board3 (LIVE, locked: dg4-board3 = a5c53f47d1 (the .42.1 leaf: cap + mkdir + sudo-pending, on ae0237b3d3) on ae0237b3d3 (renderer fix: a foreign user's default log is ~/logs) on eb944f41c9 (test fix) on b1d83acb51 (the .42 RE-CUT, ONE commit on 9b71aa6daa) + the test fix) + w-board2 (locked, SUPERSEDED: dbbfb2e2a6) + w-capsule (LIVE, locked: dg4-capsule = a0a86ef159 ON 9a2df4312d, the .44 cuts). Every other dg4-* branch kept, its worktree removed 17:1xZ |
+| worktrees | /var/lib/agi/director-general-4/: t (mine) + w-board3 (LIVE, locked: dg4-board3 = 7a96f67619 (commands.md: crons.py caps excluded) on a5c53f47d1 (the .42.1 leaf: cap + mkdir + sudo-pending, on ae0237b3d3) on ae0237b3d3 (renderer fix: a foreign user's default log is ~/logs) on eb944f41c9 (test fix) on b1d83acb51 (the .42 RE-CUT, ONE commit on 9b71aa6daa) + the test fix) + w-board2 (locked, SUPERSEDED: dbbfb2e2a6) + w-capsule (LIVE, locked: dg4-capsule = a0a86ef159 ON 9a2df4312d, the .44 cuts). Every other dg4-* branch kept, its worktree removed 17:1xZ |
 | scratch | pytest --basetemp, TMPDIR, lane temp, gate trees: ONLY /data/work/gate-director-general-4 (700, my uid); home and /tmp are on the ROOT disk; remove each run's tree when done |
 
 ## §1 Plan
@@ -59,6 +59,7 @@ THEN: a RETURN = ONE new signed commit ON the sent sha in the matching worktree 
 | pkill -f | `pkill -f <script>` matches my own command line and kills the shell: find the pid with `pgrep -x sh -a` and kill by pid |
 | mail (owner 10-11 20:2xZ, via SM) | NEVER box belam: anything for belam goes to SM (he folds it into the ONE ~4 h digest). To SM: one message per finished thing, no [ack]/[thanks]/[landed]. Only [red] or a BLOCKING owner-ruling ask is sent at once. Lands in skill agi-send |
 | home literals | belam's landing guard knows EVERY seat's home (HOME_PATH_RE under a post uid knows only its own): grep the added lines AND the commit message for /var/lib/agi/<any name>, /home/, /data/home = 0 before sending; a crons row writes `~/...` (cron expands it as the row's user). Diff a re-cut against the commits' own net (merge-base), never a named sha SM typed |
+| new CLI verb | adding a subparser to a bin (crons.py caps) needs a `commands.md` entry (manifest: or excluded: with a reason): run test_commands_manifest.py (4m48s, ~180 rows) before sending, not just the file's own tests |
 | capsule lane | env -u AGI_TRUNK first (a post's AGI_TRUNK=<ref> made every fixture `at` read the wrong trunk); a function's last command is its status (a trailing rm made a mutant row pass). Both live in the lane's comments |
 | committer email | git verifies an ssh signature against the COMMITTER EMAIL: a machine job signing as the seat commits as `belam <belam@agi>` (the ring principal), never `agi-belam` |
 
