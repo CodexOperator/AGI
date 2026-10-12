@@ -341,3 +341,21 @@ def test_a_real_refusal_under_sudo_is_still_pending(tmp_path, monkeypatch):
     own.write_text("")
     st = crons.cmd_apply(root, own, sudo=True)["foreign_users"][OTHER]
     assert st["status"].startswith("pending") and "a password is required" in st["status"] and st["changed"] is None
+
+
+def test_when_the_runner_is_the_rows_user_the_block_is_the_own_block(tmp_path, monkeypatch):
+    """The other branch of `foreign = me != _invoking_user()` (SM 02:14Z leaf note; the board-line row pins a FOREIGN fixture runner, so nothing pinned this): the
+    runner IS agi-belam, so its block is the OWN block, as today: no `mkdir -p ~/logs` (apply made the dir), NO cap line (apply caps the applying uid's own logs),
+    a row with no log: cell logs to the renderer's own home path (a real path, not a tilde word), and `{logs}` renders that path too."""
+    home = tmp_path / "belam-home"
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setattr(crons, "_invoking_user", lambda: "agi-belam")
+    live = yaml.safe_load(LIVE_CRONS.read_text().split("---")[1])["cadences"]
+    more = {"alarm_drain_x": {"schedule": "*/5 * * * *", "cmd": "echo drain {logs}/x", "user": "agi-belam", "box": "encryption-town"}}
+    proj = make_project(tmp_path, cadences={**live, **more})
+    lines = _belam_lines(proj, proj)
+    assert len(lines) >= 2 and not any(" caps --root " in l or "mkdir -p ~/logs" in l for l in lines)
+    (drain,) = [l for l in lines if "echo drain" in l]
+    assert f"echo drain {home}/logs/x" in drain and f">> {crons._log_path(proj)} 2>&1" in drain and "~/logs" not in drain
+    (board,) = [l for l in lines if "board_job.py commit" in l]
+    assert board.endswith(">> ~/logs/board_job.log 2>&1")                      # the row's OWN log: cell is used as written
