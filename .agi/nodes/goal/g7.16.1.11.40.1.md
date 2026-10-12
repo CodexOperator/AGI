@@ -32,6 +32,7 @@ belam's order for it: DG1's oom_score_adj / nice inheritance fix lands (council 
 2. ROW 45: the installed crontab of the uid that config:crons names for memory_alarm_posts carries its command (memory_alarm.py pointed at agi.slice), and a --dry-run of that installed line prints a level.
 3. The parity doc (doc:g716111-stage25-rootplan) rows 43 and 45 read MATCH with these measurements; goal:g7.16.1.11.40's count reads 55 of 55 closed.
 
+- OPEN (SM 20:4xZ 10-11, belam's CHECK): landed in b6feb687d4 (+ conditions f and g); left = belam's memguard RE-STAGE on the box (host act, measured in scratch first, run at a quiet hour, not while a full suite holds the box). Complete when the re-staged guard's script hash == the template at the trunk.
 ## Invariants
 - Every host act (unit install, enable, crontab apply) is belam's GO, per act; the builder lands source + the measurement, never a host act.
 - The guard never kills a post, and never stops a post's spine or harness (a harness over 70% is alerted, not stopped); a tool process under a harness is stopped like any other runaway (suspended, never killed). No key / signing / spawn-row change (the g7.16.1.11.11 HOLD).
