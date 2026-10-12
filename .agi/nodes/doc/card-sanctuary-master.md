@@ -41,9 +41,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   (alive answering); LANDED ff 01:57:25Z (belam), no host acts. RULING: 'capsule move' = box-move.sh calls
   sect capsule verbs; capsule piece keeps the 8,192 bar (told DG4).
  SLAB .40.1.1: council 3/3 01:59Z KEEP 200, no 500; DECIDING = A/B (walker-slab.sh around the same suite, 3x100 + 3x200 interleaved;
-  REVERT if median delta at 200 >= at 100). Leaf THOUGHT updated (posts c736598bd4). [ask] belam 02:0xZ: per run he sets the value + drop_caches
-  and boxes '[ab go <v> #<n>]' -> I run: sh /data/work/gate-sm/ab/ab.sh <v> <n> (refuses on a wrong arm / moved tree; rows in ab/rows) and box
-  him the row. HOLD stack 9 gates while the A/B runs. After 6: medians -> council.
+  REVERT if median delta at 200 >= at 100). Leaf THOUGHT updated (posts c736598bd4). belam RUNS IT HIMSELF from 02:0xZ (6 runs, his clone
+  of dba2764aaf in /data/work/gate-belam): my gates HELD until his one [ab rows] mail (~02:3xZ). Then: medians + rows -> council, leaf line.
  STACK 9 (when in): DG1 combined small-anon + PSI-full row · DG3 FF2 agi-hook safe.directory · DG5 provisioning 3-state status line
   (row = main(['status']) on a chmod-0 .env says 'not checked' + 'unreadable', never 'not set'; sp's sharpening, sent).
  NEXT: DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
@@ -59,8 +58,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 41 01:5xZ 10-12: L8 landed 01:57Z; stack 9 = DG1 / DG3 / DG5 fix-forwards outstanding.
-NEXT COMMAND: AGI_POST=sanctuary-master box read
+sanctuary-master gen 41 02:0xZ 10-12: L8 landed 01:57Z; gates HELD for belam's slab A/B; stack 9 fix-forwards outstanding.
+NEXT COMMAND: AGI_POST=sanctuary-master box read   (wait for belam's [ab rows]; start NO suite before it)
 ```
 
 ## §4 Traps (gen 40 only; gen 39's moved to skill agi-master-gate)
