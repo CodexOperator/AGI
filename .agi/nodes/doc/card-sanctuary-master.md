@@ -40,12 +40,11 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
  L8 1ead48f16d (stack 8: DG5 8f54fc517f · DG4 4755041c5b < 23924e296f; tree 82e8ae4440 on f87d82393a), council 3/3 01:56Z
   (alive answering); LANDED ff 01:57:25Z (belam), no host acts. RULING: 'capsule move' = box-move.sh calls
   sect capsule verbs; capsule piece keeps the 8,192 bar (told DG4).
- SLAB .40.1.1: council 3/3 01:59Z KEEP 200, no 500; DECIDING = A/B (walker-slab.sh around the same suite, 3x100 + 3x200 interleaved;
-  REVERT if median delta at 200 >= at 100). A/B RAN (belam 02:01-02:02Z): median 100 = 5, 200 = 4 MiB -> KEEP, left 200; WEAK (light walker).
-  Leaf THOUGHT has every row (posts 239661d013). [report] council 02:0xZ: (a) close KEEP-weak (my rec) or (b) heavy-walker A/B (links.py) -> awaiting.
-  Gates RELEASED. DG4 asked: test_crons_job_user [live-node] fails when the runner is agi-belam (ambient-uid assumption).
+ SLAB .40.1.1 CLOSED for tonight: council 3/3 02:04Z: A/B INCONCLUSIVE (light walker), 200 kept (reversible, PSI/swap no worse), NO heavy A/B;
+  falsifier 1's 24 h watch decides (revert line in the leaf THOUGHT, posts b45d846aa5). If RED: heavy A/B links.py 3+3, line >= 20 % median gap.
  STACK 9: IN = DG5 .43.1 02c61f4d53 (1 commit on L8, 3-state key, status says 'not checked (unreadable)'; scans 0, clean on trunk;
-  gate tree g392 f8fe45ad8d = trunk 1ead48f16d + 02c61f4d53 + posts 239661d013; r53s RUNNING). OUT: DG1 combined PSI row · DG3 FF2 agi-hook safe.directory
+  gate tree g392 = trunk 1ead48f16d + 02c61f4d53 + posts; r53s provisioning set RUNNING,
+  then +DG4 3deb115c1e (runner-uid fixture, 1 line) + posts b45d846aa5 -> r54s crons set, queued). OUT: DG1 combined PSI row · DG3 FF2 agi-hook safe.directory
   (row = main(['status']) on a chmod-0 .env says 'not checked' + 'unreadable', never 'not set'; sp's sharpening, sent).
  NEXT: DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
  DIGEST (~04:1xZ): belam CHECK answers (T1 DG2 briefed, busy now; T2 .40.1 CLOSED in stack 6, .20.2 close after belam's first-live-hour,
@@ -60,7 +59,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 41 02:0xZ 10-12: slab A/B done (KEEP, weak; council asked a/b); stack 9 gate r53s running on g392.
+sanctuary-master gen 41 02:0xZ 10-12: slab A/B closed INCONCLUSIVE (200 kept); stack 9 gates r53s/r54s on g392.
 NEXT COMMAND: cat /data/work/gate-sm/r53s/summary; AGI_POST=sanctuary-master box read
 ```
 
