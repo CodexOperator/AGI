@@ -12,6 +12,7 @@
 #   (goal:g7.16.1.11.40.1.1 target 3a) SYSCTL AFTER-CHECK (the kernel is faked TWICE, a stub `sysctl` on PATH AND a proc dir PROC_SYS=$T/proc, both answering ${SYSCTL_LIVE:-200}, so the lane is green with the sysctl-reading script and with the /proc/sys-reading one): after the refs after-check and BEFORE the post starts, guard/sysctl-check.sh runs ON THE TARGET (`ssh sh -s` < the script): its /etc/sysctl.d/60-agi-vm.conf must be there and agree with the live kernel; else `[sysctl-check]` on stderr, rc 8, the post not started.
 #   (goal:g7.16.1.11.39.3) TARGET FIT: BEFORE the stop and the row edit, in the SAME ssh as unit-paths.sh (target-fit.sh is streamed first), the target must have the free space under /data/work/agi that the `sh move.target-fit` cell names (data-free-min-kb) AND a probe file must be creatable and removable in its .git/refs/heads as the pushing uid; else `[target-unfit] <box> df|refs-write <reading>`, rc 9, nothing touched. No cell = rc 5 before anything. A pre-receive hook's verdict and a ref that advances between the dry run and the push are NOT caught (named in the script).
 #   (goal:g7.16.1.11.39.4) UNIT REQUIRED: the paths a unit uses INSIDE sh -c strings (invisible to the Exec check; carry.env first) are the fenced block ```sh move.unit-required``` of the same node, `path  reason`, `%i` = the post; each must exist on the target, else `[unit-path] required <path> missing on <box>`, rc 7, nothing touched (same ssh, same refusal shape).
+#   (goal:g7.16.1.11.44.7) CAPSULE FLOW: the move CALLS the capsule piece (pack / out / verify / in; no move verb): a DRY pack in a job-owned repo + verify + in in a scratch on the target that mirrors its refs, BEFORE the stop (a non-ff line = `[refs-reject] <ref> ...`, rc 6: doc row 5c, the GATE; the refs-write probe lives here, `[target-unfit] <box> refs-write`, rc 9); after the stop the trunk goes as carry/trunk and the REAL pack / out / one file / in carries the rest; a refused real `in` = `[move-in-failed]`, rc 10, the row reverted, the post started on FROM (RECOVERY). The lane needs ssh-keygen (a throwaway signer) and signs with a per-run gitconfig.
 #   box-move.t.sh stays green: the file keeps exactly ONE line holding `$E "cd /data/work/agi`.
 # One ok/FAIL line per case; exit = number of FAILs.
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};SRC=${SRC:-$R0/extensions/agi/guard/box-move.sh}
@@ -31,6 +32,10 @@ printf '#!/bin/sh\n[ "$1" = -n ]&&echo ${SYSCTL_LIVE:-200}\n' >$B/sysctl
 printf '#!/bin/sh\necho "Filesystem 1024-blocks Used Available Capacity Mounted on"\necho "fake 99999999 1 ${DF_FREE_KB:-99999999} 1%% /"\n' >$B/df
 sysd(){ mkdir -p $1;printf '# the vfs cache stopgap\nvm.vfs_cache_pressure = 200\n' >$1/60-agi-vm.conf; }
 chmod +x $B/*;: >$T/sshconf
+# the capsule pack is signed: a throwaway key, the ring file, a per-run gitconfig (the move runs with it, never the lane's /dev/null one)
+mkdir -p $T/k;ssh-keygen -q -t ed25519 -N '' -f $T/k/prime -C prime >/dev/null;echo "prime@agi namespaces=\"git\" $(cut -d' ' -f1,2 $T/k/prime.pub)" >$T/allowed
+printf '[user]\n\tname=prime\n\temail=prime@agi\n\tsigningkey=%s\n[gpg]\n\tformat=ssh\n[commit]\n\tgpgsign=false\n[safe]\n\tdirectory=*\n' $T/k/prime >$T/gc
+ENG=${ENG:-$R0/.agi/nodes/.geometry/engine-capsule.md};[ -s $ENG ]||{ echo "FAIL extract: no $ENG";exit 99;}
 cat >$T/node.md <<'XX'
 # config:guard (fixture)
 ```sh move.exclude
@@ -48,12 +53,12 @@ unitgood $T/us;unitgood $T/ut
 fix(){ chmod -R u+w $T/f 2>/dev/null;unset DF_FREE_KB;rm -rf $T/f $T/sysd-s $T/sysd-t;mkdir -p $T/f;sysd $T/sysd-s;sysd $T/sysd-t;export SYSCTL_D=$T/sysd-s;unset SYSCTL_LIVE;: >$T/ctl.log;unitgood $T/us;unitgood $T/ut;cd $T/f;git init -q -b local-maxxing/season2/main s;git init -q --bare o
  ( cd s;mkdir -p .agi/nodes/.geometry extensions/agi/guard
   printf '%s\n' '  - {"name": "p1", "engine": {"v": 4}, "box": "local-town"}' '  - {"name": "p2", "engine": {"v": 4}, "box": "local-town"}' >.agi/nodes/.geometry/posts.md
-  printf 'echo act\nexit 0\n' >extensions/agi/guard/host-act-encryption-town.sh;cp $UP extensions/agi/guard/unit-paths.sh;cp $SC extensions/agi/guard/sysctl-check.sh;cp $TF extensions/agi/guard/target-fit.sh;git add .;git commit -q -m base;git remote add origin $T/f/o )
+  printf 'echo act\nexit 0\n' >extensions/agi/guard/host-act-encryption-town.sh;mkdir -p .agi/nodes/doc;printf -- '---\nid: doc:card-p1\nmint_id: 0123456789abcdef0123456789abcdef\ntype: doc\nparents: []\n---\ncard\n' >.agi/nodes/doc/card-p1.md;cp $ENG .agi/nodes/.geometry/engine-capsule.md;cp $UP extensions/agi/guard/unit-paths.sh;cp $SC extensions/agi/guard/sysctl-check.sh;cp $TF extensions/agi/guard/target-fit.sh;git add .;git commit -q -m base;git remote add origin $T/f/o )
  git clone -q s w;git -C w remote remove origin
  ( cd s;t=$(git rev-parse HEAD^{tree});for r in heads/posts/p1 heads/dg4-x heads/other grid/n1/1 grid/n2/1 box/a/b/1 box/a/b/2 held/a/b/1 archive/p1/dir1 archive/p2/dir2 agi/x tags/v1 novel/q/r remotes/origin/main stash;do git update-ref refs/$r $(git commit-tree -m $r $t);done )
  git -C s for-each-ref --format='%(refname) %(objectname)' >$T/f/pre; }
 # go NODE: run the move in the source; sets rc, $T/out, $T/err
-go(){ mkdir -p $T/proc/vm;echo ${SYSCTL_LIVE:-200} >$T/proc/vm/vfs_cache_pressure;( cd $T/f/s&&PATH=$B:$PATH AGI_MOVE_SSH=$T/sshconf AGI_MOVE_EXCLUDE_NODE=${1:-$T/node.md} sh $SRC move $P >$T/out 2>$T/err );rc=$?; }
+go(){ mkdir -p $T/proc/vm;echo ${SYSCTL_LIVE:-200} >$T/proc/vm/vfs_cache_pressure;( cd $T/f/s&&env -u AGI_TRUNK GIT_CONFIG_GLOBAL=$T/gc AGI_POST=prime AGI_ALLOWED=$T/allowed PATH=$B:$PATH AGI_MOVE_SSH=$T/sshconf AGI_MOVE_EXCLUDE_NODE=${1:-$T/node.md} sh $SRC move $P >$T/out 2>$T/err );rc=$?; }
 # cnt REPO NS: how many refs of REPO sit under refs/<NS>/
 cnt(){ git -C $1 for-each-ref --format='%(refname)' refs/$2/|wc -l|tr -d ' '; }
 started(){ grep -q "^start agi-post@$P" $T/ctl.log; }
@@ -76,17 +81,17 @@ o=$(git -C $T/f/o for-each-ref --format='%(refname)'|tr '\n' ' ')
 ok "refs-origin-gets-only-the-trunk origin holds [${o% }] (want exactly refs/heads/local-maxxing/season2/main: the box-local namespaces go box-to-box, never through the public origin)" '[ "${o% }" = refs/heads/local-maxxing/season2/main ]'
 
 # a target that loses a carried namespace on receive: refuse, name it, never start the post
-fix;mkdir -p $T/f/w/.git/hooks;printf '#!/bin/sh\ngit for-each-ref --format="%%(refname)" refs/archive/|while read -r r;do git update-ref -d $r;done\n' >$T/f/w/.git/hooks/post-receive;chmod +x $T/f/w/.git/hooks/post-receive;go
+fix;mkdir -p $T/f/w/.git/hooks;printf '#!/bin/sh\n[ "$1" = committed ]&&[ -z "$LOOP" ]||exit 0\nexport LOOP=1\ngit for-each-ref --format="%%(refname)" refs/archive/|while read -r r;do git update-ref -d $r;done\n' >$T/f/w/.git/hooks/reference-transaction;chmod +x $T/f/w/.git/hooks/reference-transaction;go
 ok "refs-short-namespace-refuses a target that ends with 0 of the 2 refs/archive/* refs ends rc != 0 (rc $rc), not 0" '[ $rc != 0 ]'
 ok "refs-short-namespace-is-named stderr names '[refs-short] refs/archive before=2 after=0' ($(head -c 160 $T/err|tr '\n' ' '))" 'grep -q "^\[refs-short\] refs/archive before=2 after=0" $T/err'
 ok "refs-short-namespace-never-starts-the-post agi-post@$P is NOT started on the target (ctl: $(tr '\n' '|' <$T/ctl.log))" '! started'
 ok "refs-short-namespace-names-only-the-short-one refs/grid (not short) is not named in a [refs-short] line" '! grep -q "^\[refs-short\] refs/grid" $T/err'
 # an EXCLUDED namespace that comes up short is not a refusal
-fix;mkdir -p $T/f/w/.git/hooks;printf '#!/bin/sh\ngit for-each-ref --format="%%(refname)" refs/remotes/|while read -r r;do git update-ref -d $r;done\n' >$T/f/w/.git/hooks/post-receive;chmod +x $T/f/w/.git/hooks/post-receive;go
+fix;mkdir -p $T/f/w/.git/hooks;printf '#!/bin/sh\n[ "$1" = committed ]&&[ -z "$LOOP" ]||exit 0\nexport LOOP=1\ngit for-each-ref --format="%%(refname)" refs/remotes/|while read -r r;do git update-ref -d $r;done\n' >$T/f/w/.git/hooks/reference-transaction;chmod +x $T/f/w/.git/hooks/reference-transaction;go
 ok "refs-an-excluded-namespace-may-be-short a target with 0 refs/remotes/* (excluded) still ends rc 0 and starts the post (rc $rc; started: $(started&&echo yes||echo no))" '[ $rc = 0 ]&&started'
 
 # round 2 (e)-2: counts can hide a missing NAME (refs/heads gets carry/trunk on the target, so 5 >= 4 even with refs/heads/other gone)
-fix;mkdir -p $T/f/w/.git/hooks;printf '#!/bin/sh\ngit update-ref -d refs/heads/other\n' >$T/f/w/.git/hooks/post-receive;chmod +x $T/f/w/.git/hooks/post-receive;go
+fix;mkdir -p $T/f/w/.git/hooks;printf '#!/bin/sh\n[ "$1" = committed ]&&[ -z "$LOOP" ]||exit 0\nexport LOOP=1\ngit update-ref -d refs/heads/other\n' >$T/f/w/.git/hooks/reference-transaction;chmod +x $T/f/w/.git/hooks/reference-transaction;go
 ok "refs-the-after-check-is-an-identity-check one NAME (refs/heads/other) gone on the target while the refs/heads COUNT stays >= the source's ends rc != 0 ($rc) with '[refs-short] refs/heads ... missing=1 first=refs/heads/other' ($(head -c 200 $T/err|tr '\n' ' ')) and the post is not started" '[ $rc != 0 ]&&grep -q "^\[refs-short\] refs/heads before=[0-9]* after=[0-9]* missing=1 first=refs/heads/other" $T/err&&! started'
 # round 2 (e)-1: a two-part ref cannot be pushed: it is reported, not counted, and the move does not refuse after the stop
 fix;go
@@ -159,6 +164,38 @@ fix;go $T/nonexistent.md;pre=$(git -C $T/f/o for-each-ref|wc -l|tr -d ' ')
 ok "refs-no-cell-no-move a missing exclude node ends rc != 0 ($rc), says [refs-exclude] ($(head -c 100 $T/err|tr '\n' ' ')), never stops the post (ctl: $(tr '\n' '|' <$T/ctl.log)), pushes nothing (origin refs $pre, target archive $(cnt $T/f/w archive))" '[ $rc != 0 ]&&grep -q "^\[refs-exclude\]" $T/err&&! grep -q "^stop" $T/ctl.log&&[ $pre = 0 ]&&[ $(cnt $T/f/w archive) = 0 ]'
 printf '# config:guard (fixture)\n```sh move.exclude\n```\n' >$T/node-empty.md;fix;go $T/node-empty.md
 ok "refs-an-empty-cell-is-no-cell an exclude block with no entry ends rc != 0 ($rc) before the post is stopped (ctl: $(tr '\n' '|' <$T/ctl.log))" '[ $rc != 0 ]&&! grep -q "^stop" $T/ctl.log'
+
+# goal:g7.16.1.11.44.7: THE BOX MOVE CALLS THE CAPSULE VERBS (doc:g716111-44-capsule-pack section 6): pack / out / verify / in, no `move` verb. A MUTANT row edits a copy of box-move.sh with ONE sed and passes only when the clean row's condition is FALSE for it.
+mutgo(){ mkdir -p $T/m;sed "$1" $SRC >$T/m/box-move.sh;if cmp -s $SRC $T/m/box-move.sh;then echo "FAIL mutant $2 changed nothing";f=$((f+1));return 1;fi;S0=$SRC;SRC=$T/m/box-move.sh;go;SRC=$S0; }
+refs_other(){ git -C $1 for-each-ref --format='%(refname) %(objectname)'|grep -v -e ' refs/capsule/' -e '^refs/capsule/' -e '^refs/heads/local-maxxing/season2/main ' -e '^refs/remotes/'; }
+fix;go;CS=$(git -C $T/f/s for-each-ref --format='%(refname) %(objectname)' refs/capsule/);CT=$(git -C $T/f/w for-each-ref --format='%(refname) %(objectname)' refs/capsule/)
+ok "capsule-the-real-pack-lands-one-signed-ref-on-both-boxes after a good move MAIN holds $(cnt $T/f/s capsule) refs/capsule/* ref (want 1: the REAL pack; the dry run's is in a job-owned repo) and the target holds the SAME ref+sha ([$CT] vs [$CS])" '[ $rc = 0 ]&&[ $(cnt $T/f/s capsule) = 1 ]&&[ -n "$CS" ]&&[ "$CS" = "$CT" ]'
+ok "capsule-the-move-calls-the-four-verbs-and-no-move-verb box-move.sh runs the piece's pack, out, verify and in, and pushes ONLY the trunk branch to the target ($(grep -c 'git push -q ssh://' $SRC) push, want 1)" 'grep -q "cap pack" $SRC&&grep -q "cap out" $SRC&&grep -q "TI verify" $SRC&&grep -q "TI in " $SRC&&grep -q "D/cap in" $SRC&&[ $(grep -c "git push -q ssh://" $SRC) = 1 ]&&! grep -q -E "cap move" $SRC'
+# the dry run is job-owned: a refused move leaves MAIN's refs/capsule/* count unchanged (the design's PRE-STOP row)
+pre_ahead(){ fix;git -C $T/f/w fetch -q $T/f/s refs/archive/p1/dir1:refs/archive/p1/dir1;git -C $T/f/w update-ref refs/archive/p1/dir1 $(git -C $T/f/w commit-tree -m ahead -p refs/archive/p1/dir1 $(git -C $T/f/w rev-parse refs/archive/p1/dir1^{tree}));git -C $T/f/s for-each-ref --format='%(refname) %(objectname)' >$T/pre2; }
+pre_ahead;go
+ok "capsule-a-dry-run-leaves-mains-capsule-refs-unchanged a refused move (rc $rc, want 6) leaves MAIN with $(cnt $T/f/s capsule) refs/capsule/* (want 0)" '[ $rc = 6 ]&&[ $(cnt $T/f/s capsule) = 0 ]'
+pre_ahead;mutgo 's#CD=\$(cd \$J/dry&&#CD=$(#;s#(cd \$J/dry&&AGI_TRUNK#(AGI_TRUNK#' dry-in-main
+ok "capsule-mutant-the-dry-pack-in-MAIN-is-RED the dry pack run in MAIN leaves $(cnt $T/f/s capsule) refs/capsule/* after a refused move (the clean row wants 0: this one must NOT be 0)" '[ $(cnt $T/f/s capsule) != 0 ]'
+# GATE (doc row 5c, council 3/3 06:38Z 10-14): the target's refs/grid has a ref the source line is NOT a fast-forward of -> the PRE-STOP, which mirrors MAIN's refs/grid in a scratch on the target, exits rc 6 NAMED, the post still on FROM, FROM's refs unchanged
+grid_div(){ fix;git -C $T/f/w update-ref refs/grid/n1/1 $(git -C $T/f/w commit-tree -m diverged $(git -C $T/f/w rev-parse 'HEAD^{tree}'));gw=$(git -C $T/f/w rev-parse refs/grid/n1/1);refs_other $T/f/s >$T/pre5;h0=$(git -C $T/f/s rev-parse HEAD); }
+grid_div;go
+ok "capsule-gate-5c-a-non-ff-grid-line-refuses-before-the-stop the target's refs/grid/n1/1 is a commit the source's line is not a fast-forward of: rc $rc (want 6), '[refs-reject] refs/grid/n1/1' on stderr ($(grep -c '^\[refs-reject\] refs/grid/n1/1' $T/err) line), nothing stopped or started (ctl: $(tr '\n' '|' <$T/ctl.log)), the target's line unmoved" '[ $rc = 6 ]&&grep -q "^\[refs-reject\] refs/grid/n1/1" $T/err&&[ ! -s $T/ctl.log ]&&[ "$(git -C $T/f/w rev-parse refs/grid/n1/1)" = "$gw" ]'
+ok "capsule-gate-5c-from-is-untouched FROM's refs are the same set+shas as before (diff: $(refs_other $T/f/s|diff $T/pre5 - |wc -l|tr -d ' ') line(s), want 0), its HEAD $(git -C $T/f/s rev-parse --short HEAD) = $(echo $h0|cut -c1-7), posts.md clean, origin holds $(git -C $T/f/o for-each-ref|wc -l|tr -d ' ') refs (want 0)" 'refs_other $T/f/s|cmp -s $T/pre5 -&&[ "$(git -C $T/f/s rev-parse HEAD)" = $h0 ]&&[ -z "$(git -C $T/f/s status --short)" ]&&[ $(git -C $T/f/o for-each-ref|wc -l|tr -d " ") = 0 ]'
+grid_div;mutgo "s#'+refs/\*:refs/\*'&&cd s#'+refs/heads/*:refs/heads/*'\&\&cd s#" plain-clone-scratch
+ok "capsule-gate-5c-mutant-a-scratch-without-the-grid-mirror-is-RED a PRE-STOP scratch that mirrors only the heads (a plain clone) lets the non-ff grid line through: rc $rc (the clean row wants 6: this one must NOT be 6)" '[ $rc != 6 ]'
+grid_div;mutgo 's#&&\$TI in \.\./b##' verify-only
+ok "capsule-gate-5c-mutant-no-dry-in-is-RED a PRE-STOP that only VERIFIES (never runs the scratch in) lets the non-ff grid line through: rc $rc (the clean row wants 6: this one must NOT be 6)" '[ $rc != 6 ]'
+# RECOVERY (section 6, sA2): the REAL `in` refused after the stop -> [move-in-failed], the row reverted by a second commit, the post started on FROM, FROM's refs unchanged, the target gained nothing
+recov_fix(){ fix;mkdir -p $TGT/.git/refs/archive/p1;: >$TGT/.git/refs/archive/p1/dir1.lock;refs_other $T/f/s >$T/pre6; }
+recov_fix;go
+ok "capsule-recovery-a-refused-real-in-reverts-the-row-and-restarts-from the target's refs/archive/p1/dir1 is locked (the scratch cannot see a lock held in MAIN): rc $rc (want 10), '[move-in-failed]' on stderr ($(grep -c '^\[move-in-failed\]' $T/err) line), agi-post@$P started on FROM after the stop (ctl: $(tr '\n' '|' <$T/ctl.log)), the row at HEAD says local-town ($(git -C $T/f/s show HEAD:.agi/nodes/.geometry/posts.md|grep -c '"box": "local-town"') of 2), posts.md clean" '[ $rc = 10 ]&&grep -q "^\[move-in-failed\]" $T/err&&grep -q "^stop agi-post@$P" $T/ctl.log&&grep -q "^start agi-post@$P" $T/ctl.log&&[ $(git -C $T/f/s show HEAD:.agi/nodes/.geometry/posts.md|grep -c "\"box\": \"local-town\"") = 2 ]&&[ -z "$(git -C $T/f/s status --short)" ]'
+ok "capsule-recovery-is-lossless FROM's refs apart from the trunk branch and refs/capsule are the same set+shas as before (diff: $(refs_other $T/f/s|diff $T/pre6 - |wc -l|tr -d ' ') line(s), want 0), the target holds $(cnt $T/f/w grid) refs/grid + $(cnt $T/f/w box) refs/box (want 0 0), origin's row says local-town ($(git -C $T/f/o show refs/heads/local-maxxing/season2/main:.agi/nodes/.geometry/posts.md|grep -c '"box": "local-town"') of 2)" 'refs_other $T/f/s|cmp -s $T/pre6 -&&[ $(cnt $T/f/w grid) = 0 ]&&[ $(cnt $T/f/w box) = 0 ]&&[ $(git -C $T/f/o show refs/heads/local-maxxing/season2/main:.agi/nodes/.geometry/posts.md|grep -c "\"box\": \"local-town\"") = 2 ]'
+recov_fix;mutgo 's#git revert --no-edit HEAD >/dev/null&&##' no-revert
+ok "capsule-recovery-mutant-no-revert-is-RED a RECOVERY that never reverts the row leaves HEAD's row at encryption-town ($(git -C $T/f/s show HEAD:.agi/nodes/.geometry/posts.md|grep -c '"box": "local-town"') of 2 local-town; the clean row wants 2: this one must NOT be 2)" '[ $(git -C $T/f/s show HEAD:.agi/nodes/.geometry/posts.md|grep -c "\"box\": \"local-town\"") != 2 ]'
+recov_fix;mutgo 's#;sudo -n systemctl start agi-post@\$P;exit 10#;exit 10#' no-restart
+ok "capsule-recovery-mutant-no-restart-is-RED a RECOVERY that never starts the post on FROM: start logged ($(grep -c '^start agi-post@'$P $T/ctl.log)); the clean row wants 1: this one must NOT log one" '! grep -q "^start agi-post@$P" $T/ctl.log'
+ok "capsule-the-probe-left-target-fit-and-lives-in-the-prestop-step target-fit.sh holds $(grep -c unfit-probe $TF) probe line(s) (want 0, the df floor stays: $(grep -c 'df -Pk' $TF)), box-move.sh holds $(grep -c 'unfit-probe' $SRC) (want 1)" '[ $(grep -c unfit-probe $TF) = 0 ]&&[ $(grep -c "df -Pk" $TF) -ge 1 ]&&[ $(grep -c unfit-probe $SRC) = 1 ]'
 
 # the tree under test
 n=$(grep -c -F '$E "cd /data/work/agi' $SRC)
