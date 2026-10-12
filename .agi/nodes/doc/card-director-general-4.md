@@ -19,18 +19,18 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (10-11 ~22:0xZ)
+## §0 State (10-12 ~00:4xZ)
 | | |
 |---|---|
 | post | director-general-4 under sanctuary-master (SM); builder for DG1/SM; DG2 writes my falsifier lanes first, DG3 is the other builder |
 | running | NOTHING (no suite, no runner, no dispatch). ONE heavy lane at a time, niced, only above 3 GiB MemAvailable (cat /proc/meminfo); no scratch on /dev/shm while agi.slice > 4600 MiB |
 | skills | agi-rotate · agi-review · agi-dispatch · agi-send · agi-verify · agi-goal · agi-post |
-| worktrees | /var/lib/agi/director-general-4/: t (mine) + w-board2 (LIVE, locked: dg4-board2 = dbbfb2e2a6, the .42 answer) + w-capsule (LIVE, locked: dg4-capsule = a0a86ef159 ON 9a2df4312d, the .44 cuts). Every other dg4-* branch kept, its worktree removed 17:1xZ |
+| worktrees | /var/lib/agi/director-general-4/: t (mine) + w-board3 (LIVE, locked: dg4-board3 = b1d83acb51, the .42 RE-CUT ONE commit on 9b71aa6daa) + w-board2 (locked, SUPERSEDED: dbbfb2e2a6) + w-capsule (LIVE, locked: dg4-capsule = a0a86ef159 ON 9a2df4312d, the .44 cuts). Every other dg4-* branch kept, its worktree removed 17:1xZ |
 | scratch | pytest --basetemp, TMPDIR, lane temp, gate trees: ONLY /data/work/gate-director-general-4 (700, my uid); home and /tmp are on the ROOT disk; remove each run's tree when done |
 
 ## §1 Plan
 ```
-WAIT    (1) SM's re-gate of dg4-board2 dbbfb2e2a6 (.42 option E; approved 3/3 20:17Z, re-minted L f5f100b83b, rides SM's digest to belam). (2) SM's gate of the capsule cuts, then it LANDS after .41 (the season-2 close gate).
+WAIT    (1) SM re-mints the stack on .42 E b1d83acb51 (belam's landing guard REFUSED the old three commits: a literal belam home in the crons row, its test and a message; alive acks the edit in one line). (2) SM's gate of the capsule cuts (a0a86ef159), after .41; the council gets the 4 deviations + 7,418 B. Do NOT cut `list`.
 HOST    belam: `python3 extensions/agi/bin/crons.py apply --sudo` from MAIN in the SAME MINUTE as the ff of posts/belam; the FIRST live run is the proof.
 CAPSULE goal:g7.16.1.11.44 (owner's one container, design doc:g716111-44-capsule-pack, `git show posts/sanctuary-master:.agi/nodes/doc/g716111-44-capsule-pack.md`). ALL SIX leaves .44.1-.6 built in w-capsule: ONE piece `capsule` in engine-capsule.md (pack out verify in regrow repoint) + lane extensions/agi/tests/capsule.t.sh (62 rows, mutants RED, incl. the landing lane). Boxed to SM 22:0xZ with FOUR deviations (fat bundle for a ref behind base; header prerequisite; scratch-repo verify; [moved]) and the size (7,418 B vs ~1.9 KB; I'd drop `list` first). NOT BUILT: `capsule move` (design section 6, no leaf).
 EXTRAS  on SM's word (not placed): (1) geometry_config.resolved_seat_env v4-rows-only; (2) cc-session-start.sh BOOTSTRAP_SEAT=${AGI_POST:-${AGI_SEAT:-}}; skills-truth CUT/TIP defaults. HELD: .20 retire-the-inbox-write; .20.1 items 2+3. NOT MINE: box-wake.t.sh (DG2).
@@ -40,7 +40,7 @@ EXTRAS  on SM's word (not placed): (1) geometry_config.resolved_seat_env v4-rows
 ```
 CAPSULE .44.1-.6 cut 1 b86473037c + cut 2 a0a86ef159 (dg4-capsule), boxed to SM, not yet gated
 LANDED  .36 tui · .20 v5 alert · .37 (20a39210c4, C1 6c9d471bc8, next cut + CLOSE 4e38ecb36c, post-env LIVE fix afeec20cce, F6 re-read 72a2678064) · fresh-blob · .13.2 · .35 · kid AGI_POST=$k
-REVIEW  .42 option E: a155fb2792 (code half: crons.py `user:` + `apply --sudo`, board_job.py commit/land, crons.md rows) -> 16b368ad72 (grid_writers pins .13 C1/C5 + N6/P9, `-X theirs`, take-MAIN refusals to the notice) -> dbbfb2e2a6 (council 18:06Z conditions: every user any job names is reconciled; land checks %G?==G AND %GS==belam@agi itself with -c gpg.ssh.allowedSignersFile). APPROVED 3/3 with those two conditions.
+REVIEW  .42 option E (SUPERSEDED by b1d83acb51, 00:4xZ): a155fb2792 (code half: crons.py `user:` + `apply --sudo`, board_job.py commit/land, crons.md rows) -> 16b368ad72 (grid_writers pins .13 C1/C5 + N6/P9, `-X theirs`, take-MAIN refusals to the notice) -> dbbfb2e2a6 (council 18:06Z conditions: every user any job names is reconciled; land checks %G?==G AND %GS==belam@agi itself with -c gpg.ssh.allowedSignersFile). APPROVED 3/3 with those two conditions.
 ROOT    disk pass done 17:1xZ: home 3.4 GB -> 468 MB, df / 64%.
 ```
 
@@ -58,6 +58,7 @@ THEN: a RETURN = ONE new signed commit ON the sent sha in the matching worktree 
 | runner fall-through | a background lane runner that waits on MemAvailable must STOP, not run anyway, when the wait ends (I stopped mine at 09:33Z after it was about to run beside SM's gate) |
 | pkill -f | `pkill -f <script>` matches my own command line and kills the shell: find the pid with `pgrep -x sh -a` and kill by pid |
 | mail (owner 10-11 20:2xZ, via SM) | NEVER box belam: anything for belam goes to SM (he folds it into the ONE ~4 h digest). To SM: one message per finished thing, no [ack]/[thanks]/[landed]. Only [red] or a BLOCKING owner-ruling ask is sent at once. Lands in skill agi-send |
+| home literals | belam's landing guard knows EVERY seat's home (HOME_PATH_RE under a post uid knows only its own): grep the added lines AND the commit message for /var/lib/agi/<any name>, /home/, /data/home = 0 before sending; a crons row writes `~/...` (cron expands it as the row's user). Diff a re-cut against the commits' own net (merge-base), never a named sha SM typed |
 | capsule lane | env -u AGI_TRUNK first (a post's AGI_TRUNK=<ref> made every fixture `at` read the wrong trunk); a function's last command is its status (a trailing rm made a mutant row pass). Both live in the lane's comments |
 | committer email | git verifies an ssh signature against the COMMITTER EMAIL: a machine job signing as the seat commits as `belam <belam@agi>` (the ring principal), never `agi-belam` |
 
