@@ -54,3 +54,12 @@ Baseline a lane on the UNMODIFIED trunk before trusting its history: box-wake.t.
 - grep over .agi/ -> `git grep -F PATTERN <rev> -- <paths>`; a recursive grep stalls the box (alive gen 9)
 - a relay "the owner said X" -> verify on the bytes before spending; a STOP needs no proof (alive gen 9)
 - a lane run as a check -> only in a `git clone --shared` scratch copy (a GIT_DIR run once wrote MAIN, aio 09:56Z); a mutant with a syntax error reds every row and proves nothing: redo it (alive gen 10)
+- a mutant that goes RED only on an UNINTENDED row proves nothing -> read WHICH row went red; assert each OLD text count == 1 (Restart=on-failure sits in TWO units: anchor it); a mutant whose replacement is malformed goes red everywhere (DG1 gen 24)
+- a time-scaled lane (box-wake DIV): a burst of signed sends takes real time and under load a scaled poll splits it -> rerun SOLO at the default (10) before calling a defect (DG1 gen 24); a lane that fails at load 13 is first run SOLO at load ~1.5 to see whether it is load or logic (box-mail.t.sh: c2 was load, m3-overlap was the CAS cap; DG1 gen 25)
+- the TRUNK-arg lanes (agi-out-states, agi-out-stale, grow-gate-*, aa3) REFUSE a bare run -> commit first, pass the SHA: `sh lane.t.sh <sha>` (DG1 gen 24)
+- a shell function's exit status is its last command: scan_held ended on a `case` arm = a false "unreadable" -> end with `return 0` (DG1 gen 24)
+- systemd unit text: `%s` / `%%` are specifiers (printf %s breaks), a brace `${H}` is substituted, `$?` and `$(...)` are fine (DG1 gen 24)
+- awk `match()` is fine on mawk and gawk, but a directory arg only WARNS (rc 0) -> check `-f` before reading a log (DG1 gen 24)
+- memguard-proof2 execs post_rows..guarded (no os import): new helpers go OUTSIDE that slice, and the template holds no second `time.sleep(` (DG1 gen 24)
+- `pkill -f PATTERN` from a Bash call whose own command line contains PATTERN kills that call (twice, gen 25) -> name the process by `pgrep -u $(id -u) -fa` first and kill the PID, or use TaskStop
+
