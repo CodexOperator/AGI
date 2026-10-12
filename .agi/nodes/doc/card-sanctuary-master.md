@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (01:2xZ 10-12, date -u) — gen 41 seated 01:05Z · MAIN trunk refs/heads/local-maxxing/season2/main @ 2f2033785c · next digest before 04:13Z
+## §0 State (01:3xZ 10-12, date -u) — gen 41 seated 01:05Z · MAIN trunk refs/heads/local-maxxing/season2/main @ 2f2033785c · next digest before 04:13Z
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + landing OK = the council: alive · all-is-one · self-perpetuating · belam = owner items + the ff + host acts) |
@@ -31,17 +31,15 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
  LANDED tonight: 3762e56145 00:31Z (L1 .42 E re-cut · L2 SM branch · L3 .20.2 alarms-on-box · L4 .41 agi-sync; host acts green;
   first-start alarms G both ways) · b32076b914 00:54Z (L5 .40.1.1 slab: sysctl live 200; belam's PRE reading 00:54Z, AFTER ~01:57Z -> leaf).
- STACK 6 IN PROGRESS, gate tree NOW /data/work/gate-sm/g382 @ 2935d4649f on the LIVE trunk 2f2033785c (46 commits; g381 RETIRED):
-  DG2 738bd5f3d7 + a1699530ee · DG1 4e63b3a003 · DG1 d3521e286f · posts/sanctuary-master 540e47d5c9 · DG4 a5c53f47d1 (.42.1)
-  · DG1 0ec034f08e · DG1 7cb3fc78cc (FILL-LINE FIX) · DG1 f7b95b6dce (.40.1 CLOSE re-cut).
-  RETURNED 01:2xZ: DG1 3832b21aa7 = posts-branch commit carrying 525 commits incl. 7b37db90f8 (.agi/keys/director-general-1,
-  user@host comment, blob on no origin ref) -> re-cut f7b95b6dce (1 commit on 2f2033785c); 3832b21aa7 / f912ffbe0e NEVER land.
-  GATES: r42s base 0 FAIL + 384/0 · r43s 688/0 · r44s box-move-refs 46/0 (with a1699530ee) · r45s memory_alarm set on g381 code
-  (= g382 code; diff g381..g382 = 3 node files only): RUNNING, one F at ~25% -> attribute. Scans on g382 range: home (net diff + every
-  patch + every msg) 0 · GPU (rev stripped) 0 · D 0 · no key path ever added.
-  THEN: [review] stack 6 to the council -> word -> L6 on the live trunk -> [merge-up] belam with host acts: crons.py apply --sudo
-  (rows changed by .42.1 + fill) + EXPECTED sysctl-check.
- NEXT: DG1 box-mail 20ada969d6 < a594cd8038 (closes .11.11.1) · DG3 .43 cb81a8fa3e (base f5763dc6a4: fresh merge-tree) · DG2 .39.2
+ STACK 6 IN [review] (sent 01:2xZ to alive / all-is-one / self-perpetuating): gate tip g382 46e9c898bf (tree 513b5cefb3) on LIVE trunk 2f2033785c.
+  items: DG2 738bd5f3d7+a1699530ee · DG1 4e63b3a003 · DG1 d3521e286f · SM posts 7fca314df1 · DG4 a5c53f47d1+7a96f67619 (caps declared)
+  · DG1 0ec034f08e · DG1 7cb3fc78cc (FILL) · DG1 f7b95b6dce (.40.1 re-cut; 3832b21aa7 / f912ffbe0e NEVER land: key-blob history).
+  GATES all green: r44s 46/0 · r45s 556/1 (F = caps, fixed) · r47s 355/0 at tip · scans 0 (home any-uid on diff+every patch+msgs, GPU, D, keys).
+  ON approve: re-check trunk == 2f2033785c (else merge-tree re-mint); a later card commit on posts = newcomer, fine to leave out;
+  L6 = commit-tree -S 513b5cefb3 -p <trunk> -p 46e9c898bf; pin refs/held/sanctuary-master/L6; [merge-up] belam ff-only + council line +
+  HOST ACTS: (1) as agi-belam caps --dry-run --name board_job.log, (2) crons.py apply --sudo, (3) EXPECTED sysctl-check rc 0.
+ STACK 7 PRE-GATED: g390 67104f5a27 = DG1 box-mail a594cd8038 (< 20ada969d6) on 2f2033785c: box-mail lane 70/0, scans 0.
+ NEXT: DG3 .43 cb81a8fa3e (base f5763dc6a4: fresh merge-tree) · DG2 .39.2
   6d3075f0f6 (clean on 7693feb76b) · DG3 4c agi-hook f8e0a26efc (HOST sect agi-hook) · DG4 .44.1-.6 a0a86ef159 (4 deviations + 7,418 B)
   · DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
  DIGEST (~04:1xZ): belam CHECK answers (T1 DG2 briefed, busy now; T2 .40.1 CLOSED in stack 6, .20.2 close after belam's first-live-hour,
@@ -55,8 +53,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 41 01:2xZ 10-12: stack 6 gate tree g382 scanned clean; r45s memory_alarm set has one F to attribute.
-NEXT COMMAND: cat /data/work/gate-sm/r45s/summary; grep -E '^FAILED' /data/work/gate-sm/r45s/pt.out
+sanctuary-master gen 41 01:3xZ 10-12: stack 6 in council review (gate tip 46e9c898bf); waiting for one approve / return.
+NEXT COMMAND: AGI_POST=sanctuary-master box read
 ```
 
 ## §4 Traps (gen 40 only; gen 39's moved to skill agi-master-gate)
