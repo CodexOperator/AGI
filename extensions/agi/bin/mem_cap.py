@@ -510,6 +510,10 @@ _RECHARGE_ENV = "AGI_RAM_RECHARGE_SCOPED"
 #: copy and the replace, where a late writer lands (the TOCTOU row).
 _before_replace = None
 
+#: Seconds after which the held-open scan is re-run right before a replace (a
+#: full /proc walk per file is too slow on a big tree). A test sets it to 0.
+_RESCAN_AFTER = 0.2
+
 
 def _dev_of(path: str) -> int:
     """The device of `path` -- the one seam a row fakes to stand in a mount."""
@@ -556,22 +560,52 @@ def recharge(root: str, dry_run: bool = False) -> "dict[str, int]":
     (a set with a name outside `root` is skipped whole), every tempfile removed
     on every path. A mount-point dir below `root` is counted in `crossed` and
     never entered (it is not a skipped FILE: a RAM tree with disk binds would
-    otherwise exit non-zero on every run). Returns counts only -- no path."""
+    otherwise exit non-zero on every run; a bind-mounted FILE counts there too).
+    An unreadable or vanished entry counts `failed`. Residue, named: a file
+    first opened for write between the last held-open scan and its rename can
+    lose that writer's data -- run it when the RAM writers are quiet. Returns
+    counts only -- no path."""
     n = {"rewritten": 0, "skipped": 0, "failed": 0, "crossed": 0}
     top = _dev_of(root)
-    held = _open_for_write()
+    held, scan_t = _open_for_write(), time.monotonic()
     groups: "dict[tuple[int, int], list[str]]" = {}
-    for d, dirs, files in os.walk(root, followlinks=False):
-        sub = [x for x in dirs if not os.path.islink(os.path.join(d, x))]
-        n["crossed"] += sum(_dev_of(os.path.join(d, x)) != top for x in sub)
-        dirs[:] = [x for x in sub if _dev_of(os.path.join(d, x)) == top]
+
+    def unreadable(_exc):       # os.walk swallows a scandir error: count the dir, never lose it
+        n["failed"] += 1
+    for d, dirs, files in os.walk(root, followlinks=False, onerror=unreadable):
+        keep = []
+        for x in dirs:
+            path = os.path.join(d, x)
+            try:
+                if os.path.islink(path):
+                    continue
+                if _dev_of(path) != top:
+                    n["crossed"] += 1
+                    continue
+            except OSError:     # vanished between the listing and the stat
+                n["failed"] += 1
+                continue
+            keep.append(x)
+        dirs[:] = keep
         for f in files:
             path = os.path.join(d, f)
-            st = os.lstat(path)
-            if stat.S_ISREG(st.st_mode) and st.st_dev == top:
-                groups.setdefault((st.st_dev, st.st_ino), []).append(path)
+            try:
+                st = os.lstat(path)
+            except OSError:
+                n["failed"] += 1
+                continue
+            if not stat.S_ISREG(st.st_mode):
+                continue
+            if st.st_dev != top:        # a bind-mounted FILE
+                n["crossed"] += 1
+                continue
+            groups.setdefault((st.st_dev, st.st_ino), []).append(path)
     for key, names in groups.items():
-        st = os.lstat(names[0])
+        try:
+            st = os.lstat(names[0])
+        except OSError:
+            n["failed"] += len(names)
+            continue
         if key in held or st.st_nlink != len(names):
             n["skipped"] += len(names)
             continue
@@ -586,10 +620,15 @@ def recharge(root: str, dry_run: bool = False) -> "dict[str, int]":
             fd, tmp = tempfile.mkstemp(dir=os.path.dirname(names[0]), prefix=".recharge.")
             with os.fdopen(fd, "wb") as out, open(names[0], "rb") as src:
                 shutil.copyfileobj(src, out)
+            os.chown(tmp, st.st_uid, st.st_gid)     # BEFORE copystat: a non-root chown clears setuid/setgid
             shutil.copystat(names[0], tmp)
-            os.chown(tmp, st.st_uid, st.st_gid)
             if _before_replace is not None:
                 _before_replace(names[0])
+            if time.monotonic() - scan_t > _RESCAN_AFTER:       # a late opener since the last scan
+                held, scan_t = _open_for_write(), time.monotonic()
+                if key in held:
+                    n["skipped"] += len(names)
+                    continue
             now = os.lstat(names[0])
             if (now.st_ino, now.st_size, now.st_mtime_ns) != (st.st_ino, st.st_size, st.st_mtime_ns):
                 n["skipped"] += len(names)      # changed under us: leave it

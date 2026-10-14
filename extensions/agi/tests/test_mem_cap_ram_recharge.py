@@ -164,6 +164,96 @@ def r9_symlinks(mod, tmp_path, monkeypatch):
     assert _ino(outside / "x.txt") == oino and (outside / "x.txt").read_text() == "not yours"
 
 
+def _verb(mod, root, monkeypatch):
+    """(rc, stdout+stderr) of the verb already inside its scope."""
+    import contextlib
+    import io
+    monkeypatch.setenv(mod._RECHARGE_ENV, "1")
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+        rc = mod._verb_ram_recharge([str(root)])
+    return rc, buf.getvalue()
+
+
+def rA_unreadable_directory(mod, tmp_path, monkeypatch):
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir")
+    root = _tree(tmp_path)
+    sub = root / "sub"
+    sub.mkdir()
+    (sub / "hidden.txt").write_text("x")
+    os.chmod(sub, 0)
+    try:
+        n = mod.recharge(str(root))
+        rc, out = _verb(mod, root, monkeypatch)
+    finally:
+        os.chmod(sub, 0o755)
+    assert n["failed"] >= 1 and rc == 1
+    assert str(tmp_path) not in out
+
+
+def rB_vanished_entry(mod, tmp_path, monkeypatch):
+    root = _tree(tmp_path)
+    real = os.lstat
+
+    def gone(path, *a, **k):
+        if str(path).endswith("ro.txt"):
+            raise FileNotFoundError(path)
+        return real(path, *a, **k)
+    monkeypatch.setattr(mod.os, "lstat", gone)
+    rc, out = _verb(mod, root, monkeypatch)             # no exception out of the verb
+    assert rc == 1 and "failed=1" in out and str(tmp_path) not in out
+
+
+def rC_setid_bits_survive(mod, tmp_path, monkeypatch):
+    if os.geteuid() == 0:
+        pytest.skip("root's chown keeps setuid/setgid, so the order cannot show")
+    root = _tree(tmp_path)
+    os.chmod(root / "a.txt", 0o2755)
+    os.chmod(root / "ro.txt", 0o4755)
+    mod.recharge(str(root))
+    assert os.stat(root / "a.txt").st_mode & 0o7777 == 0o2755
+    assert os.stat(root / "ro.txt").st_mode & 0o7777 == 0o4755
+
+
+def rD_late_opener(mod, tmp_path, monkeypatch):
+    root = _tree(tmp_path)
+    monkeypatch.setattr(mod, "_RESCAN_AFTER", 0)
+    keep = []
+
+    def open_late(path):
+        if path.endswith("a.txt"):
+            keep.append(open(path, "r+"))               # opens r+, has not written yet
+    monkeypatch.setattr(mod, "_before_replace", open_late)
+    ino = _ino(root / "a.txt")
+    try:
+        n = mod.recharge(str(root))
+        keep[0].seek(0, 2)
+        keep[0].write("-NEW")
+        keep[0].flush()
+    finally:
+        keep[0].close()
+    assert n["skipped"] == 1 and _ino(root / "a.txt") == ino
+    assert (root / "a.txt").read_text() == "alpha-NEW" and _leftovers(root) == []
+
+
+def rE_bind_mounted_file(mod, tmp_path, monkeypatch):
+    root = _tree(tmp_path)
+    real = os.lstat
+
+    def bound(path, *a, **k):
+        st = real(path, *a, **k)
+        if str(path).endswith("ro.txt"):
+            f = {k2: getattr(st, k2) for k2 in dir(st) if k2.startswith("st_")}
+            f["st_dev"] += 1
+            return types.SimpleNamespace(**f)
+        return st
+    monkeypatch.setattr(mod.os, "lstat", bound)
+    ino = _ino(root / "ro.txt")
+    n = mod.recharge(str(root))
+    assert n["crossed"] == 1 and n["rewritten"] == 2 and _ino(root / "ro.txt") == ino
+
+
 # (row, guard removed, replacement) -- ONE edit each; the row must go RED on it.
 ROWS = [
     (r1_mount, "and _dev_of(os.path.join(d, x)) == top]", "]"),
@@ -173,6 +263,13 @@ ROWS = [
     (r3_mode, "shutil.copystat(names[0], tmp)", "pass"),
     (r4_hardlinks, "for other in names[1:]:", "for other in []:"),
     (r4_outside_name_skips_whole_set, "st.st_nlink != len(names)", "False"),
+    (rA_unreadable_directory, "followlinks=False, onerror=unreadable)", "followlinks=False)"),
+    (rB_vanished_entry, "            try:\n                st = os.lstat(path)\n            except OSError:\n                n[\"failed\"] += 1\n                continue\n",
+     "            st = os.lstat(path)\n"),
+    (rC_setid_bits_survive, "os.chown(tmp, st.st_uid, st.st_gid)     # BEFORE copystat: a non-root chown clears setuid/setgid\n            shutil.copystat(names[0], tmp)",
+     "shutil.copystat(names[0], tmp)\n            os.chown(tmp, st.st_uid, st.st_gid)"),
+    (rD_late_opener, "if time.monotonic() - scan_t > _RESCAN_AFTER:", "if False:"),
+    (rE_bind_mounted_file, "if st.st_dev != top:        # a bind-mounted FILE", "if False:"),
     (r5_copy_raises_midway, "            if tmp is not None:\n                try:\n                    os.unlink(tmp)",
      "            if False:\n                try:\n                    os.unlink(tmp)"),
 ]
@@ -188,7 +285,7 @@ def test_real_module_passes_the_row(row, tmp_path, monkeypatch):
 
 @pytest.mark.parametrize("row,old,new", ROWS, ids=lambda x: getattr(x, "__name__", None) or None)
 def test_mutant_turns_the_row_red(row, old, new, tmp_path, monkeypatch):
-    with pytest.raises(AssertionError):
+    with pytest.raises(Exception):      # an AssertionError, or the traceback the guard exists to prevent
         row(mutant(old, new), tmp_path, monkeypatch)
 
 
