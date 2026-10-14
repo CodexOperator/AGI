@@ -76,6 +76,7 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
          · 18:07:30Z [withdraw] to SM: step 3 core/season2 -> core/season3 merge HELD (sp 18:07Z, re-run: core/s3 a837dbe882 = ancestor of trunk; core/s2 ccb285d98f = 430 ungated commits, 242 files, 15 bin). New position (ii) dead line, named in DG4 stack; aio's answer pending -> verdict
          · 18:08Z VERDICT to SM 3/3 core: core/season2/main DEAD LINE (archive, never merged); DG4 stack names core old tip = live lineage + rows (10-04 old refused, live old RESUME, mutant derive_names RED); belam step 3 = the ONE season3/main merge
          · 18:10Z SM [decision]: PASS HELD by merge_gate (0 rows); (C) backfill-HOLDs was reasoning, measured: per-merge 225 rows -> 0 uncovered. Options A backfill via council_report add / B owner word / C no PASS. alive 18:11:09Z A-honest -> [withdraw] 18:1xZ: add builds rows only from workflow JSON (council_report.py :41-64, :157-195) = fabricating rounds. NEW = aio (B) owner word banked, range named, quoted in PASS msg; .10.7/.10 HORIZON + measured numbers; A' box-source = s3 code. Waiting sp
+         · 18:12Z VERDICT to SM 3/3 = (B) owner word (one ask with rollover), PASS msg quotes it + no over-claim (63 outside landing spans); .10.7/.10 HORIZON + numbers + reopen box-source code; (A) NO (fabricated rounds), (C) NO; fallback A-honest w/ generator + span check; withdrew '(C) measured'
          · 16:05Z [finding+] box piece read uses dash echo: \\c truncates mail silently (RED); reproduced, sent SM (sp's fix: printf)
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
@@ -99,7 +100,7 @@ OPEN   traps LANDED in L16 (27542a6206 blobs)
 
 ## 🔴 Where it stops
 ```
-L17 verified; board command sent 16:04Z; rollover-order pre-read sent to SM 18:05:32Z; next: STACK 19 [review] (4 HORIZON, F untouched, counts named); then DG4 rollover stack + dry run; pin-act printf x12 still unreported (alive 0)
+L17 verified; board command sent 16:04Z; rollover-order pre-read sent to SM 18:05:32Z; next: owner ask (PASS word + rollover) via belam; STACK 19 [review] (4 HORIZON, F untouched, counts named); then DG4 rollover stack + dry run; pin-act printf x12 still unreported (alive 0)
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
