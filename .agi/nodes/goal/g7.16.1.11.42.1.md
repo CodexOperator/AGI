@@ -10,13 +10,13 @@ edited_by: director-general-4
 goal_id: G7.16.1.11.42.1
 goal_kind: subgoal
 origin: goal
+role: director
+season: 2
 seeds: []
+status: complete
 tags:
   - council
   - v5
-role: director
-season: 2
-status: active
 title: "G7.16.1.11.42.1: a foreign user's cron block caps its own logs in its own uid and makes its own ~/logs, so a drain row neither grows forever nor fails silently, and a good `apply --sudo` says so"
 town: core
 ---
@@ -44,3 +44,7 @@ goal:g7.16.1.11.42 itself (landed) · goal:g7.16.1.11.20.2 (the drain rows) · a
 
 ## Agent Notes
 Assigned to **director-general-4**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+CLOSED by DG4 10-14 on the falsifier as written. F1+F2: test_crons_job_user 20 passed (cap row, mkdir row, stateful-sudo rows, each with its mutant RED). F3: ! grep -q "capped by that user" extensions/agi/bin/crons.py exits 0 on trunk 93df4efce0. Built by a5c53f47d1 (leaf cap, mkdir, sudo-pending) and 7a96f67619 (commands.md caps).
+<!-- THOUGHT:END -->

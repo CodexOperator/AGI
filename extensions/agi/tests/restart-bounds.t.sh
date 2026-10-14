@@ -18,7 +18,10 @@ DEF='GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIF
 # --- a3-post: every ExecCondition line of the post unit, run as sh would run the value (%i -> x), cwd without .ssh/out-refused
 # the [wrong-box] condition (goal:g7.16.1.11.37) is a different rule -- it needs AGI_BOX and a trunk row, and post-env.t.sh w1..w4 run it -- so it is not one of the agi-run skip lines counted here
 grep '^ExecCondition=' $T/up|grep -v wrong-box|sed 's/^ExecCondition=//;s/%i/x/g' >$T/conds
-conds(){ rcs=;while IFS= read -r l;do (cd $T/cwd&&env -i PATH=$1:/usr/bin:/bin HOME=$T/hm $DEF sh -c "$l" >/dev/null 2>&1);rcs="$rcs $?";done <$T/conds;rcs=${rcs# };}
+PG=$(sed -n 's/^Environment="AGI_PIECE_GLOB=\(.*\)"$/\1/p' $T/up)   # goal:g7.16.1.11.41 target 1: the ONE named glob cell the condition and the extraction both read
+# the unit's trunk for these rows: a repo whose commit holds NO agi-run (the condition reads the LANDED trunk, never the post's t)
+mkdir -p $T/co0/.agi/nodes/.geometry;printf '### other (stub)\n~~~sh\nexit 0\n~~~\n' >$T/co0/.agi/nodes/.geometry/engine-grow.md;$G init -q $T/co0;$G -C $T/co0 add -A;$G -C $T/co0 commit -qm trunk;TK0=$($G -C $T/co0 rev-parse HEAD)
+conds(){ rcs=;while IFS= read -r l;do (cd $T/cwd&&env -i PATH=$1:/usr/bin:/bin HOME=$T/hm $DEF O=$T/co0 AGI_TRUNK=$TK0 AGI_PIECE_GLOB="$PG" sh -c "$l" >/dev/null 2>&1);rcs="$rcs $?";done <$T/conds;rcs=${rcs# };}
 conds $T/nobin;absent="$rcs";conds $T/withrun;present="$rcs";nc=$(wc -l <$T/conds|tr -d ' ')
 two=0;other=0;for r in $absent;do case $r in 0);;2)two=$((two+1));;*)other=$((other+1));;esac;done
 ok "a3-post-skips-when-agi-run-is-absent the $nc ExecCondition line(s) of agi-post@.service with agi-run NOT on PATH exit [$absent]: $two exit 2 (want >= 1: a skip), $other exit another code (want 0: not a failure)" '[ $two -ge 1 ]&&[ $other = 0 ]'
@@ -28,25 +31,30 @@ ok "a3-post-runs-when-agi-run-is-present the same line(s) with a stub agi-run on
 grep '^ExecCondition=.*agi-run' $T/up|sed 's/^ExecCondition=//;s/%i/x/g' >$T/rcond;nrc=$(grep -c . $T/rcond)
 RUNSTUB='### agi-run (stub)\n~~~sh\n#!/bin/sh\nexit 0\n~~~\n'
 # cond_t FILE: t exists in the unit's cwd and holds agi-run ONLY in FILE (empty = nowhere), agi-run not on PATH
-cond_t(){ rm -rf $T/ct;mkdir -p $T/ct/t/.agi/nodes/.geometry;printf '### other (stub)\n~~~sh\nexit 0\n~~~\n' >$T/ct/t/.agi/nodes/.geometry/engine-grow.md;[ -z "$1" ]||printf "$RUNSTUB" >$T/ct/t/.agi/nodes/.geometry/$1
- (cd $T/ct&&env -i PATH=$T/nobin:/usr/bin:/bin HOME=$T/hm $DEF sh -c "$(cat $T/rcond)" >/dev/null 2>&1);crc=$?;}
+cond_t(){ rm -rf $T/ct $T/co;mkdir -p $T/ct/t/.agi/nodes/.geometry $T/co/.agi/nodes/.geometry;printf '### other (stub)\n~~~sh\nexit 0\n~~~\n' >$T/co/.agi/nodes/.geometry/engine-grow.md;[ -z "$1" ]||printf "$RUNSTUB" >$T/ct/t/.agi/nodes/.geometry/$1
+ $G init -q $T/co;$G -C $T/co add -A;$G -C $T/co commit -qm trunk;TK=$($G -C $T/co rev-parse HEAD)
+ (cd $T/ct&&env -i PATH=$T/nobin:/usr/bin:/bin HOME=$T/hm $DEF O=$T/co AGI_TRUNK=$TK AGI_PIECE_GLOB="$PG" sh -c "$(cat $T/rcond)" >/dev/null 2>&1);crc=$?;}
 # cond_trunk FILE [same]: no t yet; $O is a repo whose trunk commit holds agi-run ONLY in FILE (empty = nowhere); the DEFAULT env (DEF: real ownership); `same` = the ONE explicit same-uid row (the old env: $T/gitconfig holds safe.directory=*, no seam)
 cond_trunk(){ rm -rf $T/ct $T/co;mkdir -p $T/ct $T/co/.agi/nodes/.geometry;printf '### other (stub)\n~~~sh\nexit 0\n~~~\n' >$T/co/.agi/nodes/.geometry/engine-grow.md;[ -z "$1" ]||printf "$RUNSTUB" >$T/co/.agi/nodes/.geometry/$1
  $G init -q $T/co;$G -C $T/co add -A;$G -C $T/co commit -qm trunk;TK=$($G -C $T/co rev-parse HEAD);EV=$DEF;[ "$2" != same ]||EV="GIT_CONFIG_GLOBAL=$T/gitconfig GIT_CONFIG_SYSTEM=/dev/null"
- (cd $T/ct&&env -i PATH=$T/nobin:/usr/bin:/bin HOME=$T/hm $EV O=$T/co AGI_TRUNK=$TK sh -c "$(cat $T/rcond)" >/dev/null 2>&1);crc=$?;}
+ [ "$3" != stale ]||mkdir -p $T/ct/t/.agi/nodes/.geometry   # a STALE t: present, holding no agi-run
+ (cd $T/ct&&env -i PATH=$T/nobin:/usr/bin:/bin HOME=$T/hm $EV O=$T/co AGI_TRUNK=$TK AGI_PIECE_GLOB="$PG" sh -c "$(cat $T/rcond)" >/dev/null 2>&1);crc=$?;}
 ok "ra11-the-agi-run-condition-is-one-line the unit has exactly one ExecCondition that mentions agi-run: $nrc (want 1)" '[ "$nrc" = 1 ]'
 for fn in engine-post.md engine.md engine-wrap.md;do cond_t $fn
- ok "ra11-t-has-agi-run-only-in-$fn t exists, agi-run only in t/.agi/nodes/.geometry/$fn, not on PATH: the condition exits $crc (want 0: the extraction finds it)" '[ $crc = 0 ]';done
-cond_t "";ok "ra11-t-has-agi-run-nowhere t exists, agi-run in none of the three files, not on PATH: the condition exits $crc (want 2: a skip)" '[ $crc = 2 ]'
+ ok "ra11-t-has-agi-run-only-in-$fn-is-not-read t exists and holds agi-run only in t/.agi/nodes/.geometry/$fn, the TRUNK holds it nowhere, not on PATH: the condition exits $crc (want 2: the extraction reads the landed trunk, never the post's own t)" '[ $crc = 2 ]';done
+cond_t "";ok "ra11-t-has-agi-run-nowhere t exists, agi-run in none of the three files of t or the trunk, not on PATH: the condition exits $crc (want 2: a skip)" '[ $crc = 2 ]'
 for fn in engine-post.md engine.md engine-wrap.md;do cond_trunk $fn
  ok "ra11-no-t-trunk-has-agi-run-only-in-$fn no t yet, the trunk commit holds agi-run only in $fn, not on PATH: the condition exits $crc (want 0: the worktree add will give t that file)" '[ $crc = 0 ]';done
+for fn in engine-post.md engine.md engine-wrap.md;do cond_trunk $fn x stale
+ ok "ra11-stale-t-trunk-has-agi-run-only-in-$fn a STALE t (present, no agi-run in it), the trunk commit holds agi-run only in $fn, not on PATH: the condition exits $crc (want 0: a stale t no longer skips a post whose trunk has the piece)" '[ $crc = 0 ]';done
+cond_trunk engine-post.md;(cd $T/ct&&env -i PATH=$T/nobin:/usr/bin:/bin HOME=$T/hm $DEF O=$T/co AGI_TRUNK=$TK sh -c "$(cat $T/rcond)" >/dev/null 2>&1);crc=$?;ok "ra11-an-unset-glob-cell-is-an-error the condition with AGI_PIECE_GLOB unset exits $crc (want 255: not 2 = a skip, not 0)" '[ $crc = 255 ]'
 cond_trunk "";ok "ra11-no-t-trunk-has-agi-run-nowhere no t yet, the trunk holds agi-run in none of the three files, not on PATH: the condition exits $crc (want 2)" '[ $crc = 2 ]'
 cond_trunk engine-post.md same;ok "ra11-same-uid-no-t-trunk-has-agi-run-only-in-engine-post.md (the ONE explicit same-owner row: $T/gitconfig holds safe.directory=*, no seam) no t, the trunk holds agi-run only in engine-post.md: the condition exits $crc (want 0)" '[ $crc = 0 ]'
 # --- RA12 + RA13 (DG1 03:42Z, SM mur RA12-RA14): the no-t branch runs as User=agi-%i BEFORE any ExecStartPre, so safe.directory (set by ExecStartPre #4) is not there yet and git sees $O, a repo owned by ANOTHER uid, as dubious ownership; a git error read as "absent" exits 2 = SKIP FOREVER for a fresh post. These rows run the line with an EMPTY global/system git config and git's own different-owner seam (GIT_TEST_ASSUME_DIFFERENT_OWNER=1), and a git ERROR must exit 255, never 2 (absent) and never 0 (present). The ra11 rows above keep the same-owner config ($T/gitconfig holds safe.directory=*).
 # cond_do FILE [unset] [PIN]: no t; $O a real repo whose trunk commit holds agi-run ONLY in FILE (empty = nowhere); empty git config; the seam on. unset = O not set at all; PIN replaces AGI_TRUNK
 cond_do(){ rm -rf $T/ct $T/co;mkdir -p $T/ct $T/co/.agi/nodes/.geometry;printf '### other (stub)\n~~~sh\nexit 0\n~~~\n' >$T/co/.agi/nodes/.geometry/engine-grow.md;[ -z "$1" ]||printf "$RUNSTUB" >$T/co/.agi/nodes/.geometry/$1
  $G init -q $T/co;$G -C $T/co add -A;$G -C $T/co commit -qm trunk;TK=$($G -C $T/co rev-parse HEAD);OE="O=$T/co";[ "$2" != unset ]||OE=
- (cd $T/ct&&env -i PATH=$T/nobin:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 $OE AGI_TRUNK=${3:-$TK} sh -c "$(cat $T/rcond)" >/dev/null 2>&1);crc=$?;}
+ (cd $T/ct&&env -i PATH=$T/nobin:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 $OE AGI_TRUNK=${3:-$TK} AGI_PIECE_GLOB="$PG" sh -c "$(cat $T/rcond)" >/dev/null 2>&1);crc=$?;}
 cond_do engine-post.md;seam=$(cd $T/ct&&env -i PATH=/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 $G -C $T/co rev-parse HEAD 2>&1|grep -c 'dubious ownership')
 ok "ra12-the-different-owner-seam-works with an empty config and GIT_TEST_ASSUME_DIFFERENT_OWNER=1 a plain git -C on the trunk repo is refused as dubious ownership: $seam line(s) (want 1; 0 = the seam no longer bites and the rows below prove nothing)" '[ "$seam" = 1 ]'
 for fn in engine-post.md engine.md engine-wrap.md;do cond_do $fn

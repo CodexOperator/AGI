@@ -136,6 +136,23 @@ GUARD_ENGINE_MAX_local_town=3G
 
 ```sh move.exclude
 refs/remotes  a remote-tracking ref is a copy of origin's; the target fetches its own
+refs/capsule  a capsule rides as its own signed ref inside the move's bundle, and older packs stay on the box that made them (pack never deletes)
+```
+
+## move.target-fit -- what the target must have free before a box move touches anything
+
+`extensions/agi/guard/target-fit.sh` (goal:g7.16.1.11.39.3, the council's limit 1) runs on the target in the unit-paths ssh, before the stop and the row edit: the free space under the target repo must be at least `data-free-min-kb`, and (since goal:g7.16.1.11.44.7 the refs-dir probe lives in box-move.sh's PRE-STOP target step) a probe file must be creatable and removable in its refs dir. Else `[target-unfit]`, rc 9, nothing touched. `Key value  reason`.
+
+```sh move.target-fit
+data-free-min-kb 2097152  2 GiB: the carry is at most the whole repo, and MAIN's .git measured 421,612 KB on 10-12 (a 286 MiB pack + loose objects + the grid refs); the floor is ~5x that, so a full or near-full disk refuses before the stop instead of at the after-check
+```
+
+## move.unit-required -- host paths the units use INSIDE sh -c strings, which must exist on the target
+
+`extensions/agi/guard/unit-paths.sh` (goal:g7.16.1.11.39.4) checks the paths the units name as Exec words, WorkingDirectory and the like; a path inside an `sh -c '...'` string is invisible to it (8 of agi-post@'s 12 Exec lines show only the word `sh`). Each path listed here (`path  reason`, `%i` = the post) must exist on the target before the stop and the row edit, else `[unit-path] required <path> missing on <box>`, rc 7. The list lives only here.
+
+```sh move.unit-required
+/etc/agi/carry.env  agi-post@'s ExecStart reads it with 2>/dev/null, so a target without it starts the post with AGI_BOX EMPTY and no word of it
 ```
 
 ## move.unit-optional -- the unit paths a box move may find absent on the target

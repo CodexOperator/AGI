@@ -149,3 +149,26 @@ def test_a_derived_line_out_of_range_is_refused_by_name(tmp_path, cells, line):
 def test_the_range_boundary_passes(tmp_path, cells):
     rc, v, err = derive(tmp_path, **cells)
     assert rc == 0, err
+
+
+def _ramdisk_slice_unit() -> str:
+    """The text guard-init.sh renders for ramdisk.slice: from the heredoc before `put "$UGUARD/ramdisk.slice"` back to its `[Unit]`."""
+    end = SRC.index('put "$UGUARD/ramdisk.slice"')
+    return SRC[SRC.rindex("[Unit]", 0, end):end]
+
+
+def test_ramdisk_slice_unit_carries_the_cell_budget_and_no_managedoom():
+    """goal:g7.16.1.5.5.1 falsifier 1 (the source-text part): the RAM disk's own slice has MemoryMax from the RAM_BUDGET cell, no swap,
+    and NO ManagedOOM property -- a kill cannot free a tmpfs page (its ancestors carry the oomd kill, the slice holds no long-lived unit)."""
+    unit = _ramdisk_slice_unit()
+    props = [ln.strip() for ln in unit.splitlines() if "=" in ln and not ln.lstrip().startswith("#")]
+    assert "MemoryMax=${RAM_BUDGET_M}M" in props, props
+    assert any(p.startswith("MemorySwapMax=") for p in props), props
+    assert not [p for p in props if p.startswith("ManagedOOM")], props
+
+
+def test_a_managedoom_line_in_the_ramdisk_slice_would_be_caught():
+    """mutant: the same extraction over a unit with a ManagedOOM line must find it (the row above is not vacuous)."""
+    unit = _ramdisk_slice_unit() + "\nManagedOOMMemoryPressure=kill\n"
+    props = [ln.strip() for ln in unit.splitlines() if "=" in ln and not ln.lstrip().startswith("#")]
+    assert [p for p in props if p.startswith("ManagedOOM")]

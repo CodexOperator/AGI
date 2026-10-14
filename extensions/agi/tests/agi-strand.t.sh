@@ -77,9 +77,11 @@ ok n3-a-late-append-is-kept-and-only-printed-lines-are-dropped "[ \"\$(cat $T/n3
 mk;GD=$V/.agi/nodes/.geometry;mkdir -p $GD $T/run/agi-alive $T/stub $H/.ssh;if [ -n "$PIECES" ];then cp $PIECES $GD/engine.md;else cp $R0/.agi/nodes/.geometry/engine*.md $GD/;fi
 printf '#!/bin/sh\nsed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}" %s/engine-post.md %s/engine.md\n' $GD $GD >$T/stub/sect;chmod +x $T/stub/sect
 src(){ if [ -n "$PIECES" ];then cat "$PIECES";else cat $R0/.agi/nodes/.geometry/engine*.md;fi;}
-src|sed -n "s/^ExecStartPre=sh -c '\(mkdir -p .ssh bin.*\)'\$/\1/p"|sed "s|%i|alive|g;s|%t|$T/run|g" >$T/unit37.sh
+src|sed -n "s/^ExecStartPre=sh -c '\(set -f;mkdir -p .ssh bin.*\)'\$/\1/p"|sed "s|%i|alive|g;s|%t|$T/run|g" >$T/unit37.sh
+# goal:g7.16.1.11.41 target 1: the unit extracts from the LANDED trunk BRANCH of $O by the ONE named glob cell, so the lane gives it a repo holding the pieces and the cell
+PG=$(src|sed -n 's/^Environment="AGI_PIECE_GLOB=\(.*\)"$/\1/p');rm -rf $T/orig;mkdir -p $T/orig/.agi/nodes/.geometry;cp $GD/engine*.md $T/orig/.agi/nodes/.geometry/;$G -C $T/orig init -q -b lanetrunk;$G -C $T/orig add -A;$G -C $T/orig -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm pieces
 printf '[strand-refused] alive: HEAD abc1234 carries 1 commit(s) on no ref\n' >$H/.notice;touch $H/.fresh
-(cd $H&&env -i PATH=/usr/bin:/bin HOME=$H sh $T/unit37.sh) >$T/u37.out 2>&1;u=$?
+(cd $H&&env -i PATH=/usr/bin:/bin HOME=$H O=$T/orig AGI_TRUNK=lanetrunk AGI_PIECE_GLOB="$PG" GIT_TEST_ASSUME_DIFFERENT_OWNER=1 sh $T/unit37.sh) >$T/u37.out 2>&1;u=$?
 echo '{"source":"startup"}' >$T/sj;(cd $H&&env -i PATH=$T/stub:$H/bin:/usr/bin:/bin HOME=$H AGI_SEAT=alive AGI_POST=alive AGI_ROLE=director sh -c "agi-brief <$T/sj") >$T/br1 2>/dev/null
 ok r1-the-notice-survives-the-restart-and-the-successors-first-sessionstart-prints-it "[ -s $T/unit37.sh ]&&[ $u = 0 ]&&[ -x $H/bin/agi-notice ]&&[ \"\$(sed -n 1p $T/br1)\" = '[strand-refused] alive: HEAD abc1234 carries 1 commit(s) on no ref' ]&&[ ! -e $H/.notice ]"
 # h1: hooksPath=~/bin -- a piece named like a git hook would RUN as one (the lane's own PIECES / ROOT text is the list of piece names)

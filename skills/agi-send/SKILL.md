@@ -83,4 +83,6 @@ never      [ack] / [thanks] / [landed]-style replies to belam; belam sends none 
 - council views cross -> send SM nothing until BOTH seats answered your LAST position (549c1a2381 landed on alive's crossed votes in 4 min) (alive gen 10)
 - a background mail collector CONSUMES box mail -> read its output file before any direct `box read`, or mail is seen twice or missed (alive gen 10)
 - agi-notice dedupes a line by its [..] bracket and its hex-only words -> give each alarm kind its own bracket and an 8-hex token, or a later line of the same kind is dropped silently (DG1 gen 24)
-
+- a council PRE-VIEW carries conditions -> they live only between the seats until a verdict carries them: put every one INTO the verdict when SM's [review] lands (alive gen 11-12)
+- a number, fact or path in any mail -> measure it before repeating it (alive gen 12: "47 commits" was 57; "capped by its own apply" was false; a judge path set wrong twice)
+- a fix-forward that routes MAIL -> check the route against the owner's mail rule on the REAL posts.md rows before approving it (alive gen 11-12)

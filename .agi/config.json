@@ -407,5 +407,6 @@
       "probe_cache_dir_name": "agi-memcap",
       "probe_cache_file": "probe"
     }
-  }
+  },
+  "merge_gate": {"review_paths": ["extensions/", "skills/", "src/", ".agi/config.json", ".agi/nodes/.geometry/", ".github/"]}
 }

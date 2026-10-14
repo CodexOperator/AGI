@@ -456,12 +456,17 @@ def test_dry_run_exports_identity_and_readers_agree(project, monkeypatch):
     monkeypatch.delenv("TMUX", raising=False)
     monkeypatch.delenv("USER", raising=False)
 
-    sys.path.insert(0, str(BIN))
+    monkeypatch.syspath_prepend(str(BIN))
     loaded = {}
     for name in ("send", "write"):
         spec = importlib.util.spec_from_file_location(name, BIN / f"{name}.py")
         mod = importlib.util.module_from_spec(spec)
-        sys.modules[name] = mod  # dataclasses needs the module registered
+        # dataclasses needs the module registered; through monkeypatch so the
+        # fresh copy is undone after this test -- a bare assignment left a
+        # second `send` in sys.modules for the rest of the session, and
+        # test_rotate_announce_box's send.wake stub then patched a module
+        # rotate.py no longer imports (10 in-suite-only reds, SM 10-12)
+        monkeypatch.setitem(sys.modules, name, mod)
         spec.loader.exec_module(mod)
         loaded[name] = mod
     assert loaded["send"]._detect_sender(None) == aid
