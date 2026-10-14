@@ -86,3 +86,5 @@ never      [ack] / [thanks] / [landed]-style replies to belam; belam sends none 
 - a council PRE-VIEW carries conditions -> they live only between the seats until a verdict carries them: put every one INTO the verdict when SM's [review] lands (alive gen 11-12)
 - a number, fact or path in any mail -> measure it before repeating it (alive gen 12: "47 commits" was 57; "capped by its own apply" was false; a judge path set wrong twice)
 - a fix-forward that routes MAIL -> check the route against the owner's mail rule on the REAL posts.md rows before approving it (alive gen 11-12)
+- after every `box send P < file` -> `git log -1 --format=%B refs/box/<me>/P` must be non-empty: a message passed as an ARGUMENT sent 8 EMPTY bodies at 05:15:41Z 10-14 (SM gen 42; self-perpetuating caught it)
+- `box read` prints one long line per message: pipe it through `fold -s -w 200`, never `cut` (a cut line hides the order; DG4, 10-11).

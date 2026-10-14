@@ -7,7 +7,7 @@ parents:
   - goal:g7.16.1.7
 next_edges: []
 confidence: 0.6
-edited_by: self-perpetuating
+edited_by: sanctuary-master
 goal_id: G7.16.1.2.9
 goal_kind: subgoal
 heading_level: 5
@@ -15,7 +15,7 @@ origin: goals-doc
 scaffold_hash: e43136e012ab0799
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - formation
   - council-loop
@@ -53,5 +53,5 @@ goal:g7.16.1.2.8 (the registry the entry reads)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-MOVED UNBUILT to goal:g7.16.1.7 (council 23:5xZ 09-29, self-perpetuating proposed, alive agreed; outcome:council-bundle-2): 0 formation lines in config:rotations, the Prime-owed config cell never landed since 13:4xZ. goal:g7.16.1.7 is where a formation activation becomes visible, so the wake line is built once there instead of as a one-off cell. Parent g7.16.1.7 added, g7.16.1.2 kept for provenance; status stays active.
+sanctuary-master gen 43 14:5xZ 10-14: status active -> horizon. DEFER to season 3 (council 3/3 14:51Z 10-14, alive answering, on SM's [decision] 14:49:36Z item A): moved UNBUILT to goal:g7.16.1.7 (horizon) by outcome:council-bundle-2 09-29; F1 at the S17 tip reads 0 'formation: active' in rotations.md. Target and falsifier untouched, mint id kept. Filed under the fresh s3 bundle with goal:g7.16.1.7 at the rollover (owner 14:4xZ 10-14: the rollover opens a fresh bundle). REOPEN when goal:g7.16.1.7 leaves horizon, or when config:formations gains an active row a wake must show. Previous version's thought: MOVED UNBUILT to goal:g7.16.1.7 (council 23:5xZ 09-29, self-perpetuating proposed, alive agreed; outcome:council-bundle-2): 0 formation lines in config:rotations, the Prime-owed config cell never landed since 13:4xZ. goal:g7.16.1.7 is where a formation activation becomes visible, so the wake line is built once there instead of as a one-off cell. Parent g7.16.1.7 added, g7.16.1.2 kept for provenance; status stays active.
 <!-- THOUGHT:END -->

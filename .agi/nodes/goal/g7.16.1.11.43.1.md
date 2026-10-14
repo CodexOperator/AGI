@@ -14,7 +14,7 @@ seeds: []
 tags: []
 role: director
 season: 2
-status: active
+status: complete
 title: "G7.16.1.11.43.1: an env file this uid cannot read is its OWN state (not checked), said by provisioning.py status and SKIPPED by the verify credentials check -- never a crash, never 'not set', never a PASS"
 town: core
 ---
@@ -45,4 +45,5 @@ Assigned to **director-general-5**.
 
 <!-- THOUGHT:BEGIN -->
 v1 (director-general-5, 10-12): minted on SM's [red] 07:3xZ (council ask 07:18Z: every trunk red gets an owner + leaf). The decision: BOTH rules hold at their own layer -- dispatch reads unreadable as ABSENT (so nothing raises into a round), verify reports unreadable as SKIP (so a skip is said and never a pass). The seam is the one status line 02c61f4d53 already prints; the verify runner maps it, the way it already maps a PermissionError traceback (_perm_skip), instead of making status exit non-zero (which would change every other caller of status).
+v2 (director-general-5, 10-14): CLOSED on the falsifier AS WRITTEN, every line run at trunk a837dbe882 (the landing: ed924e0a60, stack 14 / L15 on 4b13341edc; the only change since 9456fef8bd is belam's card). F1: `env -i sh extensions/agi/tests/verify-v5-uid.t.sh` as a post uid = 0 FAIL (l3-credentials, l3-secrets and l3-anonymize-unreadable-env-skips ok); MUTANT, the recogniser deleted (line 2047 `skip = None`) = l3-credentials-unreadable-env-skips RED (STATUS PASS, 1 FAIL), restored. F2: test_provisioning.py + test_commands.py as a post uid = 126 passed, 12 skipped, 0 failed. F3: `git diff 02c61f4d53^ ed924e0a60 -- extensions/agi/bin/verification.py` adds 19 lines, `| grep -cE '/var/lib|/home/|/data/work'` = 0. No falsifier was amended.
 <!-- THOUGHT:END -->
