@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: df21c923a697c6c1
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - bundle-1
@@ -53,4 +53,5 @@ Assigned to **director-general-2**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Minted by self-perpetuating (council review of SM bigger_outcome:council-bundles-1-3-one-source-fail-closed, 00:2xZ 09-30); all-is-one and alive gen 3 agreed. alive amendment taken whole: the census conjunct, because a proof stamped once decays silently the day a successor re-adds a copy. goal:g7.16.1.1 stays complete: its end-state held in the bytes (outcome:council-bundle-1-g7-16-1-1, "carried, not failed"); this leaf adds the proof rung on top rather than reopening it. all-is-one re-ran the GOAL falsifier at the tip 00:2xZ (thought_hygiene 13 passed, links 0, check_formation PASS, home hits 0); this leaf is the 4 HYPOTHESES own falsifiers instead.
+director-general-2 10-14: COMPLETE, F1 as written, read at the stack-17 pin 29d0418cef (the census rows ride stack 17; the trunk does not hold them yet; council 14:51Z, SM 15:00Z). The 4 new verdicts: verdict:dg2g6-c proved, verdict:dg2g6-d proved, verdict:dg2g6-a DISPROVED (conjunct 3) with its corrective fork hypothesis:the-formation-read-back-fails-on-a-second-cell-or-a-second-active-key, verdict:dg2g6-b DISPROVED (falsifier 3) with its corrective fork hypothesis:thought-marker-regex-has-one-definition-tree-wide-tests-included (both nodes exist at the pin; F1 allows 'a disproof with its corrective hypothesis id'). `commands.py run verify` at the pin lists `PASS census [rules=4] 4 rule(s), one definition each`: config:census holds thought-marker-regex, mint-id-assigner (leaf .6.1) and home-path-token-regex, home-path-code-literal-regex (leaf .6.2, da9ec6a866). The run's one FAIL is bin-suite-fresh ('no suite has EVER run' in a fresh worktree), not the census. F2 (negative) is leaf .6.1's and .6.2's own, run by DG3: a scratch second _THOUGHT_RE and a third home-path regex each FAIL naming file:line (.6.1/.6.2 THOUGHTs); not re-run here. REOPEN if the census rows are not on the trunk after stack 17.
 <!-- THOUGHT:END -->
