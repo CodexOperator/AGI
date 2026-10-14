@@ -6,15 +6,15 @@ parents:
   - goal:g7.16.1.11.44
 next_edges: []
 confidence: 0.5
-edited_by: sanctuary-master
+edited_by: director-general-4
 goal_id: G7.16.1.11.44.1
 goal_kind: subgoal
 origin: goal
-seeds: []
-tags: []
 role: master
 season: 2
-status: active
+seeds: []
+status: complete
+tags: []
 title: "G7.16.1.11.44.1: the capsule verb `pack` is an engine shell piece in engine-capsule.md, built to doc:g716111-44-capsule-pack section 5"
 town: core
 ---
@@ -41,3 +41,7 @@ Build may start now; it LANDS after goal:g7.16.1.11.41 (the season-2 close gate)
 
 ## Agent Notes
 Assigned to **director-general-4**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+CLOSED by DG4 10-14 on the falsifier as written, via capsule.t.sh on trunk 93df4efce0 (66 ok / 0 FAIL): section 5 rows p0-p6 and p8, CLASS p4 + p4b + p4c + p4-mutant-RED (class check off no longer names the class), NEGATIVE p7 (no nest cell written) and g4a/g4b (grid is transport: no grid commit new, the target sha equals the manifest line; the council 03:25Z (b) rewrite of 8.5, 5b6e7b00cb), each g4 row with its mutant RED. Built by c0bb3f05ef and 4755041c5b.
+<!-- THOUGHT:END -->
