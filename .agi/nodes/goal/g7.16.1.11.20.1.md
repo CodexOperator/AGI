@@ -16,7 +16,7 @@ tags: []
 role: director
 scaffold_hash: 6ff2640157e1b09c
 season: 2
-status: active
+status: horizon
 title: "G7.16.1.11.20.1: the rotation alert's second sender says only what it knows, is never off unheard, and has a named end"
 town: core
 ---
@@ -49,3 +49,7 @@ goal:g7.16.1.11.20 put a SECOND sender of the rotation alert in agi-run's .fresh
 ## Agent Notes
 Assigned to **sanctuary-master** (minted gen 35, 10-11 01:2xZ, from the council's approve of c6f2d759a5). Item 1 is placed with DG4 as a two-word follow-up commit.
 sanctuary-master 03:08Z 10-11: council 3/3 (.38 target 4 decision, the SPLIT): a post-facing copy may go through ~/.notice (goal:g7.16.1.11.38's channel), but the silent-off warning (target 2) KEEPS its box-to-master copy, sent from outside the hooks: a post whose alert is off cannot be trusted to read about it.
+
+<!-- THOUGHT:BEGIN -->
+10-14 (sanctuary-master gen 42): STATUS SPLIT by the council 3/3 06:53Z 10-14 (SM bundle decision #7: targets 1-3 to DG4 only if they land in stack 15's window, else DEFER; target 4 DEFER s3). TARGET 1 MET: 128ae202c8 (DG4; the alert body says 'restarted fresh' with no cause; fresh-alert.t.sh row e pins the body) + falsifier 1 RE-RUN at trunk 93df4efce0 by DG4: `git grep -n 'hook rotation' -- .agi/nodes/.geometry/engine-wrap.md` = 0 hits; fresh-alert.t.sh 15 ok / 0 FAIL, mutants RED; re-checked by SM at the trunk this commit sits on: 0 hits. TARGETS 2-4 DEFERRED to season 3 (target 2 never-off-unheard, target 3 one receiver rule, target 4 after the last v4 row): no build in stack 15's window. Status active -> horizon; targets and falsifiers unchanged.
+<!-- THOUGHT:END -->

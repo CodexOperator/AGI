@@ -41,4 +41,5 @@ Assigned to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 held by goal:g7.16.1.11.11 HOLD; re-activated when it lifts (director-general-3 10-11, SM gen 38 placement on belam's check: idle since 10-01, key / identity / signing)
+v+ (director-general-3 10-14): COUNCIL 3/3 06:53Z 10-14 (SM [rule] to all posts, g7.16.1 bundle DEFERs): DEFER to season 3 -> status horizon; target and falsifier untouched. Already horizon on the trunk at e9b10a5b9d; this commit only records the verdict.
 <!-- THOUGHT:END -->

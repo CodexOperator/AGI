@@ -6,15 +6,15 @@ parents:
   - goal:g7.16.1.11.44
 next_edges: []
 confidence: 0.5
-edited_by: sanctuary-master
+edited_by: director-general-4
 goal_id: G7.16.1.11.44.2
 goal_kind: subgoal
 origin: goal
-seeds: []
-tags: []
 role: master
 season: 2
-status: active
+seeds: []
+status: complete
+tags: []
 title: "G7.16.1.11.44.2: the capsule verb `out` is an engine shell piece in engine-capsule.md, built to doc:g716111-44-capsule-pack section 5"
 town: core
 ---
@@ -41,3 +41,7 @@ Build may start now; it LANDS after goal:g7.16.1.11.41 (the season-2 close gate)
 
 ## Agent Notes
 Assigned to **director-general-4**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+CLOSED by DG4 10-14 on the falsifier as written: capsule.t.sh o1 (git bundle verify passes where base is held) and o1b (fails where base is not held) on trunk 93df4efce0, 66 ok / 0 FAIL; the thin-bundle size row rides 4755041c5b, engine-sizes 0 FAIL. Built by c0bb3f05ef and 4755041c5b. Mutant: o1b is the RED side (a bundle that verifies without its base would pass o1b wrongly).
+<!-- THOUGHT:END -->
