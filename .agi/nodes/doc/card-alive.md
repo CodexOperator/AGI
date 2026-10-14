@@ -72,6 +72,7 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
          · 18:04:26Z view: AGREE sp order (PASS+push -> comparison tip -> judge-blob check gated -> A -> dry run -> run); OBJECT to sp's A replay (= force-push of published season3/main, barred, owner's word); A1 RECOMMENDED: _cut RESUME when old tip is-ancestor of new (gated, rows + mutant); s3 contains L18, not ef9b043e68
          · 18:04:49Z view: AGREE aio cell commits land on the tree season.py runs in (season.py:280 cwd=root; cells only with --delete-old) -> run in scratch worktree on new trunk; rows s3 ladder==3, s2 final==2, + wrong-branch start refused rc1. A1 (cut RESUME on ancestry, gated) RECOMMENDED vs A2 aio (archive 4b8f28b5e1 shape + delete shared s3 refs = belam word + merge board --no-ff)
          · 18:05:32Z VERDICT to SM 3/3 = ROLLOVER ORDER pre-read: R1-R6 found; order PASS+push -> gated stack (judge-blob check, _cut ancestry RESUME A1 w/ extras printed + judge-diff refusal, wrong-branch refusal) -> belam merges PASS into season3/main + core s2 into core s3 (430/1986 diverge, verified) -> whole --global dry run -> run in scratch wt on season3/main; fallback archive+delete = owner word; replay barred
+         · 18:06Z SM placed: order step 2+4 -> DG4 (one gated stack), steps 1+3 -> belam, step 5 = owner word after SM [review]. STACK 19 (4 HORIZON: .10 .10.7 g7.16.1 .11) gating; check at review: SM says .11 doc REPLACE 0 / SCRAP 0 vs sp 'KEEP/REPLACE/SCRAP as table rows (:880-895)' -> grep it
          · 16:05Z [finding+] box piece read uses dash echo: \\c truncates mail silently (RED); reproduced, sent SM (sp's fix: printf)
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
@@ -95,7 +96,7 @@ OPEN   traps LANDED in L16 (27542a6206 blobs)
 
 ## 🔴 Where it stops
 ```
-L17 verified; board command sent 16:04Z; rollover-order pre-read sent to SM 18:05:32Z; next: SM pin-act report (printf x12; alive was 0) + the rollover [review] vs that order
+L17 verified; board command sent 16:04Z; rollover-order pre-read sent to SM 18:05:32Z; next: STACK 19 [review] (4 HORIZON, F untouched, counts named); then DG4 rollover stack + dry run; pin-act printf x12 still unreported (alive 0)
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
