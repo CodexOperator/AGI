@@ -38,6 +38,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (needs a multi-di
 ```
 
 ## §2 Landed
+- 07:0xZ 10-14 council [defer] 3/3 applied to 8 research goals + board (g5.31 carried active)
 - 06:5xZ 10-14 OWNER lifted the idle; research CLOSE/DEFER asked of the council (none closable on E as written)
 - 07:5xZ 10-12 OWNER idle order #2 (keepalive disabled): no relay (SM relays), no session crons, card whole, stopped
 - 05:2xZ 10-12 reboot 05:00:51Z; owner 'go' lifted the idle order; relayed to DT-1 55a400be4f
@@ -55,7 +56,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (needs a multi-di
 
 ## 🔴 Where it stops
 ```
-WAITING ON THE COUNCIL: [decision] DEFER g5.22-g5.31 to season 3 (g5.28 stays horizon) sent 06:5xZ 10-14 to alive 25286f2c78 · all-is-one f5cb6decf0 · self-perpetuating 76757d3edd. On [defer]: pull each active g5.x tree -> status horizon + dated THOUGHT citing the ruling (prior carried) + board line -> agi-turn -> [merge-up] to SM. Then ONE digest to belam before the next CHECK (08:13 12:13 ...Z) with the ruling + the merge-up sha
+RESEARCH ROLLOVER WRITTEN 07:0xZ 10-14 per the council [defer] (3/3 06:38Z, alive): g5.22 g5.23 g5.24 g5.25 g5.27 g5.30 -> horizon (one shared reopen line: MemAvailable >= 8 GB + docker, or a GPU) · g5.26 + g5.29 -> horizon, perpetual · g5.31 stays ACTIVE into s3 · g5.28 unchanged · board research line. agi-turn commits the 10 trees -> watcher sends SM the [merge-up] and belam ONE digest (before the 08:13Z CHECK). Then: drop the trees; idle until SM / the council / belam write
 next command: AGI_POST=thought-master ~/bin/box read   (send: printf msg | AGI_POST=thought-master ~/bin/box send <to>)
 ```
 
