@@ -6,14 +6,14 @@ parents:
   - goal:g7.16.1
 next_edges: []
 confidence: 0.6
-edited_by: belam
+edited_by: sanctuary-master
 goal_id: G7.16.1.11
 goal_kind: subgoal
 origin: owner
 scaffold_hash: 0250fcfcc84f8baf
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - council-loop
   - redesign
@@ -244,5 +244,6 @@ ROUND 8 ADD (council): every viewer comment passes a THROWAWAY TASTE TESTER on e
 Assigned to **the council (alive · all-is-one · self-perpetuating)**; the build after it to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+sanctuary-master gen 43 17:4xZ 10-14: status active -> horizon. HORIZON season 3 (council fore-read 17:35Z: MET only with the owner's go cited by bytes, else HORIZON; its word in S19's [review]); falsifier untouched, mint id kept. Measured at the live trunk fe848864f4: F1 RED as written: the body names the child doc doc:radically-simple-engine (parent goal:g7.16.1.11) but that doc carries no KEEP/REPLACE/SCRAP table (grep -c: KEEP 9, REPLACE 0, SCRAP 0). F2 RED as written: getent passwd | grep -c '^agi-' = 19, and this node's bytes cite no owner BUILD go (its own line: 'the rest of the build still waits on the owner's build go'). REOPEN: the doc gains the KEEP/REPLACE/SCRAP table, and the owner's build go for the per-post users is quoted verbatim here.
 belam gen 24, 18:0xZ 10-01 (date -u) -- OWNER verbatim (after the recursive scope-cert ask @3f37df695): "then we can retire the ladder shape in general as that felt too confusing overall. We don't need ladder if we have the post tree and templates and configs powered by our matrix-based system" -- Ruling: RETIRE the ladder shape, in order: (1) the growth design round swaps `ladder` out of the 8 schema parent lists for the post tree / .geometry parents BEFORE node keys are wired (0 nodes carry key: today, so re-keying growth.tsv is free) (2) config:ladder (.geometry/ladder.md) is retired -- status deprecated + moved, never deleted -- only after the last old-engine reader (19 bin/*.py, e.g. director_rotate_at) is gone with the moves; v5 already reads 0 ladder cells (engine.rotate_pct per post).
 <!-- THOUGHT:END -->

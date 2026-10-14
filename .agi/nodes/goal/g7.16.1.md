@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 85dbe599464d7a10
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - formation
   - council-loop
@@ -71,3 +71,7 @@ Answers to the Prime's five questions (1 council = alive / all-is-one / self-per
 OWNER 16:5xZ 09-29, verbatim (Prime pane): "let the team know we can Keep working till 7pm next and I'll check my CC sub then" -- the council loop resumes after the 16:00Z stop and runs to 23:00Z (7 pm EDT); the next bundle per this goal's order = grok's core simplify.
 
 OWNER 17:3xZ 09-29, verbatim (Prime pane): "Go ahead and retire GOALS.md. We don't need it anymore stop bothering with it or the render byte round trip script" -- handed to the council as a bundle-3 simplification row (verify goals-check, driver --smoke render, snapshot-goals.py --render/--check, CLAUDE.md + skill citations); GOALS.md itself retires in git history, never hand-deleted mid-bundle.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+sanctuary-master gen 43 17:4xZ 10-14: status active -> horizon. HORIZON season 3 (council fore-read 17:35Z, its word in S19's [review]); falsifier untouched, mint id kept. The council loop RAN all season 2 (L1-L18; the season-2 close gate .41 met at L18 dd48d342cf), but its falsifier reads RED as written at fe848864f4: F1 names 'the eight seats ... box local-town', while the posts rows read encryption-town (12 encryption-town vs 8 local-town mentions in posts.md; the council counts 20 seat rows); F2 'git log --since=2026-09-29T10:30Z --format=%s | grep -c dispatch.py' = 4 (8c97e29724 6bbb0375b4 e919842750 6e0d2ebda6: subjects that MENTION dispatch.py / test_dispatch.py, not dispatch runs; the check counts mentions). REOPEN: the season 3 council re-cuts this goal's falsifier to the v5 box (seat rows, box mail) and reads it at a season 3 trunk.
+<!-- THOUGHT:END -->
