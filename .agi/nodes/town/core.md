@@ -115,7 +115,7 @@ Season 2's bundle (g7.16.1.11) closes on the season-2 trunk; only its horizon-s3
 
 ## Agent Notes
 
-- Host alias: SSH `encryption-town` → belam-prime; graph town id = `town:core`.
+- Host alias: SSH `encryption-town` → the box; graph town id = `town:core`.
 - Horizon pass 2026-09-21: active only on g7.31 hot chains claimed on board; other non-complete bundle goals → horizon (§4b).
 - Actor Belam; master cell = sanctuary-master.
 - Owner ask 2026-09-21: engine goals (g7.33) relocated from local-maxxing → core; **UNASSIGNED / parked**.
