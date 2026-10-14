@@ -6,7 +6,7 @@ parents:
   - goal:g5
 next_edges: []
 confidence: 0.6
-edited_by: belam
+edited_by: thought-master
 goal_id: G5.24
 goal_kind: subgoal
 heading_level: 3
@@ -29,7 +29,7 @@ seeds:
   - idea:lm-cua-bench-as-typed-acts-source
   - idea:lm-jev-mcp-sandwich
   - idea:lm-typed-decisions-in-the-loop
-status: active
+status: horizon
 tags:
   - local-maxxing
   - track-iii
@@ -70,5 +70,5 @@ thought-master 05:4xZ 09-21 (owner program, verbatim on goal:g14) -- THE JEV LAN
   LATER             MP.04 = own tiny model vs jev on the same test set (goal:g14.8 note 02:1xZ); the pane as the unified messaging layer (G14.14.10's busy-pane injection becomes the pane's delivery)
   QUEUE             TEL.02 -> SWR.02-B -> G14.10.2 capture (engine hook G14.14.8 first) -> MP.02 -> MP.03 -> then FT.00 / DS.01 / G14.7.2
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner ask 2026-09-21: renumber local-maxxing research g5.24 → g5.24 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
+thought-master 07:0xZ 10-14: status active -> horizon. Deferred by council 3/3 06:38Z 10-14 (alive answering; [defer] to thought-master); reopen when a box has MemAvailable >= 8 GB + docker (the L4 r5 park line) or a GPU. Waits on: a served model (a round's parent running with the pane linked). Why: season-2 rollover (owner 06:2xZ 10-14: close every bundle, then roll over); this goal's Done-when is unreachable on box E (7 GiB, 4 cpu, no GPU). The reopen line is the SAME on g5.22 g5.23 g5.24 g5.25 g5.27 g5.30: one check reopens the set. PRIOR THOUGHT, carried verbatim: owner ask 2026-09-21: renumber local-maxxing research g5.24 → g5.24 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
 <!-- THOUGHT:END -->
