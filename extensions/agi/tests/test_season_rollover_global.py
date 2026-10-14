@@ -40,9 +40,19 @@ def _git(repo: Path, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run(["git", *args], cwd=repo, capture_output=True, text=True)
 
 
-def _run(root: Path, *args: str) -> subprocess.CompletedProcess:
-    return subprocess.run([sys.executable, str(CLI), "--root", str(root), "rollover", *args],
+def _run(root: Path, *args: str, cli: Path = CLI) -> subprocess.CompletedProcess:
+    # --global always carries a comparison tip (the judge check refuses without one):
+    # the seed commit, whose judge-path blobs every fixture commit shares
+    if "--global" in args and "--judge-tip" not in args:
+        seed = _git(root.parent, "rev-list", "--max-parents=0", "HEAD").stdout.split()[0]
+        args = (*args, "--judge-tip", seed)
+    return subprocess.run([sys.executable, str(cli), "--root", str(root), "rollover", *args],
                           capture_output=True, text=True)
+
+
+def _on_new_trunk(repo: Path) -> None:
+    """Run where the cell commits belong: a scratch checkout on the new season trunk."""
+    _git(repo, "checkout", "-q", "-B", "season3/main", "master")
 
 
 def _write(p: Path, text: str) -> None:
@@ -77,7 +87,7 @@ def _commit(repo: Path, name: str) -> None:
     _git(repo, "commit", "-qm", name)
 
 
-def _build(tmp_path: Path) -> Path:
+def _build(tmp_path: Path, towns=TOWNS) -> Path:
     bare, r = tmp_path / "origin.git", tmp_path / "work"
     bare.mkdir()
     _git(bare, "init", "-q", "--bare")
@@ -98,8 +108,8 @@ def _build(tmp_path: Path) -> Path:
     _write(g / "nodes" / ".geometry" / "posts.md",
            "---\nid: config:posts\nmint_id: " + H + "\ntype: config\nposts:\n"
            + "".join(f'  - {{"name": "{c}", "role": "council"}}\n'
-                     for _s, c, _v in TOWNS) + "---\n")
-    for slug, council, vision in TOWNS:
+                     for _s, c, _v in towns) + "---\n")
+    for slug, council, vision in towns:
         _write(g / "nodes" / "vision" / f"{slug}-v.md",
                f"---\nid: {vision}\nmint_id: {H}\ntype: vision\nseason: 2\n---\n# {vision}\n")
         _write(g / "nodes" / "town" / f"{slug}.md",
@@ -114,7 +124,7 @@ def _build(tmp_path: Path) -> Path:
     _git(r, "remote", "add", "origin", str(bare))
     _git(r, "push", "-q", "-u", "origin", "master")
     # the global trunk at M0, then the town trunks at M0
-    for name in ["season2/main"] + [f"{s}/season2/main" for s, _c, _v in TOWNS]:
+    for name in ["season2/main"] + [f"{s}/season2/main" for s, _c, _v in towns]:
         _git(r, "checkout", "-q", "-B", name, "master")
         _commit(r, name.replace("/", "-"))
         _git(r, "push", "-q", "origin", f"{name}:refs/heads/{name}")
@@ -123,7 +133,7 @@ def _build(tmp_path: Path) -> Path:
     _commit(r, "m1")
     _git(r, "push", "-q", "origin", "master")
     # the town mains at M1
-    for slug, _c, _v in TOWNS:
+    for slug, _c, _v in towns:
         _git(r, "checkout", "-q", "-B", f"{slug}/main", "master")
         _commit(r, slug + "-main")
         _git(r, "push", "-q", "origin", f"{slug}/main:refs/heads/{slug}/main")
@@ -161,6 +171,7 @@ def test_global_dry_performs_nothing(repo: Path):
 def test_global_apply_delete_old_rolls_everything(repo: Path):
     g = _graph(repo)
     before = _heads(repo)
+    _on_new_trunk(repo)
     old = {"season2/main": before["refs/heads/season2/main"],
            "maxx/season2/main": before["refs/heads/maxx/season2/main"],
            "sanc/season2/main": before["refs/heads/sanc/season2/main"]}
@@ -219,7 +230,9 @@ def test_archive_mismatch_stops_before_delete_no_cell(repo: Path):
     hook.write_text("#!/bin/sh\nwhile read o n r; do case \"$r\" in\n"
                     "refs/agi/archive/*) echo 'archive refused'; exit 1;;\nesac; done\nexit 0\n")
     hook.chmod(0o755)
+    _git(hook.parent.parent, "config", "core.hooksPath", str(hook.parent))   # a global core.hooksPath would shadow it
     before = _heads(repo)
+    _on_new_trunk(repo)
     res = _run(g, "--global", "--apply", "--delete-old", "--actor", "owner")
     assert res.returncode != 0
     assert "STOP at step 3: archive" in res.stderr
@@ -249,6 +262,7 @@ def test_cut_only_run_is_resumed_by_a_later_delete_old(repo: Path):
     first = _run(g, "--global", "--apply", "--actor", "owner")
     assert first.returncode == 0, first.stdout + first.stderr
     assert _fm(g / "nodes" / ".geometry" / "ladder.md")["current_season"] == 2
+    _on_new_trunk(repo)
     res = _run(g, "--global", "--apply", "--delete-old", "--actor", "owner")
     assert res.returncode == 0, res.stdout + res.stderr
     assert "RESUME" in res.stdout
@@ -269,6 +283,7 @@ def test_partial_cut_refusal_bumps_no_cell(repo: Path):
     _git(repo, "checkout", "-q", "master")
     _commit(repo, "conflict")
     _git(repo, "push", "-q", "origin", "master:refs/heads/sanc/season3/main")
+    _on_new_trunk(repo)
     res = _run(g, "--global", "--apply", "--delete-old", "--actor", "owner")
     assert res.returncode != 0
     assert "STOP at step 1: cut" in res.stderr
@@ -311,6 +326,7 @@ def test_global_default_actor_refuses_before_any_step(repo: Path):
     paths = [g / "nodes" / ".geometry" / "ladder.md"] + [
         g / "nodes" / "town" / f"{slug}.md" for slug, _c, _v in TOWNS]
     nbytes = {p: p.read_bytes() for p in paths}
+    _on_new_trunk(repo)
     res = _run(g, "--global", "--apply", "--delete-old")  # NO --actor
     assert res.returncode != 0
     assert "REFUSED" in res.stderr and "not admitted" in res.stderr
@@ -322,3 +338,229 @@ def test_global_default_actor_refuses_before_any_step(repo: Path):
     assert _fm(g / "nodes" / ".geometry" / "ladder.md")["current_season"] == 2
     for slug, _c, _v in TOWNS:
         assert _fm(g / "nodes" / "town" / f"{slug}.md")["season"] == 2
+
+
+# ===========================================================================
+# goal:g7.16.1.11.8.1 -- the rollover runner's gates (council 3/3 06:54Z + 18:05Z 10-14)
+#   (a) the JUDGE CHECK in code   (b) _cut RESUMEs a new that CONTAINS the old
+#   (c) cell commits only in the new season trunk's scratch worktree
+#   (d) the core town's OLD tip is the live trunk, never derive_names'
+# Every row has a MUTANT: a copy of season.py with ONE line changed, run on the
+# same fixture; the row's own assertion must then FAIL (RED).
+# ===========================================================================
+import importlib.util  # noqa: E402
+import shutil  # noqa: E402
+
+JUDGE = ".agi/nodes/.geometry/engine-post.md"
+LADDER = ".agi/nodes/.geometry/ladder.md"
+
+
+def _mutant(tmp_path: Path, *pairs) -> Path:
+    """A copy of bin/ with each (old, new) applied ONCE to season.py; returns its season.py."""
+    root = tmp_path / "mut" / "extensions" / "agi"
+    if not root.exists():
+        root.mkdir(parents=True)
+        shutil.copytree(BIN, root / "bin")
+        (root / "src").symlink_to(SRC)
+    f = root / "bin" / "season.py"
+    text = f.read_text()
+    for old, new in pairs:
+        assert text.count(old) == 1, f"mutant anchor not unique ({text.count(old)}): {old!r}"
+        text = text.replace(old, new)
+    f.write_text(text)
+    return f
+
+
+def _sh(repo: Path, branch: str, base: str, path: str, text: str) -> str:
+    """Commit `text` at `path` on a branch cut from `base`; push it; return the sha."""
+    _git(repo, "checkout", "-q", "-B", branch, base)
+    _write(repo / path, text)
+    _git(repo, "add", path)
+    _git(repo, "commit", "-qm", f"{branch}: {path}")
+    _git(repo, "push", "-q", "-f", "origin", f"{branch}:refs/heads/{branch}")
+    sha = _git(repo, "rev-parse", "HEAD").stdout.strip()
+    _git(repo, "checkout", "-q", "master")
+    return sha
+
+
+def _judged(repo: Path, text: str = "v2\n") -> str:
+    """Every trunk carries the same judge file: the PASS tip's. Returns the global trunk tip."""
+    tip = ""
+    for name in ["season2/main"] + [f"{s}/season2/main" for s, _c, _v in TOWNS]:
+        sha = _sh(repo, name, name, JUDGE, text)
+        tip = tip or sha
+    return tip
+
+
+# ---- (a) judge check ------------------------------------------------------
+def test_a1_a_fold_carrying_the_comparison_tips_judge_passes_and_the_first_parent_mutant_is_red(repo: Path, tmp_path: Path):
+    g, tip = _graph(repo), _judged(repo)
+    ok = _run(g, "--global", "--judge-tip", tip)
+    assert ok.returncode == 0, ok.stdout + ok.stderr          # the fold stages the judge file vs master, == the PASS tip
+    assert f"comparison tip {tip[:12]}" in ok.stdout
+    mut = _mutant(tmp_path, ("jd = _blob_diff(_judge_blobs(repo, tree), jb)",
+                              "jd = _blob_diff(_judge_blobs(repo, tree), _judge_blobs(repo, htip))"))
+    res = _run(g, "--global", "--judge-tip", tip, cli=mut)
+    assert res.returncode != 0, "MUTANT (compare to the first parent) must be RED: the clean row wants rc 0 on the FOLD"
+
+
+def test_a2_a_fold_that_differs_from_the_comparison_tip_is_refused_named_nothing_done(repo: Path):
+    g, _tip = _graph(repo), _judged(repo)
+    other = _sh(repo, "tip-v3", "master", JUDGE, "v3\n")          # a comparison tip whose judge file is v3
+    before = _heads(repo)
+    res = _run(g, "--global", "--apply", "--judge-tip", other)
+    assert res.returncode == 1
+    assert f"[rollover] stages the judge: {JUDGE}" in res.stderr
+    assert "nothing performed" in res.stderr
+    assert _heads(repo) == before
+
+
+def test_a3_a_fold_whose_ladder_is_not_the_comparison_tips_is_refused_and_one_that_is_passes(repo: Path, tmp_path: Path):
+    g = _graph(repo)
+    ladder = (g / "nodes" / ".geometry" / "ladder.md").read_text()
+    seed = _git(repo, "rev-list", "--max-parents=0", "HEAD").stdout.split()[0]
+    tip = ""
+    for name in ["season2/main"] + [f"{s}/season2/main" for s, _c, _v in TOWNS]:        # every trunk: the PASS tip's ladder
+        sha = _sh(repo, name, name, LADDER, ladder + "\nseason 2 closes here\n")
+        tip = tip or sha
+    # the folds take a ladder the SEED comparison tip does not carry -> refused, named, nothing done
+    res = _run(g, "--global", "--apply", "--judge-tip", seed)
+    assert res.returncode == 1 and f"[rollover] stages the judge: {LADDER}" in res.stderr and "nothing performed" in res.stderr
+    mut = _mutant(tmp_path, ("        if a != b:\n            notes.append(f\"[rollover] fold {old} -> {head} carries a {LADDER_PATH}", "        if False:\n            notes.append(f\"[rollover] fold {old} -> {head} carries a {LADDER_PATH}"))
+    assert _run(g, "--global", "--judge-tip", seed, cli=mut).returncode == 0, "MUTANT (ladder check dropped) must be RED: it passes the foreign ladder"
+    # a DRY run still rehearses every town, then ends rc 1 (the real run would refuse); the rc-0 mutant is RED
+    dry = _run(g, "--global", "--judge-tip", seed)
+    assert dry.returncode == 1 and "WOULD REFUSE the real run" in dry.stdout and "CUT refs/heads/maxx/season3/main" in dry.stdout
+    mut2 = _mutant(tmp_path, ("    return 1 if refused else 0\n", "    return 0\n"))
+    assert _run(g, "--global", "--judge-tip", seed, cli=mut2).returncode == 0, "MUTANT (dry run ends rc 0) must be RED"
+    # the comparison tip IS the PASS tip: the same ladder differs from the first parent (master) and still passes
+    assert _run(g, "--global", "--judge-tip", tip).returncode == 0
+
+
+def test_a4_no_comparison_tip_is_refused_by_name(repo: Path):
+    res = subprocess.run([sys.executable, str(CLI), "--root", str(_graph(repo)), "rollover", "--global"],
+                         capture_output=True, text=True)
+    assert res.returncode == 1 and "--judge-tip <rev> is required" in res.stderr
+
+
+def _season_module(*pairs):
+    src = CLI.read_text()
+    for old, new in pairs:
+        assert src.count(old) == 1, old
+        src = src.replace(old, new)
+    spec = importlib.util.spec_from_file_location("season_under_test", CLI)
+    mod = importlib.util.module_from_spec(spec)
+    sys.path.insert(0, str(BIN)); sys.path.insert(0, str(SRC))
+    sys.modules["season_under_test"] = mod            # the dataclasses in season.py look their module up
+    exec(compile(src, str(CLI), "exec"), mod.__dict__)
+    return mod
+
+
+def test_a5_a_cell_commit_staging_the_judge_or_the_ladder_beside_a_node_is_refused(tmp_path: Path):
+    r = tmp_path / "c"; r.mkdir()
+    _git(r, "init", "-q", "-b", "x"); _git(r, "config", "user.email", "t@t"); _git(r, "config", "user.name", "t")
+    for rel in (JUDGE, LADDER, ".agi/nodes/town/a.md"):
+        _write(r / rel, "0\n")
+    _git(r, "add", "-A"); _git(r, "commit", "-qm", "seed")
+    tip = _git(r, "rev-parse", "HEAD").stdout.strip()
+
+    def commit_with(*rels):
+        h0 = _git(r, "rev-parse", "HEAD").stdout.strip()
+        for rel in rels:
+            _write(r / rel, _git(r, "rev-list", "--count", "HEAD").stdout)
+        _git(r, "add", "-A"); _git(r, "commit", "-qm", "cell")
+        return h0
+
+    def verdict(mod, cell, h0):
+        return mod._check_cell_commit(r, h0, cell, mod._judge_blobs(r, tip))
+
+    clean, bad = _season_module(), _season_module(("    if LADDER_PATH in names and names != [LADDER_PATH]:", "    if False:"))
+    h0 = commit_with(LADDER)                                   # the bump: ladder.md ALONE
+    assert verdict(clean, "ladder:ladder", h0) == ""
+    h0 = commit_with(LADDER, ".agi/nodes/town/a.md")          # ladder.md + a node
+    assert "ladder.md moves alone" in verdict(clean, "town:a", h0)
+    assert verdict(bad, "town:a", h0) == "", "MUTANT (beside-check dropped) must be RED"
+    h0 = commit_with(".agi/nodes/town/a.md")                  # a town cell on the ladder row
+    assert "not ladder.md alone" in verdict(clean, "ladder:ladder", h0)
+    h0 = commit_with(JUDGE)                                    # a judge path
+    assert "[rollover] stages the judge: " + JUDGE in verdict(clean, "town:a", h0)
+
+
+# ---- (b) _cut RESUME on an ancestor ---------------------------------------
+def test_b1_old_equals_new_resumes_and_a_new_containing_old_resumes_with_the_extras_listed(repo: Path, tmp_path: Path):
+    g = _graph(repo)
+    first = _run(g, "--global", "--apply", "--actor", "owner")             # cut-only: new == old
+    assert first.returncode == 0
+    again = _run(g, "--global", "--apply", "--actor", "owner")
+    assert again.returncode == 0 and "RESUME: new name already at old tip" in again.stdout
+    old = _remote_sha(repo, "refs/heads/season2/main")
+    extra = _sh(repo, "season3/main", old, "extra.txt", "x\n")  # new = old + 1 extra commit
+    before = _heads(repo)
+    res = _run(g, "--global", "--judge-tip", "master")
+    assert res.returncode == 0, res.stdout + res.stderr
+    assert "CONTAINS the old tip" in res.stdout and "1 extra commit(s), 0 judge-path diff" in res.stdout
+    assert extra[:7] in res.stdout and "season3/main: extra.txt" in res.stdout   # old..new subjects listed
+    assert _heads(repo) == before and _remote_sha(repo, "refs/heads/season2/main") == old
+
+
+def test_b2_a_new_that_contains_old_but_changes_a_judge_path_is_refused(repo: Path):
+    g = _graph(repo)
+    assert _run(g, "--global", "--apply", "--actor", "owner").returncode == 0
+    _sh(repo, "season3/main", _remote_sha(repo, "refs/heads/season3/main"), JUDGE, "tampered\n")
+    res = _run(g, "--global", "--judge-tip", "master")
+    assert res.returncode == 1 and f"[rollover] stages the judge: {JUDGE}" in res.stderr
+    assert "STOP at step 1: cut" in res.stderr
+
+
+def test_b3_a_diverged_new_is_refused_by_name_and_the_no_ancestry_mutant_is_red(repo: Path, tmp_path: Path):
+    g = _graph(repo)
+    _sh(repo, "season3/main", "master", "elsewhere.txt", "e\n")           # not a descendant of season2/main
+    res = _run(g, "--global", "--judge-tip", "master")
+    assert res.returncode == 1 and "DIVERGED" in res.stderr and "STOP at step 1: cut" in res.stderr
+    mut = _mutant(tmp_path, ("        if _is_anc(repo, sha, nsha):\n            jd =", "        if True:\n            jd ="))
+    again = _run(g, "--global", "--judge-tip", "master", cli=mut)
+    assert again.returncode == 0 and "CONTAINS the old tip" in again.stdout, "MUTANT (no ancestry test) must be RED: it RESUMEs a diverged line"
+
+
+# ---- (c) cell commits only in the new trunk's scratch worktree -------------
+def test_c1_a_run_that_writes_cells_on_any_other_branch_is_refused_by_name(repo: Path, tmp_path: Path):
+    g = _graph(repo)                                  # checked out on master
+    before, ladder = _heads(repo), (g / "nodes" / ".geometry" / "ladder.md").read_bytes()
+    res = _run(g, "--global", "--apply", "--delete-old", "--actor", "owner")
+    assert res.returncode == 1
+    assert "[rollover] cell commits land on the branch checked out" in res.stderr and "on season3/main" in res.stderr
+    assert _heads(repo) == before and (g / "nodes" / ".geometry" / "ladder.md").read_bytes() == ladder
+    mut = _mutant(tmp_path, ("    if delete_old and cur_branch != want_branch:", "    if False:"))
+    assert _run(g, "--global", "--apply", "--delete-old", "--actor", "owner", cli=mut).returncode == 0, \
+        "MUTANT (branch check dropped) must be RED: it writes the cells on master"
+
+
+def test_c2_the_dry_run_names_the_branch_each_cell_commit_lands_on(repo: Path):
+    res = _run(_graph(repo), "--global")
+    assert res.returncode == 0
+    assert "cell commits land on branch master (expected season3/main; this run writes no cell" in res.stdout
+
+
+# ---- (d) the core town's old tip ------------------------------------------
+def _core(tmp_path: Path):
+    towns = [("core", "council-core", "vision:core-v")]
+    r = _build(tmp_path, towns)
+    live = _sh(r, "local-maxxing/season2/main", "season2/main", "live.txt", "l\n")
+    # core/season3/main is an ANCESTOR of the live trunk (the live lineage); core/season2/main (the 10-04 line) DIVERGED
+    _git(r, "push", "-q", "-f", "origin", f"{_remote_sha(r, 'refs/heads/season2/main')}:refs/heads/core/season3/main")
+    return r, live
+
+
+def test_d1_the_core_old_tip_is_the_live_trunk_a_dead_line_is_refused_and_derive_names_is_red(tmp_path: Path):
+    r, live = _core(tmp_path)
+    g = _graph(r)
+    ok = _run(g, "--global")
+    assert ok.returncode == 0, ok.stdout + ok.stderr
+    assert "core town: OLD TIP = the live trunk origin/local-maxxing/season2/main" in ok.stdout
+    assert "BEHIND the live trunk" in ok.stdout and "RESUME" in ok.stdout
+    dead = _run(g, "--global", "--core-old", "core/season2/main")
+    assert dead.returncode == 1 and "DIVERGED" in dead.stderr and "STOP at step 1: cut" in dead.stderr
+    mut = _mutant(r.parent, ('old = core_old if slug == CORE_TOWN else branches.derive_names(slug, g)["town_season_main"]',
+                             'old = branches.derive_names(slug, g)["town_season_main"]'))
+    red = _run(g, "--global", cli=mut)
+    assert red.returncode == 1, "MUTANT (old taken from derive_names) must be RED: " + red.stdout
