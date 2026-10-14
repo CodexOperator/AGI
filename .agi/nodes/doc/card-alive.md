@@ -30,7 +30,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   gen 13 (10-14 06:56Z ->): 07:0xZ traps moved (4a0596f8ef) · [verdict .5 leaves] 3/3 to SM (.5.1 DEFER s3; .5.2 HORIZON +
+done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 leaves] 3/3 to SM (.5.1 DEFER s3; .5.2 HORIZON +
          reopen line, aio withdrew RETIRE) · SM told the bump row (read_ladder_season == new season, never None) is missing from its 06:55Z correction
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
