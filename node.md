@@ -16,79 +16,71 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (01:3xZ 10-10) -- gen 10 on encryption-town; mail = BOX ONLY; g1.42 row 22 fixed (this version), [merge-up] to SM
+## §0 State (07:0xZ 10-14) -- gen 13, encryption-town
 | | |
 |---|---|
-| post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · moving local-town -> encryption-town (owner 21:2xZ) |
-| work | the council's design bundle. alive = AA1 (`doc:rse-aa1-boxes`) + D1 (`doc:rse-d1-nest`) + A1b's design (agi-vstore). sp = AA2/§AB/§AC (doc:radically-simple-engine) · all-is-one = AA3, Z4, D3, D4 · DG1 goals, DG2 falsifiers, DG3/DG4 build, SM gates |
-| messaging | BOX ONLY (owner via SM [rule] 04:5xZ 10-09): `printf '%s\n' '[tag] ...' \| AGI_POST=alive ~/bin/box send <post>`; read `AGI_POST=alive box read` (`box n` = unread). NO send.py send, NO inbox .md, NO SendMessage. No answer = tell belam by box, never fall back |
-| reading | `box read` prints and marks (refs/held/alive/*): read its WHOLE output; refs live in MAIN's git dir (shared by every post's worktree) |
-| council | split each owner line by mechanism owned; when splits cross, the first to LAND (inbox ts) stands |
-| lens | vision:alive = the system reports its own TRUE state (measure, then say it; correct your own claims at once) |
-| skills | agi-send · agi-rotate · agi-goal · agi-post · NODES = plain Read/Edit/Write + commit by path + `grid.py commit <path>` (write.py = old setup only) |
+| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town (host belam-prime) |
+| GOAL NOW | owner 06:2xZ 10-14: close every goal:g7.16.1 bundle, then season rollover. Keepalive is IDLE-ONLY. Quiet rule to the owner (one digest per ~4 h via belam; [red] + blocking asks excepted) |
+| role | the council rules + approves gated tips. SM sends `[review]` / `[decision]` / `[red]`; TM sends research decisions; alive = the ANSWERER: the one voice back |
+| messaging | never box belam; to SM one message per finished thing, NO acks. `box send <post> < file` (text in a scratch FILE; box send reads stdin: an empty file = an EMPTY message); `box read` = WHOLE; `box n` = unread. SM's [decision]s sometimes reach alive only: forward to both seats |
+| council rules | VIEW to both seats -> ONE verdict after BOTH answered my LAST position, or 15 min (silence = no objection; a rotating seat's abstain is not counted); a change of mind = [withdraw]; every view names what it RAN against which sha |
+| how I review | git first (tree, ff-able or the merge-tree tree pinned, %G? all G, no key path in any commit's file list); lanes from a small `git archive` (disk, nice 10, env -i; git init it if a test needs a repo), never a full clone near memory.high; the gate line must print the DERIVED pytest selection; a mutant per claim |
+| lens | vision:alive = the system reports its own TRUE state: a silent skip, a vacuous pass, a false line -> RED. A CLOSE never edits its falsifier |
+| skills | agi-post · agi-send · agi-goal · agi-rotate · agi-verify · agi-master-gate (SM's side) · agi-memory-guard |
 
 ## §1 Plan
 ```
-done   10-01..03 AA1 bundle + level rule + act1.sh + home mode + AA1.C ring/anchor + AA1.K key gate (all landed, §2)
-       10-07 AA1.N nesting + tangle (457 / 5,813 nodes under >= 2 top goals) · AA1.S stats design (g3.8) + formatter fix
-       10-08 E1 D1 RESTATED OFF THE GRID (grid commit retires, E2; owner "already decided"): doc:rse-d1-nest v3 LANDED 38986aa967.
-             A slice = `nest: subtree | [ids]` in the container's front matter; subtree DESCENDS through nest-less members, stops
-             (inclusive) at one with its own nest:; collapse = ONE one-node commit; history = one `git log --first-parent -M -- .agi/nodes
-             nodes` walk (1.5 s); reader nest.py 3,034 B + t_nest.py 10/10 quoted WHOLE in the node. D2 §AC e92d251390 + D3 v2 05ccc3e20b
-             landed on it; E1 row = SM's da90062217. goal:g4.13.1 = COMPLETE (DG1), not retired.
-       10-08 A1b (RA8: root ran bytes from an agi-writable object store): my 02:10Z digest SUPERSEDED (missed agi-project + data reads;
-             the install hash reads the same forgeable store) -> agi-vstore: root fetches the pin over file:// into a root-owned RAM store
-             (index-pack re-hashes every object), all root reads via GIT_DIR, no new carry.env cell. Amended per belam 04:4xZ: the child
-             upload-pack trusts ONLY MAIN's gitdir (-c safe.directory=$G, $M/.git non-bare | $M bare; never '*'), store built at $V.n and
-             renamed on success. 856 B sha256 f60191fd12942280569156cc2308e3ab4ec0c82cbb366676d50e77717b2d1fcc. LANDED in A1b v3
-             eb55f973e2 (engine-root.md piece + agi-vstore.t.sh, DG2 47/47 on the reference). Pin attestation = season-3 AUDIT only.
-NEXT   successor: read mail (WHOLE output), act on that only. Builds are DG-owned: D1 = DG1 leaf -> DG2 t_nest.py -> DG3 nest.py +
-       links.py nest_unresolved + optional nest field; A1b host act = belam's (install agi-vstore BEFORE the new agi-boot.service)
-WAITS  none of alive's. Banked (belam/alive): crons.md duplicate YAML key is silently last-wins for every job (DG2 g3.8 lane)
+done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 leaves] 3/3 to SM (.5.1 DEFER s3; .5.2 HORIZON +
+         reopen line, aio withdrew RETIRE) · SM told the bump row (read_ladder_season == new season, never None) is missing from its 06:55Z correction
+         · 07:03Z [verdict .11.10] 3/3 to SM: HOLD b6428577f9; DG3 builds the per-move YES table (card history), F2 = rows with no YES; 0 -> CLOSE, N -> only those N to belam (aio + sp withdrew RED)
+         · 08:48Z [approve 2362446580] STACK 14 3/3, PINNED tree a8e03087ef (not ff-able: belam's 2 town-node commits); residues: .44.7 ssh-255, .11.10 table out of Agent Notes
+         · 11:23Z [view STACK 15] f3f8413116: APPROVE the land (tree 2b49407556), HOLD host act + .41 close on cut 2's stale-bin hole
+           (measured: ~/bin/agi-link, retired 09fbc2601c 10-08, persists)
+         · 11:25Z [approve f3f8413116] STACK 15 3/3, PINNED 2b49407556; HOST ACT + .41 close HELD until cut 3 (5 conditions: strike
+           '0 stale', fresh-dir swap + row/mutant, per-post ~/bin extras = 0 at falsifier 4, derived set at tip, [extract-failed])
+       gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
+         10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
+           the bump; post-bump read_ladder_season != None) · council-owned leaves (.11.8 close after falsifier re-run; .11.44
+           close at the rollover; .44.7 v1 'move verb' text to fix) · TM research DEFER 3/3 (6 horizon one reopen line;
+           g5.26/.29 horizon + waking event; g5.31 carried ACTIVE) · told SM alive owns no leaf (then corrected: the COUNCIL does)
+         10-12: stacks 6-13 (13 landed as pinned: L13 f632cd4854, tree 75edefcbdf) · .20.2 alarm spool per sending seat (a
+           silent-loss race found + fixed) · slab (vfs 200 kept, A/B INCONCLUSIVE, falsifier-1 24 h line) · m3 · .42 E acks
+NEXT   watch L15 land = tree 2b49407556 · then merge the trunk into posts/alive + box SM my trap-move sha · then cut 3 [review]
+         (check: fresh-dir swap, extract-failed exit 255 + bin byte-equal, deleted-piece row + mutants, belam's ~/bin extras list)
+         -> host act -> .41 close read (per-post ~/bin extras 0) -> the rollover run (judge-path refusal + bump row).
+OPEN   alive's trap move 4a0596f8ef is on posts/alive ONLY (not the trunk): after L15, merge the trunk (conflict: agi-master-gate
+         SKILL.md tail vs SM df4a6a8e58, both append) and box SM the sha to carry in the next stack
+       · CHECK the rollover runner's rows carry the bump row (SM's 06:55Z correction has the path set, not the row) · box-move.sh-as-caller is gated on the PRE-STOP grid ff check (8.5c) · vfs falsifier-1 24 h watch ·
+         reds with owners: DG1 test_seat_alias_notice; DG5 verify-v5-uid l3-credentials (.43)
 ```
 
-## §2 Landed (verify with merge-base --is-ancestor against the fetched trunk local-maxxing/season2/main)
-- 10-02: 3a33c71b9 level rule · 10-03: 9778def43 act1.sh · a7705f2d2 home mode + AA1.C · ba2a399d6 / 21629a697 / 1b4fdbe13 AA1.K
-- 10-07: 5a1760e82 AA1.N + grid seams · 0b95e3bd8 AA1.S · 01fb4669a3 AA1.S formatter fix
-- 10-08: 38986aa967 doc:rse-d1-nest v3 (D1) · eb55f973e2 A1b v3 (DG3 build of agi-vstore, 856 B f60191fd...)
+## §2 Landed (verify with merge-base --is-ancestor against local-maxxing/season2/main)
+- 10-02..10-08: 3a33c71b9 level rule · 9778def43 act1.sh · a7705f2d2 AA1.C · 1b4fdbe13 AA1.K · 5a1760e82 AA1.N · 01fb4669a3 AA1.S
+  · 38986aa967 doc:rse-d1-nest v3 (D1) · eb55f973e2 A1b v3 (agi-vstore 856 B f60191fd...)
+- 10-10/14: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L13)
 
 ## 🔴 Where it stops
-Idle on E. BOX ONLY acked to sanctuary-master by box 04:41Z (refs/box/alive/sanctuary-master 004cee3369). box n = 0.
 ```
-successor: AGI_POST=alive ~/bin/box read (WHOLE output) -> act on that mail only; reply by box send
+STACK 15 approved 11:25Z (pinned 2b49407556, host act HELD until cut 3): watch L15, carry my traps, review cut 3
 ```
+Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
-## §4 Traps
+## §4 Traps (gen 13 only; gen 11 + 12's 13 traps moved 06:5xZ 10-14 to agi-post/-send/-verify/-memory-guard/-review/-master-gate/-goal; the date -u one dropped: agi-send has it)
 | trap | rule |
 |---|---|
-| MAIN is shared by every post | commit by exact path; never switch branches, stash or reset; `git diff --cached --name-only` = ONLY your path before a commit |
-| posts/* branches | none exist on origin (public GitHub: town trunks only). The card reaches a successor via its merge-up to the trunk; never open a public posts/ namespace unasked |
-| a file a DG names as 'on alive' | a wait on YOU: scratchpads die with the session; put the bytes in a node or the mail, never only in /tmp |
-| belam's [decision] that ACCEPTS | still ack: ONE [rule] line by send.py |
-| "it is in the node" | WRITE + VERIFY the node first (grep -F the line), THEN send |
-| a probe of root-vs-foreign ownership run as myself | ~/.gitconfig has safe.directory=* and MASKS it: env -i, an empty HOME, GIT_CONFIG_NOSYSTEM=1 (my 03:09Z pass was masked) |
-| a 'not on the bytes' claim about another post | fetch origin AGAIN right before saying it (SM's da90062217 landed a push after my read) |
-| a merge-up tip that MOVES | cc EVERY post that may have read the old tip; ask for the cmp, do not assert a mismatch |
-| git log --follow as a yardstick | it follows COPY guesses into other nodes (build:GOALS.md: its 14th commit is src-init's birth) |
-| send.py read with a filter | it hides blocks and still marks them read: read the whole output |
-| python f-strings around shell `{`; sed rewrites of scripts | build text by concatenation; edit scripts by python on whole lines, then re-test |
-| grep with `$`; grep -r over .agi/ | use grep -F; use `git grep PATTERN <rev> -- <paths>` (a recursive grep stalls the box) |
-| my timestamps | a time I write = date -u in the same step; a PAST event = git log -1 --format=%cI <sha> |
-| a relay says "the owner said X" | verify on the bytes (a signed inbox block, a node) before spending; a STOP needs no proof |
-| grid.py commit --all as a v5 uid | PermissionError on .grid.lock: version by PATH; the grid itself is retiring (E2) |
-| deleting a ref in MAIN | packed-refs.lock EACCES as alive's uid: dead branches (alive/e1-row) stay; say so |
-| heredocs / send texts | ALWAYS quoted (<<'EOF'), values by argv or env; build send texts in python |
-| .agi/sessions/quorum/alive.md | a SYMLINK to this node (re-link at wake if rotate flattens it: agi-rotate §3) |
+| a "no record exists" claim | grep the HISTORY too: cards are replaced whole, so a record lives in `git log -G` of card-*.md, not the trunk text (07:0xZ 10-14: aio + sp called .11.10's F2 RED on '0 records'; 5 YESes were in card history) |
 
-## §5 Verification: D1 v3 on trunk + origin, node bytes == 4538c62506 (03:2xZ) · agi-vstore 856 B f60191fd... in engine-root.md at trunk 7b0dd78c70 (21:4xZ) · W8 real foreign-owner probe rc 0, 0.19 s
+## §5 Verification
+- 10-14 09:3xZ: L14 = 882517c523 (SM LAND 08:48Z), tree a8e03087ef = the council's PINNED tree; 2362446580 is-ancestor of the trunk
+- 10-14 08:2xZ: belam's .5 cuts 30665d439e + 49a18b0102 (G) = the 3/3 verdict: status -> horizon only, target + F untouched, reopen lines present. .11.10: DG3's table 70697f8159 (6 YES, 5 none, 3 owner order); SM asked belam WAIVE-or-not 07:14Z
+- 10-14 06:5xZ: card trail clean (every agi-at commit G); trunk e9b10a5b9d+ ; L13 verified as pinned; vfs_cache_pressure 200 survived the 10-12 reboot
 
 ## §6 BANKED
 | question | options | recommendation |
 |---|---|---|
 | none open for alive | -- | -- |
-
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 10, 01:3xZ 10-10 (date -u): closes goal:g1.42 row 22 (SM [decision] 01:2xZ 10-10, by box): the trunk version carried a post's private home path on line 59, an anonymize RED. Every post path is now written as ~ (the post's own home) or by name: `~/bin/box`, "MAIN's git dir", "alive's uid". Also carries gen 10's seat on encryption-town: the comms ACL red belam fixed (G4) and the owner's BOX ONLY mail rule, so the trunk card matches the post. anonymize.py check cannot run as a post uid (MAIN's .env is unreadable, correctly); the home/hostname classes were scanned with the secrets source stubbed out: 0 hits. SM's gate runs the full check.
+alive gen 12, 06:5xZ 10-14 (date -u), at the rotation line (471k): the card replaced whole for gen 13. Gen 12 spanned 10-11 21:3xZ to 10-14 06:5xZ across two owner idles: stacks 6-13 (13 landed as pinned), the .20.2 alarm spool, the slab decisions, and 10-14's season-2 close work (bundle DEFERs, TM's research DEFER, the council's own leaves, the rollover check). The trap move to skills could not finish before the line, so it is handed on WHOLE as gen 13's first item (owner 10-10 rule); the table holds gen 11's and 12's traps until then.
 <!-- THOUGHT:END -->
