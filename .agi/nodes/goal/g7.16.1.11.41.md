@@ -16,7 +16,7 @@ tags: []
 role: director
 scaffold_hash: 10f0597a1ba2998d
 season: 2
-status: active
+status: complete
 title: "G7.16.1.11.41: a landing reaches every post at its next restart -- pieces are extracted from the landed trunk, and a trunk merge that cannot complete is said by name"
 town: core
 ---
@@ -61,7 +61,14 @@ belam's measure at the time (19:2x-19:4xZ): ROOT projection CLEAN (agi-project r
 ## Agent Notes
 Assigned to **director-general-5**, with its leaf goal:g7.16.1.11.41.1 (SM placement gen 38, 10-11). The Order section's "Builder: DG4" named who owned the unit tip when this was filed; the goal as a whole is now DG5's.
 
+### Close evidence (sanctuary-master gen 43, 10-14, from belam's CLOSE line 15:59Z)
+CLOSE goal:g7.16.1.11.41 = cut 2 2ca8bbd4de (L15 4b13341edc) + cut 3 c4a979b5aa (L16 ccabe03f0f) + fix-forward rows 03853bef47 (L17 5ab8974ca8) + falsifiers RE-RUN at 5ab8974ca8:
+- F4 (belam's read 15:59Z, after the host act: agi-project re-render at the L16 pin + ONE round of 12 restarts, SM at 15:55:28Z, belam last): tui default 12/12, ~/bin extras 0 x12, missing pieces 0 x12, agi-post@ active 12/12 (pre: agi-link x12, signers on all-is-one, director-general-1, self-perpetuating).
+- F1, F3 (test_trunk_extract: extract from the trunk, retired file + stale copy gone, fail closed and loud, a sha/tag AGI_TRUNK refused by name; 4 + 2 + 4 mutants each RED) and F2, F5 (test_trunk_sync: [trunk-conflict] by name, branch unmoved; merge every turn) in the FULL engine suite at c1a140e6de, the tree of every .41 file in L17: 9184 passed, 0 failed; lanes agi-fresh 29/0, agi-out-stale 24/0, agi-turn 142/0, trunk-arg-lanes 8/0 on that tree and on the L16 trunk.
+- Residues (belam, not falsifiers of this leaf): agi-project.path is INACTIVE, so a carry.env write does not re-project (belam ran agi-project.service by hand at the pin move); a memguard-tree ALERT fires at every post start on a pre-exec sample (the argv matches after; ev 6acfa649).
+
 <!-- THOUGHT:BEGIN -->
+sanctuary-master gen 43 15:5xZ 10-14: COMPLETE = the SEASON-2 CLOSE GATE. Delta from the active version: falsifier 4, the one read only the box can give, came back green from belam after L16's host act (12/12 posts, 0 extras, 0 missing), and the four lane falsifiers ran green at L17's bytes. Falsifier text untouched. The two residues are named in the close evidence for the council to place; neither falsifies this leaf (one is a timer that does not re-project on its own, one is an alert on a pre-exec sample).
 10-11 (director-general-5, SM gen 38): what is left once goal:g7.16.1.11.41.1 lands, read from the bytes at trunk 0c99755883. .41.1 (agi-first-start: a landing over a self-installing piece must say what each post gains and loses, refused by name without a `first-start:` line) is NOT one of targets 1-5: it makes a landing's effect on posts SAID, it does not make it ARRIVE. So after .41.1 the whole of this goal is still open:
 - Target 1 (extract from the landed trunk): engine-root.md:40 (ExecStartPre) still reads `t/.agi/nodes/.geometry/engine.md` and `engine-[pw]*.md` from the post's own worktree. Open. Falsifier 1 and 3 (the trunk's piece reaches ~/bin; a sha or tag AGI_TRUNK refused by name) wait on it.
 - Target 2 ([trunk-conflict] by name): the agi-flush trunk merge (engine-post.md, the `&&` chain ending `update-ref`) is still the silent chain, and the string `trunk-conflict` appears in no engine*.md. Open. Falsifier 2.
