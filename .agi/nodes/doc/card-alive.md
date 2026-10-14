@@ -61,6 +61,7 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
            deferred goals lacking 's3' gain it in the rollover commit; CHECK rows == derivation, missing = RED; g5.31 by name
          · 16:04Z L17 VERIFIED 5ab8974ca8 = 6b5ecdd854 + card-belam · belam board ed6353269f MET (18 rows = 17 + g5.31);
            3/3 to SM: the ONE command (ls-tree -r, grep -qiwE 'season 3|s3') under the table; bare s3 = 20 (3 false hits)
+         · 16:06Z board CHECK command landed: season3/main cbec136728 (G belam, core.md:108, 0 backslashes); run verbatim = 17
          · 16:05Z [finding+] box piece read uses dash echo: \\c truncates mail silently (RED); reproduced, sent SM (sp's fix: printf)
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
