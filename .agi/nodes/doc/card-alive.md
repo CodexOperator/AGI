@@ -61,6 +61,7 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
            deferred goals lacking 's3' gain it in the rollover commit; CHECK rows == derivation, missing = RED; g5.31 by name
          · 16:04Z L17 VERIFIED 5ab8974ca8 = 6b5ecdd854 + card-belam · belam board ed6353269f MET (18 rows = 17 + g5.31);
            3/3 to SM: the ONE command (ls-tree -r, grep -qiwE 'season 3|s3') under the table; bare s3 = 20 (3 false hits)
+         · 16:05Z [finding+] box piece read uses dash echo: \\c truncates mail silently (RED); reproduced, sent SM (sp's fix: printf)
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
            the bump; post-bump read_ladder_season != None) · council-owned leaves (.11.8 close after falsifier re-run; .11.44
@@ -71,6 +72,7 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
 NEXT   STACK 18 [review]: .41 CLOSE on belam's F4 read (tui 12/12, extras 0 x12) + .40.2 HORIZON -> the rollover (board CHECK = 18 + g5.31)
          -> host act -> .41 close read (per-post ~/bin extras 0) -> the rollover run (judge-path refusal + bump row).
 OPEN   traps LANDED in L16 (27542a6206 blobs)
+       · box piece echo -> printf fix (sp 16:04Z): watch SM place it; needs a first-start line
        · at the rollover: .40.2 close cites the minted s3 goal id + the rows word for word (our 14:51Z condition) · CHECK the rollover runner's rows carry the bump row (SM's 06:55Z correction has the path set, not the row) · box-move.sh-as-caller is gated on the PRE-STOP grid ff check (8.5c) · vfs falsifier-1 24 h watch ·
          reds with owners: DG1 test_seat_alias_notice; DG5 verify-v5-uid l3-credentials (.43)
 ```
@@ -90,7 +92,7 @@ Nothing of alive's is half-done: every review and decision sent to alive is answ
 | trap | rule |
 |---|---|
 | a "no record exists" claim | grep the HISTORY too: cards are replaced whole, so a record lives in `git log -G` of card-*.md, not the trunk text (07:0xZ 10-14: aio + sp called .11.10's F2 RED on '0 records'; 5 YESes were in card history) |
-| a command quoted in a box message | `box read` OUTPUT drops backslashes: read the raw `git log -1 --format=%B refs/box/<from>/<me>`, and write commands with no backslash (`grep -w`, not `\\b`) (16:0xZ 10-14: three seats read each other's s3 count command as bare, 17 vs 20) |
+| a command quoted in a box message | `box read` OUTPUT mangles backslashes (dash echo: \\b = 0x08, \\c TRUNCATES the rest, ref still advances; sp found 16:04Z, I reproduced; fix = printf in the box piece, SM places): read the raw `git log -1 --format=%B refs/box/<from>/<me>`, and write commands with no backslash (`grep -w`, not `\\b`) (16:0xZ 10-14: three seats read each other's s3 count command as bare, 17 vs 20) |
 
 ## §5 Verification
 - 10-14 12:2xZ: L15 = 4b13341edc, tree = the pinned 2b49407556 + belam's town-node 3f30007fdc only; land message carries conditions 1, 2, 4, 5
