@@ -501,6 +501,188 @@ def _verb_ram_exec(argv: list, to: str | None = None) -> int:
         return subprocess.run(argv).returncode
 
 
+#: Set by the verb on its re-exec so the child knows it already runs inside the
+#: RAM scope (a recharge outside it would charge the pages to the caller).
+_RECHARGE_ENV = "AGI_RAM_RECHARGE_SCOPED"
+
+
+#: A test seam, None in production: called with the source path between the
+#: copy and the replace, where a late writer lands (the TOCTOU row).
+_before_replace = None
+
+#: Seconds after which the held-open scan is re-run right before a replace (a
+#: full /proc walk per file is too slow on a big tree). A test sets it to 0.
+_RESCAN_AFTER = 0.2
+
+
+def _dev_of(path: str) -> int:
+    """The device of `path` -- the one seam a row fakes to stand in a mount."""
+    return os.lstat(path).st_dev
+
+
+def _open_for_write() -> "set[tuple[int, int]]":
+    """(dev, ino) of every file some process holds open for write, or maps
+    shared-writable: `rewrite`-by-rename would leave that holder writing into
+    an unlinked inode and its writes silently lost."""
+    held: "set[tuple[int, int]]" = set()
+    try:
+        pids = [d for d in os.listdir("/proc") if d.isdigit()]
+    except OSError:
+        return held
+    for pid in pids:
+        try:
+            for fd in os.listdir(f"/proc/{pid}/fd"):
+                try:
+                    with open(f"/proc/{pid}/fdinfo/{fd}") as fh:
+                        flags = next((int(l.split()[1], 8) for l in fh if l.startswith("flags:")), 0)
+                    if flags & os.O_ACCMODE != os.O_RDONLY:
+                        st = os.stat(f"/proc/{pid}/fd/{fd}")
+                        held.add((st.st_dev, st.st_ino))
+                except (OSError, ValueError):
+                    continue
+            with open(f"/proc/{pid}/maps") as fh:
+                for line in fh:
+                    f = line.split()
+                    if len(f) > 5 and f[1][1:2] == "w" and f[1][3:4] == "s" and f[5].startswith("/"):
+                        st = os.stat(f[5])
+                        held.add((st.st_dev, st.st_ino))
+        except OSError:
+            continue
+    return held
+
+
+def recharge(root: str, dry_run: bool = False) -> "dict[str, int]":
+    """Rewrite each regular file under `root` so its pages are re-allocated by
+    THIS process (which the verb runs inside the RAM scope): goal:g7.16.1.5.5.6.1.
+
+    Only files on `root`'s own device (a mount below it is never entered), never
+    one held open for write (skipped), mode/owner/mtime and hardlink sets kept
+    (a set with a name outside `root` is skipped whole), every tempfile removed
+    on every path. A mount-point dir below `root` is counted in `crossed` and
+    never entered (it is not a skipped FILE: a RAM tree with disk binds would
+    otherwise exit non-zero on every run; a bind-mounted FILE counts there too).
+    An unreadable or vanished entry counts `failed`. Residue, named: a file
+    first opened for write between the last held-open scan and its rename can
+    lose that writer's data -- run it when the RAM writers are quiet. Returns
+    counts only -- no path."""
+    n = {"rewritten": 0, "skipped": 0, "failed": 0, "crossed": 0}
+    top = _dev_of(root)
+    held, scan_t = _open_for_write(), time.monotonic()
+    groups: "dict[tuple[int, int], list[str]]" = {}
+
+    def unreadable(_exc):       # os.walk swallows a scandir error: count the dir, never lose it
+        n["failed"] += 1
+    for d, dirs, files in os.walk(root, followlinks=False, onerror=unreadable):
+        keep = []
+        for x in dirs:
+            path = os.path.join(d, x)
+            try:
+                if os.path.islink(path):
+                    continue
+                if _dev_of(path) != top:
+                    n["crossed"] += 1
+                    continue
+            except OSError:     # vanished between the listing and the stat
+                n["failed"] += 1
+                continue
+            keep.append(x)
+        dirs[:] = keep
+        for f in files:
+            path = os.path.join(d, f)
+            try:
+                st = os.lstat(path)
+            except OSError:
+                n["failed"] += 1
+                continue
+            if not stat.S_ISREG(st.st_mode):
+                continue
+            if st.st_dev != top:        # a bind-mounted FILE
+                n["crossed"] += 1
+                continue
+            groups.setdefault((st.st_dev, st.st_ino), []).append(path)
+    for key, names in groups.items():
+        try:
+            st = os.lstat(names[0])
+        except OSError:
+            n["failed"] += len(names)
+            continue
+        if key in held or st.st_nlink != len(names):
+            n["skipped"] += len(names)
+            continue
+        if dry_run:
+            if os.access(names[0], os.R_OK):
+                n["rewritten"] += len(names)
+            else:
+                n["failed"] += len(names)
+            continue
+        tmp = None
+        try:
+            fd, tmp = tempfile.mkstemp(dir=os.path.dirname(names[0]), prefix=".recharge.")
+            with os.fdopen(fd, "wb") as out, open(names[0], "rb") as src:
+                shutil.copyfileobj(src, out)
+            os.chown(tmp, st.st_uid, st.st_gid)     # BEFORE copystat: a non-root chown clears setuid/setgid
+            shutil.copystat(names[0], tmp)
+            if _before_replace is not None:
+                _before_replace(names[0])
+            if time.monotonic() - scan_t > _RESCAN_AFTER:       # a late opener since the last scan
+                held, scan_t = _open_for_write(), time.monotonic()
+                if key in held:
+                    n["skipped"] += len(names)
+                    continue
+            now = os.lstat(names[0])
+            if (now.st_ino, now.st_size, now.st_mtime_ns) != (st.st_ino, st.st_size, st.st_mtime_ns):
+                n["skipped"] += len(names)      # changed under us: leave it
+                continue
+            os.replace(tmp, names[0])
+            tmp = None
+            for other in names[1:]:
+                tmp = os.path.join(os.path.dirname(other), f".recharge.{next(_UNIT_SEQ)}")
+                os.link(names[0], tmp)
+                os.replace(tmp, other)
+                tmp = None
+            n["rewritten"] += len(names)
+        except OSError:
+            n["failed"] += len(names)
+        finally:
+            if tmp is not None:
+                try:
+                    os.unlink(tmp)
+                except OSError:
+                    pass
+    return n
+
+
+def _verb_ram_recharge(args: list) -> int:
+    """`ram-recharge [--dry-run] <dir>`: counts on stdout; 0 only when every
+    file was rewritten. A missing dir, or any skipped / failed file -> 1; no
+    usable RAM scope -> 3 with nothing touched (a recharge outside it would
+    charge the caller, the very thing it exists to undo)."""
+    dry = "--dry-run" in args
+    dirs = [a for a in args if a != "--dry-run"]
+    if len(dirs) != 1:
+        sys.stderr.write("mem_cap.py ram-recharge [--dry-run] <dir>\n")
+        return 2
+    if not os.path.isdir(dirs[0]):
+        sys.stderr.write("mem_cap.py ram-recharge: no such dir\n")
+        return 1
+    if not dry and os.environ.get(_RECHARGE_ENV) != "1":
+        me = [sys.executable, os.path.abspath(__file__), "ram-recharge", *dirs]
+        scoped = ram_argv(me) if user_manager_reachable() else me
+        if list(scoped) == me:
+            sys.stderr.write("mem_cap.py ram-recharge: no usable RAM scope -- nothing rewritten\n")
+            return 3
+        os.environ[_RECHARGE_ENV] = "1"
+        try:
+            os.execvp(scoped[0], scoped)
+        except OSError:
+            sys.stderr.write("mem_cap.py ram-recharge: scope exec failed -- nothing rewritten\n")
+        return 3        # exec replaces this process; reaching here means it did not
+    n = recharge(dirs[0], dry_run=dry)
+    sys.stdout.write(f"recharged={n['rewritten']} skipped={n['skipped']} failed={n['failed']} crossed={n['crossed']}"
+                     f"{' dry-run' if dry else ''}\n")
+    return 0 if not (n["skipped"] or n["failed"]) else 1
+
+
 if __name__ == "__main__":
     import argparse
     # ram-exec carries a FOREIGN argv after `--`: argparse never sees it.
@@ -512,4 +694,6 @@ if __name__ == "__main__":
         _i = _h.index("--")
         _to = _h[1] if _h[:1] == ["--to"] and len(_h) > 1 else None
         sys.exit(_verb_ram_exec(_h[_i + 1:], to=_to))
+    if sys.argv[1:2] == ["ram-recharge"]:
+        sys.exit(_verb_ram_recharge(sys.argv[2:]))
     argparse.ArgumentParser(description=__doc__.splitlines()[0]).parse_args()

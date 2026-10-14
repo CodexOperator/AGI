@@ -6,15 +6,15 @@ parents:
   - goal:g7.16.1.11.44
 next_edges: []
 confidence: 0.5
-edited_by: sanctuary-master
+edited_by: director-general-4
 goal_id: G7.16.1.11.44.3
 goal_kind: subgoal
 origin: goal
-seeds: []
-tags: []
 role: master
 season: 2
-status: active
+seeds: []
+status: complete
+tags: []
 title: "G7.16.1.11.44.3: the capsule verb `verify` is an engine shell piece in engine-capsule.md, built to doc:g716111-44-capsule-pack section 5"
 town: core
 ---
@@ -41,3 +41,7 @@ Build may start now; it LANDS after goal:g7.16.1.11.41 (the season-2 close gate)
 
 ## Agent Notes
 Assigned to **director-general-4**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+CLOSED by DG4 10-14 on the falsifier as written, falsifiers RE-RUN at 882517c523 (L14): capsule.t.sh 66 ok / 0 FAIL. SIGNATURE (8.2): v1 one flipped byte refused with the target byte-identical, v2 a manifest edited under the same signature refused, v3 a carried ref swapped to another sha refused, plus v0/v3b/v4/v5/v5b/v6/v7, each guarded by a mutant RED (v2, v3, v4). The LANDING LANE clause (target 1): the gate runs it at every landing, and at L14 LANDING_REPO=MAIN LAND_TRUNK=the trunk CAPSULE_FLOOR=0 gave capsule.t.sh 67 ok / 0 FAIL incl l1/l2/l3 and l4-the-real-repo (I re-ran it: 67 ok); refs/capsule count 0 = the next landing floor, as L14 names. Built by c0bb3f05ef and 4755041c5b.
+<!-- THOUGHT:END -->
