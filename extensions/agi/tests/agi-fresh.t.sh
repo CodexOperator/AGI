@@ -6,7 +6,7 @@
 # (A3.2 split the user steps in two, key step then the rest, with the root agi-signers line between: the default JOINS the sh -c lines into the one script this test models.)
 # STEPS = the unit's ExecStartPre lines in file order (default: from engine-root.md of ROOT; a reorder mutation = STEPS=<edited copy>).
 # UNIT = the joined sh -c lines (bytes / no-ring-write cases) (default: the `sh -c` line of the unit in .geometry/engine-root.md of ROOT); a mutation = UNIT=<file holding the edited line>. One ok/FAIL line per case; exit = FAIL count.
-T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};GEO=$R0/.agi/nodes/.geometry;CEIL=${CEIL:-828}
+T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};GEO=$R0/.agi/nodes/.geometry;CEIL=${CEIL:-1180}
 sect(){ cat $GEO/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 [ -n "$UNIT" ]||{ sed -n "/^### agi-post@.service/,/^~~~\$/{/^ExecStartPre=sh -c /p}" $GEO/engine-root.md|awk -v q="'" 'NR==1{sub(q"$","");printf "%s",$0;next}{sub("^ExecStartPre=sh -c "q,"");printf ";%s",$0}END{print ""}'>$T/unit;UNIT=$T/unit;}
 [ -n "$STEPS" ]||{ sed -n "/^### agi-post@.service/,/^~~~\$/{/^ExecStartPre=/p}" $GEO/engine-root.md>$T/steps;STEPS=$T/steps;}
@@ -18,9 +18,10 @@ P=post1;S=$T/stores;H=$S/$P;RING=$T/ring;RUN=$T/run;mkdir -p $H $RUN/agi-$P;O=$T
 # the scratch MAIN repo: the real engine pieces (the unit's loop writes bin/* from engine.md + engine-[pw]*.md of the worktree)
 $G init -q $O;mkdir -p $O/.agi/nodes/.geometry;for x in engine.md engine-post.md engine-wrap.md;do cp $GEO/$x $O/.agi/nodes/.geometry/;done
 $G -C $O add -A;$G -C $O -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm fixture;TR=$($G -C $O rev-parse HEAD)
+PG=$(sed -n "/^### agi-post@.service/,/^~~~\$/p" $GEO/engine-root.md|sed -n 's/^Environment="AGI_PIECE_GLOB=\(.*\)"$/\1/p');$G -C $O branch lanetrunk $TR   # goal:g7.16.1.11.41 target 1: the unit reads the landed trunk BRANCH and the ONE named glob cell, so the lane gives it both
 # the unit line as sh would get it: the quoted script, %i and %t substituted
 Q=$(sed 's/^ExecStartPre=sh -c //' $UNIT|sed "s,%i,$P,g;s,%t,$RUN,g")
-up(){ (cd $H&&export HOME=$H GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_SYSTEM=/dev/null O=$O AGI_TRUNK=$TR PATH=$H/bin:$PATH&&while IFS= read -r l;do case $l in "ExecStartPre=sh -c "*)q=$(printf %s "${l#ExecStartPre=sh -c }"|sed "s,%i,$P,g;s,%t,$RUN,g");eval "sh -c $q" >>$T/up.out 2>>$T/up.err;;"ExecStartPre=+"*agi-signers*)AGI_RUN=none AGI_STORES=$S AGI_SIGNERS=$RING sh $T/signers.sh $P;;esac;done<$STEPS);}
+up(){ (cd $H&&export HOME=$H GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_SYSTEM=/dev/null O=$O AGI_TRUNK=lanetrunk AGI_PIECE_GLOB="$PG" PATH=$H/bin:$PATH&&while IFS= read -r l;do case $l in "ExecStartPre=sh -c "*)q=$(printf %s "${l#ExecStartPre=sh -c }"|sed "s,%i,$P,g;s,%t,$RUN,g");eval "sh -c $q" >>$T/up.out 2>>$T/up.err;;"ExecStartPre=+"*agi-signers*)AGI_RUN=none AGI_STORES=$S AGI_SIGNERS=$RING sh $T/signers.sh $P;;esac;done<$STEPS);}
 # up = every ExecStartPre line of the unit IN FILE ORDER (key step, root agi-signers, the rest): a reorder of the lines changes what runs first and is RED below
 agirun(){ rm -f $H/.fresh;}
 pub(){ cut -d' ' -f1,2 $H/.ssh/id_ed25519.pub;}

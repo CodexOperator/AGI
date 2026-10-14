@@ -12,15 +12,16 @@ GIT=$(command -v git)
 parse(){ rm -f $D/k.* $D/t.* $D/s.*;grep -E '^(ExecCondition|ExecStartPre|ExecStart)=' $D/unit|sed "s|%i|post1|g;s|%t|$D/run|g;s|/etc/agi/carry.env|$D/carry|g">$D/seq;nl=0
 while IFS= read -r l;do nl=$((nl+1));echo "${l%%=*}">$D/k.$nl;v=${l#*=};case $v in "+"*|"-+"*)echo plus>$D/t.$nl;;"awk "*)echo awk>$D/t.$nl;;"sh -c '"*)echo sh>$D/t.$nl;s=${v#"sh -c '"};printf '%s' "${s%"'"}">$D/s.$nl;;'sh -c "'*)echo sh>$D/t.$nl;s=${v#'sh -c "'};printf '%s' "${s%'"'}">$D/s.$nl;;*)echo other>$D/t.$nl;;esac;done<$D/seq;}
 parse
+PG=$(sed -n 's/^Environment="AGI_PIECE_GLOB=\(.*\)"$/\1/p' $D/unit)   # goal:g7.16.1.11.41 target 1: the ONE named glob cell the extraction and the agi-run condition read
 AO=$(grep -n 'agi-out' $D/seq|cut -d: -f1);[ "$(echo "$AO"|wc -w)" = 1 ]||{ echo "FAIL the unit has not exactly one agi-out step ($AO)";exit 99;}
 # mkh N: a scratch HOME with a STALE t (a git repo whose engine-post.md carries agi-flush + agi-run and NO agi-out), an empty /opt/agi/bin stand-in, no bin/agi-out
 mkh(){ H=$D/h$1;rm -rf $H $D/opt;mkdir -p $H/t/$GEO $H/bin $D/run/agi-post1 $D/opt $D/orig;SHIM=
  printf '### agi-flush (stub)\n~~~sh\n#!/bin/sh\ngit -C t merge "${AGI_TRUNK:-trunk}" >/dev/null||echo "agi-flush: merge conflict, t left as it was" >&2\nexit 0\n~~~\n### agi-run (stub)\n~~~sh\n#!/bin/sh\nexit 0\n~~~\n'>$H/t/$GEO/engine-post.md
  (cd $H/t;$GIT init -q;$GIT add -A;$GIT -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm stale);rm -f $D/run/agi-post1/i;[ -d $D/orig/.git ]||mko;}
-mko(){ rm -rf $D/orig;mkdir -p $D/orig/$GEO;printf '  - {"name": "post1", "box": "lanebox"}\n'>$D/orig/$GEO/posts.md;(cd $D/orig;$GIT init -q;$GIT add -A;$GIT -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm posts;$GIT branch -f trunk HEAD);printf 'AGI_HUB=\nAGI_BOX=lanebox\n'>$D/carry;}
+mko(){ rm -rf $D/orig;mkdir -p $D/orig/$GEO;printf '  - {"name": "post1", "box": "lanebox"}\n'>$D/orig/$GEO/posts.md;printf '### agi-flush (stub)\n~~~sh\n#!/bin/sh\ngit -C t merge "${AGI_TRUNK:-trunk}" >/dev/null||echo "agi-flush: merge conflict, t left as it was" >&2\nexit 0\n~~~\n### agi-run (stub)\n~~~sh\n#!/bin/sh\nexit 0\n~~~\n'>$D/orig/$GEO/engine-post.md;(cd $D/orig;$GIT init -q;$GIT add -A;$GIT -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm posts;$GIT branch -f trunk HEAD);printf 'AGI_HUB=\nAGI_BOX=lanebox\n'>$D/carry;}
 pu(){ echo ${SHIM:+$SHIM:}$H/bin:$D/opt:/usr/local/bin:/usr/bin:/bin;}
 # one N: step N alone (rc in sr, stdout so.N, stderr se.N)
-one(){ (cd $H&&env -i PATH=$(pu) HOME=$H O=$D/orig AGI_TRUNK=trunk AGI_POST=post1 GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 sh -c "$(cat $D/s.$1)")>$D/so.$1 2>$D/se.$1;sr=$?;echo $sr>$D/rc.$1;}
+one(){ (cd $H&&env -i PATH=$(pu) HOME=$H O=$D/orig AGI_TRUNK=trunk AGI_PIECE_GLOB="$PG" AGI_POST=post1 GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 sh -c "$(cat $D/s.$1)")>$D/so.$1 2>$D/se.$1;sr=$?;echo $sr>$D/rc.$1;}
 # cyc: ONE start of the unit (steps in order; a failing ExecStartPre aborts the start = systemd's Restart= loop; ALL=1 runs on past a failure to fill the table). creach = ExecStart reached, cfail = "N:rc" of the first failing step, pl = the root stubs that ran
 cyc(){ creach=0;cfail=;: >$D/pl;n=0;while [ $n -lt $nl ];do n=$((n+1));k=$(cat $D/k.$n);ty=$(cat $D/t.$n)
   [ $k = ExecStart ]&&{ creach=1;break;}

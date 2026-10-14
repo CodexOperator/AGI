@@ -46,7 +46,7 @@ def real_piece() -> str:
 
 def extraction_line() -> str:
     for ln in (ROOT / GEO / "engine-root.md").read_text().splitlines():
-        if "for e in t/" in ln and "ExecStartPre" in ln:
+        if ln.startswith('Environment="AGI_PIECE_GLOB='):
             return ln
     raise AssertionError("the unit's extraction line is not in engine-root.md")
 
@@ -152,7 +152,7 @@ def rows(script, repo):
     # engine-p9.md, the pattern engine-[pw]*.md would turn into the on-disk list and miss the new file at TIP
     wt = repo.parent / "base-checkout"
     git(repo, "worktree", "add", "-q", "--detach", str(wt), base6)
-    r = run(script, repo, base6, tip_g, cwd=wt)
+    r = run(script, repo, base6, tip_g, cwd=wt / ".agi" / "nodes" / ".geometry")
     chk("g-from a checkout of BASE a new file in the glob is still named", r.stdout.strip() == "FIRST-START: p-nine")
     # (d) the landing message: refused by name without first-start:, passes with it, none needs none
     wrap = repo / GEO / "engine-wrap.md"
@@ -173,7 +173,7 @@ def rows(script, repo):
     er = repo / GEO / "engine-root.md"
     keep = er.read_text()
     good = tip
-    er.write_text(keep.replace("for e in t/", "for e  in t/"))
+    er.write_text(keep.replace('Environment="AGI_PIECE_GLOB=', 'Environment="AGI_PIECE_GLOB ='))
     reworded = commit(repo, "reword the extraction line")
     wrap.write_text(wrap.read_text().replace("echo again", "echo third", 1))
     reworded2 = commit(repo, "a box piece changes")
@@ -208,10 +208,10 @@ MUTANTS = {
                               "T=$(p $2|cut -d' ' -f1);s=$({ p $1;p $2;}|sort|uniq -u|cut -d' ' -f1|sort -u|grep -xF \"$T\"|tr '\\n' ' ')"),
     # a hand list instead of the unit's glob (a new engine-p9.md is missed)
     "a-hand-list": ("G=$(g $1)",
-                    "G='.agi/nodes/.geometry/engine.md .agi/nodes/.geometry/engine-post.md .agi/nodes/.geometry/engine-wrap.md'"),
+                    "G='engine.md engine-post.md engine-wrap.md'"),
     # engine-root.md and engine-grow.md counted (engine*.md instead of engine-[pw]*.md)
     "root-counted": ("G=$(g $1)",
-                     "G='.agi/nodes/.geometry/engine*.md'"),
+                     "G='engine*.md'"),
 }
 
 
