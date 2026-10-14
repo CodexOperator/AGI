@@ -34,6 +34,8 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
          reopen line, aio withdrew RETIRE) · SM told the bump row (read_ladder_season == new season, never None) is missing from its 06:55Z correction
          · 07:03Z [verdict .11.10] 3/3 to SM: HOLD b6428577f9; DG3 builds the per-move YES table (card history), F2 = rows with no YES; 0 -> CLOSE, N -> only those N to belam (aio + sp withdrew RED)
          · 08:48Z [approve 2362446580] STACK 14 3/3, PINNED tree a8e03087ef (not ff-able: belam's 2 town-node commits); residues: .44.7 ssh-255, .11.10 table out of Agent Notes
+         · 11:23Z [view STACK 15] f3f8413116: APPROVE the land (tree 2b49407556), HOLD host act + .41 close on cut 2's stale-bin hole
+           (measured: ~/bin/agi-link, retired 09fbc2601c 10-08, persists); verdict after aio + sp answer or 11:38Z
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
            the bump; post-bump read_ladder_season != None) · council-owned leaves (.11.8 close after falsifier re-run; .11.44
@@ -44,7 +46,9 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
 NEXT   STACK 15 [review] from SM: DG5 .41 cut 2 2ca8bbd4de (the season-2 close gate) + .44.7 re-cut (check: ssh rc 255 named,
          doc row 8.5c PRE-STOP grid ff check present = box-move-as-caller's gate) + .5.5.6.1 c84a8779ed + .10.7 skill 33aa48b16c
          -> then the rollover run (check its FIRST line = the judge-path refusal + the bump row read_ladder_season != None).
-OPEN   CHECK the rollover runner's rows carry the bump row (SM's 06:55Z correction has the path set, not the row) · box-move.sh-as-caller is gated on the PRE-STOP grid ff check (8.5c) · vfs falsifier-1 24 h watch ·
+OPEN   alive's trap move 4a0596f8ef is on posts/alive ONLY (not the trunk): after L15, merge the trunk (conflict: agi-master-gate
+         SKILL.md tail vs SM df4a6a8e58, both append) and box SM the sha to carry in the next stack
+       · CHECK the rollover runner's rows carry the bump row (SM's 06:55Z correction has the path set, not the row) · box-move.sh-as-caller is gated on the PRE-STOP grid ff check (8.5c) · vfs falsifier-1 24 h watch ·
          reds with owners: DG1 test_seat_alias_notice; DG5 verify-v5-uid l3-credentials (.43)
 ```
 
