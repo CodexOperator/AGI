@@ -345,10 +345,10 @@ _scrubbed_env = scrubbed_env
 
 
 def _resolved_seat(args_seat: str | None) -> str | None:
-    """The AGI_SEAT value to export, or None to leave the key absent.
+    """The AGI_POST value to export, or None to leave the key absent.
 
     Precedence (hypothesis:l4-dispatch-exports-seat): `--seat` WINS when
-    given; an AGI_SEAT already in the inherited env SURVIVES when `--seat`
+    given; the post already in the inherited env SURVIVES when `--seat`
     is absent; neither present means the key is absent -- never a
     placeholder, never a fallback to the ladder name.
     """
@@ -1573,12 +1573,12 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
             env["AGI_ACTOR"] = agent_id
             # hypothesis:l4-dispatch-exports-seat — mirror of the live
             # spawn_env seat export, so the dry report shows the REAL value
-            # (--seat wins, else an inherited AGI_SEAT survives, else absent).
-            # base=scrubbed_env() already carries an inherited AGI_SEAT, so
+            # (--seat wins, else the inherited post survives, else absent).
+            # base=scrubbed_env() already carries an inherited AGI_POST, so
             # only the --seat override must be written here.
             seat_val = _resolved_seat(args.seat)
             if seat_val:
-                env["AGI_SEAT"] = seat_val
+                env["AGI_POST"] = seat_val
             if args.tier in ("kid", "parent"):
                 env["GIT_CONFIG_COUNT"] = "1"
             # mirror of the live fence export, so the dry report SHOWS both
@@ -1640,7 +1640,7 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
         export_keys = ["AGI_TIER", "AGI_ROLE", "AGI_LADDER_TIER",
                        "AGI_SEASON", "AGI_LOOP", "AGI_MODEL",
                        "AGI_PROFILE", "AGI_AGENT_ID", "AGI_ACTOR",
-                       "AGI_SEAT", "GIT_CONFIG_COUNT",
+                       "AGI_POST", "GIT_CONFIG_COUNT",
                        "CLAUDE_CODE_WORKFLOWS",
                        "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP",
                        "AGI_MODEL_FENCE_SRC", "AGI_MODEL_FENCE_MAX_BYTES"]
@@ -1865,7 +1865,7 @@ def main() -> int:
              "seat's own row in config:posts (alias config:seats) overrides "
              "harness/model/effort/settings from the ladder's (tier, role) "
              "class table. No row for the name falls back to the ladder. "
-             "Export AGI_POST=<name> (legacy AGI_SEAT) for the meter pin to "
+             "Export AGI_POST=<name> for the meter pin to "
              "land seat-stable.",
     )
     ap.add_argument(
@@ -2404,7 +2404,7 @@ def main() -> int:
     # conjunct 2 (a) -- refuse an UNTRUSTED spawner before any lease, session
     # dir, manifest, scaffold or credential is taken. The untrusted lane may
     # write only its own worktree; it never dispatches. The acting post is
-    # the resolved seat (--seat > AGI_SEAT); absent a seat the gate fails
+    # the resolved seat (--seat > AGI_POST); absent a seat the gate fails
     # open (nothing to prove).
     _ut_spawner = _refuse_untrusted_spawner(root, _resolved_seat(args.seat))
     if _ut_spawner:
@@ -2910,13 +2910,14 @@ def main() -> int:
             # hypothesis:l4-dispatch-exports-seat — the seat under which this
             # agent records provenance must exist in the env, or the write-log
             # `seat` key L4.06 added is empty for every dispatched agent.
-            # Precedence: --seat wins; an inherited AGI_SEAT (from the manual
-            # export the help text documents) survives when --seat is absent.
-            # base=scrubbed_env() already carries an inherited AGI_SEAT, so
+            # Precedence: --seat wins; an inherited AGI_POST (the post's own
+            # unit env, or the manual export the help text documents)
+            # survives when --seat is absent.
+            # base=scrubbed_env() already carries an inherited AGI_POST, so
             # only the --seat override must be written here.
             seat_val = _resolved_seat(args.seat)
             if seat_val:
-                spawn_env["AGI_SEAT"] = seat_val
+                spawn_env["AGI_POST"] = seat_val
             # hypothesis:every-spawn-exports-its-own-resolved-harness-as-agi-harness --
             # hand the child the harness resolved FOR IT, not merely inherit the
             # parent's AGI_HARNESS (the same resolved spec the spawn above used, no literal)
@@ -3148,8 +3149,8 @@ def main() -> int:
             "memory_max": _mem_cap,
             # hypothesis:l4-a-round-alarms-its-dispatcher-by-default --
             # WHO must be alarmed when this round finishes, stamped at spawn
-            # with NO flag. The dispatcher is the resolved seat (-x-exported
-            # AGI_SEAT, else an inherited one); absent both, the key is
+            # with NO flag. The dispatcher is the resolved seat (--seat, else the
+            # inherited AGI_POST); absent both, the key is
             # present-but-null and the completion/dm path prints ONE stderr
             # line naming the gap rather than guessing a pane identity. Never
             # inferred from a tmux window name or $USER (identity supplied).

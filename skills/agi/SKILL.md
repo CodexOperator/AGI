@@ -183,7 +183,7 @@ rotate.py spawn --post <name> --tier director --prompt-file .agi/sessions/quorum
 #    the engine spawns the successor in tmux under the launch wrapper, writes the rotation record,
 #    the ack, the row (gen+1, window, pid, session_id via the registry JOIN) and ACTIVATES the pin
 #    at the successor's own transcript. `prepare` gates it: pushed, clean tree, card newer than last commit.
-AGI_SEAT=belam AGI_POST=belam rotate.py rotate --force --stops "<where it stops, one paragraph>"
+AGI_POST=belam rotate.py rotate --force --stops "<where it stops, one paragraph>"
 ```
 
 Two things this sequence catches that a hand seating does not: a first

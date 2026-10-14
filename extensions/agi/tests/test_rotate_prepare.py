@@ -1125,6 +1125,16 @@ def test_rotate_self_prepare_unregistered_name_refuses_without_merge(
 # =====================================================================
 
 
+def _own_identity_env():
+    """goal:g7.16.1.11.43: the env a fixture commit runs under, WITHOUT the ambient author/committer identity. A post
+    uid's env sets GIT_AUTHOR_EMAIL, which beats the repo's own `user.email`; prepare check 1 scopes unpushed commits by
+    that config identity, so an ambient identity turned the fixture's own unpushed commit into 'other author, not
+    blocking' and the push never fired."""
+    import os as _o
+    return {k: v for k, v in _o.environ.items()
+            if k not in ("GIT_AUTHOR_NAME", "GIT_AUTHOR_EMAIL", "GIT_COMMITTER_NAME", "GIT_COMMITTER_EMAIL")}
+
+
 def _real_unpushed_rotate_repo(tmp_path):
     """A REAL git repo with a bare origin and an upstreamed branch whose
     checked-out HEAD is ONE commit AHEAD of origin (the classic `git push`
@@ -1172,7 +1182,7 @@ def _real_unpushed_rotate_repo(tmp_path):
     subprocess.run(["git", "-C", str(root), "add", "-A"], check=True,
                    capture_output=True)
     subprocess.run(["git", "-C", str(root), "commit", "-q", "-m", "fixture"],
-                   check=True, capture_output=True)
+                   check=True, capture_output=True, env=_own_identity_env())
     subprocess.run(["git", "-C", str(root), "push", "-u", "origin", "master"],
                    check=True, capture_output=True)
     # the ONE unpushed commit: HEAD is now ahead of origin/master by exactly 1
@@ -1180,7 +1190,7 @@ def _real_unpushed_rotate_repo(tmp_path):
     subprocess.run(["git", "-C", str(root), "add", "unpushed.txt"],
                    check=True, capture_output=True)
     subprocess.run(["git", "-C", str(root), "commit", "-q", "-m", "unpushed"],
-                   check=True, capture_output=True)
+                   check=True, capture_output=True, env=_own_identity_env())
     # refresh the card so check 4 sees it NEWER than the unpushed commit
     import os as _os
     _os.utime(card, None)

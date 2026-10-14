@@ -16,6 +16,7 @@ the two suites has quietly been changed.
 import importlib.util
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -168,10 +169,12 @@ def test_engine_policy_strips_the_git_hook_channel(monkeypatch):
     for key in suite_guards.GIT_CONFIG_SPAWN_VARS:
         monkeypatch.setenv(key, "x")
     memo = suite_guards.strip_dispatch_env(suite_guards.GIT_CONFIG_SPAWN_VARS)
-    assert not [k for k in os.environ if k.startswith("GIT_CONFIG_")]
+    # the spawn CHANNEL family (COUNT / KEY_n / VALUE_n); GIT_CONFIG_GLOBAL / _SYSTEM / _NOSYSTEM are the gate
+    # recipe's own isolation (goal:g7.16.1.11.43) and stay set
+    chan = lambda: sorted(k for k in os.environ if re.fullmatch(r"GIT_CONFIG_(COUNT|KEY_\d+|VALUE_\d+)", k))
+    assert not chan()
     suite_guards.restore_dispatch_env(memo)
-    assert sorted(k for k in os.environ if k.startswith("GIT_CONFIG_")) == sorted(
-        suite_guards.GIT_CONFIG_SPAWN_VARS)
+    assert chan() == sorted(suite_guards.GIT_CONFIG_SPAWN_VARS)
 
 
 def test_the_engine_conftest_passes_its_own_policy(tmp_path):

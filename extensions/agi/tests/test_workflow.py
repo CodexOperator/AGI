@@ -54,8 +54,13 @@ def _no_ambient_pi_bin(monkeypatch):
     `$PI_BIN` wins over the config cell. A suite run from a pi seat exports
     PI_BIN, so without this the fake-bin tests would spawn the REAL pi. A test
     that exercises the override sets PI_BIN itself, after this fixture.
-    (hypothesis:harness-bin-paths-resolve-per-box round 3)"""
-    monkeypatch.delenv("PI_BIN", raising=False)
+    (hypothesis:harness-bin-paths-resolve-per-box round 3)
+
+    goal:g7.16.1.11.43: it points PI_BIN at FAKE_PI instead of deleting it. Deleting it left the resolver to the
+    config cell, `~/.npm-global/bin/pi`, which a post uid does not have, so 30 tests died 'cannot resolve binary'
+    before reaching what they pin; a resolvable stub is the same guarantee (the real pi is never spawned) without
+    needing pi installed."""
+    monkeypatch.setenv("PI_BIN", FAKE_PI)
 
 WF_DIR = REPO / "extensions" / "agi" / "workflows"
 CLAUDE_WF = REPO / ".claude" / "workflows"
@@ -650,6 +655,10 @@ def _run_review_pi(tmp_path_factory, fake_bin: Path, mode: str,
 
     monkeypatch.setenv("FAKE_PI_MODE", mode)
     monkeypatch.setenv("FAKE_PI_CAPTURE", str(tmp / "prompts.txt"))
+    monkeypatch.setenv("PI_BIN", str(fake_bin))   # PI_BIN outranks the config cell above (the conftest stub sets it for every test_workflow* test); this one runs the fake
+    # goal:g7.16.1.11.43: the test pins what happens to the stage RETURN, not how the context is built; the real build runs viewport.py over
+    # the whole graph (70-160 s at box load against a 60 s cap), so the context is a stub here (`_stage_context` itself is pinned by its own tests)
+    monkeypatch.setattr(_wf, "_stage_context", lambda *a, **k: "CTX")
     _wf._load_config = cfg
     try:
         buf = io.StringIO()
@@ -742,6 +751,9 @@ def test_pi_prose_stage_is_unstructured_not_failed(tmp_path_factory, tmp_path,
 
     monkeypatch.setenv("FAKE_PI_MODE", "prose")
     cap = tmp / "prompts.txt"
+    monkeypatch.setenv("PI_BIN", str(fake))   # PI_BIN outranks the config cell (the conftest stub); this test runs the fake
+    # goal:g7.16.1.11.43: the context is a stub (the real build is viewport.py over the whole graph, 70-160 s at box load vs a 60 s cap)
+    monkeypatch.setattr(_wf2, "_stage_context", lambda *a, **k: "CTX")
     monkeypatch.setenv("FAKE_PI_CAPTURE", str(cap))
     _wf2._load_manifest = load
     _wf2._load_config = cfg
@@ -1432,7 +1444,7 @@ def test_dry_run_writes_no_row(tmp_path_factory):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def _no_workflow_row_leaks_to_real_sessions():
+def _no_workflow_row_leaks_to_real_sessions(tmp_path_factory):
     """Assert NO workflow row tracked by THIS pytest process reached a real
     sessions dir.
 
@@ -1463,6 +1475,8 @@ def _no_workflow_row_leaks_to_real_sessions():
 
     real_track = _wf._track_run
     leaked: list[str] = []
+    # goal:g7.16.1.11.43: a tmp root is tempfile.gettempdir() OR this run's pytest basetemp (the gate recipe puts --basetemp on /data beside TMPDIR, not under it)
+    tmp_roots = (tempfile.gettempdir(), str(tmp_path_factory.getbasetemp()))
 
     def _watched(root, key, harness, view, run_key=None):
         try:
@@ -1471,7 +1485,7 @@ def _no_workflow_row_leaks_to_real_sessions():
             sess = None
         if sess is not None:
             wf_dir = Path(sess) / "sessions" / "workflows"
-            if not str(wf_dir).startswith(tempfile.gettempdir()):
+            if not str(wf_dir).startswith(tmp_roots):
                 leaked.append(str(wf_dir))
         return real_track(root, key, harness, view, run_key)
 
@@ -2204,11 +2218,16 @@ def test_pi_dry_run_prints_credential_line_before_dispatch(monkeypatch):
     assert called == [], called
 
 
-def test_dry_run_credential_line_matches_live_decision():
+def test_dry_run_credential_line_matches_live_decision(monkeypatch):
     """(d) the printed line and the live choice come from one helper — a
-    claude-code harness needs no credential, and its dry-run line says so."""
+    claude-code harness needs no credential, and its dry-run line says so.
+
+    goal:g7.16.1.11.43: `_credential_decision` asks `provisioning.available` BEFORE the harness, and a post uid
+    cannot read MAIN's .env, so the harness leg is only reached with provisioning present: that precondition is
+    stated here, not inherited from whoever runs the suite."""
     import workflow as _wf
     from workflow import run_workflow
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: True)
     would, reason = _wf._credential_decision(REPO / ".agi",
                                              _wf._load_config(REPO / ".agi"),
                                              "claude-code")
@@ -2392,6 +2411,9 @@ def test_pi_stage_receives_minted_key_across_the_process(tmp_path,
     monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: True)
     monkeypatch.setattr(_wf.provisioning, "mint",
                         lambda **kw: _fake_minted(secret="sk-real-seam"))
+    # goal:g7.16.1.11.43: the test pins what happens to the stage RETURN, not how the context is built; the real build runs viewport.py over
+    # the whole graph (70-160 s at box load against a 60 s cap), so the context is a stub here (`_stage_context` itself is pinned by its own tests)
+    monkeypatch.setattr(_wf, "_stage_context", lambda *a, **k: "CTX")
     try:
         buf = io.StringIO()
         rc = run_workflow(REPO / ".agi", "review", "pi",
@@ -3420,8 +3442,9 @@ def test_pi_harness_cfg_expands_a_home_token_against_the_box_home(
     assert workflow._pi_harness_cfg(cfg)["bin"] == str(fake)
 
 
-def test_pi_harness_cfg_default_is_a_bare_path_name_not_a_home_literal():
+def test_pi_harness_cfg_default_is_a_bare_path_name_not_a_home_literal(monkeypatch):
     """A project with no `harnesses.pi` row gets `pi`, not a /home/<user>
     literal that only exists on core-town's box."""
+    monkeypatch.delenv("PI_BIN", raising=False)   # the conftest stub (goal:g7.16.1.11.43) pins resolution; this test pins the DEFAULT
     cfg = {"harnesses": {}}
     assert workflow._pi_harness_cfg(cfg)["bin"] == "pi"

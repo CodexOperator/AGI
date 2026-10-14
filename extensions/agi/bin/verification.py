@@ -229,6 +229,20 @@ def _perm_skip(output: str) -> str | None:
     return None
 
 
+#: goal:g7.16.1.11.43.1 -- the provisioning status verb no longer dies on an env file this uid cannot read (goal .43 (b) reads it as
+#: ABSENT for dispatch; 02c61f4d53 makes the status line say so): exit 0 and ONE anchored line. The verify check maps exactly that line
+#: to a SKIP that names MAIN's .env and the reason, so a skip is never a pass. Anchored at line start with the fixed shape; the pytest
+#: suite is excluded by the caller (its output may QUOTE the line).
+_UNCHECKED_ENV_RE = re.compile(r"^provisioning: not checked \(MAIN's \.env unreadable by uid \d+: [A-Z]+\)", re.M)
+
+
+def _unchecked_env_skip(output: str) -> str | None:
+    """The SKIP note for a subprocess that reported an unreadable MAIN .env as `not checked`, else None."""
+    if _UNCHECKED_ENV_RE.search(output):
+        return "unreadable MAIN's .env: permission denied (skipped)"
+    return None
+
+
 _NO_PYTEST_LINE = re.compile(r".+: No module named pytest")
 
 
@@ -1944,7 +1958,7 @@ def check_extra_suite(groot: Path) -> CheckResult:
         # collection ERROR and prints no `ERROR <file>` line without it
         # (experiment:a00-45ecb18d-d5a017).
         # env=: the declared suite is spawned WITHOUT the caller's dispatch
-        # vars (AGI_SEAT/AGI_TIER/AGI_AGENT and the git-hook channel), so it
+        # vars (AGI_POST/AGI_TIER/AGI_AGENT and the git-hook channel), so it
         # sees the same bytes whichever seat started it
         # (hypothesis:the-declared-context-suite-runs-under-the-engine-suite-
         # guards). The suite lock marker is kept: this run happens INSIDE the
@@ -2029,6 +2043,10 @@ def run_check(groot: Path, name: str, verbose: bool) -> CheckResult:
     finally:
         _cleanup_basetemp(basetemp)
     output = (proc.stdout or "") + (proc.stderr or "")
+    if name != SUITE_CMD and not proc.returncode:
+        skip = _unchecked_env_skip(output)   # goal:g7.16.1.11.43.1: exit 0 + the "not checked" line = a SKIP, never a PASS
+        if skip:
+            return CheckResult(name, "SKIP", time.monotonic() - start, note=skip)
     if proc.returncode:
         # goal:g7.16.1.11.19: the suite on a uid with no pytest, or any other check
         # that died reading another uid's file, SKIPs (a failing SUITE is never

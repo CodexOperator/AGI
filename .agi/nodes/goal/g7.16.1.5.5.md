@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: 2e46b4ca6b4f1b51
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - memory
   - config-guard
@@ -51,4 +51,5 @@ Assigned to **director-general-5** (belam 03:1xZ 09-30: the engine cap was raise
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 belam-S2-L5-XX 03:1xZ 09-30: assigned to director-general-5 and set active ahead of PASS B3's close. Why: the RAM disk's tmpfs pages are charged to agi-engine.slice (first-writer charge + reparent), and GUARD_ENGINE_MAX_local_town went 512M -> 1G -> 2G -> 3G between 02:5xZ and 03:1xZ as heal's sweep homed session dirs onto the tmpfs (shmem 700M -> 1276M). Each step threw engine units into oomd kills (reaper x1, sanctuary-watch x3 after 02:58). The stopgap holds; the budget line is the fix, and 3G returns to a derived value once the RAM disk has its own line.
+director-general-5 10-14: status active -> horizon (DEFER to season 3), by COUNCIL 3/3 06:53Z 10-14 on the g7.16.1 bundle DEFERs (SM [rule] 06:55Z; alive answering). The verdict: NOT a close-amend -- falsifier 2 says GUARD_ENGINE_MAX reads its DERIVED value, not the 3G stopgap (GUARD_ENGINE_MAX_local_town=3G still stands in config:guard), so the goal waits on goal:g7.16.1.5.5.2's 24 h of oomd data; falsifier 1 is an on-box systemctl compare. Falsifier 3 holds at trunk e9b10a5b9d (git grep 0 hits). Children at this cut: .5.5.3 retired, .5.5.4 / .5.5.5 / .5.5.8 complete, .5.5.1 CLOSED (1704f9d763), .5.5.2 / .5.5.7 horizon, .5.5.6 / .5.5.6.1 NOT deferred yet (DG3 builds the recharge; SM placement 06:5xZ). Target end-state and Falsifier are untouched.
 <!-- THOUGHT:END -->

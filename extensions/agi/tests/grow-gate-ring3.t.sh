@@ -6,7 +6,8 @@
 #   R5 the FIRST ring (the receiving trunk has none, in no history): a SIGNED, SINGLE-FILE, canonical ring lands; unsigned, a directory ring/<f>, an off-shape line do not
 # One file, written from the gate's own rule (the ring's ruler = ancestor-or-self of every name a change removes or adds; no date is read), NOT from run.sh. It tests grow-gate's pre-receive interface (GROW_GATE=<file> = the candidate; default `sect grow-gate` of TRUNK): AGI_ALLOWED is OVER-PERMISSIVE on purpose (every key made), so only the ring at the receiving tip can refuse.
 # A control (ok-lane) beside each refusal proves the gate is not simply refusing everything. Scratch repo borrowing GITDIR's objects (0 shared refs written), scratch keys at run time (no armoured block in this file), no network, nothing pushed. One ok/FAIL line per case; exit = FAIL count.
-T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0
+T=$1;[ -n "$T" ]||{ echo "[no-candidate] pass the sha under test" >&2;exit 2;};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE   # a lane that builds a scratch repo owns its git env (an inherited GIT_DIR wrote MAIN, 10-11 09:56Z)
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1 [rc=$r $(tail -1 $D/out 2>/dev/null|cut -c1-90)]";f=$((f+1));fi;}
 r=0
 o=$(git rev-parse $T)||exit 1;for x in sect grow-check grow-gate agi-fill;do git ls-tree --full-tree --name-only $o .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$o:|"|git cat-file --batch --follow-symlinks|sed -n "/^###* $x /,/^###* /{/^~~~/,/^~~~/{//!p}}">$D/b/$x;done

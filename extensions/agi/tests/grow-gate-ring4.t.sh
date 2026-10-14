@@ -6,7 +6,8 @@
 #   d4 a NUL-joined ring line ("dg1 K3\0owner K4"): grep -v saw two lines, git diff printed "Binary files differ" (an EMPTY ruler): the ring is read with grep -a / git diff --text and every line must be exactly the canonical shape
 #   d5 a ring attribute `-diff` (.git/info/attributes) blanks the ruler diff: --text overrides it
 # Same harness as grow-gate-ring3.t.sh (scratch repo borrowing GITDIR's objects, scratch keys, AGI_ALLOWED OVER-PERMISSIVE so only the ring at the receiving tip can refuse). GROW_GATE=<file> = the candidate (default: sect grow-gate of TRUNK). One ok/FAIL line per case; exit = FAIL count.
-T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0
+T=$1;[ -n "$T" ]||{ echo "[no-candidate] pass the sha under test" >&2;exit 2;};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE   # a lane that builds a scratch repo owns its git env (an inherited GIT_DIR wrote MAIN, 10-11 09:56Z)
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1 [rc=$r $(tail -1 $D/out 2>/dev/null|cut -c1-90)]";f=$((f+1));fi;}
 r=0
 o=$(git rev-parse $T)||exit 1;for x in sect grow-check grow-gate agi-fill;do git ls-tree --full-tree --name-only $o .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$o:|"|git cat-file --batch --follow-symlinks|sed -n "/^###* $x /,/^###* /{/^~~~/,/^~~~/{//!p}}">$D/b/$x;done

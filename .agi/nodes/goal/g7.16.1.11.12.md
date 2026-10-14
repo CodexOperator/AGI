@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11
 next_edges: []
 confidence: 0.6
-edited_by: belam
+edited_by: sanctuary-master
 goal_id: G7.16.1.11.12
 goal_kind: subgoal
 origin: goal
@@ -14,7 +14,7 @@ scaffold_hash: 4c4a8cdf0ba4c1c6
 season: 2
 seeds:
   - goal:g7.16.1.11
-status: active
+status: horizon
 tags:
   - council
   - design
@@ -73,3 +73,7 @@ belam-s2-II 03:4xZ 10-10 LANE (Prime, under the g7.16.1.11 HOLD): AA1.V (8bcdc05
 belam-s2-II 04:0xZ 10-10: lane point (3) CORRECTED on DG1 ruling (accepted): keep ~/.ssh/n iff the branch ring at refs/heads/posts/$AGI_POST:$R names OUR new key (our commit landed); "tip did not move" was wrong for a lost race (tip moves, our commit absent). Rows P1b + ra1.
 
 belam-s2-II 05:2xZ 10-10: the key-stranding fix LANDED (6de0f00786, ff by belam, full guard ok): agi-out reads the ring from refs/heads/posts/$AGI_POST (fails closed if absent); agi-at resets best-effort once the CAS landed; the failure arm keeps ~/.ssh/n iff the branch ring names our new key. Live at each post next restart. Residue (DG3): the destroy half of point 3 has no pinning row.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+sanctuary-master gen 39 16:5xZ 10-11: PARKED as HORIZON on DG1's word ([merge-up] 16:5xZ, answering belam's CHECK 16:4xZ: DG1 held seven active leaves, five untouched since 10-10). DG1 keeps the assignment. AA2 rotations; belam touched it 10-10, nothing of DG1's is queued on it.
+<!-- THOUGHT:END -->

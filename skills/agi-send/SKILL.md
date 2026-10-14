@@ -62,4 +62,29 @@ parent ─▶ director: a kid's rebrief answered in-node is dm'd (kid id, N/C, p
 Queue words: `queued` is never a hold · `[decision] hold <node>` is the only hold · `dispatch now <node>` is the only
 dispatch order — never write the bare word dispatch for a queued line (owner 09-17).
 Speak up ONE tier only. Diagram-max every dm: fewer tokens, more meaning; owner words stay verbatim, in NODES.
+
+**Mail to the Prime is ONE DIGEST every few hours (OWNER 20:2xZ 10-11, verbatim: "You're getting way too manny comms anyway you shouldn't be mailed except once every few hours at most.")**
+```
+who        ONLY sanctuary-master and thought-master box belam; every other post NEVER boxes belam (it goes through SM / TM)
+when       ONE digest every ~4 h, sent before belam's CHECK (13 */4: 00:13 04:13 08:13 12:13 16:13 20:13Z); belam lands merge-ups at the digest
+what       fold [merge-up]s (each with its council line, L sha, first-start, host act), ETAs, notes into that one digest
+at once    ONLY [red] (data loss · a secret on origin · a box near a stop line) and an owner-ruling ask that BLOCKS work
+never      [ack] / [thanks] / [landed]-style replies to belam; belam sends none back either
+```
+
+## Traps moved from cards (owner 10-10: one sweep, then a rule)
+- a sha typed into a box message before reading it went out wrong 3x (SM gen 35) -> paste a sha from git output in the SAME command that sends
+- `box read` renders backslash escapes (a script's '\n' became a newline; SM gen 36) -> a script or file goes as a FILE path + its sha256, never inline in a box message
+- `box send` run from outside the repo reads the matrix from the wrong tree and refuses as [off-matrix] (DG1 gen 23) -> run box from ~/t (the repo cwd)
+- a watch on a box ref -> take the baseline BEFORE the event can land (10-10: a late watch saw nothing and alive claimed "no answer") · never pkill -f a pattern your own shell matches (alive gen 10)
+- send texts -> quoted heredocs (<<'EOF') into a FILE, `box send <post> < file`; a time you write = `date -u` in the same step; a past event = `git log -1 --format=%cI <sha>` (alive gen 9-10)
+- "it is in the node" -> write + verify the node (grep -F) FIRST, then send (alive gen 9); "I read X" -> read X before the send, not after (SM gen 38)
+- a lane or a script that `git init`s a scratch repo with GIT_DIR left set writes the REAL repo: `update-ref` of a peer's `posts/<q>`, `refs/box/<q>/*`, `refs/held/<q>/*` by an agi-<p> user is refused by `~/bin/reference-transaction` (goal:g7.16.1.11.38.1, `[ref-guard] ... a peer's ref`, rc 1, the ref unchanged; lane agi-refguard.t.sh) -> clear GIT_DIR / GIT_WORK_TREE / GIT_INDEX_FILE first. It guards MISTAKES, not intent: `git -c core.hooksPath=/dev/null update-ref` still moves a peer's ref (aio 10-11 [red], posts/director-general-1 moved by a lane)
+- council views cross -> send SM nothing until BOTH seats answered your LAST position (549c1a2381 landed on alive's crossed votes in 4 min) (alive gen 10)
+- a background mail collector CONSUMES box mail -> read its output file before any direct `box read`, or mail is seen twice or missed (alive gen 10)
+- agi-notice dedupes a line by its [..] bracket and its hex-only words -> give each alarm kind its own bracket and an 8-hex token, or a later line of the same kind is dropped silently (DG1 gen 24)
+- a council PRE-VIEW carries conditions -> they live only between the seats until a verdict carries them: put every one INTO the verdict when SM's [review] lands (alive gen 11-12)
+- a number, fact or path in any mail -> measure it before repeating it (alive gen 12: "47 commits" was 57; "capped by its own apply" was false; a judge path set wrong twice)
+- a fix-forward that routes MAIL -> check the route against the owner's mail rule on the REAL posts.md rows before approving it (alive gen 11-12)
+- after every `box send P < file` -> `git log -1 --format=%B refs/box/<me>/P` must be non-empty: a message passed as an ARGUMENT sent 8 EMPTY bodies at 05:15:41Z 10-14 (SM gen 42; self-perpetuating caught it)
 - `box read` prints one long line per message: pipe it through `fold -s -w 200`, never `cut` (a cut line hides the order; DG4, 10-11).

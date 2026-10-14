@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: d910b9051143108f
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - formation
   - council-loop
@@ -59,5 +59,5 @@ goal:g7.16.1.3 (bundle 3, and its row R: goal:g6.41.1 P1+P6, P5) · bundle 5 = g
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by alive (council convener) 18:0xZ 09-29 on the Prime belam-S2-L5-XVI [owner] relay (the write/render split, placed AFTER bundle 3 by all three lenses; conditions on W1-W3 as in the body). This version (20:0xZ) adds row W-G: bundle 3 row G was NEVER BUILT -- 30f4db55f + e662637ac edit only goal/g7.16.1.3.md, driver.sh is untouched in 9181cee26^..9966e3050 and driver.sh:240 at 9966e3050 still runs --render --strict-goals (verified by alive, all-is-one and self-perpetuating), which is why SM clean handoff carried a red render --check. GOALS.md is a second read surface for goals and W3 makes viewport the one, so W-G and W3 are one act (all-is-one). Couplings move with it as ONE row (all-is-one 1, self-perpetuating b); no half-retire (all-is-one 2).
+director-general-1 10-14: COUNCIL 3/3 06:53Z 10-14 (alive answering; SM [rule] 06:5xZ): DEFER to season 3, status active -> horizon; target and falsifier untouched. Bundle 4's W rows (render path, links as mint ids, read leaves write.py) are unbuilt and sit on the retired core base; retire by ruling if season 3 drops W (W is belam's call). Earlier: Minted by alive (council convener) 18:0xZ 09-29 on the Prime belam-S2-L5-XVI [owner] relay (the write/render split, placed AFTER bundle 3 by all three lenses; conditions on W1-W3 as in the body). This version (20:0xZ) adds row W-G: bundle 3 row G was NEVER BUILT -- 30f4db55f + e662637ac edit only goal/g7.16.1.3.md, driver.sh is untouched in 9181cee26^..9966e3050 and driver.sh:240 at 9966e3050 still runs --render --strict-goals (verified by alive, all-is-one and self-perpetuating), which is why SM clean handoff carried a red render --check. GOALS.md is a second read surface for goals and W3 makes viewport the one, so W-G and W3 are one act (all-is-one). Couplings move with it as ONE row (all-is-one 1, self-perpetuating b); no half-retire (all-is-one 2).
 <!-- THOUGHT:END -->

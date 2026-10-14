@@ -10,8 +10,8 @@ scaffold_hash: 1a5628596065214d
 season: 2
 town: core
 ---
-# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 46 pieces (every `###` block in engine*.md)
-Depth 0 = diagram · 1 = pieces · 2 = one piece: `sect <name>` (any `.geometry/engine*.md`: this node, config:engine-post, config:engine-wrap, config:engine-grow, config:engine-root) · 3 = this file. Pieces are small templates over raw commands; parameters are cells: a row's ONE `engine` object is projected as AGI_<KEY> env. Parity: doc:g716111-stage25-parity.
+# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 52 pieces (every `###` block in engine*.md)
+Depth 0 = diagram · 1 = pieces · 2 = one piece: `sect <name>` (any `.geometry/engine*.md`: this node, config:engine-post, config:engine-wrap, config:engine-grow, config:engine-capsule, config:engine-root) · 3 = this file. Pieces are small templates over raw commands; parameters are cells: a row's ONE `engine` object is projected as AGI_<KEY> env. Parity: doc:g716111-stage25-parity.
 
 ## diagram — depth 0
 ~~~
@@ -30,8 +30,9 @@ Depth 0 = diagram · 1 = pieces · 2 = one piece: `sect <name>` (any `.geometry/
 
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
-agi-post@.service 2251 B  a post = one unit: own uid, tree, key, pane
-agi-project       2560 B  the genome: units + cells for v4 rows
+agi-post@.service 3826 B  a post = one unit: own uid, tree, key, pane
+agi-boxwake@.service 1013 B a claude post's mail-wake loop: its own unit
+agi-project       2755 B  the genome: units + cells for v4 rows
 agi-gate           542 B  refuse a tip whose body would not regrow
 agi-vstore         856 B  root: fetches the pin into a re-hashed RAM store
 agi-boot         1797 B  root: gate the pin, start the posts
@@ -39,6 +40,7 @@ agi-boot.service  826 B  runs agi-boot after agi-vstore
 matrix            100 B  who reads which node via which piece
 sect               214 B  ONE piece of any engine*.md node, byte-exact, any REV
 agi-land          1855 B  root: ff-lands a post range one edge up
+agi-hook          1224 B  root: installs the landed ref-guard into .git/hooks
 box-carry         3253 B  root: refs/box/P/<Q> -> the recipient's store or hub
 agi-signers       1727 B  root: the ONE allowed_signers, every key generation
 agi-carry@.path     149 B  PathChanged on refs/box/<P>; first send only
@@ -49,13 +51,13 @@ agi-carry-fetch.service 229 B  oneshot: box-carry --fetch
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-project (2560 B)
+### agi-project (2755 B)
 ~~~sh
 #!/bin/sh
 o=$1 r=$2 w=$1/multi-user.target.wants;g(){ echo "$r:.agi/nodes/.geometry/$1"|git cat-file --batch --follow-symlinks|{ read a t s;[ "$t" = blob ]&&head -c $s;};};s(){ git ls-tree --full-tree --name-only $r .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$r:|"|git cat-file --batch --follow-symlinks|sed -n "/^### $1 /,/^##/{/^~~~/,/^~~~/{//!p}}";}
 u=$(s agi-post@.service);[ "$u" ]||exit 3;P=$(printf '%s\n' "$u"|sed -n 's/^Environment=PATH=\([^ ]*\).*/\1/p'|tr : '\n'|while read d;do [ -f $d/pi ]&&[ -x $d/pi ]&&echo $d&&break;done);[ "$P" ]||{ g posts.md|sed -n 's/^  - {/{/p'|jq -e --arg b ${AGI_BOX:-local-town} 'select(.box==$b and .engine.v==4)|.+.engine|select(.harness|test("^pi"))'>/dev/null;[ $? = 4 ]||exit 3;}
-mkdir -p $w;rm -f $w/agi-post@*;printf '%s\n' "$u">$o/agi-post@.service;:>$o/agi-users.conf
-g posts.md|sed -n 's/^  - {/{/p'|jq -r --arg p "$P" --arg b ${AGI_BOX:-local-town} 'select(.box==$b and .engine.v==4)|.+.engine|select(.name|(type=="string" and test("^[a-z][a-z0-9-]{0,27}\\z")) or (debug(@json "agi-project: skipped post name \(.)")|false))|[.name,if .harness|test("^pi") then "node \($p)/pi --provider openrouter --model \(.model) --thinking \(.effort) --skill skills -e ../bin/cccc.ts" else "claude --remote-control \(.name) --model \(.model) --effort \(.effort) --permission-mode bypassPermissions" end,([.engine|to_entries[]|"\"AGI_\(.key|ascii_upcase)=\(.value)\""]+["AGI_ROLE=\(.role)","AGI_LADDER_TIER=\(.tier)","AGI_BOX=\(.box)"]|join(" ")),.boot==true]|@tsv'|while IFS='	' read p h e b;do [ $b = true ]&&ln -s ../agi-post@.service $w/agi-post@$p.service;mkdir -p $o/agi-post@$p.service.d;printf '[Service]\nEnvironment="H=%s" O=%s %s\n' "$h" "$PWD" "$e">$o/agi-post@$p.service.d/h.conf;s sysusers.conf|sed s/@/$p/g>>$o/agi-users.conf;done
+mkdir -p $w;rm -f $w/agi-post@*;printf '%s\n' "$u">$o/agi-post@.service;:>$o/agi-users.conf;W=$(s agi-boxwake@.service);[ "$W" ]&&printf '%s\n' "$W">$o/agi-boxwake@.service
+g posts.md|sed -n 's/^  - {/{/p'|jq -r --arg p "$P" --arg b ${AGI_BOX:-local-town} 'select(.box==$b and .engine.v==4)|.+.engine|select(.name|(type=="string" and test("^[a-z][a-z0-9-]{0,27}\\z")) or (debug(@json "agi-project: skipped post name \(.)")|false))|[.name,if .harness|test("^pi") then "node \($p)/pi --provider openrouter --model \(.model) --thinking \(.effort) --skill skills -e ../bin/cccc.ts" else "claude --remote-control \(.name) --model \(.model) --effort \(.effort) --permission-mode bypassPermissions" end,([.engine|to_entries[]|"\"AGI_\(.key|ascii_upcase)=\(.value)\""]+["AGI_ROLE=\(.role)","AGI_LADDER_TIER=\(.tier)","AGI_BOX=\(.box)"]|join(" ")),.boot==true]|@tsv'|while IFS='	' read p h e b;do [ $b = true ]&&ln -s ../agi-post@.service $w/agi-post@$p.service;mkdir -p $o/agi-post@$p.service.d;printf '[Service]\nEnvironment="H=%s" O=%s %s\n' "$h" "$PWD" "$e">$o/agi-post@$p.service.d/h.conf;[ "$W" ]&&{ mkdir -p $o/agi-boxwake@$p.service.d;cp $o/agi-post@$p.service.d/h.conf $o/agi-boxwake@$p.service.d;};s sysusers.conf|sed s/@/$p/g>>$o/agi-users.conf;done
 printf '[Service]\nType=oneshot\nWorkingDirectory=%s\nEnvironmentFile=/etc/agi/carry.env\nEnvironment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=* GIT_NO_REPLACE_OBJECTS=1 GIT_NO_LAZY_FETCH=1 AGI_VSTORE=/run/agi-v-project.git GIT_DIR=/run/agi-v-project.git\nExecStartPre=/usr/local/libexec/agi-vstore\nExecStart=sh -c "echo $AGI_TRUNK:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n \047/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}\047|sh -s %s $AGI_TRUNK&&ls %s/agi-post@*.service.d/h.conf>/dev/null&&systemctl daemon-reload&&systemd-sysusers %s/agi-users.conf"\n' $PWD $o $o $o>$o/agi-project.service
 printf '[Path]\nPathChanged=/etc/agi/carry.env\n'>$o/agi-project.path;ln -sf ../agi-project.path $w
 ~~~
@@ -84,7 +86,7 @@ post	brief	card-<p>	brief
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v5 (owner GO 06:1xZ; doc:radically-simple-engine §Q+§R): ZYGOTE = what runs before any post exists + the map; the rest is EXPANSION read by `sect @REV`. .5 (belam R' 08:4xZ): the FENCED bytes <= 8,192 with a margin: 14 map descriptions shortened to <= ~55 B (names and sizes untouched), the loop block folded into the diagram's start/work line.
+v5 (owner GO 06:1xZ; doc:radically-simple-engine §Q+§R): ZYGOTE = what runs before any post exists + the map; the rest is EXPANSION read by `sect @REV`. .5 (belam R' 08:4xZ): the FENCED bytes <= 8,192 with a margin: 14 map descriptions shortened to <= ~55 B (names and sizes untouched), the loop block folded into the diagram's start/work line. goal:g7.16.1.11.32 (DG1 10-11): the map is 47 pieces (agi-boxwake@.service, engine-root.md); agi-project writes that unit and, for every projected post, copies the post's own h.conf to agi-boxwake@<p>.service.d/ (the wake unit reads H, O and the AGI_* cells from the same file as the post); a trunk without the piece projects exactly as before.
 <!-- THOUGHT:END -->
 
 ## fence exceptions

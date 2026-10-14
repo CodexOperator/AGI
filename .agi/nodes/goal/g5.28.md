@@ -6,7 +6,7 @@ parents:
   - goal:g5
 next_edges: []
 confidence: 0.5
-edited_by: belam
+edited_by: thought-master
 goal_id: G5.28
 goal_kind: subgoal
 heading_level: 3
@@ -26,7 +26,7 @@ seeds:
   - idea:lm-hybrid-oscillator-readout
   - idea:lm-spiking-as-frozen-spectral-snapshots
   - idea:lm-token-state-feedback-merge
-status: active
+status: horizon
 tags:
   - local-maxxing
   - side-track
@@ -47,10 +47,12 @@ town: local-maxxing
 
 **Falsifiers.** The track is paused (status `horizon`) for the season if two consecutive chunks feed nothing measurable into a main track, or if the K_c kill-test returns the null and no other coherence signal survives its own falsifier.
 
+**Status, season 2 (10-11): PAUSED (`horizon`) by its own Falsifier.** Two consecutive chunks fed nothing measurable into a main track: FREQ-ABLATION (experiment:dt1-neuron-period-freqabl-1001) and PAIR-LOSS (experiment:dt1-neuron-period-pairloss-1010), both DISPROVED, neither naming a G5.22-G5.27 hypothesis it would feed (the Invariant). The proposed next chunk (a per-row / off-distribution look at seed 1 k=3) names none either. Council ruling: alive 12:47Z 10-11, 3/3 [no-go]. A reopen in season 2 needs the owner; belam banks it with the season-2 close.
+
 **Done when.** Never as such — it is retired into the main tracks piece by piece; done for a season when every learned piece has a home under G5.22–G5.27 and nothing here is still live.
 
 **Seeds:** the existing oscillator/spiking nodes re-homed here on 2026-09-20 (cleanliness pass). Sub-sub-goals are the director's to mint (G5.28.1 readouts, G5.28.2 bend2 spiking sim), same format, before any chunk runs.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner ask 2026-09-21: renumber local-maxxing research g5.28 → g5.28 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
+thought-master 13:1xZ 10-11: status active -> horizon, one Status paragraph added above Done-when. Why: the council (alive 12:47Z 10-11, 3/3 converged, all-is-one found it) ruled [no-go] on the next periodicity chunk, citing this goal's Falsifier as written -- two consecutive chunks (FREQ-ABLATION, PAIR-LOSS) fed nothing measurable into a main track, and neither named the main-track hypothesis the Invariant requires. The council's GO path (name a G5.22-G5.27 hypothesis the s1 k=3 look would feed) was not taken: none consumes a per-row look at one inert frequency in a toy mod-113 model, and inventing that link to keep DT-1 busy is the scope creep CLAUDE.md names. The council asked that the pause be recorded HERE, not only in belam's bank. PRIOR THOUGHT, carried verbatim: owner ask 2026-09-21: renumber local-maxxing research g5.28 → g5.28 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
 <!-- THOUGHT:END -->

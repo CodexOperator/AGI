@@ -1597,10 +1597,10 @@ def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None,
     server restart from gone (hypothesis:l4-spawn-paths-export-the-reaper-knob);
     an ultracode role's launch additionally exports CLAUDE_CODE_WORKFLOWS=1
     (hypothesis:l3-rotate-ultracode-env); a SEAT successor's launch exports
-    AGI_SEAT so the SessionStart hook COPY (cc-session-start.next.sh, which
-    keys its bootstrap injection on AGI_SEAT) can fire at turn one on the
+    AGI_POST so the SessionStart hook COPY (cc-session-start.next.sh, which
+    keys its bootstrap injection on AGI_POST) can fire at turn one on the
     live path (hypothesis:l4-startup-first-turn-is-performed-by-the-service-
-    and-the-hook-fires-at-turn-one). AGI_SEAT is emitted only when a seat is
+    and-the-hook-fires-at-turn-one). AGI_POST is emitted only when a seat is
     given, so a plain `spawn`/`loop` with NO seat stays byte-identical to
     today — the export appears only for a seat successor.
 
@@ -1625,14 +1625,14 @@ def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None,
     """
     unit = _post_unit(seat)
     joined = " ".join(shlex.quote(c) for c in mem_cap.scope_argv(claude_cmd, scope_slice))
-    # AGI_SEAT rides FIRST in the export chain, so it is set before the
+    # AGI_POST rides FIRST in the export chain, so it is set before the
     # reaper/ultracode knobs and the claude process — composed the same way
     # REAPER_ENV_EXPORT already composes, as one `... && ...` line.
     cmd = joined
     if seat is not None:
         wrap = " ".join(shlex.quote(c) for c in mem_cap.scope_argv(
             _launch_wrapper_argv(seat, claude_cmd), scope_slice, unit))
-        cmd = f"export AGI_POST={shlex.quote(seat)} AGI_SEAT={shlex.quote(seat)} && " + wrap
+        cmd = f"export AGI_POST={shlex.quote(seat)} && " + wrap
     reaper = REAPER_ENV_EXPORT + " && " + cmd
     if _is_ultracode(settings):
         return ULTRACODE_ENV_EXPORT + " && " + reaper
@@ -2147,7 +2147,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
 
     `seat` (hypothesis:l4-startup-first-turn-is-performed-by-the-service-...)
     is the successor's SEAT identity, exported into the launched shell as
-    AGI_SEAT BEFORE the claude process starts. Only a caller that OWNS a
+    AGI_POST BEFORE the claude process starts. Only a caller that OWNS a
     concrete seat passes it (cmd_rotate_self, cmd_seats_launch); a generic
     spawn/loop passes None and the launch line stays byte-identical to
     today (see _shell_cmd).
@@ -19351,18 +19351,18 @@ def _caller_post(root: Path) -> tuple[str | None, dict | None, str]:
     """The post whose signing key the caller holds, or (None, None, refusal).
     Returns (post, row, how | refusal) -- `how` on success is 'env' or
     'worktree'; a failure returns (None, None, a refusal line). Resolution
-    order: $AGI_POST, $AGI_SEAT, then the cwd's git toplevel matched against
+    order: the resolved post env, then the cwd's git toplevel matched against
     a row's `worktree` cell (a worktree post). A resolved post must HOLD its
     own key -- the key file loads AND its pub equals the committed row's
     pubkey -- else refuse by name (unkeyed, missing, or fingerprint mismatch)."""
     import send  # local: same dir, no import cycle (send.py pattern)
-    seat = os.environ.get("AGI_POST") or os.environ.get("AGI_SEAT")
+    seat = geometry_config.resolved_seat_env()
     if seat:
         row = _find_seat(_seat_read_root(root, seat), seat)
         if row is None:
             return None, None, (
                 f"no key holder identity: {seat!r} is not in the seats "
-                "registry; export AGI_SEAT or pass --post")
+                "registry; export AGI_POST or pass --post")
         return _caller_hold_key(root, seat, row, "env")
     top = _git_toplevel(Path.cwd())
     seat = row = None
@@ -19376,7 +19376,7 @@ def _caller_post(root: Path) -> tuple[str | None, dict | None, str]:
     if seat is None:
         _where = top if top is not None else "a non-repo cwd"
         return None, None, (
-            f"no key holder identity: export AGI_SEAT or pass --post "
+            f"no key holder identity: export AGI_POST or pass --post "
             f"(no env seat, no worktree-post match against {_where})")
     return _caller_hold_key(root, seat, row, "worktree")
 
@@ -19668,7 +19668,7 @@ def _rotate_human_gate(root: Path, seat: str,
     answer in the veto room (the claim's freeze-never-frees).
 
     A rotation of the caller's OWN post (the ``self_row`` carve-out) is NEVER
-    gated. The actor defaults to ``$AGI_SEAT`` -- the identity a seat carries
+    gated. The actor defaults to ``$AGI_POST`` -- the identity a seat carries
     when it was spawned; an IDENTIFIED caller who tries to rotate another seat
     is gated when frozen, and an unidentified caller is treated as gated too
     (an unknown actor cannot claim the self carve-out).
@@ -19679,7 +19679,7 @@ def _rotate_human_gate(root: Path, seat: str,
     reader of the record sees the freeze without asking viewport --live.
     """
     if actor is None:
-        actor = os.environ.get("AGI_SEAT") or ""
+        actor = geometry_config.resolved_seat_env() or ""
     if actor and seat and actor == seat:
         return None, None  # the caller's OWN post is never gated (self_row)
     try:
@@ -20444,7 +20444,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         if _done:
             print(_done, file=sys.stderr)
     # L5.16 (hypothesis:l5-spawn-mints-the-successor-key-under-the-row-name-
-    # not-the-renamed-seat): the successor runs as AGI_SEAT=<new> and resolves
+    # not-the-renamed-seat): the successor runs as AGI_POST=<new> and resolves
     # `<new>.key`, but the boundary (0.9) applies the rename AFTER this mint
     # -- so PEEK the staged plan's `new` (the same field `_apply_staged`
     # reads) and mint under it. A later refusal returns before any write.
@@ -22815,7 +22815,7 @@ def main(argv: list[str] | None = None) -> int:
                              "is-a-third-harness-with-the-same-hooks-as-"
                              "claude-code-and-pi)")
     p_spawn.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None,
-                        help="seat successor identity; when given, AGI_SEAT=<name> "
+                        help="seat successor identity; when given, AGI_POST=<name> "
                              "is exported before the claude argv so the SessionStart "
                              "hook copy can fire at turn one. Absent -> launch line "
                              "byte-identical to a plain spawn (owed item v)")
@@ -22890,7 +22890,7 @@ def main(argv: list[str] | None = None) -> int:
                         help="seconds to wait for the successor reply "
                              "(default: 120)")
     p_loop.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None,
-                        help="seat successor identity; when given, AGI_SEAT=<name> "
+                        help="seat successor identity; when given, AGI_POST=<name> "
                              "is exported before the claude argv so the SessionStart "
                              "hook copy can fire at turn one. Absent -> launch line "
                              "byte-identical to today (owed item v)")

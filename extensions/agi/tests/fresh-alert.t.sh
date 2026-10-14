@@ -22,7 +22,7 @@ chmod +x $T/bin/strace $T/bin/stty $T/bin/box
 rot(){ { echo '---';cat;echo '---';echo '# config:rotations'; }>$T/r/.agi/nodes/.geometry/rotations.md;$G -C $T/r add -A;$G -C $T/r commit -qm r --allow-empty;}
 # go FRESH(1|0) [AGIRUN-file]: run agi-run as dg4 in a pane; wait up to 6 s for the exec marker; leaves the box log
 go(){ rm -f $T/exec $T/boxlog $T/boxpid $T/run/alert $T/hm/.fresh;[ "$1" = 1 ]&&: >$T/hm/.fresh;a=${2:-$AGIRUN}
- (cd $T/hm&&exec setsid env HOME=$T/hm H=x RUNTIME_DIRECTORY=$T/run O=$T/r AGI_SEAT=dg4 AGI_TRUNK=HEAD PATH=$T/bin:$PATH sh $a 2>$T/err) &
+ (cd $T/hm&&exec setsid env HOME=$T/hm H=x RUNTIME_DIRECTORY=$T/run O=$T/r AGI_POST=dg4 AGI_TRUNK=HEAD PATH=$T/bin:$PATH sh $a 2>$T/err) &
  echo $! >>$T/pids;i=0;while [ ! -e $T/exec ]&&[ $i -lt 60 ];do sleep 0.1;i=$((i+1));done
  if [ "${WANT:-0}" -gt 0 ];then i=0;while [ "$(wc -l <$T/boxlog 2>/dev/null||echo 0)" -lt $WANT ]&&[ $i -lt 100 ];do sleep 0.1;i=$((i+1));done;else sleep 0.5;fi;}
 box_to(){ sed -n 's/^[^ ]* send \([^ ]*\) ::.*/\1/p' $T/boxlog 2>/dev/null|sort|tr '\n' ' ';}

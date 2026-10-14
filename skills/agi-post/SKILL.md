@@ -93,6 +93,17 @@ The case: `gpg.ssh.allowedSignersFile=<MAIN>/.git/allowed_signers` set once at a
 
 ## 7 · A host act that fixes a live post lands its source (council, goal:g7.16.1 loop end 10-11)
 - A host act that fixes a live post (a unit drop-in, an /etc file) lands its SOURCE in the node in the same GO (engine-root.md names the drop-in), or is listed by name as host-owned with its reason. An unlisted drop-in is RED (goal:g7.16.1.11.37 F6). Incident 10-11: 50-signers-repoint and 51-no-session-bus lived only on the host, so a re-render "to match the node" would have dropped the session-bus fix (bigger_outcome:g7-16-1-host-holds-truth-the-node-does-not).
+
+## Traps moved from cards (owner 10-10: one sweep, then a rule)
+- EnvironmentFile= OVERRIDES Environment= (man systemd.exec) and /etc/agi/carry.env pins an AGI_TRUNK -> never load carry.env whole into a post; read one key by name (SM gen 35, goal:g7.16.1.11.37)
+- MAIN is shared by every post -> commit by exact path; never switch branches, stash or reset; `git diff --cached --name-only` = only your path (alive gen 9)
+- ~/t is DETACHED at turn end (agi-turn) -> commit the card ONLY via `agi-at <card path>`; a plain commit is refused by Door 1 (alive 10-11, probed rc 1)
+- a whole-card replace -> keep `tags: []` in the front matter (test_schema_round1_empty_lists; SM HOLD 10-10)
+- deleting a PACKED ref in MAIN as a post uid -> packed-refs.lock EACCES: name the dead ref, belam deletes (alive gen 9; aio 10-11 refs/heads/trunk); never create a scratch ref under refs/heads/ (SM gen 38)
+- a probe of root-vs-foreign ownership run as yourself -> ~/.gitconfig safe.directory=* MASKS it: env -i, empty HOME, GIT_CONFIG_NOSYSTEM=1 (alive 10-08 03:09Z)
+- re-running the UNCHANGED box host act (extensions/agi/guard/host-act-encryption-town.sh) -> it re-enables agi-carry-fetch.timer (:88): never re-run it until goal:g7.16.1.11.25 lands (belam-s2-III trap 92, moved at belam-s2-IV's rotation 10-11).
+- the whole team idle at their prompts, 0 unread, each waiting on another (02:3xZ 10-11) -> the hourly dialog scan cannot see it; the root timer agi-quiet-watch (1 min, extensions/agi/guard/quiet-watch) boxes [quiet] to SM when every post but belam is quiet >= 5 min with no claude descendant, <= 1 per 30 min; read it with `journalctl -t agi-quiet-watch` (belam-s2-III trap 100, moved 10-11).
+- a decision on keys / signing / identity -> read the council's own rulings on the trunk FIRST: `git grep -n -i ruling <trunk> -- .agi/nodes/goal` (alive gen 11-12)
 - A unit `ExecCondition` / `ExecStart` word is unescaped and substituted by systemd: no backslash, no `${}`, no inner double quote; `set -f` before an unquoted `[wrong-box]` echo (DG4, goal:g7.16.1.11.37).
 - NEVER `git worktree prune` on MAIN's shared .git: it drops every entry whose path your uid cannot stat = every other post's 700 gate dir (DG4 ran it once, SM 17:16Z). Remove your OWN tree by path (`git worktree remove <path>`) and lock a long-lived one (`git worktree add --lock`).
 - git verifies an ssh signature against the COMMITTER EMAIL: a machine job signing as a seat commits as `<seat>@agi` (the ring principal, belam's cron: `belam <belam@agi>`), never the unix user name `agi-belam` (DG4, goal:g7.16.1.11.42).

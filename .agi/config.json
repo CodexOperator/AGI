@@ -256,7 +256,8 @@
       "watchdog_conf": "etc/watchdog.conf",
       "user_systemd_data_dir": "{home}/.local/share/systemd/user",
       "guard_dir": "{repo_parent}/.sanctuary/guard",
-      "fixtures_dir": "extensions/agi/tests/fixtures/boxkit"
+      "sysctl_d_dir": "etc/sysctl.d",
+    "fixtures_dir": "extensions/agi/tests/fixtures/boxkit"
     },
     "local_maxxing": {
       "scrub_commit_map": "/data/agi-maps/scrub-2026-09-30.commit-map",
@@ -373,7 +374,18 @@
       "LOW_AVAIL_GIB": "1",
       "HISTORY_S": "30",
       "INTERVAL_S": "5",
-      "ALERT_COOLDOWN_S": "600"
+      "ALERT_COOLDOWN_S": "600",
+      "MEMGUARD_ALERT_TO": "sanctuary-master belam",
+      "MEMGUARD_ALARM_SEAT": "sanctuary-master",
+      "MEMGUARD_ALARM_TO": "belam",
+      "ALARM_SPOOL_PY": "/opt/agi/bin/alarm_spool.py",
+      "ALARM_SPOOL_MAX": "500",
+      "MEMGUARD_STORES": "/var/lib/agi",
+      "RESUME_FACTOR": "2",
+      "RESUME_HOLD_S": "30",
+      "RENOTIFY_S": "1800",
+      "BASELINE_REFRESH_S": "300",
+      "VFS_CACHE_PRESSURE": "200"
     },
     "core": {
       "model_load_allowed_max_bytes": 67108864,
@@ -395,5 +407,6 @@
       "probe_cache_dir_name": "agi-memcap",
       "probe_cache_file": "probe"
     }
-  }
+  },
+  "merge_gate": {"review_paths": ["extensions/", "skills/", "src/", ".agi/config.json", ".agi/nodes/.geometry/", ".github/"]}
 }

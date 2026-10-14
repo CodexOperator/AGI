@@ -411,12 +411,19 @@
    "sudo": false,
    "reload": "none",
    "placeholders": [
+    "ALARM_SPOOL_MAX",
+    "ALARM_SPOOL_PY",
     "ALERT_COOLDOWN_S",
+    "BASELINE_REFRESH_S",
     "HISTORY_S",
     "INTERVAL_S",
     "LOW_AVAIL_BYTES",
     "LOW_AVAIL_GIB",
+    "MEMGUARD_ALARM_SEAT",
+    "MEMGUARD_ALARM_TO",
+    "MEMGUARD_ALERT_TO",
     "MEMGUARD_LOG",
+    "MEMGUARD_STORES",
     "OWNER_USER",
     "PI_CMD",
     "PI_OOM_ADJ",
@@ -425,13 +432,15 @@
     "PROTECT_COMM",
     "PROTECT_NICE",
     "PROTECT_OOM_ADJ",
-    "REPO_ROOT",
+    "RENOTIFY_S",
+    "RESUME_FACTOR",
+    "RESUME_HOLD_S",
     "SPIKE_BYTES",
     "SUSPEND_PCT",
     "SUSPEND_RATIO"
    ],
    "new_bytes": false,
-   "fixture_sha256": "b287692062dca44a7b8bca505b0ff608df04c9957557530d0fe8ff51382fc257"
+   "fixture_sha256": "29846a19813ba4dba477b69d581535c8aee907de25f86e6a3af03ff248ced01d"
   },
   {
    "name": "health-script",
@@ -468,6 +477,20 @@
    ],
    "new_bytes": true,
    "fixture_sha256": "37fd70d1d8b2535c75f390903ad55bf5b38043e5e1e7d92004fcf12f2a383f7b"
+  },
+  {
+   "name": "agi-vm-sysctl",
+   "template": "agi-vm-sysctl.tmpl",
+   "dest_cell": "sysctl_d_dir",
+   "dest_rel": "60-agi-vm.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "none",
+   "placeholders": [
+    "VFS_CACHE_PRESSURE"
+   ],
+   "new_bytes": true,
+   "fixture_sha256": "bcc3658a71cbb94f88638877b66acf7e1bbb59fe301ce733397884caecfd9d64"
   }
  ]
 }

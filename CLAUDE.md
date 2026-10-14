@@ -93,7 +93,7 @@ It versions `node.md` + its payload as ONE version, independent of the rest of t
 `.agi/nodes/.geometry/crons.md` (`crons_live` + per-job schedules); `crons.py apply` makes the crontab agree
 (re-run every 5 min by grid_sync, chained with `;` not `&&`, so a failed push never stops the heal).
 `branch_push` pushes the checked-out branch hourly at :07 — a second automatic writer: never merge-then-hold.
-`crons_live: false` = one-edit kill switch (turning it back on takes one manual `crons.py apply`).
+`crons_live: false` = one-edit kill switch (turning it back on takes one manual `crons.py apply`). It empties the applying user's crontab at the next cron-run apply; a job that names another `user:` (the board commit job, agi-belam's crontab) is reached only by `crons.py apply --sudo` (the owner's GO), so that job keeps running until then.
 **Verify which branch is checked out before trusting any push.**
 
 ## Conventions
