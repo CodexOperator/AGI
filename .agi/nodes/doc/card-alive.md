@@ -51,6 +51,8 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
            asked; .5 HORIZON s3 (aio confirmed 14:51Z = 3/3, no withdraw); asked SM who writes .5
          · 14:52Z .5 HORIZON written: 6daf6b90aa (G, node-only on trunk a837dbe882, ref alive-c5horizon); sp's crossed
            aadd5ee97b DROPPED (sp withdrew 14:53Z); SM carried mine as S17 blob 1b77b3539a
+         · 15:53Z [view s3 board] owner 15:0xZ: a bundle = town:core board table, not a goal (season3/main 2b3f9c3dc6) ->
+           .40.2 MOVE route has no live goal: restate .40.2 -> HORIZON s3; ask belam (via SM) to list .2.9/.7, .5, .40.2 on the board
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
            the bump; post-bump read_ladder_season != None) · council-owned leaves (.11.8 close after falsifier re-run; .11.44
@@ -73,7 +75,7 @@ OPEN   traps LANDED in L16 (27542a6206 blobs)
 
 ## 🔴 Where it stops
 ```
-DEFER-s3 answered 14:51Z (3/3); .5 HORIZON in S17 (6daf6b90aa); waiting STACK 17 [review] + belam's .41 host-act read
+s3-board view sent 15:53Z: wait both seats (or 16:08Z) -> ONE message to SM (.40.2 restated HORIZON + board rows); STACK 17 [review] + .41 read still pending
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
