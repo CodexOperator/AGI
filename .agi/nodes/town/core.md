@@ -81,9 +81,28 @@ town:core  (vision:the-living-being) ── season 3 bundle, LOOSE: goals listed
 
 | goal | status | why it is in this bundle |
 |---|---|---|
+| goal:g2.2 | horizon | IO maps as inherited contract slices |
+| goal:g7.16.1.2.9 | horizon | every session sees the run mode at wake |
+| goal:g7.16.1.4 | horizon | council bundle 4: the write/render split |
+| goal:g7.16.1.4.3 | horizon | core's write.py hunks absorbed or rejected by name |
+| goal:g7.16.1.5 | horizon | worktrees as disposable cells on one capped RAM disk |
+| goal:g7.16.1.5.1 | horizon | MAIN's working files on the RAM disk (option B) |
+| goal:g7.16.1.5.5 | horizon | the memory budget has ONE home (config:guard) |
+| goal:g7.16.1.7.1.4 | horizon | seat claiming needs no model act |
+| goal:g7.16.1.8 | horizon | one init pass + one captive stand-up script |
+| goal:g7.16.1.11.4 | horizon | the CAPSULE: k-of-n signed, quorum-popped |
+| goal:g7.16.1.11.8.1 | horizon | the growth gate judges by the tip's rules |
+| goal:g7.16.1.11.16 | horizon | every test that guards a v5 piece is a shell .t.sh |
+| goal:g7.16.1.11.17 | horizon | belam runs on v5 |
+| goal:g7.16.1.11.20.1 | horizon | the rotation alert's second sender says only what it knows |
+| goal:g7.16.1.11.36.1 | horizon | a post knows in its first turn when its hooks did not load |
 | goal:g7.16.1.11.44.8 | horizon | owner 14:4xZ 10-14: pack / unpack the whole town from the matrix |
+| goal:g7.16.2 | horizon | the Texas two-step formation |
+| goal:g5.31 | active | carried ACTIVE, a row by name (council 15:56Z) |
 
-Season 2's bundle (g7.16.1.11 and its leaves) closes on the season-2 trunk; this board does not track it.
+ROWS = ONE DERIVATION, never a hand list (council 3/3, alive 15:56Z 10-14, relayed by SM): every goal with `status: horizon` AND a body naming 'season 3' or 's3', plus goal:g5.31 by name. 15 at 2b3f9c3dc6, 17 at bbec361deb (+ .2.9, .5 from L17). A council-deferred goal whose text lacks 's3' (.2.9 .5 .40.2 .5.2 .7 .11.11 .11.27 g5.22-.30) gets 'season 3' in its reopen line / THOUGHT IN the rollover commit. CHECK at the rollover commit: row count == the derivation's count; a missing id = RED, named. Listing is not cutting: nothing is cut before season 3 opens (owner 14:4xZ).
+
+Season 2's bundle (g7.16.1.11) closes on the season-2 trunk; only its horizon-s3 leaves appear here, by the derivation.
 
 ## Agent Notes
 
@@ -95,7 +114,7 @@ Season 2's bundle (g7.16.1.11 and its leaves) closes on the season-2 trunk; this
 - Belam 2026-10-14: season-3 bundle reset fresh on season3/main (owner 14:4xZ-15:0xZ); the season-2 bundle (g7.25-g7.34 era) stays in git history and on the season-2 trunk.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam 2026-10-14 15:0xZ: the GOAL BUNDLE section reset to a fresh SEASON 3 bundle and season 2 -> 3, on season3/main only (owner: a bundle is a town board, loose over goals, parented from visions, never a subgoal). It replaces goal:g7.16.1.12, which was minted as a subgoal under goal:g7.16.1 and is retired in place. The rest of the board (coordination surface, stand-in) is untouched: the owner reset the bundle, not the board.
+belam 2026-10-14 16:0xZ: the season-3 table now holds the council's derived rows (17 at bbec361deb + g5.31 by name), replacing the one hand-listed row; the derivation rule and the rollover CHECK are written under it (council 3/3 15:56Z: a board's rows come from one derivation, not a hand list). Listing, not cutting. Earlier the same day: the GOAL BUNDLE section reset fresh for season 3 on season3/main (owner: a bundle is a town board, loose over goals, parented from visions, never a subgoal; goal:g7.16.1.12 retired in place).
 <!-- THOUGHT:END -->
 
 Belam daily pass 2026-09-22T09:50ET: merges=none; verify=FAIL (TestMergeUp git-identity + OPENROUTER_API_KEY empty); reopen/mint=none
