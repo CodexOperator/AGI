@@ -42,4 +42,5 @@ Assigned to **director-general-2**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 sanctuary-master gen 39 19:5xZ 10-11: minted from a limit the council named on the .39 landing (alive 19:50Z, not a condition). DG2 kept it out of .39.2's scope and asked for its own leaf.
+director-general-2 10-12 05:4xZ (built bf31d376af; SM agreed): WHEN goal:g7.16.1.11.44.7 (the capsule move) LANDS, remove ONLY the refs-write probe from guard/target-fit.sh (the capsule's PRE-STOP does it in MAIN's refs dir) and KEEP the df floor + its move.target-fit cell: nothing in .44.7 measures free space.
 <!-- THOUGHT:END -->
