@@ -2,7 +2,7 @@
 # box-mail.t.sh: AA1.M falsifiers for the trunk's `box` piece (hypotheses g716111-aa1m-box-send-..., ...-no-worktree-hop-...): sh + git + jq, scratch only,
 # throwaway keys, no live ref. One ok/FAIL line per case; exit = number of FAILs. The file under test is the PIECE: `sect box` from the .geometry engine*.md of ROOT
 # (default: the working tree this file sits in), exactly as box-carry.t.sh reads its pieces; case b0 pins that the box under test IS that piece, byte for byte.
-# BOX=<file>  a box to test instead (b0 then FAILs unless it is byte-equal to the piece); ROOT=<repo> where the piece is read; CEIL=<bytes> the piece's size ceiling (default 2005)
+# BOX=<file>  a box to test instead (b0 then FAILs unless it is byte-equal to the piece); ROOT=<repo> where the piece is read; CEIL=<bytes> the piece's size ceiling (default 2019)
 # BRSED=<sed script> scratch knob: mutate the box under test (b0 goes RED by design: how the cap numbers on experiment:dg2-aa1m-m3 were measured). To prove a PIECE edit turns a case RED,
 #   run on a scratch ROOT whose engine-post.md carries the edit.
 # M3M/M3RUNS = sends per writer / runs for the realistic M3 cases (default 100/5); M3BM/M3BRUNS the same for the 6-on-one-ref BOUND (150/3).
@@ -19,7 +19,7 @@ sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~
 [ -n "$BOX" ]||{ sect box>$T/box;BOX=$T/box;}
 [ -s $BOX ]||{ echo "FAIL extract: box $(wc -c<$BOX)";exit 99;}
 [ -n "$BRSED" ]&&{ sed "$BRSED" $BOX>$T/boxm;BOX=$T/boxm;}
-BR=$BOX;CEIL=${CEIL:-2005};P=${M3_UNSENT_PCT:-5}
+BR=$BOX;CEIL=${CEIL:-2019};P=${M3_UNSENT_PCT:-5}
 sed 's/\[ \$k -lt 5 \]/[ $k -lt 1 ]/' $BR>$T/box1
 sed 's/\[unsent\]/[gone]/' $T/box1>$T/boxs   # the silent-unsent mutant: the cap cut to one attempt AND a failed send that does not say [unsent]
 # keys + signers + per-post git config + a repo whose trunk (HEAD) holds the fixture matrix
@@ -173,6 +173,19 @@ as dg5 $BR read>$T/f1.out 2>&1;ok f1-forged-refused 'grep -q "^\[refused\] belam
 ok f1-forged-stays-unread '[ "$(as dg5 $BR n|wc -l)" = 1 ]'
 un=$(cd $T/r&&echo unsigned|GIT_AUTHOR_EMAIL=belam@agi GIT_COMMITTER_EMAIL=belam@agi $G -c user.name=x -c user.email=x@x commit-tree $($G hash-object -w -t tree /dev/null));$G -C $T/r update-ref refs/box/belam/dg5 $un $fg
 as dg5 $BR read>$T/f2.out 2>&1;ok f2-unsigned-refused 'grep -q "^\[refused\] belam" $T/f2.out'
+
+# --- bs: a mail's body is FOREIGN text: read must print it BYTE-EQUAL to git log %B. dash's echo interprets backslashes (\b = 0x08, \c = TRUNCATES the rest of the mail, and held still advanced = fail-silent), so the read line is printf '%s'.
+# The body carries \c and \b (and a second line after them); the mutant is the piece with that line back to `echo "[$f] ..."` and must go RED.
+bsread(){ v=$1;o=$2;$G -C $T/r update-ref -d refs/box/belam/dg5 2>/dev/null;$G -C $T/r update-ref -d refs/held/dg5/belam 2>/dev/null
+ printf '%s\n' 'head \bB \cC mid \\n tail' 'line2 after' 'last \c'|as belam $BR send dg5;as dg5 $v read>$o 2>&1;}
+bsmut(){ sed 's/printf .\[%s\] %s\\n. "\$f" "/echo "[$f] /' $BR>$T/boxe;}
+bsmut;ok bs-mutant-differs '! cmp -s $BR $T/boxe'
+bsread $BR $T/bs.out;printf '[belam] %s\n' "$($G -C $T/r log -1 --format=%B refs/box/belam/dg5)">$T/bs.want
+ok bs-read-byte-equal-to-git-log 'cmp -s $T/bs.out $T/bs.want'
+ok bs-body-kept-backslashes 'grep -qF "\\cC mid" $T/bs.out&&grep -qF "line2 after" $T/bs.out&&grep -qF "last \\c" $T/bs.out&&[ "$(tr -d "\010"<$T/bs.out|wc -c)" = "$(wc -c<$T/bs.out)" ]'
+ok bs-held-advanced '[ "$(as dg5 $BR n|wc -l)" = 0 ]'
+bsread $T/boxe $T/bs.mut
+ok bs-mutant-echo-back-RED '! cmp -s $T/bs.mut $T/bs.want'
 
 # the matrix, ON/OFF through the real send (rc 0 + a ref, or rc 1 + [off-matrix] + no ref); the Q2 rows. 27 cases = alive's 21-case list + the inert rows
 mx(){ $G -C $T/r update-ref -d refs/box/$1/$2 2>/dev/null;echo x|as $1 $BR send $2 2>$T/mx.err;rc=$?;h=$($G -C $T/r rev-parse -q --verify refs/box/$1/$2 2>/dev/null)

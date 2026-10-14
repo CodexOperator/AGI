@@ -74,18 +74,30 @@ class Post:
         return subprocess.run(["git", "-C", str(repo), *a], env=self.env, capture_output=True, text=True,
                               check=True).stdout.strip()
 
-    def go(self, trunk="trunk", glob="__default__", fail=None):
-        """Run the line. `fail` = a substring: a git shim exits 128 on any git call whose argv holds it (a failing ls-tree / show)."""
+    def go(self, trunk="trunk", glob="__default__", fail=None, shims=None, ro_new=False):
+        """Run the line. `fail` = a substring: a git shim exits 128 on any git call whose argv holds it (a failing ls-tree / show).
+        `shims` = {tool: substring}: that tool, found first on PATH, exits 1 on any call whose argv holds the substring (mv, sed).
+        `ro_new`: a mkdir shim makes `mkdir bin.new` leave the dir READ-ONLY, so every piece write into it fails."""
         env = {**self.env, "O": str(self.main), "AGI_TRUNK": trunk}
         g = self.glob if glob == "__default__" else glob
         if g is not None:
             env["AGI_PIECE_GLOB"] = g
+        want = dict(shims or {})
         if fail:
+            want["git"] = fail
+        if want or ro_new:
             shim = self.home.parent / "shim"
             shim.mkdir(exist_ok=True)
-            real = subprocess.run(["which", "git"], env=self.env, capture_output=True, text=True).stdout.strip()
-            (shim / "git").write_text(f'#!/bin/sh\ncase "$*" in *"{fail}"*) echo "shim: git failed" >&2; exit 128;; esac\nexec {real} "$@"\n')
-            (shim / "git").chmod(0o755)
+
+            def real(tool):
+                return subprocess.run(["which", tool], env=self.env, capture_output=True, text=True).stdout.strip()
+            for tool, sub in want.items():
+                code = 128 if tool == "git" else 1
+                (shim / tool).write_text(f'#!/bin/sh\ncase "$*" in *"{sub}"*) echo "shim: {tool} failed" >&2; exit {code};; esac\nexec {real(tool)} "$@"\n')
+                (shim / tool).chmod(0o755)
+            if ro_new:
+                (shim / "mkdir").write_text(f'#!/bin/sh\n{real("mkdir")} "$@"||exit $?\ncase "$*" in "bin.new") chmod 555 bin.new;; esac\n')
+                (shim / "mkdir").chmod(0o755)
             env["PATH"] = f"{shim}:{env['PATH']}"
         return subprocess.run(["sh", "-c", self.body], env=env, cwd=str(self.home), capture_output=True, text=True)
 
@@ -144,7 +156,13 @@ def rows(body: str, glob: str, mk) -> list[str]:
     # fail closed and loud: the old bin/ byte-equal, no swap
     for i, (what, kw) in enumerate((("a trunk with no agi-run", {"glob": "engine-p2.md"}),
                      ("a git show that fails", {"fail": "show trunk:.agi/nodes/.geometry/engine-post.md"}),
-                     ("a git ls-tree that fails", {"fail": "ls-tree"}))):
+                     ("a git ls-tree that fails", {"fail": "ls-tree"}),
+                     # council fix-forward (10-14 14:10Z): the swap's second mv fails -> the restore puts bin back; a piece write fails -> named
+                     ("an mv bin.new bin that fails", {"shims": {"mv": "bin.new bin"}}),
+                     ("a piece write that fails (one piece)", {"shims": {"sed": "### newpiece "}}),
+                     ("a bin.new that is not writable", {"ro_new": True}))):
+        if kw.get("ro_new") and os.geteuid() == 0:
+            continue                      # root writes into a 555 dir: the row cannot mean anything
         p = Post(mk(f"fc{i}"), body, glob)        # never a name the shim's pattern can match
         p.seed(agi_link="retired 10-08", oldpiece="stale copy", agi_run="stale run")
         before = p.snap()
@@ -156,6 +174,13 @@ def rows(body: str, glob: str, mk) -> list[str]:
             chk("f-a failed show names the FILE", "engine-post.md" in r.stderr)
         if "ls-tree" in what:
             chk("f-a failed ls-tree is named", "ls-tree" in r.stderr)
+        if "mv bin.new" in what:
+            chk("f-a failed swap is named", "[extract-failed] swap" in r.stderr)
+            chk("f-a failed swap: bin is a directory again (the restore ran) and no bin.old is left", (p.home / "bin").is_dir() and not (p.home / "bin.old").exists())
+        if "one piece" in what:
+            chk("f-a failed piece write names the FILE and the piece", "engine-post.md newpiece" in r.stderr and "agi-run is not" not in r.stderr)
+        if "not writable" in what:
+            chk("f-a bin.new that is not writable names a piece write, not the agi-run check", "[extract-failed] .agi" in r.stderr and "agi-run is not" not in r.stderr)
     return bad
 
 
@@ -181,6 +206,9 @@ MUTANTS = {
     "no-agi-run-check": lambda: mutant('[ -s bin.new/agi-run ]||x agi-run is not in the extracted set;', ""),
     "show-failure-ignored": lambda: mutant('>.e||x $f;', '>.e;'),
     "ls-tree-failure-ignored": lambda: mutant('||x ls-tree $AGI_TRUNK;', ';'),
+    # fix-forward: the restore dropped (a failed second mv leaves NO bin/) / the piece write's failure ignored
+    "restore-dropped": lambda: mutant("[ -d bin ]||mv bin.old bin;", ""),
+    "sed-write-failure-ignored": lambda: mutant(">bin.new/$x||x $f $x;", ">bin.new/$x;"),
     # a hand-listed glob instead of the unit's cell
     "a-hand-list": lambda: mutant("for g in $AGI_PIECE_GLOB;do", "for g in engine.md engine-post.md;do"),
 }
