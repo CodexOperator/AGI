@@ -680,6 +680,78 @@ def test_r4_a_step_5_stop_prints_the_recovery_and_the_plain_stop_mutant_is_red(r
     assert "RECOVERY" not in red.stderr, "MUTANT (a plain stop) must be RED: the row wants the RECOVERY lines"
 
 
+# ---- council 23:46Z 10-14 (1)-(4): the run's REAL town set and argv; two trunks can claim ONE old branch ----
+REAL = [(slug, f"council-{slug}", f"vision:{slug}-v")
+        for slug in ("core", "local-maxxing", "sanctuary", "streaming-suite", "web-app-suite")]
+
+
+def _real(tmp_path: Path):
+    """The real towns; core/season3/main BEHIND the live trunk; core_old (the live trunk) is local-maxxing's own derived old."""
+    r = _build(tmp_path, REAL)
+    live = _sh(r, "local-maxxing/season2/main", "season2/main", "live.txt", "l\n")
+    _git(r, "push", "-q", "-f", "origin", f"{_remote_sha(r, 'refs/heads/season2/main')}:refs/heads/core/season3/main")
+    return r, live
+
+
+def _lines(text: str, needle: str) -> int:
+    return sum(1 for ln in text.splitlines() if needle in ln)
+
+
+def test_real_towns_and_argv_two_trunks_one_old_branch_roll_with_one_archive_one_delete_and_the_ungrouped_mutant_is_red(tmp_path: Path):
+    r, live = _real(tmp_path)
+    g = _graph(r)
+    argv = ("--global", "--delete-old", "--actor", "owner", "--skip-fold", "core")
+    before = _heads(r)
+    _on_new_trunk(r)
+    dry = _run(g, *argv)                                                    # (4) the DRY names the shared old, ONCE, and pushes nothing
+    assert dry.returncode == 0, dry.stdout + dry.stderr
+    assert _lines(dry.stdout, "ARCHIVE refs/agi/archive/local-maxxing/season2/main") == 1
+    assert _lines(dry.stdout, "DELETE origin/local-maxxing/season2/main") == 1
+    assert "shared by town:core, town:local-maxxing: ONE archive, ONE delete" in dry.stdout
+    assert _heads(r) == before
+    ok = _run(g, *argv, "--apply")                                          # (2) the real run
+    assert ok.returncode == 0, ok.stdout + ok.stderr
+    assert _lines(ok.stdout, "ARCHIVE refs/agi/archive/local-maxxing/season2/main") == 1
+    assert _lines(ok.stdout, "DELETE origin/local-maxxing/season2/main") == 1
+    after = _heads(r)
+    assert after["refs/heads/local-maxxing/season3/main"] == live and after["refs/heads/core/season3/main"] == live
+    assert "refs/heads/local-maxxing/season2/main" not in after and "refs/heads/season2/main" not in after
+    assert _remote_sha(r, "refs/agi/archive/local-maxxing/season2/main") == live
+    assert _fm(g / "nodes" / ".geometry" / "ladder.md")["current_season"] == 3
+    for slug, _c, _v in REAL:
+        assert _fm(g / "nodes" / "town" / f"{slug}.md")["season"] == 3
+    mut = _mutant(tmp_path / "m0", ('groups.setdefault(e["old"], []).append(e)', 'groups.setdefault(e["cell_id"], []).append(e)'))
+    r2, _l2 = _real(tmp_path / "m0")
+    _on_new_trunk(r2)
+    red = _run(_graph(r2), *argv, "--apply", cli=mut)
+    assert _lines(red.stdout, "ARCHIVE refs/agi/archive/local-maxxing/season2/main") != 1, "MUTANT (no grouping by the old branch) must be RED: the row wants ONE archive line"
+
+
+def test_a_stop_after_the_first_delete_prints_the_recovery_in_pass_1_and_the_plain_stop_mutant_is_red(tmp_path: Path):
+    def refused(base: Path):
+        r, _live = _real(base)
+        hook = r.parent / "origin.git" / "hooks" / "pre-receive"
+        hook.write_text("#!/bin/sh\nwhile read o n r; do case \"$r\" in\n"
+                        "refs/heads/sanctuary/season2/main) case \"$n\" in 0000000*) echo 'delete refused'; exit 1;; esac;;\nesac; done\nexit 0\n")
+        hook.chmod(0o755)
+        _git(hook.parent.parent, "config", "core.hooksPath", str(hook.parent))
+        _on_new_trunk(r)
+        return r
+    r = refused(tmp_path)
+    res = _run(_graph(r), "--global", "--delete-old", "--actor", "owner", "--skip-fold", "core", "--apply")
+    assert res.returncode == 1 and "STOP at step 4: delete" in res.stderr, res.stdout + res.stderr
+    assert "[rollover] RECOVERY: origin is HALF-ROLLED" in res.stderr
+    for old in ("season2/main", "local-maxxing/season2/main"):                # deleted before the stop: restorable by the printed line
+        assert f"git push origin refs/agi/archive/{old}:refs/heads/{old}" in res.stderr
+        assert f"refs/heads/{old}" not in _heads(r)
+    assert "refs/heads/sanctuary/season2/main" in _heads(r)                   # the refused one is still there
+    assert "restore sanctuary/season2/main" not in res.stderr
+    mut = _mutant(tmp_path / "m0", ("                if restore: _recovery(repo, restore, h0, cur_branch)\n", "                pass\n"))
+    r2 = refused(tmp_path / "m0")
+    red = _run(_graph(r2), "--global", "--delete-old", "--actor", "owner", "--skip-fold", "core", "--apply", cli=mut)
+    assert "RECOVERY" not in red.stderr, "MUTANT (a plain stop in pass 1) must be RED: the row wants the RECOVERY lines"
+
+
 # ---- (iv) every town cell is at the global season before --global --------------------------
 def test_iv_a_town_cell_behind_the_global_season_is_refused_before_anything_and_the_mutant_is_red(repo: Path, tmp_path: Path):
     g = _graph(repo)

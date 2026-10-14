@@ -1350,19 +1350,66 @@ def _preflight_cells(root: Path, cells: list, actor: str) -> int:
     return 0
 
 
-def _stop5(repo, restore, h0, branch, why) -> int:
-    """A step-5 (cell) refusal comes AFTER PASS 1 cut, folded, archived and deleted:
-    origin is half-rolled. Name the way back: which archive ref restores which old head, and the
-    scratch cell commit to drop. Printed, never run."""
-    rc = _stop(5, "cell", why)
+def _recovery(repo, restore, h0, branch, cells=False) -> None:
+    """The way back from a HALF-ROLLED origin (an old head was deleted after its archive ref was proved):
+    which archive ref restores which old head, and the scratch cell commit to drop. Printed, never run."""
     print("[rollover] RECOVERY: origin is HALF-ROLLED (the old heads below were deleted after their archive refs were proved).", file=sys.stderr)
     for old, sha in restore:
         print(f"[rollover]   restore {old} at {sha[:12]}: git push origin refs/agi/archive/{old}:refs/heads/{old}", file=sys.stderr)
     h1 = _git(repo, "rev-parse", "HEAD").stdout.strip()
     if h1 and h1 != h0 and branch:
         print(f"[rollover]   drop the scratch cell commit {h1[:12]} on {branch}: git update-ref refs/heads/{branch} {h0} {h1}", file=sys.stderr)
-    print("[rollover]   cells written before this stop stay as committed in the scratch worktree; nothing was pushed for them.", file=sys.stderr)
+    if cells:
+        print("[rollover]   cells written before this stop stay as committed in the scratch worktree; nothing was pushed for them.", file=sys.stderr)
+
+
+def _stop5(repo, restore, h0, branch, why) -> int:
+    """A step-5 (cell) refusal comes AFTER PASS 1 cut, folded, archived and deleted: origin is half-rolled."""
+    rc = _stop(5, "cell", why)
+    _recovery(repo, restore, h0, branch, cells=True)
     return rc
+
+
+def _archive_delete_group(repo, old, members, sha, apply, delete_old, tag, defer, base=3) -> int:
+    """ARCHIVE -> DELETE of ONE old head, ONCE, for every trunk that claims it (two trunks can share an old
+    branch); the delete only with --delete-old, only after the archive ref is proved AND every claimant's new
+    head contains the old tip. Each member then defers its cell (or HOLDs it). `members` = dicts of
+    new / cell_id / m (old season) / g (new season) / history / field."""
+    import cli
+    R, st = "refs/heads/", cli._post_rename_remote_ref_state_sha
+    a, d = base, base + 1
+    who = ", ".join(m["cell_id"] for m in members)
+    shared = f" (shared by {who}: ONE archive, ONE delete, after every new head contains it)" if len(members) > 1 else ""
+    print(f"[{tag}] {a} ARCHIVE {ARCHIVE_NS}/{old} <- {sha[:12]}{shared}")
+    if apply:
+        ok, detail, _ = branches.mirror_and_prove(repo, f"{ARCHIVE_NS}/{old}", tip=sha, label="archive")
+        if not ok:
+            return _stop(a, "archive", detail)
+    if delete_old:
+        if st(repo, R + old)[0] == "absent":
+            print(f"[{tag}] {d} DELETE origin/{old} — already absent (RESUME)")
+        else:
+            print(f"[{tag}] {d} DELETE origin/{old} (containment " + ", ".join(R + m["new"] for m in members) + ")")
+            if apply:
+                gsha = ""
+                for m in members:
+                    cs, tgt, gsha = cli._rs_containment_state(repo, old, [R + m["new"]])
+                    if cs != "contained":
+                        return _stop(d, "delete", f"containment {cs} in {tgt or '(none)'} ({m['new']})")
+                rc, err = cli._rs_lease_delete(repo, old, gsha)
+                if rc or st(repo, R + old)[0] != "absent":
+                    return _stop(d, "delete", err or f"verify {st(repo, R + old)[0]}")
+    gone = delete_old and st(repo, R + old)[0] == "absent"
+    for m in members:
+        if gone:
+            now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            hist = [h for h in (m["history"] or []) if isinstance(h, dict)] + [
+                {"season": m["g"], "global_season": m["g"], "opened": now, "closed": None}]
+            defer[m["cell_id"]] = (m["cell_id"], m["m"], m["g"], hist, m["field"])
+            print(f"[{tag}] {d + 1} CELL DEFERRED {m['cell_id']} {m['m']} -> {m['g']} (written only after every trunk verifies)")
+        else:
+            print(f"[{tag}] {d + 1} CELL HELD {m['cell_id']} stays {m['m']} — old head {old} remains on origin (bump gated on the verified delete)")
+    return 0
 
 
 def _trunk_names(slug, g, ng, core_old):
@@ -1511,8 +1558,9 @@ def cmd_rollover_global(root: Path, args) -> int:
         if _preflight_cells(root, cells, actor):
             print("nothing performed", file=sys.stderr)
             return 1
-    restore = []   # (old head, tip) of every trunk whose old head PASS 1 deleted after proving its archive ref
-    pending = []   # PASS 1 collects cell descriptors; PASS 2 writes them -- only after every trunk verifies
+    restore = []   # (old head, tip) of every old head PASS 1 deleted after proving its archive ref
+    h0 = _git(repo, "rev-parse", "HEAD").stdout.strip()
+    plan = []      # PASS 1a: every trunk that cut (and folded): slug, cell_id, history, old, new, sha
     for slug, cell_id, history in trunks:
         old, new, head = _trunk_names(slug, g, ng, core_old)
         if slug == CORE_TOWN:
@@ -1527,14 +1575,27 @@ def cmd_rollover_global(root: Path, args) -> int:
         elif _fold(repo, head, old, sha, apply, tag, 2):
             if apply: return 1
             refused = True; continue
-        field = "current_season" if slug is None else "season"
-        if _archive_delete_cell(root, repo, old, new, sha, cell_id, g, ng, history,
-                                apply, delete_old, actor, session, tag, base=3,
-                                cell_field=field, defer=pending):
-            if apply: return 1
+        plan.append({"cell_id": cell_id, "history": history, "old": old, "new": new, "sha": sha,
+                     "m": g, "g": ng, "field": "current_season" if slug is None else "season"})
+    # PASS 1b: nothing is archived or deleted until EVERY new head is cut and folded; then each OLD head is
+    # archived ONCE and deleted ONCE, however many trunks claim it (council 10-14 23:46Z: a shared old branch).
+    groups = {}
+    for e in plan:
+        groups.setdefault(e["old"], []).append(e)
+    cells = {}
+    for old, members in groups.items():
+        if len({e["sha"] for e in members}) > 1:
+            rc = _stop(3, "archive", f"trunks {', '.join(e['cell_id'] for e in members)} claim origin/{old} at different tips")
+        else:
+            rc = _archive_delete_group(repo, old, members, members[0]["sha"], apply, delete_old, tag, cells)
+        if rc:
+            if apply:
+                if restore: _recovery(repo, restore, h0, cur_branch)
+                return rc
             refused = True
         elif delete_old:
-            restore.append((old, sha))
+            restore.append((old, members[0]["sha"]))
+    pending = [cells[e["cell_id"]] for e in plan if e["cell_id"] in cells]   # PASS 2 writes them, in trunk order
     # PASS 2: every trunk cut, folded, archived and deleted -- now write every cell.
     for cell_id, m, gg, hist, cell_field in pending:
         fm = ({"season": gg, "season_history": json.dumps(hist)}
