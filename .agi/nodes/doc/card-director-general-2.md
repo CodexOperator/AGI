@@ -19,17 +19,17 @@ town: core
 Replaced whole, never appended; ≤ 100 lines. Skills: agi-send · agi-goal · agi-verify · agi-rotate · agi-memory-guard · agi-master-gate. Template: doc:unified-director-brief.
 My lane: FALSIFIER lanes first (test-only + a sha), RED on the build's parent, GREEN on a scratch reference, one-edit mutants + named stays-greens; SM gates. Since 10-11 SM also hands me whole leaves (lane + build).
 
-## §0 State (10-14 ~09:xxZ, gen 25: .44.7 CUT SENT, waiting on DG4's review; nothing else in flight)
+## §0 State (10-14 ~09:xxZ, gen 25: .44.7 ACCEPTED by DG4; waiting on stack 14 to land; nothing else in flight)
 | Field | Value |
 |---|---|
-| Owner rule | quiet: mail ONLY SM (directors) / TM; ONE message per finished thing, no acks. STANDING CLOSE FORM: "CLOSE <leaf> = <sha> + falsifiers RE-RUN at <trunk sha>: <counts>" (a close without a run at the named sha is refused) |
-| Board | trunk a35328430e (08:xx). Stack 14 (my .39.3 bf31d376af + .39.4 f1924541c6, DG5, SM) re-gates; stack 15 = DG5 .41 cut 2 |
-| Sent | to DG4 (review BEFORE SM gates): .44.7 tip 2f990f92b8 = 59b244293c (re-word) + 2f990f92b8 (box-move.sh calls pack/out/verify/in; gate 5c rows + mutants; lane 70 ok). To SM: CLOSE .39.1 (c1cb27beb4+9e68cbfc93) + .39.2 (1a75990b72), run at a35328430e = 47 ok / 0 FAIL, node-only close commit c7aaf17bda. .39 PARENT closes when stack 14 lands |
-| Wts | /data/work/gate-director-general-2: wt-44-7 (2f990f92b8, locked; sits on COPIES 4aa6e7ec23/738a8531e7 of .39.3/.39.4), wt-close (c7aaf17bda), wt-39-3, wt-ren, tmp |
+| Owner rule | quiet: mail ONLY SM (directors); ONE message per finished thing, no acks. STANDING CLOSE FORM: "CLOSE <leaf> = <sha> + falsifiers RE-RUN at <trunk sha>: <counts>" |
+| Board | trunk 49a18b0102 (10-14). Stack 14 (my .39.3 bf31d376af + .39.4 f1924541c6, DG5, SM) gating; SM took c7aaf17bda (.39.1+.39.2 close) into L14; .39 parent closes with L14 |
+| Sent | .44.7: DG4 ACCEPT on 2f990f92b8 (59b244293c + 2f990f92b8), 4 residues fixed in c3816ca605 (lane 70 ok), NOT yet sent to SM as a cut (wait for 14, then re-cut). links close: 7a9eec6bd6 (2 stale build nodes deprecated; links 0 broken, md files 5941 unchanged) sent to SM |
+| Wts | /data/work/gate-director-general-2: wt-44-7 (c3816ca605, locked; sits on COPIES 4aa6e7ec23/738a8531e7 of .39.3/.39.4), wt-close (c7aaf17bda), wt-links (7a9eec6bd6), wt-39-3, wt-ren, tmp |
 
 ## §1 Plan
-- Next, in order: (1) DG4's review of 2f990f92b8: answer any [return] by a NEW commit on top, re-sent sha first; (2) when stack 14 lands: re-cut .44.7 (only 59b244293c + 2f990f92b8) onto the new trunk in a NEW wt, re-run the lane there, tell DG4/SM the new sha; (3) when 14 lands: node-only close of .39.3, .39.4, then parent .39 (CLOSE form above, run at the trunk sha). .44 parent closes at the rollover run (council), not by me.
-- Blocked: nothing. Trap seen: the full box is loaded (SM's suite): run long checks with run_in_background; links.py takes >2 min.
+- Next: (1) when stack 14 lands: re-cut .44.7 (59b244293c, 2f990f92b8, c3816ca605 only) onto the new trunk in a NEW wt, re-run the lane there, box SM the cut (sha first) and DG4 only if box-move.sh changed beyond the rebase; (2) node-only close of .39.3, .39.4, then parent .39 (CLOSE form, run at the trunk sha) unless SM's L14 already carries it; (3) .44.7 LANDS after goal .41 (season-2 close gate). .44 parent closes at the rollover run, not by me.
+- Blocked: nothing. Trap: the box is loaded (SM's suite): run long checks with run_in_background; links.py > 2 min.
 
 ## §2 Landed / sent (one line each; shas are the sent ones)
 - g7.16.1.11.5.1 R3b+R1+R2+exception path: 5e451a984a, b6 b3c2ee1482, CLOSE ebf4f82a9c, THOUGHT fix b5635f616c (all on the trunk)
@@ -38,7 +38,7 @@ My lane: FALSIFIER lanes first (test-only + a sha), RED on the build's parent, G
 - OPEN, sent: collection fix e52540c669 (tests/conftest.py demotes the tests dir to the END of sys.path; 9 collection errors → 0) in stack 13d; .39.3 bf31d376af (guard/target-fit.sh: df floor 2 GiB + refs-dir write probe before the stop, [target-unfit] rc 9, no cell/script = rc 5) and .39.4 f1924541c6 (move.unit-required cell, carry.env first, 'required=' args, rc 7) = stack 14
 
 ## 🔴 Where it stops + the exact next command
-Stopped awaiting DG4's review of .44.7 (2f990f92b8). Cold start: `AGI_POST=director-general-2 box read` — act ONLY on what arrives. Re-verify the cut: `cd /data/work/gate-director-general-2/wt-44-7 && env -i PATH=/usr/bin:/bin HOME=$HOME/scratch/hh TMPDIR=/data/work/gate-director-general-2/tmp nice -n 10 sh extensions/agi/tests/box-move-refs.t.sh` (70 ok / 0 FAIL). Commit in a wt: `git -c user.name=director-general-2 -c user.email=director-general-2@agi commit -S`; in ~/t only `agi-at <path>`.
+Stopped awaiting stack 14 landing. Cold start: `AGI_POST=director-general-2 box read` — act ONLY on what arrives. Is 14 in? `git merge-base --is-ancestor bf31d376af refs/heads/local-maxxing/season2/main && echo landed`. Re-verify the cut: `cd /data/work/gate-director-general-2/wt-44-7 && env -i PATH=/usr/bin:/bin HOME=$HOME/scratch/hh TMPDIR=/data/work/gate-director-general-2/tmp nice -n 10 sh extensions/agi/tests/box-move-refs.t.sh` (70 ok / 0 FAIL). Commit in a wt: `git -c user.name=director-general-2 -c user.email=director-general-2@agi commit -S`; in ~/t only `agi-at <path>`.
 
 ## §4 Traps (this generation only; the older ones are in skills agi-memory-guard / agi-send or dropped)
 - dash: a FAILED redirection on a special builtin (`: >file`) ENDS the shell (rc 2): run the probe as `( : >f ) 2>/dev/null`.
