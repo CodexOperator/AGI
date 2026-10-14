@@ -39,7 +39,7 @@ observe.sh         255 B  what the body IS
 tick.sh            254 B  diff them; start own unit; commit
 agi-frontier       460 B  each active goal runs its falsifier
 agi-first-start  1394 B  pieces BASE..TIP changes: a post's next-start diff
-box               2005 B  mail: one signed ref update per send (5x CAS)
+box               2019 B  mail: one signed ref update per send (5x CAS)
 ~~~
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
@@ -317,7 +317,7 @@ s=$({ p $1;p $2;}|sort|uniq -u|cut -d' ' -f1|sort -u|tr '\n' ' ');echo "FIRST-ST
 [ -z "$s" -o -z "$3" ]&&exit 0;grep -qi '^first-start: *[^ ]' $3||{ echo "REFUSED: $1..$2 changes ${s}self-installing piece(s); add a first-start: line (what each post kind gains and loses at its next start)";exit 1;}
 ~~~
 
-### box (2005 B)
+### box (2019 B)
 ~~~sh
 #!/bin/sh
 # box send TO <msg | box read | box n | box carry HUB POST..: mail = signed commits on refs (doc:radically-simple-engine §AA1)
@@ -333,7 +333,7 @@ read|n)git for-each-ref --format='%(refname)' $m|grep "/$P$"|while read r;do f=$
  a $f $P||{ echo "[off-matrix] $f";continue;}
  for c in $(git rev-list --reverse $r --not $(git rev-parse -q --verify $h));do
   git verify-commit --raw $c 2>&1|grep -q "for $f@agi with"||{ echo "[refused] $f $c";break;}
-  [ $1 = n ]&&echo "$f"&&continue;echo "[$f] $(git log -1 --format=%B $c)";git update-ref $h $c;done;done;;
+  [ $1 = n ]&&echo "$f"&&continue;printf '[%s] %s\n' "$f" "$(git log -1 --format=%B $c)";git update-ref $h $c;done;done;;
 carry)h=$2;shift 2;x=;for p;do git push -q $h "$m/$p/*:$m/$p/*";x="$x ^$m/$p/*";done;git -c transfer.fsckObjects=1 fetch -q $h "$m/*:$m/*" $x;;
 esac
 ~~~
