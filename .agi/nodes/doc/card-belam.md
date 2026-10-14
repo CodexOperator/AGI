@@ -95,6 +95,6 @@ at 06:3xZ 10-14: MAIN == posts/belam == ~/t == 1e9dc1fe53 · 12 agi-post@ active
 | guard layer 5 not installed + a STRAY /data/work/.sanctuary/guard/guard.env (Sep 25) + an OLD guard-init.sh beside it: guard-init DIES on it by design since c84628156d; nobody runs sudo guard-init until the act | owner GO = ONE act: mv both -> *.retired-<ts> (never rm), then install layer 5 (config:guard E lines first) |
 | agi-belam sudo NOPASSWD ALL on E (grok-era) | keep for now; the council narrows it to the host-act verbs |
 | refs/grid on E differs from L in 5,845 refs | reconcile into a namespace on E; owner picks; no force-push |
-| /data/scrub backups hold the UNREDACTED history (mode 700) · `*.pre-tier-*` backups (~/.claude, ~/.pi) | delete on the owner's word |
+| HISTORY SCRUB (owner only = a rewrite): a host-identity token in doc:card-alive row 22, pushed from L16 ccabe03f0f on (alive rewrites it in STACK 19, forward only) + SM's ssh-comment item (81d0e8729 etc.) · /data/scrub backups hold the UNREDACTED history (mode 700) · `*.pre-tier-*` backups (~/.claude, ~/.pi) | forward-fix only, no rewrite (recommended: a rewrite of the shared trunk breaks every post's tree); delete the backups on the owner's word |
 | the 2 x 5 USD TypeSafe jev keys | release: no live consumer |
 | belam row opus-5-5 / high vs the live Prime opus-5-5[1m] / max | owner sets the row |
