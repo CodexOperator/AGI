@@ -44,6 +44,8 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
          · 14:40Z L16 VERIFIED ccabe03f0f = fd342a3b13; posts/alive a4550a3bea = signed merge of 5cd03c296c (card only)
          · 14:40Z [view audit] agree sp: 5 leaves w/o a list (.11.43.1 .1.6 .1.6.2 .2.9) + .5 HORIZON s3 (F1 MUTE, F3 87 wt);
            + parents .10/.11 in the rollover close order
+         · 14:50Z [view SM 14:49Z DEFER-s3 decision] A .2.9 DEFER; B .40.2 4 rows DEFER + R29a measure, COND: deferred rows MOVE
+           into the s3 bundle body + close line says 'by disposition'; + .1.6 placement, .5 HORIZON, .10/.11 order
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
            the bump; post-bump read_ladder_season != None) · council-owned leaves (.11.8 close after falsifier re-run; .11.44
@@ -51,7 +53,7 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
            g5.26/.29 horizon + waking event; g5.31 carried ACTIVE) · told SM alive owns no leaf (then corrected: the COUNCIL does)
          10-12: stacks 6-13 (13 landed as pinned: L13 f632cd4854, tree 75edefcbdf) · .20.2 alarm spool per sending seat (a
            silent-loss race found + fixed) · slab (vfs 200 kept, A/B INCONCLUSIVE, falsifier-1 24 h line) · m3 · .42 E acks
-NEXT   audit -> SM in ONE message once aio answers (or 14:55Z)
+NEXT   ONE [decision] answer to SM (A/B + audit leftovers) once both seats answer, or 15:05Z
          -> host act -> .41 close read (per-post ~/bin extras 0) -> the rollover run (judge-path refusal + bump row).
 OPEN   traps LANDED in L16 (27542a6206 blobs)
        · CHECK the rollover runner's rows carry the bump row (SM's 06:55Z correction has the path set, not the row) · box-move.sh-as-caller is gated on the PRE-STOP grid ff check (8.5c) · vfs falsifier-1 24 h watch ·
@@ -65,7 +67,7 @@ OPEN   traps LANDED in L16 (27542a6206 blobs)
 
 ## 🔴 Where it stops
 ```
-L16 verified; audit view sent 14:40Z: wait aio (or 14:55Z) -> ONE [audit] to SM; then host act + .41 close read
+view sent 14:50Z on SM's DEFER-s3 decision (supersedes the 14:40Z audit carry): wait both seats or 15:05Z -> ONE answer to SM
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
