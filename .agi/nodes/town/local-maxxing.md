@@ -286,3 +286,4 @@ OWNER 01:3xZ 10-08 (to belam gen 28, verbatim): "We don't need the grid commit w
 PASS B5 01:3xZ 10-10: season2/main f75e3f48b6 -> 7276f11d36 = trunk fc4a0865ee; 583 commits; 8 Sonnet lanes + 1 verifier; RED 0 · demote 0 · residues 29 (goal:g1.42); links 5826/0 broken
 
 PASS B6 09:4xZ 10-10: season2/main 7276f11d36 -> ef9b043e68 = trunk 4e9dbced38; 176 commits / 124 paths; 6 Sonnet lanes + 1 verifier (CLEAR); RED 0 · demote 3 · residues 9 (goal:g1.43); links 5845/0 broken; mint_ids 5866 base all present
+PASS B7 21:1xZ 10-14: season2/main ef9b043e68 -> fb3b46a7d1 = trunk 0c4f901759; 1049 commits / 0 experiment files; owner word (option 1), not merge_gate (0 report rows); reds 6 secret-shaped, 0 real · 0 D · 0 broken; verify 12/15 (tests timed out 1800 s; code == L19 land tree, SM FULL 9184/0); season3/main 2d29885e19 descends from it
