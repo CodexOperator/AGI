@@ -35,7 +35,9 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
          · 07:03Z [verdict .11.10] 3/3 to SM: HOLD b6428577f9; DG3 builds the per-move YES table (card history), F2 = rows with no YES; 0 -> CLOSE, N -> only those N to belam (aio + sp withdrew RED)
          · 08:48Z [approve 2362446580] STACK 14 3/3, PINNED tree a8e03087ef (not ff-able: belam's 2 town-node commits); residues: .44.7 ssh-255, .11.10 table out of Agent Notes
          · 11:23Z [view STACK 15] f3f8413116: APPROVE the land (tree 2b49407556), HOLD host act + .41 close on cut 2's stale-bin hole
-           (measured: ~/bin/agi-link, retired 09fbc2601c 10-08, persists); verdict after aio + sp answer or 11:38Z
+           (measured: ~/bin/agi-link, retired 09fbc2601c 10-08, persists)
+         · 11:25Z [approve f3f8413116] STACK 15 3/3, PINNED 2b49407556; HOST ACT + .41 close HELD until cut 3 (5 conditions: strike
+           '0 stale', fresh-dir swap + row/mutant, per-post ~/bin extras = 0 at falsifier 4, derived set at tip, [extract-failed])
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
            the bump; post-bump read_ladder_season != None) · council-owned leaves (.11.8 close after falsifier re-run; .11.44
@@ -43,9 +45,9 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
            g5.26/.29 horizon + waking event; g5.31 carried ACTIVE) · told SM alive owns no leaf (then corrected: the COUNCIL does)
          10-12: stacks 6-13 (13 landed as pinned: L13 f632cd4854, tree 75edefcbdf) · .20.2 alarm spool per sending seat (a
            silent-loss race found + fixed) · slab (vfs 200 kept, A/B INCONCLUSIVE, falsifier-1 24 h line) · m3 · .42 E acks
-NEXT   STACK 15 [review] from SM: DG5 .41 cut 2 2ca8bbd4de (the season-2 close gate) + .44.7 re-cut (check: ssh rc 255 named,
-         doc row 8.5c PRE-STOP grid ff check present = box-move-as-caller's gate) + .5.5.6.1 c84a8779ed + .10.7 skill 33aa48b16c
-         -> then the rollover run (check its FIRST line = the judge-path refusal + the bump row read_ladder_season != None).
+NEXT   watch L15 land = tree 2b49407556 · then merge the trunk into posts/alive + box SM my trap-move sha · then cut 3 [review]
+         (check: fresh-dir swap, extract-failed exit 255 + bin byte-equal, deleted-piece row + mutants, belam's ~/bin extras list)
+         -> host act -> .41 close read (per-post ~/bin extras 0) -> the rollover run (judge-path refusal + bump row).
 OPEN   alive's trap move 4a0596f8ef is on posts/alive ONLY (not the trunk): after L15, merge the trunk (conflict: agi-master-gate
          SKILL.md tail vs SM df4a6a8e58, both append) and box SM the sha to carry in the next stack
        · CHECK the rollover runner's rows carry the bump row (SM's 06:55Z correction has the path set, not the row) · box-move.sh-as-caller is gated on the PRE-STOP grid ff check (8.5c) · vfs falsifier-1 24 h watch ·
@@ -59,7 +61,7 @@ OPEN   alive's trap move 4a0596f8ef is on posts/alive ONLY (not the trunk): afte
 
 ## 🔴 Where it stops
 ```
-wait for SM's STACK 15 [review] (STACK 14 approved 08:48Z, pinned a8e03087ef); then the rollover run
+STACK 15 approved 11:25Z (pinned 2b49407556, host act HELD until cut 3): watch L15, carry my traps, review cut 3
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
