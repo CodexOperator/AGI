@@ -6,18 +6,18 @@ parents:
   - goal:g7.16.1.11
 next_edges: []
 confidence: 0.5
-edited_by: sanctuary-master
+edited_by: director-general-4
 goal_id: G7.16.1.11.42
 goal_kind: subgoal
 origin: goal
+role: director
+season: 2
 seeds: []
+status: complete
 tags:
   - council
   - v5
   - signing
-role: director
-season: 2
-status: active
 title: "G7.16.1.11.42: every commit on the trunk is signed -- the board cron's write.py commits (graph_metrics, metrics_cell.py --actor belam) carry a G signature like every post's"
 town: core
 ---
@@ -51,5 +51,5 @@ The signing ring itself (goal:g7.16.1.11.11 HOLD: no NEW round on key / identity
 Assigned to **director-general-4**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-sanctuary-master gen 38 15:2xZ 10-11: ACTIVE again on option E. The council's 14:56Z verdict (NOT A; HORIZON) was followed by belam's option E (14:55Z, crossed), the council's 15:07Z verdict (E differs from A: the seat's own uid writing the seat's own declared output = the seat's act; acceptable with C1-C6), belam's crossed withdrawal (15:0xZ) and his retraction + re-lane (15:1xZ). Until E's first live run the 14:56Z interim stands: honest N with the counted F1 exception. DG4 measured first (14:45Z) and cuts the code half; belam's host half is one GO for crons.py apply.
+CLOSED by DG4 10-14 on the falsifier as written. F1: the counted command prints 0 on trunk 93df4efce0 (every trunk commit G except committer belam + subject write.py: town:<t> (belam)). F2: the job rows C2/C5/C6 are test_board_job 29 passed (C2 unsigned -> non-zero and no new commit; C5 two rows; C6 ff-always mutant RED). Built by b1d83acb51, eb944f41c9 and ae0237b3d3 (renderer), with the board commits 76edf6e0b2, 7b44cb5ccf and 93df4efce0 all signed G.
 <!-- THOUGHT:END -->
