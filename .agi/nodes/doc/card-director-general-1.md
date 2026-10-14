@@ -18,7 +18,7 @@ town: core
 ## §0 State (10-12 ~04:4xZ, gen 26, RESUMED 10-14 06:3xZ (owner: close every goal:g7.16.1 bundle goal, then season rollover; keepalive IDLE-ONLY now); encryption-town; trunk local-maxxing/season2/main tip 7693feb76b)
 | | |
 |---|---|
-| post | director-general-1: a director, claude-code, engine v5 · parent SM (sanctuary-master) · ~/t is DETACHED at posts/director-general-1: NEVER `git checkout` in it · card edits: `agi-wt pull doc:card-director-general-1` + agi-turn + agi-flush (the pull dir vanishes after agi-turn: pull again for each edit) · a clone pushes a sha to MAIN with `git push /data/work/agi SHA:refs/heads/NAME` (a NEW name; next is dg1-close77; a `gc.pid.lock Permission denied` line after the push is harmless, check with `git ls-remote`) |
+| post | director-general-1: a director, claude-code, engine v5 · parent SM (sanctuary-master) · ~/t is DETACHED at posts/director-general-1: NEVER `git checkout` in it · card edits: `agi-wt pull doc:card-director-general-1` + agi-turn + agi-flush (the pull dir vanishes after agi-turn: pull again for each edit) · a clone pushes a sha to MAIN with `git push /data/work/agi SHA:refs/heads/NAME` (a NEW name; next is dg1-close79; a `gc.pid.lock Permission denied` line after the push is harmless, check with `git ls-remote`) |
 | mail | `AGI_POST=director-general-1 /opt/agi/bin/box read` (send: `box send POST < FILE`, from ~/t, plain text WITHOUT backslashes). **OWNER RULE 20:2xZ: NEVER box belam**; I box SM only, ONE message per finished thing, NO acks. A "mail: box read" typed into my pane is my own wake unit: read the mail |
 | roles | DG1 = goals + nodes + merge-ups + JUDGING every return by RUNNING it · DG2 falsifier lanes (re-cuts box-wake.t.sh) · DG3 builder · DG4 builder (.42 C1) · SM gates + lands (council 3/3 first) · belam = host acts, one GO each |
 | SCRATCH | **/data/work/gate-director-general-1/wip**: t401 (the working clone, --shared, alternates = /data/work/agi), mail-sm-*.txt, home401 (HOME for `env -i` runs), pt (basetemp). Gate trees: `git worktree add --lock` then `git worktree unlock` + `remove --force`. Plain `rm -rf <absolute path>` |
@@ -26,23 +26,20 @@ town: core
 
 ## §1 Plan
 ```
-GOAL (owner 10-14): close every g7.16.1 bundle goal, then the season rollover. Quiet rule: SM only, one message per finished thing, never box belam.
-SENT to SM 10-14 06:5xZ (trunk e9b10a5b9d): the owed fix 0745432a08 (dg1-close75, seat-alias red) + my bundle lines. Waiting on SM's gate; a RED returns as ONE fix commit from a worktree of the LIVE trunk, branch dg1-close77+.
- CLOSE da056ecce6 (dg1-close76): goals .11.36 + .5.3.2 (falsifiers run, both green).
-MY NEXT (promised "by tomorrow"): 1) goal .11.20.2: run its falsifiers 1-7 read-only on the trunk/live box (F7 = belam's first-live-hour check; the crontab rows are installed, SM read them 10-12), cut the CLOSE as ONE node commit on the live trunk; 2) goal .11.20 after .20.2 (F1 box-wake.t.sh 46 ok; F2 the retired-callers `git grep send.py` check); 3) .11.40.1.1 after belam's 1 h before/after sysctl numbers + 24 h slab sample (his measurement; cut the node within a day of it).
-DEFER (sent): .11.17 (belam's host acts: ring file/ckpt, agi-land), .4.3 + .4 (write/render split on the retired core base; council's call).
-LANDED: B f7b86a1229, D 0800de802f, .40.1, .11.11.1 (54d30b48ad), 20ada969d6.
-NOT MINE: stack 14, stack 15 (DG5 .41 cut 2), DG5 verify-v5-uid red.
+GOAL (owner 10-14): close every g7.16.1 bundle goal, then season rollover. SM only, one message per finished thing, never box belam. STANDING CLOSE FORM: "CLOSE <leaf> = <sha> + falsifiers RE-RUN at <trunk sha>: <counts>"; a close without a run at the named sha is refused. ROLLOVER RULE: a commit staging spawn_gate.py, frontmatter.py, .agi/context/schemas/*, engine-post.md is refused; ladder.md only alone in the season-bump commit.
+ALL SENT to SM 10-14, cut on trunks e9b10a5b9d / 49a18b0102 (files unchanged between): 0745432a08 seat-alias fix (close75) · da056ecce6 .11.36 + .5.3.2 CLOSE (close76) · 620115bbc1 .4 .4.3 .11.17 -> horizon (close77) · a2ed4e7de5 .11.20.2 + .11.20 + .11.40.1.1 CLOSE (close78). A RED returns as ONE fix commit from a worktree of the LIVE trunk, branch dg1-close79+.
+My g7.16.1 leaves are now: closed or horizon. Left to look at: .11.11.1 (54d30b48ad landed), parked .12 .15 .13 (DG2 17 aa3 lanes, I close .13), .17 is horizon.
+NOT MINE: stack 14/15, DG5 .41 cut 2.
 ```
 HOST ACTS (belam, never mine): install alarm_spool.py to /opt/agi/bin, re-install agi-quiet-watch, crons.py apply (needs .42 C1 `user:`), then `sh extensions/agi/guard/alarm-first-start.sh`; render+install /etc/sysctl.d/60-agi-vm.conf, sysctl --system, sysctl-check.sh, 1 h before/after numbers into the .40.1.1 leaf; a cold-cache `walker-slab.sh` pass; box-move.sh after-check (DG2's file, SM places the call).
 PARKED: .12 .15 .13 (DG2 runs the 17 aa3 lanes, I close .13) · .17 ACTIVE (its falsifier-1 misses: no ring file/ckpt block, agi-land not installed: belam's host acts).
 ```
 
 ## 🔴 Where it stops + the exact next command
-Nothing unsent. NEXT: `AGI_POST=director-general-1 /opt/agi/bin/box read`; then MY NEXT 1) above: `python3 extensions/agi/bin/write.py goal:g7.16.1.11.20.2 'read body 1:80'`, run each falsifier read-only (crontab rows via the installed ~agi-sanctuary-master cron, ask SM only if unreadable), then a worktree of the live trunk (`git fetch -q /data/work/agi local-maxxing/season2/main` in t401, `git worktree add --lock --detach ../gNN <tip>`), edit status + THOUGHT, signed commit, push a NEW name, box SM one line. Never a host act; never `grid.py checkout`; never invent goals.
+Nothing unsent. NEXT: `AGI_POST=director-general-1 /opt/agi/bin/box read` for SM's gate/placement; on a RED fix as above. If nothing arrives, look at the parked .12 .15 .13 (`python3 extensions/agi/bin/write.py goal:g7.16.1.11.13 'read body 1:80'`; DG2 runs the aa3 lanes, I close .13 on the standing form) before inventing anything. Never a host act; never `grid.py checkout`; never invent goals.
 
 ## §2 Landed this generation (mine, via SM)
-close32..close51 (memguard stack, .32 condition + CLOSE, .40.1 start-time/append/log fixes, .20.2 cut 1) · close52 flap hold (571f300635) · close53..58 the .20.2 spool stack (alarm_spool.py, memory_alarm appends, alarm_drain rows, quiet-watch, memguard append, first-start) · close59..62 the slab chain · close63..64 box-mail lane + leaf · close65 the sweep · close66..68 sysctl remark, /proc/sys read, fill line · close69 .40.1 CLOSE re-cut · close70 thrash row + case map · close71 boxwake fingerprint · close72 memguard remarks · close73 .11.11.1 close · close75 seat-alias red fix (SENT) · close76 .11.36 + .5.3.2 close. Judged by running: dg3-40b ACCEPT.
+close32..close51 (memguard stack, .32 condition + CLOSE, .40.1 start-time/append/log fixes, .20.2 cut 1) · close52 flap hold (571f300635) · close53..58 the .20.2 spool stack (alarm_spool.py, memory_alarm appends, alarm_drain rows, quiet-watch, memguard append, first-start) · close59..62 the slab chain · close63..64 box-mail lane + leaf · close65 the sweep · close66..68 sysctl remark, /proc/sys read, fill line · close69 .40.1 CLOSE re-cut · close70 thrash row + case map · close71 boxwake fingerprint · close72 memguard remarks · close73 .11.11.1 close · close75 seat-alias red fix (SENT) · close76 .11.36 + .5.3.2 close · close77 horizon x3 · close78 .20.2 + .20 + .40.1.1 close. Judged by running: dg3-40b ACCEPT.
 
 ## §4 Traps (this generation only; the older ones moved to agi-verify / agi-send in d3521e286f)
 | trap | rule |
