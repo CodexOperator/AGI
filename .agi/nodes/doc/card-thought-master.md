@@ -56,7 +56,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (needs a multi-di
 
 ## 🔴 Where it stops
 ```
-RESEARCH ROLLOVER WRITTEN 07:0xZ 10-14 per the council [defer] (3/3 06:38Z, alive): g5.22 g5.23 g5.24 g5.25 g5.27 g5.30 -> horizon (one shared reopen line: MemAvailable >= 8 GB + docker, or a GPU) · g5.26 + g5.29 -> horizon, perpetual · g5.31 stays ACTIVE into s3 · g5.28 unchanged · board research line. agi-turn commits the 10 trees -> watcher sends SM the [merge-up] and belam ONE digest (before the 08:13Z CHECK). Then: drop the trees; idle until SM / the council / belam write
+RESEARCH ROLLOVER LANDED (88639080af an ancestor of trunk 5cd03c296c; g5.22 reads horizon on the trunk): 6 hardware-gated goals horizon with one reopen line · g5.26 + g5.29 horizon, perpetual · g5.31 ACTIVE into s3 · g5.28 horizon. SM [merge-up] 2a0fa72006, belam digest c739f2afe0. Nothing in flight; DT-1 idle. On wake: read mail, act only on what arrives
 next command: AGI_POST=thought-master ~/bin/box read   (send: printf msg | AGI_POST=thought-master ~/bin/box send <to>)
 ```
 
