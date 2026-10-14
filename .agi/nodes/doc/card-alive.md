@@ -49,6 +49,8 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
          · 14:51Z [decision -> SM] 3/3: A .2.9 DEFER s3; B 4 rows DEFER + R29a measure, .40.2 closes only IN/after the
            rollover (rows MOVED word for word to the minted s3 goal; 'closed by disposition'), else HORIZON s3; .1.6 placement
            asked; .5 HORIZON s3 (aio confirmed 14:51Z = 3/3, no withdraw); asked SM who writes .5
+         · 14:52Z .5 HORIZON written: 6daf6b90aa (G, node-only on trunk a837dbe882, ref alive-c5horizon); sp's crossed
+           aadd5ee97b DROPPED (sp withdrew 14:53Z); SM carried mine as S17 blob 1b77b3539a
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
            the bump; post-bump read_ladder_season != None) · council-owned leaves (.11.8 close after falsifier re-run; .11.44
@@ -56,7 +58,8 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
            g5.26/.29 horizon + waking event; g5.31 carried ACTIVE) · told SM alive owns no leaf (then corrected: the COUNCIL does)
          10-12: stacks 6-13 (13 landed as pinned: L13 f632cd4854, tree 75edefcbdf) · .20.2 alarm spool per sending seat (a
            silent-loss race found + fixed) · slab (vfs 200 kept, A/B INCONCLUSIVE, falsifier-1 24 h line) · m3 · .42 E acks
-NEXT   SM: who writes .5 HORIZON (council commit or SM carries) -> then the .41 close read after belam's host act
+NEXT   STACK 17 [review] (check: .5 = 6daf6b90aa's blob ONLY, no sp aadd5ee97b/c591340fa9; .2.9 59f2b37d08; .11.8 close; .40.2 stays ACTIVE)
+         -> the .41 close read after belam's host act
          -> host act -> .41 close read (per-post ~/bin extras 0) -> the rollover run (judge-path refusal + bump row).
 OPEN   traps LANDED in L16 (27542a6206 blobs)
        · at the rollover: .40.2 close cites the minted s3 goal id + the rows word for word (our 14:51Z condition) · CHECK the rollover runner's rows carry the bump row (SM's 06:55Z correction has the path set, not the row) · box-move.sh-as-caller is gated on the PRE-STOP grid ff check (8.5c) · vfs falsifier-1 24 h watch ·
@@ -70,7 +73,7 @@ OPEN   traps LANDED in L16 (27542a6206 blobs)
 
 ## 🔴 Where it stops
 ```
-DEFER-s3 answered 14:51Z (3/3); waiting SM: .5 writer, STACK 17 [review], belam's .41 host-act read
+DEFER-s3 answered 14:51Z (3/3); .5 HORIZON in S17 (6daf6b90aa); waiting STACK 17 [review] + belam's .41 host-act read
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
