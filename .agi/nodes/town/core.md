@@ -11,7 +11,7 @@ edited_by: belam
 location: encryption-town
 master: sanctuary-master
 scaffold_hash: 10fe0c5cd15d5ba4
-season: 2
+season: 3
 thought_session: belam-status-hygiene-sot-2026-09-22
 town: core
 visions:
@@ -64,94 +64,26 @@ BELAM (daily, not mid-batch):
 
 Standing contract: `doc:standing-llm-ops`. Reopened goals in this town bundle = **PRIORITY** over plain open (Prime order).
 
-## GOAL BUNDLE (encryption / core directors)
+## GOAL BUNDLE — SEASON 3 (fresh; owner 2026-10-14)
 
-LOCATION ──▶ encryption-town
+OWNER 2026-10-14 14:4xZ, verbatim: "Yes record but not cut it yet we need to reset the town bundle to a fresh bundle for the next season we will need a few rounds on it next season."
+
+OWNER 2026-10-14 14:5xZ, verbatim: "Let’s start the core/season3 branch now or if there is one already let’s overwrite it now and reset it to what we have now on this branch. Then also start a origin/season3/main branch and put progress so far into it. Then add the season3 core town bundle to it as we work on finishing season 2."
+
+OWNER 2026-10-14 15:0xZ, verbatim: "the bundles slash town boards, those nodes, they don't really exist as like sub goals or anything. They just kind of exist flowing kind of on their own, parented from like, say, visions or whatever, because they're kind of like relevant to specific seasons and whatever, and they're kind of like encompassing multiple goals generally, but in a more loose way."
 
 ```
-encryption-town host == town:core   (no town:encryption node; g14.4/g5.20 bank encryption master LATER)
-                    │
-                    ▼
- town:core bundle status (stand-in trajectory — TEMP)
- ┌─────────────────────────────────────────────────────────┐
- │ ACTIVE   g7.31 → .1→.1.1+.1.2; .3→.3.1+.3.2 (belam)   │
- │ ACTIVE   g7.28; g7.31.2/.4/.5; g7.32* (helper)         │
- │ HORIZON  g7.25; g7.26–.27; g7.29–.30                   │
- │ HORIZON  g7.33; g7.34*                                 │
- │ COMPLETE g7.25.1–.3 (unchanged)                        │
- └─────────────────────────────────────────────────────────┘
+town:core  (vision:the-living-being) ── season 3 bundle, LOOSE: goals listed, never parented here
+   │
+   ├─ carried in   goal:g7.16.1.11.44.8   town start / stop from the matrix (agi-start / agi-stop, crons as a row, a broadcast)   horizon
+   └─ to be cut    the council, over season 3's first rounds (nothing cut before the owner opens them)
 ```
 
-### Directors' core bundle — goal status
-
-| id | status | title (short) |
+| goal | status | why it is in this bundle |
 |---|---|---|
-| goal:g7.25 | horizon | Grok Bot third-party harness adapter |
-| goal:g7.25.1 | complete | grok_bot_adapter REQUIRED surface |
-| goal:g7.25.2 | complete | harnesses.grok-bot config row |
-| goal:g7.25.3 | complete | mirror adapter interface tests |
-| goal:g7.26 | horizon | Post briefs self-sufficient |
-| goal:g7.27 | horizon | Templates sole harness arg builders |
-| goal:g7.28 | active | Dispatch persistent mode |
-| goal:g7.29 | horizon | Shrink rotate.py orchestration |
-| goal:g7.30 | horizon | Land grok-bot adapter + post template |
-| goal:g7.31 | active | Pane = post spine (umbrella) |
-| goal:g7.31.1 | active | Measured CLI + durable pane hold |
-| goal:g7.31.1.1 | active | Measured CLI argv |
-| goal:g7.31.1.2 | active | Durable named tmux pane |
-| goal:g7.31.2 | active | Pane anchor ↔ post/pin/formation |
-| goal:g7.31.3 | active | Five unified engine routes |
-| goal:g7.31.3.1 | active | Cold post brief five routes |
-| goal:g7.31.3.2 | active | Sample write+send+dispatch |
-| goal:g7.31.4 | active | Native handbacks SSH-or-not |
-| goal:g7.31.5 | active | Graph↔harness-doc sync |
-| goal:g7.32 | active | Session ingest + messaging + pane methods + send router |
-| goal:g7.32.1 | active | Grok session ingest |
-| goal:g7.32.2 | active | Magic-pane messaging |
-| goal:g7.32.3 | active | Optional pane methods on one adapter |
-| goal:g7.32.4 | active | send.py thin router |
+| goal:g7.16.1.11.44.8 | horizon | owner 14:4xZ 10-14: pack / unpack the whole town from the matrix |
 
-### Split decision (owner tie-break 2026-09-21)
-
-| question | answer |
-|---|---|
-| g7.31 has live nested children? | YES (.1–.5 + .1.1/.1.2 + .3.1/.3.2) |
-| Re-nest umbrella / rewrite g7.31? | **NO** |
-| New messaging/ingest/adapter-pane/send intent? | **goal:g7.32** (+ `.1`–`.4`) same-level under `goal:g7` |
-
-Town schema `parents:` = ladder only → spine listed here / Agent Notes, not town→goal parents.
-
-### UNASSIGNED / parked (engine) — until directors finish current batches
-
-Owner ask 2026-09-21: relocate engine ownership cell → `town:core`. **Do not dispatch / SendToAgent / assign directors yet.**
-
-| id | status | title (short) | note |
-|---|---|---|---|
-| goal:g7.33 | horizon | ENGINE FIXES (write.py / comms / dispatch / workflows / grid trunk / session capture / trajectory type) | nested G7.33.* not yet minted as separate nodes |
-| goal:g7.33.* | pending | sub-chunks under g7.33 body (G7.33.1–.8) | mint later under town:core when work starts |
-
-### UNASSIGNED / parked — geometry-town + trajectory spine (NEW)
-
-Minted 2026-09-21 Belam; **parked unassigned on town:core**. Nested under `goal:g7.34`. No director assignment. No g7.34.1–.5 implementation yet — mint only.
-
-| id | status | title (short) |
-|---|---|---|
-| goal:g7.34 | parked/horizon | umbrella: geometry-town + trajectory spine |
-| goal:g7.34.1 | parked/horizon | [trajectory] schema + allowed parents/links |
-| goal:g7.34.2 | parked/horizon | mint trajectory:core + trajectory:local-maxxing; town→traj; traj→chain |
-| goal:g7.34.3 | parked/horizon | town → .geometry/towns/<slug>/.self (Pass 1 raw) |
-| goal:g7.34.4 | parked/horizon | slim config / template pointer cells on town.self (L6) |
-| goal:g7.34.5 | parked/horizon | formation = nested template + single context loader (L6) |
-
-```
-goal:g7
-└─ g7.34 ★ geometry-town + trajectory spine (parked)
-   ├─ .1  [trajectory] schema
-   ├─ .2  mint trajectory:core / :local-maxxing
-   ├─ .3  town → .geometry/towns/<slug>/.self
-   ├─ .4  slim config/template cells on town.self
-   └─ .5  formation nested template + context loader
-```
+Season 2's bundle (g7.16.1.11 and its leaves) closes on the season-2 trunk; this board does not track it.
 
 ## Agent Notes
 
@@ -160,9 +92,10 @@ goal:g7
 - Actor Belam; master cell = sanctuary-master.
 - Owner ask 2026-09-21: engine goals (g7.33) relocated from local-maxxing → core; **UNASSIGNED / parked**.
 - Belam 2026-09-21: g7.34* geometry/trajectory spine minted parked; stand-in stays until trajectory type (g7.34.1/.2).
+- Belam 2026-10-14: season-3 bundle reset fresh on season3/main (owner 14:4xZ-15:0xZ); the season-2 bundle (g7.25-g7.34 era) stays in git history and on the season-2 trunk.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-status-hygiene-sot-2026-09-22: sync status rows to goal reality — helper lanes + g7.32* active; belam .1/.3 chain
+belam 2026-10-14 15:0xZ: the GOAL BUNDLE section reset to a fresh SEASON 3 bundle and season 2 -> 3, on season3/main only (owner: a bundle is a town board, loose over goals, parented from visions, never a subgoal). It replaces goal:g7.16.1.12, which was minted as a subgoal under goal:g7.16.1 and is retired in place. The rest of the board (coordination surface, stand-in) is untouched: the owner reset the bundle, not the board.
 <!-- THOUGHT:END -->
 
 Belam daily pass 2026-09-22T09:50ET: merges=none; verify=FAIL (TestMergeUp git-identity + OPENROUTER_API_KEY empty); reopen/mint=none
