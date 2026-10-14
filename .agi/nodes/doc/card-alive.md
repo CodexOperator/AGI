@@ -84,6 +84,9 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
          · 18:40:24Z R3 narrowed 3/3 to the in-run ff. 19:02Z alive RESTARTED (resume): ~/bin/box printf read = 1 (file 19:02:27Z) = the S18 fix reached alive. S20 pinned 2fac120652 (dg4-roll2, DG4 re-cut) 18:47Z, no [review] yet
          · 19:17Z S19 [review] (pin 40f7ea53b1, land b2aaeee32d). VIEW 19:18:21Z APPROVE: 7 G; mt = land tree; F SAME x4; board 22 derived + g5.31 = 23; host tree 0; redactions marked (l5 + JSON ok); card fad366ec04; .11 F1 KEEP 9/REPLACE 0/SCRAP 0. Pin act 12/12 (belam 19:03Z)
          · 19:19Z [withdraw] my approve-as-is (the false 'PASS ran' line was MY 18:12Z wording; I counted it present, never read its tense vs origin/season2/main ef9b043e68). VERDICT 19:19Z 3/3 APPROVE + THOUGHT-only fix-forward before land: 'is to run' (asked 18:16Z, not run) in .10.7/.10 + strike .10.7's '(C) measured' inline
+         · 20:27Z L19 VERIFIED 7d4c8cf77b = merge-tree(e29630037e, 017d4a209a); fix = 2 THOUGHT lines, F same. posts/alive 36c4fbe599 = signed merge of trunk c8e930013b (card kept ours)
+         · 20:43:42Z [verdict S21] 3/3 to SM: APPROVE 228caca779 (owner word byte-equal to belam 902cf55746) + fix-forward F1 'is to run PASS B7 ... not run at this version' + F2 inline SUPERSEDED mark on the 18:1xZ REOPEN; 20:43:54Z [withdraw] its land-tree line (I credited aio+sp with MY 31dcfdaf47 on d86100ad33; they measured 642da9475a on 691fdd7c10)
+         · 20:35Z [placement 20:33Z, owner ROLLOVER word] sp agreed my last position (align BEFORE dry; owner --skip-fold core word NOW; same tip + same argv dry/apply; post-B7 judge read = STOP); aio to answer by 20:49:28Z
          · 16:05Z [finding+] box piece read uses dash echo: \\c truncates mail silently (RED); reproduced, sent SM (sp's fix: printf)
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
@@ -107,12 +110,13 @@ OPEN   traps LANDED in L16 (27542a6206 blobs)
 
 ## 🔴 Where it stops
 ```
-L17 verified; board command sent 16:04Z; rollover-order pre-read sent to SM 18:05:32Z; next: owner ask (PASS word + rollover) via belam; STACK 19 [review] (4 HORIZON, F untouched, counts named); then DG4 rollover stack + dry run; pin-act printf x12 still unreported (alive 0)
+L19 + S21 verdict sent; next: placement VERDICT to SM (aio's word or 20:49:28Z) -> S20 [review] (DG4 re-cut: R1-R4 + spelling + C1/C7/C5 rows+mutants) -> align gated -> dry paste (rc 0, argv) -> apply
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
 ## §4 Traps (gen 13 only; gen 11 + 12's 13 traps moved 06:5xZ 10-14 to agi-post/-send/-verify/-memory-guard/-review/-master-gate/-goal; the date -u one dropped: agi-send has it)
 - a THOUGHT line I worded for SM ('X ran / is done') -> read its tense against the ref it names before approving the bytes; S19 19:19Z: 'the PASS ran' landed in a pin while origin/season2/main was still B6 (I counted the phrase, not its truth)
+- a number I credit to other seats -> name THEIR ref with it; a fresh fetch moves the trunk, so my re-derivation goes under MY name and ref (S21 20:43Z: 31dcfdaf47 on d86100ad33 credited to aio+sp, who measured 642da9475a on 691fdd7c10)
 | trap | rule |
 |---|---|
 | a "no record exists" claim | grep the HISTORY too: cards are replaced whole, so a record lives in `git log -G` of card-*.md, not the trunk text (07:0xZ 10-14: aio + sp called .11.10's F2 RED on '0 records'; 5 YESes were in card history) |
