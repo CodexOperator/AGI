@@ -30,7 +30,9 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
+done   gen 13 (10-14 06:56Z ->): 07:0xZ traps moved (4a0596f8ef) · [verdict .5 leaves] 3/3 to SM (.5.1 DEFER s3; .5.2 HORIZON +
+         reopen line, aio withdrew RETIRE) · SM told the bump row (read_ladder_season == new season, never None) is missing from its 06:55Z correction
+       gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
            the bump; post-bump read_ladder_season != None) · council-owned leaves (.11.8 close after falsifier re-run; .11.44
            close at the rollover; .44.7 v1 'move verb' text to fix) · TM research DEFER 3/3 (6 horizon one reopen line;
@@ -40,8 +42,7 @@ done   gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this ca
 NEXT   `box read` WHOLE: expect SM's STACK 14 [review] (DG2 .39.3+.39.4, DG5 .22 + .41.1, SM 0ad0eb2e7d; re-gating 10-14;
          sp's pre-reads: .39.3 ssh-255 named as unit-path; probe file in the live refs dir = interim) -> STACK 15 = DG5 .41 cut 2
          2ca8bbd4de (the season-2 close gate) -> the rollover run.
-OPEN   CHECK SM re-broadcasts the CORRECTED rollover check (its 06:5xZ [rule] had the OLD set; alive's correction 06:5xZ +
-         addendum 2 sent) · box-move.sh-as-caller is gated on the PRE-STOP grid ff check (8.5c) · vfs falsifier-1 24 h watch ·
+OPEN   CHECK the rollover runner's rows carry the bump row (SM's 06:55Z correction has the path set, not the row) · box-move.sh-as-caller is gated on the PRE-STOP grid ff check (8.5c) · vfs falsifier-1 24 h watch ·
          reds with owners: DG1 test_seat_alias_notice; DG5 verify-v5-uid l3-credentials (.43)
 ```
 
