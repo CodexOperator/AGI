@@ -168,7 +168,7 @@ extensions/agi/bin/metrics.py:1
 extensions/agi/bin/rotate.py:44
 extensions/agi/bin/season.py:1
 extensions/agi/bin/sensei.py:1
-extensions/agi/guard/box-move.sh:4
+extensions/agi/guard/box-move.sh:3
 extensions/agi/hooks/agent-git/pre-push:1
 ```
 C6 the literal outside grid.py
@@ -200,27 +200,29 @@ C7 every fetch consumer
 $ git grep -nE '"fetch"|fetch -q|git fetch( |")|git -C [^ ]+ fetch' -- extensions src .agi/nodes/.geometry ':!extensions/agi/tests' ':!*.js' ':!*.json' ':!extensions/**/*.md' | cut -c1-120
 .agi/nodes/.geometry/crons.md:32:    cmd: git -C {repo_root} fetch -q origin && python3 {engine_root}/extensions/agi/bin
 .agi/nodes/.geometry/engine-capsule.md:41: s=$(mktemp -d);trap 'rm -rf $s' 0;git init -q --bare $s/s;echo "$(cd "$(git r
-.agi/nodes/.geometry/engine-post.md:214:carry)h=$2;shift 2;x=;for p;do git push -q $h "$m/$p/*:$m/$p/*";x="$x ^$m/$p/*";
-.agi/nodes/.geometry/engine-root.md:96:F(){ git -C $n -c protocol.version=2 fetch -q --upload-pack="$u" file://$G "$@";}
-.agi/nodes/.geometry/engine-root.md:119: git -C $C -c transfer.fsckObjects=1 fetch -q $H "$m/*:$m/*"
+.agi/nodes/.geometry/engine-post.md:337:carry)h=$2;shift 2;x=;for p;do git push -q $h "$m/$p/*:$m/$p/*";x="$x ^$m/$p/*";
+.agi/nodes/.geometry/engine-root.md:124:F(){ git -C $n -c protocol.version=2 fetch -q --upload-pack="$u" file://$G "$@";
+.agi/nodes/.geometry/engine-root.md:147: git -C $C -c transfer.fsckObjects=1 fetch -q $H "$m/*:$m/*"
 extensions/agi/bin/cli.py:4239:    _post_rename_print("fetch", "git fetch", apply)
 extensions/agi/bin/cli.py:4240:    if apply and not step_done("fetch"):
 extensions/agi/bin/cli.py:4241:        r = subprocess.run(["git", "fetch"], cwd=repo, capture_output=True, text=True)
 extensions/agi/bin/cli.py:4243:            print(f"  note: git fetch rc={r.returncode} (no remote or offline); "
 extensions/agi/bin/cli.py:4245:        mark("fetch")
-extensions/agi/bin/crons.py:953:            f"git -C {repo_root} fetch -q origin && "
-extensions/agi/bin/crons.py:964:            text = text.replace("fetch -q origin", "fetch -q origin '+refs/heads/*:refs/
+extensions/agi/bin/crons.py:1000:            f"git -C {repo_root} fetch -q origin && "
+extensions/agi/bin/crons.py:1011:            text = text.replace("fetch -q origin", "fetch -q origin '+refs/heads/*:refs
 extensions/agi/bin/dispatch.py:579:                ["git", "-C", str(root), "fetch", "origin", fetch_ref],
-extensions/agi/bin/rotate.py:10999:            fetch = subprocess.run(["git", "-C", str(top), "fetch", "origin",
-extensions/agi/bin/rotate.py:11009:            last = f"could not launch git fetch for {branch}: {exc}"
-extensions/agi/bin/rotate.py:13206:#: rotation template uses it, so it falls through to `producer git fetch not
-extensions/agi/bin/rotate.py:14387:    rotate-self values build never performs a real git fetch inside the
-extensions/agi/bin/rotate.py:17007:        _fp = _git_proc(root, "fetch", "origin", _sb)
-extensions/agi/bin/rotate.py:17016:    behind_clear = (f"git fetch origin {_sb} && git merge --no-edit "
-extensions/agi/bin/rotate.py:17301:    return (f"git fetch origin {b} && git merge --no-edit origin/{b}")
+extensions/agi/bin/rotate.py:11086:            fetch = subprocess.run(["git", "-C", str(top), "fetch", "origin",
+extensions/agi/bin/rotate.py:11096:            last = f"could not launch git fetch for {branch}: {exc}"
+extensions/agi/bin/rotate.py:13299:#: rotation template uses it, so it falls through to `producer git fetch not
+extensions/agi/bin/rotate.py:14480:    rotate-self values build never performs a real git fetch inside the
+extensions/agi/bin/rotate.py:17100:        _fp = _git_proc(root, "fetch", "origin", _sb)
+extensions/agi/bin/rotate.py:17109:    behind_clear = (f"git fetch origin {_sb} && git merge --no-edit "
+extensions/agi/bin/rotate.py:17394:    return (f"git fetch origin {b} && git merge --no-edit origin/{b}")
 extensions/agi/bin/send.py:550:        # a git fetch under tests). The explicit ``role`` argument stays
 extensions/agi/bin/send.py:905:            ["git", "-C", str(top), "fetch", "origin", branch],
 extensions/agi/bin/send.py:4935:            fetch = _run_git(root, ["fetch", "origin", name])
+extensions/agi/guard/box-move.sh:44:git init -q --bare $J/dry;echo "$(git rev-parse --path-format=absolute --git-path ob
+extensions/agi/guard/box-move.sh:51:TI="cd $D&&git init -q --bare s&&echo /data/work/agi/.git/objects >s/objects/info/al
 ```
 C8 every caller of the gated verbs (commit / push-changed / sync)
 ```
@@ -261,6 +263,8 @@ G-E2 = `grid_retired()` (grid.py:240; guards grid.py:1150 and :269): EXISTS, rea
 | P4 | crons.py:430 `refs/heads/<town>/*:refs/agi/<town>/*` (_mirror_push_line :425-433) | pushes | no | stops WITH the flip: rendered only inside the grid_sync enabled block (crons.py:871, :908-917; mirror_towns true; refs/heads/local-maxxing/ = 6 refs live) | stops |
 | P5 | crons.py:925, :933 (rendered `push -q origin {branch}` / `{engine_branch}`); grid.py:1950 (the legacy cron line `push -q origin {branch}`) | pushes | no | n/a | n/a |
 | P6 | engine-root.md:118, :124 (`push -q $H $r:$r`, refs/box/*); engine-post.md:214 (the `box` piece's `carry)` arm, was :192 before AA1.V v5: `push -q $h $m/$p/*` AND its FETCH half `fetch -q $h "$m/*:$m/*"`, m=refs/box, so refs/box/* only, never refs/grid) | pushes, fetches | no | n/a | n/a |
+| P10 | extensions/agi/guard/box-move.sh after goal:g7.16.1.11.44.7 (C5 box-move.sh 4 -> 3): the P8 CARRIER push (`refs/NS/*:refs/NS/*` per namespace) and the dry-run push preflight are GONE, the namespaces ride the capsule (N7, N8: refs/grid/* verbatim inside the one `in` transaction, ff-checked, no grid version authored); the three pushes left are the trunk branch to origin, `<sha>:refs/heads/carry/trunk` to the target, and RECOVERY's push of the row-revert commit to origin (trunk branch only), all branch refs, never refs/grid | pushes | no | n/a | n/a |
+| N8 | extensions/agi/guard/box-move.sh (goal:g7.16.1.11.44.7; box-move.sh only CALLS the capsule piece, it adds no ref writer of its own): `git init -q --bare` of TWO scratch repos (the job-owned DRY-pack repo $J/dry on the source, and the target's scratch s under .git/objects/capsule-xfer.*) whose alternates point at MAIN's objects, each filled by `git fetch -q <MAIN> '+refs/*:refs/*'` so that the piece's pack / verify / in run on a MIRROR of MAIN's refs (doc row 5c: a non-ff refs/grid line is seen BEFORE the stop); a scratch is deleted at the end, so no MAIN ref moves; the REAL `in` is the capsule piece's one `update-ref --stdin` transaction (N7), never a box-move.sh write | writes (scratch repos only) | no | n/a | n/a |
 | P9 | board_job.py:224 (the take-MAIN merge) and :253 (the board commit): `git push --force-with-lease=<ref>:<base>` INTO MAIN's refs/heads/posts/<post>, run by the seat's OWN uid (agi-belam) from its job-owned shared clone; a CAS (a lost lease = rc 4, never a commit); never refs/grid (goal:g7.16.1.11.42) | pushes | no | n/a | n/a |
 | P7 | claude_code_adapter.py:110 (a disallowed-verb tuple), metrics.py:1138 (help text), sensei.py:2375 (a variable `push_at`; :2373 is the comment above it), hooks/agent-git/pre-push (a refusing hook) | no push | no | n/a | n/a |
 | P8 | extensions/agi/guard/box-move.sh:31 (`git push -q origin HEAD:local-maxxing/season2/main`, the trunk branch) and :33 (`git push -q ssh://$TO/data/work/agi <sha>:refs/heads/carry/trunk refs/heads/posts/$P:refs/heads/posts/$P`, branches to the target box): host move tooling, branch refs only, never refs/grid; goal:g7.16.1.11.39 adds a THIRD site (box-move.sh:C5 2 -> 3): the carrier push `git push -q ssh://$TO/data/work/agi <refs/NS/*:refs/NS/* for every carried namespace> ^refs/heads/local-maxxing/season2/main`, TARGET BOX ONLY (never origin: the origin push above stays the trunk branch alone), non-force, the checked-out trunk excluded (it goes by carry/trunk + ff). It moves refs/grid/* namespace-wise, NOT a wildcard grid push: the drop list is the `sh move.exclude` cell in config:guard, the namespace counts are printed before and after, and a carried namespace that comes up short refuses ([refs-short], rc 4, the post never started); goal:g7.16.1.11.39 round 2 adds a FOURTH site (box-move.sh:C5 3 -> 4): the PREFLIGHT, the same refspecs as the carrier pushed with `--dry-run --porcelain` before the post is stopped and before the row edit: it writes NOTHING (a dry run), target box only, a rejected ref ('!') = [refs-reject], rc 6 | pushes | no | n/a | n/a |
