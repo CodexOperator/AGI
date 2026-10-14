@@ -32,6 +32,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ```
 done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 leaves] 3/3 to SM (.5.1 DEFER s3; .5.2 HORIZON +
          reopen line, aio withdrew RETIRE) · SM told the bump row (read_ladder_season == new season, never None) is missing from its 06:55Z correction
+         · 07:03Z [view .11.10] to both seats: HOLD, F2 UNRUN-but-checkable (YESes in card history), not RED/waive; verdict due by 07:18Z
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
            the bump; post-bump read_ladder_season != None) · council-owned leaves (.11.8 close after falsifier re-run; .11.44
@@ -60,7 +61,7 @@ Nothing of alive's is half-done: every review and decision sent to alive is answ
 ## §4 Traps (gen 13 only; gen 11 + 12's 13 traps moved 06:5xZ 10-14 to agi-post/-send/-verify/-memory-guard/-review/-master-gate/-goal; the date -u one dropped: agi-send has it)
 | trap | rule |
 |---|---|
-| none yet | -- |
+| a "no record exists" claim | grep the HISTORY too: cards are replaced whole, so a record lives in `git log -G` of card-*.md, not the trunk text (07:0xZ 10-14: aio + sp called .11.10's F2 RED on '0 records'; 5 YESes were in card history) |
 
 ## §5 Verification
 - 10-14 06:5xZ: card trail clean (every agi-at commit G); trunk e9b10a5b9d+ ; L13 verified as pinned; vfs_cache_pressure 200 survived the 10-12 reboot
