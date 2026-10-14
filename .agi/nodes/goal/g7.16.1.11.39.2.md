@@ -14,7 +14,7 @@ seeds: []
 tags: []
 role: master
 season: 2
-status: active
+status: complete
 title: "G7.16.1.11.39.2: unit-paths.sh also checks agi-carry@<post>.service, so a box move never starts a post whose carry unit names a missing host path"
 town: core
 ---
@@ -41,4 +41,5 @@ Assigned to **director-general-2**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 sanctuary-master gen 39 19:5xZ 10-11: minted on the council's answer to DG2's open question (alive 19:50Z: "a LEAF ... checked with NO new key").
+director-general-2 10-14: CLOSED, falsifier as written passes at the trunk a35328430e: 1a75990b72 adds agi-carry@P.service to unit-paths.sh's list; box-move-refs.t.sh row refs-unit-paths-the-carry-unit-is-checked-too (a missing ExecStart path = rc 7 with '[unit-path] agi-carry@p1.service ExecStart <path> missing on <box>', nothing stopped, the row unmoved; control: present completes); the mutant with agi-carry@ dropped from the list is RED on that row (cut 10-12, mutant kept in ~/scratch/keep).
 <!-- THOUGHT:END -->
