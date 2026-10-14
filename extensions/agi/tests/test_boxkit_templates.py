@@ -615,7 +615,7 @@ def _fake_proc(tmp_path, rows):
     return proc
 
 
-def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, over=None, grow=None, flips=None, spawn=None, sysd=None, rewrite=None, no_uptime=False, kill_raises=(), break_log_at=None, fix_log_at=(), popen_raises=False, logger_raises=False, logger_hangs=False):
+def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, over=None, grow=None, flips=None, spawn=None, sysd=None, rewrite=None, no_uptime=False, kill_raises=(), break_log_at=None, fix_log_at=(), popen_raises=False, logger_raises=False, logger_hangs=False, mutate=None):
     """Run the RENDERED loop for `passes` passes on a fake clock (`tick` s per pass); avails[i] = MemAvailable in bytes
     for pass i (default: plenty). Returns (adj, stops, runs, ev): the SIGSTOPped pids, the logger/other run() calls and
     ev = what the loop did besides: conts (SIGCONT pids), boxes ([(argv, stdin text)] of every Popen), clock.
@@ -631,6 +631,7 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
     tmp_path.mkdir(parents=True, exist_ok=True)
     proc = _fake_proc(tmp_path, rows)
     src = R.rendered(piece, _vs(MEMGUARD_LOG=str(tmp_path / "guard.log"), **(over or {}))).replace("/proc", str(proc))
+    if mutate is not None: src = mutate(src)          # a row's MUTANT: the rendered guard with one site changed
     assert "/var/log" not in src       # log() writes a tmp path here, never the live log
     assert "send.py" not in src        # the retired mail path is gone from the rendered guard
     for c in ("time.sleep(", "time.time()", "os.kill(", "subprocess.Popen(", "os.getpriority(", "os.setpriority(", "subprocess.check_output(", "os.listdir("):
@@ -641,7 +642,7 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
     src = src.replace("subprocess.check_output(", "_out(").replace("os.listdir(", "_ls(")
     src = src.replace("os.getpriority(", "_gp(").replace("os.setpriority(", "_sp(")   # fake pids may be real ones
     import signal as _sig
-    clock, n, ev = [10_000.0], [0], types.SimpleNamespace(conts=[], boxes=[], stops=[], nice={}, sysd=[], order=[], seq=[], stopped={}, largv=[], pend=[])
+    clock, n, ev = [10_000.0], [0], types.SimpleNamespace(conts=[], boxes=[], stops=[], nice={}, sysd=[], sysd_kw=[], order=[], seq=[], stopped={}, largv=[], pend=[], spools=[])
     avails = avails or [33_000_000 * 1024]
     def setavail(i):
         a = avails[min(i, len(avails) - 1)]
@@ -683,23 +684,34 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
             if popen_raises: raise OSError("no runuser")
             ev.boxes.append([argv, argv[-1]]); ev.seq.append(("popen", argv[-1]))        # [argv, the notice text]: the text is the last argv word, never a shell string
         def poll(s): return 0
-        def wait(s, timeout=None): return 0
+        def wait(s, timeout=None): ev.seq.append(("wait", "notice")); return 0
+        def communicate(s, *a, **k): ev.seq.append(("wait", "notice")); return (None, None)
     class _L:
         """The journal line: `timeout 30 logger -t agi-memguard MSG`, fire-and-forget (ev.seq 'log'); logger_raises = the spawn itself fails."""
         def __init__(s, argv, **k):
             if logger_raises: raise OSError("no logger")
             ev.largv.append((argv, k)); runs.append((argv[2:],)); ev.seq.append(("log", argv[-1]))
         def poll(s): return None if logger_hangs else 0               # a hung logger stays in the pending list (the real one is killed by `timeout 30`)
-        def wait(s, timeout=None): return 0
+        def wait(s, timeout=None): ev.seq.append(("wait", "logger")); return 0            # a WAIT on the logger is an event: row (b) asserts none before the stop
+        def communicate(s, *a, **k): ev.seq.append(("wait", "logger")); return (None, None)
+    class _S:
+        """The alarm spool append (goal:g7.16.1.11.20.2): `timeout 30 runuser -u agi-SEAT -- python3 alarm_spool.py append ... --text TEXT`, fire-and-forget; recorded APART from the notices (ev.spools) so every notice-count row keeps its exact meaning."""
+        def __init__(s, argv, **k):
+            if popen_raises: raise OSError("no runuser")
+            ev.spools.append(argv)
+        def poll(s): return 0
+        def wait(s, timeout=None): ev.seq.append(("wait", "spool")); return 0
+        def communicate(s, *a, **k): ev.seq.append(("wait", "spool")); return (None, None)
     def _popen(argv, **k):
         if argv[2:3] == ["logger"]: return _L(argv, **k)
+        if any(str(a).endswith("alarm_spool.py") for a in argv): return _S(argv, **k)
         return _P(argv, **k) if not real_box else subprocess.Popen(argv, **k)
-    def _run(*a, **k):                    # a BLOCKING subprocess.run: the guard no longer has a call that waits on a child, so any entry here is a wait on the stop path
+    def _run(*a, **k):                    # a BLOCKING subprocess.run: the guard has none; its one blocking call is baseline()'s `systemctl show` (check_output, timeout 10, at the tick END: _out below), so any entry here is a wait on the stop path
         ev.seq.append(("run", a[0][-1])); runs.append(a)
         if logger_raises: raise OSError("no logger")
     runs = []
     def _out(argv, **k):
-        ev.sysd.append(argv); ev.order.append(("fetch", argv[2])); got = (sysd or {}).get(argv[2], "OOMScoreAdjust=0\nNice=0\n")
+        ev.sysd.append(argv); ev.sysd_kw.append(k); ev.order.append(("fetch", argv[2])); got = (sysd or {}).get(argv[2], "OOMScoreAdjust=0\nNice=0\n")
         if isinstance(got, list): got = got.pop(0) if len(got) > 1 else got[0]          # a sequence: one answer per call, the last repeats
         if isinstance(got, Exception): raise got
         return got
@@ -1420,11 +1432,11 @@ def test_install_writes_under_a_tmp_install_root_only(tmp_path):
 # says what it means and steers the one thing it steers: the falsifier's LIVE set.
 def test_new_bytes_rows_are_flagged_and_excluded_from_the_live_comparison():
     rows = [p for p in PIECES if p.get("new_bytes")]
-    assert {p["name"] for p in rows} == set(DRIFT_ROWS) | {"agi-survival-conf"}
+    assert {p["name"] for p in rows} == set(DRIFT_ROWS) | {"agi-survival-conf", "agi-vm-sysctl"}
     assert not [p for p in rows if p in LIVE], "a new_bytes row must not be compared as a copy"
     assert len(LIVE) == len(PIECES) - len(rows)
     for p in rows:
-        assert "OOMPolicy=" in R.rendered(p, _v()), p["name"]
+        assert ("vm.vfs_cache_pressure = " if p["name"] == "agi-vm-sysctl" else "OOMPolicy=") in R.rendered(p, _v()), p["name"]
 
 
 # 10 -- the no-cascade coverage closure (kid a00-057a8121). The goal TABLE is the spec,
@@ -2356,7 +2368,100 @@ def test_memguard_the_stop_neither_waits_on_logger_nor_dies_of_it(tmp_path):
     assert not any(e[0] == "run" for e in ev.seq), [e for e in ev.seq if e[0] == "run"]          # no blocking subprocess.run anywhere: a hung logger cannot hold the tick
     k = _kill_at(ev, 30)
     assert any(e[0] == "log" and e[1].startswith("SPIKE") for e in ev.seq[:k]), ev.seq[:k]         # the SPIKE line WAS spawned before the stop, and the stop did not wait for it
+    assert not any(e[0] == "wait" for e in ev.seq[:k]), [e for e in ev.seq[:k] if e[0] == "wait"]      # council 3/3 00:31Z remark: no wait()/communicate() on any child, logger included, before the SIGSTOP
     assert ev.largv and all(a[:3] == ["timeout", "30", "logger"] for a, kw in ev.largv), ev.largv          # a hung logger is killed at 30 s ...
     assert all(kw.get("stdin") is subprocess.DEVNULL and kw.get("stdout") is subprocess.DEVNULL and kw.get("stderr") is subprocess.DEVNULL for a, kw in ev.largv)      # ... and owns no pipe of the guard
     held = [q for q in ev.pend if type(q).__name__ == "_L"]
     assert len(held) >= 1 and all(q.poll() is None for q in held), ev.pend                          # ... and is REAPED through the pending list, not forgotten (the hung ones are still in it)
+
+
+def test_memguard_a_wait_on_the_logger_before_the_stop_is_red_on_row_b(tmp_path):
+    """MUTANT of row (b): the journal line is waited on (p.wait()) right after its Popen. The fake logger records the wait, and the stop's tick shows it BEFORE the SIGSTOP."""
+    old = "pend.append(subprocess.Popen(['timeout', '30', 'logger', '-t', 'agi-memguard', msg], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))"
+    src = R.rendered(BY_NAME["memguard-script"], _vs())
+    assert src.count(old) == 1, old
+    spike = dict(avails=[30 * GIB, 20 * GIB], grow={1: [(30, 7_000_000)]})
+    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(), passes=2, logger_hangs=True, mutate=lambda t: t.replace(old, old[:-1] + "); pend[-1].wait(" + ")"), **spike)
+    assert stops == [30], stops
+    assert any(e[0] == "wait" and e[1] == "logger" for e in ev.seq[:_kill_at(ev, 30)]), ev.seq      # the mutant waits before the stop: row (b)'s predicate sees it
+
+
+def test_memguard_the_one_blocking_call_is_the_systemctl_show_at_the_tick_end_with_timeout_10(tmp_path):
+    """The council's correction (00:31Z 10-12, goal:g7.16.1.11.40.1): 'the guard has NO blocking child call' was false. baseline()'s `systemctl show` is check_output with timeout=10, ONE per tick, and it runs AFTER every stop of its tick: a size stop in the NEXT tick can wait at most 10 s behind it, a low stop never (fetches never run below the low line)."""
+    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(big=(21,)), passes=3, spawn={1: _TOOL}, sysd={_unit(): "OOMScoreAdjust=200\nNice=3\n"})
+    assert stops == [21], stops
+    assert len(ev.sysd) == 1 and ev.sysd_kw[0].get("timeout") == 10, (ev.sysd, ev.sysd_kw)           # one fetch, bounded at 10 s
+    kinds = [o[0] for o in ev.order]
+    assert "stop" in kinds and "fetch" in kinds and kinds.index("stop") < kinds.index("fetch"), ev.order       # the stop of the tick is out before the fetch begins
+    assert not any(e[0] == "run" for e in ev.seq), ev.seq                                                  # and no subprocess.run anywhere
+
+
+# --- goal:g7.16.1.11.20.2 C3: every alert is ALSO one alarm line in the sending seat's spool; root signs nothing ----------
+
+def _spool_argv(v, text):
+    seat = v["MEMGUARD_ALARM_SEAT"]
+    return ["timeout", "30", "runuser", "-u", "agi-" + seat, "--", "python3", v["ALARM_SPOOL_PY"], "append", "--job", "memguard", "--to", v["MEMGUARD_ALARM_TO"],
+            "--max-lines", v["ALARM_SPOOL_MAX"], "--spool", "%s/%s/alarm.spool" % (v["MEMGUARD_STORES"], seat), "--text", text]
+
+
+def _one_append_per_alert(ev):
+    """True when the alerts of the run produced exactly ONE spool append each (the notices go to every recipient, the alarm to ONE reader)."""
+    return len(ev.spools) > 0 and len(ev.boxes) == len(ev.spools) * len(_vs()["MEMGUARD_ALERT_TO"].split())
+
+
+def test_memguard_a_red_alert_is_one_plain_spool_append_as_the_sending_seat(tmp_path):
+    v = _vs()
+    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(big=(21,)))
+    assert stops == [21], stops
+    (argv,) = ev.spools                                                              # ONE line, though the notice went to every recipient
+    assert argv == _spool_argv(v, argv[-1]), argv                                    # runuser AS the sending seat, a plain append, no env, no key, no box
+    assert argv[-1].startswith("[memguard-susp-21] SUSPENDED pid 21") and " (ev " in argv[-1], argv[-1]
+    assert argv[-1] == ev.boxes[0][1], "the spool line and the notice are the same alert"
+    assert _one_append_per_alert(ev)
+    # a second stop in the same minute is its own alert, its own line
+    adj, stops, runs, ev = _guard_pass(tmp_path / "two", _post_unit(big=(21, 23)))
+    assert sorted(a[-1].split(" ")[0] for a in ev.spools) == ["[memguard-susp-21]", "[memguard-susp-23]"], ev.spools
+
+
+def test_memguard_the_spool_follows_the_notice_cooldown_exactly(tmp_path):
+    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(), passes=4, avails=[30 * GIB, 20 * GIB, 15 * GIB, 8 * GIB])      # a SPIKE at every pass but the first, inside one cooldown
+    assert ev.spools and _one_append_per_alert(ev), (len(ev.spools), len(ev.boxes))
+    kinds = [a[-1].split(" ")[0] for a in ev.spools]
+    assert kinds.count("[memguard-spike]") == 1, kinds                                # not one line per pass
+
+
+def test_memguard_a_spool_that_cannot_be_spawned_is_written_and_never_stops_the_stop(tmp_path):
+    adj, stops, runs, ev = _guard_pass(tmp_path, _post_unit(), passes=2, avails=[30 * GIB, 20 * GIB], grow={1: [(30, 7_000_000)]}, popen_raises=True)
+    assert stops == [30], stops
+    filed = (tmp_path / "guard.log").read_text()
+    assert "alarm spool for %s not appended" % _vs()["MEMGUARD_ALARM_SEAT"] in filed and "SUSPENDED pid 30 " in filed, filed
+
+
+@pytest.mark.parametrize("old,new", [
+    ("notice(line); spool(line)", "notice(line); spool(line); spool(line)"),          # M1: the alarm doubled
+    ("notice(line); spool(line)", "notice(line)"),                                    # M2: root never appends: the alarm is lost
+    ("notice(line); spool(line)", "notice(line); [spool(line) for _ in '{{MEMGUARD_ALERT_TO}}'.split()]".replace("{{MEMGUARD_ALERT_TO}}", "sanctuary-master belam")),   # M3: one line per notice recipient
+])
+def test_memguard_each_spool_mutant_is_red_on_the_one_append_row(tmp_path, old, new):
+    marker = "notice(line); spool(line)"
+    probe = _guard_pass(tmp_path / "real", _post_unit(big=(21,)))[3]
+    assert _one_append_per_alert(probe)                                              # GREEN on the real render
+    def mutate(src):
+        assert src.count(old) == 1, old                                               # anchor: 0 or 2 matches prove nothing
+        return src.replace(old, new)
+    ev = _guard_pass(tmp_path / "mut", _post_unit(big=(21,)), mutate=mutate)[3]
+    assert not _one_append_per_alert(ev), f"mutant {new!r} survived: {len(ev.spools)} appends for {len(ev.boxes)} notices"
+
+
+# --- goal:g7.16.1.11.40.1.1 target 3a: the vfs_cache_pressure stopgap lives in /etc/sysctl.d as BYTES (a node), not a hand-typed sysctl -----------
+
+def test_the_sysctl_row_is_a_conf_in_sysctl_d_carrying_the_configured_value_only():
+    piece = BY_NAME["agi-vm-sysctl"]
+    assert piece["dest_cell"] == "sysctl_d_dir" and piece["dest_rel"] == "60-agi-vm.conf" and piece["mode"] == "0644" and piece["placeholders"] == ["VFS_CACHE_PRESSURE"]
+    assert CELLS["sysctl_d_dir"] == "etc/sysctl.d"
+    v = _vs()
+    got = R.rendered(piece, v)
+    live = [l for l in got.splitlines() if l and not l.startswith("#")]
+    assert live == ["vm.vfs_cache_pressure = " + v["VFS_CACHE_PRESSURE"]], live                   # one setting, no stray key
+    assert 100 < int(v["VFS_CACHE_PRESSURE"]) <= 500                                               # above the default, inside the council's 200-500
+    assert R.rendered(piece, {**v, "VFS_CACHE_PRESSURE": "350"}).splitlines()[-1] == "vm.vfs_cache_pressure = 350"   # the value is the cell, none in the template

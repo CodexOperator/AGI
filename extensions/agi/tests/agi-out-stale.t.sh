@@ -12,15 +12,18 @@ GIT=$(command -v git)
 parse(){ rm -f $D/k.* $D/t.* $D/s.*;grep -E '^(ExecCondition|ExecStartPre|ExecStart)=' $D/unit|sed "s|%i|post1|g;s|%t|$D/run|g;s|/etc/agi/carry.env|$D/carry|g">$D/seq;nl=0
 while IFS= read -r l;do nl=$((nl+1));echo "${l%%=*}">$D/k.$nl;v=${l#*=};case $v in "+"*|"-+"*)echo plus>$D/t.$nl;;"awk "*)echo awk>$D/t.$nl;;"sh -c '"*)echo sh>$D/t.$nl;s=${v#"sh -c '"};printf '%s' "${s%"'"}">$D/s.$nl;;'sh -c "'*)echo sh>$D/t.$nl;s=${v#'sh -c "'};printf '%s' "${s%'"'}">$D/s.$nl;;*)echo other>$D/t.$nl;;esac;done<$D/seq;}
 parse
+PG=$(sed -n 's/^Environment="AGI_PIECE_GLOB=\(.*\)"$/\1/p' $D/unit)   # goal:g7.16.1.11.41 target 1: the ONE named glob cell the extraction and the agi-run condition read
 AO=$(grep -n 'agi-out' $D/seq|cut -d: -f1);[ "$(echo "$AO"|wc -w)" = 1 ]||{ echo "FAIL the unit has not exactly one agi-out step ($AO)";exit 99;}
 # mkh N: a scratch HOME with a STALE t (a git repo whose engine-post.md carries agi-flush + agi-run and NO agi-out), an empty /opt/agi/bin stand-in, no bin/agi-out
 mkh(){ H=$D/h$1;rm -rf $H $D/opt;mkdir -p $H/t/$GEO $H/bin $D/run/agi-post1 $D/opt $D/orig;SHIM=
  printf '### agi-flush (stub)\n~~~sh\n#!/bin/sh\ngit -C t merge "${AGI_TRUNK:-trunk}" >/dev/null||echo "agi-flush: merge conflict, t left as it was" >&2\nexit 0\n~~~\n### agi-run (stub)\n~~~sh\n#!/bin/sh\nexit 0\n~~~\n'>$H/t/$GEO/engine-post.md
- (cd $H/t;$GIT init -q;$GIT add -A;$GIT -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm stale);rm -f $D/run/agi-post1/i;[ -d $D/orig/.git ]||mko;}
-mko(){ rm -rf $D/orig;mkdir -p $D/orig/$GEO;printf '  - {"name": "post1", "box": "lanebox"}\n'>$D/orig/$GEO/posts.md;(cd $D/orig;$GIT init -q;$GIT add -A;$GIT -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm posts;$GIT branch -f trunk HEAD);printf 'AGI_HUB=\nAGI_BOX=lanebox\n'>$D/carry;}
+ (cd $H/t;$GIT init -q;$GIT add -A;$GIT -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm stale);rm -f $D/run/agi-post1/i;mko;}      # a fresh trunk each time: tout X below adds an agi-out piece to THIS row only
+mko(){ rm -rf $D/orig;mkdir -p $D/orig/$GEO;printf '  - {"name": "post1", "box": "lanebox"}\n'>$D/orig/$GEO/posts.md;printf '### agi-flush (stub)\n~~~sh\n#!/bin/sh\ngit -C t merge "${AGI_TRUNK:-trunk}" >/dev/null||echo "agi-flush: merge conflict, t left as it was" >&2\nexit 0\n~~~\n### agi-run (stub)\n~~~sh\n#!/bin/sh\nexit 0\n~~~\n'>$D/orig/$GEO/engine-post.md;(cd $D/orig;$GIT init -q;$GIT add -A;$GIT -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm posts;$GIT branch -f trunk HEAD);printf 'AGI_HUB=\nAGI_BOX=lanebox\n'>$D/carry;}
+# tout X: the TRUNK ($D/orig) carries an agi-out piece exiting X (cut 3: ~/bin is exactly the trunk's pieces, so a "present" agi-out comes from the trunk through the extraction, never from a file placed in bin/)
+tout(){ printf '### agi-out (stub)\n~~~sh\n#!/bin/sh\necho ran>>$HOME/ran\nexit %s\n~~~\n' $1>>$D/orig/$GEO/engine-post.md;(cd $D/orig;$GIT add -A;$GIT -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm out;$GIT branch -f trunk HEAD);}
 pu(){ echo ${SHIM:+$SHIM:}$H/bin:$D/opt:/usr/local/bin:/usr/bin:/bin;}
 # one N: step N alone (rc in sr, stdout so.N, stderr se.N)
-one(){ (cd $H&&env -i PATH=$(pu) HOME=$H O=$D/orig AGI_TRUNK=trunk AGI_POST=post1 GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 sh -c "$(cat $D/s.$1)")>$D/so.$1 2>$D/se.$1;sr=$?;echo $sr>$D/rc.$1;}
+one(){ (cd $H&&env -i PATH=$(pu) HOME=$H O=$D/orig AGI_TRUNK=trunk AGI_PIECE_GLOB="$PG" AGI_POST=post1 GIT_CONFIG_SYSTEM=/dev/null GIT_TEST_ASSUME_DIFFERENT_OWNER=1 sh -c "$(cat $D/s.$1)")>$D/so.$1 2>$D/se.$1;sr=$?;echo $sr>$D/rc.$1;}
 # cyc: ONE start of the unit (steps in order; a failing ExecStartPre aborts the start = systemd's Restart= loop; ALL=1 runs on past a failure to fill the table). creach = ExecStart reached, cfail = "N:rc" of the first failing step, pl = the root stubs that ran
 cyc(){ creach=0;cfail=;: >$D/pl;n=0;while [ $n -lt $nl ];do n=$((n+1));k=$(cat $D/k.$n);ty=$(cat $D/t.$n)
   [ $k = ExecStart ]&&{ creach=1;break;}
@@ -36,7 +39,7 @@ ok "o7a-next-steps-run the steps AFTER agi-out still run (the root steps, agi-si
 mkh 2;reach=0;n127=0;nl_=0;for i in 1 2 3 4 5;do rm -f $D/rc.*;cyc;reach=$((reach+creach));[ "$(rcao)" = 127 ]&&n127=$((n127+1));nl_=$((nl_+$(wc -l <$D/se.$AO)));done
 ok "o7b-loop-5-starts 5 starts with the stale t: ExecStart reached $reach times (want 5), agi-out exits 127 $n127 times (want 0), $nl_ stderr lines from the step (want 5: ONE per start)" '[ $reach = 5 ]&&[ $n127 = 0 ]&&[ $nl_ = 5 ]'
 # --- O7c: agi-out PRESENT: the step runs it as today and ITS exit code passes through (a skip never masks a present piece that fails)
-for x in 3 0 127;do mkh 3;printf '#!/bin/sh\necho ran>>$HOME/ran\nexit %s\n' $x>$H/bin/agi-out;chmod +x $H/bin/agi-out;rm -f $D/rc.*;cyc;want=0;[ $x = 0 ]&&want=1
+for x in 3 0 127;do mkh 3;tout $x;rm -f $D/rc.*;cyc;want=0;[ $x = 0 ]&&want=1
  ok "o7c-present-exit-$x a present bin/agi-out exiting $x: the step exits $x (got $(rcao)), the piece ran ONCE ($(wc -l <$H/ran) time), no skipped line (stderr: $(head -1 $D/se.$AO|cut -c1-60)), and the start reaches ExecStart only on 0 (reached=$creach)" '[ "$(rcao)" = $x ]&&[ "$(wc -l <$H/ran)" = 1 ]&&! grep -qi skipped $D/se.$AO&&[ $creach = $want ]';done
 # O7c2: agi-out on the unit's PATH but NOT in bin/ (the /opt/agi/bin stand-in): present on the PATH, so it must RUN and its exit code pass through (a skip keyed on bin/ alone masks a present root-owned piece)
 for x in 3 0;do mkh 3;printf '#!/bin/sh\necho ran>>$HOME/ran\nexit %s\n' $x>$D/opt/agi-out;chmod +x $D/opt/agi-out;rm -f $D/rc.*;cyc
@@ -48,8 +51,8 @@ mkh 4;mkdir $H/bin/agi-out;one $AO
 ok "o7d-directory bin/agi-out is a DIRECTORY: the step fails (rc $sr), loud (stderr: $(head -1 $D/se.$AO|cut -c1-70)), no skip" '[ $sr != 0 ]&&[ -s $D/se.$AO ]&&! grep -qi skipped $D/se.$AO'
 mkh 4;ln -s $D/nowhere $H/bin/agi-out;one $AO
 ok "o7d-dangling-symlink bin/agi-out is a DANGLING symlink: the step fails (rc $sr), loud (stderr: $(head -1 $D/se.$AO|cut -c1-70)), no skip" '[ $sr != 0 ]&&[ -s $D/se.$AO ]&&! grep -qi skipped $D/se.$AO'
-mkh 4;printf '#!/bin/sh\nexit 0\n'>$H/bin/agi-out;chmod -x $H/bin/agi-out;rm -f $D/rc.*;cyc
-ok "o7d-chmod-repairs-in-a-start the same non-executable file through a whole start: line 36's chmod +x bin/* runs BEFORE agi-out, the piece runs and exits 0 (rc $(rcao), reached=$creach): a not-executable piece cannot arise through the unit" '[ "$(rcao)" = 0 ]&&[ $creach = 1 ]'
+mkh 4;tout 0;rm -f $D/rc.*;cyc
+ok "o7d-chmod-repairs-in-a-start the trunk's agi-out piece is written 0644 by the extraction; the unit's chmod +x bin.new/* runs BEFORE agi-out, so the piece RUNS and exits 0 (rc $(rcao), ran $(wc -l <$H/ran 2>/dev/null) time, reached=$creach): a not-executable piece cannot arise through the unit" '[ "$(rcao)" = 0 ]&&[ "$(wc -l <$H/ran)" = 1 ]&&[ $creach = 1 ]'
 # --- O7e (belam): a restart through an out-line, t NOT merged. The stop path (ExecStopPost agi-flush) tries to merge the trunk into t and CONFLICTS (a shim git: every `merge` fails); the unit restarts on the SAME stale t: it starts, ONE loud line, no loop
 mkh 5;mkdir -p $D/shim;printf '#!/bin/sh\ncase " $* " in *" merge "*)echo "CONFLICT (content): automatic merge failed" >&2;: >%s;exit 1;;esac\nexec %s "$@"\n' $D/merged $GIT>$D/shim/git;chmod +x $D/shim/git;SHIM=$D/shim;rm -f $D/merged
 rm -f $D/rc.*;cyc;r1=$creach;h0=$($GIT -C $H/t rev-parse HEAD);(cd $H&&env -i PATH=$(pu) HOME=$H AGI_TRUNK=trunk sh -c agi-flush>/dev/null 2>$D/flush.err);h1=$($GIT -C $H/t rev-parse HEAD);rm -f $D/rc.*;cyc

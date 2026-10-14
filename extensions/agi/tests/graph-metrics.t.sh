@@ -24,7 +24,10 @@ evidence_runs: 2
 sm(){ (cd $P&&python3 extensions/agi/bin/success_metrics.py "$@" 2>$T/sm.err);}   # stdout only: the cron line is `L=$(...)`, stderr never reaches the cell
 xv(){ grep -oE "(^| )$2=(UNMEASURED\([^)]*\)|[^ ]+)"|head -1|sed "s/^ //;s/^[^=]*=//";}   # value of key $2 on the line on stdin (a reason may hold spaces)
 mt(){ (cd $P&&python3 extensions/agi/bin/metrics.py "$@" 2>&1);}
-cr(){ (cd $P&&python3 extensions/agi/bin/crons.py "$1" --root $G_ --crontab-file $T/ct 2>&1);}
+cr(){ (cd $P&&python3 extensions/agi/bin/crons.py "$1" --root $G_ --crontab-file $T/ct $( [ "$1" = apply ]&&echo --user-crontab-dir $T/uct ) 2>&1);}
+# goal:g7.16.1.11.42 C1: the job is bound to agi-belam (option E), so `apply` puts it in THAT user's crontab (a fixture dir here). bl = every crontab the apply wrote; mcl = the cron line with board_job.py's wrapper taken off, i.e. what the writer step runs (metrics_cell.py on the scratch root)
+bl(){ cat $T/ct $T/uct/*.crontab 2>/dev/null;}
+mcl(){ bl|grep 'success_metrics.py --line'|head -1|cut -d' ' -f6-|sed -e 's#mkdir -p [^ ]* && python3 [^ ]*board_job.py commit --main [^ ]* --post belam --job metrics_cell --work [^ ]* -- python3 #python3 #' -e "s#@WROOT@#$G_#" -e "s#>> [^ ]* #>> $T/board.log #";}
 mkp pm
 # ---- B: success_metrics.py --line
 sm --line $G_ >$T/b1.out;brc=$?;line=$(head -1 $T/b1.out);bn=$(wc -l <$T/b1.out|tr -d ' ');bb=$(wc -c <$T/b1.out|tr -d ' ')
@@ -122,7 +125,7 @@ except Exception as e: print('EXC',type(e).__name__)
 " 2>&1|tail -1)
 ok "c4-hook-functions-unchanged (control) the SessionStart hook imports functions, not main(): metrics.compute() on a root with no nodes/ still RETURNS (got '$c4'); the refusal lives in main(), a hook must not die on it" 'case "$c4" in compute-ok*);;*)false;;esac'
 # ---- A: crons
-mkp pc full;: >$T/ct;cr show >$T/a1.out;a1d=$(awk '/^desired:/{f=1;next} /^$/{f=0} f' $T/a1.out);a1c=$(echo "$a1d"|grep -c 'success_metrics.py --line')
+mkp pc full;: >$T/ct;rm -rf $T/uct;cr show >$T/a1.out;a1d=$(awk '/^desired/{f=1;next} /^$/{f=0} f' $T/a1.out);a1c=$(echo "$a1d"|grep -c 'success_metrics.py --line')
 yf=$(cd $P&&python3 -c "
 import yaml
 fm=yaml.safe_load(open('$G_/nodes/.geometry/crons.md').read().split('---')[1])
@@ -131,10 +134,10 @@ print('A1OK' if (j.get('schedule')=='23 * * * *' and j.get('enabled') is True an
 ok "a1-shipped-node-declares-the-job-once crons.py show over ROOT's crons.md lists graph_metrics ONCE ($a1c line(s) with success_metrics.py --line) at '23 * * * *' ($(echo "$a1d"|grep 'success_metrics.py --line'|head -1|cut -c1-14)), and the node's cadence cell (schedule 23 * * * *, enabled, box encryption-town, a why_box, the cmd) reads: $yf (want A1OK); today the job is absent" '[ "$a1c" = 1 ]&&echo "$a1d"|grep "success_metrics.py --line"|head -1|grep -q "^  23 \* \* \* \* "&&[ "$yf" = A1OK ]'
 ng=$(grep -c '^  graph_metrics:' $G_/nodes/.geometry/crons.md);nm=$(grep -c 'metrics.py' $G_/nodes/.geometry/crons.md)
 ok "a1b-exactly-once-in-the-node the node has ONE graph_metrics cadence key ($ng, want 1) and 'metrics.py' appears on exactly ONE line of it ($nm, want 1: the cmd; the prose says nothing that would match twice)" '[ "$ng" = 1 ]&&[ "$nm" = 1 ]'
-cr apply >$T/a2.out;a2n=$(grep -c 'success_metrics.py --line' $T/ct);cp $T/ct $T/ct.1;cr apply >/dev/null;cr show >$T/a2s.out
-ok "a2-apply-makes-the-crontab-agree after crons.py apply on a scratch crontab file the job is installed ONCE ($a2n line(s), want 1) at minute 23 hourly ($(grep 'success_metrics.py --line' $T/ct|head -1|cut -c1-14)), a second apply leaves the file byte-identical ($(cmp -s $T/ct $T/ct.1&&echo same||echo CHANGED)) and show reports no drift ($(grep -c DRIFT $T/a2s.out) DRIFT)" '[ "$a2n" = 1 ]&&grep "success_metrics.py --line" $T/ct|head -1|grep -q "^23 \* \* \* \* "&&cmp -s $T/ct $T/ct.1&&! grep -q DRIFT $T/a2s.out'
+cr apply >$T/a2.out;a2n=$(bl|grep -c 'success_metrics.py --line');bl >$T/ct.1;cr apply >/dev/null;cr show >$T/a2s.out
+ok "a2-apply-makes-the-crontab-agree after crons.py apply on a scratch crontab file the job is installed ONCE ($a2n line(s), want 1) at minute 23 hourly ($(bl|grep 'success_metrics.py --line'|head -1|cut -c1-14)), a second apply leaves the crontabs byte-identical ($(bl|cmp -s - $T/ct.1&&echo same||echo CHANGED)) and show reports no drift ($(grep -c DRIFT $T/a2s.out) DRIFT)" '[ "$a2n" = 1 ]&&bl|grep "success_metrics.py --line"|head -1|grep -q "^23 \* \* \* \* "&&bl|cmp -s - $T/ct.1&&! grep -q DRIFT $T/a2s.out'
 # a4: the rendered cron line itself, run by sh in the scratch (belam's job end to end): the town node gets the cell
-mkp pc full;: >$T/ct;cr apply >/dev/null;cl=$(grep 'success_metrics.py --line' $T/ct|head -1|cut -d' ' -f6-);mkdir -p $HOME/logs
+mkp pc full;: >$T/ct;rm -rf $T/uct;cr apply >/dev/null;cl=$(mcl);mkdir -p $HOME/logs
 (cd $P&&sh -c "$cl") >$T/a4.out 2>&1;a4rc=$?;cell=$(sed -n 's/^metrics_line: //p' $G_/nodes/town/local-maxxing.md|head -1);NC=$(mt $G_|sed -n 's/^METRIC node_count=//p')
 ok "a4-the-cron-line-writes-the-cell the rendered job line, run by sh in the scratch project, exits $a4rc (want 0) and leaves ONE metrics_line cell on town:local-maxxing holding the SAME node_count as metrics.py on that project ($NC) and conclusive_verdicts=1 (cell: $(echo "$cell"|cut -c1-80)...)" '[ $a4rc = 0 ]&&[ "$(grep -c "^metrics_line:" $G_/nodes/town/local-maxxing.md)" = 1 ]&&echo "$cell"|grep -q "node_count=$NC "&&echo "$cell"|grep -q "conclusive_verdicts=1"'
 # ---- D: the write (write.py set metrics_line as belam on the town node)
@@ -176,8 +179,7 @@ for i in range(3000): print(json.dumps({"ts": i, "verb": "set", "node": "goal:g1
 ok "r1a-substring-is-not-a-counter a write-log whose only 'tokens' text is inside node-id slugs (4 rows) and a note value (1 row), no row with a tokens field: hierarchy_tokens_per_hour reads '$r1a' (want UNMEASURED(no source yet)); 41956e53d5 reads (no live counter) over the live 2.29 MB log" '[ "$r1a" = "UNMEASURED(no source yet)" ]'
 ok "r1b-a-tokens-field-is-the-counter-reading (control) a write-log whose rows carry a tokens FIELD: hierarchy_tokens_per_hour reads '$r1b' (want UNMEASURED(no live counter)), different from r1a" '[ "$r1b" = "UNMEASURED(no live counter)" ]'
 # R2: the hourly job never leaves town:local-maxxing dirty. The RENDERED cron line, run by sh in the scratch, in four states.
-mkp pj full;TN=$G_/nodes/town/local-maxxing.md;echo '{"values":{"core":{"suite_lock":{"hold_wait_s":1}}}}'>$G_/config.json;$G -C $P commit -qam cfg;: >$T/ct;cr apply >/dev/null;cl=$(grep 'success_metrics.py --line' $T/ct|head -1|cut -d' ' -f6-)
-[ -n "$cl" ]||cl=$(grep 'success_metrics.py' $T/ct|head -1|cut -d' ' -f6-)
+mkp pj full;TN=$G_/nodes/town/local-maxxing.md;echo '{"values":{"core":{"suite_lock":{"hold_wait_s":1}}}}'>$G_/config.json;$G -C $P commit -qam cfg;: >$T/ct;rm -rf $T/uct;cr apply >/dev/null;cl=$(mcl)
 jb(){ LOG=$(echo "$cl"|sed 's/.*>> \([^ ]*\) .*/\1/');: >$LOG;(cd $P&&sh -c "$cl") >$T/job.out 2>&1;jrc=$?;cat $LOG >>$T/job.out;jn=$(grep -c . $T/job.out);jdirty=$($G -C $P status --porcelain --untracked-files=no|wc -l|tr -d ' ');}   # the cron line appends to a per-project log: that log IS the job's output
 dirtyp(){ $G -C $P status --porcelain -- "$TN"|wc -l|tr -d ' ';}
 jb;r2a=$(grep -c "^metrics_line:" $TN)

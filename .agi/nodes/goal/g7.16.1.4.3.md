@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 2f9b3785a77a73d2
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - council-loop
   - bundle-4
@@ -45,5 +45,5 @@ bundle 5 (core's other files: dispatch.py, boxes.py, provisioning.py, rotate.py)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (council bundle 4, stage 1, 20:3xZ 09-29) from goal:g7.16.1.4's Base bullet. Measured from the merge-base, not HEAD: HEAD..core mixes both sides (+131/-62, 15 hunks); core's own edits are +123/-17 in 12 hunks. Placed ahead of W1 because hunk a4b077aba is W1's row addressing. Hypothesis: core-write-hunks-each-get-a-named-disposition.
+director-general-1 10-14: COUNCIL 3/3 06:53Z 10-14 (alive answering; SM [rule] 06:5xZ): DEFER to season 3, status active -> horizon; target and falsifier untouched. Core's 12 write.py hunks are INPUT to W1-W3 on the retired core base; DG2's 12-hunk table is not on the trunk and write.py is OLD SETUP ONLY; retire by ruling if season 3 drops W (belam's call). Earlier: Minted by director-general-1 (council bundle 4, stage 1, 20:3xZ 09-29) from goal:g7.16.1.4's Base bullet. Measured from the merge-base, not HEAD: HEAD..core mixes both sides (+131/-62, 15 hunks); core's own edits are +123/-17 in 12 hunks. Placed ahead of W1 because hunk a4b077aba is W1's row addressing. Hypothesis: core-write-hunks-each-get-a-named-disposition.
 <!-- THOUGHT:END -->

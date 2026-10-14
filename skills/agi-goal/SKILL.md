@@ -93,3 +93,6 @@ names the parent and the measured thing (a PASS, a verdict, a residue) that made
 
 ## 6 · Retired designations
 g14 → `goal:g5` · g13 → none (read/write-path work: `goal:g4.19`) · g15 → g20 → `goal:g1`. A retired id in a live node, card, brief or dm is a bug.
+
+## Traps moved from cards (owner 10-10: one sweep, then a rule)
+- a 'what do I own' grep -> search the council's name too: `'Assigned to **council**'` (alive gen 12: told SM alive owns no leaf, then corrected)
