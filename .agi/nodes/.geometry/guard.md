@@ -136,11 +136,12 @@ GUARD_ENGINE_MAX_local_town=3G
 
 ```sh move.exclude
 refs/remotes  a remote-tracking ref is a copy of origin's; the target fetches its own
+refs/capsule  a capsule rides as its own signed ref inside the move's bundle, and older packs stay on the box that made them (pack never deletes)
 ```
 
 ## move.target-fit -- what the target must have free before a box move touches anything
 
-`extensions/agi/guard/target-fit.sh` (goal:g7.16.1.11.39.3, the council's limit 1) runs on the target in the unit-paths ssh, before the stop and the row edit: the free space under the target repo must be at least `data-free-min-kb`, and a probe file must be creatable and removable in its refs dir. Else `[target-unfit]`, rc 9, nothing touched. `Key value  reason`.
+`extensions/agi/guard/target-fit.sh` (goal:g7.16.1.11.39.3, the council's limit 1) runs on the target in the unit-paths ssh, before the stop and the row edit: the free space under the target repo must be at least `data-free-min-kb`, and (since goal:g7.16.1.11.44.7 the refs-dir probe lives in box-move.sh's PRE-STOP target step) a probe file must be creatable and removable in its refs dir. Else `[target-unfit]`, rc 9, nothing touched. `Key value  reason`.
 
 ```sh move.target-fit
 data-free-min-kb 2097152  2 GiB: the carry is at most the whole repo, and MAIN's .git measured 421,612 KB on 10-12 (a 286 MiB pack + loose objects + the grid refs); the floor is ~5x that, so a full or near-full disk refuses before the stop instead of at the after-check
