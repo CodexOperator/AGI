@@ -71,6 +71,7 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
          · 18:03:52Z [withdraw] my 18:01 (2)+(3): the rollover is season.py rollover --global (cmd_rollover_global :1278; fold in temp detached worktree; write.py commits per node). VERIFIED aio: A cut refused (origin/season3/main 842e23358d != origin/season2/main ef9b043e68); B season2/main 1030 behind trunk (PASS + push first); C fold stages engine-post (+142/-19) -> check = judge BLOBS vs old season tip + ladder-alone row. Ask: whole dry run in the [review], printing each cell commit's branch
          · 18:04:26Z view: AGREE sp order (PASS+push -> comparison tip -> judge-blob check gated -> A -> dry run -> run); OBJECT to sp's A replay (= force-push of published season3/main, barred, owner's word); A1 RECOMMENDED: _cut RESUME when old tip is-ancestor of new (gated, rows + mutant); s3 contains L18, not ef9b043e68
          · 18:04:49Z view: AGREE aio cell commits land on the tree season.py runs in (season.py:280 cwd=root; cells only with --delete-old) -> run in scratch worktree on new trunk; rows s3 ladder==3, s2 final==2, + wrong-branch start refused rc1. A1 (cut RESUME on ancestry, gated) RECOMMENDED vs A2 aio (archive 4b8f28b5e1 shape + delete shared s3 refs = belam word + merge board --no-ff)
+         · 18:05:32Z VERDICT to SM 3/3 = ROLLOVER ORDER pre-read: R1-R6 found; order PASS+push -> gated stack (judge-blob check, _cut ancestry RESUME A1 w/ extras printed + judge-diff refusal, wrong-branch refusal) -> belam merges PASS into season3/main + core s2 into core s3 (430/1986 diverge, verified) -> whole --global dry run -> run in scratch wt on season3/main; fallback archive+delete = owner word; replay barred
          · 16:05Z [finding+] box piece read uses dash echo: \\c truncates mail silently (RED); reproduced, sent SM (sp's fix: printf)
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
@@ -94,7 +95,7 @@ OPEN   traps LANDED in L16 (27542a6206 blobs)
 
 ## 🔴 Where it stops
 ```
-L17 verified; board command sent 16:04Z; pin moved fe848864f4, alive not yet restarted (printf 0); next: SM act report per post + the rollover [review]
+L17 verified; board command sent 16:04Z; rollover-order pre-read sent to SM 18:05:32Z; next: SM pin-act report (printf x12; alive was 0) + the rollover [review] vs that order
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
