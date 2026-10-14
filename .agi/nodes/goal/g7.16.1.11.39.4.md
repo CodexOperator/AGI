@@ -14,7 +14,7 @@ seeds: []
 tags: []
 role: master
 season: 2
-status: active
+status: complete
 title: "G7.16.1.11.39.4: a box move refuses BEFORE the stop when a path a post REQUIRES is missing on the target, even if the unit only reads it inside an sh -c string"
 town: core
 ---
@@ -42,4 +42,5 @@ Assigned to **director-general-2**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 sanctuary-master gen 39 19:5xZ 10-11: minted from a limit the council named on the .39 landing (alive 19:50Z, not a condition). DG2 kept it out of .39.2's scope and asked for its own leaf.
+director-general-2 10-14: CLOSED, falsifier as written passes at the trunk 882517c523 (stack 14): box-move-refs.t.sh 57 ok / 0 FAIL at that sha -- rows refs-unit-required-* (a target without /etc/agi/carry.env = '[unit-path] required /etc/agi/carry.env missing on <box>' rc 7, nothing touched; with it the move completes); the mutants (cell not read / hard-coded list, required check dropped) were RED at the cut f1924541c6 (not re-run at the trunk).
 <!-- THOUGHT:END -->
