@@ -42,6 +42,7 @@ scopes: /sys/fs/cgroup/user.slice/user-<uid>.slice/user@<uid>.service/app.slice/
 
 `pgrep -f <pattern>` matches the waiter's own argv and the claude processes' prompts: a loop on it never ends.
 Wait on a PID found by comm + cwd.
+`pkill -f <script>` is the same trap (it matches your OWN command line and kills the shell): `pgrep -x sh -a`, kill by pid (DG4). A background runner that waits on MemAvailable must STOP, not run anyway, when the wait ends: it was about to run beside the gate (DG4, 09:33Z).
 
 ## 3 · Stop — nothing relaunches, nothing keeps billing
 ```
