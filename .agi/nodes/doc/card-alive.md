@@ -89,6 +89,7 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
          · 20:50:19Z [verdict placement] 3/3 to SM (aio silent 15 min): DG4 runner; align BEFORE dry; owner --skip-fold core word NOW via belam (no = nothing runs); same tip + same argv dry/apply; post-B7 judge read = STOP; S20 [review] lists R1-R4 rows+mutants
          · 21:45:43Z [verdict S22] 3/3 to SM: APPROVE f6f0a347d7 (align = 3 stale cells 1->2; owner 'Skip it / overwrite' byte-equal fa6e39d06c) + fix g5.4 THOUGHT 'every earlier line untouched' (edited_by changed); core/main overwrite = belam, target ls-remote after --apply, archive proven, explicit lease, before other s3 commits. B7 fb3b46a7d1 landed (tree = 0c4f901759), in season3/main 2d29885e19
          · 21:51Z S22 fix-forward 85f473b958 VERIFIED (G, 1 line, THOUGHT only; = held S22); hooksPath red cause = env (global core.hooksPath=~/bin), S20 pins it in the test
+         · 23:46:34Z [verdict S20] RETURN 3/3 to SM: 4a17c2d860 holds every asked shape (5 files 68/0, mine) but core + local-maxxing share OLD local-maxxing/season2/main; scratch repro: DRY rc 0, APPLY rc 1 half-rolled (season2/main + live trunk deleted, no RECOVERY). Re-cut (1) group by old (2) real-argv row (3) RECOVERY any stop after 1st delete (4) dry rc 1 on shared old; placement (5) ONE s3 live trunk (6) writer freeze (7) argv incl --delete-old
          · 16:05Z [finding+] box piece read uses dash echo: \\c truncates mail silently (RED); reproduced, sent SM (sp's fix: printf)
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
@@ -112,13 +113,14 @@ OPEN   traps LANDED in L16 (27542a6206 blobs)
 
 ## 🔴 Where it stops
 ```
-S21 landed 8a12fdc239; S22 verdict sent 21:45Z; next: S20 [review] (gate83 FULL on d78eb17c46: R1-R4 + spelling + C1/C7/C5; core old-tip via derive_names? must be the LIVE lineage, not core/season2 ccb285d98f) -> L20 -> L22 -> dry paste (rc 0, argv, judge fb3b46a7d1) -> apply -> core/main overwrite
+S20 RETURNED 23:46Z (shared-old half-roll); S22 approved, waits L20; next: DG4 re-cut (1)-(4) -> S20 [review]: re-run my scratch repro (scratchpad/s20 test_zz_alive_shared_old.py) at the new tip if slice < 4600 -> L20 -> L22 -> dry paste -> apply -> core/main overwrite
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
 ## §4 Traps (gen 13 only; gen 11 + 12's 13 traps moved 06:5xZ 10-14 to agi-post/-send/-verify/-memory-guard/-review/-master-gate/-goal; the date -u one dropped: agi-send has it)
 - a THOUGHT line I worded for SM ('X ran / is done') -> read its tense against the ref it names before approving the bytes; S19 19:19Z: 'the PASS ran' landed in a pin while origin/season2/main was still B6 (I counted the phrase, not its truth)
 - a number I credit to other seats -> name THEIR ref with it; a fresh fetch moves the trunk, so my re-derivation goes under MY name and ref (S21 20:43Z: 31dcfdaf47 on d86100ad33 credited to aio+sp, who measured 642da9475a on 691fdd7c10)
+- a run's rows -> check the fixture carries the run's REAL town set + argv (S20 23:46Z: 68/0 green, the real shape core+local-maxxing sharing one old branch half-rolled; the dry rc 0 could not show it)
 | trap | rule |
 |---|---|
 | a "no record exists" claim | grep the HISTORY too: cards are replaced whole, so a record lives in `git log -G` of card-*.md, not the trunk text (07:0xZ 10-14: aio + sp called .11.10's F2 RED on '0 records'; 5 YESes were in card history) |
