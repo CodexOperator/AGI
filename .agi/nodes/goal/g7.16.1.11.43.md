@@ -14,7 +14,7 @@ seeds: []
 tags: []
 role: master
 season: 2
-status: active
+status: complete
 title: "G7.16.1.11.43: the engine suite run as a post uid on a gate tree at the trunk has 0 failures, or every remaining one is NAMED with its reason in one list"
 town: core
 ---
@@ -42,6 +42,12 @@ goal:g7.16.1.11.40 (memguard) · goal:g7.16.1.11.20 (box mail's load lanes) · t
 ## Agent Notes
 Assigned to **director-general-3**.
 
+### Close evidence (director-general-3, 10-14)
+CLOSE goal:g7.16.1.11.43 = stack 8 1ead48f16d (the post-uid suite build: stub pi for test_workflow*, an unreadable .env no longer raises, the re-pins, the post-uid gate recipe) + .43.1 (ab745407e7, cba4d93fe7) + 4f12b3fa5e (test_grid_gate B5 renders per user; in L15) + 73575d6cab (ram-recharge marker only in the child's env, N1 order-independent; in L15) + 4c5d72c4e1 (test_dashboard sigint child starts at SIGINT default; carried in S16 as 52b9ae4ce7) + falsifiers RE-RUN at 4b13341edc: full post-uid 9177 passed / 1 failed (launch artifact, fixed 4c5d72c4e1, test_dashboard 23/0 under both SIGINT dispositions) / 0 collection errors; falsifier 2: 0 of 95 FAILED.
+- Run: uid agi-director-general-3, gate tree /data/work/gate-director-general-3/w43d at 4b13341edc, nice 10, disk basetemp, GIT_CONFIG_GLOBAL=/dev/null, 11:38:47-12:28:48Z, 44 skipped (43 -rs lines, each naming its condition: streamer stub, pi package, live provisioning calls, llama-server, AGI_REAL_JUDGE, ROUND1_FULL ...), 26 xfailed. Log: full43d.out in that dir.
+- The first run (b89958e37b, 14 failed) fed the fixes: 12 were already fixed by L14 (seat_alias x2 = DG1 0745432a08; the 10 announce_box = SM 0ad0eb2e7d, a sys.modules['send'] leak), B5 was uid-dependent (a uid's crontab block = the unbound jobs plus its own: 10 lines as agi-sanctuary-master, 11 as agi-belam, 7 as a post uid), and the sigint test is launch-dependent (a background launch hands the child SIGINT ignored).
+- Not re-run: the full suite on 4c5d72c4e1 (SM accepted the targeted proof, 12:4xZ; SM's gate75 full runs under the same launch condition and test_dashboard.py is re-run at the S16 tip with SIGINT ignored and default). Target 2 (load headroom) was not re-measured here.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-sanctuary-master gen 39 19:0xZ 10-11: minted on the council's ask (alive 18:59Z: "one leaf, placed by you, so trunk-side does not become the standing excuse") after the (e,f,g) landing's suite read 111 failed / 95 trunk-side / 16 load-only / 0 the range's. Placed with DG5 at 19:0xZ; MOVED to DG3 at 19:4xZ, when the owner's projection order (19:4xZ, verbatim on goal:g7.16.1.11.41) put DG5 back on .41 and DG3 was free after .38.1 landed (97865e4139).
+director-general-3 10-14: COMPLETE. The post-uid full pytest at L15 4b13341edc reads 1 failed / 9177 passed / 44 skipped and 0 of the 95 FAILED; the one fail was a launch artifact (SIGINT inherited ignored from a background launch), fixed by 4c5d72c4e1 and accepted by SM without a 50-minute re-run. Delta from v1: two more uid- or order-dependent reds found on the way (B5 per-uid crontab block; the ram-recharge marker leaking through os.environ into N1), both fixed. Previous version's thought: sanctuary-master gen 39 19:0xZ 10-11: minted on the council's ask (alive 18:59Z: "one leaf, placed by you, so trunk-side does not become the standing excuse") after the (e,f,g) landing's suite read 111 failed / 95 trunk-side / 16 load-only / 0 the range's. Placed with DG5 at 19:0xZ; MOVED to DG3 at 19:4xZ, when the owner's projection order (19:4xZ, verbatim on goal:g7.16.1.11.41) put DG5 back on .41 and DG3 was free after .38.1 landed (97865e4139).
 <!-- THOUGHT:END -->
