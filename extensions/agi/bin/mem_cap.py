@@ -506,6 +506,11 @@ def _verb_ram_exec(argv: list, to: str | None = None) -> int:
 _RECHARGE_ENV = "AGI_RAM_RECHARGE_SCOPED"
 
 
+#: A test seam, None in production: called with the source path between the
+#: copy and the replace, where a late writer lands (the TOCTOU row).
+_before_replace = None
+
+
 def _dev_of(path: str) -> int:
     """The device of `path` -- the one seam a row fakes to stand in a mount."""
     return os.lstat(path).st_dev
@@ -549,14 +554,17 @@ def recharge(root: str, dry_run: bool = False) -> "dict[str, int]":
     Only files on `root`'s own device (a mount below it is never entered), never
     one held open for write (skipped), mode/owner/mtime and hardlink sets kept
     (a set with a name outside `root` is skipped whole), every tempfile removed
-    on every path. Returns counts only -- no path is ever reported."""
-    n = {"rewritten": 0, "skipped": 0, "failed": 0}
+    on every path. A mount-point dir below `root` is counted in `crossed` and
+    never entered (it is not a skipped FILE: a RAM tree with disk binds would
+    otherwise exit non-zero on every run). Returns counts only -- no path."""
+    n = {"rewritten": 0, "skipped": 0, "failed": 0, "crossed": 0}
     top = _dev_of(root)
     held = _open_for_write()
     groups: "dict[tuple[int, int], list[str]]" = {}
     for d, dirs, files in os.walk(root, followlinks=False):
-        dirs[:] = [x for x in dirs if not os.path.islink(os.path.join(d, x))
-                   and _dev_of(os.path.join(d, x)) == top]
+        sub = [x for x in dirs if not os.path.islink(os.path.join(d, x))]
+        n["crossed"] += sum(_dev_of(os.path.join(d, x)) != top for x in sub)
+        dirs[:] = [x for x in sub if _dev_of(os.path.join(d, x)) == top]
         for f in files:
             path = os.path.join(d, f)
             st = os.lstat(path)
@@ -580,6 +588,8 @@ def recharge(root: str, dry_run: bool = False) -> "dict[str, int]":
                 shutil.copyfileobj(src, out)
             shutil.copystat(names[0], tmp)
             os.chown(tmp, st.st_uid, st.st_gid)
+            if _before_replace is not None:
+                _before_replace(names[0])
             now = os.lstat(names[0])
             if (now.st_ino, now.st_size, now.st_mtime_ns) != (st.st_ino, st.st_size, st.st_mtime_ns):
                 n["skipped"] += len(names)      # changed under us: leave it
@@ -623,9 +633,14 @@ def _verb_ram_recharge(args: list) -> int:
             sys.stderr.write("mem_cap.py ram-recharge: no usable RAM scope -- nothing rewritten\n")
             return 3
         os.environ[_RECHARGE_ENV] = "1"
-        os.execvp(scoped[0], scoped)
+        try:
+            os.execvp(scoped[0], scoped)
+        except OSError:
+            sys.stderr.write("mem_cap.py ram-recharge: scope exec failed -- nothing rewritten\n")
+        return 3        # exec replaces this process; reaching here means it did not
     n = recharge(dirs[0], dry_run=dry)
-    sys.stdout.write(f"{'would-rewrite' if dry else 'rewritten'}={n['rewritten']} skipped={n['skipped']} failed={n['failed']}\n")
+    sys.stdout.write(f"recharged={n['rewritten']} skipped={n['skipped']} failed={n['failed']} crossed={n['crossed']}"
+                     f"{' dry-run' if dry else ''}\n")
     return 0 if not (n["skipped"] or n["failed"]) else 1
 
 
