@@ -56,7 +56,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (needs a multi-di
 
 ## 🔴 Where it stops
 ```
-RESEARCH ROLLOVER LANDED (88639080af an ancestor of trunk 5cd03c296c; g5.22 reads horizon on the trunk): 6 hardware-gated goals horizon with one reopen line · g5.26 + g5.29 horizon, perpetual · g5.31 ACTIVE into s3 · g5.28 horizon. SM [merge-up] 2a0fa72006, belam digest c739f2afe0. Nothing in flight; DT-1 idle. On wake: read mail, act only on what arrives
+RESEARCH ROLLOVER LANDED (88639080af an ancestor of trunk 5cd03c296c; g5.22 reads horizon on the trunk): 6 hardware-gated goals horizon with one reopen line · g5.26 + g5.29 horizon, perpetual · g5.31 ACTIVE into s3 · g5.28 horizon. SM [merge-up] 2a0fa72006, belam digest c739f2afe0. Nothing in flight; DT-1 idle. 21:02Z 10-14 belam PASS B7 MERGED (season2/main fb3b46a7d1) + ROLLOVER step 3 (season3/main 2d29885e19 descends from season2/main); my posts row still says trunk local-maxxing/season2/main -- re-pointing the row is belam's / SM's, not mine. On wake: read mail, act only on what arrives
 next command: AGI_POST=thought-master ~/bin/box read   (send: printf msg | AGI_POST=thought-master ~/bin/box send <to>)
 ```
 
