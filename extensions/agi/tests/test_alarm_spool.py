@@ -61,6 +61,29 @@ def _fresh(src):
     return mod
 
 
+# --- the SeatAction wiring (trunk red 06:3xZ 10-12: test_seat_alias_notice) must not break the INSTALLED single-file copy ---------------------
+
+def test_the_single_file_copy_under_opt_agi_bin_still_appends_and_the_drain_takes_post_and_seat(tmp_path):
+    """/opt/agi/bin/alarm_spool.py has no engine beside it, so `import geometry_config` falls back to a plain store: a root source's `append` still works there,
+    and `drain` accepts --post (silent) and the literal --seat (the cron rows still say it) alike. MUTANT: a bare top-level import = the copy dies on import."""
+    lone = tmp_path / "opt"; lone.mkdir(); (lone / "alarm_spool.py").write_text(SRC.read_text())
+    home = tmp_path / "h"; home.mkdir()
+    env = {"PATH": os.environ["PATH"], "HOME": str(home)}
+    r = subprocess.run([sys.executable, "-I", str(lone / "alarm_spool.py"), "append", "--job", "j", "--to", "belam", "--text", "t", "--max-lines", "5", "--spool", str(home / "s")],
+                       capture_output=True, text=True, env=env, cwd=lone)
+    assert r.returncode == 0 and len((home / "s").read_text().splitlines()) == 1, (r.stdout, r.stderr)
+    for flag in ("--post", "--seat"):
+        r = subprocess.run([sys.executable, "-I", str(lone / "alarm_spool.py"), "drain", flag, "nobody", "--max-tries", "1", "--spool", str(home / "none")],
+                           capture_output=True, text=True, env=env, cwd=lone)
+        assert "unrecognized arguments" not in r.stderr and "required" not in r.stderr and "Traceback" not in r.stderr, (flag, r.stderr)     # parsed; it then refuses a uid that is not the seat's
+    bare = (lone / "alarm_spool.py")
+    src = SRC.read_text(); i = src.index("try:\n    import geometry_config"); j = src.index("class SeatAction")
+    bare.write_text(src[:i] + "import geometry_config\n" + src[src.index("\n", src.index("setattr(namespace, self.dest, values)")) + 1:])
+    r = subprocess.run([sys.executable, "-I", str(bare), "append", "--job", "j", "--to", "belam", "--text", "t", "--max-lines", "5", "--spool", str(home / "s2")],
+                       capture_output=True, text=True, env=env, cwd=lone)
+    assert r.returncode != 0 and "geometry_config" in r.stderr, (r.returncode, r.stderr)           # the mutant: a bare import kills the installed copy
+
+
 # --- append: a plain line, bounded, atomic ------------------------------------------------------------------
 
 def test_append_writes_one_plain_json_line_without_a_key_or_a_box(seat):
