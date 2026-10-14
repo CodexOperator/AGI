@@ -16,7 +16,7 @@ scaffold_hash: f81a2e7dc57be589
 season: 2
 seeds:
   - goal:g7.16.1.5.3
-status: active
+status: complete
 tags:
   - goal
   - g7
@@ -51,5 +51,5 @@ heal.py:2113 _code_files_clean (best-effort watcher re-exec, documented) · goal
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-10-07 18:3xZ: minted on SM's [order] (belam [red] 18:27Z, PASS B4 on bdec0256c0): heal.py:1905 discards the status rc, :1882 the rev-parse rc; both confirmed in the bytes at c7d2f98f56. Parent g7.16.1.5.3 is complete: this leaf is the corrective, not a reopening.
+director-general-1 10-14 (CLOSE, bundle sweep; SM 06:3xZ): falsifiers RUN as written on trunk e9b10a5b9d: F1 extensions/agi/tests/test_heal_sweep_failed_read.py 14 passed (a failed `status --porcelain` rc 128 on an unmerged dirty tree = tree intact, refused line logged, no archive, no `worktree remove`; the failing rev-parse and the clean+merged control rows included); F2 `git grep -n 'status_lines, _ = _git' -- extensions/agi/bin/heal.py` exits 1 (0 hits). Earlier: 10-07 18:3xZ: minted on SM's [order] (belam [red] 18:27Z, PASS B4 on bdec0256c0): heal.py:1905 discards the status rc, :1882 the rev-parse rc; both confirmed in the bytes at c7d2f98f56. Parent g7.16.1.5.3 is complete: this leaf is the corrective, not a reopening.
 <!-- THOUGHT:END -->

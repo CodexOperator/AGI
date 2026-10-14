@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: cd908f15c0685a43
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - g7
@@ -55,3 +55,7 @@ goal:g7.16.1.5 A (round worktrees on RAM) · B (budget) · C (prune) · goal:g7.
 Assigned to **belam**.
 
 OWNER 01:4xZ verbatim: "If needed we can somehow let symlink reads/writes cue on the RAM disk via git maybe somehow and get written or read in sequential batches" -- the sync timer is that batch writer for working files (one sequential rsync per interval); batching COMMITS is the async queue in goal:g7.16.1.6 scope.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+belam-s2-VI 07:0xZ 10-14: status active -> horizon, DEFER s3 by COUNCIL 3/3 07:00Z 10-14 (SM [rule] 07:0xZ; the g7.16.1 bundle close before the season rollover, owner 06:2xZ 10-14). Measured on E at trunk e9b10a5b9d: `findmnt -n -T /data/work/agi` = /data on ext4 /dev/mapper/vg0-data (no tmpfs), agi-ram-main.service is ExecStart=/bin/true ('encryption-town: no RAM disk, MAIN on the internal drive'), the box has 7.8 GB RAM, so F1 is unmet by the box's design, not by a defect. Target and falsifier untouched. REOPEN: a box with >= 16 GB RAM.
+<!-- THOUGHT:END -->

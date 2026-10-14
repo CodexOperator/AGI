@@ -129,9 +129,10 @@ def fm_with(grid_sync: bool | None = None, drop_cell: bool = False, live: bool =
     return fm
 
 
-def render(root: Path, box: str = BOX) -> list[str]:
+def render(root: Path, box: str = BOX, user: str | None = None) -> list[str]:
+    """`user` None = the invoking uid's block (what a bare run renders: the jobs with NO user plus that uid's own)."""
     _, _, repo_root, engine_root, node = crons._resolve(root)
-    return crons.render_managed_lines(root, repo_root, engine_root, node, box_name=box)
+    return crons.render_managed_lines(root, repo_root, engine_root, node, box_name=box, user=user)
 
 
 GRID_WRITERS = re.compile(r"grid\.py|push-changed|refs/grid|refs/agi/|update-ref")
@@ -257,9 +258,14 @@ def test_b5_no_builtin_job_renders_a_grid_writer(tmp_path):
         job = fm["cadences"].setdefault(j, {"every_mins": 5})
         job["enabled"] = True
     root = make_project(tmp_path, fm)
-    lines = render(root)
-    assert len(lines) >= 8, lines
-    assert [l for l in lines if GRID_WRITERS.search(l)] == []
+    # goal:g7.16.1.11.43: the block a uid renders holds the jobs with NO user plus its own (goal:g7.16.1.11.42 C1), so a bare render() was 10 lines as
+    # agi-sanctuary-master and 7 as a post uid. Pin the user: the count no longer depends on the uid running the suite (a post uid's own block = the 7
+    # unbound jobs is checked for grid writers too).
+    for user in ("agi-sanctuary-master", "agi-belam"):
+        lines = render(root, user=user)
+        assert len(lines) >= 8, (user, lines)
+        assert [l for l in lines if GRID_WRITERS.search(l)] == []
+    assert [l for l in render(root) if GRID_WRITERS.search(l)] == []
 
 
 

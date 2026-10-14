@@ -130,6 +130,40 @@ GUARD_RAM_WT_HOLD_PCT_local_town=60
 GUARD_ENGINE_MAX_local_town=3G
 ```
 
+## move.exclude -- the namespaces a box move may drop
+
+`extensions/agi/guard/box-move.sh move` carries every ref namespace of the source except the ones named here, one reason each (goal:g7.16.1.11.39). Entry = `refs/<namespace>  <reason>`; the list lives only here.
+
+```sh move.exclude
+refs/remotes  a remote-tracking ref is a copy of origin's; the target fetches its own
+refs/capsule  a capsule rides as its own signed ref inside the move's bundle, and older packs stay on the box that made them (pack never deletes)
+```
+
+## move.target-fit -- what the target must have free before a box move touches anything
+
+`extensions/agi/guard/target-fit.sh` (goal:g7.16.1.11.39.3, the council's limit 1) runs on the target in the unit-paths ssh, before the stop and the row edit: the free space under the target repo must be at least `data-free-min-kb`, and (since goal:g7.16.1.11.44.7 the refs-dir probe lives in box-move.sh's PRE-STOP target step) a probe file must be creatable and removable in its refs dir. Else `[target-unfit]`, rc 9, nothing touched. `Key value  reason`.
+
+```sh move.target-fit
+data-free-min-kb 2097152  2 GiB: the carry is at most the whole repo, and MAIN's .git measured 421,612 KB on 10-12 (a 286 MiB pack + loose objects + the grid refs); the floor is ~5x that, so a full or near-full disk refuses before the stop instead of at the after-check
+```
+
+## move.unit-required -- host paths the units use INSIDE sh -c strings, which must exist on the target
+
+`extensions/agi/guard/unit-paths.sh` (goal:g7.16.1.11.39.4) checks the paths the units name as Exec words, WorkingDirectory and the like; a path inside an `sh -c '...'` string is invisible to it (8 of agi-post@'s 12 Exec lines show only the word `sh`). Each path listed here (`path  reason`, `%i` = the post) must exist on the target before the stop and the row edit, else `[unit-path] required <path> missing on <box>`, rc 7. The list lives only here.
+
+```sh move.unit-required
+/etc/agi/carry.env  agi-post@'s ExecStart reads it with 2>/dev/null, so a target without it starts the post with AGI_BOX EMPTY and no word of it
+```
+
+## move.unit-optional -- the unit paths a box move may find absent on the target
+
+`extensions/agi/guard/unit-paths.sh` (goal:g7.16.1.11.39.1) reads the target's RENDERED agi-post@ / agi-boxwake@ units BEFORE the stop and the row edit and refuses (`[unit-path]`, rc 7) when a host path they name does not exist. A leading `-` is not a pass. These are the named exemptions, `Key path  reason` (`%i` = the post), the only paths that may be absent at that moment; nothing here may name a command (an ExecStart* word) or the signers.
+
+```sh move.unit-optional
+WorkingDirectory /var/lib/agi/%i  host-act move creates the post home AFTER this check
+EnvironmentFile /var/lib/agi/%i.env  an env file a post may not have (the unit says EnvironmentFile=-)
+```
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 GUARD_ENGINE_MAX_local_town 2G -> 3G (belam-S2-L5-XX 03:1xZ 09-30), stopgap until goal:g7.16.1.5.5 gives the RAM disk its own budget line. MEASURED 03:10Z: after heal restarted onto DG4's reclaim commits (03:07:49Z) its sweep HOMED session dirs into MAIN's .agi/sessions on the RAM disk: agi-engine.slice shmem 700M -> 1276M (iter-OSC.07 485M, iter-OSC.01 356M), current 1599M vs the 2G cell's 1536M high, PSI full avg10 36-41%. The shmem is legitimate data, not reclaimable without swap, and session-sweep.sh (goal:g7.16.1.5.2) moves it cold only after 120 min idle (the homed copies carry fresh mtimes), so the engine line must cover it until then. 3G -> high 2304M; applied live (before: 1536M / 2G). Residue to DG4: homing should land in the cold sessions home with a symlink, never a real dir on tmpfs. History: 512M -> 1G (02:5xZ, reaper throttled at 384M) -> 2G (03:0xZ, 700M shmem) -> 3G.
 <!-- THOUGHT:END -->

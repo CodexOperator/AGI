@@ -14,7 +14,7 @@
 #   o1 an uncommitted edit in ~/t -> [out-of-tree] on stderr AND in ~/.notice       n1 agi-meter prints each notice line ONCE (4 retries = 1 line) and clears the file; a second prompt prints nothing
 #   n2 agi-brief calls the printer first   n3 CLAIM then print: a line appended WHILE the print runs lands in a fresh ~/.notice (kept for the next prompt); only the claimed lines are removed
 #   b1 BOUNDED: 4 flushes of one strand + 2 turns of a growing out-of-tree = ONE line each (one line per label+sha)   b2 a DIFFERENT sha is a new line, the same sha is not   c1 a claim left by a crashed printer (~/.notice.PID) is printed with the next one
-#   h1 core.hooksPath=~/bin makes EVERY piece name a git-hook candidate: no `### name` in engine*.md is a git hook name (githooks(5)) except pre-commit
+#   h1 core.hooksPath=~/bin makes EVERY piece name a git-hook candidate: no `### name` in engine*.md is a git hook name (githooks(5)) except pre-commit (Door 1) and reference-transaction (goal:g7.16.1.11.38.1, the ref guard)
 #   r1 the notice survives the ROTATION path: the REAL unit ExecStartPre line (engine-root) runs against the scratch HOME, then the successor's first SessionStart (agi-brief) prints it on STDOUT first
 # MUTANTS (PIECES=<engine*.md with the piece edited, each OLD text asserted count == 1): m1 both call sites `if agi-turn strand` -> `if :` (guard dropped: s1 s2 s3 RED) · m2 the `>>~/.notice` writes cut (stderr only: s1 o1 n1 RED) · m3 the pre-commit piece renamed away (d1 RED) · m4 the strand count against posts/<post> ONLY (s4 RED: a post sitting on the trunk would be refused every turn) · m5 the printer to stderr only (n1 n3 r1 RED: the model never reads it) · m6 print-then-truncate, no claim (n3 RED: the late append is lost) · m7 `add` without the key test (b1 b2 RED) · m8 a piece named post-checkout (h1 RED: git would run it after every checkout)
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-${1:-$(cd "$(dirname "$0")/../../.." && pwd)}}
@@ -22,7 +22,7 @@ ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 sect(){ if [ -n "$PIECES" ];then cat "$PIECES";else cat $R0/.agi/nodes/.geometry/engine*.md;fi|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}"; }
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE AGI_POST AGI_SEAT AGI_WT RUNTIME_DIRECTORY AGI_TRUNK
 mkdir -p $T/hm $T/bin $T/run $T/wt
-for n in agi-turn agi-flush agi-meter agi-brief agi-notice pre-commit;do sect $n >$T/bin/$n;if [ -s $T/bin/$n ];then chmod +x $T/bin/$n;else rm -f $T/bin/$n;fi;done
+for n in agi-turn agi-flush agi-meter agi-brief agi-notice agi-sync pre-commit;do sect $n >$T/bin/$n;if [ -s $T/bin/$n ];then chmod +x $T/bin/$n;else rm -f $T/bin/$n;fi;done
 ok x0-pieces-extracted '[ -x $T/bin/agi-turn ]&&[ -x $T/bin/agi-flush ]&&[ -x $T/bin/agi-meter ]&&[ -s $T/bin/agi-brief ]&&[ -x $T/bin/agi-notice ]&&[ -x $T/bin/pre-commit ]'
 [ -x $T/bin/agi-turn ]&&[ -x $T/bin/agi-flush ]||{ echo "FAIL extract: agi-turn / agi-flush";exit 99;}
 H=$T/hm;V=$H/t
@@ -56,7 +56,7 @@ run agi-flush >$T/o1 2>$T/e1;r=$?
 ok s3-a-diverged-tip-is-refused-and-left-alone "[ $r != 0 ]&&grep -q '^\[strand-refused\]' $T/e1&&[ \"\$(head1)\" = $h ]&&[ \"\$(tipb)\" = $rt ]"
 # s4: trunk ahead of posts/alive, ~/t detached ON the trunk commit: reachable from a ref, not a strand
 mk;$G -C $T/g -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -q --allow-empty -m trunk2;$G -C $V checkout -q --detach trunk;run agi-flush >$T/o1 2>$T/e1;r=$?
-ok s4-a-commit-on-another-ref-is-not-a-strand "[ $r = 0 ]&&! grep -q 'strand-refused' $T/e1&&[ \"\$(head1)\" = $B0 ]"
+ok s4-a-commit-on-another-ref-is-not-a-strand "[ $r = 0 ]&&! grep -q 'strand-refused' $T/e1&&[ \"\$(tipb)\" = \"\$($G -C $T/g rev-parse trunk)\" ]&&[ \"\$(head1)\" = \"\$(tipb)\" ]"
 mk;run agi-flush >$T/o1 2>$T/e1;r=$?
 ok s5-a-clean-t-passes-silently "[ $r = 0 ]&&[ ! -s $T/e1 ]&&[ ! -e $H/.notice ]"
 mk;$G -C $V switch -q posts/alive;gc --allow-empty -m attached;run agi-flush >$T/o1 2>$T/e1;r=$?
@@ -77,16 +77,18 @@ ok n3-a-late-append-is-kept-and-only-printed-lines-are-dropped "[ \"\$(cat $T/n3
 mk;GD=$V/.agi/nodes/.geometry;mkdir -p $GD $T/run/agi-alive $T/stub $H/.ssh;if [ -n "$PIECES" ];then cp $PIECES $GD/engine.md;else cp $R0/.agi/nodes/.geometry/engine*.md $GD/;fi
 printf '#!/bin/sh\nsed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}" %s/engine-post.md %s/engine.md\n' $GD $GD >$T/stub/sect;chmod +x $T/stub/sect
 src(){ if [ -n "$PIECES" ];then cat "$PIECES";else cat $R0/.agi/nodes/.geometry/engine*.md;fi;}
-src|sed -n "s/^ExecStartPre=sh -c '\(mkdir -p .ssh bin.*\)'\$/\1/p"|sed "s|%i|alive|g;s|%t|$T/run|g" >$T/unit37.sh
+src|sed -n "s/^ExecStartPre=sh -c '\(set -f;mkdir -p .ssh bin.*\)'\$/\1/p"|sed "s|%i|alive|g;s|%t|$T/run|g" >$T/unit37.sh
+# goal:g7.16.1.11.41 target 1: the unit extracts from the LANDED trunk BRANCH of $O by the ONE named glob cell, so the lane gives it a repo holding the pieces and the cell
+PG=$(src|sed -n 's/^Environment="AGI_PIECE_GLOB=\(.*\)"$/\1/p');rm -rf $T/orig;mkdir -p $T/orig/.agi/nodes/.geometry;cp $GD/engine*.md $T/orig/.agi/nodes/.geometry/;$G -C $T/orig init -q -b lanetrunk;$G -C $T/orig add -A;$G -C $T/orig -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm pieces
 printf '[strand-refused] alive: HEAD abc1234 carries 1 commit(s) on no ref\n' >$H/.notice;touch $H/.fresh
-(cd $H&&env -i PATH=/usr/bin:/bin HOME=$H sh $T/unit37.sh) >$T/u37.out 2>&1;u=$?
+(cd $H&&env -i PATH=/usr/bin:/bin HOME=$H O=$T/orig AGI_TRUNK=lanetrunk AGI_PIECE_GLOB="$PG" GIT_TEST_ASSUME_DIFFERENT_OWNER=1 sh $T/unit37.sh) >$T/u37.out 2>&1;u=$?
 echo '{"source":"startup"}' >$T/sj;(cd $H&&env -i PATH=$T/stub:$H/bin:/usr/bin:/bin HOME=$H AGI_SEAT=alive AGI_POST=alive AGI_ROLE=director sh -c "agi-brief <$T/sj") >$T/br1 2>/dev/null
 ok r1-the-notice-survives-the-restart-and-the-successors-first-sessionstart-prints-it "[ -s $T/unit37.sh ]&&[ $u = 0 ]&&[ -x $H/bin/agi-notice ]&&[ \"\$(sed -n 1p $T/br1)\" = '[strand-refused] alive: HEAD abc1234 carries 1 commit(s) on no ref' ]&&[ ! -e $H/.notice ]"
 # h1: hooksPath=~/bin -- a piece named like a git hook would RUN as one (the lane's own PIECES / ROOT text is the list of piece names)
 HOOKS=" applypatch-msg pre-applypatch post-applypatch pre-commit pre-merge-commit prepare-commit-msg commit-msg post-commit pre-rebase post-checkout post-merge pre-push pre-receive update proc-receive post-receive post-update reference-transaction push-to-checkout pre-auto-gc post-rewrite sendemail-validate fsmonitor-watchman p4-changelist p4-prepare-changelist p4-post-changelist p4-pre-submit post-index-change "
 if [ -n "$PIECES" ];then cat "$PIECES";else cat $R0/.agi/nodes/.geometry/engine*.md;fi|grep -o '^### [^ ]*'|cut -c5- >$T/pnames
-hk=;for n in $(cat $T/pnames);do case "$HOOKS" in *" $n "*)[ $n = pre-commit ]||hk="$hk $n";; esac;done
-ok h1-no-piece-is-named-like-a-git-hook-but-pre-commit "[ -s $T/pnames ]&&[ -z '$hk' ]&&grep -qx pre-commit $T/pnames" 
+hk=;for n in $(cat $T/pnames);do case "$HOOKS" in *" $n "*)case $n in pre-commit|reference-transaction);;*)hk="$hk $n";;esac;; esac;done
+ok h1-no-piece-is-named-like-a-git-hook-but-pre-commit-and-reference-transaction "[ -s $T/pnames ]&&[ -z '$hk' ]&&grep -qx pre-commit $T/pnames"
 # b1 / b2 / c1: bounded, keyed, crash-safe
 mk;gc --no-verify --allow-empty -m stranded;run agi-flush >/dev/null 2>&1;run agi-flush >/dev/null 2>&1;run agi-turn >/dev/null 2>&1;echo one >$V/n1.txt;run agi-turn >/dev/null 2>&1;echo two >$V/n2.txt;run agi-turn >/dev/null 2>&1
 ok b1-a-stuck-condition-is-one-line-per-key "[ \$(grep -c '^\[strand-refused\]' $H/.notice) = 1 ]&&[ \$(grep -c '^\[out-of-tree\]' $H/.notice) = 1 ]"

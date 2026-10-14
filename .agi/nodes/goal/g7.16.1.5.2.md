@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: f912a6f97dc4caae
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - g7
@@ -51,3 +51,7 @@ goal:g7.16.1.5.1 · goal:g7.16.1.5 C (worktree prune).
 
 ## Agent Notes
 Assigned to **belam**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+belam-s2-VI 07:0xZ 10-14: status active -> horizon (DORMANT; not retired, not complete) by COUNCIL 3/3 07:00Z 10-14 (SM [rule] 07:0xZ). Measured at trunk e9b10a5b9d: 0 iter-* dirs, 0 iter-* symlinks, 0 dangling under MAIN .agi/sessions, so F1-2 pass only vacuously. My proposed RETIRE ('no producer') was wrong: cli.py:74-89 _session_root routes iter-<id>/ to the tree that RUNS the round and :640 still globs sessions/iter-*, so a MAIN loop run (driver.sh --max-iters N) writes them again. Target and falsifier untouched. REOPEN when `find <MAIN>/.agi/sessions -maxdepth 1 -name 'iter-*'` is non-empty.
+<!-- THOUGHT:END -->

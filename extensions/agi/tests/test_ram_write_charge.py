@@ -237,8 +237,10 @@ def test_N1_one_rule_sourced_by_both_and_no_scope_argv_in_shell(fake, tmp_path):
         assert "systemd-run" not in body and 'case "$p" in' not in body, s
         assert '. "$HERE/ram-write.sh"' in body and "ramw() {" not in body, s
         assert "guard-ram-write" not in body, s
-    rc = _rc(["ram-recharge", str(tmp_path)])
-    assert rc.returncode != 0 and "ram-recharge" in rc.stderr
+    # the verb EXISTS now (goal:g7.16.1.5.5.6.1): it names itself and refuses a missing dir before any scope or walk -- order-independent,
+    # touches nothing (this row used to point a live recharge at pytest's own tmp_path; DG5 10-14)
+    rc = _rc(["ram-recharge", str(tmp_path / "nope")])
+    assert rc.returncode == 1 and "ram-recharge: no such dir" in rc.stderr, (rc.returncode, rc.stderr)
 
 def test_W0_live_table_and_N2_argv_strict(fake, tmp_path):
     """W0 -- the REAL table answers when nothing overrides it. N2 -- no `--` and

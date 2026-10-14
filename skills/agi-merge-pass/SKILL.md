@@ -24,26 +24,27 @@ pending PASS). The crons are POINTER prompts — edit the section, never the cro
 (C) owner reply ≤ 5 lines; ONE line when nothing changed
 ```
 
-## 2 · PASS (steps as numbered in section 2)
-> Steps 2-4 run as **Sonnet subagents** (OWNER 00:4xZ 10-10 to belam, verbatim: "Nah just use sonnet subagents and we retired workflows.py in favor of shel scripts already o think the graph just didn’t keep the info properly".): one reviewer per area lane (≤ ~40 files), then ONE adversarial verifier over every lane's findings; the RED scans (secrets with .env, deletions by mint_id, links) stay mechanical, run by the Prime. The pi chunks + launch.sh / monitor.sh below are the old route.
+## 2 · PASS (steps as numbered in section 2; goal:g7.16.1.10.7)
+> **The Prime never runs a chunk review** (goal:g7.16.1.10). Steps 2, 3, 4 and 6 are RETIRED BY NAME below: the council reviews each round and writes `doc:council-report` (council_report.py, goal:g7.16.1.10.5); the mechanical REDs run in `reds.py` (goal:g7.16.1.10.3); the PASS reads ONE word.
 ```
 0 stamp pass_started_at FIRST
-1 fetch · origin/season2/main must be an ancestor of TIP, else sync it into the trunk (below) · PIN TIP as a sha · credits (< 4 USD → engine-delta + 5 sampled rounds)
-2 build rounds: one per hypothesis with ≥1 experiment changed in BASE...TIP (files ≤ 12) + engine-delta-N over unlisted
-  extensions/ skills/ src/ .agi/config.json .agi/nodes/.geometry paths (≤ 12 each; rotate test files dropped)
-3 launch chunks (≤ 2 rounds each) in the background, CAP chunks live; ONE Monitor (monitor.sh)
-4 verdicts ONLY from runs/<key>/{review,verify}_<label>.json → RED | demote | accept(_with_residue)
-5 clear → prime-root: pull --ff-only · merge --no-ff TIP (merge-tree preview) · commands.py run verify · push season2/main ·
+1 fetch · origin/season2/main must be an ancestor of TIP, else sync it into the trunk (below) · PIN TIP as a sha
+2 RETIRED (was: build rounds)                 -> the council's rounds, one report row each
+3 RETIRED (was: launch chunks + Monitor)      -> the council reviews; the Prime launches nothing
+4 THE WORD: python3 extensions/agi/bin/merge_gate.py check BASE TIP [--prime-count N]
+  prints `merge` or `hold` FIRST, then one reason per line; rc 0 merge · 1 hold · 2 cannot answer (a missing cell or report: a hold, never a merge)
+  hold over: a RED (secrets / a node deletion by mint_id / a broken link) · a BASE..TIP commit on a review path with no accepting report row ·
+  a row whose verdict is not accept*; `unreviewed:budget` rows merge only with --prime-count = their count (the Prime's word naming it)
+5 merge: prime-root: pull --ff-only · merge --no-ff TIP (merge-tree preview) · commands.py run verify · push season2/main ·
   ff local-maxxing/main to TIP · grid.py commit --all (background)
-6 residues → a PASS LEAF goal (goal:g1.<next>: "PASS N residues", skill agi-goal §5) under goal:g1 or the goal they fit; under it ONE batch
-  hypothesis + one hypothesis per real code defect (assigned: director-engine) → ONE [decision] dm to DE (owner 04:1xZ 09-27: subgoals, like directors)
+6 RETIRED (was: a Prime-minted PASS leaf)     -> residues are already routed by council_report.py to their owner post's residue leaf
 7 state file (last_merged_town_sha = TIP …, pass fields → null) · ONE numbers-only note on the town:local-maxxing board · commit by path
 8 ONLY NOW one [merge-up] report dm to thought-master      9 owner report ≤ 6 lines
 ```
-RED = secrets (scan ADDED lines, counts only, never print) · a node deletion (resolve `D` by mint_id first: a move into
-`deprecated/` is not one, trap 15) · a broken link · a protocol regression → no merge, one [red] dm. demote = node-text overclaim → merges as a residue.
+A `hold` or rc 2 is ONE [red]/[hold] line to the owner naming the first reason; nothing is merged over it. Config cell `merge_gate.review_paths` (the paths a commit must be covered on) is the Prime's: absent = rc 2 naming it.
+RED = what `reds.py` prints (counts and names, never a secret's bytes) · a protocol regression stays a judgment call -> no merge, one [red] dm. demote = node-text overclaim → merges as a residue.
 
-## 3 · Tooling (/tmp/belam-passN/, rebuilt from the previous pass)
+## 3 · Tooling (/tmp/belam-passN/; everything but the trunk sync belongs to the RETIRED steps 2-4 and is kept only as the old route)
 build.py (BASE hard-coded; TIP/OS/PER from env) · launch.sh (CAP from ./cap; holds on user@ headroom < 1500 MiB and on memory_alarm
 WARN/ALARM in 15 min) · monitor.sh (exits, launcher death; kills a recursive grep/rg/find over .agi/ or the repo root at io60 ≥ 25 ONLY
 when an ancestor's argv carries this pass's tag (`p10chunk`/`p10retry`) — other posts' processes are spared, logged to

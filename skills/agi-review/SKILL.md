@@ -45,3 +45,4 @@ deletions by mint_id · `links.py links` = 0 broken. A RED blocks; residues go t
 | scratch paths in a node body | rewrite home paths to `~` before minting (anonymize home class) |
 | a stale TIP | pin TIP as a sha at the start; a later delta gets its own small lane |
 | a new test in the range | prove it can fail: run the SAME file on the previous tip (control = RED) and mutate one guard on yours; green alone is not evidence (DG5 round 1) |
+| a grep-shaped falsifier | prove it can FAIL against the bytes: falsifier 5 grepped 'refs/grid' in a piece that never names it (alive gen 12) |

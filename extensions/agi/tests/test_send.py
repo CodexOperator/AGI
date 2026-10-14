@@ -8298,10 +8298,10 @@ def test_g53_mail_poll_types_nothing_while_the_inbox_is_absent(tmp_path):
 
 
 def test_g54_log_trim_loop_reads_an_absent_log_as_empty(tmp_path):
-    """G5.4 #1: engine-wrap.md's log-trim loop (line 24), ~/o absent: no stderr."""
+    """G5.4 #1: engine-wrap.md's log-trim loop (the "(while :;do sleep 300" line), ~/o absent: no stderr."""
     node = (Path(__file__).resolve().parents[3] / ".agi" / "nodes"
             / ".geometry" / "engine-wrap.md").read_text()
-    line = next(ln for ln in node.splitlines() if ln.startswith("(while sleep 300"))
+    line = next(ln for ln in node.splitlines() if ln.startswith("(while :;do sleep 300"))   # .32: the loop survives a killed sleep (`sleep 300||:`); box-wake.t.sh f2 pins that
     def run(**env):
         return subprocess.run(["sh", "-c", line.replace("sleep 300", "sleep 0.1")
                                + "\nsleep 0.5\nkill $!"], capture_output=True,

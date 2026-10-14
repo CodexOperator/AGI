@@ -118,9 +118,11 @@ def test_spawn_first_seating_role_from_row_and_pin_at_row_gen(
     wins.write_text("@42 director-seat\nsensei-peer\n", encoding="utf-8")
     reg = _registry(tmp_path)
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender:
-                        sent.append((other, text)) or tmp_path)
+    # the alert's inbox writer: `_announce_rotation` lands it with `send.send` (the pairwise `send_dm` leg was
+    # replaced by a box message, goal:g7.16.1.11.20 cut B), so THAT is the seam that sees an announcement
+    monkeypatch.setattr(_send, "send",
+                        lambda root, to, text, sender=None, **kw:
+                        sent.append((to, text)) or tmp_path)
     monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
     args = SimpleNamespace(name="director-seat", tier="prime_director",
                            prompt_file=None, model=None, effort=None,
@@ -217,9 +219,11 @@ def test_ack_gen1_after_rotate_self_emits_nothing(tmp_path, monkeypatch):
         "seat": "rotated-seat", "gen_after": 1, "answer": "pending",
         "session_ref": "a11", "ts": "t"}) + "\n", encoding="utf-8")
     sent = []
-    monkeypatch.setattr(_send, "send_dm",
-                        lambda croot, me, other, text, sender:
-                        sent.append((other, text)) or tmp_path)
+    # the alert's inbox writer: `_announce_rotation` lands it with `send.send` (the pairwise `send_dm` leg was
+    # replaced by a box message, goal:g7.16.1.11.20 cut B), so THAT is the seam that sees an announcement
+    monkeypatch.setattr(_send, "send",
+                        lambda root, to, text, sender=None, **kw:
+                        sent.append((to, text)) or tmp_path)
     rc = rotate.cmd_ack(SimpleNamespace(seat="rotated-seat", gen=1, ref=None,
                                         answer="continue", text=None), tmp_path)
     assert rc == 0

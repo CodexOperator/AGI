@@ -414,7 +414,7 @@ def _agi(*args, cwd=None):
     # cwd defaults to the SOURCE root of the tree under test, not the main
     # checkout — driver.sh must route against the graph this worktree carries.
     return subprocess.run(["bash", str(DRIVER), *args], capture_output=True,
-                          text=True, timeout=180,
+                          text=True, timeout=600,   # a hang detector, not a speed assertion: `links` walks the whole graph (158 s on the trunk, 168 s on a range, goal:g7.16.1.11.43), so 180 s was one loaded run from red; >= 2x its measured time
                           cwd=str(cwd or SOURCE_ROOT))
 
 

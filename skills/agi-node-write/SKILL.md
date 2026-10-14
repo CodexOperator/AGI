@@ -76,3 +76,6 @@ never fabricate one after the fact. Mechanism, not wording: quote the instructio
 - after `write.py create` -> `git status --short <paths>`; a node left `??` (index race / held lock) is committed by exact path, never `git add -A` (DG2 create; DG1 W1b).
 - rewrite `.agi/config.json` from a dict: it is not json.dumps round-trippable (19588 B, indent=2 dump differs) -> insert cells as text, verify with `json.loads` (DG4).
 - count a minted verdict node as closing its hypothesis: also set the hypothesis's own `verdict` field (and evidence_runs) in the same turn, else the round stays open (all-is-one).
+
+## Traps moved from cards (owner 10-10: one sweep, then a rule)
+- `write.py --set adjust=none` parses as YAML null and is refused -> text values, never bare none / null / true (SM gen 35)

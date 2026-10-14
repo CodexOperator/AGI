@@ -1,0 +1,11 @@
+# agi: how hard the kernel reclaims the dentry and inode caches (goal:g7.16.1.11.40.1.1 target 3a, council 3/3 23:32Z).
+# vm.vfs_cache_pressure 100 is the kernel default. Above 100 it takes dentries and inodes back faster relative to the page cache.
+# WHY: on 2026-10-11 agi.slice sat AT its MemoryHigh with 1638 MiB of anon and 2713 MiB of kernel slab (dentry/inode cache built
+# by file walks over the graph and the worktrees); the slab was reclaimable (294 reclaimable vs 15 unreclaimable after a drop, dentries
+# 93 percent unused), yet reclaim swapped out about 2.2 GB of the posts' own anon first: the io and memory full pressure.
+# WHY {{VFS_CACHE_PRESSURE}} and not more: the first step is the smallest that doubles the reclaim rate of those caches, so the
+# before and after numbers (slab, swap.current, memory.events high per hour, 1 h each side, kept in the leaf) say how much it did;
+# 500 is the council's upper end, to be taken in a second step only if the after-hour still shows slab over the configured line.
+# KEPT OR REVERTED on those numbers. Installed by the box owner (a host act), applied with sysctl --system, checked by the
+# sysctl-check guard script, which compares every value below with the live kernel.
+vm.vfs_cache_pressure = {{VFS_CACHE_PRESSURE}}
