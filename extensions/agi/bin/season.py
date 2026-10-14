@@ -1106,9 +1106,15 @@ JUDGE_FILES = ("extensions/agi/bin/spawn_gate.py", "extensions/agi/bin/frontmatt
 JUDGE_DIRS = (".agi/context/schemas/",)
 LADDER_PATH = ".agi/nodes/.geometry/ladder.md"
 #: goal:g7.16.1.11.8.1 (d): the core town's season-2 work lives on the LIVE
-#: trunk, not on derive_names' core/season2/main (10-04, a DEAD line).
+#: trunk, not on the core town's own derive_names season trunk (10-04, a DEAD line).
 CORE_TOWN = "core"
-CORE_LIVE_TRUNK = "local-maxxing/season2/main"
+CORE_LIVE_TOWN = "local-maxxing"
+
+
+def _core_live_trunk(g):
+    """The live trunk of old season `g`, resolved through branches.py (never a literal
+    name, which goes stale at the rollover)."""
+    return branches.derive_names(CORE_LIVE_TOWN, g)["town_season_main"]
 
 
 def _judge_blobs(repo, tree) -> dict:
@@ -1368,7 +1374,7 @@ def _stop5(repo, restore, h0, branch, why) -> int:
 
 def _trunk_names(slug, g, ng, core_old):
     """(old, new, head) of one trunk. The core town's OLD is the LIVE trunk
-    (`core_old`), never derive_names' core/season2/main (a dead line)."""
+    (`core_old`), never the core town's own derive_names trunk (a dead line)."""
     if slug is None:
         return branches.season_main(g), branches.season_main(ng), "master"
     nm = branches.derive_names(slug, ng)
@@ -1474,7 +1480,7 @@ def cmd_rollover_global(root: Path, args) -> int:
     jt = _git(repo, "rev-parse", "--verify", "-q", jt_arg + "^{commit}").stdout.strip()
     if not jt:
         print(f"REFUSED: [rollover] --judge-tip {jt_arg!r} does not resolve to a commit here", file=sys.stderr); return 1
-    core_old = (getattr(args, "core_old", "") or "").strip() or CORE_LIVE_TRUNK
+    core_old = (getattr(args, "core_old", "") or "").strip() or _core_live_trunk(g)
     want_branch, cur_branch = branches.season_main(ng), _current_branch(repo)
     if delete_old and cur_branch != want_branch:
         print(f"REFUSED: [rollover] cell commits land on the branch checked out where season.py runs ({cur_branch or 'detached HEAD'}); "
@@ -2273,7 +2279,7 @@ def main(argv: list[str] | None = None) -> int:
                                  "STOPs unless named; OWNER-given, never a code-rule skip); printed SKIPPED, nothing pushed")
     p_rollover.add_argument("--core-old", default="",
                             help="--global: the core town's OLD tip, an origin branch (default "
-                                 f"{CORE_LIVE_TRUNK}, the live trunk; never core/season2/main)")
+                                 f"the {CORE_LIVE_TOWN} town's trunk of the old global season, the live trunk; never the core town's own)")
     p_rollover.add_argument("--actor", default="",
                             help="edited_by for the ladder write (default: season.py)")
     p_rollover.add_argument("--session", default="",
