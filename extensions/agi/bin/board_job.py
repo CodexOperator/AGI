@@ -1,0 +1,325 @@
+#!/usr/bin/env python3
+"""board_job.py -- the hourly board line's commit, made G by the seat's own uid (goal:g7.16.1.11.42, option E).
+
+The board job (metrics_cell.py: one cell of the town node) used to run as the human uid, which has no
+signing key, so every commit it made on the trunk was N. Option E (belam 14:5xZ 10-11, council 3/3 15:07Z,
+conditions C1-C6) moves the commit to the Prime's OWN uid, the hand agi-at and agi-turn already sign with,
+and leaves the human uid one step that makes NO commit:
+
+  board_job.py commit --main MAIN --post belam --job NAME -- <writer ... @WROOT@ ...>     (uid agi-belam)
+      1. work = a job-owned shared clone (never ~/t, C5); the base is posts/<post> (or MAIN when MAIN is
+         ahead: a pure ref move, no commit; or a signed `board: take MAIN` merge when they diverged and every
+         commit on posts/<post> is the job's own);
+      2. the writer runs in the clone at @WROOT@ (= <work>/.agi) and makes ONE commit; the job re-signs it with
+         a `Board-job:` trailer (C3: the subject stays exact, the trailer names the job);
+      3. C2: the commit must verify G (`git log -1 --format=%G?`), else NOTHING is published, one line, rc 3;
+      4. publish = a push to MAIN's posts/<post> with --force-with-lease=<base> (the CAS: new^1 == the current
+         tip; a miss is rc 4 and the next hour retries, never a commit).
+  board_job.py land --main MAIN --post belam                                              (uid belam)
+      C6: `git merge --ff-only posts/<post>` into MAIN ONLY when every commit in MAIN..posts/<post> is the
+      job's own (exact subject + a Board-job trailer + the seat's committer); otherwise no ff, ONE line to
+      the notice file, rc 3 (posts/<post> is also the Prime's staging lane, so an unconditional ff from a
+      cron would land unreviewed work: the `branch_push` class). The ff makes no commit (C5).
+
+The committer is `<post> <post>@agi`: git verifies an ssh signature against the committer email, and
+`belam@agi` is the ring principal of the Prime's key. Exit codes: 0 done / nothing to do, 2 usage or
+refused setup, 3 refused by a rule (the line says which), 4 a raced CAS, 5 no posts/<post>.
+
+`land` verifies every commit's signature and principal ITSELF against --signers (the ring file): uid belam's git
+config names no signers file, and any uid in group agi can move posts/<post>, so the commit step's C2 check is
+not something land may trust. Notices: the COMMIT job (uid of the seat) is the ONE notice carrier, writing to the
+seat's own ~/.notice; land's lines go to uid belam's own ~/.notice, which no session reads, so they are
+log-only in effect (the cron log carries them too).
+"""
+from __future__ import annotations
+
+import argparse
+import datetime
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+SIGNERS = "/var/lib/agi/allowed_signers"   # the ring: uid belam's own git config names no signers file
+TRAILER = "Board-job:"
+SUBJECT_RE = re.compile(r"^write\.py: town:[a-z0-9-]+ \([a-z0-9-]+\)$")
+TAKE_PREFIX = "board: take MAIN"
+WROOT = "@WROOT@"
+
+
+def _clean(env=None) -> dict:
+    """The job owns its git env: an inherited GIT_DIR / GIT_WORK_TREE / GIT_INDEX_FILE would point
+    EVERY git call below (reads of MAIN included) at another repo."""
+    e = dict(os.environ if env is None else env)
+    for k in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"):
+        e.pop(k, None)
+    return e
+
+
+def _git(repo, *args, env=None, input=None):
+    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True,
+                          env=_clean(env), input=input)
+
+
+def _rev(repo, rev):
+    got = _git(repo, "rev-parse", "-q", "--verify", rev)
+    return got.stdout.strip() if got.returncode == 0 else None
+
+
+def _is_ancestor(repo, a, b) -> bool:
+    return _git(repo, "merge-base", "--is-ancestor", a, b).returncode == 0
+
+
+def _identity_env(post: str) -> dict:
+    env = _clean()
+    env.update(GIT_AUTHOR_NAME=post, GIT_COMMITTER_NAME=post,
+               GIT_AUTHOR_EMAIL=f"{post}@agi", GIT_COMMITTER_EMAIL=f"{post}@agi")
+    return env
+
+
+def _sig(repo, sha: str, signers: str) -> tuple[str, str]:
+    """(%G?, %GS) of `sha`, verified against `signers` (-c gpg.ssh.allowedSignersFile): the verdict never
+    depends on the invoking uid's git config. ('?', '') when git cannot say."""
+    got = _git(repo, "-c", f"gpg.ssh.allowedSignersFile={signers}", "log", "-1", "--format=%G?%x00%GS", sha)
+    if got.returncode:
+        return "?", ""
+    g, _, who = got.stdout.rstrip("\n").partition("\x00")
+    return g or "?", who
+
+
+def is_own(repo, sha: str, post: str, signers: str = SIGNERS) -> bool:
+    """True when `sha` is the board job's own commit: SIGNED (%G? == G) by the seat's principal
+    (%GS == <post>@agi, not just any key on the ring), the exact subject (or the take-MAIN merge), a
+    `Board-job:` trailer, and the seat's committer email. Council 18:06Z condition (b): land runs as the
+    human uid, which can neither be told what C2 checked nor trust who moved posts/<post> (any uid in
+    group agi can), so it checks the signature itself. The Prime's hand commits carry the same committer,
+    so the subject + trailer are what tell the machinery from the hand."""
+    got = _git(repo, "log", "-1", "--format=%ce%x00%s%x00%b", sha)
+    if got.returncode:
+        return False
+    ce, subject, body = (got.stdout.rstrip("\n").split("\x00", 2) + ["", ""])[:3]
+    if ce != f"{post}@agi":
+        return False
+    g, who = _sig(repo, sha, signers)
+    if g != "G" or who != f"{post}@agi":
+        return False
+    if not (SUBJECT_RE.match(subject) or subject.startswith(TAKE_PREFIX)):
+        return False
+    return any(line.startswith(TRAILER) for line in body.splitlines())
+
+
+def not_own(repo, base: str, tip: str, post: str, signers: str = SIGNERS) -> list[str]:
+    """Commits in base..tip that are NOT the job's own (oldest first)."""
+    out = _git(repo, "rev-list", "--reverse", f"{base}..{tip}")
+    return [c for c in out.stdout.split() if not is_own(repo, c, post, signers)]
+
+
+
+def _now() -> str:
+    """The UTC stamp every log line of this job carries (the log had none, so a run could not be placed against a ref move; goal:g7.16.1.11.42)."""
+    return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _say(line: str, err: bool = True) -> None:
+    """ONE line of the job's log: `<UTC stamp> <line>`. Every print of this file goes through it."""
+    print(f"{_now()} {line}", file=sys.stderr if err else sys.stdout)
+
+
+def _sh(rev) -> str:
+    return (rev or "?")[:12]
+
+
+def _notice(path: Path | None, line: str) -> None:
+    _say(line)
+    if path is not None:
+        try:
+            with open(path, "a", encoding="utf-8") as fh:
+                fh.write(line + "\n")
+        except OSError as exc:
+            _say(f"[board] could not write the notice file {path}: {exc}")
+
+
+def _staged_line(post: str, n: int, repo=None, first: str = "", signers: str = SIGNERS) -> str:
+    """The one notice line; with `first` it names the first foreign commit and its %G? (an unsigned or
+    forged commit reads `%G?=N`, the Prime's hand work `%G?=G`)."""
+    named = f" (first {first[:7]}, %G?={_sig(repo, first, signers)[0]})" if first and repo else ""
+    return f"[board] posts/{post} carries {n} commits not the job's{named}: no ff, the board line waits"
+
+
+def _main_head(main: Path):
+    return _rev(main, "HEAD")
+
+
+def cmd_land(args) -> int:
+    main, post = Path(args.main), args.post
+    ref = f"refs/heads/posts/{post}"
+    tip, head = _rev(main, ref), _main_head(main)
+    if not tip or not head:
+        _say(f"[no-branch] posts/{post} or MAIN's HEAD is unreadable: nothing landed")
+        return 5
+    if tip == head or _is_ancestor(main, tip, head):
+        return 0   # nothing to land: MAIN already has everything on the branch
+    if not _is_ancestor(main, head, tip):
+        _notice(args.notice, f"[board] MAIN and posts/{post} have diverged: no ff, the board line waits")
+        return 3
+    staged = not_own(main, head, tip, post, args.signers)
+    if staged:
+        _notice(args.notice, _staged_line(post, len(staged), main, staged[0], args.signers))
+        return 3
+    try:   # the suite lock holds MAIN's working tree still while a verification suite runs
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import verification  # noqa: PLC0415
+        holder = verification.suite_lock_holder(main / ".agi")
+    except Exception:  # noqa: BLE001 -- no lock reading: the ff itself refuses a dirty tree
+        holder = None
+    if holder:
+        _say(f"skip: the suite lock is held by live pid {holder}; posts/{post} not landed")
+        return 0
+    done = _git(main, "merge", "--ff-only", "-q", ref)
+    if done.returncode or _main_head(main) != tip:
+        _say(f"[board] ff refused: {(done.stderr or done.stdout).strip()[:160]}")
+        return 3
+    _say(f"board: MAIN {head[:7]} -> {tip[:7]} (ff, no commit)", err=False)
+    return 0
+
+
+def _work_ok(work: Path) -> bool:
+    """C5: the job's clone is never the Prime's live tree."""
+    home_t = Path(os.path.expanduser("~")) / "t"
+    w = work.resolve()
+    return not (w == home_t.resolve() or home_t.resolve() in w.parents)
+
+
+def _ensure_clone(main: Path, work: Path, env) -> bool:
+    if (work / ".git").exists():
+        return True
+    work.parent.mkdir(parents=True, exist_ok=True)
+    got = subprocess.run(["git", "clone", "-q", "--shared", "--no-checkout", str(main), str(work)],
+                         capture_output=True, text=True, env=env)
+    return got.returncode == 0
+
+
+def cmd_commit(args) -> int:
+    main, post, work = Path(args.main), args.post, Path(args.work).expanduser()
+    cmd = list(args.writer)
+    if cmd[:1] == ["--"]:
+        cmd = cmd[1:]
+    if not cmd:
+        _say("ERR: board_job.py commit: no writer command after --")
+        return 2
+    if not _work_ok(work):
+        _say(f"[board] {work} is the Prime's own tree (~/t): the job never works there")
+        return 2
+    ref = f"refs/heads/posts/{post}"
+    tip, head = _rev(main, ref), _main_head(main)
+    if not tip or not head:
+        _say(f"[no-branch] posts/{post} or MAIN's HEAD is unreadable: nothing committed")
+        return 5
+    env = _identity_env(post)
+    # the base: posts/<post>'s tip, or MAIN when MAIN is ahead (a pure ref move: no commit)
+    if tip != head and _is_ancestor(main, tip, head):
+        if _git(main, "update-ref", ref, head, tip).returncode:
+            _say(f"[raced] posts/{post} moved while the job took MAIN: old {_sh(tip)} -> seen {_sh(_rev(main, ref))}")
+            return 4
+        tip = head
+    take = False
+    if tip != head:
+        if _is_ancestor(main, head, tip):
+            staged = not_own(main, head, tip, post, args.signers)
+        else:   # diverged: only a branch of the job's own commits may take MAIN (a signed merge)
+            mb = _git(main, "merge-base", head, tip).stdout.strip()
+            staged = not_own(main, mb, tip, post, args.signers) if mb else [tip]
+            take = not staged
+        if staged:
+            _notice(args.notice, _staged_line(post, len(staged), main, staged[0], args.signers))
+            return 3
+    if not _ensure_clone(main, work, env):
+        _say(f"[board] could not make the job's clone at {work}")
+        return 2
+    for c in (["reset", "-q", "--hard"], ["clean", "-fdq"]):
+        _git(work, *c, env=env)
+    if _git(work, "checkout", "-q", "--detach", tip, env=env).returncode:
+        _say(f"[board] could not check out {tip[:7]} in {work}")
+        return 2
+    base = tip
+    if take:
+        # -X theirs = MAIN's side of a CONTENT conflict (MAIN edited the same node between :23 and :28, e.g.
+        # its edited_by stamp): the writer rewrites the cell right after, so nothing of the job's is lost.
+        # Anything -X cannot settle (a modify/delete) is a REFUSAL that goes to the notice file too: a stall
+        # that only the job log knew would leave the board line off with nobody told.
+        merged = _git(work, "merge", "-q", "--no-ff", "-X", "theirs", "-m", f"{TAKE_PREFIX} {head[:7]}", "-m",
+                      f"{TRAILER} {args.job}", head, env=env)
+        if merged.returncode:
+            _git(work, "merge", "--abort", env=env)
+            why = ((merged.stdout or "") + (merged.stderr or "")).strip().splitlines()
+            _notice(args.notice, f"[board] take MAIN did not merge clean ({(why or ['?'])[0][:100]}): "
+                                 f"the board line waits")
+            return 3
+        base = _rev(work, "HEAD")
+        # the merge descends from the old tip (its first parent): publish it by ITS OWN CAS first, so
+        # the board commit's parent is the tip posts/<post> really has
+        sig = _git(work, "log", "-1", "--format=%G?", base, env=env).stdout.strip()
+        if sig != "G":
+            _say(f"[board] the take-MAIN merge {base[:7]} is not G (%G?={sig or '?'}): not published")
+            return 3
+        pushed = _git(work, "push", "-q", f"--force-with-lease={ref}:{tip}", str(main), f"{base}:{ref}", env=env)
+        if pushed.returncode:
+            _say(f"[raced] the take-MAIN push lost the CAS: old {_sh(tip)} -> seen {_sh(_rev(main, ref))}: {(pushed.stderr or '').strip()[-120:]}")
+            return 4
+    run = [c.replace(WROOT, str(work / ".agi")) for c in cmd]
+    done = subprocess.run(run, cwd=str(work), env=env, capture_output=True, text=True)
+    for line in done.stdout.splitlines():   # the writer's own lines carry the stamp too: the log is ONE timeline
+        _say(line, err=False)
+    for line in done.stderr.splitlines():
+        _say(line)
+    if done.returncode:
+        return done.returncode
+    new = _rev(work, "HEAD")
+    if new == base:
+        return 0   # the writer skipped (a held lock, a dirty node): nothing to publish
+    if _rev(work, f"{new}^") != base or _git(work, "rev-list", "--count", f"{base}..{new}").stdout.strip() != "1":
+        _say(f"[board] the writer made more than ONE commit on {base[:7]}: nothing published")
+        return 3
+    msg = _git(work, "log", "-1", "--format=%s", new).stdout.strip()
+    amended = _git(work, "commit", "-q", "--amend", "-m", msg, "-m", f"{TRAILER} {args.job}", env=env)
+    if amended.returncode:
+        _say(f"[board] could not sign the commit: {(amended.stderr or amended.stdout).strip()[:160]}")
+        return 3
+    new = _rev(work, "HEAD")
+    sig = _git(work, "log", "-1", "--format=%G?", new, env=env).stdout.strip()
+    if sig != "G":   # C2: an N is never published
+        _say(f"[board] the commit {new[:7]} is not G (%G?={sig or '?'}): not published, the node is unchanged")
+        return 3
+    if _rev(work, f"{new}^") != _rev(main, ref):   # new^1 must be the CURRENT tip
+        _say(f"[raced] posts/{post} moved under the job: next hour (old {_sh(base)} -> seen {_sh(_rev(main, ref))})")
+        return 4
+    pushed = _git(work, "push", "-q", f"--force-with-lease={ref}:{base}", str(main), f"{new}:{ref}", env=env)
+    if pushed.returncode:
+        _say(f"[raced] the push to posts/{post} lost the CAS: old {_sh(base)} -> seen {_sh(_rev(main, ref))}: {(pushed.stderr or '').strip()[-120:]}")
+        return 4
+    _say(f"board: posts/{post} {base[:7]} -> {new[:7]} (G, {args.job})", err=False)
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    sub = ap.add_subparsers(dest="verb", required=True)
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--main", required=True, help="the trunk's working copy (MAIN)")
+    common.add_argument("--post", default="belam", help="the seat whose branch carries the board commit")
+    common.add_argument("--signers", default=SIGNERS,
+                        help="the allowed-signers ring land/commit verify the board commits against")
+    common.add_argument("--notice", type=Path, default=Path(os.path.expanduser("~/.notice")),
+                        help="the one-line notice file (default ~/.notice)")
+    c = sub.add_parser("commit", parents=[common], help="make the signed board commit on posts/<post> (uid of the seat)")
+    c.add_argument("--job", required=True, help="the job's name, written as the Board-job trailer")
+    c.add_argument("--work", default="~/board-work", help="the job-owned clone (never ~/t)")
+    c.add_argument("writer", nargs=argparse.REMAINDER, help="-- <writer command>; @WROOT@ = the clone's .agi")
+    sub.add_parser("land", parents=[common], help="ff MAIN to posts/<post> when every commit is the job's own")
+    args = ap.parse_args(argv)
+    return cmd_commit(args) if args.verb == "commit" else cmd_land(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

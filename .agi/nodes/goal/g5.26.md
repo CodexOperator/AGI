@@ -6,7 +6,7 @@ parents:
   - goal:g5
 next_edges: []
 confidence: 0.9
-edited_by: belam
+edited_by: thought-master
 goal_id: G5.26
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ season: 2
 seeds:
   - doc:lm-research-corpus-registry
   - idea:lm-tiktok-captions-free-label-ruler
-status: active
+status: horizon
 tags:
   - local-maxxing
   - datasets
@@ -48,5 +48,5 @@ thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14):
     order      DS.01 first (the one scrub), then G5.26.2 capture, then the jev pass as batched rounds (CPU/API only, no GPU)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner ask 2026-09-21: renumber local-maxxing research g5.26 → g5.26 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
+thought-master 07:0xZ 10-14: status active -> horizon (PERPETUAL; 'Done when: never' kept). Deferred by council 3/3 06:38Z 10-14 (alive answering; [defer] to thought-master): inert until the hardware-gated set (g5.22 g5.23 g5.24 g5.25 g5.27 g5.30) reopens; wakes at the next G5.27 gap-table update. PRIOR THOUGHT, carried verbatim: owner ask 2026-09-21: renumber local-maxxing research g5.26 → g5.26 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
 <!-- THOUGHT:END -->

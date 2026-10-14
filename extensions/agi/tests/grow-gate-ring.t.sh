@@ -1,7 +1,8 @@
 #!/bin/sh
 # grow-gate-ring.t.sh [TRUNK] [GITDIR]: AA3.4 fix 3 (hypothesis g716111-aa3-the-three-byte-fixes-...): a growth row whose ring cell names ONE post (moral: `owner`) matches the signer name WITHOUT "@agi".
 # Scratch repo borrowing GITDIR's objects (0 shared refs written), scratch keys; tools from TRUNK by sect ($GROW_GATE tests a candidate grow-gate). One ok/FAIL line per case; exit = number of FAILs.
-T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0
+T=$1;[ -n "$T" ]||{ echo "[no-candidate] pass the sha under test" >&2;exit 2;};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE   # a lane that builds a scratch repo owns its git env (an inherited GIT_DIR wrote MAIN, 10-11 09:56Z)
 o=$(git rev-parse $T)||exit 1;for x in sect grow-check grow-gate agi-fill;do git ls-tree --full-tree --name-only $o .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$o:|"|git cat-file --batch --follow-symlinks|sed -n "/^###* $x /,/^###* /{/^~~~/,/^~~~/{//!p}}">$D/b/$x;done
 [ "$GROW_GATE" ]&&cp $GROW_GATE $D/b/grow-gate;chmod +x $D/b/*;[ -s $D/b/grow-gate ]||{ echo "FAIL no grow-gate at $T";exit 99;}
 for p in owner director-general-1;do ssh-keygen -qN "" -ted25519 -f$D/k/$p>/dev/null;echo "$p@agi namespaces=\"git\" $(cut -d' ' -f1,2 $D/k/$p.pub)">>$D/ring;done

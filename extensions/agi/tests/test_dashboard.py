@@ -348,6 +348,10 @@ def test_watch_exits_cleanly_on_sigint(project):
         [sys.executable, str(DASHBOARD), "--project", str(project),
          "--no-color", "--watch", "1"],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+        # a suite started in the background (`&`, nohup, a gate wrapper) inherits SIGINT as IGNORED and so did this child: Python then never
+        # installs KeyboardInterrupt and the watch loop outlives the signal (TimeoutExpired in both .43 full runs, solo 1.6 s). The test's claim is
+        # how the watch exits ON a SIGINT, so the child starts with the default disposition whatever launched the suite (goal:g7.16.1.11.43).
+        preexec_fn=lambda: signal.signal(signal.SIGINT, signal.SIG_DFL),
     )
     time.sleep(1.5)
     proc.send_signal(signal.SIGINT)

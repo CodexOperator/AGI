@@ -3504,7 +3504,7 @@ def _patch_the_node_itself(root, edit: Edit) -> None:
 def _default_actor(root=None) -> str:
     """Who a write with no `--actor` is stamped as (goal:g7.33.20.2, R1).
 
-    AGI_ACTOR, else the RESOLVED SEAT (AGI_POST / AGI_SEAT), else the unix
+    AGI_ACTOR, else the RESOLVED SEAT (AGI_POST), else the unix
     user PROVABLY not a post's name (every post runs as the user named like the
     Prime's seat, `belam`, so `$USER` there names the Prime, not the writer),
     else `unknown`. Fail CLOSED: when the collision check cannot run -- no project
@@ -3533,9 +3533,9 @@ def _log_provenance(actor: str = "", root=None) -> dict:
     hypothesis:l4-write-log-role-capture — every write-log entry should record
     WHO wrote it. `actor` is the resolved caller identity (`actor` param or
     `_default_actor`). `role` and `seat` are READ from what the environment
-    already sets (AGI_ROLE / AGI_SEAT, exported by dispatch); when a source is
+    already sets (AGI_ROLE / AGI_POST, exported by dispatch); when a source is
     absent the key is ABSENT, never a placeholder. Only present keys land in
-    the entry — so a hand `write.py submit` with no AGI_ROLE/AGI_SEAT still
+    the entry — so a hand `write.py submit` with no AGI_ROLE/AGI_POST still
     records `actor`, and a non-write.py writer records none of these at all.
     """
     prov: dict = {"actor": actor or _default_actor(root)}

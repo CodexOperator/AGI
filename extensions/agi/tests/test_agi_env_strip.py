@@ -12,6 +12,7 @@ verification independent of its spawn env:
 """
 
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -71,9 +72,11 @@ def test_conftest_strips_the_git_config_spawn_channel():
             f"conftest should have stripped {var!r} -- a leftover one makes "
             f"every git call in the suite run the agent-git hook"
         )
+    # the spawn CHANNEL family only (COUNT / KEY_n / VALUE_n): GIT_CONFIG_GLOBAL / _SYSTEM / _NOSYSTEM are the
+    # isolation the gate recipe sets on purpose (goal:g7.16.1.11.43), and are not what conftest strips
     assert sorted(
-        k for k in os.environ if k.startswith("GIT_CONFIG_")
-    ) == [], "GIT_CONFIG_* cannot leak into the suite"
+        k for k in os.environ if re.fullmatch(r"GIT_CONFIG_(COUNT|KEY_\d+|VALUE_\d+)", k)
+    ) == [], "the GIT_CONFIG_COUNT/KEY_n/VALUE_n channel cannot leak into the suite"
 
 
 def test_inherited_hookspath_really_runs_a_hook_and_the_strip_removes_it(

@@ -2,7 +2,8 @@
 # lanes.sh [TRUNK] [GITDIR]: AA3.3's 17 lanes on a throwaway repo borrowing GITDIR's objects (0 shared refs written). One line per lane: ok | FAIL; exit = the number of FAILs.
 # EVERY tool, agi-land included, comes from TRUNK by sect (reviewed engine nodes, never a prose doc); $GROW_GATE / $AGI_LAND test a candidate. Keys are scratch keys named as the real posts.
 # Committed as extensions/agi/tests/aa3-lanes.t.sh (AA2's runner admits `sh extensions/agi/tests/<name>.t.sh`); exit = the number of FAILs, 17 = agi-land not built.
-T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k
+T=$1;[ -n "$T" ]||{ echo "[no-candidate] pass the sha under test" >&2;exit 2;};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE   # a lane that builds a scratch repo owns its git env (an inherited GIT_DIR wrote MAIN, 10-11 09:56Z)
 o=$(git rev-parse $T)||exit 1;for x in sect grow-check grow-gate agi-fill agi-gate agi-project agi-land;do git ls-tree --full-tree --name-only $o .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$o:|"|git cat-file --batch --follow-symlinks|sed -n "/^###* $x /,/^###* /{/^~~~/,/^~~~/{//!p}}">$D/b/$x;done
 [ "$GROW_GATE" ]&&cp $GROW_GATE $D/b/grow-gate;[ "$AGI_LAND" ]&&cp $AGI_LAND $D/b/agi-land;chmod +x $D/b/*;[ -s $D/b/agi-land ]||{ echo "FAIL all 17 lanes: no ### agi-land in .geometry/engine*.md at $T (not built; AGI_LAND=<file> tests a candidate)";exit 17;};[ -s $D/b/ckpt ]||{ printf '#!/bin/sh\nexit 0\n'>$D/b/ckpt;chmod +x $D/b/ckpt;}
 for p in sanctuary-master director-general-1 alive all-is-one belam thought-master;do ssh-keygen -qN "" -ted25519 -f$D/k/$p;echo "$p@agi namespaces=\"git\" $(cut -d' ' -f1,2 $D/k/$p.pub)">>$D/ring;done

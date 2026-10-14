@@ -1454,7 +1454,7 @@ def _merge_up_town_gate(root: Path, args) -> str | None:
     seat_name = getattr(args, "seat", "") or ""
     round_town = _resolve_round_town(root, args)
     # Seat town (half B) -- from --seat/--post, then the exported
-    # AGI_POST/AGI_SEAT env var (the seat name the spawn already carries),
+    # AGI_POST env var (the seat name the spawn already carries),
     # then the seat registry.
     seat_town = None
     if not seat_name:

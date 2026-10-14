@@ -73,7 +73,9 @@ import argparse
 import difflib
 import hashlib
 import os
+import pwd
 import re
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -158,6 +160,17 @@ def _parse_frontmatter(path: Path) -> dict:
     return fm
 
 
+_USER_RE = re.compile(r"^[a-z_][a-z0-9_-]*$")
+
+
+def _invoking_user() -> str:
+    """The login name whose crontab this process edits."""
+    try:
+        return pwd.getpwuid(os.getuid()).pw_name
+    except KeyError:
+        return os.environ.get("USER", "")
+
+
 def _resolve_cadence(path: Path, name: str, job: dict) -> dict:
     """Validate one `cadences.<name>` entry's shared shape — schedule
     (`every_mins` XOR `schedule`), `enabled`, and the optional `box` gate —
@@ -225,6 +238,18 @@ def _resolve_cadence(path: Path, name: str, job: dict) -> dict:
                 f"— a `box` gate is the exception and says why"
             )
         entry["why_box"] = raw_why.strip()
+    # Optional `user` (goal:g7.16.1.11.42 C1): the uid whose crontab carries
+    # the job. ABSENT = the applying user's own crontab, as before. `apply` is
+    # the ONE home that installs it (a foreign user's crontab goes in through
+    # `crontab -u`, never by hand).
+    raw_user = job.get("user")
+    if raw_user is not None:
+        if not isinstance(raw_user, str) or not _USER_RE.match(raw_user):
+            raise CronsError(
+                f"{path}: cadences.{name}.user must be a login name "
+                f"(lowercase letters, digits, - and _), got {raw_user!r}"
+            )
+        entry["user"] = raw_user
     return entry
 
 
@@ -270,6 +295,11 @@ def load_crons_node(root: Path) -> dict:
         if job is None:
             continue  # never declared: never rendered, distinct from enabled:false
         jobs[name] = _resolve_cadence(path, name, job)
+        if "user" in jobs[name]:
+            raise CronsError(
+                f"{path}: cadences.{name}.user is not allowed on a built-in job "
+                f"(its renderer is the applying user's); only a generic `cmd` job "
+                f"may name a user")
         # config-max (belam 10-01 18:3xZ): a KNOWN job may carry its own
         # `cmd`; ABSENT keeps the built-in renderer, byte for byte.
         cmd = job.get("cmd")
@@ -493,7 +523,7 @@ _LOG_MODES = ("rename", "copytruncate")
 _NON_APPEND_ACTIONS = ("rename", "skip")
 
 
-def _managed_names(root: Path, repo_root: Path) -> list[str]:
+def _managed_names(root: Path, repo_root: Path, extra_names=()) -> list[str]:
     """The base log NAMES this project declares -- its own cron log, the memory
     alarm's alerts file, plus any extra NAME in `logs.also_manage` (the reaper
     log, which shares the dir). A WILDCARD glob is the near-miss: it bounds
@@ -504,7 +534,7 @@ def _managed_names(root: Path, repo_root: Path) -> list[str]:
         raise CronsError("config cell logs.also_manage: must be a list of bare "
                          f"file NAMEs, got {extra!r}")
     names = {_log_path(repo_root).name, alerts_log(root).name}
-    for n in extra:
+    for n in [*extra, *extra_names]:
         n = str(n).strip()
         if not n or "/" in n or "\\" in n or n in (".", "..") or Path(n).name != n:
             raise CronsError(f"config cell logs.also_manage: must be a bare file "
@@ -650,7 +680,7 @@ _NESTED_TAIL_RE = re.compile(r"\.\d+\.\d+(\.\d+)*$")
 
 
 def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False,
-                     live: bool = True) -> list[str]:
+                     live: bool = True, extra_names=()) -> list[str]:
     """Rotate every file in the box logs dir that is over the declared cap.
 
     The cap is the `logs.cap_mb` / `logs.rotations` cells in
@@ -701,7 +731,7 @@ def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False,
     cap, out, d = cap_mb * 1024 * 1024, [], logs_dir()
     if not d.is_dir():
         return []
-    names = _managed_names(root, repo_root)
+    names = _managed_names(root, repo_root, extra_names)
     entries = sorted(d.iterdir())
     unknown = {"unknown_said": False}
     for name in names:
@@ -815,7 +845,7 @@ def _this_box(root: Path, box_name: str | None = None) -> str:
         return ""
 
 
-def _substitute(text, root: Path, repo_root: Path, own: str):
+def _substitute(text, root: Path, repo_root: Path, own: str, logs_dir: str | None = None):
     """Resolve `{root}`, `{repo_root}`, `{logs}`, `{box}` through the ONE
     schema-declared map (`boxes.resolve_placeholders`), never a second literal
     token list here. Values come from what the renderers already compute --
@@ -826,7 +856,7 @@ def _substitute(text, root: Path, repo_root: Path, own: str):
         return text
     import boxes
     cells = {"root": str(root),
-             "logs_dir": str(_log_path(repo_root).parent),
+             "logs_dir": logs_dir or str(_log_path(repo_root).parent),
              "repo_root": str(repo_root),
              "box": own}
     try:
@@ -838,7 +868,8 @@ def _substitute(text, root: Path, repo_root: Path, own: str):
 
 
 def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: dict,
-                         box_name: str | None = None) -> list[str]:
+                         box_name: str | None = None, user: str | None = None,
+                         only_bound: bool = False) -> list[str]:
     """The job lines this project's node describes, in `KNOWN_JOBS` order.
 
     Every line starts with `cd {root} &&` — a cd-less cron line is a named
@@ -857,9 +888,25 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
     if not node["crons_live"]:
         return []
 
-    jobs = node["jobs"]
+    # goal:g7.16.1.11.42 C1: a job may name the uid whose crontab carries it.
+    # The applying user's block holds the jobs with NO user plus its own; a
+    # foreign user's block (only_bound) holds ONLY the jobs bound to that user
+    # -- an unbound job is never duplicated into another uid's crontab.
+    me = user if user is not None else _invoking_user()
+    jobs = {n: j for n, j in node["jobs"].items()
+            if (j.get("user") == me if only_bound else j.get("user") in (None, me))}
     own = _this_box(root, box_name)
     log = _log_path(repo_root)
+    # goal:g7.16.1.11.42 E (SM 00:21Z, council 00:28Z): the home in `_log_path` / `{logs}` is the home of the uid RUNNING this code. A block
+    # rendered for a FOREIGN user is run by THAT user's cron, so its default log and {logs} are a TILDE word (the shell expands it as the
+    # row's user), every job line makes that dir first (`mkdir -p ~/logs`: a missing dir fails a redirect as silently as an unwritable one),
+    # and the block ends with ONE cap line that runs `crons.py caps` IN THAT UID every 5 minutes: `enforce_log_caps` bounds the logs dir of
+    # the uid that runs it and `apply` is never run by a foreign user, so without this line its logs were never capped. The own-user path is
+    # unchanged. A custom log: under ~/logs/ is passed to the cap line as a managed NAME; one elsewhere is the row's own business.
+    foreign = me != _invoking_user()
+    tilde_logs = "~/logs" if foreign else None
+    mk = "mkdir -p ~/logs && " if foreign else ""
+    cap_names: set[str] = set()
     lines: list[str] = []
 
     if "grid_sync" in jobs and jobs["grid_sync"]["enabled"] and _on_this_box(jobs["grid_sync"], own):
@@ -988,9 +1035,17 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
         if not (job["enabled"] and _on_this_box(job, own)):
             continue
         sched = _schedule_expr(job)
-        cmd = _substitute(job["cmd"], root, repo_root, own)
-        glog = Path(job["log"]) if job.get("log") else _log_path(repo_root)
-        lines.append(f"{sched} cd {root} && {cmd} >> {glog} 2>&1")
+        cmd = _substitute(job["cmd"], root, repo_root, own, **({"logs_dir": tilde_logs} if foreign else {}))
+        glog = Path(job["log"]) if job.get("log") else (
+            Path(tilde_logs) / _log_path(repo_root).name if foreign else _log_path(repo_root))
+        if foreign and str(glog).startswith("~/logs/"):
+            cap_names.add(glog.name)
+        lines.append(f"{sched} cd {root} && {mk}{cmd} >> {glog} 2>&1")
+    if foreign and lines:
+        crons_py = Path(engine_root) / "extensions" / "agi" / "bin" / "crons.py"
+        nm = "".join(f" --name {shlex.quote(n)}" for n in sorted(cap_names - {_log_path(repo_root).name}))
+        lines.append(f"*/5 * * * * cd {root} && {mk}python3 {crons_py} caps --root {root}{nm} "
+                     f">> ~/logs/{_log_path(repo_root).name} 2>&1")
 
     if not own:
         refused = sorted(n for n, j in jobs.items()
@@ -1340,8 +1395,78 @@ def require_common_root(root: Path, repo_root: Path) -> None:
         )
 
 
+def _foreign_users(node: dict, root: Path, me: str) -> list[str]:
+    """The users OTHER than the applying one that ANY job names (goal:g7.16.1.11.42 C1; council
+    18:06Z condition a). Not only the enabled, on-this-box ones: `render_managed_lines` already
+    filters those, so a job turned off (or moved to another box) renders its user's block EMPTY and
+    `apply` reconciles it away; filtering the USER here left that user's line live forever.
+    Sorted: `apply` stays deterministic."""
+    return sorted({j["user"] for j in node["jobs"].values()
+                   if j.get("user") and j["user"] != me})
+
+
+def _user_crontab_run(user: str, args: list[str], *, text: str | None = None,
+                      prompt: bool = False):
+    """`sudo [-n] crontab -u USER <args>`; None when sudo/crontab cannot run. The output is ALWAYS captured: sudo asks for the password on
+    the tty, not on stdout/stderr, and an uncaptured run left `got.stdout` None (a user WITH a crontab crashed the reader) and `got.stderr`
+    None (`no crontab for U`, the first install, read as a refusal: a false `pending` and nothing installed; goal:g7.16.1.11.42.1)."""
+    cmd = ["sudo"] + ([] if prompt else ["-n"]) + ["crontab", "-u", user, *args]
+    try:
+        return subprocess.run(cmd, input=text, capture_output=True, text=True)
+    except OSError:
+        return None
+
+
+def reconcile_user_crontab(user: str, managed: list[str], begin: str, end: str, *,
+                           dry_run: bool = False, user_crontab_dir: Path | str | None = None,
+                           prompt: bool = False) -> dict:
+    """Put `managed` (the user-bound jobs) into USER's crontab, the same
+    marker block `apply` keeps in the applying user's own. A fixture dir
+    (`<user>.crontab`) stands in for the real thing in tests; the real path is
+    `sudo crontab -u USER`. Without privilege the answer is a NAMED pending
+    status and nothing else: the cron-run `apply` (belam's, every 5 min) has
+    no tty, so a foreign user is installed by the interactive `apply --sudo`
+    and the cron-run one only reports it."""
+    if user_crontab_dir is not None:
+        f = Path(user_crontab_dir) / f"{user}.crontab"
+        current = f.read_text(encoding="utf-8").splitlines() if f.exists() else []
+        reader = lambda: (current, None)  # noqa: E731
+        def writer(lines):
+            Path(user_crontab_dir).mkdir(parents=True, exist_ok=True)
+            f.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+    else:
+        def reader():
+            got = _user_crontab_run(user, ["-l"], prompt=prompt)
+            if got is None:
+                return None, "sudo or crontab is not runnable"
+            if got.returncode == 0:
+                return got.stdout.splitlines(), None
+            if "no crontab" in (got.stderr or ""):
+                return [], None
+            return None, ((got.stderr or "").strip().splitlines() or ["refused"])[-1][:120]
+        def writer(lines):
+            got = _user_crontab_run(user, ["-"], text="\n".join(lines) + ("\n" if lines else ""),
+                                    prompt=prompt)
+            if got is None or got.returncode:
+                raise CronsError(f"crontab -u {user} install failed: "
+                                 f"{((got.stderr if got else '') or '').strip()[:120]}")
+    current, why = reader()
+    if current is None:
+        return {"user": user, "managed_lines": managed, "changed": None,
+                "status": f"pending: no privilege to read {user}'s crontab ({why}); "
+                          f"run `crons.py apply --sudo` interactively"}
+    before, existing, after = split_managed_block(current, begin, end)
+    new_lines = (before + [begin] + managed + [end] + after) if managed else (before + after)
+    changed = new_lines != current
+    if changed and not dry_run:
+        writer(new_lines)
+    return {"user": user, "managed_lines": managed, "changed": changed,
+            "status": ("would install" if dry_run else "installed") if changed else "unchanged"}
+
+
 def cmd_apply(root: Path, crontab_file: Path | str | None = None, dry_run: bool = False,
-              unit_dir: Path | str | None = None) -> dict:
+              unit_dir: Path | str | None = None,
+              user_crontab_dir: Path | str | None = None, sudo: bool = False) -> dict:
     """Render the node and reconcile the crontab. Idempotent by construction:
     the managed block replaces itself in place (or is appended once, on first
     install), so a second `apply` with nothing changed produces byte-identical
@@ -1380,14 +1505,31 @@ def cmd_apply(root: Path, crontab_file: Path | str | None = None, dry_run: bool 
     log_actions = enforce_log_caps(root, repo_root, dry_run,
                                   live=node["crons_live"])
 
+    # goal:g7.16.1.11.42 C1: the jobs that name another uid go into THAT uid's
+    # crontab (the ONE home); crons_live false empties each block like our own.
+    foreign = {}
+    for u in _foreign_users(node, root, _invoking_user()):
+        u_lines = render_managed_lines(root, repo_root, engine_root, node,
+                                       user=u, only_bound=True)
+        foreign[u] = reconcile_user_crontab(u, u_lines, begin, end, dry_run=dry_run,
+                                            user_crontab_dir=user_crontab_dir,
+                                            prompt=sudo)
+
     return {
         "root": root, "repo_root": repo_root, "engine_root": engine_root,
         "crontab_lines": new_lines, "managed_lines": managed,
         "previous_managed_lines": existing, "changed": changed,
         "crons_live": node["crons_live"],
         "unit_actions": unit_actions, "unit_dir": unit_dir,
-        "log_actions": log_actions,
+        "log_actions": log_actions, "foreign_users": foreign,
     }
+
+
+def cmd_caps(root: Path, dry_run: bool = False, names=()) -> list[str]:
+    """Cap the logs dir of THE UID RUNNING THIS (goal:g7.16.1.11.42 E, council 00:28Z): what a foreign user's own crontab runs, so its logs are
+    bounded by itself, with no sudo and no key. `names` = the extra bare log NAMES its rows write under ~/logs."""
+    root, cfg, repo_root, engine_root, node = _resolve(root)
+    return enforce_log_caps(root, repo_root, dry_run, live=node["crons_live"], extra_names=names)
 
 
 def cmd_show(root: Path, crontab_file: Path | str | None = None) -> str:
@@ -1406,6 +1548,11 @@ def cmd_show(root: Path, crontab_file: Path | str | None = None) -> str:
     out.extend(f"  {l}" for l in desired) if desired else out.append(
         "  (none — crons_live is false, or no job is enabled)"
     )
+    me = _invoking_user()
+    for u in _foreign_users(node, root, me):   # goal:g7.16.1.11.42 C1: what `apply --sudo` installs for another uid
+        u_lines = render_managed_lines(root, repo_root, engine_root, node, user=u, only_bound=True)
+        out.append(f"desired (user {u}, installed by `apply --sudo`):")
+        out.extend(f"  {l}" for l in u_lines) if u_lines else out.append("  (none)")
     out.append("")
     if installed == desired:
         out.append("status: up to date")
@@ -1501,6 +1648,18 @@ def main(argv: list[str] | None = None) -> int:
                               help="reconcile the crontab against the node")
     ap_apply.add_argument("--dry-run", action="store_true",
                           help="render and report; write nothing")
+    ap_apply.add_argument("--sudo", action="store_true",
+                          help="install a job's `user:` crontab through an interactive "
+                               "`sudo crontab -u USER` (the owner's GO); without it a "
+                               "foreign user is only reported as pending")
+    ap_apply.add_argument("--user-crontab-dir", default=None,
+                          help="a dir of <user>.crontab fixtures instead of sudo "
+                               "crontab -u (testing; production omits this)")
+    ap_caps = sub.add_parser("caps", parents=[common],
+                             help="cap the logs dir of the uid running this (a foreign user's own crontab runs it)")
+    ap_caps.add_argument("--dry-run", action="store_true", help="report; rotate nothing")
+    ap_caps.add_argument("--name", action="append", default=[],
+                         help="an extra bare log NAME inside ~/logs to bound (repeatable)")
     sub.add_parser("show", parents=[common],
                    help="print installed vs desired, and their diff")
     sub.add_parser("remove", parents=[common],
@@ -1523,7 +1682,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.cmd == "apply":
             result = cmd_apply(root, args.crontab_file, dry_run=args.dry_run,
-                               unit_dir=args.unit_dir)
+                               unit_dir=args.unit_dir,
+                               user_crontab_dir=args.user_crontab_dir, sudo=args.sudo)
             verb = "would install" if args.dry_run else "installed"
             if not result["crons_live"]:
                 print(f"crons: crons_live is false — {verb} 0 line(s) "
@@ -1537,12 +1697,20 @@ def main(argv: list[str] | None = None) -> int:
             if not result["changed"]:
                 print(f"crons: no-op — the crontab already matches the node "
                       f"({len(result['managed_lines'])} line(s))")
+            for u, fr in sorted((result.get("foreign_users") or {}).items()):
+                print(f"crons: user {u}: {fr['status']} ({len(fr['managed_lines'])} line(s))")
+                if fr["changed"]:
+                    for line in fr["managed_lines"]:
+                        print(f"  {line}")
             for a in result.get("log_actions") or ():
                 print(f"crons: log {a}")
             if result.get("unit_actions"):
                 print(f"crons: units ({result['unit_dir']}):")
                 for a in result["unit_actions"]:
                     print(f"  {a}")
+        elif args.cmd == "caps":
+            for a in cmd_caps(root, args.dry_run, args.name):
+                print(f"crons: log {a}")
         elif args.cmd == "show":
             print(cmd_show(root, args.crontab_file))
         elif args.cmd == "remove":

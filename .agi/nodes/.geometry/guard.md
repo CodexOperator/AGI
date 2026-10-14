@@ -18,9 +18,10 @@ The ONE cell for the sanctuary guard's per-box settings (goal:g7.16.1.7: "the
 guard is in the graph ... guard.env as a .geometry config node keyed by box
 class, never by host name"). `extensions/agi/guard/guard-init.sh` reads the
 fenced block below (opened by the line ```` ```sh guard.env ````, closed by a bare fence)
-and evaluates it as bash, exactly as it used to source `guard.env`. The file it
-replaces is kept on the box as `~/work/.sanctuary/guard/guard.env.pre-graph-20260930`
-and is read only when this node is missing.
+through `guard_env_load` (every line validated, nothing evaluated). The file it
+replaces may still sit under SANCTUARY on a box (`~/work/.sanctuary/guard/guard.env`; a
+`.pre-graph-20260930` copy was reported kept there, UNVERIFIED) until that box's layer-5
+install moves it aside; guard-init refuses it by name, never reads it.
 
 - **Key = the BOX name**, never the host name: `GUARD_<SETTING>_<box>` with every
   non-alphanumeric of the box turned into `_` (`local-town` -> `local_town`).
@@ -31,7 +32,7 @@ and is read only when this node is missing.
   The why, the layers and the kill switches: `extensions/agi/guard/GUARD.md`.
 
 ```sh guard.env
-# guard.env: per-BOX overrides for guard-init.sh (evaluated as bash; this block is config:guard).
+# guard.env: per-BOX overrides for guard-init.sh (read by guard_env_load: validated, never evaluated; this block is config:guard).
 # Key = the box name (GUARD_BOX, else /etc/sanctuary-guard/box, else the hosts.json town
 # whose host is this host) with every non-alphanumeric turned into _ (local-town -> local_town).
 # Sizes: 512M, 2G, 1.5G, or a bare number of MiB. Anything unset uses the default.
@@ -127,6 +128,40 @@ GUARD_SWEEP_CLAUDE_IDLE_MIN_local_town=1440
 GUARD_RAM_WORKTREES_local_town=/mnt/agi-ram/worktrees
 GUARD_RAM_WT_HOLD_PCT_local_town=60
 GUARD_ENGINE_MAX_local_town=3G
+```
+
+## move.exclude -- the namespaces a box move may drop
+
+`extensions/agi/guard/box-move.sh move` carries every ref namespace of the source except the ones named here, one reason each (goal:g7.16.1.11.39). Entry = `refs/<namespace>  <reason>`; the list lives only here.
+
+```sh move.exclude
+refs/remotes  a remote-tracking ref is a copy of origin's; the target fetches its own
+refs/capsule  a capsule rides as its own signed ref inside the move's bundle, and older packs stay on the box that made them (pack never deletes)
+```
+
+## move.target-fit -- what the target must have free before a box move touches anything
+
+`extensions/agi/guard/target-fit.sh` (goal:g7.16.1.11.39.3, the council's limit 1) runs on the target in the unit-paths ssh, before the stop and the row edit: the free space under the target repo must be at least `data-free-min-kb`, and (since goal:g7.16.1.11.44.7 the refs-dir probe lives in box-move.sh's PRE-STOP target step) a probe file must be creatable and removable in its refs dir. Else `[target-unfit]`, rc 9, nothing touched. `Key value  reason`.
+
+```sh move.target-fit
+data-free-min-kb 2097152  2 GiB: the carry is at most the whole repo, and MAIN's .git measured 421,612 KB on 10-12 (a 286 MiB pack + loose objects + the grid refs); the floor is ~5x that, so a full or near-full disk refuses before the stop instead of at the after-check
+```
+
+## move.unit-required -- host paths the units use INSIDE sh -c strings, which must exist on the target
+
+`extensions/agi/guard/unit-paths.sh` (goal:g7.16.1.11.39.4) checks the paths the units name as Exec words, WorkingDirectory and the like; a path inside an `sh -c '...'` string is invisible to it (8 of agi-post@'s 12 Exec lines show only the word `sh`). Each path listed here (`path  reason`, `%i` = the post) must exist on the target before the stop and the row edit, else `[unit-path] required <path> missing on <box>`, rc 7. The list lives only here.
+
+```sh move.unit-required
+/etc/agi/carry.env  agi-post@'s ExecStart reads it with 2>/dev/null, so a target without it starts the post with AGI_BOX EMPTY and no word of it
+```
+
+## move.unit-optional -- the unit paths a box move may find absent on the target
+
+`extensions/agi/guard/unit-paths.sh` (goal:g7.16.1.11.39.1) reads the target's RENDERED agi-post@ / agi-boxwake@ units BEFORE the stop and the row edit and refuses (`[unit-path]`, rc 7) when a host path they name does not exist. A leading `-` is not a pass. These are the named exemptions, `Key path  reason` (`%i` = the post), the only paths that may be absent at that moment; nothing here may name a command (an ExecStart* word) or the signers.
+
+```sh move.unit-optional
+WorkingDirectory /var/lib/agi/%i  host-act move creates the post home AFTER this check
+EnvironmentFile /var/lib/agi/%i.env  an env file a post may not have (the unit says EnvironmentFile=-)
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->

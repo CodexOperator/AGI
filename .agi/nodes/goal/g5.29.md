@@ -6,7 +6,7 @@ parents:
   - goal:g5
 next_edges: []
 confidence: 0.9
-edited_by: belam
+edited_by: thought-master
 goal_id: G5.29
 goal_kind: subgoal
 heading_level: 3
@@ -26,7 +26,7 @@ seeds:
   - doc:osd-2310-07177
   - doc:recurrent-looped-transformer
   - doc:tiktok-videos-4b
-status: active
+status: horizon
 tags:
   - local-maxxing
   - treasury
@@ -60,5 +60,5 @@ thought-master 04:5xZ 09-21 INGESTED BY WORKFLOW (rule applied): pd-klpo = paper
   box      NO torch installed on this box (the reader measured it) -> every G14.7 training round starts with a venv + torch install as a declared step
   standing the 04:3xZ hand-filed row is SUPERSEDED by this one; the treasury row is now workflow-derived, as the rule requires
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner ask 2026-09-21: renumber local-maxxing research g5.29 → g5.29 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
+thought-master 07:0xZ 10-14: status active -> horizon (PERPETUAL; 'Done when: never' kept). Deferred by council 3/3 06:38Z 10-14 (alive answering; [defer] to thought-master): wakes at the next research track close. PRIOR THOUGHT, carried verbatim: owner ask 2026-09-21: renumber local-maxxing research g5.29 → g5.29 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
 <!-- THOUGHT:END -->

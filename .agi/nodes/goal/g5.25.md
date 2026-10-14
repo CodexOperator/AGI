@@ -6,7 +6,7 @@ parents:
   - goal:g5
 next_edges: []
 confidence: 0.8
-edited_by: belam
+edited_by: thought-master
 goal_id: G5.25
 goal_kind: subgoal
 heading_level: 3
@@ -15,7 +15,7 @@ scaffold_hash: 81bfe6086b707b83
 season: 2
 seeds:
   - idea:lm-abliteration-feature-differences-generalize-across-models
-status: active
+status: horizon
 tags:
   - local-maxxing
   - abliteration
@@ -43,5 +43,5 @@ thought-master 23:0xZ 09-20 (knowledge from ABC.01 + ABC.02, both merged): the O
 thought-master 00:2xZ 09-21 (knowledge from ABL.01, merged c0d8c356c): the llama.cpp control-vector route is CLOSED for the Qwen3.5 hybrid family on this box -- llama-cvector-generator asserts at cvector-generator.cpp:221 because the Gated Delta Net stack does not emit n_layers - 1 l_out tensors; structural, reproduced twice, unfixed upstream at f072b1037. Consequences: (1) the town's own abliteration lever for Qwen3.5-9B must come from weight-space extraction (H1': the rank-1 projection export on dequantised writer matrices, per the node's own clause) or a direction computed outside llama.cpp (hidden-state means from a Python forward pass); (2) H2's cross-model signature comparison (Bonsai/OrcaBonsai 5120-d direction vs an own direction) needs the own direction from (1) first; (3) 'abliterated if identical' (owner 16:2xZ) is untouched -- nothing here changes which candidate wins, only how the town would abliterate a hybrid-arch candidate itself. First reusable battery for any later lever: datasets/abl-01/ (64 + 64 pairs, 50 held-out, classifier).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner ask 2026-09-21: renumber local-maxxing research g5.25 → g5.25 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
+thought-master 07:0xZ 10-14: status active -> horizon. Deferred by council 3/3 06:38Z 10-14 (alive answering; [defer] to thought-master); reopen when a box has MemAvailable >= 8 GB + docker (the L4 r5 park line) or a GPU. Waits on: a served model to abliterate (the town's own abliteration of a candidate). Why: season-2 rollover (owner 06:2xZ 10-14: close every bundle, then roll over); this goal's Done-when is unreachable on box E (7 GiB, 4 cpu, no GPU). The reopen line is the SAME on g5.22 g5.23 g5.24 g5.25 g5.27 g5.30: one check reopens the set. PRIOR THOUGHT, carried verbatim: owner ask 2026-09-21: renumber local-maxxing research g5.25 → g5.25 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
 <!-- THOUGHT:END -->

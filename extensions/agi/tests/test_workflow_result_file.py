@@ -205,6 +205,8 @@ def _run_full(tmp_path_factory, tmp_path, monkeypatch, mode):
     _wf._loc.shared_project_root = lambda root: sessions
     monkeypatch.setenv("FAKE_RESULT_FILE", str(tmp_path / "find-t1.json"))
     monkeypatch.setenv("FAKE_RESULT_MODE", mode)
+    # goal:g7.16.1.11.43: the test pins the result_file digest, not the context build (viewport.py over the whole graph: 70-160 s at box load vs a 60 s cap)
+    monkeypatch.setattr(_wf, "_stage_context", lambda *a, **k: "CTX")
     _wf._load_manifest = lambda repo, key: _manifest(tmp_path)
     _wf._load_config = cfg
     try:

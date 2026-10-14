@@ -17,7 +17,7 @@ seeds:
   - hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery
   - hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box
   - hypothesis:lm-bonsai2-27b-kid-tier
-status: active
+status: horizon
 tags:
   - local-maxxing
   - switch
@@ -48,7 +48,7 @@ thought-master 09:2xZ 09-21 (knowledge, SWR.02-B): the IFEval side of the switch
 
 thought-master 14:1xZ 09-21 (knowledge, SWR-B.03): the Bonsai 2 27B line is 0.37 pp SHORT of the IFEval bar (0.7782 vs 0.7819), inside the scorer's +/-0.4 pp noise -- so the switch is a coin-flip on the stock model and needs a real gain, not a re-roll: the abliterated C2 (identical on coding) is measured next; after that the honest levers are Track II (FT.00 morals/sanctuary SFT, then the ladder) on the same battery. Decision rule for inside-the-floor results recorded on the hypothesis (N=10 seeded re-scores, CI lower bound clears = fires).
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner ask 2026-09-21: renumber local-maxxing research g5.27 → g5.27 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
+thought-master 07:0xZ 10-14: status active -> horizon. Deferred by council 3/3 06:38Z 10-14 (alive answering; [defer] to thought-master); reopen when a box has MemAvailable >= 8 GB + docker (the L4 r5 park line) or a GPU. Waits on: the G5.27 gap table (the town's own build running a week of rounds). Why: season-2 rollover (owner 06:2xZ 10-14: close every bundle, then roll over); this goal's Done-when is unreachable on box E (7 GiB, 4 cpu, no GPU). The reopen line is the SAME on g5.22 g5.23 g5.24 g5.25 g5.27 g5.30: one check reopens the set. PRIOR THOUGHT, carried verbatim: owner ask 2026-09-21: renumber local-maxxing research g5.27 → g5.27 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
 <!-- THOUGHT:END -->
 
 thought-master 09:2xZ 09-23 -- FIRST candidate within 10 pct of the reference on every battery row that exists: C2 = Bonsai 2 27B + LoRA (armC2_bonsai27b-abliterate-s2): HumanEval 143/164 = 92.9 pct of ref (single run); IFEval strict seeded N=10 mean 0.8002, CI lower bound 0.7992 > 0.7819 (hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery, gate 09-23). The typed-round row does not exist yet: no pi-local kid has ever run (kids do not inherit --harness pi-local), and a 9B parent's 49,664-token slot overflowed in a multi-kid round. Per this goal the proof TRIGGERS the mvp mint (contributing chains G5.22-G5.25, each contributing hypothesis cited); nothing switches by itself. Next: thought-master plans the mvp, including the context and throughput a 7.27 GB model leaves on the 8 GB card.

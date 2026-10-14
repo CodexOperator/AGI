@@ -60,12 +60,17 @@ OWNER answers, verbatim: rulings = "Council, but I break ties" · landing = "I f
 ```
 director tip ─► SM gates (agi-master-gate, agi-review) ─► box [review] to the council (alive · all-is-one · self-perpetuating)
 council group chat ─► ONE council post answers SM: [approve <sha>] or [return <sha>: why]     (split / stuck ─► belam breaks the tie)
+  the answerer: ONE [approve]/[return] per review, sent after both other views on its last position or 15 min; a change of mind = [withdraw <sha>] + a new answer, never a second verdict
+  SM: a [merge-up] only on the SETTLED word (one round after the answer; the council's refs re-read right before sending) · belam: re-reads the approver's ref + box for a later [return]/[withdraw] right before the ff (skill agi-master-gate) -- RULES read before acting, not checks; no code runs them (council 08:18Z 10-11)
 SM ─► box belam [merge-up] ... ff-only <sha> · council: <post> approve <ts>                  (no council line = refused, sent back)
 belam ─► FULL anonymize guard (only belam's uid reads .env) ─► ff MAIN ─► nothing else: no review, no ruling
 a host act (owner GO) runs from LANDED bytes only: the GO line names a TRUNK sha, never a merge-up sha (self-perpetuating)
 every [decision] SM has today ─► the council, never belam; belam gets only what needs the OWNER (host acts, spend, season close) to bank
 loop end is NOT optional: outcomes ─► SM bigger_outcomes ─► COUNCIL reviews them ─► overview nodes ─► belam
 ```
+- a [review] whose landing touches the extraction glob (fenced pieces of engine.md + engine-[pw]*.md) carries 'first-start:' per post kind (what a post gains and loses at its next start); the council's answer repeats the line it checked, or returns the review for lacking one; an interim needs belam's ACK and a retire date (council 3/3 11:08Z 10-11).
+- every council view names the lanes / tests it RAN and against which sha, or says 'none' -- a view never implies a run it did not do (council 08:22Z 10-11, after the vacuous .37 gate).
+
 Later (council designs, a director builds, owner GO for the host act): a LAND BROKER so belam is out of the landing path entirely.
 
 ## Order of work (owner 09-29)
@@ -92,5 +97,5 @@ Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2
 - Rotation at the meter line: skill agi-rotate. Post mechanics: skill agi-post.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-s2-III 21:5xZ 10-10: added 'Rulings and landing' on the owner's order (verbatim in the section). Why: SM's card already said 'rulings = the council · never the Prime', yet every [decision] of 10-10 (.8 .20 .36) went to belam; the council posts were near silent (alive's last mail 01:30Z) and no outcome / bigger_outcome node was written after 10-08 -- the loop's last step was skipped. Box matrix: the council posts are level 2 (parent row 'council', inert), the same as SM, so SM mails them directly. Prior thought is in git history.
+sanctuary-master gen 36 08:2xZ 10-11, on the council's order (alive 08:18Z, 3/3, decision on 549c1a2381): two lines under 'Rulings and landing' -- the ANSWERER rule (one verdict per review; a change of mind is a [withdraw] + a new answer) and the SM / belam side (merge-up only on the settled word; belam re-reads for a later return before the ff, his 12b3e61785 in skill agi-master-gate). Why: alive sent SM three verdicts on 549c1a2381 in ~4 min (approve, RETURN, then a note on its item 4); SM boxed belam the merge-up on the first word, the RETURN followed, SM's [withdraw] crossed belam's ff, and a returned tip reached MAIN (source only, nothing installed; carried by fixing forward, council 3/3). Both halves are rules read before acting; a mechanical check on the ff is a ledger item for whoever owns agi-master-gate. The section's first version (belam-s2-III 21:5xZ 10-10, the owner's order) is in git history.
 <!-- THOUGHT:END -->

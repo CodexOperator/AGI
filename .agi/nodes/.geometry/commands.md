@@ -187,6 +187,20 @@ commands:
     workflow: mesh
 edited_by: a00-2656a173
 excluded:
+  crons.py:caps:
+    cli: crons.py
+    verb: caps
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/crons.py
+      - caps
+    args:
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+      - {"name": "dry_run", "type": "bool", "required": false, "choices": []}
+      - {"name": "name", "type": "str", "required": false, "choices": []}
+    reason: "the cron-only per-uid cap runner (goal:g7.16.1.11.42.1): the last line of a foreign user's crontab block runs it every 5 minutes IN that uid, so its logs are bounded by itself with no sudo and no key; it rotates the logs dir of whoever runs it, so an operator has no business calling it by hand (--dry-run reports only)"
+    side_effects: destructive
+    proposable: false
   write.py:patch:
     cli: write.py
     verb: patch
@@ -510,13 +524,63 @@ excluded:
       - {"name": "warn_psi_some_avg60", "type": "float", "required": true, "choices": []}
       - {"name": "crit_psi_full_avg60", "type": "float", "required": true, "choices": []}
       - {"name": "warn_cgroup_max_frac", "type": "float", "required": true, "choices": []}
+      - {"name": "warn_slab_mib", "type": "float", "required": true, "choices": []}
       - {"name": "repeat_mins", "type": "float", "required": true, "choices": []}
-      - {"name": "notify", "type": "str", "required": false, "choices": []}
+      - {"name": "clear_margin_frac", "type": "float", "required": true, "choices": []}
+      - {"name": "clear_hold_mins", "type": "float", "required": true, "choices": []}
+      - {"name": "alarm_seat", "type": "str", "required": false, "choices": []}
+      - {"name": "alarm_to", "type": "str", "required": false, "choices": []}
+      - {"name": "alarm_job", "type": "str", "required": false, "choices": []}
+      - {"name": "alarm_spool_max", "type": "int", "required": false, "choices": []}
+      - {"name": "alarm_spool", "type": "str", "required": false, "choices": []}
       - {"name": "cgroup", "type": "str", "required": false, "choices": []}
       - {"name": "state", "type": "str", "required": false, "choices": []}
       - {"name": "alerts_log", "type": "str", "required": false, "choices": []}
       - {"name": "dry_run", "type": "bool", "required": false, "choices": []}
     reason: "cron reader, not an operator verb: every threshold is a `config:crons` cell, so a bare invocation has nothing to read; its alerts log is the `logs.alerts_file` cell inside the dir crons.py's cap bounds"
+    side_effects: comms
+    proposable: false
+  alarm_spool.py:append:
+    cli: alarm_spool.py
+    verb: append
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/alarm_spool.py
+      - append
+      - --job
+      - <job>
+      - --to
+      - <to>
+      - --text
+      - <text>
+      - --max-lines
+      - <max_lines>
+    args:
+      - {"name": "job", "type": "str", "required": true, "choices": []}
+      - {"name": "to", "type": "str", "required": true, "choices": []}
+      - {"name": "text", "type": "str", "required": true, "choices": []}
+      - {"name": "max_lines", "type": "int", "required": true, "choices": []}
+      - {"name": "spool", "type": "str", "required": false, "choices": []}
+    purpose: "goal:g7.16.1.11.20.2 — append one plain alarm line (no key, no box) to THIS uid's ~/alarm.spool; a root alarm source calls it through runuser as the sending seat"
+    side_effects: comms
+    proposable: false
+  alarm_spool.py:drain:
+    cli: alarm_spool.py
+    verb: drain
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/alarm_spool.py
+      - drain
+      - --seat
+      - <seat>
+    args:
+      - {"name": "seat", "type": "str", "required": true, "choices": []}
+      - {"name": "max_tries", "type": "int", "required": true, "choices": []}
+      - {"name": "spool", "type": "str", "required": false, "choices": []}
+      - {"name": "box_bin", "type": "str", "required": false, "choices": []}
+      - {"name": "notice_bin", "type": "str", "required": false, "choices": []}
+      - {"name": "tree", "type": "str", "required": false, "choices": []}
+    purpose: "goal:g7.16.1.11.20.2 — the SENDING seat's drain: its own key signs and box-sends every spooled alarm exactly once (refuses any other uid); the alarm_drain cron row runs it"
     side_effects: comms
     proposable: false
   mem_cap.py::

@@ -6,7 +6,7 @@ parents:
   - goal:g5
 next_edges: []
 confidence: 0.7
-edited_by: belam
+edited_by: thought-master
 goal_id: G5.23
 goal_kind: subgoal
 heading_level: 3
@@ -21,7 +21,7 @@ seeds:
   - hypothesis:lm-uno-diffusion-draft-on-l4
   - idea:lm-identity-anchored-earnest-seat
   - idea:lm-kid-persona-lora
-status: active
+status: horizon
 tags:
   - local-maxxing
   - track-ii
@@ -59,5 +59,5 @@ thought-master 04:3xZ 09-21 (owner link KLPO, verbatim + read on goal:g14): G14.
 
 thought-master 04:5xZ 09-21 (pd-klpo digest, supersedes the 04:3xZ hand note where they differ): KLPO's loss is pure PyTorch and CPU-testable (repo's own tests only -- no independent validation exists anywhere); the RL arm's KLPO hypothesis therefore starts at the smallest scale: the loss on a 0.6B base with our verdict-labelled trajectories on CPU/8 GB, measured vs SFT at equal tokens -- that measurement would be the FIRST empirical KLPO result in existence (the release has none). Prereq on this box: torch is NOT installed (venv + torch as the round's declared first step; PEP 668 blocks system pip).
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner ask 2026-09-21: renumber local-maxxing research g5.23 → g5.23 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
+thought-master 07:0xZ 10-14: status active -> horizon. Deferred by council 3/3 06:38Z 10-14 (alive answering; [defer] to thought-master); reopen when a box has MemAvailable >= 8 GB + docker (the L4 r5 park line) or a GPU. Waits on: a fine-tune (a fine-tuned, served, abliterated candidate). Why: season-2 rollover (owner 06:2xZ 10-14: close every bundle, then roll over); this goal's Done-when is unreachable on box E (7 GiB, 4 cpu, no GPU). The reopen line is the SAME on g5.22 g5.23 g5.24 g5.25 g5.27 g5.30: one check reopens the set. PRIOR THOUGHT, carried verbatim: owner ask 2026-09-21: renumber local-maxxing research g5.23 → g5.23 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
 <!-- THOUGHT:END -->

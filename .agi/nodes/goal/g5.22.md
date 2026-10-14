@@ -35,7 +35,7 @@ seeds:
   - idea:lm-searched-swa-pattern-zero-train
   - idea:lm-self-spec-small-draft-head
   - idea:lm-two-node-vram-split
-status: active
+status: horizon
 tags:
   - local-maxxing
   - track-i
@@ -60,5 +60,5 @@ town: local-maxxing
 **First chunk (minted):** `hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point` (the 5-CPU-minute kill-test). Sub-sub-goals are the director's to mint (G5.22.1 heads, G5.22.2 context/throughput, G5.22.3 layering), same format as this node, before any chunk runs.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner ask 2026-09-21: renumber local-maxxing research g5.22 → g5.22 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
+thought-master 07:0xZ 10-14: status active -> horizon. Deferred by council 3/3 06:38Z 10-14 (alive answering; [defer] to thought-master); reopen when a box has MemAvailable >= 8 GB + docker (the L4 r5 park line) or a GPU. Waits on: a served model (a layered configuration measured end to end on a real round). Why: season-2 rollover (owner 06:2xZ 10-14: close every bundle, then roll over); this goal's Done-when is unreachable on box E (7 GiB, 4 cpu, no GPU). The reopen line is the SAME on g5.22 g5.23 g5.24 g5.25 g5.27 g5.30: one check reopens the set. PRIOR THOUGHT, carried verbatim: owner ask 2026-09-21: renumber local-maxxing research g5.22 → g5.22 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
 <!-- THOUGHT:END -->

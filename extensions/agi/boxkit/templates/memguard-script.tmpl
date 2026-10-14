@@ -1,10 +1,22 @@
 #!/usr/bin/env python3
 """agi-memguard ({{OWNER_USER}}-S2-L5-V, owner 09-25 after the 04:00Z OOM took every seat down).
-Every 5 s: the 5 posts' Claude processes, tmux and the stream keep oom_score_adj -900 + nice -5, and so does a pi whose
-cgroup is a post's (/agi.slice/agi-post@*.service); every other pi worker gets +500 (the kernel kills them first);
-any process over 70% of RAM, or the largest unprotected one when MemAvailable < 1 GiB, is SIGSTOPped (suspended, never killed);
-a drop of >= 3 GiB within 30 s alerts. Alerts: journal + {{MEMGUARD_LOG}}
-+ one [red] dm to {{OWNER_USER}} (rate-limited 10 min)."""
+Every 5 s: a post's SPINE and HARNESS keep oom_score_adj -900 + nice -5, chosen by the post's cgroup
+(/agi.slice/agi-post@*.service) AND their place in the unit's process tree, never by a command name: the spine is the chain
+from the unit's oldest process down to the first process that has more than one child or a child whose argv is the tail of
+its own (the tracer, and the harness is that child), plus everything the tracer runs that is not the harness; the harness's
+DESCENDANTS (tool calls, MCP servers, kids) and anything orphaned out of the tree stay unprotected. tmux and the stream keep
+-900 too (by command, outside the posts); every other pi worker gets +500 (the kernel kills them first);
+a process over 70% of RAM, or the largest unprotected one when MemAvailable < 1 GiB, is SIGSTOPped (suspended, never killed), a
+post's spine or harness over 70% only alerts (goal:g7.16.1.11.40.1);
+a drop of >= 3 GiB within 30 s alerts. Alerts: journal + {{MEMGUARD_LOG}} (best effort: an unwritable log costs ONE red '[memguard-log] unwritable' line per episode, never a stop; the journal line is a fire-and-forget `timeout 30 logger` reaped through the pending list, never waited on and never fatal, so a slow journald or a missing logger cannot hold or kill a stop) + one line in the ~/.notice of each of {{MEMGUARD_ALERT_TO}}
+(written BY that post's own uid through runuser, with its agi-notice when it has one: root signs nothing and holds no key; the file stays
+the post's own; one line per kind per {{ALERT_COOLDOWN_S}} s, but a stop or resume line is keyed by its pid too, so a second stop is never swallowed). Each of those alerts is ALSO ONE signed message to {{MEMGUARD_ALARM_TO}} (goal:g7.16.1.11.20.2, council 3/3 21:3xZ): root appends a plain line, no key, to {{MEMGUARD_ALARM_SEAT}}'s alarm spool by runuser as that seat, fire-and-forget like the notice, and the seat's own drain signs and sends it, exactly once. A pid stopped for
+low memory is SIGCONTed once MemAvailable has stayed above {{RESUME_FACTOR}}x the low line for {{RESUME_HOLD_S}} s, and the notice line names its unit + pid;
+a pid stopped for size is resumed by hand and says so again every {{RENOTIFY_S}} s while it stays stopped.
+The kernel is the one home of "stopped": every tick, before anything else reads the list, a pid whose /proc/N/stat state is not T/t (resumed by hand),
+whose start time changed (the pid was reused) or that is gone is dropped from it with one journal line and no alert, with its cooldown keys.
+A pid inside a post that is neither spine nor harness but carries the protect value or nice is a CHILD that inherited them (the kernel passes both to every fork): it goes back to its unit's own OOMScoreAdjust and Nice, read from systemd (cached {{BASELINE_REFRESH_S}} s), so a tool the harness runs stays an ordinary OOM and SIGSTOP candidate. The reset runs at the END of the tick, after every stop and resume path, and asks systemd nothing while MemAvailable is under the low line (a cached value still applies): a hung systemctl can never delay a SIGSTOP. Alerts of a kind that name a unit (tree, base) are rate-limited per unit. Each of the three alert-once sets (nobase, noh, unread) is an EPISODE: it leaves the set on the first good reading (the base read again, the harness found again, the tree read again), so a later real miss of the same unit says so again (still under the per-unit cooldown). A unit whose oldest process is younger than 2 ticks + 1 s (a restart in flight: its cgroup exists before its harness does) is not judged this tick: no 'no harness' / 'tree unreadable' line, no set entry, the next tick asks again; its spine is protected as always. That skip rests on three assumptions, each failing in a known direction: (1) a restart leaves no old process in the cgroup, true only while the post unit has KillMode=control-group and no harness respawns inside a live unit: under mixed or process the old incarnation's survivors make the oldest process look old, so a young unit IS judged (the old noise, a false 'no harness', never a silence); (2) the age is read from /proc/uptime, and if that cannot be read the unit IS judged (fail loud: the line fires); (3) a unit that crash-loops with lives shorter than that window is never judged by the tree rows at all, which is right only because NRestarts shows it. The two tree alerts keep their own cooldown keys (tree-noh-<unit>, tree-unread-<unit>): two faults on one unit never share one. systemd is asked for ONE unit baseline per tick, so a hung systemctl costs one 10 s timeout per tick, never one per unit.
+The SUSPENDED line is written BEFORE the SIGSTOP is sent, but ONLY its local append to {{MEMGUARD_LOG}} is (no fork, no notice: the stop never waits on anything slow, the same rule as the inherited-nice reset); the journal line and the notice follow the SIGSTOP, and only when it succeeded. The line carries the pid's START TIME (`start N`, stat field 22), so restage and a2.undo never continue a REUSED pid. A stop killed between the line and the kill still leaves a line (the harmless direction; a line without a stop is read as 'resumed by hand' at the next tick), and a stop without a line, which nothing can find after a restart, cannot happen. If that append itself raises (disk full, EACCES) the pid is SIGSTOPped ANYWAY and one red journal + notice line says 'STOPPED WITHOUT a log line': restage and a2.undo cannot see that pid and the line names its resume command. If the signal itself fails the pid leaves the stopped map and one alert says it is NOT stopped (the SUSPENDED line stays in the file, no notice is sent for it). The tree selection reads argv only as the exact tail equality between one unit's tracer and its child: never a pattern, never printed."""
 import os, re, time, signal, subprocess, collections
 PAGE = os.sysconf('SC_PAGE_SIZE'); ME = os.getpid()
 def meminfo(k): return int(re.search(rf'^{k}:\s+(\d+)', open('/proc/meminfo').read(), re.M).group(1)) * 1024
@@ -13,15 +25,49 @@ PROTECT_COMM = {{PROTECT_COMM}}
 PROTECT_CMD = re.compile(r'{{PROTECT_CMD}}')
 PI_CMD = re.compile(r'{{PI_CMD}}')
 POST_CG = re.compile(r'{{POST_CGROUP_RE}}', re.M)
-hist = collections.deque(); stopped = set(); last_alert = 0.0
-def log(msg, red=False):
-    global last_alert
-    line = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()) + ' ' + msg
-    open('{{MEMGUARD_LOG}}', 'a').write(line + '\n'); subprocess.run(['logger', '-t', 'agi-memguard', msg])
-    if red and time.time() - last_alert > {{ALERT_COOLDOWN_S}}:
-        last_alert = time.time()
-        subprocess.run(['sudo', '-u', '{{OWNER_USER}}', '-H', 'python3', '{{REPO_ROOT}}/extensions/agi/bin/send.py', 'send', '--from', '{{OWNER_USER}}', '{{OWNER_USER}}', '[red] memguard: ' + msg],
-                       cwd='{{REPO_ROOT}}', timeout=60, capture_output=True)
+hist = collections.deque(); stopped = {}; base = {}; nobase = set(); warned = set(); noh = set(); unread = set(); last = {}; last_re = {}; pend = []; rec = None
+SAFE = re.compile(r'^[A-Za-z0-9._-]+$')
+logbad = False
+def wr(line):
+    global logbad
+    try: open('{{MEMGUARD_LOG}}', 'a').write(line + '\n'); logbad = False
+    except Exception as e:
+        if not logbad:
+            logbad = True; m = f'[memguard-log] unwritable ({e!r}): {{MEMGUARD_LOG}} takes no lines until it is writable again; alerts still go to the journal and the notices'
+            try: jlog(m); notice(m)
+            except Exception: pass
+def notice(text):
+    for to in '{{MEMGUARD_ALERT_TO}}'.split():
+        if not SAFE.match(to): continue
+        try:
+            pend.append(subprocess.Popen(['timeout', '30', 'runuser', '-u', 'agi-' + to, '--', 'env', 'HOME={{MEMGUARD_STORES}}/' + to, 'sh', '-c',
+                              '[ -x ~/bin/agi-notice ] && exec ~/bin/agi-notice add "$0" || echo "$0" >> ~/.notice', text],
+                             stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
+        except Exception as e: wr(f'notice to {to} not written: {e!r}')
+def spool(text):                                                     # goal:g7.16.1.11.20.2: the alarm as a SIGNED message. Root signs nothing and holds no key: it APPENDS one plain line to the sending seat's spool by runuser as that seat (like the notice above), fire-and-forget; the seat's own drain row signs and sends it to the reader, exactly once. ONE line per alarm, not one per notice recipient
+    seat = '{{MEMGUARD_ALARM_SEAT}}'
+    if not SAFE.match(seat): return
+    try:
+        pend.append(subprocess.Popen(['timeout', '30', 'runuser', '-u', 'agi-' + seat, '--', 'python3', '{{ALARM_SPOOL_PY}}', 'append', '--job', 'memguard', '--to', '{{MEMGUARD_ALARM_TO}}',
+                          '--max-lines', '{{ALARM_SPOOL_MAX}}', '--spool', '{{MEMGUARD_STORES}}/' + seat + '/alarm.spool', '--text', text],
+                         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
+    except Exception as e: wr(f'alarm spool for {seat} not appended: {e!r}')
+def jlog(msg):                                                       # the journal line, fire-and-forget like the notice: never waited on (a slow /dev/log must not hold a stop), never fatal (fork EAGAIN, logger missing), a hung logger is killed at 30 s and reaped through pend
+    try: pend.append(subprocess.Popen(['timeout', '30', 'logger', '-t', 'agi-memguard', msg], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
+    except Exception as e: wr(f'journal line not written ({e!r}): {msg}')
+def stamp(msg): return time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()) + ' ' + msg
+def log(msg, red=False, kind='x', key=None, wrote=False):
+    if not wrote: wr(stamp(msg))
+    jlog(msg)
+    key = key or kind
+    if red and time.time() - last.get(key, 0) > {{ALERT_COOLDOWN_S}}:
+        last[key] = time.time()
+        for k in [k for k, v in last.items() if len(last) > 200 and time.time() - v > {{ALERT_COOLDOWN_S}}]: del last[k]
+        line = f'[memguard-{kind}] ' + msg + f' (ev {int(time.time()):08x})'
+        notice(line); spool(line)
+def unit_of(pid):
+    try: return open(f'/proc/{pid}/cgroup').read().strip().split('\n')[-1].rsplit('/', 1)[-1] or '?'
+    except Exception: return '?'
 def procs():
     for d in os.listdir('/proc'):
         if not d.isdigit() or int(d) in (1, ME): continue
@@ -30,35 +76,128 @@ def procs():
             rss = int(open(f'/proc/{d}/statm').read().split()[1]) * PAGE
         except Exception: continue
         if cmd: yield int(d), comm, cmd, rss
-def post_pi(pid, comm, cmd):
-    if comm != '{{POST_PI_COMM}}' and not PI_CMD.search(cmd): return False
-    try: return bool(POST_CG.search(open(f'/proc/{pid}/cgroup').read()))
+def post_rows(snap):
+    out = {}
+    for pid, comm, cmd, rss in snap:
+        try:
+            m = POST_CG.search(open(f'/proc/{pid}/cgroup').read()); s = open(f'/proc/{pid}/stat').read()
+            if m: r = s[s.rindex(')') + 2:].split(); out.setdefault(m.group(0).rstrip('/'), {})[pid] = (int(r[1]), int(r[19]), cmd)
+        except Exception: pass
+    return out
+def guarded(rows):
+    kids = collections.defaultdict(list)
+    for p, (pp, st, c) in rows.items(): kids[pp].append(p)
+    n = min((p for p, (pp, st, c) in rows.items() if pp not in rows), key=lambda p: rows[p][1]); chain = [n]; h = None
+    while not h:
+        h = max((k for k in kids[n] if rows[k][2].strip() and rows[n][2].endswith(rows[k][2])), key=lambda k: len(rows[k][2]), default=None)
+        if h or len(kids[n]) != 1: break
+        n = kids[n][0]; chain.append(n)
+    out = set(chain)
+    def sub(p): return {p}.union(*(sub(k) for k in kids[p]))
+    if h:
+        out.add(h)
+        for k in kids[n]:
+            if k != h: out |= sub(k)
+    return out, bool(h)
+def pstat(pid):
+    try: s = open(f'/proc/{pid}/stat').read(); r = s[s.rindex(')') + 2:].split(); return r[0], r[19]
+    except Exception: return None
+HZ = os.sysconf('SC_CLK_TCK'); YOUNG_S = 2 * {{INTERVAL_S}} + 1; fetched = False
+def young(rows):
+    try: return float(open('/proc/uptime').read().split()[0]) - min(v[1] for v in rows.values()) / HZ < YOUNG_S
     except Exception: return False
+def baseline(unit, now, fetch):
+    global fetched
+    b = base.get(unit)
+    if fetch and not fetched and (b is None or now - b[2] >= {{BASELINE_REFRESH_S}}):
+        fetched = True
+        try:
+            kv = dict(l.split('=', 1) for l in subprocess.check_output(['systemctl', 'show', unit, '-p', 'OOMScoreAdjust', '-p', 'Nice'], text=True, timeout=10, stderr=subprocess.DEVNULL).split('\n') if '=' in l)
+            b = (int(kv['OOMScoreAdjust']), int(kv['Nice']), now); nobase.discard(unit)
+        except Exception as e:
+            b = (None, None, now)
+            if unit not in nobase: nobase.add(unit); log(f'ALERT {unit}: its OOMScoreAdjust and Nice could not be read ({e!r}): a child that inherited the protect value stays protected', red=True, kind='base', key=f'base-{unit}')
+        base[unit] = b
+    return b or (None, None, 0)
+def unprotect(pid, unit, now, fetch):
+    try: adj = int(open(f'/proc/{pid}/oom_score_adj').read()); nice = os.getpriority(os.PRIO_PROCESS, pid)
+    except Exception: return
+    if adj != {{PROTECT_OOM_ADJ}} and nice != {{PROTECT_NICE}}: return
+    a, n, _ = baseline(unit, now, fetch)
+    if a is None: return
+    if adj == {{PROTECT_OOM_ADJ}}: setadj(pid, a)
+    if nice == {{PROTECT_NICE}}:
+        try: os.setpriority(os.PRIO_PROCESS, pid, n)
+        except Exception: pass
+def sigstop(pid, comm):
+    try: os.kill(pid, signal.SIGSTOP); return True
+    except Exception as e:
+        stopped.pop(pid, None); log(f'ALERT pid {pid} ({comm}): the SIGSTOP failed ({e!r}), it is NOT stopped: the SUSPENDED line in {{MEMGUARD_LOG}} was written first', red=True, kind=f'stopfail-{pid}'); return False
+def suspend(pid, comm, kind, now, text):
+    u = unit_of(pid); st = (pstat(pid) or ('', ''))[1]; stopped[pid] = (kind, comm, u, now, st); msg = text(u, st); err = None
+    try: open('{{MEMGUARD_LOG}}', 'a').write(stamp(msg) + '\n')         # the ONLY thing before the SIGSTOP: a local append, no fork, no notice (restage and a2.undo scan this file)
+    except Exception as e: err = e                                       # a full disk or EACCES must not cost the stop: the runaway keeps allocating
+    if sigstop(pid, comm):
+        if err is None: log(msg, red=True, kind=f'susp-{pid}', key=f'susp-{pid}-{st}', wrote=True)       # then the journal and the notice, which fork and may crawl under the very reclaim that made the guard act
+        else: log(f'ALERT pid {pid} ({comm}) STOPPED WITHOUT a log line ({err!r}): restage and a2.undo cannot see it -- kill -CONT {pid}', red=True, kind=f'susp-{pid}', key=f'susp-{pid}-{st}', wrote=True)
 def setadj(pid, v):
     try:
         p = f'/proc/{pid}/oom_score_adj'
         if int(open(p).read()) != v: open(p, 'w').write(str(v))
     except Exception: pass
 while True:
-    now = time.time(); avail = meminfo('MemAvailable'); hist.append((now, avail))
+    now = time.time(); avail = meminfo('MemAvailable'); hist.append((now, avail)); pend[:] = [q for q in pend if q.poll() is None]
     while hist and now - hist[0][0] > {{HISTORY_S}}: hist.popleft()
     peak = max(a for _, a in hist)
-    if peak - avail >= {{SPIKE_BYTES}} << 30: log(f'SPIKE: MemAvailable fell {(peak-avail)>>20} MiB in <=30 s, now {avail>>20} MiB', red=True); hist.clear(); hist.append((now, avail))
-    unprot = []
-    for pid, comm, cmd, rss in procs():
-        prot = comm in PROTECT_COMM or bool(PROTECT_CMD.search(cmd)) or post_pi(pid, comm, cmd)
+    if peak - avail >= {{SPIKE_BYTES}} << 30: log(f'SPIKE: MemAvailable fell {(peak-avail)>>20} MiB in <=30 s, now {avail>>20} MiB', red=True, kind='spike'); hist.clear(); hist.append((now, avail))
+    unprot = []; fetched = False; snap = list(procs()); inpost = set(); keep = set(); pu = {}; late = []
+    for p in list(stopped):
+        st = pstat(p)
+        if st is None or st[0] not in 'Tt' or st[1] != stopped[p][4]:
+            log(f'pid {p} ({stopped[p][1]}) ' + ('gone' if st is None else 'resumed by hand' if st[1] == stopped[p][4] else 'is a different process now (pid reused)') + ': no longer tracked as stopped')
+            was = stopped.pop(p); last_re.pop(p, None)
+            for k in ('susp', 'resume', 'still'): last.pop(f'{k}-{p}-{was[4]}', None)
+    for unit, rows in post_rows(snap).items():
+        inpost |= set(rows); pu.update((p, unit.rsplit('/', 1)[-1]) for p in rows)
+        try:
+            g, found = guarded(rows); keep |= g; unread.discard(unit)
+            if found: noh.discard(unit)
+            elif unit not in noh and not young(rows): noh.add(unit); log(f'ALERT {unit}: no harness found under its tracer (its argv is not the tail of the tracer\'s): only the spine chain is protected', red=True, kind='tree', key=f'tree-noh-{unit}')
+        except Exception as e:
+            if unit not in unread and not young(rows): unread.add(unit); log(f'ALERT {unit}: the process tree could not be read ({e!r}): nothing in it is protected this tick', red=True, kind='tree', key=f'tree-unread-{unit}')
+    for pid, comm, cmd, rss in snap:
+        prot = pid in keep or (pid not in inpost and (comm in PROTECT_COMM or bool(PROTECT_CMD.search(cmd))))
         if prot:
             setadj(pid, {{PROTECT_OOM_ADJ}})
             try:
                 if os.getpriority(os.PRIO_PROCESS, pid) > {{PROTECT_NICE}}: os.setpriority(os.PRIO_PROCESS, pid, {{PROTECT_NICE}})
             except Exception: pass
-        elif PI_CMD.search(cmd): setadj(pid, {{PI_OOM_ADJ}})
+        elif PI_CMD.search(cmd):
+            setadj(pid, {{PI_OOM_ADJ}})
+            if pid in pu: late.append((pid, pu[pid]))               # a worker keeps its adj, but a nice it inherited from the harness is reset like any child's
+        elif pid in pu: late.append((pid, pu[pid]))
         if not prot: unprot.append((rss, pid, comm))
-        if rss > {{SUSPEND_RATIO}} * TOTAL and pid not in stopped:
-            os.kill(pid, signal.SIGSTOP); stopped.add(pid); log(f'SUSPENDED pid {pid} ({comm}): RSS {rss>>20} MiB > {{SUSPEND_PCT}}% of {TOTAL>>20} MiB -- resume: kill -CONT {pid}', red=True)
+        if pid in keep and rss > {{SUSPEND_RATIO}} * TOTAL and pid not in warned:
+            warned.add(pid); log(f'ALERT pid {pid} ({comm}) is a post\'s spine or harness: RSS {rss>>20} MiB > {{SUSPEND_PCT}}% of {TOTAL>>20} MiB -- not stopped', red=True, kind='post')
+        elif pid not in keep and rss > {{SUSPEND_RATIO}} * TOTAL and pid not in stopped:
+            suspend(pid, comm, 'size', now, lambda u, st: f'SUSPENDED pid {pid} ({comm}, unit {u}, start {st}): RSS {rss>>20} MiB > {{SUSPEND_PCT}}% of {TOTAL>>20} MiB -- resume by hand: kill -CONT {pid}')
     if avail < {{LOW_AVAIL_BYTES}} << 30 and unprot:
         rss, pid, comm = max(unprot)
         if pid not in stopped:
-            os.kill(pid, signal.SIGSTOP); stopped.add(pid); log(f'SUSPENDED pid {pid} ({comm}, RSS {rss>>20} MiB): MemAvailable {avail>>20} MiB < {{LOW_AVAIL_GIB}} GiB -- resume: kill -CONT {pid}', red=True)
-    stopped = {p for p in stopped if os.path.exists(f'/proc/{p}')}
+            suspend(pid, comm, 'low', now, lambda u, st: f'SUSPENDED pid {pid} ({comm}, unit {u}, start {st}, RSS {rss>>20} MiB): MemAvailable {avail>>20} MiB < {{LOW_AVAIL_GIB}} GiB -- resumed automatically once MemAvailable holds above {{RESUME_FACTOR}}x that for {{RESUME_HOLD_S}} s, or by hand: kill -CONT {pid}')
+    lows = [p for p, v in stopped.items() if v[0] == 'low']
+    if lows and avail > {{RESUME_FACTOR}} * ({{LOW_AVAIL_BYTES}} << 30):
+        rec = rec or now
+        if now - rec >= {{RESUME_HOLD_S}}:
+            for p in lows:
+                try: os.kill(p, signal.SIGCONT); how = 'resumed'
+                except Exception as e: how = f'could not resume ({e!r})'
+                log(f'RESUMED pid {p} ({stopped[p][1]}, unit {stopped[p][2]}): {how}; MemAvailable {avail>>20} MiB held above {{RESUME_FACTOR}}x the low line for {{RESUME_HOLD_S}} s', red=True, kind=f'resume-{p}', key=f'resume-{p}-{stopped[p][4]}'); del stopped[p]
+            rec = None
+    else: rec = None
+    for p, v in stopped.items():
+        if v[0] == 'size' and now - last_re.setdefault(p, v[3]) >= {{RENOTIFY_S}}:
+            last_re[p] = now; log(f'STILL STOPPED pid {p} ({v[1]}, unit {v[2]}) for {int(now - v[3]) // 60} min (size stop): resume by hand: kill -CONT {p}', red=True, kind=f'still-{p}', key=f'still-{p}-{v[4]}')
+    for pid, unit in late: unprotect(pid, unit, now, avail >= {{LOW_AVAIL_BYTES}} << 30)
+    warned = {p for p in warned if os.path.exists(f'/proc/{p}')}
     time.sleep({{INTERVAL_S}})

@@ -18,52 +18,46 @@ town: core
 
 thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card = doc:card-thought-master-old in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · MASTER on keep beside SM (belam 16:22Z 10-07): row seeds doc:unified-master-brief (applies at my next fresh session) + HEAD doc:unified-head
 
-## §0 State (23:3xZ 10-08) -- SEATED ON encryption-town (owner 21:2xZ 10-08 move): user agi-thought-master, branch posts/thought-master @429fd4e2a0, [rotation] line to belam 23:34Z. thought-master = MASTER on keep (beside SM), directs DT-1. OPEN: g5.28 PAIR-LOSS merge-up 174f8f5a06 + SM-demote fix (08:4xZ 10-10) with SM to land; no subagent, no run. TOWN PRIORITY = Engine rework trajectory on town:local-maxxing (E1 -> E3 -> E5); no row is mine. Research lane PARKED behind it. box mail SIGNED (ssh ed25519, thought-master@agi); the old send.py seat key is moot (box only)
+## §0 State (06:5xZ 10-14) -- AWAKE: owner 06:2xZ 10-14 LIFTED the idle ('keep trucking along until all bundle goals are closed and we can do season rollover'; belam-s2-VI [owner] 06:3xZ). keepalive is IDLE-ONLY now (1e9dc1fe53). GOAL = close every goal:g7.16.1 bundle, then season rollover; my share = the RESEARCH goals g5.22-g5.31: CLOSE or DEFER to season 3 by a council ruling. Quiet rule stands (belam: one digest per ~4 h, before the 13 */4 CHECK)
+Seated on encryption-town (E): user agi-thought-master, unit agi-post@thought-master, worktree ~/t = a DETACHED READ VIEW of posts/thought-master (894e3b8e67; only 2 card commits off trunk 493f420d94). MASTER on keep beside SM; directs DT-1 (idle by design, nothing queued). Nothing in flight: no subagent, no run, no watcher, no open merge-up, no open node tree. Research lane: periodicity side track PAUSED (goal:g5.28 horizon, landed c74340057f). Wake: agi-boxwake@thought-master (live 11:49Z 10-11)
 | | |
 |---|---|
-| lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
-| run | owner 15:1xZ 10-01: keep going until goal:g7.16.1.11.1-.10 complete · owner 10-01 22:5xZ: core council = SM + TM; SM directs DG1, TM directs DT-1 · my row parent = `keep` (council row, members SM + me) · belam = gen 27 · COMMS = BOX ONLY (owner via belam + SM [rule] 04:5xZ 10-09): every post, tagged; no send.py send, no sessions/inbox writes, no SendMessage |
-| directors | director-thought-1: idle (boot set, active) · director-thought-2: DOWN since the 10-01 reboot until the owner says |
+| lane | research loop of town:local-maxxing: the board, goal:g5.22-g5.31, round placement; a research GO (0 USD, no host act) is the COUNCIL's (alive · all-is-one · self-perpetuating, one answerer), never belam's |
+| comms | BOX ONLY, signed (ssh ed25519, thought-master@agi). belam: ONE digest per ~4 h from SM + TM only (see §4) |
+| directors | director-thought-1: idle, boot set · director-thought-2: down since the 10-01 reboot until the owner says |
+| writing | engine v5 for me: edit a node ONLY in `D=$(~/bin/agi-wt pull <id>)`; agi-turn (Stop) commits each tree to posts/thought-master, signed; `~/bin/agi-wt drop <id>` after. No hand git commit, no write.py |
 | subagents | Sonnet 5.5 for every subagent; me Opus 5.5 |
-| RULE | belam [rule] 23:49Z, VERIFIED ed25519 (owner 23:3xZ): my row is engine.v 4 (parent council) -> write.py is RETIRED for me. Read with cat/grep/git (+ `sect <piece>`); write node files with plain Write/Edit; agi-turn (Stop hook: git add -A + ONE commit per turn) commits; grid by path (`grid.py commit <path>`, never --all). Landed 75c04c848; trunk merged in this turn with --no-commit so agi-turn concludes it |
-| LANDED | SEEDS x3 + FAIR P4 (both DISPROVED): a6ac4d92e = 67680d223 on local-maxxing/season2/main, pushed by SM (suite 7876 passed / 1 = the trunk red; links 5670/0; grid commit --all run by SM, 31 versions). Trunk merged back into my branch 6d8bb6265 |
-| LANDED 2 | FREQ-ABLATION DISPROVED: 3fb85474f = 708727845 on local-maxxing/season2/main, pushed by SM (suite 7905 / 2 = skills_first_turn trunk red + a post-reboot test_dispatch pid-4242 flake, placed on DG1; grid 8 versions; links 5676/0). Trunk merged back 2bd54de9c |
-| PARKED | L4 r5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b: needs MemAvailable >= 8 GB held + a docker-capable user (v5 has none); resume steps in its THOUGHT |
+| PARKED | L4 r5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b: MemAvailable >= 8 GB held + a docker-capable user (v5 has none); resume steps in its THOUGHT |
 
 ## §1 Plan
 ```
-DONE   self-poke toy line LANDED a001a3c61 · guard-leak fix LANDED 0376b07da (goal:g7.33.19 row 80) · seeds x3 reviewed + merged, merge-up queued
-DONE   FAIR P4 reviewed CONFIRMED_DISPROVED + recorded + merged (dc1504bba) + gated + [merge-up] a6ac4d92e to SM
-DONE   SM landed 67680d223; trunk merged back 6d8bb6265
-DONE   FREQ-ABLATION built by DT-1, reviewed CONFIRMED_DISPROVED, recorded, merged 956e7b179, gated, [merge-up] 3fb85474f to SM
-DONE   SM landed 708727845; trunk merged back 2bd54de9c
-DONE   g5.28 PAIR-LOSS DISPROVED, reviewed, [merge-up] to SM
-BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-digit-token model resident = a download, BANKED)
+DONE   periodicity line: MAP, seeds x3, FAIR P4, FREQ-ABLATION, PAIR-LOSS -- all DISPROVED, all LANDED; side track PAUSED 10-11 (council no-go per g5.28's Falsifier)
+NEXT   on wake: box read; act only on what arrives. No research is queued; do NOT mint a round unasked
+AT ROTATION drop every §4 trap row from before this gen (TRAP SWEEP, belam [rule] 22:3xZ 10-10) -- KEEP the 'BOX MOVE 10-08' + 'no pytest on the box' cells
+BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (needs a multi-digit-token model = a download, owner call)
 ```
 
 ## §2 Landed
-- 08:3xZ 10-10 g5.28 PAIR-LOSS: DT-1 built + ran on E (torch 2.14.0+cpu, belam GO B), DISPROVED (s0 k=34 redundant 3/3, s1 k=3 no partner); merged 554d2edb58; Sonnet review CONFIRMED_DISPROVED; experiment wording + THOUGHT, hypothesis 0.4 -> 0.15, board; grid 3 versions, 0 demoted
-- 08:4xZ 10-10 belam GO -> minted the g5.28 pair-loss hypothesis (loss C1 already known to fail, so it tests the redundant-carrier reading, exhaustive pair null); board line; corrected my "0.5B" to the toy checkpoints; relayed the trunk-merge ask (677dacf312) to all-is-one + self-perpetuating
-- 08:2xZ 10-10 belam TRAJECTORY CHECK answered by box: nothing queued for DT-1 / all-is-one / self-perpetuating (all 3 replied by box); 20-leaf open-research table; finding all-is-one box-wake loop dead; board rows g5.22 + g5.28 de-staled (grid v+1)
-- 04:2xZ 10-10 SM LANDED row 28 + the card-old readdress: 6a492f294e on local-maxxing/season2/main (byte-identical to 9fd5c66da7); trunk 08e197134d merged back --no-commit (154 files, clean). belam: PASS B6 ~09:1xZ 10-10 carries it
-- 01:2xZ 10-10 PASS B5 MERGED (belam): season2/main 7276f11d36 = trunk fc4a0865ee, 0 RED / 0 demote / 29 residues -> goal:g1.42 (SM routes). Row 28 = mine (tm-neuron-period2-1001 cites the dropped npz): offered to SM by box; SM ROUTED it to me 01:2xZ ([decision]). DONE 01:3xZ: Method note (npz owner-dropped d476147a3c, .gitignore:140, D1 from results.json) + THOUGHT (prior carried verbatim); grid v2; anonymize grep clean. [merge-up] to SM with the agi-turn sha (g1.42 is on posts/belam, not mine: SM records the row)
-- 05:0xZ 10-09 duplicate id fixed (belam [rule]): retired card readdressed doc:card-thought-master-old, file deprecated/doc/card-thought-master-old.md, mint b790e16c kept; 0 duplicate ids in .agi/nodes; committed 8d17b2c482, numbers to belam by box 05:21Z; links.py links timed out 580 s at load 9 (not re-run)
-- 04:4xZ 10-09 SM [rule] BOX ONLY (owner): acked by box 4b7ce5c239; forwarded to DT-1 by box, DT-1 acked 04:47Z (idle, no order held)
-- 04:0xZ 10-09 box mailbox live (owner, no hub): read belam's first box line, answered by box a3901bc274 (Good ssh signature, thought-master@agi) -- my box mail IS signed
-- 01:0xZ 10-09 belam [owner] PASS B5 notice (trunk past bcdb15f10f -> season2/main, runs 06:07Z on E): answered NO objection / run-now; E = 7 GiB / 3 avail, 4 cpu
-- 20:5xZ 10-07 g1.41 lane J: dh1 stray title key -> DH.2 title; PC :55 linked to p4fair + freqabl; L4 run 2 thin margins + run-4 replication 2/3 recorded; dh1 summary.md from results.json; .gitignore datasets/osc-band/**/*.npz FORWARD only (history scrub = owner); links 5781/0
-- 20:5xZ LANDED 67680d223 (SM, supersedes 165f57b0f); trunk merged back 6d8bb6265
-- 20:2xZ FAIR P4 review CONFIRMED_DISPROVED (one process, peak RSS 0.7 GB; one supplementary run started at PSI 7.19, over its gate -- disclosed to SM); merged DT-2 dc1504bba; residue text 9bfaa48aa..0d4116d54; hypothesis c5b2d8e04; board a6ac4d92e; links 5661/0; p4fair test 8/8
-- 19:4xZ seated after rotation; keys file host comment reverted; FAIR P4 review re-launched one-process; 165f57b0f still NOT on local-maxxing/season2/main
-- 19:4xZ CUT my reviewer's 8 workers on belam's [red] (PSI full avg60 36-39 vs the 40 reboot line); belam told; scratch removed
-- 19:3xZ FAIR P4 minted c6bc7db49 -> DT-2 -> DISPROVED · 19:0xZ SEEDS x3 DISPROVED reviewed + DH.1 text, board row 3201a0277, DT-2 key comment + card paths fixed (165f57b0f)
-- 18:2xZ guard-leak fix LANDED 0376b07da (row 80 beside DG3's 78/79 after a renumber) · comms switched to SendMessage
-- 16:3xZ self-poke toy line LANDED a001a3c61 (PROVED; C5b demoted: not beyond size) · findings to DG3: v5 strace tracer (16x slow), comms ACLs lost at reboot
+- 07:0xZ 10-14 council [defer] 3/3 applied to 8 research goals + board (g5.31 carried active)
+- 06:5xZ 10-14 OWNER lifted the idle; research CLOSE/DEFER asked of the council (none closable on E as written)
+- 07:5xZ 10-12 OWNER idle order #2 (keepalive disabled): no relay (SM relays), no session crons, card whole, stopped
+- 05:2xZ 10-12 reboot 05:00:51Z; owner 'go' lifted the idle order; relayed to DT-1 55a400be4f
+- 04:2xZ 10-12 OWNER idle order (via belam): relayed to DT-1 2a27eab2d3; card written whole (3e06b1c8b0); stopped
+- 20:2xZ 10-11 OWNER digest rule (belam + SM [rule] 20:20Z): relayed to DT-1 efc50b17b2; on §4
+- 19:5xZ 10-11 belam nudge answered (310f9d4b9f): DT-1 idle by design, nothing stuck
+- 13:2xZ 10-11 council [no-go] (alive 12:47Z, 3/3) on the next periodicity chunk: GO path not taken (no G5.22-G5.27 hypothesis consumes it); goal:g5.28 -> horizon + Status paragraph + THOUGHT, board row + research line; [merge-up] 8164a30170 -> LANDED (g5.28 horizon on the trunk, c74340057f an ancestor); belam banks the pause with the season-2 close (922ea25372)
+- 12:5xZ 10-11 belam CHECK: g5.28 not blocked (torch 2.14.0+cpu at DT-1 scratch/torch-cpu/pylib); [decision] sent to the 3 council members (7214f65380 · 2e969f5b17 · c56de4a246; 'council' itself is off-matrix)
+- 03:4xZ 10-11 found ~/t is a read view (3 turns of card edits uncommitted); moved the edit into a node tree -> 94235e6645
+- 22:3xZ 10-10 belam TRAP SWEEP: relayed to DT-1 2da962fd3f
+- 09:3xZ 10-10 PASS B6 MERGED (season2/main ef9b043e68 = trunk 4e9dbced38); trunk push not mine (no credential on E)
+- 08:4xZ 10-10 g5.28 PAIR-LOSS DISPROVED (s0 k=34 redundant carrier 3/3, s1 k=3 no partner), review CONFIRMED_DISPROVED, LANDED 957e0cbc7d
+- 10-09/10-10 row 28 (g1.42) + card-old readdress LANDED 6a492f294e · duplicate id fixed 8d17b2c482 · box mailbox live, signed
+- 10-07/10-08 SEEDS x3 + FAIR P4 LANDED 67680d223 · FREQ-ABLATION LANDED 708727845 · guard-leak fix 0376b07da · self-poke toy line a001a3c61
 
 ## 🔴 Where it stops
 ```
-g5.28 PAIR-LOSS DISPROVED + review CONFIRMED_DISPROVED (0 mismatches / ~195 values); "inert" overclaim corrected on the experiment; hypothesis conf 0.15; board row = verdict. [merge-up] to SM sent by watcher after the turn commit -> wait for SM's LAND, then merge the trunk back --no-commit. Next periodicity step (per-row / off-distribution look at s1 k=3) BANKED, needs a go
-next command: AGI_POST=thought-master ~/bin/box read   (mail = signed commits on refs/box; send: printf msg | AGI_POST=thought-master ~/bin/box send <to>)
+RESEARCH ROLLOVER WRITTEN 07:0xZ 10-14 per the council [defer] (3/3 06:38Z, alive): g5.22 g5.23 g5.24 g5.25 g5.27 g5.30 -> horizon (one shared reopen line: MemAvailable >= 8 GB + docker, or a GPU) · g5.26 + g5.29 -> horizon, perpetual · g5.31 stays ACTIVE into s3 · g5.28 unchanged · board research line. agi-turn commits the 10 trees -> watcher sends SM the [merge-up] and belam ONE digest (before the 08:13Z CHECK). Then: drop the trees; idle until SM / the council / belam write
+next command: AGI_POST=thought-master ~/bin/box read   (send: printf msg | AGI_POST=thought-master ~/bin/box send <to>)
 ```
 
 ## §4 Traps
@@ -80,10 +74,10 @@ next command: AGI_POST=thought-master ~/bin/box read   (mail = signed commits on
 - anonymize.py and provisioning.py die on MAIN .env (G2) -- grep by hand instead
 - tests: NO pytest anywhere on the box -> scratch shim (scratch is under /tmp: a reboot WIPES it, so rebuild it) (pytest.py with importorskip/approx/mark.parametrize + a runner) on PYTHONPATH with /data/ml/scratch/osc03/pylib, run by /data/ml/.venv/bin/python3; never pip install
 - import torch needs ulimit -v >= 4000000 (2000000 fails to map); brief subagents with 4000000
-- git push fails (no creds for a v5 user); grid.py commit --all fails (MAIN .grid.lock), but `grid.py commit <path>` WORKS (card v5, 23:5xZ) -- SM pushes at landing
+- git push fails (no creds for a v5 user; re-measured on E 09:3xZ 10-10 by --dry-run); grid.py commit --all fails (MAIN .grid.lock), but `grid.py commit <path>` WORKS (card v5, 23:5xZ) -- SM pushes at landing
 - NO hand `git commit` / `git merge` that commits: agi-turn makes the ONE commit per turn (git add -A at Stop), so anything dirty gets committed -- clean the .agi/keys/<post> host comment BEFORE the turn ends; sync the trunk with `git merge --no-commit`
 - a THOUGHT block is edited in place between its BEGIN / END markers, rewritten whole; a new node needs its own mint_id (32 hex)
-- box needs AGI_POST set (dies "parameter not set" without it); a post mails only matrix-adjacent rows (levels differ <= 1)
+- belam mail = ONE digest per ~4 h from SM + TM only, sent BEFORE belam's CHECK (00:13 04:13 08:13 12:13 16:13 20:13Z), research merge-ups/ETAs/notes folded in (OWNER 20:2xZ 10-11; SM [rule] 20:20Z, skill agi-send); at once only [red] or a BLOCKING owner ask; no acks upward; DT-1 routes via me (relayed efc50b17b2) · box needs AGI_POST set (dies "parameter not set" without it); a post mails only matrix-adjacent rows (levels differ <= 1) · DETACHED HEAD (SM [warn] 02:58Z 10-11, until goal:g7.16.1.11.38): agi-flush ends each turn with checkout --detach posts/$AGI_POST, so a commit can strand off the branch -- check `git rev-parse HEAD refs/heads/posts/thought-master` match; if HEAD is ahead: is-ancestor then `git update-ref refs/heads/posts/thought-master HEAD` (checked 03:0xZ 10-11: equal at a7c8292c29) · ~/t IS A DETACHED READ VIEW now: an edit there is [out-of-tree], never committed (3 turns lost 10-11) -- edit a node only in `D=$(~/bin/agi-wt pull <id>)` (/run/agi-thought-master/wt/<mint>), agi-turn commits that tree
 
 ## §5 Verification
 - every round: an adversarial Sonnet review recomputes the verdict from the raw files; my own test run from the repo root; evidence dry-run []; links 0 broken (5648 resolved at 17:5xZ)
@@ -92,8 +86,8 @@ next command: AGI_POST=thought-master ~/bin/box read   (mail = signed commits on
 - npz rerun: osc_neuron_period_pc.py:145 + osc_neuron_period2.py:109 rewrite the 3 TRACKED npz on a rerun -> (a) leave it, AGREED with SM 21:1xZ (no rerun planned); revisit if either script is rerun
 - L4 r5 on the 9B: (a) run when the owner thins the live posts (RECOMMENDED) · (b) lower the 8 GB gate = OOM risk · (c) a smaller-model rung first; + a docker grant for v5 users
 - an LLM periodicity / self-poke test needs a model whose tokenizer holds multi-digit numbers as one token = a download (owner call)
-- next periodicity step: PAIR-LOSS (10-10) DISPROVED -- s0 k=34 redundant carrier, s1 k=3 no partner; whether s1 k=3 matters on ANY input needs a per-row / off-distribution look (not another ablation set). Needs a go; path patching stays the fallback
-- next osc round MUST (SM [return] 08:42Z 10-10): a NEGATIVE control for the pair-null test (pairloss test_4 is positive-only: an always-beats pair_table passes) + the void rule compares params to the FINAL bytes, not only start.json's launch hash
+- periodicity line: PAUSED 10-11 (goal:g5.28 horizon, council [no-go] per its Falsifier); a season-2 reopen needs the OWNER and must name the G5.22-G5.27 hypothesis it feeds; candidate chunk = per-row / off-distribution s1 k=3
+- any reopened osc round MUST (SM [return] 08:42Z 10-10): a NEGATIVE control for the pair-null test (pairloss test_4 is positive-only: an always-beats pair_table passes) + the void rule compares params to the FINAL bytes, not only start.json's launch hash
 
 ## Skills
 agi-send · agi-goal · agi-workflow · agi-verify · agi-rotate · agi-dispatch · agi-memory-guard · agi-master-gate

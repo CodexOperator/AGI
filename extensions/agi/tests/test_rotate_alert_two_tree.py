@@ -8,8 +8,7 @@ every path under tmp_path:
 
   GAP 1 (rotate.py `_announce_rotation` `[rotation-alert]` envelope was
          NEVER sent through the resolver): a REAL rotation-alert block
-         produced by `_announce_rotation` with REAL `send.send` +
-         `send.send_dm` under `comms.verify = enforcing`, read back through
+         produced by `_announce_rotation` with REAL `send.send` under `comms.verify = enforcing`, read back through
          REAL `send._verify_block`, carries a label that startswith
          `VERIFIED seat-a` — never FORGED / UNVERIFIABLE / REFUSED / withheld.
          `_verify_block`'s resolver fetches the PUSHED set from the bare
@@ -197,20 +196,16 @@ def test_gap1_alert_reads_verified_under_enforcing_two_tree(
         handoff_path=f"{fx.seat}.handoff.md", in_flight="",
         live_names=[fx.seat, fx.recv])
     assert fx.recv in delivered, f"alert must reach {fx.recv}: {delivered}"
-    # The dm is observed ON DISK, never through a monkeypatched `send_dm`:
-    # rotate binds `send` lazily at call time, and in the full suite that
-    # binding is not always the `send` object this module imported (an
-    # earlier test may have re-imported it), so a wrapper installed on
-    # `_send` can be invisible to rotate while the real dm still lands
-    # (SL2#17 first cut, 08:36Z: passed alone, failed only in the full run).
-    dm_log = send_mod._dm_path(fx.wt, fx.seat, fx.recv)
-    assert dm_log.is_file(), f"the alert must land as a real dm: {dm_log}"
-    assert "[rotation-alert]" in dm_log.read_text(encoding="utf-8")
+    # The alert is observed ON DISK, never through a monkeypatched seam: rotate binds `send` lazily at call time,
+    # and in the full suite that binding is not always the `send` object this module imported (SL2#17 first cut,
+    # 08:36Z: passed alone, failed only in the full run). The pairwise `send_dm` log is retired (a box message
+    # replaced it, goal:g7.16.1.11.20 cut B); the alert's record is the recipient's INBOX copy, read next.
 
     # read the recipient's inbox (written by real send.send on the worktree)
     # back through the real read -> _verify_block -> resolver path.
     send_mod.read(fx.wt, fx.recv, None)
     out = capsys.readouterr().out
+    assert "[rotation-alert]" in out, out    # the alert block itself landed in the inbox (was: the dm log)
     assert "VERIFIED seat-a" in out, out
     assert "FORGED" not in out and "UNVERIFIABLE" not in out \
         and "REFUSED" not in out and "withheld" not in out

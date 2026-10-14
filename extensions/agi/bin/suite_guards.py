@@ -6,7 +6,7 @@ suites of the SAME project. Before this module they were two worlds: the lock,
 the dispatch-env strip and the real-process / live-config guard lived in the
 engine conftests, so two declared-suite runs overlapped, a context test could
 signal a live pid or read the live `.agi/config.json`, and the caller's
-AGI_SEAT/AGI_TIER/AGI_AGENT reached the child
+AGI_POST/AGI_TIER/AGI_AGENT reached the child
 (hypothesis:the-declared-context-suite-runs-under-the-engine-suite-guards).
 
 PLAIN import, never exec: a conftest that execs another conftest is how DH.419

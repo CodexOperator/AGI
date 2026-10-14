@@ -4,12 +4,22 @@
 # agi-post@P whose token expires within LEAD seconds (or already has), type ONE cheap turn into P's pane -- the same
 # fifo + separate CR that agi-run's mail wake uses -- so the session refreshes its own token. A busy post refreshes by
 # itself and is never pinged. At most one ping per post per GAP seconds. Values are never read out: only expiresAt.
-LEAD=${LEAD:-7200};GAP=${GAP:-3600};S=/run/agi-rc-keepalive;mkdir -p $S
+# IDLE ONLY (owner 10-14: "only fire if the post is otherwise idle"): nothing is typed into a pane unless the post is
+# idle -- its newest transcript is >= IDLE s old AND its claude has no child younger than itself by > 60 s (a running
+# tool: Bash's bash; measured 06:3xZ 10-14, an idle claude's only child is its MCP server, started with the session).
+LEAD=${LEAD:-7200};GAP=${GAP:-3600};IDLE=${IDLE:-600};S=/run/agi-rc-keepalive;mkdir -p $S
+idle(){ cg=$(systemctl show "agi-post@$1.service" -p ControlGroup --value);[ -n "$cg" ]||return 1
+ k=$(for x in $(cat /sys/fs/cgroup$cg/cgroup.procs 2>/dev/null);do [ "$(cat /proc/$x/comm 2>/dev/null)" = claude ]&&echo $x;done|head -1);[ -n "$k" ]||return 1
+ ke=$(ps -o etimes= -p $k|tr -d ' ');[ -n "$ke" ]||return 1
+ for x in $(ps -o pid= --ppid $k);do xe=$(ps -o etimes= -p $x|tr -d ' ');[ -n "$xe" ]&&[ $((ke-xe)) -gt 60 ]&&return 1;done
+ j=$(ls -t /var/lib/agi/$1/.claude/projects/*/*.jsonl 2>/dev/null|head -1);[ -n "$j" ]||return 1
+ [ $((now-$(stat -c %Y "$j"))) -ge $IDLE ];}
 MSG='keepalive: reply with the one word ok and do nothing else (owner 10-09: a turn refreshes your claude.ai login so Remote Control stays up).'
 now=$(date +%s)
 for u in $(systemctl list-units 'agi-post@*.service' --state=running --no-legend --plain | awk '{print $1}');do
  p=${u#agi-post@};p=${p%.service};case $p in ""|*[!a-z0-9-]*)continue;;esac
  c=/var/lib/agi/$p/.claude/.credentials.json;f=/run/agi-$p/i;[ -r "$c" ]&&[ -p "$f" ]||continue
+ idle $p||continue
  # title heal: a bare /remote-control titles the RC session after its first prompt ('go': sanctuary-master 14:38Z
  # 10-09) -- if the LIVE bridge's titleSha is not sha256(P) and the session is not already user-named P, /rename P once
  for q in $(jq -r '(.replBridgePlaceholders // {})[]|"\(.pid):\(.titleSha)"' /var/lib/agi/$p/.claude.json 2>/dev/null);do

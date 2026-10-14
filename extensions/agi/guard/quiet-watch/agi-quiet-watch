@@ -4,9 +4,9 @@
 # DG4 on SM's placements, DT-1 on TM). Owner 02:3xZ 10-11, verbatim: "Maybe an automated check if all posts are quiet
 # for 5 mins and no process send a mail alert to SM". A post is BUSY when its newest transcript (~/.claude/projects/
 # **/*.jsonl) is younger than Q seconds, or its claude has any descendant other than the MCP server (a tool call, a
-# background task, a Monitor). When EVERY running post but belam is quiet, box-mail sanctuary-master once, signed as
-# belam (the matrix allows belam -> SM); then at most once per GAP seconds until some post is busy again.
-Q=${Q:-300};GAP=${GAP:-1800};S=${S:-/run/agi-quiet-watch};SELF=${SELF:-belam};TO=${TO:-sanctuary-master};mkdir -p "$S"
+# background task, a Monitor). When EVERY running post but belam is quiet, spool ONE alarm for sanctuary-master (belam's spool; belam's
+# drain signs and sends it as belam: the matrix allows belam -> SM); then at most once per GAP seconds until some post is busy again.
+Q=${Q:-300};GAP=${GAP:-1800};S=${S:-/run/agi-quiet-watch};SELF=${SELF:-belam};TO=${TO:-sanctuary-master};AS=${AS:-/opt/agi/bin/alarm_spool.py};STORES=${STORES:-/var/lib/agi};mkdir -p "$S"
 now=$(date +%s);list=;n=0
 desc(){ for c in $(pgrep -P "$1");do case "$(tr '\0' ' ' </proc/$c/cmdline 2>/dev/null)" in *@gitkraken*|*'gk mcp'*)continue;;esac;echo "$c";desc "$c";done;}
 for u in $(systemctl list-units 'agi-post@*.service' --state=running --no-legend --plain | awk '{print $1}');do
@@ -20,6 +20,11 @@ done
 [ "$n" -gt 0 ]||exit 0
 l=$(cat "$S/last" 2>/dev/null||echo 0);[ $((now-l)) -ge "$GAP" ]||exit 0
 m="[quiet] agi-quiet-watch $(date -u +%H:%MZ) -> $TO: every post is idle at its prompt >= $((Q/60)) min with no tool or background process running ($n posts, idle for:$list). Nothing unread means everyone is waiting on someone: you are the board coordinator -- take the next owed step (placements, a return, the loop end: bigger outcomes -> council), or mail the post that owes one. If the season's work is truly done, say so to belam."
-if printf '%s\n' "$m" | runuser -u "agi-$SELF" -- env HOME="/var/lib/agi/$SELF" AGI_POST="$SELF" PATH="/var/lib/agi/$SELF/bin:/opt/agi/bin:/usr/local/bin:/usr/bin:/bin" sh -c 'cd ~/t && box send "$1"' _ "$TO";then
- echo "$now" >"$S/last";logger -t agi-quiet-watch "quiet alert to $TO:$list"
-else logger -t agi-quiet-watch "box send to $TO FAILED:$list";fi
+# ROOT NEVER SIGNS (council 3/3 21:3xZ, .40.1 item 4): this unit only APPENDS a plain line, no key, to the sending seat's
+# spool by runuser as that seat; the seat's own drain (config:crons alarm_drain_belam, user agi-belam) signs and box-sends it
+# exactly once. alarm_spool.py is installed to /opt/agi/bin (stdlib only): the engine tree of a seat may lag or move.
+if runuser -u "agi-$SELF" -- python3 "$AS" append --job quiet-watch --to "$TO" --text "$m" --max-lines 500 --spool "$STORES/$SELF/alarm.spool";then
+ echo "$now" >"$S/last";logger -t agi-quiet-watch "quiet alert spooled for $TO:$list"
+else logger -t agi-quiet-watch "spool append for $TO FAILED:$list"
+ # a failed append is also ONE ~/.notice line in the seat's own file (written BY the seat's uid, root signs nothing), never the journal alone; no `last` stamp, so the next minute tries again
+ runuser -u "agi-$SELF" -- env HOME="$STORES/$SELF" sh -c '[ -x ~/bin/agi-notice ] && exec ~/bin/agi-notice add "$0" || echo "$0" >> ~/.notice' "[quiet-watch-unspooled] $(printf %08x "$now") $(date -u +%H:%MZ) the quiet alert for $TO was NOT spooled ($n posts idle:$list)" >/dev/null 2>&1;fi
