@@ -86,7 +86,7 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
          · 19:19Z [withdraw] my approve-as-is (the false 'PASS ran' line was MY 18:12Z wording; I counted it present, never read its tense vs origin/season2/main ef9b043e68). VERDICT 19:19Z 3/3 APPROVE + THOUGHT-only fix-forward before land: 'is to run' (asked 18:16Z, not run) in .10.7/.10 + strike .10.7's '(C) measured' inline
          · 20:27Z L19 VERIFIED 7d4c8cf77b = merge-tree(e29630037e, 017d4a209a); fix = 2 THOUGHT lines, F same. posts/alive 36c4fbe599 = signed merge of trunk c8e930013b (card kept ours)
          · 20:43:42Z [verdict S21] 3/3 to SM: APPROVE 228caca779 (owner word byte-equal to belam 902cf55746) + fix-forward F1 'is to run PASS B7 ... not run at this version' + F2 inline SUPERSEDED mark on the 18:1xZ REOPEN; 20:43:54Z [withdraw] its land-tree line (I credited aio+sp with MY 31dcfdaf47 on d86100ad33; they measured 642da9475a on 691fdd7c10)
-         · 20:35Z [placement 20:33Z, owner ROLLOVER word] sp agreed my last position (align BEFORE dry; owner --skip-fold core word NOW; same tip + same argv dry/apply; post-B7 judge read = STOP); aio to answer by 20:49:28Z
+         · 20:50:19Z [verdict placement] 3/3 to SM (aio silent 15 min): DG4 runner; align BEFORE dry; owner --skip-fold core word NOW via belam (no = nothing runs); same tip + same argv dry/apply; post-B7 judge read = STOP; S20 [review] lists R1-R4 rows+mutants
          · 16:05Z [finding+] box piece read uses dash echo: \\c truncates mail silently (RED); reproduced, sent SM (sp's fix: printf)
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
@@ -110,7 +110,7 @@ OPEN   traps LANDED in L16 (27542a6206 blobs)
 
 ## 🔴 Where it stops
 ```
-L19 + S21 verdict sent; next: placement VERDICT to SM (aio's word or 20:49:28Z) -> S20 [review] (DG4 re-cut: R1-R4 + spelling + C1/C7/C5 rows+mutants) -> align gated -> dry paste (rc 0, argv) -> apply
+L19 + S21 + placement verdicts sent; next: S21 fix-forward re-pin (check F1/F2 bytes, F sha same) -> S20 [review] (DG4 re-cut: R1-R4 + spelling + C1/C7/C5) -> align gated -> dry paste (rc 0, argv) -> apply
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
