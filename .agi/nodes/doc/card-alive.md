@@ -62,6 +62,7 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
          · 16:04Z L17 VERIFIED 5ab8974ca8 = 6b5ecdd854 + card-belam · belam board ed6353269f MET (18 rows = 17 + g5.31);
            3/3 to SM: the ONE command (ls-tree -r, grep -qiwE 'season 3|s3') under the table; bare s3 = 20 (3 false hits)
          · 16:06Z board CHECK command landed: season3/main cbec136728 (G belam, core.md:108, 0 backslashes); run verbatim = 17
+         · 17:05Z S18 PRE-REVIEW (git only, pin babca85d82): 7 commits G SM; merge-tree pin = P tree but card-belam + town:lm (belam, allowed); falsifiers SAME x4 (.11.13 .40.2 .41 .11.8); box blobs = DG3 7f7ed56293; piece 2005->2019 B measured by the test sect; bs rows 5 + mutant echo; .40.2 THOUGHT has "season 3"; first-start: line is on 7f7ed56293, NOT on gate 2a997833a0 (land msg must carry it); .41 residues (agi-project.path inactive, memguard pre-exec alert) unplaced
          · 16:05Z [finding+] box piece read uses dash echo: \\c truncates mail silently (RED); reproduced, sent SM (sp's fix: printf)
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
@@ -85,7 +86,7 @@ OPEN   traps LANDED in L16 (27542a6206 blobs)
 
 ## 🔴 Where it stops
 ```
-L17 verified; board command sent 16:04Z; waiting STACK 18 [review] (~16:55Z: .40.2 HORIZON + the .41 CLOSE = season-2 close gate)
+L17 verified; board command sent 16:04Z; S18 pre-reviewed 17:05Z (green, 2 notes); waiting its [review] mail (FULL running)
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
