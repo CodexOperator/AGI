@@ -89,6 +89,7 @@ def _commit(repo: Path, name: str) -> None:
 
 def _build(tmp_path: Path, towns=TOWNS) -> Path:
     bare, r = tmp_path / "origin.git", tmp_path / "work"
+    tmp_path.mkdir(parents=True, exist_ok=True)
     bare.mkdir()
     _git(bare, "init", "-q", "--bare")
     r.mkdir()
@@ -208,19 +209,32 @@ def test_global_without_delete_old_holds_every_cell(repo: Path):
         assert _fm(g / "nodes" / "town" / f"{slug}.md")["season"] == 2
 
 
-# ---- (4) a fold that would fast-forward is REFUSED by name ---------------
-def test_fold_that_would_fast_forward_is_refused(repo: Path):
+# ---- (4) R1: a head that is an ANCESTOR of the old trunk is still folded by a 2-parent commit ----
+def test_fold_onto_an_ancestor_head_is_a_two_parent_commit_never_a_plain_ff(repo: Path, tmp_path: Path):
     g = _graph(repo)
-    # master reset back to the trunk base: master is now an ANCESTOR of
-    # season2/main, so the FIRST fold (the global trunk) can only fast-forward.
+    # master reset back to the trunk base: master is now an ANCESTOR of season2/main
     base = _git(repo, "rev-parse", "season2/main^").stdout.strip()
     _git(repo, "push", "-q", "-f", "origin", f"{base}:refs/heads/master")
-    before = _heads(repo)
-    res = _run(g, "--global", "--actor", "owner")   # dry: nothing performed
-    assert res.returncode != 0
-    assert "would fast-forward, refused by name" in res.stderr
-    assert "master" in res.stderr
-    assert _heads(repo) == before                          # dry-stop, nothing done
+    trunk = _remote_sha(repo, "refs/heads/season2/main")
+    dry = _run(g, "--global")
+    assert dry.returncode == 0, dry.stdout + dry.stderr
+    assert "FOLD season2/main -> master (merge --no-ff, head is an ancestor: 2 parents" in dry.stdout
+    assert _remote_sha(repo, "refs/heads/master") == base       # the dry path writes nothing
+    res = _run(g, "--global", "--apply")                          # cut + fold, no cell
+    assert res.returncode == 0, res.stdout + res.stderr
+    par = _parents(repo, "refs/heads/master")
+    assert len(par) == 2 and par[0] == base and par[1] == trunk   # head = parent 1
+    new = _remote_sha(repo, "refs/heads/master")
+    assert _git(repo, "rev-parse", f"{new}^{{tree}}").stdout == _git(repo, "rev-parse", f"{trunk}^{{tree}}").stdout
+
+
+def test_fold_onto_an_ancestor_head_a_plain_ff_mutant_is_red(repo: Path, tmp_path: Path):
+    g = _graph(repo)
+    base = _git(repo, "rev-parse", "season2/main^").stdout.strip()
+    _git(repo, "push", "-q", "-f", "origin", f"{base}:refs/heads/master")
+    mut = _mutant(tmp_path, (', "merge", "--no-ff", "-q", "-m",', ', "merge", "--ff-only", "-q", "-m",'))
+    res = _run(g, "--global", "--apply", cli=mut)
+    assert res.returncode != 0 and "STOP at step 2: fold" in res.stderr, "MUTANT (a plain ff) must be RED on the 2-parent proof"
 
 
 # ---- (5) injected archive mismatch stops before the delete, no cell ------
@@ -557,10 +571,105 @@ def test_d1_the_core_old_tip_is_the_live_trunk_a_dead_line_is_refused_and_derive
     ok = _run(g, "--global")
     assert ok.returncode == 0, ok.stdout + ok.stderr
     assert "core town: OLD TIP = the live trunk origin/local-maxxing/season2/main" in ok.stdout
-    assert "BEHIND the live trunk" in ok.stdout and "RESUME" in ok.stdout
+    assert "BEHIND the live trunk" in ok.stdout and "FAST-FORWARD" in ok.stdout
     dead = _run(g, "--global", "--core-old", "core/season2/main")
     assert dead.returncode == 1 and "DIVERGED" in dead.stderr and "STOP at step 1: cut" in dead.stderr
     mut = _mutant(r.parent, ('old = core_old if slug == CORE_TOWN else branches.derive_names(slug, g)["town_season_main"]',
                              'old = branches.derive_names(slug, g)["town_season_main"]'))
     red = _run(g, "--global", cli=mut)
     assert red.returncode == 1, "MUTANT (old taken from derive_names) must be RED: " + red.stdout
+
+
+# ---- R2/R3 (council 18:40Z): the core fold STOPs unless named; the BEHIND cut fast-forwards in the run ----
+def _core_conflict(tmp_path: Path):
+    r, live = _core(tmp_path)
+    live = _sh(r, "local-maxxing/season2/main", live, "conflict.txt", "b\n")
+    _sh(r, "core/main", "core/main", "conflict.txt", "a\n")        # core/main and the live trunk disagree on one file
+    return r, live
+
+
+def test_r2_an_unnamed_conflicting_fold_stops_a_named_one_is_skipped_and_the_proceeding_mutant_is_red(tmp_path: Path):
+    r, live = _core_conflict(tmp_path)
+    g = _graph(r)
+    before, core_main = _heads(r), _remote_sha(r, "refs/heads/core/main")
+    dry = _run(g, "--global")
+    assert dry.returncode == 1 and "[rollover] fold local-maxxing/season2/main -> core/main does not merge cleanly: conflict.txt" in dry.stderr
+    assert "--skip-fold core" in dry.stderr
+    refused = _run(g, "--global", "--apply")
+    assert refused.returncode == 1 and "nothing performed" in refused.stderr
+    assert _heads(r) == before                                            # nothing pushed
+    unknown = _run(g, "--global", "--skip-fold", "nope")
+    assert unknown.returncode == 1 and "--skip-fold names nope: not a declared town" in unknown.stderr
+    ok = _run(g, "--global", "--apply", "--skip-fold", "core")
+    assert ok.returncode == 0, ok.stdout + ok.stderr
+    assert "SKIPPED (--skip-fold core, owner-given): conflict.txt; nothing pushed for core/main" in ok.stdout
+    assert _remote_sha(r, "refs/heads/core/main") == core_main            # core/main untouched
+    mut = _mutant(tmp_path, ('notes.append(f"[rollover] fold {old} -> {head} does not merge cleanly: {why} (name it with --skip-fold {slug} to skip it, owner-given)")', 'pass'))
+    r2, _ = _core_conflict(tmp_path / "m")
+    b2 = _heads(r2)
+    res = _run(_graph(r2), "--global", "--apply", cli=mut)
+    assert not (res.returncode == 1 and _heads(r2) == b2), "MUTANT (an unnamed conflicting fold proceeds) must be RED: the row wants nothing pushed"
+
+
+def test_r3_the_behind_core_cut_fast_forwards_in_the_run_and_the_resume_without_it_is_red(tmp_path: Path):
+    r, live = _core(tmp_path)
+    g = _graph(r)
+    assert not _git(r, "merge-base", "--is-ancestor", live, _remote_sha(r, "refs/heads/core/season3/main")).returncode == 0
+    dry = _run(g, "--global")
+    assert dry.returncode == 0 and "FAST-FORWARD: origin/core/season3/main" in dry.stdout
+    assert _git(r, "merge-base", "--is-ancestor", live, _remote_sha(r, "refs/heads/core/season3/main")).returncode != 0   # dry: untouched
+    ok = _run(g, "--global", "--apply")
+    assert ok.returncode == 0, ok.stdout + ok.stderr
+    new = _remote_sha(r, "refs/heads/core/season3/main")
+    assert new == live and _git(r, "merge-base", "--is-ancestor", live, new).returncode == 0   # contains the old tip
+    for k, pair in enumerate((('ok, detail, _ = branches.mirror_and_prove(repo, R + new, tip=sha, label="cut-ff")', 'ok, detail = True, ""'),
+                              ('ok, detail, _ = branches.mirror_and_prove(repo, R + new, tip=sha, label="cut-ff")', 'ok, detail = True, ""'))):
+        r2, live2 = _core(tmp_path / f"m{k}")
+        extra = (('if st2 != "present" or not (got == sha or _is_anc(repo, sha, got)):', "if False:"),) if k else ()
+        res = _run(_graph(r2), "--global", "--apply", cli=_mutant(tmp_path / f"m{k}", pair, *extra))
+        new2 = _remote_sha(r2, "refs/heads/core/season3/main")
+        held = res.returncode == 0 and _git(r2, "merge-base", "--is-ancestor", live2, new2).returncode == 0
+        assert not held, f"MUTANT {k} (RESUME on BEHIND without the ff) must be RED: the row wants core/season3/main to contain the old tip"
+        if not k:
+            assert res.returncode == 1 and "does not contain the old tip" in res.stderr    # the post-check alone catches it
+
+
+# ---- R4: a step-5 refusal leaves origin half-rolled and prints the way back -----------------
+def test_r4_a_step_5_stop_prints_the_recovery_and_the_plain_stop_mutant_is_red(repo: Path, tmp_path: Path):
+    g = _graph(repo)
+    hooks = repo / ".git" / "hooks"
+    hooks.mkdir(exist_ok=True)
+    (hooks / "pre-commit").write_text("#!/bin/sh\ngit diff --cached --name-only | grep -q 'town/sanc.md' && { echo 'sanc cell refused'; exit 1; }\nexit 0\n")
+    (hooks / "pre-commit").chmod(0o755)
+    _git(repo, "config", "core.hooksPath", str(hooks))
+    _on_new_trunk(repo)
+    res = _run(g, "--global", "--apply", "--delete-old", "--actor", "owner")
+    assert res.returncode == 1 and "STOP at step 5: cell" in res.stderr, res.stdout + res.stderr
+    assert "[rollover] RECOVERY: origin is HALF-ROLLED" in res.stderr
+    for old in ("season2/main", "maxx/season2/main", "sanc/season2/main"):
+        assert f"git push origin refs/agi/archive/{old}:refs/heads/{old}" in res.stderr
+        assert f"refs/heads/{old}" not in _heads(repo)                          # really half-rolled: deleted ...
+        assert _remote_sha(repo, f"refs/agi/archive/{old}")                      # ... and restorable
+    mut = _mutant(tmp_path, ('return _stop5(repo, restore, h0, cur_branch, f"write.py refused for {cell_id}")', 'return _stop(5, "cell", f"write.py refused for {cell_id}")'))
+    repo2 = _build(tmp_path / "m")
+    (repo2 / ".git" / "hooks").mkdir(exist_ok=True)
+    (repo2 / ".git" / "hooks" / "pre-commit").write_text((hooks / "pre-commit").read_text())
+    (repo2 / ".git" / "hooks" / "pre-commit").chmod(0o755)
+    _git(repo2, "config", "core.hooksPath", str(repo2 / ".git" / "hooks"))
+    _on_new_trunk(repo2)
+    red = _run(_graph(repo2), "--global", "--apply", "--delete-old", "--actor", "owner", cli=mut)
+    assert "RECOVERY" not in red.stderr, "MUTANT (a plain stop) must be RED: the row wants the RECOVERY lines"
+
+
+# ---- (iv) every town cell is at the global season before --global --------------------------
+def test_iv_a_town_cell_behind_the_global_season_is_refused_before_anything_and_the_mutant_is_red(repo: Path, tmp_path: Path):
+    g = _graph(repo)
+    maxx = g / "nodes" / "town" / "maxx.md"
+    maxx.write_text(maxx.read_text().replace("season: 2", "season: 1"))
+    before = _heads(repo)
+    res = _run(g, "--global", "--apply")
+    assert res.returncode == 1 and "town(s) maxx not at global season 2 — align first" in res.stderr
+    assert _heads(repo) == before
+    mut = _mutant(tmp_path, ("    if misaligned:\n", "    if False:\n"))
+    red = _run(g, "--global", cli=mut)
+    assert not (red.returncode == 1 and "align first" in red.stderr), "MUTANT (alignment check dropped) must be RED"
