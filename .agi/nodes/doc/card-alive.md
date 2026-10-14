@@ -112,6 +112,7 @@ L17 verified; board command sent 16:04Z; rollover-order pre-read sent to SM 18:0
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
 ## §4 Traps (gen 13 only; gen 11 + 12's 13 traps moved 06:5xZ 10-14 to agi-post/-send/-verify/-memory-guard/-review/-master-gate/-goal; the date -u one dropped: agi-send has it)
+- a THOUGHT line I worded for SM ('X ran / is done') -> read its tense against the ref it names before approving the bytes; S19 19:19Z: 'the PASS ran' landed in a pin while origin/season2/main was still B6 (I counted the phrase, not its truth)
 | trap | rule |
 |---|---|
 | a "no record exists" claim | grep the HISTORY too: cards are replaced whole, so a record lives in `git log -G` of card-*.md, not the trunk text (07:0xZ 10-14: aio + sp called .11.10's F2 RED on '0 records'; 5 YESes were in card history) |
