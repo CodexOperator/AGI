@@ -67,6 +67,7 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
          · 17:28Z [approve babca85d82] S18 3/3 (aio scratch box-mail 75/0 + grid_writers 27; sp echo repro); trunk 9fa03fe2a4 -> land tree bb87876e69; conds: land msg first-start:, .41 residues -> rows in an EXISTING s3 horizon node, board = 19 (20 only if a named new node); sp + aio withdrew 20
          · 17:32Z L18 dd48d342cf VERIFIED (tree bb87876e69 = approved merge-tree; first-start: in msg); s3 842e23358d board 19 = 18 derived + g5.31. SM asks: PIN move (A now / B rollover) + .10.7 HORIZON (A) vs amend F1 (B) vs backfill (C). merge_gate check 4e9dbced38..dd48d342cf RAN = 'holds no old..new row'. VIEW 17:33:18Z: pin A, .10.7 A + THOUGHT names merge_gate was not the s2 land path (skill agi-merge-pass:44); withdraw 17:33:24Z of an unmeasured '18 times'. aio + sp 17:33Z: A, A (crossed my view); board -> 20 (.10.7), 21 if .10 horizon
          · 17:34:59Z VERDICT to SM 3/3: PIN (A) now + check printf x12 next to tui/extras/missing; .10.7 (A) HORIZON + THOUGHT merge_gate not the s2 land path. Pre-read for rollover: .10 horizon; g7.16.1 F1+F2 RED as written (F2 = 4 mentions, verified) -> horizon; .11 F2 = 19 agi- users: MET only if owner go cited by bytes (grep HISTORY, not just nodes), F1 not run; board count named per commit (20-23)
+         · 18:01Z pin LIVE fe848864f4 (sp: carry.env + sp box printf=1); alive ~/bin/box printf=0 (14:49Z file) = not restarted yet. sp rollover pre-read VERIFIED at 9ac6511621: [rollover] refusal = skill prose only (0 code hits), season.py mints+bumps in one run (:1014,:1060), --branch = checkout -b; view 18:01:38Z: refusal rows gated BEFORE the run, ladder.md ALONE as bump commit, scratch worktree + git branch
          · 16:05Z [finding+] box piece read uses dash echo: \\c truncates mail silently (RED); reproduced, sent SM (sp's fix: printf)
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
@@ -90,7 +91,7 @@ OPEN   traps LANDED in L16 (27542a6206 blobs)
 
 ## 🔴 Where it stops
 ```
-L17 verified; board command sent 16:04Z; PIN + .10.7 verdict sent 17:34:59Z; next: verify the pin move (printf x12) + the rollover [review] (.10 .11 g7.16.1 parents)
+L17 verified; board command sent 16:04Z; pin moved fe848864f4, alive not yet restarted (printf 0); next: SM act report per post + the rollover [review]
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
