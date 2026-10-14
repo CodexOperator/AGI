@@ -16,7 +16,7 @@ EXPANSION of config:engine: the unit template (root's agi-project reads it throu
 Read only through `sect <name> [REV]`.
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
-### agi-post@.service (3507 B)
+### agi-post@.service (3826 B)
 ~~~ini
 [Unit]
 After=agi-ram-main.service
@@ -38,7 +38,7 @@ ExecCondition=sh -c 'set -f;type agi-run>/dev/null||{ [ "$AGI_PIECE_GLOB" ]||exi
 ExecStartPre=awk -F"[= ]" "/some/{exit $$3>40}" /proc/pressure/memory
 ExecStartPre=sh -c 'mkdir -p .ssh;[ -d t ]||[ -e .fresh ]||touch .fresh;[ .fresh -nt .ssh/id_ed25519 -a ! -f t/.agi/nodes/.geometry/ring ]&&rm -f .ssh/id_ed25519*;[ -f .ssh/id_ed25519 ]||ssh-keygen -qN "" -ted25519 -f.ssh/id_ed25519'
 ExecStartPre=+/usr/bin/env -i PATH=/usr/sbin:/usr/bin:/bin /opt/agi/bin/agi-signers %i
-ExecStartPre=sh -c 'set -f;mkdir -p .ssh bin .claude hooks;git config --global safe.directory "*";[ -d t ]||{ git -C $O branch posts/%i $AGI_TRUNK;git -C $O worktree add -fqd $PWD/t posts/%i;};G="git -c safe.directory=$O -C $O";case $($G rev-parse --symbolic-full-name $AGI_TRUNK 2>/dev/null) in refs/heads/*|refs/remotes/*);;*)echo "[bad-trunk] $AGI_TRUNK is not a branch">&2;exit 255;;esac;[ "$AGI_PIECE_GLOB" ]||{ echo [no-glob]>&2;exit 255;};for f in $($G ls-tree --name-only $AGI_TRUNK .agi/nodes/.geometry/);do for g in $AGI_PIECE_GLOB;do case $f in */$g)$G show $AGI_TRUNK:$f>.e;for x in $(grep -o "^### [^ ]*" .e|cut -c5-);do sed -n "/^### $x /,/^##/{/^~~~/,/^~~~/{//!p}}" .e>bin/$x;done;;esac;done;done;rm -f .e;set +f;chmod +x bin/*;mv bin/gitconfig .gitconfig;mv bin/settings.json .claude;mkfifo -m600 %t/agi-%i/i;[ -e o ]||install -m600 /dev/null o'
+ExecStartPre=sh -c 'set -f;mkdir -p .ssh bin .claude hooks;git config --global safe.directory "*";[ -d t ]||{ git -C $O branch posts/%i $AGI_TRUNK;git -C $O worktree add -fqd $PWD/t posts/%i;};G="git -c safe.directory=$O -C $O";case $($G rev-parse --symbolic-full-name $AGI_TRUNK 2>/dev/null) in refs/heads/*|refs/remotes/*);;*)echo "[bad-trunk] $AGI_TRUNK is not a branch">&2;exit 255;;esac;[ "$AGI_PIECE_GLOB" ]||{ echo [no-glob]>&2;exit 255;};x(){ echo "[extract-failed] $*">&2;rm -rf bin.new .e;exit 255;};rm -rf bin.new .e;mkdir bin.new||x bin.new;l=$($G ls-tree --name-only $AGI_TRUNK .agi/nodes/.geometry/)||x ls-tree $AGI_TRUNK;for f in $l;do for g in $AGI_PIECE_GLOB;do case $f in */$g)$G show $AGI_TRUNK:$f>.e||x $f;for x in $(grep -o "^### [^ ]*" .e|cut -c5-);do sed -n "/^### $x /,/^##/{/^~~~/,/^~~~/{//!p}}" .e>bin.new/$x||x $f $x;done;;esac;done;done;rm -f .e;[ -s bin.new/agi-run ]||x agi-run is not in the extracted set;set +f;chmod +x bin.new/*;rm -rf bin.old;mv bin bin.old&&mv bin.new bin||{ [ -d bin ]||mv bin.old bin;x swap;};rm -rf bin.old;mv bin/gitconfig .gitconfig;mv bin/settings.json .claude;mkfifo -m600 %t/agi-%i/i;[ -e o ]||install -m600 /dev/null o'
 ExecStartPre=sh -c '{ ls bin/agi-out||type agi-out;}>/dev/null 2>&1&&exec agi-out;echo agi-out skipped, stale t>&2'
 ExecStartPre=+/usr/bin/env -i PATH=/usr/sbin:/usr/bin:/bin /opt/agi/bin/agi-signers %i
 ExecStartPre=-+/usr/local/sbin/agi-signers-repoint %i
