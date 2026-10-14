@@ -42,10 +42,10 @@ TWO CAUSES (sanctuary-master, measured 04:1xZ):
 - Extraction reads only signed, landed bytes: no new write path, no key / signing change (the g7.16.1.11.11 HOLD).
 
 ## Falsifier
-1. LANE: a post whose branch lacks a landed piece -> after the unit's ExecStartPre, ~/bin carries the TRUNK's piece. MUTANT: extract from t/ again = RED.
+1. LANE: a post whose branch lacks a landed piece -> after the unit's ExecStartPre, ~/bin carries the TRUNK's piece. MUTANT: extract from t/ again = RED. CUT 3 (council 3/3 11:25Z 10-14): the same lane seeds ~/bin with a RETIRED file (agi-link) and a stale copy -> after ExecStartPre ~/bin is EXACTLY the trunk's piece set (the extra is gone, the stale copy is the trunk's bytes). MUTANT: no clear (extract over bin/) = RED. And it FAILS CLOSED AND LOUD: a failing git ls-tree / show, or an extracted set without agi-run -> `[extract-failed] <file>`, exit 255, the old ~/bin byte-equal, no swap. MUTANTS: swap anyway (no agi-run check / show failure ignored / ls-tree failure ignored) = RED.
 2. LANE: a post branch that conflicts with the trunk + one agi-flush -> the branch is unmoved, ~/.notice holds the [trunk-conflict] line, and the master's box holds it. MUTANT: the old silent `&&` chain = RED.
 3. LANE: AGI_TRUNK set to a 40-hex sha, a 10-hex sha, or a tag in the post env -> the extractor refuses by name. MUTANT: a 10-hex sha accepted = RED.
-4. On the box after deploy (belam's read): settings.json's tui is present on all 11 posts.
+4. On the box after deploy (belam's read): settings.json's tui is present on all 11 posts, and ~/bin EXTRAS (files not in the trunk's 33 pieces; census 10-14 11:5xZ: agi-link on all 12, signers on 3) are 0 on every post.
 5. LANE (cadence): a session that lives K turns while the trunk moves is never more than one turn behind = GREEN. MUTANT: merge only at flush = RED.
 
 ## Order

@@ -52,7 +52,7 @@ class Post:
                     "GIT_CONFIG_NOSYSTEM": "1", "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
                     "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"}
         # the OLD state, which the post's own branch (and so its t) keeps
-        (g / "engine.md").write_text(HEAD + piece("zyg", "echo zyg-old"))
+        (g / "engine.md").write_text(HEAD + piece("zyg", "echo zyg-old") + piece("agi-run", "echo run"))
         (g / "engine-post.md").write_text(HEAD + piece("oldpiece", "echo OLD") + piece("gitconfig", "[x]") +
                                           piece("settings.json", "{}"))
         (g / "engine-grow.md").write_text(HEAD + piece("growonly", "echo grow"))
@@ -74,17 +74,31 @@ class Post:
         return subprocess.run(["git", "-C", str(repo), *a], env=self.env, capture_output=True, text=True,
                               check=True).stdout.strip()
 
-    def go(self, trunk="trunk", glob="__default__"):
+    def go(self, trunk="trunk", glob="__default__", fail=None):
+        """Run the line. `fail` = a substring: a git shim exits 128 on any git call whose argv holds it (a failing ls-tree / show)."""
         env = {**self.env, "O": str(self.main), "AGI_TRUNK": trunk}
         g = self.glob if glob == "__default__" else glob
         if g is not None:
             env["AGI_PIECE_GLOB"] = g
-        for d in ("bin", ".claude", ".gitconfig"):
-            p = self.home / d
-            if p.is_dir():
-                for f in p.iterdir():
-                    f.unlink()
+        if fail:
+            shim = self.home.parent / "shim"
+            shim.mkdir(exist_ok=True)
+            real = subprocess.run(["which", "git"], env=self.env, capture_output=True, text=True).stdout.strip()
+            (shim / "git").write_text(f'#!/bin/sh\ncase "$*" in *"{fail}"*) echo "shim: git failed" >&2; exit 128;; esac\nexec {real} "$@"\n')
+            (shim / "git").chmod(0o755)
+            env["PATH"] = f"{shim}:{env['PATH']}"
         return subprocess.run(["sh", "-c", self.body], env=env, cwd=str(self.home), capture_output=True, text=True)
+
+    def seed(self, **files):
+        """What the LAST start left in ~/bin (a retired piece, a stale copy): written before the line runs."""
+        (self.home / "bin").mkdir(exist_ok=True)
+        for n, t in files.items():
+            (self.home / "bin" / n.replace("_", "-")).write_text(t)
+
+    def snap(self):
+        """Every entry of ~/bin with its bytes: 'byte-equal' is a dict compare."""
+        b = self.home / "bin"
+        return {f.name: f.read_bytes() for f in sorted(b.iterdir())} if b.is_dir() else None
 
     def bin(self, name):
         p = self.home / "bin" / name
@@ -115,6 +129,33 @@ def rows(body: str, glob: str, mk) -> list[str]:
     p = Post(mk("noglob"), body, glob)
     r = p.go(glob=None)
     chk("r-an unset glob cell is refused by name", r.returncode == 255 and "[no-glob]" in r.stderr and p.bin("newpiece") is None)
+    # cut 3 (council 11:25Z 10-14): ~/bin is EXACTLY the trunk's piece set after the line
+    p = Post(mk("exact"), body, glob)
+    p.seed(agi_link="retired 10-08", oldpiece="stale copy", agi_run="stale run")
+    (p.home / "bin" / ".dot").write_text("hidden")
+    r = p.go()
+    chk("s-the line succeeds over a bin with leavings", r.returncode == 0)
+    chk("s-a piece absent from the trunk is absent from ~/bin after the line (agi-link, a dotfile)", p.bin("agi-link") is None and p.bin(".dot") is None)
+    chk("s-a piece the trunk has is the trunk's bytes, not the stale copy", p.bin("oldpiece") == "echo NEW\n" and p.bin("agi-run") == "echo run\n")
+    chk("s-~/bin is exactly the trunk's piece set (gitconfig and settings.json move out)", sorted(p.snap()) == ["agi-run", "newpiece", "oldpiece", "p2piece", "zyg"])
+    gc, st = p.home / ".gitconfig", p.home / ".claude" / "settings.json"
+    chk("s-gitconfig and settings.json land outside bin", gc.exists() and st.exists() and gc.read_text() == "[x]\n" and st.read_text() == "{}\n")
+    chk("s-no scratch dir is left", not (p.home / "bin.new").exists() and not (p.home / "bin.old").exists())
+    # fail closed and loud: the old bin/ byte-equal, no swap
+    for i, (what, kw) in enumerate((("a trunk with no agi-run", {"glob": "engine-p2.md"}),
+                     ("a git show that fails", {"fail": "show trunk:.agi/nodes/.geometry/engine-post.md"}),
+                     ("a git ls-tree that fails", {"fail": "ls-tree"}))):
+        p = Post(mk(f"fc{i}"), body, glob)        # never a name the shim's pattern can match
+        p.seed(agi_link="retired 10-08", oldpiece="stale copy", agi_run="stale run")
+        before = p.snap()
+        r = p.go(**kw)
+        chk(f"f-{what}: exit 255 and '[extract-failed]' by name", r.returncode == 255 and "[extract-failed]" in r.stderr)
+        chk(f"f-{what}: the old ~/bin is byte-equal (no swap)", p.snap() == before)
+        chk(f"f-{what}: no scratch dir is left", not (p.home / "bin.new").exists())
+        if "show" in what:
+            chk("f-a failed show names the FILE", "engine-post.md" in r.stderr)
+        if "ls-tree" in what:
+            chk("f-a failed ls-tree is named", "ls-tree" in r.stderr)
     return bad
 
 
@@ -134,6 +175,12 @@ MUTANTS = {
     "extracts-from-t": lambda: mutant("$G show $AGI_TRUNK:$f>.e", "cat t/$f>.e"),
     # a 10-hex sha (and a tag, a 40-hex sha) accepted: the branch check dropped
     "any-ref-accepted": lambda: mutant('case $($G rev-parse --symbolic-full-name $AGI_TRUNK 2>/dev/null) in refs/heads/*|refs/remotes/*);;*)echo "[bad-trunk] $AGI_TRUNK is not a branch">&2;exit 255;;esac;', ""),
+    # cut 3: no clear -- the extraction adds over bin/ again (retired pieces survive)
+    "no-clear": lambda: mutant("mv bin bin.old&&mv bin.new bin||", "cp -a bin.new/. bin/||"),
+    # swap anyway: no agi-run check / a failed show or ls-tree carried on
+    "no-agi-run-check": lambda: mutant('[ -s bin.new/agi-run ]||x agi-run is not in the extracted set;', ""),
+    "show-failure-ignored": lambda: mutant('>.e||x $f;', '>.e;'),
+    "ls-tree-failure-ignored": lambda: mutant('||x ls-tree $AGI_TRUNK;', ';'),
     # a hand-listed glob instead of the unit's cell
     "a-hand-list": lambda: mutant("for g in $AGI_PIECE_GLOB;do", "for g in engine.md engine-post.md;do"),
 }
