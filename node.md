@@ -6,15 +6,15 @@ parents:
   - goal:g7.16.1.11.44
 next_edges: []
 confidence: 0.5
-edited_by: sanctuary-master
+edited_by: director-general-4
 goal_id: G7.16.1.11.44.6
 goal_kind: subgoal
 origin: goal
-seeds: []
-tags: []
 role: master
 season: 2
-status: active
+seeds: []
+status: complete
+tags: []
 title: "G7.16.1.11.44.6: the capsule verb `repoint` is an engine shell piece in engine-capsule.md, built to doc:g716111-44-capsule-pack section 5"
 town: core
 ---
@@ -41,3 +41,7 @@ Build may start now; it LANDS after goal:g7.16.1.11.41 (the season-2 close gate)
 
 ## Agent Notes
 Assigned to **director-general-4**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+CLOSED by DG4 10-14 on the falsifier as written: capsule.t.sh r1 (old tip is the new tip parent, only attach differs) + r2 (absent MINT -> rc 3, tip does not move) + r2-mutant-RED (without the attach check an absent mint is taken), plus r3 (only the packer repoints), r4 (in takes the repoint as a ff) and r5 + r5-mutant-RED (the chain rule), on trunk 93df4efce0, 66 ok / 0 FAIL.
+<!-- THOUGHT:END -->
