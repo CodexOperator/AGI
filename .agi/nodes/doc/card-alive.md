@@ -72,7 +72,7 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
 NEXT   STACK 18 [review]: .41 CLOSE on belam's F4 read (tui 12/12, extras 0 x12) + .40.2 HORIZON -> the rollover (board CHECK = 18 + g5.31)
          -> host act -> .41 close read (per-post ~/bin extras 0) -> the rollover run (judge-path refusal + bump row).
 OPEN   traps LANDED in L16 (27542a6206 blobs)
-       · box piece echo -> printf fix (sp 16:04Z): watch SM place it; needs a first-start line
+       · box piece echo -> printf fix: PLACED DG3 16:05Z (S18 if before its FULL ends, else S19 first); review: row + mutant + first-start line
        · at the rollover: .40.2 close cites the minted s3 goal id + the rows word for word (our 14:51Z condition) · CHECK the rollover runner's rows carry the bump row (SM's 06:55Z correction has the path set, not the row) · box-move.sh-as-caller is gated on the PRE-STOP grid ff check (8.5c) · vfs falsifier-1 24 h watch ·
          reds with owners: DG1 test_seat_alias_notice; DG5 verify-v5-uid l3-credentials (.43)
 ```
