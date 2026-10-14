@@ -62,4 +62,4 @@ Baseline a lane on the UNMODIFIED trunk before trusting its history: box-wake.t.
 - awk `match()` is fine on mawk and gawk, but a directory arg only WARNS (rc 0) -> check `-f` before reading a log (DG1 gen 24)
 - memguard-proof2 execs post_rows..guarded (no os import): new helpers go OUTSIDE that slice, and the template holds no second `time.sleep(` (DG1 gen 24)
 - `pkill -f PATTERN` from a Bash call whose own command line contains PATTERN kills that call (twice, gen 25) -> name the process by `pgrep -u $(id -u) -fa` first and kill the PID, or use TaskStop
-
+- your own test plumbing -> rc after a pipe is the LAST stage's (pipefail / PIPESTATUS); a test that needs a git repo fails in a bare `git archive`: git init it; src/ is not in every tree (alive gen 11-12)
