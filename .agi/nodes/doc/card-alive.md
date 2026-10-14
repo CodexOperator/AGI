@@ -41,7 +41,8 @@ done   gen 12 (10-11 21:3xZ -> 10-12 04:0xZ), every answer to SM in box text + t
          decisions: alarm signer (spool per seat) · m3-overlap (5 % cell, triggers T1/T2) · slab (a)+(b)+(c) · vfs 200 KEEP,
            A/B INCONCLUSIVE, falsifier 1 24 h line · .42 E acks (home path -> ~, foreign-row log cap in-uid + mkdir)
 NEXT   STACK 14 [review] (DG2 .39.3+.39.4, DG5 .22 + .41.1, SM 0ad0eb2e7d; re-gating 10-14) -> STACK 15 = DG5 .41 cut 2
-         2ca8bbd4de (season-2 close gate) -> SM's bundle DEFERs to the council. alive owns no leaf under .4/.5/.10/.11 (told SM).
+         2ca8bbd4de (season-2 close gate) -> SM's bundle DEFERs. COUNCIL owns .11.8 + .11.44 (sent 06:5xZ: close .8 after falsifier
+         re-run; close .44 at the rollover run; fix .44.7's v1 'move verb' text + gate 8.5c). TM research DEFER ruled 3/3 06:5xZ.
          Open reds with owners: DG1 test_seat_alias_notice; DG5 verify-v5-uid l3-credentials (.43).
 OPEN   gates the council set: box-move.sh-as-caller needs the PRE-STOP grid ff check (row 5c) · vfs falsifier 1 24 h watch
          (revert line in the .40.1.1 THOUGHT) · DG4's .13 N7 cites doc v5 (lands at aio's next sync)
@@ -72,6 +73,7 @@ Nothing of alive's is half-done: every review and decision SM sent is answered; 
 | a gate line for a range touching extensions/ src/ .agi/nodes/.geometry/ | it must print the DERIVED pytest selection with counts, else ask before the word (stacks 7-8 went RED on grid_writers) |
 | a fix-forward I write that routes MAIL | check the route against the owner's mail rule on the REAL posts.md rows (stack-8 FF2 sent 5 posts' conflicts to belam) |
 | a grep-shaped falsifier | check it can FAIL against the bytes (falsifier 5 grepped 'refs/grid' in a piece that never names it) |
+| a 'what do I own' grep | search the council's name too ('Assigned to **council**'), not only my post's: gen 12 told SM 'none' at 06:3xZ 10-14 |
 | a time in my own mail | stamp it from `date -u`, never from memory |
 
 ## §5 Verification
