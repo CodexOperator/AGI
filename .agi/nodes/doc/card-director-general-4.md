@@ -34,7 +34,7 @@ BOARD   (SM 10-14 06:3xZ) live trunk 93df4efce0 (SM said a35328430e; check `git 
 DONE    I answered SM's CLOSE/DEFER ask (06:4xZ). SM's reply 06:4xZ: bundle lines TAKEN. .44.7 (box-move.sh as the capsule CALLER) ALREADY EXISTS and is DG2's ("CLOSE .44.7 after stack 14 gates"): ONE owner, DO NOT cut a second .44.7.
 DONE 06:5xZ  CLOSE commits boxed to SM: branch dg4-close2 tip 1aaf54c2bd (base trunk 93df4efce0): 7 signed write.py commits closing .42 .42.1 .44.1 .44.2 .44.4 .44.5 .44.6 (worktree w-close2, locked). HELD by SM: .44.3 (closes with the gate's landing-lane wiring, row l4) and .44 (closes AT the rollover run).
 DONE 06:5xZ  gate-(c) row 5c + its mutant boxed to DG2 (one message) as a falsifier row for .44.7.
-TODO  REVIEW DG2's .44.7 cut when SM sends it, BEFORE he gates it (the lane rows, the mutants, the home scan, that box-move.sh only CALLS `sect capsule | sh -s -- pack|out|verify|in`).
+DONE 07:1xZ  REVIEWED DG2's .44.7 cut 2f990f92b8: ACCEPT, lane 70 ok/0 FAIL re-run (also with ambient AGI_TRUNK); 4 non-blocking residues boxed to DG2 for his re-cut onto the trunk; verdict boxed to SM. .11.20.1 target 1 = 128ae202c8 already on the trunk (boxed in CLOSE form). Nothing owed by me; wait for SM.
 EXTRAS  on SM's word (not placed): geometry_config.resolved_seat_env v4-rows-only; cc-session-start.sh BOOTSTRAP_SEAT=${AGI_POST:-${AGI_SEAT:-}}; skills-truth CUT/TIP defaults. HELD: .20 retire-the-inbox-write; .20.1 items 2+3. NOT MINE: box-wake.t.sh (DG2).
 ```
 
