@@ -16,11 +16,11 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (07:4xZ 10-12) -- gen 12, IDLE by OWNER order until usage resets (Wed), encryption-town, meter f ~0.40
+## §0 State (06:3xZ 10-14) -- gen 12, RESUMED (owner "go" 06:2xZ 10-14), encryption-town, meter f ~0.40
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town (host belam-prime) |
-| IDLE | OWNER 07:4xZ 10-12 via belam/SM: "have everyone go idle ... Be back next week once usage resets on Wednesday"; keepalive timer disabled. No gate, land, review, council round; SEND NOTHING (a box mail wakes a post); [red] only for a box-safety emergency; never box belam. No session crons (CronList empty 07:4xZ) |
+| GOAL NOW | owner 06:2xZ 10-14: close every goal:g7.16.1 bundle, then season rollover. Keepalive is IDLE-ONLY now. Quiet rule to the owner stands (one digest per ~4 h via belam) |
 | role | the council rules + approves gated tips (owner 21:5xZ 10-10). SM sends `[review <sha>]` / `[decision]` / `[red]`; alive = the ANSWERER: the one voice to SM |
 | messaging | OWNER 20:2xZ 10-11: never box belam (only [red] or a BLOCKING owner ask, at once); to SM one message per finished thing, NO acks. `box send <post> < file` (text in a scratch FILE); `box read` = read WHOLE; `box n` = unread |
 | council rules | VIEW to both seats -> ONE verdict to SM after BOTH answered my LAST position, or 15 min (silence = no objection; a rotating seat's abstain is NOT counted). A change of mind = [withdraw]. Every view names what it RAN against which sha, or "none" |
@@ -40,10 +40,9 @@ done   gen 12 (10-11 21:3xZ -> 10-12 04:0xZ), every answer to SM in box text + t
            move = box-move.sh as caller; 9-11: the fix-forwards MET); .20.2 alarms: spool per sending seat (race found + fixed)
          decisions: alarm signer (spool per seat) · m3-overlap (5 % cell, triggers T1/T2) · slab (a)+(b)+(c) · vfs 200 KEEP,
            A/B INCONCLUSIVE, falsifier 1 24 h line · .42 E acks (home path -> ~, foreign-row log cap in-uid + mkdir)
-NEXT   NONE until the owner resumes us. Board as left: L13 f632cd4854 LANDED 07:22:51Z (verified: G, tree 75edefcbdf).
-         On resume, at SM: STACK 14 at b522328480 (DG2 .39.3 + .39.4, DG5 .22 + .41.1, SM 0ad0eb2e7d), its full run STOPPED by
-         the idle -> expect its [review]; STACK 15 = DG5 .41 cut 2 (the season-2 close gate). Open reds with owners: DG1
-         test_seat_alias_notice; DG5 verify-v5-uid l3-credentials (bisected to .43 8f54fc517f).
+NEXT   STACK 14 [review] (DG2 .39.3+.39.4, DG5 .22 + .41.1, SM 0ad0eb2e7d; re-gating 10-14) -> STACK 15 = DG5 .41 cut 2
+         2ca8bbd4de (season-2 close gate) -> SM's bundle DEFERs to the council. alive owns no leaf under .4/.5/.10/.11 (told SM).
+         Open reds with owners: DG1 test_seat_alias_notice; DG5 verify-v5-uid l3-credentials (.43).
 OPEN   gates the council set: box-move.sh-as-caller needs the PRE-STOP grid ff check (row 5c) · vfs falsifier 1 24 h watch
          (revert line in the .40.1.1 THOUGHT) · DG4's .13 N7 cites doc v5 (lands at aio's next sync)
 ```
@@ -55,7 +54,7 @@ OPEN   gates the council set: box-move.sh-as-caller needs the PRE-STOP grid ff c
 
 ## 🔴 Where it stops
 ```
-IDLE (owner 07:4xZ 10-12, back after Wed's usage reset): on resume `box read` WHOLE, re-check shas against the trunk, then STACK 14's [review]
+RESUMED 10-14: `box read` WHOLE -> answer STACK 14's [review]; re-check every sha against the LIVE trunk
 ```
 Nothing of alive's is half-done: every review and decision SM sent is answered; no verdict is pending at SM.
 
