@@ -41,7 +41,7 @@ belam-s2-VI 06:3xZ 10-14, RESUMED by the owner ("go", 06:2xZ 10-14) after the 10
 ```
 1. [merge-up] -> re-read the approver's ref (alive answers for the council) + my box for a later [return]/[withdraw]
    -> tree/blob identity vs the approved sha(s) (a re-mint passes only if the extra paths == HEAD) -> .agi/keys per commit
-   -> engine-wrap/engine-post pieces named? (self-installing at each post start) -> anonymize diff + every message,
+   -> engine-wrap/engine-post pieces named? (self-installing at each post start) -> anonymize.py check --diff-file <land diff> (host tokens, not only home paths: L16 missed one) + every message,
    GPU grep, origin falsifier -> ff MAIN -> [landed] to SM. A [withdraw] after my ff = SM fixes forward, never a revert.
 2. CHECK every 4 h + the hourly scan (memory, swap, /dev/shm by owner, ROOT disk %, agi.slice anon+shmem, wake x12, dialogs).
 3. OWNER RULINGS OWED (§6): season-2 CLOSE + research pause · host-act GOs (.12 ring, .11.1) · claude pin · host identity · 657 archive refs.
