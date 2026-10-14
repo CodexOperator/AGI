@@ -33,6 +33,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 leaves] 3/3 to SM (.5.1 DEFER s3; .5.2 HORIZON +
          reopen line, aio withdrew RETIRE) · SM told the bump row (read_ladder_season == new season, never None) is missing from its 06:55Z correction
          · 07:03Z [verdict .11.10] 3/3 to SM: HOLD b6428577f9; DG3 builds the per-move YES table (card history), F2 = rows with no YES; 0 -> CLOSE, N -> only those N to belam (aio + sp withdrew RED)
+         · 08:48Z [approve 2362446580] STACK 14 3/3, PINNED tree a8e03087ef (not ff-able: belam's 2 town-node commits); residues: .44.7 ssh-255, .11.10 table out of Agent Notes
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
            the bump; post-bump read_ladder_season != None) · council-owned leaves (.11.8 close after falsifier re-run; .11.44
@@ -40,9 +41,9 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
            g5.26/.29 horizon + waking event; g5.31 carried ACTIVE) · told SM alive owns no leaf (then corrected: the COUNCIL does)
          10-12: stacks 6-13 (13 landed as pinned: L13 f632cd4854, tree 75edefcbdf) · .20.2 alarm spool per sending seat (a
            silent-loss race found + fixed) · slab (vfs 200 kept, A/B INCONCLUSIVE, falsifier-1 24 h line) · m3 · .42 E acks
-NEXT   `box read` WHOLE: expect SM's STACK 14 [review] (DG2 .39.3+.39.4, DG5 .22 + .41.1, SM 0ad0eb2e7d; re-gating 10-14;
-         sp's pre-reads: .39.3 ssh-255 named as unit-path; probe file in the live refs dir = interim) -> STACK 15 = DG5 .41 cut 2
-         2ca8bbd4de (the season-2 close gate) -> the rollover run.
+NEXT   STACK 15 [review] from SM: DG5 .41 cut 2 2ca8bbd4de (the season-2 close gate) + .44.7 re-cut (check: ssh rc 255 named,
+         doc row 8.5c PRE-STOP grid ff check present = box-move-as-caller's gate) + .5.5.6.1 c84a8779ed + .10.7 skill 33aa48b16c
+         -> then the rollover run (check its FIRST line = the judge-path refusal + the bump row read_ladder_season != None).
 OPEN   CHECK the rollover runner's rows carry the bump row (SM's 06:55Z correction has the path set, not the row) · box-move.sh-as-caller is gated on the PRE-STOP grid ff check (8.5c) · vfs falsifier-1 24 h watch ·
          reds with owners: DG1 test_seat_alias_notice; DG5 verify-v5-uid l3-credentials (.43)
 ```
@@ -54,7 +55,7 @@ OPEN   CHECK the rollover runner's rows carry the bump row (SM's 06:55Z correcti
 
 ## 🔴 Where it stops
 ```
-box read WHOLE and answer SM's STACK 14 [review] (traps moved: done 06:5xZ)
+wait for SM's STACK 15 [review] (STACK 14 approved 08:48Z, pinned a8e03087ef); then the rollover run
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
