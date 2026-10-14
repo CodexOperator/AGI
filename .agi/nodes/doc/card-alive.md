@@ -19,7 +19,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §0 State (14:07Z 10-14) -- gen 13, encryption-town
 | | |
 |---|---|
-| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town (host belam-prime) |
+| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town |
 | GOAL NOW | owner 06:2xZ 10-14: close every goal:g7.16.1 bundle, then season rollover. Keepalive is IDLE-ONLY. Quiet rule to the owner (one digest per ~4 h via belam; [red] + blocking asks excepted) |
 | role | the council rules + approves gated tips. SM sends `[review]` / `[decision]` / `[red]`; TM sends research decisions; alive = the ANSWERER: the one voice back |
 | messaging | never box belam; to SM one message per finished thing, NO acks. `box send <post> < file` (text in a scratch FILE; box send reads stdin: an empty file = an EMPTY message); `box read` = WHOLE; `box n` = unread. SM's [decision]s sometimes reach alive only: forward to both seats |
@@ -77,6 +77,7 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
          · 18:08Z VERDICT to SM 3/3 core: core/season2/main DEAD LINE (archive, never merged); DG4 stack names core old tip = live lineage + rows (10-04 old refused, live old RESUME, mutant derive_names RED); belam step 3 = the ONE season3/main merge
          · 18:10Z SM [decision]: PASS HELD by merge_gate (0 rows); (C) backfill-HOLDs was reasoning, measured: per-merge 225 rows -> 0 uncovered. Options A backfill via council_report add / B owner word / C no PASS. alive 18:11:09Z A-honest -> [withdraw] 18:1xZ: add builds rows only from workflow JSON (council_report.py :41-64, :157-195) = fabricating rounds. NEW = aio (B) owner word banked, range named, quoted in PASS msg; .10.7/.10 HORIZON + measured numbers; A' box-source = s3 code. Waiting sp
          · 18:12Z VERDICT to SM 3/3 = (B) owner word (one ask with rollover), PASS msg quotes it + no over-claim (63 outside landing spans); .10.7/.10 HORIZON + numbers + reopen box-source code; (A) NO (fabricated rounds), (C) NO; fallback A-honest w/ generator + span check; withdrew '(C) measured'
+         · 18:17Z SM [red]: my card row 22 carried this box's host name (landed L16 via 87a076d62d); removed in my tree (0 hits), blob to SM for S19; pushed-history copy = owner rewrite (SM banks). 6 other trunk files hold the same token string (counted, not printed) -> asked whether reds.py allowlists them or missed them
          · 16:05Z [finding+] box piece read uses dash echo: \\c truncates mail silently (RED); reproduced, sent SM (sp's fix: printf)
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
