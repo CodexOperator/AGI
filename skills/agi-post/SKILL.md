@@ -43,6 +43,10 @@ Source of truth: `heal.py _watch_seats` (crash-respawn) · `rotate.py cmd_spawn`
 - the role must be one config:brief has parts for: a `council` role has none (spawn crashes) — a council post keeps `role: director`.
 - whois reads origin/season2/main rows: a new row answers NO-MATCH until the Prime's PASS merges it (`send.py whois`);
   signed sends verify against MAIN's committed row.
+- cross-uid share via a dir default ACL does not reach files created before it (`.grid.lock`): give each its own `setfacl` entry, set both
+  (belam: `.grid.lock` unreadable to another uid).
+- a fresh engine-v5 post: set `projects.<home>/t.hasTrustDialogAccepted` in that user's `.claude.json` BEFORE start (as the user, mode 600),
+  or it stops at the trust dialog (DG3 v5 stand-up, rootplan R8b).
 
 ## 3 · Re-home a row from another box
 Formal route: `rotate.py migrate --post <p> --to <box>`, run ON the source box. From this box instead: ONE row write that sets box
@@ -61,6 +65,14 @@ python3 extensions/agi/bin/rotate.py stand-up --post <p>        (from MAIN)
   held): never a second live session.
 - spawn · rotate-self · heal recover · stand-up are the four callers of ONE verb (goal:g7.16.1.7.1.1.4): never start a post's
   `claude` by hand.
+- after any post start/restart: scan its pane tail for `Esc to cancel` (the one-time fullscreen dialog); if present send Esc (\033) to
+  `/run/agi-<post>/i`, then wake. The engine pre-set (leaf .36) does not hold yet -- check goal:g7.16.1.11.36
+  (workaround until goal:g7.16.1.11.36 / the engine-wrap fix lands) (DG1 10-09 22:22Z, DG3 10-10 02:25Z, DG2 10:00Z).
+- a post answers no `box` wake (no box exec in a 12 s bpftrace): its `agi-run 'while sleep 5'` wake loop is dead -> `systemd-run` an
+  `agi-boxwake@<post>`; Esc also closes the RC menu opened by `/remote-control` in a connected pane
+  (workaround until goal:g7.16.1.11.36 / the engine-wrap fix lands; drop it then) (belam-s2-II 10-09: 5 posts lost box wake, DG1 unread 14 h).
+- a post's RC link dead is not the box: re-login or `/remote-control <post>` (never bare: it names the session after its first prompt);
+  the `agi-rc-keepalive` timer keeps idle tokens fresh (belam 10-09 09:06-10:00Z, fixed a122028fee).
 
 ## 5 · Never write signing config at the REPO level of MAIN (belam 10-03 04:2xZ, measured)
 MAIN's `.git/config` is shared by EVERY post's worktree, and a repo-level key OVERRIDES the post's own global cell (`~/.gitconfig`, `allowedSignersFile=~/.signers`).
@@ -69,3 +81,29 @@ The case: `gpg.ssh.allowedSignersFile=<MAIN>/.git/allowed_signers` set once at a
 - No stand-up, move, spawn or hand step writes `gpg.*`, `user.signingkey`, `commit.gpgsign` or `tag.gpgsign` with `git config` (local) in MAIN. A post's signing config is its own global cell, written by its unit.
 - Check, read-only: `git -C <MAIN> config --local --get-regexp '^(gpg\.|user\.signingkey|commit\.gpgsign|tag\.gpgsign)'` prints NOTHING.
 
+## 6 · A post on engine v5 (moved from cards, sweep 10-10)
+- no systemd user manager: a long run = `setsid nohup` inside the unit cgroup (MemoryHigh 4 GiB, KillMode control-group); its children are
+  tracees of the unit strace until it restarts (check TracerPid) (thought-master).
+- a stop / rotation deletes RUNTIME_DIRECTORY (`/run/agi-<post>`) until G8 is projected: never keep work there (thought-master).
+- the v5 user cannot write MAIN: SM lands; out dirs (datasets/osc-band) resolve under the builder's tree, not MAIN (thought-master).
+- `anonymize.py` and `provisioning.py` die on MAIN's `.env` (G2): grep for host names / keys by hand (counts only), never print (thought-master).
+- `git push` has no creds; SM pushes at landing (thought-master 23:5xZ). `grid.py commit` is RETIRED (owner 01:3xZ 10-08): never run it. To version: a node -> `agi-wt pull <id> | new <path>`, edit in the RAM tree, and `agi-turn` versions it at Stop (~/t is a read view); a ~/t path -> `agi-at <path>`, the one-shot signed CAS (pieces agi-wt, agi-turn, agi-at in engine-post.md; council 10-11, sp + aio).
+- no hand `git commit` / merge-that-commits (agi-turn does `git add -A` at Stop): clean the `.agi/keys/<post>` host comments before the turn
+  ends; sync trunk with `git merge --no-commit` (thought-master).
+
+## 7 · A host act that fixes a live post lands its source (council, goal:g7.16.1 loop end 10-11)
+- A host act that fixes a live post (a unit drop-in, an /etc file) lands its SOURCE in the node in the same GO (engine-root.md names the drop-in), or is listed by name as host-owned with its reason. An unlisted drop-in is RED (goal:g7.16.1.11.37 F6). Incident 10-11: 50-signers-repoint and 51-no-session-bus lived only on the host, so a re-render "to match the node" would have dropped the session-bus fix (bigger_outcome:g7-16-1-host-holds-truth-the-node-does-not).
+
+## Traps moved from cards (owner 10-10: one sweep, then a rule)
+- EnvironmentFile= OVERRIDES Environment= (man systemd.exec) and /etc/agi/carry.env pins an AGI_TRUNK -> never load carry.env whole into a post; read one key by name (SM gen 35, goal:g7.16.1.11.37)
+- MAIN is shared by every post -> commit by exact path; never switch branches, stash or reset; `git diff --cached --name-only` = only your path (alive gen 9)
+- ~/t is DETACHED at turn end (agi-turn) -> commit the card ONLY via `agi-at <card path>`; a plain commit is refused by Door 1 (alive 10-11, probed rc 1)
+- a whole-card replace -> keep `tags: []` in the front matter (test_schema_round1_empty_lists; SM HOLD 10-10)
+- deleting a PACKED ref in MAIN as a post uid -> packed-refs.lock EACCES: name the dead ref, belam deletes (alive gen 9; aio 10-11 refs/heads/trunk); never create a scratch ref under refs/heads/ (SM gen 38)
+- a probe of root-vs-foreign ownership run as yourself -> ~/.gitconfig safe.directory=* MASKS it: env -i, empty HOME, GIT_CONFIG_NOSYSTEM=1 (alive 10-08 03:09Z)
+- re-running the UNCHANGED box host act (extensions/agi/guard/host-act-encryption-town.sh) -> it re-enables agi-carry-fetch.timer (:88): never re-run it until goal:g7.16.1.11.25 lands (belam-s2-III trap 92, moved at belam-s2-IV's rotation 10-11).
+- the whole team idle at their prompts, 0 unread, each waiting on another (02:3xZ 10-11) -> the hourly dialog scan cannot see it; the root timer agi-quiet-watch (1 min, extensions/agi/guard/quiet-watch) boxes [quiet] to SM when every post but belam is quiet >= 5 min with no claude descendant, <= 1 per 30 min; read it with `journalctl -t agi-quiet-watch` (belam-s2-III trap 100, moved 10-11).
+- a decision on keys / signing / identity -> read the council's own rulings on the trunk FIRST: `git grep -n -i ruling <trunk> -- .agi/nodes/goal` (alive gen 11-12)
+- A unit `ExecCondition` / `ExecStart` word is unescaped and substituted by systemd: no backslash, no `${}`, no inner double quote; `set -f` before an unquoted `[wrong-box]` echo (DG4, goal:g7.16.1.11.37).
+- NEVER `git worktree prune` on MAIN's shared .git: it drops every entry whose path your uid cannot stat = every other post's 700 gate dir (DG4 ran it once, SM 17:16Z). Remove your OWN tree by path (`git worktree remove <path>`) and lock a long-lived one (`git worktree add --lock`).
+- git verifies an ssh signature against the COMMITTER EMAIL: a machine job signing as a seat commits as `<seat>@agi` (the ring principal, belam's cron: `belam <belam@agi>`), never the unix user name `agi-belam` (DG4, goal:g7.16.1.11.42).

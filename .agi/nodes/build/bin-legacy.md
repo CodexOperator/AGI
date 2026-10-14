@@ -4,6 +4,9 @@ confidence: 1.0
 id: "build:bin-legacy"
 mint_id: b6d217128e4145b8b3c9f278b5ab19be
 origin: build-scan
+parents:
+  - goal:g7.16.1.11.22
+  - idea:engine-self-decomposition
 payload_ref: extensions/agi/bin/legacy.py
 tags:
   - build

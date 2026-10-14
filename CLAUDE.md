@@ -58,6 +58,8 @@ resumable), **replaced whole**, never appended — every prior version is in git
 (done/next/blocked) · §2 landed, one line each · 🔴 where it stops + the exact next command · §4 traps · §5 verification ·
 §6 BANKED. ≤ 100 lines. **A card lists its post's skills; it never copies their rules**, and never tracks goals
 (goals are trackers). Standing truths go in `QUICKSTART.md`, this file, a role template or a node — never a card.
+**A trap is a rule, and a rule never outlives one rotation on a card** (owner 2026-10-10): at your rotation, every §4 trap
+written before this generation moves to the skill or role doc that owns its flow (one line: trigger → rule, incident), or is dropped as stale.
 Standing, owner 2026-09-09: trim + diagram-max, for every role, all the time; owner verbatim lives in NODES.
 
 ## Delegated authority — when the owner steps away mid-run
@@ -73,8 +75,9 @@ Standing, owner 2026-09-09: trim + diagram-max, for every role, all the time; ow
 
 ## Editing the engine — one commit
 Edit the file in place · run its tests · `git commit` · `python3 extensions/agi/bin/grid.py commit --all`.
-A new file is written directly under `extensions/`, `skills/` or `src/`; `level3.py` (via `git ls-files`) or
-`write.py create build … --payload` gives it a node. **Never `grid.py checkout`** — it silently reverted another
+A new file is written directly under `extensions/`, `skills/` or `src/`; `write.py create build … --payload` gives it a node
+with a legal parent set: [mvp] · [build, goal] · [goal, mvp] · [goal, idea] (checked at mint; a goal alone is refused). Never `level3.py`
+for this until goal:g1.43.1 lands: both its modes mint illegal parent shapes today (council, alive 10-10). **Never `grid.py checkout`** — it silently reverted another
 agent's uncommitted work twice (`goal:g4.1`). `stitch.py --from-grid --grid-version N --out DIR` (writes OUT) survives.
 
 ## The two rules this project has already paid for
@@ -90,7 +93,7 @@ It versions `node.md` + its payload as ONE version, independent of the rest of t
 `.agi/nodes/.geometry/crons.md` (`crons_live` + per-job schedules); `crons.py apply` makes the crontab agree
 (re-run every 5 min by grid_sync, chained with `;` not `&&`, so a failed push never stops the heal).
 `branch_push` pushes the checked-out branch hourly at :07 — a second automatic writer: never merge-then-hold.
-`crons_live: false` = one-edit kill switch (turning it back on takes one manual `crons.py apply`).
+`crons_live: false` = one-edit kill switch (turning it back on takes one manual `crons.py apply`). It empties the applying user's crontab at the next cron-run apply; a job that names another `user:` (the board commit job, agi-belam's crontab) is reached only by `crons.py apply --sudo` (the owner's GO), so that job keeps running until then.
 **Verify which branch is checked out before trusting any push.**
 
 ## Conventions

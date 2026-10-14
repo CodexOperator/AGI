@@ -1597,10 +1597,10 @@ def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None,
     server restart from gone (hypothesis:l4-spawn-paths-export-the-reaper-knob);
     an ultracode role's launch additionally exports CLAUDE_CODE_WORKFLOWS=1
     (hypothesis:l3-rotate-ultracode-env); a SEAT successor's launch exports
-    AGI_SEAT so the SessionStart hook COPY (cc-session-start.next.sh, which
-    keys its bootstrap injection on AGI_SEAT) can fire at turn one on the
+    AGI_POST so the SessionStart hook COPY (cc-session-start.next.sh, which
+    keys its bootstrap injection on AGI_POST) can fire at turn one on the
     live path (hypothesis:l4-startup-first-turn-is-performed-by-the-service-
-    and-the-hook-fires-at-turn-one). AGI_SEAT is emitted only when a seat is
+    and-the-hook-fires-at-turn-one). AGI_POST is emitted only when a seat is
     given, so a plain `spawn`/`loop` with NO seat stays byte-identical to
     today — the export appears only for a seat successor.
 
@@ -1625,14 +1625,14 @@ def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None,
     """
     unit = _post_unit(seat)
     joined = " ".join(shlex.quote(c) for c in mem_cap.scope_argv(claude_cmd, scope_slice))
-    # AGI_SEAT rides FIRST in the export chain, so it is set before the
+    # AGI_POST rides FIRST in the export chain, so it is set before the
     # reaper/ultracode knobs and the claude process — composed the same way
     # REAPER_ENV_EXPORT already composes, as one `... && ...` line.
     cmd = joined
     if seat is not None:
         wrap = " ".join(shlex.quote(c) for c in mem_cap.scope_argv(
             _launch_wrapper_argv(seat, claude_cmd), scope_slice, unit))
-        cmd = f"export AGI_POST={shlex.quote(seat)} AGI_SEAT={shlex.quote(seat)} && " + wrap
+        cmd = f"export AGI_POST={shlex.quote(seat)} && " + wrap
     reaper = REAPER_ENV_EXPORT + " && " + cmd
     if _is_ultracode(settings):
         return ULTRACODE_ENV_EXPORT + " && " + reaper
@@ -2147,7 +2147,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
 
     `seat` (hypothesis:l4-startup-first-turn-is-performed-by-the-service-...)
     is the successor's SEAT identity, exported into the launched shell as
-    AGI_SEAT BEFORE the claude process starts. Only a caller that OWNS a
+    AGI_POST BEFORE the claude process starts. Only a caller that OWNS a
     concrete seat passes it (cmd_rotate_self, cmd_seats_launch); a generic
     spawn/loop passes None and the launch line stays byte-identical to
     today (see _shell_cmd).
@@ -6551,6 +6551,81 @@ def _derive_receivers(root: Path, *, seat: str,
     return sorted(n for n in out if _alert_allowed(root, n))
 
 
+#: goal:g7.16.1.11.20 (cut B, belam LANED): the hard bound on the rotation
+#: alert's `box send`, so a hung box can never hold a rotation. ONE TOTAL
+#: budget for the whole announce (not per receiver): see `_box_send_announce`.
+BOX_ANNOUNCE_TIMEOUT_S = 20
+
+
+def _box_announce_guard(seat: str, declared: str) -> bool:
+    """True when this process IS the rotating post (ambient AGI_POST == seat),
+    the only identity whose key signs a box message as `<seat>@agi`. Anything
+    else prints ONE line and sends nothing: a message signed by another key
+    would sit as the tip of refs/box/<seat>/<recv> and make the real post's
+    later sends refuse `[squatted]`.
+
+    NAMED (corrective leaf, SM 09:5xZ): a captive / master-path rotation
+    (`_spawn_master_rotate`) runs `rotate.py rotate --post <seat>` AS THE
+    HOLDER (AGI_POST=<holder>) with stderr to /dev/null, so it sends NO box
+    message (the holder's key cannot sign as the seat) and this skip line is
+    never seen; the inbox copy and the wake still land. By design, written
+    here rather than left to be discovered."""
+    got = os.environ.get("AGI_POST")
+    if got == seat:
+        return True
+    print(f"warn: box send of the {declared} skipped: AGI_POST is {got!r}, "
+          f"not the rotating post {seat!r}", file=sys.stderr)
+    return False
+
+
+def _box_send_announce(recv: str, seat: str, text: str, declared: str,
+                       deadline: float | None = None) -> bool:
+    """`box send <recv>` with the alert on STDIN, AGI_POST=<seat>, a hard
+    timeout that kills box AND its children. FAIL SOFT: every failure prints
+    ONE `warn:` line naming `recv` and returns False; it never raises and
+    never decides `delivered` (the inbox copy does). `deadline` (a
+    time.monotonic() value, set ONCE per announce) makes the bound TOTAL: each
+    call gets what is left, and a call that finds the budget spent sends
+    nothing and says so, so N receivers can never cost N x the timeout. A
+    timeout adds up to 5 s of reap (kill the group, wait) on top of the budget."""
+    proc = None
+    try:
+        left = (BOX_ANNOUNCE_TIMEOUT_S if deadline is None
+                else deadline - time.monotonic())
+        if left <= 0:
+            print(f"warn: box send of the {declared} to {recv!r} skipped: "
+                  f"the {BOX_ANNOUNCE_TIMEOUT_S}s total budget is spent",
+                  file=sys.stderr)
+            return False
+        proc = subprocess.Popen(
+            ["box", "send", recv], stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+            env=dict(os.environ, AGI_POST=seat), start_new_session=True)
+        out, _ = proc.communicate(text, timeout=left)
+        if proc.returncode == 0:
+            return True
+        why = (out or "").strip().replace("\n", " ")[:160]
+        print(f"warn: box send of the {declared} to {recv!r} failed "
+              f"(rc {proc.returncode}): {why}", file=sys.stderr)
+    except subprocess.TimeoutExpired:
+        with contextlib.suppress(Exception):
+            os.killpg(proc.pid, signal.SIGKILL)
+            proc.communicate(timeout=5)
+        print(f"warn: box send of the {declared} to {recv!r} timed out "
+              f"after {left:.1f}s (the budget left for this call)", file=sys.stderr)
+    except Exception as exc:  # noqa: BLE001 -- fail soft, whatever it is
+        print(f"warn: box send of the {declared} to {recv!r} failed: {exc}",
+              file=sys.stderr)
+    finally:
+        # any exit that left box running (a non-timeout error after Popen)
+        # kills its group and reaps it: no orphan, no zombie
+        if proc is not None and proc.poll() is None:
+            with contextlib.suppress(Exception):
+                os.killpg(proc.pid, signal.SIGKILL)
+                proc.wait(timeout=5)
+    return False
+
+
 def _announce_stamp_announced_to(root: Path, record_path: str | None,
                                  delivered: list) -> None:
     """Conjunct 4 (hypothesis:l4-rotation-alerts-follow-a-routing-matrix-...):
@@ -6588,9 +6663,10 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
 
     The PRIME is inbox-only (send_dm refuses it), so it posts the same payload
     once to ROTATION_ALERT_ROOM instead — never into quorum. Every non-prime
-    seat dms each derived recipient via send.send_dm, which also nudges the
-    recipient's tmux window on the existing seat-transport hop. A delivery
-    failure is logged and NEVER fails the rotation — the announcement is the
+    seat lands the alert in each derived recipient's inbox (send.send, which
+    also nudges the tmux window) and mails it over box, signed by this post
+    (goal:g7.16.1.11.20 cut B, fail soft). A delivery failure is logged and
+    NEVER fails the rotation — the announcement is the
     proof, not a gate. Returns the recipients reached.
     """
     import send  # local: same dir
@@ -6684,23 +6760,27 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
         _announce_stamp_announced_to(root, record_path, delivered)
         return delivered
     delivered = []
+    _box_on = bool(receivers) and _box_announce_guard(seat, declared)
+    _box_deadline = None   # armed at the FIRST box call: send.send's time BEFORE it is not charged (later sends are)
     for recv in receivers:
         try:
             # CLAUSE 1: land the SAME [rotation-alert] block in the
             # recipient's INBOX (`<sessions>/inbox/<recv>.md`, the writer
-            # `send.send` uses -- the reader `send.py read <recv>` shows)
-            # IN ADDITION to the pairwise dm log, so an alert is never
-            # absent from a recipient's inbox and nothing depends on the
-            # nudge (it is delivery, the inbox is the record). send() also
-            # physically types its own wake; send_dm adds the dm-log block
-            # plus its own pane line. A `send.py send` to the prime would be
-            # rejected downstream but send() itself has no prime restriction,
-            # so this stays the non-prime loop.
+            # `send.send` uses -- the reader `send.py read <recv>` shows) so
+            # an alert is never absent from a recipient's inbox and nothing
+            # depends on the nudge (it is delivery, the inbox is the record).
+            # send() also physically types its own wake. The pairwise dm log
+            # (send_dm) is replaced by a box message signed by this post
+            # (goal:g7.16.1.11.20 cut B): FAIL SOFT, one warn line on any
+            # failure, never part of `delivered`, never a gate on the rotation.
             send.send(root, recv, text, sender=seat)
-            send.send_dm(croot, seat, recv, text, sender=seat)
+            if _box_on:
+                if _box_deadline is None:
+                    _box_deadline = time.monotonic() + BOX_ANNOUNCE_TIMEOUT_S
+                _box_send_announce(recv, seat, text, declared, _box_deadline)
             delivered.append(recv)
         except SystemExit as exc:
-            print(f"warn: could not dm {recv!r} the {declared}: {exc}",
+            print(f"warn: could not land the {declared} in the inbox of {recv!r}: {exc}",
                   file=sys.stderr)
             continue
     print(f"announced {declared} -> {len(delivered)} recipient(s) "
@@ -19271,18 +19351,18 @@ def _caller_post(root: Path) -> tuple[str | None, dict | None, str]:
     """The post whose signing key the caller holds, or (None, None, refusal).
     Returns (post, row, how | refusal) -- `how` on success is 'env' or
     'worktree'; a failure returns (None, None, a refusal line). Resolution
-    order: $AGI_POST, $AGI_SEAT, then the cwd's git toplevel matched against
+    order: the resolved post env, then the cwd's git toplevel matched against
     a row's `worktree` cell (a worktree post). A resolved post must HOLD its
     own key -- the key file loads AND its pub equals the committed row's
     pubkey -- else refuse by name (unkeyed, missing, or fingerprint mismatch)."""
     import send  # local: same dir, no import cycle (send.py pattern)
-    seat = os.environ.get("AGI_POST") or os.environ.get("AGI_SEAT")
+    seat = geometry_config.resolved_seat_env()
     if seat:
         row = _find_seat(_seat_read_root(root, seat), seat)
         if row is None:
             return None, None, (
                 f"no key holder identity: {seat!r} is not in the seats "
-                "registry; export AGI_SEAT or pass --post")
+                "registry; export AGI_POST or pass --post")
         return _caller_hold_key(root, seat, row, "env")
     top = _git_toplevel(Path.cwd())
     seat = row = None
@@ -19296,7 +19376,7 @@ def _caller_post(root: Path) -> tuple[str | None, dict | None, str]:
     if seat is None:
         _where = top if top is not None else "a non-repo cwd"
         return None, None, (
-            f"no key holder identity: export AGI_SEAT or pass --post "
+            f"no key holder identity: export AGI_POST or pass --post "
             f"(no env seat, no worktree-post match against {_where})")
     return _caller_hold_key(root, seat, row, "worktree")
 
@@ -19588,7 +19668,7 @@ def _rotate_human_gate(root: Path, seat: str,
     answer in the veto room (the claim's freeze-never-frees).
 
     A rotation of the caller's OWN post (the ``self_row`` carve-out) is NEVER
-    gated. The actor defaults to ``$AGI_SEAT`` -- the identity a seat carries
+    gated. The actor defaults to ``$AGI_POST`` -- the identity a seat carries
     when it was spawned; an IDENTIFIED caller who tries to rotate another seat
     is gated when frozen, and an unidentified caller is treated as gated too
     (an unknown actor cannot claim the self carve-out).
@@ -19599,7 +19679,7 @@ def _rotate_human_gate(root: Path, seat: str,
     reader of the record sees the freeze without asking viewport --live.
     """
     if actor is None:
-        actor = os.environ.get("AGI_SEAT") or ""
+        actor = geometry_config.resolved_seat_env() or ""
     if actor and seat and actor == seat:
         return None, None  # the caller's OWN post is never gated (self_row)
     try:
@@ -20364,7 +20444,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         if _done:
             print(_done, file=sys.stderr)
     # L5.16 (hypothesis:l5-spawn-mints-the-successor-key-under-the-row-name-
-    # not-the-renamed-seat): the successor runs as AGI_SEAT=<new> and resolves
+    # not-the-renamed-seat): the successor runs as AGI_POST=<new> and resolves
     # `<new>.key`, but the boundary (0.9) applies the rename AFTER this mint
     # -- so PEEK the staged plan's `new` (the same field `_apply_staged`
     # reads) and mint under it. A later refusal returns before any write.
@@ -22735,7 +22815,7 @@ def main(argv: list[str] | None = None) -> int:
                              "is-a-third-harness-with-the-same-hooks-as-"
                              "claude-code-and-pi)")
     p_spawn.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None,
-                        help="seat successor identity; when given, AGI_SEAT=<name> "
+                        help="seat successor identity; when given, AGI_POST=<name> "
                              "is exported before the claude argv so the SessionStart "
                              "hook copy can fire at turn one. Absent -> launch line "
                              "byte-identical to a plain spawn (owed item v)")
@@ -22810,7 +22890,7 @@ def main(argv: list[str] | None = None) -> int:
                         help="seconds to wait for the successor reply "
                              "(default: 120)")
     p_loop.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None,
-                        help="seat successor identity; when given, AGI_SEAT=<name> "
+                        help="seat successor identity; when given, AGI_POST=<name> "
                              "is exported before the claude argv so the SessionStart "
                              "hook copy can fire at turn one. Absent -> launch line "
                              "byte-identical to today (owed item v)")

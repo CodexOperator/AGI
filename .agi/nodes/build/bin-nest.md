@@ -4,6 +4,9 @@ confidence: 1.0
 id: "build:bin-nest"
 mint_id: 6b4f78cd97ab4ff28766831f5a04b1c4
 origin: build-scan
+parents:
+  - goal:g7.16.1.11.21
+  - idea:engine-self-decomposition
 payload_ref: extensions/agi/bin/nest.py
 tags:
   - build

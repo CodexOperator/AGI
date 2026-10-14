@@ -187,7 +187,7 @@ def _seat_line(root: Path, cwd: str, ladder_default: float):
     """(seat, threshold, source_label) — the line a seat is measured against.
 
     A seat rotates at its OWN `rotate_at` from its `config:seats` row, not at
-    the ladder's `director_rotate_at`. The seat is identified by `AGI_SEAT`
+    the ladder's `director_rotate_at`. The seat is identified by `AGI_POST`
     when present, else by the cwd (the `seat-<name>` convention, with a
     path-match fallback on a row's OWN `worktree` for a seat outside that
     convention — KEPT on evidence below: the schema allows a worktree string
@@ -206,15 +206,14 @@ def _seat_line(root: Path, cwd: str, ladder_default: float):
     guard is intact (0 must never become a 0.0 threshold, or
     `fraction/threshold` in `_emit` divides by zero).
     """
-    # AGI_POST wins over AGI_SEAT (the deprecated alias) for one season —
     # hypothesis:l4-a-seat-is-a-post-everywhere. The shared resolver owns the
-    # post-first / seat-fallback order and the once-per-process notice.
+    # post-first order, the v4 fallback and the once-per-process notice.
     try:
         sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
         import geometry_config  # noqa: PLC0415 — lazy, engine-optional (P7).
         seat = geometry_config.resolved_seat_env()
     except Exception:
-        seat = os.environ.get("AGI_POST") or os.environ.get("AGI_SEAT")
+        seat = os.environ.get("AGI_POST")
     if seat is None:
         seat = _seat_from_cwd(cwd)
         if seat is None:
@@ -1542,7 +1541,7 @@ def main(argv: list[str] | None = None) -> int:
               file=sys.stderr)
         return 4
     # The line a seat is measured against is the seat's OWN rotate_at from its
-    # config:seats row when the seat is identifiable (AGI_SEAT, else the cwd
+    # config:seats row when the seat is identifiable (AGI_POST, else the cwd
     # under a row's worktree), falling back to the ladder's
     # director_rotate_at — and the emitted message SAYS which source won
     # (hypothesis:l4-a-seat-rotates-at-its-own-line).

@@ -54,6 +54,7 @@ every round names its LARGEST SAFE STEP and it joins the stack · a missed bar n
 one source per rule: change its node, never a copy · the graph is the memory · HOW (owner 10-01 23:3xZ): a post on the NEW engine (its row has engine.v 4) reads with plain Read/cat/grep/git + `sect <piece>` and writes node files with plain Write/Edit/bash in ~/t; agi-turn signs the ONE commit per turn; grid-version a node by path (`grid.py commit <path>`, never --all) -- write.py is the OLD setup’s writer only (belam, SM, DG3, old TM until each one’s move)
 notes land (owner 09-24, verbatim): "Notes go into templates or configs, then individual role docs, then town board node. Goals are project trackers" -- never a note on a goal · an owner line banks VERBATIM in the THOUGHT block of the node version it produced (owner 09-24 21:3xZ; rewritten per version, the grid keeps every one; no decisions log) -- only a quote that must live on AS the quote, not the action it spurred, goes into a role doc, the town board or its subgoal's body
 one flow or table per idea · prose only where a diagram would drop meaning · a time you write (an owner minute, a stamp) is READ from `date -u` or `git log` in the same step, never recalled
+a sha you write (brief, dm, card) is READ from git in the same step, never recalled (an invented tip had to be corrected mid-review, thought-master 19:2xZ)
 never / only-if / unless / who / when stay EXPLICIT · the owner's words stay verbatim
 schemas define nodes: .agi/context/schemas/[<type>].md = required fields · legal parents · shape — read it before you mint or edit (a goal leaf follows [goal]; a round's brief follows [hypothesis])
 flows have skills (owner 09-27, goal:g4.18.2): skills/agi-<flow>/SKILL.md for goal (schema inside) · node-write · send · rotate · dispatch · workflow · merge-pass · verify -- read the matching one BEFORE that flow (Claude posts: the Skill tool) · a card LISTS its post's skills, never copies their rules
@@ -67,6 +68,7 @@ work what you claimed or were given, nothing else · claim only what you work no
 **D · DURABLE** — *If I break, let me heal stronger. If I die, let nothing be lost.*
 ```
 long work runs detached, never as a child of your session · where it runs is written down
+a file or design another post (or your successor) must read: put the bytes in a node or the mail and merge it up BEFORE naming it -- a session scratchpad or /tmp dies with the session (alive "on alive" wait, self-perpetuating scratchpad loss)
 retire = status deprecated + move · NEVER delete a node, rebase, force-push, git add -A
 a box tunable moves only inside your own window: record the before-value, restore it whatever happens, name it · clocks and power limits within +10 / -70 pct, and voltages within +/-10 pct, of the recorded baseline need no one's go · boot params, firmware = the owner's go (owner 09-23)
 ```
@@ -74,6 +76,7 @@ a box tunable moves only inside your own window: record the before-value, restor
 ```
 nest under what you were assigned, never mint above yourself · another's tree is theirs: read it, never write it
 speak up once: tagged, numbers not narrative, the body from a file
+the pre-commit hook refuses a commit (owner email, hardware name, test-user path, box token): redact and recommit, never --no-verify (all-is-one 09-30)
 never a secret, a key, an address or a hardware name in anything you write or print (the stream relay's argv holds keys: never `ps -ef` / `pgrep -a` it) -- the stream is LIVE on a delay: if one reaches your pane, type `brb` at once (by hand, never a script or a test), then ONE [red] line to belam · `panic` stays the owner's alone (owner 09-25)
 ```
 <!-- HEAD:END -->

@@ -934,20 +934,20 @@ def _quorum_caller() -> bool:
 
 
 def _detect_sender(from_flag: str | None) -> str:
-    """Sender order, as built: AGI_AGENT_ID env, then AGI_SEAT, then --from,
+    """Sender order, as built: AGI_AGENT_ID env, then the resolved post, then --from,
     then "unknown".
 
     Identity is SUPPLIED by the harness env, never CLAIMED by a flag
     (hypothesis:l4-authority-verified-against-the-graph-not-the-message): the
     agent's own id (AGI_AGENT_ID, exported by dispatch) signs a message even
-    when the caller forgot a flag; next a SEAT name (AGI_SEAT, exported by
+    when the caller forgot a flag; next a SEAT name (AGI_POST, exported by
     rotate-self / spawn / seats-launch / recovery) signs under the seat name;
     an explicit --from does NOT beat either env fallback — a flag may only
     name a sender in a hand-run shell with no exported identity; then
     "unknown" — an honest absence, not a confident wrong name
     (hypothesis:l3-send-comms-root, extended by hypothesis:l4-send-py-same-
     sender-stranded-line-and-the-swallowed-wake clause c: so every
-    AGI_SEAT-exporting path dms under its seat name, never "from: unknown").
+    AGI_POST-exporting path dms under its seat name, never "from: unknown").
     The tmux window NAME is never an identity — a window name is a seat, not
     an agent (hypothesis:l3-agent-id-never-exported).
     """
@@ -4177,7 +4177,7 @@ def _own_inbox_or_refuse(target: str, me: str) -> bool:
     consuming, so it stays open to any target (claim 2). `me` is the RESOLVED
     sender (`_detect_sender`), never `args.me`: `--me` names read positions
     in rooms/dms, not inbox identity, and must not widen the gate (claim 4).
-    A resolved sender of 'unknown' (no AGI_AGENT_ID, no AGI_SEAT, no --from)
+    A resolved sender of 'unknown' (no AGI_AGENT_ID, no AGI_POST, no --from)
     refuses every positional target (claim 3).
     """
     if me != "unknown" and target == me:
@@ -5414,7 +5414,7 @@ def veto_gate_status(root: Path, scope: str) -> str:
         return f"HOLD scope={scope}: seatsig unavailable: {exc}"
     try:   # goal:g7.16.1.11.13.3: the SAME strict read the gated acts make; an unreadable cell is a HOLD with its cause, never FREE
         g = _veto.read(graph, strict=True)
-    except _veto.VetoCellUnreadable as exc:
+    except Exception as exc:   # noqa: BLE001 -- VetoCellUnreadable or any other failure of the read: the gates HOLD on it, so does the display
         return f"HOLD scope={scope}: {exc}"
     frozen, why = _veto.is_frozen(graph, scope, geom=g)
     room = g.get("veto_room") or "veto"

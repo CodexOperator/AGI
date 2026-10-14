@@ -5,6 +5,7 @@ id: "build:tests-test-nest"
 mint_id: b9eb8dd13d72440793cf2fe8467d5c34
 origin: build-scan
 parents:
+  - goal:g7.16.1.11.21
   - idea:engine-tests
 payload_ref: extensions/agi/tests/test_nest.py
 tags:

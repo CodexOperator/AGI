@@ -3,7 +3,7 @@
 `config:seats` is being renamed `config:posts` (hypothesis:l4-a-seat-is-a-post-
 everywhere). For one season BOTH spellings resolve: `posts.md`/`posts:` is the
 primary, `seats.md`/`seats:` is a deprecated alias. Every reader that opens the
-geometry config, and every sink that spells the identity as `--seat`/`AGI_SEAT`,
+geometry config, and every sink that spells the identity as `--seat` or an env name,
 routes through here so the post-first / seat-fallback behaviour and the
 exactly-once-per-process seat/environment deprecation notices live in ONE
 place instead of a hand-rolled copy per reader. The seats.md fallback prints
@@ -32,10 +32,11 @@ load_rows(root) -> list[dict]
     absent/unparseable. Never raises.
 
 resolved_seat_env() -> str | None
-    The seat identity from the environment: ``AGI_POST`` WINS over ``AGI_SEAT``
-    when both are set (the deprecated ``AGI_SEAT`` spelling prints a notice at
-    most once per process when it is the only spellingsource). None when
-    neither is set — never a placeholder.
+    The seat identity from the environment: ``AGI_POST``. The ONE reader of the
+    retired spelling (goal:g7.16.1.11.37): it falls back to it only for a v4 row
+    and prints a notice at most once per process when it is the only source.
+    This fallback is deleted in the commit that moves the last v4 row to v5.
+    None when neither is set — never a placeholder.
 
 SeatAction(argparse.Action)
     argparse action for ``--seat``/``--post`` on the same parser (dest stays
@@ -58,7 +59,7 @@ _ENV_DEP_MSG = (
 )
 
 # Module-level flags: the deprecated-alias notices (--seat flag spelling +
-# AGI_SEAT env spelling) fire AT MOST ONCE PER PROCESS, however many
+# the retired env spelling) fire AT MOST ONCE PER PROCESS, however many
 # readers/consumers hit them. There is deliberately NO file-level notice: the
 # seats.md fallback is silent.
 _seen_flag = False
@@ -67,7 +68,7 @@ _seen_env = False
 
 def _print_once(msg: str, flag_holder: str) -> None:
     """Print a deprecation notice once per process (best effort, never raises).
-    Only the `--seat` flag and `AGI_SEAT` env spellings remain live; there is
+    Only the `--seat` flag and the retired env spelling remain live; there is
     no file fallback notice."""
     global _seen_flag, _seen_env
     if flag_holder == "flag" and _seen_flag:
@@ -129,9 +130,8 @@ def load_rows(root: Path | None) -> list:
 
 
 def resolved_seat_env() -> str | None:
-    """AGI_POST wins over AGI_SEAT when both are set (deprecated spelling
-    notices at most once per process). None when neither — never a
-    placeholder."""
+    """AGI_POST; else the v4 fallback (the retired spelling, noticed once per
+    process). None when neither — never a placeholder."""
     post = os.environ.get("AGI_POST")
     if post:
         return post

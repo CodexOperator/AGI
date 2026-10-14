@@ -3504,7 +3504,7 @@ def _patch_the_node_itself(root, edit: Edit) -> None:
 def _default_actor(root=None) -> str:
     """Who a write with no `--actor` is stamped as (goal:g7.33.20.2, R1).
 
-    AGI_ACTOR, else the RESOLVED SEAT (AGI_POST / AGI_SEAT), else the unix
+    AGI_ACTOR, else the RESOLVED SEAT (AGI_POST), else the unix
     user PROVABLY not a post's name (every post runs as the user named like the
     Prime's seat, `belam`, so `$USER` there names the Prime, not the writer),
     else `unknown`. Fail CLOSED: when the collision check cannot run -- no project
@@ -3533,9 +3533,9 @@ def _log_provenance(actor: str = "", root=None) -> dict:
     hypothesis:l4-write-log-role-capture — every write-log entry should record
     WHO wrote it. `actor` is the resolved caller identity (`actor` param or
     `_default_actor`). `role` and `seat` are READ from what the environment
-    already sets (AGI_ROLE / AGI_SEAT, exported by dispatch); when a source is
+    already sets (AGI_ROLE / AGI_POST, exported by dispatch); when a source is
     absent the key is ABSENT, never a placeholder. Only present keys land in
-    the entry — so a hand `write.py submit` with no AGI_ROLE/AGI_SEAT still
+    the entry — so a hand `write.py submit` with no AGI_ROLE/AGI_POST still
     records `actor`, and a non-write.py writer records none of these at all.
     """
     prov: dict = {"actor": actor or _default_actor(root)}
@@ -3657,6 +3657,21 @@ def _spawn_refusal_line(res) -> str:
             f"{fix} (--no-spawn-gate bypasses this, loudly.)")
 
 
+def _with_build_kind(node_type, payload, set_fm) -> dict:
+    """The ONE place a created build node's `build_kind` is defaulted (belam 10:4xZ (A), SM 10:5xZ).
+
+    The [build] schema is discriminated on `build_kind`; a build node with a payload and no explicit
+    value gets `level3.build_kind_for(<payload>)` -- the payload suffix, the rule level3.py already
+    applies. An explicit `--set build_kind` WINS; no payload = nothing to derive from, nothing invented;
+    any other type is untouched. `create()` and `--dry-run`'s `_create_gate_refusal` BOTH call this, so
+    a preview gives the verdict the real create gives."""
+    extra = dict(set_fm or {})
+    if payload and node_writer.canonical_node_type(node_type) == "build":
+        import level3  # noqa: PLC0415 -- lazy: write.py's top stays light
+        extra.setdefault("build_kind", level3.build_kind_for(str(payload)))
+    return extra
+
+
 def _create_gate_refusal(root, node_type, slug, parents, set_fm, args, *,
                          payload=None) -> str | None:
     """`create --dry-run`'s judge (goal:g7.33.20.3 D3): what the real create's
@@ -3672,6 +3687,7 @@ def _create_gate_refusal(root, node_type, slug, parents, set_fm, args, *,
     if payload:   # the same gate row `create` hands write_node
         extra.setdefault("location", locations.DEFAULT_PAYLOAD_LOCATION)
         extra[links.LINK_FIELD] = str(payload)
+    extra = _with_build_kind(node_type, payload, extra)
     res, _file, _season = node_writer.judge_create(
         root, node_type, slug, parents, extra_fm=extra or None,
         bypass=args.no_spawn_gate)
@@ -3715,6 +3731,7 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
         created_file = node_writer.ensure_payload(
             root, payload, extra.get("location"))
         extra[links.LINK_FIELD] = str(payload)
+    extra = _with_build_kind(node_type, payload, extra)   # belam 10:4xZ (A): one helper, dry-run shares it
 
     res = node_writer.write_node(root, node_type, slug, parents,
                                  extra_fm=extra or None, bypass=bypass,

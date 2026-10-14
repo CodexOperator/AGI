@@ -208,7 +208,11 @@ def test_f10_every_file_source_is_judged(tmp_path, capsys):
     """item 2: the sources read in SUBMIT are judged, on create and on edit."""
     proj, r, src = _project(tmp_path, []), tmp_path / "r.md", tmp_path / "p.py"
     src.write_text(f"# see {HOME}/x.log\n")
-    assert w.main(["create", "build", "b-warn", "--parent", "idea:i1", "--payload",
+    # [build] is parent-shaped ([goal, idea] is legal, [idea] alone is not): the spawn gate checks a created build
+    # node's shape since write.py create sets build_kind (belam 10:4xZ (A)), so the row gives it a legal one
+    (proj / ".agi" / "nodes" / "goal").mkdir()
+    (proj / ".agi" / "nodes" / "goal" / "g1.md").write_text("---\nid: goal:g1\ntype: goal\n---\n\nbody\n")
+    assert w.main(["create", "build", "b-warn", "--parent", "goal:g1", "--parent", "idea:i1", "--payload",
                    str(src), "--root", str(proj)]) == 0
     assert capsys.readouterr().err.count("WARN:") == 1
     assert w.main(["create", "hypothesis", "h-rep-warn", "--parent",

@@ -22,6 +22,10 @@ python3 extensions/agi/bin/write.py create <type> <slug> --parent <id> [--parent
 - `read body N:M` / `read payload N:M` — the range is REQUIRED. Read in pieces; never cat a big node.
 - `replace body N:M <file>` is STANDALONE: never in one script with `note`, `thought`, `body_patch`.
 - `sub <old> => <new>` is literal. `--dry-run` shows the edit and writes nothing.
+- `sub` strips the outer whitespace of the spec: anchor on a non-indented start, `--dry-run` first on frontmatter; >1 occurrence needs `sub!` (DG3 verb_sub, write.py:674).
+- `set <key> <text>` (and `set title <value>`) in a script: the value is the raw rest of the unit and quotes are STORED -- never quote it; only `create --set 'title=...'` takes a shell-quoted value (DG1 write.py:830; all-is-one quoted title).
+- `replace body N:M` must not cut a paragraph or end on a heading (the paragraph guard refuses): replace a whole fenced block or section and keep its trailing blank line (DG1 write.py:3085).
+- `replace body N:N` on a `## ` heading line is refused -> insert at the blank line ENDING the previous section (replace that blank line with the new section) (all-is-one).
 - `set` is schema-gated (goal:g7.33.10): an invented field, an out-of-regex value, a raw string into a list field → refused.
 - `--no-spawn-gate` / `--no-evidence-gate` = NEVER: it stamps the node unreviewed.
 
@@ -33,6 +37,7 @@ python3 extensions/agi/bin/write.py create <type> <slug> --parent <id> [--parent
 ```
 `write.py create <type> <slug> --parent <id>` runs the spawn gate against the schema; the schema, not argparse,
 decides how many parents are legal.
+A director's write.py on `config:*` is refused by the written_by guard (owner / prime_director only) -> hand the exact text to your master, never force it (DG4).
 
 ## 3 · Build nodes — two legal origins (goal:s29, schema [build].md `parent_shapes`, an OR across shapes)
 | shape | means |
@@ -40,7 +45,9 @@ decides how many parents are legal.
 | `[mvp]` | a NEW file, argued for by an mvp |
 | `[build, goal]` | a new VERSION of an existing file + the goal that motivated it |
 | `[goal, mvp]` · `[goal, idea]` | a new file under a goal, argued by an mvp or an idea (skills: `idea:engine-skill-doc`) |
-A goal ALONE never mints a build node. New file + node in one call:
+A goal ALONE never mints a build node. **Never run `level3.py` by hand** until goal:g1.43.1's round lands: its default
+scan overwrites a hand-repaired parent list with its census hit (goal:g1.43 rows 16-18 -> the illegal `[idea]`; council 10-10).
+New file + node in one call:
 ```bash
 write.py create build <path-with-dashes> --parent goal:<id> --parent idea:<id> --payload <repo/path> \
   --set payload_ref=<repo/path> --set build_kind=prose|code --body-file <body.md> --actor <post> --role <role>
@@ -53,6 +60,7 @@ regenerated — never hand-edit it; edit the payload (`patch -`, `replace payloa
 `thought <text>` rewrites the authored region whole: why THIS version differs from the last. Absent = empty;
 never fabricate one after the fact. Mechanism, not wording: quote the instruction · cite what the machine does
 (file:line or an artifact you ran) · name the near miss · if a standing rule was bent, the property of THIS case.
+`thought` on a node others also edit (a shared doc) -> read its CURRENT THOUGHT in the SAME script and carry it verbatim; the verb rewrites the whole block (all-is-one clobbered alive's THOUGHT 07:1xZ).
 
 ## 5 · Never
 - delete a node or `git rm` under `.agi/nodes` — retire: `set status deprecated` + move to `deprecated/<type>/`
@@ -65,3 +73,9 @@ never fabricate one after the fact. Mechanism, not wording: quote the instructio
 - use the `thought` verb on a node whose body QUOTES a column-0 THOUGHT pair (plain or fenced): it rewrites the FIRST pair anywhere
   (node_writer.py `_THOUGHT_RE`), the quoted one included — `replace body` on the lines around both pairs instead: it lands
   as long as the splice adds no pair and no stray marker (SM 118).
+- after `write.py create` -> `git status --short <paths>`; a node left `??` (index race / held lock) is committed by exact path, never `git add -A` (DG2 create; DG1 W1b).
+- rewrite `.agi/config.json` from a dict: it is not json.dumps round-trippable (19588 B, indent=2 dump differs) -> insert cells as text, verify with `json.loads` (DG4).
+- count a minted verdict node as closing its hypothesis: also set the hypothesis's own `verdict` field (and evidence_runs) in the same turn, else the round stays open (all-is-one).
+
+## Traps moved from cards (owner 10-10: one sweep, then a rule)
+- `write.py --set adjust=none` parses as YAML null and is refused -> text values, never bare none / null / true (SM gen 35)

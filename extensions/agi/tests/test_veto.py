@@ -419,7 +419,10 @@ def test_rotate_helper_gates_another_post_not_self(council_and_keep, geom,
     rot = _load_rotate()
     root = tmp_path / "graph"
     root.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setenv("AGI_SEAT", "adv-alive")  # the caller's own post
+    # the caller's own post, as a v5 unit carries it: AGI_POST ONLY, no AGI_SEAT
+    # (goal:g7.16.1.11.37, SM 03:24Z): the self carve-out must survive the retired name.
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+    monkeypatch.setenv("AGI_POST", "adv-alive")
 
     # frozen prime scope
     cell = _write_rot_vetoes(root, _frozen_geom())
@@ -443,6 +446,22 @@ def test_rotate_helper_gates_another_post_not_self(council_and_keep, geom,
     _ = cell3
     held3, freeze3 = rot._rotate_human_gate(root, "other-post")
     assert held3 is None and freeze3 is None
+
+
+def test_rotate_helper_self_carve_out_for_a_v4_row_with_only_the_retired_name(
+        council_and_keep, geom, tmp_path, monkeypatch):
+    """The v4 fallback (the ONE helper, geometry_config.resolved_seat_env): a v4 row's
+    unit still carries only the retired name, and its OWN rotation is not gated either."""
+    rot = _load_rotate()
+    root = tmp_path / "graph"
+    root.mkdir(parents=True, exist_ok=True)
+    monkeypatch.delenv("AGI_POST", raising=False)
+    monkeypatch.setenv("AGI_SEAT", "adv-alive")
+    _write_rot_vetoes(root, _frozen_geom())
+    held, _freeze = rot._rotate_human_gate(root, "adv-alive")
+    assert held is None
+    held_other, _f = rot._rotate_human_gate(root, "other-post")
+    assert held_other is not None and "HELD" in held_other
 
 
 def test_rotate_holds_another_post_record_carries_freeze(tmp_path, monkeypatch,

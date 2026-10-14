@@ -6,7 +6,8 @@
 #   L4 a shim failing `git ls-tree` and `git show` on the ring path while the tip HOLDS a ring and the commit is signed by an UNLISTED key: refused; control: a tip with no ring at all stays the bootstrap
 #   L5 (R1 of the mur) a shim failing ONLY the read of the just-landed first ring: refused
 # Scratch repo borrowing GITDIR's objects (0 shared refs written), scratch keys at run time (no armoured block in this file), no network, nothing pushed. One ok/FAIL line per case; exit = FAIL count.
-T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0
+T=$1;[ -n "$T" ]||{ echo "[no-candidate] pass the sha under test" >&2;exit 2;};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE   # a lane that builds a scratch repo owns its git env (an inherited GIT_DIR wrote MAIN, 10-11 09:56Z)
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1 [rc=$r $(tail -1 $D/out 2>/dev/null|cut -c1-90)]";f=$((f+1));fi;}
 r=0
 o=$(git rev-parse $T)||exit 1;for x in sect grow-check grow-gate agi-fill;do git ls-tree --full-tree --name-only $o .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$o:|"|git cat-file --batch --follow-symlinks|sed -n "/^###* $x /,/^###* /{/^~~~/,/^~~~/{//!p}}">$D/b/$x;done

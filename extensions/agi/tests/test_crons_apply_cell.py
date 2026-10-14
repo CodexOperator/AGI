@@ -349,8 +349,8 @@ def test_l7_the_cell_line_undoes_a_hand_edit_and_keeps_a_hand_added_line(tmp_pat
     assert cron_run(cell_line, env).returncode == 0
     good = table.read_text()
     block = managed_block(table)
-    victim = next(l for l in block if l.startswith("*/2 * * * * "))   # nudge_sweep
-    edited = good.replace(victim, victim.replace("*/2 ", "*/9 ", 1), 1)
+    victim = next(l for l in block if l.startswith("*/"))   # any managed every-N line (nudge_sweep was one until it was retired, goal:g7.16.1.11.20.2)
+    edited = good.replace(victim, victim.replace("*/", "*/9", 1), 1)
     assert edited != good
     edited += "30 6 * * * echo hand-added\n"
     table.write_text(edited)

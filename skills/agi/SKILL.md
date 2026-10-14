@@ -183,7 +183,7 @@ rotate.py spawn --post <name> --tier director --prompt-file .agi/sessions/quorum
 #    the engine spawns the successor in tmux under the launch wrapper, writes the rotation record,
 #    the ack, the row (gen+1, window, pid, session_id via the registry JOIN) and ACTIVATES the pin
 #    at the successor's own transcript. `prepare` gates it: pushed, clean tree, card newer than last commit.
-AGI_SEAT=belam AGI_POST=belam rotate.py rotate --force --stops "<where it stops, one paragraph>"
+AGI_POST=belam rotate.py rotate --force --stops "<where it stops, one paragraph>"
 ```
 
 Two things this sequence catches that a hand seating does not: a first
@@ -275,6 +275,8 @@ across a handoff instead of fixed in-loop became `goal:s34`.
 ## Every node edit goes through `write.py` (`goal:g4.18`)
 
 > **OLD SETUP:** a post whose row has engine.v 4 edits node files with plain Write/Edit and agi-turn commits; owner 10-01 23:3xZ. The rest of this section is that setup's rule, unchanged.
+
+> **Never rename this heading:** `rolslice.py:102,109,117` match it verbatim -- add a label under it instead (DG5).
 
 **One way in (old setup).** Creating a node, editing its frontmatter, appending a body note,
 rewriting its `THOUGHT` or `FEELING` region — all of it is

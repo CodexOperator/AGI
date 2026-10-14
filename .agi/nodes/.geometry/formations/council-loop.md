@@ -46,12 +46,32 @@ directors' inner loops, until NO residue is left:
   DG2 : the MVP results vs the hypotheses ─► its own correctives as FORKED hypothesis chains off the 1+ most relevant existing hypotheses
   DG1 : then the build nodes vs the goals ─► correctives as NESTED subgoals
   DG1 : no nested subgoal / hypothesis residue left ─► finalizes the OUTCOME node for EACH goal in the bundle ([outcome].md: parent = the goal)
+      writing a goal's OUTCOME: test each goal INVARIANT against every verdict on the same landing, not only the goal's falsifiers (g4.18.5.5 closed 18:2xZ, reopened minutes later)
 sanctuary-master : automated reviews (mur) through her lens ─► residues / correctives back to the directors (loop)
                    nothing left to dispatch ─► writes the BIGGER_OUTCOME nodes tying the outcomes together
 council : reviews the bigger outcomes ─► new goals / bundles / nested goals, at whatever level it sees fit (loop)
           none remain ─► writes the OVERVIEW nodes that cap the season's growth ─► hands them to belam
 STOP ~ midnight ET = 04:00Z 09-30 (owner: "we just keep working full steam ahead until about midnight Eastern time")
 ```
+
+## Rulings and landing (owner 2026-10-10 21:5xZ to belam-s2-III; supersedes the SM and belam rows above where they differ)
+OWNER, verbatim: "Need to make council do all this review work while you idle mostly and await loop finish. I think council is being skipped on final loop step and I think a lot of the traps across various cards could go into skills or whatever other relevant docs"
+OWNER answers, verbatim: rulings = "Council, but I break ties" · landing = "I ff on council OK only (Recommended)" · traps = "One sweep, then a rule (Recommended)"
+```
+director tip ─► SM gates (agi-master-gate, agi-review) ─► box [review] to the council (alive · all-is-one · self-perpetuating)
+council group chat ─► ONE council post answers SM: [approve <sha>] or [return <sha>: why]     (split / stuck ─► belam breaks the tie)
+  the answerer: ONE [approve]/[return] per review, sent after both other views on its last position or 15 min; a change of mind = [withdraw <sha>] + a new answer, never a second verdict
+  SM: a [merge-up] only on the SETTLED word (one round after the answer; the council's refs re-read right before sending) · belam: re-reads the approver's ref + box for a later [return]/[withdraw] right before the ff (skill agi-master-gate) -- RULES read before acting, not checks; no code runs them (council 08:18Z 10-11)
+SM ─► box belam [merge-up] ... ff-only <sha> · council: <post> approve <ts>                  (no council line = refused, sent back)
+belam ─► FULL anonymize guard (only belam's uid reads .env) ─► ff MAIN ─► nothing else: no review, no ruling
+a host act (owner GO) runs from LANDED bytes only: the GO line names a TRUNK sha, never a merge-up sha (self-perpetuating)
+every [decision] SM has today ─► the council, never belam; belam gets only what needs the OWNER (host acts, spend, season close) to bank
+loop end is NOT optional: outcomes ─► SM bigger_outcomes ─► COUNCIL reviews them ─► overview nodes ─► belam
+```
+- a [review] whose landing touches the extraction glob (fenced pieces of engine.md + engine-[pw]*.md) carries 'first-start:' per post kind (what a post gains and loses at its next start); the council's answer repeats the line it checked, or returns the review for lacking one; an interim needs belam's ACK and a retire date (council 3/3 11:08Z 10-11).
+- every council view names the lanes / tests it RAN and against which sha, or says 'none' -- a view never implies a run it did not do (council 08:22Z 10-11, after the vacuous .37 gate).
+
+Later (council designs, a director builds, owner GO for the host act): a LAND BROKER so belam is out of the landing path entirely.
 
 ## Order of work (owner 09-29)
 1. The current town bundle (town:local-maxxing board) — first.
@@ -63,6 +83,7 @@ What this formation lacks (formations as template build nodes under goal:g7.16, 
 - `ListAgents` → `SendMessage` to the next post (it wakes that session) + ONE room line for the record:
   `python3 extensions/agi/bin/send.py --from <you> send --room council-loop '[handoff] bundle <n> · <stage> done · <node ids> · tests <n passed>'`
 - A post acts only on a handoff addressed to it; one director per bundle ROW at a time -- two bundles may run side by side (owner 23:1xZ 09-29: DG3 + DG4 on the write form, DG5 on spawn/rotate).
+- At wake with no inbox line: tail the council-loop room -- a `[handoff]` can land only there, with no SendMessage and no inbox nudge (DG1 wake).
 - Council group chat: SendMessage to the other two council posts; the room carries the agreed bundle.
 - Directors group chat (owner 23:4xZ 09-29: "let the directors figure out the split for the work amongst the bundles themselves. Let the directors also share a DM room, just like the council."); owner 23:5xZ 09-29, verbatim: "Oh, specifically the director generals three, four, and five get a room as they are the ones doing a lot of the heavy graph building." -> director-general-3, -4 and -5 agree the split of the graph-building work among themselves by SendMessage to each other (DG1 goals+hypotheses and DG2 experiments+verdicts keep their stages); the room `directors` carries the agreed split: `python3 extensions/agi/bin/send.py --from <you> send --room directors "[split] ..."`.
 
@@ -76,5 +97,5 @@ Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2
 - Rotation at the meter line: skill agi-rotate. Post mechanics: skill agi-post.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-S2-L5-XVIII 23:5xZ 09-29 rewrote The loop on the owner’s order, verbatim: "Then we’re going to add another small check where the director general two checks the MVP result against the hypotheses. They then issue their own correctives as needed under forked hypothesis chains splitting off from lone or more of the most relevant existing ones. Once that passes, Director General 1 looks at the resulting build nodes and checks them against the goals to see if those need any corrective steps dispatched as nested subgoals. Once these loops complete amongst the directors, then it gets handed to Sanctuary Master to run its own review and check and get passed back using her lens for any correctives, using automated reviews. And once that’s done, then it gets passed to the council. In the process, Sanctuary Master should be the one to write the bigger outcome nodes to tie the outcome nodes together. And actually, one more correction, since this is going to be the new loop. Director General 1, once there are no more nested subgoal or hypothesis residues left to dispatch, uh, finalizes the outcome nodes for each goal in the bundle. Once Sanctuary Master does their reviews and their residue dispatches, then they write bigger outcome nodes once there are nothing else left to dispatch. And once those get written, then the chain, the graph chain that’s been grown can get passed off to the council to review the bigger outcomes and issue additional goals or additional bundles or additional nested goals or whatever, whatever level they see fit. And once none of those remain, then the council writes overview nodes to cap off the season’s growth and hands those off to you. At this point, we just keep working full steam ahead until about midnight Eastern time." Delta: outcome nodes move from the council (23:3xZ lens) to DG1; SM writes bigger outcomes; the council writes overviews; the lens flow now points at the loop.
+sanctuary-master gen 36 08:2xZ 10-11, on the council's order (alive 08:18Z, 3/3, decision on 549c1a2381): two lines under 'Rulings and landing' -- the ANSWERER rule (one verdict per review; a change of mind is a [withdraw] + a new answer) and the SM / belam side (merge-up only on the settled word; belam re-reads for a later return before the ff, his 12b3e61785 in skill agi-master-gate). Why: alive sent SM three verdicts on 549c1a2381 in ~4 min (approve, RETURN, then a note on its item 4); SM boxed belam the merge-up on the first word, the RETURN followed, SM's [withdraw] crossed belam's ff, and a returned tip reached MAIN (source only, nothing installed; carried by fixing forward, council 3/3). Both halves are rules read before acting; a mechanical check on the ff is a ledger item for whoever owns agi-master-gate. The section's first version (belam-s2-III 21:5xZ 10-10, the owner's order) is in git history.
 <!-- THOUGHT:END -->

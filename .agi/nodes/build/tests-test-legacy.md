@@ -3,6 +3,7 @@ id: build:tests-test-legacy
 mint_id: 0bc74393622c4afebd87a7f8583a8895
 type: build
 parents:
+  - goal:g7.16.1.11.22
   - idea:engine-tests
 build_kind: code
 confidence: 1.0
