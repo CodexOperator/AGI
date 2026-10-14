@@ -100,7 +100,15 @@ town:core  (vision:the-living-being) ── season 3 bundle, LOOSE: goals listed
 | goal:g7.16.2 | horizon | the Texas two-step formation |
 | goal:g5.31 | active | carried ACTIVE, a row by name (council 15:56Z) |
 
-ROWS = ONE DERIVATION, never a hand list (council 3/3, alive 15:56Z 10-14, relayed by SM): every goal with `status: horizon` AND a body naming 'season 3' or 's3', plus goal:g5.31 by name. 15 at 2b3f9c3dc6, 17 at bbec361deb (+ .2.9, .5 from L17). A council-deferred goal whose text lacks 's3' (.2.9 .5 .40.2 .5.2 .7 .11.11 .11.27 g5.22-.30) gets 'season 3' in its reopen line / THOUGHT IN the rollover commit. CHECK at the rollover commit: row count == the derivation's count; a missing id = RED, named. Listing is not cutting: nothing is cut before season 3 opens (owner 14:4xZ).
+ROWS = ONE DERIVATION, never a hand list (council 3/3, alive 15:56Z 10-14, relayed by SM): every goal with `status: horizon` AND a body naming 'season 3' or 's3', plus goal:g5.31 by name. 15 at 2b3f9c3dc6, 17 at bbec361deb (+ .2.9, .5 from L17). A council-deferred goal whose text lacks 's3' (.2.9 .5 .40.2 .5.2 .7 .11.11 .11.27 g5.22-.30) gets 'season 3' in its reopen line / THOUGHT IN the rollover commit. Listing is not cutting: nothing is cut before season 3 opens (owner 14:4xZ).
+
+CHECK (council 3/3, alive 16:04Z 10-14; VERBATIM, run at the rollover commit, never re-derive by hand): REV = that commit.
+
+```
+for f in $(git ls-tree -r --name-only REV .agi/nodes/goal/); do git show REV:$f | grep -q '^status: horizon' && git show REV:$f | grep -qiwE 'season 3|s3' && basename $f .md; done
+```
+
+Then add goal:g5.31 by name. RED = a derived id not in the table, or a table id not derived, each named. Word-bounded (-w): a bare 's3' also hits retired ids' 'goal:s3N' links. 17 at ed6353269f; after L18 (.40.2 -> horizon s3) 18 derived + g5.31 = 19 rows.
 
 Season 2's bundle (g7.16.1.11) closes on the season-2 trunk; only its horizon-s3 leaves appear here, by the derivation.
 
@@ -114,7 +122,7 @@ Season 2's bundle (g7.16.1.11) closes on the season-2 trunk; only its horizon-s3
 - Belam 2026-10-14: season-3 bundle reset fresh on season3/main (owner 14:4xZ-15:0xZ); the season-2 bundle (g7.25-g7.34 era) stays in git history and on the season-2 trunk.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam 2026-10-14 16:0xZ: the season-3 table now holds the council's derived rows (17 at bbec361deb + g5.31 by name), replacing the one hand-listed row; the derivation rule and the rollover CHECK are written under it (council 3/3 15:56Z: a board's rows come from one derivation, not a hand list). Listing, not cutting. Earlier the same day: the GOAL BUNDLE section reset fresh for season 3 on season3/main (owner: a bundle is a town board, loose over goals, parented from visions, never a subgoal; goal:g7.16.1.12 retired in place).
+belam 2026-10-14 16:0xZ: the rollover CHECK under the season-3 table is now the council's ONE command, verbatim (alive 16:04Z, 3/3), replacing a prose check that did not say how to count: word-bounded, it gives 17 at ed6353269f, the table less goal:g5.31 (by name). Before it, the same session: the table took the council's derived rows (17 + g5.31) in place of one hand-listed row, and the GOAL BUNDLE section was reset fresh for season 3 on season3/main (owner: a bundle is a town board, loose over goals, never a subgoal; goal:g7.16.1.12 retired in place).
 <!-- THOUGHT:END -->
 
 Belam daily pass 2026-09-22T09:50ET: merges=none; verify=FAIL (TestMergeUp git-identity + OPENROUTER_API_KEY empty); reopen/mint=none
