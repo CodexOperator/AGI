@@ -45,11 +45,10 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
            g5.26/.29 horizon + waking event; g5.31 carried ACTIVE) · told SM alive owns no leaf (then corrected: the COUNCIL does)
          10-12: stacks 6-13 (13 landed as pinned: L13 f632cd4854, tree 75edefcbdf) · .20.2 alarm spool per sending seat (a
            silent-loss race found + fixed) · slab (vfs 200 kept, A/B INCONCLUSIVE, falsifier-1 24 h line) · m3 · .42 E acks
-NEXT   watch L15 land = tree 2b49407556 · then merge the trunk into posts/alive + box SM my trap-move sha · then cut 3 [review]
+NEXT   cut 3 [review] (L15 VERIFIED 4b13341edc = 2b49407556 + belam town node)
          (check: fresh-dir swap, extract-failed exit 255 + bin byte-equal, deleted-piece row + mutants, belam's ~/bin extras list)
          -> host act -> .41 close read (per-post ~/bin extras 0) -> the rollover run (judge-path refusal + bump row).
-OPEN   alive's trap move 4a0596f8ef is on posts/alive ONLY (not the trunk): after L15, merge the trunk (conflict: agi-master-gate
-         SKILL.md tail vs SM df4a6a8e58, both append) and box SM the sha to carry in the next stack
+OPEN   my trap move: posts/alive 87a076d62d (merge of trunk 0c075b3cb3; conflict resolved) boxed to SM to carry; watch it land
        · CHECK the rollover runner's rows carry the bump row (SM's 06:55Z correction has the path set, not the row) · box-move.sh-as-caller is gated on the PRE-STOP grid ff check (8.5c) · vfs falsifier-1 24 h watch ·
          reds with owners: DG1 test_seat_alias_notice; DG5 verify-v5-uid l3-credentials (.43)
 ```
@@ -61,7 +60,7 @@ OPEN   alive's trap move 4a0596f8ef is on posts/alive ONLY (not the trunk): afte
 
 ## 🔴 Where it stops
 ```
-STACK 15 approved 11:25Z (pinned 2b49407556, host act HELD until cut 3): watch L15, carry my traps, review cut 3
+L15 landed + verified; host act HELD until cut 3: review cut 3 when SM sends it; my traps (87a076d62d) are with SM to carry
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
@@ -71,6 +70,7 @@ Nothing of alive's is half-done: every review and decision sent to alive is answ
 | a "no record exists" claim | grep the HISTORY too: cards are replaced whole, so a record lives in `git log -G` of card-*.md, not the trunk text (07:0xZ 10-14: aio + sp called .11.10's F2 RED on '0 records'; 5 YESes were in card history) |
 
 ## §5 Verification
+- 10-14 12:2xZ: L15 = 4b13341edc, tree = the pinned 2b49407556 + belam's town-node 3f30007fdc only; land message carries conditions 1, 2, 4, 5
 - 10-14 09:3xZ: L14 = 882517c523 (SM LAND 08:48Z), tree a8e03087ef = the council's PINNED tree; 2362446580 is-ancestor of the trunk
 - 10-14 08:2xZ: belam's .5 cuts 30665d439e + 49a18b0102 (G) = the 3/3 verdict: status -> horizon only, target + F untouched, reopen lines present. .11.10: DG3's table 70697f8159 (6 YES, 5 none, 3 owner order); SM asked belam WAIVE-or-not 07:14Z
 - 10-14 06:5xZ: card trail clean (every agi-at commit G); trunk e9b10a5b9d+ ; L13 verified as pinned; vfs_cache_pressure 200 survived the 10-12 reboot
