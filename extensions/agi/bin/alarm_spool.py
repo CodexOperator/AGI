@@ -36,6 +36,14 @@ import sys
 import time
 from pathlib import Path
 
+try:
+    import geometry_config
+except ImportError:      # the single-file copy installed under /opt/agi/bin has no engine beside it (a root source runs only `append` there, which has no --seat): the same plain store, without the deprecation notice
+    class geometry_config:
+        class SeatAction(argparse.Action):
+            def __call__(self, parser, namespace, values, option_string=None):
+                setattr(namespace, self.dest, values)
+
 SPOOL_NAME = "alarm.spool"
 DRAINING = SPOOL_NAME + ".draining"
 LINE_MAX = 3800        # one write(2) under PIPE_BUF (4096): an O_APPEND write of this size is atomic
@@ -200,7 +208,7 @@ def main(argv: list[str] | None = None) -> int:
     ap_a.add_argument("--max-lines", type=int, required=True)
     ap_a.add_argument("--spool", type=Path, default=None)
     ap_d = sub.add_parser("drain", help="sign + box-send every spooled line, as the sending seat")
-    ap_d.add_argument("--seat", required=True)
+    ap_d.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True)
     ap_d.add_argument("--max-tries", type=int, required=True, help="failed passes before a line is dead-lettered to alarm.spool.dead")
     ap_d.add_argument("--spool", type=Path, default=None)
     ap_d.add_argument("--box-bin", type=Path, default=Path("/opt/agi/bin/box"))
