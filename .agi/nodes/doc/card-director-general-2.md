@@ -19,16 +19,20 @@ town: core
 Replaced whole, never appended; ≤ 100 lines. Skills: agi-send · agi-goal · agi-verify · agi-rotate · agi-memory-guard · agi-master-gate. Template: doc:unified-director-brief.
 My lane: FALSIFIER lanes first (test-only + a sha), RED on the build's parent, GREEN on a scratch reference, one-edit mutants + named stays-greens; SM gates. Since 10-11 SM also hands me whole leaves (lane + build).
 
-## §0 State (10-12 ~07:5xZ, gen 25: IDLE by OWNER order; nothing in flight, no crons)
+## §0 State (10-14 ~07:xxZ, gen 25: RESUMED, idle lifted; goal = close the g7.16.1 bundle, then season rollover)
 | Field | Value |
 |---|---|
-| Owner rule | 10-12 07:4xZ via SM (verbatim): "Disable keep alive for all posts"; "Be back next week once usage resets on Wednesday". Every post IDLE: no new gate/land/dispatch/review/build/council round; SEND NOTHING (every box mail wakes a post; [red] only for a box-safety emergency); do not box belam until the owner resumes |
-| Board | L13 f632cd4854 LANDED. Stack 14 (my .39.3 bf31d376af + .39.4 f1924541c6, DG5 .22 + .41.1, SM 0ad0eb2e7d) built at b522328480, its full run STOPPED by the order. Stack 15 = DG5 .41 cut 2. Stack 13d: state unknown to me |
-| Gate dir | /data/work/gate-director-general-2: tmp, wt-ren (e52540c669, locked), wt-39-3 (bf31d376af + f1924541c6, locked). ~/scratch/keep = mutants, shims, ref39/ |
+| Owner rule | quiet: mail ONLY SM; ONE message per finished thing, no acks; send nothing else. keepalive is idle-only now |
+| Board | live trunk a35328430e. Stack 14 (my .39.3 bf31d376af + .39.4 f1924541c6, DG5, SM) re-gates; stack 15 = DG5 .41 cut 2. I sent SM 10-14: CLOSE .39.3/.39.4 (stack 14), CLOSE .44.7 after 14 gates (lands after .41); SM: TAKEN, .44.7 stays MINE, DG4 sends me the gate (c) row + mutant (PRE-STOP target scratch mirrors MAIN's refs/grid; non-ff grid line -> rc 6, post still on FROM) and DG4 REVIEWS my cut before SM gates it; .44.7 also closes .44's falsifier 4 |
+| Build wt | /data/work/gate-director-general-2/wt-44-7 (locked) = trunk a35328430e + cherry-picks 4aa6e7ec23 (.39.3) 738a8531e7 (.39.4); .44.7 is cut ON that |
 
-## §1 Plan
-- Done: §2. Idle until the owner resumes. Then, in SM's order: (1) answer any [return] on stack 14 / 15 (re-cut ON the new tip they name, never amend a sent sha); (2) .44.7 'capsule move POST BOX' (goal:g7.16.1.11.44.7; doc g716111-44-capsule-pack section 6: DRY pack in a job-owned clone + TARGET verify + scratch in + refs-dir write probe, all BEFORE the stop; real pack / carry ONE file / in --atomic; RECOVERY [move-in-failed]); replaces box-move.sh's push + after-check lines, KEEPS unit-paths, target-fit and the row edit; ONLY AFTER DG4's core verbs .44.1-.44.4 land (no such goal nodes in my tree on 10-12). When it lands: remove ONLY the refs-write probe from guard/target-fit.sh, KEEP the df floor.
-- Blocked: nothing but the owner's idle order.
+## §1 Plan: .44.7 = box-move.sh's section-6 flow (DECISION: no `move` verb; design doc says box-move.sh CALLS pack/out/verify/in, the piece is 8041 B of 8192; record in THOUGHT)
+- attach = mint_id of .agi/nodes/doc/card-$P.md (absent = rc 5); the piece = extracted inline from HEAD's engine*.md (`### capsule`), run `sh FILE VERB`; AGI_POST required (packer, signs -S)
+- --ref set: exact heads (minus trunk + carry/trunk) + `refs/<ns>/` per non-excluded ns; add `refs/capsule` to the move.exclude cell of guard.md
+- PRE-STOP (after target-fit/unit-paths): bare job repo J (alternates -> MAIN, fetch +refs/*:refs/*), AGI_TRUNK = target's HEAD (DB), `pack $AT post $P`, `out` -> bundle; ship piece+bundle to a target dir under .git/objects/capsule-xfer.*, scratch bare repo (alternates + fetch MAIN's refs) -> `verify` + `in`; refs-write probe moves here from target-fit.sh (keep df floor); any refusal: [refs-reject] <ref>, rc 6, nothing touched (non-ff grid line = DG4's row (c))
+- STOP, row edit, origin push; push carry/trunk (base must be on the target); REAL pack in MAIN -> out -> ship ONE file -> `in` (AGI_TRUNK=refs/heads/carry/trunk); AFTER counts + sysctl unchanged; RECOVERY: `in` refused -> `[move-in-failed]`, row reverted by a 2nd commit, start agi-post@P on FROM
+- lane box-move-refs.t.sh: fixture needs ssh keys + allowed_signers + GIT_CONFIG_GLOBAL signing + AGI_POST + card node + engine-capsule.md in the base commit; the 4 post-receive-hook rows become reference-transaction hooks (recursion-guarded); new rows: dry run leaves MAIN refs/capsule count unchanged · RECOVERY (.lock on a target ref) · gate (c) · mutants RED
+- Next: after build, run box-move-refs/box-move/guard-env/test_grid_writers/test_thought_hygiene; THOUGHT in goal .44.7 + .39.3 nodes; send DG4 the cut for review, then SM.
 
 ## §2 Landed / sent (one line each; shas are the sent ones)
 - g7.16.1.11.5.1 R3b+R1+R2+exception path: 5e451a984a, b6 b3c2ee1482, CLOSE ebf4f82a9c, THOUGHT fix b5635f616c (all on the trunk)
