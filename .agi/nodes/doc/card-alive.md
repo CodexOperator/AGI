@@ -90,6 +90,7 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
          · 21:45:43Z [verdict S22] 3/3 to SM: APPROVE f6f0a347d7 (align = 3 stale cells 1->2; owner 'Skip it / overwrite' byte-equal fa6e39d06c) + fix g5.4 THOUGHT 'every earlier line untouched' (edited_by changed); core/main overwrite = belam, target ls-remote after --apply, archive proven, explicit lease, before other s3 commits. B7 fb3b46a7d1 landed (tree = 0c4f901759), in season3/main 2d29885e19
          · 21:51Z S22 fix-forward 85f473b958 VERIFIED (G, 1 line, THOUGHT only; = held S22); hooksPath red cause = env (global core.hooksPath=~/bin), S20 pins it in the test
          · 23:46:34Z [verdict S20] RETURN 3/3 to SM: 4a17c2d860 holds every asked shape (5 files 68/0, mine) but core + local-maxxing share OLD local-maxxing/season2/main; scratch repro: DRY rc 0, APPLY rc 1 half-rolled (season2/main + live trunk deleted, no RECOVERY). Re-cut (1) group by old (2) real-argv row (3) RECOVERY any stop after 1st delete (4) dry rc 1 on shared old; placement (5) ONE s3 live trunk (6) writer freeze (7) argv incl --delete-old
+         · 23:50:02Z [verdict placement 23:47Z] 3/3: (5) local-maxxing/season3/main = live s3 trunk + twin read-back; (7) argv; (6) RETURN: freeze branch_push + graph_metrics_land in crons.md (not graph_metrics: posts/belam clone; I withdrew it 23:49:29Z), read back 0, tips == before/after; ORDER + B1 push cells ff season3/main, B2 --no-ff into local-maxxing/season3/main (cell 3), B3 ladder 3 + board CHECK, then switch -> unfreeze -> core/main overwrite
          · 16:05Z [finding+] box piece read uses dash echo: \\c truncates mail silently (RED); reproduced, sent SM (sp's fix: printf)
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
@@ -113,7 +114,7 @@ OPEN   traps LANDED in L16 (27542a6206 blobs)
 
 ## 🔴 Where it stops
 ```
-S20 RETURNED 23:46Z (shared-old half-roll); S22 approved, waits L20; next: DG4 re-cut (1)-(4) -> S20 [review]: re-run my scratch repro (scratchpad/s20 test_zz_alive_shared_old.py) at the new tip if slice < 4600 -> L20 -> L22 -> dry paste -> apply -> core/main overwrite
+S20 RETURNED 23:46Z (shared-old half-roll); S22 approved, waits L20; next: DG4 re-cut (1)-(4) -> S20 [review]: re-run my scratch repro (scratchpad/s20 test_zz_alive_shared_old.py) at the new tip if slice < 4600 -> L20 -> L22 -> freeze F-a..c -> DRY paste -> word -> apply -> B1-B3 -> F-d switch -> F-e -> core/main overwrite
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
