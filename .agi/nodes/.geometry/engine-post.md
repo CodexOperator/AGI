@@ -22,10 +22,11 @@ brief.py           810 B  the complex walk over parents: edges
 agi-meter          616 B  past rotate_pct of the window: out-line
 agi-at             996 B  signed CAS commit of ~/t paths to posts/<P>
 grow.py           3228 B  the growth-order check both writers call
-agi-turn          4358 B  a signed commit per changed node tree
+agi-turn           4486 B  a signed commit per changed node tree
 agi-wt            1506 B  a node's tiny RAM tree: pull; drop = turn + purge
 agi-track           89 B  strace sink: each path once
-agi-flush         1120 B  drop trees, turn, merge trunk
+agi-flush           942 B  drop trees, turn (its agi-sync merges)
+agi-sync           2579 B  merge the trunk each turn; a conflict said by name
 agi-out           3357 B  the out-line: next keys, ring commit, re-wrap, swap
 gitconfig          196 B  signed commits against root's allowed_signers
 pre-commit          639 B  refuses a plain commit on a detached ~/t
@@ -124,10 +125,10 @@ except BaseException as e:print("[spawn-gate-broken] spawn_gate.py: "+repr(e)[:1
 sys.exit(b)
 ~~~
 
-### agi-turn (4358 B)
+### agi-turn (4486 B)
 ~~~sh
 #!/bin/sh
-# agi-turn: each changed node tree = ONE grid commit on posts/P (temp index from the tip, signed, CAS); the tip moved it since pull = archived + dropped; a tree is purged ONLY once its commit is proven AND the whole tree is clean against it (agi-turn chk DIR COMMIT: a file outside .p keeps it, [dirty]; a git failure keeps it too); agi-turn purge DIR = that check then rm, else EVERY file of the tree goes to refs/archive/P/<dir> (signed, CAS), [kept] names it, rc 1; a kid (AGI_ROLE=kid, which agi-kid sets), no AGI_POST or no posts/P = rc 5, nothing committed (the SAME guard line before any WRITE in agi-at, agi-turn and agi-flush (chk and c() only read, so they run before it); a Stop hook must never exit 2); the staged tree goes through grow.py (a NEW .agi/nodes node must pass spawn_gate; an edit never does; a refusal or a broken checker = ONE bracketed line, rc 1, nothing committed, the tree kept); BEFORE the detach, `agi-turn strand` (agi-flush calls it too, ONE guard): a detached HEAD that carries commits on no ref is REFUSED by name ([strand-refused], rc 1, HEAD left where it is; it never folds: agi-at is the one write path); [strand-refused] and [out-of-tree] go to stderr AND, through `agi-notice add` (one line per distinct notice), to ~/.notice, which agi-notice (called first by agi-brief and agi-meter) claims and prints once on stdout into the post's context; any failure keeps the tree (rc != 0, a [label]); ~/t = a detached read view
+# agi-turn: each changed node tree = ONE grid commit on posts/P (temp index from the tip, signed, CAS); the tip moved it since pull = archived + dropped; a tree is purged ONLY once its commit is proven AND the whole tree is clean against it (agi-turn chk DIR COMMIT: a file outside .p keeps it, [dirty]; a git failure keeps it too); agi-turn purge DIR = that check then rm, else EVERY file of the tree goes to refs/archive/P/<dir> (signed, CAS), [kept] names it, rc 1; a kid (AGI_ROLE=kid, which agi-kid sets), no AGI_POST or no posts/P = rc 5, nothing committed (the SAME guard line before any WRITE in agi-at, agi-turn and agi-flush (chk and c() only read, so they run before it); agi-sync runs at the end of EVERY turn, before the detach: the trunk is merged each turn or its conflict said by name; a Stop hook must never exit 2); the staged tree goes through grow.py (a NEW .agi/nodes node must pass spawn_gate; an edit never does; a refusal or a broken checker = ONE bracketed line, rc 1, nothing committed, the tree kept); BEFORE the detach, `agi-turn strand` (agi-flush calls it too, ONE guard): a detached HEAD that carries commits on no ref is REFUSED by name ([strand-refused], rc 1, HEAD left where it is; it never folds: agi-at is the one write path); [strand-refused] and [out-of-tree] go to stderr AND, through `agi-notice add` (one line per distinct notice), to ~/.notice, which agi-notice (called first by agi-brief and agi-meter) claims and prints once on stdout into the post's context; any failure keeps the tree (rc != 0, a [label]); ~/t = a detached read view
 cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;x=$(mktemp -u);trap 'rm -f $x $x.l' 0;export GIT_INDEX_FILE=$x;k=0
 c(){ [ "$2" ]&&git read-tree $2&&git --work-tree=$1 diff --name-only --diff-filter=MT>$x.l&&git --work-tree=$1 ls-files -o>>$x.l||return 2;l=$(grep -vxF -e .p -e .b $x.l|tr '\n' ' ');[ -z "$l" ];}
 [ "$1" = chk ]&&{ c $2 $3;r=$?;[ $r = 0 ]&&exit;[ $r = 1 ]&&echo "[dirty] $(basename $2): kept, not in the commit: $l">&2||echo "[dirty] $(basename $2): kept, cannot read it against '$3'">&2;exit 1;}
@@ -142,7 +143,7 @@ for d in ${AGI_WT:-$RUNTIME_DIRECTORY/wt}/*/;do [ -f $d.p ]||continue;m=$(basena
  c=$(echo "$P: $(sed q $d.p)"|git commit-tree -S -p $t $q $n 2>&1)||{ echo "[commit] $m: cannot sign or commit: $c">&2;k=1;continue;}
  git update-ref $r $c "$o"||{ echo "[raced] $m">&2;k=4;continue;}
  [ $r = $b ]&&{ echo $c>$d.b;continue;};agi-turn chk $d $c&&{ echo "[moved] $m: changed on the tip since pull; your version is $r, the tree is dropped">&2;rm -rf $d;continue;};echo "[moved] $m: your version is $r, the tree is KEPT">&2;k=1;done
-unset GIT_INDEX_FILE;if agi-turn strand;then git checkout -q --detach $b;else k=1;fi;git status -s|grep -q .&&{ m="[out-of-tree] ~/t has $(git status -s|wc -l) unversioned change(s): edit in a node's tree (agi-wt pull)";echo "$m">&2;agi-notice add "$m";};exit $k
+unset GIT_INDEX_FILE;agi-sync;if agi-turn strand;then git checkout -q --detach $b;else k=1;fi;git status -s|grep -q .&&{ m="[out-of-tree] ~/t has $(git status -s|wc -l) unversioned change(s): edit in a node's tree (agi-wt pull)";echo "$m">&2;agi-notice add "$m";};exit $k
 ~~~
 
 ### pre-commit (639 B)
@@ -195,13 +196,28 @@ drop)[ -d $d ]||{ echo "agi-wt: no tree $d for $2 (a 'new' tree is dropped by ag
 grep --line-buffered -o '"/[^"]*"'|awk '!s[$0]++{print;fflush()}'>>$HOME/track
 ~~~
 
-### agi-flush (1120 B)
+### agi-flush (942 B)
 ~~~sh
 #!/bin/sh
-# agi-flush: the writer guard before any write (a kid, no AGI_POST or no posts/P = rc 5, nothing written), then land every tree (4 turns), then agi-turn purge each dir left under $AGI_WT, found by DIR (pulled or new): clean = removed, anything else = kept whole on refs/archive/P/<dir> and [kept]: rc 0 iff no tree remains; then merge the trunk, resolved ONCE; the final detach runs only if `agi-turn strand` passes (else rc 1, HEAD left)
+# agi-flush: the writer guard before any write (a kid, no AGI_POST or no posts/P = rc 5, nothing written), then land every tree (4 turns), then agi-turn purge each dir left under $AGI_WT, found by DIR (pulled or new): clean = removed, anything else = kept whole on refs/archive/P/<dir> and [kept]: rc 0 iff no tree remains; then the trunk merge is agi-turn's (agi-sync, run at the end of every agi-turn, its conflict said by name); the final detach runs only if `agi-turn strand` passes (else rc 1, HEAD left)
 cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;{ [ "$P" ]&&[ "$AGI_ROLE" != kid ]&&git rev-parse -q --verify $b>/dev/null;}||{ echo "[no-branch] $P: a kid, or no posts/$P: nothing committed">&2;exit 5;};w=${AGI_WT:-$RUNTIME_DIRECTORY/wt};agi-turn||agi-turn||agi-turn||agi-turn;k=$?;for d in $w/*/;do [ -d $d ]&&{ agi-turn purge $d||[ $k != 0 ]||k=1;};done
-t=$(git rev-parse $b)&&T=$(git rev-parse ${AGI_TRUNK:-trunk})&&! git merge-base --is-ancestor $T $b&&n=$(git merge-tree --write-tree $b $T)&&c=$(echo "$AGI_POST: merge ${AGI_TRUNK:-trunk}"|git commit-tree -S -p $t -p $T $n)&&git update-ref $b $c $t
 if agi-turn strand;then git checkout -q --detach $b;else k=1;fi;exit $k
+~~~
+
+### agi-sync (2579 B)
+~~~sh
+#!/bin/sh
+# agi-sync: merge the trunk into posts/P and SAY a failure by name (goal:g7.16.1.11.41 targets 2-4). A posts/P merely BEHIND the trunk moves by CAS to the trunk tip, no commit (board_job.py land refuses a non-own commit); a clean divergence = one signed merge commit (CAS); a CONFLICT leaves the branch as it is and writes [trunk-conflict] P: N path(s) conflict with TRUNK: paths to ~/.notice (agi-notice, so it comes back once per turn while it lasts) and boxes the nearest HARNESSED ancestor (an inert council / keep row is skipped; the walk stops BELOW the row whose role is prime_director: a chain that reaches the Prime = notice only, owner 10-11 never box belam; none = notice only) once per conflict EPISODE (~/.trunk-boxed = a hash of the path set: it changes or clears when the paths do or a merge goes through; stamped even when the box is refused, so never retried every turn); any other failure = [trunk-merge-failed]. Run at the end of EVERY agi-turn and by agi-flush. A kid or no posts/P = nothing. Always rc 0.
+set -f;cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;R=${AGI_TRUNK:-trunk}
+{ [ "$P" ]&&[ "$AGI_ROLE" != kid ]&&t=$(git rev-parse -q --verify $b);}||exit 0
+T=$(git rev-parse -q --verify $R^{commit})||{ agi-notice add "[trunk-merge-failed] $P: $R does not resolve to a commit";exit 0;}
+git merge-base --is-ancestor $T $b&&{ rm -f ~/.trunk-boxed;exit 0;}
+git merge-base --is-ancestor $b $T&&{ git update-ref $b $T $t||agi-notice add "[trunk-merge-failed] $P: cannot move posts/$P";rm -f ~/.trunk-boxed;exit 0;}
+n=$(git merge-tree --write-tree --name-only $b $T 2>/dev/null);r=$?;[ $r = 1 ]||rm -f ~/.trunk-boxed
+case $r in 0)c=$(echo "$P: merge $R"|git commit-tree -S -p $t -p $T $n)&&git update-ref $b $c $t||agi-notice add "[trunk-merge-failed] $P: cannot sign or move posts/$P";;
+1)l=$(echo "$n"|sed 1d|sed '/^$/q'|grep .|sort -u);m="[trunk-conflict] $P: $(echo "$l"|grep -c .) path(s) conflict with $R: $(echo $l|cut -c1-300)";echo "$m">&2;agi-notice add "$m"
+ e=$(echo "$l"|git hash-object --stdin);[ "$(cat ~/.trunk-boxed 2>/dev/null)" = $e ]||{ u=$(git show $T:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -sr --arg p $P 'map({(.name):.})|add as $r|def up(x;n):if n>20 then empty else (($r[x]//{}).parent//empty) as $q|if ($r[$q]//{}|has("harness")) then (if $r[$q].role=="prime_director" then empty else $q end) else up($q;n+1) end end;up($p;0)'|head -1);[ "$u" ]&&echo "$m (trunk $(echo $T|cut -c1-10))"|box send $u;echo $e>~/.trunk-boxed;};;
+*)agi-notice add "[trunk-merge-failed] $P: git merge-tree rc $r against $R";;esac;exit 0
 ~~~
 
 ### agi-out (3357 B)

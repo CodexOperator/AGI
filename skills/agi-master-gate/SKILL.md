@@ -107,6 +107,7 @@ bodies       a node landed for ONE fix still carries the loop's OTHER known erro
 ```
 
 ## Suites and reds — run, attribute, never guess
+- `-p no:cacheprovider` makes `--lf` run NOTHING (no cache to read): to name failures re-run with `-rf`, never `--lf` (SM gen 39)
 ```
 suite        ON DISK (belam [rule] 14:2xZ 10-11, skill agi-memory-guard: tmpfs is charged to agi.slice): git worktree add --detach ~/gate/<gate> M + TMPDIR=~/gate/tmp (chmod 700); /dev/shm only while the slice is under 4600 MiB (NEVER a tmp name that starts with the gate path: test_commands' ENGINE_ROOT substring check reds -- gen 27, /dev/shm/gate-mu9 + gate-mu9-tmp) -> no disk writes, 13:20; remove both after (STOPPING one = kill every pid whose /proc/<pid>/cwd is the gate path, THEN remove
              it: a test spawns pytest in its OWN session -- gen 26's orphan 2318135 reddened DT's test_suite_no_detached_spawn) · suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
@@ -135,6 +136,16 @@ lanes       the FULL suite is PYTEST ONLY: the extensions/agi/tests/*.t.sh lanes
                lanes that build scratch repos then write the REAL one (aio 10-11 09:56Z: moved posts/director-general-1, created refs/heads/trunk)
              · a lane with a TRUNK arg (agi-out-*, aa3, ckpt, grow-gate-*, agi-land-bounds) extracts from that REF -> pass the CANDIDATE commit
                as T (the lane REFUSES a bare run: exit 2 '[no-candidate]'; trunk-arg-lanes.t.sh guards the 17); a green that does not change when the piece changes is no gate (SM gen 33 AA1.V: vacuous 44/0, 9 RED landed)
+post uid    the full engine pytest as a POST uid on a /data gate tree (goal:g7.16.1.11.43, DG3 10-11: 8,970 collected, 0 failed, the 9 embeddings / renderers
+             collection errors on their own line) · env -u TMUX -u TMUX_PANE, GIT_CONFIG_GLOBAL=/dev/null (the leak asserts read the spawn-channel family only), nice 10,
+             TMPDIR and --basetemp in /data/work/gate-<post> (the workflow leak guard accepts the basetemp as a tmp root) · a post uid's env carries
+             GIT_AUTHOR_* / GIT_COMMITTER_*: a fixture that commits inherits that identity (test_rotate_prepare's 'unpushed by author' read 'other author');
+             a test that needs an identity sets its own · a post uid cannot read MAIN's .env and has no pi: provisioning.available() reads EACCES as ABSENT,
+             the conftest points PI_BIN at a stub for test_workflow* (a test that runs a fake pi sets PI_BIN to it) · a stage-return test stubs
+             _stage_context: the real build is viewport.py over the whole graph, 70-160 s at box load vs the 60 s context cap · a SPLIT run (a self-stop at PSI full
+             avg60 > 10 cut one at 35%) is order-sensitive: `chain_engine` (the engine package) and tests/chain_engine/ share a name, so a resume that skips
+             test_chain_engine.py reads 14 false reds in test_links + tests/chain_engine/ -> resume from the failing file's EARLIEST importer, or re-run the three together
+             · kill the python CHILD of `timeout` on a self-stop (kill $timeout_pid alone leaves pytest running)
 detached    my setsid-nohup suite fails 3 tests that pass alone 5/5: test_dashboard::test_watch_exits_cleanly_on_sigint + 2x
              test_suite_no_detached_spawn -- the LAUNCH, not the range (3 gates 09-26, 6455 passed each; a director's in-pane run = 6458/0)
              · gen 26 (a125bad37's gate, the tree with DH.381's conftest guard): 6642 passed / 0 failed -- NONE of the 3 appeared: re-attribute
@@ -238,3 +249,13 @@ PASS         the Prime's PASS launcher WAITS while any suite lock is live (belam
 - a FULL pytest on /dev/shm (tree + a 1 GB TMPDIR basetemp) is charged to agi.slice: it pushed every post into reclaim (mem PSI full 20, swap 0.9 GB, slice at MemoryHigh; belam [red] 12:4xZ 10-11) -> the full suite runs with its basetemp on a /data disk dir, niced, only when MemAvailable and the slice have room (ask belam when near MemoryHigh); else targeted files only (SM gen 38)
 - a 'text only' batch (goal / town / doc nodes) shipped with NO lanes reddened graph-metrics.t.sh on the trunk: its r3b hard-codes the town node's 'other writer' (TM set edited_by: thought-master; SM gen 38, ea72c8050d) -> every range runs the lanes that NAME a changed node file: `git grep -l -F <node file basename> -- 'extensions/agi/tests/*.t.sh'`, on the gate AND the trunk
 - a range that adds a `git push` / refs literal anywhere under extensions/ src/ .geometry reds test_grid_writers.py C5/C6 (pinned push sites), which NO lane sees (DG2 .39 build 85ad9a010b, SM gen 38) -> every gate runs test_grid_writers.py, not only for engine*.md changes
+- a lspci-derived GPU probe matched '(rev xx)' = a vacuous 0 -> strip the rev suffix and assert the probe is not it (SM gen 38)
+- `box read` with its output discarded (>/dev/null) marks mail read unseen -> never; if it happens, re-check refs/box/*/<me> dates (SM gen 38)
+- a for-loop piped into tee runs in a subshell: its last sha was empty in the parent -> write shas to a file, read them back (SM gen 38)
+- a master edit built on a director's UNLANDED version of a node lands their text without their code -> base node edits on the TRUNK's text (SM gen 38)
+- a merge-tree conflict label is the tip's FULL sha -> match conflict blocks by regex, assert 0 markers after (SM gen 38)
+- crons.py apply refuses a linked worktree -> measure a cron line's first live apply on a `git archive` copy (extensions + .agi/nodes/.geometry, git init) with --crontab-file / --user-crontab-dir fixtures (SM gen 39)
+- a bare `git worktree prune` on MAIN's shared .git drops EVERY entry whose path the running uid cannot stat -- every post's 700 gate dir (SM gen 39: my own 'remove, then prune' ask to DG2 + DG4 at 17:0xZ voided my 3 /data gate trees, the full suite's included, and re-created several posts' ~/t entries) -> never prune bare; remove your own tree by path (`git worktree remove <path>`); gate trees are `git worktree add --lock` (prune skips a locked entry)
+- a grep for '/home/' read three fixture lines as harmless, but belam's landing guard (anonymize.py check, HOME_PATH_RE) refused L d6bef9de69 on a home-path-shaped lane fixture under `$T` (SM gen 39) -> at the gate run anonymize.HOME_PATH_RE itself over the added lines of diff(trunk, L) and require 0; a post uid cannot run the full `anonymize.py check` (it reads MAIN's .env), so the home class is the one you run; lane fixtures use `$T/hm`, never a home-shaped dir under `$T`
+- HOME_PATH_RE run AS A POST UID knows only /home/, /Users/, uid 1000..65533 homes and $HOME: the post users are system uids, so a peer's home (the Prime's) reads 0 and belam's guard (run as agi-belam) refuses it (SM gen 40: 46a67827c7 returned on .42's crons.md log path, a test and a message) -> at the gate ALSO match every passwd home of ANY uid under the agi state root and /data (pwd.getpwall()), over the added lines AND every message of the range
+- "bytes only" in a review -> check what agi-post@ extracts at each start (engine.md + engine-[pw]*.md): live at the next restart, no host act (alive gen 10)

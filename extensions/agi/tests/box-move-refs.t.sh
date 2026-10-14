@@ -9,6 +9,7 @@
 #   origin (public) gets exactly what it gets today: HEAD to refs/heads/local-maxxing/season2/main, no other ref.
 #   (goal:g7.16.1.11.39 round 2, council 16:21Z) PREFLIGHT: BEFORE `systemctl stop` and BEFORE the posts-row edit, `git push --dry-run --porcelain` of the SAME refspecs; any '!' line = `[refs-reject] <ref> ...` on stderr, rc 6, nothing touched (the post still runs, the row is unmoved, origin and target are written nothing). A TWO-PART ref (refs/stash) cannot be pushed at all (git receive-pack refuses a 'funny ref'): it is not counted, and each one is REPORTED on stdout as `refs <ref> skipped: ...`, never lost silently (the alternative the council named: exclude it with its reason). The after-check is an IDENTITY check of ref NAMES (a carried namespace with m >= n but one source ref name absent on the target = `[refs-short] <ns> before=<n> after=<m> missing=<k> first=<ref>`); a ref present at another sha is a live writer's race and is not refused (the limit, named).
 #   (goal:g7.16.1.11.39.1) UNIT PATHS: BEFORE the stop and the row edit, extensions/agi/guard/unit-paths.sh runs ON THE TARGET (ssh `sh -s POST Key=path...` < the script, AGI_BOX=<target>) and reads the units as RENDERED there (`systemctl cat agi-post@POST.service`, agi-boxwake@POST.service): every host path they name must exist: the command word of each Exec* line (past the - @ + ! : prefixes, and past `env` options / VAR=val), WorkingDirectory, EnvironmentFile, ReadWritePaths, ReadOnlyPaths. A leading '-' is NOT a pass. A missing one = `[unit-path] <unit> <Key> <path> missing on <box>` on stderr, rc 7, nothing touched; agi-post@ unreadable = `[unit-path] <unit> unreadable on <box>`, rc 7. The NAMED exemptions (a path host-act creates after the check, one a post may lack) are the fenced block ```sh move.unit-optional``` of the same config:guard node, `Key path  reason`. /run /proc /dev /sys, non-absolute words and $-words are not checked (the script header says so). It only READS.
+#   (goal:g7.16.1.11.40.1.1 target 3a) SYSCTL AFTER-CHECK (the kernel is faked TWICE, a stub `sysctl` on PATH AND a proc dir PROC_SYS=$T/proc, both answering ${SYSCTL_LIVE:-200}, so the lane is green with the sysctl-reading script and with the /proc/sys-reading one): after the refs after-check and BEFORE the post starts, guard/sysctl-check.sh runs ON THE TARGET (`ssh sh -s` < the script): its /etc/sysctl.d/60-agi-vm.conf must be there and agree with the live kernel; else `[sysctl-check]` on stderr, rc 8, the post not started.
 #   box-move.t.sh stays green: the file keeps exactly ONE line holding `$E "cd /data/work/agi`.
 # One ok/FAIL line per case; exit = number of FAILs.
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};SRC=${SRC:-$R0/extensions/agi/guard/box-move.sh}
@@ -18,10 +19,13 @@ export GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@t GIT_COMMITTER_NAME=t GIT_COMMITTER
 P=p1;B=$T/bin;mkdir -p $B;TGT=$T/f/w;export TGT
 printf '#!/bin/sh\nwhile [ "$1" = -n ];do shift;done\ncase "$1 $2 $3" in "test -f "*/h.conf)exit 1;;esac\nexec "$@"\n' >$B/sudo
 printf '#!/bin/sh\ncase "$1" in cat)d=$UNITS_S;[ -n "$ON_TARGET" ]&&d=$UNITS_T;[ -f "$d/$2" ]&&exec cat "$d/$2";exit 1;; esac\necho "$*" >>%s/ctl.log\ncase "$1" in is-active)exit 1;; show)echo "running 0";; esac\nexit 0\n' $T >$B/systemctl
-printf '#!/bin/sh\nwhile :;do case "$1" in -F|-o)shift 2;; -*)shift;; *)break;;esac;done\nshift\nexec env ON_TARGET=1 sh -c "$(printf %%s "$*"|sed "s#/data/work/agi#$TGT#g")"\n' >$B/ssh
+printf '#!/bin/sh\nwhile :;do case "$1" in -F|-o)shift 2;; -*)shift;; *)break;;esac;done\nshift\nexec env ON_TARGET=1 SYSCTL_D=%s/sysd-t PROC_SYS=%s/proc sh -c "$(printf %%s "$*"|sed "s#/data/work/agi#$TGT#g")"\n' $T $T >$B/ssh
 case $T in /dev/*|/run/*|/proc/*|/sys/*)echo "FAIL tmp: TMPDIR $T is under /dev /run /proc /sys, which the unit-path check does not read (a vacuous pass): use a disk dir";exit 99;; esac
 UP=${UP:-$(dirname $SRC)/unit-paths.sh};[ -s $UP ]||UP=$R0/extensions/agi/guard/unit-paths.sh
-mkdir -p $T/host $T/us $T/ut;: >$T/host/agi-signers;: >$T/host/agi-signers-repoint;mkdir -p $T/host/rw;UNITS_S=$T/us;UNITS_T=$T/ut;export UNITS_S UNITS_T
+SC=${SC:-$(dirname $SRC)/sysctl-check.sh};[ -s $SC ]||SC=$R0/extensions/agi/guard/sysctl-check.sh
+mkdir -p $T/host $T/us $T/ut;: >$T/host/box-carry;: >$T/host/agi-signers;: >$T/host/agi-signers-repoint;mkdir -p $T/host/rw;UNITS_S=$T/us;UNITS_T=$T/ut;export UNITS_S UNITS_T
+printf '#!/bin/sh\n[ "$1" = -n ]&&echo ${SYSCTL_LIVE:-200}\n' >$B/sysctl
+sysd(){ mkdir -p $1;printf '# the vfs cache stopgap\nvm.vfs_cache_pressure = 200\n' >$1/60-agi-vm.conf; }
 chmod +x $B/*;: >$T/sshconf
 cat >$T/node.md <<'XX'
 # config:guard (fixture)
@@ -31,18 +35,18 @@ refs/remotes  a remote-tracking ref is a copy of origin's; the target fetches it
 XX
 printf '```sh move.unit-optional\nWorkingDirectory %s/hm/%%i  host-act move creates the post home after this check\nEnvironmentFile %s/hm/%%i.env  an env file a post may not have\n```\n' $T $T >>$T/node.md
 # units: the SAME good unit on both boxes by default; a row edits ONE side (the target's: ut)
-unitgood(){ printf '[Service]\nWorkingDirectory=%s/hm/%%i\nEnvironmentFile=-%s/hm/%%i.env\nExecStartPre=+/usr/bin/env -i PATH=/usr/bin:/bin %s/host/agi-signers %%i\nExecStartPre=-+%s/host/agi-signers-repoint %%i\nExecStart=sh -c x\nExecStopPost=sh -c agi-flush\nReadWritePaths=-%s/host/rw /run/agi-%%i\n' $T $T $T $T $T >$1/agi-post@p1.service; }
+unitgood(){ printf '[Service]\nWorkingDirectory=%s/hm/%%i\nEnvironmentFile=-%s/hm/%%i.env\nExecStartPre=+/usr/bin/env -i PATH=/usr/bin:/bin %s/host/agi-signers %%i\nExecStartPre=-+%s/host/agi-signers-repoint %%i\nExecStart=sh -c x\nExecStopPost=sh -c agi-flush\nReadWritePaths=-%s/host/rw /run/agi-%%i\n' $T $T $T $T $T >$1/agi-post@p1.service;printf '[Service]\nExecStart=%s/host/box-carry\n' $T >$1/agi-carry@p1.service; }
 unitgood $T/us;unitgood $T/ut
 # fix: a fresh source (s) + origin (o, bare) + target (w, a clone of s before the move) in $T/f; the source's refs are listed in $T/f/pre (name sha) before the run
-fix(){ rm -rf $T/f;mkdir -p $T/f;: >$T/ctl.log;unitgood $T/us;unitgood $T/ut;cd $T/f;git init -q -b local-maxxing/season2/main s;git init -q --bare o
+fix(){ rm -rf $T/f $T/sysd-s $T/sysd-t;mkdir -p $T/f;sysd $T/sysd-s;sysd $T/sysd-t;export SYSCTL_D=$T/sysd-s;unset SYSCTL_LIVE;: >$T/ctl.log;unitgood $T/us;unitgood $T/ut;cd $T/f;git init -q -b local-maxxing/season2/main s;git init -q --bare o
  ( cd s;mkdir -p .agi/nodes/.geometry extensions/agi/guard
   printf '%s\n' '  - {"name": "p1", "engine": {"v": 4}, "box": "local-town"}' '  - {"name": "p2", "engine": {"v": 4}, "box": "local-town"}' >.agi/nodes/.geometry/posts.md
-  printf 'echo act\nexit 0\n' >extensions/agi/guard/host-act-encryption-town.sh;cp $UP extensions/agi/guard/unit-paths.sh;git add .;git commit -q -m base;git remote add origin $T/f/o )
+  printf 'echo act\nexit 0\n' >extensions/agi/guard/host-act-encryption-town.sh;cp $UP extensions/agi/guard/unit-paths.sh;cp $SC extensions/agi/guard/sysctl-check.sh;git add .;git commit -q -m base;git remote add origin $T/f/o )
  git clone -q s w;git -C w remote remove origin
  ( cd s;t=$(git rev-parse HEAD^{tree});for r in heads/posts/p1 heads/dg4-x heads/other grid/n1/1 grid/n2/1 box/a/b/1 box/a/b/2 held/a/b/1 archive/p1/dir1 archive/p2/dir2 agi/x tags/v1 novel/q/r remotes/origin/main stash;do git update-ref refs/$r $(git commit-tree -m $r $t);done )
  git -C s for-each-ref --format='%(refname) %(objectname)' >$T/f/pre; }
 # go NODE: run the move in the source; sets rc, $T/out, $T/err
-go(){ ( cd $T/f/s&&PATH=$B:$PATH AGI_MOVE_SSH=$T/sshconf AGI_MOVE_EXCLUDE_NODE=${1:-$T/node.md} sh $SRC move $P >$T/out 2>$T/err );rc=$?; }
+go(){ mkdir -p $T/proc/vm;echo ${SYSCTL_LIVE:-200} >$T/proc/vm/vfs_cache_pressure;( cd $T/f/s&&PATH=$B:$PATH AGI_MOVE_SSH=$T/sshconf AGI_MOVE_EXCLUDE_NODE=${1:-$T/node.md} sh $SRC move $P >$T/out 2>$T/err );rc=$?; }
 # cnt REPO NS: how many refs of REPO sit under refs/<NS>/
 cnt(){ git -C $1 for-each-ref --format='%(refname)' refs/$2/|wc -l|tr -d ' '; }
 started(){ grep -q "^start agi-post@$P" $T/ctl.log; }
@@ -100,10 +104,21 @@ ut1 "s#$T/host/agi-signers %i#$T/host/gone-signers %i#"
 ok "refs-unit-paths-an-env-wrapped-command-is-checked ExecStartPre=+/usr/bin/env -i PATH=.. <path>/gone-signers %i: the command behind env is named missing ($(grep '^\[unit-path\]' $T/err|head -c 200)), rc $rc (want 7)" '[ $rc = 7 ]&&grep -q -F "ExecStartPre $T/host/gone-signers missing" $T/err'
 ut1 "s#^ReadWritePaths=-$T/host/rw #ReadWritePaths=-$T/host/gone-rw #"
 ok "refs-unit-paths-read-write-paths-are-checked a missing ReadWritePaths entry behind '-' ends rc $rc (want 7) naming $T/host/gone-rw ($(grep -c 'gone-rw missing' $T/err) line)" '[ $rc = 7 ]&&grep -q -F "ReadWritePaths $T/host/gone-rw missing" $T/err'
+ut2(){ fix;sed "$1" $T/ut/agi-carry@p1.service >$T/ut/x&&mv $T/ut/x $T/ut/agi-carry@p1.service;h0=$(git -C $T/f/s rev-parse HEAD);go; }
+ut2 "s#$T/host/box-carry#$T/host/gone-carry#"
+ok "refs-unit-paths-the-carry-unit-is-checked-too (goal:g7.16.1.11.39.2) the target's rendered agi-carry@p1.service names a missing ExecStart path: rc $rc (want 7) with '[unit-path] agi-carry@p1.service ExecStart $T/host/gone-carry missing on encryption-town' ($(grep -c 'agi-carry@p1.service ExecStart '$T'/host/gone-carry missing on encryption-town' $T/err) line), the post not stopped or started, the row unmoved" '[ $rc = 7 ]&&grep -q -F "[unit-path] agi-carry@p1.service ExecStart $T/host/gone-carry missing on encryption-town" $T/err&&untouched'
 fix;rm -f $T/ut/agi-post@p1.service;go
 ok "refs-unit-paths-an-unreadable-unit-refuses the target has no agi-post@p1.service to read: rc $rc (want 7), '[unit-path] agi-post@p1.service unreadable on encryption-town' ($(grep '^\[unit-path\]' $T/err|head -c 160)), nothing touched" '[ $rc = 7 ]&&grep -q -F "[unit-path] agi-post@p1.service unreadable on encryption-town" $T/err&&[ ! -s $T/ctl.log ]'
 printf '# config:guard (fixture)\n```sh move.exclude\nrefs/remotes  a copy of origin\n```\n' >$T/node-noopt.md;fix;go $T/node-noopt.md
 ok "refs-unit-paths-the-exemptions-are-the-cells-and-nothing-else with NO move.unit-optional block the target's home paths ($T/hm/p1) are not exempt: rc $rc (want 7), '[unit-path] ... WorkingDirectory $T/hm/p1 missing' ($(grep -c 'WorkingDirectory '$T'/hm/p1 missing' $T/err) line)" '[ $rc = 7 ]&&grep -q -F "WorkingDirectory $T/hm/p1 missing" $T/err'
+
+# goal:g7.16.1.11.40.1.1 target 3a (DG1's guard/sysctl-check.sh) as an AFTER-check: the TARGET's /etc/sysctl.d/60-agi-vm.conf must be there and live. The SOURCE's stays good (a check that runs on the source passes wrongly).
+fix;go
+ok "refs-sysctl-check-good-target-completes the target has 60-agi-vm.conf and the kernel agrees: rc $rc (want 0), the post started ($(started&&echo yes||echo no)), stdout carries the check's 'ok vm.vfs_cache_pressure' ($(grep -c '^ok vm.vfs_cache_pressure' $T/out) line)" '[ $rc = 0 ]&&started&&grep -q "^ok vm.vfs_cache_pressure" $T/out'
+fix;rm -f $T/sysd-t/60-agi-vm.conf;go
+ok "refs-sysctl-check-a-dropped-conf-refuses the target LOST 60-agi-vm.conf (a box move or a reinstall drops it): rc $rc (want 8), '[sysctl-check]' on stderr ($(grep -c '^\[sysctl-check\]' $T/err) line), 'RED sysctl' on stdout, and agi-post@$P is NOT started on the target (ctl: $(tr '\n' '|' <$T/ctl.log))" '[ $rc = 8 ]&&grep -q "^\[sysctl-check\]" $T/err&&grep -q "^RED sysctl" $T/out&&! started'
+fix;SYSCTL_LIVE=100;export SYSCTL_LIVE;go;unset SYSCTL_LIVE
+ok "refs-sysctl-check-a-file-the-kernel-does-not-hold-refuses the conf says 200 but the kernel has 100 (sysctl --system not run): rc $rc (want 8), the post is NOT started" '[ $rc = 8 ]&&! started'
 
 # the cell is the ONLY list
 sed 's#^refs/remotes .*#&\nrefs/agi  scratch bookkeeping the target rebuilds#' $T/node.md >$T/node-add.md;fix;go $T/node-add.md

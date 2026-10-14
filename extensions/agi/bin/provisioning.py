@@ -54,6 +54,7 @@ the key is absent.
 from __future__ import annotations
 
 import datetime
+import errno
 import json
 import math
 import os
@@ -150,21 +151,32 @@ class MintedKey:
     expires_at: str
 
 
-def _read_provisioning_key(root: Path | str | None = None) -> str | None:
-    """The provisioning key, or None. Read through the graph, never os.environ.
+def _provisioning_key_state(root: Path | str | None = None) -> tuple[str | None, str | None]:
+    """`(key, unreadable)`: the THREE states of the provisioning key. `(key, None)` = set; `(None, None)` = absent;
+    `(None, "EACCES")` = the env file exists but this uid cannot read it (the key may well be SET).
 
-    `envfile` resolves the env file's path from `.geometry/secrets.md`, so the
-    location stays a fact the graph states once (`goal:g10.2`) rather than a
-    literal repeated here.
+    Read through the graph, never os.environ. `envfile` resolves the env file's path from `.geometry/secrets.md`,
+    so the location stays a fact the graph states once (`goal:g10.2`) rather than a literal repeated here.
+    Never raises. Dispatch reads an unreadable file as absent (`_read_provisioning_key`); only the `status` line
+    tells the two apart (goal:g7.16.1.11.43.1: an unreadable file is never reported as "not set").
     """
     try:
         res = envfile.resolve(str(root) if root is not None else None)
     except Exception:
-        return None
-    if not res.env_file.is_file():
-        return None
-    value = envfile.read_env(res.env_file).get(PROVISIONING_KEY_VAR, "")
-    return value or None
+        return None, None
+    try:
+        if not res.env_file.is_file():
+            return None, None
+        value = envfile.read_env(res.env_file).get(PROVISIONING_KEY_VAR, "")
+    except OSError as exc:   # goal:g7.16.1.11.43: a post uid cannot read MAIN's .env (EACCES)
+        return None, errno.errorcode.get(exc.errno or 0, type(exc).__name__)
+    return (value or None), None
+
+
+def _read_provisioning_key(root: Path | str | None = None) -> str | None:
+    """The provisioning key, or None (absent OR unreadable: `available` never raises, so an unreadable env file
+    reads as ABSENT for dispatch; `provisioning.py status` alone names the difference)."""
+    return _provisioning_key_state(root)[0]
 
 
 def available(root: Path | str | None = None) -> bool:
@@ -1518,8 +1530,13 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if not available(args.root):
-        print(f"provisioning: unavailable ({PROVISIONING_KEY_VAR} not set) — "
-              f"the loop falls back to the shared {RUNTIME_KEY_VAR}")
+        unreadable = _provisioning_key_state(args.root)[1]
+        if unreadable:   # the key may be SET: this uid only cannot READ the file (name it MAIN's .env, never a path)
+            print(f"provisioning: not checked (MAIN's .env unreadable by uid {os.getuid()}: {unreadable}) — "
+                  f"{PROVISIONING_KEY_VAR} may be set; dispatch reads it as absent and the loop falls back to the shared {RUNTIME_KEY_VAR}")
+        else:
+            print(f"provisioning: unavailable ({PROVISIONING_KEY_VAR} not set) — "
+                  f"the loop falls back to the shared {RUNTIME_KEY_VAR}")
     else:
         # Both of these enumerate EVERY workspace. `status` reporting
         # `engine_minted=0` while two keys were live is exactly the failure this

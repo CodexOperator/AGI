@@ -56,7 +56,7 @@ WantedBy=multi-user.target
 Host drop-ins of agi-post@.service (the list; goal:g7.16.1.11.37 target 6): none. `50-signers-repoint` (the `agi-signers-repoint` ExecStartPre) and `51-no-session-bus` (`DBUS_SESSION_BUS_ADDRESS=disabled:`, the orphan session bus per gh poll, measured 10-09/10-10) are folded into the unit above, `52-post-env` is the unit's own AGI_POST line; AGI_BOX is exported by ExecStart from /etc/agi/carry.env ALONE (loading the whole file would put its pinned AGI_TRUNK / AGI_REPO / AGI_HUB / GIT_CONFIG_* into every post, and an EnvironmentFile overrides the per-post h.conf). A file under /etc/systemd/system/agi-post@.service.d/ that is not in this list is RED (post-env.t.sh, LIVE).
 
 
-### agi-boxwake@.service (896 B)
+### agi-boxwake@.service (1013 B)
 ~~~ini
 [Unit]
 Description=agi box-wake loop of %i: types "mail: box read" into the post pane when its box has mail
@@ -69,7 +69,7 @@ EnvironmentFile=-/var/lib/agi/%i.env
 Environment=PATH=/var/lib/agi/%i/bin:/opt/agi/bin:/usr/local/bin:/usr/bin:/bin SHELL=/bin/sh AGI_POST=%i
 Environment=GIT_AUTHOR_NAME=%i GIT_COMMITTER_NAME=%i GIT_AUTHOR_EMAIL=%i@agi GIT_COMMITTER_EMAIL=%i@agi
 ExecCondition=sh -c 'case $H in claude*)exit 0;;?*)exit 2;;esac;echo "[boxwake] H unset">&2;exit 255'
-ExecStart=sh -c 's=0;while :;do sleep 5||:;o=$(timeout 20 box n 2>/dev/null);[ $? = 124 ]&&continue;n=$(echo "$o"|grep -c "^[^[]");[ $n -gt $s ]&&printf "mail: box read">%t/agi-%i/i&&sleep 1&&printf "\r">%t/agi-%i/i;s=$n;done'
+ExecStart=sh -c 's=0;p=;k=0;while :;do sleep 5||:;f=$(git for-each-ref refs/box refs/held/$AGI_POST 2>&1|cksum);k=$((k+1));[ "$f" = "$p" ]&&[ $k -lt 12 ]&&continue;k=0;o=$(timeout 20 box n 2>/dev/null)||continue;p=$f;n=$(echo "$o"|grep -c "^[^[]");[ $n -gt $s ]&&printf "mail: box read">%t/agi-%i/i&&sleep 1&&printf "\r">%t/agi-%i/i;s=$n;done'
 Restart=on-failure
 RestartSec=10s
 RestartForceExitStatus=SIGTERM SIGHUP SIGINT SIGPIPE
@@ -228,6 +228,18 @@ for c in $(git rev-list $o..$n);do s=$(git -c gpg.ssh.allowedSignersFile=$A veri
 [ "$s" ]&&{ [ $s = $1 ]||u $s $2;}||{ echo "refused: $c signed by ${s:-nobody}: not $1, not under $2";exit 1;};done
 echo "$o $n $T"|AGI_ALLOWED=$A AGI_TRUNK=$o AGI_NOT=$o grow-gate||exit 1;agi-gate $n||{ echo "refused: engine would not regrow";exit 1;}
 git update-ref $T $n $o
+~~~
+
+### agi-hook (1224 B)
+~~~sh
+#!/bin/sh
+# agi-hook [SHA]: root. Installs the engine piece `reference-transaction` AS OF a LANDED sha into this repo's .git/hooks (goal:g7.16.1.11.38.1, belam's host act 4c; posts run hooksPath=~/bin, so this guards only config-less runs). SHA must be an ancestor of $AGI_TRUNK and carry the piece. Bytes via sect; written beside the hook and renamed over it (git never runs a half hook), root-owned 0755. No SHA = print the installed sha256, write nothing. The same SHA twice = the same bytes. Any uid: safe.directory=$PWD by env covers git AND sect, so a non-owner reads the repo; a git that still cannot is named, never "not on the trunk"
+export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=$PWD
+d=$(git rev-parse --git-common-dir)||{ echo "refused: git will not read $PWD (ownership?)";exit 1;};d=$d/hooks;h=$d/reference-transaction
+[ "$1" ]||{ sha256sum<$h;exit;}
+n=$(git rev-parse -q --verify "$1^{commit}")&&git merge-base --is-ancestor $n ${AGI_TRUNK:?}||{ echo "refused: $1 is not on the trunk";exit 1;}
+mkdir -p $d;f=$d/.rt.$$;trap 'rm -f $f' EXIT;sect reference-transaction $n >$f;[ -s $f ]||{ echo "refused: no reference-transaction at $1";exit 1;}
+chmod 755 $f&&mv $f $h&&sha256sum<$h
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
