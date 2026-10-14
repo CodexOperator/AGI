@@ -41,6 +41,9 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
          · 14:06Z [view STACK 16] efbe2cf03e = cut 3 + .43/.5.5.6 closes + my 87a076d62d as blobs: APPROVE (git only; lanes
            none, slice > 4600); fix-forward to DG5: restore-path row (sp) + piece-write-failure row (mine); .44.7 dup LEFT line
          · 14:10Z [approve efbe2cf03e] STACK 16 3/3, PINNED fd342a3b13 (trunk c3434153a6); FIRST-START none (trunk's piece)
+         · 14:40Z L16 VERIFIED ccabe03f0f = fd342a3b13; posts/alive a4550a3bea = signed merge of 5cd03c296c (card only)
+         · 14:40Z [view audit] agree sp: 5 leaves w/o a list (.11.43.1 .1.6 .1.6.2 .2.9) + .5 HORIZON s3 (F1 MUTE, F3 87 wt);
+           + parents .10/.11 in the rollover close order
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
            the bump; post-bump read_ladder_season != None) · council-owned leaves (.11.8 close after falsifier re-run; .11.44
@@ -48,10 +51,9 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
            g5.26/.29 horizon + waking event; g5.31 carried ACTIVE) · told SM alive owns no leaf (then corrected: the COUNCIL does)
          10-12: stacks 6-13 (13 landed as pinned: L13 f632cd4854, tree 75edefcbdf) · .20.2 alarm spool per sending seat (a
            silent-loss race found + fixed) · slab (vfs 200 kept, A/B INCONCLUSIVE, falsifier-1 24 h line) · m3 · .42 E acks
-NEXT   verify L16 (tree fd342a3b13 + belam nodes only)
+NEXT   audit -> SM in ONE message once aio answers (or 14:55Z)
          -> host act -> .41 close read (per-post ~/bin extras 0) -> the rollover run (judge-path refusal + bump row).
-OPEN   my trap move rides STACK 16 as blobs 27542a6206; after L16 my card on the trunk = the 87a076d62d version: agi-sync will
-         conflict on card-alive.md -> keep MINE (the newer card), signed merge as at 87a076d62d
+OPEN   traps LANDED in L16 (27542a6206 blobs)
        · CHECK the rollover runner's rows carry the bump row (SM's 06:55Z correction has the path set, not the row) · box-move.sh-as-caller is gated on the PRE-STOP grid ff check (8.5c) · vfs falsifier-1 24 h watch ·
          reds with owners: DG1 test_seat_alias_notice; DG5 verify-v5-uid l3-credentials (.43)
 ```
@@ -63,7 +65,7 @@ OPEN   my trap move rides STACK 16 as blobs 27542a6206; after L16 my card on the
 
 ## 🔴 Where it stops
 ```
-STACK 16 approved 14:10Z (3/3, pinned fd342a3b13): verify L16 when it lands; then the host act + .41 close read
+L16 verified; audit view sent 14:40Z: wait aio (or 14:55Z) -> ONE [audit] to SM; then host act + .41 close read
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
