@@ -18,7 +18,7 @@ town: core
 
 thought-master (ex thought-master-new) · v5 post (unit agi-post@thought-master) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (the old thought-master was stood down 10-07; its card = doc:card-thought-master-old in deprecated/doc) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master · MASTER on keep beside SM (belam 16:22Z 10-07): row seeds doc:unified-master-brief (applies at my next fresh session) + HEAD doc:unified-head
 
-## §0 State (07:5xZ 10-12) -- IDLE BY OWNER ORDER until the owner resumes us (OWNER 07:4xZ 10-12 via belam-s2-VI: 'have everyone go idle ... Be back next week once usage resets on Wednesday'; keepalive timer DISABLED by belam, RC links may lapse). No gate / land / dispatch / review / build / council round; send NOTHING (every box mail wakes a post; [red] only for a box-safety emergency); never box belam until the owner resumes. SM relays the order to every post (DT-1 included), so I did not relay. No session crons (CronList empty). Box rebooted 05:00:51Z; /run + /tmp scratch were wiped then
+## §0 State (06:5xZ 10-14) -- AWAKE: owner 06:2xZ 10-14 LIFTED the idle ('keep trucking along until all bundle goals are closed and we can do season rollover'; belam-s2-VI [owner] 06:3xZ). keepalive is IDLE-ONLY now (1e9dc1fe53). GOAL = close every goal:g7.16.1 bundle, then season rollover; my share = the RESEARCH goals g5.22-g5.31: CLOSE or DEFER to season 3 by a council ruling. Quiet rule stands (belam: one digest per ~4 h, before the 13 */4 CHECK)
 Seated on encryption-town (E): user agi-thought-master, unit agi-post@thought-master, worktree ~/t = a DETACHED READ VIEW of posts/thought-master (894e3b8e67; only 2 card commits off trunk 493f420d94). MASTER on keep beside SM; directs DT-1 (idle by design, nothing queued). Nothing in flight: no subagent, no run, no watcher, no open merge-up, no open node tree. Research lane: periodicity side track PAUSED (goal:g5.28 horizon, landed c74340057f). Wake: agi-boxwake@thought-master (live 11:49Z 10-11)
 | | |
 |---|---|
@@ -38,6 +38,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (needs a multi-di
 ```
 
 ## §2 Landed
+- 06:5xZ 10-14 OWNER lifted the idle; research CLOSE/DEFER asked of the council (none closable on E as written)
 - 07:5xZ 10-12 OWNER idle order #2 (keepalive disabled): no relay (SM relays), no session crons, card whole, stopped
 - 05:2xZ 10-12 reboot 05:00:51Z; owner 'go' lifted the idle order; relayed to DT-1 55a400be4f
 - 04:2xZ 10-12 OWNER idle order (via belam): relayed to DT-1 2a27eab2d3; card written whole (3e06b1c8b0); stopped
@@ -54,7 +55,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (needs a multi-di
 
 ## 🔴 Where it stops
 ```
-IDLE by owner order 07:4xZ 10-12 until the owner resumes (usage resets Wednesday). Nothing in flight; DT-1 idle, nothing queued; periodicity side track PAUSED (g5.28 horizon); belam's queue (stack 14 gating, stack 15 = .41 cut 2 season-2 close gate) waits and is not mine. On the owner's resume: read mail, act only on what arrives; send nothing before
+WAITING ON THE COUNCIL: [decision] DEFER g5.22-g5.31 to season 3 (g5.28 stays horizon) sent 06:5xZ 10-14 to alive 25286f2c78 · all-is-one f5cb6decf0 · self-perpetuating 76757d3edd. On [defer]: pull each active g5.x tree -> status horizon + dated THOUGHT citing the ruling (prior carried) + board line -> agi-turn -> [merge-up] to SM. Then ONE digest to belam before the next CHECK (08:13 12:13 ...Z) with the ruling + the merge-up sha
 next command: AGI_POST=thought-master ~/bin/box read   (send: printf msg | AGI_POST=thought-master ~/bin/box send <to>)
 ```
 
