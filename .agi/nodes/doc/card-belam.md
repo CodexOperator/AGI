@@ -24,7 +24,7 @@ Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.ag
 belam-s2-VI 06:3xZ 10-14, RESUMED by the owner ("go", 06:2xZ 10-14) after the 10-12 idle. Re-enabled every automation; made the keepalive IDLE-ONLY at the owner's ask (1e9dc1fe53: measured signals, the pane log ~/o is dead for most posts so the transcript + claude's child processes decide); relayed the owner's new goal: close every goal:g7.16.1 bundle, then season rollover.
 <!-- THOUGHT:END -->
 
-## §0 State (06:3xZ 10-14, read from date -u)
+## §0 State (07:0xZ 10-14, read from date -u)
 | | |
 |---|---|
 | STANDING | OWNER 06:2xZ 10-14 (verbatim): "keep trucking along until all bundle goals are closed and we can do season rollover" = close goal:g7.16.1 .4 .5 .10 .11 (+ horizon .6-.8: close or a council DEFER), then rollover; relayed to SM + TM 06:3xZ, one digest each per bundle · OWNER 20:2xZ 10-11 QUIET: "you shouldn't be mailed except once every few hours at most" -> masters send ONE digest per ~4 h, exceptions [red] + blocking owner asks (told SM + TM 20:2xZ); hourly scan cron DROPPED, CHECK 13 */4 only · OWNER 19:4xZ 10-11 (verbatim, relayed to SM for goal .41): "Make sure that the projection work is done before season rollover. Everything must be able to project cleanly." = .41 gates the season-2 close · owner 07:5xZ 10-10: every 4-h CHECK = TRAJECTORY FIRST (skill agi-merge-pass §1 T1-T3); owner 21:5xZ 10-10: IDLE mostly, the council rules, belam ffs council-approved tips + breaks ties |
@@ -68,7 +68,7 @@ NEVER: rule a [decision] the council can rule · assign a design or a build · d
 belam-s2-VI (05:0xZ-): ff f632cd4854 07:22:51Z (L13: DG5 .41 FF 1-3, DG2 collect-clean, DG4 .42 stamps, DG3 .38.1 i10, DG1 .11.1 close; council alive 3/3 07:18Z, tree 75edefcbdf == pin) · [landed] to SM 07:2xZ · first-start agi-sync, no host act
 
 ## 🔴 Where it stops
-RESUMED 06:2xZ 10-14: every automation back, keepalive idle-only (installed == trunk 1e9dc1fe53), masters told the owner's goal. Next: mail on the box-wake line (`AGI_POST=belam box read`); the CHECK at 13 */4 asks T2 per bundle.
+RESUMED 06:2xZ 10-14; every automation back, keepalive idle-only (1e9dc1fe53). 07:0xZ: my close lines to SM (council 06:53Z rule): .5.1 DEFER (no RAM disk on E) · .5.2 RETIRE (no producer) · .11.10 RULED RETIRE-ALL (10 dead rows, DG3 amends F1) · .11.17 DEFER s3 · .4 W call at s3 planning · .20.2 F7/(a)/(r1) MET · .40.1.1 F4 MET + F1/F5 windows from 01:57Z/02:02Z 10-12 (before-hour 'high' delta never taken). Next: SM's L14 [merge-up], then L15 + my .41 host act (agi-project re-render + restarts + tui read).
 - QUEUE: stack 14 GATING (DG2 .39.3+.39.4 box-move guards, DG5 .22 + .41.1 nodes, SM test fix 0ad0eb2e7d) · stack 15 = .41 cut 2 (extractor from the landed trunk + cadence; engine-root = my pin move + render check) = the SEASON-2 CLOSE GATE (owner 19:4xZ 10-11) · OPTIONAL pin move for the agi-boxwake@ fingerprint (4d) · .40.1.1 24 h watch (revert if the 1536 MiB slab raise fires with no more walkers, or PSI full avg60 >= 0.11 for 1 h) · memguard alarms onto the spool (.20.2 next cut) · pack/capsule design (.44 + owner 20:3x-20:4xZ) · season-2 close (owner).
 ## §4 Traps (this generation's only)
 | # | trap | rule |
