@@ -82,6 +82,7 @@ town:core  (vision:the-living-being) ── season 3 bundle, LOOSE: goals listed
 | goal | status | why it is in this bundle |
 |---|---|---|
 | goal:g2.2 | horizon | IO maps as inherited contract slices |
+| goal:g7.16.1 | horizon | the council loop (L19: horizon s3, rollover eve) |
 | goal:g7.16.1.2.9 | horizon | every session sees the run mode at wake |
 | goal:g7.16.1.4 | horizon | council bundle 4: the write/render split |
 | goal:g7.16.1.4.3 | horizon | core's write.py hunks absorbed or rejected by name |
@@ -90,6 +91,9 @@ town:core  (vision:the-living-being) ── season 3 bundle, LOOSE: goals listed
 | goal:g7.16.1.5.5 | horizon | the memory budget has ONE home (config:guard) |
 | goal:g7.16.1.7.1.4 | horizon | seat claiming needs no model act |
 | goal:g7.16.1.8 | horizon | one init pass + one captive stand-up script |
+| goal:g7.16.1.10 | horizon | a change is reviewed ONCE, as it lands |
+| goal:g7.16.1.10.7 | horizon | the merge gate: ONE word from the council report |
+| goal:g7.16.1.11 | horizon | the radically simple engine design (season 2's bundle) |
 | goal:g7.16.1.11.4 | horizon | the CAPSULE: k-of-n signed, quorum-popped |
 | goal:g7.16.1.11.8.1 | horizon | the growth gate judges by the tip's rules |
 | goal:g7.16.1.11.16 | horizon | every test that guards a v5 piece is a shell .t.sh |
@@ -109,7 +113,7 @@ CHECK (council 3/3, alive 16:04Z 10-14; VERBATIM, run at the rollover commit, ne
 for f in $(git ls-tree -r --name-only REV .agi/nodes/goal/); do git show REV:$f | grep -q '^status: horizon' && git show REV:$f | grep -qiwE 'season 3|s3' && basename $f .md; done
 ```
 
-Then add goal:g5.31 by name. RED = a derived id not in the table, or a table id not derived, each named. Word-bounded (-w): a bare 's3' also hits retired ids' 'goal:s3N' links. 17 at ed6353269f; 18 at df6f5dbbbf (L18 merged: + .40.2) + g5.31 = 19 rows.
+Then add goal:g5.31 by name. RED = a derived id not in the table, or a table id not derived, each named. Word-bounded (-w): a bare 's3' also hits retired ids' 'goal:s3N' links. 17 at ed6353269f; 18 at df6f5dbbbf (L18 merged: + .40.2); 22 at 1846e86736 (L19 merged: + g7.16.1 .10 .10.7 .11) + g5.31 = 23 rows.
 
 Season 2's bundle (g7.16.1.11) closes on the season-2 trunk; only its horizon-s3 leaves appear here, by the derivation.
 
@@ -123,7 +127,7 @@ Season 2's bundle (g7.16.1.11) closes on the season-2 trunk; only its horizon-s3
 - Belam 2026-10-14: season-3 bundle reset fresh on season3/main (owner 14:4xZ-15:0xZ); the season-2 bundle (g7.25-g7.34 era) stays in git history and on the season-2 trunk.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam 2026-10-14 17:3xZ: one row added, goal:g7.16.1.11.40.2, because the council's CHECK command (verbatim under the table) read 18 at df6f5dbbbf, the L18 merge (.40.2 -> horizon s3), and the table held 17 + g5.31; now 19 rows, comm vs the command = g5.31 only (by name). Before it, the same day: the CHECK became the council's command, the table took the derived rows in place of one hand-listed row, and the GOAL BUNDLE section was reset fresh for season 3 on season3/main (owner: a bundle is a town board, loose over goals, never a subgoal; goal:g7.16.1.12 retired in place).
+belam 2026-10-14 19:4xZ: four rows added (goal:g7.16.1, .10, .10.7, .11), because the council's CHECK command (verbatim under the table) read 22 at 1846e86736, the L19 merge (the rollover-eve stack moved those four to horizon s3), and the table held 18 + g5.31; now 23 rows, comm vs the command = g5.31 only (by name). Earlier the same day: .40.2 added at the L18 merge, the CHECK became the council's command, the table took the derived rows in place of one hand-listed row, and the GOAL BUNDLE section was reset fresh for season 3 on season3/main (owner: a bundle is a town board, loose over goals, never a subgoal; goal:g7.16.1.12 retired in place).
 <!-- THOUGHT:END -->
 
 Belam daily pass 2026-09-22T09:50ET: merges=none; verify=FAIL (TestMergeUp git-identity + OPENROUTER_API_KEY empty); reopen/mint=none
