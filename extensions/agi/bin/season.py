@@ -1108,13 +1108,6 @@ LADDER_PATH = ".agi/nodes/.geometry/ladder.md"
 #: goal:g7.16.1.11.8.1 (d): the core town's season-2 work lives on the LIVE
 #: trunk, not on the core town's own derive_names season trunk (10-04, a DEAD line).
 CORE_TOWN = "core"
-CORE_LIVE_TOWN = "local-maxxing"
-
-
-def _core_live_trunk(g):
-    """The live trunk of old season `g`, resolved through branches.py (never a literal
-    name, which goes stale at the rollover)."""
-    return branches.derive_names(CORE_LIVE_TOWN, g)["town_season_main"]
 
 
 def _judge_blobs(repo, tree) -> dict:
@@ -1480,7 +1473,11 @@ def cmd_rollover_global(root: Path, args) -> int:
     jt = _git(repo, "rev-parse", "--verify", "-q", jt_arg + "^{commit}").stdout.strip()
     if not jt:
         print(f"REFUSED: [rollover] --judge-tip {jt_arg!r} does not resolve to a commit here", file=sys.stderr); return 1
-    core_old = (getattr(args, "core_old", "") or "").strip() or _core_live_trunk(g)
+    core_old = (getattr(args, "core_old", "") or "").strip()
+    if not core_old and any(t.slug == CORE_TOWN for t in declared):
+        # goal:g8.2: no engine script names an app town, so the live trunk is GIVEN, never defaulted
+        print("REFUSED: [rollover] --core-old <origin branch> is required: the core town's OLD tip is the live trunk "
+              "(never the core town's own derive_names line, a dead one)", file=sys.stderr); return 1
     want_branch, cur_branch = branches.season_main(ng), _current_branch(repo)
     if delete_old and cur_branch != want_branch:
         print(f"REFUSED: [rollover] cell commits land on the branch checked out where season.py runs ({cur_branch or 'detached HEAD'}); "
@@ -2278,8 +2275,8 @@ def main(argv: list[str] | None = None) -> int:
                             help="--global: skip the named town's fold into its ladder head (a conflicting fold "
                                  "STOPs unless named; OWNER-given, never a code-rule skip); printed SKIPPED, nothing pushed")
     p_rollover.add_argument("--core-old", default="",
-                            help="--global: the core town's OLD tip, an origin branch (default "
-                                 f"the {CORE_LIVE_TOWN} town's trunk of the old global season, the live trunk; never the core town's own)")
+                            help="--global: the core town's OLD tip, an origin branch (REQUIRED when core is declared: "
+                                 "the live trunk, never the core town's own)")
     p_rollover.add_argument("--actor", default="",
                             help="edited_by for the ladder write (default: season.py)")
     p_rollover.add_argument("--session", default="",

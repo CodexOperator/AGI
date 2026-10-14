@@ -40,12 +40,15 @@ def _git(repo: Path, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run(["git", *args], cwd=repo, capture_output=True, text=True)
 
 
-def _run(root: Path, *args: str, cli: Path = CLI) -> subprocess.CompletedProcess:
+def _run(root: Path, *args: str, cli: Path = CLI, core_old: bool = True) -> subprocess.CompletedProcess:
     # --global always carries a comparison tip (the judge check refuses without one):
     # the seed commit, whose judge-path blobs every fixture commit shares
     if "--global" in args and "--judge-tip" not in args:
         seed = _git(root.parent, "rev-list", "--max-parents=0", "HEAD").stdout.split()[0]
         args = (*args, "--judge-tip", seed)
+    # the core town's OLD tip is GIVEN (goal:g8.2: season.py names no app town): the live trunk, as the runner passes it
+    if "--global" in args and core_old and "--core-old" not in args:
+        args = (*args, "--core-old", "local-maxxing/season2/main")
     return subprocess.run([sys.executable, str(cli), "--root", str(root), "rollover", *args],
                           capture_output=True, text=True)
 
@@ -578,6 +581,22 @@ def test_d1_the_core_old_tip_is_the_live_trunk_a_dead_line_is_refused_and_derive
                              'old = branches.derive_names(slug, g)["town_season_main"]'))
     red = _run(g, "--global", cli=mut)
     assert red.returncode == 1, "MUTANT (old taken from derive_names) must be RED: " + red.stdout
+
+
+def test_g82_core_old_is_given_never_defaulted_to_a_town_name_and_the_defaulting_mutant_is_red(tmp_path: Path):
+    r, live = _core(tmp_path)
+    g = _graph(r)
+    before = _heads(r)
+    red = _run(g, "--global", "--apply", core_old=False)
+    assert red.returncode == 1 and "--core-old <origin branch> is required" in red.stderr, red.stdout + red.stderr
+    assert _heads(r) == before                                            # nothing pushed
+    assert _run(g, "--global").returncode == 0                            # given: the same fixture runs
+    src = (BIN / "season.py").read_text()
+    assert "local-maxxing" not in src                                      # no literal app-town name in the script
+    mut = _mutant(r.parent, ('core_old = (getattr(args, "core_old", "") or "").strip()\n',
+                             'core_old = (getattr(args, "core_old", "") or "").strip() or "local-maxxing/season2/main"\n'))
+    ok = _run(g, "--global", cli=mut, core_old=False)
+    assert ok.returncode == 0, "MUTANT (a literal default) must NOT refuse, so the clean row's refusal is what pins it: " + ok.stderr
 
 
 # ---- R2/R3 (council 18:40Z): the core fold STOPs unless named; the BEHIND cut fast-forwards in the run ----
