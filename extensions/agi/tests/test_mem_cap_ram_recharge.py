@@ -360,26 +360,43 @@ def test_r7_dry_run_changes_nothing_and_follows_the_rc_rule(tmp_path):
         assert _run("--dry-run", str(root)).returncode == 1
 
 
+def _unset_scope_env(monkeypatch):
+    """Absent for this test AND restored absent after it. `delenv(raising=False)` on an absent var records nothing to undo, so the verb's own
+    `os.environ[_RECHARGE_ENV] = "1"` (r8) outlived the test and made `ram-recharge` in a LATER test (test_ram_write_charge N1, full run) skip its
+    scope check and rewrite that test's tmp dir (SM stack 15, rc 0 'recharged=14')."""
+    monkeypatch.setenv(mem_cap._RECHARGE_ENV, "0")
+    monkeypatch.delenv(mem_cap._RECHARGE_ENV)
+
+
+@pytest.fixture(autouse=True)
+def _scope_env_is_absent_at_every_test_start():
+    """Checked at SETUP, when the previous test's monkeypatch is already undone: a marker still set here was LEFT by an earlier test."""
+    leaked = os.environ.pop(mem_cap._RECHARGE_ENV, None)
+    assert leaked is None, f"{mem_cap._RECHARGE_ENV}={leaked!r} was left set by an earlier test"
+    yield
+
+
 # ---- R8: scope -------------------------------------------------------------
 def test_r8_one_scope_argv_on_the_ram_slice_built_by_scope_argv(tmp_path, monkeypatch):
     root = _tree(tmp_path)
     seen = []
-    monkeypatch.delenv(mem_cap._RECHARGE_ENV, raising=False)
+    _unset_scope_env(monkeypatch)
     monkeypatch.setattr(mem_cap, "user_manager_reachable", lambda: True)
     monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda cfg=None: True)
-    monkeypatch.setattr(mem_cap.os, "execvp", lambda f, argv: seen.append(list(argv)))
+    envs = []
+    monkeypatch.setattr(mem_cap.os, "execvpe", lambda f, argv, env: (seen.append(list(argv)), envs.append(env)))
     ino = _ino(root / "a.txt")
     mem_cap._verb_ram_recharge([str(root)])
     (argv,) = seen
     assert argv.count("systemd-run") == 1 and "--scope" in argv and "--slice=ramdisk.slice" in argv
     assert argv[argv.index("--") + 1:][1:] == [os.path.abspath(BIN), "ram-recharge", str(root)]
-    assert os.environ[mem_cap._RECHARGE_ENV] == "1"
+    assert envs[0][mem_cap._RECHARGE_ENV] == "1" and mem_cap._RECHARGE_ENV not in os.environ     # the child gets it, the caller never does
     assert _ino(root / "a.txt") == ino                 # the walk runs INSIDE the scope, not here
 
 
 def test_r8_no_usable_scope_touches_nothing_and_exits_3(tmp_path, monkeypatch):
     root = _tree(tmp_path)
-    monkeypatch.delenv(mem_cap._RECHARGE_ENV, raising=False)
+    _unset_scope_env(monkeypatch)
     monkeypatch.setattr(mem_cap, "user_manager_reachable", lambda: False)
     ino = _ino(root / "a.txt")
     assert mem_cap._verb_ram_recharge([str(root)]) == 3

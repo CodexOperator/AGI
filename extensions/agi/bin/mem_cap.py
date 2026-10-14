@@ -671,9 +671,8 @@ def _verb_ram_recharge(args: list) -> int:
         if list(scoped) == me:
             sys.stderr.write("mem_cap.py ram-recharge: no usable RAM scope -- nothing rewritten\n")
             return 3
-        os.environ[_RECHARGE_ENV] = "1"
-        try:
-            os.execvp(scoped[0], scoped)
+        try:        # the marker rides ONLY in the child's env: a failed exec leaves nothing set in the caller
+            os.execvpe(scoped[0], scoped, dict(os.environ, **{_RECHARGE_ENV: "1"}))
         except OSError:
             sys.stderr.write("mem_cap.py ram-recharge: scope exec failed -- nothing rewritten\n")
         return 3        # exec replaces this process; reaching here means it did not
