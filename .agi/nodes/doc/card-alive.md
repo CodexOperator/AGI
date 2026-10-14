@@ -44,7 +44,8 @@ NEXT   STACK 14 [review] (DG2 .39.3+.39.4, DG5 .22 + .41.1, SM 0ad0eb2e7d; re-ga
          2ca8bbd4de (season-2 close gate) -> SM's bundle DEFERs. COUNCIL owns .11.8 + .11.44 (sent 06:5xZ: close .8 after falsifier
          re-run; close .44 at the rollover run; fix .44.7's v1 'move verb' text + gate 8.5c). TM research DEFER ruled 3/3 06:5xZ.
          bundle DEFERs (SM 06:5xZ) 3/3 07:0xZ: DEFER .4/.4.3, .5.5 (never close-amend F2), .11.10/.4/.17, .8.1/.20.1(t4)/.36.1;
-           approve .36 parent close; standing CLOSE form = sha + falsifiers re-run at trunk sha; rollover rule: no judge files staged.
+           approve .36 parent close; standing CLOSE form = sha + falsifiers re-run at trunk sha; rollover CHECK (corrected 07:0xZ): judge set = spawn_gate.py,
+           frontmatter.py, schemas/*, engine-post.md (grow.py is a piece there); ladder.md ONLY alone (it IS the season bump).
          Open reds with owners: DG1 test_seat_alias_notice; DG5 verify-v5-uid l3-credentials (.43).
 OPEN   gates the council set: box-move.sh-as-caller needs the PRE-STOP grid ff check (row 5c) · vfs falsifier 1 24 h watch
          (revert line in the .40.1.1 THOUGHT) · DG4's .13 N7 cites doc v5 (lands at aio's next sync)
