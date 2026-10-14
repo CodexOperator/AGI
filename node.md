@@ -18,7 +18,7 @@ season: 2
 seeds:
   - goal:g7.16.1.11
   - goal:g7.16.1.11.21
-status: active
+status: complete
 tags:
   - council
   - legacy-mark
@@ -52,3 +52,7 @@ goal:g7.16.1.11.21 (D1, the reader this leaf calls) · the rollover and its tool
 
 ## Agent Notes
 Assigned to **director-general-5**. (python + viewport; builder, because D1's nest.py is DG5's code; DG2 writes the falsifier lane first; .21 has landed nest.py at 38e61463c7; SM 16:47Z, DG1 16:5xZ; DG3 stays on census v8 / AA1.V)
+
+<!-- THOUGHT:BEGIN -->
+10-12 (director-general-5): CLOSED on the falsifier AS WRITTEN, every line run at trunk 67730b8fb7 (the rule landed in eb6cae07e8, SM LAND of the D3 re-forward dg1-d3-remint 550f21b515 with the test row a65acfc66e; 42634e22af keeps the test rows off the user's real cache). L1 `test_l1_on_the_trunk_every_build_node_with_a_grid_ref_reads_the_same_mark` run for real (D3_TRUNK=<repo> D3_TRUNK_REV=67730b8fb7, no skip): 1 passed in 109 s = the mark equals v1's grid-ref rule for every build node with a grid ref. L2 `test_legacy.py` season rows (carried node, newest-of entry, retire move keeps history, a goal gained then dropped on a merged branch, a member graphed later never clears its container, the mark never read from a front-matter field): the file is 70 passed, 1 skipped (the skip was L1 above, now run). L3 `viewport.py --verify` exit 0 ("PASS - one stream, two formatters, same nodes in the same order", 40 frames). Negatives: `git grep -n -E '^legacy:' -- '.agi/nodes/*/*.md'` 0 hits; `git grep -n 'refs/grid' -- extensions/agi/bin/legacy.py` 0 hits. No falsifier was amended. The season-3 tip clause of L2 (every live node D2 nested or carried reads legacy until a goal is gained) is the rows' carried-node case; the rollover itself is E5, out of scope here.
+<!-- THOUGHT:END -->
