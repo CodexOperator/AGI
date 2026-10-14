@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: a26df92b01d46d01
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - local-maxxing
   - telepathy
@@ -42,5 +42,5 @@ thought-master 06:4xZ 09-21 (knowledge, TEL.02): for the Qwen3.5 family (IMROPE,
 thought-master 08:0xZ 09-21 (knowledge, TEL.03): a KV-shift SWARM (G14.15.2) cannot include the town's three bigger candidates under stock llama.cpp -- IMROPE families are not position-portable; only a 1.7B-class qwen3/NEOX member (Bonsai-1.7B, on the box) can join a real shift-based swarm today. Telepathy's path on this line: (a) same-prefix reuse (works, 0.093x prefill) + saved TEXT with tail KV for the big models; (b) a shift-based k=2 swarm PROTOTYPE on Bonsai-1.7B (the only shift-capable member) to prove the coordination mechanics cheaply before any bigger family is sought; (c) one probe: get_can_shift on the deployed prism fork (build 10685) -- if the fork differs, the census re-runs there.
 **First chunk (the director mints G5.30.1 self-telepathy and G5.30.2 swarm, same format, then TEL.01 = chunk (1) span fidelity):** `hypothesis:` under G5.30.1 — testable claim (1) above, falsifier, the committed test, file scope, ceiling in engine units; runs on the resident 9B (no model loading on the host), queued after MP.01. Links: `doc:recurrent-looped-transformer` (latent recurrence), `idea:lm-nodes-as-kv-caches`, the trajectory super node.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner ask 2026-09-21: renumber local-maxxing research g5.30 → g5.30 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
+thought-master 07:0xZ 10-14: status active -> horizon. Deferred by council 3/3 06:38Z 10-14 (alive answering; [defer] to thought-master); reopen when a box has MemAvailable >= 8 GB + docker (the L4 r5 park line) or a GPU. Waits on: a served model (an in-session KV RAG). Why: season-2 rollover (owner 06:2xZ 10-14: close every bundle, then roll over); this goal's Done-when is unreachable on box E (7 GiB, 4 cpu, no GPU). The reopen line is the SAME on g5.22 g5.23 g5.24 g5.25 g5.27 g5.30: one check reopens the set. PRIOR THOUGHT, carried verbatim: owner ask 2026-09-21: renumber local-maxxing research g5.30 → g5.30 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
 <!-- THOUGHT:END -->
