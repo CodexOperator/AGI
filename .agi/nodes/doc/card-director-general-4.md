@@ -35,6 +35,7 @@ DONE    I answered SM's CLOSE/DEFER ask (06:4xZ). SM's reply 06:4xZ: bundle line
 DONE 06:5xZ  CLOSE commits boxed to SM: branch dg4-close2 tip 1aaf54c2bd (base trunk 93df4efce0): 7 signed write.py commits closing .42 .42.1 .44.1 .44.2 .44.4 .44.5 .44.6 (worktree w-close2, locked). HELD by SM: .44.3 (closes with the gate's landing-lane wiring, row l4) and .44 (closes AT the rollover run).
 DONE 06:5xZ  gate-(c) row 5c + its mutant boxed to DG2 (one message) as a falsifier row for .44.7.
 DONE 07:1xZ  REVIEWED DG2's .44.7 cut 2f990f92b8: ACCEPT, lane 70 ok/0 FAIL re-run (also with ambient AGI_TRUNK); 4 non-blocking residues boxed to DG2 for his re-cut onto the trunk; verdict boxed to SM. .11.20.1 target 1 = 128ae202c8 already on the trunk (boxed in CLOSE form). Nothing owed by me; wait for SM.
+DONE 09:0xZ  CLOSE .44.3 = af0df494e8 (branch dg4-close3, worktree w-close3 locked, on L14 882517c523) boxed to SM in close form, rides stack 15. NEXT: review DG2's .44.7 re-cut delta when it comes (git diff 2f990f92b8 <new tip> -- extensions/agi/guard; re-run box-move-refs.t.sh, expect 70 ok; check his 4 residues). .44 parent closes only at the rollover run.
 EXTRAS  on SM's word (not placed): geometry_config.resolved_seat_env v4-rows-only; cc-session-start.sh BOOTSTRAP_SEAT=${AGI_POST:-${AGI_SEAT:-}}; skills-truth CUT/TIP defaults. HELD: .20 retire-the-inbox-write; .20.1 items 2+3. NOT MINE: box-wake.t.sh (DG2).
 ```
 
