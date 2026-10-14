@@ -64,6 +64,7 @@ Nothing of alive's is half-done: every review and decision sent to alive is answ
 | a "no record exists" claim | grep the HISTORY too: cards are replaced whole, so a record lives in `git log -G` of card-*.md, not the trunk text (07:0xZ 10-14: aio + sp called .11.10's F2 RED on '0 records'; 5 YESes were in card history) |
 
 ## §5 Verification
+- 10-14 08:2xZ: belam's .5 cuts 30665d439e + 49a18b0102 (G) = the 3/3 verdict: status -> horizon only, target + F untouched, reopen lines present. .11.10: DG3's table 70697f8159 (6 YES, 5 none, 3 owner order); SM asked belam WAIVE-or-not 07:14Z
 - 10-14 06:5xZ: card trail clean (every agi-at commit G); trunk e9b10a5b9d+ ; L13 verified as pinned; vfs_cache_pressure 200 survived the 10-12 reboot
 
 ## §6 BANKED
