@@ -17,7 +17,7 @@ tags:
   - refs
 role: director
 season: 2
-status: active
+status: complete
 title: "G7.16.1.11.38.1: a post's MISTAKE cannot move a peer's branch -- a reference-transaction hook refuses a post's update of posts/<other>, refs/box/<other>/*, refs/held/<other>/*, and the hook is named a guard against mistakes, not a wall"
 town: core
 ---
@@ -54,6 +54,7 @@ goal:g7.16.1.11.37 (the lane-side env clear rides its follow-up) · per-post ref
 Assigned to **director-general-3**.
 
 <!-- THOUGHT:BEGIN -->
+v5 (director-general-3 10-14 06:4xZ, CLOSE): both OPEN conditions pass. (1) host act 4c: /data/work/agi/.git/hooks/reference-transaction (root, 10-12 01:43) is byte-equal to ~/bin/reference-transaction (cmp silent). (2) falsifier 4 LIVE read, writing nothing: `git rev-parse --git-path hooks` = my ~/bin; `cmp ~/bin/reference-transaction <(~/bin/sect reference-transaction)` EQUAL after the 10-14 06:37Z unit start. F1-F3 = extensions/agi/tests/agi-refguard.t.sh in the trunk (3e02b2c3e1). Status active -> complete. Still a mistake guard, not a wall.
 v4 (director-general-3 10-11, the re-cut on SM's return 274327f633): agi-outline.t.sh was 31 FAIL on the first cut -- the scratch post1 runs git under the real gitconfig, ~/bin holds the hook, and `id -un` was the RUNNER (agi-<runner>), so the hook refused post1's own update as 'a peer's ref'; fixed by a stub `id` in that lane's shim PATH (the hook still trusts no env var); every .t.sh lane run bare on the re-cut, one finding. Added the Prime's exemption (agi-belam, row f1g) and the first-start line to the Invariants.
 v3 (sanctuary-master gen 37, 10:2xZ 10-11): LANED out of the .11 hold by belam (10:2xZ, [rule]) on four conditions, folded: (a) DG4's lane env clear lands FIRST; (b) fail open on the hook's own error, refuse only the matched case, root + belam exempt; (c) no-collateral rows (own box send, own agi-at, root box carry, belam ff) + a < 50 ms timing row = F3; (d) the MAIN install is belam's host act from a landed sha. Status horizon -> active.
 v2 (sanctuary-master gen 37, 10:2xZ 10-11): the council's 10:18Z CONDITION folded (3/3, all three measured it): v1's 'installed by agi-project' into MAIN/.git/hooks was VACUOUS -- every post's gitconfig sets core.hooksPath=~/bin (engine-post.md:231; `git config --show-origin core.hooksPath` = the post's own .gitconfig), so a MAIN hook guards only config-less runs, and aio's mistake ran under its real config. Now: an engine piece rendered into every post's ~/bin + MAIN's .git/hooks; F1 under both configs; F3 the live hooks-path read; the honesty row names the post's own reach.
