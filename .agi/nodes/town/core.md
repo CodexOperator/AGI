@@ -81,6 +81,7 @@ town:core  (vision:the-living-being) ── season 3 bundle, LOOSE: goals listed
 
 | goal | status | why it is in this bundle |
 |---|---|---|
+| goal:g1.14.2 | horizon | owner 20:3xZ 10-14: our own workflow tool on the spawn / rotate route, a template per role |
 | goal:g2.2 | horizon | IO maps as inherited contract slices |
 | goal:g7.16.1 | horizon | the council loop (L19: horizon s3, rollover eve) |
 | goal:g7.16.1.2.9 | horizon | every session sees the run mode at wake |
@@ -113,7 +114,7 @@ CHECK (council 3/3, alive 16:04Z 10-14; VERBATIM, run at the rollover commit, ne
 for f in $(git ls-tree -r --name-only REV .agi/nodes/goal/); do git show REV:$f | grep -q '^status: horizon' && git show REV:$f | grep -qiwE 'season 3|s3' && basename $f .md; done
 ```
 
-Then add goal:g5.31 by name. RED = a derived id not in the table, or a table id not derived, each named. Word-bounded (-w): a bare 's3' also hits retired ids' 'goal:s3N' links. 17 at ed6353269f; 18 at df6f5dbbbf (L18 merged: + .40.2); 22 at 1846e86736 (L19 merged: + g7.16.1 .10 .10.7 .11) + g5.31 = 23 rows.
+Then add goal:g5.31 by name. RED = a derived id not in the table, or a table id not derived, each named. Word-bounded (-w): a bare 's3' also hits retired ids' 'goal:s3N' links. 17 at ed6353269f; 18 at df6f5dbbbf (L18 merged: + .40.2); 22 at 1846e86736 (L19 merged: + g7.16.1 .10 .10.7 .11); 23 at ee62ba9fe6 (L21 merged; + goal:g1.14.2, banked by the owner 20:3xZ) + g5.31 = 24 rows.
 
 Season 2's bundle (g7.16.1.11) closes on the season-2 trunk; only its horizon-s3 leaves appear here, by the derivation.
 
@@ -127,7 +128,7 @@ Season 2's bundle (g7.16.1.11) closes on the season-2 trunk; only its horizon-s3
 - Belam 2026-10-14: season-3 bundle reset fresh on season3/main (owner 14:4xZ-15:0xZ); the season-2 bundle (g7.25-g7.34 era) stays in git history and on the season-2 trunk.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam 2026-10-14 19:4xZ: four rows added (goal:g7.16.1, .10, .10.7, .11), because the council's CHECK command (verbatim under the table) read 22 at 1846e86736, the L19 merge (the rollover-eve stack moved those four to horizon s3), and the table held 18 + g5.31; now 23 rows, comm vs the command = g5.31 only (by name). Earlier the same day: .40.2 added at the L18 merge, the CHECK became the council's command, the table took the derived rows in place of one hand-listed row, and the GOAL BUNDLE section was reset fresh for season 3 on season3/main (owner: a bundle is a town board, loose over goals, never a subgoal; goal:g7.16.1.12 retired in place).
+belam 2026-10-14 20:5xZ: one row added, goal:g1.14.2 (the owner's workflow tool, banked 20:3xZ as horizon season 3), because the council's CHECK command (verbatim under the table) read 23 at ee62ba9fe6, the L21 merge, and the table held 22 + g5.31; now 24 rows, comm vs the command = g5.31 only (by name). Earlier the same day: four rows at the L19 merge, .40.2 at the L18 merge, the CHECK became the council's command, the table took the derived rows in place of one hand-listed row, and the GOAL BUNDLE section was reset fresh for season 3 on season3/main (owner: a bundle is a town board, loose over goals, never a subgoal; goal:g7.16.1.12 retired in place).
 <!-- THOUGHT:END -->
 
 Belam daily pass 2026-09-22T09:50ET: merges=none; verify=FAIL (TestMergeUp git-identity + OPENROUTER_API_KEY empty); reopen/mint=none
