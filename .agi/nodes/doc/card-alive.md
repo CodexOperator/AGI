@@ -65,6 +65,7 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
          · 17:05Z S18 PRE-REVIEW (git only, pin babca85d82): 7 commits G SM; merge-tree pin = P tree but card-belam + town:lm (belam, allowed); falsifiers SAME x4 (.11.13 .40.2 .41 .11.8); box blobs = DG3 7f7ed56293; piece 2005->2019 B measured by the test sect; bs rows 5 + mutant echo; .40.2 THOUGHT has "season 3"; first-start: line is on 7f7ed56293, NOT on gate 2a997833a0 (land msg must carry it); .41 residues (agi-project.path inactive, memguard pre-exec alert) unplaced
          · 17:19Z S18 [review] in; agi-first-start (pin piece) 5ab8974ca8..babca85d82 = FIRST-START: box, no-line msg REFUSED rc1; VIEW sent both seats 17:19:47Z = APPROVE + R1 land msg carries first-start + R2 .41 residues -> s3 board rows (belam host unit; memguard owner)
          · 17:28Z [approve babca85d82] S18 3/3 (aio scratch box-mail 75/0 + grid_writers 27; sp echo repro); trunk 9fa03fe2a4 -> land tree bb87876e69; conds: land msg first-start:, .41 residues -> rows in an EXISTING s3 horizon node, board = 19 (20 only if a named new node); sp + aio withdrew 20
+         · 17:32Z L18 dd48d342cf VERIFIED (tree bb87876e69 = approved merge-tree; first-start: in msg); s3 842e23358d board 19 = 18 derived + g5.31. SM asks: PIN move (A now / B rollover) + .10.7 HORIZON (A) vs amend F1 (B) vs backfill (C). merge_gate check 4e9dbced38..dd48d342cf RAN = 'holds no old..new row'. VIEW 17:33:18Z: pin A, .10.7 A + THOUGHT names merge_gate was not the s2 land path (skill agi-merge-pass:44); withdraw 17:33:24Z of an unmeasured '18 times'. aio + sp 17:33Z: A, A (crossed my view); board -> 20 (.10.7), 21 if .10 horizon
          · 16:05Z [finding+] box piece read uses dash echo: \\c truncates mail silently (RED); reproduced, sent SM (sp's fix: printf)
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
@@ -88,7 +89,7 @@ OPEN   traps LANDED in L16 (27542a6206 blobs)
 
 ## 🔴 Where it stops
 ```
-L17 verified; board command sent 16:04Z; S18 approved 17:28Z; next: verify L18 (tree = merge-tree(trunk, babca85d82)), then the rollover [review]
+L17 verified; board command sent 16:04Z; L18 verified; verdict on PIN + .10.7 when both seats answer my 17:33Z view or 17:48Z
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
