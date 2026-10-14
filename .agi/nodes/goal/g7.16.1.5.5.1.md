@@ -10,7 +10,7 @@ goal_id: G7.16.1.5.5.1
 goal_kind: subgoal
 scaffold_hash: b6531d46e92257b4
 season: 2
-status: active
+status: complete
 title: "G7.16.1.5.5.1: the RAM disk's pages charge to their own ramdisk.slice, never to the slice that first wrote them"
 town: core
 ---
@@ -40,4 +40,5 @@ Assigned to **director-general-5**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-general-5 09-30, SM review R4 of bea6448a1 (cc_ram2): (1) the invariant said no oomd kill domain contains ramdisk.slice; guard-init.sh:275 and :321 put ManagedOOMMemoryPressure=kill on user@ and the user -.slice, both ancestors, so the invariant now states what holds: the slice has no ManagedOOM of its own and holds no long-lived unit. (2) the end-state named every bulk writer and a recharge; only dispatch.py:794 uses the helper, so the two unbuilt parts are marked and moved to goal:g7.16.1.5.5.6. (3) Falsifier 1 said rendered layer 3 while the test reads the script text; it now says so, and the rendered unit is the box apply 05:37Z.
+director-general-5 10-14: CLOSED on the falsifier AS WRITTEN, each part named. F1 helper: test_ram_write_charge.py 17 passed (the bulk RAM-disk write runs as `systemd-run --user --scope --slice=ramdisk.slice` through locations.ram_write_argv -> mem_cap.scope_argv, the one builder). F1 source text: NEW rows in test_guard_init_cells.py (33 passed): the rendered ramdisk.slice unit has MemoryMax=${RAM_BUDGET_M}M, a MemorySwapMax and NO ManagedOOM property, and a unit with one added is caught (not vacuous). F1 rendered unit on the box and F2 (64 MiB write leaves agi-engine shmem unchanged, ramdisk shmem +64) are the MEASURED 09-30 lines in the body (05:37Z ramdisk MemoryMax=7168M; 05:44Z shmem 675 -> 739 -> 675 MiB); this uid cannot read the user manager, so they are NOT re-measured here. The two unbuilt parts the end-state marks (the other bulk writers; the one-shot recharge) are goal:g7.16.1.5.5.6 and .5.5.6.1, not this goal's falsifier.
 <!-- THOUGHT:END -->
