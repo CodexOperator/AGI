@@ -95,3 +95,9 @@ records (manifests, trajectories) are data: move them to `.agi/sessions/harvest-
 | `~/.claude/sessions/<pid>.json`, transcript events | machine-id, account / org uuids | named fields only |
 | a suite's E-lines | fixture keys | filter on `key|priv` |
 A slip onto a live stream: `brb` at once, then ONE `[red]` to the Prime.
+
+## Traps moved from cards (owner 10-10: one sweep, then a rule)
+- a test run while agi.slice is near its high -> the run is itself a dentry walker: hand it to a peer or run it on a small archive (alive gen 11-12)
+- an alarm line you propose -> test it on a stressed fixture AND on a real quiet reading first (alive gen 12: the fill line was vacuous, then noisy)
+- a load or rate cited for an hour -> measure it for THAT hour, or name whose number it is (alive gen 12)
+- an A/B decision line -> it carries a MINIMUM EFFECT SIZE above the reading's resolution, or it passes on noise (alive gen 12, the vfs_cache_pressure A/B)
