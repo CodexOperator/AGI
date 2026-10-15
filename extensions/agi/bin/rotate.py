@@ -14549,7 +14549,7 @@ def _prime_row_authority(root: Path) -> tuple[dict | None, str]:
                 return row
         return None
 
-    seeded = _prime_pushed_seats(root, send._PUSHED_SEATS)
+    seeded = _prime_pushed_seats(root, send.authority_ref(root))
     if seeded is not None:
         rows, _sha, _ref = seeded
         return _pick(rows), "pushed"
