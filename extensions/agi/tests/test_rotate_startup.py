@@ -2803,3 +2803,52 @@ def test_seats_launch_no_row_gen_no_handoff_still_reads_gen_1(monkeypatch,
         handoff_gen=None)
     assert "gen=1" in block, \
         f"a gen-less, handoff-less seat stays at gen 1:\n{block}"
+
+
+# ---- S25 (council 10-15): the prime row reads the cell's ref, not a season constant ----
+def _authority_cell_root(tmp_path, ref: str) -> Path:
+    root = tmp_path / "authroot"
+    geo = root / ".agi" / "nodes" / ".geometry"
+    geo.mkdir(parents=True)
+    (root / ".agi" / "config.json").write_text(json.dumps({}))
+    (geo / "key-authority.md").write_text(
+        f"---\nid: config:key-authority\nauthority_ref: {ref}\n---\n")
+    return root
+
+
+def _ref_seen_by_the_seam(monkeypatch, fn, root) -> str:
+    """Run `fn(root)` with `_prime_pushed_seats` stubbed; return the ref it was handed."""
+    seen = []
+    rotate._prime_rows_fetch_clear()
+    monkeypatch.setattr(rotate, "_prime_pushed_seats", lambda r, ref: (
+        seen.append(ref) or ([{"role": "prime_director", "pubkey": "ab" * 20}], "SHA", ref)))
+    fn(root)
+    return seen[0]
+
+
+def test_prime_row_authority_reads_the_key_authority_cell(monkeypatch, tmp_path):
+    """The ref handed to the pushed-seats seam is config:key-authority's
+    authority_ref (the cell, then the ladder fallback), not the season-2
+    constant that names a deleted ref after the rollover."""
+    root = _authority_cell_root(tmp_path, "origin/season3/main")
+    assert _ref_seen_by_the_seam(monkeypatch, rotate._prime_row_authority, root) == "origin/season3/main"
+
+
+def test_prime_row_authority_mutant_the_constant_back_is_red(monkeypatch, tmp_path):
+    """MUTANT: `send.authority_ref(root)` replaced by `send._PUSHED_SEATS`
+    (the old line) hands the seam the season-2 constant, so the test above is
+    RED on it."""
+    import inspect
+    root = _authority_cell_root(tmp_path, "origin/season3/main")
+    src = inspect.getsource(rotate._prime_row_authority)
+    mut = src.replace("send.authority_ref(root)", "send._PUSHED_SEATS")
+    assert mut != src
+    ns = dict(rotate.__dict__)
+    seen = []
+    rotate._prime_rows_fetch_clear()
+    monkeypatch.setattr(rotate, "_prime_pushed_seats", lambda r, ref: (
+        seen.append(ref) or ([{"role": "prime_director", "pubkey": "ab" * 20}], "SHA", ref)))
+    ns["_prime_pushed_seats"] = rotate._prime_pushed_seats
+    exec(mut, ns)
+    ns["_prime_row_authority"](root)
+    assert seen[0] != "origin/season3/main"

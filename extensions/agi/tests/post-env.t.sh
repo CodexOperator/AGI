@@ -52,7 +52,7 @@ BASE="HOME=$T/hm PATH=$T/bin:/usr/bin:/bin:/usr/local/bin GIT_TEST_ASSUME_DIFFER
 # the post's ~/t: a repo whose branch posts/<P> holds one commit
 $G init -q -b posts/$P $T/hm/t;(cd $T/hm/t&&echo base>base&&$G add -A&&$G -c user.name=t -c user.email=t@t commit -q -m base)
 # run as the post: env -i + the post env + AGI_TRUNK/GIT config of the fixture; "$@" = [env words] cmd...; $T/bin is the piece dir
-as(){ (cd $T/r&&env -i $BASE $(penv $P) AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive "$@");}   # the fixture words LAST: a running post carries its own AGI_TRUNK (local-maxxing/season2/main), which the scratch repo does not have
+as(){ (cd $T/r&&env -i $BASE $(penv $P) AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive "$@");}   # the fixture words LAST: a running post carries its own AGI_TRUNK (its branch name), which the scratch repo does not have
 ast(){ (cd $T/hm/t&&env -i $BASE GIT_CONFIG_GLOBAL=$T/c/alive AGI_WT=$T/wt $(penv $P) "$@");}   # from ~/t, the pieces' cwd
 # ---- l1 (LIVE only)
 if [ -n "$LIVE" ];then pe=$(penv)
