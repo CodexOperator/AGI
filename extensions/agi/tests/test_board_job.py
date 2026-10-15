@@ -318,7 +318,7 @@ def test_mutant_land_that_takes_any_ring_key_ffs_the_other_principals_commit(box
 def test_the_commit_step_also_refuses_to_stack_on_staged_work(box):
     staged = box.hand_commit_on_branch()
     got = box.job()
-    assert got.returncode == 3 and "not the job's" in got.stderr
+    assert got.returncode == 3 and f"{staged[:7]} refused: (b) path staged.txt" in got.stderr   # .42.2: hand work OFF nodes/ still blocks
     assert box.tip() == staged                                            # no board commit on top of work waiting on a pytest
 
 
@@ -377,9 +377,9 @@ def test_mutant_without_x_theirs_the_conflict_stalls_the_line(box):
     assert box.job().returncode == 0
     _main_edits_the_cell(box)
     old = box.tip()
-    m = mutant(box.tmp, '"--no-ff", "-X", "theirs", "-m"', '"--no-ff", "-m"')
+    m = mutant(box.tmp, 'opts = [] if hand else ["-X", "theirs"]', "opts = []")
     got = box.job(src=m)
-    assert got.returncode == 3 and box.tip() == old                         # RED: the real file settles it (the row above)
+    assert got.returncode == 3 and box.tip() == old                         # RED: the real file settles it (the row above; this is Fc's mutant)
 
 
 def test_a_refusal_the_x_option_cannot_settle_reaches_the_notice_file(box):
@@ -642,8 +642,8 @@ def test_f7_the_notice_names_the_sha_the_rule_and_the_path_in_one_line(box, pb):
 
 def test_f7_mutant_the_old_generic_line_names_none_of_them(box, pb):
     bad = pb.commit({"extensions/x.py": "print(1)\n"})
-    m = mutant(box.tmp, '        _notice(args.notice, f"[board] {refused[0][0][:7]} refused: {refused[0][1]}")',
-               "        _notice(args.notice, _staged_line(post, len(refused), main, refused[0][0], args.signers))")
+    m = mutant(box.tmp, '        _notice(args.notice, f"[board] {refused[0][0][:7]} refused: {refused[0][1]}")\n        return 3\n    try:   # the suite lock',
+               "        _notice(args.notice, _staged_line(post, len(refused), main, refused[0][0], args.signers))\n        return 3\n    try:   # the suite lock")
     box.job("land", src=m, env=LAND_ENV(box))
     hits = [ln for ln in box.notice.read_text().splitlines() if "(b)" in ln and "extensions/x.py" in ln]
     assert hits == []
@@ -757,3 +757,81 @@ def test_f9_a_merge_signed_by_another_principal_is_refused_even_when_clean(box, 
     box.g("update-ref", "refs/heads/posts/belam", box.rev("HEAD", wt))
     box.g("worktree", "remove", "--force", str(wt))
     _refuses(box, "(a)")
+
+
+# ---- .42.2 follow-up (council 3/3 20:21Z): the :23 commit step on top of the Prime's node commits
+def test_fa_ahead_with_one_pending_prime_node_commit_the_job_commits_on_top(box, pb):
+    prime = pb.commit({NODE: "x\n"})
+    got = box.job()
+    assert got.returncode == 0, got.stderr
+    new = box.tip()
+    assert box.rev(f"{new}^") == prime and box.sig(new) == "G"              # the board commit sits on the Prime's; :28 lands both
+
+
+def test_fa_mutant_keeping_not_own_refuses_the_pending_prime_node_commit(box, pb):
+    prime = pb.commit({NODE: "x\n"})
+    m = mutant(box.tmp, "            refused = not_land_ok(main, head, tip, post, args.signers)\n        else:   # diverged",
+               "            refused = [(c, \"not the job's\") for c in not_own(main, head, tip, post, args.signers)]\n        else:   # diverged")
+    got = box.job(src=m)
+    assert got.returncode == 3 and box.tip() == prime
+
+
+def _shared_doc(box):
+    """x.md on the trunk AND on posts/belam, three lines: the base both sides then edit."""
+    (box.main / ".agi" / "nodes" / "doc").mkdir(parents=True)
+    (box.main / ".agi" / "nodes" / "doc" / "x.md").write_text("l1\nl2\nl3\n")
+    box.g("add", "-A")
+    base = box.commit("x.md on the trunk")
+    box.g("update-ref", "refs/heads/posts/belam", base)
+    return base
+
+
+XMD = ".agi/nodes/doc/x.md"
+
+
+def _fb_setup(box, pb):
+    _shared_doc(box)
+    prime = pb.commit({XMD: "l1\nPRIME l2\nl3\n"})
+    (box.main / XMD).write_text("l1\nMAIN l2\nl3\n")
+    box.g("add", "-A")
+    box.commit("MAIN edits the same line")
+    return prime
+
+
+def test_fb_a_conflict_between_main_and_a_prime_hunk_stops_the_line_and_loses_nothing(box, pb):
+    prime = _fb_setup(box, pb)
+    got = box.job()
+    assert got.returncode == 3, got.stderr
+    assert box.tip() == prime                                               # posts/belam unchanged
+    hits = [ln for ln in box.notice.read_text().splitlines() if prime[:7] in ln and "x.md" in ln]
+    assert len(hits) == 1                                                   # ONE line naming the Prime sha and the path
+    assert box.g("show", f"{box.tip()}:{XMD}").stdout.count("PRIME l2") == 1   # the Prime's line is still there
+
+
+def test_fb_mutant_x_theirs_kept_for_a_mixed_range_drops_the_prime_line_in_silence(box, pb):
+    prime = _fb_setup(box, pb)
+    m = mutant(box.tmp, 'opts = [] if hand else ["-X", "theirs"]', 'opts = ["-X", "theirs"]')
+    got = box.job(src=m)
+    assert got.returncode == 0 and box.tip() != prime
+    assert box.g("show", f"{box.tip()}:{XMD}").stdout.count("PRIME l2") == 0   # RED: gone, rc 0, no notice
+    assert not box.notice.exists()
+
+
+def test_fc_job_commits_only_diverged_x_theirs_still_takes_main(box):
+    assert box.job().returncode == 0
+    _main_edits_the_cell(box)
+    got = box.job()
+    assert got.returncode == 0, got.stderr                                  # today's behaviour, unchanged
+    assert not box.notice.exists()
+
+
+def test_fb_a_clean_merge_with_a_prime_commit_takes_main_without_a_stall(box, pb):
+    _shared_doc(box)
+    pb.commit({XMD: "l1\nPRIME l2\nl3\n"})
+    (box.main / "other.txt").write_text("y")
+    box.g("add", "-A")
+    box.commit("a landing elsewhere on MAIN")
+    got = box.job()
+    assert got.returncode == 0, got.stderr
+    assert not box.notice.exists()
+    assert box.g("show", f"{box.tip()}:{XMD}").stdout.count("PRIME l2") == 1

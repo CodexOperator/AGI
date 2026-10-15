@@ -10,6 +10,8 @@ and leaves the human uid one step that makes NO commit:
       1. work = a job-owned shared clone (never ~/t, C5); the base is posts/<post> (or MAIN when MAIN is
          ahead: a pure ref move, no commit; or a signed `board: take MAIN` merge when they diverged and every
          commit on posts/<post> is the job's own);
+         (.42.2: the Prime's landable NODE commits no longer block this step; a take-MAIN merge over them runs
+         WITHOUT -X theirs, and a conflict names the Prime sha + path and waits: a Prime hunk is never dropped)
       2. the writer runs in the clone at @WROOT@ (= <work>/.agi) and makes ONE commit; the job re-signs it with
          a `Board-job:` trailer (C3: the subject stays exact, the trailer names the job);
       3. C2: the commit must verify G (`git log -1 --format=%G?`), else NOTHING is published, one line, rc 3;
@@ -201,10 +203,12 @@ def land_why(repo, sha: str, post: str, signers: str, main_head: str, seen: dict
     return why
 
 
-def not_land_ok(repo, base: str, tip: str, post: str, signers: str = SIGNERS) -> list[tuple[str, str]]:
-    """[(sha, failed rule)] for every commit in base..tip that may NOT land (oldest first)."""
+def not_land_ok(repo, base: str, tip: str, post: str, signers: str = SIGNERS,
+                main_head: str | None = None) -> list[tuple[str, str]]:
+    """[(sha, failed rule)] for every commit in base..tip that may NOT land (oldest first). `main_head` is MAIN's
+    head when `base` is not it (the diverged range starts at the merge-base)."""
     seen: dict = {}
-    head = _rev(repo, base) or base
+    head = main_head or _rev(repo, base) or base
     out = _git(repo, "rev-list", "--reverse", f"{base}..{tip}")
     bad = []
     for c in out.stdout.split():
@@ -322,16 +326,18 @@ def cmd_commit(args) -> int:
             _say(f"[raced] posts/{post} moved while the job took MAIN: old {_sh(tip)} -> seen {_sh(_rev(main, ref))}")
             return 4
         tip = head
-    take = False
+    take, hand = False, []
     if tip != head:
-        if _is_ancestor(main, head, tip):
-            staged = not_own(main, head, tip, post, args.signers)
-        else:   # diverged: only a branch of the job's own commits may take MAIN (a signed merge)
+        if _is_ancestor(main, head, tip):   # ahead: the job commits on top of work :28 lands whole (.42.2)
+            refused = not_land_ok(main, head, tip, post, args.signers)
+        else:   # diverged: only a branch that may land takes MAIN (a signed merge)
             mb = _git(main, "merge-base", head, tip).stdout.strip()
-            staged = not_own(main, mb, tip, post, args.signers) if mb else [tip]
-            take = not staged
-        if staged:
-            _notice(args.notice, _staged_line(post, len(staged), main, staged[0], args.signers))
+            refused = not_land_ok(main, mb, tip, post, args.signers, head) if mb else [(tip, "(m) no merge-base")]
+            take = not refused
+            hand = [c for c in _git(main, "rev-list", "--reverse", f"{mb}..{tip}").stdout.split()
+                    if not is_own(main, c, post, args.signers)] if take else []
+        if refused:
+            _notice(args.notice, f"[board] {refused[0][0][:7]} refused: {refused[0][1]}")
             return 3
     if not _ensure_clone(main, work, env):
         _say(f"[board] could not make the job's clone at {work}")
@@ -347,8 +353,21 @@ def cmd_commit(args) -> int:
         # its edited_by stamp): the writer rewrites the cell right after, so nothing of the job's is lost.
         # Anything -X cannot settle (a modify/delete) is a REFUSAL that goes to the notice file too: a stall
         # that only the job log knew would leave the board line off with nobody told.
-        merged = _git(work, "merge", "-q", "--no-ff", "-X", "theirs", "-m", f"{TAKE_PREFIX} {head[:7]}", "-m",
+        # .42.2 (council 3/3 10-15): with the Prime's HAND node edits in the range, -X theirs would DROP a
+        # conflicting Prime hunk, rc 0, no notice, inside a G merge nothing re-checks. A mixed range merges
+        # WITHOUT -X: a conflict aborts (posts/<post> unchanged) and the notice names the Prime sha + the path.
+        opts = [] if hand else ["-X", "theirs"]
+        merged = _git(work, "merge", "-q", "--no-ff", *opts, "-m", f"{TAKE_PREFIX} {head[:7]}", "-m",
                       f"{TRAILER} {args.job}", head, env=env)
+        if merged.returncode and hand:
+            paths = _git(work, "diff", "--name-only", "--diff-filter=U", env=env).stdout.split()
+            _git(work, "merge", "--abort", env=env)
+            path = paths[0] if paths else "?"
+            touches = [c for c in hand if _git(main, "diff-tree", "-r", "--root", "--no-commit-id", "--name-only", c, "--", path).stdout.strip()]
+            who = (touches or hand)[-1]   # the newest Prime commit that touched the path
+            _notice(args.notice, f"[board] take MAIN: the Prime's {who[:7]} conflicts with MAIN at {path}: "
+                                 f"resolve it by hand, the board line waits")
+            return 3
         if merged.returncode:
             _git(work, "merge", "--abort", env=env)
             why = ((merged.stdout or "") + (merged.stderr or "")).strip().splitlines()
