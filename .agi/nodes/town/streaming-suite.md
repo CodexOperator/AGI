@@ -11,7 +11,7 @@ edited_by: belam
 location: encryption-town
 master: stream-master
 scaffold_hash: c8877d1072e7301a
-season: 1
+season: 2
 thought_session: belam-S2-L5-X
 town: core
 visions:
