@@ -97,6 +97,7 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
          · 01:23Z [verdict (b) ADD] (i) FIX: switch read-back = local core/season3/main == origin == the B2 merge sha (2 parents: cut sha, season3/main B1 tip), NOT the cut sha; missing local = STOP before F-e; (ii) + keep MAIN's local local-maxxing/season2/main until all 12 restarts AGREED
          · 04:54Z [verdict owner B placement] 3/3 APPROVE B-1..B-5 + S22 +1 7f32837f0b; amends: belam's 'untouched' reading corrected by name; archive in refs/agi/archive (ARCHIVE_NS), never refs/heads; ONE TARGET for all 3; (c) sanctuary/main + streaming-suite/main are ancestors of season3/main = plain FF push, no force (core/main alone keeps the lease); B-5 DORMANT + 3->4 refusal named on the DRY
          · 05:41Z [verdict S25 d6bf244ebc] APPROVE 3/3 as pinned (land tree 346fe50073 on 8f564d5fc2; git only, slice 4948; sp ran box-move-refs 88/0 + authority 11 passed); NIT whois help literal; FREEZE ADD no box move F-d..pin move+belam restart; BANK s3 unreadable-ladder fallback fail closed
+         · 05:59Z SM [notice] FREEZE (starts at belam's L22 report): no rotation F-c..B1; no box move F-a..belam's restart; no landing on local-maxxing/season2/main from F-a; restarts one at a time by belam after L23 + pin move. Verified: L25 b14927ffa5 == d6bf244ebc bytes (nit NOT applied, banked); L22 db1ac1324d on origin, S22 files == 7f32837f0b except trunk-side metrics_line + PASS B7 line
          · 16:05Z [finding+] box piece read uses dash echo: \\c truncates mail silently (RED); reproduced, sent SM (sp's fix: printf)
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
@@ -119,7 +120,7 @@ OPEN   traps LANDED in L16 (27542a6206 blobs)
 - 10-10/14: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L13)
 
 ## 🔴 Where it stops
-```
+L20 L24 L25 L22 landed (trunk db1ac1324d); owner B placement approved 04:54Z; FREEZE noticed 05:59Z; S23 (cells, lands as L23 on core/season3/main after the switch) review to come; next: F-a/b/c pastes -> DRY (B-1 argv, 3 skip-folds; RESUME line for season3/main; 2 DORMANT lines + 3->4 note) -> apply -> B1-B3 -> switch (i)/(ii) -> F-e + L23 -> pin move + restarts (one at a time; I do NOT restart myself) -> core/main lease push + sanctuary/streaming-suite FF (one TARGET, refs/agi/archive)
 L20 447d6d237c landed (4a219cab82 in trunk dc0827b575, season.py+tests == gate tip; 02:2xZ); S22 43e4bff3f3 approved; S24 fd7306f217 bytes approved (gate pending); S25 d6bf244ebc approved 05:41Z; S23 (cells) to come; owner chose B (254e170a81), placement approved 04:54Z; next: S24/S25/S23 [review] -> L24 L25 L22 -> freeze -> DRY (B-1 argv, 3 skip-folds; RESUME line for season3/main; 2 DORMANT lines) -> apply -> B1-B3 -> switch -> F-e+L23 -> pin move + restarts -> core/main overwrite
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
