@@ -200,7 +200,7 @@ Everything outside a slot is standing text.
     <li><div><span class="who">Prime · every PASS</span><b>Trunk into {{facts.lines.prime}}, then {{facts.lines.integration}}.</b> A PASS reviews what landed and merges the trunk into <code>{{facts.lines.prime}}</code> with a signed merge. <code>{{facts.lines.integration}}</code> is then fast-forwarded to the same tip; if it is ever ahead, that is a red.</div></li>
   </ol>
   <div class="grid2">
-    <div class="piece"><h3>Automatic writers</h3><p><b>Hourly</b> the branch push sends MAIN's branch to origin. The board job writes one metrics line, signed by the Prime's uid with a <code>Board-job:</code> trailer, and lands it only as a fast-forward. <b>Every 30 min</b> grid sync versions changed nodes into <code>refs/grid/*</code> and pushes them.</p></div>
+    <div class="piece"><h3>Automatic writers</h3><p><b>Hourly</b> the branch push sends MAIN's branch to origin. The board job writes one metrics line, signed by the Prime's uid with a <code>Board-job:</code> trailer, and lands it only as a fast-forward. <b>Every 30 min</b> grid sync versions changed nodes into their grid refs and pushes them.</p></div>
     <div class="piece"><h3>Outward seal</h3><p>On <code>master</code>, <code>seal.yml</code> attests block digests to the public Sigstore log every 30 minutes, with retries. It never holds a key.</p></div>
     <div class="piece"><h3>Between seasons only</h3><p>Overwrites of shared branches happen only at a rollover, on your word, with an archive ref first and an explicit lease. Inside a season, nothing is forced.</p></div>
   </div>

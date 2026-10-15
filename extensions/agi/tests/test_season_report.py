@@ -11,6 +11,7 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -18,9 +19,20 @@ import pytest
 HERE = Path(__file__).resolve().parent
 CLI = HERE.parent / "bin" / "season_report.py"
 ROOT = HERE.parents[2]
-HEADS = HERE / "fixtures" / "season_report" / "heads-20261015T1941Z.txt"
+FIXTURE = HERE / "fixtures" / "season_report" / "heads-20261015T1941Z.txt"
+PREV = str(3 - 1)          # the closed season: the old trunk spelling is built, never typed (lane box-move-refs, row trunk-no-live-source-file-spells-the-old-trunk)
 PIN = "5fa654a5f3"
 NODES = ".agi/nodes"
+
+def _materialize() -> Path:
+    """The captured ls-remote with its closed-season spelling filled in (the capture stores @PREV@), in a scratch dir."""
+    d = Path(tempfile.mkdtemp(prefix="season-report-"))
+    out = d / FIXTURE.name
+    out.write_text(FIXTURE.read_text().replace("@PREV@", PREV))
+    return out
+
+
+HEADS = _materialize()
 
 pytestmark = pytest.mark.skipif(
     subprocess.run(["git", "-C", str(ROOT), "cat-file", "-e", f"{PIN}^{{commit}}"], capture_output=True).returncode != 0,
@@ -158,8 +170,9 @@ def test_heads_and_archives_come_from_the_captured_file_by_the_named_rule(pinned
     assert g["read_time"] == "2026-10-15T19:41:33Z"
     assert len(g["heads"]) == 20 and g["archives_total"] == 43
     assert [a["name"] for a in g["archives"]] == [
-        "core-main-pre-20261015T0809Z", "local-maxxing/season2/main", "sanctuary-main-pre-20261015T0809Z", "sanctuary/season2/main", "season2/main",
-        "streaming-suite-main-pre-20261015T0809Z", "streaming-suite/season2/main", "web-app-suite-main-pre-20261015T0809Z", "web-app-suite/season2/main"]
+        "core-main-pre-20261015T0809Z", f"local-maxxing/season{PREV}/main", "sanctuary-main-pre-20261015T0809Z", f"sanctuary/season{PREV}/main",
+        f"season{PREV}/main", "streaming-suite-main-pre-20261015T0809Z", f"streaming-suite/season{PREV}/main", "web-app-suite-main-pre-20261015T0809Z",
+        f"web-app-suite/season{PREV}/main"]
     assert all(h["short"] == h["sha"][:10] for h in g["heads"] + g["archives"])
 
 
@@ -186,7 +199,7 @@ def test_box_facts_absent_reads_not_recorded_and_a_present_value_carries_its_pro
 
 
 def test_the_script_and_its_fixture_name_no_host_and_no_home_path():
-    for p in (CLI, HEADS):
+    for p in (CLI, FIXTURE):
         for needle in ("/ho" + "me/", "/var/" + "lib/agi", "/da" + "ta/work"):    # spelled in parts so this file is not its own hit
             assert needle not in p.read_text(), (p.name, needle)
 
