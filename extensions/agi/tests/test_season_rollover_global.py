@@ -830,3 +830,15 @@ def test_g123_the_helper_keeps_the_ledger_whole_over_two_stub_rollovers_and_leav
     assert after4[0] == past[0] and after4[-1]["closed"] is None
     assert season._append_season_row(None, 3, "T") == [{"season": 3, "global_season": 3, "opened": "T", "closed": None}]
     assert season._append_season_row([{"season": 2, "global_season": 2, "opened": "A", "closed": "B"}], 3, "C")[0]["closed"] == "B"   # a row already closed is the past
+
+
+def test_g123_every_live_towns_ledger_is_whole_and_a_reopened_row_is_red():
+    """The falsifier on the LIVE town nodes: every row but the last is closed, and row[i].closed == row[i+1].opened."""
+    towns = sorted((Path(__file__).resolve().parents[3] / ".agi" / "nodes" / "town").glob("*.md"))
+    assert len(towns) >= 5, towns
+    for p in towns:
+        rows = _fm(p).get("season_history") or []
+        assert rows and rows[-1]["closed"] is None and rows[-1]["season"] == _fm(p)["season"], (p.name, rows)
+        assert _ledger_violations(rows) == 0, (p.name, rows)
+        if len(rows) > 1:                                        # the mutant: a past row left open is exactly one violation
+            assert _ledger_violations([{**rows[0], "closed": None}, *rows[1:]]) == 1, p.name
