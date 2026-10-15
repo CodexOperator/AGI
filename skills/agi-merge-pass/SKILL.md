@@ -18,7 +18,7 @@ pending PASS). The crons are POINTER prompts — edit the section, never the cro
 > **TRAJECTORY FIRST (owner 07:5xZ 10-10, verbatim: "Yes always. Thats your main check every 4 hours is to see what’s stuck if anything and keep town on trajectory and moving toward season completion").** Every CHECK: (T1) each post's state -- idle/busy, unread box, stuck dialog, last box send; (T2) the season's active leaves (goal:g7.16.1.11.*): landed-but-still-active -> ask the master to close; unowned or idle -> ask the masters (SM engine / TM research) what is queued and to dispatch idle posts; (T3) a post silent > 12 h -> nudge via its master (belam mails masters only). Then (A)-(C) below.
 ```
 (A) read: dm files *belam* + the inbox FILE (ts > belam.lastcheck) + one send.py read belam → answer only what needs the Prime
-(B) N = rev-list BASE..TIP (TIP = local-maxxing/season2/main); landed = experiment files changed
+(B) N = rev-list BASE..TIP (TIP = $AGI_TRUNK); landed = experiment files changed
     a. N==0 or landed==0 → nothing      b. pending, no notice → ONE [owner] 5 h notice dm to thought-master + a one-shot
     c. notice pending, now < run_at → nothing      d. now ≥ run_at, never fired (pass_started_at null) → run the PASS now
 (C) owner reply ≤ 5 lines; ONE line when nothing changed
