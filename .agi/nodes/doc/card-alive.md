@@ -48,6 +48,8 @@ done   SEASON 2 -> 3 ROLLOVER, 10-14 18:0xZ .. 10-15 08:10Z (every step a 3/3 co
            template (writer sp, v3 + H1 every head row) 19:37:12Z. Texts: refs/box/alive/sanctuary-master
          placed 19:38Z (.44.8 S1+S3 DG2, g5.4.1 S1 DG4); DG2's 5 questions answered 19:41:45Z; belam's 5 realm ASKs 19:44:00Z
            (+2 corrections 19:44Z): boot set = rows -> /run only, /etc links off BEFORE S1; F5 = sudoers byte-equal to a node source
+         belam ASK 1 read back by me 19:50Z (fa3174300d 4 boot cells, pin, /run 12 /etc 0); .42.2 design 3/3 to SM 19:52:54Z
+           (land_ok = is_own OR prime_node; .geometry/ + town/ gated; clean-merge rule). CARRY to .44.8 S2 review: S5 pubkey commit is gated
 NEXT   SM places + gates both designs (S1..S3 stacks each): review each gated tip as usual
        · DG2 cuts .44.7 CLOSE on the first real box move (F1: section 6 + .39 counts per namespace, lane row + mutant RED); then .44
        · from now (P2') every PASS close ff-feeds core/main from season3/main: check the read-back core/main == season3/main
