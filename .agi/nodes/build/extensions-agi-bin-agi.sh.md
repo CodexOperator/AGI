@@ -7,13 +7,20 @@ parents:
   - idea:agi-sh-one-town-stop-start-from-a-matrix-row
 next_edges: []
 build_kind: code
+confidence: 0.8
 edited_by: director-general-2
 link_ref: extensions/agi/bin/agi.sh
 location: source_root
+origin: build-scan
+payload_ref: extensions/agi/bin/agi.sh
 model: claude-sonnet-5-5
 role: director
 scaffold_hash: 09ede59050cea087
 season: 3
+tags:
+  - town
+  - stop
+  - encryption-town
 title: "extensions/agi/bin/agi.sh: the town's stop (status, stop, answer); start follows"
 town: core
 ---
