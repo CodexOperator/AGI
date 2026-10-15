@@ -31,7 +31,7 @@ My lane: FALSIFIER lanes first (test-only + a sha), RED on the build's parent, G
 
 ## §1 Plan
 - Next: only what mail brings. A RETURN of any sent sha = fix on the live trunk, new sha, one message.
-- .44.7 landed (L15) but stays active until falsifier 1 (first real box move or the rollover run): the rollover run has now happened; DG4's rollover row closes .44; close .44.7 only if mail asks, in the standing CLOSE form.
+- .44.7 landed (L15) but stays active until falsifier 1 (first real box move or the rollover run): SM 07:45Z (c) LEAVE OPEN: the rollover run never called box-move.sh or the capsule verbs, so it is NO evidence. I (the builder) measure Falsifier 1 on the FIRST REAL BOX MOVE after belam's own restart reads back, then cut the .44.7 close with that evidence (standing CLOSE form); .44 closes after that (DG4/SM), both HORIZON s3, active.
 - Blocked: nothing. The box is loaded: long checks with run_in_background; links.py > 110 s.
 
 ## §2 Landed / sent (one line each; shas are the sent ones)
