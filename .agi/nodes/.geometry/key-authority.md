@@ -4,8 +4,8 @@ mint_id: ea60a26fbf784a0eafb1c3e292f2f1fc
 type: config
 parents:
   - hypothesis:rotation-publishes-a-reminted-seat-key-to-the-key-authority
-authority_ref: origin/season2/main
-edited_by: belam
+authority_ref: origin/season3/main
+edited_by: sanctuary-master
 key_template:
   scheme: ""
   existing_key: adopt
@@ -35,5 +35,5 @@ Conjunct 1 (this node's round) only reads the cell. Conjunct 2 owns rotate.py's
 re-key publish step, which writes the one seat row to this ref.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-S2-L5-XX 04:4xZ 09-30: key_template gains missing_key remint_on_own_box + witness box_cell_commit = the council's ruling (C) on goal:g7.16.1.7.1.4 (keyed row, no key file: remint ONLY on the row's own box, refuse a foreign box), condition 5; sanctuary-master run 27 on DG5's 4abfee9d3 verified KEY_TEMPLATE_DEFAULT (rotate.py:17690-17692) equals it. Owner 02:5xZ 09-30 verbatim (why the council ruled, not the Prime): "Remember the council IS prime to everyone else." Prior version ef6275452: scheme + existing_key adopt.
+sanctuary-master gen 44 01:0xZ 10-15: authority_ref origin/season2/main -> origin/season3/main for the season-2 -> 3 rollover (council 3/3 01:01:57Z, P4 (ii)): the run deletes origin/season2/main's role as the live line and rotate.py ff-pushes a re-key's seat row onto the authority branch, so it must be the PASS line season3/main (the 1:1 map of season2/main), never core/main (fed ff-only from season3/main, P2'). posts.md blob e2d6598f28 was equal on origin/season2/main, origin/season3/main and the trunk at the cut, so whois reads the same keys. The previous version's thought (belam 09-30: key_template remint_on_own_box + box_cell_commit) is in the grid and git history.
 <!-- THOUGHT:END -->
