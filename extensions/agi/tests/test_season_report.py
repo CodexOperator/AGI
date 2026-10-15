@@ -173,10 +173,10 @@ def test_a_heads_file_without_a_read_time_first_line_is_refused_rc2(tmp_path: Pa
 def test_box_facts_absent_reads_not_recorded_and_a_present_value_carries_its_provenance(tmp_path: Path, pinned: dict):
     assert all(v == {"value": "not recorded"} for v in pinned["box"].values()) and len(pinned["box"]) == 7
     ok = tmp_path / "box.json"
-    ok.write_text(json.dumps({"run_rc": {"value": 0, "command": "season.py rollover --global --apply", "reader_uid": "agi-belam",
+    ok.write_text(json.dumps({"run_rc": {"value": 0, "command": "season.py rollover --global --apply", "reader_uid": "a-seat",
                                          "read_time": "2026-10-15T06:24:00Z"}}))
     b = json.loads(_facts_raw("--box-facts", str(ok)).stdout)["box"]
-    assert b["run_rc"] == {"value": 0, "command": "season.py rollover --global --apply", "reader_uid": "agi-belam", "read_time": "2026-10-15T06:24:00Z"}
+    assert b["run_rc"] == {"value": 0, "command": "season.py rollover --global --apply", "reader_uid": "a-seat", "read_time": "2026-10-15T06:24:00Z"}
     assert b["pin"] == {"value": "not recorded"}
     for bad in ({"run_rc": {"value": 0}}, {"run_rc": 0}, {"not_a_key": {"value": 1, "command": "c", "reader_uid": "u", "read_time": "t"}}):
         p = tmp_path / "bad.json"
@@ -187,7 +187,7 @@ def test_box_facts_absent_reads_not_recorded_and_a_present_value_carries_its_pro
 
 def test_the_script_and_its_fixture_name_no_host_and_no_home_path():
     for p in (CLI, HEADS):
-        for needle in ("/home/", "/var/lib/agi", "/data/work"):
+        for needle in ("/ho" + "me/", "/var/" + "lib/agi", "/da" + "ta/work"):    # spelled in parts so this file is not its own hit
             assert needle not in p.read_text(), (p.name, needle)
 
 
