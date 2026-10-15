@@ -7,11 +7,13 @@ parents:
   - goal:g26.towns
 next_edges: []
 council: council-web-app-suite
-edited_by: belam
+edited_by: owner
 master:
 scaffold_hash: 7bdf5c8b8c4b3ed3
-season: 2
-thought_session: goal-glom-2026-09-19
+season: 3
+season_history:
+  - {"season": 3, "global_season": 3, "opened": "2026-10-15T06:24:11Z", "closed": null}
+thought_session: season
 town: core
 visions:
   - vision:web-app-suite
