@@ -7846,6 +7846,42 @@ def test_authority_ref_blank_or_missing_field_stays_default(tmp_path):
     assert send_mod.authority_ref(root) == send_mod._PUSHED_SEATS
 
 
+def _write_ladder_season(root: Path, season: int) -> None:
+    p = root / ".agi" / "nodes" / ".geometry" / "ladder.md"
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(f"---\nid: ladder:ladder\ncurrent_season: {season}\n---\n")
+
+
+def test_authority_ref_default_follows_the_ladder_season(tmp_path):
+    """S25 (council 10-15): with no cell the fallback is origin/ + the main of
+    the ladder's current_season, not a literal season 2 that names a deleted
+    ref after the rollover. The cell still wins over the ladder."""
+    root = _key_authority_root(tmp_path)
+    _write_ladder_season(root, 3)
+    assert send_mod.authority_ref(root) == "origin/" + send_mod.branches.season_main(3)
+    assert send_mod.authority_ref(root) == "origin/season3/main"
+    other = _key_authority_root(tmp_path / "cell")  # a fresh root: the node lookup may cache a miss
+    _write_ladder_season(other, 3)
+    _write_key_authority_node(other, "origin/town/some-trunk")
+    assert send_mod.authority_ref(other) == "origin/town/some-trunk"
+
+
+def test_authority_ref_unreadable_ladder_keeps_the_legacy_default(tmp_path):
+    root = _key_authority_root(tmp_path)  # no ladder node at all
+    assert send_mod.authority_ref(root) == send_mod._PUSHED_SEATS
+
+
+def test_authority_ref_mutant_a_literal_season_is_red(tmp_path, monkeypatch):
+    """MUTANT: a fallback that ignores the ladder (the literal season_main(2))
+    answers season 2 when the ladder says 3, so the follows-the-ladder test
+    above FAILS on it -- the mutant is RED, as the leaf requires."""
+    root = _key_authority_root(tmp_path)
+    _write_ladder_season(root, 3)
+    monkeypatch.setattr(send_mod.spawn_gate, "read_ladder_season", lambda nodes_dir: None)
+    assert send_mod.authority_ref(root) == "origin/season2/main"
+    assert send_mod.authority_ref(root) != "origin/season3/main"
+
+
 # ── DH.524 kid a00-a46d3b83: the read-marker rewrite and the dm pending mark ──
 
 
