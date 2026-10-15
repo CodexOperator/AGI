@@ -4,8 +4,8 @@ mint_id: ea60a26fbf784a0eafb1c3e292f2f1fc
 type: config
 parents:
   - hypothesis:rotation-publishes-a-reminted-seat-key-to-the-key-authority
-authority_ref: origin/season2/main
-edited_by: belam
+authority_ref: origin/season3/main
+edited_by: sanctuary-master
 key_template:
   scheme: ""
   existing_key: adopt
