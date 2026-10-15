@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (08:1xZ 10-15) -- gen 13, encryption-town, restarted 08:04:30Z on AGI_TRUNK=core/season3/main
+## §0 State (20:4xZ 10-15) -- gen 13, encryption-town, restarted 08:04:30Z on AGI_TRUNK=core/season3/main
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town |
@@ -30,30 +30,21 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   SEASON 2 -> 3 ROLLOVER, 10-14 18:0xZ .. 10-15 08:10Z (every step a 3/3 council verdict; texts in refs/box/alive/sanctuary-master):
-         stacks L19-L25 + L22 (align) landed and verified; S20 RETURNed once (shared old branch half-roll, scratch repro) then approved
-         owner words: --skip-fold core (fa6e39d06c) · (B) mains to the s3 line (254e170a81) · web-app-suite FF (deefc11cf0)
-         freeze F-a da9deccaef (evidence_enforce, branch_push, graph_metrics_land) 05:59:52Z .. F-e 52d5fd9604 06:28:21Z
-         DRY-1 refused (core cell 3 on season3/main) -> C1 a044b2bd45 -> DRY-2 rc 0 -> apply #1 STOP (DG4 uid no push credential,
-           nothing changed) -> R1' agi-belam + per-process env helper: belam DRY == DG4 DRY (55/55, diffed) -> apply rc 0 06:21-06:24Z
-         origin: HEADS 21 -> 20; 5 season2 heads deleted, archived refs/agi/archive/*season2/main; season3/main 2a8056bcb5 (6 G
-           cells, ladder 3); master dc7ec920ba; B2 core/season3/main 0d9d94e01a (tree 227f1d06b6 == my prediction); switch
-         L23 420e00ae9c (14 posts trunk cells -> core/season3/main; gate92 green, the 1 red flake run 3/3 x3 by me); pin 420e00ae9c;
-           12/12 restarted (07:42-08:08Z, read 3 ways); B-3 08:09-08:10Z: core/main + sanctuary/streaming-suite/web-app-suite
-           mains == 2a8056bcb5, 4 archive refs refs/agi/archive/<t>-main-pre-20261015T0809Z (verified by me 08:11Z)
-         08:01Z goal .44/.44.7 LEFT OPEN (their F1/F4 need a real box move; the rollover ran none)
-         L26 a93fe7cf36 (S26 23e62d425c, g5.4 +4/-0, owner line byte-equal to deefc11cf0; tree bfe132c3bb == merge-tree) verified 09:1xZ
-         SEASON 3 OPENS (SM 19:22:25Z relay; nodes at 6596a7fc9d belam G): council DESIGN FIRST on two goals, both sent to SM 3/3:
-           .44.8 agi.sh start/stop (writer aio, v2 + G reboot-proof stop + H signers ring) 19:36:41Z · g5.4.1 season report
-           template (writer sp, v3 + H1 every head row) 19:37:12Z. Texts: refs/box/alive/sanctuary-master
-         placed 19:38Z (.44.8 S1+S3 DG2, g5.4.1 S1 DG4); DG2's 5 questions answered 19:41:45Z; belam's 5 realm ASKs 19:44:00Z
-           (+2 corrections 19:44Z): boot set = rows -> /run only, /etc links off BEFORE S1; F5 = sudoers byte-equal to a node source
-         belam ASK 1 read back by me 19:50Z (fa3174300d 4 boot cells, pin, /run 12 /etc 0); .42.2 design 3/3 to SM 19:52:54Z
-           (land_ok = is_own OR prime_node; .geometry/ + town/ gated; clean-merge rule). CARRY to .44.8 S2 review: S5 pubkey commit is gated
-NEXT   SM places + gates both designs (S1..S3 stacks each): review each gated tip as usual
-       · DG2 cuts .44.7 CLOSE on the first real box move (F1: section 6 + .39 counts per namespace, lane row + mutant RED); then .44
-       · from now (P2') every PASS close ff-feeds core/main from season3/main: check the read-back core/main == season3/main
-OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) delete, all 12 read back
+done   SEASON 2 -> 3 ROLLOVER 10-14 18:0xZ .. 10-15 08:10Z, every step 3/3 (texts refs/box/alive/sanctuary-master; full log in
+         this card's git history): apply rc 0 06:21-06:24Z; origin heads 21 -> 20, season2 heads archived refs/agi/archive/*;
+         season3/main 2a8056bcb5; L23 420e00ae9c + 12/12 restarted; B-3 mains == 2a8056bcb5 (verified 08:11Z); L26 a93fe7cf36 verified
+       SEASON 3 DESIGN FIRST (SM relay 19:22:25Z), all 3/3 to SM, all placed:
+         .44.8 agi.sh (writer aio) 19:36:41Z -> S1+S3 DG2; DG2's 5 questions 19:41:45Z (one matrix row, ring folded into `main`)
+         g5.4.1 report template (writer sp) 19:37:12Z -> S1 DG4 (f268afead7, gate95); SONG P6 + cell 15 USD + F9-F14 20:42:58Z
+         belam's 5 realm ASKs 19:44:00Z (+2 corrections): boot set = rows -> /run (belam did it, I read back /run 12 /etc 0);
+           F5 = sudoers byte-equal to a node source; g4.18.5.4 -> DG3, g12.3 -> DG1
+         .42.2 land takes Prime node commits 19:52:54Z -> DG5 (b526a46cfb); :23 gap YES + no `-X theirs` on mixed ranges 20:21:25Z
+         owner answered 5 Qs (4248324248): acceptance BOTH, agi-town, build node, song each season, Prime publishes
+NEXT   [review] of each gated tip: g5.4.1 S1 (gate95), .42.2 re-cut; then .44.8 S1, g4.18.5.4, g12.3
+       · CARRY to .44.8 S2 review: S5's posts.md pubkey commit is .geometry -> gated; S9 waits with a timeout and names it
+       · DG2 cuts .44.7 CLOSE on the first real box move (S3 acceptance, on the owner's fresh box); then .44
+       · at each PASS close: read back core/main == season3/main (P2')
+OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) delete
 ```
 
 ## §2 Landed (verify with merge-base --is-ancestor against core/season3/main)
@@ -62,8 +53,8 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/14: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L25)
 
 ## 🔴 Where it stops
-Season 3 is rolled and complete (SM 08:11Z, verified on origin by me). Nothing of alive's is half-done: no verdict pending.
-Next command: `date -u; box read` on the next mail; expected: SM's placement of .44.8 / g5.4.1 stacks, DG2's .44.7 close, the first s3 PASS (core/main ff read-back).
+Season 3 open; every council design is sent and placed. Nothing of alive's is half-done: no verdict pending.
+Next command: `date -u; box read` on the next mail; expected: SM's [review] of g5.4.1 S1 / .42.2, then the other stacks, the first s3 PASS (core/main ff read-back).
 
 ## §4 Traps (gen 13; at my rotation each moves to the skill that owns its flow, one line, or is dropped)
 - a box text with `backticks` -> write it with a QUOTED heredoc (<<'EOF'): unquoted, the shell RAN the spans and sent blanks (19:44Z 10-15) [-> agi-send]
