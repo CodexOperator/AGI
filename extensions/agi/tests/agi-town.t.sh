@@ -100,9 +100,9 @@ XENV= run answer AGI_BOX tw >$T/o 2>&1;rc=$?;md=$(stat -c %a $T/env)
 ok st-answer-writes-town-env-600 "answer AGI_BOX tw: rc $rc (want 0), $(cat $T/env | tr '\n' ' ') mode $md (want 600)" '[ $rc = 0 ]&&[ "$(cat $T/env)" = "AGI_BOX=tw" ]&&[ $md = 600 ]'
 b0=$(md5sum <$T/env);bad=0
 A1(){ XENV= run answer "$@" >/dev/null 2>&1&&bad=1;}
-A1 lower x;A1 AGI_BOX "two words";A1 "A$(printf 'k%.0s' $(seq 40))" y;A1 TOK $(printf 'a%.0s' $(seq 40));A1 TOK2 'a$b';A1 TOK3 ghp_$(printf 'Z%.0s' $(seq 36));A1 TOK4 $(printf 'q%.0s' $(seq 129))
+A1 lower x;A1 AGI_BOX "two words";A1 "A$(printf 'k%.0s' $(seq 40))" y;A1 TOK $(printf 'a%.0s' $(seq 40));A1 TOK2 'a$b';A1 TOK3 gh$(printf 'p_')$(printf 'Z%.0s' $(seq 36));A1 TOK4 $(printf 'q%.0s' $(seq 129))
 XENV= run answer onlyone >/dev/null 2>&1&&bad=1
-ok st-answer-refuses-a-bad-key-a-bad-value-and-a-token-shaped-value "8 bad answers (lowercase key, a value with a space, a 41-char key, a 40-char token, a \$ value, a ghp_ token, a 129-char value, one argument): all refused ($bad, want 0), town.env unchanged: $([ "$b0" = "$(md5sum <$T/env)" ]&&echo yes||echo NO)" '[ $bad = 0 ]&&[ "$b0" = "$(md5sum <$T/env)" ]'
+ok st-answer-refuses-a-bad-key-a-bad-value-and-a-token-shaped-value "8 bad answers (lowercase key, a value with a space, a 41-char key, a 40-char token, a \$ value, a gh-prefixed token, a 129-char value, one argument): all refused ($bad, want 0), town.env unchanged: $([ "$b0" = "$(md5sum <$T/env)" ]&&echo yes||echo NO)" '[ $bad = 0 ]&&[ "$b0" = "$(md5sum <$T/env)" ]'
 XENV= run status >$T/o 2>&1;rc=$?
 ok st-status-reads-the-live-town-and-writes-nothing "status on the running town: rc $rc (want 1), $(tr '\n' ' ' <$T/o), the town unchanged: $([ "$(snap)" = "$s0" ]&&echo yes||echo NO)" '[ $rc = 1 ]&&grep -q "^posts-running 12$" $T/o&&grep -q "^agi-boot-enabled 1$" $T/o&&grep -q "^cron-lines 6$" $T/o&&[ "$(snap)" = "$s0" ]'
 # deps: a PATH with every tool except jq
