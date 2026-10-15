@@ -7,13 +7,15 @@ parents:
   - goal:g26.towns
 next_edges: []
 council: council-local-maxxing
-edited_by: belam
+edited_by: owner
 location: local-town
 master: thought-master
 metrics_line: "2026-10-15T05:26Z graph: node_count=5944 active_node_count=5699 deprecated_node_count=245 edge_count=6822 evidence_fraction=0.898 decisive_verdicts=1238 decisive_evidence_fraction=1.0 broken_links=0 thought_coverage=0.527 longest_chain_length=20 outcome_coverage=0.062 | success: avg_tokens_per_turn=UNMEASURED(no source yet) hierarchy_tokens_per_hour=UNMEASURED(no source yet) conclusive_verdicts=1238 overview_accuracy_vs_last_season=UNMEASURED(no live counter) subscription_tokens_per_season=UNMEASURED(no source yet) vision_adherence_score=UNMEASURED(no source yet) openrouter_subscription_spend_ratio=UNMEASURED(no source yet)"
 scaffold_hash: 3876620b4bc4f88e
-season: 2
-thought_session: belam-S2-L5-XI
+season: 3
+season_history:
+  - {"season": 3, "global_season": 3, "opened": "2026-10-15T06:23:30Z", "closed": null}
+thought_session: season
 town: core
 trajectory_standin:
   - "formation (doc:formation-local-town, owner 09-24): thought-master (MAIN = the trunk local-maxxing/season2/main) BATCHES -- small research batches to director-thought, small engine-fix batches to director-engine -- keeps this board's research trajectory current and picks the next batch; the directors work ONLY their batches (director-thought: one results report once every hypothesis and leaf is built out; director-engine: one report when the batch is complete, no residue) -> pi-free parents and kids; the town master is interim ruler over its branch while the Prime stays quiet · every director works to f >= the line (0.47) and rotates ITSELF (bare rotate.py rotate) -- the meter's bands are not a stop (OWNER 16:14Z 09-24, verbatim in doc:lm-director-brief-customizations)"
