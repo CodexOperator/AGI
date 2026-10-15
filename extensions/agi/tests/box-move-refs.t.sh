@@ -207,7 +207,8 @@ ok "ssh-mutant-the-255-branch-dropped-is-RED a box-move.sh that never names ssh'
 # S25 (council 3/3 10-15, P4 (i)(a)): the trunk BRANCH is the caller's AGI_TRUNK (every post's env: the posts row's trunk cell), never a literal in box-move.sh. The fixture trunk $TRK has THREE path parts on purpose (the carry's source-ref filter only skips a 3-part trunk by name).
 LIT=$(printf 'local-maxxing/%s/main' season2)   # built, so this file never holds the old spelling itself
 ALLOW=extensions/agi/tests/test_season_rollover_global.py   # the rollover's real-argv fixture (L20, council 10-14 23:46Z (2)): it passes --core-old with the old spelling ON PURPOSE
-litfiles(){ ( cd "$1"&&git grep --no-index -l -F "$LIT" -- extensions skills src 2>/dev/null|grep -v -x -F -e "$ALLOW" ); }
+LFX=--exclude-standard   # --no-index walks the FILESYSTEM: without this an ignored __pycache__/*.pyc that pytest wrote for the allowed file is a hit (gate89)
+litfiles(){ ( cd "$1"&&git grep --no-index $LFX -l -F "$LIT" -- extensions skills src 2>/dev/null|grep -v -x -F -e "$ALLOW" ); }
 fix;go;o0=$(git -C $T/f/o for-each-ref --format='%(refname)'|tr '\n' ' ')
 TRK=fx/other/trunk;fix;go;o2=$(git -C $T/f/o for-each-ref --format='%(refname)'|tr '\n' ' ');rc2=$rc;TRK=fx/trunk/main
 ok "trunk-the-origin-ref-is-the-callers-trunk with AGI_TRUNK=$TRK origin holds [${o0% }] (want refs/heads/$TRK), with AGI_TRUNK=fx/other/trunk it holds [${o2% }] (want refs/heads/fx/other/trunk; rc $rc2, want 0): the name comes from the env, not from the script" '[ "${o0% }" = refs/heads/$TRK ]&&[ "${o2% }" = refs/heads/fx/other/trunk ]&&[ $rc2 = 0 ]'
@@ -240,6 +241,9 @@ fix;mutgo "s#HEAD:\\\$TK#HEAD:$LIT#g" literal-put-back;cp $T/m/box-move.sh $T/li
 ok "trunk-mutant-the-old-literal-put-back-is-RED a box-move.sh copy that pushes to the old spelling: the same listing finds [${lm% }] (want extensions/agi/guard/box-move.sh), and its move leaves origin with [$(git -C $T/f/o for-each-ref --format='%(refname)'|tr '\n' ' ')] (the clean row wants refs/heads/$TRK)" '[ "${lm% }" = extensions/agi/guard/box-move.sh ]'
 mkdir -p $T/lit2/extensions/agi/tests;printf '%s\n' "$LIT" >$T/lit2/extensions/agi/tests/test_other.py;printf '%s\n' "$LIT" >$T/lit2/$ALLOW;lo=$(litfiles $T/lit2|tr '\n' ' ')
 ok "trunk-the-allowed-file-is-exempt-by-its-exact-name-only the same listing over a copy where $ALLOW AND extensions/agi/tests/test_other.py both spell the old trunk finds [${lo% }] (want only extensions/agi/tests/test_other.py: a second file is still found)" '[ "${lo% }" = extensions/agi/tests/test_other.py ]'
+mkdir -p $T/lit3/extensions/__pycache__;printf '__pycache__/\n' >$T/lit3/.gitignore;printf '%s\n' "$LIT" >$T/lit3/extensions/__pycache__/x.pyc;lp=$(litfiles $T/lit3|tr '\n' ' ');lq=$(LFX= litfiles $T/lit3|tr '\n' ' ')
+ok "trunk-an-ignored-pycache-file-spelling-it-is-not-listed a tree with .gitignore naming __pycache__/ and extensions/__pycache__/x.pyc holding the old trunk lists [${lp% }] (want none)" '[ -z "$lp" ]'
+ok "trunk-mutant-no-exclude-standard-is-RED the same listing without --exclude-standard finds [${lq% }] (want extensions/__pycache__/x.pyc: the clean row above wants none)" '[ "${lq% }" = extensions/__pycache__/x.pyc ]'
 # the tree under test
 n=$(grep -c -F '$E "cd /data/work/agi' $SRC)
 ok "refs-the-host-act-line-stays-one $SRC holds $n line(s) with \$E \"cd /data/work/agi (want 1: box-move.t.sh extracts it)" '[ $n = 1 ]'
