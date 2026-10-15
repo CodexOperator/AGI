@@ -7,12 +7,14 @@ parents:
   - goal:g26.towns
 next_edges: []
 council: council-core
-edited_by: belam
+edited_by: owner
 location: encryption-town
 master: sanctuary-master
 scaffold_hash: 10fe0c5cd15d5ba4
-season: 2
-thought_session: belam-status-hygiene-sot-2026-09-22
+season: 3
+season_history:
+  - {"season": 3, "global_season": 3, "opened": "2026-10-15T06:23:30Z", "closed": null}
+thought_session: season
 town: core
 visions:
   - vision:alive
