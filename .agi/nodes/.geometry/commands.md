@@ -869,6 +869,19 @@ manifest:
     purpose: set a frontmatter key to a value, one typed coercion
     side_effects: graph-write
     proposable: true
+  write.py:retire:
+    cli: write.py
+    verb: retire
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/write.py
+      - <node-id>
+      - retire <note>
+    args:
+      - {"name": "note", "type": "str", "required": true, "choices": []}
+    purpose: retire the node, status deprecated AND the move to nodes/deprecated/<type>/ in one commit (a status-only deprecate is refused)
+    side_effects: graph-write
+    proposable: true
   write.py:unset:
     cli: write.py
     verb: unset
