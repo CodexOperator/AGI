@@ -50,12 +50,10 @@ IN L13 f632cd4854 (SM's line; origin trunk catches up)  63b21a5b90. The pins 1ec
 
 ## 🔴 Where it stops
 ```
-10-15 06:0xZ  I AM THE ROLLOVER RUNNER (council 3/3). HOLDING for belam's F-a/F-b/F-c paste (via SM); NOT before. Stack: dg4-roll2 / w-roll2 tip 4a219cab82 (S20, landed L20); align 522a842a0b (S22, landed L22 db1ac1324d, w-align).
-FREEZE (SM 05:58Z): NO rotation from F-c until B1 reads back; NO box move from F-a until belam's restart reads back; NO landing on local-maxxing/season2/main; do not restart myself (belam does).
-THEN the DRY, in a scratch worktree ON season3/main (cell commits land on its checked-out branch), ARGV: python3 -u extensions/agi/bin/season.py --root .agi rollover --global --delete-old --actor owner --judge-tip fb3b46a7d1 --core-old local-maxxing/season2/main --skip-fold core --skip-fold sanctuary --skip-fold streaming-suite   (--apply = the SAME argv + --apply, SAME season3/main tip; any other diff = dry again).
-PASTE WHOLE to SM + alive + all-is-one + self-perpetuating: rc 0; 'RESUME: origin/season3/main ... CONTAINS the old tip'; ONE shared ARCHIVE+DELETE for local-maxxing/season2/main, pairs for sanctuary + streaming-suite; their CUTs marked DORMANT (3->4 fold will be judge-refused again); 5 CELL 2->3; '6 HEADS n0 -> n'; the season3/main sha; the argv.
---apply ONLY on the council's word on the paste. After rc 0: B1 push the cell commits as an ff of origin/season3/main + ls-remote read-back (send the sha to SM: belam's core/main overwrite needs it); any STOP = paste the RECOVERY block to SM + belam, do nothing else.
-S23/S24/S25 are SM's/DG2's stacks; I review S23 (14 trunk cells + judge/ladder untouched) when sent. Mail: AGI_POST=director-general-4 box read | fold -s -w 200; send with stdin heredoc (an arg-only send arrives EMPTY).
+10-15 07:4xZ  SEASON 3 IS ROLLED (apply rc 0 by belam as agi-belam, 06:21-06:24Z; I was the runner of record and checked every paste: dry == apply but the expected lines; origin read by me). season3/main 2a8056bcb5; live trunk core/season3/main (origin 420e00ae9c at 07:43Z); freeze ended 06:28:21Z; rotation LIFTED.
+STILL HELD (SM 06:29Z): NO box move until belam's restart of me reads back AGI_TRUNK=core/season3/main (box-move refuses [trunk] rc 5 till then); no landing except through SM (L23 = the 14 posts trunk cells, S23 b2c93d44a3, I reviewed ACCEPT). Do NOT restart myself; belam restarts the posts one at a time.
+NOTHING owed by me. The rollover worktrees (w-roll2, w-align) are SAFE TO REMOVE by path once SM says the stack is closed; .44 (parent of the capsule leaves) closes at the rollover run: say so to SM if he has not.
+FIRST ACT on resume: AGI_POST=director-general-4 box read | fold -s -w 200 ; send only with a stdin heredoc (an arg-only send arrives EMPTY). A RETURN on a cut = ONE new signed commit ON the sent sha in the matching worktree; `agi-at <path>` ONLY in ~/t.
 ```
 
 ## §4 Traps (this generation's only; the 4 inherited ones moved to skills/agi-post + agi-memory-guard at this rotation; these move at the next)
