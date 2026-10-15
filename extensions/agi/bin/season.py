@@ -1097,10 +1097,58 @@ def _heads(repo) -> list:
 def _stop(step: int, name: str, detail: str) -> int:
     print(f"STOP at step {step}: {name} — {detail}", file=sys.stderr); return 1
 
-def _cut(repo, old, new, apply, tag):
+# The JUDGE: the paths whose bytes decide what the graph accepts (council 3/3
+# 06:54Z + 18:05Z 10-14). A rollover commit's tree carries them EXACTLY as the
+# comparison tip (the season-2 PASS tip) does; ladder.md moves only in the bump
+# commit, alone. grow.py is the `### grow.py` piece INSIDE engine-post.md.
+JUDGE_FILES = ("extensions/agi/bin/spawn_gate.py", "extensions/agi/bin/frontmatter.py",
+               ".agi/nodes/.geometry/engine-post.md")
+JUDGE_DIRS = (".agi/context/schemas/",)
+LADDER_PATH = ".agi/nodes/.geometry/ladder.md"
+#: goal:g7.16.1.11.8.1 (d): the core town's season-2 work lives on the LIVE
+#: trunk, not on the core town's own derive_names season trunk (10-04, a DEAD line).
+CORE_TOWN = "core"
+
+
+def _judge_blobs(repo, tree) -> dict:
+    """{path: blob sha} of every judge path in a tree-ish (an absent path is absent)."""
+    out = {}
+    for ln in _git(repo, "ls-tree", "-r", tree, "--", *JUDGE_FILES, *JUDGE_DIRS).stdout.splitlines():
+        meta, path = ln.split("\t", 1)
+        out[path] = meta.split()[2]
+    return out
+
+
+def _blob_diff(a: dict, b: dict) -> list:
+    return sorted(p for p in set(a) | set(b) if a.get(p) != b.get(p))
+
+
+def _stages_judge(paths) -> int:
+    print(f"[rollover] stages the judge: {' '.join(paths)}", file=sys.stderr)
+    return 1
+
+
+def _have(repo, sha) -> bool:
+    return _git(repo, "cat-file", "-e", f"{sha}^{{commit}}").returncode == 0
+
+
+def _is_anc(repo, a, b) -> bool:
+    return _git(repo, "merge-base", "--is-ancestor", a, b).returncode == 0
+
+
+def _fetch_head(repo, ref) -> bool:
+    """Read-only object fetch (FETCH_HEAD only, no ref written)."""
+    return _git(repo, "fetch", "-q", "origin", f"refs/heads/{ref}").returncode == 0
+
+
+def _cut(repo, old, new, apply, tag, behind_ok=False):
     """CUT: push the old tip under the new name. RESUME when the new name is
-    already at the old tip (or the old head is gone); a different sha is
-    refused by name. Returns (rc, old_tip_sha)."""
+    already at the old tip (or the old head is gone), or when the old tip is an
+    ANCESTOR of the new one (new = old + extras: nothing rewritten, nothing
+    pushed, old..new printed; it may not change a judge path). A new name that
+    DIVERGED from the old tip is refused by name. `behind_ok` (the core town
+    only): a new name strictly BEHIND the old tip is FAST-FORWARDED to it in the
+    run (add-only, proved; else rc 1), never left to a later merge. Returns (rc, old_tip_sha)."""
     import cli
     R, st = "refs/heads/", cli._post_rename_remote_ref_state_sha
     state, sha = st(repo, R + old); ns, nsha = st(repo, R + new)
@@ -1112,7 +1160,33 @@ def _cut(repo, old, new, apply, tag):
         print(f"[{tag}] 1 CUT {R}{new} <- {nsha[:12]} (RESUME: old head already gone)")
         return 0, nsha
     if ns == "present" and nsha != sha:
-        return _stop(1, "cut", f"origin/{new} exists at {nsha[:12]} != {sha[:12]} — refusing to overwrite"), ""
+        for ref, x in ((old, sha), (new, nsha)):
+            if not _have(repo, x) and not _fetch_head(repo, ref):
+                return _stop(1, "cut", f"origin/{ref} {x[:12]} unreadable here (fetch failed)"), ""
+        if _is_anc(repo, sha, nsha):
+            jd = _blob_diff(_judge_blobs(repo, sha), _judge_blobs(repo, nsha))
+            if jd:
+                _stages_judge(jd)
+                return _stop(1, "cut", f"origin/{new} contains origin/{old} but changes a judge path: {' '.join(jd)}"), ""
+            n = _git(repo, "rev-list", "--count", f"{sha}..{nsha}").stdout.strip()
+            print(f"[{tag}] 1 CUT {R}{new} <- {sha[:12]} (RESUME: origin/{new} {nsha[:12]} CONTAINS the old tip; "
+                  f"nothing pushed, nothing deleted; {old}..{new} = {n} extra commit(s), 0 judge-path diff)")
+            for ln in _git(repo, "log", "--format=    %h %s", "-n", "20", f"{sha}..{nsha}").stdout.splitlines():
+                print(ln)
+            return 0, sha
+        if behind_ok and _is_anc(repo, nsha, sha):
+            n = _git(repo, "rev-list", "--count", f"{nsha}..{sha}").stdout.strip()
+            print(f"[{tag}] 1 CUT {R}{new} <- {sha[:12]} (FAST-FORWARD: origin/{new} {nsha[:12]} is {n} commit(s) BEHIND the "
+                  f"live trunk {old}; add-only, never a rewrite)")
+            if apply:
+                ok, detail, _ = branches.mirror_and_prove(repo, R + new, tip=sha, label="cut-ff")
+                if not ok:
+                    return _stop(1, "cut", detail), ""
+                st2, got = st(repo, R + new)
+                if st2 != "present" or not (got == sha or _is_anc(repo, sha, got)):
+                    return _stop(1, "cut", f"[rollover] origin/{new} does not contain the old tip {sha[:12]} after the cut"), ""
+            return 0, sha
+        return _stop(1, "cut", f"origin/{new} exists at {nsha[:12]} != {sha[:12]} and DIVERGED from origin/{old} — refusing to overwrite"), ""
     print(f"[{tag}] 1 CUT {R}{new} <- {sha[:12]}" + (" (RESUME: new name already at old tip)" if ns == "present" else ""))
     if apply and ns != "present":
         ok, detail, _ = branches.mirror_and_prove(repo, R + new, tip=sha, label="cut")
@@ -1123,8 +1197,9 @@ def _cut(repo, old, new, apply, tag):
 
 def _fold(repo, head, old, sha, apply, tag, step):
     """FOLD: git merge --no-ff the old trunk into its ladder head. ADD-ONLY:
-    the push must be a fast-forward of the current head, a fold that would
-    fast-forward is refused by name, and the merge commit is proved TWO-parent."""
+    the push must be a fast-forward of the current head, and the merge commit is
+    proved TWO-parent (head first). A head that is an ANCESTOR of the old trunk
+    still gets the two-parent commit (tree == the old trunk's): no plain ff."""
     import cli, tempfile
     state, htip = cli._post_rename_remote_ref_state_sha(repo, f"refs/heads/{head}")
     if state != "present":
@@ -1136,9 +1211,7 @@ def _fold(repo, head, old, sha, apply, tag, step):
     if anc(sha, htip):
         print(f"[{tag}] {step} FOLD {old} -> {head} (RESUME: already folded)")
         return 0
-    if anc(htip, sha):
-        return _stop(step, "fold", f"{head} is an ancestor of {old} — would fast-forward, refused by name")
-    print(f"[{tag}] {step} FOLD {old} -> {head} (merge --no-ff)")
+    print(f"[{tag}] {step} FOLD {old} -> {head} (merge --no-ff" + (", head is an ancestor: 2 parents, tree == the old trunk's)" if anc(htip, sha) else ")"))
     if not apply:
         return 0
     wt = Path(tempfile.mkdtemp(prefix="rollover-fold-"))
@@ -1153,8 +1226,10 @@ def _fold(repo, head, old, sha, apply, tag, step):
             return _stop(step, "fold", f"merge: {(m.stderr or m.stdout).strip()}")
         nsha = _git(wt, "rev-parse", "HEAD").stdout.strip()
         par = _git(repo, "rev-list", "--parents", "-n1", nsha).stdout.split()
-        if len(par) != 3:
-            return _stop(step, "fold", f"merge commit {nsha[:12]} has {len(par)-1} parents, expected 2")
+        if len(par) != 3 or par[1] != htip or par[2] != sha:
+            return _stop(step, "fold", f"merge commit {nsha[:12]} has {len(par)-1} parents ({' '.join(p[:12] for p in par[1:])}), expected 2: the head {htip[:12]} then {sha[:12]}")
+        if anc(htip, sha) and _git(repo, "rev-parse", f"{nsha}^{{tree}}").stdout != _git(repo, "rev-parse", f"{sha}^{{tree}}").stdout:
+            return _stop(step, "fold", f"merge commit {nsha[:12]} of an ancestor head must carry the old trunk's tree")
         p = _git(repo, "push", "origin", f"{nsha}:refs/heads/{head}")
         if p.returncode:
             return _stop(step, "fold", f"push: {p.stderr.strip()}")
@@ -1275,6 +1350,153 @@ def _preflight_cells(root: Path, cells: list, actor: str) -> int:
     return 0
 
 
+def _recovery(repo, restore, h0, branch, cells=False) -> None:
+    """The way back from a HALF-ROLLED origin (an old head was deleted after its archive ref was proved):
+    which archive ref restores which old head, and the scratch cell commit to drop. Printed, never run."""
+    print("[rollover] RECOVERY: origin is HALF-ROLLED (the old heads below were deleted after their archive refs were proved).", file=sys.stderr)
+    for old, sha in restore:
+        print(f"[rollover]   restore {old} at {sha[:12]}: git push origin refs/agi/archive/{old}:refs/heads/{old}", file=sys.stderr)
+    h1 = _git(repo, "rev-parse", "HEAD").stdout.strip()
+    if h1 and h1 != h0 and branch:
+        print(f"[rollover]   drop the scratch cell commit {h1[:12]} on {branch}: git update-ref refs/heads/{branch} {h0} {h1}", file=sys.stderr)
+    if cells:
+        print("[rollover]   cells written before this stop stay as committed in the scratch worktree; nothing was pushed for them.", file=sys.stderr)
+
+
+def _stop5(repo, restore, h0, branch, why) -> int:
+    """A step-5 (cell) refusal comes AFTER PASS 1 cut, folded, archived and deleted: origin is half-rolled."""
+    rc = _stop(5, "cell", why)
+    _recovery(repo, restore, h0, branch, cells=True)
+    return rc
+
+
+def _archive_delete_group(repo, old, members, sha, apply, delete_old, tag, defer, base=3) -> int:
+    """ARCHIVE -> DELETE of ONE old head, ONCE, for every trunk that claims it (two trunks can share an old
+    branch); the delete only with --delete-old, only after the archive ref is proved AND every claimant's new
+    head contains the old tip. Each member then defers its cell (or HOLDs it). `members` = dicts of
+    new / cell_id / m (old season) / g (new season) / history / field."""
+    import cli
+    R, st = "refs/heads/", cli._post_rename_remote_ref_state_sha
+    a, d = base, base + 1
+    who = ", ".join(m["cell_id"] for m in members)
+    shared = f" (shared by {who}: ONE archive, ONE delete, after every new head contains it)" if len(members) > 1 else ""
+    print(f"[{tag}] {a} ARCHIVE {ARCHIVE_NS}/{old} <- {sha[:12]}{shared}")
+    if apply:
+        ok, detail, _ = branches.mirror_and_prove(repo, f"{ARCHIVE_NS}/{old}", tip=sha, label="archive")
+        if not ok:
+            return _stop(a, "archive", detail)
+    if delete_old:
+        if st(repo, R + old)[0] == "absent":
+            print(f"[{tag}] {d} DELETE origin/{old} — already absent (RESUME)")
+        else:
+            print(f"[{tag}] {d} DELETE origin/{old} (containment " + ", ".join(R + m["new"] for m in members) + ")")
+            if apply:
+                gsha = ""
+                for m in members:
+                    cs, tgt, gsha = cli._rs_containment_state(repo, old, [R + m["new"]])
+                    if cs != "contained":
+                        return _stop(d, "delete", f"containment {cs} in {tgt or '(none)'} ({m['new']})")
+                rc, err = cli._rs_lease_delete(repo, old, gsha)
+                if rc or st(repo, R + old)[0] != "absent":
+                    return _stop(d, "delete", err or f"verify {st(repo, R + old)[0]}")
+    gone = delete_old and st(repo, R + old)[0] == "absent"
+    for m in members:
+        if gone:
+            now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            hist = [h for h in (m["history"] or []) if isinstance(h, dict)] + [
+                {"season": m["g"], "global_season": m["g"], "opened": now, "closed": None}]
+            defer[m["cell_id"]] = (m["cell_id"], m["m"], m["g"], hist, m["field"])
+            print(f"[{tag}] {d + 1} CELL DEFERRED {m['cell_id']} {m['m']} -> {m['g']} (written only after every trunk verifies)")
+        else:
+            print(f"[{tag}] {d + 1} CELL HELD {m['cell_id']} stays {m['m']} — old head {old} remains on origin (bump gated on the verified delete)")
+    return 0
+
+
+def _trunk_names(slug, g, ng, core_old):
+    """(old, new, head) of one trunk. The core town's OLD is the LIVE trunk
+    (`core_old`), never the core town's own derive_names trunk (a dead line)."""
+    if slug is None:
+        return branches.season_main(g), branches.season_main(ng), "master"
+    nm = branches.derive_names(slug, ng)
+    old = core_old if slug == CORE_TOWN else branches.derive_names(slug, g)["town_season_main"]
+    return old, nm["town_season_main"], nm["town_main"]
+
+
+def _judge_preflight(repo, trunks, g, ng, jt, core_old, skip=frozenset(), skipped=None) -> int:
+    """The judge check, BEFORE any push or cell: every fold's merge tree (computed
+    with merge-tree, nothing written to a ref) carries the judge-path blobs of the
+    COMPARISON TIP `jt` exactly, ladder.md included (ladder.md moves in the bump
+    commit, alone). A refusal is fail closed and named, rc 1."""
+    import cli
+    skipped = {} if skipped is None else skipped
+    st, jb, bad, notes = cli._post_rename_remote_ref_state_sha, _judge_blobs(repo, jt), [], []
+    for slug, _cell, _h in trunks:
+        old, new, head = _trunk_names(slug, g, ng, core_old)
+        so, sha = st(repo, "refs/heads/" + old); sh, htip = st(repo, "refs/heads/" + head)
+        if so == "absent":
+            sn, sha = st(repo, "refs/heads/" + new)
+            so = sn
+        if so != "present" or sh != "present":
+            continue          # _cut / _fold name it
+        for ref, x in ((old, sha), (head, htip)):
+            if not _have(repo, x) and not _fetch_head(repo, ref):
+                bad.append(f"(unreadable: origin/{ref})")
+        if _is_anc(repo, sha, htip):
+            continue          # already folded: no commit is made
+        if _is_anc(repo, htip, sha):
+            tree = _git(repo, "rev-parse", f"{sha}^{{tree}}").stdout.strip()     # the 2-parent commit carries the old trunk's tree
+        else:
+            mt = _git(repo, "merge-tree", "--write-tree", "--name-only", htip, sha)
+            if mt.returncode != 0:
+                conf = [x for x in mt.stdout.split("\n\n")[0].splitlines()[1:] if x.strip()]
+                why = ' '.join(conf[:12]) or mt.stderr.strip()[:120]
+                if slug in skip:
+                    skipped[slug] = why       # named by the owner: printed SKIPPED, nothing pushed for the head
+                else:
+                    notes.append(f"[rollover] fold {old} -> {head} does not merge cleanly: {why} (name it with --skip-fold {slug} to skip it, owner-given)")
+                continue
+            tree = mt.stdout.split()[0]
+        if slug in skip:
+            skipped.setdefault(slug, "named; the fold would have merged cleanly")
+            continue
+        jd = _blob_diff(_judge_blobs(repo, tree), jb)
+        if jd:
+            notes.append(f"[rollover] fold {old} -> {head} carries judge blobs the comparison tip does not: {' '.join(jd)}")
+        bad += jd
+        # ladder.md: a fold takes the trunk's ladder (it differs from the ladder head's), so it is held to the
+        # COMPARISON TIP's blob like a judge path; only the bump commit moves it, alone
+        a = _git(repo, "rev-parse", f"{tree}:{LADDER_PATH}").stdout.strip()
+        b = _git(repo, "rev-parse", f"{jt}:{LADDER_PATH}").stdout.strip()
+        if a != b:
+            notes.append(f"[rollover] fold {old} -> {head} carries a {LADDER_PATH} the comparison tip does not (ladder.md moves only in the bump commit, alone)")
+            bad.append(LADDER_PATH)
+    for n in notes:
+        print(n, file=sys.stderr)
+    if notes and not bad:
+        return 1
+    return _stages_judge(sorted(set(bad))) if bad else 0
+
+
+def _check_cell_commit(repo, h0, cell_id, jb) -> str:
+    """After a cell write that made a commit (h0 = HEAD before): '' when it is
+    clean, else why not. The ladder cell stages ladder.md ALONE; no cell commit
+    stages a judge path or ladder.md beside another path; its tree carries the
+    comparison tip's judge blobs."""
+    h1 = _git(repo, "rev-parse", "HEAD").stdout.strip()
+    if not h1 or h1 == h0:
+        return ""
+    names = [n for n in _git(repo, "diff-tree", "--no-commit-id", "--name-only", "-r", h1).stdout.splitlines() if n]
+    jd = [n for n in names if n in JUDGE_FILES or n.startswith(JUDGE_DIRS)]
+    jd += [p for p in _blob_diff(_judge_blobs(repo, h1), jb) if p not in jd]
+    if jd:
+        return f"[rollover] stages the judge: {' '.join(jd)} (commit {h1[:12]})"
+    if LADDER_PATH in names and names != [LADDER_PATH]:
+        return f"[rollover] stages the judge: {LADDER_PATH} beside {' '.join(n for n in names if n != LADDER_PATH)} (commit {h1[:12]}; ladder.md moves alone)"
+    if cell_id == "ladder:ladder" and names != [LADDER_PATH]:
+        return f"[rollover] the bump commit {h1[:12]} stages {' '.join(names) or '(nothing)'}, not ladder.md alone"
+    return ""
+
+
 def cmd_rollover_global(root: Path, args) -> int:
     """GLOBAL rollover G -> G+1: the global trunk AND every town trunk in ONE
     command (cut, fold --no-ff into the ladder head, archive, delete-old, cell,
@@ -1291,10 +1513,43 @@ def cmd_rollover_global(root: Path, args) -> int:
     misaligned = [t.slug for t in declared if t.season != g]
     if misaligned:
         print(f"REFUSED: town(s) {', '.join(misaligned)} not at global season {g} — align first", file=sys.stderr); return 1
+    # THE JUDGE CHECK, FIRST (council 3/3 18:05Z 10-14): fail closed and named, before any push or cell.
+    jt_arg = (getattr(args, "judge_tip", "") or "").strip()
+    if not jt_arg:
+        print("REFUSED: [rollover] --judge-tip <rev> is required: the comparison tip of the judge check (the season-2 PASS tip)", file=sys.stderr); return 1
+    jt = _git(repo, "rev-parse", "--verify", "-q", jt_arg + "^{commit}").stdout.strip()
+    if not jt:
+        print(f"REFUSED: [rollover] --judge-tip {jt_arg!r} does not resolve to a commit here", file=sys.stderr); return 1
+    core_old = (getattr(args, "core_old", "") or "").strip()
+    if not core_old and any(t.slug == CORE_TOWN for t in declared):
+        # goal:g8.2: no engine script names an app town, so the live trunk is GIVEN, never defaulted
+        print("REFUSED: [rollover] --core-old <origin branch> is required: the core town's OLD tip is the live trunk "
+              "(never the core town's own derive_names line, a dead one)", file=sys.stderr); return 1
+    want_branch, cur_branch = branches.season_main(ng), _current_branch(repo)
+    if delete_old and cur_branch != want_branch:
+        print(f"REFUSED: [rollover] cell commits land on the branch checked out where season.py runs ({cur_branch or 'detached HEAD'}); "
+              f"a rollover with --delete-old runs only in the new season trunk's scratch worktree on {want_branch}", file=sys.stderr); return 1
+    jb = _judge_blobs(repo, jt)
+    if delete_old and _blob_diff(_judge_blobs(repo, "HEAD"), jb):
+        return _stages_judge(_blob_diff(_judge_blobs(repo, "HEAD"), jb))
     tag, n0 = ("APPLY" if apply else "DRY  "), len(_heads(repo))
     print(f"Rollover: season {g} → {ng} (global; {len(declared)} town(s))")
     print("[DRY RUN — no changes will be written]" if not apply else "[REAL RUN]")
+    print(f"judge check: comparison tip {jt[:12]} ({jt_arg}); judge paths {len(jb)} blob(s)")
+    print(f"cell commits land on branch {cur_branch or 'detached HEAD'} (expected {want_branch}"
+          + ("" if delete_old else "; this run writes no cell: --delete-old absent") + ")")
     trunks = [(None, "ladder:ladder", None)] + [(t.slug, f"town:{t.slug}", t.season_history) for t in declared]
+    skip = set(getattr(args, "skip_fold", None) or [])
+    unknown = sorted(skip - {t.slug for t in declared})
+    if unknown:
+        print(f"REFUSED: [rollover] --skip-fold names {', '.join(unknown)}: not a declared town", file=sys.stderr); return 1
+    skipped = {}
+    refused = _judge_preflight(repo, trunks, g, ng, jt, core_old, skip, skipped)
+    if refused and apply:
+        print("nothing performed", file=sys.stderr)
+        return 1
+    if refused:       # a DRY run still prints every step (the rehearsal), then ends rc 1: the real run would refuse
+        print("[DRY] the judge check above WOULD REFUSE the real run (rc 1, nothing performed); the steps below are the rehearsal")
     # A cell write happens ONLY with --delete-old (without it every cell is HELD),
     # so admission is owed only then: a no-delete run must not be pre-flighted.
     if apply and delete_old:
@@ -1303,28 +1558,62 @@ def cmd_rollover_global(root: Path, args) -> int:
         if _preflight_cells(root, cells, actor):
             print("nothing performed", file=sys.stderr)
             return 1
-    pending = []   # PASS 1 collects cell descriptors; PASS 2 writes them -- only after every trunk verifies
+    restore = []   # (old head, tip) of every old head PASS 1 deleted after proving its archive ref
+    h0 = _git(repo, "rev-parse", "HEAD").stdout.strip()
+    plan = []      # PASS 1a: every trunk that cut (and folded): slug, cell_id, history, old, new, sha
     for slug, cell_id, history in trunks:
-        old = branches.season_main(g) if slug is None else branches.derive_names(slug, g)["town_season_main"]
-        new = branches.season_main(ng) if slug is None else branches.derive_names(slug, ng)["town_season_main"]
-        head = "master" if slug is None else branches.derive_names(slug, ng)["town_main"]
-        rc, sha = _cut(repo, old, new, apply, tag)
-        if rc: return rc
-        if _fold(repo, head, old, sha, apply, tag, 2): return 1
-        field = "current_season" if slug is None else "season"
-        if _archive_delete_cell(root, repo, old, new, sha, cell_id, g, ng, history,
-                                apply, delete_old, actor, session, tag, base=3,
-                                cell_field=field, defer=pending):
-            return 1
+        old, new, head = _trunk_names(slug, g, ng, core_old)
+        if slug == CORE_TOWN:
+            print(f"[{tag}] core town: OLD TIP = the live trunk origin/{old} (never derive_names' "
+                  f"{branches.derive_names(slug, g)['town_season_main']}, a dead line)")
+        rc, sha = _cut(repo, old, new, apply, tag, behind_ok=(slug == CORE_TOWN))
+        if rc:
+            if apply: return rc
+            refused = True; continue    # a DRY run rehearses every town: it names this STOP and goes on
+        if slug in skip:
+            print(f"[{tag}] 2 FOLD {old} -> {head} SKIPPED (--skip-fold {slug}, owner-given): {skipped.get(slug, 'named')}; nothing pushed for {head}")
+        elif _fold(repo, head, old, sha, apply, tag, 2):
+            if apply: return 1
+            refused = True; continue
+        plan.append({"cell_id": cell_id, "history": history, "old": old, "new": new, "sha": sha,
+                     "m": g, "g": ng, "field": "current_season" if slug is None else "season"})
+    # PASS 1b: nothing is archived or deleted until EVERY new head is cut and folded; then each OLD head is
+    # archived ONCE and deleted ONCE, however many trunks claim it (council 10-14 23:46Z: a shared old branch).
+    groups = {}
+    for e in plan:
+        groups.setdefault(e["old"], []).append(e)
+    cells = {}
+    for old, members in groups.items():
+        if len({e["sha"] for e in members}) > 1:
+            rc = _stop(3, "archive", f"trunks {', '.join(e['cell_id'] for e in members)} claim origin/{old} at different tips")
+        else:
+            rc = _archive_delete_group(repo, old, members, members[0]["sha"], apply, delete_old, tag, cells)
+        if rc:
+            if apply:
+                if restore: _recovery(repo, restore, h0, cur_branch)
+                return rc
+            refused = True
+        elif delete_old:
+            restore.append((old, members[0]["sha"]))
+    pending = [cells[e["cell_id"]] for e in plan if e["cell_id"] in cells]   # PASS 2 writes them, in trunk order
     # PASS 2: every trunk cut, folded, archived and deleted -- now write every cell.
     for cell_id, m, gg, hist, cell_field in pending:
         fm = ({"season": gg, "season_history": json.dumps(hist)}
               if cell_field == "season" else {cell_field: gg})
-        print(f"[{tag}] 5 CELL {cell_id} {m} -> {gg} (deferred pass; all trunks verified)")
+        print(f"[{tag}] 5 CELL {cell_id} {m} -> {gg} (deferred pass; all trunks verified) on branch {cur_branch or 'detached HEAD'}")
+        h0 = _git(repo, "rev-parse", "HEAD").stdout.strip()
         if apply and _shell_out_write(root, cell_id, actor=actor, session=session, set_fm=fm):
-            return _stop(5, "cell", f"write.py refused for {cell_id}")
+            return _stop5(repo, restore, h0, cur_branch, f"write.py refused for {cell_id}")
+        if apply:
+            why = _check_cell_commit(repo, h0, cell_id, jb)
+            if why:
+                return _stop5(repo, restore, h0, cur_branch, why)
+            if cell_id == "ladder:ladder":
+                from spawn_gate import read_ladder_season
+                if read_ladder_season(Path(root) / "nodes") != gg:
+                    return _stop5(repo, restore, h0, cur_branch, f"[rollover] read_ladder_season is {read_ladder_season(Path(root) / 'nodes')!r} after the bump, not {gg}")
     print(f"[{tag}] 6 HEADS {n0} -> {len(_heads(repo))}")
-    return 0
+    return 1 if refused else 0
 
 # ---------------------------------------------------------------------------
 # merge-up — per-parent branch merge into the recorded base branch
@@ -2040,6 +2329,15 @@ def main(argv: list[str] | None = None) -> int:
     p_rollover.add_argument("--town", default="")
     p_rollover.add_argument("--apply", dest="align_apply", action="store_true", default=False)
     p_rollover.add_argument("--delete-old", dest="delete_old", action="store_true", default=False)
+    p_rollover.add_argument("--judge-tip", default="",
+                            help="--global: the comparison tip of the judge check (the season-2 PASS "
+                                 "tip); every rollover commit carries its judge-path blobs (required)")
+    p_rollover.add_argument("--skip-fold", action="append", default=[], metavar="TOWN",
+                            help="--global: skip the named town's fold into its ladder head (a conflicting fold "
+                                 "STOPs unless named; OWNER-given, never a code-rule skip); printed SKIPPED, nothing pushed")
+    p_rollover.add_argument("--core-old", default="",
+                            help="--global: the core town's OLD tip, an origin branch (REQUIRED when core is declared: "
+                                 "the live trunk, never the core town's own)")
     p_rollover.add_argument("--actor", default="",
                             help="edited_by for the ladder write (default: season.py)")
     p_rollover.add_argument("--session", default="",
