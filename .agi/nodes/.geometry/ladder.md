@@ -17,10 +17,10 @@ captive_rotate_ratio: 0.85
 capture_chain_log: capture-chain.log
 card_capture_minutes: 10
 current_loop: 5
-current_season: 2
+current_season: 3
 director_context_tokens: 1000000
 director_rotate_at: 0.47
-edited_by: belam
+edited_by: owner
 mantles:
   prime_director: Belam
 mantles_prime_director: Belam
@@ -55,7 +55,7 @@ tags:
   - geometry
   - ladder
   - structural
-thought_session: belam-S2-L5-XI
+thought_session: season
 tiers:
   - {"tier": 0, "plan_types": ["subgoal", "short-term goal"], "report_type": "outcome", "judged_against": "its (sub)goal", "lens": "the long-term goal above", "cadence": "the loop (weekly)"}
   - {"tier": 1, "plan_types": ["long-term goal"], "report_type": "bigger_outcome", "judged_against": "its LT goal", "lens": "the vision above", "cadence": "mid-season"}
