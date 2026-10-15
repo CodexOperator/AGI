@@ -10,7 +10,7 @@ council: council-local-maxxing
 edited_by: belam
 location: local-town
 master: thought-master
-metrics_line: "2026-10-14T20:27Z graph: node_count=5943 active_node_count=5698 deprecated_node_count=245 edge_count=6821 evidence_fraction=0.898 decisive_verdicts=1238 decisive_evidence_fraction=1.0 broken_links=0 thought_coverage=0.527 longest_chain_length=20 outcome_coverage=0.062 | success: avg_tokens_per_turn=UNMEASURED(no source yet) hierarchy_tokens_per_hour=UNMEASURED(no source yet) conclusive_verdicts=1238 overview_accuracy_vs_last_season=UNMEASURED(no live counter) subscription_tokens_per_season=UNMEASURED(no source yet) vision_adherence_score=UNMEASURED(no source yet) openrouter_subscription_spend_ratio=UNMEASURED(no source yet)"
+metrics_line: "2026-10-15T00:25Z graph: node_count=5944 active_node_count=5699 deprecated_node_count=245 edge_count=6822 evidence_fraction=0.898 decisive_verdicts=1238 decisive_evidence_fraction=1.0 broken_links=0 thought_coverage=0.527 longest_chain_length=20 outcome_coverage=0.062 | success: avg_tokens_per_turn=UNMEASURED(no source yet) hierarchy_tokens_per_hour=UNMEASURED(no source yet) conclusive_verdicts=1238 overview_accuracy_vs_last_season=UNMEASURED(no live counter) subscription_tokens_per_season=UNMEASURED(no source yet) vision_adherence_score=UNMEASURED(no source yet) openrouter_subscription_spend_ratio=UNMEASURED(no source yet)"
 scaffold_hash: 3876620b4bc4f88e
 season: 1
 thought_session: belam-S2-L5-XI
@@ -286,3 +286,4 @@ OWNER 01:3xZ 10-08 (to belam gen 28, verbatim): "We don't need the grid commit w
 PASS B5 01:3xZ 10-10: season2/main f75e3f48b6 -> 7276f11d36 = trunk fc4a0865ee; 583 commits; 8 Sonnet lanes + 1 verifier; RED 0 · demote 0 · residues 29 (goal:g1.42); links 5826/0 broken
 
 PASS B6 09:4xZ 10-10: season2/main 7276f11d36 -> ef9b043e68 = trunk 4e9dbced38; 176 commits / 124 paths; 6 Sonnet lanes + 1 verifier (CLEAR); RED 0 · demote 3 · residues 9 (goal:g1.43); links 5845/0 broken; mint_ids 5866 base all present
+PASS B7 21:1xZ 10-14: season2/main ef9b043e68 -> fb3b46a7d1 = trunk 0c4f901759; 1049 commits / 0 experiment files; owner word (option 1), not merge_gate (0 report rows); reds 6 secret-shaped, 0 real · 0 D · 0 broken; verify 12/15 (tests timed out 1800 s; code == L19 land tree, SM FULL 9184/0); season3/main 2d29885e19 descends from it
