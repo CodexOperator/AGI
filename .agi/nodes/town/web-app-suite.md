@@ -10,7 +10,7 @@ council: council-web-app-suite
 edited_by: belam
 master:
 scaffold_hash: 7bdf5c8b8c4b3ed3
-season: 1
+season: 2
 thought_session: goal-glom-2026-09-19
 town: core
 visions:

@@ -4847,7 +4847,19 @@ def prime_excluded(croot: Path, round_: str) -> int:
 #: one-season alias. The prime updates and pushes it at every rotation, so its
 #: HEAD is the authoritative answer after a fetch — never the local working
 #: tree.
-_PUSHED_SEATS = "origin/" + branches.season_main(2)
+_PUSHED_SEATS = "origin/" + branches.season_main(2)  # ONLY the unreadable-ladder fallback of `_pushed_seats_default`
+
+
+def _pushed_seats_default(root: Path) -> str:
+    """The ref `authority_ref` falls back to when config:key-authority names
+    none: `origin/` + the main of the ladder's `current_season`, never a
+    literal season (a literal names a deleted ref after the rollover; council
+    10-15, S25). Only a ladder that cannot be read leaves `_PUSHED_SEATS`."""
+    try:
+        season = spawn_gate.read_ladder_season(_main_graph_root(root) / NODES_DIR)
+    except Exception:
+        season = None
+    return _PUSHED_SEATS if season is None else "origin/" + branches.season_main(season)
 
 
 def authority_ref(root: Path) -> str:
@@ -4864,7 +4876,7 @@ def authority_ref(root: Path) -> str:
                 return val
     except Exception:
         pass
-    return _PUSHED_SEATS
+    return _pushed_seats_default(root)
 
 
 #: Candidate paths, posts.md FIRST, tried in order by `_pushed_seats`; the
