@@ -731,6 +731,69 @@ def test_remove_when_nothing_installed_is_a_clean_noop(tmp_path):
     assert _read(fixture) == UNRELATED_LINES
 
 
+def _seed_user(tmp_path, root, user="agi-x"):
+    """A `<user>.crontab` fixture that holds this project's block plus a foreign line."""
+    d = tmp_path / "ucron"
+    d.mkdir()
+    f = d / f"{user}.crontab"
+    begin, end = crons.block_markers(crons.locations.repo_root(root))
+    f.write_text("\n".join(["# foreign", begin, "* * * * * echo job", end, "0 1 * * * keep"]) + "\n")
+    return d, f
+
+
+def test_remove_user_drops_only_that_users_block(tmp_path):
+    """goal:g7.16.1.11.44.8 T2: `remove --user U` is the same drop in U's crontab."""
+    root = make_project(tmp_path)
+    d, f = _seed_user(tmp_path, root)
+    result = crons.cmd_remove(root, user="agi-x", user_crontab_dir=d)
+    assert result["removed_lines"] == ["* * * * * echo job"]
+    assert f.read_text().splitlines() == ["# foreign", "0 1 * * * keep"]
+
+
+def test_marked_counts_the_block_lines_and_zero_when_none(tmp_path):
+    """`marked` = the block's lines with both markers (3 for one job), 0 once it is gone; a user with no crontab reads 0."""
+    root = make_project(tmp_path)
+    d, f = _seed_user(tmp_path, root)
+    assert crons.cmd_marked(root, user="agi-x", user_crontab_dir=d) == 3
+    assert crons.cmd_marked(root, user="agi-nobody", user_crontab_dir=d) == 0
+    crons.cmd_remove(root, user="agi-x", user_crontab_dir=d)
+    assert crons.cmd_marked(root, user="agi-x", user_crontab_dir=d) == 0
+
+
+def test_marked_counts_an_empty_block_as_installed(tmp_path):
+    """A block with markers and no job lines is still installed: 2, not 0."""
+    root = make_project(tmp_path)
+    d = tmp_path / "ucron"
+    d.mkdir()
+    begin, end = crons.block_markers(crons.locations.repo_root(root))
+    (d / "agi-x.crontab").write_text(f"{begin}\n{end}\n")
+    assert crons.cmd_marked(root, user="agi-x", user_crontab_dir=d) == 2
+
+
+def test_remove_user_cli_prints_the_user_and_marked_cli_prints_the_count(tmp_path, capsys):
+    root = make_project(tmp_path)
+    d, _f = _seed_user(tmp_path, root)
+    assert crons.main(["marked", "--root", str(root), "--user", "agi-x", "--user-crontab-dir", str(d)]) == 0
+    assert capsys.readouterr().out.strip() == "3"
+    assert crons.main(["remove", "--root", str(root), "--user", "agi-x", "--user-crontab-dir", str(d)]) == 0
+    assert "(user agi-x)" in capsys.readouterr().out
+    assert crons.main(["marked", "--root", str(root), "--user", "agi-x", "--user-crontab-dir", str(d)]) == 0
+    assert capsys.readouterr().out.strip() == "0"
+
+
+def test_remove_user_mutant_that_forgets_the_user_is_red(tmp_path, monkeypatch):
+    """Mutant: `remove --user` that acted on the invoking user's own crontab leaves the user's block in place."""
+    root = make_project(tmp_path)
+    d, f = _seed_user(tmp_path, root)
+    own = tmp_path / "own.crontab"
+    own.write_text("")
+    real = crons.cmd_remove
+    crons.cmd_remove(root, crontab_file=own)   # the mutant: the user argument dropped
+    assert crons.cmd_marked(root, user="agi-x", user_crontab_dir=d) == 3, "the user's block must survive the mutant"
+    real(root, user="agi-x", user_crontab_dir=d)
+    assert crons.cmd_marked(root, user="agi-x", user_crontab_dir=d) == 0
+
+
 def test_show_reports_up_to_date_after_apply(tmp_path):
     root = make_project(tmp_path)
     fixture = tmp_path / "crontab.fixture"
