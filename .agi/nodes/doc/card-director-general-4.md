@@ -51,7 +51,7 @@ IN L13 f632cd4854 (SM's line; origin trunk catches up)  63b21a5b90. The pins 1ec
 ## 🔴 Where it stops
 ```
 10-15 07:4xZ  SEASON 3 IS ROLLED (apply rc 0 by belam as agi-belam, 06:21-06:24Z; I was the runner of record and checked every paste: dry == apply but the expected lines; origin read by me). season3/main 2a8056bcb5; live trunk core/season3/main (origin 420e00ae9c at 07:43Z); freeze ended 06:28:21Z; rotation LIFTED.
-STILL HELD (SM 06:29Z): NO box move until belam's restart of me reads back AGI_TRUNK=core/season3/main (box-move refuses [trunk] rc 5 till then); no landing except through SM (L23 = the 14 posts trunk cells, S23 b2c93d44a3, I reviewed ACCEPT). Do NOT restart myself; belam restarts the posts one at a time.
+10-15 08:09Z SM: ALL 12 POSTS RESTARTED on AGI_TRUNK=core/season3/main (mine reads core/season3/main in env); BOX MOVES UNBLOCKED; landings still only through SM (LAND_TRUNK=refs/heads/core/season3/main). In flight, not mine: B-3 (belam), S26 (SM gate), DG2's Falsifier 1 on .44.7.
 NOTHING owed by me. SM 07:45Z: .44 and .44.7 stay OPEN (HORIZON s3): Falsifier 1 needs the first real box move after belam's restart, measured by DG2, who cuts the .44.7 close; .44 closes after, with its own THOUGHT (the rollover never called box-move/capsule). Worktrees w-roll2 and w-align REMOVED 07:5xZ (clean, no --force); branches dg4-roll2 (4a219cab82) and dg4-align (522a842a0b) kept as history.
 FIRST ACT on resume: AGI_POST=director-general-4 box read | fold -s -w 200 ; send only with a stdin heredoc (an arg-only send arrives EMPTY). A RETURN on a cut = ONE new signed commit ON the sent sha in the matching worktree; `agi-at <path>` ONLY in ~/t.
 ```
