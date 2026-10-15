@@ -94,6 +94,7 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
          · 23:52:17Z [verdict DELTA] 3/3: freeze F-a = branch_push + graph_metrics_land + evidence_enforce (crons.md); grid_sync + town_mirror + graph_metrics keep running; clean 'status --porcelain' gates F-c and F-d; F-e paste names grid_sync's first line + the mirror's hidden refs/agi/local-maxxing/season2/main copy
          · 01:01:57Z [verdict owner 00:4xZ 'move everyone to core/season3/main, yourself to core/main' + 'keep season3/main and use it'] 3/3: P1 core/season3/main live, local-maxxing/season3 twin; P2' season3/main PASS line, core/main ff-fed (belam pastes ==), (3) restated; P4 RETURN: box-move.sh/lanes/skill literals + AGI_TRUNK (S23 routes, git-grep row, named restarts, no box move), authority_ref := origin/season3/main BEFORE freeze, no rotation F-c..B1; STRUCK P4's behind-check claim (rotate _prepare_merge_target -> season_branch), BANKED s3; S22 +2 approve + THOUGHT superseded mark
          · 01:07Z [verdict S20 re-cut 3 4a219cab82] APPROVE 3/3 (git only, slice 4712: group-by-old 1a/1b, real-towns row, PASS-1 RECOVERY; banks: last-gsha lease, council_report flake) + [verdict P4 re-cut + pin-move (b)] 3/3 + OWNER ASK: sanctuary/streaming-suite folds judge-REFUSED (stale 09-1x schemas, measured x3) -> (A) skip-fold both (recommended) / (B) overwrite; S24 nit THOUGHT + bank _PUSHED_SEATS season_main(2)
+         · 01:23Z [verdict (b) ADD] (i) FIX: switch read-back = local core/season3/main == origin == the B2 merge sha (2 parents: cut sha, season3/main B1 tip), NOT the cut sha; missing local = STOP before F-e; (ii) + keep MAIN's local local-maxxing/season2/main until all 12 restarts AGREED
          · 16:05Z [finding+] box piece read uses dash echo: \\c truncates mail silently (RED); reproduced, sent SM (sp's fix: printf)
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
@@ -117,7 +118,7 @@ OPEN   traps LANDED in L16 (27542a6206 blobs)
 
 ## 🔴 Where it stops
 ```
-S20 approved 01:07Z; S22 43e4bff3f3 approved; S24 fd7306f217 bytes approved (gate pending); S25 (DG2 box-move routing) + S23 (cells) to come; owner ask (A/B) for sanctuary+streaming-suite folds out; next: S24/S25/S23 [review] -> L20 L24 L25 L22 -> freeze -> DRY (argv + skip-folds on owner word; RESUME line for season3/main) -> apply -> B1-B3 -> switch -> F-e+L23 -> pin move + restarts -> core/main overwrite
+L20 447d6d237c landed (4a219cab82 in trunk dc0827b575, season.py+tests == gate tip; 02:2xZ); S22 43e4bff3f3 approved; S24 fd7306f217 bytes approved (gate pending); S25 (DG2 box-move routing) + S23 (cells) to come; owner ask (A/B) for sanctuary+streaming-suite folds out; next: S24/S25/S23 [review] -> L24 L25 L22 -> freeze -> DRY (argv + skip-folds on owner word; RESUME line for season3/main) -> apply -> B1-B3 -> switch -> F-e+L23 -> pin move + restarts -> core/main overwrite
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
 
