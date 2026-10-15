@@ -27,6 +27,9 @@ is `mvp:unified-spawn-path`'s first falsifier, stated as code.
 from __future__ import annotations
 
 import importlib
+import os
+import shutil
+import sys
 from pathlib import Path
 from types import ModuleType
 
@@ -35,8 +38,99 @@ from types import ModuleType
 REQUIRED = ("build_command", "child_env", "is_alive", "restart", "needs_credential")
 
 
+def scrubbed_base(explicit: dict | None = None) -> dict[str, str]:
+    """The base env a RESTART child is built from.
+
+    `dispatch.scrubbed_env()` is the ONE definition of what gets scrubbed; it
+    is imported lazily because dispatch imports this package. An `explicit`
+    base from the caller wins, so the reaper hands over exactly the env it
+    scrubbed for the first spawn. Before this, every `restart()` read raw
+    `os.environ` and a restarted round inherited the Claude-Code Anthropic
+    credentials (hypothesis:every-adapter-restart-spawns-from-the-scrubbed-env).
+
+    The explicit base is scrubbed on the way through, NOT trusted: before this,
+    `restart(base_env=dict(os.environ))` leaked AGI_MODEL_SLOT_LOCK,
+    ANTHROPIC_API_KEY, AGI_ORDERS_TEXT and PROVISIONING_KEY_VAR, and nothing
+    but the absence of such a caller kept it from leaking live.
+    """
+    # ONE scrub list: `dispatch.ENV_VARS_TO_SCRUB` is imported from dispatch,
+    # which imports this package -- hence the lazy import, not a copy of the
+    # names here. Whatever the caller hands over is FILTERED, so the property
+    # holds by construction instead of by caller discipline: a second spawner
+    # (heal.py's precedent) passing raw `dict(os.environ)` now gets the same
+    # scrub the default base gets. Idempotent over `scrubbed_env()`'s own
+    # output, which is already free of every name in the list.
+    import dispatch
+    if explicit is None:
+        return dispatch.scrubbed_env()
+    scrub = dispatch.ENV_VARS_TO_SCRUB
+    return {k: v for k, v in explicit.items() if k not in scrub}
+
+
 class AdapterError(RuntimeError):
     """Raised for an adapter that is missing, unimportable or incomplete."""
+
+
+def resolve_bin(harness: dict, env_var: str, default: str) -> str:
+    """The ONE harness bin resolver (`goal:g15` config-max).
+
+    `$env_var` override, then the config `bin` cell, then the built-in
+    default. `~/x`, bare `~` and `{home}` expand against the CURRENT HOME at
+    resolve time; `~user/x` expands against THAT user's home
+    (`os.path.expanduser` semantics, `goal:g15.29.2`); a token-expanded path
+    is used only if it exists; a bare name is looked up on PATH. An
+    explicit override naming anything but the default that resolves nowhere
+    refuses BY NAME -- never a bare `Popen` FileNotFoundError.
+
+    A path-shaped cell that does not exist refuses BY NAME -- naming the
+    harness, the path that was tried and the `$env_var` that would override
+    it -- WHETHER OR NOT it needed a home token. Returning the raw
+    `~/...` (or a raw absolute) cell instead is what made `Popen` die on a
+    bare `FileNotFoundError('~/...')` that names nothing (round 2 of this
+    hypothesis), then on `FileNotFoundError('/x/nope')` once the token-free
+    absolute was found to be the same unnamed death wearing a fuller path
+    (`hypothesis:harness-bin-absolute-token-free-bins-refused-by-name`).
+    Precedence never required carrying an unexecable value; a bare NAME is
+    still carried unchanged, which is what a synthetic template with no
+    adapter module renders.
+    """
+    explicit = os.environ.get(env_var) or harness.get("bin")
+    raw = explicit or default
+    override = bool(explicit) and raw != default
+    home = os.path.expanduser("~")
+    if raw.startswith("~"):
+        # `~/x`/`~` -> CURRENT HOME; `~user/x` -> THAT user's home. Splicing
+        # `home + raw[1:]` made `~bob/x` resolve to `/home/<me>bob/x`.
+        path = os.path.expanduser(raw)
+        # A `~user` that does not exist cannot expand: `expanduser` hands the
+        # raw token back unchanged, and the `path == raw` branch below then
+        # returned it, so `Popen` died on a bare
+        # `FileNotFoundError('~nosuch/x')` that named nothing.
+        if path == raw:
+            raise FileNotFoundError(
+                f"harness {harness.get('adapter') or '?'!r}: cannot resolve binary "
+                f"{raw!r}: no such user's home directory; "
+                f"set ${env_var} to override")
+    else:
+        path = raw.replace("{home}", home)
+    if os.sep in path or (os.altsep and os.altsep in path):
+        if os.path.exists(path):
+            return path
+        if path != raw:
+            why = f"expanded to {path!r}, which does not exist"
+        else:
+            why = "does not exist"
+        raise FileNotFoundError(
+            f"harness {harness.get('adapter') or '?'!r}: cannot resolve binary "
+            f"{raw!r}: {why}; "
+            f"set ${env_var} to override")
+    if shutil.which(path):
+        return path
+    if override:
+        raise FileNotFoundError(
+            f"harness {harness.get('adapter') or '?'!r}: cannot resolve binary "
+            f"{raw!r}: ${env_var} unset, config `bin` absent, not on PATH")
+    return path
 
 
 def load(name: str) -> ModuleType:
@@ -79,6 +173,53 @@ def load(name: str) -> ModuleType:
 TIERS = ("kid", "parent", "director", "prime_director")
 
 
+def harness_block(cfg: dict, name: str | None) -> dict:
+    """goal:g7.16.1.7.1.3.1 -- THE config.json harness read: the merged block
+    for `name`, `{}` when nothing answers to it. A plain block is returned as
+    a copy. A TEMPLATE (a block carrying `rows`) answers its own id with its
+    shared cells + the `default: true` row, `<template>:<row>` with that row,
+    and a name in its `aliases` with the aliased row; the merged block drops
+    `rows` / `aliases` and names its row in `row`."""
+    harnesses = cfg.get("harnesses") or {}
+    if not name:
+        return {}
+    base, _, row_name = str(name).partition(":")
+    block = harnesses.get(base)
+    if isinstance(block, dict) and "rows" not in block:
+        return dict(block) if not row_name else {}
+    if not isinstance(block, dict):
+        block = None
+        if not row_name:
+            for t in harnesses.values():
+                if isinstance(t, dict) and base in (t.get("aliases") or {}):
+                    block, row_name = t, str(t["aliases"][base])
+                    break
+    if block is None:
+        return {}
+    rows = [r for r in block.get("rows") or [] if isinstance(r, dict)]
+    row = next((r for r in rows if (r.get("name") == row_name if row_name
+                                    else r.get("default") is True)), None)
+    if row is None:
+        return {}
+    merged = {k: v for k, v in block.items() if k not in ("rows", "aliases")}
+    merged.update({k: v for k, v in row.items() if k not in ("name", "default")})
+    merged["row"] = row.get("name")
+    return merged
+
+
+def harness_ids(cfg: dict) -> list[str]:
+    """Every name `harness_block` answers: plain ids, each template's id and
+    `<template>:<row>`, and each template alias. Sorted."""
+    out: set[str] = set()
+    for hid, block in (cfg.get("harnesses") or {}).items():
+        out.add(hid)
+        if isinstance(block, dict) and "rows" in block:
+            out.update(f"{hid}:{r['name']}" for r in block.get("rows") or []
+                       if isinstance(r, dict) and r.get("name"))
+            out.update(block.get("aliases") or {})
+    return sorted(out)
+
+
 def resolve(cfg: dict, name: str | None = None) -> tuple[str, dict]:
     """Pick a harness from config, synthesizing one for a legacy project.
 
@@ -111,11 +252,11 @@ def resolve(cfg: dict, name: str | None = None) -> tuple[str, dict]:
                     "config declares several harnesses and no `spawn.harness`; "
                     f"name one of {sorted(harnesses)}"
                 )
-        if chosen not in harnesses:
+        harness = harness_block(cfg, chosen)
+        if not harness:
             raise AdapterError(
-                f"no harness {chosen!r} in config; declared: {sorted(harnesses)}"
+                f"no harness {chosen!r} in config; declared: {harness_ids(cfg)}"
             )
-        harness = dict(harnesses[chosen])
         harness.setdefault("adapter", chosen.replace("-", "_"))
         return chosen, harness
 
@@ -147,6 +288,71 @@ OPENROUTER_ALIAS_ERR = (
     "subscription alias against an OpenRouter key "
     "(hypothesis:l3-workflow-model-crosses-harness-namespace)"
 )
+
+
+# ---------------------------------------------------------------------------
+# ONE SOURCE OF (tier, role, harness) MODEL TRUTH
+# hypothesis:l4-a-model-change-is-one-write — the ladder `roles:` table is the
+# ONE source of a role's model/effort/settings per harness. dispatch.py,
+# workflow.py and heal.py import these, so a model change is ONE `write.py` on
+# ladder:ladder instead of four cells in three files. `harnesses.<h>.models
+# <role>` and `agent_dispatch.model` stop being inputs: dispatch.py emits ONE
+# stderr warning naming the winning ladder row when a config still carries one.
+# ---------------------------------------------------------------------------
+
+def ladder_role_row(roles, tier, role):
+    """The ladder `roles:` row for (tier, role), or None.
+
+    The single lookup shared by the three spawners. A row matching both keys
+    wins outright; no row answers None and the caller falls back to whatever
+    history requires. `int()` on tier so a row typed `"1"` matches.
+    """
+    for r in (roles or []):
+        try:
+            if int(r.get("tier")) == int(tier) and r.get("role") == role:
+                return r
+        except (TypeError, ValueError):
+            continue
+    return None
+
+
+def spec_from_ladder_row(row):
+    """Map a ladder `roles:` row to {harness, model, effort, thinking, settings}.
+
+    Blank cells resolve to None (omit the flag). `thinking` is pi's effort
+    analogue (`l3w4-director-kids-on-glm`) and travels with the row.
+    """
+    return {
+        "harness": row.get("harness") or None,
+        "model": (row.get("model") or "").strip() or None,
+        "effort": (row.get("effort") or "").strip() or None,
+        "thinking": (row.get("thinking") or "").strip() or None,
+        "settings": row.get("settings") or None,
+    }
+
+
+def derived_allowed_models(roles, harness_name, harness):
+    """The DERIVED allowlist a harness may spawn from.
+
+    = {every ladder row's model whose `harness` is `harness_name`}
+      U harness.allowed_extra    (the migration-clean census)
+      U harness.allowed_models   (the DEPRECATED key — still unioned for one
+                                 cut-over round so no live spawn fails closed;
+                                 the caller warns once that it is legacy).
+
+    A model no ladder row, no `allowed_extra` and no legacy `allowed_models`
+    names is refused (fail-closed). The point of the derivation: a NEW model
+    written into a ladder row is allowed WITHOUT editing the config's allowlist
+    — the four-cells-in-three-files defect (l4 measure).
+    """
+    extra = {str(m) for m in (harness.get("allowed_extra") or [])
+             if m and str(m).strip()}
+    legacy = {str(m) for m in (harness.get("allowed_models") or [])
+              if m and str(m).strip()}
+    from_rows = {str(r.get("model")).strip() for r in (roles or [])
+                 if r.get("harness") == harness_name
+                 and (r.get("model") or "").strip()}
+    return from_rows | extra | legacy
 
 
 def assert_model_in_provider_namespace(model: str, provider: str) -> None:
@@ -200,3 +406,98 @@ def needs_credential(harness: dict) -> bool:
         mod = load(adapter_name)
         return mod.needs_credential(harness)
     return True
+
+
+def drop_unneeded_credential(env: dict[str, str], harness: dict) -> dict[str, str]:
+    """Apply the credential-none rule to a child environment, in ONE place.
+
+    `hypothesis:l4-needs-credential-is-provider-gated`. A harness row that
+    explicitly carries ``credential: "none"`` authenticates through its own
+    channel (pi-local speaking to a `$0` local model), so the inherited runtime
+    key -- which `dispatch.scrubbed_env` deliberately keeps for the no-
+    provisioning fallback -- must never reach its child.
+
+    The rule lives HERE and every adapter's ``child_env`` calls it, so every
+    spawn path that builds a child environment (main dispatch, the dry-run
+    mirror, adapter ``restart``, and any future path) gets it for free. It used
+    to be two ad-hoc pops in dispatch.py, which is exactly why the RESTART seam
+    kept inheriting the key: nothing forced a new spawn path to remember the
+    pop. `needs_credential` is the single decision, so this cannot drift from
+    the mint gate in dispatch.py.
+    """
+    if needs_credential(harness):
+        return env
+    import provisioning  # lazy: keeps this package import-light
+    env.pop(provisioning.RUNTIME_KEY_VAR, None)
+    return env
+
+
+#: Names injected from `.env` by forwarding in THIS process, for the scrubber
+#: (`dispatch._looks_like_secret`): a forwarded name need not carry a
+#: KEY/TOKEN/SECRET/PASSWORD substring, so the name half alone would leak it.
+_FORWARDED_NAMES: set[str] = set()
+
+#: Test seam -- when set, forwarded names are read from this `.env`.
+_FORWARD_ENV_FILE: Path | None = None
+
+
+def forward_named_env(env: dict[str, str], harness: dict) -> dict[str, str]:
+    """Inject `harness['forward_env']` NAMES from the MAIN-root `.env`.
+
+    ADDS, never removes: a name already in `env` (the dispatcher environ, or a
+    `harness['env']` literal) is left exactly as it was. A listed name absent
+    from `.env` is skipped with ONE named notice, never an exception and never
+    a partial environment. Every adapter's `child_env` calls this, so main
+    dispatch, the dry-run mirror and adapter `restart` all reach it.
+    """
+    names = harness.get("forward_env") or []
+    if not names:
+        return env
+    import envfile  # lazy: keeps this package import-light
+    try:
+        path = _FORWARD_ENV_FILE or envfile.resolve().env_file
+    except Exception:  # noqa: BLE001 -- no project, no .env, malformed node
+        path = None
+    from_env = envfile.read_env(path) if path else {}
+    for name in names:
+        name = str(name)
+        if name in env:
+            continue
+        if from_env.get(name):
+            env[name] = from_env[name]
+            _FORWARDED_NAMES.add(name)
+        else:
+            print(f"[adapters] forward_env: {name} not in "
+                  f"{path or '.env'}; skipped", file=sys.stderr)
+    return env
+
+
+def model_listing(harness: dict) -> dict[str, str]:
+    """Return the selected adapter's configured tier/model listing.
+
+    Adapters may provide a richer listing, but the config model map remains a
+    safe compatibility fallback for older third-party adapters.
+    """
+    adapter_name = harness.get("adapter", "")
+    if adapter_name:
+        mod = load(adapter_name)
+        listing = getattr(mod, "list_models", None)
+        if callable(listing):
+            return dict(listing(harness))
+    return {
+        str(tier): str(model)
+        for tier, model in (harness.get("models") or {}).items()
+        if str(model).strip()
+    }
+
+
+def transcript_path(harness: dict, sess_dir: str | Path,
+                    agent_id: str | None = None) -> Path:
+    """Resolve the adapter-owned transcript/log path for a child."""
+    adapter_name = harness.get("adapter", "")
+    if adapter_name:
+        mod = load(adapter_name)
+        resolver = getattr(mod, "transcript_path", None)
+        if callable(resolver):
+            return Path(resolver(sess_dir=Path(sess_dir), agent_id=agent_id))
+    return Path(sess_dir) / "output.log"

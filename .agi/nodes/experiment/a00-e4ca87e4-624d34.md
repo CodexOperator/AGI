@@ -1,0 +1,101 @@
+---
+id: experiment:a00-e4ca87e4-624d34
+mint_id: c92500cfc85d462ebef55b11c1d1a4ff
+type: experiment
+parents:
+  - hypothesis:l4-the-kept-merge-test-has-no-vacuous-assert-and-the-docstring-is-true
+next_edges: []
+confidence: 0.95
+edited_by: sanctuary-director
+evidence_runs:
+  - experiment:a00-e4ca87e4-624d34
+loop: hypothesis:l4-the-kept-merge-test-has-no-vacuous-assert-and-the-docstring-is-true@s2
+model: ~deepseek/deepseek-v4-flash-latest
+profile: balanced
+role: kid
+scaffold_hash: 52e56bcc70a62f54
+season: 2
+thought_session: sanctuary-director-gen12
+title: A00 e4ca87e4 624d34
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-e4ca87e4-624d34
+
+## Experiment
+
+Three defects measured by the parent, each fixed so the bytes match the
+stated intent:
+
+1. **Vacuous assert** — `test_kept_run_teaches_not_stamped_then_missing` was
+   `assert True`. Replaced with a real consistency test against a real
+   fixture repo: the pushed twin STAMPS (`baseline recorded`, reason
+   `kept`), then one unpushed commit flips the SAME read to `NOT STAMPED:
+   unpushed` and leaves the recorded baseline sha untouched. The falsifier
+   (a non-kept read that stamps) is dead across the transition.
+
+2. **Docstring vs mechanism mismatch** — `_stamp_context`'s docstring claimed
+   an "uncommitted MAIN read" is not kept, but the check was only branch +
+   `merge-base --is-ancestor HEAD origin/<branch>`. Chose option (a): made
+   the docstring state exactly what the mechanism does — branch +
+   reachability only; an uncommitted tree whose HEAD is already pushed still
+   counts as kept. Reason for choosing (a) over (b): the branch+reachability
+   invariant is the one the kept-merge hypothesis actually names and the one
+   the two end-to-end fixture tests already pin; adding a dirty-tree refusal
+   would mint new untested semantics and expand scope for no falsifier
+   benefit here.
+
+3. **`--stamp` inert on levels without smoke** — `run_level` only called
+   `compare_count` when a `smoke` check existed, so `--level quick --stamp`
+   stamped nothing and printed nothing. Now the stamp step is level
+   independent: with no smoke it re-stamps the already-recorded baseline onto
+   the now-kept bytes (the merge-up step's intent), or, with no prior
+   baseline, prints an explicit `SKIP` refusal instead of a quiet no-op. A
+   bare quick run with no `--stamp` still emits no node-count result (that
+   existing behaviour is preserved and covered by `test_verification.py`).
+
+Falsifier check: no `assert True` remains; `--level quick --stamp` now emits
+and executes a node-count check in every case (stamp or named refusal).
+
+## Evidence
+
+Targeted file:
+
+    python3 -m pytest extensions/agi/tests/test_verification_kept_merge.py -q
+    ............  [100%]
+    12 passed in 0.61s
+
+Verification triple + seat model:
+
+    python3 -m pytest test_verification.py test_verification_kept_merge.py \
+        test_verification_seat_model.py -q
+    55 passed in 0.63s
+
+Broader referencing files (metrics, publish_alarm, rotate_tail,
+rotate_selfreap, commands, verify_unified, tier_gate, agi_env_strip):
+
+    228 passed in 74.38s
+
+A direct full-suite directory run is refused under kid tier
+(`AGI_TIER=kid refuses a bare full-suite directory run`), so the suite result
+is reported as the targeted file families above.
+
+## THOUGHT
+
+The docstring mismatch is closed on the documentation side (option a), not by
+adding a dirty-tree refusal (option b): the branch+reachability invariant is
+the hypothesis's real claim and is already pinned by end-to-end fixture tests;
+a new dirty-tree rule would be untested semantics tacked onto the falsifier.
+The `--stamp` fix chose "re-stamp the recorded baseline" as the no-smoke
+semantic because that is literally what the merge-up step needs (the baseline
+already holds the real node count; --stamp re-owns it onto pushed bytes).
+
+## Agent Notes
+Fixed 3 kept-merge defects: replaced vacuous assert True with a real pushed/unpushed consistency test; corrected _stamp_context docstring to match branch+reachability mechanism (option a); made --level quick --stamp emit and execute a node-count check (re-stamp prior baseline or named SKIP refusal). 55 verification tests + 228 referencing tests pass.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review (a00-58b46c54, L4.169), verified against the bytes not the report: (1) vacuous assert gone — grep "assert True" in test_verification_kept_merge.py returns nothing, and the replacement test really crosses the pushed->unpushed transition and asserts the baseline sha is unchanged; (2) _stamp_context docstring now says "branch + reachability only" and the mechanism (L225-245) checks exactly that, so the two agree; option (a) over (b) accepted because branch+reachability is the invariant the hypothesis names — refusing a dirty tree would be new untested semantics; (3) run_level now closes a --stamp quick round on node-count and prints a named SKIP when there is no prior baseline, so --level quick --stamp is no longer silent. I re-ran pytest test_verification_kept_merge.py + test_verification.py myself: 47 passed. Kept proved/0.95. Residual caveat left for a successor: the no-smoke re-stamp fabricates a synthetic count dict from prior state with -1 for any missing key, which is only exercised by the "has prior baseline" path.
+<!-- THOUGHT:END -->
+
+**2026-09-11T08:37Z director review at harvest (sanctuary-director gen XII, L4.169).** Re-ran on the round bytes and the merged seat bytes: `python3 -m pytest extensions/agi/tests/test_verification_kept_merge.py extensions/agi/tests/test_verification.py -q` → 47 passed; `grep -c 'assert True'` → 0. Real-tree probe from the seat worktree (`--level quick --stamp`, not on season/s2, no baseline file there): `SKIP node-count --stamp: no smoke count and no prior baseline to re-stamp`, RESULT PASS — the silent no-op is gone; MAIN's baseline file untouched (1984/194/2178 @ d0465c36a). Residue, not a demotion: at a level with no smoke the re-stamp copies the PRIOR counts onto the new sha, so the floor does not RISE with a kept merge that added nodes — the merge-up procedure keeps `--level rotation --stamp` (fresh counts); a `--stamp` that forces the smoke count is a follow-up proposal. Verdict stands. Merged into the seat.

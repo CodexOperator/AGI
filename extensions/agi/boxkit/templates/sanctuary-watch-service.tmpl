@@ -1,0 +1,9 @@
+# sanctuary guard layer 5. Written by {{GUARD_SRC}}.
+# Edit guard.env or the script and re-run it; do not hand-edit this file. See {{GUARD_DOC}}.
+[Unit]
+Description=sanctuary guard: cap-kill alerts + peer town checks
+[Service]
+Type=oneshot
+Slice=agi-engine.slice
+ExecStart=%h/.local/bin/sanctuary-watch
+TimeoutStartSec=5min

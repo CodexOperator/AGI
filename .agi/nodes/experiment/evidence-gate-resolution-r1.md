@@ -5,7 +5,7 @@ type: experiment
 parents:
   - goal:g3.1
 confidence: 0.8
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs: 1
 season: 1
 tags:
@@ -91,7 +91,7 @@ not just by matching output.
 
 ## Measured on the real agi-tree corpus (this repo), before/after
 
-Via `python3 extensions/agi/bin/metrics.py /home/ubuntu/work/agi-tree`,
+Via `python3 extensions/agi/bin/metrics.py <home>/work/agi-tree`,
 same real corpus, only the code changed:
 
 | metric | before (unfixed) | after (this fix) |
@@ -177,7 +177,7 @@ buggy semantics — they cited bare placeholder strings (`"r1"`, `"run-a"`)
 as if that were evidence. Updated them to cite real, corpus-resolvable
 node ids instead, so they test the behaviour this fix actually intends.
 
-Full suite: `cd /home/ubuntu/work/agi && python3 -m pytest extensions/agi/tests -q`
+Full suite: `cd <home>/work/agi && python3 -m pytest extensions/agi/tests -q`
 → **384 passed, 0 failed** (330 baseline + this task's additions), stable
 across three consecutive runs. One run mid-session showed a single
 unrelated failure in `test_dashboard.py`; it did not reproduce in isolation

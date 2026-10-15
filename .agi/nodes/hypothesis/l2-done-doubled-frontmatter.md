@@ -3,13 +3,13 @@ id: hypothesis:l2-done-doubled-frontmatter
 mint_id: d3ee741e7f2f44a8b697ade1d8195244
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.15
 next_edges: []
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 6268cbf53652f2ce
 season: 1
 testable_claim: cli.py done writes the verdict into a kid's node without leaving a second frontmatter block in the body, and a kid brief that ends without the DONE contract line is detected and named in the manifest
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "L2 g15: l2-done-doubled-frontmatter"
 ---
 # hypothesis:l2-done-doubled-frontmatter

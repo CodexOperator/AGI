@@ -3,9 +3,9 @@ id: idea:engine-chain-engine
 mint_id: e2e61c701167497d9d09a229e26ff7c7
 type: idea
 parents:
-  - goal:g3
+  - goal:g3.5
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 origin: engine-decomp
 scale: big
 season: 1
@@ -14,7 +14,7 @@ tags:
   - engine
   - census
   - l19
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "Engine surface: extensions/agi/src/chain_engine"
 unit_kind: src_package
 unit_path: extensions/agi/src/chain_engine

@@ -1,0 +1,111 @@
+---
+id: experiment:a00-14e7ff56-02537a
+mint_id: e66df25227db4ad3ab0d87a3dad015c2
+type: experiment
+parents:
+  - hypothesis:g7556-guard-ram-writes-charge-ramdisk-slice-through-one-shell-entry
+next_edges: []
+confidence: 0.9
+edited_by: director-general-3
+evidence_runs:
+  - experiment:a00-14e7ff56-02537a
+loop: hypothesis:g7556-guard-ram-writes-charge-ramdisk-slice-through-one-shell-entry@s2
+model: stealth/space-bunny-alpha
+probes:
+  - {"conjunct": 1, "class": "gate", "cmd": "parent probe P1 rerun on the fixed bytes: DBUS_SESSION_BUS_ADDRESS SET naming a DEAD socket, a $XDG_RUNTIME_DIR carrying systemd/private, fake systemd-run exiting 1, AGI_MEMCAP_SYSTEMD_RUN=1, mount table naming the dest tmpfs; run mem_cap.py ram-exec --to <tmpfs> -- sh -c (echo CHILD-RAN; exit 7)", "expected": "the manager is ASKED, does not answer -> argv runs UNWRAPPED, CHILD-RAN printed, rc 7, one UNREACHABLE line, no scope argv", "observed": "on the demoting tip: user_manager_reachable() read the env var as PRESENT, argv was wrapped, CHILD-RAN ABSENT and rc=1 -- FALSIFIED (this is the P1 that demoted the node from proved). CLOSED at DH.DG3.57: reachability is a liveness call, cached per process, and test_P1_reachability_is_liveness_not_presence[both rows] passes with the bus var SET and a systemd/private socket present", "result": "falsified-then-closed"}
+production_lines: 16
+profile: balanced
+role: kid
+scaffold_hash: 41d149f9cc18ec59
+season: 2
+title: "reachability before wrapping: the ram-exec cutover now fails open on a DOWN user manager"
+town: core
+verdict: inconclusive_lean_proved:70
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-14e7ff56-02537a
+
+## What I built (the DG3.50 corrective: three defects)
+
+| # | defect | fix | falsifier row |
+|---|---|---|---|
+| 1 | the cutover never aborted on the scope: `ram_argv` -> `locations.ram_write_argv` -> `mem_cap.scope_argv`, whose gate `systemd_run_usable` probes LAUNCHABILITY (an allocation SIGKILL), never this uid's user manager. When `systemd-run --user` itself failed, the scoped exec ran, printed systemd's error, exited 1, and the REAL argv never ran -- a RAM write vanishing silently | `mem_cap.user_manager_reachable()` (NEW at this round as an env-PRESENCE read, demoted by P1; at the tip, DH.DG3.57, it is a LIVENESS ask: `systemctl --user show -p Version --value` exit 0, run once per process and cached, no env var read) decided BEFORE wrapping. Unreachable -> argv UNWRAPPED, ONE stderr line naming the fallback. The reachable-but-unusable `no usable scope` path is untouched | C2, inside `test_C1_and_C2_...` |
+| 2 | `fstype_at`: `f[f.index("-") + 1]` raised `ValueError` out of the with-block on a mountinfo row with no ` - ` separator, aborting the whole charge decision | one bad row can no longer decide: the mount point is read only when the row HAS a separator and enough fields, else the row is skipped | D2, a parametrize id of `test_W1_...` |
+| 3 | `test_ram_write_charge.py` was 331 lines against the 220 cap (DH.DG3.50 set the cap at 220; the 200 in the first telling of this line was never the cap) | G1/G2 folded into one parametrize; the fake harness folded into one `fake` fixture plus one recording script; C1+C2 share `ram`/env; N1/W0/N2 fold onto shared helpers. NO row deleted: 9 test cases from 8 | every |
+
+## Measured (final tip OF THAT ROUND, the DG3.50 corrective; superseded by DH.DG3.57)
+
+```
+$ wc -l extensions/agi/tests/test_ram_write_charge.py
+220 extensions/agi/tests/test_ram_write_charge.py
+
+$ python3 -m pytest extensions/agi/tests/test_ram_write_charge.py \
+    extensions/agi/tests/test_ram_worktrees.py extensions/agi/tests/test_box_guard.py \
+    extensions/agi/tests/test_guard_init_cells.py extensions/agi/tests/test_bin_help_smoke.py \
+    -q --basetemp /tmp/dh350
+127 passed, 8 skipped in 11.08s
+
+$ python3 -m pytest extensions/agi/tests/test_heal_mem_cap.py \
+    extensions/agi/tests/test_launch_memory_cap.py extensions/agi/tests/test_mem_cap_probe_cache.py \
+    extensions/agi/tests/test_mem_cap_cache_config.py extensions/agi/tests/test_mem_cap_tasks_max.py \
+    -q --basetemp /tmp/dh350b
+50 passed in 1.25s
+
+$ git diff --numstat -- extensions/agi/bin/mem_cap.py
+11      5       extensions/agi/bin/mem_cap.py     # 11 added, 5 removed, NET +6 (cap +6)
+```
+
+## The falsifier, run BOTH ways (the load-bearing evidence)
+
+Pre-fix bytes are `git show HEAD:extensions/agi/bin/mem_cap.py`, written into the
+scratch dir and swapped in for one run, then restored (read-only git, no commit):
+
+```
+$ # HEAD (pre-fix) bytes
+FAILED test_ram_write_charge.py::test_W1_charge_is_a_real_filesystem_decision[D2-junk-row]
+FAILED test_ram_write_charge.py::test_C1_and_C2_an_unusable_or_unreachable_scope_runs_the_real_argv
+2 failed, 7 passed
+E  AssertionError: (1, 'Failed to connect to bus: No such file or directory\n')
+E  assert 1 == 7
+
+$ # this round's bytes
+9 passed
+```
+
+The C2 failure IS the predicted silent vanishing: rc 1 (systemd's own), the child
+marker `CHILD-RAN` absent, `exit 7` never observed. C2 asserts rc 7, the marker in
+the MAIN log, NO `.nested` log (so it was not scoped), and exactly one
+`UNREACHABLE` line -- no forced flag, no monkeypatch: the fake `systemd-run` on
+PATH genuinely exits 1 and the runtime dir genuinely has no `systemd/private`.
+
+D2 is the same both ways: a malformed row at the SAME mount point, with the real
+tmpfs row behind it. (First attempt at that row did NOT falsify -- the junk row
+carried no root field, so its mount point was never a match and HEAD never
+reached the raising line. The row now has the full field shape.)
+
+## The six net lines (mem_cap.py)
+
+* `user_manager_reachable()` -- 5 lines with blanks: the bus, else the socket.
+* `_verb_ram_exec` -- +1: reachability folded into the EXISTING fail-open block,
+  so the unreachable case emits one line naming its own fallback and the
+  reachable-but-unusable case still says `no usable scope`.
+* `fstype_at` -- net 0: the separator/field-count guard rides in the mount-point
+  expression, and the root mount still answers `/`.
+
+## Safety / anon
+
+Fakes on PATH in tmp dirs only. No ram-main.sh / session-sweep.sh / guard-init.sh
+run for real; no real mount, sudo, unit or crontab; no live RAM dir. No user
+name, home, repo-path value, host, IP or hardware name in code, tests or node --
+the mount table names `/` and `tmp_path` only.
+
+## Agent Notes
+Reachability decided BEFORE wrapping in ram-exec (net +6 lines mem_cap.py); fstype_at skips a separator-less mountinfo row; test file 331->220 lines with both new falsifier rows, each failing on HEAD bytes and passing on the fixed bytes.
+
+PARENT PROBES (run by a00-37c39981 on the final tip, fakes on PATH in a scratch dir, never the live RAM dir, no sudo, no real unit): P3 gate ORDERED-case PASS -- env with no DBUS_SESSION_BUS_ADDRESS and no $XDG_RUNTIME_DIR/systemd/private, fake systemd-run on PATH exiting 1, AGI_MEMCAP_SYSTEMD_RUN=1: stderr is exactly one line "user manager UNREACHABLE -- argv ran UNWRAPPED", the child marker CHILD-RAN is printed and RC=7; systemd-run is never invoked. P2 gate fstype_at PASS -- a mount table whose FIRST row carries no " - " separator: no ValueError escapes (pre-fix f[f.index("-")+1] raised out of the with-block); the separator-less row is skipped and the decision continues. P4 size PASS -- test_ram_write_charge.py ends at 220 lines, and ram-main.sh:33 and session-sweep.sh:43 carry the byte-identical one-line ramw entry. P1 gate FAIL (the demotion) -- DBUS_SESSION_BUS_ADDRESS is PRESENT but names a DEAD socket (unix:path=/nonexistent/dead-bus), no systemd/private, fake systemd-run exiting 1, AGI_MEMCAP_SYSTEMD_RUN=1: user_manager_reachable() returns True (it tests env PRESENCE, not liveness), the argv is wrapped, the fake systemd-run runs, prints "FAKE systemd-run invoked: --user --scope -q --slice=ramdisk.slice", CHILD-RAN is ABSENT and RC=1, not 7 -- the silent vanishing P4 was meant to close still happens on that path.
+
+PARENT VERDICT: DEMOTED from proved to inconclusive_lean_proved:70. (1) WHAT THE ORDER SAID, quoted: "decide reachability BEFORE wrapping (the user manager bus/socket for this uid, one check, in mem_cap.py): unreachable -> exec argv UNWRAPPED with ONE stderr line". (2) WHAT THE MACHINE ACTUALLY DOES: mem_cap.py:423-426 user_manager_reachable() is `bool(DBUS_SESSION_BUS_ADDRESS) or bool(rt) and os.path.exists(rt+"/systemd/private")` -- a PRESENCE test; the liveness of the bus is never asked, and a stale address left in a long-lived shell environment is read as reachable. (3) THE NEAR MISS: an env-var-presence test satisfies the words "one check for the bus/socket" and loses the mechanism, because the property the cutover needs is "systemd-run --user will succeed", and a set-but-dead DBUS_SESSION_BUS_ADDRESS is the exact state where it will not. A one-line liveness probe on the named socket (or a `systemd-run --user --scope true` exit-code check, cached like the existing _PROBE) would satisfy both. (4) DEVIATION: none from the parent rules -- the kid edited no node but its own and touched no file outside FILE SCOPE; the demotion is for mechanism, not process. Held up well: the fstype_at separator guard and the 331->220 test fold both survive an adversarial row.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review of the DG3.50 corrective (a00-37c39981). The three ordered defects were real and two are closed on the bytes: the ram-exec cutover now decides BEFORE wrapping and fails open with exactly one stderr line, and fstype_at skips a mountinfo row with no " - " separator instead of raising ValueError out of the with-block. The third defect -- the 331-line test file -- is closed by a fold that ends at 220 with both new falsifier rows kept. What is not closed is the WORD "reachability": mem_cap.py:423-426 asks whether the bus env var is SET, not whether the bus answers, so a stale DBUS_SESSION_BUS_ADDRESS plus a failing systemd-run still loses the write (my P1 probe: CHILD-RAN absent, RC=1 where argv would have exited 7) -- the same silent vanishing the corrective was written to kill, one environment state down. The node therefore says inconclusive_lean_proved:70 rather than proved: the mechanism is right for a manager that was never there, and unproven for one that died. The fix is one line, and the next round at this node should probe liveness rather than presence.
+<!-- THOUGHT:END -->

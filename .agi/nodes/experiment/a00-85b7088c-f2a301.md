@@ -40,7 +40,7 @@ Built in `bin/viewport.py` (221 insertions + 8 deletions, additive):
   corpus this resolves all seven: adv-* → vision:self-perpetuating /
   all-is-one / alive, and dir-g1/g15/g16 + liaison → goal:g1/g15/g16/g17.
   belam is correctly unanchored (top of the tree, no tie).
-- **One `AnchorIndex`, one `layer` — both formatters** (goal:g9.7 one level
+- **One `AnchorIndex`, one `layer` — both formatters** (goal:g2.19 one level
   down). `render_human` and `render_llm` take the same optional `anchors` and
   `layer` and state the same facts. Hierarchy lines sort deterministically
   (tier desc, then role order prime_director<parent<director, then name), with

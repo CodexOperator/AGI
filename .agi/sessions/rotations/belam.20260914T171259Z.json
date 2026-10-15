@@ -1,0 +1,34 @@
+{
+  "rotation": "crash-recovery",
+  "seat": "belam",
+  "recorded_at": "2026-09-14T17:13:30.958230Z",
+  "result": "detected",
+  "probable_cause": "unknown",
+  "succ_name": "belam-S1-L4-XXII",
+  "gen": 22,
+  "gen_after": 22,
+  "pin_ref": "",
+  "tmux_session": "agi-rc",
+  "window_id": "",
+  "pred_pids": [
+    1703008
+  ],
+  "row": {
+    "name": "belam",
+    "role": "prime_director",
+    "model": "claude-opus-5",
+    "pid": 1703008,
+    "window": "@370",
+    "session_id": "d5bde272-b125-4849-9d77-e697973f71d4",
+    "generation": 21,
+    "worktree": ""
+  },
+  "respawn_outcome": {
+    "name": "belam-S1-L4-XXII",
+    "generation": 22,
+    "pid": null,
+    "window": null,
+    "reason": "spawn_window raised: 'str' object has no attribute 'get'",
+    "row": "skipped"
+  }
+}

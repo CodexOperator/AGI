@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3w4-rotation-announces-itself
 next_edges: []
 confidence: 0.75
-edited_by: a00-bc7ec0a9
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-b23fb1d6-f94e4b
 loop: hypothesis:l3w4-rotation-announces-itself@s2
@@ -25,7 +25,7 @@ verdict: inconclusive_lean_proved:75
 
 SD.03, kid a00-b23fb1d6. Parent: hypothesis:l3w4-rotation-announces-itself. The build (rotate.py announce helper + tests) had LANDED in a prior slice of this chain — rotate.py lines 1793-1936 hold `_announce_rotation`, `_compose_announcement`, the recipient-derivation `_derive_receivers`, and the durable monotonic `sequence.json` counter; a prior kid already corrected the false "no cross-session push" finding on `l3w4-shared-mail-alert` (CORRECTION note dated 2026-09-08). My slice: VERIFY the built machine actually satisfies the hypothesis, run all its tests red-vs-green, confirm the live wiring against the record-writing rotation paths, and record what the tests DO and DO NOT cover.
 
-WHAT I RAN (all in `/home/ubuntu/work/agi`):
+WHAT I RAN (all in `<home>/work/agi`):
 - `pytest extensions/agi/tests/test_rotate.py -k 'announce or sequence or compose'` → 8 passed, 64 deselected in 0.16s. Covers: `_compose_announcement` carries all five fields plus the `seq:` stamp; a non-prime rotation dms every derived recipient exactly once; the PRIME routes to `rotation-alerts` room never quorum; loop-success announces EXACTLY once and loop-refusal none; rotate-self-success announces once and refusal none; the `sequence.json` counter is monotonic + durable across reloads; the announce writes the sequence file and stamps `seq: 1`; a refused loop does not advance the counter.
 - Full engine suite `pytest extensions/agi/tests/ -q` → 2190 passed, 1 skipped in 125.19s. Tree green.
 

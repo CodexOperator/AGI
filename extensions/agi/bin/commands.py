@@ -25,8 +25,8 @@ remembering them. A command table nothing reads is a fourth copy of the prose.
 ## Substitution, and why there are no absolute paths in the node
 
 `<root>` becomes the resolved graph root and `<engine>` the engine checkout.
-A table full of `/home/ubuntu/work/agi/...` would be a table that stops
-working on the next clone, which is exactly the machine-specific state
+A table full of one box's absolute `.../extensions/agi/bin/...` would be a
+table that stops working on the next clone, which is exactly the machine-specific state
 `goal:g8.2` keeps out of the graph.
 
 ## argv, never a shell string
@@ -39,6 +39,8 @@ have to be the same object.
 from __future__ import annotations
 
 import json
+import os
+import re
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -56,6 +58,30 @@ COMMANDS_NODE_REL = Path("nodes") / ".geometry" / "commands.md"
 ENGINE_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 
+def engine_for(graph_root: Path) -> Path:
+    """The engine checkout that OWNS `graph_root` — not the running script's.
+
+    `<engine>` must be substituted from the engine enclosing the GRAPH that
+    declared the command, never from wherever the runner happens to live. A
+    `verification.py` run from a worktree with `--root` at the main checkout
+    used to substitute `<engine>` from the worktree while reading the main
+    checkout's graph — TWO trees in one report, silent
+    (hypothesis:l4-verification-counts-and-engine-root).
+
+    In the unified single-repo layout the repo holding `.agi` also carries
+    `extensions/agi/bin/commands.py`, so the engine is the nearest ancestor
+    of the graph root that has that file. When no such ancestor exists (a
+    project that cloned the engine in under a layout we cannot walk), we fall
+    back to THIS script's engine and let the caller NAME both roots so the
+    fallback is visible — resolution when we can, honesty when we cannot.
+    """
+    root = Path(graph_root).resolve()
+    for cand in (root, *root.parents):
+        if (cand / "extensions" / "agi" / "bin" / "commands.py").is_file():
+            return cand
+    return ENGINE_ROOT
+
+
 class CommandError(RuntimeError):
     """A command was asked for that the graph does not declare."""
 
@@ -71,6 +97,7 @@ class Command:
     cwd: str = ""
     raw_cwd: str = ""
     workflow: str = ""
+    owner_only: bool = False
 
     def shell(self, *, placeholders: bool = False) -> str:
         """Render the command as a shell string.
@@ -110,16 +137,20 @@ def _load_node(root: Path) -> dict:
         return {}
 
 
-def _substitute(value: str, root: Path) -> str:
+def _substitute(value: str, root: Path, engine: Path | None = None) -> str:
     return (str(value)
             .replace("<root>", str(Path(root).resolve()))
-            .replace("<engine>", str(ENGINE_ROOT)))
+            .replace("<engine>", str(engine if engine is not None
+                                else engine_for(root)))
+            .replace("<stub>", str(locations.streamer_stub(root)))
+            .replace("<home>", str(Path.home())))
 
 
 def load(root) -> dict[str, Command]:
     """Every declared command, keyed by name. Never raises."""
     root = Path(root)
     fm = _load_node(root)
+    engine = engine_for(root)
     out: dict[str, Command] = {}
     for name, spec in (fm.get("commands") or {}).items():
         if not isinstance(spec, dict):
@@ -130,16 +161,17 @@ def load(root) -> dict[str, Command]:
             # than half-resolved, because a Command that cannot run is worse
             # than an absent one -- it looks available.
             continue
-        substituted = [_substitute(a, root) for a in argv]
+        substituted = [_substitute(a, root, engine) for a in argv]
         raw_cwd = str(spec.get("cwd") or str(root))
         out[str(name)] = Command(
             name=str(name),
             argv=substituted,
             raw_argv=[str(a) for a in argv],
             about=str(spec.get("about") or ""),
-            cwd=_substitute(raw_cwd, root),
+            cwd=_substitute(raw_cwd, root, engine),
             raw_cwd=raw_cwd,
             workflow=str(spec.get("workflow") or ""),
+            owner_only=bool(spec.get("owner_only")),
         )
     return out
 
@@ -164,6 +196,239 @@ def ordered_workflows(root) -> set[str]:
     return {str(v) for v in value} if isinstance(value, list) else set()
 
 
+#: The closed set a manifest entry's `side_effects` may name (a typo here is a
+#: choice a proposer would act on, so the set is data a test can see).
+SIDE_EFFECTS = ("read", "graph-write", "comms", "spawn", "spend",
+                "network", "destructive", "box-write", "long-running")
+
+#: The ONE never-proposable set beside `SIDE_EFFECTS`: a verb that spends,
+#: spawns, destroys, writes box state outside the graph (crontab, systemd
+#: units, a git hook, the env file) or never exits on its own is never offered.
+#: `_entry` forces `proposable: false` for any of these, so the floor cannot be
+#: lowered by a node edit; `propose` refuses a supplied arg that declares one.
+NEVER_PROPOSABLE = frozenset({"spawn", "spend", "destructive",
+                              "box-write", "long-running"})
+
+
+def _derived_cli_verb(raw: list[str]) -> tuple[str, str]:
+    """`cli`/`verb` read off an entry's own argv when it declares neither."""
+    for i, arg in enumerate(raw):
+        base = str(arg).rsplit("/", 1)[-1]
+        if base.endswith((".py", ".sh")):
+            rest = [str(a) for a in raw[i + 1:]]
+            return base, (rest[0] if rest else "")
+    return (str(raw[0]) if raw else "", str(raw[1]) if len(raw) > 1 else "")
+
+
+def _entry(name, argv, m, cli, verb, side, prop, purpose=""):
+    """One choice-set entry; `m` (the node's metadata) overrides every default."""
+    e = {"name": name, "cli": str(m.get("cli") or cli),
+         "verb": str(m.get("verb") or verb), "argv": list(argv),
+         "args": list(m.get("args") or []),
+         "purpose": str(m.get("purpose") or m.get("reason") or purpose),
+         "side_effects": str(m.get("side_effects") or side),
+         "proposable": bool(m.get("proposable", prop))}
+    if m.get("reason"):
+        e["reason"] = str(m["reason"])
+    if e["side_effects"] in NEVER_PROPOSABLE:
+        e["proposable"] = False          # spend/spawn/destructive/box-write/long-running
+    return e
+
+
+def manifest(root) -> dict[str, dict]:
+    """The ONE machine-readable choice set, from `command:commands` alone.
+
+    Declared commands join their `manifest:` metadata (or derive `cli`/`verb`
+    from their own argv); every `excluded:` verb is included with
+    `proposable: false` and its reason. Read-only: it resolves the node and
+    returns data, never running or writing anything.
+    """
+    fm = _load_node(Path(root))
+    dec, exc = fm.get("manifest") or {}, fm.get("excluded") or {}
+    out: dict[str, dict] = {}
+    for name, c in load(root).items():
+        m = dec.get(name) if isinstance(dec.get(name), dict) else {}
+        out[name] = _entry(name, c.raw_argv, m, *_derived_cli_verb(c.raw_argv),
+                           "read", True, c.about)
+    for name, m in {**dec, **exc}.items():
+        if name in out or not isinstance(m, dict):
+            continue
+        cli, verb = name.split(":", 1)[0], name.split(":", 1)[-1]
+        out[name] = _entry(name, [str(a) for a in (m.get("argv") or [])], m,
+                           cli, verb, "graph-write", name not in exc)
+    return out
+
+
+def render_manifest(root) -> str:
+    """`manifest()` as deterministic JSON: two calls agree byte for byte."""
+    return json.dumps(manifest(root), indent=2, sort_keys=True)
+
+
+#: Placeholders that name no declared arg and stay for the runner to fill:
+#: `<engine>`/`<root>`/`<home>` are resolved by `load`, `<node-id>` by the
+#: verb itself. Anything else left after substitution is unmapped -- refuse.
+KEPT_METAVARS = frozenset({"engine", "root", "home", "stub", "node-id",
+                           "project_root"})
+_PLACEHOLDER_RE = re.compile(r"<([^<>]+)>")
+
+
+def _coerce(value, arg):
+    """The declared `type` applied to one propose value."""
+    if str(arg.get("type") or "str") == "bool":
+        return str(value).lower() in ("true", "1", "yes")
+    return str(value)
+
+
+#: How a supplied arg with no `<name>` in `argv` lands, read from the node's
+#: `placement` map: `option` -> `[flag, value]`, `switch` -> flag when true,
+#: `const` -> the flag its value selects, `positional` -> the bare value.
+#: `placement: {defaults: true}` opts a graph into `--<name>` / bool-as-switch
+#: defaults; entries override per arg, or per `"<entry>.<arg>"`. A renamed
+#: flag fails a committed drift test that introspects each CLI's argparse at
+#: TEST time -- `propose` never imports, execs or patches one.
+_PLACEMENT_KINDS = ("option", "switch", "const", "positional")
+
+
+def _split_arity(spec):
+    """`(mode, size)` from a placement's `arity`, or `(None, 0)` when it
+    declares none (a single value). `many` -> one flag, every value;
+    `append`/`append:N` -> the flag repeated, N values each; `"<N>"` -> one
+    flag and N values; anything else -> a single value."""
+    s = str(spec or "").strip()
+    if s in ("many", "+", "*"):
+        return "many", 0
+    if s.startswith("append"):
+        _, _, tail = s.partition(":")
+        return "append", int(tail) if tail.isdigit() else 1
+    if s.isdigit() and int(s) > 1:
+        return "nargs", int(s)
+    return None, 1 if s else 0
+
+
+def _resolve_placement(name, arg, entry, rules):
+    """`(kind, flag, const, consts, arity)` for a declared arg, or None when
+    the node declares no placement for it and has not opted into the defaults.
+    `arity` is the declared multi-value spelling, or None when undeclared."""
+    spec = rules.get(f"{entry}.{name}") or rules.get(name)
+    if not isinstance(spec, dict):
+        if not rules.get("defaults"):
+            return None
+        spec = {"kind": "switch" if str(arg.get("type") or "str") == "bool"
+                else "option", "flag": "--" + str(name).replace("_", "-")}
+    kind = str(spec.get("kind") or "option")
+    if kind not in _PLACEMENT_KINDS:
+        return None
+    return (kind, str(spec.get("flag") or ""), spec.get("const"),
+            dict(spec.get("consts") or {}), spec.get("arity"))
+
+
+def propose(root, name: str, args: dict | None = None) -> list[str]:
+    """Validate `args` against the entry and RETURN its argv — NEVER run it.
+
+    Substitution is ONE PASS over the declared args only: an undeclared key
+    substitutes nothing, a value containing `<x>` is never re-scanned, and an
+    argv that would still hold an unmapped placeholder -- or a supplied arg
+    with no `<name>` to land in -- REFUSES by name. It never returns an
+    incomplete argv for a proposer to run.
+    """
+    entry = manifest(root).get(name)
+    if entry is None:
+        raise CommandError(f"no command {name!r} in the choice set")
+    if not entry.get("proposable"):
+        raise CommandError(
+            f"{name!r} is not proposable: {entry.get('reason') or 'declared'}")
+    given = dict(args or {})
+    declared = {str(a.get("name") or ""): a for a in entry.get("args") or []}
+    values: dict[str, str] = {}
+    for n, arg in declared.items():
+        if n not in given:
+            if arg.get("required"):
+                raise CommandError(f"{name!r}: missing required arg {n!r}")
+            continue
+        if str(arg.get("side_effects") or "") in NEVER_PROPOSABLE:
+            raise CommandError(
+                f"{name!r}: arg {n!r} is never proposable "
+                f"(side effect {arg['side_effects']!r})")
+        v = _coerce(given[n], arg)
+        if (arg.get("choices") or []) and v not in arg["choices"]:
+            raise CommandError(
+                f"{name!r}: arg {n!r}={v!r} not in {arg['choices']}")
+        values[n] = str(v)
+    template = " ".join(str(t) for t in entry["argv"])
+    # A supplied arg with no `<name>` lands as the CLI's OWN flag or
+    # positional, read from the node's `placement` data -- a value with no
+    # declared placement REFUSES BY NAME, never a silent drop.
+    rules = _load_node(Path(root)).get("placement") or {}
+    extra: list[str] = []
+    positional: list[str] = []
+    for n in values:
+        value = values[n]
+        if f"<{n}>" in template:
+            continue
+        placed = _resolve_placement(n, declared[n], name, rules)
+        if placed is None:
+            raise CommandError(
+                f"{name!r}: cannot place arg {n!r}; argv has no <{n}> and the "
+                f"node declares no placement for it")
+        kind, flag, const, consts, arity = placed
+        if kind == "positional":
+            positional.append(value)
+        elif kind == "switch":
+            if value == "True" and flag and flag not in entry["argv"]:
+                extra.append(flag)
+        elif kind == "const":
+            token = consts.get(value)
+            if token is None and const is not None and str(const) == value:
+                token = flag
+            if token is None:
+                raise CommandError(
+                    f"{name!r}: cannot place arg {n!r}={value!r}; no const "
+                    f"selects it")
+            if token not in entry["argv"]:
+                extra.append(token)
+        elif flag:                       # option: flag + value(s)
+            mode, size = _split_arity(arity)
+            vals = ([_coerce(v, declared[n]) for v in given[n]]
+                    if isinstance(given[n], (list, tuple)) else [value])
+            if mode is None and len(vals) > 1:
+                raise CommandError(
+                    f"{name!r}: arg {n!r} got {len(vals)} values but its "
+                    f"placement declares one -- declare an arity to place "
+                    f"them all")
+            if mode == "nargs" and len(vals) != size:
+                raise CommandError(
+                    f"{name!r}: arg {n!r} needs {size} values, got {len(vals)}")
+            if mode == "append" and size and len(vals) % size:
+                raise CommandError(
+                    f"{name!r}: arg {n!r} needs multiples of {size} values, "
+                    f"got {len(vals)}")
+            groups = ([vals[i:i + size] for i in range(0, len(vals), size)]
+                      if mode == "append" else [vals])
+            for group in groups:
+                if flag not in entry["argv"]:
+                    extra += [flag] + group
+        else:
+            raise CommandError(
+                f"{name!r}: cannot place arg {n!r}; node declares no flag for it")
+    # The leftover set is read off the TEMPLATE, before any substitution --
+    # never off the output. A caller value that merely LOOKS like a
+    # placeholder (`<foo>`, `<div>x</div>`) is data and lands untouched; only
+    # a placeholder the template itself never mapped is unmapped.
+    leftover = sorted(n for n in set(_PLACEHOLDER_RE.findall(template))
+                      if n not in values and n not in KEPT_METAVARS)
+    if leftover:
+        raise CommandError(
+            f"{name!r}: unmapped placeholder <{leftover[0]}> -- argv cannot "
+            f"complete; declare the arg or fix the template")
+
+    def _fill(match: "re.Match") -> str:
+        return values.get(match.group(1), match.group(0))
+
+    # ONE pass: a substituted value is never rescanned.
+    return [_PLACEHOLDER_RE.sub(_fill, str(t))
+            for t in entry["argv"]] + extra + positional
+
+
 def get(root, name: str) -> Command:
     """One command by name. Raises `CommandError` naming what is available."""
     table = load(root)
@@ -176,14 +441,40 @@ def get(root, name: str) -> Command:
     return table[name]
 
 
+def _actor(root=None) -> str:
+    """The actor running this process -- `write._default_actor`, imported, never a
+    second copy of its order (AGI_ACTOR > the resolved post > $USER-if-provably-not-a-post
+    > `unknown`), so the owner gate here and the role resolution there agree on who is
+    who. A seated post whose unix user is the Prime's name (`belam`) is its seat here,
+    not `belam`; `owner` is only ever `AGI_ACTOR=owner`. Local import: write.py is the
+    heavier module and this file stays importable without it until an owner gate asks."""
+    import write as _w   # same dir (send.py / rotate.py pattern; write.py never imports commands)
+    return _w._default_actor(root)
+
+
 def run(root, name: str, extra: list[str] | None = None) -> int:
     """Run one declared command. Returns its exit code.
 
     Deliberately thin: this resolves and executes, it does not capture, retry
     or interpret. A resolver that starts making decisions about a command's
     output has become the program the node exists to avoid being.
+
+    One decision it DOES make, and only when the declaration asks: an
+    `owner_only: true` command (the stream `panic`) is refused for every
+    actor other than `owner`, before any subprocess call. The refusal is
+    machine-readable (names the flag honoured) and non-zero, so the stream
+    stays live -- a non-owner asking for `panic` gets no whisper.
     """
     cmd = get(root, name)
+    if cmd.owner_only:
+        actor = _actor(root)
+        if actor != "owner":
+            print(
+                f"REFUSED: {name!r} is owner_only; actor {actor!r} is not "
+                f"the owner. Nothing was executed, the stream is untouched.",
+                file=sys.stderr,
+            )
+            return 3
     argv = list(cmd.argv) + list(extra or [])
     return subprocess.call(argv, cwd=cmd.cwd or None)
 
@@ -277,16 +568,46 @@ def main(argv: list[str] | None = None) -> int:
     import argparse
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("action", choices=["list", "show", "run", "json"],
+    ap.add_argument("action",
+                    choices=["list", "show", "run", "json", "manifest",
+                             "propose"],
                     nargs="?", default="list")
     ap.add_argument("name", nargs="?", help="command name, for show/run")
     ap.add_argument("extra", nargs="*", help="extra args appended to run")
+    ap.add_argument("--args", dest="args_json", default=None,
+                    help="JSON object of propose args")
     ap.add_argument("--root", default=".", help="any path inside the project")
     ap.add_argument("--workflow", "-w", default=None,
                     help="run a declared workflow instead of a single command")
     ap.add_argument("--from", dest="start_from", default=None,
                     help="resume workflow from this step (skip prior steps)")
-    args = ap.parse_args(argv)
+    # 🔴 `parse_known_args`, NOT `parse_args`, and the choice is decided by a
+    # measurement rather than by taste (hypothesis:
+    # l4-the-command-runner-eats-its-passengers-flag, experiment
+    # a00-914a9ae6-ee1f1e). `extra` is `nargs="*"`, so argparse claimed any
+    # leading `-`-prefixed token for the WRAPPER: `commands.py run links
+    # --dry-run` printed `commands.py: error: unrecognized arguments` and
+    # `commands.py`'s own usage block, handing a reader debugging a flag they
+    # typed for `links.py` the wrong program's manual. The error lied about
+    # whose problem it was. Any leading dash did it, not only `--long`.
+    #
+    # The trade-off the fix had to settle was what happens to the WRAPPER's
+    # own flags after the name, and the round measured it instead of guessing:
+    # `commands.py run links --root /tmp` already printed `ERR: not an agi
+    # project: /tmp` — after-name wrapper binding was the status quo, and an
+    # accidental one. `parse_known_args` PRESERVES it (known wrapper flags
+    # still bind to the wrapper wherever they appear, unknown ones forward)
+    # and removes only the error; `argparse.REMAINDER` would have forwarded
+    # `--root /x` to the target and changed behaviour nobody asked to change.
+    #
+    # `--` keeps working exactly as before: argparse strips it and everything
+    # after lands in `extra`, which is what `main`'s docstring promises and
+    # what callers may already rely on. This is the same defect
+    # `test_pass_through_flags_reach_the_command_not_the_router` guards for
+    # the `agi` verb router — "the router eating its passenger's mail".
+    args, forwarded = ap.parse_known_args(argv)
+    if forwarded:
+        args.extra = list(args.extra) + forwarded
 
     root = locations.find_project_root(Path(args.root).resolve())
     if root is None:
@@ -298,6 +619,22 @@ def main(argv: list[str] | None = None) -> int:
                               "workflow": c.workflow}
                           for n, c in sorted(load(root).items())}, indent=2))
         return 0
+
+    if args.action == "manifest":
+        print(render_manifest(root))
+        return 0
+
+    if args.action == "propose":
+        if not args.name:
+            print("ERR: propose needs a command name", file=sys.stderr)
+            return 2
+        try:
+            payload = json.loads(args.args_json) if args.args_json else {}
+            print(json.dumps(propose(root, args.name, payload)))
+            return 0
+        except (CommandError, json.JSONDecodeError) as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2 if isinstance(exc, json.JSONDecodeError) else 1
 
     if args.action == "list":
         table = load(root)

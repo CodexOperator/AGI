@@ -1,0 +1,1 @@
+{"messages": [{"role": "user", "content": "hi"}], "model": "Qwen3.5-9B-Q4_K_M", "max_tokens": 8, "temperature": 0, "chat_template_kwargs": {"enable_thinking": false}}

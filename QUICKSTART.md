@@ -11,7 +11,7 @@
 | Question | Read |
 |---|---|
 | What is agi, and why is it shaped this way? | `skills/agi/SKILL.md` |
-| What is committed to, and what is being worked now? | `GOALS.md` (rendered from `.agi/nodes/goal/`) |
+| What is committed to, and what is being worked now? | the goal nodes under `.agi/nodes/goal/`, read by id: `write.py goal:<id> 'read body 1:60'` |
 | What does the repo contain, and how do I run the loop? | `CLAUDE.md` |
 | What does any given engine file do? | its build node — `.agi/nodes/build/*.md`, one per file |
 | What is the CURRENT session doing, and what is next? | `HANDOFF.md` — one section, always current |
@@ -59,11 +59,11 @@ still open. `agi-tree` deleted its `bin/` entirely for this reason (goal S1).
 
 ### 2a. Clone
 
-`CodexOperator/agi` is **private**, default branch `master`. Authenticate with
+`CodexOperator/AGI` is **public**, default branch `master`. Authenticate with
 `gh auth login` or an SSH key, then:
 
 ```bash
-git clone git@github.com:CodexOperator/agi.git ~/work/agi
+git clone git@github.com:CodexOperator/AGI.git ~/work/agi
 ```
 
 ### 2b. Dependencies
@@ -103,7 +103,7 @@ agi --help | head -2
 
 ```
 driver.sh
-  ├─ snapshot-goals.py        GOALS.md <- nodes/goal/   (the nodes are the source)
+  ├─ snapshot-goals.py        GOALS.md render retired (goal:g7.16.1.4.1)
   ├─ snapshot-build-site.py   rebuild origin:build-site nodes from context/plans/build-site.md
   ├─ render-context.py        graph -> context/INJECTION.md (bounded ASCII map)
   ├─ metrics.py               emit METRIC lines   (benchmark.py also exists; see G-goals)
@@ -142,8 +142,8 @@ rotation unless `--morals`).
 ## 4. Glossary (only terms not defined in SKILL.md)
 
 - **PLUGIN_ROOT** — the engine directory, `extensions/agi/`. Resolved from `$BASH_SOURCE`.
-- **PROJECT_ROOT** — the **graph directory**, `<repo>/.agi/`: holds `config.json`, `nodes/`, `context/`, `sessions/`. Resolved by `bin/locations.py` walking up from cwd for the nearest enclosing `.agi/` that holds a config (`goal:g11`, `goal:g8.2`) — **nearest wins, no flag, no project name anywhere**. `$AGI_TREE_PROJECT_ROOT` (legacy `$AUTORESEARCH_TREE_PROJECT_ROOT`) still overrides. A pre-`goal:g11` project with a bare `agi-tree.config.json` at its repo root still resolves.
-  - *Corrected 2026-09-02.* This entry still described the two-repo layout — a separate graph repo with `agi-tree.config.json` at its root — which `goal:g11` removed. Note the consequence: `PROJECT_ROOT` is `<repo>/.agi`, **not** `<repo>`, which is exactly the confusion that made `snapshot-goals.py` look for `<repo>/nodes/goal` and refuse (`goal:g11.1`).
+- **PROJECT_ROOT** — the **graph directory**, `<repo>/.agi/`: holds `config.json`, `nodes/`, `context/`, `sessions/`. Resolved by `bin/locations.py` walking up from cwd for the nearest enclosing `.agi/` that holds a config — **nearest wins, no flag, no project name anywhere**. `$AGI_TREE_PROJECT_ROOT` (legacy `$AUTORESEARCH_TREE_PROJECT_ROOT`) still overrides. A pre-one-repo project with a bare `agi-tree.config.json` at its repo root still resolves.
+  - *Corrected 2026-09-02.* This entry still described the two-repo layout — a separate graph repo with `agi-tree.config.json` at its root — which the one-repo move removed. Note the consequence: `PROJECT_ROOT` is `<repo>/.agi`, **not** `<repo>`, which is exactly the confusion that made `snapshot-goals.py` look for `<repo>/nodes/goal` and refuse (`goal:g11.1`).
 - **Capillary DAG** — the chain shape above: many thin chains, not one thick trunk.
 
 ---
@@ -157,22 +157,21 @@ rotation unless `--morals`).
 |---|---|
 | `bash '<engine>/extensions/agi/driver.sh' --smoke --max-iters 1` | snapshot + render + metrics, no dispatch — verify the node count did not drop |
 | `python3 -m pytest '<engine>/extensions/agi/tests/' -q` | the engine's own suite |
-| `python3 '<engine>/extensions/agi/bin/snapshot-goals.py' --render --check` | GOALS.md and the goal nodes are byte-identical inverses |
-| `python3 '<engine>/extensions/agi/bin/viewport.py' --verify` | goal:g9.7 — one render, two readers |
+| `python3 '<engine>/extensions/agi/bin/viewport.py' --verify` | goal:g2.19 — one render, two readers |
 | `python3 '<engine>/extensions/agi/bin/grid.py' commit --all` | version every changed node and its payload |
-| `python3 '<engine>/extensions/agi/bin/links.py' links` | goal:g13 — every node's link resolves; broken_links must be 0 |
+| `python3 '<engine>/extensions/agi/bin/links.py' links` | every node's link resolves; broken_links must be 0 |
 | `python3 '<engine>/extensions/agi/bin/links.py' schema` | goal:s31 — which nodes violate their type's required list (dry) |
 | `python3 '<engine>/extensions/agi/bin/spawn_budget.py' status` | goal:g4.8 — live agents against the tree-wide bound |
 | `python3 '<engine>/extensions/agi/bin/provisioning.py' status` | goal:g1.11 — whether per-spawn keys are being issued |
 | `python3 '<engine>/extensions/agi/bin/envfile.py' --check` | goal:g1.8 — required keys present, forbidden keys absent |
 | `python3 '<engine>/extensions/agi/bin/crons.py' show` | the crontab the graph declares |
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --live` | the live graph, agents drawn as spiders where they are working |
-| `python3 '<engine>/extensions/agi/bin/viewport.py' --emit llm` | goal:g9.7 — exactly what a kid is handed, from the same frame stream |
+| `python3 '<engine>/extensions/agi/bin/viewport.py' --emit llm` | goal:g2.19 — exactly what a kid is handed, from the same frame stream |
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --emit both` | human and llm views side by side, from ONE stream |
-| `python3 '<engine>/extensions/agi/bin/write.py'` | goal:g13.1 — named node operations; a hand edit becomes an engine action |
+| `python3 '<engine>/extensions/agi/bin/write.py'` | goal:g4.18 — named node operations; a hand edit becomes an engine action |
 <!-- COMMANDS:END -->
 
-## Write guard hook (goal:g13.1, L2 wave 1.5)
+## Write guard hook (goal:g4.19, L2 wave 1.5)
 
 Every sanctioned node write is logged to `.agi/sessions/write-log.jsonl`; `write_guard.py check` warns about any node changed outside `write.py` (the smoke path runs it, warn-only). To refuse such commits locally, install the hook once per clone:
 
@@ -180,3 +179,13 @@ Every sanctioned node write is logged to `.agi/sessions/write-log.jsonl`; `write
 mkdir -p .githooks && python3 extensions/agi/bin/write_guard.py hook > .githooks/pre-commit && chmod +x .githooks/pre-commit
 git config core.hooksPath .githooks
 ```
+
+## 🔴 PRIME FALLBACK ON COPILOT — owner order 2026-09-14 15:4xZ (verbatim in doc:l4-owner-decisions tail)
+If the Claude subscription runs out, the Prime pane (`belam-S1-L4-<N>`, tmux session `agi-rc`) stays UP but answers nothing. The thought-master brings the Prime back on the Copilot CLI in two commands, from MAIN (`<home>/work/agi`):
+```bash
+tmux kill-window -t agi-rc:"$(tmux list-windows -t agi-rc -F "#{window_id} #{window_name}" | awk "/ belam-S1-L4-/{print \$1; exit}")"   # the dead Prime: the spawn gate (g15.21) refuses while its pid or window lives — this is the ONE owner-ordered exception to never-kill-a-predecessor
+python3 extensions/agi/bin/rotate.py spawn --seat belam --harness copilot-cli --dry-run   # read the built command: copilot --model auto --effort max --allow-all --remote -i <the Prime brief + handoff>; the name belam-S1-L4-<next numeral> is derived
+python3 extensions/agi/bin/rotate.py spawn --seat belam --harness copilot-cli             # live; then `tmux list-windows -t agi-rc` shows the new window; steer it from the GitHub/Copilot app (--remote)
+```
+The row `belam` in `config:posts` keeps `harness: claude-code` for the normal path; `--harness copilot-cli` overrides for that one seating, and the successor rotates back onto claude-code whenever the row says so. Measured 15:5xZ 2026-09-14: the dry-run refuses while the Prime is alive (`ERR: seat belam is alive (pid …); refusing spawn`) — that refusal is the guard working, not a broken route.
+

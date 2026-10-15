@@ -1,0 +1,75 @@
+{"tag": "A_prereg_mapping", "pop": "all", "n": 370, "n_pos": 287, "n_neg": 83, "auc": 0.7244, "agree": 0.773, "auc_folds": [0.7064, 0.8556, 0.6775, 0.6357, 0.7601], "auc_std": 0.076, "thr_std": 0.04, "ece": 0.1562, "conf": [[281, 6], [78, 5]]}
+{"tag": "A_prereg_mapping", "pop": "verdict", "n": 170, "n_pos": 102, "n_neg": 68, "auc": 0.7576, "agree": 0.6294, "auc_folds": [0.7985, 0.7491, 0.7839, 0.6089, 0.8393], "auc_std": 0.079, "thr_std": 0.085, "ece": 0.1486, "conf": [[97, 5], [58, 10]]}
+{"tag": "A_prereg_mapping", "pop": "experiment", "n": 200, "n_pos": 185, "n_neg": 15, "auc": 0.5834, "agree": 0.925, "auc_folds": [0.4505, 0.6757, 0.527, 0.545, 0.7703], "auc_std": 0.1142, "thr_std": 0.0, "ece": 0.1752, "conf": [[185, 0], [15, 0]]}
+{"tag": "B_corrected_mapping", "pop": "all", "n": 370, "n_pos": 287, "n_neg": 83, "auc": 0.7435, "agree": 0.7892, "auc_folds": [0.7134, 0.8287, 0.6992, 0.6698, 0.8173], "auc_std": 0.0648, "thr_std": 0.059, "ece": 0.0988, "conf": [[287, 0], [78, 5]]}
+{"tag": "B_corrected_mapping", "pop": "verdict", "n": 170, "n_pos": 102, "n_neg": 68, "auc": 0.7727, "agree": 0.6765, "auc_folds": [0.8315, 0.7729, 0.8268, 0.6161, 0.8143], "auc_std": 0.0808, "thr_std": 0.101, "ece": 0.1291, "conf": [[97, 5], [50, 18]]}
+{"tag": "B_corrected_mapping", "pop": "experiment", "n": 200, "n_pos": 185, "n_neg": 15, "auc": 0.5321, "agree": 0.925, "auc_folds": [0.464, 0.6486, 0.6036, 0.5, 0.4955], "auc_std": 0.071, "thr_std": 0.036, "ece": 0.1073, "conf": [[185, 0], [15, 0]]}
+{"tag": "TM50_control_mapping", "pop": "all", "n": 370, "n_pos": 287, "n_neg": 83, "auc": 0.5688, "agree": 0.7757, "auc_folds": [0.5954, 0.5954, 0.5191, 0.5645, 0.5898], "auc_std": 0.0292, "thr_std": 0.0, "ece": 0.3445, "conf": [[287, 0], [83, 0]]}
+{"tag": "TM50_control_mapping", "pop": "verdict", "n": 170, "n_pos": 102, "n_neg": 68, "auc": 0.456, "agree": 0.5647, "auc_folds": [0.5128, 0.5366, 0.5143, 0.3821, 0.3571], "auc_std": 0.0752, "thr_std": 0.056, "ece": 0.4288, "conf": [[91, 11], [63, 5]]}
+{"tag": "TM50_control_mapping", "pop": "experiment", "n": 200, "n_pos": 185, "n_neg": 15, "auc": 0.5432, "agree": 0.925, "auc_folds": [0.4459, 0.4324, 0.7748, 0.4595, 0.5856], "auc_std": 0.1297, "thr_std": 0.003, "ece": 0.3553, "conf": [[185, 0], [15, 0]]}
+{"tag": "LR_0.5", "pop": "all", "n": 370, "n_pos": 287, "n_neg": 83, "auc": 0.7945, "agree": 0.8459, "auc_folds": [0.7414, 0.8858, 0.8566, 0.6832, 0.8669], "auc_std": 0.0799, "thr_std": 0.0, "ece": 0.0365, "conf": [[276, 11], [46, 37]]}
+{"tag": "LR_0.5", "pop": "verdict", "n": 170, "n_pos": 102, "n_neg": 68, "auc": 0.8923, "agree": 0.8118, "auc_folds": [0.967, 0.9048, 0.9071, 0.825, 0.9036], "auc_std": 0.0452, "thr_std": 0.0, "ece": 0.0762, "conf": [[84, 18], [14, 54]]}
+{"tag": "LR_0.5", "pop": "experiment", "n": 200, "n_pos": 185, "n_neg": 15, "auc": 0.5535, "agree": 0.925, "auc_folds": [0.4865, 0.5676, 0.6577, 0.4955, 0.8288], "auc_std": 0.1267, "thr_std": 0.0, "ece": 0.0226, "conf": [[185, 0], [15, 0]]}
+{"tag": "LR_fit", "pop": "all", "n": 370, "n_pos": 287, "n_neg": 83, "auc": 0.7945, "agree": 0.7946, "auc_folds": [0.7414, 0.8858, 0.8566, 0.6832, 0.8669], "auc_std": 0.0799, "thr_std": 0.2, "ece": 0.0365, "conf": [[287, 0], [76, 7]]}
+{"tag": "LR_fit", "pop": "verdict", "n": 170, "n_pos": 102, "n_neg": 68, "auc": 0.8923, "agree": 0.7235, "auc_folds": [0.967, 0.9048, 0.9071, 0.825, 0.9036], "auc_std": 0.0452, "thr_std": 0.214, "ece": 0.0762, "conf": [[95, 7], [40, 28]]}
+{"tag": "LR_fit", "pop": "experiment", "n": 200, "n_pos": 185, "n_neg": 15, "auc": 0.5535, "agree": 0.925, "auc_folds": [0.4865, 0.5676, 0.6577, 0.4955, 0.8288], "auc_std": 0.1267, "thr_std": 0.337, "ece": 0.0226, "conf": [[185, 0], [15, 0]]}
+{"tag": "A_prereg_shuffled", "seed": 0, "auc": 0.5593}
+{"tag": "A_prereg_shuffled", "seed": 1, "auc": 0.5949}
+{"tag": "A_prereg_shuffled", "seed": 2, "auc": 0.5489}
+{"tag": "A_prereg_shuffled", "seed": 3, "auc": 0.4874}
+{"tag": "A_prereg_shuffled", "seed": 4, "auc": 0.481}
+{"tag": "A_prereg_shuffled", "seed": 5, "auc": 0.5363}
+{"tag": "A_prereg_shuffled", "seed": 6, "auc": 0.4809}
+{"tag": "A_prereg_shuffled", "seed": 7, "auc": 0.4578}
+{"tag": "A_prereg_shuffled", "seed": 8, "auc": 0.5132}
+{"tag": "A_prereg_shuffled", "seed": 9, "auc": 0.4598}
+{"tag": "A_prereg_shuffled", "seed": 10, "auc": 0.4953}
+{"tag": "A_prereg_shuffled", "seed": 11, "auc": 0.5158}
+{"tag": "A_prereg_shuffled", "seed": 12, "auc": 0.5134}
+{"tag": "A_prereg_shuffled", "seed": 13, "auc": 0.5075}
+{"tag": "A_prereg_shuffled", "seed": 14, "auc": 0.5568}
+{"tag": "A_prereg_shuffled", "seed": 15, "auc": 0.4803}
+{"tag": "A_prereg_shuffled", "seed": 16, "auc": 0.5224}
+{"tag": "A_prereg_shuffled", "seed": 17, "auc": 0.4571}
+{"tag": "A_prereg_shuffled", "seed": 18, "auc": 0.46}
+{"tag": "A_prereg_shuffled", "seed": 19, "auc": 0.4785}
+{"tag": "B_corrected_shuffled", "seed": 0, "auc": 0.5204}
+{"tag": "B_corrected_shuffled", "seed": 1, "auc": 0.5467}
+{"tag": "B_corrected_shuffled", "seed": 2, "auc": 0.5339}
+{"tag": "B_corrected_shuffled", "seed": 3, "auc": 0.5212}
+{"tag": "B_corrected_shuffled", "seed": 4, "auc": 0.4775}
+{"tag": "B_corrected_shuffled", "seed": 5, "auc": 0.5088}
+{"tag": "B_corrected_shuffled", "seed": 6, "auc": 0.4853}
+{"tag": "B_corrected_shuffled", "seed": 7, "auc": 0.459}
+{"tag": "B_corrected_shuffled", "seed": 8, "auc": 0.5162}
+{"tag": "B_corrected_shuffled", "seed": 9, "auc": 0.479}
+{"tag": "B_corrected_shuffled", "seed": 10, "auc": 0.5059}
+{"tag": "B_corrected_shuffled", "seed": 11, "auc": 0.5373}
+{"tag": "B_corrected_shuffled", "seed": 12, "auc": 0.5181}
+{"tag": "B_corrected_shuffled", "seed": 13, "auc": 0.5372}
+{"tag": "B_corrected_shuffled", "seed": 14, "auc": 0.5293}
+{"tag": "B_corrected_shuffled", "seed": 15, "auc": 0.5009}
+{"tag": "B_corrected_shuffled", "seed": 16, "auc": 0.5089}
+{"tag": "B_corrected_shuffled", "seed": 17, "auc": 0.4576}
+{"tag": "B_corrected_shuffled", "seed": 18, "auc": 0.481}
+{"tag": "B_corrected_shuffled", "seed": 19, "auc": 0.4826}
+{"tag": "LR_shuffled", "seed": 0, "auc": 0.4765}
+{"tag": "LR_shuffled", "seed": 1, "auc": 0.5334}
+{"tag": "LR_shuffled", "seed": 2, "auc": 0.5445}
+{"tag": "LR_shuffled", "seed": 3, "auc": 0.4238}
+{"tag": "LR_shuffled", "seed": 4, "auc": 0.4941}
+{"tag": "LR_shuffled", "seed": 5, "auc": 0.4719}
+{"tag": "LR_shuffled", "seed": 6, "auc": 0.5638}
+{"tag": "LR_shuffled", "seed": 7, "auc": 0.5067}
+{"tag": "LR_shuffled", "seed": 8, "auc": 0.5124}
+{"tag": "LR_shuffled", "seed": 9, "auc": 0.5334}
+{"tag": "LR_shuffled", "seed": 10, "auc": 0.4187}
+{"tag": "LR_shuffled", "seed": 11, "auc": 0.5306}
+{"tag": "LR_shuffled", "seed": 12, "auc": 0.4219}
+{"tag": "LR_shuffled", "seed": 13, "auc": 0.4769}
+{"tag": "LR_shuffled", "seed": 14, "auc": 0.5573}
+{"tag": "LR_shuffled", "seed": 15, "auc": 0.5281}
+{"tag": "LR_shuffled", "seed": 16, "auc": 0.4377}
+{"tag": "LR_shuffled", "seed": 17, "auc": 0.4514}
+{"tag": "LR_shuffled", "seed": 18, "auc": 0.5135}
+{"tag": "LR_shuffled", "seed": 19, "auc": 0.535}

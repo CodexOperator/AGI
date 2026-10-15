@@ -50,7 +50,7 @@ No quoting, nesting or precedence was needed, so the seam has not moved.
 ## What is NOT proved — read this before citing it
 
 - **There is no modal shell.** No cursor, no keys, no live re-render, no
-  submit-on-keystroke. `goal:g13.1` is a modal editor and this is its verb
+  submit-on-keystroke. `goal:g4.18` is a modal editor and this is its verb
   layer. Half.
 - **No human has used it.** Tests, plus one `--dry-run` against a real node.
   Nothing has been submitted to the live corpus through this path.

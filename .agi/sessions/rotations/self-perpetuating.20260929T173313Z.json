@@ -1,0 +1,94 @@
+{
+  "rotation": "crash-recovery",
+  "seat": "self-perpetuating",
+  "recorded_at": "2026-09-29T17:33:13.037943Z",
+  "result": "respawned",
+  "probable_cause": "remote-control-disconnect",
+  "succ_name": "self-perpetuating",
+  "gen": 2,
+  "gen_after": 2,
+  "pin_ref": "",
+  "tmux_session": "agi-rc",
+  "window_id": "@2",
+  "pred_pids": [
+    2107023
+  ],
+  "row": {
+    "name": "self-perpetuating",
+    "role": "director",
+    "model": "claude-opus-5-5",
+    "pid": 2107023,
+    "window": "@6",
+    "session_id": "7f038174-859e-4b36-a655-d4a7b8a4084d",
+    "generation": 1,
+    "worktree": ""
+  },
+  "respawn_outcome": {
+    "name": "self-perpetuating",
+    "generation": 2,
+    "pid": null,
+    "window": "@2",
+    "reason": "",
+    "row": "config:seats row 'self-perpetuating': session_ref= session_name= session_label=self-perpetuating session_id= pid=None generation=2 window='@2' source=registry"
+  },
+  "after_join": {
+    "performer": "watch",
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep self-perpetuating",
+        "rc": 0,
+        "output": "@2 self-perpetuating\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/self-perpetuating.meter --session-log ~/.claude/projects/-data-work-agi/824fea59-1761-4b2e-b363-f2b34781b6fc.jsonl",
+        "rc": 0,
+        "output": "0.0691\t69079/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E 'none: nothing to reap'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E 'none: nothing to reap'\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post self-perpetuating --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post self-perpetuating --ref 1d75c4 diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "self-perpetuating",
+    "dm_signed": true,
+    "code_head": "1694ef8",
+    "code_loaded": "1790688637:1134998",
+    "claimed_at": "2026-09-29T17:35:02.887611+00:00",
+    "claim_key": "2026-09-29T17:33:13.037943Z",
+    "performed_after_s": 108.79910373687744
+  },
+  "handover": {
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "requested": {
+        "model": "claude-opus-5-5"
+      },
+      "live": {
+        "model": "claude-opus-5-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "after_join"
+    }
+  }
+}

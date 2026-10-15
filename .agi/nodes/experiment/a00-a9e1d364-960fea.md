@@ -1,0 +1,80 @@
+---
+id: experiment:a00-a9e1d364-960fea
+mint_id: a63f86b125484f30997af5e66ff873bd
+type: experiment
+parents:
+  - hypothesis:l4-the-heal-watch-re-execs-on-engine-commits-because-the-pathspec-is-absolute-and-the-record-names-the-loaded-bytes
+next_edges: []
+confidence: 0.8
+edited_by: a00-49d3d6db
+evidence_runs:
+  - experiment:a00-a9e1d364-960fea
+line_ceiling: 45
+loop: hypothesis:l4-the-heal-watch-re-execs-on-engine-commits-because-the-pathspec-is-absolute-and-the-record-names-the-loaded-bytes@s2
+model: ~deepseek/deepseek-v4-flash-latest
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "parents probe imports heal, calls heal._head_touches_engine(<repo>/.agi, 78c0bd945..cb937bd22) through real _git", "expected": "True — absolute bin_dir pathspec sees an engine-file diff from an .agi root", "observed": "OLD relative spelling from .agi root -> 0 files (the measured bug); fixed call -> True; independent abs-pathspec git diff from .agi root -> 22 engine files", "result": "pass"}
+  - {"conjunct": 2, "class": "gate", "cmd": "rotate._derive_pred_pids(tmp, no-such-seat, {s12_self_reap: {belam_reap: {chain: [{pid: 401}, 402, 403]}}})", "expected": "belam chain as ONLY evidence yields the reaped pids, never {pred_pids} empty", "observed": "belam-only record -> \b(401|402|403)\b; control gated-only record (own chain gated off, no belam) -> named none: nothing to reap", "result": "pass"}
+  - {"conjunct": 3, "class": "wire", "cmd": "parents probe drives REAL rotate.run_after_join on a throwaway record (real composer path), reads the PERSISTED JSON from disk", "expected": "persisted after_join block carries code_loaded BESIDE code_head; code_loaded == module constant _LOADED_ROTATE_IDENTITY; code_loaded != code_head", "observed": "persisted code_loaded=1789596173:1032376 == module constant, != code_head c0debeef, out appended=True — live at the record", "result": "pass"}
+production_lines: 39
+profile: balanced
+role: kid
+scaffold_hash: 74a37e901b2c602f
+season: 2
+title: heal-watch-absolute-pathspec-and-belam-pred-pids-and-loaded-rotate-identity
+town: core
+verdict: inconclusive_lean_proved:80
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-a9e1d364-960fea
+
+SM.71 build order under `hypothesis:l4-the-heal-watch-re-execs-on-engine-commits-because-the-pathspec-is-absolute-and-the-record-names-the-loaded-bytes`. Three code fixes (a/b/c) implemented, 4 new tests (<=4 ceiling), production diff 39 lines (ceiling 45). Conjunct (d) declared OUT OF SCOPE by dispatch — noted as the pending live falsifier only, no service restart attempted.
+
+## MECHANISM, NOT WORDING
+
+What the instruction said, what the machine now does (cited file:line), the near-miss, and deviations with reasons.
+
+### (a) heal `_head_touches_engine` — ABSOLUTE pathspec
+
+- Instruction: replace the relative pathspec `"extensions/agi/bin/"` with an absolute one (str(bin_dir) as `_watch_sources` computes, or `-C bin_dir`).
+- Change: `extensions/agi/bin/heal.py` `_head_touches_engine` now computes `bin_dir = str(Path(__file__).resolve().parent)` and passes `bin_dir` as the diff pathspec (previously the literal relative `"extensions/agi/bin/"`, the `--` tail of the `["diff","--name-only",f"{old}..{new}","--",...]` argv).
+- Why it is the fix at the wire: `_git` (`heal.py:821`) runs `git -C <root> <args>`, and git resolves pathspecs against `-C`'s cwd. When `root` is an `.agi` worktree/subdir (the watcher's real root), the relative spelling `extensions/agi/bin/` resolves against that `.agi` cwd and matches nothing, so `git diff` returned an empty line set and a genuine engine commit was reported prose-only — no re-exec. The absolute `bin_dir` always names the engine files whatever the cwd.
+- Near-miss avoided: `-C bin_dir` (run git from the bin dir) was allowed by the dispatch order but changes cwd; the caller still needs `root`, so passing the absolute pathspec keeps `cwd=root` and fixes only the pathspec. Deviation: none.
+- Test `test_head_touches_engine_uses_absolute_bin_dir_pathspec` (`tests/test_heal_watch.py`): root is a `.agi` subdir (`tmp_path/grid/.agi`), fake `_git` captures argv, asserts (i) the pathspec is the absolute `bin_dir`, NOT `extensions/agi/bin/`, (ii) `cwd == root`, (iii) an engine-file diff -> True.
+
+### (b) rotate `_derive_pred_pids` — belam_reap.chain fallback
+
+- Instruction (`_derive_pred_pids` step 1): when `s12_self_reap.chain` is absent/empty on a numeral-chain seat, ALSO read `s12_self_reap.belam_reap.chain[].pid` so the reap-proof greps the reaped OLDEST chain.
+- Change: `extensions/agi/bin/rotate.py` `_derive_pred_pids` (`rotate.py:13050`): inside the existing `if isinstance(reap, dict)` block, after collecting pids from `reap.get("chain")`, when that list is empty the code now reads `reap.get("belam_reap")` (a dict) and collects `belam.get("chain")` the SAME way (each element an int or a `{pid}` dict), then returns the alternation if any pids were collected.
+- Why it is the fix at the wire: `_reap_belam_oldest` writes its planned/observed evidence into `s12_reap["belam_reap"]` with `chain` in the SAME `(e)` `{pid}`-list shape `_record_s12_self_reap` uses for the own chain. On a numeral-chain seat whose only reap evidence is belam (own chain absent — e.g. rotate-self tail not yet at step 7, or a belam-only reap), the old code fell through to the row-pid or the named `none: nothing to reap`, so `{pred_pids}` resolved empty and the reap-proof was refused by name (`no predecessor chain`). Now the belam evidence supplies the reaped OLDEST-chain pids.
+- Deviation: none. The own `chain`, when present, still wins (tested); belam fires only on absent/empty own chain.
+- Test `test_derive_pred_pids_from_belam_reap_chain` (`tests/test_after_join_service.py`): only-evidence-is-belam -> `\b(401|402|403)\b`; own chain empty + belam -> `\b7\b`; own chain present + belam -> own wins (`\b111\b`).
+
+### (c) rotation record `code_loaded` cell beside `code_head`
+
+- Instruction: stamp the LOADED rotate identity (rotate.__file__ mtime-and-size or sha at import) in a new cell BESIDE `code_head`.
+- Change: `extensions/agi/bin/rotate.py`:
+  - `_code_loaded_identity()` (`rotate.py:14415`) returns `"{mtime}:{size}"` of `Path(__file__).resolve().stat()`; module constant `_LOADED_ROTATE_IDENTITY = _code_loaded_identity()` (`rotate.py:14430`) captures it ONCE AT IMPORT → it names the bytes actually RUNNING, not the bytes on disk now.
+  - All three `code_head` stamp sites gained a sibling `"code_loaded": _LOADED_ROTATE_IDENTITY` cell: the after_join-result block (`rotate.py:14337-14338`), the dead-seat marker skip block (`rotate.py:14588-14589`), and the `run_after_join_for_seat` result tail (`rotate.py:14681-14682`).
+- Why it is the fix at the wire: `code_head` is `git rev-parse HEAD[:7]` (`_code_head`) — the COMMITTED HEAD, which can be ahead of (or behind) the wheel the process is actually running. `code_loaded` is the immutable import-time identity, so when a long-lived reaper process runs a stale image (an uncommitted/mid-merge rotate.py edit after the process started), the two cells DISAGREE BY NAME in the rotation record. The record already keys on `code_head` for "which bytes performed it"; `code_loaded` makes the discrepancy readable without a second git read.
+- Near-miss avoided: re-reading mtime/size at stamp time (a `_code_loaded(root)` in the same expression as `_code_head`) would report the DISK bytes as the running bytes — exactly the staleness this conjuncture wants to expose. Capture-at-import is the point. Deviation: none.
+- Test `test_after_join_stamps_both_code_head_and_loaded` (`tests/test_after_join_service.py`): drives the real `run_after_join` (the stamp path), sets `code_head` to a fixed sha, asserts the persisted `after_join` block carries `code_loaded == rotate._LOADED_ROTATE_IDENTITY` AND `code_loaded != code_head` (an mtime:size string never collides with a 7-hex sha → a stale loaded image reads differently from the committed HEAD by name).
+
+### (d) OUT OF SCOPE — the live falsifier (not attempted)
+The director's hand restart (`systemctl --user restart` of the running service) plus a live next-rotation-record check of (a)'s re-exec and (c)'s loaded cell is the pending LIVE falsifier for this node. Not attempted per dispatch (no live system change permitted to a kid). Confidence in (a)+(b)+(c) rests on the unit/regression tests; the here-and-now of a running service verifying the byte-cells is the remaining evidence.
+
+## Evidence
+- `python3 -m pytest extensions/agi/tests/test_heal_watch.py extensions/agi/tests/test_after_join_service.py -q` → `152 passed` (148 pre-existing + 4 new), 12 pre-existing DeprecationWarnings (unrelated `utcnow`).
+- Production diff (only permitted read-only git): `heal.py 5/1`, `rotate.py 34/1` → 39 changed lines vs ceiling 45.
+- Test count: 4 new, at the <=4 ceiling.
+- All files parse (`ast.parse`); both touched test files run green.
+<!-- /BODY:BEGIN -->
+
+## Agent Notes
+Built (a) heal _head_touches_engine absolute bin_dir pathspec, (b) _derive_pred_pids belam_reap.chain fallback, (c) code_loaded loaded-rotate-identity cell beside code_head in 3 stamp sites. 39 production lines (ceiling 45), 4 tests, 152 passed. Conjunct (d) live service restart deferred out of scope.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review (a00-49d3d6db, SM.71): this version adds the parent probes frontmatter and records my independent review of the kid build. Acceptance verdict: inconclusive_lean_proved:80 held — all three code conjuncts (a)/(b)/(c) proven by my own probes on the real bytes, not the kid suite. (a) real git from an .agi root: OLD relative pathspec returns 0 files for an engine-file commit range, fixed absolute-bin_dir call returns True (probe 1). (b) belam_reap.chain as only evidence -> (401|402|403), gated-only control -> named none (probe 2). (c) real run_after_join persists code_loaded beside code_head, equals the import-captured module constant (probe 3). Residual is conjunct (d) only: the live service restart + next-record falsifier is the director hand action, outside kid and parent reach — which is exactly why the honest verdict is the lean, not proved. Devised-by-kid 39 production lines <= 45 ceiling; 4 tests <= 4 ceiling.
+<!-- THOUGHT:END -->
+
+Parent review (a00-49d3d6db): ACCEPTED inconclusive_lean_proved:80. Probes run by me on the kid bytes (not its suite): (a) wire — real git, .agi root, engine-file range 78c0bd945..cb937bd22: OLD relative spelling -> 0 files (bug reproduced), fixed absolute bin_dir -> True; (b) gate — belam_reap.chain-only record -> \b(401|402|403)\b, gated-only control -> none: nothing to reap; (c) wire — real run_after_join persisted code_loaded beside code_head, == module constant. All 3 hold. (d) live restart+falsifier deferred (director hand op); hence the lean, not proved. overclaim-check: verdict already honest; no demote. untitled-check: kid set its own title. rebrief_request: none.

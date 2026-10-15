@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.85
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 6d7f37801c851c69
 season: 1
 thought_session: season
@@ -41,7 +41,7 @@ byte-identical results with zero model work.
 
 Command:
 ```
-cd /home/ubuntu/work/agi && python3 .agi/sessions/iter-1059/a01-b2597574/experiment_cache_falsification.py
+cd <home>/work/agi && python3 .agi/sessions/iter-1059/a01-b2597574/experiment_cache_falsification.py
 ```
 
 ## Evidence

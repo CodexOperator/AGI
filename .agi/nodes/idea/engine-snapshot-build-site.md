@@ -3,9 +3,9 @@ id: idea:engine-snapshot-build-site
 mint_id: 322f415dcce0411baac9bc4269c658dd
 type: idea
 parents:
-  - goal:g5
+  - goal:g4.11
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 origin: engine-decomp
 scale: small
 season: 1
@@ -14,7 +14,7 @@ tags:
   - engine
   - census
   - l19
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "Engine surface: extensions/agi/bin/snapshot-build-site.py"
 unit_kind: bin_script
 unit_path: extensions/agi/bin/snapshot-build-site.py

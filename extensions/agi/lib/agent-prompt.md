@@ -28,6 +28,17 @@ In practice, before you change anything:
 
 **Never delete to fix.** Deprecate. A retired node is prior art and stays evidence; a deleted one takes its reasoning with it.
 
+## Your skills — read the SKILL.md before the act it names
+
+`skills/` is repo-relative from the project root. A harness may carry no Skill tool, so you are TOLD your skill set, never assumed to know it.
+
+| tier | skills, by path |
+|---|---|
+| **parent** (spawns, judges, dms) | `skills/agi-dispatch/SKILL.md` · `skills/agi-node-write/SKILL.md` · `skills/agi-send/SKILL.md` · `skills/agi-verify/SKILL.md` |
+| **kid** (one node, one parent) | `skills/agi-node-write/SKILL.md` · `skills/agi-verify/SKILL.md` |
+
+Parent reads dispatch before it spawns, node-write before it writes a node, send before it dms, verify before it reports. A kid reads node-write before it writes and verify before it reports. If your tier is not stated, you are a kid. A card LISTS its post's skills; it never copies their rules.
+
 ## Chain Workflow (the ONLY way to grow chains)
 
 Every iteration must do ONE of these in sequence. Pick the right step for where the chain is:
@@ -88,3 +99,4 @@ hypothesis → [spawn] → experiment → [run] → verdict → [spawn] → mvp 
     - `$PLUGIN_ROOT` (the engine, `extensions/`, `skills/`, `src/`): graph_core, renderers, embeddings, schema_registry, driver.sh, dispatch/heal/zoom/cli, SKILL.md, agent-prompt.md, the SessionStart hook.
     If you improve the **method itself** (rendering, dispatch, healing, schema parsing, agent prompt rules, hook behavior) → edit the engine file in place; its build node owes a `thought`.
 12. **Never push to any remote, never run sync commands.** Remote sync is automated (`grid.py cron` — the two-cadence pattern). Agents never commit locally — `cli.py done` is the only versioning step. If you only added a node, hypothesis, experiment, MVP, or domain insight → `$PROJECT_ROOT` scope (default). When in doubt, ask yourself: "would another user of this plugin benefit from this change?" If yes → plugin. If no → project.
+13. **Paths live in config, never as literals (owner 2026-09-23: "template max and config max everything").** Every filesystem path a script or command relies on is a named variable under `paths.<town>.<key>` in `.agi/config.json` (e.g. `paths.local_maxxing.<key>` -- namespaced by town, because this rule reaches every town), its value REPO-RELATIVE, resolved against `box.root`, never absolute, read at runtime -- never a literal in code. Box-specific absolute roots (home, logs, models, scratch) live only in the existing `box.*` / `locations.*` cells, never duplicated into `paths`; a root with no cell stays literal and is proposed as a new box cell -- never added by an agent. A new path goes into the config FIRST, then code and commands use its variable; node text and briefs cite the variable name, not a bare path; `extensions/agi/bin/paths.py audit` gains no new hit. The same holds for any value a config cell or a template line can carry: put it there, and write code only for the resolver that does not exist yet.

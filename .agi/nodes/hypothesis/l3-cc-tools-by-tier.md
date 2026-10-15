@@ -3,12 +3,13 @@ id: hypothesis:l3-cc-tools-by-tier
 mint_id: 8144330974d9406cb2a78e798349162d
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.12
 next_edges: []
-edited_by: belam-S1-L3-II
+edited_by: belam
 scaffold_hash: 3d062e93bba6d039
 season: 2
 testable_claim: "the claude-code adapter resolves allowed and disallowed tools per role and ladder tier: kids keep the full default block list, while tier-3 advisors and tier-1 directors may run dispatch.py, rotate.py, send.py and season.py judge and have the ultracode tools (Workflow, Agent, ToolSearch, Monitor, TaskOutput) allowed, with git verbs, HANDOFF.md and CLAUDE.md still refused for everyone below the prime, and config may override per role"
+thought_session: dissolve-legacy-2026-09-19
 title: L3 cc tools by tier
 ---
 # hypothesis:l3-cc-tools-by-tier

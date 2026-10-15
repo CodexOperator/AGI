@@ -1,0 +1,16 @@
+[Unit]
+Description=local-town SSH tunnel: core-town 127.0.0.1:18080 -> local-town 127.0.0.1:8080
+Documentation=nodes/hypothesis/gpu-local-town-openai-endpoint.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Verbatim tunnel command from hypothesis:gpu-local-town-openai-endpoint (Kid B).
+# ~ is NOT expanded by systemd; /home/ubuntu is the absolute form of ~.
+ExecStart=/usr/bin/ssh -F /home/ubuntu/work/<keeper-dir>/ssh/config -N -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -L 127.0.0.1:18080:127.0.0.1:8080 local-town
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,1 @@
+../../nodes/doc/card-director-thought-1.md

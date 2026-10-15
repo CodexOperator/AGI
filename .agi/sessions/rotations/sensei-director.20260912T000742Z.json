@@ -1,0 +1,25 @@
+{
+  "rotation": "crash-recovery",
+  "seat": "sensei-director",
+  "recorded_at": "2026-09-12T00:07:42.894343Z",
+  "result": "detected",
+  "probable_cause": "unknown",
+  "row": {
+    "name": "sensei-director",
+    "role": "director",
+    "model": "claude-opus-5",
+    "pid": 1938580,
+    "window": "@306",
+    "session_id": "85f3c62b-e78f-4ad0-96ba-dd92a6623ad1",
+    "generation": 4,
+    "worktree": ".agi/worktrees/seat-sensei-director"
+  },
+  "respawn_outcome": {
+    "name": "sensei-director",
+    "generation": 6,
+    "pid": null,
+    "window": null,
+    "reason": "successor window 'sensei-director' already exists",
+    "row": "skipped"
+  }
+}

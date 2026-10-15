@@ -1,0 +1,8 @@
+# sanctuary guard layer 1. Written by /box/.sanctuary/guard/guard-init.sh.
+# Edit guard.env or the script and re-run it; do not hand-edit this file. See GUARD.md.
+# Ubuntu's package already has oomd watch user@.service at 50% pressure; these
+# are the defaults any watched unit inherits unless it sets its own limit.
+[OOM]
+SwapUsedLimit=90%
+DefaultMemoryPressureLimit=60%
+DefaultMemoryPressureDurationSec=20s

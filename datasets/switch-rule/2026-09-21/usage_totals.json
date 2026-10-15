@@ -1,0 +1,12 @@
+{
+  "note": "Aggregate OpenRouter usage for the whole SWR.01 reference round, summed from usage_log.jsonl (one line per chat/completions call, written by proxy.py). Per-call HumanEval raw rows (ref_deepseek-v4.1-flash.raw.jsonl) carry prompt/raw/secs/finish but NOT usage: runner.py does not record it and the shared proxy log does not carry a task_id, so per-row cost could not be attributed without a second paid pass. This aggregate is the honest substitute.",
+  "model": "deepseek/deepseek-v4.1-flash",
+  "calls": 714,
+  "prompt_tokens": 55381,
+  "completion_tokens": 233972,
+  "cost_usd": 0.19277,
+  "cost_cap_usd": 1.0,
+  "human_eval_calls": 164,
+  "ifeval_prompts": 541,
+  "extra_calls": "probe 1 + cancelled single-worker IFEval pass 14 (re-run under 4 shards) + seeding overlap; all paid, all counted here"
+}

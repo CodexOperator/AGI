@@ -1,0 +1,30 @@
+---
+ts: 2026-09-12T03:20:08.935694+00:00
+from: belam
+to: stream-master
+
+[rotation-alert] belam -> belam-S1-L4-XIV [92eda4] @314 | generation 13 -> 14 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 47 | in flight: None
+---
+ts: 2026-09-12T07:04:08.650699+00:00
+from: belam
+to: stream-master
+
+[rotation-alert] belam -> belam-S1-L4-XV [68dbd1] @317 | generation 14 -> 15 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 51 | in flight: None
+---
+ts: 2026-09-12T14:17:11.493125+00:00
+from: belam
+to: stream-master
+
+[rotation-alert] belam -> belam-S1-L4-XVI [49ddab] @326 | generation 15 -> 16 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 59 | in flight: None
+---
+ts: 2026-09-12T17:54:36.524787+00:00
+from: belam
+to: stream-master
+
+[rotation-alert] belam -> belam-S1-L4-XVII [c7c9e7f2-67c7-471e-bd1e-c8a76fe0fab2] @329 | generation 16 -> 17 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 62 | in flight: None
+---
+ts: 2026-09-12T22:02:49.712142+00:00
+from: belam
+to: stream-master
+
+[rotation-alert] belam -> belam-S1-L4-XVIII @335 (pre-join: successor ref not yet resolved) | generation 17 -> 18 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 68 | in flight: None

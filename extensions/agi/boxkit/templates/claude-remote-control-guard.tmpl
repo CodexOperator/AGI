@@ -1,0 +1,11 @@
+# sanctuary guard layer 2. Written by {{GUARD_SRC}}.
+# Edit guard.env or the script and re-run it; do not hand-edit this file. See {{GUARD_DOC}}.
+# Claude and the tmux seats it spawns share this unit's cgroup. MemoryLow keeps
+# its pages from being reclaimed ahead of its siblings; it only takes effect
+# because every ancestor (app.slice, user@, user-UID.slice, user.slice) carries
+# the same value. CPUWeight keeps it scheduled among its siblings.
+# OOMScoreAdjust cannot be lowered from here: an unprivileged user manager may
+# only raise it (see {{GUARD_DOC}}, caveats).
+[Service]
+MemoryLow={{MEM_LOW}}
+CPUWeight={{CRC_CPU_WEIGHT}}

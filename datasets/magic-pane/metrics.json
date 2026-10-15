@@ -1,0 +1,30 @@
+{
+ "strict": true,
+ "n_real_segments": 39,
+ "label_histogram": {
+  "write_set": 12,
+  "dispatch": 11,
+  "bench_jsonl": 8,
+  "node_write": 7,
+  "write_note": 1
+ },
+ "dropped_short_prose": {
+  "dispatch": 11,
+  "write_set": 5,
+  "node_write": 4,
+  "bench_jsonl": 2,
+  "write_note": 2
+ },
+ "dropped_total": 24,
+ "missing_classes": [
+  "dm",
+  "merge_up"
+ ],
+ "thin_classes": [
+  "write_note"
+ ],
+ "majority_baseline": 0.3077,
+ "corpus_sufficient": false,
+ "measurements": [],
+ "measured": false
+}

@@ -1,0 +1,170 @@
+{
+  "rotation": "rotate-self",
+  "seat": "director-general-3",
+  "recorded_at": "2026-10-01T04:47:41.365562Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "director-general-3",
+      "windows": [
+        "belam-S2-L5-XIX",
+        "director-general-3",
+        "director-general-3.prev",
+        "belam-S2-L5-XXII",
+        "director-general-1",
+        "stream-master",
+        "alive",
+        "thought-master",
+        "belam-S2-L5-XXI",
+        "belam-S2-L5-XX",
+        "sanctuary-master",
+        "all-is-one",
+        "self-perpetuating",
+        "director-general-2"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/data/work/agi/.agi/sessions/director-general-3.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 3665203,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "director-general-3.prev",
+      "windows": [
+        "belam-S2-L5-XIX",
+        "director-general-3",
+        "director-general-3.prev",
+        "belam-S2-L5-XXII",
+        "director-general-1",
+        "stream-master",
+        "alive",
+        "thought-master",
+        "belam-S2-L5-XXI",
+        "belam-S2-L5-XX",
+        "sanctuary-master",
+        "all-is-one",
+        "self-perpetuating",
+        "director-general-2"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -66.343
+  },
+  "seated_at": "2026-10-01T04:47:41.365562Z",
+  "window": "director-general-3",
+  "session_id": "fac726e7-61dc-41fa-9268-10acddad4f23",
+  "pid": 1613375,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "director-general-3.prev",
+      "id": "@38"
+    },
+    "successor_window": {
+      "name": "director-general-3",
+      "id": "@40"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@40",
+      "pid": 1613375,
+      "session_id": "fac726e7-61dc-41fa-9268-10acddad4f23",
+      "transcript": "~/.claude/projects/-data-work-agi/fac726e7-61dc-41fa-9268-10acddad4f23.jsonl",
+      "name": "agi-57",
+      "path": "~/.claude/sessions/1613375.json",
+      "note": "joined by @40 in registry file 1613375.json"
+    },
+    "successor_row": "config:seats row 'director-general-3': session_ref= session_name=agi-57 session_label=director-general-3 session_id=fac726e7-61dc-41fa-9268-10acddad4f23 pid=1613375 generation=13 window='@40' source=registry pubkey=38f0c7a1f715133d... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha 116e1d915, retried 0) -- own-row only: director-general-3 spawn row: gen 13, session_id fac726e7-61dc-41fa-9268-10acddad4f23, window @40, pid 1613375\npush: push: OK -- local-maxxing/season2/main\nauthority: OK -- 8790cf783 -> season2/main",
+    "key_replace": "key_replace: wrote successor key to /data/work/agi/.agi/sessions/seats/director-general-3.key (0600, atomic replace)",
+    "meter_pin": "/data/work/agi/.agi/sessions/director-general-3.meter",
+    "ack_written": "/data/work/agi/.agi/sessions/seats/director-general-3.ack.fac726e7.json",
+    "own_authority_released": "generation 12 of seat 'director-general-3' retired; successor generation 13 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch local-maxxing/season2/main",
+    "livestream_repoint": {
+      "session": "view-director-general-3",
+      "target": "@40",
+      "skipped": "view session view-director-general-3 absent"
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "requested": {
+        "model": "claude-opus-5-5"
+      },
+      "live": {
+        "model": "claude-opus-5-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "after_join"
+    },
+    "bootstrap": "/data/work/agi/.agi/sessions/seats/director-general-3.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [],
+    "reap_source": "SKIPPED: own pid 1586058 not under pane pid 3930417 from own window @id @38; no chain to TERM",
+    "skipped": "SKIPPED: own pid 1586058 not under pane pid 3930417 from own window @id @38; no chain to TERM"
+  },
+  "committed_by": "rotate-self",
+  "after_join": {
+    "performer": "watch",
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep director-general-3",
+        "rc": 0,
+        "output": "@40 director-general-3\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-general-3.meter --session-log ~/.claude/projects/-data-work-agi/fac726e7-61dc-41fa-9268-10acddad4f23.jsonl",
+        "rc": 0,
+        "output": "0.0810\t80974/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E 'none: nothing to reap'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E 'none: nothing to reap'\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post director-general-3 --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post director-general-3 --ref <your ListAgents ref> diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "director-general-3",
+    "dm_signed": true,
+    "code_head": "348d841",
+    "code_loaded": "1790799341:1175004",
+    "claimed_at": "2026-10-01T04:48:49.559135+00:00",
+    "claim_key": "2026-10-01T04:47:41.365562Z",
+    "performed_after_s": 67.19093537330627
+  }
+}

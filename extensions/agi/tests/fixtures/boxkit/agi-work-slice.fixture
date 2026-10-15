@@ -1,0 +1,10 @@
+# sanctuary guard layer 3. Written by /box/.sanctuary/guard/guard-init.sh.
+# Edit guard.env or the script and re-run it; do not hand-edit this file. See GUARD.md.
+# The heavy agent work: dispatch rounds, merge-up reviews, the test suite.
+[Unit]
+Description=sanctuary guard: agi rounds (dispatch, merge-up, suites)
+[Slice]
+MemoryHigh=4178M
+MemoryMax=4643M
+TasksMax=2048
+CPUWeight=50

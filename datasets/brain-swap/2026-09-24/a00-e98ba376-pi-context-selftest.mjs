@@ -1,0 +1,22 @@
+import assert from "node:assert/strict";
+import { mkdtemp, mkdir, symlink, writeFile } from "node:fs/promises";
+import { homedir, tmpdir } from "node:os";
+import { join } from "node:path";
+const PI = join(homedir(), ".npm-global/lib/node_modules/@mariozechner/pi-coding-agent/dist");
+const { loadProjectContextFiles } = await import(join(PI, "core/resource-loader.js"));
+const { parseArgs } = await import(join(PI, "cli/args.js"));
+const root = await mkdtemp(join(tmpdir(), "pi-context-fixture-"));
+const child = join(root, "child");
+await mkdir(child);
+await writeFile(join(root, "CLAUDE.md"), "# fixture\n");
+await symlink("CLAUDE.md", join(root, "AGENTS.md"));
+await symlink(join(root, "AGENTS.md"), join(child, "AGENTS.md"));
+const loaded = loadProjectContextFiles({ cwd: child, agentDir: root });
+assert.equal(loaded.length, 2);
+assert.deepEqual(loaded.map(x => x.content), ["# fixture\n", "# fixture\n"]);
+// --no-context-files takes the other branch at resource-loader.js:323.
+const noContextFiles = parseArgs(["--no-context-files"]).noContextFiles;
+const disabled = noContextFiles ? [] : loadProjectContextFiles({ cwd: child, agentDir: root });
+assert.equal(noContextFiles, true);
+assert.deepEqual(disabled, []);
+console.log("PASS: nested symlinked AGENTS.md => 2 loaded; --no-context-files => 0");

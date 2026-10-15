@@ -1,0 +1,115 @@
+---
+id: experiment:a00-bcb2955a-e58ab4
+mint_id: ade3f750615c42ffa26ae457739d0231
+type: experiment
+parents:
+  - hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-2x-for-a-parent-re-brief
+next_edges: []
+confidence: 0.85
+edited_by: sensei-director
+evidence_runs:
+  - experiment:a00-bcb2955a-e58ab4
+loop: hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-2x-for-a-parent-re-brief@s2
+model: ~deepseek/deepseek-v4-flash-latest
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "python3 probe_kid1.py -> brief.assemble(tier=\"kid\", project_root=<graph root>)", "expected": "assembled kid brief contains PRODUCTION-LINE CEILING: 40 lines and above 80 lines", "observed": "PASS wire-kid-brief-names-ceiling; PASS wire-kid-brief-names-2x", "result": "pass"}
+  - {"conjunct": 1, "class": "auth", "cmd": "brief.assemble(tier=\"parent\", project_root=ROOT, kid_ceiling=3)", "expected": "a non-kid tier the claim never authorises carries no kid line-ceiling segment", "observed": "PASS auth-parent-brief-has-no-line-ceiling", "result": "pass"}
+  - {"conjunct": 1, "class": "gate", "cmd": "brief.assemble with (a) a graph root whose config.json is absent, (b) line_ceiling=17, (c) config spawn.production_line_ceiling=13", "expected": "absent config defaults to 40; explicit and config overrides change the readable number", "observed": "PASS gate-absent-config-defaults-40; PASS gate-explicit-override-17; PASS gate-config-override-13", "result": "pass"}
+profile: balanced
+role: kid
+scaffold_hash: 4326c71b01c3148c
+season: 2
+title: A00 bcb2955a e58ab4
+town: core
+verdict: inconclusive_lean_proved:60
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-bcb2955a-e58ab4
+
+## Experiment
+
+**Conjunct owned:** (1) a kid brief carries its ceiling as a number the kid
+can read. The other three conjuncts (2) the kid's own checkpoint, (3) the
+parent answering a re-brief, (4) harvest naming the overage are NOT this
+node's scope.
+
+### Pre-fix state (measured, not assumed)
+
+`grep -n 'PRODUCTION-LINE\|production_line_ceiling' extensions/agi/bin/brief.py
+extensions/agi/bin/spawn_budget.py` → exit 1, no match. Assembling a live kid
+brief and searching the joined text for `PRODUCTION-LINE CEILING` → `False`,
+brief length 7456 chars. The kid brief named a *kid-count* ceiling
+(`HARD CEILING: AT MOST N KIDS`, parent-only) and **no production-line
+budget at all**, so the 2x checkpoint had no number to key on.
+
+### What was built (goal:g15 semantics — build, not measure)
+
+1. `extensions/agi/bin/spawn_budget.py`: new
+   `production_line_ceiling(cfg: dict, default: int = 40) -> int`, reading
+   `spawn.production_line_ceiling`, mirroring `parent_max_kids`'s shape,
+   defaulting rule and advisory-in-brief docstring.
+2. `extensions/agi/bin/brief.py`:
+   - new `_configured_line_ceiling(project_root)` reads `config.json` from the
+     graph root ONCE, exactly the way `_configured_profile` already does;
+   - `assemble()` gained `line_ceiling: int | None = None`; an explicit kwarg
+     wins, otherwise config, otherwise the engine default;
+   - `_kid()` gained `line_ceiling: int | None = None` and appends ONE new
+     segment (others untouched, no reorder): the literal number, the
+     `git diff --numstat` measurement basis, the 2x threshold spelled as
+     arithmetic (`above 80 lines` for a 40-line ceiling), and the STOP +
+     re-brief instruction. Absent kwarg falls back to 40 so no caller can
+     produce a brief with no ceiling.
+3. NOT threaded through `dispatch.py` or the harness adapters — resolving in
+   `assemble()` from `project_root` is the whole seam.
+
+### Production-line budget for THIS kid
+
+~55 changed production lines across the two non-test files (`spawn_budget.py`
+~21, `brief.py` ~34), against a 40-line ceiling: **~1.4x, below the 2x (80)
+threshold**, so no re-brief entry is owed. All counting was done without
+git (adding-only estimate) per the round's no-git rule.
+
+## Evidence
+
+Pre-fix, post-fix and the test run are stored under
+`.agi/sessions/iter-SM.45/a00-bcb2955a/` (`prefix-state.txt`,
+`postfix-brief-segment.txt`).
+
+Rendered segment on the BUILT bytes, live config (no key set → default):
+
+```
+YOUR PRODUCTION-LINE CEILING: 40 lines. Your production lines are measured
+with `git diff --numstat` over the production paths you were given (test
+files excluded). Checkpoint at your FIRST commit or first test run: measure
+those lines. If you are above 2x the ceiling (above 80 lines), STOP and write
+a re-brief request into your experiment node -- what you have done, what
+remains, the new ceiling you need -- and wait for the parent's answer before
+continuing.
+```
+
+Config is READ, not hardcoded: a temp graph root whose `config.json` sets
+`spawn.production_line_ceiling: 17` renders `PRODUCTION-LINE CEILING: 17 lines`
+and `above 34 lines`; the live `.agi/config.json` (no key) renders `40`.
+
+New tests in `extensions/agi/tests/test_brief.py`: the literal-number read;
+the config override changing the number (proving it is read); the default-40
+fallback with no project_root; and kid-only scope (parent and director briefs
+do not gain the segment). One new test in
+`extensions/agi/tests/test_spawn_budget.py` pins `production_line_ceiling`'s
+default/override/default-arg behaviour.
+
+```
+$ python3 -m pytest extensions/agi/tests/test_brief.py extensions/agi/tests/test_spawn_budget.py -q
+184 passed in 12.88s
+$ python3 -m pytest extensions/agi/tests/test_dispatch.py -q -k kid
+15 passed, 106 deselected in 0.53s
+```
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-7f9e013a, SM.45). The kid built conjunct (1) only and its bytes hold: spawn_budget.production_line_ceiling reads spawn.production_line_ceiling with default 40; brief.assemble resolves it once from project_root config and threads line_ceiling into _kid(), which appends ONE segment naming the literal number, the git diff --numstat basis, the 2x threshold as arithmetic, and the STOP/re-brief instruction. I did NOT take its suite as evidence: I read the diff (git show c1f1713ff -- brief.py spawn_budget.py) and ran my own three negative probes, recorded as probes: (wire) the assembled kid brief through the live seam names 40 and above 80; (auth) a non-kid tier gets no such segment; (gate) absent config defaults 40 while explicit/config overrides change the number. All hold, so conjunct (1) stands as proved. Two caveats the kid also surfaced and I confirm from the bytes: (a) the segment tells the kid to measure with git diff --numstat while the same briefs DO NOT run git rule forbids it -- conjunct (2) must resolve who measures; (b) dispatchs debug spawn.json assemble call does not pass project_root, so its captured brief can diverge from the served one once a project sets a non-default ceiling.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Built conjunct (1): spawn_budget.production_line_ceiling(cfg, default=40) reads spawn.production_line_ceiling; brief.assemble() resolves it once from project_root config (mirroring _configured_profile) and threads line_ceiling into _kid(), which now appends ONE segment naming the literal number, git diff --numstat as the basis, the 2x threshold as arithmetic (above 80 for a 40 ceiling) and the STOP + re-brief instruction. Pre-fix grep returned nothing and the assembled kid brief contained no PRODUCTION-LINE CEILING marker; post-fix it names 40, and a 17 override in a temp config renders 17/34. 4 new tests in test_brief.py + 1 in test_spawn_budget.py; test_brief.py 132 passed, test_spawn_budget.py+test_brief.py 184 passed, test_dispatch.py -k kid 15 passed. ~55 production lines vs the 40 ceiling = ~1.4x, below 2x, so no re-brief entry.
+
+SM review (SM.45 DEMOTE :65, 2026-09-16): conjunct 1 only threads the CONFIG default line_ceiling (40) through brief.assemble, never the dispatching node own CEILING clause -- every non-40 brief shows a contradicting number and harvest computes overage against the wrong source. Downgraded per her order; fix dispatched as hypothesis:l4-sm45b-the-kid-ceiling-is-the-dispatching-node-own-ceiling-clause-one-number-for-brief-and-harvest.

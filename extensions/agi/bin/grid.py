@@ -47,6 +47,9 @@ Usage:
   grid.py checkout --all [--dir D]  # materialize payloads into <project>/payloads/
                                     # — the staged copy an author edits (goal:g6.1)
   grid.py sync [REMOTE]             # push refs/grid/* to origin (manual/one-off)
+  grid.py migrate-trunk [--from NS] [--to NS]   # move every ref onto NS (the
+                                    # configured grid.storage_trunk when --to is
+                                    # absent); dry-run unless --write (goal:g14.14.7)
   grid.py cron install|show|remove  # manage the two-cadence sync cron entries
                                     #   */N: snapshot + push grid refs
                                     #   hourly: push the D1 branch
@@ -66,7 +69,9 @@ from pathlib import Path
 # point under `bin/` already has this directory on sys.path.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evidence_gate  # noqa: E402
+import branches  # noqa: E402
 import locations  # noqa: E402
+import verification  # noqa: E402 -- acquire_suite_lock: the ONE suite-lock reader
 
 ID_RE = re.compile(r'^id:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
 # goal:g2.5 "Tension resolved 2026-08-25" — the permanent identifier grid.py
@@ -74,11 +79,13 @@ ID_RE = re.compile(r'^id:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
 # way (this file stays yaml-free by design — see module docstring).
 MINT_ID_RE = re.compile(r'^mint_id:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
 PAYLOAD_REF_RE = re.compile(r'^payload_ref:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
+LOCATION_RE = re.compile(r'^location:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
 PARENTS_RE = re.compile(r'^parents:[ \t]*$', re.MULTILINE)
 PARENTS_INLINE_RE = re.compile(r'^parents:\s*\[([^\]]*)\]\s*$', re.MULTILINE)
 PARENTS_SCALAR_RE = re.compile(r'^parents:\s*([^\n\[][^\n]*)$', re.MULTILINE)
 GIT_IDENT = ["-c", "user.name=grid", "-c", "user.email=grid@agi"]
-REF_NS = "refs/grid"
+DEFAULT_REF_NS = "refs/grid"
+REF_NS = DEFAULT_REF_NS
 # Tree entry names inside a node's D2 commit. `node.md` predates payloads and
 # keeps its name so every existing reader (`rev-parse <tip>:node.md`) still
 # works. `payload` is goal:g6.3's addition: one node owns exactly one
@@ -98,6 +105,204 @@ GIT_MODE_EXEC = "100755"
 GIT_MODE_SYMLINK = "120000"
 FETCH_SPEC = f"+{REF_NS}/*:{REF_NS}/*"
 PUSH_SPEC = f"{REF_NS}/*:{REF_NS}/*"
+
+
+def ref_ns_for(root: Path) -> str:
+    """The grid ref namespace for graph root `root` (goal:g14.14.7).
+
+    This is the ONE resolver the nine derived call sites in this file already
+    keyed on — it now reads `grid.storage_trunk` out of the project config
+    instead of returning a literal. Absent, unreadable, malformed or empty
+    config resolves to `DEFAULT_REF_NS`, so a project that never sets the key
+    keeps every ref exactly where it was: no silent migration for the many
+    trees already carrying `refs/grid/*` history.
+
+    A trailing `/` is stripped on purpose: `refs/grid/t1/` and `refs/grid/t1`
+    must name the same namespace, or the caller's own concatenation would mint
+    `refs/grid/t1//node/...` with a doubled separator and two spellings of one
+    trunk, which is the exact defect this round removes.
+
+    The config is read from the project's ONE shared checkout
+    (`locations.shared_project_root`), not from the worktree handed in
+    (hypothesis:grid-old-namespace-refilled-and-forked). A linked git worktree
+    carries its OWN `.agi/config.json`, which can predate the storage-trunk
+    migration; reading it would resolve `DEFAULT_REF_NS` and re-mint the
+    migrated-from namespace while the main checkout's config names the trunk.
+    A tree that is not a linked worktree, or that has no `storage_trunk`,
+    resolves `DEFAULT_REF_NS` byte-for-byte as before.
+    """
+    shared = locations.shared_project_root(Path(root))
+    cfg = locations.load_config(shared or Path(root))
+    section = cfg.get("grid")
+    trunk = section.get("storage_trunk") if isinstance(section, dict) else None
+    if not isinstance(trunk, str) or not trunk.strip():
+        return DEFAULT_REF_NS
+    return trunk.strip().rstrip("/")
+
+
+def migrated_trunk_namespaces(root: Path) -> list[str]:
+    """Namespaces nested under `DEFAULT_REF_NS` that already hold refs.
+
+    The post-migration / stale-config state the falsifier names: history lives
+    at `refs/grid/<trunk>/node/<mint-id>` while the resolved namespace is the
+    bare `DEFAULT_REF_NS` (the shared config lost its `storage_trunk`, or a
+    linked worktree still reads its own pre-migration config). Writing there
+    would re-mint the migrated-from namespace and fork a second v1 root, so
+    `cmd_commit` refuses by name rather than silently forking.
+
+    A namespace is where `node/` OR `session/` begins
+    (hypothesis:grid-commit-guard-and-writer-read-one-namespace conjunct 2):
+    a nested trunk holding ONLY session refs was migrated too, and skipping
+    it because it carries no `/node/` let the guard pass and re-mint
+    `DEFAULT_REF_NS` exactly as before.
+    """
+    prefix = f"{DEFAULT_REF_NS}/"
+    ns: set[str] = set()
+    for line in git(root, "for-each-ref", DEFAULT_REF_NS,
+                    "--format=%(refname)").splitlines():
+        if not line.startswith(prefix):
+            continue
+        found = re.sub(r"/(node|session)/.*$", "", line, count=1)
+        if found != line and found != DEFAULT_REF_NS:
+            ns.add(found)
+    return sorted(ns)
+
+
+def push_spec_for(root: Path) -> str:
+    """`REF_NS` push refspec for graph root `root` — the one spelling of it.
+
+    `crons.py` imports this rather than re-hardcoding the namespace (goal:g14.14.7
+    item b): the second spelling in the cron template was the gap, and a
+    function is what makes `apply` and the cron line agree by construction.
+    """
+    ns = ref_ns_for(root)
+    return f"{ns}/*:{ns}/*"
+
+
+# The ONE declared home of the grid push defaults: a project that has not set
+# `grid.push_batch_limit` in its config.json gets the value declared here, and
+# the missing cell is named once in the log instead of killing the cron path
+# (hypothesis:grid-sync-survives-a-project-without-push-batch-limit).
+GRID_PUSH_DEFAULTS = {"push_batch_limit": 200}
+
+
+def push_batch_limit(root: Path) -> int:
+    """Maximum changed grid refs in one host validation request — a config
+    cell, not a literal default (PASS 5/6 residue,
+    hypothesis:grid-push-batch-limit-is-a-config-cell). A project that has not
+    set the cell is named once and falls back to `GRID_PUSH_DEFAULTS`, so the
+    grid_sync cron keeps versioning every project on the box."""
+    cfg = locations.load_config(locations.shared_project_root(Path(root)) or Path(root))
+    value = (cfg.get("grid") or {}).get("push_batch_limit")
+    if value is None:
+        value = GRID_PUSH_DEFAULTS["push_batch_limit"]
+        print(
+            f"grid: config cell grid.push_batch_limit is absent -- using the "
+            f"declared default {value} (set it in config.json to override)")
+    return max(1, int(value))
+
+
+def push_batches(root: Path) -> list[list[str]]:
+    """Exact post-split refspec batches for changed local tips; never a wildcard."""
+    ns = ref_ns_for(root)
+    local = [line.split() for line in git(
+        root, "for-each-ref", ns, "--format=%(refname) %(objectname)").splitlines()]
+    remote = {parts[1]: parts[0] for parts in (
+        line.split() for line in git(
+            root, "ls-remote", "--refs", "origin", f"{ns}/*").splitlines())}
+    cfg = locations.load_config(locations.shared_project_root(Path(root)) or Path(root))
+    grid_cfg = cfg.get("grid") or {}
+    split_epoch = int(grid_cfg.get("push_split_epoch", 0))
+    minimum = int(grid_cfg.get("push_min_season", 0))
+    changed = []
+    for ref, oid in local:
+        if remote.get(ref) == oid:
+            continue
+        is_root = False
+        if split_epoch or minimum:
+            meta = git(root, "show", "-s", "--format=%ct %P", oid).split()
+            is_root = len(meta) < 2
+            if split_epoch and is_root and int(meta[0]) < split_epoch:
+                # The seed pass created unrelated v1 roots; descendants remain.
+                continue
+        if minimum and is_root:
+            season = re.search(r"^season:\s*(\d+)\s*$", git(root, "show", f"{oid}:node.md"), re.M)
+            if season and int(season.group(1)) < minimum:
+                continue
+        changed.append(f"{ref}:{ref}")
+    size = push_batch_limit(root)
+    return [changed[i:i + size] for i in range(0, len(changed), size)]
+
+
+RETIRED_LINE = "grid: retired (cron:crons grid_sync.enabled false); nothing written"
+
+
+def grid_retired(root: Path) -> bool:
+    """True only when `crons.py` reads `cadences.grid_sync.enabled` as False.
+
+    goal:g7.16.1.11.13 E2b0: once off, `commit` and `push-changed` write nothing
+    NEW (a retired `commit` returns rc 0 printing RETIRED_LINE, so rotate reports
+    'grid committed'). The node is read by `crons.load_crons_node` (a lazy
+    import: crons imports grid) from the project's SHARED checkout like
+    `ref_ns_for`. `crons_live: false`, a `box:` gate or an absent key also drop
+    the job but leave the gate OPEN (fail-safe); a node crons.py cannot validate
+    (any error, no file, no key, no yaml) is NOT retired, and a CronsError (an
+    invalid node) prints ONE stderr line per call, `grid: crons node invalid
+    (<text>); grid NOT retired`; `False`, `no`, `off`
+    ARE retired. Retired, rotate._push's `refs/grid/*` push and `grid.py sync`
+    (the operator's verb, ungated by design) can only republish tips that
+    already exist locally: a non-force push, idempotent, nothing new written
+    (whether root pushes refs/grid at all is E2d, belam's). The `cron_lines` snap
+    line (`commit --all && git push -q origin PUSH_SPEC`, installed only by
+    `grid.py cron install`) is EXEMPT with `sync`: it never calls the push verbs
+    gated here, and a retired `commit --all` exits 0, so its `&&` push
+    republishes pre-existing tips.
+    """
+    try:
+        import crons
+        shared = Path(locations.shared_project_root(Path(root)) or root)
+        if not (shared / crons.CRONS_NODE_REL).is_file():
+            return False    # no crons node at all (a project without one): SILENT; an INVALID node is still named below
+        return crons.load_crons_node(shared)["jobs"]["grid_sync"]["enabled"] is False
+    except Exception as exc:
+        if type(exc).__name__ == "CronsError":    # an invalid node (the old mirror_towns flag, a bad cell) is NAMED, never silent
+            print(f"grid: crons node invalid ({exc}); grid NOT retired", file=sys.stderr)
+        return False
+
+
+def cmd_push_changed(root: Path) -> None:
+    """Advance only changed local grid tips, stopping at the first bad batch."""
+    if grid_retired(root):
+        print(RETIRED_LINE)
+        return
+    ensure_repo(root)
+    batches = push_batches(root)
+    for number, batch in enumerate(batches, 1):
+        git(root, "push", "-q", "origin", *batch)
+        print(f"grid push batch {number}/{len(batches)}: {len(batch)} ref(s)")
+    print(f"grid push: {sum(map(len, batches))} changed ref(s) in {len(batches)} batch(es)")
+
+
+def fetch_spec_for(root: Path) -> str:
+    """`REF_NS` fetch refspec for graph root `root` (see `push_spec_for`)."""
+    ns = ref_ns_for(root)
+    return f"+{ns}/*:{ns}/*"
+
+
+def apply_storage_trunk(root: Path) -> str:
+    """Resolve `grid.storage_trunk` for `root` into this module's globals.
+
+    `REF_NS`, `FETCH_SPEC` and `PUSH_SPEC` are the values every other function
+    here derives from, so one call makes all of them config-aware with no
+    further edits. `main()` calls it once, before dispatch; a test or a caller
+    holding a configured tree calls it directly. Returns the resolved
+    namespace so a caller can report it without re-reading the config.
+    """
+    global REF_NS, FETCH_SPEC, PUSH_SPEC
+    REF_NS = ref_ns_for(root)
+    FETCH_SPEC = fetch_spec_for(root)
+    PUSH_SPEC = push_spec_for(root)
+    return REF_NS
 
 
 def find_project_root(start: Path | None = None) -> Path:
@@ -189,6 +394,14 @@ def git(root: Path, *args: str, input_text: str | None = None, check: bool = Tru
     if check and res.returncode != 0:
         sys.exit(f"ERR: git {' '.join(args)}: {res.stderr.strip()}")
     return res.stdout.strip()
+
+
+def git_try(root: Path, *args: str, input_text: str | None = None) -> "subprocess.CompletedProcess[str]":
+    """`git` that never exits: the caller reads returncode and stderr (goal:g4.13.1)."""
+    return subprocess.run(
+        ["git", *GIT_IDENT, "-C", str(repo_root(root)), *args],
+        capture_output=True, text=True, input=input_text,
+    )
 
 
 def _encode_component(s: str) -> str:
@@ -328,6 +541,22 @@ def parse_payload_ref(path: Path) -> str | None:
     return ref or None
 
 
+def parse_location(path: Path) -> str | None:
+    """The node's `location:` field — the payload base it was recorded under (
+    `locations.DEFAULT_PAYLOAD_LOCATION` by default, or a key the project
+    config declares under `locations:`), or None when absent.
+
+    Absent and an explicit `source_root` are the same for resolving purposes —
+    both mean the default base — so parse_location returns None for a node with
+    no `location:` line, and the caller falls back to the default path.
+    """
+    m = LOCATION_RE.search(path.read_text(encoding="utf-8"))
+    if not m:
+        return None
+    v = m.group(1).strip()
+    return v or None
+
+
 def default_engine_root() -> Path:
     """The engine tree a payload is read from when the graph repo has no
     staged copy: this script's own repo, `<engine>/extensions/agi/bin/grid.py`
@@ -337,10 +566,15 @@ def default_engine_root() -> Path:
 
 
 def resolve_payload(root: Path, payload_ref: str,
-                    engine_root: Path) -> tuple[Path, str] | None:
+                    engine_root: Path,
+                    location: str | None = None) -> tuple[Path, str] | None:
     """Where a node's payload bytes are read from, and which source won.
 
-    Priority, and the order *is* goal:g6.1's arrow:
+    Two regimes, split on the node's `location:` field:
+
+    **Default (`location` is None or `source_root`)** — this project's own
+    layout (graph root == engine tree), whichever else. Priority, and the
+    order *is* goal:g6.1's arrow:
 
       1. `<project>/payloads/<payload_ref>` — the graph repo's own staged
          checkout (`grid.py checkout`). This is the copy an author edits, and
@@ -351,9 +585,23 @@ def resolve_payload(root: Path, payload_ref: str,
          from here is how a node's payload history starts without anyone
          having to stage all 180 files first.
 
-    Returns `(path, "staged" | "engine")`, or None when neither exists — the
-    caller reports that rather than committing a node whose payload vanished.
+    **Non-default (`location` names a key declared under the project config's
+    `locations:` map)** — resolve through the SAME location-aware mechanism
+    `node_writer.ensure_payload`/`replace_payload` use, so the grid agrees
+    with `write.py create --payload`'s link_ref about where the payload
+    lives (`locations.resolve_payload_path`). The staged/engine pair does not
+    apply here: that pairing only ever described the default tree.
+
+    Returns `(path, "staged" | "engine" | <location>)`, or None when nothing
+    exists at the resolved location — the caller reports that rather than
+    committing a node whose payload vanished.
     """
+    loc = (location or "").strip()
+    if loc and loc != "source_root":
+        located = locations.resolve_payload_path(root, payload_ref, loc)
+        if located.is_symlink() or located.exists():
+            return located, loc
+        return None
     staged = root / PAYLOAD_DIR / payload_ref
     if staged.is_symlink() or staged.exists():
         return staged, "staged"
@@ -456,7 +704,7 @@ def build_id_index(root: Path) -> dict[str, Path]:
     return index
 
 
-def build_parent_mint_trailer(path: Path, id_index: dict[str, Path]) -> str | None:
+def build_parent_mint_trailer(path: Path, id_index: dict[str, Path], resolve=None) -> str | None:
     """Commit-message body for goal:g2.7: one `Parent-Mint-Id: <mint-id> <parent-node-id>`
     line per entry in `path`'s `parents:`, so a renderer can traverse disk
     nodes and grid commits as one hypergraph without a separate edge store —
@@ -468,8 +716,11 @@ def build_parent_mint_trailer(path: Path, id_index: dict[str, Path]) -> str | No
     on disk, or was found but has no `mint_id` of its own yet.
 
     Returns None (no body to add) if the node has no parents at all.
+    `resolve` = the caller's ONE links.address_resolver: a parent written as a
+    mint id is named by its address, exactly as its address twin
+    (hypothesis:grid-parent-trailer-reads-a-mint-parent-through-the-resolver).
     """
-    parents = parse_parents(path)
+    parents = [(resolve and resolve(p)) or p for p in parse_parents(path)]
     if not parents:
         return None
     lines = []
@@ -645,6 +896,11 @@ def cmd_init(root: Path) -> None:
     print(f"grid ready: {count} existing version ref(s) under {REF_NS}/")
 
 
+#: refs whose update-ref failed for a reason other than a CAS miss (goal:g4.13.1 N1):
+#: the run goes on, then `cmd_commit` exits 1 after its summary line.
+UPDATE_REF_FAILURES: list[str] = []
+
+
 def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
                 *, trailer: str | None = None,
                 payload: Path | None = None) -> str | None:
@@ -673,20 +929,102 @@ def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
     tree = build_tree(root, path, payload)
     tip = ref_tip(root, ref)
     if tip:
+        # goal:g4.13.1: carry a collapse's nest/ forward (unedited = unchanged), but only
+        # a non-empty tree of trees; anything else skips THIS node and the run goes on
+        er = git_try(root, "ls-tree", tip, "--", "nest")  # a failing read is a skip, never "no nest"
+        ent = er.stdout.strip()
+        built = None
+        if er.returncode == 0 and ent:
+            head = ent.split("\t")[0].split()
+            kids = git_try(root, "ls-tree", head[2]) if head[:2] == ["040000", "tree"] else None
+            rows = kids.stdout.split("\n")[:-1] if kids is not None and kids.returncode == 0 else []
+            if rows and all(r.split()[1] == "tree" for r in rows):
+                lines = git(root, "ls-tree", tree) + "\n" + f"040000 tree {head[2]}\tnest\n"
+                built = git_try(root, "mktree", input_text=lines.lstrip("\n"))
+        if er.returncode != 0 or (ent and (built is None or built.returncode != 0)):
+            print(f"skip (the nest entry of {node_id} is unreadable or not a non-empty tree of "
+                  f"trees; the ref is untouched): {ref}", file=sys.stderr)
+            return None
+        if ent:
+            tree = built.stdout.strip()
         old_tree = git(root, "rev-parse", f"{tip}^{{tree}}", check=False)
         if old_tree == tree:
             return None  # unchanged — versions record change, not time
-    n = int(git(root, "rev-list", "--count", tip)) + 1 if tip else 1
+    # --first-parent: a collapse's members are extra parents, not versions
+    n = int(git(root, "rev-list", "--count", "--first-parent", tip)) + 1 if tip else 1
     parent = ["-p", tip] if tip else []
     subject = f"{msg_prefix}v{n} {node_id}"
     message = f"{subject}\n\n{trailer}\n" if trailer else subject
     commit = git(root, "commit-tree", tree, *parent, "-m", message)
-    git(root, "update-ref", ref, commit)
+    # CAS (goal:g4.13.1): "" = the ref must not exist; a refusal skips this node only
+    res = git_try(root, "update-ref", ref, commit, tip or "")
+    if res.returncode != 0:
+        # ONE line whatever git said: a held ref lock is 7 lines (the lock path, a blank,
+        # a 5-line "Another git process" hint); the join keeps the hint, drops the blanks
+        why = " | ".join(ln.strip() for ln in res.stderr.splitlines() if ln.strip())
+        if "but expected" in why or "reference already exists" in why:
+            print(f"skip (ref moved since read; the next tick re-versions it): {ref}: "
+                  f"{why}", file=sys.stderr)
+        else:   # not a CAS miss (a stale lock, a permission error, a full disk)
+            print(f"ERROR: update-ref {ref} failed (not a CAS miss): {why}", file=sys.stderr)
+            UPDATE_REF_FAILURES.append(ref)
+        return None
     return f"v{n}"
 
 
 def iter_node_files(root: Path):
     yield from sorted((root / "nodes").rglob("*.md"))
+
+
+def payload_args_to_nodes(root: Path, paths: list[Path],
+                          engine_root: Path) -> tuple[list[Path], list[str]]:
+    """goal:g7.33.19.1 -- translate explicit `commit <path>` arguments: a node
+    file stays; a path some LIVE node names as its `payload_ref` becomes that
+    node's file (one version per node, whichever of its two paths was named);
+    anything else comes back in `unowned`, by name. Nothing is written here."""
+    nodes: list[Path] = []
+    unowned: list[str] = []
+    owners: dict[str, Path] | None = None
+    for p in paths:
+        try:
+            is_node = p.is_file() and parse_node_id(p) is not None
+        except UnicodeDecodeError:
+            is_node = False
+        if is_node:
+            found = p
+        else:
+            if owners is None:
+                owners = {}
+                for n in iter_node_files(root):
+                    if is_retired_node_file(root, n):
+                        continue
+                    try:
+                        ref = parse_payload_ref(n)
+                    except UnicodeDecodeError:
+                        continue
+                    if ref:
+                        owners.setdefault(ref.removeprefix("./"), n)
+            keys = [str(p).removeprefix("./")]
+            try:
+                keys.append(p.resolve().relative_to(engine_root.resolve()).as_posix())
+            except ValueError:
+                pass
+            found = next((owners[k] for k in keys if k in owners), None)
+        if found is None:
+            unowned.append(str(p))
+        elif found not in nodes:
+            nodes.append(found)
+    return nodes, unowned
+
+
+def is_retired_node_file(root: Path, path: Path) -> bool:
+    """True for a node under `nodes/deprecated/` — retired, moved, never
+    deleted (CLAUDE.md "Retire, never delete")."""
+    try:
+        rel = path.resolve().relative_to((root / "nodes").resolve())
+    except ValueError:
+        return False
+    return bool(rel.parts) and rel.parts[0] == "deprecated"
 
 
 class GridLock:
@@ -719,7 +1057,11 @@ class GridLock:
     def __init__(self, root: Path, wait_seconds: int) -> None:
         # G11 graph root => the `.agi` dir itself: sessions sit directly under
         # it. Legacy bare root => `.agi/sessions`, as the contract documents.
-        self._lock_dir = locations.sessions_dir(root) \
+        # G11 graph root: sessions sit directly under it. Route through
+        # `shared_sessions_dir` (not the plain per-worktree join) because the
+        # grid `--all` lock must be ONE flock across every git worktree -- the
+        # refs it serializes are shared, so a per-worktree lock forks the guard.
+        self._lock_dir = locations.shared_sessions_dir(root) \
             if locations.is_graph_dir(root) else root / ".agi" / "sessions"
         self._path = self._lock_dir / ".grid.lock"
         self._wait_seconds = wait_seconds
@@ -811,20 +1153,65 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
     produced (see module docstring), and this file does not get to
     reintroduce it under a different cause.
     """
+    if grid_retired(root):
+        print(RETIRED_LINE)
+        return
     ensure_repo(root)
+
+    # hypothesis:grid-commit-guard-and-writer-read-one-namespace conjunct 1 --
+    # a DIRECT `cmd_commit` call must resolve the trunk itself, from the same
+    # config the guard below reads. `main()` calling `apply_storage_trunk`
+    # does not help a library or test caller, and the guard would then compare
+    # the config-aware `ref_ns_for(root)` against writes still going to the
+    # module-global `REF_NS` default -- guard and writer, two namespaces.
+    apply_storage_trunk(root)
+
+    # hypothesis:grid-old-namespace-refilled-and-forked conjunct 2 -- refuse by
+    # name after a storage-trunk migration. `ref_ns_for` now reads the shared
+    # checkout's config, so a stale linked worktree is redirected to the trunk;
+    # but a config that genuinely lost `storage_trunk` while nested trunk refs
+    # remain is the post-migration state, and committing there would re-mint
+    # the migrated-from namespace and fork a second v1 root. Name BOTH the old
+    # namespace and the trunk, exit non-zero, write no ref. Session (D3) drafts
+    # are exempt: a draft is not an accepted version and takes no namespace.
+    if not session and ref_ns_for(root) == DEFAULT_REF_NS:
+        migrated = migrated_trunk_namespaces(root)
+        if migrated:
+            sys.exit(
+                f"grid: refusing commit: resolved namespace {DEFAULT_REF_NS!r} "
+                f"but this repo already holds refs under {', '.join(migrated)}. "
+                f"The shared config does not declare grid.storage_trunk (stale "
+                f"linked worktree, or the key was blanked after migration); "
+                f"writing to {DEFAULT_REF_NS!r} would re-mint the migrated-from "
+                f"namespace and fork history. Set grid.storage_trunk to "
+                f"{migrated[0]!r} in the shared checkout."
+            )
 
     # hypothesis:l2w15-grid-master-guard — refuse commit on a non-master
     # branch unless --allow-branch is passed. Session commits (D3 drafts)
-    # are never gated. Addendum (owners, seasons-as-branches): branches named
-    # season/* are admitted like master; any other non-master branch refused.
-    if not session and not allow_branch:
+    # are never gated. Addendum (owners, seasons-as-branches): any branch the
+    # season grammar admits (canonical season<n>/… or the legacy master/
+    # season/s<N> aliases) is admitted like master; anything else — feature
+    # branches, malformed season names, detached HEAD — refused.
+    #
+    # hypothesis:lm-grid-commit-configured-trunk-lifts-branch-blind-refusal —
+    # the refusal exists ONLY because node refs are branch-blind: every branch
+    # writes the same `refs/grid/node/<mint-id>`, so a feature branch would
+    # collide with master's history. A tree that declares a non-default
+    # `grid.storage_trunk` keeps its refs in a project-specific namespace, so
+    # the collision it is refused for cannot occur and the refusal is lifted.
+    # `ref_ns_for(root)` is the config resolver, NOT the module global `REF_NS`
+    # (correct only after `apply_storage_trunk()` has run). It returns
+    # `DEFAULT_REF_NS` for absent/unreadable/empty config, so an unconfigured
+    # tree refuses EXACTLY as before and `--allow-branch` stays its override.
+    if not session and not allow_branch and ref_ns_for(root) == DEFAULT_REF_NS:
         # resolve the checked-out branch of the repo that owns the graph
         # Use symbolic-ref: on a branch it returns the ref name (e.g. master,
         # work); on detached HEAD it fails (exit != 0) which we treat as not
         # master.
         branch = git(root, "symbolic-ref", "--short", "HEAD", check=False)
         # git symbolic-ref returns empty string on error with check=False
-        if not branch or (branch != "master" and not branch.startswith("season/")):
+        if not branches.is_legal_branch(branch):
             ref_name = branch if branch else "detached HEAD"
             print(
                 f"grid: refusing commit --all on {ref_name!r}, node refs are "
@@ -836,6 +1223,14 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
     paths = list(iter_node_files(root)) if do_all else [Path(f) for f in files]
     if not paths:
         sys.exit("ERR: give node files or --all")
+    if not do_all and not session:
+        # goal:g7.33.19.1 -- a payload path versions the node that carries it;
+        # a path no node owns is refused by name BEFORE any ref is written.
+        paths, unowned = payload_args_to_nodes(root, paths,
+                                               engine_root or default_engine_root())
+        if unowned:
+            sys.exit("ERR: no build node carries payload_ref "
+                     + ", ".join(unowned))
 
     # hypothesis:l3w0-grid-flock — commit --all serializes with any other
     # commit --all on the same box (incl. the 5-min grid_sync cron) via an
@@ -859,14 +1254,31 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
         # accepted one, and the gate belongs on acceptance.
         demoted = 0
         if not session:
-            demoted = sum(1 for d in evidence_gate.enforce_on_disk(root, paths)
-                          if d.written)
+            # hypothesis:l4-the-grid-cron-evidence-gate-defers-... — on the
+            # cron path (--all, never --session) do not rewrite node FILES in
+            # MAIN by the gate while the suite holds its window. Probe the
+            # suite lock with verification's OWN held/stale judgement (ONE
+            # reader, never a second lock parser). A LIVE foreign pid defers
+            # this tick's rewrite — the ref-write loop below proceeds unchanged;
+            # a lock we took (or a stale dead pid, broken inside) unlinks back
+            # to a pid-free probe state and the gate runs as today.
+            holder = verification.suite_lock_holder(root)
+            if holder is not None:
+                print(f"evidence gate deferred: suite lock held by pid {holder}",
+                      file=sys.stderr)
+            else:
+                demoted = sum(1 for d in evidence_gate.enforce_on_disk(root, paths)
+                              if d.written)
         id_index = None if session else build_id_index(root)
+        import links   # ONE resolver per command, lazy: an address-only graph builds no index
+        resolve = None if session else links.address_resolver(root)
         engine_root = engine_root or default_engine_root()
         written = 0
         errors = 0
+        UPDATE_REF_FAILURES.clear()
         payloads = 0
         payload_missing = 0
+        payload_retired = 0
         for p in paths:
             if not p.exists():
                 print(f"skip (missing): {p}", file=sys.stderr)
@@ -888,11 +1300,17 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
                     errors += 1
                     continue
                 msg_prefix = prefix
-                trailer = build_parent_mint_trailer(p, id_index)
+                trailer = build_parent_mint_trailer(p, id_index, resolve)
                 payload_ref = parse_payload_ref(p)
                 if payload_ref:
-                    found = resolve_payload(root, payload_ref, engine_root)
-                    if found is None:
+                    found = resolve_payload(root, payload_ref, engine_root,
+                                            parse_location(p))
+                    if found is None and is_retired_node_file(root, p):
+                        # A retired build node's file is retired with it; its
+                        # bytes live in the node's earlier grid versions. Counted
+                        # apart so `unresolved` means a LIVE node lost its file.
+                        payload_retired += 1
+                    elif found is None:
                         print(f"WARN: {node_id} payload_ref {payload_ref!r} resolves "
                               f"neither under {PAYLOAD_DIR}/ nor in {engine_root} — "
                               "committing the node without a payload entry",
@@ -907,7 +1325,10 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
                 print(f"{v}  {ref.removeprefix(REF_NS + '/')}")
         print(f"grid: {written} new version(s), {errors} error(s) (missing mint_id), "
               f"{payloads} with payload, {payload_missing} payload(s) unresolved, "
+              f"{payload_retired} retired with their node, "
               f"{demoted} demoted by the evidence gate")
+        if UPDATE_REF_FAILURES:   # goal:g4.13.1 N1: the run went on; it is not clean
+            sys.exit(1)
     finally:
         if lock is not None:
             lock.release()
@@ -952,7 +1373,7 @@ def resolve_ref(root: Path, node_id: str) -> str:
 
 def cmd_log(root: Path, node_id: str, n: int) -> None:
     ref = resolve_ref(root, node_id)
-    print(git(root, "log", f"-{n}", "--format=%h %ad %s", "--date=short", ref))
+    print(git(root, "log", f"-{n}", "--first-parent", "--format=%h %ad %s", "--date=short", ref))
 
 
 def cmd_diff(root: Path, node_id: str, back: int) -> None:
@@ -967,7 +1388,7 @@ def cmd_diff(root: Path, node_id: str, back: int) -> None:
     printed an empty diff and exited 0 for a node with three real versions.
     """
     ref = resolve_ref(root, node_id)
-    count = int(git(root, "rev-list", "--count", ref))
+    count = int(git(root, "rev-list", "--count", "--first-parent", ref))
     if count < back + 1:
         sys.exit(f"ERR: only {count} version(s); cannot go back {back}")
     print(git(root, "diff", f"{ref}~{back}", ref, "--", f":(top){NODE_ENTRY}"))
@@ -984,7 +1405,7 @@ def cmd_versions(root: Path, node_id: str) -> None:
         legacy_ref = node_ref(node_id)
         ref = legacy_ref if ref_tip(root, legacy_ref) is not None else None
     tip = ref_tip(root, ref) if ref else None
-    print(int(git(root, "rev-list", "--count", tip)) if tip else 0)
+    print(int(git(root, "rev-list", "--count", "--first-parent", tip)) if tip else 0)
 
 
 # --- payload read side (goal:g6.3 / goal:g6.1) -------------------------------
@@ -993,7 +1414,7 @@ def cmd_versions(root: Path, node_id: str) -> None:
 def version_rev(root: Path, ref: str, node_id: str, version: int | None) -> str:
     """The revision holding version `v<version>` of `node_id`, or the tip.
 
-    Versions count forward from 1 (`commit_file`'s `rev-list --count` + 1), so
+    Versions count forward from 1 (`commit_file`'s `rev-list --count --first-parent` + 1), so
     v(count) is the tip and v1 is `tip~(count-1)`. An out-of-range version is a
     hard error naming the range: silently serving the tip for a version that
     does not exist is the "partial answer served as a complete one" failure G7
@@ -1001,7 +1422,7 @@ def version_rev(root: Path, ref: str, node_id: str, version: int | None) -> str:
     """
     if version is None:
         return ref
-    count = int(git(root, "rev-list", "--count", ref))
+    count = int(git(root, "rev-list", "--count", "--first-parent", ref))
     if not 1 <= version <= count:
         sys.exit(f"ERR: {node_id} has {count} version(s); v{version} does not exist")
     return f"{ref}~{count - version}"
@@ -1175,9 +1596,11 @@ def cmd_status(root: Path, engine_root: Path | None = None) -> None:
             print(f"NEW      {node_id}")
             continue
         payload_ref = parse_payload_ref(p)
-        found = resolve_payload(root, payload_ref, engine_root) if payload_ref else None
+        found = resolve_payload(root, payload_ref, engine_root,
+                                parse_location(p)) if payload_ref else None
         fresh = tree_entries(root, p, found[0] if found else None, write=False)
-        if fresh == read_tree(root, ref):
+        # goal:g4.13.1: a collapse's nest/ entry is carried, not drift
+        if fresh == [e for e in read_tree(root, ref) if e[0] != "nest"]:
             clean += 1
         else:
             changed += 1
@@ -1230,9 +1653,20 @@ def _rename_ref(root: Path, old_ref: str, new_ref: str, write: bool) -> str:
     if new_tip is not None:
         return "unchanged" if new_tip == old_tip else "conflict"
     if write:
-        git(root, "update-ref", new_ref, old_tip)
+        if git_try(root, "update-ref", new_ref, old_tip, "").returncode != 0:  # CAS (goal:g4.13.1)
+            return "conflict"
         git(root, "update-ref", "-d", old_ref, old_tip)
     return "moved"
+
+
+def _retired_write(root: Path, write: bool) -> bool:
+    """goal:g7.16.1.11.13.1 F1: a `--write` migrate verb moves refs/grid, so
+    once grid_sync is retired it refuses by name (RETIRED_LINE, rc 0, no ref
+    moved); a dry run is never gated."""
+    if write and grid_retired(root):
+        print(RETIRED_LINE)
+        return True
+    return False
 
 
 def cmd_migrate_refs(root: Path, write: bool) -> None:
@@ -1391,6 +1825,91 @@ def cmd_migrate_mint_refs(root: Path, write: bool) -> None:
           f"(no mint_id), {in_collision} id(s) in a ref collision")
 
 
+def _valid_ref(root: Path, ref: str) -> bool:
+    """True iff git would accept `ref` as a refname. Raw subprocess rather
+    than `git()` because an invalid candidate is a refusal to report, not a
+    process to kill."""
+    res = subprocess.run(
+        ["git", "check-ref-format", ref], capture_output=True, text=True,
+    )
+    return res.returncode == 0
+
+
+def cmd_migrate_trunk(root: Path, target: str | None, write: bool,
+                      source: str | None = None) -> None:
+    """Move EVERY ref under a source namespace into a different one
+    (goal:g14.14.7): `refs/grid/node/<x>` -> `<trunk>/node/<x>`, the one
+    ref-shape change `cmd_migrate_refs` and `cmd_migrate_mint_refs` do not
+    cover -- both of those move refs WITHIN `refs/grid/node/`, neither
+    changes the NAMESPACE.
+
+    Ref-driven, not node-file-driven: the source list comes from
+    `git for-each-ref <old>/node/`, so a ref whose node file was deleted or
+    deprecated (or that never had one) still moves. Reuses `_rename_ref`
+    UNCHANGED for the safety-critical mutation -- `update-ref <new> <old_tip>`
+    (same commit object, so the full multi-version chain stays traversable),
+    then a compare-and-swap `update-ref -d <old> <old_tip>` -- so it inherits
+    dry-run-by-default, idempotency and refuse-never-clobber for free.
+
+    `source` is the SOURCE namespace and defaults to `DEFAULT_REF_NS`
+    (`refs/grid`), NOT to the config-resolved `REF_NS`. This is deliberate:
+    `main()` resolves the config into `REF_NS` via `apply_storage_trunk`
+    BEFORE dispatch, so with `grid.storage_trunk` already set the
+    config-resolved value is the TARGET, and using it as the source makes
+    `old_ns == new_ns` and moves nothing (the config-first order the
+    hypothesis names would silently no-op). The verb's job is "move where the
+    refs ARE onto a trunk"; a config-declared trunk is reached with `--to`
+    absent and `--from` left at its default. The migration MUST run before any
+    `commit --all` under the new config, or that commit forks fresh v1 refs
+    under the new namespace while the old history sits unmoved.
+
+    `target` is the DESTINATION namespace; absent, the configured
+    `grid.storage_trunk` (`ref_ns_for`) is used, so the same command is the
+    cut for both `--to` and config-declared trunks. A trailing `/` is
+    stripped from both namespaces (the same one-spelling rule `ref_ns_for`
+    enforces).
+
+    Refuses cleanly (SystemExit, no ref touched) if the destination is empty
+    or not a valid ref namespace. If `new_ns == old_ns` every ref reports
+    unchanged and nothing is moved -- idempotent by construction.
+    """
+    ensure_repo(root)
+    old_ns = (source or DEFAULT_REF_NS).strip().rstrip("/")
+    new_ns = (target or ref_ns_for(root)).strip().rstrip("/")
+    if not new_ns or not _valid_ref(root, f"{new_ns}/node/x"):
+        sys.exit(f"ERR: migrate-trunk: {new_ns!r} is not a valid ref "
+                 f"namespace (use e.g. refs/grid/local-maxxing)")
+
+    prefix = f"{old_ns}/node/"
+    suffixes = [line[len(prefix):] for line in
+                git(root, "for-each-ref", prefix,
+                    "--format=%(refname)").splitlines()
+                if line.startswith(prefix) and len(line) > len(prefix)]
+
+    moved = unchanged = conflicts = 0
+    for suffix in suffixes:
+        old_ref = f"{prefix}{suffix}"
+        new_ref = f"{new_ns}/node/{suffix}"
+        if old_ref == new_ref:
+            unchanged += 1
+            continue
+        status = _rename_ref(root, old_ref, new_ref, write)
+        if status == "moved":
+            print(f"{'MOVE' if write else 'WOULD-MOVE'}  {old_ref} -> {new_ref}")
+            moved += 1
+        elif status == "conflict":
+            conflicts += 1
+            print(f"CONFLICT  {old_ref} -> {new_ref}: destination already "
+                  f"has different history -- not touched", file=sys.stderr)
+        else:  # "unchanged" or "no-history"
+            unchanged += 1
+
+    mode = "write" if write else "dry-run"
+    print(f"grid migrate-trunk ({mode}): {old_ns} -> {new_ns}: {moved} "
+          f"{'moved' if write else 'would-move'}, {unchanged} unchanged, "
+          f"{conflicts} conflict(s)")
+
+
 def cmd_sync(root: Path, remote: str | None) -> None:
     ensure_repo(root)
     remotes = git(root, "remote").splitlines()
@@ -1421,8 +1940,7 @@ def cron_log(root: Path) -> Path:
     return Path.home() / "logs" / f"grid-sync-{repo_root(root).name}.log"
 
 
-def cron_lines(root: Path, branch: str, mins: int, log: Path,
-               publish_engine: bool = False) -> list[str]:
+def cron_lines(root: Path, branch: str, mins: int, log: Path) -> list[str]:
     """The cadence entries. The `cd` is load-bearing: cron runs from $HOME
     and find_project_root walks up from cwd — a cd-less line fails silently.
 
@@ -1436,30 +1954,9 @@ def cron_lines(root: Path, branch: str, mins: int, log: Path,
 
     Two cadences always: snapshot+grid-push every `mins`, branch push hourly.
 
-    A third, **only** with `publish_engine` (goal:g6.5 step 2): rebuild the
-    engine repo from the graph and commit it. Opt-in and off by default on
-    purpose — G6.5's own sequencing says a cron that writes the engine before
-    the version layer is trusted is a data-loss defect waiting to happen, and
-    `cron install` runs on projects where it is not yet trusted. Deciding that
-    for a project is the project's call, not the installer's.
-
-    It runs at :37, after the :07 branch push, so a publish is never racing the
-    push of the graph commit it cites.
-
-    A **fourth**, also gated on `publish_engine`: push the engine repo at :47,
-    ten minutes after the publish that writes it. `publish-engine.sh` commits
-    the engine and deliberately does not push — "pushing is the hourly cron's
-    job" — but for the engine repo that cron did not exist, so its commits
-    accumulated locally and the remote went 3 days and 25 commits stale before
-    anyone noticed. A design that hands a job to a cron has to install that
-    cron; the two halves shipped apart and the gap was invisible from both
-    sides.
-
-    It pushes `HEAD`, not a branch captured at install time. That is the
-    lesson of the `iter24-extend-300hop` incident from the other direction:
-    work accumulated on a feature branch while a cron pushed `master` and
-    published nothing. Pushing whatever is checked out cannot silently push
-    the wrong branch — at worst it creates a remote branch, which is visible.
+    (A third and fourth, gated on `--publish-engine`, ran `publish-engine.sh` at
+    :37 and pushed the engine repo at :47 -- retired with that script, goal:g11's
+    two-repo carry, by goal:g7.16.1.4.1.1.)
     """
     script = Path(__file__).resolve()
     repo = repo_root(root)
@@ -1467,14 +1964,7 @@ def cron_lines(root: Path, branch: str, mins: int, log: Path,
             f"python3 {script} commit --all --prefix 'cron: ' >> {log} 2>&1 && "
             f"git push -q origin '{PUSH_SPEC}' >> {log} 2>&1")
     d1 = f"7 * * * * git -C {repo} push -q origin {branch} >> {log} 2>&1"
-    lines = [snap, d1]
-    if publish_engine:
-        publisher = script.parent / "publish-engine.sh"
-        engine_root = script.parents[3]
-        lines.append(f"37 * * * * cd {repo} && bash {publisher} >> {log} 2>&1")
-        lines.append(
-            f"47 * * * * git -C {engine_root} push -q origin HEAD >> {log} 2>&1")
-    return lines
+    return [snap, d1]
 
 
 def read_crontab() -> list[str]:
@@ -1490,8 +1980,7 @@ def write_crontab(lines: list[str]) -> None:
         sys.exit(f"ERR: crontab install failed: {res.stderr.strip()}")
 
 
-def cmd_cron(root: Path, action: str, mins: int,
-             publish_engine: bool = False) -> None:
+def cmd_cron(root: Path, action: str, mins: int) -> None:
     ensure_repo(root)
     log = cron_log(root)
     marker = str(log)  # unique per project; filters our entries only
@@ -1510,10 +1999,9 @@ def cmd_cron(root: Path, action: str, mins: int,
     if "origin" not in git(root, "remote").splitlines():
         sys.exit("ERR: no origin remote — `grid.py sync <remote-url>` first")
     log.parent.mkdir(parents=True, exist_ok=True)
-    new = cron_lines(root, branch, mins, log, publish_engine)
+    new = cron_lines(root, branch, mins, log)
     write_crontab(keep + new)
-    extra = ", engine published hourly" if publish_engine else ""
-    print(f"grid cron: installed (snapshot every {mins}m, {branch} hourly{extra}):")
+    print(f"grid cron: installed (snapshot every {mins}m, {branch} hourly):")
     print("\n".join(new))
 
 
@@ -1577,18 +2065,31 @@ def main() -> None:
                              "refs/grid/node/<mint-id>; dry-run unless --write. "
                              "MUST run before commit --all under the new keying.")
     mm.add_argument("--write", action="store_true")
+    mt = sub.add_parser("migrate-trunk",
+                        help="goal:g14.14.7 -- move EVERY ref from a source "
+                             "namespace onto a new trunk (e.g. "
+                             "refs/grid -> refs/grid/local-maxxing), reusing "
+                             "_rename_ref; dry-run unless --write. Config key "
+                             "grid.storage_trunk declares the destination; the "
+                             "source is --from (default refs/grid), never the "
+                             "config-resolved namespace.")
+    mt.add_argument("--from", dest="from_ns", default=DEFAULT_REF_NS,
+                    help="source namespace (default: refs/grid); deliberately "
+                         "NOT the configured trunk -- run this BEFORE any "
+                         "commit --all under the new config")
+    mt.add_argument("--to", default=None,
+                    help="destination namespace (default: the configured "
+                         "grid.storage_trunk); a trailing / is stripped")
+    mt.add_argument("--write", action="store_true")
     s = sub.add_parser("sync")
     s.add_argument("remote", nargs="?")
+    sub.add_parser("push-changed", help="push only changed grid tips in bounded batches")
     cr = sub.add_parser("cron")
     cr.add_argument("action", choices=["install", "show", "remove"])
     cr.add_argument("--snapshot-mins", type=int, default=5)
-    cr.add_argument("--publish-engine", action="store_true",
-                    help="goal:g6.5 step 2 — also install an hourly entry that "
-                         "rebuilds the engine repo from the graph and commits "
-                         "it. Off by default: only a project whose version "
-                         "layer is trusted should enable this.")
     args = ap.parse_args()
     root = find_project_root()
+    apply_storage_trunk(root)
     if args.cmd == "commit":
         cmd_commit(root, args.files, args.all,
                    tuple(args.session) if args.session else None,
@@ -1614,14 +2115,20 @@ def main() -> None:
                      unmanaged=not args.no_unmanaged, force=args.force)
     elif args.cmd == "status":
         cmd_status(root)
+    elif args.cmd in ("migrate-refs", "migrate-mint-refs", "migrate-trunk") and _retired_write(root, args.write):
+        pass
     elif args.cmd == "migrate-refs":
         cmd_migrate_refs(root, args.write)
     elif args.cmd == "migrate-mint-refs":
         cmd_migrate_mint_refs(root, args.write)
+    elif args.cmd == "migrate-trunk":
+        cmd_migrate_trunk(root, args.to, args.write, args.from_ns)
     elif args.cmd == "sync":
         cmd_sync(root, args.remote)
+    elif args.cmd == "push-changed":
+        cmd_push_changed(root)
     elif args.cmd == "cron":
-        cmd_cron(root, args.action, args.snapshot_mins, args.publish_engine)
+        cmd_cron(root, args.action, args.snapshot_mins)
 
 
 if __name__ == "__main__":

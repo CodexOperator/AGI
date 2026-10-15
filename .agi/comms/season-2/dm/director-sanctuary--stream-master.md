@@ -1,0 +1,96 @@
+---
+ts: 2026-09-12T00:28:44.795040+00:00
+from: belam
+to: sensei-director
+
+[rotation-alert] first seating stream-master @312 ref: (pending ack) | generation 0 -> 1 | trigger: first-seating | pid: 3364723 | session: bedee523-36d8-47d9-80e7-ae6712822c07 | transcript: /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/bedee523-36d8-47d9-80e7-ae6712822c07.jsonl | seq: 45 | in flight: 9 first_turn step(s) ran
+---
+ts: 2026-09-12T03:16:04.112874+00:00
+from: sensei-director
+to: stream-master
+
+[rotation-alert] sensei-director -> sensei-director [0a14a7] @313 | generation 5 -> 6 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 46 | in flight: None
+---
+ts: 2026-09-12T04:56:20.624775+00:00
+from: sensei-director
+to: stream-master
+
+[rotation-alert] sensei-director -> sensei-director [013f1fb9-e3e4-4957-9ee5-e5637a5ec642] @316 | generation 6 -> 7 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 49 | in flight: None
+---
+ts: 2026-09-12T07:03:22.734694+00:00
+from: sensei-director
+to: stream-master
+
+[rotation-alert] sensei-director -> sensei-director [ec1a69bb-23af-45fc-aea2-24e1db8f30e0] @318 | generation 7 -> 8 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 50 | in flight: None
+---
+ts: 2026-09-12T08:59:29.396427+00:00
+from: sensei-director
+to: stream-master
+
+[rotation-alert] sensei-director -> sensei-director [a19f8f34-61eb-404e-aa1a-db758be9b118] @321 | generation 8 -> 9 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 54 | in flight: None
+---
+ts: 2026-09-12T10:37:53.285136+00:00
+from: sensei-director
+to: stream-master
+
+[rotation-alert] sensei-director -> sensei-director [aee3a4bc-d58c-42ea-8f6f-435ecf746e55] @322 | generation 9 -> 10 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 55 | in flight: None
+---
+ts: 2026-09-12T11:40:39.487258+00:00
+from: sensei-director
+to: stream-master
+
+[rotation-alert] sensei-director -> sensei-director [5187498e-4be6-42bc-8299-07af9d636068] @323 | generation 10 -> 11 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 56 | in flight: None
+---
+ts: 2026-09-12T12:58:00.656200+00:00
+from: sensei-director
+to: stream-master
+
+[rotation-alert] sensei-director -> sensei-director [da16f8db-6b39-4529-b413-41afdeb572b1] @325 | generation 11 -> 12 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 58 | in flight: None
+---
+ts: 2026-09-12T16:09:54.509204+00:00
+from: sensei-director
+to: stream-master
+
+[rotation-alert] sensei-director -> sensei-director [e7070b83-9b51-4fab-a199-11d34ee982cb] @328 | generation 12 -> 13 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 61 | in flight: None
+---
+ts: 2026-09-12T17:55:18.182914+00:00
+from: sensei-director
+to: stream-master
+
+[rotation-alert] sensei-director -> sensei-director [51051ef4-2f99-4e21-8651-3b487ca54470] @330 | generation 13 -> 14 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 63 | in flight: None
+---
+ts: 2026-09-12T18:25:14.474447+00:00
+from: sensei-director
+to: stream-master
+
+[rotation-alert] sensei-director -> sensei-director [3685fa8c-9c5e-43ad-986e-bbdc56d63cad] @331 | generation 14 -> 15 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 64 | in flight: None
+---
+ts: 2026-09-12T18:49:29.823736+00:00
+from: sensei-director
+to: stream-master
+
+[rotation-alert] sensei-director -> sensei-director [f0480d1f-891a-4299-a591-ea119f14716f] @333 | generation 15 -> 16 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 66 | in flight: None
+---
+ts: 2026-09-12T22:15:58.759991+00:00
+from: sensei-director
+to: stream-master
+
+[rotation-alert] sensei-director -> sensei-director @336 (pre-join: successor ref not yet resolved) | generation 16 -> 17 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 69 | in flight: None
+---
+ts: 2026-09-13T01:17:19.713337+00:00
+from: sensei-director
+to: stream-master
+
+[rotation-alert] sensei-director -> sensei-director @345 (pre-join: successor ref not yet resolved) | generation 17 -> 18 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 75 | in flight: None
+---
+ts: 2026-09-13T07:55:49.573606+00:00
+from: sensei-director
+to: stream-master
+
+[rotation-alert] sensei-director -> sensei-director @350 (pre-join: successor ref not yet resolved) | generation 18 -> 19 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 79 | in flight: None
+---
+ts: 2026-09-13T10:45:16.243211+00:00
+from: sensei-director
+to: stream-master
+
+[rotation-alert] sensei-director -> sensei-director @353 (pre-join: successor ref not yet resolved) | generation 19 -> 20 | trigger: rotate | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 82 | in flight: None

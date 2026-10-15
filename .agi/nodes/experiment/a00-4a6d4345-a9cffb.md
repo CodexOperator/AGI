@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a01-721930d9-d34989
 next_edges: []
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 80dfd5dc68a4d4e6
 season: 1
 thought_session: season
@@ -17,7 +17,7 @@ title: A00 4a6d4345 a9cffb
 
 Tested whether `node_writer.update_node` (the engine's write path) can serve as the generator write path in place of `snapshot-goals.write_frontmatter` — the core of the "read/write join" hypothesis (`hypothesis:a01-721930d9-d34989`).
 
-**Command:** `python3 /tmp/g13-join-experiment.py` from `/home/ubuntu/work/agi`
+**Command:** `python3 /tmp/g13-join-experiment.py` from `<home>/work/agi`
 **Corpus:** 50 real goal nodes from `.agi/nodes/goal/`. All reads only; writes go to temp dirs.
 
 **Three tests:**

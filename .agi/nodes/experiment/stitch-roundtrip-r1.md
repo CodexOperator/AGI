@@ -5,7 +5,7 @@ type: experiment
 parents:
   - goal:g6.1
 confidence: 0.8
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs: 1
 season: 1
 tags:
@@ -28,7 +28,7 @@ without `--force`, refuses unconditionally (no override) to write into
 `hyp:level3-node-anatomy` is explicit that it is never inlined into a node —
 so for an *existing, currently-consistent* repo, `--out` materialization is
 near-identity: resolve 73 pointers, copy 73 files. Measured against the real
-corpus (`/home/ubuntu/work/agi-tree/nodes/level3/`, `/home/ubuntu/work/agi`):
+corpus (`<home>/work/agi-tree/nodes/level3/`, `<home>/work/agi`):
 
 ```
 nodes considered:     73

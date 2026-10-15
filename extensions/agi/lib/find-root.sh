@@ -135,7 +135,7 @@ _agi_find_root_descend() {
 }
 
 find_project_root() {
-  local start="${1:-$PWD}" d="${1:-$PWD}" graph_dir
+  local start="${1:-$PWD}" d="${1:-$PWD}" graph_dir hit_git_boundary
 
   # Resolve to an absolute path FIRST, exactly as the Python half does
   # (`Path(start).resolve()`). Without this the upward walk below never
@@ -175,18 +175,44 @@ find_project_root() {
       echo "$d"
       return 0
     fi
+    # Bound to `start`'s OWN repository, exactly as the Python half does
+    # (locations.find_project_root). A `$d/.git` (file or dir) is the boundary
+    # of the repository `start` is inside; an `.agi`/config found at that same
+    # level (checked above) is start's own and already returned. Anything ABOVE
+    # that boundary lives in a DIFFERENT (ancestral) repository and must never
+    # be climbed into — a path under an unrelated nested fixture git repo must
+    # resolve nothing, not the outer project's root.
+    if [[ -e "$d/.git" ]]; then
+      # Remember the walk exited via the `.git` boundary so the explicit "/"
+      # probe below is SKIPPED (hypothesis:l4-find-root-sh-stops-at-the-git-
+      # boundary-all-the-way). The python half never probes "/" after a
+      # boundary break either — it goes straight to phase 2 descend — so
+      # probing it here would let an ANCESTRAL project rooted at the
+      # filesystem root be resolved from inside an unrelated nested repo,
+      # the very one-probe-short divergence this fixes. Do NOT `return 1`
+      # here: that would skip phase 2 descend too, creating the OPPOSITE
+      # divergence (python descends into <start>/*-tree/, bash refuses).
+      hit_git_boundary=1
+      break
+    fi
     d="$(dirname "$d")"
   done
 
   # The loop stops before testing "/" itself; test it explicitly so a project
-  # at the filesystem root is not silently unreachable.
-  if graph_dir=$(agi_graph_dir_in "/"); then
-    echo "$graph_dir"
-    return 0
-  fi
-  if agi_tree_config_path "/" >/dev/null 2>&1; then
-    echo "/"
-    return 0
+  # at the filesystem root is not silently unreachable — but ONLY on a
+  # boundary-free walk. On a walk that broke at a `.git` boundary, probing "/"
+  # would climb into an ancestral repository the python half never reaches.
+  # On a boundary-free walk the python while-True loop probes "/" as its own
+  # final iteration (cur="/" → probe → parent==cur → break), so we must too.
+  if [[ -z "$hit_git_boundary" ]]; then
+    if graph_dir=$(agi_graph_dir_in "/"); then
+      echo "$graph_dir"
+      return 0
+    fi
+    if agi_tree_config_path "/" >/dev/null 2>&1; then
+      echo "/"
+      return 0
+    fi
   fi
 
   # Phase 2: descend into <start>/*-tree/. Only reached when phase 1

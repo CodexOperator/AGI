@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""spawn_gate.py — the schema spawn gate (GOALS.md S17).
+"""spawn_gate.py — the schema spawn gate (goal:s17).
 
 Seven node types were in daily use and `context/schemas/` declared six —
 with `verdict`, the type `evidence_gate.py` exists to police, absent
 entirely. Nothing anywhere checked a node against a schema at write time, so
 the spawn rules were a **prose control**: real, written down, and enforced by
-whoever happened to remember. GOALS.md's design ethic forbids exactly that —
+whoever happened to remember. The goals' design ethic forbids exactly that —
 "no prose-only controls where a code control is possible".
 
 This module is that control, as code. It is deliberately shaped like
@@ -72,6 +72,7 @@ new one joins them.
 """
 from __future__ import annotations
 
+import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -79,6 +80,7 @@ from pathlib import Path
 # goal:g11.1 — one resolver for every path.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
+from frontmatter import read_frontmatter  # noqa: E402
 
 #: Where the schemas live, relative to the graph root. Mirrors
 #: `schema_registry/loader.py`'s caller; also declared in
@@ -223,23 +225,17 @@ class SpawnRules:
 
 
 def _read_frontmatter(path: Path) -> dict | None:
-    """Plain YAML frontmatter read. Same cheap scan `build_corpus` uses."""
-    import yaml
+    """Plain YAML frontmatter read. Same cheap scan `build_corpus` uses.
 
+    Routes through the one line-anchored reader so a `---` inside a quoted
+    value never cuts the frontmatter short (hypothesis:l4-one-line-anchored-
+    frontmatter-reader-and-the-suite-runner-refuses-a-held-lock-before-spawning).
+    """
     try:
         text = path.read_text(encoding="utf-8")
     except Exception:
         return None
-    if not text.startswith("---"):
-        return None
-    parts = text.split("---", 2)
-    if len(parts) < 3:
-        return None
-    try:
-        fm = yaml.safe_load(parts[1]) or {}
-    except Exception:
-        return None
-    return fm if isinstance(fm, dict) else None
+    return read_frontmatter(text)
 
 
 def _parse_min_by_type(raw, allowed: frozenset, max_p: int) -> tuple[tuple, str]:
@@ -425,10 +421,15 @@ def load_spawn_rules(schemas_dir, root=None) -> SpawnRules:
             rules.geometry = _parse_geometry(fm, src, rules)
             continue
         if name == "config":
+            # goal:g7.33.20.3 D1: `[config].md` is TWO things -- the project's
+            # `locations` declaration (read here) AND the type schema of every
+            # `config:*` node. It used to `continue` after the first, so the type
+            # was never registered and an admitted `create config <x>` was told
+            # "no active schema [config].md" while the file sat in the directory.
+            # No `spawn:` block -> registered, unverified (never an error).
             loc = fm.get("locations")
             if isinstance(loc, dict):
                 rules.locations = loc
-            continue
         raw[name] = (SpawnSchema(name=name, source=src), fm)
 
     for name, (schema, fm) in raw.items():
@@ -554,7 +555,8 @@ def build_type_index(nodes_dir) -> dict:
         nid = fm.get("id")
         if isinstance(nid, str) and nid.strip():
             index[nid.strip()] = canonical_type(fm.get("type") or "")
-    return index
+    import links   # goal:g4.18.6.3.3: a mint-id parent reads as its address twin
+    return links.resolving(index, p)
 
 
 def resolve_nodes_root(root, schemas_dir=None) -> Path:
@@ -602,13 +604,16 @@ def read_seat_registry(nodes_dir: Path | None) -> list | None:
     name that may resolve to the wrong seat (hypothesis:l3w4-hierarchy-
     one-source).
     """
-    seats = Path(nodes_dir) / ".geometry" / "seats.md" if nodes_dir else None
-    if seats is None or not seats.is_file():
+    if nodes_dir is None:
         return None
-    fm = _read_frontmatter(seats)
+    import geometry_config as _gc  # same bin dir
+    path, key = _gc.resolve(nodes_dir.parent)
+    if path is None or not Path(path).exists():
+        return None
+    fm = _read_frontmatter(path)
     if not fm:
         return None
-    return fm.get("seats")
+    return fm.get(key)
 
 
 def read_ladder_season(nodes_dir: Path) -> int | None:
@@ -628,6 +633,278 @@ def read_ladder_season(nodes_dir: Path) -> int | None:
     if isinstance(cs, int) and not isinstance(cs, bool):
         return cs
     return None
+
+
+def read_town_branches(nodes_dir) -> dict[str, str]:
+    """Read the ladder's `town_branches` map: town -> opaque integration branch.
+
+    OPAQUE CONFIG, READ ONLY -- owner/prime-written, never parsed by this
+    code (hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council;
+    owner ruling 01:4xZ: every non-core town works on its own branch cut from
+    season/sN, and the branch NAME may be renamed by a later round at one
+    config edit and zero code). Returns {} when unset or unreadable -- fail
+    open, a missing ladder must never block the stale-base guard or the
+    merge-up gate.
+    """
+    if not nodes_dir:
+        return {}
+    ladder = Path(nodes_dir) / ".geometry" / "ladder.md"
+    if not ladder.is_file():
+        return {}
+    fm = _read_frontmatter(ladder) or {}
+    tb = fm.get("town_branches")
+    if not isinstance(tb, dict):
+        return {}
+    out: dict[str, str] = {}
+    for k, v in tb.items():
+        if isinstance(k, str) and isinstance(v, str) and v.strip():
+            out[k] = v.strip()
+    return out
+
+
+def town_integration_branch(nodes_dir, town: str) -> str | None:
+    """A town's integration branch (the opaque `town_branches` value), or None.
+
+    The ONE town -> branch lookup; callers never parse the opaque value (see
+    read_town_branches). A town with no declared branch maps to None, which is
+    the fail-open floor -- the caller keeps its today's-behaviour base.
+    """
+    if not town:
+        return None
+    return read_town_branches(nodes_dir).get(town)
+
+
+def town_of_branch(nodes_dir, branch: str) -> str | None:
+    """Reverse-look up branch -> town by EXACT equality on the opaque value.
+
+    The ONLY permitted way to go branch -> town (owner ruling 01:4xZ): compare
+    the branch against each town's opaque `town_branches` value as an exact
+    string, never by parsing the branch name -- the value may be renamed by a
+    later round and the lookup must survive at one config edit and zero code.
+    None when the branch matches no town's integration branch (a seat branch,
+    a plain season/sN, or anything unlisted).
+    """
+    if not branch:
+        return None
+    tb = read_town_branches(nodes_dir)
+    for town, b in tb.items():
+        if b == branch:
+            return town
+    return None
+
+
+def vision_town_of(fm: dict | None) -> str:
+    """A vision's town from its frontmatter, defaulting to 'core'.
+
+    hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council. A town is
+    a derived cell, never a NAME a code path branches on (goal:g8.2) -- 'core'
+    is the default denominator for a vision with no `town:` cell, and any
+    other value is whatever the ladder's `towns:` list declares.
+    """
+    if not isinstance(fm, dict):
+        return "core"
+    t = fm.get("town")
+    return str(t).strip() if isinstance(t, str) and t.strip() else "core"
+
+
+def count_visions_per_town(nodes_dir, *, season=None) -> dict:
+    """Map town -> number of vision nodes (a vision's `town:` cell, default core).
+
+    The primitive both the season status and the vision mint gate call -- one
+    shared helper, no second copy of the counting rule. Returns {} when the
+    nodes dir or the vision subdir is missing/unreadable (fail open: a missing
+    graph must not block anything).
+
+    SEASON-SCOPED: only visions whose `season:` equals the ladder's
+    current_season are counted (hypothesis:l4-towns-each-app-is-a-vision-with-
+    its-own-council). A season-blind count reads 20 historical visions against
+    a cap of 3 and reports core AT CAP, so a fresh season could never mint.
+    Fails OPEN on a missing ladder (read_ladder_season -> None): then every
+    vision counts, which is exactly what the old season-blind behaviour did --
+    a project with no ladder is untouched. A vision with NO season field is
+    legacy/ambiguous and counts; only a vision that EXPLICITLY declares a
+    season differing from current is excluded. On the real graph every vision
+    carries a season, so an old season's whole cohort drops out at rollover
+    instead of pinning the town at its cap.
+
+    Optional `season=` (keyword-only) overrides the scope season directly,
+    e.g. cmd_rollover passing season=new_season so the count reflects the
+    season being entered, not the ladder's still-current one. Default None
+    keeps the behaviour above byte-for-byte for every existing caller.
+    """
+    counts: dict[str, int] = {}
+    if not nodes_dir:
+        return counts
+    vdir = Path(nodes_dir) / "vision"
+    if not vdir.is_dir():
+        return counts
+    if season is None:
+        season = read_ladder_season(nodes_dir)
+    for f in sorted(vdir.glob("*.md")):
+        fm = _read_frontmatter(f)
+        if not fm or fm.get("type") != "vision":
+            continue
+        if season is not None:
+            fs = fm.get("season")
+            if isinstance(fs, int) and not isinstance(fs, bool) and fs != season:
+                continue
+        t = vision_town_of(fm)
+        counts[t] = counts.get(t, 0) + 1
+    return counts
+
+
+def vision_scope(nodes_dir) -> str:
+    """The ladder's caps_vision_scope ('town', 'global' or '' when unset).
+
+    '' means the old behaviour -- count visions as one global pool -- which is
+    exactly what the per-town counting must NOT do, so callers gate on this.
+    """
+    ladder = Path(nodes_dir) / ".geometry" / "ladder.md" if nodes_dir else None
+    if ladder is None or not ladder.is_file():
+        return ""
+    fm = _read_frontmatter(ladder) or {}
+    scope = fm.get("caps_vision_scope")
+    return str(scope).strip() if isinstance(scope, str) else ""
+
+
+def read_ladder_towns(nodes_dir) -> list:
+    """The ladder's declared `towns:` list, or [] when absent/unreadable.
+
+    An empty list means the ladder does not declare a towns table, so the
+    write path has nothing to validate against and MUST skip the declared-town
+    refusal (hypothesis:l4-an-undeclared-town-is-refused-not-capped) -- a
+    project that never declared towns is untouched, exactly like the other
+    fail-open town helpers.
+    """
+    ladder = Path(nodes_dir) / ".geometry" / "ladder.md" if nodes_dir else None
+    if ladder is None or not ladder.is_file():
+        return []
+    fm = _read_frontmatter(ladder) or {}
+    towns = fm.get("towns")
+    if not isinstance(towns, list):
+        return []
+    return [t.strip() for t in towns if isinstance(t, str) and t.strip()]
+
+
+def vision_cap(nodes_dir) -> int:
+    """caps.vision from the ladder, default 3. Same default `_get_caps` uses."""
+    ladder = Path(nodes_dir) / ".geometry" / "ladder.md" if nodes_dir else None
+    if ladder is None or not ladder.is_file():
+        return 3
+    fm = _read_frontmatter(ladder) or {}
+    caps = fm.get("caps")
+    if isinstance(caps, dict):
+        v = caps.get("vision")
+        if isinstance(v, int) and not isinstance(v, bool):
+            return v
+    return 3
+
+
+def vision_remaining_for_town(nodes_dir, town: str, *, counts=None) -> int:
+    """How many more visions a town may take before hitting caps.vision.
+
+    remaining = cap - existing_in_town, clamped at 0. `counts` lets a caller
+    pass a precomputed `count_visions_per_town` result (e.g. the rollover's
+    new-season pool) without re-reading the graph; defaults to a live count.
+    """
+    cap = vision_cap(nodes_dir)
+    if counts is None:
+        counts = count_visions_per_town(nodes_dir)
+    return max(0, cap - counts.get(town, 0))
+
+
+def _node_fm(nodes_dir, node_id):
+    """A live node's frontmatter by id `type:name`, or None.
+
+    Live-first (hypothesis:l3w4-hierarchy-one-source): resolves
+    `nodes/<type>/<name>.md`, never the retired sibling. Returns None for an
+    unresolvable or malformed id, so callers fail soft -- a missing node must
+    not crash a mint or a brief.
+    """
+    if not nodes_dir or not node_id or ":" not in node_id:
+        return None
+    ntype, _, name = node_id.partition(":")
+    ntype = ntype.strip()
+    name = name.strip()
+    if not ntype or not name:
+        return None
+    return _read_frontmatter(Path(nodes_dir) / ntype / f"{name}.md")
+
+
+def nearest_vision(nodes_dir, start_ids, *, max_depth=6, resolve=None):
+    """The nearest ancestor vision of `start_ids` via the `parents:` edge.
+
+    Returns `(vision_id, town)`, or `(None, core)` when no vision is reached.
+    BFS over live node files, depth-bounded so a cycle or a long chain cannot
+    hang a spawn; a start id that IS a vision is its own nearest vision
+    (depth 0). Both halves of the addendum use this -- a minted node and a
+    brief both read the target's nearest vision's town cell (default core),
+    never an imagined cell and never a town NAME (goal:g8.2). `resolve` = a
+    caller's ONE links.gate_resolver, shared across per-node calls.
+    """
+    if not nodes_dir:
+        return (None, "core")
+    from collections import deque
+    import links   # goal:g4.18.6.3.3: walk mint-id parents as their addresses
+    r = resolve or links.gate_resolver(nodes_dir)
+    seen: set = set()
+    dq = deque()
+    for sid in start_ids or ():
+        sid = str(sid or "").strip()
+        sid = r(sid) or sid
+        if sid and sid not in seen:
+            seen.add(sid)
+            dq.append((sid, 0))
+    while dq:
+        nid, depth = dq.popleft()
+        ntype = nid.split(":", 1)[0] if ":" in nid else ""
+        fm = _node_fm(nodes_dir, nid)
+        # A vision node is its own nearest vision (depth 0).
+        if ntype == "vision":
+            return (nid, vision_town_of(fm))
+        # Honour THIS node's own declared town:/vision_ref BEFORE climbing to
+        # any ancestor (hypothesis:l4-towns-each-app-is-a-vision-with-its-own-
+        # council). A node that says which town it lives in is not answered by
+        # an ancestor's cell -- else a non-core round stamped with its own town
+        # at mint would read back 'core' every time. Order: a resolving
+        # vision_ref wins the id, the node's own `town:` decides the town; a
+        # town with no vision_ref still answers with the node itself.
+        if fm:
+            own_town = fm.get("town")
+            own_town = own_town.strip() if isinstance(own_town, str) else ""
+            vr = fm.get("vision_ref")
+            vr_id = ""
+            if isinstance(vr, str) and vr.strip():
+                vr_s = vr.strip()
+                vr_id = vr_s if ":" in vr_s else f"vision:{vr_s}"
+                vfm = _node_fm(nodes_dir, vr_id)
+                if vfm is not None and vfm.get("type") == "vision":
+                    return (vr_id, own_town or vision_town_of(vfm))
+            if own_town:
+                return (vr_id or nid, own_town)
+        if depth >= max_depth:
+            continue
+        if not fm:
+            continue
+        parents = fm.get("parents") or []
+        if isinstance(parents, str):
+            parents = [parents]
+        for p in parents:
+            p = str(p or "").strip()
+            p = r(p) or p
+            if p and p not in seen:
+                seen.add(p)
+                dq.append((p, depth + 1))
+    return (None, "core")
+
+
+def nearest_vision_town(nodes_dir, start_ids, *, max_depth=6, resolve=None) -> str:
+    """The town of a target's nearest vision, default `core`.
+
+    Thin wrapper over `nearest_vision` so a caller that only wants the town
+    (mint, brief, viewport) never has to unpack the tuple.
+    """
+    return nearest_vision(nodes_dir, start_ids, max_depth=max_depth, resolve=resolve)[1]
 
 
 def read_ladder_roles(nodes_dir: Path) -> list | None:
@@ -697,6 +974,7 @@ def check_spawn(
     bypass: bool = False,
     season_parents: list | None = None,
     current_season: int | None = None,
+    nodes_dir: Path | None = None,
 ) -> SpawnResult:
     """Check one spawn against the schema. Never raises.
 
@@ -904,6 +1182,82 @@ def check_spawn(
             res.applied.append(
                 "parent_shapes=[" + ", ".join(got) + "]")
 
+    # 5b. per-town vision cap on the WRITE path (hypothesis:l4-towns-each-app-
+    #     is-a-vision-with-its-own-council). The rollover mint already refuses a
+    #     4th vision per town; this gates a direct `write.py create vision:...`
+    #     the same way, so the cap is not only enforced on one path. Reuses the
+    #     same counting helpers as the rollover -- no second counting rule.
+    #     Scoped to caps_vision_scope: town; inert otherwise (a non-town
+    #     project is untouched). nodes_dir is required to count -- absent means
+    #     the gate is skipped, not approved-by-default-where-it-could-count.
+    if ntype == "vision" and nodes_dir is not None \
+            and vision_scope(nodes_dir) == "town":
+        # hypothesis:l4-write-path-vision-cap-reads-the-visions-own-town. The
+        # write-path cap reads the NEW vision's OWN `town:` cell first; only
+        # when it is absent does it fall back to the parents' nearest vision
+        # town. Without this, a vision that declares its own town (e.g. via
+        # `--set town=web-app-suite`) is still counted against its PARENTS'
+        # town and refused even when its own advertised town has room.
+        if isinstance(fm, dict):
+            own = fm.get("town")
+            own = own.strip() if isinstance(own, str) else ""
+        else:
+            own = ""
+        if own:
+            town, town_source = own, "own cell"
+        else:
+            town, town_source = \
+                nearest_vision_town(nodes_dir, plist), "parents"
+        # hypothesis:l4-an-undeclared-town-is-refused-not-capped. A vision
+        # that names a town the ladder's `towns:` table does not declare must
+        # be REFUSED, not granted a fresh cap -- an undeclared town reads '0
+        # existing' so it would otherwise sail past caps.vision, defeating the
+        # town cap by minting into a town that does not exist. Only the OWN
+        # declared town is validated; a vision with no town falls back to the
+        # parents'/default path untouched. An absent towns table ([]) skips
+        # the refusal -- nothing to validate against, non-town projects and
+        # old ladders are untouched.
+        if own:
+            declared = read_ladder_towns(nodes_dir)
+            if declared and own not in declared:
+                res.status = REJECTED
+                res.reason = (
+                    f"rule 'declared town' from ladder: town {own!r} is "
+                    "not declared in ladder towns"
+                )
+                res.fix = (
+                    f"'{own}' is not one of the ladder's declared towns "
+                    f"({', '.join(declared)}). Set `town:` to a declared "
+                    "town, or add it to the `towns:` table in "
+                    ".geometry/ladder.md -- do not mint a vision into a town "
+                    "the graph has not declared."
+                )
+                res.messages.append(
+                    f"SPAWN-GATE REJECTED: {res.node_id} — {res.reason}."
+                )
+                return res
+        cap = vision_cap(nodes_dir)
+        remaining = vision_remaining_for_town(nodes_dir, town)
+        if remaining <= 0:
+            res.status = REJECTED
+            res.reason = (
+                f"rule 'town vision cap' from ladder: a vision written into "
+                f"town '{town}' (from {town_source}) would exceed "
+                f"caps.vision ({cap}/town)"
+            )
+            res.fix = (
+                f"the '{town}' town already has {cap} vision(s) this season "
+                f"(caps.vision). Rotate a new season, mint under another "
+                f"town, or raise caps.vision in the ladder -- do not avoid "
+                "the cap by writing around it."
+            )
+            res.messages.append(
+                f"SPAWN-GATE REJECTED: {res.node_id} — {res.reason}."
+            )
+            return res
+        res.applied.append(
+            f"town vision cap: {town} has room for {remaining} more")
+
     # 6. season_parents: validate by type, with grandfathering.
     if season_parents is not None and rule.season_parents_allowed:
         splist = [p.strip() for p in season_parents
@@ -990,6 +1344,18 @@ def _reject_message(res: SpawnResult, shape: str, schema: SpawnSchema) -> None:
     )
 
 
+_WRITTEN_SENTENCE = re.compile(r"The node is written(?:, unchecked)?\.")
+
+
+def retract_written(res: SpawnResult, why: str) -> None:
+    """goal:g7.33.20.3 D2: the gate's UNVERIFIED lines end "The node is written."
+    -- true only if the caller then writes. A caller that will write NOTHING (a
+    create-only refusal, an existing file) says so here, BEFORE `announce`, so no
+    message contradicts the disk."""
+    res.messages = [_WRITTEN_SENTENCE.sub(f"Nothing was written ({why}).", m)
+                    for m in res.messages]
+
+
 def announce(res: SpawnResult, stream=None) -> None:
     """Print on EVERY outcome — that is the point of this gate.
 
@@ -1046,7 +1412,18 @@ def gate_for_root(root, nodes_dir=None) -> tuple[SpawnRules, dict, int | None]:
     rules = load_spawn_rules(schemas_dir, root=root)
     nd = Path(nodes_dir) if nodes_dir else resolve_nodes_root(root, schemas_dir)
     cs = read_ladder_season(nd)
-    return rules, build_type_index(nd), cs
+    # goal:g4.18.6.2.2: the writer paths read goal:g4.18.6.1's ONE index (one
+    # git grep, frontmatter lines only), never a per-create parse of every node
+    # file; git unable to look -> the walk, said on stderr (writes keep working)
+    import links  # noqa: PLC0415
+    import rotation_record  # noqa: PLC0415
+    try:
+        index = links.resolving({fm["id"]: canonical_type(fm.get("type") or "")   # goal:g4.18.6.3.3
+                                 for fm in links.frontmatter_rows(nd).values() if fm.get("id")}, nd)
+    except rotation_record.GrepError as exc:
+        print(f"warn: spawn gate index by walk ({exc})", file=sys.stderr)
+        index = build_type_index(nd)
+    return rules, index, cs
 
 
 def _cli(argv) -> int:

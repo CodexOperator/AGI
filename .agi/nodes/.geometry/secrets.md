@@ -4,8 +4,8 @@ mint_id: eba3708aa2ce4642a394a3646f6e2a26
 type: config
 parents:
   - goal:g1.8
-  - goal:g10.2
-edited_by: belam-S1-L3-III
+  - goal:g2.25
+edited_by: belam
 forbidden_keys:
   - ANTHROPIC_API_KEY
   - ANTHROPIC_AUTH_TOKEN
@@ -34,8 +34,9 @@ optional_keys:
   - OPENAI_API_KEY
   - OPENROUTER_PROVISIONING_KEY
   - CAMBER_CLOUD_API_KEY
-required_keys:
-  - OPENROUTER_API_KEY
+required_any:
+  - ["OPENROUTER_API_KEY", "OPENROUTER_PROVISIONING_KEY"]
+required_keys: []
 season: 1
 status: active
 tags:
@@ -43,7 +44,7 @@ tags:
   - config
   - secrets
   - structural
-thought_session: L3.22
+thought_session: belam-S2-L5-I
 title: Where credentials live, and which keys this project requires
 ---
 **One file holds this project's secrets, and this node says which file it is.**
@@ -51,7 +52,7 @@ Before it existed the answer was a literal `.env` written into a shell script,
 a second `.env` written into another shell script, and prose in a third place —
 the shape that drifts. `bin/envfile.py` reads this node; `driver.sh` and
 `bin/env-get.sh` read `envfile.py`. The path is now a fact the graph states
-once (**goal:g10.2**), not a constant three files agree on by luck.
+once (**goal:g2.25**), not a constant three files agree on by luck.
 
 ## The two halves, and why only one of them has history
 
@@ -71,7 +72,7 @@ ordinary version. **Shape is versioned; value is not** (**goal:g1.8**).
 Both paths resolve against `source_root`, so a project with the engine cloned
 in gets its own pair rather than sharing the engine's — `fantasia/.env` for
 fantasia, `fantasia/agi/.env` for the engine's own loop, resolved by the same
-nearest-enclosing rule as everything else and with no flag (**goal:g8.2**).
+nearest-enclosing rule as everything else and with no flag (**goal:g1.24**).
 The cost is real and worth stating: a key needed by two projects is typed
 twice. That is the price of not having a machine-global secret store that no
 project's graph describes.

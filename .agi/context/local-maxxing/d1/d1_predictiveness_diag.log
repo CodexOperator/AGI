@@ -1,0 +1,5 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights:  55%|█████▌    | 160/290 [00:00<00:00, 1579.10it/s]Loading weights: 100%|██████████| 290/290 [00:00<00:00, 1811.68it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (298938 > 131072). Running this sequence through the model will result in indexing errors
+{"condition": "drop_low_balanced", "n_units": 5832, "loss": 3.013583183288574, "delta": 0.13005733489990234, "wall_seconds": 33.16}
+wrote /home/ubuntu/work/agi/.agi/worktrees/a00-3fbe2ef7/.agi/context/local-maxxing/d1/d1_predictiveness_diag_results.json

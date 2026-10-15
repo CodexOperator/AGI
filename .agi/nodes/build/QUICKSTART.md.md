@@ -8,7 +8,7 @@ parents:
 next_edges: []
 build_kind: prose
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 origin: build-scan
 payload_ref: QUICKSTART.md
 scaffold_hash: 694a033d7c07e588
@@ -17,7 +17,7 @@ tags:
   - build
   - prose
   - g2.1
-thought_session: season
+thought_session: belam-S2-L5-I
 title: "Build: QUICKSTART.md"
 ---
 `QUICKSTART.md` — level-3 code node (one file, one canonical node).

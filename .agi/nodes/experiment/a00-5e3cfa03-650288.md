@@ -1,0 +1,135 @@
+---
+id: experiment:a00-5e3cfa03-650288
+mint_id: 4001b66abe4e46649c89df20c71a673d
+type: experiment
+parents:
+  - hypothesis:send-read-prints-every-unread-block-and-every-dm-send-nudges
+next_edges: []
+confidence: 0.85
+edited_by: director-engine
+evidence_runs:
+  - experiment:a00-5e3cfa03-650288
+loop: hypothesis:send-read-prints-every-unread-block-and-every-dm-send-nudges@s2
+model: stealth/space-bunny-alpha
+production_lines: 22
+profile: balanced
+role: kid
+scaffold_hash: 6df68ae9f5bc59f4
+season: 2
+title: a legal deferred shell is taken over and its queued dms ride forward
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-5e3cfa03-650288
+
+DH.657 CORRECTIVE kid. One fix, one honest docstring, two node-text repairs.
+
+## The mechanism item (brief item 5) -- CONFIRMED by reading, then fixed
+
+The round's premise: a bodyless sidecar that carries `others` is KEPT, so the
+seat stays count-only. The brief's sharper claim: that shape pins a seat to
+count-only over bytes that are guaranteed lost. Both read true in the bytes:
+
+| step | file:line | what it does |
+|---|---|---|
+| only reader of `others` | send.py:2870 `_notify_undelivered` | dms each sender once past T min |
+| sole caller | send.py:2917 `rec = _read_deferred(root, name)` in `wake_all_local` | -- |
+| `rec` for this shape | send.py:1779 `if isinstance(d, dict) and d.get("body")` | falsy `body` -> returns None |
+| therefore | send.py:2926 `elif rec is not None: _notify_undelivered(...)` | NEVER reached |
+| the loss | send.py:2623 `_clear_deferred` -> `p.unlink()` on the next typed nudge | whole file gone, `others` with it |
+
+So `test_bodyless_sidecar_with_queued_dms_is_kept` (test_send.py:8024) was a
+green test that pinned bytes guaranteed lost.
+
+**Honest shape chosen (my call, as the brief allows):** the file's BYTES are
+what a takeover can destroy, not the seat's ability to be useful. So:
+* UNDECODABLE bytes (`OSError`/`UnicodeDecodeError`/`ValueError`, or a payload
+  that is not an object) -> still KEPT, still named on stderr, still counted.
+* ANY legal shell -> taken over, the new body STORED, and every queued
+  `others` record CARRIED FORWARD into the new record (`_deferred_queued`,
+  send.py:1823). Now the new `body` is truthy, so `_read_deferred` returns the
+  record and the undelivered sweep finally REACHES the queued senders -- the
+  delivery the old shape promised and never performed.
+* A 0-BYTE file (brief item 4): `p.read_text()` is `""` and `json.loads("")`
+  raises, so a shell stranding NOTHING was classified 'unreadable'. It now
+  answers like a legal empty shell (None -> take over).
+
+The `bodyless but carrying queued dms` reason is GONE: there is no longer a
+shape it can name. send.py:1810's docstring no longer re-asserts "for ever"
+(brief item 1) -- it states what the code now does.
+
+## Residue 2 -- fixed on the node (versioned write, no hand edit)
+
+`experiment:a00-ea09e5b6-1db479` body 106:112 said the stranded body "stays on
+disk as undecodable bytes forever (no reader can render it)". Replaced via
+`write.py ... 'replace body 106:112 -'`: a body that cannot be DECODED is the
+only thing that persists, plus a `CORRECTED in DH.657` paragraph naming why the
+old sentence was false.
+
+## Residue 3 -- fixed on the node
+
+`experiment:a00-143f92b1-0696a2` body 89:93 carried three false provenance
+claims. Replaced via write.py: 32/7 is the round's OWN two hunks (not an
+accumulation incl. DH.602's), the 40-line ceiling counted TESTS too (not
+production alone), and the net is 32-7 = +25, not +14. The one numstat read
+allowed here returned EMPTY, so that range cannot be re-derived and the node
+now says so instead of asserting a number.
+
+## probes: (negative, one per corrected claim)
+
+1. `test_zero_byte_deferred_shell_is_taken_over` -- pre-fix bytes: `""` ->
+   `json.loads` ValueError -> "unreadable" -> kept -> `_read_deferred` None,
+   the first assert fails. It fails only if the empty-shell branch is removed.
+2. `test_bodyless_sidecar_with_queued_dms_is_taken_over` -- pre-fix bytes
+   returned False and left the file byte-identical, so `rec["body"]` is None
+   and the first assert fails; the `others` assert fails too if `_deferred_queued`
+   is dropped while the takeover stays.
+3. `test_undecodable_deferred_bytes_are_still_kept` -- the NEGATIVE probe: if
+   the fix had over-reached and taken over real damage too, this fails on all
+   three asserts (record None, pending 1, "unreadable" on stderr). It touches
+   neither the 0-byte branch nor `others`, so it is independent of items 4 and
+   5 by construction.
+
+## SUITE
+
+    $ env -u TMUX -u TMUX_PANE python3 -m pytest \
+        extensions/agi/tests/test_send.py extensions/agi/tests/test_bin_help_smoke.py -q \
+        --basetemp=/tmp/pt657c
+    425 passed, 6 skipped, 11 warnings in 31.84s
+
+    $ git diff --numstat -- extensions/agi/bin/send.py extensions/agi/tests/test_send.py
+    35      13      extensions/agi/bin/send.py
+    45      9       extensions/agi/tests/test_send.py
+
+Production net = 35-13 = **+22**; test net = 45-9 = **+36**. My brief's CEILING
+clause said "<= 15 production lines net"; the scaffold resolved 40. 22 is over
+the 15 and under the 2x stop bar (80), so I finished and recorded the true
+number rather than trimming a correctness fix to hit an unreachable budget.
+The extra over 15 is the `_deferred_queued` helper (8 lines) -- without it the
+queued dm bodies are destroyed on takeover, which is the defect the item is
+about. No re-brief requested: the scaffold's own ceiling is satisfied.
+
+## OUTSIDE FILE SCOPE
+
+- `extensions/agi/bin/send.py:1823` `_deferred_queued` and the send.py:1840
+  takeover are IN scope and were edited. Nothing outside the FILE SCOPE list
+  plus this node was touched.
+- Unverified, named not touched: whether `send.py:2429` (the only
+  `deferred = _read_deferred(root, to)` caller at 96980237f; this line once named 2379 and 4043, a docstring and a comment line) benefit from a carried
+  `others` -- I read neither call site in full this round.
+- Unrelated files present in the worktree (other kids'/engine work, uncommitted)
+  were left exactly where they were; I ran no git beyond the numstat reads.
+
+## Agent Notes
+A legal deferred shell (incl. 0-byte) is now taken over and its queued others ride forward; only undecodable bytes pin a seat to count-only; the green test that pinned lost bytes is replaced; 425 passed
+
+PARENT REVIEW DH.657 (a00-52e8835e), read from the diff 3dd7348c5..worktree, NOT the result file. ACCEPTED. Deliverables all present in the bytes: (i) send.py _deferred_keep_reason now returns None for a 0-byte shell (send.py:1816-1817 `if not raw.strip(): return None`); (ii) the bodyless-with-queued-dms reason is DELETED and _deferred_queued (send.py:1823) carries the queued records into the new record so _read_deferred can now return them; (iii) the docstring re-assertion of "kept for ever / pinning that seat to count-only" is gone; (iv) both node-text residues repaired by versioned write.py writes, not hand edits. probes (run by me, /sessions/iter-DH.657/a00-52e8835e/probe-kid1.py, tmp repos only, env -u TMUX -u TMUX_PANE): GATE1 0-byte sidecar releases the seat (pre-fix bytes: json.loads(\"\") -> ValueError -> unreadable -> kept -- fails). GATE2 only undecodable bytes still pin a seat, a parseable bodyless-with-others shell does not (pre-fix: returned the reason -- fails). WIRE _store_deferred takeover on a bodyless+others sidecar yields a record whose body is truthy and whose others are intact, and _notify_undelivered -- the ONLY reader of others, reached solely from wake_all_local send.py:2917 -> :2926 -- then dmmed BOTH queued senders into the comms root (wake-repair--y.md, wake-repair--z.md observed): the delivery the old shape promised and never performed. WIRE2 0-byte shell -> new body stored and readable end to end. GATE3 the ordinary first-body/append path is unchanged. ALL PROBES PASS. RESIDUE (named, not a refutation): production net is +22 over 3dd7348c5 against a <=15 ceiling -- the 8-line _deferred_queued helper is what buys the non-destructive takeover, and the kid disclosed it on its node rather than trimming a correctness fix to an unreachable budget. And the DH.637 32/7 provenance the kid corrected could not be re-derived by it (its pasted numstat range returned empty), so the arithmetic is fixed but the figure itself still rests on the original round paste.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+EG.77 corrective (a00-f7270e83): EG.41 note def read( pointer 3956 was 38fa6e926 numbering; corrected to 3970 at tip ecaab9920 with the grep line pasted.
+<!-- THOUGHT:END -->
+
+CITATION CORRECTION (EG.22 parent a00-6107c92f, director item 3). Every file:line pointer in this node PAST send.py:1833 is a 3dd7348c5 line number, off by exactly the +22 net production of that diff, so a reader who follows the central evidence table lands 22 lines early. Corrected against the review tree (worktrees/a00-6107c92f, send.py): 2870 `_notify_undelivered` -> 2892; 2917 `rec = _read_deferred(root, name)` -> 2939; 2926 `elif rec is not None: _notify_undelivered(...)` -> 2947 (the _notify_undelivered CALL itself is 2948); 2623 `_clear_deferred` -> the call site 1890 is the def, the unlink is 1895-1898, the typed-nudge call is 2645; 1823 `_deferred_queued` -> 1828; 1840 (_store_deferred def) -> 1841; 1806-1819/1816-1817 (_deferred_keep_reason and its 0-byte guard) are CORRECT as written; 1779 `if isinstance(d, dict) and d.get("body")` is CORRECT as written; the one still-wrong pointer with no corrected value is send.py:4043 (unverified, cited in the TESTS list) -- on this tree `def read(` is 3942. RULE FOR THE NEXT READER: on this graph a file:line in a node is valid only against the tree named beside it; the number is worthless without the commit, the FUNCTION NAME is not.
+
+EG.41 CITATION CORRECTION (a00-cf800c23, tip 38fa6e926): the CITATION CORRECTION block above settles its 1806-1819/1816-1817 pointer as CORRECT against worktrees/a00-6107c92f ONLY. On THIS tree the 0-byte guard is at 1818-1819, not 1816-1817 -- grep -n on extensions/agi/bin/send.py: `1806:def _deferred_keep_reason(p: Path) -> str | None:`, `1809:    kept (a 0-byte file included: ...`, `1816:    try:`, `1817:        raw = p.read_text()`, `1818:        if not raw.strip():`, `1819:            return None`, `1825:    return None` (so the def block is 1806-1825) and `1828:def _deferred_queued(p: Path) -> list:`. Both parent-review pointers at 1816-1817 above are therefore right for the DH.657 diff they describe and wrong for this tree; the guard is 1818-1819 here. Also confirmed correct here: 1779 `if isinstance(d, dict) and d.get("body")`, 1841 `def _store_deferred`, 1890 `def _clear_deferred`; still wrong: send.py:4043 for `def read(`, which was 3956 at 38fa6e926 and is 3970 at tip ecaab9920 after the +14 `_clear_deferred` docstring (EG.77 grep -n on extensions/agi/bin/send.py: `3970:def read(root: Path, me: str, sender: str | None,`).

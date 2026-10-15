@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-7e85b581-3a07f5
 next_edges: []
 confidence: 0.75
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-5e6608dd-c490af
 scaffold_hash: 9ba3373b5d50f734
@@ -84,7 +84,7 @@ All script invocations use `$PLUGIN_ROOT/bin/foo.py`, so installed scripts find 
 
 ```
 $ cd /tmp/test-pip-install
-$ python3 /home/ubuntu/work/agi/extensions/agi/bin/level3.py --engine-root /tmp/test-pip-install
+$ python3 <home>/work/agi/extensions/agi/bin/level3.py --engine-root /tmp/test-pip-install
 WARN: engine root /tmp/test-pip-install is missing or unreadable (not a git repo?) — no-op, nothing written or pruned
 EXIT: 0
 ```
@@ -95,9 +95,9 @@ EXIT: 0
 $ mkdir -p /tmp/test-pip-install/.agi
 $ echo '{"agent_dispatch": "anthropic/claude-sonnet-4"}' > /tmp/test-pip-install/.agi/config.json
 $ cd /tmp/test-pip-install
-$ bash /home/ubuntu/work/agi/extensions/agi/lib/find-root.sh
+$ bash <home>/work/agi/extensions/agi/lib/find-root.sh
 /tmp/test-pip-install/.agi
-$ python3 /home/ubuntu/work/agi/extensions/agi/bin/locations.py --what root
+$ python3 <home>/work/agi/extensions/agi/bin/locations.py --what root
 /tmp/test-pip-install/.agi
 ```
 
@@ -105,7 +105,7 @@ $ python3 /home/ubuntu/work/agi/extensions/agi/bin/locations.py --what root
 
 ```
 $ mkdir -p /tmp/fake-site-packages/agi-engine/lib
-$ cp /home/ubuntu/work/agi/extensions/agi/lib/find-root.sh /tmp/fake-site-packages/agi-engine/lib/
+$ cp <home>/work/agi/extensions/agi/lib/find-root.sh /tmp/fake-site-packages/agi-engine/lib/
 $ cd /tmp/test-pip-install
 $ bash /tmp/fake-site-packages/agi-engine/lib/find-root.sh
 /tmp/test-pip-install/.agi
@@ -115,9 +115,9 @@ EXIT: 0
 === level3.py NOT in driver.sh/commands.py (build-time only) ===
 
 ```
-$ grep -rn "level3" /home/ubuntu/work/agi/extensions/agi/driver.sh
+$ grep -rn "level3" <home>/work/agi/extensions/agi/driver.sh
 # (no output)
-$ grep -rn "level3" /home/ubuntu/work/agi/extensions/agi/bin/commands.py
+$ grep -rn "level3" <home>/work/agi/extensions/agi/bin/commands.py
 # (no output)
 ```
 
@@ -133,7 +133,7 @@ PROJECT_ROOT=$(find_project_root "$PWD")
 
 
 ## Agent Notes
-Tested 3 invariants of shape-3 pip/uv install hypothesis. Invariant 1 (level3.py git-ls-files crash): disproved — graceful no-op, not crash, and level3.py is build-time only. Invariant 2 (find-root.sh wrong resolution): disproved — resolves from user CWD, not script location. Invariant 3 (per-project version): partially true for global pip, but venv/uv-tool isolates per project. Engine's dual-path architecture (PLUGIN_ROOT for scripts, find_project_root /home/ubuntu/work/agi for project) is naturally pip-safe. Hypothesis overstates barriers — shape 3 not incompatible, just missing a pyproject.toml packaging step.
+Tested 3 invariants of shape-3 pip/uv install hypothesis. Invariant 1 (level3.py git-ls-files crash): disproved — graceful no-op, not crash, and level3.py is build-time only. Invariant 2 (find-root.sh wrong resolution): disproved — resolves from user CWD, not script location. Invariant 3 (per-project version): partially true for global pip, but venv/uv-tool isolates per project. Engine's dual-path architecture (PLUGIN_ROOT for scripts, find_project_root <home>/work/agi for project) is naturally pip-safe. Hypothesis overstates barriers — shape 3 not incompatible, just missing a pyproject.toml packaging step.
 
 <!-- THOUGHT:BEGIN -->
 Parent review (a00-dcde66ac, iter 1065). This version DEMOTES the kid's

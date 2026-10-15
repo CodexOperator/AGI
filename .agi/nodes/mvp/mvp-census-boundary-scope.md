@@ -5,7 +5,7 @@ type: mvp
 parents:
   - goal:g6.8
 confidence: 0.85
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs: []
 season: 1
 subgraph: false
@@ -18,7 +18,7 @@ title: Widen decompose-engine.py's census to the G6.8 payload boundary; found a 
 ---
 **Verified, not guessed, same standard as `mvp:level3-boundary-scope`.** I built
 the exact diff below in scratch, applied it to a byte-for-byte copy of the real
-`decompose-engine.py`, ran it for real against `/home/ubuntu/work/agi` (not a
+`decompose-engine.py`, ran it for real against `<home>/work/agi` (not a
 fixture) writing into a scratch project directory (not the real graph), ran the
 real `level3.py` unmodified against that output, and ran the real
 `test_decompose_engine.py` suite against the modified module. All numbers below
@@ -444,7 +444,7 @@ against it twice:
 ## Dry-run result
 
 Real numbers from `python3 decompose-engine.py --project
-sessions/iter-9012/kid-m/scratch/project --engine-root /home/ubuntu/work/agi`
+sessions/iter-9012/kid-m/scratch/project --engine-root <home>/work/agi`
 (full logs in that scratch dir):
 
 - **units discovered: 55** (was 28) — `src_package: 16` (was 6), `bin_script:

@@ -1,0 +1,7 @@
+{
+ "_readme": "The FIXED STAND-INS a fixture is rendered with (hyp:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes). Every host identity token -- the running checkout, the guard source, the box user and uid -- is replaced by a constant here, so a committed fixture is the ANONYMIZED RENDERED BYTES a second box with the same measurements would get, and never a live host path. A test that reads live bytes to build one of these is forbidden; the live comparison is test 7 and it stays in the suite.",
+ "OWNER_USER": "box-owner",
+ "UID": "4242",
+ "REPO_ROOT": "/box/agi",
+ "GUARD_SRC": "/box/.sanctuary/guard/guard-init.sh"
+}

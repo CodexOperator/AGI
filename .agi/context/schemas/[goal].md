@@ -1,16 +1,24 @@
 ---
 name: goal
+# hypothesis:a-rounds-named-node-set-is-its-dispatch-time-ids-never-a-kid-supplied-parent
+# -- a round's `cli.py done` commit may never sweep a goal node. Declared HERE,
+# in a file a round may itself commit, because the equivalent `grid.round_commit`
+# cell in .agi/config.json is a path no round can ever commit (cli.py
+# `_round_scope_ok`), so in main that allowlist is fail-open. Read by
+# cli.py `_round_committable`.
+round_commit: false
 derived_from: corpus-survey-2026-08-25 (n=75, 100% field coverage on every required field)
 fields:
   title: {type: str}
   goal_id: {type: str}        # G7 | S4 | G7.2 -- never renumbered
   goal_kind: {type: str}      # THE DISCRIMINATOR: perpetual | long-term(legacy) | short-term | subgoal
   status: {type: str}         # active | horizon | retired | complete  (`phasing-out` = legacy `retired`)
-  origin: {type: str}         # goals-doc -- derived by snapshot-goals.py
+  origin: {type: str}         # goals-doc -- a legacy marker; its deriver (the GOALS.md import) retired, goal:g7.16.1.4.1
   seeds: {type: list}         # node ids seeded from this goal
   parents: {type: list}       # subgoal: >=1 goal; any variant may add a build
   confidence: {type: float}
   tags: {type: list}
+  nest: {type: str|list}      # OPTIONAL, never required: `subtree` (every node down the parents edges) or a list of ids -- this node holds a slice (nest.py)
 validation:
   required: [id, type, mint_id, title, goal_id, goal_kind, status, origin, seeds, confidence, tags]
   types:
@@ -24,6 +32,10 @@ validation:
     # drop-in reader must accept it, not survive one migration window.
     goal_kind: '^(long-term|perpetual|short-term|subgoal)$'
     status: '^(active|horizon|retired|phasing-out|complete)$'
+  # goal:g7.16.1.2.6 -- a park is a TAG: `parked:<goal id of the formation it
+  # waits for>`; `write.py config:formations 'set active <doc>'` drops it.
+  item_regex:
+    tags: '|[^p\n][^\n]*|p([^a\n][^\n]*)?|pa([^r\n][^\n]*)?|par([^k\n][^\n]*)?|park([^e\n][^\n]*)?|parke([^d\n][^\n]*)?|parked([^:\n][^\n]*)?|parked:g\d+(\.\d+)*'
 spawn:
   discriminator: goal_kind
   variants:
@@ -56,18 +68,14 @@ spawn:
 
 # goal
 
-The long-term contract. **These nodes are the source; `GOALS.md` is derived
-from them** — `driver.sh` runs `snapshot-goals.py --render`, which writes
-`GOALS.md` out of `nodes/goal/*.md`. Edit the node. A hand-edit to `GOALS.md`
-survives until the next `--smoke` run and then vanishes with no warning.
-`--render --check` exits 0 only on a byte-identical round trip.
+The long-term contract. **The goal node is the whole goal**: mint it with
+`write.py create goal`, read it by id (`write.py goal:<id> 'read body 1:60'`).
+GOALS.md, its render and its round-trip check are RETIRED (owner 2026-09-29, goal:g7.16.1.4.1);
+nothing renders a goal document any more.
 
-The arrow reversed on 2026-08-25 (goal:g6.9, commit `2b204a5d4`); this file,
-and `CLAUDE.md` in two places, still said the opposite until 2026-08-26. The
-`origin: goals-doc` marker is left over from when `GOALS.md` *was* the source —
-it now means "participates in the GOALS.md round trip", and `snapshot-goals.py`
-still keys its prune on it, so it is load-bearing under a name that no longer
-describes it.
+The `origin: goals-doc` marker is left over from when the GOALS.md document (retired, goal:g7.16.1.4.1)
+was the source. No code keys a prune on it any more;
+it is history under a name that no longer describes it.
 
 ID prefix: `goal:<lowercased goal_id>` — `## G7` → `goal:g7`,
 `### G7.2` → `goal:g7.2`, `## S4` → `goal:s4`.
@@ -138,20 +146,75 @@ hypotheses, not the reverse) and would make `outcome_coverage` circular.
 **Why a subgoal still needs its goal.** `min_parents_by_type: {goal: 1}` is an
 AND across kinds, so a subgoal may gain a `build` parent and even a second goal,
 but it can never float free of the root it belongs under. That root is what
-`GOALS.md` nests it beneath and what `goal:s26`'s completion check walks.
-
-**The one place this is not yet symmetric:** `snapshot-goals.py`'s *ingest*
-direction (`GOALS.md` → nodes) writes a subgoal's `parents:` from the heading
-hierarchy, so it can only reconstruct the goal parent. It now preserves any
-non-goal parent already on disk rather than dropping it, which is enough because
-`--render` (nodes → `GOALS.md`) is the live direction and the one `driver.sh`
-runs. A build parent minted only in `GOALS.md` prose is still unrepresentable —
-mint it on the node.
+`goal:s26`'s completion check walks. (The GOALS.md import and render retired, goal:g7.16.1.4.1:
+every parent is minted on the node.)
 
 ## Conventions that are not mechanical checks
 
-- **Goal ids are never renumbered.** A gap beats a renumber. Not checkable
-  from one node, so it is not in `validation:`.
+- **`## Why this exists` (owner 2026-09-11 15:5xZ, verbatim in doc:l4-owner-decisions:
+  "Goal nodes should contain a 'why this exists' which goes hand-in-hand with
+  the parent/child edges to explain why a given graph node(s) became a
+  parent(s) for this specific goal node").** A goal minted by a director from
+  2026-09-11 on carries a body section `## Why this exists`: one paragraph per
+  parent edge, naming the parent and the measured thing it showed that made
+  it a parent of THIS goal. The 166 goals before it are grandfathered; the
+  section is prose, so it is a convention here and not in `validation:` —
+  `links.py schema` does not check it, a merge-up reviewer does.
+- **The goal body — framing and fixed order (owner 2026-09-23, goal:g5: "The goal
+  node format is in the goal schema. Schemas define nodes."; carried verbatim from
+  `doc:standing-llm-ops` §5–§6 at its pre-fold tip `77c997cad`).** Prose, so not in
+  `validation:`; a merge-up reviewer checks it.
+
+  Goal framing — target, not task-or-fail:
+
+  | Do | Don't |
+  |---|---|
+  | target end-state | "finish today or failed" |
+  | measurable falsifiers | vibes-done |
+  | multi-parent ≤18 | duplicate claims under two roots |
+
+  Title: `"GX.Y: <target end-state in one line>"`. Body order (fixed):
+
+  ```
+  # goal:gX.Y
+  ## Why this exists
+  ## Target end-state
+  ## Invariants
+  ## Falsifier          # FAILED if any red
+  ## Out of scope
+  ## Agent Notes
+  ```
+
+  What each section carries:
+
+  ```
+  ## Why this exists
+  **Parent `goal:gX`.** <pain paid for + owner ask by date/node.>
+
+  ## Target end-state
+  - <world-after claim>
+  - <single seam / retirement>
+
+  ## Invariants
+  - <always-true or graph is wrong>
+
+  ## Falsifier
+  1. <CLI/grep exit 0 only when done>
+  2. <negative: forbidden path zero hits>
+
+  ## Out of scope
+  - <sibling goal:…>
+
+  ## Agent Notes
+  Assigned to **<post>**. <nothing else: a goal is a project tracker -- notes land per the HEAD's notes line (owner 09-24)>
+  ```
+- **Goal ids MAY be renumbered (owner 2026-09-23, superseding "never renumbered";
+  core's 09-21 re-arrangement renumbered 82).** A renumber keeps every `mint_id`
+  (`mint_id` = identity; never a second mint for a renumber), re-points every
+  frontmatter reference to the moved id in the SAME commit, and records old → new
+  in the moved node's THOUGHT block; a retired id is never used again in a live
+  node (owner 2026-09-23, goal:g5). Not checkable from one node, so it is not in
+  `validation:`.
 - **Retire by marking `retired` and deprecating the seed node — never
   delete.** Renamed from `phasing-out` on 2026-09-02 (goal:g5): the lifecycle
   already meant "retired" and every document already said so, while the field
@@ -196,8 +259,7 @@ rewritten from scratch on each change, not accumulated.
   scalar `thought_session:` is reserved there for goal:g2.7 / goal:g10.1 to
   point at the chat that produced a version; it is not populated yet.
 - **Readers strip it.** Thought is provenance to zoom into, not weight every
-  reader carries forever. `snapshot-goals.py --render` strips it explicitly via
-  `strip_thought()`; `render-context.py` and `zoom.py` never see it because
-  they read frontmatter only (`load_node_file(..., body=False)`) and so carry
-  no body text at all. The rule binds any future reader that *does* read
-  bodies.
+  reader carries forever. `brief.py` strips it from every body it renders via
+  `node_writer.strip_thought()`; `zoom.py` never sees it because it reads
+  frontmatter only (`load_node_file(..., body=False)`). The rule binds any
+  future reader that *does* read bodies.

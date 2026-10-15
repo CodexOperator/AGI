@@ -5,14 +5,14 @@ type: experiment
 parents:
   - hyp:zoom-encoded-node-ids
 confidence: 0.92
-edited_by: season.py
+edited_by: director-general-3
 season: 1
 tags:
   - g2.5
 thought_session: season
 title: "Fan-out budget: does any node in the corpus exceed 36/62 children?"
 ---
-**Method.** Walked `/home/ubuntu/work/agi-tree/nodes/**/*.md` (a plain
+**Method.** Walked `<home>/work/agi-tree/nodes/**/*.md` (a plain
 `glob`, explicitly unioned with a dotfile glob because Python's `**/*.md`
 silently skips names starting with `.` — this corpus has exactly one such
 file, `nodes/level3/.gitignore.md`, which would otherwise have
@@ -113,7 +113,7 @@ idea:engine-embeddings                   4
 idea:engine-tests-embeddings             4
 idea:engine-context-impl                 3
 idea:engine-tests-chain-engine           3
-goal:g8.2                                2
+goal:g1.24                                2
 idea:engine-gitignore                    1
 idea:engine-handoff                      1
 idea:engine-readme                       1
@@ -154,7 +154,7 @@ idea:engine-run-loop-sh                  1
 idea:engine-schema-sql                   1
 idea:engine-migrate-to-sqlite            1
 idea:engine-skill-doc                    1
-goal:g8.1                                1
+goal:g1.23                                1
 idea:engine-start-sh                     1
 ```
 

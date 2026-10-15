@@ -5,7 +5,7 @@ type: experiment
 parents:
   - goal:g6.6
 confidence: 0.9
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs: 1
 season: 1
 subgraph: false
@@ -27,12 +27,12 @@ BIN_PREFIX = "extensions/agi/bin/"
 #   or (f.startswith(BIN_PREFIX) and f.endswith(".py") and "/" not in f[len(BIN_PREFIX):])  (direct children only)
 
 # 2. covered set (one payload_ref per node, frontmatter written twice per file but unique per path)
-ls /home/ubuntu/work/agi-tree/nodes/level3/*.md | wc -l              # -> 74
+ls <home>/work/agi-tree/nodes/level3/*.md | wc -l              # -> 74
 grep -h 'payload_ref' nodes/level3/*.md | sed 's/payload_ref: //' | sort -u > covered.txt
 wc -l covered.txt                                                     # -> 74
 
 # 3. universe
-cd /home/ubuntu/work/agi && git ls-files | sort > universe.txt
+cd <home>/work/agi && git ls-files | sort > universe.txt
 wc -l universe.txt                                                    # -> 316
 
 # 4. gap

@@ -1,0 +1,43 @@
+#!/bin/bash
+# sanctuary-health — the watchdog daemon's test-binary (guard layer 4).
+# Installed to {{SBIN_ABS}} by guard-init.sh; see {{GUARD_DOC_ABS}}.
+#
+# Exit 0 = healthy. Non-zero = unhealthy. One failure does nothing: watchdog
+# reboots only if failures persist for retry-timeout ({{WD_RETRY_TIMEOUT}}s in {{WATCHDOG_CONF}}).
+# A check that cannot even START within test-timeout counts as a failure too,
+# which is the case this exists for: under a memory livelock, forking is the
+# thing that stalls. So after bash is running, everything here is a builtin:
+# no date, no awk, no cat. Every extra fork is one more thing that can hang.
+#
+# Unhealthy = memory PSI "full avg60" >= LIMIT: over the last 60s, for LIMIT% of
+# the time EVERY non-idle task was stalled waiting on memory. A healthy box sits
+# at 0. The 2026-09-25 local-town wedge was that, for hours.
+
+[ "${1:-test}" = repair ] && exit 0          # we never repair; the reboot is the repair
+
+# shellcheck disable=SC1090
+. "${HEALTH_ENV:-{{HEALTH_ENV}}}" 2>/dev/null
+LIMIT=${LIMIT:-{{HEALTH_LIMIT}}}
+GRACE=${GRACE:-{{HEALTH_GRACE}}}
+# A non-integer would make (( )) error out below, and an error reads as
+# "healthy": the watchdog would never fire. Fall back to the defaults instead.
+[[ $LIMIT =~ ^[0-9]+$ ]] || LIMIT={{HEALTH_LIMIT}}
+[[ $GRACE =~ ^[0-9]+$ ]] || GRACE={{HEALTH_GRACE}}
+LOG={{HEALTH_LOG}}
+
+[ -e {{HEALTH_DISABLE}} ] && exit 0   # the kill switch
+
+read -r up _ < /proc/uptime
+up=${up%.*}
+(( up < GRACE )) && exit 0                   # settling after boot; never judge it
+
+while read -r kind _ avg60 _; do
+  [ "$kind" = full ] || continue
+  v=${avg60#avg60=}                          # e.g. 43.17
+  if (( ${v%.*} >= LIMIT )); then
+    { printf '%(%Y-%m-%dT%H:%M:%S%z)T unhealthy: memory PSI full avg60=%s%% >= %s%% (uptime %ss)\n' \
+        -1 "$v" "$LIMIT" "$up" >> "$LOG"; } 2>/dev/null
+    exit 2
+  fi
+done < /proc/pressure/memory
+exit 0

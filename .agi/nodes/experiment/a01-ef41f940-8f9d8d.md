@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-373ec687-7bb58a
 next_edges: []
 confidence: 0.8
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 171fb6584a4e544f
 season: 1
 thought_session: season
@@ -53,13 +53,13 @@ Tiers are DISTINCT: parent and kid produce different `--model` values.
 
 **`build_command(..., tier="parent", ...)`:
 ```
-/home/ubuntu/.npm-global/bin/pi --provider openrouter --model qwen/qwen3.8-27b --thinking medium -p --append-system-prompt @<ctx> ...
+<home>/.npm-global/bin/pi --provider openrouter --model qwen/qwen3.8-27b --thinking medium -p --append-system-prompt @<ctx> ...
 ```
 Parent model identifier present in spawned command: **YES**
 
 **`build_command(..., tier="kid", ...)`:
 ```
-/home/ubuntu/.npm-global/bin/pi --provider openrouter --model deepseek/deepseek-v4-flash --thinking medium -p --append-system-prompt @<ctx> ...
+<home>/.npm-global/bin/pi --provider openrouter --model deepseek/deepseek-v4-flash --thinking medium -p --append-system-prompt @<ctx> ...
 ```
 Kid model identifier present in spawned command: **YES**
 
@@ -108,13 +108,13 @@ TIERS DISTINCT: True
 ### Build command carries tier model
 ```
 --- build_command (parent tier) ---
-/home/ubuntu/.npm-global/bin/pi --provider openrouter --model qwen/qwen3.8-27b --thinking medium ...
+<home>/.npm-global/bin/pi --provider openrouter --model qwen/qwen3.8-27b --thinking medium ...
 Has --model flag: True
 Has parent model (qwen/qwen3.8-27b): True
 Has kid model: False
 
 --- build_command (kid tier) ---
-/home/ubuntu/.npm-global/bin/pi --provider openrouter --model deepseek/deepseek-v4-flash --thinking medium ...
+<home>/.npm-global/bin/pi --provider openrouter --model deepseek/deepseek-v4-flash --thinking medium ...
 Has kid model (deepseek/deepseek-v4-flash): True
 Tiers produce distinct commands: True
 ```

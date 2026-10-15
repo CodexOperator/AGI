@@ -1,0 +1,16 @@
+# experiment:a00-562777f2-95df6d
+
+## Experiment
+g15 build claim (hypothesis:l4-the-trajectory-wrapper-answers-help-and-the-detached-pytest-watcher-matches-a-pytest-launch-not-a-mention). Measured pre-fix RED: `pi_trajectory.py --help` returned 2 (argv-shape check `len(a)<5` fired before any -h handling); `_detached_pytest_ppid1` matched any cmdline containing the substring "pytest", so two live kid trajectory wrappers (ppid 1, pi argv with the word pytest inside) read as two detached pytests and failed both SM.82 asserts.
+
+BUILT:
+1. pi_trajectory.py main() now answers `-h`/`--help` first, printing `__doc__` (the usage line) and returning 0, before the argv-shape check (3 lines added).
+2. test_suite_no_detached_spawn.py: extracted a pure `_is_pytest_argv(argv)` matcher — argv[0] basename startswith "pytest", or argv[1:3]==['-m','pytest'] — used by `_detached_pytest_ppid1` instead of the substring test. Added unit test over six argv shapes.
+
+## Evidence
+- `pytest test_bin_help_smoke.py test_suite_no_detached_spawn.py -q` → 70 passed, 4 skipped.
+- `pi_trajectory.py --help; echo $?` → exit 0.
+- Matcher unit tests: python -m pytest → True; pytest binary → True; pytest-x binary → True; pi wrapper mentioning pytest → False; full trajectory wrapper argv → False; empty → False.
+- Integration negative (real detached launch WITH ppid 1): spawned a setsid `pytestfoo` sleep, parent exited → reparented ppid 1, live scan reported `[746172]` → still caught.
+
+production_lines 3 (pi_trajectory.py only; test lines excluded), ceiling 15.

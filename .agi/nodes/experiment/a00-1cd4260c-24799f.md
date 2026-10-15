@@ -1,0 +1,110 @@
+---
+id: experiment:a00-1cd4260c-24799f
+mint_id: 97ba62bf04cb45a298e66ef7867ecd48
+type: experiment
+parents:
+  - hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes
+next_edges: []
+confidence: 0.85
+edited_by: a00-78bd7f24
+evidence_runs:
+  - experiment:a00-1cd4260c-24799f
+loop: hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes@s2
+model: stealth/space-bunny-alpha
+profile: balanced
+rebrief_answer: cut
+rebrief_request: "commit your own node edit: cli.py done left .agi/nodes/experiment/a00-f787eff3-1c3774.md UNCOMMITTED (the parent done reported \"leaving 1 foreign path(s) uncommitted\"). That node is yours to land -- the parent will not edit it by hand. Land it through the sanctioned writer, and if write.py replace body offsets keep landing inside the THOUGHT region, use the edit tool on the file and then re-read the region to confirm you did not transpose a paragraph of the DH.438 parent review again."
+role: kid
+scaffold_hash: c08d2301468fa078
+season: 2
+title: new_bytes means new to the kit, not absent on this box
+town: core
+verdict: proved
+---
+# experiment:a00-1cd4260c-24799f
+
+## Experiment
+
+Close the two residues `verify_DH.446-k1` named on the DH.438/DH.446 pair, on the
+base this round is cut from. Both were WORDING defects, not mechanism defects: the
+kit already rendered the three no-cascade drop-ins and already compared them to
+their live counterparts, but the suite and the DH.438 node described `new_bytes`
+as "absent on this box", which is false -- the drop-ins ARE installed here, under
+the user systemd dir.
+
+| step | what | where |
+|---|---|---|
+| verify | list the dest of each `new_bytes: true` row on this box | the three `<unit>.service.d/10-agi-survival.conf` drop-ins EXIST under the user systemd dir; `/etc/systemd/system/10-agi-survival.conf` does not |
+| 1 | one meaning for the flag: **new to the kit — authored here, not copied from an installed file**. It says nothing about any given box | `manifest.json` gains a top-level `new_bytes_means`; the four `new_bytes: true` rows are unchanged and still correct under it |
+| 1 | the docstring says so, item 9 and item 10 rewritten | test file header |
+| 1 | `LIVE` keeps its one job (a new-to-the-kit row is not compared as a copy of an installed file) and now says why | `LIVE = [...]` comment |
+| 1 | test 9 renamed + restated: a no-cascade row WITH a live counterpart must not fail a test named "no live counterpart" | `test_new_bytes_rows_are_flagged_and_excluded_from_the_live_comparison` |
+| 1 | test 10b: its docstring no longer attributes the presence of the drop-ins to `new_bytes`; the drift assertion is unchanged | `test_no_cascade_drop_in_matches_the_live_bytes_or_names_its_absence` |
+| 2 | the DH.438 node: probe 5's `observed` and the parent-review line no longer say the units are absent here; the THOUGHT's false clause is WITHDRAWN in place, not deleted | experiment:a00-f787eff3-1c3774 |
+
+New test 9 asserts what the flag means and what it steers — the four rows are the
+three drift rows plus `agi-survival-conf`, none of them is in `LIVE`, `LIVE` is the
+rest, and each renders an `OOMPolicy=` line. It asserts NEITHER presence NOR
+absence of a live counterpart, so it stays honest on a box that has none.
+
+## Evidence
+
+```
+$ ls <user systemd dir>/*.service.d/     # 10-agi-survival.conf present for
+                                         # streamer-stub, streamer-stub-watch,
+                                         # claude-remote-control
+$ ls /etc/systemd/system/10-agi-survival.conf
+ls: cannot access ...: No such file or directory
+
+$ timeout 600 python3 -m pytest extensions/agi/tests/test_boxkit_templates.py -q --basetemp=/tmp/dh451
+177 passed in 0.44s
+
+$ ... -k "new_bytes or no_cascade_drop_in" -v
+4 passed, 173 deselected          # test 9 + all three no-cascade drop-ins COMPARED, 0 skipped
+
+$ git diff --numstat -- <production paths>
+1  extensions/agi/boxkit/templates/manifest.json     # production lines: 1 (node + test excluded)
+
+$ python3 extensions/agi/bin/anonymize.py check --text "<round diff>"
+anonymize: ok — no box-derived physical token in 12398 bytes
+```
+
+`test 10b` did not skip: all three drop-ins have live bytes here, so the named
+header drift is asserted, not skipped away. That is the direct check of residue 1
+— the same three files the DH.438 node called absent.
+
+## Reading
+
+The flag had drifted into meaning two different things because the kit grew a row
+kind that did not exist when the flag was written: `agi-survival-conf` (authored
+here, not installed here) and the three no-cascade drop-ins (authored here AND
+installed here, with the owner survival header the kit's template does not
+reproduce). One flag cannot say both, and the false half was load-bearing: test 9
+asserted `not destination(...).exists()`, which is exactly what a reviewer read as
+"the units are not on this box". Collapsing the flag to "new to the kit" keeps
+every assertion the suite already made and removes the one that lied; the
+kit-vs-box question that the old test 9 pretended to answer is now asked where the
+bytes are, in 10b, per unit, by name.
+
+## Production lines
+
+1 (manifest.json, the `new_bytes_means` line). The node wording edit and the test
+file are excluded from the count. Under the 40-line ceiling; no re-brief needed.
+
+## THOUGHT
+
+Repairing this node's own words cost more than the code change. `write.py`'s
+`replace body N:M` counts lines against a body that ENDS before the
+`<!-- THOUGHT -->` region, so my first two replaces landed inside that region and
+transposed a paragraph of the parent's review; the anchor guards caught the
+mis-offset on the third attempt and I finished with a direct edit of the node file.
+Lesson for the next kid on a node that carries a THOUGHT region: the body you can
+address with `read`/`replace` is not the file you are looking at — read the file,
+or use the edit tool, and diff the node afterwards.
+
+## Agent Notes
+new_bytes collapsed to one meaning (new to the kit: authored here, not copied from an installed file): manifest gains new_bytes_means, test docstring items 9/10, the LIVE comment, test 9 renamed to test_new_bytes_rows_are_flagged_and_excluded_from_the_live_comparison, test 10b docstring; the DH.438 node's probe 5 and parent-review line no longer claim the no-cascade units are absent here (the three <unit>.service.d/10-agi-survival.conf drop-ins are installed under the user systemd dir) and its false THOUGHT clause is withdrawn in place; 177 passed, 0 skips in the no-cascade comparison
+
+PARENT REVIEW DH.451 (a00-5712dd56): ACCEPTED as proved. I read the changed bytes, not the result file: manifest.json line 2 carries new_bytes_means with the single meaning "new to the kit"; the four new_bytes:true rows are unchanged and correct under it; test docstring items 9/10, the LIVE comment (line 126-130), test 9 renamed to test_new_bytes_rows_are_flagged_and_excluded_from_the_live_counterpart... now _flagged_and_excluded_from_the_live_comparison, and the 10b docstring all agree; experiment:a00-f787eff3-1c3774 line 124 withdraws the two false statements in place (probe-5 observed line 19 and THOUGHT (3) line 117) and says "under the user systemd dir" -- no host name, no home path. MECHANISM: (1) the orders said make the rows, the docstring, test 9 NAME and assertion, and 10b agree on ONE meaning; (2) the machine does: test 9 now asserts the flag steers the falsifier LIVE set and asserts NEITHER presence nor absence of a live counterpart, and 10b is the test that asks the kit-vs-box question per unit by name -- I confirmed 10b runs 3 compared, 0 skipped, on a box where the drop-ins DO exist; (3) THE NEAR MISS: satisfying the words by DELETING test 9s live-counterpart assertion and renaming the test would have made the suite green while the flag kept steering LIVE with a meaning nobody had checked -- the manifest rows themselves would have been left to carry a meaning that no test reads. This kid instead restated the flag in the manifest (a cell a reader can check) and kept the falsification in 10b, where the live bytes are. (4) DEVIATION, named: the kids own THOUGHT records a direct edit of a node FILE, outside write.py, after two write.py replace body offsets landed inside the THOUGHT region. The bytes landed and write-log.jsonl carries the three update_node shas for a00-f787eff3-1c3774, so the edit is attributed, but the route was unsanctioned -- a real cost the next kid on a node carrying a THOUGHT will pay again. No rebrief_request outstanding. No residue open on this round.
+
+CORRECTION to the review line above, where I mangled the test-9 rename: the name is test_new_bytes_rows_are_flagged_and_excluded_from_the_live_comparison, and the old name was test_new_bytes_row_is_flagged_and_has_no_live_counterpart. Nothing else in the review changes.

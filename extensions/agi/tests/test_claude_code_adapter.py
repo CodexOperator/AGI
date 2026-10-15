@@ -328,9 +328,9 @@ def test_tools_are_a_closed_list_with_no_agent_and_git_writes_are_refused(rig):
     for verb in ("commit", "add", "push", "stash", "checkout", "reset", "rm"):
         assert f"Bash(git {verb}:*)" in denied, verb
     # goal:s34 item 10: HANDOFF.md writes, CLAUDE.md writes, dispatch.py runs
-    assert "Bash(*HANDOFF.md:*)" in denied, "HANDOFF.md writes must be disallowed"
-    assert "Bash(*CLAUDE.md:*)" in denied, "CLAUDE.md writes must be disallowed"
-    assert "Bash(*dispatch.py:*)" in denied, "dispatch.py runs must be disallowed"
+    assert "Bash(*HANDOFF.md*)" in denied, "HANDOFF.md writes must be disallowed"
+    assert "Bash(*CLAUDE.md*)" in denied, "CLAUDE.md writes must be disallowed"
+    assert "Bash(*dispatch.py*)" in denied, "dispatch.py runs must be disallowed"
 
 
 def test_tool_lists_come_from_config_when_declared(rig):
@@ -367,8 +367,8 @@ def test_kid_with_role_keeps_the_full_default_block_list(rig):
     denied = variadic_values(args, "--disallowedTools")
     for t in ("Workflow", "Agent", "ToolSearch", "Monitor", "TaskOutput", "TaskStop"):
         assert t not in tools, t
-    assert "Bash(*dispatch.py:*)" in denied
-    for rule in ("Bash(git commit:*)", "Bash(*HANDOFF.md:*)", "Bash(*CLAUDE.md:*)"):
+    assert "Bash(*dispatch.py*)" in denied
+    for rule in ("Bash(git commit:*)", "Bash(*HANDOFF.md*)", "Bash(*CLAUDE.md*)"):
         assert rule in denied, rule
 
 
@@ -392,13 +392,13 @@ def test_advisor_parent_at_tier3_adds_ultracode_tools(rig):
 
 def test_advisor_parent_at_tier3_drops_dispatch_rule_but_keeps_others(rig):
     blk = _advisor_tools(rig)
-    assert "Bash(*dispatch.py:*)" not in blk["denied"]
+    assert "Bash(*dispatch.py*)" not in blk["denied"]
     # rotate.py / send.py / season.py never blocked by the defaults anyway
     assert not any("rotate.py" in r or "send.py" in r or "season.py" in r
                    for r in blk["denied"])
     # git verbs and the handoff files stay refused below the prime
     for rule in ("Bash(git commit:*)", "Bash(git add:*)",
-                 "Bash(*HANDOFF.md:*)", "Bash(*CLAUDE.md:*)"):
+                 "Bash(*HANDOFF.md*)", "Bash(*CLAUDE.md*)"):
         assert rule in blk["denied"], rule
 
 
@@ -411,7 +411,7 @@ def test_director_at_tier1_gets_the_same_tools_as_advisor(rig):
     denied = variadic_values(args, "--disallowedTools")
     for t in ("Workflow", "Agent", "ToolSearch", "Monitor", "TaskOutput", "TaskStop"):
         assert t in tools, t
-    assert "Bash(*dispatch.py:*)" not in denied
+    assert "Bash(*dispatch.py*)" not in denied
     assert "Bash(git push:*)" in denied
 
 
@@ -420,7 +420,7 @@ def test_privileged_only_for_the_exact_role_and_tier(rig):
     args = build(rig, "parent", role="parent", ladder_tier=2,
                  scaffold=None, target="vision:alive")
     assert "Workflow" not in variadic_values(args, "--tools")
-    assert "Bash(*dispatch.py:*)" in variadic_values(args, "--disallowedTools")
+    assert "Bash(*dispatch.py*)" in variadic_values(args, "--disallowedTools")
 
 
 def test_no_role_given_keeps_todays_behaviour(rig):
@@ -429,7 +429,7 @@ def test_no_role_given_keeps_todays_behaviour(rig):
     unchanged."""
     args = build(rig, "parent", scaffold=None, target="vision:alive")
     assert "Workflow" not in variadic_values(args, "--tools")
-    assert "Bash(*dispatch.py:*)" in variadic_values(args, "--disallowedTools")
+    assert "Bash(*dispatch.py*)" in variadic_values(args, "--disallowedTools")
 
 
 def test_per_role_config_override_wins_over_flat_and_default(rig):
@@ -576,6 +576,55 @@ def test_record_session_pin_derives_transcript_then_meter_reads_it(monkeypatch, 
     assert "source=claude-code transcript (pinned)" in out
 
 
+def test_record_session_pin_agi_post_wins_over_agi_seat(monkeypatch, tmp_path):
+    """Both AGI_POST and AGI_SEAT set: the meter pin is keyed by AGI_POST (the
+    primary spelling), never the deprecated AGI_SEAT value
+    (hypothesis:l4-a-seat-is-a-post-everywhere)."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from adapters import claude_code_adapter as cc
+
+    graph = tmp_path / ".agi"
+    graph.mkdir(parents=True, exist_ok=True)
+    (graph / "config.json").write_text("{}")
+    sess = graph / "sessions" / "iter-001" / "a00-posttest"
+    sess.mkdir(parents=True)
+    logf = sess / "output.log"
+    logf.write_text('{"type":"assistant","session_id":"own-sess-p","message":{"role":"assistant","usage":{"input_tokens":1}}}\n')
+
+    monkeypatch.setenv("AGI_POST", "new-post")
+    monkeypatch.setenv("AGI_SEAT", "legacy-seat")
+
+    pin = cc.record_session_pin(sess_dir=sess, agent_id="a00-posttest",
+                                cwd=str(tmp_path), log_file=logf)
+    assert pin is not None and pin.exists()
+    # pin keyed by AGI_POST (new-post), not AGI_SEAT (legacy-seat)
+    assert (graph / "sessions" / "new-post.meter").exists()
+    assert not (graph / "sessions" / "legacy-seat.meter").exists()
+
+
+def test_record_session_pin_agi_seat_only_is_legacy_fallback(monkeypatch, tmp_path):
+    """Only AGI_SEAT set: the deprecated spelling still keys the pin, so an
+    existing env that never sets AGI_POST keeps working this season."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from adapters import claude_code_adapter as cc
+
+    graph = tmp_path / ".agi"
+    graph.mkdir(parents=True, exist_ok=True)
+    (graph / "config.json").write_text("{}")
+    sess = graph / "sessions" / "iter-001" / "a00-seatonly"
+    sess.mkdir(parents=True)
+    logf = sess / "output.log"
+    logf.write_text('{"type":"assistant","session_id":"own-sess-s","message":{"role":"assistant","usage":{"input_tokens":1}}}\n')
+
+    monkeypatch.setenv("AGI_SEAT", "legacy-seat")
+    monkeypatch.delenv("AGI_POST", raising=False)
+
+    pin = cc.record_session_pin(sess_dir=sess, agent_id="a00-seatonly",
+                                cwd=str(tmp_path), log_file=logf)
+    assert pin is not None and pin.exists()
+    assert (graph / "sessions" / "legacy-seat.meter").exists()
+
+
 # --- hypothesis:l3-cc-adapter-zombie-lease: session-limit + reaping ---------
 
 
@@ -655,3 +704,19 @@ def test_finished_child_leaves_no_zombie_not_a_real_spawn():
 def test_is_alive_still_true_for_a_live_pid():
     from adapters import claude_code_adapter as cc
     assert cc.is_alive(os.getpid()) is True
+
+
+@pytest.mark.parametrize("role,ladder_tier", [
+    ("kid", None), ("parent", 0), ("parent", 3), ("director", 1),
+])
+def test_no_deny_rule_mixes_a_glob_with_the_prefix_form(role, ladder_tier):
+    """goal:g4.6.1 -- Claude Code reads `Bash(*X:*)` as a LITERAL prefix (its own
+    warning: "mixes * with the trailing :* prefix syntax ... will likely never
+    match"), so the three s34 item-10 rules never fired. A rule is either the
+    pure prefix form `Bash(cmd:*)` or a `*` glob with no `:*` tail."""
+    from adapters import claude_code_adapter as cc
+    _, _, denied = cc._resolved_tools({}, role=role, ladder_tier=ladder_tier)
+    for rule in denied:
+        inner = rule[len("Bash("):-1] if rule.startswith("Bash(") else ""
+        if inner.endswith(":*"):
+            assert "*" not in inner[:-2], rule

@@ -11,17 +11,21 @@ Subcommands:
   rollover [--dry-run]            — print or perform season N+1 rollover
     [--visions-from <dir|file>]   — vision bodies verbatim (owner text + gloss)
     [--name <name>]               — name season 1 in the ladder's season_names
-    [--branch]                    — git checkout -b season/s<N> after the write
+    [--branch]                    — git checkout -b season<N>/main after the write
     [--allow-unjudged]            — bypass the unjudged-overview stage gate
   retag                           — backfill the season stamp
   merge-up <branch>               — --no-ff merge a loop branch into its recorded
                                     base branch, suite-green gate, worktree removed
+  merge-kids <kidbranch>...        — --no-ff merge kid branches into the current
+                                    branch, union-resolving node conflicts, stop on SOURCE
 """
 from __future__ import annotations
 
 import argparse
+import datetime
 import json
 import os
+import re
 import subprocess
 import sys
 from collections import Counter
@@ -31,7 +35,21 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
+import branches  # noqa: E402
+import geometry_config  # noqa: E402
 from graph_core.persistence import frontmatter  # noqa: E402
+from frontmatter import split_frontmatter  # noqa: E402
+
+# hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — the per-town
+# vision counting is ONE shared helper in spawn_gate.py that both the season
+# status/rollover and the spawn gate call (no second copy of the rule).
+from spawn_gate import (  # noqa: E402
+    count_visions_per_town,
+    vision_cap as spawn_vision_cap,
+    vision_remaining_for_town,
+    vision_scope as spawn_vision_scope,
+    vision_town_of,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -321,6 +339,23 @@ def cmd_status(root: Path, args) -> int:
     print(f"  long-term: 21 (4 active) / bigger_outcome: 19 → ~1.0")
     print(f"  vision: 17 / overview: 0")
 
+    # Per-town vision counts (hypothesis:l4-towns-each-app-is-a-vision-with-
+    # its-own-council): when the ladder declares caps_vision_scope: town, the
+    # season shows each town's vision count against its cap. Towns come from
+    # the graph (a vision's `town:` cell, default core) — no literal name.
+    nodes_dir = Path(root) / "nodes"
+    scope = spawn_vision_scope(nodes_dir)
+    if scope == "town":
+        per_town = count_visions_per_town(nodes_dir)
+        cap = spawn_vision_cap(nodes_dir)
+        print()
+        print(f"Visions by town (scope: {scope}, cap {cap}/town):")
+        for town in sorted(per_town):
+            n = per_town[town]
+            rem = vision_remaining_for_town(nodes_dir, town, counts=per_town)
+            print(f"  {town}: {n}  (room for {rem} more)")
+        print()
+
     return 0
 
 
@@ -382,7 +417,9 @@ def cmd_judge(root: Path, args) -> int:
 
     report_nf = frontmatter.load_node_file(report_path)
     report_type = str(report_nf.frontmatter.get("type", ""))
-    report_parents = report_nf.frontmatter.get("parents", [])
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.2: parents through the one resolver)
+    _r = links.address_resolver(root)
+    report_parents = [_r(str(p)) or p for p in (report_nf.frontmatter.get("parents") or [])]
 
     # Validate this is a known report type
     if report_type not in report_types:
@@ -444,7 +481,7 @@ def cmd_judge(root: Path, args) -> int:
     lens_id = ""
     if plan_path:
         plan_nf = frontmatter.load_node_file(plan_path)
-        plan_parents = plan_nf.frontmatter.get("parents", [])
+        plan_parents = [_r(str(p)) or p for p in (plan_nf.frontmatter.get("parents") or [])]
         # The lens is the plan node's own first goal or vision parent
         for pid in plan_parents:
             pid_str = str(pid)
@@ -769,6 +806,16 @@ def _load_vision_sources(arg: str) -> list[dict]:
         text = fp.read_text(encoding="utf-8")
         lines = text.splitlines()
         title = fp.stem
+        town = "core"
+        # A `town:` cell in the source's frontmatter (if any) decides which
+        # town the vision belongs to; default core. hypothesis:l4-towns-...
+        if text.startswith("---"):
+            parted = split_frontmatter(text)
+            if parted is not None:
+                import re
+                m = re.search(r"^town:\s*(\S+)", parted[0], re.M)
+                if m:
+                    town = m.group(1)
         i = 0
         while i < len(lines) and not lines[i].strip():
             i += 1
@@ -779,7 +826,7 @@ def _load_vision_sources(arg: str) -> list[dict]:
                 i += 1
         body = "\n".join(lines[i:]).strip("\n")
         sources.append({"file": str(fp), "slug": fp.stem,
-                        "title": title, "body": body})
+                        "title": title, "body": body, "town": town})
     return sources
 
 
@@ -794,6 +841,7 @@ def _mint_vision(root: Path, source: dict, season_overviews: list[str],
         "season_parents": list(season_overviews),
         "proposes_goals": [],
         "moral_adherence": moral_adherence,
+        "town": source.get("town") or "core",
         "status": "open",
         "tags": ["vision", "rollover"],
         "edited_by": "owner",
@@ -822,9 +870,9 @@ def cmd_rollover(root: Path, args) -> int:
         **verbatim** from the owner text (text + gloss); `--actor owner`;
       * `--name <name>` names the CURRENT season in the ladder's
         `season_names` through write.py (e.g. `genesis`);
-      * `--branch` opens `season/s<new>` with `git checkout -b` after the
+      * `--branch` opens `season<N>/main` with `git checkout -b` after the
         graph writes, then prints the next commands — never pushes;
-      * `--branch` opens `season/s<new>` with `git checkout -b` after the
+      * `--branch` opens `season<N>/main` with `git checkout -b` after the
         graph writes, then prints the next commands — never pushes;
       * a stage gate (brief 2.9) refuses the rollover while any season-current
         overview lacks a judgment unless `--allow-unjudged` is given,
@@ -834,6 +882,13 @@ def cmd_rollover(root: Path, args) -> int:
     season_parents, actor), every ladder field it would set, and the branch
     step — and changes nothing.
     """
+    if getattr(args, "global_rollover", False):
+        return cmd_rollover_global(root, args)
+    if getattr(args, "align", False):
+        return cmd_rollover_align(root, args)
+    if (getattr(args, "town", "") or "").strip():
+        print("REFUSED: --town needs --align or --global — a town never rolls alone", file=sys.stderr)
+        return 1
     dry_run = bool(getattr(args, "dry_run_explicit", False)
                    or getattr(args, "dry_run", False))
     allow_unjudged = bool(getattr(args, "allow_unjudged", False))
@@ -885,6 +940,7 @@ def cmd_rollover(root: Path, args) -> int:
                 continue
             print(f"  MINT {nid}")
             print(f"    title: {s['title']}")
+            print(f"    town: {s.get('town') or 'core'}")
             print(f"    parents: {', '.join(MORALS)}")
             print(f"    season_parents: {', '.join(season_overviews) or '(none)'}")
             print("    actor: owner")
@@ -907,6 +963,28 @@ def cmd_rollover(root: Path, args) -> int:
             print(f"    each parents: {', '.join(MORALS)}")
             print(f"    each season_parents: {', '.join(season_overviews) or '(none)'}")
             print("    each actor: owner")
+    # Per-town gate note (hypothesis:l4-towns-...): when the ladder declares
+    # caps_vision_scope: town, each town is capped independently at
+    # caps.vision; the mint refuses a town already at its cap.
+    nodes_dir = Path(root) / "nodes"
+    if spawn_vision_scope(nodes_dir) == "town":
+        # hypothesis:l4-rollover-counts-visions-after-the-ladder-bump -- the
+        # count must reflect the season being ENTERED (new_season), not the
+        # ladder's still-current season. The ladder is not bumped until later;
+        # a count scoped to current_season would read a full old season's 3
+        # visions and REFUSE every new vision at the gate below.
+        per_town = count_visions_per_town(nodes_dir, season=new_season)
+        cap = spawn_vision_cap(nodes_dir)
+        print(f"  per-town cap: {cap}/town (scope town, season {new_season})")
+        # Show every declared town (plus any with scoped visions), so a town
+        # sitting full in the OLD season but empty in the NEW prints a 0 and
+        # remains OK rather than vanishing from the rehearsal.
+        declared = ladder_fm.get("towns") or []
+        shown = [t for t in declared if isinstance(t, str)] or list(per_town)
+        for town in sorted(set(shown) | set(per_town)):
+            rem = vision_remaining_for_town(nodes_dir, town, counts=per_town)
+            flag = "OK" if rem > 0 else "AT CAP — mint refused"
+            print(f"    {town}: {per_town.get(town, 0)} ({flag})")
     print()
 
     # ---- Ladder fields (through write.py).
@@ -917,7 +995,7 @@ def cmd_rollover(root: Path, args) -> int:
     print()
 
     # ---- Branch step (never pushes).
-    branch_name = f"season/s{new_season}"
+    branch_name = branches.season_main(new_season)
     if want_branch:
         print(f"Branch: git checkout -b {branch_name} (never pushes)")
 
@@ -935,20 +1013,37 @@ def cmd_rollover(root: Path, args) -> int:
         if visions_from:
             from node_writer import WRITTEN, SKIPPED, REJECTED
             sources = _load_vision_sources(visions_from)
+            nodes_dir = Path(root) / "nodes"
+            town_mode = spawn_vision_scope(nodes_dir) == "town"
+            per_town = (count_visions_per_town(nodes_dir, season=new_season)
+                        if town_mode else {})
             minted = 0
+            refused = 0
             for s in sources:
                 nid = f"vision:{s['slug']}"
                 if nid in existing_new:
                     continue
+                town = s.get("town") or "core"
+                # Per-town cap gate (hypothesis:l4-towns-...): a town already
+                # at caps.vision refuses another vision of the same town.
+                if town_mode and vision_remaining_for_town(
+                        nodes_dir, town, counts=per_town) <= 0:
+                    print(f"REFUSE {nid} — town '{town}' is at its cap of "
+                          f"{spawn_vision_cap(nodes_dir)} visions (scope town)")
+                    refused += 1
+                    continue
                 res = _mint_vision(root, s, season_overviews, new_season)
                 if res.status in (WRITTEN,):
-                    print(f"minted {nid} (parents: {len(MORALS)} morals, "
-                          f"season_parents: {len(season_overviews)} overviews, actor owner)")
+                    print(f"minted {nid} (town {town}; parents: {len(MORALS)} "
+                          f"morals, season_parents: {len(season_overviews)} "
+                          f"overviews, actor owner)")
                     minted += 1
+                    if town_mode:
+                        per_town[town] = per_town.get(town, 0) + 1
                 else:
                     print(f"ERR: {nid} not minted ({res.status}: {res.reason})",
                           file=sys.stderr)
-            if not minted:
+            if not minted and not refused:
                 print("no new visions minted (all already exist or files missing)")
     finally:
         if old_env_season is None:
@@ -991,8 +1086,245 @@ def cmd_rollover(root: Path, args) -> int:
     print("  * the three advisors each take a vision")
     print("  * perpetual directors bootstrap their goals and hang each under its vision")
 
+# ALIGN (owner 2026-09-18 02:2xZ): ONE season for every town. Dry by default,
+# --apply performs, --delete-old gates every origin delete; each step is
+# VERIFIED before the next and a failure STOPS by name with the cell unwritten
+ARCHIVE_NS = "refs/agi/archive"
+
+def _heads(repo) -> list:
+    return [l for l in _git(repo, "ls-remote", "--heads", "origin").stdout.splitlines() if l.strip()]
+
+def _stop(step: int, name: str, detail: str) -> int:
+    print(f"STOP at step {step}: {name} — {detail}", file=sys.stderr); return 1
+
+def _cut(repo, old, new, apply, tag):
+    """CUT: push the old tip under the new name. RESUME when the new name is
+    already at the old tip (or the old head is gone); a different sha is
+    refused by name. Returns (rc, old_tip_sha)."""
+    import cli
+    R, st = "refs/heads/", cli._post_rename_remote_ref_state_sha
+    state, sha = st(repo, R + old); ns, nsha = st(repo, R + new)
+    if state == "failed":
+        return _stop(1, "cut", f"origin/{old} unreadable"), ""
+    if state == "absent":
+        if ns != "present":
+            return _stop(1, "cut", f"origin/{old} absent and {new} absent — nothing to cut"), ""
+        print(f"[{tag}] 1 CUT {R}{new} <- {nsha[:12]} (RESUME: old head already gone)")
+        return 0, nsha
+    if ns == "present" and nsha != sha:
+        return _stop(1, "cut", f"origin/{new} exists at {nsha[:12]} != {sha[:12]} — refusing to overwrite"), ""
+    print(f"[{tag}] 1 CUT {R}{new} <- {sha[:12]}" + (" (RESUME: new name already at old tip)" if ns == "present" else ""))
+    if apply and ns != "present":
+        ok, detail, _ = branches.mirror_and_prove(repo, R + new, tip=sha, label="cut")
+        if not ok:
+            return _stop(1, "cut", detail), ""
+    return 0, sha
+
+
+def _fold(repo, head, old, sha, apply, tag, step):
+    """FOLD: git merge --no-ff the old trunk into its ladder head. ADD-ONLY:
+    the push must be a fast-forward of the current head, a fold that would
+    fast-forward is refused by name, and the merge commit is proved TWO-parent."""
+    import cli, tempfile
+    state, htip = cli._post_rename_remote_ref_state_sha(repo, f"refs/heads/{head}")
+    if state != "present":
+        return _stop(step, "fold", f"ladder head {head} is {state} on origin")
+
+    def anc(a, b):
+        return _git(repo, "merge-base", "--is-ancestor", a, b).returncode == 0
+
+    if anc(sha, htip):
+        print(f"[{tag}] {step} FOLD {old} -> {head} (RESUME: already folded)")
+        return 0
+    if anc(htip, sha):
+        return _stop(step, "fold", f"{head} is an ancestor of {old} — would fast-forward, refused by name")
+    print(f"[{tag}] {step} FOLD {old} -> {head} (merge --no-ff)")
+    if not apply:
+        return 0
+    wt = Path(tempfile.mkdtemp(prefix="rollover-fold-"))
+    try:
+        a = _git(repo, "worktree", "add", "--detach", "-q", str(wt), htip)
+        if a.returncode:
+            return _stop(step, "fold", f"worktree add: {a.stderr.strip()}")
+        m = subprocess.run(["git", "-C", str(wt), "merge", "--no-ff", "-q", "-m",
+                            f"rollover: fold {old} into {head}", sha],
+                           capture_output=True, text=True)
+        if m.returncode:
+            return _stop(step, "fold", f"merge: {(m.stderr or m.stdout).strip()}")
+        nsha = _git(wt, "rev-parse", "HEAD").stdout.strip()
+        par = _git(repo, "rev-list", "--parents", "-n1", nsha).stdout.split()
+        if len(par) != 3:
+            return _stop(step, "fold", f"merge commit {nsha[:12]} has {len(par)-1} parents, expected 2")
+        p = _git(repo, "push", "origin", f"{nsha}:refs/heads/{head}")
+        if p.returncode:
+            return _stop(step, "fold", f"push: {p.stderr.strip()}")
+    finally:
+        _git(repo, "worktree", "remove", "--force", str(wt))
     return 0
 
+
+def _archive_delete_cell(root, repo, old, new, sha, cell_id, m, g, history,
+                         apply, delete_old, actor, session, tag, base=2,
+                         cell_field="season", defer=None):
+    """ARCHIVE -> DELETE -> CELL for one trunk. The delete is only with
+    --delete-old and only after the archive ref is proved; the cell bump is
+    gated on the old head being proved GONE from origin. With `defer` (a list)
+    the cell is NOT written here: the descriptor is collected and the caller
+    writes every cell in a second pass, only after ALL trunks verified -- a
+    partial rollover must bump no cell anywhere."""
+    import cli
+    R, st = "refs/heads/", cli._post_rename_remote_ref_state_sha
+    a, d = base, base + 1
+    print(f"[{tag}] {a} ARCHIVE {ARCHIVE_NS}/{old} <- {sha[:12]}")
+    if apply:
+        ok, detail, _ = branches.mirror_and_prove(repo, f"{ARCHIVE_NS}/{old}", tip=sha, label="archive")
+        if not ok:
+            return _stop(a, "archive", detail)
+    if delete_old:
+        if st(repo, R + old)[0] == "absent":
+            print(f"[{tag}] {d} DELETE origin/{old} — already absent (RESUME)")
+        else:
+            print(f"[{tag}] {d} DELETE origin/{old} (containment {R}{new})")
+            if apply:
+                cs, tgt, gsha = cli._rs_containment_state(repo, old, [R + new])
+                if cs != "contained":
+                    return _stop(d, "delete", f"containment {cs} in {tgt or '(none)'}")
+                rc, err = cli._rs_lease_delete(repo, old, gsha)
+                if rc or st(repo, R + old)[0] != "absent":
+                    return _stop(d, "delete", err or f"verify {st(repo, R + old)[0]}")
+    if delete_old and st(repo, R + old)[0] == "absent":
+        now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        hist = [h for h in (history or []) if isinstance(h, dict)] + [
+            {"season": g, "global_season": g, "opened": now, "closed": None}]
+        if defer is not None:
+            defer.append((cell_id, m, g, hist, cell_field))
+            print(f"[{tag}] {d + 1} CELL DEFERRED {cell_id} {m} -> {g} (written only after every trunk verifies)")
+        else:
+            fm = ({"season": g, "season_history": json.dumps(hist)}
+                  if cell_field == "season" else {cell_field: g})
+            print(f"[{tag}] {d + 1} CELL {cell_id} {m} -> {g}")
+            if apply and _shell_out_write(root, cell_id, actor=actor, session=session, set_fm=fm):
+                return _stop(d + 1, "cell", "write.py refused (see stderr above)")
+    else:
+        print(f"[{tag}] {d + 1} CELL HELD {cell_id} stays {m} — old head {old} remains on origin (bump gated on the verified delete)")
+    return 0
+
+
+def _align_town(root, repo, slug, m, g, history, apply, delete_old, actor, session):
+    """Six verified steps aligning one town to the global season."""
+    old = branches.derive_names(slug, m)["town_season_main"]
+    new = branches.derive_names(slug, g)["town_season_main"]
+    tag, n0 = ("APPLY" if apply else "DRY  "), len(_heads(repo))
+    rc, sha = _cut(repo, old, new, apply, tag)
+    if rc:
+        return rc
+    if _archive_delete_cell(root, repo, old, new, sha, f"town:{slug}", m, g, history,
+                            apply, delete_old, actor, session, tag):
+        return 1
+    if apply and _git(repo, "rev-parse", "--verify", "--quiet", "refs/heads/" + old).stdout.strip():
+        print(f"[{tag}] 5 WORKTREE git branch -m {old} {new} (HEAD unchanged)")
+        if _git(repo, "branch", "-m", old, new).returncode:
+            return _stop(5, "worktree", "git branch -m refused")
+    print(f"[{tag}] 6 HEADS {n0} -> {len(_heads(repo))}")
+    return 0
+
+def cmd_rollover_align(root: Path, args) -> int:
+    """Every town's season cell and trunk -> the global season (SKIPs by name)."""
+    import towns
+    apply, delete_old = bool(args.align_apply), bool(args.delete_old)
+    town, actor = (args.town or "").strip(), args.actor or "season.py"
+    try: by = {t.slug: t for t in towns.load_towns(root)}
+    except Exception as exc: print(f"ERR: {exc}", file=sys.stderr); return 1
+    if town and town not in by: print(f"REFUSED: --town {town!r} is not a declared town", file=sys.stderr); return 1
+    g, repo = _get_current_season(root), _find_git_root(root)
+    if repo is None: print("ERR: no git repo found for align", file=sys.stderr); return 1
+    todo = [by[town]] if town else sorted(by.values(), key=lambda t: t.slug)
+    print(f"Align: one season for every town (global G={g})")
+    print("[DRY RUN — no changes will be written]" if not apply else "[REAL RUN]")
+    for t in todo:
+        if t.season == g:
+            print(f"SKIP town:{t.slug} — season {t.season} already == G"); continue
+        print(f"town:{t.slug}: season {t.season} -> {g}")
+        if _align_town(root, repo, t.slug, t.season, g, t.season_history,
+                       apply, delete_old, actor, args.session or "season"):
+            return 1  # the failing step named itself; nothing further performed
+    if not apply: print("dry-run: nothing changed")
+    return 0
+
+
+def _preflight_cells(root: Path, cells: list, actor: str) -> int:
+    """PASS 0 (SM.106 auth defect): reach the SAME written_by admission rule
+    write.py enforces, once per cell, BEFORE any step is performed -- so a run
+    whose default actor would be refused at the deferred cell pass refuses by
+    name with NOTHING done, instead of pushing every origin ref and then
+    leaving the ladder and town cells disagreeing. Returns 0 when every cell
+    admits, 1 on the first refusal (already printed)."""
+    import write as _w
+    for cell_id, field, value in cells:
+        decision = {}
+        try:
+            _w._enforce_written_by(
+                root, cell_id.split(":", 1)[0], actor, cell_id, "",
+                set_fm={field: value}, allow_self_row=True,
+                out_decision=decision, preview=True)
+        except Exception as exc:  # noqa: BLE001  (a broken gate refuses, never admits)
+            decision["refusal"] = f"{exc}"
+        if decision.get("refusal"):
+            print(f"REFUSED: {decision['refusal']}", file=sys.stderr)
+            return 1
+    return 0
+
+
+def cmd_rollover_global(root: Path, args) -> int:
+    """GLOBAL rollover G -> G+1: the global trunk AND every town trunk in ONE
+    command (cut, fold --no-ff into the ladder head, archive, delete-old, cell,
+    heads +0); a town never rolls alone."""
+    import towns
+    apply, delete_old = bool(args.align_apply), bool(args.delete_old)
+    if (args.town or "").strip():
+        print("REFUSED: --town with --global — a town never rolls alone", file=sys.stderr); return 1
+    actor, session = args.actor or "season.py", args.session or "season"
+    g, ng, repo = _get_current_season(root), _get_current_season(root) + 1, _find_git_root(root)
+    if repo is None: print("ERR: no git repo found for rollover", file=sys.stderr); return 1
+    try: declared = sorted(towns.load_towns(root), key=lambda t: t.slug)
+    except Exception as exc: print(f"ERR: {exc}", file=sys.stderr); return 1
+    misaligned = [t.slug for t in declared if t.season != g]
+    if misaligned:
+        print(f"REFUSED: town(s) {', '.join(misaligned)} not at global season {g} — align first", file=sys.stderr); return 1
+    tag, n0 = ("APPLY" if apply else "DRY  "), len(_heads(repo))
+    print(f"Rollover: season {g} → {ng} (global; {len(declared)} town(s))")
+    print("[DRY RUN — no changes will be written]" if not apply else "[REAL RUN]")
+    trunks = [(None, "ladder:ladder", None)] + [(t.slug, f"town:{t.slug}", t.season_history) for t in declared]
+    # A cell write happens ONLY with --delete-old (without it every cell is HELD),
+    # so admission is owed only then: a no-delete run must not be pre-flighted.
+    if apply and delete_old:
+        cells = [(cell_id, "current_season" if slug is None else "season", ng)
+                 for slug, cell_id, _h in trunks]
+        if _preflight_cells(root, cells, actor):
+            print("nothing performed", file=sys.stderr)
+            return 1
+    pending = []   # PASS 1 collects cell descriptors; PASS 2 writes them -- only after every trunk verifies
+    for slug, cell_id, history in trunks:
+        old = branches.season_main(g) if slug is None else branches.derive_names(slug, g)["town_season_main"]
+        new = branches.season_main(ng) if slug is None else branches.derive_names(slug, ng)["town_season_main"]
+        head = "master" if slug is None else branches.derive_names(slug, ng)["town_main"]
+        rc, sha = _cut(repo, old, new, apply, tag)
+        if rc: return rc
+        if _fold(repo, head, old, sha, apply, tag, 2): return 1
+        field = "current_season" if slug is None else "season"
+        if _archive_delete_cell(root, repo, old, new, sha, cell_id, g, ng, history,
+                                apply, delete_old, actor, session, tag, base=3,
+                                cell_field=field, defer=pending):
+            return 1
+    # PASS 2: every trunk cut, folded, archived and deleted -- now write every cell.
+    for cell_id, m, gg, hist, cell_field in pending:
+        fm = ({"season": gg, "season_history": json.dumps(hist)}
+              if cell_field == "season" else {cell_field: gg})
+        print(f"[{tag}] 5 CELL {cell_id} {m} -> {gg} (deferred pass; all trunks verified)")
+        if apply and _shell_out_write(root, cell_id, actor=actor, session=session, set_fm=fm):
+            return _stop(5, "cell", f"write.py refused for {cell_id}")
+    print(f"[{tag}] 6 HEADS {n0} -> {len(_heads(repo))}")
+    return 0
 
 # ---------------------------------------------------------------------------
 # merge-up — per-parent branch merge into the recorded base branch
@@ -1042,6 +1374,465 @@ def _recorded_field(record_path: Path | None, key: str) -> str | None:
     return val if isinstance(val, str) and val else None
 
 
+def _resolve_round_town(root: Path, args) -> str | None:
+    """The round being merged up's town, derived (never assumed), or None.
+
+    One shared resolver for the merge-up gate's half A and the merge-up base
+    resolution (one helper, no second copy). Reads, in order: the `--round`
+    node's `town:` cell (stamped at mint), the branch being merged up when it
+    maps to a town (`town_of_branch`, reverse-lookup by exact equality on the
+    opaque `town_branches` value), then the record file's `node_id` town cell.
+    None when none of the three resolves -- fail open, no town claim.
+    """
+    round_id = getattr(args, "round", "") or ""
+    if round_id and ":" in round_id:
+        ntype, _, name = round_id.partition(":")
+        node_file = Path(root) / "nodes" / ntype / f"{name}.md"
+        if node_file.is_file():
+            nf = frontmatter.load_node_file(node_file)
+            rt = nf.frontmatter.get("town")
+            if isinstance(rt, str) and rt.strip():
+                return rt.strip()
+            return "core"
+    from spawn_gate import town_of_branch
+    branch = getattr(args, "branch", "") or ""
+    if branch:
+        t = town_of_branch(Path(root) / "nodes", branch)
+        if t:
+            return t
+    record_path = (Path(args.record).resolve()
+                   if getattr(args, "record", "") else None)
+    rec_node = _recorded_field(record_path, "node_id")
+    if rec_node and ":" in rec_node:
+        ntype, _, name = rec_node.partition(":")
+        node_file = Path(root) / "nodes" / ntype / f"{name}.md"
+        if node_file.is_file():
+            nf = frontmatter.load_node_file(node_file)
+            rt = nf.frontmatter.get("town")
+            if isinstance(rt, str) and rt.strip():
+                return rt.strip()
+            return "core"
+    return None
+
+
+def _town_base(nodes_dir, town: str | None) -> str | None:
+    """The integration branch a round in `town` merges up to, or None.
+
+    Residue 4, season.py half: a round in town T merges up to T's town
+    branch (the opaque `town_branches` value). None when the town is unknown
+    or declares no town branch -- the caller keeps git's resolved base, so a
+    graph with no towns is exactly as it always was.
+    """
+    if not town:
+        return None
+    from spawn_gate import town_integration_branch
+    return town_integration_branch(nodes_dir, town)
+
+
+#: A seat whose `town` cell is `all` is the SHARED/Keep marker, NOT a town
+#: name. config:seats gives the Keep rows (prime, directors, advisors) `all`
+#: because the Keep is shared across every town — only the council seats carry
+#: a specific town. `all` is a bound sentinel, never a literal from the ladder:
+#: towns come from the ladder's `towns:` list (goal:g8.2), and `all` is not one
+#: of them. The gate treats `all` as "serves any town", so a Keep seat never
+#: refuses a merge on town inequality.
+TOWN_ALL = "all"
+
+
+def _merge_up_town_gate(root: Path, args) -> str | None:
+    """Enforce the merge-up town rule, or None to allow the merge.
+
+    hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — a round
+    merges up through the seat of the town that origated it. Both halves are
+    read, never assumed: the round's own `town:` cell (stamped at mint) and
+    the target seat's `town` cell from config:seats. They differ -> a refusal
+    string naming both towns; anything unknowable -> None (fail open, no town
+    claim to enforce). A seat whose `town` is the shared marker `all` serves
+    any town and is never refused.
+    """
+    round_id = getattr(args, "round", "") or ""
+    seat_name = getattr(args, "seat", "") or ""
+    round_town = _resolve_round_town(root, args)
+    # Seat town (half B) -- from --seat/--post, then the exported
+    # AGI_POST env var (the seat name the spawn already carries),
+    # then the seat registry.
+    seat_town = None
+    if not seat_name:
+        seat_name = geometry_config.resolved_seat_env() or ""
+    if seat_name:
+        from spawn_gate import read_seat_registry
+        rows = read_seat_registry(Path(root) / "nodes") or []
+        for r in rows:
+            if str(r.get("name") or "") == seat_name:
+                st = r.get("town")
+                seat_town = (str(st).strip() if isinstance(st, str)
+                             and st.strip() else "core")
+                break
+    if round_town is None or seat_town is None:
+        return None
+    if seat_town == TOWN_ALL:
+        # Keep seat — shared across every town, serves any round's town.
+        return None
+    if round_town == seat_town:
+        return None
+    return (f"REFUSED: round {round_id} is in town `{round_town}` but "
+            f"seat `{seat_name}` belongs to town `{seat_town}` -- a round "
+            "merges up through the seat of the town that originated it")
+
+
+def _verdict_strength(verdict_line: str, confidence_line: str) -> tuple:
+    """A comparable strength tuple for a `verdict:` line + its `confidence:`.
+
+    PURE (testable without git). Rank order: proved/disproved (definitive)
+    beats any inconclusive_* beats pending beats an unknown/empty state; within
+    a rank, the higher `:N` percent then the higher confidence fraction wins.
+    """
+    v = (verdict_line or "").strip()
+    base = v
+    percent = 0
+    if ":" in v:
+        base, _, pct = v.partition(":")
+        try:
+            percent = int(pct.strip())
+        except ValueError:
+            percent = 0
+    base = base.strip()
+    conf = 0.0
+    c = (confidence_line or "").strip()
+    if c:
+        if ":" in c:
+            c = c.partition(":")[2].strip()
+        try:
+            conf = float(c)
+        except ValueError:
+            conf = 0.0
+    if base in ("proved", "disproved"):
+        rank = 3
+    elif base.startswith("inconclusive"):
+        rank = 2
+    elif base == "pending":
+        rank = 1
+    else:
+        rank = 0
+    return (rank, percent, conf)
+
+
+def _higher_confidence_verdict(a: tuple, b: tuple) -> tuple:
+    """Return the (verdict_line, confidence_line) pair that is higher-confidence.
+
+    PURE. `a` is the ours/current side, `b` the theirs/kid side. Tie -> keep
+    `a` (first-seen order, the already-landed current branch wins).
+    """
+    a_v, a_c = a
+    b_v, b_c = b
+    if _verdict_strength(b_v, b_c) > _verdict_strength(a_v, a_c):
+        return (b_v, b_c)
+    return (a_v, a_c)
+
+
+def _conflict_sides(text: str) -> tuple:
+    """Split a conflicted file on git markers into (ours, theirs) full texts.
+
+    Non-conflicting lines belong to both sides; each side's own lines are
+    carried only by that side. PURE.
+    """
+    ours, theirs = [], []
+    state = None  # None | 'ours' | 'theirs'
+    for ln in text.splitlines(keepends=True):
+        s = ln.rstrip("\n")
+        if s.startswith("<<<<<<<"):
+            state = "ours"
+        elif s.startswith("======="):
+            state = "theirs"
+        elif s.startswith(">>>>>>>"):
+            state = None
+        elif state == "ours":
+            ours.append(ln)
+        elif state == "theirs":
+            theirs.append(ln)
+        else:
+            ours.append(ln)
+            theirs.append(ln)
+    return "".join(ours), "".join(theirs)
+
+
+def _agent_notes_block(text: str) -> list:
+    """The lines of the `## Agent Notes` section (to the next heading), or []."""
+    lines = text.splitlines(keepends=True)
+    start = None
+    for i, ln in enumerate(lines):
+        if ln.strip() == "## Agent Notes":
+            start = i
+            break
+    if start is None:
+        return []
+    block = []
+    for ln in lines[start + 1:]:
+        if ln.startswith("#"):
+            break
+        block.append(ln)
+    return block
+
+
+def _union_notes(a_block: list, b_block: list) -> list:
+    """Union of two Agent Notes blocks, dedup by exact line, first-seen order."""
+    seen, out = set(), []
+    for ln in list(a_block) + list(b_block):
+        if ln not in seen:
+            seen.add(ln)
+            out.append(ln)
+    return out
+
+
+def _frontmatter_lines(text: str) -> list:
+    lines = text.splitlines(keepends=True)
+    if lines and lines[0].strip() == "---":
+        for i in range(1, len(lines)):
+            if lines[i].strip() == "---":
+                return lines[1:i]
+    return []
+
+
+def _frontmatter_value(fm_lines: list, key: str) -> str:
+    prefix = key + ":"
+    for ln in fm_lines:
+        s = ln.strip()
+        if s.startswith(prefix):
+            return s[len(key) + 1:].strip()
+    return ""
+
+
+def _resolve_node_conflict(conflicted: str) -> str:
+    """Resolve a conflicted NODE file by UNION of Agent Notes + the
+    higher-confidence verdict line. PURE.
+
+    Never a blind 3-way apply. Start from the ours side, then merge BOTH
+    sides' Agent Notes blocks (dedup, first-seen) and take the
+    higher-confidence verdict/confidence pair.
+    """
+    ours, theirs = _conflict_sides(conflicted)
+    union = _union_notes(_agent_notes_block(ours), _agent_notes_block(theirs))
+    a_p = (_frontmatter_value(_frontmatter_lines(ours), "verdict"),
+           _frontmatter_value(_frontmatter_lines(ours), "confidence"))
+    b_p = (_frontmatter_value(_frontmatter_lines(theirs), "verdict"),
+           _frontmatter_value(_frontmatter_lines(theirs), "confidence"))
+    w_v, w_c = _higher_confidence_verdict(a_p, b_p)
+
+    lines = ours.splitlines(keepends=True)
+    # Patch the verdict/confidence lines inside the frontmatter region only.
+    fm_end = None
+    if lines and lines[0].strip() == "---":
+        for i in range(1, len(lines)):
+            if lines[i].strip() == "---":
+                fm_end = i
+                break
+    if fm_end is not None:
+        for i in range(1, fm_end):
+            s = lines[i].strip()
+            if w_v and s.startswith("verdict:"):
+                lines[i] = f"verdict: {w_v}\n"
+            elif w_c and s.startswith("confidence:"):
+                lines[i] = f"confidence: {w_c}\n"
+    # Replace the Agent Notes block with the union.
+    for i, ln in enumerate(lines):
+        if ln.strip() == "## Agent Notes":
+            end = len(lines)
+            for j in range(i + 1, len(lines)):
+                if lines[j].startswith("#"):
+                    end = j
+                    break
+            if union:
+                new_block = "".join(union)
+                if not new_block.endswith("\n"):
+                    new_block += "\n"
+                lines[i + 1:end] = [new_block]
+            else:
+                lines[i + 1:end] = []
+            break
+    return "".join(lines)
+
+
+NODE_DIR_PREFIX = ".agi/nodes/"
+
+
+def _resolve_conflicted(git_root: Path, branch: str) -> int:
+    """Resolve the currently-conflicted paths of an in-progress merge.
+
+    Every conflicting path being a NODE file -> union-resolve and `git add`
+    each. ANY conflicting path being SOURCE -> stop, leave MERGE_HEAD in
+    place, return non-zero (the parent resolves it as an edit it owns).
+    """
+    conf = _git(git_root, "diff", "--name-only", "--diff-filter=U")
+    if conf.returncode != 0:
+        print("ERR cannot list conflicted paths", file=sys.stderr)
+        return 1
+    paths = [p for p in conf.stdout.splitlines() if p.strip()]
+    if not paths:
+        print(f"ERR merge --no-ff {branch} failed without conflicts",
+              file=sys.stderr)
+        return 1
+    node_paths = [p for p in paths
+                  if p.replace(os.sep, "/").startswith(NODE_DIR_PREFIX)]
+    source_paths = [p for p in paths if p not in node_paths]
+    if source_paths:
+        print(f"REFUSED: SOURCE conflict in {branch} at: "
+              + ", ".join(source_paths), file=sys.stderr)
+        print("merge left in progress (MERGE_HEAD present) -- the parent "
+              "resolves it as an edit it owns and names", file=sys.stderr)
+        return 3
+    for p in node_paths:
+        full = git_root / p
+        resolved = _resolve_node_conflict(full.read_text())
+        full.write_text(resolved)
+        _git(git_root, "add", p)
+    remaining = [p for p in
+                 _git(git_root, "diff", "--name-only",
+                      "--diff-filter=U").stdout.splitlines()
+                 if p.strip()]
+    if remaining:
+        print("REFUSED: unresolved conflicts remain: " + ", ".join(remaining),
+              file=sys.stderr)
+        return 1
+    return 0
+
+
+# hypothesis:l4-merge-kids-stays-in-the-parents-own-worktree — the OWNERSHIP
+# gate shape for `cmd_merge_kids`: the parent's round branch
+# (`loop/<slug>-<agent8>@s<N>`, as cut by `dispatch.loop_branch_name`). Only
+# this shape may be the merge-kids target; anything else (season/s<N>, master,
+# a bare feature branch) means the helper is being run from the wrong place.
+_ROUND_BRANCH_RE = re.compile(r"^loop/.+-[0-9a-fA-F]{8}@s\d+$")
+
+
+def _refuse_untrusted_merge(root: Path, branch: str) -> str | None:
+    """REFUSE merging a branch whose owning config:posts row is 'untrusted'.
+
+    hypothesis:l4-an-untrusted-lane-earns-tier-by-signed-verdicts rung 4
+    conjunct 2 (b) -- the untrusted lane's branch is never merged: the
+    merge-up recipe refuses it by name. The owning row is matched by the
+    branch equalling the untrusted row's `name` or its `worktree` cell.
+    Returns a stderr line naming the tier, or None to admit. Fail-open on an
+    unreadable config -- the ownership/base resolution above this is
+    untouched.
+    """
+    try:
+        rows = geometry_config.load_rows(root)
+    except Exception:  # noqa: BLE001
+        return None
+    for row in rows:
+        if row.get("tier") != "untrusted":
+            continue
+        if (branch == row.get("name")
+                or branch == (row.get("worktree") or "")):
+            return (f"REFUSED: branch {branch!r} belongs to post "
+                    f"{row.get('name')!r} which is untrusted (tier "
+                    f"'untrusted') -- the untrusted lane's branch is never "
+                    f"merged")
+    return None
+
+
+def cmd_merge_kids(root: Path, args) -> int:
+    """`season.py merge-kids <kid-branch> ...` -- merge kid branches --no-ff
+    into the CURRENT branch, one at a time, union-resolving node-file
+    conflicts, suite-gated, stopping (merge left in progress) on a SOURCE
+    conflict. hypothesis:l4-a-parent-cuts-five-and-merges-its-kids half 2.
+    """
+    # hypothesis:l4-merge-kids-resolves-the-parents-own-worktree — resolve the
+    # round branch from the CALLING worktree's OWN top, never
+    # git_common_root walks to the MAIN checkout, so
+    # `_current_branch` there returns whatever MAIN has checked out (often
+    # season/s<N> or master) — a branch-parent running merge-kids from its
+    # linked worktree would merge its kids into MAIN's branch instead of its
+    # own `loop/<slug>-<agent>@s<N>` round branch. `root` is the graph dir
+    # (`.agi`) inside whichever worktree invoked this; `git rev-parse
+    # --show-toplevel` names that SAME worktree's checkout top, so `cur` is
+    # the parent's OWN round branch and every git op runs in that worktree
+    # onto that branch, and node/source paths ({work_root}/{p}) stay
+    # worktree-top-relative as `git diff` reports them. In a single checkout
+    # (no linked worktree) show-toplevel == git_common_root, so behaviour is
+    # unchanged there.
+    top = _git(root, "rev-parse", "--show-toplevel")
+    if top.returncode != 0 or not top.stdout.strip():
+        print("ERR: no git repo found", file=sys.stderr)
+        return 1
+    work_root = Path(top.stdout.strip())
+    cur = _current_branch(work_root)
+    if not cur:
+        print("ERR: not on a branch (detached HEAD?)", file=sys.stderr)
+        return 1
+    # hypothesis:l4-merge-kids-stays-in-the-parents-own-worktree — OWNERSHIP
+    # GATE. `merge-kids` is the ONE git operation a branch parent runs, and it
+    # must land the round's kids onto the parent's OWN round branch in its own
+    # worktree — never onto whatever MAIN has checked out. The worktree
+    # resolution above already points every git op at the calling worktree's
+    # top, but a parent that runs the helper from MAIN's checkout (on
+    # season/s<N>, master or a bare feature branch) would still merge its kids
+    # onto a branch that is not its own round branch. So: refuse unless the
+    # checked-out branch is a `loop/<slug>-<agent8>@s<N>` round branch — the
+    # shape dispatch cuts for a branch parent (`dispatch.loop_branch_name`). A
+    # non-round checkout means whoever invoked this is in the wrong place and
+    # has not understood the protocol; refuse before any kid branch is touched.
+    if not _ROUND_BRANCH_RE.match(cur):
+        print(f"REFUSED: current branch {cur!r} is not a parent's round "
+              f"branch (loop/<slug>-<agent8>@s<N>) -- merge-kids merges a "
+              f"round's kids onto the parent's OWN round branch and must run "
+              f"from that branch in its own worktree, never the main "
+              f"checkout", file=sys.stderr)
+        return 1
+    suite = args.suite or DEFAULT_SUITE
+    branches = args.branches
+    for branch in branches:
+        # hypothesis:l4-an-untrusted-lane-earns-tier-by-signed-verdicts rung
+        # 4 conjunct 2 (b) -- refuse an untrusted post's branch BEFORE touch-
+        # ing it, so it is not merged at all. Refused by name, naming the
+        # tier; the ownership/base resolution above this is untouched.
+        _ut_merge = _refuse_untrusted_merge(root, branch)
+        if _ut_merge:
+            print(_ut_merge, file=sys.stderr)
+            return 1
+        ahead = _git(work_root, "rev-list", "--count", f"{cur}..{branch}")
+        if ahead.returncode != 0:
+            print(f"ERR cannot count {branch} ahead of {cur}: "
+                  f"{ahead.stderr.strip()}", file=sys.stderr)
+            return 1
+        if ahead.stdout.strip() == "0":
+            print(f"REFUSED: {branch} is zero commits ahead of {cur} -- "
+                  f"nothing to merge", file=sys.stderr)
+            return 1
+        print(f"{branch} is {ahead.stdout.strip()} commit(s) ahead of {cur}")
+
+        mg = _git(work_root, "merge", "--no-ff", "--no-commit", branch)
+        if mg.returncode != 0:
+            rc = _resolve_conflicted(work_root, branch)
+            if rc != 0:
+                return rc
+
+        suite_proc = subprocess.run(suite, shell=True, cwd=str(work_root),
+                                    capture_output=True, text=True)
+        if suite_proc.returncode != 0:
+            _git(work_root, "merge", "--abort")
+            print(f"REFUSED: suite red after merging {branch} -- merge aborted, "
+                  f"branch {branch} left in place", file=sys.stderr)
+            return 1
+
+        cmt = _git(work_root, "commit", "--no-edit")
+        if cmt.returncode != 0:
+            still = (_git(work_root, "rev-parse", "--verify",
+                          "MERGE_HEAD").returncode == 0)
+            if still:
+                print(f"ERR finalize merge commit: "
+                      f"{cmt.stderr.strip() or '(no stderr from git)'}",
+                      file=sys.stderr)
+                return 1
+            print(f"merged {branch} --no-ff (finalize returned non-zero "
+                  f"{cmt.returncode} but the merge commit exists; green)")
+        else:
+            print(f"merged {branch} --no-ff into {cur}")
+    print(f"merge-kids complete; all {len(branches)} kid branches merged, "
+          "suite green")
+    return 0
+
+
 def cmd_merge_up(root: Path, args) -> int:
     """`season.py merge-up <branch>` -- merge a branch --no-ff into its base."""
     git_root = locations.git_common_root(root)
@@ -1052,9 +1843,39 @@ def cmd_merge_up(root: Path, args) -> int:
     branch = args.branch
     record_path = Path(args.record).resolve() if args.record else None
 
-    base = (args.target
-            or _recorded_field(record_path, "base_branch")
-            or _current_branch(git_root))
+    # hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — the
+    # merge-up town gate. A round merges up through the seat of the town that
+    # ORIGINATED it: the round node's `town:` (stamped at mint, node_writer)
+    # must match the seat the merge lands through (`--seat`, read from
+    # config:seats' `town` cell). They differ -> REFUSE, printing both, before
+    # any git write. Fail-open: no round id / no seat / no town on either side
+    # means "no town claim to enforce" and the merge proceeds exactly as it
+    # always did, so a graph that never declared towns is completely untouched.
+    town_gate = _merge_up_town_gate(root, args)
+    if town_gate is not None:
+        print(town_gate, file=sys.stderr)
+        return 1
+
+    target = args.target or None
+    recorded = _recorded_field(record_path, "base_branch")
+    rt = _resolve_round_town(root, args)
+    town = _town_base(Path(root) / "nodes", rt)
+    # hypothesis:l4-town-base-honours-the-recorded-base-branch -- an explicit
+    # --target is first (explicit beats recorded); a RECORDED base_branch
+    # names the round's own rung and beats the town base (regression: the
+    # town base preceded it, so a core-town round with a record merged
+    # straight into its town/season branch, skipping the rung). The town base
+    # is the fallback for a round with no record; git's current branch is
+    # last. The print names WHICH base was chosen and WHY (its source).
+    if target:
+        base, src = target, "target"
+    elif recorded:
+        base, src = recorded, "record"
+    elif town:
+        base, src = town, "town"
+    else:
+        base, src = _current_branch(git_root), "current"
+    print(f"base {base} from {src} (target|record|town|current)")
     if not base:
         print("ERR: cannot determine a base branch (detached HEAD?); "
               "pass --target", file=sys.stderr)
@@ -1208,11 +2029,17 @@ def main(argv: list[str] | None = None) -> int:
                             help="name season 1 in the ladder's season_names "
                                  "(e.g. genesis)")
     p_rollover.add_argument("--branch", action="store_true", default=False,
-                            help="open season/s<N> with git checkout -b after the "
+                            help="open season<N>/main with git checkout -b after the "
                                  "graph writes (never pushes)")
     p_rollover.add_argument("--allow-unjudged", action="store_true", default=False,
                             help="proceed even while a season-current overview lacks "
                                  "a judgment")
+    # --align: one-time town align (owner 2026-09-18 02:2xZ)
+    p_rollover.add_argument("--align", action="store_true", default=False)
+    p_rollover.add_argument("--global", dest="global_rollover", action="store_true", default=False)
+    p_rollover.add_argument("--town", default="")
+    p_rollover.add_argument("--apply", dest="align_apply", action="store_true", default=False)
+    p_rollover.add_argument("--delete-old", dest="delete_old", action="store_true", default=False)
     p_rollover.add_argument("--actor", default="",
                             help="edited_by for the ladder write (default: season.py)")
     p_rollover.add_argument("--session", default="",
@@ -1227,6 +2054,18 @@ def main(argv: list[str] | None = None) -> int:
                          help="edited_by for non-moral stamps (default: season.py)")
     p_retag.add_argument("--session", default="",
                          help="thought_session for stamps (default: season)")
+
+    # merge-kids
+    p_kids = sub.add_parser(
+        "merge-kids",
+        help="Merge kid branches --no-ff into the current branch, one at a "
+             "time; union-resolve node-file conflicts, stop on a SOURCE "
+             "conflict (merge left in progress)")
+    p_kids.add_argument(
+        "branches", nargs="+",
+        help="loop/<slug>-<agent8>@s<N> kid branches to merge, in order")
+    p_kids.add_argument("--suite", default="",
+                        help="suite command; non-zero aborts the merge")
 
     # merge-up
     p_merge = sub.add_parser(
@@ -1243,6 +2082,12 @@ def main(argv: list[str] | None = None) -> int:
     p_merge.add_argument("--record", default="",
                          help="JSON lease/agent record supplying base_branch, "
                               "suite, worktree")
+    p_merge.add_argument("--round", default="",
+                         help="round node id (e.g. experiment:x) whose town "
+                              "cell the merge-up town gate checks")
+    p_merge.add_argument("--seat", "--post", action=geometry_config.SeatAction, default="",
+                         help="seat name whose config:seats town cell the "
+                              "merge-up town gate checks")
 
     args = ap.parse_args(argv)
 
@@ -1261,6 +2106,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_retag(root, args)
     elif args.command == "merge-up":
         return cmd_merge_up(root, args)
+    elif args.command == "merge-kids":
+        return cmd_merge_kids(root, args)
 
     return 0
 

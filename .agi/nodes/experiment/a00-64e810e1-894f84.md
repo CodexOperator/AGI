@@ -8,7 +8,7 @@ next_edges: []
 confidence: 1.0
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: a00-523c321a
+edited_by: director-general-3
 scaffold_hash: 78b0c53a6ed6565b
 season: 1
 thought_session: iter-L2.10
@@ -31,7 +31,7 @@ Hypothesis: `skills/agi/SKILL.md` carries a Seasons section and a Constitution s
 
 ## Evidence
 
-- Payload written successfully: `payload: /home/ubuntu/work/agi/skills/agi/SKILL.md replaced`
+- Payload written successfully: `payload: <home>/work/agi/skills/agi/SKILL.md replaced`
 - Write guard silent (no WARN lines)
 - CLI table rows for season.py, send.py, rotate.py, write_guard.py all present at line 55
 - Seasons section at line 85, Constitution section at line 126

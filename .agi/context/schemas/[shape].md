@@ -44,7 +44,11 @@ parentless_types:
 # 2 outcome floor its `min_parents_by_type` now declares. Nothing else in the
 # corpus uses more than 2; raising the ceiling licenses a budget, it does not
 # hand one out.
-max_parents_ceiling: 4
+# Third deliberate edit: raised 4 -> 5 on 2026-09-18 so `vision` can carry the
+# five morals as parents (owner 15:0xZ, vision:the-living-being = the parent of
+# every town); [vision].md declared max_parents: 5 at 15:0xZ without this line,
+# which made every shipped-schema load fail (test_spawn_gate) until 22:4xZ.
+max_parents_ceiling: 5
 
 # Which frontmatter fields are EDGES, and which of those a traversal may
 # follow. `parents` is lineage: it is what chain depth, outcome_coverage and
@@ -224,8 +228,7 @@ rewritten from scratch on each change, not accumulated.
   scalar `thought_session:` is reserved there for goal:g2.7 / goal:g10.1 to
   point at the chat that produced a version; it is not populated yet.
 - **Readers strip it.** Thought is provenance to zoom into, not weight every
-  reader carries forever. `snapshot-goals.py --render` strips it explicitly via
-  `strip_thought()`; `render-context.py` and `zoom.py` never see it because
-  they read frontmatter only (`load_node_file(..., body=False)`) and so carry
-  no body text at all. The rule binds any future reader that *does* read
-  bodies.
+  reader carries forever. `brief.py` strips it from every body it renders via
+  `node_writer.strip_thought()`; `zoom.py` never sees it because it reads
+  frontmatter only (`load_node_file(..., body=False)`). The rule binds any
+  future reader that *does* read bodies.

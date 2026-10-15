@@ -1,0 +1,24 @@
+{
+ "S_words": 172,
+ "r1_fresh_ASB": {
+  "prompt_n": 369,
+  "cache_n": 0,
+  "prompt_ms": 290.016
+ },
+ "r2_samepos_ASB": {
+  "prompt_n": 4,
+  "cache_n": 365,
+  "prompt_ms": 67.212
+ },
+ "r3_shifted_XSB": {
+  "prompt_n": 369,
+  "cache_n": 0,
+  "prompt_ms": 325.904
+ },
+ "r4_fresh_XSB": {
+  "prompt_n": 369,
+  "cache_n": 0,
+  "prompt_ms": 304.491
+ },
+ "r3_compute_frac_of_fresh": 1.0703
+}

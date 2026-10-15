@@ -1,0 +1,79 @@
+( 1/42) Installing libgcc (15.2.0-r5)
+( 2/42) Installing jansson (2.15.0-r0)
+( 3/42) Installing libstdc++ (15.2.0-r5)
+( 4/42) Installing zstd-libs (1.5.7-r2)
+( 5/42) Installing binutils (2.45.1-r1)
+( 6/42) Installing libmagic (5.47-r2)
+( 7/42) Installing file (5.47-r2)
+( 8/42) Installing libgcc-static (15.2.0-r5)
+( 9/42) Installing libgomp (15.2.0-r5)
+(10/42) Installing libatomic (15.2.0-r5)
+(11/42) Installing gmp (6.3.0-r4)
+(12/42) Installing isl26 (0.26-r2)
+(13/42) Installing mpfr4 (4.2.2-r0)
+(14/42) Installing mpc1 (1.3.1-r1)
+(15/42) Installing gcc (15.2.0-r5)
+(16/42) Installing libstdc++-dev (15.2.0-r5)
+(17/42) Installing musl-dev (1.2.6-r2)
+(18/42) Installing g++ (15.2.0-r5)
+(19/42) Installing make (4.4.1-r4)
+(20/42) Installing fortify-headers (3.0.1-r2)
+(21/42) Installing patch (2.8-r0)
+(22/42) Installing build-base (0.5-r4)
+(23/42) Installing acl-libs (2.3.2-r1)
+(24/42) Installing libbz2 (1.0.8-r6)
+(25/42) Installing libexpat (2.8.5-r0)
+(26/42) Installing lz4-libs (1.10.0-r1)
+(27/42) Installing xz-libs (5.8.4-r0)
+(28/42) Installing libarchive (3.8.7-r0)
+(29/42) Installing rhash-libs (1.4.6-r0)
+(30/42) Installing libuv (1.52.1-r0)
+(31/42) Installing cmake (4.2.3-r0)
+(32/42) Installing brotli-libs (1.2.0-r1)
+(33/42) Installing c-ares (1.34.8-r0)
+(34/42) Installing libunistring (1.4.2-r0)
+(35/42) Installing libidn2 (2.3.8-r0)
+(36/42) Installing nghttp2-libs (1.69.0-r0)
+(37/42) Installing libpsl (0.21.5-r3)
+(38/42) Installing libcurl (8.22.0-r0)
+(39/42) Installing pcre2 (10.48-r0)
+(40/42) Installing git (2.54.0-r0)
+(41/42) Installing git-init-template (2.54.0-r0)
+(42/42) Installing linux-headers (7.0.0-r1)
+Executing busybox-1.37.0-r31.trigger
+OK: 353.7 MiB in 58 packages
+sha256:28b513f0398bd22a8d0b0b369b4a6116eb5399779a0289f14e510e942e2f2534
+l4-9b-tools
+CMAKE_BUILD_TYPE=Release
+fatal: not a git repository: (null)
+fatal: not a git repository: (null)
+CMake Warning at vendor/cpp-httplib/CMakeLists.txt:154 (message):
+  OpenSSL not found, HTTPS support disabled
+
+
+CMake Warning at common/CMakeLists.txt:30 (message):
+  Git index not found in git repository.
+
+
+total 23384
+drwxr-xr-x    2 1000     1000          4096 Oct  1 10:44 .
+drwxr-xr-x   12 1000     1000          4096 Oct  1 10:41 ..
+-rwxr-xr-x    1 1000     1000      12017800 Oct  1 10:44 llama-perplexity
+-rwxr-xr-x    1 1000     1000      11913736 Oct  1 10:44 llama-tokenize
+CMAKE_BUILD_TYPE=Release
+fatal: not a git repository: (null)
+fatal: not a git repository: (null)
+CMake Warning at vendor/cpp-httplib/CMakeLists.txt:154 (message):
+  OpenSSL not found, HTTPS support disabled
+
+
+CMake Warning at common/CMakeLists.txt:30 (message):
+  Git index not found in git repository.
+
+
+total 23396
+drwxr-xr-x    2 1000     1000          4096 Oct  1 10:48 .
+drwxr-xr-x   12 1000     1000          4096 Oct  1 10:44 ..
+-rwxr-xr-x    1 1000     1000      12023088 Oct  1 10:48 llama-perplexity
+-rwxr-xr-x    1 1000     1000      11923112 Oct  1 10:48 llama-tokenize
+built 552f18f912a32ea86edf82e2b76431cb7131538d: /data/tmp/l4-9b/llama.cpp-{base,patched}/build/bin

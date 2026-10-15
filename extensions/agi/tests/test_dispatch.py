@@ -128,7 +128,15 @@ def test_flags_precede_the_prompt_arguments(tmp_path):
 
 def test_binary_is_still_first(tmp_path):
     args = build({"agent_dispatch": {"model": "qwen/qwen3.8-27b"}}, tmp_path)
-    assert args[0].endswith("pi")
+    # hypothesis:l4-every-pi-kid-keeps-its-full-tool-call-trajectory-at-
+    # spawn-never-pruned-never-rebuilt — the produced command now launches the
+    # trajectory wrapper, which in turn runs the real pi (the `--wrapper`
+    # segment's first value) under `--mode json`. The guard survives: the
+    # arcane pi binary is still IN the command, argv[0] is just its runner.
+    assert args[2] == "--wrapper"
+    assert args[3].endswith("pi"), f"real pi binary must be the wrapper target: {args}"
+    assert args[4].endswith("trajectory.jsonl")
+    assert args[5] == "--"
 
 
 # --- the scaffold prompt ---------------------------------------------------
@@ -182,6 +190,22 @@ def test_zoom_command_small_without_target_omits_the_flag(tmp_path):
     loud refusal into an argparse error instead."""
     cmd = dispatch.zoom_command(tmp_path, 3, "a00", "small", None)
     assert "--target" not in cmd
+
+
+def test_zoom_command_threads_the_tier_but_stays_byte_identical_for_kid(tmp_path):
+    """hypothesis:l4-a-parents-zoom-is-its-target-goal-... — dispatch passes
+    the --tier it received into zoom, but only when it is a tier zoom has a
+    distinct shape for. A kid spawn (the default) does NOT grow a --tier
+    flag, so every existing kid render stays byte-identical to today."""
+    kid = dispatch.zoom_command(tmp_path, 3, "a00", "small", "idea:x", tier="kid")
+    assert "--tier" not in kid
+    base = dispatch.zoom_command(tmp_path, 3, "a00", "small", "idea:x")
+    assert kid == base
+    par = dispatch.zoom_command(tmp_path, 3, "a00", "small", "idea:x", tier="parent")
+    assert par[par.index("--tier") + 1] == "parent"
+    # a foreign tier value must never break the zoom invocation
+    odd = dispatch.zoom_command(tmp_path, 3, "a00", "small", "idea:x", tier="untrusted")
+    assert "--tier" not in odd
 
 
 # --- aiming a slot: `--target` vs attractiveness scoring -------------------
@@ -438,6 +462,37 @@ class _FakeAdapter:
     def restart(self, **kw):
         self.calls.append(kw)
         return self.pid
+
+
+def test_reaper_leaves_an_unknown_status_untouched(tmp_path, monkeypatch):
+    """hyp:l4-one-definition-of-terminal, falsifier (c) -- the reaper's SECOND
+    guard, asserted directly.
+
+    `_reaper_phase` follows `if status in TERMINAL: continue` with
+    `if status != "running": continue`. A status nobody has thought of yet --
+    outside the terminal set AND outside "running" -- must therefore be
+    skipped: not restarted, not mangled, left exactly as written. This is the
+    tolerance that kept the reaper working while the set was wrong
+    (`done-unreported` was exactly such a forgotten status), and it is why the
+    second guard is KEPT even now that the set is right. A later
+    "simplification" that deletes the guard makes an unknown status fall
+    through to the restart path, so this test fails on it.
+    """
+    import json
+
+    d = _load_dispatch()
+    graph = _reap_project(tmp_path)
+    iter_dir = graph / "sessions" / "iter-unk"
+    (iter_dir / "a00-unk").mkdir(parents=True)
+    (iter_dir / "manifest.json").write_text(json.dumps(
+        {"agents": [{"id": "a00-unk", "status": "zombie"}]}))
+    (iter_dir / "a00-unk" / "agent.json").write_text(json.dumps(
+        {"id": "a00-unk", "status": "zombie", "pid": 999}))
+    adapter = _FakeAdapter(pid=123)
+    d._reaper_phase(graph, iter_dir, adapter, max_wait_s=1, cap=5, cfg={})
+    rec = json.loads((iter_dir / "a00-unk" / "agent.json").read_text())
+    assert rec["status"] == "zombie", "an unknown status must be left as-is"
+    assert adapter.calls == [], "an unknown status must never reach a restart"
 
 
 def _reap_project(tmp_path):
@@ -1048,12 +1103,15 @@ def _git_repo(tmp_path: Path, branch: str = "init") -> Path:
 
 def test_loop_branch_name_carries_slug_agent_and_season():
     """ADDENDUM item 3: the agent id rides in the branch name so nested layers
-    never collide; the slug tells a human which aim the branch carries."""
+    never collide; the slug tells a human which aim the branch carries. The
+    branch shape is the grammar's `season<N>/loops/<slug>-<agent>`."""
     assert (dispatch.loop_branch_name("hypothesis:l3w4-x", "a00-abc8", 2)
-            == "loop/hypothesis-l3w4-x-a00-abc8@s2")
+            == "season2/loops/hypothesis-l3w4-x-a00-abc8")
     # colon flattened, explore fallback, season stamped
-    assert dispatch.loop_branch_name(None, "a00-x", 1) == "loop/explore-a00-x@s1"
-    assert dispatch.loop_branch_name("mvp:g", "kid1", 3) == "loop/mvp-g-kid1@s3"
+    assert dispatch.loop_branch_name(None, "a00-x", 1) \
+        == "season1/loops/explore-a00-x"
+    assert dispatch.loop_branch_name("mvp:g", "kid1", 3) \
+        == "season3/loops/mvp-g-kid1"
 
 
 def test_spawner_base_branch_returns_the_checked_out_branch(tmp_path):
@@ -1324,6 +1382,49 @@ def test_child_working_root_unchanged_without_a_worktree_spawner(tmp_path):
                                         spawner_env_root=str(repo)) == main_graph
 
 
+def test_child_working_root_descends_deep_never_ascends(tmp_path):
+    """hypothesis:a00-32f358d3-4ee42d — the env-root override DESCENDS but
+    never ASCENDS. Red-first: cut a worktree W from main, then simulate a
+    deep spawn chain (parent `--branch` in W → kid → grandkid → …). Each
+    deeper level inherits AGI_TREE_PROJECT_ROOT=W and its passed root is the
+    previous level's result, so every level must resolve to W's graph — which
+    is shallower for levels ≥2 — and none may climb back to the main
+    checkout, even when a level's passed root would otherwise resolve main.
+
+    Existing tests cover the single hop (parent→kid). This pins the property
+    the rest of the chain relies on: the override carries the deepest
+    worktree down through any number of generations, and a descendant never
+    ascends out of it."""
+    repo = _git_repo(tmp_path)
+    wt = dispatch.branch_worktree_for_spawn(
+        repo, "loop/guide-a00-32f358d3@s2", "a00-32f358d3", "init")
+    main_graph = dispatch.locations.find_project_root(repo)
+    wt_graph = dispatch.locations.find_project_root(wt)
+    assert main_graph != wt_graph, "sanity: the worktree has its own graph"
+
+    # Level 1 = the --branch parent itself working in WT.
+    root = wt_graph
+    # Descend the chain: each level's passed root is the *child's* root, and
+    # the inherited env still names the spawner's worktree WT. It must never
+    # drift back to main_graph, for however many generations follow.
+    for depth in range(2, 8):
+        root = dispatch.child_working_graph(
+            passed_root=root, spawner_env_root=str(wt.resolve()))
+        assert root == wt_graph, (
+            f"depth {depth}: env-root override must DESCEND to the deepest "
+            f"worktree, never ascend back to the main checkout")
+
+    # Never-ascends, adversarially: a deep child whose cwd/passed-root
+    # resolves the MAIN checkout must be re-rooted back DOWN to the deepest
+    # worktree by the inherited env — the child cannot climb out of WT merely
+    # because its passed root names main.
+    assert dispatch.child_working_graph(
+        passed_root=main_graph,
+        spawner_env_root=str(wt.resolve())) == wt_graph, (
+        "a descendant must not ascend: env-root override re-roots a passed "
+        "main path back down to the spawner's deepest worktree")
+
+
 # ---------------------------------------------------------------------------
 # hypothesis:l3w4-push-further-loops — the mechanical stop at the quorum
 # ---------------------------------------------------------------------------
@@ -1402,6 +1503,92 @@ def test_scaffold_push_further_stamps_pushed_from(tmp_path):
     assert fm["pushed_from"] == node_id
 
 
+def test_dispatch_mints_an_across_k_ceiling_slice_on_the_kid_node(
+        tmp_path, monkeypatch):
+    """hypothesis:l5-an-across-k-kids-ceiling-is-divided-onto-each-kid-node-
+    by-the-spawn-never-by-parent-arithmetic: the SPAWN divides, the parent
+    does not. A kid minted under `CEILING: <=44 production lines across 2
+    kids` carries `line_ceiling: 22` in its frontmatter BEFORE the brief is
+    assembled, so the brief and the harvest read one number. A K-less clause
+    writes NO field (byte-identical to today).
+
+    FALSIFIED if the inline `extra_fm` write in dispatch.main is removed: the
+    minted node then carries no `line_ceiling` and the harvest falls back.
+    """
+    import json as _json
+    import yaml as _yaml
+
+    def _project(name: str, clause: str) -> Path:
+        root = tmp_path / name
+        graph = root / ".agi"
+        (graph / "nodes" / "hypothesis").mkdir(parents=True)
+        (graph / "config.json").write_text(_json.dumps({
+            "metric_primary": "outcome_coverage",
+            "spawn": {"harness": "pi", "parallel": 1},
+            "harnesses": {"pi": {"adapter": "pi", "provider": "openrouter",
+                                 "models": {"kid": "~z-ai/glm-flash-latest"},
+                                 "allowed_extra": ["~z-ai/glm-flash-latest"]}}}))
+        (graph / "nodes" / "hypothesis" / "across.md").write_text(
+            "---\nid: hypothesis:across\ntype: hypothesis\n"
+            f"testable_claim: \"build it. {clause}\"\n---\n")
+        return root
+
+    class _Proc:
+        pid = 4242
+
+        def poll(self):
+            return None
+
+    class _Adapter:
+        def build_command(self, **kw):
+            return [sys.executable, "-c", "pass"]
+
+        def child_env(self, **kw):
+            return {}
+
+        def needs_credential(self, *a, **k):
+            return False
+
+        def is_alive(self, pid):
+            return True
+
+    class _Run:
+        returncode = 0
+        stdout = "ctx\n"
+        stderr = ""
+
+    monkeypatch.setattr(dispatch.adapters, "load", lambda name: _Adapter())
+    monkeypatch.setattr(dispatch.subprocess, "Popen", lambda *a, **k: _Proc())
+    grep = type("_Grep", (), {"returncode": 1, "stdout": b"", "stderr": b""})   # the index grep reads bytes (ba232c339): no match
+    monkeypatch.setattr(dispatch.subprocess, "run", lambda *a, **k: (
+        grep() if list(a[0][:2]) == ["git", "grep"] else _Run()))
+    monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
+    monkeypatch.setattr(dispatch.provisioning, "available", lambda root=None: False)
+    monkeypatch.setattr(dispatch.provisioning, "check_runtime_key_usable",
+                        lambda cfg, root=None: (True, None))
+    monkeypatch.setattr(dispatch.provisioning, "check_key_floor",
+                        lambda cfg, root=None, iter_n=None: (True, None))
+    monkeypatch.setattr(dispatch.provisioning, "check_account_floor",
+                        lambda cfg, root=None: (True, None))
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+
+    def _mint(project: Path):
+        monkeypatch.setattr(sys, "argv", [
+            str(BIN / "dispatch.py"), str(project), "1", "--tier", "kid",
+            "--target", "hypothesis:across", "--harness", "pi",
+            "--detach"])
+        assert dispatch.main() == 0
+        exps = list((project / ".agi" / "nodes" / "experiment").glob("*.md"))
+        assert len(exps) == 1, exps
+        return _yaml.safe_load(exps[0].read_text().split("---", 2)[1])
+
+    assert _mint(_project("k2", "CEILING: <=44 production lines across 2 kids.")
+                 ).get("line_ceiling") == 22
+    assert "line_ceiling" not in _mint(
+        _project("k1", "CEILING: <=44 production lines."))
+
+
 # --------------------------- the model/provider guard on the SPAWN path ----
 
 def _guard_project(tmp_path: Path, model: str) -> Path:
@@ -1445,3 +1632,1586 @@ def test_dispatch_allows_a_real_openrouter_slug(tmp_path):
     res = _run_dispatch(_guard_project(tmp_path, "~z-ai/glm-flash-latest"))
     combined = res.stdout + res.stderr
     assert "not an OpenRouter slug" not in combined, combined
+
+
+def test_openrouter_preflight_prints_the_sub_floor_notice_before_the_account_refusal(
+        tmp_path, monkeypatch, capsys):
+    """hypothesis:l4-sd06-residue-renumber-notice-fixture-dry-run-parity-
+    refused-run-key conjunct (2). The notice surface — `dispatch.py`'s
+    `notice: {msg}` when `check_key_floor` returns `(True, <marker>)` — had NO
+    committed test anywhere in the tree: only the parent's own in-process
+    probe exercised it. This is that test, on the live path and the live
+    pre-flight (not a helper in isolation): with the key floor returning
+    `(True, 'M')` and the account floor `(False, 'X')`, `notice: M` must reach
+    stderr BEFORE `ERR: X`, and the round must reach NO spawn. FALSIFIER: drop
+    the notice print and this test fails on the ordering assertion (it would
+    also fail if the notice moved below the account floor)."""
+    root = _guard_project(tmp_path, "~z-ai/glm-flash-latest")
+    # `_guard_project` omits `allowed_models` (its tests stop at --dry-run,
+    # which returns before the allowlist gate); the live pre-flight needs it.
+    (root / ".agi" / "config.json").write_text(
+        '{"metric_primary": "outcome_coverage",'
+        ' "spawn": {"harness": "pi", "parallel": 1},'
+        ' "harnesses": {"pi": {"adapter": "pi", "provider": "openrouter",'
+        '   "models": {"kid": "~z-ai/glm-flash-latest"},'
+        '   "allowed_extra": ["~z-ai/glm-flash-latest"]}}}')
+    monkeypatch.setattr(dispatch.provisioning, "available",
+                        lambda root=None: False)
+    monkeypatch.setattr(dispatch.provisioning, "check_runtime_key_usable",
+                        lambda cfg, root=None: (True, None))
+    monkeypatch.setattr(dispatch.provisioning, "check_key_floor",
+                        lambda cfg, root=None, iter_n=None: (True, "M"))
+    monkeypatch.setattr(dispatch.provisioning, "check_account_floor",
+                        lambda cfg, root=None: (False, "X"))
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+
+    class _Proc:
+        pid = 4242
+
+    spawned: list = []
+
+    def _popen(*a, **k):
+        spawned.append(a)
+        return _Proc()
+
+    monkeypatch.setattr(dispatch.subprocess, "Popen", _popen)
+    monkeypatch.setattr(sys, "argv", [
+        str(BIN / "dispatch.py"), str(root), "1", "--tier", "kid",
+        "--target", "hypothesis:x", "--harness", "pi"])
+    rc = dispatch.main()
+    err = capsys.readouterr().err
+    assert rc == 1, err
+    assert "notice: M" in err, err
+    assert "ERR: X" in err, err
+    assert err.index("notice: M") < err.index("ERR: X"), err
+    assert spawned == [], f"a refused dispatch must never reach Popen: {spawned}"
+
+
+# --- the respawn defect that cost money, 2026-09-10 -------------------------
+# Two bugs in `_reap_one_impl`, both measured in production while the guards
+# above were green. $2.01 of key burned in ~30 minutes across four rounds.
+
+
+def test_restart_inherits_the_iteration_from_a_record_with_no_iter_key(tmp_path):
+    """The REAL manifest shape: a record carries NO `iter` key.
+
+    `test_reaper_restart_inherits_the_iteration_id` builds a record with
+    `"iter": 342` and passes — but a real manifest record has no such key, so
+    production took `rec.get("iter", 0)` -> 0 and every restart registered as
+    `iter=0`. A sweep filtered by the round then reported it CLEAR while a
+    restart was live in its worktree. The fixture was more generous than
+    reality, so the guard could not see the bug it was written for.
+
+    The round's own directory name is the authoritative source.
+    """
+    import json as _json
+    root = tmp_path
+    (root / "sessions").mkdir()
+    iter_dir = root / "sessions" / "iter-L4.41"
+    (iter_dir / "a00-abc123-r1").mkdir(parents=True)
+
+    class FakeAdapter:
+        def is_alive(self, pid):
+            return False
+
+        def restart(self, **kw):
+            return 12345
+
+    rec = {                      # exactly the keys a real manifest carries
+        "id": "a00-abc123",
+        "tier": "parent",
+        "status": "running",
+        "pid": 999,
+        "restart_count": 0,
+    }                            # <- no "iter", and no "node_id"
+    dispatch._reap_one(root, iter_dir, FakeAdapter(), rec, "a00-abc123", 999,
+                       cap=10, cfg={"reaper": {"max_restarts": 1}})
+
+    import spawn_budget as _sb
+    leases = [_json.loads(p.read_text())
+              for p in _sb.budget_dir(root).glob("*.lease")]
+    assert leases, "a restart should have left a lease"
+    assert any(r.get("agent_id", "").endswith("-r1")
+               and str(r.get("iter")) == "L4.41" for r in leases), (
+        f"restart lease must carry the round's iteration, got {leases}")
+
+
+def _git(repo, *args):
+    return subprocess.run(["git", "-C", str(repo), *args],
+                          capture_output=True, text=True, check=True)
+
+
+def test_a_parent_that_committed_its_round_is_not_restarted(tmp_path):
+    """A PARENT authors no node, so the node_id completion check never fires.
+
+    Its manifest record carries `node_id: None` because it signals with
+    `cli.py done --owns <kid-node-id>`, and the reaper reads the MAIN
+    checkout's manifest while the parent updated its worktree's — so status
+    stays "running" however cleanly it finished. Every parent that committed a
+    finished round and exited was therefore respawned to redo it, and the
+    respawn spawned fresh kids that wrote over committed work.
+
+    A commit authored under the agent's id on its own branch is proof the work
+    landed. This is the shape production actually produces.
+    """
+    repo = tmp_path / "main"
+    (repo / ".agi" / "nodes").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text('{"metric_primary": "x"}')
+    _git(repo.parent, "init", "-q", "-b", "season/s2", str(repo))
+    for cfg in (("user.email", "t@t"), ("user.name", "t")):
+        _git(repo, "config", *cfg)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "base")
+    _git(repo, "branch", "loop/round-a00-abc123@s2")
+    _git(repo, "checkout", "-q", "loop/round-a00-abc123@s2")
+    (repo / "work.txt").write_text("the round's work\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "a00-abc123 done: experiment:x verdict=proved")
+    _git(repo, "checkout", "-q", "season/s2")
+
+    graph = repo / ".agi"
+    iter_dir = graph / "sessions" / "iter-L4.41"
+    iter_dir.mkdir(parents=True)
+
+    class FakeAdapter:
+        restarted = False
+
+        def is_alive(self, pid):
+            return False
+
+        def restart(self, **kw):
+            FakeAdapter.restarted = True
+            return 12345
+
+    rec = {
+        "id": "a00-abc123",
+        "tier": "parent",
+        "status": "running",
+        "pid": 999,
+        "restart_count": 0,
+        "branch": "loop/round-a00-abc123@s2",
+        "base_branch": "season/s2",
+    }
+    out = dispatch._reap_one(graph, iter_dir, FakeAdapter(), rec,
+                             "a00-abc123", 999, cap=10,
+                             cfg={"reaper": {"max_restarts": 1}})
+    assert out["record"]["status"] == "done-unreported", out
+    assert "committed" in out["record"]["fail_reason"]
+    assert FakeAdapter.restarted is False, "a committed round must not be respawned"
+
+
+def test_a_parent_with_no_commit_on_its_branch_is_still_restarted(tmp_path):
+    """The fix must not become a blanket no-restart.
+
+    A parent killed mid-round leaves NO commit under its id, and that case
+    must still restart exactly as before — otherwise stopping the money leak
+    would have disabled recovery, which is the opposite failure.
+    """
+    repo = tmp_path / "main"
+    (repo / ".agi" / "nodes").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text('{"metric_primary": "x"}')
+    _git(repo.parent, "init", "-q", "-b", "season/s2", str(repo))
+    for cfg in (("user.email", "t@t"), ("user.name", "t")):
+        _git(repo, "config", *cfg)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "base")
+    _git(repo, "branch", "loop/round-a00-abc123@s2")
+
+    graph = repo / ".agi"
+    iter_dir = graph / "sessions" / "iter-L4.41"
+    iter_dir.mkdir(parents=True)
+
+    class FakeAdapter:
+        restarted = False
+
+        def is_alive(self, pid):
+            return False
+
+        def restart(self, **kw):
+            FakeAdapter.restarted = True
+            return 12345
+
+    rec = {
+        "id": "a00-abc123", "tier": "parent", "status": "running", "pid": 999,
+        "restart_count": 0,
+        "branch": "loop/round-a00-abc123@s2", "base_branch": "season/s2",
+    }
+    out = dispatch._reap_one(graph, iter_dir, FakeAdapter(), rec,
+                             "a00-abc123", 999, cap=10,
+                             cfg={"reaper": {"max_restarts": 1}})
+    assert out["record"]["status"] != "done-unreported", out
+
+
+def test_a_round_committed_under_the_kids_id_is_not_restarted(tmp_path):
+    """🔴 The commit is the signal; its SUBJECT never is.
+
+    Built from a real artefact, not from what the code hoped for. The two
+    subjects below are copied verbatim from `iter-L4.57` and `iter-L4.58` on
+    2026-09-10, where the reaper restarted both rounds:
+
+        a00-852433f1 done: doc:l4-five-unstaffed-seats verdict=inconclusive_lean_proved:85
+        a00-5b5defc6 done: experiment:a00-5b5defc6-7baa29 verdict=proved
+
+    Neither leads with its PARENT's id (`a00-41c4e898`, `a00-325a5d78`), so
+    the old `startswith(f"{agent_id} done:")` match returned False on a round
+    that was fully committed with a clean worktree, and both parents were
+    respawned onto finished work — roughly $0.9 of key. A third round the
+    same hour, from the same director, happened to type its own id and was
+    spared. Same code, same prompt, different string.
+
+    Writing the fixture the other way — a subject the production path never
+    produced — is exactly how a guard for this area was green while the bug
+    was live, so this one uses the string that actually burned the money.
+    """
+    repo = tmp_path / "main"
+    (repo / ".agi" / "nodes").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text('{"metric_primary": "x"}')
+    _git(repo.parent, "init", "-q", "-b", "season/s2", str(repo))
+    for cfg in (("user.email", "t@t"), ("user.name", "t")):
+        _git(repo, "config", *cfg)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "base")
+    _git(repo, "checkout", "-q", "-b", "loop/round-a00-41c4e898@s2")
+    (repo / "artefact.md").write_text("the round's work\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm",
+         "a00-852433f1 done: doc:l4-five-unstaffed-seats "
+         "verdict=inconclusive_lean_proved:85")
+    _git(repo, "checkout", "-q", "season/s2")
+
+    graph = repo / ".agi"
+    iter_dir = graph / "sessions" / "iter-L4.57"
+    iter_dir.mkdir(parents=True)
+
+    class FakeAdapter:
+        restarted = False
+
+        def is_alive(self, pid):
+            return False
+
+        def restart(self, **kw):
+            FakeAdapter.restarted = True
+            return 12345
+
+    rec = {
+        "id": "a00-41c4e898", "tier": "parent", "status": "running",
+        "pid": 999, "restart_count": 0,
+        "branch": "loop/round-a00-41c4e898@s2", "base_branch": "season/s2",
+    }
+    out = dispatch._reap_one(graph, iter_dir, FakeAdapter(), rec,
+                             "a00-41c4e898", 999, cap=10,
+                             cfg={"reaper": {"max_restarts": 1}})
+    assert out["record"]["status"] == "done-unreported", out
+    assert FakeAdapter.restarted is False, (
+        "the round was committed — the parent's id not appearing in the "
+        "subject is not evidence that it was not")
+    assert out["record"]["commits_ahead"] == 1
+
+
+def test_a_restart_names_itself_so_the_manifest_and_the_budget_agree(tmp_path):
+    """A restart that leaves no trace cannot be counted, budgeted or believed.
+
+    On iter-L4.57 and iter-L4.58 the manifest recorded a restarted parent as
+    `status: running` with a silently swapped pid and nothing else — while
+    `spawn_budget status` was listing the same process as `<id>-r1`. The only
+    way to know a restart had happened was that the two disagreed. The record
+    now carries `restart_of` under the lease's own name, so both readers name
+    the process the same way.
+    """
+    repo = tmp_path / "main"
+    (repo / ".agi" / "nodes").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text('{"metric_primary": "x"}')
+    _git(repo.parent, "init", "-q", "-b", "season/s2", str(repo))
+    for cfg in (("user.email", "t@t"), ("user.name", "t")):
+        _git(repo, "config", *cfg)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "base")
+    _git(repo, "branch", "loop/round-a00-abc123@s2")
+
+    graph = repo / ".agi"
+    iter_dir = graph / "sessions" / "iter-L4.41"
+    iter_dir.mkdir(parents=True)
+
+    class FakeAdapter:
+        def is_alive(self, pid):
+            return False
+
+        def restart(self, **kw):
+            return 12345
+
+    rec = {
+        "id": "a00-abc123", "tier": "parent", "status": "running", "pid": 999,
+        "restart_count": 0,
+        "branch": "loop/round-a00-abc123@s2", "base_branch": "season/s2",
+    }
+    out = dispatch._reap_one(graph, iter_dir, FakeAdapter(), rec,
+                             "a00-abc123", 999, cap=10,
+                             cfg={"reaper": {"max_restarts": 1}})
+    assert out["record"]["status"] == "running", out
+    assert out["record"]["restart_count"] == 1
+    assert out["record"]["restart_of"] == "a00-abc123-r1", (
+        "the record must name the process by the lease name "
+        "`spawn_budget status` shows, or the two readers disagree")
+
+
+# hypothesis:l4-a-round-is-cut-from-the-branch-you-are-on — HALF A. The
+# freshness guard that decides whether a `--branch` spawn is cut from a stale
+# base. These tests pin the helper's fail-open and engine-path-filter behavior
+# with a fake git, so no real network or repo is touched.
+
+
+class _FakeGit:
+    """A subprocess.run stand-in keyed on the git verb in argv."""
+
+    def __init__(self, fetch_rc=0, revparse_rc=0, revparse_out="abc1234\n",
+                 count_out="3\n", diff_out=""):
+        self.fetch_rc = fetch_rc
+        self.revparse_rc = revparse_rc
+        self.revparse_out = revparse_out
+        self.count_out = count_out
+        self.diff_out = diff_out
+        self.calls = []
+
+    def __call__(self, cmd, **kwargs):
+        self.calls.append(list(cmd))
+        if "fetch" in cmd:
+            return _FakeRes(self.fetch_rc)
+        if "rev-parse" in cmd:
+            return _FakeRes(self.revparse_rc, self.revparse_out)
+        if "rev-list" in cmd:
+            return _FakeRes(0, self.count_out)
+        if "diff" in cmd:
+            return _FakeRes(0, self.diff_out)
+        return _FakeRes(0)
+
+
+class _FakeRes:
+    def __init__(self, returncode, stdout="", stderr=""):
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+
+
+def test_is_engine_path_filters_graph_bytes():
+    assert dispatch._is_engine_path("extensions/agi/bin/dispatch.py")
+    assert dispatch._is_engine_path("bin/rotate.py")
+    assert dispatch._is_engine_path("hooks/cc-session-start.sh")
+    assert dispatch._is_engine_path("skills/agi/SKILL.md")
+    assert not dispatch._is_engine_path(".agi/nodes/hypothesis/x.md")
+    assert not dispatch._is_engine_path("GOALS.md")
+    assert not dispatch._is_engine_path("payloads/foo.py")
+
+
+def test_stale_base_spawn_current_when_even(tmp_path, monkeypatch):
+    fake = _FakeGit(count_out="0\n")
+    monkeypatch.setattr(dispatch.subprocess, "run", fake)
+    out = dispatch._stale_base_spawn(tmp_path, season=2)
+    assert out["status"] == "current", out
+    assert out["behind"] == 0
+    assert out["files"] == []
+
+
+def test_stale_base_spawn_behind_names_engine_files(tmp_path, monkeypatch):
+    fake = _FakeGit(count_out="7\n", diff_out=(
+        "extensions/agi/bin/dispatch.py\n"
+        ".agi/nodes/goal/g17.md\n"
+        "hooks/cc-session-start.sh\n"
+        "GOALS.md\n"
+        "bin/rotate.py\n"))
+    monkeypatch.setattr(dispatch.subprocess, "run", fake)
+    out = dispatch._stale_base_spawn(tmp_path, season=2)
+    assert out["status"] == "behind", out
+    assert out["behind"] == 7
+    # engine paths only — graph bytes and derived docs must not be named
+    assert out["files"] == [
+        "bin/rotate.py",
+        "extensions/agi/bin/dispatch.py",
+        "hooks/cc-session-start.sh",
+    ], out
+
+
+def test_stale_base_spawn_fails_open_on_fetch_failure(tmp_path, monkeypatch):
+    fake = _FakeGit(fetch_rc=128)  # e.g. remote unreachable
+    monkeypatch.setattr(dispatch.subprocess, "run", fake)
+    out = dispatch._stale_base_spawn(tmp_path, season=2)
+    assert out["status"] == "unchecked", out
+    assert out["behind"] == 0
+    assert "stale" not in out["status"], "an unreachable remote must not "
+    "'read stale' — that would be a false signal to block on"
+
+
+def test_stale_base_spawn_fails_open_when_remote_ref_unresolvable(
+        tmp_path, monkeypatch):
+    fake = _FakeGit(revparse_rc=1, revparse_out="")
+    monkeypatch.setattr(dispatch.subprocess, "run", fake)
+    out = dispatch._stale_base_spawn(tmp_path, season=2)
+    assert out["status"] == "unchecked", out
+
+
+def test_stale_base_record_is_structured_with_actions(tmp_path, monkeypatch):
+    fake = _FakeGit(count_out="3\n", diff_out="extensions/agi/bin/dispatch.py\n")
+    monkeypatch.setattr(dispatch.subprocess, "run", fake)
+    stale = dispatch._stale_base_spawn(tmp_path, season=2)
+    rec = dispatch._stale_base_record(stale, season=2)
+    assert rec["issue"] == "stale-base"
+    assert rec["behind"] == 3
+    assert rec["integration"] == "season2/main"
+    ids = [a["id"] for a in rec["actions"]]
+    assert "sync" in ids and "override" in ids and "abort" in ids, (
+        "the must-pick floor: a re-invocation carries one of these — a "
+        "synced base, --allow-stale-base <reason>, or an abort")
+    assert any("--allow-stale-base" in a.get("cmd", "")
+               for a in rec["actions"]), rec
+
+
+# ---------------------------------------------------------------------------
+# Residue 4 — town_branches reader + stale-base guard measured against the
+# round's OWN town integration branch (hypothesis:l4-towns-each-app-is-a-
+# vision-with-its-own-council; owner ruling 01:4xZ).
+# ---------------------------------------------------------------------------
+
+
+def _town_ladder(repo: Path, season: int = 2) -> Path:
+    """Write a ladder with a `town_branches` map into the repo's graph.
+
+    Fixtures write their OWN temp ladder (the live ladder node is READ ONLY).
+    The map value is OPAQUE CONFIG (owner ruling 01:4xZ) — code must never
+    parse the branch name, only compare it by exact equality.
+    """
+    geom = repo / ".agi" / "nodes" / ".geometry"
+    geom.mkdir(parents=True, exist_ok=True)
+    ladder = geom / "ladder.md"
+    ladder.write_text(
+        "---\nid: ladder:ladder\ntype: ladder\n"
+        f"current_season: {season}\n"
+        "town_branches:\n"
+        "  core: season/s2\n"
+        "  streaming-suite: town/streaming-suite@s2\n"
+        "  web-app-suite: town/web-app-suite@s2\n"
+        "---\nbody\n", encoding="utf-8")
+    return ladder
+
+
+def test_town_branch_behind_season_not_stale_against_own_branch(
+        tmp_path):
+    """A town branch behind season/s2 must NOT be reported stale against its
+    OWN integration branch, and the fallback must still measure plain
+    season/s2 exactly as before (residue 4).
+
+    Setup: a repo whose season/s2 is AHEAD of the town branch, so a plain
+    season/s2 measurement reads `behind` while the town's own branch is even
+    with the spawner's HEAD -> `current`. Both facts must hold from ONE repo.
+    """
+    repo = _git_repo(tmp_path, branch="season/s2")
+    _town_ladder(repo, season=2)
+    # The town branch is cut from season/s2 TODAY (even).
+    _git(repo, "branch", "town/streaming-suite@s2")
+    # Advance season/s2 past the town branch so plain-s2 reads stale.
+    (repo / "README").write_text("x2")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "ahead of town")
+    # A bare origin holding both branches, season/s2 at its NEW tip and the
+    # town branch at the OLD (even) commit, so the stale guard has a real
+    # remote tip to measure against (fetch beats a local ref's last sight).
+    bare = tmp_path / "remote.git"
+    _git(repo, "clone", "--bare", ".", str(bare))
+
+    def _bare(*args):
+        return subprocess.run(["git", "-C", str(bare), *args],
+                              capture_output=True, text=True, check=True)
+
+    # origin/season/s2 = new tip; origin/town/... = the even commit.
+    _bare("branch", "-f", "season/s2", "season/s2")
+    town_tip = _git(repo, "rev-parse", "town/streaming-suite@s2").stdout.strip()
+    _bare("branch", "-f", "town/streaming-suite@s2", town_tip)
+    _bare("symbolic-ref", "HEAD", "refs/heads/season/s2")
+    # Point the local repo's origin at the bare, and fetch both refs locally
+    # so the stale guard's `git fetch origin <ref>` resolves against it.
+    _git(repo, "remote", "add", "origin", str(bare))
+    _git(repo, "fetch", "origin", "season/s2")
+    _git(repo, "fetch", "origin", "town/streaming-suite@s2")
+
+    # Spawner sits on the town branch (its own integration line).
+    _git(repo, "checkout", "town/streaming-suite@s2")
+    assert _git(repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip() \
+        == "town/streaming-suite@s2"
+
+    # Measured against ITS OWN town branch: even -> current, never stale.
+    out = dispatch._stale_base_spawn(repo, season=2,
+                                     town_branch="town/streaming-suite@s2")
+    assert out["status"] == "current", (
+        "a town branch even with its own integration line must not read "
+        f"stale, however far season/s2 has run ahead: {out}")
+
+    # The same HEAD measured against the FALLBACK (no town branch): the plain
+    # season/s2 base is 1 behind -> the plain-s2 behaviour is unchanged.
+    fallback = dispatch._stale_base_spawn(repo, season=2)
+    assert fallback["status"] == "behind", fallback
+    assert fallback["behind"] == 1, fallback
+    rec = dispatch._stale_base_record(fallback, season=2)
+    assert rec["integration"] == "season2/main", rec
+    # The town-path record names the town branch, and its sync target too.
+    trec = dispatch._stale_base_record(out, season=2,
+                                       town_branch="town/streaming-suite@s2")
+    assert trec["integration"] == "town/streaming-suite@s2", trec
+    assert any("town/streaming-suite@s2" in a.get("cmd", "")
+               for a in trec["actions"]), trec
+
+
+def test_town_of_branch_resolver_is_exact_equality(tmp_path, monkeypatch):
+    """The branch -> town reverse lookup and town -> branch resolver never
+    parse the opaque value; only exact string equality maps either way."""
+    repo = _git_repo(tmp_path, branch="season/s2")
+    _town_ladder(repo, season=2)
+
+    from dispatch import _current_town_branch
+
+    nodes = repo / ".agi" / "nodes"
+    # On the town branch HEAD resolves to the town's integration branch.
+    _git(repo, "branch", "town/streaming-suite@s2")
+    _git(repo, "checkout", "town/streaming-suite@s2")
+    assert _current_town_branch(repo, nodes) == "town/streaming-suite@s2"
+    # On plain season/s2 (core's own branch, per the test ladder) the resolved
+    # town branch IS season/s2 — identical refs to the fallback, so the plain
+    # base behaves exactly as today.
+    _git(repo, "checkout", "season/s2")
+    assert _current_town_branch(repo, nodes) == "season/s2"
+    # A branch listed in NO town's opaque map (a seat/loop branch) maps to
+    # None -> the guard keeps the plain season/s2 base, byte-for-byte.
+    _git(repo, "checkout", "-b", "loop/slug-aaaa@s2")
+    assert _current_town_branch(repo, nodes) is None
+
+
+def test_v3_post_branch_resolves_its_own_town_trunk(tmp_path):
+    """hypothesis:lm-dispatch-stale-base-measures-a-town-post-against-core-
+    main: a v3 town-first post/loop branch (`<town>/season<m>/posts/<seat>/
+    main`) resolves the trunk of ITS tuple, never core's main -- the shape
+    the thought town's director actually carries."""
+    repo = _git_repo(tmp_path, branch="season/s2")
+    _town_ladder(repo, season=2)
+    from dispatch import _current_town_branch
+    nodes = repo / ".agi" / "nodes"
+    _git(repo, "checkout", "-b",
+         "local-maxxing/season1/posts/director-thought/main")
+    assert _current_town_branch(repo, nodes) == "local-maxxing/season1/main"
+    _git(repo, "checkout", "-b",
+         "local-maxxing/season1/posts/director-thought/loops/hyp-a00-abc123/main")
+    assert _current_town_branch(repo, nodes) == "local-maxxing/season1/main"
+
+
+def test_v3_town_trunk_without_ladder_row_integrates_against_itself(tmp_path):
+    """A v3 town TRUNK whose town has no `town_branches` row is measured
+    against itself on origin (owner 01:0xZ 09-19: towns are independent and
+    batched). A trunk whose town HAS a row (core) keeps today's path: the
+    exact-equality lookup misses `core/season2/main` vs `season/s2` and the
+    resolver still returns None (the caller's season/sN fallback)."""
+    repo = _git_repo(tmp_path, branch="season/s2")
+    _town_ladder(repo, season=2)
+    from dispatch import _current_town_branch
+    nodes = repo / ".agi" / "nodes"
+    _git(repo, "checkout", "-b", "local-maxxing/season1/main")
+    assert _current_town_branch(repo, nodes) == "local-maxxing/season1/main"
+    _git(repo, "checkout", "-b", "core/season2/main")
+    assert _current_town_branch(repo, nodes) is None
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l4-branches-follow-the-season-grammar — the stale-base guard
+# must resolve the town/integration branch CANONICAL-first with the one-season
+# legacy alias as fallback, so a pre-migration origin that has NOT been
+# renamed yet stays measurable instead of failing OPEN to "unchecked".
+# ---------------------------------------------------------------------------
+
+
+def _origin_bare(tmp_path, repo, only_refs, head_ref, repoint=None):
+    """A bare origin cloned from `repo`, then pruned to carry ONLY the branch
+    names in `only_refs`, HEAD pointed at `head_ref`. `repoint` maps a legacy
+    name to the target ref it should point at (so an origin can carry just the
+    OLD name at an AHEAD tip). Adds the origin remote to `repo`. Returns
+    (bare_path, _bare) so a caller can keep driving origin git ops."""
+    bare = tmp_path / "remote.git"
+    _git(repo, "clone", "--bare", "-q", ".", str(bare))
+
+    def _bare(*args):
+        return subprocess.run(["git", "-C", str(bare), *args],
+                              capture_output=True, text=True, check=True)
+
+    for name, target in (repoint or {}).items():
+        # exists in the clone (via another branch), so it resolves in the bare.
+        _bare("branch", "-f", name, target)
+    refs = _git(bare, "for-each-ref", "--format=%(refname)", "refs/heads")
+    for r in refs.stdout.splitlines():
+        name = r.split("refs/heads/", 1)[1]
+        if name not in only_refs:
+            _bare("branch", "-D", name)
+    _bare("symbolic-ref", "HEAD", f"refs/heads/{head_ref}")
+    _git(repo, "remote", "add", "origin", str(bare))
+    return bare, _bare
+
+
+def test_stale_base_loop_resolves_only_legacy_origin(tmp_path):
+    """THE regression this round exists for: on an origin carrying ONLY the
+    legacy `season/s2`, a spawner on a canonical core post/loop branch must
+    read a real fate (`behind`, by a known count) — NEVER `unchecked`.
+
+    Pre-fix, the town/integration branch (`season2/main`, resolved by
+    `_current_town_branch` from the post/loop) was fetched as the canonical
+    name ALONE; on a pre-migration origin that name 404s, `integration` stayed
+    None, and the guard failed OPEN to "unchecked" for EVERY nested spawn
+    until the live rename. The fix routes town_branch through
+    `branches.ref_candidates`, so the legacy `season/s2` resolves."""
+    repo = _git_repo(tmp_path, branch="season2/main")
+    _git(repo, "branch", "season/s2")
+    # Advance season/s2's TARGET past the loop base so the legacy origin is
+    # AHEAD by exactly one known commit once repointed onto it.
+    (repo / "README").write_text("x2")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "ahead of loop base")
+    _git(repo, "checkout", "-q", "season/s2")
+    _git(repo, "branch", "season2/loops/round-a00-abc123")
+    _git(repo, "checkout", "-q", "season2/loops/round-a00-abc123")
+    # HEAD is now the loop base; origin carries ONLY season/s2, at the ahead tip.
+    _origin_bare(tmp_path, repo, only_refs=["season/s2"],
+                 head_ref="season/s2", repoint={"season/s2": "season2/main"})
+    from dispatch import _current_town_branch
+    town_branch = _current_town_branch(repo, repo / ".agi" / "nodes")
+    assert town_branch == "season2/main", town_branch
+    out = dispatch._stale_base_spawn(repo, season=2, town_branch=town_branch)
+    assert "unchecked" not in out["status"], (
+        "a resolvable legacy origin must not fail open: " + str(out))
+    assert out["status"] == "behind" and out["behind"] == 1, out
+
+
+def test_stale_base_both_names_fetches_canonical_first(tmp_path):
+    """An origin carrying BOTH `season2/main` and `season/s2` must be fetched
+    via the CANONICAL name — the legacy alias is never consulted once the
+    canonical resolves (candidates are tried in order and we break on the
+    first success, so the legacy remote-tracking ref never materialises)."""
+    repo = _git_repo(tmp_path, branch="season2/main")
+    _git(repo, "branch", "season/s2")
+    _git(repo, "checkout", "-q", "season/s2")
+    (repo / "README").write_text("x2")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "legacy ahead")
+    _git(repo, "checkout", "-q", "season2/main")
+    _origin_bare(tmp_path, repo,
+                 only_refs=["season2/main", "season/s2"],
+                 head_ref="season2/main")
+    out = dispatch._stale_base_spawn(repo, season=2,
+                                     town_branch="season2/main")
+    assert out["status"] == "current", out  # even vs origin/season2/main
+    resolved = subprocess.run(
+        ["git", "-C", str(repo), "rev-parse", "--verify",
+         "origin/season2/main^{commit}"], capture_output=True, text=True)
+    assert resolved.returncode == 0, (resolved.stdout, resolved.stderr)
+    legacy = subprocess.run(
+        ["git", "-C", str(repo), "rev-parse", "--verify", "--quiet",
+         "origin/season/s2^{commit}"], capture_output=True, text=True)
+    assert legacy.returncode != 0, (
+        "legacy must not be fetched when the canonical resolves")
+
+
+def test_stale_base_canonical_town_main_reaches_legacy_literal_origin(tmp_path):
+    """The ladder-town case: a town_branch supplied as the CANONICAL town main
+    (`season2/streaming-suite/season1/main` — what `_current_town_branch`
+    returns for a spawner on that town's canonical post/loop) must still
+    resolve on an origin that carries ONLY the literal `town/streaming-suite@s2`
+    legacy branch. That literal form is derived by the grammar's own
+    ref_candidates/_canonical_to_old for a k==1 town main (hypothesis:
+    l4-every-reader-resolves-a-branch-through-branches-py: every resolving
+    spelling comes from branches.py, never hand-spelled in dispatch) — an
+    unreachable-name 404 must never masquerade as "unchecked" only because
+    the resolver stopped routing through the grammar."""
+    repo = _git_repo(tmp_path, branch="season/s2")
+    _git(repo, "branch", "town/streaming-suite@s2")
+    _git(repo, "checkout", "-q", "town/streaming-suite@s2")
+    (repo / "README").write_text("x2")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "town main ahead")
+    _origin_bare(tmp_path, repo, only_refs=["town/streaming-suite@s2"],
+                 head_ref="town/streaming-suite@s2")
+    out = dispatch._stale_base_spawn(
+        repo, season=2,
+        town_branch="season2/streaming-suite/season1/main")
+    assert "unchecked" not in out["status"], out
+    resolved = subprocess.run(
+        ["git", "-C", str(repo), "rev-parse", "--verify",
+         "origin/town/streaming-suite@s2^{commit}"], capture_output=True,
+        text=True)
+    assert resolved.returncode == 0, (
+        "the legacy literal ref must have been fetched and resolved: "
+        f"{resolved.stdout} {resolved.stderr}")
+
+
+def test_stale_base_multiseason_town_main_invents_no_town_at_alias(tmp_path):
+    """A MULTI-season town main (`season3/core/season5/main`) must NOT be
+    measured against the invented literal `town/core@s3` — that spelling
+    resolves to the season-one branch `season3/core/season1/main`, a
+    DIFFERENT branch, so fetching it would be measuring a fork. The pre-fix
+    hand-spelled resolver (_town_at_legacy, removed) emitted exactly that
+    wrong alias; the grammar's ref_candidates derives the one-season town
+    alias only for k==1 town mains, so routing through it drops the bogus
+    candidate by construction (hypothesis:
+    l4-every-reader-resolves-a-branch-through-branches-py)."""
+    repo = _git_repo(tmp_path, branch="season3/main")
+    _git(repo, "branch", "season3/core/season5/main")
+    _git(repo, "checkout", "-q", "season3/core/season5/main")
+    (repo / "README").write_text("x5")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "multiseason town ahead")
+    # The fork a pre-migration tree might carry: a season-ONE branch plus the
+    # town-at alias `town/core@s3` that points AT it — a DIFFERENT branch from
+    # the guard's multi-season main. The guard must never fetch it.
+    _git(repo, "branch", "season3/core/season1/main")
+    _git(repo, "checkout", "-q", "season3/core/season1/main")
+    (repo / "README").write_text("x1")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "season one fork")
+    _git(repo, "branch", "town/core@s3", "season3/core/season1/main")
+    _git(repo, "checkout", "-q", "season3/core/season5/main")
+    _origin_bare(tmp_path, repo,
+                 only_refs=["season3/core/season5/main", "town/core@s3"],
+                 head_ref="season3/core/season5/main")
+    out = dispatch._stale_base_spawn(
+        repo, season=3, town_branch="season3/core/season5/main")
+    assert out["status"] == "current", out
+    # The guard resolved against the canonical multi-season main — never the
+    # `town/core@s3` alias of the season-one branch, which is NOT the origin
+    # it is behind.
+    wrong = subprocess.run(
+        ["git", "-C", str(repo), "rev-parse", "--verify", "--quiet",
+         "origin/town/core@s3^{commit}"], capture_output=True, text=True)
+    assert wrong.returncode != 0, (
+        "a multi-season town main must never be measured against the "
+        "season-one town-at alias: origin/town/core@s3 was fetched")
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — the parent-kid
+# ceiling becomes a refusal, not just a printed number.
+# ---------------------------------------------------------------------------
+
+def _kid_manifest(n_kids, by="P"):
+    """A manifest with n_kids records all stamped spawned_by_agent=<by>."""
+    return {
+        "iter": 1,
+        "agents": [
+            {"id": f"k{i}", "tier": "kid", "spawned_by_agent": by}
+            for i in range(n_kids)
+        ],
+    }
+
+
+def _kid_cfg(ceiling):
+    return {"spawn": {"parent_max_kids": ceiling}}
+
+
+def test_parent_kid_ceiling_gate_refuses_at_ceiling_and_names_both_numbers(monkeypatch):
+    """FIXTURES ONLY — a temp manifest, never this repo. A parent that has
+    already dispatched `spawn.parent_max_kids` kids is REFUSED its next kid
+    with BOTH numbers in the message, exactly the shape the brief expects
+    ('refuses kid 6' at ceiling 5)."""
+    monkeypatch.setenv("AGI_AGENT_ID", "P")
+    refused = dispatch._parent_kid_ceiling_gate(_kid_manifest(5), _kid_cfg(5), 1)
+    assert refused is not None
+    code, msg = refused
+    assert code == 2
+    assert "ERR parent P has dispatched 5 kids" in msg
+    assert "spawn.parent_max_kids=5" in msg
+    assert "refuses kid 6" in msg
+
+
+def test_parent_kid_ceiling_gate_passes_below_the_ceiling(monkeypatch):
+    monkeypatch.setenv("AGI_AGENT_ID", "P")
+    assert dispatch._parent_kid_ceiling_gate(_kid_manifest(4), _kid_cfg(5), 1) is None
+    # exactly at the ceiling is allowed when THIS invocation adds no kid
+    assert dispatch._parent_kid_ceiling_gate(_kid_manifest(5), _kid_cfg(5), 0) is None
+
+
+def test_parent_kid_ceiling_gate_counts_only_that_parents_kids(monkeypatch):
+    """Records spawned by OTHER parents or by nobody must not count against
+    this parent's ceiling."""
+    monkeypatch.setenv("AGI_AGENT_ID", "P")
+    manifest = {
+        "agents": (
+            [{"id": f"o{i}", "tier": "kid", "spawned_by_agent": "OTHER"}
+             for i in range(5)]
+            + [{"id": "human", "tier": "kid"}]  # no spawned_by_agent at all
+        )
+    }
+    assert dispatch._parent_kid_ceiling_gate(manifest, _kid_cfg(5), 1) is None
+
+
+def test_parent_kid_ceiling_gate_fails_open_without_agent_id(monkeypatch):
+    """A director or a human at a shell has no AGI_AGENT_ID — the gate must
+    NEVER fire, however many kid records exist, exactly like the stale-base
+    gate."""
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    assert dispatch._parent_kid_ceiling_gate(_kid_manifest(50), _kid_cfg(5), 1) is None
+
+
+def _live_manifest(parent_id, parent_pid):
+    return {"iter": 1, "agents": [{"id": parent_id, "pid": parent_pid}]}
+
+
+def test_kid_of_live_manifest_parent_is_account_floor_exempt(monkeypatch):
+    """l4-a-kid-spawn... — a kid whose parent (AGI_AGENT_ID) is a manifest
+    record with a LIVE pid is exempt from the ACCOUNT floor: the helper
+    returns the parent id+pid so the pre-flight prints the exempt line and
+    skips check_account_floor (the key floor still runs)."""
+    monkeypatch.setenv("AGI_AGENT_ID", "parent-a")
+    monkeypatch.setattr(dispatch.spawn_budget, "_pid_alive", lambda pid: True)
+    got = dispatch._kid_account_floor_exemption(_live_manifest("parent-a", 999))
+    assert got == ("parent-a", 999)
+
+
+def test_kid_with_no_manifest_parent_is_not_account_floor_exempt(monkeypatch):
+    """A kid whose parent id is NOT in the iter manifest must read the floor
+    as today (refused, floor named) — no record, no exemption."""
+    monkeypatch.setenv("AGI_AGENT_ID", "parent-a")
+    assert dispatch._kid_account_floor_exemption({"agents": []}) is None
+
+
+def test_kid_of_a_dead_parent_is_not_account_floor_exempt(monkeypatch):
+    """A dead parent (pid not alive) must NOT grant the exemption — the round
+    is gone, so its kids read the floor like any other spawn."""
+    monkeypatch.setenv("AGI_AGENT_ID", "parent-a")
+    monkeypatch.setattr(dispatch.spawn_budget, "_pid_alive", lambda pid: False)
+    assert dispatch._kid_account_floor_exemption(_live_manifest("parent-a", 999)) is None
+
+
+def test_non_kid_spawner_without_agent_id_is_not_account_floor_exempt(monkeypatch):
+    """A director or human at a shell (no AGI_AGENT_ID) is never exempt —
+    the account floor applies to a top-level spawn exactly as before, which is
+    what a kid tier with no caller identity would look like too."""
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    assert dispatch._kid_account_floor_exemption(_live_manifest("parent-a", 999)) is None
+
+
+def test_parent_kid_ceiling_gate_passes_with_no_manifest_agents(monkeypatch):
+    monkeypatch.setenv("AGI_AGENT_ID", "P")
+    assert dispatch._parent_kid_ceiling_gate({"agents": []}, _kid_cfg(5), 1) is None
+
+
+def test_reap_pass_mirrors_terminal_record_in_inline_lane(tmp_path, monkeypatch):
+    """hyp:l4-the-manifest-mirrors-terminal-agent-status — inline-lane
+    (restart_ok=True) parity. `_reap_pass` copies a TERMINAL (done) agent.json
+    onto a manifest entry that still reads `running`, returns it under the NEW
+    `mirrored` key, does NOT put it in marked/still/died, and stays lane-
+    independent (same mirror under restart_ok=True). No restart is attempted
+    for a terminal record."""
+    import json
+    d = _load_dispatch()
+    graph = _reap_project(tmp_path)
+    iter_dir = graph / "sessions" / "iter-mir"
+    (iter_dir / "a00-mir").mkdir(parents=True)
+    (iter_dir / "manifest.json").write_text(json.dumps(
+        {"agents": [{"id": "a00-mir", "status": "running"}]}))
+    (iter_dir / "a00-mir" / "agent.json").write_text(json.dumps(
+        {"id": "a00-mir", "status": "done", "finished_at": 7,
+         "fail_reason": "completed"}))
+    adapter = _FakeAdapter(pid=4242)
+    monkeypatch.setattr(d, "stall_detect",
+                        type("NS", (), {"record_stalled_in_iteration":
+                                        lambda *a, **k: None})())
+
+    out = d._reap_pass(graph, iter_dir, adapter, cap=1, cfg={},
+                       restart_ok=True)
+
+    assert out["mirrored"] == ["a00-mir"], out
+    assert out["marked"] == [] and out["still"] == [] and out["died"] == [], out
+    m = json.loads((iter_dir / "manifest.json").read_text())
+    e = m["agents"][0]
+    assert e["status"] == "done" and e["finished_at"] == 7, e
+    assert adapter.calls == [], "a terminal record must never be restarted"
+
+
+# --- hypothesis:l4-branches-follow-the-season-grammar clause (5) ---
+# dispatch's integration branch for the stale-base guard must resolve a
+# spawner on a canonical TOWN post/loop branch to that TOWN's main via the
+# grammar module's merge_target -- the exact-string town reverse-lookup
+# matches no ladder value for a canonical loop/post spelling, so the old
+# code fell back to the CORE main instead.
+
+
+def test_current_town_branch_prefers_merge_target_for_loop(tmp_path):
+    # A spawner on a canonical town loop branch: merge_target runs BEFORE the
+    # town reverse-lookup (which would return None for this exact string), so
+    # the returned integration is the TOWN main, not a core main.
+    repo = _git_repo_on_branch(tmp_path, "season2/web-app-suite/season1/loops/xx-yy")
+    # nodes_dir is pointless here: a post/loop branch resolves via merge_target
+    # without ever consulting the ladder reverse-lookup.
+    assert dispatch._current_town_branch(repo, tmp_path / "scratch") == \
+        "season2/web-app-suite/season1/main"
+
+
+def _git_repo_on_branch(tmp_path: Path, branch: str) -> Path:
+    repo = tmp_path / "main"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-b", branch],
+                   check=True, capture_output=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    (repo / "README").write_text("x")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
+                   check=True, capture_output=True)
+    return repo
+
+
+# --- hypothesis:l4-a-suspend-killed-round-comes-home-stalled-with-a-dead-pid ---
+# ADMISSION under test THROUGH `_reap_pass` (not just `_reap_one`): a `stalled`
+# record whose pid is provably gone is resolved by the same rules as a dead
+# `running` record (node complete / branch advanced -> done-unreported,
+# otherwise -> failed with the stall named), and is NEVER restarted. A
+# `stalled` record with a LIVE pid stays stalled (mirror-only, not reaped).
+
+
+def _stall_pass(tmp_path, monkeypatch, rec_status="stalled", agent_pid=999,
+                node_complete=False, branch_committed=False, alive_pid=None,
+                restart_ok=True):
+    import json
+    d = _load_dispatch()
+    graph = _reap_project(tmp_path)
+    iter_dir = graph / "sessions" / "iter-stall"
+    (iter_dir / "a00-stl").mkdir(parents=True)
+    (iter_dir / "manifest.json").write_text(json.dumps(
+        {"agents": [{"id": "a00-stl", "status": "running"}]}))
+    (iter_dir / "a00-stl" / "agent.json").write_text(json.dumps(
+        {"id": "a00-stl", "status": rec_status, "pid": agent_pid,
+         "node_id": "hypothesis:h-stall"}))
+    import completion
+    monkeypatch.setattr(completion, "is_complete",
+                        lambda root, nid: node_complete)
+    monkeypatch.setattr(d, "_branch_has_done_commit",
+                        lambda root, rec, aid: branch_committed)
+    monkeypatch.setattr(d, "stall_detect",
+                        type("NS", (), {"record_stalled_in_iteration":
+                                        lambda *a, **k: None})())
+    if alive_pid is not None:
+        adapter = type("Live", (_FakeAdapter,),
+                       {"is_alive": lambda self, p: p == alive_pid})(pid=111)
+    else:
+        adapter = _FakeAdapter(pid=111)
+    out = d._reap_pass(graph, iter_dir, adapter, cap=1, cfg={},
+                       restart_ok=restart_ok)
+    rec = json.loads((iter_dir / "a00-stl" / "agent.json").read_text())
+    return d, out, rec, adapter
+
+
+def test_stalled_dead_pid_complete_node_resolves_done_unreported(tmp_path, monkeypatch):
+    """A suspend-killed round whose pid is gone but whose node is complete
+    resolves done-unreported, exactly like a dead `running` record, and is
+    never restarted."""
+    d, out, rec, adapter = _stall_pass(tmp_path, monkeypatch,
+                                       node_complete=True)
+    assert rec["status"] == "done-unreported", rec
+    assert "complete" in rec["fail_reason"], rec
+    assert adapter.calls == [], "a stalled record must never be restarted"
+
+
+def test_stalled_dead_pid_branch_advanced_resolves_done_unreported(tmp_path, monkeypatch):
+    """The parent's completion signal — a commit on its branch — resolves a
+    stalled+dead-pid record done-unreported, never restarted."""
+    d, out, rec, adapter = _stall_pass(tmp_path, monkeypatch,
+                                       branch_committed=True)
+    assert rec["status"] == "done-unreported", rec
+    assert adapter.calls == [], "a stalled record must never be restarted"
+
+
+def test_stalled_dead_pid_incomplete_node_fails_named_never_restarted(tmp_path, monkeypatch):
+    """No completion signal and no branch advance -> `failed` with the stall
+    named, and NEVER a respawn."""
+    d, out, rec, adapter = _stall_pass(tmp_path, monkeypatch)
+    assert rec["status"] == "failed", rec
+    assert "stalled" in rec["fail_reason"], rec
+    assert adapter.calls == [], "a stalled record must never be restarted"
+
+
+def test_stalled_alive_pid_stays_stalled_not_reaped(tmp_path, monkeypatch):
+    """A `stalled` record whose pid is still alive is NOT admitted to the reap
+    path — it stays stalled, is not mirrored-as-reaped, and never restarts."""
+    d, out, rec, adapter = _stall_pass(tmp_path, monkeypatch, alive_pid=999)
+    assert rec["status"] == "stalled", rec
+    assert out["marked"] == [], out
+    assert adapter.calls == [], "a live stalled record must never be reaped"
+
+
+# --- hypothesis:l4-the-reaper-tolerates-a-null-pid… — the ONE pid reader ---
+
+def test_rec_pid_tolerates_null_missing_and_non_int():
+    """`int(rec.get("pid", 0))` raised TypeError on a committed record whose
+    pid was null or a non-int, taking the whole reap pass down. `_rec_pid`
+    reads every such shape as 0 = unknown."""
+    d = _load_dispatch()
+    assert d._rec_pid({"pid": None}) == 0
+    assert d._rec_pid({}) == 0
+    assert d._rec_pid({"pid": "abc"}) == 0
+    assert d._rec_pid({"pid": ""}) == 0
+    assert d._rec_pid({"pid": 4242}) == 4242
+    assert d._rec_pid({"pid": "4242"}) == 4242
+
+
+def test_is_death_predicate_covers_stalled_and_dead_running():
+    """The ONE death predicate: both terminal resolutions that lose a pid are
+    deaths, and a mirror-only resolution is not. This is what the `died`
+    membership is driven off instead of a `fail_reason` string match."""
+    d = _load_dispatch()
+    assert d._is_death({"status": "failed", "death": {"class": "died-no-work"}})
+    assert d._is_death({"status": "failed", "death": {"class": "died-after-work"}})
+    assert not d._is_death({"status": "failed"})            # no death class
+    assert not d._is_death({"status": "done-unreported",
+                            "fail_reason": "pid 1 disappeared, but ... complete"})
+    assert not d._is_death({"status": "running"})
+
+
+def test_stalled_dead_in_service_lane_lands_in_died(tmp_path, monkeypatch):
+    """A stalled-dead record reaped in the SERVICE lane (`restart_ok=False`)
+    must surface under `died` — that is what makes the watcher dm it and log
+    the reaper line. The old string-match on `fail_reason` never matched the
+    `stalled; …` reason, so `died` stayed empty."""
+    d, out, rec, adapter = _stall_pass(tmp_path, monkeypatch,
+                                       restart_ok=False)
+    assert rec["status"] == "failed", rec
+    assert "death" in rec, "the stalled-dead record must carry the death class"
+    assert out["died"] == ["a00-stl"], out
+    assert adapter.calls == [], "a stalled record must never be restarted"
+
+
+def test_orders_copy_is_per_agent_and_written_after_the_last_refusal_gate():
+    """goal:g15.25 SM.28 claim (4). Measured pre-fix: the orders copy was the
+    ONE path `<iter>/orders.md`, written ABOVE the kid-ceiling and key/account
+    floor gates -- so two parent dispatches into one iter dir overwrote each
+    other's file, and a round refused after that point left `orders.md` with
+    no `manifest.json` beside it. The copy must be keyed by the AGENT ID the
+    manifest record is keyed by (`orders.<agent>.md`, never the sender token
+    `AGI_ORDERS_FROM`, which two parents can share) and its write must sit
+    INSIDE the slot loop, below every per-slot refusal gate (budget lease,
+    zoom render, harness/model, mint) and above Popen. Structural: the write
+    is inline in `main()`, so the source position is the seam that proves
+    it."""
+    import ast
+    src = (BIN / "dispatch.py").read_text()
+    tree = ast.parse(src)
+    writes = [
+        n for n in ast.walk(tree)
+        if isinstance(n, ast.Call)
+        and getattr(n.func, "attr", "") == "write_text"
+        and n.args
+        and isinstance(n.args[0], ast.Name)
+        and n.args[0].id == "_orders_text"
+    ]
+    assert len(writes) == 1, "exactly one orders copy write expected"
+    # per-agent: the target is `_orders_file`, never a bare literal path.
+    fn = writes[0].func
+    assert isinstance(fn.value, ast.Name) and fn.value.id == "_orders_file"
+    # keyed template, not a shared constant: no bare `orders.md` literal may
+    # survive, and the token is the agent id the manifest record carries.
+    keyed = [n for n in ast.walk(tree)
+             if isinstance(n, ast.JoinedStr)
+             and any(isinstance(v, ast.Constant)
+                     and "orders." in str(v.value) for v in n.values)
+             and "agent_id" in ast.unparse(n)]
+    assert keyed, "the copy path must be the `orders.<agent_id>.md` template"
+    assert "\"orders.md\"" not in src, (
+        "a single shared `orders.md` is the two-parents-collide defect")
+    # after the last whole-dispatch refusal gate ...
+    gate = next(n for n in ast.walk(tree)
+                if isinstance(n, ast.Call)
+                and getattr(n.func, "attr", "") == "check_account_floor")
+    assert writes[0].lineno > gate.lineno, (
+        "the orders copy must be written after the last whole-dispatch "
+        "refusal gate or a refused round leaves an orphan file")
+    # ... and inside the slot loop: after the budget lease is taken, before
+    # Popen. A write above the per-slot gates is what orphaned the file when
+    # a slot was refused (measured: zoom-gate refusal left orders.SAME.md).
+    lease = min((n for n in ast.walk(tree)
+                 if isinstance(n, ast.Call)
+                 and getattr(n.func, "attr", "") == "acquire"),
+                key=lambda n: n.lineno)
+    popen = next(n for n in ast.walk(tree)
+                 if isinstance(n, ast.Call)
+                 and getattr(n.func, "attr", "") == "Popen")
+    assert lease.lineno < writes[0].lineno < popen.lineno, (
+        "the orders copy belongs inside the slot loop, below the per-slot "
+        "refusal gates and above Popen")
+
+
+def test_two_parents_keep_separate_orders_copies_in_one_iter_dir(
+        tmp_path, monkeypatch):
+    """goal:g15.25 SM.28 claim (4), KEYING half. Measured pre-fix: the copy
+    was keyed by the sender (`AGI_ORDERS_FROM`), which two parents sharing a
+    `--from` (or both defaulting to "unspecified") collide on, and it was
+    written BEFORE the agent id existed. Live path, faked only at the process
+    boundary (adapter + Popen + zoom): two parent dispatches into ONE iter dir
+    must leave TWO files, each named for the agent id its manifest record is
+    keyed by, and each record's `orders.path` must name its own file."""
+    import json as _json
+
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "config.json").write_text(_json.dumps({
+        "harnesses": {"claude-code": {
+            "adapter": "claude_code",
+            "models": {"kid": "claude-sonnet-5", "parent": "claude-opus-5"},
+            "allowed_models": ["claude-sonnet-5", "claude-opus-5"]}},
+    }))
+    (graph / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ncurrent_season: 2\nroles:\n"
+        '  - {"tier": 3, "role": "parent", "harness": "claude-code", '
+        '"model": "claude-opus-5", "effort": "max", "settings": "ultracode"}\n'
+        "---\n\nbody\n")
+
+    class _Proc:
+        # pid_max + 1 is never allocated by the kernel, so
+        # spawn_budget._pid_alive reads this lease DEAD: the first parent's
+        # slot is freed and the second parent is admitted at
+        # DEFAULT_MAX_LIVE = 1. A hard-coded 4242 is a live thread on some
+        # boxes: the lease then reads live and the 2nd dispatch is refused.
+        pid = int(open("/proc/sys/kernel/pid_max").read()) + 1
+
+        def poll(self):  # a child that never exits: outlives the startup grace
+            return None
+
+    class _Adapter:
+        def build_command(self, **kw):
+            return [sys.executable, "-c", "pass"]
+
+        def child_env(self, **kw):
+            return {}
+
+        def needs_credential(self, *a, **k):
+            return False
+
+    class _Run:
+        returncode = 0
+        stdout = "ctx\n"
+        stderr = ""
+
+    monkeypatch.setattr(dispatch.adapters, "load", lambda name: _Adapter())
+    monkeypatch.setattr(dispatch.subprocess, "Popen", lambda *a, **k: _Proc())
+    monkeypatch.setattr(dispatch.subprocess, "run", lambda *a, **k: _Run())
+    # the startup-grace poll's sleep seam: never sleep for real in a test
+    monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
+
+    for from_token in ("p1", "p2"):
+        orders = tmp_path / f"orders-{from_token}.md"
+        orders.write_text(f"SCOPE: parent {from_token}\n")
+        monkeypatch.setattr(sys, "argv", [
+            str(BIN / "dispatch.py"), str(tmp_path), "1",
+            "--harness", "claude-code", "--tier", "parent",
+            "--target", "hypothesis:x", "--orders", str(orders),
+            "--from", "SAME",  # both parents share the sender token
+            "--detach"])
+        assert dispatch.main() == 0
+
+    iter_dir = graph / "sessions" / "iter-001"
+    manifest = _json.loads((iter_dir / "manifest.json").read_text())
+    recs = [a for a in manifest["agents"] if a.get("orders")]
+    assert len(recs) == 2, manifest
+    paths = [Path(r["orders"]["path"]) for r in recs]
+    assert len({str(p) for p in paths}) == 2, (
+        f"two parents into one iter dir collided on {paths}")
+    assert not (iter_dir / "orders.SAME.md").exists(), (
+        "the sender token must never key the copy")
+    for rec, path in zip(recs, paths):
+        assert path.name == f"orders.{rec['id']}.md", (rec["id"], path)
+        assert path.is_file(), path
+    assert {p.read_text() for p in paths} == {
+        "SCOPE: parent p1\n", "SCOPE: parent p2\n"}
+
+
+# --- hypothesis:l4-dispatch-takes-a-per-round-cap-and-refuses-when-cap-
+# exceeds-pool-headroom — the `--cap` flag on the REAL spawn path.
+#
+# Three conjuncts, each driven through `dispatch.main()` with the network
+# stubbed (provisioning.mint / credit_balance / list_all_keys and
+# subprocess.Popen), so the mint call itself is observed rather than a helper:
+#   (a) `--cap 2.00` -> mint(limit_usd=2.00) and the spawn line reports it;
+#   (b) no flag    -> mint(limit_usd=<configured 1.5>), byte-identical path;
+#   (c) cap over pool-minus-floor-minus-live-caps -> exit 1, stderr names
+#       pool/floor/live, and NO mint happened.
+
+def _cap_project(tmp_path, parallel=1):
+    """A scratch openrouter project whose standing per-spawn cap is 1.5 and
+    whose account floor is 1.0."""
+    import json
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "nodes" / "hypothesis").mkdir(parents=True)
+    (graph / "nodes" / "goal").mkdir(parents=True)
+    (graph / "config.json").write_text(json.dumps({
+        "harnesses": {"pi": {"adapter": "pi", "provider": "openrouter",
+                             "models": {"kid": "deepseek/deepseek-v4"}}},
+        "spawn": {"harness": "pi", "parallel": parallel, "max_live": 25,
+                  "credential": {"per_spawn_limit_usd": 1.5,
+                                 "ttl_minutes": 180}},
+        "provisioning": {"min_account_remaining_usd": 1.0},
+        "agent_dispatch": {"inline_reaper": False},
+    }))
+    (graph / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ncurrent_season: 2\nroles:\n  - {tier: 0, role: kid, "
+        "harness: pi, model: deepseek/deepseek-v4}\n---\nbody")
+    (graph / "nodes" / ".geometry" / "secrets.md").write_text(
+        "---\nenv_file: /tmp/definitely-not-a-real-secrets-file-zzz\n---\n")
+    (graph / "nodes" / "goal" / "g15.md").write_text(
+        "---\nid: goal:g15\ntype: goal\n---\nbody\n")
+    (graph / "nodes" / "hypothesis" / "x.md").write_text(
+        "---\nid: hypothesis:x\ntype: hypothesis\nparents:\n  - goal:g15\n"
+        "---\nbody\n")
+    return tmp_path
+
+
+def _run_cap_dispatch(tmp_path, monkeypatch, *extra, balance=(100.0, 0.0, 100.0),
+                      keys=(), parallel=1, real_floor=False):
+    """Drive dispatch.main() for one openrouter kid slot with the network and
+    the child process stubbed. Returns (exit_code, [mint kwargs], captured)."""
+    import json
+    import os
+    import provisioning
+    import sys as _sys
+    project = _cap_project(tmp_path, parallel=parallel)
+    mint_calls: list = []
+
+    class _Minted:
+        secret = "sk-or-v1-x"
+        key_hash = "h"
+        name = "agi-iter1-kid-X"
+        expires_at = "Z"
+
+        def __init__(self, limit):
+            self.limit_usd = limit
+
+    def _fake_mint(**kw):
+        mint_calls.append(kw)
+        return _Minted(kw["limit_usd"])
+
+    monkeypatch.setattr(provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(provisioning, "mint", _fake_mint)
+    monkeypatch.setattr(provisioning, "check_runtime_key_usable",
+                        lambda cfg, root=None: (True, None))
+    if not real_floor:
+        monkeypatch.setattr(provisioning, "check_key_floor",
+                            lambda cfg, root=None, iter_n=None: (True, None))
+    monkeypatch.setattr(provisioning, "check_account_floor",
+                        lambda cfg, root=None: (True, None))
+    monkeypatch.setattr(provisioning, "credit_balance",
+                        lambda root=None: balance)
+    monkeypatch.setattr(provisioning, "list_all_keys",
+                        lambda root=None: list(keys))
+
+    real_popen = subprocess.Popen
+
+    class _StubProc:
+        pid = 7777
+
+        def poll(self):
+            return None
+
+        def wait(self, timeout=None):
+            return 0
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    def _patched(argv, **kw):
+        if (kw.get("env") or {}).get("AGI_AGENT_ID"):
+            return _StubProc()
+        return real_popen(argv, **kw)
+
+    monkeypatch.setattr(subprocess, "Popen", _patched)
+    # the startup-grace poll's sleep seam (dispatch.py:97-102): a stub child
+    # that never exits (poll() -> None) otherwise sleeps the real 20 s grace
+    # on every cap test that gets as far as spawning. Same seam as 1be791764.
+    monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
+    for k in ("AGI_TREE_PROJECT_ROOT", "AGI_PROJECT_ROOT", "AGI_AGENT_ID",
+              "AGI_ACTOR"):
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setattr(_sys, "argv", [
+        str(BIN / "dispatch.py"), str(project), "1", "--level", "small",
+        "--harness", "pi", "--tier", "kid", "--target", "hypothesis:x",
+        *extra])
+    code = dispatch.main()
+    return code, mint_calls, project
+
+
+def test_cap_flag_mints_at_exactly_that_limit(tmp_path, monkeypatch, capsys):
+    """(a) `--cap 2.00` overrides the configured 1.5 and the spawn line reports
+    the minted key's cap, so the round's real spend bound is the flag."""
+    code, mints, _p = _run_cap_dispatch(tmp_path, monkeypatch, "--cap", "2.00")
+    out = capsys.readouterr().out
+    assert code == 0
+    assert [m["limit_usd"] for m in mints] == [2.00]
+    assert "cap=$2.0" in out
+
+
+def test_no_cap_flag_keeps_the_configured_standing_limit(tmp_path, monkeypatch,
+                                                         capsys):
+    """(b) no flag -> the standing `spawn.credential.per_spawn_limit_usd`
+    applies unchanged, and no headroom call is made."""
+    code, mints, _p = _run_cap_dispatch(tmp_path, monkeypatch)
+    out = capsys.readouterr().out
+    assert code == 0
+    assert [m["limit_usd"] for m in mints] == [1.5]
+    assert "cap=$1.5" in out
+
+
+def test_cap_over_pool_headroom_is_refused_by_name_and_mints_nothing(
+        tmp_path, monkeypatch, capsys):
+    """(c) pool 6.00 - floor 1.00 - live 3.50 = 1.50 headroom; a 5.00 cap is
+    REFUSED, naming all three numbers, exit 1, and no mint happens."""
+    code, mints, _p = _run_cap_dispatch(
+        tmp_path, monkeypatch, "--cap", "5.00",
+        balance=(10.0, 4.0, 6.0),
+        keys=[{"name": "agi-iter1-kid-a", "limit": 2.0},
+              {"name": "human-key", "limit": 99.0},
+              {"name": "agi-iter1-parent-b", "limit": 1.5}])
+    err = capsys.readouterr().err
+    assert code == 1
+    assert mints == [], "a refused cap must never mint"
+    assert "round cap $5.00 exceeds pool headroom $1.50" in err, err
+    assert "pool $6.00" in err and "floor $1.00" in err and "live $3.50" in err
+    # item 15 (built by a00-4a19ce42): live is limit minus usage on live keys.
+    assert "live counts each un-expired agi- key's limit minus usage" in err, err
+
+
+def test_cap_prices_every_slot_and_names_the_multiplier(
+        tmp_path, monkeypatch, capsys):
+    """item 13: the slot loop mints ONE key per slot, so at spawn.parallel=3
+    a 5.00 cap is priced 15.00 -- it fits once but not three times, and the
+    refusal names the multiplier rather than leaving a $10.00 phantom."""
+    code, mints, _p = _run_cap_dispatch(
+        tmp_path, monkeypatch, "--cap", "5.00", parallel=3,
+        balance=(10.0, 0.0, 10.0))
+    err = capsys.readouterr().err
+    assert code == 1
+    assert mints == [], "a refused cap must never mint"
+    assert ("round cap $5.00 x 3 slots = $15.00 exceeds pool headroom $9.00"
+            in err), err
+
+
+def test_cap_fail_open_is_a_named_notice_never_silence(
+        tmp_path, monkeypatch, capsys):
+    """item 12: an unreadable account is a fail-open WITH a marker -- the
+    round proceeds but a `notice:` line names that the cap was not measured,
+    the same string cap_headroom returned."""
+    code, mints, _p = _run_cap_dispatch(
+        tmp_path, monkeypatch, "--cap", "5.00", balance=None)
+    err = capsys.readouterr().err
+    assert code == 0, f"a fail-open must still mint, got {code}: {err}"
+    assert len(mints) == 1, mints
+    assert "notice: cap not measured" in err, err
+
+
+def test_non_positive_cap_is_refused_by_name_before_any_mint(
+        tmp_path, monkeypatch, capsys):
+    """item 14: `--cap 0` and `--cap -1` always fit the comparison, so they
+    must never reach it -- each exits non-zero naming the value and no key is
+    minted."""
+    for bad in ("0", "-1"):
+        sub = tmp_path / ("cap_zero" if bad == "0" else "cap_neg")
+        code, mints, _p = _run_cap_dispatch(sub, monkeypatch, "--cap", bad)
+        err = capsys.readouterr().err
+        assert code == 1, (bad, code)
+        assert mints == [], (bad, "a refused cap must never mint")
+        assert f"ERR: --cap must be > 0, got {bad}" in err, (bad, err)
+
+
+def test_l4p6_composition_real_check_key_floor_through_dispatch(
+        tmp_path, monkeypatch, capsys):
+    """hypothesis:l4-pi-review-stages-... item (6) COMPOSITION — the wiring
+    and the mechanism on ONE branch, driven through the dispatch pre-flight
+    with the REAL `provisioning.check_key_floor` (NOT a signature-compatible
+    stub). A wire passing iter_n to a real function that cannot accept it
+    raises TypeError; a wire that does not thread iter_n lets ANOTHER
+    iteration's drained key (a proxy for this spawn's FRESH mint) refuse the
+    spawn — the TM.20 freeze. FALSIFIER: the dispatch call site calls
+    check_key_floor without iter_n, or the mechanism never landed and the
+    call breaks."""
+    # CASE A — another iteration's drained below-floor key (cap 5.0 makes
+    # remaining 0.90 < floor 1.0, and cap > floor so it is NOT a sub-floor
+    # skip) must NOT refuse this spawn: threading iter_n=1 skips the other-
+    # iter proxy key and the round mints its own fresh key.
+    other = [{"name": "agi-iter9-kid-a00", "limit": 5.0, "usage": 4.1}]
+    code, mints, _p = _run_cap_dispatch(
+        tmp_path, monkeypatch, keys=other, real_floor=True)
+    err = capsys.readouterr().err
+    assert code == 0, \
+        f"another iter's drained key refused this spawn: {err}"
+    assert len(mints) == 1, "the spawn must mint its own fresh key"
+
+    # CASE B — the SAME iteration's drained key (iter 1 == this dispatch's
+    # iter) still refuses, and names the owning iteration.
+    same = [{"name": "agi-iter1-kid-a00", "limit": 5.0, "usage": 4.1}]
+    code2, mints2, _p2 = _run_cap_dispatch(
+        tmp_path / "same", monkeypatch, keys=same, real_floor=True)
+    err2 = capsys.readouterr().err
+    assert code2 == 1, f"same-iteration drain did not refuse: {err2}"
+    assert mints2 == [], "a refused pre-flight must never reach a spawn"
+    assert "iteration 1" in err2, \
+        f"refusal must name the owning iter: {err2}"
+
+
+# --- hypothesis:l5-a-parent-waits-for-its-kid-in-the-foreground-and-a-turn-end
+# with-a-live-kid-is-named-not-a-death, conjunct 3 (the reaper label) -------
+
+
+class _KidAlive:
+    """Parent pid dead, kid pid alive -- the turn-end shape."""
+
+    def __init__(self, alive_pid):
+        self.alive_pid = alive_pid
+
+    def is_alive(self, pid):
+        return pid == self.alive_pid
+
+
+def _turn_end_round(tmp_path, last_event=None, kid=True, kid_pid=555):
+    graph = _reap_project(tmp_path)
+    it = graph / "sessions" / "iter-T"
+    (it / "parent-p").mkdir(parents=True)
+    lines = [json.dumps({"type": "message_end"})]
+    if last_event is not None:
+        lines.append(json.dumps(last_event))
+    (it / "parent-p" / "output.log").write_text("\n".join(lines) + "\n")
+    if kid:
+        (it / "kid-k").mkdir(parents=True)
+        (it / "kid-k" / "agent.json").write_text(json.dumps(
+            {"id": "kid-k", "status": "running", "pid": kid_pid,
+             "spawned_by_agent": "parent-p",
+             "node_id": "experiment:kid-1"}))
+    rec = {"id": "parent-p", "tier": "parent", "status": "running",
+           "pid": 999, "started_at": 0}
+    return graph, it, rec
+
+
+#: The round base tip's `extensions/agi/bin/dispatch.py`, pinned to BYTES (a
+#: committed fixture, not `git show <sha>`) so the red-on-pre-fix proof is
+#: reproducible forever and survives a history rewrite (goal:g1.32).
+_PRE_ROUND_DISPATCH_FIXTURE = (
+    Path(__file__).resolve().parent / "fixtures" / "dispatch_pre_round_dispatch.py.txt")
+
+
+def _load_base_dispatch(tmp_path):
+    """Load dispatch.py's PRE-FIX bytes (the pinned round-base fixture) as a tmp module."""
+    src = _PRE_ROUND_DISPATCH_FIXTURE.read_text()
+    tmp_mod = tmp_path / "base_dispatch.py"
+    tmp_mod.write_text(src)
+    spec = importlib.util.spec_from_file_location("agi_dispatch_base", tmp_mod)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _stream_error_turn_end_round(tmp_path):
+    """A turn-end whose log ALSO carries a provider/stream error line."""
+    graph, it, rec = _turn_end_round(
+        tmp_path, last_event={"type": "turn_end"})
+    (it / "parent-p" / "output.log").write_text(
+        "starting\n"
+        "stream error: HTTP 500 from provider\n"
+        + json.dumps({"type": "turn_end"}) + "\n")
+    return graph, it, rec
+
+
+def test_stream_error_survives_a_turn_end_at_the_reaper(tmp_path):
+    """A turn-end whose log already carries a stream error must keep that
+    exact line in `death.evidence`; the turn-end fact rides in `turn_end_kid`.
+    Before the fix the turn-end branch overwrote evidence with "turn-end"."""
+    d = _load_dispatch()
+    graph, it, rec = _stream_error_turn_end_round(tmp_path)
+    out = d._reap_one(graph, it, _KidAlive(555), rec, "parent-p", 999,
+                      cap=5, cfg={}, restart_ok=False)
+    death = out["record"]["death"]
+    assert death["class"] == "infra-stream-error"
+    assert "stream error" in death["evidence"]
+    assert death["evidence"] != "turn-end"
+    assert death["turn_end_kid"] == "experiment:kid-1"
+
+
+def test_pre_fix_reaper_blinds_a_stream_error_with_turn_end(tmp_path):
+    """RED-ON-PRE-FIX: the base-ref `_reap_one` overwrites the stream-error
+    evidence with "turn-end" on the SAME fixture the built bytes preserve."""
+    base = _load_base_dispatch(tmp_path)
+    graph, it, rec = _stream_error_turn_end_round(tmp_path)
+    out = base._reap_one(graph, it, _KidAlive(555), rec, "parent-p", 999,
+                         cap=5, cfg={}, restart_ok=False)
+    assert out["record"]["death"]["evidence"] == "turn-end"
+    assert out["record"]["death"]["class"] == "infra-stream-error"
+
+
+def test_success_tail_with_live_kid_is_a_turn_end_not_a_death(tmp_path):
+    """A parent pid gone whose log ends in a completed turn AND whose kid is
+    still live is labelled a headless turn-end, never 'died'."""
+    d = _load_dispatch()
+    graph, it, rec = _turn_end_round(
+        tmp_path, last_event={"type": "turn_end"})
+    out = d._reap_one(graph, it, _KidAlive(555), rec, "parent-p", 999,
+                      cap=5, cfg={}, restart_ok=False)
+    assert out["record"]["fail_reason"] == (
+        "turn-end with live kid experiment:kid-1 (headless exit, not a death)")
+    assert out["record"]["death"]["evidence"] == "turn-end"
+    assert "turn-end with live kid" in out["message"]
+
+
+def test_claude_code_success_result_is_also_a_turn_end(tmp_path):
+    """The claude-code harness spells the same fact `result`/`success`."""
+    d = _load_dispatch()
+    graph, it, rec = _turn_end_round(
+        tmp_path, last_event={"type": "result", "subtype": "success"})
+    out = d._reap_one(graph, it, _KidAlive(555), rec, "parent-p", 999,
+                      cap=5, cfg={}, restart_ok=False)
+    assert "turn-end with live kid" in out["record"]["fail_reason"]
+    assert out["record"]["death"]["evidence"] == "turn-end"
+
+
+def test_truncated_log_keeps_the_honest_died_label(tmp_path):
+    """A killed-mid-turn parent (no success tail) must keep the exact old
+    text and carry no turn-end evidence -- no regression of the death label."""
+    d = _load_dispatch()
+    graph, it, rec = _turn_end_round(tmp_path)
+    out = d._reap_one(graph, it, _KidAlive(555), rec, "parent-p", 999,
+                      cap=5, cfg={}, restart_ok=False)
+    assert out["record"]["fail_reason"] == (
+        "pid 999 died (detected by reaper)")
+    assert out["record"]["death"]["evidence"] != "turn-end"
+
+
+class _AlwaysAlive:
+    """The production pi adapter answers True for pid 0 (it falls back to
+    os.kill(0, 0), which signals the caller's own process group)."""
+
+    def is_alive(self, pid):
+        return True
+
+
+def test_pid_null_kid_is_never_a_live_kid(tmp_path):
+    """A kid record with `pid: null` is UNKNOWN, not alive -- the success
+    tail keeps the honest died label even though is_alive(0) is True."""
+    d = _load_dispatch()
+    graph, it, rec = _turn_end_round(
+        tmp_path, last_event={"type": "turn_end"}, kid_pid=None)
+    out = d._reap_one(graph, it, _AlwaysAlive(), rec, "parent-p", 999,
+                      cap=5, cfg={}, restart_ok=False)
+    assert out["record"]["fail_reason"] == (
+        "pid 999 died (detected by reaper)")
+    assert out["record"]["death"]["evidence"] != "turn-end"
+
+
+def test_pid_zero_kid_is_never_a_live_kid(tmp_path):
+    """`pid: 0` is unknown too; is_alive(0) answering True must not make it
+    a live kid."""
+    d = _load_dispatch()
+    graph, it, rec = _turn_end_round(
+        tmp_path, last_event={"type": "turn_end"}, kid_pid=0)
+    out = d._reap_one(graph, it, _AlwaysAlive(), rec, "parent-p", 999,
+                      cap=5, cfg={}, restart_ok=False)
+    assert out["record"]["fail_reason"] == (
+        "pid 999 died (detected by reaper)")
+    assert out["record"]["death"]["evidence"] != "turn-end"

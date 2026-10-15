@@ -60,6 +60,7 @@ import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from frontmatter import read_frontmatter, split_frontmatter
 
 #: `100|\d{1,2}` and not `\d{1,3}`. The loose form accepted `:999` while every
 #: document describing it — VERDICT_HELP below, `zoom.py`'s contract,
@@ -160,17 +161,21 @@ def shadow_verdict_fields(fm: dict) -> list[str]:
     return [f for f in SHADOW_VERDICT_FIELDS if is_decisive_shadow(fm.get(f))]
 
 
-def is_node_id_shaped(value) -> bool:
+def is_node_id_shaped(value, address=None) -> bool:
     """Pure syntactic check: does `value` look like a `type:slug` node id?
 
     Says nothing about whether the id resolves to a real node — that needs
     a corpus (`build_corpus`). Mirrors `is_valid_verdict`'s role for
     `VERDICT_RE`: a taxonomy check independent of context.
     """
-    return isinstance(value, str) and bool(NODE_ID_RE.match(value.strip()))
+    if not isinstance(value, str):
+        return False
+    # goal:g4.18.6.3.3: a mint id is judged by THE resolver, never a hex shape --
+    # `address` (a build_corpus corpus's own) turns it into its address twin first.
+    return bool(NODE_ID_RE.match((address or str)(value.strip())))
 
 
-def evidence_runs_violations(value) -> list:
+def evidence_runs_violations(value, corpus=None) -> list:
     """Entries in an `evidence_runs` list that are not node-id-shaped.
 
     This is the taxonomy check (H4c item 2): a bare word like `synthetic`,
@@ -184,7 +189,7 @@ def evidence_runs_violations(value) -> list:
     used.
     """
     if isinstance(value, (list, tuple, set)):
-        return [v for v in value if not is_node_id_shaped(v)]
+        return [v for v in value if not is_node_id_shaped(v, getattr(corpus, "address", None))]
     return []
 
 
@@ -237,21 +242,14 @@ def build_corpus(nodes_dir) -> frozenset:
             text = nf.read_text(encoding="utf-8")
         except Exception:
             continue
-        if not text.startswith("---"):
-            continue
-        parts = text.split("---", 2)
-        if len(parts) < 3:
-            continue
-        try:
-            fm = yaml.safe_load(parts[1]) or {}
-        except Exception:
-            continue
-        if not isinstance(fm, dict):
+        fm = read_frontmatter(text)
+        if fm is None:
             continue
         nid = fm.get("id")
         if isinstance(nid, str) and nid.strip():
             ids.add(nid.strip())
-    return frozenset(ids)
+    import links   # goal:g4.18.6.3.3: a mint-id evidence ref counts as its address twin
+    return links.resolving(frozenset(ids), p)
 
 
 def normalize_evidence_runs(value, corpus=None, self_id=None,
@@ -301,9 +299,9 @@ def normalize_evidence_runs(value, corpus=None, self_id=None,
             return 0
         return sum(
             1 for v in value
-            if is_node_id_shaped(v)
+            if is_node_id_shaped(v, getattr(corpus, "address", None))
             and v.strip() in corpus
-            and not _is_self_citation(v, self_id, allow_self)
+            and not _is_self_citation(getattr(corpus, "address", str)(v.strip()), self_id, allow_self)
         )
     if isinstance(value, str):
         return 0
@@ -404,7 +402,7 @@ def apply_gate(
         evidence_runs, corpus=corpus, self_id=self_id,
         allow_self=(str(node_type or '').strip() == 'experiment'),
     )
-    violations = evidence_runs_violations(evidence_runs)
+    violations = evidence_runs_violations(evidence_runs, corpus)
     res = GateResult(
         verdict=verdict, original=verdict, evidence_runs=runs,
         taxonomy_violations=violations,
@@ -588,16 +586,7 @@ def read_frontmatter_text(text: str) -> dict | None:
     """
     import yaml
 
-    if not text.startswith("---"):
-        return None
-    parts = text.split("---", 2)
-    if len(parts) < 3:
-        return None
-    try:
-        fm = yaml.safe_load(parts[1]) or {}
-    except Exception:
-        return None
-    return fm if isinstance(fm, dict) else None
+    return read_frontmatter(text)
 
 
 def gate_on_disk(fm: dict, corpus) -> GateResult | None:
@@ -685,9 +674,10 @@ def enforce_on_disk(root, paths=None, *, dry_run: bool = False,
             text = p.read_text(encoding="utf-8")
         except OSError:
             continue
-        if not text.startswith("---"):
+        parts = split_frontmatter(text)
+        if parts is None:
             continue
-        head = text.split("---", 2)[1] if text.count("---") >= 2 else text
+        head = parts[0]
         if not DECISIVE_LINE_RE.search(head):
             continue
         fm = read_frontmatter_text(text)
@@ -753,10 +743,21 @@ def enforce_on_disk(root, paths=None, *, dry_run: bool = False,
 def main(argv: list[str] | None = None) -> int:
     """`evidence_gate.py enforce [--dry-run] [--root PATH]`
 
-    The commit path's gate, runnable on its own -- to see what the next
-    `grid.py commit --all` would demote (`--dry-run`), or to demote now
+    The commit path's gate, runnable on its own -- `--dry-run` shows what the
+    next `grid.py commit --all` would demote; without it the verb demotes
     without minting versions. The commit path is the placement; this is the
     same function with the commit left out.
+
+    The verb is deliberately timid, and has NO override (an override is the
+    footgun): (1) it takes ONE non-blocking exclusive flock on
+    `<graph>/sessions/.evidence-enforce.lock` (the directory the suite lock
+    lives in; git ignores it): while another enforce holds it, this one prints
+    `[busy] evidence enforce already running`, exits 0 and demotes nothing --
+    cron AND the manual verb share the one lock, so two writers never walk
+    MAIN's node files at once; (2) it DEFERS (rc 0, one line
+    `evidence gate deferred: suite lock held by pid N`, nothing demoted) while
+    a live foreign pid holds the suite lock; the next tick runs. `--dry-run`
+    writes nothing and takes neither.
     """
     import argparse
 
@@ -774,6 +775,36 @@ def main(argv: list[str] | None = None) -> int:
     if root is None:
         print(f"ERR: not an agi project: {args.root}", file=sys.stderr)
         return 1
+    if not args.dry_run:
+        # goal:g7.16.1.11.13.1 A1 (SM 21:4xZ): ONE enforce at a time. The lock is
+        # INSIDE the verb so cron and the manual verb share it (a flock on the
+        # cron line would cover only cron). Same directory as the suite lock
+        # (`<graph>/sessions/`, git-ignored). The fd stays open to the end of
+        # main(): the OS drops the flock at exit, so a crash never leaves it held.
+        # A lock that cannot be taken at all fails CLOSED (rc 1, nothing demoted).
+        import fcntl
+        lock_file = Path(root) / "sessions" / ".evidence-enforce.lock"
+        try:
+            lock_file.parent.mkdir(parents=True, exist_ok=True)
+            lock_fd = open(lock_file, "a")
+            fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            print("[busy] evidence enforce already running")
+            return 0
+        except OSError as exc:
+            print(f"ERR: evidence enforce cannot take its lock {lock_file}: {exc}",
+                  file=sys.stderr)
+            return 1
+        # goal:g7.16.1.11.13.1 G-4: the same deferral `grid.py commit --all`
+        # had on the cron path: do not rewrite node files in MAIN while the
+        # suite holds its window. verification's OWN held/stale judgement
+        # (one lock reader, never a second parser); a live foreign pid defers
+        # this tick, the next tick runs.
+        import verification
+        holder = verification.suite_lock_holder(root)
+        if holder is not None:
+            print(f"evidence gate deferred: suite lock held by pid {holder}")
+            return 0
     found = enforce_on_disk(root, dry_run=args.dry_run)
     written = sum(1 for d in found if d.written)
     refused = [d for d in found if not d.written and d.note]

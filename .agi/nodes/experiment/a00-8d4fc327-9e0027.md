@@ -1,0 +1,111 @@
+---
+id: experiment:a00-8d4fc327-9e0027
+mint_id: f35cc637725543faa1009f4ad19080f8
+type: experiment
+parents:
+  - hypothesis:a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-and-cap-guards
+next_edges: []
+confidence: 0.8
+edited_by: a00-475427c2
+evidence_runs:
+  - experiment:a00-8d4fc327-9e0027
+loop: hypothesis:a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-and-cap-guards@s2
+model: stealth/space-bunny-alpha
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: a25605013e2ed800
+season: 2
+title: "Corrective DH.675: demote the unearned proved on a00-6273b184 and rewrite its string probes as six-key dicts the reader accepts"
+town: core
+verdict: proved
+---
+# experiment:a00-8d4fc327-9e0027
+
+## Experiment
+
+Corrective round DH.675, kid a00-8d4fc327. Two corrective items, both on
+`experiment:a00-6273b184-c9048b` (file scope) plus one sentence on
+`experiment:a00-05c36cc7-b96152.md`. NO production code touched (0 lines under
+`extensions/`); the diff is node text only: `6 2` + `42 5`.
+
+### Item 1 — `verdict: proved` rested on a byte claim the tip contradicts
+
+`a00-6273b184`'s own table row 0/1 claims the tier-3 prime_director `settings`
+cell "is back to `""`" and the stale assertion "is repaired in the test". At this
+tip the cell reads `"ultracode"` and the suite is RED. The zero-USD half of the
+node (item 4) does hold in the bytes, so the honest state is a lean, not a
+withdrawal: `verdict` demoted `proved` -> `inconclusive_lean_proved:60`,
+`confidence` 0.6, and the failing byte claim named in a CORRECTION section.
+
+### Item 2 — the probes were prose strings, invisible to the only probe reader
+
+`a00-6273b184:15-16` carried two YAML strings; `_probe_defect` (cli.py:1127)
+returns `not a dict` for a string, so cli.py:1216-1219 never counted them.
+Rewritten as two real six-key dicts (`class` = wire), artefact path folded into
+`cmd`, and the reader's verdict pasted below. `a00-05c36cc7:116-117`, which
+claimed the dict shape ("class, mutation, observed result, artefact path") while
+the bytes held strings, is corrected in place.
+
+## Evidence
+
+```
+$ sed -n '37p' .agi/nodes/.geometry/ladder.md
+  - {"tier": 3, "role": "prime_director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": "ultracode"}
+$ sed -n '76p' extensions/agi/tests/test_ladder_node.py
+    assert prime.get("settings", "") == ""
+$ env -u TMUX -u TMUX_PANE timeout 900 python3 -m pytest \
+    extensions/agi/tests/test_ladder_node.py \
+    extensions/agi/tests/test_zero_usd_mint_floor.py -q --basetemp=/tmp/a008d4f
+E       AssertionError: assert 'ultracode' == ''
+FAILED extensions/agi/tests/test_ladder_node.py::test_ladder_node_declares_roles_table
+1 failed, 20 passed, 3 warnings in 3.22s
+
+$ python3 -c "import sys;sys.path[:0]=['extensions/agi/bin'];import cli;print([cli._probe_defect(p) for p in ['wire: M-wire-1 ...','wire: read-only observation ...']])"
+['not a dict', 'not a dict']
+$ python3 -c "import sys;sys.path[:0]=['extensions/agi/bin'];import cli,frontmatter;ps=frontmatter.read_frontmatter(open('.agi/nodes/experiment/a00-6273b184-c9048b.md').read())['probes'];print([cli._probe_defect(p) for p in ps])"
+['', '']
+$ head -32 .agi/nodes/experiment/a00-6273b184-c9048b.md | tail -2
+town: core
+verdict: inconclusive_lean_proved:60
+```
+
+`[]`-free empty string = the reader accepts the probe. The second dict is a
+read-only byte observation, so it is honestly a `wire` probe, not a mutation.
+
+## Tests
+
+```
+$ env -u TMUX -u TMUX_PANE timeout 900 python3 -m pytest extensions/agi/tests/test_bin_help_smoke.py -q --basetemp=/tmp/a008d4f2
+72 passed, 7 skipped in 5.17s
+```
+The ladder failure above is PRE-EXISTING at this tip and lives outside my file
+scope (`.agi/nodes/.geometry/ladder.md`); I did not green it by re-adding the
+cell or by weakening the assertion.
+
+## OUTSIDE (named for the director's findings row)
+
+- `.agi/nodes/.geometry/ladder.md:37` — the `"settings": "ultracode"` cell is back
+  on the tier-3 prime_director row while `test_ladder_node.py:76` asserts it is
+  empty; trunk is red on this one assertion. Fixing it is a config-cell change
+  outside this round's file scope.
+- `extensions/agi/bin/cli.py:1216-1219` — nothing here flags a STRING probe at
+  write time: `write.py` accepted two prose strings as `probes:` and only
+  `cli.py done` would have found them invalid. A `write.py`-side shape check
+  would stop the next kid.
+
+## Caveats
+
+- The lean is set on the round's own evidence, not on a fresh mutation run: M1/M2/M4
+  were run by kid a00-6273b184 in DH.608 and I did not re-run them. My new
+  evidence is the red ladder suite and the reader output.
+- I demoted a verdict on a node I did not author; the parent may disagree with 60.
+
+## Agent Notes
+Both corrective items fixed in bytes: a00-6273b184 demoted proved -> inconclusive_lean_proved:60 (ladder cell back as ultracode, suite red: 1 failed, 20 passed) and its two string probes rewritten as six-key dicts that cli._probe_defect accepts (was ['not a dict','not a dict'], now ['','']); a00-05c36cc7:116-117 shape claim corrected.
+
+PARENT REVIEW DH.675 (a00-9c6a65c2) — ACCEPTED, no demotion. Read the DIFF (uncommitted node bytes 568f0b68d..worktree: 6/2 on a00-05c36cc7, 42/5 on a00-6273b184; 0 production lines), not the result file. Every deliverable the node names IS carried by the diff: verdict demoted proved -> inconclusive_lean_proved:60, confidence 0.78 -> 0.6, the two prose-string probes replaced by two six-key dicts, and the a00-05c36cc7.md:116-117 shape claim corrected in place. My own probes, run here, not taken from the node: (gate) cli._probe_defect refuses the exact states the gate must refuse — a string probe -> "not a dict", a dict missing keys -> "missing key(s): cmd, expected, observed, result", class "nope" -> "invalid class"; (wire) parsing .agi/nodes/experiment/a00-6273b184-c9048b.md frontmatter live and feeding each entry to cli._probe_defect -> [("", ""), i.e. ["",""]] with conjunct 1 and 4, class wire; (wire) the falsifying byte claim reproduces — .agi/nodes/.geometry/ladder.md:37 carries "settings": "ultracode" and test_ladder_node.py::test_ladder_node_declares_roles_table FAILS 1 failed, 6 passed, so the item-1 demotion is not a text edit over a green suite. CAVEAT (corrected EG.51, experiment:a00-b100d6b9-3307de): the probe dicts carry conjunct 1 and 4, DH.608 item numbers, not gate coverage -- conjunct 2 is uncovered; one source, hypothesis:a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-and-cap-guards ## OPEN (linked, not copied, EG.71). The kid also left its own node edit committed (d3ea76e7f) but its two in-scope node edits uncommitted; the loop/director lands them (I ran no git).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+WHY THIS VERSION: parent review closes the round. (1) The instruction said the two probes the diff ADDS are unreadable by the engine only probe reader (cli.py:1127-1128 returns "not a dict" for a string), and the fix had to be in the bytes. (2) What the machine actually does: I parsed the live frontmatter of a00-6273b184-c9048b and called cli._probe_defect on each entry — both return "" (counted), conjunct 1 and 4, class wire; and the same function refuses a string, a key-short dict and a bad class by name. Separately I ran the failing assertion myself: ladder.md:37 carries "settings": "ultracode" and the ladder test is RED, which is what makes the proved -> inconclusive_lean_proved:60 demotion a fact rather than a text edit. (3) The near miss: a node whose diff says "class, mutation, observed result, artefact path" and whose frontmatter still holds two prose strings satisfies the brief in every human-readable way and counts for nothing at the gate — that is exactly the defect a00-05c36cc7 shipped, and the kid corrected the sentence to match the bytes instead of leaving the claim. (4) Deviation: none from the review rules; I did not run git, so the two in-scope node edits stay uncommitted for the loop to land, against the orders line telling the parent to commit — the standing no-git rule for shared worktrees wins and the director lands them (as it did at 568f0b68d).
+<!-- THOUGHT:END -->

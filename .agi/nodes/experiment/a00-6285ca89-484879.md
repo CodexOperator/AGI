@@ -1,0 +1,115 @@
+---
+id: experiment:a00-6285ca89-484879
+mint_id: e0bc6a5817464198937b3f8e9f08501c
+type: experiment
+parents:
+  - hypothesis:engine-tests-read-no-live-home-resource
+next_edges: []
+confidence: 0.9
+edited_by: director-general-4
+evidence_runs:
+  - experiment:a00-6285ca89-484879
+loop: hypothesis:engine-tests-read-no-live-home-resource@s2
+model: deepseek/deepseek-v4.1-flash
+production_lines: 3
+profile: balanced
+role: kid
+scaffold_hash: dd21a5af6d44d0ea
+season: 2
+title: engine tests stop reading the live home and resolve a real graph root
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-6285ca89-484879
+
+## Experiment
+
+Built (not merely measured) the fix for the three conjuncts of
+`hypothesis:engine-tests-read-no-live-home-resource`.
+
+### Production change (the only non-test path: `extensions/agi/bin/rolslice.py`)
+
+Reworded the section-map comment at rolslice.py L62-68. It claimed
+"the complement — every section mapped — is asserted in the test", which is
+FALSE (SKILL.md has 24 `## ` headings, only 12 are in `CORE ∪
+ROLE_SECTIONS`). The comment now names the direction that IS tested: FORWARD —
+every `CORE` key and every `ROLE_SECTIONS[bucket]` key must resolve to a real
+`## ` heading in the live SKILL.md, via `test_every_mapped_key_resolves_in_real_skill`
+and the `build_slice` calls that raise on a missing key.
+
+`production_lines` = 3 net (`git diff --numstat`: 5 added / 2 removed; test
+files excluded, per the brief). Well under the 40-line ceiling.
+
+### Test-file changes
+
+`extensions/agi/tests/test_migrate_channel.py`
+
+- L408 `test_migrate_transcript_dest_is_the_path_resume_reads`: assertion now
+  compares against the module constant `rotate.CC_PROJECTS_DIR` instead of the
+  literal `Path.home() / ".claude" / "projects"`.
+- L853-879 `test_transcript_scp_argv_is_tilde_relative_never_literal_dollar_home`:
+  deleted `real_projects`, `_snapshot()`, `before`, and the live before/after
+  equality. The test now asserts on the fixture: dest starts with
+  `tmp_path/.claude/projects` and `(fixture_projects / dest.parent.name).is_dir()`.
+  The Hygiene docstring paragraph was rewritten to describe fixture redirection,
+  not a live snapshot. The argv assertions are unchanged.
+- `grep -n 'Path.home()' ...` returns NOTHING.
+
+`extensions/agi/tests/test_rolslice.py` and `test_rolslice_rename.py`
+
+- ROOT now resolves through the repo's own resolver
+  `locations.find_project_root(Path(__file__).resolve())`, with a fallback to a
+  `.agi` carrying `nodes/.geometry/posts.md` (config:posts), guarded by an
+  `assert` so a future move fails loud. The old block pointed at
+  `extensions/agi/agi` (absent) and fell back to `.agi/nodes/.geometry/seats.md`
+  (also absent), so ROOT stayed a nonexistent path.
+- `test_rolslice.py` gained the committed forward-direction test
+  `test_every_mapped_key_resolves_in_real_skill`.
+
+## Evidence
+
+Command (only the two/three scoped test files, never the bare tests dir):
+
+```
+python3 -m pytest extensions/agi/tests/test_migrate_channel.py \
+  extensions/agi/tests/test_rolslice.py \
+  extensions/agi/tests/test_rolslice_rename.py -q
+```
+
+Result: `45 passed, 2 warnings in 107.46s` (baseline before the fix: 44 passed,
+so the new forward-direction test is live and green).
+
+### Wire probes (`git`-free; script at .agi/sessions/iter-EF.63/a00-6285ca89/wire_probe.py`)
+
+Probe 1 — ROOT is real and the chart carries real geometry:
+
+```
+PROBE1 ROOT = <repo>/.agi/worktrees/a00-d8394ada/.agi
+PROBE1 old ROOT (pre-fix) = .../extensions/agi/agi exists: False
+PROBE1 seats loaded = 22
+PROBE1 build_slice kid bytes = 19403 -> real seat row present
+```
+
+(`build_slice` output asserted to contain real rows `belam` and
+`sanctuary-master`, i.e. not just the header.)
+
+Probe 2 — fixture redirection is live at call time:
+
+```
+PROBE2 dest = /tmp/tmp0crimpym/.claude/projects/-home-x--agi-worktrees-p/sess-1.jsonl
+PROBE2 redirection live; real CC_PROJECTS_DIR = <home>/.claude/projects
+```
+
+`rotate.CC_PROJECTS_DIR` was monkeypatched to a `tmp_path` sentinel and
+`rotate._migrate_transcript_dest` returned a dest under that sentinel — proving
+the module global is read at call time and the test asserts on a fixture.
+
+## Agent Notes
+Built all three conjuncts: test_migrate_channel.py no longer reads Path.home() (L408 uses rotate.CC_PROJECTS_DIR; L853-879 asserts on the tmp fixture, live snapshot deleted); test_rolslice.py and test_rolslice_rename.py resolve ROOT via locations.find_project_root with an assert guarding .agi/nodes/.geometry/posts.md; rolslice.py comment reworded to the tested FORWARD direction plus a new committed test every mapped key resolves in the live SKILL.md. Scoped pytest: 45 passed. Wire probes confirm real ROOT (22 seats, real rows) and live CC_PROJECTS_DIR redirection. production_lines=3.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
+<!-- THOUGHT:END -->
+
+PARENT a00-d8394ada ACCEPTED (EF.63, proved confirmed). All three conjuncts verified by reading the changed bytes; parent probes: A HOME-poison wire (3 transcript tests pass with ~/.claude/projects unreadable), B old ROOT seats=0 vs new ROOT seats=22, C mutated SKILL.md missing=[CLI]. Scoped suite 45 passed. No demotion, no scope violation (only the 3 test files + rolslice.py comment moved).

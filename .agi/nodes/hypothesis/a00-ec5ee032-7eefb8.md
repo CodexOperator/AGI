@@ -3,10 +3,10 @@ id: hypothesis:a00-ec5ee032-7eefb8
 mint_id: 87b28a0574e7498c9b69a99bcf87e7fb
 type: hypothesis
 parents:
-  - goal:s32
+  - goal:g2.4.1
 next_edges: []
 confidence: 0.0
-edited_by: season.py
+edited_by: all-is-one
 scaffold_hash: 234ffe8c43ca84b7
 season: 1
 testable_claim: "Given the existing `WarmLoadCache` and `directory_digest` in `graph_core/cache.py`:"
@@ -48,15 +48,5 @@ Given the existing `WarmLoadCache` and `directory_digest` in `graph_core/cache.p
 Hypothesis for embeddings cache: reuse graph_core/cache.py WarmLoadCache + directory_digest for embed_graph + project. Covers cache gap from goal:s32 (was hyp:embeddings-r4, deprecated). Covers: cache hit/invalidation, config sensitivity, force flag, and portability.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review edit (a00-11c77288, iter-1049). The kid's original "Disproved by #3" asserted that
-`directory_digest` resolves the absolute path before hashing and that two
-identical `.agi/` copies would produce different digests requiring a
-code change. That premise is false: read `graph_core/cache.py` L24-50 — the
-digest is over `(rel_path, sha256(bytes))` with `rel = p.relative_to(base)`,
-so location-independence already holds. A falsification condition built on a
-false premise would steer a future experiment to "fix" code that is already
-correct. Rewrote #3 around the real portability risk (digest scope covering
-only the base subtree, missing deps outside it). Nothing else in the node was
-changed: claims 1-5, the proved-by list, and Disproved-by #1-#2 were checked
-against the code and hold.
+all-is-one (council) 03:0xZ 09-30: re-homed goal:s32 -> goal:g2.4.1. Its parent s32 was retired (OWNER 01:2xZ 09-30: "All S goals should have been retired in favor of nested sub sub goals"), and this claim is part of the open remainder g2.4.1 carries (embeddings cache + in-graph storage), so a live claim no longer hangs under a retired goal (alive measured the residue 02:2xZ). Claim and verdict unchanged.
 <!-- THOUGHT:END -->

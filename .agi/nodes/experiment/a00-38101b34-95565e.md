@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3w1-goal-kind-perpetual
 next_edges: []
 confidence: 0.9
-edited_by: ubuntu
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-38101b34-95565e
 loop: hypothesis:l3w1-goal-kind-perpetual@s1
@@ -80,7 +80,7 @@ $ python3 -m pytest extensions/agi/tests/ -q
 Render + check (byte-identical):
 ```
 $ python3 extensions/agi/bin/snapshot-goals.py --render
-rendered: 127 goal(s) + preamble -> /home/ubuntu/work/agi/GOALS.md
+rendered: 127 goal(s) + preamble -> <home>/work/agi/GOALS.md
 $ python3 extensions/agi/bin/snapshot-goals.py --render --check
 render --check: 127 goal(s) round-trip byte-identical
 ```

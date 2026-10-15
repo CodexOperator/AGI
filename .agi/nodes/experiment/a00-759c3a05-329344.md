@@ -1,0 +1,168 @@
+---
+id: experiment:a00-759c3a05-329344
+mint_id: a0103130973b42e797f6ab22f0aa3c8d
+type: experiment
+parents:
+  - hypothesis:send-read-prints-every-unread-block-and-every-dm-send-nudges
+next_edges: []
+confidence: 0.7
+edited_by: a00-5bde5739
+evidence_runs:
+  - experiment:a00-759c3a05-329344
+loop: hypothesis:send-read-prints-every-unread-block-and-every-dm-send-nudges@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "PARENT (a00-5bde5739) WIRE: a recorder WRAPPING the live send_mod.read_dms and calling through, driven by send_mod.main(['--from','seat-a','--comms-root',<tmp>,'read','seat-a']) with one unread dm block and no inbox file -> rc=0, live read_dms calls=1, dm body printed on stdout."
+  - "PARENT (a00-5bde5739) AUTH: seat-a runs `read seat-c`, a target the claim never authorises -> refused BY NAME ('target seat-c is not you seat-a ... peek seat-c'), rc=2, no read marker written into seat-c inbox, foreign body never printed. Probe script: sessions/iter-DH.490/a00-5bde5739/parent_probes.py (post-director-engine worktree), tmp roots only, no live pane."
+  - "PARENT (a00-5bde5739) GATE: (a) inbox empty AND no dm -> rc=0 and the empty verdict is the whole output; (b) dm unread + inbox file absent -> the run prints 'inbox for seat-a: empty' AND the dm block one line later (RED 1, reproduced by the parent, not read off the kid file); (c) comms.verify=enforcing, a tampered signed block followed by a good block -> 'REFUSED FORGED ... withheld to quarantine', the good block prints, the marker ends at char 499 while the withheld block sits at 233 (RED 2, reproduced by the parent)."
+  - "PARENT VERDICT: ACCEPTED. Deliverables checked against the bytes, not the report: send.py md5 identical to the post-director-engine base (0 added / 0 removed); the only changed bytes are extensions/agi/tests/test_send_dm_read_and_nudge.py; every test the node names is in that file; title is the kid's own words, not the filename derivation."
+profile: balanced
+role: kid
+scaffold_hash: e5a0aaa5ba881f8f
+season: 2
+title: "dm-read + dm-nudge red-first probes: 3 red, 4 green on current bytes"
+town: core
+verdict: disproved
+---
+# experiment:a00-759c3a05-329344
+
+## Experiment
+
+RED-FIRST test file only, no production change. New file
+`extensions/agi/tests/test_send_dm_read_and_nudge.py` (KID 1 of 2, the file
+the target's TESTS line names). `send.py` is byte-for-byte untouched.
+
+Command:
+`python3 -m pytest extensions/agi/tests/test_send_dm_read_and_nudge.py -q`
+→ **3 failed, 4 passed** on the current bytes.
+
+Safety: every fixture is a throwaway G11 project root under `tmp_path` with
+its own `.agi/sessions/inbox` and its own `comms/season-test/` dm root; tmux is
+`test_send._fake_tmux`; `_nudge_window` is stubbed where the pane path is not
+under test. No live inbox, no live dm file, no live pane, no send-keys.
+
+## The three conjuncts on the current bytes
+
+| conjunct | probe | result |
+| --- | --- | --- |
+| (1) read prints every unread block, inbox AND dm | `test_read_prints_unread_dm_block_while_inbox_is_empty` | **GREEN on current bytes** — `read seat-a` printed `[dm seat-a--seat-b] **seat-b** … dm-only-body-xyz`. The CLI already calls `read_dms` right after `read` (send.py, the `read` verb tail: `read(root, target, sender)` then `read_dms(croot, resolved, wrap=wrap)`). |
+| (1b) `empty` only when BOTH are empty | `test_read_says_empty_only_when_inbox_AND_dms_are_both_empty` | **RED** |
+| (1c) falsifier: no dm block prints twice | `test_read_dm_block_is_printed_once_and_the_dm_cursor_advances` | **GREEN** — the dm cursor is `<file>.state.json` (`_load_state`/`_past`), it advances. |
+| (2) no marker advance past an unprinted block | `test_marker_never_advances_past_a_block_read_did_not_print`, `test_marker_write_is_independent_of_what_the_reader_printed` | **RED, both** |
+| (3) every dm-file send nudges, same path as inbox | `test_send_dm_reaches_the_nudge_window`, `test_dm_send_and_inbox_send_use_the_same_nudge_path` | **GREEN on current bytes** — `send_dm` already calls `_nudge_window(root, other, sender=…, body=text)` then `_announce_nudge`, and the typed pane line carries the body inline. |
+
+So: **two of the three conjuncts already hold on the current bytes**; what is
+red is the `empty` wording and the marker advance.
+
+### RED 1 — `read` declares the seat empty while a dm block is unread
+
+```
+inbox for seat-a: empty
+[dm seat-a--seat-b] **seat-b** 02:55 — dm-only-body-xyz
+```
+
+Both lines in ONE `read`. The empty verdict is decided from the inbox file
+alone: `read()` early-returns with `inbox for <me>: empty` (send.py, the
+`if not blocks and deferred is None:` branch) long before the CLI reaches
+`read_dms`. A seat that skims the first line is told it has no mail while a dm
+is waiting one line below. This is the exact shape of the owner's report
+("check dm file directly"), inverted: the dm is not hidden, the EMPTY VERDICT
+is wrong.
+
+Fix shape for kid 2 (smallest): the `empty` line must be decided after the dm
+sweep — e.g. have `read_dms` report its count and print the empty verdict only
+when the inbox produced nothing AND the dm sweep produced nothing.
+
+### RED 2 — the read marker passes a block `read` did not print
+
+Fixture: one signed block from a keyed seat, body tampered after the send, so
+`comms.verify == enforcing` labels it FORGED and `read` prints
+`REFUSED FORGED … withheld to <quarantine>` instead of the bytes.
+
+```
+REFUSED FORGED from seat-b ts … fp …: withheld to <tmp>/inbox/quarantine/seat-a.md
+```
+
+…and the resulting file:
+
+```
+---
+ts: …
+from: seat-b
+to: seat-a
+env: v1
+sig: ed25519:4cde…:c02a…
+
+forged-block-body-xyz-tampered
+# read up to here
+```
+
+The marker sits at char 264, the withheld block at 233 — the marker is past
+the block that was refused.
+
+The second probe makes the mechanism explicit: stubbing
+`_print_blocks_with_labels` to print NOTHING, `read` still writes the marker at
+end-of-file and prints no line at all. **The marker write has no dependence on
+the printing step**, so no "the marker follows what was printed"
+implementation exists to find; the file:line that rules it out is the tail of
+`read` in `extensions/agi/bin/send.py`:
+
+```
+        content = "".join(lines).rstrip("\n")
+        inbox.write_text(content + "\n" + READ_MARKER)
+```
+
+— it is unconditional and end-of-file, and the `marker_index` it uses comes
+from `_scan_messages`, not from the blocks actually printed.
+
+Honest caveat about scope: the FORGED-refusal case is arguably DELIBERATE (the
+bytes are quarantined, not lost), so a fix may legitimately narrow conjunct (2)
+to "no block is silently unread AND unread" and let a deliberate refusal count
+as read. The structural probe shows the property is not implemented in general;
+it does not by itself prove a defect in that specific case. The marker/passed
+pair is the thing to decide.
+
+## probes (negative, one per conjunct)
+
+- (1) unread dm block + empty inbox file → body IS printed (GREEN); the
+  `empty` verdict on the same run is the red.
+- (1) a SECOND `read` → the dm body is gone (cursor advanced, no double print).
+- (2) printer stubbed to print nothing, one unread block → marker still lands
+  past it.
+- (2) a FORGED block under `comms.verify == enforcing` → refused line printed,
+  block bytes withheld to quarantine, marker past it anyway.
+- (3) `send_dm` with `_nudge_window` recorded → called once, for the
+  RECIPIENT, carrying the body; with a stubbed tmux → the pane receives
+  `send-keys -l … [nudge: seat-a]: dm-nudge-body-xyz`.
+- (3) NEGATIVE design note: my first attempt sent the inbox message FIRST and
+  the dm second to the SAME seat, and the dm typed nothing — the pane still
+  held the unsubmitted inbox token, so the dm coalesced. That is the
+  documented coalesce, not a missing nudge (and it is plausibly what TMM.271
+  looked like from the outside). The test now uses two distinct recipient
+  seats so the coalesce cannot mask the seam.
+
+## Evidence
+
+- `pytest extensions/agi/tests/test_send_dm_read_and_nudge.py -q` → 3 failed,
+  4 passed (the 3 = the `empty` verdict, the two marker probes).
+- Neighbourhood unchanged: `test_send.py test_send_nudge_classes.py
+  test_seatsig.py test_send_quiet.py test_send_rewind.py
+  test_send_undelivered.py` + this file → **3 failed, 392 passed** — every
+  failure is one of my own new reds, no pre-existing test disturbed.
+- production lines: `git diff --numstat` over `extensions/agi/bin/send.py` →
+  **0 added / 0 removed**. Only the new test file exists (untracked).
+
+## For kid 2 (the build)
+
+- RED 1: the `empty` line must be decided AFTER the dm sweep, not before.
+- RED 2: decide whether the marker follows the last PRINTED block, and whether
+  a deliberate FORGED refusal is allowed to advance it. Smallest build: track
+  the last printed block's end offset and re-insert the marker THERE instead
+  of at end-of-file.
+- Conjuncts 1c and 3 need NO change — their tests are green and will guard a
+  regression while 1 and 2 are fixed.
+
+## Agent Notes
+red-first test file only, send.py untouched: 3 red (empty verdict while a dm block is unread; read marker passes a block read refused to print, and passes one when the printer is stubbed silent), 4 green (dm blocks already print on read, dm cursor advances, dm sends already reach _nudge_window with the body inline) -- conjuncts 1b and 2 are false on current bytes, conjunct 3 is already true
+
+'PARENT REVIEW (a00-5bde5739, DH.490): ACCEPTED, verdict disproved stands at confidence 0.7. What the instruction said: a kids tests are its CLAIM; the parent runs one negative probe per conjunct itself and reads the diff, not the result file. What the machine does: extensions/agi/bin/send.py is byte-identical to the post-director-engine base (md5 294163319ea0511f7cd1f7465c2cccfc in both worktrees), so the whole claim of this round is the one new test file; its 3 reds are reproduced by my own probe script, not by its suite. THE NEAR MISS: a kid that only wrote a test file and a confident node could still be wrong about WHICH behaviour is the defect - the plausible wrong move is to read the FORGED-refusal marker advance as intentional design and file it as a wontfix, leaving conjunct 2 unproved; the probe shows the marker is written unconditionally at end-of-file (inbox.write_text(content + chr(10) + READ_MARKER), marker_index from _scan_messages, never from the blocks printed), so no intentionality argument covers the printer-stubbed-silent case. No standing rule deviated. NOTE for the record: the hypothesis as written is FALSE on current bytes - conjunct 1b (empty verdict) and conjunct 2 (marker past an unprinted block) both fail, conjunct 3 already holds; hypothesis:l4-one-read-returns-everything-addressed-to-a-post... had already shipped the dm sweep, so the directors TMM.271 reds were the WORDING and the MARKER, not a missing feature.'

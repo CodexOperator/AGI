@@ -3,13 +3,13 @@ id: hypothesis:l3w4-seat-transport
 mint_id: e3f4a86b0fa24391a9c92c2f89828ffc
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.12
 next_edges: []
-edited_by: belam-S1-L3-III
+edited_by: belam
 scaffold_hash: 647fe42ef1218764
 season: 2
 testable_claim: rotate.py's cmd_spawn and cmd_loop both route through one new spawn_window(...) function that launches any named seat via `claude --remote-control` in tmux (never `-p`), and send.py's send/send_dm call `tmux send-keys` to nudge a recipient's tmux window when it exists while leaving windowless (ephemeral) recipients unchanged.
-thought_session: L3.21
+thought_session: dissolve-legacy-2026-09-19
 title: Spawn and nudge perpetual seats
 ---
 <!-- BODY:BEGIN -->

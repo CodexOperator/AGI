@@ -3,9 +3,9 @@ id: exp:dashboard-cli-r1
 mint_id: 01809e8e8f774c65ab2e570214a1a5c8
 type: experiment
 parents:
-  - goal:g9.1
+  - goal:g2.14
 confidence: 0.8
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs: 1
 season: 1
 tags:
@@ -40,7 +40,7 @@ node ids silently shadowed on disk, and whether chain search got cut short.
 ACTIVITY reads `git log -1 --format=... -- nodes` (read-only) with an mtime
 fallback for non-git projects, named explicitly in the output either way.
 
-**Measured, against `/home/ubuntu/work/agi-tree` (534 graph nodes, 552 files
+**Measured, against `<home>/work/agi-tree` (534 graph nodes, 552 files
 on disk, 18 goals):**
 
 - runtime: **~2.0s** (`time python3 dashboard.py --project agi-tree --no-color`, wall clock, cold)
@@ -65,7 +65,7 @@ on disk, 18 goals):**
 - goals: **10 of 18 have real work built under them; 8 are pure stubs**
   (declared, nothing underneath). Notably **G9.1 — the goal this exact
   experiment node is filed against — is one of the 8 stubs as of this
-  build's start.** Once this node lands with `parents: [goal:g9.1]`, G9.1
+  build's start.** Once this node lands with `parents: [goal:g2.14]`, G9.1
   flips from stub to real on the next run. That is not a contrived example;
   it is what the dashboard is *for*, caught in the act of being true about
   its own goal.

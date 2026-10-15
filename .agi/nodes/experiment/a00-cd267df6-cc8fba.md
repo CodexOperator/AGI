@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3-send-comms-root
 next_edges: []
 confidence: 0.85
-edited_by: ubuntu
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-cd267df6-cc8fba
 loop: hypothesis:l3-send-comms-root@s2
@@ -48,7 +48,7 @@ Second read returns nothing (cursor advanced to end); `--all` does not exist.
 
 **Defect 1 — comms root is the newest iteration dir, not a declared root: CONFIRMED** by inspection and by the live default:
 ```
-$ send.comms_root(root) = /home/ubuntu/work/agi/.agi/sessions/iter-1088/comms
+$ send.comms_root(root) = <home>/work/agi/.agi/sessions/iter-1088/comms
 ```
 The standing room lives under `sessions/iter-1088/comms/` and every agent sees it only while that ordering holds; a flag placed before the subcommand silently falls back to it.
 

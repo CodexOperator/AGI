@@ -23,6 +23,19 @@ BIN = Path(__file__).resolve().parents[1] / "bin"
 #: shrinks rather than grows when --help is added.
 NO_HELP = {
     "node_writer.py": "library module, not a CLI tool; no --help",
+    "frontmatter.py": "library module (the ONE line-anchored reader); no --help",
+    "reaper_log.py": "library module (the shared per-event log resolver);"
+                     " no --help",
+    "last_act.py": "library module (the seat's own last-act clock); no --help",
+    "harness_template.py": "library module (harness argv is data; no __main__,"
+                          " no --help)",
+    "prose_templates.py": "library module (the prose-template loader); no --help",
+    "suite_guards.py": "library module (the suite guards in one importable home);"
+                       " no --help",
+    "rotation_record.py": "library module (goal:g7.16.1.3 H4: the rotation record"
+                          " + the live-node grep); no --help",
+    "legacy.py": "library module (goal:g7.16.1.11.22 D3: the legacy mark that"
+                 " viewport.py stamps on a frame); no __main__, no --help",
 }
 
 

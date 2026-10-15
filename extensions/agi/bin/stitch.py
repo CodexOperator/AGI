@@ -53,7 +53,13 @@ literally cannot perform because it has nothing to compare against:
                           `supersedes` pointing at the wrong id or an id
                           absent from the group, a version gap) stays here;
                           ambiguity is a defect, only a provable order is
-                          exempt.
+                          exempt. **Retired claims:** a non-chain group with
+                          exactly one live claimant beside one or more nodes
+                          declaring `status: deprecated` is not ambiguous
+                          either — the live node is the one materialization
+                          resolves, and the group is reported separately under
+                          `retired_claims` (informational, never drift). Two
+                          or more live claimants, or none, stay here.
   4. stale_contracts    — a node's contract block (the mechanically-derived
                           `how` half: imports, top-level defs, read/write
                           call sites) no longer matches what re-running the
@@ -152,8 +158,11 @@ from collections import Counter
 from pathlib import Path
 
 import yaml
+from frontmatter import split_frontmatter
 
 BIN_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(BIN_DIR))
+import locations  # noqa: E402
 PLUGIN_ROOT = BIN_DIR.parent  # .../extensions/agi
 # Same convention as level3.py / decompose-engine.py: this script lives at
 # <engine repo root>/extensions/agi/bin/stitch.py, so three levels up is the
@@ -229,19 +238,27 @@ class Level3Node:
 
 
 def _parse_frontmatter(text: str) -> tuple[dict, str] | None:
-    """Split a node file into (frontmatter dict, body). None if malformed."""
-    if not text.strip().startswith("---"):
-        return None
-    parts = text.split("---", 2)
-    if len(parts) < 3:
+    """Split a node file into (frontmatter dict, body). None if malformed.
+
+    Relies on `split_frontmatter` ALONE for the boundary — the old
+    `strip().startswith("---")` prose pre-check (the exact shape SL7.11
+    retired elsewhere) was a SECOND boundary rule in prose that let a
+    leading-blank-line file through to the anchored splitter, which then
+    refused it (harmless but redundant). Dropped so `frontmatter.py`'s
+    `_FM_LINE` is the ONE boundary (claim 6d, hypothesis:l4-prepare-check-2-
+    reads-the-index-blob-...). Byte-identical on every real node: a
+    well-formed node parses; a leading-blank-line / marker-not-on-line-1 /
+    empty input all return None exactly as before."""
+    parts = split_frontmatter(text)
+    if parts is None:
         return None
     try:
-        fm = yaml.safe_load(parts[1]) or {}
+        fm = yaml.safe_load(parts[0]) or {}
     except yaml.YAMLError:
         return None
     if not isinstance(fm, dict):
         return None
-    return fm, parts[2]
+    return fm, parts[1]
 
 
 _extract_contract = level3.extract_contract
@@ -398,6 +415,15 @@ def _chain_order(group: list[Level3Node]) -> list[str]:
     return [n.node_id for n in sorted(group, key=lambda n: n.version)]
 
 
+def _is_retired(n: Level3Node) -> bool:
+    """True iff the node declares `status: deprecated` — the same predicate
+    `links.py` and `metrics.py` use to split a claim live/retired. A retired
+    node keeps its `payload_ref` (the schema requires it), so the status, not
+    the directory it sits in, is what says whether it still competes to
+    materialize."""
+    return str((n.fm or {}).get("status") or "").strip().lower() == "deprecated"
+
+
 def verify_tree(project_root: Path, engine_root: Path,
                 from_grid: bool = False) -> dict:
     """Report drift between the graph (`nodes/level3/`) and the live engine tree.
@@ -424,11 +450,19 @@ def verify_tree(project_root: Path, engine_root: Path,
     ref_groups = _group_by_payload_ref(nodes)
     duplicate_payload_ref: dict[str, list[str]] = {}
     version_chains: dict[str, list[str]] = {}
+    retired_claims: dict[str, list[str]] = {}
     for ref, group in ref_groups.items():
         if len(group) < 2:
             continue
         if _is_well_formed_chain(group):
             version_chains[ref] = _chain_order(group)
+            continue
+        live = [n for n in group if not _is_retired(n)]
+        if len(live) == 1:
+            # Exactly one live claimant: the retired nodes beside it cannot
+            # win materialization anyway (they are read like live ones but
+            # sit in `deprecated/`), so the group is not ambiguous drift.
+            retired_claims[ref] = [n.node_id for n in group]
         else:
             duplicate_payload_ref[ref] = [n.node_id for n in group]
 
@@ -532,6 +566,7 @@ def verify_tree(project_root: Path, engine_root: Path,
         "orphan_files": orphan_files,
         "duplicate_payload_ref": duplicate_payload_ref,
         "version_chains": version_chains,
+        "retired_claims": retired_claims,
         "stale_contracts": stale_contracts,
         "unreadable_contracts": unreadable_contracts,
         "contracts_not_derived": contracts_not_derived,
@@ -651,7 +686,7 @@ def _grid_payload(project_root: Path, node: Level3Node,
         return None
     rev = ref
     if grid_version is not None:
-        count = int(grid.git(project_root, "rev-list", "--count", ref))
+        count = int(grid.git(project_root, "rev-list", "--count", "--first-parent", ref))
         if not 1 <= grid_version <= count:
             return None
         rev = f"{ref}~{count - grid_version}"
@@ -808,6 +843,7 @@ def print_verify_report(report: dict) -> None:
     print(f"  engine root: {report['engine_root']} "
           f"({'ok' if report['engine_readable'] else 'UNREADABLE'})")
     print(f"  level-3 nodes: {report['nodes_total']}")
+    print(f"  verified {report['nodes_total']} build node(s)")
     if report["scope_files_total"] is not None:
         print(f"  in-scope engine files: {report['scope_files_total']}")
     for w in report["warnings"]:
@@ -827,6 +863,10 @@ def print_verify_report(report: dict) -> None:
     print(f"      version_chains (informational, not drift): "
           f"{len(report['version_chains'])}")
     for ref, ids in report["version_chains"].items():
+        print(f"      {ref}: {' -> '.join(ids)}")
+    print(f"      retired_claims (informational, not drift): "
+          f"{len(report['retired_claims'])}")
+    for ref, ids in report["retired_claims"].items():
         print(f"      {ref}: {' -> '.join(ids)}")
 
     if report.get("contract_source") == "grid":
@@ -882,6 +922,26 @@ def print_materialize_report(stats: dict) -> None:
 # --- main ------------------------------------------------------------------
 
 
+def resolve_project_root(path: str | Path) -> Path | None:
+    """Resolve `--project` to the GRAPH ROOT, or None when it resolves to no
+    graph at all (goal:g15, hypothesis:l4-stitch-and-level3-project-resolve-
+    the-graph-root-or-refuse-by-name-and-verify-prints-its-count).
+
+    Never a literal `<p>/nodes`. Two cases resolve:
+      1. the path ITSELF is a graph root holding `nodes/` directly (legacy
+         layout: `<p>/nodes/level3`, `<p>/nodes/build`);
+      2. nearest enclosing `.agi/` (G11 layout) found by `locations`
+         (the one resolver; `bin/locations.py`).
+    Anything else — no `.agi/` at or above, no `nodes/` at the path — is
+    None, and the caller refuses it by name rather than silently counting
+    zero build nodes.
+    """
+    p = Path(path).resolve()
+    if (p / "nodes").is_dir():
+        return p
+    return locations.find_project_root(p)
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         description="Materialize level-3 nodes into a directory tree, or "
@@ -923,7 +983,11 @@ def main(argv: list[str] | None = None) -> int:
                      help="with --verify, exit 1 if any drift is found")
     args = ap.parse_args(argv)
 
-    project_root = Path(args.project).resolve()
+    project_root = resolve_project_root(args.project)
+    if project_root is None:
+        print(f"ERR: no graph root at or above {Path(args.project).resolve()}"
+              f" (no .agi/ and no nodes/)", file=sys.stderr)
+        return 2
     engine_root = Path(args.engine_root).resolve() if args.engine_root else DEFAULT_ENGINE_ROOT
 
     if args.grid_version is not None and not args.from_grid:

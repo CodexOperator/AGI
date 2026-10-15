@@ -296,6 +296,90 @@ def test_pre_commit_still_rejects_parent_on_loop_branch_in_wrong_repo(temp_repo:
     )
 
 
+def test_pre_commit_allows_parent_on_canonical_loop_branch(temp_repo: Path):
+    """hypothesis:l4-branches-follow-the-season-grammar — dispatch.py now
+    emits the CANONICAL loop branch name through branches.loop_branch(), i.e.
+    season<n>/loops/<slug>-<agent>, not the legacy loop/<slug>-<agent>@s<n>.
+    The ONE authorised parent commit must be allowed on the canonical name too
+    — red on the pre-fix hook, whose case pattern only matched `loop/*`."""
+    with_hook(temp_repo)
+    toplevel = repo_toplevel(temp_repo)
+    subprocess.run(["git", "checkout", "-b", "season2/loops/slug-a00-x"],
+                   cwd=temp_repo, capture_output=True, check=True)
+    (temp_repo / "file_canonical_loop.md").write_text("parent canonical loop commit")
+    subprocess.run(["git", "add", "."], cwd=temp_repo, capture_output=True)
+    result = subprocess.run(
+        ["git", "commit", "-m", "loop: season2/loops/slug-a00-x -- accepted kid:n"],
+        cwd=temp_repo, capture_output=True, text=True,
+        env={**hook_env(), "AGI_TIER": "parent", "AGI_PROJECT_ROOT": toplevel},
+    )
+    assert result.returncode == 0, (
+        f"hook blocked the authorised parent commit on canonical loop branch: "
+        f"{result.stdout} / {result.stderr}"
+    )
+
+
+@pytest.mark.parametrize("branch,expect_commit", [
+    # canonical grammar dispatch emits (branches.loop_branch) — parent `done` COMMITS
+    ("season2/loops/x-y", True),
+    # legacy grammar a live tree may still carry — parent `done` COMMITS
+    ("loop/x-y@s2", True),
+    # the season integration branch — parent `done` must be REFUSED
+    ("season2/main", False),
+    # a posts branch — parent `done` must be REFUSED
+    ("season2/posts/x", False),
+])
+def test_parent_done_shaped_commit_end_to_end_via_git(temp_repo: Path,
+                                                     branch: str,
+                                                     expect_commit: bool):
+    """hypothesis:l4-a-parent-done-commits-on-every-grammar, claim (1) — the
+    end-to-end fixture through REAL git: a parent `done`-shaped commit routed
+    through the REAL hook file (the GIT_CONFIG_* triple dispatch hands every
+    agent, exactly as measured: GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=
+    core.hooksPath GIT_CONFIG_VALUE_0=<hooks dir under test>) commits on both
+    loop-branch grammars dispatch emits (season2/loops/* and loop/*@s2) and is
+    REFUSED on season2/main and season2/posts/* with the hook's OWN stderr
+    message. We do NOT invoke the hook script here — git runs it, the way a
+    dispatching tree actually wires it via core.hooksPath.
+
+    Red the round the guard was measured broken: dispatch.py emitted
+    season2/loops/<slug>-<agent> while the old hook allowed a parent commit
+    only on loop/*, and every parent `done` on those rounds was refused and
+    left staged (L4.304/305/306/307). This pins both grammars AND the two
+    refusal branches in one fixture, through git, not by sourcing the hook.
+    """
+    with_hook(temp_repo)
+    toplevel = repo_toplevel(temp_repo)
+    subprocess.run(["git", "checkout", "-b", branch],
+                   cwd=temp_repo, capture_output=True, check=True)
+    (temp_repo / "parent_done.md").write_text("parent done commit")
+    subprocess.run(["git", "add", "."], cwd=temp_repo, capture_output=True)
+    result = subprocess.run(
+        ["git", "commit", "-m", f"done: parent done on {branch} -- accepted kid:n"],
+        cwd=temp_repo, capture_output=True, text=True,
+        # the GIT_CONFIG triple EXACTLY as dispatch.py:1853-1855 sets it, so
+        # git reads the hook from the hooks dir under test, not a stale
+        # global core.hooksPath pointing at another checkout.
+        env={**hook_env(), "AGI_TIER": "parent",
+             "AGI_PROJECT_ROOT": toplevel},
+    )
+    if expect_commit:
+        assert result.returncode == 0, (
+            f"parent done REFUSED on {branch} (should commit): "
+            f"{result.stdout} / {result.stderr}"
+        )
+    else:
+        assert result.returncode == 1, (
+            f"parent done COMMITTED on {branch} (should be refused): "
+            f"{result.stdout}"
+        )
+        # the hook's OWN message, asserted verbatim on the refusal branches
+        assert "may not commit" in result.stderr, (
+            f"refusal on {branch} is not the hook's own message: "
+            f"{result.stderr!r}"
+        )
+
+
 def test_pre_commit_still_rejects_kid_on_loop_branch(g11_repo: Path):
     """The loop/* allowance is for PARENT only. A KID on a loop/* branch in
     the project repo stays blocked -- kids commit nothing, ever."""
@@ -420,12 +504,40 @@ def test_spawn_env_contains_AGI_TIER():
     )
 
 
-def test_spawn_env_contains_GIT_CONFIG_for_kid():
-    """dispatch.py must set GIT_CONFIG_COUNT and related vars for kid tier."""
+def test_spawn_env_GIT_CONFIG_VALUE_pinned_to_this_trees_hooks():
+    """hypothesis:l4-a-parent-done-commits-on-every-grammar, claim (2) — the
+    VALUE-level half. This REPLACES the old source-grep near-miss
+    (`"agent-git" in src`), which passed even if the block never ran or the
+    assigned path were a different directory on the next line. dispatch.py
+    derives the value deterministically from its OWN file location:
+    `plugin_root = Path(__file__).resolve().parent.parent` (dispatch.py's
+    parent is extensions/agi/bin, so parent.parent is extensions/agi) then
+    `hooks_dir = plugin_root / "hooks" / "agent-git"`, and assigns
+    `spawn_env["GIT_CONFIG_VALUE_0"] = str(hooks_dir)`. We assert the
+    assignment sources that same derived path and that the file dispatch
+    would point every agent's core.hooksPath at actually exists here — a
+    value the runtime would produce, tied to the filesystem, not a bare
+    string presence. The full runtime capture (env actually handed to the
+    spawned process) lives in test_dispatch_dry_run.py::
+    test_live_spawn_env_hooks_path_is_this_trees_hooks.
+    """
     src = (BIN / "dispatch.py").read_text()
+    # the three assignment statements that wire the triple -- pinned by the
+    # literal value, so a rewording that changes the mechanism fails.
     assert 'spawn_env["GIT_CONFIG_COUNT"] = "1"' in src
     assert 'spawn_env["GIT_CONFIG_KEY_0"] = "core.hooksPath"' in src
-    assert "agent-git" in src
+    assert 'spawn_env["GIT_CONFIG_VALUE_0"] = str(hooks_dir)' in src
+    # hooks_dir must itself derive from plugin_root off the ONE file:
+    # dispatch's plugin_root = Path(__file__).resolve().parent.parent, whose
+    # parent.parent is exactly BIN.parent (extensions/agi) in this tree.
+    assert 'hooks_dir = plugin_root / "hooks" / "agent-git"' in src
+    # ...and the file the value points at must exist here -- the same path
+    # dispatch computes: <extensions/agi>/hooks/agent-git/pre-commit.
+    value_path = (BIN.parent / "hooks" / "agent-git" / "pre-commit").resolve()
+    assert value_path.is_file(), (
+        f"dispatch's GIT_CONFIG_VALUE_0 would point at {value_path} but "
+        "that pre-commit hook does not exist in this tree"
+    )
 
 
 def test_spawn_env_contains_AGI_PROJECT_ROOT_for_kid():
@@ -504,6 +616,74 @@ def test_git_config_hooks_path_allows_commit_outside_project(temp_repo: Path):
 
 
 # ---------------------------------------------------------------------------
+# Two-checkout same-repo tests (hypothesis:l4-commit-guard-worktree-toplevel-bypass)
+# ---------------------------------------------------------------------------
+
+def test_pre_commit_rejects_kid_from_main_into_same_repo_other_checkout(tmp_path: Path):
+    """hypothesis:l4-commit-guard-worktree-toplevel-bypass — under --branch
+    dispatch AGI_PROJECT_ROOT is the kid's OWN WORKTREE. A process whose CWD
+    is the MAIN checkout of the SAME repo (two checkouts share one git common
+    dir) must be REFUSED, not slipped through by the `different toplevel`
+    allow rule. Red on the pre-fix hook: REAL_TOPLEVEL (main) != REAL_PROJECT
+    (worktree), so it exited 0 and let a kid commit into the shared main
+    checkout — the sweep-up hazard the guard exists to stop."""
+    main = tmp_path / "main"
+    main.mkdir()
+    subprocess.run(["git", "init"], cwd=main, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.email", "test@test"], cwd=main, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.name", "Test"], cwd=main, capture_output=True, check=True)
+    (main / "readme.md").write_text("# main")
+    subprocess.run(["git", "add", "."], cwd=main, capture_output=True, check=True)
+    subprocess.run(["git", "commit", "-m", "initial"], cwd=main, capture_output=True, check=True)
+    # second checkout of the SAME repo, exactly what dispatch.py --branch authors
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "worktree", "add", "-b", "loop/slug-a00-x@s2", str(wt)],
+                   cwd=main, capture_output=True, check=True)
+    with_hook(main)
+    (main / "file_wt.md").write_text("change in main checkout")
+    subprocess.run(["git", "add", "."], cwd=main, capture_output=True)
+    result = subprocess.run(
+        ["git", "commit", "-m", "kid commit from main checkout"],
+        cwd=main, capture_output=True, text=True,
+        env={**hook_env(), "AGI_TIER": "kid", "AGI_PROJECT_ROOT": str(wt)},
+    )
+    assert result.returncode == 1, (
+        f"kid commit into same-repo other checkout allowed: {result.stdout} / {result.stderr}"
+    )
+    assert "kid may not commit" in result.stderr
+    subprocess.run(["git", "worktree", "remove", "--force", str(wt)],
+                   cwd=main, capture_output=True)
+
+
+def test_pre_push_rejects_kid_from_main_into_same_repo_other_checkout(tmp_path: Path):
+    """pre-push mirrors pre-commit: refusing a push whose CWD is a DIFFERENT
+    checkout of the same project (shared git-common-dir) even when
+    AGI_PROJECT_ROOT points at the dispatched worktree."""
+    main = tmp_path / "main"
+    main.mkdir()
+    subprocess.run(["git", "init"], cwd=main, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.email", "test@test"], cwd=main, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.name", "Test"], cwd=main, capture_output=True, check=True)
+    (main / "readme.md").write_text("# main")
+    subprocess.run(["git", "add", "."], cwd=main, capture_output=True, check=True)
+    subprocess.run(["git", "commit", "-m", "initial"], cwd=main, capture_output=True, check=True)
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "worktree", "add", "-b", "loop/slug-a00-x@s2", str(wt)],
+                   cwd=main, capture_output=True, check=True)
+    result = subprocess.run(
+        ["bash", str(HOOKS / "pre-push")],
+        cwd=main, capture_output=True, text=True,
+        env={**hook_env(), "AGI_TIER": "kid", "AGI_PROJECT_ROOT": str(wt)},
+    )
+    assert result.returncode == 1, (
+        f"kid push from same-repo other checkout allowed: {result.stderr}"
+    )
+    assert "kid may not push" in result.stderr
+    subprocess.run(["git", "worktree", "remove", "--force", str(wt)],
+                   cwd=main, capture_output=True)
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
@@ -512,3 +692,350 @@ def _load_dispatch():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+# ---------------------------------------------------------------------------
+# --branch KID commits its OWN bytes in its OWN worktree
+# (hypothesis:l4-a-branch-kid-commits-its-own-bytes-under-the-agent-git-hook)
+# ---------------------------------------------------------------------------
+
+AGENT_ID = "a00-41d3e782"
+
+
+@pytest.fixture
+def branch_kid(tmp_path: Path):
+    """A MAIN checkout plus a LINKED worktree cut off it — the exact shape
+    dispatch.py `--branch` authors. The `.agi/` graph root is committed in
+    main and therefore present in the worktree, so AGI_PROJECT_ROOT resolves
+    to `<worktree>/.agi` whose git toplevel IS the worktree.
+
+    Returns (main, worktree)."""
+    main = tmp_path / "main"
+    main.mkdir()
+    for args in (["git", "init"],):
+        subprocess.run(args, cwd=main, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.email", "test@test"], cwd=main, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.name", "Test"], cwd=main, capture_output=True, check=True)
+    (main / "readme.md").write_text("# main")
+    graph = main / ".agi"
+    (graph / "nodes" / "experiment").mkdir(parents=True)
+    (graph / "sessions" / "quorum").mkdir(parents=True)
+    (graph / "config.json").write_text('{"metric_primary": "x"}')
+    subprocess.run(["git", "add", "."], cwd=main, capture_output=True, check=True)
+    subprocess.run(["git", "commit", "-m", "initial"], cwd=main, capture_output=True, check=True)
+    wt = tmp_path / "wt"
+    subprocess.run(
+        ["git", "worktree", "add", "-b", "season2/loops/slug-a00-x", str(wt)],
+        cwd=main, capture_output=True, check=True,
+    )
+    return main, wt
+
+
+def branch_kid_env(wt: Path, agent_id: str = AGENT_ID,
+                   tree_root: "str | None" = None) -> dict:
+    """The env a `--branch` kid is spawned under, exactly as dispatch.py wires
+    it, and exactly as the dispatch orders measured it: `branch_root =
+    locations.source_root(root)` (dispatch.py:2175) is the worktree CHECKOUT
+    root, so AGI_PROJECT_ROOT == AGI_TREE_PROJECT_ROOT == the worktree
+    toplevel for a --branch kid. AGI_TREE_PROJECT_ROOT is set ONLY under
+    --branch. hook_env() pins core.hooksPath at the copy under test."""
+    env = {
+        **hook_env(),
+        "AGI_TIER": "kid",
+        "AGI_PROJECT_ROOT": str(wt),
+        "AGI_AGENT_ID": agent_id,
+    }
+    if tree_root is not None:
+        env["AGI_TREE_PROJECT_ROOT"] = tree_root
+    return env
+
+
+def _kid_commit(wt: Path, env: dict, message: str = "kid: own bytes"):
+    return subprocess.run(
+        ["git", "commit", "-m", message],
+        cwd=wt, capture_output=True, text=True, env=env,
+    )
+
+
+def _stage(wt: Path, rel: str, text: str = "x") -> None:
+    p = wt / rel
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(text)
+    subprocess.run(["git", "add", rel], cwd=wt, capture_output=True, check=True)
+
+
+def test_branch_kid_commits_in_scope_bytes(branch_kid):
+    """The FIX's positive falsifier: a `--branch` kid with AGI_TIER=kid,
+    AGI_TREE_PROJECT_ROOT == its own toplevel, AGI_AGENT_ID set, and only
+    in-scope paths staged (a source edit + its OWN node file) COMMITS.
+    Red on the pre-change hook: every kid commit in the project repo exited 1,
+    so the parent had to adopt the bytes by hand and kid authorship was lost."""
+    main, wt = branch_kid
+    _stage(wt, "extensions/source.py", "print('kid bytes')\n")
+    _stage(wt, f".agi/nodes/experiment/{AGENT_ID}-abc123.md", "---\ntype: experiment\n---\n")
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 0, (
+        f"in-scope branch-kid commit REFUSED: {res.stdout} / {res.stderr}"
+    )
+
+
+def test_branch_kid_refuses_staged_config_json(branch_kid):
+    """Out-of-scope (a): `.agi/config.json` at the checkout root is refused BY
+    NAME. Red on the pre-change hook only in that it refused everything; this
+    pins the denial survives the new admission."""
+    main, wt = branch_kid
+    _stage(wt, ".agi/config.json", '{"metric_primary": "tampered"}')
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 1, f"branch kid committed .agi/config.json: {res.stdout}"
+    assert "kid may not commit" in res.stderr
+
+
+def _run_hook_direct(wt: Path, env: dict):
+    """Run the pre-commit hook SCRIPT, bypassing `git commit` (git reads the
+    index itself before any hook and dies first on a corrupt one, so the
+    guard is only reachable through the script for this row)."""
+    return subprocess.run(
+        ["bash", str(HOOKS / "pre-commit")], cwd=wt, capture_output=True, text=True, env=env,
+    )
+
+
+def test_branch_kid_hook_refuses_on_a_failing_diff(branch_kid):
+    """hypothesis:pb3-agent-git-hook-fails-closed-on-a-failed-diff — a
+    `git diff --cached` that FAILS (corrupt index -> rc 128) used to feed
+    scope-check an empty path list, `all([])` allowed it, and the kid
+    branch exited 0: fail-OPEN. Under pipefail the pipeline carries 128, the
+    hook prints ONE named line and refuses. Red before the fix (rc 0, no
+    line)."""
+    main, wt = branch_kid
+    index = subprocess.run(
+        ["git", "rev-parse", "--git-path", "index"], cwd=wt,
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()
+    Path(wt / index).write_text("this is not an index\n")
+    res = _run_hook_direct(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode != 0, f"hook failed OPEN on a failing diff: {res.stdout}"
+    named = [ln for ln in res.stderr.splitlines() if "git diff --cached failed" in ln]
+    assert len(named) == 1, f"expected exactly ONE named line, got {named!r}"
+
+
+def test_branch_kid_empty_staged_set_still_allowed(branch_kid):
+    """The control: a healthy index with NOTHING staged is `all([])` -> 0 and
+    must still exit 0 (`git commit --allow-empty` reaches the hook). The
+    fail-closed fix must not turn an empty-but-successful diff into a
+    refusal."""
+    main, wt = branch_kid
+    res = _run_hook_direct(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 0, f"empty healthy staged set refused: {res.stderr}"
+    assert "git diff --cached failed" not in res.stderr
+
+
+def test_branch_kid_hook_names_the_scope_check_when_it_dies(branch_kid, tmp_path):
+    """ATTRIBUTION, second arm: the producer is CLEAN (rc 0) but the scope
+    stage itself is unavailable (this hook copy has no ../../bin to resolve,
+    the shape verify reproduced) — the refusal must NAME the scope stage, not
+    the diff. Red before the per-stage fix: the pre-corrective hook read only the
+    pipeline rc, so the dead scope-check (rc 2) printed `git diff --cached
+    failed (rc 2)` -- a clean producer blamed, 0 `scope-check failed` hits."""
+    main, wt = branch_kid
+    copy = tmp_path / "detached-hooks" / "pre-commit"
+    copy.parent.mkdir(parents=True, exist_ok=True)
+    copy.write_text((HOOKS / "pre-commit").read_text())
+    env = branch_kid_env(wt, tree_root=str(wt))
+    res = subprocess.run(
+        ["bash", str(copy)], cwd=wt, capture_output=True, text=True, env=env,
+    )
+    assert res.returncode != 0, f"hook failed OPEN on a dead scope-check: {res.stdout}"
+    named = [ln for ln in res.stderr.splitlines() if "scope-check failed" in ln]
+    assert len(named) == 1, f"expected exactly ONE scope-check line, got {named!r}"
+    assert "git diff --cached failed" not in res.stderr, (
+        f"a healthy producer was blamed: {res.stderr!r}"
+    )
+
+
+def test_branch_kid_refuses_another_authors_node(branch_kid):
+    """Out-of-scope (b): a path under `.agi/nodes/` whose basename does not
+    contain AGI_AGENT_ID is another author's node — refused by name."""
+    main, wt = branch_kid
+    _stage(wt, ".agi/nodes/hypothesis/somebody-elses-node.md", "---\ntype: hypothesis\n---\n")
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 1, f"branch kid committed another node: {res.stdout}"
+    assert "kid may not commit" in res.stderr
+
+
+def test_branch_kid_refuses_other_agents_experiment_node(branch_kid):
+    """Out-of-scope (c): an experiment node whose basename carries a DIFFERENT
+    agent id refuses, even though it is the same type directory as the kid's own.
+    Also covers `.agi/nodes/.geometry/*` — no agent id in the basename."""
+    main, wt = branch_kid
+    _stage(wt, ".agi/nodes/experiment/a99-deadbeef-abc123.md", "---\ntype: experiment\n---\n")
+    _stage(wt, ".agi/nodes/.geometry/crons.md", "geometry")
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 1, f"branch kid committed another agent's node: {res.stdout}"
+    assert "kid may not commit" in res.stderr
+
+
+def test_branch_kid_refuses_another_posts_quorum_card(branch_kid):
+    """Out-of-scope (d): another post's card lives at
+    `<tree>/.agi/sessions/quorum/<seat>.md` (rotate.py::_own_card_path). A kid
+    has no business staging ANY seat's card — refused by the quorum prefix."""
+    main, wt = branch_kid
+    _stage(wt, ".agi/sessions/quorum/sanctuary-director.md", "card")
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 1, f"branch kid committed a quorum card: {res.stdout}"
+    assert "kid may not commit" in res.stderr
+
+
+def test_plain_kid_in_main_checkout_still_refuses(branch_kid):
+    """Out-of-scope (e): a PLAIN kid (no AGI_TREE_PROJECT_ROOT — dispatch only
+    exports it under --branch) committing in the shared MAIN checkout still
+    refuses. This is the goal:g4.1 sweep-up hazard the admission must not open."""
+    main, wt = branch_kid
+    _stage(main, "extensions/plain_kid.py", "print('shared tree')\n")
+    res = _kid_commit(main, branch_kid_env(wt, tree_root=None), "plain kid commit")
+    assert res.returncode == 1, f"plain kid in MAIN committed: {res.stdout}"
+    assert "kid may not commit" in res.stderr
+
+
+def test_branch_kid_refuses_when_tree_root_is_not_the_toplevel(branch_kid):
+    """Out-of-scope (e), second spelling: AGI_TREE_PROJECT_ROOT names a
+    DIFFERENT checkout (here MAIN) while the commit happens in the worktree,
+    so the equality leg fails and the kid is refused. This is what makes the
+    admission specific to the kid's OWN isolated round worktree."""
+    main, wt = branch_kid
+    _stage(wt, "extensions/wrong_tree.py", "print('x')\n")
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(main)))
+    assert res.returncode == 1, f"kid with foreign AGI_TREE_PROJECT_ROOT committed: {res.stdout}"
+    assert "kid may not commit" in res.stderr
+
+
+def test_branch_kid_refuses_without_agent_id(branch_kid):
+    """Defence-in-depth: with AGI_AGENT_ID unset the node-scope test would
+    match everything (`*""*`), so the admission must require an agent id.
+    A branch kid with no id refuses."""
+    main, wt = branch_kid
+    _stage(wt, "extensions/no_id.py", "print('x')\n")
+    env = branch_kid_env(wt, tree_root=str(wt))
+    env.pop("AGI_AGENT_ID")
+    res = _kid_commit(wt, env)
+    assert res.returncode == 1, f"id-less branch kid committed: {res.stdout}"
+    assert "kid may not commit" in res.stderr
+
+
+def _base_commit(wt: Path, rel: str, text: str = "---\ntype: hypothesis\n---\n") -> None:
+    """Track a file with a plain (human-tier) commit, so a later `git mv` or
+    typechange has something committed to rename/modify."""
+    _stage(wt, rel, text)
+    subprocess.run(
+        ["git", "commit", "-m", f"base: {rel}"],
+        cwd=wt, capture_output=True, check=True,
+        env={**hook_env(), "AGI_TIER": ""},
+    )
+
+
+def test_branch_kid_refuses_non_ascii_named_node(branch_kid):
+    """Out-of-scope (f), probe A — a `.agi/nodes/` path whose basename carries
+    a non-ASCII byte. `git diff --cached --name-only` C-QUOTES such paths
+    (`".agi/nodes/hypothesis/\\303\\251.md"`) because core.quotePath defaults
+    true, so each `case` arm missed and SCOPE_OK stayed 1. The path is passed
+    as a Python str, never shell-quoted, and IS out of scope (basename
+    `caf\u00e9.md` carries no agent id)."""
+    main, wt = branch_kid
+    name = "caf\u00e9.md"
+    p = wt / ".agi" / "nodes" / "hypothesis" / name
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text("---\ntype: hypothesis\n---\n")
+    subprocess.run(
+        ["git", "add", "--", f".agi/nodes/hypothesis/{name}"],
+        cwd=wt, capture_output=True, check=True,
+    )
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 1, (
+        f"branch kid committed a C-quoted non-ASCII node path: {res.stdout}"
+    )
+    assert "kid may not commit" in res.stderr
+    # the guard must refuse BY NAME -- the rename/typechange refusals below
+    # share this assertion so a refusal cannot come from a stale hook.
+
+
+def test_branch_kid_refuses_rename_of_another_authors_node(branch_kid):
+    """Out-of-scope (f), probe B — `git mv` another author's node to a path
+    that DOES carry the kid's id. `--name-only` without `--no-renames` prints
+    ONLY the destination for a rename, and the destination carries the agent
+    id, so the old (foreign) path was never checked. With `--no-renames` the
+    rename is listed as D old + A new and BOTH paths are judged."""
+    main, wt = branch_kid
+    _base_commit(wt, ".agi/nodes/hypothesis/other-author-node.md")
+    subprocess.run(
+        ["git", "mv", ".agi/nodes/hypothesis/other-author-node.md",
+         f".agi/nodes/hypothesis/{AGENT_ID}-stolen.md"],
+        cwd=wt, capture_output=True, check=True,
+    )
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 1, (
+        f"branch kid committed a rename of another author's node: {res.stdout}"
+    )
+    assert "kid may not commit" in res.stderr
+
+
+def test_branch_kid_refuses_typechange_node(branch_kid):
+    """Out-of-scope (f), probe C — a tracked `.agi/nodes/` file replaced by a
+    symlink. git records this as a TYPECHANGE (`T`), and
+    `--diff-filter=ACDMR` omits `T`, so git never even listed the path.
+    Measured on this box (git 2.43.0): `git status --short` reports
+    `T  .agi/nodes/hypothesis/tracked-node.md` and
+    `--diff-filter=ACDMR --name-only` prints nothing, while the unfiltered
+    `--name-only` lists it. The fix drops `--diff-filter` entirely."""
+    main, wt = branch_kid
+    rel = ".agi/nodes/hypothesis/tracked-node.md"
+    _base_commit(wt, rel)
+    f = wt / rel
+    f.unlink()
+    f.symlink_to("/etc/passwd")
+    subprocess.run(["git", "add", "-A", "--", rel], cwd=wt,
+                   capture_output=True, check=True)
+    # pin the shape this test is about: it must be a T record, not M.
+    st = subprocess.run(["git", "diff", "--cached", "--name-status"],
+                        cwd=wt, capture_output=True, text=True, check=True)
+    assert st.stdout.startswith("T\t"), (
+        f"expected a typechange record, got: {st.stdout!r} -- on a filesystem "
+        "that records M instead, this test still asserts the refusal"
+    )
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 1, (
+        f"branch kid committed a typechanged node: {res.stdout}"
+    )
+    assert "kid may not commit" in res.stderr
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l4-sm36-...-one-scope-rule item 9 — ONE rule, one implementation.
+# The hook now DELEGATES to cli._round_scope_ok via `cli.py scope-check`, so a
+# round's explicit own path (a human-slug node) is accepted by BOTH.
+# ---------------------------------------------------------------------------
+
+HUMAN_SLUG = ".agi/nodes/experiment/human-slug-node.md"
+
+
+def test_branch_kid_commits_own_human_slug_node_when_round_owns_it(branch_kid):
+    """Red before the fix: the hook scoped a node by AGI_AGENT_ID-in-basename
+    only, so a round whose --node-id is a human slug was accepted by
+    cli._round_scope_ok (own_paths) and REFUSED by the hook. The hook reads the
+    round's own paths from AGI_ROUND_OWN_PATHS and must agree."""
+    main, wt = branch_kid
+    _stage(wt, HUMAN_SLUG, "---\ntype: experiment\n---\n")
+    env = branch_kid_env(wt, tree_root=str(wt))
+    env["AGI_ROUND_OWN_PATHS"] = HUMAN_SLUG
+    res = _kid_commit(wt, env)
+    assert res.returncode == 0, (
+        f"own human-slug node REFUSED by the hook: {res.stdout} / {res.stderr}"
+    )
+
+
+def test_branch_kid_still_refuses_unowned_human_slug_node(branch_kid):
+    """The other half of the SAME rule: with no AGI_ROUND_OWN_PATHS the
+    human-slug node is another author's node and is refused — proving the
+    delegation did not simply widen the admission."""
+    main, wt = branch_kid
+    _stage(wt, HUMAN_SLUG, "---\ntype: experiment\n---\n")
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 1, f"unowned human-slug node committed: {res.stdout}"
+    assert "kid may not commit" in res.stderr

@@ -22,6 +22,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from frontmatter import split_frontmatter
+
 #: Known log path relative to the project root.
 WRITE_LOG = "sessions/write-log.jsonl"
 
@@ -193,12 +195,12 @@ def _read_payload_refs(agi_root: Path) -> list[dict]:
         text = nf.read_text(encoding="utf-8", errors="replace")
         if not text.startswith("---"):
             continue
-        parts = text.split("---", 2)
-        if len(parts) < 3:
+        parted = split_frontmatter(text)
+        if parted is None:
             continue
         try:
             import yaml
-            fm = yaml.safe_load(parts[1]) or {}
+            fm = yaml.safe_load(parted[0]) or {}
         except BaseException:
             continue
         nid = fm.get("id", "")
@@ -283,11 +285,11 @@ def cmd_check(argv: list[str]) -> int:
         """Read the changed node's mint_id from its frontmatter, if any."""
         try:
             text = Path(abspath).read_text(encoding="utf-8", errors="replace")
-            parts = text.split("---", 2)
-            if len(parts) < 3 or not text.startswith("---"):
+            parted = split_frontmatter(text)
+            if parted is None or not text.startswith("---"):
                 return ""
             import yaml
-            fm = yaml.safe_load(parts[1]) or {}
+            fm = yaml.safe_load(parted[0]) or {}
             return str(fm.get("mint_id", "") or "")
         except BaseException:
             return ""
@@ -367,6 +369,21 @@ exec python3 extensions/agi/bin/write_guard.py check --strict
     return 0
 
 
+#: The vocabulary this script accepts, declared where a READER can find it.
+#: `main` dispatches through this map, so it cannot drift from what actually
+#: works. It exists as data rather than as an `if` chain because
+#: `command:commands` may declare `write_guard.py check`, and
+#: `test_commands.py::test_every_declared_command_accepts_its_own_subcommand`
+#: proves a declared subcommand is really accepted by READING the script --
+#: it understands argparse's `add_parser` and `choices=[...]`, and a
+#: hand-rolled dispatcher declared its vocabulary nowhere it could see. That
+#: test treats "declares nothing" as a FAILURE rather than a skip, on purpose:
+#: twice, "nothing to check against" was indistinguishable from "accepts
+#: anything" and a real bug stayed green. Found at merge-up 3, when the
+#: `write-guard` entry reached the main checkout the test reads.
+SUBCOMMANDS = ("check", "hook")
+
+
 def main(argv: list[str] | None = None) -> int:
     if argv is None:
         argv = sys.argv[1:]
@@ -378,11 +395,14 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     cmd = argv[0]
     rest = argv[1:]
-    if cmd == "check":
-        return cmd_check(rest)
-    if cmd == "hook":
-        return cmd_hook(rest)
-    print(f"write_guard: unknown command {cmd!r}. check | hook", file=sys.stderr)
+    dispatch = {"check": cmd_check, "hook": cmd_hook}
+    assert set(dispatch) == set(SUBCOMMANDS), (
+        "SUBCOMMANDS and the dispatch table disagree; the declaration is only "
+        "worth reading while it is the thing that runs")
+    if cmd in dispatch:
+        return dispatch[cmd](rest)
+    print(f"write_guard: unknown command {cmd!r}. "
+          f"{' | '.join(SUBCOMMANDS)}", file=sys.stderr)
     return 2
 
 

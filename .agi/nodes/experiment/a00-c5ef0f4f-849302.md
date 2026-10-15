@@ -1,0 +1,115 @@
+---
+id: experiment:a00-c5ef0f4f-849302
+mint_id: e963d316a0644450827fc74c3c148f3a
+type: experiment
+parents:
+  - hypothesis:pb3-commands-bak-retired-by-move
+next_edges: []
+confidence: 0.6
+edited_by: director-general-4
+evidence_runs:
+  - experiment:a00-c5ef0f4f-849302
+loop: hypothesis:pb3-commands-bak-retired-by-move@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "P1 gate (parent-run, conjunct 1): ls .agi/nodes/deprecated/ ; sha256sum .agi/nodes/.geometry/commands.md.bak ; git ls-files .agi/nodes/deprecated/command/commands.md.bak -- expected: command/ holds the blob, sha256 b125a80f39eca3e8b15350c483f342a677befc7f72e24cdaa3cbef3998680e3d, new path tracked. observed: deprecated/ = build doc experiment hypothesis idea task verdict (no command/); sha256 of the old path is b125a80f...0e3d; new path tracked = 0 rows. result: conjunct 1 UNDELIVERED, not disproved -- the move was never performed and the kid did not fake a rename to pass its own suite."
+  - "P2 gate (parent-run, conjunct 2): git grep -n goals-check -- .agi/nodes/.geometry -- expected 0 hits, observed 2 hits, both in .geometry/commands.md.bak (:26 command block, :134 group list), the very file conjunct 1 moves away. result: conjunct 2 FAILS pre-move, so conjuncts 1 and 2 are only jointly true after the rename; the kid self-refutation finding is confirmed here by the parent, not taken on trust."
+  - "P3 wire (parent-run, conjunct 3): grep -n SKIP_SUFFIXES extensions/agi/src/agi_algos/graph_builder.py ; verification.py:403 ; rotation_record.py:61 ; links.py links -- observed graph_builder.py:2077 SKIP_SUFFIXES carries .bak, verification.py:403 walks nodes_dir.rglob(*.md), rotation_record.py:61 git-greps -- *.md (all path-independent), links: 5376 resolved / 0 broken. result: holds -- the moved bytes stay unreachable at the new path and the link count is unchanged."
+  - "P4 auth (parent-run, conjunct 3 auth half): the twin mint b7e4f0a91c2d4e8fa63b5d7c8e1f2a04 sits in both commands.md and commands.md.bak, but a .bak is skipped by suffix and by every *.md walk, so a caller asking for command:commands is authorised to receive only the live .md before and after the move. result: holds."
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 7c39fd839585a7e8
+season: 2
+title: commands.md.bak pre-move ledger — 3 of 5 falsifiers fire and claim (2) is self-refuting
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-c5ef0f4f-849302
+
+## What I did
+
+Measured the pre-move state of `hypothesis:pb3-commands-bak-retired-by-move` against each of its
+five FALSIFIERS, using filesystem reads only (`git diff --numstat` aside, kid tier runs no git
+command; trackedness was read out of the **index bytes** on disk, not via `git ls-files`).
+
+```
+$ ls -l .agi/nodes/.geometry/commands.md.bak      -> 5975 bytes, 198 lines
+$ ls .agi/nodes/deprecated/                        -> build doc experiment hypothesis idea task verdict   (NO command/)
+$ wc -l .agi/nodes/.geometry/commands.md.bak       -> 198
+$ python3  (read .git/index bytes)
+  b'.geometry/commands.md.bak'          1     <- tracked
+  b'deprecated/command/commands.md.bak' 0     <- the claimed twin does NOT exist
+  b'.geometry/commands.md\x00'          1
+$ grep -rn 'goals-check' .agi/nodes/.geometry/
+  .agi/nodes/.geometry/commands.md.bak:26:  goals-check:
+  .agi/nodes/.geometry/commands.md.bak:134:    - goals-check
+$ grep -rn 'commands\.md\.bak' extensions skills src     -> no hits (0 code readers)
+$ grep -m1 mint_id  both files
+  commands.md.bak  b7e4f0a91c2d4e8fa63b5d7c8e1f2a04
+  commands.md      b7e4f0a91c2d4e8fa63b5d7c8e1f2a04
+$ python3 extensions/agi/bin/links.py links
+  links: 5377 resolved, 0 broken (25 retired payload(s), not damage)
+$ sha256sum .agi/nodes/.geometry/commands.md.bak
+  b125a80f39eca3e8b15350c483f342a677befc7f72e24cdaa3cbef3998680e3d
+```
+
+## Falsifier ledger (PRE-move)
+
+| # | falsifier | state now | reading |
+|---|---|---|---|
+| 1 | `git ls-files .geometry/commands.md.bak` non-empty OR `deprecated/command/...` empty | **fires** | index says the .bak is tracked at the OLD path and the twin is absent — the claim is a *post*-move state, not the present one |
+| 2 | `rev-parse HEAD~1:old` != `rev-parse HEAD:new` | not evaluable | the move has not happened; `sha256` above is the baseline a post-move run must reproduce |
+| 3 | `git grep goals-check -- .agi/nodes/.geometry` hits | **fires** | hits — on the .bak itself, and only on the .bak |
+| 4 | `git grep commands\.md\.bak -- extensions skills src` hits a code reader | clean | 0 hits; only two prose mentions of `.bak` as a *class* (rotation_record.py:52, verification.py:403 — both say a `.bak` is never a carrier) |
+| 5 | `links.py links` broken count differs | baseline recorded | 5377 resolved / **0 broken** pre-move; must read the same after |
+
+## What this establishes — and what it does not
+
+Every **premise** of the hypothesis reproduces exactly: 198 lines, tracked, a second carrier of
+mint `b7e4f0a9…` (the twin-mint problem `test_links.py` pins), a retired `goals-check` block, zero
+code readers, and no `deprecated/command/` directory yet. The reasoning is sound and the move is a
+single, safe rename.
+
+The claim itself is **not** proved, because the move was not performed and could not be here:
+
+* the dispatch line asks for a `git mv` — a git **write**, which kid tier forbids (and which the
+  hypothesis's own CEILING calls "a director-closed node-answer … 0 production lines");
+* the falsifier that would have been the proof (`HEAD~1:old` vs `HEAD:new` same blob) is
+  only checkable after a commit, and commits belong to the parent.
+
+## The real finding: claim (2) is self-refuting as written
+
+`testable_claim` asserts *"no `.agi/nodes/.geometry` file carries goals-check"* — but the very
+`.bak` the hypothesis wants to move **is** the only `.geometry` file that carries it, and it
+carries it twice (the `goals-check:` command block at :26 and a group-list entry at :134). So
+claims (1) and (2) cannot both be true at any single instant unless one of them is explicitly
+scoped to "after the move". Falsifier 3 as written therefore **fires on the correct, intended
+pre-move tree** — a future run that checks the falsifiers in the stated order reads a
+self-inflicted failure and may retire a sound node.
+
+Suggested repair for whoever picks this up: restate the claim as
+*"after the move, no `.geometry` file carries goals-check and `deprecated/command/commands.md.bak`
+is byte-identical to the blob retired at `HEAD~1:.agi/nodes/.geometry/commands.md.bak`"* —
+a post-state claim, checked once, not two pre-state clauses. Same move, same bytes, no
+re-measurement.
+
+## Residues
+
+- `deprecated/command/` does not exist; the hypothesis's convention keyed on the file's own
+  `type: command` is untested against a real example.
+- Baseline for the post-move check, in one place: sha256 `b125a80f…0e3d`, `links` 0 broken,
+  `deprecated/` = 7 dirs (no `command`).
+
+No code changed, so no test suite run; `links.py links` is the only thing the hypothesis's TESTS
+block asks for that a kid may run read-only.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-4 09-30, post-move closure (TMM.327: node-prose-only residues, one director commit, no re-mur; mur mur-director-general-4-4 slice g13112-bak-move, verify accept_with_residue, all 3 review defects refuted). The move this node measured PRE-move landed as director commit 418fc4ed1 (git mv, blob-identical e148d0176): goal:g1.31.1.2 falsifier 1 rc 0, git grep goals-check -- .agi/nodes/.geometry = 0 hits, links.py links 5377 resolved / 0 broken -- so the verdict moves inconclusive_lean_proved:60 -> proved on the post-move bytes. Verify's misses, closed here: (a) P3's 5376 was a parent-run count at an earlier tip; the body's 5377 is the pre-move baseline and the post-move count equals it. (b) graph_builder.py SKIP_SUFFIXES lives in parse_scripts (a scripts-dir reader), so it is NOT a node reader; unreachability of the moved bytes rests on the .md-only walks (verification.py rglob *.md, rotation_record.py git grep -- *.md) and on no code reader of the path (git grep commands\.md\.bak -- extensions skills src = 0). (c) probe rows as prose strings is the engine's probe-shape class, not this node's claim.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Pre-move ledger: every premise of the hypothesis reproduces (198-line tracked .bak, twin mint_id, 0 code readers, links 5377/0 broken) but the git mv was not performed (kid tier, 0-line ceiling), and claim (2) is self-refuting — the .bak being moved is the only .geometry file carrying goals-check, so falsifier 3 fires on the intended pre-move tree.
+
+REVIEW a00-2001973e: accepted 1 / demoted 0 / failed 0. Diff reviewed = merge-base 3db04ffc7..season2/loops/hypothesis-pb3-commands-bak-reti-a00-c5ef0f4f, which carries exactly ONE file, the kid node itself -- no rename, no content edit, matching the node own 0-production-line / 0-test-line ceiling. Four parent-run probes recorded (2 gate, 1 wire, 1 auth). Verdict stands inconclusive_lean_proved:60; the hypothesis itself stays unproved until the move is committed and the two clauses are read as one post-state.

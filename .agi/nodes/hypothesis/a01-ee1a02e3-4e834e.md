@@ -3,7 +3,7 @@ id: hypothesis:a01-ee1a02e3-4e834e
 mint_id: 10c27ecc5e5149a88bb44b4ef9b81e6c
 type: hypothesis
 parents:
-  - goal:g10.1
+  - goal:g2.24
 next_edges: []
 confidence: 0.0
 edited_by: season.py
@@ -20,7 +20,7 @@ verdict: pending
 
 ### Testable claim
 
-g10.1 (goal:g10.1) says chats "render as graphs too" and flags one implementation
+g10.1 (goal:g2.24) says chats "render as graphs too" and flags one implementation
 tradeoff explicitly:
 
 > Whether that rendering is dynamic (a mechanical model compacting on demand —

@@ -1,0 +1,21 @@
+=== CUDA-GDB RUN3c start ===
+2026-09-18T21:35:04Z
+Breakpoint 1 at 0x22e0
+Function "cudaLaunchKernel" not defined.
+Breakpoint 2 (cudaLaunchKernel) pending.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[New Thread 0x7fffee7ff6c0 (LWP 8832)]
+[New Thread 0x7fffed1ff6c0 (LWP 8833)]
+[Detaching after fork from child process 8834]
+[New Thread 0x7fffe6dde6c0 (LWP 8842)]
+[New Thread 0x7fffe65dd6c0 (LWP 8843)]
+[New Thread 0x7fffe4bbb6c0 (LWP 8844)]
+CUDA ELF Image contains unknown ABI version: 8
+This might happen while debugging JITed codeusing latest driver with older tools.
+Further debugging might not be reliable.CUDA ELF Image contains unknown ABI version
+Num     Type           Disp Enb Address            What
+1       breakpoint     keep y   0x00007ffff2968de0 <cuLaunchKernel>
+2       breakpoint     keep y   <PENDING>          cudaLaunchKernel
+rc=0
+2026-09-18T21:35:04Z

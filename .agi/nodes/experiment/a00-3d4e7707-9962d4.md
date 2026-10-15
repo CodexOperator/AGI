@@ -1,0 +1,158 @@
+---
+id: experiment:a00-3d4e7707-9962d4
+mint_id: b9176a264d5842baa66377faebc124ec
+type: experiment
+parents:
+  - hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes
+next_edges: []
+confidence: 0.55
+edited_by: a00-775fe9d4
+evidence_runs:
+  - experiment:a00-3d4e7707-9962d4
+loop: hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes@s2
+model: stealth/space-bunny-alpha
+probes:
+  - parent a00-fee425e8 DH.634, run BY ME against the committed bytes (de-base-634/.agi/sessions/iter-DH.634/a00-fee425e8/probe_parent_634.py); the kid suite is the kid CLAIM, not my evidence
+  - "WIRE item 4 (the candidate is DRAWN, not re-typed) HOLDS: the literal /.sanctuary/ occurs ONCE in test_boxkit_templates.py (test:153, inside KIT_TOKENS), _leaks consults that same object (True), the candidate is a member BY IDENTITY (True)"
+  - "GATE (rule-side drift) HOLDS: replacing (*KIT_TOKENS, *roots) with (KIT_TOKENS[0], *roots) -- source untouched, the rule stops consulting the rest -- makes the test:162 guard raise AssertionError naming the unconsulted tokens"
+  - "REFUTED as stated (kid table overclaim): appending a new token to KIT_TOKENS alone leaves the test:162 guard TRUE, because _leaks dereferences the very tuple it is guarded against; only a change to the RULE can fire it. The kid prose is conjunctive so the bytes do not contradict it, but the source half of that guard is unreachable -- a one-source refactor that made its own consistency assert a tautology"
+  - "kid residue 1 CONFIRMED: the identity guard at test:1057 cannot go red against the committed bytes, the candidate being drawn from the tuple it is compared to. Accepted as documentation, NOT as evidence"
+  - "AUTH, SECOND round running: with every kit token also present in LEAK_ROOTS, next(t for t in KIT_TOKENS if t and t not in LEAK_ROOTS) raises bare StopIteration with an empty message -- a crash, not a refusal by name. The kid scoped this out honestly (its residue 2); not re-opened as a failure, but a NAMED REPEATED defect, not a caveat"
+  - "items 1,2,3,5,6 checked against the BYTES and all SIX hold: a00-2efa683b:30 is now true of the file (14b comment at test:1044-1047 reads RED when the kit roots are added to anonymize.box_tokens, probe C marked WITHDRAWN); the stale RESIDUE pointer is CLOSED with the rc=1 grep pasted; grep -rn 'no state of the merge' .agi/nodes/experiment/ hits only this round's quotation of it; a00-19870cd0:163 carries the corrected scope naming row 14b as the falsifier"
+  - "STILL UNVERIFIED: 269 passed / 6 skipped is measured on THIS worktree, not on d0c4c43ca; no checkout of that commit was run, so the director's item 7 stays partly open"
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: ec0d97f7796fd531
+season: 2
+title: "DH.634: the kit denylist gets one source (KIT_TOKENS), three node texts made true, suite measured at 269 passed/6 skipped"
+town: core
+verdict: inconclusive_lean_proved:55
+---
+<!-- BODY:BEGIN -->
+# DH.634 corrective: the kit denylist gets ONE source, three node texts made true, the suite MEASURED
+
+## What each item was, and what I did
+
+| item | from the bytes | what I did |
+|---|---|---|
+| 1 -- a00-2efa683b's opening claims all four items closed | CONFIRMED: heading + Agent Notes said "row inventory de-duplicated" and "re-aimed at LEAK_ROOTS[0]" as done; its own table says item 1 was a tautology and item 4 was NOT fixed here | both rewritten with write.py so the opening states what DH.591 actually closed (items 2 and 5, plus the 14b deletion) and names the two that survived into DH.615 |
+| 2 -- section 2 calls direction 2's token the checkout root and pastes probe C as this round's evidence | CONFIRMED | the token is named "the CHECKOUT ROOT, the first element of the box's own leak-root set" and flagged unreachable-by-construction; the Probe C section is headed WITHDRAWN, says why, and points at the PARENT REVIEW `probes:` line as the surviving evidence. The one box path value in the node is gone (ANON) |
+| 3 -- "no state of the merge flips anything the suite asserts" is FALSE | CONFIRMED: DH.615 landed row 14b, which DOES flip under a named merge | a00-19870cd0:142 now states the true scope and names 14b as the row that falsifies the old wording; whether OTHER engine rows move under the same merge is recorded as unmeasured, not assumed |
+| 4 -- the row's candidate re-types "/.sanctuary/" instead of drawing it | CONFIRMED: the literal was at test:151 and again at test:1036 | `KIT_TOKENS = (OWNER, str(Path.home()), "/.sanctuary/")` (test:153) is now the only place the literal exists; `_leaks` dereferences it and the candidate is `next(t for t in KIT_TOKENS ...)` |
+| 5 -- row 3 said the comment names the mutation; the bytes ended in the literal "RED if merged: ..." | CONFIRMED against the bytes | I fixed the BYTES (the row was right about the intent): the comment now reads "RED when the kit's roots are added to anonymize.box_tokens: scan then names a class here", and its probe-C citation is marked WITHDRAWN -- so a00-2efa683b's item-3 cell is now true of the file |
+| 6 -- stale "item 4 open" pointer | CONFIRMED stale | settled by grep (pasted below), pointer rewritten to CLOSED |
+| 7 -- the suite count | the director never ran it | run twice here, on this worktree: 269 passed, 6 skipped |
+
+## The bytes: extensions/agi/tests/test_boxkit_templates.py
+
+```python
+KIT_TOKENS = (OWNER, str(Path.home()), "/.sanctuary/")                 # test:153, the ONLY literal
+
+def _leaks(text, roots=LEAK_ROOTS):                                    # test:156
+    return [t for t in (*KIT_TOKENS, *roots) if t and t in text]
+
+assert all(_leaks("cd %s\n" % t) for t in KIT_TOKENS if t), KIT_TOKENS  # test:162
+...
+KIT_TOKEN = next(t for t in KIT_TOKENS if t and t not in LEAK_ROOTS)     # test:1047
+    assert any(t is KIT_TOKEN for t in KIT_TOKENS), ...                  # test:1057
+```
+
+What `_leaks` denies is UNCHANGED (owner, home, leak roots, `/.sanctuary/`); only the
+source moved. Two guards, one per direction the item names:
+
+| guard | reds when |
+|---|---|
+| `all(_leaks("cd %s\n" % t) for t in KIT_TOKENS)` (test:162) | the source grows and the rule stops consulting one of its tokens -- source and rule drift apart again |
+| `any(t is KIT_TOKEN for t in KIT_TOKENS)` (test:1057) | the candidate is re-typed as a literal instead of drawn -- membership BY IDENTITY, no literal in the assert |
+
+## Evidence
+
+Greps, verbatim, on this worktree:
+
+```
+$ grep -n "10b\|SUB-ROWS" extensions/agi/tests/test_boxkit_templates.py; echo rc=$?
+rc=1
+```
+(item 6 CLOSED: no SUB-ROWS inventory, no "test 10b" citation anywhere in the file -- but see the DH.653 correction below: that grep is too narrow to see the header inventory)
+
+```
+$ grep -n "probe_c\|probe C\|/data/work" .agi/nodes/experiment/a00-2efa683b-cd698b.md
+30:| 3 -- ... | a real mutation is now run and pasted (probe C); the comment names the mutation precisely instead of "RED if merged" |
+79:DH.634 withdraws probe C. It measured the row as DH.591 SHIPPED IT -- direction 2
+30:| 3 -- ... | a real mutation is now run and pasted (probe C); the comment nam
+135:probes: (parent a00-36e29ed9, DH.591, ...) ... its own suite (269 passed) is the kid CLAIM, ...
+```
+DH.653 item 2 RETRACTS, rather than sits under, the claim this block once made ("all four hits are now labelled withdrawals or the parent's own review line"): hit 30 was NOT a withdrawal -- it still read "a real mutation is now run and pasted (probe C)", so that sentence is false of the bytes and is REPLACED here (a00-c339cb91, item 7). Re-grepped and PASTED by DH.653:
+
+```
+$ grep -n "probe_c\|probe C\|/data/work" .agi/nodes/experiment/a00-2efa683b-cd698b.md | cut -c1-150
+30:| 3 -- the node's own red-first for direction 2 is self-referential | **CONFIRMED, and the merge claim was unsupported** | a real mutation was run and pasted (probe C) -- and probe C
+79:DH.634 withdraws probe C. It measured the row as DH.591 SHIPPED IT -- direction 2
+111:withdrawn probe C showed it by mutating the token list, not by editing `anonymize.py`
+135:probes: (parent a00-36e29ed9, DH.591, ...) ...
+```
+All four hits are labelled now, and hit 30 is labelled IN THE CELL that carried the claim. Item 5's
+wide grep (the one the rc=1 grep could not be) is on experiment:a00-3981a5ee-3dcaba: the header
+inventoried rows 1-10 and 14 while naming 11, 12 and 13, so "no list of row names exists" was
+false; the bytes now carry row 15, which fails when a named row is not in that inventory.
+
+Mutation probe (my own, run in-process against the committed module so the two new
+guards are exercised without a second copy of the file on disk):
+
+```
+committed token is the kit's first own token (a user name, withheld): True
+guards as committed: source-rule True, identity True
+MUT A' (_leaks stops consulting the token the candidate was drawn from) -> source-rule guard RED: AssertionError
+MUT B (candidate re-typed as a literal, e.g. "/a/hand/typed/token")
+    -> identity guard False, and _leaks does not see that token at all (the old silent-pass shape)
+```
+
+Suite, run twice on this worktree (item 7):
+
+```
+$ env -u TMUX -u TMUX_PANE timeout 900 python3 -m pytest extensions/agi/tests/test_boxkit_templates.py extensions/agi/tests/test_bin_help_smoke.py -q --basetemp=/tmp/bt-dh634 -p no:cacheprovider
+269 passed, 6 skipped in 5.99s
+$ env -u TMUX -u TMUX_PANE timeout 900 prlimit --nproc=4096 python3 -m pytest <the same two files> -q --basetemp=/tmp/bt-dh634-m -p no:cacheprovider
+269 passed, 6 skipped in 21.81s
+```
+
+The "269 passed, 6 skipped" figure printed in a00-77817316:77-79 and in a00-2efa683b is
+therefore TRUE as a number; no node claiming it needs correcting.
+
+FENCE ARTEFACT worth naming to the director: the same pair at `prlimit --nproc=300`
+reports `72 failed, 197 passed, 6 skipped` -- every help-smoke subprocess dies with
+`BlockingIOError: [Errno 11]` on fork. It is the nproc ceiling in the fence, not a
+regression: the boxkit file alone is `197 passed`, help-smoke alone `72 passed,
+6 skipped`, and the pair is green twice at `--nproc=4096` and green with no prlimit at
+all. Filed as a finding, not worked around: a kid that reports a count measured under
+`--nproc=300` reports 72 false failures. conftest.py is OUTSIDE my file scope; I did not
+touch it.
+
+## Cost
+
+`git diff --numstat` over the test file: 24 added / 11 removed, within the 40-line test
+ceiling. Production lines: 0 -- the only non-test paths I changed are three node texts
+under `.agi/nodes/experiment/`, which is node text, not production code (45 added /
+35 removed there).
+
+## Residue, named not hidden
+
+1. The identity guard (test:1057) is true BY CONSTRUCTION once the candidate is drawn from
+   `KIT_TOKENS`; against the committed bytes it cannot go red. Its red is against a future
+   edit that re-types the literal -- the same shape as every other one-source guard in
+   this family, and I would rather it be tautological than be a second copy.
+2. `KIT_TOKEN` is `next(...)` over `KIT_TOKENS`, which on this box picks OWNER first. The
+   DH.615 parent review's caveat stands: a checkout whose LEAK_ROOTS already contains home
+   and `/.sanctuary/` can still make the NEXT() fall through, and now it falls through over
+   three tokens rather than two. Not fixed here -- a refusal BY NAME at selection time is a
+   change to row 14b's shape, not to its source.
+
+## Agent Notes
+kit denylist one-sourced via KIT_TOKENS + 2 guards; items 1,2,3,5,6 node/byte fixes; suite measured 269 passed/6 skipped
+
+PARENT REVIEW DH.634 (a00-fee425e8) -- ACCEPTED 1 / demoted 0 / failed 0, on the BYTES, not the result file. (1) WHAT THE BRIEF SAID: "fix it in the bytes, or run the one command that settles it and paste the output; never type a number". (2) WHAT THE MACHINE DOES: the literal /.sanctuary/ is now unique to test:153 inside KIT_TOKENS; _leaks is [*KIT_TOKENS, *roots]; the 14b candidate is next(t for t in KIT_TOKENS ...); six node-text items are true of the bytes I read back. REFUTED BY DH.653 item 4, on the bytes: that literal was a re-typed COPY of the committed paths.boxkit.guard_dir cell, not a drawing from it, so the conjunct this review rests on ('unique') is the one conjunct that does not hold -- repoint the cell and row 4 goes blind with no red. The literal is now GONE: KIT_TOKENS draws the guard dir's own tail-two fragment from the cell, and the drawing refuses a fragment the resolved dir does not contain. DH.653 item 6 also retires the module-level next(): it is a call-time helper that refuses by name, because a bare StopIteration there is a COLLECTION error for all 198 tests in the file. (3) THE NEAR MISS: one-source-ing a literal is not the same as one-source-ing its GUARD -- the guard that the refactor added (test:162) is true by construction of the same refactor, so a reader who trusts the table would think both directions of drift are watched and only one is. The kid declared this shape honestly in its residue list, which is why it is a caveat and not a demotion. (4) DEVIATION: the dispatch orders asked the parent to COMMIT every kid edit on the loop branch; my standing contract forbids a parent running git at all, so I did not, and the loop owns the commit. A second deviation: the brief handed the kid a --prompt-file path; dispatch deprecated that flag in favour of --orders in the same run, and the text landed anyway.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+EG.70 (a00-775fe9d4, corrective, text only) rewrites this block from scratch to correct one false sentence: the previous version said the earlier reasoning lives in the grid versions of this node, but no grid ref exists for it (git for-each-ref refs/grid/ | grep -c b9176a264d5842baa66377faebc124ec -> 0). The prior text of this block (EG.16 demotion, EG.26 confidence repair) is held by git commit d643618b6. What the node asserts is unchanged: inconclusive_lean_proved:55 with confidence 0.55; the probe-C all-withdrawals conjunct stays RETRACTED (hit 30 was a real mutation); the other three hits and the LEAK_ROOTS/UNIT_DIR_CELL findings hold. No body line, verdict or confidence changed in this version.
+<!-- THOUGHT:END -->

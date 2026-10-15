@@ -603,7 +603,7 @@ class TestRolloverGenesis:
         assert result.returncode == 0, f"stderr: {result.stderr}"
         assert "season_names[1] = genesis" in result.stdout
         assert "Bump ladder current_season: 1 → 2" in result.stdout
-        assert "git checkout -b season/s2" in result.stdout
+        assert "git checkout -b season2/main" in result.stdout
 
     def test_dry_run_changes_nothing(self, season_py, temp_graph, tmp_path):
         """Even with every flag, --dry-run writes no node and no ladder field."""
@@ -641,7 +641,7 @@ class TestRolloverGenesis:
 
     def test_real_run_mints_visions_names_ladder_and_opens_branch(self, season_py, temp_graph, tmp_path):
         """The real run performs the plan: minted vision nodes with verbatim
-        bodies, ladder renamed and bumped, and the season/s2 branch opened."""
+        bodies, ladder renamed and bumped, and the season2/main branch opened."""
         import locations
         from graph_core.persistence import frontmatter
         root = locations.find_project_root(temp_graph)
@@ -660,7 +660,7 @@ class TestRolloverGenesis:
         assert result.returncode == 0, f"stderr: {result.stderr}"
         assert "minted vision:all-is-one" in result.stdout
         assert "season_names[1] = genesis written" in result.stdout
-        assert "opened branch season/s2" in result.stdout
+        assert "opened branch season2/main" in result.stdout
 
         # The minted vision: season 2, five moral parents, verbatim body.
         vision = frontmatter.load_node_file(root / "nodes" / "vision" / "all-is-one.md")
@@ -681,7 +681,7 @@ class TestRolloverGenesis:
         # Branch opened and never pushed.
         br = subprocess.run(["git", "-C", str(tmp_path), "branch", "--show-current"],
                             capture_output=True, text=True)
-        assert br.stdout.strip() == "season/s2"
+        assert br.stdout.strip() == "season2/main"
 
     def test_second_rollover_names_its_own_season_and_attributes_each_write(
             self, season_py, temp_graph, tmp_path):
@@ -1114,6 +1114,178 @@ class TestMergeUp:
         wt = _git(tmp_path, "worktree", "list", "--porcelain").stdout
         assert str(worktree) not in wt
 
+    def test_merge_up_town_gate_refuses_cross_town_and_allows_same_town(
+            self, season_py, temp_graph, tmp_path):
+        """hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council --
+        a round merges up through the seat of the town that ORIGINATED it;
+        the merge refuses when the round node's `town:` differs from the
+        target seat's config:seats `town`, and proceeds when they agree.
+        Both towns are read (round via its `town:` cell, seat via its row),
+        never a branch on a town NAME (goal:g8.2). Fails open when either
+        half is absent, so a town-less graph merges exactly as before."""
+        _init_project(tmp_path)
+        # --- two town seats in config:seats (the council shape) ---
+        seats_dir = tmp_path / ".agi" / "nodes" / ".geometry"
+        seats_dir.mkdir(parents=True, exist_ok=True)
+        (seats_dir / "seats.md").write_text(
+            "---\nid: config:seats\ntype: config\nseats:\n"
+            "  - {\"name\": \"council-streaming\", \"town\": "
+            "\"streaming-suite\"}\n"
+            "  - {\"name\": \"council-web\", \"town\": "
+            "\"web-app-suite\"}\n---\nbody\n", encoding="utf-8")
+        # --- a round node stamped at mint with its town ---
+        exp_dir = tmp_path / ".agi" / "nodes" / "experiment"
+        exp_dir.mkdir(parents=True, exist_ok=True)
+        (exp_dir / "round.md").write_text(
+            "---\nid: experiment:round\ntype: experiment\ntown: "
+            "streaming-suite\n---\nbody\n", encoding="utf-8")
+
+        worktree = tmp_path / "wt"
+        _git(tmp_path, "worktree", "add", "-b", "loop/slug-abc12345@s2",
+             str(worktree), "season/s1")
+        _commit(worktree, "kid commit", content="kid\n")
+
+        # Cross-town: round in streaming-suite, seat in web-app-suite -> refuse.
+        cross = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/slug-abc12345@s2", "--suite", "exit 0",
+             "--round", "experiment:round", "--seat", "council-web"],
+            capture_output=True, text=True,
+        )
+        assert cross.returncode == 1, cross.stdout
+        assert "REFUSED" in cross.stderr
+        assert "streaming-suite" in cross.stderr
+        assert "web-app-suite" in cross.stderr
+        # Nothing was merged (the gate fires before any git write).
+        assert _git(tmp_path, "rev-list", "--count", "season/s1"
+                    ).stdout.strip() == "1"
+
+        # Same-town: round and seat both streaming-suite -> merge proceeds.
+        same = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/slug-abc12345@s2", "--suite", "exit 0",
+             "--round", "experiment:round", "--seat", "council-streaming",
+             "--worktree", str(worktree)],
+            capture_output=True, text=True,
+        )
+        assert same.returncode == 0, same.stderr
+        assert "complete; suite green" in same.stdout
+        assert "kid commit" in _git(tmp_path, "log", "season/s1",
+                                    "--format=%s").stdout
+        wt = _git(tmp_path, "worktree", "list", "--porcelain").stdout
+        assert str(worktree) not in wt
+
+    def test_merge_up_town_gate_fires_without_round_or_seat(
+            self, tmp_path, engine_on_path, monkeypatch):
+        """Residue 5 — the town gate FIRES without --round/--seat.
+
+        The seat is derived from the exported AGI_SEAT env var (the seat name
+        the spawn already carries) and the round's town from the branch being
+        merged up via `town_of_branch` (reverse-lookup on the opaque
+        `town_branches` value). A cross-town merge is REFUSED, a same-town
+        one proceeds, and when NEITHER half is derivable the gate fails open
+        (None) so a town-less graph merges exactly as before."""
+        import season
+        from types import SimpleNamespace
+        _tmp = tmp_path / ".agi" / "nodes" / ".geometry"
+        _tmp.mkdir(parents=True)
+        (_tmp / "ladder.md").write_text(
+            "---\nid: ladder:ladder\ntype: ladder\ncurrent_season: 2\n"
+            "town_branches:\n  core: season/s2\n"
+            "  streaming-suite: town/streaming-suite@s2\n"
+            "  web-app-suite: town/web-app-suite@s2\n---\nbody\n",
+            encoding="utf-8")
+        (_tmp / "seats.md").write_text(
+            "---\nid: config:seats\ntype: config\nseats:\n"
+            "  - {\"name\": \"council-streaming\", \"town\": "
+            "\"streaming-suite\"}\n"
+            "  - {\"name\": \"council-web\", \"town\": "
+            "\"web-app-suite\"}\n---\nbody\n", encoding="utf-8")
+        (tmp_path / ".agi" / "config.json").write_text(
+            '{"project": "test"}')
+        root = tmp_path / ".agi"  # find_project_root resolves to the .agi dir
+        args = lambda **kw: SimpleNamespace(
+            round="", seat="", record="", **kw)
+        # Cross-town, no flags: AGI_SEAT=council-web (web-app-suite) vs the
+        # streaming-suite town branch -> towns differ -> REFUSE.
+        monkeypatch.setenv("AGI_SEAT", "council-web")
+        refuse = season._merge_up_town_gate(
+            root, args(branch="town/streaming-suite@s2"))
+        assert refuse is not None and "REFUSED" in refuse, refuse
+        assert "streaming-suite" in refuse and "web-app-suite" in refuse
+        # Same-town, no flags: AGI_SEAT=council-streaming -> both streaming.
+        monkeypatch.setenv("AGI_SEAT", "council-streaming")
+        allow = season._merge_up_town_gate(
+            root, args(branch="town/streaming-suite@s2"))
+        assert allow is None, allow
+        # Fail-open: neither half derivable — no AGI_SEAT and a branch that
+        # maps to no town -> None, so a town-less graph is untouched.
+        monkeypatch.delenv("AGI_SEAT", raising=False)
+        open_ = season._merge_up_town_gate(
+            root, args(branch="loop/slug-aaaa@s2"))
+        assert open_ is None
+
+    def test_merge_up_town_gate_keep_all_seat_serves_every_town(
+            self, tmp_path, monkeypatch):
+        """Mirrors the LIVE config:seats shape — a KEEP row with `town: all`
+        (e.g. sanctuary-director) shares the Keep across every town, so it
+        ALLOWS a core round AND a non-core round; a council seat refuses a
+        cross-town round and allows its own; an unknown town on either side
+        still fails open. `all` is the Keep's shared marker, not a town."""
+        import season
+        from types import SimpleNamespace
+        _tmp = tmp_path / ".agi" / "nodes" / ".geometry"
+        _tmp.mkdir(parents=True)
+        # KEEP row (shared across all towns) + two council rows with towns.
+        (_tmp / "seats.md").write_text(
+            "---\nid: config:seats\ntype: config\nseats:\n"
+            "  - {\"name\": \"sanctuary-director\", \"town\": "
+            "\"all\"}\n"
+            "  - {\"name\": \"council-streaming\", \"town\": "
+            "\"streaming-suite\"}\n"
+            "  - {\"name\": \"council-web\", \"town\": "
+            "\"web-app-suite\"}\n---\nbody\n", encoding="utf-8")
+        (_tmp / "ladder.md").write_text(
+            "---\nid: ladder:ladder\ntype: ladder\ncurrent_season: 2\n"
+            "town_branches:\n  core: season/s2\n"
+            "  streaming-suite: town/streaming-suite@s2\n"
+            "  web-app-suite: town/web-app-suite@s2\n---\nbody\n",
+            encoding="utf-8")
+        (tmp_path / ".agi" / "config.json").write_text(
+            '{"project": "test"}')
+        root = tmp_path / ".agi"
+
+        # KEEP seat (town: all) ALLOWS a core round and a non-core round.
+        monkeypatch.setenv("AGI_SEAT", "sanctuary-director")
+        for branch in ("season/s2", "town/streaming-suite@s2"):
+            got = season._merge_up_town_gate(root, SimpleNamespace(
+                round="", seat="", record="", branch=branch))
+            assert got is None, (branch, got)
+
+        # Council seat WEB refuses a streaming-suite round, allows its own
+        # web-app-suite round.
+        monkeypatch.setenv("AGI_SEAT", "council-web")
+        refuse = season._merge_up_town_gate(root, SimpleNamespace(
+            round="", seat="", record="", branch="town/streaming-suite@s2"))
+        assert refuse is not None and "REFUSED" in refuse, refuse
+        assert "streaming-suite" in refuse and "web-app-suite" in refuse
+        allow = season._merge_up_town_gate(root, SimpleNamespace(
+            round="", seat="", record="", branch="town/web-app-suite@s2"))
+        assert allow is None, allow
+
+        # Unknown town on either side still fails open: an AGI_SEAT that is
+        # not in the registry -> seat_town None -> allow.
+        monkeypatch.setenv("AGI_SEAT", "no-such-seat")
+        open_ = season._merge_up_town_gate(root, SimpleNamespace(
+            round="", seat="", record="", branch="town/streaming-suite@s2"))
+        assert open_ is None, open_
+        # And a branch mapping to no town, council seat set, leaves round_town
+        # None -> fails open.
+        monkeypatch.setenv("AGI_SEAT", "council-web")
+        open2 = season._merge_up_town_gate(root, SimpleNamespace(
+            round="", seat="", record="", branch="loop/slug-aaaa@s2"))
+        assert open2 is None, open2
+
     def test_merge_up_never_rebases(self, season_py, temp_graph, tmp_path):
         """Merging upward never rewrites the branch's commit hashes."""
         _init_project(tmp_path)
@@ -1178,6 +1350,155 @@ class TestMergeUp:
         assert "parent work" not in _git(
             tmp_path, "log", "season/s1", "--format=%s").stdout
 
+    def test_merge_up_recorded_base_branch_beats_town_base(
+            self, season_py, temp_graph, tmp_path):
+        """hypothesis:l4-town-base-honours-the-recorded-base-branch -- a core
+        round whose record names a base_branch merges into THAT rung, never
+        straight into the town/season branch. town_branches declares core's
+        integration branch as season/s2; the recorded base is the rung
+        tier1/director; without --target the RECORDED base must win over the
+        town base (regression: _town_base preceded the recorded base_branch,
+        so a core round merged straight into season/s2, skipping its rung)."""
+        _init_project(tmp_path, season="season/s2")
+        # Director (rung) layer cut off the season.
+        _git(tmp_path, "checkout", "-q", "-b", "tier1/director")
+        _commit(tmp_path, "director work", content="director\n")
+
+        # Loop branch cut off the director layer -- its rung.
+        _git(tmp_path, "checkout", "-q", "season/s2")
+        worktree = tmp_path / "wt"
+        _git(tmp_path, "worktree", "add", "-b", "loop/parent-aaaa@s2",
+             str(worktree), "tier1/director")
+        _commit(worktree, "rung work", content="rung\n")
+
+        # Round node + ladder declared AFTER the branch setup (checking out a
+        # branch that lacks an untracked round node would delete it).
+        ladder = tmp_path / ".agi" / "nodes" / ".geometry" / "ladder.md"
+        ladder.write_text(
+            "---\nid: ladder:ladder\ntype: ladder\ncurrent_season: 2\n"
+            "town_branches:\n  core: season/s2\n---\nbody\n",
+            encoding="utf-8")
+        exp_dir = tmp_path / ".agi" / "nodes" / "experiment"
+        exp_dir.mkdir(parents=True, exist_ok=True)
+        (exp_dir / "round.md").write_text(
+            "---\nid: experiment:round\ntype: experiment\ntown: core\n"
+            "---\nbody\n", encoding="utf-8")
+
+        # Record names the rung as the base_branch. NO --target passed.
+        record = tmp_path / ".agi" / "sessions" / "lease.json"
+        record.parent.mkdir(parents=True, exist_ok=True)
+        record.write_text(json.dumps({
+            "branch": "loop/parent-aaaa@s2",
+            "base_branch": "tier1/director",
+            "worktree": str(worktree),
+            "suite": "exit 0",
+        }))
+
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/parent-aaaa@s2", "--record", str(record),
+             "--round", "experiment:round"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stderr
+        # The chosen base is the RECORDED rung, and the print names its source.
+        assert "tier1/director" in result.stdout
+        assert "from record" in result.stdout
+        # Rung work landed in the director branch, not the season/season branch.
+        assert "rung work" in _git(
+            tmp_path, "log", "tier1/director", "--format=%s").stdout
+        assert "rung work" not in _git(
+            tmp_path, "log", "season/s2", "--format=%s").stdout
+
+    def test_explicit_target_beats_both(
+            self, season_py, temp_graph, tmp_path):
+        """hypothesis:l4-test-season-third-test-and-l4-141-evidence-corrected
+        -- the third stated test: an explicit --target Z beats BOTH the
+        recorded base_branch X and the current checked-out branch Y. base is
+        resolved as Z, the print names `from target`, and the merge lands in
+        Z, never in X or Y."""
+        _init_project(tmp_path)  # current branch Y = season/s1
+        # Recorded base X = tier1/director, cut off Y with its own work.
+        _git(tmp_path, "checkout", "-q", "-b", "tier1/director")
+        _commit(tmp_path, "director work", content="director\n")
+        # Loop branch cut off X, carrying rung work.
+        _git(tmp_path, "checkout", "-q", "season/s1")
+        worktree = tmp_path / "wt"
+        _git(tmp_path, "worktree", "add", "-b", "loop/parent-aaaa@s2",
+             str(worktree), "tier1/director")
+        _commit(worktree, "rung work", content="rung\n")
+        # Target Z = releases/v4 sitting on the same lineage as Y, so a
+        # merge into Z (not X) is fully observable.
+        _git(tmp_path, "branch", "releases/v4", "season/s1")
+
+        # Record names X as base_branch; current branch is Y (season/s1).
+        record = tmp_path / ".agi" / "sessions" / "lease.json"
+        record.parent.mkdir(parents=True, exist_ok=True)
+        record.write_text(json.dumps({
+            "branch": "loop/parent-aaaa@s2",
+            "base_branch": "tier1/director",
+            "worktree": str(worktree),
+            "suite": "exit 0",
+        }))
+
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/parent-aaaa@s2", "--record", str(record),
+             "--target", "releases/v4"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stderr
+        # Z, not X, not Y, is the resolved base.
+        assert "releases/v4" in result.stdout
+        assert "from target" in result.stdout
+        # Rung work landed in Z, never in the recorded base X.
+        assert "rung work" in _git(
+            tmp_path, "log", "releases/v4", "--format=%s").stdout
+        assert "rung work" not in _git(
+            tmp_path, "log", "tier1/director", "--format=%s").stdout
+
+    def test_merge_up_town_base_resolves_without_record(
+            self, season_py, temp_graph, tmp_path):
+        """hypothesis:l4-town-base-honours-the-recorded-base-branch -- a town
+        round with NO record still resolves the town base (the town base is
+        the fallback when there is no recorded base_branch)."""
+        _init_project(tmp_path, season="season/s2")
+        # Town branch cut off the season; loop branch cut off the town branch.
+        _git(tmp_path, "checkout", "-q", "-b", "town/streaming-suite@s2")
+        _commit(tmp_path, "town work", content="town\n")
+        _git(tmp_path, "checkout", "-q", "season/s2")
+        worktree = tmp_path / "wt"
+        _git(tmp_path, "worktree", "add", "-b", "loop/parent-bbbb@s2",
+             str(worktree), "town/streaming-suite@s2")
+        _commit(worktree, "rung work", content="rung\n")
+
+        # Round node + ladder declared AFTER the branch setup.
+        ladder = tmp_path / ".agi" / "nodes" / ".geometry" / "ladder.md"
+        ladder.write_text(
+            "---\nid: ladder:ladder\ntype: ladder\ncurrent_season: 2\n"
+            "town_branches:\n  core: season/s2\n"
+            "  streaming-suite: town/streaming-suite@s2\n---\nbody\n",
+            encoding="utf-8")
+        exp_dir = tmp_path / ".agi" / "nodes" / "experiment"
+        exp_dir.mkdir(parents=True, exist_ok=True)
+        (exp_dir / "round.md").write_text(
+            "---\nid: experiment:round\ntype: experiment\ntown: "
+            "streaming-suite\n---\nbody\n", encoding="utf-8")
+
+        # NO record (no base_branch) -- town base must win.
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/parent-bbbb@s2", "--suite", "exit 0",
+             "--round", "experiment:round", "--worktree", str(worktree)],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stderr
+        assert "town/streaming-suite@s2" in result.stdout
+        assert "from town" in result.stdout
+        assert "rung work" in _git(
+            tmp_path, "log", "town/streaming-suite@s2",
+            "--format=%s").stdout
+
     def test_three_layer_rehearsal(self, season_py, temp_graph, tmp_path):
         """season -> director branch -> parent branch, merged up in order;
         hashes never rewritten (the ADDENDUM's recursive rehearsal)."""
@@ -1228,3 +1549,349 @@ class TestMergeUp:
         # And the first merge still has the SAME parent tip (no rebase of it).
         assert _git(tmp_path, "rev-parse", "loop/parent-aaaa@s2").stdout.strip() \
             == parent_tip
+
+
+class TestTownsPerTownVisionCap:
+    """season.py status / spawn_gate per-town vision counting.
+
+    hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — when the
+    ladder declares caps_vision_scope: town, visions are counted PER TOWN (a
+    vision's `town:` cell, default core) against caps.vision, never as one
+    global pool, and no code path names a town literally (goal:g8.2).
+    """
+
+    @pytest.fixture
+    def town_graph(self, tmp_path, engine_on_path):
+        """A temp graph with a town-scoped ladder and visions in three towns.
+
+        core has 2 visions (room for 1 more), streaming-suite has 3 (= cap,
+        at capacity), web-app-suite has 1. Towns come from the ladder's
+        `towns:` list; a vision's town from its `town:` cell, default core.
+        """
+        ladder_dir = tmp_path / ".agi" / "nodes" / ".geometry"
+        ladder_dir.mkdir(parents=True)
+        ladder = """---
+id: ladder:ladder
+type: ladder
+current_season: 1
+caps_apply_from_season: 2
+caps_vision_scope: town
+caps:
+  moral: 5
+  vision: 3
+towns:
+  - core
+  - streaming-suite
+  - web-app-suite
+tiers:
+  - tier: 2
+    plan_types: [vision]
+    report_type: overview
+    judged_against: its vision
+    lens: the morals above
+    cadence: season rollover (quarterly)
+---
+# ladder:ladder
+Test town-scoped ladder node.
+"""
+        (ladder_dir / "ladder.md").write_text(ladder)
+        cfg_dir = tmp_path / ".agi"
+        cfg_dir.mkdir(parents=True, exist_ok=True)
+        (cfg_dir / "config.json").write_text('{"project": "test"}')
+        visions_dir = tmp_path / ".agi" / "nodes" / "vision"
+        visions_dir.mkdir(parents=True)
+        slugs = {"core": ["vc1", "vc2"],
+                 "streaming-suite": ["vs1", "vs2", "vs3"],
+                 "web-app-suite": ["vw1"]}
+        for town, items in slugs.items():
+            for slug in items:
+                if town == "core":
+                    body = (f"---\nid: vision:{slug}\ntype: vision\n---\n"
+                            f"# vision {slug}\nbody\n")
+                else:
+                    body = (f"---\nid: vision:{slug}\ntype: vision\n"
+                            f"town: {town}\n---\n# vision {slug}\nbody\n")
+                (visions_dir / f"{slug}.md").write_text(body)
+        return tmp_path
+
+    def test_status_shows_visions_by_town(self, season_py, town_graph):
+        """status prints a per-town block when scope is town."""
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(town_graph),
+             "status"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "Visions by town (scope: town, cap 3/town)" in result.stdout
+        assert "streaming-suite: 3  (room for 0 more)" in result.stdout
+        assert "core: 2  (room for 1 more)" in result.stdout
+
+    def test_helpers_count_per_town_not_globally(self, town_graph):
+        """count_visions_per_town / vision_remaining_for_town are per-town."""
+        import locations
+        root = locations.find_project_root(town_graph)
+        import spawn_gate
+        counts = spawn_gate.count_visions_per_town(root / "nodes")
+        assert counts == {"core": 2, "streaming-suite": 3, "web-app-suite": 1}
+        # A town at cap has room for 0; a town under cap still has room.
+        assert spawn_gate.vision_remaining_for_town(
+            root / "nodes", "streaming-suite", counts=counts) == 0
+        assert spawn_gate.vision_remaining_for_town(
+            root / "nodes", "core", counts=counts) == 1
+
+    def test_mint_gate_refuses_fourth_and_accepts_third(self, season_py,
+                                                        town_graph):
+        """The town cap gate refuses a 4th in a full town, allows a 3rd in core."""
+        import locations
+        root = locations.find_project_root(town_graph)
+        import spawn_gate
+        nodes_dir = root / "nodes"
+        per_town = spawn_gate.count_visions_per_town(nodes_dir)
+        # 4th in streaming-suite: budget exhausted (town at its cap of 3).
+        assert spawn_gate.vision_remaining_for_town(
+            nodes_dir, "streaming-suite", counts=per_town) == 0
+        # 3rd in core (no town cell -> default core): budget still open.
+        assert spawn_gate.vision_remaining_for_town(
+            nodes_dir, "core", counts=per_town) == 1
+
+
+class TestRolloverCountsVisionsAfterBump:
+    """hypothesis:l4-rollover-counts-visions-after-the-ladder-bump.
+
+    cmd_rollover lives here: the per-town vision count that admits rollover
+    visions is scoped to the season it is ENTERING (new_season), not the
+    ladder's still-current season. A town that is full (cap 3) in season 2 but
+    empty in season 3 must mint its new vision; the cap must still bite within
+    the new season. Regression: a count read against the old season's ladder
+    saw a full s2 town at cap and REFUSEd every source vision.
+    """
+
+    LADDER = """---
+id: ladder:ladder
+type: ladder
+current_season: 2
+caps_apply_from_season: 2
+caps_vision_scope: town
+caps:
+  moral: 5
+  vision: 3
+towns:
+  - core
+  - streaming-suite
+  - web-app-suite
+tiers:
+  - tier: 2
+    plan_types: [vision]
+    report_type: overview
+    judged_against: its vision
+    lens: the morals above
+    cadence: season rollover (quarterly)
+---
+# ladder:ladder
+Test ladder node.
+"""
+
+    @pytest.fixture
+    def roll_graph(self, tmp_path, engine_on_path):
+        """s2 town-scoped ladder; streaming-suite holds 3 season-2 visions."""
+        ladder_dir = tmp_path / ".agi" / "nodes" / ".geometry"
+        ladder_dir.mkdir(parents=True)
+        (ladder_dir / "ladder.md").write_text(self.LADDER)
+        cfg_dir = tmp_path / ".agi"
+        cfg_dir.mkdir(parents=True, exist_ok=True)
+        (cfg_dir / "config.json").write_text('{"project": "test"}')
+        visions_dir = tmp_path / ".agi" / "nodes" / "vision"
+        visions_dir.mkdir(parents=True)
+        for slug in ["vs1", "vs2", "vs3"]:
+            body = (f"---\nid: vision:{slug}\ntype: vision\n"
+                    f"town: streaming-suite\nseason: 2\n---\n# vision {slug}\nbody\n")
+            (visions_dir / f"{slug}.md").write_text(body)
+        return tmp_path
+
+    def _write_source(self, tmp_path, slug="new-vision", town="streaming-suite"):
+        d = tmp_path / "visions"
+        d.mkdir(exist_ok=True)
+        (d / f"{slug}.md").write_text(
+            f"---\ntown: {town}\n---\n# {slug}\n\nOwner text, verbatim.\n")
+        return d
+
+    def _run(self, season_py, root, *args):
+        return subprocess.run(
+            [sys.executable, str(season_py), "--root", str(root),
+             "rollover", *args],
+            capture_output=True, text=True)
+
+    def test_dry_run_counts_new_season_not_current(self, season_py, roll_graph,
+                                                   tmp_path):
+        """A town full in s2 reads 0 / OK in the s3 dry-run; the source MINTs."""
+        vdir = self._write_source(tmp_path)
+        result = self._run(season_py, roll_graph, "--dry-run",
+                           "--visions-from", str(vdir))
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "streaming-suite: 0 (OK)" in result.stdout, result.stdout
+        assert "MINT vision:new-vision" in result.stdout, result.stdout
+        assert "AT CAP" not in result.stdout, result.stdout
+
+    def test_real_run_mints_when_old_season_full(self, season_py, roll_graph,
+                                                 tmp_path):
+        """The real run MINTs (not refuses) into a town full in s2."""
+        import locations
+        from graph_core.persistence import frontmatter
+        root = locations.find_project_root(roll_graph)
+        vdir = self._write_source(tmp_path)
+        result = self._run(season_py, roll_graph, "--visions-from", str(vdir))
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "minted vision:new-vision" in result.stdout, result.stdout
+        assert "REFUSE" not in result.stdout, result.stdout
+        vision = frontmatter.load_node_file(
+            root / "nodes" / "vision" / "new-vision.md")
+        assert vision.frontmatter.get("season") == 3
+        assert vision.frontmatter.get("town") == "streaming-suite"
+
+    def test_cap_still_refuses_within_new_season(self, season_py, roll_graph,
+                                                 tmp_path):
+        """A town already at 3 visions OF the new season still refuses a 4th."""
+        import locations
+        root = locations.find_project_root(roll_graph)
+        visions_dir = root / "nodes" / "vision"
+        for slug in ["va1", "va2", "va3"]:
+            body = (f"---\nid: vision:{slug}\ntype: vision\n"
+                    f"town: streaming-suite\nseason: 3\n---\n# vision {slug}\nbody\n")
+            (visions_dir / f"{slug}.md").write_text(body)
+        vdir = self._write_source(tmp_path)
+        result = self._run(season_py, roll_graph, "--visions-from", str(vdir))
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "REFUSE vision:new-vision" in result.stdout, result.stdout
+        assert "minted vision:new-vision" not in result.stdout, result.stdout
+
+
+class TestNearestVisionHonoursOwnTownCell:
+    """Residue 1 — nearest_vision reads a visited node's OWN town:/vision_ref
+    before climbing parents. A non-core round stamped with its own town at
+    mint must read that town back, never 'core' (hypothesis:l4-towns-each-app-
+    is-a-vision-with-its-own-council)."""
+
+    @pytest.fixture
+    def town_cell_graph(self, tmp_path, engine_on_path):
+        cfg = tmp_path / ".agi"
+        cfg.mkdir(parents=True)
+        (cfg / "config.json").write_text('{"project": "test"}')
+        nd = cfg / "nodes"
+        (nd / "vision").mkdir(parents=True)
+        (nd / "goal").mkdir(parents=True)
+        (nd / "vision" / "streaming-suite.md").write_text(
+            "---\nid: vision:streaming-suite\ntype: vision\ntown: streaming-suite\n"
+            "---\n# s\nb\n")
+        (nd / "vision" / "web-app-suite.md").write_text(
+            "---\nid: vision:web-app-suite\ntype: vision\ntown: web-app-suite\n"
+            "---\n# w\nb\n")
+        (nd / "vision" / "self-perpetuating.md").write_text(
+            "---\nid: vision:self-perpetuating\ntype: vision\n---\n# c\nb\n")
+        # non-core goals declare their own town + vision_ref
+        (nd / "goal" / "g18.1.md").write_text(
+            "---\nid: goal:g18.1\ntype: goal\nparents: [goal:g18]\n"
+            "town: streaming-suite\nvision_ref: vision:streaming-suite\n"
+            "---\n# g18.1\nb\n")
+        (nd / "goal" / "g18.md").write_text(
+            "---\nid: goal:g18\ntype: goal\nparents: [vision:self-perpetuating]\n"
+            "town: web-app-suite\nvision_ref: vision:web-app-suite\n"
+            "---\n# g18\nb\n")
+        # core goal: no town, climbs to vision:self-perpetuating -> core
+        (nd / "goal" / "g17.md").write_text(
+            "---\nid: goal:g17\ntype: goal\nparents: [vision:self-perpetuating]\n"
+            "---\n# g17\nb\n")
+        return tmp_path
+
+    def test_non_core_goal_reads_its_own_town(self, town_cell_graph):
+        import locations
+        import spawn_gate
+        nodes = locations.find_project_root(town_cell_graph) / "nodes"
+        assert spawn_gate.nearest_vision_town(nodes, ["goal:g18.1"]) == \
+            "streaming-suite"
+        assert spawn_gate.nearest_vision_town(nodes, ["goal:g18"]) == \
+            "web-app-suite"
+
+    def test_core_goal_still_reads_core(self, town_cell_graph):
+        import locations
+        import spawn_gate
+        nodes = locations.find_project_root(town_cell_graph) / "nodes"
+        assert spawn_gate.nearest_vision_town(nodes, ["goal:g17"]) == "core"
+
+    def test_own_cell_wins_over_ancestor(self, town_cell_graph):
+        """g18's parent climbs to vision:self-perpetuating (core), but g18's
+        own town cell must win: web-app-suite, NOT core."""
+        import locations
+        import spawn_gate
+        nodes = locations.find_project_root(town_cell_graph) / "nodes"
+        # without res 1 this would be 'core' (climbs to self-perpetuating)
+        assert spawn_gate.nearest_vision(nodes, ["goal:g18"]) == \
+            ("vision:web-app-suite", "web-app-suite")
+
+
+class TestCountVisionsPerTownSeasonScoped:
+    """Residue 2 — count_visions_per_town is SEASON-scoped: only visions whose
+    season equals the ladder's current_season count, so an old season's
+    cohort does not pin a town at its cap at rollover."""
+
+    @pytest.fixture
+    def season_town_graph(self, tmp_path, engine_on_path):
+        cfg = tmp_path / ".agi"
+        gd = cfg / "nodes" / ".geometry"
+        gd.mkdir(parents=True)
+        gd.joinpath("ladder.md").write_text("""---
+id: ladder:ladder
+type: ladder
+current_season: 2
+caps:
+  moral: 5
+  vision: 3
+caps_vision_scope: town
+---
+# ladder
+""")
+        (cfg / "config.json").write_text('{"project": "test"}')
+        vd = cfg / "nodes" / "vision"
+        vd.mkdir(parents=True)
+        vd.joinpath("vc1.md").write_text(
+            "---\nid: vision:vc1\ntype: vision\nseason: 2\n---\n# c1\nb\n")
+        vd.joinpath("vc2.md").write_text(
+            "---\nid: vision:vc2\ntype: vision\nseason: 2\n---\n# c2\nb\n")
+        vd.joinpath("vc3.md").write_text(
+            "---\nid: vision:vc3\ntype: vision\nseason: 2\n---\n# c3\nb\n")
+        vd.joinpath("vc-old.md").write_text(
+            "---\nid: vision:vc-old\ntype: vision\nseason: 1\n---\n# cold\nb\n")
+        vd.joinpath("vs1.md").write_text(
+            "---\nid: vision:vs1\ntype: vision\nseason: 2\ntown: streaming-suite\n"
+            "---\n# s1\nb\n")
+        vd.joinpath("vs2.md").write_text(
+            "---\nid: vision:vs2\ntype: vision\nseason: 2\ntown: streaming-suite\n"
+            "---\n# s2\nb\n")
+        vd.joinpath("vs3.md").write_text(
+            "---\nid: vision:vs3\ntype: vision\nseason: 2\ntown: streaming-suite\n"
+            "---\n# s3\nb\n")
+        return tmp_path
+
+    def test_counts_only_current_season_per_town(self, season_town_graph):
+        import locations
+        import spawn_gate
+        nodes = locations.find_project_root(season_town_graph) / "nodes"
+        counts = spawn_gate.count_visions_per_town(nodes)
+        # vc-old (season 1) excluded -> core is 3, not 4
+        assert counts == {"core": 3, "streaming-suite": 3}
+
+    def test_simulated_rollover_not_refused(self, season_town_graph):
+        """Bump current_season to 3: the s2 cohort drops out, so a fresh s3
+        vision is NOT refused (core has room instead of being pinned at cap)."""
+        import locations
+        import spawn_gate
+        root = locations.find_project_root(season_town_graph)
+        nodes = root / "nodes"
+        ladder = nodes / ".geometry" / "ladder.md"
+        assert spawn_gate.vision_remaining_for_town(
+            nodes, "core", counts=spawn_gate.count_visions_per_town(nodes)) == 0
+        # simulate rollover
+        text = ladder.read_text().replace("current_season: 2", "current_season: 3")
+        ladder.write_text(text)
+        counts = spawn_gate.count_visions_per_town(nodes)
+        assert counts == {}
+        assert spawn_gate.vision_remaining_for_town(nodes, "core") == 3

@@ -1,0 +1,11 @@
+# REAL tmux capture-pane -p of a IDLE Claude Code pane (fixture for test_send.py).
+# pane: agi-rc %273 (sanctuary-director)   captured 2026-09-11T06:37:55Z   command: tmux capture-pane -p -t %273 (sanctuary-director)
+# sha256 of full raw capture: 3f28fc37c3b769feb0bdcfdb3f360e7eb73ca3adc52f95993e4b98c306f58163
+# Transcript/prose above scrubbed (redacted only text content). Region lines below
+# (the U+276F box, the separator row, the footer, the trailing blanks) are VERBATIM.
+#
+❯ 
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ⏵⏵ bypass permissions on · 1 monitor · ← for agents · ↓ to manage                                /rc
+
+

@@ -3,13 +3,13 @@ id: hypothesis:l3w4-context-load-minimal
 mint_id: 7faa66b13e4640aa9535ecbb83cbae2e
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.12
 next_edges: []
-edited_by: sanctuary-director
+edited_by: belam
 scaffold_hash: 26157649b67a1a8f
 season: 2
 testable_claim: "Total always-injected context for every role drops by at least 70 percent and ideally 90 percent, measured as tokens in the assembled prompt before the role's first action, WITHOUT losing any fact a role needs to act correctly: the constitution head carries ONLY the prayers, the morals and the long readings move to an explicitly-invoked read for tie-break decisions; HANDOFF.md is replaced by a per-role slice whose default form is an ASCII state diagram plus a short pointer list; every seat's pin claim IS a git worktree branch claim, so identity, generation and handoff ownership are stamped by ONE writer on ONE path and git itself enforces single-holder exclusivity; and a survival-mode profile trims further still. Proven by measuring the assembled prompt for each role before and after with a token count, by a test asserting the constitution head contains the prayers and does not contain the readings, by a live rotation in which the successor claims its worktree branch and thereby its handoff in one operation, and by git refusing a second concurrent claim of the same seat branch."
-thought_session: rc-XIII
+thought_session: dissolve-legacy-2026-09-19
 title: "Minimal context load: prayers-only head, ASCII per-role handoff, pin-claim IS a worktree branch"
 ---
 <!-- BODY:BEGIN -->

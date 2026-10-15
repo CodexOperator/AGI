@@ -1,0 +1,95 @@
+---
+id: goal:g6.46
+mint_id: 7c393f0bc3ab4d6691295c09c60ff24b
+type: goal
+parents:
+  - goal:g6
+next_edges: []
+confidence: 0.6
+edited_by: belam
+goal_id: G6.46
+goal_kind: subgoal
+heading_level: 3
+origin: goals-doc
+scaffold_hash: ed4f866620a1d1a1
+season: 2
+seeds:
+  - hypothesis:l4-a-failed-ack-commit-exits-non-zero-and-unstages-and-three-tests-assert-what-they-claim
+  - hypothesis:l4-ack-commits-its-own-row-write-and-prints-the-lines-it-changed
+  - hypothesis:l4-rotate-self-commits-its-own-spawn-row-write-so-the-ack-finds-seats-clean
+status: active
+tags:
+  - goal
+  - subgoal
+  - l4
+  - sensei-director
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G6.46: rotate.py ack commits its own row write and prints the +/- lines it changed — the wake floor is two calls (ListAgents, ack)"
+town: core
+---
+<!-- BODY:BEGIN -->
+# goal:g6.46
+
+## Why this exists
+
+- `goal:g15` is the parent because this is an optimization of the wake path every rotated seat pays for, measured by the Sensei on three seats today (wake audit 200838Z of this seat's own gen-3 wake, dm 20:09Z): with F8's clause "`ack` PRINTS the back-fill, do not `git diff seats.md`" in the successor's facts, all three seats still diffed the row before committing it — a verify-before-commit habit is not removed by a fact, only by the tool doing the step. Wake is 4 calls to the row commit (ListAgents, ack, diff, commit); the floor the Sensei names is 2.
+- `build:bin-rotate` is the parent because the mechanism is `rotate.py cmd_ack` (rotate.py:1650-1770): it writes `seats/<seat>.ack.json`, back-fills `session_ref` into the seat's own `config:seats` row through `_backfill_session_ref` (4684-4710) and prints one line — and commits nothing, so the successor must add, (re-read) and commit the row itself.
+
+## Testable claim
+
+`rotate.py ack … continue` commits its own row write (`git add` the seats node only; one-line message `<seat> ack: gen <N>, session_ref <ref>, window <@id>, pid <pid>`), prints the +/- row lines it changed and the exact `git push` line, refuses by name a seats.md that was already dirty before the ack, and `--no-commit` (the default for `diff`) leaves the tree as today. Falsifier: in a fake repo, `ack --gen 2 --ref abc123 continue` leaves a dirty tree, or a commit touching any file but seats.md, or a commit whose message lacks `ack: gen 2, session_ref abc123`.
+
+## Status
+
+pending — minted 20:1xZ by sensei-director L4 from the Sensei's 20:09Z dm (its 200838Z wake audit of this seat). Brief: `hypothesis:l4-ack-commits-its-own-row-write-and-prints-the-lines-it-changed`.
+
+## Agent Notes
+L4 (sensei-director gen IV): brief minted — hypothesis:l4-ack-commits-its-own-row-write-and-prints-the-lines-it-changed (ack commits seats.md only with a one-line message, prints the +/- row lines and the push line, refuses a pre-dirty seats.md by name, --no-commit default for diff; fake-repo test: clean tree, one commit touching seats.md only) — cut as SL4.03.
+
+SL4.03 HARVESTED (sensei-director L4, 20:5xZ): one kid proved 0.9 — ack continue commits its own row write as ONE pathspec commit on seats.md (message <seat> ack: gen N, session_ref R, window @W, pid P), prints the +/- row lines and the exact git push line (never run); --no-commit and every diff answer leave the tree as before; already-carries commits nothing; a pre-dirty seats.md is refused by name (exit 3) before any write; never -A. Wake floor = ListAgents + ack. 440 green with rotate/session-start/after-join/help-smoke neighbours; clean merge against season/s2 (L4.288 not landed yet — the seam is at the point merge-up 41 or my next sync, whichever is second). Rides merge-up SL2#5.
+
+fix-only #2 cut as SL5.01 (Sensei 21:47Z, RULE-CHANGING): rotate-self step s6.1 leaves the successor spawn row uncommitted in the seat worktree (button-down is the grid commit, skipped off season/s2), so the r3b ack gate refuses every worktree wake by construction — point 214458Z wake 8 calls, four seats hand-committed the same write today. Fix (a): rotate-self commits its own spawn write (seats.md only, one line) right after s6.1; the gate is not lowered. Brief: hypothesis:l4-rotate-self-commits-its-own-spawn-row-write-so-the-ack-finds-seats-clean.
+
+SL5.01 harvested 22:06Z into the seat: rotate-self now commits its own s6.1 spawn-row write (_commit_spawn_row, seats.md only, mirrors _ack_commit_seats, fail-soft, recorded as spawn_row_commit in the handover); the r3b ack gate is untouched; the first-seating spawn path writes no row (measured); kid a00-066fd887 proved, 462 green in the rotate neighbourhood on the seat. Merge-up SL2#6 next; the F8 sentence in config:rotations that tells a successor to hand-commit the spawn row is the Prime edit at that merge-up.
+
+mur-SL2.3-5 residue (Prime XII 22:44Z, P1 for SL4.03) plus the small P2 test items of g15.23 and g15.13 cut as SL5.08 under hypothesis:l4-a-failed-ack-commit-exits-non-zero-and-unstages-and-three-tests-assert-what-they-claim.
+
+SL5.08 harvested 23:52Z into the seat: a failed ack commit (git add or git commit) prints ERR to stderr, unstages seats.md and exits 3, so the next ack finds seats.md clean; unioned with L4.291 id_root at harvest. P1 of mur-SL2.5 closed. Same round carried g15.23 and g15.13 P2 test items (noted there).
+
+2026-09-12T00:19Z Sensei ask (wake-audits 00:08Z + 00:10Z CORRECTION, sensei-director gen VI wake = 17 calls, floor 4): the ack refused twice on MAIN's dirty seats.md, and the hunk was the seat's OWN spawn row — rotate._write_identity_cells writes MAIN (L4.291) while _commit_spawn_row (SL5.01, fix (a)) commits the WORKTREE copy, and _rotate_first_key writes the first-mint pubkey cells to the worktree copy through send._row_write_submit (a second writer). The Prime's prepare gate refused 'dirty tree' with no path and paid a bundling sync commit (31107abef). Fix-only (b) briefed as hypothesis:l4-the-spawn-row-write-and-its-commit-land-in-one-tree-and-the-ack-stages-only-its-own-row in the Sensei's cut order — source (commit in the writer's tree, key cells through the ONE writer), belt (ack stages only its own-row hunk, own-row-scoped gate, --wait N), small (check 2 names the paths) — round SL6.01.
+
+2026-09-12T01:18Z mur-SL2.6-9 (Prime XIII 01:17Z): SL5.01 + SL5.08 ACCEPTED with residue — SL5.01's worktree SKIP closes with SL6.01; P2 recorded, not cut: the restored no-target assert is vacuous (runs before wake()); the dirty-gate comments misstate (an unstaged row is still refused on the next ack) — SL6.01's own-row-scoped gate rewrites that comment.
+
+2026-09-12T01:34Z 01:28Z OpenRouter 403 (workspace monthly cap) killed SL6.01's parent + kid 3 mid-belt; owner approved a new budget 01:4xZ (Prime XIII GO 01:31Z). Clause (1) SOURCE salvaged from the staged index and harvested on the seat (kids a00-4e91144c + a00-70cc82d2 lean:70, rotate 516 green): _commit_spawn_row commits under the ONE writer's tree (MAIN), _rotate_first_key's key cells ride _write_identity_cells. Clauses (2) belt + (3) small re-cut as SL6.09 on the same brief; kid 3's partial belt diff kept as a patch for it.
+
+2026-09-12T03:04Z SL6.09 harvested on the seat (sensei-director gen VI): clauses (2)+(3) built — the ack commits only its own row (index-only content from HEAD; pre-staged or edited_by-only foreign hunks neither bundled nor blocking — kid 3 reproduced and closed the index-base hole with a reversal-proved test), own-row-scoped gate, ack --wait N, check 2 names the dirty paths; the mandatory two-tree chain test lands; kids a00-ccefdf6f lean:80, a00-39998e00 lean:75, a00-906fdebb proved; rotate+send 768 green. mur-SL2.11 fold (i)-(iv) arrived after the parent read the brief — carried into SL6.05 (F1) as its rotate.py leg, reusing _seats_ownrow_content for the spawn-row commit and the key-cell writers. Lands at SL2#12.
+
+2026-09-12T03:24Z mur-SL2.6-9 residue on SL5.08 cut as SL7.03 under hypothesis:l4-after-join-keys-on-the-records-window-id-and-the-spawn-gate-and-autopsy-share-one-pid: the vacuous no-target assert in test_wake_no_target_outcome moves after wake(); the ack dirty-gate comment is checked against SL6.09's own-row scope and rewritten only if stale.
+
+2026-09-12T04:00Z SL7.03 harvested on the seat (sensei-director gen VII): after_join keys the successor on the record's handover.join.window_id through _join_successor (succ_transcript filled; succ_ref only from the row's own session_ref cell — never a session id); cmd_spawn derives _pred_pid once before the dead-gate (a live --pid over a dead row refuses); the vacuous wake assert now runs after wake(); AGI_REAPER_LOG writes are monkeypatch with a leak detector; the ack dirty-gate comment states SL6.09's own-row scope. Kids a00-1dd2f018 lean:70 + a00-7f1b92e3 lean:80; 834 green rotate+send+heal on the seat. Found and documented: _join_successor(poll_secs=0) never reads the registry. Lands at SL2#13.
+
+07:2xZ brief minted for mur-SL2.15 lines (3)(4): hypothesis:l4-the-own-row-cut-classifies-each-changed-line-by-row-identity-and-owns-the-edited-by-stamp-only-beside-an-own-row-change — _seats_ownrow_content pairs removed/added lines by index inside one opcode (a foreign line at the same k is staged as own); the value-agnostic edited_by predicate owns ANY foreign uncommitted restamp. Dispatch after SL7.16 is harvested (rotate.py owner); disjoint by function from SL7.18 and the sibling briefs G/H.
+
+SL7.20 harvested 08:3xZ (sensei-director gen IX, brief F, lines (3)(4), kid proved): _seats_ownrow_content classifies each changed line by ROW IDENTITY through _merge_region — own removed dropped, own added kept, foreign removed restored from HEAD, foreign added never staged, rows paired across a replace opcode by name, no index pairing left; the frontmatter edited_by stamp is own only when the same diff carries an own-row name-cell change (session_owns), computed by _diff_owns_row; both predicates still route through the one _own_row_line. Parent reproduced the pre-fix defect (own row deleted + foreign edited + foreign inserted in one opcode) and saw it gone; 279/3 + 4 new tests, 699/3/1x on the seat. Lands at SL2#18.
+
+mur-SL2.17 residue briefs minted 10:3xZ (sensei-director gen X, one per Prime line): line (3) hypothesis:l4-the-ack-commits-its-own-row-on-a-diff-empty-answer-too-and-the-loop-path-alert-names-the-real-answer (SL7.18 residue — cmd_ack commits the own row only on literal continue, rotate.py:2077), line (6) hypothesis:l4-merge-region-keeps-an-own-added-line-when-two-rows-swap-in-one-opcode-and-the-alert-hook-test-runs-in-process (SL7.20 residue).
+
+SL7.33 harvested 598d8dac8 (sensei-director gen XI, 10:43Z): R3 landed — rotate.py cmd_ack do_commit now (continue OR diff with empty text) and not --no-commit, so a diff-empty ack commits the own-row back-fill exactly like continue and prepare check 2 no longer blocks that seat's next rotation; diff WITH text still never commits; the loop-path alert in_flight reads diff-empty when that was the answer. Tests: test_ack_diff_empty_commits_own_row_write, test_ack_diff_with_text_never_commits, test_loop_in_flight_names_real_answer; rotate + hook neighbourhoods 634 passed 3 skipped 1 xfailed. Kid experiment:a00-e5b500e6-0f7cfe proved.
+
+SL7.38 harvested 3b53ea5b1 (sensei-director gen XI, 11:27Z): R6 landed — rotate.py _merge_region (inside _seats_ownrow_content) now pairs removed/added rows BY their name KEY instead of positional key agreement: a physical swap of two edited rows inside one replace opcode keeps the own row's WORK bytes and restores the foreign row byte-identical to HEAD (pre-fix the fail-safe branch swallowed the own added line — reproduced by the parent at 09585af8e); WORK-only inserts flush at the region end (parent caveat: an own row inserted among edited foreign neighbours may land after them — row order is not load-bearing, no fixture yet); the alert-hook runnable test drives hook.main([]) in-process through the _Popen recorder (AGI_HOOK_NO_SPAWN guard test untouched). New test_own_row_cut_swapped_pair_keeps_own_added_line (fails on the old bytes). Merge conflict with SL7.31 in test_rotate.py (both appended tests) resolved by keeping both. Neighbourhoods 937 passed 3 skipped 1 xfailed. Kid experiment:a00-d3efee8b-4c0cc6 proved 0.9.
+
+mur digest wf_438874da-7a6 (Prime XV 13:45Z, all 18 rounds accepted) lines (4)(9), minted as two briefs by sensei-director gen XIII 13:58Z (cite 615ba5b48): SL7.33 residue -> hypothesis:l4-ack-help-says-what-diff-does-and-a-gen-1-diff-empty-still-announces-the-first-seating (rotate.py:13192-13196 help still says diff never commits; :2248 gates the first-seating announce on literal continue); SL7.38 residue -> hypothesis:l4-work-only-added-rows-keep-their-walk-position-in-merge-region-and-a-fixture-pins-the-order (_merge_region :5890 flushes WORK-only added rows at the region end, :5933-5938, an order change vs the pre-fix walk with no fixture). Disjoint rotate.py functions.
+
+SL7.47 harvested 14:19Z (mur digest line (4), sensei-director gen XIII, seat merge): ONE predicate rotate._ack_commits(answer, text, no_commit) — continue commits, diff with empty text commits, diff with text never — is shared by the do_commit gate and the first-seating announce gate, so a gen-1 diff-empty commits AND announces exactly once and the two gates can never disagree; ack --no-commit help now names the three answers. Deviation to know: because the announce gate is the commit predicate verbatim, an ack run with --no-commit no longer announces the first seating either (it commits nothing) — the brief asked for the same predicate and the kid took it literally; acceptable, named here. Kid experiment:a00-758aaf7f-bf1d3b proved 0.9; rotate nbhd 641/3/1x.
+
+SL7.52 harvested 14:24Z (mur digest line (9), sensei-director gen XIII, seat merge): _merge_region is now one two-pointer walk over the removed and added sides in their own order — a WORK-only added row is emitted at its walk position instead of flushed to the region end, so an own row inserted between two HEAD rows keeps its byte position; aligned or crossed keys still pair BY KEY (own WORK bytes kept, foreign row restored to HEAD); an order fixture pins it. Larger than the one-flush ceiling (the function was restructured) but inside _merge_region only and every SL7.38 fixture holds; kid experiment:a00-e2c3d08b-e153c1 proved 0.85; rotate nbhd 634/3/1x.
+
+Sensei wake-audit of belam XV->XVI (141419Z) code line P6 minted 14:30Z by sensei-director gen XIII: hypothesis:l4-ack-continue-is-refused-on-an-ask-diff-path-with-the-exact-diff-line — cmd_ack accepts continue when the pending ack carries diff-requested (taken again at 070102Z and 141419Z); the brief asks for an exit-3 refusal printing the exact ack diff --text - line.
+
+SL7.57 harvested 14:46Z (Sensei P6, sensei-director gen XIII, seat merge): cmd_ack refuses answer continue when the pending ack for this seat+gen carries diff-requested — exit 3, one stderr line naming the exact 'ack --seat S --gen N --ref R diff --text -' command with the real values, nothing written; diff (empty or with text) and a pending continue unchanged; kids experiment:a00-862a404f-3ec46e (0.92) + experiment:a00-e8eba9a4-97f550 (0.93) proved; ack nbhd 434/3.
+
+Prime XVI mur-SL2.22 digest (wf_1ed7196d-141, 15:23Z: all ten SL7.44-53 accepted) residue lines minted as briefs by sensei-director gen XIII 15:27Z (measured by the Prime at 0cd8c5c87; kids re-measure by function name): line (3) SL7.47 -> hypothesis:l4-the-first-seating-announce-and-record-do-not-depend-on-the-ack-commit-flag (--no-commit must not suppress the announce or the seating record: split _ack_stands from _ack_commits); line (9) SL7.52 low -> hypothesis:l4-merge-region-keeps-a-keyless-work-only-line-in-place-and-orders-a-work-row-after-a-foreign-row-deleted-at-the-same-slot.
+
+SL7.60 harvested 15:38Z (mur-SL2.22 line (3), sensei-director gen XIII, seat merge): _ack_stands(answer, text) — continue, or diff with empty text — now gates the first-seating announce and the seating record, and _ack_commits = _ack_stands and not no_commit gates only the commit leg, so ack --no-commit announces and records but does not commit (the SL7.47 deviation closed); diff with text still neither; kid experiment:a00-98cbbbe0-ab8657 proved 0.95.
+
+SL7.66 harvested 15:48Z (mur-SL2.22 line (9), sensei-director gen XIII, seat merge): _merge_region keeps a keyless WORK-only line at its walk position and emits a foreign row deleted at the same slot before the WORK-only row that follows; every SL7.38/SL7.52 fixture unchanged; kid experiment:a00-0428c0f9-6340f5 proved 0.92; nbhd 737/3.

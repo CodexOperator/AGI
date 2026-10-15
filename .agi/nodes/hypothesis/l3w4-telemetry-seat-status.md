@@ -3,13 +3,13 @@ id: hypothesis:l3w4-telemetry-seat-status
 mint_id: 078a5c865c894d4292fc82844c68be63
 type: hypothesis
 parents:
-  - goal:g16
+  - goal:g6.10
 next_edges: []
-edited_by: belam-S1-L3-IV
+edited_by: belam
 scaffold_hash: e404c595dc37f9e6
 season: 2
 testable_claim: seat_status.py's collect(root, fm_by_id) reads the seat registry (.agi/nodes/.geometry/seats.md), each seat's rotate.py meter-pin fraction, spawn_budget.py's live/cap ephemeral count, and telemetry_rollup.py's existing per-report cost/token sums into one SeatsView computed once, and viewport.py --live renders that same view as an identical new section in both render_human and render_llm, printing "no seat registry yet" with no traceback when seats.md does not yet exist.
-thought_session: L3.23
+thought_session: dissolve-legacy-2026-09-19
 title: Render live seat status
 ---
 <!-- BODY:BEGIN -->

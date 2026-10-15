@@ -1,0 +1,113 @@
+---
+name: town
+written_by: [prime_director, owner, director]   # TEMPORARY (owner 22:21Z 09-30: "set him as an allowed actor for the board for now until the redesign and radical simplification lands" -- for thought-master; the gate admits ROLES only (L4.41) and `master` is off-ladder, so any actor could claim it; `director` is the narrowest on-ladder role that admits thought-master, so every seated director is admitted until goal:g7.16.1.11 lands) · was: list-shaped; links.parse_written_by reads a list (L4.50 flip) — town rows are prime/owner-written, like config:vetoes and config:rotations
+derived_from: owner ruling 2026-09-12 (doc:l4-owner-decisions body 697-717 @e6d090a77, Prime XVII 18:48Z)
+actor_rows:  # hypothesis:l4-the-formation-owner-writes-config-posts-rows-and-the-town-master-cell-through-a-schema-declared-actor-row-grant-never-a-role-literal: the town `master` cell (the config:posts row that owns this town's branch pair until council activation) is settable by the RESOLVED sanctuary-master seat through write.py's generic `actor_rows` grant. The DERIVED `branches:` cell stays refused BY NAME at mint (create field-level `refuse:`) and at read (towns.load_towns).
+  - {actor: sanctuary-master, field: master}
+  - {actor: thought-master, field: trajectory_standin}   # owner 2026-09-23: the local-maxxing master writes its town's trajectory stand-in (TEMP until G7.34.2 mints trajectory:local-maxxing)
+structural: true
+fields:
+  visions: {type: list}          # vision node ids this town owns. `core` may spell the list or the literal `auto`, meaning "every vision node no other town claims" — `auto` is RESOLVED BY THE LOADER, never hardcoded.
+  council: {type: str}           # the NAME of a row in config:posts (`posts.md` is the post-first spelling; `.geometry/seats.md` is the deprecated alias, accepted in this window)
+  master: {type: str}            # the NAME of the config:posts row that OWNS this town's branch pair until council activation (owner 2026-09-18 00:1xZ: each master owns its town branch; '' or absent = the Prime holds it)
+  season: {type: int}            # the town's OWN counter (core 2, streaming-suite 1, web-app-suite 1 — owner ruling)
+  season_history: {type: list}   # [{season, global_season, opened, closed}]
+  written_by: {type: list}       # [prime_director, owner] — never a kid
+  location: {type: str}          # mesh host alias (WireGuard/SSH name); e.g. encryption-town, local-town — SEPARATE from town id / branch derivation
+  seeds: {type: list}             # PERSISTENT INFRA this town stands up (posts/crons/workflows/formation instances) — NOT a child-goal registry; parents on children remain nesting SoT for goals
+  trajectory_standin: {type: list}   # TEMP (owner 2026-09-23): the town's live trajectory rows, newest first, one string per row; written whole by the town master (each write = one version); migrates into trajectory:<town> at G7.34.2
+  branches: {type: str, refuse: "DERIVED, never a cell — refused BY NAME at MINT (write.py create gate) and at READ (towns.py loader); see body"}  # branch names fall out of the cells, never a cell
+validation:
+  required: [visions, council, season]  # location OPTIONAL until all live towns are backfilled; MUST for live mesh towns once backfilled (core→encryption-town, local-maxxing→local-town; sanctuary/streaming-suite/web-app-suite TBD empty)
+  required_nonempty: [visions]   # a town with an EMPTY or ABSENT `visions` cell is refused BY NAME at MINT (write.py create gate, rc=2, nothing written) — never warned-and-written into a node `towns.load_towns` then refuses at READ
+  types:
+    visions: list
+    council: str
+    season: int
+    season_history: list
+spawn:
+  allowed_parents: [goal, vision]
+  parent_shapes:
+    - [goal, vision]
+  min_parents: 2
+  max_parents: 2
+---
+
+# town
+
+**A town is a SUPER node** — owner ruling 2026-09-12 (verbatim in the
+`derived_from` above): a town's cells are its `visions` (the vision nodes this
+town owns; `core` is every vision no other town claims), `council` (the
+`config:posts` row that keeps it), `season` (the town's OWN counter),
+`season_history` (the season ledger) — and crucially the town's BRANCH NAMES
+are DERIVED from those cells, never stored as a cell. Reading `town:*` nodes is
+what `crons.py apply` does for `crons.md`; the towns are the declared rows.
+
+## `branches:` is DERIVED, NEVER a cell
+
+The schema REFUSES `branches:` as a frontmatter cell by name — at BOTH mint
+and read. A town's branch names (`core/main`, `core/season2/main`,
+`core/season2/posts/<post>/main`,
+`core/season2/posts/<post>/loops/<round>/<agent>`) fall out of the town's
+cells — `season`, `council` (post name), and the loop/agent layers — and are
+rendered by `towns.derive_names`. Storing them would let the cells and the
+branches drift apart; the whole point of the super node is that the branch
+names are a view over the cells. The CREATE gate (`write.py create`
+`--set branches=…`, driven GENERICALLY by this field's `refuse:` annotation)
+refuses the key BY NAME at MINT and writes nothing; and if a `branches:` key
+still ever appears, `towns.load_towns` refuses the node by name at READ time.
+The gate refuses what the loader refuses — the same cell, the same ground.
+
+## `location:` — mesh host alias (SEPARATE from town id / branches)
+
+```
+town id (node)     ──▶  town:core / town:local-maxxing   (graph identity; branch slug)
+location (cell)    ──▶  encryption-town / local-town     (WireGuard/SSH Host alias)
+branches (DERIVED) ──▶  core/main, core/season2/main, …  (from season + council + loop cells)
+```
+
+`location` is the mesh hostname an operator SSHes to (`ssh encryption-town`),
+NOT the town slug and NOT a stored branch list. Town id drives `derive_names`;
+`location` only names the box. Optional in `validation.required` until every
+live town is backfilled; live MUST: core→encryption-town, local-maxxing→
+local-town. sanctuary / streaming-suite / web-app-suite remain empty (TBD)
+for this commit.
+
+
+## `seeds:` — persistent infra, NOT child-goal registry
+
+`town.seeds` (when present) lists **persistent infrastructure this town stands
+up**: posts, crons, workflows, formation instances, and similar long-lived
+ops artefacts. It is **not** a registry of child goals. Goal nesting SoT
+remains **parents on children** (and derived `seeds:` on goal nodes via
+snapshot). Do not hang goals under a town via `town.seeds`.
+
+## `visions: auto`
+
+
+`core` is allowed to spell its list OR the literal `auto`, meaning "every
+vision node no other town claims". `auto` is RESOLVED BY THE LOADER against
+the other towns' explicit `visions` lists at read time — never hardcoded into
+a file, exactly like `branches:` is never stored.
+
+## `written_by`
+
+`[prime_director, owner]` — same as `config:vetoes` and `config:rotations`.
+A town is prime/owner-written; a kid never mints one. The Prime creates the
+three towns at merge-up from the create lines.
+
+## spawn
+
+A town has exactly two parents, one goal and one vision (`spawn.parent_shapes`
+`[[goal, vision]]`; today `goal:g26.towns` + `vision:the-living-being`). The
+ladder is NO LONGER a parent (Z4 phase A, `doc:rse-z4-ladder-out`): the graph
+edge is gone, while `.geometry/ladder.md` and every reader of it are untouched
+until phases B and C. The `visions` cell still lists the visions this town
+OWNS; a town's parent vision is a separate edge.
+
+## The first towns — created by the Prime at merge-up
+
+`core` (season 2, council `council-core`), `streaming-suite` (season 1,
+council `council-streaming-suite`), `web-app-suite` (season 1, council
+`council-web-app-suite`). No town node is minted by a round; `ls
+.agi/nodes/town/` stays empty until the Prime runs the create lines.

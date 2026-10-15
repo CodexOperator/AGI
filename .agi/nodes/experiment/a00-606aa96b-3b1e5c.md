@@ -1,0 +1,174 @@
+---
+id: experiment:a00-606aa96b-3b1e5c
+mint_id: 95fd255783c046dabb0169e45850ba87
+type: experiment
+parents:
+  - hypothesis:captive-capture-keeps-the-slot-and-banked-and-appends-its-line
+next_edges: []
+confidence: 0.8
+edited_by: a00-df266356
+evidence_runs:
+  - experiment:a00-606aa96b-3b1e5c
+loop: hypothesis:captive-capture-keeps-the-slot-and-banked-and-appends-its-line@s2
+model: stealth/space-bunny-alpha
+production_lines: 9
+profile: balanced
+role: kid
+scaffold_hash: bb1bd60866294da1
+season: 2
+title: "the unfenced ### where-it-stops slot keeps its heading -- the writer fix that closes PROBE C"
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-606aa96b-3b1e5c
+
+## What I did
+Closed the parent's PROBE C: `rotate._replace_stops_body` dropped the subheader
+line of a `###`-level where-it-stops slot whose body is UNFENCED, so the capture
+kept the prose and lost the heading. Fixed in the WRITER (the one file that owns
+the byte), plus two new fixture rows that cover both unfenced shapes.
+
+| file | change |
+|---|---|
+| `extensions/agi/bin/rotate.py` (`_replace_stops_body` only) | a `###`-level UNFENCED slot now keeps its subheader line and every byte above it and replaces only what follows -- the `###`-level BANKED branch's rule (`head = lines[:sub+1]`, rotate.py:8253-8264). `sub_offset is None` (the plain `## §3 🔴 NEXT COMMAND` body) is UNCHANGED: still filled wholesale, as its docstring and the existing tests document |
+| `extensions/agi/tests/test_rotation_alert_capture.py` | `UNFENCED_SLOT_CARDS` (two shapes) + `test_capture_keeps_unfenced_stops_slot_and_banked[shape]`, two rows, both driven through the REAL `rotate.cmd_handoff` with the argv the capture logs, empty `s6`, tmp card + tmp root only |
+| `hypothesis:captive-capture-keeps-the-slot-...` | the CEILING clause only (item 3 below) |
+
+`rotation_alert.py` was NOT touched: `_capture_stops` already hands the writer a
+payload carrying the slot's own lines below the subheader plus the capture line,
+which is exactly what the new branch consumes. `_fenced_payload`'s fallback
+(`lines[sub+1:]`) is the same rule seen from the hook side.
+
+The new branch, verbatim (rotate.py, `_replace_stops_body`):
+```python
+    # no fenced block: a `###`-level slot keeps its subheader + what is above
+    # it (the `###`-level BANKED branch's rule); a plain `##` body is still
+    # filled wholesale, the documented Prime behaviour.
+    if sub_offset is not None and 0 <= sub_offset < len(lines):
+        return "\n".join(lines[: sub_offset + 1] + ([s3] if s3 else []))
+    # no fenced block: replace the whole body
+    return s3
+```
+The old tail is NOT carried a second time: `s3` from the capture already IS the
+tail plus the appended line, so re-appending `lines[sub+1:]` would have
+duplicated the owed list. Nothing that survives today is dropped -- the pre-fix
+branch threw the tail away as well, it just threw the header away too.
+
+## RED, before the fix (pre-fix bytes, both rows)
+```
+$ env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_rotation_alert_capture.py -k unfenced -q
+E       AssertionError: ('### 🔴 Where it stops
+E         DONE  one landed thing; a second line of the same entry
+E         NEXT  (1) first owed step
+E               (2) ...  (2) second owed step, continued on this very line
+E
+E         auto-captured at f=0.4500 after 10 min without a self-rotate
+E         ')
+E       assert ['DONE  one l...is very line'] == ['### 🔴 Where...is very line']
+E         At index 0 diff: 'DONE  one landed thing...' != '### 🔴 Where it stops'
+FAILED ...test_capture_keeps_unfenced_stops_slot_and_banked[h3]
+1 failed, 1 passed
+```
+Row `h2` (the `##`-level prose slot, doc:card-belam's own shape) was ALREADY
+green: with `sub_offset is None` the hook's payload is the whole body plus the
+appended line, so nothing is lost. That row is kept as the regression guard that
+the documented wholesale `## §3` fill never changes. Row `h3` is the RED: the
+`### 🔴 Where it stops` heading byte was gone.
+
+## GREEN, after the fix
+```
+$ ... pytest extensions/agi/tests/test_rotation_alert_capture.py -q
+16 passed, 3 warnings in 1.14s
+$ ... pytest extensions/agi/tests/test_rotation_alert_capture.py \
+      extensions/agi/tests/test_rotation_alert.py \
+      extensions/agi/tests/test_rotation_alert_captive.py \
+      extensions/agi/tests/test_session_start_bootstrap.py \
+      extensions/agi/tests/test_bin_help_smoke.py -q
+161 passed, 6 skipped, 3 warnings in 35.90s
+$ ... pytest extensions/agi/tests/ -k 'rotate' -q
+1130 passed, 5762 deselected, 1 xfailed, 1168 warnings in 376.44s
+```
+(`--timeout=900` from the brief is not installed in this env -- pytest exits
+`unrecognized arguments: --timeout=900` -- so the same sets ran without it.)
+
+## Exact before/after diff of the slot section, per row
+`h2` -- `## 🔴 Where it stops -- successor's owed list`, header line byte-identical:
+```
+@@ -2,3 +2,4 @@
+  NEXT  (1) first owed step
+        (2) second owed step, continued on this very line
+ 
++auto-captured at f=0.4500 after 10 min without a self-rotate
+```
+`h3` -- the slot lives under `## 🔴 §5 The loop`, the `### 🔴 Where it stops`
+subheader line byte-identical (this is the byte PROBE C lost):
+```
+@@ -3,3 +3,4 @@
+  NEXT  (1) first owed step
+        (2) second owed step, continued on this very line
+ 
++auto-captured at f=0.4500 after 10 min without a self-rotate
+```
+BANKED byte-identical on both rows (asserted, `True` in the probe). The existing
+FENCED row (`test_capture_appends_its_line_and_keeps_the_slot_and_banked`) is
+untouched and still green.
+
+## The node's CEILING clause (item 3)
+`spawn_budget._ceiling_clause` truncates its segment at the first newline or `.`,
+so the `## CEILING` heading in the BODY is unreadable -- reproduced exactly as
+briefed:
+```
+$ python3 -c "import spawn_budget as sb; print(sb._ceiling_clause(open('<node>').read()))"
+None
+$ sb.node_line_ceiling('.agi', <node>, {}, 40)   ->  (40, 1, 'default')
+```
+`node_line_ceiling` reads the frontmatter `testable_claim` FIRST and only falls
+back to the whole text, so the clause had to go THERE. It now reads:
+```
+$ ...                                      # after
+(20, 1)
+$ sb.node_line_ceiling('.agi', <node>, {}, 40)
+(20, 1, 'clause')
+```
+40 (config default) -> 20, source `clause`. The body line was corrected 15 -> 20
+and now says where the machine-readable clause lives, so the next reader does not
+put it back under the heading.
+
+## Production lines (the one `git diff --numstat` read)
+```
+9   1   extensions/agi/bin/rotate.py            <- production
+85  0   extensions/agi/tests/test_rotation_alert_capture.py   <- test, not counted
+```
+9 added / 1 removed against a 40-line config default and the node's now-parsed
+`<= 20` clause. `rotation_alert.py`: 0.
+
+## What I did NOT cover (honest residue)
+- A `###`-level slot whose subheader is NOT the slot's own first line: the new
+  branch keeps everything above the subheader too, which is untested at the
+  writer level (rotate's own `-k rotate` suite covers the surrounding paths).
+- The old tail below a `###` subheader is still dropped, as before. That is safe
+  for the capture (its `s3` carries the tail) but a human typing one line into a
+  driven handoff on a `###` unfenced slot still loses the prose that was there.
+  Fixing THAT needs a rule the writer cannot infer (is `s3` a replacement or an
+  addition?) and is a card of its own, not a line.
+- A `##`-level slot with a `## Banked` that is itself `###`-level is untouched
+  (the BANKED `###` branch is the pre-existing one; parent PROBE A passed on it).
+- The two spawn_budget/dispatch failures seen while running a wider `-k` sweep
+  (`test_wait_parent_removed_returns_0_after_removal`,
+  `test_listed_name_reaches_the_child_...`) are NOT mine: the first passes in
+  isolation, the second asserts `TYPESAFE_KEY not in os.environ` and this shell
+  has one. Neither touches rotate.py or the hook.
+## Evidence
+
+Raw output: `red.txt`, `green1.txt`, `green2.txt`, `green3.txt`, `diffprobe.py`
+in this node's scratch dir.
+
+## Agent Notes
+rotate._replace_stops_body now keeps the ### subheader on an UNFENCED slot (9 production lines); two new unfenced rows RED(h3, heading lost)->GREEN; node CEILING clause moved to testable_claim, parsed 40->20
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW DH.509 (a00-df266356) — judged on the BYTES of d82ab4ef6 against b187dabd0, not on this nodes report. WHAT THE BRIEF SAID: "one kid: rows for BOTH unfenced shapes, fix in rotate._replace_stops_body, the fenced rows stay green, and make the CEILING clause machine-readable". WHAT THE DIFF CARRIES: 9 added / 1 removed in rotate.py, all inside _replace_stops_body (the new `if sub_offset is not None and 0 <= sub_offset < len(lines): return "\n".join(lines[: sub_offset + 1] + ([s3] if s3 else []))` plus 4 docstring lines); 85 added in test_rotation_alert_capture.py; 3/3 in the hypothesis node; ZERO bytes in rotation_alert.py. Every deliverable this node names is in the diff — no claim without bytes. THE NEAR MISS I looked for: a writer that keeps the subheader AND re-appends lines[sub_offset+1:] would satisfy "keeps the header" and silently DUPLICATE the owed list, because the captures s3 already carries that tail. The kid did not do that, and my PROBE C measured dup=0. THE SECOND NEAR MISS: putting the CEILING clause under the `## CEILING` heading, which is what the brief literally asked for and what the nodes body line still is — it is INERT there, because _ceiling_clause truncates its segment at the first newline (spawn_budget.py:290) so the segment after the heading is the bare word "CEILING", and _node_ceiling (spawn_budget.py:343-349) reads the frontmatter testable_claim FIRST. The kid read the resolver and put the clause in the claim; I re-measured it myself: _ceiling_clause(claim) == (20, 1) and node_line_ceiling == (20, 1, clause), was (40, 1, default). IF I DEVIATED FROM A STANDING RULE: I did not re-run the kids suite as evidence — the three probes below are mine, and the passing rows they quote are the kids CLAIM. PROBES (my own, tmp root + tmp copy of the live card, script at sessions/iter-DH.509/a00-df266356/probes-dh509.py): PROBE A (gate) the LIVE doc:card-belam bytes — a `##` heading, a PROSE line, then the fenced owed list, a shape NEITHER of the two new fixtures is — driven through the real hook._capture_stops and the real rotate.cmd_handoff: heading byte-identical, slot lost=[] added=[the one capture line], BANKED added/lost=[] [], capture line count 1. PASS. PROBE B (wire) swap _replace_stops_body back to its pre-fix body in-process and re-run the same card: the subheader byte is GONE; with the new branch it survives. The call site reaches the changed bytes, so the green rows are not a stub. PASS. PROBE C (auth) the caller the claim never authorises — a HUMAN driven handoff typing its own s3 into the same `###` unfenced slot, no capture anywhere: rc=0, no crash, the subheader byte present, BANKED byte-identical, owed list not duplicated. PASS, with residue: the human callers tail under the subheader is still dropped (dup=0) — the pre-fix writer dropped it AND the header, so this is strictly better, not a regression, but it is unclosed and is the next card. VERDICT: proved accepted as written (three conjuncts, all three probed, 9 production lines against the clauses own now-parsed 20). Two notes, not demotions: the ceiling edit also flipped the nodes edited_by to the kid, and the body CEILING line still reads as prose that a future writer could mistake for the machine clause — the sentence now says where the machine clause lives, which is the right fix at this size. Residue carried to the next round: the `###` unfenced HUMAN handoff, and a test row for the live cards HYBRID shape (prose line + fence), which probe A covers but the committed suite does not.
+<!-- THOUGHT:END -->
+
+probes: A(gate)=PASS the LIVE doc:card-belam shape (## heading, prose line, fenced list — neither new fixture) through real hook._capture_stops + real rotate.cmd_handoff: heading byte-identical, slot lost=[] added=[the one capture line], BANKED added/lost=[][], capture line count 1 · B(wire)=PASS _replace_stops_body swapped back to its pre-fix body in-process loses the ### subheader byte; the new branch keeps it, so the call site reaches the changed bytes · C(auth)=PASS the caller the claim never authorises (a human driven handoff typing its own s3 into the ### unfenced slot, no capture): rc=0, no crash, subheader byte present, BANKED byte-identical, owed list NOT duplicated (dup=0; the re-appending near-miss would have duplicated it). script: sessions/iter-DH.509/a00-df266356/probes-dh509.py. residue: the human caller still loses the tail under the subheader (strictly better than pre-fix, which lost header too), and the live card HYBRID shape has no committed row.

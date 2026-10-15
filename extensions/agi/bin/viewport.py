@@ -117,6 +117,8 @@ class Frame:
     verdict: str
     damaged: str         # "" when sound, else why
     agents: tuple        # agent ids working here (live axis)
+    town: str = ""      # town of nearest vision (hyp:l4-towns-...), "" when unknown
+    legacy: str = ""    # D3 (goal:g7.16.1.11.22): "[legacy]" | "[legacy ⊃k]" | "[⊃k]" | "", computed from the node file's history (legacy.py)
 
 
 def _title_of(node, fm: dict) -> str:
@@ -128,7 +130,8 @@ def _title_of(node, fm: dict) -> str:
 
 def frame_stream(g, fm_by_id: dict, anchor: str | None, max_depth: int,
                  agents_at: dict | None = None,
-                 hide_deprecated: bool = False) -> list[Frame]:
+                 hide_deprecated: bool = False,
+                 nodes_dir: str | None = None) -> list[Frame]:
     """Walk the graph once from `anchor` and emit frames in display order.
 
     Ordering is `(depth, node_id)` and is deterministic: two runs over an
@@ -172,6 +175,24 @@ def frame_stream(g, fm_by_id: dict, anchor: str | None, max_depth: int,
         return str((fm_by_id.get(nid) or {}).get("status") or "").strip().lower() \
             == "deprecated"
 
+    # hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — the
+    # town a node belongs to, derived through the shared helper (the same one
+    # node_writer, brief and zoom use). Memoized per node_id so a large graph
+    # only pays the BFS up the parents edge once per node actually in view.
+    _town_cache: dict = {}
+    import links   # goal:g4.18.6.3.3: ONE resolver per render, never one grep per node
+    _resolve = links.gate_resolver(nodes_dir) if nodes_dir else None
+
+    def _town_of(nid: str) -> str:
+        if not nodes_dir:
+            return ""
+        t = _town_cache.get(nid)
+        if t is None:
+            import spawn_gate
+            t = spawn_gate.nearest_vision_town(nodes_dir, [nid], resolve=_resolve)
+            _town_cache[nid] = t
+        return t
+
     def walk(nid: str, depth: int) -> None:
         if nid in seen or depth > max_depth:
             return
@@ -196,6 +217,7 @@ def frame_stream(g, fm_by_id: dict, anchor: str | None, max_depth: int,
             verdict=str(fm.get("verdict") or ""),
             damaged=_damage_of(g, node, fm),
             agents=tuple(agents_at.get(nid, ())),
+            town=_town_of(nid),
         ))
         if depth < max_depth:
             for k in kids:
@@ -273,6 +295,51 @@ def default_roots(g, fm_by_id: dict) -> list[str]:
 # Formatters. BOTH consume `frames` and nothing else.
 # --------------------------------------------------------------------------
 
+_LEGACY_GRAPH: dict = {}   # HEAD sha -> nest.graph(HEAD): the graph load (seconds) is per commit
+_LEGACY_MEMO: dict = {}    # (root, top, height, hier, window ids) -> {node id: label}: an identical redraw runs no git at all
+
+
+def _with_legacy(frames: list[Frame], root, top: int = 0, height: int | None = None, hier: int = 0) -> list[Frame]:
+    """D3 (goal:g7.16.1.11.22): stamp the legacy mark on the frames in view
+    ONCE, so both readers print the same string (goal:g2.19). Only the window
+    is stamped: a mark costs a history walk (a cache keeps it warm), and the
+    stream behind the window is never drawn. `hier` = the lines the human pane
+    puts ABOVE the frame lines (the hierarchy layer on top); the window is the
+    union of what the human pane (frames[top-hier:top+height-hier]) and
+    `--emit llm` (frames[top:top+height]) show. Computed at HEAD of the repo
+    holding `root`, season = ladder.md's `current_season` at HEAD, from the node
+    file's own history (legacy.py). The result is memoised per window for the
+    process's life (the interactive graph is a startup snapshot too): a second
+    identical call spawns no git; a commit made while a viewport is open shows
+    only after a scroll to a window with different node ids. Fails open to no mark (a graph outside git,
+    an unreadable history) -- never a traceback in the view."""
+    here = os.getcwd()
+    try:
+        import dataclasses
+        end = len(frames) if height is None else top + height
+        view = frames[max(0, top - hier):end]
+        key = (str(root), top, height, hier, tuple(f.node_id for f in view))
+        stamp = _LEGACY_MEMO.get(key)
+        if stamp is None:
+            import legacy
+            import nest
+            os.chdir(Path(root).parent)          # legacy.py and nest.py run git in the cwd
+            head = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip() or "HEAD"
+            nodes = _LEGACY_GRAPH.get(head)
+            if nodes is None:
+                _LEGACY_GRAPH.clear()
+                nodes = _LEGACY_GRAPH[head] = nest.graph(head)
+            seen = [f for f in view if f.node_id in nodes]
+            marks = legacy.labels(head, legacy.season_of(head), [nodes[f.node_id][0] for f in seen], nodes)
+            stamp = _LEGACY_MEMO[key] = {f.node_id: marks.get(nodes[f.node_id][0], "") for f in seen}
+        return [dataclasses.replace(f, legacy=stamp[f.node_id]) if f.node_id in stamp else f for f in frames]
+    except Exception as exc:                                     # noqa: BLE001
+        print(f"viewport: legacy mark unavailable ({type(exc).__name__}: {exc})", file=sys.stderr)
+        return frames
+    finally:
+        os.chdir(here)
+
+
 def render_human(frames: list[Frame], top: int, left: int,
                  height: int, width: int, status: str = "",
                  brief=None, seats=None, occupants=None, anchors=None,
@@ -302,7 +369,9 @@ def render_human(frames: list[Frame], top: int, left: int,
         note = f"   {GLYPH['damaged']} {f.damaged}" if f.damaged else ""
         seats_here = occupants.seats_at(f.node_id) if occupants is not None else ()
         seat_mark = "".join(f" {GLYPH['seat']}{nm}" for nm in seats_here)
-        lines.append(f"{'  ' * f.depth}{glyph} {tag} {f.title}{v}{spider}{seat_mark}{note}")
+        town_mark = f" [town:{f.town}]" if f.town and f.town != "core" else ""
+        lg = f" {f.legacy}" if f.legacy else ""
+        lines.append(f"{'  ' * f.depth}{glyph} {tag} {f.title}{town_mark}{lg}{v}{spider}{seat_mark}{note}")
 
     # Round 2 — stacked layers. Top renders full; the layer beneath is
     # faint-prefixed so it peeks around the top one in a plain terminal.
@@ -369,7 +438,9 @@ def render_llm(frames: list[Frame], top: int, left: int,
         who = f" agents={','.join(f.agents)}" if f.agents else ""
         seats_here = occupants.seats_at(f.node_id) if occupants is not None else ()
         seating = f" seats={','.join(seats_here)}" if seats_here else ""
-        body.append(f"{'  ' * f.depth}- `{f.node_id}` ({f.type}) {f.title}{v}{dmg}{who}{seating}")
+        tn = f" town={f.town}" if f.town and f.town != "core" else ""
+        lg = f" {f.legacy}" if f.legacy else ""
+        body.append(f"{'  ' * f.depth}- `{f.node_id}` ({f.type}) {f.title}{tn}{lg}{v}{dmg}{who}{seating}")
     head = [
         "# graph viewport",
         f"_frames {top}-{min(top + height, len(frames))} of {len(frames)}_",
@@ -397,8 +468,9 @@ def render_llm(frames: list[Frame], top: int, left: int,
 
 
 # --------------------------------------------------------------------------
-# The sanctuary theme — a third live render, per goal:g9.4 under goal:g9.7
-# (hypothesis:l3w4-sanctuary-theme). `--theme sanctuary`.
+# The keep theme — a third live render, per goal:g9.4 under goal:g9.7
+# (hypothesis:l3w4-sanctuary-theme). `--theme keep`; the theme is a VIEW of
+# the keep, so the flag names the view, never a town (goal:g8.2).
 #
 # Same one-render-two-readers discipline as the graph frame: `sanctuary_frame`
 # builds a single frozen `SanctuaryScene` and `render_sanctuary_human` /
@@ -433,11 +505,19 @@ def sanctuary_frame(seat_rows: list, ephemeral_leases, rotating):
             "name": str(r.get("name") or ""),
             "label": str(r.get("role") or ""),
             "fraction": r.get("fraction"),
+            "town": str(r.get("town") or "core"),
         }
         if r.get("tier") == 3 or r.get("mantled"):
             spirits.append(rec)
         else:
             probes.append(rec)
+    # goal:g15.25 SM.32 -- group by the row's REAL town, sanctuary rows first
+    # (the keep's own people), core rows after. STABLE: within a town the
+    # registry order is preserved, so a fixture whose rows all read `core`
+    # keeps its original order. `towns.row_town` resolves a row still
+    # spelling `town: all`.
+    spirits.sort(key=lambda x: x["town"] == "core")
+    probes.sort(key=lambda x: x["town"] == "core")
     return SanctuaryScene(tuple(spirits), tuple(probes),
                           len(ephemeral_leases or []), rotating, True)
 
@@ -458,8 +538,9 @@ def load_seat_rows(root: Path, fm_by_id: dict):
             return list(rows), True
     except Exception:
         pass
-    seats_md = root / "nodes" / ".geometry" / "seats.md"
-    present = seats_md.is_file()
+    import geometry_config as _gc
+    cfg = _gc.geometry_config_path(root)
+    present = cfg is not None and cfg.is_file()
     rows = []
     if present:
         # The view derives from the one reader (hypothesis:l3w4-hierarchy-
@@ -469,19 +550,33 @@ def load_seat_rows(root: Path, fm_by_id: dict):
             import hierarchy as _hier
             rows = _hier.load_seats(root)
         except Exception:
+            # zoom frontmatter is keyed by file-id+list-key; the renamed
+            # layout (`config:posts`.`posts`) precedes the deprecated
+            # `config:seats`.`seats` (hypothesis:l4-a-seat-is-a-post-everywhere).
             gf = zoom._frontmatter_for(root, ".geometry")
-            rows = (gf.get("config:seats") or {}).get("seats") or []
+            rows = (gf.get("config:posts") or {}).get("posts")
+            if not rows:
+                rows = (gf.get("config:seats") or {}).get("seats")
+            rows = rows or []
+        try:
+            import towns as _towns
+            rows = [{**r, "town": _towns.row_town(root, r)} for r in rows]
+        except Exception:  # noqa: BLE001  (a row still renders without a town)
+            pass
     return list(rows), present
 
 
-_ROTATING_RE = re.compile(r"^(.+)\.gen\d+$")
+_ROTATING_RE = re.compile(r"^(.+)\.(?:gen\d+|prev)$")
 
 
 def rotating_seat(seat_rows: list, windows: list):
-    """`(holder, seat)` for the seat whose tmux window is renamed `<seat>.genN`.
+    """`(holder, seat)` for the seat whose tmux window is renamed aside.
 
-    The rotation loop names a rotating seat's window `<seat>.gen<digits>`
-    (`l3w4-seat-rotation-loops`); resolve that to the row's `rotated_by`
+    goal:g15.25 (hypothesis:l4-non-prime-posts-are-generation-less-...): the
+    rotation loop now names a rotating NON-PRIME seat's window `<seat>.prev`
+    (one predecessor window at a time, no generation); the LEGACY `<seat>.
+    gen<digits>` spelling (`l3w4-seat-rotation-loops`, still emitted by the
+    prime chain) is accepted too. Resolve either to the row's `rotated_by`
     holder. Never invented: no matching window returns `None`.
     """
     names = {str(r.get("name") or ""): r for r in seat_rows or []}
@@ -507,10 +602,11 @@ def render_sanctuary_human(scene: SanctuaryScene, width: int = 120) -> list[str]
     ]
     for s in scene.spirits:
         frac = f"  {s['fraction']:.0%}" if s["fraction"] is not None else ""
-        lines.append(f"  {GLYPH['mantle']}  {s['name']}  {s['label']}{frac}")
+        lines.append(f"  {GLYPH['mantle']}  {s['name']}  {s['label']} "
+                     f"[{s['town']}]{frac}")
     for p in scene.probes:
         frac = f"  {p['fraction']:.0%}" if p["fraction"] is not None else ""
-        lines.append(f"  {GLYPH['wisp']}  {p['name']}  probe{frac}")
+        lines.append(f"  {GLYPH['wisp']}  {p['name']}  {p['town']} probe{frac}")
     lines.append(f"  {scene.ephemeral_wisps} ephemeral wisps")
     if scene.rotating:
         holder, seat = scene.rotating
@@ -522,16 +618,18 @@ def render_sanctuary_llm(scene: SanctuaryScene) -> str:
     """Exactly what a kid is handed, from the same `SanctuaryScene`."""
     if not scene.registry_present:
         return "# sanctuary viewport\n\nno seat registry yet\n"
-    body = [f"- spirit {s['name']} ({s['label']})" for s in scene.spirits]
-    body += [f"- probe {p['name']} ({p['label']})" for p in scene.probes]
+    body = [f"- spirit {s['name']} ({s['label']}) town={s['town']}"
+            for s in scene.spirits]
+    body += [f"- probe {p['name']} ({p['label']}) town={p['town']}"
+             for p in scene.probes]
     body.append(f"- ephemeral_wisps: {scene.ephemeral_wisps}")
     if scene.rotating:
         body.append(f"- rotating: {scene.rotating[0]} ~~~✧~~~> {scene.rotating[1]}")
     return "# sanctuary viewport\n\n" + "\n".join(body) + "\n"
 
 
-def _render_sanctuary(args, root: Path, fm_by_id: dict) -> int:
-    """Static `--theme sanctuary` path for `--emit human|llm|both`."""
+def _render_keep(args, root: Path, fm_by_id: dict) -> int:
+    """Static `--theme keep` path for `--emit human|llm|both`."""
     seat_rows, present = load_seat_rows(root, fm_by_id)
     ephemeral = []
     try:
@@ -546,7 +644,7 @@ def _render_sanctuary(args, root: Path, fm_by_id: dict) -> int:
     except Exception:
         pass
     scene = sanctuary_frame(seat_rows, ephemeral, rotating_seat(seat_rows, windows))
-    status = f"theme=sanctuary registry={'yes' if present else 'absent'}"
+    status = f"theme=keep registry={'yes' if present else 'absent'}"
     mode = args.emit or "human"
     if mode in ("human", "both"):
         if mode == "both":
@@ -674,7 +772,7 @@ def _seat_sessions(root: Path, registry_rows) -> dict:
     """`{seat_name: pin_text}` from each seat's meter pin, best-effort.
 
     `.agi/sessions/<name>.meter` holds the transcript path the seat is
-    currently working on (seat-stable via AGI_SEAT, `config:seats` `pin_ref`).
+    currently working on (seat-stable via AGI_POST, `config:seats` `pin_ref`).
     Absent or unreadable pin -> the seat simply has no session, which is the
     honest "idle" state, never an error.
     """
@@ -683,7 +781,7 @@ def _seat_sessions(root: Path, registry_rows) -> dict:
         name = str(r.get("name") or "")
         if not name:
             continue
-        pin = Path(root) / "sessions" / f"{name}.meter"
+        pin = locations.shared_sessions_dir(root) / f"{name}.meter"
         if pin.is_file():
             try:
                 out[name] = pin.read_text(encoding="utf-8").strip()
@@ -868,11 +966,15 @@ def hierarchy_markdown(anchors: AnchorIndex) -> list:
 
 
 def _anchor_index(root: Path, fm_by_id: dict) -> AnchorIndex:
-    """Build an `AnchorIndex` for the live map from `config:seats`. Read-only;
-    the Sanctuary Master owns the registry -- we only read it."""
+    """Build an `AnchorIndex` for the live map from `config:posts` (the
+    renamed geometry config; `config:seats`/`seats` is the one-season alias).
+    Read-only; the Sanctuary Master owns the registry -- we only read it."""
     try:
         gf = zoom._frontmatter_for(root, ".geometry")
-        rows = (gf.get("config:seats") or {}).get("seats") or []
+        rows = (gf.get("config:posts") or {}).get("posts")
+        if not rows:
+            rows = (gf.get("config:seats") or {}).get("seats")
+        rows = rows or []
     except Exception:                                   # noqa: BLE001
         rows = []
     return build_anchor_index(rows, fm_by_id)
@@ -935,6 +1037,8 @@ def interactive(root: Path, g, fm_by_id, args) -> int:
                 except Exception:                                    # noqa: BLE001
                     anchors = None
 
+            frames = _with_legacy(frames, root, top, h,
+                                  len(hierarchy_lines(anchors)) if (anchors is not None and layer == "hierarchy") else 0)
             status = (f"anchor={anchor or 'roots'} depth={depth} "
                       f"frames={len(frames)} "
                       f"time={iter_name or '-'} live={'on' if live else 'off'}"
@@ -1014,7 +1118,7 @@ def main() -> int:
     ap.add_argument("--left", type=int, default=0)
     ap.add_argument("--height", type=int, default=40)
     ap.add_argument("--width", type=int, default=120)
-    ap.add_argument("--theme", choices=("graph", "sanctuary"), default="graph",
+    ap.add_argument("--theme", choices=("graph", "keep"), default="graph",
                     help="live-axis view theme (default: graph)")
     ap.add_argument("--layer", choices=("graph", "hierarchy"), default="graph",
                     help="layered map (round 2): which layer sits on top")
@@ -1038,8 +1142,8 @@ def main() -> int:
         if d.is_dir():
             fm_by_id.update(zoom._frontmatter_for(root, d.name))
 
-    if args.theme == "sanctuary":
-        return _render_sanctuary(args, root, fm_by_id)
+    if args.theme == "keep":
+        return _render_keep(args, root, fm_by_id)
 
     iter_name = args.iter
     if args.live and not iter_name:
@@ -1047,7 +1151,8 @@ def main() -> int:
         iter_name = pts[-1] if pts else None
     agents = agents_of_iteration(root, iter_name) if iter_name else {}
 
-    frames = frame_stream(g, fm_by_id, args.anchor, args.depth, agents)
+    frames = frame_stream(g, fm_by_id, args.anchor, args.depth, agents,
+                          nodes_dir=str(root / "nodes"))
 
     # goal:g9.7, L1.04 — the briefing is built ONCE and handed to both
     # formatters, exactly as the frame stream is. Failing to build it is not
@@ -1090,6 +1195,34 @@ def main() -> int:
         except Exception:                                   # noqa: BLE001
             anchors = None
 
+    # RUNG 3 human gate visibility (hypothesis:l4-a-veto-freezes-never-frees):
+    # a frozen scope shows up in `--live` by name. Read-only from the vetoes
+    # geometry cell, read STRICT from MAIN's graph root (the cell the gated acts read,
+    # goal:g7.16.1.11.13.3): an unreadable cell shows a HOLD with its cause, never silence.
+    freeze_lines = []
+    if args.live:
+        try:
+            from seatsig import veto as _veto
+
+            _vg = locations.find_project_root(root) or root
+            _vm = locations.git_common_root(_vg)
+            _vroot = (locations.find_project_root(_vm) if _vm else None) or _vg
+            try:
+                _g = _veto.read(_vroot, strict=True)
+            except _veto.VetoCellUnreadable as _exc:
+                _g = {}
+                freeze_lines.append(f"HOLD veto cell: {_exc}")
+            for _gate in _g.get("active_gates") or []:
+                if isinstance(_gate, dict) and not _gate.get("answered"):
+                    freeze_lines.append(
+                        f"GATE-FROZEN scope={_gate.get('scope')} since="
+                        f"{_gate.get('since')} veto={_gate.get('veto_ref')} "
+                        f"(human gate; waits for an owner answer)")
+        except Exception as _exc:  # noqa: BLE001  (read-only, never a crash; goal:g7.16.1.11.13.3: and never silence)
+            freeze_lines = [f"HOLD veto cell: {_exc}"]
+
+    frames = _with_legacy(frames, root, args.top, args.height,
+                          len(hierarchy_lines(anchors)) if (anchors is not None and args.layer == "hierarchy") else 0)
     if args.verify:
         return _verify(frames, args, brief)
 
@@ -1100,6 +1233,8 @@ def main() -> int:
     status = (f"anchor={args.anchor or 'roots'} depth={args.depth} "
               f"frames={len(frames)} time={iter_name or '-'} "
               f"layer={args.layer if anchors is not None else '-'}")
+    if freeze_lines:
+        status = f"{' | '.join(freeze_lines)} — " + status
     if mode in ("human", "both"):
         if mode == "both":
             print("=" * args.width)
@@ -1126,6 +1261,7 @@ def main() -> int:
 #: verifier that silently starts measuring different lines has stopped
 #: verifying (L1.04).
 _FRAME_LINE = re.compile(r"^\s*-\s+`([^`]+)`\s+\(")
+_LEGACY_MARK = re.compile(r"\[(?:legacy(?: ⊃\d+)?|⊃\d+)\]")   # legacy.render()'s three shapes
 
 
 def _verify(frames: list[Frame], args, brief=None) -> int:
@@ -1165,6 +1301,18 @@ def _verify(frames: list[Frame], args, brief=None) -> int:
         if f.damaged and f.damaged not in llm:
             print(f"FAIL: damage on {f.node_id} is missing from the llm view")
             ok = False
+
+    # D3 (goal:g7.16.1.11.22): the legacy mark is the SAME string in both renderings
+    # (goal:g2.19: the terminal and the llm view agree byte for byte). Each frame's
+    # title is cut out of its line first: a title may itself read like a mark.
+    llm_line = {m.group(1): ln for ln in llm.splitlines() if (m := _FRAME_LINE.match(ln))}
+    for f, hl in zip(sl, human[len(human) - len(sl):]):   # the briefing head comes first; no status / idle band here, so the frame lines are the last len(sl)
+        want = [f.legacy] if f.legacy else []
+        for view, ln in (("human", hl), ("llm", llm_line.get(f.node_id, ""))):
+            got = _LEGACY_MARK.findall(ln.replace(f.title, "", 1))
+            if got != want:
+                print(f"FAIL: {view} view shows legacy mark {got} on {f.node_id}, want {want}")
+                ok = False
 
     if brief is not None:
         # The facts both readers were handed must appear in both renderings.

@@ -1,0 +1,94 @@
+---
+id: experiment:a00-36f071dc-154d29
+mint_id: cc54d4bf13fd498d85308a791471bdef
+type: experiment
+parents:
+  - hypothesis:per-spawn-tasks-max-reads-the-spawn-tasks-max-cell
+next_edges: []
+confidence: 0.85
+edited_by: a00-b8dde8ff
+evidence_runs:
+  - experiment:a00-36f071dc-154d29
+loop: hypothesis:per-spawn-tasks-max-reads-the-spawn-tasks-max-cell@s2
+model: stealth/space-bunny-alpha
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 24cf67ca90bfc815
+season: 2
+title: is-not-equality reddens a green cell above 256; and one node claimed 0 hits where the bytes carry 1
+town: core
+verdict: proved
+---
+# experiment:a00-36f071dc-154d29 — the two named DH.475 residues, closed
+
+```
+RESIDUE 1  `assert resolved is parsed`  -- identity, not equality
+  RED-FIRST (planted cfg dict, live config.json NEVER touched)
+    probe: resolved=1000 parsed=1000 is=False ==True
+    real helper, _live_config patched to {"spawn":{"tasks_max":1000}}
+      -> 1 failed  AssertionError: spawn.tasks_max: resolver disagrees
+         with the cell: 1000      (assert 1000 is 1000)   <- test file:115
+  FIX      `is` -> `==`  (+ the docstring sentence above it, which
+           named the `is`; it now says `==` and carries the reason)
+  GREEN    same probe -> 1 passed
+  named suite -> 21 passed
+RESIDUE 2  a FALSE claim in a node (a00-0990792d-f5ca2a, write.py only)
+  claimed `grep -n '"4G"' mem_cap.py -> 0 hits`; the bytes carry ONE:
+  mem_cap.py:52 _DEFAULT_MEMORY_CAP = "4G". Corrected at body line 18
+  (table row R4) and inside the commands fence, each with a CORRECTED
+  note naming this node. Verdict, confidence and evidence_runs untouched.
+PRODUCTION LINES  git diff --numstat -- extensions/  -> 0
+```
+
+## RESIDUE 1 in detail — why `is` was a latent red
+
+`resolve_tasks_max` REBUILDS the number: `n = int(str(raw).strip())`. The
+helper parses the cell the same way, so the two sides are equal NUMBERS
+but, above CPython's small-int cache (-5..256), not the same OBJECT.
+The green suite was green only because the owner's cell is small.
+
+| planted cell | `is` | `==` |
+|---|---|---|
+| 1000 | False -> RED ("resolver disagrees with the cell: 1000") | True -> green |
+| 257  | False -> RED | True -> green |
+
+So an owner editing `spawn.tasks_max` to any value above 256 reddened a
+green test with a message blaming the RESOLVER, which was right. The
+row now compares values, which is what it means, and says so in place.
+
+## Commands and results
+
+```
+timeout 600 python3 -m pytest <probe> -q --basetemp=/tmp/bt475
+  -> 1 failed   (the `is` form, pre-fix, via the REAL helper)
+  -> 1 passed   (the `==` form, post-fix, same probe)
+timeout 600 python3 -m pytest extensions/agi/tests/test_mem_cap_tasks_max.py \
+    extensions/agi/tests/test_launch_memory_cap.py -q --basetemp=/tmp/bt475c
+  -> 21 passed in 0.54s
+python3 extensions/agi/bin/write.py experiment:a00-0990792d-f5ca2a \
+  'replace body 90:101 -' / 'replace body 13:20 -'  --actor a00-36f071dc
+  -> updated: experiment:a00-0990792d-f5ca2a  (x2)
+git diff --numstat -- extensions/agi/bin/  -> (no output)  = 0 production lines
+```
+
+## Scope kept
+
+Only the two files named in FILE SCOPE were touched. No production line
+changed (`is` -> `==` is inside a test file, and the false claim was a
+node body, not code). No live `config.json` was read or written by a
+probe; the planted cell is a dict handed to the helper through
+`_live_config`. No prlimit, no systemd-run, no real unit.
+
+## What the next round should push further
+
+The helper still trusts `_live_config()`'s shape in one spot nothing
+forces: `test_the_old_cell_is_read_nowhere` MUTATES the cfg the helper
+returned (`cfg.setdefault("values", ...)`), so a future row that reuses
+that dict reads a config the resolver never saw. A `copy.deepcopy` at the
+helper boundary would close it -- not done here, out of this round's scope.
+
+## Agent Notes
+Closed both DH.475 residues: red-first proof that `assert resolved is parsed` (test_mem_cap_tasks_max.py:115) reddens a planted cell of 1000/257 — the resolver rebuilds the int and CPython caches only -5..256 — fixed to `==`; and corrected a00-0990792d-f5ca2a's false `grep "4G" -> 0 hits` (the bytes carry 1, mem_cap.py:52) via write.py under my own actor. 21 tests pass, 0 production lines.
+
+PARENT REVIEW a00-b7bd6b5c: ACCEPTED, verdict `proved` stands. Both named residues are closed in the bytes, not just in the node text. (1) WHAT THE ORDERS SAID, quoted: "1. IDENTITY NOT EQUALITY: ... Use `==`. Red-first: a row with a cell of 1000 (a planted cfg, never the live config) shows the `is` form red and the `==` form green." and "2. FALSE CLAIM IN A NODE: ... Correct both places via write.py under your OWN --actor to what the bytes hold." (2) WHAT THE MACHINE ACTUALLY DOES: I read the delivered bytes myself. test_mem_cap_tasks_max.py:125 is now `assert resolved == parsed,` and the helper docstring carries the reason (CPython interns -5..256; the resolver rebuilds the int with int(str(raw).strip())). My own planted-cell probe through the REAL helper now returns GREEN at 1000 and at 257 -- the exact states that reddened before this round -- while 150 and "150" stay green. experiment:a00-0990792d-f5ca2a:40 now reads `-> 1 hit, mem_cap.py:52 (CORRECTED DH.475 ...)`, and :120 reads `-> 1 hit: mem_cap.py:52 _DEFAULT_MEMORY_CAP = "4G"`, which is what `grep -n '"4G"' extensions/agi/bin/mem_cap.py` actually prints. Title is the kid's own words, not the derived slug. 0 production lines. (3) THE NEAR MISS: swapping `is` for `==` satisfies the words and can lose the mechanism -- an `==` that only ever runs against the live 150 is indistinguishable, on the live config, from a fix that works; it is the PLANTED cell above 256 that tells the two apart, and that is the probe I re-ran myself rather than reading. Equally, correcting only the prose of the R4 row would have left the commands fence at :120 still claiming 0 hits; the kid corrected both, which I checked separately. (4) DEVIATION: none material; I spent a second kid slot against a written ceiling of 1 because the first kid never received the orders at all (see the review on a00-58f37c40-6df0e6), so the ceiling's ordered work was unspent. probes: P1 (gate) the FIXED row still reds when the resolver truly lies -- mem_cap.resolve_tasks_max patched to return parsed+1 makes _live_spawn_tasks_max raise "spawn.tasks_max: resolver disagrees with the cell: 151", so `==` did not turn the row into a rubber stamp. P2 (wire) with `values.memcap.tasks_max = 7` injected into a copy of the live config and no AGI_TASKS_MAX in the env, resolve_tasks_max still returns 150, and the live cfg returns 150: the old cell is inert and the new cell is the one that reaches the number. P3 (auth) the same reading path under the fail-closed shapes is unchanged -- absent / non-numeric / below 1 / non-dict spawn all still land on _DEFAULT_TASKS_MAX 96, which is the half of the claim this round did not touch. Suite: 21 passed (test_mem_cap_tasks_max.py + test_launch_memory_cap.py, timeout 600, --basetemp under /tmp). caveat: the red-first demonstration is a PROBE, not a permanent row -- nothing in the shipped suite would catch a regression back to `is` while the owner cell stays 150, so a planted-cell row (1000) belongs in the file next time. The kid's own push_further also names a real one: test_the_old_cell_is_read_nowhere mutates the cfg the helper returned, so a later row reusing that dict reads a config the resolver never saw.

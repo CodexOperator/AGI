@@ -125,7 +125,7 @@ class DBLoader:
         inner_graph, nested = _parse_subgraph_body(body, parent_id=node.id, registry=None)
         return LoadedNode(node=node, body=body, subgraph=inner_graph, nested_loaded=nested)
 
-    def load_directory(self) -> tuple[Graph, list[LoadedNode]]:
+    def load_directory(self, resolve=None) -> tuple[Graph, list[LoadedNode]]:
         """Load all nodes from the DB into a Graph.
 
         Returns (graph, list_of_loaded_nodes) — same contract as loader.load_directory().
@@ -141,6 +141,8 @@ class DBLoader:
             if not g.has_node(ln.node.id):
                 g.add_node(ln.node)
                 loaded.append(ln)
+        from .loader import resolve_parents   # goal:g4.18.6.3.1: the one post-pass
+        resolve_parents(g, loaded, resolve)
         return g, loaded
 
     def save_graph(self, g: Graph, loaded_nodes: Iterable[LoadedNode]) -> None:

@@ -1,18 +1,45 @@
 ---
 name: config
+written_by: [owner, prime_director]   # list-shaped; links.parse_written_by reads a list (L4.50 flip)
+self_row: {list_key: seats, match_key: name, fields: [session_ref, session_name, session_id, generation, window, pid, pubkey, sig_scheme, enc_scheme, key_history, session_label]}  # g15.25 (hypothesis:l4-the-gui-session-label...): session_label added = the row's OWN _session_label string, written by the spawn row write beside session_name; the cell never touches any other field. L4.110 prime ruling B + L4.114 r3: a seated non-prime role may update ONLY its own seat row (the one whose `name` it resolved from) and ONLY these fields; role/model/tier/harness/effort/owning_goal/worktree/rotated_by stay prime/owner-only and a write touching any of them is refused whole. Driven generically by write.py `_enforce_written_by` from THIS declaration. r3 added session_id (the successor's session uuid) and pid (its process), both supplied by the L4.114 registry JOIN; the row write records source in the rotation record, never here. pubkey/sig_scheme/enc_scheme/key_history added hypothesis:l4-every-live-row-is-keyed...: a seated seat writes its own signing cells via `send.py keygen` (self-row), the prime writes other rows via `keygen --all-live`, and key_history records rotations. session_name (hypothesis:l4-a-post-row-carries-a-session-name-cell...): the harness registry NAME the registry JOIN resolved (e.g. agi-d7), '' when the join did not resolve or no join ran; written by the spawn row write and the ack back-fill so send.py whois can address a seat by that name — F3's SendMessage-by-ref join key, never the session uuid (which lives in session_id). list_key FOLLOWS the geometry_config resolver (hypothesis:l4-a-seat-is-a-post-everywhere): it is `seats` in THIS window — the live node is still `.geometry/seats.md` bearing a `seats:` list until the migration renames it — and becomes `posts` (config:posts) after that rename. write._load_seats already reads through the resolver, so old/new row comparison stays correct regardless of which spelling the live file uses.
+actor_rows:  # hypothesis:l4-the-formation-owner-writes-config-posts-rows-and-the-town-master-cell-through-a-schema-declared-actor-row-grant-never-a-role-literal: write.py resolves EVERY entry for the actor's RESOLVED seat name: a `list_key`+`match_key` entry grants create/set/retire on that row list (deny_roles names rows by their `match_key` value; a field/op outside the grant refuses BY NAME), a `field` entry grants one top-level cell. The legacy `master_sensei_row` below stays readable; its behaviour is MIGRATED here as the first entry.
+  - {actor: master-sensei, list_key: templates, role_field: id, fields: [startup, telemetry], deny_roles: [prime_director]}
+  - {actor: sanctuary-master, list_key: posts, match_key: name, fields: [town, quiet, status, role, tier, model, effort, rotated_by, harness, settings, box, worktree], ops: [create, set, retire], deny_roles: [kid, parent]}  # `worktree` added SM.123 slice 5 (sanctuary-master 05:2xZ 09-19): seating cells (box, worktree) are the master's to write, never a post's own (owner 14:5xZ 09-18 + 01:0xZ 09-19); the quick-migrate receive tick resolves ITS actor from this grant. self_row/SELF_ROW_PROTECTED untouched -- a post still never re-seats itself (L4.110 ruling B).
+master_sensei_row: {actor: master-sensei, list_key: templates, role_field: id, fields: [startup, telemetry], deny_roles: [prime_director]}  # PRIME RULING 2026-09-11 (hypothesis:write-guard-carve-out-for-master-sensei-templates): the master-sensei seat may write config:rotations `templates` (startup + telemetry per role) and the `## facts` body section for EVERY role EXCEPT prime_director, without dm-and-wait. `brief_file` and `steps` of any template stay prime/owner-only, refused BY NAME. Every resolved first_turn/after_join cmd in the written value must pass rotate's startup producing judge (`rotate._producing_refusal`), so a Sensei cannot land an entry the executor would refuse. One generic rule in write.py `_enforce_written_by`, the regions as DATA here (the self_row pattern).
+town_cell: {field: town, match_key: name, list_keys: [posts, seats], accepted_from: ladder.towns, also_accepted: [core], overrides: {belam: sanctuary, sanctuary-master: sanctuary, master-sensei: sanctuary, sanctuary-director: sanctuary, sensei-director: sanctuary, sanctuary-helper: sanctuary, adv-self-perpetuating: sanctuary, adv-all-is-one: sanctuary, adv-alive: sanctuary, policy-master: sanctuary, all-is-one: sanctuary, self-perpetuating: sanctuary, alive: sanctuary}}  # goal:g15.25 SM.32 (hypothesis:l4-the-keep-and-director-rows-carry-their-real-town-cell...): the row `town` cell's accepted vocabulary is the ladder's declared `towns:` plus `core`; a write that CHANGES the cell to any other value (notably the retired `all`) is refused WHOLE by name (write.py `_town_cell_refusal`), judged on the NEW value only, so a row still spelling `town: all` stays readable and an unrelated write (session_name, pid, ...) is never refused. `overrides` is the TRANSITIONAL map readers use while the Prime's 0a cell lines land one per row at each post's next rotation boundary (`towns.row_town`); a declared cell always wins over an override, and a pair is deleted once that row's real cell lands. Kept as DATA, not code, on purpose: `test_no_literal_town.py` forbids a literal town name in any `bin/*.py`.
 structural: true
+spawn:  # belam gen 21, 2026-09-30, on SM's ask (g7.33.20.3 D1 made config register): the live cells hang off 1-2 goal/hypothesis parents (census = goal:g7.16.1.1.6.1); writers stay the written_by ring above
+  allowed_parents: [goal, hypothesis]
+  min_parents: 1
+  max_parents: 2
 derived_from: read-2026-08-25 from lib/find-root.sh, bin/level3.py, bin/grid.py
 fields:
   locations: {type: dict}            # role -> {path, derivation, declared_in}
   config_marker_names: {type: list}  # what makes a directory a project
   discovery: {type: dict}            # how the graph root is found
   required_keys: {type: list}        # env keys a project cannot run without
+  required_any: {type: list}         # list of key groups; any one present satisfies the group
   optional_keys: {type: list}        # env keys it will use if present
   forbidden_keys: {type: list}       # env keys that must never be set
-  seats: {type: list}                # hypothesis:l3w4-seat-registry — one row per active seat:
+  seats: {type: list}                # config:seats (deprecated spelling, one season) / config:posts. The row list is resolved post-first by extensions/agi/bin/geometry_config.py (hypothesis:l4-a-seat-is-a-post-everywhere): `posts.md`/`posts:` is the primary; `seats.md`/`seats:` is the deprecated alias accepted in THIS window, so the live node may keep `seats:` until the migration renames it. One row per active seat:
                                       # {name, role, tier, harness, model, effort, settings,
                                       #  session_kind, personality_ref, handoff_file, pin_ref,
-                                      #  rotated_by, owning_goal, worktree, session_ref}.
+                                      #  rotated_by, owning_goal, worktree, session_ref,
+                                      #  pubkey, sig_scheme, enc_scheme, key_history,
+                                      #  template, town}. `template` is the role template
+                                      #  node ref that beats `brief.templates[<role>]` for
+                                      #  this row's role. `town` is the row's REAL town; its
+                                      #  accepted vocabulary and the transitional
+                                      #  overrides are the `town_cell` declaration
+                                      #  above (goal:g15.25).
+                                      #  pubkey/sig_scheme/enc_scheme/key_history (hypothesis:l4-
+                                      #  every-live-row-is-keyed...): the seat's signing/encryption
+                                      #  cells. pubkey <hex> and the scheme names are written by
+                                      #  `send.py keygen` to its own row (enc_scheme: none today);
+                                      #  key_history is a list of {pub, fp, from, to, rotated_by_sig}
+                                      #  records of retired keys (declared here; the reader half is
+                                      #  a later round). A row write carrying them passes the write
+                                      #  guard because they are self_row fields.
                                       #  `worktree` (added hypothesis:l3w4-hierarchy-one-source,
                                       #  goal:g17): the seat's git worktree path relative to
                                       #  graph_root, empty string for a seat that runs in the main
@@ -29,6 +56,10 @@ fields:
                                       #  shows it any more than it can know its own pin transcript
                                       #  before claiming it) -- write it via the seat's own report
                                       #  to its rotator, never guessed by a third party.
+  posts: {type: list}                # config:posts — the post-first spelling of the same row list
+                                      # (hypothesis:l4-a-seat-is-a-post-everywhere). Accepted in
+                                      # this window so a fixture/post-migration node validates;
+                                      # the live node stays `seats:` until the migration runs.
 validation:
   required: [locations]
   types:
@@ -36,9 +67,11 @@ validation:
     config_marker_names: list
     discovery: dict
     required_keys: list
+    required_any: list
     optional_keys: list
     forbidden_keys: list
     seats: list
+    posts: list
 
 # ===========================================================================
 # The three filesystem facts, and the three places each is defined today.
@@ -65,7 +98,7 @@ discovery:
 
 locations:
   graph_root:
-    role: "the graph repo -- GOALS.md, agi-tree.config.json, nodes/"
+    role: "the graph repo -- agi-tree.config.json, nodes/"
     derivation: ancestor-walk-for-marker
     path: "<dir containing agi-tree.config.json>"
     declared_in:
@@ -165,19 +198,6 @@ locations:
       ref. Adding, retiring or re-explaining a key is a version; changing a
       value is not.
 
-  goals_file:
-    role: "where snapshot-goals.py --render writes the goal document"
-    derivation: config-else-layout-default
-    config_key: goals_file                 # bare name | relative path | absolute
-    path: "<repo_root>/GOALS.md if .agi layout else <graph_root>/GOALS.md"
-    declared_in:
-      - "extensions/agi/bin/locations.py :: goals_path"
-      - "extensions/agi/bin/snapshot-goals.py :: GOALS_MD"
-    note: >-
-      A bare name goes to the repo root, never inside .agi/ -- the one document
-      a human opens first must not be hidden in a dot directory. An override
-      also settles the drop-in collision: a repo that already ships its own
-      GOALS.md sets goals_file and keeps both.
 ---
 
 # config
@@ -194,8 +214,8 @@ absent. That is one real read path, which is the bar G10.2 sets.
 
 **`bin/locations.py` (goal:g11) is the second, and it is the one that starts
 collapsing the duplication this file was written to document.** It reads
-`locations.source_root` and `goals_file` from the project config and owns
-`find_project_root`, `repo_root`, `source_root` and `goals_path` for the whole
+`locations.source_root` from the project config (its goals-file cell retired, goal:g7.16.1.4.1) and owns
+`find_project_root`, `repo_root` and `source_root` for the whole
 Python side. `lib/find-root.sh` is its bash half and implements the same phase
 order; `tests/test_locations.py::test_bash_and_python_agree` fails if the two
 drift.
@@ -203,15 +223,14 @@ drift.
 **What is collapsed, and what is not.** Before G11 the ancestor walk existed
 eleven times — ten `CONFIG_NAMES`-plus-walk copies under `bin/`
 (`benchmark.py`, `cli.py`, `dispatch.py`, `metrics.py`, `post_wire.py`,
-`render-context.py`, `snapshot-build-site.py`, `snapshot-goals.py`,
+`render-context.py` (retired, L1.05), `snapshot-build-site.py`, `snapshot-goals.py`,
 `spawn_gate.py`, `zoom.py`), plus `lib/find-root.sh`. That shell file is not
 one of the residuals — it is the deliberate bash half of the same rule,
 cross-checked against `locations.py` by `test_bash_and_python_agree` rather
-than trusted to agree on faith. `snapshot-goals.py` is a half-case: it already
-calls `locations.goals_path()` but still declares its own `CONFIG_NAMES` and
-`config_path()`, so it counts as one of the ten residuals despite already
-being a consumer of the new resolver. The other nine still carry their own
-copy untouched. That residual is tracked as `goal:g11.1`. `engine_root` also
+than trusted to agree on faith. `snapshot-goals.py` was a half-case (its
+goals_path() call retired with GOALS.md, goal:g7.16.1.4.1); its `config_path` is now
+a re-export (`config_path = locations.config_path`, snapshot-goals.py:75), so it carries no copy of
+its own. The other nine still carry their own copy untouched. That residual is tracked as `goal:g11.1`. `engine_root` also
 remains defined twice in Python with two different index arithmetics, off by
 one because `level3.py` counts from a directory and `grid.py` counts from a
 file — a second, separate duplication class, out of `goal:g11.1`'s scope.
@@ -284,8 +303,7 @@ rewritten from scratch on each change, not accumulated.
   scalar `thought_session:` is reserved there for goal:g2.7 / goal:g10.1 to
   point at the chat that produced a version; it is not populated yet.
 - **Readers strip it.** Thought is provenance to zoom into, not weight every
-  reader carries forever. `snapshot-goals.py --render` strips it explicitly via
-  `strip_thought()`; `render-context.py` and `zoom.py` never see it because
-  they read frontmatter only (`load_node_file(..., body=False)`) and so carry
-  no body text at all. The rule binds any future reader that *does* read
-  bodies.
+  reader carries forever. `brief.py` strips it from every body it renders via
+  `node_writer.strip_thought()`; `zoom.py` never sees it because it reads
+  frontmatter only (`load_node_file(..., body=False)`). The rule binds any
+  future reader that *does* read bodies.

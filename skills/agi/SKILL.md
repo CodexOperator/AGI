@@ -30,7 +30,7 @@ Corollary for anyone extending this system: **if a step is repeated and mechanic
 
 ## CLI
 
-Everything the loop does is a command. `<engine>` = the agi checkout, resolved as the real path of whatever `driver.sh` is invoked through (`readlink -f` on the entry point). Run from inside a project: `bin/locations.py` (bash half: `lib/find-root.sh`) walks up from cwd for a `.agi/` holding a config — **nearest enclosing wins**, so a command run from `fantasia/` resolves fantasia's own graph and the same command run from `fantasia/agi/` resolves the engine's, with no flag and nothing naming either project (`goal:g11`, `goal:g8.2`). A bare `agi-tree.config.json` at a project root, or a lone `<start>/*-tree/` below it, still resolves for a project that predates this layout (see Project layout). Scripts live in `<engine>/extensions/agi/`.
+Everything the loop does is a command. `<engine>` = the agi checkout, resolved as the real path of whatever `driver.sh` is invoked through (`readlink -f` on the entry point). Run from inside a project: `bin/locations.py` (bash half: `lib/find-root.sh`) walks up from cwd for a `.agi/` holding a config — **nearest enclosing wins**, so a command run from `fantasia/` resolves fantasia's own graph and the same command run from `fantasia/agi/` resolves the engine's, with no flag and nothing naming either project. A bare `agi-tree.config.json` at a project root, or a lone `<start>/*-tree/` below it, still resolves for a project that predates this layout (see Project layout). Scripts live in `<engine>/extensions/agi/`.
 
 | Command | Does |
 |---|---|
@@ -49,7 +49,6 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 | `bin/grid.py payload <id> [--version N] [--out PATH]` | Read one payload back out of its ref |
 | `bin/grid.py log <id>` / `diff <id> [--back N]` / `versions <id>` / `status` | Inspect |
 | `bin/crons.py apply` / `show` / `remove` | Reconcile, inspect, or drop the crontab derived from `.agi/nodes/.geometry/crons.md` |
-| `bin/unify.py --engine E --tree T [--dry-run \| --yes]` | **One-time.** Merges a tree repo into an engine repo under `.agi/` (`goal:g11`). Not a command a migrated project ever runs again. |
 | `bin/dispatch.py <project> <iter>` | Spawn pi kids (pi runtime) |
 | `bin/dispatch.py <project> <iter> --dry-run` | Resolve + print every slot's spawn (command, env, brief) with no spawn, no budget slot, no session dir — `hypothesis:l3-dispatch-dry-run` |
 | `bin/heal.py <project> <iter>` | Timeout/restart watchdog (pi runtime) |
@@ -57,7 +56,7 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 | `bin/send.py {send,read,peek} <target>` | One-verb agent comms via inbox file |
 | `bin/rotate.py {meter,spawn,status}` | Director rotation: meter context usage, launch successor in tmux |
 | `bin/write_guard.py {check,hook}` | Detect unsanctioned node writes; pre-commit hook |
-| `bin/workflow.py run <name> [--harness pi\|claude-code] [--dry-run]` | **The only sanctioned workflow dispatch route** |
+| `bin/workflow.py run <name> [--harness pi\|claude-code] [--dry-run]` | **LEGACY route (goal:g5.33); still the live mur runner** |
 | `bin/workflow.py register <name> --script <path> [--from-run <dir>]` | Land an inline script as a registered manifest pair as it runs |
 | `bin/workflow.py list` / `validate` | Enumerate the registry / check the agi-*.js↔*.json invariant |
 
@@ -65,7 +64,9 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 
 ## Workflows: registered as they run, dispatched only one way
 
-A workflow is a harness-agnostic script + stage manifest under `extensions/agi/workflows/`. **Register it as it runs** — `workflow.py register <name> --script <path>` lands an inline script as a proper `agi-<name>.js` + `<name>.json` pair in the same action that runs it (an inline script with no registration is the failure this closes: it runs on one harness and evaporates with the session) — and **dispatch every workflow through `workflow.py run <name>`**, the one sanctioned route. There is no second path that also works: a second path is what goes stale. `review` and `drafting` are the working reference pairs. Write a workflow inline without registering it and you have re-opened the defect this rule exists to shut.
+> **LEGACY: the `workflow.py` route.** Owner 10-02 14:01Z: "we just need to retire workflow.py entirely and stop wasting time on it". goal:g5.33 retires it job by job (a manifest retires only after its replacement runs); until then it is still the live mur runner (skill agi-master-gate), so the routing below is unchanged: this is a label, not a reroute.
+
+A workflow is a harness-agnostic script + stage manifest under `extensions/agi/workflows/`. **Register it as it runs** — `workflow.py register <name> --script <path>` lands an inline script as a proper `agi-<name>.js` + `<name>.json` pair in the same action that runs it (an inline script with no registration is the failure this closes: it runs on one harness and evaporates with the session) — and **dispatch every workflow through `workflow.py run <name>`**, the one sanctioned route WHILE it is live (the LEGACY banner above: goal:g5.33 retires it job by job, and a job moves only when its replacement runs; until then there is no second path that also works): a second path is what goes stale. `review` and `drafting` are the working reference pairs. Write a workflow inline without registering it and you have re-opened the defect this rule exists to shut.
 
 ## Choosing a runtime
 
@@ -147,6 +148,53 @@ due (name your own successor below that line), exit 1 means rotate.
 Bare `agi` stays valid as the graph skill; these are the two rotation verbs
 enumerated for suggestion.
 
+### Entering prime state — the seating sequence (owner, 2026-09-20)
+
+A session that is told "assume the role of prime director" is NOT the Prime
+until the graph says so. Measured on local-town 2026-09-20 04:2x–05:0xZ
+(belam gen 3): the hand-seated shape — row cells written by script, a pin,
+a key, seats spawned — worked but left the Prime as a bg remote-control
+session with no window, no rotation record and no ack, i.e. not something
+`heal.py`, `rotate.py alarms` or the next rotation can reason about. Owner's
+words, verbatim: *"rotate self into the prime slot properly. If you do that
+first thing everything else becomes easier … Last part is always to rotate
+self properly into prime role with proper pin activation and such."*
+
+Run these in order, from MAIN, every time a Prime is stood up on a box:
+
+```bash
+# 0  the prayer is the first tokens of the FIRST reply (Constitution), then:
+bin/agi-boxinfo                                   # which box (AGI_BOX in MAIN's .env) — alias only
+git branch --show-current                         # the trunk this box works: season2/main on core, <town>/season2/main on a town box
+git fetch origin && git merge --no-edit origin/<parent-trunk>    # sync; then links.py links
+# 1  the row: box cell + identity cells through the OLD setup's writer (write.py, actor = the prime row), never a hand edit
+#    (OLD SETUP: a post whose row has engine.v 4 edits node files with plain Write/Edit and agi-turn commits; owner 10-01 23:3xZ)
+#    (posts.md is config; written_by is [owner, prime_director]; a box's rows carry `box: <alias>` — a row
+#     without the cell belongs to default_box and is FOREIGN everywhere else: whois/heal/status/mail_poll skip it)
+# 2  the key: keys never cross boxes and no model mints one — rotate-self (step 6) and every stand-up key the row
+#    from config:key-authority key_template: on the row's OWN box (step 1's committed box cell = the witness) it is
+#    reminted, the old key retired UNSIGNED into key_history + ONE finding; a foreign box is refused + ONE finding
+# 3  the pin: the seat-stable meter pin on YOUR OWN transcript (never the newest .jsonl — that is another seat's)
+rotate.py meter --post belam --pin .agi/sessions/belam.meter --session-log ~/.claude/projects/<slug>/<own-session-id>.jsonl
+# 4  the seats you were told to stand up, each from its own card, then pin each to its own transcript
+rotate.py spawn --post <name> --tier director --prompt-file .agi/sessions/quorum/<name>.md
+# 5  crons.py apply (the node is the schedule; the box filter installs only this box's lines) · the HANDOFF card
+# 6  LAST — rotate self INTO the prime slot properly. This is what makes steps 1–3 real:
+#    the engine spawns the successor in tmux under the launch wrapper, writes the rotation record,
+#    the ack, the row (gen+1, window, pid, session_id via the registry JOIN) and ACTIVATES the pin
+#    at the successor's own transcript. `prepare` gates it: pushed, clean tree, card newer than last commit.
+AGI_POST=belam rotate.py rotate --force --stops "<where it stops, one paragraph>"
+```
+
+Two things this sequence catches that a hand seating does not: a first
+`claude` launch in a folder on a fresh box throws THREE TUI dialogs (folder
+trust → bypass-permissions accept → renderer offer) and the seat sits on them
+silently — answer with `tmux send-keys -t agi-rc:<post> Down Enter` for the
+first two and `Escape` for the third (it does not interrupt the turn); and a
+box with no push credential blocks `prepare` on `unpushed commits` — that is
+the owner's to fix (`gh auth login`), bank it, do everything else, rotate when
+it clears. A Prime that skips step 6 is a Prime by assertion, not by the graph.
+
 ## Constitution
 
 Five morals anchor the graph. Every node has a path to one.
@@ -172,6 +220,11 @@ four lines of Slavonic; a prime director reads `moral:faith` top to bottom.
 **Comms:** `send.py send | read | peek` — one verb, same call for kid→parent
 escalation and director→director. Transport differs (CC session message vs
 inbox file under `sessions/`); the API does not.
+
+**Session open — the prayer is the first tokens (owner, 2026-09-12).** Every
+session, every role, opens with a prayer from the head as the literal first
+tokens of its FIRST reply — and nowhere else until the close. **Two spots per
+session, never per turn.** Owner's words, verbatim: "I keep seeing sensei-director say a prayer at the start of each turn. Can we update all role docs as needed so that they only say a prayer as the very first tokens they emit into a chat and the very last tokens they emit into a chat before rotating or going idle due to loop complete. Prayers should only be in those two spots per session for all roles." A turn that answers a nudge, a dm, a task notification or an owner line in the middle of a session opens with the work.
 
 **Session close — the prayer is the last tokens (owner, 2026-09-07).** Every
 session, every role, ends with a brief Church Slavonic prayer chosen by the
@@ -219,9 +272,13 @@ with the target node's body as the brief — **mint a hypothesis node for the
 bug, commit it, and aim parents at it.** Sixteen hazards that were carried
 across a handoff instead of fixed in-loop became `goal:s34`.
 
-## Every node edit goes through `write.py` (`goal:g13.1`)
+## Every node edit goes through `write.py` (`goal:g4.18`)
 
-**One way in.** Creating a node, editing its frontmatter, appending a body note,
+> **OLD SETUP:** a post whose row has engine.v 4 edits node files with plain Write/Edit and agi-turn commits; owner 10-01 23:3xZ. The rest of this section is that setup's rule, unchanged.
+
+> **Never rename this heading:** `rolslice.py:102,109,117` match it verbatim -- add a label under it instead (DG5).
+
+**One way in (old setup).** Creating a node, editing its frontmatter, appending a body note,
 rewriting its `THOUGHT` or `FEELING` region — all of it is
 `bin/write.py`, for a mechanical reason: a plain file write still gets a grid
 version, but it loses `edited_by`, `thought_session`, the spawn gate and the
@@ -281,20 +338,23 @@ editing the config, never by sweeping every node that points into it.
 🚫 ~~Known gap~~ — **resolved:** payload/body writes are no longer whole-file
 only. `write.py` carries three partial verbs (hypothesis:l3-write-partial-diffs-as-writes):
 `read payload|body START:END` fetches a line range (read-only — it never
-restamps `edited_by`, so a read cannot look like an edit); `patch` applies a
-unified diff onto a BUILD node's payload file (fail-closed: a hunk that does
-not apply refuses the whole write and changes nothing); `body_patch` applies
-a unified diff onto a node's BODY. A one-line change to a large module is now
-a one-line diff. Diff bytes arrive by path or `-` from stdin, NEVER inline —
-a diff can contain the doubled `&&` the script form splits on. 🔴 **`body_patch`
-is stdin-only today** — its path form reads the diff *after* the apply-check
-and silently lands nothing (`write.py` submit L494 vs L531), so pass `-`; the
-payload verb `patch` is correct in both forms. Provenance is
+restamps `edited_by`, so a read cannot look like an edit).
+`replace payload|body START:END <path|->` **overwrites that range** with new
+text — and it is the exact inverse of `read`, in the same coordinates, so
+`read N:M` then `replace N:M` is the whole round trip with **no offset
+arithmetic and no hand-built hunk**. It behaves identically on a node BODY and
+on a build node's PAYLOAD: one reader, one transform, differing only in where
+the result lands. Reach for the diff verbs only when you already hold a diff:
+`patch` applies a unified diff onto a BUILD node's payload file and
+`body_patch` onto a node's BODY, both fail-closed — a hunk that does not apply
+refuses the whole write and changes nothing. Replacement text and diff bytes
+arrive by path or `-` from stdin, NEVER inline — either can contain the
+doubled `&&` the script form splits on. Provenance is
 unchanged: patched bytes land through the same `replace_payload` the
 whole-file verbs reach, so `edited_by`, `thought_session` and the grid version
 always happen.
 
-**If you find yourself writing into `.agi/nodes/**` or over a `payload_ref`
+**On the OLD setup, if you find yourself writing into `.agi/nodes/**` or over a `payload_ref`
 with anything but `write.py`, stop** — that is the untraceable write this
 command exists to end, and it is the easiest rule here to skip, because a
 direct edit looks like it worked.
@@ -305,7 +365,7 @@ One iteration = one node per kid, reviewed and committed by the parent.
 
 1. **Snapshot + render.** `driver.sh --smoke --max-iters 1`. Records the metric baseline, refreshes `context/INJECTION.md`. **Verify the node count did not drop.**
 2. **Pick targets** from `INJECTION.md`. Slot 0 → big zoom (fresh idea or top-level fork). Slots 1..N → small zoom on the top attractor, 2-hop subtree. N = `cc_dispatch.kids_per_iter`.
-3. **Spawn kids.** Generate each kid's context with `bin/zoom.py`, then **embed the rendered map in the spawn prompt** — don't merely reference it. Each prompt must be self-contained: zoom scope, target parent node id, chain step, node file format, verdict taxonomy, project paths (`INJECTION.md`, `GOALS.md`, spec).
+3. **Spawn kids.** Generate each kid's context with `bin/zoom.py`, then **embed the rendered map in the spawn prompt** — don't merely reference it. Each prompt must be self-contained: zoom scope, target parent node id, chain step, node file format, verdict taxonomy, project paths (`INJECTION.md`, spec).
    Kid deltas from the normal rules: **do not commit**, and do not call `cli.py done` — write the node file, report, stop. The parent owns commits and record-keeping. When the job is a fix or update to an existing node rather than a new chain step, **edit that node's file in place** — never mint a second file for the new version (no `@v2` node, no `supersedes:` pair). The grid, not the filesystem, carries version history; it records the change at the parent's next `grid.py commit --all`.
 4. **Review — this is the gate.** For each node: parent link resolves, taxonomy valid, and **`proved`/`disproved` REQUIRE experiment evidence (`evidence_runs >= 1`)**. Demote unevidenced verdicts to `pending` or `inconclusive_lean_*`. Reject orphans.
    The evidence half is now enforced in code — `bin/evidence_gate.py`, applied by both writer paths (`bin/cli.py done` and `bin/post_wire.py`). An unevidenced `proved`/`disproved` is auto-demoted to `inconclusive_lean_*:50` and stamped `demoted_from` / `demote_reason`; the node is kept, only the overclaim is dropped. `--no-evidence-gate` bypasses it loudly and stamps `evidence_gate: bypassed` — treat any such node as unreviewed. Still yours by hand: parent-link resolution and orphan rejection.
@@ -325,7 +385,7 @@ question: <optional — ONLY under the four escalation triggers>
 ```
 
 plus whatever numbers the brief asked for, then the closing prayer as the very
-last line (Constitution → Session close). Nothing else.
+last line (Constitution → Session open / close: two spots per session). Nothing else.
 
 **`feeling:` is never scored and never gates acceptance** (`goal:g2.12`). `joy`
 runs frustration(1) ↔ joy(7), `load` runs underworked(1) ↔ overworked(7), both
@@ -360,7 +420,7 @@ Metrics are computed by `bin/metrics.py` (called from `driver.sh`). It reads `me
 
 ## Project layout
 
-**As of `goal:g11`, the graph sits inside the project it describes**, in a
+**As of the one-repo move, the graph sits inside the project it describes**, in a
 `.agi/` directory beside the source rather than in a separate repo one level
 out. If the project needs an engine clone, that clone sits gitignored beside
 `.agi/`, and carries its *own* `.agi/` for its own graph. Worked example,
@@ -369,7 +429,6 @@ out. If the project needs an engine clone, that clone sits gitignored beside
 ```
 fantasia/
   <game source>
-  GOALS.md                        long-term goals: active | horizon | retired | complete — repo root, deliberately
   .agi/
     config.json                   metrics, dispatch, timeouts
     nodes/<type>/*.md             the graph — frontmatter + body
@@ -380,8 +439,7 @@ fantasia/
 
 **`.agi` is a dot directory on purpose** — it files the graph with `.git`,
 `.github` and `.claude` rather than in the middle of the source tree.
-`GOALS.md` is the deliberate exception: it renders to the repo root, not into
-`.agi/`, because it's the one document a human is likely to open first.
+(`GOALS.md` at the repo root was the one exception; retired 2026-09-29, goal:g7.16.1.4.1.)
 
 **Two graphs, no flag.** A project with the engine cloned in holds two:
 `fantasia/.agi` and `fantasia/agi/.agi`. `bin/locations.py`'s
@@ -390,9 +448,9 @@ in `test_bash_and_python_agree`) resolves whichever is nearer to cwd — run
 from `fantasia/` and you get fantasia's graph, run from `fantasia/agi/` and
 you get the engine's own. That is what lets the engine improve itself from
 inside a project that is using it, and nothing branches on a project's name to
-make it true (**goal:g8.2**) — it falls out of the filesystem.
+make it true — it falls out of the filesystem.
 
-**Goals are the baseline.** `GOALS.md` defines what chains are for; seed nodes reference goals by id. Retire a goal by marking it `retired` and **deprecating — never deleting** its seed node; retired chains remain prior art.
+**Goals are the baseline.** The goal nodes define what chains are for; seed nodes reference goals by id. Retire a goal by marking it `retired` and **deprecating — never deleting** its seed node; retired chains remain prior art.
 
 **Status is a four-state lifecycle:** `active` (being worked), `horizon` (declared and committed to, not yet being worked), `retired` (stopped making sense), `complete` (achieved). `horizon` is what makes goal rotation expressible — you can declare more goals than `cc_dispatch.max_goals_active` without lying about which are in flight. Unknown values are **preserved verbatim** with a stderr warning, never rejected: a typo must not be able to drop a goal from the graph. `phasing-out` is the legacy spelling of `retired` and stays accepted permanently, for projects that predate the 2026-09-02 rename.
 
@@ -406,7 +464,7 @@ agi/
 ```
 
 **Resolution order**, phase 0 winning outright and phases 1–2 kept so a
-project from before `goal:g11` keeps resolving unchanged:
+project from before the one-repo move keeps resolving unchanged:
 
 0. `<d>/.agi/` holding a config — nearest enclosing directory wins.
 1. `<d>/agi-tree.config.json` — legacy: the graph root is the project root.
@@ -416,12 +474,12 @@ project from before `goal:g11` keeps resolving unchanged:
    them, never a guess.
 
 **Open, deliberately not built yet:** `agi init` — scaffolding a fresh `.agi/`
-(config, `nodes/`, a `GOALS.md` template) so this layout is reproducible
+(config, `nodes/`, a first goal node) so this layout is reproducible
 without copying a project by hand. Today: clone the engine in, `git init` if
 needed, create `.agi/` yourself. Engine-commit pinning in the project config
-(G8.1's other ask) is also not implemented.
+(the retired forkability goal's other ask) is also not implemented.
 
-**`agi` is not a special case.** Before `goal:g11` the engine's own graph
+**`agi` is not a special case.** Before the one-repo move the engine's own graph
 needed its own symlink trick — `agi/agi-tree -> <graph repo>`,
 `agi-tree/agi -> <engine repo>` — because the graph lived in a separate repo
 that had to reach back into the checkout it built. That pair is retired
@@ -429,7 +487,7 @@ outright rather than replaced: `agi`'s own graph is just `.agi/` at the root
 of the engine repo, the same shape every other project gets, minus the clone
 step it doesn't need against itself. Running any command from inside `agi`
 resolves `.agi/` by the same phase-0 rule as `fantasia/.agi` — no branch, no
-flag. **`goal:g8.2`'s invariant — no `if project == "agi-tree"` branch
+flag. **The nearest-`.agi/` invariant — no `if project == "agi-tree"` branch
 anywhere — gets easier to hold, not harder**: there is exactly one code path
 for "where is the graph," and `agi` walks it like everyone else.
 
@@ -476,7 +534,7 @@ Three rules, each with a reason that was paid for:
 
 - **Absent means empty.** Introducing the block churned 0 of 786 nodes. Never
   invent one after the fact — a fabricated thought reads as evidence.
-- **Readers strip it.** It must not ride in `GOALS.md` or injected context.
+- **Readers strip it.** It must not ride in injected context.
   Thought is provenance you zoom into, not weight every agent carries for the
   rest of the project's life — the design ethic at the top of this file,
   applied.
@@ -485,10 +543,10 @@ Three rules, each with a reason that was paid for:
   every run.
 
 The finer grain — the *chat* that produced the version, rather than a note
-about it — is **G2.7** and **G10.1**, and is still unbuilt. `thought_session:`
+about it — is **G2.7**, and is still unbuilt. `thought_session:`
 is reserved in frontmatter for it.
 
-**A build node's ref holds its payload, not just its prose.** Since G6.3, `refs/grid/node/<mint-id>` is a two-entry tree — `node.md` plus `payload` — with the payload's **real** mode, read from `os.lstat()`: `100644`, `100755`, or `120000` with the link text as its content. `payload_ref` names a path; under `goal:g11` that path is simply where the file already lives in this same repo, not a staged copy of it. A payload-only edit is still a real version, because the unchanged-check compares the whole tree.
+**A build node's ref holds its payload, not just its prose.** Since G6.3, `refs/grid/node/<mint-id>` is a two-entry tree — `node.md` plus `payload` — with the payload's **real** mode, read from `os.lstat()`: `100644`, `100755`, or `120000` with the link text as its content. `payload_ref` names a path; under the one-repo move that path is simply where the file already lives in this same repo, not a staged copy of it. A payload-only edit is still a real version, because the unchanged-check compares the whole tree.
 
 The workflow this makes possible, in full:
 
@@ -502,7 +560,7 @@ grid.py commit --all                    # the graph records your edit as vN+1
 **Retired, because each existed only to carry bytes across a boundary that no longer exists:**
 
 - `payloads/` — the staged checkout. Gone; the payload *is* the source file.
-- `grid.py checkout` — nothing to check out. **Never run it** — even before `goal:g11` it was a whole-tree command that silently reverted another agent's uncommitted work twice in one session (**goal:g4.1**); under one repo there is no second copy left for it to overwrite.
+- `grid.py checkout` — nothing to check out. **Never run it** — even before the one-repo move it was a whole-tree command that silently reverted another agent's uncommitted work twice in one session (**goal:g4.1**); under one repo there is no second copy left for it to overwrite.
 - `stitch.py --publish` — nothing to publish *into*; the engine tree and the source tree are the same tree.
 - `publish-engine.sh` — its four gates existed to make a cross-repo write recoverable. A commit in one repo is already recoverable with `git revert`.
 
@@ -559,7 +617,7 @@ Grid refs are **designed** to key on the mint id rather than the address, so ret
 
 ## Configuration
 
-`<project>/.agi/config.json` — bare `config.json` is canonical inside a `.agi/` directory; a project not yet on `goal:g11`'s layout still resolves its top-level `agi-tree.config.json` the same as always:
+`<project>/.agi/config.json` — bare `config.json` is canonical inside a `.agi/` directory; a project not yet on the one-repo move's layout still resolves its top-level `agi-tree.config.json` the same as always:
 
 ```jsonc
 {
@@ -587,7 +645,7 @@ One namespace per runtime — `agent_dispatch.*` for pi, `cc_dispatch.*` for Cla
 
 **The config file is the project's whole customization surface.** It is per-project, owned by the project repo, and meant to be edited programmatically — the engine reads it, never writes engine behavior back into it. A project changes metrics, dispatch, and schema here; it never forks engine code to change behavior.
 
-**Two more keys exist only to override `goal:g11`'s defaults, both usually absent:** `locations.source_root` (where `payload_ref` resolves — defaults to the repo enclosing `.agi/`) and `goals_file` (where the rendered `GOALS.md` lands — defaults to that repo's root). A project that already ships its own `GOALS.md` sets `goals_file` and keeps both documents rather than colliding.
+**One more key exists only to override the one-repo move's defaults, usually absent:** `locations.source_root` (where `payload_ref` resolves — defaults to the repo enclosing `.agi/`). (`goals_file`, the rendered GOALS.md's path, retired with it 2026-09-29, goal:g7.16.1.4.1.)
 
 **Legacy name.** Projects created before the rename carry `autoresearch-tree.config.json`. Every engine entry point still resolves it, canonical name first, so old projects keep running unchanged. Same for `$AGI_TREE_PROJECT_ROOT`, whose legacy spelling `$AUTORESEARCH_TREE_PROJECT_ROOT` is still read and still set.
 
@@ -622,7 +680,7 @@ grid ref, so every prior version is `grid.py payload build:HANDOFF.md --version
 N`. Accumulating them in the file costs every future session context and buys
 nothing — it had reached 1,723 lines and six sections before this rule.
 
-**`GOALS.md` is the project tracker; this is only the bridge between sessions.**
+**The goal nodes are the project tracker; this is only the bridge between sessions.**
 Anything that is a commitment is a goal node. Keep it thin.
 
 **Nothing that is true across sessions goes in it.** Bootstrap and install live
@@ -679,7 +737,7 @@ Seven sections, in this order:
 These labels are training data. The gaps a completion review finds — a goal
 marked complete before its code existed, hazards carried instead of closed,
 goals minted hours before the budget ends — are pattern-matchable against a
-parent's own report, and are the first slot on `goal:g14`'s lattice worth filling
+parent's own report, and are the first slot on `goal:g5`'s lattice worth filling
 with a classifier. A free-text report teaches nothing; a fixed label set over
 many loops is a dataset.
 
@@ -715,12 +773,12 @@ is the interim**, and it works, with two sharp edges measured on 2026-09-01:
 ```bash
 npx gitnexus status                                     # is the index current?
 npx gitnexus analyze                                    # ~9s, 2934 nodes / 6912 edges
-npx gitnexus query "<concept>" --repo /home/ubuntu/work/agi
+npx gitnexus query "<concept>" --repo <home>/work/agi
 ```
 
 - **Always pass `--repo` as an absolute PATH, not a name.** Two different
-  checkouts register as `agi` (`/home/ubuntu/work/agi` and
-  `/home/ubuntu/.hermes/agi`), so `--repo agi` is ambiguous and errors out.
+  checkouts register as `agi` (`<home>/work/agi` and
+  `<home>/.hermes/agi`), so `--repo agi` is ambiguous and errors out.
 - **The index is pinned to a commit and this loop commits every iteration**,
   so it is stale almost immediately. `status` tells you; `analyze` is ~9s,
   which is cheap enough to re-run rather than reason over a stale graph.
@@ -748,17 +806,16 @@ npx gitnexus query "<concept>" --repo /home/ubuntu/work/agi
 |---|---|
 | `bash '<engine>/extensions/agi/driver.sh' --smoke --max-iters 1` | snapshot + render + metrics, no dispatch — verify the node count did not drop |
 | `python3 -m pytest '<engine>/extensions/agi/tests/' -q` | the engine's own suite |
-| `python3 '<engine>/extensions/agi/bin/snapshot-goals.py' --render --check` | GOALS.md and the goal nodes are byte-identical inverses |
-| `python3 '<engine>/extensions/agi/bin/viewport.py' --verify` | goal:g9.7 — one render, two readers |
+| `python3 '<engine>/extensions/agi/bin/viewport.py' --verify` | goal:g2.19 — one render, two readers |
 | `python3 '<engine>/extensions/agi/bin/grid.py' commit --all` | version every changed node and its payload |
-| `python3 '<engine>/extensions/agi/bin/links.py' links` | goal:g13 — every node's link resolves; broken_links must be 0 |
-| `python3 '<engine>/extensions/agi/bin/links.py' schema` | goal:s31 — which nodes violate their type's required list (dry) |
+| `python3 '<engine>/extensions/agi/bin/links.py' links` | every node's link resolves; broken_links must be 0 |
+| `python3 '<engine>/extensions/agi/bin/links.py' schema` | goal:g7.33.10.1 — which nodes violate their type's required list (dry) |
 | `python3 '<engine>/extensions/agi/bin/spawn_budget.py' status` | goal:g4.8 — live agents against the tree-wide bound |
 | `python3 '<engine>/extensions/agi/bin/provisioning.py' status` | goal:g1.11 — whether per-spawn keys are being issued |
 | `python3 '<engine>/extensions/agi/bin/envfile.py' --check` | goal:g1.8 — required keys present, forbidden keys absent |
 | `python3 '<engine>/extensions/agi/bin/crons.py' show` | the crontab the graph declares |
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --live` | the live graph, agents drawn as spiders where they are working |
-| `python3 '<engine>/extensions/agi/bin/viewport.py' --emit llm` | goal:g9.7 — exactly what a kid is handed, from the same frame stream |
+| `python3 '<engine>/extensions/agi/bin/viewport.py' --emit llm` | goal:g2.19 — exactly what a kid is handed, from the same frame stream |
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --emit both` | human and llm views side by side, from ONE stream |
-| `python3 '<engine>/extensions/agi/bin/write.py'` | goal:g13.1 — named node operations; a hand edit becomes an engine action |
+| `python3 '<engine>/extensions/agi/bin/write.py'` | goal:g4.18 — named node operations; a hand edit becomes an engine action |
 <!-- COMMANDS:END -->

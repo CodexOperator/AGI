@@ -8,6 +8,7 @@ this script implements.
 
 import ast
 import importlib.util
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -1044,3 +1045,260 @@ def test_mint_missing_only_dry_run_writes_nothing_and_reports_zero(project, engi
     assert r.returncode == 0
     assert "nothing to mint" in r.stdout
     assert _tot_build_nodes(project) == before
+
+
+def test_refuses_a_rootless_project_path_by_name(tmp_path):
+    """goal:g15, hypothesis:l4-stitch-and-level3-project-resolve-the-graph-
+    root-or-refuse-by-name-and-verify-prints-its-count — a `--project` path
+    that resolves to no graph root (no `.agi/` at or above, no `nodes/` at
+    the path) is REFUSED by name, exit 2 — never scanned as an empty tree
+    that then prunes authoritative scope."""
+    nowhere = tmp_path / "nowhere"
+    nowhere.mkdir()
+    engine = tmp_path / "engine"
+    (engine / "extensions" / "agi" / "bin").mkdir(parents=True)
+    (engine / "extensions/agi/bin/a.py").write_text("import os\n")
+    subprocess.run(["git", "init", "-q"], cwd=engine, check=True)
+    r = run(nowhere, engine, "--dry-run")
+    assert r.returncode == 2
+    assert f"no graph root at or above {nowhere}" in r.stderr
+    assert "no .agi/ and no nodes/" in r.stderr
+
+
+
+def _run_nof_flag(cwd: Path, *args,
+                  env_remove=("AGI_PROJECT_ROOT", "AGI_TREE_PROJECT_ROOT",
+                              "AUTORESEARCH_TREE_PROJECT_ROOT")):
+    """Run level3.py with NO `--project` flag, env overrides stripped, from
+    `cwd` — the spelling that used to fall back to the raw cwd."""
+    cmd = [sys.executable, str(BIN), *args]
+    env = {k: v for k, v in os.environ.items() if k not in env_remove}
+    return subprocess.run(cmd, cwd=str(cwd), capture_output=True,
+                          text=True, env=env)
+
+
+def test_nof_flag_default_refuses_a_rootless_cwd_by_name(tmp_path):
+    """goal:g15, hypothesis:l4-level3-no-flag-default-refuses-a-rootless-cwd-
+    and-the-sl7-25-body-names-its-missing-and-orphan-counts — with no
+    `--project` and no env override, a run started in a rootless directory
+    (no `.agi/` at or above, no `nodes/` here) is REFUSED by name, exit 2,
+    exactly like the `--project` spelling — never scanned as an authoritative
+    `<cwd>/nodes` tree whose stray output later feeds the next scan."""
+    rootless = tmp_path / "rootless"
+    rootless.mkdir()
+    engine = tmp_path / "engine"
+    (engine / "extensions" / "agi" / "bin").mkdir(parents=True)
+    (engine / "extensions/agi/bin/a.py").write_text("import os\n")
+    subprocess.run(["git", "init", "-q"], cwd=engine, check=True)
+    r = _run_nof_flag(rootless, "--dry-run", "--engine-root", str(engine))
+    assert r.returncode == 2, r.stderr
+    assert f"no graph root at or above {rootless}" in r.stderr
+    assert "no .agi/ and no nodes/" in r.stderr
+
+
+def test_nof_flag_run_from_inside_a_project_resolves_its_nearest_agi(tmp_path):
+    """Without `--project` or env, a run whose cwd is inside a project
+    resolves that project's own graph root (`<repo>/.agi`) through the same
+    resolver the flag uses — it does not misfire into a stray tree."""
+    proj = tmp_path / "proj"
+    (proj / ".agi" / "nodes" / "build").mkdir(parents=True)
+    (proj / ".agi" / "config.json").write_text('{"id": "test-proj"}\n')
+    engine = tmp_path / "engine"
+    (engine / "extensions" / "agi" / "bin").mkdir(parents=True)
+    (engine / "extensions/agi/bin/a.py").write_text("import os\n")
+    subprocess.run(["git", "init", "-q"], cwd=engine, check=True)
+    subprocess.run(["git", "add", "-A"], cwd=engine, check=True)
+    r = _run_nof_flag(proj, "--dry-run", "--engine-root", str(engine))
+    assert r.returncode == 0, r.stderr
+    assert f"target dir: {proj / '.agi' / 'nodes' / 'build'}" in r.stdout
+
+
+def test_nof_flag_default_refuses_a_rootless_env_root_by_name(tmp_path):
+    """goal:g15, hypothesis:l4-level3-checks-the-env-spelled-root-by-name-
+    exactly-as-it-checks-the-cwd-leg — an env override (`AGI_TREE_PROJECT_ROOT`)
+    pointing at a directory that is NOT a project root is REFUSED by name, exit
+    2, naming the variable and its value — never accepted unchecked and scanned
+    as an authoritative stray tree. Cwd is a real project so the cwd leg alone
+    would resolve; the refusal must blame the env spell, proving the env leg
+    did not bypass the resolve-or-refuse check the cwd leg already has — and
+    the refusal must NOT print the false cwd clause `no .agi/ and no nodes/`
+    (hypothesis:l4-level3s-env-refusal-...): the cwd is a real project here,
+    so only the env failed."""
+    imposter = tmp_path / "imposter"
+    imposter.mkdir()
+    proj = tmp_path / "proj"
+    (proj / ".agi" / "nodes" / "build").mkdir(parents=True)
+    (proj / ".agi" / "config.json").write_text('{"id": "test-proj"}\n')
+    engine = tmp_path / "engine"
+    (engine / "extensions" / "agi" / "bin").mkdir(parents=True)
+    (engine / "extensions/agi/bin/a.py").write_text("import os\n")
+    subprocess.run(["git", "init", "-q"], cwd=engine, check=True)
+    env = {k: v for k, v in os.environ.items()
+           if k not in ("AGI_PROJECT_ROOT", "AGI_TREE_PROJECT_ROOT",
+                        "AUTORESEARCH_TREE_PROJECT_ROOT", "PROJECT_ROOT")}
+    env["AGI_TREE_PROJECT_ROOT"] = str(imposter)
+    cmd = [sys.executable, str(BIN), "--dry-run", "--engine-root", str(engine)]
+    r = subprocess.run(cmd, cwd=str(proj), capture_output=True, text=True,
+                       env=env)
+    assert r.returncode == 2, r.stderr
+    assert f"env AGI_TREE_PROJECT_ROOT={imposter}" in r.stderr
+    assert "does not resolve to a project root" in r.stderr
+    assert "no .agi/ and no nodes/" not in r.stderr
+
+
+def test_nof_flag_env_subdir_of_project_refuses_by_name(tmp_path):
+    """goal:g15, hypothesis:l4-level3s-env-refusal-and-env-root-ascent-agree-
+    with-the-docstring — an env override naming a SUBDIR of a real project
+    (e.g. `<root>/extensions`, which holds no `.agi/` and no `nodes/`) is
+    REFUSED by name, exit 2, because accepting it would ASCEND to the enclosing
+    project root against `locations.project_root_from_env`'s docstring. Only a
+    value that is ITSELF a project root is accepted."""
+    proj = tmp_path / "proj"
+    (proj / ".agi" / "nodes" / "build").mkdir(parents=True)
+    (proj / ".agi" / "config.json").write_text('{"id": "test-proj"}\n')
+    (proj / "extensions").mkdir()
+    engine = tmp_path / "engine"
+    (engine / "extensions" / "agi" / "bin").mkdir(parents=True)
+    (engine / "extensions/agi/bin/a.py").write_text("import os\n")
+    subprocess.run(["git", "init", "-q"], cwd=engine, check=True)
+    env = {k: v for k, v in os.environ.items()
+           if k not in ("AGI_PROJECT_ROOT", "AGI_TREE_PROJECT_ROOT",
+                        "AUTORESEARCH_TREE_PROJECT_ROOT", "PROJECT_ROOT")}
+    subdir = proj / "extensions"
+    env["AGI_TREE_PROJECT_ROOT"] = str(subdir)
+    cmd = [sys.executable, str(BIN), "--dry-run", "--engine-root", str(engine)]
+    r = subprocess.run(cmd, cwd=str(proj), capture_output=True, text=True,
+                       env=env)
+    assert r.returncode == 2, r.stderr
+    assert f"env AGI_TREE_PROJECT_ROOT={subdir}" in r.stderr
+    assert "does not resolve to a project root" in r.stderr
+
+
+def test_nof_flag_env_naming_graph_root_itself_resolves(tmp_path):
+    """goal:g15, hypothesis:l4-level3s-env-refusal-and-env-root-ascent-agree-
+    with-the-docstring — the DESCENT case is preserved: `AGI_TREE_PROJECT_ROOT`
+    naming the graph root itself (`<root>/.agi`) is ITSELF a project root
+    (holds `nodes/`), so it resolves and the run writes there, even from a
+    rootless cwd."""
+    proj = tmp_path / "proj"
+    (proj / ".agi" / "nodes" / "build").mkdir(parents=True)
+    (proj / ".agi" / "config.json").write_text('{"id": "test-proj"}\n')
+    rootless = tmp_path / "rootless"
+    rootless.mkdir()
+    engine = tmp_path / "engine"
+    (engine / "extensions" / "agi" / "bin").mkdir(parents=True)
+    (engine / "extensions/agi/bin/a.py").write_text("import os\n")
+    subprocess.run(["git", "init", "-q"], cwd=engine, check=True)
+    subprocess.run(["git", "add", "-A"], cwd=engine, check=True)
+    env = {k: v for k, v in os.environ.items()
+           if k not in ("AGI_PROJECT_ROOT", "AGI_TREE_PROJECT_ROOT",
+                        "AUTORESEARCH_TREE_PROJECT_ROOT", "PROJECT_ROOT")}
+    graph_root = proj / ".agi"
+    env["AGI_TREE_PROJECT_ROOT"] = str(graph_root)
+    cmd = [sys.executable, str(BIN), "--dry-run", "--engine-root", str(engine)]
+    r = subprocess.run(cmd, cwd=str(rootless), capture_output=True, text=True,
+                       env=env)
+    assert r.returncode == 0, r.stderr
+    assert f"target dir: {graph_root / 'nodes' / 'build'}" in r.stdout
+
+
+
+
+
+def test_nof_flag_default_resolves_a_valid_env_root(tmp_path):
+    """goal:g15, hypothesis:l4-level3-checks-the-env-spelled-root-by-name-
+    exactly-as-it-checks-the-cwd-leg — a valid env root resolves exactly as
+    before: `AGI_TREE_PROJECT_ROOT` naming a real project resolves to that
+    project's graph root and the run writes there, while a rootless cwd would
+    have been refused. The env override is honoured, not regressed."""
+    proj = tmp_path / "proj"
+    (proj / ".agi" / "nodes" / "build").mkdir(parents=True)
+    (proj / ".agi" / "config.json").write_text('{"id": "test-proj"}\n')
+    rootless = tmp_path / "rootless"
+    rootless.mkdir()
+    engine = tmp_path / "engine"
+    (engine / "extensions" / "agi" / "bin").mkdir(parents=True)
+    (engine / "extensions/agi/bin/a.py").write_text("import os\n")
+    subprocess.run(["git", "init", "-q"], cwd=engine, check=True)
+    subprocess.run(["git", "add", "-A"], cwd=engine, check=True)
+    env = {k: v for k, v in os.environ.items()
+           if k not in ("AGI_PROJECT_ROOT", "AGI_TREE_PROJECT_ROOT",
+                        "AUTORESEARCH_TREE_PROJECT_ROOT", "PROJECT_ROOT")}
+    env["AGI_TREE_PROJECT_ROOT"] = str(proj)
+    cmd = [sys.executable, str(BIN), "--dry-run", "--engine-root", str(engine)]
+    r = subprocess.run(cmd, cwd=str(rootless), capture_output=True, text=True,
+                       env=env)
+    assert r.returncode == 0, r.stderr
+    assert f"target dir: {proj / '.agi' / 'nodes' / 'build'}" in r.stdout
+
+
+# --- bundle 4 W2c (director-general-2)
+# GREEN since goal:g4.18.6.3.3 (level3.read_mvp_map keeps a mint id as written)
+def test_w2c_mvp_map_accepts_a_mint_id_like_an_address(tmp_path):
+    f = tmp_path / "mvp-map.txt"
+    f.write_text("bin/ | mvp:engine-bin\n")
+    addr = l3.mvp_parent_for("bin/x.py", l3.read_mvp_map(f))
+    f.write_text("bin/ | " + "c" * 32 + "\n")   # the mint must be an mvp's (goal:g4.18.6.3.3 corrective)
+    write_node(tmp_path, "mvp/engine-bin.md", {"id": "mvp:engine-bin", "type": "mvp", "mint_id": "c" * 32})
+    assert addr == "mvp:engine-bin" and l3.mvp_parent_for("bin/x.py", l3.read_mvp_map(f, tmp_path))
+
+
+def test_w2cc_mint_missing_only_drops_a_map_mint_that_is_no_mvp(project, engine, tmp_path):
+    write_node(project, "mvp/bin.md", {"id": "mvp:bin", "type": "mvp", "mint_id": "e" * 32, "title": "t"})
+    write_node(project, "goal/g.md", {"id": "goal:g", "type": "goal", "mint_id": "f" * 32, "title": "t"})
+    m, seen = tmp_path / "mvp-map.md", []
+    for mint in ("e" * 32, "f" * 32, "0" * 32):   # an mvp's mint, a goal's mint, no node's mint
+        m.write_text(f"extensions/agi/bin/ | {mint}\n")
+        r = run(project, engine, "--mint-missing-only", "--mvp-map", str(m), "--dry-run")
+        seen.append((r.returncode, f"parent {mint}" in r.stdout))
+    assert seen == [(0, True), (0, False), (0, False)], seen
+
+
+def test_w2cc_read_mvp_map_keeps_an_off_shape_mvp_mint_as_its_address_twin(tmp_path):
+    off = "mint-XYZ-not-hex"   # no ':' and no 32-hex shape -- carried as `mint_id:` by an mvp; a goal's is dropped
+    write_node(tmp_path, "mvp/engine-bin.md", {"id": "mvp:engine-bin", "type": "mvp", "mint_id": off})
+    write_node(tmp_path, "goal/g.md", {"id": "goal:g", "type": "goal", "mint_id": "mint-goal-not-hex"})
+    f, seen = tmp_path / "mvp-map.md", []
+    for ref in ("mvp:engine-bin", off, "mint-goal-not-hex", "mint-none"):
+        f.write_text(f"bin/ | {ref}\n")
+        seen.append(l3.read_mvp_map(f, tmp_path))
+    assert seen == [[("bin/", "mvp:engine-bin")], [("bin/", off)], [], []], seen
+
+
+# --- bundle 4 W2d-b (director-general-2) -- goal:g4.18.6.4.2
+@pytest.mark.xfail(strict=True, reason="bundle 4 W2d-b: RED until DG3 builds "
+                   "level3's parent address -> mint_id resolve (level3.py:1127)")
+def test_b4_w2db_build_node_parent_is_the_census_ideas_mint_id(project, engine):
+    run(project, engine)
+    mint = fm_of(project / "nodes" / "idea" / "engine-graph-core.md")["mint_id"]
+    _path, fm = level3_nodes(project)["build:src-graph-core-node"]
+    assert identity.is_valid_mint_id(mint) and fm["parents"] == [mint]
+
+
+# --- bundle 4 W2c re-scope C (director-general-2) -- goal:g4.18.6.3.3
+def _w2cc_twin(tmp_path, mint: bool):  # vision:v <- goal:g, experiment:e; links as addresses or mint ids
+    ids = {"vision:v": "a" * 32, "goal:g": "b" * 32, "experiment:e": "c" * 32}
+    ref, root = (lambda a: ids[a] if mint else a), tmp_path / ("mint" if mint else "addr")
+    for nid, par in (("vision:v", ""), ("goal:g", "vision:v"), ("experiment:e", "")):
+        t, s = nid.split(":")
+        (root / "nodes" / t).mkdir(parents=True, exist_ok=True)
+        (root / "nodes" / t / f"{s}.md").write_text(f"---\nid: {nid}\nmint_id: {ids[nid]}\ntype: {t}\n"
+                                                    f"parents: [{ref(par) if par else ''}]\n---\n")
+    (root / "sd").mkdir()
+    (root / "sd" / "[shape].md").write_text("---\nparentless_types: [moral]\nmax_parents_ceiling: 2\n---\n")
+    (root / "sd" / "[hypothesis].md").write_text("---\nname: hypothesis\nspawn: {allowed_parents: [goal], "
+                                                 "min_parents: 1, max_parents: 1}\n---\n")
+    return root, ref("goal:g"), [ref("experiment:e")]
+
+
+# GREEN since goal:g4.18.6.3.3 (spawn_gate + evidence_gate read mint ids through links.resolving)
+def test_w2cc_gates_pass_a_mint_id_parent_exactly_as_its_address_twin(tmp_path):
+    import evidence_gate as eg, spawn_gate as sg  # bin/ is on sys.path via level3.py:88
+    seen = []
+    for mint in (False, True):
+        root, gp, ev = _w2cc_twin(tmp_path, mint)
+        nd, rules = root / "nodes", sg.load_spawn_rules(root / "sd", root=root)
+        seen.append((sg.check_spawn("hypothesis", [gp], rules=rules, type_index=sg.build_type_index(nd)).status,
+                     sg.nearest_vision(nd, [gp]), eg.normalize_evidence_runs(ev, corpus=eg.build_corpus(nd)),
+                     len(eg.evidence_runs_violations(ev, eg.build_corpus(nd)))))
+    assert seen[0] == ("approved", ("vision:v", "core"), 1, 0) and seen[1] == seen[0], seen

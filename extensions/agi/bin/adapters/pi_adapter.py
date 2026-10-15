@@ -24,14 +24,21 @@ of the pi CLI, not of where the code sat:
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
+import adapters
 import brief
+import harness_template
 
 NAME = "pi"
 
-#: Fallback only. `harness["bin"]`, then $PI_BIN, then this.
-DEFAULT_BIN = "/home/ubuntu/.npm-global/bin/pi"
+#: Fallback only. `harness["bin"]`, then $PI_BIN, then this (a bare PATH
+#: name; `adapters.resolve_bin` consults PATH at resolve time).
+DEFAULT_BIN = "pi"
+
+#: The ONE override name; `harness_template._first_arg` reads it too.
+ENV_VAR = "PI_BIN"
 
 
 def resolve_bin(harness: dict) -> str:
@@ -39,9 +46,10 @@ def resolve_bin(harness: dict) -> str:
 
     Env-over-config is deliberate and is the pre-existing behaviour: $PI_BIN is
     how a machine with pi installed somewhere else runs the loop without
-    editing a tracked config file.
+    editing a tracked config file. The expansion/PATH/refusal logic lives
+    once, in `adapters.resolve_bin`.
     """
-    return os.environ.get("PI_BIN") or harness.get("bin") or DEFAULT_BIN
+    return adapters.resolve_bin(harness, ENV_VAR, DEFAULT_BIN)
 
 
 def model_args(harness: dict, tier: str) -> list[str]:
@@ -55,6 +63,8 @@ def model_args(harness: dict, tier: str) -> list[str]:
     harness. It never falls back to the other tier's model, because tiering the
     model is the entire point of having tiers -- a silent fallback would make a
     parent quietly run on the kid's cheap model and look like it worked.
+    This stays a flag-STRING deriver because `dispatch.pi_model_args` and
+    `heal.py` import it; the live spawn renders these flags from pi.toml.
     """
     args: list[str] = []
     provider = harness.get("provider")
@@ -78,6 +88,39 @@ def model_args(harness: dict, tier: str) -> list[str]:
     return args
 
 
+def _model_values(harness: dict, tier: str) -> dict[str, str]:
+    """`model_args` flags -> the provider/model/thinking render slots."""
+    it = iter(model_args(harness, tier))
+    return {flag.lstrip("-"): value for flag, value in zip(it, it)}
+
+
+def _append_prompt_args(*, context_file, segs, skill_prompt) -> list[str]:
+    """Named thin hook: the repeated --append-system-prompt entries, flattened.
+
+    A template element emits a flag once or spreads a pre-flattened list, but
+    cannot repeat a flag over a DYNAMIC list -- that is this one NAMED LIMIT.
+    The value is a PLAIN PATH (@ is read literally by pi, l3-pi-context-never-
+    delivered); survival drops the context entry (l3w4-context-load-minimal)."""
+    args = ([] if brief.survival_selected()
+            else ["--append-system-prompt", str(context_file)])
+    for seg in segs:
+        args += ["--append-system-prompt", seg]
+    if skill_prompt is not None and Path(skill_prompt).exists():
+        args += ["--append-system-prompt", str(skill_prompt)]
+    return args
+
+
+def _wrap_trajectory(inner: list[str], *, sess_dir: Path) -> list[str]:
+    """Named thin hook (conjunct 3): a command WRAPPER is not a TOML element --
+    none reorders an argv AROUND its bin. AGI_PI_TRAJECTORY_BYPASS=1 = bare pi."""
+    if os.environ.get("AGI_PI_TRAJECTORY_BYPASS"):
+        return inner
+    return [sys.executable,
+            str(Path(__file__).resolve().parent.parent / "pi_trajectory.py"),
+            "--wrapper", inner[0], str(sess_dir / "trajectory.jsonl"),
+            "--", *inner[1:]]
+
+
 def child_env(*, harness: dict, base: dict[str, str],
               tier: str | None = None) -> dict[str, str]:
     """The environment the pi process runs in.
@@ -89,7 +132,13 @@ def child_env(*, harness: dict, base: dict[str, str],
     obvious place to do it, and no caller has to ask which adapters have one.
     """
     extra = harness.get("env") or {}
-    return {**base, **{k: str(v) for k, v in extra.items()}}
+    env = {**base, **{k: str(v) for k, v in extra.items()}}
+    # hypothesis:l4-needs-credential-is-provider-gated -- the credential-none
+    # rule lives in ONE place (`adapters.drop_unneeded_credential`) and every
+    # child_env calls it, so this spawn path -- and the restart path that
+    # funnels through here -- applies the same rule as main dispatch.
+    return adapters.forward_named_env(
+        adapters.drop_unneeded_credential(env, harness), harness)
 
 
 def build_command(
@@ -124,6 +173,11 @@ def build_command(
     # site, which is what happened to the first tier-0 parent of wave 3.
     role: str | None = None,
     ladder_tier: int | None = None,
+    # hypothesis:l4-brief-resolves-g15-lineage-from-the-nearest-agi -- the
+    # project graph root the dispatcher resolved, threaded into the brief so
+    # the g15 build-order rule reads the project's `.agi`, not brief.py's own.
+    project_root: str | Path | None = None,
+    rendered_brief: str | None = None,  # dispatch's ONE render; None assembles here
 ) -> list[str]:
     """The argv that starts one pi agent."""
     # hypothesis:l3-pi-install-patch-not-durable -- the L3.38 edit-tool
@@ -149,43 +203,31 @@ def build_command(
         import sys as _sys
         print(_fg_detail, file=_sys.stderr)
 
-    args = [resolve_bin(harness)]
-    args += model_args(harness, tier)
-    # Headless: process the prompt and exit. Without this flag the prompt is
-    # fed to the interactive TUI, which hangs forever off a TTY (empty log).
-    args += ["-p"]
-    # pi loads a system-prompt file by PLAIN PATH: resolvePromptInput() is
-    # `existsSync(input) ? readFileSync(input) : input`. An `@` prefix fails
-    # the stat and pi appends the PATH STRING as literal text instead — so
-    # every pi agent ran without its rendered graph context, silently, until
-    # 2026-09-08 (hypothesis:l3-pi-context-never-delivered). Measured: 79
-    # bytes of pathname where a real kid's context.md was 16654 bytes.
-    # Survival profile (move FIVE, hypothesis:l3w4-context-load-minimal): the
-    # INJECTION graph stream is goal-listing/traps/history — exactly what
-    # survival drops. One switch (survival_selected reads AGI_BRIEF_PROFILE),
-    # so a survival seat pays ~0 for the map and reads it on demand instead.
-    if not brief.survival_selected():
-        args += ["--append-system-prompt", str(context_file)]
-    # goal:g1.9 -- the brief is assembled once, by tier, outside every harness.
-    # This adapter decides only how to SPELL a segment on pi's command line.
-    # It used to inline the kid brief here, which is why `--tier parent`
-    # selected the parent model correctly and then handed it a kid's job.
-    # hypothesis:l3w3-advisor-brief — `brief_tier` lets a spawn keep the
-    # model tier (parent) while assembling a different tier's brief (advisor).
     _btier = brief_tier or tier
     _sess = session_dir or sess_dir
-    for seg in brief.assemble(
-        tier=_btier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
-        dispatch_py=dispatch_py, scaffold=scaffold, target=target,
-        parallel=parallel, max_live=max_live, session_dir=_sess,
-        source_root=source_root, kid_ceiling=kid_ceiling,
-        addendum=addendum,
-    ):
-        args += ["--append-system-prompt", seg]
-    if skill_prompt is not None and Path(skill_prompt).exists():
-        args.extend(["--append-system-prompt", str(skill_prompt)])
-    args.append(brief.closing_line(_btier, agent_id, iter_n))
-    return args
+    # goal:g1.9 -- the brief is assembled once, by tier, outside every harness;
+    # this adapter only SPELLS a segment. hypothesis:l3w3-advisor-brief --
+    # `brief_tier` keeps the model tier while assembling another tier's brief.
+    prompt_args = _append_prompt_args(
+        context_file=context_file,
+        segs=([rendered_brief] if rendered_brief is not None
+              else brief.assemble(
+            tier=_btier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
+            dispatch_py=dispatch_py, scaffold=scaffold, target=target,
+            parallel=parallel, max_live=max_live, session_dir=_sess,
+            source_root=source_root, kid_ceiling=kid_ceiling,
+            addendum=addendum, project_root=project_root,
+        )),
+        skill_prompt=skill_prompt,
+    )
+    # hypothesis:harness-arg-builders-are-templates-only: argv is DATA (pi.toml).
+    inner = harness_template.render(
+        NAME, prompt=brief.closing_line(_btier, agent_id, iter_n,
+                                        cli_py=cli_py),
+        bin_path=resolve_bin(harness), extra_args=prompt_args,
+        **_model_values(harness, tier),
+    )
+    return _wrap_trajectory(inner, sess_dir=sess_dir)
 
 
 def is_alive(pid: int) -> bool:
@@ -261,6 +303,16 @@ def restart(
     max_live: int = 1,
     agent_record: dict | None = None,
     brief_tier: str | None = None,
+    # hypothesis:restart-carries-the-first-spawns-full-turn-and-identity --
+    # dispatch.py passes role=/ladder_tier= to EVERY adapter's build_command,
+    # and now to restart() too, so a pi restart must accept them or the seam
+    # TypeErrors. pi has no tool bundle, so they are accepted and unused.
+    role: str | None = None,
+    ladder_tier: int | None = None,
+    rendered_brief: str | None = None,
+    # hypothesis:every-adapter-restart-spawns-from-the-scrubbed-env --
+    # the base the child env is built from; None means dispatch's scrubbed env.
+    base_env: dict | None = None,
 ) -> int | None:
     """Re-spawn a dead agent. Returns new pid, or None on failure.
 
@@ -280,10 +332,12 @@ def restart(
         agent_id=agent_id, iter_n=iter_n, sess_dir=sess_dir,
         scaffold=scaffold, cli_py=cli_py, skill_prompt=skill_prompt,
         dispatch_py=dispatch_py, target=target, parallel=parallel,
-        max_live=max_live, brief_tier=brief_tier,
+        max_live=max_live, brief_tier=brief_tier, role=role,
+        ladder_tier=ladder_tier,
+        rendered_brief=rendered_brief,
     )
     log_file = sess_dir / "output.log"
-    env = child_env(harness=harness, base=dict(os.environ))
+    env = child_env(harness=harness, base=adapters.scrubbed_base(base_env))
     try:
         with open(log_file, "ab") as logf:
             proc = subprocess.Popen(
@@ -308,8 +362,17 @@ def restart(
 
 
 def needs_credential(harness: dict) -> bool:
-    """Pi agents authenticate through a minted OpenRouter key."""
-    return True
+    """Does this pi harness require a minted OpenRouter key?
+
+    Allowlist, not a provider check (hypothesis:l4-needs-credential-is-
+    provider-gated). A harness row that explicitly carries
+    ``credential: "none"`` authenticates through its own channel — e.g.
+    ``pi-local`` speaking to a `$0` local model — and must not be minted a
+    key it never uses. Every other row, including rows with an unknown or
+    absent provider and test fixtures with a placeholder provider, defaults
+    to True so the mint path stays exactly as wide as it was.
+    """
+    return harness.get("credential") != "none"
 
 
 def import_sys_stderr():

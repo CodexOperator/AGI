@@ -6,7 +6,7 @@ parents:
   - hypothesis:a01-3c5640a0-5c684c
 next_edges: []
 confidence: 0.7
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: c961d754b3ff42d9
 season: 1
 thought_session: season
@@ -74,7 +74,7 @@ env-get.sh resolved API_KEY? True prefix=sk-or-v1-537bbe7c...
 Full transcript of the verification:
 
 ```
-Real env file: /home/ubuntu/work/agi/.env
+Real env file: <home>/work/agi/.env
 Has PROVISIONING_KEY: True
 Has API_KEY: True
 

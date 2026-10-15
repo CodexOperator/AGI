@@ -3,13 +3,13 @@ id: hypothesis:l3w4-belam-predecessor-chain
 mint_id: 211bd8e822b94a088d64a6a5a3fb2253
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.13
 next_edges: []
-edited_by: belam-S1-L3-V
+edited_by: belam
 scaffold_hash: 2d882a2940d72e48
 season: 2
 testable_claim: "rotate.py status --chain lists every live belam-prefixed tmux window newest-first as an arrow chain with each row marked active or idle, using the existing _existing_windows() helper rather than cmd_status's own session-name filter (confirmed broken against the live server: tmux list-sessions returns agi-rc and fantasia-dev, matching neither the agi-master nor belam prefix check it applies); cmd_loop writes a new one-line sibling file .agi/sessions/<successor>.predecessor (never a second line inside the single-line .meter pin) naming the window it just rotated out of; send.py ask-predecessor <question> --as <own-window> dms the nearest live predecessor, walking exactly one link further per gone window and never blocking; and a guard test confirms no non-prime brief under extensions/agi/briefs/ carries the predecessor-chain rule that prime-director-successor.md alone states."
-thought_session: L3.27
+thought_session: dissolve-legacy-2026-09-19
 title: Wire the Belam predecessor chain
 ---
 <!-- BODY:BEGIN -->

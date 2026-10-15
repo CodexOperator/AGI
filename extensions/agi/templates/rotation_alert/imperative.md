@@ -1,0 +1,1 @@
+ROTATE NOW: (a) write the card wholesale now, (b) run python3 extensions/agi/bin/rotate.py rotate; nothing else this turn

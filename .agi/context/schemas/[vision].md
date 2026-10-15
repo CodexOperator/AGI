@@ -1,5 +1,6 @@
 ---
 name: vision
+written_by: [owner, prime_director]   # list-shaped; links.parse_written_by reads a list (L4.50 flip)
 derived_from: corpus-survey-2026-08-25 (n=17 as app_purpose); renamed app_purpose -> vision 2026-08-27; spawn block PRESCRIPTIVE from that date
 fields:
   title: {type: str}
@@ -10,6 +11,7 @@ fields:
   moral_adherence: {type: dict}  # one entry per moral parent: aligned | violated | unknown
   next_edges: {type: list}
   tags: {type: list}
+  nest: {type: str|list}      # OPTIONAL, never required: `subtree` (every node down the parents edges) or a list of ids -- this node holds a slice (nest.py)
   status: {type: str}        # open | active | closed
   confidence: {type: float}
   subgraph: {type: bool}
@@ -21,7 +23,7 @@ validation:
 spawn:
   allowed_parents: [moral]
   min_parents: 1
-  max_parents: 4
+  max_parents: 5
   min_parents_by_type: {moral: 1}
   season_parents_allowed: [overview]
 ---
@@ -67,7 +69,7 @@ different, earlier version than the vision that goal eventually feeds.
 
 ## Spawn rule — PRESCRIPTIVE (L2 wave 1)
 
-`allowed_parents: [moral]`, `min_parents: 1`, `max_parents: 4`,
+`allowed_parents: [moral]`, `min_parents: 1`, `max_parents: 5`,
 `min_parents_by_type: {moral: 1}`.
 
 A vision is now grounded in at least one moral (the constitution). The
@@ -140,8 +142,7 @@ rewritten from scratch on each change, not accumulated.
   scalar `thought_session:` is reserved there for goal:g2.7 / goal:g10.1 to
   point at the chat that produced a version; it is not populated yet.
 - **Readers strip it.** Thought is provenance to zoom into, not weight every
-  reader carries forever. `snapshot-goals.py --render` strips it explicitly via
-  `strip_thought()`; `render-context.py` and `zoom.py` never see it because
-  they read frontmatter only (`load_node_file(..., body=False)`) and so carry
-  no body text at all. The rule binds any future reader that *does* read
-  bodies.
+  reader carries forever. `brief.py` strips it from every body it renders via
+  `node_writer.strip_thought()`; `zoom.py` never sees it because it reads
+  frontmatter only (`load_node_file(..., body=False)`). The rule binds any
+  future reader that *does* read bodies.

@@ -1,0 +1,39 @@
+context checkpoints disabled
+create_checkpoint
+llama_memory_can_shift
+llama_memory_seq_rm
+Min chunk size to attempt reusing from the cache via KV shifting. See --cache-reuse arg
+slot %12.*s: id %2d | task %d | accepted %2zu/%2zu draft tokens (restore checkpoint)
+slot %12.*s: id %2d | task %d | cached n_tokens = %d, memory_seq_rm [%d, end)
+slot %12.*s: id %2d | task %d | checking checkpoint with [%d, %d] against %d...
+slot %12.*s: id %2d | task %d | created context checkpoint %d of %d (pos_min = %d, pos_max = %d, n_tokens = %ld, size = %.3f MiB)
+slot %12.*s: id %2d | task %d | created speculative checkpoint (pos_min = %d, pos_max = %d, n_tokens = %d, size = %.3f MiB, draft = %.3f MiB)
+slot %12.*s: id %2d | task %d | erased invalidated context checkpoint (pos_min = %d, pos_max = %d, n_tokens = %ld, n_swa = %d, pos_next = %d, size = %.3f MiB)
+slot %12.*s: id %2d | task %d | erasing context checkpoint too close to an earlier one (pos_min = %d, pos_max = %d, n_tokens = %ld, size = %.3f MiB)
+slot %12.*s: id %2d | task %d | erasing old context checkpoint (pos_min = %d, pos_max = %d, n_tokens = %ld, size = %.3f MiB)
+slot %12.*s: id %2d | task %d | main/do_checkpoint = %s, pos_min = %d, pos_max = %d
+slot %12.*s: id %2d | task %d | restored context checkpoint (pos_min = %d, pos_max = %d, n_tokens = %ld, n_past = %d, size = %.3f MiB)
+slot %12.*s: id %2d | task %d | restoring speculative checkpoint (pos_min = %d, pos_max = %d, size = %zu)
+slot %12.*s: id %2d | task %d | superseding context checkpoint at n_tokens = %ld
+speculative decoding will use checkpoints
+srv  %12.*s: context checkpoints enabled, max = %d, min spacing = %d
+srv  %12.*s:    - prompt %p: %7d tokens, checkpoints: %2zu, %9.3f MiB
+_Z25common_context_can_seq_rmP13llama_context
+_ZGVZZN19server_context_impl10pre_decodeEvENKUlR11server_slotE3_clES1_E18checkpoint_offsets
+_ZN19server_context_impl17create_checkpointER11server_slotlii
+_ZN24common_prompt_checkpoint10update_dftEP13llama_contextij
+_ZN24common_prompt_checkpoint10update_posElii
+_ZN24common_prompt_checkpoint10update_tgtEP13llama_contextij
+_ZN24common_prompt_checkpoint5clearEv
+_ZN24common_prompt_checkpointD1Ev
+_ZN24common_prompt_checkpointD2Ev
+_ZNK13common_memory6seq_cpEiiii
+_ZNK13common_memory6seq_rmEiii
+_ZNK13common_memory7seq_addEiiii
+_ZNK24common_prompt_checkpoint4sizeEv
+_ZNK24common_prompt_checkpoint5emptyEv
+_ZNK24common_prompt_checkpoint8load_dftEP13llama_contextij
+_ZNK24common_prompt_checkpoint8load_tgtEP13llama_contextij
+_ZNSt7__cxx1110_List_baseI24common_prompt_checkpointSaIS1_EE8_M_clearEv
+_ZZZN19server_context_impl10pre_decodeEvENKUlR11server_slotE3_clES1_E18checkpoint_offsets
+_ZZZN19server_context_impl10pre_decodeEvENKUlR11server_slotE4_clES1_E18checkpoint_offsets

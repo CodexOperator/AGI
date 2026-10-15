@@ -3,7 +3,7 @@ id: hypothesis:l3-partial-write-adoption
 mint_id: 9062498898d748db91e1340b839d51c4
 type: hypothesis
 parents:
-  - goal:g13.1
+  - goal:g4.18
 next_edges: []
 edited_by: sanctuary-director
 scaffold_hash: 9bd55933eaff1181

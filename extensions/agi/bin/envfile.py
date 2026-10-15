@@ -40,6 +40,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import stat
 import sys
 from pathlib import Path
@@ -48,6 +49,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
 
 import yaml
+
+from frontmatter import split_frontmatter  # noqa: E402
 
 #: Relative to the project root `locations.find_project_root` resolves — the
 #: same `.geometry/` directory `crons.md` lives in, reached the same way.
@@ -72,9 +75,55 @@ ALWAYS_FORBIDDEN = (
     "ANTHROPIC_BASE_URL",
 )
 
+#: Forbidden PRIVATE-KEY patterns (extensions/agi/bin/envfile.py). The seat-
+#: keys layer (hypothesis:l4-a-seat-signs-with-a-swappable-scheme) writes
+#: private seeds ONLY under sessions/seats -- never into .env -- and this
+#: floor refuses a private-key line that lands here anyway. Stated as exact
+#: regexes so the rule is reviewable:
+#:
+#:   * a KEY NAME whose final token is a private-key name -- suffix
+#:     ``_PRIV_HEX`` (the exact cell envfile must refuse) or ``PRIVATE_KEY``:
+#:         (?i).+_(?:PRIV_HEX)$     -- e.g. MY_SEAT_PRIV_HEX
+#:         (?i).+PRIVATE_KEY$       -- e.g. SSH_PRIVATE_KEY
+#:
+#:   * a VALUE that is exactly 64 hex chars (the hex shape of a 32-byte
+#:     Ed25519 seed) on a line whose KEY NAME mentions KEY:
+#:         (?i)KEY                    -- the key name gate
+#:         ^[0-9a-fA-F]{64}$          -- the value shape
+
+
+#: Regex for a private-key KEY NAME (case-insensitive): the name ends in the
+#: ``_PRIV_HEX`` or ``PRIVATE_KEY`` token.
+_FORBIDDEN_KEY_NAME = re.compile(r".+_(?:PRIV_HEX)$|.+PRIVATE_KEY$",
+                                 re.IGNORECASE)
+#: Regex for the value shape of a hex-encoded 32-byte seed: exactly 64 hex.
+_HEX64 = re.compile(r"^[0-9a-fA-F]{64}$")
+#: Key-name gate for the value rule: the name must mention KEY (so an
+#: ordinary 64-hex config value under a non-KEY name is not refused).
+_FORBIDDEN_KEY_MENTION = re.compile(r"(?i)KEY")
+
+
+def _line_is_forbidden_key(key: str, value: str) -> bool:
+    """True when a KEY=value line is a private-key that must never be in .env.
+
+    Clause 1 (by name): the key ends in ``_PRIV_HEX`` or ``PRIVATE_KEY``.
+    Clause 2 (by value): the value is exactly 64 hex chars AND the key name
+    mentions KEY (a key containing KEY holding a hex seed). Never echoes the
+    value; the caller reports only that the line is forbidden and which rule.
+    """
+    if _FORBIDDEN_KEY_NAME.search(key):
+        return True
+    if _FORBIDDEN_KEY_MENTION.search(key) and _HEX64.fullmatch(value or ""):
+        return True
+    return False
+
 
 class SecretsError(Exception):
     """A problem with the node or the paths it declares.
+
+    Its OWN type, never a ValueError (goal:g15.29.16): a malformed secrets
+    cell must not be swallowed by every unrelated ``except ValueError`` in a
+    caller that was only guarding a parse. Callers catch ``SecretsError``.
 
     Raised, printed by `main()`, exit 1. Never swallowed: `goal:g1.5`'s whole
     complaint is that setup fails silently in both directions, so a resolver
@@ -86,15 +135,15 @@ class SecretsError(Exception):
 
 
 def _parse_frontmatter(path: Path) -> dict:
-    """Frontmatter as a dict. Same `split("---", 2)` shape as `crons.py`."""
+    """Frontmatter as a dict. Same line-anchored shape as `crons.py`, via frontmatter.py."""
     text = path.read_text(encoding="utf-8")
     if not text.strip().startswith("---"):
         raise SecretsError(f"{path}: no YAML frontmatter (expected a leading `---`)")
-    parts = text.split("---", 2)
-    if len(parts) < 3:
+    parted = split_frontmatter(text)
+    if parted is None:
         raise SecretsError(f"{path}: unterminated frontmatter block (only one `---`)")
     try:
-        fm = yaml.safe_load(parts[1])
+        fm = yaml.safe_load(parted[0])
     except yaml.YAMLError as exc:
         raise SecretsError(f"{path}: malformed YAML frontmatter — {exc}") from exc
     if not isinstance(fm, dict):
@@ -145,6 +194,22 @@ class Resolution:
         self.env_file = _expand(_path_of("env_file", DEFAULT_ENV_FILE), self.root)
         self.template = _expand(_path_of("env_template", DEFAULT_TEMPLATE), self.root)
         self.required_keys = [str(k) for k in (fm.get("required_keys") or [])]
+        # `required_any` is a list of GROUPS; each group is satisfied when ANY
+        # one of its keys is present non-empty. An absent cell means no groups
+        # (yesterday's behaviour unchanged). A malformed entry is refused BY
+        # NAME rather than silently dropped -- a mis-shaped cell must not fail
+        # open (hypothesis:every-secrets-reader-honours-required-any, D2).
+        groups: list[list[str]] = []
+        for group in (fm.get("required_any") or []):
+            if (not isinstance(group, list) or not group
+                    or not all(isinstance(k, str) and k.strip() for k in group)):
+                raise SecretsError(
+                    f"required_any entry {group!r} is malformed — every entry "
+                    f"must be a non-empty list of non-empty key names "
+                    f"(list-of-lists), refused rather than dropped silently"
+                )
+            groups.append([str(k) for k in group])
+        self.required_any = groups
         self.optional_keys = [str(k) for k in (fm.get("optional_keys") or [])]
         # The node may extend the floor; it can never lower it.
         declared_forbidden = [str(k) for k in (fm.get("forbidden_keys") or [])]
@@ -159,6 +224,7 @@ class Resolution:
             "template": str(self.template),
             "template_exists": self.template.is_file(),
             "required_keys": self.required_keys,
+            "required_any": self.required_any,
             "optional_keys": self.optional_keys,
             "forbidden_keys": self.forbidden_keys,
         }
@@ -216,6 +282,82 @@ def read_env(path: Path) -> dict[str, str]:
             value = value[1:-1]
         out[key] = value
     return out
+
+
+# --- credential validity (hypothesis:l4-a-check-that-answers-a-
+# question-it-is-not-asking, ITEM 1): presence is not usability ------------
+#
+# `--check` used to assert only that a required key NAME is present (non-empty)
+# and then print "ok". That answers "did the key land?" and never "is this key
+# usable?". The owner revoked a key that `--check` still called ok. This adds
+# ONE authenticated call that distinguishes PRESENT from USABLE:
+#   - provider returns HTTP 401/403  -> the key is DEAD (fail-closed, a problem)
+#   - provider returns HTTP 200      -> the key is VALID (a note)
+#   - network error / timeout / 5xx  -> UNKNOWN (fail-open, a note, never dead)
+# A 401 is evidence the credential is dead; an unreachable API is evidence of
+# nothing. Conflating them turns a guard into an outage, so they are reported
+# differently. The verifier is a module-level function so tests can stub it
+# without touching the network; `--check` is the only caller that asks for
+# verification, so the plain form `driver.sh` calls every pass stays offline.
+
+
+def _provider_for(key: str) -> tuple[str | None, str]:
+    """Map a key VALUE to (provider, provider_key_name).
+
+    Never prints or returns the value itself. Returns `(None, reason)` when
+    the value does not name a provider we can validate, so an unknown key
+    shape is reported as UNKNOWN, never as valid and never as dead.
+    """
+    if key.startswith("sk-or-"):
+        return ("openrouter", "OPENROUTER_API_KEY")
+    return (None, "no verifier for this key's prefix")
+
+
+def _verify_openrouter(key: str, timeout: float = 5.0) -> tuple[str, str]:
+    """One authenticated call to OpenRouter's key endpoint.
+
+    Returns `(status, detail)` with status one of `"valid"`, `"dead"`, or
+    `"unknown"`. Fail-closed on an explicit 401/403; fail-open on anything
+    that is not a credential verdict (timeout, URLError, 5xx).
+    """
+    import urllib.error
+    import urllib.request
+
+    def _req(url: str) -> tuple[int, str]:
+        r = urllib.request.Request(
+            url, headers={"Authorization": f"Bearer {key}"}
+        )
+        with urllib.request.urlopen(r, timeout=timeout) as resp:
+            return resp.status, resp.read(512).decode("utf-8", "replace")
+
+    try:
+        code, _body = _req("https://openrouter.ai/api/v1/key")
+        if code == 200:
+            return ("valid", f"provider accepted it (HTTP {code})")
+        if code in (401, 403):
+            return ("dead", f"provider rejected it (HTTP {code})")
+        return ("unknown", f"provider returned HTTP {code}")
+    except urllib.error.HTTPError as exc:
+        if exc.code in (401, 403):
+            return ("dead", f"provider rejected it (HTTP {exc.code})")
+        return ("unknown", f"provider returned HTTP {exc.code}")
+    except Exception as exc:  # URLError, TimeoutError, socket errors -- no verdict
+        return ("unknown", f"could not reach the provider ({type(exc).__name__})")
+
+
+_VERIFIERS = {"openrouter": _verify_openrouter}
+
+
+def _verify_provider_key(key: str) -> tuple[str, str]:
+    """Validate one key value. `(status, detail)`, status in
+    `valid | dead | unknown`. Module-level so tests can substitute it."""
+    provider, reason = _provider_for(key)
+    if provider is None:
+        return ("unknown", reason)
+    fn = _VERIFIERS.get(provider)
+    if fn is None:
+        return ("unknown", f"no verifier registered for {provider}")
+    return fn(key)
 
 
 def set_key(res: "Resolution", name: str) -> int:
@@ -286,10 +428,27 @@ def set_key(res: "Resolution", name: str) -> int:
     return 0
 
 
-def check(res: Resolution) -> tuple[list[str], list[str]]:
+def fill_in_hint(res: Resolution) -> str:
+    """What a missing `.env` should be told to fill in: every `required_key`,
+    then each `required_any` GROUP as `at least one of A, B` -- a group is
+    satisfied by any ONE of its keys, which the bare join did not say. A node
+    that declares neither gets the honest '(no keys declared)'.
+    (hypothesis:required-any-diagnostic-names-the-declared-alternatives)"""
+    parts = list(res.required_keys)
+    parts += [f"at least one of {', '.join(group)}" for group in res.required_any]
+    return ", ".join(parts) or "(no keys declared)"
+
+
+def check(res: Resolution, verify: bool = False) -> tuple[list[str], list[str]]:
     """`(problems, notes)` — neither ever contains a secret value.
 
     Problems fail `--check`; notes are worth saying but are not failures.
+
+    When `verify` is true, each present required key is subjected to ONE
+    authenticated call (see the validity section above): a dead key becomes a
+    PROBLEM, a network failure becomes an UNKNOWN note, and a live key a note.
+    Kept off by default so the plain form `driver.sh` calls every pass stays
+    offline; only `--check` asks for validation.
     """
     problems: list[str] = []
     notes: list[str] = []
@@ -305,7 +464,7 @@ def check(res: Resolution) -> tuple[list[str], list[str]]:
     if not res.env_file.is_file():
         problems.append(
             f"missing {res.env_file} — copy {res.template.name} to it, "
-            f"chmod 600, and fill in: {', '.join(res.required_keys) or '(no keys declared)'}"
+            f"chmod 600, and fill in: {fill_in_hint(res)}"
         )
         return problems, notes
 
@@ -318,6 +477,30 @@ def check(res: Resolution) -> tuple[list[str], list[str]]:
         value = env.get(key, "")
         if not value:
             problems.append(f"{key} is missing or empty in {res.env_file}")
+    for group in res.required_any:
+        if not any(env.get(k, "").strip() for k in group):
+            problems.append(
+                f"none of {', '.join(group)} is set in {res.env_file} — "
+                f"at least one is required"
+            )
+    if verify:
+        for key in res.required_keys:
+            value = env.get(key, "")
+            if not value or not value.strip():
+                continue  # already reported missing/empty above
+            status, detail = _verify_provider_key(value)
+            if status == "dead":
+                problems.append(
+                    f"{key} is present but NOT USABLE — {detail}. Presence is not "
+                    f"validity: the file says it is there, the provider refuses it."
+                )
+            elif status == "unknown":
+                notes.append(
+                    f"{key}: could not be verified ({detail}) — treated as present, "
+                    f"not confirmed usable"
+                )
+            else:
+                notes.append(f"{key}: validated against the provider ({detail})")
     # Optional keys are reported as PRESENT/absent, never as problems, and
     # never by value -- the name and the length are enough to answer "did the
     # key I just wrote land?" without putting a secret on a terminal that is
@@ -338,6 +521,21 @@ def check(res: Resolution) -> tuple[list[str], list[str]]:
                 f"{key} is set in {res.env_file} and must never be — dispatch.py "
                 f"scrubs it from pi children so subagents cannot bill the Claude "
                 f"Code subscription; setting it here re-adds the leak below the scrub"
+            )
+
+    # Private-key pattern floor (hypothesis:l4-a-seat-signs-with-a-swappable-
+    # scheme, clause (2)): a NAME ending in _PRIV_HEX / PRIVATE_KEY, or a
+    # 64-hex VALUE under a KEY-mentioning name. Reported by which rule, never
+    # by value -- a secret must never reach a logged/screen-shared terminal.
+    for key, value in env.items():
+        if _line_is_forbidden_key(key, value):
+            rule = ("key name"
+                    if _FORBIDDEN_KEY_NAME.search(key)
+                    else "64-hex value under a KEY-named key")
+            problems.append(
+                f"{key} is set in {res.env_file} and looks like a PRIVATE KEY "
+                f"({rule}) — private seeds belong in sessions/seats, never "
+                f"in .env. Refused by the envfile.py forbidden-key floor."
             )
     return problems, notes
 
@@ -380,7 +578,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(res.as_dict(), indent=2))
         return 0
 
-    problems, notes = check(res)
+    problems, notes = check(res, verify=args.check)
     for note in notes:
         print(f"[secrets] note: {note}")
     for problem in problems:

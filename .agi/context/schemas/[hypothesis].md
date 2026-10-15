@@ -17,6 +17,10 @@ validation:
     title: str
     testable_claim: str
     subgraph: bool
+  # goal:g7.16.1.2.6 -- a park is a TAG: `parked:<goal id of the formation it
+  # waits for>`; `write.py config:formations 'set active <doc>'` drops it.
+  item_regex:
+    tags: '|[^p\n][^\n]*|p([^a\n][^\n]*)?|pa([^r\n][^\n]*)?|par([^k\n][^\n]*)?|park([^e\n][^\n]*)?|parke([^d\n][^\n]*)?|parked([^:\n][^\n]*)?|parked:g\d+(\.\d+)*'
 spawn:
   allowed_parents: [idea, goal, experiment, hypothesis]
   min_parents: 1
@@ -32,6 +36,26 @@ When `subgraph: true`, the body itself is parsed as a CoT graph
 (premise → inference → claim → testable).
 
 ID prefix: `hyp:<short-slug>`.
+
+## The body — the round's brief (owner 2026-09-23 16:3xZ, goal:g5: "move the hypothesis format out of role docs and into the hypothesis schema node";
+moved verbatim from the director template's NODE step and the master template's PLAN step)
+
+The brief lives on the hypothesis node: the director mints it if the master did not and commits it by exact path before
+dispatch (grid history needs a real commit). Prose, so not in `validation:`; a merge-up reviewer checks it. Body order:
+
+```
+## Measured       the measured lines (file:line) and numbers that motivate the round
+## CLAIM          what is true when the round lands (the testable_claim, in full)
+## Dispatch line  config-max: <what moves to a cell> / template-max: <what moves to a template line> / code: <the trigger or resolver that does not exist>
+## FALSIFIERS     what would show the claim false
+## TESTS          the committed tests + their neighbourhood
+## FILE SCOPE     the files the round may touch, nothing else
+## CEILING        kids · 10-12 production lines per conjunct · pi parents · a USD cap
+                 measure the CEILING with a TWO-operand numstat, <cut>..<tip before the paste commit>, labelled so (a commit never pastes a numstat that includes itself) · every cite names a function, heading or cell key -- a line number only where the claim IS the line (TMM.328 (c))
+```
+
+The kid answers the dispatch line FIRST, before any code (owner 2026-09-18 22:0xZ, `doc:l5-owner-decisions`: the config max and
+template max checks at build and at review).
 
 ## Spawn rule
 
@@ -84,8 +108,7 @@ rewritten from scratch on each change, not accumulated.
   scalar `thought_session:` is reserved there for goal:g2.7 / goal:g10.1 to
   point at the chat that produced a version; it is not populated yet.
 - **Readers strip it.** Thought is provenance to zoom into, not weight every
-  reader carries forever. `snapshot-goals.py --render` strips it explicitly via
-  `strip_thought()`; `render-context.py` and `zoom.py` never see it because
-  they read frontmatter only (`load_node_file(..., body=False)`) and so carry
-  no body text at all. The rule binds any future reader that *does* read
-  bodies.
+  reader carries forever. `brief.py` strips it from every body it renders via
+  `node_writer.strip_thought()`; `zoom.py` never sees it because it reads
+  frontmatter only (`load_node_file(..., body=False)`). The rule binds any
+  future reader that *does* read bodies.

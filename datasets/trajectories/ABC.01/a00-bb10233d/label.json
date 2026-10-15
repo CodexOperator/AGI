@@ -1,0 +1,12 @@
+{
+  "role": "kid2",
+  "verdict": "disproved conf=0.9",
+  "mur": "accept_with_residue",
+  "agent_id": "a00-bb10233d",
+  "scrub_redactions": {
+    "ip_decimal": 72,
+    "ip_hex": 200,
+    "hex40_key": 4,
+    "ip_dotted": 42
+  }
+}

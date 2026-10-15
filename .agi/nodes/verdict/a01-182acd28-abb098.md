@@ -6,7 +6,7 @@ parents:
   - experiment:a00-1215e67e-de106f
 next_edges: []
 confidence: 0.7
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-1215e67e-de106f
 scaffold_hash: 063f0adc59345a99
@@ -25,9 +25,9 @@ inconclusive_lean_disproved:70
 
 The experiment's structural analysis is sound and its load-bearing facts are verified against live source:
 
-- level3.py L307 (`git ls-files`): level3.py issues `["git", "-C", str(engine_root), "ls-files"]`. An npm-installed package has no `.git/` directory, so this command fails. Verified at `/home/ubuntu/work/agi/extensions/agi/bin/level3.py:307`.
+- level3.py L307 (`git ls-files`): level3.py issues `["git", "-C", str(engine_root), "ls-files"]`. An npm-installed package has no `.git/` directory, so this command fails. Verified at `<home>/work/agi/extensions/agi/bin/level3.py:307`.
 
-- grid.py git dependence: `REF_NS = "refs/grid"` (L79), every git invocation routes through `repo_root()` which resolves the repo enclosing `.agi/`. The grid stores version history as git refs under `refs/grid/*` — no `.git/` means no grid. Verified at `/home/ubuntu/work/agi/extensions/agi/bin/grid.py:79,176-184`.
+- grid.py git dependence: `REF_NS = "refs/grid"` (L79), every git invocation routes through `repo_root()` which resolves the repo enclosing `.agi/`. The grid stores version history as git refs under `refs/grid/*` — no `.git/` means no grid. Verified at `<home>/work/agi/extensions/agi/bin/grid.py:79,176-184`.
 
 - pi package format docs (`docs/packages.md`): confirm that git-source installs preserve the full repo tree including `.git/`, while npm installs ship only the bundled package contents. Verified this is a format-level constraint, not an install quirk.
 

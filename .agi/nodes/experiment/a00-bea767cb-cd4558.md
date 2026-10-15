@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3w4-branch-tooling-blind
 next_edges: []
 confidence: 0.6
-edited_by: a00-9a58099a
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-bea767cb-cd4558
 loop: hypothesis:l3w4-branch-tooling-blind@s2
@@ -23,7 +23,7 @@ verdict: inconclusive_lean_proved:60
 
 ## Experiment
 
-Tested the three sub-claims of hypothesis:l3w4-branch-tooling-blind from my own live position — I AM a worktree-resident agent this iteration (cwd `/home/ubuntu/work/agi/.agi/worktrees/a00-9a58099a/.agi`; my node and agent.json exist ONLY in my worktree, not the main checkout). Ran Python probes against the current engine code (no changes made).
+Tested the three sub-claims of hypothesis:l3w4-branch-tooling-blind from my own live position — I AM a worktree-resident agent this iteration (cwd `<home>/work/agi/.agi/worktrees/a00-9a58099a/.agi`; my node and agent.json exist ONLY in my worktree, not the main checkout). Ran Python probes against the current engine code (no changes made).
 
 **(i) Evidence-gate corpus blind to worktree nodes — REPRODUCED, LIVE.**
 `build_corpus(root/nodes)` from the MAIN root does not contain my worktree node id; from my worktree root it does. Feeding `--evidence-runs experiment:a00-bea767cb-cd4558` into `apply_gate('proved', ...)` demotes `proved -> inconclusive_lean_proved:50` against the main-root corpus (runs=0), stays `proved` (runs=1) against the worktree corpus. So every parent that reviews a worktree kid from the main checkout still gets an automatic under-score, exactly the L3.33 severity.

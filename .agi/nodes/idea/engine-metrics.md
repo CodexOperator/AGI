@@ -3,9 +3,9 @@ id: idea:engine-metrics
 mint_id: 9e0a302064574883bdd1467c1ab5a5a9
 type: idea
 parents:
-  - goal:g3
+  - goal:g3.4
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 origin: engine-decomp
 scale: small
 season: 1
@@ -14,7 +14,7 @@ tags:
   - engine
   - census
   - l19
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "Engine surface: extensions/agi/bin/metrics.py"
 unit_kind: bin_script
 unit_path: extensions/agi/bin/metrics.py

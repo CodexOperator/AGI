@@ -1,0 +1,139 @@
+---
+id: experiment:a00-f99818f9-49864c
+mint_id: 8831d391d6ef4073b24262f39c314b16
+type: experiment
+parents:
+  - hypothesis:pb3-agent-git-hook-fails-closed-on-a-failed-diff
+confidence: 0.85
+edited_by: a00-a0624967
+evidence_runs:
+  - experiment:a00-f99818f9-49864c
+  - experiment:a00-0fe3e4c9-fb3c3b
+probes:
+  - "gate (D1 producer arm): corrupt index (garbage .git/index), AGI_TIER=kid in its OWN worktree, hook run directly -> rc=1, EXACTLY ONE agi line naming \"git diff --cached failed (rc 128)\", 0 hits of the scope-check text. PARENT-measured."
+  - "gate (D1 scope arm): healthy index + a hook copy whose ../../bin does not resolve (scope-check dies rc 2, producer CLEAN) -> rc=1, EXACTLY ONE agi line naming \"scope-check failed (rc 2)\", 0 hits of the git line. The attribution the corrective asked for, measured by the PARENT."
+  - "wire: the true pre-round bytes (SCOPE_RC=$? and the >=2 arm worded \"git diff --cached failed\") on the SAME dead-scope-check fixture -> \"git diff --cached failed (rc 2)\", i.e. a clean producer blamed. Only the hook bytes differ, so they are the causal difference. Plus the mechanism itself: set -o pipefail; false|true; PS=(\"${PIPESTATUS[@]}\") -> (1 0), but the same pipeline with SCOPE_RC=$? first -> PS=(0). The director's clobber fact, re-measured."
+  - "gate (controls keep their rc): healthy index, nothing staged -> rc 0, empty stderr; one in-scope staged byte -> rc 0, empty stderr; staged .agi/config.json -> rc 1 with the ORIGINAL generic \"may not commit\" line and 0 named hits (rc 1 stays a scope refusal, no double line)."
+  - "auth: a kid whose CWD is the MAIN checkout of the same project while AGI_PROJECT_ROOT/TREE point at a sibling worktree -> rc 1 by the same-git-common-dir guard, no named line. set +o pipefail did not open a path around the parent path above the block."
+  - "auth: parent tier on a non-loop branch -> rc 1, generic line, 0 named hits. The pipefail is gone again by the time the parent path runs."
+  - "F5 by mtime, not by report: extensions/agi/bin/cli.py mtime == the iteration start; only pre-commit and test_git_commit_guard.py moved. The predicate stays cli.py scope-check -> _round_scope_ok; no shell path predicate."
+production_lines: 10
+scaffold_hash: c53210b9eb96728b
+title: Per-stage attribution names the failing scope stage, not always git diff
+verdict: proved
+---
+# experiment:a00-f99818f9-49864c
+
+## What I did
+Built the CORRECTIVE DG4.10 on top of `experiment:a00-0fe3e4c9-fb3c3b` (the pipefail
+fail-closed build), which the parent demoted to a lean because the hook could only
+ever name ONE producer. The corrective is attribution, not safety: read the pipe's
+per-stage codes and let each stage name itself.
+
+Pre-state (the bytes I inherited, kid block, `extensions/agi/hooks/agent-git/pre-commit`):
+
+| stage | rc | what the inherited hook says |
+|---|---|---|
+| `git diff --cached` | 128 | `git diff --cached failed (rc 128)` — correct by luck |
+| `scope-check` | 2 (dead/missing `../../bin`, or a crash) | `git diff --cached failed (rc 2)` — **WRONG PRODUCER** |
+
+The old `SCOPE_RC=$?` (pipefail collapses both stages into one number) cannot
+distinguish them, so a perfectly healthy diff was blamed. Measured on the
+pre-fix copy in scratch (`prefix-hook`), dead scope-check + healthy index:
+
+```
+python3: can't open file '/cli.py': [Errno 2] No such file or directory
+agi: kid commit refused -- git diff --cached failed (rc 2) (goal:g1.31.5.1.1)   <- lie
+rc=1
+```
+
+## The built bytes (10 production lines, hook kid block only)
+
+```
+        set -o pipefail
+        git diff --cached --name-only -z --no-renames \
+            | python3 "$HOOK_BIN/cli.py" scope-check --agent-id "$AGI_AGENT_ID"
+        PS=("${PIPESTATUS[@]}"); set +o pipefail        # (D1) read it as the VERY NEXT statement
+        DIFF_RC=${PS[0]:-0}; SCOPE_RC=${PS[1]:-0}
+        if [ "$DIFF_RC" -ne 0 ]; then
+            echo "agi: kid commit refused -- git diff --cached failed (rc ${DIFF_RC}) (...)" >&2
+            exit 1
+        fi
+        if [ "$SCOPE_RC" -ge 2 ]; then
+            echo "agi: kid commit refused -- scope-check failed (rc ${SCOPE_RC}) (...)" >&2
+            exit 1
+        elif [ "$SCOPE_RC" -eq 0 ]; then
+            exit 0
+        fi
+# SCOPE_RC == 1 falls through to the file's existing generic refusal, unchanged
+```
+
+| directive clause | how it is met |
+|---|---|
+| D1 (missed) per-stage codes, `PIPESTATUS` as the next statement | `PS=(...)` is the statement immediately after the pipe; a `SCOPE_RC=$?` first would clobber it to `(0)` — verified, that is exactly the shape I removed |
+| D1 attribution | `DIFF_RC != 0` -> the git line; `SCOPE_RC >= 2` with a clean producer -> the scope-check line; both `exit 1`; `SCOPE_RC == 1` keeps the ordinary generic scope refusal; `0/0` allows |
+| 2 (missed) rows pin attribution | one new row; the corrupt-index row already pins the git line |
+| D4 `pipefail` unset at end of block | `set +o pipefail` on the same line, immediately after the read, so "scoped to THIS block" is true rather than aspirational |
+
+ONE rule kept (F5): the predicate is still `cli.py scope-check` → `cli._round_scope_ok`.
+No shell path predicate, and `cli.py` is untouched — a dead `scope-check` is now
+*named* rather than *reinterpreted*, which is what the corrective asked for.
+
+## Evidence
+
+```
+# attribution, same fixture, only the hook bytes differ
+=== prefix (pre-fix): dead scope-check, healthy producer ===
+  agi: kid commit refused -- git diff --cached failed (rc 2)      <- blames a clean diff
+  rc=1
+=== built: dead scope-check, healthy producer ===
+  agi: kid commit refused -- scope-check failed (rc 2) (goal:g1.31.5.1.1)
+  rc=1
+=== built: corrupt index ===
+  1 line matching "git diff --cached failed"                       <- unchanged, still correct
+
+# suite
+bash -n extensions/agi/hooks/agent-git/pre-commit                       -> clean
+python3 -m pytest extensions/agi/tests/test_git_commit_guard.py -q -k 'failing_diff or empty_staged or branch_kid'
+  15 passed, 28 deselected
+python3 -m pytest extensions/agi/tests/test_git_commit_guard.py -q
+  43 passed
+python3 -m pytest extensions/agi/tests/test_cli.py -q -k scope
+  3 passed, 73 deselected
+
+# size (the ONE permitted git read)
+git diff --numstat -- extensions/agi/hooks/agent-git/pre-commit extensions/agi/tests/test_git_commit_guard.py
+  10  2  extensions/agi/hooks/agent-git/pre-commit      (8 of the 10 are code, 2 are comment)
+  22  0  extensions/agi/tests/test_git_commit_guard.py
+```
+
+## Falsifiers
+
+| # | falsifier | result |
+|---|---|---|
+| D1-a | corrupt index, direct hook run | rc 1, exactly ONE line, naming `git diff --cached failed` — green (`test_branch_kid_hook_refuses_on_a_failing_diff`, unchanged) |
+| D1-b | dead `scope-check` (hook copy with no `../../bin`), healthy index | rc 1, exactly ONE line naming `scope-check failed`, and ZERO hits of `git diff --cached failed` — **red on the prefix bytes** (they printed the git line, rc 2), green now (`test_branch_kid_hook_names_the_scope_check_when_it_dies`) |
+| D1-c | `PIPESTATUS` is really read as the next statement | the removed `SCOPE_RC=$?` demonstrably clobbers it; the new row is the standing counter for that shape |
+| 2-c | healthy in-scope kid control | `test_branch_kid_commits_in_scope_bytes` rc 0 — green |
+| F4 | healthy index, nothing staged | rc 0, no named line — green |
+| F3 | staged `.agi/config.json` | rc 1 generic `kid may not commit`, no named text — green |
+| D4 | `pipefail` does not leak | `set +o pipefail` on the read line; the parent path above the block is untouched, and `test_plain_kid_in_main_checkout_still_refuses` + the parent-tier rows stay green |
+
+## Residue, stated not hidden
+- A `scope-check` that exits **1** on a crash (an uncaught Python traceback) is
+  still indistinguishable from a genuine scope refusal — the hook refuses, and
+  correctly refuses, but the message stays generic. One line in `cli.py`
+  (`except: sys.exit(2)`) would close it; that file is out of this round's scope.
+- The new row pins attribution for rc >= 2 only, so the scope-check arm's rc-1
+  sibling remains unattributable by construction, as above.
+- Scratch copies of both hook byte-states live in my session dir
+  (`.agi/sessions/iter-DG4.10/a00-f99818f9/{built,prefix}-hook`), not in the repo.
+
+## Agent Notes
+per-stage attribution: PIPESTATUS read as the next statement, each pipe stage names itself; dead scope-check now named (red on prefix bytes), 43/43 guard tests
+
+PARENT REVIEW DG4.10 (a00-a0624967) -- ACCEPTED, no demotion. I read the BYTES (pre-commit lines 76-99, the new test row test_branch_kid_hook_names_the_scope_check_when_it_dies), not the kid report, and ran seven probes of my own in tmp repos (scratch: iter-DG4.10/a00-a0624967/probes.sh). All seven hold: the producer arm names git (rc 128, one line), the scope arm names scope-check (rc 2, one line, 0 hits of the git text), the pre-round bytes on the SAME fixture blame the clean producer (so the new bytes are causal, not the fixture), empty-staged and in-scope controls stay rc 0, staged .agi/config.json stays the generic rc 1 with no double line, a kid in a foreign checkout and a parent on a non-loop branch both refuse unchanged, and cli.py is untouched (mtime = iteration start). The four falsifiers the node lists are all reproduced by probes I ran, not by tests I re-ran. What the node gets right and I want on the record: the residue is stated, not hidden -- a scope-check that dies rc 1 (an uncaught Python traceback) is still indistinguishable from a genuine scope refusal, so the fix improves ATTRIBUTION, never SAFETY, and no test row can pin that sibling without a one-line except in cli.py. The pipefail is now redundant with the per-stage read (PS carries the codes directly); harmless, but a later reader should not think both are load-bearing.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW DG4.10 (a00-a0624967) rewrites this version. (1) WHAT THE ORDER SAID: "capture the pipe per-stage codes IN THE SAME STATEMENT as the pipe (PS=(\"${PIPESTATUS[@]}\") must be the very next command -- verify measured that SCOPE_RC=$? first clobbers PIPESTATUS to (0)) ... git diff rc != 0 -> the git line; scope-check rc >= 2 with a clean producer -> the scope-check line; both refuse; rc 1 from scope-check stays the ordinary scope refusal." (2) WHAT THE MACHINE ACTUALLY DOES: the kid block at pre-commit:86-99 reads PS on the statement immediately after the pipe, splits DIFF_RC/SCOPE_RC, tests DIFF_RC != 0 first, then SCOPE_RC >= 2, then == 0, and lets == 1 fall through to the file's pre-existing generic refusal. I measured all of it in tmp repos rather than reading it: producer arm (garbage .git/index) -> rc 1, one line, "git diff --cached failed (rc 128)"; scope arm (hook copy with no ../../bin) -> rc 1, one line, "scope-check failed (rc 2)", 0 hits of the git text; the reconstructed pre-round bytes on that same fixture print "git diff --cached failed (rc 2)" -- a clean producer blamed. The PIPESTATUS clobber itself re-measured in isolation: false|true under pipefail then PS=(...) -> (1 0); the same pipeline with SCOPE_RC=$? in between -> (0). (3) THE NEAR MISS: an implementation that reads PIPESTATUS into a variable named RC after an intervening command, or one that keeps SCOPE_RC=$? and merely rewrites the MESSAGE text -- it satisfies the order's words ("the refusal names which stage failed") and loses the mechanism, because with a single collapsed rc there is no way to tell the two stages apart and the wrong producer is still named; the pre-round bytes are exactly that shape and they still blame git. The mirror-image near miss is reading PS after the two assignments instead of immediately after the pipe. (4) NO DEVIATION from a standing rule. Nothing further is owed at this node: the safety property (a failed producer never reaches exit 0) was proved in DG4.03 and the attribution gap named in that review is now closed for the rc >= 2 arm; the rc-1 crash sibling is a one-line cli.py change, outside this round's file scope, and is recorded as residue on the node.
+<!-- THOUGHT:END -->

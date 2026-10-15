@@ -3,10 +3,10 @@ id: mvp:g11-crons-metrics-residual
 mint_id: 12e0d3eb16f74a408d0f8dbf4a8c8cc1
 type: mvp
 parents:
-  - goal:g11
+  - goal:g4.16
 next_edges: []
 confidence: 0.82
-edited_by: season.py
+edited_by: director-general-3
 season: 1
 source_files:
   - extensions/agi/bin/metrics.py
@@ -20,7 +20,7 @@ tags:
   - crons
   - metrics
 tests_pass: true
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "Two goal:g11 residuals fixed: a self-contradictory kill-switch node, and metrics.py measuring the retired publish pipeline"
 ---
 # mvp:g11-crons-metrics-residual
@@ -61,7 +61,7 @@ install all four — only the ones whose own `cadences.<job>.enabled` is also
 `true` (today: `grid_sync`, `branch_push`).
 
 **Duplicate THOUGHT block:** the node carried two — the newer one (cadence
-retirement) at the top, an older one (parentless -> `parents: [goal:g10.2]`)
+retirement) at the top, an older one (parentless -> `parents: [goal:g2.25]`)
 left at the bottom from a prior version, because past edits added rather than
 replaced. Merged into one at the top; the parentage reasoning is compressed to
 one sentence (the fact itself now lives in the frontmatter's `parents:` field,
@@ -102,7 +102,7 @@ metric as one.**
 **The rename alone would not have fixed anything — I found and fixed the
 actual root cause too.** `metrics.py`'s `root` argument is the project's
 `.agi/` directory (confirmed: `locations.find_project_root('.')` on this repo
-returns `/home/ubuntu/work/agi/.agi`). Calling `unpushed_commits(root)`
+returns `<home>/work/agi/.agi`). Calling `unpushed_commits(root)`
 directly on `.agi` always answers `not-a-repo`, because `.agi` is a
 subdirectory of the real git repo, not its own toplevel — this is the exact
 `unpushed_graph_reason=not-a-repo` sentinel named in the task brief, and
@@ -170,7 +170,7 @@ installed: (none)
 desired: (none — crons_live is false, or no job is enabled)
 status: up to date
 
-$ find /home/ubuntu/work/agi/.agi/nodes -name '*.md' | wc -l
+$ find <home>/work/agi/.agi/nodes -name '*.md' | wc -l
 815 before this file, 816 after
 ```
 

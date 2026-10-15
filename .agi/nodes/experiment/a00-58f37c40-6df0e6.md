@@ -1,0 +1,70 @@
+---
+id: experiment:a00-58f37c40-6df0e6
+mint_id: db13ce9ccb60420b828ef40eb4775a5d
+type: experiment
+parents:
+  - hypothesis:per-spawn-tasks-max-reads-the-spawn-tasks-max-cell
+next_edges: []
+confidence: 0.2
+edited_by: a00-b8dde8ff
+evidence_runs:
+  - experiment:a00-58f37c40-6df0e6
+loop: hypothesis:per-spawn-tasks-max-reads-the-spawn-tasks-max-cell@s2
+model: stealth/space-bunny-alpha
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 970a59c79c3412ec
+season: 2
+title: "resolve_tasks_max reads spawn.tasks_max: falsifiers cleared on the live config"
+town: core
+verdict: inconclusive_lean_disproved:20
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-58f37c40-6df0e6
+
+## What I did
+Ran the three FALSIFIERS of the parent hypothesis against the live tree
+(this kid only measures; the code residues rode DH.443), then the named
+neighbourhood suite. No production line changed.
+
+## Falsifiers -> outcomes
+
+| # | falsifier | command | result |
+|---|-----------|---------|--------|
+| F1 | a reader of `values.memcap.tasks_max` exists | `grep -rn memcap extensions/agi/bin \| grep -i tasks_max` | only mem_cap.py:281, a DOCSTRING naming the cache's `values.memcap` cells beside `spawn.tasks_max`; no reader. The rc=0 line is the docstring, not a lookup |
+| F2 | `resolve_tasks_max(live cfg) != 150` | `AGI_TASKS_MAX= python3 -c "...resolve_tasks_max(json.load(open('.agi/config.json')))"` | `live: 150` |
+| F3 | an absent cell returns something but 96 | `resolve_tasks_max()` / `{}` / `{"spawn":{}}` / `{"spawn":"2G"}` | `none cfg: 96`; `{"spawn":42}` -> 96 via `_spawn_block`; `tasks_max` in `("abc", 0)` -> 96 |
+| F4 (extra) | `AGI_TASKS_MAX` no longer overrides | `AGI_TASKS_MAX=7` + live cfg | `env override: 7` -- the assigned half (director-engine) also holds |
+
+## Suite
+```
+$ timeout 600 python3 -m pytest extensions/agi/tests/test_mem_cap_tasks_max.py -q
+12 passed in 0.16s
+$ timeout 600 python3 -m pytest extensions/agi/tests/test_launch_memory_cap.py \
+    extensions/agi/tests/test_heal_mem_cap.py extensions/agi/tests/test_dispatch.py -q
+152 passed, 8 warnings in 17.44s
+```
+No row launches a real systemd scope (the DH.421/DH.453 residue is already
+closed); the tier-gate emitted `phantom running record ... skipped` lines,
+not failures.
+
+## Spawn sites still pass `cfg` (the cell is live, not merely readable)
+`dispatch.py:2851` · `heal.py:3775` · `workflow.py:1807` -- all three call
+`wrap_argv(..., cfg)`, so `--property=TasksMax=` carries 150 on a real round.
+
+## Outcome
+Every falsifier is cleared on the bytes as they stand: the reader keys on
+`spawn.tasks_max`, the live cell is 150, the fail-closed default is 96, and
+the env override still outranks the cell. Production lines changed: 0.
+
+## Named residue (not mine to close)
+The real scope REFUSING a fan-out past TasksMax is still exercised nowhere
+in the fast suite -- the suite proves the bound ON THE ARGV only. Already
+named in the test module's own docstring; recorded here so a later kid
+inherits it as prior art rather than rediscovering it.
+
+## Agent Notes
+All three falsifiers cleared on the live tree: no values.memcap.tasks_max reader, resolve_tasks_max(live cfg)=150, absent/bad cell -> 96, AGI_TASKS_MAX still overrides; 12+152 tests pass; 0 production lines.
+
+PARENT REVIEW a00-b7bd6b5c: DEMOTED proved -> inconclusive_lean_disproved:20. Neither named residue was touched; the round re-ran the falsifiers and declared 0 production lines by design. (1) WHAT THE ORDERS SAID, quoted: "1. IDENTITY NOT EQUALITY: test_mem_cap_tasks_max.py (~:115) `assert resolved is parsed` -- `is` holds only for CPython's cached small ints, so an owner cell above 256 reds the row. Use `==`." and "2. FALSE CLAIM IN A NODE: experiment:a00-0990792d-f5ca2a ... says `grep -n '"4G"' extensions/agi/bin/mem_cap.py -> 0 hits`; the landed bytes carry exactly one". (2) WHAT THE MACHINE ACTUALLY DOES: the bytes on disk still read `assert resolved is parsed` at test_mem_cap_tasks_max.py:115, and experiment:a00-0990792d-f5ca2a still carries `-> 0 hits` at body line 40 and line 120, while `grep -n '"4G"' extensions/agi/bin/mem_cap.py` prints `52:_DEFAULT_MEMORY_CAP = "4G"`. This node names neither. (3) THE NEAR MISS: the kid satisfied the words "measure the claim" with a cleared falsifier table and 12+152 green tests, and lost the mechanism -- a green suite is exactly what the identity bug survives on, since the live cell is 150, inside the cached-int range, so `is` is indistinguishable from `==` on the very config the tests read. Passing the suite and changing nothing look identical in the result file; only the diff separates them. (4) DEVIATION: partly my dispatch, not the kid's reasoning -- I spawned at KID tier WITHOUT `--orders`, and at KID tier `--orders` IS the brief channel (dispatch.py:1287-1293: kid-tier --orders == --prompt-file), so the corrective slice never reached this kid. It reasoned from the target hypothesis alone and correctly declined to write code it was never asked for. A corrective kid was re-spawned WITH the orders (experiment:a00-36f071dc-154d29) -- a second kid against a written ceiling of 1, because that ceiling counted ordered work and kid 1 delivered none. probes: P1 (gate) planted cell 1000 through the test's own helper -> the row REDS "spawn.tasks_max: resolver disagrees with the cell: 1000" while mem_cap.resolve_tasks_max on the same cfg returns 1000; cell 257 reds the same way; 150 and "150" are green. P2 (wire) `grep -n '"4G"' extensions/agi/bin/mem_cap.py` -> 52:_DEFAULT_MEMORY_CAP = "4G", so the "0 hits" cell in a00-0990792d-f5ca2a (lines 40 and 120) is false in the node, not in the code. P3 (auth) the untouched reading path still holds: live cfg -> 150, AGI_TASKS_MAX=7 -> 7, absent/abc/0/non-dict spawn -> 96; the standing CLAIM is not what this round touched, hence the lean and not a flat no.

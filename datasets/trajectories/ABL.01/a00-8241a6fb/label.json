@@ -1,0 +1,11 @@
+{
+  "role": "kid3",
+  "verdict": "disproved conf=0.85",
+  "mur": "accept_with_residue",
+  "agent_id": "a00-8241a6fb",
+  "scrub_redactions": {
+    "ip_decimal": 28,
+    "ip_hex": 138,
+    "hex40_key": 3
+  }
+}

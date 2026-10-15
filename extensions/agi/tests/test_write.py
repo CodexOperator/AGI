@@ -13,10 +13,14 @@ The two invariants worth testing are the two the goal states in bold:
 from __future__ import annotations
 
 import ast
+import difflib
+import subprocess
 import sys
 from pathlib import Path
 
 import pytest
+from tests.veto_cell import write_free_veto  # noqa: E402
+import yaml
 
 BIN = Path(__file__).resolve().parent.parent / "bin"
 SRC = Path(__file__).resolve().parent.parent / "src"
@@ -36,6 +40,7 @@ def project(tmp_path: Path) -> Path:
     graph = tmp_path / ".agi"
     (graph / "nodes" / "hypothesis").mkdir(parents=True)
     (graph / "config.json").write_text("{}")
+    write_free_veto(graph / "nodes" / ".geometry")
     (graph / "nodes" / "hypothesis" / "h1.md").write_text(
         '---\nid: "hypothesis:h1"\ntype: hypothesis\nmint_id: abc123\n'
         'title: "t"\ntestable_claim: "c"\nscaffold_hash: deadbeef\n'
@@ -128,6 +133,62 @@ def test_identity_and_completion_fields_are_refused(project):
             write.verb_unset(e, key)
 
 
+def test_verb_set_refuses_a_value_that_would_render_a_bare_dash_line():
+    """Writer-side belt, residue (2): a `--set` value whose only raw-emitted
+    shape (a list string item — scalars collapse their newlines in `_scalar`)
+    would land a line that is exactly `---` at column 0 in the frontmatter
+    must be refused, because the shared line-anchored reader
+    (`frontmatter.split_frontmatter`) would mistake it for the closing
+    marker and silently cut the file short."""
+    e = write.Edit("hypothesis:h1")
+    with pytest.raises(write.EditError, match="bare `---` line"):
+        write.verb_set(e, "parents", "[a\n---\nb]")
+    # A nested dict carrying such a list is caught too.
+    with pytest.raises(write.EditError, match="bare `---` line"):
+        write.verb_set(e, "rows", '[{"x": ["a\n---\nb"]}]')
+    # Harmless values still set.
+    write.verb_set(e, "status", "active")
+    write.verb_set(e, "title", "the --- and --- again")
+    assert e.set_fm["status"] == "active"
+    assert e.set_fm["title"] == "the --- and --- again"
+
+
+def test_verb_set_refuses_a_bare_dash_with_trailing_whitespace():
+    """CLAIM (6b/SL7.17): the writer's marker guard uses frontmatter.py's
+    boundary regex (`^---[ \\t]*\\r?$`), IMPORTED not re-spelled — so a value
+    that would render `--- ` (a bare dash with trailing whitespace) is refused
+    even though an `== \"---\"` equality test (the old re-spelling) misses it.
+    The shared line-anchored reader splits on that line, so the writer must
+    refuse it."""
+    e = write.Edit("hypothesis:h1")
+    with pytest.raises(write.EditError, match="cannot set 'parents'"):
+        write.verb_set(e, "parents", "[a\n--- \nb]")
+
+
+def test_verb_set_refuses_a_value_carrying_the_thought_marker():
+    """CLAIM (6b/SL7.17): the shared guard also refuses a value that carries
+    an open `<!-- THOUGHT:` marker, so it can never be landed into frontmatter
+    and fabricate an authored region or confuse extraction."""
+    e = write.Edit("hypothesis:h1")
+    with pytest.raises(write.EditError, match="THOUGHT marker"):
+        write.verb_set(e, "title", "a <!-- THOUGHT:BEGIN -- x")
+
+
+def test_create_set_runs_the_same_marker_guard_as_set(project):
+    """CLAIM (6b/SL7.17): `create --set` runs the SAME value guard as `set` —
+    a value that `set` would refuse (a list item carrying a bare `---` line the
+    shared reader splits on) is refused by the writer with exit 2, one line
+    naming the key, instead of being landed straight into the frontmatter."""
+    out, err, rc = _run(["create", "hypothesis", "new-one",
+                         "--parent", "goal:g1",
+                         "--set", "parents=[a\n---\nb]",
+                         "--root", str(project)])
+    assert rc == 2, (out, err)
+    assert "'parents'" in err, err
+    # the node was NOT created.
+    assert not (project / "nodes" / "hypothesis" / "new-one.md").exists()
+
+
 # --------------------------------------------------------------------------
 # The two callers run the identical operations
 # --------------------------------------------------------------------------
@@ -151,8 +212,100 @@ def test_every_verb_is_nameable_from_a_command_line():
     """A keystroke an agent cannot spell is a verb that exists only for
     humans."""
     for name in write.VERBS:
-        assert name.isidentifier() or "-" in name
+        # `sub!` is command-line-spellable: the bang is part of the verb name
+        # (hypothesis:write-py-inline-replace-verb), so strip it before the
+        # identifier check.
+        assert name.rstrip("!").isidentifier() or "-" in name
         assert name == name.lower()
+
+
+def test_help_epilog_lists_every_verb_and_arity(capsys):
+    """hypothesis:write-py-help-epilog-lists-verb-grammar — a seat reads
+    `write.py -h` as its first_turn `write-verbs` fact, so the epilog must
+    enumerate every verb's name, its arity, and a one-line example, generated
+    to agree with VERBS/ARITY or the help-build raises."""
+    try:
+        write.main(["-h"])
+    except SystemExit:
+        pass
+    out = capsys.readouterr().out
+    for name in write.VERBS:
+        # the verb name and its arity both appear, on one epilog line
+        assert any(f"{name}\t" in line and f"{write.ARITY[name]} arg" in line
+                   for line in out.splitlines()), \
+            f"epilog missing {name} (arity {write.ARITY[name]})"
+
+
+def test_help_documents_replace_body_standalone_restriction(capsys):
+    """hypothesis:lm-replace-body-standalone-restriction-is-documented-in-help
+    -- `replace body` already REFUSES to share a submit with note, thought or
+    body_patch (one body writer per submit). That refusal is correct and
+    unchanged; what was missing is discoverability from `-h`, so a caller
+    learns the rule before writing a script that will fail. The rendered help
+    must name `replace` and at least one of note/thought/body_patch together.
+
+    Fails on the pre-change help (the only `replace` line then was the bare
+    `replace body 4:9 path/to/file` example, which names no other writer) and
+    passes once the NOTES block is rendered."""
+    try:
+        write.main(["-h"])
+    except SystemExit:
+        pass
+    out = capsys.readouterr().out
+    restricted = [
+        line for line in out.splitlines()
+        if "replace" in line.lower()
+        and any(w in line.lower() for w in ("note", "thought", "body_patch"))
+    ]
+    assert restricted, (
+        "write.py -h never names the replace-body standalone restriction "
+        "(replace + note/thought/body_patch together); a caller can only "
+        "learn it by hitting the refusal")
+
+
+def test_help_epilog_drift_guard_refuses_a_verb_without_an_example(monkeypatch):
+    """The epilog is fail-closed: if a verb appears in VERBS but has no
+    entry in VERB_EXAMPLES (or in ARITY), `write.py -h` must REFUSE rather
+    than emit a help text that documents a grammar it does not know. Without
+    this guard, deleting VERB_EXAMPLES or letting it drift leaves the suite
+    green while a seat's first_turn `write-verbs` fact silently loses a
+    verb. hypothesis:write-py-help-epilog-lists-verb-grammar (g15 mutation-
+    survival guard)."""
+    drifted = dict(write.VERBS)
+    drifted["bogus_drift_verb"] = "<arity>"
+    monkeypatch.setattr(write, "VERBS", drifted)
+    with pytest.raises(SystemExit) as exc:
+        write.main(["-h"])
+    assert "bogus_drift_verb" in str(exc.value)
+    assert "drift" in str(exc.value)
+
+
+def test_help_epilog_drift_guard_refuses_a_verb_without_arity(monkeypatch):
+    """Same fail-closed guard, exercised from the other side: an example
+    whose verb has no ARITY entry must also stop the help build."""
+    drifted = dict(write.ARITY)
+    dropped = next(iter(set(write.VERBS) - {"adopt"}))
+    del drifted[dropped]
+    monkeypatch.setattr(write, "ARITY", drifted)
+    with pytest.raises(SystemExit) as exc:
+        write.main(["-h"])
+    assert dropped in str(exc.value)
+
+
+def test_help_epilog_block_is_nonempty_and_names_each_verb_exactly(capsys):
+    """Positive contract, checked tightly: the epilog block is present and
+    non-empty, and every verb appears on its own epilog line with its literal
+    name and `N arg(s)`. Already covered for name+arity above; this pins that
+    the block itself exists so an empty epilog cannot quietly pass."""
+    try:
+        write.main(["-h"])
+    except SystemExit:
+        pass
+    out = capsys.readouterr().out
+    assert "verbs (each accepts a node_id first" in out
+    assert out.strip()
+    for name in write.VERBS:
+        assert f"{write.ARITY[name]} arg(s)" in out
 
 
 def test_values_are_coerced_because_frontmatter_is_typed():
@@ -364,6 +517,65 @@ def test_a_rejected_create_cleans_up_the_file_it_made(project, tmp_path):
         "a rejected spawn left an orphaned source file")
 
 
+def test_create_body_file_lands_real_prose_not_the_placeholder(project, tmp_path):
+    """CLAIM (G14.14.1b): `create --body-file PATH` reads the file in the verb
+    layer and threads it to `node_writer.write_node`'s existing `body` kwarg,
+    so the new node carries the caller's own prose. `node_writer` prepends its
+    canonical `# <id>` heading to ANY supplied body (and only a `body is None`
+    call gets the `BODY:BEGIN` marker + prompt), so the byte-identical claim is
+    the prose AFTER that heading; the placeholder must be absent."""
+    _schemas(project)
+    prose = tmp_path / "prose.md"
+    prose.write_text("The claim, stated at length.\n\n"
+                     "## Evidence\n\n- one\n- two\n")
+    out, err, rc = _run(["create", "hypothesis", "with-prose",
+                         "--parent", "goal:g1",
+                         "--body-file", str(prose),
+                         "--root", str(project)])
+    assert rc == 0, (out, err)
+    text = (project / "nodes" / "hypothesis" / "with-prose.md").read_text()
+    _fm, body = node_writer.split_frontmatter(text)
+    assert body == "\n# hypothesis:with-prose\n\n" + prose.read_text(), (
+        "the file's prose did not land verbatim")
+    assert "What is the testable claim?" not in body, (
+        "the BODY_PROMPTS placeholder leaked into a --body-file body")
+
+
+def test_create_without_body_file_still_scaffolds_the_placeholder(project):
+    """The regression guard: `--body-file` absent must pass `body=None`
+    unchanged, so the `BODY_PROMPTS` scaffold path is byte-identical to
+    today's. Compares against the exact bytes `write_node` composes for a
+    `body is None` call — marker, heading, prompt."""
+    _schemas(project)
+    out, err, rc = _run(["create", "hypothesis", "plain-one",
+                         "--parent", "goal:g1",
+                         "--root", str(project)])
+    assert rc == 0, (out, err)
+    text = (project / "nodes" / "hypothesis" / "plain-one.md").read_text()
+    _fm, body = node_writer.split_frontmatter(text)
+    expected = (node_writer.BODY_BEGIN + "\n# hypothesis:plain-one\n\n"
+                + node_writer.BODY_PROMPTS["hypothesis"])
+    # `_serialize_node` normalises the body's trailing newlines to exactly one.
+    expected = expected.rstrip("\n") + "\n"
+    assert body == expected, ("the no-flag scaffold path changed")
+
+
+def test_is_untouched_scaffold_rejects_a_real_body_file_body(project, tmp_path):
+    """Falsifier (c): a real `--body-file` body must NOT be mistaken for an
+    untouched placeholder. `_is_untouched_scaffold` checks whether the existing
+    body is a substring of the scaffold this call would write; against the
+    placeholder scaffold a real body must return False."""
+    _schemas(project)
+    res, _ = write.create(project, "hypothesis", "prose-node", ["goal:g1"],
+                          body="A real, multiline body.\n\n- not a placeholder\n")
+    assert res.written
+    text = Path(res.path).read_text()
+    placeholder = (node_writer.BODY_BEGIN + "\n# hypothesis:prose-node\n\n"
+                   + node_writer.BODY_PROMPTS["hypothesis"])
+    assert node_writer._is_untouched_scaffold(text, placeholder) is False, (
+        "a real body was flagged as an untouched scaffold")
+
+
 # --------------------------------------------------------------------------
 # `payload` — the bytes behind a build node (goal:g13.1)
 # --------------------------------------------------------------------------
@@ -375,6 +587,292 @@ def _build_node(project: Path, ref: str = "src/thing.py") -> None:
         'title: "t"\nbuild_kind: code\norigin: build-scan\n'
         f'payload_ref: {ref}\n---\n\nthe body\n')
 
+
+# SM 139: an empty `patch -` refuses dry AND real, by name, before any write (was: node
+# stamped + write-log appended, then replace_payload raised ValueError, rc 1)
+def test_sm139_an_empty_patch_stdin_refuses_before_any_write(project, tmp_path, monkeypatch, capsys):
+    import io
+    _build_node(project)
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "src" / "thing.py").write_text("old\n")
+    node, before = project / "nodes" / "build" / "b1.md", None
+    before = node.read_bytes()
+    errs = []
+    for dry in (["--dry-run"], []):
+        monkeypatch.setattr(sys, "stdin", io.StringIO(""))
+        assert write.main(["build:b1", "patch - && note n", *dry, "--root", str(project)]) == 2, dry
+        errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+    assert errs[0] == errs[1] and "patch - (stdin) is empty" in errs[0][0], errs
+    assert node.read_bytes() == before and (tmp_path / "src" / "thing.py").read_text() == "old\n"
+
+# SM 140: an EMPTY `payload -` beside another verb was dropped (touches_payload False) while
+# the note landed; it refuses by name before any write, dry and real, as `patch -` does
+def test_sm140_an_empty_payload_stdin_refuses_before_any_write(project, tmp_path, monkeypatch, capsys):
+    import io
+    _build_node(project)
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "src" / "thing.py").write_text("old\n")
+    node, log = project / "nodes" / "build" / "b1.md", project / "sessions" / "write-log.jsonl"
+    before, log_before = node.read_bytes(), log.read_bytes() if log.exists() else None
+    for script in ("payload - && note n", "note n && payload -", "payload -"):
+        errs = []
+        for dry in (["--dry-run"], []):
+            monkeypatch.setattr(sys, "stdin", io.StringIO(""))
+            assert write.main(["build:b1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and "payload - (stdin) is empty" in errs[0][0], (script, errs)
+    assert node.read_bytes() == before and (tmp_path / "src" / "thing.py").read_text() == "old\n"
+    assert (log.read_bytes() if log.exists() else None) == log_before
+    monkeypatch.setattr(sys, "stdin", io.StringIO("new\n"))   # a non-empty read still lands
+    assert write.main(["build:b1", "payload - && note n", "--root", str(project)]) == 0
+    assert (tmp_path / "src" / "thing.py").read_text() == "new\n"
+
+# SM 142: an EMPTY payload result (a patch deleting every line) is b"", never None --
+# was: dry rc 0, real rc 1 + ValueError traceback AFTER update_node stamped the node
+def test_sm142_a_patch_to_an_empty_payload_lands_dry_and_real(project, tmp_path, capsys):
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    dest = tmp_path / "src" / "thing.py"
+    (tmp_path / "all.diff").write_text("--- a\n+++ b\n@@ -1,1 +0,0 @@\n-old\n")
+    (tmp_path / "empty.diff").write_text("")
+    for start, diff in (("old\n", "all.diff"), ("", "empty.diff")):
+        _build_node(project)
+        dest.write_text(start)
+        for dry in (["--dry-run"], []):
+            rc = write.main(["build:b1", f"patch {tmp_path / diff} && note n", *dry, "--root", str(project)])
+            assert rc == 0, (diff, dry, capsys.readouterr().err)
+        assert dest.read_text() == "", diff
+
+
+# SM 143: every payload input resolves BEFORE the dry return -- a missing or non-file
+# source, an absent destination and two payload writers on one line refuse alike dry
+# and real, and nothing is stamped, spliced or logged
+def test_sm143_payload_inputs_refuse_before_any_write(project, tmp_path, capsys):
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "new.py").write_text("new\n")
+    log = project / "sessions" / "write-log.jsonl"
+    for ref, script, want in (
+            ("src/thing.py", f"payload {tmp_path / 'missing.py'} && note n", "is not a file"),
+            ("src/thing.py", f"payload {tmp_path / 'src'} && note n", "is not a file"),
+            ("src/absent.py", "payload_text x && note n", "never creates"),
+            ("src/absent.py", f"payload {tmp_path / 'new.py'}", "never creates"),
+            ("src/thing.py", f"payload {tmp_path / 'new.py'} && payload_text x", "one payload writer")):
+        _build_node(project, ref=ref)
+        (tmp_path / "src" / "thing.py").write_text("old\n")
+        node = project / "nodes" / "build" / "b1.md"
+        before, log_before = node.read_bytes(), log.read_bytes() if log.exists() else None
+        errs = []
+        for dry in (["--dry-run"], []):
+            assert write.main(["build:b1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and want in errs[0][0], (script, errs)
+        assert node.read_bytes() == before and (tmp_path / "src" / "thing.py").read_text() == "old\n"
+        assert (log.read_bytes() if log.exists() else None) == log_before, script
+        assert not (tmp_path / "src" / "absent.py").exists()
+
+# SM 145 + 146 + 147: the pre-dry payload judge counts VERBS (`payload -`, `payload_text`
+# and `sub payload` share one field), refuses a read-only destination whose bytes would
+# change, and maps an unreadable source to rc 2 + ERR -- dry == real, nothing stamped
+def test_sm145_to_147_payload_verbs_and_modes_refuse_before_any_write(project, tmp_path, monkeypatch, capsys):
+    import io, os
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    dest, src, log = tmp_path / "src" / "thing.py", tmp_path / "new.py", project / "sessions" / "write-log.jsonl"
+    src.write_text("new\n")
+    for script, mode, want in (("payload_text x && payload -", None, "one payload writer"),
+                               ("payload - && payload_text x", None, "one payload writer"),
+                               ("payload_text x && sub payload old => y", None, "one payload writer"),
+                               ("sub payload old => y && payload -", None, "one payload writer"),
+                               ("payload_text x && payload_text y", None, "one payload writer"),
+                               ("payload_text x && note n", (dest, 0o444), "is not writable"),
+                               (f"payload {src} && note n", (src, 0o000), "cannot be read")):
+        _build_node(project)
+        dest.write_text("old\n")
+        node = project / "nodes" / "build" / "b1.md"
+        before, log_before, errs = node.read_bytes(), log.read_bytes() if log.exists() else None, []
+        if mode:
+            os.chmod(*mode)
+        try:
+            for dry in (["--dry-run"], []):
+                monkeypatch.setattr(sys, "stdin", io.StringIO("z\n"))
+                assert write.main(["build:b1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+                errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        finally:
+            os.chmod(dest, 0o644), os.chmod(src, 0o644)
+        assert errs[0] == errs[1] and want in errs[0][0], (script, errs)
+        assert node.read_bytes() == before and dest.read_text() == "old\n"
+        assert (log.read_bytes() if log.exists() else None) == log_before, script
+    dest.write_text("old\n")   # repeated `sub payload` ops still compose
+    assert write.main(["build:b1", "sub payload o => O && sub payload d => D", "--root", str(project)]) == 0
+    assert dest.read_text() == "OlD\n"
+
+# SM 144: an EMPTY `body_patch -` beside another verb was dropped (main cleared its `-`,
+# submit skipped the empty diff) while the other verb landed; refused by name, dry and real
+def test_sm144_an_empty_body_patch_stdin_refuses_beside_any_verb(project, tmp_path, monkeypatch, capsys):
+    import io
+    _build_node(project)
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "src" / "thing.py").write_text("old\n")
+    node = project / "nodes" / "build" / "b1.md"
+    before = node.read_bytes()
+    for script in ("note n && body_patch -", "set title u && body_patch -", "payload_text x && body_patch -"):
+        errs = []
+        for dry in (["--dry-run"], []):
+            monkeypatch.setattr(sys, "stdin", io.StringIO(""))
+            assert write.main(["build:b1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and errs[0], (script, errs)
+        assert node.read_bytes() == before and (tmp_path / "src" / "thing.py").read_text() == "old\n", script
+        if "note" not in script:   # a note is refused earlier, as body_patch's second body writer
+            assert "body_patch - (stdin) is empty" in errs[0][0], (script, errs)
+
+# goal:g4.18.1.6 (owner 09-30: "The node location just becomes the node itself."): `patch` on a
+# node with no payload_ref edits the node file, byte-exact, through update_node's gates
+def _g41816_guard(project):
+    d = project / "nodes" / ".geometry"
+    d.mkdir(parents=True, exist_ok=True)
+    write_free_veto(d)
+    (d / "guard.md").write_text("---\nid: config:guard\ntype: config\nmint_id: " + "e" * 32 +
+                                "\nlimit: 384M\n---\n\n# config:guard\n\nold line\n\n" + THOUGHT + "\n")
+    assert write.main(["config:guard", "set note_row x", "--root", str(project)]) == 0   # canonical form
+    return d / "guard.md"
+
+def _g41816_render(node, **rows):   # the node + rows, in the ONE canonical form (the patch gate's)
+    from graph_core.persistence import frontmatter as fmr
+    nf = fmr.load_node_file(node)
+    return node_writer._serialize_node(node_writer.render_frontmatter({**nf.frontmatter, **rows}), nf.body)
+
+def _g41816_diff(old, new):
+    import difflib
+    return "".join(difflib.unified_diff(write._split_keepends(old), write._split_keepends(new), "a", "b"))   # the applier's own line split
+
+def test_g41816_patch_lands_on_a_config_node_itself_byte_exact(project, monkeypatch, capsys):
+    import io
+    node = _g41816_guard(project)
+    old = node.read_text()
+    want = old.replace("limit: 384M", "limit: 1G").replace("old line", "new line")
+    for dry in (["--dry-run"], []):
+        monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(old, want)))
+        assert write.main(["config:guard", "patch -", *dry, "--root", str(project)]) == 0, capsys.readouterr().err
+        assert node.read_text() == (old if dry else want)
+
+def test_g41816_a_node_patch_refuses_identity_contract_thought_and_a_second_verb(project, monkeypatch, capsys):
+    import io
+    node = _g41816_guard(project)
+    old = node.read_text()
+    beg = THOUGHT.split("\n")[0]
+    node.write_text(old.replace("old line", "old line\n\n<!-- BUILD-CONTRACT:BEGIN -->\nc\n<!-- BUILD-CONTRACT:END -->"))
+    old = node.read_text()
+    for script, new, want in (("patch -", old.replace("e" * 32, "f" * 32), "is identity or completion state"),
+                              ("patch -", old.replace("type: config", "type: goal"), "is identity or completion state"),
+                              ("patch -", old.replace("limit: 384M", "limit: 384M\nscaffold_hash: x"), "SM150"),
+                              ("patch -", old.replace("limit: 384M", "limit: 384M\na.b: x"), "dotted keys"),
+                              ("patch -", _g41816_render(node, parents=["goal:nonexist"]), "name no node"),
+                              ("patch -", old.replace("\nc\n", "\nd\n"), "BUILD-CONTRACT"),
+                              ("patch -", old.replace(beg + "\n", ""), "THOUGHT malformed"),
+                              ("patch -", old.replace("old line", f"old line\n{beg}"), "THOUGHT malformed"),
+                              ("patch - && note n", old.replace("old line", "x"), "standalone")):
+        errs = []
+        for dry in (["--dry-run"], []):
+            monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(old, new)))
+            assert write.main(["config:guard", script, *dry, "--root", str(project)]) == 2, (want, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        want = "is identity or completion state" if want == "SM150" else want   # scaffold_hash is PROTECTED
+        assert errs[0] == errs[1] and want in errs[0][0], (want, errs)
+        assert node.read_text() == old, want
+
+
+# SM 150 / 151 / 155: a node patch is judged by the rows it becomes -- a PROTECTED row already on
+# the node can neither change nor go; --ring-fields shows the translated rows the ring gate judges
+def test_sm150_155_a_node_patch_is_judged_as_its_rows(project, monkeypatch, capsys):
+    import io
+    node = _g41816_guard(project)
+    node.write_text(node.read_text().replace("limit: 384M", "limit: 384M\nscaffold_hash: h1"))
+    assert write.main(["config:guard", "canonicalize", "--root", str(project)]) == 0   # the fixture, canonical
+    old = node.read_text()
+    for new in (old.replace("scaffold_hash: h1", "scaffold_hash: h2"), old.replace("scaffold_hash: h1\n", "")):
+        monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(old, new)))
+        assert write.main(["config:guard", "patch -", "--root", str(project)]) == 2
+        assert "scaffold_hash" in capsys.readouterr().err and node.read_text() == old
+    monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(old, old.replace("limit: 384M", "limit: 2G"))))
+    write.main(["config:guard", "patch -", "--ring-fields", "--root", str(project)])
+    assert "2G" in capsys.readouterr().out
+
+# council ruling on goal:g4.18.1.6: `replace payload` is NOT extended to the node file; its
+# refusal names the route (replace body N:M / row), dry == real
+def test_g41816_replace_payload_on_a_node_names_the_route(project, tmp_path, capsys):
+    node = _g41816_guard(project)
+    old, errs = node.read_text(), []
+    (tmp_path / "x.txt").write_text("x\n")
+    for dry in (["--dry-run"], []):
+        assert write.main(["config:guard", f"replace payload 1:1 {tmp_path / 'x.txt'}", *dry, "--root", str(project)]) == 2
+        errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+    assert errs[0] == errs[1] and "use `replace body N:M` (or `row`)" in errs[0][0], errs
+    assert node.read_text() == old
+
+# SM 148 + 149: a destination the writer cannot READ (000, or write-only 0200) refuses before any
+# write, dry == real; 146's carve-out: the same bytes on a read-only (444) dest is a legal re-log
+def test_sm148_149_an_unreadable_payload_dest_refuses_and_same_bytes_444_relogs(project, tmp_path, capsys):
+    import os
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    dest, log = tmp_path / "src" / "thing.py", project / "sessions" / "write-log.jsonl"
+    for mode in (0o000, 0o200):
+        _build_node(project)
+        dest.write_text("old\n")
+        node = project / "nodes" / "build" / "b1.md"
+        before, log_before, errs = node.read_bytes(), log.read_bytes() if log.exists() else None, []
+        os.chmod(dest, mode)
+        try:
+            for dry in (["--dry-run"], []):
+                assert write.main(["build:b1", "payload_text x && note n", *dry, "--root", str(project)]) == 2, oct(mode)
+                errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        finally:
+            os.chmod(dest, 0o644)
+        assert errs[0] == errs[1] and "is not readable" in errs[0][0], (oct(mode), errs)
+        assert node.read_bytes() == before and dest.read_text() == "old\n"
+        assert (log.read_bytes() if log.exists() else None) == log_before, oct(mode)
+    os.chmod(dest, 0o444)
+    try:
+        assert write.main(["build:b1", "payload_text old", "--root", str(project)]) == 0, capsys.readouterr().err
+        assert dest.read_text() == "old\n" and '"changed": false' in log.read_text().splitlines()[-1]
+    finally:
+        os.chmod(dest, 0o644)
+
+# council ruling on SM 154 (b) + SM 152 + 153: a patch whose canonical render differs from its applied bytes
+# refuses and names `canonicalize` verbatim (never rc 0 "updated" on a silent discard); `canonicalize`
+# then the patch lands byte-exact; no 2nd THOUGHT block; bad sources and broken frontmatter are ERRs
+def test_sm152_154_canonical_gate_thought_count_and_bad_sources(project, tmp_path, monkeypatch, capsys):
+    import io
+    node = _g41816_guard(project)
+    canon = node.read_text()
+    blocks = canon.replace("\n\n" + THOUGHT, "")
+    node.write_text(blocks)
+    assert write.main(["config:guard", "canonicalize", "--root", str(project)]) == 0
+    blocks = node.read_text()
+    hand = canon.replace("limit: 384M", "limit: '384M'   # hand")
+    for start, new, want in ((canon, canon.replace("limit: 384M", "limit: 384M # c"), "write.py config:guard canonicalize"),
+                             (hand, hand.replace("old line", "new line"), "drops frontmatter comments"),
+                             (blocks, blocks.replace("old line", f"old line\n\n{THOUGHT}\n\n{THOUGHT}"), "THOUGHT malformed"),
+                             (canon, canon.replace("\n---\n", "\n--\n", 1), "cannot apply")):
+        node.write_text(start)
+        errs = []
+        for dry in (["--dry-run"], []):
+            monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(start, new)))
+            assert write.main(["config:guard", "patch -", *dry, "--root", str(project)]) == 2, (want, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and want in errs[0][0], (want, errs)
+        assert node.read_text() == start, want
+    monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(canon, canon.replace("old line", "x line"))))
+    node.write_text(canon)   # SM 163: read + a body-only node patch stays refused, nothing lost silently
+    assert write.main(["config:guard", "read body 1:2 && patch -", "--root", str(project)]) == 2
+    assert "terminal verb" in capsys.readouterr().err and node.read_text() == canon
+    for src in (tmp_path, tmp_path / "missing.diff"):   # a directory, a missing file (SM 153 / 162)
+        assert write.main(["config:guard", f"patch {src}", "--root", str(project)]) == 2
+        assert "cannot apply" in capsys.readouterr().err
+    node.write_text(hand)   # canonicalize, then the same one-line patch lands byte-exact
+    assert write.main(["config:guard", "canonicalize", "--root", str(project)]) == 0
+    now = node.read_text()
+    monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(now, now.replace("old line", "new line"))))
+    assert write.main(["config:guard", "patch -", "--root", str(project)]) == 0
+    assert node.read_text() == now.replace("old line", "new line")
 
 def test_payload_verb_replaces_the_bytes_the_node_points_at(project, tmp_path):
     _build_node(project)
@@ -428,9 +926,11 @@ def test_payload_refuses_a_missing_source_rather_than_emptying_the_file(
     dest.write_text("precious\n")
     edit = write.apply_verb(write.Edit("build:b1"), "payload",
                             [str(tmp_path / "typo.py")])
-    with pytest.raises(FileNotFoundError):
+    node = project / "nodes" / "build" / "b1.md"
+    before = node.read_bytes()
+    with pytest.raises(write.EditError, match="is not a file"):   # SM 143: before update_node
         write.submit(project, edit)
-    assert dest.read_text() == "precious\n"
+    assert dest.read_text() == "precious\n" and node.read_bytes() == before
 
 
 def test_payload_never_creates_a_file_that_is_not_there(project, tmp_path):
@@ -440,9 +940,11 @@ def test_payload_never_creates_a_file_that_is_not_there(project, tmp_path):
     src = tmp_path / "new.py"
     src.write_text("x\n")
     edit = write.apply_verb(write.Edit("build:b1"), "payload", [str(src)])
-    with pytest.raises(FileNotFoundError, match="never creates"):
+    node = project / "nodes" / "build" / "b1.md"
+    before = node.read_bytes()
+    with pytest.raises(write.EditError, match="never creates"):   # SM 143: before update_node
         write.submit(project, edit)
-    assert not (tmp_path / "src" / "absent.py").exists()
+    assert not (tmp_path / "src" / "absent.py").exists() and node.read_bytes() == before
 
 
 def test_payload_text_writes_the_bytes_inline_with_no_scratch_file(project,
@@ -549,7 +1051,7 @@ def _moral_schema(project: Path):
     d = project / "context" / "schemas"
     d.mkdir(parents=True, exist_ok=True)
     (d / "[moral].md").write_text(
-        "---\nname: moral\nspawn:\n  allowed_parents: []\n"
+        "---\nname: moral\nwritten_by: owner\nspawn:\n  allowed_parents: []\n"
         "  min_parents: 0\n  max_parents: 0\n"
         "validation:\n  required: [id, type, mint_id, title]\n---\n\nbody\n")
 
@@ -565,11 +1067,20 @@ def test_create_moral_without_owner_is_refused(project):
     """🔴 RED FIRST: moral node creation without --actor owner must raise EditError.
 
     goal:g12 — the five moral nodes are hand-edited only by the owner.
+    THE ONE assertion this round is allowed to retarget (L4.40): the refusal
+    message no longer contains the phrase `owner only`, so this now asserts
+    the NEW message and it asserts MORE — that it names the node TYPE
+    (`moral`) and the admitted writer (`owner`), and that the old catch-all
+    phrase is gone rather than loosened to `match=""`.
     """
     _moral_schema(project)
-    with pytest.raises(write.EditError, match="owner only"):
+    with pytest.raises(write.EditError, match="moral") as ei:
         write.create(project, "moral", "faith", [],
                      actor="director", bypass=True)
+    msg = str(ei.value)
+    assert "moral" in msg        # the refusal names the node TYPE
+    assert "owner" in msg        # and the admitted writer
+    assert "owner only" not in msg
     assert not (project / "nodes" / "moral" / "faith.md").exists()
 
 
@@ -583,7 +1094,9 @@ def test_create_moral_with_owner_succeeds(project):
 
 
 def test_submit_moral_without_owner_is_refused(project):
-    """🔴 RED FIRST: editing a moral node without --actor owner must be refused."""
+    """RED FIRST: editing a moral node without --actor owner must be refused."""
+    _moral_schema(project)   # L4.32 — the gate is schema-driven; it needs
+                             # the [moral].md that declares written_by: owner
     _moral_node(project, "faith")
     e = write.Edit("moral:faith")
     write.verb_set(e, "title", "New Title")
@@ -611,6 +1124,320 @@ def test_submit_non_moral_without_owner_still_works(project):
     # This should work even with a non-owner actor
     res = write.submit(project, e, actor="director")
     assert res.status == node_writer.UPDATED
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-written-by-message-and-shape — the refusal message must name
+# the node TYPE and its admitted writers, and `written_by` admits a LIST and
+# a comma-separated string, matching links.py's report parse.
+# --------------------------------------------------------------------------
+
+def _written_by_schema(project, ntype, written_by):
+    """Fixture schema for an arbitrary type declaring `written_by`."""
+    d = project / "context" / "schemas"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / f"[{ntype}].md").write_text(
+        "---\nname: %s\nwritten_by: %s\n"
+        "spawn:\n  allowed_parents: []\n  min_parents: 0\n  max_parents: 0\n"
+        "validation:\n  required: [id, type, title]\n---\n\nbody\n"
+        % (ntype, written_by))
+
+
+def _typed_node(project, ntype, slug, node_id):
+    (project / "nodes" / ntype).mkdir(parents=True, exist_ok=True)
+    (project / "nodes" / ntype / f"{slug}.md").write_text(
+        '---\nid: "%s"\ntype: %s\nmint_id: tst001\ntitle: "T"\n---\n\nbody\n'
+        % (node_id, ntype))
+
+
+def test_refusal_message_names_the_types_own_schema_and_its_writers(project):
+    """(1) A non-moral type's schema `written_by` refuses with a message that
+    names THAT type (not `moral`) and the writers it admits."""
+    _written_by_schema(project, "variorum", "scribe")
+    with pytest.raises(write.EditError) as ei:
+        write.create(project, "variorum", "v1", [],
+                     actor="director", bypass=True)
+    msg = str(ei.value)
+    assert "variorum" in msg      # names the node type being refused
+    assert "scribe" in msg        # names the admitted writer
+    assert "moral" not in msg     # not the moral catch-all
+    assert not (project / "nodes" / "variorum" / "foobar.md").exists()
+
+
+def test_list_written_by_admits_every_listed_writer(project):
+    """(2) A list-valued `written_by` admits EVERY listed writer."""
+    _written_by_schema(project, "variorum", "[scribe, corrector]")
+    # both listed writers admitted — via an explicit ROLE, since L4.41 the
+    # gate compares a resolved role, never a raw actor string
+    write.create(project, "variorum", "foobar", [],
+                 actor="whoever", role="scribe", bypass=True)
+    write.create(project, "variorum", "baz", [],
+                 actor="whoever", role="corrector", bypass=True)
+    # an unlisted writer refused
+    with pytest.raises(write.EditError) as ei:
+        write.create(project, "variorum", "hawk", [],
+                     actor="whoever", role="hawk", bypass=True)
+    msg = str(ei.value)
+    assert "variorum" in msg
+    assert "scrib" in msg and "corrector" in msg
+    assert not (project / "nodes" / "variorum" / "hawk.md").exists()
+
+
+def test_comma_string_parses_same_as_list(project):
+    """(3) A comma-separated string admits the same writers as the list form.
+
+    The enforcer parses both identically (shared helper with `links.py`), so
+    a scalar string and a list never disagree about membership.
+    """
+    from links import parse_written_by
+    assert parse_written_by("scribe, corrector") == \
+        parse_written_by(["scribe", "corrector"])
+    assert parse_written_by("scribe,  corrector") == {"scribe", "corrector"}
+    assert parse_written_by("scribe,corrector") == {"scribe", "corrector"}
+    assert parse_written_by(None) is None
+    assert parse_written_by("") == set()
+
+    # and through the gate: a comma-string schema admits its writers
+    _written_by_schema(project, "variorum", "scribe, corrector")
+    write.create(project, "variorum", "foobar", [],
+                 actor="whoever", role="scribe", bypass=True)
+    with pytest.raises(write.EditError):
+        write.create(project, "variorum", "hawk", [],
+                     actor="whoever", role="hawk", bypass=True)
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-role-resolution-longest-prefix — the enforcer compares a
+# RESOLVED ROLE, not a generation-name actor string; the one extra source is
+# config:seats, longest-prefix-with-boundary wins, a tie refuses, and
+# `owner` (only) falls through to role `owner`.
+# --------------------------------------------------------------------------
+
+def _seats_fixture(project, rows):
+    """A throwaway config:seats node so role resolution has rows to read.
+    Each tuple is (name, role)."""
+    d = project / "nodes" / ".geometry"
+    d.mkdir(parents=True, exist_ok=True)
+    write_free_veto(d)
+    body = "\n".join(
+        f'  - {{"name": "{n}", "role": "{r}"}}' for n, r in rows)
+    (d / "seats.md").write_text(
+        "---\nid: config:seats\ntype: config\nseats:\n" + body +
+        "\n---\n\nbody\n")
+
+
+def test_seats_resolve_prime_and_refuse_director(project):
+    """(a) The Prime-ruling pair: `belam-S1-L4-II` resolves via the `belam`
+    seat to `prime_director` (admitted); `sanctuary-director-4e` resolves to
+    `director` (refused) for a type admitting only [owner, prime_director]."""
+    _written_by_schema(project, "mystery", "[owner, prime_director]")
+    _seats_fixture(project, [("belam", "prime_director"),
+                             ("sanctuary-director", "director")])
+    res, _ = write.create(project, "mystery", "m1", [],
+                          actor="belam-S1-L4-II", bypass=True)
+    assert res.written and not res.rejected
+    with pytest.raises(write.EditError, match="mystery") as ei:
+        write.create(project, "mystery", "m2", [],
+                     actor="sanctuary-director-4e", bypass=True)
+    msg = str(ei.value)
+    assert "prime_director" in msg  # names the admitted roles
+    assert "owner" in msg
+
+
+def test_role_flag_beats_agi_role(project, monkeypatch):
+    """(b1) precedence: an explicit --role wins over AGI_ROLE."""
+    _written_by_schema(project, "mystery", "prime_director")
+    monkeypatch.setenv("AGI_ROLE", "director")  # would be refused
+    res, _ = write.create(project, "mystery", "m1", [], actor="x",
+                          role="prime_director", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_agi_role_beats_seats(project, monkeypatch):
+    """(b2) precedence: AGI_ROLE wins over the seats row."""
+    _written_by_schema(project, "mystery", "director")
+    _seats_fixture(project, [("belam", "prime_director")])
+    monkeypatch.setenv("AGI_ROLE", "director")
+    # belam's seat says prime_director; AGI_ROLE director must win
+    res, _ = write.create(project, "mystery", "m1", [],
+                          actor="belam-S1-L4-II", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_seats_beats_owner_literal(project):
+    """(b3) precedence: the seats row resolves before the `owner` literal.
+    If the seats table were skipped, actor `alive-x-1` (≠ owner) would stay
+    UNRESOLVED and be refused; succeeding proves the seat resolved first."""
+    _written_by_schema(project, "mystery", "director")
+    _seats_fixture(project, [("alive-x", "director")])
+    res, _ = write.create(project, "mystery", "m1", [],
+                          actor="alive-x-1", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_owner_literal_resolves_to_owner(project):
+    """(b4) with no seats and no env, the literal actor `owner` -> role `owner`."""
+    _written_by_schema(project, "mystery", "owner")
+    res, _ = write.create(project, "mystery", "m1", [],
+                          actor="owner", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_longest_prefix_wins(project):
+    """(c) rows `alive` and `alive-x` both match `alive-x-1`, but the LONGEST
+    (`alive-x`) resolves, to `director`; if the shorter `alive` won it would
+    resolve to prime_director and be refused."""
+    _written_by_schema(project, "mystery", "director")
+    _seats_fixture(project, [("alive", "prime_director"),
+                             ("alive-x", "director")])
+    res, _ = write.create(project, "mystery", "m1", [],
+                          actor="alive-x-1", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_boundary_aliveness_bot_not_alive(project):
+    """(d) actor `aliveness-bot` must NOT resolve through row `alive` — a bare
+    startswith would grant a role nobody assigned. It stays UNRESOLVED and,
+    the type declaring written_by, is refused."""
+    _written_by_schema(project, "mystery", "director")
+    _seats_fixture(project, [("alive", "director")])
+    with pytest.raises(write.EditError, match="mystery"):
+        write.create(project, "mystery", "m1", [],
+                     actor="aliveness-bot", bypass=True)
+
+
+def test_tie_at_longest_length_refuses(project):
+    """(e) two fixture rows that tie at the longest match REFUSE rather than
+    pick, and the message says why. Under the strict `==`/`name+'-'` boundary
+    rule a real INPUT tie is structurally impossible, so the guard is tested
+    directly on `_pick_longest_role`, which is where the fail-closed lives."""
+    with pytest.raises(write.EditError, match="ambiguous") as ei:
+        write._pick_longest_role([(5, "ab-cd", "director"),
+                                  (5, "ab-xy", "prime_director")])
+    msg = str(ei.value)
+    assert "ab-cd" in msg and "ab-xy" in msg
+
+
+def test_undeclared_schema_gates_nothing_even_unresolved(project):
+    """(f) a type declaring NO written_by admits an unresolved actor exactly
+    as today — resolution never starts when there is nothing to admit."""
+    _seats_fixture(project, [("belam", "prime_director")])
+    d = project / "context" / "schemas"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "[plaintype].md").write_text(
+        "---\nname: plaintype\n"
+        "spawn:\n  allowed_parents: []\n  min_parents: 0\n  max_parents: 0\n"
+        "validation:\n  required: [id, type, title]\n---\n\nbody\n")
+    res, _ = write.create(project, "plaintype", "p1", [],
+                          actor="anything", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_moral_still_refuses_non_owner_end_to_end(project):
+    """(g) `[moral]` still refuses a non-owner actor end to end, and still
+    reveals no seat bypass: actor that maps to `director` yet is not admitted."""
+    _moral_schema(project)
+    _seats_fixture(project, [("sanctuary-director", "director")])
+    with pytest.raises(write.EditError, match="moral"):
+        write.create(project, "moral", "faith", [],
+                     actor="sanctuary-director-4e", bypass=True)
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-a-role-is-resolved-never-typed — a role is RESOLVED, never
+# TYPED. An explicit --role (or AGI_ROLE) may name only the role the actor's
+# seat resolves to or a LOWER one on the ladder (owner > prime_director >
+# director > parent > kid); a higher one is refused by name, exit non-zero,
+# nothing written. An actor resolving to no seat keeps the fallbacks unchanged.
+# --------------------------------------------------------------------------
+
+def test_elevated_role_refused_by_name(project):
+    """(h1) a `director` seat actor passing `--role owner` is refused BY NAME
+    with the L4.290 ruling sentence, and nothing is written."""
+    _written_by_schema(project, "mystery", "owner")
+    _seats_fixture(project, [("sanctuary-director", "director")])
+    with pytest.raises(write.EditError) as ei:
+        write.create(project, "mystery", "m2", [],
+                     actor="sanctuary-director-4e",
+                     role="owner", bypass=True)
+    msg = str(ei.value)
+    assert "--role owner refused" in msg
+    assert "sanctuary-director-4e" in msg
+    assert "resolves to director" in msg
+    assert not (project / "nodes" / "mystery" / "m2.md").exists()
+
+
+def test_lower_role_from_director_accepted(project):
+    """(h2) a `director` seat actor passing `--role kid` (LOWER on the
+    ladder) is accepted — the schema admits kid for the lower write."""
+    _written_by_schema(project, "mystery", "kid")
+    _seats_fixture(project, [("sanctuary-director", "director")])
+    res, _ = write.create(project, "mystery", "m3", [],
+                          actor="sanctuary-director-4e",
+                          role="kid", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_owner_literal_with_role_owner_accepted(project):
+    """(h3) the bare `owner` actor resolves to NO seat, so `--role owner`
+    keeps today's fallback and is accepted (no ceiling to refuse against)."""
+    _written_by_schema(project, "mystery", "owner")
+    res, _ = write.create(project, "mystery", "m4", [],
+                          actor="owner", role="owner", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_same_role_as_seat_accepted(project):
+    """(h4) `--role` naming exactly the seat's own role is accepted."""
+    _written_by_schema(project, "mystery", "director")
+    _seats_fixture(project, [("sanctuary-director", "director")])
+    res, _ = write.create(project, "mystery", "m5", [],
+                          actor="sanctuary-director-4e",
+                          role="director", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_agi_role_subject_to_same_ceiling(project, monkeypatch):
+    """(h5) AGI_ROLE is subject to the same ceiling: a `director` seat actor
+    with AGI_ROLE=owner is refused; with AGI_ROLE=kid (lower) is accepted."""
+    _written_by_schema(project, "mystery", "owner")
+    _seats_fixture(project, [("sanctuary-director", "director")])
+    monkeypatch.setenv("AGI_ROLE", "owner")
+    with pytest.raises(write.EditError) as ei:
+        write.create(project, "mystery", "m6", [],
+                     actor="sanctuary-director-4e", bypass=True)
+    msg = str(ei.value)
+    assert "AGI_ROLE owner refused" in msg
+
+    _written_by_schema(project, "mystery", "kid")
+    monkeypatch.setenv("AGI_ROLE", "kid")
+    res, _ = write.create(project, "mystery", "m7", [],
+                          actor="sanctuary-director-4e", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_stale_fact_prose_has_no_refused_wording():
+    """(h6) the stale-fact prose in the two hooks and rotate.py no longer says
+    a stale fact is REFUSED — it is MARKED stale and still emitted. Any
+    `refused` adjacent to stale/bootstrap that the grep finds is a regression."""
+    import pathlib
+    tests = pathlib.Path(__file__).resolve().parents[0]
+    agi = tests.parent  # extensions/agi
+    targets = [
+        agi / "hooks" / "cc-session-start.sh",
+        agi / "hooks" / "cc-session-start.next.sh",
+        agi / "bin" / "rotate.py",
+    ]
+    for t in targets:
+        if not t.exists():
+            continue
+        text = t.read_text()
+        # the corrected contract: never assert that a measured fact not at
+        # HEAD is REFUSED
+        assert "not at HEAD is refused" not in text, t
+        assert "REFUSE when absent/stale" not in text, t
+
+
 
 
 # --------------------------------------------------------------------------
@@ -676,6 +1503,30 @@ def test_adopt_dry_run_writes_nothing(project):
     assert rc == 0
     text = (project / "nodes/experiment/e2.md").read_text()
     assert "mint_id:" not in text
+
+
+# hypothesis:adopt-runs-the-written-by-gate-before-it-mints (bundle 3 H1)
+def test_adopt_by_actor_outside_written_by_is_refused_nothing_minted(
+        project, capsys):
+    _written_by_schema(project, "config", "[owner, prime_director]")
+    _seats_fixture(project, [("belam", "prime_director"), ("kidpost", "kid")])
+    _write_no_mint_kid(project, "config:tmpcfg")
+    rc = write.main(["config:tmpcfg", "adopt", "--root", str(project),
+                     "--actor", "kidpost-a00", "--role", "kid"])
+    assert rc != 0
+    err = capsys.readouterr().err
+    assert "kidpost-a00" in err and "config" in err  # names actor + type
+    assert "mint_id:" not in (project / "nodes/config/tmpcfg.md").read_text()
+
+
+def test_prime_adopt_of_a_config_node_still_mints(project):
+    _written_by_schema(project, "config", "[owner, prime_director]")
+    _seats_fixture(project, [("belam", "prime_director"), ("kidpost", "kid")])
+    _write_no_mint_kid(project, "config:tmpcfg")
+    rc = write.main(["config:tmpcfg", "adopt", "--root", str(project),
+                     "--actor", "belam-S2-L5-XVI"])
+    assert rc == 0
+    assert "mint_id:" in (project / "nodes/config/tmpcfg.md").read_text()
 
 
 # --- a kid in a linked worktree addresses its own node without --root (l3w4)
@@ -885,3 +1736,1890 @@ def test_patch_verb_fails_closed_and_preserves_exec(tmp_path):
     assert "    return 20" in text and "    return 2\n" not in text
     assert _stat.S_IMODE(payload.stat().st_mode) == 0o755, \
         "the destination must stay executable after a successful patch"
+
+
+# --------------------------------------------------------------------------
+# `replace` — the offset-free partial write (L4, owner 2026-09-09)
+# --------------------------------------------------------------------------
+
+REPLACE_TEXT = "\n".join(f"line{i}" for i in range(1, 9))
+
+
+@pytest.mark.parametrize("rng", ["3:5", "1:1", "6:", ":2", "8:8"])
+def test_replace_is_the_exact_inverse_of_read(rng):
+    """The property the verb exists for. Overwriting a range with exactly what
+    a read of that range returned is the IDENTITY, so `read N:M` then
+    `replace N:M` needs no arithmetic between them — which is what removes the
+    manual offset step the caller used to have to get right (trap 0ah)."""
+    assert write._splice_range(
+        REPLACE_TEXT, rng, write._slice_range(REPLACE_TEXT, rng)) == REPLACE_TEXT
+
+
+def test_replace_overwrites_only_the_named_lines():
+    assert write._splice_range(REPLACE_TEXT, "3:5", "X\nY").split("\n") == [
+        "line1", "line2", "X", "Y", "line6", "line7", "line8"]
+
+
+def test_replace_absorbs_one_trailing_newline_so_a_target_does_not_grow():
+    """Replacement text from a file or stdin carries a trailing newline;
+    inserting it verbatim would add a blank line on every single edit."""
+    assert (write._splice_range(REPLACE_TEXT, "3:3", "Z\n")
+            == write._splice_range(REPLACE_TEXT, "3:3", "Z"))
+
+
+def test_replace_with_empty_text_deletes_the_range():
+    assert write._splice_range(REPLACE_TEXT, "3:5", "").split("\n") == [
+        "line1", "line2", "line6", "line7", "line8"]
+
+
+def test_replace_refuses_a_range_past_the_end_before_writing():
+    with pytest.raises(write.EditError):
+        write._splice_range(REPLACE_TEXT, "99:", "x")
+
+
+def test_replace_refuses_an_unknown_target():
+    with pytest.raises(write.EditError):
+        write.verb_replace(write.Edit(node_id="x"), "frontmatter", "1:2", "-")
+
+
+def test_replace_body_uses_the_same_coordinates_as_read(project):
+    """End to end on a real node: the range `read` reports is the range
+    `replace` writes, with no conversion in between."""
+    cur = write._read_body_text(project, "hypothesis:h1")
+    n = len(cur.split("\n"))
+    whole = f"1:{n}"
+    assert write._splice_range(cur, whole, write._slice_range(cur, whole)) == cur
+
+    idx = next(i for i, ln in enumerate(cur.split("\n"), 1)
+               if ln.strip() == "the body")
+    edit = write.Edit(node_id="hypothesis:h1")
+    write.verb_replace(edit, "body", f"{idx}:{idx}", "-")
+    edit.replace_text = "REPLACED"
+    res = write.submit(project, edit, actor="kid", session="s1")
+    assert res.status != node_writer.REJECTED
+    after = write._read_body_text(project, "hypothesis:h1")
+    assert "REPLACED" in after and "the body" not in after
+    assert len(after.split("\n")) == n, \
+        "a one-line range replace must not change the line count"
+
+
+def test_replace_payload_goes_through_the_same_routine_as_a_body(tmp_path):
+    """The owner's ask: a payload file is editable by the SAME routine as a
+    node body — one reader (`_target_text`), one transform (`_splice_range`),
+    one range vocabulary — differing only in where the result lands."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    payload = tmp_path / "lib" / "mod.py"
+    payload.parent.mkdir(parents=True, exist_ok=True)
+    payload.write_text(ORIG_MOD)
+    (graph / "nodes" / "build" / "b1.md").write_text(
+        '---\nid: build:b1\ntype: build\nmint_id: abc123\n'
+        'title: "t"\nscaffold_hash: deadbeef\n'
+        f"payload_ref: {payload}\n---\n\nbody\n\n")
+
+    before = payload.read_text()
+    edit = write.Edit(node_id="build:b1")
+    write.verb_replace(edit, "payload", "1:1", "-")
+    edit.replace_text = "# REPLACED HEADER"
+    res = write.submit(graph, edit, actor="kid", session="s1")
+    assert res.status != node_writer.REJECTED
+    after = payload.read_text()
+    assert after.split("\n")[0] == "# REPLACED HEADER"
+    assert after.split("\n")[1:] == before.split("\n")[1:], \
+        "only the named line may change"
+
+
+def test_replace_payload_refusal_leaves_the_file_untouched(tmp_path):
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    payload = tmp_path / "lib" / "mod.py"
+    payload.parent.mkdir(parents=True, exist_ok=True)
+    payload.write_text(ORIG_MOD)
+    (graph / "nodes" / "build" / "b1.md").write_text(
+        '---\nid: build:b1\ntype: build\nmint_id: abc123\n'
+        'title: "t"\nscaffold_hash: deadbeef\n'
+        f"payload_ref: {payload}\n---\n\nbody\n\n")
+
+    edit = write.Edit(node_id="build:b1")
+    write.verb_replace(edit, "payload", "9999:", "-")
+    edit.replace_text = "nope"
+    with pytest.raises(write.EditError):
+        write.submit(graph, edit, actor="kid", session="s1")
+    assert payload.read_text() == ORIG_MOD, \
+        "a refused range must change nothing on disk"
+
+
+# hypothesis:l4-replace-api-drops-source — the PYTHON API path has no
+# coverage, which is exactly why the bug shipped. These tests drive
+# write.Edit + write.verb_replace + write.submit with NO argv and NO manual
+# replace_text: the replacement source is resolved by the shared resolver,
+# exactly as a library caller would.
+# --------------------------------------------------------------------------
+
+
+def _api_replace_payload(tmp_path, src_text):
+    """Set up a build node with a payload fixture and a source file, and
+    return (graph, payload, payload_node_md, edit) ready for submit."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    payload = tmp_path / "lib" / "mod.py"
+    payload.parent.mkdir(parents=True, exist_ok=True)
+    payload.write_text(ORIG_MOD)
+    (graph / "nodes" / "build" / "b1.md").write_text(
+        '---\nid: build:b1\ntype: build\nmint_id: abc123\n'
+        'title: "t"\nscaffold_hash: deadbeef\n'
+        f"payload_ref: {payload}\n---\n\nbody\n\n")
+    src = tmp_path / "src.txt"
+    src.write_text(src_text)
+    edit = write.Edit(node_id="build:b1")
+    write.verb_replace(edit, "payload", "1:1", str(src))
+    return graph, payload, edit
+
+
+def test_api_replace_replaces_the_line_not_deletes_it(tmp_path):
+    """The exact bug: an API-driven replace returned `status='updated'` while
+    git numstat read `0 1` — the target line was DELETED, nothing inserted.
+    Now the same path must produce an insertion+deletion (content equality,
+    one line swapped, line count unchanged)."""
+    graph, payload, edit = _api_replace_payload(tmp_path, "# REPLACED HEADER")
+    before = payload.read_text()
+    n_before = len(before.split("\n"))
+    res = write.submit(graph, edit, actor="kid", session="s1")
+    assert res.status != node_writer.REJECTED
+    after = payload.read_text()
+    assert after.split("\n")[0] == "# REPLACED HEADER", \
+        "the API path must REPLACE the line, not delete it"
+    assert after.split("\n")[1:] == before.split("\n")[1:], \
+        "only the named line may change"
+    assert len(after.split("\n")) == n_before, \
+        "a one-line replace must not change the line count (numstat 1 1)"
+
+
+def test_api_replace_refuses_an_empty_source_and_writes_nothing(tmp_path):
+    """An EMPTY source must REFUSE with an EditError naming the source, and
+    leave the file byte-identical. Replacing a range with nothing = deleting
+    it, and that must never be the silent consequence of an empty file."""
+    graph, payload, edit = _api_replace_payload(tmp_path, "")
+    before = payload.read_text()
+    with pytest.raises(write.EditError) as ei:
+        write.submit(graph, edit, actor="kid", session="s1")
+    assert "empty" in str(ei.value)
+    assert payload.read_text() == before, \
+        "an empty source must write NOTHING — file stays byte-identical"
+
+
+def test_api_replace_refuses_a_missing_source_and_writes_nothing(tmp_path):
+    """An ABSENT source must REFUSE naming the source, and write nothing."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    payload = tmp_path / "lib" / "mod.py"
+    payload.parent.mkdir(parents=True, exist_ok=True)
+    payload.write_text(ORIG_MOD)
+    (graph / "nodes" / "build" / "b1.md").write_text(
+        '---\nid: build:b1\ntype: build\nmint_id: abc123\n'
+        'title: "t"\nscaffold_hash: deadbeef\n'
+        f"payload_ref: {payload}\n---\n\nbody\n\n")
+    missing = tmp_path / "does-not-exist.txt"
+    before = payload.read_text()
+    edit = write.Edit(node_id="build:b1")
+    write.verb_replace(edit, "payload", "1:1", str(missing))
+    with pytest.raises(write.EditError) as ei:
+        write.submit(graph, edit, actor="kid", session="s1")
+    assert str(missing) in str(ei.value), \
+        "the refusal must NAME the unreadable source"
+    assert payload.read_text() == before, \
+        "a missing source must write NOTHING — file stays byte-identical"
+
+
+def test_replace_body_is_standalone_like_body_patch(project):
+    edit = write.Edit(node_id="hypothesis:h1")
+    write.verb_replace(edit, "body", "1:1", "-")
+    edit.replace_text = "x"
+    write.verb_note(edit, "a note")
+    with pytest.raises(write.EditError):
+        write.submit(project, edit, actor="kid", session="s1")
+
+
+# --------------------------------------------------------------------------
+# hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices --
+# the body-only structural guard. `replace body N:M` is offset-free but the
+# RANGE is still hand-chosen; a range that splits a heading from its text (or
+# cuts a paragraph at either edge) is refused before the splice, unless the
+# caller passes `--force`. A whole paragraph, a whole section, and a
+# whole-section tail that ends on a CHILDLESS deeper heading are all admitted
+# -- the last is the falsifier EF.03 measured (experiment:a00-29883877-7abb3b).
+# --------------------------------------------------------------------------
+
+#: Line 1 is blank, line 3 is `## A`, line 5 is the childless deeper heading
+#: `### A.1` with no text of its own before the sibling `## B`.
+GUARD_BODY = "\n# T\n## A\nintro\n### A.1\n## B\nbeta\n"
+
+
+def _guard_node(root, body=GUARD_BODY, name="h2"):
+    """A scratch node whose read body is exactly `body` (the frontmatter is
+    written so the blank line `body` opens with survives the reader)."""
+    d = root / "nodes" / "hypothesis"
+    d.mkdir(parents=True, exist_ok=True)
+    path = d / f"{name}.md"
+    path.write_text(
+        '---\nid: "hypothesis:%s"\ntype: hypothesis\nmint_id: abc123\n'
+        'title: "t"\ntestable_claim: "c"\nscaffold_hash: deadbeef\n'
+        'status: pending\n---\n\n%s\n' % (name, body))
+    (root / "config.json").write_text("{}")
+    return path
+
+
+def _replace_body(root, rng, text, name="h2", force=False):
+    edit = write.Edit(node_id=f"hypothesis:{name}")
+    write.verb_replace(edit, "body", rng, "--force -" if force else "-")
+    edit.replace_text = text
+    return write.submit(root, edit, actor="kid", session="s1")
+
+
+def test_replace_body_guard_refuses_a_heading_split(tmp_path):
+    graph = tmp_path / ".agi"
+    path = _guard_node(graph)
+    before = path.read_text()
+    with pytest.raises(write.EditError) as ei:
+        _replace_body(graph, "3:4", "X")
+    assert "heading" in str(ei.value) and "--force" in str(ei.value)
+    assert path.read_text() == before, "a refused range must write nothing"
+
+
+def test_replace_body_guard_refuses_a_paragraph_tail(tmp_path):
+    body = "\n# T\n## A\nalpha one\nalpha two\ntail\n## B\nbeta\n"
+    graph = tmp_path / ".agi"
+    path = _guard_node(graph, body)
+    before = path.read_text()
+    # starts strictly inside the paragraph: `alpha one` then `alpha two`
+    with pytest.raises(write.EditError):
+        _replace_body(graph, "5:5", "X")
+    # ends strictly inside the paragraph: `alpha one` then `alpha two`
+    with pytest.raises(write.EditError):
+        _replace_body(graph, "4:4", "X")
+    assert path.read_text() == before
+
+
+def test_replace_body_guard_allows_a_whole_paragraph(tmp_path):
+    body = "\n# T\n## A\nalpha one\nalpha two\ntail\n## B\nbeta\n"
+    graph = tmp_path / ".agi"
+    _guard_node(graph, body)
+    res = _replace_body(graph, "4:6", "WHOLE PARAGRAPH")
+    assert res.status != node_writer.REJECTED
+    after = write._read_body_text(graph, "hypothesis:h2")
+    assert "WHOLE PARAGRAPH" in after and "## B" in after and "beta" in after
+
+
+def test_replace_body_guard_allows_a_whole_section(tmp_path):
+    body = "\n# T\n## A\nalpha\n\n## B\nbeta\n"
+    graph = tmp_path / ".agi"
+    _guard_node(graph, body)
+    res = _replace_body(graph, "3:5", "WHOLE SECTION")
+    assert res.status != node_writer.REJECTED
+    after = write._read_body_text(graph, "hypothesis:h2")
+    assert "WHOLE SECTION" in after and "## B" in after
+
+
+def test_replace_body_guard_admits_a_childless_deeper_heading_tail(tmp_path):
+    """EF.03 falsifier (c): the full `## A` section (3:5) ends on the deeper
+    heading `### A.1`, which has NO text of its own -- so ending there is the
+    correct tail, not a split, and the range must land with no --force."""
+    graph = tmp_path / ".agi"
+    _guard_node(graph)
+    assert write._read_body_text(graph, "hypothesis:h2") == GUARD_BODY
+    res = _replace_body(graph, "3:5", "REPLACED")
+    assert res.status != node_writer.REJECTED
+    after = write._read_body_text(graph, "hypothesis:h2")
+    assert "REPLACED" in after and "### A.1" not in after
+    assert "## B" in after and "beta" in after
+
+
+def test_replace_body_guard_refuses_ending_on_a_heading_with_content(tmp_path):
+    """The other edge, same corruption: ending on a heading whose own
+    section still holds text removes the heading and orphans its text. This
+    is the false-positive BOUNDARY -- the childless case above passes, this
+    one must not."""
+    body = "\n# T\n## A\nintro\n### A.1\na1text\n## B\nbeta\n"
+    graph = tmp_path / ".agi"
+    path = _guard_node(graph, body)
+    before = path.read_text()
+    with pytest.raises(write.EditError):
+        _replace_body(graph, "4:5", "X")   # ends on `### A.1`, a1text left
+    with pytest.raises(write.EditError):
+        _replace_body(graph, "3:5", "X")   # stops short of `## A`'s end
+    assert path.read_text() == before
+
+
+def test_replace_body_guard_allows_a_whole_body_open_range(tmp_path):
+    graph = tmp_path / ".agi"
+    _guard_node(graph)
+    res = _replace_body(graph, "1:", "WHOLE BODY")
+    assert res.status != node_writer.REJECTED
+    assert "WHOLE BODY" in write._read_body_text(graph, "hypothesis:h2")
+
+
+def test_replace_body_guard_honours_force(tmp_path):
+    graph = tmp_path / ".agi"
+    _guard_node(graph)
+    res = _replace_body(graph, "3:4", "FORCED", force=True)
+    assert res.status != node_writer.REJECTED
+    after = write._read_body_text(graph, "hypothesis:h2")
+    assert "FORCED" in after and "intro" not in after
+    assert "### A.1" in after, "--force admits exactly the partial edit asked for"
+
+
+def test_replace_body_guard_reflects_in_dry_run(tmp_path):
+    graph = tmp_path / ".agi"
+    _guard_node(graph)
+    before = (graph / "nodes" / "hypothesis" / "h2.md").read_text()
+    proc = subprocess.run(
+        [sys.executable, str(BIN / "write.py"), "hypothesis:h2",
+         "replace body 3:4 -", "--root", str(graph),
+         "--actor", "kid", "--session", "s1", "--dry-run"],
+        input="X\n", capture_output=True, text=True,
+    )
+    assert proc.returncode == 2, proc.stdout + proc.stderr
+    assert "heading" in proc.stderr and "admitted" not in proc.stdout
+    assert (graph / "nodes" / "hypothesis" / "h2.md").read_text() == before
+
+
+def test_replace_body_guard_leaves_a_payload_alone(tmp_path):
+    """A payload is arbitrary bytes; the structural guard is body-only, so an
+    identical range on a `.py` payload is never structure-checked."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    payload = tmp_path / "lib" / "mod.py"
+    payload.parent.mkdir(parents=True, exist_ok=True)
+    payload.write_text("# T\n## A\nintro\n### A.1\n")
+    (graph / "nodes" / "build" / "b9.md").write_text(
+        '---\nid: build:b9\ntype: build\nmint_id: abc123\ntitle: "t"\n'
+        'scaffold_hash: deadbeef\n'
+        f"payload_ref: {payload}\n---\n\nbody\n\n")
+    edit = write.Edit(node_id="build:b9")
+    write.verb_replace(edit, "payload", "1:3", "-")
+    edit.replace_text = "PATCHED"
+    res = write.submit(graph, edit, actor="kid", session="s1")
+    assert res.status != node_writer.REJECTED
+    assert payload.read_text().startswith("PATCHED")
+
+
+def test_replace_body_guard_refuses_a_fence_split(tmp_path):
+    """hypothesis:write-body-range-guard-is-fence-aware-and-clamped.
+
+    A '#' line INSIDE a ``` (or ~~~) block is code, not a heading. Before
+    the fix `_is_heading` matched it, `_section_end` truncated `## A`'s
+    section to the fake heading, and `2:4` -- which removes the opening
+    fence and orphans the fenced body -- was ADMITTED. Both fence
+    characters must refuse it by line and name the `--force` hatch.
+    """
+    for i, fence in enumerate(("```", "~~~")):
+        body = (f"\n## A\na\n{fence}\n# not a heading\ncode\n{fence}\n")
+        graph = tmp_path / f"case{i}" / ".agi"
+        path = _guard_node(graph, body)
+        before = path.read_text()
+        with pytest.raises(write.EditError) as ei:
+            _replace_body(graph, "2:4", "X")
+        msg = str(ei.value)
+        assert "line 4" in msg and "--force" in msg, msg
+        assert path.read_text() == before, "a refused range must write nothing"
+
+
+def test_replace_body_guard_refuses_a_range_past_eof(tmp_path):
+    """hypothesis:write-body-range-guard-is-fence-aware-and-clamped.
+
+    Before the clamp, `end = hi` let `2:999` reach `_is_heading(lines[end-1])`
+    and raise IndexError. It must instead refuse by name and `--force` must
+    still land (the splice naturally clamps past-EOF).
+    """
+    graph = tmp_path / ".agi"
+    path = _guard_node(graph)
+    before = path.read_text()
+    with pytest.raises(write.EditError) as ei:
+        _replace_body(graph, "2:999", "X")
+    msg = str(ei.value)
+    assert "past the end" in msg and "--force" in msg, msg
+    assert path.read_text() == before
+    res = _replace_body(graph, "2:999", "FORCED", force=True)
+    assert res.status != node_writer.REJECTED
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-write-api-root-resolution — the API resolves root descend-only
+# --------------------------------------------------------------------------
+
+def test_create_resolves_root_descend_only_to_dot_agi(tmp_path):
+    """A caller passing the repo root (whose child is the real `.agi/` graph)
+    must mint INTO `.agi/nodes/...`, never a stray `<root>/nodes/...`."""
+    repo = tmp_path / "proj"
+    graph = repo / ".agi"
+    (graph / "nodes" / "hypothesis").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    res, made = write.create(repo, "hypothesis", "new-one", ["goal:g1"],
+                             actor="t")
+    assert res.written
+    target = graph / "nodes" / "hypothesis" / "new-one.md"
+    assert target.exists(), "must land in .agi/nodes/, not <root>/nodes/"
+    assert not (repo / "nodes").exists(), "no stray <root>/nodes/ root"
+
+
+def test_create_wrong_root_refuses_and_writes_nothing(tmp_path):
+    """The falsifier: `write.create(<wrong root>, ...)` must exit non-zero (an
+    EditError) and write NOTHING — the old behaviour wrote the node, printed a
+    warning, and returned success (hypothesis:l4-write-api-root-resolution)."""
+    repo = tmp_path / "proj"
+    (repo / ".agi" / "nodes" / "hypothesis").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text("{}")
+    wrong = tmp_path / "not-a-project"          # no .agi/, not a graph root
+    wrong.mkdir()
+    with pytest.raises(write.EditError) as ei:
+        write.create(wrong, "hypothesis", "nope", ["goal:g1"])
+    assert "root" in str(ei.value)
+    assert not (wrong / "nodes").exists()
+    assert not (repo / ".agi" / "nodes" / "hypothesis" / "nope.md").exists()
+
+
+def test_api_root_never_ascends_into_an_ancestor_graph(tmp_path):
+    """A bare dir whose ANCESTOR is a real graph must REFUSE, not walk up and
+    write into the ancestor's `.agi/` (data-loss-shaped for any test that
+    passed a no-`.agi/` tmp dir). Asserted directly, not inferred."""
+    repo = tmp_path / "repo"
+    graph = repo / ".agi"
+    (graph / "nodes" / "hypothesis").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    inside = repo / "deep" / "dir"              # no .agi of its own
+    inside.mkdir(parents=True)
+    with pytest.raises(write.EditError) as ei:
+        write.create(inside, "hypothesis", "nope", ["goal:g1"])
+    assert "root" in str(ei.value)
+    assert not (graph / "nodes" / "hypothesis" / "nope.md").exists(), \
+        "never ascend: nothing written into the ancestor graph"
+    assert not (inside / "nodes").exists()
+
+
+def test_submit_wrong_root_refuses_and_writes_nothing(tmp_path):
+    """`write.submit(<wrong root>, ...)` must refuse and write nothing, the
+    same descend-only resolution as create (hypothesis:
+    l4-write-api-root-resolution)."""
+    repo = tmp_path / "proj"
+    graph = repo / ".agi"
+    (graph / "nodes" / "hypothesis").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    node = graph / "nodes" / "hypothesis" / "h1.md"
+    node.write_text(
+        '---\nid: "hypothesis:h1"\ntype: hypothesis\nmint_id: abc123\n'
+        'title: "t"\ntestable_claim: "c"\nscaffold_hash: deadbeef\n'
+        'status: pending\n---\n\nthe body\n')
+    wrong = tmp_path / "not-a-project"
+    wrong.mkdir()
+    e = write.Edit("hypothesis:h1")
+    write.verb_set(e, "status", "active")
+    before = node.read_text()
+    with pytest.raises(write.EditError):
+        write.submit(wrong, e, actor="liborum")
+    assert node.read_text() == before, \
+        "a wrong root must write NOTHING — file stays byte-identical"
+
+
+def test_submit_resolves_repo_root_descend_only(project):
+    """submit also descends a repo root (whose child is `.agi/`) the way the
+    CLI does — a caller passing `project.parent` edits the real graph."""
+    repo = project.parent
+    e = write.Edit("hypothesis:h1")
+    write.verb_set(e, "status", "active")
+    res = write.submit(repo, e, actor="liborum")
+    assert res.status == node_writer.UPDATED
+    text = (project / "nodes/hypothesis/h1.md").read_text()
+    assert "status: active" in text
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-create-refuses-a-genuinely-unknown-type-before-any-file-
+# is-written — clause 5 (the front end surfaces the refusal) and the
+# stray-directory sweep as its own fixture test.
+#
+# Every probe here runs on the `project` fixture (a throwaway `.agi/` graph),
+# NEVER against a real project root — the whole reason this round exists is
+# that a previous kid wrote an undeclared-type node into the LIVE tree while
+# probing this refusal. `_seeded_node_dirs` is the sweep: the set of
+# directories under `nodes/` is asserted as an EXACT set, not just
+# "unchanged", so a stray `nodes/notown/` cannot hide behind a diff.
+# --------------------------------------------------------------------------
+
+def _seeded_node_dirs(graph: Path) -> set[str]:
+    # `.geometry` holds the fixture's FREE veto cell (write_free_veto), not a node type
+    return {p.name for p in (graph / "nodes").iterdir()
+            if p.is_dir() and p.name != ".geometry"}
+
+
+def test_create_refuses_a_type_with_no_active_schema_by_name(project):
+    """Clause 5, Python front end: `write.create` of a type with no
+    `context/schemas/[<type>].md` is refused BY NAME, writes no node, and
+    leaves no directory behind.
+
+    `_schemas()` writes `[hypothesis].md` and `[experiment].md` only, so the
+    schema set IS loaded and `notown` is genuinely unknown — the case the
+    carve-out for an unconfigured graph deliberately does not cover."""
+    _schemas(project)
+    before = _seeded_node_dirs(project)
+    res, made = write.create(project, "notown", "cli-missing", ["goal:g1"])
+    assert res.rejected, "an unknown type must be refused, not written"
+    assert made is None
+    assert "notown" in res.reason, "the refusal must name the type"
+    assert "context/schemas/[notown].md" in res.reason, (
+        "the refusal must name the missing schema file a caller has to add")
+    assert not (project / "nodes" / "notown").exists()
+    assert _seeded_node_dirs(project) == before == {"goal", "hypothesis"}, (
+        "a refused create must leave the nodes/ directory set byte-identical")
+
+
+def test_create_of_an_unknown_type_leaves_no_payload_file(project):
+    """Clause 5, sharpest probe: `write.create` calls
+    `node_writer.ensure_payload(...)` BEFORE `write_node`, so the source file
+    exists before the gate is judged. A refused create must clean it up — a
+    stray source file with no node behind it is exactly the file left behind
+    by a refused create."""
+    _schemas(project)
+    before = _seeded_node_dirs(project)
+    res, made = write.create(project, "notown", "cli-payload", ["goal:g1"],
+                             payload="src/notown_payload.py")
+    assert res.rejected
+    assert made is None
+    assert not (project / "src" / "notown_payload.py").exists(), (
+        "a refused create must not leave its payload source file behind")
+    assert not (project / "nodes" / "notown").exists()
+    assert _seeded_node_dirs(project) == before
+
+
+def test_create_cli_refuses_an_unknown_type_and_stays_off_disk(project):
+    """Clause 5, the front end a human actually runs: the same refusal
+    through `write.py create` end-to-end — non-zero exit, the refusal text on
+    stderr, and the nodes/ directory set unchanged."""
+    _schemas(project)
+    before = _seeded_node_dirs(project)
+    proc = subprocess.run(
+        [sys.executable, str(BIN / "write.py"), "create", "notown",
+         "cli-sub", "--parent", "goal:g1", "--root", str(project)],
+        capture_output=True, text=True,
+    )
+    assert proc.returncode != 0, "a refused create must exit non-zero"
+    assert "notown" in proc.stderr, "the refusal must name the type on stderr"
+    assert "context/schemas/[notown].md" in proc.stderr
+    assert not (project / "nodes" / "notown").exists()
+    assert _seeded_node_dirs(project) == before == {"goal", "hypothesis"}
+
+
+def test_create_still_mints_a_declared_type_at_the_front_end(project):
+    """Regression pin: the new refusal must not over-reach. A type that DOES
+    have a schema still mints through the same front end."""
+    _schemas(project)
+    res, made = write.create(project, "hypothesis", "still-fine", ["goal:g1"])
+    assert res.written and not res.rejected
+    assert (project / "nodes" / "hypothesis" / "still-fine.md").exists()
+
+
+# --- the `&&` seam is the verb grammar, not a literal split (l5-verb-split)
+# `hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-that-
+# begins-a-verb`: `parse_script` used to split on a literal `&&` ANYWHERE,
+# including inside a free-text argument. Measured cost: a note/ref field
+# filled with leaked review prose crashed `links.py links` with
+# `OSError: file name too long` on trunk until hand-unset
+# (experiment:a00-794503d4). These tests pin the new rule and its residual.
+
+
+def test_a_prose_ampersand_that_begins_no_verb_stays_verbatim():
+    """The incident's exact shape: the continuation after `&&` is prose, not
+    a verb name, so nothing splits and the note keeps every byte."""
+    assert write.parse_script("note probes && open the box") == [
+        ("note", ["probes && open the box"])]
+
+
+def test_a_prose_ampersand_run_that_begins_no_verb_stays_verbatim():
+    """Several `&&` in one argument, none followed by a verb."""
+    assert write.parse_script("note a && b && c") == [
+        ("note", ["a && b && c"])]
+
+
+def test_an_ampersand_before_a_real_verb_still_splits_and_runs_both():
+    """A verb-only script is unchanged: the second `&&` begins `set`."""
+    calls = write.parse_script("note a && set title b")
+    assert calls == [("note", ["a"]), ("set", ["title", "b"])]
+    edit = write.Edit("hypothesis:h1")
+    for name, args in calls:
+        write.apply_verb(edit, name, args)
+    assert edit.body_append == "a" and edit.set_fm.get("title") == "b"
+
+
+def test_a_set_value_keeps_its_own_ampersands_that_begin_no_verb():
+    """`set`'s value is free text too; `b` and `c` are not verbs."""
+    assert write.parse_script("set title a && b && c") == [
+        ("set", ["title", "a && b && c"])]
+
+
+def test_the_residual_limit_a_verb_led_prose_ampersand_is_escaped_not_executed():
+    r"""WAS a KNOWN LIMIT, now escapable. `note quote && set status x` still
+    splits (the `set` after the `&&` begins a verb) — but the documented
+    escape `\&&` keeps the pair INSIDE the prose argument, byte-for-byte,
+    with the backslash consumed. The unescaped spelling must still split."""
+    assert write.parse_script("note quote \\&& set status x") == [
+        ("note", ["quote && set status x"])]
+    assert write.parse_script("note quote && set status x") == [
+        ("note", ["quote"]), ("set", ["status", "x"])]
+
+
+def test_a_doubled_separator_still_parses_as_str_split_did():
+    """hypothesis:write-py-outside-ref-... clause (2c): `&&&&` (two `&&`
+    pairs back to back) must parse byte-identically to the pre-verb-led-rule
+    `str.split("&&")` — the escape changes nothing about an ordinary doubled
+    pair. The empty middle chunk is skipped, exactly as before."""
+    assert write.parse_script("note a &&&& set status x") == [
+        ("note", ["a"]), ("set", ["status", "x"])]
+    assert write.parse_script("set title a &&&& thought why") == [
+        ("set", ["title", "a"]), ("thought", ["why"])]
+
+
+def test_an_unknown_first_verb_still_refuses_by_name():
+    """The refusal the front end owes: an unknown FIRST token is named, even
+    when a later `&&` begins a real verb."""
+    calls = write.parse_script("frobnicate a && set title b")
+    assert calls[0] == ("frobnicate", ["a"])
+    with pytest.raises(write.EditError) as exc:
+        write.apply_verb(write.Edit("hypothesis:h1"), *calls[0])
+    assert "frobnicate" in str(exc.value)
+
+
+# --- the trailing `&&` must still separate (l5-verb-split, second round)
+# `hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-that-
+# begins-a-verb` clause (2): "a script that is ONLY verbs still parses exactly
+# as today (every existing test_write* case byte-identical)". The verb-lookahead
+# alone made a TRAILING `&&` (nothing after it, so no verb to look ahead at)
+# non-separating, absorbing the pair into the last argument. Pre-fix
+# `note a &&` -> `("note", ["a"])`; it became `("note", ["a &&"])`. These pin
+# the pre-fix behaviour back, without loosening the prose rule above.
+
+
+def test_a_trailing_verb_only_script_still_drops_the_empty_chunk():
+    """Nothing after the `&&` means no verb looks ahead -- but the pair is
+    still a separator, and the empty chunk it makes is skipped as before."""
+    assert write.parse_script("note a &&") == [("note", ["a"])]
+    assert write.parse_script("note a &&   ") == [("note", ["a"])]
+
+
+def test_a_trailing_verb_only_script_keeps_an_existing_argument_clean():
+    """The measured shape: a chained verb line ended with `&&`, and the pair
+    must not leak into the `set` value or the `thought` sentence."""
+    assert write.parse_script("set title x &&") == [("set", ["title", "x"])]
+    assert write.parse_script(
+        "set confidence 0.9 && thought why it changed now &&") == [
+        ("set", ["confidence", "0.9"]),
+        ("thought", ["why it changed now"])]
+
+
+def test_a_non_verb_ampersand_run_is_still_not_a_separator():
+    """The prose rule from the first round must not regress: neither `b` nor
+    `c` is a verb, so a trailing pair is the only separator in the line."""
+    assert write.parse_script("set title a && b && c") == [
+        ("set", ["title", "a && b && c"])]
+
+
+def test_the_incident_note_and_a_verb_pair_are_still_unchanged():
+    """Both first-round fixes hold: prose after `&&` stays verbatim when it
+    begins no verb, and a real verb after `&&` still starts the next call."""
+    assert write.parse_script("note probes && open the box") == [
+        ("note", ["probes && open the box"])]
+    assert write.parse_script("note a && set title b") == [
+        ("note", ["a"]), ("set", ["title", "b"])]
+
+
+# --- a verb-closing `&&` with no space must separate (l5-verb-split, third
+# round) `hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-
+# that-begins-a-verb` clause (2). The lookahead required the verb name to end
+# at whitespace or end-of-string, so when a verb was immediately followed by
+# the NEXT separator (`-&&adopt&&`, `a&&adopt&&`) that `&&` was not a
+# separator and the tail leaked into the last argument. The pre-fix loop
+# (`str.split("&&")`) split it; these pin the pre-fix bytes back.
+
+
+def test_a_verb_closed_by_the_next_ampersand_pair_still_separates():
+    """`body_patch -&&adopt&&`: `adopt` is immediately followed by the next
+    `&&`, with no space. That is still a separator -- the empty trailing chunk
+    is dropped, exactly as the pre-fix loop did."""
+    assert write.parse_script("body_patch -&&adopt&&") == [
+        ("body_patch", ["-"]), ("adopt", [])]
+    assert write.parse_script("note a&&adopt&&") == [
+        ("note", ["a"]), ("adopt", [])]
+
+
+def test_a_spaced_verb_closed_by_the_next_ampersand_pair_still_separates():
+    """The other ordering: a spaced pair then a verb closed by a pair."""
+    assert write.parse_script("note x && adopt&&") == [
+        ("note", ["x"]), ("adopt", [])]
+
+
+def test_the_trailing_ampersand_fix_from_round_two_did_not_regress():
+    """Round two's behaviour, asserted again because the third-round boundary
+    must subsume it, not replace it: a trailing pair still separates."""
+    assert write.parse_script("note a &&") == [("note", ["a"])]
+    assert write.parse_script("set title x &&") == [("set", ["title", "x"])]
+
+
+def test_the_round_two_and_round_one_prose_rules_did_not_regress():
+    """The third-round boundary must not loosen the prose rules: a run whose
+    successor begins no verb stays verbatim."""
+    assert write.parse_script("set title a && b && c") == [
+        ("set", ["title", "a && b && c"])]
+    assert write.parse_script("note probes && open the box") == [
+        ("note", ["probes && open the box"])]
+    assert write.parse_script("note a && setter x") == [
+        ("note", ["a && setter x"])]
+
+
+def test_the_escape_is_documented_in_help_and_parses():
+    """The escape must be discoverable: a seat reading `write.py -h` learns
+    the spelling, and the documented spelling actually parses to the literal."""
+    out = subprocess.run(
+        [sys.executable, str(BIN / "write.py"), "-h"],
+        capture_output=True, text=True, timeout=30).stdout
+    assert "\\&&" in out, "write.py -h never documents the literal-&& escape"
+    assert write.parse_script("note a \\&& b") == [("note", ["a && b"])]
+
+
+# --- conjunct 1: the outside-ref gate judges the EFFECTIVE frontmatter -----
+# The gate read ONLY the fields the edit SETS, so a location-only edit
+# skipped an already-set inside ref and a `unset location` edit over-refused
+# against the stale on-disk location. hypothesis is the parent node.
+
+
+def _ref_graph(tmp_path, **locs):
+    import json
+
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "doc").mkdir(parents=True)
+    (graph / "config.json").write_text(json.dumps({"locations": locs}))
+    return graph
+
+
+def _ref_node(graph, node_id, **fields):
+    ntype, slug = node_id.split(":", 1)
+    lines = [f"id: {node_id}", f"type: {ntype}"]
+    for key, val in fields.items():
+        lines.append(f"{key}: {val}")
+    path = graph / "nodes" / ntype / f"{slug}.md"
+    path.write_text("---\n" + "\n".join(lines) + "\n---\n\nbody\n")
+    return path
+
+
+def test_a_location_only_edit_cannot_hide_an_already_set_inside_ref(
+        tmp_path, capsys):
+    """(1a) ADMITTED-WHEN-IT-SHOULD-REFUSE: the node carries an inside
+    `link_ref`, and the edit moves `location` outside. The effective ref is
+    the one already on disk, so the gate must refuse and write nothing."""
+    graph = _ref_graph(tmp_path, scratch=str(tmp_path.parent / "outside"))
+    path = _ref_node(graph, "doc:n", title="t", link_ref="notes.txt")
+    before = path.read_bytes()
+    rc = write.main(["doc:n", "set location scratch", "--root", str(graph)])
+    err = capsys.readouterr().err
+    assert rc == 2
+    assert "notes.txt" in err and "outside the repo tree" in err
+    assert path.read_bytes() == before, "the refusal wrote nothing"
+
+
+def test_unset_location_makes_the_ref_judged_against_the_repo_root(
+        tmp_path, capsys):
+    """(1b) REFUSED-WHEN-IT-SHOULD-ADMIT: the node's `location` is outside,
+    but the edit UNSETS it and sets an inside ref. Judged against the
+    effective (absent) location, the ref resolves inside and is admitted;
+    the old code fell back to the stale on-disk location and over-refused."""
+    graph = _ref_graph(tmp_path, scratch=str(tmp_path.parent / "outside"))
+    (tmp_path / "notes.txt").write_text("x")
+    path = _ref_node(graph, "doc:n", title="t", location="scratch")
+    rc = write.main(["doc:n", "unset location && set link_ref notes.txt",
+                     "--root", str(graph)])
+    capsys.readouterr()
+    assert rc == 0, "the ref resolves against the repo root once location is gone"
+    text = path.read_text()
+    assert "link_ref: notes.txt" in text
+    assert "\nlocation:" not in text
+
+
+def test_api_direct_sub_is_judged_by_the_outside_ref_gate(tmp_path):
+    """conjunct 1: a DIRECT write.submit carrying an unresolved `sub` Edit
+    must resolve the sub BEFORE the outside-ref gate, so the gate judges the
+    post-sub effective frontmatter. Pre-fix the gate ran first, saw the
+    on-disk inside ref, and the sub landed the outside ref unjudged."""
+    graph = _ref_graph(tmp_path, scratch=str(tmp_path.parent / "outside"))
+    (tmp_path / "notes.txt").write_text("x")
+    path = _ref_node(graph, "doc:n", title="t", link_ref="notes.txt")
+    before = path.read_bytes()
+    edit = write.Edit(node_id="doc:n")
+    write.verb_sub(edit, "notes.txt => ../outside/secret.txt")
+    with pytest.raises(write.EditError, match="outside the repo tree"):
+        write.submit(graph, edit)
+    assert path.read_bytes() == before, "the refusal wrote nothing"
+
+
+def test_empty_source_guards_are_asymmetric_file_refused_stdin_lands(
+        project, tmp_path, monkeypatch, capsys):
+    """The SOURCE KIND decides whether a deletion can be made, never the
+    range end -- and the two branches disagree. Measured on the bytes by
+    EG.52 (experiment:a00-620bf49d-ac1ffb) and pinned here so the rule
+    cannot be re-inverted by a node that never ran a DELETE shape.
+
+    Arm A (empty FILE source, interior range): REFUSED rc=2, body unchanged.
+    Arm B (`-` with EMPTY stdin, same range): LANDS rc=0, range removed.
+
+    Both arms drive the real `main()`, in a tmp graph, and assert the bytes.
+    If a future engine change makes the two arms agree, this test is the
+    thing that must be re-read before the claim on either side is edited.
+    """
+    import io
+
+    body = write._read_body_text(project, "hypothesis:h1")
+    idx = next(i for i, ln in enumerate(body.split("\n"), 1)
+               if ln.strip() == "the body")
+    empty = tmp_path / "empty.txt"
+    empty.write_text("")
+
+    # Arm A — an empty FILE source refuses, loudly, and writes nothing.
+    rc = write.main(["hypothesis:h1", f"replace body {idx}:{idx} {empty}",
+                     "--root", str(project)])
+    err = capsys.readouterr().err
+    assert rc == 2, "an empty FILE source must refuse (rc=2)"
+    assert "empty" in err
+    assert "the body" in write._read_body_text(project, "hypothesis:h1"), \
+        "the refusal must leave the range in place"
+
+    # Arm B — the SAME deletion through `-` with empty stdin lands (rc=0).
+    monkeypatch.setattr(sys, "stdin", io.StringIO(""))
+    rc = write.main(["hypothesis:h1", f"replace body {idx}:{idx} -",
+                     "--root", str(project)])
+    capsys.readouterr()
+    assert rc == 0, f"empty STDIN must land; got rc={rc}"
+    after = write._read_body_text(project, "hypothesis:h1")
+    assert "the body" not in after, "the range must actually be gone"
+
+
+# --- bundle 4 W2b (director-general-2) ------------------------------------
+
+
+def test_w2b_a_create_onto_a_missing_parent_is_refused_by_name(project):
+    _schemas(project)
+    res, _ = write.create(project, "hypothesis", "orphan", ["goal:nope"])
+    assert res.rejected and "goal:nope" in res.reason
+    assert not (project / "nodes/hypothesis/orphan.md").exists()
+
+
+@pytest.mark.parametrize("key", ["parents", "next_edges"])
+def test_w2b_a_set_naming_a_missing_id_is_refused(project, key):
+    node = project / "nodes/hypothesis/h1.md"
+    before = node.read_text()
+    rc = write.main(["hypothesis:h1", f"set {key} [goal:nope]",
+                     "--root", str(project)])
+    assert rc != 0 and node.read_text() == before, "a missing id was written"
+
+
+# (the W2b neighbourhood row was retired in the re-scope: a per-read index opens every file once,
+# so zero opens of unrelated files can never hold -- evidence: experiment:dg2b4-w2b2-baseline)
+
+
+# --- bundle 4 W3c (director-general-2) --------------------------------------
+# hypothesis:read-leaves-write-py-with-every-teacher-in-one-row (goal:g4.18.7.3):
+# the verb and every teacher leave in ONE row, so one test pins both. CLAUDE.md
+# is the Prime's (CLAIM 4): checked on the Prime's commit, not here.
+@pytest.mark.xfail(strict=True, reason="bundle 4 W3c: RED until DG3 cuts read from VERBS with every teacher in one row")
+def test_w3c_read_leaves_verbs_and_every_teaching_site_in_one_row():
+    assert "read" not in write.VERBS and not hasattr(write, "verb_read")  # no alias
+    import re
+    r = BIN.parents[2]
+    files = [*r.glob("skills/*/SKILL.md"), *r.glob(".agi/nodes/.geometry/*.md"), r / "QUICKSTART.md",
+             *BIN.glob("*.py"), *(BIN.parent / "workflows").glob("*.*")]
+    hits = [f"{p.name}:{i}" for p in files if p.is_file() for i, ln in enumerate(
+        p.read_text("utf-8", "replace").splitlines(), 1) if re.search(r"(?i)\bread <?(body|payload)\b", ln)]
+    assert not hits, hits
+
+
+# --- bundle 4 W1a (director-general-2) ---------------------------------------
+# goal:g4.18.5.1: `row <n> <file>` replaces row n of node_writer.body_rows only.
+def test_b4_w1a_row_verb_replaces_exactly_one_row(project, tmp_path):
+    body = ("\n# hypothesis:h1\n\n## Table\n\n| k | v |\n|---|---|\n| a | 1 |\n"
+            "| b | 2 |\n\n## List\n\n- one\n- two\n\n" + THOUGHT + "\n")
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    node.write_text(node.read_text().split("---\n\n", 1)[0] + "---\n" + body)
+    body = write._read_body_text(project, "hypothesis:h1")
+    lines = body.split("\n")
+    n = next(i for i, (a, b) in enumerate(node_writer.body_rows(body), 1)
+             if lines[a - 1:b] == ["| b | 2 |"])
+    (tmp_path / "row.txt").write_text("| b | 20 |\n")
+    assert write.main(["hypothesis:h1", f"row {n} {tmp_path / 'row.txt'}",
+                       "--root", str(project)]) == 0
+    assert write._read_body_text(project, "hypothesis:h1") == \
+        body.replace("| b | 2 |", "| b | 20 |")
+
+
+# goal:g4.18.5.1 conjunct (3), DG3's own row: `row <n>:<i>-<j>` edits lines
+# INSIDE a block row (the THOUGHT block), every other byte identical; a row
+# past the index and a sub-range past the row refuse, nothing written.
+def test_b4_w1a_row_sub_range_edits_inside_a_block_row(project, tmp_path):
+    body = "\n# hypothesis:h1\n\n- one\n\n" + THOUGHT + "\n"
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    node.write_text(node.read_text().split("---\n\n", 1)[0] + "---\n" + body)
+    body = write._read_body_text(project, "hypothesis:h1")
+    rows = node_writer.body_rows(body)
+    n, (a, b) = len(rows), rows[-1]
+    assert body.split("\n")[a - 1].startswith("<!-- THOUGHT:BEGIN") and b - a >= 2
+    (tmp_path / "in.txt").write_text("rewritten why\n")
+    assert write.main(["hypothesis:h1", f"row {n}:2-2 {tmp_path / 'in.txt'}", "--root", str(project)]) == 0
+    after = write._read_body_text(project, "hypothesis:h1").split("\n")
+    before = body.split("\n")
+    assert after[a] == "rewritten why" and after[:a] == before[:a] and after[a + 1:] == before[a + 1:]
+    for ref in (f"{n + 1}", f"{n}:1-{b - a + 5}"):
+        assert write.main(["hypothesis:h1", f"row {ref} {tmp_path / 'in.txt'}", "--root", str(project)]) != 0
+    assert write._read_body_text(project, "hypothesis:h1").split("\n") == after
+
+
+# residue 96 (SM): `row --dry-run` previews the range the write would take and
+# refuses an out-of-range row (rc 2) instead of an empty range and rc 0.
+def test_b4_w1a_row_dry_run_resolves_and_refuses(project, tmp_path, capsys):
+    body = "\n# hypothesis:h1\n\n- one\n- two\n"
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    node.write_text(node.read_text().split("---\n\n", 1)[0] + "---\n" + body)
+    before = node.read_text()
+    body = write._read_body_text(project, "hypothesis:h1")
+    rows = node_writer.body_rows(body)
+    (tmp_path / "in.txt").write_text("- zwei\n")
+    a, b = rows[-1]
+    write.main(["hypothesis:h1", f"row {len(rows)} {tmp_path / 'in.txt'}",
+                "--root", str(project), "--dry-run"])
+    assert f"replace body {a}:{b} " in capsys.readouterr().out
+    assert write.main(["hypothesis:h1", f"row {len(rows) + 1} {tmp_path / 'in.txt'}",
+                       "--root", str(project), "--dry-run"]) == 2
+    assert node.read_text() == before
+
+
+
+# goal:g4.18.5.1.1 + .1.2 (hypothesis:row-refuses-thought-markers-and-resolves-a-
+# table-name): a range holding a THOUGHT marker refuses (the old block would be
+# carried back); `row name:<NAME>` picks the ONE table row whose first cell is NAME.
+def _w1c_node(project):
+    body = ("\n# hypothesis:h1\n\n| k | v |\n|---|---|\n| alpha | 1 |\n| beta | 2 |\n| beta | 3 |\n\n"
+            + THOUGHT + "\n\n## After\n\ntail\n")
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    node.write_text(node.read_text().split("---\n\n", 1)[0] + "---\n" + body)
+    return node, write._read_body_text(project, "hypothesis:h1")
+
+
+def test_w1a_fix_a_range_holding_a_thought_marker_refuses(project, tmp_path):
+    node, body = _w1c_node(project)
+    before, lines = node.read_text(), body.split("\n")
+    n, (a, b) = next((i, r) for i, r in enumerate(node_writer.body_rows(body), 1)
+                     if lines[r[0] - 1].startswith("<!-- THOUGHT:BEGIN"))
+    (tmp_path / "x.txt").write_text("x\n")
+    for script in (f"row {n} {tmp_path / 'x.txt'}", f"row {n}:1-1 {tmp_path / 'x.txt'}",
+                   f"replace body {a - 1}:{a} --force {tmp_path / 'x.txt'}"):
+        assert write.main(["hypothesis:h1", script, "--root", str(project)]) == 2, script
+        assert write.main(["hypothesis:h1", script, "--dry-run", "--root", str(project)]) == 2, script
+    assert node.read_text() == before
+    (tmp_path / "whole.txt").write_text(THOUGHT.replace("the old reason", "a new reason") + "\n")
+    assert write.main(["hypothesis:h1", f"row {n} {tmp_path / 'whole.txt'}", "--root", str(project)]) == 0
+    after = write._read_body_text(project, "hypothesis:h1")
+    assert after.count("THOUGHT:BEGIN") == 1 and "a new reason" in after and "the old reason" not in after
+
+
+def test_w1a_fix_row_name_picks_one_table_row(project, tmp_path, capsys):
+    node, body = _w1c_node(project)
+    (tmp_path / "r.txt").write_text("| alpha | 10 |\n")
+    write.main(["hypothesis:h1", f"row name:alpha {tmp_path / 'r.txt'}", "--dry-run", "--root", str(project)])
+    a = body.split("\n").index("| alpha | 1 |") + 1
+    assert f"row    name:alpha -> {a}:{a}" in capsys.readouterr().out
+    assert write.main(["hypothesis:h1", f"row name:alpha {tmp_path / 'r.txt'}", "--root", str(project)]) == 0
+    after = write._read_body_text(project, "hypothesis:h1")
+    assert after == body.replace("| alpha | 1 |", "| alpha | 10 |")
+    for name in ("gamma", "beta", "k-"):
+        assert write.main(["hypothesis:h1", f"row name:{name} {tmp_path / 'r.txt'}", "--root", str(project)]) == 2
+    assert write._read_body_text(project, "hypothesis:h1") == after
+
+
+# SM 112 + hypothesis:body-replace-lands-at-most-one-well-formed-thought-and-row-
+# name-skips-the-separator: the SPLICED body holds at most one well-formed block
+# and no stray marker line; a separator row is never a name.
+def test_w1a_fix2_the_spliced_body_keeps_one_well_formed_thought(project, tmp_path, capsys):
+    node, body = _w1c_node(project)
+    before, lines = node.read_text(), body.split("\n")
+    n = next(i for i, (a, _) in enumerate(node_writer.body_rows(body), 1)
+             if lines[a - 1].startswith("<!-- THOUGHT:BEGIN"))
+    beg, end = THOUGHT.split("\n")[0], "<!-- THOUGHT:END -->"
+    tail = next(i for i, (a, _) in enumerate(node_writer.body_rows(body), 1) if lines[a - 1] == "tail")
+    for i, text in ((n, THOUGHT + "\n\n" + THOUGHT), (n, f"{beg}\n{beg}\nx\n{end}"),
+                    (n, f"{end}\n{THOUGHT}"), (tail, THOUGHT), (tail, beg),
+                    (n, f"<!-- THOUGHT:BEGIN_ r\nx\n{end}"),              # SM 129: a pseudo-BEGIN
+                    (n, f"<!-- THOUGHT:BEGIN_ r\nx\n{end}\n{end}"),      # ... + a lone END
+                    (n, f"<!--\nTHOUGHT:BEGIN r\nx\n{end}"),                # SM 131: a BEGIN split over 2 lines
+                    (n, f"{beg}\nx\n<!--\nTHOUGHT:END -->")):               # ... an END split over 2 lines
+        (tmp_path / "t.txt").write_text(text + "\n")
+        for dry in ([], ["--dry-run"]):
+            assert write.main(["hypothesis:h1", f"row {i} {tmp_path / 't.txt'}", *dry,
+                               "--root", str(project)]) == 2, text
+            assert "`thought` verb" in capsys.readouterr().err
+    assert node.read_text() == before
+
+
+# SM 118: a body QUOTING a column-0 THOUGHT pair (plain or fenced) beside its real
+# block keeps a body write path; the splice still adds no block and no stray marker.
+def test_sm118_a_body_quoting_a_thought_pair_keeps_a_body_write_path(project, tmp_path, capsys):
+    node, _ = _w1c_node(project)
+    quoted = THOUGHT.replace("the old reason", "a quoted reason")
+    beg = THOUGHT.split("\n")[0]
+    for wrap in ("{}", "```\n{}\n```"):
+        node.write_text(node.read_text().replace("## After", "## Quoted\n\n" + wrap.format(quoted)
+                                                 + "\n\n## After", 1))
+        body = write._read_body_text(project, "hypothesis:h1")
+        assert len(node_writer.thought_blocks(body)) == 2
+        n = body.split("\n").index("tail") + 1
+        (tmp_path / "t.txt").write_text("new tail\n")
+        assert write.main(["hypothesis:h1", f"replace body {n}:{n} {tmp_path / 't.txt'}",
+                           "--root", str(project)]) == 0, wrap
+        after = write._read_body_text(project, "hypothesis:h1")
+        assert after.split("\n") == [("new tail" if ln == "tail" else ln) for ln in body.split("\n")], wrap
+        before = node.read_text()
+        for text in (THOUGHT, beg):   # a third block, a stray marker: refused
+            (tmp_path / "t.txt").write_text(text + "\n")
+            for dry in ([], ["--dry-run"]):
+                assert write.main(["hypothesis:h1", f"replace body {n}:{n} {tmp_path / 't.txt'}",
+                                   *dry, "--root", str(project)]) == 2, (wrap, text)
+                assert "`thought` verb" in capsys.readouterr().err
+        assert node.read_text() == before
+        node.write_text(before.replace("## Quoted\n\n" + wrap.format(quoted) + "\n\n", "")
+                        .replace("new tail", "tail"))
+
+
+# SM N1-N3: --dry-run refuses what submit refuses -- a row beside a note, a row
+# beside a replace payload (either order), a sub-range past its row.
+def test_row_dry_run_refuses_like_submit(project, tmp_path):
+    node, body = _w1c_node(project)
+    before = node.read_text()
+    (tmp_path / "x.txt").write_text("| alpha | 5 |\n")
+    x = tmp_path / "x.txt"
+    for script in (f"row name:alpha {x} && note n", f"row name:alpha {x} && replace payload 1:1 {x}",
+                   f"replace payload 1:1 {x} && row name:alpha {x}", f"row 1:1-9 {x}"):
+        for dry in (["--dry-run"], []):
+            assert write.main(["hypothesis:h1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+    assert node.read_text() == before
+    for script in ("replace body 1:1 - && payload -", "replace body 1:1 - && body_patch -"):  # SM 117
+        assert write.main(["hypothesis:h1", script, "--root", str(project)]) == 2, script
+    assert node.read_text() == before
+
+
+
+# SM 125: a `sub` beside a row / replace body refuses alike in the preview and
+# the write -- rc AND stderr (the preview used to judge before the sub resolved)
+def test_sm125_a_sub_beside_a_body_writer_refuses_alike_dry_and_real(project, tmp_path, capsys):
+    node, _ = _w1c_node(project)
+    before, x = node.read_text(), tmp_path / "x.txt"
+    x.write_text("| alpha | 5 |\n")
+    for script in (f"row name:alpha {x} && sub tail => TAIL", f"sub tail => TAIL && row name:alpha {x}",
+                   f"replace body 6:6 {x} && sub tail => TAIL"):
+        errs = []
+        for dry in (["--dry-run"], []):
+            assert write.main(["hypothesis:h1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and "standalone" in errs[0][0], (script, errs)
+    assert node.read_text() == before
+
+
+# SM 130: ONE judge -- `--dry-run` runs submit's own refusals (submit(dry_run=True)),
+# so every refusal a write raises, the preview raises: rc AND the ERR lines.
+def test_sm130_every_submit_refusal_previews_alike(project, tmp_path, capsys, monkeypatch):
+    node, body = _w1c_node(project)
+    before, lines = node.read_text(), body.split("\n")
+    x, d = tmp_path / "x.txt", tmp_path / "d.diff"
+    x.write_text("x\n")
+    d.write_text("--- a\n+++ b\n@@ -1 +1 @@\n-nope\n+yes\n")
+    n = next(i for i, (a, _) in enumerate(node_writer.body_rows(body), 1)
+             if lines[a - 1].startswith("<!-- THOUGHT:BEGIN"))
+    for script in (f"replace body 6:6 {x} && note n",                 # replace body standalone
+                   f"body_patch {d} && sub tail => TAIL",              # 130
+                   f"sub tail => TAIL && body_patch {d}",
+                   f"body_patch {d} && note n",                         # body_patch standalone
+                   f"row {n} {x}",                                      # THOUGHT marker in range
+                   f"replace body 999:999 {x}",                         # past EOF
+                   "sub no-such-text => y",                             # 0 matches
+                   "set link_ref /etc/hostname",                        # outside the repo
+                   "set parents [goal:nope]",                           # missing id
+                   f"body_patch {d}"):                                  # a diff that does not apply
+        errs = []
+        for dry in (["--dry-run"], []):
+            assert write.main(["hypothesis:h1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and errs[0], (script, errs)
+    import io   # SM 132 + probe: stdin read ONCE, before the one judge
+    for script, stdin in ((f"body_patch -", d.read_text()),):
+        errs = []
+        for dry in (["--dry-run"], []):
+            monkeypatch.setattr(sys, "stdin", io.StringIO(stdin))
+            assert write.main(["hypothesis:h1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and errs[0], (script, errs)
+    reads = []   # an EMPTY stdin replace (a deliberate deletion) is read once, never twice
+
+    class _Once(io.StringIO):
+        def read(self, *a):
+            reads.append(1)
+            assert len(reads) == 1, "stdin read twice"
+            return ""
+    monkeypatch.setattr(sys, "stdin", _Once())
+    capsys.readouterr()
+    rc = write.main(["hypothesis:h1", "replace body 6:6 --force -", "--dry-run", "--root", str(project)])
+    assert rc == 0 and len(reads) == 1 and node.read_text() == before, capsys.readouterr().err
+
+# SM 134: the dry preview labels a stdin source `stdin`, an empty one included
+def test_sm134_the_preview_labels_a_stdin_source(project, monkeypatch, capsys):
+    import io
+    _w1c_node(project)
+    for script, stdin, want in (("body_patch -", "", "body_patch (0 bytes of diff, stdin)"),
+                                ("body_patch -", "x\n", "body_patch (2 bytes of diff, stdin)"),
+                                ("payload -", "abc", "payload  (3 bytes, stdin)")):
+        monkeypatch.setattr(sys, "stdin", io.StringIO(stdin))
+        write.main(["hypothesis:h1", script, "--dry-run", "--root", str(project)])
+        assert want in capsys.readouterr().out, (script, stdin)
+
+# SM 133: a block ROW ends on the END marker LINE as _THOUGHT_RE reads it -- one line, a whole word
+def test_sm133_a_block_row_ends_where_the_thought_block_ends():
+    beg = THOUGHT.split("\n")[0]
+    for fake in ("<!-- THOUGHT:END_x -->", "<!--\vTHOUGHT:END -->"):
+        body = f"# h\n\n{beg}\nx\n{fake}\ny\n<!-- THOUGHT:END -->\n\ntail"
+        block = node_writer.thought_blocks(body)[0]
+        start = body.split("\n").index(beg) + 1
+        row = next(r for r in node_writer.body_rows(body) if r[0] == start)
+        assert "\n".join(body.split("\n")[row[0] - 1:row[1]]) == block, fake
+
+# SM 138: ONE closer tail (node_writer._END) for _THOUGHT_RE, THOUGHT_MARKER_LINE_RE and
+# body_rows -- a near-closer is no marker, ends no row and closes no block
+_SM138_FAKES = ("<!-- THOUGHT:END trailing -->", "<!-- THOUGHT:END.", "<!-- THOUGHT:END-x -->",
+                "<!-- THOUGHT:END-- -->", "<!-- THOUGHT:END\n-->")
+
+def test_sm138_every_reader_ends_a_thought_on_one_closer():
+    beg = THOUGHT.split("\n")[0]
+    for fake in _SM138_FAKES:
+        body = f"# h\n\n{beg}\nx\n{fake}\ny\n<!-- THOUGHT:END -->\n\ntail"
+        block = node_writer.thought_blocks(body)[0]
+        assert block.endswith("y\n<!-- THOUGHT:END -->"), fake
+        start = body.split("\n").index(beg) + 1
+        row = next(r for r in node_writer.body_rows(body) if r[0] == start)
+        assert "\n".join(body.split("\n")[row[0] - 1:row[1]]) == block, fake
+        assert not node_writer.THOUGHT_MARKER_LINE_RE.match(fake.split("\n")[0]), fake
+    for real in ("<!-- THOUGHT:END-->", "<!--\tTHOUGHT:END \t-->", "<!-- THOUGHT:END --> after"):
+        body = f"{beg}\nx\n{real}\ny"
+        assert node_writer.thought_blocks(body) and node_writer.body_rows(body)[0] == (1, 3), real
+        assert node_writer.THOUGHT_MARKER_LINE_RE.match(real), real
+    assert (BIN / "node_writer.py").read_text(encoding="utf-8").count("END[ \\t]*-->") == 1
+
+def test_sm138_row_verb_counts_a_near_closer_inside_the_thought(project, tmp_path):
+    node, _ = _w1c_node(project)
+    node.write_text(node.read_text().replace(
+        "the old reason\n", "the old reason\n<!-- THOUGHT:END trailing -->\ny\n"))
+    body = write._read_body_text(project, "hypothesis:h1")
+    (tmp_path / "r.txt").write_text("## Later\n")
+    assert write.main(["hypothesis:h1", f"row 8 {tmp_path / 'r.txt'}", "--root", str(project)]) == 0
+    assert write._read_body_text(project, "hypothesis:h1") == body.replace("## After", "## Later")
+
+def test_w1a_fix2_row_name_skips_separators_and_reads_a_dotted_name(project, tmp_path):
+    node, body = _w1c_node(project)
+    (tmp_path / "r.txt").write_text("| write.py | 9 |\n")
+    assert write.main(["hypothesis:h1", f"row name:--- {tmp_path / 'r.txt'}", "--root", str(project)]) == 2
+    node.write_text(node.read_text().replace("|---|---|", "| :---: | --- |"))   # DG2: a real :---: row
+    assert write.main(["hypothesis:h1", f"row name::---: {tmp_path / 'r.txt'}", "--root", str(project)]) == 2
+    node.write_text(node.read_text().replace("| :---: | --- |", "|---|---|"))
+    assert write.main(["hypothesis:h1", f"row name:alpha {tmp_path / 'r.txt'}", "--root", str(project)]) == 0
+    assert write.main(["hypothesis:h1", f"row name:write.py {tmp_path / 'r.txt'}", "--root", str(project)]) == 0
+    assert write._read_body_text(project, "hypothesis:h1") == body.replace("| alpha | 1 |", "| write.py | 9 |")
+
+
+# BUILD1 (goal:g7.16.1.4 W1, alive 5161eddc2): `row <top>.<key> <src>` edits ONE
+# nested frontmatter row (command:commands `manifest.<key>`); an empty source
+# removes it; every other frontmatter line stays byte-identical.
+def _b1_node(project):
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    head, rest = node.read_text().split("---\n", 2)[1:]
+    fm = head + "manifest:\n  a.py:\n    cli: a.py\n  b.py::\n    cli: b.py\n    verb: x\n  c.py:\n    cli: c.py\n"
+    node.write_text("---\n" + fm + "---\n" + rest)
+    write.main(["hypothesis:h1", "note x", "--root", str(project)])   # canonical render once
+    return node
+
+
+def _b1_changed(before, after):
+    return [l for l in difflib.unified_diff(before.split("\n"), after.split("\n"), lineterm="", n=0)
+            if l[:1] in "+-" and l[:3] not in ("+++", "---") and "edited_by" not in l]
+
+
+def test_build1_row_replaces_one_nested_frontmatter_row(project, tmp_path):
+    node = _b1_node(project)
+    before = node.read_text()
+    (tmp_path / "v.yaml").write_text("cli: b.py\nverb: y\n")
+    assert write.main(["hypothesis:h1", f"row manifest.b.py: {tmp_path / 'v.yaml'}", "--root", str(project)]) == 0
+    after = node.read_text()
+    assert _b1_changed(before, after) == ["-    verb: x", "+    verb: y"]
+    assert list(yaml.safe_load(after.split("---\n")[1])["manifest"]) == ["a.py", "b.py:", "c.py"]
+
+
+def test_build1_row_remove_source_removes_the_row(project, tmp_path):
+    node = _b1_node(project)
+    before = node.read_text()
+    assert write.main(["hypothesis:h1", "row manifest.b.py: --remove", "--root", str(project)]) == 0
+    assert _b1_changed(before, node.read_text()) == ["-  b.py::", "-    cli: b.py", "-    verb: x"]
+
+
+# DG4 00:0xZ: two rows in ONE script both land (a single slot kept only the last).
+def test_build1_two_rows_in_one_script_both_land(project, tmp_path, capsys):
+    node = _b1_node(project)
+    (tmp_path / "v.yaml").write_text("cli: c2.py\n")
+    assert write.main(["hypothesis:h1", "row manifest.a.py --remove && "
+                       f"row manifest.c.py {tmp_path / 'v.yaml'}", "--root", str(project)]) == 0, \
+        capsys.readouterr().err
+    man = yaml.safe_load(node.read_text().split("---\n")[1])["manifest"]
+    assert man == {"b.py:": {"cli": "b.py", "verb": "x"}, "c.py": {"cli": "c2.py"}}
+    for script in (f"row manifest.b.py: --remove && row manifest.b.py: {tmp_path / 'v.yaml'}",
+                   f"row 1 {tmp_path / 'v.yaml'} && row 2 {tmp_path / 'v.yaml'}"):
+        assert write.main(["hypothesis:h1", script, "--root", str(project)]) == 2, script
+
+
+def test_build1_row_refuses_and_writes_nothing(project, tmp_path, capsys):
+    node = _b1_node(project)
+    before = node.read_text()
+    (tmp_path / "v.yaml").write_text("cli: z\n")
+    (tmp_path / "empty.yaml").write_text("")
+    (tmp_path / "fence.yaml").write_text("argv:\n  - \"a\\n---\\nb\"\n")
+    for script in (f"row manifest.nope.py {tmp_path / 'v.yaml'}",          # no such row
+                   f"row title.x {tmp_path / 'v.yaml'}",                    # not a mapping
+                   f"row manifest.a.py {tmp_path / 'missing.yaml'}",        # unreadable source
+                   f"set manifest {{}} && row manifest.a.py {tmp_path / 'v.yaml'}",  # set + row
+                   f"row manifest.a.py {tmp_path / 'empty.yaml'}",                   # SM 110: empty never removes
+                   "row manifest.a.py - && row manifest.c.py -",                     # SM 110: one stdin per script
+                   f"row manifest.a.py {tmp_path / 'fence.yaml'}"):                  # SM 111: marker guard
+        assert write.main(["hypothesis:h1", script, "--root", str(project)]) == 2, script
+        assert "ERR: " in capsys.readouterr().err, script
+    assert node.read_text() == before
+
+
+# A second positional on an edit was silently dropped (a lost THOUGHT, measured
+# twice on command:commands 09-29): it refuses, nothing written.
+def test_edit_refuses_a_second_script_argument(project):
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    before = node.read_text()
+    assert write.main(["hypothesis:h1", "note one", "thought two", "--root", str(project)]) == 2
+    assert node.read_text() == before
+
+
+# --- bundle 4 W2b re-scope (director-general-2) -----------------------------
+# W2b1 hypothesis:set-link-fields-refuse-a-missing-id (goal:g4.18.6.2.1);
+# W2b2 hypothesis:create-reads-the-one-index-not-a-walk (goal:g4.18.6.2.2).
+def _b4_walks(monkeypatch):
+    """Every Path.rglob caller, by code object: one entry per node-tree walk."""
+    seen, real = [], Path.rglob
+    monkeypatch.setattr(Path, "rglob", lambda s, *a, **k: (
+        seen.append(sys._getframe(1).f_code), real(s, *a, **k))[1])
+    return seen
+
+
+def test_w2b1_a_set_naming_only_live_ids_still_lands(project):
+    _schemas(project)
+    assert write.main(["hypothesis:h1", "set parents [goal:g1]", "--root", str(project)]) == 0
+    assert "goal:g1" in (project / "nodes/hypothesis/h1.md").read_text()
+
+
+def test_w2b1_set_refuses_a_missing_id_by_name_with_creates_one_lookup(project, monkeypatch, capsys):
+    _schemas(project)
+    walks, node = _b4_walks(monkeypatch), project / "nodes/hypothesis/h1.md"
+    assert write.create(project, "hypothesis", "near", ["goal:g1"])[0].written
+    create_walk, before, walks[:] = set(walks), node.read_text(), []
+    rc = write.main(["hypothesis:h1", "set next_edges [goal:g1, goal:nope]", "--root", str(project)])
+    assert rc != 0 and node.read_text() == before and "goal:nope" in capsys.readouterr().err
+    assert set(walks) <= create_walk, "set grew a second lookup"
+
+
+def test_sm122_set_builds_the_one_index_once_whatever_the_id_count(project, monkeypatch):
+    import spawn_gate
+    _schemas(project)
+    calls, real = [], spawn_gate.gate_for_root
+    monkeypatch.setattr(spawn_gate, "gate_for_root", lambda *a, **k: (calls.append(a), real(*a, **k))[1])
+    script = "set parents [goal:g1, goal:g1b, goal:nope] && set next_edges [goal:g1, goal:nope2]"
+    assert write.main(["hypothesis:h1", script, "--root", str(project)]) == 2
+    assert len(calls) == 1, f"the index was built {len(calls)} times for 5 ids"
+
+
+def test_w2b2_create_walks_only_the_one_index_and_still_refuses_by_name(project, monkeypatch):
+    import io
+    import links
+    import spawn_gate
+    _schemas(project)
+    (project / "nodes/doc").mkdir()
+    (project / "nodes/doc/far.md").write_text(f'---\nid: "doc:far"\ntype: doc\nmint_id: {"f" * 32}\n---\n')
+    walks, seen, real = _b4_walks(monkeypatch), [], io.open
+    assert links.resolve_mint(project, "f" * 32)[0] == "doc:far"
+    one, walks[:] = set(walks), []
+
+    def banned(*_a):
+        raise AssertionError("spawn_gate.build_type_index ran on a create")
+    monkeypatch.setattr(spawn_gate, "build_type_index", banned)
+    monkeypatch.setattr(io, "open", lambda f, *a, **k: (seen.append(str(f)), real(f, *a, **k))[1])
+    assert write.create(project, "hypothesis", "near", ["goal:g1"])[0].written
+    res = write.create(project, "hypothesis", "orphan", ["goal:nope"])[0]
+    assert res.rejected and "goal:nope" in res.reason
+    assert set(walks) <= one, "create walked beyond the one index"
+    assert sum(s.endswith("nodes/doc/far.md") for s in seen) <= 2, "a far node parsed twice per create"
+
+
+# goal:g4.18.5.2.2: a write's commit message comes from the ONE config cell (project, else the engine
+# repo's own .agi/config.json); write.py carries no template literal
+def test_g418522_commit_message_reads_the_one_config_cell(tmp_path):
+    root = tmp_path / ".agi"
+    root.mkdir()
+    (root / "config.json").write_text('{"write": {"commit_message": "W {node_id}{actor}", "commit_actor": " by {actor}"}}')
+    assert write._commit_message(root, "goal:x", "p") == "W goal:x by p" and write._commit_message(root, "goal:x") == "W goal:x"
+    (root / "config.json").write_text("{}")   # no cell here: the engine's own cell answers
+    assert write._commit_message(root, "goal:x", "p") == "write.py: goal:x (p)"
+    assert 'f"write.py: {' not in (BIN / "write.py").read_text(encoding="utf-8")
+
+
+# --- W2c C corrective (goal:g4.18.6.3.3): a mint-id parent lands exactly as its address twin
+def _w2cc_goal(project) -> str:
+    _schemas(project)
+    (project / "nodes/goal/g2.md").write_text(f'---\nid: "goal:g2"\ntype: goal\nmint_id: {"e" * 32}\n'
+                                              'title: "G2"\nstatus: active\n---\n\nbody\n')
+    return "e" * 32
+
+
+def test_w2cc_create_gates_a_mint_parent_through_gate_for_root_as_its_address(project):
+    mint = _w2cc_goal(project)   # write.create -> node_writer.write_node -> spawn_gate.gate_for_root's index
+    seen = [(r.written, r.gate.status) for r in (write.create(project, "hypothesis", f"twin-{s}", [p])[0]
+                                                 for s, p in (("a", "goal:g2"), ("m", mint)))]
+    assert seen == [(True, "approved")] * 2, seen
+
+
+def test_w2cc_set_parents_to_a_mint_lands_as_its_address(project):
+    mint, node = _w2cc_goal(project), project / "nodes/hypothesis/h1.md"
+    assert write.main(["hypothesis:h1", "set parents [goal:g2]", "--root", str(project)]) == 0
+    assert write.main(["hypothesis:h1", f"set parents [{mint}]", "--root", str(project)]) == 0
+    assert mint in node.read_text()
+
+
+# goal:g4.18.1.6, SM residues of 1abe85b1a (R1 R2 R4) + the commit-message guard (G). Each refusal is
+# ONE line, dry == real, nothing written.
+def _g41816_refusal(project, node, monkeypatch, capsys, script, old, new, target=None):
+    """Run `script` with the diff old -> new on stdin, dry and real: both rc 2, the same ERR line."""
+    import io
+    errs = []
+    for dry in (["--dry-run"], []):
+        monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(old, new)))
+        assert write.main(["config:guard", script, *dry, "--root", str(project)]) == 2, (script, dry)
+        errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+    assert errs[0] == errs[1] and errs[0], errs
+    assert node.read_text() == (target if target is not None else old)
+    return errs[0][0]
+
+def test_r1_a_body_that_opens_with_a_frontmatter_block_cannot_forge_rows(project, monkeypatch, capsys):
+    node = _g41816_guard(project)
+    old = node.read_text()
+    forged = old.replace("# config:guard\n", "---\nmint_id: forged\ntype: goal\n---\n# config:guard\n", 1)
+    msg = _g41816_refusal(project, node, monkeypatch, capsys, "patch -", old, forged)
+    assert "OPEN with a `---` frontmatter-like block" in msg and "nothing written" in msg, msg
+    body = write._read_body_text(project, "config:guard")   # the pre-existing body route: the same forge, now refused
+    msg = _g41816_refusal(project, node, monkeypatch, capsys, "body_patch -", body,
+                          body.replace("# config:guard\n", "---\nmint_id: forged\n---\n# config:guard\n", 1),
+                          target=old)
+    assert "OPEN with a `---` frontmatter-like block" in msg, msg
+    assert "forged" not in node.read_text()
+    e = write.Edit("config:guard")   # the API path (submit) refuses too
+    e.sub_body = "\n---\nmint_id: forged\n---\nbody\n"
+    with pytest.raises(write.EditError, match="OPEN with a `---`"):
+        write.submit(project, e, actor="a")
+    assert "forged" not in node.read_text()
+    e = write.Edit("config:guard")   # an indented block is not absorbed: it lands
+    e.sub_body = "\n    ---\n    mint_id: x\n    ---\nindented is fine\n"
+    assert write.submit(project, e, actor="a") is not None
+    assert "indented is fine" in node.read_text() and "mint_id: " + "e" * 32 in node.read_text()
+
+def test_r2_a_node_patch_cannot_edit_the_provenance_rows(project, monkeypatch, capsys):
+    node = _g41816_guard(project)
+    old = node.read_text()
+    row = next(ln for ln in old.splitlines() if ln.startswith("edited_by:"))
+    for new in (old.replace(row, "edited_by: mallory"), old.replace(row + "\n", ""),
+                old.replace(row, row + "\nthought_session: forged")):
+        msg = _g41816_refusal(project, node, monkeypatch, capsys, "patch -", old, new)
+        assert "provenance stamp" in msg and ("edited_by" in msg or "thought_session" in msg), msg
+
+def test_r4_the_noncanonical_refusal_names_what_the_canonical_render_changes(project, monkeypatch, capsys):
+    node = _g41816_guard(project)
+    canon = node.read_text()
+    assert canon.endswith("\n")
+    cut = canon.rstrip("\n")
+    node.write_text(cut)   # the 690-of-746 case: ONLY the final newline is missing
+    msg = _g41816_refusal(project, node, monkeypatch, capsys, "patch -", cut, cut.replace("old line", "new line"))
+    assert "changes ONLY the missing final newline" in msg and "write.py config:guard canonicalize" in msg, msg
+    assert "re-render" not in msg
+    node.write_text(canon)
+    for was, now, want in (("limit: 384M", "limit: '384M'", "quoting/spelling of 'limit'"),
+                           ("limit: 384M", "limit: 384M # c", "frontmatter comment(s) dropped")):
+        msg = _g41816_refusal(project, node, monkeypatch, capsys, "patch -", canon, canon.replace(was, now))
+        assert want in msg and "write.py config:guard canonicalize" in msg, (want, msg)
+    lines = canon.split("\n")   # two rows swapped: key order
+    a = next(i for i, ln in enumerate(lines) if ln.startswith("limit:"))
+    b = next(i for i, ln in enumerate(lines) if ln.startswith("note_row:"))
+    lines[a], lines[b] = lines[b], lines[a]
+    msg = _g41816_refusal(project, node, monkeypatch, capsys, "patch -", canon, "\n".join(lines))
+    assert "key order" in msg, msg
+    assert write._canonical_changes(canon.rstrip("\n"), canon) == [write._ONLY_FINAL_NEWLINE]
+    assert write._canonical_changes(canon + "\n", canon) == ["extra blank line(s) at the end of the file"]
+
+def test_g_a_bad_commit_message_cell_falls_back_to_the_node_id_and_warns_once(tmp_path, capsys):
+    import json
+    root = tmp_path / ".agi"
+    root.mkdir()
+    for cell in ({"commit_message": "write {nope}: {node_id}"}, {"commit_message": "edit { {node_id}"},
+                 {"commit_message": "{node_id} {0}"}, {"commit_message": "{node_id} by {actor}", "commit_actor": "{who}"}):
+        write._COMMIT_CELL_WARNED.clear()
+        (root / "config.json").write_text(json.dumps({"write": cell}))
+        for _ in range(2):
+            assert write._commit_message(root, "goal:g1", "alice") == "goal:g1", cell
+        err = capsys.readouterr().err
+        assert err.count("WARN:") == 1 and str(root / "config.json") in err, (cell, err)
+    (root / "config.json").write_text(json.dumps({"write": {"commit_message": "{node_id} by {actor}", "commit_actor": "{actor}"}}))
+    assert write._commit_message(root, "goal:g1", "alice") == "goal:g1 by alice" and capsys.readouterr().err == ""
+
+
+# --------------------------------------------------------------------------
+# goal:g7.33.20 -- a broken own `id` row refuses at READ naming the row and the
+# repair; a `sub` that rewrites the own id row is refused by name; `create` with
+# a `# <id>` first line in the body-file lands ONE H1. (The real case: DG4's
+# renumber 8efe992c2 spliced prose into goal:g7.16.1.5.5.5's own id row.)
+# --------------------------------------------------------------------------
+
+_G73320_BAD_ID = ("goal:g7.5 (target ONE home: every memory number lives in "
+                  "config:guard). Re-parented from the retired goal:g7.4 "
+                  "(one target, two goals).2")
+
+
+def _g73320_goal(project, id_row=None, slug="g7.5"):
+    """nodes/goal/<slug>.md whose `id` row is `id_row` (default: the real bad one)."""
+    d = project / "nodes" / "goal"
+    d.mkdir(parents=True, exist_ok=True)
+    node = d / f"{slug}.md"
+    node.write_text("---\nid: " + (id_row if id_row is not None else _G73320_BAD_ID)
+                    + f"\nmint_id: {'8' * 32}\ntype: goal\nparents:\n  - goal:g7\n"
+                    f"title: t\nstatus: active\n---\n\n# goal:{slug}\n\nbody\n")
+    return node
+
+
+def test_g73320_a_broken_own_id_row_refuses_at_read_naming_file_line_value_and_repair(project):
+    import subprocess
+    node = _g73320_goal(project)
+    before = node.read_bytes()
+    for script in ("read body 1:5", "set note x", "thought why", "note n",
+                   "sub body text"):
+        r = subprocess.run(
+            [sys.executable, str(BIN / "write.py"), "goal:g7.5", script,
+             "--root", str(project)], capture_output=True, text=True)
+        assert r.returncode != 0, (script, r.stdout, r.stderr)
+        assert "Traceback" not in r.stderr, (script, r.stderr)
+        err = r.stderr
+        assert str(node) in err, (script, err)                        # the file
+        assert f"{node}:2" in err or "line 2" in err, (script, err)   # the id row's line
+        assert _G73320_BAD_ID in err, (script, err)                   # the bad value
+        assert "id: goal:g7.5" in err, (script, err)                  # derived id + repair
+        assert "mint_id" in err and "kept" in err, (script, err)      # mint id survives
+        assert node.read_bytes() == before, script                    # nothing written
+
+
+def test_g73320_a_disagreeing_own_id_row_refuses_at_read_and_a_valid_one_reads(project, capsys):
+    _g73320_goal(project, id_row="goal:g7.99", slug="g7.99")   # ANOTHER node holds goal:g7.99
+    node = _g73320_goal(project, id_row="goal:g7.99")           # a valid shape, the wrong id
+    out, err, rc = _run(["goal:g7.5", "read body 1:5", "--root", str(project)])
+    assert rc != 0 and out == "", (out, err)
+    assert f"{node}:2" in err and "goal:g7.99" in err and "id: goal:g7.5" in err, err
+    _g73320_goal(project, id_row="goal:g7.5")
+    out, err, rc = _run(["goal:g7.5", "read body 1:5", "--root", str(project)])
+    assert rc == 0 and "body" in out and err == "", (out, err)
+    # an unparseable frontmatter whose `id` row is fine is NOT this refusal
+    node.write_text("---\nid: goal:g7.5\nmint_id: m\nbad: [unclosed\n---\n\nbody\n")
+    assert write._own_id_refusal(project, "goal:g7.5") is None
+
+
+def test_g73320_alias_id_row_resolving_to_the_same_node_reads_by_alias_and_long_form(project):
+    """The 126 live `exp:` / `hyp:` nodes: an alias id row that resolves to THIS file
+    is valid, read by the alias or by the path-derived long form (rc 0 both); an alias
+    naming a DIFFERENT node, and the 8efe992c2 garbage row, still refuse."""
+    d = project / "nodes" / "hypothesis"
+    (d / "a00-1467544f-aaaa25.md").write_text(
+        "---\nid: hyp:a00-1467544f-aaaa25\nmint_id: " + "7" * 32 + "\ntype: hypothesis\n"
+        "parents:\n  - goal:g1\ntitle: t\nstatus: active\n---\n\nalias body\n")
+    for nid in ("hyp:a00-1467544f-aaaa25", "hypothesis:a00-1467544f-aaaa25"):
+        out, err, rc = _run([nid, "read body 1:3", "--root", str(project)])
+        assert rc == 0 and "alias body" in out and err == "", (nid, out, err)
+    # a legacy descriptive stem whose lone valid id resolves to THIS file reads too
+    node_writer._ID_INDEX.clear()   # in-process: files written after the first lookup
+    (d / "old-descriptive-stem.md").write_text(
+        "---\nid: hyp:old-descriptive\nmint_id: " + "5" * 32 + "\ntype: hypothesis\n"
+        "parents:\n  - goal:g1\ntitle: t\nstatus: active\n---\n\nlegacy body\n")
+    for nid in ("hyp:old-descriptive", "hypothesis:old-descriptive-stem"):
+        out, err, rc = _run([nid, "read body 1:3", "--root", str(project)])
+        assert rc == 0 and "legacy body" in out and err == "", (nid, out, err)
+    # an alias row naming ANOTHER node (h1 exists) is still a broken row
+    (d / "a00-other.md").write_text(
+        "---\nid: hyp:h1\nmint_id: " + "6" * 32 + "\ntype: hypothesis\n"
+        "parents:\n  - goal:g1\ntitle: t\nstatus: active\n---\n\nbody\n")
+    out, err, rc = _run(["hypothesis:a00-other", "read body 1:3", "--root", str(project)])
+    assert rc == 2 and "id` row is broken" in err, (out, err)
+    # ...and so is the real garbage row
+    node = _g73320_goal(project)
+    out, err, rc = _run(["goal:g7.5", "read body 1:5", "--root", str(project)])
+    assert rc == 2 and str(node) in err, (out, err)
+
+
+def test_g73320_a_sub_that_rewrites_the_own_id_row_is_refused_by_name_dry_and_real(project):
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    before = node.read_bytes()
+    for dry in (["--dry-run"], []):
+        out, err, rc = _run(["hypothesis:h1",
+                             'sub id: "hypothesis:h1" => id: "hypothesis:h9"',
+                             *dry, "--root", str(project)])
+        assert rc == 2 and out == "", (dry, out, err)
+        assert "own `id` row" in err and "hypothesis:h9" in err and "nothing written" in err, (dry, err)
+        assert node.read_bytes() == before, dry
+
+
+def test_g73320_create_with_a_leading_own_h1_in_the_body_file_lands_one_h1(project, tmp_path):
+    _schemas(project)
+    prose = tmp_path / "prose.md"
+    prose.write_text("# hypothesis:dup-h1\n\nThe claim.\n\n## Evidence\n\n- one\n")
+    dry = _run(["create", "hypothesis", "dup-h1", "--parent", "goal:g1",
+                "--body-file", str(prose), "--dry-run", "--root", str(project)])
+    assert dry[2] == 0, dry
+    assert not (project / "nodes" / "hypothesis" / "dup-h1.md").exists()
+    out, err, rc = _run(["create", "hypothesis", "dup-h1", "--parent", "goal:g1",
+                         "--body-file", str(prose), "--root", str(project)])
+    assert rc == 0, (out, err)
+    text = (project / "nodes" / "hypothesis" / "dup-h1.md").read_text()
+    _fm, body = node_writer.split_frontmatter(text)
+    assert [ln for ln in body.splitlines() if ln.startswith("# ")] == ["# hypothesis:dup-h1"], body
+    assert body == "\n# hypothesis:dup-h1\n\nThe claim.\n\n## Evidence\n\n- one\n", body
+    assert "# hypothesis:dup-h1" in dry[0] and "stripped" in dry[0], dry   # dry says what real does
+
+
+# goal:g4.18.1.6 R1b (SM review of 91be4d21d): the R1 refusal recognised only an LF opener, so a body opening
+# `---\r\nmint_id: forged\r\n---\r\n` landed with its CR bytes and the NEXT write (universal newlines) absorbed
+# it. ONE recognizer: the body is newline-normalised before the check, never a second recognizer.
+def test_r1b_a_crlf_frontmatter_opener_is_refused_like_lf_dry_and_real(project, monkeypatch, capsys):
+    node = _g41816_guard(project)
+    old = node.read_text()
+    crlf = "---\r\nmint_id: forged\r\n---\r\n# config:guard\n"
+    forged = old.replace("# config:guard\n", crlf, 1)
+    _g41816_refusal(project, node, monkeypatch, capsys, "patch -", old, forged)   # the node patch: rc 2, nothing written
+    body = write._read_body_text(project, "config:guard")
+    for opener in (crlf, "\r\n---\r\nmint_id: forged\r\n---\r\n# config:guard\n"):
+        msg = _g41816_refusal(project, node, monkeypatch, capsys, "body_patch -", body,
+                              body.replace("# config:guard\n", opener, 1), target=old)
+        assert "OPEN with a `---` frontmatter-like block" in msg and "nothing written" in msg, (opener, msg)
+    for sub_body in ("\n---\r\nmint_id: forged\r\n---\r\nbody\n", "---\r\ntype: goal\r\n---\r\nbody\n",
+                     "---\rmint_id: forged\r---\rbody\n"):
+        e = write.Edit("config:guard")   # the API sub_body path
+        e.sub_body = sub_body
+        with pytest.raises(write.EditError, match="OPEN with a `---`"):
+            write.submit(project, e, actor="a", dry_run=True)
+        e = write.Edit("config:guard")
+        e.sub_body = sub_body
+        with pytest.raises(write.EditError, match="OPEN with a `---`"):
+            write.submit(project, e, actor="a")
+    assert node.read_text() == old and "forged" not in node.read_text()
+    assert write.main(["config:guard", "set note_row y", "--root", str(project)]) == 0   # the next write forges nothing
+    assert "mint_id: " + "e" * 32 in node.read_text()
+
+
+# goal:g4.18.1.6 R1c (review e6 of 04d765c81): the reader (frontmatter._parse_md) splits with str.splitlines(), which
+# breaks on VT FF FS GS RS NEL LS PS as well as CR/CRLF -- so `<ch>---\nmint_id: forged\n---\n` landed rc 0 and the NEXT
+# write absorbed it (mint_id -> forged, type -> goal). ONE recognizer: the refusal splits lines as the reader does.
+_R1C_SEPS = ("\x0b", "\x0c", "\x1c", "\x1d", "\x1e", "\x85", " ", " ")
+
+
+def test_r1c_every_splitlines_separator_before_the_opener_is_refused_on_sub_body_patch_and_patch(
+        project, monkeypatch, capsys):
+    h1 = project / "nodes" / "hypothesis" / "h1.md"
+    node = _g41816_guard(project)
+    old = node.read_text()
+    body = write._read_body_text(project, "config:guard")
+    for sep in _R1C_SEPS:
+        assert len(f"a{sep}b".splitlines()) == 2, repr(sep)   # the reader really breaks the line here
+        payload = f"{sep}---\nmint_id: forged\ntype: goal\n---\nthe body"
+        # sub, dry == real, nothing written
+        before, errs = h1.read_bytes(), []
+        for dry in (["--dry-run"], []):
+            out, err, rc = _run(["hypothesis:h1", f"sub! the body => {payload}", *dry, "--root", str(project)])
+            assert rc == 2 and "OPEN with a `---` frontmatter-like block" in err, (repr(sep), dry, out, err)
+            errs.append(err)
+            assert h1.read_bytes() == before, (repr(sep), dry)
+        assert errs[0] == errs[1], repr(sep)
+        # body_patch - and patch -: the same refusal, dry == real
+        forged_body = body.replace("# config:guard\n", payload + "\n# config:guard\n", 1)
+        msg = _g41816_refusal(project, node, monkeypatch, capsys, "body_patch -", body, forged_body, target=old)
+        assert "OPEN with a `---` frontmatter-like block" in msg and "nothing written" in msg, (repr(sep), msg)
+        forged = old.replace("# config:guard\n", payload + "\n# config:guard\n", 1)
+        msg = _g41816_refusal(project, node, monkeypatch, capsys, "patch -", old, forged)   # by this gate or the canonical one
+        assert "nothing written" in msg, (repr(sep), msg)
+    assert "forged" not in node.read_text() and "forged" not in h1.read_text()
+    assert write.main(["hypothesis:h1", "set note_row y", "--root", str(project)]) == 0   # the next write forges nothing
+    assert "mint_id: abc123" in h1.read_text() and "type: hypothesis" in h1.read_text()
+
+
+# --------------------------------------------------------------------------
+# goal:g7.33.20.2 -- a write with no AGI_ACTOR stamps the RESOLVED SEAT, never
+# a unix user whose name collides with a post (every post runs as `belam`).
+# --------------------------------------------------------------------------
+
+def _g733202_posts(project, *names):
+    d = project / "nodes" / ".geometry"
+    d.mkdir(parents=True, exist_ok=True)
+    write_free_veto(d)
+    body = "\n".join(f'  - {{"name": "{n}", "role": "director"}}' for n in names)
+    (d / "posts.md").write_text("---\nid: config:posts\ntype: config\nposts:\n" + body +
+                                "\n---\n\nbody\n")
+
+
+def _g733202_write(project, monkeypatch, *, seat=None, user=None, actor=None):
+    for k in ("AGI_ACTOR", "AGI_POST", "AGI_SEAT", "USER"):
+        monkeypatch.delenv(k, raising=False)
+    if seat:
+        monkeypatch.setenv("AGI_POST", seat)
+    if user:
+        monkeypatch.setenv("USER", user)
+    if actor:
+        monkeypatch.setenv("AGI_ACTOR", actor)
+    e = write.Edit("hypothesis:h1")
+    write.verb_set(e, "status", "active")
+    write.submit(project, e)
+    return (project / "nodes/hypothesis/h1.md").read_text()
+
+
+def test_g733202_a_seated_post_with_no_actor_stamps_the_seat_not_the_unix_user(project, monkeypatch):
+    _g733202_posts(project, "belam", "director-general-3")
+    text = _g733202_write(project, monkeypatch, seat="director-general-3", user="belam")
+    assert "edited_by: director-general-3" in text
+    assert "edited_by: belam" not in text
+
+
+def test_g733202_no_seat_and_a_colliding_user_never_stamps_that_user(project, monkeypatch):
+    _g733202_posts(project, "belam", "director-general-3")
+    text = _g733202_write(project, monkeypatch, user="belam")
+    assert "edited_by: unknown" in text
+    assert "edited_by: belam" not in text
+
+
+def test_g733202_an_explicit_actor_still_wins_and_a_plain_user_is_kept(project, monkeypatch):
+    _g733202_posts(project, "belam")
+    text = _g733202_write(project, monkeypatch, seat="belam", user="belam", actor="kid-7")
+    assert "edited_by: kid-7" in text
+    text = _g733202_write(project, monkeypatch, user="liborum")   # not a post name: unchanged
+    assert "edited_by: liborum" in text
+
+
+# --------------------------------------------------------------------------
+# goal:g7.33.20.3 -- an admitted `create config <x>` finds [config].md (the type
+# schema was never registered: load_spawn_rules `continue`d after reading its
+# `locations`), lands in nodes/.geometry/; `--dry-run` runs the SAME spawn gate
+# (verdict lines + rc); a create that writes nothing never says "written".
+# --------------------------------------------------------------------------
+
+_REAL_CONFIG_SCHEMA = Path(__file__).resolve().parents[3] / ".agi/context/schemas/[config].md"
+
+
+def _g733203_project(project):
+    """A fixture project carrying the REAL `[config].md` bytes (+ one other schema, so
+    the project is a configured one and a brand-new unknown type is a refusal)."""
+    d = project / "context" / "schemas"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "[hypothesis].md").write_text(
+        "---\nname: hypothesis\nspawn:\n  allowed_parents: [hypothesis]\n  min_parents: 1\n"
+        "  max_parents: 2\n---\n\nbody\n")
+    (project / "context" / "schemas" / "[config].md").write_bytes(_REAL_CONFIG_SCHEMA.read_bytes())
+    (project / "body.md").write_text("the census body\n")
+    return project
+
+
+def _g733203_create(project, typ, slug, *extra):
+    return _run(["create", typ, slug, "--parent", "hypothesis:h1", "--body-file", str(project / "body.md"),
+                 "--set", "title=t", "--root", str(project), *extra])
+
+
+_ADMITTED = ["--actor", "belam", "--role", "prime_director"]
+
+
+def _g733203_gate_lines(out, err):
+    return sorted(ln for ln in (out + err).splitlines() if "SPAWN-GATE" in ln)
+
+
+def test_g733203_an_admitted_config_create_finds_the_schema_and_lands_in_geometry(project):
+    _g733203_project(project)
+    out, err, rc = _g733203_create(project, "config", "census", *_ADMITTED)
+    assert rc == 0, (out, err)
+    assert "no active schema" not in out + err, (out, err)          # falsifier 2: 0 hits
+    assert "does not exist" not in err, err
+    node = project / "nodes" / ".geometry" / "census.md"             # where config nodes live
+    assert node.is_file() and "id: config:census" in node.read_text()
+    assert not (project / "nodes" / "config").exists()
+    assert f"created: config:census -> {node}" in out
+
+
+def test_g733203_dry_run_prints_the_same_gate_verdict_and_rc_as_the_real_create(project):
+    _g733203_project(project)
+    for typ, slug, args, want_rc in (("config", "census", _ADMITTED, 0),
+                                     ("notown", "x1", [], 2),               # brand-new type, no schema
+                                     ("hypothesis", "h2", [], 0)):     # an APPROVED gate line too
+        dry = _g733203_create(project, typ, slug, *args, "--dry-run")
+        assert not (project / "nodes" / typ / f"{slug}.md").exists()      # dry wrote nothing
+        assert not (project / "nodes" / ".geometry" / f"{slug}.md").exists()
+        real = _g733203_create(project, typ, slug, *args)
+        assert dry[2] == real[2] == want_rc, (typ, dry, real)
+        assert _g733203_gate_lines(dry[0], dry[1]), (typ, dry)              # the gate DID run on the dry run
+        assert _g733203_gate_lines(dry[0], dry[1]) == _g733203_gate_lines(real[0], real[1]), (typ, dry, real)
+        errs = lambda r: [ln for ln in r[1].splitlines() if ln.startswith("ERR: spawn rejected")]
+        assert errs(dry) == errs(real), (typ, dry, real)
+
+
+def test_g733203_a_create_that_writes_nothing_never_prints_written(project):
+    _g733203_project(project)
+    # (a) a brand-new type with no schema; (b) a parent naming no node; (c) a node that already exists
+    cases = [("notown", "x1", "hypothesis:h1", 2),
+             ("hypothesis", "h9", "hypothesis:never-minted", 2),
+             ("hypothesis", "h1", "hypothesis:h1", 0)]     # h1 is already there: SKIP, untouched
+    for typ, slug, parent, want_rc in cases:
+        h1 = (project / "nodes/hypothesis/h1.md").read_bytes()
+        out, err, rc = _run(["create", typ, slug, "--parent", parent, "--root", str(project)])
+        assert rc == want_rc, (typ, slug, out, err)
+        assert ("spawn rejected" in err) == (want_rc == 2), (typ, out, err)
+        assert ("SKIP:" in err) == (slug == "h1"), (typ, out, err)
+        assert "is written" not in out + err, (typ, out, err)               # D2: no message contradicts the disk
+        assert (project / "nodes/hypothesis/h1.md").read_bytes() == h1
+        if want_rc == 2:
+            assert not (project / "nodes" / typ / f"{slug}.md").exists(), typ
+
+
+def test_g733203_a_non_admitted_actor_is_still_refused_a_config_create_by_name_dry_and_real(project):
+    _g733203_project(project)
+    for dry in ([], ["--dry-run"]):
+        out, err, rc = _g733203_create(project, "config", "census", "--actor", "director", "--role", "director", *dry)
+        assert rc == 2 and "goal:g12" in err and "prime_director" in err, (dry, out, err)
+        assert "Traceback" not in err, err
+        assert not (project / "nodes" / ".geometry" / "census.md").exists(), dry
+
+
+# --------------------------------------------------------------------------
+# goal:g7.33.20 B3 -- rule 3 of the own-id check ("any valid id that resolves to this
+# file") was a tautology: find_node_file falls back to a tree-wide index BY frontmatter
+# id, so any unique valid row resolved back to its own file and an id/path mismatch
+# went unreported. Now: same-type ids only, no tree-wide fallback (.geometry excepted).
+# --------------------------------------------------------------------------
+
+def _g73320_b3_row(project, id_row):
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    text = node.read_text()
+    node.write_text(text.replace('id: "hypothesis:h1"', f"id: {id_row}", 1))
+    return node
+
+
+def test_g73320_b3_a_wrong_type_or_unrelated_unique_id_row_refuses_read_and_write(project):
+    for row in ("exp:h1", "goal:zzz-unique", "goal:h1", "hypothesis:other", "hypothesis:abc123"):
+        node = _g73320_b3_row(project, row)
+        before = node.read_bytes()
+        for script in ("read body 1:3", "set note_row y"):
+            out, err, rc = _run(["hypothesis:h1", script, "--root", str(project)])
+            assert rc == 2 and "id` row is broken" in err and row in err, (row, script, out, err)
+            assert "Traceback" not in err
+        assert node.read_bytes() == before, row                         # nothing written
+        node.write_text(before.decode().replace(f"id: {row}", 'id: "hypothesis:h1"', 1))
+    out, err, rc = _run(["hypothesis:h1", "read body 1:3", "--root", str(project)])
+    assert rc == 0 and "the body" in out, (out, err)                    # the restored row reads again
+
+
+def test_g73320_b3_same_type_descriptive_stems_and_geometry_nodes_still_read(project):
+    d = project / "nodes" / "hypothesis"
+    for stem, row in (("t-001-thing", "hypothesis:t-001"), ("old-descriptive-stem", "hyp:old-descriptive"),
+                      ("bin-grid.v2", "hypothesis:bin-grid@v2")):
+        (d / f"{stem}.md").write_text(
+            f"---\nid: {row}\nmint_id: " + "5" * 32 + "\ntype: hypothesis\nparents:\n  - goal:g1\n"
+            "title: t\nstatus: active\n---\n\nlegacy body\n")
+    node_writer._ID_INDEX.clear()
+    for nid in ("hypothesis:t-001-thing", "hypothesis:t-001", "hypothesis:old-descriptive-stem",
+                "hyp:old-descriptive", "hypothesis:bin-grid.v2"):
+        out, err, rc = _run([nid, "read body 1:3", "--root", str(project)])
+        assert rc == 0 and "legacy body" in out and err == "", (nid, out, err)
+    g = project / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    write_free_veto(g)
+    (g / "census.md").write_text("---\nid: config:census\nmint_id: " + "6" * 32 +
+                                 "\ntype: config\nparents:\n  - goal:g1\n---\n\ngeo body\n")
+    node_writer._ID_INDEX.clear()
+    for nid in ("config:census", ".geometry:census"):
+        assert write._own_id_refusal(project, nid) is None, nid
+    out, err, rc = _run(["config:census", "read body 1:3", "--root", str(project)])
+    assert rc == 0 and "geo body" in out, (out, err)
+
+
+def test_g73320_b3_a_same_type_id_another_file_holds_still_refuses(project):
+    d = project / "nodes" / "hypothesis"
+    (d / "t-002-thing.md").write_text(
+        "---\nid: hypothesis:t-002\nmint_id: " + "5" * 32 + "\ntype: hypothesis\ntitle: t\n---\n\nb\n")
+    (d / "t-002.md").write_text(
+        "---\nid: hypothesis:t-002\nmint_id: " + "4" * 32 + "\ntype: hypothesis\ntitle: t\n---\n\nc\n")
+    node_writer._ID_INDEX.clear()
+    out, err, rc = _run(["hypothesis:t-002-thing", "read body 1:3", "--root", str(project)])
+    assert rc == 2 and "id` row is broken" in err, (out, err)     # t-002.md IS hypothesis:t-002
+
+
+# --------------------------------------------------------------------------
+# goal:g7.33.20 residues R1-R2 (sanctuary-master's review of 8a9656b2b4)
+# --------------------------------------------------------------------------
+
+def test_g73320_r1_actor_fails_closed_when_the_collision_check_cannot_run(project, monkeypatch, tmp_path):
+    for k in ("AGI_ACTOR", "AGI_POST", "AGI_SEAT"):
+        monkeypatch.delenv(k, raising=False)
+    # (a) the posts list is MISSING (no config:posts at all): a colliding or plain USER is never stamped
+    for user in ("belam", "liborum"):
+        monkeypatch.setenv("USER", user)
+        assert write._default_actor(project) == "unknown", user
+    # (b) the posts list is UNREADABLE
+    _g733202_posts(project, "belam")
+    monkeypatch.setenv("USER", "belam")
+    def boom(root):
+        raise OSError("unreadable")
+    monkeypatch.setattr(write, "_load_seats", boom)
+    assert write._default_actor(project) == "unknown"
+    monkeypatch.setenv("USER", "liborum")
+    assert write._default_actor(project) == "unknown"
+    monkeypatch.undo()
+    # (c) no project root resolves from the cwd
+    monkeypatch.setattr(write.locations, "find_project_root", lambda *_a, **_k: None)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("USER", "liborum")
+    assert write._default_actor() == "unknown"
+    # the order is intact: a readable list and a USER that is not a post is still the USER
+    monkeypatch.undo()
+    _g733202_posts(project, "belam")
+    monkeypatch.setenv("USER", "liborum")
+    assert write._default_actor(project) == "liborum"
+
+
+def test_g73320_r2_prefix_superset_slugs_refuse_on_read_and_set_but_legit_stems_read(project):
+    for row in ("hypothesis:h1-extra", "hypothesis:h", "hypothesis:h1x"):
+        node = _g73320_b3_row(project, row)
+        before = node.read_bytes()
+        for script in ("read body 1:3", "set note_row y"):
+            out, err, rc = _run(["hypothesis:h1", script, "--root", str(project)])
+            assert rc == 2 and "id` row is broken" in err and row in err, (row, script, out, err)
+        assert node.read_bytes() == before, row
+        node.write_text(before.decode().replace(f"id: {row}", 'id: "hypothesis:h1"', 1))
+    # token-exact, leading run: descriptive stems and the @v2 / .v2 forms are still their own
+    assert write._slug_relates_to_stem("t-001", "t-001-thing")
+    assert write._slug_relates_to_stem("bin-grid@v2", "bin-grid.v2")
+    assert not write._slug_relates_to_stem("h1-extra", "h1")
+    assert not write._slug_relates_to_stem("h", "h1") and not write._slug_relates_to_stem("h1x", "h1")

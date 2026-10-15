@@ -3,8 +3,8 @@ id: build:skills-agi-SKILL.md@v2
 mint_id: fedb7870a33046b1ae0b4828ac642abf
 type: build
 parents:
-  - goal:g8.1
-  - goal:g8.2
+  - goal:g1.23
+  - goal:g1.24
 build_kind: prose
 confidence: 0.6
 edited_by: season.py

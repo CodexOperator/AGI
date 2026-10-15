@@ -1,0 +1,243 @@
+---
+id: experiment:a00-cf800c23-1459e5
+mint_id: a19197f8c8ef497fb24abf7ce4df71f4
+type: experiment
+parents:
+  - hypothesis:send-read-prints-every-unread-block-and-every-dm-send-nudges
+next_edges: []
+confidence: 0.55
+edited_by: a00-f7270e83
+evidence_runs:
+  - experiment:a00-cf800c23-1459e5
+loop: hypothesis:send-read-prints-every-unread-block-and-every-dm-send-nudges@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "'GATE-1 (pointer) -- node a00-c3bf7379:45 now carries `send.py:2906-2943` and no longer presents 2935-2957 as the function: PASS. But send.py:2906 is NOT the def on the tree this round SHIPS -- line 2906 reads `delivering_deferred = _read_deferred(root"
+  - to) is not None`; the def is 2920 and the function ends 2957. FAIL. The kid pasted PRE-edit greps and its own +14 docstring moved every pointer below 1913.'
+  - "'GATE-2 (single reader) -- `_notify_undelivered` has exactly one call site: PASS. It is 2976"
+  - not the 2962 the node claims
+  - and it sits outside the 2946-2975 window the node names.'
+  - "'WIRE-1 (behaviour) -- the new docstring is not fiction: a sidecar {head a + others [b body-less"
+  - c second-body]} clears to exactly {sender c
+  - body second-body} with no queue
+  - and an all-falsy queue unlinks the file. That is the DROP rule the comment names
+  - "and head rotation still works. PASS. One of my three assertions here was WRONG first and is recorded as such: I tested `\"b\" not in json.dumps(after)`"
+  - which the literal string \'second-body\' fails; the raw dump shows b is gone -- my assertion
+  - not the code.'
+  - "'WIRE-2 (the CARRY rule named in the comment is real) -- `_store_deferred` still assigns `carried = _deferred_queued(sidecar)`"
+  - and the `_clear_deferred` docstring carries both rule names. PASS.'
+  - "'VERDICT -- the five node-text retractions and the comment are real and land. ITEM 5"
+  - the item the director called the worst-placed
+  - "is corrected to a number that is right against the NAMED tip 38fa6e926 and WRONG against the tree this round ships on: the same defect class the round exists to remove"
+  - re-introduced by the fix sitting beside it.'
+production_lines: 14
+profile: balanced
+role: kid
+scaffold_hash: e0b581f06a706672
+season: 2
+title: "EG.41 corrective: two stale send.py pointers settled, both others-preservation rules documented, 17/3 figure retracted"
+town: core
+verdict: inconclusive_lean_proved:55
+---
+# experiment:a00-cf800c23-1459e5
+
+EG.41 CORRECTIVE round (kid a00-cf800c23, cut tip 38fa6e926). Six director
+items, all node-text except one comment. Each is settled by the bytes below.
+
+## What I did, per item
+
+| item | kind | action | settled by |
+|---|---|---|---|
+| 1 | node text | `1816-1817` is NOT the 0-byte guard on this tree | grep paste, EG.41 note on a00-5e3cfa03-650288 |
+| 2 | node text | `_print_deferred_block` `3895-3898` -> `3897-3913` | write.py `sub` |
+| 3 | code, comment only | both `others` preservation rules named in `_clear_deferred` | send.py:1900-1913, +14 net, no behaviour change |
+| 4 | node text | the 17/3 production figure is RETRACTED, not re-derived | write.py `note` on a00-143f92b1-0696a2 |
+| 5 | node text | `_notify_undelivered` `2935-2957` -> `2906-2943` (+ what 2935-2957 really is) | write.py `sub` + grep paste |
+| 6 | node text | the "over-cap lives in EARLIER rounds" survivor is retracted too | same `note`, one paragraph |
+
+## ITEM 1 -- settled against the bytes, the CITATION CORRECTION block is wrong here
+
+`experiment:a00-5e3cfa03-650288.md:133` says `1806-1819/1816-1817 ... are CORRECT
+as written`. It was measured against `worktrees/a00-6107c92f`, and on THAT tree it
+was. On this tree the 0-byte guard is two lines lower:
+
+```
+$ grep -n "raw.strip()" extensions/agi/bin/send.py
+1818:        if not raw.strip():
+```
+
+```
+$ awk 'NR>=1806 && NR<=1828 {printf "%d\t%s\n",NR,$0}' extensions/agi/bin/send.py
+1806	def _deferred_keep_reason(p: Path) -> str | None:
+1807	    """Why an existing `.nudge.deferred` must be KEPT instead of taken over,
+1808	    or None when the file is a legal EMPTY shell. Only UNDECODABLE bytes are
+1809	    kept (a 0-byte file included: `read_text()` is `""`, which is a shell, not
+1810	    damage) or a payload that is not an object. A PARSEABLE dict never pins a
+1811	    seat to count-only -- not even one whose `body` is falsy while `others`
+1812	    holds queued dm bodies: `_read_deferred` returns None for it, so NO
+1813	    undelivered notice is ever sent and the next typed nudge would
+1814	    `_clear_deferred` UNLINK the file, losing those bodies. `_deferred_queued`
+1815	    carries them forward on the takeover instead."""
+1816	    try:
+1817	        raw = p.read_text()
+1818	        if not raw.strip():
+1819	            return None
+1820	        d = json.loads(raw)
+1821	    except (OSError, UnicodeDecodeError, ValueError):
+1822	        return "unreadable"
+1823	    if not isinstance(d, dict):
+1824	        return "unreadable"
+1825	    return None
+1826	
+1827	
+1828	def _deferred_queued(p: Path) -> list:
+```
+
+So: guard = **1818-1819**, def block = 1806-1825, `_deferred_queued` def = 1828.
+Confirmed correct here: 1779 `if isinstance(d, dict) and d.get("body")`,
+1841 `def _store_deferred`, 1890 `def _clear_deferred`. Still wrong, still
+UNVERIFIED: `send.py:4043` cited for `def read(`, which is **3956** here.
+I did NOT rewrite the two DH.657 parent-review sentences (node lines 127 and 130):
+they describe the 3dd7348c5 diff and are true there. The EG.41 note on that node
+carries this tree's numbers instead, so a reader is not left with one false "as
+written" claim standing next to a correction.
+
+## ITEM 2 + ITEM 5 -- the two stale pointers on a00-c3bf7379-8e12ed
+
+```
+$ grep -n "_print_deferred_block\|_notify_undelivered\|def _clear_deferred\|def _store_deferred\|_deferred_queued" extensions/agi/bin/send.py
+1814:    `_clear_deferred` UNLINK the file, losing those bodies. `_deferred_queued`
+1828:def _deferred_queued(p: Path) -> list:
+1841:def _store_deferred(root: Path, seat: str, sender: str, body: str) -> bool:
+1866:            carried = _deferred_queued(sidecar)
+1890:def _clear_deferred(root: Path, seat: str) -> None:
+1904:        rest = [o for o in _deferred_queued(p) if o.get("body")]
+2906:def _notify_undelivered(root: Path, seat: str, rec: dict) -> None:
+2962:            _notify_undelivered(root, name, rec)
+3897:def _print_deferred_block(root: Path, me: str, deferred: dict,
+3994:        _print_deferred_block(root, me, deferred, wrap=wrap)
+4088:        _print_deferred_block(root, me, deferred, wrap=wrap)
+
+$ awk 'NR>=2940 && NR<=2963 {printf "%d\t%s\n",NR,$0}' extensions/agi/bin/send.py
+2940	        changed = True
+2941	    if changed:
+2942	        with contextlib.suppress(OSError):
+2943	            _nudge_deferred_path(root, seat).write_text(json.dumps(rec))
+2944	
+2945	
+2946	def wake_all_local(root: Path, tmux_session: str | None = None) -> bool:
+2947	    """Conjunct (3): retry every LOCAL row with pending work via `wake()`."""
+2948	    any_delivered = False
+2949	    for r in _locally_loaded_rows(root):
+2950	        name = (r.get("name") or "").strip()
+2951	        if not name or not boxes.row_is_local(root, r):
+2952	            continue
+2953	        rec = _read_deferred(root, name)
+2954	        if not (_seat_has_pending(root, name)
+2955	                or _nudge_marker_stale(root, name)):
+2956	            continue
+2957	        ok = wake(root, name, tmux_session)
+2958	        any_delivered = any_delivered or ok
+2959	        if rec is not None and ok:
+2960	            print(f"[delivered-late] {name} {rec.get('ts') or '?'}")
+2961	        elif rec is not None:
+2962	            _notify_undelivered(root, name, rec)
+2963	    return any_delivered
+```
+
+Both pointers corrected with write.py `sub` (versioned writes, not hand edits):
+
+* `_print_deferred_block` (`send.py:3895-3898`) -> (`send.py:3897-3913` -- the def
+  is 3897, the head-body print is 3907-3913).
+* `_notify_undelivered` (`send.py:2935-2957`) -> (`send.py:2906-2943` -- the def is
+  2906 and the function ends at 2943; 2935-2957 was the notice f-string through
+  `wake_all_local`'s `rec = _read_deferred(root, name)` at 2953, NOT the function),
+  reached only from `wake_all_local` at 2962.
+
+ITEM 5 was the load-bearing one: the node's central claim rests on `others` having
+exactly one reader. The bytes still say so -- `others` is read at 2913 (inside
+`_notify_undelivered`, the only reader) and 1866/1833 (`_deferred_queued`, the
+carry-forward reader, not a consumer), and `_notify_undelivered` is called from
+one place only, 2962. What is FIXED is the pointer, not the claim. The rest of
+that node's pre-fix table (3995, 2659, 2600, 1890) was re-checked at this tip and
+is correct as written; it is pasted on the node too so a reviewer does not have
+to re-derive it.
+
+## ITEM 3 -- the one code change, comment only
+
+`extensions/agi/bin/send.py:1900-1913`, inside the `_clear_deferred` docstring.
+No behaviour change; the shipped bytes of the function body are untouched. The
+docstring now names BOTH rules for queued `others`, and says why they differ:
+
+* (1) DROP rule (here): a queued entry whose `body` is falsy is retired with the
+  head -- `rest = [o for o in _deferred_queued(p) if o.get("body")]` keeps only
+  renderable bodies.
+* (2) CARRY rule (`_store_deferred` takeover): a bodyless sidecar is taken over,
+  and there every queued record -- falsy body included -- rides forward.
+
+Before this the docstring said only "the next queued sender becomes the new head",
+which reads as a promise the code does not keep in the falsy-body case; a reader
+checking `others` had no text telling them the two paths disagree on purpose.
+
+## ITEM 4 + ITEM 6 -- the retraction, taken the whole way
+
+`experiment:a00-143f92b1-0696a2.md` carried an EG.22 retraction that withdrew the
+32/7 provenance but kept "the over-cap number is real and lives in the EARLIER
+rounds residue, not in this kid", plus "17 added / 3 removed send.py, +14 net".
+Neither survives. `1cf2b3665`'s two hunks are entirely that kid's own ITEM 1 work,
+so no numstat over any base can yield 17/3 as that kid's exclusive contribution,
+and the same commit puts the round at +25 net production against a stated cap of
+15. I was not permitted a git read this round, so I did NOT re-derive a
+replacement number: the whole figure and its provenance are retracted, and what
+survives is the one claim no measurement is needed for -- the round shipped
+over cap and said so on its node.
+
+## Tests
+
+Comment-only code change, so the suite is expected to be unchanged, and it is:
+
+```
+$ env -u TMUX -u TMUX_PANE timeout 900 python3 -m pytest \
+    extensions/agi/tests/test_send.py extensions/agi/tests/test_bin_help_smoke.py \
+    -q -p no:randomly --basetemp=/tmp/eg41-cf800c23
+427 passed, 6 skipped, 11 warnings in 33.31s
+```
+
+## Ceiling -- NOT fully verifiable, named rather than claimed
+
+The brief asks for `git diff --numstat 38fa6e926 <final tip>` pasted here. My
+contract for this session says run no git at all, and it is the stricter of the
+two, so **no numstat paste is on this node and the ceiling is UNVERIFIED by
+measurement.** What the bytes support without git: the only production file I
+touched is `extensions/agi/bin/send.py`, one docstring, `send.py:1899-1913`
+fifteen lines replacing one -- **+14 net production, 0 test lines**, under the
+<=15 / <=40 caps. Unrelated uncommitted work in this worktree is named in the
+parent brief, not by me; I left it exactly where it was and ran no git.
+
+## probes
+
+* ITEM1 `grep -n "raw.strip()" extensions/agi/bin/send.py` -> `1818` (refutes 1816-1817 as this tree's guard). Pasted.
+* ITEM1 negative control: `_deferred_queued` def -> `1828`; `def _store_deferred` -> `1841`; `def _clear_deferred` -> `1890`; `1779` body check. Pasted.
+* ITEM2 `grep -n "_print_deferred_block"` -> def `3897`, head print `3907-3913`. Pasted.
+* ITEM5 `grep -n "_notify_undelivered"` -> def `2906`, one call `2962`; function ends `2943`; `wake_all_local` def `2946`; `rec = _read_deferred(...)` `2953`. Pasted. The single-reader claim SURVIVES; only the pointer was wrong.
+* ITEM3 negative probe: `ast.parse` on send.py -> `parse ok`; the function body after the docstring is byte-identical (comment-only), and the full suite is green.
+* ITEM4/6: no probe is possible without git, so the figures are retracted rather than defended.
+
+## Honest limits
+
+* I did not exercise the wire path `_notify_undelivered` end to end this round;
+  the single-reader claim above is settled by `grep` (one def, one call), which
+  is what the pointer correction needed, not by a live delivery.
+* The 0-byte and bodyless shapes are settled by reading the guard, not by a
+  red-first control; this round changed no behaviour, so no control is owed.
+* ITEM 4/6 leaves the chain with a retracted number and no replacement; whoever
+  next runs a round WITH a numstat read should re-measure the round honestly
+  rather than inherit a figure from this note.
+Raw output, screenshots, logs.
+
+## Agent Notes
+EG.41 corrective: ITEM1 0-byte guard is 1818-1819 on this tree (1816-1817 was right only on a00-6107c92f), ITEM2 _print_deferred_block 3897-3913, ITEM5 _notify_undelivered 2906-2943 (single-reader claim survives, pointer did not), ITEM3 both others-preservation rules in the _clear_deferred docstring, comment only, ITEM4+6 the 17/3 figure and its 'earlier rounds residue' survivor retracted; 427 passed 6 skipped; ceiling counted by hand (+14 net), no numstat paste -- git forbidden this session
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+EG.77 corrective (a00-f7270e83): frontmatter verdict proved/0.85 set to inconclusive_lean_proved:55 / 0.55 so it matches the PARENT REVIEW on this node (ITEM 5 DEMOTED, verdict inconclusive_lean_proved:55); the graph now reads the same claim the review supports.
+<!-- THOUGHT:END -->

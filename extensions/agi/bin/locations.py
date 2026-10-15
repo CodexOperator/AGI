@@ -18,7 +18,6 @@ verified against each other in `tests/test_locations.py::test_bash_and_python_ag
 |---|---|
 | Where is the graph? | `find_project_root()` — nodes, context, config |
 | Where is the source the graph describes? | `source_root()` — where `payload_ref` resolves |
-| Where does the rendered goal document go? | `goals_path()` |
 
 They used to be one question with one answer because the graph repo and the
 source repo were the same directory in the only layout that existed. They are
@@ -81,9 +80,6 @@ GRAPH_DIR_NAME = ".agi"
 #: says what it is. The prefixed names stay accepted so a tree that is moved
 #: into `.agi/` without being renamed still resolves.
 GRAPH_DIR_CONFIG_NAMES = ("config.json",) + CONFIG_NAMES
-
-#: Overridable per project via `goals_file` (see `goals_path`).
-DEFAULT_GOALS_FILE = "GOALS.md"
 
 #: Canonical first; the legacy spelling is still read and still set.
 PROJECT_ROOT_ENV_VARS = (
@@ -202,11 +198,37 @@ def find_project_root(start: Path | str | None = None) -> Path | None:
             return found
         if config_path(cur) is not None:
             return cur
+        # Bound to `start`'s OWN repository (hypothesis:l4-the-management-key-
+        # lookup-is-bounded-to-the-given-root). A directory/file of `.git` is the
+        # boundary of the repository `start` is inside; an `.agi`/config found at
+        # that level (checked above) is start's own, so a linked worktree or main
+        # checkout that keeps its `.agi` beside its `.git` still resolves. But
+        # anything ABOVE that boundary lives in a DIFFERENT (ancestral)
+        # repository and must never be climbed into — a `tmp_path` under an
+        # unrelated nested fixture git repo must resolve None, not the outer
+        # project's key. (A tmp dir under the CALLER'S OWN worktree still
+        # resolves that repo's `.agi`, since it sits beside the same `.git`;
+        # test-minting from such a dir is the L4.155 guard's job, unchanged
+        # as the second line.)
+        if (cur / ".git").exists():
+            break
         if cur.parent == cur:
             break
         cur = cur.parent
 
     return _descend(d)
+
+
+def _enclosing_repo(root: Path) -> Path | None:
+    """The nearest ancestor of `root` carrying a `.git`, or None when the path
+    sits in NO repository at all (a plain dir under /tmp)."""
+    d = Path(root)
+    while True:
+        if (d / ".git").exists():
+            return d
+        if d.parent == d:
+            return None
+        d = d.parent
 
 
 def git_common_root(root: Path) -> Path:
@@ -231,13 +253,9 @@ def git_common_root(root: Path) -> Path:
     """
     root = Path(root).resolve()
 
-    d = root
-    while True:
-        if (d / ".git").exists():
-            break
-        if d.parent == d:
-            return root
-        d = d.parent
+    d = _enclosing_repo(root)
+    if d is None:
+        return root
 
     try:
         out = subprocess.run(
@@ -262,6 +280,54 @@ def git_common_root(root: Path) -> Path:
         return d
     # Inside a linked worktree: the main checkout root parents the common dir.
     return common_dir.parent
+
+
+def is_live_checkout(root: Path) -> bool:
+    """True when `root` sits inside this engine copy's own live checkout
+    (claim 1: a suite basetemp there makes git-escaping writers hit LIVE).
+    A path in NO enclosing repository is never the live checkout -- decided by
+    that fact (SM.80's `is not None` pair was a tautology: git_common_root
+    never returns None), not by an identity fallback that merely happens to
+    differ.
+    """
+    try:
+        g = _enclosing_repo(Path(root).resolve())
+        e = _enclosing_repo(Path(__file__).resolve())
+        if g is None or e is None:
+            return False
+        # the ENGINE's own repo is the comparand: comparing `root`'s common
+        # root with its own enclosing repo's is equal for ANY repo (DH.412
+        # harvest: a foreign repo read as the live checkout)
+        return git_common_root(g) == git_common_root(e)
+    except Exception:
+        return False
+
+
+def live_checkout_refusal(base: Path, live: Path) -> str:
+    """The ONE refusal line every gate prints (conftest, --suite, 3 writers)."""
+    return (f"refused: basetemp {base} resolves to the live checkout "
+            f"{live}; pass --basetemp under /tmp")
+
+
+def refuse_live_resolution(given: Path, resolved: Path) -> None:
+    """Under pytest, refuse a resolver given a non-live root that RESOLVES a
+    live-checkout path, naming the resolved path (claim 3). No-op outside it."""
+    if os.environ.get("PYTEST_CURRENT_TEST") and not is_live_checkout(given) \
+            and is_live_checkout(resolved):
+        raise RuntimeError(f"{Path(resolved).resolve()} resolves to the live "
+                           f"checkout; pass --basetemp under /tmp")
+
+
+def refuse_live_sessions_from_plain_scratch(sessions_root: Path) -> None:
+    """Refuse only a scratch invocation nested inside the live graph root."""
+    if not is_live_checkout(sessions_root):
+        return
+    cwd = Path.cwd().resolve()
+    graph = find_project_root(cwd)
+    if graph is not None and cwd.is_relative_to(graph) and cwd != graph:
+        raise RuntimeError("refused: tier-gate invoked from a scratch nested "
+                           "inside the live graph; run pytest from the source "
+                           "tree, or pass --basetemp under /tmp")
 
 
 def shared_project_root(start: Path | str | None = None) -> Path | None:
@@ -290,7 +356,9 @@ def shared_project_root(start: Path | str | None = None) -> Path | None:
         return None
     main = git_common_root(graph)
     main_graph = find_project_root(main) if main else None
-    return main_graph or graph
+    out = main_graph or graph
+    refuse_live_resolution(start or Path.cwd(), out)
+    return out
 
 
 def project_root_from_env(start: Path | str | None = None) -> Path | None:
@@ -299,11 +367,24 @@ def project_root_from_env(start: Path | str | None = None) -> Path | None:
     Kept separate so that a caller which already has a root (a `--project`
     flag, say) is never silently overridden by an env var set for a different
     project in the same shell.
+
+    The override may DESCEND into `.agi/`, never ASCEND. Callers put two
+    different things in the variable: `driver.sh` and the session hook export
+    the GRAPH root (already `<repo>/.agi`), while `dispatch.py --branch`
+    exports the WORKTREE REPO root (`<repo>`). Applying phase 0's rule to the
+    env value makes both senses resolve: a directory holding `.agi/` with a
+    config descends to `<val>/.agi`; anything else — already a graph root, a
+    legacy root, or a directory whose ancestor hosts a config — is returned
+    unchanged. It must not call `find_project_root(Path(val))`, because that
+    walks UP, and an override that ascends out of the directory it was handed
+    silently defeats this function's whole stated purpose: a caller with a
+    root is never overridden by an env var set for a different project.
     """
     for var in PROJECT_ROOT_ENV_VARS:
         val = os.environ.get(var)
         if val:
-            return Path(val).resolve()
+            root = Path(val).resolve()
+            return _graph_dir_in(root) or root
     return find_project_root(start)
 
 
@@ -392,17 +473,189 @@ def payload_base(root: Path, location: str | None = None,
         return repo_root(root)
 
     declared = (cfg.get("locations") or {}).get(name)
-    if isinstance(declared, str) and declared.strip():
+    if _is_usable_location_value(name, declared):
         p = Path(declared.strip()).expanduser()
         return p.resolve() if p.is_absolute() else (root / p).resolve()
 
-    known = ["source_root", "graph_root", "repo_root"]
-    known += sorted(k for k in (cfg.get("locations") or {})
-                    if isinstance(k, str) and k not in known)
+    # ONE list of accepted names, shared with the picker (`known_payload_locations`):
+    # two copies of this list drift, and the advice a pane gives then differs
+    # from the advice the write path gives for the same config.
     raise KeyError(
         f"unknown payload location {name!r}. Declare it under `locations:` in "
-        f"the project config, or use one of: {', '.join(known)}."
+        f"the project config, or use one of: "
+        f"{', '.join(known_payload_locations(cfg))}."
     )
+
+
+def _is_usable_location_value(name, value) -> bool:
+    """Whether a `locations:` cell is a value `payload_base` accepts.
+
+    ONE predicate, both call sites (the write path here, the picker in
+    `known_payload_locations`): two copies drift, and the drift shows up as a
+    name the picker offers and the write path refuses.
+    """
+    return (isinstance(name, str) and isinstance(value, str)
+            and bool(value.strip()))
+
+
+def known_payload_locations(config: dict | None = None) -> list[str]:
+    """The location NAMES `payload_base` accepts, in resolution order.
+
+    The one list both the picker and `payload_base` read, so a cell that
+    declares a name the write path would refuse is recognisable HERE, at the
+    option, instead of far downstream as a KeyError naming a config value.
+    """
+    known = ["source_root", "graph_root", "repo_root"]
+    declared = (config or {}).get("locations") or {}
+    # A name is offered only if `payload_base` would ACCEPT its value: it takes
+    # a non-empty str and refuses everything else. Offering a key whose value is
+    # a dict or a blank string would stamp `location_ok: True` on a category
+    # the write path then refuses by name.
+    known += [k for k, v in declared.items()
+              if k not in known and _is_usable_location_value(k, v)]
+    return known
+
+
+def storage_category_block_error(config: dict | None = None) -> str | None:
+    """Name the config cell that leaves the table unreadable, or None.
+
+    The READER stays TOTAL (a mistyped block is an empty table, never a
+    crash) -- but an empty table PRINTS NOTHING, so the typo would be
+    invisible. This is where that silence becomes a name the CLI can report.
+    """
+    cfg = config or {}
+    mint = cfg.get("mint")
+    if "mint" in cfg and not isinstance(mint, dict):
+        return (f"mint is {type(mint).__name__}, not a table -- "
+                f"mint.storage_categories cannot be read")
+    if not isinstance(mint, dict) or "storage_categories" not in mint:
+        return None
+    block = mint["storage_categories"]
+    if isinstance(block, dict):
+        return None
+    return (f"mint.storage_categories is {type(block).__name__}, not a table "
+            f"-- the picker has no options to offer")
+
+
+def storage_category_target(root: Path, row: dict,
+                            config: dict | None = None) -> Path:
+    """Where one picker row actually points, base + prefix. Raises on a name
+    `payload_base` refuses, exactly as the write path would."""
+    base = payload_base(root, row["location"], config)
+    return (base / row["prefix"]) if row["prefix"] else base
+
+
+def storage_categories(config: dict | None = None,
+                       root: Path | None = None) -> list[dict]:
+    """The numbered storage-category picker, in config CELL order.
+
+    `hypothesis:mint-offers-storage-categories-from-config-cells`. The
+    directory a new payload files under is data, so it lives in
+    `mint.storage_categories.<key> = {location, prefix, label}` and this is
+    only its reader. Insertion order is the numbering order: a new cell is a
+    new option and nothing else changes.
+
+    Given `root`, each row also carries `target_exists`: whether the directory
+    it points at is on disk NOW. `location_ok` says the NAME is one
+    `payload_base` accepts; only this says the target is real, and a cell can
+    pass the first and fail the second (a mistyped prefix, a tree not created
+    yet). `None` when no root was given -- a table read without a checkout
+    cannot claim anything about the disk.
+    """
+    cfg = config or {}
+    known = known_payload_locations(cfg)
+    mint = cfg.get("mint")
+    block = mint.get("storage_categories") if isinstance(mint, dict) else None
+    if not isinstance(block, dict):          # a mistyped block is an EMPTY table
+        block = {}                           # -- never a crash: the picker must
+                                            # still print, so the config can be
+                                            # read and the typo seen.
+    rows: list[dict] = []
+    for key, cell in block.items():
+        if not isinstance(cell, dict):
+            # A cell that is not a mapping KEEPS ITS NUMBER as a BAD row: a
+            # silent `continue` renumbered every row below it, so "pick 3"
+            # would name a different category than the list a pane was shown.
+            # Visible and refused by name beats gone.
+            rows.append({
+                "n": len(rows) + 1, "key": str(key), "label": str(key),
+                "location": f"<not a mapping: {cell!r}>",
+                "location_ok": False, "prefix": "", "custom": False,
+                "target_exists": None,
+            })
+            continue
+        name = str(cell.get("location") or DEFAULT_PAYLOAD_LOCATION)
+        rows.append({
+            "n": len(rows) + 1,
+            "key": str(key),
+            "label": str(cell.get("label") or key),
+            "location": name,
+            "location_ok": name in known,
+            "prefix": str(cell.get("prefix") or "").strip("/"),
+            "custom": False,
+            "target_exists": None,
+        })
+        if root is not None and rows[-1]["location_ok"]:
+            rows[-1]["target_exists"] = storage_category_target(
+                root, rows[-1], cfg).is_dir()
+    return rows
+
+
+def resolve_storage_category(pick, tail: str | None = None,
+                             config: dict | None = None,
+                             root: Path | None = None) -> dict:
+    """(pick, tail) -> one row carrying `(location, payload_ref)`.
+
+    `pick` is a NUMBER or a KEY from the table. A pick naming no cell is read
+    as a path and returned FLAGGED `custom` against the default base -- an
+    accepted answer, never an exception: a pane that types a path it knows is
+    not in the table must not be told it may not. A pick that is a NUMBER
+    naming no cell is not a path but a stale list index: the tail carries the
+    whole answer and the digits are dropped, so `--storage-pick 99 --tail x`
+    never yields a payload named `99`. "Digits" means ASCII 0-9 and nothing
+    else: '٣' is a NAME to this resolver, not row 3, and '²' is a name too
+    rather than a ValueError.
+
+    THE COST, stated here because the call site reads this and not the round's
+    Caveats: a caller who genuinely means a FILE NAMED `99` now loses that
+    name -- there is no way to spell it, because the reading is by digits, not
+    by table membership. The degenerate case is the other half: a digit naming
+    no cell AND carrying NO tail drops to an EMPTY `payload_ref` under the
+    default base and still exits 0 (`--storage-pick 99` -> `custom\tsource_root\t`).
+    That is a refusal to guess, not a name: no file is named, and a caller
+    that wants a payload must pass `--tail`.
+
+    A cell whose `location` is NOT a name `payload_base` accepts is a config
+    error, not a pick, and it is refused HERE by name: the row is never
+    returned, so no caller can carry a name the write path will reject.
+    """
+    rows = storage_categories(config, root)
+    text = str(pick).strip()
+    # ASCII digits only. `str.isdigit()` is TRUE for '²' and '⑴', which
+    # `int()` then refuses with ValueError -- and for '٣', which `int()`
+    # silently accepts as 3, so a NAME typed in another script is read as a
+    # row index. Both are answered here, never raised out of the resolver.
+    num = int(text) if text.isascii() and text.isdigit() else None
+    hit = None
+    for row in rows:
+        if text == row["key"] or (num is not None and num == row["n"]):
+            hit = row
+            break
+    if hit is not None:
+        if not hit.get("location_ok", True):
+            raise ValueError(
+                f"storage category {hit['key']!r} declares location "
+                f"{hit['location']!r}, which payload_base does not accept. "
+                f"Use one of: {', '.join(known_payload_locations(config))}."
+            )
+        rest = str(tail or "").strip().lstrip("/")
+        return {**hit, "payload_ref": f"{hit['prefix']}/{rest}" if rest
+                else hit["prefix"]}
+    ref = str(tail or "").strip() if num is not None else text
+    return {"n": 0, "key": "custom", "label": "custom", "custom": True,
+            "location": DEFAULT_PAYLOAD_LOCATION, "location_ok": True,
+            "target_exists": None,
+            "prefix": "", "payload_ref": ref or str(tail or "").strip()}
 
 
 def resolve_payload_path(root: Path, ref: str, location: str | None = None,
@@ -419,42 +672,126 @@ def resolve_payload_path(root: Path, ref: str, location: str | None = None,
     return payload_base(root, location, config) / p
 
 
-def goals_path(root: Path, config: dict | None = None) -> Path:
-    """Where the rendered goal document belongs.
+# goals_path() + the goals-file cell retired with GOALS.md (goal:g7.16.1.4.1 W-G).
 
-    The value of `goals_file` decides how it is read, and the three forms exist
-    for three real situations:
 
-    - **Absolute** — used as-is. Escape hatch; no rules applied.
-    - **Contains a separator** (`docs/GOALS.md`) — relative to the graph root.
-      Full control for a project that wants the document filed somewhere
-      specific.
-    - **A bare filename** (the default, `GOALS.md`) — placed at the layout's
-      natural home: the *repo* root under G11, the graph root under the legacy
-      layout.
+#: Where the streamer stub CLI lives when the project config does not say.
+#: `~/` is expanded at resolve time; a project may override via
+#: `locations.streamer_stub` in its config. Knit from the `sb-status`/`brb`/
+#: `back`/`panic` stream command group (`command:commands`), whose argv is
+#: `<stub>/<subcommand>`.
+DEFAULT_STREAMER_STUB = "~/work/streamer-stub"
 
-    The bare-name case is the one that matters and it is why this is not simply
-    `root / "GOALS.md"`. Under G11 the graph lives at `<repo>/.agi`, and a goal
-    document rendered to `<repo>/.agi/GOALS.md` would be invisible in a file
-    listing and on GitHub — for the one document in the project that a human is
-    most likely to open first. It renders to `<repo>/GOALS.md` instead.
 
-    `goals_file` also settles the collision G11 creates: dropping the engine
-    into a repo that already ships its own `GOALS.md` would otherwise have the
-    renderer overwrite it. Such a project sets `goals_file` and keeps both.
+#: goal:g7.16.1.5.4 -- config:guard's `guard.env` block, keyed by box the way
+#: extensions/agi/guard/*.sh read it: `GUARD_<NAME>_<box>`, box from
+#: $GUARD_BOX, else this file, else the short hostname; non-alnum -> `_`.
+GUARD_BOX_FILE = Path("/etc/sanctuary-guard/box")
+_GUARD_ASSIGN = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)=(.*)$")
+
+
+def guard_box_key() -> str:
+    box = os.environ.get("GUARD_BOX", "")
+    if not box:
+        try:
+            box = GUARD_BOX_FILE.read_text(encoding="utf-8").strip()
+        except OSError:
+            import socket  # noqa: PLC0415
+            box = socket.gethostname().split(".")[0]
+    return re.sub(r"[^A-Za-z0-9]", "_", box)
+
+
+def guard_cell(root: Path, name: str, default: str = "") -> str:
+    """`GUARD_<name>_<box>` from MAIN's config:guard (`.geometry/guard.md`,
+    its ```sh guard.env``` block), else `default`. A cell is box-wide, so a
+    worktree root reads MAIN's node. Plain `VAR=value` lines only (quotes
+    stripped); the node absent or unreadable -> `default`."""
+    node = git_common_root(Path(root)) / GRAPH_DIR_NAME / "nodes" / ".geometry" / "guard.md"
+    want = f"GUARD_{name}_{guard_box_key()}"
+    try:
+        text = node.read_text(encoding="utf-8")
+    except OSError:
+        return default
+    m = re.search(r"^```sh guard\.env\n(.*?)^```$", text, re.M | re.S)
+    for line in (m.group(1) if m else "").splitlines():
+        a = _GUARD_ASSIGN.match(line.strip())
+        if a and a.group(1) == want:
+            return a.group(2).strip().strip("'\"")
+    return default
+
+
+#: goal:g7.16.1.5.5.1 -- the RAM disk's OWN budget line (guard-init layer 3
+#: writes it: MemoryMax = GUARD_RAM_BUDGET, no ManagedOOM). A sibling of
+#: agi.slice, never `agi-ram.slice` (a dash nests a slice inside agi.slice's
+#: oomd kill domain).
+RAM_SLICE = "ramdisk.slice"
+
+
+def ram_write_argv(argv: list[str]) -> list[str]:
+    """goal:g7.16.1.5.5.1 -- `argv` as a transient unit under RAM_SLICE, for a
+    bulk write into the RAM disk. A tmpfs page stays charged to the cgroup
+    that first wrote it and moves to that cgroup's PARENT when the writer
+    exits, so pages written here park on the RAM disk's own line, never on
+    the engine or work slice. Built by THE one scope-argv builder
+    (mem_cap.scope_argv, goal:g7.16.1.7.1.1): a scope is synchronous and keeps
+    stdio, so the exit code and the output are argv's. No usable systemd-run
+    -> `argv` unchanged."""
+    import mem_cap  # local: mem_cap may read locations
+    return list(mem_cap.scope_argv(list(argv), RAM_SLICE))
+
+
+def streamer_stub(root: Path, config: dict | None = None) -> Path:
+    """The streamer stub's directory, as an absolute path. One definition.
+
+    Read from the graph config's `locations.streamer_stub` (a dot-path inside
+    the `locations` object, `~`/env-expanded), falling back to
+    `~/work/streamer-stub` when unset. Expanded `~` and env vars so a declared
+    path may be spelled `~/work/streamer-stub`; absolute is used as-is,
+    relative resolves against the graph root, matching `source_root`.
+
+    One definition means `commands.py` calls here and nowhere else -- the
+    `<stub>` token in the stream group's argv resolves to exactly one path.
     """
     root = Path(root).resolve()
     cfg = load_config(root) if config is None else config
+    cell = (cfg.get("locations") or {}).get("stream")
+    if isinstance(cell, dict) and _is_usable_location_value("stub", cell.get("stub")):
+        return stream_path(root, "stub", cfg)  # the cell and `<stub>` agree
+    declared = (cfg.get("locations") or {}).get("streamer_stub")
+    if isinstance(declared, str) and declared.strip():
+        p = Path(declared.strip()).expanduser()
+        return p.resolve() if p.is_absolute() else (root / p).resolve()
+    return Path(DEFAULT_STREAMER_STUB).expanduser().resolve()
 
-    raw = cfg.get("goals_file")
-    name = raw.strip() if isinstance(raw, str) and raw.strip() else DEFAULT_GOALS_FILE
 
-    p = Path(name).expanduser()
-    if p.is_absolute():
-        return p.resolve()
-    if len(p.parts) > 1:
-        return (root / p).resolve()
-    return repo_root(root) / p.name
+#: goal:g15.27.5 -- the agi-stream box paths as DEFAULTS, for a tree whose
+#: `.agi/config.json` carries no `locations.stream` cell yet: a round may not
+#: write config.json (`cli.py:_round_committable`; the seam heal.py
+#: `_reworktrees_dir` leaves its parent). A declared cell always wins.
+DEFAULT_STREAM_PATHS = {
+    "stub": DEFAULT_STREAMER_STUB,
+    "bin": "~/bin",
+    "xvfb": "{home}/xvfb/root/usr/bin/Xvfb",
+    "kiosk_profile": "~/snap/firefox/common/stream-profile",
+    "feed": "{home}/classfeed/feed.py",
+}
+
+
+def stream_path(root: Path, key: str, config: dict | None = None) -> Path:
+    """`locations.stream.<key>` -- the ONE resolver the agi-stream skill's
+    cells go through. `{home}`/`~` expand, absolute is as-is, relative resolves
+    against the graph root (as `streamer_stub` does). An unknown key refuses BY
+    NAME: a typo is a key on stderr, never a path that plausibly exists."""
+    root = Path(root).resolve()
+    cfg = load_config(root) if config is None else config
+    cell = (cfg.get("locations") or {}).get("stream")
+    cell = cell if isinstance(cell, dict) else {}
+    val = cell.get(key) or DEFAULT_STREAM_PATHS.get(key)
+    if not (isinstance(val, str) and val.strip()):
+        raise KeyError(f"unknown stream location {key!r} -- declare it as "
+                       f"`locations.stream.{key}` in the project config")
+    p = Path(val.strip().replace("{home}", str(Path.home()))).expanduser()
+    return p.resolve() if p.is_absolute() else (root / p).resolve()
 
 
 # --- iterations ------------------------------------------------------------
@@ -569,11 +906,63 @@ def iteration_dirname(iter_id: int | str) -> str:
 
 
 def sessions_dir(root: Path) -> Path:
+    """PER-WORKTREE sessions dir: `<root>/sessions`, a plain join.
+
+    Do not reach for this when the state must be SHARED across every git
+    worktree of a project — meter pins, the mail inbox, the budget, the suite
+    stamp, the rotation records. A caller inside a linked worktree gets THIS
+    worktree's `sessions`, which forks the room; use `shared_sessions_dir`
+    there (the helper that routes through `git_common_root`).
+
+    This plain join is legitimately what iteration OUTPUT wants: a seat's
+    `iter-*` dirs live in its own worktree during a run and are merged home
+    by `rotate complete` / `cli.py session-complete`. So both resolvers are
+    honest — the shared room (pins, mail, budget, stamp) and the per-worktree
+    fork (iteration output) — and a consumer must pick by which it means.
+    """
     return Path(root) / SESSIONS_DIR_NAME
 
 
+def shared_sessions_dir(root: Path) -> Path:
+    """The project's ONE shared sessions dir across every git worktree.
+
+    The meter pins, mail inbox, spawn budget, suite stamp and rotation
+    records must be a SINGLE directory on the main checkout so a seat in a
+    worktree reads the same room the parent wrote (hypothesis:l4-a-check-that-
+    answers-a-question-it-is-not-asking — the boundary's recurring face is
+    shared state resolved per-worktree instead of through `git_common_root`).
+
+    This is the hoisted form of `rotate._sessions_dir` (rotate.py), the ONE
+    resolver the pins already use; `rotate._sessions_dir` now delegates here.
+    Layout is unchanged: `find_project_root()` returns the GRAPH dir (the
+    `.agi/` itself), so the sessions dir usually sits directly under it;
+    routing through `git_common_root` re-resolves the graph from the main
+    checkout. A non-worktree or non-git root is the identity, so fixtures and
+    the main checkout behave byte-for-byte as before.
+    """
+    graph = find_project_root(root) or root
+    main = git_common_root(graph)
+    if main is not None:
+        mg = find_project_root(main) or graph
+        graph = mg
+    if (graph / "nodes").is_dir():
+        out = graph / "sessions"
+    elif (graph / ".agi" / "nodes").is_dir():
+        out = graph / ".agi" / "sessions"
+    else:
+        out = graph / "sessions"  # unknown shape: graph-dir reading
+    refuse_live_resolution(root, out)
+    return out
+
+
 def iteration_dir(root: Path, iter_id: int | str) -> Path:
-    """`<root>/sessions/<iteration_dirname>` — the one place this is spelled."""
+    """`<root>/sessions/<iteration_dirname>` — the one place this is spelled.
+
+    Iteration OUTPUT is per-worktree on purpose (a seat's `iter-*` dirs live
+    in its own worktree during a run and are merged home at retirement), so
+    this builds on `sessions_dir` — the per-worktree join — NOT on
+    `shared_sessions_dir`. `sessions_dir` returns whatever the caller means;
+    `iteration_dir` is always the worktree-local fork."""
     return sessions_dir(root) / iteration_dirname(iter_id)
 
 
@@ -753,8 +1142,17 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("start", nargs="?", default=None,
                     help="directory to resolve from (default: cwd)")
     ap.add_argument("--json", action="store_true", help="emit JSON")
-    ap.add_argument("--what", choices=["root", "source", "goals", "repo"],
+    ap.add_argument("--stream", default=None,
+                    help="print ONE `locations.stream.<key>` path")
+    ap.add_argument("--what", choices=["root", "source", "repo"],
                     help="print one path and nothing else")
+    ap.add_argument("--storage-categories", action="store_true",
+                    help="print the numbered storage-category picker")
+    ap.add_argument("--storage-pick", default=None,
+                    help="resolve one pick (number or key) to location + "
+                         "payload_ref; implies --storage-categories")
+    ap.add_argument("--tail", default=None,
+                    help="with --storage-pick: the tail under the prefix")
     ap.add_argument("--claim-iter", action="store_true",
                     help="allocate the next free iteration id, reserve its "
                          "sessions dir, print the id")
@@ -794,11 +1192,58 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     cfg = load_config(root)
+
+    if args.stream is not None:
+        try:
+            print(stream_path(root, args.stream, cfg))
+        except KeyError as exc:
+            print(f"ERR: {exc}", file=sys.stderr, flush=True)
+            return 1
+        return 0
+
+    if args.tail is not None and args.storage_pick is None:
+        print("ERR: --tail names the file under a category, so it needs "
+              "--storage-pick; the category is the part the tail hangs from.",
+              file=sys.stderr, flush=True)
+        return 1
+
+    if args.storage_categories or args.storage_pick is not None:
+        if args.storage_pick is not None:
+            # the table is built once, inside the resolver -- not here too
+            try:
+                row = resolve_storage_category(args.storage_pick, args.tail,
+                                               cfg, root)
+            except ValueError as exc:
+                print(f"ERR: {exc}", file=sys.stderr, flush=True)
+                return 1
+            print(f"{row['custom'] and 'custom' or row['key']}\t"
+                  f"{row['location']}\t{row['payload_ref']}")
+            return 0
+        bad_block = storage_category_block_error(cfg)
+        rows = storage_categories(cfg, root)
+        for row in rows:
+            print(f"{row['n']}  {row['key']}  {row['location']}  "
+                  f"{row['prefix']}  ({row['label']})"
+                  f"{'' if row['target_exists'] is not False else '  MISSING'}"
+                  f"{'' if row['location_ok'] else '  BAD LOCATION'}")
+        if bad_block:
+            print(f"ERR: {bad_block}", file=sys.stderr, flush=True)
+            return 1
+        broken = [f"{r['key']}={r['location']!r}" for r in rows
+                  if not r["location_ok"]]
+        if broken:
+            print(f"ERR: mint.storage_categories declares "
+                  f"{', '.join(broken)}, a location payload_base does not "
+                  f"accept. Use one of: "
+                  f"{', '.join(known_payload_locations(cfg))}.",
+                  file=sys.stderr, flush=True)
+            return 1
+        return 0
+
     resolved = {
         "root": str(root),
         "repo": str(repo_root(root)),
         "source": str(source_root(root, cfg)),
-        "goals": str(goals_path(root, cfg)),
         "layout": "graph_dir" if is_graph_dir(root) else "legacy",
     }
 
@@ -807,7 +1252,7 @@ def main(argv: list[str] | None = None) -> int:
     elif args.json:
         print(json.dumps(resolved, indent=2))
     else:
-        for k in ("layout", "root", "repo", "source", "goals"):
+        for k in ("layout", "root", "repo", "source"):
             print(f"{k}: {resolved[k]}")
     return 0
 

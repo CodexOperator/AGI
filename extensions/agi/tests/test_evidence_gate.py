@@ -444,9 +444,14 @@ def test_enforce_on_disk_empty_tree_is_a_noop(tmp_path):
 def project(tmp_path, monkeypatch):
     (tmp_path / "agi-tree.config.json").write_text("{}")
     (tmp_path / "nodes" / "experiment").mkdir(parents=True)
-    sess = tmp_path / "sessions" / "iter-001" / "a1"
+    sess = tmp_path / "sessions" / "iter-001"
     sess.mkdir(parents=True)
-    (sess / "agent.json").write_text(json.dumps({"id": "a1", "status": "running"}))
+    (sess / "a1").mkdir(parents=True)
+    (sess / "a1" / "agent.json").write_text(
+        json.dumps({"id": "a1", "status": "running"}))
+    # CLASS C: `done` returns 1 (no harvest dm) without an iteration manifest
+    # holding this round's agent, and warns without a dispatcher stamp.
+    (sess / "manifest.json").write_text(json.dumps({"agents": [{"id": "a1"}]}))
     monkeypatch.chdir(tmp_path)
     return tmp_path
 
@@ -885,3 +890,17 @@ def test_self_id_absent_keeps_historical_behaviour():
     corpus = frozenset(["verdict:v1"])
     res = eg.apply_gate("proved", ["verdict:v1"], corpus=corpus)
     assert not res.demoted and res.verdict == "proved"
+
+
+# --- W2c C conjunct (3), goal:g4.18.6.3.3: a mint is judged by the one resolver, never a hex shape
+def test_w2cc_off_shape_mint_evidence_ref_is_judged_as_its_address_twin(tmp_path):
+    off = "mint-XYZ-not-hex"                     # no ':' and no 32-hex shape -- carried as `mint_id:`
+    (tmp_path / "nodes" / "experiment").mkdir(parents=True)
+    (tmp_path / "nodes" / "experiment" / "e.md").write_text(
+        f"---\nid: experiment:e\nmint_id: {off}\ntype: experiment\n---\n")
+    corpus = eg.build_corpus(tmp_path / "nodes")
+    seen = [(eg.evidence_runs_violations([r], corpus), eg.normalize_evidence_runs([r], corpus=corpus),
+             eg.is_node_id_shaped(r, corpus.address)) for r in ("experiment:e", off)]
+    assert seen[0] == ([], 1, True) and seen[1] == seen[0], seen
+    assert not eg.is_node_id_shaped(off) and eg.evidence_runs_violations([off]) == [off]   # pure, no resolver
+    assert eg.evidence_runs_violations(["a" * 32, "mint-none"], corpus) == ["a" * 32, "mint-none"]  # no node's mint

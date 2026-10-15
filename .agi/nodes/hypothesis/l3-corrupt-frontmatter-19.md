@@ -3,12 +3,13 @@ id: hypothesis:l3-corrupt-frontmatter-19
 mint_id: 69874913eb8948a8bd718edc438d0230
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.15
 next_edges: []
-edited_by: ubuntu
+edited_by: belam
 scaffold_hash: e252943ccbd7edac
 season: 1
 testable_claim: The 19 node files whose frontmatter opener is a run-on (the id key glued onto the three-dash line, so the strict loader rejects them while a lax split loader misreads them) are repaired in place with their mint ids and edges intact, after which every parseable node carries season 1 and a strict scan of .agi/nodes finds zero failures
+thought_session: dissolve-legacy-2026-09-19
 title: L3 corrupt frontmatter 19 nodes
 ---
 # hypothesis:l3-corrupt-frontmatter-19

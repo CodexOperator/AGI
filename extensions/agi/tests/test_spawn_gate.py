@@ -531,9 +531,13 @@ def _run_cli(project, *args):
 @pytest.fixture
 def wired_project(project):
     """`project` plus what cli.py needs: an agent record and a goal parent."""
-    ad = project / "sessions" / "iter-001" / "a1"
-    ad.mkdir(parents=True)
-    (ad / "agent.json").write_text(json.dumps({"id": "a1", "status": "run"}))
+    it = project / "sessions" / "iter-001"
+    (it / "a1").mkdir(parents=True)
+    (it / "a1" / "agent.json").write_text(
+        json.dumps({"id": "a1", "status": "run"}))
+    # `done` returns 1 with no harvest dm unless an iteration manifest holds
+    # the round's agent (hypothesis:l4-suite-green-... CLASS C).
+    (it / "manifest.json").write_text(json.dumps({"agents": [{"id": "a1"}]}))
     return project
 
 
@@ -1180,3 +1184,334 @@ def test_node_writer_accepts_valid_season_parent(season_project):
     )
     assert not res.rejected, res.reason
     assert (season_project / "nodes" / "vision" / "seasoned-good.md").exists()
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l4-towns-... — per-town vision cap on the WRITE path (residue 3)
+# ---------------------------------------------------------------------------
+
+VISION_CAP_SCHEMA = """\
+---
+name: vision
+spawn:
+  allowed_parents: [moral]
+  min_parents: 1
+  max_parents: 4
+---
+vision
+"""
+
+
+@pytest.fixture
+def vision_cap_graph(project):
+    """project + a vision schema, a town-scoped ladder (caps.vision: 2), and
+    a moral parent in a full town (core, 2/2) plus one in a town with room."""
+    sd = project / "context" / "schemas"
+    (sd / "[vision].md").write_text(VISION_CAP_SCHEMA)
+    (sd / "[shape].md").write_text(SHAPE.replace(
+        "max_parents_ceiling: 2", "max_parents_ceiling: 4"))
+    gd = project / "nodes" / ".geometry"
+    gd.mkdir(parents=True, exist_ok=True)
+    (gd / "ladder.md").write_text("""\
+---
+id: ladder:ladder
+type: ladder
+current_season: 1
+caps:
+  moral: 5
+  vision: 2
+caps_vision_scope: town
+---
+# ladder
+""")
+    vd = project / "nodes" / "vision"
+    vd.mkdir(parents=True, exist_ok=True)
+    vd.joinpath("v1.md").write_text(
+        "---\nid: vision:v1\ntype: vision\ntown: core\n---\n# v1\nb\n")
+    vd.joinpath("v2.md").write_text(
+        "---\nid: vision:v2\ntype: vision\ntown: core\n---\n# v2\nb\n")
+    vd.joinpath("vw1.md").write_text(
+        "---\nid: vision:vw1\ntype: vision\ntown: web-app-suite\n---\n# vw1\nb\n")
+    # two moral parents, each declaring the town its child would join
+    md = project / "nodes" / "moral"
+    md.mkdir(parents=True, exist_ok=True)
+    md.joinpath("m-core.md").write_text(
+        "---\nid: moral:m-core\ntype: moral\ntown: core\n---\n# mc\nb\n")
+    md.joinpath("m-wa.md").write_text(
+        "---\nid: moral:m-wa\ntype: moral\ntown: web-app-suite\n---\n# mw\nb\n")
+    return project
+
+
+def test_write_path_vision_cap_rejects_full_town(vision_cap_graph):
+    """A vision parented into a town already at caps.vision is REJECTED on the
+    write path, naming the town."""
+    rules, index, cs = sg.gate_for_root(vision_cap_graph)
+    res = sg.check_spawn(
+        "vision", ["moral:m-core"], rules=rules, type_index=index,
+        node_id="vision:probe", current_season=cs,
+        nodes_dir=str(vision_cap_graph / "nodes"))
+    assert res.status == sg.REJECTED, res
+    assert "core" in res.reason and "caps.vision (2/town)" in res.reason
+
+
+def test_write_path_vision_cap_allows_town_with_room(vision_cap_graph):
+    """A vision into a town with room passes the cap gate (still approved if
+    the schema allows the parents)."""
+    rules, index, cs = sg.gate_for_root(vision_cap_graph)
+    res = sg.check_spawn(
+        "vision", ["moral:m-wa"], rules=rules, type_index=index,
+        node_id="vision:probe", current_season=cs,
+        nodes_dir=str(vision_cap_graph / "nodes"))
+    assert res.status == sg.APPROVED
+    assert any("town vision cap" in a for a in res.applied), res.applied
+
+
+def test_write_path_vision_cap_inert_without_nodes_dir(vision_cap_graph):
+    """No nodes_dir -> the town cap cannot be counted, so the gate is skipped
+    (not approved-by-default-where-it-could-count): old callers untouched."""
+    rules, index, cs = sg.gate_for_root(vision_cap_graph)
+    res = sg.check_spawn(
+        "vision", ["moral:m-core"], rules=rules, type_index=index,
+        node_id="vision:probe", current_season=cs)  # no nodes_dir
+    assert res.status == sg.APPROVED
+
+
+def test_write_path_vision_cap_inert_under_global_scope(vision_cap_graph):
+    """Scope != 'town' disables the per-town gate: a non-town project is
+    untouched by the town cap."""
+    gd = vision_cap_graph / "nodes" / ".geometry"
+    gd.joinpath("ladder.md").write_text(gd.joinpath("ladder.md").read_text()
+                                        .replace("caps_vision_scope: town",
+                                                 "caps_vision_scope: global"))
+    rules, index, cs = sg.gate_for_root(vision_cap_graph)
+    res = sg.check_spawn(
+        "vision", ["moral:m-core"], rules=rules, type_index=index,
+        node_id="vision:probe", current_season=cs,
+        nodes_dir=str(vision_cap_graph / "nodes"))
+    assert res.status == sg.APPROVED
+    assert not any("town vision cap" in a for a in res.applied)
+
+
+def test_write_path_vision_cap_own_cell_overrides_parent_town(vision_cap_graph):
+    """A vision carrying its OWN `town:` cell is counted against THAT town,
+    not its parents' town. Here the new vision says `web-app-suite` while its
+    parent is in core (2/2, at cap): it must be APPROVED because
+    web-app-suite has room (1/2). This is the falsifier of
+    hypothesis:l4-write-path-vision-cap-reads-the-visions-own-town."""
+    rules, index, cs = sg.gate_for_root(vision_cap_graph)
+    res = sg.check_spawn(
+        "vision", ["moral:m-core"], rules=rules, type_index=index,
+        fm={"town": "web-app-suite"},
+        node_id="vision:probe", current_season=cs,
+        nodes_dir=str(vision_cap_graph / "nodes"))
+    assert res.status == sg.APPROVED, res
+    assert any("town vision cap" in a for a in res.applied), res.applied
+
+
+def test_write_path_vision_cap_no_own_cell_falls_back_to_parents(vision_cap_graph):
+    """No own `town:` cell -> fall back to the nearest vision town of the
+    PARENTS. Parent is moral:m-core (town core, 2/2 at cap), so the vision is
+    REJECTED, and the reason names core and the 'parents' source."""
+    rules, index, cs = sg.gate_for_root(vision_cap_graph)
+    res = sg.check_spawn(
+        "vision", ["moral:m-core"], rules=rules, type_index=index,
+        fm={}, node_id="vision:probe", current_season=cs,
+        nodes_dir=str(vision_cap_graph / "nodes"))
+    assert res.status == sg.REJECTED, res
+    assert "core" in res.reason
+    assert "(from parents)" in res.reason
+
+
+def test_write_path_vision_cap_explicit_core_own_cell_counted_in_core(vision_cap_graph):
+    """An explicit own `town: core` still counts against core (2/2, at cap),
+    so the vision is REJECTED -- the own-cell read must not invent a way
+    around a full town by spelling 'core' out."""
+    rules, index, cs = sg.gate_for_root(vision_cap_graph)
+    res = sg.check_spawn(
+        "vision", ["moral:m-core"], rules=rules, type_index=index,
+        fm={"town": "core"},
+        node_id="vision:probe", current_season=cs,
+        nodes_dir=str(vision_cap_graph / "nodes"))
+    assert res.status == sg.REJECTED, res
+    assert "core" in res.reason
+    assert "(from own cell)" in res.reason
+
+
+# hypothesis:l4-an-undeclared-town-is-refused-not-capped — a vision naming a
+# town the ladder does not declare is REFUSED, not granted a fresh cap.
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def town_ladder_graph(project):
+    """project + a vision schema and a town-scoped ladder that DECLARES a
+    towns table of two towns, plus a moral parent with no town (so a
+    town-less vision falls back to the default)."""
+    sd = project / "context" / "schemas"
+    (sd / "[vision].md").write_text(VISION_CAP_SCHEMA)
+    (sd / "[shape].md").write_text(SHAPE.replace(
+        "max_parents_ceiling: 2", "max_parents_ceiling: 4"))
+    gd = project / "nodes" / ".geometry"
+    gd.mkdir(parents=True, exist_ok=True)
+    (gd / "ladder.md").write_text("""\
+---
+id: ladder:ladder
+type: ladder
+current_season: 1
+caps:
+  vision: 3
+caps_vision_scope: town
+towns:
+  - streaming-suite
+  - web-app-suite
+---
+# ladder
+""")
+    md = project / "nodes" / "moral"
+    md.mkdir(parents=True, exist_ok=True)
+    md.joinpath("m.md").write_text(
+        "---\nid: moral:m\ntype: moral\n---\n# m\n")
+    return project
+
+
+def test_undeclared_own_town_is_refused(town_ladder_graph):
+    """A vision whose OWN `town:` cell names a town absent from the ladder's
+    towns table is REFUSED, naming the undeclared town. This is the falsifier
+    of the old behaviour (town: nowhere-declared -> APPROVED with a fresh
+    cap)."""
+    rules, index, cs = sg.gate_for_root(town_ladder_graph)
+    res = sg.check_spawn(
+        "vision", ["moral:m"], rules=rules, type_index=index,
+        node_id="vision:probe", current_season=cs,
+        fm={"town": "nowhere-declared"},
+        nodes_dir=str(town_ladder_graph / "nodes"))
+    assert res.status == sg.REJECTED, res
+    assert "nowhere-declared" in res.reason
+    assert "not declared in ladder towns" in res.reason
+
+
+def test_declared_own_town_keeps_its_own_cell(town_ladder_graph):
+    """A vision naming a DECLARED town is counted against that town's own
+    cell, as before -- the refusal must not break a declared town."""
+    rules, index, cs = sg.gate_for_root(town_ladder_graph)
+    res = sg.check_spawn(
+        "vision", ["moral:m"], rules=rules, type_index=index,
+        node_id="vision:probe", current_season=cs,
+        fm={"town": "streaming-suite"},
+        nodes_dir=str(town_ladder_graph / "nodes"))
+    assert res.status == sg.APPROVED, res
+    assert any("town vision cap: streaming-suite" in a
+               for a in res.applied), res.applied
+
+
+def test_no_own_town_uses_existing_default(town_ladder_graph):
+    """A vision with NO own `town:` cell is not refused -- it falls back to
+    the parents'/default path untouched."""
+    rules, index, cs = sg.gate_for_root(town_ladder_graph)
+    res = sg.check_spawn(
+        "vision", ["moral:m"], rules=rules, type_index=index,
+        node_id="vision:probe", current_season=cs, fm={},
+        nodes_dir=str(town_ladder_graph / "nodes"))
+    assert res.status == sg.APPROVED, res
+
+
+def test_undeclared_refusal_inert_when_ladder_has_no_towns(vision_cap_graph):
+    """A ladder with NO towns table ([] -> nothing to validate) is untouched:
+    an undeclared-looking town is still counted against its own fresh cell.
+    This preserves the existing fixture tests and non-declaring ladders."""
+    rules, index, cs = sg.gate_for_root(vision_cap_graph)
+    res = sg.check_spawn(
+        "vision", ["moral:m-wa"], rules=rules, type_index=index,
+        node_id="vision:probe", current_season=cs,
+        fm={"town": "some-town"},
+        nodes_dir=str(vision_cap_graph / "nodes"))
+    assert res.status == sg.APPROVED, res
+
+
+# ---------------------------------------------------------------------------
+# Residue 4 — the opaque town_branches reader (hypothesis:l4-towns-each-app-
+# is-a-vision-with-its-own-council; owner ruling 01:4xZ). The map value is
+# OPAQUE CONFIG: code never parses the branch name, only reads the ladder
+# frontmatter and reverse-looks up by EXACT string equality.
+# ---------------------------------------------------------------------------
+
+
+def _write_town_ladder(nodes_dir):
+    geom = nodes_dir / ".geometry"
+    geom.mkdir(parents=True, exist_ok=True)
+    (geom / "ladder.md").write_text(
+        "---\nid: ladder:ladder\ntype: ladder\ncurrent_season: 2\n"
+        "town_branches:\n"
+        "  core: season/s2\n"
+        "  streaming-suite: town/streaming-suite@s2\n"
+        "  web-app-suite: town/web-app-suite@s2\n"
+        "---\nbody\n", encoding="utf-8")
+    return geom / "ladder.md"
+
+
+def test_read_town_branches_maps_town_to_opaque_branch(tmp_path):
+    """The ladder's town_branches frontmatter is read whole, values opaque."""
+    nodes = tmp_path / "nodes"
+    _write_town_ladder(nodes)
+    tb = sg.read_town_branches(nodes)
+    assert tb == {
+        "core": "season/s2",
+        "streaming-suite": "town/streaming-suite@s2",
+        "web-app-suite": "town/web-app-suite@s2",
+    }
+
+
+def test_read_town_branches_fails_open_when_unset_or_unreadable(tmp_path):
+    """Missing ladder / missing map / malformed value -> {} (never an error),
+    so a graph that has not declared towns keeps today's season base."""
+    nodes = tmp_path / "nodes"
+    assert sg.read_town_branches(nodes) == {}  # no ladder
+    nodes.mkdir(parents=True)
+    geom = nodes / ".geometry"
+    geom.mkdir()
+    (geom / "ladder.md").write_text(
+        "---\nid: ladder:ladder\ntype: ladder\n"
+        "caps_apply_from_season: 2\n---\nbody\n")  # no town_branches key
+    assert sg.read_town_branches(nodes) == {}
+
+
+def test_town_integration_branch_resolves_and_misses(tmp_path):
+    nodes = tmp_path / "nodes"
+    _write_town_ladder(nodes)
+    assert (sg.town_integration_branch(nodes, "streaming-suite")
+            == "town/streaming-suite@s2")
+    # Unknown town -> None (fail open), never a fabricated branch name.
+    assert sg.town_integration_branch(nodes, "nope") is None
+    assert sg.town_integration_branch(nodes, "") is None
+
+
+def test_town_of_branch_is_exact_equality_only(tmp_path):
+    """Branch -> town maps ONLY when the branch string EQUALS an opaque value.
+    A structurally-similar branch that a parser might mistake for the town's
+    is not its integration line — the lookup never parses the name."""
+    nodes = tmp_path / "nodes"
+    _write_town_ladder(nodes)
+    assert (sg.town_of_branch(nodes, "town/streaming-suite@s2")
+            == "streaming-suite")
+    assert sg.town_of_branch(nodes, "season/s2") == "core"
+    # A branch that LOOKS like a renamed town branch but is not the declared
+    # opaque value must NOT resolve (the rename costs one config edit, zero
+    # code).
+    assert (sg.town_of_branch(nodes, "s2/streaming-suite/s1/main")
+            is None)
+    assert sg.town_of_branch(nodes, "town/web-app-suite@wrong") is None
+    assert sg.town_of_branch(nodes, "") is None
+
+
+@pytest.mark.parametrize("ref", ["goal:s17", "a" * 32])   # the address, then its mint twin
+def test_w2cc_cli_check_and_post_wire_gate_type_a_mint_parent_as_its_address(project, ref, capsys):
+    """goal:g4.18.6.3.3 -- gate_for_root's index behind `spawn_gate.py check`
+    and post_wire's pass (gate_for_root once at :372, handed to write_node at :518)."""
+    import node_writer
+    g = project / "nodes" / "goal" / "s17.md"
+    g.write_text(g.read_text().replace("type: goal\n", f"type: goal\nmint_id: {'a' * 32}\n"))
+    assert sg._cli(["check", "--type", "idea", "--parent", ref, "--root", str(project)]) == 0
+    assert "SPAWN-GATE APPROVED" in capsys.readouterr().out
+    rules, index, _ = sg.gate_for_root(project)
+    res = node_writer.write_node(project, "idea", "wired", [ref], rules=rules, type_index=index)
+    assert (res.gate.status, res.written) == ("approved", True)

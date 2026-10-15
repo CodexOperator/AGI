@@ -3,9 +3,9 @@ id: hypothesis:verify-runs-grid-commit-before-smoke
 mint_id: ecc756a2b9024f418c458ae50c33b92e
 type: hypothesis
 parents:
-  - goal:s34
+  - goal:g6.50
 next_edges: []
-edited_by: season.py
+edited_by: self-perpetuating
 scaffold_hash: 68096291cfd1c1dc
 scale: engine
 season: 1

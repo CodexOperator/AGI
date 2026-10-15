@@ -1,0 +1,14 @@
+{
+ "hypothesis": "hypothesis:lm-l4-measured-distance-heads-keep-a-recent-window",
+ "run1_cell": "osc_band_l4_dir",
+ "inherit": ["model_cell", "text_cell", "text_file", "eval_docs", "L", "W", "sinks", "score_lo", "score_hi",
+             "budgets", "k", "seeds", "min_budget_wins", "lm_head_chunk", "threads"],
+ "inherit_note": "every key in 'inherit' is read from <cell run1_cell>/params.json at run time (eval doc ids, budgets, k, W, sinks, seeds, positions, threads), never retyped here; the merged grid is written to results.json key P",
+ "calib_docs": [[12, "Tim Richmond"], [16, "2011 – 12 Michigan Wolverines men 's basketball team"], [18, "Daniel Radcliffe"]],
+ "calib_rule": "the first 3 articles of wiki.valid.raw, in file order, with >= 2048 tokens that are neither run 1 eval docs (0,1,3,4,5,6,7,10) nor in exclude_docs; each calibration doc = the first L tokens of its body (run 1's loader)",
+ "exclude_docs": [13],
+ "exclude_note": "doc 13 (Trout Creek Mountains) is used by another round",
+ "min_spearman": 0.8,
+ "distance_def": "per KV head: mean over its 7 query heads of the mean over rows score_lo..score_hi-1 of sum_{sinks <= j <= t} w[t,j]*(t-j); sink keys contribute 0, no renormalisation; full KV; averaged over the 3 calibration docs; ascending, ties by index",
+ "arms_note": "distance = the k smallest averaged distances; band and random_s0..s4 = run 1's arms copied from its results.json (identical heads); run 1's single-doc ref arm is not rerun"
+}

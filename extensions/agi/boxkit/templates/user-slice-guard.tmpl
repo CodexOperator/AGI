@@ -1,0 +1,6 @@
+# sanctuary guard layer 2. Written by {{GUARD_SRC}}.
+# Edit guard.env or the script and re-run it; do not hand-edit this file. See {{GUARD_DOC}}.
+# One link of the chain that lets claude-remote-control's MemoryLow take effect:
+# a cgroup's memory.low only counts if every ancestor has protection too.
+[Slice]
+MemoryLow={{MEM_LOW}}

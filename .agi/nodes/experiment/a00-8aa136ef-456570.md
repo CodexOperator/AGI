@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3-send-comms-root
 next_edges: []
 confidence: 0.85
-edited_by: belam-S1-L3-III
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-8aa136ef-456570
 loop: hypothesis:l3-send-comms-root@s2
@@ -36,8 +36,8 @@ with N read from the ladder node's `current_season` (fails open to 1), never
 `iter-<newest>/comms`. Declared `locations.comms_root: comms/season-2` in
 `.agi/config.json` (a one-key edit preserving the original byte-format). Live:
 ```
-$ send.comms_root('/home/ubuntu/work/agi/.agi')
-  /home/ubuntu/work/agi/.agi/comms/season-2
+$ send.comms_root('<home>/work/agi/.agi')
+  <home>/work/agi/.agi/comms/season-2
 ```
 A per-iteration dir (`.agi/sessions/iter-1088/comms`) exists and is NOT chosen.
 

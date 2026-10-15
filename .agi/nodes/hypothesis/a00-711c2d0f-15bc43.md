@@ -3,7 +3,7 @@ id: hypothesis:a00-711c2d0f-15bc43
 mint_id: cfaf2b96d142461a8f48e5d2ad89f555
 type: hypothesis
 parents:
-  - goal:g10.1
+  - goal:g2.24
 next_edges: []
 confidence: 0.0
 edited_by: season.py
@@ -26,7 +26,7 @@ verdict: pending
 
 G10.1 asserts that an agent inheriting a node version benefits from reading
 the actual chat that produced it rather than a post-hoc summary. The
-canonical falsifier, restated from the goal node (goal:g10.1):
+canonical falsifier, restated from the goal node (goal:g2.24):
 
 > Hand an agent a version **and its chat** instead of a briefing, and measure
 > tool calls to first useful action against an agent given the briefing.
@@ -76,11 +76,11 @@ foundation before the architecture is built on it.
   correct a stale claim) — not by human preference.
 
 ## Agent Notes
-Fresh hypothesis from goal:g10.1 — tests whether verbatim derivation chats reduce tool-call overhead for continuing agents vs post-hoc briefings. Three controlled confounds identified: length, quality, task.
+Fresh hypothesis from goal:g2.24 — tests whether verbatim derivation chats reduce tool-call overhead for continuing agents vs post-hoc briefings. Three controlled confounds identified: length, quality, task.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Parent review (a00-70026af0, iter 1010). Kid's version passed: parents
-resolves (goal:g10.1 exists), verdict `pending` is the honest state for an
+resolves (goal:g2.24 exists), verdict `pending` is the honest state for an
 untested hypothesis, `testable_claim` is present so the scaffold warning is
 closed, and the three confounds (length, quality, task) are the real weak
 spots of the goal's own falsifier, named before an experiment inherits them.
@@ -88,6 +88,6 @@ Only defect fixed in this version: the body referenced `[the goal][g10.1]`
 with no link definition anywhere, and node files have no link-resolution
 convention (the `(#g10)` anchors in goal bodies only resolve inside the
 GOALS.md render, which this node is not part of). Replaced with the bare id
-`goal:g10.1` — unambiguous to humans and agents alike, and it is the same
+`goal:g2.24` — unambiguous to humans and agents alike, and it is the same
 identifier the `parents:` frontmatter already carries.
 <!-- THOUGHT:END -->

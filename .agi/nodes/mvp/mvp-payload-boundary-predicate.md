@@ -5,7 +5,7 @@ type: mvp
 parents:
   - goal:g6.8
 confidence: 0.75
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs: []
 season: 1
 subgraph: false
@@ -110,7 +110,7 @@ ever tests a specific filename — each is a path/extension/git-config
 property, so the same three lines apply to a file that doesn't exist yet.
 
 **Classification of the engine repo:** ran against `git ls-files` in
-`/home/ubuntu/work/agi` (commit at run time, 316 tracked files). Full
+`<home>/work/agi` (commit at run time, 316 tracked files). Full
 per-file output kept at
 `sessions/iter-9010/kid-i/classified.tsv` alongside the script at
 `sessions/iter-9010/kid-i/payload_boundary.py` for re-run.

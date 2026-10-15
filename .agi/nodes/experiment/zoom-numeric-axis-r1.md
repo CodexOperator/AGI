@@ -3,15 +3,15 @@ id: exp:zoom-numeric-axis-r1
 mint_id: e8c3b74bbe4c46e385670d1f3ab9f92c
 type: experiment
 parents:
-  - goal:g2
+  - goal:g2.7
 confidence: 0.8
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs: 1
 season: 1
 tags:
   - zoom
   - g2
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: Numeric zoom axis, first implementation
 ---
 Generalized `extensions/agi/bin/zoom.py` from `--level big|small` to
@@ -79,7 +79,7 @@ failure mode this whole file exists to prevent, just moved from an
 exception handler into a well-intentioned aliasing decision. Documented,
 not escalated — reversible, no forbidden file, no irreversible op.
 
-**Measured, real corpus (`/home/ubuntu/work/agi-tree`), same target
+**Measured, real corpus (`<home>/work/agi-tree`), same target
 (`goal:g2`) at every level, `wc -l` on the written `context.md`:**
 
 | level | target | nodes shown | lines |
@@ -133,7 +133,7 @@ target (the actual behavior change this file makes, asserted directly
 rather than assumed).
 
 **Suite: 473 passed, 0 failed**
-(`cd /home/ubuntu/work/agi && python3 -m pytest extensions/agi/tests -q`) —
+(`cd <home>/work/agi && python3 -m pytest extensions/agi/tests -q`) —
 the 420-passing baseline, my 22, and 31 more from a sibling KID's
 `extensions/agi/bin/stitch.py` / `tests/test_stitch.py` (untracked, not
 touched here; both files stayed untouched and green across every run in

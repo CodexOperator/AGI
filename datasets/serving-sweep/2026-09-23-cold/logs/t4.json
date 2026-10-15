@@ -1,0 +1,29 @@
+{
+ "name": "t4",
+ "port": 18090,
+ "load_s": 50.4,
+ "lv": 5,
+ "img": "ghcr.io/ggml-org/llama.cpp:full-cuda",
+ "rows": [
+  {
+   "prompt_n": 2061,
+   "prompt_ms": 46752.602,
+   "prompt_per_second": 44.083107930548984,
+   "predicted_n": 8,
+   "cache_n": 0,
+   "size_off": 10000,
+   "size_bytes": 9000,
+   "ms_per_token": 22.684
+  },
+  {
+   "prompt_n": 2132,
+   "prompt_ms": 1439.663,
+   "prompt_per_second": 1480.9021277896286,
+   "predicted_n": 8,
+   "cache_n": 0,
+   "size_off": 40000,
+   "size_bytes": 9000,
+   "ms_per_token": 0.675
+  }
+ ]
+}

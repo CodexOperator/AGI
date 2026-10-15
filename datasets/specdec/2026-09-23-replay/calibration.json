@@ -1,0 +1,731 @@
+{
+ "order": "before transcripts",
+ "requests": 24,
+ "rules": [
+  "ngram-simple",
+  "ngram-map-k",
+  "ngram-mod"
+ ],
+ "rows": [
+  {
+   "id": "C1",
+   "rule": "ngram-simple",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 18,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "C1",
+   "rule": "ngram-map-k",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 7,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "C1",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "C2",
+   "rule": "ngram-simple",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 61,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "C2",
+   "rule": "ngram-map-k",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 61,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "C2",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 37,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "C3",
+   "rule": "ngram-simple",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 13,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "C3",
+   "rule": "ngram-map-k",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 13,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "C3",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 1,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "C4",
+   "rule": "ngram-simple",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 11,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "C4",
+   "rule": "ngram-map-k",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 5,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "C4",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "C5",
+   "rule": "ngram-simple",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 32,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "C5",
+   "rule": "ngram-map-k",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 30,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "C5",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 18,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "C6",
+   "rule": "ngram-simple",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 74,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "C6",
+   "rule": "ngram-map-k",
+   "drafted": 1,
+   "accepted": 1,
+   "rate": 1.0,
+   "hit_rate": 0.002066115702479339,
+   "logged": null,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "C6",
+   "rule": "ngram-mod",
+   "drafted": 2,
+   "accepted": 2,
+   "rate": 1.0,
+   "hit_rate": 0.0020408163265306124,
+   "logged": 35,
+   "miss_pct": 94.28571428571429
+  },
+  {
+   "id": "C7",
+   "rule": "ngram-simple",
+   "drafted": 1,
+   "accepted": 1,
+   "rate": 1.0,
+   "hit_rate": 0.001953125,
+   "logged": 151,
+   "miss_pct": 99.33774834437087
+  },
+  {
+   "id": "C7",
+   "rule": "ngram-map-k",
+   "drafted": 7,
+   "accepted": 7,
+   "rate": 1.0,
+   "hit_rate": 0.01171875,
+   "logged": 83,
+   "miss_pct": 91.56626506024097
+  },
+  {
+   "id": "C7",
+   "rule": "ngram-mod",
+   "drafted": 1,
+   "accepted": 1,
+   "rate": 1.0,
+   "hit_rate": 0.001953125,
+   "logged": 107,
+   "miss_pct": 99.06542056074767
+  },
+  {
+   "id": "C8",
+   "rule": "ngram-simple",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "C8",
+   "rule": "ngram-map-k",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "C8",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D1",
+   "rule": "ngram-simple",
+   "drafted": 1,
+   "accepted": 1,
+   "rate": 1.0,
+   "hit_rate": 0.004524886877828055,
+   "logged": 0,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "D1",
+   "rule": "ngram-map-k",
+   "drafted": 1,
+   "accepted": 1,
+   "rate": 1.0,
+   "hit_rate": 0.004524886877828055,
+   "logged": 0,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "D1",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D2",
+   "rule": "ngram-simple",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D2",
+   "rule": "ngram-map-k",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D2",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D3",
+   "rule": "ngram-simple",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D3",
+   "rule": "ngram-map-k",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D3",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D4",
+   "rule": "ngram-simple",
+   "drafted": 1,
+   "accepted": 1,
+   "rate": 1.0,
+   "hit_rate": 0.0038461538461538464,
+   "logged": 3,
+   "miss_pct": 66.66666666666667
+  },
+  {
+   "id": "D4",
+   "rule": "ngram-map-k",
+   "drafted": 1,
+   "accepted": 1,
+   "rate": 1.0,
+   "hit_rate": 0.0035842293906810036,
+   "logged": null,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "D4",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D5",
+   "rule": "ngram-simple",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D5",
+   "rule": "ngram-map-k",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D5",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D6",
+   "rule": "ngram-simple",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D6",
+   "rule": "ngram-map-k",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D6",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D7",
+   "rule": "ngram-simple",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D7",
+   "rule": "ngram-map-k",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D7",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D8",
+   "rule": "ngram-simple",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D8",
+   "rule": "ngram-map-k",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "D8",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "E1",
+   "rule": "ngram-simple",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 358,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "E1",
+   "rule": "ngram-map-k",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": null,
+   "miss_pct": 0.0
+  },
+  {
+   "id": "E1",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 348,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "E2",
+   "rule": "ngram-simple",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 1272,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "E2",
+   "rule": "ngram-map-k",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 582,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "E2",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 1222,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "E3",
+   "rule": "ngram-simple",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 1968,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "E3",
+   "rule": "ngram-map-k",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 676,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "E3",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 1966,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "E4",
+   "rule": "ngram-simple",
+   "drafted": 1,
+   "accepted": 1,
+   "rate": 1.0,
+   "hit_rate": 0.0005941770647653001,
+   "logged": 1633,
+   "miss_pct": 99.93876301285977
+  },
+  {
+   "id": "E4",
+   "rule": "ngram-map-k",
+   "drafted": 1,
+   "accepted": 1,
+   "rate": 1.0,
+   "hit_rate": 0.0005941770647653001,
+   "logged": 9,
+   "miss_pct": 88.88888888888889
+  },
+  {
+   "id": "E4",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 1601,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "E5",
+   "rule": "ngram-simple",
+   "drafted": 1,
+   "accepted": 1,
+   "rate": 1.0,
+   "hit_rate": 0.00048828125,
+   "logged": 1992,
+   "miss_pct": 99.94979919678715
+  },
+  {
+   "id": "E5",
+   "rule": "ngram-map-k",
+   "drafted": 1,
+   "accepted": 1,
+   "rate": 1.0,
+   "hit_rate": 0.00048828125,
+   "logged": 392,
+   "miss_pct": 99.74489795918367
+  },
+  {
+   "id": "E5",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 1991,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "E6",
+   "rule": "ngram-simple",
+   "drafted": 1,
+   "accepted": 1,
+   "rate": 1.0,
+   "hit_rate": 0.00048828125,
+   "logged": 1995,
+   "miss_pct": 99.9498746867168
+  },
+  {
+   "id": "E6",
+   "rule": "ngram-map-k",
+   "drafted": 1,
+   "accepted": 1,
+   "rate": 1.0,
+   "hit_rate": 0.00048828125,
+   "logged": 19,
+   "miss_pct": 94.73684210526316
+  },
+  {
+   "id": "E6",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 1993,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "E7",
+   "rule": "ngram-simple",
+   "drafted": 1,
+   "accepted": 1,
+   "rate": 1.0,
+   "hit_rate": 0.00048828125,
+   "logged": 1972,
+   "miss_pct": 99.94929006085192
+  },
+  {
+   "id": "E7",
+   "rule": "ngram-map-k",
+   "drafted": 1,
+   "accepted": 1,
+   "rate": 1.0,
+   "hit_rate": 0.00048828125,
+   "logged": 346,
+   "miss_pct": 99.71098265895954
+  },
+  {
+   "id": "E7",
+   "rule": "ngram-mod",
+   "drafted": 2,
+   "accepted": 2,
+   "rate": 1.0,
+   "hit_rate": 0.00048828125,
+   "logged": 1938,
+   "miss_pct": 99.8968008255934
+  },
+  {
+   "id": "E8",
+   "rule": "ngram-simple",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 1985,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "E8",
+   "rule": "ngram-map-k",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 127,
+   "miss_pct": 100.0
+  },
+  {
+   "id": "E8",
+   "rule": "ngram-mod",
+   "drafted": 0,
+   "accepted": 0,
+   "rate": 0.0,
+   "hit_rate": 0.0,
+   "logged": 1927,
+   "miss_pct": 100.0
+  }
+ ]
+}

@@ -25,7 +25,7 @@ Independent review confirms the experiment's structural analysis of shape-2 viab
 
 1. **`level3.py` L307** calls `git -C <engine_root> ls-files` — fails without a `.git/` directory (npm install breaks this).
 2. **`grid.py` L79** `REF_NS = "refs/grid"` — grid.py has 17+ git call sites and depends on `refs/grid/*` branches existing in the git repo. npm install loses all refs.
-3. **`locations.py` L185 `find_project_root()`** walks up from cwd for `.agi/` — correct behavior per `goal:g8.2`, not a skill-format problem. Inside a package tree the engine's own `.agi/` resolves only when cwd is inside the package.
+3. **`locations.py` L185 `find_project_root()`** walks up from cwd for `.agi/` — correct behavior per `goal:g1.24`, not a skill-format problem. Inside a package tree the engine's own `.agi/` resolves only when cwd is inside the package.
 4. **Existing hybrid deployment** (symlinks from `~/.claude/skills/agi` and `~/.local/bin/agi` into cloned repo) is morally equivalent to a git-installed pi package.
 5. **Pi package format** (docs/packages.md, docs/skills.md) supports git sources natively — `pi install git:github.com/...`.
 

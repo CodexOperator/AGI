@@ -1,0 +1,74 @@
+---
+id: goal:g7.16.1.7.3
+mint_id: 8136c243e6844df1ab6a974d194d7bd9
+type: goal
+parents:
+  - goal:g7.16.1.7
+next_edges: []
+confidence: 0.6
+edited_by: alive
+goal_id: G7.16.1.7.3
+goal_kind: subgoal
+heading_level: 4
+origin: goals-doc
+scaffold_hash: b2044afcc56dccb7
+season: 2
+seeds: []
+status: horizon
+tags:
+  - magic-pane
+  - tool-call
+  - council-loop
+title: "G7.16.1.7.3: one magic pane per post row is the tool-call-turn anchor -- every engine event reaches a post as one render turn; the pane owns no transport and outlives every rotation"
+town: core
+---
+# goal:g7.16.1.7.3
+
+## OWNER 2026-09-30 01:1xZ, verbatim (Prime pane)
+"Make sure we apply the same "tool call turns that pop into agent pane/session for all engine functions" philosophy. This includes memory alarms, message receipt, etc. it's all delivered through a unified tool call turn ran by the tmux pane. Why don't we merge some of the magic pane work from core and use that as the tool call turn anchor. Then one magic pane does send and receive for messages and takes care if rotations and write commits. Could have a poll built into it to keep messaging instant outside of busy panes"
+
+## OWNER 2026-09-30 01:2xZ, verbatim (Prime pane; carried from this node's Target, where the Prime quoted it)
+"I just wanted to mention we strictly want the magic pane system as it attaches to posts. We don't need whatever messaging integration the other branch is doing. Just the magic pane anchor part to use as post anchor in system"
+
+## Why this exists
+goal:g7.16.1.7 (spawn and rotate on linkable templates; its first turn is a render tool call): the council NESTED this line here at 00:5xZ 09-30 (renumbered from goal:g7.16.1.9, minted by the Prime at 00:5xZ; belam: "fold or nest it under goal:g7.16.1.7"). It generalizes .7's first-turn render to EVERY engine event reaching a post. Measured by the Prime: today an engine event reaches a post by at least four separate routes -- the SessionStart hook's pasted text, the UserPromptSubmit meter line, a send.py nudge typed into the pane, and a CC SendMessage. The magic pane system is being built on core/season2/main ("That branch is working on the magic pane system", 09-29); from it this line takes ONLY the pane as it attaches to posts.
+
+## Target end-state
+Zoomed out (council lens -- the pane is the post's one sense organ, carried generation after generation; vision:alive: UX whole for the LLM, one kind of turn, serialized):
+```
+ONE KIND OF TURN  every engine event a post must see (first-turn docs · memory alarm · message receipt · rotation prompt ·
+                  write-commit result) arrives as ONE tool-call turn whose result is THE render (goal:g4.18.7 / .7's
+                  first-turn render): one render shape with a kind tag, never a per-event format
+ONE PANE          per POST ROW, not per session: the same pane carries the post across every rotation (owner 09-27: "pids
+                  rotate but tmux panes stay the same"); a rotation hands its pane to the successor, never orphans it, never
+                  opens a second one
+TRANSPORT         goal:g7.32.6 only (conversation versions · push_on_write · the box's fetch line); the pane owns NO transport
+RECEIVE           the box fetch is the ONE network pull; the pane's poll (owner: "keep messaging instant") watches LOCAL refs
+                  only -- N panes never mean N network fetches; an idle pane receives within the poll interval, a busy pane
+                  at its next turn boundary, never mid-turn
+ACT               the pane RUNS the same engine verbs (write · wake · render · stand-up) as tool calls and renders their result
+                  as the turn ("takes care of rotations and write commits"); it is never its own writer or rotator (the one
+                  writer stays write.py, goal:g7.16.1.6 A)
+```
+
+## Invariants
+- ONE route per event kind: a config table maps each event kind to its one route, and the census (goal:g7.16.1.1.6) counts routes every generation -- a second route = FAIL naming it.
+- The pane is a ROW of the one liveness census: a dead pane = ONE [red] naming the post, never events silently undelivered.
+- Delivered is not read (goal:g7.32.6's three states): the pane reports delivered; a read is the post's own act.
+- Nothing typed into a pane by a script lands as if the user typed it.
+
+## Falsifier
+1. A memory alarm, a message receipt and a rotation prompt each arrive in an idle post's session as a tool-call turn from its pane, within the poll interval, in the one render shape with its kind tag.
+2. Three rotations of one post = ONE pane id, 0 orphan windows.
+3. N posts on one box polling = 1 network fetch per fetch interval (the box's), never N.
+4. Negative: zero engine events delivered by a send-keys nudge, a hook's pasted text or a second messaging route after the cutover; the census's route table shows exactly one route per event kind.
+
+## Out of scope
+goal:g7.16.1.7.1 · goal:g7.16.1.7.2 (the stand-up and the walk this pane attaches to) · goal:g7.32.6 (the transport it delivers) · core's messaging integration (owner 01:2xZ: "We don't need whatever messaging integration the other branch is doing") · engine CLIs as MCP tools (later, the owner: "not needed right now") · goal:g7.16.1.9 is RETIRED as an id (renumbered here), never reused.
+
+## Agent Notes
+Assigned to **the council** (placement; the build goes to the directors of goal:g7.16.1.7 by their own split).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Renumbered goal:g7.16.1.9 -> goal:g7.16.1.7.3 and rewritten by the council (alive writer; self-perpetuating + all-is-one lens lines, 00:5xZ 09-30). Asked: belam "NEW for your next pass: goal:g7.16.1.9 ... fold or nest it under goal:g7.16.1.7", under the owner task "apply their lenses and zoomed out thinking at my words". Nested, not folded: .7 is ~90 lines; nest rather than widen. mint_id 8136c243 kept; 0 other nodes referenced the old id; g7.16.1.9 is retired as an id, never reused. Owner text: the 01:1xZ section untouched; the owner 01:2xZ line, which the Prime had quoted inside the Target, now has its own OWNER section, word for word. What the lenses changed: (self-perpetuating) the pane belongs to the POST ROW, not the session, and survives every rotation (owner 09-27 "pids rotate but tmux panes stay the same"): falsifier 3 rotations = 1 pane id, 0 orphan windows. (all-is-one) the seam: TRANSPORT g7.32.6 only; RECEIVE = the box fetch is the one network pull, the pane poll watches local refs only; ACT = the pane runs the engine verbs as tool calls, never its own writer or rotator; one render shape with a kind tag. (alive) the pane is a row of the liveness census; one route per event kind is a config table the census counts every generation; delivered is not read.
+<!-- THOUGHT:END -->

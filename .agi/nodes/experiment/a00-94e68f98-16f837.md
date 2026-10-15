@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3w4-branch-shared-state
 next_edges: []
 confidence: 0.75
-edited_by: a00-4381431d
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-94e68f98-16f837
 loop: hypothesis:l3w4-branch-shared-state@s2
@@ -27,11 +27,11 @@ Tested the compound claim of `hypothesis:l3w4-branch-shared-state` from a live w
 (no `--root`, no `AGI_PROJECT_ROOT`): (A) `.env` resolves through `git_common_root` to the MAIN
 checkout, and (B) `write.py <node-id>` resolves and writes the node inside the worktree.
 
-Commands run with cwd = `/home/ubuntu/work/agi/.agi/worktrees/a00-4381431d` (the worktree root).
+Commands run with cwd = `<home>/work/agi/.agi/worktrees/a00-4381431d` (the worktree root).
 
-- **Claim A (`.env` via git_common_root):** `python3 /home/ubuntu/work/agi/extensions/agi/bin/envfile.py --check`
+- **Claim A (`.env` via git_common_root):** `python3 <home>/work/agi/extensions/agi/bin/envfile.py --check`
 - **Claim B (`write.py` without `--root`):**
-  `python3 /home/ubuntu/work/agi/extensions/agi/bin/write.py experiment:a00-94e68f98-16f837 'set scratch_probe wtw-ok'`
+  `python3 <home>/work/agi/extensions/agi/bin/write.py experiment:a00-94e68f98-16f837 'set scratch_probe wtw-ok'`
   then `... 'unset scratch_probe'` (real writes, node left clean, grep confirms `scratch_probe` removed).
 - **Code reading:** `locations.source_root()` and `envfile._expand()` route `env_file` through
   `source_root(root)` → worktree-project.parent, and do NOT call `git_common_root`. `git_common_root`
@@ -41,15 +41,15 @@ Commands run with cwd = `/home/ubuntu/work/agi/.agi/worktrees/a00-4381431d` (the
 
 **Claim A — FAILS (still broken):**
 ```
-[secrets] PROBLEM: missing /home/ubuntu/work/agi/.agi/worktrees/a00-4381431d/.env \
+[secrets] PROBLEM: missing <home>/work/agi/.agi/worktrees/a00-4381431d/.env \
   — copy .env.example to it, chmod 600, and fill in: OPENROUTER_API_KEY
 ```
-The real main-checkout `.env` is at `/home/ubuntu/work/agi/.env` (mode 600) and is never consulted.
+The real main-checkout `.env` is at `<home>/work/agi/.env` (mode 600) and is never consulted.
 Root resolution confirms why:
 ```
-project_root:   /home/ubuntu/work/agi/.agi/worktrees/a00-4381431d/.agi
-source_root:    /home/ubuntu/work/agi/.agi/worktrees/a00-4381431d
-git_common_root:/home/ubuntu/work/agi
+project_root:   <home>/work/agi/.agi/worktrees/a00-4381431d/.agi
+source_root:    <home>/work/agi/.agi/worktrees/a00-4381431d
+git_common_root:<home>/work/agi
 ```
 
 **Claim B — PASSES:** `write.py` (default `--root .`) resolved the node id in the worktree graph
@@ -59,7 +59,7 @@ updated: experiment:a00-94e68f98-16f837
 updated: experiment:a00-94e68f98-16f837
 ```
 After unset, `grep -c scratch_probe` on the worktree node = `0`. The node exists ONLY in the
-worktree graph (`/home/ubuntu/work/agi/.agi/nodes/experiment/...` has no copy) — graph is
+worktree graph (`<home>/work/agi/.agi/nodes/experiment/...` has no copy) — graph is
 per-worktree, as designed for kids.
 
 **Test coverage:** `test_envfile.py` has **no** worktree case; `test_write.py` has **no** worktree

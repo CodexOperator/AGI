@@ -3,7 +3,7 @@ id: hypothesis:a00-abd94427-d2294b
 mint_id: 0dba89737f224f7b852acc8f2af9e25e
 type: hypothesis
 parents:
-  - goal:s33
+  - goal:g4.18.2.1
 next_edges: []
 confidence: 0.0
 edited_by: season.py
@@ -18,7 +18,7 @@ verdict: pending
 
 ## Hypothesis
 
-**Claim:** The falsifier grep test described in goal:s33 (grepping for retired names: `render-context.py`, `payloads/`, `grid.py checkout` as a live command, `context/kits` — failing on any hit outside a sentence that marks it retired) can drive a complete single-pass doc sweep across all four target files (QUICKSTART.md, CLAUDE.md, skills/agi/SKILL.md, HANDOFF.md §5) to zero stale references.
+**Claim:** The falsifier grep test described in goal:g4.18.2.1 (grepping for retired names: `render-context.py`, `payloads/`, `grid.py checkout` as a live command, `context/kits` — failing on any hit outside a sentence that marks it retired) can drive a complete single-pass doc sweep across all four target files (QUICKSTART.md, CLAUDE.md, skills/agi/SKILL.md, HANDOFF.md §5) to zero stale references.
 
 **What would prove it:**
 
@@ -39,9 +39,9 @@ If (3) and (4) both pass, the hypothesis is proved: the falsifier-driven approac
 **Why this hypothesis:** The goal's own falsifier is an explicit grep gate. The question is whether the drift is *shallow* (a few retired names scattered in otherwise-current prose) or *deep* (stale claims embedded in the structure). If shallow, a falsifier-driven fix in one pass is the most efficient approach and worth proving so future iterations reuse the pattern. If deep, the goal needs a different strategy (full rewrites per doc), and knowing that early prevents wasted effort.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Initial hypothesis spawned from goal:s33. The goal body explicitly names a falsifier (grep for retired names) and asks for a sweep. This hypothesis tests whether the falsifier-driven approach is sufficient in one pass — the most actionable claim for the next step (experiment → verdict). If proved, a single experiment runs the sweep and checks the falsifier; if disproved, the experiment reveals what deeper structure needs rewriting.
+Initial hypothesis spawned from goal:g4.18.2.1. The goal body explicitly names a falsifier (grep for retired names) and asks for a sweep. This hypothesis tests whether the falsifier-driven approach is sufficient in one pass — the most actionable claim for the next step (experiment → verdict). If proved, a single experiment runs the sweep and checks the falsifier; if disproved, the experiment reveals what deeper structure needs rewriting.
 <!-- THOUGHT:END -->
 
 
 ## Agent Notes
-Hypothesis: falsifier-driven grep can drive single-pass doc sweep to zero under goal:s33. Tests whether drift is shallow (tractable set <20 retired names) or deep (needs structural rewrite). No experiment run yet — pending.
+Hypothesis: falsifier-driven grep can drive single-pass doc sweep to zero under goal:g4.18.2.1. Tests whether drift is shallow (tractable set <20 retired names) or deep (needs structural rewrite). No experiment run yet — pending.

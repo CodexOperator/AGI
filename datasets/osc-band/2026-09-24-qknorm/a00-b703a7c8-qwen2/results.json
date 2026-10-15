@@ -1,0 +1,168 @@
+{
+ "meta": {
+  "model": "qwen2",
+  "offline": true,
+  "profile_source": "a00-edd08f38-profile-qwen2",
+  "method": "persisted-profile energy allocation"
+ },
+ "settings": {
+  "energy": {
+   "agree": 0.62793,
+   "kl": 1.054411
+  },
+  "uniform": {
+   "agree": 0.319824,
+   "kl": 2.98773
+  },
+  "random": {
+   "agree": 0.395264,
+   "kl": 2.341215
+  }
+ },
+ "rows": [
+  {
+   "prompt": 0,
+   "arm": "energy",
+   "agree": 0.466796875,
+   "kl": 1.3509024381637573
+  },
+  {
+   "prompt": 0,
+   "arm": "uniform",
+   "agree": 0.21484375,
+   "kl": 3.0923895835876465
+  },
+  {
+   "prompt": 0,
+   "arm": "random",
+   "agree": 0.27734375,
+   "kl": 2.497391939163208
+  },
+  {
+   "prompt": 1,
+   "arm": "energy",
+   "agree": 0.494140625,
+   "kl": 1.483154058456421
+  },
+  {
+   "prompt": 1,
+   "arm": "uniform",
+   "agree": 0.19921875,
+   "kl": 3.5890352725982666
+  },
+  {
+   "prompt": 1,
+   "arm": "random",
+   "agree": 0.248046875,
+   "kl": 2.9477121829986572
+  },
+  {
+   "prompt": 2,
+   "arm": "energy",
+   "agree": 0.521484375,
+   "kl": 1.3242063522338867
+  },
+  {
+   "prompt": 2,
+   "arm": "uniform",
+   "agree": 0.21875,
+   "kl": 3.316183090209961
+  },
+  {
+   "prompt": 2,
+   "arm": "random",
+   "agree": 0.3515625,
+   "kl": 2.425428628921509
+  },
+  {
+   "prompt": 3,
+   "arm": "energy",
+   "agree": 0.484375,
+   "kl": 1.3677403926849365
+  },
+  {
+   "prompt": 3,
+   "arm": "uniform",
+   "agree": 0.212890625,
+   "kl": 3.450979471206665
+  },
+  {
+   "prompt": 3,
+   "arm": "random",
+   "agree": 0.283203125,
+   "kl": 2.7203919887542725
+  },
+  {
+   "prompt": 4,
+   "arm": "energy",
+   "agree": 0.71484375,
+   "kl": 0.9575952291488647
+  },
+  {
+   "prompt": 4,
+   "arm": "uniform",
+   "agree": 0.373046875,
+   "kl": 2.7283618450164795
+  },
+  {
+   "prompt": 4,
+   "arm": "random",
+   "agree": 0.447265625,
+   "kl": 2.225125312805176
+  },
+  {
+   "prompt": 5,
+   "arm": "energy",
+   "agree": 0.794921875,
+   "kl": 0.6362392902374268
+  },
+  {
+   "prompt": 5,
+   "arm": "uniform",
+   "agree": 0.533203125,
+   "kl": 2.0265052318573
+  },
+  {
+   "prompt": 5,
+   "arm": "random",
+   "agree": 0.55859375,
+   "kl": 1.7523573637008667
+  },
+  {
+   "prompt": 6,
+   "arm": "energy",
+   "agree": 0.693359375,
+   "kl": 0.8842816352844238
+  },
+  {
+   "prompt": 6,
+   "arm": "uniform",
+   "agree": 0.279296875,
+   "kl": 3.681565761566162
+  },
+  {
+   "prompt": 6,
+   "arm": "random",
+   "agree": 0.353515625,
+   "kl": 2.8625731468200684
+  },
+  {
+   "prompt": 7,
+   "arm": "energy",
+   "agree": 0.853515625,
+   "kl": 0.43116694688796997
+  },
+  {
+   "prompt": 7,
+   "arm": "uniform",
+   "agree": 0.52734375,
+   "kl": 2.0168161392211914
+  },
+  {
+   "prompt": 7,
+   "arm": "random",
+   "agree": 0.642578125,
+   "kl": 1.2987422943115234
+  }
+ ]
+}

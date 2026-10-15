@@ -1,0 +1,204 @@
+{
+  "rotation": "rotate-self",
+  "seat": "self-perpetuating",
+  "recorded_at": "2026-09-30T21:57:14.426813Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "self-perpetuating",
+      "windows": [
+        "belam-S2-L5-XIX",
+        "self-perpetuating.prev",
+        "belam-S2-L5-XXII",
+        "director-general-1",
+        "stream-master",
+        "director-general-3",
+        "thought-master",
+        "belam-S2-L5-XXI",
+        "belam-S2-L5-XX",
+        "sanctuary-master",
+        "all-is-one",
+        "self-perpetuating",
+        "alive",
+        "director-general-2"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/data/work/agi/.agi/sessions/self-perpetuating.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 2603578,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "self-perpetuating.prev",
+      "windows": [
+        "belam-S2-L5-XIX",
+        "all-is-one.prev",
+        "self-perpetuating.prev",
+        "belam-S2-L5-XXII",
+        "director-general-1",
+        "stream-master",
+        "director-general-3",
+        "thought-master",
+        "belam-S2-L5-XXI",
+        "belam-S2-L5-XX",
+        "sanctuary-master",
+        "all-is-one",
+        "self-perpetuating",
+        "alive",
+        "director-general-2"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -63.245
+  },
+  "seated_at": "2026-09-30T21:57:14.426813Z",
+  "window": "self-perpetuating",
+  "session_id": "492d7bc7-91d8-4feb-9bb4-33694e7db941",
+  "pid": 2899273,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "self-perpetuating.prev",
+      "id": "@2"
+    },
+    "successor_window": {
+      "name": "self-perpetuating",
+      "id": "@36"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@36",
+      "pid": 2899273,
+      "session_id": "492d7bc7-91d8-4feb-9bb4-33694e7db941",
+      "transcript": "~/.claude/projects/-data-work-agi/492d7bc7-91d8-4feb-9bb4-33694e7db941.jsonl",
+      "name": "agi-5b",
+      "path": "~/.claude/sessions/2899273.json",
+      "note": "joined by @36 in registry file 2899273.json"
+    },
+    "successor_row": "config:seats row 'self-perpetuating': session_ref= session_name=agi-5b session_label=self-perpetuating session_id=492d7bc7-91d8-4feb-9bb4-33694e7db941 pid=2899273 generation=3 window='@36' source=registry pubkey=f4cc628fbff2b677... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha f0e4df0b88, retried 0) -- own-row only: self-perpetuating spawn row: gen 3, session_id 492d7bc7-91d8-4feb-9bb4-33694e7db941, window @36, pid 2899273\npush: push: FAILED -- remote: This repository moved. Please use the new location:        \nremote:   https://github.com/CodexOperator/AGI.git        \nTo https://github.com/CodexOperator/agi.git\n ! [remote rejected]       local-maxxing/season2/main -> local-maxxing/season2/main (cannot lock ref 'refs/heads/local-maxxing/season2/main': is at 98532ad96cc85b8f5de710c740cb4550448d494e but expected 2a92c6fc49f655982cb86230d0be0ecf35b80445)\nerror: failed to push some refs to 'https://github.com/CodexOperator/agi.git'\nauthority: OK -- e89042913 -> season2/main",
+    "key_replace": "key_replace: NOT applied -- push did not succeed; /data/work/agi/.agi/sessions/seats/self-perpetuating.key left byte-identical; pending successor key persisted to /data/work/agi/.agi/sessions/seats/self-perpetuating.key.pending (0600, deferred swap on a later successful push)",
+    "meter_pin": "/data/work/agi/.agi/sessions/self-perpetuating.meter",
+    "ack_written": "/data/work/agi/.agi/sessions/seats/self-perpetuating.ack.492d7bc7.json",
+    "own_authority_released": "generation 2 of seat 'self-perpetuating' retired; successor generation 3 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch local-maxxing/season2/main",
+    "livestream_repoint": {
+      "session": "view-self-perpetuating",
+      "target": "@36",
+      "skipped": "view session view-self-perpetuating absent"
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "requested": {
+        "model": "claude-opus-5-5"
+      },
+      "live": {
+        "model": "claude-opus-5-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "after_join"
+    },
+    "bootstrap": "/data/work/agi/.agi/sessions/seats/self-perpetuating.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "78087d2e190a6c0aa2c8e51a0c9494c87476fdda51d9ddb3883b21d6814984d1",
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      {
+        "pid": 2862597,
+        "was_alive": true,
+        "termd": true,
+        "gone_after": true,
+        "ps_before": "2862597 /bin/bash -c source ~/.claude/shell-snapshots/snapshot-bash-1790733890744-ca7jfj.sh 2>/dev/null || true && shopt -u extglob 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'sleep 20; timeout 900 python3 extensions/agi/bin/rotate.py rotate 2>&1 | grep -vE '\"'\"'^\\s*$|DeprecationWarning|utcnow|deprecated alias'\"'\"' | tail -20 | cut -c1-240' < /dev/null && pwd -P >| /tmp/claude-ba07-cwd",
+        "ps_after": ""
+      },
+      {
+        "pid": 10149,
+        "was_alive": true,
+        "termd": true,
+        "gone_after": true,
+        "ps_before": "10149 claude --remote-control self-perpetuating --permission-mode bypassPermissions --debug-file /data/work/agi/.agi/sessions/self-perpetuating.log --model claude-opus-5-5 --effort high --settings {\"quiet\": true} --resume 824fea59-1761-4b2e-b363-f2b34781b6fc RESUMED SEAT (crash-recovery, heal): your process died and heal resumed this same session. Re-read your card (it may have moved on), then run `python3 extensions/agi/bin/rotate.py ack --seat self-perpetuating --gen 2 --ref <your ListAgents ref> continue` and carry on.",
+        "ps_after": ""
+      },
+      {
+        "pid": 10138,
+        "was_alive": true,
+        "termd": true,
+        "gone_after": true,
+        "ps_before": "10138 /usr/bin/python3 /data/work/agi/extensions/agi/bin/rotate.py launch-wrapper --seat self-perpetuating -- claude --remote-control self-perpetuating --permission-mode bypassPermissions --debug-file /data/work/agi/.agi/sessions/self-perpetuating.log --model claude-opus-5-5 --effort high --settings {\"quiet\": true} --resume 824fea59-1761-4b2e-b363-f2b34781b6fc RESUMED SEAT (crash-recovery, heal): your process died and heal resumed this same session. Re-read your card (it may have moved on), then run `python3 extensions/agi/bin/rotate.py ack --seat self-perpetuating --gen 2 --ref <your ListAgents ref> continue` and carry on.",
+        "ps_after": ""
+      },
+      {
+        "pid": 10133,
+        "was_alive": true,
+        "termd": true,
+        "gone_after": true,
+        "ps_before": "10133 [bash] <defunct>",
+        "ps_after": ""
+      }
+    ],
+    "reap_source": "derived from own window @id @2 pane 10133: chain [10133, 10138, 10149, 2862597] (deepest-first; authority row pid 10149)"
+  },
+  "committed_by": "rotate-self",
+  "after_join": {
+    "performer": "watch",
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep self-perpetuating",
+        "rc": 0,
+        "output": "@36 self-perpetuating\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/self-perpetuating.meter --session-log ~/.claude/projects/-data-work-agi/492d7bc7-91d8-4feb-9bb4-33694e7db941.jsonl",
+        "rc": 0,
+        "output": "0.0868\t86830/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(2862597|10149|10138|10133)\\b'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(2862597|10149|10138|10133)\\b'\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post self-perpetuating --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post self-perpetuating --ref <your ListAgents ref> diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "self-perpetuating",
+    "dm_signed": true,
+    "code_head": "28d7b2b",
+    "code_loaded": "1790799341:1175004",
+    "claimed_at": "2026-09-30T21:57:38.513825+00:00",
+    "claim_key": "2026-09-30T21:57:14.426813Z",
+    "performed_after_s": 23.299275159835815
+  }
+}

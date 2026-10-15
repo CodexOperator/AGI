@@ -1,0 +1,7 @@
+=== RUN5 shim start ===
+2026-09-18T21:35:51Z
+19983
+[shim] TOTAL cuLaunchKernel=0 cuLaunchKernelEx=0
+WALL 48.17 USER 48.00 SYS 0.17
+rc=0
+2026-09-18T21:36:39Z

@@ -83,7 +83,10 @@ import threading
 import time
 from pathlib import Path
 
+import adapters
 import brief
+import geometry_config
+import harness_template
 import locations
 import provisioning
 import spawn_budget
@@ -93,6 +96,9 @@ NAME = "claude-code"
 #: Fallback only. `harness["bin"]`, then $CLAUDE_BIN, then this (resolved on
 #: PATH by Popen).
 DEFAULT_BIN = "claude"
+
+#: The ONE override name; `harness_template._first_arg` reads it too.
+ENV_VAR = "CLAUDE_BIN"
 
 #: Built-in tools a spawned agent may reach; also the auto-approved list. No
 #: `Agent`, no `WebFetch` -- a kid's job is the graph in front of it.
@@ -104,10 +110,12 @@ DEFAULT_DISALLOWED_TOOLS = tuple(
     f"Bash(git {verb}:*)"
     for verb in ("commit", "add", "push", "stash", "checkout", "reset", "rm")
 ) + (
-    # goal:s34 item 10: refuse HANDOFF.md writes, CLAUDE.md writes, dispatch.py runs
-    "Bash(*HANDOFF.md:*)",
-    "Bash(*CLAUDE.md:*)",
-    "Bash(*dispatch.py:*)",
+    # goal:s34 item 10: refuse HANDOFF.md writes, CLAUDE.md writes, dispatch.py runs.
+    # goal:g4.6.1: a `*` rule is `*...*`, never mixed with the `:*` prefix form --
+    # Claude Code matches `Bash(*X:*)` as a literal prefix, so it never fired.
+    "Bash(*HANDOFF.md*)",
+    "Bash(*CLAUDE.md*)",
+    "Bash(*dispatch.py*)",
 )
 
 #: Built-in tools the loop-ladder seats (advisor, director) may additionally
@@ -119,7 +127,7 @@ ULTRA_TOOLS = ("Workflow", "Agent", "ToolSearch", "Monitor", "TaskOutput",
 #: The one block-list rule that falls away on a privileged seat: dispatch.py.
 #: Everything else (git verbs, HANDOFF.md, CLAUDE.md) stays refused below the
 #: prime director.
-DISPATCH_RULE = "Bash(*dispatch.py:*)"
+DISPATCH_RULE = "Bash(*dispatch.py*)"
 
 #: Output formats `claude -p` accepts. `stream-json` is the default because it
 #: logs as it goes -- see the module docstring.
@@ -224,8 +232,9 @@ def record_session_pin(*, sess_dir, agent_id: str, cwd: str,
     # hypothesis:l3w4-seat-registry — when the seat key is set, pin under the
     # seat's STABLE name rather than the per-process agent id, so the seat's
     # meter finds its own pin even across rotations that change the agent id.
-    # No graph write, no race on seats.md: the seat name rides the env.
-    seat = os.environ.get("AGI_SEAT")
+    # No graph write, no race: the seat name rides the env, read through the
+    # ONE resolver (hypothesis:l4-a-seat-is-a-post-everywhere).
+    seat = geometry_config.resolved_seat_env()
     pin_id = seat if seat else agent_id
     pin = seg / f"{pin_id}{METER_PIN_EXT}"
     pin.write_text(str(transcript) + "\n", encoding="utf-8")
@@ -262,9 +271,10 @@ def resolve_bin(harness: dict) -> str:
 
     Same precedence as `pi_adapter.resolve_bin` and for the same reason: an
     env var is how a machine with the binary somewhere else runs the loop
-    without editing a tracked config file.
+    without editing a tracked config file. Delegates to the one shared
+    resolver in `adapters.resolve_bin`.
     """
-    return os.environ.get("CLAUDE_BIN") or harness.get("bin") or DEFAULT_BIN
+    return adapters.resolve_bin(harness, ENV_VAR, DEFAULT_BIN)
 
 
 def model_args(harness: dict, tier: str) -> list[str]:
@@ -381,7 +391,12 @@ def child_env(*, harness: dict, base: dict[str, str],
         # the launch gate for ultracode workflows
         # (hypothesis:l3-rotate-ultracode-env)
         env[ULTRACODE_ENV_VAR] = "1"
-    return env
+    # hypothesis:l4-needs-credential-is-provider-gated -- one shared rule for
+    # every adapter; `needs_credential` is False for claude-code today, so this
+    # drops nothing it did not drop before, but the restart path reaches the
+    # rule through the same `child_env` and the rule stays true if that changes.
+    return adapters.forward_named_env(
+        adapters.drop_unneeded_credential(env, harness), harness)
 
 
 def needs_credential(harness: dict) -> bool:
@@ -480,6 +495,15 @@ def _resolved_tools(harness: dict, *, role: str | None,
     return tools, allowed, disallowed
 
 
+def _mcp_values(harness: dict) -> list[str]:
+    """Named thin hook: `mcp_config` (one path or a list) -> the variadic
+    `--mcp-config` values, flattened. The flag stays in the template."""
+    mcp = harness.get("mcp_config")
+    if not mcp:
+        return []
+    return [mcp] if isinstance(mcp, str) else [str(m) for m in mcp]
+
+
 def write_system_prompt(
     *,
     sess_dir: Path,
@@ -520,6 +544,17 @@ def write_system_prompt(
     return out
 
 
+#: Brief parts this harness loads ITSELF, so `brief.render` must not inline a
+#: second copy of them. Claude Code reads `CLAUDE.md` from the project
+#: directory as project instructions BEFORE the first turn, so the rendered
+#: first turn re-sent 26 KB the seat already held (measured 2026-09-26,
+#: experiment:a00-4a01c17b-415791: 106,144 chars where the pre-DH.410
+#: static-file turn was 64,896). The harness declares the fact about itself;
+#: `brief.py` reads the attribute and never names a harness, and
+#: `config:brief`'s `harness_self_loads` cell can add more per harness.
+SELF_LOADED_BRIEF_PARTS = ("harness",)
+
+
 def build_command(
     *,
     harness: dict,
@@ -544,6 +579,11 @@ def build_command(
     brief_tier: str | None = None,
     role: str | None = None,
     ladder_tier: int | None = None,
+    # hypothesis:l4-brief-resolves-g15-lineage-from-the-nearest-agi -- the
+    # project graph root the dispatcher resolved, threaded into the brief so
+    # the g15 build-order rule reads the project's `.agi`, not brief.py's own.
+    project_root: str | Path | None = None,
+    rendered_brief: str | None = None,  # dispatch's ONE render; None assembles here
 ) -> list[str]:
     """The argv that starts one Claude Code agent.
 
@@ -573,42 +613,22 @@ def build_command(
     # This adapter decides only how to SPELL it, and for Claude Code the only
     # spelling that keeps every segment is one file.
     _btier = brief_tier or tier
-    segments = brief.assemble(
+    segments = [rendered_brief] if rendered_brief is not None else brief.assemble(
         tier=_btier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
         dispatch_py=dispatch_py, scaffold=scaffold, target=target,
         parallel=parallel, max_live=max_live, source_root=source_root,
         kid_ceiling=kid_ceiling, addendum=addendum,
+        project_root=project_root,
     )
     prompt_file = write_system_prompt(
         sess_dir=sess_dir, context_file=context_file, segments=segments,
         skill_prompt=skill_prompt,
     )
 
-    args = [resolve_bin(harness), "-p"]
-    args += model_args(harness, tier)
-
     fmt = str(harness.get("output_format") or DEFAULT_OUTPUT_FORMAT)
     if fmt not in OUTPUT_FORMATS:
         raise ValueError(
             f"harness {NAME!r}: output_format {fmt!r} is not one of {OUTPUT_FORMATS}")
-    args += ["--output-format", fmt]
-    if fmt == "stream-json":
-        # Print mode refuses stream-json without it.
-        args += ["--verbose"]
-    args += ["--strict-mcp-config"]
-
-    budget = harness.get("max_budget_usd")
-    if budget is not None and str(budget).strip():
-        args += ["--max-budget-usd", str(budget)]
-
-    args += ["--append-system-prompt-file", str(prompt_file)]
-    args += [str(a) for a in (harness.get("extra_args") or [])]
-
-    # --- variadic flags: everything from here to `--` may swallow a positional.
-    args += ["--add-dir", str(locations.repo_root(root))]
-    mcp = harness.get("mcp_config")
-    if mcp:
-        args += ["--mcp-config", *([mcp] if isinstance(mcp, str) else [str(m) for m in mcp])]
     tools, allowed, disallowed = _resolved_tools(
         harness, role=role, ladder_tier=ladder_tier)
     if os.environ.get("AGI_DEBUG"):
@@ -616,17 +636,26 @@ def build_command(
         print(f"  --tools {tools}")
         print(f"  --allowedTools {allowed}")
         print(f"  --disallowedTools {disallowed}")
-    if tools:
-        args += ["--tools", *tools]
-    if allowed:
-        args += ["--allowedTools", *allowed]
-    if disallowed:
-        args += ["--disallowedTools", *disallowed]
 
-    args += ["--", _closing_turn(harness=harness, tier=tier,
-                                  agent_id=agent_id, iter_n=iter_n,
-                                  brief_tier=_btier)]
-    return args
+    # hypothesis:harness-arg-builders-are-templates-only: argv is DATA
+    # (claude-code.toml `[shapes.dispatch]`); the adapter only fills slots.
+    budget = harness.get("max_budget_usd")
+    return harness_template.render(
+        NAME, shape="dispatch", bin_path=resolve_bin(harness),
+        model_args=model_args(harness, tier),
+        output_format=fmt,
+        verbose=fmt == "stream-json",
+        budget=None if budget is None else str(budget).strip(),
+        prompt_file=str(prompt_file),
+        extra_args=harness.get("extra_args") or [],
+        repo_root=str(locations.repo_root(root)),
+        mcp=_mcp_values(harness),
+        tools=list(tools), allowed=list(allowed),
+        disallowed=list(disallowed),
+        closing=_closing_turn(harness=harness, tier=tier,
+                              agent_id=agent_id, iter_n=iter_n,
+                              brief_tier=_btier),
+    )
 
 
 def _closing_turn(*, harness: dict, tier: str, agent_id: str, iter_n: int,
@@ -827,6 +856,10 @@ def restart(
     brief_tier: str | None = None,
     role: str | None = None,
     ladder_tier: int | None = None,
+    rendered_brief: str | None = None,
+    # hypothesis:every-adapter-restart-spawns-from-the-scrubbed-env --
+    # the base the child env is built from; None means dispatch's scrubbed env.
+    base_env: dict | None = None,
 ) -> int | None:
     """Re-spawn a dead agent. Returns the new pid, or None on failure.
 
@@ -844,9 +877,10 @@ def restart(
         dispatch_py=dispatch_py, target=target, parallel=parallel,
         max_live=max_live, brief_tier=brief_tier, role=role,
         ladder_tier=ladder_tier,
+        rendered_brief=rendered_brief,
     )
     log_file = sess_dir / "output.log"
-    env = child_env(harness=harness, base=dict(os.environ), tier=tier)
+    env = child_env(harness=harness, base=adapters.scrubbed_base(base_env), tier=tier)
     try:
         with open(log_file, "ab") as logf:
             proc = subprocess.Popen(

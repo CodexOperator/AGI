@@ -30,7 +30,7 @@ validation:
     parents: list
     next_edges: list
 spawn:
-  allowed_parents: [mvp, verdict]
+  allowed_parents: [mvp, verdict, goal]
   min_parents: 1
   max_parents: 2
 ---
@@ -44,12 +44,14 @@ what an MVP does in input → output terms. Aggregates upward into
 
 ID prefix: `outcome:<short-slug>`.
 
+**Goal-chain outcome** (Prime ruling 2026-09-29 23:5xZ on alive's [decision]; owner 23:3xZ: the council writes "an outcome node for the goal chain"): a council outcome hangs under the ONE bundle goal it closes (parent `goal:<id>`); its `evidence_runs` cite the chain's mvps and verdicts. It is the next rung up: outcome -> goal -> outcome builds into bigger outcomes and overviews. Its `judged_against` names that same goal or is omitted, never another (judged_against is a judgment record exempt from link resolution, links.py:316; the parent is the lineage edge). Per-row outcomes under a row mvp/verdict stay legal beneath it.
+
 **This is the type `outcome_coverage` — the project's primary metric — is
 computed from.**
 
 ## Spawn rule
 
-`allowed_parents: [mvp, verdict]`, `max_parents: 2`, `min_parents: 1`.
+The `spawn:` block in the frontmatter is the one source (allowed parents, min, max); the goal parent is explained under "Goal-chain outcome" above.
 
 ## Ladder rationale (season-ladder-and-morals-brief §1)
 
@@ -92,8 +94,7 @@ rewritten from scratch on each change, not accumulated.
   scalar `thought_session:` is reserved there for goal:g2.7 / goal:g10.1 to
   point at the chat that produced a version; it is not populated yet.
 - **Readers strip it.** Thought is provenance to zoom into, not weight every
-  reader carries forever. `snapshot-goals.py --render` strips it explicitly via
-  `strip_thought()`; `render-context.py` and `zoom.py` never see it because
-  they read frontmatter only (`load_node_file(..., body=False)`) and so carry
-  no body text at all. The rule binds any future reader that *does* read
-  bodies.
+  reader carries forever. `brief.py` strips it from every body it renders via
+  `node_writer.strip_thought()`; `zoom.py` never sees it because it reads
+  frontmatter only (`load_node_file(..., body=False)`). The rule binds any
+  future reader that *does* read bodies.

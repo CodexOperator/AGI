@@ -1,0 +1,21 @@
+# SELF-POKE TOY: proved
+
+- verdict: "proved"
+- void: false
+- conjuncts: {"C1": true, "C2": true, "C3": true, "C3b": true, "C4": true}
+- C1: {"restores_equal": 480, "n_trials": 480, "file_sha_start": "8e174e98261aa4995d69a65911cefcbe5f6cdef4388577f8a3209ec64e5ccccc", "file_sha_end": "8e174e98261aa4995d69a65911cefcbe5f6cdef4388577f8a3209ec64e5ccccc"}
+- C2: {"sham_identical": 160, "n_sham": 160}
+- C3b: {"real_blind_identical": 160, "n_pairs": 160}
+- C3: {"det_rate_s0": {"5": 1.0, "45": 1.0, "1": 1.0, "34": 1.0}, "sham_rate": 0.0125, "n_sham": 160}
+- C4: {"mean_abs_dr_s0": {"5": 0.40370860685871346, "45": 0.4333987527762916, "1": 0.08393993083515448, "34": 0.07693701710615644}}
+- r_ref: 0.0015978757513885325
+- tau: 0.0015978081003996728
+- tau_sd: 0.0005326027001332243
+- baseline_test_acc: 0.9997762613267703
+- family_sizes: {"1": 133, "2": 13, "5": 151, "34": 84, "45": 128}
+- params_sha256: "334a93b59fc334195d2146e86762c1a06edce3d724f4460e6b43d0480638f128"
+- script_commit: "1d317a70924a352583cde1b886abed12f75c27e3"
+- script_dirty: false
+- debrief_head: {"scores_sha256": "ce6ed6aa2ea91e8a1c44769d0141b958d352f7ffc3953b49e800378270fcd995", "reports_sha256": "92121d4936774d8914445bf6e8067a79adf95d19740ed19ae3021a9ec66c70ec"}
+- torch: "2.14.0+cu130"
+- unscored: {"det_rate_s05": {"5": 1.0, "45": 1.0, "1": 0.25, "34": 0.45}, "r_by_arm_mean_sd_min_max": {"REAL": [0.131827935938669, 0.16896858779530713, 0.0003059537493024805, 0.4846152236875069], "SHAM": [0.0003756754061753118, 0.0008086425975026438, 8.985511026641774e-06, 0.0044244697836874425], "BLIND": [0.13182793593866904, 0.16896858779530713, 0.0003059537493024805, 0.4846152236875069]}}

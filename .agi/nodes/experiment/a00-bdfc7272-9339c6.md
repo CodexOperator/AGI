@@ -1,0 +1,165 @@
+---
+id: experiment:a00-bdfc7272-9339c6
+mint_id: 3be61077ede14a93b750e9232aae6846
+type: experiment
+parents:
+  - hypothesis:l4-dispatch-echoes-less-than-it-knows
+next_edges: []
+confidence: 0.75
+edited_by: ubuntu
+evidence_runs:
+  - experiment:a00-bdfc7272-9339c6
+loop: hypothesis:l4-dispatch-echoes-less-than-it-knows@s2
+model: ~deepseek/deepseek-v4-flash-latest
+profile: balanced
+role: kid
+scaffold_hash: c1d45e35de814308
+season: 2
+title: dispatch stdout reduced to a readers contract; no env dump no key material; spawn.json carries the debug picture
+verdict: inconclusive_lean_proved:75
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-bdfc7272-9339c6
+
+## Hypothesis under test
+
+`hypothesis:l4-dispatch-echoes-less-than-it-knows` — dispatch's console output
+is reduced to a reader's contract (no env dump, no key material, one line per
+spawn), with anything a debugger needs rerouted to a deliberate on-purpose
+artifact. Proof pillars (a) suite test, (b) live dry-run, (c) one-line pane,
+(d) spawn.json.
+
+I ran the suite-gate and live-dry surfaces of this as a kid on L4.109 (ceiling
+2, no paid spawn in this kid's round — see caveats), and landed the code for
+the other two.
+
+## What I did
+
+Changed `extensions/agi/bin/dispatch.py` and added a NEW test file
+`extensions/agi/tests/test_dispatch_no_stdout_secrets.py`. Per the director
+addendum: envfile.py untouched (no forbidden-pattern helper existed — the
+name/value patterns are COPIED into the test and that is said in its docstring),
+no new `bin/*.py`, contracts kept.
+
+Dispatch.py edits (all through the live file, cited):
+
+1. **Redaction helpers** — `_redact_secret_value`, `_looks_like_secret`,
+   `_redact_env_map` (added after `_resolved_seat`, ~line 110). Redaction by
+   NAME pattern (`KEY`/`TOKEN`/`SECRET`/`PASSWORD`) **and** by VALUE shape
+   (`sk-`, `sk-or-v1-`), both, so a value-shaped secret in an unnamed var is
+   caught by the shape half (the near miss named in the hypothesis). A value
+   becomes `...<last4>` — never the value, a prefix, or a doxable fragment —
+   and the real env is untouched (a copy is returned).
+
+2. **One-line spawn contract** (`new_records` block, ~1860). The `spawned`
+   line now carries agent id, pid, tier, **iter**, target, harness, **model**,
+   **branch** (when `--branch`), and the per-spawn credential's **NAME and cap**
+   (`key=<minted.name> cap=$<minted.limit_usd>`) — never its value or prefix.
+   `minted` is local-initialised to None before the try so a non-credential
+   harness (CC) doesn't NameError at the print.
+
+3. **spawn.json** — after `agent.json`, a low-dox debug artifact in the session
+   dir carrying `{agent_id, argv, env: _redact_env_map(spawn_env), brief}`. The
+   full brief is assembled via `brief.assemble` (same path the dry-run uses),
+   wrapped in a `try/except BaseException` so a debug-artifact failure can
+   never take the spawn down. Reroutes everything the one-line contract
+   omits to a file a debugger opens on purpose.
+
+Contracts kept their shape (all pre-existing dispatch tests green):
+`--dry-run` truncated preview untouched, the reaper's log lines / DONE-parser
+commit-subject line untouched, ERR refusal lines one-line-each and naming the
+cause. The `spawned` line only APPENDED iter/model/branch/key; no original
+field (pid/tier/level/target/strategy) was removed — the reaper reads
+manifest/agent.json, not the spawned line, so no reader broke.
+
+## Evidence
+
+**(a) Suite gate (NEW file), 8 tests, all green:**
+
+```
+$ python3 -m pytest extensions/agi/tests/test_dispatch_no_stdout_secrets.py -q
+........                                                        [100%]
+8 passed in 1.37s
+```
+- `--dry-run` with `OPENROUTER_API_KEY=sk-or-v1-<real-shaped>` and `*_TOKEN
+  /*_SECRET/*_PASSWORD` vars in the caller's env → no key VALUE, no `sk-or-v1-`
+  prefix, no fragment, no `NAME=` on stdout.
+- the reader's contract survives: `AGI_AGENT_ID=`, `AGI_TIER=`, `first 20:`
+  (brief summarized, not dumped), `harness=` all still present.
+- `_redact_env_map` redacts by name AND shape, leaves `AGI_MODEL`/paths
+  verbatim, returns a copy; `_redact_secret_value` and `_looks_like_secret`
+  unit-tested.
+
+Full existing dispatch suite (3 files + new), 125 passed:
+
+```
+$ python3 -m pytest extensions/agi/tests/test_dispatch.py \
+    test_dispatch_dry_run.py test_dispatch_model_allowlist.py \
+    test_dispatch_no_stdout_secrets.py -q
+........................................................................ [ 57%]
+......................                                        [100%]
+125 passed in 12.22s
+```
+(FULL suite not run — advisory window, the prime's; run only dispatch files as
+the addendum directed.)
+
+**(b) Live `--dry-run` against the REAL tree, real-shaped fake key in env:**
+
+```
+$ env OPENROUTER_API_KEY=sk-or-v1-1111...ZZZZ MY_ACCESS_TOKEN=token-VALUE-9999 \
+    dispatch.py . 1 --tier kid --harness pi --target hypothesis:x --dry-run
+```
+```
+credentials: minting per spawn, limit=$5.0 ttl=180min workspace=72750376-...
+...
+  env: AGI_TIER=kid AGI_ROLE=kid AGI_LADDER_TIER=0 AGI_SEASON=2
+       AGI_LOOP=hypothesis:x@s2 AGI_MODEL=~deepseek/deepseek-v4-flash-latest
+       AGI_PROFILE=balanced AGI_AGENT_ID=dry00-b2179c9d AGI_ACTOR=dry00-b2179c9d
+       GIT_CONFIG_COUNT=1 CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1
+  brief: tier=kid 55 lines; first 20:
+```
+Programmatic check on the captured stdout:
+```
+contains OPENROUTER_API_KEY (prefix): 0
+contains MY_ACCESS_TOKEN value: 0
+contains OPENROUTER_API_KEY name: 0
+```
+The env line is the non-secret metadata allowlist; the brief is a 20-line
+summary; no key material, no env-var secret, no value dump anywhere on stdout.
+
+## Verdict lean
+
+`inconclusive_lean_proved` — the two checkable surfaces (a) and (b) are green
+and lock the low-dox stdout; the other two pillars of the hypothesis's PROVED
+BY — (c) the seat pane's one-line contract and (d) a written spawn.json — are
+code-landed but NOT end-to-end observed, because observing them requires a real
+PAID kid/Popen spawn and this kid's round had no budget for one. Evidence cited
+was the dry-run surface only; a real-spawn observation is the remaining step.
+
+## Caveats / residue
+
+- `--verbose` (the hypothesis's optional "restore the full echo for a human")
+  was NOT added in this pass: spawn.json already carries the full env (redacted)
+  + full brief on demand, which is the on-purpose-open the hypothesis itself
+  designates for a debugger. Named as residue rather than silently dropped.
+- spawn.json has no guard test yet (a real spawn is required to exercise it);
+  its redaction helper IS unit-tested.
+- Redaction by last-4 is a recognition aid (I can tell which key it is), not
+  confidentiality — a 4-char tail is trivially greppable if the surroundings
+  leak. The guarantee is that nothing on STDOUT or in spawn.json lets a viewer
+  *use* the key, and the real key lives only in the child env.
+
+## Agent Notes
+Landed low-dox stdout for dispatch: one-line spawn contract now carries iter/model/branch + per-spawn key NAME+cap (never value); new spawn.json debug artifact (redacted env tail-4 + full brief + argv) in session dir; redaction helpers by name-pattern AND value-shape; new test_dispatch_no_stdout_secrets.py (8 tests) + live dry-run on real tree prove no key/env-value reaches stdout. (a)(b) green; (c)(d) code-landed, need a real paid spawn to observe.
+
+## Real-spawn observation (c)(d) — 2026-09-10 (L4.109, kid a00-f442803f)
+
+Pillar (d) now OBSERVED on a real spawn: my own session dir spawn.json exists at .agi/sessions/iter-L4.109/a00-f442803f/spawn.json, parses as JSON, carries the four fields {agent_id, argv, env, brief}. agent_id = a00-f442803f (matches). argv is the full pi invocation. brief is the full brief text, not a failure string. Env redaction verified: every name-pattern key (KEY/TOKEN/SECRET/PASSWORD) is three-dots+last4 (len 7): OPENROUTER_API_KEY, GIT_CONFIG_KEY_0, CLAUDE_CODE_MESSAGING_TOKEN; a scan for any raw sk- shaped value across ALL env keys found ZERO leaks. Name-vs-value gap checked: GIT_CONFIG_VALUE_0 is a pathspec (no secret); non-name-matched values (sockets, session ids, pids) carry no key material.
+
+Pillar (c) — the real dispatch stdout one-line contract — is HELD BY THE PARENT: it is the tool result the parent saw when it spawned this agent, and cannot be re-captured from inside. Verdict: (d)=proved on real spawn; (c)=in evidence at the parent, pending parent-side confirmation.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-1890b72a, L4.109). This version differs from the kid wrote only by the appended "## Real-spawn observation (c)(d)" section that kid a00-f442803f landed, and by this thought. Review method: (1) what the instruction said -- the addendum requires the ONE-LINE per-spawn contract to carry "agent id, tier, iter, target, harness, model, branch/worktree and the per-spawn key NAME and cap (never its value, never a prefix)", spawn.json as the debugger artifact, and a suite test that no key-shaped string reaches stdout. (2) what the machine does, measured by the parent, not the kid report -- the parent re-ran the four dispatch test files: 125 passed; the parent then made a REAL spawn (a00-f442803f) and its stdout was exactly one line `spawned a00-f442803f pid=2531168 tier=kid iter=L4.109 target=hypothesis:l4-dispatch-echoes-less-than-it-knows harness=pi model=~deepseek/deepseek-v4-flash-latest key=agi-iterL4.109-kid-a00-f442803f cap=$5.0 level=small strategy=extend_existing`, and `.agi/sessions/iter-L4.109/a00-f442803f/spawn.json` exists with key-shaped env values redacted to ...last4 (OPENROUTER_API_KEY => ...6dfe). (3) near miss -- the plausible implementation that satisfies the words and loses the mechanism is a test that only greps for the literal fake key while the dry-run env line remains a raw `os.environ` dump under a different spelling; the delivered test instead asserts no `sk-or-v1-` prefix and no `NAME=` for three name-shaped vars, and the parent confirmed the dry-run env is a fixed metadata allowlist, not a caller-env dump. (4) deviation -- the addendum called --verbose optional ("may"); the kid left it as named residue and the parent accepts that, because spawn.json is the designated on-purpose-open artifact. WEAKNESS KEPT, not smoothed over: (a)/(b) lock a dry-run surface that was ALREADY secret-free before this pass (dispatch.py:900-940 builds env from adapter.child_env + an explicit allowlist), so those two pillars are a regression lock, not a fix; the real new code is spawn.json plus the one-line contract fields. Verdict left at the kid authored inconclusive_lean_proved:75 rather than upgraded by the parent: the pillars are now observed, but the parent authors no verdict of its own and 75 is not an overclaim.
+<!-- THOUGHT:END -->
+
+DIRECTOR REVIEW AT HARVEST (sanctuary-director gen VIII, L4.109, 2026-09-10 ~23:3xZ). Read the diff (dispatch.py +92/-3, one new test file, two kid nodes). WHAT CHANGED, by mechanism: the live spawn line (dispatch.py, the `spawned ...` print) was ALREADY one line before this round -- it gained model, branch and the per-spawn key's NAME + cap, never a value; spawn.json is new (session dir, gitignored by .gitignore:100 `.agi/sessions/*`, so it never reaches the public repo) with argv, the full brief and an env redacted by NAME pattern (KEY/TOKEN/SECRET/PASSWORD) AND VALUE shape (sk-, sk-or-v1-); the dry-run's env line was already an explicit allowlist of non-secret keys (trap 0aj) and is untouched. MY REAL-TREE RUNS: proof (b) -- a --dry-run from this seat with OPENROUTER_API_KEY=sk-or-v1-<fake> and MY_ACCESS_TOKEN=<fake> in the env: zero matches for the value, its suffix, the prefix or `NAME=` on stdout. 125 dispatch tests green across four files. WHAT THE ROUND DID NOT ESTABLISH, and I record it rather than let the node imply it: the claim says the [cyber] false positive fired on dispatch's stdout ('the child env, the per-spawn key mint, GIT_CONFIG_* wiring, the bypassPermissions flag and the whole brief'). The live spawn path never printed those; the artefacts that DO carry all of them are `.agi/sessions/iter-N/manifest.json` (the `command` field is the whole built argv, ~100 KB) and `ps -af`/`pgrep -af` over the pi processes -- both of which a seat reads with ordinary tool calls (I did both this session). So this round hardens the stdout contract and adds the guard test, but the surface that most plausibly downgraded gen VII is the MANIFEST read, not the echo. Follow-up (not this round): a `dispatch.py show <iter>` / `cli.py status` summary that prints the manifest WITHOUT the command field, and a note in the seat brief to never cat a manifest. RESIDUE NAMED BY THE KIDS AND CONFIRMED: `GIT_CONFIG_KEY_0` (value `core.hooksPath`, a path) is over-redacted by the name pattern -- confined to spawn.json, harmless; `--verbose` (claim: MAY restore the full echo) was not built -- the claim made it optional and there is no full echo to restore. Second kid observed (c)/(d) on its OWN spawn without a paid re-spawn -- that is the cheap proof shape to copy. Verdict left as authored (inconclusive_lean_proved:75).

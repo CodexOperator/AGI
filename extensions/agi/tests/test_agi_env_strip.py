@@ -12,7 +12,9 @@ verification independent of its spawn env:
 """
 
 import os
+import re
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -25,6 +27,18 @@ AGI_DISPATCH_VARS = (
     "AGI_LOOP", "AGI_MODEL", "AGI_ROLE", "AGI_TIER", "AGI_SEASON",
     "AGI_PROFILE", "AGI_PROJECT_ROOT", "AGI_LADDER_TIER",
     "AGI_TREE_PROJECT_ROOT", "AUTORESEARCH_TREE_PROJECT_ROOT",
+)
+
+# hypothesis:l4-the-harvest-reads-the-diff-per-deliverable-a-timeout-says-
+# timed-out-and-the-done-tests-stay-hermetic item (1): the dispatch spawn set
+# also pins `core.hooksPath` at <engine>/hooks/agent-git through the
+# GIT_CONFIG_* channel, which is not AGI_*-prefixed and so used to survive
+# into the test process. Any test shelling out to git then ran the commit
+# guard -- the reason the two worktree done-commit tests in test_cli.py were
+# only green by accident, and the reason test_rotate.py and
+# test_sensei_audit_record_writeback.py delenv/setenv these by hand.
+GIT_CONFIG_SPAWN_VARS = (
+    "GIT_CONFIG_COUNT", "GIT_CONFIG_KEY_0", "GIT_CONFIG_VALUE_0",
 )
 
 
@@ -46,6 +60,94 @@ def test_conftest_documented_list_covers_the_spawn_set():
     for var in AGI_DISPATCH_VARS:
         assert os.environ.get(var) is None, (
             f"conftest should have stripped {var!r}"
+        )
+
+
+def test_conftest_strips_the_git_config_spawn_channel():
+    """Item (1): the `core.hooksPath` channel is AGI_*-free, so the glob
+    above never caught it. It must be gone too, or a test's own `git` runs
+    the commit guard and the suite's colour depends on who spawned it."""
+    for var in GIT_CONFIG_SPAWN_VARS:
+        assert os.environ.get(var) is None, (
+            f"conftest should have stripped {var!r} -- a leftover one makes "
+            f"every git call in the suite run the agent-git hook"
+        )
+    # the spawn CHANNEL family only (COUNT / KEY_n / VALUE_n): GIT_CONFIG_GLOBAL / _SYSTEM / _NOSYSTEM are the
+    # isolation the gate recipe sets on purpose (goal:g7.16.1.11.43), and are not what conftest strips
+    assert sorted(
+        k for k in os.environ if re.fullmatch(r"GIT_CONFIG_(COUNT|KEY_\d+|VALUE_\d+)", k)
+    ) == [], "the GIT_CONFIG_COUNT/KEY_n/VALUE_n channel cannot leak into the suite"
+
+
+def test_inherited_hookspath_really_runs_a_hook_and_the_strip_removes_it(
+        tmp_path, monkeypatch):
+    """Item (1), with teeth on both halves.
+
+    Half (a) MEASURES the mechanism rather than asserting it: pin the
+    `core.hooksPath` channel at a hooks dir holding a WITNESS pre-commit and
+    make a real commit in a scratch repo -- the witness fires, so an
+    inherited GIT_CONFIG_VALUE_0 genuinely reaches a test's own `git`. Half
+    (b) is the fix: the session fixture has already removed the key from
+    THIS process's env, so no test here ever runs the guard by accident.
+    """
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    hooks = tmp_path / "hooks"
+    hooks.mkdir()
+    witness = tmp_path / "witness.txt"
+    hook = hooks / "pre-commit"
+    hook.write_text(f"#!/bin/sh\necho fired >> {witness}\n")
+    hook.chmod(0o755)
+    monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
+    monkeypatch.setenv("GIT_CONFIG_KEY_0", "core.hooksPath")
+    monkeypatch.setenv("GIT_CONFIG_VALUE_0", str(hooks))
+    run = lambda *a: subprocess.run(  # noqa: E731
+        ["git", "-C", str(repo), *a], capture_output=True, text=True)
+    run("init", "-q")
+    (repo / "f.txt").write_text("x\n")
+    run("add", "-A")
+    run("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "m")
+    assert witness.exists(), (
+        "the pinned core.hooksPath did NOT reach the scratch repo's commit "
+        "-- then the leak this item names was never real and the strip is "
+        "belt-and-braces rather than a fix"
+    )
+    monkeypatch.delenv("GIT_CONFIG_COUNT", raising=False)
+    monkeypatch.delenv("GIT_CONFIG_KEY_0", raising=False)
+    monkeypatch.delenv("GIT_CONFIG_VALUE_0", raising=False)
+    # Half (b) with TEETH. The old tail asserted the absence of the same three
+    # keys the test JUST delenv'd a line above -- vacuous, and proof of nothing
+    # about the strip (SL7.138 named the hole). Prove the STRIP itself: spawn a
+    # real child whose env INITIALLY INHERITS the three GIT_CONFIG_ keys set
+    # (a freshly-dispatched process that never ran a strip), have that child
+    # run the REAL conftest `_strip_agi_env`, and require it to report clean.
+    # If the strip ever stops removing GIT_CONFIG_*, this child reports LEFT
+    # and the test fails -- its pass/fail depends on `_strip_agi_env`, not on
+    # this test's own monkeypatch.
+    turnkey = (
+        "import os,sys;"
+        "sys.path.insert(0, %r);"
+        "from conftest import _strip_agi_env;"
+        "_strip_agi_env();"
+        "left=[k for k in ('GIT_CONFIG_COUNT','GIT_CONFIG_KEY_0',"
+        "'GIT_CONFIG_VALUE_0') if k in os.environ];"
+        "print('LEFT='+','.join(left) if left else 'CLEAN')"
+    ) % str(ENGINE)
+    child_env = {**os.environ,
+                 "GIT_CONFIG_COUNT": "1",
+                 "GIT_CONFIG_KEY_0": "core.hooksPath",
+                 "GIT_CONFIG_VALUE_0": str(ENGINE / "hooks" / "agent-git")}
+    child = subprocess.run([sys.executable, "-c", turnkey], env=child_env,
+                           capture_output=True, text=True)
+    assert child.returncode == 0, child.stderr
+    assert child.stdout.strip() == "CLEAN", (
+        f"the REAL conftest strip left {child.stdout.strip()} in a child that "
+        f"inherited the GIT_CONFIG_* channel -- every git call in the suite "
+        f"would run the agent-git hook")
+    for var in GIT_CONFIG_SPAWN_VARS:
+        assert os.environ.get(var) is None, (
+            f"conftest left {var!r} set -- every git call in the suite would "
+            f"run the agent-git hook"
         )
 
 

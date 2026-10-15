@@ -1,0 +1,100 @@
+---
+id: hypothesis:a00-1b70098e-011986
+mint_id: 01b6cf9e5a8a4df5b86692ce9269de06
+type: hypothesis
+parents:
+  - goal:g1.31.5.1.3
+next_edges: []
+confidence: 0.9
+edited_by: director-general-4
+evidence_runs:
+  - experiment:a00-1b70098e-launder
+loop: goal:g1.31.5.1.3@s2
+model: stealth/space-bunny-alpha
+production_lines: 39
+profile: balanced
+role: kid
+scaffold_hash: e1ce073170a25b04
+season: 2
+testable_claim: "A hand edit to the SAME node a `write.py` verb names is never laundered into that write's commit: the write lands on disk, stays UNCOMMITTED, and is refused BY NAME (exit `EXIT_UNCOMMITTED` == 3), so `write_guard.py check` still lists the path and the hand-edit bytes appear in no commit."
+title: A hand edit to the same node is never laundered into its write commit
+town: core
+verdict: proved
+---
+# hypothesis:a00-1b70098e-011986
+
+## Hypothesis
+
+A hand edit to the SAME node a `write.py` verb names is never laundered into
+that write's commit: the write lands on disk, stays UNCOMMITTED, and is refused
+BY NAME (exit `EXIT_UNCOMMITTED` == 3), so `write_guard.py check` still lists
+the path and the hand-edit bytes appear in no commit.
+
+## What was built (slice 1, goal:g1.31.5.1.3)
+
+| seam | change |
+|---|---|
+| `write.py` `_pre_dirty(root, node_id, edit=None)` | samples, BEFORE the mutation, the node path (and the resolved payload dest when a payload verb rides along): untracked/absent = CLEAN, else `git diff --quiet HEAD -- <p>` |
+| `_commit_write(..., pre_dirty=)` | if any of the write's own paths is in `pre_dirty`, it refuses BEFORE any `git add`: names the absolute path, prints the one recovery line, returns `(note, True)` → caller exits 3 |
+| 3 call sites | `submit` (edit) and `repair_mint` (adopt) sample BEFORE their write; `create` needs no sample — the path is brand new, so untracked = clean by definition |
+
+Why the sample lives at the CALL SITE and not inside `_commit_write`: that
+function runs AFTER the node has been rewritten, so `git status --porcelain --
+<path>` there is ALWAYS dirty (this write made it dirty) and a naive check
+refuses every write, exit 3 on everything, the node system stalls. That near
+miss is named in the docstring so it is not re-tried.
+
+Adjacent dirt is untouched by design: a hand edit to ANOTHER path is still
+never in this write's commit (`git commit -- <paths>`, no `-a`, no `add -A`)
+and does not refuse this write.
+
+## Probes
+
+| # | probe | result |
+|---|---|---|
+| 1 | `pytest test_write_guard.py -k 'hand_edit and laundered'` (the goal's falsifier 1) | 1 selected, PASSES (rc 5 at HEAD: no such test) |
+| 2 | falsifier 2, inside that test: `git grep -n HANDEDIT-FIXTURE HEAD -- .agi/nodes` after the refused write | empty — no commit carries the hand-edit bytes |
+| 3 | control row: the same verb on a CLEAN node | ONE exact-path commit, exit 0 |
+| 4 | PRE-FIX state: the same test body with `_pre_dirty` stubbed to `frozenset()` | FAILS on the grep — the hand edit IS committed. The defect is real and the fix is what closes it |
+| 5 | suite: `test_write_guard.py test_write_commit_busy_index.py test_node_writer.py test_write.py test_write_sub.py` | 379 passed, 4 xfailed |
+
+Production lines: 39 added / 3 removed in `write.py` (ceiling 40). Test: one
+test, ~30 lines (ceiling 90).
+
+## Not done here
+
+- `create`'s call site carries no pre-sample by design (a created path is
+  untracked ⇒ clean), stated here so the omission is a decision, not a gap.
+- The suite-lock config cell is slice 2 (`goal:g4.18.5.5`); `_commit_message`
+  and the retry/backoff block are DG4's other round
+  (`hypothesis:a-write-refusal-names-the-index-truth`) — untouched.
+What is the testable claim? What would prove it? What would disprove it?
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent a00-0f9aedeb rewrites this version to carry the review, not to change the verdict. (1) The instruction was: judge the kid's DIFF, not its result file, and run one negative probe per claim conjunct MYSELF. (2) The machine: commit b5a13196e0 -- 39 production lines in write.py (the pre-write sample _pre_dirty at two call sites, the refusal in _commit_write before any `git add`), one falsifier test; I re-ran the named suite (170 passed, 3 xfailed) and falsifier 1 selects exactly 1, and I ran 8 probes of my own that all hold, including the staged-hand-edit variant, the wire probe that the same path commits/refuses/commits, and the payload half. (3) The near miss I would have accepted silently: trusting the kid's R4 row without replaying it. I did replay it, and my FIRST replay patched a separate import of write.py and passed spuriously -- a stub that never reaches the module under test proves nothing. The corrected replay stubs the test module's own `write` and the test FAILS (0 == 3), which is what makes R4 evidence rather than prose. (4) No standing rule was deviated from. The node is ACCEPTED with one named residual: write_guard's WARN is a byte-sha-vs-log test and the write's own log entry blesses the preserved hand edit, so the census lists the path while the WARN stays silent -- a different mechanism (the write log), outside this claim, and the honest place for a follow-up node.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Pre-write clean sample at write.py's call sites + _commit_write refusal (exit 3) by name; new falsifier test passes and fails on the pre-fix stub; 39/40 production lines.
+
+## Agent Notes
+Pre-write clean sample at write.py's 3 call sites + _commit_write refusal by name (exit 3); falsifier test passes and fails on the pre-fix stub; 39/40 production lines.
+
+PARENT REVIEW a00-0f9aedeb, 8 probes run BY ME (probe/test_parent_probes_g131513.py in my session scratch), 8 passed. ACCEPTED.
+
+WHAT THE ORDERS SAID: refuse by name (exit 3) a path already dirty against HEAD before the write, keep the write visible to write_guard, add the falsifier-1 test.
+WHAT THE BYTES DO: b5a13196e0 adds write.py:4248 _pre_dirty(root,node_id,edit) sampling node+payload BEFORE the mutation at 2 call sites (submit :4180, adopt :4038), and _commit_write (:4304-4310) returns (note,True) naming the absolute path BEFORE any git add. 39/40 production lines, one test, 30 lines.
+NEAR MISS AVOIDED: sampling git diff HEAD inside _commit_write (always dirty after the rewrite -> exit 3 on every write, node system stalls). The kid sampled at the call site and named that near miss in the docstring.
+
+MY PROBES (gate/auth/wire), all held:
+ C1 gate: same-path hand edit -> rc 3, refusal names the path, HEAD unmoved, `git diff --name-only HEAD` still lists X, grep of the fixture at HEAD empty, write landed on disk, another post's staged file untouched.
+ C1c gate: the STAGED same-path variant (index dirty, worktree == index) also refused -- not only the unstaged one.
+ C1b wire: the same verb on the same path commits, then is refused, then commits again once the dirt is landed -> the branch reads a live pre-write sample, it is not a constant-True stub.
+ C2 gate inverted: 4 verbs on a CLEAN node -> 4 exact-path commits, exit 0 (no over-refusal).
+ C3 auth: dirt on ANOTHER path (staged and unstaged) never blocks the write and never rides into its commit; the file survives.
+ C4: a created/untracked path commits.
+ C5: the PAYLOAD half -- a hand edit to the node's own payload is refused rc 3 too; the `except EditError: pass` arm did NOT drop it in this build.
+ C6: write_guard._git_changed_files (its own census, the truth the goal names) still lists the refused path.
+R4 REPLAY BY ME: stubbing write._pre_dirty to frozenset INSIDE the test module's namespace makes the kid's own test fail (assert 0 == 3) -- the defect is real at these bytes and the fix is what closes it. (A first replay that patched a SEPARATE import of write.py passed spuriously; the stub must land in the module under test.)
+
+CAVEAT, not a demotion: `write_guard.py check` WARNS on a byte sha absent from the write log, and this write's own log entry carries the post-write bytes (the hand edit survives the read-modify-write), so rc 0, no WARN, even though the census lists the path. Strictly better than pre-fix (the path was not even in the census), but the census and the WARN are two different truths and only the first is closed. Logged as a follow-up, not as this node's claim.

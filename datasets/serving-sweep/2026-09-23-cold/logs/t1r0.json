@@ -1,0 +1,28 @@
+{
+ "name": "t1r0",
+ "port": 18081,
+ "load_s": 56.5,
+ "lv": 1,
+ "rows": [
+  {
+   "prompt_n": 2061,
+   "prompt_ms": 47831.818,
+   "prompt_per_second": 43.08847303274151,
+   "predicted_n": 8,
+   "cache_n": 0,
+   "size_off": 10000,
+   "size_bytes": 9000,
+   "ms_per_token": 23.208
+  },
+  {
+   "prompt_n": 2132,
+   "prompt_ms": 1402.09,
+   "prompt_per_second": 1520.5871235084767,
+   "predicted_n": 8,
+   "cache_n": 0,
+   "size_off": 40000,
+   "size_bytes": 9000,
+   "ms_per_token": 0.658
+  }
+ ]
+}

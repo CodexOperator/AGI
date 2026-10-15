@@ -32,6 +32,7 @@ import errno
 import fcntl
 import json
 import os
+import re
 import sys
 import tempfile
 import time
@@ -39,10 +40,52 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
+import frontmatter  # NOQA: E402
 import locations  # NOQA: E402
+
+#: THE ONE definition of a terminal agent status (hypothesis:l4-one-definition-
+#: of-terminal). `done-unreported` is what the reaper writes when a round
+#: landed and only the report was lost -- the most common ending for a
+#: `--branch` parent, and behaviourally terminal. It used to be omitted and
+#: `dispatch.py` and `heal.py` only survived the omission on a second guard
+#: (`if status != "running": continue`). This lives here because every reader
+#: already imports `spawn_budget` (`dispatch.py`, `cli.py`) or imports a module
+#: that does (`heal.py` -> dispatch), and `spawn_budget` imports only
+#: `locations`, so nothing can cycle. Every reader imports THIS set; none
+#: re-declares it.
+TERMINAL = {"done", "done-unreported", "pending", "hung-healed", "failed"}
 
 #: Fallback when neither `spawn.max_live` nor `spawn.parallel` is configured.
 DEFAULT_MAX_LIVE = 1
+
+#: Per-core load ceiling `spawn.max_load_per_core` defaults to when a project
+#: enables the load gate (hypothesis:l4-spawn-admission-refuses-by-name-
+#: above-a-load-average-bound...): a 1-min load average past this many cpu-
+#: seconds of work per core refuses new admission BY NAME — a refusal, never
+#: a wait. The gate is CONFIG-DRIVEN, never always-on: it engages only when
+#: `spawn.max_load_per_core` appears in config (the knob the Prime writes),
+#: where `0` disables and any positive value x cpu-cores is the bound. When
+#: absent the gate stays off, so a project that never heard of the knob keeps
+#: exactly its old admission behaviour.
+DEFAULT_MAX_LOAD_PER_CORE = 3.0
+
+#: How long `status --iter` sleeps sampling CPU ticks before judging a round
+#: stalled. The director's stall definition (8 s) — a module constant, not a
+#: bare literal, so a test can read it and shrink it.
+TICK_SAMPLE_SECONDS = 8
+
+#: Overridable sample window for the tick measurement. Defaults to
+#: TICK_SAMPLE_SECONDS; tests monkeypatch this down so the falsifier does not
+#: sleep 8 real seconds against live processes.
+_STATUS_SAMPLE_SECONDS = TICK_SAMPLE_SECONDS
+
+#: How often `status --iter --wait` re-reads the lease view (hypothesis:l4-
+#: spawn-budget-status-waits-for-the-parent). Must be <= 5 s per the claim.
+_WAIT_POLL_SECONDS = 1.0
+
+#: `--wait` default timeout, seconds (hypothesis:l4-spawn-budget-status-waits-
+#: for-the-parent).
+_WAIT_TIMEOUT_SECONDS = 1800.0
 
 
 def budget_dir(root: Path) -> Path:
@@ -75,6 +118,7 @@ def budget_dir(root: Path) -> Path:
     main = locations.git_common_root(graph)
     main_graph = locations.find_project_root(main) if main else None
     base = main_graph or graph
+    locations.refuse_live_resolution(root, base)
     return base / locations.SESSIONS_DIR_NAME / ".spawn-budget"
 
 
@@ -142,6 +186,46 @@ def max_live(cfg: dict, default: int = DEFAULT_MAX_LIVE) -> int:
     return int(legacy.get("claude_max_parallel", default))
 
 
+def _max_load_per_core(cfg: dict) -> float | None:
+    """`spawn.max_load_per_core` when the config knob is present, else `None`.
+
+    `None` means "gate not configured" — the load bound stays DISABLED, so a
+    project is never load-gated behind a module constant it never asked for
+    (hypothesis:l4-spawn-admission-refuses-by-name-above-a-load-average-
+    bound...: the gate is config-driven, never always-on).
+    """
+    spawn = cfg.get("spawn") or {}
+    if "max_load_per_core" not in spawn:
+        return None
+    return float(spawn["max_load_per_core"])
+
+
+def load_bound(cfg: dict) -> float:
+    """The load ceiling `acquire` refuses above: `spawn.max_load_per_core`
+    (default 3.0 when the knob IS set) x cpu cores. `spawn.max_load_per_core: 0`
+    disables (bound 0 -> `acquire` never refuses on load). A knob that never
+    appears in config keeps the gate off entirely (bound 0). Best-effort
+    against a missing cpu count (`os.cpu_count` can return None on exotic
+    systems; 1 avoids a divide-by-zero-style empty bound).
+    """
+    per_core = _max_load_per_core(cfg)
+    if per_core is None or per_core <= 0:
+        return 0.0
+    return per_core * (os.cpu_count() or 1)
+
+
+def _loadavg_tuple() -> tuple[float, float, float] | None:
+    """`os.getloadavg()` as a 3-tuple, or `None` when it is unavailable
+    (non-POSIX, `AttributeError`, or an `OSError`). The load gate is
+    best-effort — it must never crash a spawner because the box cannot
+    report its own load.
+    """
+    try:
+        return os.getloadavg()
+    except (OSError, AttributeError):
+        return None
+
+
 def parent_max_kids(cfg: dict, default: int = 4) -> int:
     """The per-dispatch kid ceiling a parent's brief must name
     (hypothesis:l3-parent-never-told-to-iterate).
@@ -159,6 +243,110 @@ def parent_max_kids(cfg: dict, default: int = 4) -> int:
     if "parent_max_kids" in spawn:
         return int(spawn["parent_max_kids"])
     return int(default)
+
+
+def production_line_ceiling(cfg: dict, default: int = 40) -> int:
+    """The production-line ceiling a kid's brief must name
+    (hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-2x-
+    for-a-parent-re-brief).
+
+    A kid with no number to read cannot checkpoint against it: the re-brief
+    rule keyed on kid fan-out, so a single kid ran to 3.4x of its ceiling
+    with nothing to measure against (measured SM.39 ~2.25x, SM.44 3.4x).
+    `spawn.production_line_ceiling` wins; otherwise the ceiling is a small
+    constant, never the whole change. The ceiling is advisory-in-brief -- a
+    hard, visible number the kid plans around -- not a refusal: nothing here
+    blocks a write, it is the number the 2x checkpoint is taken against.
+    """
+    spawn = cfg.get("spawn") or {}
+    if "production_line_ceiling" in spawn:
+        return int(spawn["production_line_ceiling"])
+    return int(default)
+
+
+#: ONE parser of a node's own CEILING clause (hypothesis:l4-sm45b-...): both
+#: brief.py and cli.py import this module, so the number cannot drift between
+#: the brief a kid gets and the harvest that judges it.
+_CEILING_ANCHOR_RE = re.compile(r"CEILING", re.IGNORECASE)
+_CEILING_NUMBER_RES = (
+    re.compile(r"<=?\s*(\d+)"),                      # CEILING: <=N ...
+    re.compile(r"(\d+)\s+production\s+lines", re.I),  # N production lines
+    re.compile(r"(\d+)\s+lines", re.I),               # <=N lines
+)
+_CEILING_KIDS_RE = re.compile(r"across\s+(\d+)\s+kid", re.I)
+_CEILING_SENTENCE_MAX = 60
+
+
+def _ceiling_clause(text: str | None) -> tuple[int, int] | None:
+    """The `(N, K)` of the node's own CEILING clause in `text`, or None.
+    Grammar, verbatim: `CEILING: <=N production lines across K kids`; absent
+    `across K kids` means K=1. LAST match wins; malformed/absent -> None.
+    """
+    if not text:
+        return None
+    found: tuple[int, int] | None = None
+    for anchor in _CEILING_ANCHOR_RE.finditer(text):
+        seg = text[anchor.start():anchor.start() + _CEILING_SENTENCE_MAX]
+        stops = [i for i in (seg.find("\n"), seg.find(".")) if i != -1]
+        if stops:
+            seg = seg[:min(stops)]
+        for pat in _CEILING_NUMBER_RES:
+            m = pat.search(seg)
+            if m:
+                n = int(m.group(1))
+                if n > 0:
+                    km = _CEILING_KIDS_RE.search(seg)
+                    k = int(km.group(1)) if km and int(km.group(1)) > 0 else 1
+                    found = (n, k)
+                break
+    return found
+
+
+def _node_text(graph_root, node_id) -> str | None:
+    """Read a node by id: live `nodes/<type>/`, then `nodes/deprecated/`.
+    An abbreviated prefix (`exp:`/`hyp:`) falls through to `node_writer`."""
+    if not isinstance(node_id, str) or ":" not in node_id:
+        return None
+    ntype, slug = node_id.split(":", 1)
+    if slug.endswith(".md"):
+        slug = slug[:-3]
+    root = Path(graph_root)
+    for base in (root / "nodes", root / "nodes" / "deprecated"):
+        path = base / ntype / f"{slug}.md"
+        if path.is_file():
+            try:
+                return path.read_text(encoding="utf-8")
+            except OSError:
+                return None
+    try:
+        import node_writer  # local: keeps spawn_budget free of that import
+        path = node_writer.find_node_file(root, node_id)
+        return None if path is None else Path(path).read_text(encoding="utf-8")
+    except Exception:
+        # hypothesis:l4-sm36-...-one-scope-rule item 7: a READER must never
+        # swallow KeyboardInterrupt/SystemExit. `except BaseException` did, so
+        # a Ctrl-C during the fallback lookup read as "node absent".
+        return None
+
+
+def node_line_ceiling(graph_root, node_id, cfg, default: int = 40
+                      ) -> tuple[int, int, str]:
+    """The kid's ceiling as (slice, K, source), ONE source. `slice` is
+    `ceil(N/K)` when the dispatching node's clause says `across K kids`, else
+    N (K=1); `source` is `"clause"`/`"default"`; unresolvable -> default.
+
+    Read from the frontmatter `testable_claim` field alone when that field
+    exists: a body or Agent-Notes mention is prose about the ceiling, never
+    the ceiling (hypothesis:l4-sm46b...). No parseable frontmatter, or no such
+    field: the whole text, as before. `_ceiling_clause` stays THE ONE parser.
+    """
+    text = _node_text(graph_root, node_id)
+    fm = None if text is None else frontmatter.read_frontmatter(text)
+    claim = fm.get("testable_claim") if isinstance(fm, dict) else None
+    n = _ceiling_clause(claim if isinstance(claim, str) and claim else text)
+    if n is not None:
+        return -(-n[0] // n[1]), n[1], "clause"
+    return production_line_ceiling(cfg or {}, default), 1, "default"
 
 
 @dataclass
@@ -306,6 +494,32 @@ def _revoke_all(root: Path, hashes: list[str]) -> None:
             pass
 
 
+def live_iteration_ids(root: Path) -> set:
+    """Iteration ids with at least one live lease, READ-ONLY -- no sweep, no
+    revoke, no lock file.
+
+    `live_agents` reclaims dead leases (an unlink under the lock), which is
+    the right behaviour for a spawner but the wrong one for a reader that must
+    itself touch nothing -- the session-complete migration's `--dry-run`
+    proves it writes nothing, so its liveness signal has to be a read. A lease
+    is live while the process it names is (per `_lease_is_live`); a lease that
+    is mid-write here is, at worst, momentarily stale, which a migration gate
+    tolerates (the iteration's agent records must be terminal too).
+    """
+    live: set = set()
+    for _path, rec in _read_leases(root):
+        if _lease_is_live(rec):
+            it = rec.get("iter")
+            if it is not None:
+                live.add(it)
+    return live
+
+
+def live_leases_readonly(root: Path) -> list[dict]:
+    """Live leases, READ-ONLY (no sweep/unlink/lock), with their full rows."""
+    return [rec for _p, rec in _read_leases(root) if _lease_is_live(rec)]
+
+
 def live_agents(root: Path) -> list[dict]:
     """Live leases, after reclaiming dead ones. Takes the lock itself."""
     with _budget_lock(root):
@@ -319,7 +533,7 @@ def live_count(root: Path) -> int:
 
 
 def acquire(root: Path, cap: int, agent_id: str, tier: str = "kid",
-            iter_n: int | None = None) -> Lease | None:
+            iter_n: int | None = None, harness: str | None = None) -> Lease | None:
     """Reserve one slot, or return None if the tree is already at `cap`.
 
     Non-blocking on purpose — see the module docstring. A caller that is
@@ -336,9 +550,40 @@ def acquire(root: Path, cap: int, agent_id: str, tier: str = "kid",
         print(f"spawn_budget: refusing {agent_id} — dispatch paused "
               f"({reason}); spawn_budget.py resume to lift", file=sys.stderr)
         return None
+    # Load gate — a refusal by NAME, never a wait, when the 1-min load
+    # average is past `spawn.max_load_per_core` x cores (hypothesis:l4-spawn-
+    # admission-refuses-by-name-above-a-load-average-bound...). Engineered
+    # CONFIG-DRIVEN: the knob must be read from config (the falsifier "the
+    # knob read from anywhere but config"), so an unconfigured project is
+    # never load-gated. `max_load_per_core: 0` disables. A refused admission
+    # returns None exactly like a full tree — the spawner skips the slot and
+    # says so; it never sleeps.
+    cfg_path = locations.config_path(
+        locations.find_project_root(root) or root)
+    cfg = json.loads(cfg_path.read_text()) if cfg_path else {}
+    bound = load_bound(cfg)
+    if bound > 0:
+        loadv = _loadavg_tuple()
+        if loadv and loadv[0] > bound:
+            per_core = _max_load_per_core(cfg)
+            cores = os.cpu_count() or 1
+            print(f"spawn_budget: refusing {agent_id} — "
+                  f"load {loadv[0]:.1f} > bound {bound:.1f} "
+                  f"({per_core:.1f} x {cores} cores): no admission",
+                  file=sys.stderr)
+            return None
     with _budget_lock(root):
         live, orphaned = _sweep_locked(root)
-        if len(live) >= cap:
+        harness_live = sum(rec.get("harness") == harness for rec in live) if harness else 0
+        import adapters  # noqa: PLC0415 -- the ONE harness read (goal:g7.16.1.7.1.3.1)
+        harness_row = adapters.harness_block(cfg, harness) if harness else None
+        harness_cap = harness_row.get("max_live") if harness_row else None
+        if harness_cap is not None and harness_live >= int(harness_cap):
+            print(f"spawn_budget: refusing {agent_id} -- harness {harness} "
+                  f"at max_live ({harness_live}/{int(harness_cap)})",
+                  file=sys.stderr)
+            admitted = None
+        elif len(live) >= cap:
             admitted = None
         else:
             holder = os.getpid()
@@ -346,6 +591,7 @@ def acquire(root: Path, cap: int, agent_id: str, tier: str = "kid",
                 "agent_id": agent_id,
                 "tier": tier,
                 "iter": iter_n,
+                "harness": harness,
                 "holder_pid": holder,
                 "agent_pid": None,
                 "reserved_at": int(time.time()),
@@ -449,6 +695,369 @@ def _atomic_write_json(path: Path, rec: dict) -> None:
         raise
 
 
+def _pid_ticks(pid: int) -> int:
+    """CPU ticks (utime+stime) consumed by `pid`, or 0 if unreadable."""
+    try:
+        with open(f"/proc/{pid}/stat") as fh:
+            # comm (field 2) can contain spaces/parens; fields after `) ` are
+            # 1-indexed with utime=14, stime=15.
+            parts = fh.read().rsplit(") ", 1)[1].split()
+            return int(parts[12]) + int(parts[13])
+    except (OSError, IndexError, ValueError):
+        return 0
+
+
+def _pid_sockets(pid: int) -> int:
+    """Every socket inode held by `pid` — TCP in ANY state plus unix sockets.
+
+    The old `_pid_established_sockets` counted only ESTABLISHED (state 01)
+    TCP. A parent mid-review between two API calls holds a LISTEN/CLOSE port
+    or a unix control socket and reads as `sockets=0` — a false
+    STALL-CANDIDATE. This reads the pid's fd table for `socket:[inode]`
+    targets, then intersects those inodes with the inode sets of
+    /proc/net/tcp, /proc/net/tcp6 (any state) and /proc/net/unix. Count is
+    len(intersection); 0 on any unreadable edge.
+
+    inode column: index 9 in tcp/tcp6 (10th column), index 6 in unix (a
+    trailing Path may contain spaces, so it is never `cols[-1]`).
+    """
+    try:
+        # iterdir() is LAZY: the directory listing happens inside the first
+        # iteration of the for loop below, NOT at the iterdir() call. So the
+        # whole walk (the listing AND each readlink) must sit inside one try.
+        # A pid that exits mid-read raises FileNotFoundError/ProcessLookupError
+        # out of the `for fd in fds:` loop, which would otherwise escape
+        # _pid_sockets() up into status(). Any OSError here returns the
+        # documented 0.
+        inodes = set()
+        for fd in Path(f"/proc/{pid}/fd").iterdir():
+            try:
+                target = str(fd.readlink())
+            except OSError:
+                continue
+            if target.startswith("socket:[") and target.endswith("]"):
+                inodes.add(target[len("socket:["):-1])
+    except OSError:
+        return 0
+    if not inodes:
+        return 0
+    table = set()
+    for path in ("/proc/net/tcp", "/proc/net/tcp6"):
+        try:
+            lines = Path(path).read_text().splitlines()[1:]
+        except OSError:
+            continue
+        for line in lines:
+            cols = line.split()
+            # any TCP state counts, not just ESTABLISHED (01)
+            if len(cols) >= 10 and cols[9].isdigit():
+                table.add(cols[9])
+    try:
+        lines = Path("/proc/net/unix").read_text().splitlines()[1:]
+    except OSError:
+        lines = []
+    for line in lines:
+        cols = line.split()
+        if len(cols) >= 7 and cols[6].isdigit():
+            table.add(cols[6])
+    return len(inodes & table)
+
+
+def _iter_num(iter_str: str) -> int | None:
+    """Normalise `--iter L4.140` or `--iter 140` to the int the lease stores."""
+    s = iter_str.strip()
+    if "." in s:
+        s = s.rsplit(".", 1)[1]
+    try:
+        return int(s)
+    except ValueError:
+        return None
+
+
+def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[str, str | None, int | None]:
+    """The agent.json `status` for this agent, if a record exists, plus which
+    sessions root answered (`"main"`, `"seat:<name>"`, `"wt:<parent-id>"`, or
+    None for none), plus the record's `overdue_since` value (epoch int, or
+    None when absent). The `worktree` hint is accepted for call-signature
+    compatibility but is no longer authoritative: the search is a plain glob.
+
+    The overdue_since field is what lets the status reader print
+    `agent=running(overdue)` — the word the parent brief now names. heal.py
+    keeps a live-but-past-deadline agent's status `running` and adds
+    `overdue_since`/`overdue_reason` rather than a terminal `overdue`
+    status, so the overdue signal lives HERE, on the one record that is
+    read (hypothesis:l4-the-parent-brief-names-the-overdue-record-as-
+    readers-print-it).
+
+    `iter_val` is the lease's own `iter` field, which is the round's genuine
+    id string (`L4.167`) — never `f"iter-L{int}"`. The real sessions dir is
+    `iter-L4.167`, so building it from an int alone (`iter-L167`) misses every
+    live round. `locations.iteration_dirname` turns the lease value into the
+    exact dir name for both schemes: `L4.167` -> `iter-L4.167`, `140` ->
+    `iter-140`.
+
+    The record layout is NOT "the round's own worktree" (hypothesis:l4-spawn-
+    budget-iter-reads-the-rounds-own-sessions-dir, measured 2026-09-11): a
+    PARENT's agent.json is written by the DISPATCHER into the DISPATCHING
+    tree's sessions dir — a seat worktree
+    (`<main>/.agi/worktrees/seat-<name>/.agi/sessions`) or MAIN itself; a KID's
+    agent.json is written by its PARENT into the PARENT's worktree
+    (`<main>/.agi/worktrees/<parent-id>/.agi/sessions`). So the old probe of
+    the agent's OWN `worktrees/<agent_id>` dir could never find a record — it
+    holds the agent's KIDS, never itself — and every worktree-spawned row
+    printed `(no agent.json)` while the record was live on disk.
+
+    The lookup therefore searches `<iter dir>/<agent_id>/agent.json` under
+    EVERY sessions root the tree can name, in order:
+      1. the invoking root's own graph sessions dir,
+      2. MAIN's graph sessions dir (`budget_dir(root).parent`, as before),
+      3. every `<main>/.agi/worktrees/*/.agi/sessions` — ONE glob over the
+         worktree dir (~150 siblings is cheap), sorted so the answer is
+         deterministic.
+    The label names the answering root: `"main"` for MAIN, `"seat:<name>"`
+    for a worktree named `seat-<name>`, `"wt:<parent-id>"` for any other work
+    worktree. `(no agent.json)` is returned only when NO root holds a record.
+    """
+    try:
+        dirname = locations.iteration_dirname(iter_val)
+    except ValueError:
+        return "(no agent.json)", None, None
+
+    graph = locations.find_project_root(root) or root
+    main = locations.git_common_root(graph)
+    main_graph = locations.find_project_root(main) if main else None
+
+    def wt_label(wt_root: Path) -> str:
+        """`post-<name>` -> `post:<name>`; `seat-<name>` -> `seat:<name>`
+        (deprecated alias); any other worktree root (`a00-06c44930`) ->
+        `wt:<parent-id>` (hypothesis:l4-a-seat-is-a-post-everywhere)."""
+        name = wt_root.name
+        if name.startswith("post-"):
+            return f"post:{name[5:]}"
+        if name.startswith("seat-"):
+            return f"seat:{name[5:]}"
+        return f"wt:{name}"
+
+    # (graph dir, label) candidates in precedence order, deduplicated by path.
+    cands: list[tuple[Path, str]] = []
+    seen: set[Path] = set()
+
+    own = graph
+    if own not in seen:
+        # Label the OWN candidate from the WORKTREE directory, exactly as the
+        # glob candidates below: when the graph dir is `.agi` (the normal
+        # layout) the worktree root is its PARENT; otherwise the graph dir
+        # itself is the worktree root. The pre-fix line passed the graph dir
+        # to `wt_label`, whose `.name` is always `.agi`, so every record
+        # answered from its own non-main root printed `@wt:.agi` — the label
+        # depended on where you stood
+        # (hypothesis:l4-status-iter-labels-every-root-by-its-worktree-name).
+        own_wt = graph.parent if graph.name == ".agi" else graph
+        cands.append((own, "main" if own == main_graph else wt_label(own_wt)))
+        seen.add(own)
+    if main_graph and main_graph not in seen:
+        cands.append((main_graph, "main"))
+        seen.add(main_graph)
+    if main_graph:
+        for wt in sorted(main_graph.glob("worktrees/*")):
+            wt_graph = locations.find_project_root(wt) or wt
+            # Never bleed upward: when a worktree root has no graph of its own,
+            # `find_project_root` resolves an ANCESTOR's graph (the MAIN one)
+            # and a main-tree record would get mislabeled as a worktree record.
+            # Only accept a graph at or below the candidate worktree root.
+            if not (wt_graph == wt or wt in wt_graph.parents):
+                continue
+            if wt_graph in seen:
+                continue
+            cands.append((wt_graph, wt_label(wt)))
+            seen.add(wt_graph)
+
+    for cand, src in cands:
+        p = cand / locations.SESSIONS_DIR_NAME / dirname / agent_id / "agent.json"
+        try:
+            rec = json.loads(p.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        return rec.get("status") or "(no status)", src, rec.get("overdue_since")
+    return "(no agent.json)", None, None
+
+
+def _round_status(root: Path, iter_str: str) -> int:
+    """`status --iter NNN`: the whole round's live rows + one verdict line."""
+    nnn = _iter_num(iter_str)
+    if nnn is None:
+        print(f"spawn_budget: unknown iteration {iter_str!r} "
+              f"(expected L4.NNN or NNN)", file=sys.stderr)
+        return 1
+    rows = [rec for _, rec in _read_leases(root)
+            if _lease_is_live(rec)
+            and _iter_num(str(rec.get("iter"))) == nnn]
+    if not rows:
+        print(f"spawn_budget: no live agents in iteration L{nnn} "
+              f"(dir={budget_dir(root)})", file=sys.stderr)
+        return 1
+    kids = 0
+    total_ticks = 0
+    total_socks = 0
+    done = False
+    # Sample EVERY row's starting tick count first, sleep the ONE shared
+    # window, then re-read every row. Net wall time is one window regardless
+    # of round size, yet every pid still sits under the full window. The
+    # pre-fix loop slept INSIDE the per-row loop, so a 5-row round cost 5
+    # windows — and `status --iter` is exactly the command the director runs
+    # when a round may be stalled.
+    pids = [int(rec.get("agent_pid") or rec.get("holder_pid") or 0)
+            for rec in rows]
+    t0s = [_pid_ticks(pid) for pid in pids]
+    time.sleep(_STATUS_SAMPLE_SECONDS)
+    deltas = [max(0, _pid_ticks(pid) - t0) for pid, t0 in zip(pids, t0s)]
+    for rec, pid, ticks in zip(rows, pids, deltas):
+        tier = rec.get("tier") or "?"
+        started = int(rec.get("spawned_at") or rec.get("reserved_at") or time.time())
+        elapsed = max(0, int(time.time()) - started)
+        socks = _pid_sockets(pid)
+        status, src, overdue = _agent_status(root, rec.get("agent_id", "?"),
+                                             rec.get("iter"), rec.get("worktree"))
+        total_ticks += ticks
+        total_socks += socks
+        if tier == "kid":
+            kids += 1
+        if status in TERMINAL:
+            done = True
+        # `@...` names the sessions root that answered: `@main`, `@seat:<name>`
+        # for a seat worktree, `@wt:<parent-id>` for any other worktree
+        # (hypothesis:l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir).
+        # Nothing when src is None — `(no agent.json)` already names that case.
+        suffix = f"@{src}" if src else ""
+        # A live agent past its deadline keeps `status: running` and gains
+        # `overdue_since` (heal.py) — print `running(overdue)` so the word
+        # the parent brief names is a word THIS reader actually prints
+        # (hypothesis:l4-the-parent-brief-names-the-overdue-record-as-
+        # readers-print-it).
+        mark = "(overdue)" if overdue else ""
+        print(f"  {rec.get('agent_id')} tier={tier} pid={pid} "
+              f"elapsed={elapsed}s ticks={ticks} sockets={socks} "
+              f"agent={status}{mark}{suffix}")
+    if kids >= 1:
+        print(f"round L{nnn}: parent alive, {kids} live kid(s)")
+        return 0
+    # STALL-CANDIDATE only when EVERY signal says stalled: 0 ticks over the
+    # sample, 0 sockets, 0 live kids, no terminal agent.json status. A parent
+    # mid-review holds a socket or burns CPU and must not be called stalled.
+    if total_ticks == 0 and total_socks == 0 and not done:
+        print(f"STALL-CANDIDATE: parent alive, 0 live kids, 0 ticks, "
+              f"0 sockets, no done")
+        return 0
+    print(f"round L{nnn}: parent alive, reviewing "
+          f"(ticks={total_ticks}, sockets={total_socks})")
+    return 0
+
+
+def _parent_lease_live(root: Path, nnn: int) -> bool:
+    """Whether the round still holds a live PARENT-tier lease.
+
+    The wait is on the parent only: a round is finished, for the director who
+    calls `--wait`, the moment the parent exits -- whatever the kids did
+    (hypothesis:l4-spawn-budget-status-waits-for-the-parent).
+    """
+    for _p, rec in _read_leases(root):
+        if (_lease_is_live(rec)
+                and _iter_num(str(rec.get("iter"))) == nnn
+                and (rec.get("tier") or "") == "parent"):
+            return True
+    return False
+
+
+def _round_session_dir_exists(root: Path, iter_val) -> bool:
+    """Whether the round's session dir exists under ANY sessions root.
+
+    This is the "already-finished" signal: an iteration whose parent lease is
+    gone but whose recorded session dir still exists was a real round that
+    ran and finished; a round with neither a lease nor a session dir is an
+    unknown id (exit 3). Searches the same roots `_agent_status` walks
+    (the invoking graph, MAIN's graph, every worktree graph) so a round whose
+    records live in a seat or parent worktree reads as present.
+    """
+    try:
+        dirname = locations.iteration_dirname(iter_val)
+    except ValueError:
+        return False
+    graph = locations.find_project_root(root) or root
+    main = locations.git_common_root(graph)
+    main_graph = locations.find_project_root(main) if main else None
+    roots: list[Path] = [graph]
+    if main_graph and main_graph not in roots:
+        roots.append(main_graph)
+    if main_graph:
+        for wt in sorted(main_graph.glob("worktrees/*")):
+            wt_graph = locations.find_project_root(wt) or wt
+            if not (wt_graph == wt or wt in wt_graph.parents):
+                continue
+            if wt_graph not in roots:
+                roots.append(wt_graph)
+    for g in roots:
+        if (g / locations.SESSIONS_DIR_NAME / dirname).exists():
+            return True
+    return False
+
+
+def _print_remaining_rows(root: Path, nnn: int) -> int:
+    """Print what is left of the round's live rows once the parent is gone.
+
+    Lightweight final view for the `--wait` success path: the parent lease is
+    gone, so the `_round_status` verdict lines (`parent alive, ...`) would all
+    be lies by construction. Instead we list whatever live rows remain (the
+    kids, if any) and the exit is 0 regardless -- the director asked for the
+    parent to be gone and it is.
+    """
+    rows = [rec for _, rec in _read_leases(root)
+            if _lease_is_live(rec) and _iter_num(str(rec.get("iter"))) == nnn]
+    for rec in rows:
+        pid = int(rec.get("agent_pid") or rec.get("holder_pid") or 0)
+        tier = rec.get("tier") or "?"
+        print(f"  {rec.get('agent_id')} tier={tier} pid={pid}")
+    if not rows:
+        print(f"  (no live agents remain)")
+    return 0
+
+
+def _round_status_wait(root: Path, iter_str: str, timeout: float) -> int:
+    """`status --iter NNN --wait`: block until the round's PARENT lease is gone.
+
+    The FIRST read decides already-finished vs unknown (no sleep on an
+    already-finished round):
+      * a parent-tier lease present  -> poll until it clears, or the deadline;
+      * no parent lease but a session dir exists -> already-finished, exit 0;
+      * neither -> unknown round, exit 3.
+    On timeout it prints the last-seen view plus `ERR: ... parent still live
+    after Ss` to stderr and exits 2. It never signals or reaps anything -- the
+    reaper's job -- and only reads the lease view (`_parent_lease_live`).
+    """
+    nnn = _iter_num(iter_str)
+    if nnn is None:
+        print(f"spawn_budget: unknown iteration {iter_str!r} "
+              f"(expected L4.NNN or NNN)", file=sys.stderr)
+        return 1
+    if not _parent_lease_live(root, nnn):
+        if _round_session_dir_exists(root, iter_str):
+            print(f"round {iter_str}: already finished (no parent lease)")
+            return 0
+        print(f"ERR: unknown round {iter_str}", file=sys.stderr)
+        return 3
+    deadline = time.monotonic() + timeout
+    while True:
+        if not _parent_lease_live(root, nnn):
+            print(f"round {iter_str}: parent done (no parent lease)")
+            return _print_remaining_rows(root, nnn)
+        if time.monotonic() >= deadline:
+            _print_remaining_rows(root, nnn)
+            print(f"ERR: {iter_str} parent still live after "
+                  f"{timeout:.0f}s", file=sys.stderr)
+            return 2
+        time.sleep(min(_WAIT_POLL_SECONDS,
+                       max(0.0, deadline - time.monotonic())))
+
+
 def main(argv: list[str] | None = None) -> int:
     """`spawn_budget.py [--root R] status|sweep|pause|resume`.
 
@@ -470,7 +1079,29 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--root", default=".", help="Any path inside the project")
     ap.add_argument("--reason", default="", help="with pause: why (recorded, shown on every refusal)")
     ap.add_argument("--actor", default="", help="with pause: who paused it")
+    ap.add_argument("--iter", default="",
+                    help="status: restrict to one iteration (L4.NNN or NNN) "
+                         "and emit the round verdict")
+    wait = ap.add_argument_group(
+        "status --wait",
+        "--wait blocks until the round's PARENT lease is gone (the parent "
+        "exited, whatever the kids did). It is only meaningful with --iter: "
+        "--wait requires --iter.")
+    wait.add_argument("--wait", action="store_true",
+                      help="with --iter: block until the round's PARENT lease "
+                           "is gone (the parent exited, whatever the kids did)")
+    wait.add_argument("--timeout", type=float, default=_WAIT_TIMEOUT_SECONDS,
+                      help="with --wait: give up after S seconds "
+                           f"(default {_WAIT_TIMEOUT_SECONDS:.0f})")
     args = ap.parse_args(argv)
+
+    if args.wait and not args.iter:
+        # The cross-argument pairing is enforced HERE, at the parser, so the
+        # refusal is argparse's own: usage line printed, `error:` prefix,
+        # exit 2 via SystemExit — not a bare print+return.
+        # (hypothesis:l4-spawn-budget-wait-is-declared-and-its-tests-spawn-
+        # nothing)
+        ap.error("--wait requires --iter")
 
     root = locations.find_project_root(Path(args.root).resolve())
     if root is None:
@@ -495,6 +1126,11 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     cfg_path = locations.config_path(root)
+    if args.iter and args.wait:
+        return _round_status_wait(root, args.iter, args.timeout)
+    if args.iter:
+        return _round_status(root, args.iter)
+
     cfg = json.loads(cfg_path.read_text()) if cfg_path else {}
     cap = max_live(cfg)
     live = live_agents(root)
@@ -504,7 +1140,16 @@ def main(argv: list[str] | None = None) -> int:
         why = f": {paused['reason']}" if paused.get("reason") else ""
         print(f"🔴 PAUSED{who}{why} — acquire() and reaper restarts are "
               f"refused; `spawn_budget.py resume` to lift")
-    print(f"budget: {len(live)}/{cap} live  dir={budget_dir(root)}")
+    loadseg = ""
+    loadv = _loadavg_tuple()
+    if loadv is not None:
+        lo, md, hi = (round(float(x), 1) for x in loadv)
+        bound = load_bound(cfg)
+        if bound > 0:
+            loadseg = f"  load {lo}/{md}/{hi} bound {bound:.1f}"
+        else:
+            loadseg = f"  load {lo}/{md}/{hi}"
+    print(f"budget: {len(live)}/{cap} live{loadseg}  dir={budget_dir(root)}")
     for rec in live:
         it = rec.get("iter")
         # hypothesis:l3-killed-agent-restarts-unattributed — a live lease with

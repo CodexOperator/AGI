@@ -3,13 +3,13 @@ id: hypothesis:l3w4-master-director-kid-worktrees
 mint_id: b2ff94a42a064215989b5162473c30cf
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.12
 next_edges: []
-edited_by: self-perpetuating
+edited_by: belam
 scaffold_hash: 51cf50659a181254
 season: 2
 testable_claim: After the change, sanctuary-master and master-sensei can each spawn a director-kid into its own git worktree cut from the seat checkout, reusing dispatch.py --branch machinery rather than a second mechanism, with model claude-sonnet-5 per the owner; proven by a live spawn under each master seat landing a real commit on its own branch, verified from outside the agent with git rev-list --count base..branch > 0; quorum parent-spawning is unaffected and out of scope.
-thought_session: 3066c544-b046-4b05-a372-c9986c07d0a5
+thought_session: dissolve-legacy-2026-09-19
 title: Sanctuary Master and Master Sensei each need an always-on director-kid, spawned into its own worktree, since the owner has barred them from building directly
 ---
 <!-- BODY:BEGIN -->

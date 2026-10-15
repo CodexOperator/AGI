@@ -1,0 +1,24 @@
+---
+id: hypothesis:l4-anonymized-info-shims-and-a-physical-token-guard-posts-learn-a-box-by-alias-and-the-write-seam-refuses-a-physical-token-read-from-the-live-box
+mint_id: aee6cf7caa5140de931d3d7bc9fe8787
+type: hypothesis
+parents:
+  - goal:g6.12
+next_edges: []
+edited_by: belam
+scaffold_hash: dc0a8092a4c3f854
+season: 2
+testable_claim: "(1) `agi-boxinfo` (bin, on PATH via the same symlink pattern as the agi command) prints ONLY sanctioned facts: box alias (AGI_BOX from the MAIN-root .env, default from the posts node's default_box cell -- SM.117's resolver), GPU class alias + VRAM, RAM, disk free, load, uptime; never hostname, board, product, serial, MAC, IP. (2) PATH shims for post users (extensions/agi/shims/: nvidia-smi, dmidecode, lshw, hostnamectl, lspci) route to filtered output -- GPU class + memory pass, board/product/serial/host/MAC/IP lines are dropped -- and the brief rule reads: posts run agi-boxinfo, never the raw tools; a shim test proves each tool's physical lines are absent from the shimmed output on this box. (3) THE GUARD at the write seam: `anonymize.py check` builds a denylist AT CHECK TIME from the live box (hostname -f, ip -o addr, ip -o link MACs, /sys/class/dmi/id board/product/serial, plus every value of the keys config:secrets names in the MAIN-root .env), never committed and never printed, and refuses BY NAME (the token's class, never its value) a staged commit or a verification run whose added text carries one; it is wired as a MAIN pre-commit hook installed by `anonymize.py install-hook` (box-local .git/hooks, never a tracked file) and as a `verification.py` quick-level check (\"anonymize\"), so both the human commit path and the rotation check refuse the same way. (4) a commit whose added text carries only aliases passes byte-identical to today; the tests build a fake box (env + fixture denylist source) and prove refuse/pass both ways without touching this box's values. CEILING ~80 production lines + the shims; config:box alias resolution at render time is S3-L1, not this round."
+thought_session: dissolve-legacy-2026-09-19
+title: "SM.122 (owner 20:5xZ via the Prime 20:46Z, sibling of SM.117 = the box rails): ANONYMIZED INFO SHIMS + a PHYSICAL-TOKEN GUARD -- posts learn a box only through agi-boxinfo (sanctioned facts by alias), raw hardware tools are shimmed to filtered output, and the write seam refuses any commit or verification whose text carries a physical token read from the live box at check time, never from a committed list"
+town: core
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-anonymized-info-shims-and-a-physical-token-guard-posts-learn-a-box-by-alias-and-the-write-seam-refuses-a-physical-token-read-from-the-live-box
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM.122 BRIEF (sanctuary-master 20:5xZ 09-18; Prime [decision] 20:46Z signed by belam gen 31 at his rotation -- key fp retired at the row, content stands; owner 20:5xZ). MEASURED NOW: no anonymize seam exists in bin/ or tests (grep anonymi = 0 files); verification.py quick level = [links, goals-check, write-guard] (verification.py:69) -- the guard is a fourth entry there; MAIN .git/hooks/ carries no hooks (all samples) -- install-hook writes .git/hooks/pre-commit on the box, never a tracked file; dispatch.py ENV_VARS_TO_SCRUB (:249) is the existing log scrubber -- reuse its shape for the denylist classes; the anonymize RULE is brief §2 (owner 04:1xZ) and the card's standing rule (no hosts/IPs/hardware/locations/key ids; aliases or Doppler class prefixes only). The box alias resolver is SM.117's boxes.py (this_box from AGI_BOX in the MAIN-root .env) -- import it, never a second resolver; SM.117 is live in the same wave, so land order = 117 then 122 or reconcile at the trunk. SHAPE: bin/anonymize.py (denylist builder + check + install-hook, ~50), bin/agi-boxinfo (~20, alias + class facts only), extensions/agi/shims/<tool> (5 one-screen wrappers), verification.py one entry, brief §2 one rule line (posts run agi-boxinfo, never raw tools). TESTS (test_anonymize_guard.py): (1) denylist built from a fake box fixture, never written to disk, never printed; (2) staged diff with a fixture hostname/IP/MAC/board token -> refused BY CLASS; (3) alias-only diff -> passes byte-identical; (4) verification quick level runs the check and refuses the same way; (5) each shim drops the physical lines on this box and keeps GPU class + memory (skip cleanly where the raw tool is absent); (6) agi-boxinfo output contains no denylist token on this box. FILE SCOPE: anonymize.py + agi-boxinfo (new), shims/ (new), verification.py (one entry), doc:unified-director-brief §2 (one line), one test file; never .env values in any output, never a tracked hook, never a node with a physical string. Deliver batch + review in ONE line; dispatch, note the agent id on the card, move on (no foreground-wait).

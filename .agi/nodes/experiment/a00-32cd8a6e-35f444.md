@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3w4-parent-branch-merge-up
 next_edges: []
 confidence: 0.6
-edited_by: a00-bd778983
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-32cd8a6e-35f444
 loop: hypothesis:l3w4-parent-branch-merge-up@s2
@@ -41,13 +41,13 @@ exactly the ADDENDUM naming rule, so the mechanism is not only built, it is
 currently in use by the seat.
 
 2. Defect (a) — `.env`. Running `envfile.py --check` from the main checkout
-passed and reported `ok: /home/ubuntu/work/agi/.env satisfies required
+passed and reported `ok: <home>/work/agi/.env satisfies required
 keys: OPENROUTER_API_KEY` plus `OPENROUTER_PROVISIONING_KEY is set (73
 chars)`. Running the SAME command from inside worktree a00-645422d9
 (`cd .agi/worktrees/a00-645422d9 && python3
-/home/ubuntu/work/agi/extensions/agi/bin/envfile.py --check`) failed hard:
+<home>/work/agi/extensions/agi/bin/envfile.py --check`) failed hard:
 `PROBLEM: missing
-/home/ubuntu/work/agi/.agi/worktrees/a00-645422d9/.env — copy .env.example
+<home>/work/agi/.agi/worktrees/a00-645422d9/.env — copy .env.example
 to it, chmod 600, and fill in: OPENROUTER_API_KEY`. Not a soft warning — a
 hard `--check` failure. `.env` already lives only at the main root, resolved
 as `<source_root>/.env` where source_root is the process's resolved root,
@@ -80,10 +80,10 @@ Node counts: MAIN `find .agi/nodes -name '*.md' | wc -l` = 1560; each worktree
 `.env` probe:
 ```
 # main
-[secrets] ok: /home/ubuntu/work/agi/.env satisfies required keys: OPENROUTER_API_KEY
+[secrets] ok: <home>/work/agi/.env satisfies required keys: OPENROUTER_API_KEY
 [secrets] note: OPENROUTER_PROVISIONING_KEY is set (73 chars)
 # worktree a00-645422d9
-[secrets] PROBLEM: missing /home/ubuntu/work/agi/.agi/worktrees/a00-645422d9/.env
+[secrets] PROBLEM: missing <home>/work/agi/.agi/worktrees/a00-645422d9/.env
            — copy .env.example to it, chmod 600, and fill in: OPENROUTER_API_KEY
 ```
 

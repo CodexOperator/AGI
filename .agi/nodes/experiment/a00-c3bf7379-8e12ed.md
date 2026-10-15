@@ -1,0 +1,154 @@
+---
+id: experiment:a00-c3bf7379-8e12ed
+mint_id: 14dfce57ffb04a53bbf4367bfab20cc6
+type: experiment
+parents:
+  - hypothesis:send-read-prints-every-unread-block-and-every-dm-send-nudges
+next_edges: []
+confidence: 0.88
+edited_by: director-engine
+evidence_runs:
+  - experiment:a00-c3bf7379-8e12ed
+loop: hypothesis:send-read-prints-every-unread-block-and-every-dm-send-nudges@s2
+model: stealth/space-bunny-alpha
+production_lines: 14
+profile: balanced
+role: kid
+scaffold_hash: 72988dd1cc97806b
+season: 2
+title: Deferred clear rotates the queued others instead of unlinking them
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-c3bf7379-8e12ed
+
+## Claim under test
+
+`_clear_deferred` must RETIRE THE HEAD and ROTATE the queued `others`, not
+`unlink()` the whole sidecar. Two senders queued under ONE record must BOTH
+be delivered.
+
+## What the bytes said (pre-fix, tip 48ef5a79b)
+
+| site | file:line (post-fix numbering, tip ecaab9920) | what it did |
+|---|---|---|
+| head is rendered, then cleared | `send.py:4008` (`read`) | prints `_print_deferred_block` (HEAD body only) then `_clear_deferred` |
+| typed nudge | `send.py:2673` (`_nudge`, after Enter) | inline line carries the HEAD body, then `_clear_deferred` |
+| stranded-line recovery | `send.py:2614` (`_nudge` probe-C) | our own line carried it, then `_clear_deferred` |
+| the clear itself | `send.py:1890` (`_clear_deferred`; the unlink at 1920) | `p.unlink()` -- the WHOLE record |
+| the queue | `send.py:1870-1873` (`_store_deferred`) | 2nd+ dm goes to `existing["others"]`, head unchanged |
+
+`_print_deferred_block` (`send.py:3911-3927` at tip ecaab9920 -- the def is 3911, the head-body print is 3921-3927) prints `deferred["body"]` and
+nothing of `others`. So on EVERY clear site the unlink destroyed dm bodies
+that no reader had been shown and that `_notify_undelivered`
+(`send.py:2920-2957` at tip ecaab9920 -- the def is 2920, the function ends at 2957, its one call site is 2976; 2906-2943 was the 38fa6e926 numbering, before the +14 docstring at 1899-1913; 2935-2957 was the notice f-string through `wake_all_local`'s `rec = _read_deferred(root, name)` at 2953, NOT the function) could never reach:
+the seat is still "has pending" only while `_read_deferred` is non-None.
+
+## Fix (production, +14 net, `send.py:1890`)
+
+```python
+    try:
+        p = _nudge_deferred_path(root, seat)
+        if not p.exists():
+            return
+        rest = [o for o in _deferred_queued(p) if o.get("body")]
+        if not rest:
+            p.unlink()
+            return
+        head = dict(rest[0])
+        if len(rest) > 1:
+            head["others"] = rest[1:]
+        p.write_text(json.dumps(head))
+    except OSError:
+        pass
+```
+
+`_deferred_queued` is the existing reader for `others` (already used by the
+DH.657 takeover), so no new parse path. `notified` flags ride along on the
+copied dicts, so an already-notified sender is not re-notified after a
+rotation. A head with no queue still unlinks, so every existing
+single-sender expectation is unchanged.
+
+## Evidence
+
+### RED FIRST, on the pre-fix bytes
+
+```
+$ env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_send.py -q \
+    -k "rotates_queued_deferred_others"
+E       AssertionError: the queued second sender was destroyed by the clear
+E       AssertionError: the queued second sender was destroyed by the typed clear
+E       assert (None is not None)
+FAILED test_send.py::test_read_rotates_queued_deferred_others
+FAILED test_send.py::test_typed_nudge_rotates_queued_deferred_others
+2 failed, 353 deselected in 7.54s
+```
+
+### GREEN on the fixed bytes
+
+```
+$ env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_send.py -q \
+    -k "rotates_queued_deferred_others"
+2 passed, 353 deselected in 0.25s
+```
+
+### SUITE (fixed bytes, once, as ordered)
+
+```
+$ env -u TMUX -u TMUX_PANE timeout 900 python3 -m pytest \
+    extensions/agi/tests/test_send.py extensions/agi/tests/test_bin_help_smoke.py -q
+427 passed, 6 skipped, 11 warnings in 19.63s
+```
+
+### CEILING, measured against the CUT tip (48ef5a79b)
+
+```
+$ git diff --numstat 48ef5a79b -- extensions/agi/bin/send.py extensions/agi/tests/test_send.py
+18       4       extensions/agi/bin/send.py        -> +14 net production (cap 15)
+39       0       extensions/agi/tests/test_send.py -> +39 net test      (cap 40)
+```
+
+(Other paths are untouched by this kid; numstat over the whole tree differs
+only by the node files below, which are not production.)
+
+## probes
+
+| # | kind | probe | command / result |
+|---|---|---|---|
+| 1 | wire (positive) | the real CLI `read` verb on a tmp project, two-sender sidecar, reaches the changed bytes live | `env -u TMUX -u TMUX_PANE -u AGI_AGENT_ID -u AGI_SEAT python3 extensions/agi/bin/send.py --from director read director` twice -> `deferred dm from arch` / `BODY-ONE`, sidecar then `{"sender": "ki", "body": "BODY-TWO", ...}`; second read -> `deferred dm from ki` / `BODY-TWO`, sidecar GONE. PAST. |
+| 2 | wire (negative / no over-reach) | a SINGLE-sender sidecar must still be retired, leaving no residue | same command on a one-record sidecar -> `ONLY-ONE` printed once, `director.nudge.deferred` absent from the inbox dir, second read -> `inbox for director: empty`. The rotation does not resurrect delivered work. |
+| 3 | auth / no real-resource touch | tests use the `project` tmp fixture + `_plain_seats` + `_fake_tmux_pane` (monkeypatches `send_mod.subprocess.run` wholesale); wire probes ran in `/tmp/eg22wire2` and `/tmp/eg22wire3` with `env -u TMUX -u TMUX_PANE -u AGI_AGENT_ID -u AGI_SEAT` | no live pane, seat, inbox, dm file or crontab; 0 USD, pi-free tier 0 |
+| 4 | gate | full suite above on the fixed bytes | 427 passed / 6 skipped, no new skip |
+
+## Honest limits
+
+* The typed-nudge site (2673 / 2614 at ecaab9920; 2659 / 2600 at 38fa6e926) is proved by the pytest pair, not by a
+  real tmux pane: a wire probe for it needs a live fixture pane, which this
+  round's no-real-resource clause forbids. The mechanism is the same
+  `_clear_deferred` call, so the read-path wire probe plus the API-level
+  test cover it.
+* The two rotation tests assert the QUEUE survives, not that the second body
+  is eventually re-notified as `[undelivered]` when the seat is never read
+  again; that path (`_notify_undelivered` over a rotated head) is untouched
+  and unexercised here.
+
+## Items NOT taken (out of this kid's scope)
+
+Director items 2-6 of the EG.22 order (HARD CAP breach on the previous round,
+stale `file:line` citations, the un-retracted provenance sentences in
+`a00-143f92b1-0696a2.md`, the thinness of the DH.657 evidence line, the
+re-check of no-real-resource/no-demotion) are node-text and measurement work
+on OTHER nodes; the tier parent framed me for item 1 BYTES plus the probes
+and the numstat. I did not touch those node files. They remain open.
+
+<!-- BODY:END -->
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+EG.77 corrective (a00-f7270e83): the post-fix pointers at body 14-23 re-measured by grep -n against tip ecaab9920 and named beside it -- read call 3995->4008, _nudge clears 2659->2673 and 2600->2614, _print_deferred_block 3897-3913->3911-3927 (print 3921-3927), _notify_undelivered 2906-2943->2920-2957 (one call 2976). All moved +14 by the _clear_deferred docstring at 1899-1913; the EG.41 note further down stays as the record of the 38fa6e926 numbering.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Deferred clear now rotates the queued 'others' instead of unlinking them: red-first at both clear sites, +14 net production / +39 net test over 48ef5a79b, 427 passed / 6 skipped, real-CLI wire probe delivers both bodies. Commit is the loop's, not mine.
+
+EG.41 CITATION CORRECTION (a00-cf800c23, tip 38fa6e926): the two pointers above were read off a PREVIOUS tree and are wrong here; grep -n on extensions/agi/bin/send.py at this tip gives `2906:def _notify_undelivered(root: Path, seat: str, rec: dict) -> None:`, `2943:            _nudge_deferred_path(root, seat).write_text(json.dumps(rec))`, `2946:def wake_all_local(...)`, `2953:        rec = _read_deferred(root, name)`, `2962:            _notify_undelivered(root, name, rec)`, `3897:def _print_deferred_block(root: Path, me: str, deferred: dict,` -- the table rows at send.py:3995 / :2659 / :2600 / :1890 and the rest of the pre-fix table were re-checked at this tip and are CORRECT.

@@ -1,0 +1,10 @@
+box: avail 7833 MiB, memory psi some avg10 5.89
+box: avail 7852 MiB, memory psi some avg10 8.05
+box: avail 7623 MiB, memory psi some avg10 5.01
+box: avail 7478 MiB, memory psi some avg10 6.33
+box: avail 7195 MiB, memory psi some avg10 2.94
+launch: params sha256 61c2f3d53de59d38cb62d87377ffad56b844a800446c74a9df054154d30edc7f, torch 2.14.0+cu130
+seed 0: void=None n_load_bearing=1 {"5": [99.5, 98.5, false], "1": [8.5, 24.0, false], "45": [100.0, 99.5, true], "34": [0.5, 5.5, false]}
+seed 1: void=None n_load_bearing=0 {"7": [1.5, 2.0, false], "34": [30.5, 27.5, false], "5": [91.0, 96.0, false], "3": [64.0, 76.0, false]}
+seed 2: void=None n_load_bearing=0 {"39": [34.0, 60.5, false], "45": [90.5, 85.5, false], "21": [15.0, 8.0, false], "17": [53.5, 69.5, false]}
+verdict disproved

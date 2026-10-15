@@ -1,0 +1,8 @@
+TEL.01 probe_kv_surface.py --cache  2026-09-21T03:56:10Z
+port 8080 (router) /slots -> 200, /slots/0?action=* -> 501 (all 9 actions)
+candidate routes: /kv /seq /sequence /cache /kv-cache /apply-template -> 404
+cache_probe:
+  r1_A_S_B cache_n= 0 prompt_n= 770 prompt_ms= 577.202
+  r2_A_S_B_repeat cache_n= 766 prompt_n= 4 prompt_ms= 86.767
+  r3_X_S_B_shifted cache_n= 0 prompt_n= 770 prompt_ms= 528.493
+binary-strings.txt: 39 lines incl common_memory::seq_add / seq_rm / seq_cp, llama_memory_can_shift, --cache-reuse help, checkpoint machinery (NO shift HTTP route)

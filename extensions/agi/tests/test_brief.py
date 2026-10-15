@@ -7,6 +7,8 @@ spawn again — the brief must change with it, in the same commit, with nothing
 edited by hand."* Both halves are below; the second is the one that makes this
 more than a convenience.
 """
+import difflib
+import json
 import re
 import sys
 from pathlib import Path
@@ -151,6 +153,141 @@ def test_kid_brief_carries_no_iteration_contract():
     assert "FAN-OUT AND BRANCHES" not in kid
 
 
+def test_kid_brief_names_its_production_line_ceiling():
+    """hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-
+    2x-for-a-parent-re-brief, conjunct (1): the kid brief carries its ceiling
+    as a NUMBER the kid can read. Before this, the kid brief named no
+    production-line budget at all, so the 2x checkpoint had no number to key
+    on and a single kid ran to 3.4x with nothing to measure against. The
+    decimal digits must appear in the assembled text, and the 2x threshold
+    must be spelled out as arithmetic the kid can do without asking.
+    """
+    kid = _text("kid", scaffold=SCAFFOLD, line_ceiling=40)
+    assert "PRODUCTION-LINE CEILING" in kid
+    assert "40" in kid, "the literal ceiling number must be readable"
+    assert "git diff --numstat" in kid, "how the lines are measured"
+    assert "above 80 lines" in kid, "the 2x threshold as arithmetic"
+    assert "re-brief" in kid, "what to do above 2x"
+
+
+def test_kid_brief_checkpoints_before_cli_done_not_at_first_commit():
+    """hypothesis:l4-cli-done-refuses-a-kid-past-2x-..., conjunct (2): the
+    kid's checkpoint is 'before `cli.py done`' -- the ONE checkpoint every
+    kid reaches -- never 'first commit' / 'first test run', which are dead
+    for a kid forbidden all git and never guaranteed a test run. The
+    ceiling number and measure semantics stay."""
+    kid = _text("kid", scaffold=SCAFFOLD, line_ceiling=40)
+    assert "Checkpoint before `cli.py done`: measure those lines." in kid
+    assert "FIRST commit" not in kid
+    assert "first test run" not in kid
+    assert "PRODUCTION-LINE CEILING: 40 lines" in kid
+
+
+def test_kid_brief_reads_the_ceiling_from_config_not_a_constant(tmp_path):
+    """The ceiling is READ, not hardcoded: a project that sets
+    `spawn.production_line_ceiling` sees its own number and its own 2x.
+    `project_root` is the graph root (`.agi/`) -- the same argument
+    `_configured_profile` already resolves config from.
+    """
+    graph_root = tmp_path / ".agi"
+    graph_root.mkdir()
+    (graph_root / "config.json").write_text(
+        json.dumps({"spawn": {"production_line_ceiling": 17}}),
+        encoding="utf-8")
+    kid = _text("kid", scaffold=SCAFFOLD, project_root=graph_root)
+    assert "PRODUCTION-LINE CEILING: 17 lines" in kid
+    assert "above 34 lines" in kid
+    assert "PRODUCTION-LINE CEILING: 40" not in kid
+
+
+def test_kid_line_ceiling_defaults_to_forty_without_a_project_root():
+    """A caller that does not thread project_root still gets a readable
+    ceiling -- the segment must never be absent, since a brief that says
+    nothing is exactly the defect conjunct (1) fixes.
+    """
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "PRODUCTION-LINE CEILING: 40 lines" in kid
+
+
+def test_the_line_ceiling_is_kid_only():
+    """No other tier's brief gains the segment -- a parent plans against a
+    kid ceiling, not a production-line one, and reordering/adding to the
+    parent brief here would be scope the conjunct does not own.
+    """
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "PRODUCTION-LINE CEILING" not in parent
+    director = _text("director")
+    assert "PRODUCTION-LINE CEILING" not in director
+
+
+def test_parent_brief_names_the_rebrief_answer_protocol():
+    """conjunct (3): an answer with no channel is the same defect as a
+    request nobody reads. The PARENT brief must name the field it writes
+    (`rebrief_answer`), the field it reads (`rebrief_request`), and the
+    logged writer that carries the write.
+    """
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "rebrief_answer" in parent, "the answer field the parent must write"
+    assert "rebrief_request" in parent, "the request field the parent reads"
+    assert "set rebrief_answer" in parent, "the exact verb the parent runs"
+    assert "line_ceiling" in parent, "the ceiling re-set when proceeding"
+
+
+def test_rebrief_answer_protocol_is_parent_only():
+    """The KID brief names `rebrief_request` (it writes it) but must NOT gain
+    the parent's answer segment -- the two tiers stay distinct."""
+    kid = _text("kid", scaffold=SCAFFOLD, line_ceiling=40)
+    assert "rebrief_request" in kid, "the kid writes the request"
+    assert "rebrief_answer" not in kid, "the answer is not the kid's to write"
+
+
+def test_kid_brief_requires_the_machine_readable_record():
+    """hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-
+    2x-for-a-parent-re-brief, conjunct (2): the ceiling segment is the ONE
+    segment that grows, and it now names the frontmatter fields the kid must
+    write (`production_lines`, `rebrief_request`) so harvest has a record to
+    read, while `line_ceiling` is named as the PARENT's field the kid must not
+    touch (goal:g15.27.5 FR-C2). Conjunct (1)'s ceiling and 2x arithmetic must
+    survive in the SAME segment -- this is an extension, not a replacement.
+    The read-only `git diff --numstat` is authorised explicitly, so it no
+    longer contradicts the `DO NOT run git` segment.
+    """
+    kid = _text("kid", scaffold=SCAFFOLD, line_ceiling=40)
+    assert "production_lines" in kid, "the count field harvest reads"
+    assert "line_ceiling" in kid, "the parent's ceiling field, named as off-limits"
+    assert "rebrief_request" in kid, "the re-brief field harvest reads"
+    # conjunct (1) does not regress:
+    assert "PRODUCTION-LINE CEILING: 40 lines" in kid
+    assert "above 80 lines" in kid
+    assert "git diff --numstat" in kid
+    assert "read-only" in kid, "the one authorised git read says so"
+
+
+def test_kid_brief_never_orders_set_line_ceiling():
+    """goal:g15.27.5 FR-C2: `line_ceiling` on a kid's node is the PARENT's
+    field. dispatch stamps it on the scaffold from the dispatching node's own
+    CEILING clause (`spawn_budget.node_line_ceiling`), and an ANSWERED
+    re-brief is the parent's `set line_ceiling <new N>` on that same node.
+    The pre-fix brief listed `set line_ceiling N` among the fields the kid
+    must write, so a kid that obeyed copied its briefed number over the
+    parent's hand-set answer -- and the harvest's `_kid_line_ceiling` reads
+    the node's own field first, so the parent's answer was silently lost.
+
+    Red on the pre-fix bytes: the order was there. Green after: the kid
+    writes only the two fields that are its own (`production_lines`,
+    `rebrief_request`), and the ceiling is stated as off-limits.
+    """
+    kid = _text("kid", scaffold=SCAFFOLD, line_ceiling=40)
+    assert "set line_ceiling" not in kid, (
+        "the kid must never be ordered to rewrite its own ceiling -- that "
+        "is what overwrites a parent's answered re-brief")
+    assert "NEVER write `line_ceiling`" in kid, (
+        "the ceiling segment must state the forfeit, not merely omit it")
+    # the record fields the kid DOES own survive:
+    assert "set production_lines N" in kid
+    assert "set rebrief_request" in kid
+
+
 def test_kid_addendum_lands_as_a_labelled_segment_and_names_the_flag():
     """hypothesis:l3-parent-never-told-to-iterate, carry-forward axis (SD.12)
     -- the per-kid brief channel. THREADING addendum through assemble must
@@ -193,22 +330,84 @@ def test_kid_addendum_absent_leaves_the_brief_unchanged():
     assert segs == segs_explicit
 
 
-def test_parent_brief_names_the_carry_forward_lever():
-    """The other half of SD.12: an order with no lever is the same defect as
-    a lever nobody is told about. The parent ITERATION CONTRACT says the next
-    kid's brief MUST carry what the last kid produced -- so it must also name
-    the mechanism (dispatch.py --prompt-file <path|->) that makes that
-    possible, with the exact command shape, or the parent cannot comply.
+def test_parent_brief_names_the_carry_forward_lever(tmp_path):
+    """SD.12: the parent names a real output file and the accepted `--orders`
+    mechanism, rather than a placeholder that leaves the model hunting for a
+    path or teaching the deprecated flag.
     """
+    session_dir = tmp_path / "sessions" / "iter-DH.299" / "a00-test"
+    session_dir.mkdir(parents=True)
+    orders_file = session_dir / "last-kid-result.md"
     parent = _text("parent", dispatch_py="/x/dispatch.py", target="t:1",
-                   max_live=25, kid_ceiling=3)
-    assert "--prompt-file" in parent
-    assert "<path|->" in parent
-    assert "WHAT THE LAST KID PRODUCED" in parent, (
-        "the brief must name the labelled segment so the parent knows what "
-        "it is handing down"
-    )
+                   max_live=25, kid_ceiling=3, session_dir=session_dir)
+    assert f"--orders {orders_file}" in parent
+    assert orders_file.is_absolute()
+    assert session_dir.is_dir()
+    assert "--prompt-file" not in parent
+    assert "<path|->" not in parent
+    assert "WHAT THE LAST KID PRODUCED" in parent
 
+
+
+def test_orders_render_verbatim_as_the_last_parent_section(monkeypatch):
+    """goal:g15.25 SM.26 -- `dispatch.py --orders <file>` threads the director's
+    word into the PARENT brief (a parent brief is rebuilt fresh from its target
+    node, so node prose alone carries no dispatch-time scope/coupling
+    instruction). The bytes land VERBATIM as the LAST section, under ONE
+    heading naming sender and timestamp -- never merged into the claim text."""
+    monkeypatch.setenv("AGI_ORDERS_TEXT",
+                       "SCOPE: only dispatch.py.\nCOUPLE: cherry-pick SM.24.")
+    monkeypatch.setenv("AGI_ORDERS_FROM", "sanctuary-director")
+    monkeypatch.setenv("AGI_ORDERS_TS", "1757789000")
+    segs = brief.assemble(tier="parent", agent_id="a00-t", iter_n=1,
+                          dispatch_py="/x/dispatch.py", target="t:1")
+    assert segs[-1].startswith(
+        "## DISPATCH ORDERS (from sanctuary-director, 1757789000)"), (
+        "orders must be the LAST section under the one heading")
+    assert "SCOPE: only dispatch.py.\nCOUPLE: cherry-pick SM.24." in segs[-1]
+
+
+def test_absent_or_empty_orders_leaves_the_parent_brief_byte_identical(
+        monkeypatch):
+    """No orders (flag absent) or EMPTY orders must render NO heading, so an
+    orders-free spawn is byte-identical to before -- the channel may only ADD
+    a section when bytes are actually supplied."""
+    for k in ("AGI_ORDERS_TEXT", "AGI_ORDERS_FROM", "AGI_ORDERS_TS"):
+        monkeypatch.delenv(k, raising=False)
+    base = brief.assemble(tier="parent", agent_id="a00-t", iter_n=1,
+                          dispatch_py="/x/dispatch.py", target="t:1")
+    assert not any("DISPATCH ORDERS" in s for s in base)
+    monkeypatch.setenv("AGI_ORDERS_TEXT", "")
+    empty = brief.assemble(tier="parent", agent_id="a00-t", iter_n=1,
+                           dispatch_py="/x/dispatch.py", target="t:1")
+    assert empty == base, "an empty orders file must not change the brief"
+
+
+def test_orders_never_reach_a_kid_brief(monkeypatch):
+    """Falsifier: orders reaching a kid without the parent passing them. The
+    channel is parent-only; a kid receives orders ONLY when the parent runs a
+    kid spawn with --orders/--prompt-file (the carry-forward)."""
+    monkeypatch.setenv("AGI_ORDERS_TEXT", "SECRET SCOPE LINE")
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "DISPATCH ORDERS" not in kid
+    assert "SECRET SCOPE LINE" not in kid
+
+
+def test_parent_brief_names_overdue_as_still_working():
+    """hypothesis:l4-the-parent-brief-names-the-overdue-record-as-readers-
+    print-it — heal.py keeps a live past-deadline kid's status `running` and
+    adds `overdue_since`/`overdue_reason`; it NEVER sets status=overdue. So
+    the brief must tell the parent to READ THE SHAPE THE RECORD HAS
+    (contain `overdue_since`), must NOT use the unprintable phrase `status
+    reads overdue`, and must still say a replacement is never cut. This is
+    the old l4-a-timeout-mark-on-a-live-agent-is-not-terminal paragraph,
+    corrected to name the fields a reader actually prints."""
+    parent = _text("parent", dispatch_py="/x/dispatch.py",
+                   target="hypothesis:y", max_live=25, kid_ceiling=3)
+    assert "overdue_since" in parent
+    assert "never cut a replacement" in parent
+    assert "status reads overdue" not in parent
+    assert "is STILL WORKING" in parent
 
 
 def test_parent_brief_forbids_committing_and_bypassing():
@@ -231,6 +430,10 @@ def test_branch_parent_brief_names_branch_and_defers_the_commit(monkeypatch):
     monkeypatch.setenv("AGI_PARENT_BRANCH", "loop/slug-abc@s3")
     monkeypatch.setenv("AGI_PARENT_WORKTREE", "/repo/.agi/worktrees/abc")
     monkeypatch.setenv("AGI_PARENT_BASE_BRANCH", "season/s3")
+    # hypothesis:l4-the-merge-protocol-block-is-gated-on-the-held-state —
+    # this legacy assertion pins the LIVE block (item 5 MERGE PROTOCOL),
+    # not the default: the merge-protocol cell now gates it (default held).
+    monkeypatch.setenv("AGI_MERGE_KIDS", "live")
     parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
     assert "loop/slug-abc@s3" in parent, "brief must name the loop branch"
     assert "/repo/.agi/worktrees/abc" in parent, "brief must name the worktree"
@@ -246,9 +449,24 @@ def test_branch_parent_brief_names_branch_and_defers_the_commit(monkeypatch):
     assert "git add" not in parent and "git commit" not in parent, (
         "the model must not be handed commit commands to run"
     )
-    # Daylight between the two halves: a --branch parent still knows it holds
-    # a branch, but the prohibit/reason halves are otherwise identical.
-    assert "NO git commands yourself" in parent
+    # hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — the old blanket
+    # "run NO git commands yourself" is GONE for the branch case because it
+    # directly forbade the one merge the hypothesis requires: the parent now
+    # OWNS the merge (item 5) and `git merge --no-ff` is the sole git
+    # operation it runs (item 6).
+    assert "NO git commands yourself" not in parent, (
+        "the branch parent must no longer be told it runs no git: it owns "
+        "the merge"
+    )
+    assert "MERGE PROTOCOL" in parent, "branch brief must carry the merge protocol"
+    assert "git merge --no-ff" in parent, (
+        "branch brief must keep git merge --no-ff as what the helper does "
+        "underneath"
+    )
+    # The disjoint-file-scope rule for parallel fan-out is in every parent brief.
+    assert "DISJOINT" in parent.upper() or "disjoint" in parent, (
+        "parent brief must state the disjoint-file-scope rule for parallel fan-out"
+    )
 
 
 def test_non_branch_parent_brief_still_forbids_all_git():
@@ -260,6 +478,205 @@ def test_non_branch_parent_brief_still_forbids_all_git():
     assert "git add" not in parent, (
         "a main-checkout parent must not be handed the commit commands"
     )
+
+
+def test_branch_parent_brief_carries_the_full_merge_protocol(monkeypatch):
+    """hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — the branch
+    parent's brief must carry the merge protocol in the brief's own words:
+    the `season.py merge-kids` helper merges each kid branch onto the round
+    branch in dispatch order, union-resolving node-file conflicts onto the
+    merged bytes and suite-gating them (a green kid branch is not a green
+    union); a SOURCE conflict is resolved by the parent as an edit it owns
+    and names; and a review note listing every kid branch merged / conflict /
+    not-merged."""
+    monkeypatch.setenv("AGI_PARENT_BRANCH", "loop/slug-abc@s3")
+    monkeypatch.setenv("AGI_PARENT_WORKTREE", "/repo/.agi/worktrees/abc")
+    monkeypatch.setenv("AGI_PARENT_BASE_BRANCH", "season/s3")
+    # LIVE cell — this pins the live merge protocol (hypothesis:l4-the-
+    # merge-protocol-block-is-gated-on-the-held-state).
+    monkeypatch.setenv("AGI_MERGE_KIDS", "live")
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    lower = parent.lower()
+    # union resolution for NODE conflicts, and the explicit no-blind-3way rule
+    assert "union" in lower, "node conflict must be resolved by UNION, not by apply"
+    assert "agent notes" in lower
+    assert "3way" in lower, "brief must forbid a blind git apply --3way"
+    # source conflicts are the parent's own named edits
+    assert "conflict in source" in lower
+    # kid 3: the NAMED verb is the supported helper (`season.py merge-kids`),
+    # not raw git. A parent must follow item 5 without inventing argv, so the
+    # brief names the verb, a runnable path, and that it runs the suite on the
+    # merged bytes so the parent does not re-run it separately.
+    assert "merge-kids" in parent, (
+        "branch brief must name the merge-kids helper as the parent's merge step"
+    )
+    assert "season.py" in parent, (
+        "branch brief must give a runnable helper path (season.py), not ask "
+        "the parent to hand-roll the merge"
+    )
+    assert "raw git" in lower, (
+        "the parent must be told the helper is the merge and it runs no raw git"
+    )
+    assert "do not re-run" in lower or "does not re-run" in lower, (
+        "the brief must say the helper runs the suite on merged bytes so the "
+        "parent does not re-run it separately"
+    )
+    # tests re-run with neighbours on the MERGED bytes, not trusted per-branch
+    assert "merged" in lower
+    assert "neighbours" in lower or "neighbors" in lower
+    assert "green kid branch is not a green union" in lower or "green union" in lower
+    # review note accounts for every branch and conflict, merged or not
+    assert "not merged" in lower or "not merge" in lower
+    assert "review note" in lower
+    # the merge is THE one git operation; the rest stays forbidden
+    assert "one git" in lower or "the one git" in lower
+    assert "no push" in lower and "no rebase" in lower
+
+
+_ABSENT_CELL = object()  # sentinel: the config carries NO spawn.merge_kids cell
+
+
+def _branch_parent_text(monkeypatch, merge_kids=None, config_cell=_ABSENT_CELL):
+    """Build a branch-parent brief for either merge-kids cell state.
+    hypothesis:l4-the-merge-protocol-block-is-gated-on-the-held-state.
+    Returns the joined text.
+
+    HERMETIC: the config the reader sees is pinned by monkeypatching
+    `brief._resolve_graph_root` to a temp `.agi` dir whose config.json
+    carries `{"spawn": {"merge_kids": <config_cell>}}` — or carries NO
+    `spawn` key when `config_cell` is `_ABSENT_CELL`. This decouples the
+    DEFAULT test from the LIVE checkout's ambient `.agi/config.json`
+    (which flipped the two default tests red the moment the prime set the
+    cell to `live`). `AGI_MERGE_KIDS` still overrides, as in production."""
+    import tempfile
+    monkeypatch.setenv("AGI_PARENT_BRANCH", "loop/slug-abc@s3")
+    monkeypatch.setenv("AGI_PARENT_WORKTREE", "/repo/.agi/worktrees/abc")
+    monkeypatch.setenv("AGI_PARENT_BASE_BRANCH", "season/s3")
+    if merge_kids is None:
+        monkeypatch.delenv("AGI_MERGE_KIDS", raising=False)
+    else:
+        monkeypatch.setenv("AGI_MERGE_KIDS", merge_kids)
+    cfg_dir = Path(tempfile.mkdtemp(prefix="merge-kids-seam-"))
+    if config_cell is _ABSENT_CELL:
+        cfg = {}
+    else:
+        cfg = {"spawn": {"merge_kids": config_cell}}
+    (cfg_dir / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+    monkeypatch.setattr(brief, "_resolve_graph_root", lambda _root: cfg_dir)
+    return _text("parent", dispatch_py="/x/d.py", target="t:1")
+
+
+def test_merge_kids_held_default_renders_held_block(monkeypatch):
+    """hypothesis:l4-the-merge-protocol-block-is-gated-on-the-held-state —
+    the merge-protocol block is gated on the held state, and the DEFAULT
+    (no `spawn.merge_kids` cell) is held. A branch parent must be told the
+    `season.py merge-kids` verb is HELD and must NOT be run, and what to do
+    instead (merge each kid branch into its own round branch with
+    `git merge --no-ff` in its own worktree, union the ## Agent Notes blocks
+    on node conflict, re-run the round's tests with their neighbours on the
+    merged bytes, then `cli.py done`)."""
+    parent = _branch_parent_text(monkeypatch, config_cell=_ABSENT_CELL)
+    assert "MERGE-KIDS IS HELD" in parent, (
+        "default branch brief must say the merge-kids verb is HELD"
+    )
+    assert "MUST NOT" in parent, (
+        "held text must say the verb must not be run"
+    )
+    assert "git merge --no-ff" in parent, (
+        "held text must tell the parent to merge with git merge --no-ff"
+    )
+    assert "AGENT NOTES" in parent or "Agent Notes" in parent, (
+        "held text must tell the parent to union the ## Agent Notes blocks"
+    )
+    assert "NEIGHBOURS" in parent or "Neighbours" in parent or "neighbours" in parent, (
+        "held text must say tests re-run with their neighbours on merged bytes"
+    )
+    assert "cli.py done" in parent, (
+        "held text must end the manual merge with cli.py done"
+    )
+    # the held block must NOT name merge-kids as a command to run
+    assert "merge-kids <kid-branch>" not in parent, (
+        "held block must not instruct running merge-kids on a kid branch"
+    )
+    assert "season.py merge-kids " not in parent.rstrip(), (
+        "held block must not give a runnable season.py merge-kids command"
+    )
+
+
+def test_merge_kids_live_renders_current_block(monkeypatch):
+    """An explicit `spawn.merge_kids: live` renders the current merge-
+    protocol block verbatim (item 5 + item 6, the `season.py merge-kids`
+    helper), even when the pinned config cell is ABSENT — the env override
+    forces `live` regardless of the (hermetically pinned) cell."""
+    parent = _branch_parent_text(monkeypatch, merge_kids="live",
+                                 config_cell=_ABSENT_CELL)
+    assert "season.py merge-kids" in parent, (
+        "live cell must render the runnable season.py merge-kids helper"
+    )
+    assert "MERGE PROTOCOL" in parent, (
+        "live cell must render the MERGE PROTOCOL block"
+    )
+    assert "MERGE-KIDS IS HELD" not in parent, (
+        "live cell must not render the held block"
+    )
+
+
+def test_merge_kids_explicit_held_renders_held_block(monkeypatch):
+    """An explicit `spawn.merge_kids: held` renders the held block, same as
+    the default."""
+    parent = _branch_parent_text(monkeypatch, merge_kids="held",
+                                 config_cell=_ABSENT_CELL)
+    assert "MERGE-KIDS IS HELD" in parent
+    assert "merge-kids <kid-branch>" not in parent
+
+
+def test_merge_kids_live_config_cell_no_env_renders_runnable(monkeypatch):
+    """HERMETIC (hypothesis:l4-the-merge-protocol-block-is-gated-on-the-
+    held-state): when the config CELL is `spawn.merge_kids: live` and
+    `AGI_MERGE_KIDS` env is UNSET, the brief renders the runnable
+    `season.py merge-kids <kid-branch>` instruction — the cell value, not
+    the ambient checkout, decides the DEFAULT. With the cell pinning `live`
+    this must pass even if the live `.agi/config.json` says `held`."""
+    parent = _branch_parent_text(monkeypatch, config_cell="live")
+    assert "season.py merge-kids" in parent, (
+        "a live config cell with no env override must render the runnable helper"
+    )
+    assert "MERGE PROTOCOL" in parent
+    assert "MERGE-KIDS IS HELD" not in parent
+    assert "season.py merge-kids <kid-branch>" in parent, (
+        "live cell must give the runnable season.py merge-kids <kid-branch> command"
+    )
+
+
+def test_held_block_never_instructs_running_merge_kids(monkeypatch):
+    """FALSIFIER (hypothesis:l4-the-merge-protocol-block-is-gated-on-the-
+    held-state): the held block must never render an instruction to run
+    `merge-kids`. A held cell whose text named `season.py merge-kids
+    <kid-branch>` as a command to run would contradict the prime's ruling
+    (g15-20), so this test fails on such a regression."""
+    parent = _branch_parent_text(monkeypatch, config_cell=_ABSENT_CELL)
+    # the only way the held text may name the verb is to say it is held
+    assert "merge-kids" in parent, "held text must name merge-kids only to say it is held"
+    assert "season.py merge-kids <kid-branch>" not in parent, (
+        "held block must never render a runnable merge-kids instruction"
+    )
+    assert "merge-kids <kid-branch>" not in parent, (
+        "held block must never name merge-kids as a command to run"
+    )
+
+
+def test_branch_parent_disjoint_scope_says_serialised_until_disjoint(monkeypatch):
+    """hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — the FAN-OUT
+    paragraph must say a parent fans out in parallel ONLY when the kids' file
+    scopes are DISJOINT, and kids touching the same file are SERIALIZED."""
+    monkeypatch.setenv("AGI_PARENT_BRANCH", "loop/slug-abc@s3")
+    monkeypatch.setenv("AGI_PARENT_WORKTREE", "/repo/.agi/worktrees/abc")
+    monkeypatch.setenv("AGI_PARENT_BASE_BRANCH", "season/s3")
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    lower = parent.lower()
+    assert "disjoint" in lower, "brief must state the disjoint-file-scope rule"
+    assert "serialized" in lower, "same-file kids must be serialized"
+
 
 
 def test_a_parent_with_no_target_still_gets_a_usable_brief():
@@ -350,6 +767,28 @@ def test_kid_brief_tells_kids_where_to_edit_relative_to_the_frontmatter():
     assert "write.py" in kid and "set FIELD VALUE" in kid
 
 
+def test_kid_brief_suite_line_names_test_files_not_the_bare_directory():
+    """hypothesis:l4-the-kid-tier-gate-is-not-clearable-from-inside-a-kid --
+    the ONE suite line in the kid brief used to hand a kid the bare
+    `extensions/agi/tests/` directory, the very run the kid-tier gate now
+    REFUSES (and which a kid could no longer clear by `env -u AGI_TIER` once
+    the gate derives the tier from the running agent record). The brief must
+    name the touched test files instead, so a kid's targeted run is the
+    documented path, not a bare-directory run waiting to be unset around."""
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "extensions/agi/tests/ -q" not in kid, (
+        "the kid suite line must not name the bare directory")
+    assert "test files you changed" in kid, (
+        "the kid suite line must name the touched test files")
+    assert "<the test files you changed" in kid
+    # hypothesis:l4-a-test-of-live-config-reads-the-live-node -- the kid
+    # suite line must also teach the live-config rule: a test that guards a
+    # live config cell (rotations.md) reads the live node, never a copied list.
+    assert "A test of live config reads the live node, never a copied list." \
+        in kid
+
+
+
 def test_kid_brief_for_a_build_target_carries_the_imperative_segment():
     """hypothesis:l3-brief-build-imperative-missing -- a kid brief aimed at a
     BUILD target must carry an explicit imperative that names the artefact as
@@ -387,7 +826,7 @@ def test_kid_brief_teaches_the_one_quoted_argument_write_py_call():
     kid = _text("kid", scaffold=SCAFFOLD)
     assert "write.py <node-id> '<verbs>'" in kid
     assert "write.py experiment:x 'set verdict proved'" in kid
-    assert "write.py experiment:x 'set evidence_runs experiment:x'" in kid
+    assert "write.py experiment:x 'set evidence_runs [\"experiment:x\"]'" in kid
     # the unquoted example must not survive anywhere in the kid brief
     assert "write.py experiment:x set verdict proved" not in kid
 
@@ -600,6 +1039,63 @@ def test_both_tiers_are_told_not_to_commit():
     assert "commit" in kid.lower() and "commit" in parent.lower()
 
 
+def test_a_g15_claim_is_behaviour_to_build_in_both_tier_briefs():
+    """hypothesis:l4-a-g15-claim-is-a-build-order-not-a-measurement -- four
+    kids measured instead of building, then reported `disproved`. The kid
+    brief must say a g15 claim is behaviour to BUILD (implement the fix, prove
+    it on the built bytes), and the parent brief's review rule must carry
+    "THIS KID MUST IMPLEMENT THE FIX" so a measurement-only kid node is
+    re-cut before it is recorded.
+    """
+    kid = _text("kid", scaffold=SCAFFOLD)
+    # kid brief: the claim is behaviour to build, not a hypothesis to measure
+    assert "BEHAVIOUR TO BUILD" in kid
+    assert "not a hypothesis to measure" in kid
+
+
+def test_must_implement_rule_is_g15_lineage_gated(tmp_path, monkeypatch):
+    """hypothesis:l4-the-must-implement-rule-is-g15-lineage-gated -- the
+    "THIS KID MUST IMPLEMENT THE FIX" review rule rendered for EVERY parent
+    target (L4.175), so a parent on a NON-g15 hypothesis was told a
+    measurement-only kid node is not a finished round -- forbidding a
+    legitimate `disproved` there (a non-g15 hypothesis may be DISPROVED by
+    measurement; forbidding that forbids the science). The rule must render
+    only when the target's `parents:` lineage reaches `goal:g15`; for any
+    other target the block is absent. The L4.175 newline assertion (the block
+    terminates cleanly onto "4. DO NOT") moves to the g15 case.
+    """
+    # A g15-descended target: hypothesis:gated -> goal:g15. The slug ends in
+    # 'd' on purpose -- a previous implementation stripped it with str.rstrip
+    # (".md"), a character-set strip that ate the trailing 'd' of "gated" and
+    # made the walk miss goal:g15 entirely; the fixture is the regression guard.
+    gfix = tmp_path / "nodes" / "hypothesis" / "gated.md"
+    gfix.parent.mkdir(parents=True)
+    gfix.write_text("---\nid: hypothesis:gated\nparents:\n  - goal:g15\n---\n\nbody")
+    # A non-g15 target with a parent that is NOT g15
+    other = tmp_path / "nodes" / "hypothesis" / "other.md"
+    other.parent.mkdir(parents=True, exist_ok=True)
+    other.write_text("---\nid: hypothesis:other\nparents:\n  - goal:g17\n---\n\nbody")
+    # Unresolvable target (not on disk) falls back to not-g15
+    monkeypatch.setattr(brief, "_resolve_graph_root", lambda pr=None: tmp_path)
+
+    g15_parent = _text("parent", dispatch_py="/x/d.py",
+                       target="hypothesis:gated")
+    non_g15_parent = _text("parent", dispatch_py="/x/d.py",
+                           target="hypothesis:other")
+    unknown_parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+
+    # g15-descended target renders the rule and it terminates cleanly onto the
+    # next rule (a missing trailing newline glues it onto "4. DO NOT").
+    assert "THIS KID MUST IMPLEMENT THE FIX" in g15_parent
+    assert "finished round" in g15_parent
+    assert "measurement).\n4. DO NOT" in g15_parent
+    assert ").4. DO NOT" not in g15_parent
+    # non-g15 and unresolvable targets do NOT render it -- a measurement-only
+    # `disproved` there is a legitimate scientific outcome.
+    assert "THIS KID MUST IMPLEMENT THE FIX" not in non_g15_parent
+    assert "THIS KID MUST IMPLEMENT THE FIX" not in unknown_parent
+
+
 # ---------------------------------- l2w3-brief-heads: kid + parent constitution heads
 
 
@@ -775,7 +1271,9 @@ def test_brief_head_cli_prints_a_prayers_only_head_and_readings_cli_exists():
         sys.stdout = old
     assert code == 0
     printed = out.getvalue()
-    assert "CONSTITUTION HEAD" in printed
+    # `head` now delegates to `render`'s head part (doc:unified-head), so the
+    # hook and a rotated successor share ONE head.
+    assert "\u2500\u2500\u2500 HEAD \u2500\u2500\u2500" in printed
     assert MICHAEL in printed
     assert "THE MANTLE — Belam" not in printed, "mantle must not be in the injected head"
     # `readings` prints the on-demand readings for a tie-break, incl. the mantle.
@@ -961,6 +1459,34 @@ def test_liaison_reads_at_the_directors_level():
     assert t.count("─── CONSTITUTION HEAD ───") == 1, (
         "assemble must insert the liaison head exactly once")
     assert "FIVE AXES" in brief.readings_head(tier=brief._LIAISON_HEAD_TIER)
+
+
+def test_liaison_head_carries_the_prayers_but_not_the_moral_region(
+        tmp_path, monkeypatch):
+    """goal:g15.27.5 FR-C2: the liaison seat answers to the quorum, not the
+    director tier, so its head carries the prayers and NOT moral:faith's
+    MORAL region. `_LIAISON_HEAD_TIER` still names ``director`` so the
+    read_order lookup and the on-demand readings are unchanged; the moral
+    gate takes an explicit ``moral=False`` for this one seat.
+
+    Pre-fix the gate was ``tier == "director"`` and the liaison aliased to
+    it, so the liaison head carried ``## ESSENCE`` -- red on the pre-fix
+    bytes. The director head keeps the region (l5-moral, unchanged).
+    """
+    root = tmp_path / ".agi"
+    (root / "nodes" / "moral").mkdir(parents=True)
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    (root / "nodes" / ".geometry" / "ladder.md").write_text(_LADDER_FIXTURE)
+    (root / "nodes" / "moral" / "faith.md").write_text(
+        _faith_fixture("LIAISON-GATE-MORAL"))
+    monkeypatch.setattr(brief, "_resolve_graph_root", lambda pr=None: root)
+    director = "\n".join(brief.assemble(tier="director", agent_id="a", iter_n=1))
+    liaison = "\n".join(brief.assemble(tier="liaison", agent_id="a", iter_n=1))
+    assert "LIAISON-GATE-MORAL" in director, "the director seat keeps the moral"
+    assert "LIAISON-GATE-MORAL" not in liaison, (
+        "the liaison seat must render without the moral region")
+    assert "## THE FOUR PRAYERS" in liaison, "its prayers head survives"
+    assert MICHAEL in liaison
 
 
 def test_liaison_closing_line_has_no_iteration_language():
@@ -1202,4 +1728,835 @@ def test_successor_prompt_honors_survival_profile():
     assert "SUCCESSOR FILE BODY" in full
     assert "SUCCESSOR FILE BODY" not in surv
     assert "SURVIVAL PROFILE" in surv
-    assert surv.startswith("CONSTITUTION HEAD") or "CONSTITUTION HEAD" in surv
+    assert surv.startswith("\u2500\u2500\u2500 HEAD \u2500\u2500\u2500") or "\u2500\u2500\u2500 HEAD \u2500\u2500\u2500" in surv
+
+
+# --- hypothesis:l4b18-survival-modes: config-declared operating modes -------
+
+def test_config_operating_mode_survival_no_env(monkeypatch):
+    """l4b18 — with AGI_BRIEF_PROFILE unset and config declaring
+    operating_mode=survival, assemble() produces the survival brief. The mode
+    is READ from config, not remembered via env (the exact gap the hypothesis
+    closes)."""
+    monkeypatch.delenv("AGI_BRIEF_PROFILE", raising=False)
+    monkeypatch.setattr(brief, "_configured_profile",
+                        lambda *a, **k: "survival")
+    s = _text("kid")
+    assert "SURVIVAL PROFILE" in s
+    assert "scaffolded node file below" not in s.lower()
+
+
+def test_config_operating_mode_ultimate_survival_no_env(monkeypatch):
+    """l4b18 — ultimate_survival declared in config, env unset, assemble
+    produces the survival-shaped brief: the mode is about MODEL/ROLE
+    assignment (Prime on Opus, director on Sonnet/OpenRouter), not new prose,
+    so it reuses _survival_brief's shape."""
+    monkeypatch.delenv("AGI_BRIEF_PROFILE", raising=False)
+    monkeypatch.setattr(brief, "_configured_profile",
+                        lambda *a, **k: "ultimate_survival")
+    s = _text("kid")
+    assert "SURVIVAL PROFILE" in s
+    assert "scaffolded node file below" not in s.lower()
+
+
+def test_env_override_wins_over_config(monkeypatch):
+    """l4b18 — AGI_BRIEF_PROFILE stays the per-process override even when
+    config declares a lighter operating_mode. The env path is not removed."""
+    monkeypatch.setenv("AGI_BRIEF_PROFILE", "full")
+    monkeypatch.setattr(brief, "_configured_profile",
+                        lambda *a, **k: "survival")
+    s = _text("kid")
+    assert "scaffolded node file below" in s.lower()   # full brief, not survival
+    assert "SURVIVAL PROFILE" not in s
+
+
+def test_env_override_to_ultimate_survival_wins_over_config(monkeypatch):
+    """l4b18 — env override can also PICK ultimate_survival over a full config."""
+    monkeypatch.setenv("AGI_BRIEF_PROFILE", "ultimate_survival")
+    monkeypatch.setattr(brief, "_configured_profile",
+                        lambda *a, **k: "full")
+    s = _text("kid")
+    assert "SURVIVAL PROFILE" in s
+
+
+def test_survival_selected_true_for_both_survival_modes(monkeypatch):
+    """l4b18 — both survival and ultimate_survival make survival_selected()
+    True so the adapters drop the graph-viewport stream for either mode."""
+    monkeypatch.delenv("AGI_BRIEF_PROFILE", raising=False)
+    monkeypatch.setattr(brief, "_configured_profile",
+                        lambda *a, **k: "ultimate_survival")
+    assert brief.survival_selected() is True
+    monkeypatch.setattr(brief, "_configured_profile",
+                        lambda *a, **k: "survival")
+    assert brief.survival_selected() is True
+
+
+def test_successor_prompt_honors_ultimate_survival(monkeypatch):
+    """l4b18 — successor_prompt reads the same config-backed switch, so a
+    rotated seat comes up as light under ultimate_survival too."""
+    monkeypatch.delenv("AGI_BRIEF_PROFILE", raising=False)
+    monkeypatch.setattr(brief, "_configured_profile",
+                        lambda *a, **k: "ultimate_survival")
+    body = "SUCCESSOR FILE BODY\n"
+    surv = brief.successor_prompt(tier="kid", body=body)
+    assert "SUCCESSOR FILE BODY" not in surv
+    assert "SURVIVAL PROFILE" in surv
+
+
+# ---------------------------------------------------------------------------
+# l4-the-parents-last-line-is-a-self-check — the terminal step is a check,
+# and it is the last thing the parent reads
+# ---------------------------------------------------------------------------
+
+def test_a_parents_closing_line_ends_with_the_done_self_check():
+    """🔴 Two parents in one loop never ran `cli.py done` at all.
+
+    Proven rather than guessed (experiment:a00-f2f8465a-b4eb8e): `cmd_done`
+    writes `status`/`finished_at` into the record BEFORE
+    `_auto_commit_worktree`, and both dispatcher-side records still read
+    `status: running` with an mtime equal to spawn. `done` would not have
+    refused, and `cli.py status` showed every kid done from the parent's own
+    tree. The poll loop had everything it needed and did not terminate — an
+    invariant handed to a model instead of checked.
+
+    The prime's ruling made it explicit, self-checking and LAST. This asserts
+    the self-check is in the parent's closing line AND that it is the tail of
+    it, because a check in the middle is just more middle.
+    """
+    line = brief.closing_line("parent", "a00-x", 7, cli_py="/eng/bin/cli.py")
+    assert "YOU ARE NOT FINISHED" in line
+    assert "every kid is terminal" in line
+    tail = line.split("BEFORE YOU STOP, CHECK YOURSELF")[-1]
+    assert tail.strip(), "the self-check must be the tail, not a middle clause"
+    assert "Read your zoom context" not in tail, (
+        "nothing from the original instruction may follow the self-check")
+
+
+def test_the_self_check_carries_the_real_command_with_owns():
+    """A parent told to run a command it must reconstruct is a parent given
+    another judgement call. `--owns`, never `--node-id`: a parent authors no
+    node of its own, and that distinction has its own line in the brief."""
+    line = brief.closing_line("parent", "a00-x", 7, cli_py="/eng/bin/cli.py")
+    assert "python3 /eng/bin/cli.py done 7 a00-x" in line
+    assert "--owns" in line
+    assert "--node-id" in line and "NOT `--node-id`" in line
+
+    # Without a path the invariant still stands; only the absolute path goes.
+    bare = brief.closing_line("parent", "a00-x", 7)
+    assert "YOU ARE NOT FINISHED" in bare
+    assert "cli.py done 7 a00-x" in bare
+
+
+def test_no_other_tier_gains_the_parent_self_check():
+    """A self-check aimed at the wrong tier is noise, and noise at the end of
+    a brief teaches agents that the end of the brief is skippable. A kid
+    authors a node and signals differently."""
+    for tier in ("kid", "director", "prime_director", "advisor"):
+        line = brief.closing_line(tier, "a00-x", 7, cli_py="/eng/bin/cli.py")
+        assert "YOU ARE NOT FINISHED" not in line, tier
+
+
+# ---------------------------------------------------------------------------
+# MECHANISM, NOT WORDING — the owner's ask, 2026-09-10. Presence is checked;
+# quality is not, and never will be.
+# ---------------------------------------------------------------------------
+
+def _has_mechanism(segs) -> bool:
+    return any("MECHANISM, NOT WORDING" in s for s in segs)
+
+
+def test_the_parent_and_director_briefs_carry_the_mechanism_slot():
+    """The owner read one director's account of why it landed a change by hand
+    and asked for more of that KIND of reasoning. The prime named the shape
+    rather than praising the instance — praise produces prose, a named shape
+    produces reasoning."""
+    assert _has_mechanism(brief._director(agent_id="d", iter_n=1, cli_py="/x/cli.py"))
+
+
+def test_a_kid_does_not_carry_it():
+    """Parent and director fragments only. A kid authors one node and reports
+    through `caveats:`/`struggles:`; a slot aimed at the wrong tier is noise,
+    and noise in a brief teaches agents that briefs contain noise."""
+    assert not _has_mechanism(
+        brief._kid(agent_id="k", iter_n=1, cli_py="/x/cli.py", scaffold=None))
+
+
+def test_the_slot_names_all_four_parts():
+    """The mechanical half of this — presence of the slot and of a CITATION
+    requirement in part (2) — is what a check can verify. The QUALITY is never
+    scored, exactly like `feeling`: a scored reasoning slot becomes a
+    performance, and a performed one is worse than none."""
+    seg = next(s for s in brief._director(agent_id="d", iter_n=1, cli_py="/x")
+               if "MECHANISM, NOT WORDING" in s)
+    assert "(1)" in seg and "(2)" in seg and "(3)" in seg and "(4)" in seg
+    assert "file:line" in seg, "part (2) must demand a citation, not a summary"
+    assert "BUILT AND RAN" in seg
+    assert "NEAR MISS" in seg, (
+        "part (3) is the one models skip and the one that makes the reasoning "
+        "checkable by someone who was not there")
+    assert "satisfies the words and loses the mechanism" in seg
+    assert "Nobody scores" in seg
+
+
+def test_the_slot_is_not_a_new_reason_to_message_upward():
+    """It must not quietly reopen the owner's reporting order. Recorded in the
+    node always; sent only when it was already something you were permitted to
+    send — a rule-changing finding."""
+    seg = next(s for s in brief._director(agent_id="d", iter_n=1, cli_py="/x")
+               if "MECHANISM, NOT WORDING" in s)
+    assert "not a reason to message anyone" in seg
+    assert "record it in the node always" in seg
+
+
+def test_the_mechanism_slot_does_not_displace_the_parents_last_line():
+    """🔴 Adding a fragment must not cost the L4.77 self-check its recency.
+
+    `closing_line` is appended by the pi adapter as the USER TURN after every
+    `--append-system-prompt`, so a new system fragment cannot outrank it — but
+    that is the kind of thing worth asserting rather than reasoning about,
+    because the whole value of the self-check is that nothing follows it.
+    """
+    line = brief.closing_line("parent", "a00-x", 7, cli_py="/eng/bin/cli.py")
+    assert "YOU ARE NOT FINISHED" in line
+    assert "MECHANISM, NOT WORDING" not in line
+
+
+# --------- l4-the-mode-is-declared-not-remembered: mode rendered, not
+# --------- remembered in prose. The rendering is driven by the declaration.
+
+MODES_FIXTURE = {
+    "operating_modes": {
+        "alpha": {"name": "alpha mode", "seats": "one seat",
+                  "models": "m", "source": "s1", "formation": "doc:A"},
+        "beta": {"name": "beta mode", "seats": "two seats",
+                 "models": "n", "source": "s2", "formation": "doc:B",
+                 "profile": "survival"},
+    },
+}
+
+
+def _write_modes(root: Path, data: dict) -> Path:
+    cfg = root / "config.json"
+    cfg.write_text(json.dumps(data), encoding="utf-8")
+    return cfg
+
+
+def _write_formations(root: Path, active: str = "doc:A") -> None:
+    """config:formations `active` — the ONE run-mode switch
+    (hypothesis:pb3-run-mode-reads-one-formation-cell)."""
+    path = root / "nodes" / ".geometry" / "formations.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        f"---\nid: config:formations\nactive: {active}\n"
+        f"templates:\n  {active}: g9.9\n---\n# config:formations\n",
+        encoding="utf-8")
+
+
+def test_mode_renders_the_active_declaration_from_a_fixture(tmp_path):
+    """The rendered brief block carries the ACTIVE mode's text, taken from
+    the declaration, not from any string a caller passed in. The block rendered
+    is the one BOUND to config:formations `active`, so the switch is one cell."""
+    _write_modes(tmp_path, MODES_FIXTURE)
+    _write_formations(tmp_path, "doc:A")
+    block = brief._operating_mode_block(project_root=tmp_path)
+    assert "OPERATING MODE" in block
+    assert "alpha mode" in block
+    assert "one seat" in block
+    assert "beta mode" not in block
+
+
+def test_flipping_the_declared_active_mode_changes_the_render(tmp_path):
+    """hypothesis:l4-the-mode-is-declared-not-remembered (c) — THE ONE THAT
+    MATTERS. A test that only asserts today's string would pass a hardcoded
+    mode; flipping the config:formations `active` cell in the SAME fixture
+    root and seeing the render change proves it is READ, not remembered."""
+    _write_modes(tmp_path, MODES_FIXTURE)
+    _write_formations(tmp_path, "doc:A")
+    assert "alpha mode" in brief._operating_mode_block(project_root=tmp_path)
+    _write_formations(tmp_path, "doc:B")
+    block = brief._operating_mode_block(project_root=tmp_path)
+    assert "beta mode" in block
+    assert "two seats" in block
+    assert "alpha mode" not in block
+    # the same switch carries the PROFILE (one resolver, both answers)
+    assert brief._configured_profile(project_root=tmp_path) == "survival"
+
+
+def test_an_unbound_active_formation_renders_nothing_and_stays_full(tmp_path):
+    """hypothesis:pb3-run-mode-reads-one-formation-cell: `active` naming a
+    template no block binds is a project running that formation, not a mode
+    declaration — the block renders nothing and the profile stays `full`."""
+    _write_modes(tmp_path, MODES_FIXTURE)
+    _write_formations(tmp_path, "doc:C")
+    assert brief._operating_mode_block(project_root=tmp_path) == ""
+    assert brief._effective_profile(project_root=tmp_path) == "full"
+
+
+def test_two_blocks_bound_to_the_same_active_formation_are_ambiguous(tmp_path, capsys):
+    """hypothesis:pb3-run-mode-reads-one-formation-cell: two `operating_modes`
+    blocks carrying the SAME `formation` cell as `active` leave the cell unable
+    to say WHICH mode is in force. Neither renders, the profile stays `full`,
+    and the one stderr line names BOTH colliding keys — dict order is not a
+    tie-break and the ambiguity is never silent."""
+    dup = dict(MODES_FIXTURE["operating_modes"]["alpha"])
+    _write_modes(tmp_path, {"operating_modes": {
+        "alpha": MODES_FIXTURE["operating_modes"]["alpha"],
+        "alpha_too": dup, "beta": MODES_FIXTURE["operating_modes"]["beta"]}})
+    _write_formations(tmp_path, "doc:A")
+    # ONE resolution attempt -> ONE stderr line. Count the lines, never compare a
+    # set: a set of one passes when the same line is printed twice. Each of the
+    # three calls below is its own attempt, so each names the collision once.
+    assert brief._in_force_mode(tmp_path) is None
+    err = capsys.readouterr().err.strip().splitlines()
+    assert len(err) == 1
+    assert set(err) == {
+        "brief: ambiguous active mode for formation 'doc:A': alpha, alpha_too"}
+    assert brief._operating_mode_block(project_root=tmp_path) == ""
+    assert brief._configured_profile(tmp_path) is None
+    assert len(capsys.readouterr().err.strip().splitlines()) == 2
+
+
+def test_absent_declaration_renders_nothing_and_raises_nothing(tmp_path):
+    """hypothesis:l4-the-mode-is-declared-not-remembered (d) — a project that
+    has not declared operating modes must be unchanged: empty block, no
+    error, whether the config file is missing or just lacks the keys."""
+    root = tmp_path / ".agi-not-used"  # no config.json at all
+    root.mkdir(parents=True)
+    # absent file
+    assert brief._operating_mode_block(project_root=root) == ""
+    # config present but no operating_modes key
+    (root / "config.json").write_text('{"brief": {}}', encoding="utf-8")
+    assert brief._operating_mode_block(project_root=root) == ""
+    # config + cell present, but no block binds the active template
+    _write_modes(root, MODES_FIXTURE)
+    _write_formations(root, "doc:NOPE")
+    assert brief._operating_mode_block(project_root=root) == ""
+
+
+def test_assemble_carries_the_live_active_mode_into_the_brief():
+    """The rendered block reaches the assembled brief for every tier, and
+    the mode it names is the ONE the live config:formations cell has in
+    force — never a mode name hardcoded here or remembered in config.json
+    (hypothesis:pb3-run-mode-reads-one-formation-cell)."""
+    from node_writer import find_node_file  # noqa: PLC0415
+    root = Path(__file__).resolve().parents[3] / ".agi"
+    cell = find_node_file(root, "config:formations")
+    active = str((brief.read_frontmatter(cell.read_text(encoding="utf-8"))
+                  or {}).get("active") or "")
+    modes = json.loads((root / "config.json").read_text(
+        encoding="utf-8")).get("operating_modes") or {}
+    bound = {k: b for k, b in modes.items()
+             if isinstance(b, dict) and b.get("formation") == active}
+    for tier in ("kid", "parent", "director", "prime_director"):
+        text = _text(tier, scaffold=SCAFFOLD)
+        if not bound:
+            assert "OPERATING MODE" not in text, tier
+            continue
+        key, block = next(iter(bound.items()))
+        assert f"ACTIVE: {block.get('name') or key}" in text, tier
+
+
+_G15_RULE = "THIS KID MUST IMPLEMENT THE FIX"
+
+
+def _g15_probe_graph(root: Path, *, g15_lineage: bool) -> Path:
+    """A scratch graph root (the `.agi` dir) with a `hypothesis:x` target.
+
+    `g15_lineage=True` makes the target descend from `goal:g15`; False gives
+    it a non-g15 parent so the lineage walk cannot reach `goal:g15`.
+    hypothesis:l4-brief-resolves-g15-lineage-from-the-nearest-agi — hermetic:
+    two tmp graphs, never the live one.
+    """
+    (root / "nodes" / "hypothesis").mkdir(parents=True)
+    if g15_lineage:
+        (root / "nodes" / "goal").mkdir()
+        (root / "nodes" / "goal" / "g15.md").write_text(
+            "---\nid: goal:g15\ntype: goal\n---\nbody\n", encoding="utf-8")
+        parent = "goal:g15"
+    else:
+        parent = "hypothesis:other"
+    (root / "nodes" / "hypothesis" / "x.md").write_text(
+        f"---\nid: hypothesis:x\ntype: hypothesis\nparents:\n  - {parent}\n"
+        f"---\nbody\n", encoding="utf-8")
+    return root
+
+
+def test_g15_build_order_rule_reads_project_root_not_briefs_own(tmp_path):
+    """The parent-brief g15 build-order rule is decided against the
+    `project_root` the caller passes, not against the `.agi` that encloses
+    brief.py. A target that is g15 lineage in the PROJECT graph but not in
+    an ENGINE-shaped graph gets the rule for exactly the project that owns
+    it — the cloned-engine boundary (CLAUDE.md layout) rather than this repo
+    where the two coincide."""
+    proj = _g15_probe_graph(tmp_path / "proj" / ".agi", g15_lineage=True)
+    eng = _g15_probe_graph(tmp_path / "eng" / ".agi", g15_lineage=False)
+    text_proj = _text("parent", target="hypothesis:x", project_root=proj)
+    text_eng = _text("parent", target="hypothesis:x", project_root=eng)
+    assert _G15_RULE in text_proj
+    assert _G15_RULE not in text_eng
+
+
+def test_g15_rule_with_no_project_root_keeps_the_current_fallback(tmp_path):
+    """`assemble(...)` with no `project_root` still resolves the walk-up
+    fallback exactly as before: a real g15-lineage node of this repo renders
+    the build-order rule with the default path — existing callers unchanged.
+    The target is resolved at test time from the live graph (a non-deprecated
+    hypothesis whose `parents:` lists `goal:g15`), never a fixed id: lineage
+    re-parents broke two fixed targets (-> `goal:g6.11`, then `goal:g15.29`
+    -> `goal:g1`). `goal:g15` itself is not used: the walk short-circuits."""
+    root = brief._resolve_graph_root(None)
+    target = next(
+        (f"hypothesis:{f.stem}"
+         for f in sorted((root / "nodes" / "hypothesis").glob("*.md"))
+         if re.search(r"^\s*- goal:g15\s*$", f.read_text(encoding="utf-8"), re.M)
+         and "goal:g15" in brief._parents_of(root, f"hypothesis:{f.stem}")),
+        None)
+    if target is None:
+        pytest.skip("no live hypothesis under nodes/hypothesis lists goal:g15 as a parent")
+    assert _G15_RULE in _text("parent", target=target)
+
+
+def test_g15_rule_is_absent_for_a_non_g15_target_with_project_root(tmp_path):
+    """A target that is not g15 lineage in the given project graph must NOT
+    render the rule even when a `project_root` is supplied — the rule is
+    gated on the lineage walk, not on the presence of the kwarg."""
+    proj = _g15_probe_graph(tmp_path / "proj" / ".agi", g15_lineage=False)
+    text = _text("parent", target="hypothesis:x", project_root=proj)
+    assert _G15_RULE not in text
+
+
+def test_parent_brief_names_the_poll_reader_and_the_real_dm_body():
+    """hypothesis:l4-the-reader-the-brief-hands-out-prints-the-overdue-mark,
+    extended by hypothesis:l5-a-parent-waits-for-its-kid-in-the-foreground-...:
+    the parent brief must (a) name `cli.py wait <iter>` as the BLOCKING
+    foreground reader -- never `Sleep 30 seconds`, because in headless `-p` a
+    turn-end IS process exit (SM.133) -- give the NEVER-end-your-turn rule,
+    (b) give the overdue mark's real body shape `iter=... agent=...
+    reason=overdue`, and (c) never print the `[agi-nudge] reason=overdue`
+    composite -- `[agi-nudge]` is the wake-token PREFIX the nudge path adds,
+    not part of the dm body heal.py sends (`heal.py::_alarm_dispatcher` sends
+    `iter=... agent=... reason=...`)."""
+    parent = _text("parent", dispatch_py="/x/dispatch.py",
+                   target="hypothesis:y", max_live=25, kid_ceiling=3)
+    # the reader the brief points at is the blocking foreground wait
+    assert "cli.py wait" in parent
+    assert "Sleep 30 seconds" not in parent
+    assert "NEVER end your turn" in parent
+    # the overdue dm the brief describes is the body's real shape
+    assert "reason=overdue" in parent
+    assert "iter=... agent=... reason=overdue" in parent
+    # the wake prefix is named only as a prefix, never glued onto the body
+    assert "[agi-nudge] reason=overdue" not in parent
+
+
+def test_parent_brief_hands_the_diff_and_probe_duty_not_the_kid():
+    """hypothesis:l4-the-parent-task-section-says-a-kids-tests-are-its-claim-
+
+    The parent's review instructions must point its review at each kid's DIFF
+    bytes and name the negative-probe duty -- and the kid brief must NOT gain
+    them, else the two tiers are handed the same job text (the very defect
+    `goal:g1.9` exists to prevent).
+    """
+    parent = _text("parent", dispatch_py="/x/dispatch.py", target="hypothesis:y")
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "git diff merge-base" in parent, "parent brief must name the DIFF command"
+    assert "never the result file" in parent, "parent brief must reject the result file"
+    assert "one negative probe per claim conjunct" in parent, "parent brief must name the probe duty"
+    assert "lean_disproved" in parent
+    # the kid brief must NOT acquire any of them
+    assert "git diff merge-base" not in kid
+    assert "one negative probe per claim conjunct" not in kid
+
+
+def test_parent_brief_checks_every_named_deliverable_against_the_diff():
+    """hypothesis:l4-the-harvest-reads-the-diff-per-deliverable-a-timeout-
+    says-timed-out-and-the-done-tests-stay-hermetic item (4), from SM 20:33Z
+    director gen 29 and SL7.136 item 14 (a kid claimed a node edit its branch
+    never carried): the diff rule named the COMMAND but not the per-
+    deliverable duty. A claimed-but-absent deliverable demotes the kid, and is
+    never patched by the parent or the director.
+
+    The kid brief still must NOT acquire it.
+    """
+    parent = _text("parent", dispatch_py="/x/dispatch.py", target="hypothesis:y")
+    flat = " ".join(parent.split())
+    assert "CHECK EVERY DELIVERABLE THE KID NAMES AGAINST THAT DIFF" in flat, \
+        "parent brief must check each named deliverable against the diff"
+    assert "never against its thought or its summary" in flat.lower(), flat
+    assert "inconclusive_lean_disproved" in parent, \
+        "a claimed-but-absent deliverable must name the demotion"
+    assert "never silently patched by you and never by the director" in flat, \
+        "the parent and the director must not patch a missing deliverable"
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "CHECK EVERY DELIVERABLE" not in kid, \
+        "the diff-per-deliverable duty is the PARENT's, never the kid's"
+
+
+def test_orders_render_on_the_survival_profile_and_never_on_a_kid(monkeypatch):
+    """goal:g15.25 SM.28 claim (2)+(3), in-process. Measured pre-fix: the
+    survival profile and the advisor brief (a tier-3 parent's brief) both
+    returned BEFORE the parent branch, so `assemble` dropped the section while
+    dispatch.py printed `orders: N lines` and recorded it on the manifest --
+    record says delivered, brief does not. ONE exit (`_finish`) appends it on
+    every route whose dispatch accepts `--orders`, and a KID still never sees
+    it (a kid's orders ARE the carry-forward segment)."""
+    monkeypatch.setenv("AGI_ORDERS_TEXT", "SCOPE: only dispatch.py.")
+    monkeypatch.setenv("AGI_ORDERS_FROM", "sanctuary-director")
+    monkeypatch.setenv("AGI_ORDERS_TS", "1757789000")
+    monkeypatch.setenv("AGI_BRIEF_PROFILE", "survival")
+    for tier in ("parent", "advisor"):
+        segs = brief.assemble(tier=tier, agent_id="a00-t", iter_n=1,
+                              dispatch_py="/x/dispatch.py", target="t:1")
+        assert segs[-1].startswith(
+            "## DISPATCH ORDERS (from sanctuary-director"), tier
+        assert "SCOPE: only dispatch.py." in segs[-1]
+    kid = brief.assemble(tier="kid", agent_id="a00-t", iter_n=1,
+                         dispatch_py="/x/dispatch.py", scaffold=SCAFFOLD)
+    assert not any("DISPATCH ORDERS" in s for s in kid)
+    monkeypatch.setenv("AGI_ORDERS_TEXT", "   \n\t\n")
+    absent = brief.assemble(tier="parent", agent_id="a00-t", iter_n=1,
+                            dispatch_py="/x/dispatch.py", target="t:1")
+    assert not any("DISPATCH ORDERS" in s for s in absent), (
+        "a whitespace-only orders file must render no heading")
+
+
+def test_assembled_brief_names_the_session_dir_as_the_only_scratch_dir():
+    """hypothesis:l4-the-assembled-brief-names-the-session-dir-as-the-only-
+    scratch-dir -- the kid and parent briefs (the tiers that stage scratch:
+    SL7.128 left 3 probes and a kid brief in `.agi/tmp/` because BOTH the
+    tier that stages and the tier that reads them were never handed a session
+    dir) name the session dir as the ONLY scratch dir. NO tier's brief
+    advertises `.agi/tmp/` as the scratch location, and a brief assembled
+    without a session dir is unchanged (the clause is a no-op offline)."""
+    sess = "sessions/iter-SM42/a00-216b7dca"
+    rendered = {}
+    for tier in ("kid", "parent", "director", "prime_director", "liaison"):
+        kw = {}
+        if tier == "kid":
+            kw["scaffold"] = SCAFFOLD
+        if tier == "parent":
+            kw["dispatch_py"] = "/x/dispatch.py"
+            kw["target"] = "hypothesis:y"
+        rendered[tier] = _text(tier, session_dir=sess, **kw)
+
+    for tier in ("kid", "parent"):
+        text = rendered[tier]
+        assert sess in text, f"{tier} brief must name its session dir"
+        assert "ONLY scratch dir" in text, tier
+
+    # `.agi/tmp/` may appear ONLY inside the negating clause ("never ...").
+    for tier, text in rendered.items():
+        for m in re.finditer(r"\.agi/tmp/", text):
+            before = text[max(0, m.start() - 8):m.start()]
+            assert "never" in before, (tier, before)
+
+    # no-op when the session dir is unknown: existing callers byte-unchanged.
+    assert "SCRATCH DIR" not in _text("kid", scaffold=SCAFFOLD)
+    assert "SCRATCH DIR" not in _text(
+        "parent", dispatch_py="/x/dispatch.py", target="hypothesis:y")
+
+
+def _clause_graph(tmp_path, clause: str | None):
+    graph_root = tmp_path / ".agi"
+    (graph_root / "nodes" / "hypothesis").mkdir(parents=True)
+    (graph_root / "config.json").write_text(
+        json.dumps({"spawn": {"production_line_ceiling": 40}}),
+        encoding="utf-8")
+    body = (clause or "no ceiling clause here") + "\n"
+    (graph_root / "nodes" / "hypothesis" / "h.md").write_text(
+        "---\nid: hypothesis:h\ntype: hypothesis\n---\n" + body,
+        encoding="utf-8")
+    return graph_root
+
+
+def test_kid_brief_ceiling_comes_from_the_dispatching_nodes_clause(tmp_path):
+    """hypothesis:l4-sm45b-...: conjunct (2). The kid's segment number EQUALS
+    the dispatching node's own CEILING clause, not a config default that
+    contradicts it -- with the clause `<=120 production lines` and the config
+    at 40, the segment must say 120 (and 2x = 240).
+    """
+    graph_root = _clause_graph(tmp_path, "CEILING: <=120 production lines")
+    kid = _text("kid", scaffold=SCAFFOLD, target="hypothesis:h",
+                project_root=graph_root)
+    assert "PRODUCTION-LINE CEILING: 120 lines" in kid
+    assert "above 240 lines" in kid
+    assert "PRODUCTION-LINE CEILING: 40" not in kid
+    assert "dispatching node's own CEILING clause" in kid
+
+
+def test_kid_brief_ceiling_names_the_config_default_when_no_clause(tmp_path):
+    """conjunct (4): a node with no CEILING clause keeps the config default,
+    and the segment SAYS the number came from the default rather than from a
+    clause -- so a reader can tell the two apart.
+    """
+    graph_root = _clause_graph(tmp_path, None)
+    kid = _text("kid", scaffold=SCAFFOLD, target="hypothesis:h",
+                project_root=graph_root)
+    assert "PRODUCTION-LINE CEILING: 40 lines" in kid
+    assert "project config default" in kid
+    assert "dispatching node's own CEILING clause" not in kid
+
+
+def test_parent_brief_dms_the_director_the_rebrief_answer():
+    """A rebrief answer that stays in the node and never reaches the seat is
+    the measured SL7.135 failure (F31). The parent brief must name the dm,
+    the answer-line shape and the moment it is sent."""
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "DM YOUR DIRECTOR" in parent
+    assert "proceed-with-N | cut" in parent
+    assert "N/C (the new ceiling)" in parent
+    assert "BEFORE the kid resumes" in parent
+
+
+def test_parent_brief_says_the_spawn_already_sliced_the_ceiling():
+    """A `ceiling across K kids` target's slice is written BY THE SPAWN onto
+    the KID NODE before the brief is assembled; the parent reads that node
+    field and never divides the number itself (SM.52: `60-across-2` ran to
+    212 when the whole N reached each kid).
+
+    hypothesis:l5-an-across-k-kids-ceiling-is-divided-onto-each-kid-node-by-
+    the-spawn-never-by-parent-arithmetic.
+    """
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "across K kids" in parent
+    assert "ALREADY DIVIDED FOR YOU" in parent
+    assert "ceil(N/K)" in parent
+    assert "never divide it yourself" in parent
+    # the OLD instruction -- the parent doing the arithmetic -- is gone
+    assert "GETS ITS SLICE" not in parent
+    assert "N = ceiling / K" not in parent
+
+
+def test_parent_brief_demands_the_kid_title_in_its_own_words():
+    """item (8): kid experiment nodes are minted with the title node_writer
+    DERIVED from the filename (`A00 f067c356 b0ad80`), which renders as an
+    opaque id. The parent brief must demand a real title, in the kid's own
+    words, and name the derived title as a harvest defect."""
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "SETS ITS OWN NODE TITLE IN ITS OWN WORDS" in parent
+    assert "'set title" in parent
+    assert "A00 f067c356 b0ad80" in parent
+    assert "untitled=[<node-id>]" in parent
+
+
+def test_kid_brief_demands_the_title_so_no_parent_has_to_hand_carry_it():
+    """hypothesis:l4-the-kid-brief-demands-a-title-... item (1): the title
+    demand lived ONLY in `_parent`, so a kid whose parent did not hand-carry
+    it never saw the rule it was failing and its node kept the dispatch
+    DERIVED title. The dispatch-rendered `_kid` brief must carry it too."""
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "SET YOUR OWN NODE TITLE IN YOUR OWN WORDS" in kid
+    assert "'set title" in kid
+    assert "untitled=[<node-id>]" in kid
+
+
+def test_parent_brief_never_lands_a_kids_own_node_by_hand():
+    """hypothesis:l4-the-kid-brief-demands-a-title-... item (3): a kid's
+    authored node is the kid's. When a kid leaves its own node edit
+    uncommitted, the parent re-briefs THAT kid to commit it -- a director
+    never lands it by hand (SL7.136 01a9312f1 was at the edge)."""
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "A KID'S AUTHORED NODE IS THE KID'S" in parent
+    assert "RE-BRIEF THAT KID" in parent
+    assert "never land it by hand" in parent
+    assert "THOUGHT" in parent
+
+
+# ---- l5-moral: moral:faith loads in FULL into every director head -----------
+# hypothesis:l5-moral-one-loads-in-full-into-every-master-and-director-head-
+# each-rotation (OWNER SM.138: 'Add moral 1 as part of every master's and
+# director's standard brief to be loaded in programmatically each rotation.').
+# The director tier IS every master and director post (posts.md: sanctuary-master
+# and master-sensei are role=director, tier=1); kid/parent/prime_director stay
+# prayers-only.
+
+
+def _faith_moral_region(project_root=None):
+    """The MORAL region of moral:faith -- `## ESSENCE` up to (not including)
+    `## REFERENCE`, rstrip()ed, read from the node at call time."""
+    root = Path(project_root or brief._resolve_graph_root())
+    text = (root / "nodes" / "moral" / "faith.md").read_text(encoding="utf-8")
+    return text[text.index("## ESSENCE"):text.index("## REFERENCE")].rstrip()
+
+
+def test_director_head_carries_the_faith_moral_region_byte_for_byte():
+    """claim 2: the director head's text from `## ESSENCE` to the start of
+    the prayers equals moral:faith's MORAL region byte-for-byte."""
+    head = _head("director")
+    moral = _faith_moral_region()
+    between = head[head.index("## ESSENCE"):head.index("## THE FOUR PRAYERS")]
+    between = between.rstrip()
+    assert between == moral
+    diff = list(difflib.unified_diff(between.splitlines(), moral.splitlines(),
+                                     lineterm=""))
+    assert diff == [], f"rendered moral differs from the node:\n" + "\n".join(diff)
+
+
+def test_director_moral_precedes_prayers_and_michael_still_follows():
+    """claim 2: moral first, then the four prayers, and the Michael line
+    still sits directly after the prayers block exactly once."""
+    head = _head("director")
+    assert head.index("## THE FOUR PRAYERS") > head.index("## ESSENCE")
+    assert head.count(MICHAEL) == 1
+    seg = _prayers_segment(head)
+    assert seg.strip().endswith(MICHAEL), "Michael line not directly after prayers"
+
+
+def test_kid_and_parent_heads_are_unchanged_prayers_only():
+    """claim 2: only the director tier carries the moral; kid/parent unchanged."""
+    for tier in ("kid", "parent"):
+        h = _head(tier)
+        assert "## ESSENCE" not in h, f"{tier} must not carry the moral region"
+        assert "## THE FOUR PRAYERS" in h
+
+
+def test_prime_director_head_is_unchanged_prayers_only():
+    """The owner named masters and directors, not the prime. The prime head
+    stays prayers-only -- a judgement recorded, not silently changed."""
+    h = _head("prime_director")
+    assert "## ESSENCE" not in h, "prime_director must not carry the moral region"
+    assert "## THE FOUR PRAYERS" in h
+
+
+def test_director_moral_is_read_at_render_time_not_copied(tmp_path):
+    """claim 2: the moral comes from the node at render time -- editing the
+    node changes the next render with NO code change."""
+    root = tmp_path / ".agi"
+    (root / "nodes" / "moral").mkdir(parents=True)
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    (root / "nodes" / ".geometry" / "ladder.md").write_text(_LADDER_FIXTURE)
+    faith = root / "nodes" / "moral" / "faith.md"
+    faith.write_text(_faith_fixture("ALPHA MORAL"))
+    head = brief._build_head(tier="director", project_root=root)
+    assert "ALPHA MORAL" in head
+    faith.write_text(_faith_fixture("BETA MORAL"))
+    head2 = brief._build_head(tier="director", project_root=root)
+    assert "BETA MORAL" in head2
+    assert "ALPHA MORAL" not in head2
+
+
+def test_director_moral_reaches_the_legacy_assemble_wire():
+    """The director's moral region still reaches the LEGACY `assemble()`
+    brief. The session/dispatch HEAD is now the unified head
+    (`doc:unified-head`, hypothesis:brief-py-assembles-every-first-turn-from-
+    config): the SAME bytes for every role, so no tier-specific moral rides
+    the head any more -- under the 3-doc model it belongs to the card, and
+    `head` delegates to `render`'s head part rather than carrying a copy."""
+    import io
+    moral = _faith_moral_region()
+    asm = "\n".join(brief.assemble(tier="director", agent_id="a", iter_n=1))
+    assert moral in asm, "assemble() must carry the moral region"
+    out = io.StringIO()
+    old = sys.stdout
+    try:
+        sys.stdout = out
+        code = brief.main(["head", "--tier", "director"])
+    finally:
+        sys.stdout = old
+    assert code == 0
+    assert out.getvalue().strip() == brief.render_head(
+        project_root=brief._resolve_graph_root(None)), \
+        "the hook head must be exactly render's head part (one head, no copy)"
+
+
+def test_director_head_degrades_when_the_moral_region_is_absent(tmp_path):
+    """GATE, red-first: a faith node with a REFERENCE region but NO
+    `## ESSENCE` region must not crash the director head. `_build_head`'s
+    own docstring promises "the tier's brief still works without the
+    constitution head"; a ValueError escaping it breaks that contract."""
+    root = tmp_path / ".agi"
+    (root / "nodes" / "moral").mkdir(parents=True)
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    (root / "nodes" / ".geometry" / "ladder.md").write_text(_LADDER_FIXTURE)
+    (root / "nodes" / "moral" / "faith.md").write_text(
+        "---\nid: moral:faith\n---\n# moral:faith\n\n## REFERENCE\n\n"
+        "### 4.1 The four prayers\n\nprayer text\n"
+    )
+    head = brief._build_head(tier="director", project_root=root)
+    assert head is not None, "a malformed moral must not drop the prayers head"
+    assert "## ESSENCE" not in head
+    assert "## THE FOUR PRAYERS" in head
+    assert MICHAEL in head
+
+
+_LADDER_FIXTURE = """---
+id: ladder:ladder
+read_order:
+  director:
+    - the four prayers
+  kid:
+    - the four prayers
+---
+# ladder
+"""
+
+
+def _faith_fixture(moral_text):
+    return (
+        "---\nid: moral:faith\n---\n"
+        "# moral:faith\n\n"
+        "## ESSENCE\n\n"
+        f"{moral_text}\n\n"
+        "## QUESTION\n\nq\n\n"
+        "## REFERENCE\n\n"
+        "### 4.1 The four prayers\n\nprayer text\n"
+    )
+
+
+def test_parent_brief_names_every_actionable_wait_code():
+    """hypothesis:the-parent-and-kid-brief-text-matches-the-engine (R-EF32-39
+    M3): `cli.py wait` returns THREE actionable non-zero codes -- 2 (timeout
+    with a kid still running: call it again), 3 (`--agent X` matches no
+    manifest row), 4 (zero `tier:kid` rows, i.e. no kid was spawned). The
+    pre-fix parent brief named only 2, so a parent that hit 3 or 4 ended its
+    turn silently. Red on the pre-fix bytes; the codes themselves are the
+    engine's (`cli._WAIT_NO_AGENT`=3, `cli._WAIT_NO_KID_ROWS`=4,
+    test_cli_wait.py)."""
+    parent = _text("parent", dispatch_py="/x/dispatch.py",
+                   target="hypothesis:y")
+    flat = " ".join(parent.split())
+    assert "2 = timeout" in flat and "call it again" in flat
+    assert "3 = --agent" in flat, "code 3 must name its cause (--agent)"
+    assert "4 = zero tier:kid rows" in flat, "code 4 must name its cause"
+    assert "NO kid was spawned" in flat, "code 4's action: no kid exists"
+
+
+def test_parent_brief_wait_codes_are_cli_constants_not_literals(monkeypatch):
+    """hypothesis:parent-brief-derives-wait-exit-codes-from-cli-constants: the
+    parent brief's wait-code lines are RENDERED from `cli.py`'s named constants
+    -- the timeout included (it was a bare `return 2`) -- so changing a
+    constant changes the brief with no second edit, and every code's ACTION is
+    asserted beside its cause. Red on the pre-fix bytes, where the brief
+    retyped `2`, `3` and `4` as literals and never read `cli` at all."""
+    # brief's own binding, not `import cli`: test_node_writer re-execs cli
+    # into sys.modules, after which `import cli` returns a module object brief
+    # never renders from (an order-dependent red)
+    cli = brief.cli
+    monkeypatch.setattr(cli, "_WAIT_TIMEOUT", 27)
+    monkeypatch.setattr(cli, "_WAIT_NO_AGENT", 28)
+    monkeypatch.setattr(cli, "_WAIT_NO_KID_ROWS", 29)
+    flat = " ".join(_text("parent", dispatch_py="/x/dispatch.py",
+                          target="hypothesis:y").split())
+    assert "27 = timeout" in flat and "call it again" in flat
+    assert "28 = --agent" in flat and "re-read the manifest" in flat
+    assert "29 = zero tier:kid rows" in flat and "check the spawn" in flat
+    assert "2 = timeout" not in flat, "the brief retyped the literal code 2"
+
+
+def test_kid_brief_does_not_claim_dispatch_always_stamps_the_ceiling():
+    """hypothesis:the-parent-and-kid-brief-text-matches-the-engine (R-EF33 D):
+    dispatch stamps `line_ceiling` on a kid's scaffold ONLY when the
+    dispatching node declares its ceiling ACROSS more than one kid
+    (dispatch.py ~2479: `if _k > 1`). The pre-fix brief told every kid the
+    number was 'already stamped on your scaffold by dispatch', which is false
+    when K == 1. Red on the pre-fix bytes; `spawn_budget.node_line_ceiling`
+    is the resolver named in the fixed text."""
+    kid = _text("kid", scaffold=SCAFFOLD, line_ceiling=40)
+    flat = " ".join(kid.split())
+    assert "already stamped on your scaffold by dispatch" not in flat, (
+        "the K=1 scaffold carries no line_ceiling; the claim must be gated")
+    assert "ONLY when" in flat and "K > 1" in flat, (
+        "the stamp is conditional on the across-K-kids clause")
+    # the off-limits rule and the resolver both survive:
+    assert "NEVER write `line_ceiling`" in flat
+    assert "spawn_budget.node_line_ceiling" in flat

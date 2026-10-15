@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-4d063889-c4e95d
 next_edges: []
 confidence: 0.8
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 1210d12d16ffeef0
 season: 1
 thought_session: season
@@ -48,7 +48,7 @@ Injected `engine_commit: 0000000000000000000000000000000000000000`:
 $ python3 engine_drift_check.py /tmp/test-drifted-config.json --engine-dir .
 → Pinned: True, Match: False, Drifted: True
 → DRIFT WARNING: engine HEAD is d4ae15819237 but config pins 000000000000
-  Run: git -C /home/ubuntu/work/agi pull  (or update config's engine_commit)
+  Run: git -C <home>/work/agi pull  (or update config's engine_commit)
 ```
 Exit code 2. Mechanism detects drift and emits actionable warning.
 
@@ -62,8 +62,8 @@ Parent review (a00-f9ad3550, iter 1056): kid reported `proved` at confidence 0.9
 
 ```
 Test 1 output (unpinned):
-  Config:            /home/ubuntu/work/agi/.agi/config.json
-  Engine dir:        /home/ubuntu/work/agi
+  Config:            <home>/work/agi/.agi/config.json
+  Engine dir:        <home>/work/agi
   Pinned:            False
   Match:             None
   Drifted:           None

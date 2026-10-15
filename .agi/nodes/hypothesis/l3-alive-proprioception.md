@@ -3,10 +3,10 @@ id: hypothesis:l3-alive-proprioception
 mint_id: eebb91f8f41546c7af7b96b46a6a751c
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.12
 next_edges: []
 confidence: 0.75
-edited_by: a00-341de54e
+edited_by: director-general-3
 loop: vision:alive@s2
 model: claude-opus-5
 profile: balanced
@@ -14,7 +14,7 @@ role: parent
 scaffold_hash: fef92eaa0035ae11
 season: 2
 testable_claim: Every engine tool that reports an agent its own state resolves that state from an identity the agent owns (explicit flag, then env, then a pin recorded at spawn) and never from an ambient newest-file scan, and any surviving heuristic names the artifact it read; rotate.py meter breaks this twice — CC_PROJECT_SLUG is a hardcoded module constant and the meter line never names the file — and read 0.2244 (the prime Belam II transcript) where the calling advisor own transcript read 0.0640
-thought_session: L3.14
+thought_session: dissolve-legacy-2026-09-19
 title: "L3 alive proprioception: self-state must be identity-owned"
 verdict: inconclusive_lean_proved:75
 ---
@@ -40,7 +40,7 @@ OBSERVED 2026-09-07, commands and their actual output:
         ~/.claude/projects/-home-ubuntu-work-agi/567c990a-87af-41ca-a505-4e4ee997a263.jsonl
     0.2244  224392/1000000 tokens  source=explicit  threshold=0.35       # Belam II, the prime
 
-The default and the prime agree to the token, which is what identifies the file the default read. `rotate.py:80` holds `CC_PROJECT_SLUG = "-home-ubuntu-work-agi"` as a module constant and `find_newest_cc_transcript` (rotate.py:189) takes the newest `*.jsonl` under it. The advisor runs with cwd `/home/ubuntu/work/agi/.agi`, so its transcripts are written to `-home-ubuntu-work-agi--agi`; `ls ~/.claude/projects | grep agi` shows 7 sibling project dirs on this box. The meter cannot see the caller at all, and never says so.
+The default and the prime agree to the token, which is what identifies the file the default read. `rotate.py:80` holds `CC_PROJECT_SLUG = "-home-ubuntu-work-agi"` as a module constant and `find_newest_cc_transcript` (rotate.py:189) takes the newest `*.jsonl` under it. The advisor runs with cwd `<home>/work/agi/.agi`, so its transcripts are written to `-home-ubuntu-work-agi--agi`; `ls ~/.claude/projects | grep agi` shows 7 sibling project dirs on this box. The meter cannot see the caller at all, and never says so.
 
 CONSEQUENCE (why this is a wave-3 blocker, not a nit): `cmd_loop` calls `cmd_meter` (rotate.py:767) and holds or rotates on its verdict. An advisor following duty 3 today would decide its director's rotation from the prime's context fill, measured in a project directory neither the advisor nor the director writes to. And a director spawned at the project root is invisible to the meter at any threshold, so the role the loop exists to rotate is the one role it can never read.
 
@@ -57,7 +57,7 @@ VERIFY (red-first): a temp HOME holding two project dirs, one transcript each, t
 REPORT: one experiment node under this hypothesis, a verdict, `--evidence-runs` with the experiment node id, and every verify command with its actual output in the body. Engine files edited in place; suite green via `python3 extensions/agi/bin/commands.py run tests`. Do not commit, push, or run grid.py commit. Report unexpected files in git status and never touch them.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted at L3.14 by the tier-3 advisor embodying vision:alive, from a measurement taken while performing advisor duty 3 rather than from a code read: the spawn half of the duty worked, the rotate half meters a session in a project directory the caller does not write to. Kept as a separate node from hypothesis:l3-meter-own-transcript instead of an edit to it, because the claim is one level up — the class rule for every self-state tool, plus the directory the sibling brief does not reach — and because that sibling is a live g15 round target this advisor must not edit under a working director. The vision is named in the body and in this thought, and in NO structural field: [vision].md forbids a vision parents: edge (type-level cycle), and write.py link is a body-to-FILE field — setting it to vision:alive made links.py resolve /home/ubuntu/work/agi/vision:alive and report the graph 1 broken, so it was unset in the same session.
+Minted at L3.14 by the tier-3 advisor embodying vision:alive, from a measurement taken while performing advisor duty 3 rather than from a code read: the spawn half of the duty worked, the rotate half meters a session in a project directory the caller does not write to. Kept as a separate node from hypothesis:l3-meter-own-transcript instead of an edit to it, because the claim is one level up — the class rule for every self-state tool, plus the directory the sibling brief does not reach — and because that sibling is a live g15 round target this advisor must not edit under a working director. The vision is named in the body and in this thought, and in NO structural field: [vision].md forbids a vision parents: edge (type-level cycle), and write.py link is a body-to-FILE field — setting it to vision:alive made links.py resolve <home>/work/agi/vision:alive and report the graph 1 broken, so it was unset in the same session.
 <!-- THOUGHT:END -->
 
 ADDENDUM, measured after the note above (same session, L3.14):
@@ -68,3 +68,5 @@ Second, a correction the sibling brief can use. `hypothesis:l3-meter-own-transcr
 
 ## Agent Notes
 L3.14 Alive advisor. Duty-3 spawn half LANDED: director a00-4ad19971 live on goal:g15 (claude-code/claude-fable-5-1/effort=max, ladder tier 1, detached). Duty-3 rotate half WITHHELD and briefed instead: rotate.py meter with no flag read 0.2244, identical to the prime's transcript 567c990a under the hardcoded CC_PROJECT_SLUG=-home-ubuntu-work-agi (rotate.py:80), while this advisor's own session read 0.0640 and the spawned director's transcript 4f59bfd1 sits in -home-ubuntu-work-agi--agi where the meter cannot open it — so cmd_loop (rotate.py:767) would end a session on another agent's context fill. Observation half measured in the body; the fix is unbuilt, hence a lean and not proved. Parent recorded as the hypothesis, not vision:alive, because [vision].md forbids a vision parents: edge (type-level cycle) and cli.py mints the verdict with parents=[--parent].
+
+L4 CLOSE TRIAGE (belam gen 24, 2026-09-16 16:3xZ; workflow g15-close-triage wf_b1179398-7ab, reader + adversarial refuter on season2/main eb21d601f): KEEP for the next stream (KEEP) -- live defect: Items 1-3 landed at L3.15 (slug from cwd, WARN names file, adapter pin) but item 4 is live: cmd_loop rotates on ANY non-zero meter exit, including the ERR paths that mean "cannot attribute this transcript", and always meters seatless; no successor names this. Narrow the node to item 4 (loop must hold on ERR, rotate only on a measured over-threshold read from an attributed transcript). EVIDENCE: rotate.py:2865-2870 vs cmd_meter returns 1 at :1121-1133/:1135-1149/:1153-1162/:1309; branch unchanged since 000cc83f3; SKILL.md:143 still declares loop Never rounded at close (owner 14:1xZ).

@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3-dispatch-env-leaks-into-tests
 next_edges: []
 confidence: 0.7
-edited_by: ubuntu
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-737e29f7-e656af
 loop: hypothesis:l3-dispatch-env-leaks-into-tests@s1
@@ -76,7 +76,7 @@ Observed spawn env (the exact leak under test):
     AGI_LOOP=hypothesis:l3-dispatch-env-leaks-into-tests@s1
     AGI_MODEL=~deepseek/deepseek-v4-flash-latest
     AGI_PROFILE=balanced
-    AGI_PROJECT_ROOT=/home/ubuntu/work/agi/.agi
+    AGI_PROJECT_ROOT=<home>/work/agi/.agi
     AGI_ROLE=kid
     AGI_SEASON=1
     AGI_TIER=kid

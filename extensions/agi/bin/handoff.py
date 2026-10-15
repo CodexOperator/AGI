@@ -59,6 +59,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 import locations  # NOQA: E402
+import geometry_config  # noqa: E402
 
 #: Rough English token estimate — 1 token ~= 4 bytes. Good enough for the
 #: "how much context did that section cost me" comparison the claim is about;
@@ -79,7 +80,7 @@ def handoff_path(root: Path) -> Path:
     """`HANDOFF.md` at the repo root, like rotate.py.
 
     `HANDOFF.md` is the deliberate exception that lives at the repo root
-    (next to `GOALS.md`), not inside the `.agi/` graph dir. `find_project_root`
+    (where the retired `GOALS.md` sat), not inside the `.agi/` graph dir. `find_project_root`
     resolves to the graph dir, so the handoff is at `repo_root(graph) / "HANDOFF.md"`
     under G11; under the legacy layout repo_root is the identity.
     """
@@ -158,7 +159,7 @@ def _holder_opts(subp, *, required=False):
     handler refuses a missing holder by name.
     """
     subp.add_argument("--holder", help="seat holding the claim")
-    subp.add_argument("--seat", dest="holder",
+    subp.add_argument("--seat", "--post", action=geometry_config.SeatAction, dest="holder",
                       help="alias for --holder")
 
 

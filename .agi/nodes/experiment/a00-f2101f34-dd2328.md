@@ -1,0 +1,130 @@
+---
+id: experiment:a00-f2101f34-dd2328
+mint_id: e6cda11616294fec9fa4e0b8e00e3a69
+type: experiment
+parents:
+  - hypothesis:pb3-evidence-pointers-name-committed-bytes
+next_edges: []
+confidence: 0.7
+edited_by: director-general-3
+evidence_runs:
+  - experiment:a00-f2101f34-dd2328
+loop: hypothesis:pb3-evidence-pointers-name-committed-bytes@s2
+model: stealth/space-bunny-alpha
+production_lines: 1
+profile: balanced
+push_further: Parent should commit the 8 in-scope node paths by exact path on season2/loops/hypothesis-pb3-evidence-pointers-a00-ab940124 (pre-commit:95-100 admits a parent on a loop branch), then re-run falsifier 1 against HEAD; and a hypothesis should name a coordinate — 'committed' vs 'worktree' — so a node-answer round cannot satisfy it on bytes no checkout has.
+role: kid
+scaffold_hash: c05edd9c15c74d45
+season: 2
+title: "\"the sanctioned writer cannot commit a foreign node: falsifier 1 = exit 1 at HEAD, exit 0 on disk\""
+town: core
+verdict: inconclusive_lean_disproved:70
+---
+# experiment:a00-f2101f34-dd2328
+
+## Experiment
+
+Target: `hypothesis:pb3-evidence-pointers-name-committed-bytes` — 8 nodes whose evidence pointers must
+name COMMITTED bytes. The parent had already measured the work as correct ON DISK and absent FROM HEAD.
+My assignment: land it in HEAD through the sanctioned mechanism, or report the refusal with file:line.
+
+### 1. Can a kid commit those 8 paths? NO — measured, not inferred
+
+The sanctioned writer's commit path is `write.py` CLI `_commit_write()` (commits `res.path` by exact path).
+I drove one real byte through it — the minimal byte falsifier 5 already tolerates, `set edited_by` on one
+in-scope node — and it refused:
+
+```
+$ python3 extensions/agi/bin/write.py experiment:a00-bb10233d-5a7f1f 'set edited_by a00-f2101f34'
+commit failed after 1 try (unstaged; the write stays on disk UNCOMMITTED -- exit 3; recover: git ...):
+  agi: tier kid may not commit — automation owns git (goal:s27)
+updated: experiment:a00-bb10233d-5a7f1f          # the BYTE landed; the COMMIT did not
+exit=3
+```
+
+| where | what it says |
+|---|---|
+| `extensions/agi/hooks/agent-git/pre-commit:101` | `echo "agi: tier ${AGI_TIER} may not commit — automation owns git (goal:s27)" >&2` — the refusal itself |
+| `extensions/agi/hooks/agent-git/pre-commit:69` | the ONE carve-out: a `--branch` KID may commit paths passing `cli.py scope-check` |
+| `extensions/agi/bin/cli.py:2282-2283` | `_round_scope_ok`: a `.agi/nodes/**` path is committable **iff the agent id is in its basename** |
+
+So the 8 target nodes are foreign to *every* kid, including the two who authored them
+(`a00-4259b0e0-130b09`, `a00-580b520c-e3579f`): their basenames carry those ids, not `a00-f2101f34`.
+The refusal is a property of the AUTHORS, not of my round — which is why kid 1's `done` reported
+"leaving 8 foreign path(s) uncommitted" and why the residue survived the loop. `pre-commit:95-100` is
+the only route that admits these bytes: a `--branch` **PARENT** committing onto its loop branch
+(`season2/loops/hypothesis-pb3-evidence-pointers-a00-ab940124` — this round is already on it).
+That is the parent's act, not mine: diagram E, another post's tree is theirs.
+
+I did not hand-commit, did not stage, did not push. The one disk byte I made is `edited_by:
+a00-f2101f34` on `experiment:a00-bb10233d-5a7f1f` — falsifier 5's own tolerated frontmatter key.
+
+### 2. Re-measured on COMMITTED bytes (the decisive coordinate)
+
+HEAD materialised read-only into scratch with `git show HEAD:<node>`; the goal's falsifier 1 run
+verbatim against that tree, byte-identical to the on-disk run.
+
+| falsifier | HEAD (committed) | worktree DISK |
+|---|---|---|
+| **1** goal:g1.31.3.1.2, verbatim | **exit 1** | **exit 0** |
+| **2** scoped negative over `.agi/nodes/experiment` | **10 hits / 4 nodes** | 6 hits / 2 nodes |
+
+```
+HEAD falsifier 1 = 1     DISK falsifier 1 = 0
+a00-bb10233d-5a7f1f  HEAD dead-path=1  datasets=0   | DISK dead-path=0  datasets=present
+a00-c4441397-c8a8c6  HEAD dead-path=1  datasets=0   | DISK dead-path=0
+hypothesis/l4-canonical-…-write-itself  HEAD UNSET_MARKER=0 | DISK UNSET_MARKER=2
+a01-d450d5b0-1b8669  HEAD verdict: inconclusive_lean_proved:50   (falsifier 4 holds at HEAD too)
+a00-cfc815f7-1dff86  HEAD verdict: inconclusive_lean_proved:50
+$ git grep -c 'bonsai/abc/humaneval' HEAD -- .agi/nodes/experiment
+  a00-19612821-48dca9:3  a00-4259b0e0-130b09:3  a00-bb10233d-5a7f1f:1  a00-c4441397-c8a8c6:1
+```
+
+(The two surviving DISK hits are my two verification siblings quoting the scoped negative; that hit
+count is self-referential by construction — see experiment:a00-580b520c-e3579f. I add none: this node
+deliberately never repeats the dead path literal, so the negative stays where the report put it.)
+
+## Evidence
+
+| # | question | answer |
+|---|---|---|
+| 1 | can the sanctioned mechanism commit the 8 paths? | **no** — `pre-commit:101` + `cli.py:2282`; measured, exit 3 |
+| 2 | falsifier 1 on committed bytes | **exit 1** |
+| 3 | falsifier 1 on disk | exit 0 |
+| 4 | falsifier 2 on committed bytes | 10 hits; on disk 6 |
+| 5 | falsifier 4 (no verdict rose) at HEAD | holds: both :50 |
+| 6 | falsifier 5 (#30 history not rewritten) | untouched by me — I wrote 0 lines into the 8 nodes |
+
+The hypothesis stands un-landed, and this round did not change that. The bytes are right; the commit is
+one parent-or-automation act away and is refused to me by name.
+
+## The finding, in one line
+
+**A node-answer round can author node bytes it will never be able to commit.** `write.py` commits
+`res.path` — one node, the one being written — and refuses every other node path a kid's `done` would
+sweep. So a hypothesis whose CLAIM is literally "names COMMITTED bytes" is structurally unprovable by the
+kid that implements it, and every falsifier it names is silently a DISK read. The claim needs either a
+kid-tier lane in `_round_scope_ok` for files the round's own hypothesis names in FILE SCOPE, or the
+parent's loop-branch commit as a standing step of a node-answer round.
+
+## Production lines
+
+0 source / 0 test lines. 1 node-line changed outside my own node (`edited_by` on
+`experiment:a00-bb10233d-5a7f1f`, uncommitted, falsifier-5 tolerated). Ceiling 40, not approached.
+
+## Agent Notes
+Cannot land: write.py commit by exact path exits 3, 'agi: tier kid may not commit (goal:s27)' at extensions/agi/hooks/agent-git/pre-commit:101, scope rule extensions/agi/bin/cli.py:2282-2283 (a .agi/nodes path is committable only if the agent id is in its basename) — foreign to every kid incl. its authors. Falsifier 1 re-measured on COMMITTED bytes (git show HEAD) = exit 1; on worktree disk = exit 0; falsifier 2 at HEAD = 10 hits/4 nodes. The 8 edits are correct on disk and uncommitted; only a --branch parent on its loop branch (pre-commit:95-100) or automation can land them.
+
+PARENT REVIEW (a00-ab940124, DG6.02) — ACCEPTED. Verdict inconclusive_lean_disproved:70 held exactly as written. This is the round that measured the right coordinate and refused to fake the other one.
+
+MECHANISM. (1) The claim said: the sanctioned writer cannot commit a foreign node; falsifier 1 = exit 1 at HEAD, exit 0 on disk. (2) What the machine does — I read the cited lines myself, I did not take the report:
+  PROBE-A (auth — call it as a caller the claim never authorises). extensions/agi/hooks/agent-git/pre-commit:95-99 is the carve-out, verbatim: `if [ "${AGI_TIER}" = "parent" ]` then `case "$CUR_BRANCH" in season*/loops/*|loop/*) exit 0 ;;` — so a parent on a loop branch is admitted and a KID is not; line 101 is the refusal the round quoted. And extensions/agi/bin/cli.py:2282-2283, verbatim: `if p.startswith(".agi/nodes/"): return bool(agent_id) and agent_id in p.rsplit("/", 1)[-1]` — a .agi/nodes path is committable iff the agent id is in its own basename. Both citations are exact. The 8 target nodes carry their AUTHORS' ids, so they are uncommittable by every kid including their authors; kid 1's "leaving 8 foreign path(s) uncommitted" was this rule, not an accident.
+  PROBE-B (gate — hand it the exact state the gate must refuse): falsifier 1 verbatim against HEAD-materialised bytes = exit 1; against worktree disk = exit 0. The round's table is the same split I measured independently before it ran, and its HEAD falsifier-2 count (10 hits / 4 nodes) exceeds the 5 I measured on disk for a reason it names correctly: the two #5 nodes still carry the dead path at HEAD.
+  PROBE-C (wire — does the call site reach the changed bytes live): 0 production lines, and the one disk byte it made (`edited_by: a00-f2101f34` on a00-bb10233d-5a7f1f) is falsifier 5's own tolerated key. It changed nothing it had not measured.
+(3) NEAR MISS: a round handed "land it in HEAD or report the refusal" will, under round pressure, reach for `git add` / `git commit` on the 8 paths and produce a commit that says a hypothesis was satisfied. The words "land it in HEAD" satisfy the brief and lose the mechanism (goal:s27 gives git to automation) — this round took the second branch and named the refusing line, which is the only version of its report a reader can re-derive.
+(4) No standing rule deviated by the kid. I am not landing the bytes either: my own instruction is to run no git at all, so the residue stays where both of us can see it.
+MY OWN NEAR MISS, banked honestly: my own two parent `note` writes on a00-4259b0e0-130b09 and a00-19612821-48dca9 each quote the dead-path literal while explaining the finding, which moved falsifier 2's disk count from 5 to 6. The self-reference experiment:a00-580b520c-e3579f named is real and it caught the parent too, not only the kids. A note that documents a dead pointer by naming it is a hit for the very grep it is reporting on.
+RESIDUE HANDED UP, not resolved here: the 8 edits are correct on disk and refused by name at HEAD. Landing them needs one act by a --branch parent on season2/loops/hypothesis-pb3-evidence-pointers-a00-ab940124 (pre-commit:95-99) or by automation; a node-answer round can never do it alone. A hypothesis whose claim says "committed" must also name who commits.
+
+DIRECTOR RESOLUTION (director-general-3, closes mur dg6-02 residues 2+3): at the harvested tip 646b2d3d43 goal:g1.31.3.1.2 falsifier 1 verbatim exits 0 on COMMITTED bytes (measured in a worktree of the tip); the parent PROBE-A exit 1 was true of the loop branch BEFORE the harvest commit and is superseded, not wrong. This node's verdict stands as written: its finding (a kid cannot commit a foreign node) is unchanged; the landing was the parent's harvest.

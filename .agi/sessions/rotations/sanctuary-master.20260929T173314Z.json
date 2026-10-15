@@ -1,0 +1,94 @@
+{
+  "rotation": "crash-recovery",
+  "seat": "sanctuary-master",
+  "recorded_at": "2026-09-29T17:33:14.384643Z",
+  "result": "respawned",
+  "probable_cause": "remote-control-disconnect",
+  "succ_name": "sanctuary-master",
+  "gen": 6,
+  "gen_after": 6,
+  "pin_ref": "",
+  "tmux_session": "agi-rc",
+  "window_id": "@4",
+  "pred_pids": [
+    996796
+  ],
+  "row": {
+    "name": "sanctuary-master",
+    "role": "director",
+    "model": "claude-opus-5-5",
+    "pid": 996796,
+    "window": "@13",
+    "session_id": "4192e5ea-5cd7-4ff5-9b7e-700acc6ab133",
+    "generation": 5,
+    "worktree": ""
+  },
+  "respawn_outcome": {
+    "name": "sanctuary-master",
+    "generation": 6,
+    "pid": null,
+    "window": "@4",
+    "reason": "",
+    "row": "config:seats row 'sanctuary-master': session_ref= session_name= session_label=sanctuary-master session_id= pid=None generation=6 window='@4' source=registry"
+  },
+  "after_join": {
+    "performer": "watch",
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep sanctuary-master",
+        "rc": 0,
+        "output": "@4 sanctuary-master\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/sanctuary-master.meter --session-log ~/.claude/projects/-data-work-agi/a538ee43-8e90-4fa1-af94-94c9784edad4.jsonl",
+        "rc": 0,
+        "output": "0.0593\t59342/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E 'none: nothing to reap'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E 'none: nothing to reap'\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post sanctuary-master --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post sanctuary-master --ref 724084 diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "sanctuary-master",
+    "dm_signed": true,
+    "code_head": "4cdbf16",
+    "code_loaded": "1790688637:1134998",
+    "claimed_at": "2026-09-29T17:35:07.421644+00:00",
+    "claim_key": "2026-09-29T17:33:14.384643Z",
+    "performed_after_s": 112.24202132225037
+  },
+  "handover": {
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "requested": {
+        "model": "claude-opus-5-5"
+      },
+      "live": {
+        "model": "claude-opus-5-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "after_join"
+    }
+  }
+}

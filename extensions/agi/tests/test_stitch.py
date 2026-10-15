@@ -108,6 +108,33 @@ def mint_version_node(engine_root: Path, project_root: Path, rel_path: str,
     return versioned_id
 
 
+def _find_node_file(project_root: Path, node_id: str) -> Path:
+    for p in (project_root / "nodes" / "build").glob("*.md"):
+        parsed = st._parse_frontmatter(p.read_text())
+        if parsed is not None and parsed[0].get("id") == node_id:
+            return p
+    raise AssertionError(f"no node file for {node_id}")
+
+
+def retire_node(project_root: Path, node_id: str, status: bool = True) -> Path:
+    """Move a minted node into `nodes/deprecated/build/`, optionally retagging
+    `status: deprecated` — the sanctioned retire move: address changes, mint_id
+    and payload_ref stay. `status=False` isolates the directory from the
+    status predicate."""
+    live = _find_node_file(project_root, node_id)
+    retired_dir = project_root / "nodes" / "deprecated" / "build"
+    retired_dir.mkdir(parents=True, exist_ok=True)
+    out = retired_dir / live.name
+    if status:
+        fm, body = st._parse_frontmatter(live.read_text())
+        fm["status"] = "deprecated"
+        l3.write_frontmatter(out, fm, body)
+        live.unlink()
+    else:
+        live.rename(out)
+    return out
+
+
 def run(project: Path, engine: Path | None, *args):
     cmd = [sys.executable, str(STITCH_BIN), "--project", str(project)]
     if engine is not None:
@@ -117,6 +144,26 @@ def run(project: Path, engine: Path | None, *args):
 
 
 # --- materialize: the happy path --------------------------------------------
+
+
+def test_parse_frontmatter_no_strip_precheck_behaviour_identical():
+    """CLAIM (6d/SL7.17, hypothesis:l4-prepare-check-2-reads-the-index-blob...):
+    `_parse_frontmatter` relies on `split_frontmatter` alone and drops the
+    `strip().startswith("---")` prose pre-check (the exact shape SL7.11
+    retired elsewhere). On every real node the behaviour is byte-identical:
+    a well-formed node still parses; a leading-blank-line or marker-not-on-
+    line-1 input (which the pre-check used to pass to the anchored splitter,
+    which then refused it) still returns None."""
+    ok = "---\nid: x\ntitle: t\n---\nbody\n"
+    fm, body = st._parse_frontmatter(ok)
+    assert fm == {"id": "x", "title": "t"}
+    assert body == "body\n"
+    # leading blank line before the marker: pre-check passed it, the anchored
+    # splitter refused it -> None; with the pre-check gone, still None.
+    assert st._parse_frontmatter("\n---\nid: x\ntitle: t\n---\n") is None
+    # marker not on line 1, and an empty input: both None (unchanged).
+    assert st._parse_frontmatter("no marker here\n") is None
+    assert st._parse_frontmatter("") is None
 
 
 def test_materialize_copies_every_payload_byte_identical(tmp_path, engine, project):
@@ -440,6 +487,110 @@ def test_verify_version_gap_is_still_drift(tmp_path, engine, project):
     report = st.verify_tree(project, engine)
     assert "extensions/agi/bin/foo.py" in report["duplicate_payload_ref"]
     assert "extensions/agi/bin/foo.py" not in report["version_chains"]
+
+
+# --- verify: [3] one live claimant beside retired ones (stitch reads retired) --
+# A retired build node keeps its `status: deprecated` AND its `payload_ref`
+# (the schema requires the field), so it still loads and still claims its
+# payload. Beside exactly ONE live claimant that is not ambiguity — the live
+# node is the one materialization resolves — so it moves out of
+# `duplicate_payload_ref` into the informational `retired_claims`.
+
+
+def test_verify_one_live_plus_retired_claimant_is_not_duplicate(tmp_path, engine, project):
+    live = mint_node(engine, project, "extensions/agi/bin/foo.py")
+    for rel in ENGINE_FILES:
+        if rel != "extensions/agi/bin/foo.py":
+            mint_node(engine, project, rel)
+    retired = mint_node(engine, project, "extensions/agi/bin/foo.py", id_suffix="old")
+    retire_node(project, retired)
+
+    report = st.verify_tree(project, engine)
+    assert report["duplicate_payload_ref"] == {}
+    assert report["retired_claims"]["extensions/agi/bin/foo.py"] == [live, retired]
+    assert report["orphan_files"] == []
+    assert not st.has_drift(report)
+
+
+def test_verify_two_live_plus_retired_is_still_duplicate(tmp_path, engine, project):
+    live_a = mint_node(engine, project, "extensions/agi/bin/foo.py")
+    live_b = mint_node(engine, project, "extensions/agi/bin/foo.py", id_suffix="dup")
+    retired = mint_node(engine, project, "extensions/agi/bin/foo.py", id_suffix="old")
+    retire_node(project, retired)
+
+    report = st.verify_tree(project, engine)
+    dup = report["duplicate_payload_ref"]
+    assert set(dup["extensions/agi/bin/foo.py"]) == {live_a, live_b, retired}
+    assert "extensions/agi/bin/foo.py" not in report["retired_claims"]
+    assert st.has_drift(report)
+
+
+def test_verify_no_live_two_retired_is_still_duplicate(tmp_path, engine, project):
+    old_a = mint_node(engine, project, "extensions/agi/bin/foo.py")
+    old_b = mint_node(engine, project, "extensions/agi/bin/foo.py", id_suffix="old2")
+    retire_node(project, old_a)
+    retire_node(project, old_b)
+
+    report = st.verify_tree(project, engine)
+    dup = report["duplicate_payload_ref"]
+    assert set(dup["extensions/agi/bin/foo.py"]) == {old_a, old_b}
+    assert "extensions/agi/bin/foo.py" not in report["retired_claims"]
+    assert st.has_drift(report)
+
+
+def test_verify_moved_without_status_is_still_duplicate(tmp_path, engine, project):
+    """The predicate is `status: deprecated`, not the directory: a node moved
+    into `deprecated/build/` but still carrying `status: active` has not been
+    retired and still competes, so the group stays duplicate."""
+    live = mint_node(engine, project, "extensions/agi/bin/foo.py")
+    moved = mint_node(engine, project, "extensions/agi/bin/foo.py", id_suffix="moved")
+    retire_node(project, moved, status=False)
+
+    report = st.verify_tree(project, engine)
+    dup = report["duplicate_payload_ref"]
+    assert set(dup["extensions/agi/bin/foo.py"]) == {live, moved}
+    assert "extensions/agi/bin/foo.py" not in report["retired_claims"]
+
+
+def test_verify_chain_with_retired_head_stays_a_chain(tmp_path, engine, project):
+    v1 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=1)
+    v2 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=2,
+                            supersedes=v1, base_node_id=v1)
+    retire_node(project, v2)
+
+    report = st.verify_tree(project, engine)
+    assert report["version_chains"]["extensions/agi/bin/foo.py"] == [v1, v2]
+    assert report["duplicate_payload_ref"] == {}
+    assert "extensions/agi/bin/foo.py" not in report["retired_claims"]
+
+
+def test_materialize_still_writes_the_live_claimant(tmp_path, engine, project):
+    live = mint_node(engine, project, "extensions/agi/bin/foo.py")
+    retired = mint_node(engine, project, "extensions/agi/bin/foo.py", id_suffix="old")
+    retire_node(project, retired)
+    out = tmp_path / "out"
+
+    stats = st.materialize(project, engine, out)
+    assert stats["written"] == 1
+    # materialize is untouched by this round: unchanged first-writer-wins, so
+    # the live claimant (first in the group) is written and the retired one
+    # is reported skipped.
+    assert stats["skipped_duplicate"] == [retired]
+    assert (out / "extensions/agi/bin/foo.py").read_text() == ENGINE_FILES[
+        "extensions/agi/bin/foo.py"]
+    assert live != retired  # the retired claimant is the one not written
+
+
+def test_verify_report_prints_retired_claims(tmp_path, engine, project):
+    live = mint_node(engine, project, "extensions/agi/bin/foo.py")
+    retired = mint_node(engine, project, "extensions/agi/bin/foo.py", id_suffix="old")
+    retire_node(project, retired)
+
+    res = run(project, engine, "--verify")
+    assert res.returncode == 0
+    assert "[3] duplicate_payload_ref: 0" in res.stdout
+    assert "retired_claims (informational, not drift): 1" in res.stdout
+    assert f"{live} -> {retired}" in res.stdout
 
 
 def test_materialize_chain_writes_head_version(tmp_path, engine, project):
@@ -924,3 +1075,56 @@ def test_grid_version_beyond_history_is_reported_not_silently_the_tip(
                            from_grid=True, grid_version=9)
     assert stats["written"] == 0
     assert stats["skipped_missing"] == [node_id]
+
+
+# --- --project resolution (goal:g15, hypothesis:l4-stitch-and-level3-project-
+# --- resolve-the-graph-root-or-refuse-by-name-and-verify-prints-its-count) --
+
+
+def _g11_project(tmp_path: Path, rel: str = "extensions/agi/bin/foo.py",
+                 ) -> tuple[Path, Path]:
+    """A G11-layout graph: the project REPO ROOT holds `.agi/` (with a config
+    and `nodes/build/`), never a top-level `nodes/`. Returns (repo_root, engine)."""
+    repo = tmp_path / "repo"
+    graph = repo / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text("{}\n")
+    engine = tmp_path / "engine"
+    (engine / "extensions" / "agi" / "bin").mkdir(parents=True)
+    (engine / rel).write_text("import os\n")
+    subprocess.run(["git", "init", "-q"], cwd=engine, check=True)
+    mint_node(engine, graph, rel)
+    return repo, engine
+
+
+def test_verify_project_resolves_the_g11_graph_root_and_counts(tmp_path):
+    """CLAIM — `--project <repo root>` (G11: graph at `<repo>/.agi`) resolves
+    through `locations` to the graph root and `--verify` prints the node
+    count it verified, so one node reads as one, never a silent zero."""
+    repo, engine = _g11_project(tmp_path)
+    result = run(repo, engine, "--verify")          # pass the REPO ROOT, not .agi
+    assert result.returncode == 0
+    assert "verified 1 build node(s)" in result.stdout
+    # the resolution reached the graph under .agi, not a literal <repo>/nodes
+    assert not (repo / "nodes").exists()
+
+
+def test_verify_accepts_the_graph_dir_itself_when_it_holds_nodes(tmp_path):
+    """CLAIM — passing the graph root itself (`<repo>/.agi`, holding `nodes/`)
+    also resolves, under `--project`."""
+    repo, engine = _g11_project(tmp_path)
+    result = run(repo / ".agi", engine, "--verify")
+    assert result.returncode == 0
+    assert "verified 1 build node(s)" in result.stdout
+
+
+def test_verify_refuses_a_rootless_path_by_name(tmp_path):
+    """CLAIM — a path that resolves to no graph root (no `.agi/` at or above,
+    no `nodes/` at the path) is REFUSED by name, exit 2 — never a silent
+    zero-node clean."""
+    nowhere = tmp_path / "nowhere"
+    nowhere.mkdir()  # a real dir, but a graphless one
+    result = run(nowhere, None, "--verify")
+    assert result.returncode == 2
+    assert f"no graph root at or above {nowhere}" in result.stderr
+    assert "no .agi/ and no nodes/" in result.stderr

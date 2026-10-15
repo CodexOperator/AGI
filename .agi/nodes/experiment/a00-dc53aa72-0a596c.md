@@ -6,7 +6,7 @@ parents:
   - hypothesis:a01-3c5640a0-5c684c
 next_edges: []
 confidence: 0.85
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 62b3050a8760f4a6
 season: 1
 thought_session: season
@@ -21,7 +21,7 @@ Ran as a real pi kid dispatched through the engine with provisioning key set (Pa
 
 **Dispatch command** (from agent.json):
 ```
-/home/ubuntu/.npm-global/bin/pi --provider openrouter --model deepseek/deepseek-v4-flash --thinking medium -p [context + prompts]
+<home>/.npm-global/bin/pi --provider openrouter --model deepseek/deepseek-v4-flash --thinking medium -p [context + prompts]
 ```
 
 **Key name:** `agi-iter1064-kid-a00-dc53aa72`

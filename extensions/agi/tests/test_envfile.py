@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import textwrap
 from pathlib import Path
@@ -155,6 +156,76 @@ def test_forbidden_key_present_is_a_problem(tmp_path):
     assert any("ANTHROPIC_API_KEY" in p for p in problems)
 
 
+# --- the private-key pattern floor (hypothesis:l4-a-seat-signs-with-a-
+# swappable-scheme, clause (2)) --------------------------------------------
+
+
+def test_priv_hex_key_name_is_refused(tmp_path):
+    """A line whose KEY ends in `_PRIV_HEX` is a private seed and must be
+    refused -- the exact cell the seat-key floor writes into sessions/seats,
+    never into .env."""
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, f"MY_SEAT_PRIV_HEX={'ab'*32}\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert any("PRIVATE KEY" in p and "MY_SEAT_PRIV_HEX" in p
+               for p in problems)
+    # the VALUE never appears in the problem line
+    assert all("ab" * 32 not in p for p in problems)
+
+
+def test_private_key_suffix_is_refused(tmp_path):
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, "SSH_PRIVATE_KEY=not-even-hex-but-a-name-error\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert any("SSH_PRIVATE_KEY" in p for p in problems)
+
+
+def test_hex64_value_under_a_key_named_key_is_refused(tmp_path):
+    """A 64-hex value (the shape of a hex-encoded 32-byte Ed25519 seed) on a
+    line whose key name contains KEY is a private key, even under a generic
+    name -- refused by value."""
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, f"OPENROUTER_API_KEY={'ab'*32}\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert any("PRIVATE KEY" in p for p in problems)
+
+
+def test_hex64_under_a_non_key_name_is_allowed(tmp_path):
+    """A 64-hex value under a key name that does NOT mention KEY (e.g.
+    CAMBER_CLOUD_API_KEY is still a KEY name -- this test uses a genuinely
+    non-KEY scalar) is not a private key by this rule and stays allowed."""
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    # CAMBER_CLOUD_API_KEY mentions KEY so it WOULD be refused -- prove the
+    # opposite with a name that has no KEY token at all.
+    write_env(tmp_path, f"MY_HEX_SCALAR_ACC={'ab'*32}\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert not any("PRIVATE KEY" in p for p in problems)
+
+
+def test_live_looking_env_with_ordinary_keys_passes_the_pattern(tmp_path):
+    """The floor must not false-positive a normal .env: a provider key with
+    its real non-hex shape, and an optional key, both pass the pattern (they
+    may still be aired as problems for an unrelated reason, never for this
+    one)."""
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, """
+        OPENROUTER_API_KEY=sk-or-v1-test
+        OPENROUTER_PROVISIONING_KEY=some-note
+        """)
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert not any("PRIVATE KEY" in p for p in problems)
+
+
 # --- checking --------------------------------------------------------------
 
 
@@ -292,6 +363,122 @@ def test_an_optional_key_that_is_set_is_reported_present_but_never_by_value(tmp_
     assert "OPENAI_API_KEY is set" in blob
     assert str(len("sk-a-very-secret-value")) in blob, "the length is the proof"
     assert "sk-a-very-secret-value" not in blob, "the VALUE must never be printed"
+
+
+# --- credential validity (hypothesis:l4-a-check-that-answers-a-
+# question-it-is-not-asking, ITEM 1) --------------------------------------
+#
+# `--check` used to assert presence and print "ok" for a revoked key. These
+# tests assert the NEW half: a 401 makes the check FAIL and say the key is
+# present but NOT USABLE (both halves); a network error stays fail-open and is
+# reported as UNKNOWN, never dead; a live key still passes. The verifier is
+# stubbed at module level so no test touches the network; a real-tree probe is
+# run manually against the live box and recorded on the experiment node.
+
+
+def _stub_verify(status, detail):
+    import envfile as _e
+
+    def _fake(key):
+        return (status, detail)
+
+    return _fake
+
+
+def test_verify_401_makes_check_fail_and_names_present_but_not_usable(tmp_path, monkeypatch):
+    """Falsifier (a): a dead key must FAIL the validating check and say BOTH
+    that it is present AND that it is not usable — a message that only says
+    'failed' loses the distinction the round exists to create."""
+    import envfile as _e
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, "OPENROUTER_API_KEY=sk-or-v1-revoked\n")
+    monkeypatch.setattr(_e, "_verify_provider_key", _stub_verify("dead", "provider rejected it (HTTP 401)"))
+    res = _e.resolve(tmp_path)
+    problems, notes = _e.check(res, verify=True)
+    assert any("present" in p and "NOT USABLE" in p for p in problems), problems
+    assert any("401" in p for p in problems), problems
+    assert not problems or "sk-or-v1-revoked" not in "\n".join(problems), "never a value"
+
+
+def test_verify_network_error_is_unknown_and_fail_open(tmp_path, monkeypatch):
+    """Falsifier (b)+(c) of ITEM 1: an unreachable API is evidence of nothing.
+    It must pass fail-open and be reported as UNKNOWN, never as dead — two
+    different facts, two different behaviours."""
+    import envfile as _e
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, "OPENROUTER_API_KEY=sk-or-v1-liveish\n")
+    monkeypatch.setattr(_e, "_verify_provider_key", _stub_verify("unknown", "could not reach the provider (URLError)"))
+    res = _e.resolve(tmp_path)
+    problems, notes = _e.check(res, verify=True)
+    assert problems == [], "a network error must never be a dead-key problem"
+    assert any("OPENROUTER_API_KEY" in n and "unknown" in n.lower() or "not confirmed usable" in n for n in notes), notes
+    assert not any("dead" in n or "NOT USABLE" in n for n in notes), notes
+
+
+def test_verify_live_key_still_passes(tmp_path, monkeypatch):
+    """Falsifier (c): a healthy key must still pass exactly as today — no new
+    problem, only a confirming note."""
+    import envfile as _e
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, "OPENROUTER_API_KEY=sk-or-v1-good\n")
+    monkeypatch.setattr(_e, "_verify_provider_key", _stub_verify("valid", "provider accepted it (HTTP 200)"))
+    res = _e.resolve(tmp_path)
+    problems, notes = _e.check(res, verify=True)
+    assert problems == []
+    assert any("OPENROUTER_API_KEY" in n and "validated" in n for n in notes), notes
+
+
+def test_verify_off_by_default_so_plain_check_stays_offline(tmp_path, monkeypatch):
+    """The plain `check(res)` / driver path must NOT fire the authenticated
+    call — `driver.sh` runs it every pass and stays offline."""
+    import envfile as _e
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, "OPENROUTER_API_KEY=sk-or-v1-whatever\n")
+    called = {"n": 0}
+    def _boom(*a, **k):
+        called["n"] += 1
+        raise AssertionError("verify must not run with verify=False")
+    monkeypatch.setattr(_e, "_verify_provider_key", _boom)
+    res = _e.resolve(tmp_path)
+    problems, notes = _e.check(res, verify=False)
+    assert called["n"] == 0
+    assert problems == []
+
+
+def test_provider_for_unknown_prefix_is_unknown_not_valid(tmp_path, monkeypatch):
+    """A key whose shape we cannot recognize must be reported UNKNOWN, never
+    accepted as valid and never condemned as dead — we have no verdict for it."""
+    import envfile as _e
+    # No network: _provider_for is pure prefix logic; stub _verify_openrouter
+    # to fail loudly so this proves the prefix path short-circuits.
+    def _boom(key):
+        raise AssertionError("must not call a provider verifier for an unknown prefix")
+    original = _e._VERIFIERS["openrouter"]
+    _e._VERIFIERS["openrouter"] = _boom
+    try:
+        status, detail = _e._verify_provider_key("ghp_something")
+        assert status == "unknown", status
+        assert "no verifier" in detail
+    finally:
+        _e._VERIFIERS["openrouter"] = original
+
+
+def test_cli_check_with_a_dead_key_fails_and_never_prints_a_value(tmp_path, monkeypatch, capsys):
+    """The CLI `--check` path routes verify=True: a dead key fails the audit
+    AND the value never reaches the terminal."""
+    import envfile as _e
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, "OPENROUTER_API_KEY=sk-or-v1-REVOKEDSECRET\n")
+    monkeypatch.setattr(_e, "_verify_provider_key", _stub_verify("dead", "provider rejected it (HTTP 401)"))
+    rc = _e.main([str(tmp_path), "--check"])
+    out, err = capsys.readouterr()
+    assert rc == 1, "a dead key must fail --check"
+    assert "REVOKEDSECRET" not in out + err, "never a value on the terminal"
 
 
 def test_an_optional_key_that_is_absent_says_so_and_is_not_a_failure(tmp_path):
@@ -445,3 +632,267 @@ def test_env_get_from_worktree_resolves_shared_env_file(tmp_path):
     assert res.env_file == repo / ".env"
     env = agi_secrets.read_env(main_env)
     assert env["OPENROUTER_API_KEY"] == "sk-main-only"
+
+
+# --- the management-key lookup is bounded to the given root's own -------
+# --- repository (hypothesis:l4-the-management-key-lookup-is-bounded-to- ---
+# --- the-given-root) ----------------------------------------------------
+# `_read_provisioning_key(root)` may climb to the nearest enclosing `.agi/`
+# and to the git common root of THAT SAME repository, but never into a
+# different (ancestral) repository: a tmp dir under an unrelated nested git
+# repo resolves None, and a synthetic `.agi` root resolves only its OWN `.env`.
+
+
+def _git(cwd, *args):
+    import subprocess
+    subprocess.run(["git", "-C", str(cwd), *args], check=True,
+                   capture_output=True, text=True)
+
+
+def _nested_repo(tmp_path, with_agi: bool, key: str) -> Path:
+    """(outer, nested) — outer is a live project; nested is a real git repo
+    dropped under `outer/vendor/`, optionally carrying its own `.agi`/`.env`."""
+    import provisioning as _prov
+    outer = tmp_path / "project"
+    outer.mkdir(parents=True)
+    make_project(outer)
+    write_node(outer / ".agi", DEFAULT_NODE)
+    write_env(outer, f"{_prov.PROVISIONING_KEY_VAR}=sk-outer-pk\n")
+    nested = outer / "vendor" / "dep"
+    nested.mkdir(parents=True)
+    _git(nested, "init", "-b", "main")
+    if with_agi:
+        make_project(nested)
+        write_node(nested / ".agi", DEFAULT_NODE)
+        write_env(nested, f"{_prov.PROVISIONING_KEY_VAR}={key}\n")
+    return outer, nested
+
+
+def test_bounded_key_lookup_does_not_cross_a_nested_unrelated_repo(tmp_path):
+    """A tmp dir under a nested git repo with no `.agi` of its own resolves
+    None — it must NOT walk up across the nested repo's `.git` boundary into
+    the outer project and read the outer key (the L4.146 leak shape)."""
+    import provisioning as _prov
+    _outer, nested = _nested_repo(tmp_path, with_agi=False, key="")
+    deep = nested / "sub" / "deep"
+    deep.mkdir(parents=True)
+    assert _prov._read_provisioning_key(deep) is None, (
+        "crossed an unrelated nested repo's git boundary to read a real key")
+    assert _prov._read_provisioning_key(nested) is None
+
+
+def test_synthetic_agi_root_resolves_only_its_own_env_key(tmp_path):
+    """A synthetic `.agi` fixture root (a real git repo with its own `.agi`
+    and its own fake `.env`) resolves THAT key only, never the outer project's
+    real key — its own repository's graph wins, bounded to its own `.env`."""
+    import provisioning as _prov
+    _outer, nested = _nested_repo(tmp_path, with_agi=True, key="sk-nested-pk")
+    got = _prov._read_provisioning_key(nested)
+    assert got == "sk-nested-pk", f"got {got!r}"
+    assert got != "sk-outer-pk"
+    # a deep child of the synthetic root still reaches that root's own key:
+    deep = nested / "a" / "b"
+    deep.mkdir(parents=True)
+    assert _prov._read_provisioning_key(deep) == "sk-nested-pk"
+
+
+# --- required_any: either OpenRouter key satisfies the group --------------
+# config:secrets declares `required_any: [[OPENROUTER_API_KEY,
+# OPENROUTER_PROVISIONING_KEY]]` and `required_keys: []`. The check must move
+# with it: a project with EITHER runtime or provisioning key passes, a project
+# with neither fails and the failure names BOTH keys.
+
+
+REQUIRED_ANY_NODE = """
+    ---
+    id: "config:secrets"
+    type: config
+    status: active
+    mint_id: 0123456789abcdef0123456789abcdef
+    title: "test secrets node with required_any"
+    locations:
+      env_file:
+        path: "<source_root>/.env"
+      env_template:
+        path: "<source_root>/.env.example"
+    required_keys: []
+    required_any:
+      - ["OPENROUTER_API_KEY", "OPENROUTER_PROVISIONING_KEY"]
+    ---
+
+    body
+    """
+
+
+def test_required_any_reads_the_groups(tmp_path):
+    graph = make_project(tmp_path)
+    write_node(graph, REQUIRED_ANY_NODE)
+    res = agi_secrets.resolve(tmp_path)
+    assert res.required_any == [["OPENROUTER_API_KEY", "OPENROUTER_PROVISIONING_KEY"]]
+
+
+def test_required_any_satisfied_by_provisioning_key_alone(tmp_path):
+    graph = make_project(tmp_path)
+    write_node(graph, REQUIRED_ANY_NODE)
+    write_env(tmp_path, "OPENROUTER_PROVISIONING_KEY=provisioning-value\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert problems == [], problems
+
+
+def test_required_any_satisfied_by_api_key_alone(tmp_path):
+    graph = make_project(tmp_path)
+    write_node(graph, REQUIRED_ANY_NODE)
+    write_env(tmp_path, "OPENROUTER_API_KEY=sk-or-v1-fixture\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert problems == [], problems
+
+
+def test_required_any_with_neither_key_names_both(tmp_path):
+    graph = make_project(tmp_path)
+    write_node(graph, REQUIRED_ANY_NODE)
+    write_env(tmp_path, "SOMETHING_ELSE=1\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    blob = "\n".join(problems)
+    assert any("OPENROUTER_API_KEY" in p and "OPENROUTER_PROVISIONING_KEY" in p
+               for p in problems), problems
+    assert blob, "an unsatisfied group must be a problem"
+
+
+def test_required_any_empty_value_counts_as_absent(tmp_path):
+    graph = make_project(tmp_path)
+    write_node(graph, REQUIRED_ANY_NODE)
+    write_env(tmp_path, "OPENROUTER_API_KEY=\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert any("OPENROUTER_PROVISIONING_KEY" in p for p in problems), problems
+
+
+EMPTY_NODE = """
+    ---
+    id: "config:secrets"
+    type: config
+    status: active
+    mint_id: 0123456789abcdef0123456789abcdef
+    title: "test secrets node declaring neither required_keys nor required_any"
+    locations:
+      env_file:
+        path: "<source_root>/.env"
+      env_template:
+        path: "<source_root>/.env.example"
+    required_keys: []
+    required_any: []
+    ---
+
+    body
+    """
+
+
+def test_missing_env_names_the_required_any_alternatives(tmp_path):
+    """A clone with no `.env` and `required_keys: []` but a declared group is
+    told which keys satisfy it -- never '(no keys declared)'
+    (hypothesis:required-any-diagnostic-names-the-declared-alternatives)."""
+    graph = make_project(tmp_path)
+    write_node(graph, REQUIRED_ANY_NODE)
+    res = agi_secrets.resolve(tmp_path)
+    assert not res.env_file.is_file(), "the fresh-clone shape is the point"
+    problems, _notes = agi_secrets.check(res)
+    blob = "\n".join(problems)
+    assert "OPENROUTER_API_KEY" in blob and "OPENROUTER_PROVISIONING_KEY" in blob, problems
+    assert "(no keys declared)" not in blob, problems
+    assert "at least one of" in blob, "a GROUP is satisfied by any one of its keys"
+
+
+def test_missing_env_says_no_keys_declared_only_when_none_are(tmp_path):
+    """The honest-empty case survives the fix: a node declaring neither
+    required_keys nor required_any still gets '(no keys declared)'."""
+    graph = make_project(tmp_path)
+    write_node(graph, EMPTY_NODE)
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert any("(no keys declared)" in p for p in problems), problems
+
+
+BOTH_NODE = """
+    ---
+    id: "config:secrets"
+    type: config
+    status: active
+    mint_id: 0123456789abcdef0123456789abcdef
+    title: "test secrets node with required_keys and required_any"
+    locations:
+      env_file:
+        path: "<source_root>/.env"
+      env_template:
+        path: "<source_root>/.env.example"
+    required_keys:
+      - MANDATORY_KEY
+    required_any:
+      - ["GROUP_ALPHA_KEY", "GROUP_BETA_KEY"]
+    ---
+
+    body
+    """
+
+
+MALFORMED_NODE = """
+    ---
+    id: "config:secrets"
+    type: config
+    status: active
+    mint_id: 0123456789abcdef0123456789abcdef
+    title: "test secrets node with a malformed required_any entry"
+    locations:
+      env_file:
+        path: "<source_root>/.env"
+      env_template:
+        path: "<source_root>/.env.example"
+    required_keys: []
+    required_any:
+      - "OPENROUTER_API_KEY"
+    ---
+
+    body
+    """
+
+
+def test_required_keys_still_enforced_alongside_required_any(tmp_path):
+    """A satisfied group does not excuse a missing required_keys entry, and a
+    present required_keys entry does not excuse an unsatisfied group."""
+    graph = make_project(tmp_path)
+    write_node(graph, BOTH_NODE)
+    # group satisfied, required_keys missing -> problem names MANDATORY_KEY
+    write_env(tmp_path, "GROUP_ALPHA_KEY=alpha-value\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert any("MANDATORY_KEY is missing or empty" in p for p in problems), problems
+    # required_keys present, neither group key -> problem names BOTH group keys
+    write_env(tmp_path, "MANDATORY_KEY=mandatory-value\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert any("GROUP_ALPHA_KEY" in p and "GROUP_BETA_KEY" in p
+               for p in problems), problems
+
+
+def test_malformed_required_any_entry_is_refused_by_name(tmp_path):
+    """A required_any entry that is not a list of key names is refused by
+    name, not silently dropped -- and as a SecretsError, its OWN type, not a
+    bare ValueError every unrelated `except ValueError` would also swallow
+    (goal:g15.29.16)."""
+    graph = make_project(tmp_path)
+    write_node(graph, MALFORMED_NODE)
+    with pytest.raises(agi_secrets.SecretsError, match="OPENROUTER_API_KEY") as exc:
+        agi_secrets.resolve(tmp_path)
+    assert not isinstance(exc.value, ValueError), \
+        "SecretsError must be its own type, not a ValueError (goal:g15.29.16)"
+
+
+def test_config_schema_declares_required_any():
+    """The [config] schema declares required_any beside its three siblings."""
+    text = (BIN.parents[2] / ".agi" / "context" / "schemas"
+            / "[config].md").read_text(encoding="utf-8")
+    assert "required_any: {type: list}" in text, "missing fields-block entry"
+    assert re.search(r"^\s+required_any: list\s*$", text, re.M), \
+        "missing validation.types entry"

@@ -1,0 +1,8 @@
+{
+  "_readme": "The per-box INPUTS the renderer takes as arguments (director rule 5): MEM_TOTAL, SYS_RESERVE, HELD_OUT, SWAP_TOTAL are NEVER config cells -- a box with no guard passes its own measured values. These are local-town's measured /proc/meminfo at DH.432; they are the numbers the ratios were chosen to reproduce. Identity tokens are NEVER here: the kit derives them (host_tokens).",
+  "box": "local-town",
+  "MEM_TOTAL": 15932,
+  "SYS_RESERVE": 1911,
+  "HELD_OUT": 6656,
+  "SWAP_TOTAL": 4095
+}

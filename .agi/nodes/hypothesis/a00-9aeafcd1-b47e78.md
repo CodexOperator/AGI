@@ -3,13 +3,13 @@ id: hypothesis:a00-9aeafcd1-b47e78
 mint_id: 1c24fa3a176e4c24b00a9d47af8e17cd
 type: hypothesis
 parents:
-  - goal:g3
+  - goal:g3.3
 next_edges: []
 confidence: 0.0
-edited_by: season.py
+edited_by: belam
 scaffold_hash: a450cbcb416a0724
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A00 9aeafcd1 b47e78
 verdict: pending
 ---

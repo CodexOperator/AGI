@@ -231,44 +231,12 @@ def test_source_root_override_beats_the_layout_default(tmp_path):
     assert locations.source_root(graph) == repo / "vendor"
 
 
-# --- goals_path ------------------------------------------------------------
+# --- goals_path: retired with GOALS.md (goal:g7.16.1.4.1 W-G) -------------
 
 
-def test_goals_render_to_the_repo_root_not_inside_dot_agi(tmp_path):
-    """The reason `goals_path` exists at all."""
-    repo = tmp_path / "fantasia"
-    graph = make_graph_dir(repo)
-    assert locations.goals_path(graph) == repo / "GOALS.md"
-
-
-def test_goals_stay_at_the_graph_root_under_the_legacy_layout(tmp_path):
-    root = make_legacy(tmp_path / "proj")
-    assert locations.goals_path(root) == root / "GOALS.md"
-
-
-def test_goals_file_override_resolves_the_dropin_collision(tmp_path):
-    """A repo that already ships its own GOALS.md keeps both documents."""
-    repo = tmp_path / "fantasia"
-    graph = make_graph_dir(repo, goals_file="AGI-GOALS.md")
-    assert locations.goals_path(graph) == repo / "AGI-GOALS.md"
-    assert locations.goals_path(graph).name != "GOALS.md"
-
-
-def test_goals_file_with_a_separator_is_relative_to_the_graph_root(tmp_path):
-    repo = tmp_path / "repo"
-    graph = make_graph_dir(repo, goals_file="docs/GOALS.md")
-    assert locations.goals_path(graph) == graph / "docs" / "GOALS.md"
-
-
-def test_goals_file_absolute_is_used_as_is(tmp_path):
-    target = tmp_path / "anywhere" / "G.md"
-    root = make_legacy(tmp_path / "proj", goals_file=str(target))
-    assert locations.goals_path(root) == target
-
-
-def test_blank_goals_file_falls_back_to_the_default(tmp_path):
-    root = make_legacy(tmp_path / "proj", goals_file="   ")
-    assert locations.goals_path(root) == root / "GOALS.md"
+def test_goals_path_and_its_cell_are_retired():
+    assert not hasattr(locations, "goals_path")
+    assert not hasattr(locations, "DEFAULT_GOALS_FILE")
 
 
 # --- config loading --------------------------------------------------------
@@ -311,6 +279,50 @@ def test_legacy_env_spelling_still_read(tmp_path, monkeypatch):
     assert locations.project_root_from_env(tmp_path) == other
 
 
+def test_env_override_naming_repo_root_descends_into_dot_agi(tmp_path, monkeypatch):
+    """hypothesis:l4-env-root-override-descends-never-ascends — case (b).
+
+    `dispatch.py --branch` exports the WORKTREE REPO root into the variable.
+    That value names a directory holding `.agi/` with a config, so phase 0's
+    rule applies and it must resolve to `<val>/.agi` — this is the dispatched-
+    child sense that was previously unreadable.
+    """
+    repo = tmp_path / "repo"
+    graph = make_graph_dir(repo)
+    monkeypatch.setenv("AGI_TREE_PROJECT_ROOT", str(repo))
+    assert locations.project_root_from_env(repo) == graph
+
+
+def test_env_override_naming_graph_root_is_unchanged(tmp_path, monkeypatch):
+    """hypothesis:l4-env-root-override-descends-never-ascends — case (c).
+
+    `driver.sh` and the session hook export the GRAPH root, already
+    `<repo>/.agi`. Naming a graph root must resolve to ITSELF — unchanged —
+    or the two working producers regress.
+    """
+    repo = tmp_path / "repo"
+    graph = make_graph_dir(repo)
+    monkeypatch.setenv("AGI_TREE_PROJECT_ROOT", str(graph))
+    assert locations.project_root_from_env(repo) == graph
+
+
+def test_env_override_never_ascends_to_an_ancestor(tmp_path, monkeypatch):
+    """hypothesis:l4-env-root-override-descends-never-ascends — case (d),
+    the never-ascend property asserted directly.
+
+    The override must not walk up. A directory that is neither a graph root
+    nor a repo root holding `.agi/`, but whose ANCESTOR holds a config, is
+    returned UNCHANGED — it must NOT resolve to that ancestor. An override
+    that could ascend would silently defeat the purpose of the env var (a
+    caller's explicit root is never overridden for a different project).
+    """
+    repo = tmp_path / "repo"
+    make_legacy(repo)  # the ancestor holds a config (legacy marker)
+    deep = repo / "src" / "deep" ; deep.mkdir(parents=True)
+    monkeypatch.setenv("AGI_TREE_PROJECT_ROOT", str(deep))
+    assert locations.project_root_from_env(repo) == deep
+
+
 # --- the two halves agree --------------------------------------------------
 
 
@@ -323,7 +335,7 @@ def _bash_find_root(start: Path) -> str | None:
 
 
 @pytest.mark.parametrize("shape", ["legacy", "graph_dir", "nested", "half_migrated",
-                                   "descend", "ambiguous", "none"])
+                                   "nested_git", "nested_git_descend", "descend", "ambiguous", "none"])
 def test_bash_and_python_agree(tmp_path, shape):
     """lib/find-root.sh and bin/locations.py implement ONE rule, twice.
 
@@ -348,6 +360,36 @@ def test_bash_and_python_agree(tmp_path, shape):
         make_legacy(repo)
         expected = make_graph_dir(repo)
         start = repo
+    elif shape == "nested_git":
+        # hypothesis:l4-find-root-sh-is-bounded-like-its-python-half. An outer
+        # project with .agi, a nested unrelated `git init` WITHOUT .agi, and a
+        # deep child under it. Both halves must stop at the nested .git and
+        # resolve NOTHING — never climb past it into the outer project.
+        outer = tmp_path / "outer-repo"
+        make_graph_dir(outer)
+        nested = outer / "nested"
+        nested.mkdir(parents=True)
+        subprocess.run(["git", "init", "-q", str(nested)], check=True)
+        start = nested / "deep" / "child"
+        start.mkdir(parents=True)
+        expected = None
+    elif shape == "nested_git_descend":
+        # hypothesis:l4-find-root-sh-stops-at-the-git-boundary-all-the-way.
+        # The near-miss pinner: a `.git` boundary break must STILL reach phase
+        # 2 descend. An outer repo with .agi, a nested unrelated `git init`
+        # WITHOUT .agi, and a legacy `<start>/<start>-tree/` WITH a config
+        # BELOW the boundary. Both halves break at the nested .git, skip the
+        # "/" probe, and descend into that tree. A `return 1` at the break —
+        # the tempting "fix" — would make bash refuse while python still
+        # descends (locations.py runs `_descend(d)` after the break), so bash
+        # must agree with python that the tree resolves.
+        outer = tmp_path / "outer-repo"
+        make_graph_dir(outer)
+        nested = outer / "nested"
+        nested.mkdir(parents=True)
+        subprocess.run(["git", "init", "-q", str(nested)], check=True)
+        start = nested
+        expected = make_legacy(nested / "nested-tree")
     elif shape == "descend":
         start = tmp_path / "fantasia"
         start.mkdir()
@@ -369,6 +411,68 @@ def test_bash_and_python_agree(tmp_path, shape):
     assert (str(py) if py else None) == (str(expected) if expected else None)
     assert sh == (str(expected) if expected else None), (
         f"bash and python disagree on shape={shape}: bash={sh!r} python={py!r}"
+    )
+
+
+def _bash_find_root_stub_graph_at_root(start: Path) -> tuple[int, str]:
+    """Run the REAL find-project_root with the lookup helpers stubbed so ONLY
+    "/" looks like a graph dir.
+
+    Sources find-root.sh in a subprocess (so the real loop, break and flag
+    logic all run), then redefines the two helpers: `agi_graph_dir_in`
+    returns a fake graph ONLY for "/", and `agi_tree_config_path` always
+    misses. Thus the walk resolves nothing on its way up and the ONLY way to
+    get a hit is the explicit "/" probe firing. This makes the hidden probe
+    observable without real root access — exactly the situation the
+    hypothesis calls out as hard to fixture for real.
+    """
+    script = f'''
+source "{LIB}/find-root.sh" || {{ echo "source failed" >&2; exit 9; }}
+agi_graph_dir_in() {{
+  if [[ "$1" == "/" ]]; then echo "/__fake_root_graph"; return 0; fi
+  return 1
+}}
+agi_tree_config_path() {{ return 1; }}
+find_project_root "{start}"
+'''
+    res = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
+    return res.returncode, res.stdout.strip()
+
+
+def test_root_probe_runs_on_boundary_free_walk_not_after_git_boundary(tmp_path):
+    """The fix, at the source: the explicit "/" probe fires on a boundary-free
+    walk but is SKIPPED after a `.git` boundary break.
+
+    This is the hypothesis's falsifier stated directly — find-root.sh must not
+    resolve a root above a .git boundary via the trailing "/" probe — made
+    observable by stubbing so only "/" looks like a project:
+      * boundary-free walk from a deep dir  → the "/" probe fires, rc==0
+      * walk under a nested `git init`      → the "/" probe is skipped, rc==1
+    No root access required; nothing is ever touched on the real filesystem
+    root.
+    """
+    # (1) boundary-free walk: the "/" probe is the walk's own final level and
+    # must fire, exactly as the python while-True loop probes "/" as its last
+    # iteration on a boundary-free walk.
+    deep = tmp_path / "a" / "b" / "c"
+    deep.mkdir(parents=True)
+    rc, out = _bash_find_root_stub_graph_at_root(deep)
+    assert rc == 0, (
+        f"boundary-free walk should probe '/' and resolve, got rc={rc} out={out!r}"
+    )
+    assert out == "/__fake_root_graph"
+
+    # (2) under a nested .git boundary the "/" probe must be skipped entirely
+    # — bash must agree with python, which goes straight to phase 2 descend
+    # and never probes "/" after a boundary break.
+    nested = tmp_path / "innerrepo"
+    nested.mkdir()
+    subprocess.run(["git", "init", "-q", str(nested)], check=True)
+    deep_under = nested / "deep"
+    deep_under.mkdir()
+    rc, out = _bash_find_root_stub_graph_at_root(deep_under)
+    assert rc == 1, (
+        f"under a .git boundary the '/' probe must be skipped, got rc={rc} out={out!r}"
     )
 
 
@@ -452,8 +556,8 @@ def test_symlinked_start_resolves_like_python(tmp_path):
 def test_cli_what_prints_one_path(tmp_path, capsys):
     repo = tmp_path / "fantasia"
     make_graph_dir(repo)
-    assert locations.main([str(repo), "--what", "goals"]) == 0
-    assert capsys.readouterr().out.strip() == str(repo / "GOALS.md")
+    assert locations.main([str(repo), "--what", "repo"]) == 0
+    assert capsys.readouterr().out.strip() == str(repo)
 
 
 def test_cli_json_reports_the_layout(tmp_path, capsys):
@@ -728,6 +832,19 @@ def test_git_common_root_resolves_a_plain_dir_to_enclosing_repo(tmp_path):
     assert locations.git_common_root(leaf) == other.resolve()
 
 
+def test_enclosing_repo_is_none_outside_a_git_repo_and_the_repo_inside(tmp_path):
+    """`_enclosing_repo` is the fact `is_live_checkout` decides on: None where
+    the path is in NO repository (so a gitless basetemp is never LIVE), the
+    repo root where there is one. `git_common_root` keeps its identity
+    fallback OUTSIDE this helper -- that is what made SM.80's guard inert."""
+    outside = tmp_path / "notgit"
+    outside.mkdir(parents=True)
+    assert locations._enclosing_repo(outside) is None
+    repo = _make_project_repo(tmp_path)
+    assert locations._enclosing_repo(repo / "deep" / "er") == repo.resolve()
+    assert locations.git_common_root(outside) == outside.resolve()
+
+
 def test_shared_project_root_is_identity_in_main_checkout(tmp_path):
     """A caller in the main checkout is unchanged (the usual non-branch case)."""
     repo = _make_project_repo(tmp_path)
@@ -758,3 +875,125 @@ def test_shared_project_root_is_none_outside_a_project(tmp_path):
     d = tmp_path / "notgit"
     d.mkdir(parents=True)
     assert locations.shared_project_root(d) is None
+
+
+def test_shared_sessions_dir_is_identity_in_main_checkout(tmp_path):
+    """A non-worktree / non-git caller is unchanged (the usual case), and the
+    graph-dir form (`root/.agi`) resolves under the graph, not doubled."""
+    repo = _make_project_repo(tmp_path)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "add graph dir")
+    graph = locations.find_project_root(repo)
+    # A REPO-root caller still lands on the graph's sessions (not doubled).
+    assert str(locations.shared_sessions_dir(repo)) == str(repo / ".agi" / "sessions")
+    assert locations.shared_sessions_dir(graph) == locations.sessions_dir(graph)
+
+
+def test_shared_sessions_dir_resolves_main_room_from_worktree(tmp_path):
+    """FALSIFIER (g4): a linked worktree's SHARED sessions dir is the MAIN
+    checkout's room, while the plain per-worktree `sessions_dir` keeps the
+    fork (iteration output). `rotate._sessions_dir` delegates here, so one
+    implementationare pins/mail/budget/stamp/rotation records all share."""
+    repo = _make_project_repo(tmp_path)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "add graph dir")
+    wt = tmp_path / "wt"
+    _git(repo, "worktree", "add", "-b", "loop/slug@s2", str(wt), "master")
+    wt_graph = locations.find_project_root(wt)
+    main_graph = locations.find_project_root(repo)
+    assert wt_graph != main_graph                       # the fork is real
+    assert locations.shared_sessions_dir(wt_graph) == locations.shared_sessions_dir(main_graph)
+    assert str(locations.shared_sessions_dir(wt_graph)) == str(main_graph / "sessions")
+    # The per-worktree resolver honors the fork (iteration output stays local).
+    assert str(locations.sessions_dir(wt_graph)) == str(wt_graph / "sessions")
+    assert locations.sessions_dir(wt_graph) != locations.sessions_dir(main_graph)
+
+
+# --- the lookup is bounded to the given root's own repository (l4-the- ---
+# --- management-key-lookup-is-bounded-to-the-given-root) --------------
+# A directory with `.git` is the boundary of the repo `start` is inside. An
+# `.agi`/config found AT that level (a main checkout or a linked worktree that
+# keeps its `.agi` beside its `.git`) is `start`'s own; anything ABOVE that
+# boundary lives in a DIFFERENT (ancestral) repository and must never be
+# climbed into. This is the primitive that makes a tmp dir under an unrelated
+# nested fixture git repo resolve None instead of walking up to the outer
+# project's key.
+
+
+def test_find_project_root_never_crosses_a_git_boundary_into_an_ancestor(tmp_path):
+    """A nested git repo with no `.agi` of its own must resolve None, not the
+    OUTER project's graph -- the walk stops at the nested repo's `.git`."""
+    outer = tmp_path / "project"
+    outer.mkdir(parents=True)
+    graph = make_graph_dir(outer)
+    assert locations.find_project_root(outer) == graph  # sanity: outer findable
+    # a real nested repo (no .agi) inside the outer project:
+    nested = outer / "vendor" / "dep"
+    nested.mkdir(parents=True)
+    _git(nested, "init", "-b", "main")
+    deep = nested / "sub" / "deep"
+    deep.mkdir(parents=True)
+    assert locations.find_project_root(deep) is None, (
+        "must not cross the nested repo's `.git` boundary into the outer "
+        "project's `.agi`")
+    # its own repo root, still inside the nested repo, is also None (no .agi):
+    assert locations.find_project_root(nested) is None
+
+
+def test_find_project_root_own_repo_agi_beside_git_still_resolves(tmp_path):
+    """A linked worktree whose `.agi` fork sits beside its `.git` still
+    resolves its own fork -- the bound must not break worktree provisioning."""
+    repo = _make_project_repo(tmp_path)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "add graph dir")
+    wt = tmp_path / "wt"
+    _git(repo, "worktree", "add", "-b", "loop/slug@s2", str(wt), "master")
+    assert (wt / ".agi").is_dir()
+    wt_graph = locations.find_project_root(wt)
+    assert wt_graph is not None and wt_graph.parent == wt
+    # a deep child of the worktree still reaches the fork (bounded to the
+    # worktree's own repo, never crossing out):
+    assert locations.find_project_root(wt / "deep" / "sub") == wt_graph
+
+
+# --- goal:g15.27.5: `locations.stream` cells, ONE resolver -----------------
+
+
+def test_stream_path_shapes(tmp_path):
+    """Relative resolves against the graph root, absolute is as-is, `{home}`
+    expands -- the three spellings one cell may use."""
+    root = make_graph_dir(tmp_path / "proj")
+    cfg = {"locations": {"stream": {
+        "rel": "box/stub", "abs": "/opt/stub", "hh": "{home}/classfeed/feed.py"}}}
+    assert locations.stream_path(root, "rel", cfg) == (root / "box/stub").resolve()
+    assert locations.stream_path(root, "abs", cfg) == Path("/opt/stub")
+    assert locations.stream_path(root, "hh", cfg) == Path.home() / "classfeed/feed.py"
+
+
+def test_stream_path_missing_key_refuses_by_name(tmp_path):
+    """A typo is a KEY on stderr, never a path that plausibly exists."""
+    root = make_graph_dir(tmp_path / "proj")
+    with pytest.raises(KeyError) as exc:
+        locations.stream_path(root, "nope", {"locations": {"stream": {}}})
+    assert "nope" in str(exc.value)
+
+
+def test_stream_cell_is_not_a_payload_location(tmp_path):
+    """`known_payload_locations` takes only non-empty FLAT strings; a dict cell
+    is skipped, so `stream` is never offered as a payload base."""
+    root = make_graph_dir(tmp_path / "proj")
+    cfg = {"locations": {"stream": {"stub": str(root / "s")}}}
+    assert "stream" not in locations.known_payload_locations(cfg)
+
+
+def test_streamer_stub_prefers_the_stream_cell(tmp_path):
+    """`commands.py`'s `<stub>` token and the skill resolve ONE directory."""
+    root = make_graph_dir(tmp_path / "proj")
+    want = root / "the-stub"
+    cfg = {"locations": {"streamer_stub": str(root / "legacy"),
+                         "stream": {"stub": str(want)}}}
+    assert locations.streamer_stub(root, cfg) == want.resolve()
+    # no cell -> the legacy flat key still answers
+    assert locations.streamer_stub(root, {"locations": cfg["locations"]}) == want.resolve()
+    del cfg["locations"]["stream"]
+    assert locations.streamer_stub(root, cfg) == (root / "legacy").resolve()

@@ -1,0 +1,132 @@
+---
+id: experiment:a00-73aeae86-75e0f3
+mint_id: 1fc50515f026427ca7e048ac2fd1e2bf
+type: experiment
+parents:
+  - hypothesis:harness-bin-paths-resolve-per-box
+next_edges: []
+confidence: 0.8
+edited_by: director-general-3
+evidence_runs:
+  - experiment:a00-73aeae86-75e0f3
+line_ceiling: 40
+loop: hypothesis:harness-bin-paths-resolve-per-box@s2
+model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "gate", "cmd": "env -u COPILOT_BIN adapters.load(\"copilot_cli\").resolve_bin({\"adapter\":\"copilot-cli\",\"bin\":\"~/.npm-global/bin/copilot\"})", "expected": "FileNotFoundError naming harness, expanded path, $COPILOT_BIN", "observed": "FileNotFoundError: harness \"copilot-cli\": ... expanded to <home>/.npm-global/bin/copilot ... set $COPILOT_BIN to override", "result": "pass"}
+  - {"conjunct": 2, "class": "boundary", "cmd": "resolve_bin({\"bin\":\"/from/config\"}, \"PI_BIN\", \"pi\") with PI_BIN unset", "expected": "a concrete token-free absolute path is still carried unchanged (precedence tests stay green)", "observed": "/from/config", "result": "pass"}
+  - {"conjunct": 3, "class": "gate", "cmd": "new test on pre-fix bytes: git show 076e6698f:.../__init__.py, pytest -k missing_path_shaped", "expected": "RED (DID NOT RAISE)", "observed": "Failed: DID NOT RAISE FileNotFoundError", "result": "pass"}
+production_lines: 17
+profile: balanced
+role: kid
+scaffold_hash: fb38ea032c444f85
+season: 2
+title: "Path-shaped bin refusal: a home-expanded cell that does not exist refuses by name"
+town: local-maxxing
+verdict: inconclusive_lean_proved:90
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-73aeae86-75e0f3
+
+## What was built
+
+Round 2 of `hypothesis:harness-bin-paths-resolve-per-box`. Round 1 landed the
+ONE shared `adapters.resolve_bin` and the per-box `~/.npm-global/bin/<tool>`
+config cells, but left one conjunct unmet: a path-shaped bin whose expanded
+file is absent returned the RAW cell, so the caller received the unexpanded
+string `~/...` and `Popen` died on a bare `FileNotFoundError('~/...')` that
+named nothing.
+
+`extensions/agi/bin/adapters/__init__.py` (only production file touched,
++17/-1) now splits the path-shaped branch:
+
+```python
+if os.sep in path or (os.altsep and os.altsep in path):
+    if os.path.exists(path):
+        return path
+    if path != raw:                      # a home token was expanded
+        raise FileNotFoundError(
+            f"harness {harness.get('adapter') or '?'!r}: cannot resolve binary "
+            f"{raw!r}: expanded to {path!r}, which does not exist; "
+            f"set ${env_var} to override")
+    return raw
+```
+
+The refusal names (a) the harness, (b) the EXPANDED path that was tried, and
+(c) `$<env_var>`. Nothing else moved: the bare-name PATH fallback, the
+existing-path case, and env > config > default precedence are untouched, and
+`.agi/config.json` was not edited (round 1 landed those bins).
+
+### The one judgement call, stated plainly
+
+The refusal fires only when a `~`/`{home}` token was actually expanded
+(`path != raw`). A concrete absolute path with no token is still carried
+UNCHANGED, because five live tests pin that behavior
+(`test_pi_bin_env_var_wins_over_config`, `test_env_override_wins_over_the_config_cell`,
+`test_copilot_cli_adapter::test_resolve_bin_precedence`, and
+`test_live_bin_cell_threads_through_to_argv` all pass `/from/...`, `/cfg/...`,
+`/SENTINEL/...` values that need no expansion). An unconditional path-shaped
+refusal would break every one of them, and the parent's round-2 order says
+those stay green. This still covers the live defect and the live config shape:
+all four `harnesses.<h>.bin` cells are `~/.npm-global/bin/...` today, so every
+live bin now either resolves to a real path or refuses by name.
+
+## Evidence — RED on pre-fix bytes
+
+Pre-fix bytes materialised with `git show 076e6698f:extensions/agi/bin/adapters/__init__.py`
+into `.agi/sessions/iter-EF.34/a00-73aeae86/pre-fix/bin/`, with the NEW
+`test_adapters.py` run against them:
+
+```
+$ python3 -m pytest <scratch>/pre-fix/tests/test_adapters.py -q -k missing_path_shaped
+1 failed, 42 deselected
+  test_a_missing_path_shaped_bin_refuses_by_name_with_the_expanded_path
+  Failed: DID NOT RAISE FileNotFoundError
+```
+
+Full output: `.agi/sessions/iter-EF.34/a00-73aeae86/pre-fix-red.txt`.
+
+## Evidence — GREEN on the built bytes
+
+```
+$ python3 -m pytest extensions/agi/tests/test_adapters.py -q -k missing_path_shaped
+1 passed, 42 deselected
+
+$ env -u COPILOT_BIN python3 -c "...copilot_cli.resolve_bin(
+      {'adapter':'copilot-cli','bin':'~/.npm-global/bin/copilot'})"
+FileNotFoundError: harness 'copilot-cli': cannot resolve binary
+  '~/.npm-global/bin/copilot': expanded to
+  '<home>/.npm-global/bin/copilot', which does not exist;
+  set $COPILOT_BIN to override          <- the parent's exact gate probe, now names
+
+$ python3 -m pytest extensions/agi/tests/test_adapters.py \
+      extensions/agi/tests/test_dispatch.py extensions/agi/tests/test_bin_help_smoke.py \
+      extensions/agi/tests/test_grok_bot_adapter.py extensions/agi/tests/test_copilot_cli_adapter.py \
+      extensions/agi/tests/test_claude_code_adapter.py -q
+1 failed, 330 passed, 4 skipped
+  FAILED ...::test_help_smoke[harness_template.py]   <- KNOWN RED (core-sync R2), NOT this round
+```
+
+`test_grok_bot_adapter.py` gained one necessary edit:
+`test_live_config_grok_row_resolves` asserted the live `~/.npm-global/bin/grok-bot`
+cell was carried even though the binary is absent, which is exactly the
+behavior round 2 removes. It now installs the row's binary under a tmp HOME
+and pins the EXPANDED path — hermetic, and the config cell still threads to
+argv[0].
+
+## Falsifier check
+
+- no `/home/<user>` literal reintroduced in the resolver (the message is
+  built from `os.path.expanduser`, never a literal)
+- no box needs a hand-made symlink or profile export: `~/.npm-global/bin/pi`
+  resolved on this box because the token expands against HOME; the missing
+  copilot/grok paths REFUSE rather than hand back a `~/` string
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PASS B3 review (goal:g1.31.3.1.1, hypothesis:pb3-node-verdicts-match-bytes-1-6-13-46, run mur-pb3retry5/verify_harness-bin-paths-resolve-per-box.json — box-local under .agi/sessions/workflows/runs/, gitignored; prior THOUGHT in git at the pre-review commit). This write is a REPAIR, not a new judgement: the node own THOUGHT (PARENT REVIEW a00-cec21f69) already ends "Recorded inconclusive_lean_proved:90", and the frontmatter said verdict: proved. Two artefacts of the same round disagreed; the THOUGHT is the authored record and the frontmatter line had drifted. The frontmatter now reads what the reasoning recorded, so the two stop disagreeing — nothing about the claim moved. Kept as a lean and not a flat proved because the round this node answers carries its own pre-existing evidence_runs rather than a per-claim run I could re-point at, and a lean states the bound honestly instead of asserting more than the cited verify file does.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Round 2 build: adapters.resolve_bin's path-shaped branch now refuses by name (harness + EXPANDED path + $<env_var>) when a home token was expanded but the file is absent; RED pre-fix (DID NOT RAISE), GREEN after; parent's copilot gate probe now names the expanded <home> path and $COPILOT_BIN. Existing bare-name/env-override tests stay green; only KNOWN RED harness_template help smoke remains.
+
+DIRECTOR RESTORE (director-general-3, closes mur dg6-01 residue 1): the rewritten THOUGHT dropped the round-2 parent's adjacent finding, restored here: adapters resolve_bin expands a tilde-user bin cell as HOME plus the raw tail, so a cell of the form tilde-otheruser/bin/x is silently MISPREFIXED with the current home before it refuses; it fails CLOSED (the refusal names a wrong expanded path), untested, round-1 code. Routed as a findings row on goal:g7.33.

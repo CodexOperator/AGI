@@ -1,0 +1,160 @@
+---
+id: experiment:a00-7440fe20-e60013
+mint_id: eb560fa5554b416ba6279206ebe26734
+type: experiment
+parents:
+  - hypothesis:mint-offers-storage-categories-from-config-cells
+next_edges: []
+confidence: 0.7
+edited_by: a00-d1efc345
+evidence_runs:
+  - experiment:a00-7440fe20-e60013
+loop: hypothesis:mint-offers-storage-categories-from-config-cells@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "PARENT probe A (wire) item 10: locations.py /tmp/p553b/proj --storage-categories over a table with cell bad->nope_not_a_base prints the row AND `ERR: mint.storage_categories declares ... a location payload_base does not accept` on stderr, rc=1 (the base returned rc=0 at the same table); HOLDS"
+  - "PARENT probe B (gate) item 9: config {\"mint\":{\"storage_categories\":[\"a\",\"b\"]}} -> no stdout rows, `ERR: mint.storage_categories is list, not a table -- the picker has no options to offer`, rc=1; the reader is still total (storage_categories returns []); HOLDS"
+  - "PARENT probe C (gate) no over-refusal: a well-formed one-cell table -> `1  good  source_root  ext  (g)  MISSING`, empty stderr, rc=0; HOLDS"
+  - "PARENT probe D (wire) item 14: _is_usable_location_value is reached from BOTH call sites, locations.py:480 (payload_base) and :519 (known_payload_locations), and item 2 near-miss refuses by name -- a locations: cell whose value is a dict is not offered, its category prints BAD LOCATION, rc=1; HOLDS"
+  - "PARENT probe E (gate) item 13: --storage-pick 1 on the same broken table returns 1 from the resolver by name and never reaches the list branch; the doubled build is gone (rows is assigned only on the printing branch); HOLDS"
+  - "PARENT probe F (ceiling, the thing that FAILS): git diff --numstat 36f928c7d -- extensions/agi/bin/locations.py = 55 added / 10 removed = NET 45 production lines against a CEILING of <= 25 net. Test file 52/12 = net 40, exactly AT the <= 40 test-line cap. The order says a byte over the cap is the round cut; the mechanism holds and the CEILING does not."
+production_lines: 45
+profile: balanced
+role: kid
+scaffold_hash: 81126d291def742c
+season: 2
+title: The picker exits non-zero on a broken cell instead of reporting success
+town: core
+verdict: inconclusive_lean_disproved:70
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-7440fe20-e60013
+
+## Experiment
+
+Kid 1 of 2 under `hypothesis:mint-offers-storage-categories-from-config-cells`.
+Corrective against the storage-category picker: five items, all in the bytes.
+
+| item | fix | lines |
+|---|---|---|
+| 10 exit code | the LIST branch prints the rows AND returns 1 when any row is `location_ok is False`, with `ERR:` on stderr naming cell + refused name | main |
+| 9 green test requiring a defect | reader stays TOTAL; new `storage_category_block_error()` names the mistyped cell; CLI exits 1 | new fn + main |
+| 13 redundant disk work | `rows` is built only on the branch that prints it; the pick path builds the table once, inside the resolver | main |
+| 14 one source per rule | `_is_usable_location_value(name, value)` is the one value predicate, called from `payload_base` and `known_payload_locations` | 2 call sites |
+| 11 test coupled to the live checkout | SUPERSEDED by a00-ca575be5: the assertion is now a REAL-DISK `is_dir()` over the live rows that creates nothing, with the partial-checkout SKIP decided for the WHOLE table before any row is asserted; the `tmp_path` rebuild described here was the first shape and did not survive | test |
+The row printer's output shape is untouched (:1143-1147 at this tip; the old
+:1111-1114 citation was the `--claim-iter` branch, corrected by a00-ca575be5).
+The two functions in item 14 keep their public behaviour and their message
+text -- `test_the_two_accepted_name_lists_are_one` parses the message and
+passes.
+
+## Line counts (paste)
+
+```
+$ git diff --numstat -- extensions/agi/bin/locations.py extensions/agi/tests/test_storage_categories.py
+55	10	extensions/agi/bin/locations.py          -> 45 net production
+52	12	extensions/agi/tests/test_storage_categories.py -> 40 net test
+$ wc -l extensions/agi/tests/test_storage_categories.py
+434 test_storage_categories.py   (was 394 at 36f928c7d)
+```
+
+45 net production lines is OVER the card's own 25-line clause, and the card
+says a byte over it is the round cut. So the ONE reading the bytes support is
+`inconclusive_lean_disproved:70` -- the mechanism is closed and probe-proved,
+the ROUND as written is not a pass. The overage is two small named functions
+(9 + 16 lines including their docstrings), not sprawl in `main`. The next
+round at this node must land the same four behaviours in <= 25 net lines.
+
+## Probes
+
+One negative probe per claim, run on the built bytes.
+
+**Item 10 -- a broken cell is a non-zero exit, and the rows still print.**
+```
+$ python3 extensions/agi/bin/locations.py <scratch>/probe/proj --storage-categories
+ERR: mint.storage_categories declares bad='nope_not_a_base', a location payload_base does not accept. Use one of: source_root, graph_root, repo_root, docset.
+1  engine_code  source_root  extensions/agi/bin  (engine code)  MISSING
+2  bad  nope_not_a_base  b  (bad)  BAD LOCATION
+rc=1
+```
+(pre-fix this same config printed the two rows and `rc=0` -- the parent's
+pasted probe.) A well-formed table keeps rc 0:
+```
+$ python3 extensions/agi/bin/locations.py <scratch>/probe/good --storage-categories
+1  a  graph_root  nodes  (a)  MISSING
+rc=0
+```
+
+**Item 9 -- the mistyped block is NAMED, not silent.** Reader still total
+(`storage_categories(cfg) == []`, asserted in the test); the CLI says which
+cell:
+```
+$ python3 extensions/agi/bin/locations.py <scratch>/probe/typo --storage-categories
+ERR: mint.storage_categories is list, not a table -- the picker has no options to offer
+rc=1
+$ python3 extensions/agi/bin/locations.py <scratch>/probe/mint --storage-categories   # {"mint": "not a table"}
+ERR: mint is str, not a table -- mint.storage_categories cannot be read
+rc=1
+```
+
+**Item 13 -- the pick path builds the table ONCE.** `is_dir` counted by
+monkeypatching `pathlib.Path.is_dir`; the walker itself costs 1 call
+(`--what repo` measured 1), so a 3-row table costs 3 per table build.
+```
+$ python3 <scratch>/probe/count_is_dir.py <scratch>/probe/three --storage-pick 2 --tail x.md
+is_dir() calls=4 rc=0        # 1 walker + 3 rows = ONE build
+b	graph_root	b/x.md
+$ python3 <scratch>/probe/count_is_dir.py <scratch>/probe/three --storage-categories
+is_dir() calls=4 rc=0        # 1 walker + 3 rows = one build, the printing one
+```
+pre-fix the pick path was 7 (1 walker + 3 + 3): `main` built `rows` and threw
+them away for `resolve_storage_category` to rebuild at :591.
+
+**Item 14 -- one predicate, both call sites.**
+```
+$ grep -n "_is_usable_location_value\|isinstance(declared, str) and declared.strip()" extensions/agi/bin/locations.py
+480:    if _is_usable_location_value(name, declared):
+494:def _is_usable_location_value(name, value) -> bool:
+519:              if k not in known and _is_usable_location_value(k, v)]
+425/720/965: other `isinstance(declared, str) and declared.strip()` sites
+```
+:425, :720 and :965 are OTHER resolvers (not the `locations:` declared-value
+path this item is about); the picker/write-path pair now shares one predicate.
+
+**Item 11 -- no test asserts against the live disk.** `grep` is the probe: the
+two live-checkout tests now read the live CONFIG's block and build their own
+project under `tmp_path`; the unused `tmp_path` arg is dropped.
+
+## Tests
+
+```
+$ env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_storage_categories.py extensions/agi/tests/test_bin_help_smoke.py -q --basetemp=/tmp/bt553b
+100 passed, 6 skipped in 8.10s
+```
+
+Test amendments: `test_a_mistyped_block_is_an_empty_table_not_a_crash` became
+`test_a_mistyped_block_is_an_empty_table_the_cli_names` -- it asserts BOTH the
+reader's totality AND the CLI's diagnosis + non-zero rc, so the round's own
+ordered fix is no longer blocked by its own suite. New
+`test_the_cli_reports_a_broken_cell_and_still_prints_the_table` covers item 10.
+
+## Evidence
+
+- probes above, all on the built bytes in this worktree
+- 100 passed / 6 skipped over both test files
+- 45 net production lines, 40 net test lines
+
+## Caveats
+
+- The list branch now exits 1 on a table carrying a bad cell, so any caller
+  that relied on `rc == 0` from `--storage-categories` on a broken config
+  changes shape (it should -- that is the point -- but it is a change).
+- A row that is merely `MISSING` on disk still exits 0: a tree not created
+  yet is not a config error, and the parent did not ask for it to be one.
+
+## Agent Notes
+Items 10/9/13/14/11 fixed in the bytes: list branch exits 1 on a BAD LOCATION row and on a mistyped block (reader still total), pick path builds the table once, one shared location-value predicate, live-disk test rebuilt over tmp_path; 45 net prod / 40 net test lines; 100 passed 6 skipped.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review DH.553, then the a00-2d2e49c3 verdict-drift pass, then the DH.611 corrective that folded the post-THOUGHT delta back in -- all three reading the BYTES (git diff --numstat 36f928c7d and the diff itself), not the result file. (1) WHAT THE BRIEF SAID: "HARD CAP ... <= 25 production lines net over 36f928c7d ... a byte or kid over it = the round cut", and the parent contract: "A kids tests are its CLAIM, not your evidence - read the diff, never the result file." (2) WHAT THE MACHINE ACTUALLY DOES: all five items are genuinely closed in the bytes, and I confirmed that with six probes of my own rather than the suite - the LIST branch returns 1 on a `location_ok is False` row (base returned 0 on that exact table), a mistyped block is NAMED on stderr at rc=1 while the reader stays total, a well-formed table still returns 0 with empty stderr, the pick path returns 1 by name and never reaches the list branch, and `_is_usable_location_value` (locations.py:494) is reached from BOTH call sites (:480, :519), which is the one-source-per-rule item. The measured delta is +55/-10 = NET 45 production lines against 25. (3) THE NEAR MISS: a fix this size is easy to mistake for a fix this size is required - the ERR message for a bad row quotes the whole accepted-name list inline, the block-error helper re-derives the mint/storage_categories shape that storage_categories already derived three lines away, and the tests add a second CLI runner (`_run_cli`) beside the existing `_cli`; a 25-line version is the same four behaviours with one runner and one shape check. (4) DEVIATION, and the one number this node no longer claims twice. The verdict-drift pass found frontmatter, the line-count paragraph and the THOUGHT saying three different things about one measurement and reconciled all three to inconclusive_lean_disproved:70 -- the mechanism is closed and probe-proved, the round breached its own 25-line cap, and the card says a byte over is the round cut. The stale `:1111-1114 keys only` paragraph was a DUPLICATE of an already-corrected one above it (the real printer range at this tip is :1143-1147; :1111-1114 is the `--claim-iter` branch) and is deleted in this version, so one answer survives. The item-11 row is likewise marked SUPERSEDED: what I shipped there was a `tmp_path` rebuild, and a00-ca575be5 replaced it with a REAL-DISK `is_dir()` check over the live rows that creates nothing. A `proved` with no probes of its own is the residue this review exists to name.
+<!-- THOUGHT:END -->

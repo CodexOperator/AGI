@@ -32,8 +32,17 @@ def _load(name, filename=None):
     path = BIN / (filename or f"{name}.py")
     spec = importlib.util.spec_from_file_location(name, path)
     mod = importlib.util.module_from_spec(spec)
+    prior = sys.modules.get(name)
     sys.modules[name] = mod
-    spec.loader.exec_module(mod)
+    try:
+        spec.loader.exec_module(mod)
+    finally:
+        # A private copy must not REPLACE the process-wide module: a sibling file
+        # (test_write.py) that already imported `write` holds the original
+        # `node_writer`, and its `_ID_INDEX` is the one `write.main` reads. Leaving
+        # this copy in sys.modules split the two (hypothesis:trunk-red-g73320-...).
+        if prior is not None:
+            sys.modules[name] = prior
     return mod
 
 
@@ -133,7 +142,16 @@ def test_dispatch_no_longer_touches_the_node_tree_at_all():
     # holds precisely so this check can still see the target — an earlier bare
     # `tmp` hid it and failed here, which is the assertion working rather than
     # a false positive.
-    session_artefacts = ("agent.json", "manifest.json", "manifest_tmp")
+    # `spawn.json` is the LOW-DOX debug artefact L4.109 added
+    # (hypothesis:l4-dispatch-echoes-less-than-it-knows): the redacted env,
+    # argv and full brief, written into the SESSION dir beside agent.json --
+    # a session file, never a node.
+    # `_orders_file` is the dispatch-orders copy (goal:g15.25 SM.26, re-keyed
+    # per agent in SM.28): a byte-identical copy of the `--orders` source file
+    # into the SESSION (iter) dir as `<iter>/orders.<agent>.md`, named by the
+    # manifest record's own id -- a session file, never a node.
+    session_artefacts = ("agent.json", "manifest.json", "manifest_tmp",
+                         "spawn.json", "_orders_file")
     for ln in writes:
         assert any(a in ln for a in session_artefacts), ln
 
@@ -263,13 +281,19 @@ def test_unverified_reason_survives_yaml_round_trip(project):
     like `parent id(s) resolve to no node: ['x']` produced frontmatter that
     `yaml.safe_load` then rejected — in the one field whose whole job is
     telling a reviewer why the node was not checked.
+
+    hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-
+    id-does-not-resolve took the create case away from this test: a brand-new
+    node onto a dangling parent is REFUSED now, so the stamp is the refusal's
+    reason. The yaml-safety claim is unchanged and still pinned — same corpus
+    (`: ` and quotes), same `safe_load` round trip.
     """
     import yaml
     res = nw.write_node(project, "verdict", "dangling", ["experiment:missing"])
-    assert res.written
-    fm = yaml.safe_load(res.path.read_text().split("---", 2)[1])
-    assert fm["spawn_check"] == "unverified"
-    assert "experiment:missing" in fm["spawn_check_reason"]
+    assert res.rejected, f"{res.status}: {res.reason}"
+    stamped = yaml.safe_dump({"spawn_check_reason": res.reason})
+    assert yaml.safe_load(stamped)["spawn_check_reason"] == res.reason
+    assert "experiment:missing" in res.reason
 
 
 def test_frontmatter_is_valid_yaml_for_every_type(project):
@@ -286,6 +310,54 @@ def test_frontmatter_is_valid_yaml_for_every_type(project):
         assert fm["id"] == f"{ntype}:{ntype}-x"
         assert fm["type"] == ntype
         assert fm["parents"] == parents
+
+
+def test_every_write_ends_with_exactly_one_newline(project):
+    """hypothesis:l4-one-serializer-ends-every-node-file-with-one-newline.
+
+    The frontmatter reader splits the body and drops its trailing newline, so
+    a frontmatter-only (`set_fm`) edit that re-serializes `nf.body` silently
+    dropped the EOF newline of a file that ended `...content\n` -- a 1-byte
+    whitespace dirt (`\\ No newline at end of file`) that showed up after
+    rotate-self's spawn-row write and refused the ack's prepare/ack gates on
+    a delta they read as dirty. ONE serializer now guarantees EXACTLY one
+    trailing `\n` (never zero, never two).
+    """
+    res = nw.write_node(project, "goal", "eofprobe", [],
+                        extra_fm={"title": "P", "body": "x"}, bypass=True)
+    path = res.path
+
+    def write_body(body: str):
+        from graph_core.persistence import frontmatter as _fm
+        fm = dict(_fm.load_node_file(path).frontmatter)
+        open(path, "w", encoding="utf-8").write(
+            "\n".join(["---", *nw.render_frontmatter(fm), "---", ""]) + body)
+
+    # The original defect: a body ending `...content\n` (one newline, no
+    # blank line). A set_fm-only edit must NOT drop it.
+    write_body("# goal:eofprobe\n\nsome text\n")
+    nw.update_node(project, res.node_id, set_fm={"status": "u"})
+    assert path.read_bytes().endswith(b"\n"), \
+        "set_fm-only edit must not drop the EOF newline"
+    assert not path.read_bytes().endswith(b"\n\n"), \
+        "file must end with exactly one newline"
+
+    # Canonical invariant through every writer: zero trailing newlines gets
+    # one added; two trailing newlines collapses to one.
+    write_body("# goal:eofprobe\n\nno trailing nl")
+    nw.update_node(project, res.node_id, set_fm={"status": "u2"})
+    assert path.read_bytes().endswith(b"\n")
+
+    write_body("# goal:eofprobe\n\ntwo trailing\n\n\n")
+    nw.update_node(project, res.node_id, set_fm={"status": "u3"})
+    data = path.read_bytes()
+    assert data.endswith(b"\n") and not data.endswith(b"\n\n")
+
+    # Body is preserved byte-identically across a frontmatter-only edit once
+    # canonical: only the EOF newline is normalized, nothing interior.
+    write_body("# goal:eofprobe\n\n## Facts\n\ngolden fact\n")
+    nw.update_node(project, res.node_id, set_fm={"status": "u4"})
+    assert b"## Facts\n\ngolden fact\n" in path.read_bytes()
 
 
 # --------------------------------------------------------------------------
@@ -558,6 +630,13 @@ def _schema_project(tmp_path, required):
         "---\nname: hypothesis\nvalidation:\n  required: ["
         + ", ".join(required) + "]\nspawn:\n  allowed_parents: [goal]\n"
         "  min_parents: 1\n  max_parents: 2\n---\n\nbody\n")
+    # hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-
+    # id-does-not-resolve -- these tests want a REAL parent, so seed it. A
+    # create onto an id that names no node is refused by name; naming one
+    # that exists is the other half of the contract.
+    (graph / "nodes" / "goal").mkdir(parents=True, exist_ok=True)
+    (graph / "nodes" / "goal" / "g1.md").write_text(
+        "---\nid: goal:g1\ntype: goal\n---\n\nbody\n")
     return graph
 
 
@@ -705,6 +784,39 @@ def test_a_list_of_mappings_round_trips_too():
     assert back["rows"] == [{"k": 1, "v": "a"}, {"k": 2, "v": "b"}]
 
 
+# L4 — YAML 1.1 line-break code points inside a list-of-dict entry
+# (hypothesis:l4-a-frontmatter-container-entry-escapes-the-yaml-
+# line-break-code-points-nel-ls-ps-explicitly). json.dumps with
+# ensure_ascii=False emits U+0085 (NEL), U+2028 (LS) and U+2029 (PS)
+# literally; YAML 1.1 reads NEL as a line break and folds it to a space on
+# the next read — one code point lost. The render site escapes these three
+# explicitly; every other non-ASCII code point stays literal.
+@pytest.mark.parametrize("cp", [0x85, 0x2028, 0x2029])
+def test_a_list_of_dict_entry_escapes_yaml_line_break_cps(cp):
+    import yaml
+
+    fm = {"id": "x:y", "type": "t", "rows": [{"name": chr(cp)}]}
+    text = "\n".join(nw.render_frontmatter(fm))
+    back = yaml.safe_load(text)
+    assert back["rows"] == [{"name": chr(cp)}], \
+        f"U+{cp:04X} must survive the round trip byte-identical"
+    assert chr(cp) not in text, (f"U+{cp:04X} must be escaped in the rendered "
+                                  "frontmatter, never emitted literally inside "
+                                  "the JSON-in-YAML scalar")
+
+
+@pytest.mark.parametrize("cp,present", [(0x2014, chr(0x2014)),  # em-dash stays literal
+                                          (0x41, "A")])          # ASCII untouched
+def test_non_linebreak_cps_stay_literal(cp, present):
+    import yaml
+
+    fm = {"id": "x:y", "type": "t", "rows": [{"name": chr(cp)}]}
+    text = "\n".join(nw.render_frontmatter(fm))
+    assert present in text, f"U+{cp:04X} must render literally, not be re-escaped"
+    back = yaml.safe_load(text)
+    assert back["rows"] == [{"name": chr(cp)}]
+
+
 def test_scalars_and_empty_containers_are_unchanged_by_the_fix():
     """The fix must not move anything that already worked."""
     import yaml
@@ -719,6 +831,90 @@ def test_scalars_and_empty_containers_are_unchanged_by_the_fix():
     assert back["nothing"] is None
     assert back["n"] == 3 and back["s"] == "plain"
     assert "flag: true" in text, "bools stay lowercase yaml"
+
+
+def test_a_dash_run_scalar_is_quoted_and_round_trips():
+    """Writer-side belt, residue (2): any scalar carrying a `---` run must
+    render quoted, so it is valid YAML that survives every reader, and a
+    `---` never presents as a bare marker line to the line-anchored shared
+    reader (hypothesis:l4-one-line-anchored-frontmatter-reader-and-the-
+    suite-runner-refuses-a-held-lock-before-spawning). Before this fix
+    `testable_claim: the --- and --- again` rendered unquoted and a naive
+    substring reader silently cut the frontmatter short — exactly what hid
+    `verdict: proved` on 97bf639a5 / 7a965332c."""
+    import yaml
+
+    s = "the --- and --- again"
+    assert nw._needs_quoting(s) is True
+    rendered = nw._scalar(s)
+    assert rendered == '"the --- and --- again"'
+    assert yaml.safe_load(rendered) == s  # exact round trip, nothing lost
+
+    # The value renders as one quoted line, never a bare `---` line.
+    text = "\n".join(nw.render_frontmatter(
+        {"id": "x:y", "type": "t", "title": s}))
+    assert "title: \"the --- and --- again\"" in text
+    fm_lines = text.split("\n")
+    assert "---" not in [ln.strip() for ln in fm_lines], (
+        "a bare `---` line leaked into the frontmatter")
+
+
+def test_dash_run_rule_keeps_negative_numbers_plain():
+    """The new dash-run rule must not break the deliberate negative-number
+    rule (`-1`, `-0.5` are valid YAML plain scalars and round-trip lossy as
+    quoted strings against a `{type: int}` schema — verified 2026-09-04,
+    iter-1068)."""
+    import yaml
+
+    for neg in ("-1", "-42", "-0.5"):
+        assert nw._needs_quoting(neg) is False, neg
+        assert nw._scalar(yaml.safe_load(neg)) == neg   # the NUMBER renders bare (R3: a `str` "-1" keeps its quotes)
+        assert nw._scalar(neg) == f'"{neg}"'
+        assert yaml.safe_load(neg) is not None  # parses as a real number
+
+    # A dash-leading word still quotes (bare `-foo` is not a negative number).
+    assert nw._scalar("-foo") == '"-foo"'
+    # A bare document marker is quoted too.
+    assert nw._scalar("---") == '"---"'
+
+
+def test_frontmatter_carrying_a_dash_run_reads_whole_through_both_readers(
+        project, tmp_path):
+    """The point of the belt: write a node whose title and testable_claim
+    carry `---` runs, through the real writer path, then read the written
+    bytes back with BOTH the shared line-anchored reader (frontmatter.py) and
+    a deliberately naive line-anchored reader. Both must see the whole
+    frontmatter (id/title/testable_claim intact) — there is no bare `---`
+    line anywhere inside it."""
+    import yaml
+
+    fm = frontmatter = _load("frontmatter")
+    title = "A title with the --- and --- again"
+    claim = "claim: --- and ---"
+    res = nw.write_node(
+        project, "hypothesis", "dashbelt",
+        parents=["idea:i1"],
+        extra_fm={"title": title, "testable_claim": claim},
+        bypass=True, announce=False)
+    assert res.status == nw.WRITTEN
+
+    raw = (project / "nodes" / "hypothesis" / "dashbelt.md").read_text()
+
+    # Shared (line-anchored) reader reads the whole frontmatter.
+    fm_d = frontmatter.read_frontmatter(raw)
+    assert fm_d["id"] == "hypothesis:dashbelt"
+    assert fm_d["title"] == title
+    assert fm_d["testable_claim"] == claim
+
+    # A deliberately naive line-anchored reader reads it whole too.
+    lines = raw.split("\n")
+    assert lines[0] == "---"
+    close = next(i for i in range(1, len(lines)) if lines[i] == "---")
+    naive_fm = yaml.safe_load("\n".join(lines[1:close])) or {}
+    assert naive_fm["id"] == "hypothesis:dashbelt"
+    assert naive_fm["title"] == title
+    assert naive_fm["testable_claim"] == claim
+
 
 
 # --------------------------------------------------------------------------
@@ -1008,3 +1204,611 @@ def test_repair_mint_refuses_unknown_node(project):
     res = nw.repair_mint(project, "experiment:nope", announce=False)
     assert res.status == nw.REJECTED
     assert "no node file" in res.reason
+
+
+# --------------------------------------------------------------------------
+# L4 — a container entry round-trips its UTF-8 through every write verb
+# (hypothesis:l4-a-container-entry-in-frontmatter-round-trips-its-utf8-
+# unchanged-through-every-write-verb)
+# --------------------------------------------------------------------------
+
+def test_a_container_entry_round_trips_its_utf8_through_an_update(project):
+    """`json.dumps` defaulted `ensure_ascii=True`, so any non-ASCII character
+    inside a JSON-in-YAML list-of-dict entry was escaped (`—` → `\\u2014`) on
+    every write — a one-line body/note edit re-renders the WHOLE frontmatter.
+    With the one `ensure_ascii=False` at the render site, a literal-UTF-8 entry
+    survives a write byte-identical.
+    """
+    d = project / "nodes" / "idea" / "i2.md"
+    d.write_text(
+        "---\n"
+        "id: idea:i2\n"
+        "type: idea\n"
+        "first_turn:\n"
+        '  - {"cmd": "print", "arg": "a—b"}\n'
+        "---\n\nbody\n",
+        encoding="utf-8",
+    )
+    # The one routine every write verb routes through.
+    res = nw.update_node(project, "idea:i2", set_fm={"note": "x"})
+    assert res.status == nw.UPDATED, res.reason
+    text = d.read_text(encoding="utf-8")
+    assert "a—b" in text, "literal UTF-8 entry was escaped by an unrelated write"
+    assert "\\u2014" not in text, "an unrelated edit escaped the em-dash"
+
+
+def test_a_preescaped_container_entry_normalizes_once_to_literal(project):
+    """An entry that already carries the `\\u2014` escape (a legacy engine
+    write) is normalized ONCE to the literal characters on its next engine
+    write — the named one-time normalization, never a repeated churn.
+    """
+    d = project / "nodes" / "idea" / "i3.md"
+    d.write_text(
+        "---\n"
+        "id: idea:i3\n"
+        "type: idea\n"
+        "first_turn:\n"
+        '  - {"cmd": "print", "arg": "a\\u2014b"}\n'
+        "---\n\nbody\n",
+        encoding="utf-8",
+    )
+    res = nw.update_node(project, "idea:i3", set_fm={"note": "x"})
+    assert res.status == nw.UPDATED, res.reason
+    text = d.read_text(encoding="utf-8")
+    assert "a—b" in text, "escaped entry did not normalize to the literal char"
+    assert "\\u2014" not in text, "the legacy escape survived the write"
+
+
+# --------------------------------------------------------------------------
+# L4 — the scalar (plain, non-container) frontmatter path escapes NEL/LS/PS
+# and the FIXPOINT is a test through read_frontmatter
+# (hypothesis:l4-the-scalar-frontmatter-path-escapes-nel-ls-ps-and-the-
+# fixpoint-is-a-test-through-read-frontmatter). The last node over-stated
+# itself because its test asserted through yaml.safe_load instead of the
+# reader every engine path uses (frontmatter.read_frontmatter). These assert
+# through the real reader and the real write verb (update_node).
+# --------------------------------------------------------------------------
+
+@pytest.mark.parametrize("cp", [0x85, 0x2028, 0x2029])
+def test_a_scalar_round_trips_yaml_linebreak_cp_via_the_reader(project, cp):
+    """A plain scalar carrying U+0085/U+2028/U+2029 must render as one line
+    and read back to the exact code points through read_frontmatter — the
+    reader every engine path uses, not yaml.safe_load bare.
+    """
+    from frontmatter import read_frontmatter
+
+    val = "a" + chr(cp) + "b"
+    res = nw.update_node(project, "idea:i1", set_fm={"note": val})
+    assert res.status == nw.UPDATED, res.reason
+    data = (project / "nodes" / "idea" / "i1.md").read_bytes()
+    assert chr(cp).encode("utf-8") not in data, \
+        f"U+{cp:04X} was emitted literally, escaping it is the whole point"
+    back = read_frontmatter(data.decode("utf-8"))
+    assert back["note"] == val, \
+        f"U+{cp:04X} must survive the round trip byte-identical"
+
+
+@pytest.mark.parametrize("cp", [0x85, 0x2028, 0x2029])
+def test_a_scalar_write_is_fixpoint_through_the_writer(project, cp):
+    """The acceptance criterion: when the engine writer re-renders the whole
+    frontmatter (any unrelated key change forces a full render_frontmatter),
+    the escaped scalar bytes are identical to the previous write — no
+    re-quote churn, no loss, across an arbitrary number of writes.
+    """
+    val = "a" + chr(cp) + "b"
+    p = project / "nodes" / "idea" / "i1.md"
+    r1 = nw.update_node(project, "idea:i1",
+                        set_fm={"note": val, "other": "x"})
+    assert r1.status == nw.UPDATED, r1.reason
+    b1 = p.read_bytes()
+    import frontmatter as fm_src
+    back = fm_src.read_frontmatter(b1.decode("utf-8"))
+    assert back["note"] == val, f"U+{cp:04X} first write read back wrong"
+    # Change an unrelated key: the whole frontmatter MUST re-render, and the
+    # escaped scalar must come out byte-identical (the fixpoint).
+    r2 = nw.update_node(project, "idea:i1", set_fm={"other": "y"})
+    assert r2.status == nw.UPDATED, r2.reason
+    b2 = p.read_bytes()
+    # Strip the unrelated key's line; the rest of the frontmatter is unchanged.
+    note_line = [l for l in b2.decode("utf-8").split("\n") if l.startswith("note:")][0]
+    b1_note = [l for l in b1.decode("utf-8").split("\n") if l.startswith("note:")][0]
+    assert note_line == b1_note, \
+        f"U+{cp:04X} escaped scalar re-rendered differently (the fixpoint failed)"
+    assert fm_src.read_frontmatter(b2.decode("utf-8"))["note"] == val, \
+        f"U+{cp:04X} second write lost the scalar"
+    # A third, identical write is a clean no-op — still byte-identical.
+    r3 = nw.update_node(project, "idea:i1", set_fm={"other": "y"})
+    assert r3.status == nw.UNCHANGED, r3.reason
+    assert p.read_bytes() == b2
+
+
+# --------------------------------------------------------------------------
+# L4 — the list-of-plain-scalars render path escapes the same control
+# characters the scalar path does, and _scalar decides quoting on the RAW
+# value (hypothesis:l4-a-list-of-plain-scalars-renders-escaped-and-scalar-
+# strips-newlines-after-the-quoting-decision-not-before). Pre-fix, a list
+# item was rendered through a bare f-string — so NEL/LS/PS stayed literal
+# (ScannerError on the next read), a `#` item vanished as a comment, and
+# `k: v` / `- dash` re-parsed as structure; and _scalar stripped newlines to
+# spaces BEFORE the quoting decision, so a value whose only trigger was a
+# newline was written bare (lossy). The fix routes list items through the
+# SAME `_scalar`, and decides quoting on the raw value.
+# --------------------------------------------------------------------------
+
+@pytest.mark.parametrize("item,why", [
+    ("a\u0085b", "NEL"),
+    ("a\u2028b", "LS"),
+    ("a\u2029b", "PS"),
+    ("a\nb", "a literal newline"),
+    ("#comment", "leading # (was a comment)"),
+    ("k: v", "a key: value (was parsed as a mapping)"),
+    ("- dash", "leading dash-space (was a nested list)"),
+    ("trail ", "trailing space (was stripped)"),
+    ("  x  ", "edge whitespace"),
+])
+def test_a_list_of_plain_scalars_renders_escaped_and_round_trips(item, why):
+    """A list-of-plain-scalars item carrying a trigger character renders
+    through the same scalar escaper/quoter as a top-level scalar, and reads
+    back byte-identical through the reader every engine path uses."""
+    from frontmatter import read_frontmatter
+
+    text = "\n".join(nw.render_frontmatter(
+        {"id": "x:y", "type": "t", "items": [item]}))
+    # The item must be rendered QUOTED (never a bare unquoted item), so it
+    # cannot mis-parse. `- #comment` bare would vanish as a comment;
+    # `- \"#comment\"` keeps the string. The bare spelling must never occur.
+    assert f"- {item}" not in text, f"{why}: item emitted as a bare unquoted list entry"
+    back = read_frontmatter("---\n" + text + "\n---\n")
+    assert back is not None, f"{why}: the frontmatter became unreadable"
+    assert back["items"] == [item], f"{why}: list item did not round-trip byte-identical"
+
+
+def test_a_list_of_plain_scalars_mixed_corpus_is_byte_identical():
+    """The hypothesis corpus as one list: a write reads back to the exact
+    same bytes, and a second render of the read-back value is byte-identical
+    (the fixpoint)."""
+    from frontmatter import read_frontmatter
+
+    # (Negative-number *strings* are left out: they are deliberate plain
+    # scalars that parse as ints — a separate, documented rule, not a byte
+    # loss.)
+    items = ["a\u0085b", "a\u2028b", "a\u2029b", "#comment", "k: v",
+             "- dash", "trail ", "a\nb", "  x  ", "lead", "plain",
+             "---", "x", "ja\u4e2d\u6587", "a\u0085b\u2029c"]
+    fm = {"id": "x:y", "type": "t", "title": "tc", "items": items,
+          "note": "a\nb", "tags": ["#h", "- t"]}
+    r1 = "\n".join(nw.render_frontmatter(fm)) + "\n"
+    back = read_frontmatter("---\n" + r1 + "---\n")
+    assert back is not None and back["items"] == items
+    # second render from the read-back value is byte-identical (the fixpoint)
+    fm2 = {"id": "x:y", "type": "t", "title": "tc", "items": back["items"],
+           "note": back["note"], "tags": back["tags"]}
+    r2 = "\n".join(nw.render_frontmatter(fm2)) + "\n"
+    assert r1 == r2, "rendering the read-back value must be byte-identical"
+
+
+def test_scalar_quotes_on_the_raw_value_and_normalises_after():
+    """_scalar decides quoting on the RAW value (newlines and edge whitespace
+    included), then normalises — a value whose only reason to quote was a
+    newline or edge whitespace is quoted and escaped, never stripped bare."""
+    import yaml
+    from frontmatter import read_frontmatter
+
+    # Newline was previously stripped to a space BEFORE the quoting decision,
+    # so `a\nb` was written bare `a b` — a lossy round-trip.
+    assert nw._scalar("a\nb") == '"a\\nb"', "newline-only-trigger value went bare"
+    assert yaml.safe_load(nw._scalar("a\nb")) == "a\nb"
+    # Edge whitespace previously read back stripped.
+    assert nw._scalar("  x  ") == '"  x  "'
+
+    # End-to-end through the reader: the value returns with its newline.
+    txt = "\n".join(nw.render_frontmatter({"id": "x:y", "type": "t",
+                                           "note": "a\nb"})) + "\n"
+    assert read_frontmatter("---\n" + txt + "---\n")["note"] == "a\nb"
+
+
+# ---------------------------------------------------------------------------
+# claim (d) of hypothesis:l4-a-list-of-plain-scalars-renders-escaped-and-
+# scalar-strips-newlines-after-the-quoting-decision-not-before — the DURABLE
+# live-tree corpus test.
+#
+# Kid a00-8ed8af75 measured the round trip with a one-off standalone script
+# (2799 nodes, 0 unreadable, 0 value drift, 91 representation-only diffs,
+# 2708 byte-identical) but landed NO test for it. The measurement is prose in
+# a node, not a regression trip. This test is the durable form. It walks the
+# REAL live `.agi/nodes/` tree exactly as test_frontmatter's `_live_nodes_dir()`
+# does (locations.find_project_root -> `nodes/`), is strictly read-only, and
+# asserts the HONEST shape of claim (d): value preservation, not byte-identity
+# — 91 nodes legitimately change REPRESENTATION. The walk is ~12s across the
+# full tree; it stays in the default suite by design, so a regression trips
+# the run rather than a one-off script.
+# ---------------------------------------------------------------------------
+
+
+def _iter_live_node_files():
+    """Yield (path, text) for every `.md` under the real live nodes tree.
+
+    Mirrors `_live_nodes_dir` / `_well_formed_nodes` in test_frontmatter.py:
+    project root via `locations.find_project_root()` (nearest enclosing `.agi`
+    wins), walk `nodes/`, read every `.md`. Read-only — never writes into
+    `.agi/nodes/`.
+    """
+    import locations
+    from pathlib import Path
+    root = locations.find_project_root()
+    assert root is not None, "no .agi project root resolvable from pytest cwd"
+    nodes = Path(root) / "nodes"
+    assert nodes.is_dir(), f"live nodes dir missing: {nodes}"
+    for p in sorted(nodes.rglob("*.md")):
+        try:
+            text = p.read_text(encoding="utf-8")
+        except Exception:
+            continue  # an unreadable file is a live-tree problem, caught below
+        yield p, text
+
+
+@pytest.fixture(scope="session")
+def live_node_round_trip():
+    """ONE session-scoped read->render->read-back pass over the real live
+    corpus, shared by the two round-trip tests below.
+
+    The corpus is ~2800 real `.agi/nodes/` files. Reading them is cheap (~0.1
+    s, measured); the per-node `split_frontmatter` + YAML read +
+    `render_frontmatter` + `_serialize_node` + read-back is the cost (~8.5 s),
+    and each test used to pay that pass in full (measured 10.38 s + 8.77 s).
+    The corpus bytes and the pure render are stable for the life of a session,
+    so ONE pass serves both; each test still makes every assertion it made
+    before, over the same records. Strictly read-only. A record is a dict:
+    {path, reason, fm, fm2, byte_diff, non_fixpoint} where a non-None `reason`
+    is the unreadable message and the remaining keys are then absent.
+    """
+    import frontmatter
+    records = []
+    for p, text in _iter_live_node_files():
+        path = str(p)
+        parts = frontmatter.split_frontmatter(text)
+        fm = frontmatter.read_frontmatter(text)
+        if parts is None:
+            records.append({"path": path, "reason": "no frontmatter shape"})
+            continue
+        if fm is None:
+            records.append({"path": path,
+                            "reason": "frontmatter did not parse"})
+            continue
+        rerendered = nw._serialize_node(nw.render_frontmatter(fm), parts[1])
+        fm2 = frontmatter.read_frontmatter(rerendered)
+        records.append({
+            "path": path,
+            "reason": None,
+            "fm": fm,
+            "fm2": fm2,
+            "byte_diff": ("\n".join(nw.render_frontmatter(fm))
+                          != parts[0].strip("\n")),
+            "non_fixpoint": (False if fm2 is None else
+                             nw.render_frontmatter(fm)
+                             != nw.render_frontmatter(fm2)),
+        })
+    return records
+
+
+def test_live_tree_corpus_round_trip_is_value_preserving(live_node_round_trip):
+    """claim (d), honest form — EVERY live node read->render->read-back.
+
+    One pass over the whole live tree asserting four invariants at once:
+      (i)   every node's frontmatter parses (0 unreadable);
+      (ii)  the re-render reads back to EQUAL top-level VALUES for every node
+            (value preservation — the honest claim; 91+ nodes legitimately
+            shift bytes, so byte-identity is literally false);
+      (iii) any node whose BYTES differ is still value-preserving (subsumed
+            by (ii)) AND
+      (iv)  the re-render is a FIXPOINT: rendering the read-back value again
+            is byte-identical, so the representation is stable, not churning.
+    """
+    checked = 0
+    unreadable = []
+    drift = []
+    byte_diffs = 0
+    non_fixpoint = []
+    for r in live_node_round_trip:
+        if r["reason"]:
+            unreadable.append((r["path"], r["reason"]))
+            continue
+        checked += 1
+        if r["fm2"] is None:
+            drift.append((r["path"], "re-render unreadable"))
+            continue
+        fm, fm2 = r["fm"], r["fm2"]
+        # (ii) value preservation — the whole point of claim (d)
+        if fm != fm2:
+            drift.append((r["path"], "top-level value drift"))
+        # (iii) representation-only byte diffs are tracked (not asserted off)
+        if r["byte_diff"]:
+            byte_diffs += 1
+        # (iv) stable representation: rendering the read-back again is stable
+        if r["non_fixpoint"]:
+            non_fixpoint.append(r["path"])
+    assert not unreadable, \
+        f"{len(unreadable)} live nodes unreadable: {unreadable[:5]}"
+    assert not drift, \
+        f"{len(drift)} live nodes drifted in value: {drift[:5]}"
+    assert not non_fixpoint, \
+        f"{len(non_fixpoint)} nodes re-render non-idempotently: {non_fixpoint[:5]}"
+    assert checked > 1000, f"corpus walk unexpectedly small: {checked}"
+    assert byte_diffs < checked, "more rep-diffs than nodes: instrumentation error"
+    # The byte-diff count is reported in the experiment node (the tree evolves);
+    # here we pin the invariant (every byte-diff node is value-preserving and
+    # a fixpoint), not a specific count.
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l4-an-empty-string-list-item-round-trips-as-empty-string-and-the-
+# live-tree-fixpoint-names-the-pending-representation-change — empty-string
+# list items. Pre-fix a bare `  - ` item (and a bare top-level `key: `) read
+# back as None, so `''` was lossy while None stayed None. The writer now
+# quotes empty (`""`), keeping the two distinct (claim 1).
+# ---------------------------------------------------------------------------
+
+
+def test_empty_string_list_item_round_trips_as_empty_string():
+    from frontmatter import read_frontmatter
+
+    for items in ([""], ["", None, "a b", "x:y"], ["plain", "", "tail"]):
+        text = "\n".join(nw.render_frontmatter(
+            {"id": "x:y", "type": "t", "items": items}))
+        back = read_frontmatter("---\n" + text + "\n---\n")
+        assert back is not None and back["items"] == items, \
+            f"empty-string list item did not round-trip: {items!r} -> {back!r}"
+        assert '  - ""' in text, "empty-string item must render QUOTED, never bare"
+
+
+def test_none_list_item_stays_none_and_is_distinct_from_empty_string():
+    from frontmatter import read_frontmatter
+
+    items = [None, "", None, "x"]
+    text = "\n".join(nw.render_frontmatter(
+        {"id": "x:y", "type": "t", "items": items}))
+    back = read_frontmatter("---\n" + text + "\n---\n")
+    assert back is not None and back["items"] == items, \
+        f"None vs empty-string lost: {items!r} -> {back!r}"
+
+
+def test_live_tree_round_trip_zero_drift_and_reports_byte_change_count(
+        live_node_round_trip):
+    """claim (2) — one pass over every live node: value drift MUST be 0, and
+    the number of nodes whose BYTES change (read->render) is a PROBED,
+    one-time representation change, not drift. Prints the count + node ids so
+    a run captures them into the node without pinning a tree that evolves.
+    Shares the session-scoped `live_node_round_trip` pass with
+    `test_live_tree_corpus_round_trip_is_value_preserving` above."""
+    checked = 0
+    drift = []
+    byte_changed = []
+    for r in live_node_round_trip:
+        if r["reason"]:
+            continue
+        checked += 1
+        if r["fm2"] != r["fm"]:
+            drift.append((r["path"], "top-level value drift"))
+            continue
+        if r["byte_diff"]:
+            byte_changed.append(r["fm"].get("id", r["path"]))
+    assert not drift, f"{len(drift)} live nodes drifted: {drift[:5]}"
+    assert checked > 1000, f"corpus walk unexpectedly small: {checked}"
+    print(f"LIVE_TREE checked={checked} value_drift=0 "
+          f"bytes_change={len(byte_changed)}")
+    print("BYTES_CHANGE_IDS=" + " ".join(
+        x for x in sorted(byte_changed)))
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-create-refuses-a-genuinely-unknown-type-before-any-file-is-
+# written -- FIX-ONLY round for the mur-49 by-name residue. A brand-new node
+# of a type with NO active schema is a genuinely unknown type, not an
+# unresolved one: nothing legitimate is being preserved, so the write must be
+# REJECTED before any directory or file is created. Every other UNVERIFIED
+# path (an existing file of an undeclared type, a schema that exists but
+# declares no spawn: block) is unchanged.
+# --------------------------------------------------------------------------
+
+
+def _seeded_node_dirs(project):
+    return sorted(p.name for p in (project / "nodes").iterdir() if p.is_dir())
+
+
+def test_create_of_an_unknown_type_refuses_before_writing(project):
+    """Clauses 1-4: a genuinely new type with no schema refuses BY NAME."""
+    res = nw.write_node(project, "notown", "missing-thing", ["idea:i1"])
+    assert res.rejected, f"expected REJECTED, got {res.status} ({res.reason})"
+    assert res.gate is not None and res.gate.status == nw.spawn_gate.UNVERIFIED
+    assert "notown" in res.reason
+    assert "context/schemas/[notown].md" in res.reason
+    assert not (project / "nodes" / "notown").exists()
+
+
+def test_unknown_type_refusal_leaves_no_stray_directory(project):
+    """The regression the L4.338 round paid for: nodes/notown/ survived."""
+    before = _seeded_node_dirs(project)
+    nw.write_node(project, "notown", "another-missing", ["idea:i1"])
+    assert _seeded_node_dirs(project) == before
+
+
+def test_schema_without_a_spawn_block_still_writes(project):
+    """Regression pin: the OTHER UNVERIFIED branch is untouched.
+
+    `[floating].md` exists (so the type is not genuinely unknown) but
+    declares no `spawn:` block, so `schema.rule_for` returns None and the
+    gate is UNVERIFIED. That is not the no-schema case: the write proceeds
+    exactly as before.
+    """
+    sd = project / "context" / "schemas"
+    (sd / "[floating].md").write_text("---\nname: floating\n---\nfloating\n")
+    res = nw.write_node(project, "floating", "fl1", ["idea:i1"])
+    assert res.written, f"expected WRITTEN, got {res.status} ({res.reason})"
+    assert (project / "nodes" / "floating" / "fl1.md").exists()
+    assert res.gate.status == nw.spawn_gate.UNVERIFIED
+
+
+def test_existing_undeclared_type_file_is_still_skipped(project):
+    """Regression pin: an EXISTING file of an undeclared type is not refused.
+
+    `update_node` never calls `check_spawn` (the only `check_spawn` call site
+    in node_writer.py is `write_node`), so write_node's SKIPPED is the
+    correct pin for "an update to an existing node of an undeclared type".
+    """
+    d = project / "nodes" / "notown"
+    d.mkdir(parents=True)
+    (d / "existing.md").write_text(
+        "---\nid: notown:existing\ntype: notown\n---\n\nbody\n")
+    res = nw.write_node(project, "notown", "existing", ["idea:i1"])
+    assert res.status == nw.SKIPPED, f"{res.status}: {res.reason}"
+    assert not res.rejected
+
+
+# --------------------------------------------------------------------------
+# hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-id-
+# does-not-resolve -- a brand-new create onto a parent id that resolves to no
+# node is refused by name. The same UNVERIFIED verdict stays fail-OPEN for
+# anything already alive, and the no-active-schema branch above is untouched.
+# --------------------------------------------------------------------------
+
+
+def test_create_onto_an_unresolvable_parent_refuses_before_writing(project):
+    """Falsifier 1: REJECTED, no file, no directory, the id is named."""
+    res = nw.write_node(project, "hypothesis", "orphan", ["idea:never-minted"])
+    assert res.rejected, f"expected REJECTED, got {res.status} ({res.reason})"
+    assert res.gate.status == nw.spawn_gate.UNVERIFIED
+    assert "idea:never-minted" in res.reason
+    assert not (project / "nodes" / "hypothesis" / "orphan.md").exists()
+
+
+def test_existing_node_with_an_unresolved_parent_is_untouched(project):
+    """Falsifier 2: G7.1 still fails OPEN for a node that is already alive."""
+    f = project / "nodes" / "hypothesis" / "legacy.md"
+    f.write_text("---\nid: hypothesis:legacy\ntype: hypothesis\n---\n\nbody\n")
+    res = nw.write_node(project, "hypothesis", "legacy", ["idea:never-minted"])
+    assert res.status == nw.SKIPPED, f"{res.status}: {res.reason}"
+    assert not res.rejected
+    assert f.read_text().startswith("---\nid: hypothesis:legacy")
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-create-refuses-a-genuinely-unknown-type-before-any-file-is-
+# written (continued)
+# --------------------------------------------------------------------------
+
+
+def test_a_project_with_no_schemas_loaded_still_writes(tmp_path):
+    """The carve-out: the refusal needs SCHEMAS PRESENT and this type absent.
+
+    With no active schema loaded at all (schemas dir missing/empty) the gate
+    cannot tell an unknown type from an unconfigured project, and
+    `check_spawn`'s fail-open instinct applies exactly as it does to an
+    unresolved parent type. The L4.338 defect is the other case: a real
+    project whose schema set IS loaded and simply has no entry for the type.
+    """
+    (tmp_path / "nodes").mkdir()
+    res = nw.write_node(tmp_path, "notown", "unconfigured", ["idea:i1"])
+    assert res.written, f"{res.status}: {res.reason}"
+    assert (tmp_path / "nodes" / "notown" / "unconfigured.md").exists()
+
+
+# --- bundle 4 W-G (director-general-2)
+# GREEN since DG3 W-G.1 (goal:g7.16.1.4.1)
+def test_wg_goal_type_reason_no_longer_cites_goals_md_regeneration():
+    assert "from GOALS.md" not in (BIN / "node_writer.py").read_text(encoding="utf-8")
+
+
+# --- bundle 4 W1a (director-general-2) ---------------------------------------
+# goal:g4.18.5.1 seam: nw.body_rows(body) -> [(start, end)], 1-based inclusive
+# spans in `read body N:M` coordinates, document order.
+W1A_BODY = ("\n# hypothesis:h2\n\n## Table\n\n| k | v |\n|---|---|\n| a | 1 |\n"
+            "| b | 2 |\n\n## List\n\n- one\n- two\n\n<!-- THOUGHT:BEGIN -->\n"
+            "why\nmore why\n<!-- THOUGHT:END -->\n")
+
+
+def test_b4_w1a_one_row_per_table_row_list_item_and_block():
+    lines = W1A_BODY.split("\n")
+    spans = [lines[a - 1:b] for a, b in nw.body_rows(W1A_BODY)]
+    for one in (["| a | 1 |"], ["| b | 2 |"], ["- one"], ["- two"], [
+            "<!-- THOUGHT:BEGIN -->", "why", "more why", "<!-- THOUGHT:END -->"]):
+        assert spans.count(one) == 1, (one, spans)
+
+
+# SM residue 100 (the 95 row): a THOUGHT whose prose quotes its own closer
+# stays ONE row -- only the END marker LINE closes the block.
+def test_b4_w1a_a_thought_quoting_its_closer_stays_one_row():
+    body = ("\n# x\n\n<!-- THOUGHT:BEGIN -->\nthe old note wrote <!-- THOUGHT:END --> inline\n"
+            "and went on\n<!-- THOUGHT:END -->\n\nafter\n")
+    lines = body.split("\n")
+    rows = [lines[a - 1:b] for a, b in nw.body_rows(body)]
+    assert ["<!-- THOUGHT:BEGIN -->", "the old note wrote <!-- THOUGHT:END --> inline",
+            "and went on", "<!-- THOUGHT:END -->"] in rows, rows
+
+
+def test_b4_w1a_the_row_index_has_one_definition():
+    import ast
+    defs = [p.name for p in sorted(BIN.glob("*.py"))
+            for n in ast.walk(ast.parse(p.read_text(encoding="utf-8")))
+            if isinstance(n, ast.FunctionDef)
+            and n.name in ("body_rows", "_resolve_body_row_range")]
+    assert defs == ["node_writer.py"], defs
+
+
+
+# --- bundle 4 W2d-b (director-general-2) -- goal:g4.18.6.4.2 ------------------
+_W2DB = "bundle 4 W2d-b: RED until DG3 builds the writer's address -> mint_id resolve"
+_W2DB_MINT = "0123456789abcdef0123456789abcdef"
+
+
+@pytest.mark.xfail(strict=True, reason=_W2DB + " (node_writer.py:821)")
+def test_b4_w2db_write_node_stores_the_parents_mint_id(project):
+    import yaml
+    (project / "nodes" / "idea" / "i1.md").write_text(f"---\nid: idea:i1\nmint_id: {_W2DB_MINT}\ntype: idea\n---\n")
+    res = nw.write_node(project, "hypothesis", "w2db", ["idea:i1"])
+    assert yaml.safe_load(res.path.read_text().split("---", 2)[1])["parents"] == [_W2DB_MINT]
+
+
+@pytest.mark.xfail(strict=True, reason=_W2DB + " (seatsig/veto.py:402)")
+def test_b4_w2db_veto_default_parent_is_the_mint_id_of_goal_g15(tmp_path):
+    from seatsig import veto
+    from graph_core.persistence import frontmatter
+    (tmp_path / "nodes" / "goal").mkdir(parents=True)
+    (tmp_path / "nodes" / "goal" / "g15.md").write_text(f"---\nid: goal:g15\nmint_id: {_W2DB_MINT}\ntype: goal\n---\n")
+    assert frontmatter.load_node_file(veto.save(tmp_path, {})).frontmatter["parents"] == [_W2DB_MINT]
+
+
+@pytest.mark.xfail(strict=True, reason=_W2DB + " (decompose-engine.py:385, snapshot-build-site.py:329-389)")
+def test_b4_w2db_no_writer_assigns_a_bare_address_parent():
+    de, sbs = ((BIN / f).read_text(encoding="utf-8") for f in ("decompose-engine.py", "snapshot-build-site.py"))
+    assert 'fm["parents"] = [goal_id]' not in de
+    assert '"parents": [f"idea:domain-' not in sbs and '"parents": [parent_hyp] if' not in sbs
+
+
+# goal:g4.18.1.6 R3 (SM review of 1abe85b1a): render_frontmatter / canonicalize used to UNQUOTE a string
+# whose bare spelling re-reads as another type -- '0.8' -> float, 'yes' -> bool, 'null' -> None.
+@pytest.mark.parametrize("s", ["0.8", "yes", "no", "on", "null", "~", "true", "False", "1e3", "0x1F", "1:30",
+                               "2026-09-30", "007", "1_000", ".inf", "Null"])
+def test_r3_a_string_that_reads_back_as_another_type_keeps_its_quotes(s):
+    import yaml
+    lines = nw.render_frontmatter({"k": s, "items": [s, "plain"]})
+    back = yaml.safe_load("\n".join(lines))
+    assert back == {"k": s, "items": [s, "plain"]} and type(back["k"]) is str, (s, lines)
+    typed = yaml.safe_load(s)
+    if not isinstance(typed, str):   # the typed twin of the same spelling stays BARE: only the string is quoted
+        as_str, as_typed = nw.render_frontmatter({"k": s}), nw.render_frontmatter({"k": typed})
+        assert '"' not in as_typed[0] and as_typed != as_str, (s, as_str, as_typed)
+
+
+def test_r3_typed_values_and_plain_strings_render_exactly_as_before(tmp_path):
+    assert nw.render_frontmatter({"n": 5, "f": 0.8, "b": True, "z": None, "s": "plain text", "d": "a:b"}) == [
+        "b: true", "d: a:b", "f: 0.8", "n: 5", "s: plain text", "z:"]
+
+
+def test_r3_canonicalize_keeps_a_quoted_string_number(tmp_path):
+    import yaml
+    from graph_core.persistence import frontmatter as fmr
+    text = '---\nid: "x:y"\ntype: t\nver: "0.8"\nflag: "yes"\nnil: "null"\n---\n\nbody\n'
+    fm = fmr._parse_md(text, ".md", True)
+    out = nw._serialize_node(nw.render_frontmatter(fm.frontmatter), fm.body)
+    back = fmr._parse_md(out, ".md", True).frontmatter
+    assert back == fm.frontmatter and back["ver"] == "0.8" and back["flag"] == "yes" and back["nil"] == "null", out

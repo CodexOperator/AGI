@@ -3,13 +3,13 @@ id: hypothesis:l3-dispatch-harness-flag-overridden
 mint_id: cee0122553c8485aaac3acd9ba175fb4
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: belam-S1-L3-XI
+edited_by: belam
 scaffold_hash: 6424c41aac22ffdf
 season: 2
 testable_claim: After the fix, dispatch.py . X --tier parent --harness claude-code --dry-run prints harness=claude-code with a claude command and a claude-code model for the tier (the ladder row's pi model is NOT applied), a red-first test pins that an explicit --harness wins over the ladder row's harness, and a second test pins that without --harness the ladder row still wins; a --seat row keeps winning over both.
-thought_session: belam-S1-L3-XI
+thought_session: dissolve-legacy-2026-09-19
 title: Explicit --harness is silently overridden by the ladder row
 ---
 <!-- BODY:BEGIN -->

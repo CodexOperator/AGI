@@ -1,0 +1,281 @@
+---
+id: experiment:a00-849236cb-114441
+mint_id: 121cd608db2a4571a5aaed8abe920813
+type: experiment
+parents:
+  - hypothesis:a-rounds-own-path-set-never-fails-open
+next_edges: []
+confidence: 0.85
+edited_by: director-general-4
+evidence_runs:
+  - experiment:a00-849236cb-114441
+loop: hypothesis:a-rounds-own-path-set-never-fails-open@s2
+model: stealth/space-bunny-alpha
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 2e7cb8e383954f59
+season: 2
+title: "DH.632: the spawn fixture writes the PRODUCTION record again (key present, empty string), and the pin catches both mutants"
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-849236cb-114441
+
+## What this round did
+
+DH.617 corrective on the four residue items that live in BYTES (items 2 and 5)
+and the five that live in node text (1, 3, 4, 6, 7). No production line moved:
+`extensions/agi/bin/cli.py` and `extensions/agi/conftest.py` are untouched, so
+the claim this chain rests on is unchanged and what changed is that the
+fixtures and the transcripts now say what they measure.
+
+DH.632 (this version) reverted DH.617's item-5 byte change -- the fixture now
+writes the record PRODUCTION writes -- and marked the three node-text items the
+DH.632 corrective measured as NOT DONE instead of closed. The DH.617 rows are
+kept below with their DH.632 status in front, so the table reads as history
+rather than as a claim.
+
+| item | where | what |
+|---|---|---|
+| 1 | `verdict:a00-29a5edeb-7b795d` (was :214) | the pasted `SKIPPED [1] ...fails_closed.py:85` cannot reproduce on the tip; re-measured and annotated, with the re-measure pasted |
+| 2 | `tests/test_round_own_path_set_fails_closed.py` `_spawn` | the dir is now spelled `locations.iteration_dir(root, iter_n)` -- the expression production globs -- not a hand-join of `sessions_dir` + `iteration_dirname` (STANDS; DH.632 did not touch it) |
+| 3 | `verdict:a00-29a5edeb-7b795d` probe block | **NOT DONE** -- DH.632 measured `grep -c 'iter-DH.578'` = 9, not 0. Named, not fixed: another node's block |
+| 4 | `experiment:a00-1389258c-50f93f` RED block | NOT-EVIDENCE note: that run set `AGI_CLI_PY` from inside the tests tree, so the conftest strip loaded the LIVE cli.py |
+| 5 | `_spawn` + the verdict's THOUGHT | **REVERTED by DH.632** -- stopping the docstring misdescribing the record was right, but the fix made the key ABSENT, a shape production never writes. The bytes are back to `dispatch_node_id or ""` (key PRESENT), and this node's title, item row, rationale and THOUGHT were rewritten to match |
+| 6 | `experiment:a00-619731a3-9d4779` | **NOT DONE** -- DH.632 measured the DH.604 PARENT REVIEW at line 155, i.e. after `## Agent Notes` (152) and outside the THOUGHT block (136-150). Named, not fixed: a whole-block THOUGHT rewrite on another node |
+| 7 | verdict + 619731a3 transcripts | the two `1 failed, 7 passed` lines with incompatible wall-clocks annotated NOT-VERIFIED; counts kept as evidence |
+
+## The two bytes (item 2 + item 5)
+
+```python
+d = loc.iteration_dir(root, iter_n) / agent          # item 2: ONE spelling
+# DH.632: the key is ALWAYS present, "" when empty -- what production's
+# rec.setdefault("dispatch_node_id", rec.get("node_id") or "") leaves behind:
+rec = {"spawned_by_agent": spawned_by, "node_id": node_id,
+       "dispatch_node_id": dispatch_node_id or ""}
+(d / "agent.json").write_text(json.dumps(rec) + "\n")
+```
+
+Why item 2 matters and not merely style: production reads
+`locations.iteration_dir(root, iter_n).glob("*/agent.json")`
+(`cli.py:_round_spawned_node_ids`). The fixture had its own join of the same
+two helpers. A fixture whose path spelling drifts from the code's answers EMPTY
+for the wrong reason, and an empty set is exactly what the DH.552 bound looks
+like when it works -- so the pin would have measured the fixture and called it
+the bound. Why item 5 mattered, and what DH.632 changed about it: the docstring
+said "carrying NONE" while the bytes wrote `"dispatch_node_id": ""` -- that
+half of DH.617 was right. The REMEDY was not: omitting the key produced a
+record no real seat's agent.json has, and a cli.py guarding on `v is not None`
+then PASSES the pin (measured below). The fixture is back to the production
+shape, which is both the honest record and the STRICTLY STRONGER pin.
+
+```
+$ env -u TMUX -u TMUX_PANE -u AGI_CLI_PY python3 -m pytest \
+      extensions/agi/tests/test_round_own_path_set_fails_closed.py -q --basetemp /tmp/pt617a
+........                                                                 [100%]
+8 passed in 0.25s
+
+$ env -u TMUX -u TMUX_PANE -u AGI_CLI_PY python3 -m pytest \
+      extensions/agi/tests/test_bin_help_smoke.py -q --basetemp /tmp/pt617b
+FAILED extensions/agi/tests/test_bin_help_smoke.py::test_help_smoke[suite_guards.py]
+1 failed, 72 passed, 6 skipped in 5.30s
+# briefed red on this base, already recorded on the verdict node; my files are not
+# in that path (empty stdout from `suite_guards.py --help`, a module with no
+# __main__ guard). NOT MINE, not fixed here: its file is outside FILE SCOPE.
+
+# ITEM 1 re-measure -- the command the verdict's `:85` line came from, on the tip:
+$ AGI_CLI_PY=<session>/probe/cli.py python3 -m pytest \
+      extensions/agi/tests/test_round_own_path_set_fails_closed.py -q -rs
+$ ... | grep -o "fails_closed.py:[0-9]*" | tr '\n' ' '
+fails_closed.py:82 fails_closed.py:96 fails_closed.py:109 fails_closed.py:131 fails_closed.py:194 fails_closed.py:207 fails_closed.py:239 fails_closed.py:258
+$ ... | tail -1
+8 skipped in 0.08s
+$ sed -n '82p' extensions/agi/tests/test_round_own_path_set_fails_closed.py
+def test_absent_agent_id_refuses_the_seed_by_name(tmp_path, capsys):
+
+# ITEM 3/4/6 node-text checks -- RE-MEASURED by DH.632, and they CONTRADICT
+# the zeros DH.617 pasted here (that block is retained above as VOID AS
+# MEASURED; the numbers below are the ones the bytes actually read):
+$ grep -c 'iter-DH.578' .agi/nodes/verdict/a00-29a5edeb-7b795d.md
+9
+$ grep -c 'fails_closed.py:85' .agi/nodes/verdict/a00-29a5edeb-7b795d.md \
+                            .agi/nodes/experiment/a00-619731a3-9d4779.md
+1
+1
+$ grep -n 'THOUGHT:BEGIN\|THOUGHT:END\|Agent Notes\|DH.604 PARENT REVIEW' \
+      .agi/nodes/experiment/a00-619731a3-9d4779.md
+105:...item 2 ... is genuinely closed...      # body prose
+136:<!-- THOUGHT:BEGIN ...
+150:<!-- THOUGHT:END -->
+152:## Agent Notes
+155:DH.604 PARENT REVIEW (a00-c1408ac0) - ACCEPTED, no demotion. ...
+$ git cat-file -t e7b546e5a86b52f8edc08505d29b16e06ef85e0567f6395b2df522fffbd24d06
+fatal: Not a valid object name e7b546e5...           # and the same for
+
+# lines (the one git read this brief permits):
+$ git diff --numstat -- extensions/agi/bin/cli.py extensions/agi/conftest.py
+(no output -- 0 production lines)
+$ git diff --numstat -- extensions/agi/tests/test_round_own_path_set_fails_closed.py
+17      6       extensions/agi/tests/test_round_own_path_set_fails_closed.py
+```
+
+## sha256 of every file this round edited (the commit owner needs these)
+
+DH.617 printed four sha256 digests "for the commit owner". MEASURED on the
+tip (DH.632): the TEST digest matches the committed blob
+(`git show 2fefa3f70:<test path> | sha256sum` -> 7ed47a99...), but all THREE
+NODE digests resolve to nothing in the object store -- `git cat-file -t` says
+"Not a valid object name" for each, and neither the committed node files at
+2fefa3f70 nor the working tree hash to them. A sha of a node file is not a
+stable name: every `write.py` call rewrites the file and moves the digest.
+So: the DH.617 node edits are ALREADY LANDED in commit 2fefa3f70 (verified by
+`git log 2fefa3f70 -- <those node paths>`, which shows that commit and no
+other), and the residue DH.632 leaves is in the worktree named below.
+
+WHERE THE BYTES ARE (this is the hand-off; a sha table is not):
+  worktree: .agi/worktrees/a00-ebe2ebd4  (the DH.632 kid worktree)
+  the only file DH.632 changed in code:
+    extensions/agi/tests/test_round_own_path_set_fails_closed.py
+  the nodes it edited: experiment:a00-849236cb-114441 (this one),
+    experiment:a00-0581fdf8-2bb4d2 (its own)
+
+## DH.632 measurements (pasted, not typed)
+
+```
+$ env -u TMUX -u TMUX_PANE -u AGI_CLI_PY python3 -m pytest \
+      extensions/agi/tests/test_round_own_path_set_fails_closed.py -q --basetemp /tmp/pt632a
+8 passed in 17.43s
+
+# MUTANT PROOF -- a FULL copy of extensions/agi/bin with `src` beside it (so
+# graph_core imports), the test file copied OUT of extensions/agi/tests, and
+# PYTHONPATH+AGI_CLI_PY naming the copy. binA = the guard swapped for
+# `if v is not None`; binB = the leg re-widened to
+# `r.get("dispatch_node_id") or r.get("node_id")`; binC = the control.
+$ ... PYTHONPATH=$P/rootC/bin AGI_CLI_PY=$P/rootC/bin/cli.py pytest $P/test_copy.py -q
+8 passed in 44.81s
+$ ... rootA ...
+FAILED <probe>/test_copy.py::test_only_dispatch_node_id_widens_the_set_never_the_node_id_line
+1 failed, 7 passed in 0.40s
+$ ... rootB ...
+FAILED <probe>/test_copy.py::test_only_dispatch_node_id_widens_the_set_never_the_node_id_line
+1 failed, 7 passed in 6.78s
+
+# THE COUNTER-MEASUREMENT -- the same two runs against DH.617's ABSENT-key
+# fixture, which is what the pin measured before this round:
+$ ... rootA ... test_copy_absentkey.py
+8 passed in 19.62s          <-- the `v is not None` mutant PASSES
+$ ... rootB ... test_copy_absentkey.py
+1 failed, 7 passed in 0.60s
+So the absent-key fixture caught ONE of the two mutants and the production-shaped
+fixture catches BOTH: the trade the corrective names, measured in both directions.
+
+# ITEM 9 -- is the AGI_* strip SESSION-scoped or function-scoped? (the round
+# cited it as "the ROOT cause" without establishing the scope)
+$ grep -n 'def _strip_agi_env' -A6 extensions/agi/conftest.py
+54:def _strip_agi_env() -> None:
+55-    """Delete every AGI_* key from os.environ, remembering what we removed.
+56-
+57-Also deletes the GIT_CONFIG_* spawn channel above -- a test repo that
+58-inherits `core.hooksPath` runs the commit guard, so the suite would be
+59-green or red depending on who spawned it.
+60-
+$ grep -n '_agi_env_stripped' -A3 extensions/agi/conftest.py
+80:_agi_env_stripped = suite_guards.make_agi_env_stripped_fixture(
+81-    GIT_CONFIG_SPAWN_VARS)
+$ grep -n 'scope=' extensions/agi/bin/suite_guards.py
+82:    @pytest.fixture(scope="session", autouse=True)
+149:    @pytest.fixture(scope="session", autouse=True)
+$ grep -n 'def make_agi_env_stripped_fixture' -A11 extensions/agi/bin/suite_guards.py
+139:def make_agi_env_stripped_fixture(extra_keys=()):
+...
+149-    @pytest.fixture(scope="session", autouse=True)
+150-    def agi_env_stripped():
+151-        stripped = strip_dispatch_env(extra_keys)
+152-        yield
+153-        restore_dispatch_env(stripped)
+ANSWER: SESSION-scoped, autouse, created ONCE per conftest at import time
+(conftest.py:80-81) and torn down at session end -- not function-scoped, and
+there is no other writer of those keys. So the test file's own comment (that
+module import is the only moment the var is readable) is true, and the seam is
+structural: no later re-set in a test can restore what a session fixture took.
+```
+
+## OUTSIDE (named, not touched)
+
+- `extensions/agi/tests/test_bin_help_smoke.py::test_help_smoke[suite_guards.py]` --
+  briefed red on this base, outside this round's fix; its file is not in FILE
+  SCOPE. `suite_guards.py --help` prints nothing (no `__main__` guard), the smoke
+  test asserts help text, so the red is a property of that module, not of anything
+  this round did.
+- `extensions/agi/conftest.py:54 _strip_agi_env` -- the ROOT cause of the
+  AGI_CLI_PY seam and of item 4's void transcript, and a file this round may read
+  but not change. The class-level closure is still a session guarantee that FAILS
+  a test which reads a stripped var; that is the director's row, not this kid's.
+- The three `test_cli.py` reds encoding the fail-open
+  (`test_own_node_paths_drops_a_named_goal_and_keeps_the_target`,
+  `test_every_refused_named_id_is_named_on_stderr`,
+  `test_own_node_id_is_type_gated_too`) -- outside FILE SCOPE, named on
+  `experiment:a00-1389258c-50f93f`, still standing.
+
+## ANON / stray files
+
+No user name, home or repo path value, host or IP: the session path appears only
+as `<session>/probe/`. Probe scratch lives in this kid's own session dir. Nothing
+was written to `.agi/tmp/` or the repo root. No unexpected files were created;
+`git diff --numstat` was the only git run and it is read-only.
+
+## production_lines
+
+0 (measured; the two byte fixes are in a test file, which the ceiling excludes).
+
+DH.632, written about THIS node alone. The one byte change is a REVERT of DH.617's
+own item-5 change, and the reason is the same drift class DH.617 fixed for the
+DIR: a fixture whose spelling drifts from the code's means the fixture, not the
+bound, is what the pin measures.
+
+(1) WHAT THE INSTRUCTION SAID, quoted: item 7 -- "the fixture now writes a
+record shape PRODUCTION NEVER WRITES ... `rec.setdefault("dispatch_node_id",
+rec.get("node_id") or "")` is the committed writer of that key on a real seat's
+agent.json ... and it ALWAYS writes the key PRESENT"; item 8 -- "With the key
+ABSENT, a cli.py that guards on `v is not None` ... PASSES test:202, while the
+pre-round `""` fixture would have caught it ... So the round traded one blind
+spot for another and documented the trade in the wrong direction."
+
+(2) WHAT THE MACHINE ACTUALLY DOES: the fixture now writes
+`"dispatch_node_id": dispatch_node_id or ""` -- key PRESENT, `""` when there is
+no dispatch id -- which is byte-for-byte what the production `setdefault`
+leaves. Measured on a FULL copy of `extensions/agi/bin` (with `src` beside it so
+`graph_core` imports), test file copied OUT of the tests tree: the `v is not
+None` mutant and the `or r.get("node_id")` fallback mutant BOTH now fail
+`test_only_dispatch_node_id_widens_the_set_never_the_node_id_line`; the same
+mutant run against the DH.617 ABSENT-key fixture passes 8/8, which is the blind
+spot the corrective names, now measured rather than argued. Control (unmutated
+copy): 8 passed.
+
+(3) THE NEAR MISS, and it is this node's own record: rewriting the prose --
+docstring, item-5 row, THOUGHT, title, Agent Notes -- to say "an ABSENT key"
+while the bytes keep the ABSENT-key fixture satisfies every word of an
+item-5-style fix and leaves the pin one blind spot weaker than the pre-round
+state. The same shape as the assertion near-miss below, one level up: the
+sentence about the fixture becomes the substitute for the fixture.
+
+(4) IF I DEVIATED FROM A STANDING RULE: the PARENT line says COMMIT every kid
+and node edit before exiting; the round contract says a kid runs no git and
+`cli.py done` is the only versioning step. The contract wins; the residue is
+located by WORKTREE PATH on this node, not by sha (see "Where the bytes are"),
+because a sha of a node file is not a stable name -- every `write.py` call
+rewrites the file and moves the digest, which is why DH.617's three node shas
+resolve to no blob in any object store. `git diff --numstat` and a node file sha do not measure the same thing -- the first counts the lines this round changed, the second moves on every `write.py` call -- so the three shas are recorded NOT-VERIFIED and the residue is located by WORKTREE PATH, which is a stable name.
+
+[SENTENCE COMPLETED BY experiment:a00-68041083-03040f, DH.652. The commit cut it mid-conjunction here; the cause is recorded on a00-0581fdf8-2bb4d2 (`replace body N:M` treats its end index as EXCLUSIVE). The completion is AUTHORED by the repair -- no earlier version carried it, and none is recoverable: a write.py call moves the digest.]
+
+CEVEAT I did not close: the leg-1 pin is still ONE-SIDED in the sense DH.617
+named -- a record carrying a real dispatch id lands is covered by the same
+test's second half, not by new bytes. And the two wall-clocks on the DH.604
+transcripts remain, annotated NOT-VERIFIED rather than removed.
+[THOUGHT:END marker line]
+
+## Agent Notes
+DH.632: DH.617's item-5 fix REVERTED -- `_spawn` writes the PRODUCTION record (key PRESENT, `""` when empty) again, and both mutants the pin used to miss now fail it (measured: 1 failed, 7 passed on each). DH.617's pasted node-text zeros (iter-DH.578=0, fails_closed.py:85=0/0, parent review inside the THOUGHT) are VOID AS MEASURED -- the bytes read 9, 1/1, and after `## Agent Notes`; its three node shas resolve to no blob, so the residue is located by worktree path instead. 0 production lines, 8 passed

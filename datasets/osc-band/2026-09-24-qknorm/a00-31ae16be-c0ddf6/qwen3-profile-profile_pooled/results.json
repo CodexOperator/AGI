@@ -1,0 +1,54 @@
+{
+ "method": "profile_pooled",
+ "rows": {
+  "3p5": {
+   "bits": 3.5,
+   "agree": 0.044678,
+   "kl": 9.109847,
+   "holds": false
+  },
+  "4p5": {
+   "bits": 4.5,
+   "agree": 0.498535,
+   "kl": 1.937753,
+   "holds": false
+  },
+  "4p75": {
+   "bits": 4.75,
+   "agree": 0.741455,
+   "kl": 0.561627,
+   "holds": false
+  },
+  "5p75": {
+   "bits": 5.75,
+   "agree": 0.88623,
+   "kl": 0.087891,
+   "holds": false
+  },
+  "6p75": {
+   "bits": 6.75,
+   "agree": 0.961426,
+   "kl": 0.014714,
+   "holds": false
+  },
+  "7p75": {
+   "bits": 7.75,
+   "agree": 0.973877,
+   "kl": 0.011825,
+   "holds": false
+  },
+  "9p0": {
+   "bits": 9.0,
+   "agree": 0.978027,
+   "kl": 0.011665,
+   "holds": false
+  },
+  "10p75": {
+   "bits": 10.75,
+   "agree": 0.978271,
+   "kl": 0.011648,
+   "holds": false
+  }
+ },
+ "bench": "bench/20260924T214124Z.jsonl"
+}

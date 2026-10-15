@@ -3,9 +3,9 @@ id: idea:engine-find-root
 mint_id: 3abbff5a81b34041bc547f732c0a6510
 type: idea
 parents:
-  - goal:g1
+  - goal:g1.19
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 origin: engine-decomp
 scale: small
 season: 1
@@ -14,7 +14,7 @@ tags:
   - engine
   - census
   - l19
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "Engine surface: extensions/agi/lib/find-root.sh"
 unit_kind: entry_point
 unit_path: extensions/agi/lib/find-root.sh

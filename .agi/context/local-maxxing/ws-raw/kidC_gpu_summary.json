@@ -1,0 +1,42 @@
+{
+  "gpu_models": {
+    "ids": [
+      "Qwen3.5-9B-Q4_K_M"
+    ],
+    "args0": [
+      "/app/llama-server",
+      "--host",
+      "127.0.0.1",
+      "--jinja",
+      "--port",
+      "53369",
+      "--alias",
+      "Qwen3.5-9B-Q4_K_M",
+      "--fit",
+      "on",
+      "--model",
+      "/models/Qwen3.5-9B-Q4_K_M.gguf",
+      "--parallel",
+      "2"
+    ]
+  },
+  "gpu_compare": {
+    "direct_content": 0,
+    "adapter_content": 0,
+    "direct_reasoning": 16,
+    "adapter_reasoning": 16,
+    "direct_finish": "length",
+    "adapter_finish": "length",
+    "direct_sha": "e3b0c44298fc1c14",
+    "adapter_sha": "e3b0c44298fc1c14",
+    "sha_equal": true,
+    "both_zero_content": true
+  },
+  "chat_template_kwargs": {
+    "capture_equals_apply_template": false,
+    "kwarg_changes_render": true,
+    "render": "",
+    "capture_head": "<|im_start|>user\nhi<|im_end|>\n<|im_start|>assistant\n",
+    "kw_capture_head": "<|im_start|>user\nhi<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
+  }
+}

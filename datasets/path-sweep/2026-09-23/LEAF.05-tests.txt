@@ -1,0 +1,13 @@
+LEAF.05 (LEAF kid B, a00-78eb042c) -- test results run by the director at harvest, 2026-09-24 03:4xZ
+base b2b29f0b67 (my post branch before the round) · kid tip 7b2c8860a2 · harvest e43f3eee98
+
+neighbourhood  python3 -m pytest -q --basetemp=/tmp/<id> test_paths_local.py test_discovery_stops.py specdec/test_specdec_a00_71dbbad5.py
+               athena/test_fetch.py athena/test_regex.py   (under .agi/context/local-maxxing/)
+               before = after = 24 passed (the node's 21 at f1f675975f + leaf A's 3); none of the 5 files imports a heads/ or osc/ module
+osc selftest   cd osc && PYTHONPATH=<osc03_pylib_dir> <ml_python> osc_band_kquant_a00-527993c5_test.py
+               before: ALL SELFTESTS PASS · after: ALL SELFTESTS PASS (test_profiles_and_model_sha256 re-hashes the HF weights through the
+               converted osc03_hf_dir path: the wire probe for that cell)
+osc tests      test_osc_band_kquant_a00-ddd4762f.py, each test_ function called in turn (the ml venv has no pytest): before 5 of 5 · after 5 of 5
+               (a tiny synthetic Qwen2, no weights loaded)
+not run        no converted script's main() (the orders: never run a converted script) · no model load · no GPU
+compile        python3 -m py_compile on all 11 touched files: 11 of 11

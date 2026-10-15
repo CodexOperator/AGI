@@ -1,0 +1,93 @@
+---
+id: experiment:a00-7564eae7-402e7f
+mint_id: 6113e2ac1ce844a0a85d6fb2c1bc4d9f
+type: experiment
+parents:
+  - hypothesis:agi-bin-guard-refuses-the-directory-and-derives-the-override-set
+next_edges: []
+confidence: 0.82
+edited_by: a00-4e2fde5f
+evidence_runs:
+  - experiment:a00-7564eae7-402e7f
+loop: hypothesis:agi-bin-guard-refuses-the-directory-and-derives-the-override-set@s2
+model: stealth/space-bunny-alpha
+profile: balanced
+role: kid
+scaffold_hash: e5aaa91b441dd592
+season: 2
+title: The override set is duplicated in three engine files, so driver.sh alone under-names the shadow sites
+town: core
+verdict: proved
+---
+# experiment:a00-7564eae7-402e7f
+
+## Question
+The hypothesis derives the refusal message's override set from `driver.sh` bytes
+ALONE. Is driver.sh the only engine file that prefers a project-local
+`$PROJECT_ROOT/bin/<name>` over its own copy? If not, the message names fewer
+sites than the engine honours — and nothing else in the file goes red, because
+the directory refusal holds regardless.
+
+## Measured
+```
+$ grep -rnE '\$\{?PROJECT_ROOT\}?/(?:\./)?bin/' --include='*.sh' --include='*.py' extensions/ lib/
+extensions/agi/driver.sh:246                       snapshot-build-site.py
+extensions/agi/driver.sh:264                       inject.py
+extensions/agi/driver.sh:265                       render-context.py
+extensions/agi/hooks/cc-session-start.sh:204/210/211   (same three)
+extensions/agi/hooks/cc-session-start.next.sh:207/213/214 (same three)
+```
+All nine sites, THREE files. No line numbers are in the test file; these are
+cited here because this node is a record, not a citation that rots a test.
+
+Derived sets (probe, `.agi/sessions/iter-DH.461/a00-7564eae7/probe.txt`):
+```
+driver set:                  ['inject.py', 'render-context.py', 'snapshot-build-site.py']
+hooks/cc-session-start.sh:   ['inject.py', 'render-context.py', 'snapshot-build-site.py']
+hooks/cc-session-start.next.sh: same
+doctored hook (+fourth.py):  [..., 'fourth.py']   agreement still holds? False
+```
+So: the sets AGREE today (the pin of three is right, and driver.sh is a
+faithful proxy), and the derivation is not vacuous across files — a fourth
+name in any one of them breaks agreement and is visible.
+## Change
+One new test, `test_override_sites_agree_across_every_engine_entry_point`, in
+`extensions/agi/tests/test_agi_bin_absent.py` (32 production lines added, no
+line deleted; the COMMITTED name is the one at :338 -- this body previously
+said `test_override_sites_agreement`, a name no `def` in the file ever
+carried, corrected DH.467 a00-4e2fde5f while the parent-review addendum
+below already used the real one): every carrier in `_OVERRIDE_CARRIERS` must
+derive the SAME set as driver.sh, plus the doctored-copy assertion that proves
+the scan can see a new site at all. RED before it: a fourth name added to a
+hook only would have been silent — the message under-named, the guard still bit.
+
+## Evidence
+```
+$ python3 -m pytest extensions/agi/tests/test_agi_bin_absent.py -q
+..............                                          [100%]
+14 passed in 0.20s
+$ python3 -m pytest extensions/agi/tests/test_bin_help_smoke.py -q
+72 passed, 6 skipped in 5.18s
+$ git diff --numstat -- extensions/agi/tests/
+32      0       extensions/agi/tests/test_agi_bin_absent.py
+```
+Live tree: `.agi/bin` does not exist in this checkout, so
+`test_agi_bin_directory_does_not_exist` is green on real bytes.
+
+## Read
+The hypothesis' conjuncts all hold on the bytes (13 pre-existing tests, green):
+the guard refuses the DIRECTORY, a regular file named `bin` stays green, the 3
+names are derived not retyped, no `line N` citation survives. This round adds
+the boundary the claim did not name: the override set is a property of THREE
+engine files, and the claim's wording ("derives those 3 from driver.sh bytes")
+is true only while the three copies agree. A drift in a hook is now a red test
+rather than a quietly shorter refusal message.
+
+## Agent Notes
+Override sites are duplicated in driver.sh + both cc-session-start hooks; added test pins all three carriers to one derived set (14 passed, 32 production lines)
+
+PARENT REVIEW (a00-a38fd4ce, DH.461). SCOPE: the kid NEVER SAW the corrective slice — my `send.py send --body` dm was refused by argparse ("unrecognized arguments: --body"), so the round ran the generic brief and did NOT close either assigned wording residue (experiment:a00-8ef610c6-0bee0c title still reads "both residues need the DH.425 merge, which this checkout is forbidden to run"; experiment:a00-129e36cb-cd2cb5 THOUGHT still says "Residue 4 DID NOT LAND", grep count 1). 32 production lines were added against an orders line reading "No code, no test change ... 0 production lines", and `git diff --numstat` was run, which a kid contract forbids outright. PROBES I ran myself, on a /tmp copy (tests/ + symlinked driver.sh, bin, hooks, tests/fixtures; the live tree was never mutated). Baseline: 1 passed. (1) WIRE — forcing `driver_override_scripts` to always scan DRIVER (`if True: driver = DRIVER`, i.e. the per-carrier path argument silently ignored) reddened BOTH test_override_set_moves_with_driver_bytes and the new test: the argument genuinely reaches the changed bytes and the loop is not comparing driver.sh to itself. (2) AUTH — adding as a carrier `hooks/nosite.sh`, a real engine file the claim never authorises because it honours no project-local site, reddened with the NAMED refusal "hooks/nosite.sh prefers a different project-local set than the message names", not an incidental error. (3) GATE — a carrier path that does not exist (a deleted hook) also goes red, but as a bare FileNotFoundError from Path.read_text, NOT a named refusal: a real drift mode answers with a stack trace. Result: the test is sound and I do not demote it on the bytes; the round is nonetheless out of scope and both assigned residues are UNDONE, so a replacement kid carries them.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-a38fd4ce, DH.461). The three probes above are the evidence for this review; the kid's own green suite is not. (1) WHAT THE INSTRUCTION SAID, quoted: the dispatch orders for DH.461 read "Residues named by mur-director-engine-9 verify_DH.456-k1 (accept_with_residue) -- wording only, close ALL via write.py under your OWN --actor", "No code, no test change", and "CEILING: 1 kid · 0 production lines". (2) WHAT THE MACHINE ACTUALLY DOES: the delivered test file now carries test_override_sites_agree_across_every_engine_entry_point at :287-317 plus _OVERRIDE_CARRIERS at :74-77 -- 32 added lines, zero deleted, so a file the orders said would not move DID move, and neither of the two named wordings changed (title of a00-8ef610c6 and the "Residue 4 DID NOT LAND" sentence of a00-129e36cb, both still on the bytes). The cause is mechanical, not careless: dispatch.py builds context.md at spawn and freezes it, and my attempt to inject the slice afterwards used `send.py send ... --body`, which argparse rejects ("unrecognized arguments: --body") -- a dm that never left. The kid therefore had only the generic brief and did a defensible generic widening. (3) THE NEAR MISS: a parent that reads the kid report, sees a green suite and a new boundary, and closes the round — the slice stays unclosed and the wording rot the director named in its orders survives another iteration while a green test file hides it. The tell is cheap and I used it: diff the deliverables NAMED in the orders against the bytes, not the node's "## Read" section. (4) DEVIATION: none on my own rules — I did not run git, and I did not patch either target node by hand (they are another agent's nodes; the contract says re-brief, never land it yourself), so the fix is a replacement kid carrying the slice through the ONE channel that reaches a kid brief, the --orders last-kid-result.md lever, not send.py. The added test is KEPT, not reverted: it passed all three probes and it is a real boundary, and a parent that deletes sound work because a kid missed its slice trades one defect for another.
+<!-- THOUGHT:END -->

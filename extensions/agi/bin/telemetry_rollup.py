@@ -103,17 +103,20 @@ def _build_graph_index(root: Path) -> tuple[dict[str, dict], dict[str, list[str]
     if not nodes_dir.exists():
         return nodes_by_id, children
 
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.2: parents through the one resolver)
+    r = links.address_resolver(root)
     for fpath in nodes_dir.rglob("*.md"):
         try:
             nf = fm_reader.load_node_file(fpath, body=False)
         except Exception:
             continue
-        fm = nf.frontmatter
+        fm = dict(nf.frontmatter)
         node_id = fm.get("id")
         if not node_id:
             continue
+        fm["parents"] = [r(p) or p for p in _ensure_list(fm.get("parents", []))]  # every walk below reads these
         nodes_by_id[node_id] = fm
-        for parent in _ensure_list(fm.get("parents", [])):
+        for parent in fm["parents"]:
             children[parent].append(node_id)
     return nodes_by_id, children
 

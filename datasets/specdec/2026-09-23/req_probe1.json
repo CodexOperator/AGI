@@ -1,0 +1,1 @@
+{"model": "Qwen3.5-9B-Q4_K_M", "messages": [{"role": "user", "content": "Name three colors."}], "max_tokens": 16, "temperature": 0, "chat_template_kwargs": {"enable_thinking": false}, "n_probs": 2}

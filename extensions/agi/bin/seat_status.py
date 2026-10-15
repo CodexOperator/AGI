@@ -11,7 +11,7 @@ roll-up; seat status is what the owner's text adds to it.
 
 Like `briefing.py` and the `frame_stream`, this module computes a single
 `SeatsView` once and `viewport.py --live` renders that same object in both
-`render_human` and `render_llm` — and `--theme sanctuary` already falls back
+`render_human` and `render_llm` — and `--theme keep` already falls back
 to it through `load_seat_rows`. Two renderings, one set of facts.
 
 ## It computes, it never writes
@@ -31,6 +31,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import towns as _towns  # noqa: E402  (sibling module; adds src to sys.path itself)
 
 #: Report node types the roll-up writes its `*_total` fields to. Mirrors
 #: `telemetry_rollup.py`'s accepted types — never restated here.
@@ -63,11 +65,15 @@ def _load_registry_rows(root: Path) -> tuple[list, bool]:
     declared frontmatter sources (hypothesis:l3w4-hierarchy-one-source) — the
     same file `dispatch.py --seat` and `rotate.py meter --seat` read. The
     seat_status copy of the seats.md read is gone so the view cannot drift
-    from the chart. Absent file -> `([], False)`, the fail-open contract
-    everything else degrades to.
+    from the chart. Presence resolves THROUGH geometry_config (posts-first,
+    else the deprecated seats.md), never a literal seats.md — the same
+    post:seats-renamed resolver every other reader uses
+    (hypothesis:l4-a-seat-is-a-post-everywhere). Absent file ->
+    `([], False)`, the fail-open contract everything else degrades to.
     """
-    seats_md = Path(root) / "nodes" / ".geometry" / "seats.md"
-    present = seats_md.is_file()
+    import geometry_config as _gc
+    cfg = _gc.geometry_config_path(root)
+    present = cfg is not None and cfg.is_file()
     rows = []
     try:
         import hierarchy as _hier
@@ -80,10 +86,18 @@ def _load_registry_rows(root: Path) -> tuple[list, bool]:
 
 
 def _rows_via_zoom(root: Path) -> list:
+    """Last-resort row read, posts-first with the seats fallback. zoom's
+    frontmatter view is keyed by file-id+list-key, so the renamed layout
+    (`config:posts`.`posts`) must be tried before the deprecated
+    `config:seats`.`seats` — a hardcoded seats-only lookup returns [] the
+    moment the file is posts.md."""
     try:
         import zoom as _zoom
         gf = _zoom._frontmatter_for(root, ".geometry")
-        return (gf.get("config:seats") or {}).get("seats") or []
+        rows = (gf.get("config:posts") or {}).get("posts")
+        if not rows:
+            rows = (gf.get("config:seats") or {}).get("seats")
+        return rows or []
     except Exception:                                                # noqa: BLE001
         return []
 
@@ -211,6 +225,7 @@ def collect(root: Path, fm_by_id: dict) -> SeatsView:
         seats.append({
             "name": name,
             "role": str(r.get("role") or ""),
+            "town": _towns.row_town(root, r),
             "session_kind": str(r.get("session_kind") or ""),
             "rotated_by": str(r.get("rotated_by") or ""),
             "worktree": str(r.get("worktree") or ""),
@@ -243,6 +258,7 @@ def to_markdown(v: SeatsView) -> list[str]:
         wt = f" worktree={s['worktree']}" if s.get("worktree") else ""
         addr = f" [{s['session_ref']}]" if s.get("session_ref") else ""
         out.append(f"- seat {s['name']}{addr} ({s['role']}/{s['session_kind']})"
+                   f" town={s.get('town') or 'core'}"
                    f" rotated_by={s['rotated_by'] or '-'}{frac}{wt}")
     out.append(f"- ephemeral live/cap: {v.ephemeral_live}/{v.ephemeral_cap}"
                + ("" if v.rollup_config_read else " (spawn-budget unread)"))
@@ -258,7 +274,7 @@ def to_compact(v: SeatsView) -> list[str]:
     out = []
     for s in v.seats:
         frac = f" {s['fraction']:.0%}" if s["fraction"] is not None else ""
-        out.append(f"{s['name']} ({s['role']}){frac}")
+        out.append(f"{s['name']} ({s['role']}) [{s.get('town') or 'core'}]{frac}")
     out.append(f"ephemeral {v.ephemeral_live}/{v.ephemeral_cap} · "
                f"rollup ${v.rollup_cost_usd_total:.2f} "
                f"({v.rollup_reports_measured})")
@@ -295,6 +311,7 @@ def main(argv: list[str] | None = None) -> int:
                         if s['fraction'] is not None else "")
                 print("\t".join([
                     s['name'], s['role'], s['session_kind'],
+                    s.get('town') or 'core',
                     s['rotated_by'] or '-', s['worktree'] or '-',
                     s['session_ref'] or '-', frac, s['fraction_source']]))
         return 0

@@ -54,7 +54,9 @@ the key is absent.
 from __future__ import annotations
 
 import datetime
+import errno
 import json
+import math
 import os
 import sys
 import urllib.error
@@ -65,9 +67,17 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import envfile  # noqa: E402
+import spawn_budget  # noqa: E402
+import locations  # noqa: E402
 
 #: OpenRouter's key-management endpoint.
 API_BASE = "https://openrouter.ai/api/v1/keys"
+#: Per-day per-model spend rows the PROVISIONING key can read (`hypothesis:
+#: l4-what-spent-this-money-must-be-a-lookup`). The RUNTIME key is rejected
+#: here (measured 401, 2026-09-10 — the hypothesis said 403; the code is 401
+#: but the functional claim holds: the runtime key is REJECTED, and the
+#: rejected path is distinct from an empty 200, which is the whole point).
+ACTIVITY_BASE = "https://openrouter.ai/api/v1/activity"
 #: Workspace listing. `GET /keys` is scoped to ONE workspace (the default
 #: unless asked otherwise), so enumerating everything means enumerating
 #: workspaces first -- see `list_all_keys`.
@@ -92,8 +102,14 @@ DEFAULT_TTL_MINUTES = 60
 NAME_PREFIX = "agi"
 #: Credits endpoint — account-level remaining budget. Not workspace-scoped.
 CREDITS_BASE = "https://openrouter.ai/api/v1/credits"
-#: Minimum remaining credits before refusing to mint a new key.
+#: Minimum remaining credits before refusing to mint a PAID-lane key; the
+#: default of the cell `provisioning.min_mint_remaining_usd`.
 MIN_REMAINING_CREDITS = 1.0
+#: Hard dollar cap on a ZERO-USD-lane key (belam 09-27 13:1xZ, owner: account
+#: drained); the default of the cell `provisioning.zero_usd_key_limit_usd`.
+#: A free-lane key can never spend more than this, so it may mint below the
+#: paid floor -- but never past zero (OpenRouter 402s even free models then).
+DEFAULT_ZERO_USD_KEY_LIMIT_USD = 0.01
 
 #: OpenRouter's single-key endpoint — the RUNTIME key's OWN limit/usage/remaining.
 #: The account/credits endpoints read the ACCOUNT balance; this endpoint reads the
@@ -108,6 +124,16 @@ RUNTIME_KEY_BASE = "https://openrouter.ai/api/v1/key"
 #: box whose owner has not set it does not freeze a round on a minor tick, yet
 #: large enough to be noticed BEFORE the key crosses its cap mid-kid.
 DEFAULT_MIN_KEY_REMAINING_USD = 1.00
+#: Default floor on the ACCOUNT's remaining credits before dispatch refuses to
+#: spend a budget slot on a spawn (hypothesis:l4-the-floor-must-watch-the-
+#: account). Configured per project under `provisioning.min_account_remaining_usd`.
+#: This one is OPT-IN by construction: `min_account_remaining_floor` returns
+#: None (no-op) when the config key is absent, so a project that has not
+#: declared one keeps exactly today's behaviour. The default here is the value
+#: used when a project HAS declared the key with an empty/blank value, and is
+#: set equal to the key floor and to `MIN_REMAINING_CREDITS` so a refused
+#: account can still guarantee one more mint remains fundable.
+DEFAULT_MIN_ACCOUNT_REMAINING_USD = 1.00
 
 
 class ProvisioningError(RuntimeError):
@@ -125,21 +151,32 @@ class MintedKey:
     expires_at: str
 
 
-def _read_provisioning_key(root: Path | str | None = None) -> str | None:
-    """The provisioning key, or None. Read through the graph, never os.environ.
+def _provisioning_key_state(root: Path | str | None = None) -> tuple[str | None, str | None]:
+    """`(key, unreadable)`: the THREE states of the provisioning key. `(key, None)` = set; `(None, None)` = absent;
+    `(None, "EACCES")` = the env file exists but this uid cannot read it (the key may well be SET).
 
-    `envfile` resolves the env file's path from `.geometry/secrets.md`, so the
-    location stays a fact the graph states once (`goal:g10.2`) rather than a
-    literal repeated here.
+    Read through the graph, never os.environ. `envfile` resolves the env file's path from `.geometry/secrets.md`,
+    so the location stays a fact the graph states once (`goal:g10.2`) rather than a literal repeated here.
+    Never raises. Dispatch reads an unreadable file as absent (`_read_provisioning_key`); only the `status` line
+    tells the two apart (goal:g7.16.1.11.43.1: an unreadable file is never reported as "not set").
     """
     try:
         res = envfile.resolve(str(root) if root is not None else None)
     except Exception:
-        return None
-    if not res.env_file.is_file():
-        return None
-    value = envfile.read_env(res.env_file).get(PROVISIONING_KEY_VAR, "")
-    return value or None
+        return None, None
+    try:
+        if not res.env_file.is_file():
+            return None, None
+        value = envfile.read_env(res.env_file).get(PROVISIONING_KEY_VAR, "")
+    except OSError as exc:   # goal:g7.16.1.11.43: a post uid cannot read MAIN's .env (EACCES)
+        return None, errno.errorcode.get(exc.errno or 0, type(exc).__name__)
+    return (value or None), None
+
+
+def _read_provisioning_key(root: Path | str | None = None) -> str | None:
+    """The provisioning key, or None (absent OR unreadable: `available` never raises, so an unreadable env file
+    reads as ABSENT for dispatch; `provisioning.py status` alone names the difference)."""
+    return _provisioning_key_state(root)[0]
 
 
 def available(root: Path | str | None = None) -> bool:
@@ -174,7 +211,56 @@ def credit_balance(root: Path | str | None = None) -> tuple[float, float, float]
     return total, used, remaining
 
 
-def can_fund(root: Path | str | None = None) -> tuple[bool, str | None]:
+def _cfg(root) -> dict:
+    """The project config dict, or {} — never raises, never a literal path."""
+    if root is None:
+        return {}
+    try:
+        graph = locations.find_project_root(Path(root).resolve()) or Path(root)
+        return locations.load_config(graph)
+    except Exception:  # noqa: BLE001 -- an unreadable config reads as empty
+        return {}
+
+
+def _prov_cell(root, name: str, default: float, cfg: dict | None = None) -> float:
+    """One `provisioning.<name>` dollar cell; a pre-loaded `cfg` wins over `root`."""
+    if cfg is None:
+        cfg = _cfg(root)
+    try:
+        val = (cfg.get("provisioning") or {}).get(name, default)
+        return default if val is None else float(val)
+    except Exception:  # noqa: BLE001 -- an absent/blank/unreadable cell keeps the default
+        return default
+
+
+def zero_usd_sizing_ok(root: Path | str | None = None,
+                       cap: float | None = None) -> tuple[bool, str | None]:
+    """(ok, reason) — the sizing invariant: cap x spawn.max_live < balance.
+
+    A zero-USD cap BOUNDS a leak, it never refuses one (a paid model is served
+    through the same key), so the sized leak is `cap x live spawns`.
+    """
+    cap = zero_usd_key_limit(root) if cap is None else cap
+    bal = credit_balance(root)
+    if bal is None:
+        return True, None  # no balance to compare against: today's behaviour
+    live = spawn_budget.max_live(_cfg(root))
+    product = cap * live
+    if product >= bal[2]:
+        return False, (
+            f"zero-USD sizing: key cap ${cap:.4f} x spawn.max_live {live} = "
+            f"${product:.4f} >= account balance ${bal[2]:.4f} — a paid model "
+            f"through these keys drains the account")
+    return True, None
+
+
+def zero_usd_key_limit(root: Path | str | None = None) -> float:
+    """The hard cap on a zero-USD-lane key (`provisioning.zero_usd_key_limit_usd`)."""
+    return _prov_cell(root, "zero_usd_key_limit_usd", DEFAULT_ZERO_USD_KEY_LIMIT_USD)
+
+
+def can_fund(root: Path | str | None = None,
+             zero_usd: bool = False) -> tuple[bool, str | None]:
     """(ok, reason) — whether the remaining credits can fund one more key.
 
     The decision replaces a guess with a known threshold: a project with $1.00
@@ -186,11 +272,15 @@ def can_fund(root: Path | str | None = None) -> tuple[bool, str | None]:
     if bal is None:
         return True, None  # no provisioning key = shared key fallback
     _total, _used, remaining = bal
-    if remaining < MIN_REMAINING_CREDITS:
+    # A zero-USD lane's floor is its own hard key cap: it may mint below the
+    # paid floor, never past zero. A paid lane keeps the cell floor.
+    floor = (zero_usd_key_limit(root) if zero_usd else
+             _prov_cell(root, "min_mint_remaining_usd", MIN_REMAINING_CREDITS))
+    if remaining < floor:
         return False, (
             f"remaining credits (${remaining:.2f}) below minimum "
-            f"(${MIN_REMAINING_CREDITS:.2f}) — minting a new key risks making "
-            f"the loop unfundable")
+            f"(${floor:.2f}, {'zero-USD key cap' if zero_usd else 'provisioning.min_mint_remaining_usd'}) "
+            f"— minting a new key risks making the loop unfundable")
     return True, None
 
 
@@ -249,8 +339,8 @@ def min_key_remaining_floor(cfg: dict) -> float:
     how low the runtime key may sink before the loop stops spending slots on
     it is a run parameter, not a buried constant.
     """
-    prov = ((cfg.get("provisioning") or {}))
-    return float(prov.get("min_key_remaining_usd", DEFAULT_MIN_KEY_REMAINING_USD))
+    return _prov_cell(None, "min_key_remaining_usd",
+                      DEFAULT_MIN_KEY_REMAINING_USD, cfg=cfg)
 
 
 def check_runtime_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, str | None]:
@@ -274,15 +364,377 @@ def check_runtime_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[
     floor = min_key_remaining_floor(cfg)
     if remaining >= floor:
         return True, None
+    # hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-use, item 2.
+    # The printed remedy must CLEAR the guard that printed it. The old text
+    # hardcoded `{"limit": 10.00}`, and on the live tree that was measured
+    # against $11.4847 of usage: applying it exactly leaves the key at -$1.48
+    # and STILL refusing. A guard whose own fix does not clear it sends its
+    # reader round a loop and teaches them the tool is broken -- which is how
+    # a correct guard gets routed around by hand next time. Compute the
+    # minimum viable cap from OBSERVED usage plus the CONFIGURED floor, and
+    # round UP so the printed number is never a cent short of clearing.
+    used = limit - remaining
+    suggested = math.ceil((used + floor) * 100) / 100
     patch = (f"curl -X PATCH {RUNTIME_KEY_BASE}"
              f" -H 'Authorization: Bearer ${RUNTIME_KEY_VAR}'"
              f" -H 'Content-Type: application/json'"
-             f" -d '{{\"limit\": 10.00}}'")
+             f" -d '{{\"limit\": {suggested:.2f}}}'")
     return False, (
         f"runtime key {label!r} remaining ${remaining:.2f} is below the configured "
         f"floor ${floor:.2f} (provisioning.min_key_remaining_usd); spending a "
-        f"budget slot risks the key crossing its cap mid-round. Raise it on "
-        f"OpenRouter, then PATCH: {patch}")
+        f"budget slot risks the key crossing its cap mid-round. The MINIMUM cap "
+        f"that clears this floor is ${suggested:.2f} (observed usage ${used:.2f} "
+        f"+ floor ${floor:.2f}) -- raise it on OpenRouter to that or above, "
+        f"then PATCH: {patch}")
+
+
+def _below_floor_message(which: str, label: str, remaining: float,
+                         floor: float) -> str:
+    """The shared refusal wording for a key reading below the floor."""
+    return (
+        f"{which} {label!r} remaining ${remaining:.2f} is below the configured "
+        f"floor ${floor:.2f} (provisioning.min_key_remaining_usd); spending a "
+        f"budget slot risks the key crossing its cap mid-round. Raise the key "
+        f"on OpenRouter or revoke the drained key before the next spawn")
+
+
+def check_key_floor(cfg: dict, root: Path | str | None = None,
+                    iter_n: int | str | None = None) -> tuple[bool, str | None]:
+    """(ok, message) — the pre-flight before a spawn takes a budget slot.
+
+    Consults BOTH the runtime key and every outstanding engine-minted key, and
+    refuses when ANY readable one is below the configured floor. This is the
+    fix for hypothesis:l4-the-floor-guards-the-key-that-drains: rounds bill to
+    minted per-spawn keys, so a floor that read only the runtime key could not
+    move however much the loop spent. A drained outstanding minted key refuses
+    a spawn the same way a drained runtime key does.
+
+    🔴 The runtime leg runs first but is **CONDITIONAL on provisioning being
+    ABSENT** (hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-
+    use). A pre-flight must gate on the credential the spawn will ACTUALLY
+    use: with provisioning live the spawn mints its own key against the
+    account, so the runtime key gates nothing it pays for; with provisioning
+    absent the runtime key IS the credential and the leg is unchanged.
+
+    Fail-open is preserved for EVERY key consulted: a network error reading
+    the runtime key, or the key listing, returns (True, None) — an unreachable
+    API is not evidence of exhaustion and must never block a round. A minted
+    key with no `limit` (uncapped) or no `usage` (unreadable/absent) passes:
+    no headroom to guard, and an absent reading is not a refusal. Only keys
+    THIS engine minted (`agi-` prefix) are in scope — the owner's long-lived
+    key, named `agi`, and any hand-made key are never refused here.
+
+    A key whose **cap** is AT or below the floor is SKIPPED with one stderr
+    line, not refused (hypothesis:(g) and hypothesis:(6) item 3): a cap that
+    touches the floor -- `<=`, not `<` -- can never pass it, so refusing on
+    its remaining would block every dispatch for the key's TTL. A key capped
+    $1.00 against a $1.00 floor is at its first cent of spend (remaining
+    $0.9999 < floor) the whole TTL: `<=` is what keeps THAT key from freezing
+    a seat that never mints it (measured on the live tree, TM.20).
+
+    🔴 A skip is VISIBLE IN THE RETURN VALUE (hypothesis:l4-workflow-residue-
+    sub-floor-marker-dead-code-and-truncation conjunct (1)): when at least one
+    sub-floor cap is skipped the function returns `(True, <marker>)`, where
+    `<marker>` is the SAME sentence printed to stderr — one string, one
+    construction, so the two can never drift. `(True, None)` is reserved for
+    the genuinely silent paths (no listing, unreachable API, nothing skipped),
+    so a tuple-reading caller can tell "a sub-floor minted key was skipped"
+    from "no keys at all" and from "the API was unreachable" — all three of
+    which used to be `(True, None)`. Scanning continues past a skip, so a
+    later key whose remaining is below the floor still refuses; when several
+    caps are skipped the FIRST marker is returned (stderr names every one).
+
+    `iter_n` is the spawn's OWNING ITERATION, threaded by the dispatch
+    pre-flight (hypothesis:(6) item 1). With provisioning LIVE the spawn runs
+    on a FRESH mint, so an outstanding key that belongs to a DIFFERENT
+    iteration is a proxy for a credential this spawn will not use — a check
+    that guards a proxy certifies the state it failed to inspect, and the
+    exact state that stopped the live loop (one seat's key froze every other
+    seat for its TTL). When `iter_n` is given, only keys of the SAME
+    iteration (same `iter{iter_n}` prefix — the round that OWNS them) are
+    consulted; every other minted key is skipped without a marker, exactly
+    as if it were out of scope. A drained same-iteration key still refuses,
+    and the refusal NAMES the owning iter (item 4). When `iter_n` is None —
+    a non-dispatch caller — every machine-minted key is consulted, exactly
+    as before, so the absence of an owning iteration fails OPEN to today's
+    behaviour.
+    """
+    # hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-use, item 1.
+    # THE RUNTIME LEG IS CONDITIONAL, and the condition is the one thing that
+    # decides which credential a spawn actually spends through. When
+    # provisioning is LIVE, `dispatch.py` mints the spawn its OWN key drawn
+    # against the ACCOUNT (dispatch.py:1138, `issuing = available(root)`), so
+    # the runtime key is not the spawn's credential and must not gate it --
+    # the account leg (`check_account_floor`, wired at dispatch.py:1264) and
+    # the minted key's own cap are the real guards. When provisioning is
+    # ABSENT -- a SUPPORTED state, see the comment at dispatch.py:1133, where
+    # every agent inherits the shared runtime key -- the runtime key IS the
+    # credential and this check is exactly right and stays UNCHANGED.
+    #
+    # MEASURED, on the live tree, 2026-09-10: the owner capped the runtime
+    # key `backup` at $1.00 to contain a NON-ENGINE spender, against $11.4847
+    # of lifetime usage. Both pre-flights refused every new spawn while
+    # $17.98 of account headroom sat behind the per-spawn keys that actually
+    # carry round spend. The loop was stopped by a key it does not spend from.
+    # This is the inverse of hypothesis:l4-the-floor-guards-the-key-that-
+    # drains: that round widened the floor to include the keys that DO drain
+    # and left this leg running first and unconditionally in front of it.
+    if not available(root):
+        ok, msg = check_runtime_key_floor(cfg, root)
+        if not ok:
+            return False, msg
+    try:
+        listing = list_all_keys(root)
+    except ProvisioningError:
+        return True, None  # fail-open: an unreachable API must never block a round
+    if not listing:
+        return True, None
+    floor = min_key_remaining_floor(cfg)
+    skipped: str | None = None
+    for rec in listing:
+        name = str(rec.get("name") or "")
+        if not name.startswith(f"{NAME_PREFIX}-"):
+            continue  # only keys THIS engine minted are in scope
+        limit = rec.get("limit")
+        used = rec.get("usage")
+        if limit is None or used is None:
+            continue  # uncapped or unreadable → fail-open, no headroom to guard
+        # hypothesis:(6) item 1 — the OWNING-ITERATION gate. A key carries its
+        # iteration as the second `agi-` token (`key_name`: `agi-iter<id>-...`).
+        # A dispatch threads its own iter_n; a key of any OTHER iteration is
+        # not this spawn's credential (this spawn gets a FRESH mint) and must
+        # not gate it — the proxy-reading that froze the live loop. A key we
+        # cannot attribute to this iteration is skipped the same way, so
+        # unparseable names fail open. `iter_n=None` (non-dispatch) consults
+        # every machine-minted key, byte-for-byte today's scan.
+        if iter_n is not None:
+            own = name[len(f"{NAME_PREFIX}-"):].split("-", 1)[0]
+            if own != f"iter{iter_n}":
+                continue
+        # hypothesis:l4-a-workflow-pi-stage-mints-its-own-capped-key-like-a-
+        # dispatched-spawn conjunct (g), closed to `<=` by hypothesis:(6) item
+        # 3: a key whose CAP is AT or below the floor (cap == floor touches it)
+        # can never pass it — refusing on its REMAINING blocks every dispatch
+        # for the key's whole TTL (a cap==floor key is under the floor from
+        # its first cent). Name it and skip; a cap above the floor whose
+        # remaining is below it still refuses exactly as before.
+        if float(limit) <= floor:
+            marker = (
+                f"sub-floor minted key {name!r} cap ${float(limit):.2f} is "
+                f"below the floor ${floor:.2f} "
+                f"(provisioning.min_key_remaining_usd) — skipped; a key "
+                f"capped below the floor can never pass it")
+            print(marker, file=sys.stderr)
+            if skipped is None:
+                skipped = marker
+            continue
+        remaining = float(limit) - float(used)
+        if remaining < floor:
+            if iter_n is not None:
+                # hypothesis:(6) item 2/4 — a drained key refuses only the
+                # round that OWNS it (same iter), and the refusal NAMES the
+                # owning iter so a reader knows whose drained key stopped the
+                # spawn (another seat's key must not read as this round's).
+                return False, (
+                    f"outstanding minted key {name!r} remaining ${remaining:.2f} "
+                    f"is below the configured floor ${floor:.2f} "
+                    f"(provisioning.min_key_remaining_usd) — owned by THIS "
+                    f"iteration {iter_n} (same iter prefix); spending a budget "
+                    f"slot on this round risks the key crossing its cap "
+                    f"mid-round. Revoke the drained key or wait out its TTL")
+            return False, _below_floor_message(
+                "outstanding minted key", name, remaining, floor)
+    return True, skipped
+
+
+def min_account_remaining_floor(cfg: dict) -> float | None:
+    """The ACCOUNT's remaining-credit floor from config, or None when the
+    project has not declared one (hypothesis:l4-the-floor-must-watch-the-
+    account).
+
+    Read from `provisioning.min_account_remaining_usd`. Absent means absent:
+    the account floor is OPT-IN precisely so a project that has not declared
+    one keeps today's behaviour exactly, and `check_account_floor` short-
+    circuits on None BEFORE it even reads the account. Returning None rather
+    than a bare default is the difference between "no floor declared" and "a
+    floor of a dollar" — only the former is a no-op.
+    """
+    # A KEY-PRESENCE test, not a dollar read: "absent" and "declared" must
+    # stay distinguishable, and only the declared case reaches the resolver
+    # below for its VALUE. The value itself is read through `_prov_cell`, so
+    # a configured floor still wins here exactly as it does everywhere else.
+    if "min_account_remaining_usd" not in (cfg.get("provisioning") or {}):
+        return None
+    return _prov_cell(None, "min_account_remaining_usd",
+                      DEFAULT_MIN_ACCOUNT_REMAINING_USD, cfg=cfg)
+
+
+def check_account_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, str | None]:
+    """(ok, message) — the pre-flight's account leg (hypothesis:l4-the-floor-
+    must-watch-the-account).
+
+    Rounds bill to the ACCOUNT, not to any key this engine manages, so a key
+    floor can read every key FULL while the account drains (the prime measured
+    $+0.0977 on `account.used` against $0.0000 on every key for one dispatched
+    round). This check refuses a spawn when the account's remaining credits
+    read at or below the configured floor — ADDITIVE to the key floor, never
+    replacing it, and checked after it in the same pre-flight.
+
+    🔴 Fail-closed and fail-open are TWO different things and conflating them
+    turns a guard into an outage. A PRESENT reading at or below the floor
+    REFUSES (fail-closed — the guard's whole point). An ABSENT reading (no
+    provisioning key: `credit_balance` returns None) or a network error
+    (`ProvisioningError`) is NOT evidence of exhaustion and returns
+    (True, None) — fail-open. This deliberately matches `check_key_floor`'s
+    idiom rather than inventing a second one.
+
+    Absent `min_account_remaining_usd` config returns (True, None) before
+    touching the network, so a project that has not declared a floor keeps
+    exactly today's behaviour.
+    """
+    floor = min_account_remaining_floor(cfg)
+    if floor is None:
+        return True, None  # no floor declared → no account leg at all
+    try:
+        bal = credit_balance(root)
+    except ProvisioningError:
+        return True, None  # fail-open: a network error must never block a round
+    if bal is None:
+        return True, None  # no provisioning key → shared-key fallback, key-only
+    _total, _used, remaining = bal
+    if remaining >= floor:
+        return True, None
+    return False, (
+        f"account remaining ${remaining:.2f} is at/below the configured floor "
+        f"${floor:.2f} (provisioning.min_account_remaining_usd); a dispatched "
+        f"round bills the ACCOUNT, not any key this engine manages, and only "
+        f"{remaining:.2f} remains. Top up the account before the next spawn")
+
+
+def _key_is_expired(rec: dict) -> bool:
+    """True when a listing row carries an `expires_at` already in the past.
+
+    An absent/None `expires_at` means the key has NO TTL (the API's
+    `expires_in_seconds` trap), so it does NOT expire and is not expired.
+    """
+    raw = rec.get("expires_at")
+    if not raw:
+        return False
+    try:
+        ts = datetime.datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=datetime.timezone.utc)
+    return ts <= datetime.datetime.now(datetime.timezone.utc)
+
+
+def _live_key_headroom(rec: dict) -> float:
+    """Still-spendable USD on one listing row: `limit - usage`, or 0.0 when
+    the row is not live — not engine-minted, disabled, expired, or uncapped."""
+    if not str(rec.get("name") or "").startswith(f"{NAME_PREFIX}-"):
+        return 0.0
+    if rec.get("limit") is None or rec.get("disabled"):
+        return 0.0
+    if _key_is_expired(rec):
+        return 0.0
+    return max(0.0, float(rec["limit"]) - float(rec.get("usage") or 0.0))
+
+
+def cap_headroom(cfg: dict, root: Path | str | None,
+                 cap: float, slots: int = 1,
+                 exempt_floor: bool = False) -> tuple[bool, str | None]:
+    """(ok, msg): does `cap` fit pool minus floor minus live caps?
+    Fail-open on an absent key or a network error (check_account_floor idiom).
+
+    `live` is what is still SPENDABLE, not what was granted: for each live
+    un-expired engine-minted key it sums `limit - usage` (see
+    `_live_key_headroom`), so a key already spent or already dead frees its
+    headroom.
+
+    `slots` prices the round at `cap * slots` (one minted key per slot,
+    `spawn.parallel`); the refusal names the multiplier when it is > 1.
+
+    🔴 `exempt_floor` is the ZERO-USD lane's exemption (hypothesis:a-zero-usd-
+    lane-prints-the-cap-it-mints): such a lane is EXEMPT from the account
+    floor at `check_account_floor`, so charging it `min_account_remaining_
+    floor` here re-introduces through a side door the very floor it was
+    exempted from -- and since its minted keys are hard-capped at
+    `zero_usd_key_limit_usd`, the floor is the only term that can refuse a cap
+    the round physically cannot overspend. The floor term is then 0.0 and the
+    refusal NAMES that, so a zero-USD lane is visibly priced without it.
+    `live` still counts: another lane's minted key does draw on this pool.
+
+    🔴 Every fail-open carries a MARKER, never `(True, None)` (the
+    `check_key_floor` idiom): `(True, <marker>)` names what could not be read
+    and that the cap was therefore NOT measured, so a tuple-reading caller can
+    tell "proceeded unmeasured" from "measured and fits". `(True, None)` is
+    reserved for the genuinely silent path — the caller already decided to
+    pass a `--cap`, so here it means exactly "measured, fits".
+    """
+    try:
+        bal = credit_balance(root)
+        if bal is None:
+            return True, (
+                f"cap not measured: no provisioning key and no readable "
+                f"account balance; round cap ${cap:.2f} proceeds unmeasured")
+        keys = list_all_keys(root)
+    except ProvisioningError:
+        return True, (
+            f"cap not measured: the account/key listing was unreadable "
+            f"(provisioning API error); round cap ${cap:.2f} proceeds "
+            f"unmeasured")
+    floor = 0.0 if exempt_floor else (min_account_remaining_floor(cfg) or 0.0)
+    live = sum(_live_key_headroom(r) for r in keys)
+    avail = bal[2] - floor - live
+    if cap > avail:
+        _head = (f"round cap ${cap / slots:.2f} x {slots} slots = ${cap:.2f}"
+                 if slots > 1 else f"round cap ${cap:.2f}")
+        # the MARKER a floorless pool cannot supply: an exempt lane's $0.00 is
+        # a DECLARED exemption, and the refusal must say so.
+        _floor_txt = (f"floor ${floor:.2f} (exempt)" if exempt_floor
+                      else f"floor ${floor:.2f}")
+        return False, (
+            f"{_head} exceeds pool headroom ${avail:.2f} "
+            f"(pool ${bal[2]:.2f} - {_floor_txt} - live ${live:.2f}) "
+            f"(live counts each un-expired {NAME_PREFIX}- key's limit minus "
+            f"usage; disabled and expired keys are free)")
+    return True, None
+
+
+def check_runtime_key_usable(cfg: dict, root: Path | str | None = None) -> tuple[bool, str | None]:
+    """(ok, message) — the provisioning-ABSENT pre-flight (this round's REQUIRED d/e).
+
+    Whether the runtime key (`OPENROUTER_API_KEY`) is a credential the next
+    spawn will actually use, judged by ONE authenticated call.
+
+    🔴 When provisioning is LIVE the spawn does NOT use the runtime key:
+    rounds bill to MINTED per-spawn keys, so a dead runtime key is irrelevant
+    and must NOT block the round (L4.98's invariant, this round's falsifier e).
+    The function short-circuits (True, None) the moment `available()` is true.
+
+    🔴 When provisioning is ABSENT the runtime key IS the spawn's credential
+    (`dispatch.py`, a supported state), so a DEAD one (HTTP 401/403) must make
+    the PRE-FLIGHT refuse BEFORE a budget slot is taken -- not let the spawn
+    discover the 401 mid-round and read as a stall (this round's falsifier d).
+    An absent key, a network error, a 5xx and an unknown key prefix all return
+    (True, None): those are evidence of nothing, and an unreachable API must
+    never block a round (same fail-open discipline as `check_key_floor`).
+    """
+    if available(root):
+        return True, None  # spawn uses minted keys, not the runtime key (L4.98)
+    runtime = _read_runtime_key(root)
+    if not runtime:
+        return True, None  # nothing to guard
+    status, detail = envfile._verify_provider_key(runtime)
+    if status == "dead":
+        return False, (
+            f"{RUNTIME_KEY_VAR} is present but NOT USABLE — provider rejected "
+            f"it ({detail}). Provisioning is ABSENT, so this key IS the next "
+            "spawn's credential; refusing the pre-flight before a budget slot "
+            "is taken. Revoke/replace it or restore provisioning first.")
+    return True, None  # valid, unknown-prefix, or network error — nothing blocks
+
 
 
 def settings(cfg: dict) -> tuple[float, int]:
@@ -296,6 +748,42 @@ def settings(cfg: dict) -> tuple[float, int]:
     limit = float(cred.get("per_spawn_limit_usd", DEFAULT_LIMIT_USD))
     ttl = int(cred.get("ttl_minutes", DEFAULT_TTL_MINUTES))
     return limit, ttl
+
+
+def post_limit_usd(post: str | None, cfg: dict,
+                   root: Path | str | None = None) -> float | None:
+    """The per-key budget cap for a post whose config:posts row tier is
+    'untrusted' -- the row's `budget` cell, else None.
+
+    hypothesis:l4-an-untrusted-lane-earns-tier-by-signed-verdicts rung 4
+    conjunct 2 (c): the untrusted lane's per-spawn key cap is the row's
+    `budget` cell instead of the configured default. Reading taken: `budget`
+    IS the mint `limit_usd` (one cell, the owner's 'per-key budget'); a row
+    that is not untrusted, or an untrusted row with NO budget cell, keeps
+    today's default exactly (returns None). None on an absent post or an
+    unreadable config -- fails open, never a surplus gate.
+    """
+    if not post:
+        return None
+    try:
+        import geometry_config
+
+        rows = geometry_config.load_rows(root)
+    except Exception:  # noqa: BLE001
+        return None
+    for row in rows:
+        if row.get("name") != post:
+            continue
+        if row.get("tier") != "untrusted":
+            return None
+        b = row.get("budget")
+        if b is None:
+            return None
+        try:
+            return float(b)
+        except (TypeError, ValueError):
+            return None
+    return None
 
 
 def workspace(cfg: dict) -> str | None:
@@ -339,21 +827,108 @@ def key_name(iter_n: int | str, agent_id: str, tier: str = "kid") -> str:
     return f"{NAME_PREFIX}-iter{iter_n}-{tier}-{agent_id}"
 
 
+# --- pytest mutation guard (hypothesis:l4-mint-refuses-under-pytest-unless- ---
+# --- mocked): a test can never mint/revoke a real key ----------------------
+#
+# Measured on the live tree 2026-09-11: a pytest run with `--basetemp` inside
+# a round worktree let a test's `root=tmp_path` resolve the REAL `.agi` root
+# via `find_project_root`, read the real management key from the envfile and
+# mint for real -- blocking every dispatched cut until the key's TTL expired
+# (`outstanding minted key ... remaining $0.25 is below the configured floor
+# $1.00`). [Since hypothesis:(g) that same key is now SKIPPED by
+# `check_key_floor` as a sub-floor cap rather than refusing, and a rooted
+# `mint()` no longer defaults to the $0.25 cap -- but the guard stays: a test
+# must still not mint, and this is the incident that measured why.]
+# The module's REAL seam functions are captured here so the guard can
+# tell a mocked seam from a live one by identity; monkeypatch / plain
+# assignment changes the module attribute, so `is` against the originals is
+# the honest test.
+_REAL_CALL = _call
+_REAL_READ_PROVISIONING_KEY = _read_provisioning_key
+
+
+def _mutation_guard(op: str) -> None:
+    """Refuse a real provisioning mutation while a test is executing.
+
+    `PYTEST_CURRENT_TEST` is set by pytest only while a test is running. A
+    test may mint/revoke only if it has mocked BOTH load-bearing seams --
+    `_call` (the HTTP seam) and `_read_provisioning_key` (the key seam) --
+    so a live provisioning HTTP call can never originate from inside a test.
+
+    The refusal names the test (from `PYTEST_CURRENT_TEST`) and whichever
+    seam is still real, so a test author reads exactly which seam to mock. A
+    mocked seam is detected by identity against `_REAL_*`. Absence of
+    `PYTEST_CURRENT_TEST` is a no-op: the real engine (dispatch, driver, a
+    manual CLI) runs outside pytest and is untouched.
+    """
+    test = os.environ.get("PYTEST_CURRENT_TEST")
+    if not test:
+        return
+    live = []
+    if _read_provisioning_key is _REAL_READ_PROVISIONING_KEY:
+        live.append("_read_provisioning_key")
+    if _call is _REAL_CALL:
+        live.append("_call")
+    if live:
+        reason = " and ".join(f"`{s}`" for s in live)
+        raise ProvisioningError(
+            f"provisioning.{op} refused under pytest ({test}): a REAL seam "
+            f"({reason}) is still present -- a test that mints/revokes must "
+            f"mock BOTH `_call` and `_read_provisioning_key` first, so no live "
+            f"provisioning HTTP call can ever fire from a test")
+
+
+def _configured_limit(root: Path | str) -> float:
+    """Resolve the mint cap from the project's config, DEFAULT on any failure.
+
+    hypothesis:l4-a-workflow-pi-stage-mints-its-own-capped-key-like-a-
+    dispatched-spawn conjunct (g): a caller that names a `root` gets the same
+    `spawn.credential.per_spawn_limit_usd` a dispatched spawn gets, so a
+    hand/from-inside mint cannot default to a cap ($0.25) below the dispatch
+    floor ($1.00) and block every spawn for its TTL. Only the rootless call
+    keeps the bare library default. Never raises: an unreadable config is not
+    a reason to refuse a mint, only to fall back to the documented default.
+    """
+    try:
+        graph = locations.find_project_root(Path(root).resolve()) or Path(root)
+        cfg = locations.load_config(graph)
+        return settings(cfg)[0]
+    except Exception:  # noqa: BLE001
+        return DEFAULT_LIMIT_USD
+
+
 def mint(*, iter_n: int | str, agent_id: str, tier: str = "kid",
-         limit_usd: float = DEFAULT_LIMIT_USD,
+         limit_usd: float | None = None,
          ttl_minutes: int = DEFAULT_TTL_MINUTES,
          workspace_id: str | None = None,
-         root: Path | str | None = None) -> MintedKey | None:
+         root: Path | str | None = None,
+         zero_usd: bool = False) -> MintedKey | None:
     """Issue one capped, expiring runtime key. None if issuance is unavailable.
+
+    `zero_usd` (the lane's harness row says so): the key's limit is forced to
+    the hard cap `provisioning.zero_usd_key_limit_usd` and the account floor is
+    that cap, so a free lane still mints on a drained account.
 
     Returns None — never raises — when there is no provisioning key, because
     absence is a supported state. A *failed* call with a key present does
     raise: that is a real fault and silently falling back to the shared key
     would hide it.
+
+    `limit_usd` unset (None) resolves from the project config when a `root` is
+    given — the same `settings(cfg)[0]` a dispatched spawn uses — and only a
+    rootless call keeps `DEFAULT_LIMIT_USD` (hypothesis:(g)).
     """
     prov = _read_provisioning_key(root)
     if prov is None:
         return None
+
+    _mutation_guard("mint")
+
+    if limit_usd is None:
+        limit_usd = (_configured_limit(root) if root is not None
+                     else DEFAULT_LIMIT_USD)
+    if zero_usd:
+        limit_usd = zero_usd_key_limit(root)
 
     expires = (datetime.datetime.now(datetime.timezone.utc)
                + datetime.timedelta(minutes=ttl_minutes))
@@ -366,10 +941,14 @@ def mint(*, iter_n: int | str, agent_id: str, tier: str = "kid",
     # the remaining budget cannot fund the next key, so the loop does not paint
     # itself into a corner with no credits left to mint a key for the next
     # iteration.
-    ok, reason = can_fund(root)
+    ok, reason = can_fund(root, zero_usd=True) if zero_usd else can_fund(root)
     if not ok:
         raise ProvisioningError(
             f"mint refused for {name}: {reason}")
+    if zero_usd:
+        ok, reason = zero_usd_sizing_ok(root, limit_usd)
+        if not ok:
+            raise ProvisioningError(f"mint refused for {name}: {reason}")
 
     # goal:g1.11 / 2026-09-03 — `workspace_id` is honoured on create, asserted
     # against the live API before this line was written (201, and the returned
@@ -427,6 +1006,7 @@ def revoke(key_hash: str, root: Path | str | None = None) -> bool:
     prov = _read_provisioning_key(root)
     if prov is None or not key_hash:
         return False
+    _mutation_guard("revoke")
     status, _body = _call("DELETE", f"{API_BASE}/{key_hash}", prov)
     return status == 200
 
@@ -536,21 +1116,427 @@ def reap_orphans(root: Path | str | None = None,
     return reaped
 
 
+def _num(v) -> float | None:
+    """Float, or None when absent — never 0.0 for a missing reading."""
+    return None if v is None else float(v)
+
+
+def capture(root: Path | str | None = None) -> dict:
+    """One snapshot of every spend-visible number. READ-ONLY — never mints,
+    revokes or modifies.
+
+    Returns a dict with three sub-structures, each `None` exactly when its
+    source could not be read or has nothing to read, never `0`:
+
+      account  {total, used, remaining}  from `credit_balance` (the whole
+               account balance). None on a failed API call, and when no
+               provisioning key is set.
+      keys     [ {name, limit, usage}, ... ] from `list_all_keys`. None when
+               the listing fails (unreadable), [] when there is no
+               provisioning key.
+      runtime  {label, limit, usage, remaining} from `key_usage`. None when
+               the runtime key is unset OR its read fails.
+
+    The whole point (`hypothesis:l4-an-estimate-wearing-a-measurements-
+    clothes`) is that a missing reading is UNKNOWN and must never be rendered
+    as "nothing changed" — which is the exact reading that produced the
+    hypothesis, and why an unreadable API yields None here, not 0.
+    """
+    account = None
+    try:
+        bal = credit_balance(root)
+        if bal is not None:
+            total, used, remaining = bal
+            account = {"total": total, "used": used, "remaining": remaining}
+    except ProvisioningError:
+        account = None  # unreadable stays unreadable, never 0
+
+    keys = None
+    try:
+        keys = []
+        for rec in list_all_keys(root) or []:
+            keys.append({"name": str(rec.get("name") or "(unnamed)"),
+                         "limit": _num(rec.get("limit")),
+                         "usage": _num(rec.get("usage"))})
+    except ProvisioningError:
+        keys = None  # unreadable listing, never []
+
+    runtime = None
+    try:
+        ku = key_usage(root)
+        if ku is not None:
+            label, limit, remaining = ku
+            used = None if remaining is None else (limit - remaining)
+            runtime = {"label": label, "limit": limit,
+                       "usage": used, "remaining": remaining}
+    except ProvisioningError:
+        runtime = None  # unreadable, never 0
+
+    return {"captured_at":
+            datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "account": account, "keys": keys, "runtime": runtime}
+
+
+def _readings(cap: dict) -> dict[str, float | None]:
+    """Flatten a capture into `{label: value}` readings, with labels shared
+    across captures so a diff can align them. Keys are indexed by NAME so a
+    key that appears or disappears between two captures is still a bump the
+    diff can see, not a silent re-alignment."""
+    out: dict[str, float | None] = {}
+    acc = cap.get("account")
+    out["account.total"] = None if acc is None else acc.get("total")
+    out["account.used"] = None if acc is None else acc.get("used")
+    for k in cap.get("keys") or []:
+        out[f"key:{k['name']}.usage"] = k.get("usage")
+    key_names = {k.get("name") for k in cap.get("keys") or []}
+    rt = cap.get("runtime")
+    if rt is not None and rt.get("label") not in key_names:
+        # The runtime key is almost always the `agi` key already listed, so a
+        # separate `runtime.usage` row would double-count one reading and turn
+        # the four-delta control (account + 3 keys) into five. Emit it only
+        # when it is a distinct credential the listing cannot see.
+        out["runtime.usage"] = rt.get("usage")
+    return out
+
+
+def diff_capture(saved: dict, now: dict) -> list[tuple[str, float | None, float | None]]:
+    """`[(label, old, new), ...]` for every reading in either capture.
+
+    A reading missing on EITHER side is `None` on that side and renders
+    UNKNOWN — the diff must never turn an unreadable into a zero, because a
+    zero reads as "nothing was spent" and that is the exact fabricator this
+    instrument exists to remove.
+    """
+    old = _readings(saved)
+    new = _readings(now)
+    labels = list(dict.fromkeys([*old.keys(), *new.keys()]))
+    rows = []
+    for label in labels:
+        # 🔴 `account.used` MUST BE HERE. The first version of this filter read
+        # `startswith("account.total") or endswith(".usage")`, which dropped
+        # `account.used` — the ONLY number on this account that has ever been
+        # observed to move. `account.total` is the LIMIT ($92, constant); the
+        # prime watched `used` go 87.048 -> 87.466 -> 87.798 across nine
+        # dispatched rounds while all three key usages stayed byte-identical.
+        # So the instrument built to end an argument about spend was blind to
+        # the one reading in the argument. Caught by running it against the
+        # live account rather than by its tests, which is the fourth time this
+        # session that step found what a green suite could not.
+        if label not in ("account.total", "account.used") \
+                and not label.endswith(".usage"):
+            continue  # the account limit and used, plus per-key/runtime usage
+        rows.append((label, old.get(label), new.get(label)))
+    return rows
+
+
+def _fmt(v: float | None) -> str:
+    """USD with four decimals, or UNKNOWN for a missing reading — never 0."""
+    return "UNKNOWN" if v is None else f"${v:,.4f}"
+
+
+def _fmt_delta(old: float | None, new: float | None) -> str:
+    if old is None or new is None:
+        return "UNKNOWN"  # a missing side must never read as no change
+    d = new - old
+    return f"${d:+,.4f}"
+
+
+def _captures_dir(root: Path | str) -> Path:
+    """Where capture JSON files live: the MAIN checkout's `sessions/` dir, so
+    a diff in any worktree reads the same file (the same anchor `spawn_budget`
+    uses for leases — captures are spend state, shared across worktrees)."""
+    graph = locations.find_project_root(Path(root).resolve()) or Path(root)
+    return graph / locations.SESSIONS_DIR_NAME / ".spend-captures"
+
+
+def activity(root: Path | str | None = None) -> dict:
+    """Read `/api/v1/activity` with the PROVISIONING key. READ-ONLY.
+
+    Returns `{"status", "rows", "error"}`:
+      status 200  -> rows is the activity list (possibly []) — a genuine empty
+                     list means NO activity, which is a different fact from
+                     a rejected call and must never be conflated.
+      status !=200-> rows is None and error names why (the runtime key is
+                     rejected here — measured 401 — and a network fault is 0).
+
+    The rejected path is deliberate: wiring the convenient runtime key here
+    would return NOT 200, and rendering that as "no spend" would be the
+    fail-open empty result the hypothesis is built to stop. The caller must
+    see the rejection and say so.
+    """
+    prov = _read_provisioning_key(root)
+    if prov is None:
+        return {"status": 0, "rows": None,
+                "error": "no provisioning key configured"}
+    status, body = _call("GET", ACTIVITY_BASE, prov)
+    if status != 200:
+        err = (body.get("error") if isinstance(body, dict) else str(body))
+        return {"status": status, "rows": None, "error": err}
+    rows = body.get("data") or [] if isinstance(body, dict) else []
+    return {"status": 200, "rows": rows, "error": None}
+
+
+def _lag(rows: list[dict]) -> dict:
+    """Whether the newest activity row is today. OpenRouter's activity LAGS
+    (measured 2026-09-10: today had no row at all, newest was yesterday), so
+    a snapshot with no row for today is LAG, never ZERO SPEND — the conflation
+    that is the whole failure mode."""
+    today = datetime.date.today().isoformat()
+    latest = None
+    for r in rows:
+        d = str(r.get("date") or "").split(" ")[0]
+        if d and (latest is None or d > latest):
+            latest = d
+    if latest is None:
+        return {"latest_date": None, "days_behind": None,
+                "today_present": False}
+    try:
+        behind = (datetime.date.today()
+                  - datetime.date.fromisoformat(latest)).days
+    except ValueError:
+        behind = None
+    return {"latest_date": latest, "days_behind": behind,
+            "today_present": latest == today}
+
+
+def _activity_workspace(root: Path | str | None = None) -> str | None:
+    """The workspace this snapshot claims to be about, so a snapshot can say
+    WHICH workspace it read — the owner's question cannot be answered without
+    it. Absent means absent; it is recorded as null, never guessed."""
+    try:
+        graph = (locations.find_project_root(Path(root).resolve())
+                 if root else None)
+        cfg = locations.load_config(graph) if graph else {}
+        return workspace(cfg)
+    except Exception:
+        return None
+
+
+def spend_snapshot(root: Path | str | None = None) -> dict:
+    """One read-only spend-attribution snapshot — the answer to "WHAT SPENT
+    THIS MONEY". Aggregates activity rows by (model, provider) with request
+    counts and USD usage, records the workspace and the lag, and lists the
+    outstanding per-spawn keys. Never mints, revokes or patches anything.
+
+    `rejected` is non-null exactly when the activity call was NOT 200, so a
+    reader can tell "the call was refused / no key" from "there was no spend".
+    """
+    act = activity(root)
+    snap = {
+        "captured_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "source": "activity",
+        "workspace": _activity_workspace(root),
+        "rejected": None if act["status"] == 200 else {
+            "status": act["status"], "error": act["error"]},
+    }
+    if act["status"] == 200:
+        rows = act["rows"] or []
+        snap["lag"] = _lag(rows)
+        snap["dates"] = sorted(
+            {str(r.get("date") or "").split(" ")[0] for r in rows
+             if r.get("date")})
+        models: dict = {}
+        for r in rows:
+            m = r.get("model") or r.get("model_permaslug") or "(unknown)"
+            p = r.get("provider_name") or "(unknown)"
+            a = models.setdefault(
+                (m, p),
+                {"model": m, "provider": p, "requests": 0, "usage": 0.0})
+            a["requests"] += int(r.get("requests") or 0)
+            a["usage"] += float(r.get("usage") or 0.0)
+        snap["models"] = sorted(models.values(), key=lambda x: -x["usage"])
+    try:
+        keys = [{"name": rec.get("name"), "usage": _num(rec.get("usage"))}
+                for rec in (list_all_keys(root) or [])
+                if str(rec.get("name") or "").startswith(f"{NAME_PREFIX}-")]
+        snap["per_spawn_keys"] = keys
+    except ProvisioningError:
+        snap["per_spawn_keys"] = None
+    return snap
+
+
+def diff_spend(saved: dict, now: dict) -> list[dict]:
+    """`[ {kind, ...}, ... ]` comparing a spend snapshot to a later one, so a
+    diff names the MODEL, the request count and the USD delta — and reports a
+    per-spawn key present in the LATER snapshot but absent in the EARLIER as
+    NEW rather than as an `UNKNOWN` row in a string of deltas (that exact
+    display is what misled a previous generation into believing rounds bill
+    to no key this project manages; the keys had simply been revoked by the
+    time the after-diff ran)."""
+    out: list[dict] = []
+    s_models = {(m["model"], m["provider"]): m
+                for m in saved.get("models") or []}
+    n_models = {(m["model"], m["provider"]): m
+                for m in now.get("models") or []}
+    for key in n_models:
+        nm = n_models[key]
+        sm = s_models.get(key)
+        if sm is None:
+            out.append({"kind": "model_new", "model": nm["model"],
+                        "provider": nm["provider"], "requests": nm["requests"],
+                        "usage": nm["usage"]})
+        else:
+            out.append({"kind": "model", "model": nm["model"],
+                        "provider": nm["provider"],
+                        "requests_old": sm["requests"], "requests_new": nm["requests"],
+                        "usage_old": sm["usage"], "usage_new": nm["usage"]})
+    for key in s_models:
+        if key not in n_models:
+            sm = s_models[key]
+            out.append({"kind": "model_gone", "model": sm["model"],
+                        "provider": sm["provider"], "requests": sm["requests"],
+                        "usage": sm["usage"]})
+    s_keys = {k["name"]: k for k in saved.get("per_spawn_keys") or []}
+    n_keys = {k["name"]: k for k in now.get("per_spawn_keys") or []}
+    for name in n_keys:
+        nk = n_keys[name]
+        sk = s_keys.get(name)
+        if sk is None:
+            out.append({"kind": "key_new", "name": name, "usage": nk.get("usage")})
+        else:
+            out.append({"kind": "key", "name": name,
+                        "usage_old": sk.get("usage"), "usage_new": nk.get("usage")})
+    for name in s_keys:
+        if name not in n_keys:
+            sk = s_keys[name]
+            out.append({"kind": "key_gone", "name": name, "usage": sk.get("usage")})
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
-    """`provisioning.py status|list|reap [--yes]` — inspect and clean up."""
+    """`provisioning.py status|list|reap [--yes] | capture [--out FILE] | diff [--prev FILE]`
+
+    `capture` writes one snapshot of every spend-visible number to a file;
+    `diff` re-reads now and prints the deltas against a saved capture.
+    Both are READ-ONLY (hypothesis:l4-an-estimate-wearing-a-measurements-
+    clothes): the capture is the instrument, and an unreadable reading is
+    UNKNOWN, never zero.
+    """
     import argparse
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("action", nargs="?", default="status",
-                    choices=["status", "list", "reap"])
+                    choices=["status", "list", "reap", "capture", "diff",
+                             "spend"])
     ap.add_argument("--root", default=".", help="any path inside the project")
     ap.add_argument("--yes", action="store_true",
                     help="reap for real; without it, reap only reports")
+    ap.add_argument("--out", default=None, help="capture: where to write the snapshot")
+    ap.add_argument("--prev", default=None, help="diff: which saved capture to diff against")
     args = ap.parse_args(argv)
 
+    if args.action in ("capture", "diff"):
+        cap_file = Path(args.out if args.action == "capture" else args.prev
+                        or _captures_dir(args.root) / "capture.json")
+        if args.action == "capture":
+            data = capture(args.root)
+            cap_file.parent.mkdir(parents=True, exist_ok=True)
+            cap_file.write_text(json.dumps(data, indent=2))
+            print(f"capture: wrote {cap_file}  @ {data['captured_at']}")
+            acc = data.get("account")
+            if acc is None:
+                print(f"  account: UNKNOWN (unreadable or no provisioning key)")
+            else:
+                print(f"  account: total={_fmt(acc['total'])} used={_fmt(acc['used'])}")
+            if data.get("keys") is None:
+                print(f"  keys: UNKNOWN (listing unreadable)")
+            else:
+                for k in data["keys"]:
+                    print(f"  key {k['name']!r}: limit={_fmt(k['limit'])} "
+                          f"usage={_fmt(k['usage'])}")
+            rt = data.get("runtime")
+            if rt is None:
+                print(f"  runtime: UNKNOWN (unset or unreadable)")
+            else:
+                print(f"  runtime {rt['label']!r}: limit={_fmt(rt['limit'])} "
+                      f"usage={_fmt(rt['usage'])}")
+            return 0
+
+        # diff
+        if not cap_file.is_file():
+            print(f"capture diff: no saved capture at {cap_file} — "
+                  f"run 'provisioning.py capture' first")
+            return 2
+        saved = json.loads(cap_file.read_text())
+        now = capture(args.root)
+        rows = diff_capture(saved, now)
+        print(f"capture diff: {cap_file}  vs  now")
+        for label, old, new in rows:
+            print(f"  {label:32} {_fmt(old):>10} -> {_fmt(new):>10}  "
+                  f"\u0394 {_fmt_delta(old, new)}")
+        return 0
+
+    if args.action == "spend":
+        cap_file = Path(args.out or args.prev
+                        or _captures_dir(args.root) / "spend.json")
+        if args.prev:  # diff two snapshots by model
+            if not cap_file.is_file():
+                print(f"spend diff: no saved spend snapshot at {cap_file} — "
+                      f"run 'provisioning.py spend' first")
+                return 2
+            saved = json.loads(cap_file.read_text())
+            now = spend_snapshot(args.root)
+            print(f"spend diff: {cap_file}  vs  now")
+            if now.get("rejected"):
+                print(f"  ⚠ REJECTED now (HTTP {now['rejected']['status']}: "
+                      f"{now['rejected']['error']}) — the earlier snapshot told "
+                      f"you the past, it cannot tell you the delta")
+            for d in diff_spend(saved, now):
+                if d["kind"] == "model":
+                    print(f"  model {d['model']} ({d['provider']})")
+                    print(f"      requests {d['requests_old']} -> "
+                          f"{d['requests_new']}  Δ {_fmt_delta(d['usage_old'], d['usage_new'])}")
+                elif d["kind"] == "model_new":
+                    print(f"  model {d['model']} ({d['provider']}): NEW "
+                          f"(requests={d['requests']} usage={_fmt(d['usage'])})")
+                elif d["kind"] == "model_gone":
+                    print(f"  model {d['model']} ({d['provider']}): GONE "
+                          f"(was requests={d['requests']} usage={_fmt(d['usage'])})")
+                elif d["kind"] == "key_new":
+                    print(f"  key {d['name']!r}: NEW usage={_fmt(d['usage'])}")
+                elif d["kind"] == "key_gone":
+                    print(f"  key {d['name']!r}: GONE (was usage={_fmt(d['usage'])})")
+                else:  # key
+                    print(f"  key {d['name']!r}: usage {_fmt(d['usage_old'])} "
+                          f"-> {_fmt(d['usage_new'])}  Δ {_fmt_delta(d['usage_old'], d['usage_new'])}")
+            return 0
+        # capture a spend snapshot
+        data = spend_snapshot(args.root)
+        cap_file.parent.mkdir(parents=True, exist_ok=True)
+        cap_file.write_text(json.dumps(data, indent=2))
+        print(f"spend: wrote {cap_file}  @ {data['captured_at']}")
+        print(f"  workspace: {data.get('workspace') or 'default'}")
+        if data.get("rejected"):
+            print(f"  ⚠ REJECTED (HTTP {data['rejected']['status']}: "
+                  f"{data['rejected']['error']}) — the runtime key is REJECTED "
+                  f"here; this is NOT zero spend and it is NOT lag")
+        elif data.get("lag", {}).get("today_present") is False:
+            lag = data["lag"]
+            print(f"  ⚠ LAG: newest row is {lag.get('latest_date')} "
+                  f"({lag.get('days_behind')}d behind today) — activity lags; "
+                  f"this is NOT zero spend")
+        else:
+            print(f"  lag: today_present={data.get('lag', {}).get('today_present')} "
+                  f"latest={data.get('lag', {}).get('latest_date')}")
+        for m in data.get("models") or []:
+            print(f"  {m['model']:36} ({m['provider']:12}) "
+                  f"requests={m['requests']:>5}  {_fmt(m['usage'])}")
+        keys = data.get("per_spawn_keys")
+        if keys is None:
+            print("  per-spawn keys: UNKNOWN (listing unreadable)")
+        else:
+            for k in keys:
+                print(f"  per-spawn key {k['name']!r}: usage={_fmt(k['usage'])}")
+        return 0
+
     if not available(args.root):
-        print(f"provisioning: unavailable ({PROVISIONING_KEY_VAR} not set) — "
-              f"the loop falls back to the shared {RUNTIME_KEY_VAR}")
+        unreadable = _provisioning_key_state(args.root)[1]
+        if unreadable:   # the key may be SET: this uid only cannot READ the file (name it MAIN's .env, never a path)
+            print(f"provisioning: not checked (MAIN's .env unreadable by uid {os.getuid()}: {unreadable}) — "
+                  f"{PROVISIONING_KEY_VAR} may be set; dispatch reads it as absent and the loop falls back to the shared {RUNTIME_KEY_VAR}")
+        else:
+            print(f"provisioning: unavailable ({PROVISIONING_KEY_VAR} not set) — "
+                  f"the loop falls back to the shared {RUNTIME_KEY_VAR}")
     else:
         # Both of these enumerate EVERY workspace. `status` reporting
         # `engine_minted=0` while two keys were live is exactly the failure this
@@ -598,8 +1584,6 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     # reap
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    import locations  # noqa: E402
     import spawn_budget  # noqa: E402
 
     root = locations.find_project_root(Path(args.root).resolve())

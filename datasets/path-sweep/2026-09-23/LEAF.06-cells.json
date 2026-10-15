@@ -1,0 +1,6 @@
+{"served_models_dir": "/data/ml/models",
+ "osc02_scratch_dir": "/data/ml/scratch/osc02",
+ "served_9b_gguf": "/data/ml/models/Qwen3.5-9B-Q4_K_M.gguf",
+ "wikitext2_test_raw": "/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw",
+ "nsys_dir": "/data/ml/tools/nsight-systems-2026.3.2/opt/nvidia/nsight-systems/2026.3.2",
+ "cuda_jit_cache_dir": "/data/ml/scratch/cuda-jit-cache"}

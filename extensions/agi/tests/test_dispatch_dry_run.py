@@ -19,6 +19,8 @@ routing, the advisor brief swap, the ultracode env gate) and `--harness pi`
 from __future__ import annotations
 
 import json
+import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -43,11 +45,21 @@ CONFIG = {
         "pi": {
             "adapter": "pi", "provider": "openrouter",
             "models": {"kid": "deepseek-v4", "parent": "glm-flash"},
+            # fail-closed allowlist: every model this harness may actually
+            # resolve in the tests -- the ladder/seat rows carry full slugs
+            # (~z-ai/glm-flash-latest), the config fallback carries the bare
+            # names. Both are allowed so every pre-existing green case stays
+            # green under fail-closed (hypothesis:l4-dispatch-model-allowlist).
+            "allowed_models": ["deepseek-v4", "glm-flash",
+                               "~deepseek/deepseek-v4-flash-latest",
+                               "~z-ai/glm-flash-latest"],
         },
         "claude-code": {
             "adapter": "claude_code",
             "models": {"kid": "claude-sonnet-5", "parent": "claude-opus-5",
                        "director": "claude-fable-5-1"},
+            "allowed_models": ["claude-sonnet-5", "claude-opus-5",
+                               "claude-fable-5-1"],
             "effort": {"director": "max"},
         },
     },
@@ -57,18 +69,43 @@ CONFIG = {
 
 @pytest.fixture()
 def project(tmp_path: Path) -> Path:
-    """A scratch agi project: `.agi/` with a config and a ladder roles table."""
+    """A scratch agi project: `.agi/` with a config and a ladder roles table.
+
+    goal:g1.31.4.1 — the graph carries the two targets the cases below aim
+    at, because a `--dry-run` now REFUSES a target the live path refuses:
+    the fixture projects were dispatching at node ids that did not exist.
+    """
     graph = tmp_path / ".agi"
     (graph / "nodes" / ".geometry").mkdir(parents=True)
     (graph / "config.json").write_text(json.dumps(CONFIG))
     (graph / "nodes" / ".geometry" / "ladder.md").write_text(LADDER)
+    (graph / "nodes" / "hypothesis").mkdir()
+    (graph / "nodes" / "vision").mkdir()
+    (graph / "nodes" / "hypothesis" / "x.md").write_text(
+        "---\nid: hypothesis:x\ntype: hypothesis\ntitle: fixture target\n---\n\n"
+        "body\n")
+    (graph / "nodes" / "vision" / "alive.md").write_text(
+        "---\nid: vision:alive\ntype: vision\ntitle: fixture vision\n---\n\n"
+        "body\n")
     return tmp_path
 
 
-def _run(project: Path, *args) -> subprocess.CompletedProcess:
+def _run(project: Path, *args, env=None) -> subprocess.CompletedProcess:
+    """Run dispatch --dry-run, optionally overriding/removing child env keys.
+
+    env values of None are REMOVED from the child env (so the "neither
+    present" seat case is testable regardless of the runner's own env).
+    """
+    base = dict(os.environ)
+    if env:
+        for k, v in env.items():
+            if v is None:
+                base.pop(k, None)
+            else:
+                base[k] = v
     return subprocess.run(
         [sys.executable, str(BIN / "dispatch.py"), str(project), "1", *args],
-        capture_output=True, text=True,
+        capture_output=True, text=True, env=base,
     )
 
 
@@ -126,6 +163,84 @@ def test_prompt_file_absent_adds_no_addendum_and_does_not_name_the_segment(proje
     assert "WHAT THE LAST KID PRODUCED" not in r.stdout
 
 
+def test_parent_prompt_file_is_refused_and_never_silently_dropped(project, tmp_path):
+    """hypothesis:l4b23-promptfile-drop -- `--prompt-file` is the per-KID
+    carry-forward channel (brief.assemble threads addendum into _kid but
+    never into _parent), so `--tier parent --prompt-file X` used to read X's
+    bytes and silently discard them inside assemble(). It is now REFUSED
+    loudly (exit 2, a clear stderr message) at argument-parsing time rather
+    than accepted-then-dropped. The next_edges-compatible resolution is
+    refusal, not threading, because a parent's brief is built fresh from its
+    target node every dispatch and consumes no carry-forward.
+    """
+    add = tmp_path / "parent-misuse.txt"
+    add.write_text("parent-distinctive-marker")
+    r = _run(project, "--harness", "pi", "--tier", "parent",
+             "--target", "hypothesis:x", "--prompt-file", str(add))
+    assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
+    assert "per-KID carry-forward" in r.stderr
+    assert "Refusing rather than silently discarding" in r.stderr
+    # the marker must NOT leak into any brief that still assembled
+    assert "parent-distinctive-marker" not in r.stdout
+
+
+def test_parent_orders_reach_the_brief_and_are_printed_by_the_dry_run(
+        project, tmp_path):
+    """goal:g15.25 SM.26 -- `--tier parent --orders <file>` threads the
+    director's dispatch-time instruction into the parent brief VERBATIM under
+    one `## DISPATCH ORDERS` heading, and a dry run PRINTS that heading plus
+    its first lines before any spawn is paid for. The old parent refusal was
+    for `--prompt-file`; `--orders` is the new, accepted channel."""
+    orders = tmp_path / "orders.md"
+    orders.write_text("SCOPE: touch only dispatch.py\nCOUPLE: SM.24\n")
+    r = _run(project, "--harness", "pi", "--tier", "parent",
+             "--target", "hypothesis:x", "--dry-run",
+             "--orders", str(orders), "--from", "sanctuary-director")
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert "## DISPATCH ORDERS (from sanctuary-director," in r.stdout
+    assert "orders:" in r.stdout
+    assert "SCOPE: touch only dispatch.py" in r.stdout
+
+
+def test_a_dispatch_refused_at_the_zoom_gate_leaves_no_orders_copy(
+        project, tmp_path):
+    """goal:g15.25 SM.28 claim (4), ORPHAN half -- measured pre-fix: the
+    orders copy was written ABOVE the per-slot refusal gates, so a LIVE
+    dispatch refused at the zoom gate (rc 1, no spawn) left
+    `<iter>/orders.<from>.md` on disk with no manifest record to name it. A
+    bogus target refuses at the zoom render inside the slot loop -- before
+    Popen -- so this test exercises the real path end to end and spawns
+    nothing (claude-code harness: no provider key floor to refuse earlier)."""
+    orders = tmp_path / "orders.md"
+    orders.write_text("SCOPE: only dispatch.py\n")
+    r = _run(project, "--harness", "claude-code", "--tier", "parent",
+             "--target", "hypothesis:no-such-node", "--orders", str(orders),
+             "--from", "SAME")
+    assert r.returncode == 1, (r.returncode, r.stdout, r.stderr)
+    assert "no context for target" in r.stderr, r.stderr
+    iter_dir = project / ".agi" / "sessions" / "iter-001"
+    leftovers = sorted(iter_dir.glob("orders.*")) if iter_dir.exists() else []
+    assert leftovers == [], (
+        f"a dispatch refused at the zoom gate left an orphan orders copy: "
+        f"{leftovers}")
+    assert not (iter_dir / "manifest.json").exists(), (
+        "a refused round must not have a manifest for the orphan to hide in")
+
+
+def test_kid_orders_is_the_carry_forward_alias(project, tmp_path):
+    """goal:g15.25 SM.26 -- at KID tier `--orders` is the same per-kid
+    carry-forward as `--prompt-file` (ONE implementation), landing as the
+    labelled `WHAT THE LAST KID PRODUCED` segment, never a parent heading."""
+    f = tmp_path / "kid1.txt"
+    f.write_text("KID1 landed dispatch.py --orders")
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:x", "--dry-run",
+             "--orders", str(f))
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert "WHAT THE LAST KID PRODUCED" in r.stdout
+    assert "DISPATCH ORDERS" not in r.stdout
+
+
 def test_claude_advisor_dry_run_resolves_model_effort_and_env(project):
     """The verify's advisor case: a tier-3 parent aimed at a vision node gets
     the advisor brief and the full ultracode spawn, resolved without
@@ -168,6 +283,50 @@ def test_dry_run_takes_no_budget_slot(project):
     budget_dir = project / ".agi" / "sessions" / ".spawn-budget"
     assert not budget_dir.exists(), (
         f"a dry run must not register a spawn-budget slot, but {budget_dir} exists")
+
+
+def test_kid_inherits_zero_usd_parent_harness_unless_explicit(project):
+    """A direct kid adopts its zero-cost parent's harness, never a paid ladder row."""
+    import shlex
+
+    def command_line(result):
+        return next(line for line in result.stdout.splitlines()
+                    if line.strip().startswith("command:"))
+
+    cfg = json.loads((project / ".agi" / "config.json").read_text())
+    cfg["harnesses"]["pi-free"] = {
+        "zero_usd": True, "adapter": "pi", "provider": "openrouter",
+        "models": {"kid": "free/kid-model"},
+        "allowed_extra": ["free/kid-model"],
+    }
+    (project / ".agi" / "config.json").write_text(json.dumps(cfg))
+
+    inherited = _run(project, "--tier", "kid", "--target", "hypothesis:x",
+                      "--dry-run", env={"AGI_HARNESS": "pi-free"})
+    assert inherited.returncode == 0, inherited.stderr
+    inherited_command = command_line(inherited)
+    assert "harness=pi-free" in inherited.stdout
+    assert "inherited zero_usd harness pi-free from AGI_HARNESS" in inherited.stdout
+    assert "--model " + shlex.quote("free/kid-model") in inherited_command
+    assert "deepseek" not in inherited_command
+
+    explicit = _run(project, "--harness", "pi", "--tier", "kid",
+                    "--target", "hypothesis:x", "--dry-run",
+                    env={"AGI_HARNESS": "pi-free"})
+    assert explicit.returncode == 0, explicit.stderr
+    assert "harness=pi" in explicit.stdout
+    assert "inherited zero_usd harness" not in explicit.stdout
+    assert ("--model " + shlex.quote("~deepseek/deepseek-v4-flash-latest")
+            in command_line(explicit))
+
+    for parent_harness in ("pi", "claude-code"):
+        ordinary = _run(project, "--tier", "kid", "--target", "hypothesis:x",
+                        "--dry-run", env={"AGI_HARNESS": parent_harness})
+        assert ordinary.returncode == 0, ordinary.stderr
+        assert "inherited zero_usd harness" not in ordinary.stdout
+        assert "harness=pi" in ordinary.stdout
+        assert ("--model " + shlex.quote("~deepseek/deepseek-v4-flash-latest")
+                in command_line(ordinary))
 
 
 def test_explicit_harness_flag_wins_over_ladder_row(project):
@@ -219,6 +378,46 @@ def test_seat_row_wins_over_both_harness_and_ladder(project):
     assert "glm-flash" in out, out
 
 
+def test_dry_run_exports_seat_from_flag(project):
+    """hypothesis:l4-dispatch-exports-seat — `--seat NAME` must export
+    AGI_POST=NAME in the dry-report env line."""
+    r = _run(project, "--harness", "pi", "--tier", "parent",
+             "--seat", "liaison", "--target", "hypothesis:x", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    assert "AGI_POST=liaison" in r.stdout, r.stdout
+
+
+def test_dry_run_flag_wins_over_inherited_agi_post(project):
+    """hypothesis:l4-dispatch-exports-seat — `--seat` WINS over an AGI_POST
+    already in the environment."""
+    r = _run(project, "--harness", "pi", "--tier", "parent",
+             "--seat", "liaison", "--target", "hypothesis:x", "--dry-run",
+             env={"AGI_POST": "inherited-seat"})
+    assert r.returncode == 0, r.stderr
+    assert "AGI_POST=liaison" in r.stdout, r.stdout
+    assert "AGI_POST=inherited-seat" not in r.stdout, r.stdout
+
+
+def test_dry_run_inherited_agi_post_survives_without_flag(project):
+    """hypothesis:l4-dispatch-exports-seat — without `--seat`, an AGI_POST
+    already in the env (the manual export the help text documents) survives."""
+    r = _run(project, "--harness", "pi", "--tier", "parent",
+             "--target", "hypothesis:x", "--dry-run",
+             env={"AGI_POST": "inherited-seat"})
+    assert r.returncode == 0, r.stderr
+    assert "AGI_POST=inherited-seat" in r.stdout, r.stdout
+
+
+def test_dry_run_no_seat_leaves_key_absent(project):
+    """hypothesis:l4-dispatch-exports-seat — neither `--seat` nor an
+    inherited AGI_POST means the key is ABSENT, never a placeholder."""
+    r = _run(project, "--harness", "pi", "--tier", "parent",
+             "--target", "hypothesis:x", "--dry-run",
+             env={"AGI_POST": None, "AGI_SEAT": None})   # the helper falls back to the retired name: remove it too
+    assert r.returncode == 0, r.stderr
+    assert "AGI_POST=" not in r.stdout, r.stdout
+
+
 def test_dry_run_exports_identity_and_readers_agree(project, monkeypatch):
     """hypothesis:l3-agent-id-never-exported — the JOINED contract.
 
@@ -243,7 +442,11 @@ def test_dry_run_exports_identity_and_readers_agree(project, monkeypatch):
     assert m_id, f"dry-run env must export AGI_AGENT_ID:\n{out}"
     assert m_actor, f"dry-run env must export AGI_ACTOR:\n{out}"
     aid, actor = m_id.group(1), m_actor.group(1)
-    assert aid.startswith("dry") and len(aid) >= 10, f"not an agent id: {aid}"
+    # goal:g1.31.4.1: the dry report mints the id the LIVE path mints
+    # (`a<NN>-<hex>`). The retired `dry<NN>-<hex>` nonce was a second dialect
+    # no live spawn ever produced, so every reader keyed on the live grammar
+    # had to special-case a dry run.
+    assert _re.fullmatch(r"a\d\d-[0-9a-f]{8}", aid), f"not a live agent id: {aid}"
     assert actor == aid, "AGI_ACTOR must equal the minted agent id"
 
     # Feed the producer's OWN exported values to the readers — no invented id.
@@ -253,13 +456,500 @@ def test_dry_run_exports_identity_and_readers_agree(project, monkeypatch):
     monkeypatch.delenv("TMUX", raising=False)
     monkeypatch.delenv("USER", raising=False)
 
-    sys.path.insert(0, str(BIN))
+    monkeypatch.syspath_prepend(str(BIN))
     loaded = {}
     for name in ("send", "write"):
         spec = importlib.util.spec_from_file_location(name, BIN / f"{name}.py")
         mod = importlib.util.module_from_spec(spec)
-        sys.modules[name] = mod  # dataclasses needs the module registered
+        # dataclasses needs the module registered; through monkeypatch so the
+        # fresh copy is undone after this test -- a bare assignment left a
+        # second `send` in sys.modules for the rest of the session, and
+        # test_rotate_announce_box's send.wake stub then patched a module
+        # rotate.py no longer imports (10 in-suite-only reds, SM 10-12)
+        monkeypatch.setitem(sys.modules, name, mod)
         spec.loader.exec_module(mod)
         loaded[name] = mod
     assert loaded["send"]._detect_sender(None) == aid
     assert loaded["write"]._default_actor() == aid
+
+
+def test_dry_run_exports_reaper_knob_for_kid_and_parent(project):
+    """hypothesis:l4-spawn-paths-export-the-reaper-knob — every spawn path
+    must export CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 explicitly, and
+    the dry run must SHOW it (a check that costs a spawn is a check nobody
+    runs). Cover the pi harness (kid + parent) and the claude-code harness."""
+    for harness, tier in (("pi", "kid"), ("pi", "parent"),
+                          ("claude-code", "parent")):
+        r = _run(project, "--harness", harness, "--tier", tier,
+                 "--target", "hypothesis:x", "--dry-run")
+        assert r.returncode == 0, r.stderr
+        assert ("CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1" in r.stdout), (
+            f"{harness}/{tier} dry-run must export the reaper knob:\n{r.stdout}")
+        # the plain integer "1", never an inherited "0"
+        assert "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=0" not in r.stdout
+
+
+def test_dry_run_reaper_knob_overrides_an_inherited_zero(project):
+    """hypothesis:l4-spawn-paths-export-the-reaper-knob — the knob must be
+    set UNCONDITIONALLY, so an inherited "0" from the parent environment (a
+    stale pause, a manual export) is overridden to "1", never preserved —
+    a preserved "0" would silently re-arm the reaper."""
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:x", "--dry-run",
+             env={"CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP": "0"})
+    assert r.returncode == 0, r.stderr
+    assert "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1" in r.stdout, (
+        f"inherited 0 must be overridden to 1:\n{r.stdout}")
+    assert "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=0" not in r.stdout
+
+
+def _g15_project(tmp_path: Path) -> Path:
+    """A scratch project whose OWN graph carries a g15-lineage target.
+
+    hypothesis:l4-brief-resolves-g15-lineage-from-the-nearest-agi — the
+    end-to-end wiring: dispatch.py passes its resolved project root to the
+    brief, so the g15 build-order rule is decided against THIS project's
+    `.agi`, not against the `.agi` enclosing the engine's brief.py (which on
+    this test rig is the real repo — a different graph, exactly the
+    cloned-engine boundary the hypothesis names).
+    """
+    graph = tmp_path / ".agi"
+    # exist_ok: goal:g1.31.4.1 — the `project` fixture now also carries a
+    # hypothesis target, so this lineage overlay lands on a graph that
+    # already has the node dirs.
+    (graph / "nodes" / "goal").mkdir(parents=True, exist_ok=True)
+    (graph / "nodes" / "hypothesis").mkdir(parents=True, exist_ok=True)
+    (graph / "nodes" / "goal" / "g15.md").write_text(
+        "---\nid: goal:g15\ntype: goal\n---\nbody\n", encoding="utf-8")
+    (graph / "nodes" / "hypothesis" / "x.md").write_text(
+        "---\nid: hypothesis:x\ntype: hypothesis\nparents:\n  - goal:g15\n"
+        "---\nbody\n", encoding="utf-8")
+    return tmp_path
+
+
+
+
+def test_live_spawn_env_hooks_path_is_this_trees_hooks(tmp_path, monkeypatch):
+    """hypothesis:l4-a-parent-done-commits-on-every-grammar, claim (2) -- the
+    VALUE of the spawn env, captured at the exact `Popen` that launches the
+    agent, NOT a source-string grep.
+
+    dispatch.py's `--dry-run` only exports GIT_CONFIG_COUNT (it never builds
+    GIT_CONFIG_VALUE_0 in the dry-run mirror), so the real hooksPath value is
+    reachable only on the LIVE spawn path. This test runs the REAL live spawn
+    machinery with `subprocess.Popen` captured (returning a stub child --
+    nothing is actually launched, budget/session/manifest all live under the
+    scratch tmp_path) and asserts the core.hooksPath value dispatch hands the
+    child resolves to `<this tree>/extensions/agi/hooks/agent-git` and that
+    that directory's pre-commit hook exists.
+
+    Why the old grep was insufficient (test_git_commit_guard.py):
+    `assert "agent-git" in src` passes if the string appears ANYWHERE in
+    dispatch.py -- even if the block never runs, or the assigned VALUE on the
+    next line points at a different directory. Here the hook path is read off
+    the env object actually passed to the spawned process, so a rewiring that
+    changes the value fails it.
+    """
+    # The box runs this repo's loop, so AGI_TREE_PROJECT_ROOT / AGI_PROJECT_ROOT
+    # are set in the inherited env and `child_working_graph` would override the
+    # passed scratch root with the real worktree -- a live run would write its
+    # session/manifest/budget into the shared tree. Drop them so the spawn is
+    # fully contained under the scratch project.
+    monkeypatch.delenv("AGI_TREE_PROJECT_ROOT", raising=False)
+    monkeypatch.delenv("AGI_PROJECT_ROOT", raising=False)
+
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "nodes" / "hypothesis").mkdir(parents=True)
+    (graph / "nodes" / "goal").mkdir(parents=True)
+    (graph / "config.json").write_text(json.dumps({
+        "harnesses": {"pi": {"adapter": "pi", "provider": "fake",
+                             "models": {"parent": "glm"}}},
+        "spawn": {"harness": "pi", "parallel": 1, "max_live": 25},
+        # keep the live run fast and focused: no inline reaper loop
+        "agent_dispatch": {"inline_reaper": False},
+    }))
+    (graph / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ncurrent_season: 2\nroles:\n  - {tier: 1, role: parent, "
+        "harness: pi, model: glm}\n---\nbody")
+    # pin the secrets geometry to a nonexistent file so provisioning.available
+    # is False -> the live path never mints a credential or touches the network
+    (graph / "nodes" / ".geometry" / "secrets.md").write_text(
+        "---\nenv_file: /tmp/definitely-not-a-real-secrets-file-zzz\n---\n")
+    # the target the live spawn zooms for
+    (graph / "nodes" / "goal" / "g15.md").write_text(
+        "---\nid: goal:g15\ntype: goal\n---\nbody\n")
+    (graph / "nodes" / "hypothesis" / "x.md").write_text(
+        "---\nid: hypothesis:x\ntype: hypothesis\nparents:\n  - goal:g15\n"
+        "---\nbody\n")
+
+    import importlib.util
+    import dispatch
+
+    captured: dict = {}
+    real_popen = subprocess.Popen
+
+    class _StubProc:
+        pid = 7777
+        def poll(self): return None
+        def wait(self, timeout=None): return 0
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+
+    def _patched_popen(popenargs, **kwargs):
+        env = kwargs.get("env") or {}
+        if env.get("GIT_CONFIG_VALUE_0"):
+            captured["env"] = env
+            return _StubProc()
+        return real_popen(popenargs, **kwargs)
+
+    monkeypatch.setattr(subprocess, "Popen", _patched_popen)
+    # the stub never exits, so the startup grace would poll 20 s for real
+    monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda _s: None)
+    monkeypatch.setattr(sys, "argv",
+                        [str(BIN / "dispatch.py"), str(tmp_path), "1",
+                         "--level", "small", "--harness", "pi",
+                         "--tier", "parent", "--target", "hypothesis:x"])
+
+    code = dispatch.main()
+    assert code == 0, (
+        "live dispatch of a scratch parent tier failed before the spawn: "
+        f"exit {code}")
+    assert "env" in captured, (
+        "dispatch live path never handed the GIT_CONFIG triple to a process; "
+        "the spawn env was not captured")
+
+    env = captured["env"]
+    assert env["GIT_CONFIG_COUNT"] == "1"
+    assert env["GIT_CONFIG_KEY_0"] == "core.hooksPath"
+    want_hooks = (BIN.parent / "hooks" / "agent-git").resolve()
+    assert env["GIT_CONFIG_VALUE_0"] == str(want_hooks), (
+        f"dispatch wired core.hooksPath at {env['GIT_CONFIG_VALUE_0']!r} "
+        f"but the dispatcher's own tree lives at {want_hooks}")
+    assert (want_hooks / "pre-commit").is_file(), (
+        f"the hook value points at {want_hooks} but pre-commit is absent")
+    assert env.get("AGI_PROJECT_ROOT") is not None
+
+
+def test_dispatch_threads_project_root_into_the_assembled_brief(
+        project, monkeypatch, capsys):
+    """dispatch.py hands its own resolved project root to brief.assemble as
+    `project_root`, so the g15 build-order rule is decided against the PROJECT
+    graph the dispatcher owns, not the `.agi` enclosing brief.py
+    (hypothesis:l4-brief-resolves-g15-lineage-from-the-nearest-agi — proof on
+    the calls, by monkeypatching `assemble` to capture kwargs, since the
+    dry-run printer shows only the first 20 brief lines)."""
+    import dispatch as _dispatch
+    import brief as _brief_mod
+
+    calls: list = []
+    monkeypatch.setattr(_brief_mod, "assemble",
+                        lambda *a, **k: calls.append(k) or ["MARKER-SEGMENT"])
+    _g15_project(project)  # give the scratch graph a g15-lineage target
+    monkeypatch.setattr(sys, "argv",
+                        [str(BIN / "dispatch.py"), str(project), "1",
+                         "--harness", "pi", "--tier", "parent",
+                         "--target", "hypothesis:x", "--dry-run"])
+    code = _dispatch.main()
+    capsys.readouterr()
+    assert code == 0
+    assert any(c.get("project_root") == project / ".agi" for c in calls), calls
+
+
+# ---- goal:g15.25 SM.28 -- the orders channel refuses what it cannot deliver --
+
+
+def test_orders_at_a_tier_that_cannot_deliver_is_refused_by_name(project,
+                                                                tmp_path):
+    """SM.28 claim (1). `--orders` is consumed by exactly two tiers -- `kid`
+    (carry-forward) and `parent` (the orders section). Measured pre-fix:
+    `--tier director --orders <path>` exited 0 with the file never opened,
+    no heading and no note. A tier that neither threads nor carries it
+    forward must be REFUSED BY NAME, exit 2, naming itself and the two
+    tiers that accept it -- never accepted-and-dropped."""
+    orders = tmp_path / "orders.md"
+    orders.write_text("SCOPE: touch only dispatch.py\n")
+    for tier in ("director", "advisor"):
+        r = _run(project, "--harness", "claude-code", "--tier", tier,
+                 "--target", "hypothesis:x", "--dry-run",
+                 "--orders", str(orders))
+        assert r.returncode == 2, (tier, r.returncode, r.stderr)
+        assert f"`{tier}` neither threads nor carries it forward" in r.stderr
+        assert "`kid` (per-kid carry-forward)" in r.stderr
+        assert "`parent` (the dispatch-orders section)" in r.stderr
+
+
+def test_an_absent_orders_path_is_a_named_refusal_not_a_traceback(
+        project, tmp_path):
+    """SM.28 claim (5). Measured pre-fix: `--tier parent --orders <missing>`
+    exited 1 with a FileNotFoundError traceback out of `_read_prompt_file`.
+    A missing path is an operator error and must read like one."""
+    missing = tmp_path / "nope.md"
+    r = _run(project, "--harness", "pi", "--tier", "parent",
+             "--target", "hypothesis:x", "--dry-run",
+             "--orders", str(missing))
+    assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
+    assert "path does not exist or is not a file" in r.stderr
+    assert str(missing) in r.stderr
+    assert "Traceback" not in r.stderr
+
+
+def test_whitespace_only_orders_are_absent_and_leave_the_brief_identical(
+        project, tmp_path):
+    """SM.28 claim (3). The presence gate is `text.strip()`: measured pre-fix
+    a `"   \\n\\t\\n"` file rendered `## DISPATCH ORDERS` with a blank body and
+    was copied and recorded. It must instead be ABSENT -- no heading, no
+    dry-run `orders:` line, and a brief byte-identical to the no-orders run.
+    A non-empty file is still rendered, unstripped."""
+    base = _run(project, "--harness", "pi", "--tier", "parent",
+                "--target", "hypothesis:x", "--dry-run")
+    assert base.returncode == 0, base.stderr
+    ws = tmp_path / "ws.md"
+    ws.write_text("   \n\t\n")
+    r = _run(project, "--harness", "pi", "--tier", "parent",
+             "--target", "hypothesis:x", "--dry-run", "--orders", str(ws))
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert "DISPATCH ORDERS" not in r.stdout
+    assert "orders:" not in r.stdout
+    assert _brief_line_count(r.stdout) == _brief_line_count(base.stdout), (
+        "a whitespace-only orders file must leave the brief byte-identical")
+
+
+def test_parent_orders_ride_the_survival_and_advisor_briefs_the_dry_run_reports(
+        project, tmp_path):
+    """SM.28 claim (2). Measured pre-fix on the survival profile and on the
+    advisor route (--tier parent --ladder-tier 3 --target vision:<id>): the
+    dry run printed `orders: N lines` and the manifest recorded
+    {from,sha256,bytes,path}, while the assembled brief carried NO section --
+    the record said delivered, the brief did not. The heading must appear in
+    the SEGMENTS the harness is handed (the `command:` line inlines every
+    segment), so dry-run line, manifest record and brief agree on every
+    route that accepts --orders."""
+    orders = tmp_path / "orders.md"
+    orders.write_text("SCOPE: touch only dispatch.py\nCOUPLE: SM.24\n")
+    cases = [
+        ("pi", ["--tier", "parent", "--target", "hypothesis:x"]),
+        ("claude-code", ["--tier", "parent", "--ladder-tier", "3",
+                         "--target", "vision:alive"]),
+    ]
+    for harness, argv in cases:
+        r = _run(project, "--harness", harness, *argv, "--dry-run",
+                 "--orders", str(orders), "--from", "sanctuary-director",
+                 env={"AGI_BRIEF_PROFILE": "survival"})
+        assert r.returncode == 0, (harness, r.returncode, r.stderr)
+        assert "orders:" in r.stdout, harness
+        command = r.stdout.split("command:", 1)[1]
+        assert "## DISPATCH ORDERS" in command, (
+            f"{harness}: the dry run claims orders but no brief segment "
+            f"carries them")
+
+
+def _brief_line_count(out: str) -> str:
+    import re as _re
+    m = _re.search(r"brief: tier=\S+ (\d+) lines", out)
+    assert m, out
+    return m.group(1)
+
+
+# goal:g1.31.4.1 conjunct 1 — `--branch --dry-run` names the branch, the
+# base and the worktree a LIVE `--branch` spawn would take, through the SAME
+# resolvers the live path calls.
+
+
+def _branch_facts(out: str) -> dict:
+    import re as _re
+    m = _re.search(r"^  branch: (\S+) base=(\S.*?) worktree=(\S+)$",
+                   out, _re.M)
+    assert m, "the dry report names no branch facts:\n" + out
+    return {"branch": m.group(1), "base": m.group(2),
+            "worktree": m.group(3)}
+
+
+def test_dry_run_names_branch(project):
+    """The three facts, and each equal to what the LIVE resolver returns for
+    the same inputs — asserted against dispatch's own functions, so changing
+    `spawner_base_branch` / `loop_branch_name` / the worktree grammar fails
+    this test instead of quietly changing the report."""
+    sys.path.insert(0, str(BIN))
+    import dispatch
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:x", "--branch", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    facts = _branch_facts(r.stdout)
+
+    # base == spawner_base_branch(cwd) — the LIVE base, not a hardcode.
+    assert facts["base"] == (dispatch.spawner_base_branch(Path.cwd())
+                             or facts["base"])
+
+    # branch == loop_branch_name(target, <this slot's agent id>, season 2):
+    # the agent id rides in the branch, so pull it back out of the worktree
+    # path and re-derive the branch through the same grammar.
+    agent_id = Path(facts["worktree"]).name
+    season = 2  # LADDER above: current_season: 2
+    assert facts["branch"] == dispatch.loop_branch_name(
+        "hypothesis:x", agent_id, season), facts
+    assert facts["worktree"] == str(dispatch.branch_worktree_link(
+        Path(project) / ".agi", agent_id)), facts
+    # the worktree link lives under MAIN's .agi, one helper for both paths
+    assert facts["worktree"].endswith(f".agi/worktrees/{agent_id}")
+
+    # gate probe: WITHOUT --branch the report names no branch at all, so the
+    # line is not unconditional decoration.
+    plain = _run(project, "--harness", "pi", "--tier", "kid",
+                 "--target", "hypothesis:x", "--dry-run")
+    assert plain.returncode == 0, plain.stderr
+    assert "  branch: " not in plain.stdout
+
+    # auth probe: a DETACHED HEAD yields None from spawner_base_branch, and
+    # the report must SAY so rather than print a fabricated base. Point the
+    # dispatch cwd at a scratch dir whose git HEAD is detached.
+    import subprocess as _sp
+    import tempfile as _tf
+    with _tf.TemporaryDirectory() as td:
+        _sp.run(["git", "init", "-q", td], check=True, capture_output=True)
+        _sp.run(["git", "-C", td, "-c", "user.email=a@b", "-c", "user.name=a",
+                 "commit", "-q", "--allow-empty", "-m", "x"], check=True,
+                capture_output=True)
+        head = _sp.run(["git", "-C", td, "rev-parse", "HEAD"], check=True,
+                       capture_output=True, text=True).stdout.strip()
+        _sp.run(["git", "-C", td, "checkout", "-q", "--detach", head],
+                check=True, capture_output=True)
+        # premise: a detached HEAD resolves no base, else the probe is vacuous
+        assert dispatch.spawner_base_branch(Path(td)) is None
+        det = _sp.run([sys.executable, str(BIN / "dispatch.py"),
+                       str(project), "1", "--harness", "pi", "--tier", "kid",
+                       "--target", "hypothesis:x", "--branch", "--dry-run"],
+                      capture_output=True, text=True, cwd=td)
+    assert det.returncode == 0, det.stderr   # never crashes
+    dbase = _branch_facts(det.stdout)["base"]
+    # goal:g1.31.4.1 — ONE wording for the detached-HEAD refusal, read from
+    # the constant the live spawn prints, not a second copy of the sentence.
+    assert dbase == f"NONE ({dispatch.DETACHED_HEAD_REFUSAL})", dbase
+    assert dispatch.spawner_base_branch is not None  # live resolver exists
+
+
+def test_dry_run_refuses_unknown_target(project):
+    """goal:g1.31.4.1 conjunct 2 — a dry run REFUSES what the live path
+    refuses. Measured pre-fix: `--dry-run --target <bogus>` exited 0, wrote
+    the placeholder context and reported a spawn that could never happen;
+    the caveat on `.agi/nodes/experiment/a00-eccace59-e6cb6a.md` ("bad
+    --target is not caught by dry-run") held. The refusal must be the SAME
+    line the live spawn prints (`_no_context_refusal`, the live call at
+    dispatch.py:2678) and exit non-zero — while still creating nothing."""
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:no-such-node", "--dry-run")
+    assert r.returncode == 1, (r.returncode, r.stdout, r.stderr)
+    assert ("ERR: no context for target 'hypothesis:no-such-node' at level "
+            "small:") in r.stderr, r.stderr
+    # the same wording zoom itself renders for an unknown target
+    assert "not found in the graph loaded from" in r.stderr, r.stderr
+    assert "Refusing to fall back to the whole graph" in r.stderr, r.stderr
+    # gate probe: the resolvable target still reports and still exits 0, so
+    # the refusal is a resolution, not a blanket refusal of every dry run.
+    ok = _run(project, "--harness", "pi", "--tier", "kid",
+              "--target", "hypothesis:x", "--dry-run")
+    assert ok.returncode == 0, (ok.returncode, ok.stdout, ok.stderr)
+    assert "[dry-run] slot=0" in ok.stdout
+
+    # invariant: a refused dry run still takes no session dir, no manifest and
+    # no budget slot — the refusal happens inside the report, before anything.
+    sessions = project / ".agi" / "sessions"
+    assert not sessions.exists() or not list(sessions.rglob("context.md")), (
+        "a refused dry run rendered a context file")
+
+
+def test_dry_run_branch_creates_no_worktree(project):
+    """The report NAMES a worktree it must not have created."""
+    import subprocess as _sp
+    _sp.run(["git", "init", "-q", str(project)], check=True, capture_output=True)
+    before = sorted(p.name for p in (project / ".agi").iterdir())
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:x", "--branch", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    assert not (project / ".agi" / "worktrees").exists()
+    assert sorted(p.name for p in (project / ".agi").iterdir()) == before
+
+
+# --- goal:g1.31.4.1 — the dry report is the live path, spelled the same ----
+
+
+def test_auto_level_refuses_a_bad_target_a_live_round_would_refuse(project):
+    """`--level auto` used to be forced to `big`, so a bogus target passed dry.
+
+    The live loop resolves `auto` per slot; the dry report now resolves it
+    through the SAME function, and an `auto` slot is target-checked either
+    way — the small draw is reachable, so a target the round may refuse must
+    not pass a dry run just because this draw rolled big.
+    """
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:nope", "--level", "auto", "--dry-run")
+    assert r.returncode != 0, r.stdout
+    assert "hypothesis:nope" in r.stderr
+
+
+def test_auto_level_reports_the_level_it_resolved(project):
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:x", "--level", "auto", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    assert "level=big (from auto)" in r.stdout or "level=small (from auto)" in r.stdout
+
+
+def test_dry_agent_id_uses_the_live_id_grammar(project):
+    """No `dry<NN>-<hex>` nonce: the id a reader sees is the LIVE id's shape."""
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:x", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    assert not re.search(r"\bdry\d\d-", r.stdout), r.stdout
+    assert re.search(r"AGI_AGENT_ID=a\d\d-[0-9a-f]{8}", r.stdout), r.stdout
+
+
+def test_resolve_auto_level_is_the_one_resolver_both_paths_call():
+    """One function decides `auto` for the live loop AND `--dry-run`.
+
+    A second copy of this rule in either path is exactly how the two drifted.
+    """
+    sys.path.insert(0, str(BIN))
+    import dispatch  # noqa: PLC0415
+
+    assert dispatch.resolve_auto_level("small", 0.3, "hypothesis:x",
+                                       draw=lambda: 0.0) == "small"
+    assert dispatch.resolve_auto_level("auto", 0.3, "hypothesis:x",
+                                       draw=lambda: 0.9) == "small"
+    assert dispatch.resolve_auto_level("auto", 0.3, "hypothesis:x",
+                                       draw=lambda: 0.1) == "big"
+    assert dispatch.resolve_auto_level("auto", 0.3, None,
+                                       draw=lambda: 0.9) == "big", (
+        "no target -> big: a small zoom has nothing to bind to")
+
+
+def test_split_cell_resolves_through_the_one_helper(project, monkeypatch, capsys):
+    """One helper serves BOTH paths: a dry `main()` calls it at its own
+    live-loop site (before the dry return) and again in the report."""
+    (project / ".agi" / "config.json").write_text(
+        json.dumps({**CONFIG, "big_idea_vs_small_idea_split": 0.0}))
+    sys.path.insert(0, str(BIN))
+    import dispatch  # noqa: PLC0415
+    seen, real = [], dispatch.big_split_threshold
+    monkeypatch.setattr(dispatch, "big_split_threshold",
+                        lambda c: (seen.append(1), real(c))[1])
+    monkeypatch.setattr(sys, "argv", [
+        "dispatch.py", str(project), "1", "--harness", "pi", "--tier", "kid",
+        "--target", "hypothesis:x", "--level", "auto", "--dry-run"])
+    assert dispatch.main() == 0 and len(seen) == 2, seen
+    assert "level=small (from auto)" in capsys.readouterr().out
+
+
+def test_branch_dry_run_checks_the_dispatchers_own_checkout(project):
+    """`--branch` must not move the graph a dry target check reads: from a REAL
+    linked worktree holding a node main lacks, verdicts agree with and without it."""
+    wt = project.with_name(project.name + "-wt")
+    for a in ("init -q", "add -A", "commit -qm m", f"worktree add -q -b wt {wt}"):
+        subprocess.run(["git", "-C", str(project), "-c", "user.email=a@b", "-c",
+                        "user.name=a", *a.split()], check=True, capture_output=True)
+    (wt / ".agi/nodes/hypothesis/wt-only.md").write_text(
+        "---\nid: hypothesis:wt-only\ntype: hypothesis\ntitle: wt\n---\n\nbody\n")
+    for extra in ([], ["--branch"]):
+        for tgt, code in (("hypothesis:wt-only", 0), ("hypothesis:absent", 1)):
+            r = _run(wt, "--harness", "pi", "--tier", "kid", "--target", tgt,
+                     "--dry-run", *extra)
+            assert r.returncode == code, (extra, tgt, r.stdout, r.stderr)

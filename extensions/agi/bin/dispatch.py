@@ -22,10 +22,13 @@ from __future__ import annotations
 
 import argparse
 import fcntl
+import hashlib
 import json
 import os
 import random
+import re
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -43,14 +46,247 @@ CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
 # `post_wire.py` reach it. dispatch.py used to carry its own un-gated copy.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import adapters  # noqa: E402
+import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import locations  # noqa: E402
+import mem_cap  # noqa: E402 -- the ONE memory cap both launch paths use (SM.112)
+import geometry_config  # noqa: E402
+import branches  # noqa: E402 -- the ONE branch-name grammar (g15 round I)
 import spawn_gate  # noqa: E402  -- read_ladder_season (L2.06 stamps used it without importing it)
 import node_writer  # noqa: E402
+import zoom  # noqa: E402 -- goal:g1.31.4.1 conj 2: the ONE target resolver
 import provisioning  # noqa: E402
 import spawn_budget  # noqa: E402
+import stall_detect  # noqa: E402 -- hyp:l4-stalled-is-a-state-the-harness-can-see (record, don't repair)
+from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
 
 #: goal:g11.1 — re-exported from `locations` rather than redefined.
 config_path = locations.config_path
+
+
+# hypothesis:l4-a-reaped-parent-record-names-its-death-class-and-staged-work-
+# and-done-salvage-finalizes-a-complete-round-from-the-record — ONE death
+# classifier, shared by both writers of the reaper's death string (heal.py's
+# death-past-deadline path and this module's `restart_ok=False` branch).
+# Two implementations of a class would drift; this is the single one.
+_DEATH_STREAM_RE = re.compile(
+    # `http` then an OPTIONAL `/major[.minor]` version, then optional space,
+    # then a 5xx status. Covers "HTTP 500", "http500" AND the canonical
+    # provider line "HTTP/1.1 500 Internal Server Error" -- the form the
+    # first cut missed because it required the digit straight after `http`.
+    r"stream error|h2 protocol error|upstream error|"
+    r"error code:\s*5\d\d|"   # the provider's own literal 520 bytes
+    r"http(?:/\d+(?:\.\d+)?)?\s*5\d\d", re.I)
+
+# hypothesis:l4-the-pi-runners-retry-a-transient-5xx-with-bounded-backoff-
+# logged-by-name-never-a-real-failure conjunct (2) -- the dispatcher's startup
+# grace: 20 s in 2 s steps, re-spawn backoff 15/45 s, 3 attempts. `_GRACE_SLEEP`
+# is the ONE injectable sleep seam, so a grace poll NEVER sleeps for real.
+_GRACE_SLEEP = time.sleep
+_GRACE_STEP_S = 2
+_GRACE_MAX_S = 20
+_GRACE_BACKOFF_S = (15, 45)
+_GRACE_MAX_ATTEMPTS = 3
+
+# pi's own LOCAL catalogue warning -- it prints for WORKING ids too.
+_PI_CATALOGUE_RE = re.compile(
+    r'Model "[^"]*" not found for provider "[^"]*"\. '
+    r'Using custom model id\.', re.I)
+
+
+def _await_startup(proc, max_s: int = _GRACE_MAX_S,
+                   step_s: int = _GRACE_STEP_S) -> bool:
+    """True when `proc` OUTLIVED the startup grace, False the moment it
+    exited; polls in `step_s`-second steps through the `_GRACE_SLEEP` seam."""
+    waited = 0
+    while waited < max_s:
+        if proc.poll() is not None:
+            return False
+        _GRACE_SLEEP(step_s)
+        waited += step_s
+    return proc.poll() is None
+
+
+def _startup_death_is_transient(log_file: Path) -> "str | None":
+    """The MATCHED signature when a child that died inside the startup grace
+    left ONLY transient bytes, else None: EVERY non-empty `output.log` line
+    must be pi's catalogue warning or a 5xx signature line. Any other byte
+    (a JSON line, a commit, a traceback) makes the death real."""
+    try:
+        text = log_file.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    sig = None
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        m = _PI_CATALOGUE_RE.search(line) or _DEATH_STREAM_RE.search(line)
+        if not m:
+            return None
+        sig = sig or m.group(0)
+    return sig
+
+
+def _death_class(worktree, agent_id, runtime_s, agent_dir=None) -> dict:
+    """Classify one reaped agent's death from the bytes it left on disk.
+
+    `class` is `infra-stream-error` when the last 40 lines of the agent's
+    `output.log` match a provider/stream error pattern (`evidence` is that
+    exact line), else `died-after-work` when the round staged anything (a kid
+    verdict exists, or the worktree is dirty), else `died-no-work`.
+    `dirty_paths` is None and `kids` [] when the worktree is unknown. Never
+    raises: a death record is written when something is already broken.
+    """
+    from pathlib import Path as _Path
+    wt = _Path(worktree) if worktree else None
+    adir = _Path(agent_dir) if agent_dir else None
+    if adir is None and wt is not None and wt.is_dir():
+        hits = [p for p in (wt / "sessions").glob(f"*/{agent_id}") if p.is_dir()]
+        if hits:
+            adir = max(hits, key=lambda p: p.stat().st_mtime)
+    evidence = None
+    log = (adir / "output.log") if adir else None
+    if log is not None and log.is_file():
+        try:
+            tail = log.read_text(errors="replace").splitlines()[-40:]
+        except OSError:
+            tail = []
+        for line in reversed(tail):
+            line = line.strip()
+            if line and _DEATH_STREAM_RE.search(line):
+                evidence = line
+                break
+    dirty = None
+    if wt is not None and wt.is_dir():
+        try:
+            r = subprocess.run(
+                ["git", "-C", str(wt), "status", "--porcelain"],
+                capture_output=True, text=True, timeout=20)
+            if r.returncode == 0:
+                dirty = len([l for l in r.stdout.splitlines() if l.strip()])
+        except (OSError, subprocess.SubprocessError):
+            dirty = None
+    kids = []
+    sess = adir.parent if adir else (wt / "sessions" if wt else None)
+    if sess is not None and sess.is_dir():
+        for ap in sorted(sess.glob("*/agent.json")):
+            try:
+                krec = json.loads(ap.read_text())
+            except (OSError, ValueError):
+                continue
+            # The SPAWNING agent is `spawned_by_agent` (the manifest row
+            # `main` writes);
+            # `dispatched_by` names the SEAT to alarm. Match the real field
+            # first, and keep `dispatched_by` as a fallback for any record
+            # written before spawned_by_agent existed -- an agent id never
+            # equals a seat id, so the fallback cannot double-count.
+            if (krec.get("spawned_by_agent") != agent_id
+                    and krec.get("dispatched_by") != agent_id):
+                continue
+            kids.append({"id": krec.get("node_id") or ap.parent.name,
+                         "verdict": _node_verdict(wt, krec.get("node_id"))})
+    if evidence is not None:
+        cls = "infra-stream-error"
+    elif dirty or any(k.get("verdict") for k in kids):
+        cls = "died-after-work"
+    else:
+        cls = "died-no-work"
+    return {"class": cls, "evidence": evidence, "runtime_s": runtime_s,
+            "dirty_paths": dirty, "kids": kids}
+
+
+def _turn_end_with_live_kid(iter_dir, agent_id, is_alive) -> "str | None":
+    """Name of a still-live kid when this agent's LAST log event is a
+    COMPLETED turn (pi `turn_end` or claude-code `result`/`success`), else
+    None. hypothesis:l5-a-parent-waits-...: in headless -p a turn-end IS
+    process exit; a truncated log answers None, so the honest 'died' label
+    stays."""
+    try:
+        lines = [l for l in (Path(iter_dir) / agent_id / "output.log")
+                 .read_text(errors="replace").splitlines() if l.strip()]
+        ev = json.loads(lines[-1])
+    except (OSError, ValueError, IndexError):
+        return None
+    if not ((ev.get("type") == "result" and ev.get("subtype") == "success")
+            or ev.get("type") == "turn_end"):
+        return None
+    for ap in sorted(Path(iter_dir).glob("*/agent.json")):
+        try:
+            krec = json.loads(ap.read_text())
+        except (OSError, ValueError):
+            continue
+        if (krec.get("spawned_by_agent") != agent_id
+                and krec.get("dispatched_by") != agent_id):
+            continue
+        kpid = _rec_pid(krec)
+        if (krec.get("status") in (None, "running")
+                and kpid > 0 and is_alive(kpid)):
+            return krec.get("node_id") or ap.parent.name
+    return None
+
+
+def _mark_turn_end(death: dict, turn: "str | None") -> dict:
+    """Record a headless turn-end on a death WITHOUT blinding evidence.
+
+    `_death_class` may already have found the exact provider/stream error line
+    (`class == infra-stream-error`); overwriting `evidence` with `"turn-end"`
+    threw that line away. The turn-end fact rides in its own key
+    (`turn_end_kid`), and `evidence` becomes `"turn-end"` ONLY when
+    `_death_class` left it empty.
+    """
+    if turn:
+        death["turn_end_kid"] = turn
+        if death.get("evidence") is None:
+            death["evidence"] = "turn-end"
+    return death
+
+
+def _rec_pid(rec: dict) -> int:
+    """The record's pid as an int, tolerant of null / non-int pids.
+
+    A committed manifest record can carry `"pid": null` (or `"abc"`), which
+    the old `int(rec.get("pid", 0))` turned into a TypeError and took the
+    watch / reap pass down with it. Absent, null and unparseable all read 0,
+    which every caller already treats as "unknown pid".
+    """
+    try:
+        return int(rec.get("pid") or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _is_death(rec: dict) -> bool:
+    """ONE death predicate every terminal resolution shares.
+
+    A record is a DEATH when it is `failed` and carries the `death` class set
+    by `_reap_one` — both the dead-running lane (`restart_ok=False`) and the
+    stalled-dead lane (`never_restart=True`) set it, so the watcher dms
+    exactly ONE death and writes ONE reaper-log line for either.
+
+    RULE: a new terminal-resolution branch reuses this predicate, never
+    string-matches a `fail_reason` message. Mirror-only resolutions
+    (`done-unreported`, restarts) carry no `death` and are not deaths.
+    """
+    return rec.get("status") == "failed" and "death" in rec
+
+
+def _node_verdict(worktree, node_id):
+    """The `verdict` cell of the node file for `node_id` under `worktree`."""
+    if not (worktree and node_id):
+        return None
+    from pathlib import Path as _Path
+    import frontmatter as _fm
+    root = _Path(worktree) / ".agi" / "nodes"
+    for d in (root / "experiment", root / "deprecated" / "experiment"):
+        if not d.is_dir():
+            continue
+        for f in d.glob("*.md"):
+            try:
+                fm = _fm.read_frontmatter(f.read_text(errors="replace"))
+            except OSError:
+                continue
+            if isinstance(fm, dict) and fm.get("id") == node_id:
+                return fm.get("verdict")
+    return None
 
 
 # Env vars Claude Code injects so its own agent can use the user's Anthropic
@@ -75,6 +311,20 @@ ENV_VARS_TO_SCRUB = (
     # on, which is strictly worse than the subscription leak the names above
     # close. Same mechanism, one more name.
     provisioning.PROVISIONING_KEY_VAR,
+    # goal:g15.25 SM.26 -- the dispatch-orders bytes are read by THIS process
+    # for the parent brief; a spawned child must never inherit them (they are
+    # the director's word TO the parent, not to its kids). Scrub all three so
+    # a spawned agent can neither read nor re-export the orders text.
+    "AGI_ORDERS_TEXT",
+    "AGI_ORDERS_FROM",
+    "AGI_ORDERS_TS",
+    # hypothesis:a-spawned-round-never-inherits-a-model-slot-lock-override --
+    # AGI_MODEL_SLOT_LOCK is model_slot.py's test seam: it points lock_path() at
+    # a file other than the box-wide flock. Set anywhere up the tree it would be
+    # inherited by every spawned parent AND kid, each then loading a model
+    # outside the one slot the memory guard relies on. `--lock` stays explicit
+    # and visible in argv, so a deliberate test still has its seam.
+    "AGI_MODEL_SLOT_LOCK",
 )
 
 
@@ -94,8 +344,95 @@ def scrubbed_env() -> dict[str, str]:
 _scrubbed_env = scrubbed_env
 
 
+def _resolved_seat(args_seat: str | None) -> str | None:
+    """The AGI_POST value to export, or None to leave the key absent.
+
+    Precedence (hypothesis:l4-dispatch-exports-seat): `--seat` WINS when
+    given; the post already in the inherited env SURVIVES when `--seat`
+    is absent; neither present means the key is absent -- never a
+    placeholder, never a fallback to the ladder name.
+    """
+    if args_seat:
+        return args_seat
+    return geometry_config.resolved_seat_env()
+
+
+def _refuse_untrusted_spawner(root: Path, seat: str | None) -> str | None:
+    """REFUSE a spawner whose config:posts row tier is 'untrusted'.
+
+    hypothesis:l4-an-untrusted-lane-earns-tier-by-signed-verdicts rung 4
+    conjunct 2 (a) -- the untrusted lane may write only inside its own
+    worktree; it must never dispatch, spawn, take a spawn-budget lease, a
+    session dir or a credential. Returns a stderr line naming the tier, or
+    None to admit. Fail-open on an absent seat or an unreadable config -- a
+    gate that refuses everything proves nothing; the trusted-row negative
+    control is the point (test_untrusted_lane.py).
+    """
+    if not seat:
+        return None
+    try:
+        rows = geometry_config.load_rows(root)
+    except Exception:  # noqa: BLE001
+        return None
+    for row in rows:
+        if row.get("name") != seat:
+            continue
+        if row.get("tier") == "untrusted":
+            return (f"REFUSED: post {seat!r} is untrusted (tier "
+                    f"'untrusted') -- the untrusted lane may write only its "
+                    f"own worktree and may not dispatch (no lease, session "
+                    f"dir or credential)")
+        return None  # first matching row that is not untrusted admits
+    return None
+
+
+# --- secret redaction for the debugger's spawn.json (hypothesis:l4-dispatch-
+# echoes-less-than-it-knows) ---------------------------------------------
+# Redaction is by NAME pattern (KEY, TOKEN, SECRET, PASSWORD) AND by VALUE
+# shape (sk- and sk-or-v1- prefixes), both, so a value-shaped secret in an
+# unnamed var is caught by the shape half, not just the name half. A value
+# is never printed in full, in part, or as a prefix on dispatch's stdout or
+# in spawn.json -- only as "..." + its last 4 characters, enough to
+# recognize one's own key without carrying a doxable fragment.
+_SECRET_NAME_PATTERNS = ("KEY", "TOKEN", "SECRET", "PASSWORD")
+
+
+def _redact_secret_value(value: str) -> str:
+    """'...' + last 4 chars, or a fixed marker for a shorter value."""
+    if len(value) <= 4:
+        return "<redacted>"
+    return "..." + value[-4:]
+
+
+def _looks_like_secret(name: str, value: str) -> bool:
+    """Secret by name pattern (KEY/TOKEN/SECRET/PASSWORD) or value shape."""
+    upper = str(name).upper()
+    if any(p in upper for p in _SECRET_NAME_PATTERNS):
+        return True
+    # A forwarded `.env` value is registered by NAME in `adapters` -- the name
+    # need not carry a KEY/TOKEN substring, so the name half alone would leak.
+    if str(name) in adapters._FORWARDED_NAMES:
+        return True
+    v = str(value)
+    return v.startswith("sk-") or v.startswith("sk-or-v1-")
+
+
+def _redact_env_map(env: dict) -> dict:
+    """A copy of `env` with every secret's VALUE replaced by its tail-4 form.
+
+    Key names survive (a debugger must know which var WAS set); only values
+    are redacted. Used for spawn.json only -- the child's real env is
+    untouched.
+    """
+    out = {}
+    for k, v in env.items():
+        out[k] = _redact_secret_value(str(v)) if _looks_like_secret(k, v) else v
+    return out
+
+
 def zoom_command(root: Path, iter_n: int, agent_id: str,
-                 level: str, target: str | None, push_further: bool = False) -> list[str]:
+                 level: str, target: str | None, push_further: bool = False,
+                 tier: str = "kid") -> list[str]:
     """The `zoom.py` invocation for one kid's context bundle.
 
     **`--runtime pi` is explicit and must stay that way (goal:s8).** Without it
@@ -112,6 +449,13 @@ def zoom_command(root: Path, iter_n: int, agent_id: str,
     """
     cmd = ["python3", str(ZOOM_PY), str(root), str(iter_n), agent_id,
            "--level", level, "--runtime", "pi"]
+    if tier in ("parent", "director"):
+        # hypothesis:l4-a-parents-zoom-is-its-target-goal-chain-claim-conjuncts-
+        # and-own-kids-never-the-sibling-hypothesis-dump — pass the tier
+        # dispatch already received through to zoom so a parent gets the
+        # compact parent shape, not the 75-90 KB sibling dump. kid is zoom's
+        # default, so a kid spawn stays byte-identical to today.
+        cmd.extend(["--tier", tier])
     if level == "small" and target:
         cmd.extend(["--target", target])
     if push_further:
@@ -119,7 +463,18 @@ def zoom_command(root: Path, iter_n: int, agent_id: str,
         # id so a continuation kid composes from the parent's push_further
         # text and stamps `pushed_from: <target>` (see _scaffold_node_for_agent).
         cmd.append("--push-further")
+    # (SL7.111 threaded --tier here too, for the parent "Your Task" prose;
+    # SL7.109's block above is the ONE pass-through -- unioned at harvest.)
     return cmd
+
+
+def _no_context_refusal(target, level, detail: str) -> str:
+    """goal:g1.31.4.1 conjunct 2 — ONE refusal line, printed by the LIVE
+    spawn when `zoom_command` fails and by `--dry-run` when the same target
+    fails to resolve, so a dry run is a faithful preview of the refusal and
+    not a second wording of it.
+    """
+    return f"ERR: no context for target {target!r} at level {level}: {detail}"
 
 
 # hypothesis:l3w4-parent-branch-merge-up — per-parent git worktree on a
@@ -161,18 +516,281 @@ def spawner_base_branch(workdir: Path) -> str | None:
     return name
 
 
-def loop_branch_name(target: str | None, agent_id: str, season: int) -> str:
-    """`loop/<slug>-<agent8>@s<N>` — the per-agent branch name.
+# hypothesis:l4-a-round-is-cut-from-the-branch-you-are-on — HALF A: the
+# freshness guard. A round cut with `--branch` is only as fresh as the branch
+# it is cut FROM, and dispatch never said when that base is stale: a seat that
+# has not synced to the integration branch (`season/sN`) since other seats
+# landed work spawns a round against stale code, and nothing told the
+# dispatcher (measured: the L4.122 helper dispatched 312 lines behind on
+# provisioning.py). This guard MEASURES how far the spawner's HEAD is behind
+# `origin/season/sN` and returns a structured record the caller emits and acts
+# on. fail-OPEN on the network: an unreachable origin yields status
+# "unchecked", never a false stale claim, so a spawn is never blocked on a
+# remote being down.
+_ENGINE_PATH_LEADS = ("extensions/", "skills/", "src/", "bin/", "hooks/")
 
-    ADDENDUM item 3: the agent id rides in the branch name so nested layers
-    never collide — a director, a parent and a kid each cut branches carrying
-    their own id, and the `loop/` prefix keeps them off the tier branches
-    (`tier<N>/<name>` stays reserved for directors/prime per HANDOFF §6 item
-    7). The slug is the target's id with the `:` flattened, so a human can
-    tell which aim the branch carries.
+
+def _is_engine_path(p: str) -> bool:
+    """True when a changed path is engine source (not graph data)."""
+    return p.startswith(_ENGINE_PATH_LEADS)
+
+
+def _stale_base_spawn(root: Path, season: int, town_branch: str | None = None) -> dict:
+    """How far the spawner's HEAD is behind the integration branch.
+
+    Returns one of:
+      {"status": "current", "behind": 0, "files": []}
+      {"status": "behind", "behind": N, "files": [engine files differing]}
+      {"status": "unchecked", "behind": 0, "files": []}  (origin unreachable)
+
+    Every git command is run captured and fail-open — the guard is a
+    witness, not an authority — so a flaky tool or an unreachable remote
+    degrades to current/unchecked rather than fabricating a stale read.
+    The fetch is run first so `behind` is measured against what is actually
+    on origin, not whatever the local ref last happened to see.
+    """
+    if town_branch:
+        # hypothesis:l4-branches-follow-the-season-grammar — the integration
+        # branch, however it reached us, must be tried CANONICAL-first with the
+        # old name as a one-season fallback, so a pre-migration tree that has
+        # NOT been renamed yet stays measurable: a fetch that 404s the new name
+        # must not silently become "unchecked" while the old name resolves.
+        # The town branch may already BE a legacy literal (an opaque ladder
+        # value such as `town/<t>@s2`), so the as-written name is tried too, and
+        # the grammar's ref_candidates yields canonical + the derived legacy —
+        # including the one-season town alias `town/<t>@s<N>` for a k==1 town
+        # main (hypothesis:l4-every-reader-resolves-a-branch-through-branches-
+        # py: every resolving spelling derives through branches.py, never
+        # hand-spelled here; a multi-season town main bears NO such alias
+        # because that spelling would resolve to a DIFFERENT branch).
+        _ref_candidates = _dedupe_ordered(
+            [town_branch] + branches.ref_candidates(town_branch))
+    else:
+        # Grammar-branch integration, canonical first then the old `season/s<N>`
+        # as a one-season deprecated fallback, so a live tree that has NOT been
+        # renamed yet stays measurable: a fetch that 404s the new name must not
+        # silently become "unchecked" while the old name still resolves.
+        _ref_candidates = branches.ref_candidates(
+            branches.season_main(season))
+    integration = None
+    for fetch_ref in _ref_candidates:
+        try:
+            fr = subprocess.run(
+                ["git", "-C", str(root), "fetch", "origin", fetch_ref],
+                capture_output=True, text=True, timeout=60)
+        except (subprocess.TimeoutExpired, OSError, subprocess.SubprocessError):
+            continue
+        if fr.returncode == 0:
+            integration = f"origin/{fetch_ref}"
+            break
+    if not integration:
+        # A failed fetch means the remote tip is unknowable -> we cannot
+        # call anyone stale on evidence. fail-open, per the claim.
+        return {"status": "unchecked", "behind": 0, "files": []}
+
+    # Belt-and-suspenders: the stale claim must rest on a resolvable remote
+    # ref, not on a fetch that printed success through a warning. If the
+    # remote tip does not resolve, the gap is unknowable -> unchecked.
+    try:
+        rr = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--verify", "--quiet",
+             f"{integration}^{{commit}}"],
+            capture_output=True, text=True, timeout=30)
+        if rr.returncode != 0 or not rr.stdout.strip():
+            return {"status": "unchecked", "behind": 0, "files": []}
+    except (subprocess.TimeoutExpired, OSError, subprocess.SubprocessError):
+        return {"status": "unchecked", "behind": 0, "files": []}
+    behind = 0
+    try:
+        cr = subprocess.run(
+            ["git", "-C", str(root), "rev-list", "--count",
+             f"HEAD..{integration}"],
+            capture_output=True, text=True, timeout=30)
+        if cr.returncode == 0 and cr.stdout.strip():
+            behind = int(cr.stdout.strip())
+    except (subprocess.TimeoutExpired, ValueError, OSError,
+            subprocess.SubprocessError):
+        behind = 0
+    if behind <= 0:
+        return {"status": "current", "behind": 0, "files": []}
+    # Behind: name the engine files that differ so the message says WHAT is
+    # stale, not just that *something* is. Three dots = merge base..remote tip
+    # = exactly the work the spawner does not have.
+    files: list[str] = []
+    try:
+        dr = subprocess.run(
+            ["git", "-C", str(root), "diff", "--name-only",
+             f"HEAD...{integration}"],
+            capture_output=True, text=True, timeout=30)
+        if dr.returncode == 0:
+            files = sorted(f for f in dr.stdout.splitlines()
+                           if _is_engine_path(f))
+    except (subprocess.TimeoutExpired, OSError, subprocess.SubprocessError):
+        files = []
+    return {"status": "behind", "behind": behind, "files": files}
+
+
+def _dedupe_ordered(names: list[str]) -> list[str]:
+    """Order-preserving dedupe of candidate ref names, first occurrence kept."""
+    seen: set[str] = set()
+    out: list[str] = []
+    for n in names:
+        if n not in seen:
+            seen.add(n)
+            out.append(n)
+    return out
+
+
+def _stale_base_record(stale: dict, season: int,
+                       town_branch: str | None = None) -> dict:
+    """The structured next-actions record emitted on a stale base (HALF A).
+
+    Machine-readable so HALF B (hypothesis:l4-startup-is-one-script-or-a-
+    driven-prompt) can DRIVE the pick without parsing prose: the issue, the
+    gap, the differing engine files, and the enumerated resolving actions. A
+    re-invocation carrying a resolution (a synced base, or
+    `--allow-stale-base <reason>`) proceeds; the speaker here only EMITS.
+    """
+    return {
+        "issue": "stale-base",
+        "behind": stale.get("behind", 0),
+        "files": stale.get("files", []),
+        "integration": town_branch or branches.season_main(season),
+        "actions": [
+            {"id": "sync",
+             "cmd": f"git merge origin/{town_branch or branches.season_main(season)}"},
+            {"id": "override", "cmd": "dispatch ... --allow-stale-base <reason>"},
+            {"id": "abort"},
+        ],
+    }
+
+
+def _current_town_branch(git_root: Path, nodes_dir) -> str | None:
+    """The integration branch of the town the spawner's CURRENT branch maps to.
+
+    hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council + owner
+    ruling 01:4xZ: a round on a town's own branch measures its freshness
+    against that town branch, not season/sN. Resolves the spawner's checked-
+    out branch (`git rev-parse --abbrev-ref HEAD` in `git_root`, captured +
+    fail-open), reverse-looks it up in `town_branches` (read from `nodes_dir`,
+    the SAME graph the season was read from) by EXACT equality, and returns
+    the opaque integration branch for the town it maps to. None when it maps
+    to no town (a seat branch, a plain season/sN, detached HEAD) or when the
+    branch is unreadable -- the caller then keeps today's season/sN base.
+    """
+    branch = ""
+    try:
+        br = subprocess.run(
+            ["git", "-C", str(git_root), "rev-parse", "--abbrev-ref",
+             "HEAD"],
+            capture_output=True, text=True, timeout=30)
+        if br.returncode == 0:
+            branch = br.stdout.strip()
+    except (subprocess.TimeoutExpired, OSError, subprocess.SubprocessError):
+        branch = ""
+    if not branch or branch == "HEAD":
+        return None  # detached HEAD or unreadable branch; nothing to map
+    # hypothesis:l4-branches-follow-the-season-grammar clause (5) — a
+    # spawner sitting on a CANONICAL post/loop branch under a town
+    # (`season2/<town>/season1/loops/...`) maps by EXACT string to no ladder
+    # `town_branches` value, so the old reverse lookup returned None and the
+    # spawn fell back to the CORE main instead of that town's main
+    # (`season2/<town>/season1/main`). The grammar module's `merge_target`
+    # resolves the leaf it sits under for BOTH canonical and legacy
+    # spellings; prefer it when the branch parses as a post/loop, keep the
+    # town lookup (and its None fallback) otherwise. Fail open: an
+    # unparseable branch keeps today's value.
+    try:
+        _parsed = branches.parse(branch)
+    except ValueError:
+        _parsed = None
+    # hypothesis:lm-dispatch-stale-base-measures-a-town-post-against-core-
+    # main: the v3 TOWN-FIRST spellings every live seat actually carries
+    # (`<town>/season<m>/posts/<seat>/main`, `.../loops/...`) parse as
+    # `v3_post` / `v3_loop`, which the tuple below did not name -- so a town
+    # director's spawn fell through to the ladder lookup, matched no row and
+    # was measured against CORE's main, forcing a merge of core's main into
+    # its post branch before every dispatch (owner 01:1xZ 09-19: "merging
+    # into prim branch ... needs urgent fix"). `merge_target` already resolves
+    # the v3 trunk of the same tuple.
+    if _parsed is not None and _parsed["kind"] in (
+            "post", "loop", "v3_post", "v3_loop"):
+        return branches.merge_target(branch)
+    town = spawn_gate.town_of_branch(nodes_dir, branch)
+    if town:
+        return spawn_gate.town_integration_branch(nodes_dir, town)
+    # A v3 town TRUNK whose town has NO `town_branches` row at all integrates
+    # against ITSELF on origin (owner 01:0xZ 09-19: every master's town is
+    # independent and batched -- it is never measured against core's main).
+    # A town WITH a row (core: the row's own season branch) keeps today's exact-equality path
+    # and its None fallback, byte-for-byte.
+    if (_parsed is not None and _parsed["kind"] == "v3_town_season_main"
+            and _parsed.get("town")
+            and _parsed["town"] not in spawn_gate.read_town_branches(nodes_dir)):
+        return branch
+    return None
+
+
+def loop_branch_name(target: str | None, agent_id: str, season: int) -> str:
+    """`season<N>/loops/<slug>-<agent>` — the per-agent branch name (grammar).
+
+    The OLD shape `loop/<slug>-<agent8>@s<N>` is the deprecated alias; heal.py's
+    `_sweep_season` still parses both (the legacy @s<N> suffix is the one-season
+    fallback, so an old round's worktree is never dropped for a spelling
+    change). ADDENDUM item 3: the agent id rides in the branch name so nested
+    layers never collide — a director, a parent and a kid each cut branches
+    carrying their own id, and the `loop/` prefix keeps them off the tier
+    branches (`tier<N>/<name>` stays reserved for directors/prime per HANDOFF
+    §6 item 7). The slug is the target's id with the `:` flattened, so a human
+    can tell which aim the branch carries.
     """
     slug = (target or "explore").replace(":", "-")[:32]
-    return f"loop/{slug}-{agent_id}@s{season}"
+    return branches.loop_branch(season, slug, agent_id)
+
+
+def ram_worktrees_dir(root: Path) -> Path | None:
+    """goal:g7.16.1.5.4 -- the tmpfs dir a new round worktree checks out
+    under: the config:guard cell `GUARD_RAM_WORKTREES_<box>`; empty/absent,
+    or a parent dir that does not exist, = off (today's disk path)."""
+    cell = locations.guard_cell(root, "RAM_WORKTREES")
+    if not cell:
+        return None
+    d = Path(os.path.expanduser(cell))
+    return d if d.parent.is_dir() else None
+
+
+def ram_worktree_hold(root: Path) -> str | None:
+    """The HOLD reason when the RAM disk is at or over the guard's line
+    (`GUARD_RAM_WT_HOLD_PCT_<box>`, default 80), else None; None when the
+    RAM worktrees are off."""
+    d = ram_worktrees_dir(root)
+    if d is None:
+        return None
+    try:
+        line = float(locations.guard_cell(root, "RAM_WT_HOLD_PCT", "80") or 80)
+        u = shutil.disk_usage(d if d.is_dir() else d.parent)
+    except (OSError, ValueError):
+        return None
+    pct = 100.0 * u.used / u.total if u.total else 0.0
+    return (f"RAM disk {pct:.0f}% used >= hold line {line:g}% "
+            f"(GUARD_RAM_WT_HOLD_PCT)") if pct >= line else None
+
+
+def branch_worktree_link(root: Path, agent_id: str,
+                         main: Path | None = None) -> Path:
+    """Where a `--branch` spawn's checkout WOULD live — WITHOUT creating it.
+
+    goal:g1.31.4.1 conjunct 1: the dry report must name the worktree a live
+    spawn would take, and the only honest way to name it is to ask the same
+    helper the live path asks, so the path grammar stays ONE resolver shared
+    by the spawner and the report (no second copy of the `main/.agi/worktrees`
+    or RAM spelling). Returns the reader-visible link (RAM-backed parents get
+    the symlink path, the dir itself on the tmpfs), and touches no disk. `main`
+    lets a caller that already resolved `git_common_root` pass it in, so one
+    spawn resolves the main checkout ONCE.
+    """
+    main = main or locations.git_common_root(root)  # main checkout, from any depth
+    return main / ".agi" / "worktrees" / agent_id
 
 
 def branch_worktree_for_spawn(root: Path, branch: str, agent_id: str,
@@ -188,18 +806,29 @@ def branch_worktree_for_spawn(root: Path, branch: str, agent_id: str,
     RuntimeError naming the branch and base when the worktree cannot be
     created.
     """
-    main = locations.git_common_root(root)  # main checkout, from any depth
-    wt = main / ".agi" / "worktrees" / agent_id
+    main = locations.git_common_root(root)  # main checkout, for `git -C`
+    link = branch_worktree_link(root, agent_id, main=main)
+    # goal:g7.16.1.5.4: with the RAM cell set the checkout lives on the tmpfs
+    # and `.agi/worktrees/<agent>` is a symlink to it, so every reader that
+    # globs .agi/worktrees is unchanged; the objects stay in MAIN's .git.
+    ram = ram_worktrees_dir(root)
+    wt = ram / agent_id if ram is not None else link
     wt.parent.mkdir(parents=True, exist_ok=True)
+    argv = ["git", "-C", str(main), "worktree", "add", "-b", branch,
+            str(wt), base_branch]
+    # goal:g7.16.1.5.5.1: a RAM checkout is written from the RAM disk's own
+    # slice, so its pages never park on the dispatcher's slice.
     out = subprocess.run(
-        ["git", "-C", str(main), "worktree", "add", "-b", branch,
-         str(wt), base_branch],
+        locations.ram_write_argv(argv) if ram is not None else argv,
         capture_output=True, text=True,
     )
     if out.returncode != 0:
         raise RuntimeError(f"git worktree add -b {branch} from {base_branch}: "
                            f"{out.stderr.strip()}")
-    return wt
+    if ram is not None:
+        link.parent.mkdir(parents=True, exist_ok=True)
+        link.symlink_to(wt)
+    return link
 
 
 def drop_branch_worktree(root: Path, worktree: Path) -> None:
@@ -216,9 +845,11 @@ def drop_branch_worktree(root: Path, worktree: Path) -> None:
         main = locations.git_common_root(root)
         subprocess.run(
             ["git", "-C", str(main), "worktree", "remove", "--force",
-             str(worktree)],
+             str(Path(worktree).resolve())],
             capture_output=True, text=True,
         )
+        if Path(worktree).is_symlink():  # goal:g7.16.1.5.4: the RAM checkout's link
+            Path(worktree).unlink()
     except (OSError, subprocess.SubprocessError):
         pass
 
@@ -482,6 +1113,110 @@ def _brief_tier_for(tier: str, ladder_tier: int, target: str | None) -> str:
     return tier
 
 
+def _render_dispatch_brief(*, root: Path | None, tier: str, role: str | None,
+                           harness: str | None, **assemble_kwargs) -> str:
+    """The dispatch brief as ONE `brief.render` for the dry report and the
+    spawn.json artifact (hypothesis:brief-py-assembles-every-first-turn-from-
+    config). The head (and card, when the post has one) come from the render;
+    the dispatch body rides as its `extras` part, from the config cell's order.
+    A render that refuses (e.g. an advisor brief with no configured parts)
+    falls back to legacy `brief.assemble` -- LOUDLY, never silently. A
+    `FaithRefError` takes the SAME fallback."""
+    import brief as _brief
+    if root is not None:
+        assemble_kwargs.setdefault("project_root", root)
+    body = "\n\n".join(s.rstrip("\n") for s in
+                       _brief.assemble(tier=tier, include_head=False, **assemble_kwargs))
+    try:
+        return _brief.render(role=role, harness=harness, extras_text=body,
+                             project_root=root)
+    except (_brief.RenderError, _brief.FaithRefError) as exc:
+        print(f"dispatch: brief.render refused for tier {tier!r} ({exc}); "
+              f"falling back to brief.assemble", file=sys.stderr)
+        return "\n\n".join(s.rstrip("\n") for s in
+                           _brief.assemble(tier=tier, **assemble_kwargs))
+
+
+def _assert_allowed_model(harness_name: str, harness: dict,
+                        model: str | None) -> None:
+    """FAIL CLOSED on `allowed_models` (hypothesis:l4-dispatch-model-allowlist).
+
+    The harness's `allowed_models` list is the ONLY census a harness may spawn
+    from. An ABSENT or EMPTY list refuses EVERY model -- it never means 'allow
+    everything', because a default that opens on absence is a gate that
+    disappears exactly when someone deletes it. A model that is not in the list
+    is refused by name (model, harness, list). A tier with no resolved model
+    exports no AGI_MODEL at all, so there is nothing to allow or refuse.
+
+    Placed at the one value every consumer reads -- the effective model is
+    fixed before this call and the live env, the dry-run env mirror and the
+    agent record all read that same value -- so one refusal here is a refusal
+    at all four check sites without four copies of the rule.
+    """
+    if not model:
+        return
+    allowed = harness.get("allowed_models")
+    if not allowed:
+        raise adapters.AdapterError(
+            f"model {model!r} refused for harness {harness_name!r}: "
+            f"`allowed_models` is absent or empty, and the allowlist gate "
+            f"fails closed -- every model is refused when the list is missing "
+            f"or cleared (hypothesis:l4-dispatch-model-allowlist)")
+    if str(model) not in {str(m) for m in allowed}:
+        raise adapters.AdapterError(
+            f"model {model!r} is not in harness {harness_name!r} "
+            f"allowed_models {list(allowed)} -- refusing to spawn "
+            f"(hypothesis:l4-dispatch-model-allowlist)")
+
+
+#: the no-model fence's two cells, REPO-RELATIVE, resolved against the engine's
+#: repo-relative, resolved against the engine's own repo root; the literals are
+#: the shipped DEFAULTS, so a config that omits the cells still fences. A round
+#: cannot commit `.agi/config.json` -- the cells are named in the node instead.
+_FENCE_DIR_DEFAULT = "extensions/agi/fence"
+_FENCE_SRC_DEFAULT = "extensions/agi/model_fence.py"
+
+
+def _fence_cell(cfg: dict, key: str, default: str) -> str:
+    return str((((cfg or {}).get("paths") or {}).get("core") or {}).get(key) or default)
+
+
+def model_fence_requested(cfg: dict, flag: bool = False) -> bool:
+    """Is this round a NO-MODEL round? `--no-model` wins; else the config
+    default `spawn.no_model`. Opt-in, always: an absent cell is an unfenced
+    round, not a fenced one (hypothesis:a-no-model-round-refuses-a-model-load-
+    in-every-process-it-spawns)."""
+    if flag:
+        return True
+    return bool(((cfg or {}).get("spawn") or {}).get("no_model"))
+
+
+def apply_model_fence_env(env: dict, cfg: dict = None, enabled: bool = False,
+                          cap: "int | None" = None,
+                          plugin_root=None) -> dict:
+    """Two cells, not one (the parent's PASS-F probe: a one-cell round is
+    silently UNFENCED): `PYTHONPATH += paths.core.model_fence_dir` (so the
+    interpreter finds the `sitecustomize`) and `AGI_MODEL_FENCE_SRC =
+    paths.core.model_fence_src` (the fallback when PYTHONPATH is rewritten).
+    INHERITABLE, never per-child argv: the cells also go into this
+    dispatcher's OWN `os.environ`, so a nested dispatch (`scrubbed_env()`)
+    inherits them. `cap` is written only when an override is passed."""
+    if not enabled:
+        return env
+    base = Path(plugin_root or Path(__file__).resolve().parent.parent).parents[1]
+    fence_dir = str(base / _fence_cell(cfg, "model_fence_dir", _FENCE_DIR_DEFAULT))
+    env["PYTHONPATH"] = os.pathsep.join(
+        p for p in (env.get("PYTHONPATH") or "", fence_dir) if p)
+    env["AGI_MODEL_FENCE_SRC"] = str(
+        base / _fence_cell(cfg, "model_fence_src", _FENCE_SRC_DEFAULT))
+    if cap is not None:
+        env["AGI_MODEL_FENCE_MAX_BYTES"] = str(int(cap))
+    for _k in ("PYTHONPATH", "AGI_MODEL_FENCE_SRC", "AGI_MODEL_FENCE_MAX_BYTES"):
+        if _k in env:
+            os.environ[_k] = env[_k]
+    return env
+
+
 def resolve_role_spec(cfg: dict, roles: list | None, tier: int,
                       role: str) -> dict:
     """Resolve (tier, role) to {harness, model, effort, settings, from_ladder}.
@@ -492,27 +1227,16 @@ def resolve_role_spec(cfg: dict, roles: list | None, tier: int,
     `harnesses.<h>.models[role]`, `effort` from `harnesses.<h>.effort[role]`.
     `from_ladder` distinguishes the source so callers can report it.
     """
-    row = None
-    for r in (roles or []):
-        try:
-            if int(r.get("tier")) == int(tier) and r.get("role") == role:
-                row = r
-                break
-        except (TypeError, ValueError):
-            continue
+    # hypothesis:l4-a-model-change-is-one-write — the ladder `roles:` table is
+    # the ONE source of a role's model/effort/settings. The row lookup and the
+    # blank-cell -> None mapping live in adapters/ (the shared resolver
+    # dispatch.py, workflow.py and heal.py import), so one write.py on the
+    # ladder IS the model write.
+    row = adapters.ladder_role_row(roles, tier, role)
     if row is not None:
-        return {
-            "harness": row.get("harness") or None,
-            "model": (row.get("model") or "").strip() or None,
-            "effort": (row.get("effort") or "").strip() or None,
-            # hypothesis:l3w4-director-kids-on-glm — the `thinking` cell is
-            # pi's analogue of `effort`: a model name alone does not say how
-            # hard to think (pi_adapter threads it as `--thinking`). Row owns
-            # it; blank omits the flag.
-            "thinking": (row.get("thinking") or "").strip() or None,
-            "settings": row.get("settings") or None,
-            "from_ladder": True,
-        }
+        _spec = adapters.spec_from_ladder_row(row)
+        _spec["from_ladder"] = True
+        return _spec
     _name, harness = adapters.resolve(cfg)
     models = harness.get("models") or {}
     model = models.get(role) if isinstance(models, dict) else None
@@ -626,6 +1350,71 @@ def _read_prompt_file(path: str | None) -> str | None:
     return Path(path).read_text(encoding="utf-8")
 
 
+def _effective_carry_forward(args) -> str | None:
+    """goal:g15.25 SM.26 -- ONE implementation for the per-kid carry-forward.
+
+    At KID tier `--orders` is the same channel as `--prompt-file` (its new,
+    preferred spelling); at PARENT tier `--orders` is the NEW orders channel
+    and is never a carry-forward. `--prompt-file` stays the deprecated kid
+    spelling for one season.
+    """
+    if args.tier == "kid" and getattr(args, "orders", None) is not None:
+        return args.orders
+    return args.prompt_file
+
+
+def apply_orders_env(args) -> str | None:
+    """goal:g15.25 SM.26 -- read `--orders` and export it for the parent
+    brief, exactly as `apply_advisor_goal_env` threads `--goal`.
+
+    Returns the file text (None when absent, or when the tier is not parent).
+    An EMPTY file returns "" and renders no heading (byte-identical brief),
+    but the env stays set so the caller can tell "absent" from "empty".
+    Clears stale keys on every invocation so a second dispatch in one process
+    cannot inherit the previous round's orders.
+    """
+    keys = ("AGI_ORDERS_TEXT", "AGI_ORDERS_FROM", "AGI_ORDERS_TS")
+    if args.tier != "parent" or getattr(args, "orders", None) is None:
+        for k in keys:
+            os.environ.pop(k, None)
+        return None
+    text = _read_prompt_file(args.orders)
+    os.environ["AGI_ORDERS_TEXT"] = text or ""
+    os.environ["AGI_ORDERS_FROM"] = (
+        getattr(args, "orders_from", None)
+        or os.environ.get("AGI_POST") or "")
+    os.environ["AGI_ORDERS_TS"] = str(int(time.time()))
+    return text
+
+
+# The ONE wording of "a --branch spawn has no branch to cut a child from" —
+# the live spawn and the dry report's `base=` line say the same words.
+DETACHED_HEAD_REFUSAL = ("--branch requires a checked-out branch (detached "
+                         "HEAD?) to cut a child from")
+
+
+def resolve_auto_level(level: str, big_split: float, target: str | None,
+                       draw=random.random) -> str:
+    """`auto` -> the concrete level, for the live loop AND `--dry-run`.
+
+    goal:g1.31.4.1: the dry path used to force `auto` to `big`, so a target
+    the live loop refuses at its `small` draw passed dry. Both paths resolve
+    through THIS function. A slot with no target falls back to `big` because
+    a small zoom has nothing to bind to.
+    """
+    if level != "auto":
+        return level
+    resolved = "big" if draw() < big_split else "small"
+    return "big" if resolved == "small" and target is None else resolved
+
+
+def big_split_threshold(cfg: dict) -> float:
+    """`big_idea_vs_small_idea_split` through ONE resolver: the dry report and
+    the live loop each carried their own `float(cfg.get(..., 0.3))`, and the
+    default could drift. goal:g1.31.4.1 corrective."""
+    return float(cfg.get("big_idea_vs_small_idea_split", 0.3))
+
+
 def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                     dispatch_harness: dict, adapter: object, args,
                     targets, tier_eff: int) -> int:
@@ -649,10 +1438,27 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
     import brief as _brief
     import tempfile
 
+    # hypothesis:l4-a-kid-spawn... — a dry run prints the account-floor
+    # exemption decision too, read from the on-disk manifest like the live
+    # path. A kid with a live parent in the manifest is reported exempt.
+    _acc_exempt = None
+    if args.tier == "kid":
+        _mf = locations.iteration_dir(root, args.iter_n) / "manifest.json"
+        if _mf.exists():
+            try:
+                _acc_exempt = _kid_account_floor_exemption(
+                    json.loads(_mf.read_text()))
+            except (json.JSONDecodeError, OSError):
+                _acc_exempt = None
+    if _acc_exempt is not None:
+        print(f"dry-run account floor: exempt — kid of admitted live round "
+              f"{_acc_exempt[0]} pid {_acc_exempt[1]}", file=sys.stderr)
+
     current_season = spawn_gate.read_ladder_season(
         root / "nodes" if root else None)
     if current_season is None:
         current_season = 1
+    big_split = big_split_threshold(cfg)
     cap = spawn_budget.max_live(cfg)
     parallel = adapters.parallelism(cfg)
     # hypothesis:l3-parent-never-told-to-iterate -- the per-dispatch kid
@@ -663,16 +1469,37 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
     # loop's re-rooted engine paths in the dry report (which dry-prints the
     # same argv a real spawn would get).
     engine_paths = child_engine_paths(root)
+    # hypothesis:lm-dispatch-memory-override-feeds-agi-batch-scheduling --
+    # print the resolved cap so `--memory` is observable without a real
+    # spawn; the live path stores this SAME value into the spawn record.
+    _dry_mem_cap = mem_cap.resolve_memory_cap(cfg, override=args.memory)
+    print(f"dry-run memory_max={_dry_mem_cap}")
 
     for slot, target_entry in enumerate(targets):
         if len(target_entry) == 4:
             level, target, strategy, _role = target_entry
         else:
             level, target, strategy = target_entry
-        if level == "auto":
-            # Resolution-only: we need one deterministic level for the report.
-            level = "big"
-        agent_id = f"dry{slot:02d}-{uuid.uuid4().hex[:8]}"
+        # goal:g1.31.4.1 — the dry id is spelled the way a LIVE id is
+        # (`a<NN>-<hex>`): the retired `dry<NN>-<hex>` nonce was a dialect no
+        # live spawn produces, and the report says `dry-run` in its own words.
+        agent_id = f"a{slot:02d}-{uuid.uuid4().hex[:8]}"
+        # ONE level resolver, shared with the live loop, so `--level auto` in
+        # dry IS a level the round can take. An `auto` slot is target-checked
+        # either way: the small draw is reachable, so a target the round may
+        # refuse must not pass dry because THIS draw rolled big.
+        auto = level == "auto"
+        level = resolve_auto_level(level, big_split, target)
+        if level == "small" or auto:
+            # The dry check reads the checkout the dispatcher RUNS IN; the
+            # re-point at the --branch worktree flipped this verdict both ways
+            # (a --branch dry run cuts no worktree) and is gone.
+            _refused = zoom.target_resolves(root, target)
+            if _refused is not None:
+                print(_no_context_refusal(
+                    target, level, zoom.unavailable_stderr(_refused)),
+                    file=sys.stderr)
+                return 1
         brief_tier = _brief_tier_for(args.tier, tier_eff, target)
         with tempfile.TemporaryDirectory() as td:
             sess_dir = Path(td)
@@ -685,9 +1512,23 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                 _fh.write(
                     f"# dry-run context (placeholder, no zoom render)\n\n"
                     f"target: {target}\nlevel: {level}\n")
+            # The brief, rendered ONCE so the argv and the report carry the
+            # SAME first turn (hypothesis:the-spawned-agents-first-turn-is-
+            # the-render): head + card + the dispatch extras.
+            brief_text = _render_dispatch_brief(
+                root=root, tier=brief_tier, role=args.role,
+                harness=harness_name, agent_id=agent_id, iter_n=args.iter_n,
+                cli_py=engine_paths["cli_py"],
+                dispatch_py=engine_paths["dispatch_py"], scaffold=None,
+                source_root=engine_paths["source_root"],
+                target=target, parallel=parallel, max_live=cap,
+                kid_ceiling=kid_ceiling,
+                addendum=_read_prompt_file(_effective_carry_forward(args)),
+                session_dir=sess_dir)
             cmd = adapter.build_command(
                 harness=dispatch_harness, tier=args.tier,
                 brief_tier=brief_tier, context_file=str(ctx_file),
+                rendered_brief=brief_text,
                 agent_id=agent_id, iter_n=args.iter_n,
                 sess_dir=sess_dir, scaffold=None, cli_py=engine_paths["cli_py"],
                 skill_prompt=engine_paths["skill_prompt"],
@@ -695,7 +1536,7 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                 source_root=engine_paths["source_root"],
                 target=target, parallel=parallel, max_live=cap,
                 kid_ceiling=kid_ceiling,
-                addendum=_read_prompt_file(args.prompt_file),
+                addendum=_read_prompt_file(_effective_carry_forward(args)),
                 role=args.role, ladder_tier=tier_eff,
             )
             # The env a child WOULD have been spawned with — same exports the
@@ -703,7 +1544,17 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
             # the real values (AGI_*, CLAUDE_CODE_WORKFLOWS) without a spawn.
             env = adapter.child_env(harness=dispatch_harness,
                                     base=scrubbed_env(), tier=args.tier)
+            # hypothesis:l4-needs-credential-is-provider-gated -- the
+            # credential-none drop is applied INSIDE child_env now
+            # (`adapters.drop_unneeded_credential`), so the dry-run mirror and
+            # the live spawn share ONE mechanism instead of each re-popping
+            # the inherited runtime key here.
             env["AGI_TIER"] = args.tier
+            # hypothesis:l4-spawn-paths-export-the-reaper-knob -- mirror of
+            # the live spawn_env export, so the dry report SHOWS the reaper
+            # knob without a spawn (a check that costs a spawn is a check that
+            # never runs).
+            env["CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP"] = "1"
             env["AGI_ROLE"] = args.role
             env["AGI_LADDER_TIER"] = str(tier_eff)
             env["AGI_SEASON"] = str(current_season)
@@ -720,27 +1571,39 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
             # child WOULD receive its own id and actor.
             env["AGI_AGENT_ID"] = agent_id
             env["AGI_ACTOR"] = agent_id
+            # hypothesis:l4-dispatch-exports-seat — mirror of the live
+            # spawn_env seat export, so the dry report shows the REAL value
+            # (--seat wins, else the inherited post survives, else absent).
+            # base=scrubbed_env() already carries an inherited AGI_POST, so
+            # only the --seat override must be written here.
+            seat_val = _resolved_seat(args.seat)
+            if seat_val:
+                env["AGI_POST"] = seat_val
             if args.tier in ("kid", "parent"):
                 env["GIT_CONFIG_COUNT"] = "1"
+            # mirror of the live fence export, so the dry report SHOWS both
+            # cells (a check that costs a spawn is a check that never runs)
+            apply_model_fence_env(
+                env, cfg, enabled=model_fence_requested(cfg, args.no_model),
+                cap=args.model_fence_max_bytes)
 
-            # The brief, assembled directly so the report can show ITS line
-            # count and first 20 lines without depending on how a harness
-            # spells the prompt to disk.
-            segments = _brief.assemble(
-                tier=brief_tier, agent_id=agent_id, iter_n=args.iter_n,
-                cli_py=engine_paths["cli_py"],
-                dispatch_py=engine_paths["dispatch_py"], scaffold=None,
-                source_root=engine_paths["source_root"],
-                target=target, parallel=parallel, max_live=cap,
-                kid_ceiling=kid_ceiling,
-                addendum=_read_prompt_file(args.prompt_file),
-                session_dir=sess_dir)
-        brief_text = "\n\n".join(s.rstrip("\n") for s in segments)
         brief_lines = [l for l in brief_text.splitlines() if l.strip()]
+
+        # goal:g15.25 SM.26 -- a dry run SHOWS the orders section (heading +
+        # first 3 content lines), so a dispatcher can see the exact words a
+        # parent would be handed BEFORE paying for the spawn. The full section
+        # is at the tail of the parent brief, past the report's first 20.
+        _orders_sec = _brief._orders_section()
+        if _orders_sec:
+            _ol = _orders_sec.splitlines()
+            print(f"  orders: {len(_ol)} lines; first 4:")
+            for ln in _ol[:4]:
+                print(f"    {ln}")
 
         print(f"[dry-run] slot={slot} harness={harness_name} "
               f"tier={args.tier} role={args.role} ladder_tier={tier_eff} "
-              f"level={level} target={target or '-'} "
+              f"level={level}{' (from auto)' if auto else ''} "
+              f"target={target or '-'} "
               f"brief_tier={brief_tier}")
         # Compact: pi inlines every brief segment as its own flag, so the raw
         # command would print hundreds of lines of the brief itself. The brief
@@ -753,18 +1616,148 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                 return q[:180] + f"...<{len(q)} chars>"
             return q
         print(f"  command: {' '.join(_compact(a) for a in cmd)}")
+        # goal:g1.31.4.1 conjunct 1 — a `--branch --dry-run` names the three
+        # facts the LIVE spawn would act on, through the SAME resolvers
+        # (`spawner_base_branch`, `loop_branch_name`,
+        # `branch_worktree_link`) — no hand-built `loop/<slug>` string, no
+        # fresh inline `git rev-parse`. The worktree is only NAMED
+        # (branch_worktree_for_spawn, which runs `git worktree add`, is NOT
+        # called). The stale-base refusal is deliberately NOT mirrored: the
+        # live call to `_stale_base_spawn` (which returns 3) FETCHES origin
+        # and a dry run must not touch the network, so the report says so
+        # rather than passing silently.
+        if getattr(args, "branch", False):
+            _dbase = spawner_base_branch(Path.cwd())
+            _dbranch = loop_branch_name(target, agent_id, current_season)
+            _dbase_shown = _dbase or f"NONE ({DETACHED_HEAD_REFUSAL})"
+            print(f"  branch: {_dbranch} base={_dbase_shown} "
+                  f"worktree={branch_worktree_link(root, agent_id)}")
+            print(f"  branch context: the live spawn re-roots the graph to "
+                  f"that worktree, so this dry report's placeholder context "
+                  f"is NOT the graph the child would see; stale-base not "
+                  f"evaluated here (live: `_stale_base_spawn`, return 3) to "
+                  f"keep the dry run off the network")
         export_keys = ["AGI_TIER", "AGI_ROLE", "AGI_LADDER_TIER",
                        "AGI_SEASON", "AGI_LOOP", "AGI_MODEL",
                        "AGI_PROFILE", "AGI_AGENT_ID", "AGI_ACTOR",
-                       "GIT_CONFIG_COUNT", "CLAUDE_CODE_WORKFLOWS"]
+                       "AGI_POST", "GIT_CONFIG_COUNT",
+                       "CLAUDE_CODE_WORKFLOWS",
+                       "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP",
+                       "AGI_MODEL_FENCE_SRC", "AGI_MODEL_FENCE_MAX_BYTES"]
         shown = [f"{k}={env[k]}" for k in export_keys if k in env]
         print(f"  env: {' '.join(shown)}")
+        if env.get("AGI_MODEL_FENCE_SRC"):
+            # the fence DIR rides PYTHONPATH (a full PYTHONPATH would drown the
+            # report); it is the entry apply_model_fence_env appended last.
+            print(f"  model fence: dir={env.get('PYTHONPATH', '').split(os.pathsep)[-1]} "
+                  f"src={env['AGI_MODEL_FENCE_SRC']} "
+                  f"max_bytes={env.get('AGI_MODEL_FENCE_MAX_BYTES', '-')}")
         print(f"  brief: tier={brief_tier} {len(brief_lines)} lines; "
               f"first 20:")
         for ln in brief_lines[:20]:
             print(f"    {ln}")
+        # The whole brief is now ONE argv segment, so `_compact` truncates its
+        # tail (and the carry-forward label) out of the reported command. Show
+        # the last lines and the carry-forward label so both stay visible.
+        for _l in brief_lines[-6:]:
+            print(f"    ... {_l}")
+        _a = (_read_prompt_file(_effective_carry_forward(args)) or "").strip()
+        _j = next((i for i, l in enumerate(brief_lines)
+                   if _a and _a.splitlines()[0] in l), None)
+        if _j is not None and _j >= 1:
+            print(f"    {brief_lines[_j - 1]}")
     print("dry-run: nothing spawned, nothing written, no budget slot taken")
     return 0
+
+
+def _round_cut_fields(tier: str, role: str | None, target: str | None,
+                       level: str | None, iter_n: int, *,
+                       ts=None, nonce=None) -> dict:
+    """The FULL round-cut decision fields a ring's signatures cover -- the
+    same bytes the gate signs, the round persists onto each spawned agent's
+    record, and a reader re-verifies (hypothesis:l4-a-ring-decision-carries-
+    m-of-n-signatures, HOLE 2: the signed bytes must cover the decision it
+    authorises, so a quorum for one target/tier/role/level/iter cannot replay
+    onto a different round). All values string-serialized (rings.json_field)
+    so the persisted record round-trips through JSON losslessly. FRESH (kid B):
+    the returned dict carries the reserved ``_fresh`` (ts|nonce) so a persisted
+    round-quorum does not replay across time; ts/nonce default to freshly
+    minted, pass them to fix the bytes the signer covered."""
+    from seatsig import rings as _rings  # noqa: PLC0415
+    return _rings.fresh_fields({
+        "tier": _rings.json_field(tier),
+        "role": _rings.json_field(role or ""),
+        "target": _rings.json_field(target or ""),
+        "level": _rings.json_field(level or ""),
+        "iter_n": _rings.json_field(iter_n),
+    }, ts=ts, nonce=nonce)
+
+
+def _round_ring_refusal(project_root: str, ring_name: str, tier: str,
+                        role: str | None, signatures: list,
+                        target: str | None = None, level: str | None = None,
+                        iter_n: int = 0, *, fields: dict | None = None,
+                        remember: bool = True
+                        ) -> str | None:
+    """Rung 2 round-ring gate: refuse the round (every slot's spawn) when
+    its cut record lacks the named ring's m valid signatures. Returns the
+    refusal line (naming the m-of-n count) or None to admit. OPT-IN: a ring
+    the geometry does not name is not demanded. Verified through
+    seatsig/rings.py (the SAME Scheme interface send.py's verify labels
+    against), never this gate's own crypto. FRESH (kid B): when ``fields`` is
+    given it is the exact signed decision (never argv); when None the fields
+    are built fresh HERE, and an admitted round must also pass
+    freshness_refusal within its replay window. ``remember`` (kid D): when
+    False (a --dry-run), an admitted round reads the ledger (so a replayed
+    nonce still REFUSES) but never writes it -- a dry run records nothing."""
+    root = locations.find_project_root(Path(project_root).resolve())
+    try:
+        from seatsig import rings as _rings
+
+        ring = _rings.ring_by_name(_rings.load_rings(root, strict=True), ring_name)
+    except Exception as e:  # noqa: BLE001  (could not look: refuse, never the opt-in)
+        return (f"round {ring_name!r} refused: its ring could not be loaded "
+                f"({type(e).__name__}: {e})")
+    if ring is None:
+        return None  # no such ring declared -> opt-in means nothing demanded
+    fields = fields if fields is not None else \
+        _round_cut_fields(tier, role, target, level, iter_n)
+    canonical = _rings.canonical_bytes("round-cut", fields)
+
+    def resolver(post):
+        try:
+            rows = geometry_config.load_rows(root)
+        except Exception:  # noqa: BLE001
+            rows = []
+        for row in rows:
+            if row.get("name") == post:
+                return row.get("pubkey") or None
+        return None
+
+    res = _rings.verify_ring(ring, canonical, signatures or [],
+                             pubkey_for_post=resolver)
+    if res.ok:
+        # FRESH (kid B): the quorum is satisfied; the round must still sit
+        # inside its replay window and not carry a spent nonce.
+        seen, remember_fn = _rings.nonce_ledger(root)
+        # RUNG 2b clause 3: a failed ledger WRITE or READ (LedgerWriteError /
+        # LedgerReadError) refuses BY NAME -- the nonce was not remembered (or
+        # the seen set could not be read), so the decision is not admitted (a
+        # nonce is never spent silently, and an unreadable ledger is never
+        # read as an empty one).
+        try:
+            fr = _rings.freshness_refusal(
+                fields,
+                max_age_s=_rings._effective_max_age_s(ring),
+                seen=seen, remember=remember_fn if remember else None)
+        except (_rings.LedgerWriteError, _rings.LedgerReadError) as le:
+            return (f"round {ring_name!r} refused: {le}")
+        if fr:
+            return (f"round {ring_name!r} refused: freshness {fr}")
+        return None
+    return (
+        f"round {ring_name!r} needs its ring quorum before spawning: "
+        f"{res.refused}")
 
 
 def main() -> int:
@@ -795,6 +1788,38 @@ def main() -> int:
              "pushed_from: <target> on the continuation kid. Refused "
              "(exit 2, no lease, no session dir) when --target is an "
              "overview/vision/moral node: the push stops at the quorum.",
+    )
+    ap.add_argument(
+        "--cap", type=float, default=None,
+        help="per-round mint cap in USD; refused before minting when it "
+             "exceeds pool remaining minus floor minus live caps "
+             "(hypothesis:l4-dispatch-takes-a-per-round-cap...).",
+    )
+    ap.add_argument(
+        "--no-model",
+        action="store_true",
+        help="hypothesis:a-no-model-round-refuses-a-model-load-in-every-"
+             "process-it-spawns -- spawn this round INSIDE the inherited model "
+             "fence: both env cells ride the env the child is spawned with AND "
+             "this dispatcher's own env, so the parent, the kids and their "
+             "subprocesses all refuse the declared loaders by name. Opt-in; "
+             "the config default is `spawn.no_model` (absent = unfenced).",
+    )
+    ap.add_argument(
+        "--model-fence-max-bytes",
+        type=int, default=None, metavar="N",
+        help="cap override for the no-model fence: export "
+             "AGI_MODEL_FENCE_MAX_BYTES=N. Absent -> the fence's own config cap "
+             "(values.core.model_load_allowed_max_bytes).",
+    )
+    ap.add_argument(
+        "--memory",
+        default=None,
+        metavar="GB",
+        help="hypothesis:lm-dispatch-memory-override-feeds-agi-batch-"
+             "scheduling -- per-round GB override for config "
+             "`spawn.memory_max`; absent means use the configured value. "
+             "Request-scoped: the config file on disk is never written.",
     )
     ap.add_argument(
         "--strategy",
@@ -833,13 +1858,15 @@ def main() -> int:
              "--target vision:<id> --goal goal:<id>",
     )
     ap.add_argument(
-        "--seat",
+        "--seat", "--post",
+        action=geometry_config.SeatAction,
         default=None,
         help="Seat name to dispatch as (hypothesis:l3w4-seat-registry). The "
-             "seat's own row in config:seats overrides harness/model/effort/"
-             "settings from the ladder's (tier, role) class table. No row for "
-             "the name falls back to the ladder. Export AGI_SEAT=<name> for "
-             "the meter pin to land seat-stable.",
+             "seat's own row in config:posts (alias config:seats) overrides "
+             "harness/model/effort/settings from the ladder's (tier, role) "
+             "class table. No row for the name falls back to the ladder. "
+             "Export AGI_POST=<name> for the meter pin to "
+             "land seat-stable.",
     )
     ap.add_argument(
         "--list-rows",
@@ -866,6 +1893,20 @@ def main() -> int:
              "(hypothesis:l3w4-parent-branch-merge-up)",
     )
     ap.add_argument(
+        "--allow-stale-base",
+        default=None,
+        metavar="REASON",
+        help="hypothesis:l4-a-round-is-cut-from-the-branch-you-are-on HALF A "
+             "-- skip the stale-base refusal: record this REASON on the "
+             "agent's branch_ref and cut the round anyway. Being behind the "
+             "integration branch is legitimate for a nested layer (a "
+             "director cutting from tier1/<name>), but it must be a CONSCIOUS "
+             "override, never a default. Without it, a --branch spawn whose "
+             "base is behind origin/season/sN is refused (exit 3) with a "
+             "structured stale-base record, so the issue cannot be silently "
+             "ignored. fail-open: an unreachable origin is never refused.",
+    )
+    ap.add_argument(
         "--detach",
         action="store_true",
         help="Skip the reaper phase and return immediately after spawn. "
@@ -886,12 +1927,161 @@ def main() -> int:
              "holds arbitrary characters (quotes, newlines) that would break "
              "the command line.",
     )
+    ap.add_argument(
+        "--orders",
+        default=None,
+        help="goal:g15.25 SM.26 -- dispatch orders. Path to a file (or `-` for "
+             "stdin) whose bytes ride the PARENT brief VERBATIM as its LAST "
+             "section, under ONE heading `## DISPATCH ORDERS (from <post>, "
+             "<ts>)`, and are recorded on the manifest (`orders: {from, "
+             "sha256, bytes, path}`). This is the missing channel for a "
+             "director's dispatch-time scope/coupling instruction -- a "
+             "parent's brief is rebuilt fresh from its target node, so prose "
+             "in the node alone cannot carry it (SM.141 trap; SM.24 "
+             "coupling). At KID tier it is the same per-kid carry-forward as "
+             "`--prompt-file` (one implementation). Read by path, never "
+             "inlined as argv.",
+    )
+    ap.add_argument(
+        "--from",
+        dest="orders_from",
+        default=None,
+        metavar="POST",
+        help="goal:g15.25 SM.26 -- the post the `--orders` heading names as "
+             "their sender. Defaults to $AGI_POST, then `unspecified`.",
+    )
+    ap.add_argument(
+        "--ring-gate",
+        default=None,
+        metavar="RING",
+        help="rung 2: name the ring whose quorum must approve this round "
+             "before any slot spawns (an approval record for the round cut); "
+             "short of m the round is REFUSED by name with the count -- "
+             "opt-in, never a default (seatsig/rings.py)",
+    )
+    ap.add_argument(
+        "--ring-fresh",
+        default=None,
+        metavar="TS|NONCE",
+        help="rung 2 freshness seam (kid D): pin the EXACT '<ts>|<nonce>' the "
+             "round-cut decision's `_fresh` field carries, so an "
+             "out-of-process signer computes the SAME canonical bytes and a "
+             "`--ring-gate` run admits at m>0. Absent -> the gate mints fresh "
+             "(a signer cannot predict it).",
+    )
+    ap.add_argument(
+        "--ring-fields",
+        action="store_true",
+        help="rung 2 signer's view (kid D): print the exact decision fields "
+             "and canonical bytes `--ring-gate` will verify for this argv "
+             "(+ `--ring-fresh`), then exit 0 -- never spawns, writes or "
+             "records a nonce.",
+    )
+    ap.add_argument(
+        "--ring-sig",
+        dest="ring_sigs",
+        action="append",
+        default=[],
+        help="rung 2: repeatable; a `<post>:<scheme>:<sig_hex>` signature "
+             "over the round-cut record backing `--ring-gate` "
+             "(seatsig/rings.py)",
+    )
     args = ap.parse_args()
+
+    # RUNG 2 round-ring gate (hypothesis:l4-a-ring-decision-carries-m-of-n-
+    # signatures) -- now signed over the FULL round-cut decision (target,
+    # level, iter_n included; hypothesis:l4-a-ring-decision-carries-m-of-n-
+    # signatures HOLE 2). OPT-IN: only when `--ring-gate <name>` is given AND
+    # the geometry names that ring is the ROUND gated; a short-of-m round is
+    # REFUSED BY NAME with the m-of-n count and nothing spawns.
+    _round_ring_decision = None
+    if args.ring_gate or args.ring_fields:
+        from seatsig import rings as _ringslib  # noqa: PLC0415
+        # FRESH seam (kid D): a caller-supplied `<ts>|<nonce>` pins the EXACT
+        # `_fresh` the gate builds, so an out-of-process signer computes the
+        # same canonical bytes (a bare mint-fresh nonce is unpredictable --
+        # the defect that made a `--ring-gate` run at m>0 impossible).
+        try:
+            _fresh = _ringslib.parse_ring_fresh(args.ring_fresh)
+        except ValueError as _ve:
+            print(f"round-ring: {_ve}", file=sys.stderr)
+            return 3
+        _t, _n = (_fresh if _fresh is not None else (None, None))
+        # FRESH (kid B): mint the round-cut decision ONCE (fresh ts|nonce) so
+        # the gate verifies, the quorum covers, and the persisted record all
+        # agree on the same bytes.
+        round_fields = _round_cut_fields(args.tier, args.role,
+                                         args.target, args.level,
+                                         args.iter_n, ts=_t, nonce=_n)
+        # SIGNER'S VIEW (kid D): print the exact bytes the gate will verify
+        # for this argv + --ring-fresh, then exit 0 -- never spawns, never
+        # records.
+        if args.ring_fields:
+            print(_ringslib.render_ring_fields(
+                "round-cut", round_fields,
+                _ringslib.canonical_bytes("round-cut", round_fields)))
+            return 0
+        refusal = _round_ring_refusal(
+            args.project_root, args.ring_gate,
+            args.tier, args.role, args.ring_sigs,
+            target=args.target, level=args.level, iter_n=args.iter_n,
+            fields=round_fields,
+            remember=not args.dry_run)
+        if refusal is not None:
+            print(f"round-ring: {refusal}", file=sys.stderr)
+            return 3
+        # RUNG 2 claim (2): the admitted round-quorum signatures are persisted
+        # onto the ONE record the round already writes -- each spawned agent's
+        # manifest/agent.json entry -- so a later reader re-verifies m-of-n
+        # from disk, never argv. The canonical fields (with the fresh ts|nonce
+        # the quorum covered) are the SAME bytes the gate just signed.
+        _round_ring_decision = _ringslib.decision_cell(
+            args.ring_gate, "round-cut", round_fields,
+            args.ring_sigs)
 
     # hypothesis:l3w3-advisor-brief addendum after L3.12 — thread the advisor's
     # pinned --goal into the assembled brief through the env (see
     # apply_advisor_goal_env). Set before any build_command runs.
     apply_advisor_goal_env(args.goal)
+
+    # goal:g15.25 SM.26 -- read --orders ONCE per invocation and export it for
+    # the parent brief (brief._orders_section). `_orders_text` is the text the
+    # manifest records and the iter dir copies; the env is what the assembled
+    # brief reads. Set before any build_command runs (dry-run included).
+    # goal:g15.25 SM.28 -- `--orders` is consumed by EXACTLY two tiers: `kid`
+    # (the per-kid carry-forward, same channel as --prompt-file) and `parent`
+    # (brief._orders_section). Every other tier read the bytes and dropped
+    # them -- measured on SM.26: `--tier director --orders <path>` exited 0
+    # with the file never opened, no heading and no note, which is the
+    # accept-and-drop class hypothesis:l4b23-promptfile-drop exists to
+    # prevent. Refuse BY NAME at argument-parsing time, before any read.
+    if args.orders is not None and args.tier not in ("kid", "parent"):
+        print(f"--orders is consumed by tier `kid` (per-kid carry-forward) "
+              f"and tier `parent` (the dispatch-orders section); tier "
+              f"`{args.tier}` neither threads nor carries it forward. "
+              f"Refusing rather than accepting-and-dropping "
+              f"(goal:g15.25 SM.28).", file=sys.stderr)
+        return 2
+    # A missing orders path must be a NAMED REFUSAL, never a
+    # FileNotFoundError traceback out of _read_prompt_file (measured: parent
+    # tier, absent path, rc 1 + traceback). `-` is stdin and has no path.
+    if (args.orders is not None and args.orders != "-"
+            and not Path(args.orders).is_file()):
+        print(f"ERR: --orders path does not exist or is not a file: "
+              f"{args.orders} (goal:g15.25 SM.28).", file=sys.stderr)
+        return 2
+    _orders_text = apply_orders_env(args)
+    # goal:g15.25 SM.28 -- the presence gate is `text.strip()`: a
+    # WHITESPACE-ONLY file is ABSENT (no heading, no copy, no record, the
+    # brief byte-identical), so the dry-run line, the manifest record and the
+    # assembled brief cannot disagree about whether orders were delivered.
+    # (Measured pre-fix: a `"   \n\t\n"` file rendered `## DISPATCH ORDERS`
+    # with a blank body and was copied and recorded.)
+    _orders_present = bool(_orders_text and _orders_text.strip())
+    if (args.tier == "kid" and args.prompt_file is not None
+            and args.orders is None):
+        print("note: --prompt-file is deprecated; use --orders (same "
+              "carry-forward channel, one implementation).", file=sys.stderr)
 
     # hypothesis:l3-dispatch-role-default — a bare --tier parent must mean
     # role parent (so it resolves the parent ladder row, never the tier-0
@@ -899,6 +2089,24 @@ def main() -> int:
     # default.
     if args.role is None:
         args.role = _default_role_for_tier(args.tier)
+
+    # hypothesis:l4b23-promptfile-drop — `--prompt-file` is the per-KID
+    # carry-forward channel (see _read_prompt_file and the --prompt-file
+    # help: "threaded into the spawned kid's brief"). A PARENT's brief is
+    # built fresh from its target node every dispatch and consumes no
+    # carry-forward (brief.assemble() threads addendum into _kid but never
+    # into _parent), so `--tier parent --prompt-file X` read X's bytes and
+    # silently threw them away. Refuse loudly at argument-parsing time
+    # instead of accept-and-drop. The parent says --prompt-file on the KID
+    # spawns it cuts, not on its own dispatch.
+    if args.tier == "parent" and args.prompt_file is not None:
+        print("--prompt-file is a per-KID carry-forward channel and does not "
+              "reach a parent's brief (a parent's brief is built fresh from "
+              "its target node every dispatch). Pass it to the KID spawns "
+              "the parent cuts, not to the parent dispatch itself. Refusing "
+              "rather than silently discarding "
+              "(hypothesis:l4b23-promptfile-drop).", file=sys.stderr)
+        return 2
 
     # goal:g11.1 — resolve the given path the way every entry point resolves
     # cwd, rather than demanding it already BE the graph root. Identity on a
@@ -921,6 +2129,17 @@ def main() -> int:
         print(f"ERR: not an agi project: {given}", file=sys.stderr)
         return 1
     cfg = json.loads(cfg_path.read_text())
+
+    # hypothesis:a-kid-under-a-credential-none-parent-inherits-its-harness-not-the-ladder-row
+    # A zero-cost parent can spawn a kid without paying for another harness.
+    # The child inherits that parent harness when it does not choose one;
+    # an explicit flag, a seat, or a non-zero-cost parent keeps the old path.
+    if (args.harness is None and args.seat is None and args.tier == "kid"):
+        inherited = os.environ.get("AGI_HARNESS")
+        inherited_row = adapters.harness_block(cfg, inherited)
+        if inherited_row.get("zero_usd") is True:
+            args.harness = inherited
+            print(f"harness: inherited zero_usd harness {inherited} from AGI_HARNESS")
 
     # hypothesis:l3w4-seat-registry — a named seat overrides the (tier, role)
     # ladder class table with the seat's own row. Resolved here, after `root`
@@ -1019,6 +2238,23 @@ def main() -> int:
                   f"effort={_spec['effort'] or '-'}/"
                   f"thinking={_spec['thinking'] or '-'}/"
                   f"settings={_spec['settings'] or '-'}")
+            # hypothesis:l4-a-model-change-is-one-write — when a ladder row
+            # wins the model, a config that still carries the legacy inputs is
+            # a NON-INPUT: ONE stderr warning naming the winning row, never a
+            # silent read. The stale cells are read nowhere after this line.
+            _legacy_model_srcs = []
+            _h = adapters.harness_block(cfg, harness_name)
+            if _h.get("models"):
+                _legacy_model_srcs.append(f"harnesses.{harness_name}.models")
+            if (cfg.get("agent_dispatch") or {}).get("model"):
+                _legacy_model_srcs.append("agent_dispatch.model")
+            if _legacy_model_srcs:
+                print(f"warn: {' and '.join(_legacy_model_srcs)} is/are "
+                      f"NON-INPUTS (hypothesis:l4-a-model-change-is-one-write); "
+                      f"ladder row (tier={tier_eff}, role={args.role}, "
+                      f"harness={_spec.get('harness')}) wins -> "
+                      f"model={_spec.get('model') or '-'}",
+                      file=sys.stderr)
         # hypothesis:l3-workflow-model-crosses-harness-namespace — the guard
         # workflow.py has carried since the incident, now on the spawn path
         # too. Every source of a model (ladder row, seat row, config fallback)
@@ -1031,6 +2267,34 @@ def main() -> int:
         if _eff_model:
             adapters.assert_model_in_provider_namespace(
                 str(_eff_model), str(dispatch_harness.get("provider") or ""))
+        # hypothesis:l4-dispatch-model-allowlist -- the fail-closed allowlist
+        # gate, same position and same reason as the namespace guard above:
+        # this is the one line every model source (ladder row, seat row,
+        # config fallback) has landed in `dispatch_harness["models"]`, so it
+        # is the single place a refusal is a refusal everywhere. A `--seat`
+        # override is not an exemption: its model is in this same dict by
+        # this line and gets the same check. No AGI_MODEL resolves for a tier
+        # with no model, so there is nothing to refuse there.
+        # hypothesis:l4-a-model-change-is-one-write -- the allowlist gate is
+        # the SAME fail-closed gate as before, but the ALLOWED set is now
+        # DERIVED: {every ladder row's model for this harness} U
+        # harnesses.<h>.allowed_extra (legacy `allowed_models` still unions in
+        # for one cut-over round and is warned once). A NEW model written into
+        # a ladder row is allowed WITHOUT an `allowed_models` edit -- the
+        # four-cells-in-three-files defect the hypothesis measures. A model no
+        # row, no extra and no legacy entry names is still refused.
+        _derived_allowed = adapters.derived_allowed_models(
+            ladder_roles, harness_name, dispatch_harness)
+        if dispatch_harness.get("allowed_models"):
+            print(f"warn: config harnesses.{harness_name}.allowed_models is "
+                  f"legacy; allowed models are now DERIVED from ladder rows + "
+                  f"harnesses.{harness_name}.allowed_extra "
+                  f"(hypothesis:l4-a-model-change-is-one-write)",
+                  file=sys.stderr)
+        _assert_allowed_model(harness_name,
+                              {**dispatch_harness,
+                               "allowed_models": sorted(_derived_allowed)},
+                              _eff_model)
         adapter = adapters.load(dispatch_harness["adapter"])
     except adapters.AdapterError as exc:
         print(f"ERR: {exc}", file=sys.stderr)
@@ -1045,13 +2309,39 @@ def main() -> int:
     # inherits the shared runtime key exactly as before, and nothing here
     # changes shape.
     cred_limit, cred_ttl = provisioning.settings(cfg)
+    # hypothesis:l4-an-untrusted-lane-earns-tier-by-signed-verdicts rung 4
+    # conjunct 2 (c) -- when the acting post (the resolved seat) is an
+    # untrusted row, its per-key budget cap is the row's `budget` cell instead
+    # of the configured default. post_limit_usd returns None for a trusted
+    # post or a capped-less untrusted row, so the default stands exactly.
+    _ut_limit = provisioning.post_limit_usd(
+        _resolved_seat(args.seat), cfg, root)
+    if _ut_limit is not None:
+        cred_limit = _ut_limit
+    # --cap overrides the standing default and any per-post cap for THIS round.
+    if args.cap is not None:
+        cred_limit = float(args.cap)
+    # hypothesis:a-zero-usd-lane-prints-the-cap-it-mints -- provisioning.mint
+    # FORCES limit_usd = zero_usd_key_limit(root) when the lane is zero-USD
+    # (provisioning.mint, the `if zero_usd:` line), so on such a lane the
+    # number resolved above is a promise no key keeps. Resolve the SAME cell,
+    # in the SAME order as the mint (AFTER the --cap override, because the
+    # mint overrides the flag it is handed), and the banner announces the cap
+    # the key will actually carry. One source of truth, no new literal.
+    if dispatch_harness.get("zero_usd") is True:
+        cred_limit = provisioning.zero_usd_key_limit(root)
     cred_ws = provisioning.workspace(cfg)
     issuing = provisioning.available(root)
-    if issuing:
+    # hypothesis:l4-needs-credential-is-provider-gated -- this banner is a
+    # claim about THIS spawn, so it obeys the same allowlist the mint site
+    # below does. A harness row marked `credential: "none"` (pi-local, and
+    # claude-code/copilot-cli through their own adapters) mints nothing and
+    # must not announce that it will.
+    if issuing and adapters.needs_credential(dispatch_harness):
         print(f"credentials: minting per spawn, limit=${cred_limit} "
               f"ttl={cred_ttl}min"
               + (f" workspace={cred_ws}" if cred_ws else " workspace=(default)"))
-    big_split = float(cfg.get("big_idea_vs_small_idea_split", 0.3))
+    big_split = big_split_threshold(cfg)
     timeout_min = int(cfg.get("agent_timeout_mins", 10))
     pipeline_template = args.template or cfg.get("pipeline_template")
 
@@ -1064,15 +2354,15 @@ def main() -> int:
     else:
         print(f"season: ladder current_season={current_season}")
 
-    # hypothesis:l3-cli-done-worktree-manifest — the session dir (per-agent
-    # `agent.json`, the iteration `manifest.json`, `output.log`) is the LOOP'S
-    # bookkeeping and stays ONE body across worktrees, resolved to the MAIN
-    # checkout through `shared_project_root` — the same rule as the spawn
-    # budget, comms root and meter pins. A `--branch` spawner (cwd = worktree)
-    # still writes every agent's record where the director (main) and a later
-    # `cli.py done` from any worktree expect it. The graph a kid edits stays
-    # `root`/`child_graph` (forked).
-    sess_root = locations.shared_project_root(root) or root
+    # hypothesis:l4-seat-session-iter-dirs (half a) — iter-<id>/ session dirs
+    # (per-agent `agent.json`, the iteration `manifest.json`, `output.log`)
+    # resolve to the WORKTREE that made them, so a seat harvests its own
+    # round from its own tree. This REVERSES the L3.38 `l3-cli-done-worktree-
+    # manifest` rule that routed every agent's record into the MAIN checkout
+    # through `shared_project_root`. Only the spawn budget, comms root and
+    # meter pins stay on `shared_project_root` (they are a tree-wide bound and
+    # must not fork); the graph a kid edits stays `root`/`child_graph` (forked).
+    sess_root = root
     iter_dir = locations.iteration_dir(sess_root, args.iter_n)
     # Deferred `.mkdir()` until AFTER the dry-run return: a dry-run must not
     # create a session dir (hypothesis:l3-dispatch-dry-run).
@@ -1110,6 +2400,17 @@ def main() -> int:
             print(msg, file=sys.stderr)
             return code
 
+    # hypothesis:l4-an-untrusted-lane-earns-tier-by-signed-verdicts rung 4
+    # conjunct 2 (a) -- refuse an UNTRUSTED spawner before any lease, session
+    # dir, manifest, scaffold or credential is taken. The untrusted lane may
+    # write only its own worktree; it never dispatches. The acting post is
+    # the resolved seat (--seat > AGI_POST); absent a seat the gate fails
+    # open (nothing to prove).
+    _ut_spawner = _refuse_untrusted_spawner(root, _resolved_seat(args.seat))
+    if _ut_spawner:
+        print(_ut_spawner, file=sys.stderr)
+        return 2
+
     # hypothesis:l3-dispatch-dry-run — a dry run resolves everything the live
     # path resolves (target, tier, role, ladder tier, brief tier via
     # `_brief_tier_for`, model and effort rows, env exports) then assembles the
@@ -1144,40 +2445,140 @@ def main() -> int:
         except (json.JSONDecodeError, OSError):
             print(f"warn: corrupt manifest at {manifest_path}, starting fresh", file=sys.stderr)
 
+    # hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — the ceiling that
+    # `spawn.parent_max_kids` already prints into the parent brief is now ALSO
+    # a refusal. A parent (AGI_AGENT_ID set) whose own KID dispatches in this
+    # iteration's manifest would cross the ceiling exits 2 HERE — before a
+    # spawn-budget slot lease, before minting a session dir, before scaffold.
+    # Counts `spawned_by_agent == this parent` in the merged manifest and adds
+    # what THIS invocation would spawn. Fail-open when AGI_AGENT_ID is absent
+    # (a director or a human at a shell), like the stale-base gate.
+    if args.tier == "kid":
+        _kid_gate = _parent_kid_ceiling_gate(manifest, cfg, len(targets))
+        if _kid_gate:
+            _cg_code, _cg_msg = _kid_gate
+            print(_cg_msg, file=sys.stderr)
+            return _cg_code
+
     # Records created by THIS invocation. The authoritative merge happens once,
     # at the end, under lock and against a fresh read -- see `_merge_manifest`.
     new_records: list[dict] = []
+
+    # hypothesis:l4-a-kid-spawn-of-an-admitted-live-round-is-exempt-from-the-
+    # account-floor-so-a-round-straddling-the-floor-finishes — a round admitted
+    # above the floor must not die at its first kid, so a kid whose parent
+    # (AGI_AGENT_ID) is a LIVE record in the current iter manifest skips the
+    # ACCOUNT floor only; the key floor still runs. Computed here (before the
+    # pre-flight) and threaded to the kid's manifest record below.
+    _acc_exempt = None
+    if args.tier == "kid":
+        _acc_exempt = _kid_account_floor_exemption(manifest)
     # goal:g4.8 item 3 — slots the budget refused. Recorded rather than
     # dropped: a slot that silently did not spawn is indistinguishable from
     # one that spawned and died, which is the same invisibility the manifest
     # race produced.
     unadmitted: list[dict] = []
 
-    # hypothesis:l3-openrouter-key-headroom-invisible — pre-flight BEFORE any
-    # slot takes a budget lease. The one number that can kill every pi agent
-    # (the runtime sub-key's remaining balance, which OpenRouter reports as
-    # "401 API key expired" when crossed) should surface as a named refusal
-    # rather than a silent round-destroying death 60 minutes in. The check is
-    # fail-open on absence or a network error — an unreachable API must never
-    # block a round — and applies only to an openrouter harness, whose runtime
-    # key carries its own dollar cap.
+    # hypothesis:l3-openrouter-key-headroom-invisible AND l4-the-floor-guards-
+    # the-key-that-drains — pre-flight BEFORE any slot takes a budget lease.
+    # l3: the runtime sub-key's remaining balance (which OpenRouter reports as
+    # "401 API key expired" when crossed) surfaces as a named refusal. l4:
+    # rounds bill to MINTED per-spawn keys, so the floor must ALSO consult the
+    # outstanding engine-minted keys, or it reads a number that cannot move.
+    # Both checks are fail-open on absence or a network error — an unreachable
+    # API must never block a round — and both apply only to an openrouter
+    # harness, whose keys carry their own dollar caps.
+    # belam 09-27 13:1xZ (owner, account drained): a ZERO-USD lane skips the
+    # key and account floors -- its minted key is hard-capped instead
+    # (provisioning.zero_usd_key_limit_usd); paid lanes keep every gate.
     if dispatch_harness.get("provider") == "openrouter":
-        _hkey_ok, _hkey_msg = provisioning.check_runtime_key_floor(cfg, root)
-        if not _hkey_ok:
-            print(f"ERR: {_hkey_msg}", file=sys.stderr)
+        # this round's REQUIRED (d)/(e): the provisioning-ABSENT gate. With
+        # provisioning LIVE this short-circuits True (the spawn mints its own
+        # key, so a dead runtime key must not block -- L4.98). With it ABSENT,
+        # the runtime key IS the spawn's credential, so a 401 makes the pre-
+        # flight refuse here, BEFORE any budget slot below is taken.
+        _rtk_ok, _rtk_msg = provisioning.check_runtime_key_usable(cfg, root)
+        if not _rtk_ok:
+            print(f"ERR: {_rtk_msg}", file=sys.stderr)
             return 1
+        # the two DOLLAR floors below are the only gates a zero-USD lane skips
+        # (its minted key is hard-capped instead); the runtime-key gate above
+        # and the --cap guard below run for EVERY openrouter lane, so the
+        # split is a de-indent, not a reordered paid path.
+        if dispatch_harness.get("zero_usd") is not True:
+            _hkey_ok, _hkey_msg = provisioning.check_key_floor(
+                cfg, root, iter_n=args.iter_n)
+            if not _hkey_ok:
+                print(f"ERR: {_hkey_msg}", file=sys.stderr)
+                return 1
+            # conjunct (1) of hypothesis:l4-workflow-residue-sub-floor-marker-dead-
+            # code-and-truncation: ok=True still means dispatch proceeds, but a
+            # (True, <marker>) return NAMES a skipped sub-floor minted key. A
+            # marker returned to a caller that ignores it is the falsifier, so
+            # it reaches a surface here as a NOTICE, before the account-floor block.
+            if _hkey_ok and _hkey_msg:
+                print(f"notice: {_hkey_msg}", file=sys.stderr)
+            # hypothesis:l4-the-floor-must-watch-the-account — ADDITIVE to the key
+            # floor, never replacing it. Rounds bill to the ACCOUNT, which the key
+            # floor cannot see, so a drained account must refuse a spawn the same
+            # way a drained key does. Fail-closed on a present reading below,
+            # fail-open on absence or a network error (see check_account_floor).
+            if _acc_exempt is not None:
+                print(f"account floor: exempt — kid of admitted live round "
+                      f"{_acc_exempt[0]} pid {_acc_exempt[1]}", file=sys.stderr)
+            else:
+                _acc_ok, _acc_msg = provisioning.check_account_floor(cfg, root)
+                if not _acc_ok:
+                    print(f"ERR: {_acc_msg}", file=sys.stderr)
+                    return 1
+        # conjunct (2): a --cap over headroom REFUSES by name before any mint.
+        if args.cap is not None:
+            # hypothesis:...cap-notices item 14: a non-positive cap always
+            # fits the comparison below, so it must never reach it.
+            if float(args.cap) <= 0:
+                print(f"ERR: --cap must be > 0, got {args.cap:g}",
+                      file=sys.stderr)
+                return 1
+            # item 13: the slot loop mints ONE key per slot, so price the
+            # round at cap x slots -- n read from THIS resolved cfg.
+            _slots = max(1, adapters.parallelism(cfg))
+            # hypothesis:a-zero-usd-lane-prints-the-cap-it-mints -- price the
+            # guard at the cap this round will MINT (`cred_limit`, which for a
+            # zero_usd lane is already the zero_usd_key_limit cell, resolved
+            # above), never at the pre-override `--cap`: a zero_usd lane
+            # provably cannot spend 1.00, so a guard measuring 1.00 refuses a
+            # cap the round cannot overspend. `exempt_floor` keeps the account
+            # floor out of the price for exactly the lane that is exempt from
+            # it at check_account_floor (side door, not a floor).
+            _cap_ok, _cap_msg = provisioning.cap_headroom(
+                cfg, root, cred_limit * _slots, slots=_slots,
+                exempt_floor=dispatch_harness.get("zero_usd") is True)
+            if not _cap_ok:
+                print(f"ERR: {_cap_msg}", file=sys.stderr)
+                return 1
+            # item 12: a fail-open return is never silent -- the SAME marker
+            # string is the sentence a reader sees, exactly like `_hkey_msg`.
+            if _cap_msg:
+                print(f"notice: {_cap_msg}", file=sys.stderr)
 
+    # goal:g15.25 SM.28 -- the orders copy travels WITH the round, so it is
+    # written INSIDE the slot loop below (see the write above Popen): keyed by
+    # the agent id the manifest record is keyed by, below every per-slot
+    # refusal gate (lease, zoom render, harness/model, mint) so a refused
+    # dispatch leaves NO orphan file, and above Popen so a spawned agent's
+    # manifest record can name the copy that actually rode its round.
+    # Measured pre-fix: ONE `<iter>/orders.<from>.md` written ABOVE the gates,
+    # so two parents collided on one file and a round refused at a gate left
+    # orders.md with no manifest.json beside it.
     for slot, target_entry in enumerate(targets):
         if len(target_entry) == 4:
             level, target, strategy, role = target_entry
         else:
             level, target, strategy = target_entry
             role = None
-        # Decide big-vs-small based on config split when "auto"
-        if level == "auto":
-            level = "big" if random.random() < big_split else "small"
-            if level == "small" and target is None:
-                level = "big"  # no target → fall back to big
+        # Decide big-vs-small when "auto" through the resolver the dry run
+        # shares, so a dry report's level is a level this round can take.
+        level = resolve_auto_level(level, big_split, target)
 
         agent_id = f"a{slot:02d}-{uuid.uuid4().hex[:8]}"
         sess_dir = iter_dir / agent_id
@@ -1188,7 +2589,8 @@ def main() -> int:
         # costs no zoom render and leaves no orphan scaffold behind; the lease
         # is released on every path below that gives up on spawning.
         lease = spawn_budget.acquire(
-            root, cap, agent_id, tier=args.tier, iter_n=args.iter_n)
+            root, cap, agent_id, tier=args.tier, iter_n=args.iter_n,
+            harness=harness_name)
         if lease is None:
             # hypothesis:l3-reaper-restarts-through-stop — a refused lease
             # while paused is not "full"; "0/25, refused" read as a budget
@@ -1248,12 +2650,45 @@ def main() -> int:
         if args.branch:
             base = spawner_base_branch(Path.cwd())
             if not base:
-                print(f"ERR {agent_id} slot={slot}: --branch requires a "
-                      f"checked-out branch (detached HEAD?) to cut a child "
-                      f"from", file=sys.stderr)
+                print(f"ERR {agent_id} slot={slot}: {DETACHED_HEAD_REFUSAL}",
+                      file=sys.stderr)
                 spawn_budget.release(lease)
                 return 1
+            # hypothesis:l4-a-round-is-cut-from-the-branch-you-are-on
+            # HALF A — freshness guard: a round is only as fresh as this base.
+            # Refuse to cut the worktree when the base is behind the
+            # integration branch, unless an explicit --allow-stale-base reason
+            # makes it a conscious override. fail-open: an unreachable origin
+            # is a note, never a block (an unreachable remote is not a
+            # workflow issue).
+            stale = _stale_base_spawn(Path.cwd(), current_season,
+                                      _current_town_branch(Path.cwd(),
+                                                            root / "nodes"))
+            if stale["status"] == "behind" and not args.allow_stale_base:
+                print(json.dumps(_stale_base_record(stale, current_season,
+                                                    _current_town_branch(
+                                                        Path.cwd(),
+                                                        root / "nodes"))),
+                      file=sys.stderr)
+                spawn_budget.release(lease)
+                return 3  # must-pick: no resolving choice, no spawn
+            elif stale["status"] == "unchecked":
+                print(f"note {agent_id} slot={slot}: freshness of base "
+                      f"unchecked (origin/{branches.season_main(current_season)} "
+                      f"unreachable); spawn proceeds", file=sys.stderr)
             branch = loop_branch_name(target, agent_id, current_season)
+            # goal:g7.16.1.5.4: a RAM disk over the guard's line HOLDS the
+            # launch (named, recorded unadmitted), never a checkout into it.
+            _hold = ram_worktree_hold(root)
+            if _hold:
+                print(f"unadmitted {agent_id} slot={slot}: HOLD -- {_hold}",
+                      file=sys.stderr)
+                spawn_budget.release(lease)
+                unadmitted.append({"id": agent_id, "slot": slot,
+                                   "tier": args.tier, "target": target,
+                                   "status": "unadmitted", "reason": _hold,
+                                   "at": int(time.time())})
+                continue
             try:
                 wt = branch_worktree_for_spawn(root, branch, agent_id, base)
             except RuntimeError as exc:
@@ -1267,6 +2702,12 @@ def main() -> int:
                 "base_branch": base,
                 "worktree": str(wt),
             }
+            if stale["status"] == "behind":
+                # An allowed stale base is a conscious override: record the
+                # user-supplied reason and the measured gap on the branch_ref
+                # so merge-up and the round record show WHY it was cut stale.
+                branch_ref["stale_base_reason"] = args.allow_stale_base
+                branch_ref["behind_base"] = stale["behind"]
             spawn_budget.attach_branch(lease, branch_ref)
 
         # hypothesis:l3-branch-source-paths-never-rerooted parts 1-2 -- the
@@ -1278,7 +2719,7 @@ def main() -> int:
         engine_paths = child_engine_paths(child_graph)
 
         zoom_cmd = zoom_command(child_graph, args.iter_n, agent_id, level, target,
-                               push_further=args.push_further)
+                               push_further=args.push_further, tier=args.tier)
         try:
             ctx_path = subprocess.run(
                 zoom_cmd, capture_output=True, text=True, check=True
@@ -1288,8 +2729,8 @@ def main() -> int:
             # scoring can only return ids it just read out of the graph, but a
             # hand-passed `--target` can name anything. Say which id failed
             # instead of surfacing a CalledProcessError traceback.
-            print(f"ERR: no context for target {target!r} at level {level}: "
-                  f"{(exc.stderr or '').strip()}", file=sys.stderr)
+            print(_no_context_refusal(
+                target, level, (exc.stderr or "").strip()), file=sys.stderr)
             if branch_ref:
                 drop_branch_worktree(root, branch_ref["worktree"])
             spawn_budget.release(lease)
@@ -1329,6 +2770,11 @@ def main() -> int:
             }
             extra_fm = ({"pushed_from": args.target}
                         if args.push_further and args.target else None)
+            if args.tier == "kid" and target:
+                _slice, _k, _ = spawn_budget.node_line_ceiling(
+                    child_graph, target, cfg)
+                if _k > 1:
+                    extra_fm = dict(extra_fm or {}, line_ceiling=_slice)
             scaffold_info = _scaffold_node_for_agent(
                 child_graph, args.iter_n, agent_id, level, target, role,
                 stamp=child_stamp, extra_fm=extra_fm)
@@ -1338,7 +2784,32 @@ def main() -> int:
                     print(f"push-further: {args.target} -> "
                           f"{scaffold_info['node_id']}")
 
+        # The brief, rendered ONCE here so the spawn argv and spawn.json carry
+        # the SAME first turn (hypothesis:the-spawned-agents-first-turn-is-the-
+        # render). Rendered BEFORE build_command so the adapter takes this
+        # text instead of assembling a second, possibly different, one.
+        try:
+            _brief_text = _render_dispatch_brief(
+                root=root, tier=_brief_tier_for(args.tier, tier_eff, target),
+                role=args.role, harness=harness_name,
+                agent_id=agent_id, iter_n=args.iter_n,
+                cli_py=engine_paths["cli_py"],
+                dispatch_py=engine_paths["dispatch_py"],
+                scaffold=scaffold_info,
+                source_root=engine_paths["source_root"],
+                target=target,
+                parallel=adapters.parallelism(cfg),
+                max_live=cap,
+                kid_ceiling=spawn_budget.parent_max_kids(cfg),
+                addendum=_read_prompt_file(_effective_carry_forward(args)),
+                session_dir=sess_dir)
+        except BaseException as exc:  # never let a brief render break spawn
+            print(f"dispatch: brief render failed ({exc}); the adapter will "
+                  f"assemble the legacy brief", file=sys.stderr)
+            _brief_text = None
+
         # Spawn pi (detached). Output -> sess_dir/output.log
+        minted = None  # set iff a per-spawn credential was minted for THIS slot
         try:
             spawn_args = adapter.build_command(
                 harness=dispatch_harness,
@@ -1350,6 +2821,7 @@ def main() -> int:
                 # the assembled brief changes.
                 brief_tier=_brief_tier_for(args.tier, tier_eff, target),
                 context_file=ctx_path,
+                rendered_brief=_brief_text,
                 agent_id=agent_id,
                 iter_n=args.iter_n,
                 sess_dir=sess_dir,
@@ -1373,15 +2845,39 @@ def main() -> int:
                 # hypothesis:l3-parent-never-told-to-iterate, carry-forward
                 # axis (SD.12) -- the per-kid brief channel. Read once per
                 # invocation so the same text threads the whole batch.
-                addendum=_read_prompt_file(args.prompt_file),
+                addendum=_read_prompt_file(_effective_carry_forward(args)),
                 # hypothesis:l3-cc-tools-by-tier -- who this agent is on the
                 # ladder selects its tool bundle (kids keep the closed list;
                 # advisors/directors add the ultracode/loop tools).
                 role=args.role,
                 ladder_tier=tier_eff,
+                # hypothesis:l4-brief-resolves-g15-lineage-from-the-nearest-agi
+                # -- hand the adapter the project graph root the dispatcher
+                # resolved, so the assembled brief's g15 build-order rule is
+                # decided against the PROJECT's `.agi`, not against brief.py's
+                # own (the engine's) location. On this repo they coincide; in a
+                # cloned engine (CLAUDE.md layout) they do not.
+                project_root=root,
             )
             spawn_env = adapter.child_env(harness=dispatch_harness, base=scrubbed_env(),
                                            tier=args.tier)
+            # hypothesis:l4-needs-credential-is-provider-gated -- the
+            # credential-none drop lives INSIDE child_env now
+            # (`adapters.drop_unneeded_credential`). A harness that needs no
+            # credential is no longer HANDED one on ANY spawn path -- main,
+            # restart, or a future one -- because the rule is one function the
+            # adapters call, not a pop each call site must remember. The mint
+            # below re-adds the key when `needs_credential` is true, so the
+            # default-mint path is unchanged.
+            # hypothesis:l4-spawn-paths-export-the-reaper-knob -- the harness
+            # reaps "background" shells on a Bun memoryPressure signal; the
+            # only gate is CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP (read
+            # verbatim from the installed claude-code bundle). Set it
+            # UNCONDITIONALLY to defeat it for every spawn: an inherited "0"
+            # would otherwise re-arm the reaper silently, and an inherited
+            # value is one tmux restart from gone. This is the spawn surface;
+            # it must not live in config, nodes, or a shell profile.
+            spawn_env["CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP"] = "1"
             # goal:l2-agent-git-commit-guard -- belt: refuse git write for
             # automated agent tiers (kid, parent).  AGI_TIER distinguishes
             # machine from human; GIT_CONFIG tells git to use our hooks
@@ -1411,6 +2907,29 @@ def main() -> int:
             # inventing a per-tool fallback (tmux window name / $USER).
             spawn_env["AGI_AGENT_ID"] = agent_id
             spawn_env["AGI_ACTOR"] = agent_id
+            # hypothesis:l4-dispatch-exports-seat — the seat under which this
+            # agent records provenance must exist in the env, or the write-log
+            # `seat` key L4.06 added is empty for every dispatched agent.
+            # Precedence: --seat wins; an inherited AGI_POST (the post's own
+            # unit env, or the manual export the help text documents)
+            # survives when --seat is absent.
+            # base=scrubbed_env() already carries an inherited AGI_POST, so
+            # only the --seat override must be written here.
+            seat_val = _resolved_seat(args.seat)
+            if seat_val:
+                spawn_env["AGI_POST"] = seat_val
+            # hypothesis:every-spawn-exports-its-own-resolved-harness-as-agi-harness --
+            # hand the child the harness resolved FOR IT, not merely inherit the
+            # parent's AGI_HARNESS (the same resolved spec the spawn above used, no literal)
+            spawn_env["AGI_HARNESS"] = harness_name
+            # hypothesis:a-no-model-round-refuses-a-model-load-in-every-process-
+            # it-spawns -- the fence rides the CHILD ENV (inheritable by every
+            # process it starts), never argv. No flag, no `spawn.no_model`
+            # cell -> the round is unfenced, exactly as before.
+            apply_model_fence_env(
+                spawn_env, cfg,
+                enabled=model_fence_requested(cfg, args.no_model),
+                cap=args.model_fence_max_bytes)
             if args.tier in ("kid", "parent"):
                 plugin_root = Path(__file__).resolve().parent.parent
                 hooks_dir = plugin_root / "hooks" / "agent-git"
@@ -1444,7 +2963,8 @@ def main() -> int:
                 minted = provisioning.mint(
                     iter_n=args.iter_n, agent_id=agent_id, tier=args.tier,
                     limit_usd=cred_limit, ttl_minutes=cred_ttl,
-                    workspace_id=cred_ws, root=root)
+                    workspace_id=cred_ws, root=root,
+                    zero_usd=dispatch_harness.get("zero_usd") is True)
                 if minted is not None:
                     spawn_env[provisioning.RUNTIME_KEY_VAR] = minted.secret
                     spawn_budget.attach_credential(lease, minted.key_hash)
@@ -1458,6 +2978,12 @@ def main() -> int:
             if branch_ref:
                 drop_branch_worktree(root, branch_ref["worktree"])
             spawn_budget.release(lease)
+            # A node was already scaffolded for this agent and the spawn died
+            # before minting, so no agent record will follow: deprecate the
+            # scaffold and name it the same way every other failure seam does.
+            _report_unregistered_scaffold(
+                root, scaffold_info, agent_id,
+                detail=f"could not mint a credential: {exc}")
             return 1
         except (KeyError, NotImplementedError) as exc:
             # A tier with no model, or a declared-but-unimplemented harness.
@@ -1468,12 +2994,35 @@ def main() -> int:
             if branch_ref:
                 drop_branch_worktree(root, branch_ref["worktree"])
             spawn_budget.release(lease)
+            # Same shared shape: scaffolded node, no agent record will follow,
+            # a config error (missing model / unimplemented harness) killed the
+            # spawn before the registration step. Deprecate and name it.
+            _report_unregistered_scaffold(
+                root, scaffold_info, agent_id,
+                detail=f"harness {harness_name!r} cannot spawn tier "
+                       f"{args.tier!r}: {exc}")
             return 1
+        # goal:g15.25 SM.28 -- the orders copy for THIS slot, keyed by the
+        # agent id the manifest record is keyed by (`<iter>/orders.<agent>.md`),
+        # written here -- below every per-slot refusal gate above (lease, zoom
+        # render, harness/model, mint) and above Popen -- so a refused
+        # dispatch leaves no orphan file.
+        _orders_file: Path | None = None
+        if _orders_present and args.tier == "parent":
+            _orders_file = iter_dir / f"orders.{agent_id}.md"
+            # the iter dir's per-agent orders copy -- a session artefact
+            _orders_file.write_text(_orders_text, encoding="utf-8")
         log_file = sess_dir / "output.log"
-        try:
-            with open(log_file, "wb") as logf:
-                proc = subprocess.Popen(
-                    spawn_args,
+        # A round that dies at its FIRST call leaving only the catalogue
+        # warning and a 5xx signature is a dead round nobody re-runs. The
+        # lease is held by THIS process here, so a re-spawn lands under the
+        # SAME lease, agent id, worktree and log.
+        _mem_cap = mem_cap.resolve_memory_cap(cfg, override=args.memory)
+
+        def _open_round(mode: str):
+            with open(log_file, mode) as logf:
+                return subprocess.Popen(
+                    mem_cap.wrap_argv(spawn_args, _mem_cap, cfg),
                     stdout=logf,
                     stderr=subprocess.STDOUT,
                     stdin=subprocess.DEVNULL,
@@ -1481,6 +3030,11 @@ def main() -> int:
                     cwd=str(branch_root),
                     env=spawn_env,
                 )
+
+        _attempt = 1
+        _sig = None
+        try:
+            proc = _open_round("wb")
         except BaseException:
             # Nothing was started, so nothing holds the slot. Give it back
             # now rather than leaving it to expire with this process, and if
@@ -1489,7 +3043,63 @@ def main() -> int:
             if branch_ref:
                 drop_branch_worktree(root, branch_ref["worktree"])
             spawn_budget.release(lease)
-            raise
+            # No process exists, so no round consumed the copy: drop it rather
+            # than leave an orders file with no agent record to name it.
+            if _orders_file is not None:
+                _orders_file.unlink(missing_ok=True)
+            # hypothesis:l4-dispatch-exits-non-zero-and-deprecates-the-scaffold-
+            # when-no-agent-record-follows-a-scaffolded-node -- a node was
+            # scaffolded for this agent but the registration step (the Popen
+            # that hands the slot to a pid) failed, so no agent record will
+            # exist. L4.327 measured dispatch reporting success over exactly
+            # this: a parent paid 480s on a spawn that never registered.
+            # Name it: deprecate the scaffold (never left live) and exit a
+            # NAMED code -- never 0 over an orphan.
+            _report_unregistered_scaffold(root, scaffold_info, agent_id)
+            return 4
+        while True:
+            if _await_startup(proc) or proc.returncode == 0:
+                break
+            _sig = _startup_death_is_transient(log_file)
+            if _sig is None:
+                break
+            if _attempt >= _GRACE_MAX_ATTEMPTS:
+                # Exhausted on a transient death: refuse BY NAME and give the
+                # slot back, never register a round that will do no work.
+                print(f"ERR: dispatch {agent_id} died transiently "
+                      f"(signature: {_sig}) on all {_GRACE_MAX_ATTEMPTS} "
+                      f"attempts; refusing", file=sys.stderr)
+                if branch_ref:
+                    drop_branch_worktree(root, branch_ref["worktree"])
+                spawn_budget.release(lease)
+                # No round will consume the orders copy and no agent record
+                # will follow the scaffold: the same cleanup + named issue
+                # line as the rc-4 seams, never a live orphan behind rc 5.
+                if _orders_file is not None:
+                    _orders_file.unlink(missing_ok=True)
+                _report_unregistered_scaffold(
+                    root, scaffold_info, agent_id,
+                    detail=f"died transiently (signature: {_sig}) on all "
+                           f"{_GRACE_MAX_ATTEMPTS} attempts")
+                return 5
+            _sleep_s = _GRACE_BACKOFF_S[_attempt - 1]
+            with open(log_file, "ab") as _af:
+                _af.write(
+                    ("\n# dispatch: transient startup death (signature: "
+                     f"{_sig}); re-spawning (attempt {_attempt + 1}/"
+                     f"{_GRACE_MAX_ATTEMPTS}) in {_sleep_s}s\n").encode())
+            _GRACE_SLEEP(_sleep_s)
+            _attempt += 1
+            try:
+                proc = _open_round("ab")
+            except BaseException:
+                if branch_ref:
+                    drop_branch_worktree(root, branch_ref["worktree"])
+                spawn_budget.release(lease)
+                if _orders_file is not None:
+                    _orders_file.unlink(missing_ok=True)
+                _report_unregistered_scaffold(root, scaffold_info, agent_id)
+                return 4
         # goal:g4.8 item 3 — the lease changes hands the instant a pid exists.
         # Until this line the reservation is held by THIS process; after it,
         # by the agent. That is what makes the bound survive a dispatcher
@@ -1509,9 +3119,80 @@ def main() -> int:
             "context_file": ctx_path,
             "log_file": str(log_file),
             "harness": harness_name,
+            # hypothesis:l4-needs-credential-is-provider-gated -- the config
+            # row reaches the RESTART path. dispatch.py:restart reads
+            # `rec.get("harness_spec")` but nothing wrote it, so a restarted
+            # pi-local kid got `{}`, `needs_credential({})` answered True, and
+            # the inherited OPENROUTER_API_KEY came back on the one path the
+            # round-2 pop did not cover. Recorded here (the row as dispatched,
+            # after seat/ladder overrides) so the shared child_env rule fires
+            # on restart too. Rows are config, not secrets; the minted key is
+            # never in the row.
+            "harness_spec": dict(dispatch_harness),
             "tier": args.tier,
+            # hypothesis:restart-carries-the-first-spawns-full-turn-and-
+            # identity -- the restart rebuilds the first spawn's argv, so it
+            # needs the first spawn's IDENTITY, not just its brief text. Record
+            # the seat role (the record's `role` above is the per-TARGET role
+            # and may be null), the ladder/brief tiers and the engine paths the
+            # first spawn passed. `spawn_role` is null for an old record, and
+            # the restart falls back to `role`.
+            "spawn_role": args.role,
+            "ladder_tier": tier_eff,
+            "brief_tier": _brief_tier_for(args.tier, tier_eff, target),
+            "cli_py": str(engine_paths["cli_py"]),
+            "skill_prompt": str(engine_paths["skill_prompt"]),
+            "dispatch_py": str(engine_paths["dispatch_py"]),
             "command": " ".join(shlex.quote(a) for a in spawn_args),
+            # SM.112 -- the cap this round was launched under (None = no
+            # wrapper), so a capped death can be NAMED from the record.
+            "memory_max": _mem_cap,
+            # hypothesis:l4-a-round-alarms-its-dispatcher-by-default --
+            # WHO must be alarmed when this round finishes, stamped at spawn
+            # with NO flag. The dispatcher is the resolved seat (--seat, else the
+            # inherited AGI_POST); absent both, the key is
+            # present-but-null and the completion/dm path prints ONE stderr
+            # line naming the gap rather than guessing a pane identity. Never
+            # inferred from a tmux window name or $USER (identity supplied).
+            "dispatched_by": _resolved_seat(args.seat),
+            # hypothesis:l4-the-harvest-completion-dm-resolves-the-iter-dir-
+            # from-the-dispatching-seats-own-tree -- the DISPATCHING seat's
+            # OWN graph root at spawn; NOT the agent's `worktree` below (the
+            # --branch checkout, the CHILD's tree).
+            # hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — WHO
+            # spawned this kid, by agent id (not seat): the parent-kid
+            # ceiling gate (_parent_kid_ceiling_gate) counts these records
+            # in the current iteration manifest to refuse a parent whose own
+            # kid dispatches would cross spawn.parent_max_kids. None for a
+            # director or a human at a shell (no AGI_AGENT_ID), which also
+            # keeps the gate fail-open.
+            "spawned_by_agent": os.environ.get("AGI_AGENT_ID"),
+            "dispatched_from_tree": str(root),
         }
+        # goal:g15.25 SM.26 -- the parent record NAMES what the parent was
+        # told: the sender, the sha256/byte count of the exact orders bytes,
+        # and the source path. A harvest review can then read (and verify) the
+        # director's word from the record, never re-derive it from prose.
+        if _orders_present and _orders_file is not None:
+            _obytes = _orders_text.encode("utf-8")
+            agent_record["orders"] = {
+                "from": os.environ.get("AGI_ORDERS_FROM") or "",
+                "sha256": hashlib.sha256(_obytes).hexdigest(),
+                "bytes": len(_obytes),
+                # the ABSOLUTE path of the copy that actually rode the round,
+                # so a harvest review reads the bytes the parent was handed
+                # rather than re-resolving the dispatcher's argv.
+                "path": str(_orders_file.resolve()),
+            }
+        # hypothesis:l4-a-kid-spawn... — record the exemption on the kid record
+        # so a reader can see the round was admitted on a live-parent grace.
+        if _acc_exempt is not None:
+            agent_record["account_floor"] = "exempt-live-round"
+        if _round_ring_decision is not None:
+            # The round the ring approved cut this agent; its quorum proof
+            # (kind + signed fields + signatures) rides on the SAME record
+            # the round writes, so a reader re-verifies the round from disk.
+            agent_record["ring_decision"] = _round_ring_decision
         if branch_ref:
             # hypothesis:l3w4-parent-branch-merge-up — the recorded
             # base_branch is what season.py merge-up targets (ADDENDUM item
@@ -1524,6 +3205,22 @@ def main() -> int:
             agent_record["node_id"] = scaffold_info.get("node_id", "")
             agent_record["parent"] = scaffold_info.get("parent", "")
         (sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))
+        # hypothesis:l4-dispatch-echoes-less-than-it-knows -- LOW-DOX debug
+        # artifact, not a stdout dump. Everything a debugger needs (the full
+        # child env, the full brief, the argv) that the one-line spawn
+        # contract deliberately OMMITS from stdout is recorded here, in the
+        # session dir, where a reader opens it on purpose. Env values are
+        # REDACTED to their last 4 chars by name-pattern and value-shape; the
+        # child's real env is untouched. A failure here must never take the
+        # spawn down -- the spawn is the contract, this is a debugger's nicety.
+        # `_brief_text` was rendered ONCE above, before build_command, and is
+        # the SAME string the spawn argv carries -- no second compute.
+        (sess_dir / "spawn.json").write_text(json.dumps({
+            "agent_id": agent_id,
+            "argv": spawn_args,
+            "env": _redact_env_map(spawn_env),
+            "brief": _brief_text or "<brief render failed>",
+        }, indent=2))
         # hypothesis:l3-meter-own-transcript -- once the child prints its
         # first stream-json event, capture its session_id into this agent's
         # `.meter` pin so its OWN rotate meter reads its OWN transcript and
@@ -1543,9 +3240,22 @@ def main() -> int:
         else:
             manifest["agents"].append(agent_record)
         new_records.append(agent_record)
-        print(f"spawned {agent_id} pid={proc.pid} harness={harness_name} "
-              f"tier={args.tier} level={level} target={target or '-'} "
-              f"strategy={strategy}")
+        # hypothesis:l4-dispatch-echoes-less-than-it-knows -- the ONE-LINE
+        # spawn contract: everything a pi PARENT (reading this as a tool
+        # result) or a Claude seat needs to poll one spawn, in one line,
+        # with the per-spawn credential named by NAME and CAP, never by value
+        # or prefix. The env, the brief and the argv are in spawn.json, not
+        # here. (pid/level/strategy kept: the reaper and the pane both read
+        # them, and removing them is a contract break for zero dox win.)
+        spawn_line = (f"spawned {agent_id} pid={proc.pid} tier={args.tier} "
+                      f"iter={args.iter_n} target={target or '-'} "
+                      f"harness={harness_name} model={model_val or '-'}")
+        if branch_ref:
+            spawn_line += f" branch={branch_ref['branch']}"
+        if minted is not None:
+            spawn_line += (f" key={minted.name} cap=${minted.limit_usd}")
+        spawn_line += f" level={level} strategy={strategy}"
+        print(spawn_line)
 
     # The one authoritative write, under lock and against a fresh read
     # (goal:s28 for the merge, goal:g4.8 for surviving concurrency). The
@@ -1571,7 +3281,30 @@ def main() -> int:
         # With --detach, the caller (e.g. a parent) owns polling via cli.py
         # status; they get the kid's agent id back in seconds rather than
         # waiting for the full lifecycle.
-        _reaper_phase(
+        #
+        # hypothesis:l4-the-reaper-is-one-persistent-service part 3 — the
+        # inline reaper is OPTIONAL and OFF by default once the persistent
+        # service is live. The switch is read from config
+        # `agent_dispatch.inline_reaper`, NOT the service's stamp in the
+        # manifest: the decision to arm an inline reaper happens at dispatch
+        # time, BEFORE the service has any chance to claim this round, so a
+        # manifest stamp would be a chicken-and-egg read (nothing has stamped
+        # the round yet the instant we must decide). A config key is a
+        # one-edit static decision made in the same place the service toggle
+        # lands, and defaults to True so current behaviour is unchanged until
+        # the prime disables it at the service merge-up.
+        _inline_reaper = True
+        try:
+            _ad_cfg = cfg.get("agent_dispatch") or {}
+        except AttributeError:
+            _ad_cfg = {}
+        if _ad_cfg.get("inline_reaper") is False:
+            _inline_reaper = False
+        if not _inline_reaper:
+            print("reaper: inline reaper off (agent_dispatch.inline_reaper=false); "
+                  "persistent service owns reaping", file=sys.stderr)
+        else:
+            _reaper_phase(
             root=root,
             iter_dir=iter_dir,
             adapter=adapter,
@@ -1581,6 +3314,8 @@ def main() -> int:
             cfg=cfg,
         )
 
+    # The DISPATCHING seat's own last act (conjunct 1): a round is cut.
+    last_act.touch_env(root, args.seat)
     return 0
 
 
@@ -1625,64 +3360,219 @@ def _reaper_phase(
        from.
 
     Still simpler than heal.py: no healer subagent, no SIGKILL cascade.
+
+    hypothesis:l4-the-reaper-is-one-persistent-service — this is the LOOP;
+    the per-round work moved to `_reap_pass` so the SAME pass also runs in
+    the persistent service (`heal.py watch`). The loop owns the deadline and
+    the give-up alarm; a pass has neither. The inline reaper is optional and
+    off by default once the service is live — see main() for the switch.
     """
-    import json
     import time
 
-    TERMINAL = {"done", "pending", "hung-healed", "failed"}
     deadline = time.time() + max_wait_s
-
     while time.time() < deadline:
-        manifest_path = iter_dir / "manifest.json"
-        if not manifest_path.exists():
-            break
-        try:
-            manifest = json.loads(manifest_path.read_text())
-        except (json.JSONDecodeError, OSError):
-            break
-
-        all_terminal = True
-        updated = False
-        for entry in manifest.get("agents", []):
-            agent_id = entry.get("id", "")
-            agent_json_path = iter_dir / agent_id / "agent.json"
-            if not agent_json_path.exists():
-                continue
-            try:
-                rec = json.loads(agent_json_path.read_text())
-            except (json.JSONDecodeError, OSError):
-                continue
-            status = rec.get("status", "running")
-            if status in TERMINAL:
-                continue
-            if status != "running":
-                continue
-            all_terminal = False
-
-            pid = int(rec.get("pid", 0))
-            if pid > 0 and not adapter.is_alive(pid):
-                outcome = _reap_one(root, iter_dir, adapter, rec, agent_id, pid,
-                                    cap=cap, cfg=cfg)
-                rec.update(outcome["record"])
-                agent_json_path.write_text(json.dumps(rec, indent=2))  # session artefact: agent.json
-                entry["status"] = rec["status"]
-                # hypothesis:l3w4-branch-visibility — the commit count is on
-                # the record and must reach the manifest too, so the round
-                # file and the manifest agree on how far the branch climbed.
-                if "commits_ahead" in rec:
-                    entry["commits_ahead"] = rec["commits_ahead"]
-                if rec.get("pid"):
-                    entry["pid"] = rec["pid"]
-                updated = True
-                print(f"reaper: {outcome['message']}")
-
-        if updated:
-            manifest_path.write_text(json.dumps(manifest, indent=2))  # session artefact: manifest.json
-        if all_terminal:
+        outcome = _reap_pass(root, iter_dir, adapter, cap=cap, cfg=cfg)
+        if outcome["terminal"]:
             break
         time.sleep(5)
 
+    _reaper_give_up(root, iter_dir)
     print("reaper: finished")
+
+
+def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None,
+               restart_ok: bool = True) -> dict:
+    """ONE reaper pass over one round's manifest. NO deadline inside.
+
+    hypothesis:l4-the-reaper-is-one-persistent-service — the per-round pass
+    extracted from `_reaper_phase`'s loop so the SAME code path runs in
+    dispatch.py's inline loop and the persistent service (`heal.py watch`,
+    one call per discovered round). A pass reads the manifest, records
+    stalls, reaps any agent whose pid is dead, and writes terminal states
+    back to the manifest it read. Returns:
+
+        `{"marked":  [agent ids reaped this pass],
+          "still":   [agent ids still `running`],
+          "died":    [agent ids reaped as DEATHS this pass],
+          "terminal": bool}`
+
+    `restart_ok` is the lane switch: dispatch's inline reaper calls with
+    `restart_ok=True` (a dead pid may be respawned through the adapter); the
+    service (`heal.py watch`) calls with `restart_ok=False` — it has no
+    harness, never restarts, and records a dead pid as an honest DEATH, so
+    `died` is populated only in the service lane.
+
+    Callers own the deadline (the loop), the timeout-vs-orphaned marks and
+    the dm (the watcher), never this function. The `if status != "running"`
+    guard is KEPT ON PURPOSE — it catches any status nobody has thought of
+    yet, which is exactly the tolerance that kept the old loop working while
+    the status set was wrong. Do not "simplify" it away.
+    """
+    import json
+
+    manifest_path = iter_dir / "manifest.json"
+    if not manifest_path.exists():
+        return {"marked": [], "still": [], "terminal": True, "died": []}
+    try:
+        manifest = json.loads(manifest_path.read_text())
+    except (json.JSONDecodeError, OSError):
+        return {"marked": [], "still": [], "terminal": True, "died": []}
+
+    # hyp:l4-stalled-is-a-state-the-harness-can-see — record, don't repair.
+    # The reaper already reads every live `agent.json`; this is where a
+    # parent whose kids are all terminal but whose own record still reads
+    # `running` (mtime untouched, worktree dirty, past T) becomes a
+    # first-class RECORDED `stalled` state. `stall_detect` stamps that
+    # state and neither kills, restarts, nor commits — a stalled parent
+    # is still alive and still holds its lease, so it never joins
+    # `spawn_budget.TERMINAL`. The reap guard below (`if status != "running"`)
+    # then skips it on the next pass exactly as designed, so wiring this
+    # in changes none of the reaper's commit-based completion logic.
+    stall_detect.record_stalled_in_iteration(iter_dir)
+    all_terminal = True
+    updated = False
+    marked: list[str] = []
+    still: list[str] = []
+    died: list[str] = []
+    mirrored: list[str] = []
+    for entry in manifest.get("agents", []):
+        agent_id = entry.get("id", "")
+        agent_json_path = iter_dir / agent_id / "agent.json"
+        if not agent_json_path.exists():
+            continue
+        try:
+            rec = json.loads(agent_json_path.read_text())
+        except (json.JSONDecodeError, OSError):
+            continue
+        status = rec.get("status", "running")
+        pid = _rec_pid(rec)
+        # hyp:l4-a-suspend-killed-round-comes-home-stalled-with-a-dead-pid-resolves-like-a-dead-running-record
+        # -- a `stalled` record (stamped by stall_detect) whose pid is PROVABLY
+        # gone is ADMITTED to the reap path, so the dead-pid resolution rules in
+        # `_reap_one_impl` (node complete, branch advanced) decide its fate
+        # exactly as they would for a dead `running` record. A `stalled` record
+        # with a LIVE pid is still holding its lease and stays mirror-only.
+        # The `stalled` status itself is never added to spawn_budget.TERMINAL.
+        stalled_dead = (status == "stalled") and pid > 0 \
+            and not adapter.is_alive(pid)
+        if status != "running" and not stalled_dead:
+            # hypothesis:l4-the-manifest-mirrors-terminal-agent-status — any
+            # NON-RUNNING agent.json (done, done-unreported, failed, timeout,
+            # pending, hung-healed, or an unknown status) whose manifest entry
+            # still disagrees is MIRRORED, not reaped: the record's terminal
+            # truth is copied onto the entry, `updated` flips so the manifest
+            # is rewritten, and the id surfaces under the NEW `mirrored` key.
+            # It is deliberately NOT added to marked/still/died.
+            #
+            # timeout is NOT in spawn_budget.TERMINAL but is a terminal state
+            # in practice (it appears in both files via heal.py's still-loop),
+            # so gating the mirror on the TERMINAL set would silently skip it;
+            # "non-running" is the honest predicate. The reap guards this
+            # replaces (`status in TERMINAL` / `status != running -> continue`)
+            # existed to ensure a non-running agent is NEVER reaped/restarted —
+            # that tolerance is unchanged: any non-running rec still `continue`s
+            # and never reaches the reap path below. This only heals the
+            # record/manifest divergence. A clean `done` is not an alarm.
+            entry_status = entry.get("status") or "running"
+            needs = (
+                entry_status != status
+                or (rec.get("finished_at") and not entry.get("finished_at"))
+                or (rec.get("fail_reason") and not entry.get("fail_reason"))
+            )
+            if needs:
+                for k in ("status", "finished_at", "fail_reason"):
+                    if k in rec:
+                        entry[k] = rec[k]
+                updated = True
+                mirrored.append(agent_id)
+            continue
+        if status == "running":
+            all_terminal = False
+            still.append(agent_id)
+
+        if pid > 0 and not adapter.is_alive(pid):
+            outcome = _reap_one(root, iter_dir, adapter, rec, agent_id, pid,
+                                cap=cap, cfg=cfg, restart_ok=restart_ok,
+                                never_restart=stalled_dead)
+            rec.update(outcome["record"])
+            agent_json_path.write_text(json.dumps(rec, indent=2))  # session artefact: agent.json
+            entry["status"] = rec["status"]
+            # hypothesis:l3w4-branch-visibility — the commit count is on
+            # the record and must reach the manifest too, so the round
+            # file and the manifest agree on how far the branch climbed.
+            if "commits_ahead" in rec:
+                entry["commits_ahead"] = rec["commits_ahead"]
+            if rec.get("pid"):
+                entry["pid"] = rec["pid"]
+            # A RESTART MUST BE VISIBLE WHERE THE ROUND IS READ (prime's
+            # ruling, 2026-09-10). This copy was a three-key whitelist —
+            # status, commits_ahead, pid — so a restart wrote its
+            # bookkeeping into the session `agent.json` and none of it
+            # reached the manifest: the manifest showed `status: running`
+            # with a silently swapped pid and no trace that anything had
+            # been restarted, while `spawn_budget` leased the same process
+            # as `<id>-r1`. Two identities for one process, and the only
+            # way to notice was that the two disagreed. Measured on
+            # iter-L4.57 and iter-L4.58 before this line existed.
+            for k in ("restart_count", "restart_of", "restarted_at",
+                      "fail_reason", "finished_at", "death"):
+                if k in rec:
+                    entry[k] = rec[k]
+            updated = True
+            marked.append(agent_id)
+            # The SERVICE lane records a dead pid as DEATH (status failed from
+            # `_reap_one`'s restart_ok=False branch). Those ids are surfaced
+            # separately so the watcher can dm ONE death per agent and never
+            # let a dead pid be re-interpreted as a timeout later in the pass.
+            if not restart_ok and _is_death(rec):
+                died.append(agent_id)
+            print(f"reaper: {outcome['message']}")
+
+    if updated:
+        manifest_path.write_text(json.dumps(manifest, indent=2))  # session artefact: manifest.json
+
+    return {"marked": marked, "still": still, "died": died,
+            "mirrored": mirrored, "terminal": all_terminal}
+
+
+def _reaper_give_up(root, iter_dir):
+    """hypothesis:l4-a-round-alarms-its-dispatcher-by-default — the reaper's
+    GIVE-UP. `finished:` with agents still running is a terminal event for
+    this round: every still-running agent's dispatcher gets exactly ONE dm
+    naming which agents were still running. No flag; no crash if a dm is
+    undeliverable or a stamp absent. A still-running agent is one the
+    manifest does NOT list as terminal (the reaper's own guard: `if status
+    not in TERMINAL`).
+    """
+    import json
+
+    manifest_path = iter_dir / "manifest.json"
+    still: list[str] = []
+    try:
+        rows = json.loads(manifest_path.read_text()).get("agents", [])
+    except (json.JSONDecodeError, OSError):
+        rows = []
+    for a in rows:
+        if (a.get("status") or "running") not in TERMINAL and a.get("id"):
+            still.append(a.get("id"))
+    if still:
+        for a in rows:
+            if not a.get("id") or a.get("id") not in still:
+                continue
+            dispatcher = a.get("dispatched_by")
+            if not dispatcher:
+                print(f"warn: no dispatcher stamp for {a.get('id')}; no "
+                      "give-up dm (l4-a-round-alarms-its-dispatcher-)",
+                      file=sys.stderr)
+                continue
+            try:
+                import send as _send
+                _send.send(root, dispatcher,
+                           f"iter={iter_dir.name} still-running={','.join(still)}",
+                           a.get("id"))
+            except Exception as exc:
+                print(f"warn: give-up dm to {dispatcher} failed: {exc}",
+                      file=sys.stderr)
 
 
 def _commits_ahead(root, rec):
@@ -1714,7 +3604,87 @@ def _commits_ahead(root, rec):
     return commits
 
 
-def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
+def _restart_iter_id(iter_dir, rec):
+    """The iteration a restart belongs to.
+
+    A manifest record carries no `iter` key, so reading one yields 0 and the
+    restart registers as `iter=0` — invisible to any sweep filtered by the
+    round. The round's own directory is named `iter-<id>`, which is the
+    authoritative source; the record is only a fallback.
+    """
+    name = getattr(iter_dir, "name", "") or ""
+    if name:
+        try:
+            # iteration_id strips the `iter-` prefix itself and normalises the
+            # type — int for the numeric scheme, str for a loop-scoped id — so
+            # the lease carries exactly the shape every other caller writes.
+            return locations.iteration_id(name)
+        except ValueError:
+            pass
+    return locations.iteration_id(rec.get("iter", 0) or 0)
+
+
+def _carried_restart_brief(iter_dir, agent_id: str) -> str | None:
+    """The render the FIRST spawn used, read back from that agent's
+    `spawn.json` (hypothesis:a-restarted-agent-gets-the-same-render-as-its-
+    first-spawn). The spawn artifact is the ONE place the exact bytes live, so
+    a restart is byte-identical BY CONSTRUCTION, never re-derived from inputs
+    that may have moved. Absent, or the failed-render sentinel, returns None
+    and the adapter assembles exactly as it did pre-fix (back-compat)."""
+    import json
+    try:
+        rec = json.loads(
+            (Path(iter_dir) / agent_id / "spawn.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(rec, dict):
+        # `null`, a list or a bare string is valid JSON and not a dict.
+        # Without this guard `rec.get` raised AttributeError, which the restart
+        # try converted into `restart unavailable` for the whole round.
+        return None
+    brief_text = rec.get("brief")
+    if not brief_text or brief_text == "<brief render failed>":
+        return None
+    return brief_text
+
+
+def _branch_has_done_commit(root, rec, agent_id) -> bool:
+    """True when the round's branch has advanced past its base.
+
+    The completion signal for a PARENT, which authors no node of its own and
+    whose manifest status the reaper cannot see (the parent updates its
+    worktree's copy; the reaper reads the main checkout's).
+
+    **The signal is the COMMIT, never the commit's subject** (prime's ruling,
+    2026-09-10). The previous version of this function matched
+    `line.startswith(f"{agent_id} done:")` — a string a language model types
+    by convention, and the convention is not fixed. Measured the day it was
+    replaced: three rounds dispatched by one director inside one hour, one
+    parent typed its own id and was correctly spared, two typed their KID's
+    id and were restarted onto rounds that were already committed with clean
+    worktrees. Roughly $0.9 of key burned re-doing finished work, and the
+    branch was carrying `commits_ahead: 1` in the same manifest the whole
+    time — the truth was already computed, one call too late to be consulted.
+
+    A `loop/…-<agent_id>@s2` branch is cut for exactly one round and nothing
+    else commits to it, so *any* commit after its base is that round's agent's
+    work landing. That is the ruling's "authored by the round's agent" made
+    checkable: git authorship itself cannot serve, because every agent commits
+    as the shared `agi <agi@local>` identity.
+
+    Never raises: an unreadable branch is not evidence of completion, and
+    returning False sends the caller down the ordinary restart path. A parent
+    killed mid-round has a branch level with its base, reads False here, and
+    still restarts — recovery is preserved and asserted directly by
+    `test_a_parent_with_no_commit_on_its_branch_is_still_restarted`.
+    """
+    if not agent_id:
+        return False
+    return (_commits_ahead(root, rec) or 0) > 0
+
+
+def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
+             restart_ok: bool = True, never_restart: bool = False):
     """Decide what a dead agent's death means. Returns `{record, message}`.
 
     **The filesystem is consulted before the restart, and that ordering is the
@@ -1722,20 +3692,27 @@ def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
     lost only its report; respawning it would redo finished work and hand a
     second agent the same scaffolded node.
 
+    `restart_ok` is the lane switch: True for dispatch's inline reaper (a
+    dead pid may be respawned), False for the service watcher (`heal.py
+    watch`), which never restarts and records the dead pid as an honest
+    DEATH. See `_reap_pass`.
+
     hypothesis:l3w4-branch-visibility — the returned record also carries
     `commits_ahead` for a `--branch` agent (computed in `_commits_ahead`), so
     whatever the reap decided, the round file records how far the branch had
     climbed.
     """
     out = _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid,
-                         cap=cap, cfg=cfg)
+                         cap=cap, cfg=cfg, restart_ok=restart_ok,
+                         never_restart=never_restart)
     commits = _commits_ahead(root, rec)
     if commits is not None:
         out["record"]["commits_ahead"] = commits
     return out
 
 
-def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
+def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
+                   restart_ok: bool = True, never_restart: bool = False):
     import completion
 
     node_id = rec.get("node_id") or ""
@@ -1758,6 +3735,88 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None)
             # the restart path and say why, rather than guessing either way.
             print(f"reaper: could not check {node_id}: {exc}", file=sys.stderr)
 
+    # A PARENT AUTHORS NO NODE, so the check above never fires for one: its
+    # manifest record carries `node_id: None` because it signals with
+    # `cli.py done --owns <kid-node-id>`. Its completion signal is the COMMIT
+    # it makes on its own branch, and the reaper reads the MAIN checkout's
+    # manifest while the parent updated the one in its worktree — so status
+    # stays "running" here however cleanly it finished. The result was that
+    # every parent which committed a finished round and exited got respawned
+    # to redo it: measured 2026-09-10, $2.01 of key burned in ~30 minutes
+    # across four rounds, plus fresh kids writing over committed work.
+    # A commit on the agent's branch is proof the work landed.
+    if _branch_has_done_commit(root, rec, agent_id):
+        return {
+            "record": {
+                "status": "done-unreported",
+                "finished_at": int(time.time()),
+                "fail_reason": (
+                    f"pid {pid} disappeared, but {agent_id} had already "
+                    f"committed on its branch — the work landed and only the "
+                    f"report was lost"),
+            },
+            "message": (f"agent {agent_id} died with its round already "
+                        f"committed — NOT restarted"),
+        }
+
+    # hyp:l4-a-suspend-killed-round-comes-home-stalled-with-a-dead-pid-resolves-like-a-dead-running-record
+    # -- a `stalled` record whose pid is PROVABLY gone is NEVER respawned.
+    # `_reap_pass` admitted it only because the pid is dead; both completion
+    # checks above have already fired, so it resolves to `done-unreported` when
+    # the work landed (node complete or branch advanced), and to `failed` with
+    # the stall named otherwise. No restart path is reachable from here.
+    if never_restart:
+        return {
+            "record": {
+                "status": "failed",
+                "finished_at": int(time.time()),
+                "fail_reason": (f"stalled; pid {pid} disappeared without "
+                                f"completion signal"),
+                # The SHARED death predicate rides on this key: a stalled-dead
+                # resolution IS a death exactly as the dead-running branch is,
+                # so the watcher dms ONE death and writes ONE reaper-log line.
+                # Without it the old `died` membership string-matched
+                # `fail_reason` and this whole branch fell silently out.
+                "death": _death_class(
+                    rec.get("worktree") or "", agent_id,
+                    int(time.time()) - int(rec.get("started_at", 0) or 0),
+                    agent_dir=iter_dir / agent_id),
+            },
+            "message": (f"agent {agent_id} failed (stalled; pid {pid} gone — "
+                        f"NEVER restarted)"),
+        }
+
+    # hypothesis:l4-the-reaper-is-one-persistent-service — the SERVICE lane
+    # (`heal.py watch`, restart_ok=False) never restarts: it has no harness,
+    # a resume would be a second writer on the manifest, and there is no
+    # spawn budget behind it. A dead pid here is DEATH, recorded honestly —
+    # status `failed`, fail_reason naming the death — NOT the bogus
+    # "restart unavailable" scalar that previously masked the crash (the
+    # watcher was never going to restart, so a missing restart path was not
+    # the reason it failed). The inline reaper (restart_ok=True) keeps the
+    # full paused/restart/budget decision below.
+    if not restart_ok:
+        _cap = (" memory-cap" if mem_cap.reaped_cap_death(
+            pid, rec.get("memory_max")) else "")
+        _turn = _turn_end_with_live_kid(iter_dir, agent_id, adapter.is_alive)
+        _reason = (f"turn-end with live kid {_turn} (headless exit, not a death)" if _turn else f"pid {pid} died (detected by reaper){_cap}")
+        _death = _death_class(
+            rec.get("worktree") or "", agent_id,
+            int(time.time()) - int(rec.get("started_at", 0) or 0),
+            agent_dir=iter_dir / agent_id)
+        _death = _mark_turn_end(_death, _turn)
+        return {
+            "record": {
+                "status": "failed",
+                "finished_at": int(time.time()),
+                "fail_reason": _reason,
+                # hypothesis:l4-a-reaped-parent-record-names-its-death-class-
+                # and-staged-work… — the class rides BESIDE fail_reason.
+                "death": _death,
+            },
+            "message": f"agent {agent_id} failed ({_reason})",
+        }
+
     # hypothesis:l3-reaper-restarts-through-stop — a dead pid is not
     # evidence the reaper should restart it; a pid killed as part of an
     # owner stop order looks identical to a crash from here; checked BEFORE
@@ -1778,10 +3837,13 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None)
 
     restarts = int(rec.get("restart_count", 0))
     max_restarts = int(((cfg or {}).get("reaper") or {}).get("max_restarts", 1))
+    _cap = (" memory-cap" if mem_cap.reaped_cap_death(
+        pid, rec.get("memory_max")) else "")
     failed = {
         "status": "failed",
         "finished_at": int(time.time()),
-        "fail_reason": f"pid {pid} disappeared (detected by inline reaper)",
+        "fail_reason": (f"pid {pid} disappeared (detected by inline "
+                        f"reaper){_cap}"),
     }
     if restarts >= max_restarts:
         return {"record": failed,
@@ -1797,9 +3859,26 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None)
     # and the round's stop-condition (a loop on the live count, filtered by
     # iter) never sees it. A deliberate kill is distinguishable from a crash
     # elsewhere; when a restart IS legitimate it must be attributable.
+    # The record has NO `iter` key — measured against a real manifest — so
+    # `rec.get("iter", 0)` silently yielded 0 and every restart registered as
+    # `iter=0`. A sweep filtered by the round's iteration then reported the
+    # round CLEAR while a restart was live in its worktree. `iter_dir` is the
+    # round's own directory (`iter-L4.41`), so its name is the iteration id
+    # this restart belongs to; fall back to the record only if that fails.
+    # hypothesis:restart-admission-honours-the-per-harness-live-bound — the
+    # restart passes the SAME harness the first spawn leased. Without it
+    # `acquire()` sees `harness=None`, skips the `harnesses.<h>.max_live` row
+    # check entirely, and a restarted pi-local kid was admitted beside the one
+    # live pi-local kid the row allows -- the one restart path that made the
+    # row a floor rather than a bound. The name is the record's own
+    # `harness` (the resolved row's name), with the row's `harness` cell as
+    # the fallback for an old record written before that field.
+    _restart_harness = (rec.get("harness")
+                        or (rec.get("harness_spec") or {}).get("harness"))
     lease = spawn_budget.acquire(root, cap, f"{agent_id}-r{restarts + 1}",
                                  tier=rec.get("tier", "kid"),
-                                 iter_n=locations.iteration_id(rec.get("iter", 0) or 0))
+                                 iter_n=_restart_iter_id(iter_dir, rec),
+                                 harness=_restart_harness)
     if lease is None:
         return {"record": failed,
                 "message": (f"agent {agent_id} failed (pid {pid} gone; spawn "
@@ -1822,6 +3901,10 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None)
                 "path": str(nf) if nf else "",
             }
         new_pid = adapter.restart(
+            # hypothesis:every-adapter-restart-spawns-from-the-scrubbed-env
+            # -- the restart child gets the same scrubbed base as the first
+            # spawn; one scrub list (dispatch.scrubbed_env), never a second.
+            base_env=scrubbed_env(),
             harness=rec.get("harness_spec") or {},
             tier=rec.get("tier", "kid"),
             context_file=rec.get("context_file", ""),
@@ -1831,6 +3914,23 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None)
             target=rec.get("target"),
             scaffold=scaffold_info,
             agent_record=rec,
+            # hypothesis:restart-carries-the-first-spawns-full-turn-and-
+            # identity -- the rest of the first spawn's turn and identity,
+            # read back from the agent record. `spawn_role` is the seat role
+            # the first spawn's build_command got; fall back to the record's
+            # per-target `role` for an old record. All None/"" defaults keep
+            # the pre-fix assemble path byte-identical.
+            cli_py=rec.get("cli_py") or "",
+            skill_prompt=rec.get("skill_prompt") or None,
+            dispatch_py=rec.get("dispatch_py") or "",
+            role=rec.get("spawn_role") or rec.get("role"),
+            ladder_tier=rec.get("ladder_tier"),
+            brief_tier=rec.get("brief_tier"),
+            # hypothesis:a-restarted-agent-gets-the-same-render-as-its-first-
+            # spawn -- the restart's first turn gets the SAME bytes the first
+            # spawn carried, read back from its spawn.json. None (old record,
+            # failed render) keeps the pre-fix assemble path byte-identical.
+            rendered_brief=_carried_restart_brief(iter_dir, agent_id),
         )
     except (NotImplementedError, Exception) as exc:   # noqa: B014
         spawn_budget.release(lease)
@@ -1847,6 +3947,10 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None)
     return {
         "record": {"status": "running", "pid": new_pid,
                    "restart_count": restarts + 1,
+                   # The lease name spawn_budget actually shows, so a reader
+                   # of the manifest and a reader of `spawn_budget status`
+                   # are looking at the same process under the same name.
+                   "restart_of": f"{agent_id}-r{restarts + 1}",
                    "restarted_at": int(time.time()),
                    "fail_reason": f"pid {pid} disappeared; restarted"},
         "message": (f"agent {agent_id} restarted as pid {new_pid} "
@@ -1891,13 +3995,14 @@ def _research_pipeline_targets(root: Path, n: int, iter_dir: Path) -> list[tuple
         cfg = json.loads(cfg_path.read_text())
         use_sqlite = cfg.get("persistence", {}).get("type") == "sqlite"
 
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.1: the loader's parents post-pass)
     if use_sqlite:
         from graph_core.persistence.sqlite_backend import SQLiteBackend
         from graph_core.db_loader import DBLoader
         db_path = root / cfg["persistence"]["path"]
-        g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory()
+        g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory(resolve=links.address_resolver(root))
     else:
-        g, loaded = load_directory(root / "nodes")
+        g, loaded = load_directory(root / "nodes", resolve=links.address_resolver(root))
 
     for ln in loaded:
         for parent_id in ln.node.parents:
@@ -1985,7 +4090,7 @@ def _attractiveness(desc: int, recency_boost: float, diversity: float,
     The recency leaf boost used to be `desc * 1.2` — and `_descendant_count`
     returns 0 for a leaf, so `0 * 1.2 == 0.0` and the boost never fired:
     every chain tip scored 0 and sorted last (idea:frontier-invitation
-    measured this at dispatch.py:1466). Flooring the descendant term at 1
+    measured this in `_pick_targets`). Flooring the descendant term at 1
     is what lets a leaf's boost mean anything: a leaf scores 1.2 (not 0.0)
     and can rank. The floor is identity for every non-leaf, which already
     has desc >= 1, so nothing else changes.
@@ -2035,13 +4140,14 @@ def _pick_targets(root: Path, n: int) -> list[tuple[str, str | None, str]]:
         cfg = json.loads(cfg_path.read_text())
         use_sqlite = cfg.get("persistence", {}).get("type") == "sqlite"
 
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.1: the loader's parents post-pass)
     if use_sqlite:
         from graph_core.persistence.sqlite_backend import SQLiteBackend
         from graph_core.db_loader import DBLoader
         db_path = root / cfg["persistence"]["path"]
-        g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory()
+        g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory(resolve=links.address_resolver(root))
     else:
-        g, loaded = load_directory(root / "nodes")
+        g, loaded = load_directory(root / "nodes", resolve=links.address_resolver(root))
 
     for ln in loaded:
         for parent_id in ln.node.parents:
@@ -2200,6 +4306,58 @@ def _push_further_gate(root: Path, target: str | None):
     return None
 
 
+def _parent_kid_ceiling_gate(manifest: dict, cfg: dict, requested: int):
+    """The parent-kid ceiling refusal, as (exit_code, stderr_msg) or None.
+
+    hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — `spawn.parent_max_kids`
+    was only PRINTED into the parent brief; nothing refused a parent whose OWN
+    kid dispatches exceeded it. Counts the kids THIS parent has already
+    dispatched in the current iteration manifest (records whose
+    `spawned_by_agent` equals the caller's `AGI_AGENT_ID`), adds the kids THIS
+    invocation would spawn, and refuses — exit 2, naming BOTH numbers — the
+    moment that would cross the ceiling. Fail-open when there is no caller id
+    (a director or a human at a shell), exactly like the stale-base gate.
+    Pure and deterministic so the gate is unit-testable without a spawn.
+    """
+    caller = os.environ.get("AGI_AGENT_ID")
+    if not caller:
+        return None  # fail open: no parent caller to attribute spawns to
+    ceiling = spawn_budget.parent_max_kids(cfg)
+    if requested <= 0:
+        return None
+    already = sum(
+        1 for a in manifest.get("agents", [])
+        if a.get("spawned_by_agent") == caller
+    )
+    if already + requested > ceiling:
+        next_kid = already + requested
+        return (2, f"ERR parent {caller} has dispatched {already} kids; "
+                   f"ceiling spawn.parent_max_kids={ceiling} refuses kid "
+                   f"{next_kid}")
+    return None
+
+
+def _kid_account_floor_exemption(manifest: dict) -> tuple[str, int] | None:
+    """(parent id, parent pid) when THIS dispatch is a kid spawned by a live
+    round already admitted in the current iter manifest — the account-floor
+    exemption (skip the ACCOUNT floor only; the key floor still runs).
+    The caller (os.environ AGI_AGENT_ID) must appear as a manifest record
+    whose pid is alive. None otherwise, so every other case — a director or
+    human spawn (no AGI_AGENT_ID), a kid with no manifest parent, a dead
+    parent — reads the floor as today.
+    """
+    caller = os.environ.get("AGI_AGENT_ID")
+    if not caller:
+        return None
+    for a in manifest.get("agents", []):
+        if a.get("id") != caller:
+            continue
+        pid = a.get("pid")
+        if pid and spawn_budget._pid_alive(int(pid)):
+            return (a["id"], int(pid))
+    return None
+
+
 def _node_type_for(level: str, target: str | None, role: str | None) -> str:
     """Which chain step this agent is being asked to write.
 
@@ -2234,6 +4392,79 @@ def _node_type_for(level: str, target: str | None, role: str | None) -> str:
         "outcome": "bigger_outcome",
     }
     return step.get(target.split(":", 1)[0], "hypothesis")
+
+
+def _deprecate_orphan_scaffold(root: Path, node_id: str, agent_id: str) -> bool:
+    """Retire a scaffolded-but-unregistered node so a failed spawn never
+    leaves a live orphan (hypothesis:l4-dispatch-exits-non-zero-and-
+    deprecates-the-scaffold-when-no-agent-record-follows-a-scaffolded-node).
+
+    Reuses `node_writer.update_node` -- the one gated routine that edits an
+    existing node and logs its write -- to stamp `status: deprecated` plus a
+    note naming the failed spawn, then physically moves the file to
+    `nodes/deprecated/<type>/` (the retirement layout, CLAUDE.md). Returns
+    False rather than raising: deprecation failing must not turn a named
+    spawn failure into a different crash.
+    """
+    from graph_core.persistence import frontmatter as fm_reader
+
+    npath = node_writer.find_node_file(root, node_id)
+    if npath is None:
+        return False
+    try:
+        nf = fm_reader.load_node_file(npath)
+    except Exception:
+        return False
+    ntype = node_writer.canonical_node_type(
+        nf.frontmatter.get("type") or npath.parent.name)
+    note = (f"orphan scaffold: dispatch {agent_id} scaffolded this node but no "
+            f"agent record followed in the spawn's registration step")
+    up = node_writer.update_node(
+        root, node_id,
+        set_fm={"status": "deprecated", "deprecated_note": note},
+        announce=False)
+    if up.status not in (node_writer.UPDATED, node_writer.UNCHANGED):
+        return False
+    dep = root / "nodes" / "deprecated" / ntype
+    dep.mkdir(parents=True, exist_ok=True)
+    try:
+        shutil.move(str(npath), str(dep / npath.name))
+    except OSError:
+        return False
+    return True
+
+
+def _report_unregistered_scaffold(root: Path, scaffold_info, agent_id: str,
+                                  detail: str | None = None) -> dict | None:
+    """The ONE post-scaffold failure reporter shared by every seam that can
+    leave a scaffolded node with no agent record behind it
+    (hypothesis:l4-dispatch-exits-non-zero-and-deprecates-the-scaffold-when-
+    no-agent-record-follows-a-scaffolded-node).
+
+    Deprecates the orphan scaffold (never left live) and emits the SAME named
+    JSON issue line -- {"issue": "scaffolded-but-unregistered", "node_id",
+    "agent_id", "detail"} -- so a reader of ANY seam sees one shape naming the
+    node id and the missing record. Returns the issue dict, or None when no
+    scaffold was written (nothing to deprecate, nothing to name). Failure to
+    deprecate is reported in `detail`, never raised -- a named spawn failure
+    must not turn into a different crash.
+    """
+    if not scaffold_info:
+        return None
+    node_id = scaffold_info.get("node_id")
+    deprecated = _deprecate_orphan_scaffold(root, node_id, agent_id)
+    detail = detail or (
+        "scaffold deprecated; no agent record followed the spawn's "
+        "registration step" if deprecated else
+        "scaffold could not be deprecated")
+    issue = {
+        "issue": "scaffolded-but-unregistered",
+        "node_id": node_id,
+        "agent_id": agent_id,
+        "detail": detail,
+    }
+    print(json.dumps(issue))
+    return issue
 
 
 def _scaffold_node_for_agent(

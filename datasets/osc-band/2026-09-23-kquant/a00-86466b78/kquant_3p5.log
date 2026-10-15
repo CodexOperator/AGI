@@ -1,0 +1,67 @@
+selftest bits: with scales=3.5 without=2.5
+selftest pairing: ours-shares-pair=True consecutive-fails=True quant-differs=True
+selftest head_var pair 0: hits=[0] shares=[1.0] -> PASS
+selftest head_var pair 21: hits=[21] shares=[1.0] -> PASS
+selftest head_var: PASS
+profiles sha: e80ec2772b1845f27a860d698e398b527fd4233141820ccbc27aecb98aab12a3 | model sha re-verify: {'config.json': True, 'generation_config.json': True, 'model.safetensors': True, 'tokenizer.json': True, 'tokenizer_config.json': True}
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights: 100%|██████████| 290/290 [00:00<00:00, 34201.67it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (299078 > 131072). Running this sequence through the model will result in indexing errors
+selftest 16bit: max abs logit diff=5.758e-02 agree=1.0 KL=7.38e-07 | hook: {'q_untouched': True, 'attn_k_is_quant_postrope_k': True, 'quant_changes_k': True}
+arms: {"energy_3p5": 3.5, "uniform_3p5": 3.5, "rand_3p5_s1": 3.5, "rand_3p5_s2": 3.5, "rand_3p5_s3": 3.5, "bw4": 4.5}
+prompt 1/8 143s
+prompt 2/8 164s
+prompt 3/8 227s
+prompt 4/8 248s
+prompt 5/8 330s
+prompt 6/8 358s
+prompt 7/8 379s
+prompt 8/8 401s
+{
+ "points": {
+  "3p5": {
+   "energy": {
+    "agree": 0.564453,
+    "kl": 1.381633,
+    "bits": 3.5
+   },
+   "uniform": {
+    "agree": 0.376953,
+    "kl": 2.417574,
+    "bits": 3.5
+   },
+   "dot_ok_A": false,
+   "delta_energy_minus_uniform_agree": 0.1875,
+   "delta_energy_minus_uniform_kl": -1.035941,
+   "delta_energy_minus_uniform_bits": 0.0,
+   "random": {
+    "s1": {
+     "agree": 0.145508,
+     "kl": 5.00187,
+     "bits": 3.5
+    },
+    "s2": {
+     "agree": 0.149658,
+     "kl": 4.983416,
+     "bits": 3.5
+    },
+    "s3": {
+     "agree": 0.159912,
+     "kl": 5.136082,
+     "bits": 3.5
+    }
+   },
+   "delta_energy_minus_rand_mean": {
+    "agree": 0.41276,
+    "kl": -3.658823
+   },
+   "hits": {
+    "energy_3p5": false,
+    "uniform_3p5": false,
+    "rand_3p5_s1": false,
+    "rand_3p5_s2": false,
+    "rand_3p5_s3": false
+   }
+  }
+ },
+ "hold_both_bars": []
+}

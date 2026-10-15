@@ -1,0 +1,17 @@
+controlled run: builds the SAME env the live dispatch spawn path builds
+(dispatch.scrubbed_env -> adapter.child_env -> the credential allowlist),
+then prints KEY NAMES ONLY. No secret value is ever printed.
+
+harness=pi-local  adapter=pi  provider=local-town  credential='none'  needs_credential=False
+  OPENROUTER_API_KEY present: False
+  key names containing OPENROUTER: []
+  key names containing KEY/TOKEN: ['CLAUDE_CODE_MESSAGING_TOKEN']
+
+harness=pi  adapter=pi  provider=openrouter  credential=None  needs_credential=True
+  OPENROUTER_API_KEY present: True
+  key names containing OPENROUTER: ['OPENROUTER_API_KEY']
+  key names containing KEY/TOKEN: ['CLAUDE_CODE_MESSAGING_TOKEN', 'OPENROUTER_API_KEY']
+
+NOTE: the dispatcher process env carries its own inherited
+OPENROUTER_API_KEY, which is why the allowlist must DROP it for a
+credential-none harness rather than merely skip minting a new one.

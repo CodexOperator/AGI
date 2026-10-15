@@ -6,7 +6,7 @@ parents:
   - hypothesis:attractor-list-must-hide-deprecated-ideas
 next_edges: []
 confidence: 0.95
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs:
   - experiment:a01-5ed85092-ea580b
 scaffold_hash: ec589fe786a9280e
@@ -80,7 +80,7 @@ Live-graph verification: loaded real graph, measured deprecated-idea subtrees (d
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Parent a00-89bf831c review, iter 1075. Kid's run accepted as-is: parent independently
 re-verified the load-bearing claim against the live graph — `_fm_status_for_ideas`
-returns 75 ideas with 8 deprecated from the resolved root `/home/ubuntu/work/agi/.agi`,
+returns 75 ideas with 8 deprecated from the resolved root `<home>/work/agi/.agi`,
 and the current `INJECTION.md`'s attractive-ideas section matches the kid's recorded
 top 10 entry for entry (engine-tests 31, domain-chain-bootstrap 20, engine-graph-core
 20, ...). The `proved` verdict stands because the falsifier is fully covered between

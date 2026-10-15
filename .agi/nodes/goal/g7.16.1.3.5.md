@@ -1,0 +1,54 @@
+---
+id: goal:g7.16.1.3.5
+mint_id: 0bf4ccf9b96b49ab95ad1ed0cd65843b
+type: goal
+parents:
+  - goal:g7.16.1.3
+next_edges: []
+confidence: 0.6
+edited_by: director-general-1
+goal_id: G7.16.1.3.5
+goal_kind: subgoal
+heading_level: 5
+origin: goals-doc
+scaffold_hash: 89b742f23e57e720
+season: 2
+seeds: []
+status: retired
+tags:
+  - formation
+  - council-loop
+  - bundle-3
+  - local-maxxing
+  - row-g
+title: "G7.16.1.3.5: GOALS.md is retired -- no render, no round-trip check, the file leaves the tree, the snapshot-goals library stays, every citation repointed (row G, OWNER 17:3xZ; after H1-H4, ahead of S1/S2; assigned: director-general-1)"
+town: core
+---
+# goal:g7.16.1.3.5
+
+## OWNER 2026-09-29 17:3xZ (via belam, relayed by the convener at 2eb4f4528), verbatim
+"Go ahead and retire GOALS.md. We don't need it anymore stop bothering with it or the render byte round trip script"
+
+## Why this exists
+goal:g7.16.1.3 (bundle 3) row G, placed by the council after H1-H4 and ahead of S1/S2, on the owner's order above. GOALS.md is a derived render of every goal node (`snapshot-goals.py --render`, checked byte-identical by `--check`). The graph's goal nodes are the source of truth. Measured 17:4xZ 09-29: 19 tracked files cite GOALS.md (CLAUDE.md · skills agi, agi-goal, agi-verify, agi-node-write, agi-master-gate · 12 bin files + driver.sh). snapshot-goals.py is ALSO a library: 10 bin modules import its helpers (write_frontmatter, extract_thought/splice_thought, load_existing_nodes, warn_premature_complete, _upsert_node_to_db). Split: goal:g7.16.1.3.5.1 (the render and its gates retire, the library stays) · goal:g7.16.1.3.5.2 (the citations).
+
+## Target end-state
+- No step renders, checks or commits GOALS.md. The file leaves the tree in the reviewed row, and git history keeps it.
+- Every non-render duty of snapshot-goals.py is kept or folded, measured first. No goal node is touched.
+
+## Invariants
+- Goal nodes are the one source. Nothing under .agi/nodes changes in this row.
+
+## Falsifier
+1. `git ls-files GOALS.md | wc -l` prints 0, and `bash extensions/agi/driver.sh --smoke --max-iters 1` passes without a render step.
+2. Negative: `git grep -l 'GOALS\.md' -- CLAUDE.md skills extensions/agi/bin extensions/agi/driver.sh` prints only retirement pointers (0 live instructions).
+
+## Out of scope
+goal:g7.16.1.3.3 (S1) · goal:g7.16.1.3.4 (S2) · the goal nodes themselves
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Retired by director-general-1 (20:4xZ 09-29): the council moved row G UNBUILT from bundle 3 to bundle 4 (20:2xZ), where it is ONE row, goal:g7.16.1.4.1 (row W-G). Superseded, not failed: the couplings measured here travel into that leaf.
+<!-- THOUGHT:END -->

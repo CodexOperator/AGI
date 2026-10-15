@@ -1,0 +1,132 @@
+---
+id: experiment:a00-91399a43-64a539
+mint_id: 6d5662704b004e308a6c96ab6d8ca4fc
+type: experiment
+parents:
+  - hypothesis:g7556-guard-ram-writes-charge-ramdisk-slice-through-one-shell-entry
+next_edges: []
+confidence: 0.75
+edited_by: a00-b9773bd6
+evidence_runs:
+  - experiment:a00-91399a43-64a539
+  - experiment:a00-14e7ff56-02537a
+loop: hypothesis:g7556-guard-ram-writes-charge-ramdisk-slice-through-one-shell-entry@s2
+model: stealth/space-bunny-alpha
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "parent probe P1 on the live bytes: PATH=fakebin (systemd-run records its argv then execs; systemctl exits 1), DBUS_SESSION_BUS_ADDRESS set to a dead unix:path, XDG_RUNTIME_DIR nonexistent, AGI_MEMCAP_SYSTEMD_RUN=1, then mem_cap.py ram-exec -- /bin/sh -c 'exit 7'", "expected": "the manager is ASKED and does not answer, so argv runs UNWRAPPED, rc 7, no scope argv recorded", "observed": "rc=7, scope record EMPTY, one stderr line 'user manager UNREACHABLE -- argv ran UNWRAPPED'; the mirrored live row (systemctl answers) recorded --user --scope -q --slice=ramdisk.slice -- /bin/sh -c exit 7 and still rc=7", "result": "holds"}
+  - {"conjunct": 2, "class": "gate", "cmd": "AGI_MEMCAP_MOUNTINFO naming a table that is not there, manager answering, scope forced, ram-exec --to <dir> -- /bin/sh -c 'exit 7'", "expected": "fstype_at fails OPEN: one stderr line, argv runs, rc is argv's, no traceback", "observed": "rc=7, stderr_lines=1, no scope recorded, no Traceback", "result": "holds"}
+  - {"conjunct": 3, "class": "gate", "cmd": "manager answering but NO systemd-run anywhere on PATH (empty PATH dir), scope forced, ram-exec -- /bin/sh -c 'exit 7'", "expected": "os.execvp raises OSError, so argv runs UNWRAPPED with one stderr line and no traceback", "observed": "rc=7, one line 'ram-exec: [Errno 2] No such file or directory -- argv ran UNWRAPPED', no traceback", "result": "holds"}
+  - {"conjunct": 4, "class": "gate", "cmd": "fake mountinfo naming a tmpfs mounted at an octal-escaped path with spaces; fstype_at on that dir and on a path under it", "expected": "tmpfs is found, escapes decoded before comparing", "observed": "tmpfs at the mount point and under it; my FIRST attempt pointed at a directory that did not exist and got the nearest existing parent instead -- probe construction error, not a code defect; re-run with the dir created, it holds", "result": "holds"}
+  - {"conjunct": 5, "class": "wire", "cmd": "grep -rn 'ramw()' over extensions/agi/guard, plus grep of the source line in both guard scripts", "expected": "exactly one ramw definition, in the shared file, sourced by both scripts", "observed": "the only definition is guard/ram-write.sh:8; ram-main.sh:30 and session-sweep.sh:39 each source it; neither script carries a copy or a marker", "result": "holds"}
+production_lines: 17
+profile: balanced
+role: kid
+scaffold_hash: 75d2712ff272415f
+season: 2
+title: Reachability is a liveness ask, the write path fails open, and one ram-write file is sourced by both guard scripts
+town: core
+verdict: inconclusive_lean_proved:75
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-91399a43-64a539
+
+## The corrective DH.DG3.57, item by item
+
+| # | item | bytes | row |
+|---|---|---|---|
+| 1 | reachability is LIVENESS, not presence | `mem_cap.user_manager_reachable()` asks the manager ONCE per process (`systemctl --user show -p Version --value`, cached in `_UMR` beside `_PROBE`); a set-but-dead `DBUS_SESSION_BUS_ADDRESS` and a present `systemd/private` socket are no longer evidence | `test_P1_reachability_is_liveness_not_presence[live/dead]`: the bus address stays SET and a `systemd/private` socket is present in BOTH rows; argv runs in the scope when the manager answers, plain with one `UNREACHABLE` line and its own rc 7 when it does not |
+| 2 | the rest of the write path fails OPEN | `fstype_at` catches `OSError` off the mount table (one stderr line, `""` = "not tmpfs", never a traceback) and `_verb_ram_exec` catches `OSError` off `os.execvp` (one stderr line, argv run unwrapped) | `test_F1_and_F2_the_rest_of_the_path_fails_open`: a table that is not there -> rc 5; a PATH with no `systemd-run` but a live manager -> rc 6; neither prints a traceback, each says once |
+| 3 | a mount point with a space is found | `fstype_at` DECODES the table's octal escapes (`\040`) before comparing | `test_M1_a_mount_point_with_a_space_is_found`: the table names `/…/ram tree/keep` escaped, the write is still charged |
+| 4 | ONE ramw rule | NEW `extensions/agi/guard/ram-write.sh` carries the one `ramw()` between its `guard-ram-write:` markers; `ram-main.sh` and `session-sweep.sh` each replaced their copy with `. "$HERE/ram-write.sh"` | `test_N1_one_rule_sourced_by_both_and_no_scope_argv_in_shell`: the markers live in the ONE file, no script carries `ramw() {` or a marker, both source it, no `systemd-run` in either |
+| 5 | honest nodes | `experiment:a00-14e7ff56-02537a` and `experiment:a00-46137558-ecd874` (write.py only): both verdicts now `inconclusive_lean_proved:70` (the parent verdict each body records), each refuting probe (P1 / P4) is in the frontmatter `probes` field the engine reads, and the size-defect line states the REAL cap (DH.DG3.50 capped the test file at 220, not 200) | read back through `write.py ... 'read body'` |
+
+## Evidence
+
+```
+$ git diff --numstat 571280d89b -- extensions/agi/bin/mem_cap.py extensions/agi/guard/ \
+      extensions/agi/tests/test_ram_write_charge.py
+27      11      extensions/agi/bin/mem_cap.py            # NET +16 (cap +16, exactly at it)
+2       6       extensions/agi/guard/ram-main.sh        # NET -4
+2       7       extensions/agi/guard/session-sweep.sh   # NET -5
+64      27      extensions/agi/tests/test_ram_write_charge.py   # NET +37 (cap +40)
+# NEW extensions/agi/guard/ram-write.sh: 9 lines -> production NET +17 (mem_cap +16, guard +0)
+
+$ python3 -m pytest extensions/agi/tests/test_ram_write_charge.py \
+    extensions/agi/tests/test_ram_worktrees.py extensions/agi/tests/test_box_guard.py \
+    extensions/agi/tests/test_guard_init_cells.py extensions/agi/tests/test_bin_help_smoke.py \
+    -q --basetemp /tmp/dh357
+........................................................................ [ 51%]
+..........s......s...s.........s......s.s...s...........s..........      [100%]
+131 passed, 8 skipped in 9.89s
+
+$ python3 -m pytest extensions/agi/tests/test_ram_write_charge.py -q --basetemp /tmp/dh357c
+13 passed in 1.13s
+```
+
+P1 re-run green: before this round the same probe read the env var and the write
+VANISHED (rc 1, no child marker); with the liveness ask the same probe runs argv
+plain, rc 7, child marker present. Both rows are in the suite above.
+
+## The numbers, against the ceiling
+
+| path | net | cap |
+|---|---|---|
+| `mem_cap.py` | +16 | +16 -- AT the cap, not over |
+| guard scripts + the shared file | +0 (+4 / -13 in the scripts, +9 in the new file) | +6 |
+| `test_ram_write_charge.py` | +37 | +40 |
+| kids | 1 | 1 |
+
+Nine net production lines were bought by folding the duplicate rule into one
+sourced file; no path carries a host, user, home, IP or hardware name.
+
+## Caveats
+
+- The liveness probe costs ONE `systemctl` call per PROCESS (cached in `_UMR`),
+  where the presence test was free: a guard script spawning many `ramw` lines
+  forks a process each time, so `up` pays one extra `systemctl` per RAM write.
+  A bus-cache file would remove it and was not in the corrective's scope.
+- `systemctl show -p Version` answers on a degraded manager too (rc 0), which is
+  what we want: a manager that answers can still run a transient scope.
+- Nothing here mounts a real tmpfs or starts a real unit: the tmpfs is declared
+  through a mount TABLE and the scope through a fake `systemd-run`, so what is
+  proved is the WIRING and the DECISION, not the cgroup physics.
+
+## Agent Notes
+DH3.57 corrective: reachability is a cached liveness ask, fstype_at/execvp fail open, mount octal escapes decoded, one guard/ram-write.sh sourced by both scripts, two nodes made honest; 131 passed 8 skipped
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-b9773bd6), five adversarial probes on the changed bytes, not the kid's suite.
+ACCEPT at inconclusive_lean_proved:75 -- five of five conjuncts hold under a probe I ran myself.
+
+(1) WHAT THE ORDERS SAID, quoted: "reachability is LIVENESS, not presence -- mem_cap.py
+user_manager_reachable ... ask the user manager once (a call that must ANSWER, cached per
+process), never the env var alone"; "every remaining fail-hard on the write path fails OPEN";
+"a mount point with a space is found"; "ONE ramw rule ... one shared file ... both scripts
+source"; "honest nodes".
+(2) WHAT THE MACHINE ACTUALLY DOES, cited to bytes I read and ran:
+mem_cap.py:428-438 replaces the env-var/socket test with ONE cached `systemctl --user show -p
+Version --value` call (rc==0), so a set-but-dead bus address and a present systemd/private
+socket are no longer evidence; mem_cap.py:415-424 wraps the mount-table read in try/except
+OSError -> one stderr line, "" (= not tmpfs, so argv runs plain), never a traceback;
+mem_cap.py:419 decodes the table's octal escapes before comparing; mem_cap.py:465-469 catches
+OSError off os.execvp and runs argv unwrapped; guard/ram-write.sh:8 is the only ramw() in the
+guard dir and ram-main.sh:30 / session-sweep.sh:39 both source it. My own runs: the
+non-answering-manager row gave rc=7 with an EMPTY scope record and exactly one stderr line; the
+answering row recorded `--user --scope -q --slice=ramdisk.slice`; a missing mount table gave
+rc=7 and one line; a PATH with no systemd-run but an answering manager gave rc=7 and one
+`[Errno 2]` line; the octal-escaped mount point read as tmpfs at the point and under it.
+(3) THE NEAR MISS: keeping the old `bool(bus) or socket exists` test, merely ADDING a systemctl
+call beside it. That satisfies every sentence of item 1 while the stale-bus row keeps wrapping
+and the argv still vanishes -- the exact defect DG3.50's probe P1 falsified. It is absent here:
+the env vars no longer appear in user_manager_reachable at all.
+(4) IF I DEVIATED FROM A STANDING RULE: the order's PARENT line says commit the kid's edits and
+merge the kid branch into the loop branch. I did NOT run git -- my standing contract forbids any
+git from a tier parent in a shared tree (the goal:g4.1 sweep incident), and the loop owns every
+commit. The bytes are write-logged per node edit and the worktree is DIRTY, so heal.py's sweep
+LISTS it rather than removing it; the seat dm carries the numbers so the loop can land them.
+CEILING checked by line count against the base: mem_cap.py 467 -> 483 (NET +16, at the cap),
+test file 220 -> 257 (+37, cap +40), guard scripts 112+86 -> 108+81 plus the new 9-line
+ram-write.sh (NET 0, cap +6). One kid, pi-free tier-0.
+<!-- THOUGHT:END -->
+
+parent review a00-b9773bd6: ACCEPT at inconclusive_lean_proved:75. Five self-run probes (wire P1 stale-bus + live-slice, gate fstype_at unreadable table, gate execvp OSError, gate octal-escaped space mount point, wire one ramw sourced by both) all hold; probes recorded in the frontmatter. Ceilings honoured: mem_cap.py NET +16 (cap +16), test file +37 (cap +40), guard scripts + shared file NET 0 (cap +6), one kid. No demotions.

@@ -37,12 +37,21 @@ the `:N`-read-as-`0.6` incident that `VERDICT_HELP` now spells out).
 """
 from __future__ import annotations
 
+import json
 import os
 import re
 import sys
 from pathlib import Path
 
-import evidence_gate
+#: graph_core (and geometry_config's node loader) lives under `src/`; every
+#: bin script that reads the graph puts it on the path (rotate.py:66).
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+import cli  # noqa: E402 -- wait exit codes are cli's to name (goal:g15.29.19)
+import evidence_gate  # noqa: E402
+import spawn_budget  # noqa: E402
+
+from frontmatter import read_frontmatter, split_frontmatter
 
 #: Tiers a brief can be assembled for. Not the same list as
 #: `adapters.TIERS`, which is about which models a harness declares -- a
@@ -58,22 +67,135 @@ TIERS = ("kid", "parent", "advisor", "director", "prime_director", "liaison")
 #: else -- no goal listing, no traps, no history. A profile is selected at
 #: assembly time (this module); there is exactly one switch, ``profile``, and
 #: every call path routes through it, so the two cannot drift.
-PROFILES = ("full", "survival")
+PROFILES = ("full", "survival", "ultimate_survival")
+
+# Pi agents deliberately skip repository context files. Carry the one rule
+# those files uniquely supplied into every role brief from this single source.
+PAID_FOR_PATH_GUARD = (
+    "Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or "
+    "`.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or "
+    "`.agi/context/plans/build-site.md`."
+)
 
 
-def survival_selected(profile: str | None = None) -> bool:
+def _paid_for_path_guard(project_root: Path | None = None) -> str:
+    """Read the project override, retaining the historical default."""
+    root = _resolve_graph_root(project_root)
+    value = _brief_cell(root).get("paid_for_path_guard")
+    if not (isinstance(value, str) and value):
+        try:
+            cfg_cell = json.loads((root / "config.json").read_text(encoding="utf-8")).get("brief")
+        except (OSError, ValueError, FileNotFoundError):
+            cfg_cell = None
+        if isinstance(cfg_cell, dict):
+            value = cfg_cell.get("paid_for_path_guard")
+    return value if isinstance(value, str) and value else PAID_FOR_PATH_GUARD
+
+
+
+def _in_force_mode(project_root: Path | None = None) -> tuple[str, dict] | None:
+    """The ONE run mode in force: the ``.agi/config.json`` ``operating_modes``
+    block whose ``formation`` cell names the config:formations ``active``
+    template (hypothesis:pb3-run-mode-reads-one-formation-cell). The switch
+    lives in ONE cell, so a brief cannot print a mode the loop is not running.
+
+    A binding is AMBIGUOUS when two or more blocks carry the same ``formation``
+    cell equal to ``active`` -- no cell then says which mode is in force, so
+    the answer is None and ONE stderr line names every colliding key. Dict
+    order is not a tie-break. Returns ``(key, block)``, or None when config,
+    the cell, or the binding is absent or ambiguous: nothing renders and the
+    profile stays at its ``full`` default.
+    """
+    root = _resolve_graph_root(project_root)
+    try:
+        data = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    from node_writer import find_node_file  # noqa: PLC0415
+    cell = find_node_file(root, "config:formations")
+    if cell is None:
+        return None
+    active = str((read_frontmatter(cell.read_text(encoding="utf-8"))
+                  or {}).get("active") or "")
+    modes = data.get("operating_modes")
+    if not active or not isinstance(modes, dict):
+        return None
+    bound = [(key, block) for key, block in modes.items()
+             if isinstance(block, dict) and block.get("formation") == active]
+    if not bound:
+        return None
+    if len(bound) > 1:
+        print(f"brief: ambiguous active mode for formation '{active}': "
+              + ", ".join(key for key, _ in bound), file=sys.stderr)
+        return None
+    return bound[0]
+
+
+def _configured_profile(project_root: Path | None = None) -> str | None:
+    """The durable profile: the ``profile`` cell on the ONE in-force mode
+    block (hypothesis:pb3-run-mode-reads-one-formation-cell), i.e. read
+    through the same resolver as the rendered block
+    (hypothesis:l4b18-survival-modes). The ``AGI_BRIEF_PROFILE`` env var
+    layers on top as a per-process override, never a cell. Returns one of
+    PROFILES, or None when no block is in force or it declares no profile --
+    the caller then falls back to ``full``.
+    """
+    found = _in_force_mode(project_root)
+    if found is None:
+        return None
+    profile = found[1].get("profile")
+    return profile if profile in PROFILES else None
+
+
+def _config_data(project_root: Path | None = None) -> dict:
+    """The project's parsed ``config.json`` as a dict, or ``{}``.
+
+    Read once, in ``assemble()``; ``_kid()`` has no ``project_root`` and no
+    business resolving config. Missing/unreadable config or a non-dict body
+    falls back to ``{}``, so the ceiling resolver's own default applies and the
+    brief stays deterministic for every caller that does not thread a number.
+    """
+    cfg_path = _resolve_graph_root(project_root) / "config.json"
+    try:
+        data = json.loads(cfg_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _effective_profile(profile: str | None = None,
+                       project_root: Path | None = None) -> str:
+    """One switch for the whole inject path (move FIVE, l4b18-survival-modes).
+
+    Precedence: ``profile`` kwarg (programmatic caller, highest) →
+    AGI_BRIEF_PROFILE env (per-process override) → .agi/config.json
+    ``operating_mode`` (durable default) → ``full`` (historical behaviour).
+    """
+    if profile is not None:
+        return profile
+    profile = os.environ.get("AGI_BRIEF_PROFILE")
+    if profile is None or profile not in PROFILES:
+        profile = _configured_profile(project_root=project_root)
+    if profile is None or profile not in PROFILES:
+        profile = "full"
+    return profile
+
+
+def survival_selected(profile: str | None = None,
+                      project_root: Path | None = None) -> bool:
     """Resolve the effective profile for the WHOLE inject path (move FIVE).
 
     One switch, read the same way by `assemble`, `successor_prompt` and the
     adapters so every surface agrees: an explicit `profile` kwarg wins;
-    otherwise the `AGI_BRIEF_PROFILE` env selects it; unset or unknown is
-    ``full`` (historical behaviour). The adapters call this to decide whether
-    to inject the graph-viewport stream, which survival drops. ``None`` is
-    the sentinel for "no explicit profile" so the env is consulted.
+    otherwise AGI_BRIEF_PROFILE env selects it, then .agi/config.json
+    ``operating_mode``; unset and undeclared is ``full`` (historical
+    behaviour). The adapters call this to decide whether to inject the
+    graph-viewport stream, which survival and ultimate_survival both drop.
+    ``None`` is the sentinel for "no explicit profile" so env + config are
+    consulted.
     """
-    if profile is None:
-        profile = os.environ.get("AGI_BRIEF_PROFILE", "full")
-    return profile in PROFILES and profile == "survival"
+    effective = _effective_profile(profile=profile, project_root=project_root)
+    return effective in ("survival", "ultimate_survival")
 #: The reading level an advisor's constitution head is drawn from. The ladder
 #: declares read_order per tier; ``advisor`` is a role atop the tier-3 parent
 #: row (claude-opus-5, max, ultracode), so it reads at the parent's level.
@@ -210,7 +332,7 @@ def _resolve_graph_root(project_root: Path | None = None) -> Path:
     and the graph root is <repo>/.agi. Walk up from this file to find .agi.
     """
     if project_root:
-        return project_root
+        return Path(project_root)
     start = Path(__file__).resolve()
     for parent in [start] + list(start.parents):
         candidate = parent / ".agi"
@@ -262,6 +384,17 @@ def _read_faith_ref(project_root: Path) -> dict[str, str]:
     return sections
 
 
+def _read_faith_moral(project_root: Path) -> str:
+    """MORAL region of moral:faith: `## ESSENCE` .. before `## REFERENCE`.
+
+    Empty when either heading is absent: a malformed faith must not crash.
+    """
+    text = (project_root / _MORAL_FAITH).read_text(encoding="utf-8")
+    if "## ESSENCE" not in text or "## REFERENCE" not in text:
+        return ""
+    return text[text.index("## ESSENCE"):text.index("## REFERENCE")].rstrip()
+
+
 def _extract_read_order(text: str, tier: str) -> list[str]:
     """Extract the read order for a given tier from the ladder frontmatter.
 
@@ -281,11 +414,11 @@ def _extract_read_order(text: str, tier: str) -> list[str]:
 
     if not text.startswith("---"):
         return []
-    parts = text.split("---", 2)
-    if len(parts) < 3:
+    parted = split_frontmatter(text)
+    if parted is None:
         return []
     try:
-        fm = yaml.safe_load(parts[1]) or {}
+        fm = yaml.safe_load(parted[0]) or {}
     except Exception:
         return []
     if not isinstance(fm, dict):
@@ -303,11 +436,11 @@ def _load_frontmatter(text: str) -> dict:
 
     if not text.startswith("---"):
         return {}
-    parts = text.split("---", 2)
-    if len(parts) < 3:
+    parted = split_frontmatter(text)
+    if parted is None:
         return {}
     try:
-        fm = yaml.safe_load(parts[1]) or {}
+        fm = yaml.safe_load(parted[0]) or {}
     except Exception:
         return {}
     return fm if isinstance(fm, dict) else {}
@@ -471,7 +604,8 @@ def _resolve_part(part: str, sections: dict[str, str]) -> str | None:
     return None
 
 
-def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
+def _build_head(*, tier: str, project_root: Path | None = None,
+                moral: bool | None = None) -> str | None:
     """The constitution head for a tier: PRAYERS ONLY, from moral:faith.
 
     Trim, `hypothesis:l3w4-context-load-minimal` move ONE: the always-injected
@@ -518,6 +652,19 @@ def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
     # prayers, which is all of them.
     body = _insert_michael(body)
 
+    # l5-moral: every director seat's head carries moral:faith's MORAL
+    # region. The liaison seat reads at the director's ladder row but is NOT a
+    # director seat -- it answers to the quorum -- so its caller passes
+    # `moral=False` and the region stays out (goal:g15.27.5 FR-C2). `moral`
+    # is explicit when the caller knows the seat; a bare tier lookup keeps
+    # the historical `tier == "director"` gate.
+    if moral is None:
+        moral = tier == "director"
+    if moral:
+        moral = _read_faith_moral(root)
+        if moral:
+            body = moral + "\n\n" + body
+
     return (
         "─── CONSTITUTION HEAD ───\n"
         "Prayers, sourced from moral:faith at run time. The long readings "
@@ -525,6 +672,53 @@ def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
         "on demand \u2014 `brief.py readings --tier <tier>` \u2014 for a tie-break.\n\n"
         + body
     )
+
+
+def _operating_mode_block(project_root: Path | None = None) -> str:
+    """Render the ACTIVE operating arrangement declared in config.json.
+
+    hypothesis:l4-the-mode-is-declared-not-remembered: the owner named two
+    arrangements (survival, ultimate survival — doc:l4-owner-decisions) and
+    goal:g17.1 a third (enhanced survival), and the one IN FORCE was being
+    remembered in prose by whoever wrote each brief. This renders it from the
+    declaration instead, so an agent READS the mode from the brief it was
+    given, and the mode in force is whichever block is bound to the
+    config:formations `active` template (hypothesis:pb3-run-mode-reads-one-
+    formation-cell) -- one switch, one answer.
+
+    Returns an empty string (else a block starting with the marker line)
+    when no declaration exists — an absent declaration renders NOTHING and
+    raises nothing, so a project that has not declared modes is unchanged.
+    """
+    found = _in_force_mode(project_root)
+    if found is None:
+        return ""
+    active, block = found
+    lines = [
+        "─── OPERATING MODE (declared in .agi/config.json) ───",
+        f"ACTIVE: {block.get('name') or active}",
+    ]
+    for key, label in (("seats", "SEATS"), ("models", "MODELS"),
+                       ("source", "SOURCE")):
+        val = block.get(key)
+        if val:
+            lines.append(f"{label}: {val}")
+    return "\n".join(lines)
+
+
+def _prepend_head(segs, *, tier: str, project_root: Path | None = None,
+                  moral: bool | None = None):
+    """Prepend the constitution head (if any) then the active operating-mode
+    block (if declared). One choke point for every assemble branch so the
+    mode reaches every tier's brief exactly once.
+    """
+    head = _build_head(tier=tier, project_root=project_root, moral=moral)
+    if head:
+        segs.insert(0, head)
+    mode = _operating_mode_block(project_root=project_root)
+    if mode:
+        segs.insert(1 if head else 0, mode)
+    return segs
 
 
 def readings_head(*, tier: str, project_root: Path | None = None) -> str | None:
@@ -661,6 +855,7 @@ def _survival_brief(*, tier: str, agent_id: str, iter_n: int,
         "SPEND: check the OpenRouter KEY balance, not the account. If "
         "limit_remaining <= $1.00, stop and write status -- never lower "
         "provisioning.min_key_remaining_usd. ",
+        _paid_for_path_guard(project_root),
         _survival_state_card(project_root=project_root),
     ]
 
@@ -685,20 +880,79 @@ def successor_prompt(*, tier: str, body: str,
     if profile not in PROFILES:
         raise BriefError(f"unknown profile {profile!r}; known: {', '.join(PROFILES)}")
     if profile == "full":
-        profile = os.environ.get("AGI_BRIEF_PROFILE", "full")
-        if profile not in PROFILES:
-            profile = "full"
-    if profile == "survival":
+        profile = _effective_profile(project_root=project_root)
+    if profile in ("survival", "ultimate_survival"):
         body = "\n\n".join(_survival_brief(
             tier=tier, agent_id="successor", iter_n=0,
             project_root=project_root))
-    head = _build_head(tier=tier, project_root=project_root)
-    if head:
-        return head + "\n\n" + body
-    return body
+    head = render_head(project_root=project_root)
+    rendered = head + "\n\n" + body if head else body
+    guard = _paid_for_path_guard(project_root)
+    if guard != PAID_FOR_PATH_GUARD:
+        rendered = rendered.replace(PAID_FOR_PATH_GUARD, guard)
+    if guard not in rendered:
+        rendered = "\n\n".join(part for part in (rendered, guard) if part)
+    return rendered
+
+
+def render_head(*, project_root: Path | None = None) -> str | None:
+    """The ONE head every caller prepends: `render`'s `head` part.
+
+    hypothesis:brief-py-assembles-every-first-turn-from-config: the
+    SessionStart hook (`brief.py head`), a rotated successor
+    (`successor_prompt`) and the dispatcher all read the SAME bytes, so they
+    cannot drift. The head takes no role -- it is one doc region -- which is
+    what makes it byte-identical across every role at one SHA.
+    """
+    root = _resolve_graph_root(project_root)
+    try:
+        return _part("head", root, "", None, None) or None
+    except (RenderError, FaithRefError):
+        return None
 
 
 # ---- director and prime_director tiers --------------------------------------
+
+
+# ---- MECHANISM, NOT WORDING (owner ask, 2026-09-10) --------------------
+# The owner read a director's account of why it landed a brief change by
+# hand and asked for more of that KIND of reasoning, not more prose. The
+# prime named the shape rather than praising the instance, because praise
+# produces prose and a named shape produces reasoning. Placed beside
+# `struggles:`/`caveats:` deliberately: those are already the cheapest
+# signal in this project and this is the same family, not a parallel
+# system.
+#
+# 🔴 QUALITY IS NEVER SCORED, exactly like `feeling`. A scored reasoning
+# slot becomes a performance, and a performed one is worse than none. What
+# is checkable is the PRESENCE of the slot and the presence of a CITATION
+# in part (2) — both mechanical, neither a judgement.
+#
+# 🔴 AND IT IS NOT A NEW REASON TO MESSAGE UPWARD. Recorded in the NODE
+# always; it travels in a report only when it was already permitted — a
+# rule-changing finding. Record always, send only when it changes a rule.
+_MECHANISM = (
+    "MECHANISM, NOT WORDING. When you explain a decision — in a node's "
+    "THOUGHT, in a review, in a commit — give these four, in this order:\n"
+    "  (1) WHAT THE INSTRUCTION SAID, quoted.\n"
+    "  (2) WHAT THE MACHINE ACTUALLY DOES, cited to file:line, or to an "
+    "artifact you BUILT AND RAN. Never to how the code appears. The "
+    "standard set on 2026-09-10: asked to make a line LAST in a brief, the "
+    "director built the real 21-argument spawn command and read argument "
+    "21, rather than reading the order of the source.\n"
+    "  (3) THE NEAR MISS — the plausible implementation that satisfies (1) "
+    "and loses (2), stated as a counterfactual. The canonical example: "
+    "*\"a fragment at the end of the list satisfies the words and loses "
+    "the mechanism\"*. THIS IS THE PART MODELS SKIP, and it is the part "
+    "that makes your reasoning checkable by someone who was not there.\n"
+    "  (4) IF YOU DEVIATED FROM A STANDING RULE, the property of THIS case "
+    "that makes the rule not apply — not that it was inconvenient. The "
+    "model instance: *\"a parent dispatched to fix the parent brief reads, "
+    "as its own instructions, the text it was sent to change\"*.\n"
+    "Nobody scores how well you write this and nobody will. It is not a "
+    "reason to message anyone: record it in the node always, and send it "
+    "upward only when it is already something you were permitted to send."
+)
 
 
 def _director(*, agent_id: str, iter_n: int, cli_py: str,
@@ -764,8 +1018,10 @@ def _director(*, agent_id: str, iter_n: int, cli_py: str,
         "   write.py, not by hand.",
         "DO NOT run git. No commit, no add, no push, no stash, no checkout. "
         "Automation owns all remote traffic.",
+        PAID_FOR_PATH_GUARD,
         "DO NOT bypass the evidence gate. `--no-evidence-gate` stamps the "
         "node and marks it unreviewed.",
+        _MECHANISM,
     ]
     return segs
 
@@ -799,6 +1055,7 @@ def _liaison(*, agent_id: str, project_root: Path | None = None) -> list[str]:
         "candidate decisions sits with the quorum, not you.",
         "DO NOT run git. No commit, no add, no push, no stash, no checkout. "
         "Automation owns all remote traffic and the parent owns commits.",
+        PAID_FOR_PATH_GUARD,
         "Route every node edit through the logged writer: "
         "`python3 extensions/agi/bin/write.py <node-id> 'thought <text>'` "
         "(or `note <text>`). A hand edit to a node file is an unsanctioned "
@@ -845,10 +1102,10 @@ def _read_vision_node(project_root: Path, target: str | None) -> tuple[str, str]
     except (OSError, FileNotFoundError):
         return None
     if text.startswith("---"):
-        parts = text.split("---", 2)
-        if len(parts) < 3:
+        parted = split_frontmatter(text)
+        if parted is None:
             return None
-        body = parts[2].strip()
+        body = parted[1].strip()
     else:
         body = text.strip()
     if not body:
@@ -926,9 +1183,15 @@ def _advisor(*, agent_id: str, iter_n: int, target: str | None,
         )
     title, body = vision
 
+    # hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — ONE
+    # town line, derived from the embodied vision's `town:` cell (default
+    # core) via the shared helper; never a branch on a town NAME (goal:g8.2).
+    root = _resolve_graph_root(project_root)
+    import spawn_gate
+    town = spawn_gate.nearest_vision_town(str(root / "nodes"), [target])
+
     # Real, runnable paths. dispatch.py is passed in from the spawn site;
     # send.py / rotate.py / season.py live beside it in the same bin/.
-    root = _resolve_graph_root(project_root)
     root_arg = str(root)
     dp = Path(dispatch_py) if dispatch_py else Path(
         "extensions/agi/bin/dispatch.py")
@@ -988,6 +1251,11 @@ def _advisor(*, agent_id: str, iter_n: int, target: str | None,
         f"proposal, every report through its text and gloss, verbatim below.",
         f"THE VISION YOU EMBODY\n"
         f"Body of {target} ({title}), verbatim:\n\n{body}",
+        f"TOWN OF {target}\n"
+        f"Your vision belongs to town {town}. A town is a vision with its "
+        f"own council, its own vision cap and its own goals "
+        f"(hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council); "
+        f"every non-core town's council reports to the Core Council.",
         f"YOUR DUTIES\n"
         f"1. Sit the quorum: stay a standing member of the room "
         f"{_ADVISOR_QUORUM_ROOM} — free horizontal comms with the other "
@@ -1001,6 +1269,7 @@ def _advisor(*, agent_id: str, iter_n: int, target: str | None,
         f"you never rewrite it.",
         "DO NOT run git. No commit, no add, no push, no stash, no checkout. "
         "Automation owns all remote traffic and the parent owns commits.",
+        PAID_FOR_PATH_GUARD,
     ]
     return segs
 
@@ -1037,6 +1306,75 @@ _BUILD_IMPERATIVE = (
 )
 
 
+#: Bounded depth of the `parents:` lineage walk for the g15 gate below.
+#: A walk that reaches this many hops without finding `goal:g15` stops and
+#: reports False (not-g15); the depth bounds runaway chains and cycles in
+#: one place rather than trusting every node's `parents:` to be a DAG.
+_G15_LINEAGE_MAX_HOPS = 20
+
+
+def _parents_of(graph_root: Path, node_id: str) -> list[str]:
+    """The `parents:` list of a node id, read from the graph on disk.
+
+    A node id is `type:slug`; its file is `<graph_root>/nodes/<type>/<slug>.md`
+    (or under `nodes/deprecated/<type>/`, live-first). Returns [] when the
+    node cannot be read or carries no parents. No introspection of arbitrary
+    paths -- both the type directory and the file name are derived from the
+    id, never from anything the id can smuggle.
+    """
+    if ":" not in node_id:
+        return []
+    ntype, slug = node_id.split(":", 1)
+    if slug.endswith(".md"):
+        slug = slug[:-3]
+    for base in (graph_root / "nodes", graph_root / "nodes" / "deprecated"):
+        path = base / ntype / f"{slug}.md"
+        if not path.is_file():
+            continue
+        try:
+            fm = _load_frontmatter(path.read_text(encoding="utf-8"))
+        except OSError:
+            return []
+        parents = fm.get("parents")
+        import links  # noqa: PLC0415  (goal:g4.18.6.3.2: a mint-id parent reads as its address)
+        r = links.address_resolver(graph_root)
+        if isinstance(parents, str):
+            return [r(parents) or parents]
+        if isinstance(parents, list):
+            return [r(str(p)) or str(p) for p in parents]
+        return []
+    return []
+
+
+def _is_g15_lineage(graph_root: Path, target: str | None) -> bool:
+    """Does the target's `parents:` lineage reach `goal:g15`?
+
+    hypothesis:l4-the-must-implement-rule-is-g15-lineage-gated. Walk
+    `parents:` up through the graph from the target, bounded, and return True
+    only if the target or some ancestor is `goal:g15`. Returns False when the
+    target is absent/unresolvable or the walk exhausts without finding g15 --
+    so the guarded block renders ONLY for a target we positively know is a g15
+    descendant, and is absent for every other target (exactly the falsifier).
+    """
+    if not target:
+        return False
+    seen: set[str] = set()
+    frontier = [target]
+    for _ in range(_G15_LINEAGE_MAX_HOPS):
+        if not frontier:
+            break
+        nxt: list[str] = []
+        for nid in frontier:
+            if nid in seen:
+                continue
+            if nid == "goal:g15":
+                return True
+            seen.add(nid)
+            nxt.extend(_parents_of(graph_root, nid))
+        frontier = nxt
+    return False
+
+
 def _is_build_target(parent_id: str) -> bool:
     """Is this kid aimed at a BUILD node (a target whose body carries the
     BUILD-CONTRACT marker)?
@@ -1050,9 +1388,29 @@ def _is_build_target(parent_id: str) -> bool:
     return (parent_id or "").strip().startswith("build:")
 
 
+def _scratch_dir_clause(session_dir: Path | str | None) -> list[str]:
+    """hypothesis:l4-the-assembled-brief-names-the-session-dir-as-the-only-
+    scratch-dir -- ONE clause, and a no-op when the session dir is unknown
+    (offline callers must not change). Rendered for the tiers that stage
+    scratch: the kid (which left the 27 tracked `.agi/tmp/` files and the
+    SL7.128 probes) and its parent.
+    """
+    if not session_dir:
+        return []
+    return [
+        f"SCRATCH DIR: your session dir {session_dir} is the ONLY scratch "
+        f"dir. Probes, kid briefs, notes and result files go under it; "
+        f"never `.agi/tmp/` or the repo root. Anything outside it is a "
+        f"stray the harvest drops."
+    ]
+
+
 def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
           source_root: str | None = None,
-          addendum: str | None = None) -> list[str]:
+          addendum: str | None = None,
+          session_dir: Path | str | None = None,
+          line_ceiling: int | None = None,
+          ceiling_source: str = "default") -> list[str]:
     """One node, bounded scope. Behaviour-preserving move of the old inline text.
 
     The wording is unchanged on purpose: it is the brief every measured
@@ -1100,6 +1458,55 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         ))
     if is_build:
         segs.append(_BUILD_IMPERATIVE)
+    # hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-2x-
+    # for-a-parent-re-brief, conjunct (1): the kid brief carries its ceiling
+    # as a number the kid can read, so the 2x checkpoint has a number to key
+    # on. `assemble()` resolves the int from config and hands it down; a
+    # caller that does not thread it still gets the default, never a missing
+    # segment, because a brief that says nothing is the defect this fixes.
+    ceiling = 40 if line_ceiling is None else int(line_ceiling)
+    ceiling_origin = {
+        "clause": " This number is the dispatching node's own CEILING clause,"
+                  " so the brief and the harvest agree on it.",
+        "explicit": " This number was set explicitly by the caller that"
+                    " assembled this brief.",
+    }.get(ceiling_source,
+          " This number is the project config default; the dispatching node"
+          " carries no CEILING clause.")
+    segs.append(
+        f"YOUR PRODUCTION-LINE CEILING: {ceiling} lines.{ceiling_origin} "
+        f"Your production "
+        f"lines are measured with `git diff --numstat` over the production "
+        f"paths you were given (test files excluded). Checkpoint before "
+        f"`cli.py done`: measure those lines. If you are "
+        f"above 2x the ceiling (above {2 * ceiling} lines), STOP and write a "
+        f"re-brief request into your experiment node -- what you have done, "
+        f"what remains, the new ceiling you need -- and wait for the parent's "
+        f"answer before continuing. "
+        # conjuncts (2)/(3): the written record harvest reads. A count with
+        # no record cannot be harvested, and the `git diff --numstat` above is
+        # the ONE git a kid may run -- a read-only measurement. The `DO NOT run
+        # git` segment below forbids writes; this sentence authorises the read
+        # (option (a) of the contradiction: the brief names its own tool).
+        f"Record the measured count in your experiment node's frontmatter "
+        f"before you continue: `write.py <node-id> 'set production_lines N'` "
+        f"-- the whole verb line is ONE quoted argument. NEVER write "
+        f"`line_ceiling` on your own node: the number above is "
+        f"the dispatching node's, and dispatch stamps it on your scaffold "
+        f"ONLY when that node declares its ceiling ACROSS more than one kid "
+        f"(`spawn_budget.node_line_ceiling`, K > 1); when K is 1 the field is "
+        f"ABSENT and the number above is the resolved clause or the config "
+        f"default. Only your parent's answered re-brief may change it -- a kid "
+        f"that sets it overwrites the parent's hand-set ceiling with the "
+        f"number it was briefed with (goal:g15.27.5 FR-C2). If you are above "
+        f"2x, also write "
+        f"`write.py <node-id> 'set rebrief_request <what remains, the ceiling "
+        f"you need>'` before you stop; harvest reads these fields and names an "
+        f"overage with no re-brief entry as a defect. That one `git diff "
+        f"--numstat` read is the ONLY git you may run: a read-only "
+        f"measurement, nothing staged, committed or pushed."
+    )
+    segs += _scratch_dir_clause(session_dir)
     segs += [
         # goal:s28 session, 2026-09-02 -- a kid ran `git add -A && git commit`
         # and swept up 37 lines of a CLAUDE.md section the director had
@@ -1113,11 +1520,21 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         "`git add -A` is especially forbidden: other agents and the director "
         "have uncommitted work in this tree, and it WILL be swept into your "
         "commit. If you see unexpected files, report them in one line and "
-        "leave them exactly where they are.",
+        f"leave them exactly where they are. {PAID_FOR_PATH_GUARD}",
+        "A g15 CLAIM IS BEHAVIOUR TO BUILD, not a hypothesis to measure: "
+        "measure the pre-fix state, IMPLEMENT the claim, then prove it on the "
+        "built bytes. A node that only reproduces the defect and reports "
+        "`disproved` has not done the round (hypothesis:l4-a-g15-claim-is-a-"
+        "build-order-not-a-measurement: four kids measured instead of building).",
         "RUN THE REPO TEST SUITE before you report, if you changed any code: "
-        "`python3 -m pytest extensions/agi/tests/ -q`. Your own scratch test "
-        "passing is not the same claim. A failing assertion you did not expect "
-        "is usually the assertion working.",
+        "`python3 -m pytest <the test files you changed or that cover your "
+        "files> -q` -- name the files, NEVER the bare `extensions/agi/tests/` "
+        "directory. The kid-tier gate (conftest.py) refuses a bare directory "
+        "run, and it now derives the tier from the running agent record, so "
+        "`env -u AGI_TIER` does not clear it. Your own scratch test passing is "
+        "not the same claim. A failing assertion you did not expect is usually "
+        "the assertion working. A test of live config reads the live node, "
+        "never a copied list.",
         # write.py verb syntax: the WHOLE verb line is ONE shell-quoted
         # argument (goal:g13.1). Unquoted, argparse reads `set` as the script
         # and `verdict` as the slug and the call dies on the extra positional
@@ -1128,7 +1545,7 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         "quotes. Fields inside the line stay space separated, not k=v. "
         "Example:\n"
         "  python3 extensions/agi/bin/write.py experiment:x 'set verdict proved'\n"
-        "  python3 extensions/agi/bin/write.py experiment:x 'set evidence_runs experiment:x'\n"
+        "  python3 extensions/agi/bin/write.py experiment:x 'set evidence_runs [\"experiment:x\"]'\n"
         "  python3 extensions/agi/bin/write.py hypothesis:x 'thought <why this version>'\n"
         # hypothesis:l3-write-partial-diffs-as-writes -- the partial verbs.
         # `read` fetches a line range (read-only, never restamps edited_by);
@@ -1137,6 +1554,8 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         # path or '-', NEVER inline -- a diff can contain the doubled `&&`
         # that splits the script form.
         "  python3 extensions/agi/bin/write.py build:bin-x 'read payload 10:20'\n"
+        "  python3 extensions/agi/bin/write.py build:bin-x 'replace payload 10:20 -'  # new text on stdin, NO diff\n"
+        "  python3 extensions/agi/bin/write.py hypothesis:x 'replace body 4:9 -'      # same verb, node BODY\n"
         "  python3 extensions/agi/bin/write.py build:bin-x 'patch -'   # unified diff on stdin (fail-closed)\n"
         "  python3 extensions/agi/bin/write.py hypothesis:x 'body_patch -'  # diff onto the node BODY",
         # hypothesis:l3w4-handoff-sections-claimable -- name the section tool
@@ -1147,8 +1566,11 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         # l3w4 read-then-hunk recipe; measured trap -- the applier's body view
         # is offset one from a naive split on BODY:BEGIN, and `read body`
         # shares that exact view, so number the hunk from those bytes.
-        "To patch a node body: `write.py <id> 'read body N:M'` first and build "
-        "the hunk from those exact bytes.",
+        "PARTIAL EDITS, no offset arithmetic: `write.py <id> 'read <body|payload> "
+        "N:M'` then `write.py <id> 'replace <body|payload> N:M -'` with the new text "
+        "on stdin. The two ranges are the SAME -- replace is the exact inverse of "
+        "read -- and it behaves identically on a node BODY and a build PAYLOAD. "
+        "Reach for `patch`/`body_patch` only when you already hold a diff.",
         # L3.37/38: the edit tool rejected, across two independent kids in one
         # round, an `edits` argument passed as a single JSON string and one
         # wrapped a level too deep as `[{ edits: [...] }]`. Each cost a turn.
@@ -1164,6 +1586,30 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         "edits=[{\"oldText\": \"old line\", \"newText\": \"new line\"}])",
         # l2w3-send: one-line escalation path for kids via inbox transport.
         "If you must escalate use send.py send <parent-id> <question> then stop.",
+        # hypothesis:l4-the-kid-brief-demands-a-title-and-the-done-subject-
+        # never-borrows-the-parent-verdict-for-an-empty-node item (1): the
+        # title demand lived only in the PARENT's prose, so a parent that did
+        # not hand-carry it left the kid's node with the dispatch-DERIVED
+        # title (`A00 f067c356 b0ad80`) and no kid ever saw the rule it was
+        # failing. Put it in `_kid` so it reaches every kid without the
+        # parent's hand; the harvest's `untitled=[id]` naming is unchanged.
+        "SET YOUR OWN NODE TITLE IN YOUR OWN WORDS. A node minted by dispatch "
+        "carries a title DERIVED from its filename (`A00 f067c356 b0ad80`), "
+        "which renders as an opaque id in every map and is harvested as an "
+        "untitled defect (`untitled=[<node-id>]`). Before you signal done, "
+        "set a real title on your own node with\n"
+        "  python3 extensions/agi/bin/write.py <node-id> 'set title <your "
+        "own words>'\n"
+        "A round whose node still carries its derived title has not finished.",
+        # hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-
+        # per-round -- the shape, named once, in the brief the kid reads.
+        "You report to your PARENT agent, never to the dispatching seat: your "
+        "completion line dm's `spawned_by_agent` (your parent, the agent id "
+        "that cut you), and under AGI_TIER=kid `send.py send <target>` REFUSES "
+        "any target that is not that parent. The seat hears exactly ONE dm per "
+        "round, from the parent at harvest -- never one per kid "
+        "(hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-"
+        "per-round).",
     ]
     if scaffold:
         parent = (scaffold.get("parent") or "").strip()
@@ -1198,13 +1644,40 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
     return segs
 
 
+_MERGE_KIDS_VALUES = ("held", "live")
+
+
+def _merge_kids_cell(project_root: Path | None = None) -> str:
+    """Resolve the merge-protocol cell (hypothesis:l4-the-merge-protocol-
+    block-is-gated-on-the-held-state): ``spawn.merge_kids`` in
+    ``.agi/config.json`` is ``held`` | ``live``. ``held`` means the branch
+    parent brief must NOT tell the parent to run ``season.py merge-kids``
+    (the verb is HELD by the prime's ruling g15-20); ``live`` renders the
+    current merge-protocol block verbatim. The ``AGI_MERGE_KIDS`` env var is
+    the per-process override (same seam as ``AGI_BRIEF_PROFILE``); the
+    DEFAULT when the cell is absent is ``held``.
+    """
+    env = os.environ.get("AGI_MERGE_KIDS")
+    if env in _MERGE_KIDS_VALUES:
+        return env
+    cfg = _resolve_graph_root(project_root) / "config.json"
+    try:
+        data = json.loads(cfg.read_text(encoding="utf-8"))
+        value = (data.get("spawn") or {}).get("merge_kids")
+    except (OSError, ValueError, AttributeError):
+        value = None
+    return value if value in _MERGE_KIDS_VALUES else "held"
+
+
 def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
             target: str | None, parallel: int, max_live: int = 1,
             kid_ceiling: int | None = None,
             branch_name: str | None = None,
             branch_worktree: str | None = None,
             branch_base: str | None = None,
-            source_root: str | None = None) -> list[str]:
+            source_root: str | None = None,
+            session_dir: Path | str | None = None,
+            project_root: Path | str | None = None) -> list[str]:
     """A loop, not a node. `goal:g4.8` + `hypothesis:l3-parent-never-told-to-iterate`.
 
     The docstring that once stopped at "A loop, not a node" and then listed a
@@ -1262,9 +1735,15 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
        `AGI_PARENT_BRANCH` / `AGI_PARENT_WORKTREE` / `AGI_PARENT_BASE_BRANCH`,
        this item names the branch, worktree and base and DEFERS the one commit
        to `cli.py done`, which commits the dirty worktree automatically the
-       moment the parent finishes — the parent runs no git itself. Push, sync,
-       rebase and `grid.py commit --all` stay forbidden, and the model is no
-       longer handed the commit commands to run at all.
+       moment the parent finishes. **The one exception — `hypothesis:l4-a-
+       parent-cuts-five-and-merges-its-kids`: the branch parent itself runs
+       the `season.py merge-kids` helper on each kid branch, onto its OWN
+       round branch (item 5, the merge protocol); that one helper is the sole
+       git operation the parent executes**, and is carved out of the
+       otherwise-total "runs no git itself" so the round's kids' branches
+       actually climb. Push, sync, rebase and `grid.py commit --all` stay
+       forbidden, and the model is no longer handed the commit commands to run
+       at all.
     """
     aim = target or "(pick from the injected map)"
     # hypothesis:l3-parent-never-told-to-iterate -- the per-dispatch kid
@@ -1273,34 +1752,152 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
     # -- deliberately well under max_live, so an uninstrumented parent still
     # plans against a bounded number rather than the tree's whole capacity.
     ceiling = kid_ceiling if kid_ceiling is not None else 4
+    carry_forward_file = (
+        Path(session_dir) / "last-kid-result.md" if session_dir else None
+    )
+    carry_forward_arg = (
+        f"--orders {carry_forward_file}" if carry_forward_file else "--orders"
+    )
     if branch_name:
-        # hypothesis:l3-parent-brief-forbids-the-only-commit — a --branch
-        # parent's brief names its branch, worktree and base and DEFERS the one
-        # commit a loop branch needs to `cli.py done`, which commits the dirty
-        # worktree automatically at finish time. The model runs no git itself;
-        # hand-committing before done would double-work or leave done nothing
-        # to write, so the old git-add/git-commit commands are gone from the
-        # brief entirely.
+        # hypothesis:l4-the-merge-protocol-block-is-gated-on-the-held-state
+        # — the merge-protocol block is gated on the held state. When the
+        # `spawn.merge_kids` cell resolves `held` (or is absent, the default)
+        # the brief says the `season.py merge-kids` verb is HELD and must NOT
+        # be run, and what to do instead; when `live` it renders the current
+        # block verbatim (item 5 + item 6 as they have been since
+        # hypothesis:l4-a-parent-cuts-five-and-merges-its-kids, whose raw
+        # `git merge --no-ff` now lives only underneath the un-held helper).
+        # In both states the parent OWNS the merge onto its OWN round branch;
+        # the done-time commit `cli.py done` carries still happens
+        # automatically; everything else stays forbidden. Item numbering is
+        # coherent in both states (5/6/7), so no dangling gap glues the next
+        # rule onto the previous sentence.
         worktree = branch_worktree or "(worktree)"
         base = branch_base or "(base)"
-        ship = (
-            f"5. YOUR BRANCH IS THE ONLY ROUTE YOUR KIDS' WORK HAS TO THE SEASON "
-            f"BRANCH. You are on `{branch_name}` in worktree `{worktree}`, cut "
-            f"from `{base}`. A loop branch left at base merges as NOTHING and "
-            f"still reports green — that is already measured waste. Your "
-            f"accepted work on this branch is committed AUTOMATICALLY the moment "
-            f"you call `cli.py done` below, onto your own loop branch. So you run "
-            f"NO git commands yourself, on this branch or any other: nothing is "
-            f"pushed, synced, rebased or staged by hand, and no other branch or "
-            f"the main checkout is touched. Automation still owns remote "
-            f"traffic; the loop owns your branch's merge; the done-time commit "
-            f"is the only write your branch carries and it is automatic."
-        )
+        season_cmd = str(Path(dispatch_py).with_name("season.py"))
+        if _merge_kids_cell() == "live":
+            # hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — the
+            # branch parent OWNS the merge: `season.py merge-kids` of each
+            # kid branch onto its OWN round branch (item 5, the merge
+            # protocol) is the ONE git operation a parent runs; the raw
+            # `git merge --no-ff` lives only underneath that helper. The
+            # old blanket "you run NO git commands yourself" is GONE for
+            # the branch case because it directly forbade the merge the
+            # hypothesis requires.
+            merge_protocol = (
+                f"5. MERGE PROTOCOL — you are on round branch `{branch_name}` "
+                f"in worktree `{worktree}`, cut from `{base}`, and you MERGE "
+                f"every kid's branch into it before you signal done, in "
+                f"dispatch order, with the supported helper:\n"
+                f"    python3 {season_cmd} merge-kids <kid-branch> [<kid-branch> ...]\n"
+                f"  `merge-kids` merges each named kid branch onto your round "
+                f"branch in the order given (`git merge --no-ff --no-commit` "
+                f"under the hood), union-resolves NODE conflicts, refuses a "
+                f"SOURCE conflict by printing the paths and leaving the merge "
+                f"in progress for you, and re-runs THIS round's suite — your "
+                f"test files WITH THEIR NEIGHBOURS in suite order — on the "
+                f"MERGED bytes, so a green kid branch is not a green union "
+                f"and you do NOT re-run the suite separately. That helper is "
+                f"the ONE git operation a parent runs (item 6); you run no "
+                f"raw git.\n"
+                f"  - A conflict in a NODE file is resolved by UNION of the "
+                f"`## Agent Notes` blocks plus the higher-confidence verdict "
+                f"line — never a blind `git apply --3way`, which can drop a "
+                f"note.\n"
+                f"  - A conflict in SOURCE is refused by the helper (paths "
+                f"printed, the merge left in progress) and is resolved by YOU "
+                f"as an edit you own, and named in your review note.\n"
+                f"  - Your review note lists EVERY kid branch merged, every "
+                f"conflict and how it was resolved, and every kid branch NOT "
+                f"merged and why."
+            )
+            ship = (
+                f"6. THE ONE GIT OPERATION A PARENT RUNS IS THE MERGE — via "
+                f"the `merge-kids` helper from item 5, never raw git. Your "
+                f"round branch `{branch_name}` is the only route your kids' "
+                f"work has to the season branch `{base}`, and its accepted "
+                f"work is committed AUTOMATICALLY the moment you call "
+                f"`cli.py done` below. The one git command YOU run is the "
+                f"helper from item 5: `python3 {season_cmd} merge-kids "
+                f"<kid-branch> ...` onto this branch, in dispatch order. A loop "
+                f"branch left at base merges as NOTHING and still reports "
+                f"green — that is measured waste, so item 5 is not optional. "
+                f"Everything else stays forbidden, on this branch or any "
+                f"other: no push, no sync, no rebase, no `grid.py`, no "
+                f"touching any branch other than this round branch, no "
+                f"staging by hand, no raw `git merge`. {PAID_FOR_PATH_GUARD} "
+                f"Automation still owns remote traffic; the done-time commit is "
+                f"automatic and is "
+                f"not yours to reach for."
+            )
+        else:
+            # ``spawn.merge_kids: held`` (or absent). The verb is HELD by the
+            # prime's ruling (g15-20); the held text names `merge-kids` ONLY
+            # to say it is held, never as a command to run.
+            merge_protocol = (
+                f"5. MERGE-KIDS IS HELD — the `season.py merge-kids` verb is "
+                f"HELD by the prime's ruling (goal:g15-20) and you MUST NOT "
+                f"run it. It is named here only to say it is held, not as a "
+                f"command for you. Instead, merge each kid's finished branch "
+                f"into your OWN round branch `{branch_name}` in this worktree "
+                f"`{worktree}` (cut from `{base}`) yourself, with "
+                f"`git merge --no-ff`:"
+                f"\n"
+                f"  - a conflict in a NODE file is resolved by UNION of the "
+                f"`## Agent Notes` blocks plus the higher-confidence verdict "
+                f"line — never a blind `git apply --3way`, which can drop a "
+                f"note.\n"
+                f"  - a conflict in SOURCE is resolved by YOU as an edit you "
+                f"own, and named in your review note.\n"
+                f"  - after each merge, re-run THIS round's suite — your test "
+                f"files WITH THEIR NEIGHBOURS in suite order — on the MERGED "
+                f"bytes, so a green kid branch is not a green union.\n"
+                f"  - your review note lists EVERY kid branch merged, every "
+                f"conflict and how it was resolved, and every kid branch NOT "
+                f"merged and why.\n"
+            )
+            ship = (
+                f"6. YOU DO THE MERGE YOURSELF, BEFORE DONE — `merge-kids` "
+                f"remains HELD, so your round branch `{branch_name}` is the "
+                f"only route your kids' work has to the season branch `{base}`, "
+                f"and its accepted work is committed AUTOMATICALLY the moment "
+                f"you call `cli.py done` below. You merge each kid's branch "
+                f"with `git merge --no-ff` in this worktree, in dispatch order, "
+                f"and never leave the round branch at base — a loop branch left "
+                f"at base merges as NOTHING and still reports green; that is "
+                f"measured waste. Everything else stays forbidden: no push, no "
+                f"sync, no rebase, no `grid.py`, no touching any branch other "
+                f"than this round branch, no staging by hand, no raw `git "
+                f"merge` beyond the one into this round branch. "
+                f"{PAID_FOR_PATH_GUARD} Automation still owns remote traffic; "
+                f"the done-time commit is "
+                f"automatic and is not yours to reach for."
+            )
     else:
+        merge_protocol = ""
         ship = (
-            "5. DO NOT commit, push, or sync. Automation owns all remote "
-            "traffic"
+            "5. DO NOT commit, push, or sync. "
+            f"{PAID_FOR_PATH_GUARD} Automation owns all remote traffic"
         )
+    # hypothesis:l4-the-must-implement-rule-is-g15-lineage-gated -- the
+    # "THIS KID MUST IMPLEMENT THE FIX" review rule is a g15-specific demand.
+    # It rendered unconditionally (L4.175) for EVERY parent target, so a
+    # parent on a NON-g15 hypothesis was told a measurement-only kid node is
+    # not a finished round -- forbidding a legitimate `disproved` there. A
+    # non-g15 hypothesis may be DISPROVED by measurement, and forbidding that
+    # forbids the scientific outcome. Render the rule only when the target's
+    # `parents:` lineage (walked up, bounded) reaches `goal:g15`; for any
+    # other target the block is absent.
+    g15_rule = (
+        "   THIS KID MUST IMPLEMENT THE FIX. A g15 claim is behaviour to "
+        "build,\n"
+        "   not a hypothesis to measure: if the kid only reproduced the "
+        "defect\n"
+        "   and reported `disproved`, re-cut the node with an explicit "
+        "demand\n"
+        "   to implement, and do not record it as a finished round\n"
+        "   (hypothesis:l4-a-g15-claim-is-a-build-order-not-a-measurement).\n"
+    ) if _is_g15_lineage(_resolve_graph_root(project_root), target) else ""
     return [
         f"You are PARENT agent {agent_id} on iteration {iter_n}. "
         f"You run a loop. You do not write the node yourself.",
@@ -1316,10 +1913,10 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"  - **continue** -- the target still has work in it. Spawn the next "
         f"    kid. Its brief MUST carry what the last kid actually produced, so "
         f"    the second is never a blind rerun of the first. The lever that "
-        f"    makes that possible is `--prompt-file <path|->` on the spawn "
-        f"    command below: write the last kid's result to a file (or leave it "
-        f"    on stdin for `-`) and pass that path to the NEXT kid's spawn, and "
-        f"    the result lands in the next brief as its OWN labelled segment "
+        f"    makes that possible is `{carry_forward_arg}` on the spawn "
+        f"    command below: write the last kid's result to that file before "
+        f"    spawning the NEXT kid, and the result lands in the next brief as "
+        f"    its OWN labelled segment "
         f"    ('WHAT THE LAST KID PRODUCED'). Use it whenever you continue. Do "
         f"    NOT inline the result as an argv string -- it holds arbitrary "
         f"    characters (quotes, newlines) that will break the spawn command. "
@@ -1336,10 +1933,58 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"FAN-OUT AND BRANCHES ARE YOURS TOO, WHEN THEY FIT. Sequential "
         f"iteration (continue) and parallel fan-out compose: spawn several "
         f"independent kids at once when the target genuinely splits into "
-        f"slices; give a kid its own `--branch` worktree when concurrent kids "
-        f"would touch the same files (a shared cwd is fine when they would "
-        f"not). One kid when the work is one thing. Do NOT fan three kids onto "
-        f"one file -- that is the measured collision hazard with extra steps.",
+        f"slices. ONE RULE GOVERNS PARALLEL: fan out in parallel ONLY when "
+        f"the kids' file scopes are DISJOINT. Kids that touch the same file "
+        f"are SERIALIZED — spawn one, wait for it, then spawn the next. Give "
+        f"a kid its own `--branch` worktree when concurrent kids would touch "
+        f"the same files (a shared cwd is fine when they would not). One kid "
+        f"when the work is one thing. Do NOT fan three kids onto one file "
+        f"— that is the measured collision hazard with extra steps.",
+        f"AN `across K kids` CEILING IS ALREADY DIVIDED FOR YOU: the spawn "
+        f"writes each kid's slice (`ceil(N/K)`) onto the kid node's "
+        f"`line_ceiling`; read that node field, never divide it yourself.",
+        # hypothesis:l4-audit-misses-per-side-pending-... item (8): a kid
+        # experiment node minted by dispatch carries a title DERIVED from its
+        # filename (`A00 f067c356 b0ad80`), which renders as an opaque id in
+        # every map. The parent demands a real title, in the kid's own words,
+        # and will not accept a round whose node still carries the derived one.
+        "EVERY KID SETS ITS OWN NODE TITLE IN ITS OWN WORDS, and you do not "
+        "accept a kid round whose node still carries the title derived from "
+        "its filename (`A00 f067c356 b0ad80`). Before you accept it, the "
+        "kid's experiment node must carry a real title, set by the kid with\n"
+        "  python3 extensions/agi/bin/write.py <kid-node> 'set title <the "
+        "kid's own words>'\n"
+        "A kid node still carrying its derived title is harvested as an "
+        "untitled defect (`untitled=[<node-id>]`).",
+        # hypothesis:l4-the-kid-brief-demands-a-title-and-the-done-subject-
+        # never-borrows-the-parent-verdict-for-an-empty-node item (3): the
+        # SL7.136 edge -- a kid's node left uncommitted (the kid's scoped done
+        # excludes foreign nodes, and a director that lands it by hand
+        # overwrites the kid's OWN authored region). The parent re-briefs
+        # THAT kid; a director never lands it by hand.
+        "A KID'S AUTHORED NODE IS THE KID'S. When a kid leaves its own node "
+        "edit uncommitted -- its scoped done excludes foreign nodes, and its "
+        "own node is its own -- you RE-BRIEF THAT KID to commit its own node "
+        "(name the kid and the node), and you never land it by hand: the "
+        "authored region (THOUGHT) is the kid's, and a director edit fakes "
+        "whose work it is (SL7.136 01a9312f1 was at the edge).",
+        # hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-
+        # 2x-for-a-parent-re-brief, conjunct (3): the parent ANSWERS the
+        # re-brief it received, in the node, before it continues or stops.
+        "ANSWER EVERY RE-BRIEF BEFORE YOU CONTINUE. Before dispatching the "
+        "next kid or signalling done, read each owned kid's node for a "
+        "`rebrief_request`. A re-brief with no answer is the failure this "
+        "rule prevents: answer it IN THE NODE with\n"
+        "  python3 extensions/agi/bin/write.py <node-id> 'set rebrief_answer "
+        "<proceed with ceiling N | cut>'\n"
+        "and, if you proceed, also 'set line_ceiling <new N>' on that same "
+        "node, BEFORE that kid is resumed or a replacement is cut. A "
+        "`rebrief_request` left without a `rebrief_answer` is harvested as "
+        "a named defect. WHEN YOU ANSWER A RE-BRIEF, ALSO DM YOUR DIRECTOR "
+        "THE ANSWER LINE -- kid id, N/C (the new ceiling), and "
+        "`proceed-with-N | cut` -- BEFORE the kid resumes. The in-node "
+        "answer alone is the measured SL7.135 failure: the rebrief at "
+        "99/120 was answered with no dm (F31).",
         # hypothesis:l3-branch-source-paths-never-rerooted part 4 -- the
         # parent edits kids' nodes and shells out to `write.py` and
         # `dispatch.py` by relative path, so it too is told which checkout it
@@ -1347,16 +1992,31 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         (f"YOUR CHECKOUT: {source_root}. Every source path below is relative "
          f"to it. Do not edit any other checkout, even one whose path appears "
          f"elsewhere in this prompt." if source_root else None),
+        *_scratch_dir_clause(session_dir),
         f"TARGET: {aim}\n"
         f"Your job, in order:\n"
         f"1. SPAWN kids with:\n"
         f"     python3 {dispatch_py} <project> {iter_n} --tier kid --detach --target <node-id>\n"
         f"   The `--detach` flag makes dispatch return immediately after spawning\n"
-        f"   (no reaper phase). The kid runs detached; poll its status with:\n"
-        f"     python3 {cli_py} status {iter_n}\n"
-        f"   until the kid's status is `done` or `failed`. Sleep 30 seconds\n"
-        f"   between polls so each poll is a short tool call that never outlives\n"
-        f"   the harness timeout.\n"
+        f"   (no reaper phase). The kid runs detached; WAIT for it IN THE\n"
+        f"   FOREGROUND:\n"
+        f"     python3 {cli_py} wait {iter_n}\n"
+        f"   NEVER end your turn to wait for a background notification -- in\n"
+        f"   headless -p a turn-end IS process exit. wait's exit codes each\n"
+        f"   name a different fix: {cli._WAIT_TIMEOUT} = timeout with a kid\n"
+        f"   still running -- call it again; {cli._WAIT_NO_AGENT} = --agent\n"
+        f"   names no manifest row -- you named the wrong agent, so re-read the\n"
+        f"   manifest; {cli._WAIT_NO_KID_ROWS} = zero tier:kid rows -- NO kid\n"
+        f"   was spawned (most often the spawn was refused as `unadmitted`) --\n"
+        f"   check the spawn and re-dispatch, never end your turn.\n"
+        f"   A kid that missed its manifest deadline while its pid is STILL\n"
+        f"   alive is OVERDUE: its record keeps `status: running` and gains\n"
+        f"   `overdue_since` + `overdue_reason` (heal.py), plus ONE dm whose\n"
+        f"   body is `iter=... agent=... reason=overdue` -- a nudge wraps\n"
+        f"   that dm in an `[agi-nudge]` wake prefix, which is part of the\n"
+        f"   wake token, never the body. An overdue kid is STILL WORKING\n"
+        f"   — never cut a replacement for it, just keep polling\n"
+        f"   (hypothesis:l4-a-timeout-mark-on-a-live-agent-is-not-terminal).\n"
         f"   Never construct a spawn command yourself and never call the model\n"
         f"   API directly -- one spawn path, harness chosen by config.\n"
         f"2. AT MOST {parallel} kid(s) running at once, and AT MOST {max_live}\n"
@@ -1374,13 +2034,39 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"   - reject orphans; demote overclaims to `inconclusive_lean_*`.\n"
         f"   The gate also runs in code and will demote without you. Agreeing\n"
         f"   with it is not review -- read the kid's ARTIFACT, not its report.\n"
+        f"   REVIEW THE BYTES, NOT THE RESULT FILE: a kid's own tests are its\n"
+        f"   CLAIM, not your evidence -- read each kid's DIFF\n"
+        f"   (`git diff merge-base..<kid-branch>`), never the result file it\n"
+        f"   wrote. Run one negative probe per claim conjunct yourself and\n"
+        f"   record them as `probes:`; a kid that passes its own suite but\n"
+        f"   fails your probe is `lean_disproved` with the probe named\n"
+        f"   (hypothesis:l4-the-parent-task-section-says-a-kids-tests-are-its-claim-and-hands-the-parent-the-kid-diff-not-its-result-file).\n"
+        f"   CHECK EVERY DELIVERABLE THE KID NAMES AGAINST THAT DIFF, NEVER\n"
+        f"   AGAINST ITS THOUGHT OR ITS SUMMARY. A file, test, or node edit\n"
+        f"   the kid CLAIMS and the diff does not carry demotes that kid to\n"
+        f"   `inconclusive_lean_disproved` with the probe named -- it is\n"
+        f"   never silently patched by you and never by the director\n"
+        f"   (SL7.136 kid 1 claimed a node edit its branch never carried;\n"
+        f"   SM 20:33Z director gen 29).\n"
+        f"{g15_rule}"
         f"4. DO NOT bypass the gate. `--no-evidence-gate` stamps the node\n"
         f"   `evidence_gate: bypassed` and marks it unreviewed.\n"
+        f"{merge_protocol}\n"
         f"{ship}\n"
-        f"{'6' if branch_name else '5'}. SIGNAL DONE when every kid is finished:\n"
+        f"{'7' if branch_name else '5'}. SIGNAL DONE when every kid is finished:\n"
         f"     python3 {cli_py} done {iter_n} {agent_id} --verdict pending \\\n"
         f"       --owns <kid-node-id> [<kid-node-id> ...]\n"
         f"   `--owns`, NOT `--node-id`. You author no node of your own.",
+        # hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-
+        # per-round -- the parent is the round's ONE voice to its seat.
+        "You are the ONLY voice to your dispatching seat. Your kids report to "
+        "YOU (their completion lines dm `spawned_by_agent`, never the seat, "
+        "and a kid's `send.py send <seat>` is refused), so at `done` exactly "
+        "ONE seat dm leaves this round: your harvest line carrying "
+        "accepted/demoted/failed counts, your kids' node ids and your branch "
+        "tip. Never dm the seat more than once per round "
+        "(hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-"
+        "per-round).",
         "YOUR ARTEFACT IS YOUR KIDS' NODES. You are responsible for them the "
         "way a parent is responsible for its children, not for some separate "
         "object of your own. Nothing is scaffolded for you and nothing should "
@@ -1414,10 +2100,43 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         "parent's own review had missed.",
         # l2w3-send: one-line inbox check for parents at each seam.
         "Read your inbox with send.py read <your-id> before each kid review.",
+        _MECHANISM,
     ]
 
 
 # ---- assemble ---------------------------------------------------------------
+
+
+def _orders_section() -> str | None:
+    """goal:g15.25 SM.26 -- the dispatch-orders channel.
+
+    A parent's brief is rebuilt fresh from its target node every dispatch, so
+    a director's dispatch-time scope/coupling instruction had NO channel: the
+    SM.141 trap (a parent read a whole shared node as its claim) and the SM.24
+    cherry-pick coupling both needed one. dispatch.py reads `--orders <file>`
+    and exports the bytes through the environment (the same seam
+    `AGI_ADVISOR_GOAL` uses, so no adapter signature moves), and this renders
+    them VERBATIM as the LAST section of the parent brief under ONE heading.
+
+    Returns None -- and therefore renders no heading -- when the file is
+    absent or empty, so an orders-free spawn is byte-identical to before.
+    Read from the environment rather than a kwarg for the same reason the
+    advisor goal is: every harness adapter already calls `assemble`, and
+    none of them has to learn a new parameter to carry the director's word.
+    """
+    text = os.environ.get("AGI_ORDERS_TEXT")
+    # goal:g15.25 SM.28 -- the presence gate is `text.strip()`, not truthiness:
+    # a WHITESPACE-ONLY file is ABSENT (measured pre-fix: `"   \n\t\n"`
+    # rendered `## DISPATCH ORDERS` with a blank body and was copied and
+    # recorded). A non-empty file is still rendered VERBATIM -- no strip on
+    # render, so leading/trailing bytes the sender wrote reach the parent.
+    if text is None or not text.strip():
+        return None
+    sender = (os.environ.get("AGI_ORDERS_FROM")
+              or os.environ.get("AGI_POST") or "unspecified")
+    ts = os.environ.get("AGI_ORDERS_TS") or ""
+    where = f"from {sender}, {ts}" if ts else f"from {sender}"
+    return f"## DISPATCH ORDERS ({where})\n\n{text}"
 
 
 def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
@@ -1427,7 +2146,10 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
              session_dir: Path | str | None = None,
              source_root: str | Path | None = None,
              kid_ceiling: int | None = None,
+             line_ceiling: int | None = None,
              addendum: str | None = None,
+             project_root: str | Path | None = None,
+             include_head: bool = True,
              profile: str = "full") -> list[str]:
     """The whole brief for one agent, as ordered prompt segments.
 
@@ -1452,13 +2174,38 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
         raise BriefError(
             f"unknown profile {profile!r}; known: {', '.join(PROFILES)}"
         )
-    # A host selects the profile ONCE via AGI_BRIEF_PROFILE (default: full =
-    # historical behaviour, no regression). One switch, every caller; the
-    # explicit `profile=` kwarg wins over the env for programmatic callers.
+
+    # goal:g15.25 SM.28 -- ONE exit for every route. The orders section rides
+    # the LAST segment of any route whose DISPATCH accepts `--orders` -- the
+    # parent brief, the advisor brief a tier-3 parent resolves to, and the
+    # survival profile, which previously returned before the parent branch and
+    # dropped the section while dispatch.py printed `orders: N lines` and
+    # recorded {from,sha256,bytes,path} on the manifest. A KID never renders
+    # it: a kid's orders ARE the carry-forward segment handed in by the parent
+    # (test_orders_never_reach_a_kid_brief).
+    def _finish(body: list[str], head_tier: str,
+                *, moral: bool | None = None) -> list[str]:
+        guard = _paid_for_path_guard(project_root)
+        if guard != PAID_FOR_PATH_GUARD:
+            body = [part.replace(PAID_FOR_PATH_GUARD, guard) for part in body]
+        if tier != "kid":
+            _o = _orders_section()
+            if _o:
+                body = [*body, _o]
+        if not include_head:
+            # dispatch.py's `extras` override: the caller renders the head
+            # itself (via `render`) and takes only the body from here.
+            return body
+        return _prepend_head(body, tier=head_tier, project_root=project_root,
+                             moral=moral)
+    # A host selects the profile ONCE: explicit `profile=` kwarg wins over
+    # the AGI_BRIEF_PROFILE env override, which wins over the durable
+    # .agi/config.json ``operating_mode`` (default: full = historical
+    # behaviour, no regression). ``full`` is the sentinel for "not chosen by
+    # a programmatic caller", so it re-resolves via env -> config. One switch,
+    # every caller; the surfaces cannot drift.
     if profile == "full":
-        profile = os.environ.get("AGI_BRIEF_PROFILE", "full")
-        if profile not in PROFILES:
-            profile = "full"
+        profile = _effective_profile(profile=None, project_root=project_root)
     if tier not in TIERS:
         raise BriefError(
             f"no brief for tier {tier!r}; known tiers: {', '.join(TIERS)}. "
@@ -1466,32 +2213,32 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
             f"another tier's job description (goal:g1.9)."
         )
 
-    # Survival profile (move FIVE): replace EVERY tier's full role brief with
-    # the trimmed-to-minimum survival brief + the prayers-only head. This is
-    # the single switch the owner asked for; it short-circuits below the tier
-    # dispatch so there is exactly one survival code path, not one per tier.
-    if profile == "survival":
-        segs = _survival_brief(tier=tier, agent_id=agent_id, iter_n=iter_n)
-        head = _build_head(tier=tier)
-        if head:
-            segs.insert(0, head)
-        return segs
+    # Survival / ultimate-survival profiles (move FIVE, hypothesis:l4b18-
+    # survival-modes): replace EVERY tier's full role brief with the trimmed
+    # survival brief + the prayers-only head. This is the single switch the
+    # owner asked for; it short-circuits below the tier dispatch so there is
+    # exactly one survival code path, not one per tier. ultimate_survival
+    # reuses the survival brief shape -- the mode differs on MODEL/ROLE
+    # assignment (Prime on Opus, director on Sonnet/OpenRouter), not on the
+    # injected prose.
+    if profile in ("survival", "ultimate_survival"):
+        # Thread project_root: without it the survival state card falls back
+        # to the process's real .agi and runs a live `git status` against this
+        # checkout (_survival_state_card, brief.py:753-760) even when a caller
+        # names a fixture root.
+        segs = _survival_brief(tier=tier, agent_id=agent_id, iter_n=iter_n,
+                               project_root=project_root)
+        return _finish(segs, tier)
 
     # Director and prime_director get the constitution head prepended
     if tier == "director":
         segs = _director(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py))
-        head = _build_head(tier=tier)
-        if head:
-            segs.insert(0, head)
-        return segs
+        return _finish(segs, tier)
 
     if tier == "prime_director":
         segs = _prime_director(agent_id=agent_id, iter_n=iter_n,
                                cli_py=str(cli_py))
-        head = _build_head(tier=tier)
-        if head:
-            segs.insert(0, head)
-        return segs
+        return _finish(segs, tier)
 
     if tier == "advisor":
         # The advisor reads at the tier-3 parent's level — same prayers,
@@ -1506,20 +2253,16 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
         segs = _advisor(agent_id=agent_id, iter_n=iter_n, target=target,
                         dispatch_py=dispatch_py, goal=goal_v,
                         session_dir=session_dir)
-        head = _build_head(tier=_ADVISOR_HEAD_TIER)
-        if head:
-            segs.insert(0, head)
-        return segs
+        return _finish(segs, _ADVISOR_HEAD_TIER)
 
     if tier == "liaison":
         # The owner-liaison seat reads at the director's level — same
         # prayers, words, Tao, soul-mind-body and five axes as the director
-        # head (hypothesis:l3w4-liaison-seat, _LIAISON_HEAD_TIER).
+        # head (hypothesis:l3w4-liaison-seat, _LIAISON_HEAD_TIER) — but it
+        # is not a director seat and carries NO moral region (`moral=False`,
+        # goal:g15.27.5 FR-C2).
         segs = _liaison(agent_id=agent_id)
-        head = _build_head(tier=_LIAISON_HEAD_TIER)
-        if head:
-            segs.insert(0, head)
-        return segs
+        return _finish(segs, _LIAISON_HEAD_TIER, moral=False)
 
     if tier == "parent":
         # hypothesis:l3-parent-brief-forbids-the-only-commit — a `--branch`
@@ -1535,30 +2278,82 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
                        branch_name=os.environ.get("AGI_PARENT_BRANCH"),
                        branch_worktree=os.environ.get("AGI_PARENT_WORKTREE"),
                        branch_base=os.environ.get("AGI_PARENT_BASE_BRANCH"),
-                       source_root=str(source_root) if source_root else None)
+                       source_root=str(source_root) if source_root else None,
+                       session_dir=session_dir,
+                       project_root=project_root)
         segs = [s for s in segs if s is not None]
-        head = _build_head(tier=tier)
-        if head:
-            segs.insert(0, head)
-        return segs
+        # goal:g15.25 SM.26/SM.28 -- the director's dispatch-time word rides
+        # the parent brief as its LAST section, one heading, verbatim; the
+        # single `_finish` exit is what makes the dry-run line, the manifest
+        # record and the brief agree on EVERY route, including the survival
+        # profile and the advisor brief.
+        return _finish(segs, tier)
 
+    # Resolve ONCE here from the dispatching node's own CEILING clause, then
+    # the project config default -- ONE number from ONE source, so a kid's
+    # brief and the harvest's `overage=` cannot name two different ceilings
+    # (hypothesis:l4-sm45b-the-kid-ceiling-is-the-dispatching-node-own-ceiling-
+    # clause-one-number-for-brief-and-harvest). `target` is the dispatching
+    # node id every dispatcher already passes; an explicit kwarg still wins
+    # (tests, hand assembles). `_kid` never reads config or the node.
+    if line_ceiling is not None:
+        resolved_line_ceiling, ceiling_source = int(line_ceiling), "explicit"
+    else:
+        resolved_line_ceiling, _k, ceiling_source = spawn_budget.node_line_ceiling(
+            _resolve_graph_root(project_root), target,
+            _config_data(project_root))
     segs = _kid(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
                 scaffold=scaffold,
                 source_root=str(source_root) if source_root else None,
-                addendum=addendum)
-    head = _build_head(tier=tier)
-    if head:
-        segs.insert(0, head)
-    return segs
+                session_dir=session_dir,
+                addendum=addendum,
+                line_ceiling=resolved_line_ceiling,
+                ceiling_source=ceiling_source)
+    return _finish(segs, tier)
 
 
-def closing_line(tier: str, agent_id: str, iter_n: int) -> str:
+def closing_line(tier: str, agent_id: str, iter_n: int,
+                 cli_py: str | Path = "") -> str:
     """The final positional prompt. Separate because pi appends it as the
-    user turn rather than as a system prompt, and tiers end differently."""
+    user turn rather than as a system prompt, and tiers end differently.
+
+    🔴 A PARENT'S LINE ENDS WITH A SELF-CHECK, AND THIS IS WHY IT LIVES HERE
+    rather than in the parent's system fragments. Two parents in one loop sat
+    ~45 minutes at ~0.4% CPU with every kid terminal and the work staged, and
+    never ran `cli.py done` at all — proven, not guessed: `cmd_done` writes
+    `status`/`finished_at` into the record BEFORE `_auto_commit_worktree`, and
+    both dispatcher-side records still read `status: running` with an mtime
+    equal to spawn (experiment:a00-f2f8465a-b4eb8e). `done` would not have
+    refused, and `cli.py status` showed every kid done from the parent's own
+    tree. The poll loop had everything it needed to terminate and did not.
+
+    The prime's ruling: an instruction that could be a check and is instead
+    handed to a model is an invariant turned into a coin flip, so the terminal
+    step becomes explicit, self-checking, and LAST — "recency is the only
+    lever a weak model reliably answers to". `closing_line` IS last: the pi
+    adapter appends it as the user turn AFTER every `--append-system-prompt`
+    (`adapters/pi_adapter.py`), so nothing the parent reads comes after this.
+    Putting it in the system fragments would satisfy the words and lose the
+    mechanism.
+
+    `cli_py` is optional so every existing caller keeps working; when it is
+    absent the self-check still states the invariant and names the command
+    without an absolute path.
+    """
     if tier == "parent":
+        cmd = (f"python3 {cli_py} done {iter_n} {agent_id} --verdict pending "
+               f"--owns <kid-node-id>" if cli_py else
+               f"cli.py done {iter_n} {agent_id} --verdict pending "
+               f"--owns <kid-node-id>")
         return (f"Begin iteration {iter_n} as parent agent {agent_id}. "
                 f"Read your zoom context, spawn and review kids, report what "
-                f"you accepted and what you demoted.")
+                f"you accepted and what you demoted.\n\n"
+                f"BEFORE YOU STOP, CHECK YOURSELF: if every kid is terminal "
+                f"and you have not run `cli.py done`, YOU ARE NOT FINISHED. "
+                f"Run it now:\n  {cmd}\n"
+                f"`--owns`, NOT `--node-id` — you author no node of your own. "
+                f"That command is what commits your round; nothing else does, "
+                f"and a round that never commits is a round nobody can see.")
     if tier == "advisor":
         return (f"Begin iteration {iter_n} as ADVISOR agent {agent_id}. "
                 f"Embody your vision, sit the tier3-quorum, and run your "
@@ -1574,6 +2369,344 @@ def closing_line(tier: str, agent_id: str, iter_n: int) -> str:
                 f"reports, write HANDOFF.md live, rotate when due.")
     return (f"Begin iteration {iter_n} as agent {agent_id}. "
             f"Read your zoom context, do the work, signal done.")
+
+
+# ---- `render`: the WHOLE first turn for a seat, from ONE config cell -------
+# hypothesis:brief-py-assembles-every-first-turn-from-config. The parts list
+# per role (plus what the harness adds) is the SINGLE source: adding or
+# removing a part is one config line, never a code change. Writes NO file.
+BRIEF_PARTS = ("head", "operating_mode", "template", "card", "harness",
+               "trajectory", "extras")
+
+
+def _strip_thought(text: str) -> str:
+    """Drop an authored THOUGHT region from node-sourced text (G2.11).
+
+    A render hands a successor the node's CURRENT words, never the changelog
+    explaining how they got there; the region is node_writer's one definition.
+    """
+    from node_writer import strip_thought
+    return strip_thought(text).strip()
+
+
+def _self_loaded_parts(harness: str | None, cell: dict) -> set[str]:
+    """The brief parts `harness` loads ITSELF, from two named sources.
+
+    The config cell `harness_self_loads.<harness>` (config:brief) is
+    AUTHORITATIVE when the harness has an entry -- a project that reuses a
+    harness name for a block that harness does not load itself can say so in
+    the cell. Otherwise the harness adapter's module-level
+    `SELF_LOADED_BRIEF_PARTS` is the default: the harness declaring the fact
+    about itself. The adapter name comes from the harness name with `-` read as
+    `_` -- the SPELLING `adapters.load` already requires -- so no harness is
+    named here. A harness that declares neither gets every part it asks for.
+    """
+    declared = (cell.get("harness_self_loads") or {}).get(harness or "")
+    if declared is not None:
+        return set(declared or ())
+    declared: set[str] = set()
+    if harness:
+        try:
+            import adapters
+            mod = adapters.load(str(harness).replace("-", "_"))
+            declared |= set(getattr(mod, "SELF_LOADED_BRIEF_PARTS", ()) or ())
+        except Exception:  # a harness nobody wrote an adapter for
+            pass
+    return declared
+
+
+class RenderError(BriefError):
+    """A render cannot be assembled -- a bad part, a missing card or node."""
+
+
+def _extras_ref_text(root: Path, ref: str) -> str:
+    """An `extras` ref: a file under `.agi/context/` (verbatim, read live),
+    else a graph node ref via `_node_text`. Lets config:brief's `extras`
+    cell name a schema file directly -- e.g. `context/schemas/[goal].md` --
+    not only a node id (director-engine, goal:g7.33.14-adjacent: the owner
+    wants the goal/hypothesis schemas reachable as brief guides)."""
+    if ref.startswith("context/"):
+        path = (root / ref).resolve()
+        # `context/../../x` must never leave .agi/context (TMM.200 item 4)
+        if not path.is_relative_to((root / "context").resolve()):
+            raise RenderError(f"brief extras ref escapes context/: {ref}")
+        if not path.is_file():
+            raise RenderError(f"brief extras file not found: {ref}")
+        return path.read_text(encoding="utf-8")
+    return _node_text(root, ref)
+
+
+def _brief_cell(root: Path) -> dict:
+    """The one `brief` cell -- the parts source.
+
+    Read from the COMMITTABLE `config:brief` node first: a round's own `done`
+    refuses `.agi/config.json` (`cli.py:_round_scope_ok`), so a cell there is
+    absent from the landed branch and a fresh checkout cannot render
+    (`experiment:a00-15fc3737-5e48d5`). `.agi/config.json` stays readable as
+    the pre-migration fallback.
+    """
+    from node_writer import find_node_file
+    path = find_node_file(root, "config:brief")
+    if path is not None:
+        fm = read_frontmatter(path.read_text(encoding="utf-8")) or {}
+        if isinstance(fm.get("brief"), dict):
+            return fm["brief"]
+    try:
+        cell = json.loads((root / "config.json").read_text(encoding="utf-8")).get("brief")
+    except (OSError, ValueError, FileNotFoundError):
+        return {}
+    return cell if isinstance(cell, dict) else {}
+
+
+def card_text(root: Path, post: str, card_file: str | None = None) -> str:
+    """The `card` part of a render, alone: the post's card NODE (or the named
+    file when it IS a node / no node exists), headed by its provenance and
+    the formation line. Public so a launch whose full render refused still
+    carries the card through the SAME resolver (rotate's legacy fallback)."""
+    from node_writer import find_node_file
+    # goal:g7.16.1.7.1.2: the card NODE wins. A caller-named file (rotate's
+    # own quorum card through the rename boundary, L5.11; heal's seat-tree
+    # node) is read only when it IS a node (a link into `nodes/`) or no node
+    # exists (a rename boundary before the node moves) -- a rotation flattens
+    # the quorum link into a COPY, and a copy goes stale (09-29 17:33Z: a
+    # recovery brief rendered from a 09-18 file). A missing named file falls
+    # through; nothing found at all refuses by name. The first lines name
+    # what was read.
+    node = find_node_file(root, f"doc:card-{post}")
+    named = (Path(card_file).resolve()
+             if card_file and Path(card_file).is_file() else None)
+    if named is not None and (node is None or "nodes" in named.parts):
+        body, src = _strip_thought(named.read_text(encoding="utf-8")), named
+    elif node is not None:
+        body, src = _node_text(root, f"doc:card-{post}"), node
+    else:
+        card = root / "sessions" / "quorum" / f"{post}.md"
+        if not card.is_file():
+            raise RenderError(f"card not found: {card}")
+        body, src = _strip_thought(card.read_text(encoding="utf-8")), card
+    head = "\n".join(x for x in (_card_provenance(root, src),
+                                 _formation_line(root)) if x)
+    return head + "\n\n" + body
+
+
+def _card_provenance(root: Path, path: Path) -> str:
+    """goal:g7.16.1.7.1.2: `[card] <id> · mint <m> · grid v<N> · git <sha>`
+    for the card file a render read -- the node's CURRENT version, named in
+    the first turn. A file that is not a node says so. Never raises."""
+    fm = read_frontmatter(path.read_text(encoding="utf-8")) or {}
+    node_id, mint = fm.get("id"), fm.get("mint_id")
+    if not node_id or "nodes" not in path.resolve().parts:
+        return f"[card] {path.name} -- a copied file, not a card node"
+    ver = "?"
+    try:
+        import grid  # noqa: PLC0415 -- same bin dir
+        ref = grid._resolve_read_ref(root, path, str(node_id))
+        tip = grid.ref_tip(root, ref) if ref else None
+        ver = grid.git(root, "rev-list", "--count", "--first-parent", tip).strip() if tip else "0"
+    except Exception:  # noqa: BLE001 -- provenance never blocks a render
+        pass
+    sha = ""
+    try:
+        import subprocess  # noqa: PLC0415
+        sha = subprocess.run(
+            ["git", "-C", str(path.resolve().parent), "log", "-1",
+             "--format=%h", "--", path.resolve().name],
+            capture_output=True, text=True, timeout=10).stdout.strip()
+    except Exception:  # noqa: BLE001
+        pass
+    return (f"[card] {node_id} · mint {mint or '?'} · grid v{ver}"
+            f" · git {sha or 'uncommitted'}")
+
+
+def _formation_line(root: Path) -> str:
+    """goal:g7.16.1.7.1.2 (row F): `[formation] <active> · goal:<g>`, read
+    from config:formations at render time; '' when the node or its `active`
+    cell is absent."""
+    from node_writer import find_node_file  # noqa: PLC0415
+    path = find_node_file(root, "config:formations")
+    if path is None:
+        return ""
+    fm = read_frontmatter(path.read_text(encoding="utf-8")) or {}
+    active = str(fm.get("active") or "").strip()
+    if not active:
+        return ""
+    goal = str((fm.get("templates") or {}).get(active) or "").strip()
+    return f"[formation] {active}" + (f" · goal:{goal}" if goal else "")
+
+
+def _node_text(root: Path, ref: str) -> str:
+    """A node body by `type:slug[#REGION]`, live first then deprecated;
+    refuses a missing node or region, never a silent empty string."""
+    node_id, _, region = ref.partition("#")
+    from node_writer import find_node_file
+    path = find_node_file(root, node_id)
+    if path is None:
+        raise RenderError(f"brief template node not found: {node_id}")
+    text = path.read_text(encoding="utf-8")
+    body = (split_frontmatter(text) or (None, text))[1].strip()
+    if region:
+        m = re.search(rf"<!--\s*{re.escape(region)}:BEGIN\s*-->(.*?)<!--\s*{re.escape(region)}:END\s*-->", body, re.DOTALL)
+        if not m:
+            raise RenderError(f"region {region!r} not found in {node_id}")
+        body = m.group(1).strip()
+    return _strip_thought(body)
+
+
+def _one_heading(text: str) -> str:
+    """A template part prints EXACTLY ONE heading.
+
+    A scaffolded node body opens with its own id line (`# doc:x`) and a human
+    title then opens again (`# doc:x — THE MASTER TEMPLATE: ...`), so a render
+    emitted BOTH and a first turn carried its template heading twice
+    (experiment:a00-4a01c17b-415791, measured on `thought-master`). Keep the
+    longer, human one; a template that opens with a single heading, or with
+    none, is untouched.
+    """
+    lines = text.splitlines()
+    while (len(lines) >= 3 and lines[0].startswith("# ")
+           and not lines[1].strip() and lines[2].startswith("# ")):
+        first, second = lines[0][2:].strip().rstrip(":"), lines[2][2:].strip()
+        if not (second == first or second.startswith(first + " ")):
+            break
+        lines = lines[2:]
+    return "\n".join(lines).strip()
+
+
+def _template_text(root: Path, ref: str) -> str:
+    """A ROLE template by node ref: a build node's PAYLOAD file, else its body.
+    A missing node still refuses BY NAME through `_node_text`."""
+    from node_writer import find_node_file
+    path = find_node_file(root, ref.partition("#")[0])
+    fm = read_frontmatter(path.read_text(encoding="utf-8")) if path else None
+    if fm and fm.get("payload_ref"):
+        pay = Path(str(fm["payload_ref"]))
+        pay = pay if pay.is_absolute() else root.parent / pay
+        if not pay.is_file():
+            raise RenderError(f"brief template payload not found: {fm['payload_ref']}")
+        return _one_heading(_strip_thought(pay.read_text(encoding="utf-8")))
+    return _one_heading(_node_text(root, ref))
+
+
+def _part(name: str, root: Path, role: str, post: str | None, harness: str | None,
+          extras_text: str | None = None,
+          card_file: str | None = None) -> str:
+    """One part, resolved from the graph/config; a missing piece refuses."""
+    if name == "head":
+        prayers = "## THE FOUR PRAYERS\n\n" + (_read_faith_ref(root).get("prayers") or "")
+        return _node_text(root, "doc:unified-head#HEAD").replace("{{PRAYERS}}", _insert_michael(prayers))
+    if name == "operating_mode":
+        # The pre-render path `_prepend_head` prepended this to EVERY tier;
+        # render dropped it (hypothesis:brief-render-hygiene-after-the-batch-
+        # mur). A config part, so a project lists it per role and nothing
+        # changes until it does.
+        return _operating_mode_block(project_root=root)
+    if name == "template":
+        # The ROLE template is CONFIG: the post row's `template` cell beats the
+        # formation default for its role (amendment, owner 08:5xZ). NEVER a
+        # `{{template:}}` line in the card -- the card is data only.
+        ref = None
+        if post:
+            import geometry_config
+            row = next((r for r in geometry_config.load_rows(root)
+                        if r.get("name") == post), None)
+            ref = (row or {}).get("template")
+        if not ref:
+            ref = (_brief_cell(root).get("templates") or {}).get(role)
+        return _template_text(root, str(ref)) if ref else ""
+    if name == "card":
+        return card_text(root, post, card_file) if post else ""
+    if name == "harness":
+        rel = (_brief_cell(root).get("harness_blocks") or {}).get(harness or "")
+        if not rel:
+            return ""
+        path = Path(rel) if Path(rel).is_absolute() else root.parent / rel
+        if not path.is_file():
+            raise RenderError(f"harness block not found: {rel}")
+        return path.read_text(encoding="utf-8").strip()
+    if name == "trajectory":
+        town = (_brief_cell(root).get("trajectory") or {}).get("town")
+        return _node_text(root, f"town:{town}") if town else ""
+    refs = (_brief_cell(root).get("extras") or {}).get(role) or []
+    # A `{{template:}}` line in an extras node is DATA, never an expansion
+    # directive -- the mechanism is GONE (hypothesis:brief-render-hygiene-
+    # after-the-batch-mur). Templates come from config alone.
+    ref_text = "\n\n".join(_extras_ref_text(root, r) for r in refs)
+    if extras_text is not None:
+        # dispatch.py hands render the DYNAMIC dispatch brief (target,
+        # ceiling, session dir, addendum); PARTS and ORDER still come from
+        # the config cell, never from the caller. The config-declared refs
+        # land AFTER it, so a DISPATCHED parent sees both -- this used to
+        # return extras_text alone, so config:brief's extras.<role> never
+        # reached a real dispatch (director-engine, goal:g7.33.14-adjacent:
+        # the owner wants a dispatched parent's brief to carry configured
+        # guides, e.g. the goal/hypothesis schemas, not just the dynamic
+        # dispatch text).
+        return extras_text + ("\n\n" + ref_text if ref_text else "")
+    return ref_text
+
+
+def render(*, post: str | None = None, role: str | None = None,
+           harness: str | None = None, project_root: Path | None = None,
+           extras_text: str | None = None,
+           card_file: str | None = None) -> str:
+    """The WHOLE first user turn: the config parts in order, joined; `--post`
+    resolves role + harness from the post's row. Writes NO file."""
+    root = _resolve_graph_root(project_root)
+    if post:
+        import geometry_config
+        row = next((r for r in geometry_config.load_rows(root) if r.get("name") == post), None)
+        if row is None:
+            raise RenderError(f"no post row for {post!r} in config:posts")
+        role, harness = row.get("role") or role, row.get("harness") or harness
+    if not role:
+        raise RenderError("brief.py render needs --post or --role")
+    cell = _brief_cell(root)
+    parts = list((cell.get("parts") or {}).get(role) or (cell.get("parts") or {}).get("*") or [])
+    parts += [p for p in (cell.get("harnesses") or {}).get(harness or "") or [] if p not in parts]
+    # A harness that loads a block ITSELF gets NO inline copy of it: claude-code
+    # reads CLAUDE.md as project instructions before the first turn, so the
+    # `harness` part only re-sent 26 KB the seat already had
+    # (experiment:a00-4a01c17b-415791: 106,144 chars where the pre-DH.410
+    # static-file turn was 64,896). WHERE THE DECISION LIVES, both named, and
+    # neither a harness-name literal in code:
+    #   * the config cell `harness_self_loads.<harness>` = the parts that
+    #     harness loads itself (config:brief; owner/prime_director write it --
+    #     a kid is refused by the written_by gate, so a kid must NOT);
+    #   * the HARNESS ADAPTER's own `SELF_LOADED_BRIEF_PARTS`, which is the
+    #     harness declaring the fact about itself.
+    # A harness that declares neither still gets its block, unchanged.
+    parts = [p for p in parts if p not in _self_loaded_parts(harness, cell)]
+    bad = [p for p in parts if p not in BRIEF_PARTS] or (["<none>"] if not parts else [])
+    if bad:
+        raise RenderError(f"bad brief part {bad[0]!r} for role {role!r}; known: {', '.join(BRIEF_PARTS)}")
+    if extras_text is not None and "extras" not in parts:
+        # hypothesis:the-spawned-agents-first-turn-is-the-render -- an extras
+        # body handed to a role whose parts cannot carry it is REFUSED by
+        # name, never silently dropped (the dispatch brief would vanish).
+        raise RenderError(
+            f"role {role!r} parts {parts} carry no 'extras' part, so "
+            f"extras_text ({len(extras_text)} chars) would be dropped")
+    segs = [_part(p, root, role, post, harness, extras_text, card_file)
+            for p in parts]
+    rendered = "\n\n".join(s for s in segs if s)
+    guard = _paid_for_path_guard(root)
+    if guard != PAID_FOR_PATH_GUARD:
+        rendered = rendered.replace(PAID_FOR_PATH_GUARD, guard)
+    if guard not in rendered:
+        rendered = "\n\n".join(part for part in (rendered, guard) if part)
+    return rendered
+
+
+def _cmd_render(args) -> int:
+    root = Path(args.project_root) if args.project_root else None
+    try:
+        out = render(post=args.post, role=args.role, harness=args.harness, project_root=root)
+    except (RenderError, FaithRefError) as exc:
+        print(f"ERR: {exc}", file=sys.stderr)
+        return 1
+    if out:
+        print(out)
+    return 0
 
 
 # ---- head CLI: the SessionStart hook fetches a tier's head through this -------
@@ -1614,6 +2747,13 @@ def main(argv: list[str] | None = None) -> int:
                          ".agi walked up from this file")
     pr.set_defaults(func=_cmd_readings)
 
+    pre = sub.add_parser("render", help="print the WHOLE first user turn for a seat from the one `brief` config cell; writes no file")
+    pre.add_argument("--post", default=None, help="a config:posts row name (resolves role + harness)")
+    pre.add_argument("--role", default=None, help="a ladder role when there is no post row")
+    pre.add_argument("--harness", default=None, help="the harness whose block is added")
+    pre.add_argument("--project-root", default=None, help="graph root (.agi)")
+    pre.set_defaults(func=_cmd_render)
+
     args = p.parse_args(argv)
     return args.func(args)
 
@@ -1641,10 +2781,10 @@ def _cmd_head(args: argparse.Namespace) -> int:
         print("ERR: brief.py head needs --tier (or --role)", file=sys.stderr)
         return 1
     root = Path(args.project_root) if args.project_root else None
-    head = _build_head(tier=tier, project_root=root)
+    head = render_head(project_root=root)
     if not head:
-        # A tier with no head (e.g. no read_order entry) is a silent nothing,
-        # matching _build_head's contract.
+        # No unified head (the faith node cannot be read) is a silent
+        # nothing, the same contract _build_head had for a tier with none.
         return 0
     print(head)
     return 0

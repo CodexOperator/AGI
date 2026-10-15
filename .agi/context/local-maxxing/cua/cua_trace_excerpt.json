@@ -1,0 +1,62 @@
+{
+ "source": "cua-bench v0.2.11 simulated task \"first-task\", oracle, ARM4C headless",
+ "reward": 1.0,
+ "dataset_features": [
+  "event_name",
+  "data_json",
+  "data_images",
+  "trajectory_id",
+  "timestamp"
+ ],
+ "trajectory_id": "42457476-0d83-466b-8b2a-70139bc85b7a",
+ "note": "full 252K trace left in scratch; this is the field inventory",
+ "events": [
+  {
+   "i": 0,
+   "event": "reset",
+   "ts": "2026-09-18T23:16:36.340Z",
+   "n_images": 1,
+   "task": "Task(description='Click the \"Submit\" button on the page.', task_id=None, metadata={'button_text': 'Submit'}, computer={'",
+   "obs_keys": "active,height,html,minimized,pid,title,url,width,window_type,x,y",
+   "obs_html_bytes": 16482,
+   "obs_html_head": "<html lang=\"en\" data-window-scroll-x=\"0\" data-window-scroll-y=\"0\" data-window-screen-x=\"0\" data-window-screen-y=\"0\" data-bbox-x=\"0\" data-bbox-y=\"0\" data-bbox-wi",
+   "obs_url": null,
+   "obs_title": "Desktop"
+  },
+  {
+   "i": 1,
+   "event": "step:before",
+   "ts": "2026-09-18T23:16:36.426Z",
+   "n_images": 1,
+   "action": "ClickAction(x=250, y=237)",
+   "step_count": 0,
+   "obs_keys": "active,height,html,minimized,pid,title,url,width,window_type,x,y",
+   "obs_html_bytes": 16477,
+   "obs_html_head": "<html lang=\"en\" data-window-scroll-x=\"0\" data-window-scroll-y=\"0\" data-window-screen-x=\"0\" data-window-screen-y=\"0\" data-bbox-x=\"0\" data-bbox-y=\"0\" data-bbox-wi",
+   "obs_url": null,
+   "obs_title": "Desktop"
+  },
+  {
+   "i": 2,
+   "event": "step:after",
+   "ts": "2026-09-18T23:16:36.536Z",
+   "n_images": 1,
+   "action": "ClickAction(x=250, y=237)",
+   "step_count": 0,
+   "obs_keys": "active,height,html,minimized,pid,title,url,width,window_type,x,y",
+   "obs_html_bytes": 16496,
+   "obs_html_head": "<html lang=\"en\" data-window-scroll-x=\"0\" data-window-scroll-y=\"0\" data-window-screen-x=\"0\" data-window-screen-y=\"0\" data-bbox-x=\"0\" data-bbox-y=\"0\" data-bbox-wi",
+   "obs_url": null,
+   "obs_title": "Desktop"
+  },
+  {
+   "i": 3,
+   "event": "evaluate",
+   "ts": "2026-09-18T23:16:36.624Z",
+   "n_images": 0,
+   "result": [
+    1.0
+   ]
+  }
+ ]
+}

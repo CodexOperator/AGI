@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-c75d53f8-8c3e73
 next_edges: []
 confidence: 0.7
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs:
   - experiment:a01-dd5d475e-8dcf31
   - experiment:a00-30335f56-5f7b2f
@@ -24,7 +24,7 @@ Enumerate all session directories under `.agi/sessions/`, extract agent IDs, and
 - **Tier 1**: frontmatter-declared references only (formal graph edges)
 - **Tier 2**: combined frontmatter + body text mentions (any deliberate reference)
 
-Script: `/tmp/orphan-chat-audit-v2.py`. Ran 2026-09-04 from `/home/ubuntu/work/agi` with `python3 /tmp/orphan-chat-audit-v2.py`. Corpus read-only, no modifications.
+Script: `/tmp/orphan-chat-audit-v2.py`. Ran 2026-09-04 from `<home>/work/agi` with `python3 /tmp/orphan-chat-audit-v2.py`. Corpus read-only, no modifications.
 
 ### Results
 

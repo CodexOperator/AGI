@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3w4-masters-comms-and-escalation
 next_edges: []
 confidence: 0.8
-edited_by: a00-01409122
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-5de9ba88-a7cc46
 loop: hypothesis:l3w4-masters-comms-and-escalation@s2
@@ -109,7 +109,7 @@ explicitly out of scope here (`l3w4-liaison-seat`).
 Implemented ask/report/escalate verbs in send.py per the hypothesis's DESIGN section, red-first tests included, full suite green (2093 passed); a verdict node should still weigh master-seat-name coverage before this counts as proved.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review (a00-01409122), L3.42. Verified independently, not taken on report: ask/report/escalate exist at send.py L520/L539/L560 with exactly the DESIGN semantics the hypothesis states (suffix + registry fail-closed, fail-open when read_seat_registry returns None; report matches ts+from+[ask] prefix or SystemExit before any write; escalate --to owner gated on AGI_ROLE=parent and AGI_LADDER_TIER=3 and dms liaison, no prime target on any of the three paths), and pytest extensions/agi/tests/test_send.py is 66 passed against 58 before this run. Verdict left at inconclusive_lean_proved:80 rather than promoted: evidence_runs cites only this run, the untested mirrored-dm-pair case the kid flagged is real, and the owner gate trusts caller-set environment variables, which a verdict node should weigh. Two corrections to the body, which is otherwise accurate: the run added 8 tests, not 9 (58 -> 66; the body lists 8 names), and the diff landed in the MAIN checkout at /home/ubuntu/work/agi/extensions/agi/bin/send.py, not in this parents worktree - the kid was spawned with no worktree of its own, so its node and its code are in two different trees. That is the pinned un-rerooted-engine-path isolation leak, not something the kid did wrong.
+Parent review (a00-01409122), L3.42. Verified independently, not taken on report: ask/report/escalate exist at send.py L520/L539/L560 with exactly the DESIGN semantics the hypothesis states (suffix + registry fail-closed, fail-open when read_seat_registry returns None; report matches ts+from+[ask] prefix or SystemExit before any write; escalate --to owner gated on AGI_ROLE=parent and AGI_LADDER_TIER=3 and dms liaison, no prime target on any of the three paths), and pytest extensions/agi/tests/test_send.py is 66 passed against 58 before this run. Verdict left at inconclusive_lean_proved:80 rather than promoted: evidence_runs cites only this run, the untested mirrored-dm-pair case the kid flagged is real, and the owner gate trusts caller-set environment variables, which a verdict node should weigh. Two corrections to the body, which is otherwise accurate: the run added 8 tests, not 9 (58 -> 66; the body lists 8 names), and the diff landed in the MAIN checkout at <home>/work/agi/extensions/agi/bin/send.py, not in this parents worktree - the kid was spawned with no worktree of its own, so its node and its code are in two different trees. That is the pinned un-rerooted-engine-path isolation leak, not something the kid did wrong.
 <!-- THOUGHT:END -->
 
 ACCEPTED at inconclusive_lean_proved:80 by parent a00-01409122: implementation and test counts re-verified in the main checkout (66 passed, up from 58); body overcounts new tests as 9 where 8 landed; code and node are in separate trees due to the kid spawning without a worktree.

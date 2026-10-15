@@ -1,0 +1,23 @@
+T0 GUARD 2026-09-23T17:19:52Z
+--- spawn_budget ---
+budget: 6/30 live  load 4.7/3.9/3.6  dir=/data/work/agi/.agi/sessions/.spawn-budget
+  a00-55989f04 tier=kid iter=EF.54 pid=54379
+  a00-aba90604 tier=parent iter=EF.55 pid=18953
+  a00-b5213635 tier=kid iter=EF.55 pid=24524
+  a00-d05979d0 tier=parent iter=OSC.09 pid=48238
+  a00-df53894e tier=kid iter=OSC.09 pid=53581
+  a00-e65928ba tier=parent iter=EF.54 pid=4053857
+--- slots ---
+{'id': 0, 'n_ctx': 49664, 'speculative': False, 'is_processing': False}
+--- meminfo ---
+MemTotal:       16314436 kB
+MemAvailable:   10943992 kB
+--- gpu ---
+pid, used_gpu_memory [MiB]
+4166122, 6736 MiB
+--- served gguf sha256 ---
+03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8  /data/ml/scratch/osc02/Qwen3.5-9B-Q4_K_M.gguf
+--- wiki sha256 ---
+173c87a53759e0201f33e0ccf978e510c2042d7f2cb78229d9a50d79b9e7dd08  /data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw
+--- router build ---
+b10991-930e2fa59

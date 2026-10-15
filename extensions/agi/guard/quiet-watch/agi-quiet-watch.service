@@ -1,0 +1,5 @@
+[Unit]
+Description=agi: mail sanctuary-master when every post is quiet 5 min (owner 02:3xZ 10-11)
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/agi-quiet-watch

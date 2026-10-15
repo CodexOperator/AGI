@@ -31,6 +31,7 @@ import evidence_gate  # noqa: E402
 import locations  # noqa: E402
 import node_writer  # noqa: E402
 import spawn_gate  # noqa: E402
+from frontmatter import split_frontmatter  # noqa: E402
 
 # --- reuse snapshot-goals.py's write_frontmatter --------------------------
 # Loaded by file path (not `import`) because the filename has a hyphen and is
@@ -125,19 +126,19 @@ def _read_frontmatter(body: str) -> tuple[dict, str]:
     """
     if "---\n" not in body and "---\r\n" not in body:
         return {}, body          # no frontmatter at all — legitimate, not malformed
-    parts = body.split("---", 2)
-    if len(parts) < 3:
+    parted = split_frontmatter(body)
+    if parted is None:
         raise MalformedNode("frontmatter opened but never closed")
     import yaml
     try:
-        fm = yaml.safe_load(parts[1]) or {}
+        fm = yaml.safe_load(parted[0]) or {}
     except yaml.YAMLError as exc:
         raise MalformedNode(f"frontmatter is not valid YAML: {exc}") from exc
     if not isinstance(fm, dict):
         # A list or scalar reaches the caller as an AttributeError on .get()
         # otherwise — the fourth, unmodeled branch.
         raise MalformedNode(f"frontmatter parsed to {type(fm).__name__}, not a mapping")
-    return fm, parts[2]
+    return fm, parted[1]
 
 
 def _write_node(path: Path, fm: dict, body: str) -> None:
@@ -371,8 +372,10 @@ def cmd_wire(args: argparse.Namespace) -> int:
     spawn_rules, type_index, _ = spawn_gate.gate_for_root(root)
     spawn_gate.announce_schema_errors(spawn_rules)
 
-    # Build current graph
-    g, loaded = load_directory(root / "nodes")
+    # Build current graph (goal:g4.18.6.3.1: the loader resolves parents)
+    import links  # noqa: PLC0415
+    _r = links.address_resolver(root)   # ONE resolver for this pass: the loader + the next_edges check below
+    g, loaded = load_directory(root / "nodes", resolve=_r)
     for ln in loaded:
         for parent_id in ln.node.parents:
             if g.has_node(parent_id):
@@ -533,8 +536,9 @@ def cmd_wire(args: argparse.Namespace) -> int:
                     continue
                 next_edges = pfm.get("next_edges", [])
                 if isinstance(next_edges, list):
-                    # Must be plain node ID string for find_chains() compatibility
-                    if node_id not in next_edges:
+                    # Must be plain node ID string for find_chains() compatibility;
+                    # a mint-id entry naming node_id is the SAME edge (goal:g4.18.6.3.2)
+                    if node_id not in {_r(str(x)) or x for x in next_edges}:
                         next_edges.append(node_id)
                         pfm["next_edges"] = next_edges
                         _update_via_writer(root, parent, parent_path,

@@ -1,0 +1,171 @@
+---
+id: experiment:a00-114ee609-176796
+mint_id: d80c43ee0e7241e88553b21fd1172564
+type: experiment
+parents:
+  - hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-refused
+next_edges: []
+confidence: 0.8
+edited_by: a00-3a9014b2
+evidence_runs:
+  - experiment:a00-114ee609-176796
+loop: hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-refused@s2
+model: stealth/space-bunny-alpha
+production_lines: 17
+profile: balanced
+role: kid
+scaffold_hash: 8c2011b1d36cb85e
+season: 2
+title: an unset box refuses by name in tests and fails closed in the cron box gate
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-114ee609-176796
+
+## Experiment
+
+What did you do? What happened? Include command/inputs and actual outputs.
+# experiment:a00-114ee609-176796
+
+## What I did (DH.525 kid 1 of 2 — the residue + the two fail-opens)
+
+Base re-measured first, exactly as briefed:
+
+```
+$ python3 -m pytest extensions/agi/tests/test_box_guard.py -q
+FAILED test_no_box_cell_is_default_box_and_local
+FAILED test_this_box_reads_agi_box_env
+2 failed, 4 passed
+```
+
+### Item 1 — re-pin the two RED tests to the new contract (never delete)
+
+`boxes.this_box` no longer falls back to `default_box`; an unset `AGI_BOX` now
+REFUSES by name. Both tests were re-pinned, not removed:
+
+| test | was | now |
+|---|---|---|
+| `test_no_box_cell_is_default_box_and_local` → `test_unset_box_is_refused_by_name_not_defaulted` | `this_box == default_box` | `pytest.raises(RuntimeError)`, message names both `AGI_BOX` and `default_box`; `default_box(root)` STILL reads (documentation ≠ fallback) |
+| `test_this_box_reads_agi_box_env` | unset falls back to default | unset raises; the `AGI_BOX=local-town` half is unchanged and still pins that a boxless row is foreign on a declared box |
+
+I also had to re-pin `test_crons_box_filter_core_unchanged_and_local_mail_only`
+(same file, in scope): it rendered a box-gated crontab on a graph with no
+`AGI_BOX`, which item 2 makes a refusal by design. It now declares
+`AGI_BOX=core-town` via `monkeypatch.setenv`, which is what the claim ("core's
+crontab is byte-identical") always meant.
+
+### Item 2 — `_on_this_box` fails CLOSED (`bin/crons.py`)
+
+| job | `_on_this_box(job, own)` before | after |
+|---|---|---|
+| no `box` cell | True | **True** (unchanged — no gate is every box) |
+| `box:` present, `own == ""` (box unset) | True → *the box-gated job ran on an unnamed box* | **False** — refused |
+| `box:` present, `own` known | `own == b` / `own in b` | unchanged |
+
+Every gated call site goes through this one function (`grid_sync`,
+`branch_push`, `publish_engine`, `engine_push`, `mail_poll`, `nudge_sweep`, and
+the generic-job loop), so one change covers all of them. The refusal is printed
+**once** into the crontab itself — the durable artifact a human reads — not once
+per job:
+
+```
+# agi: refused box-gated job(s) grid_sync, mail_poll — no AGI_BOX: this graph cannot name its own box (fail closed)
+```
+
+`test_crons_box_gate_fails_closed_on_an_unset_box` pins all three cells of the
+table above, the exactly-once count, and that an ungated job still renders.
+
+### Item 3 — THE CHOICE: **KEEP** `row_is_local`'s one fail-open. Here is the measurement that decided it.
+
+I removed it (`return False` in the `except`) and ran the suite:
+
+```
+$ python3 -m pytest test_box_guard.py test_box_identity.py test_crons.py \
+      test_send.py test_rotate.py test_heal.py -q
+12 failed, 800 passed
+```
+
+| failing test | file | in my file scope? |
+|---|---|---|
+| `test_graph_that_declares_no_box_is_the_one_retained_fail_open` | test_box_identity.py:124 | yes (the pin itself) |
+| `test_foreign_rows_skipped_by_name_at_every_call_site` | test_box_guard.py | yes (the stand-in graph declares no box) |
+| `test_wake_stale_id_is_named_and_falls_back_to_name` | test_send.py | **no — kid 2** |
+| `test_wake_live_id_keeps_id_target` | test_send.py | **no — kid 2** |
+| `test_send_stale_id_repairs_by_name` | test_send.py | **no — kid 2** |
+| `test_send_stale_id_no_name_fallback_prints_one_line` | test_send.py | **no — kid 2** |
+| `test_dm_stale_id_repairs_by_name` | test_send.py | **no — kid 2** |
+| `test_nudge_addressed_by_row_at_id` | test_send.py | **no — kid 2** |
+| `test_row_window_name_is_refused_and_falls_back_to_listing` | test_send.py | **no — kid 2** |
+| `test_stale_unlisted_at_id_is_not_used_verbatim` | test_send.py | **no — kid 2** |
+| `test_status_seats_flag_lists_fraction_and_age` | test_rotate.py | **no — kid 2** |
+| `test_status_seats_prime_keeps_gen_and_nonprime_drops_it` | test_rotate.py | **no — kid 2** |
+
+**The cost is 10 tests outside my file scope, and the churn is the point, not
+an accident.** 8 of the 10 are the send.py by-name fallbacks, and 2 are
+`rotate status --seats`. All of them use the same predicate, so the meaning
+change is one sentence: *on a graph that declares no box AT ALL, a live
+unstamped seat becomes FOREIGN.* That single sentence means
+
+- `send dm/wake/nudge <id>` can no longer repair a stale id by name — the row is
+  skipped as foreign and the target must be listed by hand;
+- `rotate status --seats` lists nothing, and `heal._watch_seats` (which reads
+  through the same predicate, hence absent from the failure list only because
+  its tests stub the rows) treats a live seat as unhealed.
+
+That is the darkening DH.498 kid A measured, reproduced independently here at 10
+tests, and it lands squarely in files the director assigned to kid 2. Removing
+this fail-open is therefore a cross-kid change, not a one-file cleanup: it
+belongs to whoever owns send.py/rotate.py, and until seats are stamped
+everywhere (`rotate._stamp_row_box` + the posts backfill, both out of my scope)
+it would make every unstamped dev graph mute.
+
+**So: KEEP, with the exception now measured, named and bounded.** `boxes.py:186`
+is unchanged — its docstring already says "a graph that declares no box AT ALL
+stays a single-box graph", and this run is the evidence that the exception is
+load-bearing. The failure mode the brief worried about is checked, not assumed:
+the retained fail-open applies ONLY when `this_box` raises (no box declared
+anywhere). When a box IS declared, an unstamped row is already not-local and
+`heal` already skips it — that path is unchanged by me and is what the
+rotation-stamp work (kid 2) exists to close.
+
+## Final state
+
+```
+$ python3 -m pytest test_box_guard.py test_box_identity.py test_crons.py -q
+124 passed
+$ python3 -m pytest test_send.py test_rotate.py -k box -q
+26 passed, 644 deselected
+$ python3 -m pytest test_bin_help_smoke.py -q
+72 passed, 6 skipped
+```
+
+`git diff --numstat` (read-only): `crons.py +17/-2` production, `test_box_guard.py
++46/-9` test. boxes.py: 0. Tree green, both fail-opens closed or justified.
+
+## Left for others (named, not touched)
+
+- `config:posts` has 18 boxless rows — out of scope, the director's `[red]`.
+- send.py foreign-refusal memo durability, rotate.py stamp test, kid-A's node
+  rewrite — kid 2.
+- The 10-test send/rotate churn if anyone still wants the fail-open gone.
+
+## Agent Notes
+Re-pinned the 2 RED default_box tests to the refuse-by-name contract, made crons._on_this_box fail closed (boxed job + unset box = no line, refusal printed once), and measured item 3 at 10 out-of-scope send/rotate failures so the row_is_local fail-open is KEPT with the reason recorded.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-3a9014b2, DH.525) — ACCEPTED on the bytes and on four parent-run probes; verdict `proved` STANDS for items 1-2, and item 3 is accepted as a NAMED exception, not as a silent hole.
+
+READ THE BYTES, not the report. What moved: extensions/agi/bin/crons.py:789-804 `_on_this_box` now reads `b = job.get("box")` / `if not b: return True` / `if not own: return False` — the deny input is the empty string, and the old `if not b or not own: return True` (which made an unnamed box every box) is GONE; crons.py:982-989 renders the refusal ONCE as a crontab comment naming every refused job; extensions/agi/tests/test_box_guard.py:48 and :60 re-pin the two RED tests to pytest.raises, :119 declares AGI_BOX on the core-town crontab test, and :166 adds test_crons_box_gate_fails_closed_on_an_unset_box. boxes.py:186 is byte-UNCHANGED, which is exactly what item 3 option 2 asked for. Production +17/-2, tests +46/-9 — inside the 25/90 ceiling, and the node carries the kid's own title (not the derived filename title).
+
+probes (run by the parent, script at .agi/sessions/iter-DH.525/a00-3a9014b2/parent_probes_kid1.py, temp graphs and a fake git repo, never the live pane):
+- P1 GATE (item 1, the re-pin) as a MUTATION, done in /tmp so the shared tree is never edited: `boxes.this_box` was given the removed `default_box` fallback back on a COPY of extensions/agi, and `pytest tests/test_box_guard.py -q` went to `5 failed, 2 passed` — both re-pinned tests turn RED, so they pin the NEW contract rather than being a rename that asserts nothing. Un-mutated: 124 passed across test_box_guard / test_box_identity / test_crons.
+- P2 GATE (item 2, fail closed): `_on_this_box(gated, "") is False` for a string gate and for a LIST gate, True for an ungated job, unchanged when the box is named; through the real `render_managed_lines` on a graph with a `default_box: core-town` cell and NO AGI_BOX, zero runnable lines mention grid.py / mail_poll / nudge_sweep, the refusal appears exactly once, it is a `#` comment (cron still parses), and an ungated job still renders.
+- P3 WIRE (item 2): `crons._this_box(root)` on the unnamed graph is exactly `""` — the value the gate denies on is the value the refusal path produces, not a hand-passed literal — and on a graph whose env declares sanctuary it reads sanctuary, with an ambient `AGI_BOX=sanctuary` honoured (the seam is real, not a stub). A DECLARED box raises NO refusal line and runs no foreign job, and runs its OWN box-gated job (the `--box-local` line renders) — so fail-closed did not become deny-everything.
+- P4 AUTH (item 3, wrong-state): the retained fail-open is reachable ONLY where `this_box` raises. On a no-box graph a boxless row is still local (the exception, measured) and a row NAMING a box there is still foreign. On a DECLARED box, box = "" / "   " / "(default)" / "nonesuch" is never local, and the box's own row IS local. On the LIVE graph this box names itself `local-town` and an unstamped row is already foreign, so the exception is NOT live here — the owner's ini routine is what keeps it off production.
+
+(3) THE NEAR MISSES this review had to refuse. A re-pin that keeps the old assertions under a new name would pass green and pin nothing — P1 is the mutation that kills it, and it fired. A fail-closed gate that denies EVERY job on an unnamed box (no `if not b: return True`) satisfies "runs no box-gated job" in the crudest way and darkens the box; P2c/P2i are what catch it, and the ungated job still renders. A refusal printed once PER JOB is what the brief's words allowed and the wrong shape for a crontab; the once-into-the-rendered-artifact shape is the one I accepted. A fourth near miss, and the one that nearly cost this node: `envfile.resolve` anchors to the SHARED project root — the PARENT of `.agi` — so a probe fixture that writes `.agi/.env` makes `this_box` raise and turns four P3/P4 probes red for the FIXTURE's reason while the code is fine. I hit that, and two more of my own (asserting a `core-town` job runs on a `sanctuary` box, and asserting the job NAME appears in a rendered line that carries `--box-local` instead). Four probe defects of mine, all recorded here because a probe that fails for its own reason is a turn somebody else pays for.
+(4) DEVIATION: I did not demote `proved` to a lean even though item 3 was resolved by the "record the reason" branch rather than by code. The rule I deviated from in spirit is "a claim whose conjunct was narrowed is a lean" — the property of THIS case is that the brief itself offered the narrowing as one of two acceptable outcomes and required the measured reason, which is what the node carries (10 out-of-scope send/rotate failures, tabulated, with the send.py by-name-repair and rotate status classes named). That is evidence of a bounded exception, not an unexamined one. What the node does NOT claim is that conjunct (2b) is fully closed: it is closed for every DECLARED box and open on a graph that declares none, and the node says so in those words.
+
+CAVEAT I accept, named rather than dropped: the 10-test send/rotate churn is measured but UNPAID. Nobody has run the consequence to ground — on a box that never set AGI_BOX, `send dm/wake/nudge <id>` loses its stale-id-by-name repair and `rotate status --seats` lists nothing. The cost is real and belongs to whoever closes the posts backfill; until the 18 boxless rows are stamped it is a live hole on any dev graph, and the node names it rather than hiding it behind `proved`.
+<!-- THOUGHT:END -->

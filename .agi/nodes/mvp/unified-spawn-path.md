@@ -7,7 +7,7 @@ parents:
 next_edges:
   - outcome:a00-c8365a0c-85a6d1
 confidence: 0.7
-edited_by: season.py
+edited_by: director-general-3
 season: 1
 status: open
 thought_session: season
@@ -32,7 +32,7 @@ spawn gate, node scaffolding, the manifest, `post_wire`, the evidence gate.
 "harnesses": {
   "pi": {
     "adapter": "pi",                       // -> bin/adapters/pi_adapter.py
-    "bin": "/home/ubuntu/.npm-global/bin/pi",   // $PI_BIN still wins if set
+    "bin": "<home>/.npm-global/bin/pi",   // $PI_BIN still wins if set
     "provider": "openrouter",
     "thinking": "medium",
     "models": { "kid": "z-ai/glm-5.3-flash", "parent": "qwen/qwen3.8-27b" },

@@ -1,0 +1,99 @@
+{
+ "source": "turboquant_plus @ /data/work/trove/20260920/turboquant_plus (github.com/TheTom/turboquant_plus), branches experiment/asymmetric-kv, experiment/layer-adaptive, experiment/layer-adaptive-extended-ctx, experiment/moe-aware-gating; read 2026-09-20. All four are DOCS-ONLY branches; the KV-cache implementation lives in the separate fork TheTom/llama-cpp-turboquant (no .cpp/.cu/.metal in this repo, verified with git ls-files).",
+ "summary": "All four branches in this slice are documentation-only; each adds a single docs/*.md file (36-58 lines) and no code. layer-adaptive (c75d79d, 2026-03-25) and layer-adaptive-extended-ctx (6420967, 2026-03-25) are fully merged into main (git merge-base --is-ancestor: branch tips are ancestors of main). asymmetric-kv (d9e1090) and moe-aware-gating (b96d0d1) are unmerged and 6+ months stale (tips 2026-03-25; main tip ba52ad1 2026-07-20). Hypotheses: (a) layer-adaptive -- late layers are quality-sensitive, give the last 8 of 40 layers q8_0 and keep 32 at turbo3; measured PPL 6.110 vs uniform q8_0 6.111 vs uniform turbo3 6.193 (8-chunk, Qwen3.5-35B-A3B), i.e. q8_0 quality at ~3.5x effective compression, and it holds 2K-32K (32-chunk 5.435 vs 5.415, +0.37%); the extended-ctx branch adds the cross-context/decode/external-validation numbers. (b) asymmetric-kv -- V carries content, K carries direction, so mixed K/V precision should win at equal bits; the branch records crashes (no mixed-type FA kernel) and broken rot-tensor allocation (gated on K type), declares 'not a quick win, parking'. This conclusion was superseded: main's docs/asymmetric-kv-discovery.md (2026-03-29) traces the failure to 150 missing q8_0xturbo kernel instantiations, fixes them, and makes q8_0-K + turbo-V the headline recommendation. (c) moe-aware-gating -- give frequently-fired experts' KV higher precision; hypothesis INVALID because expert routing is an FFN signal computed after attention, so K/V are identical regardless of expert firing; branch marked dead/deprioritized. The dominant reusable finding across the repo is K-precision dominance (softmax amplifies K error exponentially, V error scales linearly), plus the Boundary-V policy (first2+last2 layers q8_0-V, rest turbo2-V, 15 lines) and the MoE turbo2+BV result (7.53x V compression at +0.4-1.0% PPL). Critical caveats for the RTX 2070S box: all quality results are Metal-only (CUDA parity explicitly not validated), and Boundary-V/layer-adaptive target raw layer index, which mis-targets hybrid architectures (Qwen3.5) where only every 4th layer has a KV cache.",
+ "key_facts": [
+  "MEASURED (git diff --stat merge-base..branch): asymmetric-kv adds docs/experiment-asymmetric-kv.md (36 lines, commit d9e1090 2026-03-25 18:41); moe-aware-gating adds docs/experiment-moe-aware-gating.md (37 lines, commit b96d0d1 2026-03-25 18:50); layer-adaptive adds docs/experiment-layer-adaptive.md (41 lines, commit c75d79d 2026-03-25 18:44); layer-adaptive-extended-ctx adds docs/experiment-layer-adaptive-extended.md (58 lines, commit 6420967 2026-03-25 20:59). No code files changed on any branch.",
+  "MEASURED (git merge-base --is-ancestor / git rev-list main..branch): layer-adaptive and layer-adaptive-extended-ctx are FULLY MERGED into main (0 commits unique). asymmetric-kv and moe-aware-gating are NOT merged (2 unique commits each: one doc + one merge commit) and their docs are absent from main (git grep).",
+  "MEASURED (git log -1): last commit dates -- asymmetric-kv d502cd4 2026-03-25 20:27:22 -0500; layer-adaptive 9208524 2026-03-25 20:27:22; layer-adaptive-extended-ctx 6420967 2026-03-25 20:59:43; moe-aware-gating 7b3124a 2026-03-25 20:27:22. main tip is ba52ad1 2026-07-20; tags v0.3.2.1-3 are 2026-05-03. All four branches are 4-6 months behind.",
+  "MEASURED (docs/experiment-layer-adaptive.md, Qwen3.5-35B-A3B, wikitext-2, 8 chunks): uniform turbo3 PPL 6.193 (+1.3% vs q8_0); Mode 1 q8_0 on first+last 4 layers 6.185 (+1.2%); Mode 2 q8_0 on last 8 of 40 layers 6.110 (-0.02%); uniform q8_0 6.111 baseline. Effective compression ~3.5x (32/40 x 4.6 + 8/40 x 2.0).",
+  "MEASURED (docs/experiment-layer-adaptive-extended.md, main version): Mode 2 32-chunk PPL 5.435 (+0.37% vs q8_0 5.415); uniform turbo3 5.471 (+1.0%). Prefill mode2/q8_0 = 0.990x (2K), 0.999x (4K), 1.016x (8K), 1.000x (16K), 0.998x (32K). Decode mode2/q8_0 = 0.92x short, 0.92x 4K, 0.90x 8K. Python tests 144/144 passed.",
+  "MEASURED (docs/experiment-layer-adaptive-extended.md, branch version): Mode-2 prefill 2K-16K ratios 0.984x/0.981x/0.977x/0.976x; decode 4K turbo3 76.3 vs q8_0 84.0 tok/s = 0.91x, KV cache 17.5 vs 42.5 MiB (0.41x); external M1 Max 64GB: llama.cpp turbo3 decode 34.6 vs q8_0 41.8 = 0.83x.",
+  "MEASURED (docs/experiment-asymmetric-kv.md): turbo3/turbo3 PPL 6.19 @ 4833 tok/s and q8_0/q8_0 PPL 6.11 @ 4958 on Qwen3.5-35B-A3B (8 chunks, wikitext-2). turbo3-K + q8_0-V = 161.6 PPL and q4_0-K + turbo3-V = 156.2 (BROKEN: rot tensors not allocated when K is non-turbo); turbo3-K + q8_0/q4_0-V and q8_0-K + turbo3-V CRASHED (no mixed-type FA kernel).",
+  "MEASURED (docs/asymmetric-kv-discovery.md, main, 2026-03-29): the mixed-type failure was 150 missing Metal FA kernel instantiations for q8_0 x turbo pairs (240 total added across both phases). After the fix, Qwen2.5-7B Q4_K_M: q8_0-K + turbo4-V PPL 6.64 (+1.0%), q8_0-K + turbo3-V 6.71 (+2.0%), q8_0-K + turbo2-V 6.91 (+5.1%); turbo3/turbo3 = 3556 (catastrophic).",
+  "MEASURED (docs/papers/asymmetric-kv-compression.md): K precision dominates quality. Same bits, opposite outcomes -- Qwen2.5-7B Q4_K_M symmetric turbo3 PPL 3556 vs asymmetric q8_0-K + turbo3-V 6.71. Validated across 7 models (1.5B-104B), 3 weight quants, 3 backends (Metal/CUDA/HIP). Softmax amplifies K error as O(e^eps); V error scales linearly as w_i*eps.",
+  "MEASURED (docs/papers/layer-aware-v-compression.md, Boundary V = mode LA-V7, first2+last2 q8_0-V, rest turbo2-V): turbo2->turbo3 gap recovery 55% (phi-4, 40L), 37% (Qwen2.5-7B, 28L), 42% (Qwen3.5-27B, 16 KV layers, confounded), 91% (Qwen3.5-35B MoE, confounded). 15 lines in llama-kv-cache.cpp; no speed penalty (phi-4 8K prefill 628.53 vs 612.56 turbo3; decode 30.90 vs 29.65).",
+  "MEASURED (docs/papers/moe-v-compression-frontier.md): Qwen3.5-35B-A3B Q8_0, q8_0/turbo2+BV gives 7.53x V compression at PPL +0.4-1.0% across 512/8K/32K, equal to or better than q8_0/turbo3 at every depth, and 32K decode 2-3% faster than turbo3 (n=2). Short-context decode 71.89 vs 74.43 turbo3 (-3.4%).",
+  "MEASURED (docs/papers/layer-aware-v-compression.md Addendum Part 3, 2026-03-29): the boundary check is `(il < 2 || il >= n_layer - 2)` on RAW layer index, so on Qwen3.5-27B (64 layers, KV on layers 3,7,...,63) mode 7 upgrades only 1 of 16 actual KV layers. Hybrid-architecture results do not reflect the intended policy.",
+  "MEASURED (docs/papers/layer-aware-v-compression.md Limitations): CUDA parity NOT validated (Metal only); gains dilute to ~0 by 16K context (phi-4 16K LA-V7 advantage -0.006 PPL); 4+4 boundary width is not a stable upgrade over 2+2; f16 boundary layers do not beat q8_0 boundary layers; boundary count hardcoded 2+2.",
+  "MEASURED (docs/experiment-context-scaling-fix.md, on main): group-32 WHT rotation failed with PPL 7.06 (target 6.19) -- real KV tensors need 128-element rotation groups for Gaussianization. 128-element groups + optimized dequant give flat 0.99x q8_0 through 32K.",
+  "MEASURED (docs/turboquant-plus-experiments.md): the asymmetric-kv experiment is classified BLOCKED (needs FA template work) and moe-aware-gating is classified DEAD (invalidated); layer-adaptive-extended-ctx is classified ACTIVE/VERIFIED ready to merge.",
+  "MEASURED (tests/test_hw_replay.py line ~100): a replay fixture encodes PPLResult('turbo3', 8, 6.120, env='TURBO_LAYER_ADAPTIVE=2') alongside q8_0 6.111 and turbo3 6.211, so the layer-adaptive number is regression-tested in the Python harness.",
+  "MEASURED (docs/benchmarks.md): Boundary V is enabled by default on recent builds when -ctv turbo2 is set; opt-out TURBO_LAYER_ADAPTIVE=0; manual activation on older builds TURBO_LAYER_ADAPTIVE=7. The benchmarks.md table still cites the confounded 91% MoE figure and a '64L' MoE layer count that conflicts with the paper's 40L/10-KV metadata.",
+  "ESTIMATE: none of these branches produced CPU/CUDA numbers. Any transfer of layer-adaptive or Boundary V to the RTX 2070S box is unvalidated; the only CUDA evidence in the repo is community PPL (RTX 4090/3090) for asymmetric K/V, not for layer-adaptive."
+ ],
+ "reusable_assets": [
+  "docs/experiment-layer-adaptive.md (main) -- exact mode definitions (Mode 0 uniform turbo3, Mode 1 q8_0 first+last 4, Mode 2 q8_0 last 8 of 40) plus the 8-chunk PPL table and effective-compression arithmetic.",
+  "docs/experiment-layer-adaptive-extended.md (main, superset of the branch version) -- cross-context PPL/prefill/decode tables 2K-32K, external-tester comparison, and the 1K-timing unreliability note.",
+  "docs/papers/layer-aware-v-compression.md -- Boundary V (LA-V7) policy, 2+2 vs 4+4 vs f16 comparisons, effective bits/val table, the raw-layer-index bug and its fix direction, full reproduce commands.",
+  "docs/papers/asymmetric-kv-compression.md -- the softmax-amplification explanation, 7-model/3-backend/3-weight-quant PPL matrix, decision tree for choosing K/V precision.",
+  "docs/papers/moe-v-compression-frontier.md -- MoE recommendation (q8_0-K + turbo2-V + Boundary V = 7.53x), plus a negative-results table of 20+ exhausted decode micro-optimizations that should not be re-explored.",
+  "docs/asymmetric-kv-discovery.md (main) -- the 240-kernel-instantiation fix, the missing-kernel failure mode (NaN/hang/silent-wrong), and the full asymmetric rescue matrix.",
+  "turboquant/kv_cache.py -- KVCacheCompressor(head_dim, k_bits, v_bits, norm_correction=True) already exposes independent K/V bit widths, so asymmetric and layer-adaptive policies can be prototyped in pure Python/NumPy without the C++ fork.",
+  "turboquant/{turboquant,polar_quant,qjl,codebook,rotation}.py -- the reference codec (WHT rotation, PolarQuant centroids, QJL).",
+  "refract/ -- REFRACT v0.3.2.3, a multi-axis KV fidelity scorer (PPL, corpus-KLD, NIAH, GTM trajectory) with llamacpp/mlx/vllm/sglang backends and CLI; pip install refract-llm; platform-portable Python.",
+  "scripts/turbo-quality-gate.sh -- ready-made PPL (within 5% of q8_0) + context-scaling (>0.95x) gate; MODEL/WIKI/LLAMA overridable.",
+  "scripts/turbo_hardware_diag.py + tests/test_turbo_hardware_diag.py -- 2385-line diagnostic, 253 tests, emits a HardwareProfile JSON with per-depth decode ratios and a TURBO_LAYER_ADAPTIVE=2 recommendation rule.",
+  "tests/test_hw_replay.py -- replay/profile fixtures including the TURBO_LAYER_ADAPTIVE=2 PPL entry; useful as a schema for recording new CPU results.",
+  "proof/niah/*.json and benchmark-results-raw/*.log -- NIAH and KLD/PPL raw result files for q8_0/turbo3/turbo4/q4_0, including a boundary-V NIAH run (proof/niah/niah_boundary_v/niah_boundary_v_20260329.md)."
+ ],
+ "failures_and_lessons": [
+  "asymmetric-kv (branch) declared mixed K/V 'not a quick win / parking' after crashes and NaN. The real cause was 150 missing Metal FA kernel instantiations (plus rot-tensor allocation gated on K type). Lesson: a 'blocked' verdict can be a kernel-coverage gap, not a fundamental limit -- check instantiations before abandoning an experiment.",
+  "moe-aware-gating: category error. Expert routing is an FFN signal; the KV cache is attention and is computed BEFORE routing, so K/V are identical regardless of which experts fire. Per-expert KV precision cannot work.",
+  "Boundary V / layer-adaptive target raw transformer layer index, not KV-layer ordinal, so hybrid architectures (Qwen3.5, KV on every 4th layer) get 1-2 of 10-16 KV layers upgraded; their reported 91%/42% recoveries are confounded and must not be used to size the effect.",
+  "Boundary V gains dilute with context: by 16K on phi-4 the advantage over uniform turbo2 is essentially zero (-0.006 PPL). It is a short/medium-context tool.",
+  "Widening the boundary to 4+4 is not a stable universal upgrade over 2+2 (helps pure-attention, hurts the hybrid model), and f16 boundary layers do not beat q8_0 -- so 2+2 q8_0 is the only justified width/precision.",
+  "group-32 WHT rotation destroyed quality (PPL 7.06 vs target 6.19); 128-element rotation groups are required for real KV tensors.",
+  "All layer-adaptive / Boundary V / MoE-V numbers are Metal-only; CUDA parity is explicitly not validated. The RTX 2070S box cannot assume them.",
+  "Decode overhead of compressed KV is strongly hardware-dependent: 0.91x q8_0 on M5 Max, ~0.65x on M1 Ultra, 0.36x on M1 Max at 42K -- older/weaker memory subsystems amplify the gap.",
+  "Sub-millisecond (1K) Metal timings are unreliable because the CPU timer measures async command-buffer submission; use 2K+ context and 2+ chunks.",
+  "Docs-only branches are a structural trap for readers: the experiment's conclusion is in this repo, but the code that produces the numbers is in a separate fork, so nothing here is runnable and main's later papers can silently supersede a branch's verdict (as happened to asymmetric-kv)."
+ ],
+ "hypothesis_seeds": [
+  {
+   "claim": "K-precision dominance holds for tiny CPU models (<=3B, Q4_K_M): keeping K at q8_0 and compressing V to 2-3 bits costs <5% PPL, while compressing K is catastrophic.",
+   "falsifier": "On a 1.5-3B Q4_K_M model, q8_0-K + turbo2-V PPL exceeds +5% vs q8_0/q8_0, or symmetric turbo3-K is NOT catastrophic.",
+   "cpu_experiment": "Use turboquant/kv_cache.py KVCacheCompressor(k_bits=8, v_bits=2/3/4) on captured K/V tensors from a small model, or run llama.cpp CPU with -ctk q8_0 -ctv turbo2 and llama-perplexity on wikitext-2 (8 chunks); compare against q8_0/q8_0 and turbo3/turbo3.",
+   "est_cost": "1-3 hours on the 4-core ARM box, no GPU"
+  },
+  {
+   "claim": "Layer-adaptive mode 2 (q8_0 on the last ~20% of layers, turbo3 elsewhere) transfers from Metal to CPU/CUDA with a PPL gap <1% vs q8_0 at ~3.5x effective KV compression.",
+   "falsifier": "CPU PPL gap between mode-2 and q8_0 exceeds 1%, or the effective compression is not >=3x.",
+   "cpu_experiment": "Emulate per-layer bit allocation in the pure-Python reference (per-layer k_bits/v_bits schedule) on a small model's KV cache and measure reconstruction/attention error; then, if a CPU build supports TURBO_LAYER_ADAPTIVE, run llama-perplexity at 512 and 4K on wikitext-2.",
+   "est_cost": "2-4 hours ARM CPU; no GPU"
+  },
+  {
+   "claim": "The 'last N layers are the sensitive ones' effect is a property of the last KV-attention layers, so fixing the policy to use KV-layer ordinal (not raw layer index) changes the measured recovery on hybrid models by a large margin.",
+   "falsifier": "Recomputing Boundary V on KV-layer ordinal yields recovery within noise of the raw-index policy on a hybrid model.",
+   "cpu_experiment": "Offline simulation: capture per-KV-layer V reconstruction error on a hybrid small model, apply 2+2 protection by raw index vs by KV ordinal, and compare a proxy metric (cosine/PPL from the Python reference).",
+   "est_cost": "2-5 hours ARM CPU"
+  },
+  {
+   "claim": "Boundary V 2+2 recovers >30% of the turbo2->turbo3 quality gap at <=8K context on a tiny pure-attention model.",
+   "falsifier": "Recovery is <10%, or Boundary V ever underperforms uniform turbo2.",
+   "cpu_experiment": "Pure-attention tiny model (e.g. Qwen2.5-0.5B/1.5B or SmolLM); Python reference per-layer V precision schedule (first2+last2 q8_0-V, rest turbo2-V) with K=q8_0, measure PPL/attention-output error at 2K and 8K.",
+   "est_cost": "2-4 hours ARM CPU"
+  },
+  {
+   "claim": "Asymmetric mixed K/V types can be validated end-to-end on the RTX 2070S only if llama.cpp CUDA kernels have q8_0 x turbo instantiations; a CPU reference path can predict the quality win without any new kernel.",
+   "falsifier": "CPU reference shows no quality difference between symmetric and asymmetric at equal total bits, or the CUDA build fails to load the mixed pipeline.",
+   "cpu_experiment": "Run llama.cpp CPU with -ctk q8_0 -ctv turbo2/turbo3 and -ctk turbo3 -ctv turbo3 on a Q4_K_M tiny model; also confirm kernel coverage with a pipeline-exists check in the CUDA build log (grep for the kq8_0_vturboN name).",
+   "est_cost": "1-2 hours CPU + a short CUDA smoke run (minutes of GPU time)"
+  },
+  {
+   "claim": "On the 8GB RTX 2070S, q8_0-K + turbo2-V with Boundary V fits a meaningfully longer context than uniform q8_0 at equal PPL, because V is ~7.5x compressed while K precision is preserved.",
+   "falsifier": "At equal PPL, the max context achievable with q8_0/turbo2+BV is not larger than with q8_0/q8_0, or quality degrades >1%.",
+   "cpu_experiment": "First size the KV cache analytically from verified bits/val (q8_0=8.5, turbo3=3.5, turbo2=2.5, Boundary V=3.10-3.36 bits/val) and the target model's layer/KV-head config; then validate one config on the 2070S at 8K and 32K.",
+   "est_cost": "analytical sizing <1 hour; GPU validation within the 3 GPU-hour/month budget (minutes)"
+  }
+ ],
+ "open_questions": [
+  "Where is the turbo2-vs-turbo3 decode crossover? Not measured; the MoE paper only brackets it between short and 32K (likely 8K-16K).",
+  "Does Boundary V / layer-adaptive hold on CUDA at all? All published quality numbers are Metal-only; the repo never validates CUDA parity.",
+  "Does the 91% MoE gap recovery survive fixing the boundary check to use KV-layer ordinal instead of raw layer index?",
+  "Is the 'last 8 layers' cutoff model-specific? The doc itself says production needs per-model calibration to find the optimal layer cutoff.",
+  "Does K-precision dominance hold for models below ~1.5B, which is the regime the tiny-model town cares about? The smallest validated model in the repo is Qwen2.5-1.5B, and only for the catastrophic symmetric case.",
+  "Can the pure-Python turboquant reference emulate mixed K/V types and per-layer precision schedules closely enough to screen hypotheses without building the llama.cpp fork?",
+  "Does the RTX 2070S CUDA build ship the q8_0 x turbo FA kernel instantiations, or does the same missing-kernel failure mode recur on CUDA?",
+  "Do the repo's Sparse-V (skip V dequant for negligible attention weights, +22.8% decode at 32K) and Boundary V compound on CPU, or does Sparse-V remove the bandwidth argument for V compression?"
+ ]
+}

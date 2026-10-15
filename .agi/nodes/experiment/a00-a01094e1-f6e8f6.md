@@ -6,7 +6,7 @@ parents:
   - hypothesis:loop-scoped-iteration-ids-cannot-clobber
 next_edges: []
 confidence: 0.3
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 3fd0e723b6b421a5
 season: 1
 thought_session: season
@@ -23,7 +23,7 @@ Tested both halves of the hypothesis against current code (post-locations.py loo
 ```
 $ python3 extensions/agi/bin/locations.py --claim-iter --iter 1
 ERR: iteration 1 already holds a manifest at
-/home/ubuntu/work/agi/.agi/sessions/iter-001 -- refusing to reuse it.
+<home>/work/agi/.agi/sessions/iter-001 -- refusing to reuse it.
 Drop --iter to allocate the next free id, or name one whose
 - directory is empty.
 EXIT: 1
