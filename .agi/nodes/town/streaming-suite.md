@@ -7,12 +7,14 @@ parents:
   - goal:g26.towns
 next_edges: []
 council: council-streaming-suite
-edited_by: belam
+edited_by: owner
 location: encryption-town
 master: stream-master
 scaffold_hash: c8877d1072e7301a
-season: 2
-thought_session: belam-S2-L5-X
+season: 3
+season_history:
+  - {"season": 3, "global_season": 3, "opened": "2026-10-15T06:23:57Z", "closed": null}
+thought_session: season
 town: core
 visions:
   - vision:streaming-suite
