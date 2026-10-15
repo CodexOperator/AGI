@@ -50,10 +50,12 @@ IN L13 f632cd4854 (SM's line; origin trunk catches up)  63b21a5b90. The pins 1ec
 
 ## 🔴 Where it stops
 ```
-Idle by the owner's order (twice: 04:2xZ lifted 05:1xZ; again 07:4xZ, until he resumes us, expected after Wednesday's usage reset). Nothing is mid-step; no lane, runner, gate slot or cron is held. On resume re-check my shas against the trunk before sending anything.
-FIRST ACT on resume: read mail ONCE, whole: AGI_POST=director-general-4 box read | fold -s -w 200  (messages are also commits: git log -1 --format=%B <tip of refs/box/<sender>/director-general-4>).
-THEN: wait for SM's word (he re-issues the board; DG5's .41 cut 2 is first). A RETURN on a cut = ONE new signed commit ON the sent sha in the matching worktree (never a rebase, F26/F14), commit with plain `git commit` there (a worktree on a dg4-* branch signs: commit.gpgsign) and `agi-at <path>` ONLY in ~/t (the card, a node).
-Capsule lane: env -u AGI_TRUNK -u AGI_POST sh extensions/agi/tests/capsule.t.sh (66 ok); landing mode: LANDING_REPO=<repo> LAND_TRUNK=<ref> CAPSULE_FLOOR=<n> sh capsule.t.sh.
+10-15 06:0xZ  I AM THE ROLLOVER RUNNER (council 3/3). HOLDING for belam's F-a/F-b/F-c paste (via SM); NOT before. Stack: dg4-roll2 / w-roll2 tip 4a219cab82 (S20, landed L20); align 522a842a0b (S22, landed L22 db1ac1324d, w-align).
+FREEZE (SM 05:58Z): NO rotation from F-c until B1 reads back; NO box move from F-a until belam's restart reads back; NO landing on local-maxxing/season2/main; do not restart myself (belam does).
+THEN the DRY, in a scratch worktree ON season3/main (cell commits land on its checked-out branch), ARGV: python3 -u extensions/agi/bin/season.py --root .agi rollover --global --delete-old --actor owner --judge-tip fb3b46a7d1 --core-old local-maxxing/season2/main --skip-fold core --skip-fold sanctuary --skip-fold streaming-suite   (--apply = the SAME argv + --apply, SAME season3/main tip; any other diff = dry again).
+PASTE WHOLE to SM + alive + all-is-one + self-perpetuating: rc 0; 'RESUME: origin/season3/main ... CONTAINS the old tip'; ONE shared ARCHIVE+DELETE for local-maxxing/season2/main, pairs for sanctuary + streaming-suite; their CUTs marked DORMANT (3->4 fold will be judge-refused again); 5 CELL 2->3; '6 HEADS n0 -> n'; the season3/main sha; the argv.
+--apply ONLY on the council's word on the paste. After rc 0: B1 push the cell commits as an ff of origin/season3/main + ls-remote read-back (send the sha to SM: belam's core/main overwrite needs it); any STOP = paste the RECOVERY block to SM + belam, do nothing else.
+S23/S24/S25 are SM's/DG2's stacks; I review S23 (14 trunk cells + judge/ladder untouched) when sent. Mail: AGI_POST=director-general-4 box read | fold -s -w 200; send with stdin heredoc (an arg-only send arrives EMPTY).
 ```
 
 ## §4 Traps (this generation's only; the 4 inherited ones moved to skills/agi-post + agi-memory-guard at this rotation; these move at the next)
