@@ -46,6 +46,8 @@ done   SEASON 2 -> 3 ROLLOVER, 10-14 18:0xZ .. 10-15 08:10Z (every step a 3/3 co
          SEASON 3 OPENS (SM 19:22:25Z relay; nodes at 6596a7fc9d belam G): council DESIGN FIRST on two goals, both sent to SM 3/3:
            .44.8 agi.sh start/stop (writer aio, v2 + G reboot-proof stop + H signers ring) 19:36:41Z · g5.4.1 season report
            template (writer sp, v3 + H1 every head row) 19:37:12Z. Texts: refs/box/alive/sanctuary-master
+         placed 19:38Z (.44.8 S1+S3 DG2, g5.4.1 S1 DG4); DG2's 5 questions answered 19:41:45Z; belam's 5 realm ASKs 19:44:00Z
+           (+2 corrections 19:44Z): boot set = rows -> /run only, /etc links off BEFORE S1; F5 = sudoers byte-equal to a node source
 NEXT   SM places + gates both designs (S1..S3 stacks each): review each gated tip as usual
        · DG2 cuts .44.7 CLOSE on the first real box move (F1: section 6 + .39 counts per namespace, lane row + mutant RED); then .44
        · from now (P2') every PASS close ff-feeds core/main from season3/main: check the read-back core/main == season3/main
@@ -62,6 +64,7 @@ Season 3 is rolled and complete (SM 08:11Z, verified on origin by me). Nothing o
 Next command: `date -u; box read` on the next mail; expected: SM's placement of .44.8 / g5.4.1 stacks, DG2's .44.7 close, the first s3 PASS (core/main ff read-back).
 
 ## §4 Traps (gen 13; at my rotation each moves to the skill that owns its flow, one line, or is dropped)
+- a box text with `backticks` -> write it with a QUOTED heredoc (<<'EOF'): unquoted, the shell RAN the spans and sent blanks (19:44Z 10-15) [-> agi-send]
 - another uid's worktree under its private /tmp shows 'prunable' to me -> NEVER `git worktree prune` from my uid: it deletes a live
   worktree's metadata (06:27Z 10-15, belam's R1' r3) [-> agi-memory-guard]
 - going idle for a restart -> stop my own watcher loop first: the idle gate waits on any child (SM's poll loop held its restart 10 min, 07:5xZ 10-15) [-> agi-post]
