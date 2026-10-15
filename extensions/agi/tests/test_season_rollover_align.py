@@ -51,8 +51,8 @@ def _git(repo: Path, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run(["git", *args], cwd=repo, capture_output=True, text=True)
 
 
-def _run(root: Path, *args: str) -> subprocess.CompletedProcess:
-    return subprocess.run([sys.executable, str(CLI), "--root", str(root), "rollover", *args],
+def _run(root: Path, *args: str, cli: Path = CLI) -> subprocess.CompletedProcess:
+    return subprocess.run([sys.executable, str(cli), "--root", str(root), "rollover", *args],
                           capture_output=True, text=True)
 
 
@@ -255,3 +255,41 @@ def test_aligned_town_is_a_named_skip_on_rerun(repo: Path):
     res = _run(g, "--align", "--town", "maxx", "--apply", "--actor", "owner")
     assert res.returncode == 0
     assert "SKIP town:maxx — season 2 already == G" in res.stdout
+
+
+# ---- goal:g12.3: the align writer closes the open row at the SAME timestamp the new row opens ----
+def test_g123_align_closes_the_open_row_at_the_new_rows_opened_and_the_writer_without_it_is_red(tmp_path: Path):
+    import shutil
+    argv = ("--align", "--town", "maxx", "--apply", "--delete-old", "--actor", "owner")
+
+    def seeded(base: Path) -> Path:
+        base.mkdir(parents=True)
+        r = _build(base)
+        node = _graph(r) / "nodes" / "town" / "maxx.md"
+        node.write_text(node.read_text().replace(
+            "town: core\n", 'town: core\nseason_history:\n  - {"season": 1, "global_season": 1, "opened": "2026-09-13T00:54:32Z", "closed": null}\n', 1))
+        _git(r, "add", "-A")
+        _git(r, "commit", "-qm", "seed: one open season-1 row")
+        return r
+
+    r = seeded(tmp_path / "ok")
+    ok = _run(_graph(r), *argv)
+    assert ok.returncode == 0, ok.stdout + ok.stderr
+    rows = _fm(_graph(r) / "nodes" / "town" / "maxx.md")["season_history"]
+    assert [x["season"] for x in rows] == [1, 2] and rows[-1]["closed"] is None, rows
+    assert rows[0]["closed"] == rows[1]["opened"], rows
+
+    root = tmp_path / "mut" / "extensions" / "agi"
+    root.mkdir(parents=True)
+    shutil.copytree(BIN, root / "bin")
+    (root / "src").symlink_to(Path(__file__).resolve().parents[1] / "src")
+    f = root / "bin" / "season.py"
+    text = f.read_text()
+    anchor = '        rows[-1]["closed"] = now\n'
+    assert text.count(anchor) == 1
+    f.write_text(text.replace(anchor, "        pass\n"))
+    r2 = seeded(tmp_path / "red")
+    assert _run(_graph(r2), *argv, cli=f).returncode == 0
+    rows2 = _fm(_graph(r2) / "nodes" / "town" / "maxx.md")["season_history"]
+    assert rows2[0]["closed"] is None and rows2[0]["closed"] != rows2[1]["opened"], \
+        f"MUTANT (the writer without (a)) must be RED: the old row stays open {rows2}"

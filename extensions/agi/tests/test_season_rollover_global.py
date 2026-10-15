@@ -20,6 +20,7 @@ Asserts:
 """
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -764,3 +765,68 @@ def test_iv_a_town_cell_behind_the_global_season_is_refused_before_anything_and_
     mut = _mutant(tmp_path, ("    if misaligned:\n", "    if False:\n"))
     red = _run(g, "--global", cli=mut)
     assert not (red.returncode == 1 and "align first" in red.stderr), "MUTANT (alignment check dropped) must be RED"
+
+
+# ---- goal:g12.3: a rollover CLOSES the open ledger row at the SAME timestamp the new row opens ----
+def _ledger_violations(rows: list) -> int:
+    """The g12.3 falsifier on one town: every row but the last has closed != null AND row[i].closed == row[i+1].opened."""
+    return sum(1 for a, b in zip(rows, rows[1:]) if not a.get("closed") or a["closed"] != b.get("opened"))
+
+
+def _seed_open_ledger(repo: Path) -> None:
+    """Each real town enters the rollover with ONE open season-2 row (as the backfill leaves a town), committed on master."""
+    for slug, _c, _v in REAL:
+        p = _graph(repo) / "nodes" / "town" / f"{slug}.md"
+        row = '  - {"season": 2, "global_season": 2, "opened": "2026-10-15T05:58:15Z", "closed": null}\n'
+        p.write_text(p.read_text().replace("town: core\n", "town: core\nseason_history:\n" + row, 1))
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "seed: one open season-2 row per town")
+
+
+def test_g123_a_global_rollover_closes_the_open_row_at_the_new_rows_opened_and_the_writer_without_it_is_red(tmp_path: Path):
+    argv = ("--global", "--delete-old", "--actor", "owner", "--skip-fold", "core", "--apply")
+    r, _live = _real(tmp_path)
+    _seed_open_ledger(r)
+    _on_new_trunk(r)
+    ok = _run(_graph(r), *argv)
+    assert ok.returncode == 0, ok.stdout + ok.stderr
+    for slug, _c, _v in REAL:
+        rows = _fm(_graph(r) / "nodes" / "town" / f"{slug}.md")["season_history"]
+        assert [x["season"] for x in rows] == [2, 3] and rows[-1]["closed"] is None, (slug, rows)
+        assert rows[0]["closed"] == rows[1]["opened"], (slug, rows)         # the SAME timestamp, written once
+        assert _ledger_violations(rows) == 0, (slug, rows)
+    mut = _mutant(tmp_path / "m0", ('        rows[-1]["closed"] = now\n', '        pass\n'))
+    r2, _l2 = _real(tmp_path / "m0")
+    _seed_open_ledger(r2)
+    _on_new_trunk(r2)
+    assert _run(_graph(r2), *argv, cli=mut).returncode == 0
+    for slug, _c, _v in REAL:
+        rows = _fm(_graph(r2) / "nodes" / "town" / f"{slug}.md")["season_history"]
+        assert _ledger_violations(rows) == 1, f"MUTANT (the writer without (a)) must be RED, one violation per town: {slug} {rows}"
+
+
+def _load_season():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("season_g123", CLI)
+    sys.path.insert(0, str(BIN)); sys.path.insert(0, str(SRC))
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = mod                                           # a @dataclass in season.py reads its own module
+    try:
+        spec.loader.exec_module(mod)
+    finally:
+        sys.modules.pop(spec.name, None)
+    return mod
+
+
+def test_g123_the_helper_keeps_the_ledger_whole_over_two_stub_rollovers_and_leaves_the_past_alone():
+    season = _load_season()
+    past = [{"season": 1, "global_season": 1, "opened": "2026-09-01T00:00:00Z", "closed": "2026-09-20T00:00:00Z"}]
+    rows = past + [{"season": 2, "global_season": 2, "opened": "2026-09-20T00:00:00Z", "closed": None}]
+    snapshot = json.dumps(rows)
+    after3 = season._append_season_row(rows, 3, "2026-10-15T06:23:30Z")
+    assert json.dumps(rows) == snapshot                                    # the input ledger was not mutated
+    after4 = season._append_season_row(after3, 4, "2026-11-20T00:00:00Z")
+    assert [r["season"] for r in after4] == [1, 2, 3, 4] and _ledger_violations(after4) == 0
+    assert after4[0] == past[0] and after4[-1]["closed"] is None
+    assert season._append_season_row(None, 3, "T") == [{"season": 3, "global_season": 3, "opened": "T", "closed": None}]
+    assert season._append_season_row([{"season": 2, "global_season": 2, "opened": "A", "closed": "B"}], 3, "C")[0]["closed"] == "B"   # a row already closed is the past
