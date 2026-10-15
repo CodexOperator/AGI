@@ -187,6 +187,8 @@ def test_archive_mismatch_stops_before_delete_no_cell(repo: Path):
     hook.write_text("#!/bin/sh\nwhile read o n r; do case \"$r\" in\n"
                     "refs/agi/archive/*) echo 'archive refused'; exit 1;;\nesac; done\nexit 0\n")
     hook.chmod(0o755)
+    subprocess.run(["git", "-C", str(hook.parent.parent), "config", "core.hooksPath", str(hook.parent)],
+                   check=True)   # a global core.hooksPath would shadow the bare origin's hook
     old_sha = _heads(repo)["refs/heads/maxx/season1/main"]
     res = _run(g, "--align", "--town", "maxx", "--apply", "--delete-old", "--actor", "owner")
     assert res.returncode != 0

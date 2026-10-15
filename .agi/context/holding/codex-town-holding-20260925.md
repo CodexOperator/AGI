@@ -1,6 +1,6 @@
 # codex-town holding manifest — 2026-09-25
 
-Every local branch on **encryption-town** (`belam-prime`) parked on `origin` under
+Every local branch on **encryption-town** (`the box`) parked on `origin` under
 `refs/agi/codex-town/holding/*` before the worktree cleanup of 2026-09-25.
 
 Why: only `season2/main` was ever pushed. The crons push `refs/heads/{core,local-maxxing,
