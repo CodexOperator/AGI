@@ -20,6 +20,10 @@ and leaves the human uid one step that makes NO commit:
       job's own (exact subject + a Board-job trailer + the seat's committer); otherwise no ff, ONE line to
       the notice file, rc 3 (posts/<post> is also the Prime's staging lane, so an unconditional ff from a
       cron would land unreviewed work: the `branch_push` class). The ff makes no commit (C5).
+      goal:g7.16.1.11.42.2 (council 3/3 10-15): a commit is also landable when it is the Prime's own NODE
+      commit (prime_node: G by belam@agi, only under .agi/nodes/ outside .geometry/ and town/, mode 100644,
+      no delete) or a clean sync merge (its tree == merge-tree of its two checked parents). The first commit
+      that is neither is named in the notice with the rule it failed, and nothing lands.
 
 The committer is `<post> <post>@agi`: git verifies an ssh signature against the committer email, and
 `belam@agi` is the ring principal of the Prime's key. Exit codes: 0 done / nothing to do, 2 usage or
@@ -115,6 +119,101 @@ def not_own(repo, base: str, tip: str, post: str, signers: str = SIGNERS) -> lis
     return [c for c in out.stdout.split() if not is_own(repo, c, post, signers)]
 
 
+NODES, NOT_UNDER = ".agi/nodes/", (".agi/nodes/.geometry/", ".agi/nodes/town/")
+
+
+def _committed_by_seat(repo, sha: str, post: str, signers: str) -> str:
+    """"" when `sha` is committed by <post>@agi AND signed G by that principal (verified against `signers`
+    here, never by the invoking uid's git config); else the reason, for the notice."""
+    ce = _git(repo, "log", "-1", "--format=%ce", sha).stdout.strip()
+    g, who = _sig(repo, sha, signers)
+    if ce != f"{post}@agi" or g != "G" or who != f"{post}@agi":
+        return f"(a) not signed G by {post}@agi (committer {ce or '?'}, %G?={g}, signer {who or '-'})"
+    return ""
+
+
+def _raw_diff(repo, sha: str) -> list[tuple[str, str, list[str]]]:
+    """[(newmode, status, [path, ...])] of `git diff-tree -r -M` for `sha`: both paths of a rename."""
+    got = _git(repo, "diff-tree", "-r", "-M", "--root", "--no-commit-id", "--raw", "-z", sha)
+    f = got.stdout.split("\0")
+    out, i = [], 0
+    while i < len(f) and f[i].startswith(":"):
+        meta = f[i][1:].split()
+        status = meta[4] if len(meta) > 4 else "?"
+        n = 2 if status[:1] in "RC" else 1
+        out.append((meta[1] if len(meta) > 1 else "?", status, f[i + 1:i + 1 + n]))
+        i += 1 + n
+    return out
+
+
+def prime_why(repo, sha: str, post: str, signers: str = SIGNERS) -> str:
+    """"" when `sha` (a non-merge) is the Prime's own NODE commit; else the rule it failed, with the path.
+    (a) the seat's committer + a G signature by its principal; (b) every path under .agi/nodes/, not under
+    .geometry/ (engine pieces become ~/bin, crons.md the crontab, posts.md drives agi-boot) or town/ (the
+    town_mirror timer reads them); (c) every new blob 100644 (no symlink, no exec bit); (e) no delete under
+    .agi/nodes/; a rename into deprecated/ is the retire (a git rename, not a D status)."""
+    why = _committed_by_seat(repo, sha, post, signers)
+    if why:
+        return why
+    rows = _raw_diff(repo, sha)
+    if not rows:
+        return "(b) no readable diff"
+    for mode, status, paths in rows:
+        for path in paths:
+            if not path.startswith(NODES) or path.startswith(NOT_UNDER):
+                return f"(b) path {path}"
+        if status[:1] != "D" and mode != "100644":
+            return f"(c) path {paths[-1]} mode {mode}"
+        if status[:1] == "D":   # a rename (R) keeps the node, in deprecated/ or elsewhere under nodes/: not a delete
+            return f"(e) path {paths[0]} deleted"
+    return ""
+
+
+def land_why(repo, sha: str, post: str, signers: str, main_head: str, seen: dict | None = None) -> str:
+    """"" when `sha` may land (the job's own commit, the Prime's node commit, or a clean sync merge); else
+    the failed rule. A merge passes iff (a) holds, p2 is an ancestor of MAIN, p1 is in MAIN or lands itself,
+    and its tree is exactly `git merge-tree --write-tree p1 p2` (no hand resolution): (b) and (e) are
+    skipped for it, its content being exactly its two checked parents."""
+    seen = {} if seen is None else seen
+    if sha in seen:
+        return seen[sha]
+    if is_own(repo, sha, post, signers):
+        seen[sha] = ""
+        return ""
+    parents = _git(repo, "log", "-1", "--format=%P", sha).stdout.split()
+    if len(parents) < 2:
+        seen[sha] = prime_why(repo, sha, post, signers)
+        return seen[sha]
+    why = _committed_by_seat(repo, sha, post, signers)
+    if not why and len(parents) != 2:
+        why = f"(m) {len(parents)} parents"
+    if not why:
+        p1, p2 = parents
+        if not _is_ancestor(repo, p2, main_head):
+            why = f"(m) parent 2 {p2[:7]} is not in MAIN"
+        elif not _is_ancestor(repo, p1, main_head) and land_why(repo, p1, post, signers, main_head, seen):
+            why = f"(m) parent 1 {p1[:7]} is not landable"
+        else:
+            mt = _git(repo, "merge-tree", "--write-tree", p1, p2)
+            if mt.returncode or mt.stdout.split("\n", 1)[0] != _rev(repo, f"{sha}^{{tree}}"):
+                why = "(m) the tree is not the clean merge of its parents (a hand resolution)"
+    seen[sha] = why
+    return why
+
+
+def not_land_ok(repo, base: str, tip: str, post: str, signers: str = SIGNERS) -> list[tuple[str, str]]:
+    """[(sha, failed rule)] for every commit in base..tip that may NOT land (oldest first)."""
+    seen: dict = {}
+    head = _rev(repo, base) or base
+    out = _git(repo, "rev-list", "--reverse", f"{base}..{tip}")
+    bad = []
+    for c in out.stdout.split():
+        why = land_why(repo, c, post, signers, head, seen)
+        if why:
+            bad.append((c, why))
+    return bad
+
+
 
 def _now() -> str:
     """The UTC stamp every log line of this job carries (the log had none, so a run could not be placed against a ref move; goal:g7.16.1.11.42)."""
@@ -163,9 +262,9 @@ def cmd_land(args) -> int:
     if not _is_ancestor(main, head, tip):
         _notice(args.notice, f"[board] MAIN and posts/{post} have diverged: no ff, the board line waits")
         return 3
-    staged = not_own(main, head, tip, post, args.signers)
-    if staged:
-        _notice(args.notice, _staged_line(post, len(staged), main, staged[0], args.signers))
+    refused = not_land_ok(main, head, tip, post, args.signers)
+    if refused:
+        _notice(args.notice, f"[board] {refused[0][0][:7]} refused: {refused[0][1]}")
         return 3
     try:   # the suite lock holds MAIN's working tree still while a verification suite runs
         sys.path.insert(0, str(Path(__file__).resolve().parent))
