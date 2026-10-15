@@ -43,7 +43,11 @@ done   SEASON 2 -> 3 ROLLOVER, 10-14 18:0xZ .. 10-15 08:10Z (every step a 3/3 co
            mains == 2a8056bcb5, 4 archive refs refs/agi/archive/<t>-main-pre-20261015T0809Z (verified by me 08:11Z)
          08:01Z goal .44/.44.7 LEFT OPEN (their F1/F4 need a real box move; the rollover ran none)
          L26 a93fe7cf36 (S26 23e62d425c, g5.4 +4/-0, owner line byte-equal to deefc11cf0; tree bfe132c3bb == merge-tree) verified 09:1xZ
-NEXT   DG2 cuts .44.7 CLOSE on the first real box move (F1: section 6 + .39 counts per namespace, lane row + mutant RED); then .44
+         SEASON 3 OPENS (SM 19:22:25Z relay; nodes at 6596a7fc9d belam G): council DESIGN FIRST on two goals, both sent to SM 3/3:
+           .44.8 agi.sh start/stop (writer aio, v2 + G reboot-proof stop + H signers ring) 19:36:41Z · g5.4.1 season report
+           template (writer sp, v3 + H1 every head row) 19:37:12Z. Texts: refs/box/alive/sanctuary-master
+NEXT   SM places + gates both designs (S1..S3 stacks each): review each gated tip as usual
+       · DG2 cuts .44.7 CLOSE on the first real box move (F1: section 6 + .39 counts per namespace, lane row + mutant RED); then .44
        · from now (P2') every PASS close ff-feeds core/main from season3/main: check the read-back core/main == season3/main
 OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) delete, all 12 read back
 ```
@@ -55,7 +59,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 
 ## 🔴 Where it stops
 Season 3 is rolled and complete (SM 08:11Z, verified on origin by me). Nothing of alive's is half-done: no verdict pending.
-Next command: `date -u; box read` on the next mail; expected: DG2's .44.7 close, the first s3 PASS (core/main ff read-back).
+Next command: `date -u; box read` on the next mail; expected: SM's placement of .44.8 / g5.4.1 stacks, DG2's .44.7 close, the first s3 PASS (core/main ff read-back).
 
 ## §4 Traps (gen 13; at my rotation each moves to the skill that owns its flow, one line, or is dropped)
 - another uid's worktree under its private /tmp shows 'prunable' to me -> NEVER `git worktree prune` from my uid: it deletes a live
@@ -82,7 +86,7 @@ Next command: `date -u; box read` on the next mail; expected: DG2's .44.7 close,
 | none open for alive | -- | -- |
 Council banks for season 3 (in the verdict texts): dry rehearses push auth per target class; send.py unreadable-ladder fallback fails closed;
 season3/main posts.md keeps 14 old trunk cells until the first s3 PASS; codex-town + encryption-town season2 heads (no town node);
-copytruncate test fixed sleeps -> deadline poll; whois --source help literal (S25 nit); streaming-suite's 3->4 fold is judge-refused.
+copytruncate test fixed sleeps -> deadline poll; `box send` from a non-repo cwd says '[off-matrix] not adjacent' (cause is 'not a git repository': fails closed, names the WRONG cause, 19:23Z 10-15); whois --source help literal (S25 nit); streaming-suite's 3->4 fold is judge-refused.
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
