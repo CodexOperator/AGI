@@ -206,7 +206,8 @@ sshdown;mutgo 's#\[ \$r != 255 \]||{ echo "\[ssh\][^;]*;exit 255;};##' no-ssh-br
 ok "ssh-mutant-the-255-branch-dropped-is-RED a box-move.sh that never names ssh's own rc ends rc $rc and prints $(grep -c '^\[unit-path\]' $T/err) '[unit-path]' line(s) for an unreachable target (the clean row wants rc 255 and 0: this one must NOT be rc 255)" '[ $rc != 255 ]'
 # S25 (council 3/3 10-15, P4 (i)(a)): the trunk BRANCH is the caller's AGI_TRUNK (every post's env: the posts row's trunk cell), never a literal in box-move.sh. The fixture trunk $TRK has THREE path parts on purpose (the carry's source-ref filter only skips a 3-part trunk by name).
 LIT=$(printf 'local-maxxing/%s/main' season2)   # built, so this file never holds the old spelling itself
-litfiles(){ ( cd "$1"&&git grep --no-index -l -F "$LIT" -- extensions skills src 2>/dev/null ); }
+ALLOW=extensions/agi/tests/test_season_rollover_global.py   # the rollover's real-argv fixture (L20, council 10-14 23:46Z (2)): it passes --core-old with the old spelling ON PURPOSE
+litfiles(){ ( cd "$1"&&git grep --no-index -l -F "$LIT" -- extensions skills src 2>/dev/null|grep -v -x -F -e "$ALLOW" ); }
 fix;go;o0=$(git -C $T/f/o for-each-ref --format='%(refname)'|tr '\n' ' ')
 TRK=fx/other/trunk;fix;go;o2=$(git -C $T/f/o for-each-ref --format='%(refname)'|tr '\n' ' ');rc2=$rc;TRK=fx/trunk/main
 ok "trunk-the-origin-ref-is-the-callers-trunk with AGI_TRUNK=$TRK origin holds [${o0% }] (want refs/heads/$TRK), with AGI_TRUNK=fx/other/trunk it holds [${o2% }] (want refs/heads/fx/other/trunk; rc $rc2, want 0): the name comes from the env, not from the script" '[ "${o0% }" = refs/heads/$TRK ]&&[ "${o2% }" = refs/heads/fx/other/trunk ]&&[ $rc2 = 0 ]'
@@ -233,10 +234,12 @@ recov_fix;mutgo 's#git revert --no-edit HEAD >/dev/null&&git push -q origin HEAD
 ok "trunk-mutant-a-constant-put-back-in-the-recovery-push-is-RED the revert is pushed to a constant: origin's $TRK row still says $(git -C $T/f/o show refs/heads/$TRK:.agi/nodes/.geometry/posts.md 2>/dev/null|grep -c '"box": "encryption-town"') encryption-town (the clean recovery row wants 0)" '[ $(git -C $T/f/o show refs/heads/$TRK:.agi/nodes/.geometry/posts.md 2>/dev/null|grep -c "\"box\": \"encryption-town\"") != 0 ]'
 # the old spelling is gone from the live source: 'git grep -l' over extensions / skills / src at the tree under test lists NO file (named history prose that may keep it: none today)
 lf=$(litfiles $R0|tr '\n' ' ')
-ok "trunk-no-live-source-file-spells-the-old-trunk 'git grep -l' for the old season-2 trunk spelling over extensions skills src lists [${lf% }] (want none; the named history prose that may keep it: none)" '[ -z "$lf" ]'
+ok "trunk-no-live-source-file-spells-the-old-trunk 'git grep -l' for the old season-2 trunk spelling over extensions skills src lists [${lf% }] (want none; the one file that may keep it: $ALLOW, the rollover's real-argv fixture, L20)" '[ -z "$lf" ]'
 mkdir -p $T/lit/extensions/agi/guard;cp $T/m/box-move.sh $T/lit/extensions/agi/guard/box-move.sh 2>/dev/null
 fix;mutgo "s#HEAD:\\\$TK#HEAD:$LIT#g" literal-put-back;cp $T/m/box-move.sh $T/lit/extensions/agi/guard/box-move.sh;lm=$(litfiles $T/lit|tr '\n' ' ')
 ok "trunk-mutant-the-old-literal-put-back-is-RED a box-move.sh copy that pushes to the old spelling: the same listing finds [${lm% }] (want extensions/agi/guard/box-move.sh), and its move leaves origin with [$(git -C $T/f/o for-each-ref --format='%(refname)'|tr '\n' ' ')] (the clean row wants refs/heads/$TRK)" '[ "${lm% }" = extensions/agi/guard/box-move.sh ]'
+mkdir -p $T/lit2/extensions/agi/tests;printf '%s\n' "$LIT" >$T/lit2/extensions/agi/tests/test_other.py;printf '%s\n' "$LIT" >$T/lit2/$ALLOW;lo=$(litfiles $T/lit2|tr '\n' ' ')
+ok "trunk-the-allowed-file-is-exempt-by-its-exact-name-only the same listing over a copy where $ALLOW AND extensions/agi/tests/test_other.py both spell the old trunk finds [${lo% }] (want only extensions/agi/tests/test_other.py: a second file is still found)" '[ "${lo% }" = extensions/agi/tests/test_other.py ]'
 # the tree under test
 n=$(grep -c -F '$E "cd /data/work/agi' $SRC)
 ok "refs-the-host-act-line-stays-one $SRC holds $n line(s) with \$E \"cd /data/work/agi (want 1: box-move.t.sh extracts it)" '[ $n = 1 ]'
