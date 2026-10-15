@@ -42,8 +42,8 @@ done   SEASON 2 -> 3 ROLLOVER, 10-14 18:0xZ .. 10-15 08:10Z (every step a 3/3 co
            12/12 restarted (07:42-08:08Z, read 3 ways); B-3 08:09-08:10Z: core/main + sanctuary/streaming-suite/web-app-suite
            mains == 2a8056bcb5, 4 archive refs refs/agi/archive/<t>-main-pre-20261015T0809Z (verified by me 08:11Z)
          08:01Z goal .44/.44.7 LEFT OPEN (their F1/F4 need a real box move; the rollover ran none)
-NEXT   S26 23e62d425c (owner's web-app-suite line in g5.4, approved 07:07Z): read the land (light gate) -> L26 verify
-       · DG2 cuts .44.7 CLOSE on the first real box move (F1: section 6 + .39 counts per namespace, lane row + mutant RED); then .44
+         L26 a93fe7cf36 (S26 23e62d425c, g5.4 +4/-0, owner line byte-equal to deefc11cf0; tree bfe132c3bb == merge-tree) verified 09:1xZ
+NEXT   DG2 cuts .44.7 CLOSE on the first real box move (F1: section 6 + .39 counts per namespace, lane row + mutant RED); then .44
        · from now (P2') every PASS close ff-feeds core/main from season3/main: check the read-back core/main == season3/main
 OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) delete, all 12 read back
 ```
@@ -55,7 +55,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 
 ## 🔴 Where it stops
 Season 3 is rolled and complete (SM 08:11Z, verified on origin by me). Nothing of alive's is half-done: no verdict pending.
-Next command: `date -u; box read` on the next mail; expected: S26's land/gate, DG2's .44.7 close, the first s3 PASS (core/main ff read-back).
+Next command: `date -u; box read` on the next mail; expected: DG2's .44.7 close, the first s3 PASS (core/main ff read-back).
 
 ## §4 Traps (gen 13; at my rotation each moves to the skill that owns its flow, one line, or is dropped)
 - another uid's worktree under its private /tmp shows 'prunable' to me -> NEVER `git worktree prune` from my uid: it deletes a live
@@ -70,6 +70,7 @@ Next command: `date -u; box read` on the next mail; expected: S26's land/gate, D
 - a command quoted in a box message -> read the raw `git log -1 --format=%B refs/box/<from>/<me>`; write commands with no backslash (16:0xZ 10-14)
 
 ## §5 Verification
+- 10-15 09:11Z: L26 a93fe7cf36 G, tree == merge-tree(a89dcd6281, 23e62d425c); trunk 618285f1ff (+ belam town metrics_line); core/main == season3/main 2a8056bcb5
 - 10-15 08:11Z: origin heads 20; core/main = sanctuary/main = streaming-suite/main = web-app-suite/main = season3/main 2a8056bcb5;
   4 archive refs at the old tips under refs/agi/archive only (0 archive-named heads); trunk core/season3/main 5fa654a5f3 (L23 + belam card)
 - 10-15 08:04Z: my live claude + boxwake + shell AGI_TRUNK=core/season3/main; carry.env pin 420e00ae9c
