@@ -13,7 +13,7 @@ cadences:
     enabled: true
   evidence_enforce:
     every_mins: 30
-    enabled: false
+    enabled: true
     box: encryption-town
     why_box: "edits node files on MAIN, and MAIN lives on encryption-town (local-town is parked, owner 04:2xZ 10-09; belam decision 19:5xZ 10-09): evidence_gate demotes an unbacked verdict in place; the grid_sync commit step used to run it, so grid_sync off would stop it (goal:g7.16.1.11.13.1)"
     cmd: python3 {repo_root}/extensions/agi/bin/evidence_gate.py enforce --root {root}
@@ -23,7 +23,7 @@ cadences:
     cmd: python3 {repo_root}/extensions/agi/bin/crons.py apply --unit-dir $HOME/.config/systemd/user
   branch_push:
     schedule: 7 * * * *
-    enabled: false
+    enabled: true
   mail_poll:
     every_mins: 5
     enabled: true
@@ -59,7 +59,7 @@ cadences:
     cmd: python3 {repo_root}/extensions/agi/bin/board_job.py commit --main {repo_root} --post belam --job metrics_cell --work ~/board-work -- python3 {repo_root}/extensions/agi/bin/metrics_cell.py @WROOT@ town:local-maxxing metrics_line --actor belam -- python3 {repo_root}/extensions/agi/bin/success_metrics.py --line {root}
   graph_metrics_land:
     schedule: 28 * * * *
-    enabled: false
+    enabled: true
     box: encryption-town
     why_box: "MAIN lives on encryption-town; this is uid belam's ONE step of the board job: git merge --ff-only posts/belam into MAIN, only when every commit in MAIN..posts/belam is the job's own (goal:g7.16.1.11.42 C6); it makes no commit"
     cmd: python3 {repo_root}/extensions/agi/bin/board_job.py land --main {repo_root} --post belam
