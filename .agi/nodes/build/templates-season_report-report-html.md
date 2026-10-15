@@ -7,14 +7,20 @@ parents:
   - idea:season-report-is-one-template
 next_edges: []
 build_kind: prose
+confidence: 0.8
 edited_by: director-general-4
 link_ref: extensions/agi/templates/season_report/report.html
 location: source_root
 model: claude-sonnet-5-5
+origin: build-version
 payload_ref: extensions/agi/templates/season_report/report.html
 role: director
 scaffold_hash: 841a0496b0afbd59
 season: 3
+tags:
+  - build
+  - prose
+  - g5.4.1
 title: "Build: extensions/agi/templates/season_report/report.html"
 town: core
 ---
