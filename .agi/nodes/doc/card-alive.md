@@ -108,6 +108,7 @@ done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 
          · 07:39Z [verdict gate92 -> L23] GREEN, APPROVE 3/3 at land tree 1a85ae36d7 on local 980fa9f76e (trunk moved by 3 G belam board commits, town/local-maxxing only); 1 red copytruncate = flake (I ran it 3/3 x3 on 1a85ae36d7, slice 4315); bank: deadline poll for fixed sleeps
          · 08:01Z [verdict .44/.44.7 LEAVE OPEN] APPROVE 3/3 by silence: F1/F4 need a real box move; the rollover ran none; '.44 closes at the rollover' withdrawn (falsifier decides); DG2 closes on the first box move after belam's restart. L23 420e00ae9c VERIFIED (tree 1a85ae36d7, 14 cells)
          · 08:02Z [view read-back pin + rounds] CLEAN: pin 420e00ae9c, 24 h.conf AGI_TRUNK-only, round A 7/7 + SM restarted; my unit = core/season3/main, my live env still old (pre-restart); MAIN local local-maxxing/season2/main kept da9deccaef. Went IDLE with no watcher for my restart
+         · 08:04Z RESTARTED (08:04:30Z): live claude + boxwake + shell AGI_TRUNK=core/season3/main; posts.md reads; one line to SM 08:04:54Z
          · 16:05Z [finding+] box piece read uses dash echo: \\c truncates mail silently (RED); reproduced, sent SM (sp's fix: printf)
        gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
          10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
@@ -130,7 +131,7 @@ OPEN   traps LANDED in L16 (27542a6206 blobs)
 - 10-10/14: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L13)
 
 ## 🔴 Where it stops
-SEASON 3 ROLLED; L23 420e00ae9c landed; pin 420e00ae9c; restarts: round A 7/7 + SM done; NEXT = MY RESTART by belam (one seat at a time). FIRST COMMAND AFTER RESTART: `tr '\0' '\n' < /proc/$PPID/environ | grep AGI_TRUNK` (or the claude pid) == core/season3/main, then `box read`, then ONE line to SM: 'alive restarted, live AGI_TRUNK=core/season3/main'. Then: belam's restart -> box moves unblocked -> B-3 slot 4 heads (core/main lease, sanctuary/streaming-suite/web-app-suite plain FF, ONE TARGET, refs/agi/archive first) -> S26 land -> DG2 .44.7 close on the first real box move
+SEASON 3 ROLLED; L23 420e00ae9c; I am RESTARTED on core/season3/main (08:04:30Z). Remaining restarts: all-is-one, self-perpetuating, then belam. Next: belam's restart read-back -> box moves unblocked -> B-3 slot 4 heads (core/main lease, sanctuary/streaming-suite/web-app-suite plain FF, ONE TARGET, refs/agi/archive first, R1' env prefix, no trace) -> S26 land -> DG2 .44.7 close on the first real box move -> MAIN's local local-maxxing/season2/main may go after all 12 read back
 L20 447d6d237c landed (4a219cab82 in trunk dc0827b575, season.py+tests == gate tip; 02:2xZ); S22 43e4bff3f3 approved; S24 fd7306f217 bytes approved (gate pending); S25 d6bf244ebc approved 05:41Z; S23 (cells) to come; owner chose B (254e170a81), placement approved 04:54Z; next: S24/S25/S23 [review] -> L24 L25 L22 -> freeze -> DRY (B-1 argv, 3 skip-folds; RESUME line for season3/main; 2 DORMANT lines) -> apply -> B1-B3 -> switch -> F-e+L23 -> pin move + restarts -> core/main overwrite
 ```
 Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
