@@ -18,6 +18,7 @@ unit(){ if [ "$UNITFILE" = "$GEO/engine-root.md" ];then sect 'agi-post@.service'
 unit>$T/unit;[ -s $T/unit ]||{ echo "FAIL extract: the unit piece is empty";exit 99;}
 for n in box agi-at agi-turn agi-captive;do sect $n>$T/bin/$n;[ -s $T/bin/$n ]||{ echo "FAIL extract: $n";exit 99;};chmod +x $T/bin/$n;done
 printf '#!/bin/sh\nexit 0\n'>$T/bin/grow.py;chmod +x $T/bin/grow.py
+printf '#!/bin/sh\nexit 0\n'>$T/bin/agi-fill;chmod +x $T/bin/agi-fill   # g7.16.1.11.20.3: with NO agi-fill on PATH the captive gate RELEASES the window; e4 tests the gate that bites, so agi-fill is present
 HERE=encryption-town;PIN=c70e3ef31338fff0f375b9bebae6091b12337b7b;[ -n "$CARRY" ]||{ printf 'AGI_BOX=%s\nAGI_HUB=\nAGI_REPO=/data/work/agi\nAGI_TRUNK=%s\nGIT_CONFIG_VALUE_0=/data/work/agi\n' $HERE $PIN>$T/carry.env;CARRY=$T/carry.env;}
 # the post env as words: LIVE = the running post's real environ (AGI_* + two unit words); else = what systemd would hand the post: the unit's Environment= words (minus PATH) + the words of any EnvironmentFile naming carry.env (a mutant), then the REAL ExecStart body run under `env -i` of those words with a stub `script` that prints its environment (that is where AGI_BOX comes from)
 mkdir -p $T/bin2;printf '#!/bin/sh\nenv\n'>$T/bin2/script;chmod +x $T/bin2/script
