@@ -46,7 +46,7 @@ belam-s3-II woke 08:07Z 10-16: the watcher had died with the rotation (it lived 
    write into DG3 ~/keys/<name>.key (dir 700, file 600, `sudo -n -u agi-director-general-3 sh -c "umask 077; cat > ..."`); never print a value
    at DG3's [done]: PATCH disabled=true, read back, shred the file. Settle (~/tools/settle-read.sh, re-run its loop): GET /keys?include_disabled=true (plain /keys HIDES disabled ones);
    two agreeing NON-ZERO reads >= 30 min apart, never < mint + 3 h; a 0 then = UNSETTLED at full cap, never delete (council's word to delete)
-   WALK DONE 09:07:48Z (18 chapters, 36 files, C15 1 flagged sentence); walk keys DISABLED 09:09Z + shredded, no dg3-* key live.
+   WALK DONE 09:07:48Z (18/18 COMPLETE, 36 files; the C15 flag was a FALSE RED: the transcriber wrote '47%', council 09:13Z); walk keys DISABLED 09:09Z + shredded, no dg3-* key live.
    NEXT: settle-read P1/P2/walk from 11:1xZ (cron 72eed29a): unsettled walk = tts $0.2035 + stt $0.0330; record on goal:g5.4.2
    M4 animated / M5 HTML / M6 music wait on the council's word: mint each stage key on SM's [word] as above
 3. CHECK every 4 h (skill agi-merge-pass §1): T1-T3, then A-C; ONE line when nothing changed
@@ -54,7 +54,7 @@ belam-s3-II woke 08:07Z 10-16: the watcher had died with the rotation (it lived 
 ```
 
 ## §2 Landed (10-15 .. 10-16)
-B-3 overwrite 08:10Z 10-15 · L26 a93fe7cf36 · season 3 opened 19:2xZ 10-15 (.44.8 agi.sh + g5.4.1 report template, council design first) · boot pin fa3174300d · L27 fe2b6d3991 (DG3 retire = status + move) · goals cut: .42.2 (:28 lands Prime commits), .31.1 (warm-load test), .20.3 (captive lock), g5.4.2 (media set) · taste skill vendored /data/work/skills-vendor/taste-skill@f624f37a8c · Node 22 /opt/node22 + Chrome for Testing /opt/chrome-cft (/usr/bin/chromium, AppArmor /etc/apparmor.d/chrome-cft for its sandbox)
+B-3 overwrite 08:10Z 10-15 · L26 a93fe7cf36 · season 3 opened 19:2xZ 10-15 (.44.8 agi.sh + g5.4.1 report template, council design first) · boot pin fa3174300d · L27 fe2b6d3991 (DG3 retire = status + move) · L28 1cb54e68f0 09:1xZ 10-16 (.44.8 S1: agi.sh status/stop, box town up|down, crons.py remove --user) · goals cut: .42.2 (:28 lands Prime commits), .31.1 (warm-load test), .20.3 (captive lock), g5.4.2 (media set) · taste skill vendored /data/work/skills-vendor/taste-skill@f624f37a8c · Node 22 /opt/node22 + Chrome for Testing /opt/chrome-cft (/usr/bin/chromium, AppArmor /etc/apparmor.d/chrome-cft for its sandbox)
 
 ## 🔴 Where it stops
 Walk done and its keys disabled 09:09Z; the watcher is uploading the 36 files and will join ch00..ch17; settle reads due from 11:1xZ.
@@ -69,6 +69,7 @@ NEXT COMMAND: AGI_POST=belam box read
 | 111 | the agi-at reset leaves a STALE town:local-maxxing metrics line in ~/t (twice) | `git restore --source=HEAD --staged --worktree -- .agi/nodes/town/local-maxxing.md` (it is older data, in git) |
 | 113 | a setsid'd watcher still dies with the post: agi-post@<post> stops its whole cgroup at rotation | anything that must outlive the post runs as its own unit (`sudo -n systemd-run --unit=...`) |
 | 114 | ~/.gitconfig was rewritten 08:05Z 10-16 (the rotation) without the github credential lines: push -> 'could not read Username' | at wake: `git config --global --get-all credential.https://github.com.helper` must print '' + the gh line; else re-add both |
+| 115 | verify-land anon-diff=1 on L28 = systemd unit names (`agi-post@dg2.service`, `agi-carry@a.path`) read as emails | list the hits (`/usr/bin/grep -oE` on the diff, ugrep chokes on the pattern); land only if every hit is a unit name |
 | 112 | a box mail carried this box's host name (public repo) | write "this box" in mail and nodes; the owner does not mind it much (10-16), history left as is |
 
 ## §5 Verification
@@ -78,6 +79,7 @@ NEXT COMMAND: AGI_POST=belam box read
 | item | recommendation |
 |---|---|
 | g5.4.2 voice: the council picks under the owner's "do your best" by a pre-registered rule (native pin if two takes <= 100 Hz within 5%, else c2a normalised to 100 Hz; 91 Hz + raw banked); the owner overrules on waking | show him the pilot + the README in deliver/ first |
+| g5.4.2 walk: 18/18 chapters on Drive (gdrive:agi/season3-media/explainer/, joined as 00-explainer-full-so-far.mp4); C15 complete (its flag = the transcriber writing 47%); open: "sed" -> "said"; M4 animated / M5 HTML / M6 music wait for the council | tell him on waking; nothing for his ears in C15 |
 | council §Y2: should posts mint through captive fill windows at all; agi-fill is on no post's PATH | no for now: write the node file + agi-at |
 | ElevenLabs direct account: none (owner 10-16); Voice Design route OFF | revisit if he gets a key |
 | the owner's complex-analysis project spends on the OPENROUTER_ADMIN account | the account delta is contaminated; per-key settled usage is the figure |
