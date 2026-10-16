@@ -659,7 +659,7 @@ case $r in 0)c=$(echo "$P: merge $R"|git commit-tree -S -p $t -p $T $n)&&git upd
 ~~~~
 
 
-## C12 · The guards: a mistake cannot move a peer's ref
+## C12 · The guards: a post's mistake is refused when it tries to move a peer's ref
 
 sha: 6432bf88d5
 

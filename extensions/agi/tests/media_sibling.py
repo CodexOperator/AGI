@@ -3,7 +3,7 @@
 
 A claim the council RETURNED can survive in ANOTHER sentence (N5 -> R2, H1; U2 -> R3). The diff file therefore carries, for each returned
 claim, the grep that was run over the narration and html sentences, and every sentence the grep hit, marked `fixed` or `kept: REASON`.
-  grep ID: REGEX                         (case-insensitive; run over the tag-stripped sentences of every ### narration / ### html section)
+  grep ID: REGEX                         (case-insensitive; run over the tag-stripped sentences of every ### narration / ### html section and every `## C` heading)
   hit ID | fixed | OLD SENTENCE => NEW SENTENCE      the old sentence is gone from the script and the new one is in it
   hit ID | kept: REASON | SENTENCE                    the sentence is in the script; the reason is at least three words
 The universe of hits is the grep over the script at OLD_SHA plus the grep over the script now. Findings (exit = their sum): `unlisted`
@@ -38,6 +38,9 @@ def sentences(text):
         if m:
             flush()
             chap, sec = m.group(1), None
+            title = ln.split("·", 1)[1].strip() if "·" in ln else ""
+            if title:
+                out.append((chap, title))      # a chapter heading is a sentence too: it is rendered on the page (council 06:34Z)
         if ln.startswith("~~~~"):
             in_fence = not in_fence
             continue

@@ -29,7 +29,7 @@ grep F2: by hand|nobody has to|remember to start
 grep C1: great deal of the engine|does a great deal|every other tool
 grep R1: re-?attach|attached
 grep R2H1: nothing (at all|happens|is going)|going on at all
-grep R3U2: only road|only way|no post can|no stray commit can|impossible
+grep R3U2: only road|only way|no post can|no stray commit can|impossible|cannot move
 grep R4: never forgotten|never lost|nothing is lost|is never forgot
 grep C7N: vanish|working area|sits in memory
 grep C6N: working directory|working area
@@ -67,3 +67,4 @@ hit H23 | kept:the html summary was already tagged C16.6 | At this revision noth
 hit H23 | kept:now tagged C16.6 | It is a built tool waiting for its trigger.
 hit H23 | kept:now tagged C13.16 | The skill is the hand that does it now.
 hit H23 | kept:now tagged C13.14 | The tool is the engine's design for the climb.
+hit R3U2 | fixed | The guards: a mistake cannot move a peer's ref => The guards: a post's mistake is refused when it tries to move a peer's ref

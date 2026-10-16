@@ -15,10 +15,10 @@ DIFF = Path(REPO) / ".agi/context/media/season3-explainer-recut2-diff.md"
 OLD = "81cb084d6b"
 
 
-def _run(tmp_path, diff_text, capsys):
+def _run(tmp_path, diff_text, capsys, script=SCRIPT):
     p = tmp_path / "d.md"
     p.write_text(diff_text)
-    rc = media_sibling.check(str(SCRIPT), str(p), OLD, REPO)
+    rc = media_sibling.check(str(script), str(p), OLD, REPO)
     out = capsys.readouterr().out
     return rc, {k: int(v) for k, v in re.findall(r"^(unlisted|stale|not_fixed|no_reason)=(\d+)", out, re.M)}
 
@@ -61,3 +61,20 @@ def test_mutant_a_grep_that_hits_a_new_sibling_is_red(tmp_path, capsys):
 def test_no_grep_lines_is_not_green(tmp_path, capsys):
     rc, _ = _run(tmp_path, "# empty\n", capsys)
     assert rc != 0
+
+
+def test_mutant_the_old_c12_heading_restored_is_red(tmp_path, capsys):
+    """The heading overclaim (council 06:34Z): a `## C` heading is a rendered sentence, so the grep scans it. The old heading back in the
+    script -> its `fixed` row names a sentence that is still there (not_fixed) and the hit is no longer the listed one."""
+    new = "## C12 · The guards: a post's mistake is refused when it tries to move a peer's ref"
+    text = SCRIPT.read_text()
+    assert new in text
+    s = tmp_path / "script.md"
+    s.write_text(text.replace(new, "## C12 · The guards: a mistake cannot move a peer's ref"))
+    rc, c = _run(tmp_path, DIFF.read_text(), capsys, s)
+    assert rc != 0 and c["not_fixed"] >= 1
+
+
+def test_a_heading_is_in_the_scope(tmp_path):
+    got = media_sibling.sentences(SCRIPT.read_text())
+    assert ("C12", "The guards: a post's mistake is refused when it tries to move a peer's ref") in got

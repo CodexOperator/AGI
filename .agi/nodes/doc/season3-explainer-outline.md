@@ -352,7 +352,7 @@ case $r in 0)c=$(echo "$P: merge $R"|git commit-tree -S -p $t -p $T $n)&&git upd
 **Beats.** The three outcomes of `agi-sync`: the branch already contains the trunk (nothing); the branch is merely behind (the ref moves forward by compare-and-swap, no commit); a clean divergence (`merge-tree --write-tree`, exit 0) becomes one signed merge commit; a conflict (exit 1) changes nothing, writes `[trunk-conflict]` to the post's notice file and mails the nearest harnessed ancestor once per episode, never the Prime. Then `agi-turn` detaches `~/t` onto the branch tip: `~/t` is a READ view.
 
 
-## C12 · The guards: a mistake cannot move a peer's ref
+## C12 · The guards: a post's mistake is refused when it tries to move a peer's ref
 
 sha: 6432bf88d5
 
