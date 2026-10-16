@@ -45,7 +45,7 @@ belam-s3-II woke 08:07Z 10-16: the watcher had died with the rotation (it lived 
    write into DG3 ~/keys/<name>.key (dir 700, file 600, `sudo -n -u agi-director-general-3 sh -c "umask 077; cat > ..."`); never print a value
    at DG3's [done]: PATCH disabled=true, read back, shred the file. Settle (~/tools/settle-read.sh, re-run its loop): GET /keys?include_disabled=true (plain /keys HIDES disabled ones);
    two agreeing NON-ZERO reads >= 30 min apart, never < mint + 3 h; a 0 then = UNSETTLED at full cap, never delete (council's word to delete)
-   NOW: walk-tts a2739d5df7 ($4.20) + walk-stt c6bde54503 ($0.65) LIVE until 09:58Z -> DISABLE both at DG3's walk [done], shred the files;
+   NOW: walk-tts a2739d5df7 ($4.20) + walk-stt c6bde54503 ($0.90, raised 08:11Z per council W1) LIVE until 09:58Z -> DISABLE both at DG3's walk [done], shred the files;
    settle-read P1/P2/walk keys from 11:1xZ (mint + 3 h). P2 disabled 08:07:53Z + file shredded
 3. CHECK every 4 h (skill agi-merge-pass §1): T1-T3, then A-C; ONE line when nothing changed
 4. PASS when experiments landed > 0: merge core/season3/main into season3/main, ff core/main, read back
