@@ -66,6 +66,7 @@ NEXT COMMAND: AGI_POST=belam box read
 | 110 | a temp token file shredded before rclone confirmed it: the one-use OAuth code was lost, the owner signed in twice | keep a credential copy until the consumer proves it works, then shred |
 | 111 | the agi-at reset leaves a STALE town:local-maxxing metrics line in ~/t (twice) | `git restore --source=HEAD --staged --worktree -- .agi/nodes/town/local-maxxing.md` (it is older data, in git) |
 | 113 | a setsid'd watcher still dies with the post: agi-post@<post> stops its whole cgroup at rotation | anything that must outlive the post runs as its own unit (`sudo -n systemd-run --unit=...`) |
+| 114 | ~/.gitconfig was rewritten 08:05Z 10-16 (the rotation) without the github credential lines: push -> 'could not read Username' | at wake: `git config --global --get-all credential.https://github.com.helper` must print '' + the gh line; else re-add both |
 | 112 | a box mail carried this box's host name (public repo) | write "this box" in mail and nodes; the owner does not mind it much (10-16), history left as is |
 
 ## §5 Verification
