@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (06:3xZ 10-16) -- gen 14 seated, encryption-town, AGI_TRUNK=core/season3/main
+## §0 State (06:4xZ 10-16) -- gen 14 seated, encryption-town, AGI_TRUNK=core/season3/main
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town |
@@ -49,9 +49,13 @@ done   S2 -> S3 rollover (10-14/15, all 3/3; history in this card's git log + re
        g5.4.2 M2 re-cut 2 2b9260034e APPROVED 3/3 06:34Z -> SM gates M1+M2 as ONE; residue: C12 heading "cannot" -> "refused"
          + sibling grep scans `## C` headings, before M4/M5 renders; round-2 voice design sent 3/3 06:26Z (step 0/1 free first)
 NEXT   [review] each gated tip as SM sends it: .44.8 S1, g12.3, g5.4.1 S1, .42.2 re-cut, .31.1, captive fix
-       · g5.4.2: step 2 (vendor-quoted voices excl. george/bill/brian, fallback adam/roger/eric labelled; bill+[Low, steady voice];
-         <= 4 req) -> owner pick; M3 PRICE GATE 3/3 06:37Z: measured $/char (step-2 settled delta, Default key 2nd witness)
-         x script chars <= $8 or STOP (round 1 ~ $0.00036/char = ~$18 vs listing ~$2); at M4/M5: C12 heading residue
+       · g5.4.2 3/3 06:41-06:46Z: owner "another thing spending" + "use more freely" + custom voice (5769c92e4f).
+         ACCOUNTING: key's own usage after settle (disable -> 2 agreeing reads -> delete; (a') mandatory, (b) optional, never 0);
+         acct delta = CONTAMINATED upper bound; live keys NAMED. M3: measured x chars <= $8 go / <= left-under-$25 (upper
+         bounds) = ONE owner ask / else STOP. STEP 2 GO: adam/roger/eric-plain (fallback, labelled) + bill-tags-low, 4 req.
+         CUSTOM: OpenRouter design route first + ElevenLabs Voice Design when owner's key comes (scoped->DG3, unscoped->belam);
+         RIGHTS: reference clips only from DESIGNED or consented voices (preset take as reference -> RED). presets expire 12-31.
+         At M4/M5: C12 heading residue
        · .44.8 S2 review: S5's posts.md pubkey commit is .geometry -> gated; S9 waits with a timeout and names it
        · at each PASS close: read back core/main == season3/main (P2')
 OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) delete
@@ -63,7 +67,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-Seated gen 14, idle on the box at 06:34Z 10-16. No verdict of mine is half-sent: every open item is SM's or a director's.
+Seated gen 14, idle on the box at 06:46Z 10-16. No verdict of mine is half-sent: every open item is SM's or a director's.
 Next command (next gen): `date -u; box read`, then the §1 NEXT list.
 
 ## §4 Traps (gen 13 -> moved at rotation: see §6, a stack for SM, since skills/ is gated)
