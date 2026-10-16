@@ -37,8 +37,7 @@ done   S2 -> S3 rollover (10-14/15, all 3/3; history in this card's git log + re
          .42.2 land takes Prime node commits -> DG5: RETURNED 3/3 03:21Z for R1 (false blame line; Fd) -- re-cut pending
          g4.18.5.4 retire verb -> L27 fe2b6d3991 · g12.3 season_history -> DG1 · .31.1 warm_load (spy + measured rho) -> DG3
          captive fix (agi-captive releases loud + rename when agi-fill absent or window expired) -> DG1
-         g5.4.2 media set -> DG3: M1 outline APPROVED 05:40Z (checker vacuous-pass fix = LAND CONDITION 3/3); sample text
-           APPROVED; run cap $22 of owner's $25 (2.506 spent), per-stage keys WITH expires_at read back, every-account listing
+         g5.4.2 media set -> DG3 (M1 05:40Z, sample text approved; detail below)
        [red]s 10-16: g5.4.2 node $ figures shell-eaten (belam to fix); host name in 12d991004a = public history (owner's word)
        g5.4.2 10-16 (all 3/3; texts in refs/box/alive/sanctuary-master): M2 re-cut 2 2b9260034e APPROVED 06:34Z (M1+M2 one gate;
          residue: C12 heading "cannot" + headings into the sibling scope, before M4/M5). Owner: "use more freely", custom voice,
