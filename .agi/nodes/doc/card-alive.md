@@ -40,22 +40,16 @@ done   S2 -> S3 rollover (10-14/15, all 3/3; history in this card's git log + re
          g5.4.2 media set -> DG3: M1 outline APPROVED 05:40Z (checker vacuous-pass fix = LAND CONDITION 3/3); sample text
            APPROVED; run cap $22 of owner's $25 (2.506 spent), per-stage keys WITH expires_at read back, every-account listing
        [red]s 10-16: g5.4.2 node $ figures shell-eaten (belam to fix); host name in 12d991004a = public history (owner's word)
-       g5.4.2 samples 05:45Z (3 sha256 checked on disk); Fm3 usage rule 3/3 05:48Z (account delta = upper bound, no back-fill,
-         settle +10/+30); samples row <= 0.29; 2.506 = per-key, still moving at last read
-       g5.4.2 M2 7d4ee1db9e RETURNED 3/3 06:02Z: P1-P5, N1-N8, U1-U3, C17.5 RED, fm1 chapters=0 + excerpt b>len holes;
-         tag rule (engine sentence = pair id or [image]; Fm2 counts untagged = 0); re-read = own share's diff only (alive C6-C11)
-       g5.4.2 M2 re-cut 81cb084d6b SMALL RETURN 3/3 06:23Z: R1-R4 + 2 nits (mine), aio F1/F2, sp H1-H3, fm1 mutant D
-         (one heading renamed -> exit 0 without --chapters), sibling-grep table; samples settled <= 0.38, sum <= 2.886
-       g5.4.2 M2 re-cut 2 2b9260034e APPROVED 3/3 06:34Z -> SM gates M1+M2 as ONE; residue: C12 heading "cannot" -> "refused"
-         + sibling grep scans `## C` headings, before M4/M5 renders; round-2 voice design sent 3/3 06:26Z (step 0/1 free first)
+       g5.4.2 10-16 (all 3/3; texts in refs/box/alive/sanctuary-master): M2 re-cut 2 2b9260034e APPROVED 06:34Z (M1+M2 one gate;
+         residue: C12 heading "cannot" + headings into the sibling scope, before M4/M5). Owner: "use more freely", custom voice,
+         "spend all of it ... lots of samples is great" (5769c92e4f, b7d89fdd38). Accounting: the key's own usage after settle
+         (disable -> 2 agreeing reads -> delete), acct delta = contaminated upper bound, live keys named. M3 gate: measured x
+         quantity in the route's unit <= left under $25 (upper bounds) -> go, else STOP. STANDING SAMPLE RULE (06:49Z):
+         DG3 rounds w/o council turn: key <= $0.50, 16-request runaway cap, method names, rights rule, no starving M3.
+         Custom: seed-audio text-design sample -> clone mode; FIDELITY STT on every M3 route; no M3 mint before checker+mutant.
+         Round 2 step 2 done 06:44Z (4 sha256 checked); owner picks from 8 files.
 NEXT   [review] each gated tip as SM sends it: .44.8 S1, g12.3, g5.4.1 S1, .42.2 re-cut, .31.1, captive fix
-       · g5.4.2 3/3 06:41-06:46Z: owner "another thing spending" + "use more freely" + custom voice (5769c92e4f).
-         ACCOUNTING: key's own usage after settle (disable -> 2 agreeing reads -> delete; (a') mandatory, (b) optional, never 0);
-         acct delta = CONTAMINATED upper bound; live keys NAMED. M3: measured x chars <= $8 go / <= left-under-$25 (upper
-         bounds) = ONE owner ask / else STOP. STEP 2 GO: adam/roger/eric-plain (fallback, labelled) + bill-tags-low, 4 req.
-         CUSTOM: OpenRouter design route first + ElevenLabs Voice Design when owner's key comes (scoped->DG3, unscoped->belam);
-         RIGHTS: reference clips only from DESIGNED or consented voices (preset take as reference -> RED). presets expire 12-31.
-         At M4/M5: C12 heading residue
+       · g5.4.2: review each round under the standing rule AFTER it; the owner's pick; M3 only after the fidelity checker
        · .44.8 S2 review: S5's posts.md pubkey commit is .geometry -> gated; S9 waits with a timeout and names it
        · at each PASS close: read back core/main == season3/main (P2')
 OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) delete
