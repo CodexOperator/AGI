@@ -39,7 +39,7 @@ observe.sh         255 B  what the body IS
 tick.sh            254 B  diff them; start own unit; commit
 agi-frontier       460 B  each active goal runs its falsifier
 agi-first-start  1394 B  pieces BASE..TIP changes: a post's next-start diff
-box               2019 B  mail: one signed ref update per send (5x CAS)
+box               2904 B  mail: signed ref per send; belam's town blast
 ~~~
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
@@ -317,23 +317,26 @@ s=$({ p $1;p $2;}|sort|uniq -u|cut -d' ' -f1|sort -u|tr '\n' ' ');echo "FIRST-ST
 [ -z "$s" -o -z "$3" ]&&exit 0;grep -qi '^first-start: *[^ ]' $3||{ echo "REFUSED: $1..$2 changes ${s}self-installing piece(s); add a first-start: line (what each post kind gains and loses at its next start)";exit 1;}
 ~~~
 
-### box (2019 B)
+### box (2904 B)
 ~~~sh
 #!/bin/sh
-# box send TO <msg | box read | box n | box carry HUB POST..: mail = signed commits on refs (doc:radically-simple-engine §AA1)
+# box send TO <msg | box read | box n | box carry HUB POST.. | box town up|down SHA (belam only): mail = signed commits on refs (doc:radically-simple-engine §AA1)
 # out refs/box/P/TO (only P) · in refs/box/*/P · held refs/held/P/FROM (only P) · unread = in --not held
 P=${AGI_POST:?};m=refs/box
 # the matrix: a and b mail iff their levels differ by <= 1; level = rows up to owner, an inert row (no harness) counts 0
 a(){ git show ${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -se --arg a $1 --arg b $2 'map({(.name):.})|add as $r|def i(x):$r[x]|has("harness")|not;def l(x;n):if x=="owner" then 0 elif n>20 or $r[x]==null then -99 else (if i(x) then 0 else 1 end)+l($r[x].parent//"";n+1) end;l($a;0) as $x|l($b;0) as $y|$x>0 and $y>0 and ($r[$a]|has("harness")) and ($r[$b]|has("harness")) and $a!=$b and ($x-$y|fabs)<=1'>/dev/null;}
-case $1 in
-send)a $P $2||{ echo "[off-matrix] $P -> $2: not adjacent, nothing sent">&2;exit 1;};r=$m/$P/$2;b=$(cat);k=0
+w(){ r=$m/$P/$1;k=0
  until o=$(git rev-parse -q --verify $r);[ -z "$o" ]||git verify-commit --raw $o 2>&1|grep -q "for $P@agi with"||{ echo "[squatted] $r $o: not mine, nothing sent">&2;exit 1;}
-  c=$(printf '%s\n' "$b"|GIT_AUTHOR_EMAIL=$P@agi GIT_COMMITTER_EMAIL=$P@agi git commit-tree -S ${o:+-p $o} $(git hash-object -w -t tree /dev/null))&&git update-ref $r $c "$o" 2>/dev/null;do k=$((k+1));[ $k -lt 5 ]||{ echo "[unsent] $r: the tip moved 5 times">&2;exit 1;};done;;
-read|n)git for-each-ref --format='%(refname)' $m|grep "/$P$"|while read r;do f=${r#$m/};f=${f%/*};h=refs/held/$P/$f
- a $f $P||{ echo "[off-matrix] $f";continue;}
+  c=$(printf '%s\n' "$b"|GIT_AUTHOR_EMAIL=$P@agi GIT_COMMITTER_EMAIL=$P@agi git commit-tree -S ${o:+-p $o} $(git hash-object -w -t tree /dev/null))&&git update-ref $r $c "$o" 2>/dev/null;do k=$((k+1));[ $k -lt 5 ]||{ echo "[unsent] $r: the tip moved 5 times">&2;exit 1;};done;}
+case $1 in
+send)a $P $2||{ echo "[off-matrix] $P -> $2: not adjacent, nothing sent">&2;exit 1;};b=$(cat);case $b in "[town]"*)echo "[town] is box town's alone: nothing sent">&2;exit 1;;esac;w $2;;
+town)[ "$AGI_POST" = belam ]&&[ "$(id -un)" = agi-belam ]&&[ -n "$AGI_BOX" ]&&[ $# = 3 ]&&case $2 in up|down);;*)false;;esac&&[ ${#3} = 40 ]&&case $3 in *[!0-9a-f]*)false;;esac||{ echo "[town] box town up|down SHA(40 hex), as belam (uid agi-belam) with AGI_BOX set: nothing sent">&2;exit 1;}
+ b="[town] $2 $3";for q in $(git show ${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r --arg x "$AGI_BOX" 'select(has("harness") and .box==$x)|.name');do [ $q = belam ]||w $q;done;;
+read|n)git for-each-ref --format='%(refname)' $m|grep "/$P$"|while read r;do f=${r#$m/};f=${f%/*};h=refs/held/$P/$f;a $f $P&&j=1||j=0
  for c in $(git rev-list --reverse $r --not $(git rev-parse -q --verify $h));do
   git verify-commit --raw $c 2>&1|grep -q "for $f@agi with"||{ echo "[refused] $f $c";break;}
-  [ $1 = n ]&&echo "$f"&&continue;printf '[%s] %s\n' "$f" "$(git log -1 --format=%B $c)";git update-ref $h $c;done;done;;
+  b=$(git log -1 --format=%B $c);case $b in "[town]"*)[ $f = belam ]&&[ "$(printf '%s\n' "$b"|wc -l)" = 1 ]&&printf '%s\n' "$b"|grep -qxE '\[town\] (up|down) [0-9a-f]{40}'||{ echo "[town-dropped] $r $c">&2;[ $1 = n ]||git update-ref $h $c;continue;};;*)[ $j = 1 ]||{ echo "[off-matrix] $f";break;};;esac
+  [ $1 = n ]&&echo "$f"&&continue;printf '[%s] %s\n' "$f" "$b";git update-ref $h $c;done;done;;
 carry)h=$2;shift 2;x=;for p;do git push -q $h "$m/$p/*:$m/$p/*";x="$x ^$m/$p/*";done;git -c transfer.fsckObjects=1 fetch -q $h "$m/*:$m/*" $x;;
 esac
 ~~~
