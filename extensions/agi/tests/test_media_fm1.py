@@ -83,3 +83,10 @@ def test_mutant_one_chapters_fn_removed_is_one(tmp_path, capsys):
 def test_a_file_with_nothing_to_check_is_not_green(tmp_path, capsys):
     rc, mism, unres = _run(_write(tmp_path, "# nothing\n\njust prose\n"), capsys)
     assert rc != 0 and unres >= 1
+
+
+def test_the_m2_script_is_green_for_fm1(capsys):
+    """The script payload obeys the same excerpt / function / caller rules as the outline (stage M2)."""
+    script = Path(REPO) / ".agi/context/media/season3-explainer-script.md"
+    rc, mism, unres = _run(script, capsys)
+    assert (rc, mism, unres) == (0, 0, 0)
