@@ -130,6 +130,11 @@ class Edit:
     # stdin, or a path); `body_patch_diff` holds the bytes once read.
     body_patch_from: str = ""
     body_patch_diff: str = ""
+    # goal:g4.18.5.4 -- `retire` is status: deprecated AND the move to
+    # nodes/deprecated/<type>/, one act (node_writer.retire_node). `set status
+    # deprecated` alone is refused by update_node.
+    retire: bool = False
+    retire_note: str = ""
     # hypothesis:l3-write-partial-diffs-as-writes, build item 1 — `read` is
     # the read half of the line-addressing: fetch a line RANGE of the node
     # body or of the payload, cheaply, instead of loading the whole file.
@@ -211,7 +216,8 @@ class Edit:
                     or self.body_patch_from or self.body_patch_diff
                     or self.read_target or self.read_range
                     or self.replace_target or self.sub_old or self.fm_rows
-                    or self.canonicalize or self.sub_body)   # a body-only node patch (SM 154 round)
+                    or self.canonicalize or self.sub_body    # a body-only node patch (SM 154 round)
+                    or self.retire)
 
 
 # --------------------------------------------------------------------------
@@ -747,8 +753,17 @@ def verb_payload(edit: Edit, source: str) -> Edit:
     return edit
 
 
+def verb_retire(edit: Edit, note: str) -> Edit:
+    """`retire <note>` -- status: deprecated + the move to nodes/deprecated/<type>/, one
+    act, mint id and grid ref kept (goal:g4.18.5.4). The note lands as `deprecated_note`."""
+    edit.retire = True
+    edit.retire_note = note.strip()
+    return edit
+
+
 VERBS = {
     "set": verb_set,
+    "retire": verb_retire,
     "sub": verb_sub,
     "sub!": verb_sub_bang,
     "unset": verb_unset,
@@ -775,7 +790,7 @@ VERBS = {
 #: everything else -- `note some prose here` arrived as three arguments to a
 #: two-argument verb and errored. A fixed split is a parser that assumes every
 #: verb has the same shape.
-ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1,
+ARITY = {"set": 2, "retire": 1, "unset": 1, "link": 1, "thought": 1, "note": 1,
          "sub": 1, "sub!": 1,
          "payload": 1, "payload_text": 1, "patch": 1, "body_patch": 1,
          "read": 2, "replace": 3, "row": 2, "adopt": 0, "canonicalize": 0}
@@ -806,6 +821,7 @@ _VERB_SEP = re.compile(r"\s*(?:&&){2,}\s*|\s*&&\s*(?=(?:%s)(?:\s|$|&&)|$)"
 #: teaches would be refused.
 VERB_EXAMPLES = {
     "set": "set key value",
+    "retire": "retire why this node is retired (status + move to nodes/deprecated/<type>/)",
     "sub": "sub old => new",
     "sub!": "sub! old => new",
     "unset": "unset frontmatter_key",
@@ -2806,10 +2822,15 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
 
     if dry_run:   # every refusal above has run; nothing is written
         return None
-    res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
-                                  unset_fm=edit.unset_fm, body=body,
-                                  log_extra=_log_provenance(actor, root),
-                                  canonicalize=edit.canonicalize)
+    if edit.retire:   # goal:g4.18.5.4: status + move, one act
+        res = node_writer.retire_node(root, edit.node_id, note=edit.retire_note or None,
+                                      set_fm=set_fm, unset_fm=edit.unset_fm, body=body,
+                                      log_extra=_log_provenance(actor, root))
+    else:
+        res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
+                                      unset_fm=edit.unset_fm, body=body,
+                                      log_extra=_log_provenance(actor, root),
+                                      canonicalize=edit.canonicalize)
     if payload_ref and res.status != node_writer.REJECTED:
         # hypothesis:l3-write-payload-unchanged-unlogged — a same-bytes re-log
         # is still a sanction. Hand the owning node's mint_id to
@@ -4502,7 +4523,8 @@ def _commit_write_body(root, node_id: str, res, actor: str = "",
     `uncommitted` True = the caller exits EXIT_UNCOMMITTED. Every printed
     recovery line ADDS the paths first, so it works for a create (untracked)."""
     paths = [str(p if Path(p).is_absolute() else Path(root) / p)
-             for p in (res.path, res.payload_changed and res.payload_path) if p]
+             for p in (res.path, res.payload_changed and res.payload_path,
+                       getattr(res, 'moved_from', None)) if p]   # a retire commits both halves of the move
     git = lambda *a: subprocess.run(["git", "-C", str(root), *a],  # noqa: E731
                                     capture_output=True, text=True)
     if not paths or git("rev-parse", "--is-inside-work-tree").returncode:
