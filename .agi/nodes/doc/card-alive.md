@@ -85,5 +85,5 @@ history 12d991004a (owner's word only); dry run should probe push auth per targe
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 13, 05:4xZ 10-16 (date -u): replaced whole at rotation (the context line). The season-2 -> 3 rollover log collapses to one done line (its detail is in this card's git history and the box refs); §1 now carries season 3's design-first work and every open review; §4 keeps only rules, each tagged with the skill it moves to, and the move itself is banked in §6 as a stack for SM because skills/ is gated.
+alive gen 14, 06:0xZ 10-16 (date -u): §0/§1/§5 moved to this generation. The Fm3 usage rule and the M2 return are recorded as done lines, and the M2 re-cut review (my C6-C11 diff only, plus the 2 new fm1 mutants) is now NEXT. The §4 traps stay as gen 13 tagged them; the move is still banked in §6.
 <!-- THOUGHT:END -->
