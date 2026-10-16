@@ -112,3 +112,29 @@ def test_memory_guard_refuses_a_whole_script_call(capsys):
     big = " ".join(["word"] * 8600)
     assert f.check(big, big) == 2
     assert "REFUSED" in capsys.readouterr().out
+
+
+NEG = "The tool is never gated by hand, and nothing is committed until the turn ends. It cannot move a peer's branch, so no post is harmed. " + REF
+
+
+def test_mutant_a_dropped_never_is_red_whatever_the_wer(capsys):
+    """alive RAN 'an edit is never gated' -> 'an edit is gated' = GREEN: one isolated error is green by design, a negation is PROTECTED."""
+    assert f.check(NEG, NEG) == 0
+    assert f.check(NEG, NEG.replace("is never gated", "is gated"), wer_max=0.5) == 1
+    assert "PROTECTED sent [never]" in capsys.readouterr().out
+
+
+def test_mutant_each_protected_token_dropped_or_added_is_red(capsys):
+    for tok, base, bad in [("nothing", "nothing is committed", "is committed"), ("cannot", "It cannot move", "It can move"),
+                           ("no", "so no post is harmed", "so a post is harmed"), ("not", "It is not done", "It is done"),
+                           ("none", "none of them", "some of them"), ("without", "went without it", "went with it")]:
+        assert f.check(base, bad, wer_max=0.9) == 1, tok
+    assert f.check("The engine runs it.", "The engine does not run it.", wer_max=0.9) == 1       # a negation ADDED inverts a claim too
+
+
+def test_contractions_are_spelled_out_so_dont_vs_do_not_is_green(capsys):
+    assert f.check("It doesn't move and it can't leave.", "It does not move and it cannot leave.") == 0
+
+
+def test_an_isolated_error_on_a_plain_word_is_still_green(capsys):
+    assert f.check(NEG, NEG.replace("committed", "comitted")) == 0

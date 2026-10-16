@@ -6,6 +6,8 @@ normalised (lower case, punctuation gone, a bare integer spelled as its words); 
 shows up in HYP as words REF does not have); the bracketed AUDIO EVENTS a transcriber writes are removed from HYP and listed (`stripped=`).
 The two word lists are aligned (Levenshtein, tie-break: the cheapest path that keeps errors together). A chunk is RED when
   wer         substitutions + deletions + insertions over the REF words is above --wer;
+  protected   ANY error op on a negation (PROTECTED: not no never nothing none nor cannot without; n't contractions are spelled out first, can't ->
+              cannot): one dropped "never" inverts a claim, and an isolated error is green by design, so these are RED regardless of N or WER;
   error_run   a run of >= --run ERROR ops (substitution, deletion, insertion, mixed) in alignment order with no exact match between them,
               except that a run is bridged over up to --bridge single matched words (a common word that happens to match inside a deleted or
               reworded span does not split it). It covers a deleted sentence, a paraphrase, a spoken tag, a repeated line and a truncated tail.
@@ -21,6 +23,7 @@ sys.path.insert(0, __file__.rsplit("/", 1)[0])
 import media_fm2  # noqa: E402
 
 MAX_CELLS = 4_000_000
+PROTECTED = {"not", "no", "never", "nothing", "none", "nor", "cannot", "without"}
 # recorded normalisation: a regex over the joined, normalised words -> the one form both texts get
 NORMALISE = [(r"\ba g i\b", "agi")]
 EVENT = re.compile(r"\[[^\]]*\]|\((?:[A-Za-z ]{1,30})\)")
@@ -35,7 +38,7 @@ def strip_events(text):
 def words(text, drop_tags):
     if drop_tags:
         text = re.sub(r"\[[^\]]*\]", " ", text)
-    text = text.lower().replace("-", " ")
+    text = text.lower().replace("-", " ").replace("can't", "cannot").replace("won't", "will not").replace("n't", " not")
     text = re.sub(r"[^a-z0-9' ]+", " ", text)
     out = []
     for w in text.split():
@@ -112,13 +115,16 @@ def check(ref_text, hyp_text, wer_max=0.10, run_max=3, bridge=1, echo=True, stri
     runs = error_runs(ops, bridge)
     longest = max((len(r) for r in runs), default=0)
     red_runs = [r for r in runs if len(r) >= run_max]
+    prot = [o for o in ops if o[0] != "match" and ((o[1] is not None and ref[o[1]] in PROTECTED) or (o[2] is not None and hyp[o[2]] in PROTECTED))]
     if echo:
-        print(f"ref_words={len(ref)} hyp_words={len(hyp)} wer={wer:.3f} longest_run={longest} error_runs={len(red_runs)} stripped={stripped}")
+        print(f"ref_words={len(ref)} hyp_words={len(hyp)} wer={wer:.3f} longest_run={longest} error_runs={len(red_runs)} protected={len(prot)} stripped={stripped}")
         for r in red_runs:
             rw = " ".join(ref[o[1]] for o in r if o[1] is not None)
             hw = " ".join(hyp[o[2]] for o in r if o[2] is not None)
             print(f"  ERROR_RUN {len(r)} ops: sent [{rw}] heard [{hw}]")
-    return 1 if (wer > wer_max or red_runs) else 0
+        for o in prot:
+            print(f"  PROTECTED sent [{ref[o[1]] if o[1] is not None else ''}] heard [{hyp[o[2]] if o[2] is not None else ''}] ({o[0]})")
+    return 1 if (wer > wer_max or red_runs or prot) else 0
 
 
 if __name__ == "__main__":
