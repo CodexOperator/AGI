@@ -60,9 +60,23 @@ def check(outline, repo):
     text = open(outline, encoding="utf-8").read().split("\n")
     sha = None
     miss, unres, ulive, uwrong, n_ex, n_fn, n_live = [], [], [], [], 0, 0, 0
+    nosha, chap, chap_open, n_chap = [], None, False, 0   # a token with no sha above it; a `## C` chapter and whether it has an fn:
     i = 0
     while i < len(text):
         ln = text[i]
+        m = re.match(r"^## (C\d+)\b", ln)
+        if m:
+            if chap and not chap_open:
+                nosha.append(f"chapter {chap} has no fn: token")
+            chap, chap_open, n_chap = m.group(1), False, n_chap + 1
+        elif re.match(r"^## ", ln):
+            if chap and not chap_open:
+                nosha.append(f"chapter {chap} has no fn: token")
+            chap = None
+        if re.match(r"^fn: *(piece|def|cell):", ln):
+            chap_open = True
+        if re.match(r"^(fn|live|uncalled): ", ln) and not sha:
+            nosha.append(f"{ln.strip()}: no `sha:` line above it (outline line {i + 1})")
         m = re.match(r"^sha: *([0-9a-f]{7,40})\s*$", ln)
         if m:
             sha = m.group(1)
@@ -122,14 +136,21 @@ def check(outline, repo):
             if hits:
                 uwrong.append(f"uncalled: {name} has {len(hits)} caller line(s), first {hits[0][:140]}")
         i += 1
-    print(f"excerpts={n_ex} fn={n_fn} live={n_live}")
+    if chap and not chap_open:
+        nosha.append(f"chapter {chap} has no fn: token")
+    # a green on text it never checked is a failure: nothing to check, or a token that could not be checked
+    if n_ex == 0:
+        nosha.append("no @@excerpt in the file: nothing was checked")
+    if n_fn == 0:
+        nosha.append("no fn: token resolved: nothing was checked")
+    print(f"excerpts={n_ex} fn={n_fn} live={n_live} chapters={n_chap}")
     print(f"mismatches={len(miss)}")
     for x in miss:
         print("  MISMATCH", x)
-    print(f"unresolved={len(unres) + len(ulive) + len(uwrong)}")
-    for x in unres + ulive + uwrong:
+    print(f"unresolved={len(unres) + len(ulive) + len(uwrong) + len(nosha)}")
+    for x in unres + ulive + uwrong + nosha:
         print("  UNRESOLVED", x)
-    return len(miss) + len(unres) + len(ulive) + len(uwrong)
+    return len(miss) + len(unres) + len(ulive) + len(uwrong) + len(nosha)
 
 
 if __name__ == "__main__":

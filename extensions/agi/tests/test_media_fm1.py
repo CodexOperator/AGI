@@ -55,3 +55,31 @@ def test_mutant_a_wrong_caller_is_unresolved(tmp_path, capsys):
 def test_mutant_uncalled_on_a_called_step_is_unresolved(tmp_path, capsys):
     p = _mutant(tmp_path, "uncalled: agi-land", "uncalled: agi-turn")
     assert _run(p, capsys)[1:] == (0, 1)
+
+
+def _write(tmp_path, text):
+    p = tmp_path / "m.md"
+    p.write_text(text)
+    return p
+
+
+def test_mutant_every_sha_header_dropped_is_not_a_green(tmp_path, capsys):
+    """The vacuous pass: with no `sha:` line above them the fn:/live:/uncalled: lines used to be SKIPPED, so the outline printed
+    fn=0 live=0 unresolved=0 and exited 0. Now each such line counts as unresolved."""
+    text = re.sub(r"(?m)^sha: .*\n", "", OUTLINE.read_text())
+    rc, mism, unres = _run(_write(tmp_path, text), capsys)
+    assert rc != 0 and unres >= 1
+
+
+def test_mutant_one_chapters_fn_removed_is_one(tmp_path, capsys):
+    text = OUTLINE.read_text()
+    a = text.index("## C3 ")
+    b = text.index("## C4 ")
+    chap = re.sub(r"(?m)^fn: .*\n", "", text[a:b])
+    rc, mism, unres = _run(_write(tmp_path, text[:a] + chap + text[b:]), capsys)
+    assert (mism, unres) == (0, 1) and rc == 1
+
+
+def test_a_file_with_nothing_to_check_is_not_green(tmp_path, capsys):
+    rc, mism, unres = _run(_write(tmp_path, "# nothing\n\njust prose\n"), capsys)
+    assert rc != 0 and unres >= 1
