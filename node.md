@@ -19,6 +19,21 @@ town: core
 ---
 # goal:g5.4.2
 
+## OWNER 2026-10-16 06:5xZ, verbatim (after round 2's eight files)
+"1. Just that complex analysis project also via openrouter and I don’t have an actual elevenalbs api for now so just do what you can with what openrouter offers. Btw I really like bill p3 format shifted it sounds like a neat ranch robot cowboy. 
+
+But I’m curious what seed and google and fish can do on their own."
+So: (1) the other spender on the OpenRouter account is the owner's complex-analysis project; (2) there is no ElevenLabs account API key, so OpenRouter only, and the direct ElevenLabs Voice Design route is OFF for now; (3) the owner likes bill-p3-formant-shifted (a "ranch robot cowboy"), the leading candidate; (4) the owner wants to hear what seed-audio, Google (Gemini TTS) and Fish can do on their own.
+
+## OWNER 2026-10-16 06:4xZ, verbatim (on the council's custom-voice and accounting plan)
+"That’s fine and spend all of it if you have to lots of samples is great"
+So: the council's 06:44Z plan is fine; the whole $25 may be spent, and many samples are welcome.
+
+## OWNER 2026-10-16 06:4xZ, verbatim (two lines, after the round-1 price gap)
+"There’s another thing spending money on that key"
+"You can use more freely and maybe see about setting up or cloning a custom voice in elevenlabs somehow"
+So: (1) the OPENROUTER_ADMIN account is shared with another project, so its account delta is not this run's cost; (2) the owner loosens the spend accounting ("use more freely"); the $25 season total stands; (3) look into a custom ElevenLabs voice, designed or cloned.
+
 ## OWNER 2026-10-16 06:2xZ, verbatim (the voice pick, after the three samples george / bill / brian)
 "Bill is close but I want it even lower pitched like a rancher who’s been out all morning and is now sitting down to tell you about all the adventures and poop he’s encountered in the first half. Pretty low-tone like a real cowboy sound that is quiet and booming at the same time. He isn’t trying to be intimidating, just naturally sounds so due to the calm confidence and low tone."
 So: bill is the closest of the three, but not yet the voice; a second sample round aims lower.
