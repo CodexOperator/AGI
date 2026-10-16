@@ -19,43 +19,35 @@ town: core
 ---
 # doc:card-director-thought-1
 
-director-thought-1 · v5 post · Sonnet 5.5 high · director under thought-master-new (TM-new) · town local-maxxing · goal:g7.16.1 council loop · tree <home>/t · branch posts/director-thought-1 (LOCAL-ONLY, never push) · rotating out 10-01 ~19:0xZ at belam's [red] (the v5 meter reads only the transcript's last line, a system entry with no usage, so it read 0 at ~0.46)
+director-thought-1 · v5 post · Sonnet 5.5 high · director under thought-master (TM) · town local-maxxing · goal:g7.16.1 council loop · tree <home>/t · branch posts/director-thought-1 (LOCAL-ONLY, never push) · box encryption-town (E) · PAUSED 10-16 12:0xZ (owner via TM: out of usage; crons and keepalive off too): idle, start nothing; nothing queued, periodicity side track PAUSED (goal:g5.28 horizon); trunk is core/season3/main since 10-15 08:08Z (this post restarted on it)
 
 ## §0 State
 ```
-skills  agi-memory-guard (box reads) · agi-node-write (old setup: plain Write/Edit) · agi-send (mail is BOX ONLY now)
-order   g5.28 PAIR-LOSS from thought-master 10-10 (belam GO 08:3xZ): DONE, returned by box [complete]. Nothing running, nothing assigned: WAIT for thought-master
-comms   BOX ONLY (owner 04:5xZ 10-09): read `AGI_POST=director-thought-1 box read`; send `printf '%s\n' '[tag] ...' | AGI_POST=director-thought-1 box send <post>`. NO send.py, NO inbox *.md writes, NO SendMessage. A silent `box send` printed nothing each time (no delivery receipt). Keepalive prompts: reply `ok`, nothing else
-box     encryption-town (E): NO /data/ml, no torch in the system python
+skills  agi-send (mail is BOX ONLY) · agi-memory-guard (box gate before a heavy lane) · agi-node-write (old setup: plain Write/Edit) · agi-verify
+order   NONE held. Last: g5.28 PAIR-LOSS (thought-master 10-10, belam GO 08:3xZ) DONE and returned by box [complete]. Standing: the 04:2xZ idle order is lifted (TM relay 05:0xZ 10-12); the reboot wiped /tmp scratch and /run/agi-<post> (~/scratch/torch-cpu survived, checked)
+comms   BOX ONLY: read `AGI_POST=director-thought-1 box read`; send `printf '%s\n' '[tag] ...' | AGI_POST=director-thought-1 box send <post>` (prints nothing, no receipt). NEVER box belam (owner 10-11 20:2xZ): anything for belam goes to thought-master, who folds it into the one ~4 h digest; only a [red] or a blocking owner ask goes at once. No [ack]/[thanks]/[landed] upward. A keepalive prompt: reply `ok`, nothing else
 ```
 
 ## §1 Plan
 ```
-DONE   experiment:dt1-neuron-period-pairloss-1010 DISPROVED: T={seed0 k=34, seed1 k=3}; k=34 has 3/3 partners that beat the null (best g=45 1.133 vs 0.069), seed 1 k=3 has 0/3 (inert); seed 2 k=17 (unscored) 3/3. Commits: pre-run 7f82854951, results e670e9c8b6, node ec913021fe (grid v1 by path)
-NEXT   nothing assigned
+DONE   experiment:dt1-neuron-period-pairloss-1010 DISPROVED: T={seed0 k=34, seed1 k=3}; k=34 has 3/3 partners beating the null (best g=45 1.133 vs 0.069); seed 1 k=3 has 0/3 (inert, dCE 1.8e-8); seed 2 k=17 (unscored) 3/3. Pre-run 7f82854951, results e670e9c8b6, node ec913021fe
+NEXT   nothing assigned: on resume `box read`, do nothing without an order
 BLOCK  none
 ```
 
 ## 🔴 Where it stops
 ```
-Tree clean after the card commit. Successor: read this card, `box read`, do nothing without an order. On any order: merge posts/thought-master first (git merge <sha the order names>).
-run torch things on E:  cd <tree>; (ulimit -v 4000000; OMP_NUM_THREADS=1 PYTHONPATH=$HOME/scratch/torch-cpu/pylib python3 -m pytest <file> -q -p no:cacheprovider --basetemp <scratchpad>/bt)
-  torch 2.14.0+cpu in ~/scratch/torch-cpu/pylib (belam GO 09:2xZ 10-10; wheel sha256 a09987c9...0bc260 is in the node); system numpy 1.26.4 + pytest 7.4.4 stay the system's
+Tree clean, on posts/director-thought-1 (HEAD came up detached at the branch tip again after the 10-12 reboot (switched back); check `git status -sb` before any commit). No process of mine is running.
+Cold resume: 1) git status -sb  2) AGI_POST=director-thought-1 box read  3) on an order, `git merge <sha the order names>` (posts/thought-master) BEFORE any edit.
+Torch on E (none in the system python): cd <tree>; (ulimit -v 4000000; OMP_NUM_THREADS=1 PYTHONPATH=$HOME/scratch/torch-cpu/pylib python3 -m pytest <file> -q -p no:cacheprovider --basetemp <scratchpad>/bt)
+  torch 2.14.0+cpu in ~/scratch/torch-cpu/pylib (belam GO 09:2xZ 10-10; wheel sha256 a09987c9...0bc260 is in the node); system numpy 1.26.4 + pytest 7.4.4 stay the system's. ~/scratch is in my home, not /tmp
 ```
 
-## §4 Traps (hit this generation)
+## §4 Traps (this generation)
 ```
-void-guard  a void rule must test exactly what the pre-registration names (4 families), never everything the pipeline finds (k=2 has 13 neurons)
-wall-cap    start the cap AFTER the box wait (t0 before it burned the cap on a 31 min wait)
-paths       paths.get() anchors at a stale box.root; get_local (tracked data lives in my own tree, sha-checked)
-find /      never: a box-wide find blocked the shared box
-ceiling     count non-blank non-comment lines (the PC node convention); a draft over 2x the ceiling is restructured, an overshoot is disclosed
-fence       the context suite refuses torch.load by construction: a declared dir does NOT help (Unpickler.load carries no path); tests build + declare their OWN safetensors checkpoint
-strip       suite_guards.agi_env_stripped removes every AGI_* var before a test body: a child-process guard must be VERIFY_-prefixed
-recursion   subprocess timeout kills only the DIRECT child; a recursing test needs start_new_session + os.killpg; a mutation test of it leaves a chain: kill my own pytest procs in a SEPARATE call (orphans hold the tool's pipe)
-heredoc     an unquoted shell heredoc eats backticks; write multi-line node text with the Write tool, then replace body L:END (a range over the last section must carry its THOUGHT block whole)
-unsigned    dispatch/[rule]/[decision] mail shows UNSIGNED on v5; acted on as master mail, said so on the node
-no write.py VERIFIED belam [rule] 23:49Z (row engine.v 4): READ with plain Read/cat/grep/git (+ `sect <piece>`); WRITE node files with Write/Edit/bash in ~/t; agi-turn signs the ONE commit per turn; grid-version by path `grid.py commit <path>`, NEVER --all. send.py read dies on the inbox read-marker (PermissionError, /data/work/agi/.agi/sessions/inbox): the mail still prints
+box E     no /data/ml, so no torch, no osc_test_pythonpath: any osc run needs the private pylib above; pip into a shared env is forbidden, a download needs a GO
+detached  a checkout by the engine can leave HEAD detached at the branch tip: `git switch posts/director-thought-1` before committing, or the commit misses the branch
+links.py  `links.py links` runs past the tool's 120 s foreground limit; start it in the background and read the output file
 ```
 
 ## §6 BANKED
