@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11:55Z 10-16) -- gen 15 (seated 08:09Z), encryption-town, AGI_TRUNK=core/season3/main
+## §0 State (12:06Z 10-16) -- gen 15 (seated 08:09Z), encryption-town, AGI_TRUNK=core/season3/main
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town |
@@ -49,6 +49,9 @@ done   S2 -> S3 rollover; season-3 designs placed (.44.8 -> DG2, g5.4.1 -> DG4, 
        WALK GO (SM 08:16Z), council 3/3 agree 08:17Z (residues R1 429-as-5xx, R2 calendar.timegm). ENDED CLEAN 09:07:48Z:
          18/18 chapters (36 files), C15 flag = FALSE RED (scribe wrote '47%', checker strips '%') -> 3/3 [decision] 09:11Z:
          DG3 README line, normalise '%' at next media_fidelity edit. Keys disabled 09:09:33Z ($0.2035 + $0.0330).
+       12:06Z: g12.3 3882925f10 APPROVED 3/3 (calls agree; binding: helper idempotent before S4 rollover; record the 100 s s1 drop).
+         M5 page DONE (a1 mutant was mine, dropped; README :72 stale -> fix). M6 APPROVED instrumental, key \$0.65, guard list in code + node test.
+       11:57Z M5 design APPROVED 3/3 (audio on Drive layout, number check prose-only, C15 generic rule on the kept take).
        11:54Z g5.4.2 NEXT 3/3 (+ [correction] 11:55Z): OPEN, design first: 0 C12 residue = DONE (fe1f7ec30a on dg3-media-r2)
          -> M5 HTML (C15 checker re-run inside) -> M6 <= 3 Lyria samples, owner picks -> M4 last, memory-gated, pilot C2.
          Walk edits ride with the next walk. L29 7965c4fe8c landed (tree = merge-tree, checked).
@@ -61,7 +64,7 @@ done   S2 -> S3 rollover; season-3 designs placed (.44.8 -> DG2, g5.4.1 -> DG4, 
          systemctl fail-open).
        .44.8 S1 36d988dfc1 RETURNED 3/3 07:56Z: 7 fixes (activating units, silent ack skip, crons foreign blocks,
          status runs refusals, root git preflight, stale town.state + watch cross-check, dotted-token secret guard).
-NEXT   [review] each gated tip as SM sends it: .44.8 S2a re-cut (host.done), DG3's M5/M6/M4 [design]s, g12.3, g5.4.1 S1, .42.2 re-cut, .31.1, captive fix
+NEXT   [review] each gated tip as SM sends it: .44.8 S2a re-cut (host.done), DG3's M4 [design], M6 samples result, g5.4.1 S1, .42.2 re-cut, .31.1, captive fix
        · g5.4.2: M4 (animated) / M5 (HTML) / M6 (music) wait for the council's word; settle reads (r2 >= 09:44Z, G 10:39Z, S 10:43Z, P1 10:59Z, P2 11:03Z); the owner's overrule on waking
        · .44.8 S2: S5's posts.md pubkey commit gated; S9 waits w/ timeout; start MOVES town.state aside (binding)
        · at each PASS close: read back core/main == season3/main (P2')
@@ -74,11 +77,12 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-Idle at 11:55Z 10-16: g5.4.2 NEXT decision (11:54:33Z) + its [correction] sent to SM; nothing half-sent.
+Idle at 12:06Z 10-16: g12.3 APPROVE + M6 APPROVE (12:06:12Z) sent to SM; nothing half-sent.
 Next command: `date -u; box read`, then the §1 NEXT list. Owner asleep: review only what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15: I wrote "cannot tell", the .txt said 47%) [-> agi-verify]
+- a mutant I PREDICT (a1 still RED) -> label it a prediction; DG3 measured it GREEN (M5) [-> agi-verify]
 - a message's own time stamp -> take it from `date -u` at send, never an estimate (sent 09:11Z stamped 09:13Z) [-> agi-send]
 
 ## §5 Verification
