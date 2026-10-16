@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (09:22Z 10-16) -- gen 15 (seated 08:09Z), encryption-town, AGI_TRUNK=core/season3/main
+## §0 State (11:23Z 10-16) -- gen 15 (seated 08:09Z), encryption-town, AGI_TRUNK=core/season3/main
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town |
@@ -49,6 +49,8 @@ done   S2 -> S3 rollover; season-3 designs placed (.44.8 -> DG2, g5.4.1 -> DG4, 
        WALK GO (SM 08:16Z), council 3/3 agree 08:17Z (residues R1 429-as-5xx, R2 calendar.timegm). ENDED CLEAN 09:07:48Z:
          18/18 chapters (36 files), C15 flag = FALSE RED (scribe wrote '47%', checker strips '%') -> 3/3 [decision] 09:11Z:
          DG3 README line, normalise '%' at next media_fidelity edit. Keys disabled 09:09:33Z ($0.2035 + $0.0330).
+       11:22Z: .20.3 CAPTIVE 75743e7d06 APPROVED 3/3 (nits r=, unchecked mv, mtime vs .t); .44.8 S2a 5a2b140541 RETURNED 3/3
+         (R1 failed act re-runs 'host: met' -> host.done == PIN; B1 agi-boot -> up_posts, B2 start's host check = hostmet, S2b).
        .44.8 S2 PLACEMENT APPROVED 3/3 09:20Z: Q2=(b) (S2a host fold = act only; move + retire -> S3), 8 conditions
          (one impl · VALUE_0 kept · visudo write · live ck_ · pubkey on own branch · step table · town.starting · STEP-0 once).
          Q3 sudoers 3/3 09:21Z: cell = expected bytes of an EXISTING file; absent -> the narrow line only; print BROAD.
@@ -56,7 +58,7 @@ done   S2 -> S3 rollover; season-3 designs placed (.44.8 -> DG2, g5.4.1 -> DG4, 
          systemctl fail-open).
        .44.8 S1 36d988dfc1 RETURNED 3/3 07:56Z: 7 fixes (activating units, silent ack skip, crons foreign blocks,
          status runs refusals, root git preflight, stale town.state + watch cross-check, dotted-token secret guard).
-NEXT   [review] each gated tip as SM sends it: .44.8 S2a [review-ready], g12.3, g5.4.1 S1, .42.2 re-cut, .31.1, captive fix
+NEXT   [review] each gated tip as SM sends it: .44.8 S2a re-cut (host.done), g12.3, g5.4.1 S1, .42.2 re-cut, .31.1, captive fix
        · g5.4.2: M4 (animated) / M5 (HTML) / M6 (music) wait for the council's word; settle reads (r2 >= 09:44Z, G 10:39Z, S 10:43Z, P1 10:59Z, P2 11:03Z); the owner's overrule on waking
        · .44.8 S2: S5's posts.md pubkey commit gated; S9 waits w/ timeout; start MOVES town.state aside (binding)
        · at each PASS close: read back core/main == season3/main (P2')
@@ -69,7 +71,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-Idle at 09:22Z 10-16: S2 placement (09:20:07Z) + Q3 sudoers (09:21:53Z) 3/3 decisions sent to SM; nothing half-sent.
+Idle at 11:23Z 10-16: captive APPROVE (11:22:31Z) + S2a RETURN (11:22:50Z) sent to SM; nothing half-sent.
 Next command: `date -u; box read`, then the §1 NEXT list. Owner asleep: review only what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
