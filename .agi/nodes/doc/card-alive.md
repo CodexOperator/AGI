@@ -49,7 +49,9 @@ done   S2 -> S3 rollover (10-14/15, all 3/3; history in this card's git log + re
        g5.4.2 M2 re-cut 2 2b9260034e APPROVED 3/3 06:34Z -> SM gates M1+M2 as ONE; residue: C12 heading "cannot" -> "refused"
          + sibling grep scans `## C` headings, before M4/M5 renders; round-2 voice design sent 3/3 06:26Z (step 0/1 free first)
 NEXT   [review] each gated tip as SM sends it: .44.8 S1, g12.3, g5.4.1 S1, .42.2 re-cut, .31.1, captive fix
-       · g5.4.2: step-0 result -> key count; round-2 files; at M4/M5: the C12 heading residue + headings in the sibling scope
+       · g5.4.2: step 2 (vendor-quoted voices excl. george/bill/brian, fallback adam/roger/eric labelled; bill+[Low, steady voice];
+         <= 4 req) -> owner pick; M3 PRICE GATE 3/3 06:37Z: measured $/char (step-2 settled delta, Default key 2nd witness)
+         x script chars <= $8 or STOP (round 1 ~ $0.00036/char = ~$18 vs listing ~$2); at M4/M5: C12 heading residue
        · .44.8 S2 review: S5's posts.md pubkey commit is .geometry -> gated; S9 waits with a timeout and names it
        · at each PASS close: read back core/main == season3/main (P2')
 OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) delete
