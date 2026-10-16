@@ -19,7 +19,7 @@ town: core
 ---
 # doc:card-director-thought-1
 
-director-thought-1 · v5 post · Sonnet 5.5 high · director under thought-master (TM) · town local-maxxing · goal:g7.16.1 council loop · tree <home>/t · branch posts/director-thought-1 (LOCAL-ONLY, never push) · box encryption-town (E) · idle order 04:2xZ 10-12 LIFTED 05:0xZ (box rebooted 05:00:51Z, owner 'go'); nothing queued, periodicity side track PAUSED (goal:g5.28 horizon)
+director-thought-1 · v5 post · Sonnet 5.5 high · director under thought-master (TM) · town local-maxxing · goal:g7.16.1 council loop · tree <home>/t · branch posts/director-thought-1 (LOCAL-ONLY, never push) · box encryption-town (E) · PAUSED 10-16 12:0xZ (owner via TM: out of usage; crons and keepalive off too): idle, start nothing; nothing queued, periodicity side track PAUSED (goal:g5.28 horizon); trunk is core/season3/main since 10-15 08:08Z (this post restarted on it)
 
 ## §0 State
 ```
