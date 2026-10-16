@@ -75,7 +75,7 @@ pair C1.8: The map lists the sect piece's size. => 6432bf88d5:.agi/nodes/.geomet
 
 ### narration
 
-Our first stop is among the smallest working tools in the engine, and it is called sect. [C1.8] It is only {{bytes:sect}} bytes long. [C1.8] You could write it on the back of a feed-store receipt. [image] And yet this tiny tool does a great deal of the engine's work. [image]
+Our first stop is among the smallest working tools in the engine, and it is called sect. [C1.8] It is only {{bytes:sect}} bytes long. [C1.8] You could write it on the back of a feed-store receipt. [image] And yet a small thing is a fine place to begin. [image]
 
 Here is the job. [image] Some of the engine does not live in a pile of source files the way you might expect. [C1.5] It lives inside markdown nodes, in fenced blocks, each block under a heading with the tool's name. [C1.5,C1.3] A tool called sect reads those nodes and prints just a single block. [C1.1,C1.4] Give it a name, and it hands back that piece, exactly as written, at whatever revision of the repository you like. [C1.5,C1.7]
 
@@ -184,7 +184,7 @@ A node is nothing grander than a markdown file. [C3.8] It begins with a block of
 
 Look at the first lines. [image] There is an id, which is the node's address, the name other nodes use when they refer to it. [C3.1] Right under it is a mint id, a long string of letters and digits that is handed out once and never changes. [C3.1,C3.10] I want you to remember that difference, because it saves a great deal of confusion. [image] The address may be renumbered, if the family of goals is reorganized. [C3.9] The mint id is permanent. [C3.10] It is the node's birth certificate, and the history of the node is filed under it. [C3.10]
 
-Now the line that matters most for tonight: the parents. [image] A list of addresses, here with just a single entry, the goal above this node. [C3.2] That list is how the engine's map counts the graph's edges. [C3.3] The field called next edges sits just above it, present and empty, and the map's own picture counts the parents as the edges. [C3.4,C3.3] A node says who its parents are, and from all those sayings the graph assembles itself. [C3.3] If you remove a parent from the list, you have cut an edge. [C3.3]
+Now the line that matters most for tonight: the parents. [image] A list of addresses, here with just a single entry, the goal above this node. [C3.2] That list is how the engine's map counts the graph's edges. [C3.3] The field called next edges sits just below it, present and empty, and the map's own picture counts the parents as the edges. [C3.4,C3.3] A node says who its parents are, and from all those sayings the graph assembles itself. [C3.3] If you remove a parent from the list, you have cut an edge. [C3.3]
 
 And here is the line we are going to carry on our journey. [image] It is the status line. [image] A few bytes: the word status, a colon, and a single word after it. [C3.5] A leaf that is finished says so here. [C3.5] It is a small thing, a mere handful of characters, and I chose it for that very reason. [image] When you have followed a handful of bytes all the way to the trunk, you have followed anything. [image]
 
@@ -249,7 +249,7 @@ Now the lines that make me feel the machine is looking after its own. [image] Th
 
 The unit lives in the memory slice that the whole population shares, and it has a soft ceiling: it may use a good deal, but once it passes {{val:6432bf88d5:.agi/nodes/.geometry/engine-root.md:L52:MemoryHigh=(\d+)G}} gigabytes the kernel begins to press on it. [C4.4,C4.7]
 
-And who writes this unit, you may ask? [image] A piece called agi project, which we met on the map, the genome. [C4.5] It reads the rows of a file that lists the posts, a row for each post, with its name, its parent, its harness, its model. [C4.5] For every row that says the post is of the current kind, it writes a user, a unit, and the little configuration the unit needs. [C4.5,C4.10] So a post exists because a row in the graph says it should, and the engine unlinks it when the row is dropped. [C4.5,C4.11] Nobody has to remember to start it or stop it by hand. [image]
+And who writes this unit, you may ask? [image] A piece called agi project, which we met on the map, the genome. [C4.5] It reads the rows of a file that lists the posts, a row for each post, with its name, its parent, its harness, its model. [C4.5] For every row that says the post is of the current kind, it writes a user, a unit, and the little configuration the unit needs. [C4.5,C4.10] So a post exists because a row in the graph says it should, and the engine unlinks it when the row is dropped. [C4.5,C4.11] If it ends, the unit starts it again. [C4.3]
 
 That is the body: a wall, a nucleus, a branch of its own, and a promise to restart. [image] In the next chapter we wake it up. [image]
 
@@ -361,7 +361,7 @@ pair C6.13: The older node writer is the old setup's path, and its skill says so
 
 Our post is awake and has a job: change a line of a node. [image] Now, it could go and fetch the whole graph, but that would be like moving the entire library to a desk just to correct a single misspelled word. [image] Instead, it uses a tool called agi wt, and what the tool does is lift a single organelle out of the cell and set it in a dish of its own. [C6.7]
 
-Let us read how. [image] The command is called with the word pull and the node's address. [C6.7] The tool first makes sure it knows who the post is, and it works out where the dishes live: a directory in memory, called the working directory, which the unit gave the post. [C6.8,C6.9] Then comes the search. [image] It asks git to grep the post's own branch for a file whose id line, or whose mint id line, is exactly the address given, and it takes the first hit. [C6.1] The branch it searches is posts slash the post's own name, unless you ask for another revision. [C6.10] That is worth stating plainly. [image] A post pulls from its own branch, not from the trunk. [C6.10] Later we will watch how the trunk's news reaches the branch. [image]
+Let us read how. [image] The command is called with the word pull and the node's address. [C6.7] The tool first makes sure it knows who the post is, and it works out where the dishes live: a directory in memory, called wt, which the unit gave the post. [C6.8,C6.9] Then comes the search. [image] It asks git to grep the post's own branch for a file whose id line, or whose mint id line, is exactly the address given, and it takes the first hit. [C6.1] The branch it searches is posts slash the post's own name, unless you ask for another revision. [C6.10] That is worth stating plainly. [image] A post pulls from its own branch, not from the trunk. [C6.10] Later we will watch how the trunk's news reaches the branch. [image]
 
 Having found the file, the tool reads its mint id, and it names the dish after it. [C6.2] That is the permanent birth certificate again, doing honest work. [image] So the dish for our example node is named by a long string of letters and digits, and it will be the same string every time, however the node's address may be rearranged. [C6.2]
 
@@ -409,16 +409,17 @@ pair C7.9: A reference is moved by agi-turn's update-ref. => 6432bf88d5:.agi/nod
 pair C7.10: The turn adds exactly the paths on the tag. => 6432bf88d5:.agi/nodes/.geometry/engine-post.md:L140-L140 ~ --pathspec-from-file=$d.p
 pair C7.11: The base commit is written to the dot-b receipt at the pull. => 6432bf88d5:.agi/nodes/.geometry/engine-post.md:L189-L189 ~ git rev-parse $r>$d/.b
 pair C7.12: The turn compares the tag's paths between the receipt and the tip. => 6432bf88d5:.agi/nodes/.geometry/engine-post.md:L141-L142 ~ git diff --quiet $(cat $d.b) $t
+pair C7.13: The dish is made under the runtime directory's wt directory. => 6432bf88d5:.agi/nodes/.geometry/engine-post.md:L183-L184 ~ RUNTIME_DIRECTORY/wt
 
 ### narration
 
-Now the edit itself. [image] I want to be careful, because this is the moment where it would be easy to imagine a great deal going on, and in truth, nothing is going on at all. [image]
+Now the edit itself. [image] I want to be careful, because this is the moment where it would be easy to imagine a great deal going on, and in truth, nothing is committed at all. [C7.8]
 
 The post has a tool for changing files, which is an ordinary text editing tool of the harness. [image] It points that tool at the file in the dish, the node's path under the directory named for the mint id, and it replaces a few characters. [C7.6,C7.7] The line we chose is the status line. [C7.1] A closed leaf says complete. [C7.1] In our telling, the line said something else before the leaf was closed, and the post changes that word. [image] That is all. [image] A word of a few letters, swapped for another. [image]
 
-And here is what I would have you notice. [image] No commit is made. [C7.8] No signature is written. [C7.8] No reference moves. [C7.9] The engine does not know, yet, that the file changed. [C7.8,C7.9] The dish sits in memory, and a few bytes in it differ from the receipt. [C7.6] If the machine were to lose power this instant, the edit would vanish, and the history would show that nothing had ever happened. [C7.6]
+And here is what I would have you notice. [image] No commit is made. [C7.8] No signature is written. [C7.8] No reference moves. [C7.9] The engine does not know, yet, that the file changed. [C7.8,C7.9] The dish sits in memory, under the runtime directory's wt directory, and a few bytes in it differ from the receipt. [C7.6,C7.13] If the machine were to lose power this instant, the edit would vanish, and the history would show that nothing had ever happened. [C7.6,C7.13]
 
-But the engine has been set up so that the room is never forgotten. [image] Remember the luggage tag. [image] It is the list of exactly which files may travel. [C7.10] And remember the receipt, which says which commit this dish was lifted from. [C7.11] When the turn ends, the engine will use the tag to decide what to take, and the receipt to decide whether the world moved in the meantime. [C7.10,C7.12]
+But the engine keeps a pair of small notes about the dish. [C7.10,C7.11] Remember the luggage tag. [image] It is the list of exactly which files may travel. [C7.10] And remember the receipt, which says which commit this dish was lifted from. [C7.11] When the turn ends, the engine will use the tag to decide what to take, and the receipt to decide whether the world moved in the meantime. [C7.10,C7.12]
 
 There is a second guard, and it is rather elegant. [image] A directory in the working area is only treated as a tree if it has a tag in it. [C7.2] If a post makes some other folder there, for scratch, the turn walks right past it. [C7.2] And when a post is finished with a tree and asks to drop it, the drop does not simply delete. [C7.5] It runs the turn routine first, to be sure everything is committed, and only if that succeeds does it check once more that the dish is clean against its commit, and then remove it. [C7.4,C7.5] A tree is purged only once its work is proven safe. [C7.4,C7.5] Otherwise the dish stays in place, and the post is told by name that it was kept. [C7.3]
 
@@ -455,7 +456,7 @@ pair C8.9: If the new tree equals the tip's tree, nothing changed and the loop m
 
 The model finishes its answer. [image] The turn ends. [image] And the harness, which has been told what to do at such a moment, runs a command. [C8.1] The settings file we read earlier has a line for it: when a turn stops, run a tool called agi turn. [C8.1] This is the hinge of the whole story, so I will go slowly. [image]
 
-First, the tool sets itself up. [image] It moves into the post's tree, works out the name of the branch, and makes up the name of a temporary file. [C8.4] Then it exports a variable that tells git, use this file as your index. [C8.2] That line matters, and I want you to see why. [image] The index is the place where git stages what is about to be committed. [image] If a pair of things shared the real index, either could stage something and the other could commit it by accident. [image] By pointing git at a throwaway index for the duration of this run, the tool guarantees that nothing another process has staged can ride along. [C8.2] When the tool finishes, the temporary file is deleted. [C8.5] The real index moves only later, when the read view is re-attached to the branch tip. [C8.3]
+First, the tool sets itself up. [image] It moves into the post's tree, works out the name of the branch, and makes up the name of a temporary file. [C8.4] Then it exports a variable that tells git, use this file as your index. [C8.2] That line matters, and I want you to see why. [image] The index is the place where git stages what is about to be committed. [image] If a pair of things shared the real index, either could stage something and the other could commit it by accident. [image] By pointing git at a throwaway index for the duration of this run, the tool guarantees that nothing another process has staged can ride along. [C8.2] When the tool finishes, the temporary file is deleted. [C8.5] The real index moves only later, when the read view is set again at the branch tip, detached. [C8.3]
 
 Then the loop. [image] The tool looks at every directory in the memory working area. [C8.6] Any directory without a luggage tag is skipped. [C8.6] For each dish that has a tag, it does a few things in a row. [image]
 
@@ -630,7 +631,7 @@ The last question is the hard question: have we diverged? [image] Then the tool 
 
 And if the status says conflict, the tool changes nothing. [C11.7] It does not leave the branch in a half-merged state. [C11.7] It writes a bracketed line, trunk conflict, with the number of paths and the first few names, to the post's notice file, so that the next turn the post sees it. [C11.7] And it mails the nearest ancestor that actually has a harness, skipping the groups that are only labels, and stopping short of the Prime. [C11.10,C11.9] It mails once per episode of conflict, not once per turn, by remembering a hash of the set of conflicting paths. [C11.10]
 
-So our status word now lies in a signed commit, on a branch that has absorbed the trunk, with no conflicts. [C11.2,C11.6] Remarkable how much care sits behind a word of a few letters. [image] But the care is the point, and now we turn to the guards that make the safe road the only road. [image]
+So our status word now lies in a signed commit, on a branch that has absorbed the trunk, with no conflicts. [C11.2,C11.6] Remarkable how much care sits behind a word of a few letters. [image] But the care is the point, and now we turn to the guards that keep the safe road the easy road, and make a wrong turn loud. [image]
 
 ### html
 
@@ -689,7 +690,7 @@ What does it forbid? [image] Let me say it the way a neighbor would. [image] A p
 
 I like a pair of small things about this hook. [image] First, it is honest about its limits. [image] If it cannot work out who is asking, or the input is not in the shape it expects, it does not guess and it does not block the world. [C12.4] It fails open, which is to say it lets the update through, but it leaves a dated notice in the post's own channel, so the failure is visible. [C12.4] A guard that locks everybody out because it is confused is worse than no guard. [image] Second, it does not restrain the Prime's post, which by the household's design may move any reference. [C12.7] The guard stops accidents among the workers. [C12.8]
 
-The second fence is smaller. [image] It is called pre commit. [C12.5] Remember that the tree named t is a read view, detached from any branch. [C12.9] If a post, by habit, ran a plain commit there, the commit would land on no branch at all. [C12.9] The next turn, when the tool re-attaches the view to the branch tip, that stray commit would be stranded, nearly invisible, hanging by a thread. [C12.9] So this hook looks at where the commit is being made. [C12.5] If it is in the post's read view with a detached head, it prints a bracketed word, detached, and the instruction: commit through agi at, and it refuses. [C12.5] Any other worktree, any attached head, and any commit with the no verify flag, are left alone. [C12.9]
+The second fence is smaller. [image] It is called pre commit. [C12.5] Remember that the tree named t is a read view, detached from any branch. [C12.9] If a post, by habit, ran a plain commit there, the commit would land on no branch at all. [C12.9] The next turn, when the tool sets the view again at the branch tip, detached, that stray commit would be stranded, nearly invisible, hanging by a thread. [C12.9] So this hook looks at where the commit is being made. [C12.5] If it is in the post's read view with a detached head, it prints a bracketed word, detached, and the instruction: commit through agi at, and it refuses. [C12.5] Any other worktree, any attached head, and any commit with the no verify flag, are left alone. [C12.9]
 
 And agi at is the answer the hook gives. [C12.12] It is the hand tool, the sibling of the turn. [C12.12] It makes the same kind of commit: it reads the tip, builds a throwaway index, adds the paths you name, checks any new nodes against the growth gate, makes a signed commit with commit tree, and moves the branch with compare and swap. [C12.12,C12.10] If the swap loses, it says raced and your edit stays where it is. [C12.11]
 
@@ -756,7 +757,7 @@ So the post's branch is complete and sound. [image] But a post's branch is not t
 
 The built half is a root tool called agi land. [C13.14] Let me read what it would do. [image] It takes a sender, a post, and a commit. [C13.15] It insists that the sender be the post's parent in the tree of posts, or that the post be a parent-owner landing itself. [C13.5] It insists on a fast forward: the commit must descend from the trunk's current tip, or the tool prints refused, not ff. [C13.6] Then it walks every commit in the range and asks git to verify the signature against the ledger of allowed keys; the signer must be the sender or a post under the landing post, or the tool prints refused, signed by nobody, and stops. [C13.7] It runs the growth gate over the range, and a gate I have not yet named called agi gate, which refuses a tip whose body would not regrow. [C13.8] And only then does it move the trunk, with the compare and swap we have admired several times already. [C13.9]
 
-That is a handsome piece of work. [image] And now the honest part. [image] At this revision, nothing in the repository's cells or engine code, nor in the host's tool directories, calls it. [C13.14] I looked. [image] The way masters actually land a director's work today is the procedure described in a skill named for the master's gate: a merge tree and a commit tree, which build the landing in memory and never stage a merge in the working tree, followed by the gates and the suites. [C13.16] The tool is the engine's design for the climb. [image] The skill is the hand that does it now. [image] I will not tell you the engine lands a branch by itself, because it does not. [C13.14]
+That is a handsome piece of work. [image] And now the honest part. [image] At this revision, nothing in the repository's cells or engine code, nor in the host's tool directories, calls it. [C13.14] I looked. [image] The way masters actually land a director's work today is the procedure described in a skill named for the master's gate: a merge tree and a commit tree, which build the landing in memory and never stage a merge in the working tree, followed by the gates and the suites. [C13.16] The tool is the engine's design for the climb. [C13.14] The skill is the hand that does it now. [C13.16] I will not tell you the engine lands a branch by itself, because it does not. [C13.14]
 
 ### html
 
@@ -917,7 +918,7 @@ So it has a few little pieces. [image] The first is called project, and it runs 
 
 Do notice the modesty of the thing. [image] It starts only its own unit. [C16.4] It never reaches over to start a neighbor's. [C16.4] A post that finds its neighbor missing writes the fact down and leaves the neighbor's door alone. [C16.3,C16.4]
 
-Now, the honest part. [image] At this revision, I could find nothing that calls tick. [C16.6] No schedule names it, no unit runs it, no cell enables it, and no other piece invokes it. [C16.6] It is defined, it is tested in the repository's own test lanes, and it appears in the map. [C16.6,C16.7] But it is not scheduled. [C16.6] It is a built tool waiting for its trigger. [image]
+Now, the honest part. [image] At this revision, I could find nothing that calls tick. [C16.6] No schedule names it, no unit runs it, no cell enables it, and no other piece invokes it. [C16.6] It is defined, it is tested in the repository's own test lanes, and it appears in the map. [C16.6,C16.7] But it is not scheduled. [C16.6] It is a built tool waiting for its trigger. [C16.6]
 
 ### html
 
@@ -968,16 +969,18 @@ pair C17.13: The pre-commit hook stops a stray commit on the read view. => 6432b
 pair C17.14: The harness settings run agi-turn when a turn ends. => 6432bf88d5:.agi/nodes/.geometry/engine-wrap.md:L43-L43 ~ "Stop":[{"hooks":[{"type":"command","command":"agi-turn"
 pair C17.15: The receipt takes the new commit. => 6432bf88d5:.agi/nodes/.geometry/engine-post.md:L145-L145 ~ echo $c>$d.b
 pair C17.16: The sect tool prints a piece with sed. => 6432bf88d5:.agi/nodes/.geometry/engine.md:L76-L77 ~ sed -n
+pair C17.17: A commit is made by agi-turn, with commit-tree. => 6432bf88d5:.agi/nodes/.geometry/engine-post.md:L143-L143 ~ git commit-tree -S
+pair C17.18: A reference is moved by agi-turn's update-ref. => 6432bf88d5:.agi/nodes/.geometry/engine-post.md:L144-L144 ~ git update-ref $r $c
 
 ### narration
 
 Let us ride the whole road once more, friends, quickly, with the status word on our saddle, and see that you can name every stop. [image]
 
-A post wakes, and the unit has already put the engine's tools in its hands, cut from the graph by a ribosome the size of a feed-store receipt. [C17.7] The brief tells it who it is. [C17.6] It needs to change a word in a node, so it lifts that node out of its own branch into a dish of memory, with a luggage tag and a receipt. [C17.1] It edits the word. [image] Nothing happens, nothing at all, and that is the point. [image]
+A post wakes, and the unit has already put the engine's tools in its hands, cut from the graph by a ribosome the size of a feed-store receipt. [C17.7] The brief tells it who it is. [C17.6] It needs to change a word in a node, so it lifts that node out of its own branch into a dish of memory, with a luggage tag and a receipt. [C17.1] It edits the word. [image] Nothing is committed, and no reference moves, and that is the point. [C17.17,C17.18]
 
 The turn ends. [C17.14] A throwaway index is made so nobody's staging can leak in. [C17.9] The tag's paths are added from the dish, the tree is written, and its name is compared with the tip's. [C17.8] They differ, so there is work. [image] The gate looks at the additions, finds none, and waves an edit through. [C17.10] A signed commit is made on top of the tip, and the branch is moved with compare and swap. [C17.2] The receipt is updated. [C17.15]
 
-Then the trunk is folded in: already inside, or slid forward, or merged cleanly in memory and signed, or, if it conflicts, named and mailed once. [C17.3] The read view is re-attached to the branch tip. [C17.11] The guards stood by all the while: no post can move a neighbor's branch, and no stray commit can be made where it would be stranded. [C17.12,C17.13]
+Then the trunk is folded in: already inside, or slid forward, or merged cleanly in memory and signed, or, if it conflicts, named and mailed once. [C17.3] The read view is set again at the branch tip, detached. [C17.11] The guards stood by all the while: the reference guard refuses a post that tries to move a neighbor's branch, and the commit guard stops a stray commit where it would be stranded. [C17.12,C17.13]
 
 The session ends. [image] The flush lands every tree, saves whatever it cannot prove clean, and leaves the branch whole. [C17.4] And then a master gates the branch and lands it by the merge tree and commit tree procedure, onto the trunk. [C17.5] The trunk is never edited. [C17.5] Only extended. [C17.5]
 

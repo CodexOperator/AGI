@@ -114,3 +114,23 @@ def test_mutant_an_excerpt_range_past_eof_is_a_mismatch(tmp_path, capsys):
     bad = good.replace(f"L{n - 1}-L{n}", f"L{n - 1}-L{n + 50}")
     rc, mism, unres = _run(_write(tmp_path, bad), capsys, 1)
     assert mism == 1 and rc != 0
+
+
+def test_mutant_d_cli_without_chapters_flag_checks_nothing(tmp_path):
+    """Mutant D (council 06:23Z): ONE heading renamed `## C7` -> `## Chapter 7` and C7's fn: dropped gave chapters=17 and EXIT 0 when the
+    CLI ran without --chapters (the default was None). The count cannot be derived from the file (the rename lowers both sides), so
+    the flag is required: no flag -> exit 2 and no check; the flag with 18 -> the mutant is red."""
+    text = OUTLINE.read_text()
+    text = text.replace("## C7 ", "## Chapter 7 ", 1)
+    a = text.index("## Chapter 7 ")
+    b = text.index("## C8 ")
+    text = text[:a] + re.sub(r"(?m)^fn: .*\n", "", text[a:b]) + text[b:]
+    p = tmp_path / "d.md"
+    p.write_text(text)
+    cli = [sys.executable, str(HERE / "media_fm1.py"), str(p), REPO]
+    no_flag = subprocess.run(cli, capture_output=True, text=True)
+    assert no_flag.returncode == 2 and "--chapters=N is required" in no_flag.stderr and "excerpts=" not in no_flag.stdout
+    with_flag = subprocess.run(cli + ["--chapters=18"], capture_output=True, text=True)
+    assert with_flag.returncode != 0 and "chapters=17, the outline has 18" in with_flag.stdout
+    ok = subprocess.run([sys.executable, str(HERE / "media_fm1.py"), str(OUTLINE), REPO, "--chapters=18"], capture_output=True, text=True)
+    assert ok.returncode == 0

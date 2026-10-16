@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""media_fm1.py OUTLINE.md [REPO] [--chapters=N]: Fm1 + Fm1b of goal:g5.4.2 (the season media set) on an explainer outline or script node.
+"""media_fm1.py OUTLINE.md [REPO] --chapters=N (REQUIRED: a run without it exits 2 and checks nothing): Fm1 + Fm1b of goal:g5.4.2 (the season media set) on an explainer outline or script node.
 
 Fm1   every `@@excerpt SHA:PATH:Lx-Ly` is followed by a ~~~~ fenced block that BYTE-EQUALS `git show SHA:PATH | sed -n x,yp`
       (mismatches), and every `fn:` token resolves at the SHA of its chapter (unresolved):
@@ -164,5 +164,9 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit(__doc__)
     args = [a for a in sys.argv[1:] if not a.startswith("--chapters=")]
-    want = next((int(a.split("=")[1]) for a in sys.argv[1:] if a.startswith("--chapters=")), None)
+    want = next((int(a.split("=")[1]) for a in sys.argv[1:] if a.startswith("--chapters=") and a.split("=")[1].isdigit()), None)
+    if want is None:
+        # the count cannot come from the file itself: a renamed heading lowers both sides and the run stays green
+        sys.stderr.write("media_fm1: --chapters=N is required (the explainer has 18: C0..C17); nothing was checked\n")
+        sys.exit(2)
     sys.exit(min(check(args[0], args[1] if len(args) > 1 else ".", want), 99))
