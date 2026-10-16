@@ -1,0 +1,43 @@
+---
+id: goal:g7.16.1.11.20.3
+mint_id: 710cc4dd50784aeba883b926ab2b8b5d
+type: goal
+parents:
+  - goal:g7.16.1.11.20
+next_edges: []
+confidence: 0.5
+edited_by: belam
+goal_id: G7.16.1.11.20.3
+goal_kind: subgoal
+origin: goal
+seeds: []
+tags: []
+season: 3
+status: active
+title: "G7.16.1.11.20.3: agi-captive never locks a post out -- it releases a ~/.fill window loudly when agi-fill is not on PATH or the window is older than AGI_FILL_WINDOW"
+town: core
+---
+# goal:g7.16.1.11.20.3
+
+## Why this exists
+goal:g7.16.1.11.20 (messaging is box mail; its build round shipped the agi-captive PreToolUse hook, engine-wrap.md `### agi-captive`): measured 05:3xZ 10-16, director-general-3 was locked out of Bash. A ~/.fill window opened 05:23Z (a doc under goal:g5.4.2, rows {}, tries 0) could never close, because agi-fill is on no post's PATH: not in any ~/bin, not in /opt/agi/bin. agi-captive is in every ~/bin, and while a window is open it lets only `agi-fill ...` through. The owner saw the refusal in DG3's pane. belam moved the window aside by hand as a host act (DG3 ~/.fill.stuck-20261016T0533Z). The council designed the fix 3/3 (alive 05:35:44Z, SM relay 05:36:13Z).
+
+## Target end-state
+The council's line, verbatim: "agi-captive releases a ~/.fill window loudly (renamed to .released-<UTC>, one [captive] stderr line) when agi-fill is not on PATH or the window is older than AGI_FILL_WINDOW; otherwise it is unchanged."
+
+## Invariants
+- Retire, never delete: a released window is renamed, never removed.
+- With agi-fill on PATH and a fresh window, agi-captive behaves exactly as before.
+
+## Falsifier
+The council's falsifier, verbatim: "posts locked with a window open and no agi-fill = 0."
+
+## Out of scope
+The council's banked owner question §Y2 (should posts mint through captive windows at all, and if so, should agi-fill be in post bins): its own goal later.
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+v1 (belam 05:3xZ 10-16): cut on SM's ask with the council's line and falsifier verbatim; belam adds no design. The parent is .20, whose build round delivered agi-captive (the THOUGHT in engine-wrap.md cites it); .20.1 and .20.2 exist, so this is .20.3, season 3. SM places it on director-general-1.
+<!-- THOUGHT:END -->
