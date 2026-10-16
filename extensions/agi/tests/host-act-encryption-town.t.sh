@@ -122,4 +122,37 @@ ok k4-mutant-the-ungated-enable-is-RED "grep -qx 'rehearsal: systemctl enable --
 mk r;run env PIN=zz sh $AGI host>/dev/null 2>$T/r.err;rr=$?
 ok k5-agi-sh-host-refuses-a-bad-pin-by-name "[ $rr != 0 ]&&grep -q 'PIN must be' $T/r.err&&[ ! -e $X/var/backups ]"
 ok k6-the-row-is-in-the-matrix-and-the-act-writes-no-sudoers "sect matrix|grep -qP '^town\\tstart\\thost posts crons units blast\\tagi.sh\$'&&[ ! -e $X/etc/sudoers.d ]&&! sed -n '/^up_host()/,/^dn_host()/p' $AGI|grep -q 'sudoers\\|visudo'"
+# ---- council RETURN R1 (11:22Z 10-16): a FAILED act must not re-run as "host: met". /etc/agi/host.done = the PIN is the act's LAST write (cleared before its first); hostmet requires it; stop never touches it.
+# AGI_HOST_UNITS=1 makes the rehearsal run the live tail (verify, daemon-reload, timer, enable + start agi-boot) against these stubs.
+SHD=$T/shd;mkdir -p $SHD;printf '#!/bin/sh\n[ "$STUB_FAIL" = verify ]&&exit 1;exit 0\n' >$SHD/systemd-analyze;printf '#!/bin/sh\necho "$*">>$STUB_LOG\n[ "$STUB_FAIL" = "$1" ]&&exit 1;exit 0\n' >$SHD/systemctl;chmod +x $SHD/*
+hu(){ run env PATH=$SHD:$PATH AGI_HOST_UNITS=1 STUB_LOG=$T/sc.log STUB_FAIL=$1 sh ${2:-$AGI} host;}
+HD=etc/agi/host.done
+mk s;: >$T/sc.log;hu "">$T/s1.out 2>&1;rs1=$?
+ok r1-a-completed-act-writes-host-done-pin-mode-644-and-runs-the-tail "[ $rs1 = 0 ]&&[ \"\$(cat $X/$HD)\" = $PIN ]&&[ \$(stat -c %a $X/$HD) = 644 ]&&grep -qx 'daemon-reload' $T/sc.log&&grep -qx 'enable agi-boot.service' $T/sc.log&&grep -qx 'start agi-boot.service' $T/sc.log&&! grep -q 'carry-fetch' $T/sc.log"
+sleep 1;hu "">$T/s2.out 2>&1;rs2=$?
+ok r1-a-the-second-run-is-met-and-no-new-backup "[ $rs2 = 0 ]&&grep -qx 'host: met' $T/s2.out&&[ \$(backups) = 1 ]"
+for F in verify enable;do mk t;: >$T/sc.log;hu $F>$T/t1.out 2>$T/t1.err;rt1=$?;sleep 1;hu "">$T/t2.out 2>&1;rt2=$?;hu "">$T/t3.out 2>&1
+ ok "r1-b-a-stub-failing-at-$F-leaves-no-marker-and-the-re-run-is-NOT-met" "[ $rt1 != 0 ]&&grep -q 'rollback.sh' $T/t1.err&&[ $rt2 = 0 ]&&! grep -qx 'host: met' $T/t2.out&&[ \$(backups) = 2 ]&&[ \"\$(cat $X/$HD)\" = $PIN ]&&grep -qx 'host: met' $T/t3.out";done
+mk t;hu verify>/dev/null 2>&1;ok r1-b-after-a-failed-act-there-is-no-host-done "[ ! -e $X/$HD ]"
+# the old marker must not survive a re-run that dies: drift a piece, re-run with a failing enable, the next run must not be met
+mk u;hu "">/dev/null 2>&1;echo drift>>$X/opt/agi/bin/sect;sleep 1;hu enable>/dev/null 2>&1;sleep 1;hu "">$T/u3.out 2>&1
+ok r1-c-a-re-run-that-dies-clears-the-old-marker-so-the-next-run-is-not-met "! grep -qx 'host: met' $T/u3.out&&sect sect|cmp -s - $X/opt/agi/bin/sect"
+mk u;hu "">/dev/null 2>&1;echo 0000000000000000000000000000000000000000>$X/$HD;sleep 1;hu "">$T/u4.out 2>&1
+ok r1-c-a-marker-holding-another-pin-is-not-met "! grep -qx 'host: met' $T/u4.out&&[ \"\$(cat $X/$HD)\" = $PIN ]"
+mk u;hu "">/dev/null 2>&1;echo drift>>$X/opt/agi/bin/sect;sleep 1;hu "">/dev/null 2>&1;sh $(ls -d $X/var/backups/agi-act-*|tail -1)/rollback.sh>/dev/null 2>&1
+ok r1-c-the-rollback-of-a-re-run-restores-the-old-marker "[ \"\$(cat $X/$HD)\" = $PIN ]"
+# MUTANTS: each is one edit on agi.sh, and the clean row above must BREAK
+rep '&&[ "$(cat $R/etc/agi/host.done 2>/dev/null)" = $PIN ]' '';mk t;hu verify $T/mut.sh>/dev/null 2>&1;sleep 1;hu "" $T/mut.sh>$T/m1.out 2>&1
+ok r1-mutant-hostmet-without-host-done-says-met-after-a-failed-act-is-RED "grep -qx 'host: met' $T/m1.out"
+rep 'rm -f $R/etc/agi/host.done||exit 1' ':';mk u;hu "">/dev/null 2>&1;echo drift>>$X/opt/agi/bin/sect;sleep 1;hu enable $T/mut.sh>/dev/null 2>&1;sleep 1;hu "" $T/mut.sh>$T/m2.out 2>&1
+ok r1-mutant-an-old-marker-kept-through-a-dying-re-run-says-met-RED "grep -qx 'host: met' $T/m2.out"
+rep 'printf '"'"'%s\n'"'"' $PIN>$R/etc/agi/host.done&&chmod 644 $R/etc/agi/host.done||exit 1' ':';mk t;hu "" $T/mut.sh>$T/m3.out 2>&1;sleep 1;hu "" $T/mut.sh>$T/m3b.out 2>&1
+ok r1-mutant-no-host-done-write-never-becomes-met-RED "[ ! -e $X/$HD ]&&! grep -qx 'host: met' $T/m3b.out"
+# stop never touches it: every host.done in agi.sh sits inside up_host
+ok r1-stop-never-touches-host-done "[ \$(grep -v '^#' $AGI|grep -c 'host[.]done') -gt 0 ]&&[ \$(awk '/^up_host\\(\\)/{i=1}/^ck_host\\(\\)/{i=0}i&&/host[.]done/&&!/^#/{n++}END{print n+0}' $AGI) = \$(grep -v '^#' $AGI|grep -c 'host[.]done') ]"
+sed 's|^dn_host(){ return 0;}|dn_host(){ rm -f /etc/agi/host.done;}|' $AGI>$T/mut.sh;cmp -s $AGI $T/mut.sh&&echo "# NO EDIT for dn_host mutant"
+ok r1-mutant-dn_host-removing-it-is-RED "! [ \$(awk '/^up_host\\(\\)/{i=1}/^ck_host\\(\\)/{i=0}i&&/host[.]done/&&!/^#/{n++}END{print n+0}' $T/mut.sh) = \$(grep -v '^#' $T/mut.sh|grep -c 'host[.]done') ]"
+# the timer on the live tail: a cell true enables it, false does not (the stub log)
+CFG='{"values":{"local_maxxing":{"agi_town":{"carry_fetch":true}}}}';mk n;CFG=;: >$T/sc.log;hu "">/dev/null 2>&1
+ok r1-d-carry-fetch-true-enables-the-timer-on-the-live-tail "grep -qx 'enable --now agi-carry-fetch.timer' $T/sc.log"
 echo "host-act-encryption-town: $f FAIL";exit $f

@@ -88,7 +88,7 @@ cmd_answer(){ [ $# = 2 ]||die "answer KEY VALUE";k=$1;v=$2
 #   PIN=<40-hex commit of AGI_REPO> [ROOT=<scratch>] [AGI_REPO AGI_BOX E_MEM_HIGH E_MEM_MAX E_OOM_LIMIT SKIP_PREREQ PRIME_USER] sh agi.sh host
 # hostmet (every piece / unit / polkit rule byte-equal to the PIN via sect, carry.env, the ram unit, the slice, the MAIN ACLs) runs BEFORE STEP 0: met -> "host: met", rc 0, NO backup; else STEP 0 backs the before-state up and writes ONE rollback, then the act.
 # agi-carry-fetch.timer is enabled only when .agi/config.json values.local_maxxing.agi_town.carry_fetch is true at the PIN (default false: the hub route is out). NO sudoers file is written here (S2b). The pieces are ONE list (PC) read by the writer AND by hostmet.
-# STOP leaves the host installed: ck_host / dn_host are met / no-op (S2b gives start its own check).
+# /etc/agi/host.done = the PIN is the act's LAST write (cleared before the first): hostmet requires it, so an act that died at verify / enable re-runs. STOP leaves the host installed and never touches it: ck_host / dn_host are met / no-op (S2b: start's host check is hostmet).
 up_host(){ (
 R=${ROOT:-};M=${AGI_REPO:-/data/work/agi};PIN=${PIN:-};BOX=${AGI_BOX:-encryption-town}
 PU=${PRIME_USER:-belam};[ -z "$R" ]||PU=${PRIME_USER:-$(id -un)}
@@ -112,8 +112,8 @@ ramunit(){ printf '%s\n' '# encryption-town ONLY: MAIN is a plain directory on t
 sliceunit(){ printf '%s\n' '# encryption-town: typed here (config:guard has no E line); 7.8 GB box' '[Slice]' "MemoryHigh=${E_MEM_HIGH:-5G}" "MemoryMax=${E_MEM_MAX:-6G}" 'ManagedOOMMemoryPressure=kill' "ManagedOOMMemoryPressureLimit=${E_OOM_LIMIT:-40%}";}
 acl1(){ getfacl -p "$1" 2>/dev/null|grep -qx "$2";}
 aclmet(){ for d in objects refs logs worktrees;do acl1 $R$M/.git/$d "group:$AG:rwx"&&acl1 $R$M/.git/$d "user:$PU:rwx"||return 1;done;for d in $R$M/.agi/sessions $R$M/.agi/sessions/inbox $R$M/.agi/comms;do acl1 $d "group:$AG:rwx"||return 1;done;acl1 $R$M/.agi/comms "user:$PU:rwx";}
-hostmet(){ each pmet&&carry_env|cmp -s - $R/etc/agi/carry.env&&ramunit|cmp -s - $R/etc/systemd/system/agi-ram-main.service&&sliceunit|cmp -s - $R/etc/systemd/system/agi.slice&&[ -d $R/mnt/agi-ram/state ]&&[ -d $R/var/lib/agi ]&&aclmet;}
-tm(){ [ "$CF" = true ]||return 0;if [ -n "$R" ];then echo "rehearsal: systemctl enable --now agi-carry-fetch.timer";else systemctl enable --now agi-carry-fetch.timer;fi;}
+hostmet(){ each pmet&&carry_env|cmp -s - $R/etc/agi/carry.env&&ramunit|cmp -s - $R/etc/systemd/system/agi-ram-main.service&&sliceunit|cmp -s - $R/etc/systemd/system/agi.slice&&[ -d $R/mnt/agi-ram/state ]&&[ -d $R/var/lib/agi ]&&[ "$(cat $R/etc/agi/host.done 2>/dev/null)" = $PIN ]&&aclmet;}
+tm(){ [ "$CF" = true ]||return 0;if [ -n "$R" ]&&[ -z "$AGI_HOST_UNITS" ];then echo "rehearsal: systemctl enable --now agi-carry-fetch.timer";else systemctl enable --now agi-carry-fetch.timer;fi;}
 # ---- preflight (nothing written yet) ----
 for c in git jq setfacl sed;do command -v $c>/dev/null||die "missing tool: $c";done
 [ -n "$R" ]||{ command -v systemctl>/dev/null||die "missing tool: systemctl";getent group agi>/dev/null||die "group agi is absent (the agi-* users are the owner's act)";}
@@ -124,7 +124,7 @@ hostmet&&{ echo "host: met";exit 0;}
 # ---- STEP 0 (root, BEFORE anything else): back the before-state up and write ONE rollback command ----
 B=$R/var/backups/agi-act-$(date -u +%Y%m%dT%H%M%SZ)
 mkdir -p $R/var/backups&&mkdir $B||die "$B exists or cannot be made: refusing to overwrite a before-state";mkdir $B/files
-L="/etc/agi/carry.env /etc/systemd/system/agi-boot.service /etc/systemd/system/agi-ram-main.service /etc/systemd/system/agi-carry@.service /etc/systemd/system/agi-carry@.path /etc/systemd/system/agi-carry-fetch.service /etc/systemd/system/agi-carry-fetch.timer /etc/systemd/system/agi.slice /etc/polkit-1/rules.d/50-agi.rules /opt/agi/bin/agi-signers /opt/agi/bin/box /opt/agi/bin/box-carry /opt/agi/bin/sect /usr/local/libexec/agi-vstore"
+L="/etc/agi/host.done /etc/agi/carry.env /etc/systemd/system/agi-boot.service /etc/systemd/system/agi-ram-main.service /etc/systemd/system/agi-carry@.service /etc/systemd/system/agi-carry@.path /etc/systemd/system/agi-carry-fetch.service /etc/systemd/system/agi-carry-fetch.timer /etc/systemd/system/agi.slice /etc/polkit-1/rules.d/50-agi.rules /opt/agi/bin/agi-signers /opt/agi/bin/box /opt/agi/bin/box-carry /opt/agi/bin/sect /usr/local/libexec/agi-vstore"
 for f in $L;do if [ -e $R$f ];then (cd $R/&&cp -a --parents ${f#/} $B/files/)||exit 1;else echo $f>>$B/absent;fi;done
 for d in $M/.git/worktrees $M/.agi/comms $M/.agi/sessions/inbox $M/.agi/sessions /mnt/agi-ram/state /mnt/agi-ram /opt/agi/bin /opt/agi /usr/local/libexec /etc/agi /var/lib/agi;do [ -d $R$d ]||echo $d>>$B/absentdirs;done
 for f in $L;do [ -e $R$f ]&&stat -c '%a %U:%G %n' $R$f;done>$B/before.stat
@@ -140,6 +140,7 @@ if [ -s $B/run.list ];then tar -C $U -cpf $B/run.tar -T $B/run.list||exit 1;(cd 
 printf '%s\n' '#!/bin/sh' "B=$B;R=$R" 'U=$R/run/systemd/system' '[ -n "$R" ]||systemctl disable --now agi-carry-fetch.timer 2>/dev/null' '[ -n "$R" ]||systemctl disable agi-boot.service 2>/dev/null' '[ ! -d $B/files ]||cp -a $B/files/. ${R:-/}||exit 1' '[ ! -s $B/acl.before ]||setfacl --restore=$B/acl.before||echo "rollback: acl restore rc $? (vanished paths skipped)">&2' 'if [ -d $U ];then ( cd $U;find agi-* agi.slice multi-user.target.wants/agi-* 2>/dev/null|while read p;do grep -qxF "$p" $B/run.before||rm -rf "$p";done );fi' '[ ! -s $B/run.tar ]||tar -C $U -xpf $B/run.tar' '[ ! -s $B/absent ]||while read f;do rm -f $R$f;done<$B/absent' '[ ! -s $B/absentdirs ]||while read d;do rmdir $R$d 2>/dev/null;done<$B/absentdirs' '[ -n "$R" ]||systemctl daemon-reload' 'echo rolled back from $B "(an act-made dir that posts have filled since stays: rmdir removes only empty ones)"'>$B/rollback.sh
 echo "backup $B: $(wc -l <$B/before.sha256) files, $(wc -l <$B/run.before) /run paths, $(wc -l <$B/absent 2>/dev/null||echo 0) absent files; rollback: sh $B/rollback.sh"
 # ---- the act: the pieces and units, carry.env, the E no-op ram unit, the slice, reload, enable ----
+rm -f $R/etc/agi/host.done||exit 1   # an act that dies below leaves NO marker: the re-run is not met
 echo "installing from $PIN:"
 each put1||exit 1
 install -d -m 755 $OWN $R/etc/agi||exit 1
@@ -175,12 +176,13 @@ if [ -z "$R" ];then
   echo "  probe: agi-$U creates and removes a dir in .git/{objects,refs,logs,worktrees} and a file in .agi/sessions, .agi/sessions/inbox and .agi/comms"
  else echo "  probe SKIPPED: no agi-<post> user for a box $BOX row yet">&2;fi
 fi
-if [ -z "$R" ];then
- systemd-analyze verify /etc/systemd/system/agi-ram-main.service /etc/systemd/system/agi-boot.service /etc/systemd/system/agi-carry@.service /etc/systemd/system/agi-carry-fetch.service /etc/systemd/system/agi.slice||die "systemd-analyze verify refused a unit: sh $B/rollback.sh"
+if [ -z "$R" ]||[ -n "$AGI_HOST_UNITS" ];then   # AGI_HOST_UNITS=1: a rehearsal runs this tail too (a test points PATH at systemctl / systemd-analyze stubs)
+ systemd-analyze verify $R/etc/systemd/system/agi-ram-main.service $R/etc/systemd/system/agi-boot.service $R/etc/systemd/system/agi-carry@.service $R/etc/systemd/system/agi-carry-fetch.service $R/etc/systemd/system/agi.slice||die "systemd-analyze verify refused a unit: sh $B/rollback.sh"
  systemctl daemon-reload&&tm&&systemctl enable agi-boot.service&&systemctl start agi-boot.service||die "enable / start failed: sh $B/rollback.sh"
  echo "slice:";systemctl show agi.slice -p MemoryHigh -p MemoryMax -p ManagedOOMMemoryPressure
 else tm||exit 1;fi
 echo "act done; next: per post, PIN=$PIN sh $D/../guard/host-act-encryption-town.sh move <post> (after its row has box $BOX at that pin)"
+printf '%s\n' $PIN>$R/etc/agi/host.done&&chmod 644 $R/etc/agi/host.done||exit 1   # the LAST line (council R1): only a completed act is met
 );}
 ck_host(){ return 0;}
 dn_host(){ return 0;}
