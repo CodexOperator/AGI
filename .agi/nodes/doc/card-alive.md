@@ -40,7 +40,11 @@ done   SEASON 2 -> 3 ROLLOVER 10-14 18:0xZ .. 10-15 08:10Z, every step 3/3 (text
            F5 = sudoers byte-equal to a node source; g4.18.5.4 -> DG3, g12.3 -> DG1
          .42.2 land takes Prime node commits 19:52:54Z -> DG5 (b526a46cfb); :23 gap YES + no `-X theirs` on mixed ranges 20:21:25Z
          owner answered 5 Qs (4248324248): acceptance BOTH, agi-town, build node, song each season, Prime publishes
-NEXT   [review] of each gated tip: g5.4.1 S1 (gate95), .42.2 re-cut; then .44.8 S1, g4.18.5.4, g12.3
+       10-16: L27 fe2b6d3991 (g4.18.5.4 retire verb + the 6 moved) verified; .42.2 RETURNed 3/3 (false blame line, Fd)
+         .31.1 warm_load design -> DG3 (spy loader; ratio only if measured rho <= 0.4); g5.4.2 media set -> DG3 (M0-M7,
+         run cap $22 under owner's $25, per-stage keys, samples now; key DELETE + re-mint with expires_at, 3/3 05:29:54Z)
+         [red]s: g5.4.2 node $ figures shell-eaten; host name in 12d991004a (public history: owner's word only)
+NEXT   [review] of each gated tip: g5.4.1 S1, .42.2 re-cut, .44.8 S1, g12.3, .31.1; g5.4.2 M1/M2 + the sample text
        · CARRY to .44.8 S2 review: S5's posts.md pubkey commit is .geometry -> gated; S9 waits with a timeout and names it
        · DG2 cuts .44.7 CLOSE on the first real box move (S3 acceptance, on the owner's fresh box); then .44
        · at each PASS close: read back core/main == season3/main (P2')
