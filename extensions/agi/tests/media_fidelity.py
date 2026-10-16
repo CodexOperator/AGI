@@ -166,6 +166,21 @@ def check(ref_text, hyp_text, wer_max=0.10, run_max=3, bridge=1, echo=True, stri
     return 1 if (wer > wer_max or red_runs or prot) else 0
 
 
+def score(ref_text, hyp_text, wer_max=0.10, run_max=3, bridge=1):
+    """The walk's W3 (council 10-16 08:08Z): the same verdict as check() plus how bad it is, so two RED takes can be ranked.
+    -> (red 0/1, error ops, ["sent [..] heard [..]" per red run and protected op]); a refused/empty compare is (1, 10**9, [why])."""
+    hyp_text, _ = strip_events(hyp_text)
+    ref, hyp = words(ref_text, True), words(hyp_text, False)
+    if not ref or len(ref) * len(hyp) > MAX_CELLS:
+        return 1, 10 ** 9, ["no comparison possible"]
+    errs, ops = align(ref, hyp)
+    red_runs = [r for r in error_runs(ops, bridge) if len(r) >= run_max]
+    prot = [o for o in ops if o[0] != "match" and ((o[1] is not None and ref[o[1]] in PROTECTED) or (o[2] is not None and hyp[o[2]] in PROTECTED))]
+    lines = [f"sent [{' '.join(ref[o[1]] for o in r if o[1] is not None)}] heard [{' '.join(hyp[o[2]] for o in r if o[2] is not None)}]" for r in red_runs]
+    lines += [f"protected sent [{ref[o[1]] if o[1] is not None else ''}] heard [{hyp[o[2]] if o[2] is not None else ''}]" for o in prot]
+    return (1 if (errs / len(ref) > wer_max or red_runs or prot) else 0), errs, lines
+
+
 if __name__ == "__main__":
     a = [x for x in sys.argv[1:] if not x.startswith("--")]
     if len(a) != 2:

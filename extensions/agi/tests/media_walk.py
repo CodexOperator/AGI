@@ -2,9 +2,10 @@
 """g5.4.2 THE WALK (council 07:59Z (4), 08:02Z): one unattended runner, no Claude needed. Renders the chapters' NARRATION in order (C2 first = the pilot) under the key caps.
 Per chunk (<= 1500 chars at sentence boundaries): TTS (Gemini Schedar, description v2, default temperature) -> PCM duration check (media_pcm) -> mp3 -> measured f0 + pace ->
 STT (scribe-v2) of the RAW chunk -> fidelity (media_fidelity, REF = the chunk text) -> local normalisation to TARGET (rubberband, formant preserved, tempo 1, ratio = TARGET / measured f0)
--> output f0 within 5 percent of TARGET and pace within 15 percent of the c2a anchor. Any RED -> re-render ONCE; still RED -> the chunk is SKIPPED with a README line and the walk goes on.
-Two keys, each capped and counted at its full limit: a TTS key (Gemini only) and an STT key (scribe only). Every request is logged BEFORE it is sent; a failed request (HTTP/network) stops the walk CLEAN (no retry).
-Before each chapter the remaining life of both keys must cover the chapter's estimated time, else: 'stopped: key expiry'. A finished chapter goes to deliver/ at once (644) and README-narration.txt is rewritten.
+-> output f0 within 5 percent of TARGET and pace within 15 percent of the c2a anchor. Any RED -> re-render ONCE. Still RED (council 08:08Z, W3): a 2nd FIDELITY-only RED KEEPS the take with fewer error ops,
+flagged in the README with its runs (chapter 'partial: N flagged'); a 2nd PCM RED (or pace/pitch RED) is SKIPPED with a README line. The walk goes on.
+Two keys, each capped and counted at its full limit: a TTS key (Gemini only) and an STT key (scribe only). Every request is logged BEFORE it is sent; W2: a 5xx or timeout waits 60 s and retries that request ONCE; a 2nd failure or any 4xx stops the walk CLEAN ('stopped: http').
+Before each chapter the remaining life of both keys must cover the chapter's estimated time, else: 'stopped: key expiry'. A finished chapter goes to deliver/ at once (644) as season3-CNN-narration.mp3 AND (W4) explainer-chNN-<slug>.mp4 (a static title card + the narration, ONE fixed encode profile, PROFILE below); README-narration.txt is rewritten.
 usage: walk.py TTSKEYFILE STTKEYFILE [--chapters=C2,C3,...] [--target=100] [--dry]   (--dry: no request is sent; a stored take stands in, to test the flow)"""
 import base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.request, urllib.error
 sys.path.insert(0, '/var/lib/agi/director-general-3/w-sg/extensions/agi/tests')
@@ -23,6 +24,10 @@ TARGET = float(opt.get('--target', 100))
 CHAPTERS = opt['--chapters'].split(',') if '--chapters' in opt else ['C2'] + [f'C{i}' for i in range(0, 18) if i != 2]
 ANCHOR_CPS = 13.8                   # schedar-c2a
 CHUNK_MAX, PAUSE = 1500, 0.5
+RETRY_WAIT = 60                     # W2: seconds before the ONE retry of a 5xx / timeout
+# W4: ONE fixed encode profile for every explainer-chNN-<slug>.mp4 (recorded once on the run doc, so the watcher can join them without a re-encode)
+PROFILE = {'codec_name': 'h264', 'width': 1280, 'height': 720, 'r_frame_rate': '25/1', 'pix_fmt': 'yuv420p', 'a_codec': 'aac', 'sample_rate': '44100', 'channels': 1}
+CARD_FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf'
 now = lambda: time.strftime('%H:%M:%SZ', time.gmtime())
 KEYS = {}
 if not DRY:
@@ -89,17 +94,25 @@ def log(kind, rec):
 
 
 def post(kind, url, body, rec):
-    """Log first, send once. A failure stops the walk clean (no retry)."""
+    """Log first, send. W2: a 5xx or timeout/network error waits RETRY_WAIT s and retries that request ONCE (logged before it is sent);
+    a 4xx, or a 2nd failure, stops the walk clean with 'http'."""
     sent = json.dumps(body, sort_keys=True).encode()
-    log(kind, {**rec, 'body_sha256': hashlib.sha256(sent).hexdigest()})
-    try:
-        r = urllib.request.urlopen(urllib.request.Request(url, data=sent, headers=H(kind)), timeout=900)
-        return r.read()
-    except urllib.error.HTTPError as e:
-        say('ERROR', rec, e.code, e.read()[:200].decode('utf-8', 'replace'))
-    except Exception as e:
-        say('ERROR', rec, type(e).__name__, str(e)[:160])
-    STOP.append('request failed'); return None
+    for attempt in (1, 2):
+        log(kind, {**rec, 'try': attempt, 'body_sha256': hashlib.sha256(sent).hexdigest()})
+        try:
+            r = urllib.request.urlopen(urllib.request.Request(url, data=sent, headers=H(kind)), timeout=900)
+            return r.read()
+        except urllib.error.HTTPError as e:
+            say('ERROR', rec, e.code, e.read()[:200].decode('utf-8', 'replace'))
+            transient = e.code >= 500
+        except Exception as e:
+            say('ERROR', rec, type(e).__name__, str(e)[:160])
+            transient = True
+        if attempt == 1 and transient:
+            say('transient failure: one retry in', RETRY_WAIT, 's'); time.sleep(RETRY_WAIT)
+            continue
+        break
+    STOP.append('http'); return None
 
 
 def f0_pace(path, chars):
@@ -117,6 +130,11 @@ def normalise(src, dst):
     return f_in, ratio, norm.median_f0(dst)
 
 
+def take(status, mp3=None, errs=0, runs=(), notes=()):
+    """One render attempt. status: ok | fid (fidelity-only RED, audio sound) | pcm (broken audio) | other (pace/pitch RED) | fail (request stopped the walk)."""
+    return {'status': status, 'mp3': mp3, 'errs': errs, 'runs': list(runs), 'notes': list(notes)}
+
+
 def render_chunk(chap, i, text, attempt, reuse):
     d = f'{W}/{chap}'; os.makedirs(d, exist_ok=True)
     raw_mp3, hyp_f = f'{d}/c{i}-a{attempt}.mp3', f'{d}/c{i}-a{attempt}.txt'
@@ -126,13 +144,13 @@ def render_chunk(chap, i, text, attempt, reuse):
     else:
         notes = []
         if DRY:
-            return None, ['dry: no stored take for this chunk']
+            return take('fail', notes=['dry: no stored take for this chunk'])
         body = {'model': 'google/gemini-3.8-flash-tts', 'response_format': 'pcm', 'input': text, 'voice': 'Schedar', 'instructions': DESC}
         pcm = post('tts', 'https://openrouter.ai/api/v1/audio/speech', body, {'chapter': chap, 'chunk': i, 'attempt': attempt, 'chars': len(text)})
         if pcm is None:
-            return None, ['tts request failed']
+            return take('fail', notes=['tts request failed'])
         if media_pcm.check(len(pcm), len(text), 24000, echo=False):
-            return 'RED', ['pcm duration check RED']
+            return take('pcm', notes=['pcm duration check RED'])
         open(f'{d}/c{i}-a{attempt}.pcm', 'wb').write(pcm)
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-f', 's16le', '-ar', '24000', '-ac', '1', '-i', f'{d}/c{i}-a{attempt}.pcm', '-c:a', 'libmp3lame', '-b:a', '128k', raw_mp3], check=True)
         raw = open(raw_mp3, 'rb').read()
@@ -140,19 +158,39 @@ def render_chunk(chap, i, text, attempt, reuse):
                    {'model': 'elevenlabs/scribe-v2', 'language': 'en', 'input_audio': {'data': base64.b64encode(raw).decode(), 'format': 'mp3'}},
                    {'chapter': chap, 'chunk': i, 'attempt': attempt, 'audio_sha256': hashlib.sha256(raw).hexdigest()})
         if res is None:
-            return None, ['stt request failed']
+            return take('fail', notes=['stt request failed'])
         open(hyp_f, 'w').write(json.loads(res).get('text', ''))
     f0, cps = f0_pace(raw_mp3, len(text))
-    fid = media_fidelity.check(text, open(hyp_f).read(), echo=False)
+    fid, errs, runs = media_fidelity.score(text, open(hyp_f).read())
     out_mp3 = f'{d}/c{i}-a{attempt}-norm.mp3'
     f_in, ratio, f_out = normalise(raw_mp3, out_mp3)
     pace_ok = abs(cps - ANCHOR_CPS) / ANCHOR_CPS <= 0.15
     pitch_ok = abs(f_out - TARGET) / TARGET <= 0.05
-    notes += [f'f0 {f0:.1f} Hz, ratio {ratio:.3f}, out {f_out:.1f} Hz, pace {cps:.1f} c/s, fidelity {"RED" if fid else "GREEN"}']
-    ok = (not fid) and pace_ok and pitch_ok
+    notes += [f'f0 {f0:.1f} Hz, ratio {ratio:.3f}, out {f_out:.1f} Hz, pace {cps:.1f} c/s, fidelity {"RED" if fid else "GREEN"} ({errs} error ops)']
     if not pace_ok: notes.append('pace RED')
     if not pitch_ok: notes.append('output pitch RED')
-    return (out_mp3 if ok else 'RED'), notes
+    status = 'other' if not (pace_ok and pitch_ok) else ('fid' if fid else 'ok')
+    return take(status, out_mp3, errs, runs, notes)
+
+
+def walk_chunk(chap, i, text, reuse, notes_all):
+    """Up to two attempts. -> (mp3 or None, flag or None). flag = (errs kept, errs of the other take or None, runs): W3, a 2nd fidelity RED keeps the take with fewer error ops."""
+    takes = []
+    for attempt in (1, 2):
+        t = render_chunk(chap, i, text, attempt, reuse)
+        notes_all.append(f'  chunk {i} attempt {attempt}: ' + '; '.join(t['notes']))
+        say(chap, i, attempt, t['notes'])
+        takes.append(t)
+        if STOP or t['status'] in ('ok', 'fail'):
+            break
+    if takes[-1]['status'] == 'ok':
+        return takes[-1]['mp3'], None
+    fids = [t for t in takes if t['status'] == 'fid']
+    if not fids:
+        return None, None
+    best = min(fids, key=lambda t: t['errs'])           # a tie keeps the first take
+    other = [t for t in fids if t is not best]
+    return best['mp3'], (best['errs'], other[0]['errs'] if other else None, best['runs'])
 
 
 def join(chap, files, dst):
@@ -166,16 +204,47 @@ def join(chap, files, dst):
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', lst, '-ac', '1', '-ar', '44100', '-c:a', 'libmp3lame', '-b:a', '128k', dst], check=True)
 
 
+def chapter_titles():
+    """{'C2': 'The ribosome: the unit turns pieces into tools'} from the '## C2 · Title' headings."""
+    out = {}
+    for ln in open(SCRIPT, encoding='utf-8').read().split('\n'):
+        m = re.match(r'^## (C\d+)\s*[·:\-]\s*(.+?)\s*$', ln)
+        if m:
+            out[m.group(1)] = m.group(2)
+    return out
+
+
+def video_name(chap, title):
+    """W4: explainer-chNN-<slug>.mp4, NN = the script chapter number in two digits (C0 -> ch00, C17 -> ch17)."""
+    slug = re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-')[:48].strip('-') or 'chapter'
+    return f'explainer-ch{int(chap[1:]):02d}-{slug}.mp4'
+
+
+def card_video(chap, title, mp3):
+    """W4: a static title card + the narration under the ONE fixed PROFILE. drawtext only if the font file exists, else a plain frame (the title is in the README)."""
+    dst = f'{DELIVER}/{video_name(chap, title)}'
+    vf = 'format=yuv420p'
+    if os.path.exists(CARD_FONT):
+        tf = f'{W}/{chap}/card.txt'
+        open(tf, 'w', encoding='utf-8').write(f'Chapter {int(chap[1:])}\n{title}')
+        vf = f"drawtext=fontfile={CARD_FONT}:textfile={tf}:fontcolor=white:fontsize=52:line_spacing=24:x=(w-text_w)/2:y=(h-text_h)/2,format=yuv420p"
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-f', 'lavfi', '-i', f"color=c=0x14181f:s={PROFILE['width']}x{PROFILE['height']}:r=25", '-i', mp3,
+                    '-vf', vf, '-c:v', 'libx264', '-tune', 'stillimage', '-r', '25', '-c:a', 'aac', '-ar', PROFILE['sample_rate'], '-ac', str(PROFILE['channels']), '-b:a', '128k',
+                    '-shortest', '-movflags', '+faststart', dst], check=True)
+    os.chmod(dst, 0o644)
+    return dst
+
+
 def readme(rows):
     txt = ['season 3 narration (voice DRAFT): written by the walk (director-general-3). Voice: Gemini 3.8 Flash TTS, Schedar, the owner-quoted description, pitch normalised locally to %.0f Hz (formant kept).' % TARGET,
-           'The pick was made by the council while the owner slept; he can overrule. Banked beside it: raw, 91 Hz. Status per file: pilot = chapter 2, partial = a chunk was skipped or the walk stopped, final = all chunks passed.', '']
+           'The pick was made by the council while the owner slept; he can overrule. Banked beside it: raw, 91 Hz. Status per file: pilot = chapter 2, partial = a chunk was skipped or the walk stopped, \'partial: N flagged\' = N chunks kept after a 2nd fidelity RED (listed below), final = all chunks passed. explainer-chNN-*.mp4 = static title card + narration, one fixed profile: %s.' % json.dumps(PROFILE), '']
     txt += rows
     open(f'{DELIVER}/README-narration.txt', 'w').write('\n'.join(txt) + '\n'); os.chmod(f'{DELIVER}/README-narration.txt', 0o644)
 
 
 def main():
     os.makedirs(W, exist_ok=True); os.makedirs(DELIVER, exist_ok=True)
-    text = narration()
+    text, titles = narration(), chapter_titles()
     rows, reuse_map = [], {('C2', 0): (BASE + '/r2/r4/schedar-c2a.mp3', BASE + '/r2/r4/schedar-c2a.txt')}
     for chap in CHAPTERS:
         paras = text.get(chap)
@@ -187,26 +256,30 @@ def main():
             if min(left) < est * 1.5:
                 say('stopped: key expiry before', chap); rows.append(f'{chap}: stopped: key expiry'); break
         say(chap, len(cs), 'chunks', [len(c) for c in cs])
-        good, skipped, notes_all = [], [], []
+        good, skipped, flagged, notes_all = [], [], [], []
         for i, c in enumerate(cs):
-            res = None
-            for attempt in (1, 2):
-                res, notes = render_chunk(chap, i, c, attempt, reuse_map.get((chap, i)))
-                notes_all.append(f'  chunk {i} attempt {attempt}: ' + '; '.join(notes))
-                say(chap, i, attempt, notes)
-                if STOP or res not in (None, 'RED'):
-                    break
+            mp3, flag = walk_chunk(chap, i, c, reuse_map.get((chap, i)), notes_all)
+            if mp3 is not None:
+                good.append(mp3)
+            elif not STOP:
+                skipped.append(i)
+            if flag:
+                flagged.append(i)
+                kept, other, runs = flag
+                notes_all.append(f'  chunk {i} FLAGGED (2nd fidelity RED, kept the take with fewer error ops: {kept}' + (f' vs {other}' if other is not None else '') + '): ' + ' | '.join(runs))
             if STOP:
                 break
-            if res in (None, 'RED'):
-                skipped.append(i)
-            else:
-                good.append(res)
         if good:
             dst = f'{DELIVER}/season3-{chap}-narration.mp3'
             join(chap, good, dst); os.chmod(dst, 0o644)
-            status = 'pilot' if chap == 'C2' and not skipped and not STOP else ('final' if not skipped and not STOP else 'partial')
-            rows.append(f'season3-{chap}-narration.mp3: chapter {chap} narration, {len(good)} of {len(cs)} chunks, status {status}' + (f', SKIPPED chunks {skipped}' if skipped else ''))
+            clean = not skipped and not flagged and not STOP
+            status = 'pilot' if chap == 'C2' and clean else ('final' if clean else 'partial' + (f': {len(flagged)} flagged' if flagged else ''))
+            rows.append(f'season3-{chap}-narration.mp3: chapter {chap} narration, {len(good)} of {len(cs)} chunks, status {status}' + (f', SKIPPED chunks {skipped}' if skipped else '') + (f', STOPPED' if STOP else ''))
+            try:
+                mp4 = card_video(chap, titles.get(chap, chap), dst)
+                rows.append(f'{os.path.basename(mp4)}: chapter {chap}, static-card version; the animated render is pending')
+            except Exception as e:           # the mp3 is already delivered; a card failure must not stop the walk
+                rows.append(f'{video_name(chap, titles.get(chap, chap))}: NOT written ({type(e).__name__}); the mp3 stands')
         rows += notes_all
         readme(rows)
         if STOP:
