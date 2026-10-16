@@ -12,7 +12,7 @@ tags:
   - card
   - prime
   - belam
-thought_session: belam-s3-I
+thought_session: belam-s3-II
 title: "doc:card-belam -- the Prime's card: the one scratch (state · plan · landed · where it stops · traps · verification · BANKED)"
 town: core
 ---
@@ -21,10 +21,10 @@ town: core
 Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.agi/sessions/quorum/belam.md` are symlinks to it. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs. Skills: agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-post · agi-memory-guard · agi-node-write · agi-goal · agi-master-gate · design-taste-frontend (vendored, ~/.claude/skills).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-s3-I rotating out 08:0xZ 10-16 at the context line. Season 3 is open and running on the owner's words; the owner went to bed 07:5xZ ("just do your best") and said usage is nearly out ("if not see you next week"), so the delivery of the g5.4.2 media was moved onto a Claude-free watcher before this rotation.
+belam-s3-II woke 08:07Z 10-16: the watcher had died with the rotation (it lived in agi-post@belam's cgroup), so it now runs as its own transient system unit; P2 disabled, the two walk keys minted on SM's 08:05:56Z word.
 <!-- THOUGHT:END -->
 
-## §0 State (08:0xZ 10-16)
+## §0 State (08:1xZ 10-16)
 | | |
 |---|---|
 | trunk | core/season3/main = MAIN's checkout = every post's AGI_TRUNK; season3/main = my PASS line (2a8056bcb5); core/main ff-fed from season3/main after a PASS (ahead = RED). Last PASS base 2a8056bcb5; N ~45, experiments landed 0 (only L27's two R100 moves) |
@@ -34,7 +34,7 @@ belam-s3-I rotating out 08:0xZ 10-16 at the context line. Season 3 is open and r
 | landing SM's L<n> | ~/tools/verify-land.sh takes the ref name `L<n>` (not `<n>`): held/tree/parents/G/D/anonymize/home/gpu; then ff MAIN, CAS posts/belam to it, push both, `git checkout -q --detach` in ~/t |
 | crons | CHECK 13 */4 (session-only: re-arm at wake, CronList first) |
 | Drive | rclone remote `gdrive:` (scope drive.file, agi-belam ~/.config/rclone, mode 600) = the OWNER's Drive folder `agi` (https://drive.google.com/drive/folders/1ZKskZRNkGqok7TuZMj-VfGjwmSAjExJc): explainer 17:32 + MV + rollover report already there |
-| WATCHER | /var/lib/agi/belam/drive-deliver.sh, setsid, no Claude (pid 1648835 at 08:0xZ; a reboot kills it: restart `setsid nohup /bin/sh /var/lib/agi/belam/drive-deliver.sh >/dev/null 2>&1 </dev/null &`). Uploads finished files in /data/work/director-general-3-media/season3/deliver/ to gdrive:agi/season3-media/{explainer,voice-samples,music,html}/, md5-checked; joins explainer-chNN-*.mp4 into explainer/00-explainer-full-so-far.mp4 each time one lands; state + log in ~/.drive-deliver/; stops 10-23 |
+| WATCHER | /var/lib/agi/belam/drive-deliver.sh as transient unit `drive-deliver.service` (User=agi-belam; survives rotations, NOT a reboot: `sudo -n systemd-run --unit=drive-deliver -p User=agi-belam -p Group=agi-belam --setenv=HOME=/var/lib/agi/belam /bin/sh /var/lib/agi/belam/drive-deliver.sh`). Uploads finished files in /data/work/director-general-3-media/season3/deliver/ to gdrive:agi/season3-media/{explainer,voice-samples,music,html}/, md5-checked; joins explainer-chNN-*.mp4 into explainer/00-explainer-full-so-far.mp4 each time one lands; state + log in ~/.drive-deliver/; stops 10-23 |
 
 ## §1 Plan
 ```
@@ -45,7 +45,8 @@ belam-s3-I rotating out 08:0xZ 10-16 at the context line. Season 3 is open and r
    write into DG3 ~/keys/<name>.key (dir 700, file 600, `sudo -n -u agi-director-general-3 sh -c "umask 077; cat > ..."`); never print a value
    at DG3's [done]: PATCH disabled=true, read back, shred the file. Settle (~/tools/settle-read.sh, re-run its loop): GET /keys?include_disabled=true (plain /keys HIDES disabled ones);
    two agreeing NON-ZERO reads >= 30 min apart, never < mint + 3 h; a 0 then = UNSETTLED at full cap, never delete (council's word to delete)
-   NEXT now: P2 56120eb9f6 (temperature 0) is LIVE until 09:03:16Z -> DISABLE at DG3's [done]; then the 2 WALK keys (TTS + STT) on SM's word
+   NOW: walk-tts a2739d5df7 ($4.20) + walk-stt c6bde54503 ($0.90, raised 08:11Z per council W1) LIVE until 09:58Z -> DISABLE both at DG3's walk [done], shred the files;
+   settle-read P1/P2/walk keys from 11:1xZ (mint + 3 h). P2 disabled 08:07:53Z + file shredded
 3. CHECK every 4 h (skill agi-merge-pass §1): T1-T3, then A-C; ONE line when nothing changed
 4. PASS when experiments landed > 0: merge core/season3/main into season3/main, ff core/main, read back
 ```
@@ -54,7 +55,7 @@ belam-s3-I rotating out 08:0xZ 10-16 at the context line. Season 3 is open and r
 B-3 overwrite 08:10Z 10-15 · L26 a93fe7cf36 · season 3 opened 19:2xZ 10-15 (.44.8 agi.sh + g5.4.1 report template, council design first) · boot pin fa3174300d · L27 fe2b6d3991 (DG3 retire = status + move) · goals cut: .42.2 (:28 lands Prime commits), .31.1 (warm-load test), .20.3 (captive lock), g5.4.2 (media set) · taste skill vendored /data/work/skills-vendor/taste-skill@f624f37a8c · Node 22 /opt/node22 + Chrome for Testing /opt/chrome-cft (/usr/bin/chromium, AppArmor /etc/apparmor.d/chrome-cft for its sandbox)
 
 ## 🔴 Where it stops
-belam rotates 08:0xZ 10-16 at the line; P2 key 56120eb9f6 is live for DG3 (disable at its [done]), the walk keys come next on SM's word; delivery to Drive runs Claude-free.
+Waiting on DG3's walk [done] (via SM) to disable the two walk keys; the [minted] went to SM 08:08:36Z; CHECK cron a85ea2c8 armed; delivery runs as drive-deliver.service.
 NEXT COMMAND: AGI_POST=belam box read
 
 ## §4 Traps (this generation's only)
@@ -64,10 +65,12 @@ NEXT COMMAND: AGI_POST=belam box read
 | 109 | `pgrep -f <name>` / `pkill -f '...rclone authorize'` match the calling shell's own command line (a false "already running", exit 144) | match the exact argv: `ps -u agi-belam -o pid,args | grep '[d]rive-deliver.sh$'` |
 | 110 | a temp token file shredded before rclone confirmed it: the one-use OAuth code was lost, the owner signed in twice | keep a credential copy until the consumer proves it works, then shred |
 | 111 | the agi-at reset leaves a STALE town:local-maxxing metrics line in ~/t (twice) | `git restore --source=HEAD --staged --worktree -- .agi/nodes/town/local-maxxing.md` (it is older data, in git) |
+| 113 | a setsid'd watcher still dies with the post: agi-post@<post> stops its whole cgroup at rotation | anything that must outlive the post runs as its own unit (`sudo -n systemd-run --unit=...`) |
+| 114 | ~/.gitconfig was rewritten 08:05Z 10-16 (the rotation) without the github credential lines: push -> 'could not read Username' | at wake: `git config --global --get-all credential.https://github.com.helper` must print '' + the gh line; else re-add both |
 | 112 | a box mail carried this box's host name (public repo) | write "this box" in mail and nodes; the owner does not mind it much (10-16), history left as is |
 
 ## §5 Verification
-08:0xZ 10-16: MAIN == posts/belam == origin core/season3/main (latest belam commit 7d21bd5c80 + this card) · 12 agi-post@ active · watcher alive, 2+ files uploaded md5 ok · enabled stage keys: P2 only
+08:1xZ 10-16: enabled keys = ADMIN {walk-tts, walk-stt, Default}, WORKSPACE {agi-et-runtime, agi}; drive-deliver.service active, uploaded r2-bill-p2 08:08:50Z md5 ok · 08:0xZ 10-16: MAIN == posts/belam == origin core/season3/main (latest belam commit 7d21bd5c80 + this card) · 12 agi-post@ active · watcher alive, 2+ files uploaded md5 ok · enabled stage keys: P2 only
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
