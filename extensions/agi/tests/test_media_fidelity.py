@@ -178,3 +178,24 @@ def test_mutant_twenty_three_to_thirty_three_in_a_long_chunk_is_red(capsys):
     assert f.check(long_ref, long_ref.replace("twenty third", "23rd")) == 0
     assert f.check(long_ref, long_ref.replace("twenty third", "33rd")) == 1
     assert f.check("There were one thousand nodes.", "There were 1,100 nodes.", wer_max=0.9) == 1
+
+
+def test_dollar_falsifier_ten_cents_vs_ten_dollars(capsys):
+    """council 07:04Z (vi): REF 'ten cents' vs HYP 'ten cents' GREEN, vs 'ten dollars' RED (a swapped unit is a changed fact). The script today has
+    no $ or decimal (grep over the 621 rendered sentences: 0 hits), so this guards a line that ever does."""
+    ref = " ".join([REF] * 4) + " It cost ten cents."
+    assert f.check(ref, ref) == 0
+    assert f.check(ref, ref.replace("ten cents", "ten dollars")) == 1
+    assert f.check(ref, ref.replace("ten cents", "10 cents")) == 0
+    assert f.check(ref.replace("ten cents", "$0.10"), ref.replace("ten cents", "$0.10")) == 0
+    assert f.check(ref.replace("ten cents", "$0.10"), ref.replace("ten cents", "$0.10").replace("$0.10", "zero point one zero dollars")) == 0
+
+
+def test_mutant_a_normalise_entry_mapping_to_nothing_is_refused():
+    import pytest
+    with pytest.raises(ValueError):
+        f.validate_normalise([(r"\\bsect\\b", "")])
+    with pytest.raises(ValueError):
+        f.validate_normalise([(r"\\bsect\\b", "   ")])
+    assert f.validate_normalise([(r"\\bp y\\b", "py")])
+    assert f.NORMALISE == f.validate_normalise(f.NORMALISE)

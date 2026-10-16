@@ -7,7 +7,7 @@ shows up in HYP as words REF does not have); the bracketed AUDIO EVENTS a transc
 The two word lists are aligned (Levenshtein, tie-break: the cheapest path that keeps errors together). A chunk is RED when
   wer         substitutions + deletions + insertions over the REF words is above --wer;
   protected   ANY error op on a negation or a number word (PROTECTED: not no never nothing none nor cannot without, zero..ninety, hundred thousand
-              million; curly apostrophes become ASCII and n't contractions are spelled out first, can't -> cannot): one dropped "never" inverts a
+              million, dollar(s) cent(s) percent; curly apostrophes become ASCII and n't contractions are spelled out first, can't -> cannot): one dropped "never" inverts a
               claim, "fourteen" -> "forty" changes a fact, and an isolated error is green by design, so these are RED regardless of N or WER;
   error_run   a run of >= --run ERROR ops (substitution, deletion, insertion, mixed) in alignment order with no exact match between them,
               except that a run is bridged over up to --bridge single matched words (a common word that happens to match inside a deleted or
@@ -25,9 +25,23 @@ import media_fm2  # noqa: E402
 
 MAX_CELLS = 4_000_000
 NUMBERS = set(media_fm2.ONES) | {w for w in media_fm2.TENS if w != "_"} | {"hundred", "thousand", "million"}
-PROTECTED = {"not", "no", "never", "nothing", "none", "nor", "cannot", "without"} | NUMBERS    # a swapped number word ("fourteen" -> "forty") changes a fact
+UNITS = {"dollar", "dollars", "cent", "cents", "percent"}     # a swapped unit changes a fact ("ten cents" -> "ten dollars"), like a swapped number
+PROTECTED = {"not", "no", "never", "nothing", "none", "nor", "cannot", "without"} | NUMBERS | UNITS    # a swapped number word ("fourteen" -> "forty") changes a fact
 # recorded normalisation: a regex over the joined, normalised words -> the one form both texts get
 NORMALISE = [(r"\ba g i\b", "agi")]
+
+
+def validate_normalise(entries):
+    """A NORMALISE entry maps a spelling to a spelling of the SAME words (council 07:04Z (ii)): an empty replacement would delete heard words from the
+    comparison, so it is refused. Raises ValueError."""
+    for rx, to in entries:
+        if not isinstance(to, str) or not to.strip():
+            raise ValueError(f"NORMALISE entry {rx!r} maps to an empty string: refused")
+        re.compile(rx)
+    return entries
+
+
+validate_normalise(NORMALISE)
 EVENT = re.compile(r"\[[^\]]*\]|\((?:[A-Za-z ]{1,30})\)")
 
 
