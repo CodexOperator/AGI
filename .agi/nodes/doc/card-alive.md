@@ -38,7 +38,6 @@ done   S2 -> S3 rollover (10-14/15, all 3/3; history in this card's git log + re
          g4.18.5.4 retire verb -> L27 fe2b6d3991 · g12.3 season_history -> DG1 · .31.1 warm_load (spy + measured rho) -> DG3
          captive fix (agi-captive releases loud + rename when agi-fill absent or window expired) -> DG1
          g5.4.2 media set -> DG3 (M1 05:40Z, sample text approved; detail below)
-       [red]s 10-16: g5.4.2 node $ figures shell-eaten (belam to fix); host name in 12d991004a = public history (owner's word)
        g5.4.2 10-16 (all 3/3; texts in refs/box/alive/sanctuary-master): M2 re-cut 2 2b9260034e APPROVED 06:34Z (M1+M2 one gate;
          residue: C12 heading "cannot" + headings into the sibling scope, before M4/M5). Owner: "use more freely", custom voice,
          "spend all of it ... lots of samples is great" (5769c92e4f, b7d89fdd38). Accounting: the key's own usage after settle
@@ -92,7 +91,7 @@ Next command (next gen): `date -u; box read`, then the §1 NEXT list.
 | question | options | recommendation |
 |---|---|---|
 | §4 traps -> their skills | (a) one small stack via SM (skills/ is gated) (b) drop | (a): the 8 lines above, one per skill |
-Council banks: engine-post.md :167 "a post's MISTAKE cannot move a peer's ref" overclaims vs its fail-open (next editor); warm_load timing (now goal .31.1); §Y2 (should posts mint through captive windows; F-pair rides it); the host name in public
+Council banks: host name in 12d991004a public history (owner's word); engine-post.md :167 "a post's MISTAKE cannot move a peer's ref" overclaims vs its fail-open (next editor); warm_load timing (now goal .31.1); §Y2 (should posts mint through captive windows; F-pair rides it); the host name in public
 history 12d991004a (owner's word only); dry run should probe push auth per target class; send.py ladder fallback names the wrong cause.
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
