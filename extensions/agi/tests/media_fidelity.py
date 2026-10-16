@@ -6,8 +6,9 @@ normalised (lower case, punctuation gone, a bare integer spelled as its words); 
 shows up in HYP as words REF does not have); the bracketed AUDIO EVENTS a transcriber writes are removed from HYP and listed (`stripped=`).
 The two word lists are aligned (Levenshtein, tie-break: the cheapest path that keeps errors together). A chunk is RED when
   wer         substitutions + deletions + insertions over the REF words is above --wer;
-  protected   ANY error op on a negation (PROTECTED: not no never nothing none nor cannot without; n't contractions are spelled out first, can't ->
-              cannot): one dropped "never" inverts a claim, and an isolated error is green by design, so these are RED regardless of N or WER;
+  protected   ANY error op on a negation or a number word (PROTECTED: not no never nothing none nor cannot without, zero..ninety, hundred thousand
+              million; curly apostrophes become ASCII and n't contractions are spelled out first, can't -> cannot): one dropped "never" inverts a
+              claim, "fourteen" -> "forty" changes a fact, and an isolated error is green by design, so these are RED regardless of N or WER;
   error_run   a run of >= --run ERROR ops (substitution, deletion, insertion, mixed) in alignment order with no exact match between them,
               except that a run is bridged over up to --bridge single matched words (a common word that happens to match inside a deleted or
               reworded span does not split it). It covers a deleted sentence, a paraphrase, a spoken tag, a repeated line and a truncated tail.
@@ -23,7 +24,8 @@ sys.path.insert(0, __file__.rsplit("/", 1)[0])
 import media_fm2  # noqa: E402
 
 MAX_CELLS = 4_000_000
-PROTECTED = {"not", "no", "never", "nothing", "none", "nor", "cannot", "without"}
+NUMBERS = set(media_fm2.ONES) | {w for w in media_fm2.TENS if w != "_"} | {"hundred", "thousand", "million"}
+PROTECTED = {"not", "no", "never", "nothing", "none", "nor", "cannot", "without"} | NUMBERS    # a swapped number word ("fourteen" -> "forty") changes a fact
 # recorded normalisation: a regex over the joined, normalised words -> the one form both texts get
 NORMALISE = [(r"\ba g i\b", "agi")]
 EVENT = re.compile(r"\[[^\]]*\]|\((?:[A-Za-z ]{1,30})\)")
@@ -38,7 +40,7 @@ def strip_events(text):
 def words(text, drop_tags):
     if drop_tags:
         text = re.sub(r"\[[^\]]*\]", " ", text)
-    text = text.lower().replace("-", " ").replace("can't", "cannot").replace("won't", "will not").replace("n't", " not")
+    text = text.replace("\u2019", "'").replace("\u2018", "'").lower().replace("-", " ").replace("can't", "cannot").replace("won't", "will not").replace("n't", " not")
     text = re.sub(r"[^a-z0-9' ]+", " ", text)
     out = []
     for w in text.split():

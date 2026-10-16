@@ -138,3 +138,22 @@ def test_contractions_are_spelled_out_so_dont_vs_do_not_is_green(capsys):
 
 def test_an_isolated_error_on_a_plain_word_is_still_green(capsys):
     assert f.check(NEG, NEG.replace("committed", "comitted")) == 0
+
+
+def test_curly_apostrophes_are_ascii_so_a_clean_take_is_green(capsys):
+    """alive RAN 'a post cannot move a peer ref' vs 'a post can\u2019t move ...' -> PROTECTED RED: a clean take written with a curly apostrophe
+    (as an STT often writes it) must read GREEN, never poison the noise floor."""
+    assert f.check("A post cannot move a peer ref.", "A post can\u2019t move a peer ref.") == 0
+    assert f.check("It doesn't move and it won't leave.", "It doesn\u2019t move and it won\u2019t leave.") == 0
+    assert f.check("A post cannot move a peer ref.", "A post can move a peer ref.") == 1           # a real drop is still RED
+
+
+def test_mutant_one_number_word_swapped_in_a_long_chunk_is_red(capsys):
+    """alive RAN a 96-word chunk with 'fourteen' -> 'forty' once -> GREEN. Number words are PROTECTED, in a ~300-word chunk too."""
+    long_ref = " ".join([REF] * 4) + " There were fourteen posts on the road and two hundred and fourteen nodes."
+    assert len(f.words(long_ref, True)) > 280
+    assert f.check(long_ref, long_ref) == 0
+    assert f.check(long_ref, long_ref.replace("fourteen posts", "forty posts")) == 1
+    assert "PROTECTED sent [fourteen] heard [forty]" in capsys.readouterr().out
+    assert f.check(long_ref, long_ref.replace("two hundred and fourteen", "two hundred and forty")) == 1
+    assert f.check(long_ref, long_ref.replace("fourteen posts", "14 posts")) == 0                    # digits for the same number word are fine
