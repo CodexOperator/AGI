@@ -19,6 +19,14 @@ town: core
 ---
 # goal:g5.4.1
 
+## OWNER 2026-10-15 19:5xZ, verbatim (answers to the council's five questions, relayed by belam)
+"1. Both is good
+2. That works 
+3. You that works
+4. Generate each time 
+5. Yup by hand is fine"
+The questions, in the council's order: (1) .44.8 acceptance: an nspawn container on this box with claude stubbed, AND the owner's next real fresh box -> BOTH. (2) .44.8 skill name: one skill, agi-town -> YES. (3) g5.4.1 template: a build node gated like code -> YES (belam reads "You that works" as "Yup that works"). (4) g5.4.1 song: generated each season, not only from an owner-handed file -> GENERATE EACH TIME. (5) g5.4.1 publish: the Prime by hand -> YES.
+
 ## OWNER 2026-10-15 19:2xZ, verbatim
 "ok report looks lovely. [...] Can we also standardize that end of season report format as some sort of config or standardized HTML node that we can just run our season rollover skill/scripts and have it display everything updated for the latest season automatically ish outside of things that need to be specified generatively."
 (The whole message, with its start / stop and sign / push paragraphs, is verbatim on goal:g7.16.1.11.44.8.)

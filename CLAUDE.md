@@ -97,7 +97,7 @@ It versions `node.md` + its payload as ONE version, independent of the rest of t
 **Verify which branch is checked out before trusting any push.**
 
 ## Conventions
-- **Retire, never delete**: `status: deprecated` + move to `.agi/nodes/deprecated/<type>/`; never `git rm`. A grid ref
+- **Retire, never delete**: `write.py <id> 'retire <note>'` = `status: deprecated` + move to `.agi/nodes/deprecated/<type>/` in one commit (a status-only deprecate is refused; `verify` checks status and place agree); never `git rm`. A grid ref
   outlives its file; readers that glob a type dir read the retired sibling too, live-first. Watch
   `active_node_count` / `deprecated_node_count`; their sum never drops.
 - **Two identifiers**: the **mint id** never changes (grid refs, provenance); the **address** is derived and may (G2.5).

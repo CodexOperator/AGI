@@ -686,7 +686,7 @@ def test_b4_w1b_every_write_verb_is_its_own_exact_path_commit(project):
                "replace": f"replace body 1:1 --force {project / 'x.txt'}",
                "row": f"row 1 {project / 'y.txt'}"}   # W1a's verb (DG3) joins the enumeration
     assert set(scripts) | {"read", "adopt", "payload", "payload_text", "patch",
-                           "body_patch", "canonicalize"} == set(write.VERBS)   # canonicalize: a no-op
+                           "body_patch", "canonicalize", "retire"} == set(write.VERBS)   # retire: the move, its own test below   # canonicalize: a no-op
     # on a node write_node minted (already canonical), so it makes no commit to enumerate (SM 154)
     g, head = _w1b(project)
     (project / "y.txt").write_text("y\n")   # row's own bytes: an identical row is UNCHANGED, no commit
@@ -695,6 +695,19 @@ def test_b4_w1b_every_write_verb_is_its_own_exact_path_commit(project):
         assert g("show", "--name-only", "--format=", "HEAD").split() == [
             ".agi/nodes/hypothesis/h9.md"], verb
     assert g("rev-list", "--count", f"{head}..HEAD").strip() == str(len(scripts))
+    assert g("diff", "--cached", "--name-only").split() == ["other.txt"]
+
+
+def test_b4_g41854_retire_commits_both_halves_of_the_move(project):
+    """goal:g4.18.5.4: `retire` is status + move, ONE commit by exact path that carries the
+    deletion of the live path AND the add of nodes/deprecated/<type>/: nothing left dirty, nothing
+    left at HEAD twice, another post's staged file untouched."""
+    g, head = _w1b(project)
+    assert write.main(["hypothesis:h9", "retire w1b done", "--root", str(project)]) == 0
+    st = dict(l.split("\t")[::-1] for l in g("show", "--name-status", "--no-renames", "--format=", "HEAD").splitlines())
+    assert st == {".agi/nodes/hypothesis/h9.md": "D", ".agi/nodes/deprecated/hypothesis/h9.md": "A"}
+    assert g("rev-list", "--count", f"{head}..HEAD").strip() == "1"
+    assert g("status", "--porcelain", "--", ".agi/nodes").strip() == ""
     assert g("diff", "--cached", "--name-only").split() == ["other.txt"]
 
 

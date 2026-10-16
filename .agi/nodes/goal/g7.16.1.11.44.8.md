@@ -19,6 +19,14 @@ town: core
 ---
 # goal:g7.16.1.11.44.8
 
+## OWNER 2026-10-15 19:5xZ, verbatim (answers to the council's five questions, relayed by belam)
+"1. Both is good
+2. That works 
+3. You that works
+4. Generate each time 
+5. Yup by hand is fine"
+The questions, in the council's order: (1) .44.8 acceptance: an nspawn container on this box with claude stubbed, AND the owner's next real fresh box -> BOTH. (2) .44.8 skill name: one skill, agi-town -> YES. (3) g5.4.1 template: a build node gated like code -> YES (belam reads "You that works" as "Yup that works"). (4) g5.4.1 song: generated each season, not only from an owner-handed file -> GENERATE EACH TIME. (5) g5.4.1 publish: the Prime by hand -> YES.
+
 ## OWNER 2026-10-15 19:2xZ, verbatim
 "ok report looks lovely. I'm fine with doing whole town start-stop as one simple script next so the town can be started on a fresh claude completely fresh install on a fresh box with just a single skill call. We already have the relevant agi start/stop skills we're just gonna turn all the traps and things in that skill into code so its just a matter of running agi-start.sh and answering all the things it needs input custom step by step via a captive flow. Same with agi-stop.sh . Or just have agi.sh and it has both start and stop routes.
 

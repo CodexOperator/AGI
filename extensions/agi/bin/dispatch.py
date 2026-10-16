@@ -4399,10 +4399,10 @@ def _deprecate_orphan_scaffold(root: Path, node_id: str, agent_id: str) -> bool:
     leaves a live orphan (hypothesis:l4-dispatch-exits-non-zero-and-
     deprecates-the-scaffold-when-no-agent-record-follows-a-scaffolded-node).
 
-    Reuses `node_writer.update_node` -- the one gated routine that edits an
-    existing node and logs its write -- to stamp `status: deprecated` plus a
-    note naming the failed spawn, then physically moves the file to
-    `nodes/deprecated/<type>/` (the retirement layout, CLAUDE.md). Returns
+    Goes through `node_writer.retire_node` -- the one gated routine that stamps
+    `status: deprecated` plus a note naming the failed spawn AND moves the file
+    to `nodes/deprecated/<type>/` (the retirement layout, CLAUDE.md), one act:
+    a status-only deprecate is refused (goal:g4.18.5.4). Returns
     False rather than raising: deprecation failing must not turn a named
     spawn failure into a different crash.
     """
@@ -4412,26 +4412,13 @@ def _deprecate_orphan_scaffold(root: Path, node_id: str, agent_id: str) -> bool:
     if npath is None:
         return False
     try:
-        nf = fm_reader.load_node_file(npath)
+        fm_reader.load_node_file(npath)
     except Exception:
         return False
-    ntype = node_writer.canonical_node_type(
-        nf.frontmatter.get("type") or npath.parent.name)
     note = (f"orphan scaffold: dispatch {agent_id} scaffolded this node but no "
             f"agent record followed in the spawn's registration step")
-    up = node_writer.update_node(
-        root, node_id,
-        set_fm={"status": "deprecated", "deprecated_note": note},
-        announce=False)
-    if up.status not in (node_writer.UPDATED, node_writer.UNCHANGED):
-        return False
-    dep = root / "nodes" / "deprecated" / ntype
-    dep.mkdir(parents=True, exist_ok=True)
-    try:
-        shutil.move(str(npath), str(dep / npath.name))
-    except OSError:
-        return False
-    return True
+    up = node_writer.retire_node(root, node_id, note=note)   # status + move, one act (goal:g4.18.5.4)
+    return up.status in (node_writer.UPDATED, node_writer.UNCHANGED)
 
 
 def _report_unregistered_scaffold(root: Path, scaffold_info, agent_id: str,
