@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""media_fm1.py OUTLINE.md [REPO]: Fm1 + Fm1b of goal:g5.4.2 (the season media set) on an explainer outline or script node.
+"""media_fm1.py OUTLINE.md [REPO] [--chapters=N]: Fm1 + Fm1b of goal:g5.4.2 (the season media set) on an explainer outline or script node.
 
 Fm1   every `@@excerpt SHA:PATH:Lx-Ly` is followed by a ~~~~ fenced block that BYTE-EQUALS `git show SHA:PATH | sed -n x,yp`
       (mismatches), and every `fn:` token resolves at the SHA of its chapter (unresolved):
@@ -56,7 +56,7 @@ def piece_body(repo, sha, name):
     return None
 
 
-def check(outline, repo):
+def check(outline, repo, expect_chapters=None):
     text = open(outline, encoding="utf-8").read().split("\n")
     sha = None
     miss, unres, ulive, uwrong, n_ex, n_fn, n_live = [], [], [], [], 0, 0, 0
@@ -93,7 +93,10 @@ def check(outline, repo):
                     j += 1
                 have = "\n".join(body)
                 raw = show(repo, s, path)
-                want = None if raw is None else "\n".join(raw.decode("utf-8", "surrogateescape").split("\n")[a - 1:b])
+                flines = [] if raw is None else raw.decode("utf-8", "surrogateescape").split("\n")
+                if flines and flines[-1] == "":
+                    flines.pop()   # the empty piece after the final newline is not a line
+                want = None if raw is None or a < 1 or b < a or b > len(flines) else "\n".join(flines[a - 1:b])   # a range past EOF is cut short by the slice: that is a mismatch
                 if want is None or have != want:
                     miss.append(f"{s}:{path}:L{a}-L{b} (outline line {i + 1})")
                 i = j
@@ -139,6 +142,10 @@ def check(outline, repo):
     if chap and not chap_open:
         nosha.append(f"chapter {chap} has no fn: token")
     # a green on text it never checked is a failure: nothing to check, or a token that could not be checked
+    if n_chap == 0:
+        nosha.append("no `## C<n>` chapter heading: nothing was checked")
+    if expect_chapters is not None and n_chap != expect_chapters:
+        nosha.append(f"chapters={n_chap}, the outline has {expect_chapters}")
     if n_ex == 0:
         nosha.append("no @@excerpt in the file: nothing was checked")
     if n_fn == 0:
@@ -156,4 +163,6 @@ def check(outline, repo):
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit(__doc__)
-    sys.exit(min(check(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else "."), 99))
+    args = [a for a in sys.argv[1:] if not a.startswith("--chapters=")]
+    want = next((int(a.split("=")[1]) for a in sys.argv[1:] if a.startswith("--chapters=")), None)
+    sys.exit(min(check(args[0], args[1] if len(args) > 1 else ".", want), 99))

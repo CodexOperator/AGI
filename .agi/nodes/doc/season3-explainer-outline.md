@@ -56,11 +56,11 @@ fn: piece:agi-project
 **Beat.** Open on the owner's own picture: the diagram's three lines. Pull the camera down from the whole graph to one node, then to one line of that node. Promise: by the end, the viewer has followed one line from a post's keyboard to the trunk and can say what every hand-off did.
 
 
-## C1 · The smallest piece: sect, a few bytes of engine
+## C1 · A tiny piece: sect, a few bytes of engine
 
 sha: 6432bf88d5
 
-claim: `sect` prints ONE fenced piece of any engine file at any revision: a read of the graph, cut with sed, and the smallest working tool in the engine.
+claim: `sect` prints ONE fenced piece of any engine file at any revision: a read of the graph, cut with sed, and among the smallest working tools in the engine.
 
 fn: piece:sect
 live: sect <- piece:agi-brief
@@ -233,7 +233,7 @@ description: >
 
 sha: 6432bf88d5
 
-claim: The post edits the file in the tiny tree with a plain edit; nothing in the engine runs at that moment. The change is only bytes in a file until the turn ends.
+claim: The post edits the file in the tiny tree with a plain edit; nothing in the engine writes to the history at that moment. The change is only bytes in a file until the turn ends.
 
 fn: piece:agi-wt
 
@@ -261,14 +261,14 @@ live: agi-turn <- piece:settings.json
 ~~~~
 for d in ${AGI_WT:-$RUNTIME_DIRECTORY/wt}/*/;do [ -f $d.p ]||continue;m=$(basename $d);t=$(git rev-parse $b)&&git read-tree $t&&a=$(git --work-tree=$d add -A --pathspec-from-file=$d.p 2>&1)&&n=$(git write-tree)||{ echo "[stage] $m: $(echo "${a:-git failed}"|tr '\n' ' ')">&2;k=1;continue;}
 ~~~~
-**Beats.** The loop walks every directory under the RAM path; a directory without `.p` is not a tree and is skipped. For each: `git read-tree` of the branch tip into a TEMPORARY index (`GIT_INDEX_FILE` is a throwaway), then `git add` with the work tree pointed at the dish and the paths read from `.p` (`--pathspec-from-file`), then `git write-tree`. If the resulting tree equals the tip's tree, the turn changed nothing and the loop continues. The index is never the repo's: nothing another post staged can ride along.
+**Beats.** The loop walks every directory under the RAM path; a directory without `.p` is not a tree and is skipped. For each: `git read-tree` of the branch tip into a TEMPORARY index (`GIT_INDEX_FILE` is a throwaway), then `git add` with the work tree pointed at the dish and the paths read from `.p` (`--pathspec-from-file`), then `git write-tree`. If the resulting tree equals the tip's tree, the turn changed nothing and the loop continues. The index used is a throwaway: nothing another post staged can ride along (the real index moves only when the read view is re-detached).
 
 
 ## C9 · One signed commit, by compare-and-swap
 
 sha: 6432bf88d5
 
-claim: `agi-turn` makes ONE commit per changed tree with `git commit-tree -S` on top of the tip it read, and moves the branch with `git update-ref NEW OLD`: if the tip moved meanwhile, the update loses and says `[raced]`.
+claim: `agi-turn` makes ONE commit per changed tree with `git commit-tree -S` on top of the tip it read, and moves the branch with `git update-ref NEW OLD`: if the branch moved meanwhile, the update loses and says `[raced]`.
 
 fn: piece:agi-turn
 
@@ -322,7 +322,7 @@ if A[1]=='open':
 
 sha: 6432bf88d5
 
-claim: If the branch tip moved since the pull, the commit goes to an archive ref instead and the tree is dropped or kept by name; at the end of every turn `agi-sync` merges the trunk into the branch, or says by name that it cannot.
+claim: If the node itself changed on the branch tip since the pull, the commit goes to an archive ref instead and the tree is dropped or kept by name; at the end of every turn `agi-sync` merges the trunk into the branch, or says by name that it cannot.
 
 fn: piece:agi-turn
 fn: piece:agi-sync

@@ -14,8 +14,8 @@ REPO = subprocess.check_output(["git", "-C", str(HERE), "rev-parse", "--show-top
 OUTLINE = Path(REPO) / ".agi/nodes/doc/season3-explainer-outline.md"
 
 
-def _run(path, capsys):
-    rc = media_fm1.check(str(path), REPO)
+def _run(path, capsys, chapters=18):
+    rc = media_fm1.check(str(path), REPO, chapters)
     out = capsys.readouterr().out
     return rc, int(re.search(r"mismatches=(\d+)", out).group(1)), int(re.search(r"unresolved=(\d+)", out).group(1))
 
@@ -90,3 +90,27 @@ def test_the_m2_script_is_green_for_fm1(capsys):
     script = Path(REPO) / ".agi/context/media/season3-explainer-script.md"
     rc, mism, unres = _run(script, capsys)
     assert (rc, mism, unres) == (0, 0, 0)
+
+
+def test_mutant_chapter_headings_renamed_is_not_green(tmp_path, capsys):
+    """The chapters must equal the outline's 18: with the `## C<n>` headings renamed the file used to count 0 chapters and exit 0."""
+    text = re.sub(r"(?m)^## C(\d+)", r"## Chapter \1", OUTLINE.read_text())
+    rc, mism, unres = _run(_write(tmp_path, text), capsys)
+    assert rc != 0 and unres >= 1
+
+
+def test_mutant_an_excerpt_range_past_eof_is_a_mismatch(tmp_path, capsys):
+    """sed -n a,bp stops at EOF, so a range that runs past the end is cut short by the slice: b > len counts as a mismatch."""
+    sha = "6432bf88d5"
+    path = ".agi/nodes/goal/g7.16.1.1.6.2.md"
+    body = subprocess.check_output(["git", "-C", REPO, "show", f"{sha}:{path}"], text=True).split("\n")
+    if body[-1] == "":
+        body.pop()
+    n = len(body)
+    tail = "\n".join(body[n - 2:n])
+    good = f"## C0 · t\n\nsha: {sha}\n\nfn: piece:sect\n\n@@excerpt {sha}:{path}:L{n - 1}-L{n}\n~~~~\n{tail}\n~~~~\n"
+    rc, mism, unres = _run(_write(tmp_path, good), capsys, 1)
+    assert (rc, mism, unres) == (0, 0, 0)    # the in-range excerpt is green
+    bad = good.replace(f"L{n - 1}-L{n}", f"L{n - 1}-L{n + 50}")
+    rc, mism, unres = _run(_write(tmp_path, bad), capsys, 1)
+    assert mism == 1 and rc != 0
