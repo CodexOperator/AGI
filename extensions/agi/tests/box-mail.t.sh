@@ -2,7 +2,7 @@
 # box-mail.t.sh: AA1.M falsifiers for the trunk's `box` piece (hypotheses g716111-aa1m-box-send-..., ...-no-worktree-hop-...): sh + git + jq, scratch only,
 # throwaway keys, no live ref. One ok/FAIL line per case; exit = number of FAILs. The file under test is the PIECE: `sect box` from the .geometry engine*.md of ROOT
 # (default: the working tree this file sits in), exactly as box-carry.t.sh reads its pieces; case b0 pins that the box under test IS that piece, byte for byte.
-# BOX=<file>  a box to test instead (b0 then FAILs unless it is byte-equal to the piece); ROOT=<repo> where the piece is read; CEIL=<bytes> the piece's size ceiling (default 2019)
+# BOX=<file>  a box to test instead (b0 then FAILs unless it is byte-equal to the piece); ROOT=<repo> where the piece is read; CEIL=<bytes> the piece's size ceiling (default 2904)
 # BRSED=<sed script> scratch knob: mutate the box under test (b0 goes RED by design: how the cap numbers on experiment:dg2-aa1m-m3 were measured). To prove a PIECE edit turns a case RED,
 #   run on a scratch ROOT whose engine-post.md carries the edit.
 # M3M/M3RUNS = sends per writer / runs for the realistic M3 cases (default 100/5); M3BM/M3BRUNS the same for the 6-on-one-ref BOUND (150/3).
@@ -19,7 +19,7 @@ sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~
 [ -n "$BOX" ]||{ sect box>$T/box;BOX=$T/box;}
 [ -s $BOX ]||{ echo "FAIL extract: box $(wc -c<$BOX)";exit 99;}
 [ -n "$BRSED" ]&&{ sed "$BRSED" $BOX>$T/boxm;BOX=$T/boxm;}
-BR=$BOX;CEIL=${CEIL:-2019};P=${M3_UNSENT_PCT:-5}
+BR=$BOX;CEIL=${CEIL:-2904};P=${M3_UNSENT_PCT:-5}
 sed 's/\[ \$k -lt 5 \]/[ $k -lt 1 ]/' $BR>$T/box1
 sed 's/\[unsent\]/[gone]/' $T/box1>$T/boxs   # the silent-unsent mutant: the cap cut to one attempt AND a failed send that does not say [unsent]
 # keys + signers + per-post git config + a repo whose trunk (HEAD) holds the fixture matrix
@@ -31,26 +31,27 @@ for u in belam sm alive dg5 dg1 dg2 dg3 all-is-one sp tm dt1 dg4;do
 done
 $G init -q $T/r;mkdir -p $T/r/.agi/nodes/.geometry
 cat >$T/r/.agi/nodes/.geometry/posts.md<<'EOF'
-  - {"name":"belam","parent":"owner","harness":"claude"}
+  - {"name":"belam","parent":"owner","harness":"claude","box":"tw"}
   - {"name":"council","parent":"belam","members":["alive","all-is-one","sp","dg5"]}
   - {"name":"keep","parent":"belam","members":["sm","tm"]}
-  - {"name":"alive","parent":"council","harness":"claude"}
+  - {"name":"alive","parent":"council","harness":"claude","box":"tw"}
   - {"name":"all-is-one","parent":"council","harness":"claude"}
   - {"name":"sp","parent":"council","harness":"claude"}
   - {"name":"dg5","parent":"council","harness":"claude"}
-  - {"name":"sm","parent":"keep","harness":"claude"}
+  - {"name":"sm","parent":"keep","harness":"claude","box":"tw"}
   - {"name":"tm","parent":"keep","harness":"claude"}
-  - {"name":"dg1","parent":"sm","harness":"claude"}
-  - {"name":"dg2","parent":"sm","harness":"claude"}
-  - {"name":"dg3","parent":"sm","harness":"claude"}
+  - {"name":"dg1","parent":"sm","harness":"claude","box":"tw"}
+  - {"name":"dg2","parent":"sm","harness":"claude","box":"tw"}
+  - {"name":"dg3","parent":"sm","harness":"claude","box":"tw"}
   - {"name":"dt1","parent":"tm","harness":"claude"}
-  - {"name":"dg4","parent":null,"harness":"claude"}
+  - {"name":"dg4","parent":null,"harness":"claude","box":"xx"}
 EOF
 $G -C $T/r add -A;$G -C $T/r -c user.name=x -c user.email=x@x commit -qm fixture
 # as U SCRIPT ARGS...: run the box script as post U in the scratch repo (dash, like #!/bin/sh)
 as(){ u=$1;s=$2;shift 2;(cd $T/r&&AGI_POST=$u AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/$u GIT_CONFIG_SYSTEM=/dev/null sh $s "$@");}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 cnt(){ grep -c "$1" "$2" 2>/dev/null||true;}
+ok3(){ if eval "$3";then echo "ok $1 $2";else echo "FAIL $1 $2";f=$((f+1));fi;}   # name, a text built at run time, the condition
 
 # --- b0: the box under test IS the trunk piece, byte for byte (an edit to the piece can never pass unseen)
 ok b0 '[ "$(md5sum<$BR)" = "$(sect box|md5sum)" ]'
@@ -201,6 +202,55 @@ as dg1 $BR read>$T/rv.out 2>&1;ok mx-lvl-read-unplaced-refused 'grep -q "^\[off-
 $G -C $T/r update-ref -d refs/box/dg1/belam 2>/dev/null;$G -C $T/r update-ref -d refs/held/belam/dg1 2>/dev/null
 tw=$(cd $T/r&&echo twoapart|AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/dg1 GIT_CONFIG_SYSTEM=/dev/null GIT_AUTHOR_EMAIL=dg1@agi GIT_COMMITTER_EMAIL=dg1@agi $G commit-tree -S $($G hash-object -w -t tree /dev/null));$G -C $T/r update-ref refs/box/dg1/belam $tw
 as belam $BR read>$T/tw.out 2>&1;ok mx-lvl-read-two-apart-refused 'grep -q "^\[off-matrix\] dg1" $T/tw.out&&! grep -q twoapart $T/tw.out'
+
+# --- t: `box town up|down SHA` (goal:g7.16.1.11.44.8 S1; council 3/3 10-15 19:36Z + 19:41Z): belam's blast, a [town] commit is exactly ONE line `[town] (up|down) <40 hex>`, signed belam@agi; the sender checks AGI_POST=belam AND `id -un`=agi-belam (an `id` shim here), reaches every
+# harness post of ITS box (AGI_BOX) except itself and never calls the adjacency rule; the receiver shows a [town] commit only for that regex + a belam signature, else `[town-dropped] <ref> <sha>` on stderr and the held ref advances. Every other subject keeps the adjacency rule.
+mkdir -p $T/shim;printf '#!/bin/sh\n[ "$1" = -un ]&&echo ${STUB_UID:-nobody}||exec /usr/bin/id "$@"\n' >$T/shim/id;chmod +x $T/shim/id
+TS=$(printf 'c%.0s' $(seq 40) | tr c 7)
+tnb(){ bx=$1;shift;(cd $T/r&&PATH=$T/shim:$PATH AGI_POST=${TPOST:-belam} AGI_BOX=${TBOX-tw} AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/belam GIT_CONFIG_SYSTEM=/dev/null STUB_UID=${TUID:-agi-belam} sh $bx town "$@");}
+nref(){ $G -C $T/r for-each-ref --format='%(refname)' refs/box/belam|wc -l|tr -d ' ';}
+tclr(){ for r in $($G -C $T/r for-each-ref --format='%(refname)' refs/box/belam refs/box/dg1 refs/held);do $G -C $T/r update-ref -d $r;done;}
+rep(){ A=$1 B=$2 awk '{while((i=index($0,ENVIRON["A"]))>0)$0=substr($0,1,i-1) ENVIRON["B"] substr($0,i+length(ENVIRON["A"]));print}' $BR>$T/mut;}
+fk(){ ( cd $T/r&&printf '%s' "$3"|AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/$1 GIT_CONFIG_SYSTEM=/dev/null GIT_AUTHOR_EMAIL=$1@agi GIT_COMMITTER_EMAIL=$1@agi $G commit-tree -S $($G hash-object -w -t tree /dev/null)>$T/fk.sha&&$G update-ref $2 $(cat $T/fk.sha) );}
+tclr;tnb $BR down $TS;rc=$?
+ok3 t-down-rc0-one-commit-per-post-of-the-box "box town down: rc $rc (want 0), refs/box/belam/* = $(nref) (want 5: alive sm dg1 dg2 dg3; not dg4 of box xx, not belam, not the inert rows)" '[ $rc = 0 ]&&[ "$(nref)" = 5 ]&&! $G -C $T/r rev-parse -q --verify refs/box/belam/dg4 >/dev/null&&! $G -C $T/r rev-parse -q --verify refs/box/belam/council >/dev/null'
+ok3 t-the-whole-message-is-one-template-line "the blast on each post: $(for q in alive sm dg1 dg2 dg3;do $G -C $T/r log -1 --format=%B refs/box/belam/$q|grep -c .;done|sort -u|tr '\n' ' ')line(s) (want 1), $(for q in alive sm dg1 dg2 dg3;do $G -C $T/r log -1 --format=%s refs/box/belam/$q;done|sort -u|wc -l|tr -d ' ') distinct subject (want 1: '[town] down SHA')" '[ "$(for q in alive sm dg1 dg2 dg3;do $G -C $T/r log -1 --format=%B refs/box/belam/$q|grep -c .;done|sort -u|tr -d "\n")" = 1 ]&&[ "$(for q in alive sm dg1 dg2 dg3;do $G -C $T/r log -1 --format=%s refs/box/belam/$q;done|sort -u)" = "[town] down $TS" ]'
+ok3 t-signed-belam "git verify-commit on the dg2 blast reads 'for belam@agi with'" 'GIT_CONFIG_GLOBAL=$T/c/belam $G -C $T/r verify-commit --raw refs/box/belam/dg2 2>&1|grep -q "for belam@agi with"'
+as dg2 $BR read>$T/t2.out 2>$T/t2.err
+ok3 t-receiver-shows-it-past-the-adjacency-rule "dg2 (two levels from belam) reads: $(cat $T/t2.out) | stderr [$(cat $T/t2.err)] (want '[belam] [town] down $TS', no [off-matrix])" 'grep -qxF "[belam] [town] down $TS" $T/t2.out&&! grep -q "off-matrix" $T/t2.out $T/t2.err'
+ok3 t-held-reached-the-down-commit "refs/held/dg2/belam is the down commit (the ack the stop reads): want it an ancestor-or-equal of the blast" '$G -C $T/r merge-base --is-ancestor refs/box/belam/dg2 refs/held/dg2/belam'
+ok3 t-ordinary-mail-from-belam-keeps-the-adjacency-rule "belam -> dg2 with a non-[town] subject: rc $(echo x|as belam $BR send dg2 2>/dev/null;echo $?) (want 1, [off-matrix])" '[ "$(echo x|as belam $BR send dg2 2>/dev/null;echo $?)" = 1 ]'
+n0=$(nref);TUID=dg2 tnb $BR down $TS 2>/dev/null;r1=$?;TPOST=dg2 tnb $BR down $TS 2>/dev/null;r2=$?
+ok3 t-F6-a-non-belam-uid-or-post-is-refused-0-refs "uid dg2 rc $r1, post dg2 rc $r2 (want both != 0), refs/box/belam/* still $(nref) (want $n0)" '[ $r1 != 0 ]&&[ $r2 != 0 ]&&[ "$(nref)" = "$n0" ]'
+tclr;r3=0;for a in "down $TS extra" "sideways $TS" "down ${TS}0" "down $(echo $TS|tr 7 C)" "down" "";do tnb $BR $a 2>/dev/null&&r3=1;done;TBOX= tnb $BR down $TS 2>/dev/null&&r3=1
+ok3 t-F6-extra-text-or-a-bad-sha-or-no-box-is-refused-at-the-sender "7 bad calls (extra word, bad verb, 41 hex, uppercase, no sha, no args, AGI_BOX unset): all refused ($r3, want 0), refs = $(nref) (want 0)" '[ $r3 = 0 ]&&[ "$(nref)" = 0 ]'
+echo "[town] down $TS"|as belam $BR send sm 2>$T/t3.err;r4=$?
+ok3 t-F6-box-send-never-carries-a-town-subject "belam -> sm (adjacent) with a [town] body through send: rc $r4 (want 1, 'box town' named), ref = $(nref) (want 0)" '[ $r4 = 1 ]&&grep -q "box town" $T/t3.err&&[ "$(nref)" = 0 ]'
+# the receiver: extra text (a body line, trailing text) and a non-belam sender are dropped, named on stderr, and the held ref goes past them
+tclr;fk belam refs/box/belam/dg3 "[town] down $TS extra";as dg3 $BR read>$T/d1.out 2>$T/d1.err;as dg3 $BR read>$T/d1b.out 2>$T/d1b.err
+ok3 t-F6-extra-text-is-dropped-at-the-receiver "dg3 reads a belam-signed '[town] down SHA extra': stdout [$(cat $T/d1.out)] (want empty), stderr [$(cut -c1-60 $T/d1.err)] (want [town-dropped] refs/box/belam/dg3 <sha>), second read stderr [$(cat $T/d1b.err)] (want empty: the held ref passed it)" '[ ! -s $T/d1.out ]&&grep -q "^\[town-dropped\] refs/box/belam/dg3 " $T/d1.err&&[ ! -s $T/d1b.err ]'
+tclr;fk belam refs/box/belam/dg3 "[town] down $TS
+second line";as dg3 $BR read>$T/d2.out 2>$T/d2.err
+ok3 t-F6-a-second-line-is-dropped "a belam-signed two-line [town] commit: stdout [$(cat $T/d2.out)] (want empty), dropped named: $(grep -c town-dropped $T/d2.err) (want 1)" '[ ! -s $T/d2.out ]&&[ "$(grep -c "^\[town-dropped\]" $T/d2.err)" = 1 ]'
+tclr;fk dg1 refs/box/dg1/dg3 "[town] down $TS";as dg3 $BR read>$T/d3.out 2>$T/d3.err
+ok3 t-F6-the-template-from-a-non-belam-post-is-dropped "a dg1-signed exact '[town] down SHA': stdout [$(cat $T/d3.out)] (want empty), dropped named: $(grep -c town-dropped $T/d3.err) (want 1)" '[ ! -s $T/d3.out ]&&[ "$(grep -c "^\[town-dropped\]" $T/d3.err)" = 1 ]'
+# the MUTANTS: each one edit on the piece, each makes its row above FAIL
+mutrun(){ # $1 sed-free A $2 B ; sets MUT=1 when the edit changed the piece
+ rep "$1" "$2";cmp -s $BR $T/mut&&MUT=0||MUT=1;}
+rep '[ "$(id -un)" = agi-belam ]&&' '';cmp -s $BR $T/mut&&echo "# mutant-uid: no edit made";tclr;TUID=dg2 tnb $T/mut down $TS 2>/dev/null;r=$?
+ok3 t-mutant-no-uid-check-is-RED "the piece without the id -un check, run as uid dg2: rc $r and $(nref) ref(s) (the clean row wants rc != 0 and 0 new refs: this one must send)" '! cmp -s $BR $T/mut&&[ $r = 0 ]&&[ "$(nref)" -gt 0 ]'
+rep '[ $# = 3 ]&&' '';tclr;tnb $T/mut down $TS extra 2>/dev/null;r=$?
+ok3 t-mutant-no-argument-count-is-RED "the piece without the 3-argument check accepts 'down SHA extra': rc $r and $(nref) ref(s) (want rc 0 and > 0: the clean row refuses)" '! cmp -s $BR $T/mut&&[ $r = 0 ]&&[ "$(nref)" -gt 0 ]'
+rep ' and .box==$x' '';tclr;tnb $T/mut down $TS 2>/dev/null;r=$?
+ok3 t-mutant-no-box-filter-is-RED "the piece without the box filter also blasts dg4 (box xx): refs/box/belam/dg4 is $($G -C $T/r rev-parse -q --verify refs/box/belam/dg4 >/dev/null&&echo set||echo absent) (want set: the clean row has it absent)" '! cmp -s $BR $T/mut&&$G -C $T/r rev-parse -q --verify refs/box/belam/dg4 >/dev/null'
+rep '[ $f = belam ]&&' '';tclr;fk dg1 refs/box/dg1/dg3 "[town] down $TS";as dg3 $T/mut read>$T/m1.out 2>/dev/null
+ok3 t-mutant-no-sender-check-at-the-receiver-is-RED "the receiver without the belam check shows dg1's [town] commit: stdout [$(cat $T/m1.out)] (want it shown: the clean row drops it)" '! cmp -s $BR $T/mut&&grep -qF "[town] down $TS" $T/m1.out'
+rep '[ "$(printf '"'"'%s\n'"'"' "$b"|wc -l)" = 1 ]&&' '';tclr;fk belam refs/box/belam/dg3 "[town] down $TS
+second line";as dg3 $T/mut read>$T/m2.out 2>/dev/null
+ok3 t-mutant-no-one-line-check-at-the-receiver-is-RED "the receiver without the one-line check shows a two-line [town] commit: stdout $(wc -l <$T/m2.out|tr -d ' ') line(s) (want >= 1: the clean row shows none)" '! cmp -s $BR $T/mut&&grep -qF "second line" $T/m2.out'
+rep 'case $b in "[town]"*)echo "[town] is box town'"'"'s alone: nothing sent">&2;exit 1;;esac;' '';tclr;echo "[town] down $TS"|as belam $T/mut send sm 2>/dev/null;r=$?
+ok3 t-mutant-send-carries-a-town-subject-is-RED "the piece without the send-side [town] refusal: belam -> sm rc $r, $(nref) ref(s) (want rc 0 and 1: the clean row refuses)" '! cmp -s $BR $T/mut&&[ $r = 0 ]&&[ "$(nref)" = 1 ]'
+tclr
 
 # --- negative: size, no Python, no inbox path
 ok n1-bytes-le-ceiling '[ "$(wc -c<$BR)" -le $CEIL ]'
