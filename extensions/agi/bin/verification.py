@@ -965,6 +965,49 @@ def check_node_dirs(groot: Path, *, nodes_dir: Path | None = None,
               f".geometry/deprecated"))
 
 
+def check_retired_place(groot: Path, *, nodes_dir: Path | None = None) -> CheckResult:
+    """goal:g4.18.5.4 -- a retirement is status AND move, so the two must agree. FAIL, by
+    name, on every node that declares `status: deprecated` outside `nodes/deprecated/`
+    (the status-only half) and every node inside `nodes/deprecated/` that does not (the
+    move-only half). The number carries both counts and the node total (active +
+    deprecated), which a retire never changes. Read-only: it moves and writes nothing.
+    One reader: the same `status` predicate metrics counts deprecated by."""
+    start = time.monotonic()
+    nodes = nodes_dir if nodes_dir is not None else groot / "nodes"
+    if not nodes.is_dir():
+        return CheckResult("retired-place", "SKIP", time.monotonic() - start,
+                           note=f"no nodes directory at {nodes}")
+    from graph_core.persistence import frontmatter as fm_reader
+    outside, inside, total = [], [], 0
+    for p in sorted(nodes.rglob("*.md")):
+        total += 1
+        in_dep = p.relative_to(nodes).parts[:1] == ("deprecated",)
+        try:
+            data = p.read_bytes()
+            if not in_dep and b"deprecated" not in data[:max(data.find(b"\n---", 4), 0)].lower():
+                continue   # cheap superset over the frontmatter block only: skip the yaml load
+            status = fm_reader.load_node_file(p, body=False).frontmatter.get("status")
+        except Exception:
+            continue
+        dep = isinstance(status, str) and status.strip().lower() == "deprecated"
+        rel = str(p.relative_to(nodes))
+        if dep and not in_dep:
+            outside.append(rel)
+        elif in_dep and not dep:
+            inside.append(rel)
+    number = {"outside": len(outside), "inside": len(inside), "total": total}
+    if outside or inside:
+        named = [f"status: deprecated outside deprecated/: {r}" for r in outside[:8]]
+        named += [f"inside deprecated/ without that status: {r}" for r in inside[:8]]
+        return CheckResult(
+            "retired-place", "FAIL", time.monotonic() - start, number,
+            note="; ".join(named) + ". Retire with `write.py <id> 'retire <note>'` (status + move); "
+                 "read-only: nothing moved.",
+            message=f"{len(outside)} deprecated outside deprecated/, {len(inside)} inside it without the status")
+    return CheckResult("retired-place", "PASS", time.monotonic() - start, number,
+                       note=f"status and place agree over {total} node file(s)")
+
+
 # --- the suite lock (opt-in; one runner at a time) --------------------------
 
 
@@ -2128,6 +2171,7 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool,
     # a graph-wide directory scan. Read-only, so it is safe at rotation.
     if level in ("rotation", "full"):
         results.append(check_node_dirs(groot))
+        results.append(check_retired_place(groot))   # goal:g4.18.5.4
         results.append(check_formation(groot))   # goal:g7.16.1.1.5
         results.append(check_census(groot))      # goal:g7.16.1.1.6.1
     smoke = next((r for r in results if r.name == "smoke"), None)
