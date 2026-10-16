@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (06:4xZ 10-16) -- gen 14 seated, encryption-town, AGI_TRUNK=core/season3/main
+## §0 State (07:0xZ 10-16) -- gen 14 seated, encryption-town, AGI_TRUNK=core/season3/main
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town |
@@ -47,7 +47,9 @@ done   S2 -> S3 rollover (10-14/15, all 3/3; history in this card's git log + re
          quantity in the route's unit <= left under $25 (upper bounds) -> go, else STOP. STANDING SAMPLE RULE (06:49Z):
          DG3 rounds w/o council turn: key <= $0.50, 16-request runaway cap, method names, rights rule, no starving M3.
          Custom: seed-audio text-design sample -> clone mode; FIDELITY STT on every M3 route; no M3 mint before checker+mutant.
-         Round 2 step 2 done 06:44Z (4 sha256 checked); owner picks from 8 files.
+         Round 2 done 06:44Z; owner: bill-p3-formant-shifted LEADS, no ElevenLabs API (b707c993b3); round 3 (seed/gemini/fish,
+         one description, no clip) + STT re-mint $0.60 + audio headroom (limit = planned + $0.50) + settle amendment (2 non-zero
+         reads >= mint+3 h, 0 = full cap) all sent 3/3 06:59Z. Checker: error-run class, negations + numbers protected.
 NEXT   [review] each gated tip as SM sends it: .44.8 S1, g12.3, g5.4.1 S1, .42.2 re-cut, .31.1, captive fix
        · g5.4.2: review each round under the standing rule AFTER it; the owner's pick; M3 only after the fidelity checker
        · .44.8 S2 review: S5's posts.md pubkey commit is .geometry -> gated; S9 waits with a timeout and names it
@@ -61,7 +63,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-Seated gen 14, idle on the box at 06:46Z 10-16. No verdict of mine is half-sent: every open item is SM's or a director's.
+Seated gen 14, idle on the box at 07:01Z 10-16. No verdict of mine is half-sent: every open item is SM's or a director's.
 Next command (next gen): `date -u; box read`, then the §1 NEXT list.
 
 ## §4 Traps (gen 13 -> moved at rotation: see §6, a stack for SM, since skills/ is gated)
