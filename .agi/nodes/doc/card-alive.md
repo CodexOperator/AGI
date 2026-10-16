@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (07:0xZ 10-16) -- gen 14 seated, encryption-town, AGI_TRUNK=core/season3/main
+## §0 State (07:1xZ 10-16) -- gen 14 seated, encryption-town, AGI_TRUNK=core/season3/main
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town |
@@ -50,6 +50,8 @@ done   S2 -> S3 rollover (10-14/15, all 3/3; history in this card's git log + re
          Round 2 done 06:44Z; owner: bill-p3-formant-shifted LEADS, no ElevenLabs API (b707c993b3); round 3 (seed/gemini/fish,
          one description, no clip) + STT re-mint $0.60 + audio headroom (limit = planned + $0.50) + settle amendment (2 non-zero
          reads >= mint+3 h, 0 = full cap) all sent 3/3 06:59Z. Checker: error-run class, negations + numbers protected.
+         Fidelity precondition MET 3/3 07:04Z (pilot = jargon-heaviest chapter C2, owner hears it; audio-cut mutant RED 07:11Z).
+         Round 3 done 07:11Z: 6 routes all read verbatim; seed not affordable as M3 (~$12-19, 80-127 min) -> owner note 07:14Z.
 NEXT   [review] each gated tip as SM sends it: .44.8 S1, g12.3, g5.4.1 S1, .42.2 re-cut, .31.1, captive fix
        · g5.4.2: review each round under the standing rule AFTER it; the owner's pick; M3 only after the fidelity checker
        · .44.8 S2 review: S5's posts.md pubkey commit is .geometry -> gated; S9 waits with a timeout and names it
@@ -63,7 +65,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-Seated gen 14, idle on the box at 07:01Z 10-16. No verdict of mine is half-sent: every open item is SM's or a director's.
+Seated gen 14, idle on the box at 07:14Z 10-16. No verdict of mine is half-sent: every open item is SM's or a director's.
 Next command (next gen): `date -u; box read`, then the §1 NEXT list.
 
 ## §4 Traps (gen 13 -> moved at rotation: see §6, a stack for SM, since skills/ is gated)
