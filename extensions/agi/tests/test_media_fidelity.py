@@ -199,3 +199,19 @@ def test_mutant_a_normalise_entry_mapping_to_nothing_is_refused():
         f.validate_normalise([(r"\\bsect\\b", "   ")])
     assert f.validate_normalise([(r"\\bp y\\b", "py")])
     assert f.NORMALISE == f.validate_normalise(f.NORMALISE)
+
+
+def test_jargon_spelling_entries_from_the_c2_chunk_are_green(capsys):
+    """key S, schedar-c2a (07:51Z): `worktree` heard as `work tree` and `bin dot new` written `bin.new` are the SAME words, not errors."""
+    ref = "It attaches a worktree to it. It writes the block into a fresh directory named bin dot new. Each block becomes executable."
+    assert f.check(ref, "It attaches a work tree to it. It writes the block into a fresh directory named bin.new. Each block becomes executable.") == 0
+    assert f.words("bin.new", False) == ["bin", "dot", "new"]
+    assert f.words("A work tree", False) == ["a", "worktree"]
+
+
+def test_a_dropped_dot_word_is_still_an_isolated_error_not_a_normalisation(capsys):
+    """`sed` heard as `said` is NOT normalised (a mispronunciation is the owner's ears, scope (iii)): it stays one plain-word error."""
+    ref = " ".join([REF] * 3) + " the very same sed range we studied."
+    hyp = ref.replace("sed range", "said range")
+    assert f.check(ref, hyp) == 0                       # one isolated plain-word error is green by design
+    assert f.check(ref, hyp.replace("very same", "")) == 1      # but a drop beside it makes a run

@@ -28,7 +28,8 @@ NUMBERS = set(media_fm2.ONES) | {w for w in media_fm2.TENS if w != "_"} | {"hund
 UNITS = {"dollar", "dollars", "cent", "cents", "percent"}     # a swapped unit changes a fact ("ten cents" -> "ten dollars"), like a swapped number
 PROTECTED = {"not", "no", "never", "nothing", "none", "nor", "cannot", "without"} | NUMBERS | UNITS    # a swapped number word ("fourteen" -> "forty") changes a fact
 # recorded normalisation: a regex over the joined, normalised words -> the one form both texts get
-NORMALISE = [(r"\ba g i\b", "agi")]
+NORMALISE = [(r"\ba g i\b", "agi"),
+             (r"\bwork tree\b", "worktree")]      # key S, schedar-c2a (07:51Z): scribe-v2 writes the one word `worktree` as two; the SAME words
 
 
 def validate_normalise(entries):
@@ -66,6 +67,7 @@ def spell_numbers(text):
     """The recorded number forms (council 07:01Z): '1,000' joins its digit groups; '$0.10' / '0.10' -> 'zero point one zero (dollars)', the digits
     after the point one by one; '23rd' -> 'twenty third'. Done before punctuation is dropped, so a correctly spoken line is never RED for its form."""
     text = re.sub(r"(?<=\d),(?=\d{3}(?!\d))", "", text)
+    text = re.sub(r"(?<=[A-Za-z])\.(?=[A-Za-z])", " dot ", text)     # `bin.new` is `bin dot new` (key S, schedar-c2a: scribe-v2 wrote the file name as it is written)
     text = re.sub(r"\$\s*(\d+(?:\.\d+)?)", r"\1 dollars", text)
     text = re.sub(r"(\d+)\.(\d+)", lambda m: m.group(1) + " point " + " ".join(m.group(2)), text)
     return re.sub(r"\b(\d+)(?:st|nd|rd|th)\b", lambda m: ordinal_words(int(m.group(1))) if int(m.group(1)) < 1000000 else m.group(0), text)
