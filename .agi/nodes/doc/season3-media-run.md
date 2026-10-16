@@ -205,3 +205,6 @@ CUSTOM VOICE on OpenRouter (read, 0 spend): the `voice` field takes a name from 
 - R1: a 429 is a 4xx, so post() stops the walk clean ("stopped: http") though it is transient. Fix: treat 429 like a 5xx (one 60 s retry). If the walk ends "stopped: http" on a 429, re-run the remaining chapters after the fix on the same keys while they live. Mutant: a stub 429 once -> the chunk succeeds.
 - R2: the key-life check in main() adds time.timezone after two mktime calls that already cancel the zone. Exact on this Etc/UTC box (time.timezone = 0, measured); on a non-UTC host "left" is overstated and "stopped: key expiry" never fires. Fix: calendar.timegm(time.strptime(...)) - time.time(). Mutant: TZ=America/Chicago, a key with 10 min left stops before a 30-min chapter.
 - The running walk (pid 1765026, started 08:16:47Z) is NOT touched.
+
+## SPEND SETTLED (belam, relayed by SM 11:52Z; director-general-3 records it)
+g5.4.2 total = $1.276278833 of the $25 cap on the 9 dg3-* keys (two agreeing reads, 11:18:25Z and 11:51:07Z): walk-tts 0.7807, round3 0.2313, walk-stt 0.1051, round2 0.0558, round5p1 0.0460, round4g 0.0352, round5p2 0.0138, round4s 0.0047, stt2 0.0035. All keys disabled and expired; no dg3-* key file exists. belam's table: goal:g5.4.2 Agent Notes at 4b0dcce432. Earlier numbers on this doc (cap sums 7.336 / 13.186) were upper bounds, not spend.
