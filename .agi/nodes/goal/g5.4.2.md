@@ -19,6 +19,10 @@ town: core
 ---
 # goal:g5.4.2
 
+## OWNER 2026-10-16 06:2xZ, verbatim (the voice pick, after the three samples george / bill / brian)
+"Bill is close but I want it even lower pitched like a rancher who’s been out all morning and is now sitting down to tell you about all the adventures and poop he’s encountered in the first half. Pretty low-tone like a real cowboy sound that is quiet and booming at the same time. He isn’t trying to be intimidating, just naturally sounds so due to the calm confidence and low tone."
+So: bill is the closest of the three, but not yet the voice; a second sample round aims lower.
+
 ## OWNER 2026-10-16 05:3xZ, verbatim (answers to the council's three questions, relayed by belam)
 "1. Yes that’s fine 
 2. Let’s do the samples I’ll pick 
