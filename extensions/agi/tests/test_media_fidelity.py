@@ -157,3 +157,24 @@ def test_mutant_one_number_word_swapped_in_a_long_chunk_is_red(capsys):
     assert "PROTECTED sent [fourteen] heard [forty]" in capsys.readouterr().out
     assert f.check(long_ref, long_ref.replace("two hundred and fourteen", "two hundred and forty")) == 1
     assert f.check(long_ref, long_ref.replace("fourteen posts", "14 posts")) == 0                    # digits for the same number word are fine
+
+
+def test_the_four_normalised_pairs_are_green(capsys):
+    """council 07:01Z (T): a correctly spoken line must not go RED for its form."""
+    assert f.check("There were one thousand nodes.", "There were 1,000 nodes.") == 0
+    assert f.check("It cost zero point one zero dollars.", "It cost $0.10.") == 0
+    assert f.check("It was the twenty third post.", "It was the 23rd post.") == 0
+    assert f.check("A post cannot move it.", "A post can not move it.") == 0
+    assert f.words("1,000 nodes", False) == ["one", "thousand", "nodes"]
+    assert f.words("the 1st, 2nd, 3rd, 5th, 12th, 20th and 21st", False) == (
+        "the first second third fifth twelfth twentieth and twenty first".split())
+
+
+def test_mutant_twenty_three_to_thirty_three_in_a_long_chunk_is_red(capsys):
+    long_ref = " ".join([REF] * 4) + " It was the twenty third post of the road."
+    assert len(f.words(long_ref, True)) > 280
+    assert f.check(long_ref, long_ref) == 0
+    assert f.check(long_ref, long_ref.replace("twenty third", "thirty third")) == 1
+    assert f.check(long_ref, long_ref.replace("twenty third", "23rd")) == 0
+    assert f.check(long_ref, long_ref.replace("twenty third", "33rd")) == 1
+    assert f.check("There were one thousand nodes.", "There were 1,100 nodes.", wer_max=0.9) == 1

@@ -12,7 +12,7 @@ The two word lists are aligned (Levenshtein, tie-break: the cheapest path that k
   error_run   a run of >= --run ERROR ops (substitution, deletion, insertion, mixed) in alignment order with no exact match between them,
               except that a run is bridged over up to --bridge single matched words (a common word that happens to match inside a deleted or
               reworded span does not split it). It covers a deleted sentence, a paraphrase, a spoken tag, a repeated line and a truncated tail.
-Jargon goes through NORMALISE (a recorded list: spelling in either text -> one form), never a looser threshold.
+Number forms are spelled by spell_numbers() (1,000 / $0.10 / 23rd) and `can not` is `cannot`. Jargon goes through NORMALISE (a recorded list: spelling in either text -> one form), never a looser threshold.
 Memory guard: align() is a full O(n*m) table; len(ref)*len(hyp) > MAX_CELLS is refused (exit 2), never run.
 Prints `ref_words=N hyp_words=N wer=0.xxx longest_run=N error_runs=N stripped=[...]` and one line per run; exit 0 green, 1 RED, 2 refused.
 The transcript is made elsewhere (a local STT under agi.slice 4600 MiB, else a priced STT counted in the $25); this file only compares.
@@ -37,9 +37,30 @@ def strip_events(text):
     return EVENT.sub(" ", text), found
 
 
+ORD_IRREG = {"one": "first", "two": "second", "three": "third", "five": "fifth", "eight": "eighth", "nine": "ninth", "twelve": "twelfth"}
+
+
+def ordinal_words(n):
+    """23 -> 'twenty third': the spoken cardinal with its last word made ordinal."""
+    ws = media_fm2.spoken(n).split()
+    last = ws[-1]
+    ws[-1] = ORD_IRREG.get(last, last[:-1] + "ieth" if last.endswith("y") else last + "th")
+    return " ".join(ws)
+
+
+def spell_numbers(text):
+    """The recorded number forms (council 07:01Z): '1,000' joins its digit groups; '$0.10' / '0.10' -> 'zero point one zero (dollars)', the digits
+    after the point one by one; '23rd' -> 'twenty third'. Done before punctuation is dropped, so a correctly spoken line is never RED for its form."""
+    text = re.sub(r"(?<=\d),(?=\d{3}(?!\d))", "", text)
+    text = re.sub(r"\$\s*(\d+(?:\.\d+)?)", r"\1 dollars", text)
+    text = re.sub(r"(\d+)\.(\d+)", lambda m: m.group(1) + " point " + " ".join(m.group(2)), text)
+    return re.sub(r"\b(\d+)(?:st|nd|rd|th)\b", lambda m: ordinal_words(int(m.group(1))) if int(m.group(1)) < 1000000 else m.group(0), text)
+
+
 def words(text, drop_tags):
     if drop_tags:
         text = re.sub(r"\[[^\]]*\]", " ", text)
+    text = spell_numbers(text)
     text = text.replace("\u2019", "'").replace("\u2018", "'").lower().replace("-", " ").replace("can't", "cannot").replace("won't", "will not").replace("n't", " not")
     text = re.sub(r"[^a-z0-9' ]+", " ", text)
     out = []
@@ -49,7 +70,7 @@ def words(text, drop_tags):
             out.extend(media_fm2.spoken(int(w)).split())
         elif w:
             out.append(w)
-    joined = " ".join(out)
+    joined = re.sub(r"\bcan not\b", "cannot", " ".join(out))
     for rx, to in NORMALISE:
         joined = re.sub(rx, to, joined)
     return joined.split()
