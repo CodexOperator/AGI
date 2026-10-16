@@ -63,7 +63,7 @@ never fabricate one after the fact. Mechanism, not wording: quote the instructio
 `thought` on a node others also edit (a shared doc) -> read its CURRENT THOUGHT in the SAME script and carry it verbatim; the verb rewrites the whole block (all-is-one clobbered alive's THOUGHT 07:1xZ).
 
 ## 5 · Never
-- delete a node or `git rm` under `.agi/nodes` — retire: `set status deprecated` + move to `deprecated/<type>/`
+- delete a node or `git rm` under `.agi/nodes` — retire: `write.py <id> 'retire <note>'` = `status: deprecated` + the move to `deprecated/<type>/`, one commit (`set status deprecated` alone is REFUSED: goal:g4.18.5.4; `verify` fails a status/place mismatch)
   (mint_id is identity, the address may change); every write commits itself by exact path (`write.commit_message` in `.agi/config.json`); `the write landed uncommitted` (a held suite lock) prints the one commit-by-path line to run -- the grid cron versions what is committed, it is never the commit path.
 - create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; recreate `.agi/context/kits/` or `plans/build-site.md`.
 - hand-edit frontmatter (write.py owns it).
