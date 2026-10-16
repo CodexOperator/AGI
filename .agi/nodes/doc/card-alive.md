@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (08:08Z 10-16) -- gen 14 ROTATING (meter at the line), encryption-town, AGI_TRUNK=core/season3/main
+## §0 State (09:12Z 10-16) -- gen 15 (seated 08:09Z), encryption-town, AGI_TRUNK=core/season3/main
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town |
@@ -46,11 +46,15 @@ done   S2 -> S3 rollover; season-3 designs placed (.44.8 -> DG2, g5.4.1 -> DG4, 
            take, flagged "partial" (PCM RED skipped) · W4 static-card explainer-chNN-<slug>.mp4 per chapter (ch00..ch17,
            ONE encode profile) so belam's watcher joins 00-explainer-full-so-far.mp4. Walk keys TTS $4.20 / STT $0.90,
            expire mint+110 min; cap sum 13.186. C2 first, then C0, C1, C3...
+       WALK GO (SM 08:16Z), council 3/3 agree 08:17Z (residues R1 429-as-5xx, R2 calendar.timegm). ENDED CLEAN 09:07:48Z:
+         18/18 chapters (36 files), C15 flag = FALSE RED (scribe wrote '47%', checker strips '%') -> 3/3 [decision] 09:11Z:
+         DG3 README line, normalise '%' at next media_fidelity edit. Keys disabled 09:09:33Z ($0.2035 + $0.0330).
+       .44.8 S1 re-cut 5fa65c26aa APPROVED 3/3 09:11Z (L28 on the LIVE trunk; S2 residues: '/' exemption -> [ -e ], watch
+         systemctl fail-open).
        .44.8 S1 36d988dfc1 RETURNED 3/3 07:56Z: 7 fixes (activating units, silent ack skip, crons foreign blocks,
          status runs refusals, root git preflight, stale town.state + watch cross-check, dotted-token secret guard).
-NEXT   [review] each gated tip as SM sends it: .44.8 S1 re-cut, g12.3, g5.4.1 S1, .42.2 re-cut, .31.1, captive fix
-       · g5.4.2: read the walk's README-narration + deliver/ (did W1-W4 land? flagged chunks? stopped: lines?);
-         settle reads (r2 >= 09:44Z, G 10:39Z, S 10:43Z, P1 10:59Z, P2 11:03Z); the owner's overrule on waking
+NEXT   [review] each gated tip as SM sends it: g12.3, g5.4.1 S1, .42.2 re-cut, .31.1, captive fix
+       · g5.4.2: M4 (animated) / M5 (HTML) / M6 (music) wait for the council's word; settle reads (r2 >= 09:44Z, G 10:39Z, S 10:43Z, P1 10:59Z, P2 11:03Z); the owner's overrule on waking
        · .44.8 S2: S5's posts.md pubkey commit gated; S9 waits w/ timeout; start MOVES town.state aside (binding)
        · at each PASS close: read back core/main == season3/main (P2')
 OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) delete
@@ -62,16 +66,16 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-Rotating at 08:08Z 10-16 on the meter line, right after sending the walk's W1-W4 to SM (08:07:24Z). No verdict of mine is half-sent.
-Next command (next gen): `date -u; box read`, then the §1 NEXT list. If the owner is still asleep: quiet; review only what SM sends.
+Idle at 09:12Z 10-16: both 3/3 verdicts (S1 APPROVE, walk C15 false RED) sent to SM 09:11:27Z; nothing half-sent.
+Next command: `date -u; box read`, then the §1 NEXT list. Owner asleep: review only what SM sends.
 
-## §4 Traps (gen 14 only; gen 13's eight are banked in §6 for SM's stack, text at this card's 2fc483e18e)
-- a relayed sum -> recompute it from its terms (SM double-counted G + S at 07:58Z; 8.64 vs the true 7.336) [-> agi-send]
-- "two reads agree" on a lagging counter -> agreement at 0 is vacuous; require non-zero agreement (06:57Z) [-> agi-master-gate]
-- a figure I DERIVE from a voted formula (key limits) -> tell the seats it is mine, not voted (06:59Z) [-> agi-send]
-- a claim the council fixed -> grep its siblings in every other sentence (M2: N5 -> R2, H1; U2 -> R3) [-> agi-verify]
+## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
+- a flag's cause stated before reading the transcript -> read the heard text first (C15: I wrote "cannot tell", the .txt said 47%) [-> agi-verify]
+- a message's own time stamp -> take it from `date -u` at send, never an estimate (sent 09:11Z stamped 09:13Z) [-> agi-send]
 
 ## §5 Verification
+- 10-16 09:11Z: walk/C15/c0-a1.txt + c0-a2.txt 'default of 47%.'; deliver/ 18 mp3 + 18 mp4; walk.py fc28be73 = fe936de061 (G)
+- 10-16 09:10Z: R7 case-arm probe: '/<36>' and '/run/secrets/<36>' PASS, 'sk.<36>' 'user@<36>' REFUSED
 - 10-16 08:05Z: P2 two takes byte-identical PCM (58f570cf...) but 29.96 s for 1415 chars = PCM RED (DG3's numbers)
 - 10-16 07:5xZ: r4 G/S: round-3 take 90.9 Hz vs rep-a 111.9 / rep-b 106.3 / c2a 114.3 (DG3 bytes, r4/round4G.out)
 - 10-16 06:5xZ: media_fidelity.py at 549d327d55: "never" drop RED, "not" insert RED, number word swap GREEN (then fixed)
@@ -82,12 +86,12 @@ Next command (next gen): `date -u; box read`, then the §1 NEXT list. If the own
 | question | options | recommendation |
 |---|---|---|
 | gen 13's eight §4 traps -> their skills | (a) one small stack via SM (skills/ is gated) (b) drop | (a): text at 2fc483e18e §4, one line per skill |
-| gen 14's four traps above | the same | (a), in the same stack |
+| gen 14's four traps (text at this card's b406295b29 §4) | the same | (a), in the same stack |
 Council banks: the host name in 12d991004a public history (owner's word only); engine-post.md :167 "a post's MISTAKE cannot
 move a peer's ref" overclaims vs its fail-open (next editor); warm_load timing (goal .31.1); §Y2 (posts minting through captive
 windows); dry run should probe push auth per target class; send.py ladder fallback names the wrong cause.
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 14, 08:08Z 10-16 (date -u): replaced whole at rotation (the meter line). The g5.4.2 night (samples rounds 1-5, the accounting and settle rules, the fidelity checker, the delegated pick by a pre-registered rule, the unattended walk W1-W4) is collapsed to its standing outcomes; every decision text is in refs/box/alive/sanctuary-master. §4 holds only this generation's traps; gen 13's are banked by commit reference, not copied.
+alive gen 15, 09:12Z 10-16 (date -u): the walk ran and ended clean; the council agreed SM's GO with two residues, then judged the one flag a false RED from the transcripts; .44.8 S1 re-cut approved on the moved trunk. Gen 14's traps leave §4 for §6 by commit reference (owner 10-10: a trap never outlives one rotation on a card).
 <!-- THOUGHT:END -->
