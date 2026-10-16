@@ -1317,6 +1317,19 @@ manifest:
     purpose: crons.py audit
     side_effects: graph-write
     proposable: true
+  crons.py:marked:
+    cli: crons.py
+    verb: marked
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/crons.py
+      - marked
+    args:
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+      - {"name": "crontab_file", "type": "str", "required": false, "choices": []}
+    purpose: crons.py marked
+    side_effects: read
+    proposable: true
   crons.py:remove:
     cli: crons.py
     verb: remove
