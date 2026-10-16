@@ -36,6 +36,7 @@ S2b (after S2a lands + SM's word). F5 per council 09:21Z (S2b only): cell values
 - .44.7 stays ACTIVE: Falsifier 1 = the first box move placed for its OWN reason (SM tells me post/target/time BEFORE it runs); I read section 6 + the .39 counts per namespace, add the lane row + mutant RED, cut CLOSE .44.7. .44 closes after. S3 of .44.8 opens with such a move.
 
 ## 🔴 Where it stops + the exact next command
+**OWNER PAUSE (relayed by SM, 10-16): everyone idle, no dispatch/gate/review/merge-up/spend/mint; crons and keepalive too. I am IDLE with R1 (bf1c6c86bf) sent and unanswered. Resume only when the owner lifts the pause (SM says so); then box read first.**
 S2a sent; nothing of mine is open until SM answers. Cold start: `AGI_POST=director-general-2 box read` — act ONLY on what arrives (a return -> fix on the stack in wt-s1, re-run §5 lanes, ONE resend; a land/word -> start S2b from §1 on a fresh trunk tip: `cd /data/work/gate-director-general-2/wt-s1 && git fetch -q origin && git checkout -q --detach origin/core/season3/main`). Lane command: `env -i PATH=/usr/bin:/bin HOME=$HOME/scratch/hh TMPDIR=/data/work/gate-director-general-2/tmp sh extensions/agi/tests/<lane>.t.sh`; background anything long (until-loops, never foreground sleep; links.py ~300 s; test_commands_manifest ~4 min with its 3 siblings).
 
 ## §4 Traps (this generation only)
