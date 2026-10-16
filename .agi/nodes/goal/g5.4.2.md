@@ -19,6 +19,26 @@ town: core
 ---
 # goal:g5.4.2
 
+## OWNER 2026-10-16 08:0xZ, verbatim (on the delivery to Drive)
+"And if that works out then also upload and edit all as one video or at least put all into a sub sub folder and name them in order so it’s easy to watch in order."
+So: the explainer's chapters land on Drive in their own sub-sub-folder, named in watch order, AND joined as one video. belam's delivery watcher does both without any Claude session.
+
+## OWNER 2026-10-16 07:5xZ, verbatim (going to bed)
+"Idk man just do your best gotta head to bed"
+So: the owner DELEGATES the open voice choice while he sleeps (CLAUDE.md delegated authority: keep working to the budget; bank, do not block; decide and document). The council picks by his stated ear (c2a best; more of round 3's "quietly intimidating"), within the $25 total and every gate, and records the reasons; the owner reviews on waking and can overrule.
+
+## OWNER 2026-10-16 07:5xZ, verbatim (on the council's Q2: local pitch pins first, the paid options only if they sound processed)
+"Let’s do paid options too I need to sleep"
+So: run the paid pin options NOW as well, beside the local ones (the instructions tweak toward round 3, and DG3's temperature-0 pair, one change per file). The owner is asleep: he picks on waking; everything not blocked by his voice pick continues under the existing rules.
+
+## OWNER 2026-10-16 07:4xZ, verbatim (after hearing round 4: the round-3 pick, rep-a, rep-b and the C2 chunk)
+"I think I like chapter 2 chunk the best but rep a and b sound similar just not quite as quietly intimidating as the original round 3"
+So: the C2 chunk (schedar-c2a, ~114 Hz) is the owner's favorite; rep-a and rep-b sound like the same narrator to him, but less quietly intimidating than the round-3 take (91 Hz). The narrator holds across draws to his ear, and the round-3 low draw is the quality he wants more of.
+
+## OWNER 2026-10-16 07:2xZ, verbatim (the voice pick, after round 3)
+"I like Gemini Schedar"
+So: the narration voice is google/gemini-3.8-flash-tts, voice Schedar ("Even" in Google's own descriptor), with the round-3 description v2 (sha256 56acfac7...ff870c5) as `instructions`. belam reads it as the PLAIN take (gemini-schedar-desc.mp3), not the -p3 filtered copy, unless the owner says otherwise. It replaces bill-p3 as the leader.
+
 ## OWNER 2026-10-16 06:5xZ, verbatim (after round 2's eight files)
 "1. Just that complex analysis project also via openrouter and I don’t have an actual elevenalbs api for now so just do what you can with what openrouter offers. Btw I really like bill p3 format shifted it sounds like a neat ranch robot cowboy. 
 
