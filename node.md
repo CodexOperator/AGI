@@ -32,7 +32,7 @@ belam-s3-II woke 08:07Z 10-16: the watcher had died with the rotation (it lived 
 | me | uid agi-belam SIGNS and PUSHES: ~/.gitconfig credential.https://github.com.helper = '' then '!sudo -n -u belam /usr/bin/gh auth git-credential' (owner 10-15 "both the power to sign and the power to push"); R1' prefix retired; sudo NOPASSWD ALL kept (owner, council withdrew F5) |
 | landing my commits | `AGI_POST=belam agi-at <paths>` -> `sudo -n -u belam git -C /data/work/agi merge --ff-only -q refs/heads/posts/belam` -> `git -C /data/work/agi push -q origin <sha>:refs/heads/core/season3/main refs/heads/posts/belam:refs/heads/posts/belam`. The :28 board land refuses non-job commits until goal .42.2 lands |
 | landing SM's L<n> | ~/tools/verify-land.sh takes the ref name `L<n>` (not `<n>`): held/tree/parents/G/D/anonymize/home/gpu; then ff MAIN, CAS posts/belam to it, push both, `git checkout -q --detach` in ~/t |
-| crons | CHECK 13 */4 (session-only: re-arm at wake, CronList first); walk-key backstop one-shot 10:03Z 10-16 |
+| crons | CHECK 13 */4 (session-only: re-arm at wake, CronList first); settle-read one-shot 11:17Z 10-16 (72eed29a) |
 | T3 quiet by design | TM + DT-1 PARKED (TM 08:4xZ 10-16: no dispatchable research until a box has >= 8 GB + docker/GPU, or the owner moves g5.28; "you can stop asking"). .44.7 waits on .44.8 S3 by design (SM 08:47Z) |
 | Drive | rclone remote `gdrive:` (scope drive.file, agi-belam ~/.config/rclone, mode 600) = the OWNER's Drive folder `agi` (https://drive.google.com/drive/folders/1ZKskZRNkGqok7TuZMj-VfGjwmSAjExJc): explainer 17:32 + MV + rollover report already there |
 | WATCHER | /var/lib/agi/belam/drive-deliver.sh as transient unit `drive-deliver.service` (User=agi-belam; survives rotations, NOT a reboot: `sudo -n systemd-run --unit=drive-deliver -p User=agi-belam -p Group=agi-belam --setenv=HOME=/var/lib/agi/belam /bin/sh /var/lib/agi/belam/drive-deliver.sh`). Uploads finished files in /data/work/director-general-3-media/season3/deliver/ to gdrive:agi/season3-media/{explainer,voice-samples,music,html}/, md5-checked; joins explainer-chNN-*.mp4 into explainer/00-explainer-full-so-far.mp4 each time one lands; state + log in ~/.drive-deliver/; stops 10-23 |
@@ -46,17 +46,18 @@ belam-s3-II woke 08:07Z 10-16: the watcher had died with the rotation (it lived 
    write into DG3 ~/keys/<name>.key (dir 700, file 600, `sudo -n -u agi-director-general-3 sh -c "umask 077; cat > ..."`); never print a value
    at DG3's [done]: PATCH disabled=true, read back, shred the file. Settle (~/tools/settle-read.sh, re-run its loop): GET /keys?include_disabled=true (plain /keys HIDES disabled ones);
    two agreeing NON-ZERO reads >= 30 min apart, never < mint + 3 h; a 0 then = UNSETTLED at full cap, never delete (council's word to delete)
-   NOW: walk-tts a2739d5df7 ($4.20) + walk-stt c6bde54503 ($0.90, raised 08:11Z per council W1) LIVE until 09:58Z -> DISABLE both at DG3's walk [done], shred the files;
-   settle-read P1/P2/walk keys from 11:1xZ (mint + 3 h). P2 disabled 08:07:53Z + file shredded
+   WALK DONE 09:07:48Z (18/18 COMPLETE, 36 files; the C15 flag was a FALSE RED: the transcriber wrote '47%', council 09:13Z); walk keys DISABLED 09:09Z + shredded, no dg3-* key live.
+   NEXT: settle-read P1/P2/walk from 11:1xZ (cron 72eed29a): unsettled walk = tts $0.2035 + stt $0.0330; record on goal:g5.4.2
+   M4 animated / M5 HTML / M6 music wait on the council's word: mint each stage key on SM's [word] as above
 3. CHECK every 4 h (skill agi-merge-pass §1): T1-T3, then A-C; ONE line when nothing changed
 4. PASS when experiments landed > 0: merge core/season3/main into season3/main, ff core/main, read back
 ```
 
 ## §2 Landed (10-15 .. 10-16)
-B-3 overwrite 08:10Z 10-15 · L26 a93fe7cf36 · season 3 opened 19:2xZ 10-15 (.44.8 agi.sh + g5.4.1 report template, council design first) · boot pin fa3174300d · L27 fe2b6d3991 (DG3 retire = status + move) · goals cut: .42.2 (:28 lands Prime commits), .31.1 (warm-load test), .20.3 (captive lock), g5.4.2 (media set) · taste skill vendored /data/work/skills-vendor/taste-skill@f624f37a8c · Node 22 /opt/node22 + Chrome for Testing /opt/chrome-cft (/usr/bin/chromium, AppArmor /etc/apparmor.d/chrome-cft for its sandbox)
+B-3 overwrite 08:10Z 10-15 · L26 a93fe7cf36 · season 3 opened 19:2xZ 10-15 (.44.8 agi.sh + g5.4.1 report template, council design first) · boot pin fa3174300d · L27 fe2b6d3991 (DG3 retire = status + move) · L28 1cb54e68f0 09:1xZ 10-16 (.44.8 S1: agi.sh status/stop, box town up|down, crons.py remove --user) · goals cut: .42.2 (:28 lands Prime commits), .31.1 (warm-load test), .20.3 (captive lock), g5.4.2 (media set) · taste skill vendored /data/work/skills-vendor/taste-skill@f624f37a8c · Node 22 /opt/node22 + Chrome for Testing /opt/chrome-cft (/usr/bin/chromium, AppArmor /etc/apparmor.d/chrome-cft for its sandbox)
 
 ## 🔴 Where it stops
-Waiting on DG3's walk [done] (via SM) to disable the two walk keys; the [minted] went to SM 08:08:36Z; CHECK cron a85ea2c8 armed; delivery runs as drive-deliver.service.
+Walk done and its keys disabled 09:09Z; the watcher is uploading the 36 files and will join ch00..ch17; settle reads due from 11:1xZ.
 NEXT COMMAND: AGI_POST=belam box read
 
 ## §4 Traps (this generation's only)
@@ -68,6 +69,7 @@ NEXT COMMAND: AGI_POST=belam box read
 | 111 | the agi-at reset leaves a STALE town:local-maxxing metrics line in ~/t (twice) | `git restore --source=HEAD --staged --worktree -- .agi/nodes/town/local-maxxing.md` (it is older data, in git) |
 | 113 | a setsid'd watcher still dies with the post: agi-post@<post> stops its whole cgroup at rotation | anything that must outlive the post runs as its own unit (`sudo -n systemd-run --unit=...`) |
 | 114 | ~/.gitconfig was rewritten 08:05Z 10-16 (the rotation) without the github credential lines: push -> 'could not read Username' | at wake: `git config --global --get-all credential.https://github.com.helper` must print '' + the gh line; else re-add both |
+| 115 | verify-land anon-diff=1 on L28 = systemd unit names (`agi-post@dg2.service`, `agi-carry@a.path`) read as emails | list the hits (`/usr/bin/grep -oE` on the diff, ugrep chokes on the pattern); land only if every hit is a unit name |
 | 112 | a box mail carried this box's host name (public repo) | write "this box" in mail and nodes; the owner does not mind it much (10-16), history left as is |
 
 ## §5 Verification
@@ -77,6 +79,7 @@ NEXT COMMAND: AGI_POST=belam box read
 | item | recommendation |
 |---|---|
 | g5.4.2 voice: the council picks under the owner's "do your best" by a pre-registered rule (native pin if two takes <= 100 Hz within 5%, else c2a normalised to 100 Hz; 91 Hz + raw banked); the owner overrules on waking | show him the pilot + the README in deliver/ first |
+| g5.4.2 walk: 18/18 chapters on Drive (gdrive:agi/season3-media/explainer/, joined as 00-explainer-full-so-far.mp4); C15 complete (its flag = the transcriber writing 47%); open: "sed" -> "said"; M4 animated / M5 HTML / M6 music wait for the council | tell him on waking; nothing for his ears in C15 |
 | council §Y2: should posts mint through captive fill windows at all; agi-fill is on no post's PATH | no for now: write the node file + agi-at |
 | ElevenLabs direct account: none (owner 10-16); Voice Design route OFF | revisit if he gets a key |
 | the owner's complex-analysis project spends on the OPENROUTER_ADMIN account | the account delta is contaminated; per-key settled usage is the figure |
