@@ -557,6 +557,9 @@ class NodeWrite:
     #: branches on it.
     payload_changed: bool | None = None
     payload_path: str = ""
+    #: goal:g4.18.5.4 -- where a retired node was before `retire_node` moved it, so the
+    #: caller that commits the write by exact path includes the deletion half.
+    moved_from: Path | None = None
 
     @property
     def written(self) -> bool:
@@ -1292,8 +1295,11 @@ def update_node(
     announce=False,
     log_extra=None,
     canonicalize=False,
+    retire=False,
 ) -> NodeWrite:
     """Edit one existing node in place, gated. The only routine that does this.
+    `retire` is `retire_node`'s alone: without it a write that leaves a node at
+    `status: deprecated` outside `nodes/deprecated/` is REJECTED (goal:g4.18.5.4).
     `canonicalize` (write.py's verb, council ruling on SM 154): "unchanged" is
     judged on the rendered BYTES, so a non-canonical node is re-rendered.
 
@@ -1352,6 +1358,19 @@ def update_node(
 
     # `assemble_node` applies the delta AFTER the absorb (never clobbered).
 
+    # goal:g4.18.5.4: a retirement is status AND move, one act. A write that makes a
+    # live-dir node `status: deprecated` is the half that left 6 nodes in a false
+    # state; it is refused by name, and `retire_node` is the one way through.
+    if (not retire and _is_deprecated_status(fm.get("status"))
+            and not _is_deprecated_status(nf.frontmatter.get("status"))
+            and not _retired(root / "nodes", path)):
+        res.status = REJECTED
+        res.reason = (f"{node_id}: status: deprecated without the move is refused "
+                      f"(goal:g4.18.5.4): use `write.py {node_id} 'retire <note>'` "
+                      f"(retire_node): status + move to nodes/deprecated/<type>/, "
+                      f"mint id and grid ref kept")
+        return res
+
     if fm == nf.frontmatter and new_body == nf.body and not (
             canonicalize and _serialize_node(render_frontmatter(fm), new_body)
             != path.read_text(encoding="utf-8")):
@@ -1393,6 +1412,65 @@ def update_node(
                mint_id=fm.get("mint_id", ""),
                extra=_log_extra or None)
     res.status = UPDATED
+    return res
+
+
+def _is_deprecated_status(value) -> bool:
+    """`status: deprecated` as the lifecycle counters read it (metrics.DEPRECATED_STATUS)."""
+    return isinstance(value, str) and value.strip().lower() == "deprecated"
+
+
+def retire_node(root, node_id, *, note=None, set_fm=None, unset_fm=(), body=None,
+                log_extra=None) -> NodeWrite:
+    """Retire a node: `status: deprecated` AND the move to `nodes/deprecated/<type>/`,
+    ONE act (goal:g4.18.5.4). The node, its mint id and its grid ref are kept; nothing
+    is deleted, so active + deprecated never drops.
+
+    The move is `os.rename` on the same filesystem, so git reads it as a rename. When
+    the move cannot happen (a namesake already at the target, or the rename fails) the
+    status write is put back byte for byte and the result is REJECTED: no half. A node
+    already under `deprecated/` just gets its status fixed (no move). `.geometry/`
+    cells have no type dir to retire into and are refused.
+    """
+    root = Path(root)
+    res = NodeWrite(node_id=str(node_id))
+    path = find_node_file(root, node_id)
+    if path is None:
+        res.status = REJECTED
+        res.reason = f"no node file for {node_id}"
+        return res
+    nd = root / "nodes"
+    parts = path.relative_to(nd).parts
+    already = parts[:1] == ("deprecated",)
+    if not already and (parts[0].startswith(".") or len(parts) < 2):
+        res.status = REJECTED
+        res.reason = f"{node_id}: {'/'.join(parts)} is in no type dir; there is nowhere to retire it to"
+        return res
+    dest = path if already else nd / "deprecated" / Path(*parts)
+    if dest != path and dest.exists():
+        res.status = REJECTED
+        res.reason = f"{node_id}: {dest.relative_to(root)} already exists; nothing moved, nothing written"
+        return res
+    fm_set = dict(set_fm or {})
+    fm_set["status"] = "deprecated"
+    if note:
+        fm_set["deprecated_note"] = note
+    before = path.read_text(encoding="utf-8")
+    res = update_node(root, node_id, set_fm=fm_set, unset_fm=unset_fm, body=body,
+                      log_extra=log_extra, retire=True)
+    if res.status == REJECTED or already:
+        return res
+    try:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        os.rename(path, dest)
+    except OSError as exc:
+        path.write_text(before, encoding="utf-8")
+        res.status = REJECTED
+        res.reason = f"{node_id}: the move to {dest.relative_to(root)} failed ({exc}); the status write was put back"
+        return res
+    _ID_INDEX.clear()
+    res.moved_from = path
+    res.path = dest
     return res
 
 
