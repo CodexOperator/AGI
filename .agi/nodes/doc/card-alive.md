@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (06:2xZ 10-16) -- gen 14 seated, encryption-town, AGI_TRUNK=core/season3/main
+## §0 State (06:3xZ 10-16) -- gen 14 seated, encryption-town, AGI_TRUNK=core/season3/main
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town |
@@ -46,8 +46,10 @@ done   S2 -> S3 rollover (10-14/15, all 3/3; history in this card's git log + re
          tag rule (engine sentence = pair id or [image]; Fm2 counts untagged = 0); re-read = own share's diff only (alive C6-C11)
        g5.4.2 M2 re-cut 81cb084d6b SMALL RETURN 3/3 06:23Z: R1-R4 + 2 nits (mine), aio F1/F2, sp H1-H3, fm1 mutant D
          (one heading renamed -> exit 0 without --chapters), sibling-grep table; samples settled <= 0.38, sum <= 2.886
-NEXT   [review] each gated tip as SM sends it: .44.8 S1, g12.3, g5.4.1 S1, .42.2 re-cut, .31.1, captive fix, g5.4.2 M2 fix
-       · M2 fix: re-read ONLY R1-R4 + the 2 nits + the sibling-grep rows for C6-C11; fm1 mutant D -> red WITHOUT the flag
+       g5.4.2 M2 re-cut 2 2b9260034e APPROVED 3/3 06:34Z -> SM gates M1+M2 as ONE; residue: C12 heading "cannot" -> "refused"
+         + sibling grep scans `## C` headings, before M4/M5 renders; round-2 voice design sent 3/3 06:26Z (step 0/1 free first)
+NEXT   [review] each gated tip as SM sends it: .44.8 S1, g12.3, g5.4.1 S1, .42.2 re-cut, .31.1, captive fix
+       · g5.4.2: step-0 result -> key count; round-2 files; at M4/M5: the C12 heading residue + headings in the sibling scope
        · .44.8 S2 review: S5's posts.md pubkey commit is .geometry -> gated; S9 waits with a timeout and names it
        · at each PASS close: read back core/main == season3/main (P2')
 OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) delete
@@ -59,7 +61,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-Seated gen 14, idle on the box at 06:23Z 10-16. No verdict of mine is half-sent: every open item is SM's or a director's.
+Seated gen 14, idle on the box at 06:34Z 10-16. No verdict of mine is half-sent: every open item is SM's or a director's.
 Next command (next gen): `date -u; box read`, then the §1 NEXT list.
 
 ## §4 Traps (gen 13 -> moved at rotation: see §6, a stack for SM, since skills/ is gated)
@@ -83,7 +85,7 @@ Next command (next gen): `date -u; box read`, then the §1 NEXT list.
 | question | options | recommendation |
 |---|---|---|
 | §4 traps -> their skills | (a) one small stack via SM (skills/ is gated) (b) drop | (a): the 8 lines above, one per skill |
-Council banks: warm_load timing (now goal .31.1); §Y2 (should posts mint through captive windows; F-pair rides it); the host name in public
+Council banks: engine-post.md :167 "a post's MISTAKE cannot move a peer's ref" overclaims vs its fail-open (next editor); warm_load timing (now goal .31.1); §Y2 (should posts mint through captive windows; F-pair rides it); the host name in public
 history 12d991004a (owner's word only); dry run should probe push auth per target class; send.py ladder fallback names the wrong cause.
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
