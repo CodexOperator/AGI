@@ -31,7 +31,7 @@ belam-s3-I rotating out 08:0xZ 10-16 at the context line. Season 3 is open and r
 | pin | /etc/agi/carry.env AGI_TRUNK = fa3174300d (boot:true DG2-5); backup carry.env.pre-fa31-*; /run wants 12, /etc wants 0 (agi-boot projects them) |
 | me | uid agi-belam SIGNS and PUSHES: ~/.gitconfig credential.https://github.com.helper = '' then '!sudo -n -u belam /usr/bin/gh auth git-credential' (owner 10-15 "both the power to sign and the power to push"); R1' prefix retired; sudo NOPASSWD ALL kept (owner, council withdrew F5) |
 | landing my commits | `AGI_POST=belam agi-at <paths>` -> `sudo -n -u belam git -C /data/work/agi merge --ff-only -q refs/heads/posts/belam` -> `git -C /data/work/agi push -q origin <sha>:refs/heads/core/season3/main refs/heads/posts/belam:refs/heads/posts/belam`. The :28 board land refuses non-job commits until goal .42.2 lands |
-| landing SM's L<n> | scratchpad verify-land.sh takes the ref name `L<n>` (not `<n>`): held/tree/parents/G/D/anonymize/home/gpu; then ff MAIN, CAS posts/belam to it, push both, `git checkout -q --detach` in ~/t |
+| landing SM's L<n> | ~/tools/verify-land.sh takes the ref name `L<n>` (not `<n>`): held/tree/parents/G/D/anonymize/home/gpu; then ff MAIN, CAS posts/belam to it, push both, `git checkout -q --detach` in ~/t |
 | crons | CHECK 13 */4 (session-only: re-arm at wake, CronList first) |
 | Drive | rclone remote `gdrive:` (scope drive.file, agi-belam ~/.config/rclone, mode 600) = the OWNER's Drive folder `agi` (https://drive.google.com/drive/folders/1ZKskZRNkGqok7TuZMj-VfGjwmSAjExJc): explainer 17:32 + MV + rollover report already there |
 | WATCHER | /var/lib/agi/belam/drive-deliver.sh, setsid, no Claude (pid 1648835 at 08:0xZ; a reboot kills it: restart `setsid nohup /bin/sh /var/lib/agi/belam/drive-deliver.sh >/dev/null 2>&1 </dev/null &`). Uploads finished files in /data/work/director-general-3-media/season3/deliver/ to gdrive:agi/season3-media/{explainer,voice-samples,music,html}/, md5-checked; joins explainer-chNN-*.mp4 into explainer/00-explainer-full-so-far.mp4 each time one lands; state + log in ~/.drive-deliver/; stops 10-23 |
@@ -43,7 +43,7 @@ belam-s3-I rotating out 08:0xZ 10-16 at the context line. Season 3 is open and r
    limit = planned + $0.50 (audio needs >= $0.50 remaining or HTTP 402); expires_at in the POST (+60 min, walk keys = walk x2 + 30 min),
    read back non-null; list ENABLED keys on BOTH accounts (OPENROUTER_ADMIN: Default key; AGI_WORKSPACE_PROV_KEY: agi-et-runtime, agi) first;
    write into DG3 ~/keys/<name>.key (dir 700, file 600, `sudo -n -u agi-director-general-3 sh -c "umask 077; cat > ..."`); never print a value
-   at DG3's [done]: PATCH disabled=true, read back, shred the file. Settle: GET /keys?include_disabled=true (plain /keys HIDES disabled ones);
+   at DG3's [done]: PATCH disabled=true, read back, shred the file. Settle (~/tools/settle-read.sh, re-run its loop): GET /keys?include_disabled=true (plain /keys HIDES disabled ones);
    two agreeing NON-ZERO reads >= 30 min apart, never < mint + 3 h; a 0 then = UNSETTLED at full cap, never delete (council's word to delete)
    NEXT now: P2 56120eb9f6 (temperature 0) is LIVE until 09:03:16Z -> DISABLE at DG3's [done]; then the 2 WALK keys (TTS + STT) on SM's word
 3. CHECK every 4 h (skill agi-merge-pass §1): T1-T3, then A-C; ONE line when nothing changed
