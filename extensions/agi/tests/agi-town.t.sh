@@ -9,7 +9,7 @@ AG=$R0/extensions/agi/bin/agi.sh;CRONS=$R0/extensions/agi/bin;[ -f $AG ]||{ echo
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 sect box >$T/box;chmod +x $T/box;[ -s $T/box ]||{ echo "FAIL extract: box";exit 99;}
 # --- shims
-SH=$T/shim;SD=$T/sd;mkdir -p $SH $SD/cron $T/home $T/wants
+SH=$T/shim;SD=$T/sd;mkdir -p $SH $SD/cron $T/home $T/wants;ln -s $CRONS/crons.py $T/crons.py   # a mutant copy of agi.sh sits in $T and finds crons.py beside it
 cat >$SH/id <<'EOF'
 #!/bin/sh
 case $1 in -un)echo ${STUB_UID:-nobody};; -u)echo ${STUB_IDU:-0};; *)exec /usr/bin/id "$@";;esac
@@ -23,12 +23,14 @@ cat >$SH/systemctl <<'EOF'
 # state: $STUB_SD/active (unit per line), $STUB_SD/enabled; STUB_FAIL=stop:U|disable:U fails that call; STUB_NOOP=stop:U succeeds without stopping; every mutating call is logged with whether town.state existed
 a=$STUB_SD/active;e=$STUB_SD/enabled;touch $a $e
 case $1 in
-list-units)awk '{print $1" loaded active running stub"}' $a;;
+list-units)st=active;for x in "$@";do case $x in --state=*)st=${x#--state=};;esac;done
+ case ",$st," in *,active,*)awk '{print $1" loaded active running stub"}' $a;;esac
+ case ",$st," in *,activating,*)awk '{print $1" loaded activating auto-restart stub"}' $STUB_SD/activating 2>/dev/null;;esac;;
 is-enabled)grep -qx "$2" $e&&{ echo enabled;exit 0;};echo disabled;exit 1;;
 stop|disable)echo "$1 $2 state=$([ -s "$STUB_STATE" ]&&echo yes||echo no)">>$STUB_SD/calls
  case ",$STUB_FAIL," in *,$1:$2,*)echo "stub: $1 $2 failed">&2;exit 1;;esac
  case ",$STUB_NOOP," in *,$1:$2,*)exit 0;;esac
- if [ $1 = stop ];then grep -vxF "$2" $a>$a.n;mv $a.n $a;else grep -vxF "$2" $e>$e.n;mv $e.n $e;fi;;
+ if [ $1 = stop ];then grep -vxF "$2" $a>$a.n;mv $a.n $a;touch $STUB_SD/activating;grep -vxF "$2" $STUB_SD/activating>$STUB_SD/activating.n;mv $STUB_SD/activating.n $STUB_SD/activating;else grep -vxF "$2" $e>$e.n;mv $e.n $e;fi;;
 *)exit 0;;esac
 EOF
 cat >$SH/crontab <<'EOF'
@@ -67,7 +69,7 @@ grep -qP '^town\tstart\tposts crons units blast\tagi.sh$' $M/.agi/nodes/.geometr
 echo "AGI_TRUNK=$PIN" >$T/carry.env
 BLK=$(python3 -c "import sys;sys.path.insert(0,'$CRONS');import crons;from pathlib import Path;print(*crons.block_markers(Path('$M')),sep='\n')");CB=$(echo "$BLK"|sed -n 1p);CE=$(echo "$BLK"|sed -n 2p)
 # --- the town: 6 posts + boxwakes running, the timers/services, the keep-list units, agi-boot enabled; crontabs with the managed block + a foreign line
-town(){ rm -f $SD/calls $SD/state $T/state;printf 'AGI_BOX=tw\n' >$T/env;chmod 600 $T/env;rm -rf $T/wants/*;: >$SD/active
+town(){ [ -z "$STPID" ]||kill $STPID 2>/dev/null;rm -f $SD/calls $SD/state $T/state;: >$SD/activating;printf 'AGI_BOX=tw\n' >$T/env;chmod 600 $T/env;rm -rf $T/wants/*;: >$SD/active
  for p in belam alive sm dg1 dg2 dg3;do echo agi-post@$p.service>>$SD/active;echo agi-boxwake@$p.service>>$SD/active;done
  printf '%s\n' agi-quiet-watch.timer agi-quiet-watch.service agi-rc-keepalive.timer agi-dbus-reap.timer agi-reaper.service agi-alarms-x.service agi-boot.service agi-carry@a.path agi-memguard.service agi-ram-main.service>>$SD/active
  printf '%s\n' agi-boot.service agi-quiet-watch.timer>$SD/enabled
@@ -87,7 +89,8 @@ rd(){ ( cd $M&&AGI_POST=$1 AGI_TRUNK=fx/trunk GIT_CONFIG_GLOBAL=$T/c/$1 GIT_CONF
 # the acks the stop reads: dg2 and dg3 read the blast while the stop waits (held); dg1 writes its card after t0 (card); sm and alive never answer (noack)
 card(){ mkdir -p $M/.agi/nodes/doc;: ;}
 card(){ w=$T/cw;rm -rf $w;$G -C $M worktree prune;$G -C $M worktree add -q --detach $w $PIN;mkdir -p $w/.agi/nodes/doc;echo later>$w/.agi/nodes/doc/card-dg1.md;$G -C $w add -A;GIT_COMMITTER_DATE="4000000000 +0000" $G -C $w -c user.name=dg1 -c user.email=dg1@agi commit -q -m card;$G -C $M update-ref refs/heads/posts/dg1 $($G -C $w rev-parse HEAD);$G -C $M worktree remove --force $w;}
-ST(){ { sleep 1;rd dg2;rd dg3;sleep 1;rd dg2;rd dg3; }>/dev/null 2>&1 & }
+STPID=;ST(){ [ -z "$STPID" ]||kill $STPID 2>/dev/null;{ for i in 1 2 3 4 5 6 7 8 9 10 11 12;do sleep 1;rd dg2;rd dg3;done; }>/dev/null 2>&1 &
+ STPID=$!;}
 
 # ===== the routes that touch nothing =====
 town;s0=$(snap);XENV= run stop --pack /nope >$T/o 2>&1;rc=$?
@@ -185,17 +188,79 @@ ok st-G-mutant-state-written-after-the-stops-is-RED "town.state written after th
 AGSH=
 AGSH=
 
+# ===== council RETURN R1-R7 (07:56Z 10-16), each with its mutant =====
+# R1: a post "activating" (auto-restart) is a unit that is up: the stop stops it (list-units --state=active,activating,reloading; the stub honours --state)
+town;echo agi-post@dg9.service >$SD/activating;ST;XENV= run stop >$T/o 2>$T/e;rc=$?
+ok st-R1-an-activating-post-is-stopped "agi-post@dg9 in 'activating': rc $rc (want 0); it is still listed activating: $(grep -c dg9 $SD/activating) (want 0); town.state names it running: $(grep -c '^running dg9' $T/state) (want 1)" '[ $rc = 0 ]&&[ "$(grep -c dg9 $SD/activating)" = 0 ]&&[ "$(grep -c "^running dg9" $T/state)" = 1 ]'
+rep '--state=active,activating,reloading' '--state=active';town;echo agi-post@dg9.service >$SD/activating;ST;XENV= run stop >$T/o 2>$T/e;rc=$?
+ok st-R1-mutant-state-active-only-is-RED "list-units --state=active only: the stop ends rc $rc but agi-post@dg9 is still activating: $(grep -c dg9 $SD/activating) (want 1: the clean row leaves 0)" '[ "$(grep -c dg9 $SD/activating)" = 1 ]'
+AGSH=
+# R2: a post the blast did not reach (no belam ref, or a tip with another body) is a noack, never skipped
+printf '#!/bin/sh\nsh %s "$@";r=$?;git update-ref -d refs/box/belam/dg2;exit $r\n' $T/box >$T/boxw1;printf '#!/bin/sh\nsh %s "$@";r=$?;git update-ref refs/box/belam/dg3 $(echo "[town] down 0000000000000000000000000000000000000000"|git commit-tree $(git hash-object -w -t tree /dev/null));exit $r\n' $T/box >$T/boxw2;chmod +x $T/boxw1 $T/boxw2
+town;XENV=AGI_TOWN_BOXBIN=$T/boxw1 run stop >$T/o 2>$T/e;rc=$?
+ok st-R2-a-post-with-no-belam-ref-is-a-noack "dg2 has no refs/box/belam/dg2 after the blast: rc $rc (want 0), town.state: $(grep -E ' dg2$' $T/state|tr '\n' '|') (want noack dg2)" '[ $rc = 0 ]&&grep -qx "noack dg2" $T/state'
+town;XENV=AGI_TOWN_BOXBIN=$T/boxw2 run stop >$T/o 2>$T/e;rc=$?
+ok st-R2-a-tip-with-another-body-is-a-noack "dg3's tip body is not '[town] down <sha>': town.state: $(grep -E ' dg3$' $T/state|tr '\n' '|') (want noack dg3)" '[ $rc = 0 ]&&grep -qx "noack dg3" $T/state'
+rep 'c=$(g rev-parse -q --verify refs/box/belam/$p)||{ pend="$pend $p";continue;}' 'c=$(g rev-parse -q --verify refs/box/belam/$p)||continue';town;XENV=AGI_TOWN_BOXBIN=$T/boxw1 run stop >$T/o 2>$T/e
+ok st-R2-mutant-missing-ref-skipped-is-RED "the old skip: town.state has $(grep -cE '^(ack|noack) dg2' $T/state) line(s) for dg2 (want 0: silently skipped; the clean row has 'noack dg2')" '[ "$(grep -cE "^(ack|noack) dg2" $T/state)" = 0 ]'
+rep '||{ pend="$pend $p";continue;};t0=' '||continue;t0=';town;XENV=AGI_TOWN_BOXBIN=$T/boxw2 run stop >$T/o 2>$T/e
+ok st-R2-mutant-wrong-body-skipped-is-RED "the old skip: town.state has $(grep -cE '^(ack|noack) dg3' $T/state) line(s) for dg3 (want 0)" '[ "$(grep -cE "^(ack|noack) dg3" $T/state)" = 0 ]'
+AGSH=
+# R3: a managed block installed from ANOTHER root is still an agi cron job: counted, and stop refuses loud before it touches anything
+OB=$(python3 -c "import sys;sys.path.insert(0,'$CRONS');import crons;from pathlib import Path;print(*crons.block_markers(Path('$T/otherroot')),sep='\n')");OB1=$(echo "$OB"|sed -n 1p);OB2=$(echo "$OB"|sed -n 2p)
+town;printf '%s\n* * * * * cd %s && echo foreign\n%s\n' "$OB1" "$T/otherroot" "$OB2" >$SD/cron/agi-alive;s0=$(snap);XENV= run stop >$T/o 2>$T/e;rc=$?
+ok st-R3-a-foreign-block-refuses-the-stop-before-anything "agi-alive holds a block from another root: rc $rc (want 1), [crons] ... ANOTHER root named: $(grep -c 'ANOTHER root' $T/e), the town unchanged: $([ "$(snap)" = "$s0" ]&&echo yes||echo NO)" '[ $rc = 1 ]&&grep -q "^\[crons\].*ANOTHER root" $T/e&&[ "$(snap)" = "$s0" ]'
+XENV= run status >$T/o 2>&1;rc=$?
+ok st-R3-status-counts-the-foreign-block "status with the foreign block: cron-lines $(sed -n 's/^cron-lines //p' $T/o) (want 9: MAIN's two blocks of 3 lines + the foreign 3), rc $rc (want 1)" '[ $rc = 1 ]&&grep -qx "cron-lines 9" $T/o'
+rep '--foreign 2>/dev/null)' '--foreign 2>/dev/null|:)';town;printf '%s\n* * * * * cd %s && echo foreign\n%s\n' "$OB1" "$T/otherroot" "$OB2" >$SD/cron/agi-alive;s0=$(snap);ST;XENV= run stop >$T/o 2>$T/e;rc=$?
+ok st-R3-mutant-no-foreign-check-is-RED "without the foreign check the stop starts: rc $rc (want 1: it dies late, at crons, 'still unmet'), the town changed: $([ "$(snap)" != "$s0" ]&&echo yes||echo NO) (want yes; the clean row leaves it unchanged)" '[ "$(snap)" != "$s0" ]'
+AGSH=
+# R4: status READS: a leftover wants link is reported as a count, not refused
+town;touch $T/wants/agi-post@dg2.service;XENV= run status >$T/o 2>&1;rc=$?
+ok st-R4-status-reports-a-wants-link-and-does-not-refuse "status with 1 link: rc $rc (want 1), [$(tr '\n' ' ' <$T/o)] (want 'wants-links 1', no [links], no 'nothing stopped')" '[ $rc = 1 ]&&grep -qx "wants-links 1" $T/o&&! grep -q "nothing stopped" $T/o'
+rep 'status)prep;status;;' 'status)prep;pstop;status;;';XENV= run status >$T/o 2>&1
+ok st-R4-mutant-status-runs-the-stop-refusals-is-RED "status through pstop: says [$(grep -c 'nothing stopped' $T/o)] 'nothing stopped' line(s) (want 1: the clean row has none)" 'grep -q "nothing stopped" $T/o'
+AGSH=;rm -f $T/wants/*
+# R5: git's own refusal on MAIN is shown (a root reading belam's repo: "dubious ownership"), not turned into "[matrix] no town start row"
+mkdir -p $T/notrepo;town;XENV=AGI_MAIN=$T/notrepo run stop >$T/o 2>$T/e;rc=$?
+ok st-R5-an-unreadable-main-names-git-not-the-matrix "MAIN is not a repo: rc $rc (want 1), stderr: [$(sed -n 1p $T/e|cut -c1-70)] (want git's own message and '[git]', not '[matrix]')" '[ $rc = 1 ]&&grep -q "^\[git\] cannot read" $T/e&&grep -qi "not a git repository" $T/e&&! grep -q "^\[matrix\]" $T/e'
+ok st-R5-every-read-trusts-main-by-the-command-line "g() is git -c safe.directory=\$MAIN: $(grep -c 'git -c safe.directory="$MAIN" -C "$MAIN"' $AG) site (want 1)" '[ "$(grep -c "git -c safe.directory=\"\$MAIN\" -C \"\$MAIN\"" $AG)" = 1 ]'
+rep ' g rev-parse HEAD >/dev/null||die "[git] cannot read $MAIN as $(id -un) (git said the above): nothing stopped"' '';XENV=AGI_MAIN=$T/notrepo run stop >$T/o 2>$T/e
+ok st-R5-mutant-no-preflight-is-RED "without the preflight the wrong cause surfaces: [$(sed -n 1p $T/e|cut -c1-60)] (want a '[matrix]' line: the clean row says '[git]')" 'grep -q "^\[matrix\]" $T/e'
+AGSH=
+# R6: a stale town.state (a stopped line, but the town is up) is refused by stop; the watch checks while posts run
+town;ST;XENV= run stop >/dev/null 2>&1;rm -rf $T/wants/*;cp $T/state $T/state.keep;echo agi-post@dg1.service >>$SD/active;s0=$(snap);XENV= run stop >$T/o 2>$T/e;rc=$?
+ok st-R6-stop-refuses-a-stopped-line-while-a-post-is-up "town.state has its stopped line and agi-post@dg1 runs: rc $rc (want 1), [stale-state] named: $(grep -c '^\[stale-state\]' $T/e), the post still up: $(grep -c 'agi-post@dg1' $SD/active) (want 1), town.state unchanged: $(cmp -s $T/state $T/state.keep&&echo yes||echo NO)" '[ $rc = 1 ]&&grep -q "^\[stale-state\]" $T/e&&grep -q "agi-post@dg1" $SD/active&&cmp -s $T/state $T/state.keep'
+rep 'if grep -q '"'"'^stopped '"'"' "$STATE" 2>/dev/null&&' 'if false&&';XENV= run stop >$T/o 2>$T/e;rc=$?
+ok st-R6-mutant-no-stale-check-is-RED "without the check the stop goes on: rc $rc, the post is $(grep -q 'agi-post@dg1' $SD/active&&echo STILL UP||echo stopped) (want stopped without a word: the clean row refuses and leaves it up)" '! grep -q "agi-post@dg1" $SD/active'
+AGSH=
+# R7: the secret guard sees a token in ANY segment between . : / @ + =
+tw(){ XENV= run answer "$@" >$T/o 2>&1;}
+J1=$(printf 'a%.0s' $(seq 32));J2=$(printf 'b%.0s' $(seq 36));J3=$(printf 'c%.0s' $(seq 30))
+rm -f $T/env;bad=0
+tw TOKJ "eyJ$J1.$J2.$J3" && bad=$((bad+1));tw TOKB "$J2+$J1/$J3" && bad=$((bad+1));tw TOKC "$J1:ok" && bad=$((bad+1))
+ok st-R7-a-jwt-a-base64-key-and-a-colon-token-are-refused "a JWT-shaped, a +/ base64-shaped and a 32-char-before-colon value: $bad accepted (want 0), town.env: [$(cat $T/env 2>/dev/null|tr '\n' ' ')] (want empty)" '[ $bad = 0 ]&&[ ! -s $T/env ]'
+good=1;tw AGI_BOX local-maxxing||good=0;tw LP /etc/agi/$(printf 'q%.0s' $(seq 50))||good=0;tw SEG "$(printf 'd%.0s' $(seq 31)).x"||good=0;tw V a.b:c@d||good=0
+ok st-R7-a-name-a-path-a-31-char-segment-and-short-segments-pass "AGI_BOX=local-maxxing, a /path with a 50-char segment, a 31-char segment, a.b:c@d: all accepted ($good, want 1); town.env has $(wc -l <$T/env|tr -d ' ') lines (want 4)" '[ $good = 1 ]&&[ "$(wc -l <$T/env|tr -d " ")" = 4 ]'
+rep '[ ${#w} -lt 32 ]||die "[secret]' '[ ${#v} -ne ${#w} ]||[ ${#w} -lt 32 ]||die "[secret]';rm -f $T/env;tw TOKJ "eyJ$J1.$J2.$J3"&&mj=1||mj=0;tw TOKB "$J2+$J1/$J3"&&mb=1||mb=0
+ok st-R7-mutant-the-old-whole-value-guard-is-RED "the guard that only looks at a value with no separator: JWT accepted=$mj, base64 accepted=$mb (want both 1; the clean row refuses both)" '[ $mj = 1 ]&&[ $mb = 1 ]'
+AGSH=
+
 # ===== sanctuary-watch stands down on a stopped town =====
 W=$R0/extensions/agi/guard/sanctuary-watch;[ -f $W ]||{ echo "FAIL inputs: $W";exit 99;}
 mkdir -p $T/wh/work/.sanctuary $T/wh/.local/state/sanctuary-guard $T/wh/logs $T/wsh
 printf '{"hub":{"name":"gw","overlay_ip":"10.0.0.1"},"towns":{"peer":{"host":"peerhost","overlay_ip":"10.0.0.2"}}}\n' >$T/wh/work/.sanctuary/hosts.json
 for c in ping ssh journalctl;do printf '#!/bin/sh\n[ %s = ping ]&&case "$*" in *10.0.0.1*)exit 0;;esac\nexit 1\n' $c >$T/wsh/$c;done;printf '#!/bin/sh\nexit 0\n' >$T/wsh/journalctl
-printf '#!/bin/sh\necho "$@" >>%s/launches\n' $T/wsh >$T/wsh/systemd-run;printf '#!/bin/sh\nexit 0\n' >$T/wsh/systemctl;chmod +x $T/wsh/*
+printf '#!/bin/sh\necho "$@" >>%s/launches\n' $T/wsh >$T/wsh/systemd-run;printf '#!/bin/sh\ncase "$*" in *agi-post@*)i=0;while [ $i -lt ${WATCH_POSTS:-0} ];do echo "agi-post@p$i.service loaded active running x";i=$((i+1));done;;esac\nexit 0\n' >$T/wsh/systemctl;chmod +x $T/wsh/*
 sw(){ rm -f $T/wsh/launches;rm -rf $T/wh/.local/state/sanctuary-guard;mkdir -p $T/wh/.local/state/sanctuary-guard;echo "0 0 0 0" >$T/wh/.local/state/sanctuary-guard/peer.peer
- env -i PATH=$T/wsh:/usr/bin:/bin HOME=$T/wh XDG_STATE_HOME=$T/wh/.local/state SANCTUARY=$T/wh/work/.sanctuary FAILS=1 PEER_CLAUDE=1 COOLDOWN=1 TOWN_STATE=$1 bash $2 >$T/sw.out 2>&1;rc=$?;[ -f $T/wsh/launches ]&&wc -l <$T/wsh/launches|tr -d ' '||echo 0;}
+ env -i PATH=$T/wsh:/usr/bin:/bin HOME=$T/wh XDG_STATE_HOME=$T/wh/.local/state SANCTUARY=$T/wh/work/.sanctuary FAILS=1 PEER_CLAUDE=1 COOLDOWN=1 WATCH_POSTS=${WP:-0} TOWN_STATE=$1 bash $2 >$T/sw.out 2>&1;rc=$?;[ -f $T/wsh/launches ]&&wc -l <$T/wsh/launches|tr -d ' '||echo 0;}
 printf 'boot enabled\nrunning dg2\n' >$T/ws.nostop;printf 'boot enabled\nrunning dg2\nstopped tw 2026-10-15T20:00:00Z\n' >$T/ws.stop
 a=$(sw $T/ws.nostop $W);ok st-F2-watch-launches-a-recovery-agent-on-a-running-town "town.state without a stopped line, peer down, PEER_CLAUDE=1: recovery launches = $a (want 1)" '[ "$a" = 1 ]'
 b=$(sw $T/ws.stop $W);ok st-F2-watch-stands-down-on-a-stopped-town "town.state WITH its stopped line: recovery launches = $b (want 0), the watch says so: $(grep -c 'stood down' $T/wh/logs/sanctuary-guard/watch.log 2>/dev/null)" '[ "$b" = 0 ]&&grep -q "stood down" $T/wh/logs/sanctuary-guard/watch.log'
 sed 's#grep -q .\^stopped . "\$TOWN_STATE" 2>/dev/null#false#' $W >$T/watch.mut;cmp -s $W $T/watch.mut&&echo "# NO EDIT in the watch mutant"
 c=$(sw $T/ws.stop $T/watch.mut);ok st-F2-mutant-the-watch-ignores-town-state-is-RED "the watch without the town.state read, on a stopped town: recovery launches = $c (want >= 1; the clean row wants 0)" '[ "$c" -ge 1 ]'
+# R6 (watch half): a stopped line with posts running is a stale line: the watch checks and says so
+a=$(WP=2 sw $T/ws.stop $W);ok st-R6-the-watch-checks-while-posts-run "town.state stopped + 2 agi-post@ units up: recovery launches = $a (want 1: stale line, the checks go on), noted: $(grep -c 'stale-state' $T/wh/logs/sanctuary-guard/watch.log 2>/dev/null)" '[ "$a" = 1 ]&&grep -q "stale-state" $T/wh/logs/sanctuary-guard/watch.log'
+sed 's#if (( ${NPOSTS:-0} == 0 )); then#if true; then#' $W >$T/watch.mut2;cmp -s $W $T/watch.mut2&&echo "# NO EDIT in the watch mutant 2"
+a=$(WP=2 sw $T/ws.stop $T/watch.mut2);ok st-R6-mutant-the-watch-ignores-running-posts-is-RED "the old stand-down, 2 posts up: recovery launches = $a (want 0; the clean row wants 1)" '[ "$a" = 0 ]'
 exit $f

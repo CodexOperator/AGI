@@ -1596,20 +1596,44 @@ def cmd_remove(root: Path, crontab_file: Path | str | None = None, user: str | N
     return {"root": root, "repo_root": repo_root, "removed_lines": removed}
 
 
+_BLOCK_BEGIN = re.compile(r"^# >>> " + re.escape(MARKER_TAG) + r" (\S+) >>> project=(.*)$")
+
+
+def _managed_blocks(lines: list[str]) -> list[tuple[str, str, int]]:
+    """EVERY managed block in a crontab, whichever root installed it: `(begin_line, project, line_count)` with the two
+    marker lines counted. A BEGIN with no matching END refuses (the same rule as `split_managed_block`)."""
+    found = []
+    for i, ln in enumerate(lines):
+        m = _BLOCK_BEGIN.match(ln)
+        if not m:
+            continue
+        end = f"# <<< {MARKER_TAG} {m.group(1)} <<<"
+        try:
+            j = lines.index(end, i + 1)
+        except ValueError:
+            raise CronsError(f"crontab has {ln!r} with no matching {end!r} — refusing to guess where the managed block ends")
+        found.append((ln, m.group(2), j - i + 1))
+    return found
+
+
 def cmd_marked(root: Path, crontab_file: Path | str | None = None, user: str | None = None,
-               user_crontab_dir: Path | str | None = None) -> int:
-    """How many lines the managed block holds in a crontab, the two marker lines included (a block with
-    no job lines still counts 2: it is still installed). Read-only (goal:g7.16.1.11.44.8 T5)."""
+               user_crontab_dir: Path | str | None = None, foreign: bool = False):
+    """How many lines the managed blocks of a crontab hold, the marker lines included, over EVERY block whatever
+    root installed it (a block installed from a worktree is still an agi cron job: goal:g7.16.1.11.44.8 R3). A block with no
+    job lines still counts 2: it is still installed. `foreign=True` returns instead `[(project, line_count)]` of the blocks
+    that are NOT this project's. Read-only (T5)."""
     repo_root = locations.repo_root(Path(root))
-    begin, end = block_markers(repo_root)
+    begin, _end = block_markers(repo_root)
     if user:
         current, why = _user_io(user, user_crontab_dir)[0]()
         if current is None:
             raise CronsError(f"cannot read {user}'s crontab ({why})")
     else:
         current = read_crontab(crontab_file)
-    _b, held, _a = split_managed_block(current, begin, end)
-    return len(held) + 2 if begin in current else 0
+    blocks = _managed_blocks(current)
+    if foreign:
+        return [(proj, n) for ln, proj, n in blocks if ln != begin]
+    return sum(n for _ln, _proj, n in blocks)
 
 
 def cmd_audit(root: Path, crontab_file: Path | str | None = None,
@@ -1703,8 +1727,10 @@ def main(argv: list[str] | None = None) -> int:
     ap_rm.add_argument("--user-crontab-dir", default=None,
                        help="a dir of <user>.crontab fixtures instead of sudo crontab -u (testing)")
     ap_mk = sub.add_parser("marked", parents=[common],
-                           help="print how many lines this project's managed block holds (0 = none installed)")
+                           help="print how many lines the managed blocks of a crontab hold, every root's (0 = none installed)")
     ap_mk.add_argument("--user", default=None, help="in USER's crontab (sudo crontab -u)")
+    ap_mk.add_argument("--foreign", action="store_true",
+                       help="print one `project<TAB>lines` row per managed block installed from ANOTHER root (nothing = none)")
     ap_mk.add_argument("--user-crontab-dir", default=None,
                        help="a dir of <user>.crontab fixtures instead of sudo crontab -u (testing)")
     sub.add_parser("audit", parents=[common],
@@ -1762,8 +1788,13 @@ def main(argv: list[str] | None = None) -> int:
             print(f"crons: removed {len(result['removed_lines'])} line(s) "
                   f"for {result['repo_root']}" + (f" (user {args.user})" if args.user else ""))
         elif args.cmd == "marked":
-            print(cmd_marked(root, args.crontab_file, user=args.user,
-                             user_crontab_dir=args.user_crontab_dir))
+            got = cmd_marked(root, args.crontab_file, user=args.user,
+                             user_crontab_dir=args.user_crontab_dir, foreign=args.foreign)
+            if args.foreign:
+                for proj, n in got:
+                    print(f"{proj}\t{n}")
+            else:
+                print(got)
         elif args.cmd == "audit":
             found = cmd_audit(root, args.crontab_file, args.unit_dir)
             if found:

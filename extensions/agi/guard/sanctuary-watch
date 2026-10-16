@@ -72,9 +72,14 @@ done
 
 # --- 2. the other towns ------------------------------------------------------
 # A STOPPED town (agi.sh stop wrote its `stopped` line to town.state, goal:g7.16.1.11.44.8) has no posts to recover: every peer outage is false and each would start a recovery
-# Claude. The memory caps above keep watching (the box, not the town). `agi.sh start` takes the line out again.
+# Claude. The memory caps above keep watching (the box, not the town). The contract: `agi.sh start`'s LAST act moves town.state aside whole (town.state.<UTC>), so the line is
+# gone when the town is back. A town brought back BY HAND leaves the line: so the watch stands down only while the line exists AND no agi-post@ unit is up; else it says so and checks.
 TOWN_STATE=${TOWN_STATE:-/etc/agi/town.state}
-if grep -q '^stopped ' "$TOWN_STATE" 2>/dev/null; then note "town stopped ($TOWN_STATE): peer checks stood down"; exit 0; fi
+if grep -q '^stopped ' "$TOWN_STATE" 2>/dev/null; then
+  NPOSTS=$(systemctl list-units 'agi-post@*' --state=active,activating,reloading --plain --no-legend 2>/dev/null | grep -c . || true)
+  if (( ${NPOSTS:-0} == 0 )); then note "town stopped ($TOWN_STATE): peer checks stood down"; exit 0; fi
+  note "[stale-state] $TOWN_STATE says stopped but $NPOSTS posts run: peer checks go on"
+fi
 HOSTS=$SANCTUARY/hosts.json
 SSHCFG=$SANCTUARY/ssh/config
 [ -r "$HOSTS" ] || { note "no $HOSTS: peer checks skipped"; exit 0; }
