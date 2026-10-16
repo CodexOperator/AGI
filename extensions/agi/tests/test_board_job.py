@@ -835,3 +835,50 @@ def test_fb_a_clean_merge_with_a_prime_commit_takes_main_without_a_stall(box, pb
     assert got.returncode == 0, got.stderr
     assert not box.notice.exists()
     assert box.g("show", f"{box.tip()}:{XMD}").stdout.count("PRIME l2") == 1
+
+
+# ---- .42.2 R1 (council 3/3 03:21Z 10-16): the Prime is blamed only for a path one of its commits touched
+def _fd_setup(box, pb):
+    """The job's cell commit + a Prime node commit elsewhere pending on posts/belam; MAIN then edits the job's cell."""
+    assert box.job().returncode == 0                                        # the job's commit rewrites .agi/cell.txt
+    prime = pb.commit({NODE: "the Prime's node, no overlap with MAIN\n"})
+    before = box.tip()
+    ahead = _main_edits_the_cell(box)                                       # the conflict is the JOB's cell only
+    return prime, before, ahead
+
+
+def test_fd_a_mixed_range_whose_conflict_is_only_the_jobs_cell_takes_mains_side_and_loses_no_prime_line(box, pb):
+    prime, before, ahead = _fd_setup(box, pb)
+    got = box.job()
+    assert got.returncode == 0, got.stderr + (box.notice.read_text() if box.notice.exists() else "")
+    new = box.tip()
+    take = box.g("rev-list", "--parents", "-1", new).stdout.split()[1]
+    assert box.g("show", f"{take}:.agi/cell.txt").stdout == "MAIN edited the cell\n"          # MAIN's side on the job's cell
+    assert box.g("show", f"{new}:{NODE}").stdout == box.g("show", f"{before}:{NODE}").stdout   # lines lost = 0
+    assert prime in box.g("rev-list", new).stdout.split() and not box.notice.exists()
+
+
+def test_fd_mutant_the_old_blame_names_a_prime_commit_that_never_touched_the_path(box, pb):
+    prime, before, ahead = _fd_setup(box, pb)
+    m = mutant(box.tmp, "            if hit:   # the newest Prime commit",
+               '            hit = hit or [(hand[-1], paths[0] if paths else "?")]\n            if hit:   # the newest Prime commit')
+    got = box.job(src=m)
+    assert got.returncode == 3 and box.tip() == before                      # RED: the real file takes MAIN (the row above)
+    line = box.notice.read_text()
+    assert prime[:7] in line and ".agi/cell.txt" in line
+    assert box.g("diff-tree", "-r", "--no-commit-id", "--name-only", prime, "--", ".agi/cell.txt").stdout.strip() == ""   # the false line
+
+
+def test_fd_two_conflicts_the_notice_names_the_prime_commit_that_touches_one_and_that_path(box, pb):
+    _shared_doc(box)
+    assert box.job().returncode == 0                                        # the job's cell commit
+    a = pb.commit({NODE: "A, elsewhere\n"})
+    b = pb.commit({XMD: "l1\nPRIME l2\nl3\n"})
+    (box.main / XMD).write_text("l1\nMAIN l2\nl3\n")
+    (box.main / ".agi" / "cell.txt").write_text("MAIN edited the cell\n")
+    box.g("add", "-A")
+    box.commit("MAIN edits both")
+    got = box.job()
+    assert got.returncode == 3 and box.tip() == b
+    line = box.notice.read_text()
+    assert b[:7] in line and a[:7] not in line and XMD in line and ".agi/cell.txt" not in line
