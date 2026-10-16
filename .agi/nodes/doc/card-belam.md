@@ -57,7 +57,7 @@ belam-s3-II woke 08:07Z 10-16: the watcher had died with the rotation (it lived 
 B-3 overwrite 08:10Z 10-15 · L26 a93fe7cf36 · season 3 opened 19:2xZ 10-15 (.44.8 agi.sh + g5.4.1 report template, council design first) · boot pin fa3174300d · L27 fe2b6d3991 (DG3 retire = status + move) · L28 1cb54e68f0 09:1xZ 10-16 (.44.8 S1: agi.sh status/stop, box town up|down, crons.py remove --user) · L29 7965c4fe8c 11:2xZ (.20.3 captive releases an unusable fill window) · goals cut: .42.2 (:28 lands Prime commits), .31.1 (warm-load test), .20.3 (captive lock), g5.4.2 (media set) · taste skill vendored /data/work/skills-vendor/taste-skill@f624f37a8c · Node 22 /opt/node22 + Chrome for Testing /opt/chrome-cft (/usr/bin/chromium, AppArmor /etc/apparmor.d/chrome-cft for its sandbox)
 
 ## 🔴 Where it stops
-g5.4.2 walk delivered (18/18 on Drive, joined 09:25:49Z) and its spend settled ($1.276). Waiting on SM/council: M4/M5/M6 stage keys, the next L<n>.
+PAUSED 12:1xZ 10-16 on the owner's word ("Pause and let everyone go idle now. We are out of use" + "Same with crons and keep alive"): crons_live false (4520f63e35, crontabs applied, incl --sudo); agi-rc-keepalive + agi-quiet-watch timers stopped AND disabled; CHECK cron deleted; [owner] PAUSE boxed to SM + TM to relay. Left running: drive-deliver.service (no Claude), root pi-auth-refresh (no Claude). RESUME (owner's word only): crons_live true + `crons.py apply` and `crons.py apply --sudo`; `sudo systemctl enable --now agi-rc-keepalive.timer agi-quiet-watch.timer`; re-arm CHECK; box SM + TM.
 NEXT COMMAND: AGI_POST=belam box read
 
 ## §4 Traps (this generation's only)
