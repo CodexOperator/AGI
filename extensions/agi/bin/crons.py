@@ -1417,20 +1417,12 @@ def _user_crontab_run(user: str, args: list[str], *, text: str | None = None,
         return None
 
 
-def reconcile_user_crontab(user: str, managed: list[str], begin: str, end: str, *,
-                           dry_run: bool = False, user_crontab_dir: Path | str | None = None,
-                           prompt: bool = False) -> dict:
-    """Put `managed` (the user-bound jobs) into USER's crontab, the same
-    marker block `apply` keeps in the applying user's own. A fixture dir
-    (`<user>.crontab`) stands in for the real thing in tests; the real path is
-    `sudo crontab -u USER`. Without privilege the answer is a NAMED pending
-    status and nothing else: the cron-run `apply` (belam's, every 5 min) has
-    no tty, so a foreign user is installed by the interactive `apply --sudo`
-    and the cron-run one only reports it."""
+def _user_io(user: str, user_crontab_dir: Path | str | None, prompt: bool = False):
+    """`(reader, writer)` for USER's crontab: a fixture dir (`<user>.crontab`) in tests, else `sudo crontab -u USER`.
+    `reader()` -> `(lines, None)` or `(None, why)`; `writer(lines)` installs or raises CronsError."""
     if user_crontab_dir is not None:
         f = Path(user_crontab_dir) / f"{user}.crontab"
-        current = f.read_text(encoding="utf-8").splitlines() if f.exists() else []
-        reader = lambda: (current, None)  # noqa: E731
+        reader = lambda: (f.read_text(encoding="utf-8").splitlines() if f.exists() else [], None)  # noqa: E731
         def writer(lines):
             Path(user_crontab_dir).mkdir(parents=True, exist_ok=True)
             f.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
@@ -1450,6 +1442,20 @@ def reconcile_user_crontab(user: str, managed: list[str], begin: str, end: str, 
             if got is None or got.returncode:
                 raise CronsError(f"crontab -u {user} install failed: "
                                  f"{((got.stderr if got else '') or '').strip()[:120]}")
+    return reader, writer
+
+
+def reconcile_user_crontab(user: str, managed: list[str], begin: str, end: str, *,
+                           dry_run: bool = False, user_crontab_dir: Path | str | None = None,
+                           prompt: bool = False) -> dict:
+    """Put `managed` (the user-bound jobs) into USER's crontab, the same
+    marker block `apply` keeps in the applying user's own. A fixture dir
+    (`<user>.crontab`) stands in for the real thing in tests; the real path is
+    `sudo crontab -u USER`. Without privilege the answer is a NAMED pending
+    status and nothing else: the cron-run `apply` (belam's, every 5 min) has
+    no tty, so a foreign user is installed by the interactive `apply --sudo`
+    and the cron-run one only reports it."""
+    reader, writer = _user_io(user, user_crontab_dir, prompt)
     current, why = reader()
     if current is None:
         return {"user": user, "managed_lines": managed, "changed": None,
@@ -1565,17 +1571,69 @@ def cmd_show(root: Path, crontab_file: Path | str | None = None) -> str:
     return "\n".join(out)
 
 
-def cmd_remove(root: Path, crontab_file: Path | str | None = None) -> dict:
+def cmd_remove(root: Path, crontab_file: Path | str | None = None, user: str | None = None,
+               user_crontab_dir: Path | str | None = None) -> dict:
     """Drop this project's managed block only. Does not read or validate the
     node — removal must work even when the node is missing or malformed,
-    which is exactly the state a broken edit can leave the graph in."""
+    which is exactly the state a broken edit can leave the graph in.
+    `user` (goal:g7.16.1.11.44.8 T2): the same drop in USER's crontab through `sudo crontab -u`
+    (or the `<user>.crontab` fixture dir); a crontab that cannot be read is an error, never a silent 0."""
     root = Path(root)
     repo_root = locations.repo_root(root)
     begin, end = block_markers(repo_root)
+    if user:
+        reader, writer = _user_io(user, user_crontab_dir)
+        current, why = reader()
+        if current is None:
+            raise CronsError(f"cannot read {user}'s crontab ({why})")
+        before, removed, after = split_managed_block(current, begin, end)
+        if removed or begin in current:
+            writer(before + after)
+        return {"root": root, "repo_root": repo_root, "removed_lines": removed}
     current = read_crontab(crontab_file)
     before, removed, after = split_managed_block(current, begin, end)
     write_crontab(before + after, crontab_file)
     return {"root": root, "repo_root": repo_root, "removed_lines": removed}
+
+
+_BLOCK_BEGIN = re.compile(r"^# >>> " + re.escape(MARKER_TAG) + r" (\S+) >>> project=(.*)$")
+
+
+def _managed_blocks(lines: list[str]) -> list[tuple[str, str, int]]:
+    """EVERY managed block in a crontab, whichever root installed it: `(begin_line, project, line_count)` with the two
+    marker lines counted. A BEGIN with no matching END refuses (the same rule as `split_managed_block`)."""
+    found = []
+    for i, ln in enumerate(lines):
+        m = _BLOCK_BEGIN.match(ln)
+        if not m:
+            continue
+        end = f"# <<< {MARKER_TAG} {m.group(1)} <<<"
+        try:
+            j = lines.index(end, i + 1)
+        except ValueError:
+            raise CronsError(f"crontab has {ln!r} with no matching {end!r} — refusing to guess where the managed block ends")
+        found.append((ln, m.group(2), j - i + 1))
+    return found
+
+
+def cmd_marked(root: Path, crontab_file: Path | str | None = None, user: str | None = None,
+               user_crontab_dir: Path | str | None = None, foreign: bool = False):
+    """How many lines the managed blocks of a crontab hold, the marker lines included, over EVERY block whatever
+    root installed it (a block installed from a worktree is still an agi cron job: goal:g7.16.1.11.44.8 R3). A block with no
+    job lines still counts 2: it is still installed. `foreign=True` returns instead `[(project, line_count)]` of the blocks
+    that are NOT this project's. Read-only (T5)."""
+    repo_root = locations.repo_root(Path(root))
+    begin, _end = block_markers(repo_root)
+    if user:
+        current, why = _user_io(user, user_crontab_dir)[0]()
+        if current is None:
+            raise CronsError(f"cannot read {user}'s crontab ({why})")
+    else:
+        current = read_crontab(crontab_file)
+    blocks = _managed_blocks(current)
+    if foreign:
+        return [(proj, n) for ln, proj, n in blocks if ln != begin]
+    return sum(n for _ln, _proj, n in blocks)
 
 
 def cmd_audit(root: Path, crontab_file: Path | str | None = None,
@@ -1662,8 +1720,19 @@ def main(argv: list[str] | None = None) -> int:
                          help="an extra bare log NAME inside ~/logs to bound (repeatable)")
     sub.add_parser("show", parents=[common],
                    help="print installed vs desired, and their diff")
-    sub.add_parser("remove", parents=[common],
-                   help="drop this project's managed block only")
+    ap_rm = sub.add_parser("remove", parents=[common],
+                           help="drop this project's managed block only")
+    ap_rm.add_argument("--user", default=None,
+                       help="in USER's crontab (sudo crontab -u) instead of the invoking user's")
+    ap_rm.add_argument("--user-crontab-dir", default=None,
+                       help="a dir of <user>.crontab fixtures instead of sudo crontab -u (testing)")
+    ap_mk = sub.add_parser("marked", parents=[common],
+                           help="print how many lines the managed blocks of a crontab hold, every root's (0 = none installed)")
+    ap_mk.add_argument("--user", default=None, help="in USER's crontab (sudo crontab -u)")
+    ap_mk.add_argument("--foreign", action="store_true",
+                       help="print one `project<TAB>lines` row per managed block installed from ANOTHER root (nothing = none)")
+    ap_mk.add_argument("--user-crontab-dir", default=None,
+                       help="a dir of <user>.crontab fixtures instead of sudo crontab -u (testing)")
     sub.add_parser("audit", parents=[common],
                    help="report agi cron lines/units the node does not declare "
                         "(read-only; exit 1 when anything is undeclared)")
@@ -1714,9 +1783,18 @@ def main(argv: list[str] | None = None) -> int:
         elif args.cmd == "show":
             print(cmd_show(root, args.crontab_file))
         elif args.cmd == "remove":
-            result = cmd_remove(root, args.crontab_file)
+            result = cmd_remove(root, args.crontab_file, user=args.user,
+                                user_crontab_dir=args.user_crontab_dir)
             print(f"crons: removed {len(result['removed_lines'])} line(s) "
-                  f"for {result['repo_root']}")
+                  f"for {result['repo_root']}" + (f" (user {args.user})" if args.user else ""))
+        elif args.cmd == "marked":
+            got = cmd_marked(root, args.crontab_file, user=args.user,
+                             user_crontab_dir=args.user_crontab_dir, foreign=args.foreign)
+            if args.foreign:
+                for proj, n in got:
+                    print(f"{proj}\t{n}")
+            else:
+                print(got)
         elif args.cmd == "audit":
             found = cmd_audit(root, args.crontab_file, args.unit_dir)
             if found:

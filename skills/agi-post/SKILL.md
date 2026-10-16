@@ -45,8 +45,9 @@ Source of truth: `heal.py _watch_seats` (crash-respawn) · `rotate.py cmd_spawn`
   signed sends verify against MAIN's committed row.
 - cross-uid share via a dir default ACL does not reach files created before it (`.grid.lock`): give each its own `setfacl` entry, set both
   (belam: `.grid.lock` unreadable to another uid).
-- a fresh engine-v5 post: set `projects.<home>/t.hasTrustDialogAccepted` in that user's `.claude.json` BEFORE start (as the user, mode 600),
-  or it stops at the trust dialog (DG3 v5 stand-up, rootplan R8b).
+- a fresh engine-v5 post: set `projects["<MAIN repo root>"].hasTrustDialogAccepted` in that user's `.claude.json` BEFORE start (as the user,
+  mode 600), or it stops at the trust dialog (DG3 v5 stand-up, rootplan R8b). The key is the MAIN root (/data/work/agi), never `<home>/t`:
+  `~/t` is a worktree and claude keys it by the main root (belam 10-16, measured on its own home).
 
 ## 3 · Re-home a row from another box
 Formal route: `rotate.py migrate --post <p> --to <box>`, run ON the source box. From this box instead: ONE row write that sets box
