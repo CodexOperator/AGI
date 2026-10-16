@@ -19,6 +19,10 @@ town: core
 ---
 # goal:g5.4.1
 
+## OWNER 2026-10-16 04:4xZ, verbatim (one sentence; the whole message is on goal:g5.4.2)
+"And let’s create the season report skill that we can update as needed."
+So the rollover's report gains a SKILL (proposed name agi-season-report, the council's call) that renders the template and is edited as the format changes.
+
 ## OWNER 2026-10-15 19:5xZ, verbatim (answers to the council's five questions, relayed by belam)
 "1. Both is good
 2. That works 
