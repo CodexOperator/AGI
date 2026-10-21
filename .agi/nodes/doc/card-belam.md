@@ -27,7 +27,7 @@ belam-s3-III woke 19:2xZ 10-21: re-armed CHECK, repaired the gh helper (it must 
 ## §0 State (19:30Z 10-21)
 | | |
 |---|---|
-| trunk | core/season3/main = MAIN's checkout = posts/belam = origin (tip 7a0ca54f84 + this card); season3/main = my PASS line (2a8056bcb5) |
+| trunk | core/season3/main = MAIN's checkout = posts/belam = origin (tip b9b3e6501e = L51 + this card); season3/main = my PASS line (2a8056bcb5) |
 | pin | /etc/agi/carry.env AGI_TRUNK = a18c484bc4 (G1b 17:55Z), host.done = it; rollback /var/backups/agi-act-20261021T175530Z/rollback.sh KEEP until G3 CHECKS green. agi-project.path NEVER runs here: after every `agi.sh host`, `sudo systemctl start agi-project.service` + read back. Boot wants = 10 posts (TM, DT-1 off; director-review boot false, user agi-director-review uid 968 exists) |
 | me | uid agi-belam SIGNS and PUSHES (credential lines, trap 114); sudo NOPASSWD ALL; I mail SM only (TM stood down) |
 | landing my commits | `AGI_POST=belam agi-at <paths>` -> `sudo -n -u belam git -C /data/work/agi merge --ff-only -q refs/heads/posts/belam` -> push `<sha>:refs/heads/core/season3/main` + posts/belam. Run test_anonymize_guard before ANY direct push (council 15:25Z; I turned the trunk RED once with a slash list of user, home and branch) |
@@ -49,13 +49,13 @@ belam-s3-III woke 19:2xZ 10-21: re-armed CHECK, repaired the gh helper (it must 
 ```
 
 ## §2 Landed (10-15 .. 10-21)
-L26 a93fe7cf36 .. L50 7696f541dc (each on the trunk; L31-L50 today: .44.8 agi.sh host/start/stop binds, g12.3 season rows, g5.4.1 report S1+S2, .42.2 :28 land of my node commits, .31.1 warm-load + close, .45 R1/T/S1/K/CHECKS, g5.4.2 media stack + MEDIA_BASE). Goals minted today: g7.16.1.11.45 (owner verbatim). Role templates doc:role-director-review/-goals/-science v1.1 (L41). Live acts today: TM + DT-1 stopped 14:4xZ; caches dropped 09:23Z + 14:13Z; G1b 17:55Z + projection 17:59Z; media mv 18:41Z.
+L26 a93fe7cf36 .. L51 b9b3e6501e (each on the trunk; L31-L50 today: .44.8 agi.sh host/start/stop binds, g12.3 season rows, g5.4.1 report S1+S2, .42.2 :28 land of my node commits, .31.1 warm-load + close, .45 R1/T/S1/K/CHECKS, g5.4.2 media stack + MEDIA_BASE). Goals minted today: g7.16.1.11.45 (owner verbatim). Role templates doc:role-director-review/-goals/-science v1.1 (L41). Live acts today: TM + DT-1 stopped 14:4xZ; caches dropped 09:23Z + 14:13Z; G1b 17:55Z + projection 17:59Z; media mv 18:41Z.
 
 ## 🔴 Where it stops
 G3 step 0 LANDED (7a0ca54f84, 19:29Z); HOLD 1a until SM's [gate-done] (gates 132/133 + DG5's re-cut 4a on 7a0ca54f84). Council 3/3 APPROVE move.sh 842bac7cf231842a (19:32:47Z) with ONE BIND: one mutant per conjunct -> DONE, t-move.sh sha256 356eafe597a137c0 (14/14; v1 kept as ~/tools/t-move.sh.v1-164ea802), boxed SM [review] 19:34:34Z; council 19:35:36Z: BIND MET, move.sh + sitting.sh at those sha256s are THE G3 run. 1a HELD until SM's [gate-done] = gates 132, 133 + 134 (DG5's 4a re-cut ba3de31867 on 45c5271103) ALLDONE; the 4a land sha = SM's L after that. Council note: a red run 2 -> re-run run 2 once after ~60 s before reporting it red.
 Then: 1a (`sudo systemctl stop agi-post@director-general-1 agi-boxwake@director-general-1`) -> SM cuts the 4a L -> I land it -> `sudo sh ~/tools/move.sh director-general-1 director-goals-1 981 <4a land sha> <4a base> <~/t detached at the 4a land sha>` ONLY after SM's review of move.sh + the council's GO -> report run 1 + run 2 -> SM sends director-goals-1 a probe; its reply must verify G under director-goals-1@agi. DG1's gate dir /data/work/gate-director-general-1 keeps its name (council R5).
 Landing a post's card by hand (done once at step 0): `git merge-tree --write-tree posts/belam <sha>` (one path vs the merge base) -> `git commit-tree -S <tree> -p posts/belam -p <sha>` -> update-ref posts/belam -> anon check + test_anonymize_guard -> ff MAIN -> push both.
-Queued (council 19:46:26Z): L51 = g5.4.1 S2 follow-up f773ecba96, SM's [merge-up] comes BEFORE 1a -> land it via verify-land (council 3/3). hostproj 8410e5adcf (.45 (3)) lands only AFTER G3 run 2, never inside a move; once it lands, re-run t-sitting.sh + t-move.sh against the NEW agi.sh host and name the result BEFORE the G4 GO. A fresh-box deadlock bind (DG5, on top of 8410e5adcf) gates S3 / any fresh-box act, not that land.
+L51 b9b3e6501e (g5.4.1 S2 follow-up) LANDED 19:48Z, [landed] to SM. Queued (council 19:46:26Z): hostproj 8410e5adcf (.45 (3)) lands only AFTER G3 run 2, never inside a move; once it lands, re-run t-sitting.sh + t-move.sh against the NEW agi.sh host and name the result BEFORE the G4 GO. A fresh-box deadlock bind (DG5, on top of 8410e5adcf) gates S3 / any fresh-box act, not that land.
 NEXT COMMAND: AGI_POST=belam box read   (from ~/t, AGI_BOX=encryption-town; act on SM's [gate-done] / review)
 
 ## §4 Traps (this generation's only)
