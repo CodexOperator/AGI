@@ -1238,6 +1238,16 @@ def _fold(repo, head, old, sha, apply, tag, step):
     return 0
 
 
+def _append_season_row(history, g, now):
+    """The ledger after a rollover to season `g` at `now` (goal:g12.3): the row still open is CLOSED at
+    the SAME timestamp the new row OPENS, so the ledger never carries a gap or two open rows. Only the
+    LAST row is touched, and only when it is open; the rows before it are the past and stay as written."""
+    rows = [dict(h) for h in (history or []) if isinstance(h, dict)]
+    if rows and rows[-1].get("closed") is None:
+        rows[-1]["closed"] = now
+    return rows + [{"season": g, "global_season": g, "opened": now, "closed": None}]
+
+
 def _archive_delete_cell(root, repo, old, new, sha, cell_id, m, g, history,
                          apply, delete_old, actor, session, tag, base=2,
                          cell_field="season", defer=None):
@@ -1269,8 +1279,7 @@ def _archive_delete_cell(root, repo, old, new, sha, cell_id, m, g, history,
                     return _stop(d, "delete", err or f"verify {st(repo, R + old)[0]}")
     if delete_old and st(repo, R + old)[0] == "absent":
         now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-        hist = [h for h in (history or []) if isinstance(h, dict)] + [
-            {"season": g, "global_season": g, "opened": now, "closed": None}]
+        hist = _append_season_row(history, g, now)
         if defer is not None:
             defer.append((cell_id, m, g, hist, cell_field))
             print(f"[{tag}] {d + 1} CELL DEFERRED {cell_id} {m} -> {g} (written only after every trunk verifies)")
@@ -1403,8 +1412,7 @@ def _archive_delete_group(repo, old, members, sha, apply, delete_old, tag, defer
     for m in members:
         if gone:
             now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-            hist = [h for h in (m["history"] or []) if isinstance(h, dict)] + [
-                {"season": m["g"], "global_season": m["g"], "opened": now, "closed": None}]
+            hist = _append_season_row(m["history"], m["g"], now)
             defer[m["cell_id"]] = (m["cell_id"], m["m"], m["g"], hist, m["field"])
             print(f"[{tag}] {d + 1} CELL DEFERRED {m['cell_id']} {m['m']} -> {m['g']} (written only after every trunk verifies)")
         else:

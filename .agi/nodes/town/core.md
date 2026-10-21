@@ -13,6 +13,7 @@ master: sanctuary-master
 scaffold_hash: 10fe0c5cd15d5ba4
 season: 3
 season_history:
+  - {"season": 2, "global_season": 2, "opened": "2026-09-12T21:08:17Z", "closed": "2026-10-15T06:23:30Z"}
   - {"season": 3, "global_season": 3, "opened": "2026-10-15T06:23:30Z", "closed": null}
 thought_session: season
 town: core
