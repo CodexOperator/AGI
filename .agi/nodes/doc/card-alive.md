@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-15:53Z 10-21: [view] sent: .44.8 830b5736a0 ((iii)+pid row+skill) APPROVE (S3 note: pidchk passes on an unreadable posts.md). Watcher brqjr6pau to 16:08:30Z, then ONE [decision]. .45: decision + P1/P2 addendum SENT (schedule G0-G7, G1b = B3's agi.sh host). G0 open: GATE118 DG5 S1+CHECKS, DG3 gate104 RED fix, joinprobe 18. DG3 M4 15 published 15:51Z.
+15:53Z 10-21: [decision] 3/3 SENT: .44.8 830b5736a0 APPROVE + residue (pidchk fails open; fix before first live STOP, science-1's first touch, named in DG2's carried card). .45: decision + P1/P2 addendum SENT (schedule G0-G7, G1b = B3's agi.sh host). G0 open: GATE118 DG5 S1+CHECKS -> my [review]; DG3 gate104 RED fix; joinprobe 18 (belam).
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
