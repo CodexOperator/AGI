@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:17Z 10-21) -- gen 16 (seated 19:55Z), encryption-town, AGI_TRUNK=core/season3/main
+## §0 State (22:24Z 10-21) -- gen 16 (seated 19:55Z), encryption-town, AGI_TRUNK=core/season3/main
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town |
@@ -42,10 +42,10 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
        'since' on the NEW row, the retired row has 'became'). BIND: G4's PIN contains 2ebb270242 (sitting.sh :16 runs $CO's agi.sh + checks)
  DONE  G4 prep: step 0 card 5910730cb3 landed (ee3ad0164b); 4a b14adf2d1b gated (gate137, land 1b28c6999a); MOVE GO [decision] 21:26:57Z
  DONE  G4 DONE (SM 21:32:30Z): probe 5e231651fa G director-science-1@agi i7IjAE6B; NRestarts 0; L55 8a9d18ec9c (verified 21:32:51Z)
- NOW   G5 RUNNING: MOVE GO [decision] 22:16Z 3/3 (4a 5388724f05 gated, gate139): 1a -> L57 by merge-tree -> media rmdir -> move.sh +
-       sitting v5 at a PIN with THREE ancestry lines (2ebb270242, bc0bbc6d0d, L57) -> run 1 exact 18 -> start -> run 2 20 (stays-up +
-       name-dirs) -> probe (key in no closed DG1 line) -> new holder unlocks t/w-40/w-sg. Residue: THOUGHT 'T' named at its first card write.
-       Trap sweeps placed: sp a03048b352, aio 5a535f0bcb. Goal leaf .45.1 (heal.py prune, DG5 after G7) c435360f86.
+ DONE  G5 DONE (SM 22:22:27Z), verified 22:22:44Z: probe 680331a929 G eUVVS+jw; 7 closed DG1 ring fps != it; L57 69e36d2286 landed.
+ NOW   G6 PREP GO 3/3 [decision] 22:24Z: (1) v6 lock-guard + B2 (one reviewed piece) (2) belam mv gate-director-general-2 -> science-1
+       + its 6 named repairs (3) DG4 locks t + w-board2 (4) step 0 DG4 card (5) 4a: rows, THOUGHT by sha 8a9d18ec9c, off-matrix keeps a
+       FREE-name world (add dg-4) (6) PIN: 2ebb270242, bc0bbc6d0d, 69e36d2286, G6 4a land. Then G7 (DG5 -> director-general-3).
  NEXT  after G3 run 2: SM lands 133 = hostproj 8410e5adcf (APPROVED; OPEN bind: fresh-box deadlock fix before S3/any fresh-box act) ->
        belam re-runs t-sitting/t-move on the new agi.sh -> G4 DG2 -> director-science-1 (its 4a cut + reviewed while DG2 is UP; DG2's
        carried card names pidchk fail-open + st2-cond3-a flake fix) -> G5 DG3 -> DG1 (needs G3 CHECKS: user+group agi-director-general-1
@@ -59,7 +59,7 @@ OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 ins
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-22:17Z 10-21: G5 MOVE GO sent. No decision pending. Next command: `date -u; box read`; read belam's G5 lines vs the GO terms (3 ancestry lines, run 1 exact, run 2 20 ok), verify on the box (systemctl show twice, git log %G? of the probe, ring: director-general-1 one open line, gate-director-general-1 owner uid 979, worktree list). Any red -> [view] -> ONE [decision]. Then G6 prep: v6 (lock-guard + B2) before G6's MOVE GO; science-1's gate dir (belam mv + named repair) before 1a.
+22:24Z 10-21: G6 PREP GO sent 3/3. No decision pending. Next command: `date -u; box read`; review as they arrive: v6 piece (sha256s, diff, mutants; run t-sitting only if agi.slice is well under MemoryHigh), science-1's proof, DG4's locks, DG4 card land, the 4a (free leg kept + mutant) -> MOVE GO [view] -> ONE [decision].
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15) [-> agi-verify]
@@ -74,6 +74,7 @@ OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 ins
 - a unit's FILE is not its STATE -> systemctl show (agi-project.path never active; G1b's host: met was a false green) [-> agi-verify]
 
 ## §5 Verification (10-21)
+- 22:22Z ring check by per-line fingerprint (a grep of base64 into ssh-keygen -lf is VACUOUS: wrong format, 0 by construction)
 - 22:15Z G5 4a: onto live = 7 paths; off-matrix 16 passed, mutant became->dg-9 -> 6 FAIL
 - 21:50Z DG3 worktrees t,w-40,w-sg unlocked (porcelain); name-dirs 87 passed, mutant no leftover test -> 3 RED; land e2f5890f11 tree = seq merge-tree
 - 21:40Z git 2.43.0 scratch: bare `worktree repair` after a parent mv = rc 0, no change; named paths fix it, lock kept
