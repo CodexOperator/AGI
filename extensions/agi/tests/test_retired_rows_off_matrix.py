@@ -80,7 +80,7 @@ def test_every_retired_row_has_no_parent_no_engine_box_off_and_is_off_the_matrix
     assert _off_matrix_problems(_repo(tmp_path, text), text) == []
 
 
-@pytest.mark.parametrize("retired", ["director-general-1-retired", "director-general-2-retired"])
+@pytest.mark.parametrize("retired", ["director-general-1-retired", "director-general-2-retired", "director-general-3-retired", "director-general-4-retired"])
 def test_MUTANT_a_retired_row_that_keeps_its_parent_is_mailable_and_RED(tmp_path, retired):
     text = POSTS.read_text()
     row = next(r for r in _retired(text) if r["name"] == retired)
@@ -97,10 +97,13 @@ def test_the_a_function_itself_says_yes_for_two_live_peers_so_the_no_answers_abo
     assert _adjacent(_repo(tmp_path, text), "director-science-1", "director-review"), "the real a() no longer lets two level-3 posts mail"
 
 
-@pytest.mark.parametrize("old", ["director-general-1", "director-general-2"])
+OLD_NAMES = ["director-general-1", "director-general-2", "director-general-3", "director-general-4"]      # 1, 2 reused (G5, G6); 3 free until G7; 4 free for good
+
+
+@pytest.mark.parametrize("old", OLD_NAMES)
 @pytest.mark.parametrize("peer", ["director-review", "director-goals-1", "director-science-1", "sanctuary-master", "director-general-5"])
 def test_a_send_to_an_old_name_is_off_matrix_while_no_live_row_has_it_and_reaches_the_new_holder_once_one_does(tmp_path, peer, old):
-    """G3/G4 freed the names director-general-1/-2; G5/G6 reuse them. Free: off the matrix. Reused (G5, G6): the live row says `was` = the previous
+    """G3-G6 freed the names director-general-1..4; G5/G6 reuse the first two, G7 the third. Free: off the matrix. Reused (G5, G6): the live row says `was` = the previous
     holder, its `-retired` row of the EARLIER holder stays off the matrix, and a send to the name reaches the new holder. No skip: either leg is asserted."""
     text = POSTS.read_text()
     rows = {r["name"]: r for r in _rows(text)}
@@ -121,3 +124,35 @@ def test_the_reused_name_director_general_1_is_a_live_row_that_was_director_gene
     assert rows["director-general-3-retired"]["became"] == "director-general-1"
     assert rows["director-general-1-retired"]["became"] == "director-goals-1"       # the earlier holder's retired row survives
     assert _adjacent(_repo(tmp_path, POSTS.read_text()), "director-review", "director-general-1")
+
+
+def _free_names(text):
+    """the OLD_NAMES no live row holds: the legs of the send test that take the free-name branch"""
+    names = {r["name"] for r in _rows(text)}
+    return [o for o in OLD_NAMES if o not in names]
+
+
+def test_the_free_name_leg_of_the_send_test_is_not_vacuous():
+    """aio (council 22:23Z 10-21): with both G5 and G6 names reused, the free branch would never run and pass silently.
+    director-general-4 stays free for good (director-general-3 until G7): at least one OLD_NAMES leg must take the free branch."""
+    assert "director-general-4" in _free_names(POSTS.read_text()) and _free_names(POSTS.read_text())
+
+
+def test_MUTANT_the_free_names_given_live_rows_leave_no_free_leg_and_RED(tmp_path):
+    text = POSTS.read_text()
+    live = next(r for r in _rows(text) if r["name"] == "director-general-2")
+    extra = "".join("\n  - " + json.dumps({**live, "name": o}, ensure_ascii=False) for o in _free_names(text))
+    anchor = next(m for m in re.findall(r"^  - \{.*\}$", text, re.M) if json.loads(m[4:]).get("name") == "director-general-2")
+    bad = text.replace(anchor, anchor + extra)
+    assert bad != text and _free_names(bad) == [], "the mutant must leave NO free leg, so the guard above is RED on it"
+
+
+def test_the_reused_name_director_general_2_is_a_live_row_that_was_director_general_4_once_g6_has_landed(tmp_path):
+    rows = {r["name"]: r for r in _rows(POSTS.read_text())}
+    assert rows["director-general-2"]["was"] == "director-general-4"
+    assert rows["director-general-4-retired"]["became"] == "director-general-2"
+    assert rows["director-general-2-retired"]["became"] == "director-science-1"       # the earlier holder's retired row survives
+    assert "director-general-4" not in rows                                            # the old name stays free for good
+    repo = _repo(tmp_path, POSTS.read_text())
+    assert _adjacent(repo, "director-review", "director-general-2")
+    assert not _adjacent(repo, "director-review", "director-general-4")
