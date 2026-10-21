@@ -39,6 +39,8 @@ q=;[ "$2" = -q ]&&{ q=1;set -- $1 $3;}
 case $1 in stop|restart)[ -n "$STUB_SIGTERM" ]&&[ "$2" = "agi-post@$STUB_SIGTERM.service" ]&&grep -qx "$2" $a&&echo '{"stale":true}' >$STUB_HOMES/$STUB_SIGTERM/.claude.json;; esac
 # STUB_START_FAIL=U,U: `start U` exits 1; STUB_START_NOOP=U,U: it exits 0 but U does not come up
 case $1 in start)case ",$STUB_START_FAIL," in *,$2,*)exit 1;; esac;case ",$STUB_START_NOOP," in *,$2,*)exit 0;; esac;; esac
+# council 17:58Z 10-21: `start agi-project.service` is the ONLY projection (agi-project.path never runs on the box): the proj helper runs the real piece of carry.env's pin into $STUB_X/run/systemd/system; STUB_NOPROJ=1 = returns 0, projects nothing
+[ "$1 $2" = "start agi-project.service" ]&&{ sh "$(dirname "$0")/proj";exit $?;}
 case $1 in
 list-units)st=active;for x in "$@";do case $x in --state=*)st=${x#--state=};;esac;done
  case ",$st," in *,active,*)awk '{print $1" loaded active running stub"}' $a;;esac;;
@@ -77,7 +79,11 @@ cat >$SH/box <<'EOF'
 for p in $(git show $AGI_TRUNK:.agi/nodes/.geometry/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r --arg x "$AGI_BOX" 'select(has("harness") and .box==$x)|.name');do
  c=$(git -c user.name=belam -c user.email=belam@agi commit-tree -m "[town] $v $sha" $(git rev-parse HEAD^{tree}) -p HEAD);git update-ref refs/box/belam/$p $c;git update-ref refs/held/$p/belam $c;done
 EOF
-printf '#!/bin/sh\nexit 0\n' >$SH/crontab;for t in strace script claude pi python3x;do :;done;for t in strace script claude;do printf '#!/bin/sh\nexit 0\n' >$SH/$t;done;chmod +x $SH/*;cp $SH/box $T/box
+printf '#!/bin/sh\nexit 0\n' >$SH/crontab;for t in strace script claude pi python3x;do :;done;for t in strace script claude;do printf '#!/bin/sh\nexit 0\n' >$SH/$t;done;printf '%s\n' '#!/bin/sh
+[ -z "$STUB_NOPROJ" ]||exit 0
+pin=$(sed -n "s/^AGI_TRUNK=//p" $STUB_X/etc/agi/carry.env 2>/dev/null);[ -n "$pin" ]||exit 1;U=$STUB_X/run/systemd/system;mkdir -p $U;f=$(mktemp)||exit 1
+git -C $STUB_M ls-tree --full-tree --name-only $pin .agi/nodes/.geometry/|grep "/engine[^/]*\.md\$"|sed "s|^|$pin:|"|git -C $STUB_M cat-file --batch --follow-symlinks|sed -n "/^###* agi-project /,/^###* /{/^~~~/,/^~~~/{//!p}}">$f;[ -s $f ]||{ rm -f $f;exit 1;}
+(cd $STUB_M&&AGI_BOX=${STUB_BOX:-tw} sh $f $U $pin);r=$?;rm -f $f;exit $r' >$SH/proj;chmod +x $SH/*;cp $SH/box $T/box
 # --- the world: MAIN (HEAD = PIN) inside a ROOT scratch, three posts p1 p2 p3 on box tw (+ far on box xx), homes under $T/h, the passwd, the host act already run
 PUSER=$(id -un);X=$T/root;M=$X/data/work/agi;PM=/data/work/agi
 posts(){ printf '%s\n' '---' 'posts:';for p in p1 p2 p3;do printf '  - {"name":"%s","parent":"belam","harness":"claude","box":"tw","boot":%s,"engine":{"v":4,"name":"%s","harness":"claude","model":"m","effort":"low"}}\n' $p $([ $p = p3 ]&&echo false||echo true) $p;done
@@ -93,10 +99,10 @@ world(){ AGSH=;rm -rf $X $T/h $SD/* $T/state $T/state.* $T/starting $T/env $T/su
  printf '#!/bin/sh\nexit 0\n' >$T/guard-init.sh
  : >$SD/calls;rm -f $T/rcs;}
 # hact: the ROOT=<scratch> rehearsal of the real host act (the live tail on the stub systemctl, so agi-boot is enabled and the stopped-town rules are live)
-hact(){ env -i PATH=$SH:/usr/bin:/bin HOME=$T/home ROOT=$X PIN=$PIN AGI_REPO=$PM AGI_BOX=tw PRIME_USER=$PUSER SKIP_PREREQ=1 AGI_HOST_UNITS=$SH AGI_TOWN_STATE=$T/state AGI_TOWN_STARTING=$T/starting STUB_SD=$SD STUB_STATE=$T/state STUB_HOMES=$T/h sh ${AGSH:-$AG} host;}
+hact(){ env -i PATH=$SH:/usr/bin:/bin HOME=$T/home ROOT=$X PIN=$PIN AGI_REPO=$PM AGI_BOX=tw PRIME_USER=$PUSER SKIP_PREREQ=1 AGI_HOST_UNITS=$SH AGI_TOWN_STATE=$T/state AGI_TOWN_STARTING=$T/starting STUB_SD=$SD STUB_STATE=$T/state STUB_HOMES=$T/h STUB_X=$X STUB_M=$M STUB_BOX=tw sh ${AGSH:-$AG} host;}
 # st [VAR=val ...]: agi.sh start on the stubs (the host check is live through AGI_HOST_UNITS)
 st(){ echo '== start' >>$SD/calls;env -i PATH=${SPATH:-$SH:/usr/bin:/bin} HOME=$T/home ROOT=$X AGI_MAIN=$M AGI_BOX=tw PIN=$PIN PRIME_USER=$PUSER AGI_HOST_UNITS=$SH AGI_TOWN_ENV=$T/env AGI_TOWN_STATE=$T/state AGI_TOWN_STARTING=$T/starting AGI_CARRY_ENV=$X/etc/agi/carry.env AGI_WANTS_DIR=$T/wants \
- AGI_TOWN_BOXBIN=$T/box AGI_SUDOERS=$T/sudoers.d/90-agi-belam AGI_SYSGITCONFIG=$T/gitconfig.sys AGI_GUARD_INIT=$T/guard-init.sh AGI_LOADAVG=$T/loadavg AGI_PSI_IO=$T/psi AGI_ORIGIN=$T/origin.git STUB_SD=$SD STUB_STATE=$T/state STUB_HOMES=$T/h STUB_SOL=$T/sudol "$@" sh ${AGSH:-$AG} ${CMD:-start};}
+ AGI_TOWN_BOXBIN=$T/box AGI_SUDOERS=$T/sudoers.d/90-agi-belam AGI_SYSGITCONFIG=$T/gitconfig.sys AGI_GUARD_INIT=$T/guard-init.sh AGI_LOADAVG=$T/loadavg AGI_PSI_IO=$T/psi AGI_ORIGIN=$T/origin.git STUB_SD=$SD STUB_STATE=$T/state STUB_HOMES=$T/h STUB_X=$X STUB_M=$M STUB_BOX=tw STUB_SOL=$T/sudol "$@" sh ${AGSH:-$AG} ${CMD:-start};}
 # stp: agi.sh stop on the same stubs (root check by the id stub)
 stp(){ CMD=stop st "$@";}
 login(){ for p in p1 p2 p3;do mkdir -p $T/h/$p/.claude;echo '{}' >$T/h/$p/.claude/.credentials.json;done;}
