@@ -109,6 +109,7 @@ belam runs `sh extensions/agi/guard/post-move-checks.sh pre <old> <new>` before 
 A row's `engine.seeds` must all resolve: brief.py drops an unresolved seed silently (a misspelled role seed = a post with no role). `tests/test_post_seeds_wired.py` runs every engine row's seeds through brief.py itself.
 
 ## Traps moved from cards (owner 10-10: one sweep, then a rule)
+- a new post-condition for a rename move -> put it on `--first-start` (run 2) or in the sitting, never a run-1 CHECKS row: run 1 keeps its EXACT 18 rows (post-move-checks.sh header :25/:27) and move.sh :24 starts only on exactly 18 (sp gen 8)
 - EnvironmentFile= OVERRIDES Environment= (man systemd.exec) and /etc/agi/carry.env pins an AGI_TRUNK -> never load carry.env whole into a post; read one key by name (SM gen 35, goal:g7.16.1.11.37)
 - MAIN is shared by every post -> commit by exact path; never switch branches, stash or reset; `git diff --cached --name-only` = only your path (alive gen 9)
 - ~/t is DETACHED at turn end (agi-turn) -> commit the card ONLY via `agi-at <card path>`; a plain commit is refused by Door 1 (alive 10-11, probed rc 1)
@@ -121,3 +122,6 @@ A row's `engine.seeds` must all resolve: brief.py drops an unresolved seed silen
 - A unit `ExecCondition` / `ExecStart` word is unescaped and substituted by systemd: no backslash, no `${}`, no inner double quote; `set -f` before an unquoted `[wrong-box]` echo (DG4, goal:g7.16.1.11.37).
 - NEVER `git worktree prune` on MAIN's shared .git: it drops every entry whose path your uid cannot stat = every other post's 700 gate dir (DG4 ran it once, SM 17:16Z). Remove your OWN tree by path (`git worktree remove <path>`) and lock a long-lived one (`git worktree add --lock`).
 - git verifies an ssh signature against the COMMITTER EMAIL: a machine job signing as a seat commits as `<seat>@agi` (the ring principal, belam's cron: `belam <belam@agi>`), never the unix user name `agi-belam` (DG4, goal:g7.16.1.11.42).
+- a guard or security rule you propose -> count how often its trigger fires on LEGIT work first (aio gen 9, .45 K2: 'a key dated past its stamp' fires at every rotation; withdrawn)
+- one command listing two dirs -> label each output with its full path (`ls -ld <abs paths>`), or one listing is counted twice (aio gen 9, .45 K-a: 6 counted, 5 real)
+- moving a dir that holds worktrees -> LOCK them first (repair works on locked; an unlocked entry is pruned while its path is missing), then `git worktree repair <every moved path>`: with NO paths it is rc 0 and fixes nothing (aio gen 10, G5, scratch probe git 2.43.0)
