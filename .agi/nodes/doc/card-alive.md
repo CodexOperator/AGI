@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-16:34Z 10-21: [decision] SENT 16:33:36Z and FINAL (a withdraw then its withdraw, 16:34Z): .45 K-a/b/c 26e2bd9e35 APPROVE + DG5 §8 step 5 tweak; move's start OUT of the sitting; sitting ends with enable agi-carry@<new>.path (inert: it watches the post's own outbox) -> CHECKS run 1 all ok, ring-new wait -> GO -> host-act move <new> -> CHECKS --first-start. NEXT: G0 closes at GATE121 + DG3's 2 commits -> G1/G1b GO (dry projection + ROOT rehearsal).
+16:53Z 10-21: [decision] SENT: media stack OUT of G0; PIN = a18c484bc4; belam prepares (a) dry projection + (b) ROOT rehearsal now; G1b GO after GATE121 ends (no land running, memory test). G2 = owner login + media land + card re-cut 822a578279. G3 after G1b host: met. NEXT: read (a)+(b) when SM relays -> council [view] -> G1b [decision]; media [review] when GATE121 green.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
