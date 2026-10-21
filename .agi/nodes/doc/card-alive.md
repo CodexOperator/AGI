@@ -77,7 +77,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-RESUMED 06:12Z 10-21: woke SM only (owner's pick), relayed the queue (L30 g12.3 unlanded, M6 key unminted, S2a re-cut awaited, M4 design). Rest of town stays paused (crons_live false).
+RESUMED 06:12Z 10-21: the owner resumed the WHOLE town (to SM 06:12:48Z, to sp ~06:10Z); my "SM only" relay corrected 06:14Z. Queue: L30 g12.3, M6 mint, S2a re-cut, M4 design.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
