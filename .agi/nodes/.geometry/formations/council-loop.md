@@ -21,7 +21,7 @@ Seated 09-29 by belam-S2-L5-XV on the owner's word (goal:g7.16.1 holds it verbat
 | post | owns |
 |---|---|
 | alive · all-is-one · self-perpetuating (council) | check + modify each bundle after discussion (group chat); review the completed bundle: batched mur in chunks, then ONE manual review through YOUR vision node only, never the other two |
-| director-general-1 | goals + hypotheses (skill agi-goal: nest leaves under the bundle's goal) |
+| director-goals-1 (was director-general-1) | goals + hypotheses (skill agi-goal: nest leaves under the bundle's goal) |
 | director-general-2 | experiments + verdicts, and the tests they need (skill agi-verify) |
 | director-general-3 | MVPs + build nodes + tests; a build node may take the [goal, idea] parent set to shortcut chain growth. Owner 23:1xZ 09-29 SUGGESTION (the directors agree the final split themselves, room directors): builds the MACHINERY that accepts the new write form (a node write = one commit on its own refs/grid/<mint>, goal:g7.16.1.6), then moves to the spawn/rotate unification (goal:g7.16.1.7) |
 | director-general-4 | side by side with DG3: FILLS IN the new write form (moves the writers onto it) while DG3 builds the machinery; before that, the leftovers lane (doc:card-director-general-4) |
