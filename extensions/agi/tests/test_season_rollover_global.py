@@ -805,9 +805,9 @@ def test_g123_a_global_rollover_closes_the_open_row_at_the_new_rows_opened_and_t
         assert _ledger_violations(rows) == 1, f"MUTANT (the writer without (a)) must be RED, one violation per town: {slug} {rows}"
 
 
-def _load_season():
+def _load_season(path: Path = CLI):
     import importlib.util
-    spec = importlib.util.spec_from_file_location("season_g123", CLI)
+    spec = importlib.util.spec_from_file_location("season_g123", path)
     sys.path.insert(0, str(BIN)); sys.path.insert(0, str(SRC))
     mod = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = mod                                           # a @dataclass in season.py reads its own module
@@ -842,3 +842,20 @@ def test_g123_every_live_towns_ledger_is_whole_and_a_reopened_row_is_red():
         assert _ledger_violations(rows) == 0, (p.name, rows)
         if len(rows) > 1:                                        # the mutant: a past row left open is exactly one violation
             assert _ledger_violations([{**rows[0], "closed": None}, *rows[1:]]) == 1, p.name
+
+
+def test_g123_the_helper_is_idempotent_on_a_resumed_rollover_and_the_unguarded_mutant_is_red(tmp_path: Path):
+    """The council's season-4 BINDING: a ledger already ending {season: g, open} comes back byte-equal."""
+    rows = [{"season": 2, "global_season": 2, "opened": "2026-09-20T00:00:00Z", "closed": "2026-10-15T06:23:30Z"},
+            {"season": 3, "global_season": 3, "opened": "2026-10-15T06:23:30Z", "closed": None}]
+    season = _load_season()
+    again = season._append_season_row(rows, 3, "2026-10-15T09:00:00Z")          # the RERUN, a later now
+    assert json.dumps(again) == json.dumps(rows) and _ledger_violations(again) == 0
+    once = season._append_season_row([{**rows[0], "closed": None}], 3, "2026-10-15T06:23:30Z")
+    twice = season._append_season_row(once, 3, "2026-10-15T09:00:00Z")           # rollover, then its resume
+    assert json.dumps(twice) == json.dumps(once) and [r["season"] for r in twice] == [2, 3]
+    assert [r["season"] for r in season._append_season_row(rows, 4, "T4")] == [2, 3, 4]   # a NEW season still opens a row
+    mut = _mutant(tmp_path, ('    if rows and rows[-1].get("season") == g and rows[-1].get("closed") is None:\n        return rows\n', ''))
+    red = _load_season(mut)._append_season_row(rows, 3, "2026-10-15T09:00:00Z")
+    assert json.dumps(red) != json.dumps(rows) and [r["season"] for r in red] == [2, 3, 3], \
+        "MUTANT (no idempotence guard) must be RED: the rerun closes the season-3 row and opens a SECOND one"
