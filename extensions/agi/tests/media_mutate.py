@@ -14,6 +14,8 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+from media_base import BASE  # noqa: E402
 TARGET = HERE / "media_video.py"
 TESTS = [HERE / "test_media_video.py"]
 
@@ -134,7 +136,7 @@ def verdict(results):
 
 
 def main():
-    base = os.environ.get("MUT_BASETEMP", "/data/work/director-general-3-media/season3/pt/mut")
+    base = os.environ.get("MUT_BASETEMP", BASE + "/pt/mut")
     res = sweep(TARGET, TESTS, [NOOP, SAME_SIZE] + MUTANTS, HERE.parents[2], extra=("--basetemp=" + base,))
     k = sum(1 for _, s, _ in res if s == "KILLED")
     print(f"killed {k} of {len(MUTANTS) + 1} (the no-op survived: {any(n == NOOP[0] and s == 'SURVIVED' for n, s, _ in res)})")
