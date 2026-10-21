@@ -34,11 +34,15 @@ cat >$SH/systemctl <<'EOF'
 # a STATEFUL stub: $STUB_SD/active, enabled, masked (unit per line). STUB_ENABLE_NOOP=U,U makes `enable U` succeed WITHOUT enabling it. Every call is logged with the town.state / flag-file facts at that moment.
 a=$STUB_SD/active;e=$STUB_SD/enabled;m=$STUB_SD/masked;touch $a $e $m
 echo "$* state=$([ -s "$STUB_STATE" ]&&echo yes||echo no) flags=$(ls $STUB_HOMES/*/.claude.json 2>/dev/null|wc -l|tr -d ' ')" >>$STUB_SD/calls
-[ "$2" = -q ]&&set -- $1 $3
+q=;[ "$2" = -q ]&&{ q=1;set -- $1 $3;}
+# STUB_SIGTERM=p: a post that rewrites its in-memory ~/.claude.json copy on SIGTERM (stop / restart while up) - Claude Code's write-back on exit
+case $1 in stop|restart)[ -n "$STUB_SIGTERM" ]&&[ "$2" = "agi-post@$STUB_SIGTERM.service" ]&&grep -qx "$2" $a&&echo '{"stale":true}' >$STUB_HOMES/$STUB_SIGTERM/.claude.json;; esac
+# STUB_START_FAIL=U,U: `start U` exits 1; STUB_START_NOOP=U,U: it exits 0 but U does not come up
+case $1 in start)case ",$STUB_START_FAIL," in *,$2,*)exit 1;; esac;case ",$STUB_START_NOOP," in *,$2,*)exit 0;; esac;; esac
 case $1 in
 list-units)st=active;for x in "$@";do case $x in --state=*)st=${x#--state=};;esac;done
  case ",$st," in *,active,*)awk '{print $1" loaded active running stub"}' $a;;esac;;
-is-active)grep -qx "$2" $a;;
+is-active)if grep -qx "$2" $a;then [ -n "$q" ]||echo active;else [ -n "$q" ]||echo inactive;exit 3;fi;;
 is-enabled)if grep -qx "$2" $m;then echo masked;exit 1;fi;if grep -qx "$2" $e;then echo enabled;exit 0;fi;echo disabled;exit 1;;
 enable)shift;[ "$1" = --now ]&&{ shift;echo "$1">>$a;};case ",$STUB_ENABLE_NOOP," in *,$1,*)exit 0;;esac;grep -qx "$1" $e||echo "$1">>$e;;
 disable)grep -vxF "$2" $e>$e.n;mv $e.n $e;;
@@ -70,7 +74,7 @@ cat >$SH/box <<'EOF'
 for p in $(git show $AGI_TRUNK:.agi/nodes/.geometry/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r --arg x "$AGI_BOX" 'select(has("harness") and .box==$x)|.name');do
  c=$(git -c user.name=belam -c user.email=belam@agi commit-tree -m "[town] $v $sha" $(git rev-parse HEAD^{tree}) -p HEAD);git update-ref refs/box/belam/$p $c;git update-ref refs/held/$p/belam $c;done
 EOF
-for t in strace script claude pi python3x;do :;done;for t in strace script claude;do printf '#!/bin/sh\nexit 0\n' >$SH/$t;done;chmod +x $SH/*;cp $SH/box $T/box
+printf '#!/bin/sh\nexit 0\n' >$SH/crontab;for t in strace script claude pi python3x;do :;done;for t in strace script claude;do printf '#!/bin/sh\nexit 0\n' >$SH/$t;done;chmod +x $SH/*;cp $SH/box $T/box
 # --- the world: MAIN (HEAD = PIN) inside a ROOT scratch, three posts p1 p2 p3 on box tw (+ far on box xx), homes under $T/h, the passwd, the host act already run
 PUSER=$(id -un);X=$T/root;M=$X/data/work/agi;PM=/data/work/agi
 posts(){ printf '%s\n' '---' 'posts:';for p in p1 p2 p3;do printf '  - {"name":"%s","parent":"belam","harness":"claude","box":"tw","boot":%s,"engine":{"v":4,"name":"%s","harness":"claude","model":"m","effort":"low"}}\n' $p $([ $p = p3 ]&&echo false||echo true) $p;done
@@ -116,7 +120,7 @@ world;st PIN=zz >$T/o 2>$T/e;rc=$?
 ok st2-S1-a-bad-pin-is-refused-by-name "pin zz: rc $rc, [pin] named, nothing started: $(calls '^(start|enable|restart)')" '[ $rc != 0 ]&&grep -q "^\[pin\]" $T/e&&[ "$(calls "^(start|enable|restart)")" = 0 ]'
 # S0
 world;mkdir -p $T/nostrace;for ff in /usr/bin/* /bin/*;do b=${ff##*/};[ "$b" = strace ]||[ -e $T/nostrace/$b ]||ln -s $ff $T/nostrace/$b;done
-mkdir -p $T/shim2;cp $SH/* $T/shim2/;rm -f $T/shim2/strace;SPATH=$T/shim2:$T/nostrace st >$T/o 2>$T/e;rc=$?;SPATH=
+mkdir -p $T/shim2;cp $SH/* $T/shim2/;rm -f $T/shim2/strace;SPATH=$T/shim2:$T/nostrace st AGI_HOST_UNITS=$T/shim2 >$T/o 2>$T/e;rc=$?;SPATH=
 ok st2-S0-a-missing-dep-is-owner-do-rc-21-with-the-apt-line "no strace on PATH: rc $rc, line: $(grep '^\[owner-do\]' $T/o|head -1)" '[ $rc = 21 ]&&grep -qx "\[owner-do\] sudo apt-get install -y strace" $T/o'
 world;mkdir -p $M/bin;echo x>$M/bin/render-context.py;st >$T/o 2>$T/e;rc=$?
 ok st2-S0-a-main-bin-py-is-refused "MAIN/bin/*.py: rc $rc, [shadow] named" '[ $rc != 0 ]&&grep -q "^\[shadow\]" $T/e'
@@ -129,10 +133,10 @@ st >$T/o 2>$T/e;rc=$?
 ok st2-cond7-the-first-start-stops-at-S6-rc-21-after-S5-started-the-posts "rc $rc (want 21): [owner-do] lines $(grep -c '^\[owner-do\]' $T/o) (want 3, one per post), posts up $(grep -c 'agi-post@' $SD/active) (want 3)" '[ $rc = 21 ]&&[ "$(grep -c "^\[owner-do\].*box-move.sh url p" $T/o)" = 3 ]&&[ "$(grep -c "^agi-post@" $SD/active)" = 3 ]'
 ok st2-cond7-town-starting-is-root-600-and-holds-a-UTC "$(cat $T/starting 2>/dev/null) mode $(stat -c %a $T/starting 2>/dev/null)" '[ -s $T/starting ]&&[ "$(stat -c %a $T/starting)" = 600 ]&&grep -qE "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:]{8}Z$" $T/starting'
 ok st2-F4a-every-flag-file-is-600-with-the-four-flags "$(ls $T/h/*/.claude.json|wc -l) .claude.json, $(ls $T/h/*/.claude/settings.json|wc -l) settings.json; modes: $(stat -c %a $T/h/p*/.claude.json $T/h/p*/.claude/settings.json|sort -u|tr '\n' ' ')" 'for p in p1 p2 p3;do h=$T/h/$p;[ "$(stat -c %a $h/.claude.json)" = 600 ]&&[ "$(stat -c %a $h/.claude/settings.json)" = 600 ]&&jq -e --arg m /data/work/agi ".hasCompletedOnboarding==true and .fullscreenUpsellSeenCount>=3 and .projects[\$m].hasTrustDialogAccepted==true" $h/.claude.json >/dev/null&&jq -e ".skipDangerousModePermissionPrompt==true and .tui==\"default\"" $h/.claude/settings.json >/dev/null||exit 1;done'
-ok st2-S5-a-post-the-host-act-started-before-its-flags-is-restarted-after-them "restart calls for p1/p2 saw flags: $(grep '^restart agi-post@p[12]' $SD/calls|sed 's/.*flags=//'|tr '\n' ' ') (want 3 3)" '[ "$(grep "^restart agi-post@p[12]" $SD/calls|sed "s/.*flags=//"|tr "\n" " ")" = "3 3 " ]'
+ok st2-2-the-fresh-box-start-brings-every-post-up-only-after-all-three-flag-files "first start/restart call of the run saw $(sed -n '/^== start/,$p' $SD/calls|grep -m1 -E '^(start|restart) '|sed 's/ state=.*flags=/ flags=/') (want flags=3)" '[ "$(sed -n "/^== start/,\$p" $SD/calls|grep -m1 -E "^(start|restart) "|sed "s/.* flags=//")" = 3 ]'
 ok st2-B1-agi-boot-is-enabled-and-read-back-exactly "agi-boot enabled: $(grep -cx agi-boot.service $SD/enabled)" 'grep -qx agi-boot.service $SD/enabled'
 ok st2-cond5-the-trunk-and-every-town-start-ref-are-unchanged "refs/heads before == after; town-start refs: $($G -C $M for-each-ref refs/heads/town-start|wc -l)" '[ "$($G -C $M for-each-ref refs/heads|md5sum)" = "$ref0" ]&&[ -z "$($G -C $M for-each-ref refs/heads/town-start)" ]'
-ok st2-ring-the-unreadable-ring-is-listed-per-post-and-loud "$(grep -c '^\[ring\]' $T/e) [ring] lines: $(grep '^\[ring\]' $T/o $T/e|sed 's/^[^:]*://'|head -2|tr '\n' '|')" '[ "$(grep -c "^\[ring\] p[123]: unread" $T/e)" = 3 ]&&grep -q "^\[ring\] checked 0 of 3 posts" $T/o&&grep -q "^\[ring\] WARNING: 0 of 3" $T/e'
+ok st2-ring-no-ring-at-the-pin-is-ONE-line-and-says-unverified "$(grep -c '^\[ring\]' $T/o $T/e|tr '\n' ' ') [ring] lines: $(grep -h '^\[ring\]' $T/o $T/e|head -2)" '[ "$(cat $T/o $T/e|grep -c "^\[ring\]")" = 1 ]&&grep -qx "\[ring\] no ring at '$PIN': the old gate, nothing to verify" $T/o&&! grep -q "unread\|WARNING\|checked" $T/o $T/e'
 ok st2-F4b-MAIN-has-no-local-signing-key "git config --local signing: $($G -C $M config --local --get-regexp signing|wc -l)" '[ -z "$($G -C $M config --local --get-regexp signing)" ]'
 ok st2-F5-no-token-shaped-string-in-town-env-carry-env-or-main-git-config "count: $(cat $T/env $X/etc/agi/carry.env $M/.git/config 2>/dev/null|grep -cE 'gh[pousr]_[A-Za-z0-9]{20,}|[A-Za-z0-9_-]{41,}')" '[ "$(cat $T/env $X/etc/agi/carry.env $M/.git/config 2>/dev/null|grep -E "gh[pousr]_[A-Za-z0-9]{20,}|[A-Za-z0-9_-]{41,}"|wc -l)" = 0 ]'
 # stop refuses while a start is in progress, and the town.state it would have read is byte-identical
@@ -243,4 +247,52 @@ world;: >$T/env;chmod 600 $T/env;CMD="answer X /no/such/aaaaaaaaaaaaaaaaaaaaaaaa
 ok st2-S2a-answer-refuses-a-path-shaped-token-that-is-no-file-and-takes-a-real-path "a /<36 chars> with no such file: rc $ra (want 1); a real path: rc $rb (want 0)" '[ $ra = 1 ]&&grep -q "^\[secret\]" $T/e&&[ $rb = 0 ]'
 pm '[ -e "$v" ]||for w in' 'true||for w in';CMD="answer X /no/such/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" st >$T/o 2>$T/e;ra=$?
 ok st2-S2a-mutant-every-slash-value-exempt-is-RED "the old exemption: rc $ra (the clean row refuses with 1)" '[ $ra = 0 ]'
+
+# ===== council 10-21 (S2b APPROVED): the follow-up commit B-6 / R-d / (2) / (3) / (4) =====
+# (2) the host act ENABLES agi-boot and starts no post; start writes the flags with NO post of theirs up (Claude Code writes ~/.claude.json back on SIGTERM)
+world;hact >$T/h.out 2>&1
+ok st2-2-the-host-act-enables-agi-boot-and-starts-nothing "enabled agi-boot: $(grep -cx agi-boot.service $SD/enabled), units up: $(wc -l <$SD/active|tr -d ' '), start agi-boot calls: $(grep -c '^start agi-boot' $SD/calls)" 'grep -qx agi-boot.service $SD/enabled&&[ ! -s $SD/active ]&&! grep -q "^start agi-boot" $SD/calls'
+world;hact >/dev/null 2>&1;login;printf 'agi-post@p1.service\n' >$SD/active;st STUB_SIGTERM=p1 >$T/o 2>$T/e;rc=$?
+ok st2-2-a-post-that-rewrites-its-claude-json-on-SIGTERM-still-ends-with-the-flags "rc $rc: p1 .claude.json stale=$(jq -r '.stale' $T/h/p1/.claude.json 2>/dev/null) onboarding=$(jq -r '.hasCompletedOnboarding' $T/h/p1/.claude.json 2>/dev/null)" '[ $rc = 0 ]&&jq -e ".stale==true and .hasCompletedOnboarding==true and .fullscreenUpsellSeenCount>=3 and .projects[\"/data/work/agi\"].hasTrustDialogAccepted==true" $T/h/p1/.claude.json >/dev/null'
+world;hact >/dev/null 2>&1;login;printf 'agi-post@p1.service\n' >$SD/active
+A=$(sed -n '/cannot stop \$p before its flags/,/^ for p in \$nf;do flags_do \$p;done/p' $AG);[ "$(echo "$A"|wc -l|tr -d ' ')" = 2 ]||echo "# mutant text is not the two lines"
+pm "$A" ' for p in $nf;do flags_do $p;done;for p in $nf;do isup $p&&systemctl restart "agi-post@$p.service";done';st STUB_SIGTERM=p1 >$T/o 2>$T/e;rc=$?
+ok st2-2-mutant-the-old-order-flags-then-restart-loses-the-flags-RED "rc $rc with the old order: p1 flags $(jq -r '.hasCompletedOnboarding' $T/h/p1/.claude.json 2>/dev/null) (clean: true)" '! jq -e ".hasCompletedOnboarding==true" $T/h/p1/.claude.json >/dev/null 2>&1'
+world;pm 'systemctl enable agi-boot.service||die "enable failed: sh $B/rollback.sh";fi' 'systemctl enable agi-boot.service&&systemctl start agi-boot.service||die "enable failed: sh $B/rollback.sh";fi';hact >/dev/null 2>&1
+ok st2-2-mutant-the-act-tail-that-starts-agi-boot-is-seen "the act with start put back: start agi-boot calls $(grep -c '^start agi-boot' $SD/calls) (clean: 0)" '[ "$(grep -c "^start agi-boot" $SD/calls)" -ge 1 ]'
+# (3) no ring at the pin = ONE line; a ring that exists but yields 0 keys keeps the WARNING; the mutant restores the M unread lines
+world;hact >/dev/null 2>&1;login;pm '&&[ -z "$ro" ];then echo "[ring] no ring at' '&&[ -n "$ro" ];then echo "[ring] no ring at';st >$T/o 2>$T/e
+ok st2-ring-mutant-the-no-ring-line-gone-brings-the-M-unread-lines-back-RED "unread lines: $(grep -c '^\[ring\] p[123]: unread' $T/e) (clean: 0), the one line: $(grep -c 'no ring at' $T/o)" '! grep -q "^\[ring\] no ring at" $T/o&&[ "$(grep -c "^\[ring\] p[123]: unread" $T/e)" = 3 ]'
+world;echo "p1 ssh-ed25519 AAAA" >$M/.agi/nodes/.geometry/ring;$G -C $M add -A;$G -C $M -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm ring0;PIN=$($G -C $M rev-parse HEAD);hact >/dev/null 2>&1;login;st >$T/o 2>$T/e
+ok st2-ring-a-ring-that-exists-with-0-keys-read-keeps-the-WARNING "$(grep -h '^\[ring\]' $T/o $T/e|sed -n '$p')" 'grep -q "^\[ring\] checked 0 of 3 posts" $T/o&&grep -q "^\[ring\] WARNING: 0 of 3" $T/e&&! grep -q "no ring at" $T/o'
+# B-6: a recorded unit that does not start fails the step: rc != 0, no `started` line, the unit named, town.state and town.starting kept
+b6(){ world;hact >/dev/null 2>&1;login;st >/dev/null 2>&1;up3;stp >/dev/null 2>&1;}
+b6;st STUB_START_FAIL=agi-quiet-watch.timer >$T/o 2>$T/e;rc=$?
+ok st2-B6-a-recorded-unit-whose-start-fails-ends-start-non-zero-with-no-started-line "rc $rc: $(grep -o '\[units\] cannot start [^ ]*' $T/e|head -1); started lines: $(grep -c '^started tw' $T/o); town.state $([ -e $T/state ]&&echo kept||echo GONE), town.starting $([ -e $T/starting ]&&echo kept||echo GONE)" '[ $rc != 0 ]&&! grep -q "^started tw" $T/o&&grep -q "^\[units\] cannot start agi-quiet-watch.timer" $T/e&&grep -q "^\[step\] units: still unmet" $T/e&&[ -e $T/state ]&&[ -e $T/starting ]'
+st >$T/o 2>$T/e;rc=$?
+ok st2-B6-the-re-run-after-the-unit-is-fixed-ends-clean "rc $rc, started: $(grep -c '^started tw' $T/o), town.starting $([ -e $T/starting ]&&echo kept||echo gone)" '[ $rc = 0 ]&&grep -q "^started tw" $T/o&&[ ! -e $T/starting ]'
+b6;st STUB_START_NOOP=agi-quiet-watch.timer >$T/o 2>$T/e;rc=$?
+ok st2-B6-a-unit-whose-start-returns-0-but-is-not-up-also-ends-start-non-zero "rc $rc: $(grep -o '\[units\] [^ ]* is not active[^(]*' $T/e|head -1); started lines: $(grep -c '^started tw' $T/o)" '[ $rc != 0 ]&&! grep -q "^started tw" $T/o&&grep -q "^\[units\] agi-quiet-watch.timer is not active after its start" $T/e'
+b6;pm ';*)exit 1;;esac;done;}   # B-6' ';*);;esac;done;}   # B-6';st STUB_START_FAIL=agi-quiet-watch.timer >$T/o 2>$T/e;rc=$?
+ok st2-B6-mutant-sk-units-without-the-is-active-read-gives-the-lying-last-line-RED "rc $rc, started lines $(grep -c '^started tw' $T/o) (clean: rc != 0, 0 lines)" '[ $rc = 0 ]&&grep -q "^started tw" $T/o'
+# R-d: ROOT set => AGI_HOST_UNITS=<stub dir> holding systemctl sudo visudo gh crontab, else start dies before S0 with nothing written; the /etc defaults lie under $ROOT
+world;hact >/dev/null 2>&1;login;st AGI_HOST_UNITS= >$T/o 2>$T/e;rc=$?
+ok st2-Rd-ROOT-without-AGI_HOST_UNITS-dies-before-S0-and-writes-nothing "rc $rc: $(head -1 $T/e|cut -c1-80); service calls $(calls '^(start|enable|restart|stop)'), town.starting $([ -e $T/starting ]&&echo written||echo none), town.env $([ -e $T/env ]&&echo written||echo none)" '[ $rc != 0 ]&&grep -q "^\[root\] ROOT is set: AGI_HOST_UNITS=<stub dir>" $T/e&&[ "$(calls "^(start|enable|restart|stop)")" = 0 ]&&[ ! -e $T/starting ]&&[ ! -e $T/env ]&&[ ! -e $X/etc/agi/town.starting ]'
+world;hact >/dev/null 2>&1;login;pm '[ -n "$AGI_HOST_UNITS" ]||die "[root] ROOT is set:' 'true||die "[root] ROOT is set:';st AGI_HOST_UNITS= >$T/o 2>$T/e;rc=$?
+ok st2-Rd-mutant-the-ROOT-guard-gone-lets-the-rehearsal-run-RED "rc $rc with the guard dropped (the clean row dies at once): [root] lines $(grep -c '^\[root\]' $T/e), service calls $(calls '^(start|enable|restart|stop)')" '! grep -q "^\[root\] ROOT is set" $T/e&&[ "$(calls "^(start|enable|restart|stop)")" -ge 1 ]'
+mkdir -p $T/shim3;cp $SH/* $T/shim3/;rm -f $T/shim3/crontab;world;hact >/dev/null 2>&1;login;SPATH=$T/shim3:/usr/bin:/bin st AGI_HOST_UNITS=$T/shim3 >$T/o 2>$T/e;rc=$?;SPATH=
+ok st2-Rd-a-stub-dir-without-crontab-dies-naming-it "rc $rc: $(head -1 $T/e|cut -c1-90)" '[ $rc != 0 ]&&grep -q "^\[root\] AGI_HOST_UNITS needs stubs: crontab does not resolve inside" $T/e'
+RDW(){ world;mkdir -p $X/etc/sudoers.d;rm -f $T/sudoers.d/90-agi-belam;hact >/dev/null 2>&1;}
+RDW;st AGI_TOWN_ENV= AGI_TOWN_STATE= AGI_TOWN_STARTING= AGI_SUDOERS= AGI_SYSGITCONFIG= >$T/o 2>$T/e;rc=$?
+ok st2-Rd-the-etc-defaults-lie-under-ROOT "rc $rc (21: no logins): town.starting under ROOT $([ -e $X/etc/agi/town.starting ]&&echo yes||echo NO), sudoers under ROOT $([ -e $X/etc/sudoers.d/90-agi-belam ]&&echo yes||echo NO), stray $T/starting $([ -e $T/starting ]&&echo YES||echo none)" '[ $rc = 21 ]&&[ -s $X/etc/agi/town.starting ]&&[ -s $X/etc/sudoers.d/90-agi-belam ]&&[ ! -e $T/starting ]&&[ ! -e $T/sudoers.d/90-agi-belam ]'
+RDW;pm 'STARTING=${AGI_TOWN_STARTING:-$ROOT/etc/agi/town.starting}' 'STARTING=${AGI_TOWN_STARTING:-/nonexistent-live/etc/agi/town.starting}';st AGI_TOWN_ENV= AGI_TOWN_STATE= AGI_TOWN_STARTING= AGI_SUDOERS= AGI_SYSGITCONFIG= >$T/o 2>$T/e;rc=$?
+ok st2-Rd-mutant-the-town-starting-default-off-ROOT-leaves-none-under-ROOT-RED "rc $rc: town.starting under ROOT $([ -e $X/etc/agi/town.starting ]&&echo yes||echo none) (clean: yes)" '[ ! -e $X/etc/agi/town.starting ]'
+RDW;pm 'SUDOERS=${AGI_SUDOERS:-$ROOT/etc/sudoers.d/90-agi-belam}' 'SUDOERS=${AGI_SUDOERS:-/nonexistent-live/etc/sudoers.d/90-agi-belam}';st AGI_TOWN_ENV= AGI_TOWN_STATE= AGI_TOWN_STARTING= AGI_SUDOERS= AGI_SYSGITCONFIG= >$T/o 2>$T/e;rc=$?
+ok st2-Rd-mutant-the-sudoers-default-off-ROOT-leaves-none-under-ROOT-RED "rc $rc: sudoers under ROOT $([ -e $X/etc/sudoers.d/90-agi-belam ]&&echo yes||echo none) (clean: yes)" '[ ! -e $X/etc/sudoers.d/90-agi-belam ]'
+# (4) the blast prints how many dialog titles are unmeasured; the constant carries the comment naming the one measured title; the skill names the ring and the boot drift
+world;hact >/dev/null 2>&1;login;st >$T/o 2>$T/e;rc=$?
+ok st2-4-blast-prints-N-of-M-titles-unmeasured-and-the-constant-names-the-measured-one "rc $rc: $(grep '^\[blast\] dialog probe' $T/o)" '[ $rc = 0 ]&&grep -qx "\[blast\] dialog probe: 5 of 6 titles unmeasured" $T/o&&grep -B1 "^TITLES=" $SRC|grep -q "ONLY .Try the new fullscreen renderer. is a MEASURED title"'
+world;hact >/dev/null 2>&1;login;pm "MEASURED='Try the new fullscreen renderer'" "MEASURED=''";st >$T/o 2>$T/e
+ok st2-4-mutant-no-measured-title-prints-6-of-6-RED "$(grep '^\[blast\] dialog probe' $T/o) (clean: 5 of 6)" '! grep -qx "\[blast\] dialog probe: 5 of 6 titles unmeasured" $T/o'
+ok st2-skill-names-ring-unverified-and-the-by-design-boot-disabled-drift "agi-town SKILL.md: ring-unverified $(grep -c 'ring: unverified' $R0/skills/agi-town/SKILL.md), boot-disabled $(grep -c 'boot disabled' $R0/skills/agi-town/SKILL.md)" 'grep -q "ring: unverified" $R0/skills/agi-town/SKILL.md&&grep -q "boot disabled" $R0/skills/agi-town/SKILL.md'
 echo "agi-town-start: $f FAIL";exit $f

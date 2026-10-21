@@ -3,11 +3,11 @@
 # The step order is READ from the matrix row `town<TAB>start<TAB>main host posts crons units blast<TAB>agi.sh` (engine.md ### matrix, at the pin): START runs the names left to right, STOP right to
 # left (blast, units, crons, posts, host and main: no-ops on STOP); every name is one function pair, ck_<name> (met?) and dn_<name> (the down arm). A re-run resumes at the first unmet check.
 # Captive: ONE `[ask] KEY: question` per run (rc 20, answered with `answer KEY VALUE`), `[owner-do] command` (rc 21) for what only the owner can type; answers go to town.env (root 600, no secret, never in git); town.state is root-written 644: no secret in it, and sanctuary-watch (a user timer) reads its `stopped` line.
-# Cells (env; a test points them at stubs): AGI_MAIN (/data/work/agi) · AGI_TOWN_ENV (/etc/agi/town.env) · AGI_TOWN_STATE (/etc/agi/town.state) · AGI_CARRY_ENV (/etc/agi/carry.env: the pin) · AGI_WANTS_DIR ·
+# Cells (env; a test points them at stubs; with ROOT set every /etc default below lies under $ROOT): AGI_MAIN (/data/work/agi) · AGI_TOWN_ENV (/etc/agi/town.env) · AGI_TOWN_STATE (/etc/agi/town.state) · AGI_CARRY_ENV (/etc/agi/carry.env: the pin) · AGI_WANTS_DIR ·
 # AGI_TOWN_BOXBIN (belam's box). start adds: PIN · AGI_BOX · PRIME_USER (answers or env) · ROOT=<scratch> (the host check reads its files under it) · AGI_TOWN_STARTING (/etc/agi/town.starting) · AGI_ORIGIN (the public clone) · AGI_SUDOERS ·
 # AGI_SYSGITCONFIG · AGI_GUARD_INIT · AGI_LOADAVG · AGI_PSI_IO. Config: .agi/config.json values.local_maxxing.agi_town = {keep_units, ack_wait_s, carry_fetch, sudoers_line}, read at the pin. No credential here; no git write except through `box town` (uid agi-belam), the clone (as PRIME_USER) and agi-belam's own gitconfig.
 D=$(cd "$(dirname "$0")" && pwd)
-MAIN=${AGI_MAIN:-/data/work/agi};ENVF=${AGI_TOWN_ENV:-/etc/agi/town.env};STATE=${AGI_TOWN_STATE:-/etc/agi/town.state}
+MAIN=${AGI_MAIN:-/data/work/agi};ENVF=${AGI_TOWN_ENV:-$ROOT/etc/agi/town.env};STATE=${AGI_TOWN_STATE:-$ROOT/etc/agi/town.state}
 CARRY=${AGI_CARRY_ENV:-/etc/agi/carry.env};WANTS=${AGI_WANTS_DIR:-/etc/systemd/system/multi-user.target.wants}
 die(){ echo "$*" >&2;exit 1;}
 ask(){ echo "[ask] $1: $2";exit 20;}
@@ -196,7 +196,7 @@ fi
 if [ -z "$R" ]||[ -n "$AGI_HOST_UNITS" ];then   # AGI_HOST_UNITS=<stub dir>: a rehearsal runs this tail too, against the systemctl / systemd-analyze stubs IN that dir (R-b: refused otherwise)
  systemd-analyze verify $R/etc/systemd/system/agi-ram-main.service $R/etc/systemd/system/agi-boot.service $R/etc/systemd/system/agi-carry@.service $R/etc/systemd/system/agi-carry-fetch.service $R/etc/systemd/system/agi.slice||die "systemd-analyze verify refused a unit: sh $B/rollback.sh"
  if stp;then systemctl daemon-reload||die "daemon-reload failed: sh $B/rollback.sh";echo "stopped town: start's steps re-enable"
- else systemctl daemon-reload&&tm&&systemctl enable agi-boot.service&&systemctl start agi-boot.service||die "enable / start failed: sh $B/rollback.sh";fi
+ else systemctl daemon-reload&&tm&&systemctl enable agi-boot.service||die "enable failed: sh $B/rollback.sh";fi   # (2) council 10-21: ENABLE only, no start: start (S5) writes the flags with no post up, then its restart of agi-boot starts the posts
  echo "slice:";systemctl show agi.slice -p MemoryHigh -p MemoryMax -p ManagedOOMMemoryPressure
 else tm||exit 1;fi
 echo "act done; next: per post, PIN=$PIN sh $D/../guard/host-act-encryption-town.sh move <post> (after its row has box $BOX at that pin)"
@@ -208,8 +208,8 @@ printf '%s\n' $PIN>$R/etc/agi/host.done&&chmod 644 $R/etc/agi/host.done||exit 1 
 # Every name has sk_<name> (met? read from LIVE state: units, crontab, refs, files; never town.state alone: cond 4) and su_<name> (the up arm). START runs the row left to right: sk_ || { su_; sk_ || die }.
 steps(){ printf '%s\n' 'S0 pre' 'S1 pre' 'S2 main' 'S3 host' 'S4 host' 'S5 posts' 'S6 posts' 'S7 crons' 'S8 units' 'S9 blast';}
 utc(){ date -u +%Y-%m-%dT%H:%M:%SZ;}
-STARTING=${AGI_TOWN_STARTING:-/etc/agi/town.starting};ORIGIN=${AGI_ORIGIN:-https://github.com/CodexOperator/AGI.git}
-SUDOERS=${AGI_SUDOERS:-/etc/sudoers.d/90-agi-belam};SYSGIT=${AGI_SYSGITCONFIG:-/etc/gitconfig}
+STARTING=${AGI_TOWN_STARTING:-$ROOT/etc/agi/town.starting};ORIGIN=${AGI_ORIGIN:-https://github.com/CodexOperator/AGI.git}
+SUDOERS=${AGI_SUDOERS:-$ROOT/etc/sudoers.d/90-agi-belam};SYSGIT=${AGI_SYSGITCONFIG:-$ROOT/etc/gitconfig}
 phome(){ getent passwd "$1"|cut -d: -f6;}
 au(){ u=$1;shift;sudo -n -u "$u" "$@";}
 apt1(){ case $1 in setfacl)echo acl;; script)echo bsdutils;; *)echo $1;;esac;}
@@ -278,8 +278,10 @@ gate_ok(){ l=;read l _ <${AGI_LOADAVG:-/proc/loadavg};i=$(sed -n 's/^some .*avg6
 gate_wait(){ c(){ g show "$PIN:.agi/config.json"|jq -r ".values.local_maxxing.$1";};GL=$(c de_live_parents.ceiling_if.loadavg1_lt);GP=$(c de_live_parents.ceiling_if.io_psi_some_avg60_lt);GN=$(c agi_boot.poll_s);GM=$(c agi_boot.wait_max_s)
  for v in "$GL" "$GP" "$GN" "$GM";do case $v in ""|*[!0-9.]*)die "[gate] a load-gate cell is not a plain number at $PIN: nothing started";; esac;done
  gs=$(date +%s);until gate_ok;do [ $(($(date +%s)-gs)) -ge "$GM" ]&&return 1;sleep "$GN";done;}
-# S5 reads the ring row at the pin (.agi/nodes/.geometry/ring) against each post's own ~/.ssh/id_ed25519.pub and writes NO commit (council 10-21: the post's own unit mints its key and commits its row). An unreadable read (git show fails, no key file, no permission) is LISTED, never a match and never skipped; a differing key is listed and start goes on.
-ringcheck(){ m=0;c=0;rg=$(g show "$PIN:.agi/nodes/.geometry/ring" 2>&1)&&rok=1||rok=
+# S5 reads the ring row at the pin (.agi/nodes/.geometry/ring; ABSENT at the pin = the one line `[ring] no ring at <pin>: the old gate, nothing to verify`, i.e. ring: unverified) against each post's own ~/.ssh/id_ed25519.pub and writes NO commit (council 10-21: the post's own unit mints its key and commits its row). An unreadable read (git show fails, no key file, no permission) is LISTED, never a match and never skipped; a differing key is listed and start goes on.
+ringcheck(){ m=0;c=0
+ if ro=$(g ls-tree --name-only "$PIN" .agi/nodes/.geometry/ring 2>/dev/null)&&[ -z "$ro" ];then echo "[ring] no ring at $PIN: the old gate, nothing to verify";return 0;fi   # (3) council 10-21: the ring is absent until an agi-out ring commit has run: ONE line, not M `unread`
+ rg=$(g show "$PIN:.agi/nodes/.geometry/ring" 2>&1)&&rok=1||rok=
  for p in $(pset);do m=$((m+1));h=$(phome agi-$p)
   [ -n "$rok" ]||{ echo "[ring] $p: unread (git show $PIN:.agi/nodes/.geometry/ring: $(echo "$rg"|head -1|cut -c1-90))" >&2;continue;}
   k=$(cut -d' ' -f2 "$h/.ssh/id_ed25519.pub" 2>/dev/null)&&[ -n "$k" ]||{ echo "[ring] $p: unread (no readable key file $h/.ssh/id_ed25519.pub)" >&2;continue;}
@@ -288,9 +290,9 @@ ringcheck(){ m=0;c=0;rg=$(g show "$PIN:.agi/nodes/.geometry/ring" 2>&1)&&rok=1||
  echo "[ring] checked $c of $m posts";[ "$m" = 0 ]||[ "$c" != 0 ]||echo "[ring] WARNING: 0 of $m posts could be checked: the ring is UNVERIFIED" >&2;}
 sk_posts(){ [ -z "$(nostart)$(noflags)$(nologin)" ]&&bootok;}
 su_posts(){ if [ ! -e "$STARTING" ];then (umask 077;utc >"$STARTING.tmp")&&mv "$STARTING.tmp" "$STARTING"&&chmod 600 "$STARTING"||die "[posts] cannot write $STARTING: nothing started";fi   # cond 7: before the first unit
- nf=$(noflags);a0=;for p in $nf;do isup $p&&a0="$a0 $p";done
+ nf=$(noflags)
+ for p in $nf;do isup $p&&{ systemctl stop "agi-post@$p.service"||die "[posts] cannot stop $p before its flags";};done   # (2) council 10-21: Claude Code writes its in-memory ~/.claude.json back on exit, so a post lacking flags is stopped FIRST (its SIGTERM write lands now); the flags are written with NO post of theirs up, then the starts below bring them up
  for p in $nf;do flags_do $p;done                                                  # FIRST the flags, each written as that user, 600 (B1: before any agi-boot call)
- for p in $a0;do systemctl restart "agi-post@$p.service"||die "[posts] cannot restart $p after its flags";done   # up before its flags existed (the one host act starts agi-boot): its dialogs are stuck, restart it
  bootok||systemctl enable agi-boot.service||die "[posts] cannot enable agi-boot.service";bootok||die "[posts] agi-boot.service reads '$(systemctl is-enabled agi-boot.service 2>/dev/null)' after its enable, want exactly 'enabled': nothing more started"   # THEN agi-boot (unchanged); a stopped town's unit is still active (exited), so a restart re-runs it
  [ -z "$(nostart)" ]||systemctl restart agi-boot.service||die "[posts] agi-boot.service failed"
  bad=;for p in $(nostart);do gate_wait&&systemctl start "agi-post@$p.service"||bad="$bad $p";done
@@ -302,21 +304,26 @@ sk_crons(){ au agi-belam $CR show --root "$MAIN" 2>/dev/null|grep -q '^status: u
 su_crons(){ au agi-belam $CR apply --root "$MAIN"||die "[crons] apply failed";au agi-belam $CR apply --sudo --root "$MAIN"||die "[crons] apply --sudo failed";}
 # --- units (S8): the agi-* units town.state recorded (`unit NAME enabled|plain`): enable the enabled ones, start all
 ulines(){ sed -n 's/^unit //p' "$STATE" 2>/dev/null;}
-sk_units(){ ulines|while read n m;do [ "$m" != enabled ]||[ "$(systemctl is-enabled "$n" 2>/dev/null)" = enabled ]||exit 1;done;}
-su_units(){ ulines|while read n m;do if [ "$m" = enabled ];then systemctl enable "$n"||exit 1;[ "$(systemctl is-enabled "$n" 2>/dev/null)" = enabled ]||{ echo "[units] $n reads '$(systemctl is-enabled "$n" 2>/dev/null)' after its enable, want exactly 'enabled'" >&2;exit 1;};fi;systemctl start "$n"||echo "[units] cannot start $n" >&2;done||die "[units] a unit town.state recorded as enabled did not come back enabled: re-run start after fixing it";}
+sk_units(){ ulines|while read n m;do [ "$m" != enabled ]||[ "$(systemctl is-enabled "$n" 2>/dev/null)" = enabled ]||exit 1;case $(systemctl is-active "$n" 2>/dev/null) in active|activating);;*)exit 1;;esac;done;}   # B-6 (council 10-21): every recorded unit must be UP too, else start's last line would lie
+su_units(){ ulines|while read n m;do if [ "$m" = enabled ];then systemctl enable "$n"||exit 1;[ "$(systemctl is-enabled "$n" 2>/dev/null)" = enabled ]||{ echo "[units] $n reads '$(systemctl is-enabled "$n" 2>/dev/null)' after its enable, want exactly 'enabled'" >&2;exit 1;};fi;systemctl start "$n"||echo "[units] cannot start $n" >&2;case $(systemctl is-active "$n" 2>/dev/null) in active|activating);;*)echo "[units] $n is not active after its start (town.state and town.starting are kept: fix it, re-run start)" >&2;;esac;done||die "[units] a unit town.state recorded as enabled did not come back enabled: re-run start after fixing it";}
 # --- blast (S9): `box town up <pin>` as agi-belam, the read-back, and LAST town.state moved aside whole (R6: never edited) with town.starting removed in the same act
 sent_all(){ for p in $(pset);do c=$(g rev-parse -q --verify "refs/box/belam/$p" 2>/dev/null)||return 1;[ "$(g log -1 --format=%B $c)" = "[town] up $PIN" ]||return 1;done;}
-TITLES='Try the new fullscreen renderer|Quick safety check|Do you trust the files in this folder|Bypass Permissions mode|Select login method|Choose the text style'
+# ONLY 'Try the new fullscreen renderer' is a MEASURED title (belam saw it in a pane); the other five are Claude Code's known texts, UNMEASURED (no login in a scratch HOME reaches them): a constant, not a cell. S3 BIND (council 10-21): a post counts up only at the measured ready marker (the prompt), an unknown dialog in ~/o makes blast unmet.
+TITLES='Try the new fullscreen renderer|Quick safety check|Do you trust the files in this folder|Bypass Permissions mode|Select login method|Choose the text style';MEASURED='Try the new fullscreen renderer'
 stuck(){ for p in $(pset);do t=$(tail -c 6000 "$(phome agi-$p)/o" 2>/dev/null|sed -E 's/\x1b\[[0-9;?]*[a-zA-Z]//g;s/\x1b\][^\a]*\a//g'|tr -d ' \r\n');
    echo "$TITLES"|tr '|' '\n'|while read -r ti;do case $t in *"$(printf %s "$ti"|tr -d ' ')"*)printf '%s\t%s\n' "$p" "$ti";break;; esac;done;done;}   # post name + dialog title only, never the tail bytes
 sk_blast(){ sent_all&&[ -z "$(stuck)" ]&&[ ! -e "$STARTING" ]&&! grep -q '^stopped ' "$STATE" 2>/dev/null;}
-su_blast(){ if ! sent_all;then BOXB=${AGI_TOWN_BOXBIN:-$(phome agi-belam)/bin/box};TB=$(g branch --show-current);[ -n "$TB" ]||die "[trunk] MAIN has no checked-out branch: nothing sent"
+su_blast(){ echo "[blast] dialog probe: $(echo "$TITLES"|tr '|' '\n'|grep -vxF "$MEASURED"|wc -l|tr -d ' ') of $(echo "$TITLES"|tr '|' '\n'|wc -l|tr -d ' ') titles unmeasured"
+ if ! sent_all;then BOXB=${AGI_TOWN_BOXBIN:-$(phome agi-belam)/bin/box};TB=$(g branch --show-current);[ -n "$TB" ]||die "[trunk] MAIN has no checked-out branch: nothing sent"
   (cd "$MAIN"&&sudo -H -u agi-belam env AGI_POST=belam AGI_BOX=$BOX AGI_TRUNK=$TB $BOXB town up $PIN)||die "[blast] box town up $PIN failed";fi
  st=$(stuck);if [ -n "$st" ];then echo "$st"|while IFS="$(printf '\t')" read -r p ti;do echo "[dialog] $p is stuck at: $ti" >&2;done;die "[blast] $(echo "$st"|wc -l|tr -d ' ') post(s) are stuck at a first-run dialog (listed above): town.state kept, re-run start";fi
  [ ! -e "$STATE" ]||mv "$STATE" "$STATE.$(utc)"||die "[state] cannot move $STATE aside";rm -f "$STARTING";}
 ck_main(){ return 0;}
 dn_main(){ return 0;}   # S3 adds the pack / ring down arm
 cmd_start(){ [ $# = 0 ]||die "start: unknown argument '$1' (--from PACK is S3)"
+ # R-d (council 10-21): a ROOT rehearsal of start must not reach the live box: AGI_HOST_UNITS=<stub dir> must hold the tools it calls
+ [ -z "$ROOT" ]||{ [ -n "$AGI_HOST_UNITS" ]||die "[root] ROOT is set: AGI_HOST_UNITS=<stub dir> must hold systemctl sudo visudo gh crontab (a rehearsal never reaches the real ones): nothing written"
+  for c in systemctl sudo visudo gh crontab;do case $(command -v $c 2>/dev/null) in "$AGI_HOST_UNITS"/*);;*)die "[root] AGI_HOST_UNITS needs stubs: $c does not resolve inside $AGI_HOST_UNITS: nothing written";; esac;done;}
  need;[ -n "$ROOT" ]||[ "$(id -u)" = 0 ]||die "[root] start needs root: nothing started"
  s0;inputs;SCR=$(mktemp -d)||die "[tmp] no scratch dir";trap 'rm -rf "$SCR"' 0
  AGI_REPO=$MAIN;if [ -n "$ROOT" ];then case $MAIN in "$ROOT"/*)AGI_REPO=${MAIN#"$ROOT"};;*)die "[root] ROOT is set but MAIN ($MAIN) is not inside it";; esac;fi
