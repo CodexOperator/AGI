@@ -155,6 +155,15 @@ town;ST;$G -C $M show $PIN:.agi/nodes/.geometry/engine.md|sed 's/^town	start	mai
 CARRYF=$T/carry2 XENV= run stop >$T/o 2>$T/e;rc=$?
 ok st-order-is-read-from-the-matrix-row "default row: $ord0 (want units-first); the row 'units posts crons blast': $(ord1) (want posts-first)" '[ "$ord0" = units-first ]&&[ "$(ord1)" = posts-first ]'
 CARRYF=
+# sp's pid row (council 10-21): an engine.v 4 row of this box with pid != 0 is refused by stop, naming it (heal would see it); pid 0 is not; the mutant drops the check
+pidstop(){ town;ST;$G -C $M show $PIN:.agi/nodes/.geometry/engine.md>$M/.agi/nodes/.geometry/engine.md;$G -C $M show $PIN:.agi/nodes/.geometry/posts.md|sed '/"name":"far"/i\  - {"name":"pv","parent":"sm","harness":"claude","box":"tw","pid":'$1',"engine":{"v":4}}'>$M/.agi/nodes/.geometry/posts.md;P4=$(cm pidrow$1);echo "AGI_TRUNK=$P4" >$T/carry4;s4=$(snap);CARRYF=$T/carry4 XENV= run stop >$T/o 2>$T/e;rc=$?;CARRYF=;}
+AGSH=;pidstop 1
+ok st-pid-a-local-engine-v4-row-with-pid-1-is-refused-by-stop-naming-it "rc $rc: $(grep -o '\[pid\][^:]*: pv' $T/e|head -1|cut -c1-80); the town unchanged: $([ "$(snap)" = "$s4" ]&&echo yes||echo NO)" '[ $rc = 1 ]&&grep -q "^\[pid\] .*pv .*heal would see it" $T/e&&[ "$(snap)" = "$s4" ]'
+AGSH=;pidstop 0
+ok st-pid-a-local-engine-v4-row-with-pid-0-is-not-refused "rc $rc: [pid] lines $(grep -c '^\[pid\]' $T/e) (want 0)" '! grep -q "^\[pid\]" $T/e'
+rep 'pidchk "nothing stopped"' ':';pidstop 1;AGSH=
+ok st-pid-mutant-the-check-dropped-lets-stop-past-a-pid-1-row-RED "rc $rc, [pid] lines $(grep -c '^\[pid\]' $T/e) (clean: refused, rc 1)" '! grep -q "^\[pid\]" $T/e'
+$G -C $M show $PIN:.agi/nodes/.geometry/posts.md>$M/.agi/nodes/.geometry/posts.md   # the pid rows' fixture row goes: later rows build on the tree's own posts.md
 # a row that lacks `crons`: the crontabs keep their block, the stop says so and fails (F1: delete `crons` from the row -> crontab diff > 0)
 town;ST;$G -C $M show $PIN:.agi/nodes/.geometry/engine.md|sed 's/^town	start	main host posts crons units blast	agi.sh$/town	start	posts units blast	agi.sh/'>$M/.agi/nodes/.geometry/engine.md;P3=$(cm nocrons);echo "AGI_TRUNK=$P3" >$T/carry3
 CARRYF=$T/carry3 XENV= run stop >$T/o 2>$T/e;rc=$?
