@@ -75,10 +75,18 @@ done
 # Claude. The memory caps above keep watching (the box, not the town). The contract: `agi.sh start`'s LAST act moves town.state aside whole (town.state.<UTC>), so the line is
 # gone when the town is back. A town brought back BY HAND leaves the line: so the watch stands down only while the line exists AND no agi-post@ unit is up; else it says so and checks.
 TOWN_STATE=${TOWN_STATE:-/etc/agi/town.state}
+TOWN_STARTING=${TOWN_STARTING:-/etc/agi/town.starting}
+# S2-b (goal:g7.16.1.11.44.8): a systemctl that FAILS lists nothing, and "0 posts" would stand the watch down on an outage it cannot see: a failing list means the checks go on.
+# An INTERRUPTED start (agi.sh start writes town.starting before its first unit and removes it when it moves town.state aside) leaves the `stopped` line with posts up: that is not a town "brought back by hand", so say the TRUE line.
 if grep -q '^stopped ' "$TOWN_STATE" 2>/dev/null; then
-  NPOSTS=$(systemctl list-units 'agi-post@*' --state=active,activating,reloading --plain --no-legend 2>/dev/null | grep -c . || true)
-  if (( ${NPOSTS:-0} == 0 )); then note "town stopped ($TOWN_STATE): peer checks stood down"; exit 0; fi
-  note "[stale-state] $TOWN_STATE says stopped but $NPOSTS posts run: peer checks go on"
+  if LU=$(systemctl list-units 'agi-post@*' --state=active,activating,reloading --plain --no-legend 2>/dev/null); then
+    NPOSTS=$(printf '%s\n' "$LU" | grep -c . || true)
+    if (( ${NPOSTS:-0} == 0 )); then note "town stopped ($TOWN_STATE): peer checks stood down"; exit 0; fi
+    if [ -e "$TOWN_STARTING" ]; then note "a start is in progress since $(cat "$TOWN_STARTING" 2>/dev/null): finish it with agi.sh start ($NPOSTS posts run: peer checks go on)"
+    else note "[stale-state] $TOWN_STATE says stopped but $NPOSTS posts run: peer checks go on"; fi
+  else
+    note "[systemctl] cannot list the post units (rc $?): $TOWN_STATE is not trusted, peer checks go on"
+  fi
 fi
 HOSTS=$SANCTUARY/hosts.json
 SSHCFG=$SANCTUARY/ssh/config
