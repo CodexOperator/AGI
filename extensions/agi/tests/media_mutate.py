@@ -18,7 +18,7 @@ TARGET = HERE / "media_video.py"
 TESTS = [HERE / "test_media_video.py"]
 
 NOOP = ("noop: byte-equal", "TOL = 0.7 ", "TOL = 0.7 ")
-SAME_SIZE = ("same size: min_diff 0.8 -> 0.0", "min_ink=0.004, min_diff=0.8", "min_ink=0.004, min_diff=0.0")
+SAME_SIZE = ("same size: min_diff 0.4 -> 0.0", "min_ink=0.004, min_diff=0.4", "min_ink=0.004, min_diff=0.0")
 MUTANTS = [
     ("verify: pause end not checked", 'if not any(abs(e - m) < 0.01 for m in mids):', 'if False:'),
     ("verify: speech check off", 'elif k > 0 and kinds[k - 1] == "pause" and abs(', 'elif False and abs('),
@@ -68,6 +68,15 @@ MUTANTS = [
     ("hold touched at once", 'if not held and waited >= hold_after:', 'if not held:'),
     ("rendering file left behind", 'if os.path.exists(QUEUE):\n                os.remove(QUEUE)', 'pass'),
     ("rendering not touched first", '    open(queue, "a").close()\n    t0, held = now(), False', '    t0, held = now(), False'),
+    ("probe: a static join passes", 'if all(da >= same_db and ds < apart_db for _, da, ds in rows):', 'if all(da >= 0 for _, da, ds in rows):'),
+    ("probe: same_db 30 -> 0 and apart off", 'same_db=30.0, apart_db=25.0', 'same_db=0.0, apart_db=999.0'),
+    ("gap line not written", 'ensure_readme_line(readme_path, GAP_LINE, 2)', 'pass'),
+    ("limit line not written", 'ensure_readme_line(readme_path, LIMIT_LINE, 1)', 'pass'),
+    ("sync: median line 0.1 -> 5", 'tol_median=0.1', 'tol_median=5.0'),
+    ("sync: start line 0.05 -> 5", 'tol_start=0.05', 'tol_start=5.0'),
+    ("sync: not part of the chapter run", '    fs += sync_findings(tmp, plan["ends"])\n', '    pass\n'),
+    ("layout: shrunk stack not checked", 'if d.get("scale", 1.0) < MIN_SCALE:\n                out.append(f"beat {d.get(\'beat\')}: the strand stack', 'if False:\n                out.append(f"beat {d.get(\'beat\')}: the strand stack'),
+    ("chunks: only the first two pairs", 'return [pairs[i:i + size] for i in range(0, len(pairs), size)] or [[]]', 'return [pairs[:size]]'),
 ]
 
 

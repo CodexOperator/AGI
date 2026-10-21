@@ -27,7 +27,8 @@ class Chapter(Scene):
         head = V.caption(f"Chapter {plan['n']}", 22, V.SOFT).to_corner(UP + LEFT, buff=0.5)
         title = V.caption(plan["title"], 28, V.INK).next_to(head, DOWN, aligned_edge=LEFT, buff=0.12)
         if title.width > 10.6:
-            title.scale_to_fit_width(10.6)
+            title.scale_to_fit_width(10.6).next_to(head, DOWN, aligned_edge=LEFT, buff=0.12)      # scaling moves the title about its centre: put its left edge back under the chapter label
+        assert abs(title.get_left()[0] - head.get_left()[0]) < 0.01, "the title is not left-aligned under the chapter label"
         machine = V.Machine([1.7, 0.5, 0], "reads the bytes")
         graph = V.Graph([4.3, 2.1])
         tick = V.Tick([6.3, 3.35, 0], len(plan["beats"]))
@@ -62,7 +63,10 @@ class Chapter(Scene):
         self.hold(t1)
 
     def calm(self, b, t1, graph, tick):
-        say = V.caption(b["spoken"], 28, V.SOFT, width=58).to_edge(DOWN, buff=0.5).align_to([-6.6, 0, 0], LEFT)
+        say = V.caption(b["spoken"], 28, V.SOFT, width=58)
+        if say.height > 1.45:
+            say.scale_to_fit_height(1.45)
+        say.to_edge(DOWN, buff=0.5).align_to([-6.6, 0, 0], LEFT)
         parts = [0.4, 0.5, 0.3]
         want, rest = mv.schedule(b["t0"], t1, parts)
         self.run([FadeIn(say, shift=UP * 0.15)] + [tick.advance()], want[0])
@@ -74,7 +78,10 @@ class Chapter(Scene):
     def feed(self, b, plan, repo, t1, machine, graph, tick):
         """The beat's pairs in chunks of two, one chunk after the other across the beat; the sentence stays under all of them."""
         chunks = mv.pair_chunks(b["pairs"])
-        claim = V.caption(b["spoken"], 26, V.INK, width=66).to_edge(DOWN, buff=0.45).align_to([-6.6, 0, 0], LEFT)
+        claim = V.caption(b["spoken"], 26, V.INK, width=66)
+        if claim.height > 1.45:                              # more than four lines (C13's longest sentence has five): scaled to the height of four so it never reaches the strand or the file name
+            claim.scale_to_fit_height(1.45)
+        claim.to_edge(DOWN, buff=0.45).align_to([-6.6, 0, 0], LEFT)
         for k, ((c0, c1), pairs) in enumerate(zip(mv.chunk_times(b["t0"], t1, len(chunks)), chunks)):
             self.feed_chunk(b, pairs, c0, c1, machine, graph, tick, claim, first=k == 0, last=k == len(chunks) - 1)
 
@@ -87,6 +94,11 @@ class Chapter(Scene):
         if stack.height > 3.7:
             stack.scale_to_fit_height(3.7)
         stack.to_edge(LEFT, buff=0.6).set_y(0.15)
+        floor = claim.get_top()[1] + 0.3                     # a long sentence under two strands must not touch them: shrink the stack into the room that is left (recorded, RED below MIN_SCALE)
+        if stack.get_bottom()[1] < floor:
+            before = stack.height
+            stack.scale_to_fit_height(2.3 - floor).to_edge(LEFT, buff=0.6).set_y((2.3 + floor) / 2)
+            V.note_layout(b["i"], stack.height / before)
         needle = strand_objs[0].needle_mobject().move_to(stack.get_center())
         node, edge, grow = graph.add()
         chip_label = cites[0].mobject(16, V.INK)

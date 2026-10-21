@@ -22,6 +22,11 @@ MONO, SANS = "DejaVu Sans Mono", "DejaVu Sans"
 DRAWN = []
 
 
+def note_layout(beat, scale):
+    """A strand stack shrunk to make room for the sentence under it: recorded so a stack drawn too small is RED (media_video.check_drawn)."""
+    DRAWN.append({"kind": "layout", "beat": beat, "scale": round(scale, 3)})
+
+
 def dump(path):
     """The record of everything drawn from the engine, for media_video.check_drawn."""
     json.dump(DRAWN, open(path, "w"), indent=1)

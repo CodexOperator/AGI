@@ -297,13 +297,18 @@ def test_duration_within_two_tenths_of_the_mp3_and_not_beyond():
 
 
 def test_frame_diff_line_sits_between_the_measured_populations():
-    """C2 pilot, 10-21: the same picture twice = mean diff 0.17-0.18; a new caption and one more graph node = 1.49-1.79. The line (0.8) is between them."""
+    """Measured 10-21: the same picture twice = mean diff 0.00-0.18; a new caption and one more graph node = 0.60-1.79 (C2: 1.49-1.79; C7's two-second beats: 0.60 and 0.80). The line (0.4) is between them."""
     base = bytes([20] * 2000 + [200] * 304)
     same = bytes(base[:-1] + bytes([base[-1] - 1]))                      # one count off in one pixel: ~0.0004
     small = bytes([20 + (9 if k % 6 == 0 else 0) for k in range(2000)]) + bytes([200] * 304)    # 1.5 mean diff
     assert any("does not differ" in f for f in mv.frame_findings([base, same], ["feed", "feed"]))
     d_small = sum(abs(a - b) for a, b in zip(base, small)) / len(base)
     assert 1.3 < d_small < 1.7 and mv.frame_findings([base, small], ["feed", "feed"]) == []
+    tiny = bytes([20 + (9 if k % 18 == 0 else 0) for k in range(2000)]) + bytes([200] * 304)      # a one-line caption: 0.5
+    d_tiny = sum(abs(a - b) for a, b in zip(base, tiny)) / len(base)
+    assert 0.4 < d_tiny < 0.7 and mv.frame_findings([base, tiny], ["feed", "feed"]) == []              # C7's 0.60 is a real difference
+    almost = bytes([20 + (9 if k % 60 == 0 else 0) for k in range(2000)]) + bytes([200] * 304)    # 0.15: the old 'same picture'
+    assert mv.frame_findings([base, almost], ["feed", "feed"])
     assert any("does not differ" in f for f in mv.frame_findings([base, same], ["calm", "feed"]))
 
 
@@ -1002,7 +1007,7 @@ def test_the_readme_limit_line_is_written_once_as_line_two(tmp_path):
     p.write_text("head\nrow\n")
     mv.ensure_readme_limit(str(p)); mv.ensure_readme_limit(str(p))
     ls = p.read_text().split("\n")
-    assert ls[1] == mv.LIMIT_LINE and ls.count(mv.LIMIT_LINE) == 1 and ls[0] == "head" and ls[2] == "row"
+    assert ls[1] == mv.LIMIT_LINE and ls.count(mv.LIMIT_LINE) == 1 and ls[0] == "head" and ls[3] == "row"
 
 
 def test_r_sync_green_on_a_good_mux_and_red_on_the_itsoffset_mutant(job):
@@ -1044,3 +1049,87 @@ def test_every_beat_of_the_script_with_more_than_two_pairs_is_drawn_in_full(chap
     big = [(c["id"], b["i"], len(b["pairs"])) for c in chaps.values() for b in mv.beats(c, REPO) if len(b["pairs"]) > 2]
     assert ("C3", 29, 4) in big
     assert all(sum(len(c) for c in mv.pair_chunks(b["pairs"])) == len(b["pairs"]) for c in chaps.values() for b in mv.beats(c, REPO))
+
+
+# ---- the content probe of a joined file, and the README gap line
+def three_chapters(tmp_path):
+    """deliver/ with ch00..ch02 (animated: moving test pattern), deliver-static/ with a flat card for ch01, and joins built both ways."""
+    d, sd = tmp_path / "deliver", tmp_path / "static"
+    d.mkdir(); sd.mkdir()
+    for i in range(3):
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", f"testsrc2=s=640x360:r=25:d=14,hue=h={i * 60}", "-pix_fmt", "yuv420p", "-c:v", "libx264", "-preset", "ultrafast", str(d / f"explainer-ch{i:02d}-x.mp4")], check=True)
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "color=c=0x14181f:s=640x360:r=25:d=14", "-pix_fmt", "yuv420p", "-c:v", "libx264", "-preset", "ultrafast", str(sd / "explainer-ch01-x.mp4")], check=True)
+
+    def join(parts, out):
+        lst = tmp_path / "list.txt"
+        lst.write_text("".join(f"file '{p}'\n" for p in parts))
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(lst), "-c", "copy", str(out)], check=True)
+        return str(out)
+
+    good = join([d / f"explainer-ch{i:02d}-x.mp4" for i in range(3)], tmp_path / "good.mp4")
+    stale = join([d / "explainer-ch00-x.mp4", sd / "explainer-ch01-x.mp4", d / "explainer-ch02-x.mp4"], tmp_path / "stale.mp4")
+    return str(d), str(sd), good, stale
+
+
+def test_join_probe_animated_on_a_good_join_and_static_on_a_join_built_with_the_card(tmp_path):
+    d, sd, good, stale = three_chapters(tmp_path)
+    v, rows = mv.join_probe(good, 1, d, sd, offsets=(2, 5, 9))
+    assert v == "animated" and all(da > 60 for _, da, _ in rows)
+    v2, rows2 = mv.join_probe(stale, 1, d, sd, offsets=(2, 5, 9))              # the mutant: a join with the static chapter
+    assert v2 == "static" and all(ds > 60 for _, _, ds in rows2)
+    assert mv.join_probe(stale, 0, d, sd, offsets=(2, 5, 9))[0] == "animated"   # the other chapters of the stale join are fine; the probe is per chapter
+    assert mv.join_probe(stale, 2, d, sd, offsets=(2, 5, 9))[0] == "animated"   # (its offset counts the animated durations of the chapters before it)
+
+
+def test_join_probe_other_when_the_frames_match_neither(tmp_path):
+    d, sd, good, stale = three_chapters(tmp_path)
+    other = tmp_path / "other.mp4"
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "mandelbrot=s=640x360:r=25", "-t", "42", "-pix_fmt", "yuv420p", "-c:v", "libx264", "-preset", "ultrafast", str(other)], check=True)
+    assert mv.join_probe(str(other), 1, d, sd, offsets=(2, 5, 9))[0] == "other"
+
+
+def test_psnr_is_inf_for_identical_and_low_for_different():
+    a = bytes(range(256)) * 4
+    assert mv.psnr(a, a) == float("inf") and mv.psnr(a, bytes(reversed(a))) < 15 and mv.psnr(a, a[:-1]) == 0.0
+
+
+def test_the_readme_carries_the_gap_line_once_after_the_limit_line(tmp_path):
+    p = tmp_path / "README-narration.txt"; p.write_text("head\nrow\n")
+    mv.ensure_readme_limit(str(p)); mv.ensure_readme_limit(str(p))
+    ls = p.read_text().split("\n")
+    assert ls[1] == mv.LIMIT_LINE and ls[2] == mv.GAP_LINE and ls.count(mv.GAP_LINE) == 1 and ls[3] == "row" and "per-chapter files are always complete" in mv.GAP_LINE
+
+
+def test_recheck_reruns_the_file_checks_on_a_waiting_chapter_and_rewrites_its_report(job, monkeypatch):
+    r = go(job, publish_it=False)
+    assert r["status"] == "green"
+    monkeypatch.setattr(mv, "sync_findings", lambda mp4, ends: ["forced"])
+    rep = mv.recheck_chapter(2, job["d"], REPO)
+    assert rep["status"] == "red: checks" and rep["findings"] == ["forced"] and json.load(open(Path(job["d"]["checks"], "ch02.report.json")))["status"] == "red: checks"
+    monkeypatch.undo()
+    assert mv.recheck_chapter(2, job["d"], REPO)["status"] == "green"
+
+
+def test_a_layout_record_is_checked_against_the_font_line_and_never_counts_as_a_strand(chaps):
+    bs = [b for b in mv.beats(chaps[2], REPO) if b["kind"] == "feed"][:1]
+    plan = {"beats": bs}
+    d = drawn_of(bs[0]["pairs"][0], bs[0]["i"])[0]
+    base = [dict(d, rows=[d["text"]], scale=1.0)]
+    assert mv.check_drawn(base + [{"kind": "layout", "beat": bs[0]["i"], "scale": 0.7}], plan, REPO) == []
+    assert any("shrunk" in f for f in mv.check_drawn(base + [{"kind": "layout", "beat": bs[0]["i"], "scale": 0.4}], plan, REPO))
+    assert any(f.startswith("RED") for f in mv.check_drawn([{"kind": "layout", "beat": 0, "scale": 1.0}], plan, REPO))      # a layout record is not a checked string
+
+
+def test_the_scene_makes_room_for_a_long_sentence_and_records_it():
+    src = (HERE / "media_scene.py").read_text()
+    assert "note_layout" in src and "claim.get_top()" in src
+
+
+def test_the_scene_realigns_a_scaled_title_under_the_label_and_asserts_it():
+    src = (HERE / "media_scene.py").read_text()
+    assert "scale_to_fit_width(10.6).next_to(head, DOWN, aligned_edge=LEFT" in src and "the title is not left-aligned" in src      # C12 (a 55-character title) drew centred until 10-21
+
+
+def test_the_scene_caps_a_caption_at_the_height_of_four_lines():
+    src = (HERE / "media_scene.py").read_text()
+    assert src.count("scale_to_fit_height(1.45)") == 2          # the feed caption and the calm one

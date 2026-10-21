@@ -5,6 +5,8 @@
   media_video.py lint FILE...                no raw Text / Code / MarkupText / Tex ... in a scene file (council C1): engine text goes through media_vocab.Strand
   media_video.py start [PEAK_MIB]            the start test, read now (council 10-21 08:03Z); exit 0 = may start, 1 = refuse
   media_video.py queue                       the chapters still to render, from bytes (council C5)
+  media_video.py joinprobe JOINED.mp4 N      is chapter N in the joined full file the ANIMATED one (frames at +30/60/120 s, PSNR vs deliver/ and deliver-static/); exit 1 unless animated
+  media_video.py recheck CHAPTER             the file checks again on a rendered chapter in deliver-tmp/ (no render), rewrites its report
   media_video.py publish CHAPTER             publish a green rendered chapter waiting in deliver-tmp/ (after its keyframes were viewed)
   media_video.py render CHAPTER [--publish]  one chapter, end to end (plan -> start test -> manim under the watcher -> mux -> checks -> keyframes -> publish if green and asked)
 Pieces
@@ -376,6 +378,10 @@ def check_drawn(drawn, plan, repo=REPO):
     strands than it has pairs is a finding; a chapter with feed beats and 0 checked strings is RED."""
     out, checked, by_beat = [], 0, {}
     for d in drawn:
+        if d.get("kind") == "layout":
+            if d.get("scale", 1.0) < MIN_SCALE:
+                out.append(f"beat {d.get('beat')}: the strand stack was shrunk to {d['scale']:.2f} to clear the sentence (< {MIN_SCALE})")
+            continue
         try:
             txt = media_html.lines_at(repo, d["sha"], d["path"], d["lo"], d["hi"])
         except (ValueError, KeyError) as e:
@@ -454,9 +460,9 @@ def duration_findings(video_s, audio_s, tol=DUR_TOL):
     return [] if abs(video_s - audio_s) <= tol else [f"video {video_s:.2f} s vs mp3 {audio_s:.2f} s (> {tol} s apart)"]
 
 
-def frame_findings(frames, kinds, min_ink=0.004, min_diff=0.8):
+def frame_findings(frames, kinds, min_ink=0.004, min_diff=0.4):
     """frames = [bytes of one small grey frame per beat (taken mid-beat)]; kinds = 'feed'|'calm' per beat. A frame is BLANK when under `min_ink` of its pixels differ from its most common
-    value by more than 8; a FEED beat's frame must differ from the beat before it (mean absolute difference >= min_diff; calibrated on the C2 pilot, 10-21: beats showing the same picture measured 0.17-0.18, beats that differ by a caption and one graph node 1.49-1.79). -> [finding]"""
+    value by more than 8; a FEED beat's frame must differ from the beat before it (mean absolute difference >= min_diff; calibrated twice on measured beats, 10-21: the same picture 0.00-0.18; beats that differ by a caption and one graph node 0.60-1.79 (C2 pilot 1.49-1.79; C7's two-second beats 0.60 and 0.80, where the caption is one short line). Line 0.4). -> [finding]"""
     out = []
     for i, f in enumerate(frames):
         if not f:
@@ -631,17 +637,24 @@ def pending(deliver, checks_dir, order=ORDER, only_pilot=False):
     return out
 
 
+GAP_LINE = "while a chapter is replaced, the joined full file can lack that chapter for one watcher pass (~30 min; the watcher takes a replaced file one pass after its size changed); the per-chapter files are always complete."
 LIMIT_LINE = "timing check cannot see a single dropped or swapped sentence (the DP re-fits around it, measured 10-21); the keyframe view is the check for that."
 
 
-def ensure_readme_limit(readme_path):
-    """The documented limit of the timing check (council 10-21 11:08Z, R-fine), once, as the README's second line. Idempotent."""
+def ensure_readme_line(readme_path, line, index):
+    """`line` once, at `index` of the README (after the head). Idempotent."""
     lines = open(readme_path, encoding="utf-8").read().split("\n")
-    if LIMIT_LINE not in lines:
-        lines.insert(1, LIMIT_LINE)
+    if line not in lines:
+        lines.insert(index, line)
         tmp = readme_path + ".new"
         open(tmp, "w", encoding="utf-8").write("\n".join(lines))
         os.replace(tmp, readme_path)
+
+
+def ensure_readme_limit(readme_path):
+    """The documented limit of the timing check (council 10-21 11:08Z, R-fine) as the README's second line, and the one-pass gap of the joined file (11:37Z) as the third. Idempotent."""
+    ensure_readme_line(readme_path, LIMIT_LINE, 1)
+    ensure_readme_line(readme_path, GAP_LINE, 2)
 
 
 def set_readme_row(readme_path, name, chap, version, extra=""):
@@ -853,15 +866,7 @@ def run_chapter(n, chap, mp3, d, render_cmd, repo=REPO, publish_it=False, vmlimi
     name = rep["name"] = video_name(chap)
     tmp = f"{d['tmp']}/{name}"
     mux(str(scene), mp3, tmp, plan["duration"])
-    info = probe(tmp)
-    fs = profile_findings(info) + duration_findings(info["duration"], plan["duration"])
-    try:
-        fs += check_drawn(json.load(open(drawn)), plan, repo)
-    except (OSError, ValueError) as e:
-        fs.append(f"no record of what was drawn ({type(e).__name__})")
-    fs += sync_findings(tmp, plan["ends"])
-    mids = [(b["t0"] + b["t1"]) / 2 for b in plan["beats"]]
-    fs += frame_findings(grab_frames(tmp, mids), [b["kind"] for b in plan["beats"]])
+    fs = file_checks(tmp, plan, drawn, repo)
     rep["findings"], rep["keyframes"] = fs, keyframes(tmp, plan, f"{d['video']}/keyframes-{nn}")
     green = not fs
     rep["status"] = "green" if green else "red: checks"
@@ -873,6 +878,31 @@ def run_chapter(n, chap, mp3, d, render_cmd, repo=REPO, publish_it=False, vmlimi
     elif publish_it:
         publish(tmp, name, d["deliver"], d["static"], d["tmp"], f"{d['checks']}/{nn}.json", False, checks_info)      # writes the RED checks file, moves nothing
     return _finish(rep, d, nn, t_start)
+
+
+def file_checks(tmp, plan, drawn_path, repo=REPO):
+    """Every check on a rendered, muxed chapter file: profile, duration, what was drawn (re-read from git), R-sync, frames. -> [finding]"""
+    info = probe(tmp)
+    fs = profile_findings(info) + duration_findings(info["duration"], plan["duration"])
+    try:
+        fs += check_drawn(json.load(open(drawn_path)), plan, repo)
+    except (OSError, ValueError) as e:
+        fs.append(f"no record of what was drawn ({type(e).__name__})")
+    fs += sync_findings(tmp, plan["ends"])
+    mids = [(b["t0"] + b["t1"]) / 2 for b in plan["beats"]]
+    return fs + frame_findings(grab_frames(tmp, mids), [b["kind"] for b in plan["beats"]])
+
+
+def recheck_chapter(n, d, repo=REPO):
+    """Run the file checks again on a rendered chapter waiting in deliver-tmp/ (no render), e.g. after a check's line was recalibrated; rewrites its report. -> the report"""
+    nn = f"ch{n:02d}"
+    rep = json.load(open(f"{d['checks']}/{nn}.report.json"))
+    plan = json.load(open(f"{d['video']}/{nn}-plan.json"))
+    fs = file_checks(rep["unpublished"], plan, f"{d['video']}/{nn}-drawn.json", repo)
+    rep["findings"], rep["status"] = fs, ("green" if not fs else "red: checks")
+    rep["checks_info"] = dict(rep["checks_info"], findings=fs, repo_head=_head(repo), rechecked=True)
+    json.dump(rep, open(f"{d['checks']}/{nn}.report.json", "w"), indent=1)
+    return rep
 
 
 def publish_chapter(n, d, rep, plan):
@@ -928,6 +958,36 @@ def _finish(rep, d, nn, t_start):
     return rep
 
 
+# ---- the content probe of a joined file (council 10-21 11:41Z): the duration cannot see a stale join (the animated and the static chapter are as long as each other)
+def psnr(a, b):
+    """PSNR in dB of two equal-length gray frames; inf when identical."""
+    if not a or len(a) != len(b):
+        return 0.0
+    mse = sum((x - y) ** 2 for x, y in zip(a, b)) / len(a)
+    return float("inf") if mse == 0 else 10 * math.log10(255 * 255 / mse)
+
+
+def join_probe(joined, n, deliver, static_dir, offsets=(30, 60, 120), same_db=30.0, apart_db=25.0, w=320, h=180):
+    """Is chapter n IN the joined full mp4 the ANIMATED one? The chapter starts at the sum of the durations of chapters 0..n-1 in deliver/ (the join order); at start + each of `offsets`
+    (clamped inside the chapter) a frame of the joined file is compared with the same time of deliver/explainer-chNN (animated) and of deliver-static/ (the card). ANIMATED iff at every
+    offset PSNR(joined, animated) >= same_db and PSNR(joined, static) < apart_db; the static card in the join is RED. -> (verdict 'animated'|'static'|'other', [(offset, db_animated, db_static)])"""
+    files = sorted(f for f in os.listdir(deliver) if re.match(r"explainer-ch\d\d-.*\.mp4$", f))
+    names = [f for f in files]
+    me = next(f for f in files if f.startswith(f"explainer-ch{n:02d}-"))
+    start = sum(probe(f"{deliver}/{f}")["duration"] for f in names if f < me)
+    dur = probe(f"{deliver}/{me}")["duration"]
+    rows = []
+    for o in offsets:
+        o = min(o, max(dur - 1.0, 0.0))
+        j, a, st = (grab_frames(p, [t], w, h)[0] for p, t in ((joined, start + o), (f"{deliver}/{me}", o), (f"{static_dir}/{me}", o)))
+        rows.append((o, psnr(j, a), psnr(j, st)))
+    if all(da >= same_db and ds < apart_db for _, da, ds in rows):
+        return "animated", rows
+    if all(ds >= same_db and da < apart_db for _, da, ds in rows):
+        return "static", rows
+    return "other", rows
+
+
 # ---- cli
 def glob_one(pattern):
     import glob as _g
@@ -968,6 +1028,12 @@ def main(argv):
         print(json.dumps({k: v for k, v in rep.items() if k != "start_test"}, indent=1))
         print("\n".join(rep.get("start_test", [])))
         return 0 if rep["status"] == "green" else 1
+    if cmd == "recheck":
+        n = int(rest[0].lstrip("C"))
+        V = BASE + "/video"
+        rep = recheck_chapter(n, {"video": V, "deliver": BASE + "/deliver", "tmp": BASE + "/deliver-tmp", "static": BASE + "/deliver-static", "checks": V + "/checks"})
+        print(f"C{n}: {rep['status']}", *rep["findings"], sep="\n  ")
+        return 0 if rep["status"] == "green" else 1
     if cmd == "publish":
         n = int(rest[0].lstrip("C"))
         V = BASE + "/video"
@@ -983,6 +1049,12 @@ def main(argv):
         v, a = stream_starts(rest[1] if len(rest) > 1 else glob_one(f"{BASE}/deliver/explainer-ch{n:02d}-*.mp4"))
         print(f"C{n}: video start {v:.3f} s, audio start {a:.3f} s;", "RED " + "; ".join(f) if f else "sync green")
         return 1 if f else 0
+    if cmd == "joinprobe":
+        verdict, rows = join_probe(rest[0], int(rest[1].lstrip("C")), BASE + "/deliver", BASE + "/deliver-static")
+        for o, da, ds in rows:
+            print(f"  +{o:.0f} s: vs animated {da:.1f} dB, vs static card {ds:.1f} dB")
+        print(f"C{rest[1].lstrip('C')} in the joined file: {verdict.upper()}")
+        return 0 if verdict == "animated" else 1
     if cmd == "offsets":
         n = int(rest[0].lstrip("C"))
         pl = chapter_plan(chaps[n], f"{BASE}/deliver/season3-C{n}-narration.mp3")
