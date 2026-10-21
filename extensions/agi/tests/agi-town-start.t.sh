@@ -206,8 +206,16 @@ world;hact >/dev/null 2>&1;login;rm -f $T/sudoers.d/90-agi-belam;st >$T/o 2>$T/e
 ok st2-F5-sudoers-absent-writes-ONLY-the-narrow-line-0440 "rc $rc, file: [$(cat $T/sudoers.d/90-agi-belam 2>/dev/null)] mode $(stat -c %a $T/sudoers.d/90-agi-belam 2>/dev/null)" '[ "$(cat $T/sudoers.d/90-agi-belam)" = "agi-belam ALL=('$PUSER') NOPASSWD: /usr/bin/gh auth git-credential" ]&&[ "$(stat -c %a $T/sudoers.d/90-agi-belam)" = 440 ]&&! grep -q "ALL$" $T/sudoers.d/90-agi-belam&&[ "$(ls $T/sudoers.d|wc -l|tr -d " ")" = 1 ]'
 world;hact >/dev/null 2>&1;login;rm -f $T/sudoers.d/90-agi-belam;pm "narrow(){ printf 'agi-belam ALL=(%s) NOPASSWD: /usr/bin/gh auth git-credential' \"\$PU\";}" "narrow(){ printf 'agi-belam ALL=(ALL) NOPASSWD: ALL';}";st >$T/o 2>$T/e
 ok st2-F5-mutant-a-written-line-containing-ALL-is-RED "the mutant wrote: [$(cat $T/sudoers.d/90-agi-belam 2>/dev/null)]" 'grep -q "ALL$" $T/sudoers.d/90-agi-belam'
-world;hact >/dev/null 2>&1;login;rm -f $T/sudoers.d/90-agi-belam;d0=$(ls -la $T/sudoers.d|md5sum);pm "printf 'agi-belam ALL=(%s) NOPASSWD: /usr/bin/gh auth git-credential' \"\$PU\"" "printf 'BAD'";st >$T/o 2>$T/e;rc=$?
-ok st2-cond3-a-malformed-line-is-refused-and-the-sudoers-dir-is-byte-identical "visudo shim refused: rc $rc, dir listing same: $([ "$(ls -la $T/sudoers.d|md5sum)" = "$d0" ]&&echo yes||echo NO), line: $(grep -o '\[sudoers\] visudo refused[^:]*' $T/e)" '[ $rc != 0 ]&&grep -q "^\[sudoers\] visudo refused" $T/e&&[ "$(ls -la $T/sudoers.d|md5sum)" = "$d0" ]'
+# the dir signature is names + bytes, never `ls -la` (its minute mtimes of . and .. tick when agi.sh makes and removes its temp beside the target: a clock flake, council 10-21 17:26Z)
+dsig(){ (cd $T/sudoers.d&&ls -A&&find . -type f -exec sha256sum {} +)|md5sum; }
+world;hact >/dev/null 2>&1;login;rm -f $T/sudoers.d/90-agi-belam;d0=$(dsig);pm "printf 'agi-belam ALL=(%s) NOPASSWD: /usr/bin/gh auth git-credential' \"\$PU\"" "printf 'BAD'";st >$T/o 2>$T/e;rc=$?
+ok st2-cond3-a-malformed-line-is-refused-and-the-sudoers-dir-is-byte-identical "visudo shim refused: rc $rc, dir listing same: $([ "$(dsig)" = "$d0" ]&&echo yes||echo NO), line: $(grep -o '\[sudoers\] visudo refused[^:]*' $T/e)" '[ $rc != 0 ]&&grep -q "^\[sudoers\] visudo refused" $T/e&&[ "$(dsig)" = "$d0" ]'
+# the compare's own rows: a refusal that LEAVES a file differs; a clock tick on the dir alone stays the same; the old `ls -la` form is moved by that tick (the mutant, RED = the flake it was)
+d1=$(dsig);: >$T/sudoers.d/stray-after-refusal
+ok st2-cond3-a-sig-a-file-left-behind-by-a-refusal-is-seen "signature before $d1, after $(dsig) (want different)" '[ "$(dsig)" != "$d1" ]'
+rm -f $T/sudoers.d/stray-after-refusal;d1=$(dsig);l1=$(ls -la $T/sudoers.d|md5sum);touch -d '2001-02-03 04:05' $T/sudoers.d
+ok st2-cond3-a-sig-a-clock-tick-on-the-dir-alone-stays-same "signature before $d1, after $(dsig) (want same)" '[ "$(dsig)" = "$d1" ]'
+ok st2-cond3-a-sig-mutant-the-ls-la-form-moves-on-the-same-tick-RED "ls -la md5 before $l1, after $(ls -la $T/sudoers.d|md5sum) (want different: that was the flake)" '[ "$(ls -la $T/sudoers.d|md5sum)" != "$l1" ]'
 world;hact >/dev/null 2>&1;login;st >$T/o 2>$T/e;rc=$?
 ok st2-F5-a-present-broad-line-byte-equal-to-the-cell-passes-with-the-BROAD-notice "rc $rc: $(grep -c 'BROAD grant (ALL), owner ruling pending' $T/o) notice(s); file untouched: $(cat $T/sudoers.d/90-agi-belam)" '[ $rc = 0 ]&&grep -qx "\[sudoers\] present, byte-equal to the cell; BROAD grant (ALL), owner ruling pending" $T/o'
 world;hact >/dev/null 2>&1;login;rm -f $T/sudoers.d/90-agi-belam;echo 'agi-belam ALL=(ALL) NOPASSWD: /bin/true' >$T/sudoers.d/90-agi-belam;h0=$(md5sum <$T/sudoers.d/90-agi-belam);st >$T/o 2>$T/e;rc=$?
@@ -333,4 +341,14 @@ pidw 0;st >$T/o 2>$T/e;rc=$?
 ok st2-pid-a-local-engine-v4-row-with-pid-0-is-not-refused "rc $rc: [pid] lines $(grep -c '^\[pid\]' $T/e) (want 0)" '! grep -q "^\[pid\]" $T/e'
 pidw 1;pm 'pidchk "nothing started"' ':';st >$T/o 2>$T/e;rc=$?
 ok st2-pid-mutant-the-check-dropped-lets-start-past-a-pid-1-row-RED "rc $rc, [pid] lines $(grep -c '^\[pid\]' $T/e) (clean: refused)" '! grep -q "^\[pid\]" $T/e'
+# council 10-21 15:53Z: pidchk FAILS OPEN no more -- a pin with no posts.md, or a row jq cannot parse, is refused by start naming [pid] and nothing is acted on (the old `|tr` pipe passed both)
+pidwb(){ world;hact >/dev/null 2>&1;login;if [ $1 = none ];then rm -f $M/.agi/nodes/.geometry/posts.md;else sed -i '/"name":"far"/i\  - {"name":"pv","parent":"belam",' $M/.agi/nodes/.geometry/posts.md;fi;$G -C $M add -A;$G -C $M -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm pidbad;PIN=$($G -C $M rev-parse HEAD);hact >/dev/null 2>&1;}
+pidwb none;st >$T/o 2>$T/e;rc=$?
+ok st2-pid-b-a-pin-with-no-posts-md-is-refused-by-start-naming-pid "rc $rc: $(grep -o '\[pid\] cannot read[^:]*' $T/e|head -1|cut -c1-60); service calls $(calls '^(start|enable|restart|stop)')" '[ $rc != 0 ]&&grep -q "^\[pid\] cannot read posts.md at" $T/e&&[ "$(calls "^(start|enable|restart|stop)")" = 0 ]'
+pidwb garble;st >$T/o 2>$T/e;rc=$?
+ok st2-pid-b-a-garbled-posts-row-is-refused-by-start-naming-pid "rc $rc: $(grep -o '\[pid\] cannot parse[^:]*' $T/e|head -1|cut -c1-60); service calls $(calls '^(start|enable|restart|stop)')" '[ $rc != 0 ]&&grep -q "^\[pid\] cannot parse a posts.md row at" $T/e&&[ "$(calls "^(start|enable|restart|stop)")" = 0 ]'
+pidwb none;pm '||die "[pid] cannot read posts.md at $PIN: $1"' '';st >$T/o 2>$T/e;rc=$?
+ok st2-pid-b-mutant-the-read-check-dropped-lets-start-past-a-pin-with-no-posts-md-RED "rc $rc, [pid] lines $(grep -c '^\[pid\]' $T/e) (clean: refused)" '! grep -q "^\[pid\]" $T/e'
+pidwb garble;pm '||die "[pid] cannot parse a posts.md row at $PIN: $1"' '';st >$T/o 2>$T/e;rc=$?
+ok st2-pid-b-mutant-the-parse-check-dropped-lets-start-past-a-garbled-row-RED "rc $rc, [pid] lines $(grep -c '^\[pid\]' $T/e) (clean: refused)" '! grep -q "^\[pid\]" $T/e'
 echo "agi-town-start: $f FAIL";exit $f

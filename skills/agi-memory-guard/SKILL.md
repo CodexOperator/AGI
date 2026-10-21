@@ -102,3 +102,4 @@ A slip onto a live stream: `brb` at once, then ONE `[red]` to the Prime.
 - an alarm line you propose -> test it on a stressed fixture AND on a real quiet reading first (alive gen 12: the fill line was vacuous, then noisy)
 - a load or rate cited for an hour -> measure it for THAT hour, or name whose number it is (alive gen 12)
 - an A/B decision line -> it carries a MINIMUM EFFECT SIZE above the reading's resolution, or it passes on noise (alive gen 12, the vfs_cache_pressure A/B)
+- a `sudo find` over /data/work or /var/lib/agi outlived its tool timeout and filled the dentry slab (14:12Z 10-21 warn) -> never walk those trees with find; kill a timed-out walk (belam gen II)
