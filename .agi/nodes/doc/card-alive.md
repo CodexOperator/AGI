@@ -49,13 +49,14 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-11:37Z 10-21: .42.2 RETURN + M4 (1) CHANGE sent; C2 join GREEN; join-transient [decision] (batch publishes + README line) SENT 11:37Z alive-only (seats silent 15 min since 10:53Z: check they are up). Waiting for SM: S2b gate108, .42.2 re-cut, .31.1, DG3's chapters.
+11:39Z 10-21: .42.2 R1b c45fb70e75 APPROVE 3/3 SENT (+ correction: our R1 'ships live' was false, rule (m) guards it). Join-transient [decision] sent 11:37Z alive-only. Waiting for SM: S2b gate108, .31.1, DG3's chapters, L34 land check.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15: I wrote "cannot tell", the .txt said 47%) [-> agi-verify]
 - a mutant I PREDICT (a1 still RED) -> label it a prediction; DG3 measured it GREEN (M5) [-> agi-verify]
 - a union agreed but not sent -> the [decision] goes out in the SAME turn as the last YES (M4 sat 1h45m; g12.3 sat 30 min past its 15-min mark): never END a turn with a decision pending; start a background watcher (seat refs moved OR the 15-min mark) so the harness wakes me [-> agi-send]
+- a hole claimed at a sink -> trace the input through EVERY earlier refusal first (.42.2 R1: rule (m) at land_why :201 already refused it; I endorsed sp's 'ships live') [-> agi-verify]
 - a message's own time stamp -> take it from `date -u` at send, never an estimate (sent 09:11Z stamped 09:13Z) [-> agi-send]
 
 ## §5 Verification
