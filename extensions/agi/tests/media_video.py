@@ -718,6 +718,7 @@ import time  # noqa: E402
 
 VMLIMIT_KB = 2500000        # ulimit -v for a render: 1.6 x the pilot's VmPeak (council 10-21 09:52Z). A chapter that dies at it: stop and ask, never raise it
 EXCEPTIONS = {6: "council ruling 09:52Z 10-21"}   # a NAMED timing exception: > 25 % on the prior is accepted iff every prior-placed end is nearer a pause than the shorter neighbouring sentence is long (prior_offsets)
+BANKED = {6: "BANKED FAULT (council 14:10Z 10-21, no STT): beat 28 'So here we are.' is on screen 0.28 s (183.59-183.87 s) for about 1 s of speech, so that caption comes up ~0.7 s early, once; the next sentence then holds 6.5 s for ~4 s of speech"}
 QUEUE = os.path.dirname(BASE) + "/RENDERING"       # SM's gates wait while it exists (15 s poll): touched BEFORE a chapter's start test, removed after the chapter
 HOLD = os.path.dirname(BASE) + "/HOLD-GATES"        # touched when a chapter has waited an hour on the start test; removed by me when the 17 are done or at a stop-and-ask
 
@@ -913,9 +914,11 @@ def publish_chapter(n, d, rep, plan):
     sha = publish(rep["unpublished"], name, d["deliver"], d["static"], d["tmp"], f"{d['checks']}/{nn}.json", True, rep["checks_info"])
     c = plan["counts"]
     extra = (f"timing: {plan['fallback']} of {plan['boundaries']} boundaries on the prior (DP with 12 % REL; the approved 0.7 s alone {c['dp_tol_only']}; the approved greedy rule {c['greedy']}); "
-             + (rep["exception"] + "; " if "exception" in rep else "") + "the static card is kept in deliver-static/")
+             + (rep["exception"] + "; " if "exception" in rep else "") + (BANKED[n] + "; " if n in BANKED else "") + "the static card is kept in deliver-static/")
     set_readme_row(f"{d['deliver']}/README-narration.txt", name, f"C{n}", "animated version", extra)
     ensure_readme_limit(f"{d['deliver']}/README-narration.txt")
+    if n in BANKED:
+        ensure_readme_line(f"{d['deliver']}/README-narration.txt", f"C{n}: {BANKED[n]}.", 3)
     rep["published"] = sha
     rep.pop("unpublished", None)
     json.dump(rep, open(f"{d['checks']}/{nn}.report.json", "w"), indent=1)
@@ -970,16 +973,21 @@ def psnr(a, b):
 def join_probe(joined, n, deliver, static_dir, offsets=(30, 60, 120), same_db=30.0, apart_db=25.0, w=320, h=180):
     """Is chapter n IN the joined full mp4 the ANIMATED one? The chapter starts at the sum of the durations of chapters 0..n-1 in deliver/ (the join order); at start + each of `offsets`
     (clamped inside the chapter) a frame of the joined file is compared with the same time of deliver/explainer-chNN (animated) and of deliver-static/ (the card). ANIMATED iff at every
-    offset PSNR(joined, animated) >= same_db and PSNR(joined, static) < apart_db; the static card in the join is RED. -> (verdict 'animated'|'static'|'other', [(offset, db_animated, db_static)])"""
+    offset PSNR(joined, animated) >= same_db and PSNR(joined, static) < apart_db; the static card in the join is RED. A missing card -> 'no card', an empty frame -> 'no frame' (both RED).
+    -> (verdict 'animated'|'static'|'other'|'no card'|'no frame', [(offset, db_animated, db_static)])"""
     files = sorted(f for f in os.listdir(deliver) if re.match(r"explainer-ch\d\d-.*\.mp4$", f))
     names = [f for f in files]
     me = next(f for f in files if f.startswith(f"explainer-ch{n:02d}-"))
     start = sum(probe(f"{deliver}/{f}")["duration"] for f in names if f < me)
     dur = probe(f"{deliver}/{me}")["duration"]
+    if not os.path.exists(f"{static_dir}/{me}"):
+        return "no card", []                                     # belam 14:2xZ: with no card, 'PSNR 0.0 against the card' passed whatever the join held (a false GREEN)
     rows = []
     for o in offsets:
         o = min(o, max(dur - 1.0, 0.0))
         j, a, st = (grab_frames(p, [t], w, h)[0] for p, t in ((joined, start + o), (f"{deliver}/{me}", o), (f"{static_dir}/{me}", o)))
+        if not (j and a and st):
+            return "no frame", rows                              # an empty frame is never read as 'differs': psnr() of nothing is 0.0
         rows.append((o, psnr(j, a), psnr(j, st)))
     if all(da >= same_db and ds < apart_db for _, da, ds in rows):
         return "animated", rows

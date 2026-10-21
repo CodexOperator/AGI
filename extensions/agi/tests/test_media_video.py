@@ -1058,7 +1058,8 @@ def three_chapters(tmp_path):
     d.mkdir(); sd.mkdir()
     for i in range(3):
         subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", f"testsrc2=s=640x360:r=25:d=14,hue=h={i * 60}", "-pix_fmt", "yuv420p", "-c:v", "libx264", "-preset", "ultrafast", str(d / f"explainer-ch{i:02d}-x.mp4")], check=True)
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "color=c=0x14181f:s=640x360:r=25:d=14", "-pix_fmt", "yuv420p", "-c:v", "libx264", "-preset", "ultrafast", str(sd / "explainer-ch01-x.mp4")], check=True)
+    for i in range(3):
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "color=c=0x14181f:s=640x360:r=25:d=14", "-pix_fmt", "yuv420p", "-c:v", "libx264", "-preset", "ultrafast", str(sd / f"explainer-ch{i:02d}-x.mp4")], check=True)
 
     def join(parts, out):
         lst = tmp_path / "list.txt"
@@ -1133,3 +1134,40 @@ def test_the_scene_realigns_a_scaled_title_under_the_label_and_asserts_it():
 def test_the_scene_caps_a_caption_at_the_height_of_four_lines():
     src = (HERE / "media_scene.py").read_text()
     assert src.count("scale_to_fit_height(1.45)") == 2          # the feed caption and the calm one
+
+
+def test_a_banked_fault_is_in_the_publish_line_and_the_readme_for_c6_only(job):
+    ok = plan_of(job, ["prior", "prior", "end"], [2.6, 6.4, 9.0])
+    go_ = lambda n: mv.run_chapter(n, job["chap"], job["mp3"], job["d"], job["cmd"], REPO, gate=GO, poll=0.05, read=lambda: None, plan=ok if n == 6 else None, publish_it=True)
+    go_(6)
+    txt = Path(job["d"]["deliver"], "README-narration.txt").read_text()
+    row = [ln for ln in txt.split("\n") if ln.startswith(job["name"])][0]
+    assert "BANKED FAULT" in row and "So here we are." in row and "183.59-183.87" in row
+    assert f"C6: {mv.BANKED[6]}." in txt.split("\n") and set(mv.BANKED) == {6}
+
+
+def test_join_probe_without_a_card_is_no_card_not_animated(tmp_path):
+    """belam 14:2xZ: C3 (no card yet) exited 0 ANIMATED because the missing card gave an empty frame, psnr 0.0 and 0.0 < 25."""
+    d, sd, good, stale = three_chapters(tmp_path)
+    os.remove(Path(sd) / "explainer-ch01-x.mp4")
+    v, rows = mv.join_probe(good, 1, d, sd, offsets=(2, 5, 9))
+    assert v == "no card" and rows == []
+    assert mv.join_probe(stale, 1, d, sd, offsets=(2, 5, 9))[0] == "no card"                 # whatever the join holds
+
+
+def test_join_probe_with_an_empty_frame_is_no_frame(tmp_path):
+    d, sd, good, stale = three_chapters(tmp_path)
+    short = tmp_path / "short.mp4"
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", good, "-t", "16", "-c", "copy", str(short)], check=True)       # the join ends before chapter 1's frames
+    v, rows = mv.join_probe(str(short), 1, d, sd, offsets=(2, 5, 9))
+    assert v == "no frame"
+    assert mv.psnr(b"", b"") == 0.0                                                         # why 'psnr 0.0 < 25' must never be read as 'not the card'
+
+
+def test_the_joinprobe_command_exits_1_on_no_card_and_0_on_animated(tmp_path, monkeypatch, capsys):
+    d, sd, good, stale = three_chapters(tmp_path)
+    monkeypatch.setattr(mv, "BASE", str(tmp_path / "base"))
+    os.makedirs(tmp_path / "base"); os.symlink(d, tmp_path / "base" / "deliver"); os.symlink(sd, tmp_path / "base" / "deliver-static")
+    assert mv.main(["joinprobe", good, "1"]) == 0
+    os.remove(Path(sd) / "explainer-ch01-x.mp4")
+    assert mv.main(["joinprobe", good, "1"]) == 1 and "NO CARD" in capsys.readouterr().out

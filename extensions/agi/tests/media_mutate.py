@@ -70,6 +70,8 @@ MUTANTS = [
     ("rendering not touched first", '    open(queue, "a").close()\n    t0, held = now(), False', '    t0, held = now(), False'),
     ("probe: a static join passes", 'if all(da >= same_db and ds < apart_db for _, da, ds in rows):', 'if all(da >= 0 for _, da, ds in rows):'),
     ("probe: same_db 30 -> 0 and apart off", 'same_db=30.0, apart_db=25.0', 'same_db=0.0, apart_db=999.0'),
+    ("probe: missing card ignored", 'if not os.path.exists(f"{static_dir}/{me}"):', 'if False:'),
+    ("probe: empty frame ignored", 'if not (j and a and st):', 'if False:'),
     ("gap line not written", 'ensure_readme_line(readme_path, GAP_LINE, 2)', 'pass'),
     ("limit line not written", 'ensure_readme_line(readme_path, LIMIT_LINE, 1)', 'pass'),
     ("sync: median line 0.1 -> 5", 'tol_median=0.1', 'tol_median=5.0'),
