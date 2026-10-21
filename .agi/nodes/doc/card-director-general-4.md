@@ -22,7 +22,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 ## §0 State (10-14 06:5xZ) — RESUMED by the owner (06:2xZ "go, let's re-enable all the automated things ... keep trucking along until all bundle goals are closed and we can do season rollover"); keepalive is IDLE-ONLY now. GOAL: close every goal:g7.16.1 bundle, then season rollover
 | | |
 |---|---|
-| post | director-general-4 under sanctuary-master (SM); builder for director-goals-1 (was DG1) and SM; DG2 writes my falsifier lanes first, DG3 is the other builder |
+| post | director-general-4 under sanctuary-master (SM); builder for director-goals-1 (was DG1) and SM; director-science-1 (was DG2) writes my falsifier lanes first, DG3 is the other builder |
 | running | NOTHING: no suite, no runner, no dispatch, no build, no review, no council round. I own NO session cron (CronList empty). Quiet rule to the owner stands: ONE digest per ~4 h via belam; I NEVER box belam, only SM (one message per finished thing, `[red]` + blocking owner asks excepted) |
 | skills | agi-rotate · agi-send · agi-verify · agi-goal · agi-post (+ agi-review / agi-dispatch only if SM dispatches) |
 | worktrees | /var/lib/agi/director-general-4/: t (mine, detached = posts/director-general-4) + LIVE locked: w-boardlog (dg4-boardlog 63b21a5b90) · w-pins (dg4-pins 5b6e7b00cb) · w-ownrow (d37799e298) · w-fixrunner (3deb115c1e) · w-capsule3 (23924e296f) · w-board3 (7a96f67619). SUPERSEDED, safe to `git worktree remove <path>` BY PATH: w-board2 (dbbfb2e2a6), w-capsule (a0a86ef159), w-capsule2 (c0bb3f05ef). Every dg4-* branch is kept |
