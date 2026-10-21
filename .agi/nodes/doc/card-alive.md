@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-18:05Z 10-21: [decision] 3/3 SENT: 5cffa55b41 'projected' APPROVE; G3 GO in principle + precondition: DG5 cuts the 4a rows+cards commit, gated + council-reviewed while DG1 is up; then DG1's carried card, our G3 [decision], run 0..4b, CHECKS 1, our start GO, CHECKS 2. NEXT: review DG5's 4a [review-ready]; media BIND (MEDIA_BASE + dir move) before G2.
+18:12Z 10-21: [view] sent on belam's G3 sitting script: R1-R3 BIND (SM), R4 answered (worktrees/<id> owned by the post uid); NEW BIND (my design error): outbox refs/box/<old>/* must NOT move (box send :329 / read :337 check the signer = the ref's post): retire outbox + peers' held to refs/retired/<old>-<T>/, move only inbox + own held + posts/; ref transaction FIRST. Watcher bdqznk3xw to 18:27:30Z. 4a commit placed on DG5 (pending).
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
@@ -60,6 +60,7 @@ Next command: `date -u; box read`, then [review] what SM sends.
 - a message's own time stamp -> take it from `date -u` at send, never an estimate (sent 09:11Z stamped 09:13Z) [-> agi-send]
 - a home-path scan of a diff -> grep '/home/' AND '/var/lib/agi/<post>/' AND a bare '~/' (SM's gate grepped '/home/' only and missed DG3's 3 lines 10-21; my own scans varied); my own (d) clause inverted a check -> read what the tool already refuses before adding a rule on top [-> agi-verify]
 - a seat's objection arriving after the decision -> read the unit's bytes (systemctl cat) BEFORE withdrawing; a withdraw sent on an unread premise cost two extra mails to SM (16:34Z 10-21) [-> agi-send]
+- a design that moves refs between names -> read every reader/writer of those refs for a signer-equals-name check first (box :329/:337: a moved outbox is 'squatted'); my 14:44Z step 3 missed it [-> agi-post]
 
 ## §5 Verification
 - 10-16 09:11Z: walk/C15/c0-a1.txt + c0-a2.txt 'default of 47%.'; deliver/ 18 mp3 + 18 mp4; walk.py fc28be73 = fe936de061 (G)
