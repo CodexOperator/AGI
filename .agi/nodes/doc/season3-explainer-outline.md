@@ -130,10 +130,7 @@ status: complete
 tags:
   - council-loop
 ~~~~
-@@excerpt 6432bf88d5:.agi/nodes/goal/g7.16.1.1.6.2.md:L54-L54
-~~~~
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-~~~~
+(excerpt, byte-exact in the script's own excerpt block: 6432bf88d5:.agi/nodes/goal/g7.16.1.1.6.2.md, line 54, the line that opens the node's authored thought region. It is not repeated in this node: a node body must not carry that marker at the start of a line, or the thought-block count of the node is wrong.)
 **Beats.** Name each front-matter key by what reads it (`id`, `mint_id` forever, `type`, `parents`, `status`). Show `parents:` as an arrow upward to goal:g7.16.1.1.6, the node's place in the tree. Show that the address (`id`) may be renumbered but `mint_id` never changes; the grid history is keyed by it. The example line, `status:`, is the bytes we will carry. The THOUGHT block is the node's delta, rewritten whole.
 
 
