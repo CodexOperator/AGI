@@ -43,74 +43,65 @@
  },
  "events": {
   "last_landing": {
-   "value": "2026-10-15T05:58:00Z",
-   "command": "box log read",
-   "reader_uid": "a-seat",
-   "read_time": "2026-10-15T08:11:00Z"
+   "sha": "246b2cd2d2ab21b32093aef0eb60c368b6aec15b"
   },
   "freeze_on": {
    "value": "2026-10-15T05:59:52Z",
-   "command": "box log read",
+   "command": "journalctl -u cron --since 2026-10-15T05:59:00Z --until 2026-10-15T06:00:00Z",
    "reader_uid": "a-seat",
    "read_time": "2026-10-15T08:11:00Z"
   },
   "dry_run": {
    "value": "2026-10-15T06:07:00Z",
-   "command": "box log read",
+   "command": "/var/log/agi/season-dry-run.log:12",
    "reader_uid": "a-seat",
    "read_time": "2026-10-15T08:11:00Z"
   },
   "first_run": {
    "value": "2026-10-15T06:15:00Z",
-   "command": "box log read",
+   "command": "/var/log/agi/season-run.log:3",
    "reader_uid": "a-seat",
    "read_time": "2026-10-15T08:11:00Z"
   },
   "run_start": {
    "value": "2026-10-15T06:21:00Z",
-   "command": "box log read",
+   "command": "/var/log/agi/season-run.log:40",
    "reader_uid": "a-seat",
    "read_time": "2026-10-15T08:11:00Z"
   },
   "run_end": {
-   "value": "2026-10-15T06:24:00Z",
-   "command": "box log read",
-   "reader_uid": "a-seat",
-   "read_time": "2026-10-15T08:11:00Z"
+   "sha": "7caa699a0735c1f1afe9715fe2fa687886f01bca"
   },
   "pushed_end": {
    "value": "2026-10-15T06:27:00Z",
-   "command": "box log read",
+   "command": "/var/log/agi/season-run.log:210",
    "reader_uid": "a-seat",
    "read_time": "2026-10-15T08:11:00Z"
   },
   "freeze_off": {
    "value": "2026-10-15T06:28:21Z",
-   "command": "box log read",
+   "command": "journalctl -u cron --since 2026-10-15T06:28:00Z --until 2026-10-15T06:29:00Z",
    "reader_uid": "a-seat",
    "read_time": "2026-10-15T08:11:00Z"
   },
   "trunks_moved": {
-   "value": "2026-10-15T07:40:00Z",
-   "command": "box log read",
-   "reader_uid": "a-seat",
-   "read_time": "2026-10-15T08:11:00Z"
+   "sha": "1d96e4f150c198305fb37538300e1caae554b0be"
   },
   "restarts_start": {
    "value": "2026-10-15T07:42:00Z",
-   "command": "box log read",
+   "command": "systemctl show -p ActiveEnterTimestamp agi-post@alpha.service",
    "reader_uid": "a-seat",
    "read_time": "2026-10-15T08:11:00Z"
   },
   "restarts_end": {
    "value": "2026-10-15T08:08:00Z",
-   "command": "box log read",
+   "command": "systemctl show -p ActiveEnterTimestamp agi-post@omega.service",
    "reader_uid": "a-seat",
    "read_time": "2026-10-15T08:11:00Z"
   },
   "mains_moved": {
    "value": "2026-10-15T08:10:00Z",
-   "command": "box log read",
+   "command": "/var/log/agi/season-run.log:260",
    "reader_uid": "a-seat",
    "read_time": "2026-10-15T08:11:00Z"
   }

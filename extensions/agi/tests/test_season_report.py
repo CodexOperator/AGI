@@ -427,6 +427,8 @@ def _template_problems(text: str, facts: dict) -> list[str]:
                 stack.append(lst[0] if isinstance(lst, list) and lst else {})
             elif path.startswith("narr."):
                 stack.append(None)
+            elif path == "render.box_sources":
+                stack.append({"key": 0, "reader_uid": 0, "read_time": 0, "command": 0})
             else:
                 out.append(f"rows over {path}: must be facts.* or narr.*")
                 stack.append(None)
@@ -838,11 +840,85 @@ def test_d2_refresh_facts_keeps_every_byte_outside_the_markers_and_refuses_a_bro
 
 def test_box_events_are_times_with_provenance_and_a_key_under_them_resolves(pinned: dict, tmp_path: Path):
     ev = json.loads(BOX_FIX.read_text())["events"]
-    assert len(ev) == 12 and all(set(v) == {"value", "command", "reader_uid", "read_time"} for v in ev.values())
+    assert len(ev) == 12 and sum("sha" in v for v in ev.values()) == 3
+    assert all(set(v) == {"value", "command", "reader_uid", "read_time"} for v in ev.values() if "sha" not in v)
     assert pinned["box"]["events"] == {"value": "not recorded"}
     got = json.loads(_facts_raw("--box-facts", str(BOX_FIX)).stdout)["box"]
     assert got["events"]["freeze_on"]["value"] == "2026-10-15T05:59:52Z" and got["pin"]["value"].startswith(PIN)
+    assert got["events"]["run_end"] == {"value": "2026-10-15T06:24:17Z", "sha": ev["run_end"]["sha"], "source": "git"}      # a commit event: the committer time, recomputed
     for bad in ({"events": {"freeze_on": {"value": "05:59", "command": "c", "reader_uid": "u", "read_time": "2026-10-15T06:00:00Z"}}}, {"events": {}}, {"events": {"Bad Name": {}}}):
         p = tmp_path / "bad.json"
         p.write_text(json.dumps(bad))
         assert _facts_raw("--box-facts", str(p)).returncode == 2, bad
+
+
+# ---- the council's follow-up (18:56:31Z): what an event time IS, and where every box time says it came from -----------------------------------
+def _box_with(tmp_path: Path, **events) -> Path:
+    b = json.loads(BOX_FIX.read_text())
+    b["events"] = events
+    p = tmp_path / "box-ev.json"
+    p.write_text(json.dumps(b))
+    return p
+
+
+def test_events_a_commit_event_takes_its_time_from_git_and_a_cell_time_that_differs_is_refused(tmp_path: Path):
+    sha = json.loads(BOX_FIX.read_text())["events"]["run_end"]["sha"]
+    ok = _facts_raw("--box-facts", str(_box_with(tmp_path, a_land={"sha": sha})))
+    assert ok.returncode == 0 and json.loads(ok.stdout)["box"]["events"]["a_land"] == {"value": "2026-10-15T06:24:17Z", "sha": sha, "source": "git"}
+    agree = _facts_raw("--box-facts", str(_box_with(tmp_path, a_land={"sha": sha, "value": "2026-10-15T06:24:17Z"})))
+    assert agree.returncode == 0
+    p = _box_with(tmp_path, a_land={"sha": sha, "value": "2026-10-15T06:25:00Z"})
+    r = _facts_raw("--box-facts", str(p))
+    assert r.returncode == 2 and b"differs from the committer time" in r.stderr and r.stdout == b""
+    mut = _mutant(tmp_path, '        iso = _iso(_commit(repo, c["sha"])["ts"])\n', '        iso = c["value"] or _iso(_commit(repo, c["sha"])["ts"])\n')
+    m = _facts_raw("--box-facts", str(p), cli=mut)
+    assert m.returncode == 0 and json.loads(m.stdout)["box"]["events"]["a_land"]["value"] == "2026-10-15T06:25:00Z", "MUTANT (the sha event taken from the cell) must be RED"
+    future = _facts_raw("--box-facts", str(_box_with(tmp_path, a_land={"sha": "0" * 40})))
+    assert future.returncode == 2
+    after = _git(ROOT, "rev-parse", "HEAD").strip()           # a commit that is not in the history of --at (the pin is older than HEAD)
+    r = _facts_raw("--box-facts", str(_box_with(tmp_path, a_land={"sha": after})))
+    assert r.returncode == 2 and b"is not a commit in the history" in r.stderr
+
+
+def test_events_a_vague_command_is_refused_naming_it_and_the_three_exact_shapes_pass(tmp_path: Path):
+    cell = lambda cmd: {"value": "2026-10-15T06:00:00Z", "command": cmd, "reader_uid": "a-seat", "read_time": "2026-10-15T06:30:00Z"}
+    for good in ("journalctl -u cron --since 2026-10-15T05:59:00Z --until 2026-10-15T06:00:00Z", "systemctl show -p ActiveEnterTimestamp agi-post@alpha.service",
+                 "/var/log/agi/season-run.log:40"):
+        assert _facts_raw("--box-facts", str(_box_with(tmp_path, e=cell(good)))).returncode == 0, good
+    for vague in ("box log read", "journalctl -u cron", "systemctl status agi-post@alpha.service", "/var/log/agi/season-run.log", "tail /var/log/x.log:3; rm x",
+                  "journalctl -u cron --since a --until b | grep x"):
+        r = _facts_raw("--box-facts", str(_box_with(tmp_path, e=cell(vague))))
+        assert r.returncode == 2 and b"not an exact re-runnable read" in r.stderr and vague.split()[0].encode() in r.stderr, vague
+    mut = _mutant(tmp_path, "        if not exact_read(out[name][\"command\"]):\n", "        if False:\n")
+    assert _facts_raw("--box-facts", str(_box_with(tmp_path, e=cell("box log read"))), cli=mut).returncode == 0, "MUTANT (any command accepted) must be RED"
+
+
+def test_every_box_sourced_value_on_the_page_carries_a_mark_and_a_legend_line_and_a_git_time_carries_none(page: str, site: Site, b0: str, tmp_path: Path):
+    ev = json.loads(BOX_FIX.read_text())["events"]
+    git_time = re.search(r"<time>(05:59:17Z)(.{0,12})</time>", page)              # last_landing: a commit event, the committer time of its sha
+    box_time = re.search(r"<time>(05:59:52Z)(.{0,40})</time>", page)               # freeze_on: a box cell
+    assert git_time and "†" not in git_time.group(2), "a git-sourced time prints no mark"
+    assert box_time and "†" in box_time.group(2), "a box-sourced time prints the mark"
+    legend = page.split('id="sources"', 1)[1].split("</section>", 1)[0]
+    marks_in_body = page.split('id="sources"', 1)[0].count(MARK_HTML)
+    assert marks_in_body >= 9 and legend.count("<li>†") >= 9 + 0, (marks_in_body, legend.count("<li>†"))
+    for key in ("run_time", "complete_time", "events.freeze_on", "events.restarts_end"):
+        assert re.search(rf"<code>{re.escape(key)}</code>: box cell, read by a-seat at 20\d\d-\d\d-\d\dT\d\d:\d\d:\d\dZ, by <code>[^<]+</code>", legend), key
+    assert "events.last_landing" not in legend and "events.run_end" not in legend, "a commit event is git-sourced: no legend line"
+    assert ev["freeze_on"]["command"] in legend
+    mut = _mutant(tmp_path, "            return text + MARK\n", "            return text\n")
+    out = tmp_path / "m.html"
+    assert site.render(b0, out, cli=mut).returncode == 0 and "†" not in out.read_text().split('id="sources"', 1)[0], "MUTANT (the mark dropped) must be RED"
+
+
+MARK_HTML = '<sup class="src">†</sup>'
+
+
+def test_a_page_with_no_box_facts_has_no_mark_and_an_empty_legend(site: Site, tmp_path: Path):
+    d = tmp_path / "s4.md"
+    d.write_text(DOC_FIX.read_text().replace("@PREV@", PREV).replace("@SEASON@", "4").replace(" (L22)", ""))
+    assert _refresh(d, season="4", box=None).returncode == 0
+    out = _out(tmp_path)
+    assert site.render(site.commit(d.read_text()), out, box=None).returncode == 0
+    p = out.read_text()
+    assert MARK_HTML not in p and "<li>†" not in p
