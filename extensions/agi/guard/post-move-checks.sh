@@ -9,14 +9,16 @@
 # (runuser -u agi-NEW -- test -r <retired key> fails, after a positive control so a runuser that cannot run is a FAIL, never a pass) ·
 # key-not-in-home (no file under NEW's ~/.ssh is the retired key) · ring-old (every OLD@agi line closed, the last at T) · ring-new (no stale open
 # NEW@agi line from an earlier holder of the name; after the first start exactly one open line, from T on, with a key OLD never held) ·
-# grep-old (`grep -rlw agi-OLD` and a file named agi-OLD over sudoers.d polkit-1 systemd /etc/agi /var/spool/cron: nothing) ·
+# grep-old (over sudoers.d polkit-1 /etc/systemd /run/systemd/system /etc/agi /var/spool/cron: nothing holds the word agi-OLD, nothing is NAMED agi-OLD, and nothing
+# is a unit INSTANCE of OLD, `*@OLD.*`: every per-post unit is <unit>@<name>, so the wants links, the .service.d drop-ins and agi-carry@OLD.path are all caught; every
+# scan dir must exist, a missing one is a FAIL naming it) · new-carry-path (agi-carry@NEW.path is enabled AND active: nothing else enables the new name's mail wake) ·
 # old-post-inactive, old-boxwake-inactive (council addendum 15:26Z: AFTER the pin bump no agi-post@OLD / agi-boxwake@OLD is active; `systemctl is-active` must say
 # inactive or failed, an empty answer or activating is a FAIL). Run it right after the move, before the name OLD is reused by a later move: old-name-free reads
 # "empty" as the proof that no projection between the usermod and the bump minted a fresh agi-OLD.
 # Env (defaults are the box's; a test sets them to stubs): ROOT (prefix of every default path) ID GETENT RUNUSER SYSTEMCTL ROOTUSER RET RING SCAN.
 ROOT=${ROOT-};ID=${ID:-id};GETENT=${GETENT:-getent};RUNUSER=${RUNUSER:-runuser};SYSTEMCTL=${SYSTEMCTL:-systemctl};ROOTUSER=${ROOTUSER:-root}
 RET=${RET:-$ROOT/var/lib/agi/retired/keys};RING=${RING:-$ROOT/var/lib/agi/allowed_signers}
-SCAN=${SCAN-"$ROOT/etc/sudoers.d $ROOT/etc/polkit-1 $ROOT/etc/systemd $ROOT/etc/agi $ROOT/var/spool/cron"}
+SCAN=${SCAN-"$ROOT/etc/sudoers.d $ROOT/etc/polkit-1 $ROOT/etc/systemd $ROOT/run/systemd/system $ROOT/etc/agi $ROOT/var/spool/cron"}
 f=0
 say(){ _s=$1;_n=$2;shift 2;echo "$_s $_n: $*";[ "$_s" = FAIL ]&&f=$((f+1));:;}
 t(){ _n=$1;_d=$2;shift 2;if "$@";then say ok "$_n" "$_d";else say FAIL "$_n" "$_d";fi;}
@@ -65,10 +67,13 @@ elif [ $fresh = 0 ];then if [ "$FIRST" = --first-start ];then say FAIL ring-new 
 elif [ -n "$pub" ]&&[ "$nk" = "$pub" ];then say FAIL ring-new "$NEW@agi signs with the retired key"
 else say ok ring-new "$NEW@agi: no stale line, one open line from $T on, a key $OLD never held";fi
 # 8. nothing in the host config still names the old user
-dirs=0;for d in $SCAN;do [ -d "$d" ]&&dirs=$((dirs+1));done
-hits=$({ grep -rlw "agi-$OLD" $SCAN 2>/dev/null;find $SCAN -name "agi-$OLD" 2>/dev/null;}|sort -u|tr '\n' ' ')
-t grep-old "grep -rlw agi-$OLD over $dirs scan dir(s): '${hits% }' (want none)" test "$dirs" -gt 0 -a -z "$hits"
+miss=;for d in $SCAN;do [ -d "$d" ]||miss="$miss $d";done
+hits=$({ grep -rlw "agi-$OLD" $SCAN;find $SCAN -name "agi-$OLD";find $SCAN -name "*@$OLD.*";} 2>/dev/null|sort -u|tr '\n' ' ')
+t grep-old "agi-$OLD over $SCAN: hits '${hits% }' (want none)${miss:+, MISSING scan dir(s):$miss}" test -z "$miss" -a -z "$hits"
 # 9. nothing of the old name runs (AFTER the pin bump: a projection in the window could have started agi-post@OLD on an empty home)
 idle(){ case $($SYSTEMCTL is-active "$1" 2>/dev/null) in inactive|failed)return 0;;esac;return 1;}
 for u in agi-post agi-boxwake;do t "old-${u#agi-}-inactive" "systemctl is-active $u@$OLD = '$($SYSTEMCTL is-active "$u@$OLD" 2>/dev/null)' (want inactive or failed)" idle "$u@$OLD";done
+# 10. the new name's mail wake: nothing but `systemctl enable --now agi-carry@NEW.path` makes it (host-act-encryption-town.sh move NEW, after 4b)
+carry(){ [ "$($SYSTEMCTL is-enabled "agi-carry@$NEW.path" 2>/dev/null)" = enabled ]&&[ "$($SYSTEMCTL is-active "agi-carry@$NEW.path" 2>/dev/null)" = active ]; }
+t new-carry-path "systemctl is-enabled agi-carry@$NEW.path = '$($SYSTEMCTL is-enabled "agi-carry@$NEW.path" 2>/dev/null)', is-active '$($SYSTEMCTL is-active "agi-carry@$NEW.path" 2>/dev/null)' (want enabled, active)" carry
 [ $f = 0 ]
