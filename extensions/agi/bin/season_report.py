@@ -380,13 +380,55 @@ def _cell(v, where: str, time_value: bool = False) -> dict:
     return {f: v[f] for f in BOX_FIELDS}
 
 
+# a box event's `command` must be a read anyone can run again: one of these three shapes (a vague "box log read" is refused, naming it)
+_META = re.compile(r"[;&|$`<>\\]")
+_EXACT_READ = (
+    lambda c: c.startswith("journalctl ") and re.search(r"\s(?:-u|--unit)[ =]\S+", c) and re.search(r"\s--since[ =]\S+", c) and re.search(r"\s--until[ =]\S+", c),
+    lambda c: re.fullmatch(r"systemctl show -p [A-Za-z]+ [A-Za-z0-9_.@:-]+", c),
+    lambda c: re.fullmatch(r"/[A-Za-z0-9_./-]+:[1-9][0-9]*", c),
+)
+
+
+def exact_read(command: str) -> bool:
+    return not _META.search(command) and any(shape(command) for shape in _EXACT_READ)
+
+
 def _read_events(v) -> dict:
+    """events: {name: EITHER {"sha": <commit at --at>[, "value": T]} (render recomputes the committer time) OR a box cell whose command is an exact read}."""
     if not isinstance(v, dict) or not v:
         raise Fail("--box-facts: events must be a non-empty object {event_name: cell}")
-    for name in v:
-        if not re.match(r"^[a-z][a-z0-9_]*$", name):
-            raise Fail(f"--box-facts: events.{name}: a name is lowercase letters, digits and _")
-    return {name: _cell(v[name], f"events.{name}", time_value=True) for name in sorted(v)}
+    out = {}
+    for name in sorted(v):
+        if not re.match(r"^[a-z][a-z0-9_]*$", name) or name == "value":
+            raise Fail(f"--box-facts: events.{name}: a name is lowercase letters, digits and _ (and not 'value')")
+        c = v[name]
+        if isinstance(c, dict) and "sha" in c:
+            if set(c) - {"sha", "value"} or not re.fullmatch(r"[0-9a-f]{40}", str(c["sha"])) or (c.get("value") is not None and not _TIME.match(str(c["value"]))):
+                raise Fail(f"--box-facts: events.{name}: a commit event is {{\"sha\": <40 hex>}} (+ an optional ISO \"value\" that must equal its committer time)")
+            out[name] = {"sha": c["sha"], "value": c.get("value")}
+            continue
+        out[name] = _cell(c, f"events.{name}", time_value=True)
+        if not exact_read(out[name]["command"]):
+            raise Fail(f"--box-facts: events.{name}: command {out[name]['command']!r} is not an exact re-runnable read "
+                       "(journalctl -u UNIT --since T --until T | systemctl show -p PROP UNIT | /path:LINE), or give {\"sha\": <commit>}")
+    return out
+
+
+def resolve_events(repo: str, at_sha: str, box: dict) -> None:
+    """A commit event's time is the committer time of its sha, RECOMPUTED here at --at; a cell time that disagrees is refused."""
+    ev = box.get(BOX_EVENTS)
+    if not isinstance(ev, dict) or ev.get("value") == NOT_RECORDED and len(ev) == 1:
+        return
+    for name, c in ev.items():
+        if "sha" not in c or "reader_uid" in c:
+            continue
+        r = subprocess.run(["git", "-C", repo, "merge-base", "--is-ancestor", f"{c['sha']}^{{commit}}", at_sha], capture_output=True)
+        if r.returncode != 0:
+            raise Fail(f"--box-facts: events.{name}: {c['sha'][:10]} is not a commit in the history of {at_sha[:10]}")
+        iso = _iso(_commit(repo, c["sha"])["ts"])
+        if c["value"] is not None and c["value"] != iso:
+            raise Fail(f"--box-facts: events.{name}: the cell time {c['value']} differs from the committer time {iso} of {c['sha'][:10]}")
+        ev[name] = {"value": iso, "sha": c["sha"], "source": "git"}
 
 
 def read_box(path: str | None) -> dict:
@@ -423,6 +465,8 @@ def facts_full(repo: str, season: int, at: str, heads_file: str, box_file: str |
     ids = tree.pop("_ids")
     cells = read_cells(repo, sha, season)
     posts = read_posts(repo, sha)
+    box = read_box(box_file)
+    resolve_events(repo, sha, box)
     out = {
         "season": season,
         "at": sha,
@@ -436,7 +480,7 @@ def facts_full(repo: str, season: int, at: str, heads_file: str, box_file: str |
         "close": read_close(repo, sha, season),
         "ledger": read_ledger(repo, sha, season),
         "grid": read_heads(heads_file, season, cells["opened"]),
-        "box": read_box(box_file),
+        "box": box,
     }
     return out, ids
 
@@ -654,6 +698,23 @@ def narr_problems(text: str, facts_json: dict, ids: set, where: str) -> list[str
 class Ctx:
     def __init__(self, facts_json: dict, narr: dict, media: dict | None):
         self.facts, self.narr, self.media, self.iters = facts_json, narr, media, Counter()
+        self.sources: dict[str, dict] = {}        # the box cells whose values this page printed, first use first: the legend lists them
+
+
+MARK = '<sup class="src">†</sup>'                 # a value read from a box cell, not recomputed from git
+_BOXVAL = re.compile(r"^facts\.box\.((?:events\.)?[a-z_][a-z0-9_]*)\.value$")
+
+
+def _slot(ctx: "Ctx", rows: list, path: str, flt: str | None) -> str:
+    """One filled slot, plus the † mark when it prints a box cell's value (a git-sourced time prints none)."""
+    text = _fmt(_resolve(ctx, rows, path), flt, path)
+    m = _BOXVAL.match(path)
+    if m:
+        cell = _resolve(ctx, rows, path[: -len(".value")])
+        if isinstance(cell, dict) and cell.get("reader_uid") and cell.get("value") not in (None, NOT_RECORDED):
+            ctx.sources.setdefault(m.group(1), cell)
+            return text + MARK
+    return text
 
 
 def _parse_template(text: str) -> list:
@@ -696,6 +757,8 @@ def _resolve(ctx: Ctx, rows: list, path: str):
         if ctx.media is None:
             raise Fail(f"slot {{{{{path}}}}} outside a media block")
         cur = ctx.media
+    elif head == "render":
+        cur = {"box_sources": [{"key": k, "reader_uid": c["reader_uid"], "read_time": c["read_time"], "command": c["command"]} for k, c in ctx.sources.items()]}
     elif head == "row":
         if not rows:
             raise Fail(f"slot {{{{{path}}}}} outside a rows loop")
@@ -753,7 +816,7 @@ def _render(nodes: list, ctx: Ctx, rows: list) -> str:
         if n[0] == "text":
             out.append(n[1])
         elif n[0] == "slot":
-            out.append(_fmt(_resolve(ctx, rows, n[1]), n[2], n[1]))
+            out.append(_slot(ctx, rows, n[1], n[2]))
         elif n[0] == "media":
             if ctx.media is not None:
                 out.append(_render(n[1], ctx, rows))
@@ -770,7 +833,7 @@ def _fill_narr(text: str, ctx: Ctx) -> Safe:
     out, pos = [], 0
     for m in _SLOT.finditer(text):
         out.append(html.escape(text[pos:m.start()]))
-        out.append(_fmt(_resolve(ctx, [], m.group(2)), m.group(3), m.group(2)))
+        out.append(_slot(ctx, [], m.group(2), m.group(3)))
         pos = m.end()
     out.append(html.escape(text[pos:]))
     return Safe("".join(out))
