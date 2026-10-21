@@ -1,0 +1,109 @@
+{
+ "run_rc": {
+  "value": 0,
+  "command": "season.py rollover --global --apply",
+  "reader_uid": "a-seat",
+  "read_time": "2026-10-15T06:24:30Z"
+ },
+ "run_time": {
+  "value": "2026-10-15T06:21:00Z",
+  "command": "season.py rollover --global --apply",
+  "reader_uid": "a-seat",
+  "read_time": "2026-10-15T06:24:30Z"
+ },
+ "complete_time": {
+  "value": "2026-10-15T08:10:00Z",
+  "command": "the rollover's ROLLOVER COMPLETE line",
+  "reader_uid": "a-seat",
+  "read_time": "2026-10-15T08:11:00Z"
+ },
+ "posts_live": {
+  "value": 33,
+  "command": "agi-posts live",
+  "reader_uid": "a-seat",
+  "read_time": "2026-10-15T08:11:00Z"
+ },
+ "pin": {
+  "value": "5fa654a5f3fb681bcdb6677fe55dce60756ff4ec",
+  "command": "cat the carry file's trunk pin",
+  "reader_uid": "a-seat",
+  "read_time": "2026-10-15T08:11:00Z"
+ },
+ "freeze_window": {
+  "value": "2026-10-15T05:59:52Z to 2026-10-15T06:28:21Z",
+  "command": "crons.py show",
+  "reader_uid": "a-seat",
+  "read_time": "2026-10-15T06:30:00Z"
+ },
+ "restarts": {
+  "value": 12,
+  "command": "agi-post restart log",
+  "reader_uid": "a-seat",
+  "read_time": "2026-10-15T08:11:00Z"
+ },
+ "events": {
+  "last_landing": {
+   "sha": "246b2cd2d2ab21b32093aef0eb60c368b6aec15b"
+  },
+  "freeze_on": {
+   "value": "2026-10-15T05:59:52Z",
+   "command": "journalctl -u cron --since 2026-10-15T05:59:00Z --until 2026-10-15T06:00:00Z",
+   "reader_uid": "a-seat",
+   "read_time": "2026-10-15T08:11:00Z"
+  },
+  "dry_run": {
+   "value": "2026-10-15T06:07:00Z",
+   "command": "/var/log/agi/season-dry-run.log:12",
+   "reader_uid": "a-seat",
+   "read_time": "2026-10-15T08:11:00Z"
+  },
+  "first_run": {
+   "value": "2026-10-15T06:15:00Z",
+   "command": "/var/log/agi/season-run.log:3",
+   "reader_uid": "a-seat",
+   "read_time": "2026-10-15T08:11:00Z"
+  },
+  "run_start": {
+   "value": "2026-10-15T06:21:00Z",
+   "command": "/var/log/agi/season-run.log:40",
+   "reader_uid": "a-seat",
+   "read_time": "2026-10-15T08:11:00Z"
+  },
+  "run_end": {
+   "sha": "7caa699a0735c1f1afe9715fe2fa687886f01bca"
+  },
+  "pushed_end": {
+   "value": "2026-10-15T06:27:00Z",
+   "command": "/var/log/agi/season-run.log:210",
+   "reader_uid": "a-seat",
+   "read_time": "2026-10-15T08:11:00Z"
+  },
+  "freeze_off": {
+   "value": "2026-10-15T06:28:21Z",
+   "command": "journalctl -u cron --since 2026-10-15T06:28:00Z --until 2026-10-15T06:29:00Z",
+   "reader_uid": "a-seat",
+   "read_time": "2026-10-15T08:11:00Z"
+  },
+  "trunks_moved": {
+   "sha": "1d96e4f150c198305fb37538300e1caae554b0be"
+  },
+  "restarts_start": {
+   "value": "2026-10-15T07:42:00Z",
+   "command": "systemctl show -p ActiveEnterTimestamp agi-post@alpha.service",
+   "reader_uid": "a-seat",
+   "read_time": "2026-10-15T08:11:00Z"
+  },
+  "restarts_end": {
+   "value": "2026-10-15T08:08:00Z",
+   "command": "systemctl show -p ActiveEnterTimestamp agi-post@omega.service",
+   "reader_uid": "a-seat",
+   "read_time": "2026-10-15T08:11:00Z"
+  },
+  "mains_moved": {
+   "value": "2026-10-15T08:10:00Z",
+   "command": "/var/log/agi/season-run.log:260",
+   "reader_uid": "a-seat",
+   "read_time": "2026-10-15T08:11:00Z"
+  }
+ }
+}

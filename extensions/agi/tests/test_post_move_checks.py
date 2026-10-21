@@ -3,6 +3,8 @@
 Council 3/3 14:44Z 10-21, the two MUTANTS that must go RED: usermod without groupmod (the gid check) and the key left in the home (the read
 check). Each source mutant below removes ONE guard of the script and a world that guard exists for then PASSES: the test has teeth.
 """
+import calendar
+import json
 import os
 import shutil
 import stat
@@ -26,7 +28,9 @@ exit 0
 """
 # systemctl is-active UNIT: the state is read from $STUB/active/UNIT (absent = a unit that never ran)
 SYSTEMCTL = r"""#!/bin/sh
-case $1 in is-enabled)s=$(cat "$STUB/enabled/$2" 2>/dev/null)||s=disabled;echo "$s";[ "$s" = enabled ];exit;;is-active);;*)exit 2;;esac
+# systemctl show [--timestamp=utc] -p PROP [--value] UNIT: the value is read from $STUB/show/UNIT.PROP (absent = the empty value of a unit that never ran)
+case $1 in is-enabled)s=$(cat "$STUB/enabled/$2" 2>/dev/null)||s=disabled;echo "$s";[ "$s" = enabled ];exit;;is-active);;
+ show)shift;p=;while [ $# -gt 1 ];do [ "$1" = -p ]&&{ p=$2;shift;};shift;done;cat "$STUB/show/$1.$p" 2>/dev/null;exit 0;;*)exit 2;;esac
 s=$(cat "$STUB/active/$2" 2>/dev/null)||s=inactive
 echo "$s";[ "$s" = active ]
 """
@@ -87,6 +91,49 @@ class World:
         (self.stub / "enabled").mkdir()
         (self.stub / "active" / f"agi-carry@{NEW}.path").write_text("active\n")      # the renamed post's mail wake, after 4b
         (self.stub / "enabled" / f"agi-carry@{NEW}.path").write_text("enabled\n")
+        (self.stub / "show").mkdir()
+        self.main = self.root / "data/work/agi"                                          # MAIN: the repo the mail refs live in (R7)
+        self.main.mkdir(parents=True)
+        self.git("init", "-q")
+        self.keys = 0
+        (self.home / ".claude.json").write_text(json.dumps({"projects": {                # trust is keyed by MAIN's root; the old home's key is dead (R10, R11)
+            "/data/work/agi": {"hasTrustDialogAccepted": True}, f"{self.home.parent / OLD}/t": {"hasTrustDialogAccepted": True}}}))
+        (self.home / ".claude/projects").mkdir(parents=True)
+        (self.home / ".claude/projects/s.jsonl").write_text(f"cwd {self.home.parent / OLD}/t\n")  # transcripts are not hits
+        self.carry = self.root / "etc/agi/carry.env"                                       # 4b's write at 15:01:00Z, the projection started at 15:01:30Z, success
+        self.carry.write_text("AGI_BOX=encryption-town\nAGI_TRUNK=" + "a" * 40 + "\n")
+        self.wrote("20261021150100")
+        self.projected("Wed 2026-10-21 15:01:30 UTC")
+
+    def git(self, *a, **kw):
+        env = {**os.environ, "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_SYSTEM": "/dev/null", **kw.pop("env", {})}
+        return subprocess.run(["git", "-C", str(self.main), *a], check=True, capture_output=True, text=True, env=env).stdout.strip()
+
+    def principal(self, name):
+        """a fresh key for NAME@agi, an OPEN line in the ring; returns the private key path"""
+        self.keys += 1
+        k = self.tmp / f"k{self.keys}"
+        pub = _key(k)
+        with open(self.ring, "a") as f:
+            f.write(f'{name}@agi namespaces="git",valid-after="20261021150500Z" {pub}\n')
+        return k
+
+    def mail(self, ref, signer=None, key=None):
+        """a commit on REF (refs/box/..., refs/held/..., refs/heads/posts/...); signed as SIGNER with the private key KEY, or unsigned"""
+        tree = self.git("hash-object", "-w", "-t", "tree", "/dev/null")
+        e = {"GIT_AUTHOR_NAME": signer or "x", "GIT_AUTHOR_EMAIL": f"{signer or 'x'}@agi", "GIT_COMMITTER_NAME": signer or "x", "GIT_COMMITTER_EMAIL": f"{signer or 'x'}@agi"}
+        sig = ["-c", "gpg.format=ssh", "-c", f"user.signingkey={key}", "-S"] if key else []
+        c = self.git(*sig[:4], "commit-tree", *sig[4:], "-m", "x", tree, env=e)
+        self.git("update-ref", ref, c)
+        return c
+
+    def wrote(self, stamp):
+        t = calendar.timegm((int(stamp[:4]), int(stamp[4:6]), int(stamp[6:8]), int(stamp[8:10]), int(stamp[10:12]), int(stamp[12:14])))
+        os.utime(self.carry, (t, t))
+
+    def projected(self, started, result="success"):
+        (self.stub / "show" / "agi-project.service.ExecMainStartTimestamp").write_text(started + "\n")
+        (self.stub / "show" / "agi-project.service.Result").write_text(result + "\n")
 
     def first_start(self, key=None):
         with open(self.ring, "a") as f:
@@ -112,12 +159,14 @@ def test_a_clean_move_before_the_first_start_is_green_and_ring_new_waits(w):
     assert rc == 0, out
     assert st == {"uid": "ok", "gid": "ok", "old-name-free": "ok", "key-held": "ok", "key-unreadable": "ok", "key-not-in-home": "ok",
                   "ring-old": "ok", "ring-new": "wait", "grep-old": "ok", "old-post-inactive": "ok", "old-boxwake-inactive": "ok",
-                  "new-carry-path": "ok"}, out
+                  "new-carry-path": "ok", "projected": "ok", "refs-left": "ok", "outbox-signer": "ok", "flags": "ok", "sweep": "ok",
+                  "new-boxwake": "wait"}, out
 
 
 def test_after_the_first_start_ring_new_needs_one_fresh_open_line_and_wait_becomes_red_under_the_flag(w):
     _red(w.check("--first-start"), "ring-new")
     w.first_start()
+    (w.stub / "active" / f"agi-boxwake@{NEW}").write_text("active\n")      # the start brought the wake up with the post (Wants=)
     rc, st, out = w.check("--first-start")
     assert rc == 0 and st["ring-new"] == "ok" and "wait" not in out, out
 
@@ -337,3 +386,172 @@ def test_the_carry_row_has_a_world_only_it_catches(w, tmp_path):
     (w.stub / "enabled" / f"agi-carry@{NEW}.path").unlink()                                 # the move never enabled it
     m = _mutant(tmp_path, "carry(){ [", "carry(){ return 0; [")
     assert w.check(script=m)[1]["new-carry-path"] == "ok" and w.check()[1]["new-carry-path"] == "FAIL"
+
+
+# the projection: agi-project.path was never active on this box (council 17:58Z 10-21), so 4b = `agi.sh host` + `systemctl start agi-project.service`
+@pytest.mark.parametrize("started,result", [
+    ("Wed 2026-10-21 15:00:59 UTC", "success"),     # the last start was BEFORE 4b's carry.env write: the host's /run is the old pin's
+    ("", "success"),                                # never started (an empty ExecMainStartTimestamp, as on a unit that never ran)
+    ("Wed 2026-10-21 15:01:30 UTC", "exit-code"),   # started after the write and failed
+    ("Wed 2026-10-21 15:01:30 UTC", ""),            # no Result at all
+    ("not a time", "success"),                      # an unreadable stamp is never a pass
+])
+def test_MUTANT_a_projection_not_started_after_the_pin_write_or_not_successful_is_red(w, started, result):
+    w.projected(started, result)
+    _red(w.check(), "projected")
+
+
+def test_a_start_in_the_same_second_as_the_write_or_later_is_green(w):
+    w.projected("Wed 2026-10-21 15:01:00 UTC")
+    assert w.check()[1]["projected"] == "ok"
+    w.projected("Thu 2026-10-22 03:00:00 UTC")
+    assert w.check()[1]["projected"] == "ok"
+
+
+def test_a_carry_env_written_after_the_projection_is_red_and_a_missing_one_is_red(w):
+    w.wrote("20261021153000")                                      # a second `agi.sh host` after the start: /run is one pin behind again
+    _red(w.check(), "projected")
+    w.carry.unlink()
+    _red(w.check(), "projected")
+
+
+def test_a_systemctl_that_does_not_answer_is_red_on_the_projected_row_too(w):
+    _exe(w.bin / "systemctl", "#!/bin/sh\nexit 1\n")
+    _red(w.check(), "projected")
+
+
+def test_the_projected_row_has_a_world_only_each_of_its_guards_catches(w, tmp_path):
+    w.projected("Wed 2026-10-21 15:00:59 UTC")                     # started before the write
+    m = _mutant(tmp_path, '[ "$ps" -ge "$pc" ]&&', "")
+    assert w.check(script=m)[1]["projected"] == "ok" and w.check()[1]["projected"] == "FAIL"
+    w.projected("Wed 2026-10-21 15:01:30 UTC", "exit-code")        # started after, failed
+    m = _mutant(tmp_path, '&&[ "$($SYSTEMCTL show -p Result --value agi-project.service 2>/dev/null)" = success ]', "")
+    assert w.check(script=m)[1]["projected"] == "ok" and w.check()[1]["projected"] == "FAIL"
+    w.projected("", "success")                                     # never started: `date -d ""` is today's midnight, which a carry.env from long ago precedes
+    w.wrote("20000101000000")
+    m = _mutant(tmp_path, '[ -n "$ps" ]||return 1;', "")
+    assert w.check(script=m)[1]["projected"] == "ok" and w.check()[1]["projected"] == "FAIL"
+    w.projected("not a time", "success")                           # an unparsable stamp
+    m = _mutant(tmp_path, 'ps=$(date -u -d "$ps" +%s 2>/dev/null)||return 1', 'ps=$(date -u -d "$ps" +%s 2>/dev/null||echo 9999999999)')
+    assert w.check(script=m)[1]["projected"] == "ok" and w.check()[1]["projected"] == "FAIL"
+    w.carry.unlink()                                               # no carry.env to compare against
+    w.projected("Wed 2026-10-21 15:01:30 UTC")
+    m = _mutant(tmp_path, 'pc=$(stat -c %Y "$CARRY" 2>/dev/null)||return 1', 'pc=$(stat -c %Y "$CARRY" 2>/dev/null||echo 0)')
+    assert w.check(script=m)[1]["projected"] == "ok" and w.check()[1]["projected"] == "FAIL"
+
+
+# R7 (council 18:13Z): the inbox moved with the agent, the OUTBOX and the peers' marks of the old name were retired, never moved
+LEFT = [f"refs/heads/posts/{OLD}", f"refs/box/{OLD}/sanctuary-master", f"refs/box/belam/{OLD}", f"refs/held/{OLD}/belam", f"refs/held/alive/{OLD}"]
+
+
+@pytest.mark.parametrize("ref", LEFT)
+def test_MUTANT_a_ref_of_the_old_name_left_behind_is_red(w, ref):
+    w.mail(ref)
+    _red(w.check(), "refs-left")
+
+
+def test_refs_of_the_new_name_of_a_retired_namespace_and_of_a_longer_name_are_not_left_behind(w):
+    for ref in (f"refs/heads/posts/{NEW}", f"refs/box/{NEW}/belam", f"refs/box/belam/{NEW}", f"refs/held/{NEW}/belam", f"refs/retired/{OLD}-{T}/box/belam",
+                f"refs/retired/{OLD}-{T}/held/alive", f"refs/remotes/origin/posts/{OLD}", f"refs/heads/posts/{OLD}x", f"refs/box/{OLD}x/belam", f"refs/box/belam/x{OLD}"):
+        w.mail(ref)
+    assert w.check()[1]["refs-left"] == "ok"
+
+
+def test_an_unreadable_repo_is_red_on_both_ref_rows_never_an_empty_pass(w):
+    _red(w.check(MAIN=str(w.tmp / "no-such-repo")), "refs-left", "outbox-signer")
+
+
+def test_the_outbox_tip_must_verify_for_the_new_name_and_an_empty_outbox_is_fine(w):
+    assert w.check()[1]["outbox-signer"] == "ok"
+    k = w.principal(NEW)
+    w.mail(f"refs/box/{NEW}/belam", NEW, k)
+    w.mail(f"refs/box/{NEW}/alive", NEW, k)
+    assert w.check()[1]["outbox-signer"] == "ok"
+    w.mail(f"refs/box/{NEW}/sanctuary-master")                       # unsigned
+    _red(w.check(), "outbox-signer")
+
+
+def test_MUTANT_the_outbox_moved_from_the_old_name_is_red_on_the_signer_row(w, tmp_path):
+    old_key = w.principal(OLD)                                      # a key the ring honours for the OLD name
+    w.mail(f"refs/box/{OLD}/belam", OLD, old_key)
+    w.git("update-ref", f"refs/box/{NEW}/belam", w.git("rev-parse", f"refs/box/{OLD}/belam"))   # the moved outbox
+    w.git("update-ref", "-d", f"refs/box/{OLD}/belam")
+    _red(w.check(), "outbox-signer")
+    m = _mutant(tmp_path, 'grep -q "for $NEW@agi with"||bad=', 'grep -q "for .*@agi with"||bad=')
+    assert w.check(script=m)[1]["outbox-signer"] == "ok"
+
+
+# R10: the trust dialog (belam measured: every seat's .claude.json keys projects by MAIN's root)
+@pytest.mark.parametrize("doc", [None, {}, {"projects": {}}, {"projects": {"/data/work/agi": {}}}, {"projects": {"/data/work/agi": {"hasTrustDialogAccepted": False}}},
+                                 {"projects": {"/var/lib/agi/x/t": {"hasTrustDialogAccepted": True}}}])
+def test_MUTANT_flags_skipped_or_wrong_is_red(w, doc):
+    f = w.home / ".claude.json"
+    f.unlink()
+    if doc is not None:
+        f.write_text(json.dumps(doc))
+    _red(w.check(), "flags")
+
+
+def test_the_flags_row_has_a_world_only_it_catches(w, tmp_path):
+    (w.home / ".claude.json").write_text(json.dumps({"projects": {"/data/work/agi": {"hasTrustDialogAccepted": False}}}))
+    m = _mutant(tmp_path, "hasTrustDialogAccepted==true", "hasTrustDialogAccepted!=null")
+    assert w.check(script=m)[1]["flags"] == "ok" and w.check()[1]["flags"] == "FAIL"
+
+
+# R11: the sweep of the old home path inside the new home
+OLDHOME = lambda w: str(w.home.parent / OLD)       # noqa: E731
+
+
+@pytest.mark.parametrize("rel", [".gitconfig", ".config/git/config", "bin/agi-x", ".claude/settings.json", ".claude/settings.local.json", "t/.git/hooks/pre-commit", "hooks/x"])
+def test_MUTANT_the_old_home_in_a_file_the_post_executes_is_red_and_named(w, rel):
+    f = w.home / rel
+    f.parent.mkdir(parents=True, exist_ok=True)
+    f.write_text(f"path = {OLDHOME(w)}/t\n")
+    rc, st, out = w.check()
+    assert st["sweep"] == "FAIL" and f"EXECUTED: {rel}" in out.replace("EXECUTED:", "EXECUTED: ").replace("  ", " "), out
+
+
+def test_a_hit_in_a_file_nothing_executes_is_named_but_green_and_transcripts_and_dead_project_keys_are_not_hits(w):
+    assert w.check()[1]["sweep"] == "ok"
+    (w.home / "notes.txt").write_text(f"was {OLDHOME(w)}/t\n")
+    rc, st, out = w.check()
+    assert st["sweep"] == "ok" and "notes.txt" in out and "1 file(s)" in out, out
+    d = json.loads((w.home / ".claude.json").read_text())
+    d["lastCwd"] = f"{OLDHOME(w)}/t"                                  # a LIVE key naming the old home is a hit, though not executed
+    (w.home / ".claude.json").write_text(json.dumps(d))
+    rc, st, out = w.check()
+    assert st["sweep"] == "ok" and ".claude.json" in out.split("sweep:")[1], out
+
+
+def test_a_longer_home_name_is_not_a_hit(w):
+    (w.home / "x.txt").write_text(f"{OLDHOME(w)}-2/t {OLDHOME(w)}x\n")
+    assert "1 file" not in w.check()[2] and w.check()[1]["sweep"] == "ok" and "0 file(s)" in w.check()[2]
+
+
+def test_the_sweep_row_has_a_world_only_its_executed_leg_catches(w, tmp_path):
+    (w.home / ".gitconfig").write_text(f"[core]\n\thooksPath = {OLDHOME(w)}/hooks\n")
+    m = _mutant(tmp_path, 'run="$run $h";; esac;done', ':;; esac;done')
+    assert w.check(script=m)[1]["sweep"] == "ok" and w.check()[1]["sweep"] == "FAIL"
+
+
+# R12: the live wake is agi-boxwake@<new>, started with agi-post@<new> (Wants=); agi-carry@.path watches a g.git no post has
+def test_boxwake_waits_before_the_start_is_red_after_it_unless_active(w):
+    rc, st, out = w.check()
+    assert st["new-boxwake"] == "wait" and rc == 0 and "NOT the wake" in out, out
+    w.first_start()
+    _red(w.check("--first-start"), "new-boxwake")
+    (w.stub / "active" / f"agi-boxwake@{NEW}").write_text("active\n")
+    rc, st, out = w.check("--first-start")
+    assert rc == 0 and st["new-boxwake"] == "ok" and "wait" not in st.values(), out
+
+
+def test_a_carry_path_that_is_active_does_not_make_the_wake(w):
+    w.first_start()
+    _red(w.check("--first-start"), "new-boxwake")               # the world has new-carry-path enabled and active, and still no wake
+    assert w.check("--first-start")[1]["new-carry-path"] == "ok"
+
+
+def test_the_boxwake_row_has_a_world_only_its_first_start_leg_catches(w, tmp_path):
+    w.first_start()
+    m = _mutant(tmp_path, 'say FAIL new-boxwake', 'say ok new-boxwake')
+    assert w.check("--first-start", script=m)[1]["new-boxwake"] == "ok" and w.check("--first-start")[1]["new-boxwake"] == "FAIL"
