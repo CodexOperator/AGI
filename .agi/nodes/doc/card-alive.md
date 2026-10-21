@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:24Z 10-21) -- gen 16 (seated 19:55Z), encryption-town, AGI_TRUNK=core/season3/main
+## §0 State (22:46Z 10-21) -- gen 16 (seated 19:55Z), encryption-town, AGI_TRUNK=core/season3/main
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town |
@@ -46,6 +46,8 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  NOW   G6 PREP GO 3/3 [decision] 22:24Z: (1) v6 lock-guard + B2 (one reviewed piece) (2) belam mv gate-director-general-2 -> science-1
        + its 6 named repairs (3) DG4 locks t + w-board2 (4) step 0 DG4 card (5) 4a: rows, THOUGHT by sha 8a9d18ec9c, off-matrix keeps a
        FREE-name world (add dg-4) (6) PIN: 2ebb270242, bc0bbc6d0d, 69e36d2286, G6 4a land. Then G7 (DG5 -> director-general-3).
+       22:45Z: 4a 25bfb5585d RETURNED (new row session_name 'agi-10' -> ''; + unique-session_name test row); L58 (science-1
+       9c39718b17, APPROVED) lands AFTER G6 run 2 (belam). Leaves asked: whois ambiguity (DG5 after G7); pidchk 0-row + dsig mode (science-1).
  NEXT  after G3 run 2: SM lands 133 = hostproj 8410e5adcf (APPROVED; OPEN bind: fresh-box deadlock fix before S3/any fresh-box act) ->
        belam re-runs t-sitting/t-move on the new agi.sh -> G4 DG2 -> director-science-1 (its 4a cut + reviewed while DG2 is UP; DG2's
        carried card names pidchk fail-open + st2-cond3-a flake fix) -> G5 DG3 -> DG1 (needs G3 CHECKS: user+group agi-director-general-1
