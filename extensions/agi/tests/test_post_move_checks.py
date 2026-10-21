@@ -30,7 +30,8 @@ exit 0
 SYSTEMCTL = r"""#!/bin/sh
 # systemctl show [--timestamp=utc] -p PROP [--value] UNIT: the value is read from $STUB/show/UNIT.PROP (absent = the empty value of a unit that never ran)
 case $1 in is-enabled)s=$(cat "$STUB/enabled/$2" 2>/dev/null)||s=disabled;echo "$s";[ "$s" = enabled ];exit;;is-active);;
- show)shift;p=;while [ $# -gt 1 ];do [ "$1" = -p ]&&{ p=$2;shift;};shift;done;cat "$STUB/show/$1.$p" 2>/dev/null;exit 0;;*)exit 2;;esac
+ show)shift;v=;for a in "$@";do [ "$a" = --value ]&&v=1;done;ps=;u=;while [ $# -gt 0 ];do case $1 in -p)ps="$ps $2";shift;; -*);; *)u=$1;; esac;shift;done
+  for p in $ps;do f="$STUB/show/$u.$p";x=$(cat "$f" 2>/dev/null);if [ -n "$v" ];then echo "$x";else [ -z "$x" ]||echo "$p=$x";fi;[ ! -f "$f.then" ]||mv "$f.then" "$f";done;exit 0;;*)exit 2;;esac
 s=$(cat "$STUB/active/$2" 2>/dev/null)||s=inactive
 echo "$s";[ "$s" = active ]
 """
@@ -82,7 +83,7 @@ class World:
             f'{OLD}@agi namespaces="git",valid-after="20261015000000Z",valid-before="{T}" {self.pub}\n'
             # an earlier holder of the name director-general-1 (the old DG1, moved to goals-1 at 10-21 14:00Z): closed
             f'{NEW}@agi namespaces="git",valid-after="20261001000000Z",valid-before="20261021140000Z" {self.other}\n')
-        self.env = {"PATH": os.environ["PATH"], "ROOT": str(self.root), "STUB": str(self.stub), "TOP": str(tmp), "ROOTUSER": subprocess.run(
+        self.env = {"PATH": os.environ["PATH"], "ROOT": str(self.root), "STUB": str(self.stub), "TOP": str(tmp), "STAYS_S": "0", "ROOTUSER": subprocess.run(
             ["id", "-un"], capture_output=True, text=True).stdout.strip(),
             "ID": str(_exe(self.bin / "id", ID)), "GETENT": str(_exe(self.bin / "getent", GETENT)),
             "RUNUSER": str(_exe(self.bin / "runuser", RUNUSER)),
@@ -92,6 +93,7 @@ class World:
         (self.stub / "active" / f"agi-carry@{NEW}.path").write_text("active\n")      # the renamed post's mail wake, after 4b
         (self.stub / "enabled" / f"agi-carry@{NEW}.path").write_text("enabled\n")
         (self.stub / "show").mkdir()
+        self.up(0)
         self.main = self.root / "data/work/agi"                                          # MAIN: the repo the mail refs live in (R7)
         self.main.mkdir(parents=True)
         self.git("init", "-q")
@@ -126,6 +128,11 @@ class World:
         c = self.git(*sig[:4], "commit-tree", *sig[4:], "-m", "x", tree, env=e)
         self.git("update-ref", ref, c)
         return c
+
+    def up(self, restarts=0, active="active", sub="running"):
+        """agi-post@NEW as `systemctl show` sees it"""
+        for k, v in (("ActiveState", active), ("SubState", sub), ("NRestarts", restarts)):
+            (self.stub / "show" / f"agi-post@{NEW}.{k}").write_text(f"{v}\n")
 
     def wrote(self, stamp):
         t = calendar.timegm((int(stamp[:4]), int(stamp[4:6]), int(stamp[6:8]), int(stamp[8:10]), int(stamp[10:12]), int(stamp[12:14])))
@@ -555,3 +562,65 @@ def test_the_boxwake_row_has_a_world_only_its_first_start_leg_catches(w, tmp_pat
     w.first_start()
     m = _mutant(tmp_path, 'say FAIL new-boxwake', 'say ok new-boxwake')
     assert w.check("--first-start", script=m)[1]["new-boxwake"] == "ok" and w.check("--first-start")[1]["new-boxwake"] == "FAIL"
+
+
+# G3's red (council 20:00Z): run 2 printed 18 ok over a post that crash-looped; `stays-up` looks twice, only with --first-start
+def test_stays_up_is_absent_from_run_1_so_run_1_keeps_its_18_rows_and_present_in_run_2(w):
+    rc, st, out = w.check()
+    assert "stays-up" not in st and len(st) == 18, out
+    w.first_start()
+    (w.stub / "active" / f"agi-boxwake@{NEW}").write_text("active\n")
+    rc, st, out = w.check("--first-start")
+    assert rc == 0 and st["stays-up"] == "ok" and len(st) == 19, out
+
+
+def _run2(w, script=SCRIPT):
+    if not getattr(w, "started", False):                           # the first start happens once per world
+        w.first_start()
+        w.started = True
+    (w.stub / "active" / f"agi-boxwake@{NEW}").write_text("active\n")
+    return w.check("--first-start", script=script)
+
+
+def test_MUTANT_a_post_that_exits_and_restarts_between_the_two_reads_is_red(w):
+    (w.stub / "show" / f"agi-post@{NEW}.NRestarts.then").write_text("1\n")       # the second read sees one restart more
+    _red(_run2(w), "stays-up")
+
+
+@pytest.mark.parametrize("active,sub", [("activating", "auto-restart"), ("inactive", "dead"), ("failed", "failed"), ("active", "start"), ("", "")])
+def test_MUTANT_a_post_that_is_not_active_and_running_is_red(w, active, sub):
+    w.up(0, active, sub)
+    _red(_run2(w), "stays-up")
+
+
+def test_a_restart_count_that_is_missing_or_a_silent_systemctl_is_red(w):
+    (w.stub / "show" / f"agi-post@{NEW}.NRestarts").unlink()
+    _red(_run2(w), "stays-up")
+    _exe(w.bin / "systemctl", "#!/bin/sh\nexit 1\n")
+    _red(_run2(w), "stays-up")
+
+
+def test_a_post_that_restarted_before_the_first_read_but_is_stable_across_the_window_is_ok(w):
+    w.up(3)                                                         # NRestarts 3 in both reads: the window is what matters
+    assert _run2(w)[1]["stays-up"] == "ok"
+
+
+def test_the_window_defaults_to_60_seconds(w):
+    assert "${STAYS_S:-60}" in SCRIPT.read_text()
+
+
+def test_the_stays_up_row_has_a_world_only_each_of_its_guards_catches(w, tmp_path):
+    def restarts_then(n):                                           # a one-shot: the second read sees the new count
+        (w.stub / "show" / f"agi-post@{NEW}.NRestarts").write_text("0\n")
+        (w.stub / "show" / f"agi-post@{NEW}.NRestarts.then").write_text(f"{n}\n")
+    m = _mutant(tmp_path, '[ -n "$n1" ]&&[ "$n1" = "$n2" ]', '[ -n "$n1" ]')
+    restarts_then(1)
+    assert _run2(w, m)[1]["stays-up"] == "ok"
+    restarts_then(1)
+    assert _run2(w)[1]["stays-up"] == "FAIL"
+    w.up(0, "activating", "running")                                # only the ActiveState test sees this one
+    m = _mutant(tmp_path, "grep -qx 'ActiveState=active'&&", "")
+    assert _run2(w, m)[1]["stays-up"] == "ok" and _run2(w)[1]["stays-up"] == "FAIL"
+    w.up(0, "active", "auto-restart")                               # only the SubState test sees this one
+    m = _mutant(tmp_path, "printf '%s\\n' \"$r\"|grep -qx 'SubState=running'||return 1", "printf '%s\\n' \"$r\"|grep -qx 'SubState=running'||:")
+    assert _run2(w, m)[1]["stays-up"] == "ok" and _run2(w)[1]["stays-up"] == "FAIL"
