@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-14:09Z 10-21: [view] sent on 3 SM items: S2b follow-up 580c49c91b APPROVE L36 ((2) agree, (4) 5) + BIND B-7 before live start (sk_units false RED on a recorded oneshot RAE=no: quiet-watch/carry@/dbus-reap/rc-keepalive/project); .31.1 412b1f9f27 APPROVE; DG3 M4 (a) 0.4 agree (b) no STT. Watcher to 14:24:11Z, then ONE [decision] to SM.
+14:10Z 10-21: [decision] 3/3 SENT: L36 (S2b follow-up 580c49c91b) + ONE DG2 commit before any live start: B-7 (others() skips a oneshot whose trigger is active) + H1 (reaper guard on su_posts' stop); .31.1 412b1f9f27 APPROVE (land + close); DG3 M4 0.4 + no STT. Waiting for SM: L34/L36/.31.1 lands, DG2's B-7/H1 commit, DG3's 15 publish lines.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
