@@ -8,7 +8,9 @@ next_edges: []
 alerts:
   audit:
     - sanctuary-master
-  edges: {}
+  edges:
+    director-review:
+      - sanctuary-master
   silent:
     - stream-master
     - thought-master
