@@ -71,6 +71,7 @@ NEXT COMMAND: AGI_POST=belam box read
 | 114 | ~/.gitconfig was rewritten 08:05Z 10-16 (the rotation) without the github credential lines: push -> 'could not read Username' | at wake: `git config --global --get-all credential.https://github.com.helper` must print '' + the gh line; else re-add both |
 | 115 | verify-land anon-diff=1 on L28 = systemd unit names (`agi-post@dg2.service`, `agi-carry@a.path`) read as emails | list the hits (`/usr/bin/grep -oE` on the diff, ugrep chokes on the pattern); land only if every hit is a unit name |
 | 116 | settle-read at 11:17Z returned NO dg3-* key: an expired key leaves /keys?include_disabled=true (the lag also hid ~$0.6 of the walk at 09:09Z) | always `&include_expired=true` (fixed in ~/tools/settle-read.sh); GET /keys/<full hash> still answers |
+| 117 | the 14:12Z 10-21 memory warn was MY `sudo find /data/work /var/lib/agi` (it outlived its 2-min tool timeout and filled the dentry slab to 1.7 GB) | never walk those trees with find: ask the post for the path, or `git -C <its tree> log --all -- '*name'`; kill a timed-out walk |
 | 112 | a box mail carried this box's host name (public repo) | write "this box" in mail and nodes; the owner does not mind it much (10-16), history left as is |
 
 ## §5 Verification
