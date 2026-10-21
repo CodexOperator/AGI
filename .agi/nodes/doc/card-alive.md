@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-09:52Z 10-21: g5.4.1 re-cut APPROVE SENT 09:40Z. M4 PILOT (SM 09:49Z relay): union view 09:51Z = (a) GO after a no-bytecode sweep re-run, (b) YES + inode/sha + join checks, (c) C6 named exception on a number, (1) DP ok + REL 0.12 named new, verify_ends = consistency only (aio's number is 0 by construction), (2)(3) ulimit agree, schedule (i)->(ii), mid-token wrap fix. Watcher bwa1ulj4j till 10:06:20Z -> SEND the [decision].
+09:52Z 10-21: M4 pilot [decision] 3/3 SENT (sweep re-run no-bytecode -> token-wrap fix -> C2 re-render -> GO 17; publish C2 with inode/sha + join checks; C6 named exception on a number, STT fallback <= $0.10; REL 0.12 = deviation 5). Waiting for SM: L32/L33 lands, S2b stack, DG3's sweep result.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
