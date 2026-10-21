@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-11:39Z 10-21: .42.2 R1b c45fb70e75 APPROVE 3/3 SENT (+ correction: our R1 'ships live' was false, rule (m) guards it). Join-transient [decision] sent 11:37Z alive-only. Waiting for SM: S2b gate108, .31.1, DG3's chapters, L34 land check.
+11:41Z 10-21: .42.2 R1b APPROVE sent. mtime route = OBJECT unless cleared from bytes, SENT 11:41Z (+ content check owed: duration after-check is blind to a stale join; belam to run it for C2). Waiting for SM: S2b gate108, .31.1, belam's watcher bytes, L34 land check.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
