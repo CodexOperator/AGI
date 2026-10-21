@@ -21,7 +21,9 @@ kept(){ for k in $KEEP;do case $1 in $k)return 0;;esac;done;return 1;}
 # B-7 (council 10-21): a unit that a timer / path / socket FIRES is not recorded while that trigger is itself up (active now) or already recorded in town.state: the trigger brings it back, and a oneshot caught mid-run (Type=oneshot, RemainAfterExit=no) would otherwise be recorded plain, run by hand at start, read `inactive` and leave sk_units unmet for ever. A unit with no up trigger stays recorded.
 trig(){ systemctl show "$1" -p TriggeredBy --value 2>/dev/null;}
 trigup(){ for t in $(trig "$1");do echo "$ACT"|grep -qxF "$t"&&return 0;awk -v t="$t" '$1=="unit"&&$2==t{f=1}END{exit !f}' "$STATE" 2>/dev/null&&return 0;done;return 1;}
-others(){ ACT=$(act_units);for u in $ACT;do case $u in agi-post@*|agi-boxwake@*|agi-boot.service)continue;;esac;kept $u&&continue;trigup $u||echo $u;done;}   # the posts step owns agi-post@*, agi-boxwake@* and agi-boot.service
+# (iii) council 10-21: a Type=oneshot RemainAfterExit=no unit is NEVER recorded and never stopped: an idle one is never in act_units, so one that is there was caught mid-run and runs to its own end (start would run it by hand, read it `inactive`, and sk_units could never clear). Not a Result read: SIGTERM counts as a clean exit and a Condition-skipped start leaves an old success. RemainAfterExit=yes units stay recorded.
+oneshot(){ [ "$(systemctl show "$1" -p Type --value 2>/dev/null)" = oneshot ]&&[ "$(systemctl show "$1" -p RemainAfterExit --value 2>/dev/null)" = no ];}
+others(){ ACT=$(act_units);for u in $ACT;do case $u in agi-post@*|agi-boxwake@*|agi-boot.service)continue;;esac;kept $u&&continue;oneshot $u&&continue;trigup $u||echo $u;done;}   # the posts step owns agi-post@*, agi-boxwake@* and agi-boot.service
 posts_up(){ act_units|grep -E '^agi-(post|boxwake)@';}
 links(){ ls "$WANTS" 2>/dev/null|grep '^agi-post@.*\.service$';}
 uids(){ getent passwd|cut -d: -f1|grep '^agi-';}
@@ -36,12 +38,15 @@ prep(){ need
  KEEP=$(cell .keep_units'[]?');[ -n "$KEEP" ]||KEEP="agi-carry@*.path agi-memguard* agi-ram-main*";WAIT=$(cell .ack_wait_s);case $WAIT in ""|null|*[!0-9]*)WAIT=600;;esac;}
 pstop(){ BOX=${AGI_BOX:-$(getv AGI_BOX)};[ -n "$BOX" ]||ask AGI_BOX "the town's seat-set name (the box cell of its posts rows)"
  case $BOX in *[!A-Za-z0-9._-]*)die "[box] AGI_BOX '$BOX' is not a name: nothing stopped";; esac
+ pidchk "nothing stopped"
  ROW=$(g show "$PIN:.agi/nodes/.geometry/engine.md" 2>/dev/null|sed -n '/^### matrix /,/^### /{/^~~~/,/^~~~/{//!p}}'|awk -F'\t' '$1=="town"&&$2=="start"{print $3}')
  [ -n "$ROW" ]||die "[matrix] no 'town start' row in engine.md at $PIN: nothing stopped"
  [ -z "$(links)" ]||die "[links] $(links|wc -l|tr -d ' ') agi-post@ wants link(s) under $WANTS: the boot set is the rows (agi-boot projects /run links); belam's host act removes these first: nothing stopped"
  [ ! -e "$STARTING" ]||die "[start-in-progress] a start is in progress since $(cat "$STARTING" 2>/dev/null): finish it with agi.sh start (town.state is the record it resumes from); nothing stopped"
  if grep -q '^stopped ' "$STATE" 2>/dev/null&&[ -n "$(posts_up)$(others)" ];then die "[stale-state] $STATE says stopped but $(posts_up|wc -l|tr -d ' ') post unit(s) and $(others|wc -l|tr -d ' ') other unit(s) are up (the town was brought back without start): move the file aside; nothing stopped";fi
  for u in $(uids);do f=$($CR marked --root "$MAIN" --user $u --foreign 2>/dev/null)||die "[crons] cannot read the crontab of $u: nothing stopped";[ -z "$f" ]||die "[crons] $u holds a managed block installed from ANOTHER root ($(echo "$f"|cut -f1|head -1)): stop removes MAIN's only; remove that block by hand first: nothing stopped";done;}
+# council 10-21 (sp): heal.py _watch_seats takes the local rows with pid > 0 and relaunches a dead one by tmux; no engine.v 4 row of this box may carry one, or a stopped post would be relaunched behind the stop / start
+pidchk(){ pn=$(g show "$PIN:.agi/nodes/.geometry/posts.md" 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r --arg x "$BOX" 'select(.engine.v==4 and .box==$x and ((.pid//0)!=0))|.name'|tr '\n' ' ');[ -z "$pn" ]||die "[pid] engine.v 4 row(s) of box $BOX with pid != 0 at $PIN: $pn: heal would see it (heal.py _watch_seats takes local rows with pid > 0 and relaunches a dead one): $1";}
 ids(){ g show "$TRK:.agi/nodes/.geometry/posts.md"|sed -n 's/^  - {/{/p'|jq -r --arg x "$BOX" 'select(has("harness") and .box==$x and .name!="belam")|.name';}
 # --- blast: `box town down <sha>` as agi-belam; the ack of a post = the down commit's own sha reached refs/held/<p>/belam (held), else a card commit after t0 (card)
 ck_blast(){ [ -s "$STATE" ]||[ -e "$SCR/ack" ];}   # sent: a town.state exists (an earlier run blasted) or this run did
@@ -333,6 +338,7 @@ cmd_start(){ [ $# = 0 ]||die "start: unknown argument '$1' (--from PACK is S3)"
  sk_main||su_main;sk_main||die "[main] still unmet after its up arm"   # the clone comes first: the row is read from MAIN at the pin
  ROW=$(g show "$PIN:.agi/nodes/.geometry/engine.md" 2>/dev/null|sed -n '/^### matrix /,/^### /{/^~~~/,/^~~~/{//!p}}'|awk -F'\t' '$1=="town"&&$2=="start"{print $3}')
  [ -n "$ROW" ]||die "[matrix] no 'town start' row in engine.md at $PIN: nothing started"
+ pidchk "nothing started"
  for s in $ROW;do { command -v sk_$s >/dev/null 2>&1&&command -v su_$s >/dev/null 2>&1;}||die "[step] '$s' (matrix row) has no up arm in this agi.sh: nothing started";done
  TRK=$PIN
  for s in $ROW;do sk_$s||{ su_$s;sk_$s||die "[step] $s: still unmet after its up arm";};echo "start: $s met";done
