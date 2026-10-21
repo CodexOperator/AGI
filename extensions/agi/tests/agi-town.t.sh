@@ -65,7 +65,7 @@ jq '.values.local_maxxing.agi_town.ack_wait_s=3' $R0/.agi/config.json >$M/.agi/c
 sed '/^town	start	/d' $R0/.agi/nodes/.geometry/engine.md >$M/.agi/nodes/.geometry/engine.md
 cm(){ $G -C $M add -A;$G -C $M -c user.name=x -c user.email=x@x commit -q -m "$1";$G -C $M rev-parse HEAD;}
 PIN0=$(cm norow);cp $R0/.agi/nodes/.geometry/engine.md $M/.agi/nodes/.geometry/engine.md;PIN=$(cm withrow)
-grep -qP '^town\tstart\tposts crons units blast\tagi.sh$' $M/.agi/nodes/.geometry/engine.md||{ echo "FAIL inputs: the tree's engine.md has no 'town start' row";exit 99;}
+grep -qP '^town\tstart\thost posts crons units blast\tagi.sh$' $M/.agi/nodes/.geometry/engine.md||{ echo "FAIL inputs: the tree's engine.md has no 'town start' row";exit 99;}
 echo "AGI_TRUNK=$PIN" >$T/carry.env
 BLK=$(python3 -c "import sys;sys.path.insert(0,'$CRONS');import crons;from pathlib import Path;print(*crons.block_markers(Path('$M')),sep='\n')");CB=$(echo "$BLK"|sed -n 1p);CE=$(echo "$BLK"|sed -n 2p)
 # --- the town: 6 posts + boxwakes running, the timers/services, the keep-list units, agi-boot enabled; crontabs with the managed block + a foreign line
@@ -149,23 +149,29 @@ ok st-F2-a-unit-left-running-is-counted "quiet-watch left running: rc $rc (want 
 
 # ===== the order, from the matrix row =====
 # posts before units: heal (agi-reaper*) would relaunch a stopped post, so the posts step refuses while it is up
-town;ST;$G -C $M show $PIN:.agi/nodes/.geometry/engine.md|sed 's/^town	start	posts crons units blast	agi.sh$/town	start	units posts crons blast	agi.sh/'>$M/.agi/nodes/.geometry/engine.md;P2=$(cm reorder);echo "AGI_TRUNK=$P2" >$T/carry2
+town;ST;$G -C $M show $PIN:.agi/nodes/.geometry/engine.md|sed 's/^town	start	host posts crons units blast	agi.sh$/town	start	units posts crons blast	agi.sh/'>$M/.agi/nodes/.geometry/engine.md;P2=$(cm reorder);echo "AGI_TRUNK=$P2" >$T/carry2
 CARRYF=$T/carry2 XENV= run stop >$T/o 2>$T/e;rc=$?
 ok st-reaper-refuses-posts-before-units "the row read as 'units posts crons blast' (posts runs before units): rc $rc (want 1), [reaper] named: $(grep -c '^\[reaper\]' $T/e), the posts still up: $(posts_up) (want 12), agi-boot still enabled: $(grep -c agi-boot $SD/enabled)" '[ $rc = 1 ]&&grep -q "^\[reaper\]" $T/e&&[ "$(posts_up)" = 12 ]&&grep -q agi-boot $SD/enabled'
 CARRYF=
 # a row that lacks `crons`: the crontabs keep their block, the stop says so and fails (F1: delete `crons` from the row -> crontab diff > 0)
-town;ST;$G -C $M show $PIN:.agi/nodes/.geometry/engine.md|sed 's/^town	start	posts crons units blast	agi.sh$/town	start	posts units blast	agi.sh/'>$M/.agi/nodes/.geometry/engine.md;P3=$(cm nocrons);echo "AGI_TRUNK=$P3" >$T/carry3
+town;ST;$G -C $M show $PIN:.agi/nodes/.geometry/engine.md|sed 's/^town	start	host posts crons units blast	agi.sh$/town	start	posts units blast	agi.sh/'>$M/.agi/nodes/.geometry/engine.md;P3=$(cm nocrons);echo "AGI_TRUNK=$P3" >$T/carry3
 CARRYF=$T/carry3 XENV= run stop >$T/o 2>$T/e;rc=$?
 ok st-F1-mutant-crons-deleted-from-the-row-is-RED "row 'posts units blast': rc $rc (want 1), marked cron lines left = $(mark) (want > 0; the clean stop leaves 0)" '[ $rc = 1 ]&&[ "$(mark)" -gt 0 ]'
 CARRYF=
 # a row naming a step this agi.sh has no down arm for
-$G -C $M show $PIN:.agi/nodes/.geometry/engine.md|sed 's/^town	start	posts crons units blast	agi.sh$/town	start	main host posts crons units blast	agi.sh/'>$M/.agi/nodes/.geometry/engine.md;P4=$(cm main);echo "AGI_TRUNK=$P4" >$T/carry4
+$G -C $M show $PIN:.agi/nodes/.geometry/engine.md|sed 's/^town	start	host posts crons units blast	agi.sh$/town	start	main host posts crons units blast	agi.sh/'>$M/.agi/nodes/.geometry/engine.md;P4=$(cm main);echo "AGI_TRUNK=$P4" >$T/carry4
 town;s0=$(snap);CARRYF=$T/carry4 XENV= run stop >$T/o 2>$T/e;rc=$?
-ok st-a-row-step-without-a-down-arm-refuses "the row lists 'main' and 'host' (S3): rc $rc (want 1), [step] named, the town unchanged: $([ "$(snap)" = "$s0" ]&&echo yes||echo NO)" '[ $rc = 1 ]&&grep -q "^\[step\]" $T/e&&[ "$(snap)" = "$s0" ]'
+ok st-a-row-step-without-a-down-arm-refuses "the row lists 'main' (S3; 'host' has its arm since S2a): rc $rc (want 1), [step] named, the town unchanged: $([ "$(snap)" = "$s0" ]&&echo yes||echo NO)" '[ $rc = 1 ]&&grep -q "^\[step\]" $T/e&&[ "$(snap)" = "$s0" ]'
 CARRYF=
 $G -C $M reset -q --hard $PIN
 
 # ===== MUTANTS of the code: one edit, the clean row above must BREAK =====
+# S2a: `host` is the first name of the real row; on STOP it is met (nothing touched) and has its down arm; without the arm the stop refuses by name before anything moves
+town;s0=$(snap);$G -C $M show $PIN:.agi/nodes/.geometry/engine.md|grep -qP '^town\tstart\thost '&&hr=1||hr=0
+ok st-S2a-the-real-row-starts-with-host "the tree's row: 'host' first: $hr (want 1); ck_host/dn_host defined: $(grep -c '^ck_host(){ return 0;}$\|^dn_host(){ return 0;}$' $AG) (want 2)" '[ $hr = 1 ]&&[ "$(grep -c "^ck_host(){ return 0;}$\|^dn_host(){ return 0;}$" $AG)" = 2 ]'
+rep 'dn_host(){ return 0;}' '';town;s0=$(snap);XENV= run stop >$T/o 2>$T/e;rc=$?
+ok st-S2a-mutant-host-without-a-down-arm-is-RED "agi.sh without dn_host: rc $rc (want 1), [step] host named: $(grep -c "^\[step\] 'host'" $T/e), the town unchanged: $([ "$(snap)" = "$s0" ]&&echo yes||echo NO) (the clean row stops rc 0)" '[ $rc = 1 ]&&grep -q "^\[step\] .host." $T/e&&[ "$(snap)" = "$s0" ]'
+AGSH=
 mk(){ town;ST;XENV= run stop >$T/o 2>$T/e;rc=$?;}
 rep 'dn_crons(){' 'dn_crons(){ return 0;';mk
 ok st-F2-mutant-skip-T2-is-RED "dn_crons returns at once: rc $rc (want 1), marked cron lines = $(mark) (want > 0)" '[ $rc = 1 ]&&[ "$(mark)" -gt 0 ]'
