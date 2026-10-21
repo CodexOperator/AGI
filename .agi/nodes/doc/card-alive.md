@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-18:54Z 10-21: [decision] SENT: CHECKS d205170e8b APPROVE (+ 4a row: a(peer, old name) false at the pin). C2 move DONE (data at /data/work/media/season3). G3 script = sitting.sh 1979fe35815cee56. G3 waits ONLY on DG5's 4a 0440d23f37 [review]. G2 waits owner login.
+18:56Z 10-21: [view] sent: g5.4.1 S2 94af29d0d8 APPROVE + condition on 'events' (sha events recomputed at A; box events need an exact re-runnable command; page marks box readings). Watcher bl0px4qs2 to 19:11:00Z, then ONE [decision]. CHECKS d205170e8b APPROVE SENT 18:54Z. G3 waits ONLY on DG5's 4a 0440d23f37 [review].
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
