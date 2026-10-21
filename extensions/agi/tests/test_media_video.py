@@ -178,7 +178,18 @@ def test_the_window_stops_at_the_ends_of_the_needles_line(monkeypatch):
     assert mv.strand_window("r", "s", "p", 1, 3, "second")[0] == "second line there"          # not the line above it, not the line below
     assert mv.strand_window("r", "s", "p", 1, 3, "line there")[0] == "second line there"
     w, i0, i1 = mv.strand_window("r", "s", "p", 1, 3, "line there", ctx=3)
-    assert w == "nd line there" and w[i0:i1] == "line there"
+    assert w == "line there" and w[i0:i1] == "line there"          # a cut inside "second" is moved in to the space
+
+
+def test_a_window_never_opens_or_ends_inside_a_word(monkeypatch):
+    line = "aaaaaaaa bbbbbbbb cccccccc NEEDLE dddddddd eeeeeeee ffffffff"
+    monkeypatch.setattr(mv.media_html, "lines_at", lambda repo, sha, path, lo, hi: line)
+    for ctx in (3, 7, 10, 13, 20, 25):
+        w, i0, i1 = mv.strand_window("r", "s", "p", 1, 1, "NEEDLE", ctx=ctx)
+        a = line.index(w)
+        assert w[i0:i1] == "NEEDLE" and w in line
+        assert a == 0 or line[a - 1] == " "                      # starts at a word start (or the line's)
+        assert a + len(w) == len(line) or line[a + len(w)] == " "  # ends at a word end (or the line's)
 
 
 def test_wrap_rejoins_exactly_at_every_width_and_keeps_hard_newlines():
@@ -277,6 +288,17 @@ def test_probe_green_on_the_profile_and_each_mutant_is_red(tmp_path):
 
 def test_duration_within_two_tenths_of_the_mp3_and_not_beyond():
     assert mv.duration_findings(100.0, 100.19) == [] and mv.duration_findings(100.21, 100.0)
+
+
+def test_frame_diff_line_sits_between_the_measured_populations():
+    """C2 pilot, 10-21: the same picture twice = mean diff 0.17-0.18; a new caption and one more graph node = 1.49-1.79. The line (0.8) is between them."""
+    base = bytes([20] * 2000 + [200] * 304)
+    same = bytes(base[:-1] + bytes([base[-1] - 1]))                      # one count off in one pixel: ~0.0004
+    small = bytes([20 + (9 if k % 6 == 0 else 0) for k in range(2000)]) + bytes([200] * 304)    # 1.5 mean diff
+    assert any("does not differ" in f for f in mv.frame_findings([base, same], ["feed", "feed"]))
+    d_small = sum(abs(a - b) for a, b in zip(base, small)) / len(base)
+    assert 1.3 < d_small < 1.7 and mv.frame_findings([base, small], ["feed", "feed"]) == []
+    assert any("does not differ" in f for f in mv.frame_findings([base, same], ["calm", "feed"]))
 
 
 def test_frame_findings_blank_static_and_good():
@@ -559,3 +581,126 @@ def test_set_readme_row_changes_only_its_row(tree):
 
 def test_the_order_is_every_chapter_once_pilot_first():
     assert sorted(mv.ORDER) == list(range(18)) and mv.ORDER[0] == 2
+
+
+# ---- one chapter end to end, with a stub in place of manim (the real render is the pilot)
+STUB = r'''
+import json, os, subprocess, sys
+sys.path.insert(0, os.environ["STUB_TESTS"])
+import media_vocab
+if os.environ.get("STUB_MODE") == "exit1":
+    sys.exit(1)
+if os.environ.get("STUB_MODE") == "sleep":
+    import time; time.sleep(60)
+open(os.environ["STUB_MARK"], "w").write("rendered")
+plan = json.load(open(os.environ["M4_PLAN"]))
+drawn = []
+for b in plan["beats"]:
+    for p in b["pairs"]:
+        s = media_vocab.Strand(os.environ["M4_REPO"], p["sha"], p["path"], p["lo"], p["hi"], p["needle"], b["i"])
+        text = "".join(t for ln in s.lines for t, _ in ln)
+        if os.environ.get("STUB_MODE") == "badbyte":
+            text = text[:2] + ("Q" if text[2] != "Q" else "Z") + text[3:]
+        drawn.append({"kind": "strand", "beat": b["i"], "sha": s.sha, "path": s.path, "lo": s.lo, "hi": s.hi, "text": text})
+json.dump(drawn, open(os.environ["M4_DRAWN"], "w"))
+out = os.path.join(os.environ["M4_MEDIA"], "videos", os.environ["M4_OUT"] + ".mp4")
+os.makedirs(os.path.dirname(out), exist_ok=True)
+subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "testsrc2=s=1280x720:r=25", "-t", str(plan["duration"] + 0.2), "-pix_fmt", "yuv420p", "-c:v", "libx264", "-preset", "ultrafast", out], check=True)
+'''
+
+
+@pytest.fixture
+def job(tmp_path, chaps, monkeypatch):
+    """A 9 s chapter of three sentences with real pairs, a narration with pauses where the sentences end, and the Drive-like dirs."""
+    real = chaps[2]["pairs"]
+    chap = {"id": "C2", "n": 2, "title": "The ribosome: the unit turns pieces into tools", "sha": chaps[2]["sha"],
+            "pairs": {"C2.2": real["C2.2"], "C2.3": real["C2.3"]},
+            "narration": ["Hello there friend. [image] The unit makes a worktree. [C2.2] It refuses a trunk. [C2.3]"]}
+    mp3 = tmp_path / "season3-C2-narration.mp3"
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "sine=frequency=300:sample_rate=44100:duration=9", "-af", "volume='if(between(t,2.3,2.9)+between(t,6.1,6.7),0,1)':eval=frame", str(mp3)], check=True)
+    d = {k: str(tmp_path / k) for k in ("video", "deliver", "tmp", "static", "checks")}
+    for k in ("deliver", "tmp"):
+        os.makedirs(d[k])
+    name = mv.video_name(chap)
+    Path(d["deliver"], name).write_bytes(b"STATIC")
+    Path(d["deliver"], "README-narration.txt").write_text(f"head\n{name}: chapter C2, static-card version; the animated render is pending\n")
+    stub = tmp_path / "stub.py"; stub.write_text(STUB)
+    monkeypatch.setenv("STUB_TESTS", str(HERE)); monkeypatch.setenv("STUB_MARK", str(tmp_path / "mark"))
+    return dict(chap=chap, mp3=str(mp3), d=d, name=name, cmd=[sys.executable, str(stub)], mark=tmp_path / "mark")
+
+
+GO = lambda peak: (True, ["ok"])
+
+
+def go(job, **kw):
+    kw.setdefault("gate", GO); kw.setdefault("poll", 0.05); kw.setdefault("read", lambda: None)
+    return mv.run_chapter(2, job["chap"], job["mp3"], job["d"], job["cmd"], REPO, **kw)
+
+
+def test_e2e_green_publishes_swaps_keeps_the_card_and_marks_the_readme(job):
+    r = go(job, publish_it=True)
+    d = job["d"]
+    assert r["status"] == "green" and r["findings"] == [] and r["published"] and r["vmpeak_kb"] >= 0
+    assert Path(d["deliver"], job["name"]).read_bytes() != b"STATIC" and Path(d["static"], job["name"]).read_bytes() == b"STATIC"
+    assert mv.pending(d["deliver"], d["checks"]) .count(2) == 0 and len(r["keyframes"]) == 3 and all(os.path.getsize(k) > 1000 for k in r["keyframes"])
+    assert mv.profile_findings(mv.probe(str(Path(d["deliver"], job["name"])))) == []
+
+
+def test_e2e_without_publish_leaves_deliver_alone(job):
+    r = go(job, publish_it=False)
+    assert r["status"] == "green" and "unpublished" in r and Path(job["d"]["deliver"], job["name"]).read_bytes() == b"STATIC"
+
+
+def test_e2e_mutant_a_drawn_byte_that_is_not_the_engines_is_red_and_nothing_moves(job, monkeypatch):
+    monkeypatch.setenv("STUB_MODE", "badbyte")
+    r = go(job, publish_it=True)
+    assert r["status"] == "red: checks" and any("not in" in f for f in r["findings"])
+    assert Path(job["d"]["deliver"], job["name"]).read_bytes() == b"STATIC" and mv.pending(job["d"]["deliver"], job["d"]["checks"]).count(2) == 1
+    assert json.load(open(Path(job["d"]["checks"], "ch02.json")))["green"] is False
+
+
+def test_e2e_mutant_a_refused_start_test_renders_nothing(job):
+    r = go(job, gate=lambda peak: (False, ["NO MemAvailable 2.0 GB"]))
+    assert r["status"] == "refused: start test" and not job["mark"].exists()
+
+
+def test_e2e_mutant_red_timing_renders_nothing(job):
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "sine=frequency=300:sample_rate=44100:duration=9", job["mp3"] + ".x.mp3"], check=True)
+    r = mv.run_chapter(2, job["chap"], job["mp3"] + ".x.mp3", job["d"], job["cmd"], REPO, gate=GO, poll=0.05, read=lambda: None)
+    assert r["status"] == "red: timing" and not job["mark"].exists()
+
+
+def test_e2e_a_render_that_exits_1_is_failed_not_published(job, monkeypatch):
+    monkeypatch.setenv("STUB_MODE", "exit1")
+    r = go(job, publish_it=True)
+    assert r["status"] == "failed: exit 1" and Path(job["d"]["deliver"], job["name"]).read_bytes() == b"STATIC"
+
+
+def test_e2e_mutant_memory_stop_twice_is_stopped_memory_with_the_process_group_gone(job, monkeypatch):
+    monkeypatch.setenv("STUB_MODE", "sleep")
+    pids, real = [], mv.subprocess.Popen
+
+    def spy(*a, **k):
+        p = real(*a, **k)
+        if k.get("start_new_session"):
+            pids.append(p.pid)
+        return p
+
+    monkeypatch.setattr(mv.subprocess, "Popen", spy)
+    r = go(job, publish_it=True, read=lambda: "anon+shmem 4300 MiB > 4200")
+    assert r["status"] == "stopped: memory" and r["stops"] == 2 and len(pids) == 2          # two tries, no third
+    for pid in pids:
+        with pytest.raises(ProcessLookupError):
+            os.killpg(pid, 0)                                                              # the whole process group is gone
+
+
+def test_the_render_runs_under_the_address_space_limit(job, monkeypatch, tmp_path):
+    probe_py = tmp_path / "lim.py"
+    probe_py.write_text("import resource,os;open(os.environ['STUB_MARK'],'w').write(str(resource.getrlimit(resource.RLIMIT_AS)[0]))\n")
+    mv.run_chapter(2, job["chap"], job["mp3"], job["d"], [sys.executable, str(probe_py)], REPO, gate=GO, poll=0.05, read=lambda: None, vmlimit_kb=3000000)
+    assert job["mark"].read_text() == str(3000000 * 1024)
+
+
+def test_video_name_is_the_walks_name(chaps):
+    assert mv.video_name(chaps[2]) == "explainer-ch02-the-ribosome-the-unit-turns-pieces-into-tools.mp4"
+    assert mv.video_name(chaps[0]).startswith("explainer-ch00-")

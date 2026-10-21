@@ -5,6 +5,7 @@
   media_video.py lint FILE...                no raw Text / Code / MarkupText / Tex ... in a scene file (council C1): engine text goes through media_vocab.Strand
   media_video.py start [PEAK_MIB]            the start test, read now (council 10-21 08:03Z); exit 0 = may start, 1 = refuse
   media_video.py queue                       the chapters still to render, from bytes (council C5)
+  media_video.py render CHAPTER [--publish]  one chapter, end to end (plan -> start test -> manim under the watcher -> mux -> checks -> keyframes -> publish if green and asked)
 Pieces
   beats()/place()/verify_ends()   one beat per tagged sentence; the sentence ENDS are the pauses of the mp3 (running character-rate prior, a pause within TOL
                                   of the prior wins, else the prior stands and the fallback is counted); > FALLBACK_MAX of a chapter's boundaries on the prior = RED (C2)
@@ -243,17 +244,29 @@ def schedule(t0, t1, parts, fps=FPS):
 
 
 # ---- the engine bytes a picture shows
+DELIM = re.compile(r"[ \t;|&(){}\[\]\"'`,=<>/:$]")
+
+
 def strand_window(repo, sha, path, lo, hi, needle, ctx=34):
     """-> (window, i0, i1): the needle with up to `ctx` characters each side, never past the ends of its line(s) in L<lo>-L<hi> at the sha; window[i0:i1] == needle.
-    A needle that is not in the range is a ValueError (the pair check of the script already forbids it)."""
+    Where the window is cut inside a line (not at its end), the cut is moved inward to the nearest delimiter (a space, `;`, `|`, a quote, ...) so a window never opens or ends in the
+    middle of a word. A needle that is not in the range is a ValueError (the pair check of the script already forbids it)."""
     text = media_html.lines_at(repo, sha, path, lo, hi)
     i = text.find(needle)
     if i < 0:
         raise ValueError(f"needle not at {sha}:{path}:L{lo}-L{hi}")
-    a = max(text.rfind("\n", 0, i) + 1, i - ctx)
+    ls = text.rfind("\n", 0, i) + 1
+    a = max(ls, i - ctx)
     j = i + len(needle)
     nl = text.find("\n", j)
-    b = min(len(text) if nl < 0 else nl, j + ctx)
+    le = len(text) if nl < 0 else nl
+    b = min(le, j + ctx)
+    if a > ls:
+        m = DELIM.search(text, a, i)
+        a = m.end() if m else i
+    if b < le:
+        k = max((m.start() for m in DELIM.finditer(text, j, b + 1)), default=-1)
+        b = k if k >= 0 else j
     return text[a:b], i - a, i - a + len(needle)
 
 
@@ -369,9 +382,9 @@ def duration_findings(video_s, audio_s, tol=DUR_TOL):
     return [] if abs(video_s - audio_s) <= tol else [f"video {video_s:.2f} s vs mp3 {audio_s:.2f} s (> {tol} s apart)"]
 
 
-def frame_findings(frames, kinds, min_ink=0.004, min_diff=2.0):
+def frame_findings(frames, kinds, min_ink=0.004, min_diff=0.8):
     """frames = [bytes of one small grey frame per beat (taken mid-beat)]; kinds = 'feed'|'calm' per beat. A frame is BLANK when under `min_ink` of its pixels differ from its most common
-    value by more than 8; a FEED beat's frame must differ from the beat before it (mean absolute difference >= min_diff). -> [finding]"""
+    value by more than 8; a FEED beat's frame must differ from the beat before it (mean absolute difference >= min_diff; calibrated on the C2 pilot, 10-21: beats showing the same picture measured 0.17-0.18, beats that differ by a caption and one graph node 1.49-1.79). -> [finding]"""
     out = []
     for i, f in enumerate(frames):
         if not f:
@@ -584,6 +597,170 @@ def undo(name, deliver, static_dir):
     os.replace(f"{static_dir}/{name}", f"{deliver}/{name}")
 
 
+# ---- one chapter, end to end
+import resource  # noqa: E402
+import signal  # noqa: E402
+import threading  # noqa: E402
+import time  # noqa: E402
+
+VMLIMIT_KB = 4000000        # ulimit -v for a render until the pilot's own VmPeak sets it (council A2)
+
+
+def tree_peaks(pgid, proc="/proc"):
+    """(VmPeak kB, VmHWM kB) summed-max over the processes of one process group right now: the render and the ffmpeg it starts."""
+    vp = hw = 0
+    for pid in (p for p in os.listdir(proc) if p.isdigit()):
+        try:
+            if os.getpgid(int(pid)) != pgid:
+                continue
+            st = dict(ln.split(":", 1) for ln in open(f"{proc}/{pid}/status").read().split("\n") if ":" in ln)
+            vp = max(vp, int(st.get("VmPeak", "0 kB").split()[0])); hw = max(hw, int(st.get("VmHWM", "0 kB").split()[0]))
+        except (OSError, ValueError, ProcessLookupError):
+            continue
+    return vp, hw
+
+
+class Sampler(threading.Thread):
+    """Reads the render's VmPeak and VmHWM once a second until stop(): the figures the pilot reports (and the next ulimit -v is set from)."""
+    def __init__(self, pgid, proc="/proc"):
+        super().__init__(daemon=True)
+        self.pgid, self.proc, self.vmpeak, self.vmhwm, self._halt = pgid, proc, 0, 0, threading.Event()
+
+    def run(self):
+        while not self._halt.is_set():
+            a, b = tree_peaks(self.pgid, self.proc)
+            self.vmpeak, self.vmhwm = max(self.vmpeak, a), max(self.vmhwm, b)
+            self._halt.wait(1.0)
+
+    def stop(self):
+        self._halt.set(); self.join(3)
+
+
+def mux(scene_mp4, mp3, dst, seconds):
+    """The scene's picture + the chapter's narration under the ONE profile; the file is exactly the mp3's length."""
+    subprocess.run(["nice", "-n", "10", "ffmpeg", "-v", "error", "-y", "-i", scene_mp4, "-i", mp3, "-map", "0:v:0", "-map", "1:a:0", "-t", f"{seconds:.3f}",
+                    "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p", "-r", "25", "-s", f"{PROFILE['width']}x{PROFILE['height']}",
+                    "-c:a", "aac", "-ar", PROFILE["sample_rate"], "-ac", str(PROFILE["channels"]), "-b:a", "128k", "-movflags", "+faststart", dst], check=True)
+
+
+def keyframes(mp4, plan, out_prefix):
+    """Three PNGs for the taste review: a third, the middle and two thirds of the chapter's FEED beats."""
+    feed = [b for b in plan["beats"] if b["kind"] == "feed"] or plan["beats"]
+    got = []
+    for k, f in enumerate((0.15, 0.5, 0.85)):
+        b = feed[min(int(f * len(feed)), len(feed) - 1)]
+        t = b["t0"] + 0.6 * (b["t1"] - b["t0"])
+        dst = f"{out_prefix}-{k + 1}.png"
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", f"{t:.3f}", "-i", mp4, "-frames:v", "1", dst], check=True)
+        got.append(dst)
+    return got
+
+
+def kill_group(p, wait=60):
+    """SIGTERM to the render's whole process group (never SIGSTOP); SIGKILL only if it is still there after `wait` seconds."""
+    try:
+        os.killpg(p.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        return
+    t0 = time.time()
+    while p.poll() is None and time.time() - t0 < wait:
+        time.sleep(0.5)
+    if p.poll() is None:
+        os.killpg(p.pid, signal.SIGKILL)
+
+
+def run_chapter(n, chap, mp3, d, render_cmd, repo=REPO, publish_it=False, vmlimit_kb=VMLIMIT_KB, peak_mib=1500, poll=10, gate=None, read=None, plan=None):
+    """The whole chapter. d = {video, deliver, tmp, static, checks} dirs. Steps: plan + timing (RED stops here, nothing rendered) -> the start test (refuse stops here)
+    -> render under the Watcher (flock render.lock, nice, /usr/bin/time -v, ulimit -v) -> mux to d['tmp'] -> checks (profile, duration, drawn bytes, frames) -> keyframes
+    -> publish only if `publish_it` and GREEN. -> a dict report (status, findings, wall, vmpeak, vmhwm, ...) also written to d['checks']/chNN.report.json."""
+    t_start = time.time()
+    rep = {"chapter": f"C{n}", "status": None, "findings": []}
+    nn = f"ch{n:02d}"
+    for k in ("video", "tmp", "checks"):
+        os.makedirs(d[k], exist_ok=True)
+    plan = plan or chapter_plan(chap, mp3, repo)
+    lens = [len(b["spoken"]) for b in plan["beats"]]
+    rep["timing"] = {"boundaries": plan["boundaries"], "fallback": plan["fallback"], "beats": len(plan["beats"]), "duration": plan["duration"]}
+    tf = timing_findings(plan) + verify_ends(plan, plan["pauses"], plan["duration"], lens)
+    json.dump(plan, open(f"{d['video']}/{nn}-plan.json", "w"), indent=1)
+    if tf:
+        rep.update(status="red: timing", findings=tf)
+        return _finish(rep, d, nn, t_start)
+    ok, lines = (gate or start_test)(peak_mib)
+    rep["start_test"] = lines
+    if not ok:
+        rep.update(status="refused: start test")
+        return _finish(rep, d, nn, t_start)
+    drawn = f"{d['video']}/{nn}-drawn.json"
+    media = f"{d['video']}/media-{nn}"
+    env = dict(os.environ, M4_PLAN=f"{d['video']}/{nn}-plan.json", M4_DRAWN=drawn, M4_REPO=repo, M4_MEDIA=media, M4_OUT=nn)
+    if os.path.exists(drawn):
+        os.remove(drawn)
+    timefile = f"{d['video']}/{nn}-time.txt"
+    cmd = [x.format(plan=env["M4_PLAN"], media=media, out=nn, time=timefile) for x in render_cmd]
+    samplers = []
+
+    def spawn():
+        p = subprocess.Popen(cmd, env=env, start_new_session=True, stdout=open(f"{d['video']}/{nn}-render.log", "ab"), stderr=subprocess.STDOUT,
+                             preexec_fn=lambda: resource.setrlimit(resource.RLIMIT_AS, (vmlimit_kb * 1024, vmlimit_kb * 1024)))
+        smp = Sampler(p.pid); smp.start(); samplers.append(smp)
+        return p
+
+    w = Watcher(spawn, read or stop_reason, time.sleep, kill_group, poll)
+    t_render = time.time()
+    status, stops = w.run()
+    rep.update(render_wall=round(time.time() - t_render, 1), stops=stops, vmpeak_kb=max((s.vmpeak for s in samplers), default=0), vmhwm_kb=max((s.vmhwm for s in samplers), default=0))
+    for s in samplers:
+        s.stop()
+    if status != "ok":
+        rep.update(status=status)
+        return _finish(rep, d, nn, t_start)
+    scene = next(iter(sorted(Path(media).rglob(f"{nn}.mp4"))), None) or next(iter(sorted(Path(media).rglob("*.mp4"))), None)
+    if scene is None:
+        rep.update(status="failed: no scene file", findings=[f"no mp4 under {media}"])
+        return _finish(rep, d, nn, t_start)
+    name = rep["name"] = video_name(chap)
+    tmp = f"{d['tmp']}/{name}"
+    mux(str(scene), mp3, tmp, plan["duration"])
+    info = probe(tmp)
+    fs = profile_findings(info) + duration_findings(info["duration"], plan["duration"])
+    try:
+        fs += check_drawn(json.load(open(drawn)), plan, repo)
+    except (OSError, ValueError) as e:
+        fs.append(f"no record of what was drawn ({type(e).__name__})")
+    mids = [(b["t0"] + b["t1"]) / 2 for b in plan["beats"]]
+    fs += frame_findings(grab_frames(tmp, mids), [b["kind"] for b in plan["beats"]])
+    rep["findings"], rep["keyframes"] = fs, keyframes(tmp, plan, f"{d['video']}/keyframes-{nn}")
+    green = not fs
+    rep["status"] = "green" if green else "red: checks"
+    checks_info = {"chapter": f"C{n}", "findings": fs, "timing": rep["timing"], "vmpeak_kb": rep["vmpeak_kb"], "vmhwm_kb": rep["vmhwm_kb"], "render_wall": rep["render_wall"], "repo_head": _head(repo)}
+    if publish_it:
+        sha = publish(tmp, name, d["deliver"], d["static"], d["tmp"], f"{d['checks']}/{nn}.json", green, checks_info)
+        if green:
+            set_readme_row(f"{d['deliver']}/README-narration.txt", name, f"C{n}", "animated version", "the static card is kept in deliver-static/")
+            rep["published"] = sha
+    else:
+        rep["unpublished"] = tmp
+    return _finish(rep, d, nn, t_start)
+
+
+def _head(repo):
+    r = subprocess.run(["git", "-C", repo, "rev-parse", "--short=10", "HEAD"], capture_output=True, text=True)
+    return r.stdout.strip()
+
+
+def video_name(chap):
+    """explainer-chNN-<slug>.mp4 exactly as the walk names the static card (media_walk.video_name)."""
+    slug = re.sub(r"[^a-z0-9]+", "-", chap["title"].lower()).strip("-")[:48].strip("-") or "chapter"
+    return f"explainer-ch{chap['n']:02d}-{slug}.mp4"
+
+
+def _finish(rep, d, nn, t_start):
+    rep["wall"] = round(time.time() - t_start, 1)
+    json.dump(rep, open(f"{d['checks']}/{nn}.report.json", "w"), indent=1)
+    return rep
+
+
 # ---- cli
 def load_chapters(script=SCRIPT, repo=REPO):
     return {c["n"]: c for c in media_html.parse(script)}
@@ -602,6 +779,17 @@ def main(argv):
     if cmd == "queue":
         print(" ".join(f"C{n}" for n in pending(BASE + "/deliver", BASE + "/video/checks"))); return 0
     chaps = load_chapters()
+    if cmd == "render":
+        n = int(rest[0].lstrip("C"))
+        V = BASE + "/video"
+        d = {"video": V, "deliver": BASE + "/deliver", "tmp": BASE + "/deliver-tmp", "static": BASE + "/deliver-static", "checks": V + "/checks"}
+        cmd_ = ["flock", V + "/render.lock", "nice", "-n", "10", "/usr/bin/time", "-v", "-o", "{time}", V + "/venv/bin/manim", "-r", "1280,720", "--fps", "25", "--media_dir", "{media}",
+                "-v", "WARNING", "--progress_bar", "none", "-o", "{out}", str(Path(__file__).resolve().parent / "media_scene.py"), "Chapter"]
+        kw = {"vmlimit_kb": int(os.environ["M4_VMLIMIT_KB"])} if os.environ.get("M4_VMLIMIT_KB") else {}
+        rep = run_chapter(n, chaps[n], f"{BASE}/deliver/season3-C{n}-narration.mp3", d, cmd_, publish_it="--publish" in rest, peak_mib=float(os.environ.get("M4_PEAK_MIB", 1500)), **kw)
+        print(json.dumps({k: v for k, v in rep.items() if k != "start_test"}, indent=1))
+        print("\n".join(rep.get("start_test", [])))
+        return 0 if rep["status"] == "green" else 1
     if cmd == "plan":
         n = int(rest[0].lstrip("C"))
         pl = chapter_plan(chaps[n], f"{BASE}/deliver/season3-C{n}-narration.mp3")

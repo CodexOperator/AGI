@@ -36,20 +36,28 @@ def _markup(spans, size, font, color=INK):
 
 class Strand:
     """A window of engine bytes. Built from WHERE the bytes are (repo, sha, path, lines, needle): the scene never hands it text."""
-    def __init__(self, repo, sha, path, lo, hi, needle, beat, width=44):
-        self.sha, self.path, self.lo, self.hi, self.beat = sha, path, lo, hi, beat
+    def __init__(self, repo, sha, path, lo, hi, needle, beat, width=26):
+        self.sha, self.path, self.lo, self.hi, self.beat, self.needle = sha, path, lo, hi, beat, needle
         self.window, i0, i1 = mv.strand_window(repo, sha, path, lo, hi, needle)
         self.lines = mv.wrap(self.window, i0, i1, width)
         if mv.rejoin(self.lines) != self.window:
             raise ValueError("wrap lost bytes")
 
-    def mobject(self, size=22, maxw=6.4):
+    def mobject(self, size=32, maxw=5.9):
         from manim import VGroup, LEFT, DOWN
-        rows = VGroup(*[_markup([sp for sp in ln if sp[0] != "\n"] or [(" ", False)], size, MONO) for ln in self.lines]).arrange(DOWN, aligned_edge=LEFT, buff=0.12)
+        rows = VGroup(*[_markup([sp for sp in ln if sp[0] != "\n"] or [(" ", False)], size, MONO) for ln in self.lines]).arrange(DOWN, aligned_edge=LEFT, buff=0.14)
         if rows.width > maxw:
             rows.scale_to_fit_width(maxw)
         DRAWN.append({"kind": "strand", "beat": self.beat, "sha": self.sha, "path": self.path, "lo": self.lo, "hi": self.hi, "text": mv.rejoin(self.lines)})
         return rows
+
+    def needle_mobject(self, size=30, maxw=2.6):
+        """The needle alone, warm: the piece of the bytes that the sentence is about, small enough to travel. Recorded like the window (it is a substring of it)."""
+        m = _markup([(self.needle, True)], size, MONO)
+        if m.width > maxw:
+            m.scale_to_fit_width(maxw)
+        DRAWN.append({"kind": "strand", "beat": self.beat, "sha": self.sha, "path": self.path, "lo": self.lo, "hi": self.hi, "text": self.needle})
+        return m
 
 
 class Cite:
@@ -73,18 +81,30 @@ def caption(text, size=26, color=INK, width=None, font=SANS):
 
 
 class Machine:
-    """The reader: a rounded block, an in-port on its left, an out-port on its right."""
+    """The reader: a rounded block, an in-port on its left, an out-port on its right; the file it is reading is named UNDER it."""
     def __init__(self, center, label):
-        from manim import RoundedRectangle, Circle, VGroup, UP, LEFT, RIGHT
-        self.box = RoundedRectangle(corner_radius=0.2, width=2.6, height=3.0, stroke_color=ACCENT, stroke_width=3, fill_color=PANEL, fill_opacity=1).move_to(center)
-        self.inp = Circle(radius=0.11, stroke_color=ACCENT, fill_color=ACCENT, fill_opacity=1).move_to(self.box.get_left())
-        self.out = Circle(radius=0.11, stroke_color=WARM, fill_color=WARM, fill_opacity=1).move_to(self.box.get_right())
-        self.label = caption(label, 20, SOFT, font=MONO).move_to(self.box.get_top() + [0, -0.35, 0])
-        self.group = VGroup(self.box, self.inp, self.out, self.label)
+        from manim import RoundedRectangle, Circle, VGroup, Line, DOWN
+        self.box = RoundedRectangle(corner_radius=0.22, width=2.3, height=2.6, stroke_color=ACCENT, stroke_width=3, fill_color=PANEL, fill_opacity=1).move_to(center)
+        self.inp = Circle(radius=0.13, stroke_color=ACCENT, fill_color=ACCENT, fill_opacity=1).move_to(self.box.get_left())
+        self.out = Circle(radius=0.13, stroke_color=WARM, fill_color=WARM, fill_opacity=1).move_to(self.box.get_right())
+        self.label = caption(label, 20, SOFT, font=MONO).next_to(self.box, DOWN, buff=0.3)
+        self.lines = VGroup(*[Line(self.box.get_center() + [-0.7, 0.8 - 0.33 * k, 0], self.box.get_center() + [-0.7 + w, 0.8 - 0.33 * k, 0], color=EDGE, stroke_width=5) for k, w in enumerate((1.3, 0.9, 1.4, 0.7, 1.1, 0.5))])
+        self.group = VGroup(self.box, self.lines, self.inp, self.out, self.label)
+
+    def flash(self):
+        """A warm light runs once round the block's own outline (rounded like it)."""
+        from manim import ShowPassingFlash
+        ring = self.box.copy().set_fill(opacity=0).set_stroke(color=WARM, width=8)
+        return ShowPassingFlash(ring, time_width=0.8)
+
+    def scan(self):
+        """The reading: the lines inside the block light up one after the other."""
+        from manim import LaggedStart, Indicate
+        return LaggedStart(*[Indicate(l, scale_factor=1.0, color=ACCENT) for l in self.lines], lag_ratio=0.25)
 
     def relabel(self, cite):
-        from manim import FadeIn, FadeOut
-        new = cite.mobject(18, SOFT).move_to(self.label)
+        from manim import FadeIn, FadeOut, DOWN
+        new = cite.mobject(20, SOFT).next_to(self.box, DOWN, buff=0.3)
         old, self.label = self.label, new
         return [FadeOut(old), FadeIn(new)]
 
@@ -100,14 +120,14 @@ class Graph:
         import numpy as np
         r, c = divmod(k, self.COLS)
         c = c if r % 2 == 0 else self.COLS - 1 - c          # a snake, so each node touches the one before it
-        return np.array([self.origin[0] + 0.62 * c, self.origin[1] - 0.62 * r, 0.0])
+        return np.array([self.origin[0] + 0.66 * c, self.origin[1] - 0.66 * r, 0.0])
 
     def add(self):
         """-> (node, edge or None, [animations]) for the next node."""
         from manim import Dot, Line, GrowFromCenter, Create
         k = len(self.nodes)
-        n = Dot(self.slot(k), radius=0.12, color=ACCENT)
-        e = Line(self.nodes[-1].get_center(), n.get_center(), color=EDGE, stroke_width=3) if self.nodes else None
+        n = Dot(self.slot(k), radius=0.15, color=ACCENT)
+        e = Line(self.nodes[-1].get_center(), n.get_center(), color=EDGE, stroke_width=4) if self.nodes else None
         self.nodes.append(n)
         if e is not None:
             self.edges.append(e)
@@ -117,10 +137,12 @@ class Graph:
 class Tick:
     """The commit clock: a ring and one hand that steps by 1/steps of a turn per beat."""
     def __init__(self, center, steps):
+        import numpy as np
         from manim import Circle, Line, VGroup
+        center = np.array(center, dtype=float)
         self.center, self.step = center, 6.283185307 / max(steps, 1)
         self.ring = Circle(radius=0.32, stroke_color=SOFT, stroke_width=3).move_to(center)
-        self.hand = Line(center, center + [0, 0.26, 0], color=WARM, stroke_width=4)
+        self.hand = Line(center, center + np.array([0, 0.26, 0]), color=WARM, stroke_width=4)
         self.group = VGroup(self.ring, self.hand)
 
     def advance(self):
