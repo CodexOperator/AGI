@@ -362,9 +362,11 @@ def cmd_commit(args) -> int:
         if merged.returncode and hand:
             paths = _git(work, "diff", "--name-only", "--diff-filter=U", env=env).stdout.split()
             _git(work, "merge", "--abort", env=env)
-            # R1 (council 3/3 03:21Z 10-16): the Prime is blamed only for a path one of ITS commits touched
+            # R1 (council 3/3 03:21Z 10-16): the Prime is blamed only for a path one of ITS commits touched; the probe is
+            # `-m --first-parent` because a plain diff-tree prints NOTHING for a merge (R1b, council 3/3 10:53Z 10-21): a
+            # merge is blamed for what it changed vs its first parent (over-blaming is a notice = fail closed)
             hit = [(c, pa) for c in reversed(hand) for pa in paths
-                   if _git(main, "diff-tree", "-r", "--root", "--no-commit-id", "--name-only", c, "--", pa).stdout.strip()]
+                   if _git(main, "diff-tree", "-r", "-m", "--first-parent", "--root", "--no-commit-id", "--name-only", c, "--", pa).stdout.strip()]
             if hit:   # the newest Prime commit that touches a conflicting path, and that path
                 _notice(args.notice, f"[board] take MAIN: the Prime's {hit[0][0][:7]} conflicts with MAIN at {hit[0][1]}: "
                                      f"resolve it by hand, the board line waits")

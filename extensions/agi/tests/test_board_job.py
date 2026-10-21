@@ -882,3 +882,73 @@ def test_fd_two_conflicts_the_notice_names_the_prime_commit_that_touches_one_and
     assert got.returncode == 3 and box.tip() == b
     line = box.notice.read_text()
     assert b[:7] in line and a[:7] not in line and XMD in line and ".agi/cell.txt" not in line
+
+
+# ---- .42.2 R1b (council 3/3 10:53Z 10-21): the blame probe sees a MERGE commit (plain diff-tree prints nothing for one)
+def test_fd3_a_hand_merge_on_the_branch_is_blamed_for_the_path_it_changed_vs_its_first_parent(box, pb):
+    _shared_doc(box)
+    # S lands on MAIN (x.md l3); the Prime's P1 edits x.md l1 and then merges the trunk: a CLEAN hand merge M (tree == merge-tree)
+    (box.main / XMD).write_text("l1\nl2\nS l3\n")
+    box.g("add", "-A")
+    s_sha = box.commit("S lands on MAIN: x.md l3")
+    p1 = pb.commit({XMD: "PRIME l1\nl2\nl3\n"}, onto=box.rev(f"{s_sha}^"))
+    wt = box.tmp / "mergewt"
+    box.g("worktree", "add", "-q", "--detach", str(wt), p1)
+    assert box.g("merge", "--no-ff", "-q", "-m", "belam: sync merge of the trunk", s_sha, cwd=wt).returncode == 0
+    merge = box.rev("HEAD", wt)
+    box.g("update-ref", "refs/heads/posts/belam", merge)
+    box.g("worktree", "remove", "--force", str(wt))
+    (box.main / XMD).write_text("MAIN l1\nl2\nS l3\n")                     # MAIN edits the Prime's line after S
+    box.g("add", "-A")
+    box.commit("MAIN edits l1")
+    got = box.job()
+    assert got.returncode == 3 and box.tip() == merge, got.stderr           # posts/belam unchanged, nothing dropped
+    line = box.notice.read_text()
+    assert merge[:7] in line and XMD in line                                 # the newest hand commit touching x.md: the MERGE
+    assert box.g("show", f"{merge}:{XMD}").stdout.count("PRIME l1") == 1
+
+
+def test_fd3_mutant_without_the_first_parent_flag_the_merge_is_never_blamed(box, pb):
+    _shared_doc(box)
+    (box.main / XMD).write_text("l1\nl2\nS l3\n")
+    box.g("add", "-A")
+    s_sha = box.commit("S lands on MAIN: x.md l3")
+    p1 = pb.commit({XMD: "PRIME l1\nl2\nl3\n"}, onto=box.rev(f"{s_sha}^"))
+    wt = box.tmp / "mergewt"
+    box.g("worktree", "add", "-q", "--detach", str(wt), p1)
+    assert box.g("merge", "--no-ff", "-q", "-m", "belam: sync merge of the trunk", s_sha, cwd=wt).returncode == 0
+    merge = box.rev("HEAD", wt)
+    box.g("update-ref", "refs/heads/posts/belam", merge)
+    box.g("worktree", "remove", "--force", str(wt))
+    (box.main / XMD).write_text("MAIN l1\nl2\nS l3\n")
+    box.g("add", "-A")
+    box.commit("MAIN edits l1")
+    m = mutant(box.tmp, '"diff-tree", "-r", "-m", "--first-parent", "--root"', '"diff-tree", "-r", "--root"')
+    box.job(src=m)
+    line = box.notice.read_text()
+    assert merge[:7] not in line and p1[:7] in line                          # RED: the real file names the merge (the row above)
+
+
+def test_fd3b_a_hand_merge_whose_resolution_edits_the_path_never_reaches_the_x_theirs_retry(box, pb):
+    """The council's literal case (a hand merge whose OWN resolution edits x.md): the merge rule (tree == merge-tree) refuses
+    it first, so the -X theirs retry cannot drop its line; the probe flag is the second layer for a merge that passes."""
+    _shared_doc(box)
+    (box.main / XMD).write_text("l1\nl2\nS l3\n")
+    box.g("add", "-A")
+    s_sha = box.commit("S lands on MAIN: x.md l3")
+    p1 = pb.commit({NODE: "n\n"}, onto=box.rev(f"{s_sha}^"))
+    wt = box.tmp / "mergewt"
+    box.g("worktree", "add", "-q", "--detach", str(wt), p1)
+    assert box.g("merge", "--no-ff", "--no-commit", "-q", s_sha, cwd=wt).returncode == 0
+    (wt / XMD).write_text("l1\nPRIME-RESOLUTION l2\nS l3\n")               # the hand resolution edits x.md
+    box.g("add", "-A", cwd=wt)
+    assert box.g("commit", "-q", "-m", "belam: sync merge, hand-resolved", cwd=wt).returncode == 0
+    merge = box.rev("HEAD", wt)
+    box.g("update-ref", "refs/heads/posts/belam", merge)
+    box.g("worktree", "remove", "--force", str(wt))
+    (box.main / XMD).write_text("l1\nMAIN l2\nS l3\n")
+    box.g("add", "-A")
+    box.commit("MAIN edits l2")
+    got = box.job()
+    assert got.returncode == 3 and box.tip() == merge
+    assert f"{merge[:7]} refused: (m) the tree is not the clean merge" in box.notice.read_text()
