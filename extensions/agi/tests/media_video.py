@@ -35,7 +35,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import media_fm2  # noqa: E402
 import media_html  # noqa: E402
 
-REPO = "/var/lib/agi/director-general-3/w-sg"
+REPO = os.environ.get("MEDIA_REPO") or str(Path(__file__).resolve().parents[3])      # the checkout that holds this file (or MEDIA_REPO): engine bytes are read with `git show` from here
 SCRIPT = REPO + "/.agi/context/media/season3-explainer-script.md"
 BASE = "/data/work/director-general-3-media/season3"
 FPS = 25

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """goal:g5.4.2 M6: up to THREE ~30 s Lyria music samples for the owner's ear (council 11:54Z: <= 3 short samples on their own key, no full track until he picks).
-usage: media_music.py KEYFILE   (key file under ~/keys/; ONE key, google only, limit and expiry set by belam's mint)
+usage: media_music.py KEYFILE   (a key file in the running user's keys directory; ONE key, google only, limit and expiry set by belam's mint)
        media_music.py clip FILE... | clip-track FILE...   (no request: the clipped-sample count; clip-track exits 1 = RED if any sample is at or over full scale)
 Per sample: HARD counter (3 requests ever per run), the prompt is checked against a guard list (artist/song names, 'in the style of') and REFUSED before any send, the request is logged
 BEFORE it is sent, stream:true (audio output requires it), NO retry (a failure stops the run clean: 'stopped: http'). The mp3 comes back as SSE audio deltas (base64); it must be a real mp3
@@ -125,7 +125,7 @@ def sample(key, letter, slug, prompt):
 
 
 def main(keyfile):
-    key = open(os.path.expanduser('~/keys/' + keyfile)).read().strip()
+    key = open(os.path.join(os.path.expanduser('~'), 'keys', keyfile)).read().strip()
     rows = ['season 3 music samples (DRAFT, for the owner\'s ear): Lyria 3 clip (google/lyria-3-clip-preview) via OpenRouter, 30 s each, prompts are style descriptors only (no artist or song names). The mp3s carry the provider\'s c2pa manifest.',
             'Why instrumental: these samples test STYLE (tempo, lead, mood). The music VIDEO is its own piece (like "Three of Three", 2:59), not a bed under the narration. A sung full track is possible after your pick (the pro model, $0.08); sung or instrumental for the real track is the owner\'s pick. No full track exists yet.', '']
     for letter, slug, prompt in PROMPTS:

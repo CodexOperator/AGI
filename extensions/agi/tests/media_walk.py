@@ -8,9 +8,9 @@ Two keys, each capped and counted at its full limit: a TTS key (Gemini only) and
 Before each chapter the remaining life of both keys must cover the chapter's estimated time, else: 'stopped: key expiry'. A finished chapter goes to deliver/ at once (644) as season3-CNN-narration.mp3 AND (W4) explainer-chNN-<slug>.mp4 (a static title card + the narration, ONE fixed encode profile, PROFILE below); README-narration.txt is rewritten.
 usage: walk.py TTSKEYFILE STTKEYFILE [--chapters=C2,C3,...] [--target=100] [--dry]   (--dry: no request is sent; a stored take stands in, to test the flow)"""
 import base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.request, urllib.error
-sys.path.insert(0, '/var/lib/agi/director-general-3/w-sg/extensions/agi/tests')
+REPO = os.environ.get('MEDIA_REPO') or os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))   # the checkout that holds this file; a COPY of this file (season3/walk/walk.py) must set MEDIA_REPO
+sys.path.insert(0, REPO + '/extensions/agi/tests')
 import media_fidelity, media_fm2, media_pcm
-REPO = '/var/lib/agi/director-general-3/w-sg'
 SHA = '6432bf88d5'
 SCRIPT = REPO + '/.agi/context/media/season3-explainer-script.md'
 BASE = '/data/work/director-general-3-media/season3'
@@ -32,7 +32,7 @@ now = lambda: time.strftime('%H:%M:%SZ', time.gmtime())
 KEYS = {}
 if not DRY:
     for kind, f in (('tts', args[0]), ('stt', args[1])):
-        KEYS[kind] = open(os.path.expanduser('~/keys/' + f)).read().strip()
+        KEYS[kind] = open(os.path.join(os.path.expanduser('~'), 'keys', f)).read().strip()
 H = lambda kind: {'Authorization': 'Bearer ' + KEYS[kind], 'Content-Type': 'application/json'}
 STOP = []
 
