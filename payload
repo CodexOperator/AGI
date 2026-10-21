@@ -147,6 +147,7 @@ post uid    the full engine pytest as a POST uid on a /data gate tree (goal:g7.1
              avg60 > 10 cut one at 35%) is order-sensitive: `chain_engine` (the engine package) and tests/chain_engine/ share a name, so a resume that skips
              test_chain_engine.py reads 14 false reds in test_links + tests/chain_engine/ -> resume from the failing file's EARLIEST importer, or re-run the three together
              · kill the python CHILD of `timeout` on a self-stop (kill $timeout_pid alone leaves pytest running)
+gate dir    NAME-keyed: /data/work/gate-<post> follows the post's NAME. A rename moves the mover's gate-<old> -> gate-<new> in the sitting's step 3 (pre-usermod guard 'gate-free'); the PREVIOUS holder of a reused name clears its TREE as itself (named-path `git worktree repair`, locks kept) and the /data/work entry rename is belam's, before that move's 1a (council 21:35:22Z + 21:40:58Z 10-21, G5)
 detached    my setsid-nohup suite fails 3 tests that pass alone 5/5: test_dashboard::test_watch_exits_cleanly_on_sigint + 2x
              test_suite_no_detached_spawn -- the LAUNCH, not the range (3 gates 09-26, 6455 passed each; a director's in-pane run = 6458/0)
              · gen 26 (a125bad37's gate, the tree with DH.381's conftest guard): 6642 passed / 0 failed -- NONE of the 3 appeared: re-attribute
