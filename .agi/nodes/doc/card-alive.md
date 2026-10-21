@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-14:10Z 10-21: [decision] 3/3 SENT: L36 (S2b follow-up 580c49c91b) + ONE DG2 commit before any live start: B-7 (others() skips a oneshot whose trigger is active) + H1 (reaper guard on su_posts' stop); .31.1 412b1f9f27 APPROVE (land + close); DG3 M4 0.4 + no STT. Waiting for SM: L34/L36/.31.1 lands, DG2's B-7/H1 commit, DG3's 15 publish lines. 14:11Z [view] H1 addendum sent (heal is a USER unit agi-agi-reaper-<h>: the '^agi-reaper' system read at :70 cannot fire); watcher to 14:27:00Z, then ONE addendum [decision] to SM.
+14:12Z 10-21: [decision] 3/3 SENT: L36 (S2b follow-up 580c49c91b) + ONE DG2 commit before any live start/stop: B-7 (others() skips a oneshot whose trigger is active) + H1 REPLACED by addendum (ONE reaper read: user manager of the crons_apply uid, rendered name agi-agi-reaper-<h>; 2 mutants; or show heal never restarts posts); .31.1 412b1f9f27 APPROVE; DG3 M4 0.4 + no STT. Waiting for SM: L34/L36/.31.1 lands, DG2's commit, DG3's 15 publish lines.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
