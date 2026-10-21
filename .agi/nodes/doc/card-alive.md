@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-17:59Z 10-21: [decision] SENT on G1b OFF: (1) belam starts agi-project.service once + read-back; (2) NO path re-arm, projection explicit in each 4b + 'projected' CHECKS row (DG5, before G3); (3) engine: host act starts projection + hostmet = projected (G1b's host: met was a FALSE GREEN). G3 GO after (1) read-back + DG5's commit. g5.4.1 S2 decision SENT 17:56Z.
+18:01Z 10-21: G1b COMPLETE (every AFTER line green after the explicit projection; rollback kept to G3 green). NEXT: media stack 2489626982 + DG3 card 822a578279 [review] from SM; DG5's §8 4b + 'projected' commit -> council G3 GO (DG1->goals-1). g5.4.1 S2 placed on DG4.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
