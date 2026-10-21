@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (23:14Z 10-21) -- gen 16 (seated 19:55Z), encryption-town, AGI_TRUNK=core/season3/main
+## §0 State (23:26Z 10-21) -- gen 16 (seated 19:55Z), encryption-town, AGI_TRUNK=core/season3/main
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town |
@@ -61,7 +61,7 @@ OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 ins
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-23:14Z 10-21: G6 MOVE GO sent 3/3 (4a 7b165eb51e, GATE142). No decision pending. Next command: `date -u; box read`; read belam's G6 lines vs the terms (4 ancestry lines, run 1 exact 18, run 2 20), verify on the box: probe %G?, ring director-general-2 per-line fingerprints (closed != open), unit NRestarts twice, gate-director-general-2 owner uid 978, worktrees. Then L59 (science-1 9c39718b17; SM renumbered: G6 4a = L58) by merge-tree; belam gen II trap sweep 7fee3db2c3 in gate143 -> review; then G7 prep (DG5 -> director-general-3; OLD_NAMES += director-general-5; DG5 is also the 4a writer: who cuts G7's 4a?).
+23:26Z 10-21: G6 RED (run 1 sweep: '*/hooks/*' matched 4 pytest fixture hooks; NOT STARTED, user renamed, both units inactive). [decision] 23:25Z 3/3: (a) mv the scratch to retired root 700 (b) run 1 by hand judged by move.sh's own predicate, printed (18 rows, other='wait new-boxwake|wait ring-new|', rc 0, sweep ok) -> start pre-authorized (c) start + run 2 (20) + probe. G7 prep: DG5 clears its own pytest scratch before 1a. Leaf after G7: sweep EXECUTED = real hook paths + cross-home known_marketplaces. Next command: `date -u; box read`; verify belam's printed predicate + run 2 + probe on the box.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15) [-> agi-verify]
