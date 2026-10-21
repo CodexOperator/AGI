@@ -17,70 +17,60 @@ town: core
 ---
 # doc:card-director-general-4
 
-Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board.
+Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board. CARRIED CARD for the G6 move: the new session starts from this file.
 
-## §0 State (10-14 06:5xZ) — RESUMED by the owner (06:2xZ "go, let's re-enable all the automated things ... keep trucking along until all bundle goals are closed and we can do season rollover"); keepalive is IDLE-ONLY now. GOAL: close every goal:g7.16.1 bundle, then season rollover
+## §0 State (10-21 22:3xZ, carried)
 | | |
 |---|---|
-| post | director-general-4 under sanctuary-master (SM); builder for director-goals-1 (was DG1) and SM; director-science-1 (was DG2) writes my falsifier lanes first, DG3 is the other builder |
-| running | NOTHING: no suite, no runner, no dispatch, no build, no review, no council round. I own NO session cron (CronList empty). Quiet rule to the owner stands: ONE digest per ~4 h via belam; I NEVER box belam, only SM (one message per finished thing, `[red]` + blocking owner asks excepted) |
+| post | director-general-4 (builder under sanctuary-master = SM). At G6 I become director-general-2 (same agent, uid stays mine, old key retired, fresh key minted at first start, NEW Claude session). The role of the new row is whatever SM's brief and the posts.md row say: read both before acting |
+| matrix now | goals post = director-goals-1 (was DG1, G3) · science post = director-science-1 (was DG2, G4) · director-general-1 = the ex-DG3, builder/media (G5; the old name director-general-1 for the goals post is gone) · director-general-3 has no live row until G7 (ex-DG5) · until G6 a send to director-general-2 is off-matrix. Mail only names with a live row |
+| running | NOTHING: no suite, runner, dispatch, build, review, council round. No session cron. Quiet rule: never box belam, only SM, one message per finished thing ([red] and blocking owner asks excepted) |
 | skills | agi-rotate · agi-send · agi-verify · agi-goal · agi-post (+ agi-review / agi-dispatch only if SM dispatches) |
-| worktrees | /var/lib/agi/director-general-4/: t (mine, detached = posts/director-general-4) + LIVE locked: w-boardlog (dg4-boardlog 63b21a5b90) · w-pins (dg4-pins 5b6e7b00cb) · w-ownrow (d37799e298) · w-fixrunner (3deb115c1e) · w-capsule3 (23924e296f) · w-board3 (7a96f67619). SUPERSEDED, safe to `git worktree remove <path>` BY PATH: w-board2 (dbbfb2e2a6), w-capsule (a0a86ef159), w-capsule2 (c0bb3f05ef). Every dg4-* branch is kept |
-| scratch | pytest --basetemp, TMPDIR, lane temp, gate trees: ONLY /data/work/gate-director-general-4 (700, my uid); home and /tmp are on the ROOT disk. One heavy lane at a time, niced, only above 3 GiB MemAvailable |
+| worktrees | /var/lib/agi/director-general-4/t (detached = posts/director-general-4) only is live. Old locked w-* (boardlog pins ownrow fixrunner capsule2 capsule3 board3 close2 close3) are ON the trunk; w-board2 dbbfb2e2a6, w-capsule a0a86ef159, w-roll 4113ada851 are SUPERSEDED history (clean). Nothing in them is owed; remove by path only if asked. w-s1/w-s2 released |
+| scratch | pytest --basetemp, TMPDIR, lane temp, gate trees: ONLY /data/work/gate-director-general-4 (700, my uid; the dir name follows the uid owner, check after the move); home and /tmp are on the ROOT disk. One heavy lane at a time, niced, only above 3 GiB MemAvailable |
 
-## §1 Plan (nothing in flight)
+## §1 Plan
 ```
-BOARD   (SM 10-14 06:3xZ) live trunk 93df4efce0 (SM said a35328430e; check `git rev-parse origin/local-maxxing/season2/main` before any send). Stack 14 (DG2 .39.3+.39.4, DG5 .22+.41.1, SM 0ad0eb2e7d) re-gates; stack 15 = DG5 .41 cut 2 2ca8bbd4de. Owed by others: DG1 test_seat_alias_notice fix, DG5 the verify-v5-uid l3-credentials leaf under .43. All 14 of my shas are ON the trunk.
-DONE    I answered SM's CLOSE/DEFER ask (06:4xZ). SM's reply 06:4xZ: bundle lines TAKEN. .44.7 (box-move.sh as the capsule CALLER) ALREADY EXISTS and is DG2's ("CLOSE .44.7 after stack 14 gates"): ONE owner, DO NOT cut a second .44.7.
-DONE 06:5xZ  CLOSE commits boxed to SM: branch dg4-close2 tip 1aaf54c2bd (base trunk 93df4efce0): 7 signed write.py commits closing .42 .42.1 .44.1 .44.2 .44.4 .44.5 .44.6 (worktree w-close2, locked). HELD by SM: .44.3 (closes with the gate's landing-lane wiring, row l4) and .44 (closes AT the rollover run).
-DONE 06:5xZ  gate-(c) row 5c + its mutant boxed to DG2 (one message) as a falsifier row for .44.7.
-DONE 07:1xZ  REVIEWED DG2's .44.7 cut 2f990f92b8: ACCEPT, lane 70 ok/0 FAIL re-run (also with ambient AGI_TRUNK); 4 non-blocking residues boxed to DG2 for his re-cut onto the trunk; verdict boxed to SM. .11.20.1 target 1 = 128ae202c8 already on the trunk (boxed in CLOSE form). Nothing owed by me; wait for SM.
-DONE 09:0xZ  CLOSE .44.3 = af0df494e8 (branch dg4-close3, worktree w-close3 locked, on L14 882517c523) boxed to SM in close form, rides stack 15. NEXT: review DG2's .44.7 re-cut delta when it comes (git diff 2f990f92b8 <new tip> -- extensions/agi/guard; re-run box-move-refs.t.sh, expect 70 ok; check his 4 residues). .44 parent closes only at the rollover run.
-DONE 16:0xZ 10-14  SYNCED to L17 5ab8974ca8: posts/director-general-4 = 24c140beff (merge, trunk side for the 5 skills paths, byte-equal to the trunk); agi-sync prints nothing rc 0; [synced] boxed to SM. The [trunk-conflict] hook warning is gone. origin core/season3/main was overwritten (old tip kept as origin archive/core-season3-main-pre-20261014): never push to it from the old line.
-DONE 19:1xZ 10-14  ROLLOVER STACK 20 = df7f93568a (ratified by the council 18:40Z) + RE-CUT 2fac120652 (R1 ancestor head = 2-parent merge, R2 --skip-fold owner-given, R3 core BEHIND = in-run ff + post-check, R4 half-rolled RECOVERY lines, (iv) align row; 104 targeted season tests green; each row + a mutant RED), branch dg4-roll2 / worktree w-roll2 (locked), boxed to SM. HOLD: no further cut, no re-dry, NEVER --apply until SM sends the PASS tip (owner-word PASS + belam's merge into season3/main); then RE-DRY with --judge-tip = the PASS tip (not ef9b043e68), paste WHOLE. Dry-run recipe: scratch-edit the 3 season-1 town cells to 2, `python3 -u extensions/agi/bin/season.py --root .agi rollover --global --judge-tip <PASS tip>`, `git checkout -- .agi/nodes/town`. A RETURN = ONE new signed commit ON 2fac120652 in w-roll2. Memory: only test_season* files while agi.slice is over.
-EXTRAS  on SM's word (not placed): geometry_config.resolved_seat_env v4-rows-only; cc-session-start.sh BOOTSTRAP_SEAT=${AGI_POST:-${AGI_SEAT:-}}; skills-truth CUT/TIP defaults. HELD: .20 retire-the-inbox-write; .20.1 items 2+3. NOT MINE: box-wake.t.sh (DG2).
+OPEN TIPS: NONE. Every tip of mine is on the trunk (core/season3/main 0aa49b525f at 22:3xZ; checked with merge-base --is-ancestor).
+  g5.4.1 S1 = L33 50d5ce0673 (tip dg4-s1 c6b536bcc8) · S2 = L50 7696f541dc (tip dg4-s2 94af29d0d8) · S2 follow-up = L51 (tip dg4-s2f f773ecba96, on the trunk). Branch refs kept as history.
+NOT PLACED, DO NOT START: g5.4.1 S3 = (P5) the rollover-skill line, the agi-season-report skill the owner asked for 10-16, the season-3 backfill. SM sends it as its own [design] when it is wanted. Season 3 report exists as template + facts reader + render + doc node (season_report.py facts|refresh-facts|render; template extensions/agi/templates/season_report/report.html; fixtures extensions/agi/tests/fixtures/season_report/; tests test_season_report.py).
+NEXT 1: tell SM move-ready (card sha + "open tips none"), then WAIT for SM's per-post GO for G6. Nothing moves before it.
+NEXT 2 (after the GO and the new session): read box, check `git rev-parse core/season3/main`, and answer only what SM places. First check the credential helper before any push: git config --global --get-all credential.https://github.com.helper (trap 114); no push is planned.
 ```
 
-## §2 Landed / boxed (one line each; director-goals-1 (was DG1) judges, SM gates and lands)
+## §2 Landed (one line each; SM gates and lands, belam merges up)
 ```
-ON THE TRUNK b71fbe86d5 (checked 04:3xZ)  .42 E + its fix-forwards (b1d83acb51, eb944f41c9, ae0237b3d3 renderer, a5c53f47d1 the .42.1 leaf cap/mkdir/sudo-pending, 7a96f67619 commands.md caps) · .44.1-.6 capsule (c0bb3f05ef in L7; FF1 4755041c5b + FF2 23924e296f: behind-base refs ride as ref lines, thin bundle, ONE update-ref transaction; engine-sizes b7) · 3deb115c1e runner-uid pin · d37799e298 own-block row.
-        earlier: .36 tui · .20 v5 alert · .37 · fresh-blob · .13.2 · .35 · kid AGI_POST=$k
-IN L13 f632cd4854 (SM's line; origin trunk catches up)  63b21a5b90. The pins 1ecd97928f 4f1009ca58 5b6e7b00cb landed earlier (trunk 67730b8fb7)
+10-21  L33 50d5ce0673 S1 (template + facts reader) · L50 7696f541dc S2 (refresh-facts, render, doc node P3/P4) · L51 f773ecba96 S2 follow-up (event = commit recomputed or exact re-runnable read; every box value prints a dagger + legend)
+10-15  SEASON 3 ROLLED (apply rc 0 by belam 06:21-06:24Z); live trunk core/season3/main; landings only through SM (LAND_TRUNK=refs/heads/core/season3/main)
+before: .42 E + fix-forwards, .44.1-.6 capsule, runner-uid pin, boardlog, pins, close2/close3, rollover stack 20 (all on the trunk)
+SHUFFLE (goal:g7.16.1.11.45, owner GO 10-21 14:45Z, council 3/3): G3 L52 ba8faaad3a DG1->director-goals-1 · G4 L55 8a9d18ec9c DG2->director-science-1 · G5 L57 69e36d2286 DG3->director-general-1 · NEXT G6 me DG4->DG2 · G7 DG5->DG3
 ```
 
 ## 🔴 Where it stops
 ```
-10-15 07:4xZ  SEASON 3 IS ROLLED (apply rc 0 by belam as agi-belam, 06:21-06:24Z; I was the runner of record and checked every paste: dry == apply but the expected lines; origin read by me). season3/main 2a8056bcb5; live trunk core/season3/main (origin 420e00ae9c at 07:43Z); freeze ended 06:28:21Z; rotation LIFTED.
-10-15 08:09Z SM: ALL 12 POSTS RESTARTED on AGI_TRUNK=core/season3/main (mine reads core/season3/main in env); BOX MOVES UNBLOCKED; landings still only through SM (LAND_TRUNK=refs/heads/core/season3/main). In flight, not mine: B-3 (belam), S26 (SM gate), DG2's Falsifier 1 on .44.7.
-NOTHING owed by me. SM 07:45Z: .44 and .44.7 stay OPEN (HORIZON s3): Falsifier 1 needs the first real box move after belam's restart, measured by DG2, who cuts the .44.7 close; .44 closes after, with its own THOUGHT (the rollover never called box-move/capsule). Worktrees w-roll2 and w-align REMOVED 07:5xZ (clean, no --force); branches dg4-roll2 (4a219cab82) and dg4-align (522a842a0b) kept as history.
-10-21 09:4xZ  S1 APPROVED 3/3 (09:40Z); SM cut L33 50d5ce0673 on live trunk e177c231e1, sent to belam for the ff. HOLD dg4-s1 (c6b536bcc8, worktree w-s1) until belam's [landed], then release. S2 (render) NOT placed: SM sends it as its own [design]; its 3 BINDS are banked here: N1 lands_total beside names (>= len(names); mutant lands_total=len(names) RED); N2 close.verify = the %G? letter; N3 "not recorded" must reach the page (render prints it, never blank). Before ANY push: `git config --global --get-all credential.https://github.com.helper` (trap 114).
-10-21 14:45Z  OWNER GO g7.16.1.11.45 POST SHUFFLE (council 3/3): I am MOVED 4th (DG4 -> DG2; uid stays mine, key reminted, new Claude session = this card is the resume path). NOTHING moves until SM gives my per-post GO. Before it: (0) card WHOLE with every in-flight item named; (K2) my S1 tip lands first (L33 50d5ce0673 with belam) or the card names it for re-commit; then tell SM move-ready (card sha + open tips). Keep working until then.
-10-21 15:25Z  .45 SCHEDULE (council 3/3): my move = G6 (DG4 -> DG2), after G4 (DG2 -> science-1), and after "g5.4.1 S2 landed or named in my carried card" (S2 is not placed yet). Order G0 gates, G1 TM+DT-1 down, G1b pin bump, G2 director-review, G3 DG1, G4 DG2, G5 DG3, G6 me. I am told to rewrite the carried card WHEN the move before mine reports green; per-post GO comes through SM. Keep working until then.
-10-21 17:5xZ  S1 = L33 LANDED (09:4xZ); w-s1 released (clean). SM asked (17:37Z): open tips NONE; S2 rides the card unless it lands before G6. SENT SM the S2 [design] (P4 render + P3 doc + refresh-facts; F2 F4 F5b F7 F8 F1b; binds N1 lands_total, N2 close.verify, N3 not-recorded reaches the page; decisions a-e incl. the SONG: owner said generate each time, no generator in S2). NOTHING BUILT until the council words it; no branch yet. If I move first, this card carries: the [design] (sent 17:5x Z), then "build S2 from the council word".
-10-21 20:xxZ  S2 BUILT: dg4-s2 tip 94af29d0d8 (G) on 0b36b51716, worktree w-s2; [review-ready] sent to SM (E1-E4, E3 = heads_sha256 in the block, E4 measured 13 of 15 real times refused so box key `events` added). HOLD the branch unchanged until SM gates; a return = ONE new signed commit on 94af29d0d8 in w-s2. If I move (G6) first: carried card names dg4-s2 tip 94af29d0d8 + "re-send to SM".
-10-21 21:xxZ  S2 LANDED as L50 (council 3/3 18:56Z, events ACCEPTED). FOLLOW-UP built: dg4-s2f tip f773ecba96 (G) on 94af29d0d8 (event = commit recomputed at A OR an exact re-runnable read; every box value prints a dagger + legend); [review-ready] sent to SM. HOLD dg4-s2f unchanged; a return = ONE new signed commit on f773ecba96 in w-s2. If I move (G6) first the carried card names dg4-s2f f773ecba96 + "re-send to SM".
-10-21 19:5xZ  S2 FOLLOW-UP APPROVED 3/3 (19:46Z); SM cut L51 = f773ecba96 -> belam for the ff. After belam's [landed]: release w-s2 (branches dg4-s2, dg4-s2f stay). Nothing owed by me; S3 not placed; G6 needs no carried S2 (landed).
-FIRST ACT on resume: AGI_POST=director-general-4 box read | fold -s -w 200 ; send only with a stdin heredoc (an arg-only send arrives EMPTY). A RETURN on a cut = ONE new signed commit ON the sent sha in the matching worktree; `agi-at <path>` ONLY in ~/t.
+Waiting for: (1) SM's per-post GO for G6. (2) Nothing else is owed by me.
+Rename "design B": uid stays mine; old key retired; fresh key at first start under the new name; the moved home starts a NEW Claude session, so THIS CARD is the resume path. Card doc node keeps its mint id (doc:card-director-general-4 may be renamed by SM's rows; follow the quorum link).
+FIRST ACT on resume: AGI_POST=<my post name now> box read | fold -s -w 200 ; send only with a stdin heredoc (an arg-only send arrives EMPTY). A RETURN on a cut = ONE new signed commit ON the sent sha in the matching worktree; `agi-at <path>` ONLY in the main checkout.
 ```
 
-## §4 Traps (this generation's only; the 4 inherited ones moved to skills/agi-post + agi-memory-guard at this rotation; these move at the next)
+## §4 Traps (inherited 4 already moved to skills; the rest here move at the next rotation, SM may name their homes)
 | trap | rule |
 |---|---|
 | mail (owner 10-11) | NEVER box belam; to SM one message per finished thing, no [ack]/[thanks]/[landed]; only [red] or a BLOCKING owner-ruling ask at once |
-| the sha in a box message | `git rev-parse HEAD` FIRST, then compose the heredoc with it inline (I sent two [cut]s with "the sha is below" and no sha) |
-| home literals | belam's guard knows EVERY seat's home: grep the added lines AND the message for /var/lib/agi/<name>, /home/, /data/home (anonymize.HOME_PATH_RE itself, in python; allowed_signers is not a home); a crons row writes `~/...` |
-| new CLI verb | a subparser added to a bin needs a commands.md entry (manifest: or excluded: + reason): run test_commands_manifest.py (4m48s) before sending |
-| scanned sites | a new engine piece/bin line with update-ref / commit-tree / mktree / hash-object -w / fetch moves test_grid_writers C1/C7 (goal:g7.16.1.11.13 pins): run it before sending; re-cut the blocks with the test's own norm/run, classify each site in a row |
-| ambient uid | a test must pin its runner (monkeypatch crons._invoking_user), never assert on the uid running pytest (belam's slab A/B found it) |
-| capsule lane | env -u AGI_TRUNK first; a shell function's last command is its status (a trailing rm made a mutant row pass) |
+| the sha in a box message | `git rev-parse HEAD` FIRST, then compose the heredoc with it inline |
+| home literals | belam's guard knows EVERY seat's home: grep the added lines AND the message for /var/lib/agi/<name>, /home/, /data/home; a crons row writes `~/...` |
+| new CLI verb | a subparser in a bin needs a commands.md entry (manifest: or excluded: + reason): run test_commands_manifest.py before sending |
+| scanned sites | a new update-ref / commit-tree / mktree / hash-object -w / fetch moves test_grid_writers pins: run it before sending |
+| old trunk spelling | `local-maxxing/season2/main` may be spelled only in test_season_rollover_global.py (box-move-refs lane) |
+| tests | pin the runner uid (never assert on the uid running pytest); every row has a one-edit mutant that must go RED |
+| shell | no broad `pkill -f` / `pgrep -f` (killed my shell); `sleep N` then another command is blocked, use an until loop; cwd resets, use absolute paths |
 
 ## §5 Verification
-Last green (bare env -i, niced, one at a time): test_board_job 29 · test_crons_job_user 20 · test_crons 103 · test_crons_apply_cell 19 · test_crons_log_cap_declared_scope 17 · test_grid_writers 27 · test_thought_hygiene 17 · test_bin_help_smoke 76 · test_commands_manifest 182 · capsule.t.sh 66 ok / 0 FAIL · engine-sizes 0 FAIL (engine-capsule.md fenced 8,117 B = 75 B under its bar) · graph-metrics / metrics-cell / mail-alert-retired 0 FAIL.
+Last green (season_report): test_season_report suite on the L51 tip; test_commands_manifest (`_OUTSIDE_CLIS` names facts, refresh-facts, render) · test_grid_writers · test_anonymize_guard · test_boxkit_templates in the S2 gate lanes. Re-run before any new cut, bare env, niced, one at a time.
 
 ## §6 BANKED
-- `capsule move` is box-move.sh's caller work, not a verb (council 01:56Z); its gate (c) is above. `list` selector stays (SM: do not cut).
-- RESIDUES named, not fixed: a cron row's custom `log:` outside `~/logs/` is neither capped nor mkdir'd; `in` transports refs/grid verbatim when a packer passes `--ref 'refs/grid/*'` (council 03:25Z (b), ruled, not a refusal).
-- UNEXPLAINED: belam's first live `apply --sudo` (00:32Z) printed `pending` for both foreign users although their crontabs read back == desired; my reproduction (a stateful fake `sudo crontab -u`) showed the old path installs NOTHING for a user with no crontab, so something else installed them. Fixed the path (a5c53f47d1); the mystery is SM's/belam's to look at.
-- SM banked with belam: a machine identity in the box ring (heal / memory-alarm senders), the owner's call for S3.
+- S3 shape (P5 + skill + backfill) and the song question (owner said generate each time; no generator exists) wait for SM's [design].
+- `capsule move` is box-move.sh's caller work, not a verb (council); the capsule residues (custom cron `log:` outside `~/logs/` neither capped nor mkdir'd; `in` transports refs/grid verbatim) are named, not fixed.
+- A machine identity in the box ring (heal / memory-alarm senders) is banked with belam for S3: the owner's call.
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
