@@ -396,7 +396,7 @@
       "osc_band_seeds": [7, 21, 99],
       "de_live_parents": {"arm": 10, "arms": [10, 5, 15], "ceiling": 16, "ceiling_if": {"loadavg1_lt": 16, "io_psi_some_avg60_lt": 50}, "hypothesis": "hypothesis:swarm-size-5-10-15-parents-fixes-per-hour"},
       "agi_boot": {"poll_s": 20, "wait_max_s": 600, "space_s": 120},
-      "agi_town": {"keep_units": ["agi-carry@*.path", "agi-memguard*", "agi-ram-main*"], "ack_wait_s": 600, "carry_fetch": false},
+      "agi_town": {"keep_units": ["agi-carry@*.path", "agi-memguard*", "agi-ram-main*"], "ack_wait_s": 600, "carry_fetch": false, "sudoers_line": "agi-belam ALL=(ALL) NOPASSWD: ALL"},
       "model_slot_min_avail_gib": 3,
       "lowpeak_head_rows": 64,
       "osc_band_row_contract": {

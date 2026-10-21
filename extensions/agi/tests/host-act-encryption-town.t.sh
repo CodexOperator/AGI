@@ -121,7 +121,7 @@ rep 'tm(){ [ "$CF" = true ]||return 0;' 'tm(){ ';CFG='{"values":{"local_maxxing"
 ok k4-mutant-the-ungated-enable-is-RED "grep -qx 'rehearsal: systemctl enable --now agi-carry-fetch.timer' $T/n2.out"
 mk r;run env PIN=zz sh $AGI host>/dev/null 2>$T/r.err;rr=$?
 ok k5-agi-sh-host-refuses-a-bad-pin-by-name "[ $rr != 0 ]&&grep -q 'PIN must be' $T/r.err&&[ ! -e $X/var/backups ]"
-ok k6-the-row-is-in-the-matrix-and-the-act-writes-no-sudoers "sect matrix|grep -qP '^town\\tstart\\thost posts crons units blast\\tagi.sh\$'&&[ ! -e $X/etc/sudoers.d ]&&! sed -n '/^up_host()/,/^dn_host()/p' $AGI|grep -q 'sudoers\\|visudo'"
+ok k6-the-row-is-in-the-matrix-and-the-act-writes-no-sudoers "sect matrix|grep -qP '^town\\tstart\\tmain host posts crons units blast\\tagi.sh\$'&&[ ! -e $X/etc/sudoers.d ]&&! sed -n '/^up_host()/,/^);}\$/p' $AGI|grep -q 'sudoers\\|visudo'"
 # ---- council RETURN R1 (11:22Z 10-16): a FAILED act must not re-run as "host: met". /etc/agi/host.done = the PIN is the act's LAST write (cleared before its first); hostmet requires it; stop never touches it.
 # AGI_HOST_UNITS=<stub dir> makes the rehearsal run the live tail (verify, daemon-reload, timer, enable + start agi-boot) against these stubs.
 SHD=$T/shd;mkdir -p $SHD;printf '#!/bin/sh\n[ "$STUB_FAIL" = verify ]&&exit 1;exit 0\n' >$SHD/systemd-analyze;printf '#!/bin/sh\necho "$*">>$STUB_LOG\ncase $1 in is-enabled)case $2 in agi-carry-fetch.timer)echo "${STUB_IS_T-enabled}";exit ${STUB_IS_T_RC:-0};;esac;echo "${STUB_IS-enabled}";exit ${STUB_IS_RC:-0};;esac\n[ "$STUB_FAIL" = "$1" ]&&exit 1;exit 0\n' >$SHD/systemctl;chmod +x $SHD/*
@@ -189,10 +189,31 @@ rcrow STUB_IS=enabled;ok k9-stopped-town-with-agi-boot-enabled-is-NOT-met "! gre
 rcrow STUB_IS=masked;ok k9-stopped-town-with-agi-boot-masked-is-NOT-met "! grep -qx 'host: met' $T/x.out";rm -f $T/ts
 rep '&&unitsmet&&aclmet' '&&aclmet';AGIX=$T/mut.sh;rcrow STUB_IS=masked;AGIX=
 ok k9-mutant-hostmet-without-the-enabled-check-says-met-on-masked-RED "grep -qx 'host: met' $T/x.out"
-# B3: the live box has no marker, so the first `agi.sh host` is a full re-act; start on not-met prints the line and exits non-zero, never running the act
-stm(){ mk z;hu "">/dev/null 2>&1;rm -f $X/$HD;sleep 1;run env PATH=$SHD:$PATH sh ${1:-$AGI} start>$T/z.out 2>$T/z.err;RC=$?;}
-stm;ok k10-start-on-a-host-with-every-piece-equal-but-no-host-done-is-rc-nonzero-the-line-and-no-new-backup "[ $RC != 0 ]&&grep -qx 'host: not met; run agi.sh host' $T/z.err&&[ \$(backups) = 1 ]&&[ ! -e $X/$HD ]"
-rep 'up_host check||exit 1' 'up_host check||{ up_host;exit 1;}';stm $T/mut.sh;ok k10-mutant-start-calling-the-act-on-not-met-grows-a-backup-RED "[ \$(backups) = 2 ]"
-mk z;hu "">/dev/null 2>&1;run env PATH=$SHD:$PATH sh $AGI start>$T/z2.out 2>$T/z2.err
-ok k10-start-on-a-met-host-passes-the-host-step "grep -qx 'host: met' $T/z2.out&&! grep -q 'not met' $T/z2.err"
+# ---- council 08:37Z 10-21 R-c ON A STOPPED TOWN: a STATEFUL stub systemctl (enable / disable state in a file, is-enabled answered from it). act (CF true) -> stop's posts + units arms -> drift sect -> `agi.sh host` -> `agi.sh host`:
+# the 2nd prints `host: met`, backups = 2, the stub log has no `enable agi-boot.service` / `start agi-boot.service` / `enable --now agi-carry-fetch.timer` AFTER the stop, and `agi.sh host check` is rc 0.
+SHS=$T/shs;mkdir -p $SHS;printf '#!/bin/sh\nexit 0\n' >$SHS/systemd-analyze
+cat >$SHS/systemctl <<'EOF'
+#!/bin/sh
+echo "$*">>$STUB_LOG;E=$STUB_EN;touch $E
+case $1 in
+is-enabled)grep -qx "$2" $E&&{ echo enabled;exit 0;};echo ${STUB_WORD:-disabled};exit 1;;
+enable)shift;[ "$1" = --now ]&&shift;case ",$STUB_NOOP," in *,$1,*)exit 0;;esac;echo "$1">>$E;;
+disable)grep -vxF "$2" $E>$E.n;mv $E.n $E;;
+esac
+exit 0
+EOF
+chmod +x $SHS/*
+sx(){ run env PATH=$SHS:$PATH AGI_HOST_UNITS=$SHS AGI_TOWN_STATE=$T/ts2 STUB_LOG=$T/sl.log STUB_EN=$T/en STUB_WORD=${WORD:-disabled} sh ${1:-$AGI} host $2;}
+# the stop's own arms, as agi.sh stop does them: posts arm = `systemctl disable agi-boot.service`; units arm = disable the recorded `enabled` unit; town.state written FIRST (the stopped line LAST)
+stopsim(){ printf 'boot enabled\nunit agi-carry-fetch.timer enabled\nstopped encryption-town 2026-10-21T00:00:00Z\n'>$T/ts2;$SHS/systemctl disable agi-boot.service;$SHS/systemctl disable agi-carry-fetch.timer;}
+stopped_run(){ CFG='{"values":{"local_maxxing":{"agi_town":{"carry_fetch":true}}}}';mk f;CFG=;rm -f $T/en $T/ts2;: >$T/sl.log;sx $1>/dev/null 2>&1;export STUB_LOG=$T/sl.log STUB_EN=$T/en;stopsim;n0=$(wc -l <$T/sl.log);echo drift>>$X/opt/agi/bin/sect;sleep 1;sx $1>$T/f1.out 2>&1;sleep 1;sx $1>$T/f2.out 2>&1;sx "$1" check>$T/f3.out 2>&1;RC3=$?;}
+stopped_run;ok r2-stopped-town-act-then-re-act-is-met-with-no-enable-after-the-stop "[ $RC3 = 0 ]&&grep -qx 'host: met' $T/f2.out&&[ \$(backups) = 2 ]&&! sed -n \"$((n0+1)),\\\$p\" $T/sl.log|grep -qE '^(enable agi-boot.service|start agi-boot.service|enable --now agi-carry-fetch.timer|enable agi-carry-fetch.timer)'&&grep -q \"stopped town: start's steps re-enable\" $T/f1.out&&sed -n \"$((n0+1)),\\\$p\" $T/sl.log|grep -qx daemon-reload"
+# MUTANTS (each RED): the act enables agi-boot on a stopped town; unitsmet wants the timer enabled while stopped; masked accepted while stopped; a drifted piece is left unrepaired
+rep 'if stp;then systemctl daemon-reload' 'if false;then systemctl daemon-reload';stopped_run $T/mut.sh;ok r2-mutant-the-act-enables-agi-boot-on-a-stopped-town-is-RED "sed -n \"$((n0+1)),\\\$p\" $T/sl.log|grep -qE '^(enable agi-boot.service|start agi-boot.service)'"
+rep 'then tw=disabled;fi;' 'then tw=enabled;fi;';stopped_run $T/mut.sh;ok r2-mutant-unitsmet-wants-the-timer-enabled-while-stopped-is-RED "! grep -qx 'host: met' $T/f2.out"
+rep '[ "$o" = disabled ]||return 1;fi' '[ -n "$o" ]||return 1;fi';mk f;rm -f $T/en;printf 'stopped x y\n'>$T/ts2;: >$T/sl.log;sx >/dev/null 2>&1;WORD=masked sx $T/mut.sh>/dev/null 2>&1;WORD=masked sx $T/mut.sh>$T/f4.out 2>&1
+ok r2-mutant-masked-accepted-while-stopped-is-RED "grep -qx 'host: met' $T/f4.out"
+mk f;rm -f $T/en;printf 'stopped x y\n'>$T/ts2;: >$T/sl.log;sx >/dev/null 2>&1;sleep 1;WORD=masked sx >$T/f5.out 2>&1
+ok r2-stub-masked-on-a-stopped-town-is-NOT-met "! grep -qx 'host: met' $T/f5.out"
+rm -f $T/ts2
 echo "host-act-encryption-town: $f FAIL";exit $f
