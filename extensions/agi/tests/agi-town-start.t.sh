@@ -47,6 +47,7 @@ is-enabled)if grep -qx "$2" $m;then echo masked;exit 1;fi;if grep -qx "$2" $e;th
 enable)shift;[ "$1" = --now ]&&{ shift;echo "$1">>$a;};case ",$STUB_ENABLE_NOOP," in *,$1,*)exit 0;;esac;grep -qx "$1" $e||echo "$1">>$e;;
 disable)grep -vxF "$2" $e>$e.n;mv $e.n $e;;
 stop)grep -vxF "$2" $a>$a.n;mv $a.n $a;;
+show)awk -v u="$2" '$1==u{print $2}' $STUB_SD/triggers 2>/dev/null;;
 start|restart)grep -qx "$2" $a||echo "$2">>$a;case $2 in agi-boot.service)for p in $(cat $STUB_SD/bootposts 2>/dev/null);do grep -qx "agi-post@$p.service" $a||echo "agi-post@$p.service">>$a;done;;esac;;
 *)exit 0;;esac
 EOF
@@ -295,4 +296,16 @@ ok st2-4-blast-prints-N-of-M-titles-unmeasured-and-the-constant-names-the-measur
 world;hact >/dev/null 2>&1;login;pm "MEASURED='Try the new fullscreen renderer'" "MEASURED=''";st >$T/o 2>$T/e
 ok st2-4-mutant-no-measured-title-prints-6-of-6-RED "$(grep '^\[blast\] dialog probe' $T/o) (clean: 5 of 6)" '! grep -qx "\[blast\] dialog probe: 5 of 6 titles unmeasured" $T/o'
 ok st2-skill-names-ring-unverified-and-the-by-design-boot-disabled-drift "agi-town SKILL.md: ring-unverified $(grep -c 'ring: unverified' $R0/skills/agi-town/SKILL.md), boot-disabled $(grep -c 'boot disabled' $R0/skills/agi-town/SKILL.md)" 'grep -q "ring: unverified" $R0/skills/agi-town/SKILL.md&&grep -q "boot disabled" $R0/skills/agi-town/SKILL.md'
+
+# ===== council 10-21 BIND on the follow-up: B-7 (a oneshot with an up trigger is not recorded). H1 (a heal guard) is GONE: heal.py never touches agi-post@ units =====
+# the stub: `systemctl show U -p TriggeredBy --value` answers from $SD/triggers ("unit trigger" per line); STUB_START_NOOP=U is a Type=oneshot RemainAfterExit=no that runs to its end and reads inactive
+b7(){ world;hact >/dev/null 2>&1;login;st >/dev/null 2>&1;up3;printf 'agi-quiet-watch.service agi-quiet-watch.timer\n' >$SD/triggers;}
+b7;printf 'agi-quiet-watch.service\n' >>$SD/active;stp >$T/o 2>$T/e;rcs=$?;st STUB_START_NOOP=agi-quiet-watch.service >$T/o 2>$T/e;rc=$?
+ok st2-B7-a-oneshot-caught-mid-run-with-its-timer-up-is-not-recorded-and-start-ends-0 "stop rc $rcs; town.state(aside) timer: $(cat $T/state.* 2>/dev/null|grep -c 'unit agi-quiet-watch.timer enabled'), service: $(cat $T/state.* 2>/dev/null|grep -c 'unit agi-quiet-watch.service'); start rc $rc, started: $(grep -c '^started tw' $T/o)" '[ $rcs = 0 ]&&[ $rc = 0 ]&&grep -q "^started tw" $T/o&&cat $T/state.*|grep -qx "unit agi-quiet-watch.timer enabled"&&! cat $T/state.*|grep -q "unit agi-quiet-watch.service"'
+b7;pm 'kept $u&&continue;trigup $u||echo $u' 'kept $u&&continue;echo $u';printf 'agi-quiet-watch.service\n' >>$SD/active;stp >$T/o 2>$T/e;st STUB_START_NOOP=agi-quiet-watch.service >$T/o 2>$T/e;rc=$?
+ok st2-B7-mutant-the-skip-dropped-records-the-oneshot-and-start-never-finishes-RED "state has the service: $(cat $T/state 2>/dev/null|grep -c 'unit agi-quiet-watch.service'); start rc $rc (clean: service not recorded, rc 0)" 'grep -q "^unit agi-quiet-watch.service" $T/state&&[ $rc != 0 ]'
+b7;grep -vx agi-quiet-watch.timer $SD/active>$SD/a.n;mv $SD/a.n $SD/active;printf 'agi-quiet-watch.service\n' >>$SD/active;stp >$T/o 2>$T/e
+ok st2-B7-a-hand-run-oneshot-whose-timer-is-off-stays-recorded "town.state: $(grep 'agi-quiet-watch' $T/state|tr '\n' '|')" 'grep -qx "unit agi-quiet-watch.service" $T/state'
+b7;pm 'echo "$ACT"|grep -qxF "$t"&&return 0;' 'return 0;';grep -vx agi-quiet-watch.timer $SD/active>$SD/a.n;mv $SD/a.n $SD/active;printf 'agi-quiet-watch.service\n' >>$SD/active;stp >$T/o 2>$T/e
+ok st2-B7-mutant-skip-without-the-trigger-is-up-test-loses-the-hand-run-oneshot-RED "town.state: $(grep 'agi-quiet-watch' $T/state|tr '\n' '|') (clean: the service line)" '! grep -q "agi-quiet-watch.service" $T/state'
 echo "agi-town-start: $f FAIL";exit $f

@@ -18,7 +18,10 @@ getv(){ sed -n "s/^$1=//p" "$ENVF" 2>/dev/null|tail -1;}
 # the unit lists: every agi-* unit that is up (active, activating = auto-restart or a oneshot mid-run, reloading), minus the keep-list
 act_units(){ systemctl list-units 'agi-*' --plain --no-legend --state=active,activating,reloading 2>/dev/null|awk '{print $1}';}
 kept(){ for k in $KEEP;do case $1 in $k)return 0;;esac;done;return 1;}
-others(){ for u in $(act_units);do case $u in agi-post@*|agi-boxwake@*|agi-boot.service)continue;;esac;kept $u||echo $u;done;}   # the posts step owns agi-post@*, agi-boxwake@* and agi-boot.service
+# B-7 (council 10-21): a unit that a timer / path / socket FIRES is not recorded while that trigger is itself up (active now) or already recorded in town.state: the trigger brings it back, and a oneshot caught mid-run (Type=oneshot, RemainAfterExit=no) would otherwise be recorded plain, run by hand at start, read `inactive` and leave sk_units unmet for ever. A unit with no up trigger stays recorded.
+trig(){ systemctl show "$1" -p TriggeredBy --value 2>/dev/null;}
+trigup(){ for t in $(trig "$1");do echo "$ACT"|grep -qxF "$t"&&return 0;awk -v t="$t" '$1=="unit"&&$2==t{f=1}END{exit !f}' "$STATE" 2>/dev/null&&return 0;done;return 1;}
+others(){ ACT=$(act_units);for u in $ACT;do case $u in agi-post@*|agi-boxwake@*|agi-boot.service)continue;;esac;kept $u&&continue;trigup $u||echo $u;done;}   # the posts step owns agi-post@*, agi-boxwake@* and agi-boot.service
 posts_up(){ act_units|grep -E '^agi-(post|boxwake)@';}
 links(){ ls "$WANTS" 2>/dev/null|grep '^agi-post@.*\.service$';}
 uids(){ getent passwd|cut -d: -f1|grep '^agi-';}
@@ -65,10 +68,9 @@ dn_units(){ wstate
 # --- crons: crons.py remove for every uid holding the marked block (crons_live and the graph are untouched)
 ck_crons(){ [ "$(marked)" = 0 ];}
 dn_crons(){ for u in $(uids);do c=$($CR marked --root "$MAIN" --user $u)||die "[crons] cannot read the crontab of $u";[ "$c" = 0 ]||$CR remove --root "$MAIN" --user $u||die "[crons] remove failed for $u";done;}
-# --- posts: the posts' own units and agi-boot (disabled; start re-enables it). The /etc agi-post@ wants links are belam's host act (prep refuses while any is left). Refused while heal (agi-reaper*) is up: it would relaunch a stopped post. `stopped <box> <UTC>` LAST.
+# --- posts: the posts' own units and agi-boot (disabled; start re-enables it). The /etc agi-post@ wants links are belam's host act (prep refuses while any is left). `stopped <box> <UTC>` LAST. (No heal guard: council 10-21 read heal.py from the bytes: it never starts or restarts an agi-post@ unit, and `_watch_seats` takes only rows with pid > 0, which no engine.v 4 row has.)
 ck_posts(){ [ -z "$(posts_up)" ]&&[ -z "$(links)" ]&&! systemctl is-enabled agi-boot.service >/dev/null 2>&1&&grep -q '^stopped ' "$STATE" 2>/dev/null;}
-dn_posts(){ [ -z "$(act_units|grep '^agi-reaper')" ]||die "[reaper] agi-reaper* is active: heal would relaunch a stopped post (the units step runs first): nothing stopped"
- systemctl disable agi-boot.service||die "[posts] cannot disable agi-boot.service"
+dn_posts(){ systemctl disable agi-boot.service||die "[posts] cannot disable agi-boot.service"
  for u in $(posts_up);do systemctl stop $u||die "[posts] cannot stop $u";done
  grep -q '^stopped ' "$STATE"||echo "stopped $BOX $(date -u +%Y-%m-%dT%H:%M:%SZ)">>$STATE;}
 status(){ ou=$(others|wc -l|tr -d ' ');pu=$(posts_up|wc -l|tr -d ' ');lk=$(links|wc -l|tr -d ' ');cl=$(marked);be=0;systemctl is-enabled agi-boot.service >/dev/null 2>&1&&be=1
