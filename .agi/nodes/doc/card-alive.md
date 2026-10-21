@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-19:46Z 10-21: [view] sent: g5.4.1 S2 follow-up f773ecba96 APPROVE; .45 (3) hostproj 8410e5adcf APPROVE, land AFTER G3 run 2 (note: projmet checks users.conf + post wants only). Watcher bpiv73hm3 to 20:01:30Z, then ONE [decision]. G3 in progress (bind met 19:35Z).
+19:46Z 10-21: [decision] 3/3 SENT: g5.4.1 S2 follow-up f773ecba96 APPROVE; hostproj 8410e5adcf APPROVE, land AFTER G3 run 2 + OPEN bind (fresh-box deadlock: run the pinned piece into /run when the service is absent, before S3/fresh-box act) + G4 line (belam re-runs t-sitting/t-move on new agi.sh). G3 in progress.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
