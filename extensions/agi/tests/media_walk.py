@@ -13,7 +13,7 @@ sys.path.insert(0, REPO + '/extensions/agi/tests')
 import media_fidelity, media_fm2, media_pcm
 SHA = '6432bf88d5'
 SCRIPT = REPO + '/.agi/context/media/season3-explainer-script.md'
-BASE = '/data/work/director-general-3-media/season3'
+from media_base import BASE
 W, DELIVER = os.environ.get('WALK_DIR', BASE + '/walk'), os.environ.get('WALK_DELIVER', BASE + '/deliver')
 DESC = open(BASE + '/r2/r3/description.txt', 'rb').read().decode()
 assert hashlib.sha256(DESC.encode()).hexdigest() == '56acfac76bdbcd180043059d29c38e85fa3fb33ce196789e00b7f6cd8ff870c5'
@@ -236,7 +236,7 @@ def card_video(chap, title, mp3):
 
 
 def readme(rows):
-    txt = ['season 3 narration (voice DRAFT): written by the walk (director-general-3). Voice: Gemini 3.8 Flash TTS, Schedar, the owner-quoted description, pitch normalised locally to %.0f Hz (formant kept).' % TARGET,
+    txt = ['season 3 narration (voice DRAFT): written by the media walk. Voice: Gemini 3.8 Flash TTS, Schedar, the owner-quoted description, pitch normalised locally to %.0f Hz (formant kept).' % TARGET,
            'The pick was made by the council while the owner slept; he can overrule. Banked beside it: raw, 91 Hz. Status per file: pilot = chapter 2, partial = a chunk was skipped or the walk stopped, \'partial: N flagged\' = N chunks kept after a 2nd fidelity RED (listed below), final = all chunks passed. explainer-chNN-*.mp4 = static title card + narration, one fixed profile: %s.' % json.dumps(PROFILE), '']
     txt += rows
     open(f'{DELIVER}/README-narration.txt', 'w').write('\n'.join(txt) + '\n'); os.chmod(f'{DELIVER}/README-narration.txt', 0o644)

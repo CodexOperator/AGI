@@ -11,6 +11,7 @@ import pytest
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+import media_base  # noqa: E402
 import media_video as mv  # noqa: E402
 import media_vocab  # noqa: E402,F401  (imports without manim)
 
@@ -24,11 +25,8 @@ def chaps():
 
 
 def need_mp3(n):
-    """The media lane: a missing narration mp3 is a FAIL, never a skip (council 10-21 11:08Z, R-gross)."""
-    p = mv.BASE + f"/deliver/season3-C{n}-narration.mp3"
-    if not os.path.exists(p):
-        pytest.fail(f"narration file missing: {p} (the media lane needs the deliver/ folder)")
-    return p
+    """The media lane (MEDIA_LANE=1): a missing narration mp3 is a FAIL (council 10-21 11:08Z, R-gross); in the default suite it skips, so a clone without the data dir is not RED."""
+    return media_base.need(mv.BASE + f"/deliver/season3-C{n}-narration.mp3", f"narration file C{n}")
 
 
 # ---- timing: C2
