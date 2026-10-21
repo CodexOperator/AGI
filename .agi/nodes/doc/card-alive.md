@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-11:08Z 10-21: .42.2 R1 RETURN 3/3 SENT 10:53:55Z (diff-tree -m --first-parent + Fd3). M4 (1) CHANGE SENT 11:08Z (R-gross RED-only + no skip, R-fine documented limit (measured), R-sync). Waiting for SM: S2b gate108, .42.2 re-cut, .31.1, DG3's chapters.
+11:37Z 10-21: .42.2 RETURN + M4 (1) CHANGE sent; C2 join GREEN; join-transient [decision] (batch publishes + README line) SENT 11:37Z alive-only (seats silent 15 min since 10:53Z: check they are up). Waiting for SM: S2b gate108, .42.2 re-cut, .31.1, DG3's chapters.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
