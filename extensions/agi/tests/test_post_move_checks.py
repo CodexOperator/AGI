@@ -35,6 +35,14 @@ case $1 in is-enabled)s=$(cat "$STUB/enabled/$2" 2>/dev/null)||s=disabled;echo "
 s=$(cat "$STUB/active/$2" 2>/dev/null)||s=inactive
 echo "$s";[ "$s" = active ]
 """
+# stat -c %u PATH and find DIR -maxdepth 1 -uid N -name GLOB: the owner of a path under WORK is the number in $STUB/owner/<basename> (absent = nobody)
+STAT = r"""#!/bin/sh
+[ "$1" = -c ]&&[ "$2" = %u ]||exit 2;[ -e "$3" ]||exit 1;cat "$STUB/owner/$(basename "$3")" 2>/dev/null||echo 0
+"""
+FIND = r"""#!/bin/sh
+d=$1;shift;[ "$1" = -maxdepth ]&&[ "$3" = -uid ]&&[ "$5" = -name ]||exit 2;n=$4;g=$6
+for f in "$d"/$g;do [ -e "$f" ]||continue;[ "$(cat "$STUB/owner/$(basename "$f")" 2>/dev/null)" = "$n" ]&&echo "$f";done;exit 0
+"""
 # runuser -u U -- test -r F: U reads what is under its own home, else only what is o+r behind o+x dirs (a stub: the test is not root)
 RUNUSER = r"""#!/bin/sh
 u=$2;shift 3;[ "$1" = test ]&&[ "$2" = -r ]||exit 125;f=$3
@@ -83,7 +91,8 @@ class World:
             f'{OLD}@agi namespaces="git",valid-after="20261015000000Z",valid-before="{T}" {self.pub}\n'
             # an earlier holder of the name director-general-1 (the old DG1, moved to goals-1 at 10-21 14:00Z): closed
             f'{NEW}@agi namespaces="git",valid-after="20261001000000Z",valid-before="20261021140000Z" {self.other}\n')
-        self.env = {"PATH": os.environ["PATH"], "ROOT": str(self.root), "STUB": str(self.stub), "TOP": str(tmp), "STAYS_S": "0", "ROOTUSER": subprocess.run(
+        self.env = {"PATH": os.environ["PATH"], "ROOT": str(self.root), "STUB": str(self.stub), "TOP": str(tmp), "STAYS_S": "0", "WORK": str(tmp / "work"),
+            "STAT": str(_exe(self.bin / "stat", STAT)), "FIND": str(_exe(self.bin / "find", FIND)), "ROOTUSER": subprocess.run(
             ["id", "-un"], capture_output=True, text=True).stdout.strip(),
             "ID": str(_exe(self.bin / "id", ID)), "GETENT": str(_exe(self.bin / "getent", GETENT)),
             "RUNUSER": str(_exe(self.bin / "runuser", RUNUSER)),
@@ -94,6 +103,9 @@ class World:
         (self.stub / "enabled" / f"agi-carry@{NEW}.path").write_text("enabled\n")
         (self.stub / "show").mkdir()
         self.up(0)
+        (tmp / "work").mkdir()
+        (self.stub / "owner").mkdir()
+        self.gate(NEW, UID)                                                       # the moved post's gate dir, renamed with it (step 3)
         self.main = self.root / "data/work/agi"                                          # MAIN: the repo the mail refs live in (R7)
         self.main.mkdir(parents=True)
         self.git("init", "-q")
@@ -128,6 +140,13 @@ class World:
         c = self.git(*sig[:4], "commit-tree", *sig[4:], "-m", "x", tree, env=e)
         self.git("update-ref", ref, c)
         return c
+
+    def gate(self, name, uid, prefix="gate-"):
+        """a dir WORK/<prefix><name> owned (by the stub's sidecar) by UID"""
+        d = self.tmp / "work" / f"{prefix}{name}"
+        d.mkdir(exist_ok=True)
+        (self.stub / "owner" / d.name).write_text(f"{uid}\n")
+        return d
 
     def up(self, restarts=0, active="active", sub="running"):
         """agi-post@NEW as `systemctl show` sees it"""
@@ -567,11 +586,11 @@ def test_the_boxwake_row_has_a_world_only_its_first_start_leg_catches(w, tmp_pat
 # G3's red (council 20:00Z): run 2 printed 18 ok over a post that crash-looped; `stays-up` looks twice, only with --first-start
 def test_stays_up_is_absent_from_run_1_so_run_1_keeps_its_18_rows_and_present_in_run_2(w):
     rc, st, out = w.check()
-    assert "stays-up" not in st and len(st) == 18, out
+    assert "stays-up" not in st and "name-dirs" not in st and len(st) == 18, out
     w.first_start()
     (w.stub / "active" / f"agi-boxwake@{NEW}").write_text("active\n")
     rc, st, out = w.check("--first-start")
-    assert rc == 0 and st["stays-up"] == "ok" and len(st) == 19, out
+    assert rc == 0 and st["stays-up"] == "ok" and st["name-dirs"] == "ok" and len(st) == 20, out
 
 
 def _run2(w, script=SCRIPT):
@@ -624,3 +643,45 @@ def test_the_stays_up_row_has_a_world_only_each_of_its_guards_catches(w, tmp_pat
     w.up(0, "active", "auto-restart")                               # only the SubState test sees this one
     m = _mutant(tmp_path, "printf '%s\\n' \"$r\"|grep -qx 'SubState=running'||return 1", "printf '%s\\n' \"$r\"|grep -qx 'SubState=running'||:")
     assert _run2(w, m)[1]["stays-up"] == "ok" and _run2(w)[1]["stays-up"] == "FAIL"
+
+
+# G5 PREP (council 21:35Z): the dirs under /data/work are NAME-keyed; run 2 only, so run 1 keeps 18 rows and run 2 has 20
+OLDGATE = lambda w: w.gate(OLD, UID)      # noqa: E731
+
+
+def test_MUTANT_a_left_gate_dir_of_the_old_name_is_red_and_named(w):
+    OLDGATE(w)
+    rc, st, out = _run2(w)
+    assert st["name-dirs"] == "FAIL" and f"gate-{OLD}" in out.split("name-dirs:")[1], out
+
+
+def test_MUTANT_a_media_dir_named_for_the_old_name_and_owned_by_the_agent_is_red(w):
+    w.gate(OLD + "-media", UID, prefix="")
+    _red(_run2(w), "name-dirs")
+
+
+def test_MUTANT_the_reused_names_gate_dir_owned_by_the_previous_holder_is_red(w):
+    w.gate(NEW, 981)                                             # G5's collision: gate-director-general-1 is the previous holder's
+    _red(_run2(w), "name-dirs")
+
+
+def test_MUTANT_a_missing_gate_dir_for_the_new_name_is_red(w):
+    (w.tmp / "work" / f"gate-{NEW}").rmdir()
+    _red(_run2(w), "name-dirs")
+
+
+def test_dirs_of_other_names_or_other_owners_are_not_left_overs(w):
+    w.gate(OLD, 981)                                             # the old name's dir owned by someone else is not the mover's
+    w.gate(OLD + "x", 981, prefix="")
+    w.gate("director-general-9", UID, prefix="")                 # another post's dir named differently
+    assert _run2(w)[1]["name-dirs"] == "ok"
+
+
+def test_the_name_dirs_row_has_a_world_only_each_of_its_guards_catches(w, tmp_path):
+    w.gate(NEW, 981)
+    m = _mutant(tmp_path, 'test "$gown" = "$UID_" -a -z "$left"', 'test -z "$left"')
+    assert _run2(w, m)[1]["name-dirs"] == "ok" and _run2(w)[1]["name-dirs"] == "FAIL"
+    w.gate(NEW, UID)
+    OLDGATE(w)
+    m = _mutant(tmp_path, 'test "$gown" = "$UID_" -a -z "$left"', 'test "$gown" = "$UID_"')
+    assert _run2(w, m)[1]["name-dirs"] == "ok" and _run2(w)[1]["name-dirs"] == "FAIL"
