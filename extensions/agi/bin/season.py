@@ -1241,8 +1241,12 @@ def _fold(repo, head, old, sha, apply, tag, step):
 def _append_season_row(history, g, now):
     """The ledger after a rollover to season `g` at `now` (goal:g12.3): the row still open is CLOSED at
     the SAME timestamp the new row OPENS, so the ledger never carries a gap or two open rows. Only the
-    LAST row is touched, and only when it is open; the rows before it are the past and stay as written."""
+    LAST row is touched, and only when it is open; the rows before it are the past and stay as written.
+    IDEMPOTENT (council 3/3 12:06Z 10-16, the season-4 binding): a RESUMED rollover finds the ledger already
+    ending {season: g, open}; that is this rollover's own row, so the history comes back unchanged."""
     rows = [dict(h) for h in (history or []) if isinstance(h, dict)]
+    if rows and rows[-1].get("season") == g and rows[-1].get("closed") is None:
+        return rows
     if rows and rows[-1].get("closed") is None:
         rows[-1]["closed"] = now
     return rows + [{"season": g, "global_season": g, "opened": now, "closed": None}]
