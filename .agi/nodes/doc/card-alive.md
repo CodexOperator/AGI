@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-14:43Z 10-21: .11.45 POST SHUFFLE design: [view] sent 14:42:59Z (B = usermod -l rename carries uid/home/login; key re-mint + old line stamped; posts/<name> branch + box/held refs + crontab/linger follow the agent; TM+DT-1 boot:false row with the stop; sp K2 in-flight tips land first). Watcher to 15:00:00Z, then ONE [design] decision to SM. Earlier: 14:12Z L36 + B-7 + H1 addendum SENT; .31.1 APPROVE.
+14:44Z 10-21: .11.45 POST SHUFFLE [design] 3/3 SENT: R1 TM+DT-1 boot:false row WITH the stop; S1 director-review first (sonnet-5-5/high, after TM+DT-1 down, 1 owner login, DG3 hands over after the 15); S2 = design B (usermod -l + groupmod -n, key moved aside + old line stamped, posts/ + box/held refs + crontab/linger follow, one at a time, per-move CHECKS); K2 land refuses a stamped-key tip. Waiting for SM: L34/L36/.31.1 lands, DG2's B-7/H1 commit, DG3's 15 publish lines, the .45 stack.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
