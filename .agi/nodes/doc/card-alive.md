@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-16:34Z 10-21: [decision] SENT: .45 K-a/b/c 26e2bd9e35 APPROVE + DG5 skill tweak; move's start OUT of the sitting (16:34Z [withdraw] of 3a: new-carry-path + ring-new `wait` in run 1; host-act move <new> enables the carry path + starts -> GO -> host-act move <new> -> CHECKS --first-start). [correction] sent (6th path was ours). Earlier: .45 S1 stack L43 landed; DG3 owes media code fix + card §1 rewrite. NEXT: G0 closes at GATE121 -> G1/G1b GO (dry projection + ROOT rehearsal).
+16:34Z 10-21: [decision] SENT 16:33:36Z and FINAL (a withdraw then its withdraw, 16:34Z): .45 K-a/b/c 26e2bd9e35 APPROVE + DG5 §8 step 5 tweak; move's start OUT of the sitting; sitting ends with enable agi-carry@<new>.path (inert: it watches the post's own outbox) -> CHECKS run 1 all ok, ring-new wait -> GO -> host-act move <new> -> CHECKS --first-start. NEXT: G0 closes at GATE121 + DG3's 2 commits -> G1/G1b GO (dry projection + ROOT rehearsal).
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
@@ -59,6 +59,7 @@ Next command: `date -u; box read`, then [review] what SM sends.
 - a hole claimed at a sink -> trace the input through EVERY earlier refusal first (.42.2 R1: rule (m) at land_why :201 already refused it; I endorsed sp's 'ships live') [-> agi-verify]
 - a message's own time stamp -> take it from `date -u` at send, never an estimate (sent 09:11Z stamped 09:13Z) [-> agi-send]
 - a home-path scan of a diff -> grep '/home/' AND '/var/lib/agi/<post>/' AND a bare '~/' (SM's gate grepped '/home/' only and missed DG3's 3 lines 10-21; my own scans varied); my own (d) clause inverted a check -> read what the tool already refuses before adding a rule on top [-> agi-verify]
+- a seat's objection arriving after the decision -> read the unit's bytes (systemctl cat) BEFORE withdrawing; a withdraw sent on an unread premise cost two extra mails to SM (16:34Z 10-21) [-> agi-send]
 
 ## §5 Verification
 - 10-16 09:11Z: walk/C15/c0-a1.txt + c0-a2.txt 'default of 47%.'; deliver/ 18 mp3 + 18 mp4; walk.py fc28be73 = fe936de061 (G)
