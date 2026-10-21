@@ -1128,6 +1128,7 @@ _OUTSIDE_CLIS = {
     "metrics_cell.py": "the graph_metrics cron job's guarded cell write (goal:g3.8 R2), run by crons.md only; not an operator verb",
     "board_job.py": "the board line's two cron steps (goal:g7.16.1.11.42 option E): `commit` in the seat's own uid, `land` the ff in the human uid's; run by crons.md only; not an operator verb",
     "nest.py": "read-only slice | log helper over a container's nest: cell (goal:g7.16.1.11.21 D1), raw argv with its own usage line; not a proposable choice-surface verb",
+    "season_report.py": "the end-of-season report's FACTS reader (goal:g5.4.1): `facts` prints one sorted JSON, writes nothing, run by the rollover's closing step after ROLLOVER COMPLETE; not a proposable choice-surface verb",
 }
 
 
