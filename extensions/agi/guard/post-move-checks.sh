@@ -13,11 +13,13 @@
 # is a unit INSTANCE of OLD, `*@OLD.*`: every per-post unit is <unit>@<name>, so the wants links, the .service.d drop-ins and agi-carry@OLD.path are all caught; every
 # scan dir must exist, a missing one is a FAIL naming it) · new-carry-path (agi-carry@NEW.path is enabled AND active: nothing else enables the new name's mail wake) ·
 # old-post-inactive, old-boxwake-inactive (council addendum 15:26Z: AFTER the pin bump no agi-post@OLD / agi-boxwake@OLD is active; `systemctl is-active` must say
-# inactive or failed, an empty answer or activating is a FAIL). Run it right after the move, before the name OLD is reused by a later move: old-name-free reads
+# inactive or failed, an empty answer or activating is a FAIL) · projected (council 17:58Z 10-21: agi-project.path was NEVER active on this box, so a carry.env write projects nothing;
+# the projection is EXPLICIT, `systemctl start agi-project.service` right after 4b's `agi.sh host`: its last start (ExecMainStartTimestamp, whole seconds) is >= the mtime of
+# carry.env and its Result is success; never started, started before the write, a failed run or an unreadable stamp is a FAIL). Run it right after the move, before the name OLD is reused by a later move: old-name-free reads
 # "empty" as the proof that no projection between the usermod and the bump minted a fresh agi-OLD.
-# Env (defaults are the box's; a test sets them to stubs): ROOT (prefix of every default path) ID GETENT RUNUSER SYSTEMCTL ROOTUSER RET RING SCAN.
+# Env (defaults are the box's; a test sets them to stubs): ROOT (prefix of every default path) ID GETENT RUNUSER SYSTEMCTL ROOTUSER RET RING SCAN CARRY.
 ROOT=${ROOT-};ID=${ID:-id};GETENT=${GETENT:-getent};RUNUSER=${RUNUSER:-runuser};SYSTEMCTL=${SYSTEMCTL:-systemctl};ROOTUSER=${ROOTUSER:-root}
-RET=${RET:-$ROOT/var/lib/agi/retired/keys};RING=${RING:-$ROOT/var/lib/agi/allowed_signers}
+RET=${RET:-$ROOT/var/lib/agi/retired/keys};RING=${RING:-$ROOT/var/lib/agi/allowed_signers};CARRY=${CARRY:-$ROOT/etc/agi/carry.env}
 SCAN=${SCAN-"$ROOT/etc/sudoers.d $ROOT/etc/polkit-1 $ROOT/etc/systemd $ROOT/run/systemd/system $ROOT/etc/agi $ROOT/var/spool/cron"}
 f=0
 say(){ _s=$1;_n=$2;shift 2;echo "$_s $_n: $*";[ "$_s" = FAIL ]&&f=$((f+1));:;}
@@ -76,4 +78,8 @@ for u in agi-post agi-boxwake;do t "old-${u#agi-}-inactive" "systemctl is-active
 # 10. the new name's mail wake: nothing but `systemctl enable --now agi-carry@NEW.path` makes it (host-act-encryption-town.sh move NEW, after 4b)
 carry(){ [ "$($SYSTEMCTL is-enabled "agi-carry@$NEW.path" 2>/dev/null)" = enabled ]&&[ "$($SYSTEMCTL is-active "agi-carry@$NEW.path" 2>/dev/null)" = active ]; }
 t new-carry-path "systemctl is-enabled agi-carry@$NEW.path = '$($SYSTEMCTL is-enabled "agi-carry@$NEW.path" 2>/dev/null)', is-active '$($SYSTEMCTL is-active "agi-carry@$NEW.path" 2>/dev/null)' (want enabled, active)" carry
+# 11. the pin was PROJECTED: agi-project.path never runs here, so 4b's carry.env write alone changes nothing in /run; the start of agi-project.service after it does
+proj(){ ps=$($SYSTEMCTL show --timestamp=utc -p ExecMainStartTimestamp --value agi-project.service 2>/dev/null);[ -n "$ps" ]||return 1;ps=$(date -u -d "$ps" +%s 2>/dev/null)||return 1
+ pc=$(stat -c %Y "$CARRY" 2>/dev/null)||return 1;[ "$ps" -ge "$pc" ]&&[ "$($SYSTEMCTL show -p Result --value agi-project.service 2>/dev/null)" = success ]; }
+t projected "agi-project.service last start '$($SYSTEMCTL show --timestamp=utc -p ExecMainStartTimestamp --value agi-project.service 2>/dev/null)', Result '$($SYSTEMCTL show -p Result --value agi-project.service 2>/dev/null)'; $CARRY written $(stat -c %y "$CARRY" 2>/dev/null|cut -c1-19) (want a start at or after the write, success: run \`systemctl start agi-project.service\` after \`agi.sh host\`)" proj
 [ $f = 0 ]
