@@ -88,3 +88,4 @@ never      [ack] / [thanks] / [landed]-style replies to belam; belam sends none 
 - a fix-forward that routes MAIL -> check the route against the owner's mail rule on the REAL posts.md rows before approving it (alive gen 11-12)
 - after every `box send P < file` -> `git log -1 --format=%B refs/box/<me>/P` must be non-empty: a message passed as an ARGUMENT sent 8 EMPTY bodies at 05:15:41Z 10-14 (SM gen 42; self-perpetuating caught it)
 - `box read` prints one long line per message: pipe it through `fold -s -w 200`, never `cut` (a cut line hides the order; DG4, 10-11).
+- a box-identity token (the host name) in a card or mail -> write 'the box' or the town; `grep -ciF "$(hostname -s)"` on the text = 0 in the SAME command that sends, never print it (SM [red] 18:17Z: alive's card via L16; sp's 3 mails 10-09/10-11)

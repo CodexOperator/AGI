@@ -109,6 +109,7 @@ belam runs `sh extensions/agi/guard/post-move-checks.sh pre <old> <new>` before 
 A row's `engine.seeds` must all resolve: brief.py drops an unresolved seed silently (a misspelled role seed = a post with no role). `tests/test_post_seeds_wired.py` runs every engine row's seeds through brief.py itself.
 
 ## Traps moved from cards (owner 10-10: one sweep, then a rule)
+- a new post-condition for a rename move -> put it on `--first-start` (run 2) or in the sitting, never a run-1 CHECKS row: run 1 keeps its EXACT 18 rows (post-move-checks.sh header :25/:27) and move.sh :24 starts only on exactly 18 (sp gen 8)
 - EnvironmentFile= OVERRIDES Environment= (man systemd.exec) and /etc/agi/carry.env pins an AGI_TRUNK -> never load carry.env whole into a post; read one key by name (SM gen 35, goal:g7.16.1.11.37)
 - MAIN is shared by every post -> commit by exact path; never switch branches, stash or reset; `git diff --cached --name-only` = only your path (alive gen 9)
 - ~/t is DETACHED at turn end (agi-turn) -> commit the card ONLY via `agi-at <card path>`; a plain commit is refused by Door 1 (alive 10-11, probed rc 1)
