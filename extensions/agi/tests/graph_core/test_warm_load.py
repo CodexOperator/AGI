@@ -1,9 +1,11 @@
 """T-013 tests: warm-load cache (graph-core/R7)."""
 
-import time
 from pathlib import Path
 
+import pytest
+
 from graph_core.cache import WarmLoadCache, directory_digest
+from graph_core.loader import load_directory
 
 
 def _seed(d: Path, files: dict[str, str]) -> None:
@@ -23,22 +25,55 @@ def test_warm_load_hit_after_first_call(tmp_path: Path) -> None:
     assert cache.misses == 1
 
 
+class _Spy:
+    """A loader that counts its calls and loads for real (goal:g7.16.1.11.31.1)."""
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def __call__(self, base: Path):
+        self.calls += 1
+        return load_directory(base)
+
+
+class _AlwaysLoads(WarmLoadCache):
+    """The mutant: a get() that never trusts its cache and calls the loader every time."""
+
+    def get(self, directory, loader=load_directory):
+        self._stats["misses"] += 1
+        return loader(Path(directory).resolve())
+
+
+def _one_cold_five_warm(cache: WarmLoadCache, base: Path) -> None:
+    """Fw1, the invariant's carrier: a warm get never calls the loader. Counted, not timed, so the
+    box's load cannot move it (the digest walk every get() runs scales with load; a stopwatch on
+    a hit measured the box, not the cache)."""
+    spy = _Spy()
+    for _ in range(6):   # 1 cold + 5 warm
+        cache.get(base, loader=spy)
+    assert spy.calls == 1, f"loader called {spy.calls}x over 1 cold + 5 warm gets"
+    assert cache.hits == 5, f"hits {cache.hits}, wanted 5"
+
+
 def test_warm_load_second_call_fast(tmp_path: Path) -> None:
-    """R7.1: second load returns within noise floor (<= 1ms)."""
+    """R7.1: 1 cold get + 5 warm gets -> the loader ran once and the cache hit five times (no timing)."""
     _seed(tmp_path, {f"n{i}.md": f"---\nid: n{i}\n---\n" for i in range(20)})
-    cache = WarmLoadCache()
-    cache.get(tmp_path)  # cold
-    # (SL2#24 merge-up) best-of-5: a single wall-clock sample is at the mercy
-    # of the scheduler — this assert went red at load average 13 with six
-    # kid parents live while passing 3/3 in isolation. A genuinely slow warm
-    # path fails all five samples; a preempted one does not fail the test.
-    samples_ms = []
-    for _ in range(5):
-        t0 = time.perf_counter()
-        cache.get(tmp_path)  # warm
-        samples_ms.append((time.perf_counter() - t0) * 1000)
-    elapsed_ms = min(samples_ms)
-    assert elapsed_ms < 5.0, f"warm load too slow: {samples_ms}ms"
+    _one_cold_five_warm(WarmLoadCache(), tmp_path)
+
+
+def test_warm_load_fw1_mutant_that_always_calls_the_loader_is_red(tmp_path: Path) -> None:
+    """The same check on a get() that always calls the loader: 6 calls, 0 hits -> RED, every run."""
+    _seed(tmp_path, {f"n{i}.md": f"---\nid: n{i}\n---\n" for i in range(20)})
+    with pytest.raises(AssertionError, match="loader called 6x"):
+        _one_cold_five_warm(_AlwaysLoads(), tmp_path)
+
+
+def test_warm_load_has_no_wall_clock_claim() -> None:
+    """Fw3: this file asserts no millisecond bound and claims no noise floor (they timed the box).
+    The needles are built from pieces so this check does not contain what it forbids."""
+    text = Path(__file__).read_text()
+    for needle in ("< " + "5.0", "<= " + "1ms", "perf_" + "counter", "import " + "time"):
+        assert needle not in text, needle
 
 
 def test_modifying_file_invalidates_cache(tmp_path: Path) -> None:
