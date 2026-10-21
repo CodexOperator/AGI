@@ -148,10 +148,12 @@ town;ST;XENV=STUB_NOOP=stop:agi-quiet-watch.timer run stop >$T/o 2>$T/e;rc=$?
 ok st-F2-a-unit-left-running-is-counted "quiet-watch left running: rc $rc (want 1, [step] units named), agi-* units outside the keep-list = $(outside) (want 1)" '[ $rc = 1 ]&&grep -q "^\[step\] units" $T/e&&[ "$(outside)" = 1 ]'
 
 # ===== the order, from the matrix row =====
-# posts before units: heal (agi-reaper*) would relaunch a stopped post, so the posts step refuses while it is up
+# the order is READ from the matrix row: the default row stops units BEFORE posts; the row 'units posts crons blast' runs the posts arm (disable agi-boot) before the units arm (stop quiet-watch). (There is NO heal guard: council 10-21, heal.py never touches agi-post@ units.)
+ord1(){ awk '/^disable agi-boot.service/{if(!b)b=NR} /^stop agi-quiet-watch.timer/{if(!q)q=NR} END{print (b&&q)?((b<q)?"posts-first":"units-first"):"missing"}' $SD/calls;}
+town;ST;run stop >$T/o 2>$T/e;ord0=$(ord1)
 town;ST;$G -C $M show $PIN:.agi/nodes/.geometry/engine.md|sed 's/^town	start	main host posts crons units blast	agi.sh$/town	start	units posts crons blast	agi.sh/'>$M/.agi/nodes/.geometry/engine.md;P2=$(cm reorder);echo "AGI_TRUNK=$P2" >$T/carry2
 CARRYF=$T/carry2 XENV= run stop >$T/o 2>$T/e;rc=$?
-ok st-reaper-refuses-posts-before-units "the row read as 'units posts crons blast' (posts runs before units): rc $rc (want 1), [reaper] named: $(grep -c '^\[reaper\]' $T/e), the posts still up: $(posts_up) (want 12), agi-boot still enabled: $(grep -c agi-boot $SD/enabled)" '[ $rc = 1 ]&&grep -q "^\[reaper\]" $T/e&&[ "$(posts_up)" = 12 ]&&grep -q agi-boot $SD/enabled'
+ok st-order-is-read-from-the-matrix-row "default row: $ord0 (want units-first); the row 'units posts crons blast': $(ord1) (want posts-first)" '[ "$ord0" = units-first ]&&[ "$(ord1)" = posts-first ]'
 CARRYF=
 # a row that lacks `crons`: the crontabs keep their block, the stop says so and fails (F1: delete `crons` from the row -> crontab diff > 0)
 town;ST;$G -C $M show $PIN:.agi/nodes/.geometry/engine.md|sed 's/^town	start	main host posts crons units blast	agi.sh$/town	start	posts units blast	agi.sh/'>$M/.agi/nodes/.geometry/engine.md;P3=$(cm nocrons);echo "AGI_TRUNK=$P3" >$T/carry3
