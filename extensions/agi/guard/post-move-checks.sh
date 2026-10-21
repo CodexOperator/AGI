@@ -21,9 +21,11 @@
 # measured: ~/.claude.json of NEW has projects["/data/work/agi"].hasTrustDialogAccepted true, else the first start stops at the trust dialog) · sweep (R11: every file under NEW's home that
 # still names the OLD home path is NAMED; a hit in a file the post EXECUTES, ~/.gitconfig ~/.config/git ~/bin ~/.claude/settings*.json or any hooks/ file, is a FAIL; ~/.claude/projects and the
 # dead project keys of .claude.json are not hits) · new-boxwake (R12: agi-boxwake@NEW is the live wake, started WITH agi-post@NEW by its Wants=; `wait` before the start, FAIL after it unless
-# active; agi-carry@.path watches a g.git no post has, so new-carry-path does NOT prove the wake). Run it right after the move, before the name OLD is reused by a later move: old-name-free reads
+# active; agi-carry@.path watches a g.git no post has, so new-carry-path does NOT prove the wake) · stays-up (council 20:00Z, G3's red: run 2 printed 18 ok over a post that exited ~3 s after each start and
+# restarted every 30 s; ONLY with --first-start, so run 1 keeps its 18 rows: two `systemctl show` reads of agi-post@NEW >= STAYS_S (default 60) seconds apart, ActiveState active and SubState running at both, NRestarts
+# present and equal; a post that exits (NRestarts moves, or auto-restart/activating), an unreadable answer or no answer is a FAIL). Run it right after the move, before the name OLD is reused by a later move: old-name-free reads
 # "empty" as the proof that no projection between the usermod and the bump minted a fresh agi-OLD.
-# Env (defaults are the box's; a test sets them to stubs): ROOT (prefix of every default path) ID GETENT RUNUSER SYSTEMCTL ROOTUSER RET RING SCAN CARRY MAINKEY MAIN.
+# Env (defaults are the box's; a test sets them to stubs): ROOT (prefix of every default path) ID GETENT RUNUSER SYSTEMCTL ROOTUSER RET RING SCAN CARRY MAINKEY MAIN STAYS_S.
 ROOT=${ROOT-};ID=${ID:-id};GETENT=${GETENT:-getent};RUNUSER=${RUNUSER:-runuser};SYSTEMCTL=${SYSTEMCTL:-systemctl};ROOTUSER=${ROOTUSER:-root}
 RET=${RET:-$ROOT/var/lib/agi/retired/keys};RING=${RING:-$ROOT/var/lib/agi/allowed_signers};CARRY=${CARRY:-$ROOT/etc/agi/carry.env};MAINKEY=${AGI_REPO:-/data/work/agi};MAIN=${MAIN:-$ROOT$MAINKEY}
 SCAN=${SCAN-"$ROOT/etc/sudoers.d $ROOT/etc/polkit-1 $ROOT/etc/systemd $ROOT/run/systemd/system $ROOT/etc/agi $ROOT/var/spool/cron"}
@@ -109,4 +111,12 @@ bw=$($SYSTEMCTL is-active "agi-boxwake@$NEW" 2>/dev/null)
 if [ "$bw" = active ];then say ok new-boxwake "agi-boxwake@$NEW is active (the live wake)"
 elif [ "$FIRST" = --first-start ];then say FAIL new-boxwake "systemctl is-active agi-boxwake@$NEW = '${bw:--}' after the first start (want active: no wake, no mail read)"
 else say wait new-boxwake "agi-boxwake@$NEW = '${bw:--}': it starts with agi-post@$NEW at the start (re-run with --first-start); agi-carry@$NEW.path is NOT the wake";fi
+# 16. the post STAYS up (council 20:00Z): the first start can be "active" for the 3 s before a crash, so look twice, a restart interval apart (RestartUSec is 30 s)
+if [ "$FIRST" = --first-start ];then
+ pst(){ $SYSTEMCTL show -p ActiveState -p SubState -p NRestarts "agi-post@$NEW" 2>/dev/null; }
+ s1=$(pst);sleep "${STAYS_S:-60}";s2=$(pst)
+ up(){ for r in "$s1" "$s2";do printf '%s\n' "$r"|grep -qx 'ActiveState=active'&&printf '%s\n' "$r"|grep -qx 'SubState=running'||return 1;done
+  n1=$(printf '%s\n' "$s1"|sed -n 's/^NRestarts=//p');n2=$(printf '%s\n' "$s2"|sed -n 's/^NRestarts=//p');[ -n "$n1" ]&&[ "$n1" = "$n2" ]; }
+ t stays-up "agi-post@$NEW read twice ${STAYS_S:-60} s apart: ActiveState/SubState '$(printf '%s' "$s1"|tr '\n' ' ')' then '$(printf '%s' "$s2"|tr '\n' ' ')' (want active, running and the same NRestarts both times)" up
+fi
 [ $f = 0 ]
