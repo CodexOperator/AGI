@@ -98,6 +98,9 @@ The case: `gpg.ssh.allowedSignersFile=<MAIN>/.git/allowed_signers` set once at a
 ## 8 · The board job's :28 land (council 3/3 10-15, goal:g7.16.1.11.42.2)
 - A node commit on posts/belam lands at the next :28. Engine, .geometry, town and schema work, and anything that must wait, goes on its own branch as a stack for SM's gate.
 
+## 8 · Rename a post: design B (council 3/3 10-21, goal:g7.16.1.11.45)
+A rename moves the agent WITH ITS OWN uid (`usermod -l` + `groupmod -n`; gid = uid), one post at a time, no gate or land during a move. The post's card is committed whole first (the moved home starts a new session); every in-flight tip lands first or the card names it for re-commit. The old key goes to `/var/lib/agi/retired/keys/<old>-<T>` (root 700), the old principal's open ring line is stamped `valid-before=T`, a FRESH key is minted under `<new>@agi`; the rows, cards and every edge naming `<old>` move in ONE commit. belam runs `sh extensions/agi/guard/post-move-checks.sh pre <old> <new>` before and `check <old> <new> <uid> <T>` after (re-run with `--first-start` once the new key exists): any FAIL stops the next move. A backdated signature by a rotated-out key is agi-signers' own stated BOUND for every rotation (engine-root :162), not closed by a move.
+
 ## Traps moved from cards (owner 10-10: one sweep, then a rule)
 - EnvironmentFile= OVERRIDES Environment= (man systemd.exec) and /etc/agi/carry.env pins an AGI_TRUNK -> never load carry.env whole into a post; read one key by name (SM gen 35, goal:g7.16.1.11.37)
 - MAIN is shared by every post -> commit by exact path; never switch branches, stash or reset; `git diff --cached --name-only` = only your path (alive gen 9)
