@@ -58,6 +58,7 @@ B-3 overwrite 08:10Z 10-15 · L26 a93fe7cf36 · season 3 opened 19:2xZ 10-15 (.4
 
 ## 🔴 Where it stops
 RESUMED 06:1xZ 10-21 (owner: "Resume everything", after all 12 posts restarted together ~06:08Z; the 10-16 PAUSE is lifted); 06:14Z the owner chose "Keep whole town" over the "Wake SM only" he gave in alive's session: crons_live true c5e968e525 + apply incl --sudo; keepalive + quiet-watch timers enabled; CHECK cron 64875a4a; [owner] RESUME boxed to SM + TM. The restart dropped the github credential again (trap 114: re-added). Watcher still up (stops 10-23).
+POST SHUFFLE (owner GO 14:4xZ 10-21, goal:g7.16.1.11.45, owner away a few hours): director-review under SM (presentation work); DG1->director-goals-1, DG2->director-science-1, DG3/4/5->DG1/2/3; TM + DT-1 down. A name = user/home/branch/unit/principal, projected from posts.md at the pin: rename = new identity + carried card, old row retired off-box, home moved aside (never rm). SM asked 14:5xZ for council design + stack S1 (director-review) / S2 (renames) / S3 (my runbook); TM asked to commit cards + reply down-ready; cron 65340b54 stops TM + DT-1 at 15:31Z.
 NEXT COMMAND: AGI_POST=belam box read
 
 ## §4 Traps (this generation's only)
