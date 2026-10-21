@@ -14,12 +14,15 @@ MAX_REQUESTS = 3
 DUR_MIN, DUR_MAX = 25.0, 35.0
 URL = 'https://openrouter.ai/api/v1/chat/completions'
 # names the owner's goal cites as references (goal:g5.4.2 :36) and phrasings that ask for a named artist: a prompt is style descriptors only
-GUARD = ['delinquent habits', 'balkan beat box', 'return of the tres', 'hermetico', 'in the style of', 'sounds like', 'in the vein of', 'covers of']
+GUARD = ['return of the tres', 'delinquent habits', 'hermetico', 'balkan beat box', 'in the style of', 'sounds like', 'in the vein of', 'covers of']
 PROMPTS = [
     ('a', 'swing-flamenco', 'Instrumental, exactly 30 seconds, ending cleanly. A two-beat swing pulse with a muted trombone lead, nylon-string guitar rasgueado, palmas handclaps and a cajon, upright bass. D Phrygian, about 150 bpm. Cheeky, warm, dancing.'),
     ('b', 'balkan-brass-swing', 'Instrumental, exactly 30 seconds, ending cleanly. A brass-band shout section with clarinet and accordion, a swung groove that leans on odd-meter accents, handclaps and a big bass drum. A bright turn between minor and major. About 160 bpm. Rowdy, joyful, street-party.'),
     ('c', 'trombone-flamenco-jazz', 'Instrumental, exactly 30 seconds, ending cleanly. A slow warm theme on trombone over a flamenco compas, wood-brush drums and upright bass, nylon guitar answering. A wordless crowd shout of olé at the very end. About 110 bpm. Smoky, dignified, late evening.'),
 ]
+DESC = {'a': 'instrumental swing-flamenco: muted trombone lead, nylon guitar, palmas, about 150 bpm',
+        'b': 'instrumental balkan brass swing: brass shout section, clarinet, accordion, about 160 bpm',
+        'c': 'instrumental with a wordless crowd shout: slow trombone theme over a flamenco compas, about 110 bpm'}
 now = lambda: time.strftime('%H:%M:%SZ', time.gmtime())
 STOP, SENT = [], []
 
@@ -101,11 +104,12 @@ def sample(key, letter, slug, prompt):
 
 def main(keyfile):
     key = open(os.path.expanduser('~/keys/' + keyfile)).read().strip()
-    rows = ['season 3 music samples (DRAFT, for the owner\'s ear): Lyria 3 clip (google/lyria-3-clip-preview) via OpenRouter, 30 s each, instrumental, prompts are style descriptors only (no artist or song names). The owner picks a direction; no full track exists yet. The mp3s carry the provider\'s c2pa manifest.', '']
+    rows = ['season 3 music samples (DRAFT, for the owner\'s ear): Lyria 3 clip (google/lyria-3-clip-preview) via OpenRouter, 30 s each, prompts are style descriptors only (no artist or song names). The mp3s carry the provider\'s c2pa manifest.',
+            'Why instrumental: these samples test STYLE (tempo, lead, mood). The music VIDEO is its own piece (like "Three of Three", 2:59), not a bed under the narration. A sung full track is possible after your pick (the pro model, $0.08); sung or instrumental for the real track is the owner\'s pick. No full track exists yet.', '']
     for letter, slug, prompt in PROMPTS:
         status, note = sample(key, letter, slug, prompt)
         say(letter, status, note)
-        rows.append(f'music-sample-{letter}-{slug}.mp3: {status.upper() if status != "ok" else "ready"}: {note}. Prompt: {prompt}')
+        rows.append(f'music-sample-{letter}-{slug}.mp3: {status.upper() if status != "ok" else "ready"}: {DESC[letter]}; {note}. Prompt: {prompt}')
         if STOP:
             rows.append(f'stopped: {STOP[0]}'); break
     os.makedirs(DELIVER, exist_ok=True)

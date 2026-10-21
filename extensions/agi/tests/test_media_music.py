@@ -125,3 +125,50 @@ def test_main_writes_a_readme_with_every_prompt_and_stops_clean_on_http(m, monke
     txt = Path(m.DELIVER, 'README-music.txt').read_text()
     assert 'music-sample-a-swing-flamenco.mp3: ready' in txt and 'stopped: http' in txt and 'c2pa' in txt and 'secret' not in txt
     assert not Path(m.DELIVER, 'music-sample-c-trombone-flamenco-jazz.mp3').exists()
+
+
+# ---- council 12:06Z edits
+GOAL = HERE.parents[2] / '.agi/nodes/goal/g5.4.2.md'
+
+
+def direction_names():
+    """The song titles and artists in the goal's music direction line, FOUND BY MATCH (never a line number)."""
+    import re
+    line = next(l for l in GOAL.read_text(encoding='utf-8').split('\n') if re.search(r'music video\. Direction:', l))
+    titles = re.findall(r'"([^"]+)"', line)
+    artists = re.findall(r'by ([A-Z][A-Za-z ]+?)(?: and |\.|,|$)', line)
+    return [x.lower() for x in titles + artists]
+
+
+def test_the_four_names_are_pinned_in_the_code_guard(m):
+    for n in ('return of the tres', 'delinquent habits', 'hermetico', 'balkan beat box', 'in the style of'):
+        assert n in m.GUARD
+
+
+def test_every_name_in_the_goals_direction_line_is_in_the_guard(m):
+    names = direction_names()
+    assert len(names) == 4, names                                 # two titles, two artists: the match found them all
+    assert [n for n in names if n not in m.GUARD] == []
+
+
+def test_mutant_a_name_missing_from_the_guard_is_red(m):
+    m.GUARD.remove('balkan beat box')
+    assert [n for n in direction_names() if n not in m.GUARD] == ['balkan beat box']
+
+
+def test_prompt_b_balkan_brass_swing_passes_but_the_band_name_is_refused(m, monkeypatch):
+    assert m.guard(m.PROMPTS[1][2]) == []
+    calls = stub(m, monkeypatch, [sse(b'x')])
+    assert m.sample('k', 'b', 's', 'Instrumental, Balkan Beat Box brass, 160 bpm')[0] == 'refused' and calls == []
+
+
+def test_readme_says_sample_c_is_instrumental_with_a_wordless_crowd_shout_and_why(m, monkeypatch, tmp_path):
+    data = mp3(tmp_path, 30)
+    keydir = tmp_path / 'home' / 'keys'; keydir.mkdir(parents=True); (keydir / 'k.key').write_text('secret\n')
+    monkeypatch.setenv('HOME', str(tmp_path / 'home'))
+    stub(m, monkeypatch, [sse(data)] * 3)
+    m.main('k.key')
+    txt = Path(m.DELIVER, 'README-music.txt').read_text()
+    assert 'instrumental with a wordless crowd shout' in txt
+    assert 'music VIDEO is its own piece' in txt and 'Three of Three' in txt and "owner's pick" in txt and '$0.08' in txt
+    assert 'a bed under the narration' in txt and 'is the real reason' not in txt
