@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-15:25Z 10-21: .45 [decision] 3/3 SENT: council owns the schedule G0 (gates 114/115/104 + seeds wiring) -> G1 TM/DT-1 down -> G1b PIN BUMP = B3's one live `agi.sh host` (GO needs dry projection + ROOT rehearsal; after: host: met) -> G2 director-review -> G3 DG1->goals-1 -> G4 DG2->science-1 -> G5/G6 DG3->DG1, DG4->DG2 -> G7 DG5->DG3; per-post GO after prior CHECKS GREEN. Templates APPROVE v1 + edits + seeds-resolve BIND. NEXT: council GOs as each precondition reports (I send each GO after a [view] round).
+15:25Z 10-21: .45 [decision] 3/3 SENT: council owns the schedule G0 (gates 114/115/104 + seeds wiring) -> G1 TM/DT-1 down -> G1b PIN BUMP = B3's one live `agi.sh host` (GO needs dry projection + ROOT rehearsal; after: host: met) -> G2 director-review -> G3 DG1->goals-1 -> G4 DG2->science-1 -> G5/G6 DG3->DG1, DG4->DG2 -> G7 DG5->DG3; per-post GO after prior CHECKS GREEN. Templates APPROVE v1 + edits + seeds-resolve BIND. 15:26Z ADDENDUM sent: P1 carry.env one writer (agi.sh host); P2 per-move order 0,1a,4a(land while down),1b,2,3,4b in one sitting + CHECKS agi-<old> empty after 4b. NEXT: council GOs as each precondition reports (I send each GO after a [view] round).
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
