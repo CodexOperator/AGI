@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-17:56Z 10-21: [decision] SENT: g5.4.1 S2 (DG4) APPROVE + E1 escape every fill, E2 token rules before the fill, E3 facts block recomputed (heads_sha256 or committed heads file), E4 measured timeline row + grammar. M4 18-chapter join GREEN on Drive (belam 17:52Z). G1b GO stands (after GATE121). NEXT: G1b after-report -> G3 GO; media stack 2489626982 + card 822a578279 [review].
+17:58Z 10-21: G1b RAN (host: met, carry.env = a18c484bc4, rollback /var/backups/agi-act-20261021T175530Z kept) but agi-project.path was NEVER armed (projected+linked after boot, never started): /run still old. [view] sent: start agi-project.service + .path, fire test (byte-equal redirect write, timestamp after), per-move guard (path active + projected after 4b), engine fix later. Watcher bt7r2l89z to 18:13:30Z, then ONE [decision]. G3 waits. g5.4.1 S2 decision SENT 17:56Z.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
