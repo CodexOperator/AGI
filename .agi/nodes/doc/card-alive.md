@@ -30,41 +30,13 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   S2 -> S3 rollover; season-3 designs placed (.44.8 -> DG2, g5.4.1 -> DG4, .42.2 -> DG5 RETURNED 03:21Z, g12.3 -> DG1,
-         .31.1 -> DG3, captive fix -> DG1, g5.4.2 media -> DG3). All texts: refs/box/alive/sanctuary-master.
-       g5.4.2 10-16, every decision 3/3 (texts in that ref; the run doc = DG3's dg3-media-r2 branch):
-         M1+M2 script APPROVED (2b9260034e, 06:34Z; residue C12 heading + headings in sibling scope, landed fe1f7ec30a).
-         Accounting: a key's OWN usage after settle = 2 agreeing NON-ZERO reads >= mint+3 h (0 = full cap, never delete with 0);
-           OPENROUTER_ADMIN delta = contaminated upper bound (owner's other project); live keys NAMED; audio key limit =
-           worst + $0.50 (402 floor is on the REMAINING limit); NO mint if cap sum > $25.
-         Fidelity checker (media_fidelity.py): error-run class, negations + numbers protected, normalise list; calibrated;
-           audio-cut mutant RED (STT does not fill skips). Pronunciation = the owner's ears (stated scope).
-         Voice: owner picked Gemini Schedar (bc7ebf09f1), fav = c2a chunk; asleep -> council picked by PRE-REGISTERED rule:
-           p1 OUT (104.6/113.5 Hz), p2 temp-0 byte-identical but PCM RED (truncated ~30 s) -> ELSE: c2a default config,
-           normalised locally to 100 Hz (91 Hz + raw BANKED; he re-targets at 0 spend).
-         WALK approved 08:08Z with W1 STT key $0.90 · W2 5xx retry once after 60 s · W3 2nd fidelity RED keeps the better
-           take, flagged "partial" (PCM RED skipped) · W4 static-card explainer-chNN-<slug>.mp4 per chapter (ch00..ch17,
-           ONE encode profile) so belam's watcher joins 00-explainer-full-so-far.mp4. Walk keys TTS $4.20 / STT $0.90,
-           expire mint+110 min; cap sum 13.186. C2 first, then C0, C1, C3...
-       WALK GO (SM 08:16Z), council 3/3 agree 08:17Z (residues R1 429-as-5xx, R2 calendar.timegm). ENDED CLEAN 09:07:48Z:
-         18/18 chapters (36 files), C15 flag = FALSE RED (scribe wrote '47%', checker strips '%') -> 3/3 [decision] 09:11Z:
-         DG3 README line, normalise '%' at next media_fidelity edit. Keys disabled 09:09:33Z ($0.2035 + $0.0330).
-       12:06Z: g12.3 3882925f10 APPROVED 3/3 (calls agree; binding: helper idempotent before S4 rollover; record the 100 s s1 drop).
-         M5 page DONE (a1 mutant was mine, dropped; README :72 stale -> fix). M6 APPROVED instrumental, key \$0.65, guard list in code + node test.
-       11:57Z M5 design APPROVED 3/3 (audio on Drive layout, number check prose-only, C15 generic rule on the kept take).
-       11:54Z g5.4.2 NEXT 3/3 (+ [correction] 11:55Z): OPEN, design first: 0 C12 residue = DONE (fe1f7ec30a on dg3-media-r2)
-         -> M5 HTML (C15 checker re-run inside) -> M6 <= 3 Lyria samples, owner picks -> M4 last, memory-gated, pilot C2.
-         Walk edits ride with the next walk. L29 7965c4fe8c landed (tree = merge-tree, checked).
-       11:22Z: .20.3 CAPTIVE 75743e7d06 APPROVED 3/3 (nits r=, unchecked mv, mtime vs .t); .44.8 S2a 5a2b140541 RETURNED 3/3
-         (R1 failed act re-runs 'host: met' -> host.done == PIN; B1 agi-boot -> up_posts, B2 start's host check = hostmet, S2b).
-       .44.8 S2 PLACEMENT APPROVED 3/3 09:20Z: Q2=(b) (S2a host fold = act only; move + retire -> S3), 8 conditions
-         (one impl · VALUE_0 kept · visudo write · live ck_ · pubkey on own branch · step table · town.starting · STEP-0 once).
-         Q3 sudoers 3/3 09:21Z: cell = expected bytes of an EXISTING file; absent -> the narrow line only; print BROAD.
-       .44.8 S1 re-cut 5fa65c26aa APPROVED 3/3 09:11Z, LANDED L28 1cb54e68f0 (tree = merge-tree, checked) (L28 on the LIVE trunk; S2 residues: '/' exemption -> [ -e ], watch
-         systemctl fail-open).
-       .44.8 S1 36d988dfc1 RETURNED 3/3 07:56Z: 7 fixes (activating units, silent ack skip, crons foreign blocks,
-         status runs refusals, root git preflight, stale town.state + watch cross-check, dotted-token secret guard).
-NEXT   [review] each gated tip as SM sends it: .44.8 S2a re-cut (host.done), DG3's M4 [design], M6 samples result, g5.4.1 S1, .42.2 re-cut, .31.1, captive fix
+done   10-16..10-21, every word 3/3 (texts: refs/box/alive/sanctuary-master): S2->S3 rollover + season-3 placements;
+         .44.8 S1 L28 1cb54e68f0 · S2 placement 09:20Z (Q2=(b), 8 conditions) · Q3 sudoers 09:21Z · S2a RETURNED 11:22Z (R1, B1, B2);
+         .20.3 captive 75743e7d06 APPROVED · g12.3 3882925f10 APPROVED (L30 3a91789da4) · g5.4.2 M1/M2, walk (18/18, C15 false RED),
+         M5 page DONE, M6 DONE 06:17Z 10-21 (3 samples, owner picks; astats clip RED for the real track) · M4 APPROVED 08:03Z 10-21
+         (start test union + C1-C5 + A2; pilot C2 then WAIT for our word).
+       Accounting rule: own usage = 2 agreeing NON-ZERO reads >= mint+3 h; no mint if cap sum > $25 (now 4.812).
+NEXT   [review] each gated tip as SM sends it: .44.8 S2b placement, DG3's M4 pilot result, M5 visual, g5.4.1 S1, .42.2 re-cut, .31.1, captive fix
        · g5.4.2: M4 (animated) / M5 (HTML) / M6 (music) wait for the council's word; settle reads (r2 >= 09:44Z, G 10:39Z, S 10:43Z, P1 10:59Z, P2 11:03Z); the owner's overrule on waking
        · .44.8 S2: S5's posts.md pubkey commit gated; S9 waits w/ timeout; start MOVES town.state aside (binding)
        · at each PASS close: read back core/main == season3/main (P2')
