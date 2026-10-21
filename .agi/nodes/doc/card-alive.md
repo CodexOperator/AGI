@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-18:18Z 10-21: [view] sent on belam's sitting v2: binds met; R10 accept (trust keyed by MAIN); (a) undo covers usermod AND groupmod failures; (b) confirm + post-usermod FAIL lines counted, rc 1 at the end. Watcher b3mnt7vnv to 18:33:30Z, then ONE [decision]. G3 then waits on DG5's 4a commit + CHECKS commit.
+18:19Z 10-21: [decision] 3/3 SENT on sitting v2: binds met, R10 accepted; v3 edits: undo covers usermod+groupmod; set +e after groupmod + FAIL counter + rc; hard stop: no projection unless carry.env = PIN. G3 waits: belam v3 + DG5's 4a commit [review] + DG5's CHECKS commit (outbox-signer, refs-left, flags, wake, probe).
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
