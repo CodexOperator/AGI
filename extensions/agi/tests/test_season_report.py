@@ -7,6 +7,7 @@ season_report.py with ONE line changed, run the same way, which must go RED.
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import re
 import subprocess
@@ -320,7 +321,7 @@ def test_r4_a_garbage_gpgsig_header_is_not_signed_and_a_header_reading_mutant_is
     c = json.loads(_facts_raw(repo=world["repo"], at=world["c3"]).stdout)
     assert c["close"]["signed"] is False and "UNVERIFIED ladder-cell commit" in c["close"]["label"]
     assert c["ledger"]["signed_label"] == "signature header (not verified)" and c["ledger"]["signed"] == 0     # the close commit is OUT of its own window; the count is labelled a header count
-    mut = _mutant(tmp_path, '    verified = _git(repo, "log", "-1", "--format=%G?", c["sha"]).decode().strip() == "G"', '    verified = c["signed"]')
+    mut = _mutant(tmp_path, '    verified = letter == "G"', '    verified = c["signed"]')
     m = json.loads(_facts_raw(cli=mut, repo=world["repo"], at=world["c3"]).stdout)["close"]
     assert m["signed"] is True, "MUTANT (the header is read, not verified) must be RED: the garbage header then reads 'signed'"
 
@@ -373,7 +374,7 @@ def test_r3_a_malformed_or_empty_heads_file_is_refused_rc2_and_a_skipping_mutant
 
 
 def test_box_facts_absent_reads_not_recorded_and_a_present_value_carries_its_provenance(tmp_path: Path, pinned: dict):
-    assert all(v == {"value": "not recorded"} for v in pinned["box"].values()) and len(pinned["box"]) == 7
+    assert all(v == {"value": "not recorded"} for v in pinned["box"].values()) and len(pinned["box"]) == 8
     ok = tmp_path / "box.json"
     ok.write_text(json.dumps({"run_rc": {"value": 0, "command": "season.py rollover --global --apply", "reader_uid": "a-seat",
                                          "read_time": "2026-10-15T06:24:00Z"}}))
@@ -386,7 +387,7 @@ def test_box_facts_absent_reads_not_recorded_and_a_present_value_carries_its_pro
         p.write_text(json.dumps(bad))
         r = _facts_raw("--box-facts", str(p))
         assert r.returncode == 2 and r.stdout == b"", bad
-    mut = _mutant(tmp_path, '        if not _TIME.match(str(v["read_time"])):\n', '        if False:\n')
+    mut = _mutant(tmp_path, '    if not _TIME.match(str(v["read_time"])):\n', '    if False:\n')
     p.write_text(json.dumps(stale))
     assert _facts_raw("--box-facts", str(p), cli=mut).returncode == 0, "MUTANT (read_time unchecked) must be RED"
 
@@ -494,3 +495,354 @@ def test_p1_a_player_outside_the_media_block_mutant_is_red():
     mut = text.replace("{{#media}}\n  <div class=\"player\"", "  <div class=\"player\"", 1)
     outside = re.sub(r"\{\{#media\}\}.*?\{\{/media\}\}", "", mut, flags=re.S)
     assert 'class="player"' in outside, "MUTANT (player pulled out of the media block) must be RED"
+
+
+# =====================================================================================================================================
+# S2 (goal:g5.4.1): refresh-facts, render, and the council's binds N1 N2 N3 / E1-E4
+# =====================================================================================================================================
+DOC_FIX = HERE / "fixtures" / "season_report" / "doc-season-3-report.md"
+BOX_FIX = HERE / "fixtures" / "season_report" / "box-facts-20261015.json"
+TEMPLATE_REL = "extensions/agi/templates/season_report/report.html"
+DOC_ID, DOC_REL = "doc:season-3-report", f"{NODES}/doc/season-3-report.md"
+SCRIPT_REL = "extensions/agi/bin/season_report.py"
+
+
+def _load(path: Path):
+    spec = importlib.util.spec_from_file_location("sr_" + re.sub(r"\W", "_", str(path)), path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _run(cli: Path, *args: str, repo: Path = ROOT) -> subprocess.CompletedProcess:
+    return subprocess.run([sys.executable, str(cli), "--repo", str(repo), *args], capture_output=True)
+
+
+def _refresh(doc: Path, *, cli: Path = CLI, season: str = "3", heads: Path = HEADS, box: Path | None = BOX_FIX, repo: Path = ROOT, at: str = PIN) -> subprocess.CompletedProcess:
+    extra = ["--box-facts", str(box)] if box else []
+    return _run(cli, "refresh-facts", "--doc", str(doc), "--season", season, "--at", at, "--heads-file", str(heads), *extra, repo=repo)
+
+
+class Site:
+    """A throwaway `--shared` clone where commits are made with plumbing only: a template blob + a doc blob on top of the repo's HEAD, no ref moved."""
+    def __init__(self, root: Path):
+        self.root, self.clone = root, root / "clone"
+        subprocess.run(["git", "clone", "-q", "-n", "--shared", str(ROOT), str(self.clone)], check=True, capture_output=True)
+        self.base = _git(ROOT, "rev-parse", "HEAD").strip()
+        d = root / "doc.md"
+        d.write_text(DOC_FIX.read_text().replace("@PREV@", PREV))
+        assert _refresh(d).returncode == 0
+        self.doc = d.read_text()
+
+    def commit(self, doc_text: str | None = None, *, template: str | None = None, extra: dict | None = None) -> str:
+        env = {"PATH": "/usr/bin:/bin", "HOME": str(self.root), "GIT_INDEX_FILE": str(self.root / "idx"), "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t.invalid",
+               "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t.invalid", "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_SYSTEM": "/dev/null"}
+        def g(*a: str, inp: str | None = None) -> str:
+            r = subprocess.run(["git", "-C", str(self.clone), *a], input=inp, capture_output=True, text=True, env=env)
+            assert r.returncode == 0, (a, r.stderr)
+            return r.stdout.strip()
+        g("read-tree", self.base)
+        for rel, text in {TEMPLATE_REL: template if template is not None else TEMPLATE.read_text(), DOC_REL: doc_text if doc_text is not None else self.doc, **(extra or {})}.items():
+            g("update-index", "--add", "--cacheinfo", f"100644,{g('hash-object', '-w', '--stdin', inp=text)},{rel}")
+        return g("commit-tree", g("write-tree"), "-p", self.base, "-m", "fixture B", inp="")
+
+    def variant(self, old: str, new: str, count: int = 1) -> str:
+        assert self.doc.count(old) == count, (self.doc.count(old), old)
+        return self.commit(self.doc.replace(old, new))
+
+    def render(self, at: str, out: Path, *extra: str, cli: Path = CLI, heads: Path = HEADS, box: Path | None = BOX_FIX, doc: str = DOC_ID) -> subprocess.CompletedProcess:
+        more = ["--box-facts", str(box)] if box else []
+        return _run(cli, "render", "--doc", doc, "--at", at, "--out", str(out), "--heads-file", str(heads), *more, *extra, repo=self.clone)
+
+
+@pytest.fixture(scope="module")
+def site(tmp_path_factory) -> Site:
+    return Site(tmp_path_factory.mktemp("site"))
+
+
+@pytest.fixture(scope="module")
+def b0(site: Site) -> str:
+    return site.commit()
+
+
+@pytest.fixture(scope="module")
+def page(site: Site, b0: str, tmp_path_factory) -> str:
+    out = tmp_path_factory.mktemp("page") / "report.html"
+    r = site.render(b0, out)
+    assert r.returncode == 0, r.stderr.decode()
+    return out.read_text()
+
+
+def _out(tmp_path: Path) -> Path:
+    d = tmp_path / "out"
+    d.mkdir(parents=True, exist_ok=True)
+    return d / "report.html"
+
+
+def _files(out: Path) -> list[str]:
+    return sorted(p.name for p in out.parent.iterdir())
+
+
+# ---- the page: F8 F4 F2 and a clean read ---------------------------------------------------------------------------------------------
+def _table_rows(page: str, first_th: str) -> int:
+    seg = page.split(f"<th>{first_th}</th>", 1)[1].split("</table>", 1)[0]
+    return seg.count("<tr>") - 0 if "<thead>" not in seg else seg.split("</thead>", 1)[1].count("<tr>")
+
+
+def test_render_draws_the_fixture_doc_with_every_head_and_the_nine_archives_and_no_player(page: str):
+    assert "<title>Season 3 Rollover</title>" in page and "{{" not in page
+    heads_in_file = len([ln for ln in HEADS.read_text().splitlines()[1:] if "\trefs/heads/" in ln])
+    assert heads_in_file == 20 == _table_rows(page, "Head"), "F8: head rows on the page == lines in the heads file (fixture heads-20261015T1941Z, 20)"
+    assert _table_rows(page, "Archive ref (refs/agi/archive/…)") == 9, "F4: archive rows == the seed's 9 of the fixture's 43"
+    assert "20 of 20 heads drawn" in page
+    for tag in ("<audio", "<script", 'class="player"'):
+        assert tag not in page, f"{tag}: no media passed, no player"
+    assert "190</b>" in page and "first-parent LAND merges" in page and "19 of them carry a stack number" in page            # N1
+    assert "git verify" in page and "Twelve restarts" in page and "05:59:52Z" in page                                     # N2; a box event time through |hms
+    allowed = set(re.findall(r"\b[0-9a-f]{7,40}\b", json.dumps(_facts(), sort_keys=True))) | set(re.findall(r"\b[0-9a-f]{7,40}\b", TEMPLATE.read_text()))
+    assert {t for t in re.findall(r"\b[0-9a-f]{7,40}\b", page) if re.search(r"\d", t)} <= allowed, "F2: a hex token on the page is in neither the facts nor the template"
+
+
+def test_f1b_two_renders_are_byte_equal_and_a_clock_in_the_page_mutant_is_red(site: Site, b0: str, tmp_path: Path):
+    a, b = _out(tmp_path / "a"), _out(tmp_path / "b")
+    assert site.render(b0, a).returncode == 0 and site.render(b0, b).returncode == 0
+    assert a.read_bytes() == b.read_bytes(), "F1b: two renders of the same commit differ"
+    mut = _mutant(tmp_path, "    page = _render(_parse_template(template), ctx, [])\n",
+                  "    page = _render(_parse_template(template), ctx, []) + 'x' * (time.time_ns() % 9973)\n")
+    m1, m2 = tmp_path / "m1.html", tmp_path / "m2.html"
+    assert site.render(b0, m1, cli=mut).returncode == 0 and site.render(b0, m2, cli=mut).returncode == 0
+    assert m1.read_bytes() != m2.read_bytes(), "MUTANT (a clock in the page) must be RED: its two renders must differ"
+
+
+def test_f8_and_f4_a_row_selection_that_drops_or_adds_rows_is_refused_by_the_page_check_and_passes_without_it(site: Site, b0: str, tmp_path: Path):
+    check_off = ("        if ctx.iters[path] != want:\n", "        if False:\n")
+    for sel, tag, rows in (('    return items[:12] if path == "facts.grid.heads" else items\n', b"F8", b"12 rows"),
+                           ('    return items + items[:1] * 34 if path == "facts.grid.archives" else items\n', b"F4", b"43 rows")):
+        mut = _mutant(tmp_path, "    return items\n", sel)
+        r = site.render(b0, _out(tmp_path), cli=mut)
+        assert r.returncode == 2 and tag in r.stderr and rows in r.stderr and _files(_out(tmp_path)) == [], f"{tag}: the selection must be refused"
+        both = tmp_path / f"both-{tag.decode()}.py"
+        both.write_text(mut.read_text().replace(*check_off))
+        assert site.render(b0, tmp_path / f"both-{tag.decode()}.html", cli=both).returncode == 0, f"MUTANT ({tag} check off) must be RED: the bad selection then renders"
+
+
+# ---- E1: every fill is escaped ---------------------------------------------------------------------------------------------------------
+def test_e1_a_script_in_the_narrative_and_in_a_head_name_is_escaped_and_the_no_escape_mutants_are_red(site: Site, tmp_path: Path):
+    evil = site.variant("The season {{facts.prev_season}} line was folded", "</p><script>x</script> The season {{facts.prev_season}} line was folded")
+    r = site.render(evil, _out(tmp_path))
+    assert r.returncode == 0, r.stderr.decode()
+    p = _out(tmp_path).read_text()
+    assert "<script" not in p and "&lt;/p&gt;&lt;script&gt;x&lt;/script&gt;" in p, "E1: the narrative was not escaped"
+    mut = _mutant(tmp_path, "        out.append(html.escape(text[pos:m.start()]))\n", "        out.append(text[pos:m.start()])\n")
+    assert site.render(evil, tmp_path / "m.html", cli=mut).returncode == 0 and "<script" in (tmp_path / "m.html").read_text(), "MUTANT (narrative unescaped) must be RED"
+    # a head name any post writes reaches the template rows and the svg label
+    heads = tmp_path / "heads-evil.txt"
+    heads.write_text(HEADS.read_text() + "dc7ec920bafd2c117a269beb3356988f4f3ec859\trefs/heads/x</p><script>1</script>\ndc7ec920bafd2c117a269beb3356988f4f3ec859\trefs/heads/<img/src=x/onerror=1>\n")
+    d = tmp_path / "evil.md"
+    d.write_text(DOC_FIX.read_text().replace("@PREV@", PREV))
+    assert _refresh(d, heads=heads).returncode == 0
+    roles = d.read_text().replace('"web-app-suite/season3/main"', '"x</p><script>1</script>": "evil", "<img/src=x/onerror=1>": "evil", "web-app-suite/season3/main"', 1)
+    b = site.commit(roles)
+    r = site.render(b, tmp_path / "evil.html", heads=heads)
+    assert r.returncode == 0, r.stderr.decode()
+    q = (tmp_path / "evil.html").read_text()
+    assert "<script" not in q and "<img" not in q and "&lt;script&gt;1&lt;/script&gt;" in q, "E1: a head name reached the page raw"
+    mut = _mutant(tmp_path, "    return html.escape(s)\n", "    return s\n")
+    assert site.render(b, tmp_path / "evil-m.html", heads=heads, cli=mut).returncode == 0 and "<script" in (tmp_path / "evil-m.html").read_text(), "MUTANT (template fill unescaped) must be RED"
+
+
+# ---- E2/E4: the token rules, read with the slots masked ---------------------------------------------------------------------------------
+@pytest.fixture(scope="module")
+def sr():
+    return _load(CLI)
+
+
+@pytest.fixture(scope="module")
+def ground(sr, tmp_path_factory):
+    f, ids = sr.facts_full(str(ROOT), 3, PIN, str(HEADS), str(BOX_FIX))
+    return f, ids
+
+
+def test_e4_the_digit_and_time_grammar_names_the_token_and_the_slot_to_use(sr, ground):
+    f, ids = ground
+    p = lambda text, mod=sr: mod.narr_problems(text, f, ids, "x")
+    assert p("L22 and L6 landed; goal:g5.4 holds it; the close was 06:24Z (6:24Z, 06:24:17Z) on 2026-10-15.") == []
+    assert p("{{facts.close.sha}} {{facts.counts.engine_active|n}} nodes") == [], "E2: slots are masked"
+    for bad, needle in (("tip 2a8056bcb5", "sha-shaped"), ("goal:g9.99.99", "not a node id"), ("L99", "stack label"), ("06:25Z", "not a time in the facts"),
+                        ("06:24", "digit token"), ("2026-10-16", "not a date"), ("{{narr.lede}}", "inside a narrative")):
+        got = p(bad)
+        assert got and needle in got[0], (bad, got)
+    assert "{{facts.ledger.lands_total}}" in p("190 lands")[0], "the refusal names the slot that holds the number"
+    assert len(p("12 posts L99 goal:g9.99.99")) == 3
+
+
+def test_e4_mutants_the_normalisation_and_the_sha_rule_and_the_masking_are_red(sr, ground, tmp_path: Path):
+    f, ids = ground
+    norm = _load(_mutant(tmp_path, '            norm = f"{int(tm.group(1)):02d}:{tm.group(2)}"', '            norm = f"{tm.group(1)}:{tm.group(2)}"'))
+    assert norm.narr_problems("6:24Z", f, ids, "x") != [], "MUTANT (hours not zero-padded) must be RED: 6:24Z then fails"
+    nosha = _load(_mutant(tmp_path, "        if _SHA_TOKEN.match(tok):\n", "        if False:\n"))
+    assert "sha-shaped" not in " ".join(nosha.narr_problems("tip 2a8056bcb5", f, ids, "x")), "MUTANT (the sha rule off) must be RED: its message is gone"
+    late = _load(_mutant(tmp_path, '    masked = _SLOT.sub("\\x00", text)\n', "    masked = _SLOT.sub(lambda m: str(facts_json.get('close', {}).get('sha', '')), text)\n"))
+    assert late.narr_problems("{{facts.close.sha}}", f, ids, "x") != [], "MUTANT (the checks after the fill) must be RED: the slot row then fails"
+
+
+def test_e4_a_real_seasons_timeline_with_literal_times_is_mostly_refused_so_when_comes_from_box_facts(sr, ground):
+    """The seed page's ten timeline rows carry 15 real times. Written as literals they are checked against the times in the FACTS (git + the seven
+    box cells). Only the ones that are facts pass; the rest are refused, which is why a timeline `when` is a {{facts.box.events.*|hms}} slot."""
+    f, ids = sr.facts_full(str(ROOT), 3, PIN, str(HEADS), None)          # the facts the S1 design had: no events
+    real = ["05:58Z", "05:59:52Z", "06:07Z", "06:15Z", "06:21Z", "06:24Z", "06:24Z", "06:27Z", "06:28:21Z", "07:40Z", "07:41Z", "07:42Z", "08:08Z", "08:09Z", "08:10Z"]
+    refused = [t for t in real if sr.narr_problems(t, f, ids, "when")]
+    assert (len(real), len(refused)) == (15, 13), (len(refused), refused)      # only the two 06:24Z (the close) are facts
+    f2, ids2 = ground                                                          # with the fixture's box facts the events carry the times
+    assert all(not sr.narr_problems("{{facts.box.events.%s.value|hms}}" % n, f2, ids2, "when") for n in f2["box"]["events"])
+
+
+# ---- E3: the FACTS block is checked, not trusted ------------------------------------------------------------------------------------------
+def test_e3_a_hand_edited_block_byte_and_a_different_heads_file_are_refused_and_a_trusting_render_is_red(site: Site, b0: str, tmp_path: Path):
+    led = json.loads(re.search(r"```json\n(.*)\n```", site.doc, re.S).group(1))["ledger"]
+    edited = site.variant(f'"commits": {led["commits"]},', f'"commits": {led["commits"] + 1},')
+    r = site.render(edited, _out(tmp_path))
+    assert r.returncode == 2 and b"ledger.commits" in r.stderr and _files(_out(tmp_path)) == []
+    mut = _mutant(tmp_path, "    bad = _first_diff(fresh, block)\n", "    bad = None\n")
+    m = site.render(edited, tmp_path / "m.html", cli=mut)
+    assert m.returncode == 0, "MUTANT (render trusts the block) must be RED: the hand-edited byte then renders"
+    other = tmp_path / "other-heads.txt"
+    lines = HEADS.read_text().split("\n")
+    i = next(n for n, ln in enumerate(lines) if "\trefs/heads/" in ln)
+    lines[i] = lines[i][:39] + ("0" if lines[i][39] != "0" else "1") + lines[i][40:]               # one head's tip moves by a nibble
+    other.write_text("\n".join(lines))
+    assert other.read_text() != HEADS.read_text()
+    r = site.render(b0, _out(tmp_path), heads=other)
+    assert r.returncode == 2 and b"re-checkable" in r.stderr and _files(_out(tmp_path)) == []
+    nohash = _mutant(tmp_path, '    if _sha256(heads_file) != inputs["heads_sha256"]:', "    if False:")
+    assert b"re-checkable" not in site.render(b0, _out(tmp_path), heads=other, cli=nohash).stderr, "MUTANT (the heads hash unchecked) must be RED"
+    r = site.render(b0, _out(tmp_path), box=None)
+    assert r.returncode == 2 and b"box facts not re-checkable" in r.stderr
+
+
+# ---- F2 F5b and the section rules ----------------------------------------------------------------------------------------------------------
+def test_f2_a_typed_sha_a_phantom_id_a_bare_number_and_a_sha_in_a_role_cell_are_refused_with_no_file(site: Site, tmp_path: Path):
+    for old, new, needle in (("The season {{facts.prev_season}} line", "The tip 9e3f4a1b7c season {{facts.prev_season}} line", b"sha-shaped"),
+                             ("goal:g5.4 holds the design", "goal:g9.99.99 holds the design", b"not a node id"),
+                             ("The graph holds {{facts.counts.engine_active|n}}", "The graph holds 12 posts and {{facts.counts.engine_active|n}}", b"digit token"),
+                             ("(L22)", "(L99)", b"stack label"),
+                             ('"the town\'s integration line"', '"tip 2a8056bcb5"', b"sha-shaped")):
+        r = site.render(site.variant(old, new, count=site.doc.count(old)), _out(tmp_path))
+        assert r.returncode == 2 and needle in r.stderr and _files(_out(tmp_path)) == [], (old, r.stderr)
+    # the page-level F2 is its own defence: with the narrative rules off, a typed sha still never reaches the page
+    off = _mutant(tmp_path, "    masked = _SLOT.sub(\"\\x00\", text)\n", "    return out\n    masked = _SLOT.sub(\"\\x00\", text)\n")
+    b = site.variant("The season {{facts.prev_season}} line", "The tip 9e3f4a1b7c season {{facts.prev_season}} line")
+    r = site.render(b, _out(tmp_path), cli=off)
+    assert r.returncode == 2 and b"F2" in r.stderr and _files(_out(tmp_path)) == []
+
+
+def test_f5b_a_missing_or_unknown_section_and_a_missing_role_are_refused_with_no_file_and_a_write_first_mutant_is_red(site: Site, tmp_path: Path):
+    gone = site.variant("## narr.lede\n", "## narr.ledeX\n")
+    r = site.render(gone, _out(tmp_path))
+    assert r.returncode == 2 and b"unknown narrative section" in r.stderr and _files(_out(tmp_path)) == []
+    gone = site.variant("## narr.engine_note\n", "## engine_note\n")
+    r = site.render(gone, _out(tmp_path))
+    assert r.returncode == 2 and b"missing or empty" in r.stderr and b"narr.engine_note" in r.stderr and _files(_out(tmp_path)) == []
+    norole = site.variant('"master": "the default branch; only the outward sealer reads it",\n', "")
+    r = site.render(norole, _out(tmp_path))
+    assert r.returncode == 2 and b"roles must name every head" in r.stderr and b"master" in r.stderr and _files(_out(tmp_path)) == []
+    mut = _mutant(tmp_path, "    template, doc = blob(TEMPLATE_PATH), read_doc(blob(doc_path(doc_id)))\n",
+                  "    _write_atomic(out_file, 'partial')\n    template, doc = blob(TEMPLATE_PATH), read_doc(blob(doc_path(doc_id)))\n")
+    site.render(gone, _out(tmp_path), cli=mut)
+    assert _files(_out(tmp_path)) == ["report.html"], "MUTANT (write before the checks) must be RED: a refused render left a file"
+
+
+# ---- F7 and the media block ------------------------------------------------------------------------------------------------------------------
+def test_f7_a_player_needs_its_audio_next_to_the_page_and_a_js_unsafe_line_cannot_close_the_script(site: Site, b0: str, tmp_path: Path):
+    out = _out(tmp_path)
+    audio = tmp_path / "elsewhere" / "song-fixture.mp3"
+    audio.parent.mkdir()
+    audio.write_bytes(b"ID3")
+    r = site.render(b0, out, "--media", str(audio))
+    assert r.returncode == 2 and b"F7" in r.stderr and _files(out) == [], "the audio is not next to the out file: 1 missing"
+    mut = _mutant(tmp_path, "        if not (out_dir / ref).exists():\n", "        if False:\n")
+    assert site.render(b0, out, "--media", str(audio), cli=mut).returncode == 0, "MUTANT (F7 unchecked) must be RED: the page then points at a file that is not there"
+    out.unlink()
+    (out.parent / "song-fixture.mp3").write_bytes(b"ID3")
+    nasty = site.variant('"lines": [[0, "First line"], [4, "Second line"]]', '"lines": [[0, "</script><script>1</script>"], [4, "a & b"]]')
+    r = site.render(nasty, out, "--media", str(out.parent / "song-fixture.mp3"))
+    assert r.returncode == 0, r.stderr.decode()
+    p = out.read_text()
+    assert p.count("<script") == 1 and p.count("<audio") == 1 and "\\u003c/script\\u003e" in p and 'src="song-fixture.mp3"' in p
+    wrong = tmp_path / "other.mp3"
+    wrong.write_bytes(b"ID3")
+    r = site.render(b0, _out(tmp_path / "w"), "--media", str(wrong))
+    assert r.returncode == 2 and b"is not the doc's media src" in r.stderr
+
+
+# ---- N1 N2 N3 ------------------------------------------------------------------------------------------------------------------------------
+def test_n1_lands_total_counts_every_first_parent_land_merge_beside_names_and_the_equal_to_names_mutant_is_red(tmp_path: Path, pinned: dict):
+    led = pinned["ledger"]
+    indep = len([s for s in _git(ROOT, "log", "--first-parent", "--merges", "--format=%s", f"{OPEN3}^", f"^{OPEN2}^").split("\n") if ": LAND" in s])
+    assert led["lands_total"] == indep == 190 and led["names_count"] == len(led["names"]) == 19 and led["lands_total"] >= len(led["names"])
+    assert "never the season's lands" in led["names_rule"]
+    mut = _mutant(tmp_path, '    return [f"L{n}" for n in sorted(nums)], sum(1 for s in subjects if ": LAND" in s)\n', '    return [f"L{n}" for n in sorted(nums)], len(nums)\n')
+    assert json.loads(_facts_raw(cli=mut).stdout)["ledger"]["lands_total"] == 19 != indep, "MUTANT (lands_total = len(names)) must be RED on the pin"
+
+
+def test_n2_close_verify_is_the_git_letter_and_a_hard_coded_g_mutant_is_red(tmp_path: Path, pinned: dict, world: dict):
+    assert pinned["close"]["verify"] == _git(ROOT, "log", "-1", "--format=%G?", OPEN3).strip()
+    c = json.loads(_facts_raw(repo=world["repo"], at=world["c3"]).stdout)["close"]
+    assert c["verify"] != "G" and c["signed"] is False                         # the garbage-gpgsig close
+    mut = _mutant(tmp_path, '    letter = _git(repo, "log", "-1", "--format=%G?", c["sha"]).decode().strip() or "?"', '    letter = "G"')
+    assert json.loads(_facts_raw(cli=mut, repo=world["repo"], at=world["c3"]).stdout)["close"]["verify"] == "G", "MUTANT (verify hard-coded) must be RED on the garbage scratch"
+
+
+def test_n3_a_not_recorded_cell_reaches_the_page_as_the_words_not_recorded_and_a_blank_fill_mutant_is_red(site: Site, tmp_path: Path):
+    d = tmp_path / "s4.md"
+    d.write_text(DOC_FIX.read_text().replace("@PREV@", PREV).replace("@SEASON@", "4").replace(" (L22)", ""))
+    assert _refresh(d, season="4", box=None).returncode == 0                   # season 4 never opened at the pin: close and ledger read not recorded
+    facts4 = json.loads(re.search(r"```json\n(.*)\n```", d.read_text(), re.S).group(1))
+    assert facts4["ledger"] == {"value": "not recorded"} and facts4["close"] == {"value": "not recorded"}
+    b = site.commit(d.read_text())
+    out = _out(tmp_path)
+    r = site.render(b, out, box=None)
+    assert r.returncode == 0, r.stderr.decode()
+    p = out.read_text()
+    assert "<b>not recorded</b><span>commits in season 3" in p and "not recorded: not recorded (git verify not recorded" in p, "N3: the tiles must read 'not recorded'"
+    mut = _mutant(tmp_path, "            return NOT_RECORDED        # N3", "            return ''        # N3")
+    m = site.render(b, tmp_path / "m.html", box=None, cli=mut)
+    assert m.returncode != 0 or "<b></b><span>commits in season 3" in (tmp_path / "m.html").read_text(), "MUTANT (blank fill) must be RED"
+    typo = site.commit(d.read_text().replace("{{facts.counts.engine_active|n}}", "{{facts.counts.engine_activ|n}}"))
+    assert site.render(typo, _out(tmp_path), box=None).returncode == 2, "a typo outside a not-recorded cell stays loud"
+
+
+# ---- D2: refresh-facts rewrites the block and nothing else ----------------------------------------------------------------------------------------------
+def test_d2_refresh_facts_keeps_every_byte_outside_the_markers_and_refuses_a_broken_pair(site: Site, tmp_path: Path):
+    src = DOC_FIX.read_text().replace("@PREV@", PREV)
+    d = tmp_path / "doc.md"
+    d.write_text(src)
+    assert _refresh(d).returncode == 0
+    new = d.read_text()
+    a = src.index("<!-- FACTS:BEGIN")
+    z = src.index("<!-- FACTS:END -->") + len("<!-- FACTS:END -->")
+    na, nz = new.index("<!-- FACTS:BEGIN"), new.index("<!-- FACTS:END -->") + len("<!-- FACTS:END -->")
+    assert new[:na] == src[:a] and new[nz:] == src[z:], "D2: bytes outside the markers changed"
+    assert f"<!-- FACTS:BEGIN at={_git(ROOT, 'rev-parse', PIN).strip()} -->" in new and '"inputs"' in new
+    again = tmp_path / "again.md"
+    again.write_text(new)
+    assert _refresh(again).returncode == 0 and again.read_text() == new, "refresh-facts is idempotent"
+    for broken in (src.replace("<!-- FACTS:END -->", ""), src + "\n" + src[a:z]):
+        d.write_text(broken)
+        r = _refresh(d)
+        assert r.returncode == 2 and d.read_text() == broken and b"FACTS:BEGIN" in r.stderr
+    d.write_text(src)
+    mut = _mutant(tmp_path, "    _write_atomic(doc_file, text[:a] + _block_text(out) + text[b:])\n", "    _write_atomic(doc_file, text[:a].upper() + _block_text(out) + text[b:])\n")
+    assert _refresh(d, cli=mut).returncode == 0 and d.read_text()[: d.read_text().index("<!-- FACTS:BEGIN")] != src[:a], "MUTANT (the narrative rewritten) must be RED"
+
+
+def test_box_events_are_times_with_provenance_and_a_key_under_them_resolves(pinned: dict, tmp_path: Path):
+    ev = json.loads(BOX_FIX.read_text())["events"]
+    assert len(ev) == 12 and all(set(v) == {"value", "command", "reader_uid", "read_time"} for v in ev.values())
+    assert pinned["box"]["events"] == {"value": "not recorded"}
+    got = json.loads(_facts_raw("--box-facts", str(BOX_FIX)).stdout)["box"]
+    assert got["events"]["freeze_on"]["value"] == "2026-10-15T05:59:52Z" and got["pin"]["value"].startswith(PIN)
+    for bad in ({"events": {"freeze_on": {"value": "05:59", "command": "c", "reader_uid": "u", "read_time": "2026-10-15T06:00:00Z"}}}, {"events": {}}, {"events": {"Bad Name": {}}}):
+        p = tmp_path / "bad.json"
+        p.write_text(json.dumps(bad))
+        assert _facts_raw("--box-facts", str(p)).returncode == 2, bad
