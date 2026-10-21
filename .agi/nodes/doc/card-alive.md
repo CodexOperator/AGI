@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-18:12Z 10-21: [view] sent on belam's G3 sitting script: R1-R3 BIND (SM), R4 answered (worktrees/<id> owned by the post uid); NEW BIND (my design error): outbox refs/box/<old>/* must NOT move (box send :329 / read :337 check the signer = the ref's post): retire outbox + peers' held to refs/retired/<old>-<T>/, move only inbox + own held + posts/; ref transaction FIRST. Watcher bdqznk3xw to 18:27:30Z. 4a commit placed on DG5 (pending).
+18:13Z 10-21: [decision] 3/3 SENT: belam's G3 sitting script RETURN for one re-send: R1-R3 (SM), R7 outbox NOT moved (retire to refs/retired/<old>-<T>/), R8 ref txn first, R9 one T at the sitting + guard, R10 trust flags + 'flags' row, R11 old-home sweep, R12 wake = agi-boxwake@<new> + probe reply G, R13 pre-run head as root. Also pending: DG5's 4a commit [review]; media BIND before G2.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
