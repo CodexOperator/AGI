@@ -241,13 +241,13 @@ def test_land_refuses_staged_work_that_is_not_the_jobs(box):
     assert got.returncode == 3
     assert box.rev("HEAD") == head and box.tip() == staged               # no ff, the staged commit still only on the branch
     line = box.notice.read_text().strip()
-    assert line == f"[board] posts/belam carries 1 commits not the job's (first {staged[:7]}, %G?=G): no ff, the board line waits"
+    assert line == f"[board] {staged[:7]} refused: (b) path staged.txt"   # .44.2: the line names the sha, the rule, the path
 
 
 def test_mutant_ff_always_lands_the_staged_work(box):
     assert box.job().returncode == 0
     staged = box.hand_commit_on_branch()
-    m = mutant(box.tmp, "    if staged:\n        _notice(args.notice, _staged_line(post, len(staged), main, staged[0], args.signers))\n        return 3\n    try:   # the suite lock",
+    m = mutant(box.tmp, "    if refused:\n        _notice(args.notice, f\"[board] {refused[0][0][:7]} refused: {refused[0][1]}\")\n        return 3\n    try:   # the suite lock",
                "    try:   # the suite lock")
     box.job("land", src=m)
     assert box.rev("HEAD") == staged                                      # RED: the 'ff always' mutant lands unreviewed work
@@ -281,7 +281,7 @@ def test_an_unsigned_commit_dressed_as_the_jobs_is_not_landed(box):
     got = box.job("land", env=env)
     assert got.returncode == 3 and box.rev("HEAD") == head               # MAIN unmoved
     line = box.notice.read_text().strip()
-    assert forged[:7] in line and "%G?=N" in line and line.endswith("no ff, the board line waits")
+    assert line.startswith(f"[board] {forged[:7]} refused: (a)") and "%G?=N" in line
 
 
 def test_mutant_land_without_the_signature_check_ffs_the_forged_commit(box):
@@ -301,7 +301,7 @@ def test_a_commit_signed_by_another_key_on_the_ring_is_not_the_seats(box):
     head = box.rev("HEAD")
     got = box.job("land", env=dict(box.env, GIT_CONFIG_GLOBAL="/dev/null"))
     assert got.returncode == 3 and box.rev("HEAD") == head
-    assert forged[:7] in box.notice.read_text() and "%G?=G" in box.notice.read_text()
+    assert box.notice.read_text().startswith(f"[board] {forged[:7]} refused: (a)") and "%G?=G" in box.notice.read_text()
 
 
 def test_mutant_land_that_takes_any_ring_key_ffs_the_other_principals_commit(box):
@@ -318,7 +318,7 @@ def test_mutant_land_that_takes_any_ring_key_ffs_the_other_principals_commit(box
 def test_the_commit_step_also_refuses_to_stack_on_staged_work(box):
     staged = box.hand_commit_on_branch()
     got = box.job()
-    assert got.returncode == 3 and "not the job's" in got.stderr
+    assert got.returncode == 3 and f"{staged[:7]} refused: (b) path staged.txt" in got.stderr   # .42.2: hand work OFF nodes/ still blocks
     assert box.tip() == staged                                            # no board commit on top of work waiting on a pytest
 
 
@@ -377,9 +377,9 @@ def test_mutant_without_x_theirs_the_conflict_stalls_the_line(box):
     assert box.job().returncode == 0
     _main_edits_the_cell(box)
     old = box.tip()
-    m = mutant(box.tmp, '"--no-ff", "-X", "theirs", "-m"', '"--no-ff", "-m"')
+    m = mutant(box.tmp, 'opts = [] if hand else ["-X", "theirs"]', "opts = []")
     got = box.job(src=m)
-    assert got.returncode == 3 and box.tip() == old                         # RED: the real file settles it (the row above)
+    assert got.returncode == 3 and box.tip() == old                         # RED: the real file settles it (the row above; this is Fc's mutant)
 
 
 def test_a_refusal_the_x_option_cannot_settle_reaches_the_notice_file(box):
@@ -434,3 +434,521 @@ def test_no_writer_is_usage_rc_2(box):
 def test_help_exits_0():
     got = run(sys.executable, str(SRC), "--help")
     assert got.returncode == 0 and got.stdout.strip()
+
+
+# ---- goal:g7.16.1.11.42.2 (council 3/3 10-15): the :28 land takes the Prime's own NODE commits (F1-F9)
+class PrimeBox:
+    """Commits on posts/belam as the Prime's hand: any paths, modes, committer, signer. Each lands on the branch tip."""
+
+    def __init__(self, box):
+        self.b = box
+        self.keys = {}
+
+    def principal(self, who):
+        """A second ring member (`who`@agi) with its own key; returns the key's .pub path."""
+        if who not in self.keys:
+            key = self.b.home / f"key_{who}"
+            run("ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", str(key), "-C", who, check=True)
+            with open(self.b.signers, "a") as fh:
+                fh.write(f'{who}@agi namespaces="git" {" ".join(key.with_suffix(".pub").read_text().split()[:2])}\n')
+            self.keys[who] = f"{key}.pub"
+        return self.keys[who]
+
+    def commit(self, files=None, delete=(), move=(), modes=None, committer="belam", signer=None, msg="belam: a node edit",
+               onto=None, ref="refs/heads/posts/belam", merge=None):
+        """One commit on `onto` (default the branch tip): write `files`, delete, `git mv` pairs, chmod/symlink via `modes`
+        {path: '755'|'symlink'}. `signer` = a principal other than the seat's (key in the ring), None = the seat's own."""
+        b = self.b
+        wt = b.tmp / "prime"
+        if wt.exists():
+            shutil.rmtree(wt)
+        b.g("worktree", "add", "-q", "--detach", str(wt), onto or b.tip())
+        for path, text in (files or {}).items():
+            (wt / path).parent.mkdir(parents=True, exist_ok=True)
+            (wt / path).write_text(text)
+        for path in delete:
+            (wt / path).unlink()
+        for src, dst in move:
+            (wt / dst).parent.mkdir(parents=True, exist_ok=True)
+            b.g("mv", src, dst, cwd=wt)
+        for path, how in (modes or {}).items():
+            if how == "symlink":
+                (wt / path).unlink(missing_ok=True)
+                (wt / path).symlink_to("elsewhere")
+            else:
+                (wt / path).chmod(0o755)
+        b.g("add", "-A", cwd=wt)
+        env = dict(b.env, GIT_AUTHOR_NAME=committer, GIT_AUTHOR_EMAIL=f"{committer}@agi",
+                   GIT_COMMITTER_NAME=committer, GIT_COMMITTER_EMAIL=f"{committer}@agi")
+        sign = [] if signer is None else ["-c", f"user.signingkey={self.principal(signer)}"]
+        got = run("git", "-C", str(wt), *sign, "commit", "-q", "-m", msg, env=env)
+        assert got.returncode == 0, got.stderr
+        c = b.rev("HEAD", wt)
+        b.g("update-ref", ref, c)
+        b.g("worktree", "remove", "--force", str(wt))
+        return c
+
+    def job_commit(self):
+        """A commit that IS the job's own (exact subject + Board-job trailer, G by the seat): what the commit step makes."""
+        b = self.b
+        wt = b.tmp / "prime"
+        if wt.exists():
+            shutil.rmtree(wt)
+        b.g("worktree", "add", "-q", "--detach", str(wt), b.tip())
+        (wt / ".agi" / "cell.txt").write_text(f"{os.urandom(4).hex()}\n")
+        b.g("add", "-A", cwd=wt)
+        got = run("git", "-C", str(wt), "commit", "-q", "-m", SUBJECT, "-m", "Board-job: metrics_cell", env=b.env)
+        assert got.returncode == 0, got.stderr
+        c = b.rev("HEAD", wt)
+        b.g("update-ref", "refs/heads/posts/belam", c)
+        b.g("worktree", "remove", "--force", str(wt))
+        return c
+
+
+@pytest.fixture
+def pb(box):
+    return PrimeBox(box)
+
+
+NODE = ".agi/nodes/goal/x.md"
+LAND_ENV = lambda box: dict(box.env, GIT_CONFIG_GLOBAL="/dev/null")      # uid belam's git names no signers file
+
+
+def _refuses(box, rule, path=None, env=None):
+    head = box.rev("HEAD")
+    got = box.job("land", env=env or LAND_ENV(box))
+    assert got.returncode == 3 and box.rev("HEAD") == head, got.stderr
+    line = box.notice.read_text().strip().splitlines()[-1]
+    assert f" refused: {rule}" in line and (path is None or path in line), line
+    return line
+
+
+def test_f5_a_primes_node_commits_interleaved_with_the_jobs_own_land_whole_with_one_board_line(box, pb):
+    pb.commit({NODE: "1\n"})
+    pb.job_commit()
+    pb.commit({".agi/nodes/idea/y.md": "2\n"})
+    pb.job_commit()
+    tip = pb.commit({NODE: "3\n"})
+    got = box.job("land", env=LAND_ENV(box))
+    assert got.returncode == 0, got.stderr
+    assert box.rev("HEAD") == tip                                         # ff, no commit
+    assert len([ln for ln in got.stdout.splitlines() if " board: MAIN " in ln]) == 1
+
+
+def test_f1_a_node_only_rule_a_prime_commit_touching_the_engine_is_refused_and_main_is_unmoved(box, pb):
+    bad = pb.commit({"extensions/x.py": "print(1)\n"})
+    line = _refuses(box, "(b)", "extensions/x.py")
+    assert line == f"[board] {bad[:7]} refused: (b) path extensions/x.py"
+    assert box.tip() == bad
+
+
+def test_f1_mutant_without_rule_b_the_engine_commit_lands(box, pb):
+    bad = pb.commit({"extensions/x.py": "print(1)\n"})
+    m = mutant(box.tmp, '            if not path.startswith(NODES) or path.startswith(NOT_UNDER):\n                return f"(b) path {path}"',
+               '            if False:\n                return f"(b) path {path}"')
+    box.job("land", src=m, env=LAND_ENV(box))
+    assert box.rev("HEAD") == bad
+
+
+def test_f2_a_geometry_piece_is_refused_it_becomes_every_posts_bin(box, pb):
+    pb.commit({".agi/nodes/.geometry/engine-post.md": "x\n"})
+    _refuses(box, "(b)", ".agi/nodes/.geometry/engine-post.md")
+
+
+def test_f2_mutant_without_the_geometry_exclusion_the_piece_lands(box, pb):
+    bad = pb.commit({".agi/nodes/.geometry/engine-post.md": "x\n"})
+    m = mutant(box.tmp, 'NODES, NOT_UNDER = ".agi/nodes/", (".agi/nodes/.geometry/", ".agi/nodes/town/")',
+               'NODES, NOT_UNDER = ".agi/nodes/", (".agi/nodes/town/",)')
+    box.job("land", src=m, env=LAND_ENV(box))
+    assert box.rev("HEAD") == bad
+
+
+def test_f2b_a_town_node_is_refused_the_town_mirror_reads_it_into_every_crontab(box, pb):
+    pb.commit({".agi/nodes/town/x.md": "x\n"})
+    _refuses(box, "(b)", ".agi/nodes/town/x.md")
+
+
+def test_f2b_mutant_allowing_town_lands_it(box, pb):
+    bad = pb.commit({".agi/nodes/town/x.md": "x\n"})
+    m = mutant(box.tmp, 'NODES, NOT_UNDER = ".agi/nodes/", (".agi/nodes/.geometry/", ".agi/nodes/town/")',
+               'NODES, NOT_UNDER = ".agi/nodes/", (".agi/nodes/.geometry/",)')
+    box.job("land", src=m, env=LAND_ENV(box))
+    assert box.rev("HEAD") == bad
+
+
+def test_f3_a_node_commit_signed_by_another_principal_is_refused(box, pb):
+    pb.commit({NODE: "x\n"}, committer="sanctuary-master", signer="sanctuary-master")
+    line = _refuses(box, "(a)")
+    assert "signer sanctuary-master@agi" in line
+
+
+def test_f3_mutant_trusting_g_alone_lands_the_other_principals_node_commit(box, pb):
+    bad = pb.commit({NODE: "x\n"}, committer="sanctuary-master", signer="sanctuary-master")
+    m = mutant(box.tmp, '    if ce != f"{post}@agi" or g != "G" or who != f"{post}@agi":\n        return f"(a)',
+               '    if g != "G":\n        return f"(a)')
+    box.job("land", src=m, env=LAND_ENV(box))
+    assert box.rev("HEAD") == bad
+
+
+def test_f6_committer_belam_but_signed_by_another_ring_key_is_refused(box, pb):
+    pb.commit({NODE: "x\n"}, committer="belam", signer="other")
+    line = _refuses(box, "(a)")
+    assert "committer belam@agi" in line and "signer other@agi" in line
+
+
+def test_f6_mutant_trusting_the_committer_field_lands_it(box, pb):
+    bad = pb.commit({NODE: "x\n"}, committer="belam", signer="other")
+    m = mutant(box.tmp, '    if ce != f"{post}@agi" or g != "G" or who != f"{post}@agi":\n        return f"(a)',
+               '    if ce != f"{post}@agi":\n        return f"(a)')
+    box.job("land", src=m, env=LAND_ENV(box))
+    assert box.rev("HEAD") == bad
+
+
+def test_f6b_an_unsigned_node_commit_by_the_seat_is_refused(box, pb):
+    wt = box.tmp / "unsigned"
+    box.g("worktree", "add", "-q", "--detach", str(wt), box.tip())
+    (wt / NODE).parent.mkdir(parents=True, exist_ok=True)
+    (wt / NODE).write_text("x\n")
+    box.g("add", "-A", cwd=wt)
+    assert run("git", "-C", str(wt), "-c", "commit.gpgsign=false", "commit", "-q", "-m", "belam: unsigned", env=box.env).returncode == 0
+    box.g("update-ref", "refs/heads/posts/belam", box.rev("HEAD", wt))
+    box.g("worktree", "remove", "--force", str(wt))
+    _refuses(box, "(a)")
+
+
+def test_f4_a_symlink_or_an_exec_bit_in_a_node_is_refused(box, pb):
+    pb.commit({NODE: "x\n"}, modes={NODE: "symlink"})
+    _refuses(box, "(c)", NODE)
+
+
+def test_f4_an_exec_bit_is_refused_too(box, pb):
+    pb.commit({NODE: "x\n"}, modes={NODE: "755"})
+    _refuses(box, "(c)", "mode 100755")
+
+
+def test_f4_mutant_without_rule_c_the_symlink_lands(box, pb):
+    bad = pb.commit({NODE: "x\n"}, modes={NODE: "symlink"})
+    m = mutant(box.tmp, '        if status[:1] != "D" and mode != "100644":', "        if False:")
+    box.job("land", src=m, env=LAND_ENV(box))
+    assert box.rev("HEAD") == bad
+
+
+def test_f7_the_notice_names_the_sha_the_rule_and_the_path_in_one_line(box, pb):
+    bad = pb.commit({"extensions/x.py": "print(1)\n"})
+    box.job("land", env=LAND_ENV(box))
+    hits = [ln for ln in box.notice.read_text().splitlines() if bad[:7] in ln and "(b)" in ln and "extensions/x.py" in ln]
+    assert len(hits) == 1
+
+
+def test_f7_mutant_the_old_generic_line_names_none_of_them(box, pb):
+    bad = pb.commit({"extensions/x.py": "print(1)\n"})
+    m = mutant(box.tmp, '        _notice(args.notice, f"[board] {refused[0][0][:7]} refused: {refused[0][1]}")\n        return 3\n    try:   # the suite lock',
+               "        _notice(args.notice, _staged_line(post, len(refused), main, refused[0][0], args.signers))\n        return 3\n    try:   # the suite lock")
+    box.job("land", src=m, env=LAND_ENV(box))
+    hits = [ln for ln in box.notice.read_text().splitlines() if "(b)" in ln and "extensions/x.py" in ln]
+    assert hits == []
+
+
+def test_f8_a_deleted_node_is_refused_a_node_renamed_into_deprecated_lands(box, pb):
+    pb.commit({NODE: "the node body, long enough for rename detection to hold on to\n" * 5})
+    assert box.job("land", env=LAND_ENV(box)).returncode == 0            # the add lands
+    head = box.rev("HEAD")
+    gone = pb.commit(delete=[NODE])
+    _refuses(box, "(e)", NODE)
+    box.g("update-ref", "refs/heads/posts/belam", head)
+    moved = pb.commit(move=[(NODE, ".agi/nodes/deprecated/goal/x.md")])
+    assert box.job("land", env=LAND_ENV(box)).returncode == 0 and box.rev("HEAD") == moved
+    assert gone != moved
+
+
+def test_f8_mutant_without_rule_e_the_delete_lands(box, pb):
+    pb.commit({NODE: "x\n"})
+    assert box.job("land", env=LAND_ENV(box)).returncode == 0
+    gone = pb.commit(delete=[NODE])
+    m = mutant(box.tmp, '        if status[:1] == "D":   #', "        if False:   #")
+    box.job("land", src=m, env=LAND_ENV(box))
+    assert box.rev("HEAD") == gone
+
+
+# ---- F9: a merge passes only when it is exactly the clean merge of two checked parents
+def _trunk_landing(box):
+    """MAIN lands an engine change (what SM's stack does) while the Prime's node commit waits on posts/belam."""
+    (box.main / "extensions").mkdir(exist_ok=True)
+    (box.main / "extensions" / "x.py").write_text("a = 1\nb = 2\nc = 3\n")
+    box.g("add", "-A")
+    return box.commit("SM landed an engine change", extra=["--no-gpg-sign"])
+
+
+def _merge(box, pb, p1, p2, hand_edit=None, signer=None, msg="belam: sync merge of the trunk"):
+    wt = box.tmp / "mergewt"
+    if wt.exists():
+        shutil.rmtree(wt)
+    box.g("worktree", "add", "-q", "--detach", str(wt), p1)
+    merged = box.g("merge", "--no-commit", "--no-ff", p2, cwd=wt)
+    assert merged.returncode == 0, merged.stdout + merged.stderr
+    if hand_edit:
+        (wt / "extensions" / "x.py").write_text(hand_edit)
+        box.g("add", "-A", cwd=wt)
+    got = box.g("commit", "-q", "-m", msg, cwd=wt)
+    assert got.returncode == 0, got.stderr
+    c = box.rev("HEAD", wt)
+    box.g("update-ref", "refs/heads/posts/belam", c)
+    box.g("worktree", "remove", "--force", str(wt))
+    return c
+
+
+def test_f9i_a_clean_sync_merge_of_a_trunk_tip_with_an_engine_change_lands(box, pb):
+    n1 = pb.commit({NODE: "1\n"})
+    t = _trunk_landing(box)
+    m = _merge(box, pb, n1, t)
+    got = box.job("land", env=LAND_ENV(box))
+    assert got.returncode == 0, got.stderr + box.notice.read_text() if box.notice.exists() else got.stderr
+    assert box.rev("HEAD") == m                                           # 0 false refusals on the sync merge
+
+
+def test_f9ii_the_same_merge_with_one_hand_edited_engine_line_is_refused(box, pb):
+    n1 = pb.commit({NODE: "1\n"})
+    t = _trunk_landing(box)
+    _merge(box, pb, n1, t, hand_edit="a = 1\nb = 2\nc = 99\n")
+    head = box.rev("HEAD")
+    got = box.job("land", env=LAND_ENV(box))
+    assert got.returncode == 3 and box.rev("HEAD") == head
+    assert "(m) the tree is not the clean merge" in box.notice.read_text()
+
+
+def test_f9ii_mutant_without_the_tree_equality_the_hand_edit_lands(box, pb):
+    n1 = pb.commit({NODE: "1\n"})
+    t = _trunk_landing(box)
+    bad = _merge(box, pb, n1, t, hand_edit="a = 1\nb = 2\nc = 99\n")
+    m = mutant(box.tmp, '            if mt.returncode or mt.stdout.split("\\n", 1)[0] != _rev(repo, f"{sha}^{{tree}}"):',
+               "            if mt.returncode:")
+    box.job("land", src=m, env=LAND_ENV(box))
+    assert box.rev("HEAD") == bad
+
+
+def test_f9iii_a_merge_whose_second_parent_is_not_in_main_is_refused(box, pb):
+    n1 = pb.commit({NODE: "1\n"})
+    side = pb.commit({".agi/nodes/idea/side.md": "s\n"}, onto=box.rev("trunk"), ref="refs/heads/side")
+    m = _merge(box, pb, n1, side)
+    head = box.rev("HEAD")
+    got = box.job("land", env=LAND_ENV(box))
+    assert got.returncode == 3 and box.rev("HEAD") == head and box.tip() == m
+    assert "(m) parent 2" in box.notice.read_text()
+
+
+def test_f9iii_mutant_without_the_second_parent_rule_a_landable_side_branch_lands(box, pb):
+    n1 = pb.commit({NODE: "1\n"})
+    side = pb.commit({".agi/nodes/idea/side.md": "s\n"}, onto=box.rev("trunk"), ref="refs/heads/side")
+    bad = _merge(box, pb, n1, side)
+    m = mutant(box.tmp, "        if not _is_ancestor(repo, p2, main_head):", "        if False:")
+    box.job("land", src=m, env=LAND_ENV(box))
+    assert box.rev("HEAD") == bad
+
+
+def test_f9_a_merge_signed_by_another_principal_is_refused_even_when_clean(box, pb):
+    n1 = pb.commit({NODE: "1\n"})
+    t = _trunk_landing(box)
+    wt = box.tmp / "mergewt"
+    box.g("worktree", "add", "-q", "--detach", str(wt), n1)
+    assert box.g("merge", "--no-commit", "--no-ff", t, cwd=wt).returncode == 0
+    env = dict(box.env, GIT_COMMITTER_NAME="sanctuary-master", GIT_COMMITTER_EMAIL="sanctuary-master@agi")
+    got = run("git", "-C", str(wt), "-c", f"user.signingkey={pb.principal('sanctuary-master')}", "commit", "-q", "-m", "merge", env=env)
+    assert got.returncode == 0, got.stderr
+    box.g("update-ref", "refs/heads/posts/belam", box.rev("HEAD", wt))
+    box.g("worktree", "remove", "--force", str(wt))
+    _refuses(box, "(a)")
+
+
+# ---- .42.2 follow-up (council 3/3 20:21Z): the :23 commit step on top of the Prime's node commits
+def test_fa_ahead_with_one_pending_prime_node_commit_the_job_commits_on_top(box, pb):
+    prime = pb.commit({NODE: "x\n"})
+    got = box.job()
+    assert got.returncode == 0, got.stderr
+    new = box.tip()
+    assert box.rev(f"{new}^") == prime and box.sig(new) == "G"              # the board commit sits on the Prime's; :28 lands both
+
+
+def test_fa_mutant_keeping_not_own_refuses_the_pending_prime_node_commit(box, pb):
+    prime = pb.commit({NODE: "x\n"})
+    m = mutant(box.tmp, "            refused = not_land_ok(main, head, tip, post, args.signers)\n        else:   # diverged",
+               "            refused = [(c, \"not the job's\") for c in not_own(main, head, tip, post, args.signers)]\n        else:   # diverged")
+    got = box.job(src=m)
+    assert got.returncode == 3 and box.tip() == prime
+
+
+def _shared_doc(box):
+    """x.md on the trunk AND on posts/belam, three lines: the base both sides then edit."""
+    (box.main / ".agi" / "nodes" / "doc").mkdir(parents=True)
+    (box.main / ".agi" / "nodes" / "doc" / "x.md").write_text("l1\nl2\nl3\n")
+    box.g("add", "-A")
+    base = box.commit("x.md on the trunk")
+    box.g("update-ref", "refs/heads/posts/belam", base)
+    return base
+
+
+XMD = ".agi/nodes/doc/x.md"
+
+
+def _fb_setup(box, pb):
+    _shared_doc(box)
+    prime = pb.commit({XMD: "l1\nPRIME l2\nl3\n"})
+    (box.main / XMD).write_text("l1\nMAIN l2\nl3\n")
+    box.g("add", "-A")
+    box.commit("MAIN edits the same line")
+    return prime
+
+
+def test_fb_a_conflict_between_main_and_a_prime_hunk_stops_the_line_and_loses_nothing(box, pb):
+    prime = _fb_setup(box, pb)
+    got = box.job()
+    assert got.returncode == 3, got.stderr
+    assert box.tip() == prime                                               # posts/belam unchanged
+    hits = [ln for ln in box.notice.read_text().splitlines() if prime[:7] in ln and "x.md" in ln]
+    assert len(hits) == 1                                                   # ONE line naming the Prime sha and the path
+    assert box.g("show", f"{box.tip()}:{XMD}").stdout.count("PRIME l2") == 1   # the Prime's line is still there
+
+
+def test_fb_mutant_x_theirs_kept_for_a_mixed_range_drops_the_prime_line_in_silence(box, pb):
+    prime = _fb_setup(box, pb)
+    m = mutant(box.tmp, 'opts = [] if hand else ["-X", "theirs"]', 'opts = ["-X", "theirs"]')
+    got = box.job(src=m)
+    assert got.returncode == 0 and box.tip() != prime
+    assert box.g("show", f"{box.tip()}:{XMD}").stdout.count("PRIME l2") == 0   # RED: gone, rc 0, no notice
+    assert not box.notice.exists()
+
+
+def test_fc_job_commits_only_diverged_x_theirs_still_takes_main(box):
+    assert box.job().returncode == 0
+    _main_edits_the_cell(box)
+    got = box.job()
+    assert got.returncode == 0, got.stderr                                  # today's behaviour, unchanged
+    assert not box.notice.exists()
+
+
+def test_fb_a_clean_merge_with_a_prime_commit_takes_main_without_a_stall(box, pb):
+    _shared_doc(box)
+    pb.commit({XMD: "l1\nPRIME l2\nl3\n"})
+    (box.main / "other.txt").write_text("y")
+    box.g("add", "-A")
+    box.commit("a landing elsewhere on MAIN")
+    got = box.job()
+    assert got.returncode == 0, got.stderr
+    assert not box.notice.exists()
+    assert box.g("show", f"{box.tip()}:{XMD}").stdout.count("PRIME l2") == 1
+
+
+# ---- .42.2 R1 (council 3/3 03:21Z 10-16): the Prime is blamed only for a path one of its commits touched
+def _fd_setup(box, pb):
+    """The job's cell commit + a Prime node commit elsewhere pending on posts/belam; MAIN then edits the job's cell."""
+    assert box.job().returncode == 0                                        # the job's commit rewrites .agi/cell.txt
+    prime = pb.commit({NODE: "the Prime's node, no overlap with MAIN\n"})
+    before = box.tip()
+    ahead = _main_edits_the_cell(box)                                       # the conflict is the JOB's cell only
+    return prime, before, ahead
+
+
+def test_fd_a_mixed_range_whose_conflict_is_only_the_jobs_cell_takes_mains_side_and_loses_no_prime_line(box, pb):
+    prime, before, ahead = _fd_setup(box, pb)
+    got = box.job()
+    assert got.returncode == 0, got.stderr + (box.notice.read_text() if box.notice.exists() else "")
+    new = box.tip()
+    take = box.g("rev-list", "--parents", "-1", new).stdout.split()[1]
+    assert box.g("show", f"{take}:.agi/cell.txt").stdout == "MAIN edited the cell\n"          # MAIN's side on the job's cell
+    assert box.g("show", f"{new}:{NODE}").stdout == box.g("show", f"{before}:{NODE}").stdout   # lines lost = 0
+    assert prime in box.g("rev-list", new).stdout.split() and not box.notice.exists()
+
+
+def test_fd_mutant_the_old_blame_names_a_prime_commit_that_never_touched_the_path(box, pb):
+    prime, before, ahead = _fd_setup(box, pb)
+    m = mutant(box.tmp, "            if hit:   # the newest Prime commit",
+               '            hit = hit or [(hand[-1], paths[0] if paths else "?")]\n            if hit:   # the newest Prime commit')
+    got = box.job(src=m)
+    assert got.returncode == 3 and box.tip() == before                      # RED: the real file takes MAIN (the row above)
+    line = box.notice.read_text()
+    assert prime[:7] in line and ".agi/cell.txt" in line
+    assert box.g("diff-tree", "-r", "--no-commit-id", "--name-only", prime, "--", ".agi/cell.txt").stdout.strip() == ""   # the false line
+
+
+def test_fd_two_conflicts_the_notice_names_the_prime_commit_that_touches_one_and_that_path(box, pb):
+    _shared_doc(box)
+    assert box.job().returncode == 0                                        # the job's cell commit
+    a = pb.commit({NODE: "A, elsewhere\n"})
+    b = pb.commit({XMD: "l1\nPRIME l2\nl3\n"})
+    (box.main / XMD).write_text("l1\nMAIN l2\nl3\n")
+    (box.main / ".agi" / "cell.txt").write_text("MAIN edited the cell\n")
+    box.g("add", "-A")
+    box.commit("MAIN edits both")
+    got = box.job()
+    assert got.returncode == 3 and box.tip() == b
+    line = box.notice.read_text()
+    assert b[:7] in line and a[:7] not in line and XMD in line and ".agi/cell.txt" not in line
+
+
+# ---- .42.2 R1b (council 3/3 10:53Z 10-21): the blame probe sees a MERGE commit (plain diff-tree prints nothing for one)
+def test_fd3_a_hand_merge_on_the_branch_is_blamed_for_the_path_it_changed_vs_its_first_parent(box, pb):
+    _shared_doc(box)
+    # S lands on MAIN (x.md l3); the Prime's P1 edits x.md l1 and then merges the trunk: a CLEAN hand merge M (tree == merge-tree)
+    (box.main / XMD).write_text("l1\nl2\nS l3\n")
+    box.g("add", "-A")
+    s_sha = box.commit("S lands on MAIN: x.md l3")
+    p1 = pb.commit({XMD: "PRIME l1\nl2\nl3\n"}, onto=box.rev(f"{s_sha}^"))
+    wt = box.tmp / "mergewt"
+    box.g("worktree", "add", "-q", "--detach", str(wt), p1)
+    assert box.g("merge", "--no-ff", "-q", "-m", "belam: sync merge of the trunk", s_sha, cwd=wt).returncode == 0
+    merge = box.rev("HEAD", wt)
+    box.g("update-ref", "refs/heads/posts/belam", merge)
+    box.g("worktree", "remove", "--force", str(wt))
+    (box.main / XMD).write_text("MAIN l1\nl2\nS l3\n")                     # MAIN edits the Prime's line after S
+    box.g("add", "-A")
+    box.commit("MAIN edits l1")
+    got = box.job()
+    assert got.returncode == 3 and box.tip() == merge, got.stderr           # posts/belam unchanged, nothing dropped
+    line = box.notice.read_text()
+    assert merge[:7] in line and XMD in line                                 # the newest hand commit touching x.md: the MERGE
+    assert box.g("show", f"{merge}:{XMD}").stdout.count("PRIME l1") == 1
+
+
+def test_fd3_mutant_without_the_first_parent_flag_the_merge_is_never_blamed(box, pb):
+    _shared_doc(box)
+    (box.main / XMD).write_text("l1\nl2\nS l3\n")
+    box.g("add", "-A")
+    s_sha = box.commit("S lands on MAIN: x.md l3")
+    p1 = pb.commit({XMD: "PRIME l1\nl2\nl3\n"}, onto=box.rev(f"{s_sha}^"))
+    wt = box.tmp / "mergewt"
+    box.g("worktree", "add", "-q", "--detach", str(wt), p1)
+    assert box.g("merge", "--no-ff", "-q", "-m", "belam: sync merge of the trunk", s_sha, cwd=wt).returncode == 0
+    merge = box.rev("HEAD", wt)
+    box.g("update-ref", "refs/heads/posts/belam", merge)
+    box.g("worktree", "remove", "--force", str(wt))
+    (box.main / XMD).write_text("MAIN l1\nl2\nS l3\n")
+    box.g("add", "-A")
+    box.commit("MAIN edits l1")
+    m = mutant(box.tmp, '"diff-tree", "-r", "-m", "--first-parent", "--root"', '"diff-tree", "-r", "--root"')
+    box.job(src=m)
+    line = box.notice.read_text()
+    assert merge[:7] not in line and p1[:7] in line                          # RED: the real file names the merge (the row above)
+
+
+def test_fd3b_a_hand_merge_whose_resolution_edits_the_path_never_reaches_the_x_theirs_retry(box, pb):
+    """The council's literal case (a hand merge whose OWN resolution edits x.md): the merge rule (tree == merge-tree) refuses
+    it first, so the -X theirs retry cannot drop its line; the probe flag is the second layer for a merge that passes."""
+    _shared_doc(box)
+    (box.main / XMD).write_text("l1\nl2\nS l3\n")
+    box.g("add", "-A")
+    s_sha = box.commit("S lands on MAIN: x.md l3")
+    p1 = pb.commit({NODE: "n\n"}, onto=box.rev(f"{s_sha}^"))
+    wt = box.tmp / "mergewt"
+    box.g("worktree", "add", "-q", "--detach", str(wt), p1)
+    assert box.g("merge", "--no-ff", "--no-commit", "-q", s_sha, cwd=wt).returncode == 0
+    (wt / XMD).write_text("l1\nPRIME-RESOLUTION l2\nS l3\n")               # the hand resolution edits x.md
+    box.g("add", "-A", cwd=wt)
+    assert box.g("commit", "-q", "-m", "belam: sync merge, hand-resolved", cwd=wt).returncode == 0
+    merge = box.rev("HEAD", wt)
+    box.g("update-ref", "refs/heads/posts/belam", merge)
+    box.g("worktree", "remove", "--force", str(wt))
+    (box.main / XMD).write_text("l1\nMAIN l2\nS l3\n")
+    box.g("add", "-A")
+    box.commit("MAIN edits l2")
+    got = box.job()
+    assert got.returncode == 3 and box.tip() == merge
+    assert f"{merge[:7]} refused: (m) the tree is not the clean merge" in box.notice.read_text()

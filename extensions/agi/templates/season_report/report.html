@@ -1,0 +1,250 @@
+<title>Season {{facts.season}} Rollover</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a single reading column with wide "plates" (map, tables) that may scroll inside themselves; a transit-map look for branches. */
+:root{
+  --bg:#f3f6f5; --panel:#ffffff; --fg:#16201d; --muted:#5b6b66; --line:#d5dfdb;
+  --accent:#0d6b62; --accent-soft:#d8ece8; --signal:#b9480f; --signal-soft:#f6e3d7; --ok:#2f7d32;
+  --f-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1513; --panel:#151f1c; --fg:#e3ebe8; --muted:#93a59f; --line:#2a3834;
+  --accent:#44b9ab; --accent-soft:#16332e; --signal:#f08d52; --signal-soft:#3a2417; --ok:#71c275; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1513; --panel:#151f1c; --fg:#e3ebe8; --muted:#93a59f; --line:#2a3834;
+  --accent:#44b9ab; --accent-soft:#16332e; --signal:#f08d52; --signal-soft:#3a2417; --ok:#71c275; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.6}
+.wrap{max-width:980px;margin:0 auto;padding-inline:20px;padding-block:28px 64px;display:flex;flex-direction:column;gap:44px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.05;margin:0;letter-spacing:.01em}
+h1{font-size:clamp(44px,8vw,84px);font-weight:800;text-transform:uppercase}
+h2{font-size:clamp(28px,4.4vw,40px);font-weight:800;text-transform:uppercase}
+h3{font-size:22px;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+p{margin:0;max-width:68ch}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.mono,code{font-family:var(--f-mono);font-size:.88em}
+code{background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+section{display:flex;flex-direction:column;gap:16px;min-width:0}
+.lede{font-size:19px;max-width:62ch}
+.hero{display:grid;grid-template-columns:1fr;gap:18px}
+.status{display:flex;flex-wrap:wrap;gap:10px}
+.pill{font-family:var(--f-mono);font-size:12.5px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:var(--panel);font-variant-numeric:tabular-nums}
+.pill.ok{border-color:var(--ok);color:var(--ok)}
+.player{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.player button{font-family:var(--f-display);font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;background:var(--accent);color:var(--bg);border:0;border-radius:8px;padding:10px 18px;cursor:pointer;min-width:120px}
+.player button:focus-visible,a:focus-visible{outline:3px solid var(--signal);outline-offset:2px}
+.player .meta{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 220px}
+.player .meta b{font-family:var(--f-display);font-size:22px;text-transform:uppercase}
+.player .meta span{color:var(--muted);font-size:14px}
+.bar{height:6px;background:var(--line);border-radius:3px;flex:1 1 100%;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent)}
+.lyric{font-family:var(--f-mono);font-size:13px;color:var(--muted);flex:1 1 100%;min-height:1.6em}
+.plate{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow-x:auto}
+.plate svg{display:block;min-width:820px}
+.plate svg text{fill:var(--fg);font-family:var(--f-mono);font-size:12px}
+.plate svg .lbl{fill:var(--muted);font-size:11px}
+.plate svg .lane{font-family:var(--f-display);font-size:15px;font-weight:600;letter-spacing:.06em;fill:var(--muted)}
+.timeline{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border-left:2px solid var(--line);margin-left:6px}
+.timeline li{position:relative;padding:0 0 16px 22px;display:grid;grid-template-columns:96px 1fr;gap:4px 14px}
+.timeline li::before{content:"";position:absolute;left:-7px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--panel);border:2px solid var(--accent)}
+.timeline li.warn::before{border-color:var(--signal);background:var(--signal-soft)}
+.timeline time{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;padding-top:1px}
+.timeline p{min-width:0}
+@media (max-width:560px){.timeline li{grid-template-columns:1fr}}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:7px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+td.sha{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.hl td{background:var(--accent-soft)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{border-top:3px solid var(--accent);padding-top:8px;display:flex;flex-direction:column;gap:2px}
+.stat b{font-family:var(--f-display);font-size:36px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.stat span{font-size:13px;color:var(--muted)}
+.bars{display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.bars div{display:grid;grid-template-columns:110px 1fr 54px;gap:10px;align-items:center}
+.bars em{font-style:normal;color:var(--muted);font-family:var(--f-mono);font-size:12px}
+.bars s{display:block;height:12px;background:var(--accent);border-radius:2px;text-decoration:none}
+.bars output{font-family:var(--f-mono);font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums}
+.steps{counter-reset:s;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:42px 1fr;gap:12px;align-items:start}
+.steps li::before{content:counter(s);font-family:var(--f-display);font-size:26px;font-weight:800;color:var(--accent);line-height:1.1;text-align:right}
+.steps li div{min-width:0}
+.steps b{display:block}
+.who{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--signal)}
+.pieces{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.piece{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.piece h3{font-size:19px}
+.piece p{font-size:14.5px}
+.note{border-left:3px solid var(--signal);background:var(--signal-soft);padding:10px 14px;border-radius:0 8px 8px 0;font-size:15px}
+ul.open{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+footer{font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+<!--
+season_report template (goal:g5.4.1). Slot grammar; the renderer (S2) is the only reader of it:
+  {{facts.a.b}}            a dotted path into the JSON that `season_report.py facts` prints          {{narr.x}}   a narrative section of doc:season-<N>-report
+  {{#rows P}}..{{/rows}}   the body once per item of the list at P; inside, {{row.f}} is its field      {{x|n}}      the number x with thousands separators
+  {{#media}}..{{/media}}   present ONLY when a media file was passed to render; absent otherwise       {{row.role}} a heads row's role: narrative, written per head name
+Everything outside a slot is standing text.
+-->
+
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">agi engine · rollover report · {{facts.grid.read_time}}</div>
+  <h1>Season {{facts.season}} Rollover</h1>
+  <p class="lede">{{narr.lede}}</p>
+  <div class="status">
+    <span class="pill ok">run rc {{facts.box.run_rc.value}} · {{facts.box.run_time.value}}</span>
+    <span class="pill ok">{{facts.box.posts_live.value}} posts live on {{facts.lines.trunk}}</span>
+    <span class="pill">{{facts.trunk_cells}} of {{facts.posts_named}} post rows name {{facts.lines.trunk}}</span>
+    <span class="pill">origin heads {{facts.grid.heads_total}}</span>
+    <span class="pill">complete {{facts.box.complete_time.value}}</span>
+  </div>
+{{#media}}
+  <div class="player" aria-label="Song player">
+    <button id="play" type="button" aria-controls="song">Play</button>
+    <div class="meta"><b>{{media.title}}</b><span>{{media.credit}}</span></div>
+    <div class="bar" aria-hidden="true"><i id="prog"></i></div>
+    <div class="lyric" id="lyric" aria-live="polite">{{media.first_line}}</div>
+    <audio id="song" src="{{media.src}}" preload="metadata"></audio>
+  </div>
+{{/media}}
+</header>
+
+<section id="day">
+  <div class="eyebrow">What happened</div>
+  <h2>The run, step by step</h2>
+  <p>{{narr.day_intro}}</p>
+  <ol class="timeline">
+{{#rows narr.timeline}}
+    <li class="{{row.cls}}"><time>{{row.when}}</time><p><b>{{row.title}}</b> {{row.text}}</p></li>
+{{/rows}}
+  </ol>
+</section>
+
+<section id="map">
+  <div class="eyebrow">State of the grid · branch map</div>
+  <h2>Where every line points now</h2>
+  <p>{{narr.map_intro}}</p>
+  <div class="plate">
+    <svg viewBox="0 0 {{facts.grid.map.width}} 200" role="img" aria-label="Branch map: one station per distinct branch tip">
+      <text class="lane" x="20" y="44">ORIGIN HEADS</text>
+      <line x1="40" y1="80" x2="{{facts.grid.map.width}}" y2="80" stroke="var(--accent)" stroke-width="5" stroke-linecap="round"/>
+{{#rows facts.grid.map.stations}}
+      <circle cx="{{row.x}}" cy="80" r="9" fill="var(--panel)" stroke="var(--accent)" stroke-width="3"/>
+      <text x="{{row.x}}" y="{{row.sha_y}}">{{row.short}}</text><text class="lbl" x="{{row.x}}" y="{{row.label_y}}">{{row.label}}</text>
+{{/rows}}
+    </svg>
+  </div>
+  <p class="eyebrow">{{facts.grid.map.drawn}} of {{facts.grid.heads_total}} heads drawn</p>
+</section>
+
+<section id="snapshots">
+  <div class="eyebrow">Grid snapshots · read by ls-remote at {{facts.grid.read_time}}</div>
+  <h2>Heads and archives</h2>
+  <div class="grid2">
+    <div class="plate">
+      <table>
+        <thead><tr><th>Head</th><th>Tip</th><th>Role</th></tr></thead>
+        <tbody>
+{{#rows facts.grid.heads}}
+          <tr><td>{{row.name}}</td><td class="sha">{{row.short}}</td><td>{{row.role}}</td></tr>
+{{/rows}}
+        </tbody>
+      </table>
+    </div>
+    <div class="plate">
+      <table>
+        <thead><tr><th>Archive ref (refs/agi/archive/…)</th><th>Old tip</th></tr></thead>
+        <tbody>
+{{#rows facts.grid.archives}}
+          <tr><td>{{row.name}}</td><td class="sha">{{row.short}}</td></tr>
+{{/rows}}
+        </tbody>
+      </table>
+      <p style="padding:10px 12px;font-size:13.5px;color:var(--muted)">{{facts.grid.archives_total}} archive refs exist; these are the ones this rollover added. Every deleted or overwritten head is still reachable from one of them.</p>
+    </div>
+  </div>
+
+  <h3>The graph itself</h3>
+  <div class="stats">
+    <div class="stat"><b>{{facts.counts.active_by_dir|n}}</b><span>active node files at {{facts.at_short}}</span></div>
+    <div class="stat"><b>{{facts.counts.deprecated_by_dir|n}}</b><span>retired, moved to deprecated/, never deleted</span></div>
+    <div class="stat"><b>{{facts.counts.engine_active|n}}</b><span>active by the engine's own metrics rule: every node file minus those marked deprecated</span></div>
+    <div class="stat"><b>{{facts.goals.total|n}}</b><span>goals, {{facts.goals.carried_active|n}} of them active from season {{facts.prev_season}}</span></div>
+    <div class="stat"><b>{{facts.ledger.commits|n}}</b><span>commits in season {{facts.prev_season}}, {{facts.ledger.signed|n}} of them with a signature header (not verified)</span></div>
+  </div>
+  <div class="bars" aria-label="Active nodes by type">
+{{#rows facts.counts.type_rows}}
+    <div><em>{{row.label}}</em><s style="width:{{row.pct}}%"></s><output>{{row.nodes|n}}</output></div>
+{{/rows}}
+  </div>
+  <p style="font-size:14px;color:var(--muted)">{{narr.graph_note}}</p>
+</section>
+
+<section id="commits">
+  <div class="eyebrow">How commits are handled now</div>
+  <h2>From a post's edit to {{facts.lines.integration}}</h2>
+  <ol class="steps">
+    <li><div><span class="who">any post</span><b>Edit, sign, commit.</b> A post edits a node or engine file and commits through <code>agi-at</code> or <code>agi-turn</code>. Every commit is ssh-signed by the seat's own key and must read <code>G</code>.</div></li>
+    <li><div><span class="who">director → SM</span><b>Stack and gate.</b> Directors cut stacks. Sanctuary-master gates them: a <code>merge-tree</code> landing that never stages a merge, the full suite plus review lanes, and home, host and anonymize scans.</div></li>
+    <li><div><span class="who">council</span><b>Three seats approve.</b> alive, all-is-one and self-perpetuating each give a word. A landing needs 3 of 3.</div></li>
+    <li><div><span class="who">SM → Prime</span><b>Held ref and merge-up mail.</b> SM pins the landing at <code>refs/held/sanctuary-master/L&lt;n&gt;</code> and mails the Prime its tree, parents and gate results.</div></li>
+    <li><div><span class="who">Prime</span><b>Verify, then fast-forward only.</b> The Prime checks the held ref, tree, parents, signatures and scans, then fast-forwards <code>{{facts.lines.trunk}}</code> and pushes. Pushes go through the human uid's GitHub helper; the commit signatures stay the seats'.</div></li>
+    <li><div><span class="who">Prime · every PASS</span><b>Trunk into {{facts.lines.prime}}, then {{facts.lines.integration}}.</b> A PASS reviews what landed and merges the trunk into <code>{{facts.lines.prime}}</code> with a signed merge. <code>{{facts.lines.integration}}</code> is then fast-forwarded to the same tip; if it is ever ahead, that is a red.</div></li>
+  </ol>
+  <div class="grid2">
+    <div class="piece"><h3>Automatic writers</h3><p><b>Hourly</b> the branch push sends MAIN's branch to origin. The board job writes one metrics line, signed by the Prime's uid with a <code>Board-job:</code> trailer, and lands it only as a fast-forward. <b>Every 30 min</b> grid sync versions changed nodes into their grid refs and pushes them.</p></div>
+    <div class="piece"><h3>Outward seal</h3><p>On <code>master</code>, <code>seal.yml</code> attests block digests to the public Sigstore log every 30 minutes, with retries. It never holds a key.</p></div>
+    <div class="piece"><h3>Between seasons only</h3><p>Overwrites of shared branches happen only at a rollover, on your word, with an archive ref first and an explicit lease. Inside a season, nothing is forced.</p></div>
+  </div>
+</section>
+
+<section id="engine">
+  <div class="eyebrow">The engine picture</div>
+  <h2>How the pieces fit</h2>
+  <div class="pieces">
+    <div class="piece"><h3>Posts</h3><p>{{facts.box.posts_live.value}} long-lived seats on this box, each its own uid, key and worktree: the Prime, the masters, the directors-general, the directors and the council seats. The registry names {{facts.posts_named}} posts, {{facts.trunk_cells}} of them with a trunk cell.</p></div>
+    <div class="piece"><h3>Towns and trunks</h3><p>{{facts.cells.town_count}} towns hold work: {{facts.cells.town_names}}. A town is where work lives; the trunk cell says where it lands. In season {{facts.season}} every post lands on <code>{{facts.lines.trunk}}</code>.</p></div>
+    <div class="piece"><h3>The graph and the grid</h3><p>Goals, ideas, hypotheses, experiments, verdicts and builds are node files in the same repo as the code. Each node keeps its own version history in a grid ref, separate from branch history.</p></div>
+    <div class="piece"><h3>Box mail</h3><p>Posts talk by signed box mail. The Prime mails only the masters. A boxwake unit next to each post wakes it when mail or a held ref arrives.</p></div>
+    <div class="piece"><h3>Pin and render</h3><p>The engine code is pinned to one 40-hex sha (now {{facts.box.pin.value}}). The project renderer builds every post's units from that pin, including each post's <code>AGI_TRUNK</code>.</p></div>
+    <div class="piece"><h3>This run</h3><p>{{narr.engine_note}}</p></div>
+  </div>
+</section>
+
+<section id="open">
+  <div class="eyebrow">Still open</div>
+  <h2>What carries into season {{facts.season}}</h2>
+  <ul class="open">
+{{#rows narr.open}}
+    <li>{{row.text}}</li>
+{{/rows}}
+  </ul>
+  <p class="note">Season {{facts.season}} opened at {{facts.cells.opened}}, as core's season history records. {{facts.close.label}}: {{facts.close.value}}.</p>
+</section>
+
+<footer>Facts read from origin and this repo at {{facts.grid.read_time}}, commit {{facts.at_short}}.{{#media}} Song: {{media.title}}, {{media.credit}}.{{/media}}</footer>
+</div>
+{{#media}}
+<script>
+(function(){
+  var a=document.getElementById('song'),b=document.getElementById('play'),p=document.getElementById('prog'),l=document.getElementById('lyric');
+  var lines={{media.lines_json}};
+  b.addEventListener('click',function(){ if(a.paused){ var r=a.play(); if(r&&r.catch) r.catch(function(){ l.textContent="The song could not start here. Try again after the page finishes loading."; }); } else a.pause(); });
+  a.addEventListener('play',function(){b.textContent='Pause'});
+  a.addEventListener('pause',function(){b.textContent='Play'});
+  a.addEventListener('timeupdate',function(){
+    if(a.duration) p.style.width=(100*a.currentTime/a.duration)+'%';
+    var t=a.currentTime,cur=lines[0][1]; for(var i=0;i<lines.length;i++){ if(t>=lines[i][0]) cur=lines[i][1]; }
+    if(l.textContent!==cur) l.textContent=cur;
+  });
+})();
+</script>
+{{/media}}

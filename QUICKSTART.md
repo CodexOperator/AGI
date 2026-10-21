@@ -59,8 +59,11 @@ still open. `agi-tree` deleted its `bin/` entirely for this reason (goal S1).
 
 ### 2a. Clone
 
-`CodexOperator/AGI` is **public**, default branch `master`. Authenticate with
-`gh auth login` or an SSH key, then:
+`CodexOperator/AGI` is **public**, default branch `master`. A box that will run the town
+does not clone by hand: its MAIN is fixed at `/data/work/agi` and `agi.sh start` (skill
+`agi-town`) makes the public https clone at the pin you name, then brings the town up
+(`sudo sh extensions/agi/bin/agi.sh start`; no credential is stored by it). For a developer
+checkout, authenticate with `gh auth login` or an SSH key, then:
 
 ```bash
 git clone git@github.com:CodexOperator/AGI.git ~/work/agi
