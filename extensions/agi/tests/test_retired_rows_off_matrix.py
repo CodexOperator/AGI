@@ -80,25 +80,27 @@ def test_every_retired_row_has_no_parent_no_engine_box_off_and_is_off_the_matrix
     assert _off_matrix_problems(_repo(tmp_path, text), text) == []
 
 
-def test_MUTANT_a_retired_row_that_keeps_its_parent_is_mailable_and_RED(tmp_path):
+@pytest.mark.parametrize("retired", ["director-general-1-retired", "director-general-2-retired"])
+def test_MUTANT_a_retired_row_that_keeps_its_parent_is_mailable_and_RED(tmp_path, retired):
     text = POSTS.read_text()
-    row = next(r for r in _retired(text) if r["name"] == "director-general-1-retired")
+    row = next(r for r in _retired(text) if r["name"] == retired)
     line = next(m for m in re.findall(r"^  - \{.*\}$", text, re.M) if json.loads(m[4:]).get("name") == row["name"])
     kept = {**{"parent": "sanctuary-master"}, **json.loads(line[4:])}      # the retired row keeping its parent
     bad = text.replace(line, "  - " + json.dumps(kept, ensure_ascii=False))
     assert bad != text
     got = _off_matrix_problems(_repo(tmp_path, bad), bad)
-    assert got and all("director-general-1-retired" in g for g in got), got
+    assert got and all(retired in g for g in got), got
 
 
 def test_the_a_function_itself_says_yes_for_two_live_peers_so_the_no_answers_above_mean_something(tmp_path):
     text = POSTS.read_text()
-    assert _adjacent(_repo(tmp_path, text), "director-goals-1", "director-review"), "the real a() no longer lets two level-3 posts mail"
+    assert _adjacent(_repo(tmp_path, text), "director-science-1", "director-review"), "the real a() no longer lets two level-3 posts mail"
 
 
-@pytest.mark.parametrize("peer", ["director-review", "director-goals-1", "sanctuary-master", "director-general-5"])
-def test_a_send_to_the_old_name_is_off_matrix_for_a_peer_while_no_live_row_has_it(tmp_path, peer):
+@pytest.mark.parametrize("old", ["director-general-1", "director-general-2"])
+@pytest.mark.parametrize("peer", ["director-review", "director-goals-1", "director-science-1", "sanctuary-master", "director-general-5"])
+def test_a_send_to_the_old_name_is_off_matrix_for_a_peer_while_no_live_row_has_it(tmp_path, peer, old):
     text = POSTS.read_text()
-    if "director-general-1" in [r["name"] for r in _rows(text)]:
-        pytest.skip("a live row took the name director-general-1 (G5)")
-    assert not _adjacent(_repo(tmp_path, text), peer, "director-general-1")
+    if old in [r["name"] for r in _rows(text)]:
+        pytest.skip(f"a live row took the name {old} (G5/G6)")
+    assert not _adjacent(_repo(tmp_path, text), peer, old)

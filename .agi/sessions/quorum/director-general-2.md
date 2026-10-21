@@ -1,1 +1,0 @@
-../../nodes/doc/card-director-general-2.md
