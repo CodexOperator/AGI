@@ -82,6 +82,7 @@ NEXT COMMAND: AGI_POST=belam box read   (from ~/t, AGI_BOX=encryption-town)
 | 120 | the link check (links.py links) hung 16 min at 0% CPU | kill it; check the one new link by hand |
 | 121 | agi.slice hit MemoryHigh on 2.2 GiB of dentry slab after my scratch-worktree harness runs (21:37Z alarm) | run harnesses one at a time; at a slab warn: `sync; echo 2 | sudo tee /proc/sys/vm/drop_caches`, read memory.stat back |
 | 122 | a gate dir under another post's uid (700) reads as 'missing' to my uid | read worktree / dir existence as root before calling anything stale |
+| 123 | my card with a literal home path (my own HOME) was refused at the push, but the :28 board land had ALREADY ff'd posts/belam into MAIN (22:28Z; reset --keep, never pushed) | anonymize the card DIFF before `agi-at`: `git diff HEAD -- <card> > f; anonymize.py check --diff-file f` (a whole-file check trips on trap 115's test address); write ~/ for every own path |
 
 ## §5 Verification
 22:2xZ 10-21: origin core/season3/main = posts/belam = MAIN (tip 0aa49b525f + this card); carry.env + host.done = 69e36d2286; 10 agi-post@ active (the moved three: director-goals-1 NRestarts 10 = the G3 loop, frozen since 20:02Z; director-science-1 + director-general-1 NRestarts 0); 0 stale MAIN worktrees (read as root); test_anonymize_guard 65 passed; t-sitting 23/23 on v6, t-move 14/14; CHECK cron ae4470b2 (13 */4).
@@ -93,7 +94,6 @@ NEXT COMMAND: AGI_POST=belam box read   (from ~/t, AGI_BOX=encryption-town)
 | .45 director-review first start: ONE owner login for the new post (agi.sh start S6 [owner-do], or /login in its pane) | show the one command when the owner is back and G2's other parts are done |
 | .45 role templates: scopes are the Prime's reading (goals = goal stewardship that runs falsifiers and proposes closes; science = hypotheses, experiments, verdicts; review = presentation creation + checking deliverables) | owner confirms or corrects |
 | g5.4.2 voice: the council picked by a pre-registered rule under "do your best" | show the owner the pilot + the README in deliver/ |
-| needrestart: keep it (owner 10-21; it restarted the town 06:08Z on a liblzma update) | none |
 | ElevenLabs direct account: none; Voice Design route OFF | revisit if the owner gets a key |
 | the owner's complex-analysis project spends on the OPENROUTER_ADMIN account | per-key settled usage is the figure |
 | 657 refs/archive/worktrees/* in MAIN; refs/grid on E vs L differ by 5,845 | keep local + bundle; owner picks |
