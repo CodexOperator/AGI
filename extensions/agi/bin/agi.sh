@@ -102,6 +102,7 @@ S(){ G ls-tree --full-tree --name-only $PIN .agi/nodes/.geometry/|grep '/engine[
 OWN="-o root -g root";[ -z "$R" ]||OWN=
 put(){ t=$(mktemp)||exit 1;S $1>$t;[ -s $t ]||{ rm -f $t;die "no ### $1 at $PIN";};case $4 in sh)sh -n $t||{ rm -f $t;die "### $1 does not parse";};esac;install -D -m $3 $OWN $t $R$2||{ rm -f $t;die "cannot write $2";};echo "  $2  $(sha256sum<$t|cut -c1-16)  $(wc -c<$t) B";rm -f $t;}
 AG=agi;[ -z "$R" ]||AG=$(id -gn)
+TS=${AGI_TOWN_STATE:-$R/etc/agi/town.state}
 CF=$(G show $PIN:.agi/config.json 2>/dev/null|jq -r ".values.local_maxxing.agi_town.carry_fetch==true" 2>/dev/null)
 PC="agi-vstore:/usr/local/libexec/agi-vstore:755:sh sect:/opt/agi/bin/sect:755:sh box:/opt/agi/bin/box:755:sh box-carry:/opt/agi/bin/box-carry:755:sh agi-signers:/opt/agi/bin/agi-signers:755:sh $(for u in agi-carry@.service agi-carry@.path agi-carry-fetch.service agi-carry-fetch.timer agi-boot.service;do printf '%s:/etc/systemd/system/%s:644:unit ' $u $u;done)agi.rules:/etc/polkit-1/rules.d/50-agi.rules:644:unit"
 each(){ for x in $PC;do n=${x%%:*};r=${x#*:};d=${r%%:*};r=${r#*:};m=${r%%:*};k=${r#*:};"$@"||return 1;done;}
@@ -112,12 +113,22 @@ ramunit(){ printf '%s\n' '# encryption-town ONLY: MAIN is a plain directory on t
 sliceunit(){ printf '%s\n' '# encryption-town: typed here (config:guard has no E line); 7.8 GB box' '[Slice]' "MemoryHigh=${E_MEM_HIGH:-5G}" "MemoryMax=${E_MEM_MAX:-6G}" 'ManagedOOMMemoryPressure=kill' "ManagedOOMMemoryPressureLimit=${E_OOM_LIMIT:-40%}";}
 acl1(){ getfacl -p "$1" 2>/dev/null|grep -qx "$2";}
 aclmet(){ for d in objects refs logs worktrees;do acl1 $R$M/.git/$d "group:$AG:rwx"&&acl1 $R$M/.git/$d "user:$PU:rwx"||return 1;done;for d in $R$M/.agi/sessions $R$M/.agi/sessions/inbox $R$M/.agi/comms;do acl1 $d "group:$AG:rwx"||return 1;done;acl1 $R$M/.agi/comms "user:$PU:rwx";}
-hostmet(){ each pmet&&carry_env|cmp -s - $R/etc/agi/carry.env&&ramunit|cmp -s - $R/etc/systemd/system/agi-ram-main.service&&sliceunit|cmp -s - $R/etc/systemd/system/agi.slice&&[ -d $R/mnt/agi-ram/state ]&&[ -d $R/var/lib/agi ]&&[ "$(cat $R/etc/agi/host.done 2>/dev/null)" = $PIN ]&&aclmet;}
+# R-c (council 10-21): host.done proves the tail ran ONCE, not that it holds. Live (or a rehearsal ONLY through AGI_HOST_UNITS=<stub dir>) the units must still be enabled: `systemctl is-enabled agi-boot.service` prints exactly `enabled` with rc 0 (and agi-carry-fetch.timer the same iff the cell is true); any other output, a non-zero rc or no systemctl is NOT met (fail closed). A plain rehearsal skips it.
+# A STOPPED town (town.state has its `stopped` line) has agi-boot disabled by design (dn_posts; start's posts step enables it): there the answer must be exactly `disabled`, so stop -> start is not refused as "host: not met".
+unitsmet(){ [ -n "$R" ]&&[ -z "$AGI_HOST_UNITS" ]&&return 0
+ w=enabled;if grep -q '^stopped ' "$TS" 2>/dev/null;then w=disabled;fi
+ o=$(systemctl is-enabled agi-boot.service 2>/dev/null);rc=$?;if [ $w = enabled ];then [ $rc = 0 ]&&[ "$o" = enabled ]||return 1;else [ "$o" = disabled ]||return 1;fi
+ [ "$CF" != true ]||{ o=$(systemctl is-enabled agi-carry-fetch.timer 2>/dev/null)&&[ "$o" = enabled ];};}
+hostmet(){ each pmet&&carry_env|cmp -s - $R/etc/agi/carry.env&&ramunit|cmp -s - $R/etc/systemd/system/agi-ram-main.service&&sliceunit|cmp -s - $R/etc/systemd/system/agi.slice&&[ -d $R/mnt/agi-ram/state ]&&[ -d $R/var/lib/agi ]&&[ "$(cat $R/etc/agi/host.done 2>/dev/null)" = $PIN ]&&unitsmet&&aclmet;}
 tm(){ [ "$CF" = true ]||return 0;if [ -n "$R" ]&&[ -z "$AGI_HOST_UNITS" ];then echo "rehearsal: systemctl enable --now agi-carry-fetch.timer";else systemctl enable --now agi-carry-fetch.timer;fi;}
 # ---- preflight (nothing written yet) ----
 for c in git jq setfacl sed;do command -v $c>/dev/null||die "missing tool: $c";done
 [ -n "$R" ]||{ command -v systemctl>/dev/null||die "missing tool: systemctl";getent group agi>/dev/null||die "group agi is absent (the agi-* users are the owner's act)";}
+# R-b (council 10-21): AGI_HOST_UNITS=<stub dir> (a rehearsal's switch for the live tail): with ROOT set, systemctl AND systemd-analyze must resolve INSIDE that dir, else nothing runs; a rehearsal never reaches the real systemctl
+[ -z "$R" ]||[ -z "$AGI_HOST_UNITS" ]||for c in systemctl systemd-analyze;do case $(command -v $c 2>/dev/null) in "$AGI_HOST_UNITS"/*);;*)die "AGI_HOST_UNITS needs stubs: $c does not resolve inside $AGI_HOST_UNITS (nothing written)";;esac;done
 G show $PIN:.agi/nodes/.geometry/posts.md>/dev/null||die "no posts.md at $PIN"
+# B3 (alive/aio 10-21): `up_host check` writes nothing: met -> rc 0, else rc 1 with the line start prints. The live box has no host.done until ONE `sudo PIN=<pin> sh agi.sh host` has run (owner / SM GO); start never runs the act itself.
+if [ "$1" = check ];then hostmet&&{ echo "host: met";exit 0;};echo "host: not met; run agi.sh host" >&2;exit 1;fi
 id $PU>/dev/null 2>&1||die "PREREQ: user $PU (the comms ACL's second entry) is absent: PRIME_USER=<user> to name another"
 [ -n "$SKIP_PREREQ" ]||{ [ -x $R/opt/agi/bin/pi ]||[ -x $R/usr/local/bin/pi ]||die "PREREQ: no pi at /opt/agi/bin/pi (agi-project exits 3 without it while a pi row has box $BOX): install it first, SKIP_PREREQ=1 to override";}
 hostmet&&{ echo "host: met";exit 0;}
@@ -176,7 +187,7 @@ if [ -z "$R" ];then
   echo "  probe: agi-$U creates and removes a dir in .git/{objects,refs,logs,worktrees} and a file in .agi/sessions, .agi/sessions/inbox and .agi/comms"
  else echo "  probe SKIPPED: no agi-<post> user for a box $BOX row yet">&2;fi
 fi
-if [ -z "$R" ]||[ -n "$AGI_HOST_UNITS" ];then   # AGI_HOST_UNITS=1: a rehearsal runs this tail too (a test points PATH at systemctl / systemd-analyze stubs)
+if [ -z "$R" ]||[ -n "$AGI_HOST_UNITS" ];then   # AGI_HOST_UNITS=<stub dir>: a rehearsal runs this tail too, against the systemctl / systemd-analyze stubs IN that dir (R-b: refused otherwise)
  systemd-analyze verify $R/etc/systemd/system/agi-ram-main.service $R/etc/systemd/system/agi-boot.service $R/etc/systemd/system/agi-carry@.service $R/etc/systemd/system/agi-carry-fetch.service $R/etc/systemd/system/agi.slice||die "systemd-analyze verify refused a unit: sh $B/rollback.sh"
  systemctl daemon-reload&&tm&&systemctl enable agi-boot.service&&systemctl start agi-boot.service||die "enable / start failed: sh $B/rollback.sh"
  echo "slice:";systemctl show agi.slice -p MemoryHigh -p MemoryMax -p ManagedOOMMemoryPressure
@@ -184,6 +195,11 @@ else tm||exit 1;fi
 echo "act done; next: per post, PIN=$PIN sh $D/../guard/host-act-encryption-town.sh move <post> (after its row has box $BOX at that pin)"
 printf '%s\n' $PIN>$R/etc/agi/host.done&&chmod 644 $R/etc/agi/host.done||exit 1   # the LAST line (council R1): only a completed act is met
 );}
+# start (S2b, in progress): the host check is FIRST and writes nothing (B2/B3): `host: not met; run agi.sh host`, rc 1, never the act itself (the act is root's own, once: `sudo PIN=<pin> sh agi.sh host`).
+cmd_start(){ [ $# = 0 ]||die "start: unknown argument '$1'"
+ need;[ -n "$ROOT" ]||[ "$(id -u)" = 0 ]||die "[root] start needs root: nothing started"
+ up_host check||exit 1
+ die "start: the steps after host are not built yet";}
 ck_host(){ return 0;}
 dn_host(){ return 0;}
 r=${1:-};[ $# = 0 ]||shift
@@ -192,6 +208,6 @@ status)prep;status;;
 stop)cmd_stop "$@";;
 answer)cmd_answer "$@";;
 host)up_host;;
-start)die "start: S2b, not yet";;
+start)cmd_start "$@";;
 *)die "usage: agi.sh status | stop [--pack OUT] | answer KEY VALUE | host";;
 esac

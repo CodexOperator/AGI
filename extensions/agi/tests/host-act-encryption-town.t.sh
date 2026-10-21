@@ -123,9 +123,9 @@ mk r;run env PIN=zz sh $AGI host>/dev/null 2>$T/r.err;rr=$?
 ok k5-agi-sh-host-refuses-a-bad-pin-by-name "[ $rr != 0 ]&&grep -q 'PIN must be' $T/r.err&&[ ! -e $X/var/backups ]"
 ok k6-the-row-is-in-the-matrix-and-the-act-writes-no-sudoers "sect matrix|grep -qP '^town\\tstart\\thost posts crons units blast\\tagi.sh\$'&&[ ! -e $X/etc/sudoers.d ]&&! sed -n '/^up_host()/,/^dn_host()/p' $AGI|grep -q 'sudoers\\|visudo'"
 # ---- council RETURN R1 (11:22Z 10-16): a FAILED act must not re-run as "host: met". /etc/agi/host.done = the PIN is the act's LAST write (cleared before its first); hostmet requires it; stop never touches it.
-# AGI_HOST_UNITS=1 makes the rehearsal run the live tail (verify, daemon-reload, timer, enable + start agi-boot) against these stubs.
-SHD=$T/shd;mkdir -p $SHD;printf '#!/bin/sh\n[ "$STUB_FAIL" = verify ]&&exit 1;exit 0\n' >$SHD/systemd-analyze;printf '#!/bin/sh\necho "$*">>$STUB_LOG\n[ "$STUB_FAIL" = "$1" ]&&exit 1;exit 0\n' >$SHD/systemctl;chmod +x $SHD/*
-hu(){ run env PATH=$SHD:$PATH AGI_HOST_UNITS=1 STUB_LOG=$T/sc.log STUB_FAIL=$1 sh ${2:-$AGI} host;}
+# AGI_HOST_UNITS=<stub dir> makes the rehearsal run the live tail (verify, daemon-reload, timer, enable + start agi-boot) against these stubs.
+SHD=$T/shd;mkdir -p $SHD;printf '#!/bin/sh\n[ "$STUB_FAIL" = verify ]&&exit 1;exit 0\n' >$SHD/systemd-analyze;printf '#!/bin/sh\necho "$*">>$STUB_LOG\ncase $1 in is-enabled)case $2 in agi-carry-fetch.timer)echo "${STUB_IS_T-enabled}";exit ${STUB_IS_T_RC:-0};;esac;echo "${STUB_IS-enabled}";exit ${STUB_IS_RC:-0};;esac\n[ "$STUB_FAIL" = "$1" ]&&exit 1;exit 0\n' >$SHD/systemctl;chmod +x $SHD/*
+hu(){ run env PATH=$SHD:$PATH AGI_HOST_UNITS=$SHD AGI_TOWN_STATE=$T/ts STUB_LOG=$T/sc.log STUB_FAIL=$1 sh ${2:-$AGI} host;}
 HD=etc/agi/host.done
 mk s;: >$T/sc.log;hu "">$T/s1.out 2>&1;rs1=$?
 ok r1-a-completed-act-writes-host-done-pin-mode-644-and-runs-the-tail "[ $rs1 = 0 ]&&[ \"\$(cat $X/$HD)\" = $PIN ]&&[ \$(stat -c %a $X/$HD) = 644 ]&&grep -qx 'daemon-reload' $T/sc.log&&grep -qx 'enable agi-boot.service' $T/sc.log&&grep -qx 'start agi-boot.service' $T/sc.log&&! grep -q 'carry-fetch' $T/sc.log"
@@ -155,4 +155,44 @@ ok r1-mutant-dn_host-removing-it-is-RED "! [ \$(awk '/^up_host\\(\\)/{i=1}/^ck_h
 # the timer on the live tail: a cell true enables it, false does not (the stub log)
 CFG='{"values":{"local_maxxing":{"agi_town":{"carry_fetch":true}}}}';mk n;CFG=;: >$T/sc.log;hu "">/dev/null 2>&1
 ok r1-d-carry-fetch-true-enables-the-timer-on-the-live-tail "grep -qx 'enable --now agi-carry-fetch.timer' $T/sc.log"
+# ---- S2b FIRST COMMIT (council 10-21 residues R-a, R-b, R-c, B3): each k-row has its one-edit mutant ----
+# R-a: the rollback row could not fail (old and new marker were both $PIN). A first act on a clean tree then rollback.sh leaves NO marker; an old marker of a second pin comes back byte-equal.
+P2=2222222222222222222222222222222222222222
+lastrb(){ ls -d $X/var/backups/agi-act-*|tail -1;}
+rbrow(){ AX=${1:-$AGI}   # prints "gone-old" for the act that ran from the script $AX
+ mk v;hu "" $AX>/dev/null 2>&1;RB1=$(lastrb);sh $RB1/rollback.sh>/dev/null 2>&1;[ ! -e $X/$HD ]&&echo -n gone-||echo -n kept-
+ mk v;hu "" $AX>/dev/null 2>&1;printf '%s\n' $P2>$X/$HD;sleep 1;hu "" $AX>/dev/null 2>&1;sh $(lastrb)/rollback.sh>/dev/null 2>&1;[ "$(cat $X/$HD 2>/dev/null)" = $P2 ]&&echo old||echo lost;}
+ok k7-a-first-act-then-rollback-leaves-no-marker-and-a-second-pins-marker-comes-back-byte-equal "[ \"\$(rbrow)\" = gone-old ]"
+rep '/etc/agi/host.done ' '';ok k7-mutant-host-done-dropped-from-the-backup-list-is-RED "[ \"\$(rbrow $T/mut.sh)\" != gone-old ]"
+# R-b: AGI_HOST_UNITS=<stub dir> with ROOT set needs systemctl AND systemd-analyze INSIDE that dir; stubs elsewhere on PATH (or the real systemctl) are refused before any call, no backup
+EMP=$T/emptyd;mkdir -p $EMP
+rbb(){ mk w;: >$T/sc.log;run env PATH=$SHD:$PATH AGI_HOST_UNITS=$EMP STUB_LOG=$T/sc.log STUB_FAIL= sh ${1:-$AGI} host>$T/w.out 2>$T/w.err;RC=$?;}
+rbb;ok k8-stubs-elsewhere-on-PATH-are-refused-with-nothing-called-and-no-backup "[ $RC != 0 ]&&grep -q 'AGI_HOST_UNITS needs stubs' $T/w.err&&[ ! -s $T/sc.log ]&&[ ! -e $X/var/backups ]&&[ ! -e $X/etc/agi/carry.env ]"
+mk w;run env PATH=/usr/bin:/bin AGI_HOST_UNITS=$EMP sh $AGI host>$T/w2.out 2>$T/w2.err;rw2=$?
+ok k8-the-real-systemctl-is-refused-too "[ $rw2 != 0 ]&&grep -q 'AGI_HOST_UNITS needs stubs' $T/w2.err&&[ ! -e $X/var/backups ]"
+rep '[ -z "$R" ]||[ -z "$AGI_HOST_UNITS" ]||for c in systemctl systemd-analyze;do' '[ -z "$R" ]||[ -z "$AGI_HOST_UNITS" ]||for c in ;do'
+rbb $T/mut.sh;ok k8-mutant-the-resolve-check-dropped-reaches-the-stub-RED "grep -qx 'daemon-reload' $T/sc.log"
+# R-c: hostmet is met only while agi-boot.service (and the timer iff the cell) still reads exactly `enabled` with rc 0; fail closed. Live, or a rehearsal ONLY through the stub dir.
+rcrow(){ mk x;: >$T/sc.log;hu "">/dev/null 2>&1;sleep 1;run env PATH=$SHD:$PATH AGI_HOST_UNITS=$SHD AGI_TOWN_STATE=$T/ts STUB_LOG=$T/sc.log "$@" sh ${AGIX:-$AGI} host>$T/x.out 2>&1;}
+for v in masked static linked "" disabled;do rcrow STUB_IS=$v;ok "k9-agi-boot-reading-'$v'-is-NOT-met" "! grep -qx 'host: met' $T/x.out&&[ \$(backups) = 2 ]";done
+rcrow STUB_IS=enabled STUB_IS_RC=1;ok k9-an-enabled-text-with-rc-1-is-NOT-met "! grep -qx 'host: met' $T/x.out"
+rcrow;ok k9-enabled-rc-0-is-met "grep -qx 'host: met' $T/x.out&&[ \$(backups) = 1 ]"
+CFG='{"values":{"local_maxxing":{"agi_town":{"carry_fetch":true}}}}';mk x;CFG=;hu "">/dev/null 2>&1;sleep 1;run env PATH=$SHD:$PATH AGI_HOST_UNITS=$SHD AGI_TOWN_STATE=$T/ts STUB_LOG=$T/sc.log STUB_IS_T=masked sh $AGI host>$T/x2.out 2>&1
+ok k9-the-timer-masked-with-the-cell-true-is-NOT-met "! grep -qx 'host: met' $T/x2.out"
+mk x;: >$T/sc.log;hu "">/dev/null 2>&1;sleep 1;run env PATH=$SHD:$PATH AGI_HOST_UNITS=$SHD AGI_TOWN_STATE=$T/ts STUB_LOG=$T/sc.log STUB_IS_T=masked sh $AGI host>$T/x3.out 2>&1
+ok k9-the-timer-masked-with-the-cell-false-is-still-met "grep -qx 'host: met' $T/x3.out"
+mk y;: >$T/sc.log;run env PATH=$SHD:$PATH STUB_LOG=$T/sc.log STUB_IS=masked sh $AGI host>/dev/null 2>&1;sleep 1;run env PATH=$SHD:$PATH STUB_LOG=$T/sc.log STUB_IS=masked sh $AGI host>$T/y.out 2>&1
+ok k9-a-plain-rehearsal-second-run-is-still-met-and-the-stub-log-is-empty "grep -qx 'host: met' $T/y.out&&[ ! -s $T/sc.log ]"
+# a STOPPED town has agi-boot disabled by its own stop: exactly `disabled` is met there, and only there
+printf 'stopped encryption-town 2026-10-21T00:00:00Z\n'>$T/ts;rcrow STUB_IS=disabled STUB_IS_RC=1;ok k9-stopped-town-with-agi-boot-disabled-is-met "grep -qx 'host: met' $T/x.out"
+rcrow STUB_IS=enabled;ok k9-stopped-town-with-agi-boot-enabled-is-NOT-met "! grep -qx 'host: met' $T/x.out"
+rcrow STUB_IS=masked;ok k9-stopped-town-with-agi-boot-masked-is-NOT-met "! grep -qx 'host: met' $T/x.out";rm -f $T/ts
+rep '&&unitsmet&&aclmet' '&&aclmet';AGIX=$T/mut.sh;rcrow STUB_IS=masked;AGIX=
+ok k9-mutant-hostmet-without-the-enabled-check-says-met-on-masked-RED "grep -qx 'host: met' $T/x.out"
+# B3: the live box has no marker, so the first `agi.sh host` is a full re-act; start on not-met prints the line and exits non-zero, never running the act
+stm(){ mk z;hu "">/dev/null 2>&1;rm -f $X/$HD;sleep 1;run env PATH=$SHD:$PATH sh ${1:-$AGI} start>$T/z.out 2>$T/z.err;RC=$?;}
+stm;ok k10-start-on-a-host-with-every-piece-equal-but-no-host-done-is-rc-nonzero-the-line-and-no-new-backup "[ $RC != 0 ]&&grep -qx 'host: not met; run agi.sh host' $T/z.err&&[ \$(backups) = 1 ]&&[ ! -e $X/$HD ]"
+rep 'up_host check||exit 1' 'up_host check||{ up_host;exit 1;}';stm $T/mut.sh;ok k10-mutant-start-calling-the-act-on-not-met-grows-a-backup-RED "[ \$(backups) = 2 ]"
+mk z;hu "">/dev/null 2>&1;run env PATH=$SHD:$PATH sh $AGI start>$T/z2.out 2>$T/z2.err
+ok k10-start-on-a-met-host-passes-the-host-step "grep -qx 'host: met' $T/z2.out&&! grep -q 'not met' $T/z2.err"
 echo "host-act-encryption-town: $f FAIL";exit $f
