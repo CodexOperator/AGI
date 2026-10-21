@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-18:02Z 10-21: [decision] 3/3 SENT: media stack 2489626982 + card 822a578279 APPROVE; BIND before G2 (at the chown): MEDIA_BASE in one module, dir moved to /data/work/media/season3, needle for post names; nit: data tests out of the default suite. G1b COMPLETE. G3 waits on DG5's §8 4b + 'projected' commit. G2 waits owner login + lands + chown/move.
+18:05Z 10-21: [decision] 3/3 SENT: 5cffa55b41 'projected' APPROVE; G3 GO in principle + precondition: DG5 cuts the 4a rows+cards commit, gated + council-reviewed while DG1 is up; then DG1's carried card, our G3 [decision], run 0..4b, CHECKS 1, our start GO, CHECKS 2. NEXT: review DG5's 4a [review-ready]; media BIND (MEDIA_BASE + dir move) before G2.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
