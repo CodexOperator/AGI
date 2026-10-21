@@ -23,6 +23,14 @@ def chaps():
     return mv.load_chapters(SCRIPT, REPO)
 
 
+def need_mp3(n):
+    """The media lane: a missing narration mp3 is a FAIL, never a skip (council 10-21 11:08Z, R-gross)."""
+    p = mv.BASE + f"/deliver/season3-C{n}-narration.mp3"
+    if not os.path.exists(p):
+        pytest.fail(f"narration file missing: {p} (the media lane needs the deliver/ folder)")
+    return p
+
+
 # ---- timing: C2
 def synth(n=12, rate=17.5, end_pause=0.7, comma=0.3, seed=3):
     """A chapter made by hand: n sentences of known length, a long pause after each, and a short comma pause inside every one. -> lens, duration, pauses, true ends."""
@@ -101,9 +109,7 @@ def test_verify_ends_catches_a_lying_report():
 
 
 def test_the_real_c2_is_green_and_chains_end_to_start(chaps):
-    mp3 = mv.BASE + "/deliver/season3-C2-narration.mp3"
-    if not os.path.exists(mp3):
-        pytest.skip("no narration file here")
+    mp3 = need_mp3(2)
     pl = mv.chapter_plan(chaps[2], mp3)
     assert len(pl["beats"]) == 31 and pl["beats"][0]["t0"] == 0 and abs(pl["beats"][-1]["t1"] - pl["duration"]) < 0.01
     assert all(abs(a["t1"] - b["t0"]) < 0.01 for a, b in zip(pl["beats"], pl["beats"][1:]))
@@ -780,9 +786,7 @@ def test_counts_carry_the_dp_the_08_alone_and_the_greedy_rule():
 
 
 def test_the_real_c6_counts_are_the_numbers_in_the_readme(chaps):
-    mp3 = mv.BASE + "/deliver/season3-C6-narration.mp3"
-    if not os.path.exists(mp3):
-        pytest.skip("no narration file here")
+    mp3 = need_mp3(6)
     pl = mv.chapter_plan(chaps[6], mp3)
     assert pl["counts"] == {"dp_rel": 10, "dp_tol_only": 12, "greedy": 15} and pl["fallback"] == 10
     offs = mv.prior_offsets(pl)
@@ -798,13 +802,11 @@ def test_falsifier_pauses_filled_with_noise_is_red(job):
 
 
 def test_falsifier_another_chapters_sentences_against_this_audio_is_red(chaps):
-    mp3 = mv.BASE + "/deliver/season3-C2-narration.mp3"
-    if not os.path.exists(mp3):
-        pytest.skip("no narration file here")
+    mp3 = need_mp3(2)
     pauses, dur = mv.silences(mp3), mv.mp3_seconds(mp3)
     right = mv.place([len(b["spoken"]) for b in mv.beats(chaps[2], REPO)], dur, pauses)
     wrong = mv.place([len(b["spoken"]) for b in mv.beats(chaps[3], REPO)], dur, pauses)
-    assert mv.timing_findings(right) == [] and (mv.timing_findings(wrong) or wrong["fallback"] > right["fallback"] + 4)
+    assert mv.timing_findings(right) == [] and mv.timing_findings(wrong)          # RED only (R-gross, council 10-21 11:08Z): measured 14 of 31 on the prior against 4 of 30
 
 
 def plan_of(job, kinds, ends, rate=None):
@@ -981,3 +983,64 @@ def test_a_red_chapter_cannot_be_published_later(job, monkeypatch):
     with pytest.raises(ValueError, match="not a green rendered chapter"):
         mv.publish_chapter(2, job["d"], json.load(open(Path(job["d"]["checks"], "ch02.report.json"))), json.load(open(Path(job["d"]["video"], "ch02-plan.json"))))
     assert Path(job["d"]["deliver"], job["name"]).read_bytes() == b"STATIC"
+
+
+# ---- council 10-21 11:08Z: R-fine (a documented limit, asserted), R-sync, chunks
+def test_r_fine_the_timing_check_cannot_see_one_dropped_or_swapped_sentence_and_the_readme_says_so(chaps):
+    """Measured 10-21 by the council: C2 minus a mid-chapter sentence stays GREEN, and so does a swap of two. This row asserts the BLIND SPOT, it does not pretend a check."""
+    mp3 = need_mp3(2)
+    pauses, dur = mv.silences(mp3), mv.mp3_seconds(mp3)
+    lens = [len(b["spoken"]) for b in mv.beats(chaps[2], REPO)]
+    for name, ls in (("minus 15", lens[:15] + lens[16:]), ("minus 3", lens[:3] + lens[4:]), ("swap 15,16", lens[:15] + [lens[16], lens[15]] + lens[17:])):
+        pl = mv.place(ls, dur, pauses)
+        assert mv.timing_findings(pl) == [] and mv.verify_ends(pl, pauses, dur, ls) == [], name
+    assert "cannot see a single dropped or swapped sentence" in mv.LIMIT_LINE and "keyframe view" in mv.LIMIT_LINE
+
+
+def test_the_readme_limit_line_is_written_once_as_line_two(tmp_path):
+    p = tmp_path / "README-narration.txt"
+    p.write_text("head\nrow\n")
+    mv.ensure_readme_limit(str(p)); mv.ensure_readme_limit(str(p))
+    ls = p.read_text().split("\n")
+    assert ls[1] == mv.LIMIT_LINE and ls.count(mv.LIMIT_LINE) == 1 and ls[0] == "head" and ls[2] == "row"
+
+
+def test_r_sync_green_on_a_good_mux_and_red_on_the_itsoffset_mutant(job):
+    plan = mv.chapter_plan(job["chap"], job["mp3"])
+    scene = Path(job["d"]["tmp"]) / "scene.mp4"
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "testsrc2=s=1280x720:r=25", "-t", str(plan["duration"] + 0.2), "-pix_fmt", "yuv420p", "-c:v", "libx264", "-preset", "ultrafast", str(scene)], check=True)
+    good, bad = str(Path(job["d"]["tmp"]) / "good.mp4"), str(Path(job["d"]["tmp"]) / "bad.mp4")
+    mv.mux(str(scene), job["mp3"], good, plan["duration"])
+    mv.mux(str(scene), job["mp3"], bad, plan["duration"], audio_offset=1.0)                     # the mutant: -itsoffset 1
+    assert mv.sync_findings(good, plan["ends"]) == []
+    found = mv.sync_findings(bad, plan["ends"])
+    assert found and any("apart" in f for f in found) and any("median" in f for f in found)
+
+
+
+
+def test_r_sync_is_part_of_every_chapter_run(job, monkeypatch):
+    monkeypatch.setattr(mv, "sync_findings", lambda mp4, ends: ["forced sync finding"])
+    r = go(job, publish_it=True)
+    assert r["status"] == "red: checks" and "forced sync finding" in r["findings"] and Path(job["d"]["deliver"], job["name"]).read_bytes() == b"STATIC"
+
+
+def test_chunks_cover_every_pair_in_order_two_at_a_time():
+    ps = list("abcde")
+    assert mv.pair_chunks(ps) == [["a", "b"], ["c", "d"], ["e"]] and mv.pair_chunks(["a"]) == [["a"]] and mv.pair_chunks(ps, 1) == [[x] for x in ps]
+    assert [x for c in mv.pair_chunks(ps) for x in c] == ps
+
+
+def test_chunk_times_are_consecutive_and_the_frames_add_up_to_the_beat():
+    for k in (1, 2, 3, 5):
+        cs = mv.chunk_times(12.343, 23.771, k)
+        assert cs[0][0] == 12.343 and abs(cs[-1][1] - 23.771) < 1e-9 and all(abs(a[1] - b[0]) < 1e-9 for a, b in zip(cs, cs[1:]))
+        frames = sum(sum(w) + r for w, r in (mv.schedule(c0, c1, [0.5, 1.0, 0.35, 0.9, 0.3]) for c0, c1 in cs))
+        assert frames == round(23.771 * 25) - round(12.343 * 25)
+
+
+def test_every_beat_of_the_script_with_more_than_two_pairs_is_drawn_in_full(chaps):
+    """C3 beat 29 cites four pairs; the first render drew two and the check said RED. The scene now draws every pair; chunks of two, so a beat with n pairs has ceil(n/2) chunks."""
+    big = [(c["id"], b["i"], len(b["pairs"])) for c in chaps.values() for b in mv.beats(c, REPO) if len(b["pairs"]) > 2]
+    assert ("C3", 29, 4) in big
+    assert all(sum(len(c) for c in mv.pair_chunks(b["pairs"])) == len(b["pairs"]) for c in chaps.values() for b in mv.beats(c, REPO))

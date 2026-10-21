@@ -72,16 +72,21 @@ class Chapter(Scene):
         self.run([FadeOut(say)], want[2])
 
     def feed(self, b, plan, repo, t1, machine, graph, tick):
+        """The beat's pairs in chunks of two, one chunk after the other across the beat; the sentence stays under all of them."""
+        chunks = mv.pair_chunks(b["pairs"])
+        claim = V.caption(b["spoken"], 26, V.INK, width=66).to_edge(DOWN, buff=0.45).align_to([-6.6, 0, 0], LEFT)
+        for k, ((c0, c1), pairs) in enumerate(zip(mv.chunk_times(b["t0"], t1, len(chunks)), chunks)):
+            self.feed_chunk(b, pairs, c0, c1, machine, graph, tick, claim, first=k == 0, last=k == len(chunks) - 1)
+
+    def feed_chunk(self, b, pairs, t0, t1, machine, graph, tick, claim, first, last):
         from manim import RoundedRectangle
-        pairs = b["pairs"][:2]
-        strand_objs = [V.Strand(repo, p["sha"], p["path"], p["lo"], p["hi"], p["needle"], b["i"]) for p in pairs]
+        strand_objs = [V.Strand(repo=os.environ.get("M4_REPO", mv.REPO), sha=p["sha"], path=p["path"], lo=p["lo"], hi=p["hi"], needle=p["needle"], beat=b["i"]) for p in pairs]
         strands = [so.mobject() for so in strand_objs]
         cites = [V.Cite(p["sha"], p["path"], p["lo"], p["hi"], b["i"]) for p in pairs]
         stack = VGroup(*strands).arrange(DOWN, aligned_edge=LEFT, buff=0.5)
         if stack.height > 3.7:
             stack.scale_to_fit_height(3.7)
         stack.to_edge(LEFT, buff=0.6).set_y(0.15)
-        claim = V.caption(b["spoken"], 26, V.INK, width=66).to_edge(DOWN, buff=0.45).align_to([-6.6, 0, 0], LEFT)
         needle = strand_objs[0].needle_mobject().move_to(stack.get_center())
         node, edge, grow = graph.add()
         chip_label = cites[0].mobject(16, V.INK)
@@ -90,12 +95,12 @@ class Chapter(Scene):
         chip.next_to(machine.out, RIGHT, buff=0.12)
         # appear -> (the sentence is spoken while the bytes are on screen) -> the needle goes in -> the machine reads -> the chip comes out and becomes a node -> fade
         parts = [0.5, 1.0, 0.35, 0.9, 0.3]
-        want, rest = mv.schedule(b["t0"], t1, parts)
-        self.run([FadeIn(stack, shift=RIGHT * 0.3), FadeIn(claim, shift=UP * 0.15)] + machine.relabel(cites[0]) + [tick.advance()], want[0])
-        self.hold(b["t0"] + (want[0] + rest) / FPS)
+        want, rest = mv.schedule(t0, t1, parts)
+        self.run([FadeIn(stack, shift=RIGHT * 0.3)] + ([FadeIn(claim, shift=UP * 0.15)] if first else []) + machine.relabel(cites[0]) + ([tick.advance()] if first else []), want[0])
+        self.hold(t0 + (want[0] + rest) / FPS)
         self.add(needle)
         self.run([needle.animate.scale(0.5).move_to(machine.inp.get_center() + LEFT * 0.7), stack.animate.set_opacity(0.3)], want[1])
         self.run([machine.flash(), machine.scan(), FadeOut(needle, scale=0.3)], want[2])
         self.add(chip)
         self.run([chip.animate.scale(0.2).move_to(node.get_center())] + grow, want[3])
-        self.run([FadeOut(stack), FadeOut(claim), FadeOut(chip)], want[4])
+        self.run([FadeOut(stack), FadeOut(chip)] + ([FadeOut(claim)] if last else []), want[4])

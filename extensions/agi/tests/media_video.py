@@ -287,6 +287,16 @@ def schedule(t0, t1, parts, fps=FPS):
     return want, max(rest, 0)
 
 
+def pair_chunks(pairs, size=2):
+    """A beat's pairs in groups of at most `size`: the scene shows one group at a time (a stack of four strands would be drawn too small to read), so EVERY pair is drawn (C3 beat 29 cites four)."""
+    return [pairs[i:i + size] for i in range(0, len(pairs), size)] or [[]]
+
+
+def chunk_times(t0, t1, k):
+    """k equal slices of a beat as [(c0, c1)]; consecutive, first c0 = t0, last c1 = t1 (schedule() then gives each slice whole frames that add up to the beat)."""
+    return [(t0 + (t1 - t0) * i / k, t0 + (t1 - t0) * (i + 1) / k) for i in range(k)]
+
+
 # ---- the engine bytes a picture shows
 DELIM = re.compile(r"[ \t;|&(){}\[\]\"'`,=<>/:$]")
 
@@ -621,6 +631,19 @@ def pending(deliver, checks_dir, order=ORDER, only_pilot=False):
     return out
 
 
+LIMIT_LINE = "timing check cannot see a single dropped or swapped sentence (the DP re-fits around it, measured 10-21); the keyframe view is the check for that."
+
+
+def ensure_readme_limit(readme_path):
+    """The documented limit of the timing check (council 10-21 11:08Z, R-fine), once, as the README's second line. Idempotent."""
+    lines = open(readme_path, encoding="utf-8").read().split("\n")
+    if LIMIT_LINE not in lines:
+        lines.insert(1, LIMIT_LINE)
+        tmp = readme_path + ".new"
+        open(tmp, "w", encoding="utf-8").write("\n".join(lines))
+        os.replace(tmp, readme_path)
+
+
 def set_readme_row(readme_path, name, chap, version, extra=""):
     """Rewrite the one row of this mp4; the chunk lines under it stay. Raises if the row is not there."""
     lines = open(readme_path, encoding="utf-8").read().split("\n")
@@ -716,11 +739,32 @@ class Sampler(threading.Thread):
         self._halt.set(); self.join(3)
 
 
-def mux(scene_mp4, mp3, dst, seconds):
-    """The scene's picture + the chapter's narration under the ONE profile; the file is exactly the mp3's length."""
-    subprocess.run(["nice", "-n", "10", "ffmpeg", "-v", "error", "-y", "-i", scene_mp4, "-i", mp3, "-map", "0:v:0", "-map", "1:a:0", "-t", f"{seconds:.3f}",
+def mux(scene_mp4, mp3, dst, seconds, audio_offset=0.0):
+    """The scene's picture + the chapter's narration under the ONE profile; the file is exactly the mp3's length. `audio_offset` exists only for the R-sync mutant (-itsoffset 1)."""
+    subprocess.run(["nice", "-n", "10", "ffmpeg", "-v", "error", "-y", "-i", scene_mp4] + (["-itsoffset", str(audio_offset)] if audio_offset else []) + ["-i", mp3, "-map", "0:v:0", "-map", "1:a:0", "-t", f"{seconds:.3f}",
                     "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p", "-r", "25", "-s", f"{PROFILE['width']}x{PROFILE['height']}",
                     "-c:a", "aac", "-ar", PROFILE["sample_rate"], "-ac", str(PROFILE["channels"]), "-b:a", "128k", "-movflags", "+faststart", dst], check=True)
+
+
+def stream_starts(mp4):
+    r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "stream=codec_type,start_time", "-of", "json", mp4], capture_output=True, text=True, check=True)
+    st = {x["codec_type"]: float(x.get("start_time", 0) or 0) for x in json.loads(r.stdout)["streams"]}
+    return st.get("video", 0.0), st.get("audio", 0.0)
+
+
+def sync_findings(mp4, ends, tol_start=0.05, tol_median=0.1):
+    """R-sync (council 10-21 11:08Z), on every final mp4: the audio and the video start within `tol_start` of each other, AND silencedetect on the mp4's OWN audio track finds a pause within
+    `tol_median` (median over the stored sentence ends, the last one excluded) of where the plan says the sentences end. Mutant: mux with -itsoffset 1 -> RED. -> [finding]"""
+    out = []
+    v, a = stream_starts(mp4)
+    if abs(v - a) > tol_start:
+        out.append(f"video starts at {v:.3f} s, audio at {a:.3f} s (> {tol_start} s apart)")
+    mids = [(x + y) / 2 for x, y in silences(mp4)]
+    diffs = sorted(min((abs(e - m) for m in mids), default=float("inf")) for e in ends[:-1])
+    med = diffs[len(diffs) // 2] if diffs else 0.0
+    if med > tol_median:
+        out.append(f"the mp4's own audio pauses are {med:.2f} s (median) from the stored sentence ends (> {tol_median} s)")
+    return out
 
 
 def keyframes(mp4, plan, out_prefix):
@@ -815,6 +859,7 @@ def run_chapter(n, chap, mp3, d, render_cmd, repo=REPO, publish_it=False, vmlimi
         fs += check_drawn(json.load(open(drawn)), plan, repo)
     except (OSError, ValueError) as e:
         fs.append(f"no record of what was drawn ({type(e).__name__})")
+    fs += sync_findings(tmp, plan["ends"])
     mids = [(b["t0"] + b["t1"]) / 2 for b in plan["beats"]]
     fs += frame_findings(grab_frames(tmp, mids), [b["kind"] for b in plan["beats"]])
     rep["findings"], rep["keyframes"] = fs, keyframes(tmp, plan, f"{d['video']}/keyframes-{nn}")
@@ -840,6 +885,7 @@ def publish_chapter(n, d, rep, plan):
     extra = (f"timing: {plan['fallback']} of {plan['boundaries']} boundaries on the prior (DP with 12 % REL; the approved 0.7 s alone {c['dp_tol_only']}; the approved greedy rule {c['greedy']}); "
              + (rep["exception"] + "; " if "exception" in rep else "") + "the static card is kept in deliver-static/")
     set_readme_row(f"{d['deliver']}/README-narration.txt", name, f"C{n}", "animated version", extra)
+    ensure_readme_limit(f"{d['deliver']}/README-narration.txt")
     rep["published"] = sha
     rep.pop("unpublished", None)
     json.dump(rep, open(f"{d['checks']}/{nn}.report.json", "w"), indent=1)
@@ -883,6 +929,11 @@ def _finish(rep, d, nn, t_start):
 
 
 # ---- cli
+def glob_one(pattern):
+    import glob as _g
+    return sorted(_g.glob(pattern))[0]
+
+
 def load_chapters(script=SCRIPT, repo=REPO):
     return {c["n"]: c for c in media_html.parse(script)}
 
@@ -925,6 +976,13 @@ def main(argv):
         sha = publish_chapter(n, d, rep, json.load(open(f"{V}/ch{n:02d}-plan.json")))
         print(f"C{n} published {sha[:16]}; the joined full mp4 must be {deliver_total(d['deliver']):.1f} s +-0.5 (sum of the explainer-ch*.mp4 in deliver/)")
         return 0
+    if cmd == "sync":
+        n = int(rest[0].lstrip("C"))
+        plan = json.load(open(f"{BASE}/video/ch{n:02d}-plan.json"))
+        f = sync_findings(rest[1] if len(rest) > 1 else glob_one(f"{BASE}/deliver/explainer-ch{n:02d}-*.mp4"), plan["ends"])
+        v, a = stream_starts(rest[1] if len(rest) > 1 else glob_one(f"{BASE}/deliver/explainer-ch{n:02d}-*.mp4"))
+        print(f"C{n}: video start {v:.3f} s, audio start {a:.3f} s;", "RED " + "; ".join(f) if f else "sync green")
+        return 1 if f else 0
     if cmd == "offsets":
         n = int(rest[0].lstrip("C"))
         pl = chapter_plan(chaps[n], f"{BASE}/deliver/season3-C{n}-narration.mp3")
