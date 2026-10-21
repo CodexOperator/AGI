@@ -176,9 +176,9 @@ Everything outside a slot is standing text.
   <div class="stats">
     <div class="stat"><b>{{facts.counts.active_by_dir|n}}</b><span>active node files at {{facts.at_short}}</span></div>
     <div class="stat"><b>{{facts.counts.deprecated_by_dir|n}}</b><span>retired, moved to deprecated/, never deleted</span></div>
-    <div class="stat"><b>{{facts.counts.active_by_status|n}}</b><span>nodes whose own status is not deprecated</span></div>
+    <div class="stat"><b>{{facts.counts.engine_active|n}}</b><span>active by the engine's own metrics rule: every node file minus those marked deprecated</span></div>
     <div class="stat"><b>{{facts.goals.total|n}}</b><span>goals, {{facts.goals.carried_active|n}} of them active from season {{facts.prev_season}}</span></div>
-    <div class="stat"><b>{{facts.ledger.commits|n}}</b><span>commits since season {{facts.prev_season}} opened, {{facts.ledger.signed|n}} signed</span></div>
+    <div class="stat"><b>{{facts.ledger.commits|n}}</b><span>commits in season {{facts.prev_season}}, {{facts.ledger.signed|n}} of them with a signature header (not verified)</span></div>
   </div>
   <div class="bars" aria-label="Active nodes by type">
 {{#rows facts.counts.type_rows}}

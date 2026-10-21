@@ -9,11 +9,14 @@ same inputs are byte-equal.
 
 Every source is read AT SHA (the report's commit, not the working tree):
   counts      `git ls-tree -r SHA .agi/nodes`: active_by_dir (md files outside deprecated/), active_by_status (the
-              same set minus `status: deprecated`), the ids where the two disagree, by_type (its own pass, by directory)
+              same set minus `status: deprecated`), BOTH mismatch lists (a live-dir file marked deprecated; a deprecated/ file
+              not marked), engine_active (metrics.py's rule: every node .md minus the `status: deprecated` ones), by_type
+              (the frontmatter `type:`). Every id is the frontmatter `id:`; the path spells it only as a flagged fallback
   posts       config:posts, every named row and its trunk cell (engine.trunk)
   season      the ladder's current_season and each town's season_history row for season N (the open time)
-  close       the committer time of the signed ladder-cell commit that OPENED season N (labelled so)
-  ledger      the commits since the commit that opened season N-1, signed counts per author, the L/S stack labels (`names`)
+  close       the committer time of the ladder-cell commit that OPENED season N (labelled so; `signed` only when git verifies it)
+  ledger      the commits of season N-1 = [open(N-1), open(N)): the window ends at the close, never at --at (so a later --at
+              leaves it byte-equal); signature-header counts per author; `names` = the L<n> of the first-parent LAND merges
   goals       goal counts by season:status, and how many `active` goals carry over from season N-1
 Heads and archives come from ONE captured ls-remote file whose FIRST line is the read time (ISO-8601 UTC) and the rest
 `<sha><TAB><ref>`. Facts with no git source come ONLY from a named --box-facts file (JSON): each value carries its
@@ -39,7 +42,10 @@ BOX_KEYS = ("run_rc", "run_time", "complete_time", "posts_live", "pin", "freeze_
 BOX_FIELDS = ("value", "command", "reader_uid", "read_time")
 NOT_RECORDED = "not recorded"
 _TIME = re.compile(r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$")
-_LABEL = re.compile(r"\b([LS])(\d+)\b")
+_HEADLINE = re.compile(r"^[0-9a-f]{40}\t\S+$")
+# the land shapes, each cited from a real first-parent merge subject of season 2 (names come from these and from NOTHING else):
+_LAND = re.compile(r"^[A-Za-z0-9_.-]+: LAND stack (\d+)\b")                       # 'sanctuary-master: LAND stack 16 (gate tip efbe2cf03e) -- ...'
+_LFORM = re.compile(r"^[A-Za-z0-9_.-]+: merge (?:season-\d+ )?L(\d+)\b")        # 'belam: merge season-2 L21 (8a12fdc239) into ...' / 'belam: merge L22 db1ac1324d (...'
 
 
 class Fail(Exception):
@@ -88,30 +94,38 @@ def _blobs(repo: str, oids: list[str]) -> list[bytes]:
 
 
 def read_tree(repo: str, sha: str) -> dict:
-    """Counts, by_type, the status/dir mismatches and the open goals, from ONE ls-tree pass at SHA."""
+    """Counts, by_type, BOTH status/dir mismatch lists and the goals, from ONE ls-tree pass at SHA. Ids and types come from the frontmatter."""
     raw = _git(repo, "ls-tree", "-r", "-z", sha, "--", NODES).decode()
-    live: list[tuple[str, str, str]] = []           # (type, id, oid)
-    deprecated = 0
+    files: list[tuple[bool, str, str, str]] = []   # (in deprecated/, type dir, stem, oid)
     for ent in raw.split("\0"):
         if not ent:
             continue
         meta, path = ent.split("\t", 1)
-        oid = meta.split()[2]
         if not path.endswith(".md"):
             continue
         parts = path.split("/")
-        if parts[2] == "deprecated":
-            deprecated += 1
-            continue
-        stem = "/".join(parts[3:])[:-3]
-        live.append((parts[2], f"{parts[2]}:{stem}", oid))
-    bodies = _blobs(repo, [o for _, _, o in live])
-    mismatch, by_type, goals = [], Counter(), []
-    status_active = 0
-    for (typ, nid, _), body in zip(live, bodies):
-        by_type[typ] += 1
+        dep = parts[2] == "deprecated"
+        files.append((dep, parts[3] if dep else parts[2], "/".join(parts[4:] if dep else parts[3:])[:-3], meta.split()[2]))
+    bodies = _blobs(repo, [f[3] for f in files])
+    mismatch, dep_mismatch, from_path, by_type, goals = [], [], [], Counter(), []
+    live = deprecated = status_active = status_deprecated = 0
+    for (dep, tdir, stem, _), body in zip(files, bodies):
         fm = _frontmatter(body.decode("utf-8", "replace"))
         status = _fm_scalar(fm, "status")
+        nid = _fm_scalar(fm, "id")
+        if not nid:
+            nid = f"{tdir}:{stem}"                  # the path spells the id only when the frontmatter does not: flagged
+            from_path.append(nid)
+        typ = _fm_scalar(fm, "type") or (nid.split(":", 1)[0] if ":" in nid else tdir)
+        if status == "deprecated":
+            status_deprecated += 1
+        if dep:
+            deprecated += 1
+            if status != "deprecated":
+                dep_mismatch.append(nid)
+            continue
+        live += 1
+        by_type[typ] += 1
         if status == "deprecated":
             mismatch.append(nid)
         else:
@@ -127,10 +141,13 @@ def read_tree(repo: str, sha: str) -> dict:
     for r in type_rows:
         r["pct"] = f"{100 * r['nodes'] / widest:.1f}"            # the bar width, relative to the widest row
     return {
-        "active_by_dir": len(live),
+        "active_by_dir": live,
         "active_by_status": status_active,
         "deprecated_by_dir": deprecated,
+        "engine_active": len(files) - status_deprecated,         # metrics.py's rule: every node .md minus the status-deprecated ones
         "status_dir_mismatch": sorted(mismatch),
+        "deprecated_status_mismatch": sorted(dep_mismatch),
+        "ids_from_path": sorted(from_path),
         "by_type": {t: n for t, n in rows},
         "type_rows": type_rows,
         "_goals": goals,
@@ -227,21 +244,38 @@ def open_commit(repo: str, sha: str, season: int) -> dict | None:
     return None
 
 
+def _parent(repo: str, rev: str) -> str | None:
+    r = subprocess.run(["git", "-C", repo, "rev-parse", "--verify", "-q", f"{rev}^"], capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 else None
+
+
 def read_close(repo: str, sha: str, season: int) -> dict:
     c = open_commit(repo, sha, season)
     if c is None:
         return {"value": NOT_RECORDED}
-    kind = "signed" if c["signed"] else "UNSIGNED"
-    return {"value": _iso(c["ts"]), "sha": c["sha"], "signed": c["signed"],
+    verified = _git(repo, "log", "-1", "--format=%G?", c["sha"]).decode().strip() == "G"      # a gpgsig HEADER proves nothing: git verifies it
+    kind = "signed" if verified else "UNVERIFIED"
+    return {"value": _iso(c["ts"]), "sha": c["sha"], "signed": verified,
             "label": f"season {season - 1} closed: committer time of the {kind} ladder-cell commit that opened season {season}"}
 
 
+def land_names(repo: str, rng: list[str]) -> list[str]:
+    """The L<n> of the first-parent merges whose subject is a land shape; prose that mentions an L<n> never counts."""
+    subjects = _git(repo, "log", "--first-parent", "--merges", "-z", "--format=%s", *rng).decode("utf-8", "replace").split("\0")
+    nums = {int(m.group(1)) for s in subjects for m in (_LAND.match(s) or _LFORM.match(s),) if m}
+    return [f"L{n}" for n in sorted(nums)]
+
+
 def read_ledger(repo: str, sha: str, season: int) -> dict:
-    prev = open_commit(repo, sha, season - 1)
-    rng = [sha] + ([f"^{prev['sha']}"] if prev else [])
+    """Season N-1's own commits: the window [open(N-1), open(N)). --at only names the tree the other sources are read at."""
+    prev, cur = open_commit(repo, sha, season - 1), open_commit(repo, sha, season)
+    if prev is None or cur is None or _parent(repo, cur["sha"]) is None:
+        return {"value": NOT_RECORDED}
+    below = _parent(repo, prev["sha"])
+    rng = [f"{cur['sha']}^"] + ([f"^{below}"] if below else [])
     revs = _git(repo, "rev-list", *rng).decode().split()
     out = _git(repo, "cat-file", "--batch", inp=("\n".join(revs) + "\n").encode()) if revs else b""
-    commits, signed, authors, labels, i = 0, 0, {}, set(), 0
+    commits, signed, authors, i = 0, 0, {}, 0
     for _ in revs:
         nl = out.index(b"\n", i)
         size = int(out[i:nl].split()[2])
@@ -253,11 +287,11 @@ def read_ledger(repo: str, sha: str, season: int) -> dict:
         if c["signed"]:
             signed += 1
             a["signed"] += 1
-        for letter, num in _LABEL.findall(c["subject"]):
-            labels.add((letter, int(num)))
-    return {"from": prev["sha"] if prev else None, "to": sha, "commits": commits, "signed": signed,
-            "unsigned": commits - signed, "by_author": dict(sorted(authors.items())),
-            "names": [f"{l}{n}" for l, n in sorted(labels)]}
+    return {"from": prev["sha"], "to": cur["sha"],
+            "window": f"[open(season {season - 1}), open(season {season})): the commit that opened season {season - 1} is in, the one that opened season {season} is out",
+            "commits": commits, "signed": signed, "unsigned": commits - signed,
+            "signed_label": "signature header (not verified)", "by_author": dict(sorted(authors.items())),
+            "names": land_names(repo, rng), "names_rule": "L<n> of the first-parent merges whose subject is 'LAND stack <n>' or 'merge [season-<m> ]L<n>'"}
 
 
 def head_map(heads: list[dict]) -> dict:
@@ -283,15 +317,16 @@ def read_heads(path: str, season: int, opened: str | None) -> dict:
     if not lines or not _TIME.match(lines[0].strip()):
         raise Fail("--heads-file: line 1 must be the read time, ISO-8601 UTC (YYYY-MM-DDTHH:MM:SSZ)")
     heads, archive_all = [], []
-    for ln in lines[1:]:
-        f = ln.split()
-        if len(f) != 2 or f[1].endswith("^{}"):
-            continue
-        sha, ref = f
+    for n, ln in enumerate(lines[1:], 2):
+        if not _HEADLINE.match(ln):
+            raise Fail(f"--heads-file: line {n} is not <40 hex sha><TAB><ref>")
+        sha, ref = ln.split("\t")
         if ref.startswith("refs/heads/"):
             heads.append({"name": ref[len("refs/heads/"):], "sha": sha, "short": sha[:10]})
         elif ref.startswith("refs/agi/archive/"):
             archive_all.append({"name": ref[len("refs/agi/archive/"):], "sha": sha, "short": sha[:10]})
+    if not heads:
+        raise Fail("--heads-file: no refs/heads/* line (an empty capture is refused, not drawn)")
     # the named 9-row rule (season 3): the closed season's archived mains, and the mains overwritten on the rollover day
     day = opened[:10].replace("-", "") if opened else None
     pats = [re.compile(rf"^(?:[^/]+/)?season{season - 1}/main$")]
@@ -335,6 +370,8 @@ def read_box(path: str | None) -> dict:
         missing = [f for f in BOX_FIELDS if not isinstance(v, dict) or v.get(f) in (None, "")]
         if missing:
             raise Fail(f"--box-facts: {k} needs value, command, reader_uid, read_time (missing {missing})")
+        if not _TIME.match(str(v["read_time"])):
+            raise Fail(f"--box-facts: {k}.read_time must be ISO-8601 UTC (YYYY-MM-DDTHH:MM:SSZ)")
         out[k] = {f: v[f] for f in BOX_FIELDS}
     return out
 

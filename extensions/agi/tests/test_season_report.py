@@ -45,8 +45,8 @@ def _git(repo: Path, *args: str) -> str:
     return r.stdout
 
 
-def _facts_raw(*extra: str, cli: Path = CLI, repo: Path = ROOT, heads: Path = HEADS, season: str = "3") -> subprocess.CompletedProcess:
-    return subprocess.run([sys.executable, str(cli), "--repo", str(repo), "facts", "--season", season, "--at", PIN,
+def _facts_raw(*extra: str, cli: Path = CLI, repo: Path = ROOT, heads: Path = HEADS, season: str = "3", at: str = PIN) -> subprocess.CompletedProcess:
+    return subprocess.run([sys.executable, str(cli), "--repo", str(repo), "facts", "--season", season, "--at", at,
                            "--heads-file", str(heads), *extra], capture_output=True)
 
 
@@ -75,6 +75,78 @@ def pinned() -> dict:
     return _facts()
 
 
+# ---- scratch repos: tiny histories built with plain git, never the live repo -----------------------------------------------------------------
+_POSTS = '---\nid: config:posts\ntype: config\nposts:\n  - {"name": "a-post", "engine": {"trunk": "core/season3/main"}}\n---\n'
+
+
+def _ladder(n: int) -> dict:
+    return {f"{NODES}/.geometry/ladder.md": f"---\nid: ladder:ladder\ntype: ladder\ncurrent_season: {n}\n---\n"}
+
+
+class Scratch:
+    def __init__(self, path: Path):
+        self.path, self.ts = path, 1_760_000_000
+        path.mkdir()
+        self.git("init", "-q", "-b", "main")
+
+    def git(self, *a: str, inp: str | None = None) -> str:
+        self.ts += 60
+        env = {"PATH": "/usr/bin:/bin", "HOME": str(self.path), "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_SYSTEM": "/dev/null",
+               "GIT_AUTHOR_DATE": f"@{self.ts} +0000", "GIT_COMMITTER_DATE": f"@{self.ts} +0000"}
+        r = subprocess.run(["git", "-C", str(self.path), "-c", "user.name=t", "-c", "user.email=t@t.invalid", "-c", "commit.gpgsign=false", *a],
+                           input=inp, capture_output=True, text=True, env=env)
+        assert r.returncode == 0, (a, r.stderr)
+        return r.stdout.strip()
+
+    def commit(self, subject: str, files: dict | None = None) -> str:
+        for rel, body in (files or {}).items():
+            f = self.path / rel
+            f.parent.mkdir(parents=True, exist_ok=True)
+            f.write_text(body)
+        self.git("add", "-A")
+        self.git("commit", "-q", "--allow-empty", "-m", subject)
+        return self.git("rev-parse", "HEAD")
+
+    def merge(self, subject: str, side_subject: str) -> str:
+        """A --no-ff merge of a one-commit side branch into main: the merge is a FIRST-PARENT merge, the side commit is not."""
+        self.git("checkout", "-q", "-b", "side")
+        self.git("commit", "-q", "--allow-empty", "-m", side_subject)
+        self.git("checkout", "-q", "main")
+        self.git("merge", "-q", "--no-ff", "-m", subject, "side")
+        self.git("branch", "-q", "-D", "side")
+        return self.git("rev-parse", "HEAD")
+
+    def commit_with_gpgsig_header(self, subject: str, files: dict) -> str:
+        """A commit carrying a gpgsig HEADER that no key made: what a header-only reader calls 'signed'."""
+        for rel, body in files.items():
+            (self.path / rel).parent.mkdir(parents=True, exist_ok=True)
+            (self.path / rel).write_text(body)
+        self.git("add", "-A")
+        tree, parent = self.git("write-tree"), self.git("rev-parse", "HEAD")
+        self.ts += 60
+        raw = (f"tree {tree}\nparent {parent}\nauthor t <t@t.invalid> {self.ts} +0000\ncommitter t <t@t.invalid> {self.ts} +0000\n"
+               f"gpgsig -----BEGIN PGP SIGNATURE-----\n garbage\n -----END PGP SIGNATURE-----\n\n{subject}\n")
+        sha = self.git("hash-object", "-t", "commit", "-w", "--stdin", inp=raw)
+        self.git("update-ref", "refs/heads/main", sha)
+        self.git("reset", "-q", "--hard", sha)
+        return sha
+
+
+@pytest.fixture(scope="module")
+def world(tmp_path_factory) -> dict:
+    """Season 2 opens at c2; its window holds a LAND merge, a prose merge naming L469, a season-2-form merge and a LAND subject that sits on a
+    SIDE branch; season 3 opens at a commit carrying a garbage gpgsig header; a LAND stack 31 lands after the close."""
+    s = Scratch(tmp_path_factory.mktemp("world") / "repo")
+    c1 = s.commit("c1: season 1", {f"{NODES}/.geometry/posts.md": _POSTS, **_ladder(1)})
+    c2 = s.commit("c2: opens season 2", _ladder(2))
+    s.merge("sanctuary-master: LAND stack 7 (gate tip abc)", "x: LAND stack 99 (a side-branch subject, never first-parent)")
+    s.merge("belam: see L469 for the fix", "y: a side commit")
+    s.merge("belam: merge season-2 L21 (8a12fdc239) into season3/main", "z: a side commit")
+    c3 = s.commit_with_gpgsig_header("c3: opens season 3", _ladder(3))
+    s.merge("sanctuary-master: LAND stack 31 (gate tip def)", "w: a side commit")
+    return {"repo": s.path, "c1": c1, "c2": c2, "c3": c3, "later": s.git("rev-parse", "HEAD")}
+
+
 # ---- F1: byte-equal reruns ---------------------------------------------------------------------------------------------------
 def test_f1_two_runs_are_byte_equal_and_a_clock_in_the_json_mutant_is_red(tmp_path: Path):
     a, b = _facts_raw(), _facts_raw()
@@ -96,8 +168,8 @@ def test_f3a_active_by_dir_equals_an_independent_ls_tree_count_and_dropping_geom
     assert indep == 5706, "the pin moved: 5,706 live node files at 5fa654a5f3"
     assert pinned["counts"]["active_by_dir"] == indep
     assert pinned["counts"]["deprecated_by_dir"] == 239
-    mut = _mutant(tmp_path, '        stem = "/".join(parts[3:])[:-3]\n',
-                  '        if parts[2] == ".geometry":\n            continue\n        stem = "/".join(parts[3:])[:-3]\n')
+    mut = _mutant(tmp_path, '        dep = parts[2] == "deprecated"\n',
+                  '        dep = parts[2] == "deprecated"\n        if parts[2] == ".geometry":\n            continue\n')
     got = _facts(cli=mut)["counts"]["active_by_dir"]
     assert got == 5682 and got != indep, f"MUTANT (.geometry dropped) must be RED: {got} vs {indep}"
 
@@ -119,6 +191,42 @@ def test_f3c_the_mismatch_list_has_six_ids_and_dropping_the_list_is_red(tmp_path
     mut = _mutant(tmp_path, '"status_dir_mismatch": sorted(mismatch),', '"status_dir_mismatch": [],')
     m = _facts(cli=mut)["counts"]
     assert len(m["status_dir_mismatch"]) == 0 != c["active_by_dir"] - c["active_by_status"], "MUTANT (list dropped) must be RED: 0 vs 6"
+
+
+# ---- B-a / B-b: the counts reconcile with the engine, and every id and type is the frontmatter's -------------------------------------------
+def _node(nid: str, typ: str, status: str) -> str:
+    return f"---\nid: {nid}\ntype: {typ}\nstatus: {status}\n---\nbody\n"
+
+
+def test_b_a_engine_active_equals_the_metrics_rule_and_the_second_mismatch_list_is_read(tmp_path: Path, pinned: dict):
+    c = pinned["counts"]
+    total = len([n for n in _git(ROOT, "ls-tree", "-r", "--name-only", PIN, "--", NODES).split("\n") if n.endswith(".md")])
+    out = _git(ROOT, "grep", "-l", "-E", "^status: *\"?deprecated\"?[ \t]*$", PIN, "--", f"{NODES}/*.md")
+    marked = len([ln for ln in out.split("\n") if ln])
+    assert (total, marked) == (5945, 245) and c["engine_active"] == total - marked == 5700, "metrics.py's rule: every node .md minus the status-deprecated ones"
+    assert c["deprecated_status_mismatch"] == [] and c["ids_from_path"] == []
+    s = Scratch(tmp_path / "nodes")
+    at = s.commit("nodes", {
+        f"{NODES}/.geometry/posts.md": _POSTS, **_ladder(3),
+        f"{NODES}/idea/a.md": _node("idea:a", "idea", "active"),
+        f"{NODES}/idea/b.md": _node("idea:b", "idea", "deprecated"),                 # a live-dir file marked deprecated
+        f"{NODES}/deprecated/idea/c.md": _node("idea:c", "idea", "active"),         # a deprecated/ file NOT marked
+        f"{NODES}/deprecated/idea/d.md": _node("idea:d", "idea", "deprecated"),
+        f"{NODES}/idea/noid.md": "---\ntype: idea\nstatus: active\n---\nbody\n",    # no id: the path spells it, flagged
+        f"{NODES}/.geometry/x.md": _node("config:x", "config", "deprecated")})
+    f = json.loads(_facts_raw(repo=s.path, at=at).stdout)["counts"]
+    assert f["status_dir_mismatch"] == ["config:x", "idea:b"] and f["deprecated_status_mismatch"] == ["idea:c"]
+    assert (f["active_by_dir"], f["active_by_status"], f["deprecated_by_dir"], f["engine_active"]) == (6, 4, 2, 5)
+    assert f["ids_from_path"] == ["idea:noid"]
+    assert f["by_type"] == {"idea": 3, "config": 2, "ladder": 1} and ".geometry" not in f["by_type"]       # B-b: .geometry stays counted, under its frontmatter type
+    assert not any(i.startswith(".geometry") for i in f["status_dir_mismatch"]), "an id was spelled from the path"
+    for old, new_, check in (
+            ('"deprecated_status_mismatch": sorted(dep_mismatch),', '"deprecated_status_mismatch": [],', lambda c_: c_["deprecated_status_mismatch"] == []),
+            ('"engine_active": len(files) - status_deprecated,', '"engine_active": live - status_deprecated,', lambda c_: c_["engine_active"] != 5),
+            ('        typ = _fm_scalar(fm, "type") or (nid.split(":", 1)[0] if ":" in nid else tdir)\n', '        typ = tdir\n', lambda c_: ".geometry" in c_["by_type"]),
+            ('        nid = _fm_scalar(fm, "id")\n', '        nid = None\n', lambda c_: ".geometry:x" in c_["status_dir_mismatch"])):
+        mut = _mutant(tmp_path, old, new_)
+        assert check(json.loads(_facts_raw(cli=mut, repo=s.path, at=at).stdout)["counts"]), f"MUTANT {old.strip()[:50]!r} must be RED"
 
 
 # ---- F5 NEGATIVE: facts changes no ref and no working-tree status ------------------------------------------------------------------------
@@ -143,26 +251,90 @@ def test_f6_the_type_rows_sum_to_active_by_dir_and_dropping_other_is_red(tmp_pat
     c = pinned["counts"]
     rows = c["type_rows"]
     assert sum(r["nodes"] for r in rows) == c["active_by_dir"], "F6: the rows must sum to active_by_dir"
-    assert rows[-1] == {"type": "other", "label": "other (6 types)", "types": 6, "nodes": 110, "pct": "4.6"}
+    assert rows[-1] == {"type": "other", "label": "other (9 types)", "types": 9, "nodes": 106, "pct": "4.5"}   # .geometry counted under its frontmatter types
     assert len(rows) == 10 and sum(c["by_type"].values()) == c["active_by_dir"]
     mut = _mutant(tmp_path, "    if rest:\n", "    if False:\n")
     m = _facts(cli=mut)["counts"]
     gap = m["active_by_dir"] - sum(r["nodes"] for r in m["type_rows"])
-    assert gap == 110 != 0, f"MUTANT (the other row dropped) must be RED: the rows then miss {gap} nodes"
+    assert gap == 106 != 0, f"MUTANT (the other row dropped) must be RED: the rows then miss {gap} nodes"
 
 
 # ---- the other sources, pinned ---------------------------------------------------------------------------------------------------------------
-def test_posts_cells_close_and_ledger_read_at_the_pin(pinned: dict):
+OPEN2, OPEN3 = "80908a5575", "7caa699a07"       # the ladder-cell commits that opened seasons 2 and 3 (committer 06:24:17Z 10-15)
+
+
+def test_posts_cells_and_close_read_at_the_pin(pinned: dict):
     assert pinned["at"].startswith(PIN) and pinned["season"] == 3
     assert (pinned["posts_named"], pinned["trunk_cells"]) == (33, 14)
     assert pinned["trunks"] == {"core/season3/main": 14}
     assert pinned["cells"]["ladder_current_season"] == "3" and pinned["cells"]["opened"] == "2026-10-15T06:23:30Z"
-    assert pinned["close"]["value"] == "2026-10-15T06:24:17Z" and pinned["close"]["signed"] is True
+    assert pinned["close"]["value"] == "2026-10-15T06:24:17Z" and pinned["close"]["sha"].startswith(OPEN3)
+    assert pinned["close"]["signed"] == (_git(ROOT, "log", "-1", "--format=%G?", OPEN3).strip() == "G")      # verified by git, never a header read
     assert pinned["close"]["label"].startswith("season 2 closed")
-    led = pinned["ledger"]
-    assert led["commits"] == led["signed"] + led["unsigned"] and led["signed"] > 0
-    assert {"L20", "L22", "L23", "S20", "S22", "S23"} <= set(led["names"])
     assert pinned["goals"]["total"] == 699 and pinned["goals"]["by_season_status"]["3:horizon"] == 2
+
+
+# ---- R1: the ledger is season N-1's window [open(N-1), open(N)), whatever --at is -------------------------------------------------------
+def test_r1_the_ledger_window_ends_at_the_close_not_at_the_at_commit_and_a_to_at_mutant_is_red(tmp_path: Path, pinned: dict):
+    led = pinned["ledger"]
+    assert led["from"].startswith(OPEN2) and led["to"].startswith(OPEN3) and "[open(season 2), open(season 3))" in led["window"]
+    assert led["commits"] == int(_git(ROOT, "rev-list", "--count", f"{OPEN2}^..{OPEN3}^")) == 20573 and led["commits"] == led["signed"] + led["unsigned"]
+    at_close = json.loads(_facts_raw(at=OPEN3).stdout)["ledger"]
+    assert at_close == led, "R1: --at moved the ledger (it must only name the tree the other sources are read at)"
+    mut = _mutant(tmp_path, '    rng = [f"{cur[\'sha\']}^"] +', '    rng = [sha] +')
+    assert json.loads(_facts_raw(cli=mut).stdout)["ledger"]["commits"] > led["commits"], "MUTANT (window ends at --at) must be RED: it then counts past the close"
+    assert json.loads(_facts_raw(cli=mut).stdout)["ledger"] != json.loads(_facts_raw(cli=mut, at=OPEN3).stdout)["ledger"], "MUTANT: the ledger then moves with --at"
+
+
+# ---- R2: names come from first-parent LAND merges only ---------------------------------------------------------------------------------
+def test_r2_names_are_the_first_parent_land_merges_and_the_two_shape_and_prose_mutants_are_red(tmp_path: Path, pinned: dict):
+    indep = set()
+    for s in _git(ROOT, "log", "--first-parent", "--merges", "--format=%s", f"{OPEN3}^", f"^{OPEN2}^").split("\n"):
+        m = re.match(r"^[A-Za-z0-9_.-]+: (?:LAND stack|merge (?:season-\d+ )?L)\s?(\d+)\b", s)
+        if m:
+            indep.add(int(m.group(1)))
+    names = pinned["ledger"]["names"]
+    assert names == [f"L{n}" for n in sorted(indep)] and len(names) == 19 and names[0] == "L6" and "L23" not in names
+    assert not {"L47", "L159", "L220", "L236", "L469", "S35"} & set(names), "a prose mention leaked into names"
+    gone = _mutant(tmp_path, "(_LAND.match(s) or _LFORM.match(s),)", "(_LFORM.match(s),)")
+    assert json.loads(_facts_raw(cli=gone).stdout)["ledger"]["names"][0] == "L17", "MUTANT (the LAND shape dropped) must be RED: L6..L16 vanish"
+
+
+def test_r2_on_a_scratch_history_prose_and_side_branch_subjects_never_name_a_stack(tmp_path: Path, world: dict):
+    led = json.loads(_facts_raw(repo=world["repo"], at=world["c3"], heads=HEADS).stdout)["ledger"]
+    assert led["names"] == ["L7", "L21"], "LAND stack 7 and the season-2 form count; 'see L469' and the side-branch 'LAND stack 99' do not"
+    prose = _mutant(tmp_path, "(_LAND.match(s) or _LFORM.match(s),)", "(re.search(r'\\bL(\\d+)\\b', s),)")
+    m = json.loads(_facts_raw(cli=prose, repo=world["repo"], at=world["c3"]).stdout)["ledger"]["names"]
+    assert "L469" in m, "MUTANT (any L<n> in a subject) must be RED: the prose mention then names a stack"
+
+
+def test_r1_on_a_scratch_history_a_later_trunk_commit_leaves_the_ledger_byte_equal(world: dict):
+    a = _facts_raw(repo=world["repo"], at=world["c3"]).stdout
+    b = _facts_raw(repo=world["repo"], at=world["later"]).stdout
+    la, lb = json.loads(a)["ledger"], json.loads(b)["ledger"]
+    assert la == lb and la["to"] == world["c3"] and la["from"] == world["c2"] and la["names"] == ["L7", "L21"], "R1: a LAND stack 31 after the close entered the ledger"
+
+
+# ---- R4: 'signed' is what git VERIFIES ------------------------------------------------------------------------------------------------
+def test_r4_a_garbage_gpgsig_header_is_not_signed_and_a_header_reading_mutant_is_red(tmp_path: Path, world: dict):
+    c = json.loads(_facts_raw(repo=world["repo"], at=world["c3"]).stdout)
+    assert c["close"]["signed"] is False and "UNVERIFIED ladder-cell commit" in c["close"]["label"]
+    assert c["ledger"]["signed_label"] == "signature header (not verified)" and c["ledger"]["signed"] == 0     # the close commit is OUT of its own window; the count is labelled a header count
+    mut = _mutant(tmp_path, '    verified = _git(repo, "log", "-1", "--format=%G?", c["sha"]).decode().strip() == "G"', '    verified = c["signed"]')
+    m = json.loads(_facts_raw(cli=mut, repo=world["repo"], at=world["c3"]).stdout)["close"]
+    assert m["signed"] is True, "MUTANT (the header is read, not verified) must be RED: the garbage header then reads 'signed'"
+
+
+# ---- R5: an empty window is not recorded, never all of history ---------------------------------------------------------------------------
+def test_r5_a_ladder_that_never_held_the_previous_season_reads_not_recorded_and_the_guard_mutant_is_red(tmp_path: Path):
+    s = Scratch(tmp_path / "gap")
+    s.commit("c1", {f"{NODES}/.geometry/posts.md": _POSTS, **_ladder(1)})
+    at = s.commit("c2: jumps to season 3", _ladder(3))
+    r = _facts_raw(repo=s.path, at=at)
+    assert r.returncode == 0 and json.loads(r.stdout)["ledger"] == {"value": "not recorded"}
+    mut = _mutant(tmp_path, "    if prev is None or cur is None or _parent", "    if cur is None or _parent")
+    m = _facts_raw(cli=mut, repo=s.path, at=at)
+    assert not (m.returncode == 0 and json.loads(m.stdout)["ledger"] == {"value": "not recorded"}), "MUTANT (no empty-window guard) must be RED"
 
 
 def test_heads_and_archives_come_from_the_captured_file_by_the_named_rule(pinned: dict):
@@ -183,6 +355,23 @@ def test_a_heads_file_without_a_read_time_first_line_is_refused_rc2(tmp_path: Pa
     assert r.returncode == 2 and r.stdout == b"" and b"read time" in r.stderr
 
 
+def test_r3_a_malformed_or_empty_heads_file_is_refused_rc2_and_a_skipping_mutant_is_red(tmp_path: Path):
+    ok = "dc7ec920bafd2c117a269beb3356988f4f3ec859\trefs/heads/master"
+    for body in (f"2026-10-15T19:41:33Z\n{ok}\ngarbage line here\n", "2026-10-15T19:41:33Z\n", f"2026-10-15T19:41:33Z\n{ok}\n\n{ok}\n",
+                 f"2026-10-15T19:41:33Z\n{ok[:30]}\trefs/heads/short\n"):
+        bad = tmp_path / "heads.txt"
+        bad.write_text(body)
+        r = _facts_raw(heads=bad)
+        assert r.returncode == 2 and r.stdout == b"" and b"--heads-file" in r.stderr, body
+    good = tmp_path / "good.txt"
+    good.write_text(f"2026-10-15T19:41:33Z\n{ok}\n")
+    assert _facts_raw(heads=good).returncode == 0
+    bad.write_text(f"2026-10-15T19:41:33Z\n{ok}\ngarbage line here\n")
+    mut = _mutant(tmp_path, '        if not _HEADLINE.match(ln):\n            raise Fail(f"--heads-file: line {n} is not <40 hex sha><TAB><ref>")\n',
+                  '        if not _HEADLINE.match(ln):\n            continue\n')
+    assert _facts_raw(cli=mut, heads=bad).returncode == 0, "MUTANT (a garbage line skipped) must be RED: rc 0 then"
+
+
 def test_box_facts_absent_reads_not_recorded_and_a_present_value_carries_its_provenance(tmp_path: Path, pinned: dict):
     assert all(v == {"value": "not recorded"} for v in pinned["box"].values()) and len(pinned["box"]) == 7
     ok = tmp_path / "box.json"
@@ -191,11 +380,15 @@ def test_box_facts_absent_reads_not_recorded_and_a_present_value_carries_its_pro
     b = json.loads(_facts_raw("--box-facts", str(ok)).stdout)["box"]
     assert b["run_rc"] == {"value": 0, "command": "season.py rollover --global --apply", "reader_uid": "a-seat", "read_time": "2026-10-15T06:24:00Z"}
     assert b["pin"] == {"value": "not recorded"}
-    for bad in ({"run_rc": {"value": 0}}, {"run_rc": 0}, {"not_a_key": {"value": 1, "command": "c", "reader_uid": "u", "read_time": "t"}}):
+    stale = {"run_rc": {"value": 0, "command": "c", "reader_uid": "a-seat", "read_time": "yesterday"}}
+    for bad in (stale, {"run_rc": {"value": 0}}, {"run_rc": 0}, {"not_a_key": {"value": 1, "command": "c", "reader_uid": "u", "read_time": "t"}}):
         p = tmp_path / "bad.json"
         p.write_text(json.dumps(bad))
         r = _facts_raw("--box-facts", str(p))
         assert r.returncode == 2 and r.stdout == b"", bad
+    mut = _mutant(tmp_path, '        if not _TIME.match(str(v["read_time"])):\n', '        if False:\n')
+    p.write_text(json.dumps(stale))
+    assert _facts_raw("--box-facts", str(p), cli=mut).returncode == 0, "MUTANT (read_time unchecked) must be RED"
 
 
 def test_the_script_and_its_fixture_name_no_host_and_no_home_path():
