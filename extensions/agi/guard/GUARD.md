@@ -15,6 +15,7 @@ holds symlinks into it, so every command below works from either path:
 | `guard/sanctuary-watch` | the 2-minute watcher: cap-kill alerts + peer checks (installed to `~/.local/bin`) |
 | `guard/alarm-first-start.sh` | the box owner's one host act after the alarm installs (goal:g7.16.1.11.20.2): r1 over the installed scripts + one signed test line per drain row |
 | `guard/sysctl-check.sh` | read-only: the `/etc/sysctl.d` stopgap file is there and equals the live kernel (goal:g7.16.1.11.40.1.1) |
+| `guard/post-move-checks.sh` | belam's per-move proof for a post rename (goal:g7.16.1.11.45, design B), root: `pre OLD NEW` before the usermod, `check OLD NEW UID T [--first-start]` after; one `ok\|FAIL\|wait` line per check (uid, gid, old name free, retired key held and unreadable by the new uid, none left in its home, the ring, no sudoers/polkit/systemd/cron left naming the old user, and no active agi-post@/agi-boxwake@ of the old name) |
 | `guard/walker-slab.sh` | read-only, non-root: one row of the per-walker kernel-slab table (below) |
 
 ## Why: local-town, 2026-09-25
