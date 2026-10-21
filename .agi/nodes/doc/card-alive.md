@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-19:19Z 10-21: [decision] 3/3 SENT: 4a 86867331d1 APPROVE (ready, lands at G3's 4a step); G3 GO: 0 card -> 1a -> 4a -> sitting.sh 1979fe35815cee56 -> CHECKS 1 -> START PRE-AUTHORIZED iff exactly 16 ok + 2 wait + '0 FAIL, rc 0' -> move -> CHECKS 2 + probe. G5 note: relay + re-point cards before G5. NEXT: read belam's G3 run lines; G4 (DG2->science-1) prep.
+19:19Z 10-21: [decision] 3/3 SENT: 4a 86867331d1 APPROVE (ready, lands at G3's 4a step); G3 GO: 0 card -> 1a -> 4a -> sitting.sh 1979fe35815cee56 -> CHECKS 1 -> START PRE-AUTHORIZED iff exactly 16 ok + 2 wait + '0 FAIL, rc 0' -> move -> CHECKS 2 + probe. G5 note: relay + re-point cards before G5. 19:20Z addendum: the start match is CODE (wrapper; harness row + mutant; new sha256). NEXT: read belam's G3 run lines; G4 (DG2->science-1) prep.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
