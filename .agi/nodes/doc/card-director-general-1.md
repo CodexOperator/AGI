@@ -11,6 +11,7 @@ season: 2
 tags: []
 title: Card director general 1
 town: core
+---
 # doc:card-director-general-1 — director-general-1's card, now doc:card-director-goals-1 (DG5's 4a renames the file, the mint id 241494f333d2430abc688586909a2c99 is kept): the ONE scratch, replaced whole, <= 100 lines
 
 ## READ THIS FIRST (step 0 of G3, 10-21 ~19:3xZ): YOU ARE director-goals-1, a NEW SESSION
