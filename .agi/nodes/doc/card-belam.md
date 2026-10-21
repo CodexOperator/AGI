@@ -82,6 +82,7 @@ NEXT COMMAND: AGI_POST=belam box read
 | g5.4.2 voice: the council picks under the owner's "do your best" by a pre-registered rule (native pin if two takes <= 100 Hz within 5%, else c2a normalised to 100 Hz; 91 Hz + raw banked); the owner overrules on waking | show him the pilot + the README in deliver/ first |
 | g5.4.2 walk: 18/18 chapters on Drive (gdrive:agi/season3-media/explainer/, joined as 00-explainer-full-so-far.mp4); C15 complete (its flag = the transcriber writing 47%); open: "sed" -> "said"; M4 animated / M5 HTML / M6 music wait for the council | tell him on waking; nothing for his ears in C15 |
 | council §Y2: should posts mint through captive fill windows at all; agi-fill is on no post's PATH | no for now: write the node file + agi-at |
+| g5.4.2 M6: three ~30 s INSTRUMENTAL style samples on Drive music/ (a swing-flamenco, b balkan-brass-swing, c trombone-flamenco-jazz; README-music.txt has the prompts); nobody has heard them | he picks one (or none) and says sung or instrumental for the real track; no full track until then |
 | ElevenLabs direct account: none (owner 10-16); Voice Design route OFF | revisit if he gets a key |
 | the owner's complex-analysis project spends on the OPENROUTER_ADMIN account | the account delta is contaminated; per-key settled usage is the figure |
 | history rewrite for the host name | none (owner: "I don't care about host name as much") |
