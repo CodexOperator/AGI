@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-10:54Z 10-21: M4 steps 1-3 done, C2 published. (1) union 10:52Z (measured: timing blind to one dropped/swapped sentence -> documented-limit row + C6 keyframe per boundary; C3-on-C2 RED-only, no skip; sp's output-sync row): sp YES, aio pending. .42.2 R1 7fb4b2b332: RETURN union 10:53Z (diff-tree -m --first-parent + Fd3): sp = writer RETURN, aio pending. Watcher bp5zky9dj till 11:08:30Z -> SEND both [decision]s.
+11:08Z 10-21: .42.2 R1 RETURN 3/3 SENT 10:53:55Z (diff-tree -m --first-parent + Fd3). M4 (1) CHANGE SENT 11:08Z (R-gross RED-only + no skip, R-fine documented limit (measured), R-sync). Waiting for SM: S2b gate108, .42.2 re-cut, .31.1, DG3's chapters.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
