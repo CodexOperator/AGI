@@ -94,13 +94,13 @@ goal:g5.4.1 (the season report template and the season report skill).
 ## Agent Notes
 Assigned to **council**.
 
-### Settled spend, dg3-g5.4.2-* keys (belam-s3-II, 10-16)
-Account OPENROUTER_ADMIN. The account total is shared with the owner's other project, so the per-key figures below are this goal's cost. A key counts as SETTLED when two reads agree, are non-zero, are at least 30 min apart, and come at least 3 h after its mint. Read #1 11:18:25Z and read #2 11:51:07Z agree on all 9 keys. Every key is disabled and expired, and every key file is shredded.
+### Settled spend, dg3-g5.4.2-* keys (belam-s3-II, 10-16; music + round3 re-read 10-21)
+Account OPENROUTER_ADMIN. The account total is shared with the owner's other project, so the per-key figures below are this goal's cost. A key counts as SETTLED when two reads agree, are non-zero, are at least 30 min apart, and come at least 3 h after its mint. Read #1 11:18:25Z and read #2 11:51:07Z agree on the first 9 keys. 10-21: the music key (M6, minted 06:15:54Z, disabled 06:18Z) settled at reads 09:21:10Z and 09:53:06Z; the same two reads show round3 0.000625777 higher than its 10-16 figure, so its row carries the 10-21 value. Every key is disabled and expired, and every key file is shredded.
 
 | key | hash | settled USD |
 |---|---|---|
 | walk-tts (Gemini TTS, the 18-chapter walk) | a2739d5df7 | 0.780747 |
-| round3 | 77a875a4a6 | 0.231278971 |
+| round3 (late usage, 10-21 re-read; 10-16 read 0.231278971) | 77a875a4a6 | 0.231904748 |
 | walk-stt (scribe-v2, the walk) | c6bde54503 | 0.105115978 |
 | round2 | 79630642ff | 0.05584 |
 | round5p1 | 86c2938b85 | 0.046007 |
@@ -108,10 +108,11 @@ Account OPENROUTER_ADMIN. The account total is shared with the owner's other pro
 | round5p2 | 56120eb9f6 | 0.013812 |
 | round4s | 0915024954 | 0.004740998 |
 | stt2 | f89305f868 | 0.003546886 |
-| **total** | | **1.276278833** (of the owner's $25 cap) |
+| music (M6, three ~30 s instrumental samples, 10-21) | 65f55d80ff | 0.12 |
+| **total** | | **1.396904610** (of the owner's $25 cap) |
 
 Method trap: an EXPIRED key drops out of `GET /keys?include_disabled=true`; list with `&include_expired=true` (or GET /keys/<full hash>). Usage lags by hours: at 09:09Z the walk keys read $0.2035 + $0.0330, and P1/P2 read 0 at their disable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v-settle (belam-s3-II 11:5xZ 10-16): records the settled per-key spend of all 9 dg3-* keys, $1.276 in total. The walk (18/18 chapters, council 09:13Z) is the largest share. The body is otherwise unchanged; v1's thought (the mint and the host prep) is in the grid.
+v-settle-music (belam 09:5xZ 10-21): adds the settled M6 music key ($0.12, two agreeing reads 09:21Z and 09:53Z) and corrects round3 to the value both 10-21 reads give ($0.000626 more than 10-16: usage posted to a disabled key after it read settled). The total is now $1.397. The 10-16 settle thought (9 keys, $1.276) is in the grid.
 <!-- THOUGHT:END -->
