@@ -7,7 +7,8 @@ BEFORE it is sent, stream:true (audio output requires it), NO retry (a failure s
 of 25..35 s, else the take is flagged RED (kept out of deliver/, never silently shipped). Deliverables: deliver/music-sample-<letter>-<slug>.mp3 (644) + README-music.txt lines (c2pa manifest untouched)."""
 import base64, hashlib, json, os, re, subprocess, sys, time, urllib.error, urllib.request
 
-BASE = '/data/work/director-general-3-media/season3'
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from media_base import BASE
 M = os.environ.get('MUSIC_DIR', BASE + '/music')
 DELIVER = os.environ.get('MUSIC_DELIVER', BASE + '/deliver')
 MODEL = 'google/lyria-3-clip-preview'

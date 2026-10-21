@@ -12,11 +12,13 @@ import pytest
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+import media_base  # noqa: E402
 import media_fidelity as mf  # noqa: E402
 
 
 @pytest.fixture
 def w(tmp_path, monkeypatch):
+    media_base.need(media_base.BASE + '/r2/r3/description.txt', 'the walk\'s voice description')      # the media lane FAILS without the data dir, any other suite skips
     monkeypatch.setenv('WALK_DIR', str(tmp_path / 'walk'))
     monkeypatch.setenv('WALK_DELIVER', str(tmp_path / 'deliver'))
     monkeypatch.setattr(sys, 'argv', ['media_walk.py', '--dry'])

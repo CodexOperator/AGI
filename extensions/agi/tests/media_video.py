@@ -37,7 +37,7 @@ import media_html  # noqa: E402
 
 REPO = os.environ.get("MEDIA_REPO") or str(Path(__file__).resolve().parents[3])      # the checkout that holds this file (or MEDIA_REPO): engine bytes are read with `git show` from here
 SCRIPT = REPO + "/.agi/context/media/season3-explainer-script.md"
-BASE = "/data/work/director-general-3-media/season3"
+from media_base import BASE, QUEUE_DIR  # noqa: E402  (the one place that names the data dir)
 FPS = 25
 PROFILE = {"codec_name": "h264", "width": 1280, "height": 720, "r_frame_rate": "25/1", "pix_fmt": "yuv420p", "a_codec": "aac", "sample_rate": "44100", "channels": 1}
 TOL = 0.7                    # a picked pause is kept when its sentence is within this (or REL of its length, if more) of its character-proportional speech time
@@ -719,8 +719,8 @@ import time  # noqa: E402
 VMLIMIT_KB = 2500000        # ulimit -v for a render: 1.6 x the pilot's VmPeak (council 10-21 09:52Z). A chapter that dies at it: stop and ask, never raise it
 EXCEPTIONS = {6: "council ruling 09:52Z 10-21"}   # a NAMED timing exception: > 25 % on the prior is accepted iff every prior-placed end is nearer a pause than the shorter neighbouring sentence is long (prior_offsets)
 BANKED = {6: "BANKED FAULT (council 14:10Z 10-21, no STT): beat 28 'So here we are.' is on screen 0.28 s (183.59-183.87 s) for about 1 s of speech, so that caption comes up ~0.7 s early, once; the next sentence then holds 6.5 s for ~4 s of speech"}
-QUEUE = os.path.dirname(BASE) + "/RENDERING"       # SM's gates wait while it exists (15 s poll): touched BEFORE a chapter's start test, removed after the chapter
-HOLD = os.path.dirname(BASE) + "/HOLD-GATES"        # touched when a chapter has waited an hour on the start test; removed by me when the 17 are done or at a stop-and-ask
+QUEUE = QUEUE_DIR + "/RENDERING"       # SM's gates wait while it exists (15 s poll): touched BEFORE a chapter's start test, removed after the chapter
+HOLD = QUEUE_DIR + "/HOLD-GATES"        # touched when a chapter has waited an hour on the start test; removed by me when the 17 are done or at a stop-and-ask
 
 
 def tree_peaks(pgid, proc="/proc"):

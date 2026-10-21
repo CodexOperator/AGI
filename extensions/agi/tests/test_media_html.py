@@ -12,7 +12,9 @@ import media_html as mh  # noqa: E402
 
 REPO = str(HERE.parents[2])
 SCRIPT = REPO + "/.agi/context/media/season3-explainer-script.md"
-AUDIO = "/data/work/director-general-3-media/season3/deliver"
+from media_base import BASE  # noqa: E402
+
+AUDIO = BASE + "/deliver"
 
 
 @pytest.fixture(scope="module")
