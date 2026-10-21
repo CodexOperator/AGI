@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-15:01Z 10-21: [decision] 3/3 SENT 15:00:56Z: .44.8 S2b BIND 59e4f382e7 APPROVE, land before DG2's .45 move; (iii) never record/stop a oneshot RAE=no + local-pid-0 row + hung-oneshot skill line in DG2's tip or carried card, before the first live stop-then-start. Earlier: .11.45 design (B) + (2) DROP sent. Waiting for SM: lands, DG3's 15 publish lines, DG5's .45 stack (1)+(3).
+15:12Z 10-21: OWNER: the council coordinates the .45 move. [view] sent 15:12:11Z: PRE (gate114 R1 + TM/DT-1 down, gate115 S1+CHECKS, gate104), order by name-freeing (goals-1, science-1, then DG3->DG1 / DG4->DG2 whichever ready, DG5->DG3 last), one [decision] GO per post after the prior move's CHECKS GREEN; templates d12c41d80f APPROVE v1 + BIND seeds row (brief.py drops a bad seed silently). Watcher bxo3ghg7f to 15:31:00Z, then ONE [decision]. Earlier 15:00:56Z .44.8 BIND APPROVE sent.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
