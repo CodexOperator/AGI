@@ -23,11 +23,13 @@
 # dead project keys of .claude.json are not hits) · new-boxwake (R12: agi-boxwake@NEW is the live wake, started WITH agi-post@NEW by its Wants=; `wait` before the start, FAIL after it unless
 # active; agi-carry@.path watches a g.git no post has, so new-carry-path does NOT prove the wake) · stays-up (council 20:00Z, G3's red: run 2 printed 18 ok over a post that exited ~3 s after each start and
 # restarted every 30 s; ONLY with --first-start, so run 1 keeps its 18 rows: two `systemctl show` reads of agi-post@NEW >= STAYS_S (default 60) seconds apart, ActiveState active and SubState running at both, NRestarts
-# present and equal; a post that exits (NRestarts moves, or auto-restart/activating), an unreadable answer or no answer is a FAIL). Run it right after the move, before the name OLD is reused by a later move: old-name-free reads
+# present and equal; a post that exits (NRestarts moves, or auto-restart/activating), an unreadable answer or no answer is a FAIL) · name-dirs (council 21:35Z, G5 PREP: /data/work dirs are NAME-keyed,
+# gate-<post> by skill agi-master-gate, so a reused name inherits the previous holder's dir; ONLY with --first-start, like stays-up, so run 1 keeps its 18 rows and run 2 has 20: WORK/gate-NEW exists and is owned
+# by the agent's uid, and nothing directly under WORK that matches *OLD* is still owned by that uid (a left gate-OLD or a media dir named for the old name); the hits are NAMED). Run it right after the move, before the name OLD is reused by a later move: old-name-free reads
 # "empty" as the proof that no projection between the usermod and the bump minted a fresh agi-OLD.
-# Env (defaults are the box's; a test sets them to stubs): ROOT (prefix of every default path) ID GETENT RUNUSER SYSTEMCTL ROOTUSER RET RING SCAN CARRY MAINKEY MAIN STAYS_S.
+# Env (defaults are the box's; a test sets them to stubs): ROOT (prefix of every default path) ID GETENT RUNUSER SYSTEMCTL ROOTUSER RET RING SCAN CARRY MAINKEY MAIN STAYS_S WORK STAT FIND.
 ROOT=${ROOT-};ID=${ID:-id};GETENT=${GETENT:-getent};RUNUSER=${RUNUSER:-runuser};SYSTEMCTL=${SYSTEMCTL:-systemctl};ROOTUSER=${ROOTUSER:-root}
-RET=${RET:-$ROOT/var/lib/agi/retired/keys};RING=${RING:-$ROOT/var/lib/agi/allowed_signers};CARRY=${CARRY:-$ROOT/etc/agi/carry.env};MAINKEY=${AGI_REPO:-/data/work/agi};MAIN=${MAIN:-$ROOT$MAINKEY}
+RET=${RET:-$ROOT/var/lib/agi/retired/keys};RING=${RING:-$ROOT/var/lib/agi/allowed_signers};CARRY=${CARRY:-$ROOT/etc/agi/carry.env};WORK=${WORK:-$ROOT/data/work};STAT=${STAT:-stat};FIND=${FIND:-find};MAINKEY=${AGI_REPO:-/data/work/agi};MAIN=${MAIN:-$ROOT$MAINKEY}
 SCAN=${SCAN-"$ROOT/etc/sudoers.d $ROOT/etc/polkit-1 $ROOT/etc/systemd $ROOT/run/systemd/system $ROOT/etc/agi $ROOT/var/spool/cron"}
 f=0
 say(){ _s=$1;_n=$2;shift 2;echo "$_s $_n: $*";[ "$_s" = FAIL ]&&f=$((f+1));:;}
@@ -118,5 +120,11 @@ if [ "$FIRST" = --first-start ];then
  up(){ for r in "$s1" "$s2";do printf '%s\n' "$r"|grep -qx 'ActiveState=active'&&printf '%s\n' "$r"|grep -qx 'SubState=running'||return 1;done
   n1=$(printf '%s\n' "$s1"|sed -n 's/^NRestarts=//p');n2=$(printf '%s\n' "$s2"|sed -n 's/^NRestarts=//p');[ -n "$n1" ]&&[ "$n1" = "$n2" ]; }
  t stays-up "agi-post@$NEW read twice ${STAYS_S:-60} s apart: ActiveState/SubState '$(printf '%s' "$s1"|tr '\n' ' ')' then '$(printf '%s' "$s2"|tr '\n' ' ')' (want active, running and the same NRestarts both times)" up
+fi
+# 17. the NAME-keyed dirs (council 21:35Z): gate-<post> is the conventional gate dir; a reused name finds the previous holder's, owned by another uid, and a moved post must not leave its old name's dirs behind
+if [ "$FIRST" = --first-start ];then
+ gnew=$WORK/gate-$NEW;gown=$($STAT -c %u "$gnew" 2>/dev/null)
+ left=$($FIND "$WORK" -maxdepth 1 -uid "$UID_" -name "*$OLD*" 2>/dev/null|sort|tr '\n' ' ')
+ t name-dirs "$gnew owner uid '${gown:-absent}' (want $UID_); still owned by uid $UID_ and named for $OLD under $WORK: '${left% }' (want none)" test "$gown" = "$UID_" -a -z "$left"
 fi
 [ $f = 0 ]
