@@ -47,7 +47,9 @@ is-enabled)if grep -qx "$2" $m;then echo masked;exit 1;fi;if grep -qx "$2" $e;th
 enable)shift;[ "$1" = --now ]&&{ shift;echo "$1">>$a;};case ",$STUB_ENABLE_NOOP," in *,$1,*)exit 0;;esac;grep -qx "$1" $e||echo "$1">>$e;;
 disable)grep -vxF "$2" $e>$e.n;mv $e.n $e;;
 stop)grep -vxF "$2" $a>$a.n;mv $a.n $a;;
-show)awk -v u="$2" '$1==u{print $2}' $STUB_SD/triggers 2>/dev/null;;
+show)case "$*" in *TriggeredBy*)awk -v u="$2" '$1==u{print $2}' $STUB_SD/triggers 2>/dev/null;;
+  *-p\ Type*)grep -qx "$2" $STUB_SD/oneshots 2>/dev/null&&echo oneshot||echo simple;;
+  *RemainAfterExit*)grep -qx "$2" $STUB_SD/remain 2>/dev/null&&echo yes||echo no;; esac;;
 start|restart)grep -qx "$2" $a||echo "$2">>$a;case $2 in agi-boot.service)for p in $(cat $STUB_SD/bootposts 2>/dev/null);do grep -qx "agi-post@$p.service" $a||echo "agi-post@$p.service">>$a;done;;esac;;
 *)exit 0;;esac
 EOF
@@ -302,10 +304,27 @@ ok st2-skill-names-ring-unverified-and-the-by-design-boot-disabled-drift "agi-to
 b7(){ world;hact >/dev/null 2>&1;login;st >/dev/null 2>&1;up3;printf 'agi-quiet-watch.service agi-quiet-watch.timer\n' >$SD/triggers;}
 b7;printf 'agi-quiet-watch.service\n' >>$SD/active;stp >$T/o 2>$T/e;rcs=$?;st STUB_START_NOOP=agi-quiet-watch.service >$T/o 2>$T/e;rc=$?
 ok st2-B7-a-oneshot-caught-mid-run-with-its-timer-up-is-not-recorded-and-start-ends-0 "stop rc $rcs; town.state(aside) timer: $(cat $T/state.* 2>/dev/null|grep -c 'unit agi-quiet-watch.timer enabled'), service: $(cat $T/state.* 2>/dev/null|grep -c 'unit agi-quiet-watch.service'); start rc $rc, started: $(grep -c '^started tw' $T/o)" '[ $rcs = 0 ]&&[ $rc = 0 ]&&grep -q "^started tw" $T/o&&cat $T/state.*|grep -qx "unit agi-quiet-watch.timer enabled"&&! cat $T/state.*|grep -q "unit agi-quiet-watch.service"'
-b7;pm 'kept $u&&continue;trigup $u||echo $u' 'kept $u&&continue;echo $u';printf 'agi-quiet-watch.service\n' >>$SD/active;stp >$T/o 2>$T/e;st STUB_START_NOOP=agi-quiet-watch.service >$T/o 2>$T/e;rc=$?
+b7;pm 'trigup $u||echo $u' 'echo $u';printf 'agi-quiet-watch.service\n' >>$SD/active;stp >$T/o 2>$T/e;st STUB_START_NOOP=agi-quiet-watch.service >$T/o 2>$T/e;rc=$?
 ok st2-B7-mutant-the-skip-dropped-records-the-oneshot-and-start-never-finishes-RED "state has the service: $(cat $T/state 2>/dev/null|grep -c 'unit agi-quiet-watch.service'); start rc $rc (clean: service not recorded, rc 0)" 'grep -q "^unit agi-quiet-watch.service" $T/state&&[ $rc != 0 ]'
 b7;grep -vx agi-quiet-watch.timer $SD/active>$SD/a.n;mv $SD/a.n $SD/active;printf 'agi-quiet-watch.service\n' >>$SD/active;stp >$T/o 2>$T/e
 ok st2-B7-a-hand-run-oneshot-whose-timer-is-off-stays-recorded "town.state: $(grep 'agi-quiet-watch' $T/state|tr '\n' '|')" 'grep -qx "unit agi-quiet-watch.service" $T/state'
 b7;pm 'echo "$ACT"|grep -qxF "$t"&&return 0;' 'return 0;';grep -vx agi-quiet-watch.timer $SD/active>$SD/a.n;mv $SD/a.n $SD/active;printf 'agi-quiet-watch.service\n' >>$SD/active;stp >$T/o 2>$T/e
 ok st2-B7-mutant-skip-without-the-trigger-is-up-test-loses-the-hand-run-oneshot-RED "town.state: $(grep 'agi-quiet-watch' $T/state|tr '\n' '|') (clean: the service line)" '! grep -q "agi-quiet-watch.service" $T/state'
+
+# (iii) council 10-21: a Type=oneshot RemainAfterExit=no unit is never recorded and never stopped (mid-run at stop = runs to its own end); RemainAfterExit=yes stays recorded
+os3(){ world;hact >/dev/null 2>&1;login;st >/dev/null 2>&1;up3;: >$SD/triggers;printf 'agi-hand.service\n' >$SD/oneshots;printf 'agi-hand.service\n' >>$SD/active;}
+os3;stp >$T/o 2>$T/e;rcs=$?;st STUB_START_NOOP=agi-hand.service >$T/o 2>$T/e;rc=$?
+ok st2-iii-a-hand-run-oneshot-mid-run-at-stop-is-not-recorded-not-stopped-and-start-ends-0 "stop rc $rcs; recorded: $(cat $T/state.* 2>/dev/null|grep -c 'agi-hand'); stop calls on it: $(grep -c '^stop agi-hand' $SD/calls); start rc $rc, started: $(grep -c '^started tw' $T/o)" '[ $rcs = 0 ]&&[ $rc = 0 ]&&grep -q "^started tw" $T/o&&! cat $T/state.*|grep -q agi-hand&&[ "$(grep -c "^stop agi-hand" $SD/calls)" = 0 ]'
+os3;pm 'kept $u&&continue;oneshot $u&&continue;' 'kept $u&&continue;';stp >$T/o 2>$T/e;st STUB_START_NOOP=agi-hand.service >$T/o 2>$T/e;rc=$?
+ok st2-iii-mutant-the-oneshot-rule-dropped-records-it-and-start-never-finishes-RED "recorded: $(cat $T/state 2>/dev/null|grep -c 'agi-hand'); start rc $rc (clean: not recorded, rc 0)" 'grep -q "^unit agi-hand.service" $T/state&&[ $rc != 0 ]'
+os3;printf 'agi-hand.service\n' >$SD/remain;stp >$T/o 2>$T/e
+ok st2-iii-a-oneshot-with-RemainAfterExit-yes-stays-recorded "town.state: $(grep 'agi-hand' $T/state|tr '\n' '|')" 'grep -qx "unit agi-hand.service" $T/state'
+# sp's pid row: an engine.v 4 row of this box with pid != 0 is refused by start (and by stop in the agi-town lane), naming it
+pidw(){ world;hact >/dev/null 2>&1;login;sed -i '/"name":"far"/i\  - {"name":"pv","parent":"belam","harness":"claude","box":"tw","pid":'$1',"engine":{"v":4,"name":"pv","harness":"claude","model":"m","effort":"low"}}' $M/.agi/nodes/.geometry/posts.md;$G -C $M add -A;$G -C $M -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm pid;PIN=$($G -C $M rev-parse HEAD);hact >/dev/null 2>&1;}
+pidw 1;st >$T/o 2>$T/e;rc=$?
+ok st2-pid-a-local-engine-v4-row-with-pid-1-is-refused-by-start-naming-it "rc $rc: $(grep -o '\[pid\][^:]*: pv' $T/e|head -1|cut -c1-90); service calls $(calls '^(start|enable|restart|stop)')" '[ $rc != 0 ]&&grep -q "^\[pid\] .*pv .*heal would see it" $T/e&&[ "$(calls "^(start|enable|restart|stop)")" = 0 ]'
+pidw 0;st >$T/o 2>$T/e;rc=$?
+ok st2-pid-a-local-engine-v4-row-with-pid-0-is-not-refused "rc $rc: [pid] lines $(grep -c '^\[pid\]' $T/e) (want 0)" '! grep -q "^\[pid\]" $T/e'
+pidw 1;pm 'pidchk "nothing started"' ':';st >$T/o 2>$T/e;rc=$?
+ok st2-pid-mutant-the-check-dropped-lets-start-past-a-pid-1-row-RED "rc $rc, [pid] lines $(grep -c '^\[pid\]' $T/e) (clean: refused)" '! grep -q "^\[pid\]" $T/e'
 echo "agi-town-start: $f FAIL";exit $f
