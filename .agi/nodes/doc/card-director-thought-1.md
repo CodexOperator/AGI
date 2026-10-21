@@ -19,35 +19,34 @@ town: core
 ---
 # doc:card-director-thought-1
 
-director-thought-1 · v5 post · Sonnet 5.5 high · director under thought-master (TM) · town local-maxxing · goal:g7.16.1 council loop · tree <home>/t · branch posts/director-thought-1 (LOCAL-ONLY, never push) · box encryption-town (E) · PAUSED 10-16 12:0xZ (owner via TM: out of usage; crons and keepalive off too): idle, start nothing; nothing queued, periodicity side track PAUSED (goal:g5.28 horizon); trunk is core/season3/main since 10-15 08:08Z (this post restarted on it)
+director-thought-1 · v5 post · Sonnet 5.5 high · director under thought-master (TM) · town local-maxxing · goal:g7.16.1 council loop · tree <home>/t · branch posts/director-thought-1 (LOCAL-ONLY, never push) · box encryption-town (E) · STOOD DOWN 10-21 14:4xZ by the owner (via TM/belam, goal:g7.16.1.11.45): parked clean, nothing in flight; trunk core/season3/main
 
 ## §0 State
 ```
-skills  agi-send (mail is BOX ONLY) · agi-memory-guard (box gate before a heavy lane) · agi-node-write (old setup: plain Write/Edit) · agi-verify
-order   NONE held. Last: g5.28 PAIR-LOSS (thought-master 10-10, belam GO 08:3xZ) DONE and returned by box [complete]. Standing: the 04:2xZ idle order is lifted (TM relay 05:0xZ 10-12); the reboot wiped /tmp scratch and /run/agi-<post> (~/scratch/torch-cpu survived, checked)
-comms   BOX ONLY: read `AGI_POST=director-thought-1 box read`; send `printf '%s\n' '[tag] ...' | AGI_POST=director-thought-1 box send <post>` (prints nothing, no receipt). NEVER box belam (owner 10-11 20:2xZ): anything for belam goes to thought-master, who folds it into the one ~4 h digest; only a [red] or a blocking owner ask goes at once. No [ack]/[thanks]/[landed] upward. A keepalive prompt: reply `ok`, nothing else
+order   NONE held. Owner 10-21 verbatim: "stand down thought master and director thought at this time." Earlier: owner PAUSE 10-16 (out of usage). Last work: g5.28 PAIR-LOSS DONE, returned by box [complete]
+comms   BOX ONLY: `AGI_POST=director-thought-1 box read`; send `printf '%s\n' '[tag] ...' | AGI_POST=director-thought-1 box send <post>`. NEVER box belam. Sent: [rotation] director-thought-1 down-ready <this card's commit sha>. belam stops the unit, boot false; home, card and keys stay
+skills  agi-send · agi-memory-guard · agi-node-write (plain Write/Edit) · agi-verify
 ```
 
 ## §1 Plan
 ```
-DONE   experiment:dt1-neuron-period-pairloss-1010 DISPROVED: T={seed0 k=34, seed1 k=3}; k=34 has 3/3 partners beating the null (best g=45 1.133 vs 0.069); seed 1 k=3 has 0/3 (inert, dCE 1.8e-8); seed 2 k=17 (unscored) 3/3. Pre-run 7f82854951, results e670e9c8b6, node ec913021fe
-NEXT   nothing assigned: on resume `box read`, do nothing without an order
+DONE   experiment:dt1-neuron-period-pairloss-1010 DISPROVED: T={seed0 k=34, seed1 k=3}; k=34 3/3 partners beat the null (best g=45 1.133 vs 0.069); seed 1 k=3 0/3 (inert); seed 2 k=17 (unscored) 3/3. Pre-run 7f82854951, results e670e9c8b6, node ec913021fe
+NEXT   nothing: on a restart `box read`, do nothing without an order
 BLOCK  none
 ```
 
 ## 🔴 Where it stops
 ```
-Tree clean, on posts/director-thought-1 (HEAD came up detached at the branch tip again after the 10-12 reboot (switched back); check `git status -sb` before any commit). No process of mine is running.
-Cold resume: 1) git status -sb  2) AGI_POST=director-thought-1 box read  3) on an order, `git merge <sha the order names>` (posts/thought-master) BEFORE any edit.
-Torch on E (none in the system python): cd <tree>; (ulimit -v 4000000; OMP_NUM_THREADS=1 PYTHONPATH=$HOME/scratch/torch-cpu/pylib python3 -m pytest <file> -q -p no:cacheprovider --basetemp <scratchpad>/bt)
-  torch 2.14.0+cpu in ~/scratch/torch-cpu/pylib (belam GO 09:2xZ 10-10; wheel sha256 a09987c9...0bc260 is in the node); system numpy 1.26.4 + pytest 7.4.4 stay the system's. ~/scratch is in my home, not /tmp
+Tree clean on posts/director-thought-1; no process of mine running; nothing unpushed matters (local-only branch).
+Cold resume: 1) git status -sb (HEAD may come up detached: git switch posts/director-thought-1)  2) AGI_POST=director-thought-1 box read  3) on an order, git merge <sha it names> BEFORE any edit.
+Torch on E: cd <tree>; (ulimit -v 4000000; OMP_NUM_THREADS=1 PYTHONPATH=$HOME/scratch/torch-cpu/pylib python3 -m pytest <file> -q -p no:cacheprovider --basetemp <scratchpad>/bt)  (torch 2.14.0+cpu in ~/scratch/torch-cpu/pylib, belam GO 10-10)
 ```
 
 ## §4 Traps (this generation)
 ```
-box E     no /data/ml, so no torch, no osc_test_pythonpath: any osc run needs the private pylib above; pip into a shared env is forbidden, a download needs a GO
-detached  a checkout by the engine can leave HEAD detached at the branch tip: `git switch posts/director-thought-1` before committing, or the commit misses the branch
-links.py  `links.py links` runs past the tool's 120 s foreground limit; start it in the background and read the output file
+box E     no /data/ml, no torch: any osc run needs the private pylib above
+detached  engine checkouts can leave HEAD detached: switch to the post branch before committing. A stale index (staged old copies of others' files) blocks the switch: back it up with git diff --cached, restore those paths from HEAD
+links.py  `links.py links` outruns the 120 s foreground limit: run it in the background
 ```
 
 ## §6 BANKED
