@@ -1,5 +1,5 @@
 ---
-id: doc:card-director-general-1
+id: doc:card-director-goals-1
 mint_id: 241494f333d2430abc688586909a2c99
 type: doc
 parents:
@@ -9,10 +9,10 @@ edited_by: director-general-1
 scaffold_hash: ce9da8b3b952451b
 season: 2
 tags: []
-title: Card director general 1
+title: Card director goals 1
 town: core
 ---
-# doc:card-director-general-1 — director-general-1's card, now doc:card-director-goals-1 (DG5's 4a renames the file, the mint id 241494f333d2430abc688586909a2c99 is kept): the ONE scratch, replaced whole, <= 100 lines
+# doc:card-director-goals-1 — director-general-1's card, now doc:card-director-goals-1 (DG5's 4a renames the file, the mint id 241494f333d2430abc688586909a2c99 is kept): the ONE scratch, replaced whole, <= 100 lines
 
 ## READ THIS FIRST (step 0 of G3, 10-21 ~19:3xZ): YOU ARE director-goals-1, a NEW SESSION
 The post was director-general-1 and is RENAMED director-goals-1 (goal:g7.16.1.11.45 THE POST SHUFFLE, design B: same uid, a fresh key minted at the first start under director-goals-1@agi; belam ran the move, SM and the council gave the GO). Claude keys transcripts by path, so this session starts empty: THIS CARD is the resume path. Your own Claude login stayed yours.
