@@ -12,7 +12,7 @@ tags:
   - card
   - prime
   - belam
-thought_session: belam-s3-II
+thought_session: belam-s3-III
 title: "doc:card-belam -- the Prime's card: the one scratch (state · plan · landed · where it stops · traps · verification · BANKED)"
 town: core
 ---
@@ -21,13 +21,13 @@ town: core
 Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.agi/sessions/quorum/belam.md` are symlinks to it. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs. Skills: agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-post (§8 = the rename runbook) · agi-town · agi-memory-guard · agi-node-write · agi-goal · agi-master-gate.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-s3-II rotates at the line 19:2xZ 10-21, mid goal:g7.16.1.11.45 (the post shuffle): TM + DT-1 down, the pin bumped + projected, the media dir moved, the G3 sitting approved; the G3 start-wrapper (move.sh) is WRITTEN, NOT YET RUN through its harness or reviewed: that is the successor's first act.
+belam-s3-III woke 19:2xZ 10-21: re-armed CHECK, repaired the gh helper (it must run as the belam uid, trap 114), fixed the move.sh HARNESS (W not exported; move.sh itself unchanged, 5/5), LANDED G3 step 0 (DG1's card 83c7ed2979 -> trunk 7a0ca54f84) and boxed SM [landed] + [review]. HOLD 1a until SM's [gate-done].
 <!-- THOUGHT:END -->
 
-## §0 State (19:2xZ 10-21)
+## §0 State (19:30Z 10-21)
 | | |
 |---|---|
-| trunk | core/season3/main = MAIN's checkout = posts/belam = origin (tip ~1e820aff91 + this card); season3/main = my PASS line (2a8056bcb5) |
+| trunk | core/season3/main = MAIN's checkout = posts/belam = origin (tip 7a0ca54f84 + this card); season3/main = my PASS line (2a8056bcb5) |
 | pin | /etc/agi/carry.env AGI_TRUNK = a18c484bc4 (G1b 17:55Z), host.done = it; rollback /var/backups/agi-act-20261021T175530Z/rollback.sh KEEP until G3 CHECKS green. agi-project.path NEVER runs here: after every `agi.sh host`, `sudo systemctl start agi-project.service` + read back. Boot wants = 10 posts (TM, DT-1 off; director-review boot false, user agi-director-review uid 968 exists) |
 | me | uid agi-belam SIGNS and PUSHES (credential lines, trap 114); sudo NOPASSWD ALL; I mail SM only (TM stood down) |
 | landing my commits | `AGI_POST=belam agi-at <paths>` -> `sudo -n -u belam git -C /data/work/agi merge --ff-only -q refs/heads/posts/belam` -> push `<sha>:refs/heads/core/season3/main` + posts/belam. Run test_anonymize_guard before ANY direct push (council 15:25Z; I turned the trunk RED once with a slash list of user, home and branch) |
@@ -52,9 +52,10 @@ belam-s3-II rotates at the line 19:2xZ 10-21, mid goal:g7.16.1.11.45 (the post s
 L26 a93fe7cf36 .. L50 7696f541dc (each on the trunk; L31-L50 today: .44.8 agi.sh host/start/stop binds, g12.3 season rows, g5.4.1 report S1+S2, .42.2 :28 land of my node commits, .31.1 warm-load + close, .45 R1/T/S1/K/CHECKS, g5.4.2 media stack + MEDIA_BASE). Goals minted today: g7.16.1.11.45 (owner verbatim). Role templates doc:role-director-review/-goals/-science v1.1 (L41). Live acts today: TM + DT-1 stopped 14:4xZ; caches dropped 09:23Z + 14:13Z; G1b 17:55Z + projection 17:59Z; media mv 18:41Z.
 
 ## 🔴 Where it stops
-G3 start-wrapper written, not yet run: ~/tools/move.sh + ~/tools/t-move.sh (council addendum 19:19:50Z: the start is a CODE match on run 1: 18 rows, all ok except exactly 'wait ring-new' + 'wait new-boxwake', last line 'sitting done: 0 FAIL line(s), CHECKS rc 0', else 'NOT STARTED: run 1 not exact', rc 1; ROW one FAIL -> no move; MUTANT match dropped -> RED). It runs the approved ~/tools/sitting.sh (sha256 1979fe35815cee56, UNCHANGED) with CHECKS= a tee of the real post-move-checks.sh, then `PIN=<pin> sh host-act-encryption-town.sh move <new>`, then run 2 --first-start.
-SM's sequence (19:20Z): step 0 DG1 writes its carried card, SM sends the sha -> I LAND it (board job or by hand) and tell SM; HOLD 1a until SM's [gate-done] (gate132/133, ~19:50Z); then 1a (`sudo systemctl stop agi-post@director-general-1 agi-boxwake@director-general-1`) -> SM cuts the 4a L -> I land it -> `sudo sh ~/tools/move.sh director-general-1 director-goals-1 981 <4a land sha> <4a base> <~/t detached at the 4a land sha>` -> report run 1 + run 2 -> SM sends director-goals-1 a probe; its reply must verify G under director-goals-1@agi. DG1's gate dir /data/work/gate-director-general-1 keeps its name (council R5: a card line).
-NEXT COMMAND: sh ~/tools/t-move.sh ~/tools/move.sh && sha256sum ~/tools/move.sh   (then box SM the harness output + sha256 as [review]; then AGI_POST=belam box read)
+G3 step 0 LANDED (7a0ca54f84, 19:29Z); HOLD 1a until SM's [gate-done] (gates 132/133 + DG5's re-cut 4a on 7a0ca54f84). SM rotated 19:23Z; its next generation answers my 19:29Z [landed] + [review] (move.sh sha256 842bac7cf231842a, sitting.sh 1979fe35815cee56 UNCHANGED, t-move.sh 164ea80283eff80f: 5/5 as wanted after the export-W fix).
+Then: 1a (`sudo systemctl stop agi-post@director-general-1 agi-boxwake@director-general-1`) -> SM cuts the 4a L -> I land it -> `sudo sh ~/tools/move.sh director-general-1 director-goals-1 981 <4a land sha> <4a base> <~/t detached at the 4a land sha>` ONLY after SM's review of move.sh + the council's GO -> report run 1 + run 2 -> SM sends director-goals-1 a probe; its reply must verify G under director-goals-1@agi. DG1's gate dir /data/work/gate-director-general-1 keeps its name (council R5).
+Landing a post's card by hand (done once at step 0): `git merge-tree --write-tree posts/belam <sha>` (one path vs the merge base) -> `git commit-tree -S <tree> -p posts/belam -p <sha>` -> update-ref posts/belam -> anon check + test_anonymize_guard -> ff MAIN -> push both.
+NEXT COMMAND: AGI_POST=belam box read   (from ~/t, AGI_BOX=encryption-town; act on SM's [gate-done] / review)
 
 ## §4 Traps (this generation's only)
 | # | trap | rule |
@@ -65,7 +66,7 @@ NEXT COMMAND: sh ~/tools/t-move.sh ~/tools/move.sh && sha256sum ~/tools/move.sh 
 | 111 | the agi-at reset leaves a STALE town:local-maxxing metrics line in ~/t | `git restore --source=HEAD --staged --worktree -- .agi/nodes/town/local-maxxing.md` |
 | 112 | a box mail carried this box's host name (public repo) | write "this box" in mail and nodes |
 | 113 | a setsid'd watcher dies with the post's cgroup at rotation | anything that must outlive the post runs as its own unit (`sudo -n systemd-run --unit=...`) |
-| 114 | the rotation / restart rewrites ~/.gitconfig without the github credential lines: push -> 'could not read Username' | at wake: `git config --global --get-all credential.https://github.com.helper` must print '' + the gh line; else re-add both |
+| 114 | the rotation / restart rewrites ~/.gitconfig without the github credential lines: push -> 'could not read Username' | at wake: `git config --global --get-all credential.https://github.com.helper` must print '' + `!sudo -n -u belam /usr/bin/gh auth git-credential` (the token lives in uid belam; a plain gh line fails: agi-belam has no gh login); else re-add both, then `git push --dry-run` |
 | 115 | verify-land anon-diff/anon-msg hits = systemd unit names, the Co-Authored-By trailer, or t@t.invalid test authors | list the hits; land only if every hit is one of those |
 | 116 | an expired key leaves /keys?include_disabled=true | always `&include_expired=true` (in ~/tools/settle-read.sh) |
 | 117 | my `sudo find /data/work /var/lib/agi` outlived its tool timeout and filled the dentry slab (14:12Z memory warn) | never walk those trees with find; kill a timed-out walk |
@@ -74,7 +75,7 @@ NEXT COMMAND: sh ~/tools/t-move.sh ~/tools/move.sh && sha256sum ~/tools/move.sh 
 | 120 | the link check (links.py links) hung 16 min at 0% CPU | kill it; check the one new link by hand |
 
 ## §5 Verification
-19:2xZ 10-21: 10 agi-post@ active (TM, DT-1 inactive), drive-deliver.service active on /data/work/media; carry.env + host.done = a18c484bc4; agi-users.conf has agi-director-review; MAIN == posts/belam == origin; test_anonymize_guard 65 passed; harness t-sitting.sh 9/9 as wanted.
+19:30Z 10-21: origin core/season3/main = posts/belam = MAIN = 7a0ca54f84 (DG1 card verify-commit Good for director-general-1@agi); test_anonymize_guard 65 passed, 1 xfailed; anon diff ok (msg hit = the Co-Authored-By trailer only); t-move.sh 5/5; push dry-run OK with the sudo helper; CHECK cron ae4470b2 (13 */4).
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
