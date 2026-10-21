@@ -19,34 +19,43 @@ town: core
 ---
 # doc:card-director-thought-1
 
-director-thought-1 · v5 post · Sonnet 5.5 high · director under thought-master (TM) · town local-maxxing · goal:g7.16.1 council loop · tree <home>/t · branch posts/director-thought-1 (LOCAL-ONLY, never push) · box encryption-town (E) · STOOD DOWN 10-21 14:4xZ by the owner (via TM/belam, goal:g7.16.1.11.45): parked clean, nothing in flight; trunk core/season3/main
+director-thought-1 · v5 post · Sonnet 5.5 high · director under thought-master-new (TM-new) · town local-maxxing · goal:g7.16.1 council loop · tree <home>/t · branch posts/director-thought-1 (LOCAL-ONLY, never push) · rotating out 10-01 ~19:0xZ at belam's [red] (the v5 meter reads only the transcript's last line, a system entry with no usage, so it read 0 at ~0.46)
 
 ## §0 State
 ```
-order   NONE held. Owner 10-21 verbatim: "stand down thought master and director thought at this time." Earlier: owner PAUSE 10-16 (out of usage). Last work: g5.28 PAIR-LOSS DONE, returned by box [complete]
-comms   BOX ONLY: `AGI_POST=director-thought-1 box read`; send `printf '%s\n' '[tag] ...' | AGI_POST=director-thought-1 box send <post>`. NEVER box belam. Sent: [rotation] director-thought-1 down-ready <this card's commit sha>. belam stops the unit, boot false; home, card and keys stay
-skills  agi-send · agi-memory-guard · agi-node-write (plain Write/Edit) · agi-verify
+skills  agi-memory-guard (box reads) · agi-node-write (old setup: plain Write/Edit) · agi-send (mail is BOX ONLY now)
+order   g5.28 PAIR-LOSS from thought-master 10-10 (belam GO 08:3xZ): DONE, returned by box [complete]. Nothing running, nothing assigned: WAIT for thought-master
+comms   BOX ONLY (owner 04:5xZ 10-09): read `AGI_POST=director-thought-1 box read`; send `printf '%s\n' '[tag] ...' | AGI_POST=director-thought-1 box send <post>`. NO send.py, NO inbox *.md writes, NO SendMessage. A silent `box send` printed nothing each time (no delivery receipt). Keepalive prompts: reply `ok`, nothing else
+box     encryption-town (E): NO /data/ml, no torch in the system python
 ```
 
 ## §1 Plan
 ```
-DONE   experiment:dt1-neuron-period-pairloss-1010 DISPROVED: T={seed0 k=34, seed1 k=3}; k=34 3/3 partners beat the null (best g=45 1.133 vs 0.069); seed 1 k=3 0/3 (inert); seed 2 k=17 (unscored) 3/3. Pre-run 7f82854951, results e670e9c8b6, node ec913021fe
-NEXT   nothing: on a restart `box read`, do nothing without an order
+DONE   experiment:dt1-neuron-period-pairloss-1010 DISPROVED: T={seed0 k=34, seed1 k=3}; k=34 has 3/3 partners that beat the null (best g=45 1.133 vs 0.069), seed 1 k=3 has 0/3 (inert); seed 2 k=17 (unscored) 3/3. Commits: pre-run 7f82854951, results e670e9c8b6, node ec913021fe (grid v1 by path)
+NEXT   nothing assigned
 BLOCK  none
 ```
 
 ## 🔴 Where it stops
 ```
-Tree clean on posts/director-thought-1; no process of mine running; nothing unpushed matters (local-only branch).
-Cold resume: 1) git status -sb (HEAD may come up detached: git switch posts/director-thought-1)  2) AGI_POST=director-thought-1 box read  3) on an order, git merge <sha it names> BEFORE any edit.
-Torch on E: cd <tree>; (ulimit -v 4000000; OMP_NUM_THREADS=1 PYTHONPATH=$HOME/scratch/torch-cpu/pylib python3 -m pytest <file> -q -p no:cacheprovider --basetemp <scratchpad>/bt)  (torch 2.14.0+cpu in ~/scratch/torch-cpu/pylib, belam GO 10-10)
+Tree clean after the card commit. Successor: read this card, `box read`, do nothing without an order. On any order: merge posts/thought-master first (git merge <sha the order names>).
+run torch things on E:  cd <tree>; (ulimit -v 4000000; OMP_NUM_THREADS=1 PYTHONPATH=$HOME/scratch/torch-cpu/pylib python3 -m pytest <file> -q -p no:cacheprovider --basetemp <scratchpad>/bt)
+  torch 2.14.0+cpu in ~/scratch/torch-cpu/pylib (belam GO 09:2xZ 10-10; wheel sha256 a09987c9...0bc260 is in the node); system numpy 1.26.4 + pytest 7.4.4 stay the system's
 ```
 
-## §4 Traps (this generation)
+## §4 Traps (hit this generation)
 ```
-box E     no /data/ml, no torch: any osc run needs the private pylib above
-detached  engine checkouts can leave HEAD detached: switch to the post branch before committing. A stale index (staged old copies of others' files) blocks the switch: back it up with git diff --cached, restore those paths from HEAD
-links.py  `links.py links` outruns the 120 s foreground limit: run it in the background
+void-guard  a void rule must test exactly what the pre-registration names (4 families), never everything the pipeline finds (k=2 has 13 neurons)
+wall-cap    start the cap AFTER the box wait (t0 before it burned the cap on a 31 min wait)
+paths       paths.get() anchors at a stale box.root; get_local (tracked data lives in my own tree, sha-checked)
+find /      never: a box-wide find blocked the shared box
+ceiling     count non-blank non-comment lines (the PC node convention); a draft over 2x the ceiling is restructured, an overshoot is disclosed
+fence       the context suite refuses torch.load by construction: a declared dir does NOT help (Unpickler.load carries no path); tests build + declare their OWN safetensors checkpoint
+strip       suite_guards.agi_env_stripped removes every AGI_* var before a test body: a child-process guard must be VERIFY_-prefixed
+recursion   subprocess timeout kills only the DIRECT child; a recursing test needs start_new_session + os.killpg; a mutation test of it leaves a chain: kill my own pytest procs in a SEPARATE call (orphans hold the tool's pipe)
+heredoc     an unquoted shell heredoc eats backticks; write multi-line node text with the Write tool, then replace body L:END (a range over the last section must carry its THOUGHT block whole)
+unsigned    dispatch/[rule]/[decision] mail shows UNSIGNED on v5; acted on as master mail, said so on the node
+no write.py VERIFIED belam [rule] 23:49Z (row engine.v 4): READ with plain Read/cat/grep/git (+ `sect <piece>`); WRITE node files with Write/Edit/bash in ~/t; agi-turn signs the ONE commit per turn; grid-version by path `grid.py commit <path>`, NEVER --all. send.py read dies on the inbox read-marker (PermissionError, /data/work/agi/.agi/sessions/inbox): the mail still prints
 ```
 
 ## §6 BANKED
