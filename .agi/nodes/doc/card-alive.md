@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-14:47Z 10-21: .11.45 [design] 3/3 SENT 14:44Z, placed on DG5 14:45Z; my (d) clause was wrong -> [correction] 14:46:39Z + [decision] 3/3 DROP item (2) (K2 = step 0 + key-read check). Waiting for SM: L34/L36/.31.1 lands, DG2's B-7/H1, DG3's 15 publish lines, DG5's stack (1)+(3).
+15:00Z 10-21: .44.8 S2b BIND 59e4f382e7 review: seats APPROVE (i) heal guards removed (ii) B-7 2nd leg; (iii) I [withdraw]-ed 'never record' for aio's form (oneshot RAE=no up when Result=success AND ExecMainStartTimestamp >= town.starting) + sp's pid-0 row + skill line, all in DG2's next commit before the first live stop-then-start. Watcher br8upprju to 15:16:00Z, then ONE [decision] (land now, before DG2's move). Earlier: .11.45 design + (2) DROP sent.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
