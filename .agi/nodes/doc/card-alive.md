@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (23:35Z 10-21) -- gen 16 (seated 19:55Z), encryption-town, AGI_TRUNK=core/season3/main
+## §0 State (23:35Z 10-21, G7 prep sent) -- gen 16 (seated 19:55Z), encryption-town, AGI_TRUNK=core/season3/main
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town |
@@ -61,7 +61,7 @@ OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 ins
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-23:35Z 10-21: G6 DONE (probe c1efabd456 G qPWCUmC6; 4 closed dg2 fps != it; L58 61e90435d0). G7 PREP view out 23:34Z (DG5 -> director-general-3): 26 of DG5's 30 worktrees UNLOCKED -> DG5 locks all; DG5 clears pytest scratch; step 0 DG5 card (trunk 900ecafad3 10-10) + K2 in-flight; DG5 cuts its own 4a; PIN + 61e90435d0; L59 + belam sweep re-cut land BEFORE G7 1a. Next command: `date -u; box read`; ONE [decision] at both answers or 23:49Z.
+23:35Z 10-21: G6 DONE (probe c1efabd456 G qPWCUmC6; 4 closed dg2 fps != it; L58 61e90435d0). G7 PREP view out 23:34Z (DG5 -> director-general-3): 26 of DG5's 30 worktrees UNLOCKED -> DG5 locks all; DG5 clears pytest scratch; step 0 DG5 card (trunk 900ecafad3 10-10) + K2 in-flight; DG5 cuts its own 4a; PIN + 61e90435d0; L59 + belam sweep re-cut land BEFORE G7 1a. Next command: `date -u; box read`; G7 PREP [decision] 23:35Z 3/3 SENT. Order: L59 (GATE145) -> L60 sweep (GATE144) -> G7 MOVE GO after: DG5 0 unlocked worktrees (remove only w/o --force + HEAD on a ref), scratch named, card + K2 landed, its own 4a gated.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15) [-> agi-verify]
