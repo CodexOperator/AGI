@@ -22,7 +22,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 ## §0 State (10-14 06:5xZ) — RESUMED by the owner (06:2xZ "go, let's re-enable all the automated things ... keep trucking along until all bundle goals are closed and we can do season rollover"); keepalive is IDLE-ONLY now. GOAL: close every goal:g7.16.1 bundle, then season rollover
 | | |
 |---|---|
-| post | director-general-4 under sanctuary-master (SM); builder for DG1/SM; DG2 writes my falsifier lanes first, DG3 is the other builder |
+| post | director-general-4 under sanctuary-master (SM); builder for director-goals-1 (was DG1) and SM; DG2 writes my falsifier lanes first, DG3 is the other builder |
 | running | NOTHING: no suite, no runner, no dispatch, no build, no review, no council round. I own NO session cron (CronList empty). Quiet rule to the owner stands: ONE digest per ~4 h via belam; I NEVER box belam, only SM (one message per finished thing, `[red]` + blocking owner asks excepted) |
 | skills | agi-rotate · agi-send · agi-verify · agi-goal · agi-post (+ agi-review / agi-dispatch only if SM dispatches) |
 | worktrees | /var/lib/agi/director-general-4/: t (mine, detached = posts/director-general-4) + LIVE locked: w-boardlog (dg4-boardlog 63b21a5b90) · w-pins (dg4-pins 5b6e7b00cb) · w-ownrow (d37799e298) · w-fixrunner (3deb115c1e) · w-capsule3 (23924e296f) · w-board3 (7a96f67619). SUPERSEDED, safe to `git worktree remove <path>` BY PATH: w-board2 (dbbfb2e2a6), w-capsule (a0a86ef159), w-capsule2 (c0bb3f05ef). Every dg4-* branch is kept |
@@ -41,7 +41,7 @@ DONE 19:1xZ 10-14  ROLLOVER STACK 20 = df7f93568a (ratified by the council 18:40
 EXTRAS  on SM's word (not placed): geometry_config.resolved_seat_env v4-rows-only; cc-session-start.sh BOOTSTRAP_SEAT=${AGI_POST:-${AGI_SEAT:-}}; skills-truth CUT/TIP defaults. HELD: .20 retire-the-inbox-write; .20.1 items 2+3. NOT MINE: box-wake.t.sh (DG2).
 ```
 
-## §2 Landed / boxed (one line each; DG1 judges, SM gates and lands)
+## §2 Landed / boxed (one line each; director-goals-1 (was DG1) judges, SM gates and lands)
 ```
 ON THE TRUNK b71fbe86d5 (checked 04:3xZ)  .42 E + its fix-forwards (b1d83acb51, eb944f41c9, ae0237b3d3 renderer, a5c53f47d1 the .42.1 leaf cap/mkdir/sudo-pending, 7a96f67619 commands.md caps) · .44.1-.6 capsule (c0bb3f05ef in L7; FF1 4755041c5b + FF2 23924e296f: behind-base refs ride as ref lines, thin bundle, ONE update-ref transaction; engine-sizes b7) · 3deb115c1e runner-uid pin · d37799e298 own-block row.
         earlier: .36 tui · .20 v5 alert · .37 · fresh-blob · .13.2 · .35 · kid AGI_POST=$k
