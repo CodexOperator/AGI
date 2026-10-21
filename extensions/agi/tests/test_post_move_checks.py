@@ -24,6 +24,12 @@ GETENT = r"""#!/bin/sh
 grep "^$2:" $STUB/$1
 exit 0
 """
+# systemctl is-active UNIT: the state is read from $STUB/active/UNIT (absent = a unit that never ran)
+SYSTEMCTL = r"""#!/bin/sh
+[ "$1" = is-active ]||exit 2
+s=$(cat "$STUB/active/$2" 2>/dev/null)||s=inactive
+echo "$s";[ "$s" = active ]
+"""
 # runuser -u U -- test -r F: U reads what is under its own home, else only what is o+r behind o+x dirs (a stub: the test is not root)
 RUNUSER = r"""#!/bin/sh
 u=$2;shift 3;[ "$1" = test ]&&[ "$2" = -r ]||exit 125;f=$3
@@ -75,7 +81,9 @@ class World:
         self.env = {"PATH": os.environ["PATH"], "ROOT": str(self.root), "STUB": str(self.stub), "TOP": str(tmp), "ROOTUSER": subprocess.run(
             ["id", "-un"], capture_output=True, text=True).stdout.strip(),
             "ID": str(_exe(self.bin / "id", ID)), "GETENT": str(_exe(self.bin / "getent", GETENT)),
-            "RUNUSER": str(_exe(self.bin / "runuser", RUNUSER))}
+            "RUNUSER": str(_exe(self.bin / "runuser", RUNUSER)),
+            "SYSTEMCTL": str(_exe(self.bin / "systemctl", SYSTEMCTL))}
+        (self.stub / "active").mkdir()
 
     def first_start(self, key=None):
         with open(self.ring, "a") as f:
@@ -100,7 +108,7 @@ def test_a_clean_move_before_the_first_start_is_green_and_ring_new_waits(w):
     rc, st, out = w.check()
     assert rc == 0, out
     assert st == {"uid": "ok", "gid": "ok", "old-name-free": "ok", "key-held": "ok", "key-unreadable": "ok", "key-not-in-home": "ok",
-                  "ring-old": "ok", "ring-new": "wait", "grep-old": "ok"}, out
+                  "ring-old": "ok", "ring-new": "wait", "grep-old": "ok", "old-post-inactive": "ok", "old-boxwake-inactive": "ok"}, out
 
 
 def test_after_the_first_start_ring_new_needs_one_fresh_open_line_and_wait_becomes_red_under_the_flag(w):
@@ -220,3 +228,40 @@ def test_the_gid_guard_has_a_world_only_it_catches(w, tmp_path):
     shutil.copy(w.rk / "id_ed25519", w.home / ".ssh" / "id_ed25519")
     m = _mutant(tmp_path, 'test -n "$pub" -a -z "$left"', "true")
     assert w.check(script=m)[1]["key-not-in-home"] == "ok" and w.check()[1]["key-not-in-home"] == "FAIL"
+
+
+def test_MUTANT_a_projection_in_the_window_that_minted_a_fresh_old_user_is_red_on_the_name_check(w):
+    with open(w.stub / "passwd", "a") as f:                                  # sysusers re-created agi-<old> between the usermod and the bump
+        f.write(f"agi-{OLD}:x:998:998::/nonexistent:/usr/sbin/nologin\n")
+    _red(w.check(), "old-name-free")
+    (w.stub / "passwd").write_text(f"agi-{NEW}:x:{UID}:{UID}::{w.home}:/bin/sh\n")
+    with open(w.stub / "group", "a") as f:                                   # or only its group
+        f.write(f"agi-{OLD}:x:998:\n")
+    _red(w.check(), "old-name-free")
+
+
+@pytest.mark.parametrize("unit,check", [(f"agi-post@{OLD}", "old-post-inactive"), (f"agi-boxwake@{OLD}", "old-boxwake-inactive")])
+def test_MUTANT_an_old_unit_that_is_active_or_starting_or_unanswered_is_red_one_row_each(w, unit, check):
+    for state in ("active", "activating", "deactivating"):
+        (w.stub / "active" / unit).write_text(state + "\n")
+        rc, st, out = w.check()
+        _red((rc, st, out), check)
+        assert all(v != "FAIL" for k, v in st.items() if k.startswith("old-") and k != check and k.endswith("-inactive")), out    # the OTHER unit's row stays green
+    (w.stub / "active" / unit).write_text("failed\n")                         # a unit that ended failed is not running
+    assert w.check()[1][check] == "ok"
+    _exe(w.bin / "systemctl", "#!/bin/sh\nexit 1\n")                          # no answer at all is not a pass
+    _red(w.check(), "old-post-inactive", "old-boxwake-inactive")
+
+
+def test_each_after_4b_row_has_a_world_only_it_catches(w, tmp_path):
+    (w.stub / "active" / f"agi-post@{OLD}").write_text("active\n")
+    (w.stub / "active" / f"agi-boxwake@{OLD}").write_text("active\n")
+    m = _mutant(tmp_path, "inactive|failed)return 0;;esac;return 1;}", "*)return 0;;esac;return 1;}")
+    st = w.check(script=m)[1]
+    assert st["old-post-inactive"] == "ok" and st["old-boxwake-inactive"] == "ok"
+    st = w.check()[1]
+    assert st["old-post-inactive"] == "FAIL" and st["old-boxwake-inactive"] == "FAIL"
+    with open(w.stub / "passwd", "a") as f:
+        f.write(f"agi-{OLD}:x:998:998::/nonexistent:/usr/sbin/nologin\n")
+    m = _mutant(tmp_path, '[ -z "$($GETENT passwd "agi-$1")" ]&&', "")
+    assert w.check(script=m)[1]["old-name-free"] == "ok" and w.check()[1]["old-name-free"] == "FAIL"
