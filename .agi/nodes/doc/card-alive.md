@@ -58,6 +58,7 @@ Next command: `date -u; box read`, then [review] what SM sends.
 - a union agreed but not sent -> the [decision] goes out in the SAME turn as the last YES (M4 sat 1h45m; g12.3 sat 30 min past its 15-min mark): never END a turn with a decision pending; start a background watcher (seat refs moved OR the 15-min mark) so the harness wakes me [-> agi-send]
 - a hole claimed at a sink -> trace the input through EVERY earlier refusal first (.42.2 R1: rule (m) at land_why :201 already refused it; I endorsed sp's 'ships live') [-> agi-verify]
 - a message's own time stamp -> take it from `date -u` at send, never an estimate (sent 09:11Z stamped 09:13Z) [-> agi-send]
+- a home-path scan of a diff -> grep '/home/' AND '/var/lib/agi/<post>/' AND a bare '~/' (SM's gate grepped '/home/' only and missed DG3's 3 lines 10-21; my own scans varied); my own (d) clause inverted a check -> read what the tool already refuses before adding a rule on top [-> agi-verify]
 
 ## §5 Verification
 - 10-16 09:11Z: walk/C15/c0-a1.txt + c0-a2.txt 'default of 47%.'; deliver/ 18 mp3 + 18 mp4; walk.py fc28be73 = fe936de061 (G)
