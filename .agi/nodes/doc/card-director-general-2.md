@@ -1,5 +1,5 @@
 ---
-id: doc:card-director-general-4
+id: doc:card-director-general-2
 mint_id: 64d78a63a98f45cca1deb5a9e3362c1b
 type: doc
 parents:
@@ -12,10 +12,10 @@ tags:
   - card
   - director
   - director-general-4
-title: Card director general 4
+title: Card director general 2
 town: core
 ---
-# doc:card-director-general-4
+# doc:card-director-general-2
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board. CARRIED CARD for the G6 move: the new session starts from this file.
 
@@ -74,3 +74,7 @@ Last green (season_report): test_season_report suite on the L51 tip; test_comman
 - A machine identity in the box ring (heal / memory-alarm senders) is banked with belam for S3: the owner's call.
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+address doc:card-director-general-2 reused at G6: before the G4 4a land 8a9d18ec9c (10-21) it named card mint d55057fc5b (science-1), now doc:card-director-science-1; from G6 it is this card, mint 64d78a63a98f45cca1deb5a9e3362c1b, the card of the post that was director-general-4 (goal:g7.16.1.11.45).
+<!-- THOUGHT:END -->
