@@ -84,7 +84,7 @@ NEXT COMMAND: AGI_POST=belam box read   (SM's gate on v6; the council's G6 prep 
 | 122 | a gate dir under another post's uid (700) reads as 'missing' to my uid | read worktree / dir existence as root before calling anything stale |
 
 ## §5 Verification
-22:2xZ 10-21: origin core/season3/main = posts/belam = MAIN (tip 0aa49b525f + this card); carry.env + host.done = 69e36d2286; 10 agi-post@ active (director-goals-1, director-science-1, director-general-1 the moved three, NRestarts 0 since their starts); 0 stale MAIN worktrees (read as root); test_anonymize_guard 65 passed; t-sitting 23/23 on v6, t-move 14/14; CHECK cron ae4470b2 (13 */4).
+22:2xZ 10-21: origin core/season3/main = posts/belam = MAIN (tip 0aa49b525f + this card); carry.env + host.done = 69e36d2286; 10 agi-post@ active (the moved three: director-goals-1 NRestarts 10 = the G3 loop, frozen since 20:02Z; director-science-1 + director-general-1 NRestarts 0); 0 stale MAIN worktrees (read as root); test_anonymize_guard 65 passed; t-sitting 23/23 on v6, t-move 14/14; CHECK cron ae4470b2 (13 */4).
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
