@@ -123,12 +123,12 @@ mk r;run env PIN=zz sh $AGI host>/dev/null 2>$T/r.err;rr=$?
 ok k5-agi-sh-host-refuses-a-bad-pin-by-name "[ $rr != 0 ]&&grep -q 'PIN must be' $T/r.err&&[ ! -e $X/var/backups ]"
 ok k6-the-row-is-in-the-matrix-and-the-act-writes-no-sudoers "sect matrix|grep -qP '^town\\tstart\\tmain host posts crons units blast\\tagi.sh\$'&&[ ! -e $X/etc/sudoers.d ]&&! sed -n '/^up_host()/,/^);}\$/p' $AGI|grep -q 'sudoers\\|visudo'"
 # ---- council RETURN R1 (11:22Z 10-16): a FAILED act must not re-run as "host: met". /etc/agi/host.done = the PIN is the act's LAST write (cleared before its first); hostmet requires it; stop never touches it.
-# AGI_HOST_UNITS=<stub dir> makes the rehearsal run the live tail (verify, daemon-reload, timer, enable + start agi-boot) against these stubs.
+# AGI_HOST_UNITS=<stub dir> makes the rehearsal run the live tail (verify, daemon-reload, timer, enable agi-boot: ENABLE only, council 10-21 (2)) against these stubs.
 SHD=$T/shd;mkdir -p $SHD;printf '#!/bin/sh\n[ "$STUB_FAIL" = verify ]&&exit 1;exit 0\n' >$SHD/systemd-analyze;printf '#!/bin/sh\necho "$*">>$STUB_LOG\ncase $1 in is-enabled)case $2 in agi-carry-fetch.timer)echo "${STUB_IS_T-enabled}";exit ${STUB_IS_T_RC:-0};;esac;echo "${STUB_IS-enabled}";exit ${STUB_IS_RC:-0};;esac\n[ "$STUB_FAIL" = "$1" ]&&exit 1;exit 0\n' >$SHD/systemctl;chmod +x $SHD/*
 hu(){ run env PATH=$SHD:$PATH AGI_HOST_UNITS=$SHD AGI_TOWN_STATE=$T/ts STUB_LOG=$T/sc.log STUB_FAIL=$1 sh ${2:-$AGI} host;}
 HD=etc/agi/host.done
 mk s;: >$T/sc.log;hu "">$T/s1.out 2>&1;rs1=$?
-ok r1-a-completed-act-writes-host-done-pin-mode-644-and-runs-the-tail "[ $rs1 = 0 ]&&[ \"\$(cat $X/$HD)\" = $PIN ]&&[ \$(stat -c %a $X/$HD) = 644 ]&&grep -qx 'daemon-reload' $T/sc.log&&grep -qx 'enable agi-boot.service' $T/sc.log&&grep -qx 'start agi-boot.service' $T/sc.log&&! grep -q 'carry-fetch' $T/sc.log"
+ok r1-a-completed-act-writes-host-done-pin-mode-644-and-runs-the-tail-enabling-agi-boot-without-starting-it "[ $rs1 = 0 ]&&[ \"\$(cat $X/$HD)\" = $PIN ]&&[ \$(stat -c %a $X/$HD) = 644 ]&&grep -qx 'daemon-reload' $T/sc.log&&grep -qx 'enable agi-boot.service' $T/sc.log&&! grep -q 'start agi-boot.service' $T/sc.log&&! grep -q 'carry-fetch' $T/sc.log"
 sleep 1;hu "">$T/s2.out 2>&1;rs2=$?
 ok r1-a-the-second-run-is-met-and-no-new-backup "[ $rs2 = 0 ]&&grep -qx 'host: met' $T/s2.out&&[ \$(backups) = 1 ]"
 for F in verify enable;do mk t;: >$T/sc.log;hu $F>$T/t1.out 2>$T/t1.err;rt1=$?;sleep 1;hu "">$T/t2.out 2>&1;rt2=$?;hu "">$T/t3.out 2>&1
@@ -189,6 +189,9 @@ rcrow STUB_IS=enabled;ok k9-stopped-town-with-agi-boot-enabled-is-NOT-met "! gre
 rcrow STUB_IS=masked;ok k9-stopped-town-with-agi-boot-masked-is-NOT-met "! grep -qx 'host: met' $T/x.out";rm -f $T/ts
 rep '&&unitsmet&&aclmet' '&&aclmet';AGIX=$T/mut.sh;rcrow STUB_IS=masked;AGIX=
 ok k9-mutant-hostmet-without-the-enabled-check-says-met-on-masked-RED "grep -qx 'host: met' $T/x.out"
+# (2) council 10-21: the fresh-box tail ENABLES agi-boot and never STARTS it; the mutant puts the start back
+rep 'systemctl enable agi-boot.service||die "enable failed' 'systemctl enable agi-boot.service&&systemctl start agi-boot.service||die "enable failed';mk s;: >$T/sc.log;hu "" $T/mut.sh>/dev/null 2>&1
+ok k11-mutant-the-act-tail-that-starts-agi-boot-is-RED "grep -qx 'start agi-boot.service' $T/sc.log"
 # ---- council 08:37Z 10-21 R-c ON A STOPPED TOWN: a STATEFUL stub systemctl (enable / disable state in a file, is-enabled answered from it). act (CF true) -> stop's posts + units arms -> drift sect -> `agi.sh host` -> `agi.sh host`:
 # the 2nd prints `host: met`, backups = 2, the stub log has no `enable agi-boot.service` / `start agi-boot.service` / `enable --now agi-carry-fetch.timer` AFTER the stop, and `agi.sh host check` is rc 0.
 SHS=$T/shs;mkdir -p $SHS;printf '#!/bin/sh\nexit 0\n' >$SHS/systemd-analyze
