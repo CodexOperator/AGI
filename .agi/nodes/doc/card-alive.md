@@ -36,7 +36,7 @@ done   10-16..10-21, every word 3/3 (texts: refs/box/alive/sanctuary-master): S2
          M5 page DONE, M6 DONE 06:17Z 10-21 (3 samples, owner picks; astats clip RED for the real track) · M4 APPROVED 08:03Z 10-21
          (start test union + C1-C5 + A2; pilot C2 then WAIT for our word).
        Accounting rule: own usage = 2 agreeing NON-ZERO reads >= mint+3 h; no mint if cap sum > $25 (now 4.812).
-NEXT   [review] each gated tip as SM sends it: .44.8 S2b placement, DG3's M4 pilot result, M5 visual, g5.4.1 S1, .42.2 re-cut, .31.1, captive fix
+NEXT   [review] each gated tip as SM sends it: .44.8 S2b stack, g5.4.1 S1 re-cut, DG3's M4 pilot result, M5 visual, g5.4.1 S1, .42.2 re-cut, .31.1, captive fix
        · g5.4.2: M4 (animated) / M5 (HTML) / M6 (music) wait for the council's word; settle reads (r2 >= 09:44Z, G 10:39Z, S 10:43Z, P1 10:59Z, P2 11:03Z); the owner's overrule on waking
        · .44.8 S2: S5's posts.md pubkey commit gated; S9 waits w/ timeout; start MOVES town.state aside (binding)
        · at each PASS close: read back core/main == season3/main (P2')
@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-08:06Z 10-21: M4 [decision] SENT 08:03:28Z. S2a R1 bf1c6c86bf [decision] APPROVE 3/3 SENT 08:05:51Z: L31 = merge-tree(live trunk, tip); R-a R-b R-c B3 -> S2b's first commit. Waiting for SM: L31 landed (verify tree = merge-tree, p2 = tip), S2b placement, DG3's M4 pilot.
+08:37Z 10-21: S2a R1 APPROVED 08:05Z, L31 1ce5eb7bb0 checked. S2b Q [decision] 3/3 SENT 08:37Z (Q (1) ringcheck; R-c stopped town a+b+c). g5.4.1 S1 700c4144d0 RETURN 3/3 SENT 08:37Z (R1-R5, B-a, B-b, nit). Waiting for SM: S2b review-ready, g5.4.1 re-cut, DG3's M4 pilot.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
