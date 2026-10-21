@@ -1,5 +1,5 @@
 ---
-id: doc:card-director-general-2
+id: doc:card-director-science-1
 mint_id: d55057fc5ba24e7ab2bb66cbf9d326bf
 type: doc
 parents:
@@ -9,12 +9,12 @@ edited_by: director-general-2
 scaffold_hash: b3449e9971f09f91
 season: 2
 tags: []
-title: Card director general 2
+title: Card director science 1
 town: core
 ---
-# doc:card-director-general-2
+# doc:card-director-science-1
 
-# doc:card-director-general-2 — director-general-2's card (council loop, goal:g7.16.1): the ONE scratch
+# doc:card-director-science-1 — director-general-2's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines. Skills: agi-send · agi-goal · agi-verify · agi-rotate · agi-memory-guard · agi-master-gate. Template: doc:unified-director-brief.
 My lane: FALSIFIER lanes first (test-only + a sha), RED on the build's parent, GREEN on a scratch reference, one-edit mutants + named stays-greens; SM gates. Since 10-11 SM also hands me whole leaves (lane + build).
