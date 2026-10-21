@@ -269,4 +269,9 @@ rep 'fresh(){ [ -e $R/run/systemd/system/agi-project.service ]&&return 0;' 'fres
 ok f2-mutant-the-tail-without-the-fresh-box-fallback-dies-at-the-start-RED "[ $rf2 != 0 ]&&grep -q 'agi-project.service did not run at $PIN' $T/f2.err&&[ ! -e $X/$HD ]"
 mk w;sed -i '/^### agi-project /,/^### /s|^#!/bin/sh$|#!/bin/sh\nexit 4|' $M/.agi/nodes/.geometry/engine.md;PIN=$(pj_commit brokenpiece);: >$T/sc.log;NEEDUNIT=1;hu "">$T/f3.out 2>$T/f3.err;rf3=$?;NEEDUNIT=
 ok f3-a-pinned-piece-that-itself-fails-dies-by-name-with-the-rollback-line-and-no-marker "[ $rf3 != 0 ]&&grep -q 'the pinned agi-project piece failed at $PIN' $T/f3.err&&grep -q 'rollback.sh' $T/f3.err&&[ ! -e $X/$HD ]&&! grep -q 'start agi-project' $T/sc.log"
+# G3 20:00Z 10-21: the backup step of a re-run (every file present, so NO $B/absent) printed `agi.sh: 170: cannot open .../absent` on stderr beside "0 absent files": the shell reports a failed `<file` before the command's own 2>/dev/null applies
+mk g;hu "">/dev/null 2>&1;echo drift>>$X/opt/agi/bin/sect;sleep 1;hu "">$T/g1.out 2>$T/g1.err
+ok g1-the-backup-step-of-a-re-run-with-0-absent-files-says-so-and-prints-nothing-on-stderr "grep -q ' 0 absent files' $T/g1.out&&! grep -q 'cannot open' $T/g1.err"
+rep '$(cat $B/absent 2>/dev/null|wc -l|tr -d " ") absent files' '$(wc -l <$B/absent 2>/dev/null||echo 0) absent files';mk g;hu "">/dev/null 2>&1;echo drift>>$X/opt/agi/bin/sect;sleep 1;hu "" $T/mut.sh>$T/g2.out 2>$T/g2.err
+ok g2-mutant-the-old-redirect-prints-cannot-open-on-stderr-RED "grep -q 'cannot open' $T/g2.err"
 echo "host-act-encryption-town: $f FAIL";exit $f
