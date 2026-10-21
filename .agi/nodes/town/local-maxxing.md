@@ -14,6 +14,8 @@ metrics_line: "2026-10-16T10:26Z graph: node_count=5952 active_node_count=5707 d
 scaffold_hash: 3876620b4bc4f88e
 season: 3
 season_history:
+  - {"season": 1, "global_season": 2, "opened": "2026-09-14T00:54:32Z", "closed": "2026-10-15T05:58:15Z"}
+  - {"season": 2, "global_season": 2, "opened": "2026-10-15T05:58:15Z", "closed": "2026-10-15T06:23:30Z"}
   - {"season": 3, "global_season": 3, "opened": "2026-10-15T06:23:30Z", "closed": null}
 thought_session: season
 town: core
