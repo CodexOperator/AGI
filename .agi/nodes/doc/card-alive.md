@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-15:12Z 10-21: OWNER: the council coordinates the .45 move. [view] sent 15:12:11Z: PRE (gate114 R1 + TM/DT-1 down, gate115 S1+CHECKS, gate104), order by name-freeing (goals-1, science-1, then DG3->DG1 / DG4->DG2 whichever ready, DG5->DG3 last), one [decision] GO per post after the prior move's CHECKS GREEN; templates d12c41d80f APPROVE v1 + BIND seeds row (brief.py drops a bad seed silently). Watcher bxo3ghg7f to 15:31:00Z, then ONE [decision]. Earlier 15:00:56Z .44.8 BIND APPROVE sent.
+15:25Z 10-21: .45 [decision] 3/3 SENT: council owns the schedule G0 (gates 114/115/104 + seeds wiring) -> G1 TM/DT-1 down -> G1b PIN BUMP = B3's one live `agi.sh host` (GO needs dry projection + ROOT rehearsal; after: host: met) -> G2 director-review -> G3 DG1->goals-1 -> G4 DG2->science-1 -> G5/G6 DG3->DG1, DG4->DG2 -> G7 DG5->DG3; per-post GO after prior CHECKS GREEN. Templates APPROVE v1 + edits + seeds-resolve BIND. NEXT: council GOs as each precondition reports (I send each GO after a [view] round).
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
