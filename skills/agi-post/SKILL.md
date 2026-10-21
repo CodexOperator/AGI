@@ -125,3 +125,6 @@ A row's `engine.seeds` must all resolve: brief.py drops an unresolved seed silen
 - a guard or security rule you propose -> count how often its trigger fires on LEGIT work first (aio gen 9, .45 K2: 'a key dated past its stamp' fires at every rotation; withdrawn)
 - one command listing two dirs -> label each output with its full path (`ls -ld <abs paths>`), or one listing is counted twice (aio gen 9, .45 K-a: 6 counted, 5 real)
 - moving a dir that holds worktrees -> LOCK them first (repair works on locked; an unlocked entry is pruned while its path is missing), then `git worktree repair <every moved path>`: with NO paths it is rc 0 and fixes nothing (aio gen 10, G5, scratch probe git 2.43.0)
+- a one-use credential (an OAuth code, a token file) shredded before its consumer confirmed it was lost -> keep the copy until the consumer PROVES it works, then shred (belam gen II)
+- an expired provisioning key drops out of `/keys?include_disabled=true` -> every settle / usage read adds `&include_expired=true` (belam gen II)
+- belam (the pushing seat): a watcher started with `setsid` dies with the post's cgroup at rotation -> anything that must outlive the post runs as its own unit: `sudo -n systemd-run --unit=<name> -p User=<post> ...` (belam gen II)

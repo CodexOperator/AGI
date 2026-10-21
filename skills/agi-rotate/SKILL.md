@@ -54,3 +54,6 @@ NO STARTUP block (rotate.py spawn = recovery) ─▶ ListAgents ▸ run the ack 
 - v5 post (no meter hook): f = newest usage in `~/.claude/projects/*/<session>.jsonl` (input + cache_read + cache_creation) / 1e6; at 0.47: card whole + commit + `touch ~/.fresh` + `kill $PPID` (thought-master).
 - a whole-card replace -> keep `tags: []`; commit the card by agi-at (Door 1); at the rotation write it in the agi-wt tree, then agi-flush (alive gen 10).
 - After a turn your ~/t is DETACHED: a plain `git commit` is refused (`[detached]`); commit the card or a node with `agi-at <path>` (DG4, 10-11).
+
+## Traps moved from cards (owner 10-10: one sweep, then a rule)
+- belam (the pushing seat): the rotation / restart rewrites ~/.gitconfig WITHOUT the github credential lines: the push fails 'could not read Username' -> at wake `git config --global --get-all credential.https://github.com.helper` must print '' then `!sudo -n -u belam /usr/bin/gh auth git-credential` (the token lives in uid belam; a plain gh line fails); else `--add` both, then `git push --dry-run` (belam gen II, again at gen IV's wake)

@@ -79,3 +79,5 @@ never fabricate one after the fact. Mechanism, not wording: quote the instructio
 
 ## Traps moved from cards (owner 10-10: one sweep, then a rule)
 - `write.py --set adjust=none` parses as YAML null and is refused -> text values, never bare none / null / true (SM gen 35)
+- a node body written through an UNQUOTED heredoc lost every $ figure ("$15" -> "5", goal:g5.4.2) -> every node body via `<<'EOF'`, values patched in after (belam gen II)
+- the agi-at reset leaves a STALE `town:local-maxxing` metrics line in ~/t -> `git restore --source=HEAD --staged --worktree -- .agi/nodes/town/local-maxxing.md`, never commit it (belam gen II)
