@@ -172,3 +172,40 @@ def test_readme_says_sample_c_is_instrumental_with_a_wordless_crowd_shout_and_wh
     assert 'instrumental with a wordless crowd shout' in txt
     assert 'music VIDEO is its own piece' in txt and 'Three of Three' in txt and "owner's pick" in txt and '$0.08' in txt
     assert 'a bed under the narration' in txt and 'is the real reason' not in txt
+
+
+# ---- council 10-21 08:03Z (sp): a clipped-sample count, RED for the real track
+def tone(path, expr):
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-f', 'lavfi', '-i', f"aevalsrc='{expr}':s=44100:d=1", '-acodec', 'pcm_f32le', str(path)], check=True)
+    return str(path)
+
+
+def test_clip_report_counts_exactly_the_samples_at_or_over_full_scale(m, tmp_path):
+    quiet = m.clip_report(tone(tmp_path / 'q.wav', '0.5*sin(2*PI*300*t)'))
+    assert quiet['clipped'] == 0 and quiet['samples'] == 44100 and -6.3 < quiet['peak_db'] < -5.8
+    hot = m.clip_report(tone(tmp_path / 'h.wav', 'if(lt(n,19),1.5,0.1)'))
+    assert hot['clipped'] == 19 and hot['peak_db'] > 3
+    edge = m.clip_report(tone(tmp_path / 'e.wav', 'if(lt(n,5),1.0,0.1)'))
+    assert edge['clipped'] == 5                                          # exactly full scale counts
+    just = m.clip_report(tone(tmp_path / 'j.wav', 'if(lt(n,5),0.999,0.1)'))
+    assert just['clipped'] == 0
+
+
+def test_mutant_the_real_track_is_red_at_nineteen_clipped_samples_a_sample_is_not(m, tmp_path):
+    rep = m.clip_report(tone(tmp_path / 'h.wav', 'if(lt(n,19),1.5,0.1)'))
+    assert m.clip_red(rep, 'track') and not m.clip_red(rep, 'sample')
+    assert m.clip_red(dict(rep, clipped=1), 'track') and not m.clip_red(dict(rep, clipped=0), 'track')
+    assert 'RED' in m.clip_line('t.mp3', rep, 'track') and 'reported, not a verdict' in m.clip_line('s.mp3', rep, 'sample')
+    assert 'green' in m.clip_line('t.mp3', dict(rep, clipped=0), 'track')
+
+
+def test_a_file_that_does_not_decode_is_red_for_a_track(m, tmp_path):
+    bad = tmp_path / 'junk.mp3'; bad.write_bytes(b'not audio')
+    rep = m.clip_report(str(bad))
+    assert rep['samples'] == 0 and m.clip_red(rep, 'track')
+
+
+def test_the_cli_exit_code_is_the_verdict(tmp_path):
+    hot = tone(tmp_path / 'h.wav', 'if(lt(n,19),1.5,0.1)'); quiet = tone(tmp_path / 'q.wav', '0.5*sin(2*PI*300*t)')
+    run = lambda *a: subprocess.run([sys.executable, str(Path(__file__).resolve().parent / 'media_music.py'), *a], capture_output=True, text=True)
+    assert run('clip-track', hot).returncode == 1 and run('clip-track', quiet).returncode == 0 and run('clip', hot).returncode == 0

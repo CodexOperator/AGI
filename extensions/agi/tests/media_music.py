@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """goal:g5.4.2 M6: up to THREE ~30 s Lyria music samples for the owner's ear (council 11:54Z: <= 3 short samples on their own key, no full track until he picks).
 usage: media_music.py KEYFILE   (key file under ~/keys/; ONE key, google only, limit and expiry set by belam's mint)
+       media_music.py clip FILE... | clip-track FILE...   (no request: the clipped-sample count; clip-track exits 1 = RED if any sample is at or over full scale)
 Per sample: HARD counter (3 requests ever per run), the prompt is checked against a guard list (artist/song names, 'in the style of') and REFUSED before any send, the request is logged
 BEFORE it is sent, stream:true (audio output requires it), NO retry (a failure stops the run clean: 'stopped: http'). The mp3 comes back as SSE audio deltas (base64); it must be a real mp3
 of 25..35 s, else the take is flagged RED (kept out of deliver/, never silently shipped). Deliverables: deliver/music-sample-<letter>-<slug>.mp3 (644) + README-music.txt lines (c2pa manifest untouched)."""
@@ -48,6 +49,27 @@ def duration(path):
         return None, None
     f = json.loads(r.stdout).get('format', {})
     return float(f.get('duration', 0)), f.get('format_name', '')
+
+
+def clip_report(path):
+    """Council 10-21 08:03Z (sp): the provider's samples all peak at 0.0 dBFS, so count it. Decode to 32-bit float and count the samples at or over full scale (|x| >= 1.0: they clip in any
+    16-bit file or player, and the decoder's own overshoot of an mp3 shows here too). -> {samples, clipped, peak_db}; a file that does not decode is {samples: 0, ...}."""
+    import array, math
+    r = subprocess.run(['ffmpeg', '-v', 'error', '-i', path, '-f', 'f32le', '-acodec', 'pcm_f32le', '-'], capture_output=True)
+    a = array.array('f')
+    a.frombytes(r.stdout[:len(r.stdout) // 4 * 4])
+    pk = max((abs(x) for x in a), default=0.0)
+    return {'samples': len(a), 'clipped': sum(1 for x in a if abs(x) >= 1.0), 'peak_db': round(20 * math.log10(pk), 2) if pk > 0 else None}
+
+
+def clip_red(rep, kind='track'):
+    """RED line: the REAL TRACK has no sample at or over full scale (clipped > 0 = RED; fix by lowering the gain 1 dB or a limiter before the encode). A provider SAMPLE is only reported."""
+    return kind == 'track' and (rep['samples'] == 0 or rep['clipped'] > 0)
+
+
+def clip_line(name, rep, kind='track'):
+    pct = 100.0 * rep['clipped'] / rep['samples'] if rep['samples'] else 0.0
+    return f"{name}: {rep['clipped']} of {rep['samples']} samples at or over full scale ({pct:.4f} %), peak {rep['peak_db']} dBFS" + (' RED' if clip_red(rep, kind) else ' (a sample: reported, not a verdict)' if kind == 'sample' else ' green')
 
 
 def collect(lines):
@@ -118,6 +140,13 @@ def main(keyfile):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) > 2 and sys.argv[1] in ('clip', 'clip-track'):
+        red = 0
+        for f in sys.argv[2:]:
+            rep = clip_report(f)
+            kind = 'track' if sys.argv[1] == 'clip-track' else 'sample'
+            print(clip_line(os.path.basename(f), rep, kind)); red += clip_red(rep, kind)
+        sys.exit(1 if red else 0)
     if len(sys.argv) != 2:
         sys.exit(__doc__)
     main(sys.argv[1])
