@@ -15,11 +15,17 @@
 # old-post-inactive, old-boxwake-inactive (council addendum 15:26Z: AFTER the pin bump no agi-post@OLD / agi-boxwake@OLD is active; `systemctl is-active` must say
 # inactive or failed, an empty answer or activating is a FAIL) · projected (council 17:58Z 10-21: agi-project.path was NEVER active on this box, so a carry.env write projects nothing;
 # the projection is EXPLICIT, `systemctl start agi-project.service` right after 4b's `agi.sh host`: its last start (ExecMainStartTimestamp, whole seconds) is >= the mtime of
-# carry.env and its Result is success; never started, started before the write, a failed run or an unreadable stamp is a FAIL). Run it right after the move, before the name OLD is reused by a later move: old-name-free reads
+# carry.env and its Result is success; never started, started before the write, a failed run or an unreadable stamp is a FAIL) · refs-left (council 18:13Z R7: nothing left at refs/heads/posts/OLD,
+# refs/box/OLD/*, refs/box/*/OLD, refs/held/OLD/*, refs/held/*/OLD; refs/retired and refs/remotes are outside the scan; a repo git cannot read is a FAIL) · outbox-signer (every tip under
+# refs/box/NEW/* verifies `for NEW@agi` against the ring: `box send` refuses to append to a tip not signed for its sender, so an outbox MOVED from OLD is FAIL; none yet = ok) · flags (R10, belam
+# measured: ~/.claude.json of NEW has projects["/data/work/agi"].hasTrustDialogAccepted true, else the first start stops at the trust dialog) · sweep (R11: every file under NEW's home that
+# still names the OLD home path is NAMED; a hit in a file the post EXECUTES, ~/.gitconfig ~/.config/git ~/bin ~/.claude/settings*.json or any hooks/ file, is a FAIL; ~/.claude/projects and the
+# dead project keys of .claude.json are not hits) · new-boxwake (R12: agi-boxwake@NEW is the live wake, started WITH agi-post@NEW by its Wants=; `wait` before the start, FAIL after it unless
+# active; agi-carry@.path watches a g.git no post has, so new-carry-path does NOT prove the wake). Run it right after the move, before the name OLD is reused by a later move: old-name-free reads
 # "empty" as the proof that no projection between the usermod and the bump minted a fresh agi-OLD.
-# Env (defaults are the box's; a test sets them to stubs): ROOT (prefix of every default path) ID GETENT RUNUSER SYSTEMCTL ROOTUSER RET RING SCAN CARRY.
+# Env (defaults are the box's; a test sets them to stubs): ROOT (prefix of every default path) ID GETENT RUNUSER SYSTEMCTL ROOTUSER RET RING SCAN CARRY MAINKEY MAIN.
 ROOT=${ROOT-};ID=${ID:-id};GETENT=${GETENT:-getent};RUNUSER=${RUNUSER:-runuser};SYSTEMCTL=${SYSTEMCTL:-systemctl};ROOTUSER=${ROOTUSER:-root}
-RET=${RET:-$ROOT/var/lib/agi/retired/keys};RING=${RING:-$ROOT/var/lib/agi/allowed_signers};CARRY=${CARRY:-$ROOT/etc/agi/carry.env}
+RET=${RET:-$ROOT/var/lib/agi/retired/keys};RING=${RING:-$ROOT/var/lib/agi/allowed_signers};CARRY=${CARRY:-$ROOT/etc/agi/carry.env};MAINKEY=${AGI_REPO:-/data/work/agi};MAIN=${MAIN:-$ROOT$MAINKEY}
 SCAN=${SCAN-"$ROOT/etc/sudoers.d $ROOT/etc/polkit-1 $ROOT/etc/systemd $ROOT/run/systemd/system $ROOT/etc/agi $ROOT/var/spool/cron"}
 f=0
 say(){ _s=$1;_n=$2;shift 2;echo "$_s $_n: $*";[ "$_s" = FAIL ]&&f=$((f+1));:;}
@@ -82,4 +88,25 @@ t new-carry-path "systemctl is-enabled agi-carry@$NEW.path = '$($SYSTEMCTL is-en
 proj(){ ps=$($SYSTEMCTL show --timestamp=utc -p ExecMainStartTimestamp --value agi-project.service 2>/dev/null);[ -n "$ps" ]||return 1;ps=$(date -u -d "$ps" +%s 2>/dev/null)||return 1
  pc=$(stat -c %Y "$CARRY" 2>/dev/null)||return 1;[ "$ps" -ge "$pc" ]&&[ "$($SYSTEMCTL show -p Result --value agi-project.service 2>/dev/null)" = success ]; }
 t projected "agi-project.service last start '$($SYSTEMCTL show --timestamp=utc -p ExecMainStartTimestamp --value agi-project.service 2>/dev/null)', Result '$($SYSTEMCTL show -p Result --value agi-project.service 2>/dev/null)'; $CARRY written $(stat -c %y "$CARRY" 2>/dev/null|cut -c1-19) (want a start at or after the write, success: run \`systemctl start agi-project.service\` after \`agi.sh host\`)" proj
+# 12. refs (R7): the INBOX moved with the agent (refs/box/*/OLD -> NEW, refs/held/OLD/* -> NEW, posts/OLD -> posts/NEW); the OUTBOX refs/box/OLD/* and the peers' marks refs/held/*/OLD were RETIRED to
+# refs/retired/OLD-T/. `box send` appends only onto a tip signed `for <sender>@agi` and `box read` checks each commit against its sender, so a moved outbox is dead mail under the new name
+GIT(){ git -c safe.directory="$MAIN" -c gpg.format=ssh -c gpg.ssh.allowedSignersFile="$RING" -C "$MAIN" "$@"; }
+refs=$(GIT for-each-ref --format='%(refname)' refs/heads/posts refs/box refs/held 2>/dev/null)||refs=UNREADABLE
+left=$(printf '%s\n' "$refs"|grep -E "^refs/heads/posts/$OLD(/|\$)|^refs/box/$OLD/|^refs/box/[^/]+/$OLD\$|^refs/held/$OLD/|^refs/held/[^/]+/$OLD\$"|tr '\n' ' ')
+t refs-left "refs of $OLD left outside refs/retired + refs/remotes in $MAIN: '${left% }' (want none)$([ "$refs" != UNREADABLE ]||echo '; the repo is UNREADABLE as this user: root needs safe.directory')" test "$refs" != UNREADABLE -a -z "$left"
+bad=;nb=0;for r in $(printf '%s\n' "$refs"|grep "^refs/box/$NEW/");do nb=$((nb+1));GIT verify-commit --raw "$r" 2>&1|grep -q "for $NEW@agi with"||bad="$bad ${r#refs/box/}";done
+t outbox-signer "$nb tip(s) under refs/box/$NEW/*, each must verify 'for $NEW@agi'${bad:+ (NOT:$bad)}" test "$refs" != UNREADABLE -a -z "$bad"
+# 13. the trust dialog (R10): claude keys trust by the project path the post runs in, MAIN's root; a fresh home has no entry
+flags(){ [ -f "$home/.claude.json" ]&&jq -e --arg p "$MAINKEY" '.projects[$p].hasTrustDialogAccepted==true' "$home/.claude.json" >/dev/null 2>&1; }
+t flags "$home/.claude.json projects[\"$MAINKEY\"].hasTrustDialogAccepted == true (else the first start sticks at the trust dialog)" flags
+# 14. the sweep (R11): the old HOME path inside the new home. Named, never skipped; fatal only where the post EXECUTES it
+oh=$(dirname "$home")/$OLD;pat="$(printf %s "$oh"|sed 's/[][\\.*^$\/]/\\&/g')([^a-z0-9-]|\$)"
+hits=;for h in $(grep -rIlE -e "$pat" "$home" 2>/dev/null|sort);do case $h in "$home"/.claude/projects/*)continue;; "$home"/.claude.json)jq -e --arg p "$pat" '[del(.projects)|..|strings|select(test($p))]|length>0' "$h" >/dev/null 2>&1||continue;; esac;hits="$hits ${h#$home/}";done
+run=;for h in $hits;do case $h in .gitconfig|.config/git/*|bin/*|.claude/settings.json|.claude/settings.local.json|*/hooks/*|hooks/*)run="$run $h";; esac;done
+t sweep "$(echo $hits|wc -w) file(s) under $home name $oh:${hits:- none}${run:+; EXECUTED:$run}" test -z "$run"
+# 15. the wake (R12): agi-boxwake@NEW starts and stops WITH agi-post@NEW (Wants= / PartOf=): `move NEW` or agi-boot starts it, no line of the sitting does
+bw=$($SYSTEMCTL is-active "agi-boxwake@$NEW" 2>/dev/null)
+if [ "$bw" = active ];then say ok new-boxwake "agi-boxwake@$NEW is active (the live wake)"
+elif [ "$FIRST" = --first-start ];then say FAIL new-boxwake "systemctl is-active agi-boxwake@$NEW = '${bw:--}' after the first start (want active: no wake, no mail read)"
+else say wait new-boxwake "agi-boxwake@$NEW = '${bw:--}': it starts with agi-post@$NEW at the start (re-run with --first-start); agi-carry@$NEW.path is NOT the wake";fi
 [ $f = 0 ]
