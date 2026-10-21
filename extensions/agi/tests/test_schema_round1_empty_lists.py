@@ -110,7 +110,8 @@ def pair(tmp_path_factory):
 
 
 #: a node RENAMED after round 1 (the file moved, its mint id kept): the pinned trees name the old slug, a later tree has the new one
-RENAMED = {("doc", "card-director-general-1"): "card-director-goals-1"}      # goal:g7.16.1.11.45 G3, DG1 -> director-goals-1
+RENAMED = {("doc", "card-director-general-1"): "card-director-goals-1",      # goal:g7.16.1.11.45 G3, DG1 -> director-goals-1
+           ("doc", "card-director-general-2"): "card-director-science-1"}     # G4, DG2 -> director-science-1
 
 
 def _file(root: Path, typ: str, slug: str) -> Path:
