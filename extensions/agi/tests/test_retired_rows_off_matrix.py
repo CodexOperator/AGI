@@ -99,8 +99,25 @@ def test_the_a_function_itself_says_yes_for_two_live_peers_so_the_no_answers_abo
 
 @pytest.mark.parametrize("old", ["director-general-1", "director-general-2"])
 @pytest.mark.parametrize("peer", ["director-review", "director-goals-1", "director-science-1", "sanctuary-master", "director-general-5"])
-def test_a_send_to_the_old_name_is_off_matrix_for_a_peer_while_no_live_row_has_it(tmp_path, peer, old):
+def test_a_send_to_an_old_name_is_off_matrix_while_no_live_row_has_it_and_reaches_the_new_holder_once_one_does(tmp_path, peer, old):
+    """G3/G4 freed the names director-general-1/-2; G5/G6 reuse them. Free: off the matrix. Reused (G5, G6): the live row says `was` = the previous
+    holder, its `-retired` row of the EARLIER holder stays off the matrix, and a send to the name reaches the new holder. No skip: either leg is asserted."""
     text = POSTS.read_text()
-    if old in [r["name"] for r in _rows(text)]:
-        pytest.skip(f"a live row took the name {old} (G5/G6)")
-    assert not _adjacent(_repo(tmp_path, text), peer, old)
+    rows = {r["name"]: r for r in _rows(text)}
+    repo = _repo(tmp_path, text)
+    if old not in rows:
+        assert not _adjacent(repo, peer, old)
+        return
+    live = rows[old]
+    assert live.get("was") and "became" not in live, live
+    assert f"{live['was']}-retired" in rows and rows[f"{live['was']}-retired"].get("became") == old, "the previous holder's retired row names the reuse"
+    assert not any(k in rows[f"{live['was']}-retired"] for k in ("parent", "engine")), "its retired row stays off the matrix"
+    assert _adjacent(repo, peer, old), "mail to the reused name reaches the new holder: it is a live level-3 row like any other peer's"
+
+
+def test_the_reused_name_director_general_1_is_a_live_row_that_was_director_general_3_once_g5_has_landed(tmp_path):
+    rows = {r["name"]: r for r in _rows(POSTS.read_text())}
+    assert rows["director-general-1"]["was"] == "director-general-3"
+    assert rows["director-general-3-retired"]["became"] == "director-general-1"
+    assert rows["director-general-1-retired"]["became"] == "director-goals-1"       # the earlier holder's retired row survives
+    assert _adjacent(_repo(tmp_path, POSTS.read_text()), "director-review", "director-general-1")
