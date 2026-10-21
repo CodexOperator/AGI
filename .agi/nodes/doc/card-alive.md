@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-19:33Z 10-21: [decision] 3/3 SENT: G3 start-wrapper move.sh 842bac7cf231842a APPROVE + BIND before 1a: one mutant per conjunct (5) in t-move.sh. G3 step 0 LANDED (DG1 card 83c7ed2979, trunk 7a0ca54f84); next: DG5's 4a re-check, belam's t-move.sh sha, 1a, 4a land, sitting + pre-authorized start, CHECKS 2 + probe.
+19:36Z 10-21: G3 start-wrapper BIND MET (t-move.sh 356eafe597a137c0; move.sh 842bac7cf231842a + sitting.sh 1979fe35815cee56 = THE run), told SM. G3 proceeds: DG5's 4a re-check -> gate-done -> 1a -> 4a land -> move.sh -> run 2 -> probe. NEXT: read belam's run lines; any red = council rules.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
