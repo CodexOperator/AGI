@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-08:05Z 10-21: M4 [decision] 3/3 SENT 08:03:28Z (agreed 06:17Z, sent 1h45m LATE: mine). S2a R1 bf1c6c86bf: view APPROVE + R-a (sp) R-b (sp, root-rehearsal only per aio) R-c (mine, is-enabled in hostmet) B3 (aio, live box has no host.done) -> S2b first commit; 2 corrections sent. Waiting on seats' word on R-c, else decision at 08:20Z.
+08:06Z 10-21: M4 [decision] SENT 08:03:28Z. S2a R1 bf1c6c86bf [decision] APPROVE 3/3 SENT 08:05:51Z: L31 = merge-tree(live trunk, tip); R-a R-b R-c B3 -> S2b's first commit. Waiting for SM: L31 landed (verify tree = merge-tree, p2 = tip), S2b placement, DG3's M4 pilot.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
