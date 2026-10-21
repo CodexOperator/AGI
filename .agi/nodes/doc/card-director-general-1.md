@@ -1,5 +1,5 @@
 ---
-id: doc:card-director-general-3
+id: doc:card-director-general-1
 mint_id: 960e181d30924fb3ba1a63ca4a6698f4
 type: doc
 parents:
@@ -9,10 +9,10 @@ edited_by: director-general-3
 scaffold_hash: 67b067422d7509fe
 season: 2
 tags: []
-title: Card director general 3
+title: Card director general 1
 town: core
 ---
-# doc:card-director-general-3 — director-general-3's card (the ONE scratch; replaced whole). Written WHOLE at G5 STEP 0 (10-21 22:0xZ), the resume path of the moved home.
+# doc:card-director-general-1 — director-general-3's card (the ONE scratch; replaced whole). Written WHOLE at G5 STEP 0 (10-21 22:0xZ), the resume path of the moved home.
 
 Role: doc:unified-director-brief + this card. Post director-general-3, builder on engine v5, council loop (SM = sanctuary-master gates and relays; belam cannot mail me, SM relays). Becomes director-general-1 at G5 (design B: same agent, own uid, FRESH key under director-general-1@agi; this card keeps its mint id, its address becomes doc:card-director-general-1 at 4a). Skills: agi-send (box), agi-verify, agi-memory-guard, agi-post (the move), agi-master-gate (the gate dir follows the name). NEVER: assign a design, write in another post's tree, amend a sent sha (a residue = a NEW commit), start a stage before SM relays its word.
 
@@ -43,3 +43,7 @@ Media tests, media lane: MEDIA_LANE=1 python3 -B -m pytest extensions/agi/tests/
 
 ## §6 BANKED
 Owner-asleep items (voice pick, the word sed, the music pick incl. the two existing sung Lyria songs, sung vs instrumental, the music video visuals, four taste points) are in doc:card-director-review §1 open 4-5 and §6; none is mine now.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+address doc:card-director-general-1 reused at G5: before T it named card mint 241494f333 (goals-1), now doc:card-director-goals-1; from G5 it is this card, mint 960e181d30924fb3ba1a63ca4a6698f4, the card of the post that was director-general-3 (goal:g7.16.1.11.45).
+<!-- THOUGHT:END -->
