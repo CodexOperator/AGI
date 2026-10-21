@@ -54,10 +54,10 @@ belam-s3-II woke 08:07Z 10-16: the watcher had died with the rotation (it lived 
 ```
 
 ## §2 Landed (10-15 .. 10-16)
-B-3 overwrite 08:10Z 10-15 · L26 a93fe7cf36 · season 3 opened 19:2xZ 10-15 (.44.8 agi.sh + g5.4.1 report template, council design first) · boot pin fa3174300d · L27 fe2b6d3991 (DG3 retire = status + move) · L28 1cb54e68f0 09:1xZ 10-16 (.44.8 S1: agi.sh status/stop, box town up|down, crons.py remove --user) · L29 7965c4fe8c 11:2xZ (.20.3 captive releases an unusable fill window) · goals cut: .42.2 (:28 lands Prime commits), .31.1 (warm-load test), .20.3 (captive lock), g5.4.2 (media set) · taste skill vendored /data/work/skills-vendor/taste-skill@f624f37a8c · Node 22 /opt/node22 + Chrome for Testing /opt/chrome-cft (/usr/bin/chromium, AppArmor /etc/apparmor.d/chrome-cft for its sandbox)
+B-3 overwrite 08:10Z 10-15 · L26 a93fe7cf36 · season 3 opened 19:2xZ 10-15 (.44.8 agi.sh + g5.4.1 report template, council design first) · boot pin fa3174300d · L27 fe2b6d3991 (DG3 retire = status + move) · L28 1cb54e68f0 09:1xZ 10-16 (.44.8 S1: agi.sh status/stop, box town up|down, crons.py remove --user) · L29 7965c4fe8c 11:2xZ (.20.3 captive releases an unusable fill window) · L30 3a91789da4 06:1xZ 10-21 (g12.3 season_history rows) · goals cut: .42.2 (:28 lands Prime commits), .31.1 (warm-load test), .20.3 (captive lock), g5.4.2 (media set) · taste skill vendored /data/work/skills-vendor/taste-skill@f624f37a8c · Node 22 /opt/node22 + Chrome for Testing /opt/chrome-cft (/usr/bin/chromium, AppArmor /etc/apparmor.d/chrome-cft for its sandbox)
 
 ## 🔴 Where it stops
-g5.4.2 walk delivered (18/18 on Drive, joined 09:25:49Z) and its spend settled ($1.276). Waiting on SM/council: M4/M5/M6 stage keys, the next L<n>.
+RESUMED 06:1xZ 10-21 (owner: "Resume everything", after all 12 posts restarted together ~06:08Z; the 10-16 PAUSE is lifted); 06:14Z the owner chose "Keep whole town" over the "Wake SM only" he gave in alive's session: crons_live true c5e968e525 + apply incl --sudo; keepalive + quiet-watch timers enabled; CHECK cron 64875a4a; [owner] RESUME boxed to SM + TM. The restart dropped the github credential again (trap 114: re-added). Watcher still up (stops 10-23).
 NEXT COMMAND: AGI_POST=belam box read
 
 ## §4 Traps (this generation's only)
@@ -82,6 +82,7 @@ NEXT COMMAND: AGI_POST=belam box read
 | g5.4.2 voice: the council picks under the owner's "do your best" by a pre-registered rule (native pin if two takes <= 100 Hz within 5%, else c2a normalised to 100 Hz; 91 Hz + raw banked); the owner overrules on waking | show him the pilot + the README in deliver/ first |
 | g5.4.2 walk: 18/18 chapters on Drive (gdrive:agi/season3-media/explainer/, joined as 00-explainer-full-so-far.mp4); C15 complete (its flag = the transcriber writing 47%); open: "sed" -> "said"; M4 animated / M5 HTML / M6 music wait for the council | tell him on waking; nothing for his ears in C15 |
 | council §Y2: should posts mint through captive fill windows at all; agi-fill is on no post's PATH | no for now: write the node file + agi-at |
+| g5.4.2 M6: three ~30 s INSTRUMENTAL style samples on Drive music/ (a swing-flamenco, b balkan-brass-swing, c trombone-flamenco-jazz; README-music.txt has the prompts); nobody has heard them | he picks one (or none) and says sung or instrumental for the real track; no full track until then |
 | ElevenLabs direct account: none (owner 10-16); Voice Design route OFF | revisit if he gets a key |
 | the owner's complex-analysis project spends on the OPENROUTER_ADMIN account | the account delta is contaminated; per-key settled usage is the figure |
 | history rewrite for the host name | none (owner: "I don't care about host name as much") |
