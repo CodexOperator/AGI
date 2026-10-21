@@ -5,6 +5,7 @@
   media_video.py lint FILE...                no raw Text / Code / MarkupText / Tex ... in a scene file (council C1): engine text goes through media_vocab.Strand
   media_video.py start [PEAK_MIB]            the start test, read now (council 10-21 08:03Z); exit 0 = may start, 1 = refuse
   media_video.py queue                       the chapters still to render, from bytes (council C5)
+  media_video.py publish CHAPTER             publish a green rendered chapter waiting in deliver-tmp/ (after its keyframes were viewed)
   media_video.py render CHAPTER [--publish]  one chapter, end to end (plan -> start test -> manim under the watcher -> mux -> checks -> keyframes -> publish if green and asked)
 Pieces
   beats()/place()/verify_ends()   one beat per tagged sentence; the sentence ENDS are the pauses of the mp3 (running character-rate prior, a pause within TOL
@@ -38,8 +39,9 @@ BASE = "/data/work/director-general-3-media/season3"
 FPS = 25
 PROFILE = {"codec_name": "h264", "width": 1280, "height": 720, "r_frame_rate": "25/1", "pix_fmt": "yuv420p", "a_codec": "aac", "sample_rate": "44100", "channels": 1}
 TOL = 0.7                    # a picked pause is kept when its sentence is within this (or REL of its length, if more) of its character-proportional speech time
-REL = 0.12
+REL = 0.12                   # DEVIATION 5 from the approved design (a flat 0.7 s): 12 % of a sentence's expected speech time loosens every sentence over 5.8 s of speech (council 10-21 09:52Z)
 FALLBACK_MAX = 0.25          # council C2: more than this share of a chapter's boundaries on the prior = RED
+MIN_SCALE = 0.55             # a strand scaled below this of its font is too small to read at 720p
 DUR_TOL = 0.2                # the video is as long as the mp3, within this
 ORDER = [2, 0, 1] + list(range(3, 18))     # the pilot first, then C0, C1, C3..C17
 SIL_RE = re.compile(r"silence_(start|end): (-?[0-9.]+)")
@@ -171,6 +173,31 @@ def place(lens, duration, pauses, tol=TOL, rel=REL, reward=0.3):
     return {"ends": ends, "kind": kinds, "prior": priors, "dev": devs, "fallback": kinds.count("prior"), "boundaries": n - 1, "rate": r}
 
 
+def place_greedy(lens, duration, pauses, tol=TOL):
+    """The approved design's rule, kept only to be counted beside the DP (council 10-21): a running character-rate prior, the longest pause within `tol` of it wins, else the prior.
+    -> the number of boundaries left on the prior."""
+    n = len(lens)
+    total = max(sum(lens), 1)
+    t, done, fb = 0.0, 0, 0
+    mids = [((a + b) / 2, b - a) for a, b in pauses]
+    for k in range(n - 1):
+        rate = done / t if done >= 200 and t > 0 else total / duration
+        prior = min(t + lens[k] / rate, duration - 0.25 * (n - 1 - k))
+        cands = [(m, d) for m, d in mids if m > t + 0.2 and abs(m - prior) <= tol]
+        if cands:
+            t = max(cands, key=lambda c: (round(c[1], 2), -abs(c[0] - prior)))[0]
+        else:
+            fb += 1; t = max(prior, t + 0.2)
+        done += lens[k]
+    return fb
+
+
+def timing_counts(lens, duration, pauses):
+    """The three numbers the README carries per chapter (council 10-21 09:52Z, deviation 5): boundaries on the prior under the DP with REL 0.12, under the DP with the approved 0.7 s alone
+    (rel = 0), and under the approved greedy rule."""
+    return {"dp_rel": place(lens, duration, pauses)["fallback"], "dp_tol_only": place(lens, duration, pauses, rel=0.0)["fallback"], "greedy": place_greedy(lens, duration, pauses)}
+
+
 def timing_findings(pl, max_frac=FALLBACK_MAX):
     """-> [finding]; [] = green. RED: a chapter with more than max_frac of its boundaries on the prior (C2)."""
     out = []
@@ -180,7 +207,7 @@ def timing_findings(pl, max_frac=FALLBACK_MAX):
 
 
 def verify_ends(pl, pauses, duration, lens, tol=TOL, rel=REL):
-    """The placed ends, re-checked against the mp3's own pauses and the sentences' lengths (not trusted from place()): increasing; each 'pause' end IS a pause middle and the sentence it
+    """A CONSISTENCY re-check, not an independent one (it derives the same rate with the same TOL and REL as place()): the placed ends against the mp3's own pauses and the sentences' lengths (not trusted from place()): increasing; each 'pause' end IS a pause middle and the sentence it
     closes is within max(tol, rel x expected) of its character-proportional speech time (checked where the end before it is a pause too: after a 'prior' end its left edge is not a pause); each 'prior' end IS the prior stored for
     it; the last is the mp3's length; the stored fallback count is the real one. -> [finding]"""
     out, sil = [], Silence(pauses)
@@ -213,6 +240,22 @@ def verify_ends(pl, pauses, duration, lens, tol=TOL, rel=REL):
     return out
 
 
+def prior_offsets(plan):
+    """Council 10-21 09:52Z (c): for each prior-placed end, |end - the nearest pause of the mp3| (to the pause's nearest edge: inside it is 0) and the SHORTER neighbouring sentence's
+    expected speech length in seconds (characters / the chapter's speech rate). A named exception holds iff every offset is under that length: the end can then not have crossed a sentence.
+    -> [{k, end, offset, shorter_s, ok}]"""
+    bs, r = plan["beats"], plan["rate"]
+    out = []
+    for k, kd in enumerate(plan["kind"]):
+        if kd != "prior":
+            continue
+        e = plan["ends"][k]
+        off = min((0.0 if a <= e <= b else min(abs(e - a), abs(e - b)) for a, b in plan["pauses"]), default=float("inf"))
+        sh = min(len(bs[k]["spoken"]), len(bs[k + 1]["spoken"])) / r
+        out.append({"k": k, "end": round(e, 2), "offset": round(off, 2), "shorter_s": round(sh, 2), "ok": off < sh})
+    return out
+
+
 def chapter_plan(chap, mp3, repo=REPO, pauses=None, duration=None):
     """The whole plan of one chapter: beats with t0/t1, the timing report, nothing drawn yet (the strand bytes are read at draw time)."""
     bs = beats(chap, repo)
@@ -224,6 +267,7 @@ def chapter_plan(chap, mp3, repo=REPO, pauses=None, duration=None):
         b["t0"], b["t1"], b["timing"] = round(t0, 3), round(e, 3), kd
         t0 = e
     return {"chapter": chap["id"], "n": chap["n"], "title": chap["title"], "sha": chap["sha"], "mp3": mp3, "duration": duration, "beats": bs, "pauses": pauses,
+            "counts": timing_counts([len(b["spoken"]) for b in bs], duration, pauses),
             "ends": pl["ends"], "kind": pl["kind"], "prior": pl["prior"], "dev": pl["dev"], "rate": pl["rate"], "fallback": pl["fallback"], "boundaries": pl["boundaries"]}
 
 
@@ -270,8 +314,21 @@ def strand_window(repo, sha, path, lo, hi, needle, ctx=34):
     return text[a:b], i - a, i - a + len(needle)
 
 
+WORD = re.compile(r"[A-Za-z0-9_.]")
+
+
+def can_break(part, e):
+    """A line may end before part[e] unless that cuts a word: both characters around the cut are [A-Za-z0-9_.] (council 10-21 09:52Z: `AGI_PIECE_GLO` / `B=engine.md` was a bug)."""
+    return not (WORD.match(part[e - 1]) and WORD.match(part[e]))
+
+
+def token_findings(rows):
+    """rows = the drawn lines, each a string; -> [finding] for every line that ends inside a [A-Za-z0-9_.] run that continues on the next line."""
+    return [f"line {k} ends inside a word: {a[-12:]!r} | {b[:12]!r}" for k, (a, b) in enumerate(zip(rows, rows[1:])) if a and b and WORD.match(a[-1]) and WORD.match(b[0])]
+
+
 def wrap(window, i0, i1, width=44):
-    """The window as lines of spans [(text, is_needle)]. Cut at `width` columns (preferring a space in the last 10), every character kept: the spans re-join to the window
+    """The window as lines of spans [(text, is_needle)]. Cut at the last legal break (can_break) at or before `width` columns, every character kept: the spans re-join to the window
     exactly; a hard newline of the window is kept as a ("\n", False) span at the end of its line, and is not drawn."""
     lines, pos = [], 0
     parts = window.split("\n")
@@ -281,10 +338,9 @@ def wrap(window, i0, i1, width=44):
             if len(part) - s <= width:
                 end = len(part)
             else:
-                end = s + width
-                sp = part.rfind(" ", s + width - 10, s + width)
-                if sp > s:
-                    end = sp + 1
+                end = next((e for e in range(s + width, s, -1) if can_break(part, e)), None)
+                if end is None:        # one token longer than the line: the line runs long to the token's end, and the strand is drawn in a smaller font (media_vocab scales it)
+                    end = next((e for e in range(s + width + 1, len(part)) if can_break(part, e)), len(part))
             spans, a = [], s
             for cut in sorted({c for c in (i0 - pos, i1 - pos) if s < c < end}):
                 spans.append((part[a:cut], a + pos >= i0 and a + pos < i1)); a = cut
@@ -317,6 +373,12 @@ def check_drawn(drawn, plan, repo=REPO):
         if d["kind"] == "strand":
             checked += 1
             by_beat[d["beat"]] = by_beat.get(d["beat"], 0) + 1
+            if "rows" in d:
+                if "".join(d["rows"]) != d.get("text", "").replace("\n", ""):
+                    out.append(f"beat {d.get('beat')}: the drawn lines do not re-join to the recorded text")
+                out += [f"beat {d.get('beat')}: {f}" for f in token_findings(d["rows"])]
+                if d.get("scale", 1.0) < MIN_SCALE:
+                    out.append(f"beat {d.get('beat')}: strand drawn at {d['scale']:.2f} of its font (< {MIN_SCALE})")
             if not d.get("text") or d["text"] not in txt:
                 out.append(f"beat {d.get('beat')}: drawn {d.get('text', '')[:50]!r} is not in {d['path']}:L{d['lo']}-L{d['hi']} at {d['sha']}")
         elif d["kind"] == "cite":
@@ -572,9 +634,10 @@ def set_readme_row(readme_path, name, chap, version, extra=""):
 
 
 def publish(tmp_mp4, name, deliver, static_dir, tmp_dir, checks_file, green, info):
-    """Council C3 + C4. tmp_mp4 must lie in `tmp_dir` (a sibling of deliver/ on the same filesystem, never inside it). Only a GREEN chapter moves: the static card is kept in
-    static_dir (a hard link, so deliver/<name> never disappears for the watcher), the checks file is written for the new bytes, then ONE os.replace puts the animated file in.
-    undo() is one rename back. -> the new sha256."""
+    """Council C3 + C4 + the checks after (10-21 09:52Z). tmp_mp4 must lie in `tmp_dir` (a sibling of deliver/ on the same filesystem, never inside it). Only a GREEN chapter moves: the
+    static card is kept in static_dir (a hard link, so deliver/<name> never disappears for the watcher), the checks file is written for the new bytes, then ONE os.replace puts the
+    animated file in. AFTER: static_dir/<name> must hash to the static card's sha256 from before the publish and must not be the inode of deliver/<name>; if not, the static card is put
+    back and ValueError is raised (RED). undo() is one rename back. -> the new sha256."""
     if os.path.dirname(os.path.abspath(tmp_mp4)) != os.path.abspath(tmp_dir) or os.path.abspath(tmp_dir) == os.path.abspath(deliver):
         raise ValueError("the .tmp must be written OUTSIDE deliver/, in the sibling tmp dir")
     if os.stat(tmp_dir).st_dev != os.stat(deliver).st_dev:
@@ -587,9 +650,23 @@ def publish(tmp_mp4, name, deliver, static_dir, tmp_dir, checks_file, green, inf
     dst, keep = f"{deliver}/{name}", f"{static_dir}/{name}"
     if os.path.exists(dst) and not os.path.exists(keep):
         os.link(dst, keep)
+    pre = sha256(keep) if os.path.exists(keep) else None
     os.chmod(tmp_mp4, 0o644)
     os.replace(tmp_mp4, dst)
+    if pre is not None and (sha256(keep) != pre or os.stat(keep).st_ino == os.stat(dst).st_ino):
+        os.replace(keep, dst)
+        raise ValueError(f"publish check failed for {name}: the kept static card is not the card from before, or is the same file as deliver/; the static card was put back")
     return digest
+
+
+def deliver_total(deliver):
+    """The seconds the re-joined full mp4 must equal (+-0.5 s): the sum of the explainer-chNN-*.mp4 files in deliver/ (council 10-21 09:52Z; never the old C2, never both)."""
+    return sum(probe(f"{deliver}/{f}")["duration"] for f in sorted(os.listdir(deliver)) if re.match(r"explainer-ch\d\d-.*\.mp4$", f))
+
+
+def joined_findings(joined_s, deliver, tol=0.5):
+    want = deliver_total(deliver)
+    return [] if abs(joined_s - want) <= tol else [f"re-joined full mp4 is {joined_s:.1f} s, the {len(os.listdir(deliver))}-file deliver/ sums to {want:.1f} s (> {tol} s apart)"]
 
 
 def undo(name, deliver, static_dir):
@@ -603,7 +680,10 @@ import signal  # noqa: E402
 import threading  # noqa: E402
 import time  # noqa: E402
 
-VMLIMIT_KB = 4000000        # ulimit -v for a render until the pilot's own VmPeak sets it (council A2)
+VMLIMIT_KB = 2500000        # ulimit -v for a render: 1.6 x the pilot's VmPeak (council 10-21 09:52Z). A chapter that dies at it: stop and ask, never raise it
+EXCEPTIONS = {6: "council ruling 09:52Z 10-21"}   # a NAMED timing exception: > 25 % on the prior is accepted iff every prior-placed end is nearer a pause than the shorter neighbouring sentence is long (prior_offsets)
+QUEUE = os.path.dirname(BASE) + "/RENDERING"       # SM's gates wait while it exists (15 s poll): touched BEFORE a chapter's start test, removed after the chapter
+HOLD = os.path.dirname(BASE) + "/HOLD-GATES"        # touched when a chapter has waited an hour on the start test; removed by me when the 17 are done or at a stop-and-ask
 
 
 def tree_peaks(pgid, proc="/proc"):
@@ -682,6 +762,13 @@ def run_chapter(n, chap, mp3, d, render_cmd, repo=REPO, publish_it=False, vmlimi
     lens = [len(b["spoken"]) for b in plan["beats"]]
     rep["timing"] = {"boundaries": plan["boundaries"], "fallback": plan["fallback"], "beats": len(plan["beats"]), "duration": plan["duration"]}
     tf = timing_findings(plan) + verify_ends(plan, plan["pauses"], plan["duration"], lens)
+    if n in EXCEPTIONS and any(f.startswith("fallback") for f in tf):
+        offs = prior_offsets(plan)
+        if offs and all(x["ok"] for x in offs):
+            tf = [f for f in tf if not f.startswith("fallback")]
+            rep["exception"] = f"C{n}: timing approximate, {plan['fallback']} of {plan['boundaries']} boundaries on the prior (> 25 % line, {EXCEPTIONS[n]})"
+        else:
+            tf = tf + [f"named exception C{n} refused: offset >= the shorter neighbouring sentence at ends {[x['k'] for x in offs if not x['ok']]}"]
     json.dump(plan, open(f"{d['video']}/{nn}-plan.json", "w"), indent=1)
     if tf:
         rep.update(status="red: timing", findings=tf)
@@ -734,14 +821,48 @@ def run_chapter(n, chap, mp3, d, render_cmd, repo=REPO, publish_it=False, vmlimi
     green = not fs
     rep["status"] = "green" if green else "red: checks"
     checks_info = {"chapter": f"C{n}", "findings": fs, "timing": rep["timing"], "vmpeak_kb": rep["vmpeak_kb"], "vmhwm_kb": rep["vmhwm_kb"], "render_wall": rep["render_wall"], "repo_head": _head(repo)}
-    if publish_it:
-        sha = publish(tmp, name, d["deliver"], d["static"], d["tmp"], f"{d['checks']}/{nn}.json", green, checks_info)
-        if green:
-            set_readme_row(f"{d['deliver']}/README-narration.txt", name, f"C{n}", "animated version", "the static card is kept in deliver-static/")
-            rep["published"] = sha
-    else:
-        rep["unpublished"] = tmp
+    rep["checks_info"] = checks_info
+    rep["unpublished"] = tmp
+    if publish_it and green:
+        publish_chapter(n, d, rep, plan)
+    elif publish_it:
+        publish(tmp, name, d["deliver"], d["static"], d["tmp"], f"{d['checks']}/{nn}.json", False, checks_info)      # writes the RED checks file, moves nothing
     return _finish(rep, d, nn, t_start)
+
+
+def publish_chapter(n, d, rep, plan):
+    """Publish a GREEN, rendered chapter from deliver-tmp/: the swap with its checks after (publish()), then the README row with the three timing counts and any named exception."""
+    nn, name = f"ch{n:02d}", rep["name"]
+    if rep.get("status") != "green" or not os.path.exists(rep["unpublished"]):
+        raise ValueError(f"C{n} is not a green rendered chapter waiting in {d['tmp']}")
+    sha = publish(rep["unpublished"], name, d["deliver"], d["static"], d["tmp"], f"{d['checks']}/{nn}.json", True, rep["checks_info"])
+    c = plan["counts"]
+    extra = (f"timing: {plan['fallback']} of {plan['boundaries']} boundaries on the prior (DP with 12 % REL; the approved 0.7 s alone {c['dp_tol_only']}; the approved greedy rule {c['greedy']}); "
+             + (rep["exception"] + "; " if "exception" in rep else "") + "the static card is kept in deliver-static/")
+    set_readme_row(f"{d['deliver']}/README-narration.txt", name, f"C{n}", "animated version", extra)
+    rep["published"] = sha
+    rep.pop("unpublished", None)
+    json.dump(rep, open(f"{d['checks']}/{nn}.report.json", "w"), indent=1)
+    return sha
+
+
+def wait_start(peak_mib, poll=30, hold_after=3600, queue=None, hold=None, start=None, sleep=time.sleep, now=time.time, log=print, max_wait=None):
+    """The schedule of council 10-21 09:52Z: touch RENDERING first (SM's unstarted gates then wait), then poll the start test until it passes; after `hold_after` s of waiting touch
+    HOLD-GATES and say so (I tell SM in a [word]). Never removes anything: the caller removes RENDERING after the chapter. -> (ok, [lines]); ok False only on max_wait."""
+    queue, hold, start = queue or QUEUE, hold or HOLD, start or start_test
+    open(queue, "a").close()
+    t0, held = now(), False
+    while True:
+        ok, lines = start(peak_mib)
+        if ok:
+            return True, lines
+        waited = now() - t0
+        if not held and waited >= hold_after:
+            open(hold, "a").close(); held = True
+            log(f"HOLD-GATES touched after {waited / 60:.0f} min on the start test")
+        if max_wait is not None and waited >= max_wait:
+            return False, lines
+        sleep(poll)
 
 
 def _head(repo):
@@ -786,10 +907,32 @@ def main(argv):
         cmd_ = ["flock", V + "/render.lock", "nice", "-n", "10", "/usr/bin/time", "-v", "-o", "{time}", V + "/venv/bin/manim", "-r", "1280,720", "--fps", "25", "--media_dir", "{media}",
                 "-v", "WARNING", "--progress_bar", "none", "-o", "{out}", str(Path(__file__).resolve().parent / "media_scene.py"), "Chapter"]
         kw = {"vmlimit_kb": int(os.environ["M4_VMLIMIT_KB"])} if os.environ.get("M4_VMLIMIT_KB") else {}
-        rep = run_chapter(n, chaps[n], f"{BASE}/deliver/season3-C{n}-narration.mp3", d, cmd_, publish_it="--publish" in rest, peak_mib=float(os.environ.get("M4_PEAK_MIB", 1500)), **kw)
+        signal.signal(signal.SIGTERM, lambda *a: sys.exit(143))      # so the finally below runs and RENDERING never outlives the job
+        try:
+            rep = run_chapter(n, chaps[n], f"{BASE}/deliver/season3-C{n}-narration.mp3", d, cmd_, publish_it="--publish" in rest, peak_mib=float(os.environ.get("M4_PEAK_MIB", 1500)),
+                              gate=lambda peak: wait_start(peak), **kw)
+        finally:
+            if os.path.exists(QUEUE):
+                os.remove(QUEUE)
         print(json.dumps({k: v for k, v in rep.items() if k != "start_test"}, indent=1))
         print("\n".join(rep.get("start_test", [])))
         return 0 if rep["status"] == "green" else 1
+    if cmd == "publish":
+        n = int(rest[0].lstrip("C"))
+        V = BASE + "/video"
+        d = {"video": V, "deliver": BASE + "/deliver", "tmp": BASE + "/deliver-tmp", "static": BASE + "/deliver-static", "checks": V + "/checks"}
+        rep = json.load(open(f"{d['checks']}/ch{n:02d}.report.json"))
+        sha = publish_chapter(n, d, rep, json.load(open(f"{V}/ch{n:02d}-plan.json")))
+        print(f"C{n} published {sha[:16]}; the joined full mp4 must be {deliver_total(d['deliver']):.1f} s +-0.5 (sum of the explainer-ch*.mp4 in deliver/)")
+        return 0
+    if cmd == "offsets":
+        n = int(rest[0].lstrip("C"))
+        pl = chapter_plan(chaps[n], f"{BASE}/deliver/season3-C{n}-narration.mp3")
+        rows = prior_offsets(pl)
+        for r_ in rows:
+            print(f"C{n} end {r_['k']:>2} at {r_['end']:7.2f} s: offset {r_['offset']:.2f} s, shorter neighbour {r_['shorter_s']:.2f} s -> {'ok' if r_['ok'] else 'FAIL'}")
+        print(f"C{n}: {len(rows)} prior-placed ends, counts {pl['counts']}, {'ACCEPT' if rows and all(x['ok'] for x in rows) else 'NOT accepted'}")
+        return 0 if all(x["ok"] for x in rows) else 1
     if cmd == "plan":
         n = int(rest[0].lstrip("C"))
         pl = chapter_plan(chaps[n], f"{BASE}/deliver/season3-C{n}-narration.mp3")

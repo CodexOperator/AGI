@@ -46,9 +46,12 @@ class Strand:
     def mobject(self, size=32, maxw=5.9):
         from manim import VGroup, LEFT, DOWN
         rows = VGroup(*[_markup([sp for sp in ln if sp[0] != "\n"] or [(" ", False)], size, MONO) for ln in self.lines]).arrange(DOWN, aligned_edge=LEFT, buff=0.14)
+        w0, scale = rows.width, 1.0
         if rows.width > maxw:
             rows.scale_to_fit_width(maxw)
-        DRAWN.append({"kind": "strand", "beat": self.beat, "sha": self.sha, "path": self.path, "lo": self.lo, "hi": self.hi, "text": mv.rejoin(self.lines)})
+            scale = maxw / w0
+        DRAWN.append({"kind": "strand", "beat": self.beat, "sha": self.sha, "path": self.path, "lo": self.lo, "hi": self.hi, "text": mv.rejoin(self.lines),
+                      "rows": ["".join(t for t, _ in ln if t != "\n") for ln in self.lines], "scale": round(scale, 3)})
         return rows
 
     def needle_mobject(self, size=30, maxw=2.6):

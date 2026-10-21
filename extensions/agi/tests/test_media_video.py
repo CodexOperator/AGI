@@ -704,3 +704,280 @@ def test_the_render_runs_under_the_address_space_limit(job, monkeypatch, tmp_pat
 def test_video_name_is_the_walks_name(chaps):
     assert mv.video_name(chaps[2]) == "explainer-ch02-the-ribosome-the-unit-turns-pieces-into-tools.mp4"
     assert mv.video_name(chaps[0]).startswith("explainer-ch00-")
+
+
+# ---- council 10-21 09:52Z: the token-wrap rule
+COUNCIL_LINE = 'Environment="AGI_PIECE_GLOB=engine.md engine-[pw]*.md"'
+
+
+def rows_of(lines):
+    return ["".join(t for t, _ in ln if t != "\n") for ln in lines]
+
+
+def naive_wrap(window, width):
+    """The mutant: the old cut, at a space in the last 10 columns, else mid-token."""
+    out, s = [], 0
+    while len(window) - s > width:
+        end = s + width
+        sp = window.rfind(" ", s + width - 10, s + width)
+        if sp > s:
+            end = sp + 1
+        out.append(window[s:end]); s = end
+    return out + [window[s:]]
+
+
+def test_the_councils_example_wraps_at_legal_breaks_and_the_old_cut_is_what_the_row_catches():
+    rows = rows_of(mv.wrap(COUNCIL_LINE, 0, len(COUNCIL_LINE), 26))
+    assert mv.token_findings(rows) == [] and "".join(rows) == COUNCIL_LINE
+    assert mv.token_findings(naive_wrap(COUNCIL_LINE, 26))                    # 'AGI_PIECE_GLO' | 'B=engine.md ...': the row fires on the old rule
+
+
+def test_no_drawn_line_of_any_pair_of_the_script_ends_inside_a_word(chaps):
+    n = 0
+    for c in chaps.values():
+        for b in mv.beats(c, REPO):
+            for p in b["pairs"]:
+                w, i0, i1 = mv.strand_window(REPO, p["sha"], p["path"], p["lo"], p["hi"], p["needle"])
+                lines = mv.wrap(w, i0, i1, 26)
+                assert mv.rejoin(lines) == w and mv.token_findings(rows_of(lines)) == [], (c["id"], p["id"])
+                assert max(len(r) for r in rows_of(lines)) <= 40        # none needs more than ~65 % shrinking (see MIN_SCALE)
+                n += 1
+    assert n > 300
+
+
+def test_a_token_longer_than_the_line_runs_long_instead_of_being_cut():
+    w = "x " + "a" * 60 + " y"
+    rows = rows_of(mv.wrap(w, 0, len(w), 26))
+    assert mv.token_findings(rows) == [] and "a" * 60 in "".join(rows) and any(len(r) > 26 for r in rows) and "".join(rows) == w
+
+
+def test_every_cut_is_a_legal_one_at_every_width():
+    for width in (6, 9, 14, 26, 44):
+        rows = rows_of(mv.wrap(COUNCIL_LINE + " " + COUNCIL_LINE, 0, 10, width))
+        assert mv.token_findings(rows) == []
+
+
+def test_check_drawn_reds_a_cut_word_a_lost_line_and_a_font_too_small(chaps, pair):
+    bs = [b for b in mv.beats(chaps[2], REPO) if b["kind"] == "feed"][:1]
+    plan = {"beats": bs}
+    d = drawn_of(bs[0]["pairs"][0], bs[0]["i"])[0]
+    real = [dict(d, rows=[d["text"]], scale=1.0)]
+    assert mv.check_drawn(real, plan, REPO) == []
+    k = next(i for i in range(1, len(d["text"])) if d["text"][i - 1].isalnum() and d["text"][i].isalnum())
+    cut = dict(d, rows=[d["text"][:k], d["text"][k:]], scale=1.0)
+    assert any("ends inside a word" in f for f in mv.check_drawn([cut], plan, REPO))
+    assert any("do not re-join" in f for f in mv.check_drawn([dict(d, rows=[d["text"][:-3]], scale=1.0)], plan, REPO))
+    assert any("of its font" in f for f in mv.check_drawn([dict(d, rows=[d["text"]], scale=0.4)], plan, REPO))
+    assert mv.check_drawn([dict(d, rows=[d["text"]], scale=0.55)], plan, REPO) == []       # the line is exact: 0.55 passes, 0.54 does not
+    assert mv.check_drawn([dict(d, rows=[d["text"]], scale=0.54)], plan, REPO)
+
+
+# ---- timing counts, falsifiers, the named C6 exception
+def test_counts_carry_the_dp_the_08_alone_and_the_greedy_rule():
+    lens, dur, pauses, _ = synth()
+    c = mv.timing_counts(lens, dur, pauses)
+    assert set(c) == {"dp_rel", "dp_tol_only", "greedy"} and c["dp_rel"] <= c["dp_tol_only"]
+
+
+def test_the_real_c6_counts_are_the_numbers_in_the_readme(chaps):
+    mp3 = mv.BASE + "/deliver/season3-C6-narration.mp3"
+    if not os.path.exists(mp3):
+        pytest.skip("no narration file here")
+    pl = mv.chapter_plan(chaps[6], mp3)
+    assert pl["counts"] == {"dp_rel": 10, "dp_tol_only": 12, "greedy": 15} and pl["fallback"] == 10
+    offs = mv.prior_offsets(pl)
+    assert len(offs) == 10 and all(x["ok"] for x in offs)
+
+
+def test_falsifier_pauses_filled_with_noise_is_red(job):
+    noisy = Path(job["mp3"]).with_name("noisy.mp3")
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "sine=frequency=300:sample_rate=44100:duration=9", "-f", "lavfi", "-i", "anoisesrc=amplitude=0.3:sample_rate=44100:duration=9",
+                    "-filter_complex", "[0:a]volume='if(between(t,2.3,2.9)+between(t,6.1,6.7),0,1)':eval=frame[a];[a][1:a]amix=inputs=2:duration=first", str(noisy)], check=True)
+    pl = mv.chapter_plan(job["chap"], str(noisy))
+    assert mv.timing_findings(pl)                                          # no pause is found: every end on the prior
+
+
+def test_falsifier_another_chapters_sentences_against_this_audio_is_red(chaps):
+    mp3 = mv.BASE + "/deliver/season3-C2-narration.mp3"
+    if not os.path.exists(mp3):
+        pytest.skip("no narration file here")
+    pauses, dur = mv.silences(mp3), mv.mp3_seconds(mp3)
+    right = mv.place([len(b["spoken"]) for b in mv.beats(chaps[2], REPO)], dur, pauses)
+    wrong = mv.place([len(b["spoken"]) for b in mv.beats(chaps[3], REPO)], dur, pauses)
+    assert mv.timing_findings(right) == [] and (mv.timing_findings(wrong) or wrong["fallback"] > right["fallback"] + 4)
+
+
+def plan_of(job, kinds, ends, rate=None):
+    pl = mv.chapter_plan(job["chap"], job["mp3"])
+    ends = ends[:-1] + [pl["duration"]]
+    pl["kind"], pl["ends"], pl["prior"] = kinds, ends, list(ends)
+    pl["fallback"] = kinds.count("prior")
+    for b, e0, e1 in zip(pl["beats"], [0.0] + ends[:-1], ends):
+        b["t0"], b["t1"] = e0, e1
+    if rate:
+        pl["rate"] = rate
+    return pl
+
+
+def test_prior_offsets_ok_and_fail_rows():
+    pl = {"beats": [{"spoken": "a" * 100}, {"spoken": "b" * 20}, {"spoken": "c" * 100}], "rate": 10.0, "kind": ["prior", "prior", "end"], "ends": [10.2, 13.0, 30.0], "pauses": [(10.0, 10.4)]}
+    r = mv.prior_offsets(pl)
+    assert [x["ok"] for x in r] == [True, False] and r[0]["offset"] == 0.0 and r[1]["offset"] == 2.6 and r[1]["shorter_s"] == 2.0     # 2.6 s from the nearest pause > 2.0 s neighbour
+
+
+def test_c6_exception_is_accepted_on_a_number_and_refused_when_an_offset_fails(job, tmp_path):
+    ok = plan_of(job, ["prior", "prior", "end"], [2.6, 6.4, 9.0])
+    assert mv.timing_findings(ok)                                                        # 100 % on the prior is RED for any chapter
+    r = mv.run_chapter(6, job["chap"], job["mp3"], job["d"], job["cmd"], REPO, gate=GO, poll=0.05, read=lambda: None, plan=ok)
+    assert r["status"] == "green" and "C6: timing approximate, 2 of 2 boundaries on the prior" in r["exception"] and "council ruling" in r["exception"]
+    bad = plan_of(job, ["prior", "prior", "end"], [2.6, 6.4, 9.0], rate=40.0)            # the neighbours are then 0.5 s long: 0.0 offsets still pass, so move one end off its pause
+    bad["ends"][0] = bad["prior"][0] = 4.6
+    r2 = mv.run_chapter(6, job["chap"], job["mp3"], job["d"], job["cmd"], REPO, gate=GO, poll=0.05, read=lambda: None, plan=bad)
+    assert r2["status"] == "red: timing" and any("named exception C6 refused" in f for f in r2["findings"])
+    other = mv.run_chapter(2, job["chap"], job["mp3"], job["d"], job["cmd"], REPO, gate=GO, poll=0.05, read=lambda: None, plan=ok)
+    assert other["status"] == "red: timing"                                              # the line stays 25 % for every other chapter
+
+
+def test_the_readme_row_carries_the_three_counts_and_the_exception(job):
+    ok = plan_of(job, ["prior", "prior", "end"], [2.6, 6.4, 9.0])
+    r = mv.run_chapter(6, job["chap"], job["mp3"], job["d"], job["cmd"], REPO, gate=GO, poll=0.05, read=lambda: None, plan=ok, publish_it=True)
+    row = [ln for ln in Path(job["d"]["deliver"], "README-narration.txt").read_text().split("\n") if ln.startswith(job["name"])][0]
+    assert "animated version" in row and "2 of 2 boundaries on the prior (DP with 12 % REL; the approved 0.7 s alone" in row and "the approved greedy rule" in row and "council ruling" in row and r["status"] == "green"
+
+
+def test_rel_is_named_as_a_deviation_and_the_ulimit_and_exceptions_are_the_rulings():
+    src = Path(mv.__file__).read_text()
+    assert "DEVIATION 5" in src and mv.REL == 0.12 and mv.TOL == 0.7 and mv.FALLBACK_MAX == 0.25
+    assert mv.VMLIMIT_KB == 2500000 and set(mv.EXCEPTIONS) == {6}
+    assert "CONSISTENCY re-check" in src
+
+
+# ---- the publish checks after, the joined-duration check
+def test_mutant_publish_that_writes_into_the_kept_cards_inode_is_red_and_restores(tree, monkeypatch):
+    d, name = tree
+    real = os.replace
+    calls = []
+
+    def evil(src, dst):
+        if not calls and str(dst).endswith(name):
+            calls.append(1)
+            import shutil
+            shutil.copyfile(src, dst); os.remove(src)             # in place: the kept hard link now holds the NEW bytes too
+        else:
+            real(src, dst)
+
+    monkeypatch.setattr(mv.os, "replace", evil)
+    with pytest.raises(ValueError, match="publish check failed"):
+        publish_green(d, name)
+    assert (d["deliver"] / name).exists()                            # the file is there (put back by os.replace of the kept link); the check named the fault
+
+
+def test_publish_check_passes_on_the_real_swap_twice(tree):
+    d, name = tree
+    publish_green(d, name)
+    publish_green(d, name, body=b"ANIMATED v2")
+    assert os.stat(d["deliver-static"] / name).st_ino != os.stat(d["deliver"] / name).st_ino and (d["deliver-static"] / name).read_bytes() == b"STATIC CARD"
+
+
+def test_joined_duration_is_the_sum_of_the_18_files_not_the_old_c2_and_not_both(tmp_path):
+    dd = tmp_path / "deliver"; dd.mkdir()
+    for i in range(3):
+        make_mp4(dd / f"explainer-ch{i:02d}-x.mp4", secs=2)
+    (dd / "README-narration.txt").write_text("x")
+    tot = mv.deliver_total(str(dd))
+    assert 5.9 < tot < 6.3 and mv.joined_findings(tot + 0.4, str(dd)) == [] and mv.joined_findings(tot - 0.4, str(dd)) == []
+    assert mv.joined_findings(tot + 2.0, str(dd))                                 # the old C2 AND the new one in the join
+    assert mv.joined_findings(tot - 2.0, str(dd))                                 # a chapter missing from the join
+
+
+# ---- the queue files
+def test_wait_start_touches_rendering_first_and_hold_only_after_an_hour(tmp_path):
+    q, h = tmp_path / "RENDERING", tmp_path / "HOLD-GATES"
+    clock, log = [0.0], []
+    answers = iter([(False, ["NO gate"])] * 4 + [(True, ["ok"])])
+
+    def start(peak):
+        assert q.exists()                                                       # RENDERING exists before the start test is even read
+        return next(answers)
+
+    def sleep(s):
+        clock[0] += 1500                                                        # 25 min per poll: the 4th read, at 4500 s, fails after the hour: the hold is touched there and not at 3000 s
+        assert not h.exists() or clock[0] > 3600
+
+    ok, _ = mv.wait_start(1500, poll=1, queue=str(q), hold=str(h), start=start, sleep=sleep, now=lambda: clock[0], log=log.append)
+    assert ok and q.exists() and h.exists() and len(log) == 1 and "HOLD-GATES touched" in log[0]
+
+
+def test_wait_start_does_not_hold_at_59_minutes_and_does_at_60(tmp_path):
+    for waited, held in ((3599, False), (3600, True)):
+        q, h = tmp_path / f"q{waited}", tmp_path / f"h{waited}"
+        clock = [0.0]
+        seq = iter([(False, []), (False, []), (True, [])])
+
+        def start(peak, clock=clock):
+            r = next(seq)
+            if len(clock) == 1 and r[0] is False and clock[0] == 0.0:
+                pass
+            return r
+
+        def sleep(s, clock=clock, waited=waited):
+            clock[0] = waited if clock[0] == 0.0 else clock[0] + 1
+
+        mv.wait_start(1500, poll=1, queue=str(q), hold=str(h), start=start, sleep=sleep, now=lambda clock=clock: clock[0], log=lambda m: None)
+        assert h.exists() is held, waited
+
+
+def test_wait_start_with_a_ready_box_never_touches_hold(tmp_path):
+    q, h = tmp_path / "RENDERING", tmp_path / "HOLD-GATES"
+    ok, _ = mv.wait_start(1500, queue=str(q), hold=str(h), start=lambda p: (True, ["ok"]), sleep=lambda s: None)
+    assert ok and q.exists() and not h.exists()
+
+
+def test_the_render_command_removes_rendering_even_when_the_job_fails(tmp_path, monkeypatch):
+    q = tmp_path / "RENDERING"
+    monkeypatch.setattr(mv, "QUEUE", str(q))
+
+    def boom(*a, **k):
+        q.touch(); raise RuntimeError("render blew up")
+
+    monkeypatch.setattr(mv, "run_chapter", boom)
+    with pytest.raises(RuntimeError):
+        mv.main(["render", "2"])
+    assert not q.exists()
+
+
+def test_the_row_as_the_council_wrote_it_independent_of_the_codes_own_regex(chaps):
+    """'no drawn line ends inside an [A-Za-z0-9_.] run that continues on the next line', with its OWN regex here (a change to media_video.WORD must not move this row)."""
+    import re as _re
+    word = _re.compile(r"[A-Za-z0-9_.]")
+    seen = 0
+    for c in chaps.values():
+        for b in mv.beats(c, REPO):
+            for p in b["pairs"]:
+                w, i0, i1 = mv.strand_window(REPO, p["sha"], p["path"], p["lo"], p["hi"], p["needle"])
+                rows = rows_of(mv.wrap(w, i0, i1, 26))
+                for a, nx in zip(rows, rows[1:]):
+                    assert not (a and nx and word.match(a[-1]) and word.match(nx[0])), (c["id"], p["id"], a[-14:], nx[:14])
+                    seen += 1
+    assert seen > 200
+    rows = rows_of(mv.wrap(COUNCIL_LINE, 0, len(COUNCIL_LINE), 26))
+    assert not any(word.match(a[-1]) and word.match(b[0]) for a, b in zip(rows, rows[1:]))
+
+
+def test_render_then_publish_as_two_steps_keyframes_between(job):
+    r = go(job, publish_it=False)
+    d = job["d"]
+    assert r["status"] == "green" and Path(d["deliver"], job["name"]).read_bytes() == b"STATIC" and Path(r["unpublished"]).exists()
+    plan = json.load(open(Path(d["video"], "ch02-plan.json")))
+    sha = mv.publish_chapter(2, d, json.load(open(Path(d["checks"], "ch02.report.json"))), plan)
+    assert Path(d["deliver"], job["name"]).read_bytes() != b"STATIC" and Path(d["static"], job["name"]).read_bytes() == b"STATIC" and mv.pending(d["deliver"], d["checks"]).count(2) == 0
+    assert json.load(open(Path(d["checks"], "ch02.report.json")))["published"] == sha
+
+
+def test_a_red_chapter_cannot_be_published_later(job, monkeypatch):
+    monkeypatch.setenv("STUB_MODE", "badbyte")
+    r = go(job, publish_it=False)
+    assert r["status"] == "red: checks"
+    with pytest.raises(ValueError, match="not a green rendered chapter"):
+        mv.publish_chapter(2, job["d"], json.load(open(Path(job["d"]["checks"], "ch02.report.json"))), json.load(open(Path(job["d"]["video"], "ch02-plan.json"))))
+    assert Path(job["d"]["deliver"], job["name"]).read_bytes() == b"STATIC"
