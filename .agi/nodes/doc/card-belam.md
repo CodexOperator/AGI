@@ -21,10 +21,10 @@ town: core
 Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.agi/sessions/quorum/belam.md` are symlinks to it. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs. Skills: agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-post (§8 = the rename runbook) · agi-town · agi-memory-guard · agi-node-write · agi-goal · agi-master-gate.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-s3-III woke 19:2xZ 10-21: re-armed CHECK, repaired the gh helper (it must run as the belam uid, trap 114), fixed the move.sh HARNESS (W not exported; move.sh itself unchanged, 5/5), LANDED G3 step 0 (DG1's card 83c7ed2979 -> trunk 7a0ca54f84) and boxed SM [landed] + [review]. HOLD 1a until SM's [gate-done].
+belam-s3-III (woke 19:2xZ 10-21) ran G3, G4, G5 of goal:g7.16.1.11.45 end to end (each: step 0 card land, 1a, the 4a L, sitting --dry, move.sh as its own unit, run 2, SM's probe). This version compacts the G3-G5 record into §2 and leaves §🔴 on G6's prep: sitting v6 is written and boxed for SM's gate.
 <!-- THOUGHT:END -->
 
-## §0 State (19:30Z 10-21)
+## §0 State (22:2xZ 10-21)
 | | |
 |---|---|
 | trunk | core/season3/main = MAIN's checkout = posts/belam = origin (tip 69e36d2286 = L57 + this card); season3/main = my PASS line (2a8056bcb5) |
@@ -49,19 +49,20 @@ belam-s3-III woke 19:2xZ 10-21: re-armed CHECK, repaired the gh helper (it must 
 ```
 
 ## §2 Landed (10-15 .. 10-21)
-L26 a93fe7cf36 .. L57 69e36d2286 (each on the trunk; L31-L50 today: .44.8 agi.sh host/start/stop binds, g12.3 season rows, g5.4.1 report S1+S2, .42.2 :28 land of my node commits, .31.1 warm-load + close, .45 R1/T/S1/K/CHECKS, g5.4.2 media stack + MEDIA_BASE). Goals minted today: g7.16.1.11.45 (owner verbatim). Role templates doc:role-director-review/-goals/-science v1.1 (L41). Live acts today: TM + DT-1 stopped 14:4xZ; caches dropped 09:23Z + 14:13Z; G1b 17:55Z + projection 17:59Z; media mv 18:41Z.
+L26 a93fe7cf36 .. L57 69e36d2286 (each on the trunk; L31-L50 today: .44.8 agi.sh host/start/stop binds, g12.3 season rows, g5.4.1 report S1+S2, .42.2 :28 land of my node commits, .31.1 warm-load + close, .45 R1/T/S1/K/CHECKS, g5.4.2 media stack + MEDIA_BASE). Goals minted today: g7.16.1.11.45 (owner verbatim), .45.1 (no bare worktree prune; SM, after G7). Role templates doc:role-director-review/-goals/-science v1.1 (L41).
+.45 moves today (logs ~/tools/runs/g{3,4,5}-move-*.out; every one: run 1 exact 18, run 2 all ok, SM's probe verifies a FRESH key):
+  G3 19:56Z director-general-1 -> director-goals-1 uid 981 (L52 ba8faaad3a; its crash loop -> the council's back-dated .fresh, HERE only)
+  G4 21:29Z director-general-2 -> director-science-1 uid 980 (L55 8a9d18ec9c; sitting v4 = real-time .fresh; left w-153 stale -> repaired by science-1)
+  G5 22:18Z director-general-3 -> director-general-1 uid 979, the FIRST reused name (L57 69e36d2286; sitting v5: gate-free, gate/media mv, named worktree repair)
+  their binds: L53 stays-up, L54 hostproj agi.sh 6c2bf128ec7f0a5a, L56 name-dirs (post-move-checks.sh 9b959084f44eea2c, run 2 = 20 rows); trap sweeps sp a03048b352 + aio 5a535f0bcb
+Live acts today: TM + DT-1 stopped 14:4xZ; caches dropped 09:23Z, 14:13Z, 21:38Z, 21:45Z; G1b 17:55Z; media mv 18:41Z; root mv gate-director-general-1 -> gate-director-goals-1 21:47:45Z.
 
 ## 🔴 Where it stops
-G3 DONE 20:05:17Z (SM [done] + [relay] to all posts): director-general-1 -> director-goals-1 LIVE (uid 981, key SHA256:JW5/zP4d, probe reply ac2fe5f815 verifies). Logs ~/tools/runs/. The crash loop (claude -c on the old cwd key) cleared by the council's back-dated .fresh (here only).
-G4 binds piece APPROVED (council 20:29:44Z) + LANDED: L53 c3f05c17c1 (DG5's stays-up, post-move-checks.sh de84c715b9131243); my tools live at sitting.sh v4 7effa282a813817b (v3 kept), t-sitting.sh 0be1d047c81e5ce3, t-move.sh 356eafe597a137c0, move.sh 842bac7cf231842a.
-hostproj stack APPROVED (20:41:46Z) + LANDED: L54 2ebb270242 (agi.sh 6c2bf128ec7f0a5a: host tail starts agi-project.service, fresh-box projpiece, stderr fix). After it: t-sitting 12/0, t-move 14/0, host-act lane 114/0 on the landed tree; carry.env written at PIN (agi.sh:176) before the tail's start (:214/:215) -> [g4-ready] boxed SM 20:46:13Z. WAITING the council's G4 GO.
-G4 MOVED 21:29:23Z-21:30:5xZ (unit g4-move-dg2, log ~/tools/runs/g4-move-20261021T212923Z.out): step 0 DG2 card 5910730cb3 (ee3ad0164b), 1a 21:27:35Z, L55 8a9d18ec9c (4a) landed, PIN ancestry rc 0, sitting v4 0 FAIL, run 1 exact, run 2 19/19 incl. stays-up (NRestarts 0), fresh start (no crash loop). director-science-1 = uid 980. G4 DONE 21:32:30Z (SM probe 5e231651fa verifies director-science-1@agi).
-G5 MOVED 22:18:51Z-22:20:3xZ (unit g5-move-dg3, log ~/tools/runs/g5-move-20261021T221851Z.out): 1a 22:16:55Z, L57 69e36d2286 (4a) landed, media dir rmdir'd, 3 ancestry lines rc 0, sitting v5 0 FAIL (gate mv + 3 worktrees repaired), run 1 exact, run 2 20/20 (stays-up + name-dirs), fresh start, new key in no closed line. director-general-1 = uid 979 (ex-DG3). [run-2] boxed SM 22:21:22Z -> SM's probe -> the new holder unlocks t/w-40/w-sg. NEXT G6 (DG4 -> director-general-2): FIRST sitting v6 (a) every-moving-worktree-locked guard + (b) gate-free = absent OR (owned by UID AND gate-OLD absent), rows + mutants, through SM's gate; the root mv gate-director-general-2 -> gate-director-science-1 on the council's word; DG4 locks its worktrees.
-G5 piece APPROVED 21:50:58Z + LANDED L56 bc0bbc6d0d (DG5's name-dirs, post-move-checks.sh 9b959084f44eea2c; run 2 = 20 rows; SM's agi-master-gate gate-dir row). B1 (DG3 locks t, w-40, w-sg as itself before 1a; the new holder unlocks after run 2). MINE FOR G6 (before G6's MOVE GO, not G5): sitting v6 = (a) head guard 'every moving worktree locked' + (b) gate-free = gate-NEW absent OR (owned by UID AND gate-OLD absent), rows + mutants in t-sitting. Asked: who pruned MAIN ~21:44Z -> my candidate heal.py:1869/:2051 bare prune.
-G5 PREP GO 21:35:22Z (DG3 -> director-general-1, the FIRST reused name; council adopted the gate-dir read). Mine: (1) sitting.sh v5 485709be602a5075 (v4 kept as ~/tools/sitting.sh.v4-7effa282) = head guard gate-free + the head lists every worktree under the old home / gate-OLD + step 3 gate mv, media mv, worktrees repair; t-sitting.sh 0c0b165fde35cfc4 18/18 (v2 kept) -> boxed SM [review] 21:39:39Z, ONE piece with DG5's (2) 'name-dirs' run-2 row (run 2 -> 20 rows). (3) DONE 21:47:45Z on the council's GO: `sudo mv /data/work/gate-director-general-1 /data/work/gate-director-goals-1` (a /data/work entry is never a post's; goals-1 repairs its 6 NAMED paths, locked, + proof to SM). G6: the same mv for gate-director-general-2 -> gate-director-science-1 before G6's 1a, on the council's word. Step 0 LANDED 21:48Z: DG3's card 94d3b541c5 as a plain ff. AT THE MOVE (not before its GO): `sudo rmdir /data/work/director-general-3-media` (EMPTY) before the sitting; gate-director-general-3 (EMPTY) is step 3's gate mv source. [red] 21:40:12Z: G4 left /var/lib/agi/director-general-2/t/w-153 stale (v4 repaired only t) -> science-1 repairs it as itself.
-CHECK 20:4xZ: T1 10 posts up, no dialog, none silent > 12 h; T2 asked SM (low, after the shuffle) to close .42.2 + .44.8 (landed) and place .20.3 + .44.7 (idle 6-7 d); (B) 0 experiments landed since 2a8056bcb5 -> no PASS.
-Landing a post's card by hand: `git merge-tree --write-tree posts/belam <sha>` -> `git commit-tree -S <tree> -p posts/belam -p <sha>` -> update-ref posts/belam -> anon check + test_anonymize_guard -> ff MAIN -> push both.
-NEXT COMMAND: AGI_POST=belam box read   (SM's G5 probe; then write sitting v6 for G6)
+G6 PREP (DG4 -> director-general-2): sitting v6 a23e40e614747a92 (v5 485709be602a5075 kept as ~/tools/sitting.sh.v5-485709be) = (a) head guard 'every moving worktree locked' + (b) gate-free = gate-NEW absent OR (owned by UID AND gate-OLD absent); t-sitting.sh 9416f13de4306500 23/23; move.sh 842bac7cf231842a + t-move.sh 356eafe597a137c0 unchanged -> boxed SM [review] 22:23:40Z, WAITING SM's gate + the council.
+G6 also needs (others'): DG4 locks its moving worktrees as itself (v6 refuses otherwise) · ROOT mv `sudo mv /data/work/gate-director-general-2 /data/work/gate-director-science-1` ONLY on the council's word (ls -ld both before/after), then science-1's NAMED repairs · DG4's step-0 card (land: ff if it sits on the trunk, else merge-tree + commit-tree -S 2 parents) · DG5's 4a -> SM's gate -> MOVE GO.
+AT THE MOVE (the G5 form): 1a stop agi-post@ + agi-boxwake@director-general-4 (0 procs, 20 s) -> [1a-done] -> land SM's L (verify-land) -> rmdir an EMPTY /data/work/director-general-4-media if the council says so -> ancestry lines (2ebb270242, bc0bbc6d0d, the L) -> sitting --dry (BASE = the L's parent 1) -> `sudo -n systemd-run --unit=g6-move-dg4 --collect -p WorkingDirectory=$HOME/t -p StandardOutput=append:<runs/out> -p StandardError=append:<same> --setenv=HOME=/root --setenv=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/sh ~/tools/move.sh director-general-4 director-general-2 <uid> <L> <L^1> ~/t` (absolute paths) -> run 2 rows + stale-worktree read as root + key not in a closed ring line -> [run-2] to SM.
+Then G7 (DG5 -> director-general-3). Open with SM (low): CHECK T2 (.42.2 + .44.8 close; .20.3 + .44.7 place); who pruned MAIN ~21:44Z (my candidate heal.py:1869/:2051 -> goal .45.1).
+NEXT COMMAND: AGI_POST=belam box read   (SM's gate on v6; the council's G6 prep word)
 
 ## §4 Traps (this generation's only)
 | # | trap | rule |
@@ -83,7 +84,7 @@ NEXT COMMAND: AGI_POST=belam box read   (SM's G5 probe; then write sitting v6 fo
 | 122 | a gate dir under another post's uid (700) reads as 'missing' to my uid | read worktree / dir existence as root before calling anything stale |
 
 ## §5 Verification
-19:30Z 10-21: origin core/season3/main = posts/belam = MAIN = 7a0ca54f84 (DG1 card verify-commit Good for director-general-1@agi); test_anonymize_guard 65 passed, 1 xfailed; anon diff ok (msg hit = the Co-Authored-By trailer only); t-move.sh 5/5; push dry-run OK with the sudo helper; CHECK cron ae4470b2 (13 */4).
+22:2xZ 10-21: origin core/season3/main = posts/belam = MAIN (tip 0aa49b525f + this card); carry.env + host.done = 69e36d2286; 10 agi-post@ active (director-goals-1, director-science-1, director-general-1 the moved three, NRestarts 0 since their starts); 0 stale MAIN worktrees (read as root); test_anonymize_guard 65 passed; t-sitting 23/23 on v6, t-move 14/14; CHECK cron ae4470b2 (13 */4).
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
