@@ -37,7 +37,7 @@ agi-gate           542 B  refuse a tip whose body would not regrow
 agi-vstore         856 B  root: fetches the pin into a re-hashed RAM store
 agi-boot         1797 B  root: gate the pin, start the posts
 agi-boot.service  826 B  runs agi-boot after agi-vstore
-matrix            142 B  who reads which node via which piece
+matrix            147 B  who reads which node via which piece
 sect               214 B  ONE piece of any engine*.md node, byte-exact, any REV
 agi-land          1855 B  root: ff-lands a post range one edge up
 agi-hook          1224 B  root: installs the landed ref-guard into .git/hooks
@@ -77,13 +77,13 @@ mv $o $o.1;AGI_TRUNK=$1 sh -c "$(sed -n 's/^ExecStart=sh -c "\(.*\)&&systemctl.*
 r=${2:-HEAD};git ls-tree --full-tree --name-only $r .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$r:|"|git cat-file --batch --follow-symlinks|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}"
 ~~~
 
-### matrix (142 B)
+### matrix (147 B)
 ~~~
 boot	matrix	engine	sect
 boot	body	posts	agi-project
 post	bin	engine*	sect
 post	brief	card-<p>	brief
-town	start	posts crons units blast	agi.sh
+town	start	host posts crons units blast	agi.sh
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
