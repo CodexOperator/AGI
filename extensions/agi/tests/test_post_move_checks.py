@@ -26,7 +26,7 @@ exit 0
 """
 # systemctl is-active UNIT: the state is read from $STUB/active/UNIT (absent = a unit that never ran)
 SYSTEMCTL = r"""#!/bin/sh
-[ "$1" = is-active ]||exit 2
+case $1 in is-enabled)s=$(cat "$STUB/enabled/$2" 2>/dev/null)||s=disabled;echo "$s";[ "$s" = enabled ];exit;;is-active);;*)exit 2;;esac
 s=$(cat "$STUB/active/$2" 2>/dev/null)||s=inactive
 echo "$s";[ "$s" = active ]
 """
@@ -67,7 +67,7 @@ class World:
         self.rk.mkdir(parents=True, mode=0o700)
         self.rk.chmod(0o700)
         self.pub = _key(self.rk / "id_ed25519")
-        for d in ("etc/sudoers.d", "etc/polkit-1", "etc/systemd", "etc/agi", "var/spool/cron"):
+        for d in ("etc/sudoers.d", "etc/polkit-1", "etc/systemd", "run/systemd/system", "etc/agi", "var/spool/cron"):
             (self.root / d).mkdir(parents=True)
         (self.root / "etc/sudoers.d/agi").write_text(f"agi-belam ALL=(agi-{NEW}) NOPASSWD: ALL\n")
         self.other = _key(tmp / "other")                       # a key OLD never held
@@ -84,6 +84,9 @@ class World:
             "RUNUSER": str(_exe(self.bin / "runuser", RUNUSER)),
             "SYSTEMCTL": str(_exe(self.bin / "systemctl", SYSTEMCTL))}
         (self.stub / "active").mkdir()
+        (self.stub / "enabled").mkdir()
+        (self.stub / "active" / f"agi-carry@{NEW}.path").write_text("active\n")      # the renamed post's mail wake, after 4b
+        (self.stub / "enabled" / f"agi-carry@{NEW}.path").write_text("enabled\n")
 
     def first_start(self, key=None):
         with open(self.ring, "a") as f:
@@ -108,7 +111,8 @@ def test_a_clean_move_before_the_first_start_is_green_and_ring_new_waits(w):
     rc, st, out = w.check()
     assert rc == 0, out
     assert st == {"uid": "ok", "gid": "ok", "old-name-free": "ok", "key-held": "ok", "key-unreadable": "ok", "key-not-in-home": "ok",
-                  "ring-old": "ok", "ring-new": "wait", "grep-old": "ok", "old-post-inactive": "ok", "old-boxwake-inactive": "ok"}, out
+                  "ring-old": "ok", "ring-new": "wait", "grep-old": "ok", "old-post-inactive": "ok", "old-boxwake-inactive": "ok",
+                  "new-carry-path": "ok"}, out
 
 
 def test_after_the_first_start_ring_new_needs_one_fresh_open_line_and_wait_becomes_red_under_the_flag(w):
@@ -265,3 +269,71 @@ def test_each_after_4b_row_has_a_world_only_it_catches(w, tmp_path):
         f.write(f"agi-{OLD}:x:998:998::/nonexistent:/usr/sbin/nologin\n")
     m = _mutant(tmp_path, '[ -z "$($GETENT passwd "agi-$1")" ]&&', "")
     assert w.check(script=m)[1]["old-name-free"] == "ok" and w.check()[1]["old-name-free"] == "FAIL"
+
+
+# K-a (council 16:24Z): the unit INSTANCE paths of the old name, measured on this box for director-general-1: the projected wants link and the two .service.d drop-ins
+# under /run/systemd/system, the enabled agi-carry@<old>.path under /etc/systemd/system. Each was invisible to the word grep and the file-NAMED-agi-<old> leg.
+INSTANCE_PATHS = [
+    f"run/systemd/system/multi-user.target.wants/agi-post@{OLD}.service",
+    f"run/systemd/system/agi-post@{OLD}.service.d",
+    f"run/systemd/system/agi-boxwake@{OLD}.service.d",
+    f"etc/systemd/system/paths.target.wants/agi-carry@{OLD}.path",
+]
+
+
+@pytest.mark.parametrize("rel", INSTANCE_PATHS)
+def test_MUTANT_a_unit_instance_of_the_old_name_is_red_in_run_and_in_etc(w, rel):
+    p = w.root / rel
+    p.parent.mkdir(parents=True, exist_ok=True)
+    if rel.endswith(".d"):
+        p.mkdir()
+        (p / "h.conf").write_text("[Service]\nEnvironment=X=1\n")                    # a drop-in with no name of the old user inside: only its path says it
+    else:
+        p.symlink_to("../agi-post@.service")
+    _red(w.check(), "grep-old")
+
+
+def test_a_unit_instance_of_a_different_name_or_a_longer_one_is_not_a_hit(w):
+    for rel in (f"run/systemd/system/agi-post@{NEW}.service.d", f"run/systemd/system/agi-post@{OLD}0.service.d", f"run/systemd/system/agi-post@x{OLD}.service.d"):
+        (w.root / rel).mkdir(parents=True)
+    assert w.check()[1]["grep-old"] == "ok"
+
+
+def test_the_instance_leg_has_a_world_only_it_catches(w, tmp_path):
+    (w.root / f"run/systemd/system/agi-post@{OLD}.service.d").mkdir(parents=True)
+    (w.root / f"etc/systemd/system/paths.target.wants").mkdir(parents=True)
+    (w.root / f"etc/systemd/system/paths.target.wants/agi-carry@{OLD}.path").symlink_to("../agi-carry@.path")
+    m = _mutant(tmp_path, 'find $SCAN -name "*@$OLD.*";', "")                              # today's two legs
+    assert w.check(script=m)[1]["grep-old"] == "ok" and w.check()[1]["grep-old"] == "FAIL"
+
+
+# K-c: C7 said a missing scan dir FAILs; the code counted dirs and skipped one missing of five
+def test_one_missing_scan_dir_of_six_is_red_and_named(w):
+    shutil.rmtree(w.root / "etc/polkit-1")
+    rc, st, out = w.check()
+    assert rc == 1 and st["grep-old"] == "FAIL" and "MISSING scan dir(s): " in out and "etc/polkit-1" in out, out
+
+
+def test_the_missing_dir_guard_has_a_world_only_it_catches(w, tmp_path):
+    shutil.rmtree(w.root / "var/spool/cron")
+    m = _mutant(tmp_path, 'test -z "$miss" -a -z "$hits"', 'test "$(echo $SCAN|wc -w)" -gt "$(echo $miss|wc -w)" -a -z "$hits"')      # today: at least one dir exists
+    assert w.check(script=m)[1]["grep-old"] == "ok" and w.check()[1]["grep-old"] == "FAIL"
+
+
+# K-b: the renamed post's mail wake. Nothing enables agi-carry@<new>.path but `systemctl enable --now` in host-act-encryption-town.sh move
+@pytest.mark.parametrize("enabled,active", [("disabled", "active"), ("enabled", "inactive"), ("enabled", "activating"), ("", "")])
+def test_MUTANT_a_new_carry_path_that_is_not_both_enabled_and_active_is_red(w, enabled, active):
+    (w.stub / "enabled" / f"agi-carry@{NEW}.path").write_text(enabled + "\n")
+    (w.stub / "active" / f"agi-carry@{NEW}.path").write_text(active + "\n")
+    _red(w.check(), "new-carry-path")
+
+
+def test_a_systemctl_that_does_not_answer_is_red_on_the_carry_row_too(w):
+    _exe(w.bin / "systemctl", "#!/bin/sh\nexit 1\n")
+    _red(w.check(), "new-carry-path")
+
+
+def test_the_carry_row_has_a_world_only_it_catches(w, tmp_path):
+    (w.stub / "enabled" / f"agi-carry@{NEW}.path").unlink()                                 # the move never enabled it
+    m = _mutant(tmp_path, "carry(){ [", "carry(){ return 0; [")
+    assert w.check(script=m)[1]["new-carry-path"] == "ok" and w.check()[1]["new-carry-path"] == "FAIL"
