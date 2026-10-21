@@ -3,6 +3,7 @@
 Council 3/3 14:44Z 10-21, the two MUTANTS that must go RED: usermod without groupmod (the gid check) and the key left in the home (the read
 check). Each source mutant below removes ONE guard of the script and a world that guard exists for then PASSES: the test has teeth.
 """
+import calendar
 import os
 import shutil
 import stat
@@ -26,7 +27,9 @@ exit 0
 """
 # systemctl is-active UNIT: the state is read from $STUB/active/UNIT (absent = a unit that never ran)
 SYSTEMCTL = r"""#!/bin/sh
-case $1 in is-enabled)s=$(cat "$STUB/enabled/$2" 2>/dev/null)||s=disabled;echo "$s";[ "$s" = enabled ];exit;;is-active);;*)exit 2;;esac
+# systemctl show [--timestamp=utc] -p PROP [--value] UNIT: the value is read from $STUB/show/UNIT.PROP (absent = the empty value of a unit that never ran)
+case $1 in is-enabled)s=$(cat "$STUB/enabled/$2" 2>/dev/null)||s=disabled;echo "$s";[ "$s" = enabled ];exit;;is-active);;
+ show)shift;p=;while [ $# -gt 1 ];do [ "$1" = -p ]&&{ p=$2;shift;};shift;done;cat "$STUB/show/$1.$p" 2>/dev/null;exit 0;;*)exit 2;;esac
 s=$(cat "$STUB/active/$2" 2>/dev/null)||s=inactive
 echo "$s";[ "$s" = active ]
 """
@@ -87,6 +90,19 @@ class World:
         (self.stub / "enabled").mkdir()
         (self.stub / "active" / f"agi-carry@{NEW}.path").write_text("active\n")      # the renamed post's mail wake, after 4b
         (self.stub / "enabled" / f"agi-carry@{NEW}.path").write_text("enabled\n")
+        (self.stub / "show").mkdir()
+        self.carry = self.root / "etc/agi/carry.env"                                       # 4b's write at 15:01:00Z, the projection started at 15:01:30Z, success
+        self.carry.write_text("AGI_BOX=encryption-town\nAGI_TRUNK=" + "a" * 40 + "\n")
+        self.wrote("20261021150100")
+        self.projected("Wed 2026-10-21 15:01:30 UTC")
+
+    def wrote(self, stamp):
+        t = calendar.timegm((int(stamp[:4]), int(stamp[4:6]), int(stamp[6:8]), int(stamp[8:10]), int(stamp[10:12]), int(stamp[12:14])))
+        os.utime(self.carry, (t, t))
+
+    def projected(self, started, result="success"):
+        (self.stub / "show" / "agi-project.service.ExecMainStartTimestamp").write_text(started + "\n")
+        (self.stub / "show" / "agi-project.service.Result").write_text(result + "\n")
 
     def first_start(self, key=None):
         with open(self.ring, "a") as f:
@@ -112,7 +128,7 @@ def test_a_clean_move_before_the_first_start_is_green_and_ring_new_waits(w):
     assert rc == 0, out
     assert st == {"uid": "ok", "gid": "ok", "old-name-free": "ok", "key-held": "ok", "key-unreadable": "ok", "key-not-in-home": "ok",
                   "ring-old": "ok", "ring-new": "wait", "grep-old": "ok", "old-post-inactive": "ok", "old-boxwake-inactive": "ok",
-                  "new-carry-path": "ok"}, out
+                  "new-carry-path": "ok", "projected": "ok"}, out
 
 
 def test_after_the_first_start_ring_new_needs_one_fresh_open_line_and_wait_becomes_red_under_the_flag(w):
@@ -337,3 +353,55 @@ def test_the_carry_row_has_a_world_only_it_catches(w, tmp_path):
     (w.stub / "enabled" / f"agi-carry@{NEW}.path").unlink()                                 # the move never enabled it
     m = _mutant(tmp_path, "carry(){ [", "carry(){ return 0; [")
     assert w.check(script=m)[1]["new-carry-path"] == "ok" and w.check()[1]["new-carry-path"] == "FAIL"
+
+
+# the projection: agi-project.path was never active on this box (council 17:58Z 10-21), so 4b = `agi.sh host` + `systemctl start agi-project.service`
+@pytest.mark.parametrize("started,result", [
+    ("Wed 2026-10-21 15:00:59 UTC", "success"),     # the last start was BEFORE 4b's carry.env write: the host's /run is the old pin's
+    ("", "success"),                                # never started (an empty ExecMainStartTimestamp, as on a unit that never ran)
+    ("Wed 2026-10-21 15:01:30 UTC", "exit-code"),   # started after the write and failed
+    ("Wed 2026-10-21 15:01:30 UTC", ""),            # no Result at all
+    ("not a time", "success"),                      # an unreadable stamp is never a pass
+])
+def test_MUTANT_a_projection_not_started_after_the_pin_write_or_not_successful_is_red(w, started, result):
+    w.projected(started, result)
+    _red(w.check(), "projected")
+
+
+def test_a_start_in_the_same_second_as_the_write_or_later_is_green(w):
+    w.projected("Wed 2026-10-21 15:01:00 UTC")
+    assert w.check()[1]["projected"] == "ok"
+    w.projected("Thu 2026-10-22 03:00:00 UTC")
+    assert w.check()[1]["projected"] == "ok"
+
+
+def test_a_carry_env_written_after_the_projection_is_red_and_a_missing_one_is_red(w):
+    w.wrote("20261021153000")                                      # a second `agi.sh host` after the start: /run is one pin behind again
+    _red(w.check(), "projected")
+    w.carry.unlink()
+    _red(w.check(), "projected")
+
+
+def test_a_systemctl_that_does_not_answer_is_red_on_the_projected_row_too(w):
+    _exe(w.bin / "systemctl", "#!/bin/sh\nexit 1\n")
+    _red(w.check(), "projected")
+
+
+def test_the_projected_row_has_a_world_only_each_of_its_guards_catches(w, tmp_path):
+    w.projected("Wed 2026-10-21 15:00:59 UTC")                     # started before the write
+    m = _mutant(tmp_path, '[ "$ps" -ge "$pc" ]&&', "")
+    assert w.check(script=m)[1]["projected"] == "ok" and w.check()[1]["projected"] == "FAIL"
+    w.projected("Wed 2026-10-21 15:01:30 UTC", "exit-code")        # started after, failed
+    m = _mutant(tmp_path, '&&[ "$($SYSTEMCTL show -p Result --value agi-project.service 2>/dev/null)" = success ]', "")
+    assert w.check(script=m)[1]["projected"] == "ok" and w.check()[1]["projected"] == "FAIL"
+    w.projected("", "success")                                     # never started: `date -d ""` is today's midnight, which a carry.env from long ago precedes
+    w.wrote("20000101000000")
+    m = _mutant(tmp_path, '[ -n "$ps" ]||return 1;', "")
+    assert w.check(script=m)[1]["projected"] == "ok" and w.check()[1]["projected"] == "FAIL"
+    w.projected("not a time", "success")                           # an unparsable stamp
+    m = _mutant(tmp_path, 'ps=$(date -u -d "$ps" +%s 2>/dev/null)||return 1', 'ps=$(date -u -d "$ps" +%s 2>/dev/null||echo 9999999999)')
+    assert w.check(script=m)[1]["projected"] == "ok" and w.check()[1]["projected"] == "FAIL"
+    w.carry.unlink()                                               # no carry.env to compare against
+    w.projected("Wed 2026-10-21 15:01:30 UTC")
+    m = _mutant(tmp_path, 'pc=$(stat -c %Y "$CARRY" 2>/dev/null)||return 1', 'pc=$(stat -c %Y "$CARRY" 2>/dev/null||echo 0)')
+    assert w.check(script=m)[1]["projected"] == "ok" and w.check()[1]["projected"] == "FAIL"
