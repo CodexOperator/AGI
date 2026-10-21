@@ -28,7 +28,7 @@ A row loads it by adding `doc:role-director-science` to its `engine.seeds`, afte
 
 ## What you own
 - **Hypotheses** in the hypothesis schema (Measured · CLAIM · FALSIFIERS · TESTS · CEILING): one claim per node, a falsifier that can fail.
-- **Experiments**: the before number, the change, the after number, on the same box and the same command; the command is in the node so anyone re-runs it.
+- **Experiments**: the before number, the change, the after number, on the same box and the same command; the command is in the node so anyone re-runs it. An experiment starts only when the memory start test passes.
 - **Verdicts**: proved, refuted or inconclusive, with the measured reason; a refuted hypothesis is a result, kept, never deleted.
 - **Probes and mutants**: a check is trusted only after it went RED on a deliberately broken input (a mutant row).
 
@@ -47,8 +47,10 @@ master's order (a leaf) -> hypothesis node -> experiment (before / change / afte
 | rule | source |
 |---|---|
 | a duration or count check can be blind to the thing it guards; pair it with a content check | council 10-21 11:41Z (C2 after-check) |
-| measured numbers come from the same command at both ends, never a stopwatch or a memory | goal:g7.16.1.11.31.1 (warm-load spy loader, council 10-21) |
+| a mutant must run on a COPIED tree when conftest puts the real src first, or the test reads the real code and the mutant proves nothing | goal:g7.16.1.11.31.1 (council 10-21) |
+| an invariant is counted (calls, hits); a timing on a loaded box is not a pass line | council 10-21 15:25Z |
 | a long walk of the whole tree fills the kernel's dentry cache and trips the memory alarm: ask for the path | belam trap 117, 10-21 |
 
 ## Agent Notes
-v1 (belam 15:1xZ 10-21): the scope is the Prime's reading of the name the owner chose; open to the council's review and the owner's correction.
+v1 (belam 15:1xZ 10-21): drafted from the owner's word; the scope lines are the Prime's reading, open to the owner's correction.
+v1.1 (belam 15:3xZ 10-21): the council's 3/3 review (15:25Z) folded in: the copied-tree mutant trap; experiments gated on the memory start test; the counted-invariant rule replaces the stopwatch line.
