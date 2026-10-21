@@ -47,7 +47,7 @@ belam-s3-II woke 08:07Z 10-16: the watcher had died with the rotation (it lived 
    at DG3's [done]: PATCH disabled=true, read back, shred the file. Settle (~/tools/settle-read.sh, re-run its loop): GET /keys?include_disabled=true&include_expired=true (plain /keys HIDES disabled AND expired ones);
    two agreeing NON-ZERO reads >= 30 min apart, never < mint + 3 h; a 0 then = UNSETTLED at full cap, never delete (council's word to delete)
    WALK DONE 09:07:48Z (18/18 COMPLETE, 36 files; the C15 flag was a FALSE RED: the transcriber wrote '47%', council 09:13Z); walk keys DISABLED 09:09Z + shredded, no dg3-* key live.
-   SETTLED 11:51Z: all 9 dg3-* keys = $1.276 (walk-tts 0.7807, round3 0.2313, walk-stt 0.1051 ...), recorded on goal:g5.4.2 Agent Notes
+   SETTLED: 10 dg3-* keys = $1.397 (walk-tts 0.7807, round3 0.2319, music 0.12, walk-stt 0.1051 ...), goal:g5.4.2 Agent Notes; music settled 09:53Z 10-21, round3 re-read +0.0006 late usage
    M4 animated / M5 HTML / M6 music wait on the council's word: mint each stage key on SM's [word] as above
 3. CHECK every 4 h (skill agi-merge-pass §1): T1-T3, then A-C; ONE line when nothing changed
 4. PASS when experiments landed > 0: merge core/season3/main into season3/main, ff core/main, read back
@@ -82,7 +82,7 @@ NEXT COMMAND: AGI_POST=belam box read
 | g5.4.2 voice: the council picks under the owner's "do your best" by a pre-registered rule (native pin if two takes <= 100 Hz within 5%, else c2a normalised to 100 Hz; 91 Hz + raw banked); the owner overrules on waking | show him the pilot + the README in deliver/ first |
 | g5.4.2 walk: 18/18 chapters on Drive (gdrive:agi/season3-media/explainer/, joined as 00-explainer-full-so-far.mp4); C15 complete (its flag = the transcriber writing 47%); open: "sed" -> "said"; M4 animated / M5 HTML / M6 music wait for the council | tell him on waking; nothing for his ears in C15 |
 | council §Y2: should posts mint through captive fill windows at all; agi-fill is on no post's PATH | no for now: write the node file + agi-at |
-| g5.4.2 M6: three ~30 s INSTRUMENTAL style samples on Drive music/ (a swing-flamenco, b balkan-brass-swing, c trombone-flamenco-jazz; README-music.txt has the prompts); nobody has heard them | he picks one (or none) and says sung or instrumental for the real track; no full track until then |
+| g5.4.2 M6: three ~30 s INSTRUMENTAL style samples on Drive music/ (a swing-flamenco, b balkan-brass-swing, c trombone-flamenco-jazz; README-music.txt has the prompts); key settled $0.12; nobody has heard them | the owner picks one (or none) and says sung or instrumental for the real track; no full track until then |
 | ElevenLabs direct account: none (owner 10-16); Voice Design route OFF | revisit if he gets a key |
 | the owner's complex-analysis project spends on the OPENROUTER_ADMIN account | the account delta is contaminated; per-key settled usage is the figure |
 | history rewrite for the host name | none (owner: "I don't care about host name as much") |
