@@ -163,6 +163,16 @@ AGSH=;pidstop 0
 ok st-pid-a-local-engine-v4-row-with-pid-0-is-not-refused "rc $rc: [pid] lines $(grep -c '^\[pid\]' $T/e) (want 0)" '! grep -q "^\[pid\]" $T/e'
 rep 'pidchk "nothing stopped"' ':';pidstop 1;AGSH=
 ok st-pid-mutant-the-check-dropped-lets-stop-past-a-pid-1-row-RED "rc $rc, [pid] lines $(grep -c '^\[pid\]' $T/e) (clean: refused, rc 1)" '! grep -q "^\[pid\]" $T/e'
+# council 10-21 15:53Z: pidchk FAILS OPEN no more -- a pin with no posts.md, or a row jq cannot parse, is refused naming [pid] (the old `|tr` pipe returned tr's rc, pn="" and PASSED)
+pidbad(){ town;ST;$G -C $M show $PIN:.agi/nodes/.geometry/engine.md>$M/.agi/nodes/.geometry/engine.md;if [ $1 = none ];then rm -f $M/.agi/nodes/.geometry/posts.md;else $G -C $M show $PIN:.agi/nodes/.geometry/posts.md|sed '/"name":"far"/i\  - {"name":"pv","parent":"sm",'>$M/.agi/nodes/.geometry/posts.md;fi;P5=$(cm pidbad$1);echo "AGI_TRUNK=$P5" >$T/carry5;s5=$(snap);CARRYF=$T/carry5 XENV= run stop >$T/o 2>$T/e;rc=$?;CARRYF=;}
+AGSH=;pidbad none
+ok st-pid-b-a-pin-with-no-posts-md-is-refused-by-stop-naming-pid "rc $rc: $(grep -o '\[pid\] cannot read[^:]*' $T/e|head -1|cut -c1-80); the town unchanged: $([ "$(snap)" = "$s5" ]&&echo yes||echo NO)" '[ $rc = 1 ]&&grep -q "^\[pid\] cannot read posts.md at" $T/e&&[ "$(snap)" = "$s5" ]'
+AGSH=;pidbad garble
+ok st-pid-b-a-garbled-posts-row-is-refused-by-stop-naming-pid "rc $rc: $(grep -o '\[pid\] cannot parse[^:]*' $T/e|head -1|cut -c1-80); the town unchanged: $([ "$(snap)" = "$s5" ]&&echo yes||echo NO)" '[ $rc = 1 ]&&grep -q "^\[pid\] cannot parse a posts.md row at" $T/e&&[ "$(snap)" = "$s5" ]'
+rep '||die "[pid] cannot read posts.md at $PIN: $1"' '';pidbad none;AGSH=
+ok st-pid-b-mutant-the-read-check-dropped-passes-a-pin-with-no-posts-md-RED "rc $rc, [pid] lines $(grep -c '^\[pid\]' $T/e) (clean: refused, rc 1)" '! grep -q "^\[pid\]" $T/e'
+rep '||die "[pid] cannot parse a posts.md row at $PIN: $1"' '';pidbad garble;AGSH=
+ok st-pid-b-mutant-the-parse-check-dropped-passes-a-garbled-row-RED "rc $rc, [pid] lines $(grep -c '^\[pid\]' $T/e) (clean: refused, rc 1)" '! grep -q "^\[pid\]" $T/e'
 $G -C $M show $PIN:.agi/nodes/.geometry/posts.md>$M/.agi/nodes/.geometry/posts.md   # the pid rows' fixture row goes: later rows build on the tree's own posts.md
 # a row that lacks `crons`: the crontabs keep their block, the stop says so and fails (F1: delete `crons` from the row -> crontab diff > 0)
 town;ST;$G -C $M show $PIN:.agi/nodes/.geometry/engine.md|sed 's/^town	start	main host posts crons units blast	agi.sh$/town	start	posts units blast	agi.sh/'>$M/.agi/nodes/.geometry/engine.md;P3=$(cm nocrons);echo "AGI_TRUNK=$P3" >$T/carry3
@@ -245,7 +255,7 @@ mkdir -p $T/notrepo;town;XENV=AGI_MAIN=$T/notrepo run stop >$T/o 2>$T/e;rc=$?
 ok st-R5-an-unreadable-main-names-git-not-the-matrix "MAIN is not a repo: rc $rc (want 1), stderr: [$(sed -n 1p $T/e|cut -c1-70)] (want git's own message and '[git]', not '[matrix]')" '[ $rc = 1 ]&&grep -q "^\[git\] cannot read" $T/e&&grep -qi "not a git repository" $T/e&&! grep -q "^\[matrix\]" $T/e'
 ok st-R5-every-read-trusts-main-by-the-command-line "g() is git -c safe.directory=\$MAIN: $(grep -c 'git -c safe.directory="$MAIN" -C "$MAIN"' $AG) site (want 1)" '[ "$(grep -c "git -c safe.directory=\"\$MAIN\" -C \"\$MAIN\"" $AG)" = 1 ]'
 rep ' g rev-parse HEAD >/dev/null||die "[git] cannot read $MAIN as $(id -un) (git said the above): nothing stopped"' '';XENV=AGI_MAIN=$T/notrepo run stop >$T/o 2>$T/e
-ok st-R5-mutant-no-preflight-is-RED "without the preflight the wrong cause surfaces: [$(sed -n 1p $T/e|cut -c1-60)] (want a '[matrix]' line: the clean row says '[git]')" 'grep -q "^\[matrix\]" $T/e'
+ok st-R5-mutant-no-preflight-is-RED "without the preflight the wrong cause surfaces: [$(sed -n 1p $T/e|cut -c1-60)] (want a '[matrix]' or '[pid]' line, the wrong cause: pidchk reads posts.md before the matrix; the clean row says '[git]')" 'grep -qE "^\[(matrix|pid)\]" $T/e'
 AGSH=
 # R6: a stale town.state (a stopped line, but the town is up) is refused by stop; the watch checks while posts run
 town;ST;XENV= run stop >/dev/null 2>&1;rm -rf $T/wants/*;cp $T/state $T/state.keep;echo agi-post@dg1.service >>$SD/active;s0=$(snap);XENV= run stop >$T/o 2>$T/e;rc=$?
