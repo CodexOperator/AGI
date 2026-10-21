@@ -91,7 +91,7 @@ cadences:
     user: agi-belam
     why_box: the SENDING seat's drain for belam's spool (goal g7.16.1.11.20.2 council 3/3 21:3xZ, one spool per sending seat) runs in belam's own uid on the box where its post tree and key live; the root agi-quiet-watch unit only appends a plain line to belam's ~/alarm.spool and never signs, this row signs and box-sends it to sanctuary-master (belam to SM is inside the matrix) exactly once
     cmd: python3 {repo_root}/extensions/agi/bin/alarm_spool.py drain --seat belam --max-tries 60
-crons_live: false
+crons_live: true
 edited_by: a00-b465ec27
 season: 1
 services:
