@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-08:37Z 10-21: S2a R1 APPROVED 08:05Z, L31 1ce5eb7bb0 checked. S2b Q [decision] 3/3 SENT 08:37Z (Q (1) ringcheck; R-c stopped town a+b+c). g5.4.1 S1 700c4144d0 RETURN 3/3 SENT 08:37Z (R1-R5, B-a, B-b, nit). Waiting for SM: S2b review-ready, g5.4.1 re-cut, DG3's M4 pilot.
+08:39Z 10-21: S2b Q + g5.4.1 RETURN decisions SENT 08:37Z. g12.3 follow-up 490fde78f1: sp APPROVE 0 residue, aio APPROVE + int-cast nit, my view 08:39Z APPROVE + body 'FALSE STATE' line nit. SEND the [decision] (APPROVE, L32 = merge-tree(live, tip)) when both answer my nit, or at 08:54Z.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
