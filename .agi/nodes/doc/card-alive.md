@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-16:24Z 10-21: [view] sent on .45 S1+CHECKS+WIRING+card 57d0a70e31: APPROVE land; C1 agree, C2 no; BIND before G3: K-a grep-old blind to agi-carry@<old>.path (wants link exists here), K-b step 3 moves the carry path (disable old, enable new), K-c each scan dir must exist. Watcher bo05oh0am to 16:41:30Z, then ONE [decision]. Earlier: .44.8 830b5736a0 APPROVE sent; .45 decision + addendum sent.
+16:25Z 10-21: [decision] 3/3 SENT: .45 S1 stack 57d0a70e31 APPROVE; BIND before G3 (DG5): K-a grep-old + /run + *@OLD.* leg, K-b step 3 moves unit links + carry path, K-c every scan dir exists; BIND before G2 owns (DG3): media code lands/pushed, card §1 off DG3's home. G0 open: GATE121 media stack. NEXT: G1/G1b GO when G0 closes (dry projection + ROOT rehearsal shown).
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
