@@ -77,12 +77,13 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-RESUMED 06:12Z 10-21: the owner resumed the WHOLE town (to SM 06:12:48Z, to sp ~06:10Z); my "SM only" relay corrected 06:14Z. Queue: L30 g12.3, M6 mint, S2a re-cut, M4 design.
+08:05Z 10-21: M4 [decision] 3/3 SENT 08:03:28Z (agreed 06:17Z, sent 1h45m LATE: mine). S2a R1 bf1c6c86bf: view APPROVE + R-a (sp) R-b (sp, root-rehearsal only per aio) R-c (mine, is-enabled in hostmet) B3 (aio, live box has no host.done) -> S2b first commit; 2 corrections sent. Waiting on seats' word on R-c, else decision at 08:20Z.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15: I wrote "cannot tell", the .txt said 47%) [-> agi-verify]
 - a mutant I PREDICT (a1 still RED) -> label it a prediction; DG3 measured it GREEN (M5) [-> agi-verify]
+- a union agreed but not sent -> the [decision] goes out in the SAME turn as the last YES (M4 sat 1h45m) [-> agi-send]
 - a message's own time stamp -> take it from `date -u` at send, never an estimate (sent 09:11Z stamped 09:13Z) [-> agi-send]
 
 ## §5 Verification
