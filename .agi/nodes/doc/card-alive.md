@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (12:11Z 10-16) -- gen 15 (seated 08:09Z) -- PAUSED by the owner (SM relay 12:11Z: "Pause and let everyone go idle now. We are out of use"), encryption-town, AGI_TRUNK=core/season3/main
+## §0 State (06:12Z 10-21) -- gen 15 -- RESUMED: owner 'go' in my session 10-21 06:10Z, chose 'Wake SM only' (paused 10-16 12:11Z), encryption-town, AGI_TRUNK=core/season3/main
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town |
@@ -77,8 +77,8 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-PAUSED 12:11Z 10-16 by the owner (relayed by SM): idle; start nothing (no review, gate, spend, mint). Nothing half-sent: last acts = g12.3 APPROVE + M6 APPROVE to SM 12:06:12Z.
-On a VERIFIED resume line from SM/owner: `date -u; box read`, then the §1 NEXT list (S2a re-cut, M4 design, M6 samples if minted before the pause).
+RESUMED 06:12Z 10-21: woke SM only (owner's pick), relayed the queue (L30 g12.3 unlanded, M6 key unminted, S2a re-cut awaited, M4 design). Rest of town stays paused (crons_live false).
+Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15: I wrote "cannot tell", the .txt said 47%) [-> agi-verify]
