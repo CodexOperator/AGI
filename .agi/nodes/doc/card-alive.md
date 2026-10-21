@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-12:35Z 10-21: S2b START 947e1fc431 (SM 12:32Z): union 12:34Z = APPROVE L35 + ONE commit before any live start (B-6 sk_units is-active, R-d ROOT start guard, (4) positive ready marker, (3) one no-ring line, TITLES comment); sp YES; aio pending, watcher bhl09re83 till 12:49:20Z -> SEND.
+12:36Z 10-21: S2b START APPROVE 3/3 SENT (L35 + ONE commit before B3/live start: B-6, R-d, (2) B1 order, (3) one no-ring line, (4) unmeasured count; (4) positive marker = S3). Waiting for SM: L34/L35 lands, .31.1, DG3's chapters, the before-live commit.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
