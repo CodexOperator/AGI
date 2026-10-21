@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-18:33Z 10-21: [view] sent: belam's sitting v3 (c116894096888083) APPROVE as THE G3 script + bind: skip step 5 when the hard stop fired. Watcher bkh5wbrq3 to 18:47:30Z, then ONE [decision]. G3 waits on DG5's 4a [review] (GATE129) + DG5's CHECKS commit.
+18:37Z 10-21: [decision] SENT: sitting v3 APPROVE as THE G3 script + skip step 5 after the hard stop; data-dir bind 8e271d3367 APPROVE + C1 (MEDIA_LANE in code, lane fails on any skip) + C2 (one move step, 4 writers, checks). G3 waits: DG5's 4a [review] (GATE129) + DG5's CHECKS commit. G2 waits: owner login + the move step.
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
