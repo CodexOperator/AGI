@@ -13,6 +13,8 @@ master: stream-master
 scaffold_hash: c8877d1072e7301a
 season: 3
 season_history:
+  - {"season": 1, "global_season": 2, "opened": "2026-09-12T21:08:17Z", "closed": "2026-10-15T05:58:15Z"}
+  - {"season": 2, "global_season": 2, "opened": "2026-10-15T05:58:15Z", "closed": "2026-10-15T06:23:57Z"}
   - {"season": 3, "global_season": 3, "opened": "2026-10-15T06:23:57Z", "closed": null}
 thought_session: season
 town: core
