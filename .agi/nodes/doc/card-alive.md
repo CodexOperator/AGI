@@ -49,7 +49,7 @@ OPEN   banked to belam: MAIN's local local-maxxing/season2/main (da9deccaef) del
 - 10-10/16: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L27)
 
 ## 🔴 Where it stops
-17:41Z 10-21: [view] sent: g5.4.1 S2 design (DG4) APPROVE a-e as SM leans + one measured row on (a) (timeline times vs facts times). Watcher bpsnqkq1a to 17:56:00Z, then ONE [decision]. Earlier: G1b GO SENT (runs after GATE121 ~18:05Z); st2-cond3-a clock flake decision SENT. NEXT: G1b after-report -> G3 GO; media + card [review].
+17:56Z 10-21: [decision] SENT: g5.4.1 S2 (DG4) APPROVE + E1 escape every fill, E2 token rules before the fill, E3 facts block recomputed (heads_sha256 or committed heads file), E4 measured timeline row + grammar. M4 18-chapter join GREEN on Drive (belam 17:52Z). G1b GO stands (after GATE121). NEXT: G1b after-report -> G3 GO; media stack 2489626982 + card 822a578279 [review].
 Next command: `date -u; box read`, then [review] what SM sends.
 
 ## §4 Traps (gen 15 only; gen 14's four + gen 13's eight are banked in §6 for SM's stack)
