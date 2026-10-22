@@ -432,3 +432,16 @@ def test_loop_prune_names_a_dead_kid_whose_checkout_is_present(repo: Path, capsy
     assert "left alone: a00-here1 -> checkout present" in out
     assert "worktree drop (dead kid): registration of a00-here1" not in out
     assert wt.resolve() in _worktree_paths(repo) and wt.is_dir()
+
+
+# ---- FF4 (goal:g7.16.1.11.45.1): the summary counts only the kids DROPPED ----
+def test_loop_prune_summary_counts_only_dropped_kids(repo: Path):
+    """A locked dead kid is left alone, so it is not "pruned": with one
+    droppable kid (DEAD_KID) and one locked kid the summary says 1, not 2.
+    RED on the count-every-listed-kid code (it said 2)."""
+    _lock_a_dead_kid(repo)
+    res = _run_cli(repo / ".agi", "--apply")
+    assert res.returncode == 0, res.stdout + res.stderr
+    assert f"left alone: {LOCKED_KID} -> registration locked" in res.stdout
+    last = res.stdout.strip().splitlines()[-1]
+    assert last.endswith("1 dead kid worktree(s) pruned"), last
