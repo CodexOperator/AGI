@@ -1877,7 +1877,7 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
             elif (ent / "locked").exists():
                 outcome = "left (locked)"
             else:
-                outcome = "left (checkout not provably gone)"
+                outcome = "left (not provably gone, or drop failed)"
             wt.unlink()
             _watch_log(f"[sweep] unlinked {wt.name}: RAM target gone; "
                        f"{outcome}")

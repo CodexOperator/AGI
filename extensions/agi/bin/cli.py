@@ -5129,11 +5129,13 @@ def cmd_loop_prune(args: argparse.Namespace) -> int:
     # so a merged loop a dead kid held is no longer considered checked out
     # (a live post/main worktree is never touched; an unmerged branch is
     # never reached -- its worktree is live by definition).
+    dropped = 0  # the True returns of the drop: the ONLY kids the summary counts
     if dead_kids:
         for p in dead_kids:
             if locations.path_gone(p) is False:
                 continue  # checkout present: named "left alone" above
             if locations.drop_dead_worktree_admin(repo, p):
+                dropped += 1
                 continue
             ent = locations.worktree_admin_entry(repo, p)
             if ent is not None and (ent / "locked").exists():
@@ -5173,8 +5175,7 @@ def cmd_loop_prune(args: argparse.Namespace) -> int:
               f"{len(refused)} refused", file=sys.stderr)
         return 1
     print(f"loop-prune: {len(merged)} merged loop branch(es) pruned, "
-          f"{sum(1 for p in dead_kids if locations.path_gone(p) is not False)}"
-          f" dead kid worktree(s) pruned")
+          f"{dropped} dead kid worktree(s) pruned")
     return 0
 
 
