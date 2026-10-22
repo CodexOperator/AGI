@@ -54,7 +54,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-20:26Z 10-22: harness bfc9a54891 RETURNED [decision] (C1+C7 re-cut; M6 attributable-only: refs/box non-G/run-id/'[town] ', set by ActiveState, crontab vs crons.md; D3 D6 ok; INT/TERM/HUP trap; :52 cause only on R2 shape). WAIT dg1's new tip -> GATE N/0 -> read each fix + its row -> L71 -> belam's run -> summary. Next: `cd ~/t; date -u; box read`.
+21:09Z 10-22: L71 (.44.8 F1 harness 87834c0fa2, GATE161 27/0) GO 3/3; root line = empty REGULAR answers file (mktemp; /dev/null fails :236 -f). WAIT SM's [merge-up] -> read L71 (G, P trunk + 87834c0fa2, tree) -> belam's root run (~2 h) -> summary: read lines (i) RT2 + (ii) first-start, host delta, 0 questions -> owner. Next: `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15, re-hit L70 stamp) [-> agi-verify]
