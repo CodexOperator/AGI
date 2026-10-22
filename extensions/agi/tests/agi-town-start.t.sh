@@ -77,7 +77,7 @@ cat >$SH/box <<'EOF'
 # town up|down SHA: one commit per post of the box on refs/box/belam/<p> (the message is the town line), refs/held/<p>/belam the same commit (the post read it); every call logged
 [ "$1" = town ]||exit 2;echo "$*" >>$STUB_SD/box.calls;v=$2;sha=$3
 for p in $(git show $AGI_TRUNK:.agi/nodes/.geometry/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r --arg x "$AGI_BOX" 'select(has("harness") and .box==$x)|.name');do
- c=$(git -c user.name=belam -c user.email=belam@agi commit-tree -m "[town] $v $sha" $(git rev-parse HEAD^{tree}) -p HEAD);git update-ref refs/box/belam/$p $c;git update-ref refs/held/$p/belam $c;done
+ c=$(git -c user.name=belam -c user.email=belam@agi commit-tree -m "[town] $v $sha" $(git rev-parse HEAD^{tree}) -p HEAD);git update-ref refs/box/belam/$p $c;git update-ref refs/held/$p/belam $c;echo "$v $p">>$STUB_SD/box.posts;done
 EOF
 printf '#!/bin/sh\nexit 0\n' >$SH/crontab;for t in strace script claude pi python3x;do :;done;for t in strace script claude;do printf '#!/bin/sh\nexit 0\n' >$SH/$t;done;printf '%s\n' '#!/bin/sh
 [ -z "$STUB_NOPROJ" ]||exit 0
@@ -238,6 +238,24 @@ st >$T/o 2>$T/e;rc=$?;sa=$(ls $T/state.* 2>/dev/null|grep -v stopped|head -1)
 ok st2-RT-start-after-a-stop-ends-0-with-town-state-moved-aside-whole "rc $rc; $T/state gone: $([ ! -e $T/state ]&&echo yes||echo NO); aside: $(ls $T|grep '^state\.'|tr '\n' ' ')" '[ $rc = 0 ]&&[ ! -e $T/state ]&&[ ! -e $T/starting ]&&[ -n "$sa" ]&&cmp -s "$sa" $T/state.stopped'
 ok st2-RT-the-recorded-running-set-and-the-agi-boot-are-back "active posts: $(grep -c '^agi-post@' $SD/active); agi-boot: $(grep -cx agi-boot.service $SD/enabled)" '[ "$(grep -c "^agi-post@" $SD/active)" = 3 ]&&grep -qx agi-boot.service $SD/enabled&&grep -qx "town up '$PIN'" $SD/box.calls'
 ok st2-RT-the-stopped-unit-agi-quiet-watch-timer-came-back-enabled "enabled: $(grep -c quiet-watch $SD/enabled)" 'grep -qx agi-quiet-watch.timer $SD/enabled'
+# ===== council 10-22 (goal:g7.16.1.11.44.8 F0): the STRICT round trip. A fixture town up -> agi.sh stop -> agi.sh start gives the SAME active set (agi-post@ units and the rest), the SAME crons (`crons.py show` read before and after; the crons really went down in between), and the town line ONCE per active post (the stub box logs one `<up|down> <post>` line per post). Three mutants, each RED. =====
+# rt2 [A B]: the whole round trip on a fresh world; A B (optional) is ONE edit of agi.sh (pm) applied AFTER the clean first start, so the setup is never the mutant. Every result is a global: rcs rcu mid set0 set1 en0 en1 sh0 sh1.
+crs(){ STUB_SD=$SD python3 $T/bin/crons.py show;}
+rt2(){ world;hact >/dev/null 2>&1;login;st >/dev/null 2>&1;up3;printf 'agi-carry@a.path\n' >>$SD/active;for p in p1 p2 p3;do mkdir -p $T/h/$p;done
+ [ $# = 0 ]||pm "$1" "$2"
+ set0=$(sort $SD/active|tr '\n' ' ');en0=$(sort $SD/enabled|tr '\n' ' ');sh0=$(crs);rm -f $SD/box.calls $SD/box.posts;: >$SD/crons.calls
+ stp >$T/o 2>$T/e;rcs=$?;mid=$(cat $SD/cronn 2>/dev/null)
+ st >$T/o2 2>$T/e2;rcu=$?
+ set1=$(sort $SD/active|tr '\n' ' ');en1=$(sort $SD/enabled|tr '\n' ' ');sh1=$(crs);AGSH=;}
+upn(){ grep -cx "$1 $2" $SD/box.posts 2>/dev/null;}
+rt2
+ok st2-RT2-same-set-same-crons-one-town-line-each "stop rc $rcs, start rc $rcu (want 0 0); crons after the stop: $mid (want 0), remove calls: $(grep -c '^remove' $SD/crons.calls) (want >= 1), show before [$sh0] after [$sh1] (want the same, up to date); active set same: $([ "$set0" = "$set1" ]&&echo yes||echo NO) ($(echo $set1|wc -w|tr -d ' ') units), enabled same: $([ "$en0" = "$en1" ]&&echo yes||echo NO); town lines up/down per post: p1 $(upn up p1)/$(upn down p1) p2 $(upn up p2)/$(upn down p2) p3 $(upn up p3)/$(upn down p3) (want 1/1 each), box.posts lines $(wc -l <$SD/box.posts|tr -d ' ') (want 6)" '[ $rcs = 0 ]&&[ $rcu = 0 ]&&[ "$mid" = 0 ]&&[ "$(grep -c "^remove" $SD/crons.calls)" -ge 1 ]&&[ "$sh0" = "status: up to date" ]&&[ "$sh1" = "$sh0" ]&&[ -n "$set0" ]&&[ "$set0" = "$set1" ]&&[ "$en0" = "$en1" ]&&[ "$(wc -l <$SD/box.posts|tr -d " ")" = 6 ]&&for p in p1 p2 p3;do [ "$(upn up $p)" = 1 ]&&[ "$(upn down $p)" = 1 ]||exit 1;done'
+rt2 'for p in $(nostart);do gate_wait' 'for p in $(nostart|grep -vx p3);do gate_wait'
+ok st2-RT2-mutant-start-drops-a-post-RED "start leaves p3 down: start rc $rcu (clean 0), p3 in the set after: $(echo $set1|grep -c 'agi-post@p3') (clean 1), set same: $([ "$set0" = "$set1" ]&&echo yes||echo NO) (clean yes)" '[ "$set0" != "$set1" ]&&! echo "$set1"|grep -q "agi-post@p3"'
+rt2 '$CR remove --root "$MAIN" --user $u||die "[crons] remove failed for $u"' ':'
+ok st2-RT2-mutant-stop-leaves-a-cron-line-RED "stop with the cron remove dropped: stop rc $rcs (clean 0), crons after the stop: $mid (clean 0)" '[ "$mid" != 0 ]'
+rt2 '$BOXB town up $PIN)||die' '$BOXB town up $PIN&&sudo -H -u agi-belam env AGI_POST=belam AGI_BOX=$BOX AGI_TRUNK=$TB $BOXB town up $PIN)||die'
+ok st2-RT2-mutant-double-town-line-RED "a start that sends the town line twice: up lines for p1 $(upn up p1) (clean 1), p2 $(upn up p2), p3 $(upn up p3)" '[ "$(upn up p1)" = 2 ]&&[ "$(upn up p2)" = 2 ]&&[ "$(upn up p3)" = 2 ]'
 # S8 mutants: an enable that leaves the unit disabled must make start die; the read-back dropped lets it through
 for how in units boot;do world;hact >/dev/null 2>&1;login;st >/dev/null 2>&1;up3;stp >/dev/null 2>&1
  if [ $how = units ];then st STUB_ENABLE_NOOP=agi-quiet-watch.timer >$T/o 2>$T/e;rc=$?;else st STUB_ENABLE_NOOP=agi-boot.service >$T/o 2>$T/e;rc=$?;fi
