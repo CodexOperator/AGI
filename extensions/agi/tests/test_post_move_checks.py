@@ -650,17 +650,45 @@ def test_a_core_hooksPath_set_through_include_path_is_read(w, tmp_path):
     assert w.check(script=no_inc)[1]["sweep"] == "ok", "MUTANT: --includes removed"
 
 
-def test_a_SYMLINKED_hook_in_a_hooks_dir_is_scanned_grep_R_on_the_hooks_dirs_only(w, tmp_path):
-    """(v): grep -R on the hooks dirs. A symlinked hook file is skipped by -r (0 hits) and read by -R. MUTANT: -R -> -r -> ok."""
+def _hk_world(w):
     (w.home / "hk").mkdir()
     (w.home / "notes").mkdir()
+    (w.home / ".gitconfig").write_text(f"[core]\n\thooksPath = {w.home}/hk\n")
+
+
+def test_a_SYMLINKED_hook_FILE_in_a_hooks_dir_is_EXECUTED(w, tmp_path):
+    """(v', council 08:3xZ) the hooks dir is read ONE level deep: `grep "$hd"/*`, no -r. A symlinked hook FILE named on the command line is
+    followed. MUTANT 1: the glob reduced to the dir with -r -> a symlinked file is skipped (the original L65 bug) -> ok."""
+    _hk_world(w)
     (w.home / "notes" / "real-hook").write_text(f"#!/bin/sh\n. {OLDHOME(w)}/lib\n")
     (w.home / "hk" / "pre-commit").symlink_to(w.home / "notes" / "real-hook")
-    (w.home / ".gitconfig").write_text(f"[core]\n\thooksPath = {w.home}/hk\n")
     rc, st, out = w.check()
     assert st["sweep"] == "FAIL" and "EXECUTED: hk/pre-commit" in out, out
-    m = _mutant(tmp_path, 'grep -RIlE -e "$pat" "$hd"', 'grep -rIlE -e "$pat" "$hd"')
+    m = _mutant(tmp_path, 'grep -IlE -e "$pat" "$hd"/*', 'grep -rIlE -e "$pat" "$hd"')
     assert w.check(script=m)[1]["sweep"] == "ok"
+
+
+def test_a_symlink_to_a_DIR_in_a_hooks_dir_is_neither_executed_nor_walked(w, tmp_path):
+    """MUTANT 2: -R restored -> the symlinked dir is walked and its file counts as EXECUTED (the dentry-slab trap)."""
+    _hk_world(w)
+    (w.home / "notes" / "tree").mkdir()
+    (w.home / "notes" / "tree" / "deep").write_text(f"#!/bin/sh\n. {OLDHOME(w)}/lib\n")
+    (w.home / "hk" / "linked-dir").symlink_to(w.home / "notes" / "tree")
+    rc, st, out = w.check()
+    assert st["sweep"] == "ok" and "EXECUTED" not in out, out
+    m = _mutant(tmp_path, 'grep -IlE -e "$pat" "$hd"/*', 'grep -RIlE -e "$pat" "$hd"')
+    assert w.check(script=m)[1]["sweep"] == "FAIL"
+
+
+def test_a_file_in_a_SUBDIR_of_a_hooks_dir_is_not_executed(w, tmp_path):
+    """git runs hooks only at <hooksdir>/<name>. MUTANT 3: -r restored -> the file in a subdir counts."""
+    _hk_world(w)
+    (w.home / "hk" / "sub").mkdir()
+    (w.home / "hk" / "sub" / "x").write_text(f"#!/bin/sh\n. {OLDHOME(w)}/lib\n")
+    rc, st, out = w.check()
+    assert st["sweep"] == "ok" and "EXECUTED" not in out, out
+    m = _mutant(tmp_path, 'grep -IlE -e "$pat" "$hd"/*', 'grep -rIlE -e "$pat" "$hd"')
+    assert w.check(script=m)[1]["sweep"] == "FAIL"
 
 
 def test_a_hooks_dir_outside_the_home_that_names_the_old_home_is_executed_too(w, tmp_path):

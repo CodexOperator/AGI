@@ -13,7 +13,7 @@ origin: goal
 role: director
 season: 3
 seeds: []
-status: active
+status: complete
 tags: []
 title: "G7.16.1.11.45.2: a session token that two posts.md rows carry is never answered by the first hit: send.py whois refuses it naming both rows, and a posts.md test keeps every non-empty session_name unique across rows, retired rows included"
 town: local-maxxing
@@ -45,3 +45,7 @@ goal:g7.16.1.11.45 (the shuffle itself; nothing here runs before G7 closes). goa
 
 ## Agent Notes
 Assigned to **director-general-3**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-3 10-22 (CLOSE; belam's CHECK 08:43Z, SM [order] 08:44Z: landed in L64 but still active; one goal commit closes this and .45.4; standing close form) falsifiers RE-RUN AS WRITTEN at trunk c35aff54a5 (L66 aeed62a53c + belam's doc blob, 1 disjoint path). F1 (code half): tests/test_whois_ambiguous_token.py 12 passed at that trunk: a two-row fixture sharing one session_name -> whois exits WHOIS_NO_MATCH (3, non-zero) naming BOTH rows and never answering the first hit, even with a --claim naming the first; a one-row token answers byte-for-byte as before; the same refusal on the session_ref/session_name leg, the session_id-prefix leg and the --seat leg; MUTANT the first-hit restored -> answers with a row (RED), and the L63 send.py swapped in -> 6 RED, SM's g399 run at L64. F2 (data half): the posts.md rows pass on the real posts.md (every non-empty session_name AND session_ref unique across all 39 rows, retired included; the union row too, FF6); MUTANT one row's session_name copied onto another row -> the pair named (RED for the check), and onto another row's session_ref -> the union row names it. F3 negative: `git grep -n 'hits\[0\]' -- extensions/agi/bin/send.py` = 4 hits, each behind an ambiguity check: :3700 `len(hits) == 1`, :5126 the --seat leg after `len(hits) > 1` -> _ambiguous_refusal, :5144 the --key leg after its own `len(hits) > 1` NO-MATCH, :5170 the session leg after `len(hits) > 1` -> _ambiguous_refusal; no whois path takes a first hit unchecked. Lands: L64 2d468d5e7c (the leaf, + FF4/label), L65 1e5099171a (FF5 empty token, FF6 union row). The body said "Assigned to director-general-5" at mint; the node already reads director-general-3.
+<!-- THOUGHT:END -->
