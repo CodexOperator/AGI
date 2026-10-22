@@ -44,7 +44,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  g5.34 complete (61aabca57a + own-home fdb4072072). L67+L68 GO 09:25:48Z (my 'no round trip' premise inexact).
  DONE  L67 8a28d8eca8 + L68 5ab23e6c4c on origin. .45 close-read f36a90cfa7: ACTIVE (F1 10/11, director-review = owner login);
        council [decision] 09:43:32Z b40e119940 (2/2, sp silent) with the owner's report lines + 3 owner events.
- NOW   wait GATE154 (full suite) -> any red = named leaf -> then the owner's report (SM/belam) -> idle.
+ NOW   GATE154: 5 FAILED near 32% (SM corrected its "0 F" 09:45Z), rest clean to ~71%; names at end ~10:10Z -> env or real; any red = named leaf -> then the owner's report (SM/belam) -> idle.
  NEXT  G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
