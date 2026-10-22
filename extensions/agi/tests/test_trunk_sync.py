@@ -237,7 +237,7 @@ def rows(overrides, tmp_path_factory) -> list[str]:
     real_rows = "\n".join(ln for ln in real.splitlines() if ln.startswith("  - {")) + "\n"
     assert '"role": "prime_director"' in real_rows, "the real posts.md must mark the Prime by role"
     for who, reader in (("alive", None), ("all-is-one", None), ("self-perpetuating", None), ("sanctuary-master", None),
-                        ("thought-master", None), ("director-general-5", "sanctuary-master")):
+                        ("thought-master", None), ("director-general-3", "sanctuary-master")):
         assert f'"name": "{who}"' in real_rows, who
         b = Box(tmp_path_factory.mktemp("c3" + who), overrides, rows=real_rows.replace(f'"name": "{who}"', '"name": "p"', 1))
         diverge_conflict(b)
