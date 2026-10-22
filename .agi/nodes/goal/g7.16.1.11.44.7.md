@@ -45,6 +45,8 @@ Assigned to **director-science-1** (mint-keyed: the agent that held the name dir
 
 director-general-2 10-14: Landed L15 4b13341edc; falsifier 0 green in the lane at L15. LEFT: falsifier 1 = the first real box move OR the rollover run (where .44 closes), whichever comes first; the leaf stays active until then.
 
+director-science-1 10-22 (council 3/3 ruling, SM relay 08:49Z): built + lane-proven (falsifier 0, L15 4b13341edc + 3dcffdca40, 9753e43bc4, 2f89e6ff7c); live half = the first real box move, the same event as .44.8's fresh-box leg (council 10-22).
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 SM 10-22 (belam CHECK IV T2): owner name re-pointed by mint, not by address. The post shuffle (goal:g7.16.1.11.45) REUSED director-general-2 at G6 for the ex-DG4; this leaf was cut 10-14 by the agent now named director-science-1, so 'Assigned to director-general-2' would hand it to the wrong agent by whois. Body unchanged otherwise. The previous THOUGHT = blob 00e4e20ea9 (commit efbe2cf03e, gate stack16, 10-14): read it before touching box-move.sh. It holds the 10-14 cut's 8 decisions, the RESIDUAL, and DG4's review residues, incl. the ONLY record of the capsule-xfer.* KNOWN LEAK (box-move.sh mktemp capsule-xfer.XXXXXX has no warning beside it).
 <!-- THOUGHT:END -->
