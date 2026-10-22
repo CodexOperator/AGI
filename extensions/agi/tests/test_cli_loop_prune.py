@@ -298,10 +298,10 @@ def test_loop_prune_apply_prunes_dead_kid_keeps_post_worktree(repo: Path):
     assert dead not in wts, "dead kid worktree must be pruned"
     assert post in wts, "live POST worktree must never be pruned"
     assert post.is_dir(), "post worktree checkout dir must survive"
-    assert f"[APPLY] worktree prune (dead kid): git worktree prune {DEAD_KID}" \
+    assert f"[APPLY] worktree drop (dead kid): registration of {DEAD_KID}" \
         in res.stdout, res.stdout
     # the post worktree is never named as anything to prune
-    assert f"worktree prune" not in [
+    assert f"worktree drop" not in [
         ln for ln in res.stdout.splitlines() if POST_WT in ln]
 
 

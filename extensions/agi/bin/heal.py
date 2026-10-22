@@ -1776,8 +1776,9 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
       (5) the worktree directory is older than the grace
           (`reaper.worktree_grace_min`, default 30; `.agi/config.json` is
           read, never edited).
-    Removal is `git -C <main> worktree remove <wt>` WITHOUT `--force`, then
-    `git worktree prune`; the `loop/...` branch is KEPT (refs are history).
+    Removal is `git -C <main> worktree remove <wt>` WITHOUT `--force` (that
+    already deletes the admin dir; no prune follows); the `loop/...` branch is
+    KEPT (refs are history).
     `--dry-run` logs the same `[sweep] removed` lines and removes nothing.
     Logs one `[sweep]` line per action and a per-pass summary. Never raises
     into the watch loop. Returns `(removed, refused, kept)`."""
@@ -1865,8 +1866,10 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
                 and wt.name not in live_ids:
             # goal:g7.16.1.5.4 layout: a RAM worktree behind a symlink whose
             # target is gone (the tmpfs emptied at a reboot) -- the branch
-            # keeps every commit; prune the record, unlink the link.
-            _git(["worktree", "prune"], main_checkout)
+            # keeps every commit; drop ONLY this link's registration (one
+            # whose gitdir names the gone target), then unlink the link.
+            locations.drop_dead_worktree_admin(
+                main_checkout, Path(os.path.join(wt.parent, os.readlink(wt))))
             wt.unlink()
             _watch_log(f"[sweep] unlinked {wt.name}: RAM target gone")
             continue
@@ -2048,7 +2051,7 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
             _watch_log(f"[sweep] refused {agent_id}: remove failed"
                        f" ({' '.join((rm_err or [''])[0].split())[:200] or 'no git reason'})")
             continue
-        _git(["worktree", "prune"], main_checkout)
+        # `worktree remove` rc 0 already deleted the admin dir: no prune.
         _watch_log(f"[sweep] removed {agent_id} "
                    f"iter={iter_name} base={base}")
         removed += 1

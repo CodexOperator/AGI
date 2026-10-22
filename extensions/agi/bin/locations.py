@@ -282,6 +282,46 @@ def git_common_root(root: Path) -> Path:
     return common_dir.parent
 
 
+def drop_dead_worktree_admin(repo: Path, checkout: Path) -> bool:
+    """Remove the ONE `<common>/worktrees/<id>` registration whose `gitdir`
+    names `<checkout>/.git`, and only when that checkout is gone, the entry is
+    not locked, and the checkout's `.git` file no longer exists. True when an
+    entry was removed.
+
+    This is the scoped replacement for a bare `git worktree prune` (goal:
+    g7.16.1.11.45.1): a bare prune drops EVERY unlocked entry the running uid
+    cannot stat (another uid's worktree in a 700 dir), `--expire` is not a
+    scope. Here an entry is matched by the path it names, never by a stat of
+    some other entry."""
+    import shutil
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(repo), "rev-parse", "--path-format=absolute",
+             "--git-common-dir"], capture_output=True, text=True)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    if out.returncode != 0 or not out.stdout.strip():
+        return False
+    admin_root = Path(out.stdout.strip()) / "worktrees"
+    want = os.path.realpath(str(Path(checkout) / ".git"))
+    if os.path.lexists(want):
+        return False
+    try:
+        entries = sorted(admin_root.iterdir())
+    except OSError:
+        return False
+    for ent in entries:
+        try:
+            named = os.path.realpath((ent / "gitdir").read_text().strip())
+        except OSError:
+            continue
+        if named != want or (ent / "locked").exists():
+            continue
+        shutil.rmtree(ent, ignore_errors=True)
+        return not ent.exists()
+    return False
+
+
 def is_live_checkout(root: Path) -> bool:
     """True when `root` sits inside this engine copy's own live checkout
     (claim 1: a suite basetemp there makes git-escaping writers hit LIVE).
