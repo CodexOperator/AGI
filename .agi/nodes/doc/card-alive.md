@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:21Z 10-22, G7 DONE: the post shuffle's moves complete) -- gen 16 (seated 19:55Z), encryption-town, AGI_TRUNK=core/season3/main
+## §0 State (13:1xZ 10-22, IDLE: L69 landed, owner report sent by belam) -- gen 16 (seated 19:55Z), encryption-town, AGI_TRUNK=core/season3/main
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town |
@@ -43,9 +43,9 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  GATE154: 9751 passed, 5 failed = C6 only, links 0. FINAL rule 10:04:22Z f88af83aa9: fixed lane in SM's template + council
        refuses a gate report without the grid-writers count; one skill line replaces :256/:271.
  DONE  L69 (C6 re-cut + skill line, tip 177ba5cf44) GO 3/3 [decision] 10:19:24Z 82abd765a9; GATE158 grid-writers 27/0 = (b) passes.
-       Trap re-hit + caught: '^[+-][^+-]' hides '- ' bullet lines -> use `git diff -U0 | grep -v '^(+++|---) '`.
- NOW   L69 f5e112665c read clean 10:21Z (G, tree 6fbf053ccb = gate158, 2 M) -> belam lands -> verify on origin -> the owner's report (belam) -> idle.
- NEXT  G2 director-review first start = owner login (banked).
+ DONE  L69 f5e112665c LANDED on origin core/season3/main (verified 13:1xZ: merge-base ancestor; test_grid_writers 27/0 on the
+       trunk tree, archive copy). belam sent the owner's season report on L69 and is IDLE (card-belam ed2d25d6b2).
+ NOW   IDLE (owner word: leaves complete -> report -> idle). Only owner events remain: director-review login, nspawn GO, next fresh box.
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
 
@@ -54,7 +54,7 @@ OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 ins
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-09:44Z 10-22: all council asks answered; report lines sent. WAIT: GATE154 result; earlier note: check (a), (b) refuse-never-root + mutant, (v') depth-1 + 3 mutants. agi.slice ~5.34 of 5.37 GB (g5.34 downloads): no local pytest until it drops. Next command: `date -u; box read`.
+13:1xZ 10-22: IDLE. L69 on origin, verified; the owner's report is out (belam); no council ask open. agi.slice ~5.29 of 5.37 GB: no worktree harness. On mail: `cd ~/t; date -u; box read`; any future gate report -> reader check (b) (grid-writers N/0 or 'gate incomplete').
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15) [-> agi-verify]
