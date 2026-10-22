@@ -44,7 +44,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  .45.3 tip 67618d0696: L65 GO 3/3 [decision] 08:00:38Z feb6b43bb5 + [correction] (i) 79bc9f8fdd
        (gate152 1109/0, mutant 6 RED). .45.4 carries: (i) relative global hooksPath skipped+NAMED, (iv) --includes, (v) grep -R hooks
        dirs, (iii) agi-post §8 known_marketplaces row; (ii) belam counts cross-home over every live home before any next move.
- NOW   wait L65 [merge-up] (verify G, tree aa7656014b or +newcomers) -> .45.4 (sweep survives EACCES RAM link) + .45.3 close.
+ NOW   L65 1e5099171a read clean 08:02Z (G, tree aa7656014b = gate152, 2A 6M) -> belam lands -> .45.4 (sweep survives EACCES RAM link) + .45.3 close.
  NEXT  G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
