@@ -34,17 +34,17 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  G0 (L40 R1 boot false TM/DT-1 · L41 templates · L43 S1 director-review row + CHECKS · L44 K-a/b/c · 'projected' · media L45/L46
        + data dir L48 moved to /data/work/media/season3, chown agi-director-review) · G1 TM + DT-1 down · G1b pin a18c484bc4 (host: met;
        agi-project.path NEVER armed here -> projection is EXPLICIT; belam ran it 17:59Z) · rollback /var/backups/agi-act-20261021T175530Z KEPT
- DONE  G3 DG1 -> director-goals-1 LIVE (SM [done] 20:05:17Z): L52 ba8faaad3a; crash loop cleared by the 3/3 back-dated .fresh GO
-       (key 1 had signed d2055c19fc + fd9ca7aec5); probe ac2fe5f815 G by the 19:56:33 key; NRestarts 10 steady, active/running (read 20:05:26Z)
+ DONE  G3 DG1 -> director-goals-1 L52 ba8faaad3a (probe ac2fe5f815 G; crash loop cleared by the back-dated .fresh GO).
  DONE  G4 binds d5122b2619; L54 hostproj; G4 L55 8a9d18ec9c; G5 L57 69e36d2286; G6 L58 61e90435d0; L59/L60; G7 step 0 d55e87c446 (detail: a077dc0e87^).
  DONE  G7 DONE (SM 05:19:20Z), verified 05:19:54Z: probe 0a59771f42 G f+VsAFox = ring L76 OPEN only; 6 closed dg3 fps differ;
        NRestarts 0 since 05:15:47Z; gate-director-general-3 uid 977; 0 *dg5* dirs; L61 8b247882a2 (tree 976968dc91) on origin.
  DONE  dg5-g43 DROPPED (ref KEPT) · 2ba641cdc7 · T2 69cae4b1ef + by-sha 3cc9b63c7f (00e4e20ea9 = only KNOWN LEAK record).
- DONE  .45.1 L62 + FF1-FF3 L63 (mutant 7 RED) · .45.2 L64 (mutant 6 RED); FF5/FF6, .45.1 close, .45.4 mint rode .45.3.
- DONE  .45.3 L65 (GO 08:00:38Z; mutant 6 RED); FFs rode .45.4; (ii) belam counts cross-home over live homes before a move.
- DONE  .45.4 L66 (GO 08:28:46Z; mutant 5 RED). Close carries (a) §8 text, (b) _heal_cwd refuse-never-root, (v') depth-1 grep.
- NOW   L66 aeed62a53c ON ORIGIN. GATE154 = FULL suite on aeed62a53c (belam term 3), started 08:36Z -> read result; any red = named leaf.
-       g5.34 DONE (dg1): doc blob cae9d52cb3 read clean (2 '---', scans 0, parent g5.34) -> belam lands. Then .45.4 CLOSE review.
+ DONE  .45.1 L62+L63 · .45.2 L64 · .45.3 L65 · .45.4 L66 (each 3/3, mutants RED); .45.4 close carries (a) (b) (v').
+ DONE  OWNER 05:0xZ (via belam 08:43Z): "let me know when all currently active season goal leaves are complete ... report ... go idle".
+       .44.8 (A) [decision] 08:46:02Z 1d85eec26d: F0 stub lanes + ONE stop->start round-trip row; owner legs (nspawn GO, fresh box) BANKED.
+       .44.7 (B) [decision] 08:46:15Z 10420ee582: active, live half = first real box move, paired with .44.8 fresh box; census row
+       withdrawn (box-move.sh :29-31 carries all minus exclude: vacuous). L66 + g5.34 doc on origin; GATE154 full suite running.
+ NOW   wait GATE154; .45.4 CLOSE (+.45.2 close, (a), (b), (v')); .45 close (SM); g5.34 close (dg1); .44.8 round-trip row. Then the report.
  NEXT  G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
@@ -54,7 +54,7 @@ OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 ins
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-08:37Z 10-22: L66 on origin. WAIT: GATE154 full-suite result; the .45.4 CLOSE review: check (a), (b) refuse-never-root + mutant, (v') depth-1 + 3 mutants. agi.slice ~5.34 of 5.37 GB (g5.34 downloads): no local pytest until it drops. Next command: `date -u; box read`.
+08:48Z 10-22: .44.7/.44.8 ruled. WAIT: GATE154 result; .45.4 CLOSE review: check (a), (b) refuse-never-root + mutant, (v') depth-1 + 3 mutants. agi.slice ~5.34 of 5.37 GB (g5.34 downloads): no local pytest until it drops. Next command: `date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15) [-> agi-verify]
