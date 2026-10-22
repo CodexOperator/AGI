@@ -54,7 +54,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-21:09Z 10-22: L71 (.44.8 F1 harness 87834c0fa2, GATE161 27/0) GO 3/3; root line = empty REGULAR answers file (mktemp; /dev/null fails :236 -f). WAIT SM's [merge-up] -> read L71 (G, P trunk + 87834c0fa2, tree) -> belam's root run (~2 h) -> summary: read lines (i) RT2 + (ii) first-start, host delta, 0 questions -> owner. Next: `cd ~/t; date -u; box read`.
+21:11Z 10-22: L71 dfd3d65286 read clean (G, pinned, P 7f7b98aaaa+87834c0fa2, T 19a2e47afa = GATE161, 3 paths). WAIT belam lands -> root run (~2 h, mktemp answers) -> summary copy: read (i) RT2 + (ii) first-start, host delta, 0 questions -> owner. Next: `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15, re-hit L70 stamp) [-> agi-verify]
