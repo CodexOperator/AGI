@@ -282,44 +282,52 @@ def git_common_root(root: Path) -> Path:
     return common_dir.parent
 
 
-def drop_dead_worktree_admin(repo: Path, checkout: Path) -> bool:
-    """Remove the ONE `<common>/worktrees/<id>` registration whose `gitdir`
-    names `<checkout>/.git`, and only when that checkout is gone, the entry is
-    not locked, and the checkout's `.git` file no longer exists. True when an
-    entry was removed.
-
-    This is the scoped replacement for a bare `git worktree prune` (goal:
-    g7.16.1.11.45.1): a bare prune drops EVERY unlocked entry the running uid
-    cannot stat (another uid's worktree in a 700 dir), `--expire` is not a
-    scope. Here an entry is matched by the path it names, never by a stat of
-    some other entry."""
-    import shutil
+def worktree_admin_entry(repo: Path, checkout: Path) -> Path | None:
+    """The ONE `<common>/worktrees/<id>` registration whose `gitdir` names
+    `<checkout>/.git`, or None (no such entry, unreadable, or git unreachable).
+    Matched by the path the entry names, never by a stat of any other entry."""
     try:
         out = subprocess.run(
             ["git", "-C", str(repo), "rev-parse", "--path-format=absolute",
              "--git-common-dir"], capture_output=True, text=True)
     except (OSError, subprocess.SubprocessError):
-        return False
+        return None
     if out.returncode != 0 or not out.stdout.strip():
-        return False
+        return None
     admin_root = Path(out.stdout.strip()) / "worktrees"
     want = os.path.realpath(str(Path(checkout) / ".git"))
-    if os.path.lexists(want):
-        return False
     try:
         entries = sorted(admin_root.iterdir())
     except OSError:
-        return False
+        return None
     for ent in entries:
         try:
             named = os.path.realpath((ent / "gitdir").read_text().strip())
         except OSError:
             continue
-        if named != want or (ent / "locked").exists():
-            continue
-        shutil.rmtree(ent, ignore_errors=True)
-        return not ent.exists()
-    return False
+        if named == want:
+            return ent
+    return None
+
+
+def drop_dead_worktree_admin(repo: Path, checkout: Path) -> bool:
+    """Remove the ONE registration `worktree_admin_entry` names, and only when
+    that checkout is gone (its `.git` no longer exists) and the entry is not
+    locked. True when an entry was removed.
+
+    This is the scoped replacement for a bare `git worktree prune` (goal:
+    g7.16.1.11.45.1): a bare prune drops EVERY unlocked entry the running uid
+    cannot stat (another uid's worktree in a 700 dir), `--expire` is not a
+    scope. A caller that must tell "locked" from "no match" asks
+    `worktree_admin_entry` and tests `<entry>/locked` itself."""
+    import shutil
+    if os.path.lexists(os.path.realpath(str(Path(checkout) / ".git"))):
+        return False
+    ent = worktree_admin_entry(repo, checkout)
+    if ent is None or (ent / "locked").exists():
+        return False
+    shutil.rmtree(ent, ignore_errors=True)
+    return not ent.exists()
 
 
 def is_live_checkout(root: Path) -> bool:

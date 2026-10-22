@@ -5124,11 +5124,17 @@ def cmd_loop_prune(args: argparse.Namespace) -> int:
     # never reached -- its worktree is live by definition).
     if dead_kids:
         for p in dead_kids:
-            if not locations.drop_dead_worktree_admin(repo, p) \
-                    and not p.exists():
-                print(f"ERR: worktree registration of {p.name} not dropped",
-                      file=sys.stderr)
-                failed.append("worktree-drop")
+            if locations.drop_dead_worktree_admin(repo, p) or p.exists():
+                continue
+            ent = locations.worktree_admin_entry(repo, p)
+            if ent is not None and (ent / "locked").exists():
+                # a lock is deliberate: left alone, as the old prune did (rc 0)
+                print(f"left alone: {p.name} -> registration locked")
+                continue
+            # no entry names <p>/.git (or it vanished): LOUD, never a silent leak
+            print(f"ERR: worktree registration of {p.name} not dropped",
+                  file=sys.stderr)
+            failed.append("worktree-drop")
     for name, post in merged:
         if name in local:
             r = subprocess.run(["git", "branch", "-d", name], cwd=repo,

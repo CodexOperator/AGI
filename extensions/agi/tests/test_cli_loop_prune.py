@@ -325,3 +325,62 @@ def test_loop_prune_names_left_alone_branches(repo: Path):
         assert f"left alone: {name}`" in res.stdout or \
             f"left alone: {name} ->" in res.stdout, \
             f"non-loop branch {name} must be named as left-alone: {res.stdout}"
+
+# ---- goal:g7.16.1.11.45.1: a LOCKED dead kid is left alone, rc 0 ----------
+LOCKED_KID = "a00-lockd"
+
+
+def _lock_a_dead_kid(repo: Path) -> None:
+    """A second dead kid, on a non-loop branch (so no branch delete depends on
+    it), whose registration is LOCKED: the lock is deliberate, a prune skipped it."""
+    wt = repo / ".agi" / "worktrees"
+    _git(repo, "worktree", "add", "-q", "-b", "hold/lockd", str(wt / LOCKED_KID),
+         "master")
+    shutil.rmtree(wt / LOCKED_KID)
+    r = _git(repo, "worktree", "lock", "--reason", "deliberate", str(wt / LOCKED_KID))
+    assert r.returncode == 0, r.stderr
+
+
+def test_loop_prune_apply_leaves_a_locked_dead_kid_alone_rc0(repo: Path):
+    _lock_a_dead_kid(repo)
+    locked = (repo / ".agi" / "worktrees" / LOCKED_KID).resolve()
+    assert locked in _worktree_paths(repo)
+    res = _run_cli(repo / ".agi", "--apply")
+    assert res.returncode == 0, res.stdout + res.stderr
+    assert f"left alone: {LOCKED_KID} -> registration locked" in res.stdout, res.stdout
+    assert "ERR" not in res.stderr, res.stderr
+    wts = _worktree_paths(repo)
+    assert locked in wts, "a locked registration stays listed"
+    assert (repo / ".agi" / "worktrees" / DEAD_KID).resolve() not in wts, \
+        "the unlocked dead kid is still dropped"
+
+
+def test_mutant_the_old_err_path_for_a_locked_entry_is_red(repo: Path, monkeypatch,
+                                                             capsys):
+    """MUTANT: the lock is not looked at (the entry reads as no-match) -> the
+    old loud ERR + failed=worktree-drop + rc 1 returns for a locked dead kid."""
+    import argparse
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("cli_mut", CLI)
+    cli = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cli)
+    _lock_a_dead_kid(repo)
+    monkeypatch.setattr(cli.locations, "worktree_admin_entry", lambda r, p: None)
+    rc = cli.cmd_loop_prune(argparse.Namespace(apply=True, root=str(repo / ".agi")))
+    err = capsys.readouterr().err
+    assert rc == 1 and f"ERR: worktree registration of {LOCKED_KID} not dropped" in err
+
+
+def test_loop_prune_apply_no_match_dead_kid_stays_loud(repo: Path, monkeypatch,
+                                                         capsys):
+    """The gitdir no-match case (no entry names <p>/.git) stays LOUD, rc 1."""
+    import argparse
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("cli_nm", CLI)
+    cli = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cli)
+    monkeypatch.setattr(cli.locations, "drop_dead_worktree_admin", lambda r, p: False)
+    monkeypatch.setattr(cli.locations, "worktree_admin_entry", lambda r, p: None)
+    rc = cli.cmd_loop_prune(argparse.Namespace(apply=True, root=str(repo / ".agi")))
+    err = capsys.readouterr().err
+    assert rc == 1 and f"ERR: worktree registration of {DEAD_KID} not dropped" in err
