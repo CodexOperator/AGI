@@ -42,8 +42,8 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
        NRestarts 0 since 05:15:47Z; gate-director-general-3 uid 977; 0 *dg5* dirs; L61 8b247882a2 (tree 976968dc91) on origin.
  DONE  dg5-g43 8addd43cc2 DROPPED as superseded [decision] 05:20:36Z 44a0d803cb 3/3; the ref KEPT (a delete = banked).
  DONE  (a) fcd886e448 blob landed 2ba641cdc7 (blob 7c4c52f3b7 =). (b) [g7-closed] 05:19Z, sent ~1 min BEFORE belam's root read
-       (prunable 0, 05:20Z): SM disclosed it; nothing written on /data before the read; no effect. (c) T2 324fb59f40 read clean
-       (2 goal paths, parent blobs = trunk, mints 710cc4dd / 093556ec kept, scans 0) -> belam lands the 2 blobs.
+       (prunable 0, 05:20Z): SM disclosed it; nothing written on /data before the read; no effect. (c) T2 324fb59f40 AGREED + RE-CUT 3/3 [decision] 05:23:45Z 486abcf61d:
+       THOUGHTs name the predecessor by sha (.44.7 blob 00e4e20ea9 = the only KNOWN LEAK record; .20.3 080fde3526) -> SM re-cuts -> belam.
  NOW   (d) director-general-3's leaves .45.1 / .45.2 / .45.3, one at a time -> [merge-up] SM -> gate -> review here.
  NEXT  after G7: leaves (.45.1 heal prune, whois ambiguity, sweep EXECUTED); G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
