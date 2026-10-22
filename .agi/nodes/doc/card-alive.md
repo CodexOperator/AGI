@@ -34,7 +34,6 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  G0 (L40 R1 boot false TM/DT-1 · L41 templates · L43 S1 director-review row + CHECKS · L44 K-a/b/c · 'projected' · media L45/L46
        + data dir L48 moved to /data/work/media/season3, chown agi-director-review) · G1 TM + DT-1 down · G1b pin a18c484bc4 (host: met;
        agi-project.path NEVER armed here -> projection is EXPLICIT; belam ran it 17:59Z) · rollback /var/backups/agi-act-20261021T175530Z KEPT
- DONE  G3 DG1 -> director-goals-1 L52 ba8faaad3a (probe ac2fe5f815 G; crash loop cleared by the back-dated .fresh GO).
  DONE  G4 binds d5122b2619; L54 hostproj; G4 L55 8a9d18ec9c; G5 L57 69e36d2286; G6 L58 61e90435d0; L59/L60; G7 step 0 d55e87c446.
  DONE  G7 DONE 05:19Z, verified: probe key on ring L76 OPEN only; NRestarts 0; gate dir uid 977; L61 8b247882a2.
  DONE  .45.1 L62+L63 · .45.2 L64 · .45.3 L65 · .45.4 L66 (each 3/3, mutants RED); .45.4 close carries (a) (b) (v').
@@ -42,9 +41,10 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
        .44.8 (A) [decision] 08:46:02Z 1d85eec26d: F0 stub lanes + ONE stop->start round-trip row; owner legs (nspawn GO, fresh box) BANKED.
        .44.7 (B) [decision] 08:46:15Z 10420ee582: active, live half = first real box move, paired with .44.8 fresh box; census row
        withdrawn (box-move.sh :29-31 carries all minus exclude: vacuous). L66 + g5.34 doc on origin; GATE154 full suite running.
- DONE  .44.8.1 (A) [decision] 09:03:19Z bc372df21b: banked by name for the report (node on dg-science-1's branch only).
- NOW   g5.34 close landed 61aabca57a before the word; dg1 own-home du+find goes in as a FOLLOW-UP goal commit (hit = back to active).
-       wait GATE154; .45.4 CLOSE (+.45.2 close, (a), (b), (v')); .45 close (SM); g5.34 close (dg1); .44.8 round-trip row. Then the report.
+ DONE  .44.8.1 (A) 09:03:19Z: banked by name (branch-only node).
+ DONE  g5.34 close 61aabca57a + own-home follow-up fdb4072072 (no HF cache, 0 hits). L67 (.45 close: (a) (b) (v')) + L68 (.44.8 F0,
+       RT2 row) GO 3/3 [decision] 09:25:48Z 29c81abdf6. My 'no round trip' premise was inexact (st2-RT-* existed); RT2 = strict form.
+ NOW   wait L67/L68 [merge-up]s -> verify; SM closes .45; GATE154 full suite. Then the owner's report (SM/belam): .44/.44.7/.44.8 active on owner legs.
  NEXT  G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
@@ -54,7 +54,7 @@ OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 ins
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-08:48Z 10-22: .44.7/.44.8 ruled. WAIT: GATE154 result; .45.4 CLOSE review: check (a), (b) refuse-never-root + mutant, (v') depth-1 + 3 mutants. agi.slice ~5.34 of 5.37 GB (g5.34 downloads): no local pytest until it drops. Next command: `date -u; box read`.
+09:26Z 10-22: L67/L68 GO SENT. WAIT: their [merge-up]s, .45 close, GATE154; earlier note: check (a), (b) refuse-never-root + mutant, (v') depth-1 + 3 mutants. agi.slice ~5.34 of 5.37 GB (g5.34 downloads): no local pytest until it drops. Next command: `date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15) [-> agi-verify]
