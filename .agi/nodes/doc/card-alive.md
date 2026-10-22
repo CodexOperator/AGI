@@ -44,7 +44,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  .45.1 L62 a12fdaded7 (GO 06:30:07Z) + FF1-FF3 L63 (GO 06:52:58Z, mutant 7 RED); heal's 4th outcome kept.
  DONE  .45.2 tip 749aeac5d1: L64 GO 3/3 [decision] 07:16:30Z 03653ac313 (gate151 1016/0, mutant 6 RED);
        FF5 empty token + FF6 cross-field data row ride .45.3; .45.1 CLOSE + MINT .45.4 (sweep survives EACCES RAM link) in one goal commit.
- NOW   wait L64 [merge-up] (verify G, tree 2a54831fbd or +newcomers) -> .45.3 (sweep EXECUTED + FF5/FF6 + goal commit) -> .45.4.
+ NOW   L64 2d468d5e7c read clean 07:18Z (G, tree 2a54831fbd = gate151, 2A 5M) -> belam lands -> .45.3 (sweep EXECUTED + FF5/FF6 + goal commit) -> .45.4.
  NEXT  G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
