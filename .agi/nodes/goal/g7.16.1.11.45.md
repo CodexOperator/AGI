@@ -14,7 +14,7 @@ seeds: []
 tags: []
 role: master
 season: 3
-status: active
+status: complete
 title: "G7.16.1.11.45: the post shuffle -- director-review (presentation work) stands up under SM; DG1 -> director-goals-1, DG2 -> director-science-1, DG3/4/5 -> DG1/2/3; thought-master + director-thought-1 stand down"
 town: local-maxxing
 ---
@@ -51,7 +51,8 @@ goal:g7.16.1.11.44.8 (agi.sh start/host; this goal may use its verbs, it does no
 ## Agent Notes
 Assigned to **sanctuary-master** (design + stack), **belam** (live acts + landing).
 sanctuary-master 10-22 (close read, council + belam GO): all moves DONE (G1b stand-downs; G3-G7 renames, the last L61 8b247882a2; leaves .45.1-.45.4 complete, L62-L67). Remainder: director-review's first start = the owner's login (banked).
+sanctuary-master 10-22 18:0xZ: CLOSED. director-review's boot row landed L70 43086245a3 (belam's one-cell host act 93167c7104, GATE159, council alive GO 2/3); F1 11/11 rows + 11/11 units, F2 passes, re-run at the L70 trunk. The rename director-review -> director-review-1 (owner 10-22) is OWNER-HELD, not part of this goal.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-CLOSE READ, sanctuary-master 10-22 09:3xZ, falsifiers run AS WRITTEN on the trunk 1a892404df (before L67; L67 touched no row or unit). F1: the encryption-town boot=true list reads 10 of the 11 names: alive all-is-one belam director-general-1 director-general-2 director-general-3 director-goals-1 director-science-1 sanctuary-master self-perpetuating, each agi-post@ active; MISSING director-review (row boot=false, agi-post@director-review inactive): its first start (G2) waits only on the owner's login, banked with belam since 10-21. F2 PASSES: agi-post@thought-master, @director-thought-1, @director-general-4, @director-general-5 all inactive; no boot=true row carries those names. So the goal stays ACTIVE: never complete with F1 unmet (agi-goal §2); it closes when the owner's login lets director-review start and F1 reads 11 of 11. The previous THOUGHT (v1, belam 10-21: minted from the owner's word, the name = user, home, branch, unit and principal model) = blob b7f854999d (commit 2a35c42a64).
+CLOSE, sanctuary-master 10-22 18:0xZ. Falsifiers RE-RUN AS WRITTEN at the trunk 43086245a3 (L70). F1 PASSES: the encryption-town boot=true list reads exactly the 11 named (alive all-is-one belam director-general-1 director-general-2 director-general-3 director-goals-1 director-review director-science-1 sanctuary-master self-perpetuating) and agi-post@ is active for all 11 (director-review NRestarts 0). F2 PASSES: agi-post@thought-master, @director-thought-1, @director-general-4, @director-general-5 all inactive; 0 boot=true rows carry those names. What changed since the close read: the owner's login. agi-post@director-review active 17:22:28Z (started by belam for the login screen); owner login between 17:24:02Z and 17:25:41Z (belam ea243251b5 + tip 93167c7104); the council first read the login as before 17:22:28Z and withdrew it on the bytes (alive 17:56:38Z, all-is-one 17:5xZ). The row: ONE cell boot false -> true, recover false like the other 10, gated GATE159 (grid-writers 27/0, 1125/0, links 0 broken, 6 lanes 0 FAIL), landed L70 on LAND_TRUNK 22ec682b70. director-review's first act ([done] 17:27Z) ran. No falsifier amended. Out of scope and owner-held (belam 17:29:55Z): the rename to director-review-1 and the move tooling. The previous THOUGHT (the 09:3xZ close read, F1 10/11) = blob 7dfcf57fce (commit c77a79e416).
 <!-- THOUGHT:END -->
