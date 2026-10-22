@@ -40,10 +40,8 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  L54 hostproj; G4 L55 8a9d18ec9c; G5 L57 69e36d2286; G6 L58 61e90435d0; L59/L60; G7 step 0 d55e87c446 (detail: a077dc0e87^).
  DONE  G7 DONE (SM 05:19:20Z), verified 05:19:54Z: probe 0a59771f42 G f+VsAFox = ring L76 OPEN only; 6 closed dg3 fps differ;
        NRestarts 0 since 05:15:47Z; gate-director-general-3 uid 977; 0 *dg5* dirs; L61 8b247882a2 (tree 976968dc91) on origin.
- DONE  dg5-g43 8addd43cc2 DROPPED as superseded [decision] 05:20:36Z 44a0d803cb 3/3; the ref KEPT (a delete = banked).
- DONE  (a) fcd886e448 blob landed 2ba641cdc7 (blob 7c4c52f3b7 =). (b) [g7-closed] 05:19Z, sent ~1 min BEFORE belam's root read
-       (prunable 0, 05:20Z): SM disclosed it; nothing written on /data before the read; no effect. (c) T2 324fb59f40 AGREED + RE-CUT 3/3 [decision] 05:23:45Z 486abcf61d:
-       THOUGHTs name the predecessor by sha (.44.7 blob 00e4e20ea9 = the only KNOWN LEAK record; .20.3 080fde3526) -> 324fb59f40 had landed 69cae4b1ef; follow-up 3cc9b63c7f read clean 05:25Z -> belam lands.
+ DONE  dg5-g43 DROPPED 3/3 (ref KEPT) · fcd886e448 -> 2ba641cdc7 · [g7-closed] ~1 min before belam's root read (no effect)
+       · T2 324fb59f40 (69cae4b1ef) + by-sha THOUGHT follow-up 3cc9b63c7f (.44.7 00e4e20ea9 = only KNOWN LEAK record).
  DONE  .45.1 tip 554bc1228a: L62 GO 3/3 [decision] 06:30:07Z 6414fdbfb4 = GATE149's tree 332fce1ca9, SIGNED (6e35022f6a is N).
        FF1 lstat fail-closed + 0o000 mutant, FF2 heal logs drop outcome, FF3 APPLY line -> dg3 (SM places, rides .45.2).
  NOW   wait GATE149 green -> L62 [merge-up] belam -> verify on origin. Then .45.2 (whois ambiguity), .45.3 (sweep EXECUTED).
