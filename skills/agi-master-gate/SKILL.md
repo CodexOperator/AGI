@@ -132,7 +132,7 @@ lanes       the FULL suite is PYTEST ONLY: the extensions/agi/tests/*.t.sh lanes
                always run with sh (dash), never bash (false reds)
              · a falsifier lane that is RED on the trunk by design never lands alone: it rides in the SAME landing as its build
              · any .geometry/engine*.md change: also run test_grid_writers.py + test_thought_hygiene.py and grep lanes for the FILE name, not
-               only piece names -- they scan by pattern (SM gen 33 AA1.V: 5 RED on trunk after landing)
+               only piece names -- they scan by pattern (SM gen 33 AA1.V: 5 RED on trunk after landing); an engine PIECE (engine*.md) also runs test_bin_help_smoke, test_commands_manifest and test_first_start (SM gen 41, stack 7: only its shell lanes ran, test_grid_writers red on the trunk for 1.5 h)
              · run lanes in a git worktree or a `git clone --shared` scratch copy, NEVER from an archive with GIT_DIR on a shared repo:
                lanes that build scratch repos then write the REAL one (aio 10-11 09:56Z: moved posts/director-general-1, created refs/heads/trunk)
              · a lane with a TRUNK arg (agi-out-*, aa3, ckpt, grow-gate-*, agi-land-bounds) extracts from that REF -> pass the CANDIDATE commit
