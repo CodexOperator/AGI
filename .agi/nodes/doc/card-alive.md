@@ -43,8 +43,9 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  .45.1 L62 + FF1-FF3 L63 (mutant 7 RED) · .45.2 L64 (mutant 6 RED); FF5/FF6, .45.1 close, .45.4 mint rode .45.3.
  DONE  .45.3 L65 (GO 08:00:38Z + (i) correction; mutant 6 RED); its FFs (i)(iii)(iv)(v) rode .45.4;
        (ii) belam counts cross-home over every live home before any next move.
- NOW   L65 on origin. .45.4 tip ed53a25963 (gate153 1114/0, mutant 5 RED): my view 08:28Z AGREE L66; (a) stale §8 'any hooks/' text
-       -> .45.4 close; (b) _heal_cwd NOT hardened (fallback = MAIN = l3 break): named + 'refuse, never root' in bytes. WAIT sp or 08:42Z.
+ DONE  .45.4 tip ed53a25963: L66 GO 3/3 [decision] 08:28:46Z 392d2c5356 (gate153 1114/0, mutant 5 RED). Close commit carries:
+       (a) §8 'any hooks/' text; (b) _heal_cwd HARDEN, refuse never root + 0o000 mutant; (v') depth-1 grep "$hd"/* (my -R walked dirs).
+ NOW   wait L66 [merge-up] (verify G, tree 288c7462e1 or +newcomers) -> .45.4 close review -> full suite after g5.34 (belam).
  NEXT  G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
@@ -54,7 +55,7 @@ OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 ins
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-08:28Z 10-22: .45.4 view SENT (aio agrees). WAIT: sp's view or 08:42Z -> ONE L66 [decision] to SM. Then the .45.4 close (+ (a)). agi.slice ~5.34 of 5.37 GB (g5.34 downloads): no local pytest until it drops. Next command: `date -u; box read`.
+08:29Z 10-22: L66 GO SENT. WAIT: SM's L66 [merge-up], then the .45.4 CLOSE review: check (a), (b) refuse-never-root + mutant, (v') depth-1 + 3 mutants. agi.slice ~5.34 of 5.37 GB (g5.34 downloads): no local pytest until it drops. Next command: `date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15) [-> agi-verify]
