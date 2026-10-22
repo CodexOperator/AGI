@@ -153,3 +153,73 @@ def test_no_bare_worktree_prune_call_in_engine_code():
             for n, ln in enumerate(p.read_text().splitlines(), 1)
             if pat.search(ln) and not ln.lstrip().startswith("#")]
     assert hits == []
+
+
+# ---- FF1: fail closed -- "gone" ONLY on FileNotFoundError -------------------
+def test_path_gone_is_true_only_for_a_missing_path(tmp_path):
+    here = tmp_path / "here"
+    here.mkdir()
+    assert locations.path_gone(here) is False
+    assert locations.path_gone(here / "nope") is True
+    closed = tmp_path / "closed"
+    closed.mkdir()
+    (closed / "x").write_text("x")
+    closed.chmod(0o000)
+    try:
+        assert locations.path_gone(closed / "x") is None, "EACCES is unknown, not gone"
+    finally:
+        closed.chmod(0o700)
+
+
+def test_drop_helper_refuses_a_checkout_it_cannot_stat(scratch):
+    """The council's FF1 mutant: priv at 0o000, the foreign worktree's `.git`
+    cannot be looked at -> NOT gone -> False, 'gate' still registered. RED on
+    the lexists-based helper (EACCES read as gone, the entry was removed)."""
+    other = scratch["other"]
+    assert not locations.drop_dead_worktree_admin(scratch["repo"], other)
+    assert "gate" in _registered(scratch["repo"])
+
+
+# ---- FF2: heal says what happened ------------------------------------------
+def _ram_link(scratch, name="a00-ram01"):
+    ram = scratch["tmp"] / "ram" / name
+    _sh("git", "-C", str(scratch["repo"]), "worktree", "add", "-b", f"loop/{name}",
+        str(ram), "season/s2")
+    link = scratch["graph"] / "worktrees" / name
+    link.symlink_to(ram)
+    shutil.rmtree(scratch["tmp"] / "ram")
+    return link
+
+
+def test_sweep_ram_link_logs_registration_dropped(scratch, monkeypatch):
+    log = scratch["graph"] / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _ram_link(scratch)
+    heal._sweep_finished_worktrees(scratch["graph"])
+    assert "[sweep] unlinked a00-ram01: RAM target gone; registration dropped" \
+        in log.read_text()
+
+
+def test_sweep_ram_link_gitdir_mismatch_logs_no_match_and_keeps(scratch, monkeypatch):
+    log = scratch["graph"] / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    link = _ram_link(scratch)
+    adm = Path(_sh("git", "-C", str(scratch["repo"]), "rev-parse",
+                   "--path-format=absolute", "--git-common-dir").strip()) / "worktrees"
+    (adm / "a00-ram01" / "gitdir").write_text(str(scratch["tmp"] / "elsewhere" / ".git") + "\n")
+    heal._sweep_finished_worktrees(scratch["graph"])
+    assert "[sweep] unlinked a00-ram01: RAM target gone; NO MATCH, kept" in log.read_text()
+    assert not link.is_symlink()
+    assert "a00-ram01" in _registered(scratch["repo"]), "an entry nothing names is kept"
+
+
+def test_sweep_ram_link_locked_entry_logs_left_locked(scratch, monkeypatch):
+    log = scratch["graph"] / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _ram_link(scratch)
+    adm = Path(_sh("git", "-C", str(scratch["repo"]), "rev-parse",
+                   "--path-format=absolute", "--git-common-dir").strip()) / "worktrees"
+    (adm / "a00-ram01" / "locked").write_text("deliberate\n")
+    heal._sweep_finished_worktrees(scratch["graph"])
+    assert "RAM target gone; left (locked)" in log.read_text()
+    assert "a00-ram01" in _registered(scratch["repo"])

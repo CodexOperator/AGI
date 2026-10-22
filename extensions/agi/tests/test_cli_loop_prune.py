@@ -384,3 +384,51 @@ def test_loop_prune_apply_no_match_dead_kid_stays_loud(repo: Path, monkeypatch,
     rc = cli.cmd_loop_prune(argparse.Namespace(apply=True, root=str(repo / ".agi")))
     err = capsys.readouterr().err
     assert rc == 1 and f"ERR: worktree registration of {DEAD_KID} not dropped" in err
+
+
+# ---- FF1 + FF3 (goal:g7.16.1.11.45.1 follow-up) ----------------------------
+def _cli_inproc(repo: Path, capsys):
+    import argparse
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("cli_ff", CLI)
+    cli = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cli)
+    rc = cli.cmd_loop_prune(argparse.Namespace(apply=True, root=str(repo / ".agi")))
+    out = capsys.readouterr()
+    return rc, out.out, out.err
+
+
+def test_loop_prune_unreadable_dead_kid_goes_loud_not_dropped(repo: Path, tmp_path,
+                                                                monkeypatch, capsys):
+    """FF1: a RAM-dir kid whose parent dir cannot be stat'd (EACCES) is neither
+    'gone' nor 'left alone': the registration stays and the run is LOUD (ERR,
+    rc 1). RED on the lexists/is_dir code (EACCES read as gone -> dropped)."""
+    monkeypatch.setenv("GUARD_BOX", "test-box")
+    ram = tmp_path / "ram" / "worktrees"
+    ram.mkdir(parents=True)
+    geo = repo / ".agi" / "nodes" / ".geometry"
+    geo.mkdir(parents=True, exist_ok=True)
+    (geo / "guard.md").write_text(
+        "---\nid: config:guard\n---\n# config:guard\n\n```sh guard.env\n"
+        f"GUARD_RAM_WORKTREES_test_box={ram}\n```\n")
+    _git(repo, "worktree", "add", "-q", "-b", "hold/eacc", str(ram / "a00-eacc"), "master")
+    (tmp_path / "ram").chmod(0o000)
+    try:
+        rc, out, err = _cli_inproc(repo, capsys)
+    finally:
+        (tmp_path / "ram").chmod(0o700)
+    assert rc == 1, out + err
+    assert "ERR: worktree registration of a00-eacc not dropped" in err
+    assert (ram / "a00-eacc").resolve() in _worktree_paths(repo), "registration stays"
+
+
+def test_loop_prune_names_a_dead_kid_whose_checkout_is_present(repo: Path, capsys):
+    """FF3: a kid with no head ref (detached) whose dir STILL EXISTS is named
+    `left alone: <name> -> checkout present`, never `[APPLY] worktree drop`."""
+    wt = repo / ".agi" / "worktrees" / "a00-here1"
+    _git(repo, "worktree", "add", "-q", "--detach", str(wt), "master")
+    rc, out, err = _cli_inproc(repo, capsys)
+    assert rc == 0, out + err
+    assert "left alone: a00-here1 -> checkout present" in out
+    assert "worktree drop (dead kid): registration of a00-here1" not in out
+    assert wt.resolve() in _worktree_paths(repo) and wt.is_dir()
