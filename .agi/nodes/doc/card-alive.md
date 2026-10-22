@@ -40,11 +40,11 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
        .44.8 (A) 08:46:02Z (F0 + RT2; owner legs banked) · .44.7 (B) 08:46:15Z (live half = first box move; census vacuous).
  DONE  .44.8.1 banked by name (09:03Z) · g5.34 complete (61aabca57a + fdb4072072) · L67+L68 GO 09:25:48Z.
  DONE  L67+L68 on origin; .45 ACTIVE (F1 10/11, director-review = owner login) [decision] 09:43:32Z + report lines.
- DONE  GATE154 red = test_grid_writers C6+d0-d3 (G5 rename, L57); leaf -> dg3 [decision] 09:49:04Z cbf057ac07.
- DONE  GATE154 ALLDONE 10:02Z: 9751 passed, 5 failed = exactly C6 rows, links 0. Re-cut f1a5e47063 run here 27/0 (1 line).
-       FINAL rule [decision] 10:04:22Z f88af83aa9: (a) fixed grid-writers lane in SM's gate template; (b) council refuses a gate report
-       without its count (apply from now); skill line replaces :256/:271.
- NOW   SM (a) template done (sha cf84879a83..., 700: not readable here, so (b) is the check); wait L69 GATE158 [review]: check 'grid-writers 27/0' -> land -> the owner's report -> idle.
+ DONE  GATE154: 9751 passed, 5 failed = C6 only, links 0. FINAL rule 10:04:22Z f88af83aa9: fixed lane in SM's template + council
+       refuses a gate report without the grid-writers count; one skill line replaces :256/:271.
+ DONE  L69 (C6 re-cut + skill line, tip 177ba5cf44) GO 3/3 [decision] 10:19:24Z 82abd765a9; GATE158 grid-writers 27/0 = (b) passes.
+       Trap re-hit + caught: '^[+-][^+-]' hides '- ' bullet lines -> use `git diff -U0 | grep -v '^(+++|---) '`.
+ NOW   wait L69 [merge-up] -> verify on origin -> the owner's report (belam) -> idle.
  NEXT  G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
