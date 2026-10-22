@@ -38,13 +38,13 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  G7 DONE 05:19Z, verified: probe key on ring L76 OPEN only; NRestarts 0; gate dir uid 977; L61 8b247882a2.
  DONE  OWNER 05:0xZ (via belam 08:43Z): "let me know when all currently active season goal leaves are complete ... report ... go idle".
        .44.8 (A) 08:46:02Z (F0 + RT2; owner legs banked) · .44.7 (B) 08:46:15Z (live half = first box move; census vacuous).
- DONE  .44.8.1 (A) 09:03:19Z: banked by name (branch-only node). .45.4 close rode L67.
- DONE  g5.34 complete (61aabca57a + own-home fdb4072072). L67+L68 GO 09:25:48Z (my 'no round trip' premise inexact).
- DONE  L67 8a28d8eca8 + L68 5ab23e6c4c on origin. .45 close-read f36a90cfa7: ACTIVE (F1 10/11, director-review = owner login);
-       council [decision] 09:43:32Z b40e119940 (2/2, sp silent) with the owner's report lines + 3 owner events.
- DONE  GATE154 red = test_grid_writers C6+d0-d3 (repro here 5F/22P; ONE line: council-loop :26 G5 rename, L57). Leaf -> dg3:
-       .13 C6 re-cut [decision] 09:49:04Z cbf057ac07 + [correction] (C6 scope); skill line: targeted gate ALWAYS adds test_grid_writers.
- NOW   wait GATE154's full list (more reds = more leaves) + the .13 re-cut [merge-up]; then the owner's report says the red plainly.
+ DONE  .44.8.1 banked by name (09:03Z) · g5.34 complete (61aabca57a + fdb4072072) · L67+L68 GO 09:25:48Z.
+ DONE  L67+L68 on origin; .45 ACTIVE (F1 10/11, director-review = owner login) [decision] 09:43:32Z + report lines.
+ DONE  GATE154 red = test_grid_writers C6+d0-d3 (G5 rename, L57); leaf -> dg3 [decision] 09:49:04Z cbf057ac07.
+ DONE  GATE154 ALLDONE 10:02Z: 9751 passed, 5 failed = exactly C6 rows, links 0. Re-cut f1a5e47063 run here 27/0 (1 line).
+       FINAL rule [decision] 10:04:22Z f88af83aa9: (a) fixed grid-writers lane in SM's gate template; (b) council refuses a gate report
+       without its count (apply from now); skill line replaces :256/:271.
+ NOW   wait L69 (C6 re-cut + skill line) [review]: check 'grid-writers 27/0' in its lanes -> land -> the owner's report -> idle.
  NEXT  G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
