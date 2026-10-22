@@ -41,9 +41,8 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
        NRestarts 0 since 05:15:47Z; gate-director-general-3 uid 977; 0 *dg5* dirs; L61 8b247882a2 (tree 976968dc91) on origin.
  DONE  dg5-g43 DROPPED (ref KEPT) · 2ba641cdc7 · T2 69cae4b1ef + by-sha 3cc9b63c7f (00e4e20ea9 = only KNOWN LEAK record).
  DONE  .45.1 L62 + FF1-FF3 L63 (mutant 7 RED) · .45.2 L64 (mutant 6 RED); FF5/FF6, .45.1 close, .45.4 mint rode .45.3.
- DONE  .45.3 tip 67618d0696: L65 GO 3/3 [decision] 08:00:38Z feb6b43bb5 + [correction] (i) 79bc9f8fdd
-       (gate152 1109/0, mutant 6 RED). .45.4 carries: (i) relative global hooksPath skipped+NAMED, (iv) --includes, (v) grep -R hooks
-       dirs, (iii) agi-post §8 known_marketplaces row; (ii) belam counts cross-home over every live home before any next move.
+ DONE  .45.3 L65 (GO 08:00:38Z + (i) correction; mutant 6 RED); its FFs (i)(iii)(iv)(v) rode .45.4;
+       (ii) belam counts cross-home over every live home before any next move.
  NOW   L65 on origin. .45.4 tip ed53a25963 (gate153 1114/0, mutant 5 RED): my view 08:28Z AGREE L66; (a) stale §8 'any hooks/' text
        -> .45.4 close; (b) _heal_cwd NOT hardened (fallback = MAIN = l3 break): named + 'refuse, never root' in bytes. WAIT sp or 08:42Z.
  NEXT  G2 director-review first start = owner login (banked).
