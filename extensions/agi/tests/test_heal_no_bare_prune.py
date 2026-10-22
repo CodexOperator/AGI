@@ -223,3 +223,20 @@ def test_sweep_ram_link_locked_entry_logs_left_locked(scratch, monkeypatch):
     heal._sweep_finished_worktrees(scratch["graph"])
     assert "RAM target gone; left (locked)" in log.read_text()
     assert "a00-ram01" in _registered(scratch["repo"])
+
+
+# ---- the aio label: a failed drop reads "left (not provably gone, or drop failed)" ----
+def test_sweep_ram_link_failed_drop_logs_not_provably_gone_or_drop_failed(
+        scratch, monkeypatch):
+    """A matching, unlocked entry whose rmtree left it behind: the entry is
+    kept and the line says "left (not provably gone, or drop failed)" -- not
+    "NO MATCH" (the entry IS matched). The same word covers a checkout that
+    cannot be PROVEN gone (EACCES). RED on the old label."""
+    log = scratch["graph"] / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _ram_link(scratch, "a00-ram02")
+    monkeypatch.setattr(shutil, "rmtree", lambda *a, **k: None)  # the drop leaves it behind
+    heal._sweep_finished_worktrees(scratch["graph"])
+    assert "[sweep] unlinked a00-ram02: RAM target gone; left (not provably gone, or drop failed)" \
+        in log.read_text()
+    assert "a00-ram02" in _registered(scratch["repo"]), "the entry is kept"
