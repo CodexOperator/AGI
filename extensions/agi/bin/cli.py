@@ -4961,7 +4961,11 @@ def _dead_kid_worktrees(repo: Path) -> list[Path]:
         if not any(str(path).startswith(r) for r in roots) \
                 or "a00-" not in path.name:
             continue  # never a kid worktree; a post/worktree is not ours
-        stale = not path.is_dir() or bool(e.get("detached"))
+        # fail closed: only a PROVABLY gone checkout reads as gone, and an
+        # unreadable one (EACCES on a closed parent) is listed too, so the
+        # drop refuses it LOUDLY instead of it vanishing from the plan
+        stale = locations.path_gone(path) is not False \
+            or bool(e.get("detached"))
         if stale:
             out.append(path)
     return out
@@ -5103,6 +5107,9 @@ def cmd_loop_prune(args: argparse.Namespace) -> int:
     # checkout is gone, so a post worktree is untouchable by construction.
     dead_kids = _dead_kid_worktrees(repo)
     for p in dead_kids:
+        if locations.path_gone(p) is False:
+            print(f"left alone: {p.name} -> checkout present")
+            continue
         print(f"[{'DRY ' if not apply else 'APPLY'}] worktree drop "
               f"(dead kid): registration of {p.name}")
 
@@ -5124,7 +5131,9 @@ def cmd_loop_prune(args: argparse.Namespace) -> int:
     # never reached -- its worktree is live by definition).
     if dead_kids:
         for p in dead_kids:
-            if locations.drop_dead_worktree_admin(repo, p) or p.exists():
+            if locations.path_gone(p) is False:
+                continue  # checkout present: named "left alone" above
+            if locations.drop_dead_worktree_admin(repo, p):
                 continue
             ent = locations.worktree_admin_entry(repo, p)
             if ent is not None and (ent / "locked").exists():
@@ -5164,7 +5173,8 @@ def cmd_loop_prune(args: argparse.Namespace) -> int:
               f"{len(refused)} refused", file=sys.stderr)
         return 1
     print(f"loop-prune: {len(merged)} merged loop branch(es) pruned, "
-          f"{len(dead_kids)} dead kid worktree(s) pruned")
+          f"{sum(1 for p in dead_kids if locations.path_gone(p) is not False)}"
+          f" dead kid worktree(s) pruned")
     return 0
 
 

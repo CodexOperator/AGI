@@ -310,10 +310,25 @@ def worktree_admin_entry(repo: Path, checkout: Path) -> Path | None:
     return None
 
 
+def path_gone(path: Path | str) -> bool | None:
+    """Is `path` provably gone? True ONLY on FileNotFoundError from an lstat;
+    False when it is there; None when the answer is unknown (EACCES on a closed
+    parent, ENOTDIR, an I/O error). Fail closed: a caller never reads "I could
+    not look" as "gone" (`os.path.lexists` and `Path.is_dir` both do)."""
+    try:
+        os.lstat(os.path.realpath(str(path)))
+    except FileNotFoundError:
+        return True
+    except OSError:
+        return None
+    return False
+
+
 def drop_dead_worktree_admin(repo: Path, checkout: Path) -> bool:
     """Remove the ONE registration `worktree_admin_entry` names, and only when
-    that checkout is gone (its `.git` no longer exists) and the entry is not
-    locked. True when an entry was removed.
+    that checkout is PROVABLY gone (`path_gone` of its `.git` is True: an
+    unreadable parent is NOT gone) and the entry is not locked. True when an
+    entry was removed.
 
     This is the scoped replacement for a bare `git worktree prune` (goal:
     g7.16.1.11.45.1): a bare prune drops EVERY unlocked entry the running uid
@@ -321,7 +336,7 @@ def drop_dead_worktree_admin(repo: Path, checkout: Path) -> bool:
     scope. A caller that must tell "locked" from "no match" asks
     `worktree_admin_entry` and tests `<entry>/locked` itself."""
     import shutil
-    if os.path.lexists(os.path.realpath(str(Path(checkout) / ".git"))):
+    if path_gone(Path(checkout) / ".git") is not True:
         return False
     ent = worktree_admin_entry(repo, checkout)
     if ent is None or (ent / "locked").exists():
