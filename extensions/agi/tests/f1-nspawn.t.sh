@@ -18,7 +18,8 @@ case "$1" in show) [ "${STUB_NOUNIT:-}" = 1 ]||echo x.scope;; terminate) : >$T_T
 mk crontab 'echo "crontab $*" >>$T_LOG;u=$3;cat $T_CRON.$u 2>/dev/null;exit 0'
 mk getent 'echo "getent $*" >>$T_LOG;cat $T_PASSWD'
 mk id 'case "$1" in -u) echo ${STUB_IDU:-0};; *) exec /usr/bin/id "$@";; esac'
-mk mmdebstrap 'echo "mmdebstrap $*" >>$T_LOG;for a;do o=$a;done;o=$(echo "$@"|awk "{print \$(NF-1)}");d=$(mktemp -d);mkdir -p $d/etc $d/bin;echo img >$d/etc/os-release;tar -C $d -cf $o .;rm -rf $d'
+mk mmdebstrap 'echo "mmdebstrap $*" >>$T_LOG;o=$(echo "$@"|awk "{print \$(NF-1)}");d=$(mktemp -d);mkdir -p $d/etc $d/bin;echo img >$d/etc/os-release
+case "$*" in *--format=tar*) tar -C $d -cf $o .;; *) case $o in *.tar) tar -C $d -cf $o .;; *) mkdir -p $o;cp -r $d/. $o/;; esac;; esac;rm -rf $d;[ -z "$STUB_MMFAIL" ]||exit 1;exit 0'
 mk systemd-nspawn 'echo "nspawn $*" >>$T_LOG
 for a;do case $a in --directory=*) D=${a#--directory=};; esac;done
 echo "$(ls -a $D|tr "\n" " ")|$(ls $D/f1|tr "\n" " ")|$(cat $D/.f1-marker)|$(cat $D$T_MAIN/.git/f1-marker 2>/dev/null)|unit:$(ls $D/etc/systemd/system/multi-user.target.wants|tr "\n" " ")|claude:$(find $D -name claude 2>/dev/null|wc -l)" >$T_SEEN
@@ -328,6 +329,35 @@ sigin $SRC;ok sig-TERM-to-the-inner-leg-runs-the-exit-trap-and-powers-off "rc $r
 awk '/^inner\(\)/{f=1}f&&/trap .exit 130. INT TERM HUP;/{sub(/trap .exit 130. INT TERM HUP;/,"")}{print}' $SRC >$T/f1.notrap-in.sh;[ "$(cmp $SRC $T/f1.notrap-in.sh >/dev/null 2>&1;echo $?)" = 1 ]
 sigin $T/f1.notrap-in.sh;ok sig-mutant-the-inner-leg-without-the-trap-does-not-power-off-RED "rc $rci; poweroff: $([ -e $SD/poweroff ]&&echo yes||echo NO) (clean yes)" '[ ! -e $SD/poweroff ]'
 mkres "$B13";( F1_LIB=1;. $SRC;summary $T/v ) >$T/o;ok m7-the-summary-names-the-stub-behaviour-and-the-d6-reading "$(grep -c 'stub' $T/o) stub lines" 'grep -q "box read. every 5 s" $T/o&&grep -q "unmeasured stand-in" $T/o&&grep -q "agi-belam.s own cron block left standing" $T/o'
+# ================= run 1 on the real box (10-22 21:15Z): mmdebstrap built a DIRECTORY named noble.tar.part (no tar suffix, no --format) and the run died at extract. The stub mmdebstrap above now HONOURS that rule.
+STUB_RES=$T/res.good11 hrun >$T/o 2>$T/e;rc=$?;IMG=$T/hd/f1-nspawn-image/noble.tar
+ok img-the-image-is-a-regular-file-tar-reads-it-and-the-build-line-says-format-tar "rc $rc; $(ls -ld $IMG|cut -c1-10); mmdebstrap: $(grep -c -e '--format=tar' $T/log)" '[ -f $IMG ]&&tar -tf $IMG >/dev/null&&grep "^mmdebstrap" $T/log|grep -q -e "--format=tar"&&[ ! -e $IMG.part ]'
+sed 's/--format=tar //' $SRC >$T/f1.noformat.sh;rm -rf $T/hd $T/term $T/seen;mkdir -p $T/hd;: >$T/log
+( cd $T;F1_DATA=$T/hd F1_REPO=$W2 F1_MEMINFO=$T/mi.ok F1_TIMEOUT=60 F1_CGROOT=$T/cg STUB_RES=$T/res.good11 sh $T/f1.noformat.sh run $SHA $T/answers0 $T/hd/out ) >$T/o 2>$T/e;rc=$?
+ok img-mutant-without-format-tar-mmdebstrap-builds-a-directory-and-the-run-is-refused-before-extract-the-directory-is-left-RED "rc $rc; noble.tar.part is a $([ -d $T/hd/f1-nspawn-image/noble.tar.part ]&&echo DIRECTORY-LEFT||echo gone); nspawn calls: $(grep -c '^nspawn' $T/log); $(tail -1 $T/e|cut -c1-90)" '[ $rc != 0 ]&&[ "$(grep -c "^nspawn" $T/log)" = 0 ]&&[ -d $T/hd/f1-nspawn-image/noble.tar.part ]&&grep -q "no readable tar" $T/e&&[ ! -e $T/hd/f1-nspawn-image/noble.tar ]'
+rm -rf $T/hd $T/term $T/seen;mkdir -p $T/hd/f1-nspawn-image/noble.tar/etc;: >$T/log
+( cd $T;F1_DATA=$T/hd F1_REPO=$W2 F1_MEMINFO=$T/mi.ok F1_TIMEOUT=60 F1_CGROOT=$T/cg STUB_RES=$T/res.good11 sh $SRC run $SHA $T/answers0 $T/hd/out ) >$T/o 2>$T/e;rc=$?
+ok img-mutant-a-directory-already-at-noble-tar-is-refused-never-skipped-as-built-RED "rc $rc; mmdebstrap calls: $(grep -c '^mmdebstrap' $T/log); $(tail -1 $T/e|cut -c1-100)" '[ $rc != 0 ]&&[ "$(grep -c "^mmdebstrap\|^nspawn" $T/log)" = 0 ]&&grep -q "not a regular file" $T/e&&[ -d $T/hd/f1-nspawn-image/noble.tar ]'
+rm -rf $T/hd $T/term $T/seen;mkdir -p $T/hd;: >$T/log
+( cd $T;F1_DATA=$T/hd F1_REPO=$W2 F1_MEMINFO=$T/mi.ok F1_TIMEOUT=60 F1_CGROOT=$T/cg STUB_MMFAIL=1 STUB_RES=$T/res.good11 sh $SRC run $SHA $T/answers0 $T/hd/out ) >$T/o 2>$T/e;rc=$?
+ok img-a-failed-build-leaves-no-part-directory-and-no-image "rc $rc; left: $(ls $T/hd/f1-nspawn-image 2>/dev/null|tr '\n' ' ')" '[ $rc != 0 ]&&[ -z "$(ls $T/hd/f1-nspawn-image 2>/dev/null)" ]&&[ "$(grep -c "^nspawn" $T/log)" = 0 ]'
+rm -rf $T/hd $T/term $T/seen;mkdir -p $T/hd;: >$T/log
+for k in 1 2;do ( cd $T;F1_DATA=$T/hd F1_REPO=$W2 F1_MEMINFO=$T/mi.ok F1_TIMEOUT=60 F1_CGROOT=$T/cg STUB_RES=$T/res.good11 sh $SRC run $SHA $T/answers0 $T/hd/out$k ) >$T/o 2>$T/e;eval rc$k=$?;done
+ok img-a-second-run-reuses-the-cached-tar-and-builds-nothing "rc $rc1 $rc2; mmdebstrap calls over 2 runs: $(grep -c '^mmdebstrap' $T/log)" '[ $rc1 = 0 ]&&[ $rc2 = 0 ]&&[ "$(grep -c "^mmdebstrap" $T/log)" = 1 ]'
+rm -rf $T/hd $T/term $T/seen;mkdir -p $T/hd/f1-nspawn-image;echo "not a tar" >$T/hd/f1-nspawn-image/noble.tar;(cd $T/hd/f1-nspawn-image&&sha256sum noble.tar >noble.tar.sha256);: >$T/log
+( cd $T;F1_DATA=$T/hd F1_REPO=$W2 F1_MEMINFO=$T/mi.ok F1_TIMEOUT=60 F1_CGROOT=$T/cg STUB_RES=$T/res.good11 sh $SRC run $SHA $T/answers0 $T/hd/out ) >$T/o 2>$T/e;rc=$?
+ok img-mutant-a-cached-file-that-is-not-a-tar-is-refused-before-extract-RED "rc $rc; nspawn calls: $(grep -c '^nspawn' $T/log); $(tail -1 $T/e|cut -c1-80)" '[ $rc != 0 ]&&[ "$(grep -c "^nspawn" $T/log)" = 0 ]&&grep -q "not a readable tar" $T/e'
+mkres "$B13";printf 'image abc /data/f1-nspawn-image/noble.tar\n' >$T/v/meta;( F1_LIB=1;. $SRC;summary $T/v ) >$T/o;ok img-the-summary-names-the-kept-image-and-who-removes-it "$(grep -c LIFECYCLE $T/o) lifecycle line" 'grep -q "^LIFECYCLE: .*image tar is KEPT.*noble.tar.*belam removes" $T/o'
+imgrun(){ ( cd $T;F1_DATA=$T/hd F1_REPO=$W2 F1_MEMINFO=$T/mi.ok F1_TIMEOUT=60 F1_CGROOT=$T/cg STUB_RES=$T/res.good11 sh $SRC run $SHA $T/answers0 $T/hd/out ) >$T/o 2>$T/e;rc=$?;}
+rm -rf $T/hd $T/term $T/seen;mkdir -p $T/hd/f1-nspawn-image/noble.tar.part/etc;: >$T/log;imgrun
+ok img-mutant-a-directory-at-noble-tar-part-is-refused-before-the-build-and-left-RED "rc $rc; mmdebstrap calls: $(grep -c '^mmdebstrap' $T/log); dir left: $([ -d $T/hd/f1-nspawn-image/noble.tar.part/etc ]&&echo yes||echo NO)" '[ $rc != 0 ]&&[ "$(grep -c "^mmdebstrap\|^nspawn" $T/log)" = 0 ]&&[ -d $T/hd/f1-nspawn-image/noble.tar.part/etc ]&&grep -q "left for the host, nothing removed" $T/e'
+rm -rf $T/hd $T/term $T/seen;mkdir -p $T/hd/f1-nspawn-image;ln -s /nonexistent $T/hd/f1-nspawn-image/noble.tar;: >$T/log;imgrun
+ok img-mutant-a-symlink-at-noble-tar-is-refused-and-left-RED "rc $rc; link left: $([ -L $T/hd/f1-nspawn-image/noble.tar ]&&echo yes||echo NO)" '[ $rc != 0 ]&&[ "$(grep -c "^mmdebstrap\|^nspawn" $T/log)" = 0 ]&&[ -L $T/hd/f1-nspawn-image/noble.tar ]&&grep -q "left for the host" $T/e'
+rm -rf $T/hd $T/term $T/seen;mkdir -p $T/hd;: >$T/log;imgrun;echo x >>$T/hd/f1-nspawn-image/noble.tar;: >$T/log;rm -rf $T/hd/out;imgrun
+ok img-mutant-a-cached-tar-whose-sha256-does-not-match-is-refused-RED "rc $rc; nspawn calls: $(grep -c '^nspawn' $T/log); $(tail -1 $T/e|cut -c1-90)" '[ $rc != 0 ]&&[ "$(grep -c "^nspawn\|^mmdebstrap" $T/log)" = 0 ]&&grep -q "does not match its digest" $T/e'
+rm -rf $T/hd $T/term $T/seen;mkdir -p $T/hd;: >$T/log;imgrun;rm -f $T/hd/f1-nspawn-image/noble.tar.sha256;: >$T/log;rm -rf $T/hd/out;imgrun
+ok img-mutant-a-cached-tar-with-no-digest-file-is-refused-RED "rc $rc; $(tail -1 $T/e|cut -c1-90)" '[ $rc != 0 ]&&[ "$(grep -c "^nspawn" $T/log)" = 0 ]&&grep -q "does not match its digest" $T/e'
+ok img-no-new-root-rm-rf-in-the-harness-only-rm_rootfs-has-one "$(grep -v '^ *#' $SRC|grep -c 'rm -rf') rm -rf code line(s)" '[ "$(grep -v "^ *#" $SRC|grep -c "rm -rf")" = 1 ]&&grep -v "^ *#" $SRC|grep -F "rm -rf" |grep -qF -- "--one-file-system \"\$d\""'
 sh -n $SRC;ok syntax "sh -n" '[ $? = 0 ]'
 echo "f1-nspawn.t.sh: $f FAIL"
 exit $f
