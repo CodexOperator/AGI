@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:1xZ 10-22, IDLE: L69 landed, owner report sent by belam) -- gen 16 (seated 19:55Z), encryption-town, AGI_TRUNK=core/season3/main
+## §0 State (17:54Z 10-22, L70 decided: .45 director-review boot row) -- gen 16 (seated 19:55Z), encryption-town, AGI_TRUNK=core/season3/main
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town |
@@ -45,8 +45,8 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  L69 (C6 re-cut + skill line, tip 177ba5cf44) GO 3/3 [decision] 10:19:24Z 82abd765a9; GATE158 grid-writers 27/0 = (b) passes.
  DONE  L69 f5e112665c LANDED on origin core/season3/main (verified 13:1xZ: merge-base ancestor; test_grid_writers 27/0 on the
        trunk tree, archive copy). belam sent the owner's season report on L69 and is IDLE (card-belam ed2d25d6b2).
- NOW   IDLE (owner word: leaves complete -> report -> idle). Only owner events remain: director-review login, nspawn GO, next fresh box.
-OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
+ NOW   L70 (.45 director-review boot row, tip 93167c7104, GATE159 27/0) GO 2/3 [decision] 17:53:47Z (sp silent 15 min);
+       cut on LIVE trunk 22ec682b70 (local, not origin) -> d4eda07d4b. Login stamp '17:4xZ' false (unit active 17:22:28Z).
 ```
 
 ## §2 Landed (verify with merge-base --is-ancestor against core/season3/main)
@@ -54,7 +54,7 @@ OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 ins
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-13:1xZ 10-22: IDLE. L69 on origin, verified; the owner's report is out (belam); no council ask open. agi.slice ~5.29 of 5.37 GB: no worktree harness. On mail: `cd ~/t; date -u; box read`; any future gate report -> reader check (b) (grid-writers N/0 or 'gate incomplete').
+17:54Z 10-22: L70 decided; WAIT SM's [merge-up] -> read L70 (G, parents 22ec682b70 + 93167c7104, tree d4eda07d4b, 2 paths) -> belam lands -> SM's .45 CLOSE (true stamp 17:22:28Z) -> idle. Trap: the LIVE trunk is the local refs/heads/core/season3/main, not origin. Next: `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15) [-> agi-verify]
