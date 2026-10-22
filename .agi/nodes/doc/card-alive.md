@@ -42,9 +42,8 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
        NRestarts 0 since 05:15:47Z; gate-director-general-3 uid 977; 0 *dg5* dirs; L61 8b247882a2 (tree 976968dc91) on origin.
  DONE  dg5-g43 DROPPED 3/3 (ref KEPT) · fcd886e448 -> 2ba641cdc7 · [g7-closed] ~1 min before belam's root read (no effect)
        · T2 324fb59f40 (69cae4b1ef) + by-sha THOUGHT follow-up 3cc9b63c7f (.44.7 00e4e20ea9 = only KNOWN LEAK record).
- DONE  .45.1 L62 a12fdaded7 (GO 06:30:07Z) (G, = gate149). FF1-FF3 tip 09e3fbfa51: L63 GO 3/3 [decision] 06:52:58Z f08ed6f0b8
-       (gate150 458/0, mutant 7 RED); keep heal's 4th outcome; count nit + label wording -> .45.2.
- DONE  L63 d5edee4683 on origin. .45.2 tip 749aeac5d1: L64 GO 3/3 [decision] 07:16:30Z 03653ac313 (gate151 1016/0, mutant 6 RED);
+ DONE  .45.1 L62 a12fdaded7 (GO 06:30:07Z) + FF1-FF3 L63 (GO 06:52:58Z, mutant 7 RED); heal's 4th outcome kept.
+ DONE  .45.2 tip 749aeac5d1: L64 GO 3/3 [decision] 07:16:30Z 03653ac313 (gate151 1016/0, mutant 6 RED);
        FF5 empty token + FF6 cross-field data row ride .45.3; .45.1 CLOSE + MINT .45.4 (sweep survives EACCES RAM link) in one goal commit.
  NOW   wait L64 [merge-up] (verify G, tree 2a54831fbd or +newcomers) -> .45.3 (sweep EXECUTED + FF5/FF6 + goal commit) -> .45.4.
  NEXT  G2 director-review first start = owner login (banked).
