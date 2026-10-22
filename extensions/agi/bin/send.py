@@ -5074,6 +5074,19 @@ def _whois_answer(who: dict, match_display: str, claim: str | None,
     return WHOIS_OK, f"SEAT: {match_display} -> seat {name}, role {role}{winpart}"
 
 
+def _ambiguous_refusal(token: str, axis: str, hits: list) -> tuple[int, str]:
+    """goal:g7.16.1.11.45.2: a token that more than one posts.md row carries is
+    NEVER answered by the first hit -- that is an authorization of a seat the
+    caller may not mean (the G6 4a carried an old holder's session_name onto the
+    new row while the -retired row kept it). The refusal names EVERY matching row
+    and is not an authorization: the code is NO-MATCH, so no caller can treat it
+    as a match."""
+    names = ", ".join(repr(r.get("name", "?")) for r in hits)
+    return (WHOIS_NO_MATCH,
+            f"NO-MATCH: {token!r} is ambiguous by {axis}: it is carried by "
+            f"{len(hits)} rows ({names}); never answered by the first hit")
+
+
 def _resolve_rows(rows: list, session_ref: str,
                   claim: str | None, target: tuple | None = None,
                   root: Path | None = None) -> tuple[int, str]:
@@ -5098,6 +5111,8 @@ def _resolve_rows(rows: list, session_ref: str,
         mode, val = target
         if mode == "seat":
             hits = [r for r in rows if r.get("name") == val]
+            if len(hits) > 1:
+                return _ambiguous_refusal(val, "name", hits)
             if hits:
                 return _whois_answer(hits[0], f"by name: {val}", claim, root)
             return (WHOIS_NO_MATCH,
@@ -5120,12 +5135,14 @@ def _resolve_rows(rows: list, session_ref: str,
         return _whois_answer(hits[0], f"by key: {val}", claim, root)
     hits = [r for r in rows if (r.get("session_ref") == session_ref
                                 or r.get("session_name") == session_ref)]
+    axis = "session_ref/session_name"
     if not hits:
         # r3: prefix-match a row's session_id uuid (state min length; refuse
         # shorter as NO-MATCH rather than guessing on a too-small prefix).
         if len(session_ref) >= WHOIS_MIN_SESSION_ID_PREFIX:
             hits = [r for r in rows
                     if (r.get("session_id") or "").startswith(session_ref)]
+            axis = "session_id prefix"
             if not hits:
                 return (WHOIS_NO_MATCH,
                         f"NO-MATCH: {session_ref!r} belongs to no seat row "
@@ -5137,6 +5154,8 @@ def _resolve_rows(rows: list, session_ref: str,
                     f"{WHOIS_MIN_SESSION_ID_PREFIX} chars) is too short to "
                     "authorize by session_id prefix and matches no "
                     "session_ref")
+    if len(hits) > 1:  # every leg above: never the first hit of an ambiguous token
+        return _ambiguous_refusal(session_ref, axis, hits)
     who = hits[0]
     name = who.get("name", "?")
     role = who.get("role", "?")
