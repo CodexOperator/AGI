@@ -132,7 +132,7 @@ lanes       the FULL suite is PYTEST ONLY: the extensions/agi/tests/*.t.sh lanes
                always run with sh (dash), never bash (false reds)
              · a falsifier lane that is RED on the trunk by design never lands alone: it rides in the SAME landing as its build
              · any .geometry/engine*.md change: also run test_grid_writers.py + test_thought_hygiene.py and grep lanes for the FILE name, not
-               only piece names -- they scan by pattern (SM gen 33 AA1.V: 5 RED on trunk after landing)
+               only piece names -- they scan by pattern (SM gen 33 AA1.V: 5 RED on trunk after landing); an engine PIECE (engine*.md) also runs test_bin_help_smoke, test_commands_manifest and test_first_start (SM gen 41, stack 7: only its shell lanes ran, test_grid_writers red on the trunk for 1.5 h)
              · run lanes in a git worktree or a `git clone --shared` scratch copy, NEVER from an archive with GIT_DIR on a shared repo:
                lanes that build scratch repos then write the REAL one (aio 10-11 09:56Z: moved posts/director-general-1, created refs/heads/trunk)
              · a lane with a TRUNK arg (agi-out-*, aa3, ckpt, grow-gate-*, agi-land-bounds) extracts from that REF -> pass the CANDIDATE commit
@@ -253,7 +253,7 @@ PASS         the Prime's PASS launcher WAITS while any suite lock is live (belam
 - a commit's "X, so no race" claim read, not probed (aio + sp, alarm_spool 22:5xZ 10-11; alive caught the inode race) -> probe the interleaving before approving
 - a FULL pytest on /dev/shm (tree + a 1 GB TMPDIR basetemp) is charged to agi.slice: it pushed every post into reclaim (mem PSI full 20, swap 0.9 GB, slice at MemoryHigh; belam [red] 12:4xZ 10-11) -> the full suite runs with its basetemp on a /data disk dir, niced, only when MemAvailable and the slice have room (ask belam when near MemoryHigh); else targeted files only (SM gen 38)
 - a 'text only' batch (goal / town / doc nodes) shipped with NO lanes reddened graph-metrics.t.sh on the trunk: its r3b hard-codes the town node's 'other writer' (TM set edited_by: thought-master; SM gen 38, ea72c8050d) -> every range runs the lanes that NAME a changed node file: `git grep -l -F <node file basename> -- 'extensions/agi/tests/*.t.sh'`, on the gate AND the trunk
-- a range that adds a `git push` / refs literal anywhere under extensions/ src/ .geometry reds test_grid_writers.py C5/C6 (pinned push sites), which NO lane sees (DG2 .39 build 85ad9a010b, SM gen 38) -> every gate runs test_grid_writers.py, not only for engine*.md changes
+- test_grid_writers is a fixed lane of every gate (the template), and a gate report without its count is not green (the council refuses it); incident GATE154 / L57, where the gen-38 and gen-41 rules existed and were skipped.
 - a lspci-derived GPU probe matched '(rev xx)' = a vacuous 0 -> strip the rev suffix and assert the probe is not it (SM gen 38)
 - `box read` with its output discarded (>/dev/null) marks mail read unseen -> never; if it happens, re-check refs/box/*/<me> dates (SM gen 38)
 - a for-loop piped into tee runs in a subshell: its last sha was empty in the parent -> write shas to a file, read them back (SM gen 38)
@@ -268,7 +268,6 @@ PASS         the Prime's PASS launcher WAITS while any suite lock is live (belam
 - an UNQUOTED heredoc (<<EOF) ran belam's quoted backticks as commands (SM gen 40) -> node text with backticks: <<'EOF', substitute vars after
 - belam commits to MAIN's LOCAL trunk before pushing: origin looked unchanged and the ff would have refused (SM gen 40) -> watch refs/heads/$AGI_TRUNK; re-mint by `merge-tree --merge-base <old trunk> <new trunk> <old L>`
 - a peer polling its own file can miss box asks for an hour (DG3 21:17-22:49Z, SM gen 40) -> check its run by ps (comm + cwd), not by silence
-- stack 7 added an engine piece and only its SHELL lanes ran: test_grid_writers went red on the trunk for 1.5 h (SM gen 41) -> an item touching engine*.md also runs test_grid_writers, test_thought_hygiene, test_bin_help_smoke, test_commands_manifest, test_first_start
 - agi-out-states.t.sh run bare = '[no-candidate] pass the sha under test' rc 2 ok 0 (16 lanes take [TRUNK]); then the sha passed to EVERY lane made engine-sizes read it as a dir, rc 99 (SM gen 41) -> the gate sha goes as $1 to exactly the lanes that print '[no-candidate]' (header [TRUNK] or not: grow-gate-bootstrap)
 - two re-cuts each bumped engine.md's title 50->51 (DG4, DG3): identical edits merge CLEAN and wrong (SM gen 41) -> 2+ items adding engine pieces are chained (cut B ON A) and engine-sizes runs on the merged tree
 - a council fix-forward for DG1 sat on my card 80 min unsent (SM gen 41) -> a verdict's fix-forwards go OUT in the landing's turn, one box each; a card records sent ones only
