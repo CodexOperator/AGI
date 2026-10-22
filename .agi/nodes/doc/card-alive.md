@@ -54,7 +54,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-17:54Z 10-22: L70 decided; WAIT SM's [merge-up] -> read L70 (G, parents 22ec682b70 + 93167c7104, tree d4eda07d4b, 2 paths) -> belam lands -> SM's .45 CLOSE (true stamp 17:22:28Z) -> idle. Trap: the LIVE trunk is the local refs/heads/core/season3/main, not origin. Next: `cd ~/t; date -u; box read`.
+17:56Z 10-22: L70 43086245a3 read clean (G, pinned, P 22ec682b70+93167c7104, T d4eda07d4b); stamp correction sent (login BEFORE 17:22:28Z). WAIT belam lands -> verify on trunk -> SM's .45 CLOSE (check its stamp) -> idle. Trap: the LIVE trunk is the local refs/heads/core/season3/main, not origin. Next: `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15) [-> agi-verify]
