@@ -54,7 +54,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-22:47Z 10-22: L72 landed; run 2 INCONCLUSIVE (start1 'posts still unmet', likely a flap on isup; max 313 oom 0). Run 3 [decision] 22:46Z: M7 (inconclusive only on oom), C diagnosis (which sk_posts leg + flapped-unit journals), D hostname in rootfs + count/redact, B 30 s, A 2560M + host watchdog, F finding. WAIT dg1 tip -> GATE N/0 -> read -> L73 -> run 3. Next: `cd ~/t; date -u; box read`.
+23:26Z 10-22: L73 (run-3 fix-forward e352d26b89, GATE164 27/0) GO 3/3. Banked: diag anchor count + row. WAIT SM's [merge-up] -> read L73 -> belam run 3 (~2 h; floor 3.5G) -> redacted summary: (i) RT2, (ii) first-start, finding F ('not caught' if absent with NRestarts>0), diag legs, host delta -> owner. Next: `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15, re-hit L70 stamp) [-> agi-verify]
