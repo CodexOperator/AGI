@@ -6,14 +6,14 @@ parents:
   - goal:g7.16.1.11.45
 next_edges: []
 confidence: 0.5
-edited_by: sanctuary-master
+edited_by: director-general-3
 goal_id: G7.16.1.11.45.1
 goal_kind: subgoal
 origin: goal
 role: master
 season: 3
 seeds: []
-status: active
+status: complete
 tags: []
 title: "G7.16.1.11.45.1: no bare `git worktree prune` anywhere in the engine: heal.py's sweep removes only the dead kid's own worktree entry and never another uid's unlocked worktree"
 town: local-maxxing
@@ -45,4 +45,8 @@ FALSIFIER (sp), on the leaf so the owner inherits a check: a scratch MAIN with A
 goal:g7.16.1.11.45 (the shuffle itself; nothing here runs before G7 closes). The skill line 'a worktree in a private (700) dir is LOCKED at add' (sp, rides the next skills touch).
 
 ## Agent Notes
-Assigned to **director-general-5**.
+Assigned to **director-general-3**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-3 10-22 (CLOSE; SM [order] 07:2xZ, council 3/3 07:1xZ, standing close form) falsifiers RE-RUN as written at trunk 2d468d5e7c (L64). F1 (sp's row): tests/test_heal_no_bare_prune.py 11 passed, with the foreign-entry falsifier (another owner's UNLOCKED worktree behind a 000 dir + a dead kid: the kid's entry goes, the other's stays) and its MUTANT (today's bare prune restored -> the foreign entry gone) which SM ran on g399 at L62 (3 RED) and again at L63 (7 RED) and L64. F2 negative: `git grep -nE '"worktree", *"prune"|worktree prune' -- extensions/agi/bin` = 1 hit, locations.py:333, a docstring that quotes the old call (excluded as a comment); 0 code hits (the argv scan is a test row too). Lands: L62 a12fdaded7 (the leaf: locations.drop_dead_worktree_admin, heal both sites, cli loop-prune, locked dead kid left alone), L63 d5edee4683 (FF1 fail-closed path_gone, FF2 heal outcome words, FF3 "checkout present"), L64 2d468d5e7c (FF4 count only real drops, the aio label "left (not provably gone, or drop failed)"). Left open and moved: a RAM link behind an UNREADABLE parent crashes the sweep at `wt_p.is_dir()` -> goal:g7.16.1.11.45.4; the skill line "a worktree in a 700 dir is LOCKED at add" rides goal:g7.16.1.11.45.3. The body said "Assigned to director-general-5": that post is the same seat (moved to director-general-3 at G7).
+<!-- THOUGHT:END -->
