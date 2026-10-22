@@ -105,6 +105,7 @@ summary(){ D=$1;R=$D/res;verdict "$D"
  echo "claude stub: logs argv, prints the line '? for shortcuts' (an unmeasured stand-in: no start step reads a ready byte, agi.sh stuck() matches only the 6 dialog titles), runs \`box read\` every 5 s like a real post so stop's blast sees the acks, ends in \`exec sleep infinity\` (NRestarts must be 0)."
  echo "also stubbed: gh (auth status -> 0), pi, and guard-init (--status -> 0: its layers are HOST layers, absent in nspawn). The memory-PSI ExecStartPre, agi.sh's load gate and /proc/loadavg are the HOST's inside nspawn."
  echo "stop mutant: agi-belam's own cron block left standing (the crons.py remove call dropped), as RT2 does; pstop refuses a foreign-ROOT block outright. RED comes from marked_sum = crons.py marked per agi- uid against the real crontab."
+ echo "LIFECYCLE: the rootfs was removed at the end of the run (guarded rm). The image tar is KEPT for a re-run (an INCONCLUSIVE is re-run): $(rget image "$D/meta" 2>/dev/null|cut -d' ' -f2). belam removes $F1_DATA/f1-nspawn-image after the owner has read F1, so nothing stays on /data unnamed."
  echo "--- raw reads (res)";cat "$R" 2>/dev/null
  echo "--- host before / after (hard = the container or the harness could have caused it; info and raw = the live town's own traffic, listed)";cat "$D/host.delta" 2>/dev/null;echo "-- before";cat "$D/host.before" 2>/dev/null;echo "-- after";cat "$D/host.after" 2>/dev/null
  echo "--- container memory (peak, last memory.events, agi.slice at run time, slice read)";cat "$D/mem.peak" "$D/mem.events" "$D/slice.read" 2>/dev/null;sed -n '1p;$p' "$D/agislice" 2>/dev/null
@@ -217,13 +218,20 @@ mutants(){ vic=$(echo $EXPECT|tr ' ' '\n'|grep -vx belam|head -1)
  restore_agsh||rec fail "mutant stop: agi.sh not restored";cap mheal3 sh "$AGSH" stop||rec fail "mutant stop: the clean stop did not heal (rc $?)"
  return 0;}
 # ================================================================ HOST (root)
-build_image(){ TAR=$F1_DATA/f1-nspawn-image/noble.tar;IMGSHA=
- if [ ! -s "$TAR" ];then mkdir -p "$F1_DATA/f1-nspawn-image"||die "cannot make the image dir"
+# the image: ONE regular tar file. mmdebstrap picks its format from the target's name (a ".part" name made a DIRECTORY in run 1, 10-22 21:15Z), so --format=tar is explicit. NO new root rm -rf (council 21:31:39Z): a non-regular "$TAR" or "$TAR.part"
+# (a directory from a failed build can hold mounts; mv onto a directory moves the tar INTO it) is REFUSED and left for the host; the failure arms `rm -f` a regular .part only. A cached image is REUSED only after sha256sum -c of the digest the build wrote.
+build_image(){ ID=$F1_DATA/f1-nspawn-image;TAR=$ID/noble.tar;IMGSHA=
+ for x in "$TAR" "$TAR.part";do if { [ -e "$x" ]||[ -L "$x" ];}&&{ [ -L "$x" ]||[ ! -f "$x" ];};then die "$x exists and is not a regular file (left for the host, nothing removed): remove it by hand; nothing built";fi;done
+ if [ ! -e "$TAR" ];then mkdir -p "$ID"||die "cannot make the image dir"
+  rm -f "$TAR.part"
   cn=$(. /etc/os-release;echo "$VERSION_CODENAME");mir=${F1_MIRROR:-http://archive.ubuntu.com/ubuntu}
   echo "f1: mmdebstrap $cn from $mir (the one network use)" >&2
-  mmdebstrap --variant=minbase --include="$F1_PKGS" "$cn" "$TAR.part" "$mir"||{ rm -f "$TAR.part";die "mmdebstrap failed";}
-  mv "$TAR.part" "$TAR"&&sha256sum "$TAR" >"$TAR.sha256";fi
- IMGSHA=$(sha256sum "$TAR"|cut -c1-64);}
+  mmdebstrap --format=tar --variant=minbase --include="$F1_PKGS" "$cn" "$TAR.part" "$mir"||{ rm -f "$TAR.part";die "mmdebstrap failed";}
+  { [ -f "$TAR.part" ]&&[ ! -L "$TAR.part" ]&&tar -tf "$TAR.part" >/dev/null 2>&1;}||{ rm -f "$TAR.part";die "mmdebstrap left no readable tar at $TAR.part (left for the host if it is not a regular file, nothing removed)";}
+  mv "$TAR.part" "$TAR"||die "cannot move $TAR.part to $TAR";(cd "$ID"&&sha256sum noble.tar >noble.tar.sha256)||die "sha256sum of $TAR failed"
+ else [ -f "$ID/noble.tar.sha256" ]&&(cd "$ID"&&sha256sum -c --status noble.tar.sha256)||die "the cached image $TAR does not match its digest $ID/noble.tar.sha256 (or the digest is missing): nothing extracted";fi
+ { [ -f "$TAR" ]&&tar -tf "$TAR" >/dev/null 2>&1;}||die "$TAR is not a readable tar file: nothing extracted"
+ IMGSHA=$(sha256sum "$TAR"|cut -c1-64);[ ${#IMGSHA} = 64 ]||die "sha256sum of $TAR gave no digest: nothing extracted";}
 inner_unit(){ printf '%s\n' '[Unit]' 'Description=F1 inner leg' 'After=multi-user.target' 'SuccessAction=poweroff' 'FailureAction=poweroff' '[Service]' 'Type=oneshot' 'TimeoutStartSec=infinity' 'ExecStart=/bin/sh /f1/f1-nspawn.sh inner' 'StandardOutput=file:/f1/out/inner.log' 'StandardError=file:/f1/out/inner.log' '[Install]' 'WantedBy=multi-user.target';}
 cleanup(){ [ -z "$NAME" ]||machinectl terminate "$NAME" >/dev/null 2>&1;[ -z "$NP" ]||wait "$NP" 2>/dev/null
  [ -z "$ROOTFS" ]||[ ! -e "$ROOTFS" ]||rm_rootfs "$ROOTFS" "$RUN";}
