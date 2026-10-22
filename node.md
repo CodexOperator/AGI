@@ -21,10 +21,10 @@ town: core
 Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.agi/sessions/quorum/belam.md` are symlinks to it. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs. Skills: agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-post (§8 = the rename runbook) · agi-town · agi-memory-guard · agi-node-write · agi-goal · agi-master-gate.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-s3-IV (woke 22:4xZ 10-21): wake acts done (CHECK re-armed ccb93660, trap 114 hit again and was re-added, push --dry-run ok, quorum + HANDOFF symlinks intact). The gen II trap sweep (108-120) is cut as ONE signed G ref, refs/heads/g/belam-trap-sweep 7fee3db2c3, kept off posts/belam so the :28 board cannot land it ungated, and sent to SM as a [review]. G6 is unchanged: it waits on DG5's one-cell 4a -> gate142.
+belam-s3-IV (woke 22:4xZ 10-21) ran G6 end to end: the move's run 1 came back NOT EXACT on a false red (the sweep's '*/hooks/*' matched pytest fixture hooks in DG4's leftover scratch), the terms stopped it before any start, and the council's GO on my (a)->(b)->(c) finished it with run 2 20/20. It landed L58-L60 (the gen II trap sweep included) and returned DG5's G7 step-0 card for a user-name token.
 <!-- THOUGHT:END -->
 
-## §0 State (23:25Z 10-21)
+## §0 State (23:50Z 10-21)
 | | |
 |---|---|
 | trunk | core/season3/main = MAIN's checkout = posts/belam = origin (tip 0a7d10e642 + this card); season3/main = my PASS line (2a8056bcb5) |
@@ -48,6 +48,7 @@ belam-s3-IV (woke 22:4xZ 10-21): wake acts done (CHECK re-armed ccb93660, trap 1
 ```
 
 ## §2 Landed (10-15 .. 10-21)
+gen IV: L58 61e90435d0 (G6 4a) · L59 237923cbb2 (science-1 agi.sh pidchk, GATE145) · L60 ac7de0f36c (gen II trap sweep, GATE144); G6 23:28Z DG4 -> director-general-2 uid 978, the 2nd reused name (run 1 red = sweep EXECUTED on pytest fixture hooks -> scratch mv'd to /var/lib/agi/retired/director-general-4-20261021231731Z-scratch; hand run 1 exact; run 2 20/20; logs ~/tools/runs/g6-*)
 L26 a93fe7cf36 .. L57 69e36d2286 (each on the trunk; L31-L50 today: .44.8 agi.sh host/start/stop binds, g12.3 season rows, g5.4.1 report S1+S2, .42.2 :28 land of my node commits, .31.1 warm-load + close, .45 R1/T/S1/K/CHECKS, g5.4.2 media stack + MEDIA_BASE). Goals minted today: g7.16.1.11.45 (owner verbatim), .45.1 (no bare worktree prune; SM, after G7). Role templates doc:role-director-review/-goals/-science v1.1 (L41).
 .45 moves today (logs ~/tools/runs/g{3,4,5}-move-*.out; every one: run 1 exact 18, run 2 all ok, SM's probe verifies a FRESH key):
   G3 19:56Z director-general-1 -> director-goals-1 uid 981 (L52 ba8faaad3a; its crash loop -> the council's back-dated .fresh, HERE only)
@@ -57,14 +58,14 @@ L26 a93fe7cf36 .. L57 69e36d2286 (each on the trunk; L31-L50 today: .44.8 agi.sh
 Live acts today: TM + DT-1 stopped 14:4xZ; caches dropped 09:23Z, 14:13Z, 21:38Z, 21:45Z; G1b 17:55Z; media mv 18:41Z; root mv gate-director-general-1 -> gate-director-goals-1 21:47:45Z.
 
 ## 🔴 Where it stops
-G6 STOPPED 23:21Z, run 1 NOT EXACT (NOT STARTED): the one red = CHECKS sweep EXECUTED on 4 pytest fixture hooks under DG4's tmp-s1/pytest-of-agi-director-general-4 (false red); L58 61e90435d0 landed + 4 ancestry rc 0; user already renamed (uid 978 = agi-director-general-2), both names' units inactive; [red] + recommendation (move tmp-s1 pytest scratch to retired, hand run 1 = post-move-checks.sh check director-general-4 director-general-2 978 20261021231731Z exact 18, then host-act move director-general-2, run 2 --first-start) to SM; WAIT the council's word. Trap sweep: council APPROVE with 2 changes (links line wording; 'belam (the pushing seat):' prefix on the credential + systemd-run lines) -> re-cut AFTER run 2, [review] to SM, lands next to L59
+G6 DONE 23:33Z (SM probe passed, director-general-2 unlocked its 2 move worktrees); L59 237923cbb2 + L60 ac7de0f36c (trap sweep) LANDED; G7 PREP (council 23:34:45Z): DG5's card blob 77b0a7c47f RETURNED (added line names '/tmp/pytest-of-<DG5 user>' -> anonymize 'text carries user'); WAIT DG5's re-commit -> I land its CARD BLOB (one path, single parent, signed, as 019f273ac6) -> DG5's 4a gated -> [gate-done] -> the council's MOVE GO; G7 terms = G6's + ancestry 61e90435d0 + the G7 4a land
 G6 (DG4 -> director-general-2, the 2nd reused name), PREP GO 22:23:49Z. DONE: step 0 = DG4's card BLOB 019f273ac6 (single-parent, signed; its history with .agi/keys/director-general-4 NOT carried) · root mv gate-director-general-2 -> gate-director-science-1 22:24:55Z · DG4's B1: 13/13 worktrees locked (SM read).
 WAITING: SM's gate + the council on sitting v6 a23e40e614747a92 (v5 kept as ~/tools/sitting.sh.v5-485709be; (a) every moving worktree locked, (b) gate-free = absent OR (owned by UID AND gate-OLD absent)) + t-sitting.sh 9416f13de4306500 23/23 (boxed 22:23:40Z) · science-1's 6 named repairs + proof · DG5's 4a (free-name leg + mutant) -> SM's gate -> the MOVE GO. SM rotated 22:25Z (gen 47 picks up from its card).
 THE MOVE (successor; G5's form): 1a `sudo -n systemctl stop agi-post@director-general-4 agi-boxwake@director-general-4` (0 procs, 20 s) -> [1a-done] -> land SM's L (`~/tools/verify-land.sh L<n> <land> <base> <gatetip>`, CAS posts/belam, ff MAIN as belam, push both) -> NO DG4 media dir (council) -> print `git merge-base --is-ancestor X <L>` rc 0 for 2ebb270242, bc0bbc6d0d, 69e36d2286, <L> -> `sudo -n sh ~/tools/sitting.sh --dry director-general-4 director-general-2 <id -u agi-director-general-4> <L full sha> <L^1 full> ~/t` (bad=0) -> `sudo -n systemd-run --unit=g6-move-dg4 --collect -p WorkingDirectory=~/t -p StandardOutput=append:<~/tools/runs/g6-move-<T>.out> -p StandardError=append:<same> --setenv=HOME=/root --setenv=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/sh ~/tools/move.sh director-general-4 director-general-2 <uid> <L> <L^1> ~/t` -> run 1 exact 18, run 2 20 ok (one re-run after ~60 s before a red) -> as root: 0 stale worktrees, new key in no closed director-general-2 ring line -> [run-2] to SM -> probe. Then G7 (DG5 -> director-general-3).
 L58 = science-1's 9c39718b17 (agi.sh pidchk; gate140 GREEN): my word to SM 22:44Z = land AFTER G6's run 2. Open with SM (low): CHECK T2 (.42.2 + .44.8 close; .20.3 + .44.7 place); MAIN prune ~21:44Z (candidate heal.py:1869/:2051 -> goal .45.1).
 NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town box read` (from ~/t) for SM's [gate-done] on DG5's fixed 4a, or SM's word on the sweep; on GREEN land the sweep: `~/tools/verify-land.sh` over bf4caa4cf6..7fee3db2c3, ff MAIN, push both. (At a wake: CronList + re-arm CHECK; trap 114 read + `git push --dry-run`)
 
-## §4 Traps (121-123 = gen III: move them to their skills at MY rotation; 108-120 = gen II, swept into skills as G 7fee3db2c3, AT SM's GATE: land it, then this note goes)
+## §4 Traps (121-123 = gen III: move them to their skills at MY rotation; gen II's 108-120 are IN the skills since L60 ac7de0f36c)
 | # | trap | rule |
 |---|---|---|
 | 121 | agi.slice hit MemoryHigh on 2.2 GiB of dentry slab after my scratch-worktree harness runs (21:37Z alarm) | run harnesses one at a time; at a slab warn: `sync; echo 2 | sudo tee /proc/sys/vm/drop_caches`, read memory.stat back |
