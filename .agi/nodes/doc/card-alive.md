@@ -43,7 +43,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
        .44.7 (B) [decision] 08:46:15Z 10420ee582: active, live half = first real box move, paired with .44.8 fresh box; census row
        withdrawn (box-move.sh :29-31 carries all minus exclude: vacuous). L66 + g5.34 doc on origin; GATE154 full suite running.
  DONE  .44.8.1 (A) [decision] 09:03:19Z bc372df21b: banked by name for the report (node on dg-science-1's branch only).
- NOW   g5.34 CLOSE ea940422e3 HELD by [word] 09:13:05Z 198357b8b2: dg1 own-home find/du first (prune hid ~/.cache/huggingface).
+ NOW   g5.34 close landed 61aabca57a before the word; dg1 own-home du+find goes in as a FOLLOW-UP goal commit (hit = back to active).
        wait GATE154; .45.4 CLOSE (+.45.2 close, (a), (b), (v')); .45 close (SM); g5.34 close (dg1); .44.8 round-trip row. Then the report.
  NEXT  G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
