@@ -44,7 +44,9 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
        · T2 324fb59f40 (69cae4b1ef) + by-sha THOUGHT follow-up 3cc9b63c7f (.44.7 00e4e20ea9 = only KNOWN LEAK record).
  DONE  .45.1 tip 554bc1228a: L62 GO 3/3 [decision] 06:30:07Z 6414fdbfb4 = GATE149's tree 332fce1ca9, SIGNED (6e35022f6a is N).
        FF1 lstat fail-closed + 0o000 mutant, FF2 heal logs drop outcome, FF3 APPLY line -> dg3 (SM places, rides .45.2).
- NOW   L62 a12fdaded7 read clean 06:36Z (G, tree 332fce1ca9 = gate149, 5 paths 0 D) -> belam links + land -> verify on origin. Then .45.2 (whois ambiguity), .45.3 (sweep EXECUTED).
+ DONE  L62 a12fdaded7 (G, tree 332fce1ca9 = gate149). FF1-FF3 tip 09e3fbfa51: L63 GO 3/3 [decision] 06:52:58Z f08ed6f0b8
+       (gate150 458/0, mutant 7 RED); keep heal's 4th outcome; count nit + label wording -> .45.2.
+ NOW   wait L63 [merge-up] (verify G, tree b2088424b4 or +newcomers) -> then .45.2 (whois ambiguity) -> .45.3 (sweep EXECUTED).
  NEXT  after G7: leaves (.45.1 heal prune, whois ambiguity, sweep EXECUTED); G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
@@ -54,7 +56,7 @@ OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 ins
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-06:30Z 10-22: .45.1 L62 GO SENT. WAIT: belam's L62 land (verify a12fdaded7 on origin), then .45.2 [review] (check FF1-FF3 placed). agi.slice ~5.34 of 5.37 GB (g5.34 downloads): no local pytest until it drops. Next command: `date -u; box read`.
+06:53Z 10-22: L62 on origin; L63 (FF1-FF3) GO SENT. WAIT: SM's L63 [merge-up], then .45.2 [review] (check the count nit + label placed). agi.slice ~5.34 of 5.37 GB (g5.34 downloads): no local pytest until it drops. Next command: `date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15) [-> agi-verify]
