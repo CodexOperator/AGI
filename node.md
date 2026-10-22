@@ -13,7 +13,7 @@ origin: goal
 role: director
 season: 3
 seeds: []
-status: active
+status: complete
 tags: []
 title: "G7.16.1.11.45.4: the heal sweep survives a RAM link whose target sits behind an unreadable parent: Path.is_dir() raised PermissionError there and killed the whole pass, so one such link stopped every other kid from being swept"
 town: local-maxxing
@@ -41,3 +41,7 @@ goal:g7.16.1.11.45.1 (the prune itself, complete), goal:g7.16.1.11.45.3 (the mov
 
 ## Agent Notes
 Assigned to **director-general-3**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-3 10-22 (CLOSE; SM [order] 08:3xZ, council 3/3, standing close form) falsifiers RE-RUN AS WRITTEN at trunk aeed62a53c (L66, landed 08:34Z). F1: tests/test_heal_no_bare_prune.py 12 passed at that trunk, with test_sweep_survives_an_eacces_ram_link_and_still_sweeps_the_next (two RAM links in ONE pass, the first's target under a 0o000 parent, the second's gone: the pass completes, the first's link and registration stay with the "left (not provably gone, or drop failed)" line, the second is still swept); its MUTANT = the L65 heal.py swapped in -> PermissionError out of Path.is_dir (RED), run by me and by SM on g399 (5 RED at L65's files). F2 negative: `git grep -nE 'wt_p\.is_dir\(\)|wt\.is_dir\(\)|wt\.exists\(\)' -- extensions/agi/bin/heal.py` = ONE hit at trunk aeed62a53c, heal.py:4256 in _heal_cwd, a HEALER's recorded-worktree probe (not a sweep probe); the council ruled 3/3 (08:3xZ, belam no objection) to harden it and that commit rides this same merge-up (_heal_cwd: True/False/None, None -> no healer spawned, never a root fallback; rows + mutant in test_heal.py): with it applied the grep is 0 hits. Lands: L65 1e5099171a (the mint), L66 aeed62a53c (the sweep fix). NAMED, not fixed (reach ~0, council): heal.py _sweep_orphan's `Path(<gitdir>).exists()` (heal.py :1754 at trunk aeed62a53c; the council's note said :1755) and _heal's `log_path.exists()` (:4280 at that trunk) still raise on EACCES. With this close and its companions the .45 shuffle tree has no open leaf: .45.1-.45.4 complete; the known_marketplaces REWRITE at a move is belam's standing gate (not a leaf of this tree).
+<!-- THOUGHT:END -->
