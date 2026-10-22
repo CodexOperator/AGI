@@ -54,7 +54,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-21:11Z 10-22: L71 dfd3d65286 read clean (G, pinned, P 7f7b98aaaa+87834c0fa2, T 19a2e47afa = GATE161, 3 paths). WAIT belam lands -> root run (~2 h, mktemp answers) -> summary copy: read (i) RT2 + (ii) first-start, host delta, 0 questions -> owner. Next: `cd ~/t; date -u; box read`.
+21:32Z 10-22: L71 landed; run 1 RED in build_image (mmdebstrap .part = directory format), failed closed. Fix-forward [decision] 21:31Z: --format=tar, refuse non-regular leftovers (no new rm -rf), tar -tf + sha256 -c, honest stub + 4 mutants, stub audit, image lifecycle. WAIT dg1 tip -> GATE N/0 -> read -> L72 -> run 2. Next: `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15, re-hit L70 stamp) [-> agi-verify]
