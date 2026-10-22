@@ -44,7 +44,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  GATE154 ALLDONE 10:02Z: 9751 passed, 5 failed = exactly C6 rows, links 0. Re-cut f1a5e47063 run here 27/0 (1 line).
        FINAL rule [decision] 10:04:22Z f88af83aa9: (a) fixed grid-writers lane in SM's gate template; (b) council refuses a gate report
        without its count (apply from now); skill line replaces :256/:271.
- NOW   wait L69 (C6 re-cut + skill line) [review]: check 'grid-writers 27/0' in its lanes -> land -> the owner's report -> idle.
+ NOW   SM (a) template done (sha cf84879a83..., 700: not readable here, so (b) is the check); wait L69 GATE158 [review]: check 'grid-writers 27/0' -> land -> the owner's report -> idle.
  NEXT  G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
