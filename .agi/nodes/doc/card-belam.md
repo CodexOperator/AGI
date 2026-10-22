@@ -21,10 +21,10 @@ town: core
 Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.agi/sessions/quorum/belam.md` are symlinks to it. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs. Skills: agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-post (§8 = the rename runbook) · agi-town · agi-memory-guard · agi-node-write · agi-goal · agi-master-gate.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-s3-IV (woke 22:4xZ 10-21) ran G6 and G7 end to end; G7 went clean first time, so the .45 moves are complete. Since then it landed L62-L65 (.45.1-.45.3 + follow-ups), each with a full links read on its own tree, because the gates ran targeted while g5.34 writes. This version records those lands, the owner's report-and-idle request, and the standing gate on any next move (SM gap iii).
+belam-s3-IV (woke 22:4xZ 10-21) ran G6 + G7 end to end, then landed L62-L69: the .45 leaves, .44.8's stub row, and the C6 fix the full suite found. This version records the owner's season report as sent and the post going idle. What is left is owner events only (director-review login, the nspawn GO, the next fresh box), banked in §6.
 <!-- THOUGHT:END -->
 
-## §0 State (08:05Z 10-22)
+## §0 State (10:30Z 10-22)
 | | |
 |---|---|
 | trunk | core/season3/main = MAIN's checkout = posts/belam = origin (tip 0a7d10e642 + this card); season3/main = my PASS line (2a8056bcb5) |
@@ -58,12 +58,9 @@ L26 a93fe7cf36 .. L57 69e36d2286 (each on the trunk; L31-L50 today: .44.8 agi.sh
 Live acts today: TM + DT-1 stopped 14:4xZ; caches dropped 09:23Z, 14:13Z, 21:38Z, 21:45Z; G1b 17:55Z; media mv 18:41Z; root mv gate-director-general-1 -> gate-director-goals-1 21:47:45Z.
 
 ## 🔴 Where it stops
-G7 DONE 05:19Z 10-22 (DG5 -> director-general-3 uid 977, the LAST .45 move; L61 8b247882a2; run 1 exact 18, run 2 20/20, SM probe passed; log ~/tools/runs/g7-move-20261022T051510Z.out). Since then, landed, each with my full links.py links on its own tree in a temp worktree: L62 a12fdaded7 + L63 d5edee4683 (.45.1 no bare worktree prune), L64 2d468d5e7c (.45.2 whois ambiguity + .45.1 FF4), L65 1e5099171a (.45.3 sweep = real hooks; .45.1 CLOSED; .45.4 MINTED). Blob lands: DG1 card 2ba641cdc7, T2 69cae4b1ef + 11544f0cb0.
-OWNER 10-22 ~05:0xZ: "Just let me know when all currently active season goal leaves are complete and deliver report of results and go idle." Open 08:0xZ: .44.7 (director-science-1) + .44.8 (council), .45.4 (director-general-3: the sweep survives an EACCES RAM link + fix-forward (i), a relative core.hooksPath), then SM closes .45. When every one reads complete: the owner report, then idle.
-STANDING GATE ON ANY NEXT POST MOVE (mine, SM gap iii, 08:0xZ): sitting.sh / move.sh gain the known_marketplaces cross-home rewrite (gated, own test) and re-pin post-move-checks.sh (now 2cf3b86224621e31, was 9b959084f44eea2c), or the move does not start.
-SM's term 3: the FULL engine suite once on the trunk after g5.34's last file (DeepSeek); a red = a named leaf (the test_rotate ack red on director-general-3's uid included).
-g5.34: /data/work/models (2775 agi-director-general-1:agi), Qwen Q4 + full done, DeepSeek writing (/data 66% at 07:58Z). Memory CRIT 06:09Z -> I dropped the dentry/inode caches (echo 2), cleared 06:14Z; next WARN = DG1 at 20m.
-NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town box read` (from ~/t). On a [merge-up]: `~/tools/verify-land.sh L<n> <land> <base> <gatetip>`, links.py links on its own tree, CAS posts/belam, ff MAIN, push both. At a wake: CronList + re-arm CHECK; trap 114 read + `git push --dry-run`. Chain anonymize -> box send with && (05:17Z: a ';' sent past a REFUSED).
+IDLE since 10:3xZ 10-22, per the owner's ~05:0xZ word ("let me know when all currently active season goal leaves are complete and deliver report of results and go idle"); the report went out on L69. Every leaf that can close without the owner is closed: .45.1-.45.4, g5.34. Still active, on owner events only: .45 (director-review login), .44.7 + .44.8 (nspawn GO; next fresh box), .44 (on those). Lands today, each with links on its own tree: L61-L69 + blob lands (DG1 card, T2 x2, .44.7 note, models doc, g5.34 close + follow-up, .45 close-read). GATE154 FULL suite on L66: 9751 passed, only the 5 test_grid_writers C6 rows red (since L57) -> fixed in L69 (27/0).
+STANDING GATE ON ANY NEXT POST MOVE (mine): (1) sitting.sh / move.sh gain the known_marketplaces cross-home rewrite (gated, own test) and re-pin post-move-checks.sh (now 2cf3b86224621e31); (2) the 4a gate is made from gate-sm/gate-template.sh (grid-writers = fixed first lane).
+NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town box read` (from ~/t) on mail; land [merge-up]s as before (verify-land, links on its own tree, CAS, ff MAIN, push both). CHECK cron 13 */4 keeps running. At a wake: CronList + re-arm CHECK; trap 114 read + `git push --dry-run`. Chain anonymize -> box send with &&.
 
 ## §4 Traps (121-123 = gen III: move them to their skills at MY rotation; gen II's 108-120 are IN the skills since L60 ac7de0f36c)
 | # | trap | rule |
@@ -79,7 +76,10 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town box read` (from ~/t). On a
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
-| goal:g5.34 abliterated models (owner 00:5xZ 10-22): picked DeepSeek-V4-Flash Q2_K + Qwen3.8-27B full + Q4 (~172 GB, routed to SM, after G7). NOT feasible on this box's ~200 GB usable: DeepSeek-V4.1-Flash abliterated (Q2 ~271 GB), full DeepSeek (~510 GB+), Qwen3.8-Max 2.4T; Qwen 4 = no weights yet | more disk (or another box) if the owner wants V4.1-Flash; Qwen 4 re-checked when its weights land |
+| .44.8 F1 nspawn: install systemd-container (dpkg: un) so the stop -> start round trip runs in a container with claude stubbed | GO = `sudo apt-get install systemd-container`, then director-goals-1 runs F1 |
+| .44.7 live half + .44.8 F2: the owner's next real fresh box = ONE event (the first real box move) | run section 6 on that move; both leaves close on it |
+| .44.8.1 (director-science-1, minted on its branch only, 8acb585a24): pidchk zero-row fail-open + dsig mode/owner; not started | next season, or on the owner's word |
+| g5.34 DONE 10-22: /data/work/models = DeepSeek-V4-Flash-0731 Q2_K 97.6 GB + Qwen3.8-27B full 55.6 GB + Q4 16.8 GB, 36/36 sha256; doc:abliterated-models-local. Not feasible here: V4.1-Flash abliterated, full DeepSeek, Qwen3.8-Max; Qwen 4 has no weights yet | storage only (7 GB RAM, no GPU) |
 | g5.4.2 M6 music: three ~30 s INSTRUMENTAL samples (a swing-flamenco, b balkan-brass-swing, c trombone-flamenco-jazz) + the owner's two SUNG Lyria songs from 10-14 (/data/work/belam-media: three-of-three, nothing-gets-deleted-here = Drive agi/season3-rollover-report/song-b.mp3; lyrics suno-songs.md), all sent 14:3xZ; the owner says more Suno songs + narrated clips + a first video exist on the grok-bot box and will bring them | the owner picks or brings material; no new track until then |
 | .45 director-review first start: ONE owner login for the new post (agi.sh start S6 [owner-do], or /login in its pane) | show the one command when the owner is back and G2's other parts are done |
 | .45 role templates: scopes are the Prime's reading (goals = goal stewardship that runs falsifiers and proposes closes; science = hypotheses, experiments, verdicts; review = presentation creation + checking deliverables) | owner confirms or corrects |
