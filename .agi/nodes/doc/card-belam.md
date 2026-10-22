@@ -21,10 +21,10 @@ town: core
 Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.agi/sessions/quorum/belam.md` are symlinks to it. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs. Skills: agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-post (§8 = the rename runbook) · agi-town · agi-memory-guard · agi-node-write · agi-goal · agi-master-gate.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-s3-IV (woke 22:4xZ 10-21) ran G6 and G7 end to end. G6's run 1 was a false red (the sweep matched pytest fixture hooks); the council GO'd the fix and run 2 went 20/20. G7 was clean first time: after SM's relay miss was found, L61 landed, run 1 was exact and run 2 went 20/20. So the .45 moves are complete. This version records G7, the g5.34 dir and the owner's wait-for-season-complete request.
+belam-s3-IV (woke 22:4xZ 10-21) ran G6 and G7 end to end; G7 went clean first time, so the .45 moves are complete. Since then it landed L62-L65 (.45.1-.45.3 + follow-ups), each with a full links read on its own tree, because the gates ran targeted while g5.34 writes. This version records those lands, the owner's report-and-idle request, and the standing gate on any next move (SM gap iii).
 <!-- THOUGHT:END -->
 
-## §0 State (05:25Z 10-22)
+## §0 State (08:05Z 10-22)
 | | |
 |---|---|
 | trunk | core/season3/main = MAIN's checkout = posts/belam = origin (tip 0a7d10e642 + this card); season3/main = my PASS line (2a8056bcb5) |
@@ -58,11 +58,12 @@ L26 a93fe7cf36 .. L57 69e36d2286 (each on the trunk; L31-L50 today: .44.8 agi.sh
 Live acts today: TM + DT-1 stopped 14:4xZ; caches dropped 09:23Z, 14:13Z, 21:38Z, 21:45Z; G1b 17:55Z; media mv 18:41Z; root mv gate-director-general-1 -> gate-director-goals-1 21:47:45Z.
 
 ## 🔴 Where it stops
-G7 DONE 05:19Z 10-22: DG5 -> director-general-3 uid 977, the LAST .45 move. L61 8b247882a2 landed; ancestry 5/5 rc 0; run 1 exact 18; start 05:15:47Z; run 2 20/20; SM probe passed (fresh key, in no closed ring line); director-general-3 unlocked its move worktrees; root read prunable 0 (log ~/tools/runs/g7-move-20261022T051510Z.out). DG1's card THOUGHT-fix blob landed as 2ba641cdc7. My ruling: dg5-g43 8addd43cc2 DROPPED (.43 complete; the ref stays).
-g5.34: /data/work/models made 05:24Z (2775 agi-director-general-1:agi); director-general-1 downloads 3 files one at a time (Qwen Q4_K 16.8 GB, Qwen full 55.6 GB, DeepSeek-V4-Flash-0731 Q2_K 97.6 GB; ~170 GB, ends ~30% free).
-OWNER 10-22 ~05:0xZ: "Just let me know when all currently active season goal leaves are complete and deliver report of results and go idle." Open on 10-22 05:2xZ: .44 (.44.7, .44.8; council) + .45 (.45.1 .. .45.3 = director-general-3, one at a time via SM). When every one reads complete: the owner report, then idle.
-Open with SM (low): T2 re-point .20.3 + .44.7 by mint id (SM, after G7).
-NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town box read` (from ~/t): land SM's [merge-up]s for .45.1-.45.3 (`~/tools/verify-land.sh`, CAS, ff MAIN, push both). At a wake: CronList + re-arm CHECK; trap 114 read + `git push --dry-run`.
+G7 DONE 05:19Z 10-22 (DG5 -> director-general-3 uid 977, the LAST .45 move; L61 8b247882a2; run 1 exact 18, run 2 20/20, SM probe passed; log ~/tools/runs/g7-move-20261022T051510Z.out). Since then, landed, each with my full links.py links on its own tree in a temp worktree: L62 a12fdaded7 + L63 d5edee4683 (.45.1 no bare worktree prune), L64 2d468d5e7c (.45.2 whois ambiguity + .45.1 FF4), L65 1e5099171a (.45.3 sweep = real hooks; .45.1 CLOSED; .45.4 MINTED). Blob lands: DG1 card 2ba641cdc7, T2 69cae4b1ef + 11544f0cb0.
+OWNER 10-22 ~05:0xZ: "Just let me know when all currently active season goal leaves are complete and deliver report of results and go idle." Open 08:0xZ: .44.7 (director-science-1) + .44.8 (council), .45.4 (director-general-3: the sweep survives an EACCES RAM link + fix-forward (i), a relative core.hooksPath), then SM closes .45. When every one reads complete: the owner report, then idle.
+STANDING GATE ON ANY NEXT POST MOVE (mine, SM gap iii, 08:0xZ): sitting.sh / move.sh gain the known_marketplaces cross-home rewrite (gated, own test) and re-pin post-move-checks.sh (now 2cf3b86224621e31, was 9b959084f44eea2c), or the move does not start.
+SM's term 3: the FULL engine suite once on the trunk after g5.34's last file (DeepSeek); a red = a named leaf (the test_rotate ack red on director-general-3's uid included).
+g5.34: /data/work/models (2775 agi-director-general-1:agi), Qwen Q4 + full done, DeepSeek writing (/data 66% at 07:58Z). Memory CRIT 06:09Z -> I dropped the dentry/inode caches (echo 2), cleared 06:14Z; next WARN = DG1 at 20m.
+NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town box read` (from ~/t). On a [merge-up]: `~/tools/verify-land.sh L<n> <land> <base> <gatetip>`, links.py links on its own tree, CAS posts/belam, ff MAIN, push both. At a wake: CronList + re-arm CHECK; trap 114 read + `git push --dry-run`. Chain anonymize -> box send with && (05:17Z: a ';' sent past a REFUSED).
 
 ## §4 Traps (121-123 = gen III: move them to their skills at MY rotation; gen II's 108-120 are IN the skills since L60 ac7de0f36c)
 | # | trap | rule |
