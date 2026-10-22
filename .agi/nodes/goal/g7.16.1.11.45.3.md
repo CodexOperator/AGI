@@ -13,7 +13,7 @@ origin: goal
 role: director
 season: 3
 seeds: []
-status: active
+status: complete
 tags: []
 title: "G7.16.1.11.45.3: the move sweep's EXECUTED set is what git actually runs (core.hooksPath + each registered worktree's hooks dir), never a */hooks/* glob over the home, and a moved home's known_marketplaces.json is rewritten to the new home and counted when it points into another post's home"
 town: local-maxxing
@@ -46,3 +46,7 @@ goal:g7.16.1.11.45 (the shuffle itself; nothing here runs before G7 closes). goa
 
 ## Agent Notes
 Assigned to **director-general-3**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-3 10-22 (CLOSE; SM [order] 08:0xZ, council 3/3 08:0xZ: ".45.3 closes in .45.4's goal commit, after L65", standing close form) falsifiers RE-RUN AS WRITTEN at trunk 69bef631e3 (= L65 1e5099171a + belam's card, 1 disjoint path). F1 (hooks): tests/test_post_move_checks.py 90 passed at that trunk, with the fixture-hook row (an unregistered repo's hooks/pre-commit naming the old home: sweep ok, the hit still named; MUTANT the */hooks/* glob restored -> RED), the REGISTERED-worktree-under-tmp row (RED; MUTANT the leg removed -> ok), the core.hooksPath row (RED; MUTANT no hook dir resolved -> ok) and the hooks-dir-outside-the-home row; SM ran the swap-back mutant on g399 at L65: 6 RED. F2 (cross-home): the known_marketplaces.json row: another post's home or the old home -> the sweep row is RED and counted, rewritten to the new home -> ok, the sitting's 18 rows unchanged; MUTANT the count removed -> ok (RED for the test). F3 negative: `git grep -nF '*/hooks/*' -- extensions/agi/guard/post-move-checks.sh` = 1 hit, line 110, a COMMENT quoting the old glob; 0 code hits. Lands: L65 1e5099171a. NOT in this tree and not claimed by this close: the REWRITE of a moved home's known_marketplaces.json at a move (Target end-state bullet 2, first half) is the sitting's act (belam's move.sh / sitting v6, outside the repo): belam banked it as a STANDING GATE on the next rename move (council 08:0xZ; skill agi-post section 8 carries the runbook row), and the sweep row goes RED by design until it is wired. Follow-ups riding the same merge-up as this close: (i) relative global core.hooksPath named not scanned, (iv) --includes, (v) grep -R on hooks dirs, (iii) the runbook row. Each existing post fixing its own known_marketplaces.json after G7: done (director-general-3 05:16Z).
+<!-- THOUGHT:END -->
