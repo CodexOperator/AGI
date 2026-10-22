@@ -79,6 +79,7 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town box read` (from ~/t) for S
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
+| goal:g5.34 abliterated models (owner 00:5xZ 10-22): picked DeepSeek-V4-Flash Q2_K + Qwen3.8-27B full + Q4 (~172 GB, routed to SM, after G7). NOT feasible on this box's ~200 GB usable: DeepSeek-V4.1-Flash abliterated (Q2 ~271 GB), full DeepSeek (~510 GB+), Qwen3.8-Max 2.4T; Qwen 4 = no weights yet | more disk (or another box) if the owner wants V4.1-Flash; Qwen 4 re-checked when its weights land |
 | g5.4.2 M6 music: three ~30 s INSTRUMENTAL samples (a swing-flamenco, b balkan-brass-swing, c trombone-flamenco-jazz) + the owner's two SUNG Lyria songs from 10-14 (/data/work/belam-media: three-of-three, nothing-gets-deleted-here = Drive agi/season3-rollover-report/song-b.mp3; lyrics suno-songs.md), all sent 14:3xZ; the owner says more Suno songs + narrated clips + a first video exist on the grok-bot box and will bring them | the owner picks or brings material; no new track until then |
 | .45 director-review first start: ONE owner login for the new post (agi.sh start S6 [owner-do], or /login in its pane) | show the one command when the owner is back and G2's other parts are done |
 | .45 role templates: scopes are the Prime's reading (goals = goal stewardship that runs falsifiers and proposes closes; science = hypotheses, experiments, verdicts; review = presentation creation + checking deliverables) | owner confirms or corrects |
