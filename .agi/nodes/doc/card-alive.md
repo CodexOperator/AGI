@@ -37,14 +37,14 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  G4 binds d5122b2619; L54 hostproj; G4 L55 8a9d18ec9c; G5 L57 69e36d2286; G6 L58 61e90435d0; L59/L60; G7 step 0 d55e87c446.
  DONE  G7 DONE 05:19Z, verified: probe key on ring L76 OPEN only; NRestarts 0; gate dir uid 977; L61 8b247882a2.
  DONE  OWNER 05:0xZ (via belam 08:43Z): "let me know when all currently active season goal leaves are complete ... report ... go idle".
-       .44.8 (A) [decision] 08:46:02Z 1d85eec26d: F0 stub lanes + ONE stop->start round-trip row; owner legs (nspawn GO, fresh box) BANKED.
-       .44.7 (B) [decision] 08:46:15Z 10420ee582: active, live half = first real box move, paired with .44.8 fresh box; census row
-       withdrawn (box-move.sh :29-31 carries all minus exclude: vacuous). L66 + g5.34 doc on origin; GATE154 full suite running.
+       .44.8 (A) 08:46:02Z (F0 + RT2; owner legs banked) · .44.7 (B) 08:46:15Z (live half = first box move; census vacuous).
  DONE  .44.8.1 (A) 09:03:19Z: banked by name (branch-only node). .45.4 close rode L67.
  DONE  g5.34 complete (61aabca57a + own-home fdb4072072). L67+L68 GO 09:25:48Z (my 'no round trip' premise inexact).
  DONE  L67 8a28d8eca8 + L68 5ab23e6c4c on origin. .45 close-read f36a90cfa7: ACTIVE (F1 10/11, director-review = owner login);
        council [decision] 09:43:32Z b40e119940 (2/2, sp silent) with the owner's report lines + 3 owner events.
- NOW   GATE154: 5 FAILED near 32% (SM corrected its "0 F" 09:45Z), rest clean to ~71%; names at end ~10:10Z -> env or real; any red = named leaf -> then the owner's report (SM/belam) -> idle.
+ DONE  GATE154 red = test_grid_writers C6+d0-d3 (repro here 5F/22P; ONE line: council-loop :26 G5 rename, L57). Leaf -> dg3:
+       .13 C6 re-cut [decision] 09:49:04Z cbf057ac07 + [correction] (C6 scope); skill line: targeted gate ALWAYS adds test_grid_writers.
+ NOW   wait GATE154's full list (more reds = more leaves) + the .13 re-cut [merge-up]; then the owner's report says the red plainly.
  NEXT  G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
