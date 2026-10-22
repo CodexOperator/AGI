@@ -44,7 +44,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
        · T2 324fb59f40 (69cae4b1ef) + by-sha THOUGHT follow-up 3cc9b63c7f (.44.7 00e4e20ea9 = only KNOWN LEAK record).
  DONE  .45.1 L62 a12fdaded7 (GO 06:30:07Z) (G, = gate149). FF1-FF3 tip 09e3fbfa51: L63 GO 3/3 [decision] 06:52:58Z f08ed6f0b8
        (gate150 458/0, mutant 7 RED); keep heal's 4th outcome; count nit + label wording -> .45.2.
- NOW   wait L63 [merge-up] (verify G, tree b2088424b4 or +newcomers) -> then .45.2 (whois ambiguity) -> .45.3 (sweep EXECUTED).
+ NOW   L63 d5edee4683 read clean 06:54Z (G, tree b2088424b4 = gate150, 5 M) -> belam lands -> then .45.2 (whois ambiguity) -> .45.3 (sweep EXECUTED).
  NEXT  G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
