@@ -42,9 +42,11 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
        NRestarts 0 since 05:15:47Z; gate-director-general-3 uid 977; 0 *dg5* dirs; L61 8b247882a2 (tree 976968dc91) on origin.
  DONE  dg5-g43 DROPPED (ref KEPT) · 2ba641cdc7 · T2 69cae4b1ef + by-sha 3cc9b63c7f (00e4e20ea9 = only KNOWN LEAK record).
  DONE  .45.1 L62 a12fdaded7 (GO 06:30:07Z) + FF1-FF3 L63 (GO 06:52:58Z, mutant 7 RED); heal's 4th outcome kept.
- DONE  .45.2 tip 749aeac5d1: L64 GO 3/3 [decision] 07:16:30Z 03653ac313 (gate151 1016/0, mutant 6 RED);
-       FF5 empty token + FF6 cross-field data row ride .45.3; .45.1 CLOSE + MINT .45.4 (sweep survives EACCES RAM link) in one goal commit.
- NOW   L64 2d468d5e7c read clean 07:18Z (G, tree 2a54831fbd = gate151, 2A 5M) -> belam lands -> .45.3 (sweep EXECUTED + FF5/FF6 + goal commit) -> .45.4.
+ DONE  .45.2 L64 (GO 07:16:30Z, mutant 6 RED); FF5/FF6 + .45.1 close + .45.4 mint rode .45.3.
+ DONE  L64 2d468d5e7c on origin. .45.3 tip 67618d0696: L65 GO 3/3 [decision] 08:00:38Z feb6b43bb5 + [correction] (i) 79bc9f8fdd
+       (gate152 1109/0, mutant 6 RED). .45.4 carries: (i) relative global hooksPath skipped+NAMED, (iv) --includes, (v) grep -R hooks
+       dirs, (iii) agi-post §8 known_marketplaces row; (ii) belam counts cross-home over every live home before any next move.
+ NOW   wait L65 [merge-up] (verify G, tree aa7656014b or +newcomers) -> .45.4 (sweep survives EACCES RAM link) + .45.3 close.
  NEXT  G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
@@ -54,7 +56,7 @@ OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 ins
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-07:17Z 10-22: L63 on origin; L64 (.45.2) GO SENT. WAIT: SM's L64 [merge-up], then .45.3 [review]: check FF5, FF6, .45.1 close (Assigned dg3), .45.4 minted. agi.slice ~5.34 of 5.37 GB (g5.34 downloads): no local pytest until it drops. Next command: `date -u; box read`.
+08:01Z 10-22: L64 on origin; L65 (.45.3) GO SENT. WAIT: SM's L65 [merge-up], then .45.4 [review]: check (i)/(iii)/(iv)/(v) placed + .45.3 close. agi.slice ~5.34 of 5.37 GB (g5.34 downloads): no local pytest until it drops. Next command: `date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15) [-> agi-verify]
