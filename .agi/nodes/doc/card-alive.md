@@ -36,14 +36,12 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
        agi-project.path NEVER armed here -> projection is EXPLICIT; belam ran it 17:59Z) · rollback /var/backups/agi-act-20261021T175530Z KEPT
  DONE  G3 DG1 -> director-goals-1 LIVE (SM [done] 20:05:17Z): L52 ba8faaad3a; crash loop cleared by the 3/3 back-dated .fresh GO
        (key 1 had signed d2055c19fc + fd9ca7aec5); probe ac2fe5f815 G by the 19:56:33 key; NRestarts 10 steady, active/running (read 20:05:26Z)
- DONE  G4 binds piece: [decision] 20:29:44Z L for d5122b2619 (alive+sp; aio silent at the mark); belam's tools live at named sha256s
- DONE  L54 hostproj; G4 L55 8a9d18ec9c; G5 L57 69e36d2286; G6 L58 61e90435d0; L59/L60; G7 step 0 d55e87c446 (detail: a077dc0e87^).
+ DONE  G4 binds d5122b2619; L54 hostproj; G4 L55 8a9d18ec9c; G5 L57 69e36d2286; G6 L58 61e90435d0; L59/L60; G7 step 0 d55e87c446 (detail: a077dc0e87^).
  DONE  G7 DONE (SM 05:19:20Z), verified 05:19:54Z: probe 0a59771f42 G f+VsAFox = ring L76 OPEN only; 6 closed dg3 fps differ;
        NRestarts 0 since 05:15:47Z; gate-director-general-3 uid 977; 0 *dg5* dirs; L61 8b247882a2 (tree 976968dc91) on origin.
  DONE  dg5-g43 DROPPED (ref KEPT) · 2ba641cdc7 · T2 69cae4b1ef + by-sha 3cc9b63c7f (00e4e20ea9 = only KNOWN LEAK record).
- DONE  .45.1 L62 a12fdaded7 (GO 06:30:07Z) + FF1-FF3 L63 (GO 06:52:58Z, mutant 7 RED); heal's 4th outcome kept.
- DONE  .45.2 L64 (GO 07:16:30Z, mutant 6 RED); FF5/FF6 + .45.1 close + .45.4 mint rode .45.3.
- DONE  L64 2d468d5e7c on origin. .45.3 tip 67618d0696: L65 GO 3/3 [decision] 08:00:38Z feb6b43bb5 + [correction] (i) 79bc9f8fdd
+ DONE  .45.1 L62 + FF1-FF3 L63 (mutant 7 RED) · .45.2 L64 (mutant 6 RED); FF5/FF6, .45.1 close, .45.4 mint rode .45.3.
+ DONE  .45.3 tip 67618d0696: L65 GO 3/3 [decision] 08:00:38Z feb6b43bb5 + [correction] (i) 79bc9f8fdd
        (gate152 1109/0, mutant 6 RED). .45.4 carries: (i) relative global hooksPath skipped+NAMED, (iv) --includes, (v) grep -R hooks
        dirs, (iii) agi-post §8 known_marketplaces row; (ii) belam counts cross-home over every live home before any next move.
  NOW   wait L65 [merge-up] (verify G, tree aa7656014b or +newcomers) -> .45.4 (sweep survives EACCES RAM link) + .45.3 close.
