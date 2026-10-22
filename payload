@@ -4240,7 +4240,7 @@ def _pid_alive(pid: int) -> bool:
     return True
 
 
-def _heal_cwd(root: Path, rec: dict) -> Path:
+def _heal_cwd(root: Path, rec: dict) -> Path | None:
     """The working tree a healer must patch: the agent's OWN worktree when
     the record says it was a `--branch` spawn, else the resolved root.
 
@@ -4248,12 +4248,22 @@ def _heal_cwd(root: Path, rec: dict) -> Path:
     which tree its source edits touch. The old `cwd=str(root)` re-entered the
     MAIN checkout for every healer, so a healer for a branch agent wrote
     main's `extensions/` while the coherent work sat in the worktree. Prefer
-    the recorded `worktree` when it is real on disk; fall back to `root`.
+    the recorded `worktree` when it is real on disk; fall back to `root` when
+    it is PROVABLY gone.
+
+    goal:g7.16.1.11.45.4 (council 3/3 08:3xZ): Path.is_dir() RAISES on EACCES
+    (Python 3.12), which killed the heal tick; and an unreadable recorded
+    worktree is NOT a gone one. `None` = the answer is unknown: FAIL CLOSED, the
+    caller spawns no healer, and a healer is never sent into the main root in its
+    place (the root is the one tree a branch healer must not patch).
     """
     rec_wt = rec.get("worktree")
     if rec_wt:
         wt = Path(rec_wt).resolve()
-        if wt.is_dir():
+        state = _sweep_is_dir(wt)
+        if state is None:
+            return None
+        if state:
             return wt
     return Path(root)
 
@@ -4275,6 +4285,9 @@ def _heal(root: Path, iter_n: int | str, agent_id: str, rec: dict) -> None:
 
     sess_dir = locations.iteration_dir(root, iter_n) / agent_id
     heal_root = _heal_cwd(root, rec)
+    if heal_root is None:
+        print(f"healer: {agent_id} worktree not provably there: no healer spawned")
+        return
     log_path = Path(rec.get("log_file", ""))
     log_tail = ""
     if log_path.exists():
