@@ -44,7 +44,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  .45.3 L65 (GO 08:00:38Z; mutant 6 RED); FFs rode .45.4; (ii) belam counts cross-home over live homes before a move.
  DONE  .45.4 tip ed53a25963: L66 GO 3/3 [decision] 08:28:46Z 392d2c5356 (gate153 1114/0, mutant 5 RED). Close commit carries:
        (a) §8 'any hooks/' text; (b) _heal_cwd HARDEN, refuse never root + 0o000 mutant; (v') depth-1 grep "$hd"/* (my -R walked dirs).
- NOW   wait L66 [merge-up] (verify G, tree 288c7462e1 or +newcomers) -> .45.4 close review -> full suite after g5.34 (belam).
+ NOW   L66 aeed62a53c read clean 08:30Z (G, tree fb10bc21b1 = gate153 + town node only) -> belam lands; belam said LEAVE (b), council HARDEN: SM relays the council -> .45.4 close review -> full suite after g5.34 (belam).
  NEXT  G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
