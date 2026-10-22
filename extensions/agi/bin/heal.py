@@ -1754,6 +1754,18 @@ def _sweep_orphan(wt: Path) -> bool:
     return line.startswith("gitdir:") and not Path(line[7:].strip()).exists()
 
 
+def _sweep_is_dir(p: Path) -> bool | None:
+    """goal:g7.16.1.11.45.4: Path.is_dir() / Path.exists() RAISE PermissionError on
+    EACCES (Python 3.12 swallows only ENOENT-like errors), so one RAM link whose
+    target sits behind an unreadable parent killed the whole sweep pass. True /
+    False when git-of-the-filesystem answers, None when it cannot (never a raise,
+    never "gone")."""
+    try:
+        return p.is_dir()
+    except OSError:
+        return None
+
+
 def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
                               grace_min: int | None = None
                               ) -> tuple[int, int, int]:
@@ -1776,8 +1788,9 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
       (5) the worktree directory is older than the grace
           (`reaper.worktree_grace_min`, default 30; `.agi/config.json` is
           read, never edited).
-    Removal is `git -C <main> worktree remove <wt>` WITHOUT `--force`, then
-    `git worktree prune`; the `loop/...` branch is KEPT (refs are history).
+    Removal is `git -C <main> worktree remove <wt>` WITHOUT `--force` (that
+    already deletes the admin dir; no prune follows); the `loop/...` branch is
+    KEPT (refs are history).
     `--dry-run` logs the same `[sweep] removed` lines and removes nothing.
     Logs one `[sweep]` line per action and a per-pass summary. Never raises
     into the watch loop. Returns `(removed, refused, kept)`."""
@@ -1854,23 +1867,43 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
     base_pre: dict[str, str] = {}
     for wt_p in sorted(wt_base.glob("a00-*")):
         _walked()
-        if not wt_p.is_dir():
+        if _sweep_is_dir(wt_p) is not True:
             continue
         b0 = wt_heads.get(wt_p.name, ("", ""))[0]
         base_pre[wt_p.name] = _sweep_worktree_base(
             root, wt_p, _sweep_season(b0))
     for wt in sorted(wt_base.glob("a00-*")):
         _walked()
-        if wt.is_symlink() and not wt.exists() and not dry_run \
+        gone = locations.path_gone(wt) if wt.is_symlink() else False
+        if wt.is_symlink() and gone is None and not dry_run \
+                and wt.name not in live_ids:
+            # goal:g7.16.1.11.45.4: the link's target cannot be looked at
+            # (EACCES behind a closed parent): NOT gone, nothing is dropped or
+            # unlinked, the pass goes on to the next tree.
+            _watch_log(f"[sweep] left {wt.name}: RAM target not provably gone; "
+                       "left (not provably gone, or drop failed)")
+            continue
+        if wt.is_symlink() and gone is True and not dry_run \
                 and wt.name not in live_ids:
             # goal:g7.16.1.5.4 layout: a RAM worktree behind a symlink whose
             # target is gone (the tmpfs emptied at a reboot) -- the branch
-            # keeps every commit; prune the record, unlink the link.
-            _git(["worktree", "prune"], main_checkout)
+            # keeps every commit; drop ONLY this link's registration (one
+            # whose gitdir names the gone target), then unlink the link.
+            target = Path(os.path.join(wt.parent, os.readlink(wt)))
+            ent = locations.worktree_admin_entry(main_checkout, target)
+            if locations.drop_dead_worktree_admin(main_checkout, target):
+                outcome = "registration dropped"
+            elif ent is None:
+                outcome = "NO MATCH, kept"
+            elif (ent / "locked").exists():
+                outcome = "left (locked)"
+            else:
+                outcome = "left (not provably gone, or drop failed)"
             wt.unlink()
-            _watch_log(f"[sweep] unlinked {wt.name}: RAM target gone")
+            _watch_log(f"[sweep] unlinked {wt.name}: RAM target gone; "
+                       f"{outcome}")
             continue
-        if not wt.is_dir():
+        if _sweep_is_dir(wt) is not True:
             continue
         agent_id = wt.name
         # (1) liveness from the shared lease dir, never ps by name.
@@ -2048,7 +2081,7 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
             _watch_log(f"[sweep] refused {agent_id}: remove failed"
                        f" ({' '.join((rm_err or [''])[0].split())[:200] or 'no git reason'})")
             continue
-        _git(["worktree", "prune"], main_checkout)
+        # `worktree remove` rc 0 already deleted the admin dir: no prune.
         _watch_log(f"[sweep] removed {agent_id} "
                    f"iter={iter_name} base={base}")
         removed += 1
@@ -4207,7 +4240,7 @@ def _pid_alive(pid: int) -> bool:
     return True
 
 
-def _heal_cwd(root: Path, rec: dict) -> Path:
+def _heal_cwd(root: Path, rec: dict) -> Path | None:
     """The working tree a healer must patch: the agent's OWN worktree when
     the record says it was a `--branch` spawn, else the resolved root.
 
@@ -4215,12 +4248,22 @@ def _heal_cwd(root: Path, rec: dict) -> Path:
     which tree its source edits touch. The old `cwd=str(root)` re-entered the
     MAIN checkout for every healer, so a healer for a branch agent wrote
     main's `extensions/` while the coherent work sat in the worktree. Prefer
-    the recorded `worktree` when it is real on disk; fall back to `root`.
+    the recorded `worktree` when it is real on disk; fall back to `root` when
+    it is PROVABLY gone.
+
+    goal:g7.16.1.11.45.4 (council 3/3 08:3xZ): Path.is_dir() RAISES on EACCES
+    (Python 3.12), which killed the heal tick; and an unreadable recorded
+    worktree is NOT a gone one. `None` = the answer is unknown: FAIL CLOSED, the
+    caller spawns no healer, and a healer is never sent into the main root in its
+    place (the root is the one tree a branch healer must not patch).
     """
     rec_wt = rec.get("worktree")
     if rec_wt:
         wt = Path(rec_wt).resolve()
-        if wt.is_dir():
+        state = _sweep_is_dir(wt)
+        if state is None:
+            return None
+        if state:
             return wt
     return Path(root)
 
@@ -4242,6 +4285,9 @@ def _heal(root: Path, iter_n: int | str, agent_id: str, rec: dict) -> None:
 
     sess_dir = locations.iteration_dir(root, iter_n) / agent_id
     heal_root = _heal_cwd(root, rec)
+    if heal_root is None:
+        print(f"healer: {agent_id} worktree not provably there: no healer spawned")
+        return
     log_path = Path(rec.get("log_file", ""))
     log_tail = ""
     if log_path.exists():

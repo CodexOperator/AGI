@@ -165,8 +165,8 @@ class World:
         with open(self.ring, "a") as f:
             f.write(f'{NEW}@agi namespaces="git",valid-after="20261021150500Z" {key or _key(self.tmp / "fresh")}\n')
 
-    def check(self, *args, script=SCRIPT, **env):
-        r = subprocess.run(["sh", str(script), "check", OLD, NEW, UID, T, *args], env={**self.env, **env}, capture_output=True, text=True, timeout=60)
+    def check(self, *args, script=SCRIPT, cwd=None, **env):
+        r = subprocess.run(["sh", str(script), "check", OLD, NEW, UID, T, *args], env={**self.env, **env}, capture_output=True, text=True, timeout=60, cwd=cwd)
         return r.returncode, {ln.split(":")[0].split(" ", 1)[1]: ln.split(" ", 1)[0] for ln in r.stdout.splitlines()}, r.stdout
 
 
@@ -528,7 +528,7 @@ def test_the_flags_row_has_a_world_only_it_catches(w, tmp_path):
 OLDHOME = lambda w: str(w.home.parent / OLD)       # noqa: E731
 
 
-@pytest.mark.parametrize("rel", [".gitconfig", ".config/git/config", "bin/agi-x", ".claude/settings.json", ".claude/settings.local.json", "t/.git/hooks/pre-commit", "hooks/x"])
+@pytest.mark.parametrize("rel", [".gitconfig", ".config/git/config", "bin/agi-x", ".claude/settings.json", ".claude/settings.local.json"])
 def test_MUTANT_the_old_home_in_a_file_the_post_executes_is_red_and_named(w, rel):
     f = w.home / rel
     f.parent.mkdir(parents=True, exist_ok=True)
@@ -552,6 +552,175 @@ def test_a_hit_in_a_file_nothing_executes_is_named_but_green_and_transcripts_and
 def test_a_longer_home_name_is_not_a_hit(w):
     (w.home / "x.txt").write_text(f"{OLDHOME(w)}-2/t {OLDHOME(w)}x\n")
     assert "1 file" not in w.check()[2] and w.check()[1]["sweep"] == "ok" and "0 file(s)" in w.check()[2]
+
+
+# goal:g7.16.1.11.45.3: EXECUTED = what git actually RUNS (core.hooksPath dirs + the hooks dir of MAIN and of each REGISTERED worktree), never a */hooks/* glob
+def _commit_in_main(w):
+    w.git("-c", "user.name=x", "-c", "user.email=x@x", "commit", "--allow-empty", "-qm", "i")
+
+
+def test_a_hook_in_an_unregistered_repo_naming_the_old_home_is_a_hit_but_not_executed(w, tmp_path):
+    """Today's FALSE RED (G6 run 1, 4 pytest fixture repos' hooks/pre-commit): named and counted, green. MUTANT: the */hooks/* glob
+    restored -> the same world is RED."""
+    for rel in ("tmp-s1/pytest-of-x/r/.git/hooks/pre-commit", "t/.git/hooks/pre-commit", "hooks/x"):
+        f = w.home / rel
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(f"#!/bin/sh\ncd {OLDHOME(w)}/t\n")
+    rc, st, out = w.check()
+    assert st["sweep"] == "ok" and "3 file(s)" in out and "EXECUTED" not in out and "tmp-s1/pytest-of-x/r/.git/hooks/pre-commit" in out, out
+    m = _mutant(tmp_path, ".claude/settings.local.json)run=", ".claude/settings.local.json|*/hooks/*|hooks/*)run=")
+    rc, st, out = w.check(script=m)
+    assert st["sweep"] == "FAIL" and "EXECUTED:" in out, out
+
+
+def test_a_hook_in_a_REGISTERED_worktree_naming_the_old_home_is_red_even_under_tmp(w, tmp_path):
+    """A worktree registered in MAIN, under tmp*/, whose hooks dir (its own core.hooksPath) holds a hook naming the old home: git
+    runs it -> RED and named. MUTANT: the registered-worktree leg removed -> the world passes."""
+    _commit_in_main(w)
+    wt = w.home / "tmp-s2" / "wt"
+    w.git("worktree", "add", "-q", "--detach", str(wt))
+    w.git("config", "extensions.worktreeConfig", "true")
+    subprocess.run(["git", "-C", str(wt), "config", "--worktree", "core.hooksPath", str(wt / "hk")], check=True,
+                   env={**os.environ, "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_SYSTEM": "/dev/null"})
+    (wt / "hk").mkdir()
+    (wt / "hk" / "pre-commit").write_text(f"#!/bin/sh\ncd {OLDHOME(w)}/t\n")
+    rc, st, out = w.check()
+    assert st["sweep"] == "FAIL" and "EXECUTED: tmp-s2/wt/hk/pre-commit" in out, out
+    m = _mutant(tmp_path, "pgit -C \"$MAIN\" worktree list --porcelain 2>/dev/null|sed -n 's/^worktree //p'", ":")
+    assert w.check(script=m)[1]["sweep"] == "ok"
+
+
+def test_a_core_hooksPath_dir_in_the_posts_gitconfig_is_executed(w, tmp_path):
+    (w.home / "hk").mkdir()
+    (w.home / "hk" / "commit-msg").write_text(f"#!/bin/sh\n. {OLDHOME(w)}/lib\n")
+    (w.home / ".gitconfig").write_text(f"[core]\n\thooksPath = {w.home}/hk\n")
+    rc, st, out = w.check()
+    assert st["sweep"] == "FAIL" and "EXECUTED: hk/commit-msg" in out, out
+    m = _mutant(tmp_path, 'hrun=;for hd in $(printf', 'hdirs=;hrun=;for hd in $(printf')
+    assert w.check(script=m)[1]["sweep"] == "ok", "MUTANT: no hook dir is resolved at all"
+
+
+def test_a_RELATIVE_global_core_hooksPath_is_named_never_scanned_against_the_sittings_cwd(w, tmp_path):
+    """Council correction 08:0xZ, (a): a dir of that name in the SITTING'S cwd holding an old-home hook -> NO stray EXECUTED hit, and the
+    named line is present. MUTANT: every config value scanned as a dir again -> the stray cwd hook is a (false) EXECUTED hit."""
+    cwd = tmp_path / "sitting-cwd"
+    (cwd / "hk").mkdir(parents=True)
+    (cwd / "hk" / "pre-commit").write_text(f"#!/bin/sh\n. {OLDHOME(w)}/lib\n")
+    (w.home / ".gitconfig").write_text("[core]\n\thooksPath = hk\n")
+    rc, st, out = w.check(cwd=cwd)
+    assert st["sweep"] == "ok" and "EXECUTED" not in out, out
+    assert "relative core.hooksPath hk: resolved per registered worktree only" in out, out
+    m = _mutant(tmp_path, "|grep '^/')\n# a RELATIVE", "|grep -v '^$')\n# a RELATIVE")
+    rc, st, out = w.check(script=m, cwd=cwd)
+    assert st["sweep"] == "FAIL" and "EXECUTED:" in out, "the mutant scans the stray cwd dir"
+
+
+def test_a_relative_global_hooksPath_with_an_old_home_hook_in_a_registered_worktree_is_red(w, tmp_path):
+    """(b): the same relative hooksPath + an old-home hook in a REGISTERED worktree (git resolves it per worktree) -> RED via the worktree
+    leg, and the relative value is still named. MUTANT: the worktree leg removed -> ok."""
+    _commit_in_main(w)
+    wt = w.home / "tmp-s3" / "wt"
+    w.git("worktree", "add", "-q", "--detach", str(wt))
+    (wt / "hk").mkdir()
+    (wt / "hk" / "pre-commit").write_text(f"#!/bin/sh\n. {OLDHOME(w)}/lib\n")
+    (w.home / ".gitconfig").write_text("[core]\n\thooksPath = hk\n")
+    rc, st, out = w.check(cwd=tmp_path)
+    assert st["sweep"] == "FAIL" and "EXECUTED: tmp-s3/wt/hk/pre-commit" in out and "relative core.hooksPath hk" in out, out
+    m = _mutant(tmp_path, "pgit -C \"$MAIN\" worktree list --porcelain 2>/dev/null|sed -n 's/^worktree //p'", ":")
+    rc, st, out = w.check(script=m, cwd=tmp_path)
+    assert st["sweep"] == "ok" and "relative core.hooksPath hk" in out, out
+
+
+def test_a_core_hooksPath_set_through_include_path_is_read(w, tmp_path):
+    """(iv): `config --file` gets --includes. The config leg is isolated (MAIN and the worktree leg removed) so the include is what finds
+    it. MUTANT: --includes removed -> ok."""
+    (w.home / "hk").mkdir()
+    (w.home / "hk" / "pre-commit").write_text(f"#!/bin/sh\n. {OLDHOME(w)}/lib\n")
+    (w.home / "extra.cfg").write_text(f"[core]\n\thooksPath = {w.home}/hk\n")
+    (w.home / ".gitconfig").write_text(f"[include]\n\tpath = {w.home}/extra.cfg\n")
+    src = SCRIPT.read_text()
+    legs = "pgit -C \"$MAIN\" worktree list --porcelain 2>/dev/null|sed -n 's/^worktree //p'"
+    main = "printf '%s\\n' \"$MAIN\";"
+    assert src.count(legs) == 1 and src.count(main) == 1 and src.count("--includes ") == 1
+    only_cfg = tmp_path / "m_cfg.sh"
+    only_cfg.write_text(src.replace(legs, ":").replace(main, ""))
+    no_inc = tmp_path / "m_noinc.sh"
+    no_inc.write_text(src.replace(legs, ":").replace(main, "").replace("--includes ", ""))
+    assert w.check(script=only_cfg)[1]["sweep"] == "FAIL", "the config leg alone finds the included hooksPath"
+    assert w.check(script=no_inc)[1]["sweep"] == "ok", "MUTANT: --includes removed"
+
+
+def _hk_world(w):
+    (w.home / "hk").mkdir()
+    (w.home / "notes").mkdir()
+    (w.home / ".gitconfig").write_text(f"[core]\n\thooksPath = {w.home}/hk\n")
+
+
+def test_a_SYMLINKED_hook_FILE_in_a_hooks_dir_is_EXECUTED(w, tmp_path):
+    """(v', council 08:3xZ) the hooks dir is read ONE level deep: `grep "$hd"/*`, no -r. A symlinked hook FILE named on the command line is
+    followed. MUTANT 1: the glob reduced to the dir with -r -> a symlinked file is skipped (the original L65 bug) -> ok."""
+    _hk_world(w)
+    (w.home / "notes" / "real-hook").write_text(f"#!/bin/sh\n. {OLDHOME(w)}/lib\n")
+    (w.home / "hk" / "pre-commit").symlink_to(w.home / "notes" / "real-hook")
+    rc, st, out = w.check()
+    assert st["sweep"] == "FAIL" and "EXECUTED: hk/pre-commit" in out, out
+    m = _mutant(tmp_path, 'grep -IlE -e "$pat" "$hd"/*', 'grep -rIlE -e "$pat" "$hd"')
+    assert w.check(script=m)[1]["sweep"] == "ok"
+
+
+def test_a_symlink_to_a_DIR_in_a_hooks_dir_is_neither_executed_nor_walked(w, tmp_path):
+    """MUTANT 2: -R restored -> the symlinked dir is walked and its file counts as EXECUTED (the dentry-slab trap)."""
+    _hk_world(w)
+    (w.home / "notes" / "tree").mkdir()
+    (w.home / "notes" / "tree" / "deep").write_text(f"#!/bin/sh\n. {OLDHOME(w)}/lib\n")
+    (w.home / "hk" / "linked-dir").symlink_to(w.home / "notes" / "tree")
+    rc, st, out = w.check()
+    assert st["sweep"] == "ok" and "EXECUTED" not in out, out
+    m = _mutant(tmp_path, 'grep -IlE -e "$pat" "$hd"/*', 'grep -RIlE -e "$pat" "$hd"')
+    assert w.check(script=m)[1]["sweep"] == "FAIL"
+
+
+def test_a_file_in_a_SUBDIR_of_a_hooks_dir_is_not_executed(w, tmp_path):
+    """git runs hooks only at <hooksdir>/<name>. MUTANT 3: -r restored -> the file in a subdir counts."""
+    _hk_world(w)
+    (w.home / "hk" / "sub").mkdir()
+    (w.home / "hk" / "sub" / "x").write_text(f"#!/bin/sh\n. {OLDHOME(w)}/lib\n")
+    rc, st, out = w.check()
+    assert st["sweep"] == "ok" and "EXECUTED" not in out, out
+    m = _mutant(tmp_path, 'grep -IlE -e "$pat" "$hd"/*', 'grep -rIlE -e "$pat" "$hd"')
+    assert w.check(script=m)[1]["sweep"] == "FAIL"
+
+
+def test_a_hooks_dir_outside_the_home_that_names_the_old_home_is_executed_too(w, tmp_path):
+    out_dir = tmp_path / "elsewhere-hooks"
+    out_dir.mkdir()
+    (out_dir / "pre-push").write_text(f"#!/bin/sh\ncd {OLDHOME(w)}/t\n")
+    (w.home / ".gitconfig").write_text(f"[core]\n\thooksPath = {out_dir}\n")
+    rc, st, out = w.check()
+    assert st["sweep"] == "FAIL" and f"EXECUTED: {out_dir}/pre-push" in out.replace("EXECUTED:", "EXECUTED: ").replace("  ", " "), out
+
+
+# goal:g7.16.1.11.45.3 (aio): a known_marketplaces.json that points INTO another post's home is counted by the sweep row (the row set does not move)
+def _marketplaces(w, text):
+    f = w.home / ".claude" / "plugins" / "known_marketplaces.json"
+    f.parent.mkdir(parents=True, exist_ok=True)
+    f.write_text(text)
+
+
+def test_a_known_marketplaces_json_naming_another_posts_home_is_red_and_counted_once_rewritten_it_is_ok(w, tmp_path):
+    other = w.home.parent / "agi-someone-else"
+    _marketplaces(w, json.dumps({"m": {"installLocation": f"{other}/.claude/plugins/marketplaces/m"}}))
+    rc, st, out = w.check()
+    assert st["sweep"] == "FAIL" and "CROSS-HOME known_marketplaces.json" in out and str(other) in out, out
+    assert len(st) == 18, "the sitting's exact row count is unchanged"
+    _marketplaces(w, json.dumps({"m": {"installLocation": f"{w.home}/.claude/plugins/marketplaces/m"}}))
+    rc, st, out = w.check()
+    assert st["sweep"] == "ok" and "CROSS-HOME" not in out, out
+    # the OLD home (a reused name's previous holder) is another post's home too
+    _marketplaces(w, json.dumps({"m": {"installLocation": f"{OLDHOME(w)}/.claude/plugins/marketplaces/m"}}))
+    assert w.check()[1]["sweep"] == "FAIL"
+    m = _mutant(tmp_path, 'test -z "$run" -a -z "$xh"', 'test -z "$run"')
+    assert w.check(script=m)[1]["sweep"] == "ok", "MUTANT: the cross-home count removed"
 
 
 def test_the_sweep_row_has_a_world_only_its_executed_leg_catches(w, tmp_path):

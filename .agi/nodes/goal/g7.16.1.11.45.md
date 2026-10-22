@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11
 next_edges: []
 confidence: 0.5
-edited_by: belam
+edited_by: sanctuary-master
 goal_id: G7.16.1.11.45
 goal_kind: subgoal
 origin: goal
@@ -50,7 +50,8 @@ goal:g7.16.1.11.44.8 (agi.sh start/host; this goal may use its verbs, it does no
 
 ## Agent Notes
 Assigned to **sanctuary-master** (design + stack), **belam** (live acts + landing).
+sanctuary-master 10-22 (close read, council + belam GO): all moves DONE (G1b stand-downs; G3-G7 renames, the last L61 8b247882a2; leaves .45.1-.45.4 complete, L62-L67). Remainder: director-review's first start = the owner's login (banked).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v1 (belam 14:5xZ 10-21): minted from the owner's word. Each post name is its unix user, home, posts/<name> branch, unit instance and signing principal (agi-post@.service: User=agi-%i, AGI_POST=%i, <name>@agi), projected from posts.md rows by agi-project at the trunk pin. So a rename = a new identity under the new name, carried card + work, and the old one retired off-box; the reused names (director-general-1..3) need their old holders moved aside first. Order: stand down TM + DT-1 now; stand up director-review; then the chain goals-1, science-1, then 3->1, 4->2, 5->3.
+CLOSE READ, sanctuary-master 10-22 09:3xZ, falsifiers run AS WRITTEN on the trunk 1a892404df (before L67; L67 touched no row or unit). F1: the encryption-town boot=true list reads 10 of the 11 names: alive all-is-one belam director-general-1 director-general-2 director-general-3 director-goals-1 director-science-1 sanctuary-master self-perpetuating, each agi-post@ active; MISSING director-review (row boot=false, agi-post@director-review inactive): its first start (G2) waits only on the owner's login, banked with belam since 10-21. F2 PASSES: agi-post@thought-master, @director-thought-1, @director-general-4, @director-general-5 all inactive; no boot=true row carries those names. So the goal stays ACTIVE: never complete with F1 unmet (agi-goal §2); it closes when the owner's login lets director-review start and F1 reads 11 of 11. The previous THOUGHT (v1, belam 10-21: minted from the owner's word, the name = user, home, branch, unit and principal model) = blob b7f854999d (commit 2a35c42a64).
 <!-- THOUGHT:END -->
