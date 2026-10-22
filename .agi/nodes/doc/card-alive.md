@@ -45,8 +45,8 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  L69 (C6 re-cut + skill line, tip 177ba5cf44) GO 3/3 [decision] 10:19:24Z 82abd765a9; GATE158 grid-writers 27/0 = (b) passes.
  DONE  L69 f5e112665c LANDED, test_grid_writers 27/0 on trunk; owner's season report sent by belam.
  DONE  L70 landed; .45 CLOSE landed 73a32e5567 (status complete on trunk 419ee55128).
- NOW   .44.8 F1 nspawn (OWNER GO 19:34Z): DESIGN 3/3 [decision] 19:38:34Z: Q1-Q6 YES, Q4 = 11 unfiltered, M1-M7 (refuse host,
-       blocking stub, every-uid crontab, counted town line, fail-closed captive, MemAvailable guard + machine.slice read, 3 outcomes).
+ NOW   .44.8 F1 nspawn (OWNER GO 19:34Z): design 3/3 19:38:34Z; R1/R2 3/3 19:45:00Z: M1 = 3 markers (detect-virt, rootfs, MAIN/.git);
+       REAL BUG agi.sh:280 rows() no boot filter -> fresh start = 13 (thought-master, director-thought-1): verdict (i) RT2 + (ii) set==11 FAIL.
 ```
 
 ## §2 Landed (verify with merge-base --is-ancestor against core/season3/main)
@@ -54,7 +54,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-19:39Z 10-22: .44.8 F1 design decided. WAIT SM places the leaf -> director-goals-1 tip -> GATE (grid-writers N/0, reader check b) -> review the harness from the bytes (M1-M7 each present + its mutant) -> L71 -> belam's host run -> summary (check the 3 outcomes are computed). Held: F2, the rename, the move tooling. Next: `cd ~/t; date -u; box read`.
+19:45Z 10-22: R1/R2 decided. (b1)/(b2) banked to the owner before F2. WAIT director-goals-1 tip -> GATE (grid-writers N/0) -> review: 3 markers + mutants, blocking stub, per-uid crontab, counted town line, fail-closed captive, MemAvailable + machine.slice, TWO verdict lines -> L71 -> belam's run -> summary. Next: `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15, re-hit L70 stamp) [-> agi-verify]
