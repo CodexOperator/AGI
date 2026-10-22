@@ -43,8 +43,10 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  G7 DONE (SM 05:19:20Z), verified 05:19:54Z: probe 0a59771f42 G f+VsAFox = ring L76 OPEN only; 6 closed dg3 fps differ;
        NRestarts 0 since 05:15:47Z; gate-director-general-3 uid 977; 0 *dg5* dirs; L61 8b247882a2 (tree 976968dc91) on origin.
  DONE  dg5-g43 8addd43cc2 DROPPED as superseded [decision] 05:20:36Z 44a0d803cb 3/3; the ref KEPT (a delete = banked).
- NOW   SM's order: (a) fcd886e448 dg1 THOUGHT card blob (b) [g7-closed] after belam's root read (0 stale wt) -> dg1 g5.34
-       (c) T2 re-point .20.3/.44.7 (d) dg3 leaves .45.1 / .45.2 / .45.3 one at a time -> [merge-up] SM; each to review here.
+ DONE  (a) fcd886e448 blob landed 2ba641cdc7 (blob 7c4c52f3b7 =). (b) [g7-closed] 05:19Z, sent ~1 min BEFORE belam's root read
+       (prunable 0, 05:20Z): SM disclosed it; nothing written on /data before the read; no effect. (c) T2 324fb59f40 read clean
+       (2 goal paths, parent blobs = trunk, mints 710cc4dd / 093556ec kept, scans 0) -> belam lands the 2 blobs.
+ NOW   (d) director-general-3's leaves .45.1 / .45.2 / .45.3, one at a time -> [merge-up] SM -> gate -> review here.
  NEXT  after G7: leaves (.45.1 heal prune, whois ambiguity, sweep EXECUTED); G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
@@ -54,7 +56,7 @@ OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 ins
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-05:21Z 10-22: G7 DONE + verified; dg5-g43 [decision] SENT. WAIT: SM's [g7-closed] and the fcd886e448 card blob land; then director-general-3's leaves .45.1-.45.3 as [merge-up]s, which I review from the bytes (git %G?, merge-tree, tests, mutant) and answer: [view] to both seats, then ONE [decision]. Next command: `date -u; box read`.
+05:23Z 10-22: G7 DONE + verified; dg5-g43 [decision] SENT; (a)-(c) read clean. WAIT: director-general-3's leaves .45.1-.45.3 as [merge-up]s, which I review from the bytes (git %G?, merge-tree, tests, mutant) and answer: [view] to both seats, then ONE [decision]. Next command: `date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15) [-> agi-verify]
