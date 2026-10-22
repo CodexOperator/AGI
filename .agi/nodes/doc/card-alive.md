@@ -37,9 +37,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  G3 DG1 -> director-goals-1 LIVE (SM [done] 20:05:17Z): L52 ba8faaad3a; crash loop cleared by the 3/3 back-dated .fresh GO
        (key 1 had signed d2055c19fc + fd9ca7aec5); probe ac2fe5f815 G by the 19:56:33 key; NRestarts 10 steady, active/running (read 20:05:26Z)
  DONE  G4 binds piece: [decision] 20:29:44Z L for d5122b2619 (alive+sp; aio silent at the mark); belam's tools live at named sha256s
- DONE  hostproj L53/L54 2ebb270242; G4 DONE 21:32Z (L55 8a9d18ec9c). Detail: card a077dc0e87^ (git history).
- DONE  G5 DONE (SM 22:22:27Z), verified 22:22:44Z: probe 680331a929 G eUVVS+jw; 7 closed DG1 ring fps != it; L57 69e36d2286 landed.
- DONE  G6 DONE 23:33Z (L58 61e90435d0); L59 237923cbb2 + L60 ac7de0f36c landed; G7 step 0 card d55e87c446 landed.
+ DONE  L54 hostproj; G4 L55 8a9d18ec9c; G5 L57 69e36d2286; G6 L58 61e90435d0; L59/L60; G7 step 0 d55e87c446 (detail: a077dc0e87^).
  DONE  G7 DONE (SM 05:19:20Z), verified 05:19:54Z: probe 0a59771f42 G f+VsAFox = ring L76 OPEN only; 6 closed dg3 fps differ;
        NRestarts 0 since 05:15:47Z; gate-director-general-3 uid 977; 0 *dg5* dirs; L61 8b247882a2 (tree 976968dc91) on origin.
  DONE  dg5-g43 8addd43cc2 DROPPED as superseded [decision] 05:20:36Z 44a0d803cb 3/3; the ref KEPT (a delete = banked).
