@@ -4922,9 +4922,9 @@ def _dead_kid_worktrees(repo: Path) -> list[Path]:
     `.agi/worktrees/a00-*` AND whose registration is stale (its checkout rest
     directory is GONE from disk, or it carries no resolvable head ref). A
     live worktree (post/main) is never returned: its path exists and its
-    branch resolves, and `git worktree prune` clears only dangling
-    registrations regardless. Read-only enumeration; the prune itself is a
-    separate `git worktree prune` call."""
+    branch resolves, and `locations.drop_dead_worktree_admin` removes only a
+    registration whose checkout is gone. Read-only enumeration; dropping is a
+    separate scoped call per path (goal:g7.16.1.11.45.1: no bare prune)."""
     wt_root = repo / ".agi" / "worktrees" if (repo / ".agi").is_dir() \
         else None
     out: list[Path] = []
@@ -5016,16 +5016,17 @@ def cmd_loop_prune(args: argparse.Namespace) -> int:
         => merged => PRUNE;
       * rc 1 (unmerged) => NEVER prune, say so per branch;
       * rc > 1 / probe failure => refuse, never guess;
-      * `git worktree prune`s dead KID worktrees under `.agi/worktrees/a00-*`
-        (a post/main worktree is never touched);
+      * drops the registration of each dead KID worktree under
+        `.agi/worktrees/a00-*`, one scoped entry at a time (a post/main
+        worktree is never touched; no bare prune);
       * every skip — unmerged, refused and every non-loop branch left alone
         — is named in the output.
 
     Dry-run (the DEFAULT when --apply is absent) prints the plan and WRITES
-    NOTHING — no `git branch -d`, no `push --delete`, no `worktree prune`,
+    NOTHING — no `git branch -d`, no `push --delete`, no registration drop,
     no ref change. --apply performs the deletes, always non-force (`git
     branch -d` for a local, `git push origin --delete` for an origin leg,
-    `git worktree prune` for the dead kid registrations), and never a delete
+    a scoped drop of each dead kid registration), and never a delete
     of master or any remote-visible name (branches.is_remote_visible over the
     surviving refs is asserted in the tests). --root points at a fixture .agi
     so --apply is hermetic; the live tree prunes only when --root is omitted
@@ -5097,13 +5098,13 @@ def cmd_loop_prune(args: argparse.Namespace) -> int:
         print(f"left alone: {name} -> not a known loop grammar")
 
     # dead KID worktrees under .agi/worktrees/a00-* — the registrations
-    # `git worktree prune` clears. A post/main worktree is never listed (its
-    # registration is live) and the prune verb only removes dangling
-    # registrations, so a post worktree is untouchable by construction.
+    # dropped one by one. A post/main worktree is never listed (its
+    # registration is live) and the drop only removes a registration whose
+    # checkout is gone, so a post worktree is untouchable by construction.
     dead_kids = _dead_kid_worktrees(repo)
     for p in dead_kids:
-        print(f"[{'DRY ' if not apply else 'APPLY'}] worktree prune "
-              f"(dead kid): git worktree prune {p.name}")
+        print(f"[{'DRY ' if not apply else 'APPLY'}] worktree drop "
+              f"(dead kid): registration of {p.name}")
 
     if not apply:
         print("dry-run: nothing changed")
@@ -5116,18 +5117,24 @@ def cmd_loop_prune(args: argparse.Namespace) -> int:
     # reached: the only delete targets are v3 loop-shaped branches, which
     # is_remote_visible excludes by construction (asserted in the tests).
     failed: list[str] = []
-    # dead kid worktree registrations FIRST: one `git worktree prune` clears
-    # every dangling registration, and it must run BEFORE the branch deletes
+    # dead kid worktree registrations FIRST: each is dropped by the path it
+    # names (never a bare prune), and it must run BEFORE the branch deletes
     # so a merged loop a dead kid held is no longer considered checked out
     # (a live post/main worktree is never touched; an unmerged branch is
     # never reached -- its worktree is live by definition).
     if dead_kids:
-        r = subprocess.run(["git", "worktree", "prune"], cwd=repo,
-                           capture_output=True, text=True)
-        if r.returncode != 0:
-            print(f"ERR: git worktree prune failed: {r.stderr.strip()}",
+        for p in dead_kids:
+            if locations.drop_dead_worktree_admin(repo, p) or p.exists():
+                continue
+            ent = locations.worktree_admin_entry(repo, p)
+            if ent is not None and (ent / "locked").exists():
+                # a lock is deliberate: left alone, as the old prune did (rc 0)
+                print(f"left alone: {p.name} -> registration locked")
+                continue
+            # no entry names <p>/.git (or it vanished): LOUD, never a silent leak
+            print(f"ERR: worktree registration of {p.name} not dropped",
                   file=sys.stderr)
-            failed.append("worktree-prune")
+            failed.append("worktree-drop")
     for name, post in merged:
         if name in local:
             r = subprocess.run(["git", "branch", "-d", name], cwd=repo,
