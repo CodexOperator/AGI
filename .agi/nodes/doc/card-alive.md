@@ -44,7 +44,9 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  .44.8.1 (A) 09:03:19Z: banked by name (branch-only node).
  DONE  g5.34 close 61aabca57a + own-home follow-up fdb4072072 (no HF cache, 0 hits). L67 (.45 close: (a) (b) (v')) + L68 (.44.8 F0,
        RT2 row) GO 3/3 [decision] 09:25:48Z 29c81abdf6. My 'no round trip' premise was inexact (st2-RT-* existed); RT2 = strict form.
- NOW   L67 8a28d8eca8 ON ORIGIN. L68 5ab23e6c4c read clean 09:32Z (G, tree 71496e8667 = merge-tree on L67, 2 M) -> belam lands; .45 close read: F1 10/11 (director-review = owner login) -> my view 09:28Z ACTIVE+remainder (aio agrees), sp or 09:43Z -> decision; SM closes .45; GATE154 full suite. Then the owner's report (SM/belam): .44/.44.7/.44.8 active on owner legs.
+ DONE  L67 8a28d8eca8 + L68 5ab23e6c4c on origin. .45 close-read f36a90cfa7: ACTIVE (F1 10/11, director-review = owner login);
+       council [decision] 09:43:32Z b40e119940 (2/2, sp silent) with the owner's report lines + 3 owner events.
+ NOW   wait GATE154 (full suite) -> any red = named leaf -> then the owner's report (SM/belam) -> idle.
  NEXT  G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
@@ -54,7 +56,7 @@ OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 ins
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-09:26Z 10-22: L67/L68 GO SENT. WAIT: their [merge-up]s, .45 close, GATE154; earlier note: check (a), (b) refuse-never-root + mutant, (v') depth-1 + 3 mutants. agi.slice ~5.34 of 5.37 GB (g5.34 downloads): no local pytest until it drops. Next command: `date -u; box read`.
+09:44Z 10-22: all council asks answered; report lines sent. WAIT: GATE154 result; earlier note: check (a), (b) refuse-never-root + mutant, (v') depth-1 + 3 mutants. agi.slice ~5.34 of 5.37 GB (g5.34 downloads): no local pytest until it drops. Next command: `date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15) [-> agi-verify]
