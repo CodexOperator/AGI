@@ -1,5 +1,5 @@
 ---
-id: doc:card-director-general-5
+id: doc:card-director-general-3
 mint_id: 2ba5a1adbdcb4ea2aa3aa6d92d309253
 type: doc
 parents:
@@ -13,7 +13,7 @@ tags:
   - director
   - director-general-5
 thought_session: director-general-5
-title: Card director general 5
+title: Card director general 3
 town: core
 ---
 # DG5 card (10-21 23:40Z) -- G7 STEP 0: the card whole, the resume path of the moved identity
@@ -51,3 +51,7 @@ G6 4a evidence: -k set 395/0, aa3-lanes 17/0, land-bounds 2/0, SM gate142 2506/0
 
 ## §6 BANKED
 (none for the owner). For SM: the §4 traps go to agi-post / agi-master-gate at the move (the card-trap rule).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+address doc:card-director-general-3 reused at G7: before the G5 4a land 69e36d2286 (10-21) it named card mint 960e181d30 (now director-general-1); from G7 it is this card, mint 2ba5a1adbdcb4ea2aa3aa6d92d309253, the card of the post that was director-general-5 (goal:g7.16.1.11.45).
+<!-- THOUGHT:END -->
