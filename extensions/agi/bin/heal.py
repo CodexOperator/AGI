@@ -1868,10 +1868,19 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
             # target is gone (the tmpfs emptied at a reboot) -- the branch
             # keeps every commit; drop ONLY this link's registration (one
             # whose gitdir names the gone target), then unlink the link.
-            locations.drop_dead_worktree_admin(
-                main_checkout, Path(os.path.join(wt.parent, os.readlink(wt))))
+            target = Path(os.path.join(wt.parent, os.readlink(wt)))
+            ent = locations.worktree_admin_entry(main_checkout, target)
+            if locations.drop_dead_worktree_admin(main_checkout, target):
+                outcome = "registration dropped"
+            elif ent is None:
+                outcome = "NO MATCH, kept"
+            elif (ent / "locked").exists():
+                outcome = "left (locked)"
+            else:
+                outcome = "left (checkout not provably gone)"
             wt.unlink()
-            _watch_log(f"[sweep] unlinked {wt.name}: RAM target gone")
+            _watch_log(f"[sweep] unlinked {wt.name}: RAM target gone; "
+                       f"{outcome}")
             continue
         if not wt.is_dir():
             continue
