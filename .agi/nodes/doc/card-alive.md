@@ -40,8 +40,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  L54 hostproj; G4 L55 8a9d18ec9c; G5 L57 69e36d2286; G6 L58 61e90435d0; L59/L60; G7 step 0 d55e87c446 (detail: a077dc0e87^).
  DONE  G7 DONE (SM 05:19:20Z), verified 05:19:54Z: probe 0a59771f42 G f+VsAFox = ring L76 OPEN only; 6 closed dg3 fps differ;
        NRestarts 0 since 05:15:47Z; gate-director-general-3 uid 977; 0 *dg5* dirs; L61 8b247882a2 (tree 976968dc91) on origin.
- DONE  dg5-g43 DROPPED 3/3 (ref KEPT) · fcd886e448 -> 2ba641cdc7 · [g7-closed] ~1 min before belam's root read (no effect)
-       · T2 324fb59f40 (69cae4b1ef) + by-sha THOUGHT follow-up 3cc9b63c7f (.44.7 00e4e20ea9 = only KNOWN LEAK record).
+ DONE  dg5-g43 DROPPED (ref KEPT) · 2ba641cdc7 · T2 69cae4b1ef + by-sha 3cc9b63c7f (00e4e20ea9 = only KNOWN LEAK record).
  DONE  .45.1 L62 a12fdaded7 (GO 06:30:07Z) + FF1-FF3 L63 (GO 06:52:58Z, mutant 7 RED); heal's 4th outcome kept.
  DONE  .45.2 tip 749aeac5d1: L64 GO 3/3 [decision] 07:16:30Z 03653ac313 (gate151 1016/0, mutant 6 RED);
        FF5 empty token + FF6 cross-field data row ride .45.3; .45.1 CLOSE + MINT .45.4 (sweep survives EACCES RAM link) in one goal commit.
