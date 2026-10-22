@@ -1754,6 +1754,18 @@ def _sweep_orphan(wt: Path) -> bool:
     return line.startswith("gitdir:") and not Path(line[7:].strip()).exists()
 
 
+def _sweep_is_dir(p: Path) -> bool | None:
+    """goal:g7.16.1.11.45.4: Path.is_dir() / Path.exists() RAISE PermissionError on
+    EACCES (Python 3.12 swallows only ENOENT-like errors), so one RAM link whose
+    target sits behind an unreadable parent killed the whole sweep pass. True /
+    False when git-of-the-filesystem answers, None when it cannot (never a raise,
+    never "gone")."""
+    try:
+        return p.is_dir()
+    except OSError:
+        return None
+
+
 def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
                               grace_min: int | None = None
                               ) -> tuple[int, int, int]:
@@ -1855,14 +1867,23 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
     base_pre: dict[str, str] = {}
     for wt_p in sorted(wt_base.glob("a00-*")):
         _walked()
-        if not wt_p.is_dir():
+        if _sweep_is_dir(wt_p) is not True:
             continue
         b0 = wt_heads.get(wt_p.name, ("", ""))[0]
         base_pre[wt_p.name] = _sweep_worktree_base(
             root, wt_p, _sweep_season(b0))
     for wt in sorted(wt_base.glob("a00-*")):
         _walked()
-        if wt.is_symlink() and not wt.exists() and not dry_run \
+        gone = locations.path_gone(wt) if wt.is_symlink() else False
+        if wt.is_symlink() and gone is None and not dry_run \
+                and wt.name not in live_ids:
+            # goal:g7.16.1.11.45.4: the link's target cannot be looked at
+            # (EACCES behind a closed parent): NOT gone, nothing is dropped or
+            # unlinked, the pass goes on to the next tree.
+            _watch_log(f"[sweep] left {wt.name}: RAM target not provably gone; "
+                       "left (not provably gone, or drop failed)")
+            continue
+        if wt.is_symlink() and gone is True and not dry_run \
                 and wt.name not in live_ids:
             # goal:g7.16.1.5.4 layout: a RAM worktree behind a symlink whose
             # target is gone (the tmpfs emptied at a reboot) -- the branch
@@ -1882,7 +1903,7 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
             _watch_log(f"[sweep] unlinked {wt.name}: RAM target gone; "
                        f"{outcome}")
             continue
-        if not wt.is_dir():
+        if _sweep_is_dir(wt) is not True:
             continue
         agent_id = wt.name
         # (1) liveness from the shared lease dir, never ps by name.

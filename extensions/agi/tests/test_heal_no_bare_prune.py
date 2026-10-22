@@ -240,3 +240,34 @@ def test_sweep_ram_link_failed_drop_logs_not_provably_gone_or_drop_failed(
     assert "[sweep] unlinked a00-ram02: RAM target gone; left (not provably gone, or drop failed)" \
         in log.read_text()
     assert "a00-ram02" in _registered(scratch["repo"]), "the entry is kept"
+
+
+# ---- goal:g7.16.1.11.45.4: the sweep survives a RAM link behind an UNREADABLE parent ----
+def test_sweep_survives_an_eacces_ram_link_and_still_sweeps_the_next(scratch, monkeypatch):
+    """Two RAM links in ONE pass: the first's target is under a 0o000 parent
+    (Path.is_dir/exists raised PermissionError and killed the pass), the second's
+    target is gone. The pass COMPLETES, logs "left (not provably gone, or drop
+    failed)" for the first (link and registration kept) and the SECOND is still
+    swept (unlinked, registration dropped)."""
+    log = scratch["graph"] / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    closed = scratch["tmp"] / "closed"
+    first = closed / "a00-eacc1"
+    second = scratch["tmp"] / "ram" / "a00-gone2"
+    for name, target in (("a00-eacc1", first), ("a00-gone2", second)):
+        _sh("git", "-C", str(scratch["repo"]), "worktree", "add", "-b", f"loop/{name}",
+            str(target), "season/s2")
+        (scratch["graph"] / "worktrees" / name).symlink_to(target)
+    shutil.rmtree(scratch["tmp"] / "ram")           # the second target is gone for good
+    closed.chmod(0o000)                              # the first is unreadable, not gone
+    try:
+        heal._sweep_finished_worktrees(scratch["graph"])
+    finally:
+        closed.chmod(0o700)
+    text = log.read_text()
+    assert "[sweep] left a00-eacc1: RAM target not provably gone; left (not provably gone, or drop failed)" in text
+    assert (scratch["graph"] / "worktrees" / "a00-eacc1").is_symlink(), "the link stays"
+    assert "a00-eacc1" in _registered(scratch["repo"]), "its registration stays"
+    assert not (scratch["graph"] / "worktrees" / "a00-gone2").is_symlink(), "the NEXT link is still swept"
+    assert "a00-gone2" not in _registered(scratch["repo"])
+    assert "[sweep] unlinked a00-gone2: RAM target gone; registration dropped" in text
