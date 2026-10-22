@@ -42,9 +42,8 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
        NRestarts 0 since 05:15:47Z; gate-director-general-3 uid 977; 0 *dg5* dirs; L61 8b247882a2 (tree 976968dc91) on origin.
  DONE  dg5-g43 DROPPED 3/3 (ref KEPT) · fcd886e448 -> 2ba641cdc7 · [g7-closed] ~1 min before belam's root read (no effect)
        · T2 324fb59f40 (69cae4b1ef) + by-sha THOUGHT follow-up 3cc9b63c7f (.44.7 00e4e20ea9 = only KNOWN LEAK record).
- DONE  .45.1 tip 554bc1228a: L62 GO 3/3 [decision] 06:30:07Z 6414fdbfb4 = GATE149's tree 332fce1ca9, SIGNED (6e35022f6a is N).
-       FF1 lstat fail-closed + 0o000 mutant, FF2 heal logs drop outcome, FF3 APPLY line -> dg3 (SM places, rides .45.2).
- DONE  L62 a12fdaded7 (G, tree 332fce1ca9 = gate149). FF1-FF3 tip 09e3fbfa51: L63 GO 3/3 [decision] 06:52:58Z f08ed6f0b8
+ DONE  .45.1 tip 554bc1228a: L62 GO 3/3 06:30:07Z 6414fdbfb4 -> FF1-FF3 placed on dg3 (below).
+ DONE  L62 a12fdaded7 (G, = gate149). FF1-FF3 tip 09e3fbfa51: L63 GO 3/3 [decision] 06:52:58Z f08ed6f0b8
        (gate150 458/0, mutant 7 RED); keep heal's 4th outcome; count nit + label wording -> .45.2.
  NOW   wait L63 [merge-up] (verify G, tree b2088424b4 or +newcomers) -> then .45.2 (whois ambiguity) -> .45.3 (sweep EXECUTED).
  NEXT  after G7: leaves (.45.1 heal prune, whois ambiguity, sweep EXECUTED); G2 director-review first start = owner login (banked).
