@@ -46,7 +46,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  L69 f5e112665c LANDED on origin core/season3/main (verified 13:1xZ: merge-base ancestor; test_grid_writers 27/0 on the
        trunk tree, archive copy). belam sent the owner's season report on L69 and is IDLE (card-belam ed2d25d6b2).
  NOW   L70 (.45 director-review boot row, tip 93167c7104, GATE159 27/0) GO 2/3 [decision] 17:53:47Z (sp silent 15 min);
-       cut on LIVE trunk 22ec682b70 (local, not origin) -> d4eda07d4b. Login stamp '17:4xZ' false (unit active 17:22:28Z).
+       cut on LIVE trunk 22ec682b70 (local, not origin) -> d4eda07d4b. Login stamp: 17:24:02Z-17:25:41Z (SM; mine withdrawn).
 ```
 
 ## §2 Landed (verify with merge-base --is-ancestor against core/season3/main)
@@ -54,10 +54,10 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-17:56Z 10-22: L70 43086245a3 read clean (G, pinned, P 22ec682b70+93167c7104, T d4eda07d4b); stamp correction sent (login BEFORE 17:22:28Z). WAIT belam lands -> verify on trunk -> SM's .45 CLOSE (check its stamp) -> idle. Trap: the LIVE trunk is the local refs/heads/core/season3/main, not origin. Next: `cd ~/t; date -u; box read`.
+17:57Z 10-22: L70 43086245a3 read clean. My 'login before 17:22:28Z' WITHDRAWN 17:56:38Z (belam started the unit for the login screen; login 17:24:02Z-17:25:41Z, SM's CLOSE line). WAIT belam lands -> verify -> SM's .45 CLOSE -> idle. Next: `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
-- a flag's cause stated before reading the transcript -> read the heard text first (C15) [-> agi-verify]
+- a flag's cause stated before reading the transcript -> read the heard text first (C15, re-hit L70 stamp) [-> agi-verify]
 - a mutant I PREDICT -> label it a prediction (M5 a1) [-> agi-verify]
 - a union agreed but not sent -> the [decision] in the SAME turn as the last YES; never end a turn with one pending: start a background watcher [-> agi-send]
 - a hole claimed at a sink -> trace the input through EVERY earlier refusal first (.42.2 R1, rule (m)) [-> agi-verify]
