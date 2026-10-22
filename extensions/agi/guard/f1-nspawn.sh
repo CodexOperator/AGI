@@ -7,7 +7,7 @@
 # each RED in the container; and, as its OWN line, whether the FIRST start brings up exactly the boot=true rows (R2). 0 USD: the image holds no claude binary, only the stub. Nothing here touches the live town: no bind of a live home, .env, key, ~/.claude or /data/work.
 # Cells (env): F1_REPO (the live repo, /data/work/agi: read-only, fetched from) · F1_DATA (/data: rootfs + image live here) · F1_BOX (encryption-town) · F1_MIRROR · F1_TIMEOUT (seconds, whole run) · F1_CGROOT · F1_MEMINFO · F1_ROOT (a test prefix for the in-container paths).
 F1_REPO=${F1_REPO:-/data/work/agi};F1_DATA=${F1_DATA:-/data};F1_BOX=${F1_BOX:-encryption-town};F1_ROOT=${F1_ROOT:-};F1_MAIN=${F1_MAIN:-/data/work/agi}
-F1_MEM_MAX_M=1500;F1_TIMEOUT=${F1_TIMEOUT:-14400};F1_QTIMEOUT=${F1_QTIMEOUT:-60};F1_STEPTIMEOUT=${F1_STEPTIMEOUT:-3000}
+F1_MEM_MAX_M=2560;F1_TIMEOUT=${F1_TIMEOUT:-14400};F1_QTIMEOUT=${F1_QTIMEOUT:-60};F1_STEPTIMEOUT=${F1_STEPTIMEOUT:-3000}
 F1_PKGS="systemd,systemd-sysv,dbus,libpam-systemd,sudo,cron,git,jq,acl,python3,python3-yaml,strace,bsdutils,util-linux,openssh-client,procps,ca-certificates,tmux,passwd,coreutils"
 die(){ echo "f1: $*" >&2;exit 1;}
 SELF=$0
@@ -69,7 +69,8 @@ verdict(){ D=$1;R=$D/res;fl=;inc=;hard=;L1=;L2=
  inc="$inc$(grep '^inconclusive ' "$R" 2>/dev/null|sed 's/^inconclusive /; /')"
  fl="$fl$(grep '^fail ' "$R" 2>/dev/null|sed 's/^fail /; /')"
  [ ! -e "$D/timeout" ]||inc="$inc; timeout: the run hit F1_TIMEOUT"
- me=$(cat "$D/mem.events" 2>/dev/null);case $me in *"max "[1-9]*|*"oom_kill "[1-9]*)inc="$inc; the container hit MemoryMax ($(echo $me|tr '\n' ' '))";; esac
+ me=$(cat "$D/mem.events" 2>/dev/null);case $me in *"oom "[1-9]*|*"oom_kill "[1-9]*|*"oom_group_kill "[1-9]*)inc="$inc; the container was OOM-killed at MemoryMax ($(echo $me|tr '\n' ' '))";; esac
+ [ ! -s "$D/host.mem.trip" ]||inc="$inc; host memory watchdog: $(cat "$D/host.mem.trip")"
  [ -e "$D/host.delta" ]||hard="$hard; host before/after delta missing"
  hard="$hard$(grep '^hard ' "$D/host.delta" 2>/dev/null|sed 's/^hard /; THE LIVE TOWN CHANGED: /')"
  inc="$inc$(grep '^inconclusive ' "$D/host.delta" 2>/dev/null|sed 's/^inconclusive /; host: /')"
@@ -99,16 +100,18 @@ summary(){ D=$1;R=$D/res;verdict "$D"
  echo "F1 OUTCOME: $V_OUT${V_C:+  ($V_C)}"
  echo "  (i)  RT2, F1 as written ........ $V_L1"
  echo "  (ii) first-start set ........... $V_L2"
+ grep '^finding ' "$R" 2>/dev/null|sed 's/^/  /'
+ [ -z "$HN_LINE" ]||echo "$HN_LINE"
  echo "harness sha256 $(sha256sum "$SELF" 2>/dev/null|cut -c1-64)  blob $(git hash-object "$SELF" 2>/dev/null)"
  for k in trunk image box; do echo "$k $(rget $k "$D/meta" 2>/dev/null)";done
  echo "--- stub behaviour and readings (NOT measured; council 20:25:36Z D3, D6)"
- echo "claude stub: logs argv, prints the line '? for shortcuts' (an unmeasured stand-in: no start step reads a ready byte, agi.sh stuck() matches only the 6 dialog titles), runs \`box read\` every 5 s like a real post so stop's blast sees the acks, ends in \`exec sleep infinity\` (NRestarts must be 0)."
+ echo "claude stub: logs argv, prints the line '? for shortcuts' (an unmeasured stand-in: no start step reads a ready byte, agi.sh stuck() matches only the 6 dialog titles), runs \`box read\` every 30 s like a real post so stop's blast sees the acks, ends in \`exec sleep infinity\` (NRestarts must be 0)."
  echo "also stubbed: gh (auth status -> 0), pi, and guard-init (--status -> 0: its layers are HOST layers, absent in nspawn). The memory-PSI ExecStartPre, agi.sh's load gate and /proc/loadavg are the HOST's inside nspawn."
  echo "stop mutant: agi-belam's own cron block left standing (the crons.py remove call dropped), as RT2 does; pstop refuses a foreign-ROOT block outright. RED comes from marked_sum = crons.py marked per agi- uid against the real crontab."
  echo "LIFECYCLE: the rootfs was removed at the end of the run (guarded rm). The image tar is KEPT for a re-run (an INCONCLUSIVE is re-run): $(rget image "$D/meta" 2>/dev/null|cut -d' ' -f2). belam removes $F1_DATA/f1-nspawn-image after the owner has read F1, so nothing stays on /data unnamed."
  echo "--- raw reads (res)";cat "$R" 2>/dev/null
  echo "--- host before / after (hard = the container or the harness could have caused it; info and raw = the live town's own traffic, listed)";cat "$D/host.delta" 2>/dev/null;echo "-- before";cat "$D/host.before" 2>/dev/null;echo "-- after";cat "$D/host.after" 2>/dev/null
- echo "--- container memory (peak, last memory.events, agi.slice at run time, slice read)";cat "$D/mem.peak" "$D/mem.events" "$D/slice.read" 2>/dev/null;sed -n '1p;$p' "$D/agislice" 2>/dev/null
+ echo "--- container memory (peak bytes, last memory.events, slice read; max > 0 ALONE is INFO: page cache charges the memcg; only oom / oom_kill make the run INCONCLUSIVE)";cat "$D/mem.peak" "$D/mem.events" "$D/slice.read" 2>/dev/null;sed -n '1p;$p' "$D/agislice" 2>/dev/null
  echo "--- captive transcript";cat "$D/captive" 2>/dev/null
  echo "--- steps";cat "$D/steps" 2>/dev/null;}
 # ================================================================ INSIDE the container
@@ -126,7 +129,20 @@ marked_sum(){ n=0;for u in $(uidsf);do c=$(python3 "$CRONS" marked --root "$M" -
 cron_dig(){ for u in $(uidsf);do echo "$u=$(crontab -l -u $u 2>/dev/null|sha256sum|cut -c1-16)";done|tr '\n' ' ';}
 setnow(){ systemctl list-units 'agi-post@*' --plain --no-legend --state=active 2>/dev/null|awk '{sub(/^agi-post@/,"",$1);sub(/\.service$/,"",$1);print $1}'|sort|tr '\n' ' '|sed 's/ $//';}
 restarts(){ for p in $(setnow);do echo "$p=$(systemctl show agi-post@$p.service -p NRestarts --value 2>/dev/null)";done|tr '\n' ' ';}
-snap(){ rec "set.$1 $(setnow)";rec "nrestarts.$1 $(restarts)";rec "psi.$1 $(psi)";rec "units.$1 $(systemctl list-units 'agi-*' --plain --no-legend --state=active 2>/dev/null|awk '{print $1}'|sort|tr '\n' ' ')";}
+restarts_all(){ for p in $ROWS;do echo "$p=$(systemctl show agi-post@$p.service -p NRestarts --value 2>/dev/null)";done|tr '\n' ' ';}
+# the diagnosis (council 22:46:21Z item 2): on ANY failed agi.sh step and on any NRestarts > 0, one file diag.<label> in /f1/out (copied to OUT): which sk_posts leg is unmet (the container agi.sh's OWN functions, from the pinned file), per flapping post the journal + the unit's Result,
+# and a bounded journal tail. (F): a post caught in its 30 s auto-restart makes sk_posts' strict no-retry isup die "posts: still unmet"; the harness adds NO retry and names the finding.
+diag(){ l=$1;[ ! -e "$O/diag.$l" ]||return 0
+ G show "$SHA:extensions/agi/bin/agi.sh" 2>/dev/null|sed '/^r=\${1:-};\[ \$# = 0 \]||shift$/,$d' >"$O/agi.fn.sh"
+ ns=$(env BOX=$BOX PIN=$SHA AGI_REPO=$F1_MAIN sh -c '. "$1";nostart' x "$O/agi.fn.sh" 2>/dev/null|tr '\n' ' ')
+ { echo "== diag $l $(date -u +%FT%TZ)"
+  env BOX=$BOX PIN=$SHA AGI_REPO=$F1_MAIN sh -c '. "$1"; echo "nostart: $(nostart|tr "\n" " ")"; echo "noflags: $(noflags|tr "\n" " ")"; echo "nologin: $(nologin|tr "\n" " ")"; echo "bootok: $(bootok&&echo yes||echo NO) ($(systemctl is-enabled agi-boot.service 2>&1))"' x "$O/agi.fn.sh" 2>&1|cut -c1-600
+  for p in $(restarts_all|tr ' ' '\n'|awk -F= '$2>0{print $1}');do echo "-- $p: NRestarts > 0";journalctl -u agi-post@$p.service -u agi-boxwake@$p.service -o short-iso --no-pager -n 200 2>&1|cut -c1-300
+   systemctl show -p Result,ExecMainStatus,ExecMainCode,ActiveState,SubState agi-post@$p.service 2>&1;tail -20 "$F1_ROOT/f1/out/claude/argv.agi-$p.log" 2>/dev/null;done
+  echo "-- journal tail";journalctl -o short-iso --no-pager -n 5000 2>&1|cut -c1-300;} >"$O/diag.$l" 2>&1
+ for p in $ns;do as=$(systemctl show agi-post@$p.service -p ActiveState --value 2>/dev/null);case $as in activating|reloading)rec finding "F: $p was $as when agi.sh sk_posts looked (isup = systemctl is-active -q, false in activating / auto-restart, no retry): a live start dies 'posts: still unmet' during any post's 30 s auto-restart; an owner finding beside R2, agi.sh stays owner-held";; esac;done;}
+capd(){ cap "$@";rc=$?;[ $rc = 0 ]||diag "$1";return $rc;}
+snap(){ case "$(restarts_all)" in *=[1-9]*)diag "nr-$1";; esac;rec "set.$1 $(setnow)";rec "nrestarts.$1 $(restarts)";rec "psi.$1 $(psi)";rec "units.$1 $(systemctl list-units 'agi-*' --plain --no-legend --state=active 2>/dev/null|awk '{print $1}'|sort|tr '\n' ' ')";}
 # M4: the counted town line per post over <tip>..refs/box/belam/<p>; tips = a file of `p sha` lines (empty file = from the root)
 townlines(){ for p in $(setnow);do [ $p = belam ]&&continue;t=$(awk -v p=$p '$1==p{print $2}' "$1" 2>/dev/null);rg=refs/box/belam/$p;[ -z "$t" ]||rg="$t..$rg"
   echo "$p=$(G log --format=%B $rg 2>/dev/null|grep -cxF "[town] up $SHA")";done|tr '\n' ' '|sed 's/ $//';}
@@ -166,8 +182,8 @@ inner(){ refuse_host||{ rc=$?;exit $rc;}
  printf '#!/bin/sh\nexit 0\n' >"$F1_ROOT/opt/agi/bin/pi";chmod 755 "$F1_ROOT/opt/agi/bin/pi"
  printf '#!/bin/sh\nexit 0\n' >"$F1_ROOT/f1/guard-init-stub"   # guard-init's layers are HOST layers (sysctl, earlyoom...): they do not exist in nspawn; named in the summary
  printf '#!/bin/sh\ncase "$1 $2" in "auth status")exit 0;; esac\nexit 0\n' >"$F1_ROOT/usr/local/bin/gh";chmod 755 "$F1_ROOT/usr/local/bin/gh"
- # M2: claude = a stub. Logs argv, prints the ready line, and stays up (agi-post@ is Restart=always RestartSec=30: a stub that exits flaps the set). It ALSO reads its mail every 5 s, as a real post does, so stop's blast sees the ack (held ref) and does not wait ack_wait_s=600 per stop.
- printf '%s\n' '#!/bin/sh' 'echo "$(date -u +%FT%TZ) $(id -un) $*" >>/f1/out/claude/argv.log 2>/dev/null' 'echo "? for shortcuts"' '(while :;do box read >/dev/null 2>&1;sleep 5;done)&' 'exec sleep infinity' >"$F1_ROOT/usr/local/bin/claude";chmod 755 "$F1_ROOT/usr/local/bin/claude"
+ # M2: claude = a stub. Logs argv, prints the ready line, and stays up (agi-post@ is Restart=always RestartSec=30: a stub that exits flaps the set). It ALSO reads its mail every 30 s (run 2 had 5 s: ~26 git loops beside the 13 boxwake ones), as a real post does, so stop's blast sees the ack (held ref) and does not wait ack_wait_s=600 per stop.
+ printf '%s\n' '#!/bin/sh' 'echo "$(date -u +%FT%TZ) $(id -un) $*" >>/f1/out/claude/argv.$(id -un).log 2>/dev/null' 'echo "? for shortcuts"' '(while :;do box read >/dev/null 2>&1;sleep 30;done)&' 'exec sleep infinity' >"$F1_ROOT/usr/local/bin/claude";chmod 755 "$F1_ROOT/usr/local/bin/claude"
  printf '%s\n' "$(date -u +%FT%TZ) $EXPECT" >"$F1_ROOT/f1/out/claude/boot-names"
  # ---- the host act, for real (agi.sh host at the pin); the users come from the pinned projection
  step host;timeout "$F1_STEPTIMEOUT" sh "$AGSH" host >"$O/host.out" 2>&1;rc=$?;rec rchost $rc
@@ -175,15 +191,15 @@ inner(){ refuse_host||{ rc=$?;exit $rc;}
  for p in $ROWS;do getent passwd agi-$p >/dev/null||{ rec fail "agi.sh host left no user agi-$p";return 1;};h=$(getent passwd agi-$p|cut -d: -f6)
   install -d -o agi-$p -g agi-$p -m 750 "$h" "$h/.claude"||{ rec setupfail homes "cannot make $h";return 1;};printf '{"f1":"stub login, no secret"}\n' >"$h/.claude/.credentials.json";chown agi-$p:agi-$p "$h/.claude/.credentials.json";chmod 600 "$h/.claude/.credentials.json";done
  # ---- the first start (S1..S9), then THE ROUND TRIP
- step start1;rec psi.start1 "$(psi)";cap start1 sh "$AGSH" start;rc=$?;rec rcstart1 $rc
+ step start1;rec psi.start1 "$(psi)";capd start1 sh "$AGSH" start;rc=$?;rec rcstart1 $rc
  if [ $rc != 0 ];then hc=$(hot);[ -z "$hc" ]||rec inconclusive "a post start was refused or held by the HOST's load: $hc (start 1)";rec fail "first start rc $rc: $(tail -3 "$O/cap.err"|tr '\n' ' '|cut -c1-300)";snap A;return 1;fi
  sleep 20;snap A;rec town.A "$(townlines /dev/null)"
  rec crondig.start1 "$(cron_dig)"
  rec crondig.pre "$(cron_dig)"
- step stop;rec psi.stop "$(psi)";cap stop sh "$AGSH" stop;rc=$?;rec rcstop $rc;rec marked.stop "$(marked_sum)";cp $F1_ROOT/etc/agi/town.state "$O/town.state.afterstop" 2>/dev/null;rec ack-lines "$(grep -c '^ack ' $F1_ROOT/etc/agi/town.state 2>/dev/null) held/card/noack: $(awk '/^(ack|noack)/{print $1" "$3}' $F1_ROOT/etc/agi/town.state 2>/dev/null|sort|uniq -c|tr '\n' ';')"
+ step stop;rec psi.stop "$(psi)";capd stop sh "$AGSH" stop;rc=$?;rec rcstop $rc;rec marked.stop "$(marked_sum)";cp $F1_ROOT/etc/agi/town.state "$O/town.state.afterstop" 2>/dev/null;rec ack-lines "$(grep -c '^ack ' $F1_ROOT/etc/agi/town.state 2>/dev/null) held/card/noack: $(awk '/^(ack|noack)/{print $1" "$3}' $F1_ROOT/etc/agi/town.state 2>/dev/null|sort|uniq -c|tr '\n' ';')"
  rec set.stopped "$(setnow)";rec crondig.stopped "$(cron_dig)"
  tips >"$O/tips.stop"
- step start2;rec psi.start2 "$(psi)";cap start2 sh "$AGSH" start;rc=$?;rec rcstart $rc
+ step start2;rec psi.start2 "$(psi)";capd start2 sh "$AGSH" start;rc=$?;rec rcstart $rc
  if [ $rc != 0 ];then hc=$(hot);[ -z "$hc" ]||rec inconclusive "a post start was refused or held by the HOST's load: $hc (start 2)";fi
  sleep 20;snap B;rec town.B "$(townlines "$O/tips.stop")";rec crondig.post "$(cron_dig)";rec marked.up "$(marked_sum)"
  [ $rc = 0 ]||{ rec fail "start 2 rc $rc: $(tail -3 "$O/cap.err"|tr '\n' ' '|cut -c1-300)";}
@@ -196,14 +212,14 @@ hot(){ a=$(psi|sed -n 's/.*avg10=\([0-9.]*\).*/\1/p');l=$(cut -d' ' -f1 /proc/lo
 # ---- the three RT2 mutants IN the container, each RED, each healed by a clean run afterwards. State on entry: the town is UP (start 2 done).
 mutants(){ vic=$(echo $EXPECT|tr ' ' '\n'|grep -vx belam|head -1)
  # (a) start drops a post: the clean stop, then a start that stops $vic again at its end
- step mutant-start;cap mstop1 sh "$AGSH" stop||{ rec mut.start "not-run: the clean stop before it failed";rec fail "mutant start: the clean stop failed";return 0;}
+ step mutant-start;capd mstop1 sh "$AGSH" stop||{ rec mut.start "not-run: the clean stop before it failed";rec fail "mutant start: the clean stop failed";return 0;}
  if patch_agsh "$AGSH" '[ -z "$bad" ]||die "[posts] cannot start:$bad (listed; a re-run retries them)"' '[ -z "$bad" ]||die "[posts] cannot start:$bad (listed; a re-run retries them)";systemctl stop agi-post@'"$vic"'.service';then
   cap mstart sh "$AGSH" start;rc=$?;sleep 5;after=$(setnow);rec mut.start.reads "rc=$rc victim=$vic set-after=[$after]"
   if [ $rc != 0 ]||[ "$after" != "$(rget set.B "$O/res")" ];then rec mut.start red;else rec mut.start "GREEN: start rc 0 and the set is unchanged";fi
  else rec mut.start "not-run: anchor not found exactly once";fi
- restore_agsh||rec fail "mutant start: agi.sh not restored";cap mheal1 sh "$AGSH" start||rec fail "mutant start: the clean start did not heal (rc $?)"
+ restore_agsh||rec fail "mutant start: agi.sh not restored";capd mheal1 sh "$AGSH" start||rec fail "mutant start: the clean start did not heal (rc $?)"
  # (c) a start that sends the town line twice: the clean stop, then the mutated start
- step mutant-town;cap mstop2 sh "$AGSH" stop||{ rec mut.town "not-run: the clean stop before it failed";rec fail "mutant town: the clean stop failed";return 0;}
+ step mutant-town;capd mstop2 sh "$AGSH" stop||{ rec mut.town "not-run: the clean stop before it failed";rec fail "mutant town: the clean stop failed";return 0;}
  tips >"$O/tips.m"
  if patch_agsh "$AGSH" '$BOXB town up $PIN)||die' '$BOXB town up $PIN&&sudo -H -u agi-belam env AGI_POST=belam AGI_BOX=$BOX AGI_TRUNK=$TB $BOXB town up $PIN)||die';then
   cap mstart2 sh "$AGSH" start;rc=$?;sleep 5;tl=$(townlines "$O/tips.m");rec mut.town.reads "rc=$rc town-lines=[$tl]"
@@ -215,7 +231,7 @@ mutants(){ vic=$(echo $EXPECT|tr ' ' '\n'|grep -vx belam|head -1)
   cap mstop3 sh "$AGSH" stop;rc=$?;mk=$(marked_sum);rec mut.stop.reads "rc=$rc marked-after=$mk"
   if [ $rc != 0 ]||[ "$mk" != 0 ];then rec mut.stop red;else rec mut.stop "GREEN: stop rc 0 and marked 0";fi
  else rec mut.stop "not-run: anchor not found exactly once";fi
- restore_agsh||rec fail "mutant stop: agi.sh not restored";cap mheal3 sh "$AGSH" stop||rec fail "mutant stop: the clean stop did not heal (rc $?)"
+ restore_agsh||rec fail "mutant stop: agi.sh not restored";capd mheal3 sh "$AGSH" stop||rec fail "mutant stop: the clean stop did not heal (rc $?)"
  return 0;}
 # ================================================================ HOST (root)
 # the image: ONE regular tar file. mmdebstrap picks its format from the target's name (a ".part" name made a DIRECTORY in run 1, 10-22 21:15Z), so --format=tar is explicit. NO new root rm -rf (council 21:31:39Z): a non-regular "$TAR" or "$TAR.part"
@@ -235,6 +251,14 @@ build_image(){ ID=$F1_DATA/f1-nspawn-image;TAR=$ID/noble.tar;IMGSHA=
 inner_unit(){ printf '%s\n' '[Unit]' 'Description=F1 inner leg' 'After=multi-user.target' 'SuccessAction=poweroff' 'FailureAction=poweroff' '[Service]' 'Type=oneshot' 'TimeoutStartSec=infinity' 'ExecStart=/bin/sh /f1/f1-nspawn.sh inner' 'StandardOutput=file:/f1/out/inner.log' 'StandardError=file:/f1/out/inner.log' '[Install]' 'WantedBy=multi-user.target';}
 cleanup(){ [ -z "$NAME" ]||machinectl terminate "$NAME" >/dev/null 2>&1;[ -z "$NP" ]||wait "$NP" 2>/dev/null
  [ -z "$ROOTFS" ]||[ ! -e "$ROOTFS" ]||rm_rootfs "$ROOTFS" "$RUN";}
+# the host watchdog (council 22:46:21Z item 5): agi.slice is a MemoryHigh throttle, not a cap, so the town + this container can exceed the 7G box and a global OOM would pick a LIVE post: host MemAvailable < 1 GB or host memory PSI some avg10 > 20 -> terminate = INCONCLUSIVE
+memwatch(){ a=$(awk '/^MemAvailable:/{print $2}' "${F1_MEMINFO:-/proc/meminfo}" 2>/dev/null);pm=$(sed -n 's/^some .*avg10=\([0-9.]*\).*/\1/p' "${F1_PSIMEM:-/proc/pressure/memory}" 2>/dev/null)
+ awk -v a="${a:-0}" -v p="${pm:-0}" 'BEGIN{if(a<1048576)print "host MemAvailable " int(a/1024) " MB < 1024 MB";else if(p>20)print "host memory PSI some avg10 " p " > 20"}';}
+# the host name must not leave the box in the summary: count it in the raw files of OUT, name them, redact summary.txt (the raw files are NOT redacted)
+write_summary(){ verdict "$OUT";HN=$(hostname -s 2>/dev/null);[ -n "$HN" ]||HN=$(uname -n 2>/dev/null);HN_LINE=;rx=
+ if [ -n "$HN" ];then rx=$(printf '%s' "$HN"|sed 's/[][\.*^$/]/\\&/g');hits=$(grep -rciF -- "$HN" "$OUT" 2>/dev/null|awk -F: '{s+=$NF}END{print s+0}');hf=$(grep -rliF -- "$HN" "$OUT" 2>/dev/null|sed "s|^$OUT/||"|tr '\n' ' ')
+  HN_LINE="host-name check: $hits line(s) in the raw files of OUT name this host${hf:+ ($hf)}; summary.txt is REDACTED (<host>), the raw files are NOT: redact or chmod them before any copy leaves the box";fi
+ if [ -n "$rx" ];then summary "$OUT"|sed "s/$rx/<host>/Ig" >"$OUT/summary.txt";else summary "$OUT" >"$OUT/summary.txt";fi;cat "$OUT/summary.txt";}
 sample(){ [ -n "$UNIT" ]||return 0;pk=$(systemctl show "$UNIT" -p MemoryPeak --value 2>/dev/null);[ -z "$pk" ]||echo "$pk" >"$OUT/mem.peak.last"
  cg=$(systemctl show "$UNIT" -p ControlGroup --value 2>/dev/null);[ -z "$cg" ]||[ ! -r "${F1_CGROOT:-/sys/fs/cgroup}$cg/memory.events" ]||cp "${F1_CGROOT:-/sys/fs/cgroup}$cg/memory.events" "$OUT/mem.events.last" 2>/dev/null
  { date -u +%H:%M:%SZ;systemctl show agi.slice -p MemoryCurrent -p MemoryHigh 2>/dev/null|tr '\n' ' ';echo;} >>"$OUT/agislice";}
@@ -245,7 +269,9 @@ run_host(){ SHA=${1:-};ANS=${2:-};OUT=${3:-}
  for c in systemd-nspawn machinectl mmdebstrap systemd-detect-virt systemctl git tar sha256sum jq python3;do command -v $c >/dev/null||die "missing tool: $c: nothing touched";done
  [ "$(systemd-detect-virt --container 2>/dev/null)" != systemd-nspawn ]||die "run is the HOST leg; this is already a container"
  git -c safe.directory="$F1_REPO" -C "$F1_REPO" cat-file -e "$SHA^{commit}" 2>/dev/null||die "$SHA is not a commit of $F1_REPO"
- mem_ok;RUN=$(date -u +%Y%m%d%H%M%S)$$;NAME=f1nspawn-$RUN;ROOTFS=$F1_DATA/f1-nspawn-$RUN;NP=;UNIT=;OUT=${OUT:-$F1_DATA/f1-nspawn-$RUN.out};mkdir -p "$OUT"||die "cannot make $OUT"
+ mem_ok;RUN=$(date -u +%Y%m%d%H%M%S)$$;NAME=f1nspawn-$RUN;ROOTFS=$F1_DATA/f1-nspawn-$RUN;NP=;UNIT=;OUT=${OUT:-$F1_DATA/f1-nspawn-$RUN.out}
+ [ ! -e "$OUT" ]||[ -z "$(ls -A "$OUT" 2>/dev/null)" ]||die "OUT '$OUT' exists and is not empty (a second run must not mix its reads with the first): nothing touched"
+ (umask 077;mkdir -p "$OUT")||die "cannot make $OUT"
  hostread "$OUT/host.before";trap 'exit 130' INT TERM HUP;trap cleanup 0
  build_image;{ echo "trunk $SHA";echo "image $IMGSHA $TAR";echo "box $F1_BOX";echo "run $RUN";} >"$OUT/meta"
  mkdir "$ROOTFS"||die "$ROOTFS exists";printf 'f1-%s\n' "$RUN" >"$ROOTFS/.f1-marker"
@@ -257,18 +283,18 @@ run_host(){ SHA=${1:-};ANS=${2:-};OUT=${3:-}
  printf 'f1-%s\n' "$RUN" >"$MM/.git/f1-marker"
  install -d "$ROOTFS/f1/out" "$ROOTFS/etc/systemd/system/multi-user.target.wants"&&install -m 755 "$SELF" "$ROOTFS/f1/f1-nspawn.sh"&&cp "$ANS" "$ROOTFS/f1/answers"
  printf 'SHA=%s\nBOX=%s\nRUN=%s\n' "$SHA" "$F1_BOX" "$RUN" >"$ROOTFS/f1/env";inner_unit >"$ROOTFS/etc/systemd/system/f1-inner.service";ln -sf ../f1-inner.service "$ROOTFS/etc/systemd/system/multi-user.target.wants/f1-inner.service"
- : >"$ROOTFS/etc/machine-id"
- systemd-nspawn --quiet --directory="$ROOTFS" --machine="$NAME" --boot --console=passive --private-network --private-users=pick --private-users-ownership=chown --slice=machine.slice --property=MemoryMax=${F1_MEM_MAX_M}M --link-journal=no >"$OUT/nspawn.log" 2>&1 &
+ : >"$ROOTFS/etc/machine-id";printf '%s\n' "$NAME" >"$ROOTFS/etc/hostname"&&printf '127.0.1.1 %s\n' "$NAME" >>"$ROOTFS/etc/hosts"||die "cannot write the container's hostname"
+ systemd-nspawn --quiet --directory="$ROOTFS" --machine="$NAME" --boot --console=passive --hostname="$NAME" --private-network --private-users=pick --private-users-ownership=chown --slice=machine.slice --property=MemoryMax=${F1_MEM_MAX_M}M --link-journal=no >"$OUT/nspawn.log" 2>&1 &
  NP=$!;i=0;while :;do UNIT=$(machinectl show "$NAME" -p Unit --value 2>/dev/null);[ -z "$UNIT" ]||break;i=$((i+1));kill -0 $NP 2>/dev/null&&[ $i -le 90 ]||{ echo "f1: the container never registered: $(tail -3 "$OUT/nspawn.log"|tr '\n' ' ')" >&2;break;};sleep 1;done
  slice_ok "$NAME" >"$OUT/slice.read";sr=$?
- if [ -z "$UNIT" ]||[ $sr != 0 ];then machinectl terminate "$NAME" >/dev/null 2>&1;echo "inconclusive M6: slice/registration read '$(cat "$OUT/slice.read")' (want machine.slice): container terminated, NOTHING run" >"$OUT/res";hostread "$OUT/host.after";hostdelta "$OUT/host.before" "$OUT/host.after" >"$OUT/host.delta";summary "$OUT" >"$OUT/summary.txt";cat "$OUT/summary.txt";cleanup;trap - 0;return 2;fi
+ if [ -z "$UNIT" ]||[ $sr != 0 ];then machinectl terminate "$NAME" >/dev/null 2>&1;echo "inconclusive M6: slice/registration read '$(cat "$OUT/slice.read")' (want machine.slice): container terminated, NOTHING run" >"$OUT/res";hostread "$OUT/host.after";hostdelta "$OUT/host.before" "$OUT/host.after" >"$OUT/host.delta";write_summary;cleanup;trap - 0;return 2;fi
  : >"$ROOTFS/f1/go";t0=$(date +%s)
- while kill -0 $NP 2>/dev/null;do sample;[ $(( $(date +%s)-t0 )) -lt $F1_TIMEOUT ]||{ : >"$OUT/timeout";machinectl terminate "$NAME" >/dev/null 2>&1;break;};sleep 5;done
+ while kill -0 $NP 2>/dev/null;do sample;w=$(memwatch);[ -z "$w" ]||{ echo "$w" >"$OUT/host.mem.trip";machinectl terminate "$NAME" >/dev/null 2>&1;break;};[ $(( $(date +%s)-t0 )) -lt $F1_TIMEOUT ]||{ : >"$OUT/timeout";machinectl terminate "$NAME" >/dev/null 2>&1;break;};sleep 5;done
  wait $NP 2>/dev/null;NP=
  [ ! -e "$OUT/mem.peak.last" ]||cp "$OUT/mem.peak.last" "$OUT/mem.peak";[ ! -e "$OUT/mem.events.last" ]||cp "$OUT/mem.events.last" "$OUT/mem.events"
  [ -e "$ROOTFS/f1/out/res" ]&&cp "$ROOTFS/f1/out/res" "$OUT/res"||: >"$OUT/res"
- for f in steps captive inner.log host.out cap.out cap.err; do [ ! -e "$ROOTFS/f1/out/$f" ]||cp "$ROOTFS/f1/out/$f" "$OUT/$f";done;cp "$ROOTFS"/f1/out/transcript.* "$ROOTFS"/f1/out/tips.* "$ROOTFS"/f1/out/town.state.* "$OUT/" 2>/dev/null;cp -r "$ROOTFS/f1/out/claude" "$OUT/claude" 2>/dev/null
- hostread "$OUT/host.after";hostdelta "$OUT/host.before" "$OUT/host.after" >"$OUT/host.delta";summary "$OUT" >"$OUT/summary.txt";cat "$OUT/summary.txt";cleanup;trap - 0 INT TERM HUP
+ for f in steps captive inner.log host.out cap.out cap.err; do [ ! -e "$ROOTFS/f1/out/$f" ]||cp "$ROOTFS/f1/out/$f" "$OUT/$f";done;cp "$ROOTFS"/f1/out/diag.* "$ROOTFS"/f1/out/transcript.* "$ROOTFS"/f1/out/tips.* "$ROOTFS"/f1/out/town.state.* "$OUT/" 2>/dev/null;cp -r "$ROOTFS/f1/out/claude" "$OUT/claude" 2>/dev/null
+ hostread "$OUT/host.after";hostdelta "$OUT/host.before" "$OUT/host.after" >"$OUT/host.delta";write_summary;cleanup;trap - 0 INT TERM HUP
  case $V_OUT in PASS)return 0;; FAIL)return 1;; *)return 2;; esac;}
 # ================================================================
 [ -z "$F1_LIB" ]||return 0 2>/dev/null||true
