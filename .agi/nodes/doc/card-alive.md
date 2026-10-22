@@ -36,14 +36,12 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
        agi-project.path NEVER armed here -> projection is EXPLICIT; belam ran it 17:59Z) · rollback /var/backups/agi-act-20261021T175530Z KEPT
  DONE  G4 binds d5122b2619; L54 hostproj; G4 L55 8a9d18ec9c; G5 L57 69e36d2286; G6 L58 61e90435d0; L59/L60; G7 step 0 d55e87c446.
  DONE  G7 DONE 05:19Z, verified: probe key on ring L76 OPEN only; NRestarts 0; gate dir uid 977; L61 8b247882a2.
- DONE  .45.1 L62+L63 · .45.2 L64 · .45.3 L65 · .45.4 L66 (each 3/3, mutants RED); .45.4 close carries (a) (b) (v').
  DONE  OWNER 05:0xZ (via belam 08:43Z): "let me know when all currently active season goal leaves are complete ... report ... go idle".
        .44.8 (A) [decision] 08:46:02Z 1d85eec26d: F0 stub lanes + ONE stop->start round-trip row; owner legs (nspawn GO, fresh box) BANKED.
        .44.7 (B) [decision] 08:46:15Z 10420ee582: active, live half = first real box move, paired with .44.8 fresh box; census row
        withdrawn (box-move.sh :29-31 carries all minus exclude: vacuous). L66 + g5.34 doc on origin; GATE154 full suite running.
- DONE  .44.8.1 (A) 09:03:19Z: banked by name (branch-only node).
- DONE  g5.34 close 61aabca57a + own-home follow-up fdb4072072 (no HF cache, 0 hits). L67 (.45 close: (a) (b) (v')) + L68 (.44.8 F0,
-       RT2 row) GO 3/3 [decision] 09:25:48Z 29c81abdf6. My 'no round trip' premise was inexact (st2-RT-* existed); RT2 = strict form.
+ DONE  .44.8.1 (A) 09:03:19Z: banked by name (branch-only node). .45.4 close rode L67.
+ DONE  g5.34 complete (61aabca57a + own-home fdb4072072). L67+L68 GO 09:25:48Z (my 'no round trip' premise inexact).
  DONE  L67 8a28d8eca8 + L68 5ab23e6c4c on origin. .45 close-read f36a90cfa7: ACTIVE (F1 10/11, director-review = owner login);
        council [decision] 09:43:32Z b40e119940 (2/2, sp silent) with the owner's report lines + 3 owner events.
  NOW   wait GATE154 (full suite) -> any red = named leaf -> then the owner's report (SM/belam) -> idle.
