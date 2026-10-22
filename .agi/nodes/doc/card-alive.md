@@ -44,7 +44,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  .44.8.1 (A) 09:03:19Z: banked by name (branch-only node).
  DONE  g5.34 close 61aabca57a + own-home follow-up fdb4072072 (no HF cache, 0 hits). L67 (.45 close: (a) (b) (v')) + L68 (.44.8 F0,
        RT2 row) GO 3/3 [decision] 09:25:48Z 29c81abdf6. My 'no round trip' premise was inexact (st2-RT-* existed); RT2 = strict form.
- NOW   L67 8a28d8eca8 read clean 09:27Z (G, tree 67aa2e7811 = merge-tree on 1a892404df, 7 M) -> belam lands; then L68; SM closes .45; GATE154 full suite. Then the owner's report (SM/belam): .44/.44.7/.44.8 active on owner legs.
+ NOW   L67 8a28d8eca8 read clean 09:27Z (G, tree 67aa2e7811 = merge-tree on 1a892404df, 7 M) -> belam lands; then L68; .45 close read: F1 10/11 (director-review = owner login) -> my view 09:28Z ACTIVE+remainder (aio agrees), sp or 09:43Z -> decision; SM closes .45; GATE154 full suite. Then the owner's report (SM/belam): .44/.44.7/.44.8 active on owner legs.
  NEXT  G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
