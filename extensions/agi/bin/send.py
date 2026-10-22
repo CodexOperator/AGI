@@ -5087,6 +5087,13 @@ def _ambiguous_refusal(token: str, axis: str, hits: list) -> tuple[int, str]:
             f"{len(hits)} rows ({names}); never answered by the first hit")
 
 
+def _empty_token_refusal() -> tuple[int, str]:
+    """goal:g7.16.1.11.45.2 FF5: an empty token is never resolved. It only
+    looked refused while 28 rows carried session_name ""; a table where exactly
+    one row carries it would have answered that row."""
+    return WHOIS_NO_MATCH, "NO-MATCH: empty token: never resolved"
+
+
 def _resolve_rows(rows: list, session_ref: str,
                   claim: str | None, target: tuple | None = None,
                   root: Path | None = None) -> tuple[int, str]:
@@ -5109,6 +5116,8 @@ def _resolve_rows(rows: list, session_ref: str,
     that found it."""
     if target is not None:
         mode, val = target
+        if mode == "seat" and not (val or "").strip():
+            return _empty_token_refusal()
         if mode == "seat":
             hits = [r for r in rows if r.get("name") == val]
             if len(hits) > 1:
@@ -5133,6 +5142,8 @@ def _resolve_rows(rows: list, session_ref: str,
             return (WHOIS_NO_MATCH,
                     f"NO-MATCH by key: {val!r} belongs to no seat row's pubkey")
         return _whois_answer(hits[0], f"by key: {val}", claim, root)
+    if not (session_ref or "").strip():
+        return _empty_token_refusal()
     hits = [r for r in rows if (r.get("session_ref") == session_ref
                                 or r.get("session_name") == session_ref)]
     axis = "session_ref/session_name"

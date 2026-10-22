@@ -112,6 +112,37 @@ def test_every_nonempty_session_name_and_ref_is_unique_across_posts_md(real_rows
     assert _dupes(real_rows, "session_ref") == {}
 
 
+def _token_owners(rows):
+    """token -> the set of row indexes carrying it in session_name OR session_ref
+    (the union: the code refuses one row's session_ref == another's session_name,
+    so the data must too). A row carrying the same token in both cells is ONE row."""
+    owners = collections.defaultdict(set)
+    for i, r in enumerate(rows):
+        for key in ("session_name", "session_ref"):
+            v = r.get(key)
+            if v:
+                owners[v].add(i)
+    return owners
+
+
+def test_every_token_in_session_name_union_session_ref_maps_to_one_row(real_rows):
+    """FF6 (alive): the cross-field row. 0 such tokens at the tip today."""
+    many = {t: sorted(real_rows[i].get("name", "?") for i in idx)
+            for t, idx in _token_owners(real_rows).items() if len(idx) > 1}
+    assert many == {}
+
+
+def test_mutant_a_session_name_copied_into_another_rows_session_ref_is_caught(real_rows):
+    rows = [dict(r) for r in real_rows]
+    named = [r for r in rows if r.get("session_name")]
+    victim = next(r for r in rows if r is not named[0] and not r.get("session_ref"))
+    victim["session_ref"] = named[0]["session_name"]
+    many = [t for t, idx in _token_owners(rows).items() if len(idx) > 1]
+    assert named[0]["session_name"] in many, "the union row names the cross-field pair"
+    # ... which the per-field check of the first data row would NOT have seen:
+    assert _dupes(rows, "session_name") == {} and _dupes(rows, "session_ref") == {}
+
+
 def test_mutant_one_session_name_copied_onto_another_row_is_caught(real_rows):
     rows = [dict(r) for r in real_rows]
     named = [r for r in rows if r.get("session_name")]
@@ -128,3 +159,17 @@ def test_whois_verb_exits_nonzero_naming_both_rows(monkeypatch):
     rc, text = send.whois(Path("."), "agi-c8", None)
     assert rc == send.WHOIS_NO_MATCH != 0
     assert "director-general-3" in text and "director-general-5-retired" in text
+
+
+# ---- FF5: an empty token is never resolved ----------------------------------
+def test_an_empty_token_is_refused_even_when_one_row_carries_the_empty_name():
+    """A 2-row fixture where EXACTLY ONE row has session_name "": whois "" used
+    to answer that row (RED on the old code), now NO-MATCH."""
+    rows = [{"name": "a", "role": "director", "session_name": "", "session_ref": "aaaa11"},
+            {"name": "b", "role": "director", "session_name": "agi-b", "session_ref": "bbbb22"}]
+    for tok in ("", "   "):
+        code, text = send._resolve_rows(rows, tok, None)
+        assert code == send.WHOIS_NO_MATCH and "empty token" in text, (tok, code, text)
+    code, text = send._resolve_rows(rows, "ignored", None, target=("seat", ""))
+    assert code == send.WHOIS_NO_MATCH and "empty token" in text
+    assert send._resolve_rows(rows, "agi-b", None)[0] == send.WHOIS_OK, "a real token still answers"

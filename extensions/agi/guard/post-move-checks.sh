@@ -19,7 +19,7 @@
 # refs/box/OLD/*, refs/box/*/OLD, refs/held/OLD/*, refs/held/*/OLD; refs/retired and refs/remotes are outside the scan; a repo git cannot read is a FAIL) · outbox-signer (every tip under
 # refs/box/NEW/* verifies `for NEW@agi` against the ring: `box send` refuses to append to a tip not signed for its sender, so an outbox MOVED from OLD is FAIL; none yet = ok) · flags (R10, belam
 # measured: ~/.claude.json of NEW has projects["/data/work/agi"].hasTrustDialogAccepted true, else the first start stops at the trust dialog) · sweep (R11: every file under NEW's home that
-# still names the OLD home path is NAMED; a hit in a file the post EXECUTES, ~/.gitconfig ~/.config/git ~/bin ~/.claude/settings*.json or any hooks/ file, is a FAIL; ~/.claude/projects and the
+# still names the OLD home path is NAMED; a hit in a file the post EXECUTES, ~/.gitconfig ~/.config/git ~/bin ~/.claude/settings*.json or a hook file GIT RUNS (the hooks dir of MAIN and of each worktree registered in it, and every core.hooksPath dir; a hooks/ dir of an unregistered repo is a named hit, not executed: goal:g7.16.1.11.45.3), is a FAIL, and so is a ~/.claude/plugins/known_marketplaces.json naming ANOTHER post's home (the same row, counted); ~/.claude/projects and the
 # dead project keys of .claude.json are not hits) · new-boxwake (R12: agi-boxwake@NEW is the live wake, started WITH agi-post@NEW by its Wants=; `wait` before the start, FAIL after it unless
 # active; agi-carry@.path watches a g.git no post has, so new-carry-path does NOT prove the wake) · stays-up (council 20:00Z, G3's red: run 2 printed 18 ok over a post that exited ~3 s after each start and
 # restarted every 30 s; ONLY with --first-start, so run 1 keeps its 18 rows: two `systemctl show` reads of agi-post@NEW >= STAYS_S (default 60) seconds apart, ActiveState active and SubState running at both, NRestarts
@@ -106,8 +106,18 @@ t flags "$home/.claude.json projects[\"$MAINKEY\"].hasTrustDialogAccepted == tru
 # 14. the sweep (R11): the old HOME path inside the new home. Named, never skipped; fatal only where the post EXECUTES it
 oh=$(dirname "$home")/$OLD;pat="$(printf %s "$oh"|sed 's/[][\\.*^$\/]/\\&/g')([^a-z0-9-]|\$)"
 hits=;for h in $(grep -rIlE -e "$pat" "$home" 2>/dev/null|sort);do case $h in "$home"/.claude/projects/*)continue;; "$home"/.claude.json)jq -e --arg p "$pat" '[del(.projects)|..|strings|select(test($p))]|length>0' "$h" >/dev/null 2>&1||continue;; esac;hits="$hits ${h#$home/}";done
-run=;for h in $hits;do case $h in .gitconfig|.config/git/*|bin/*|.claude/settings.json|.claude/settings.local.json|*/hooks/*|hooks/*)run="$run $h";; esac;done
-t sweep "$(echo $hits|wc -w) file(s) under $home name $oh:${hits:- none}${run:+; EXECUTED:$run}" test -z "$run"
+run=;for h in $hits;do case $h in .gitconfig|.config/git/*|bin/*|.claude/settings.json|.claude/settings.local.json)run="$run $h";; esac;done
+# EXECUTED hooks (goal:g7.16.1.11.45.3): what git RUNS, never a */hooks/* glob (a pytest fixture repo's hooks/pre-commit is a hit, not executed): the files in the hooks dir git resolves, read AS THE POST (HOME=$home, so its core.hooksPath applies),
+# for MAIN and for each worktree REGISTERED in it, plus every dir core.hooksPath names in the post's own git configs; a hook file there that names the old home is EXECUTED whether or not it sits under the home
+pgit(){ env -u GIT_CONFIG_GLOBAL HOME="$home" XDG_CONFIG_HOME="$home/.config" GIT_CONFIG_SYSTEM=/dev/null git -c safe.directory='*' "$@"; }
+hdirs=$({ printf '%s\n' "$MAIN";pgit -C "$MAIN" worktree list --porcelain 2>/dev/null|sed -n 's/^worktree //p'; }|sort -u|while IFS= read -r wt;do [ -d "$wt" ]&&pgit -C "$wt" rev-parse --path-format=absolute --git-path hooks 2>/dev/null;done
+ for c in "$home/.gitconfig" "$home/.config/git/config";do [ -f "$c" ]&&pgit config --file "$c" --type=path --get-all core.hooksPath 2>/dev/null;done)
+hrun=;for hd in $(printf '%s\n' "$hdirs"|sort -u);do [ -d "$hd" ]||continue;for h in $(grep -rIlE -e "$pat" "$hd" 2>/dev/null|sort);do case $h in "$home"/*)h=${h#$home/};; esac;case " $run $hrun " in *" $h "*);; *)hrun="$hrun $h";; esac;done;done
+run="$run$hrun"
+# cross-home (goal:g7.16.1.11.45.3, aio): after a name is reused, known_marketplaces.json can point INTO another post's home; the sweep counts it (rewriting old home -> new home, the sitting's act as agi-NEW, makes it ok); the same row, so the sitting's row counts do not move
+ph=$(dirname "$home");pp="$(printf %s "$ph"|sed 's/[][\\.*^$\/]/\\&/g')/[a-z0-9-]+";km=$home/.claude/plugins/known_marketplaces.json
+xh=;[ -f "$km" ]&&xh=$(grep -oE -e "$pp" "$km" 2>/dev/null|sort -u|grep -vx -e "$home"|tr '\n' ' ')
+t sweep "$(echo $hits|wc -w) file(s) under $home name $oh:${hits:- none}${run:+; EXECUTED:$run}${xh:+; CROSS-HOME known_marketplaces.json names another post's home: ${xh% }}" test -z "$run" -a -z "$xh"
 # 15. the wake (R12): agi-boxwake@NEW starts and stops WITH agi-post@NEW (Wants= / PartOf=): `move NEW` or agi-boot starts it, no line of the sitting does
 bw=$($SYSTEMCTL is-active "agi-boxwake@$NEW" 2>/dev/null)
 if [ "$bw" = active ];then say ok new-boxwake "agi-boxwake@$NEW is active (the live wake)"
