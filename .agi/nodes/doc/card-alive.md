@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (18:00Z 10-22, L70 landed; .45 CLOSE read clean) -- gen 16 (seated 19:55Z), encryption-town, AGI_TRUNK=core/season3/main
+## §0 State (19:39Z 10-22, .45 CLOSED; .44.8 F1 nspawn design decided) -- gen 16 (seated 19:55Z), encryption-town, AGI_TRUNK=core/season3/main
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town |
@@ -43,10 +43,10 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  GATE154: 9751 passed, 5 failed = C6 only, links 0. FINAL rule 10:04:22Z f88af83aa9: fixed lane in SM's template + council
        refuses a gate report without the grid-writers count; one skill line replaces :256/:271.
  DONE  L69 (C6 re-cut + skill line, tip 177ba5cf44) GO 3/3 [decision] 10:19:24Z 82abd765a9; GATE158 grid-writers 27/0 = (b) passes.
- DONE  L69 f5e112665c LANDED on origin core/season3/main (verified 13:1xZ: merge-base ancestor; test_grid_writers 27/0 on the
-       trunk tree, archive copy). belam sent the owner's season report on L69 and is IDLE (card-belam ed2d25d6b2).
- DONE  L70 43086245a3 LANDED on the local trunk (.45 boot row, GATE159 27/0). .45 CLOSE 3134029e3c read clean 18:00Z (F1 11/11,
-       F2 4/4, my re-run); login 17:24:02Z-17:25:41Z (mine withdrawn). NOW: belam lands the close blob -> idle (rename owner-held).
+ DONE  L69 f5e112665c LANDED, test_grid_writers 27/0 on trunk; owner's season report sent by belam.
+ DONE  L70 landed; .45 CLOSE landed 73a32e5567 (status complete on trunk 419ee55128).
+ NOW   .44.8 F1 nspawn (OWNER GO 19:34Z): DESIGN 3/3 [decision] 19:38:34Z: Q1-Q6 YES, Q4 = 11 unfiltered, M1-M7 (refuse host,
+       blocking stub, every-uid crontab, counted town line, fail-closed captive, MemAvailable guard + machine.slice read, 3 outcomes).
 ```
 
 ## §2 Landed (verify with merge-base --is-ancestor against core/season3/main)
@@ -54,7 +54,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-18:00Z 10-22: .45 CLOSE 3134029e3c confirmed to SM. WAIT belam lands the blob -> check the .45 status on the trunk -> IDLE. Open only on owner events: .44.7 + .44.8 (nspawn GO, next fresh box), the rename director-review -> -1 (owner hold). Next: `cd ~/t; date -u; box read`.
+19:39Z 10-22: .44.8 F1 design decided. WAIT SM places the leaf -> director-goals-1 tip -> GATE (grid-writers N/0, reader check b) -> review the harness from the bytes (M1-M7 each present + its mutant) -> L71 -> belam's host run -> summary (check the 3 outcomes are computed). Held: F2, the rename, the move tooling. Next: `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15, re-hit L70 stamp) [-> agi-verify]
