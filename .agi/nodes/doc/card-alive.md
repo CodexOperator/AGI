@@ -41,8 +41,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
        NRestarts 0 since 05:15:47Z; gate-director-general-3 uid 977; 0 *dg5* dirs; L61 8b247882a2 (tree 976968dc91) on origin.
  DONE  dg5-g43 DROPPED (ref KEPT) · 2ba641cdc7 · T2 69cae4b1ef + by-sha 3cc9b63c7f (00e4e20ea9 = only KNOWN LEAK record).
  DONE  .45.1 L62 + FF1-FF3 L63 (mutant 7 RED) · .45.2 L64 (mutant 6 RED); FF5/FF6, .45.1 close, .45.4 mint rode .45.3.
- DONE  .45.3 L65 (GO 08:00:38Z + (i) correction; mutant 6 RED); its FFs (i)(iii)(iv)(v) rode .45.4;
-       (ii) belam counts cross-home over every live home before any next move.
+ DONE  .45.3 L65 (GO 08:00:38Z; mutant 6 RED); FFs rode .45.4; (ii) belam counts cross-home over live homes before a move.
  DONE  .45.4 tip ed53a25963: L66 GO 3/3 [decision] 08:28:46Z 392d2c5356 (gate153 1114/0, mutant 5 RED). Close commit carries:
        (a) §8 'any hooks/' text; (b) _heal_cwd HARDEN, refuse never root + 0o000 mutant; (v') depth-1 grep "$hd"/* (my -R walked dirs).
  NOW   wait L66 [merge-up] (verify G, tree 288c7462e1 or +newcomers) -> .45.4 close review -> full suite after g5.34 (belam).
