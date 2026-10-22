@@ -44,7 +44,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
        refuses a gate report without the grid-writers count; one skill line replaces :256/:271.
  DONE  L69 (C6 re-cut + skill line, tip 177ba5cf44) GO 3/3 [decision] 10:19:24Z 82abd765a9; GATE158 grid-writers 27/0 = (b) passes.
        Trap re-hit + caught: '^[+-][^+-]' hides '- ' bullet lines -> use `git diff -U0 | grep -v '^(+++|---) '`.
- NOW   wait L69 [merge-up] -> verify on origin -> the owner's report (belam) -> idle.
+ NOW   L69 f5e112665c read clean 10:21Z (G, tree 6fbf053ccb = gate158, 2 M) -> belam lands -> verify on origin -> the owner's report (belam) -> idle.
  NEXT  G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
