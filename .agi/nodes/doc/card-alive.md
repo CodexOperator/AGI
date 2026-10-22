@@ -37,22 +37,14 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
  DONE  G3 DG1 -> director-goals-1 LIVE (SM [done] 20:05:17Z): L52 ba8faaad3a; crash loop cleared by the 3/3 back-dated .fresh GO
        (key 1 had signed d2055c19fc + fd9ca7aec5); probe ac2fe5f815 G by the 19:56:33 key; NRestarts 10 steady, active/running (read 20:05:26Z)
  DONE  G4 binds piece: [decision] 20:29:44Z L for d5122b2619 (alive+sp; aio silent at the mark); belam's tools live at named sha256s
- DONE  hostproj STACK 331abbea75: [decision] 20:41:46Z L (alive+sp; aio silent since 20:00:36Z, unit active)
- DONE  L53 c3f05c17c1 (stays-up) + L54 2ebb270242 (hostproj) landed; G4 PREP GO 3/3 [decision] 20:48:17Z (+[correction] 20:48:5xZ:
-       'since' on the NEW row, the retired row has 'became'). BIND: G4's PIN contains 2ebb270242 (sitting.sh :16 runs $CO's agi.sh + checks)
- DONE  G4 prep: step 0 card 5910730cb3 landed (ee3ad0164b); 4a b14adf2d1b gated (gate137, land 1b28c6999a); MOVE GO [decision] 21:26:57Z
- DONE  G4 DONE (SM 21:32:30Z): probe 5e231651fa G director-science-1@agi i7IjAE6B; NRestarts 0; L55 8a9d18ec9c (verified 21:32:51Z)
+ DONE  hostproj L53/L54 2ebb270242; G4 DONE 21:32Z (L55 8a9d18ec9c). Detail: card a077dc0e87^ (git history).
  DONE  G5 DONE (SM 22:22:27Z), verified 22:22:44Z: probe 680331a929 G eUVVS+jw; 7 closed DG1 ring fps != it; L57 69e36d2286 landed.
  DONE  G6 DONE 23:33Z (L58 61e90435d0); L59 237923cbb2 + L60 ac7de0f36c landed; G7 step 0 card d55e87c446 landed.
  NOW   G7 MOVE GO 3/3 [decision] 05:11:17Z (693f534eb2) on 4a 31633c685e (gate146; tree 976968dc91 = merge-tree on d313bf8b39):
        1a stop DG5 -> L61 land -> PIN 5 ancestry lines (2ebb270242, bc0bbc6d0d, 69e36d2286, 61e90435d0, L61) -> run 1 = :20-:24
        predicate -> move -> run 2 20/20 -> probe key in no closed dg3 ring line (per line) -> holder unlocks. sp: fcd886e448
        (dg1 THOUGHT 'before T' fix) NOT on trunk -> SM cuts it after L61. After [g7-closed]: dg1 starts g5.34; leaves owed (dg3).
- NEXT  after G3 run 2: SM lands 133 = hostproj 8410e5adcf (APPROVED; OPEN bind: fresh-box deadlock fix before S3/any fresh-box act) ->
-       belam re-runs t-sitting/t-move on the new agi.sh -> G4 DG2 -> director-science-1 (its 4a cut + reviewed while DG2 is UP; DG2's
-       carried card names pidchk fail-open + st2-cond3-a flake fix) -> G5 DG3 -> DG1 (needs G3 CHECKS: user+group agi-director-general-1
-       empty; SM's relay + cards re-pointed before G5; DG3's 'warm' scratch under /data/work/director-general-3-media retired/named)
-       / G6 DG4 -> DG2 (g5.4.1 S2 L50 + follow-up f773ecba96 APPROVED) -> G7 DG5 -> DG3. G2 director-review first start = owner login (banked).
+ NEXT  after G7: leaves (.45.1 heal prune, whois ambiguity, sweep EXECUTED); G2 director-review first start = owner login (banked).
 OTHER  g5.4.2 M4 DONE (18 chapters on Drive, joinprobe 18x0, 3226.303 s); M5 inspector owed (belam's step) · music HOLD (owner picks)
 ```
 
