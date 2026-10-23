@@ -8,7 +8,7 @@ next_edges: []
 edited_by: belam
 scaffold_hash: 091011c027255ed3
 season: 2
-testable_claim: "At a rotation that also renames the post, spawn mints the successor signing key file under the ROW name (the old, pre-rename seat name) while the successor process runs with AGI_SEAT set to the new name, so the minted key file is addressed to the wrong name and the successor cannot sign correctly. The Prime worked around it by hand: swapped the key files so director-sanctuary.key holds the freshly minted key and the pre-rename key is kept as .gen0-pre-rename (belam [rule] dm 22:43Z). Fix: spawn should mint the successor key file under the NEW post-rename seat name when the rotation carries a rename, not the row pre-rename name."
+testable_claim: "At a rotation that also renames the post, spawn mints the successor signing key file under the ROW name (the old, pre-rename seat name) while the successor process runs with AGI_[retired] set to the new name, so the minted key file is addressed to the wrong name and the successor cannot sign correctly. The Prime worked around it by hand: swapped the key files so director-sanctuary.key holds the freshly minted key and the pre-rename key is kept as .gen0-pre-rename (belam [rule] dm 22:43Z). Fix: spawn should mint the successor key file under the NEW post-rename seat name when the rotation carries a rename, not the row pre-rename name."
 thought_session: dissolve-legacy-2026-09-19
 title: L5 spawn mints the successor key under the row name not the renamed seat
 town: core
