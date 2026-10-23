@@ -92,7 +92,7 @@ Resolution rule: on the `copilot-cli` branch `spawn_window` reads
 `harnesses.copilot-cli.models[tier]` (falling back to `models['director']`) and
 `harnesses.copilot-cli.bin` — **never** `harnesses.claude-code` and never the
 ladder via `load_role()`. The claude branch is untouched. The seat export
-(`AGI_SEAT`/`AGI_POST`), the reaper-knob export and the window-name refusal are
+(`AGI_[retired]`/`AGI_POST`), the reaper-knob export and the window-name refusal are
 all inherited because the copilot argv is routed through the same `_shell_cmd`
 and `_launch_window`; a missing token is left to fail in the pane as itself
 (the adapter's `child_env` resolves `GH_TOKEN`; rotate does not invent one).
