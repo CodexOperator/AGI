@@ -234,7 +234,6 @@ def test_caller_post_env_reads_main_row_from_worktree(tmp_path, monkeypatch):
     _write_seats(wt, [{"name": seat, "role": "director", "window": "@OLD",
                        "pid": 100, "generation": 3, "pubkey": pub_a}])
     monkeypatch.setenv("AGI_POST", seat)
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     post, row, how = rotate._caller_post(wt)
     assert (post, how) == (seat, "env"), (post, how)
     assert row["pubkey"] == pub_b, (

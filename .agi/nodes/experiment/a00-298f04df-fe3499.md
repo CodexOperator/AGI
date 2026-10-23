@@ -56,7 +56,7 @@ git diff --numstat dedca8545
 
 Production **0**, test **0**, node text only.
 
-Tests, once: `env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT python3 -m pytest extensions/agi/tests/test_bin_help_smoke.py -q --basetemp=<shm>` (TMPDIR under /dev/shm)
+Tests, once: `env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_[retired] python3 -m pytest extensions/agi/tests/test_bin_help_smoke.py -q --basetemp=<shm>` (TMPDIR under /dev/shm)
 -> `72 passed, 7 skipped in 5.47s`.
 
 ## OUTSIDE FINDING (director's findings row, file not touched)

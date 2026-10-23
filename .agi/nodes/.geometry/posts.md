@@ -71,7 +71,7 @@ role `parent`/`kid`) are unchanged, as the owner said — they were not granted
 posts.
 
 `pin_ref` is post-stable: `.agi/sessions/<name>.meter`, written by the code
-that already writes `<agent_id>.meter`, keyed off `AGI_SEAT` instead of an
+that already writes `<agent_id>.meter`, keyed off `AGI_[retired]` instead of an
 agent id — no graph write, no race on this node.
 
 The `locations: {}` field is present because the `config` type requireds

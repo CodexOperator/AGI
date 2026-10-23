@@ -20,7 +20,7 @@
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-${1:-$(cd "$(dirname "$0")/../../.." && pwd)}}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 sect(){ if [ -n "$PIECES" ];then cat "$PIECES";else cat $R0/.agi/nodes/.geometry/engine*.md;fi|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}"; }
-unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE AGI_POST AGI_SEAT AGI_WT RUNTIME_DIRECTORY AGI_TRUNK
+unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE AGI_POST AGI_WT RUNTIME_DIRECTORY AGI_TRUNK
 mkdir -p $T/hm $T/bin $T/run $T/wt
 for n in agi-turn agi-flush agi-meter agi-brief agi-notice agi-sync pre-commit;do sect $n >$T/bin/$n;if [ -s $T/bin/$n ];then chmod +x $T/bin/$n;else rm -f $T/bin/$n;fi;done
 ok x0-pieces-extracted '[ -x $T/bin/agi-turn ]&&[ -x $T/bin/agi-flush ]&&[ -x $T/bin/agi-meter ]&&[ -s $T/bin/agi-brief ]&&[ -x $T/bin/agi-notice ]&&[ -x $T/bin/pre-commit ]'
@@ -82,7 +82,7 @@ src|sed -n "s/^ExecStartPre=sh -c '\(set -f;mkdir -p .ssh bin.*\)'\$/\1/p"|sed "
 PG=$(src|sed -n 's/^Environment="AGI_PIECE_GLOB=\(.*\)"$/\1/p');rm -rf $T/orig;mkdir -p $T/orig/.agi/nodes/.geometry;cp $GD/engine*.md $T/orig/.agi/nodes/.geometry/;$G -C $T/orig init -q -b lanetrunk;$G -C $T/orig add -A;$G -C $T/orig -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm pieces
 printf '[strand-refused] alive: HEAD abc1234 carries 1 commit(s) on no ref\n' >$H/.notice;touch $H/.fresh
 (cd $H&&env -i PATH=/usr/bin:/bin HOME=$H O=$T/orig AGI_TRUNK=lanetrunk AGI_PIECE_GLOB="$PG" GIT_TEST_ASSUME_DIFFERENT_OWNER=1 sh $T/unit37.sh) >$T/u37.out 2>&1;u=$?
-echo '{"source":"startup"}' >$T/sj;(cd $H&&env -i PATH=$T/stub:$H/bin:/usr/bin:/bin HOME=$H AGI_SEAT=alive AGI_POST=alive AGI_ROLE=director sh -c "agi-brief <$T/sj") >$T/br1 2>/dev/null
+echo '{"source":"startup"}' >$T/sj;(cd $H&&env -i PATH=$T/stub:$H/bin:/usr/bin:/bin HOME=$H AGI_POST=alive AGI_ROLE=director sh -c "agi-brief <$T/sj") >$T/br1 2>/dev/null
 ok r1-the-notice-survives-the-restart-and-the-successors-first-sessionstart-prints-it "[ -s $T/unit37.sh ]&&[ $u = 0 ]&&[ -x $H/bin/agi-notice ]&&[ \"\$(sed -n 1p $T/br1)\" = '[strand-refused] alive: HEAD abc1234 carries 1 commit(s) on no ref' ]&&[ ! -e $H/.notice ]"
 # h1: hooksPath=~/bin -- a piece named like a git hook would RUN as one (the lane's own PIECES / ROOT text is the list of piece names)
 HOOKS=" applypatch-msg pre-applypatch post-applypatch pre-commit pre-merge-commit prepare-commit-msg commit-msg post-commit pre-rebase post-checkout post-merge pre-push pre-receive update proc-receive post-receive post-update reference-transaction push-to-checkout pre-auto-gc post-rewrite sendemail-validate fsmonitor-watchman p4-changelist p4-prepare-changelist p4-post-changelist p4-pre-submit post-index-change "

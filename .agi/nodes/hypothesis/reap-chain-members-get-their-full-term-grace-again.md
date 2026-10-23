@@ -161,7 +161,7 @@ For EACH item: fix it in the bytes, OR -- when the item is already true, refuted
 OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
 ANON      no user name, home or repo path value, host or IP; patterns write <user>
 SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
-TESTS     test_rotate_term_grace.py + test_bin_help_smoke.py once (timeout 900, TMPDIR + --basetemp under /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT (TMM.322)); tmp repos only; never a live pane, seat, worktree or real mint
+TESTS     test_rotate_term_grace.py + test_bin_help_smoke.py once (timeout 900, TMPDIR + --basetemp under /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_[retired] (TMM.322)); tmp repos only; never a live pane, seat, worktree or real mint
 FILE SCOPE extensions/agi/tests/test_rotate_term_grace.py · .agi/nodes/experiment/a00-25537ced-86b6d8.md · .agi/nodes/hypothesis/reap-chain-members-get-their-full-term-grace-again.md (write.py) · the kid's own node
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 3f4da4f5f · <= 40 test lines net over 3f4da4f5f · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 3f4da4f5f <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)

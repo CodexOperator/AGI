@@ -11,7 +11,7 @@
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-${1:-$(cd "$(dirname "$0")/../../.." && pwd)}}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 sect(){ if [ -n "$PIECES" ];then cat "$PIECES";else cat $R0/.agi/nodes/.geometry/engine*.md;fi|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}"; }
-unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE AGI_POST AGI_SEAT AGI_WT RUNTIME_DIRECTORY AGI_TRUNK
+unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE AGI_POST AGI_WT RUNTIME_DIRECTORY AGI_TRUNK
 mkdir -p $T/stub $T/binB $T/k $T/hm0 $T/hm/alive/bin
 printf '#!/bin/sh\n[ "$FAKEDATE" ]&&{ echo "$FAKEDATE";exit 0;};exec /usr/bin/date "$@"\n' >$T/stub/date;chmod +x $T/stub/date
 printf '#!/bin/sh\ncase "$*" in -un)[ "$IDFAIL" ]&&exit 1;echo "$STUBU";;*)exec /usr/bin/id "$@";;esac\n' >$T/stub/id;chmod +x $T/stub/id

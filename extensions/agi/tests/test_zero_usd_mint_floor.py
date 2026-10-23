@@ -148,7 +148,7 @@ def _zero_usd_dispatch(tmp_path, monkeypatch, *extra, rtk=(True, None),
         _REAL_POPEN(*a, **k) if list(a[0][:2]) == ["git", "grep"] else _StubProc()))
     monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
     for k in ("AGI_TREE_PROJECT_ROOT", "AGI_PROJECT_ROOT", "AGI_AGENT_ID",
-              "AGI_ACTOR", "AGI_HARNESS", "AGI_SEAT"):
+              "AGI_ACTOR", "AGI_HARNESS", "AGI_POST"):
         monkeypatch.delenv(k, raising=False)
     monkeypatch.setattr(_sys, "argv", [
         str(BIN / "dispatch.py"), str(project), "1", "--level", "small",

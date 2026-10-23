@@ -315,7 +315,7 @@ def test_hook_and_rotate_agree_on_the_card_stale_verdict(prep_root, monkeypatch)
                                                   hook_path)
     hook = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(hook)
-    monkeypatch.delenv("AGI_SEAT", raising=False)
+    monkeypatch.delenv("AGI_POST", raising=False)
     _no_git(monkeypatch)
     card = prep_root / "sessions" / "quorum" / "adv-alive.md"
 

@@ -28,7 +28,7 @@ EXPECTED = "ROTATE NOW: (a) write the card wholesale now"
 @pytest.fixture(autouse=True)
 def _no_real_spawn(monkeypatch):
     monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
-    monkeypatch.delenv("AGI_SEAT", raising=False)
+    monkeypatch.delenv("AGI_POST", raising=False)
     hook._CAPTURE_LOGGED.clear()
     monkeypatch.setattr(hook, "_Popen", lambda argv, **_kw: None)
 

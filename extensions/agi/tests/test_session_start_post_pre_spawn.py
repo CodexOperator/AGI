@@ -2,16 +2,16 @@
 hook-fires-at-turn-one — g15-7 FIX, the turn-one proof.
 
 The measured defect (on today's bytes before the fix):
-  * rotate.py _shell_cmd exported NO seat identity, so AGI_SEAT was never in
+  * rotate.py _shell_cmd exported NO seat identity, so AGI_POST was never in
     the successor's environment; the hook COPY (cc-session-start.next.sh)
-    keys its bootstrap injection on AGI_SEAT (`BOOTSTRAP_SEAT="${AGI_SEAT:-}"`)
+    keys its bootstrap injection on AGI_POST (`BOOTSTRAP_SEAT="${AGI_POST:-}"`)
     and is a silent no-op without it — the hook cannot fire at turn one.
   * the bootstrap record was written at s11, AFTER the spawn, so even a
     seat-exported spawn would find no record at turn one.
 
 This test proves both halves on the FIXED bytes, hermetically (no real
 spawn, no network, no tmux):
-  (a) `rotate._shell_cmd` preprends `export AGI_SEAT=<seat> && ` BEFORE the
+  (a) `rotate._shell_cmd` preprends `export AGI_POST=<seat> && ` BEFORE the
       claude argv when a seat is given, and stays byte-identical to today
       (reaper + argv) when NO seat is given (a plain `spawn` is untouched);
   (b) a bootstrap record written PRE-spawn by the production writer
@@ -19,11 +19,11 @@ spawn, no network, no tmux):
       at step 2.75) is read back by the SAME reader the hook uses —
       `rotate.py bootstrap-block --seat --root`, the path DERIVED in
       production, never hardcoded in this test — and the hook COPY emits the
-      injected block when AGI_SEAT is set;
+      injected block when AGI_POST is set;
   (c) the join-only facts in a PRE-spawn record carry the explicit
       `pending: resolved after join` marker (never a blank, never a `SKIPPED:
       <predecessor owns>` reason);
-  (d) MUTATION / falsifier: the SAME hook run with AGI_SEAT unset (the
+  (d) MUTATION / falsifier: the SAME hook run with AGI_POST unset (the
       pre-fix artifact — nothing exported the seat) must NOT emit the block.
       A guard that cannot fail certifies nothing.
 The live hook cc-session-start.sh and ~/.claude/settings.json are the
@@ -108,25 +108,25 @@ def _bootstrap_block_via_rotate(root: Path) -> tuple[str, int]:
 
 def _run_hook(cwd: Path, *, home: Path, seat: str | None):
     """Drive the .next hook copy the way CC drives the live hook. `seat=None`
-    simulates the pre-fix artifact (nothing exported AGI_SEAT into the
+    simulates the pre-fix artifact (nothing exported AGI_POST into the
     successor's env)."""
     env = dict(os.environ)
     env.pop("AGI_TREE_PROJECT_ROOT", None)
     env.pop("AUTORESEARCH_TREE_PROJECT_ROOT", None)
     env["HOME"] = str(home)
     if seat is not None:
-        env["AGI_SEAT"] = seat
+        env["AGI_POST"] = seat
     else:
-        env.pop("AGI_SEAT", None)
+        env.pop("AGI_POST", None)
     return subprocess.run(["bash", str(NEXT_HOOK)], cwd=str(cwd),
                           capture_output=True, text=True, env=env)
 
 
-# (a) the spawn path EXPORTS AGI_SEAT before claude; a no-seat spawn stays
+# (a) the spawn path EXPORTS AGI_POST before claude; a no-seat spawn stays
 #     byte-identical to today.
 def test_shell_cmd_exports_seat_only_when_seat_given():
     no_seat = rotate._shell_cmd(["claude", "--remote-control", "s"], None)
-    assert "AGI_SEAT" not in no_seat
+    assert "AGI_POST" not in no_seat
     assert no_seat.startswith(
         "export CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 && claude "
         "--remote-control s")
@@ -136,10 +136,9 @@ def test_shell_cmd_exports_seat_only_when_seat_given():
     # claude process — but claude is now WRAPPED, so the raw `&& claude`
     # adjacency is gone: the export launches `rotate.py launch-wrapper --seat
     # <seat> --` which is the direct parent of claude. The export (AGI_POST
-    # only; AGI_SEAT is retired, goal:g7.16.1.11.37) and the claude argv both
+    # only, goal:g7.16.1.11.37) and the claude argv both
     # survive; the wrapper insertion is the only change.
     assert seated.index("AGI_POST=") < seated.index("claude")
-    assert "AGI_SEAT" not in seated
     assert "launch-wrapper" in seated
     assert " -- claude --remote-control s" in seated
 
@@ -171,7 +170,7 @@ def test_pre_spawn_record_fires_hook_at_turn_one(project, tmp_path):
     assert "## ⚓ bootstrap" in r.stdout
 
 
-# (d) MUTATION / falsifier: the SAME hook, AGI_SEAT unset (the pre-fix
+# (d) MUTATION / falsifier: the SAME hook, AGI_POST unset (the pre-fix
 #     artifact — no spawn path exported it), MUST NOT emit the block. If the
 #     export were removed, this is exactly the silent no-op a successor got.
 def test_without_seat_export_block_absent_is_the_falsifier(project, tmp_path):

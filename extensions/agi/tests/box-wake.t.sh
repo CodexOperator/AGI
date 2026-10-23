@@ -13,7 +13,7 @@ trap 'reap;rm -rf $T' 0;trap 'kill $w 2>/dev/null;exit 129' HUP;trap 'kill $w 2>
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 wt(){ /bin/sleep $1 & w=$!;wait $w;w=;}   # interruptible: a trapped signal ends the wait at once, not after the sleep
-unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_SEAT AGI_POST AGI_PANE_MAX_MB
+unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_POST AGI_PANE_MAX_MB
 mkdir -p $T/bin $T/c $T/k $T/run $T/hm/.claude
 [ -n "$BOX" ]||{ sect box>$T/bin/box;BOX=$T/bin/box;};[ "$BOX" = $T/bin/box ]||cp $BOX $T/bin/box
 [ -n "$AGIRUN" ]||{ sect agi-run>$T/agi-run;AGIRUN=$T/agi-run;}
@@ -68,10 +68,10 @@ unitloop(){ (cd $T/hm/t&&env BW_UNIT=1 HOME=$T/hm H=claude-x O=$T/r AGI_POST=ali
 start(){ nm=$1;kd=$2;shift 2;: >$T/typed.$nm;: >$T/wakes.$nm;: >$T/polls;: >$T/boxn
  case $kd in
  agirun)rm -f $T/run/i;mkfifo $T/run/i;exec 3<>$T/run/i;(cd $T/run&&cat <&3 >>$T/typed.$nm &echo $! >>$T/pids)
-  (cd $T/hm&&env HOME=$T/hm H=claude-x RUNTIME_DIRECTORY=$T/run O=$T/r AGI_POST=alive AGI_SEAT=alive AGI_TRUNK=HEAD GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" setsid sh $AGIRUN >$T/ar.out.$nm 2>&1 &echo $! >>$T/pids);;
+  (cd $T/hm&&env HOME=$T/hm H=claude-x RUNTIME_DIRECTORY=$T/run O=$T/r AGI_POST=alive AGI_TRUNK=HEAD GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" setsid sh $AGIRUN >$T/ar.out.$nm 2>&1 &echo $! >>$T/pids);;
  unit)rm -f $T/run/i;mkfifo $T/run/i;exec 3<>$T/run/i;(cd $T/run&&cat <&3 >>$T/typed.$nm &echo $! >>$T/pids);OUT=$T/ar.out.$nm unitloop "$@";;
  both)start $nm agirun "$@";kd=both;OUT=$T/ar.out.$nm.u unitloop "$@";;      # start() assigns the global kd, which is also the caller's loop variable: restore it
- cccc)(cd $T/r&&env HOME=$T/hm DIV=$DIV O=$T/r AGI_POST=alive AGI_SEAT=alive AGI_TRUNK=HEAD GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" node $T/drv.mjs $CCCC >$T/wakes.$nm 2>$T/node.err.$nm &echo $! >>$T/pids);;
+ cccc)(cd $T/r&&env HOME=$T/hm DIV=$DIV O=$T/r AGI_POST=alive AGI_TRUNK=HEAD GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH "$@" node $T/drv.mjs $CCCC >$T/wakes.$nm 2>$T/node.err.$nm &echo $! >>$T/pids);;
  esac;}
 stop(){ for p in $(cat $T/pids 2>/dev/null);do kill -TERM -$p 2>/dev/null;kill $p 2>/dev/null;done;: >$T/pids;exec 3<&-;/bin/sleep 0.3;}
 wakes(){ case $1 in a*|u*)grep -o 'mail: box read' $T/typed.$1|wc -l|tr -d ' ';;*)grep -c '^WAKE mail: box read' $T/wakes.$1|tr -d ' ';;esac;}
@@ -163,12 +163,12 @@ hh=$(sed -n 's/^Environment="\(H=[^"]*\)".*/\1/p' $hc 2>/dev/null);hgate=$(env -
 arm;snd belam alive real1;wk u60 1;tick 3;ur=$(wakes u60);stop
 ok "f4b-unit-loop-on-the-real-box-in-the-env-agi-project-wrote agi-project (rc $pjrc, want 0) wrote agi-boxwake@.service ($([ -s $T/pj/agi-boxwake@.service ]&&echo yes||echo NO)) and the wake drop-in h.conf ($([ -s $hc ]&&echo yes||echo NO)): its H passes the unit's own ExecCondition (rc $hgate, want 0), it carries AGI_TRUNK=HEAD ($htr) and AGI_BOX=local-town ($hbx) (want 1 1); the loop body under env -i plus that file plus the unit's Environment lines, with the REAL box piece and one unread message, types 'mail: box read' ONCE ($ur, want 1)" '[ "$pjrc" = 0 ]&&[ -s $T/pj/agi-boxwake@.service ]&&[ -s $hc ]&&[ "$hgate" = 0 ]&&[ "$htr" = 1 ]&&[ "$hbx" = 1 ]&&[ "$ur" = 1 ]'
 reset
-# ---- R6 R7 N10 N11 (DG1 19:27Z, SM's final on d926526a71): the RECEIVER pieces run on the REAL unit env: engine-root.md sets AGI_SEAT=%i ONLY (the box piece wants AGI_POST), so start() above no longer exports AGI_POST (as() still does: it models the SENDER / the agent reading its mail, which is the box piece's own env, banked). binF = a `box` that fails with stderr text; binA = NO box at all (PATH without any host bin dir)
+# ---- R6 R7 N10 N11 (DG1 19:27Z, SM's final on d926526a71): the RECEIVER pieces run on the REAL unit env: engine-root.md then set only the retired identity variable (the box piece wants AGI_POST), so start() above no longer exports AGI_POST (as() still does: it models the SENDER / the agent reading its mail, which is the box piece's own env, banked). binF = a `box` that fails with stderr text; binA = NO box at all (PATH without any host bin dir)
 mkdir -p $T/binF $T/binA;cp $T/bin/strace $T/bin/stty $T/bin/claude-x $T/bin/sleep $T/binF/;cp $T/bin/strace $T/bin/stty $T/bin/claude-x $T/bin/sleep $T/binA/;ln -sf $T/binF/claude-x $T/binF/pi-x;ln -sf $T/binA/claude-x $T/binA/pi-x;printf '#!/bin/sh\necho "box: boom, the refs are unreadable" >&2\nexit 1\n'>$T/binF/box;chmod +x $T/binF/box
 for kd in unit cccc;do case $kd in unit)N=u;;*)N=p;;esac
-# r6: the unit's env as it is (goal:g7.16.1.11.37 retired AGI_SEAT from it; the box piece REQUIRES AGI_POST and dies without it): a box send wakes ONCE
-reset;start ${N}30 $kd;arm;snd belam alive r6;wk ${N}30 1;tick 3;r6a=$(wakes ${N}30);tick 6;r6b=$(wakes ${N}30);r6e=$(tr '\0' '\n' </proc/$(cat $T/pids|tail -1)/environ 2>/dev/null|grep -c '^AGI_SEAT=');r6p=$(tr '\0' '\n' </proc/$(cat $T/pids|tail -1)/environ 2>/dev/null|grep -c '^AGI_POST=')
-ok "r6-$kd-wakes-on-the-unit-env the watcher in the unit's own env (AGI_POST set; for the unit kind NO AGI_SEAT: /proc environ carries $r6e AGI_SEAT entries, want 0, and $r6p AGI_POST entries, want 1) a box send wakes ONCE ($r6a, still $r6b later); the box piece needs AGI_POST and dies silently without it" '[ "$r6a" = 1 ]&&[ "$r6b" = 1 ]&&{ [ $kd != unit ]||{ [ "$r6e" = 0 ]&&[ "$r6p" = 1 ]; }; }'
+# r6: the unit's env as it is (goal:g7.16.1.11.37 retired the old identity variable from it; the box piece REQUIRES AGI_POST and dies without it): a box send wakes ONCE
+reset;start ${N}30 $kd;arm;snd belam alive r6;wk ${N}30 1;tick 3;r6a=$(wakes ${N}30);tick 6;r6b=$(wakes ${N}30);r6p=$(tr '\0' '\n' </proc/$(cat $T/pids|tail -1)/environ 2>/dev/null|grep -c '^AGI_POST=')
+ok "r6-$kd-wakes-on-the-unit-env the watcher in the unit's own env (AGI_POST set; for the unit kind /proc environ carries $r6p AGI_POST entries, want 1) a box send wakes ONCE ($r6a, still $r6b later); the box piece needs AGI_POST and dies silently without it" '[ "$r6a" = 1 ]&&[ "$r6b" = 1 ]&&{ [ $kd != unit ]||[ "$r6p" = 1 ]; }'
 # r7: box failing / absent: 0 wakes and 0 bytes of error over ~12 ticks
 reset;start ${N}31 $kd PATH=$T/binF:/usr/local/bin:/usr/bin:/bin;wt 2.5;f7=$(wakes ${N}31);case $kd in unit)e7=$(wc -c <$T/ar.out.${N}31);;*)e7=$(wc -c <$T/node.err.${N}31);esac;stop
 reset;start ${N}32 $kd PATH=$T/binA:/usr/local/bin:/usr/bin:/bin;wt 2.5;f8=$(wakes ${N}32);case $kd in unit)e8=$(wc -c <$T/ar.out.${N}32);;*)e8=$(wc -c <$T/node.err.${N}32);esac;stop
@@ -180,18 +180,18 @@ done
 reset
 # n10: cccc.ts's own timers must not keep node alive (agi-kid runs `pi -e cccc.ts -p`; pi drains, the process must exit): the driver WITHOUT its keep-alive line exits on its own
 grep -v '^real(() => {}, 1e6);' $T/drv.mjs >$T/drv-nokeep.mjs
-(cd $T/r&&env HOME=$T/hm DIV=$DIV O=$T/r AGI_SEAT=alive AGI_TRUNK=HEAD GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH timeout 40 node $T/drv-nokeep.mjs $CCCC >$T/nk.out 2>&1);nkrc=$?
+(cd $T/r&&env HOME=$T/hm DIV=$DIV O=$T/r AGI_TRUNK=HEAD GIT_TEST_ASSUME_DIFFERENT_OWNER=1 GIT_CONFIG_GLOBAL=$T/c/alive GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH timeout 40 node $T/drv-nokeep.mjs $CCCC >$T/nk.out 2>&1);nkrc=$?
 ok "n10-cccc-timers-alone-do-not-keep-node-alive the fake pi driver WITHOUT its own keep-alive, after the last event: node exits by itself (rc $nkrc, want 0; 124 = still running at the 6 s limit: the poll interval keeps a drained pi alive)" '[ $nkrc = 0 ]'
-# ---- R9 (DG1 20:37Z, SM mur residue on f8c0ba9ef2): in a KID started BEFORE goal:g7.16.1.11.24 (a pre-cut agi-kid) the env carried AGI_POST=<parent> (inherited) AND AGI_SEAT=<kid>; since that cut agi-kid sets AGI_POST=$k itself (the p44/p45 rows below take the kid env FROM agi-kid's own text), and these p40..p43 rows stay as the ORDER guard of cccc.ts (AGI_SEAT first, never flipped). The cccc.ts poll must ask `box n` as the KID: env AGI_POST = AGI_SEAT||AGI_POST (ruled), not AGI_POST||AGI_SEAT, which asks as the parent and wakes the kid for the parent's mail. The stub box answers n>0 ONLY for the asker named in $T/who; in a post (POST=SEAT) and a pre-unit post (SEAT only) both orders agree
+# ---- R9 (DG1 20:37Z, SM mur residue on f8c0ba9ef2): in a KID started BEFORE goal:g7.16.1.11.24 (a pre-cut agi-kid) the env carried AGI_POST=<parent> (inherited) AND the retired variable =<kid>; since that cut agi-kid sets AGI_POST=$k itself (the p44/p45 rows below take the kid env FROM agi-kid's own text), and these p40..p43 rows stay as the ORDER guard of cccc.ts (the kid variable first, never flipped). The cccc.ts poll had to ask `box n` as the KID (the kid variable before AGI_POST, ruled), not AGI_POST first, which asks as the parent and wakes the kid for the parent's mail. The stub box answers n>0 ONLY for the asker named in $T/who; in a post (POST=SEAT) and a pre-unit post (SEAT only) both orders agree
 mkdir -p $T/binK;cp $T/bin/strace $T/bin/stty $T/bin/claude-x $T/bin/sleep $T/binK/
 printf '#!/bin/sh\n[ "$1" = n ]&&[ "$AGI_POST" = "$(cat %s/who)" ]&&echo from-someone\nexit 0\n' $T >$T/binK/box;chmod +x $T/binK/box
-# r9 p40-p43 (RETIRED, goal:g7.16.1.11.32): they modelled a KID whose env carried AGI_POST=<parent> AND AGI_SEAT=<kid>, with cccc.ts choosing AGI_SEAT over AGI_POST. cccc.ts no longer reads AGI_SEAT (it polls with the inherited env and the box piece needs AGI_POST) and goal:g7.16.1.11.37 retired AGI_SEAT from the engine, so a row that sets AGI_SEAT=kid9 tests nothing that runs. The kid's env is taken FROM agi-kid's own text below (p44/p45), the one place it is built.
+# r9 p40-p43 (RETIRED, goal:g7.16.1.11.32): they modelled a KID whose env carried AGI_POST=<parent> AND the retired variable =<kid>, with cccc.ts choosing it over AGI_POST. cccc.ts no longer reads it (it polls with the inherited env and the box piece needs AGI_POST) and goal:g7.16.1.11.37 retired it from the engine, so a row that sets it tests nothing that runs. The kid's env is taken FROM agi-kid's own text below (p44/p45), the one place it is built.
 # ---- goal:g7.16.1.11.24 (belam-s2-II 02:4xZ 10-10): the kid env is TAKEN FROM agi-kid's own text, never hand-written -- the words of its `exec pi` line that read AGI_*=$k, $k = kid9. The cccc.ts poll in that env asks `box n` as the KID: a box that answers ONLY for the parent 'alive' wakes it 0 times; one that answers for 'kid9' wakes it once
 [ -n "$AGIKID" ]||{ sect agi-kid>$T/agi-kid;AGIKID=$T/agi-kid;}
 grep 'exec pi' $AGIKID|tr ' ' '\n'|grep -E '^AGI_[A-Z_]+=\$k$'|sed 's/\$k/kid9/'>$T/kidenv;KENV=$(cat $T/kidenv)
 reset;echo alive >$T/who;start p44 cccc $KENV PATH=$T/binK:$PATH;wt 2.5;k5=$(wakes p44);stop
 reset;echo kid9 >$T/who;start p45 cccc $KENV PATH=$T/binK:$PATH;wk p45 1;wt 1;k6=$(wakes p45);stop
-ok "r9-kid-env-from-agi-kid-sets-AGI_POST agi-kid's own exec line carries AGI_POST=\$k (the words read: [$(echo $KENV)]; want AGI_POST=kid9: goal:g7.16.1.11.37 retired AGI_SEAT), so no identity reader in a kid's env resolves to the parent" '[ "$(echo $KENV)" = "AGI_POST=kid9" ]'
+ok "r9-kid-env-from-agi-kid-sets-AGI_POST agi-kid's own exec line carries AGI_POST=\$k (the words read: [$(echo $KENV)]; want AGI_POST=kid9: goal:g7.16.1.11.37 retired the old variable), so no identity reader in a kid's env resolves to the parent" '[ "$(echo $KENV)" = "AGI_POST=kid9" ]'
 ok "r9-kid-env-from-agi-kid-asks-as-the-kid cccc.ts in the env agi-kid builds, a box that answers n>0 ONLY for the parent 'alive': $k5 wake(s) (want 0); ONLY for 'kid9': $k6 wake (want 1)" '[ "$k5" = 0 ]&&[ "$k6" = 1 ]'
 # ---- the ~/o cap (agi-run only): the 5-minute loop trims ~/o to HALF the cap keeping the TAIL when it is over AGI_PANE_MAX_MB (default 64); DIV scales the 300 s
 capsz(){ stat -c%s $T/hm/o 2>/dev/null||echo 0;}
