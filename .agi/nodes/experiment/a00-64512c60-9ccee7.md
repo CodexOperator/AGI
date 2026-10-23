@@ -46,26 +46,26 @@ Each sign (fixture seat key) → store via `send()` → `read()` → assert `VER
 
 Failing-first (three defective shapes FORGED before the fix; tamper already FORGED / guard intact):
 ```
-env -u AGI_AGENT_ID -u AGI_SEAT python3 -m pytest extensions/agi/tests/test_send.py -q -k "verifies_not_forged or tampered_body_still_reads_forged"
+env -u AGI_AGENT_ID -u AGI_[retired] python3 -m pytest extensions/agi/tests/test_send.py -q -k "verifies_not_forged or tampered_body_still_reads_forged"
 3 failed, 1 passed  →  FAILED lf_terminated, dash_dash_dash, crlf_body (all FORGED); tamper passed
 ```
 After the fix (all four):
 ```
-env -u AGI_AGENT_ID -u AGI_SEAT python3 -m pytest extensions/agi/tests/test_send.py -q -k "verifies_not_forged or tampered_body_still_reads_forged"
+env -u AGI_AGENT_ID -u AGI_[retired] python3 -m pytest extensions/agi/tests/test_send.py -q -k "verifies_not_forged or tampered_body_still_reads_forged"
 4 passed, 235 deselected
 ```
-Full requested suite (send + seatsig) — the exact command from the brief, prefixed with `env -u AGI_AGENT_ID -u AGI_SEAT`:
+Full requested suite (send + seatsig) — the exact command from the brief, prefixed with `env -u AGI_AGENT_ID -u AGI_[retired]`:
 ```
-env -u AGI_AGENT_ID -u AGI_SEAT python3 -m pytest extensions/agi/tests/test_send.py extensions/agi/tests/test_seatsig.py -q
+env -u AGI_AGENT_ID -u AGI_[retired] python3 -m pytest extensions/agi/tests/test_send.py extensions/agi/tests/test_seatsig.py -q
 252 passed in 2.98s
 ```
 Regression sweep across the other readers that exercise send.py's block parser/splitter (no collateral break):
 ```
-env -u AGI_AGENT_ID -u AGI_SEAT python3 -m pytest extensions/agi/tests/test_mail_alert.py extensions/agi/tests/test_rotate_identity_main.py extensions/agi/tests/test_post_rename.py extensions/agi/tests/test_brief.py extensions/agi/tests/test_write_master_sensei.py extensions/agi/tests/test_sensei_wake_audit.py -q
+env -u AGI_AGENT_ID -u AGI_[retired] python3 -m pytest extensions/agi/tests/test_mail_alert.py extensions/agi/tests/test_rotate_identity_main.py extensions/agi/tests/test_post_rename.py extensions/agi/tests/test_brief.py extensions/agi/tests/test_write_master_sensei.py extensions/agi/tests/test_sensei_wake_audit.py -q
 219 passed in 9.98s
 ```
 
-Environment trap: this brief was run from a LIVE agent whose shell exports `AGI_AGENT_ID` and `AGI_SEAT`; `_detect_sender` lets those beat an explicit `--from`, so every send went out unsigned-from-the-test-seat and read FORGED. The existing `test_cr_body_with_crlf_and_lone_cr_verifies_and_keeps_bytes` fails identically under the polluted env, confirming it is the harness env, not the fix. Clearing the two vars restores the green suite above.
+Environment trap: this brief was run from a LIVE agent whose shell exports `AGI_AGENT_ID` and `AGI_[retired]`; `_detect_sender` lets those beat an explicit `--from`, so every send went out unsigned-from-the-test-seat and read FORGED. The existing `test_cr_body_with_crlf_and_lone_cr_verifies_and_keeps_bytes` fails identically under the polluted env, confirming it is the harness env, not the fix. Clearing the two vars restores the green suite above.
 
 <!-- THOUGHT:BEGIN -->
 Why this version: chose the header-conditional split (one boundary regex, no stored-byte change) over writer-escape because escaping adds bytes to the canonical form and must be reversed in every reader; also made _parse_blocks share the SAME boundary regex as _scan_messages so a `---` body line cannot fragment a dm/room conversation listing either.

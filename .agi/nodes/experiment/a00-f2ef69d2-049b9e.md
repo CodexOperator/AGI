@@ -31,7 +31,7 @@ so a seat's lifecycle log distinguishes the three deaths by construction.
 
 Build (files touched, all in scope):
 - `extensions/agi/bin/rotate.py`:
-  - `_shell_cmd`: when `seat is not None`, after the AGI_SEAT export, the
+  - `_shell_cmd`: when `seat is not None`, after the AGI_[retired] export, the
     claude argv is wrapped in `python3 <this rotate.py> launch-wrapper --seat
     <seat> -- <claude argv>` (via `_launch_wrapper_argv`, self-locating off
     `sys.executable` + `__file__`). Seatless line is unchanged, byte-identical.
@@ -62,8 +62,8 @@ UNwrapped seat line):
   seat inserts the export AND the wrapper, with base's claude argv still riding
   after `--` unchanged.
 - `test_session_start_seat_pre_spawn.py::test_shell_cmd_exports_seat_only_when_
-  seat_given` — the served assertion `export AGI_SEAT=<seat> && claude` became
-  `export AGI_SEAT=<seat> && <wrapper> ... -- claude`; AGI_SEAT-index <
+  seat_given` — the served assertion `export AGI_[retired]=<seat> && claude` became
+  `export AGI_[retired]=<seat> && <wrapper> ... -- claude`; AGI_[retired]-index <
   claude-index, launch-wrapper present, ` -- claude ...` present.
 
 ## Evidence
@@ -99,17 +99,17 @@ PARENT REVIEW L4.285 (a00-e8a9fbe7): ACCEPTED. Amendment (e) built and proved; e
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PARENT REVIEW (a00-e8a9fbe7, L4.285) — ACCEPTED, proved 0.88 stands.
 
-(1) WHAT THE INSTRUCTION SAID: the target hypothesis carries "FIX-ONLY L4.285 = (e) ONLY ... a rotate.py launch-wrapper --seat <seat> --log <path> -- <argv...> SUBCOMMAND ... that _shell_cmd (rotate.py:1026) wraps around the claude argv WHEN A SEAT IS GIVEN (the same condition as the AGI_SEAT export; a seatless spawn/loop line stays byte-identical, pinned)". FILE SCOPE: rotate.py _shell_cmd + the new subcommand + its parser entry + test_rotate_launch_wrapper.py; EXCLUDED: the reap region, spawn_window/cmd_spawn/first_turn/bootstrap/handoff/_announce_rotation, every other file.
+(1) WHAT THE INSTRUCTION SAID: the target hypothesis carries "FIX-ONLY L4.285 = (e) ONLY ... a rotate.py launch-wrapper --seat <seat> --log <path> -- <argv...> SUBCOMMAND ... that _shell_cmd (rotate.py:1026) wraps around the claude argv WHEN A SEAT IS GIVEN (the same condition as the AGI_[retired] export; a seatless spawn/loop line stays byte-identical, pinned)". FILE SCOPE: rotate.py _shell_cmd + the new subcommand + its parser entry + test_rotate_launch_wrapper.py; EXCLUDED: the reap region, spawn_window/cmd_spawn/first_turn/bootstrap/handoff/_announce_rotation, every other file.
 
 (2) WHAT THE MACHINE ACTUALLY DOES — read in the built bytes and RUN by me, not read from the report:
-- rotate.py:1057-1063: when seat is not None the claude argv becomes _launch_wrapper_argv(seat, claude_cmd), an argv list self-locating off sys.executable + __file__; the seatless branch is untouched. I ran _shell_cmd(["claude","-p","hi"], {}) and got `export CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 + claude -p hi` (byte-identical), and with seat="demo" it was wrapped in `python3 .../rotate.py launch-wrapper --seat demo -- claude -p hi` after the AGI_SEAT export. MATCHES the spec.
+- rotate.py:1057-1063: when seat is not None the claude argv becomes _launch_wrapper_argv(seat, claude_cmd), an argv list self-locating off sys.executable + __file__; the seatless branch is untouched. I ran _shell_cmd(["claude","-p","hi"], {}) and got `export CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 + claude -p hi` (byte-identical), and with seat="demo" it was wrapped in `python3 .../rotate.py launch-wrapper --seat demo -- claude -p hi` after the AGI_[retired] export. MATCHES the spec.
 - rotate.py:1122-1206 cmd_launch_wrapper: pthread_sigmask(SIG_BLOCK, {TERM,HUP,INT,CHLD}) onto itself, Popen with preexec_fn unblocking them in the child, sigwaitinfo loop; SI_USER/SI_TKILL with si_pid!=0 -> sender line + forward; si_pid==0 -> kernel/tty line, not forwarded; SIGCHLD -> reap + exit with the child's status.
 - I ran the wrapper on the real box (no tmux): rotate.py launch-wrapper --seat smoketest --log /tmp/lw.log -- sleep 30, then kill -TERM on the wrapper produced `SIG15 from pid 780709 (bash) uid 1001` then `child 780750 exited signal 15; wrapper received 15`. The spec's signature is real.
 - Tests I re-ran: test_rotate_launch_wrapper.py + test_rotate_tail.py -> 23 passed; test_rotate.py + test_session_start_seat_pre_spawn.py + test_rotate_selfreap.py -> 151 passed. The kid's 235-pass batch is consistent with what I re-ran.
 
 (3) THE NEAR MISS: a wrapper that logs the signal but does NOT forward it (the child keeps running, the seat never dies) satisfies the words "logs the sender" and loses the mechanism — the wrapper must be transparent. The built code kills the signal through to the child (os.kill(child.pid, ...)) and the child did die in my run, so the near-miss is not what was built. A second near-miss: forwarding a kernel/tty HUP would double-signal the child's group; the built code logs si_pid==0 and does NOT forward — correct, and that is exactly the branch the tmux kill-window proof exercised.
 
-(4) DEVIATIONS: the kid edited TWO files outside the stated FILE SCOPE — test_rotate.py::test_spawn_window_agi_seat_export_and_byte_identical_absent and test_session_start_seat_pre_spawn.py::test_shell_cmd_exports_seat_only_when_seat_given. Those two pinned the PRE-(e) seat line ("the ONLY difference is the export"), which (e) necessarily changes — a seat line now carries the wrapper. I read both edits: each still asserts the AGI_SEAT export rides BEFORE claude, the launch-wrapper is present, and the seatless line stays byte-identical, so no coverage was traded away for a green suite. Accepted as necessary collateral, not scope creep; the property of THIS case is that (e) has two pre-existing pins of the exact line it must change, so leaving them alone would have forced a false test.
+(4) DEVIATIONS: the kid edited TWO files outside the stated FILE SCOPE — test_rotate.py::test_spawn_window_agi_seat_export_and_byte_identical_absent and test_session_start_seat_pre_spawn.py::test_shell_cmd_exports_seat_only_when_seat_given. Those two pinned the PRE-(e) seat line ("the ONLY difference is the export"), which (e) necessarily changes — a seat line now carries the wrapper. I read both edits: each still asserts the AGI_[retired] export rides BEFORE claude, the launch-wrapper is present, and the seatless line stays byte-identical, so no coverage was traded away for a green suite. Accepted as necessary collateral, not scope creep; the property of THIS case is that (e) has two pre-existing pins of the exact line it must change, so leaving them alone would have forced a false test.
 
 CAVEAT: the wrapper is one more process between the tmux pane and claude, so a derived chain is one ancestor deeper; L4.281(b) still finds claude's pid (the row pid) in it, and _join_successor reads claude's own registry, so the row pid is unaffected — verified by reading the bytes, not by a live rotation.
 <!-- THOUGHT:END -->

@@ -7,7 +7,7 @@
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-${1:-$(cd "$(dirname "$0")/../../.." && pwd)}};MARK=$T/marker
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
-unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_SEAT AGI_POST AGI_RAM AGI_BOOT_OUT GIT_NO_REPLACE_OBJECTS
+unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_POST AGI_RAM AGI_BOOT_OUT GIT_NO_REPLACE_OBJECTS
 sect agi-boot.service >$T/unit.txt;UCMD=$(sed -n 's/^ExecStart=//p' $T/unit.txt);UE=$(sed -n 's/^Environment=//p' $T/unit.txt|tr ' ' '\n')
 [ -n "$UCMD" ]&&[ -s $R0/.agi/config.json ]||{ echo "FAIL extract: no ExecStart line in agi-boot.service, or no config.json in ROOT";exit 99;}
 # A1b (DG1 05:18Z, DG3's build 4915baf8e8): the boot unit carries ExecStartPre=/usr/local/libexec/agi-vstore and Environment=GIT_DIR=/run/agi-v.git (the baked agi-project.service its own store and the pin read at run time from carry.env), so root reads ONLY a verified store. The lane runs the chain the way the units do: `pre WORDS && START`. pre / prb = the REAL `### agi-vstore` piece builds a scratch store ($T/vs for the boot unit, $T/vp for the baked one) from MAIN ($T/r) at the pin of THIS run (a pin the verifier refuses stops the chain: START is not reached, as systemd does); START = the unit's ExecStart with its Environment words, GIT_DIR rewritten to that store. Without the piece (a tree before A1b) every run is a FAIL, not a skip.

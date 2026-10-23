@@ -61,9 +61,9 @@ in the repo. `--nproc` is NOT used: this kernel counts THREADS per uid, so any
 
 ### Falsifier -- the strip is live, not a stub
 `$S/falsifier_ctx.py` (scratch) builds a declared-root suite whose conftest does
-NOT import `suite_guards`, spawns it with a re-injected `AGI_SEAT`:
+NOT import `suite_guards`, spawns it with a re-injected `AGI_[retired]`:
 ```
-WITHOUT the guard in conftest -> ["LEAKED ['AGI_SEAT']"]
+WITHOUT the guard in conftest -> ["LEAKED ['AGI_[retired]']"]
 ```
 The same child under the real conftest leaks nothing. The guard is what removes it.
 
@@ -82,7 +82,7 @@ The same child under the real conftest leaks nothing. The guard is what removes 
   and an `open()` of a config outside the test's own `tmp_path` is refused with
   "LIVE config" in the message. Both halves asserted as REFUSED, not merely
   survived (`assert res.returncode == 0 and "2 passed" in out`).
-- **(c) the child sees no caller AGI_TIER / AGI_SEAT / AGI_AGENT -- HOLDS, measured
+- **(c) the child sees no caller AGI_TIER / AGI_[retired] / AGI_AGENT -- HOLDS, measured
   at two boundaries**: the spawn (`env=suite_guards.spawn_env()`, which also drops
   the git-hook channel `GIT_CONFIG_*` and every `AUTORESEARCH_*`) and the child's
   own `os.environ` (the in-conftest `agi_env_stripped` fixture, the falsifier

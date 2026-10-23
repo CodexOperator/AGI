@@ -29,14 +29,14 @@ bootstrap record claim on the built bytes, then proved it hermetically.
 
 Defect (verified on today's bytes before edit): `rotate._shell_cmd()`
 prepended only `CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1` (+ultracode)
-and exported NO seat, so `AGI_SEAT` never reached the successor; the hook
-COPY `cc-session-start.next.sh` reads `BOOTSTRAP_SEAT="${AGI_SEAT:-}"` and
+and exported NO seat, so `AGI_[retired]` never reached the successor; the hook
+COPY `cc-session-start.next.sh` reads `BOOTSTRAP_SEAT="${AGI_[retired]:-}"` and
 is a silent no-op without it; and `_write_bootstrap` ran at s11 AFTER the
 spawn, so no record existed at turn one regardless.
 
 Changes (extensions/agi/bin/rotate.py):
 1. `_shell_cmd(claude_cmd, settings, *, seat=None)` — when `seat` is given,
-   prepend `export AGI_SEAT=<seat> && ` before the claude argv, composed
+   prepend `export AGI_[retired]=<seat> && ` before the claude argv, composed
    the same way REAPER_ENV_EXPORT composes. No seat => byte-identical to
    today (proven by unit test). `spawn_window` gained `seat=None` keyword
    and passes it to `_shell_cmd`; `cmd_rotate_self` passes `seat=seat`,
@@ -55,14 +55,14 @@ Changes (extensions/agi/bin/rotate.py):
    every existing call byte-identical). Added BOOTSTRAP_JOIN_ONLY_FACTS.
 
 Proof (extensions/agi/tests/test_session_start_seat_pre_spawn.py, 3 tests):
-(a) `_shell_cmd` exports AGI_SEAT only when seat given; no-seat stays
+(a) `_shell_cmd` exports AGI_[retired] only when seat given; no-seat stays
     reaper+argv; export rides before the claude argv.
 (b) a PRE-SPAWN record written by the PRODUCTION writer (the exact step-2.75
     call) is read back by the SAME reader the hook uses (`rotate.py
     bootstrap-block --seat --root` — path DERIVED, never hardcoded) and the
-    hook COPY emits the block at "turn one" when AGI_SEAT is set; every
+    hook COPY emits the block at "turn one" when AGI_[retired] is set; every
     join-only fact carries `pending: resolved after join`.
-(d) FALSIFIER: the SAME hook, AGI_SEAT unset (the pre-fix artifact — no
+(d) FALSIFIER: the SAME hook, AGI_[retired] unset (the pre-fix artifact — no
     spawn path exported it), must NOT emit the block. Demonstrated: export
     present → block emitted; export absent → block absent (the guard fails
     to fire, so the injection genuinely depends on the export).
@@ -70,7 +70,7 @@ Proof (extensions/agi/tests/test_session_start_seat_pre_spawn.py, 3 tests):
 Real-tree dry-run proof of the export (requirement 1):
 ```
 $ python3 extensions/agi/bin/rotate.py rotate-self --name sanctuary-director --dry-run
-... export CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 && export AGI_SEAT=sanctuary-director && claude --remote-control sanctuary-director ...
+... export CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 && export AGI_[retired]=sanctuary-director && claude --remote-control sanctuary-director ...
 ```
 
 ## Evidence
@@ -91,8 +91,8 @@ path: .../proj/sessions/seats/adv-alive.bootstrap.json
   "model_refusal_fallback": "pending: resolved after join", ... }
 === reader: rotate.py bootstrap-block (path the hook uses) ===
 (rc=0) ## ⚓ bootstrap: adv-alive successor handover (shape v1 · gen 7 · HEAD@1de799c)
-=== turn-one hook, AGI_SEAT exported === rc=0; block emitted: True
-=== MUTATION, AGI_SEAT NOT exported === rc=0; block emitted: False   <-- guard depends on export
+=== turn-one hook, AGI_[retired] exported === rc=0; block emitted: True
+=== MUTATION, AGI_[retired] NOT exported === rc=0; block emitted: False   <-- guard depends on export
 ```
 
 Post-join rewrite (same path updated):
@@ -109,4 +109,4 @@ order is proven structurally (code position) + by the fixture firing, not by
 an automated test that fails on a deliberately post-spawn write.
 
 ## Agent Notes
-g15-7 FIX implemented+proved: spawn exports AGI_SEAT before claude (real-tree dry-run + unit); bootstrap record written PRE-spawn (step 2.75) with join-only facts marked 'pending: resolved after join', post-join rewrite updates same path; fixture test fires the hook COPY on the pre-spawn record (path derived via rotate.py bootstrap-block); falsifier shown (no-export => block absent). 323 tests green across rotate/session/cli suites.
+g15-7 FIX implemented+proved: spawn exports AGI_[retired] before claude (real-tree dry-run + unit); bootstrap record written PRE-spawn (step 2.75) with join-only facts marked 'pending: resolved after join', post-join rewrite updates same path; fixture test fires the hook COPY on the pre-spawn record (path derived via rotate.py bootstrap-block); falsifier shown (no-export => block absent). 323 tests green across rotate/session/cli suites.

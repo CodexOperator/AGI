@@ -48,7 +48,7 @@ host holds truth (adjust)              one mail route (box only, 10-09)         
 | one truth | its two homes | the leaf that collapses it |
 |---|---|---|
 | the post unit | host drop-ins 50/51/52 vs engine-root.md | goal:g7.16.1.11.37 target 6 |
-| the post's name | AGI_SEAT vs AGI_POST | goal:g7.16.1.11.37 |
+| the post's name | AGI_[retired] vs AGI_POST | goal:g7.16.1.11.37 |
 | the post's box | the row's box cell vs the host's own env file | goal:g7.16.1.11.37 ([wrong-box]) |
 | is this node legal | write.py create, links.py schema, the .8 gate, level3.py | goal:g1.43.1 (one predicate) |
 | a node's front matter | grow.py's regex vs yaml; an awk vs rotate.py for alerts | goal:g1.43.1 (one parser), goal:g7.16.1.11.20.1 |

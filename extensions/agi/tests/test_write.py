@@ -3387,7 +3387,7 @@ def _g733202_posts(project, *names):
 
 
 def _g733202_write(project, monkeypatch, *, seat=None, user=None, actor=None):
-    for k in ("AGI_ACTOR", "AGI_POST", "AGI_SEAT", "USER"):
+    for k in ("AGI_ACTOR", "AGI_POST", "USER"):
         monkeypatch.delenv(k, raising=False)
     if seat:
         monkeypatch.setenv("AGI_POST", seat)
@@ -3581,7 +3581,7 @@ def test_g73320_b3_a_same_type_id_another_file_holds_still_refuses(project):
 # --------------------------------------------------------------------------
 
 def test_g73320_r1_actor_fails_closed_when_the_collision_check_cannot_run(project, monkeypatch, tmp_path):
-    for k in ("AGI_ACTOR", "AGI_POST", "AGI_SEAT"):
+    for k in ("AGI_ACTOR", "AGI_POST"):
         monkeypatch.delenv(k, raising=False)
     # (a) the posts list is MISSING (no config:posts at all): a colliding or plain USER is never stamped
     for user in ("belam", "liborum"):

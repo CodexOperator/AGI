@@ -5,7 +5,7 @@
 # Honest limits: AA1.S names no byte bound beyond today's 634 B, so b1 pins 1,024 B (one constant: LINEMAX). b5 pins that an absent graph counter is NAMED (the AA1.S prototype formatter skips absent keys, which this lane calls a defect). d-lanes are green today (write.py set already works): they guard the builder, they are not the RED set.
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};BIN=${BIN:-$R0/extensions/agi/bin};SRC=$R0/extensions/agi/src;LINEMAX=1024
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
-unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_SEAT AGI_POST OPENROUTER_API_KEY OPENROUTER_PROVISIONING_KEY
+unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_POST OPENROUTER_API_KEY OPENROUTER_PROVISIONING_KEY
 export PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=$SRC AGI_BOX=encryption-town HOME=$T/home;mkdir -p $T/home
 printf '[user]\n\tname=t\n\temail=t@t\n[commit]\n\tgpgsign=false\n[safe]\n\tdirectory=*\n' >$T/gitconfig;export GIT_CONFIG_GLOBAL=$T/gitconfig GIT_CONFIG_SYSTEM=/dev/null
 # nd DIR ID PARENT [EXTRA]: one node file under nodes/DIR

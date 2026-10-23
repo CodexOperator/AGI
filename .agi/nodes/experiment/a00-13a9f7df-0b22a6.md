@@ -89,7 +89,7 @@ Parent probe `probe_parent_1b.py`: P4 all PASS, and
 1. **P1 in the parent's probe fails in THIS shell, upstream of any code I
    touched**: `_detect_sender` resolves to the live seat (not `seat-a`), so
    `_own_inbox_or_refuse` prints "target 'seat-a' is not you" and returns 2
-   before `read` is ever entered. `env -u AGI_AGENT_ID -u AGI_SEAT` does not
+   before `read` is ever entered. `env -u AGI_AGENT_ID -u AGI_[retired]` does not
    clear it — `geometry_config.resolved_seat_env()` reads the live seats row.
    The same conjunct-1 shape passes as a test in this file.
 2. **A flake in kid 1's test, fixed here**: `assert out.count("a1") == 1`

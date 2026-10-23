@@ -6,7 +6,7 @@
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-${1:-$(cd "$(dirname "$0")/../../.." && pwd)}};MARK=$T/mark;LOG=$T/log
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
-unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_SEAT AGI_POST FAKE_UID
+unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_POST FAKE_UID
 sect agi-gate >$T/gate;sect sect >$T/sect.real;[ -s $T/gate ]&&[ -s $T/sect.real ]||{ echo "FAIL extract: agi-gate $(wc -c <$T/gate) sect $(wc -c <$T/sect.real)";exit 99;};chmod +x $T/gate
 mkdir -p $T/fk $T/hm $T/ho
 printf '#!/bin/sh\n[ "$1" = -u ]&&{ echo ${FAKE_UID:-0};exit 0;}\nexec /usr/bin/id "$@"\n' >$T/fk/id

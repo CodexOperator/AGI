@@ -18,7 +18,7 @@ probes:
   - {"conjunct": 1, "class": "wire", "cmd": "parent probe P3 (re-run on this kid bytes): _write_rotate_self_started(path, seal) then _write_rotation_record(seat=prime, result=success, path=SAME path)", "expected": "the on-disk OUTCOME record still carries stops_sha256", "observed": "held: result=success with stops_sha256 = sha256(run the suite)", "result": "held"}
   - {"conjunct": 1, "class": "gate", "cmd": "parent probe P2 (re-run): cmd_rotate() with slot bytes UNCHANGED since the rotate-out commit but the card re-committed after (newer mtime and newer last commit)", "expected": "exit 2, NOT delegated: byte comparison is the gate, not a mtime", "observed": "held: exit 2, delegated=False, refusal names the rotate-out sha+date, the newest work act date and the source the card last commit", "result": "held"}
   - {"conjunct": 1, "class": "gate", "cmd": "parent probe P5 (re-run): _prepare_checks check-4 with the card older than the seat last-act stamp, then saved with utime", "expected": "one-line exit before the walk; saved card not stale", "observed": "held: blocked=True, order_ok=True, saved_blocked=False", "result": "held"}
-  - {"conjunct": 1, "class": "auth", "cmd": "parent probe P6 (re-run): cmd_rotate() with AGI_POST and AGI_SEAT unset and no --post", "expected": "non-zero, NOT delegated, refusal by name", "observed": "held: exit 3, delegated=False, no key holder identity", "result": "held"}
+  - {"conjunct": 1, "class": "auth", "cmd": "parent probe P6 (re-run): cmd_rotate() with AGI_POST and AGI_[retired] unset and no --post", "expected": "non-zero, NOT delegated, refusal by name", "observed": "held: exit 3, delegated=False, no key holder identity", "result": "held"}
 production_lines: 11
 profile: balanced
 role: kid

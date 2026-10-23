@@ -720,7 +720,7 @@ def test_g73320_r3_commands_actor_is_the_resolved_seat_not_the_unix_user(
         "---\nid: config:posts\ntype: config\nposts:\n"
         '  - {"name": "belam", "role": "director"}\n'
         '  - {"name": "director-general-3", "role": "director"}\n---\n\nbody\n')
-    for k in ("AGI_ACTOR", "AGI_POST", "AGI_SEAT"):
+    for k in ("AGI_ACTOR", "AGI_POST"):
         monkeypatch.delenv(k, raising=False)
     monkeypatch.setenv("USER", "belam")
     monkeypatch.setenv("AGI_POST", "director-general-3")

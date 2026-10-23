@@ -34,7 +34,7 @@ claim, and proved it on the built bytes.
 
 ### Pre-fix (measured by the parent, re-confirmed here)
 `cmd_merge_up` never called `rotate._caller_post`. RAN as an unkeyed caller
-(`AGI_SEAT`/`AGI_POST` unset, no held key) on a bare-origin fixture:
+(`AGI_[retired]`/`AGI_POST` unset, no held key) on a bare-origin fixture:
 `_caller_post` returned `(None, None, 'no key holder identity ...')` yet
 `cmd_merge_up` returned 0, merged the post into `season2/main`, pushed it,
 mirrored it and sent the Prime line. The C1 falsifier was live.
@@ -70,7 +70,7 @@ mirrored it and sent the Prime line. The C1 falsifier was live.
 ### Tests (5 new; 3 existing updated to the keyed fixture)
 Bare-origin fixture, `_merge_up_fixture` now seeds a KEYED `adv` seat row (mint
 + committed pubkey) plus an equal-ranked `other` row, and every merge-up test
-sets `AGI_SEAT=adv`. New: `test_merge_up_unkeyed_caller_refused_nothing_merged`
+sets `AGI_[retired]=adv`. New: `test_merge_up_unkeyed_caller_refused_nothing_merged`
 (the parent's falsifying probe, now asserted: rc 3, "no key holder identity",
 MAIN sha unchanged, no mirror, no lock);
 `test_merge_up_out_of_rank_post_refused` (equal-rank target -> "may not
@@ -111,7 +111,7 @@ python3 -m pytest extensions/agi/tests/test_rotate.py -q -k merge_up
 Raw refusal line (unkeyed caller, from the test's captured stderr):
 
 ```
-merge-up refused: no key holder identity: export AGI_SEAT or pass --post
+merge-up refused: no key holder identity: export AGI_[retired] or pass --post
 (no env seat, no worktree-post match against a non-repo cwd) (nothing merged)
 ```
 
@@ -132,7 +132,7 @@ clause (6) and the retire of the F7 window ask for the OTHER closeout paths.
 WHY THIS VERSION DIFFERS (parent a00-ea1066f0 review, SM.250).
 (1) INSTRUCTION: close the three gaps the parent found in slice B -- C1 "bare keyed like rotate" (the target's clause (3) spelling), C2 the clause-(2) migration tail "mirror push, ls-remote proves the sha, THEN delete the head -- never delete first", C3 the Prime line's "numbers (suite n/n, nodes a/d/t, tip sha)".
 (2) WHAT THE MACHINE DOES, and my probes on the built bytes:
-  - C1: cmd_merge_up now starts with _caller_post(root) and refuses by name before any git read or lock. PROBE (auth): AGI_POST/AGI_SEAT unset -> rc 3, "no key holder identity ... (nothing merged)", season2/main unmoved, nothing merged. Before this round the same call returned 0 and merged. FIXED.
+  - C1: cmd_merge_up now starts with _caller_post(root) and refuses by name before any git read or lock. PROBE (auth): AGI_POST/AGI_[retired] unset -> rc 3, "no key holder identity ... (nothing merged)", season2/main unmoved, nothing merged. Before this round the same call returned 0 and merged. FIXED.
   - C2: _drop_origin_post_head runs only after mirror_and_prove returned ok. PROBE (wire, an order-recording pre-receive hook on a bare origin): refs received in order = ['refs/heads/season2/main', 'refs/agi/posts/adv', 'refs/heads/season2/posts/adv'] -- mirror index 1, delete index 2. Mirror FIRST, delete SECOND. PROBE (gate): a hook rejecting refs/agi/* -> rc 3, refs/heads/season2/posts/adv SURVIVES, refs/agi absent. Never delete first, proved.
   - C3: the line is "MERGE-UP adv: suite 9/11 | nodes 2/0/2 | merge season2/posts/adv -> season2/main @e2ae246 | mirror refs/agi/posts/adv @ffd8d09 (proved_by ls-remote)" -- suite n/n, nodes a/d/t, tip sha all present.
 (3) THE NEAR MISS the kid avoided and named: verification._parse_pytest_counts matches only raw pytest "N passed", but a PASSing --suite suppresses pytest stdout and prints "[passed=N]" -- so a raw-only parse would have emitted a bare "suite ok" and silently lost exactly the numbers C3 demands. The kid read run_check/_one_line and parsed both shapes. Good catch, recorded in its caveats.

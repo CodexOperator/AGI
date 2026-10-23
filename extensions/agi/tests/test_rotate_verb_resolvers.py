@@ -52,7 +52,6 @@ def test_env_identity_resolves_keyed_post(tmp_path, monkeypatch):
                                    ("director", "director")])
     _write_geo(tmp_path, rows)
     monkeypatch.setenv("AGI_POST", "director")
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     post, row, how = rotate._caller_post(tmp_path)
     assert post == "director"
     assert row["role"] == "director"
@@ -65,7 +64,6 @@ def test_worktree_identity_resolves_post(tmp_path, monkeypatch):
     rows[0]["worktree"] = "/wptree/a"
     _write_geo(tmp_path, rows)
     monkeypatch.delenv("AGI_POST", raising=False)
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     monkeypatch.setattr(rotate, "_git_toplevel",
                         lambda _c: Path("/wptree/a"))
     post, row, how = rotate._caller_post(tmp_path)
@@ -78,7 +76,6 @@ def test_no_identity_refuses_naming_both_sources(tmp_path, monkeypatch):
     rows = _keyed_posts(tmp_path, [("prime", "prime_director")])
     _write_geo(tmp_path, rows)
     monkeypatch.delenv("AGI_POST", raising=False)
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     monkeypatch.setattr(rotate, "_git_toplevel", lambda _c: None)
     post, row, why = rotate._caller_post(tmp_path)
     assert (post, row) == (None, None)
@@ -91,7 +88,6 @@ def test_unkeyed_post_refuses_keygen(tmp_path, monkeypatch):
     # row carries no pubkey.
     _write_geo(tmp_path, [{"name": "fresh", "role": "director"}])
     monkeypatch.setenv("AGI_POST", "fresh")
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     post, row, why = rotate._caller_post(tmp_path)
     assert (post, row) == (None, None)
     assert "fresh" in why and "unkeyed" in why
@@ -110,7 +106,6 @@ def test_mismatched_key_refuses_fingerprints(tmp_path, monkeypatch):
     (tmp_path / "sessions" / "seats" / "k1.key").write_bytes(
         (tmp_path / "sessions" / "seats" / "other.key").read_bytes())
     monkeypatch.setenv("AGI_POST", "k1")
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     post, row, why = rotate._caller_post(tmp_path)
     assert (post, row) == (None, None)
     assert "fingerprint" in why and "k1" in why

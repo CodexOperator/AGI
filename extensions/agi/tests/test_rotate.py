@@ -8500,10 +8500,10 @@ def test_bootstrap_writes_before_spawn_in_rotate_self():
     )
 
 
-# --- owed item (v): AGI_SEAT export on cmd_spawn / cmd_loop when --seat -----
+# --- owed item (v): AGI_POST export on cmd_spawn / cmd_loop when --seat -----
 # hypothesis:l4-startup-first-turn-is-performed-by-the-service-and-the-hook-
 # fires-at-turn-one (SL1.07). A concrete --seat on spawn/loop must ride
-# AGI_SEAT=<name> out in front of the claude argv so the SessionStart hook
+# AGI_POST=<name> out in front of the claude argv so the SessionStart hook
 # copy can fire at turn one; when --seat is ABSENT the launch line must stay
 # byte-identical to a plain spawn/loop.
 
@@ -8524,11 +8524,10 @@ def test_spawn_window_agi_seat_export_and_byte_identical_absent(monkeypatch, tmp
         dry_run=True, seat="adv",
     )[1]
     assert "AGI_POST=" not in base
-    # a seat exports AGI_POST ONLY: AGI_SEAT is retired (goal:g7.16.1.11.37)
+    # a seat exports AGI_POST ONLY (goal:g7.16.1.11.37)
     # (hypothesis:l4-a-seat-is-a-post-everywhere).
     _q = rotate.shlex.quote('adv')
     assert f"export AGI_POST={_q} && " in seated
-    assert "AGI_SEAT" not in seated
     # amendment e: a seat inserts BOTH identity and the launch-wrapper. The
     # wrapper is the direct parent of claude, so the ONLY thing that changes
     # vs base is the `export AGI_POST=... &&` prefix plus the wrapper inserted
@@ -8546,7 +8545,7 @@ def test_spawn_window_agi_seat_export_and_byte_identical_absent(monkeypatch, tmp
 def test_cmd_spawn_and_loop_forward_seat(monkeypatch, tmp_path):
     # Proves cmd_spawn and cmd_loop actually FORWARD args.seat into the shared
     # launch path (the wiring owed item (v) added). With args.seat None the
-    # forwarded value is None, so _shell_cmd emits no AGI_SEAT (byte-identical).
+    # forwarded value is None, so _shell_cmd emits no AGI_POST (byte-identical).
     root = _proj(tmp_path)
     monkeypatch.chdir(root)
     monkeypatch.setattr(rotate, "find_project_root", lambda: root)
@@ -10017,7 +10016,7 @@ def _merge_up_fixture(tmp_path):
     checked out in MAIN (the merge-up target), AND a KEYED `adv` seat row: the
     merge-up verb is key-gated like rotate, so every fixture that reaches the
     merge must hold a signing key whose fingerprint matches the committed row.
-    Returns (root, top, bare). Callers set AGI_SEAT=adv."""
+    Returns (root, top, bare). Callers set AGI_POST=adv."""
     import send as bin_send
     _priv, pub = bin_send.seatsig.get("ed25519").keygen()
     row = {"name": "adv", "role": "parent", "model": "x", "effort": "max",
@@ -10047,7 +10046,7 @@ def test_merge_up_dry_run_touches_nothing(tmp_path, capsys, monkeypatch):
     """B2 (i): the dry-run prints the plan (lock, suite cmd, target, mirror)
     and touches NOTHING -- no lock file, no merge, no push."""
     root, top, bare = _merge_up_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "adv")
+    monkeypatch.setenv("AGI_POST", "adv")
     before = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
                             capture_output=True, text=True).stdout.strip()
     capsys.readouterr()
@@ -10073,7 +10072,7 @@ def test_merge_up_main_on_another_branch_refusal_text_pinned(
     (docstring MAP in branches.merge_target) is deliberately left to. The
     fix is the NAMING, not a widened resolution: nothing merges."""
     root, top, bare = _merge_up_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "adv")
+    monkeypatch.setenv("AGI_POST", "adv")
     before = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
                             capture_output=True, text=True).stdout.strip()
     subprocess.run(["git", "-C", str(top), "checkout", "-q", "master"],
@@ -10097,10 +10096,9 @@ def test_merge_up_main_on_another_branch_refusal_text_pinned(
 def test_merge_up_unkeyed_caller_refused_nothing_merged(tmp_path, capsys,
                                                         monkeypatch):
     """C1 falsifier (the parent's probe, now asserted): an UNKEYED caller --
-    no AGI_SEAT/AGI_POST, no held key -- is refused BY NAME before the lock
+    no AGI_POST, no held key -- is refused BY NAME before the lock
     is taken or any git read, and NOTHING merges or pushes."""
     root, top, bare = _merge_up_fixture(tmp_path)
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     monkeypatch.delenv("AGI_POST", raising=False)
     before = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
                             capture_output=True, text=True).stdout.strip()
@@ -10123,7 +10121,7 @@ def test_merge_up_out_of_rank_post_refused(tmp_path, capsys, monkeypatch):
     """C1: a keyed caller whose --post is a DIFFERENT, EQUAL-ranked post is
     refused by the SAME rank gate rotate uses, before any git read."""
     root, top, _bare = _merge_up_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "adv")
+    monkeypatch.setenv("AGI_POST", "adv")
     capsys.readouterr()
     rc = rotate.cmd_merge_up(
         SimpleNamespace(post="other", name=None, dry_run=False), root)
@@ -10138,7 +10136,7 @@ def test_merge_up_held_lock_refuses_names_pid_nothing_merged(
     """B2 (ii) falsifier: a HELD suite lock refuses BY NAME, naming the
     holder pid, with nothing merged and the suite never spawned."""
     root, top, _bare = _merge_up_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "adv")
+    monkeypatch.setenv("AGI_POST", "adv")
     sessions = root / "sessions"
     sessions.mkdir(parents=True, exist_ok=True)
     (sessions / "verify-suite.lock").write_text("1", encoding="utf-8")
@@ -10165,7 +10163,7 @@ def test_merge_up_proves_mirror_then_drops_pre_existing_origin_head(
     ONLY THEN deletes the pre-existing origin head. Falsifier: a head deleted
     before the mirror is proved."""
     root, top, bare = _merge_up_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "adv")
+    monkeypatch.setenv("AGI_POST", "adv")
     # the LEGACY state: the post head is already on origin (pre-migration)
     subprocess.run(["git", "-C", str(top), "push", "-q", "origin",
                     "season2/posts/adv"], check=True)
@@ -10191,7 +10189,7 @@ def test_merge_up_mirror_failure_leaves_origin_head(tmp_path, capsys,
     """C2 falsifier: when the mirror is NOT proved the pre-existing origin
     head SURVIVES -- never deleted first."""
     root, top, bare = _merge_up_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "adv")
+    monkeypatch.setenv("AGI_POST", "adv")
     subprocess.run(["git", "-C", str(top), "push", "-q", "origin",
                     "season2/posts/adv"], check=True)
     monkeypatch.setattr(rotate, "_merge_up_suite",
@@ -10219,7 +10217,7 @@ def test_merge_up_locks_runs_suite_merges_pushes_mirrors_releases(
     falsifier 'a merge-up that runs the suite without holding the lock' is
     false: the seam observes the lock file."""
     root, top, bare = _merge_up_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "adv")
+    monkeypatch.setenv("AGI_POST", "adv")
     seen = {}
     lock = root / "sessions" / "verify-suite.lock"
 
@@ -10295,7 +10293,7 @@ def test_merge_up_without_delete_old_prints_plan_deletes_nothing(
     (naming the head that WOULD be deleted and the mirror that would justify
     it) and deletes NOTHING. FALSIFIER: any head deletion without the flag."""
     root, top, bare = _merge_up_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "adv")
+    monkeypatch.setenv("AGI_POST", "adv")
     subprocess.run(["git", "-C", str(top), "push", "-q", "origin",
                     "season2/posts/adv"], check=True)
     monkeypatch.setattr(rotate, "_merge_up_suite",

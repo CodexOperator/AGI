@@ -63,7 +63,7 @@ def _make(tmp_path):
 
 def _call_as_worktree(wt, monkeypatch):
     """Resolve the caller from inside the worktree (no env seat)."""
-    for k in ("AGI_POST", "AGI_SEAT"):
+    for k in ("AGI_POST",):
         monkeypatch.delenv(k, raising=False)
     monkeypatch.setattr(rotate, "_git_toplevel", lambda _c: wt)
     return rotate._caller_post(wt / ".agi")
@@ -130,7 +130,6 @@ def test_main_as_root_is_a_no_op(tmp_path, monkeypatch):
     _write_seats(repo / ".agi", _rows(seat, wt, pub_b))
     assert rotate._seat_read_root(repo / ".agi", seat) == repo / ".agi"
     monkeypatch.setenv("AGI_POST", seat)
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     post, row, how = rotate._caller_post(repo / ".agi")
     assert post == seat and how == "env"
 
