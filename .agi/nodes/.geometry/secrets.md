@@ -29,6 +29,10 @@ locations:
     gitignored: false
     declared_in:
       - {"extensions/agi/bin/envfile.py :": "resolve"}
+lanes:
+  agi-batch: {"workspace": "", "unit": "agi-batch.service"}
+  agi-kids: {"workspace": "", "unit": "agi-kids.service"}
+  agi-council: {"workspace": "", "unit": "agi-council.service"}
 optional_keys:
   - MINIMAX_API_KEY
   - OPENAI_API_KEY
@@ -146,3 +150,18 @@ is that the location is owned.
 CAMBER_API_KEY declared optional 2026-09-07 (owner: the Camber Cloud GPU auth token, for goal:g14 local-maxxing; arrives through the standard .env path, never a shell argument). Consumers read it through envfile.py like every other key.
 
 Renamed the declared Camber key to CAMBER_CLOUD_API_KEY, the name the owner pasted on 2026-09-07 (goal:g14 consumers read this name).
+
+## lanes — ids and names only (goal:g7.16.1.11.46.7)
+
+`lanes:` has one cell per Console lane, each read by `agi-cred` (the unit to restart) and by the fronts
+(`agi-infer`, `agi-lane`: the header to send). A cell is JSON on one line so a shell reads it with `sed` + `jq`:
+
+| key | value |
+|---|---|
+| `workspace` | `wrkspc_` + letters/digits (the Console Workspaces page), or `""` while the owner has not made the workspace |
+| `scoped_key` | option B, instead of `workspace`: the NAME of the lane's credential file (`[a-z][a-z0-9-]*`); that front then sends no header |
+| `unit` | the lane unit `agi-cred` restarts when the credential file changes: `<name>.service` |
+
+An id and a name are not secrets; a secret value in this node is a red: `python3 extensions/agi/bin/envfile.py --lanes`
+exits 1 on a malformed cell, a lane missing, both or neither of `workspace` / `scoped_key`, or any Console key string anywhere in
+this file (it names the line number and the count, never the line).
