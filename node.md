@@ -50,17 +50,17 @@ schema (`.agi/context/schemas/[config].md`) types `worktree` as an
 unconstrained string relative to graph_root, so a row whose worktree does NOT
 follow the `seat-<name>` convention is legal. `test_h` builds exactly such a
 row (seat `weird`, worktree `custom-ish`) and proves the fallback is
-reachable from inside that worktree when `AGI_SEAT` is absent — it is the
+reachable from inside that worktree when `AGI_[retired]` is absent — it is the
 ONLY thing that identifies the seat there. A reachable safety net is kept;
 its deadness in the real registry is merely conventional (every perpetual
 seat uses `seat-<name>`). DECISION: delete was NOT taken because the
 keep-criterion (a red-first test reaches it + the schema allows it) is met.
 
-**(iii) TESTS NEVER INHERIT THE RUNNER'S AGI_SEAT.** One autouse fixture
-(`_no_inherited_seat`) `monkeypatch.delenv("AGI_SEAT")` for every test in the
+**(iii) TESTS NEVER INHERIT THE RUNNER'S AGI_[retired].** One autouse fixture
+(`_no_inherited_seat`) `monkeypatch.delenv("AGI_[retired]")` for every test in the
 module; the three per-test delenv lines (`test_d`, `test_e`, `_fraction_test`)
 fold into it. Tests that NEED a seat set it explicitly.
-`test_module_agiseat_is_cleared_at_entry` asserts `AGI_SEAT not in
+`test_module_agiseat_is_cleared_at_entry` asserts `AGI_[retired] not in
 os.environ` at entry.
 
 **(iv) THE TEST MODULE NAMES THE REGISTERED EVENT.** Docstring and both
@@ -73,7 +73,7 @@ the negative registration assertion (test_a) or its comments — 0 outside.
 All evidence on the built bytes, run from this seat's checkout
 `<home>/work/agi/.agi/worktrees/a00-3b9951de`.
 
-1. **Hook by hand, AFTER** (cwd = this checkout, AGI_SEAT=sensei-director):
+1. **Hook by hand, AFTER** (cwd = this checkout, AGI_[retired]=sensei-director):
    `... threshold 0.4000 from config:seats sensei-director.rotate_at (main
    checkout).` — the source string now carries the `(main checkout)` label.
    (BEFORE: the director measured `_seat_line` reading ONLY the worktree row
@@ -83,7 +83,7 @@ All evidence on the built bytes, run from this seat's checkout
    actually switches with a divergent main row (0.4 vs stale 0.47).
 
 2. **Acceptance run:**
-   `env AGI_SEAT=sensei-director python3 -m pytest
+   `env AGI_[retired]=sensei-director python3 -m pytest
    extensions/agi/tests/test_rotation_alert.py -q` → `19 passed`.
    And the plain run → `19 passed in 0.20s`.
 
@@ -96,7 +96,7 @@ All evidence on the built bytes, run from this seat's checkout
      decision test: seat `weird` at worktree `custom-ish`; proves the fallback
      is reachable, so it is KEPT.
    - `test_module_agiseat_is_cleared_at_entry` — fails under
-     `env AGI_SEAT=x` on pre-fix bytes (no autouse fixture), passes now.
+     `env AGI_[retired]=x` on pre-fix bytes (no autouse fixture), passes now.
 
 4. **Registration check:** grep of the repo hook for `SessionStart` → 0.
 
@@ -105,14 +105,14 @@ Files changed (only these in scope):
 `extensions/agi/tests/test_rotation_alert.py`.
 
 ## Agent Notes
-Built g15.18 fix: _seat_line reads rotate_at MAIN-checkout-first via locations.git_common_root+find_project_root, emits (main checkout)/(worktree) source label; kept the dead worktree fallback on a reaching non-convention test; added module autouse AGI_SEAT-clearing fixture; renamed test module to UserPromptSubmit. 19 passed incl. env AGI_SEAT=sensei-director.
+Built g15.18 fix: _seat_line reads rotate_at MAIN-checkout-first via locations.git_common_root+find_project_root, emits (main checkout)/(worktree) source label; kept the dead worktree fallback on a reaching non-convention test; added module autouse AGI_[retired]-clearing fixture; renamed test module to UserPromptSubmit. 19 passed incl. env AGI_[retired]=sensei-director.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PARENT REVIEW (SL3.04, a00-3b9951de) — VERDICT proved ACCEPTED.
 
-(1) THE INSTRUCTION SAID: read the seat rotate_at MAIN-checkout-first via locations.git_common_root, fall back to the worktree row only when main has no row, name the winning tree in the emitted source string; decide the row-worktree fallback on evidence; clear the runner AGI_SEAT with one autouse fixture; rename the test module off SessionStart. FILE SCOPE: the two files.
+(1) THE INSTRUCTION SAID: read the seat rotate_at MAIN-checkout-first via locations.git_common_root, fall back to the worktree row only when main has no row, name the winning tree in the emitted source string; decide the row-worktree fallback on evidence; clear the runner AGI_[retired] with one autouse fixture; rename the test module off SessionStart. FILE SCOPE: the two files.
 
-(2) THE MACHINE ACTUALLY DOES: I ran the built bytes myself, not the report. Hand run from this worktree with AGI_SEAT=sensei-director: _main_root(.agi) resolved to <home>/work/agi/.agi (git_common_root -> repo root, then find_project_root -> graph root), and _seat_line returned ("sensei-director", 0.4, "config:seats sensei-director.rotate_at (main checkout)"). env AGI_SEAT=x python3 -m pytest extensions/agi/tests/test_rotation_alert.py -q -> 19 passed. find -newermt over extensions/ skills/ src/ shows only extensions/agi/hooks/rotation_alert.py and extensions/agi/tests/test_rotation_alert.py changed (plus pyc). So the fix is built, in scope, and independently reproduced.
+(2) THE MACHINE ACTUALLY DOES: I ran the built bytes myself, not the report. Hand run from this worktree with AGI_[retired]=sensei-director: _main_root(.agi) resolved to <home>/work/agi/.agi (git_common_root -> repo root, then find_project_root -> graph root), and _seat_line returned ("sensei-director", 0.4, "config:seats sensei-director.rotate_at (main checkout)"). env AGI_[retired]=x python3 -m pytest extensions/agi/tests/test_rotation_alert.py -q -> 19 passed. find -newermt over extensions/ skills/ src/ shows only extensions/agi/hooks/rotation_alert.py and extensions/agi/tests/test_rotation_alert.py changed (plus pyc). So the fix is built, in scope, and independently reproduced.
 
 (3) THE NEAR MISS: a patch that only appended a hardcoded "(main checkout)" label without calling git_common_root would satisfy the words "says which tree won" whenever the worktree happened to carry the value too, and on this box both trees DO read 0.4 for sensei-director — the label would look right while the threshold never switched. What makes the label load-bearing is test_f (main 0.4 vs stale worktree 0.47 -> ROTATION OWED at 0.4) and test_g (main row absent -> 0.47 "(worktree)"): they fail on a label-only patch. That is why the verdict is proved and not merely "says it".
 
