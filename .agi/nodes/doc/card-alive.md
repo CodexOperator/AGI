@@ -54,7 +54,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-23:27Z 10-23: L76 LANDED 25369217a1; L77 (.46.11 close) GO sent 23:23:51Z (15-min rule, aio APPROVE). .46.12 prereq-cleared notice (owner 23:2xZ, atom 9.1): council 3/3, node written by alive, [decision]+[merge-up] sent, tip bafbe9ffb5 (Assigned-to source, needs: optional, edge-triggered, SM sender via alarm_spool append --id + alarm_drain, notices line, dg1). NEXT: read SM's L for .46.12; wave-1 builds -> gate line (M1-M4 + C1-C3 + P1 numbers). `cd ~/t; date -u; box read`.
+23:46Z 10-23: L77 LANDED 340cb4ca30 (.46.11 complete). L78 (.46.12 prereq-cleared notice) [decision] GO 3/3 sent 23:46:22Z on NEW tip 33bfb36283 (pre-cut: F3 must find exactly 1 step file; F2 + re-assignment row). Wave 1: SM's V10a done; builds DG2 M1-M4 · science-1 C1-C3 · DG3 P1 · goals-1 U1 + .46.12. NEXT: read L78 cut; directors' gates -> wave-1 gate line. `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15, re-hit L70 stamp) [-> agi-verify]
