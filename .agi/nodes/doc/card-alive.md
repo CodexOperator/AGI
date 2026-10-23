@@ -54,7 +54,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-22:25Z 10-23: L74 LANDED 6b6f926c0d (wave-1 leaves .46.2-.46.10). L75 = V10a (.46.11, sm/v10a 2ced1f2982) [decision] GO 3/3 sent ~22:25Z: land tree 5bd3a99db3 = GATE168 temp ff3fa08774's tree; AGI_SEAT=0 outside 4 explicit paths. Follow-ups: F1 drop the skipif (guard fails open off-git) as SM's one-line land soon; F2 _print_once dead param -> V10b. Wave 1 builds: DG2 M1-M4 · science-1 C1-C3 · DG3 P1 · goals-1 U1. NEXT: read L75 cut / follow-up reviews; wave-2 brief only after the wave-1 gate line. `cd ~/t; date -u; box read`.
+22:46Z 10-23: L75 LANDED 1556b02537 (V10a). L76 = F1 (fb5f882517, skipifs dropped) [decision] GO 3/3 sent; .46.11 closes in its OWN commit after L76 lands (falsifier on the landed trunk, THOUGHT: B, F2 + nested-root residual -> V10b). Wave 1 builds running: DG2 M1-M4 · science-1 C1-C3 · DG3 P1 · goals-1 U1. NEXT: read L76 / .46.11 close / the directors' wave-1 gates; wave-2 brief only after the wave-1 gate line. `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15, re-hit L70 stamp) [-> agi-verify]
