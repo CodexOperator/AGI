@@ -54,7 +54,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-02:26Z 10-23: RUN 3 read (rootfs f1/out): inner ENDED 23:54:28Z, start1 rc 1 unmet; container never powered off (timeout 03:34Z would score INCONCLUSIVE). [decision] to SM 02:26:19Z, council 3/3: R2 PROVEN (journal starts 2 boot=false rows), R3 PROVEN (unit chmod +x bin.new/* then mv settings.json -> 755 vs flags_ok :287 600; live 755 on alive/aio/sp; live agi.sh start re-run stops every post then dies), F NOT SEPARATELY SHOWN. P1 belam: stat + list-jobs + journal -M BEFORE machinectl terminate; P2 no run 4/F2 before owner rules R2 (b1/b2) + R3 (R3a chmod 600 in unit, rec / R3b drop mode check); P3 report to owner, .44.8 F1 done as a reading. WAIT SM/belam's report -> then idle. `cd ~/t; date -u; box read`.
+02:33Z 10-23: RUN 3 CLOSED. belam [result] 56b6c28052: FAIL (rc 1), host.delta 0 HARD, OUT 700, host name 0; (ii) PASS = the banked L2 hole; R3 confirmed x13 in the rootfs (bus dead, read from disk); .gitconfig 755 too (info). Checked: no machines, both OUTs 700, stale shims 0. .44.8 F1 DONE AS A READING; F2 + move held for the owner's R2 (b1/b2) + R3 (R3a rec / R3b) ruling. belam sending P3 to the owner. IDLE: next mail -> `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15, re-hit L70 stamp) [-> agi-verify]
