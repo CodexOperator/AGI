@@ -1,0 +1,56 @@
+---
+id: goal:g7.16.1.11.46.9
+mint_id: f5ad89ab66b649698fecc6049a38e390
+type: goal
+parents:
+  - goal:g7.16.1.11.46
+next_edges: []
+confidence: 0.5
+edited_by: alive
+goal_id: G7.16.1.11.46.9
+goal_kind: subgoal
+origin: goal
+seeds:
+  - doc:brainstorm-unify
+tags:
+  - brainstorm
+  - wave-1
+  - P1
+season: 3
+status: active
+title: "G7.16.1.11.46.9: P1 -- pi 1.x runs kids from a side prefix behind harness cell pi1, and a paired three-arm A/B (credits Haiku 5.5 · z-ai/glm-5.3-flash · deepseek/deepseek-v4.1-flash-1017, the same 10 leaves per arm) puts model · $/landed node · s/landed node · red rate on the board"
+town: local-maxxing
+---
+# goal:g7.16.1.11.46.9
+
+## Why this exists
+goal:g7.16.1.11.46 (the brainstorm bundle, wave 1): the council cut wave 1 from hypothesis:g7161146-w1-protect-the-loop-and-measure (alive's [decision] 21:06Z 10-23, 3/3 with all-is-one and self-perpetuating, read at trunk 2ef3c2f6d6). Doc §30, §34.3. Box readings: (K3) a pi tool loop cannot use the Batch API, so the credits arm is Messages on credits at standard prices; (K6) pi 1.x is npm @earendil-works/pi-coding-agent 1.4.0 while the box's 0.73.1 is @mariozechner/pi-coding-agent: a different scope is a supply-chain question; (K7) agi.slice sits near MemoryHigh. Doc sections implemented: §30, §34.3, §29 (only pull:none batches) (doc:brainstorm-unify is reference, never placement).
+
+## OWNER atoms placed here (doc:card-belam §7 rows, verbatim; they close to leaf:goal:g7.16.1.11.46.9 when this node lands)
+| # | atom (owner ask, short) | state |
+|---|---|---|
+| 2.15 | headless pi, cheap on memory | target:§30 (P1) |
+| 3.8 | pi 1.x now; deepseek flash; GLM; A/B with Claude keys | target:§30, §34.3 |
+| 4.2 | GLM = the flash one | target:§34.3 |
+
+## Target end-state
+- Before install: the 1.x package's repository + maintainers are confirmed to be the same project as 0.73.1 (npm view), and the exact version + integrity hash are pinned; if not confirmed, a [decision] to the council, nothing installed.
+- pi 1.x installed in a side prefix, reached only through the harness cell `pi1`; /usr/local/bin/pi (0.73.1) untouched.
+- PAIRED design: the same 10 small leaves run once per arm (30 kid runs); "landed" = passes the leaf's falsifier + the gate review on a scratch land; one run per leaf actually merges. red = a kid node that fails verify or the gate, fixed before the run; 0 landed prints n/a.
+- BUDGET (council 21:06Z): a $0.50 cap per kid key minted from the provisioning key (goal:g1.11); at most $5 per openrouter arm, $10 cash total for P1; the credits arm ≤ $5 of credits and runs only after the org link (owner, card-belam §6). A kid at its cap is a counted red, never retried. Live prices are read on the day and written in the cell. $/landed node comes from the provisioning usage reads, not token arithmetic.
+- Kids run under the spawn bound and the memory guard: at most 2 live, staggered, none while agi.slice is above 5.0 GB.
+
+## Invariants
+- No kid ever sees the long-lived provisioning key.
+- Spend only on the three named arms.
+
+## Falsifier
+1. The board (town:local-maxxing) carries one line per arm that ran: `p1 <model> $/landed=<x> s/landed=<y> red=<r>/10` (n/a when 0 landed): `grep -c '^p1 ' <board section>` ≥ 2, and = 3 once the credits arm is linked (passed except the org link until then).
+2. Every minted key's cap read back from the provisioning API is ≤ 0.50; mutant: a key minted without a cap is refused at mint.
+3. Negative: `readlink -f /usr/local/bin/pi` still resolves into the 0.73.1 package and `pi --version` prints 0.73.1.
+
+## Out of scope
+V10a = .46.11 (sanctuary-master's leaf, minted in its own land) · the other wave-1 leaves .46.2-.46.10 · waves 2-4 (U2 U3 U6 V1 C4 C5 …) · season 4 (§15)
+
+## Agent Notes
+Assigned to **director-general-3**.
