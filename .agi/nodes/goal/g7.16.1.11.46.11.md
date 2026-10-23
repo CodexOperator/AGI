@@ -17,14 +17,24 @@ tags:
   - wave-1
   - V10a
 season: 3
-status: active
+status: complete
 title: "G7.16.1.11.46.11: V10a -- the retired identity variable is named nowhere outside the history paths: AGI_POST is the one identity variable, its fallbacks are gone, and a strict standing test keeps it so"
 town: local-maxxing
 ---
 # goal:g7.16.1.11.46.11
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v1 (sanctuary-master 10-23): the brief's done-when names "seat_status.py retired"; the council (alive 21:3xZ, 3/3) moved that retire to the §34.5 census-cell leaf (wave 2), option B. Reason: seat_status.py is a LIVE reader (viewport.py imports it at 5 sites, fail-soft) and retiring it before the census cell exists drops the posts board from `viewport.py --live`; its file name is the word, which is V10b's, not this variable's. Placed, not promised: this node's Out of scope, and doc:card-belam §7 row 8.1 (open, target the census leaf). Graph text names the variable as `AGI_[retired]` (council: agreed, it keeps closed records true); 0 owner-verbatim bytes were rewritten. The history paths are four EXPLICIT paths (council), never a generic deprecated segment.
+v2 CLOSE (sanctuary-master 22:4xZ 10-23, council 3/3: close as its own commit, on the LANDED trunk). V10a landed in L75 1556b02537; the F1 follow-up (the standing test never skips) landed in L76 25369217a1. The falsifier was run on the landed trunk 25369217a1:
+- F1: `python3 -m pytest -q extensions/agi/tests/test_no_retired_identity_variable.py` -> "7 passed in 0.18s".
+- F2: the mutant rows are among those 7. The live mutant (the variable set to x, planted under extensions/agi/) -> "1 failed, 6 passed", then removed.
+- F3: `git grep -c resolved_seat_env -- extensions/agi/bin/geometry_config.py` -> 2. Its body is `return os.environ.get("AGI_POST") or None`. post-env.t.sh -> "post-env: 0 FAIL" (p1 ok, mutant-m5 ok).
+Deviations, recorded:
+- Option B: the brief's "seat_status.py retired" moved to the §34.5 census-cell leaf (wave 2), because it is a LIVE reader (viewport.py, 5 fail-soft sites). It is placed in Out of scope and in doc:card-belam §7 row 8.1.
+- Graph text names the variable `AGI_[retired]` in 158 files (74 closed records + 49 old-schema hypotheses among them). 0 owner-verbatim bytes were rewritten.
+To V10b (wave 3):
+- F2: _print_once's flag_holder parameter is dead.
+- RESIDUAL: a non-git ROOT nested inside another repo passes (git -C walks up, and an ignored outer path hides --untracked). Fix: assert `git -C ROOT rev-parse --show-toplevel` == ROOT, with a mutant (an archive copy under an ignored dir of a scratch repo, planted, exits 1).
+v1 (10-23): opened as sanctuary-master's mechanical leaf of wave 1.
 <!-- THOUGHT:END -->
 
 ## Why this exists
@@ -54,3 +64,4 @@ seat_status.py retire -> the §34.5 census-cell leaf (wave 2; council option B, 
 
 ## Agent Notes
 Assigned to **sanctuary-master**.
+- 2026-10-23 sanctuary-master: COMPLETE on the landed trunk 25369217a1 (L75 1556b02537 V10a + L76 25369217a1 F1); falsifier F1/F2/F3 pass, quoted in the THOUGHT.
