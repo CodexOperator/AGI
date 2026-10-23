@@ -1179,7 +1179,7 @@ class TestMergeUp:
             self, tmp_path, engine_on_path, monkeypatch):
         """Residue 5 — the town gate FIRES without --round/--seat.
 
-        The seat is derived from the exported AGI_SEAT env var (the seat name
+        The seat is derived from the exported AGI_POST env var (the seat name
         the spawn already carries) and the round's town from the branch being
         merged up via `town_of_branch` (reverse-lookup on the opaque
         `town_branches` value). A cross-town merge is REFUSED, a same-town
@@ -1206,21 +1206,20 @@ class TestMergeUp:
         root = tmp_path / ".agi"  # find_project_root resolves to the .agi dir
         args = lambda **kw: SimpleNamespace(
             round="", seat="", record="", **kw)
-        # Cross-town, no flags: AGI_SEAT=council-web (web-app-suite) vs the
+        # Cross-town, no flags: AGI_POST=council-web (web-app-suite) vs the
         # streaming-suite town branch -> towns differ -> REFUSE.
-        monkeypatch.setenv("AGI_SEAT", "council-web")
+        monkeypatch.setenv("AGI_POST", "council-web")
         refuse = season._merge_up_town_gate(
             root, args(branch="town/streaming-suite@s2"))
         assert refuse is not None and "REFUSED" in refuse, refuse
         assert "streaming-suite" in refuse and "web-app-suite" in refuse
-        # Same-town, no flags: AGI_SEAT=council-streaming -> both streaming.
-        monkeypatch.setenv("AGI_SEAT", "council-streaming")
+        # Same-town, no flags: AGI_POST=council-streaming -> both streaming.
+        monkeypatch.setenv("AGI_POST", "council-streaming")
         allow = season._merge_up_town_gate(
             root, args(branch="town/streaming-suite@s2"))
         assert allow is None, allow
-        # Fail-open: neither half derivable — no AGI_SEAT and a branch that
+        # Fail-open: neither half derivable — no AGI_POST and a branch that
         # maps to no town -> None, so a town-less graph is untouched.
-        monkeypatch.delenv("AGI_SEAT", raising=False)
         open_ = season._merge_up_town_gate(
             root, args(branch="loop/slug-aaaa@s2"))
         assert open_ is None
@@ -1256,7 +1255,7 @@ class TestMergeUp:
         root = tmp_path / ".agi"
 
         # KEEP seat (town: all) ALLOWS a core round and a non-core round.
-        monkeypatch.setenv("AGI_SEAT", "sanctuary-director")
+        monkeypatch.setenv("AGI_POST", "sanctuary-director")
         for branch in ("season/s2", "town/streaming-suite@s2"):
             got = season._merge_up_town_gate(root, SimpleNamespace(
                 round="", seat="", record="", branch=branch))
@@ -1264,7 +1263,7 @@ class TestMergeUp:
 
         # Council seat WEB refuses a streaming-suite round, allows its own
         # web-app-suite round.
-        monkeypatch.setenv("AGI_SEAT", "council-web")
+        monkeypatch.setenv("AGI_POST", "council-web")
         refuse = season._merge_up_town_gate(root, SimpleNamespace(
             round="", seat="", record="", branch="town/streaming-suite@s2"))
         assert refuse is not None and "REFUSED" in refuse, refuse
@@ -1273,15 +1272,15 @@ class TestMergeUp:
             round="", seat="", record="", branch="town/web-app-suite@s2"))
         assert allow is None, allow
 
-        # Unknown town on either side still fails open: an AGI_SEAT that is
+        # Unknown town on either side still fails open: an AGI_POST that is
         # not in the registry -> seat_town None -> allow.
-        monkeypatch.setenv("AGI_SEAT", "no-such-seat")
+        monkeypatch.setenv("AGI_POST", "no-such-seat")
         open_ = season._merge_up_town_gate(root, SimpleNamespace(
             round="", seat="", record="", branch="town/streaming-suite@s2"))
         assert open_ is None, open_
         # And a branch mapping to no town, council seat set, leaves round_town
         # None -> fails open.
-        monkeypatch.setenv("AGI_SEAT", "council-web")
+        monkeypatch.setenv("AGI_POST", "council-web")
         open2 = season._merge_up_town_gate(root, SimpleNamespace(
             round="", seat="", record="", branch="loop/slug-aaaa@s2"))
         assert open2 is None, open2
