@@ -13,6 +13,8 @@ sha256 of the exact line, for an owner-verbatim line only; it is empty today
 (0 such lines on the trunk) and a stale entry is itself red.
 
 The variable's name is built by concatenation, so this file never names it.
+The scan never skips: a ROOT that is not a git tree (a git-archive copy) fails
+loud, so the guard cannot pass on a skip (council F1, alive 22:2xZ 10-23).
 """
 from __future__ import annotations
 
@@ -20,7 +22,6 @@ import hashlib
 import subprocess
 from pathlib import Path
 
-import pytest
 
 ROOT = Path(__file__).resolve().parents[3]
 NAME = "AGI_" + "SEAT"
@@ -67,18 +68,11 @@ def _git_tree(tmp_path: Path, files: dict[str, str]) -> Path:
     return root
 
 
-def _is_git_tree() -> bool:
-    return subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--git-dir"],
-                          capture_output=True).returncode == 0
-
-
-@pytest.mark.skipif(not _is_git_tree(), reason="ROOT is not a git tree")
 def test_the_repo_names_the_retired_variable_nowhere():
     hits = _hits(ROOT, ALLOW)
     assert hits == [], f"{len(hits)} hit(s), first: {hits[:5]}"
 
 
-@pytest.mark.skipif(not _is_git_tree(), reason="ROOT is not a git tree")
 def test_every_allowlist_entry_still_matches_a_live_line():
     for path, digests in ALLOW.items():
         lines = (ROOT / path).read_text().splitlines()
