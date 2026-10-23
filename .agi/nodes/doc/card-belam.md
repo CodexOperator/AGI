@@ -31,7 +31,7 @@ belam-s3-IV, 10-23 after the owner's hand-off of the Fable brainstorm: §7 ATOMS
 | pin | /etc/agi/carry.env AGI_TRUNK = 8b247882a2 (L61); director-review is boot=false there (L70 made it true on the trunk), so it is the 1 of 11 posts down after the 03:45Z reboot. Moving the pin = `agi.sh host` then `sudo systemctl start agi-project.service` (banked, §6) |
 | me | uid agi-belam SIGNS and PUSHES; after a reboot ~/.gitconfig loses the credential lines (re-add '' + the belam gh helper); I mail SM only; keepalive timer DISABLED + CHECK cron deleted (owner 10-23 "go full idle ... for every post"); box-wake still types `mail: box read` |
 | fork | the Fable fork runs beside me as tmux belam-fable (unit agi-belam-fable-2.scope, RC name belam-fable); it is DONE ("just let prime handle it"); ~/.session pins my session id for V0 |
-| intake | atoms 62 · placed 1 · red 0 (§7) |
+| intake | atoms 63 · placed 8 · red 0 (§7; 63 = the 62 brainstorm rows + V10a's seat_status.py row) |
 | landing my commits | commit in ~/t -> `git update-ref refs/heads/posts/belam NEW OLD` -> `sudo -n -u belam git -C /data/work/agi merge --ff-only -q refs/heads/posts/belam` -> push NEW to core/season3/main + posts/belam; links on its own worktree first; anonymize the diff |
 | landing SM's L<n> | `~/tools/verify-land.sh L<n> LAND BASE GATETIP`, links on its own tree, CAS posts/belam, ff MAIN, push both, `git checkout -q --detach` |
 
@@ -39,7 +39,7 @@ belam-s3-IV, 10-23 after the owner's hand-off of the Fable brainstorm: §7 ATOMS
 ```
 W0  me alone           doc node · §7 atoms · V0 · §6 banks                                               DONE 10-23
 W1  council brief 1    M1-M4 (§37-§39 atoms tooling) · C1-C3 (§36 agi-cred, workspace cells, the header) · P1 (§30/§34.3 pi 1.x A/B)
-                       · U1 (§7 scope report mode) · V10 (§35 AGI_SEAT -> AGI_POST: SM's mechanical leaf, not a council design)
+                       · U1 (§7 scope report mode) · V10 (§35 AGI_[retired] -> AGI_POST: SM's mechanical leaf, not a council design)
     gate               M1-M4 + C1-C3 falsifiers pass; P1's four numbers on the board
 W2  council brief 2    V1 refs/id/P · V2 cred piece (ONE post) · U3 MANIFEST scope/reach/at/pull/atoms · G1 compose/split (§25, §34.5)
                        · the age seal (§23, §34.6) · U6 move falls out
@@ -58,7 +58,7 @@ L70 43086245a3 (director-review boot=true) · .45 close 73a32e5567 · L71 dfd3d6
 10-23: W0 = doc:brainstorm-unify + goal:g7.16.1.11.46 + .46.1 V0 (agi-run 2260 B, lane session-pin.t.sh 9/9) + this card.
 
 ## 🔴 Where it stops
-W0 landed. NEXT: cut council brief 1 (a hypothesis node under goal:g7.16.1.11.46 naming §36, §37-§39, §30/§34.3, §7 U1, §35) and mail SM to convene the council; V10 goes to SM as a mechanical leaf. Then land what SM cuts, wave by wave.
+W1 RUNNING: brief 1 2ef3c2f6d6 -> council 3/3 (alive 21:06Z) -> L74 6b6f926c0d landed = leaves .46.2-.46.10 (M1-M4 DG2 · C1-C3 DS1 · P1 DG3 · U1 dg1); V10a (.46.11) is SM's, lands as its own L. NEXT: land each L SM cuts; C1's root install is mine. Gate to W2 = M1-M4 + C1-C3 falsifiers pass + P1's numbers on the board ('passed except <banked>' goes to the owner). K4: rotate.py counts my WHOLE card vs 100 lines, so a driven handoff refuses until M1 lands.
 NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (from ~/t) on mail. Chain anonymize -> box send with &&; the body goes on STDIN.
 
 ## §4 Traps (121-123 = gen III: move them to their skills at MY rotation)
@@ -84,7 +84,7 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 | R2: agi.sh rows() starts boot=false posts (TM, DT-1) on a first start | (b1) filter boot=false + recover=false in rows() — decide before F2 |
 | R3: each agi-post@ start leaves settings.json 755; flags_ok wants 600 | R3a the unit chmods it 600; NO `agi.sh start` on the live town until ruled |
 | §21 decisions still open: #1 identity = refs/id/P chain · #2 cred as a secret piece, one post first · #3 signatures only at the boundary set · #4 chain height over wall time · #5 mem: cell in OptChat's shape · #6 symbolic control surface · #8 root never loaned as a shell · #10 IOMap on the hypothesis, g2.2 active · #11 season-3 pick as a route exercise (your rows = thirds + rollover) | each as the doc recommends; council reviews #1-#4 in W2, #8 in W3. Ruled already: #7 in part (you made prime-director/prime-key in Doppler; the org link stays above) · #9 (§34.1 three spider families) · #12 (§39 atoms in the card) |
-| V10b (the word sweep, later wave): the owner's §35 "No seat reference anywhere" vs SM's reading 10-23 (the whole-word grep hits 2152 files / 21165 lines; ~5937 are quote or owner-verbatim lines; ~30 node ids carry the word) | exclude owner-verbatim lines and closed records (complete/disproved/supported/retired), as deprecated/ is excluded; the owner's words are never rewritten (SM's recommendation, mine too; the council's [decision] follows). V10a (AGI_SEAT -> AGI_POST) goes ahead in W1 |
+| V10b (the word sweep, later wave): the owner's §35 "No seat reference anywhere" vs SM's reading 10-23 (the whole-word grep hits 2152 files / 21165 lines; ~5937 are quote or owner-verbatim lines; ~30 node ids carry the word) | exclude owner-verbatim lines and closed records (complete/disproved/supported/retired), as deprecated/ is excluded; the owner's words are never rewritten (SM's recommendation, mine too; the council's [decision] follows). V10a (AGI_[retired] -> AGI_POST) goes ahead in W1 |
 | atom 2.19: Belam on Fable permanently | a posts.md row edit (model cell), your call |
 | atom 4.1: "anti-fragile" read as self-perpetuating (no council post carries the name) | confirm, or name a fourth council post |
 | .44.8 F2 + .44.7 live half: the next real fresh box | one event; both leaves close on it |
@@ -124,9 +124,9 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 | 2.10 | soft constraints: no hard cornering / teleportation | target:§12 (word length k, transition matrix T, phase bound Θ) |
 | 2.11 | a jev experience for all models | target:§12 (one line) — thin; g1.25 jev grammar is the owner of it |
 | 2.12 | can LLMs tolerate matrix-encoded control | target:§12 (no: never numbers in a prompt) · decision:§21 #6 |
-| 2.13 | use the $200/mo Console credits; batching | target:§13, §36 · decision:§21 #7 · leaves C1–C5 |
+| 2.13 | use the $200/mo Console credits; batching | leaf:goal:g7.16.1.11.46.8 (C3) (L74) · was: §13, §36 · decision:§21 #7 · leaves C1–C5 |
 | 2.14 | batch-spawn parents/kids | target:§13, §29 (only `pull: none` steps batch) |
-| 2.15 | headless pi, cheap on memory | target:§30 (P1) |
+| 2.15 | headless pi, cheap on memory | leaf:goal:g7.16.1.11.46.9 (P1) (L74) · was: §30 (P1) |
 | 2.16 | Fable sparingly for council reviews | target:§13/§30 (a `plan`/review step model) — thin |
 | 2.17 | loan root to SM (graph moves) and council (unanimous) | target:§14 · decision:§21 #8 |
 | 2.18 | report why a root action was withheld | target:§14 (closed set of held lines) |
@@ -154,19 +154,24 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 | 3.5 | mint id per post and kid; inherit director's slot; different login | target:§27 |
 | 3.6 | full plugin | target:§28 |
 | 3.7 | directors vs parents vs kids; chain-launch; batch | target:§29, §34.2 |
-| 3.8 | pi 1.x now; deepseek flash; GLM; A/B with Claude keys | target:§30, §34.3 |
+| 3.8 | pi 1.x now; deepseek flash; GLM; A/B with Claude keys | leaf:goal:g7.16.1.11.46.9 (P1) (L74) · was: §30, §34.3 |
 | 3.9 | tests: spiders in background; build vs repair loops | target:§31, §34.4 |
 | 3.10 | territories / smell walk / pre-determined choices | target:§32 |
-| 3.11 | run autonomously; provide keys | target:§33, §36 |
+| 3.11 | run autonomously; provide keys | leaf:goal:g7.16.1.11.46.6 (C1) (L74) · was: §33, §36 |
 
 **throws 4–7 (10-23)**
 | # | atom (owner ask, short) | state |
 |---|---|---|
 | 4.1 | red-team = anti-fragile's; unify = all-is-one's; tune = alive's | target:§34.1 (flag: no council post named anti-fragile) |
-| 4.2 | GLM = the flash one | target:§34.3 |
+| 4.2 | GLM = the flash one | leaf:goal:g7.16.1.11.46.9 (P1) (L74) · was: §34.3 |
 | 4.3 | census: count tips; old versions as deprecated? | target:§34.5 (tips yes; versions are commits, not deprecated nodes) |
 | 4.4 | port the rest of the python safely | target:§34.6 |
 | 5.1 | posts, never seats; stand guard, never idle | target:§35 (V10 + the walk as idle state) |
-| 6.1 | service-account key in Doppler; workload identity later?; needed for batching? | target:§36 (cannot mint keys; WIF = season 4; not needed for batching) |
+| 6.1 | service-account key in Doppler; workload identity later?; needed for batching? | leaf:goal:g7.16.1.11.46.6 (C1) (L74) · was: §36 (cannot mint keys; WIF = season 4; not needed for batching) |
 | 6.2 | automatic vs manual prompt caching | target:§36.3 |
-| 7.1 | optmem for the Prime; trajectory = momentum, optmem = state | target:§37 (this ledger is M5) |
+| 7.1 | optmem for the Prime; trajectory = momentum, optmem = state | leaf:goal:g7.16.1.11.46.2 (M1) (L74) · was: §37 (this ledger is M5) |
+
+**added 10-23 (council V10a decision, alive 21:06Z)**
+| # | atom | state |
+|---|---|---|
+| 8.1 | seat_status.py retire | target:the §34.5 census-cell leaf (wave 2) |
