@@ -25,7 +25,7 @@ verdict: inconclusive_lean_proved:90
 ## Experiment
 
 FIX-ONLY kid 2 of 4 for `hypothesis:l4-a-seat-is-a-post-everywhere` — route the
-four residual `config:seats`/`seat-`/`AGI_SEAT` sites through the shared
+four residual `config:seats`/`seat-`/`AGI_[retired]` sites through the shared
 `geometry_config.py` resolver (post-first, seats fallback for one season).
 
 Files changed (my slice only):
@@ -38,17 +38,17 @@ Files changed (my slice only):
      `posts.md`. Lazy import so the hook never hard-depends on the engine (P7).
    - `_seat_from_cwd`: was `seat-<name>`-only. Now accepts `post-<name>`
      BESIDE `seat-<name>`, since worktrees are being renamed.
-   - AGI_SEAT identity read in `_seat_line` now goes through
-     `geometry_config.resolved_seat_env()` (AGI_POST wins, AGI_SEAT fallback).
+   - AGI_[retired] identity read in `_seat_line` now goes through
+     `geometry_config.resolved_seat_env()` (AGI_POST wins, AGI_[retired] fallback).
    - Added `_config_label(root)` so the emitted `rotate_at` source label names
      the ACTUAL config file (`config:posts` vs `config:seats`) instead of a
      hardcoded `config:seats`, which would lie on a posts.md read.
 2. `extensions/agi/bin/adapters/claude_code_adapter.py` (~L228): the meter-pin
-   seat key was `AGI_SEAT`; now `AGI_POST or AGI_SEAT`.
+   seat key was `AGI_[retired]`; now `AGI_POST or AGI_[retired]`.
 3. `extensions/agi/hooks/cc-session-start.sh` (~L234): `BOOTSTRAP_SEAT` was
-   `${AGI_SEAT:-}`; now `${AGI_POST:-${AGI_SEAT:-}}`.
+   `${AGI_[retired]:-}`; now `${AGI_POST:-${AGI_[retired]:-}}`.
 4. `extensions/agi/bin/rotate.py` L1137 (spawner export, ONLY that line):
-   `export AGI_SEAT=<seat>` → `export AGI_POST=<seat> AGI_SEAT=<seat>` so a
+   `export AGI_[retired]=<seat>` → `export AGI_POST=<seat> AGI_[retired]=<seat>` so a
    child reads either spelling. No other rotate.py line touched (kid 3 owns
    the branch readers).
 
@@ -61,7 +61,7 @@ Tests added/extended (build posts.md-only fixtures, AGI_POST-only / both, and
   agi_seat`, `test_record_session_pin_agi_seat_only_is_legacy_fallback`.
 - Updated `test_rotate.py`, `test_rotate_launch_wrapper.py`,
   `test_session_start_seat_pre_spawn.py` assertions for the dual AGI_POST+
-  AGI_SEAT export.
+  AGI_[retired] export.
 
 ## Evidence
 
@@ -82,6 +82,6 @@ None (send.py = kid 1's file, a git fetch/rev-parse-dependent path). These are
 pre-existing/out-of-scope for this kid and untouched by these edits.
 
 ## Agent Notes
-Kid2 fix-only: routed 4 residual sites (rotation_alert _seat_rows/_seat_from_cwd/AGI_SEAT, claude_code_adapter pin key, cc-session-start BOOTSTRAP_SEAT, rotate.py export) through geometry_config post-first + AGI_POST alias; added posts.md/post-<name>/AGI_POST tests. 92 tests pass.
+Kid2 fix-only: routed 4 residual sites (rotation_alert _seat_rows/_seat_from_cwd/AGI_[retired], claude_code_adapter pin key, cc-session-start BOOTSTRAP_SEAT, rotate.py export) through geometry_config post-first + AGI_POST alias; added posts.md/post-<name>/AGI_POST tests. 92 tests pass.
 
 L4.306 kid2 ACCEPTED inconclusive_lean_proved:90 (parent a00-930daa46): 4 convention sites (rotation_alert rows/cwd/AGI, adapter pin key, cc-session-start, rotate.py:1137 dual export) route post-first; 92 passed. Wider suite was red on a pre-existing send._pushed_seats non-origin-ref regression; parent fixed it as integration (probe_prefix), now 242 passed on test_post_rename+test_send.
