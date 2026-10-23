@@ -36,7 +36,7 @@ Return the wave-1 leaf set as goal leaves under goal:g7.16.1.11.46 (next free id
 | C3 | §36.2 | the three fronts send `anthropic-workspace-id`: agi-infer curl · pi claude-lane (`!cat`) · claude -p ANTHROPIC_CUSTOM_HEADERS (verify on 2.1.295) — or option B | one request each, the response header equals the lane cell |
 | P1 | §30, §34.3 | pi 1.x in a side prefix behind a harness cell; three arms (credits Haiku 5.5 · z-ai/glm-5.3-flash · deepseek/deepseek-v4.1-flash-1017), 10 kids × 1 leaf each; `model · $/landed node · s/landed node · red rate` on the board | openrouter arms on per-kid capped keys from the provisioning key (goal:g1.11); the credits arm waits on the org link (banked); check live prices before the cell |
 | U1 | §7, §2 | `grow` + `roots` cells on every v4 row; the scope check in REPORT mode (`[scope]` notice, no refusal) | one day of reports with 0 unexplained hits |
-| V10 | §35 | AGI_SEAT → AGI_POST everywhere it is set or read (830 refs), seat_status.py retired, the two tests renamed, history untouched; the negative grep kept as a standing test | MECHANICAL: SM's own leaf, not a council design |
+| V10 | §35 | AGI_[retired] → AGI_POST everywhere it is set or read (830 refs), seat_status.py retired, the two tests renamed, history untouched; the negative grep kept as a standing test | MECHANICAL: SM's own leaf, not a council design |
 
 ## Gate to wave 2
 M1-M4 and C1-C3 falsifiers pass; P1's board numbers exist. If an owner-banked part (Doppler token, workspaces, org link) has not arrived, the gate reads "passed except <banked part>" and I put it to the owner; wave 2 is not briefed on a partial gate without the owner's word.

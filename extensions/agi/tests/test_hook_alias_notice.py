@@ -1,22 +1,21 @@
 """hypothesis:l4-the-dry-run-pathspec-and-the-alias-notice-say-only-what-is-true
 REGION C — the SessionStart hook must invoke the CURRENT seat spelling
 (`--post`), so the deprecated-alias notice is never emitted for a session
-that uses none of the deprecated spellings (`--seat`, AGI_SEAT,
-config:seats).
+that uses none of the deprecated spellings (`--seat`, config:seats).
 
 The deprecated-alias notice is written to the CONSUMER's stderr by
 `geometry_config` (a literal `--seat` on a shared parser fires
-`_FLAG_DEP_MSG`; using AGI_SEAT fires `_ENV_DEP_MSG`). The seats.md/file
+`_FLAG_DEP_MSG`; the retired env spelling and its notice are gone,
+goal:g7.16.1.11.46.11). The seats.md/file
 fallback is SILENT by design — the file-level deprecation notice was
 DELETED, not merely silenced, and greps for its symbol now return nothing
 (hypothesis:l4-the-config-posts-note-is-silent-until-posts-md-exists): on
 a seats-only tree posts.md is absent, so a file-notice naming the
 migration target could only fire where its advice was untakeable. The
 notice family is therefore exactly the caller-chosen deprecated spellings
-(`--seat` flag, `AGI_SEAT` env), never the file fallback. The acceptance
-criterion is framed at the observable boundary of a real hook RUN: run the hook once with a deprecated
-env spelling in use (AGI_SEAT, no AGI_POST) and once with only the current
-spelling (AGI_POST), and assert the notice appears at most once across the
+(the `--seat` flag), never the file fallback. The acceptance
+criterion is framed at the observable boundary of a real hook RUN: run the hook once with no identity
+set and once with only the current spelling (AGI_POST), and assert the notice appears at most once across the
 two runs and NEVER on the run that uses no deprecated spelling.
 
 At least one assertion in this module observes the real subprocess output of
@@ -47,7 +46,7 @@ _HOOKS = [
 #: Matching "is deprecated" as the shared family stretch would also catch the
 #: three exact messages above without reinventing them.
 _NOTICE = re.compile(
-    r"note:\s+(--seat|AGI_SEAT|config:seats)\s+is deprecated"
+    r"note:\s+(--seat|config:seats)\s+is deprecated"
 )
 
 
@@ -74,7 +73,6 @@ def _run_hook(hook: Path, root: Path, env_extra: dict) -> subprocess.CompletedPr
     env = dict(os.environ)
     # Never inherit a seat spelling from the runner's own environment; every
     # run is fully specified by env_extra.
-    env.pop("AGI_SEAT", None)
     env.pop("AGI_POST", None)
     env.update(env_extra)
     return subprocess.run(
@@ -100,11 +98,11 @@ def _notice_count(proc: subprocess.CompletedProcess) -> int:
 def test_deprecated_alias_notice_not_emitted_unconditionally(hook, tmp_path):
     """The notice is not emitted unconditionally: a session using only the
     current spelling sees ZERO deprecated-alias notices, and — counting the
-    deprecated-env-spelling run too — the family appears at most once across
+    no-identity run too — the family appears at most once across
     the two runs."""
     root = _make_project(tmp_path)
 
-    run_a = _run_hook(hook, root, {"AGI_SEAT": "seatA"})   # deprecated env spelling in use
+    run_a = _run_hook(hook, root, {})                      # no identity set
     run_b = _run_hook(hook, root, {"AGI_POST": "postB"})   # current spelling only
 
     assert run_a.returncode == 0, f"hook exited {run_a.returncode}"

@@ -35,7 +35,7 @@ spec.loader.exec_module(hook)
 
 @pytest.fixture(autouse=True)
 def _clean(monkeypatch):
-    monkeypatch.delenv("AGI_SEAT", raising=False)
+    monkeypatch.delenv("AGI_POST", raising=False)
     monkeypatch.delenv("AGI_HOOK_NO_SPAWN", raising=False)
     hook._CAPTURE_LOGGED.clear()
 
@@ -89,7 +89,7 @@ def test_captive_ratio_fires_for_director_vector(tmp_path, capsys, monkeypatch):
     f=0.42 fires. NO_SPAWN records handoff THEN rotate-self --force --stops,
     and the stops line names the captive reason (not the 10-min stale one)."""
     graph, cwd = _graph(tmp_path, extra="captive_rotate_ratio: 0.5\n")
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
     code, cap = _run(capsys, monkeypatch, graph, cwd, 42_000)
     assert code == 0, cap.err
@@ -106,7 +106,7 @@ def test_captive_ratio_fires_for_director_vector(tmp_path, capsys, monkeypatch):
 def test_captive_below_the_ratio_is_silent(tmp_path, capsys, monkeypatch):
     """(2) f=0.1 < 0.5*0.4 -> no capture at all."""
     graph, cwd = _graph(tmp_path, extra="captive_rotate_ratio: 0.5\n")
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     code, cap = _run(capsys, monkeypatch, graph, cwd, 10_000)
     assert code == 0, cap.err
     assert _captures() == [], hook._CAPTURE_LOGGED
@@ -116,7 +116,7 @@ def test_captive_never_fires_for_a_non_director(tmp_path, capsys, monkeypatch):
     """(3) role `parent` at f=0.42 >= 0.2 -> no capture."""
     graph, cwd = _graph(tmp_path, extra="captive_rotate_ratio: 0.5\n",
                         row_role="parent")
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     code, cap = _run(capsys, monkeypatch, graph, cwd, 42_000)
     assert code == 0, cap.err
     assert _captures() == [], hook._CAPTURE_LOGGED
@@ -126,7 +126,7 @@ def test_captive_never_fires_for_the_prime(tmp_path, capsys, monkeypatch):
     """(4) role `prime_director` at f=0.42 >= 0.2 -> no capture."""
     graph, cwd = _graph(tmp_path, extra="captive_rotate_ratio: 0.5\n",
                         row_role="prime_director")
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     code, cap = _run(capsys, monkeypatch, graph, cwd, 42_000)
     assert code == 0, cap.err
     assert _captures() == [], hook._CAPTURE_LOGGED
@@ -139,7 +139,7 @@ def test_master_excluded_but_opt_in_by_the_ladder_cell(tmp_path, capsys,
     graph, cwd = _graph(tmp_path,
                         extra="captive_rotate_ratio: 0.5\n",
                         row_name="sanctuary-master")
-    monkeypatch.setenv("AGI_SEAT", "sanctuary-master")
+    monkeypatch.setenv("AGI_POST", "sanctuary-master")
     monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
     code, cap = _run(capsys, monkeypatch, graph, cwd, 42_000)
     assert code == 0, cap.err
@@ -158,7 +158,7 @@ def test_master_excluded_but_opt_in_by_the_ladder_cell(tmp_path, capsys,
 def test_ratio_is_read_from_the_ladder(tmp_path, capsys, monkeypatch):
     """(6) cell 0.5 fires at f=0.5*threshold; cell 0.9 does not."""
     g05, c05 = _graph(tmp_path / "a", extra="captive_rotate_ratio: 0.5\n")
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
     code, cap = _run(capsys, monkeypatch, g05, c05, 20_000, session="s-05")
     assert code == 0, cap.err
@@ -173,7 +173,7 @@ def test_ratio_is_read_from_the_ladder(tmp_path, capsys, monkeypatch):
 def test_merge_in_flight_blocks_the_captive(tmp_path, capsys, monkeypatch):
     """(7) a merge in flight is a HARD blocker: no capture, deferral named."""
     graph, cwd = _graph(tmp_path, extra="captive_rotate_ratio: 0.5\n")
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     monkeypatch.setattr(hook, "_merge_in_flight", lambda *a, **k: "merge-up")
     code, cap = _run(capsys, monkeypatch, graph, cwd, 42_000)
     assert code == 0, cap.err
@@ -186,7 +186,7 @@ def test_no_captive_cell_is_off_by_name(tmp_path, capsys, monkeypatch):
     in the ladder the feature is OFF: an over-line director is NOT captured
     (the pre-existing imperative path is byte-identical)."""
     graph, cwd = _graph(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
     code, cap = _run(capsys, monkeypatch, graph, cwd, 42_000)
     assert code == 0, cap.err
@@ -199,7 +199,7 @@ def test_masters_only_without_ratio_is_off_by_name(tmp_path, capsys, monkeypatch
     literal. f=0.42 >= 0.85*0.4 = 0.34, so the 0.85 fallback fired (RED-FIRST).
     """
     graph, cwd = _graph(tmp_path, extra="captive_rotate_masters: true\n")
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
     code, cap = _run(capsys, monkeypatch, graph, cwd, 42_000)
     assert code == 0, cap.err
@@ -211,7 +211,7 @@ def test_unparseable_ratio_is_off_by_name(tmp_path, capsys, monkeypatch):
     -- not the pre-fix silent 0.85 literal (RED-FIRST)."""
     graph, cwd = _graph(tmp_path,
                         extra="captive_rotate_ratio: not-a-number\n")
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
     code, cap = _run(capsys, monkeypatch, graph, cwd, 42_000)
     assert code == 0, cap.err

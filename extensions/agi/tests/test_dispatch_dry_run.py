@@ -413,7 +413,7 @@ def test_dry_run_no_seat_leaves_key_absent(project):
     inherited AGI_POST means the key is ABSENT, never a placeholder."""
     r = _run(project, "--harness", "pi", "--tier", "parent",
              "--target", "hypothesis:x", "--dry-run",
-             env={"AGI_POST": None, "AGI_SEAT": None})   # the helper falls back to the retired name: remove it too
+             env={"AGI_POST": None})
     assert r.returncode == 0, r.stderr
     assert "AGI_POST=" not in r.stdout, r.stdout
 

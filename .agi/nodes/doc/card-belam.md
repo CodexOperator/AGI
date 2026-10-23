@@ -39,7 +39,7 @@ belam-s3-IV, 10-23 after the owner's hand-off of the Fable brainstorm: §7 ATOMS
 ```
 W0  me alone           doc node · §7 atoms · V0 · §6 banks                                               DONE 10-23
 W1  council brief 1    M1-M4 (§37-§39 atoms tooling) · C1-C3 (§36 agi-cred, workspace cells, the header) · P1 (§30/§34.3 pi 1.x A/B)
-                       · U1 (§7 scope report mode) · V10 (§35 AGI_SEAT -> AGI_POST: SM's mechanical leaf, not a council design)
+                       · U1 (§7 scope report mode) · V10 (§35 AGI_[retired] -> AGI_POST: SM's mechanical leaf, not a council design)
     gate               M1-M4 + C1-C3 falsifiers pass; P1's four numbers on the board
 W2  council brief 2    V1 refs/id/P · V2 cred piece (ONE post) · U3 MANIFEST scope/reach/at/pull/atoms · G1 compose/split (§25, §34.5)
                        · the age seal (§23, §34.6) · U6 move falls out

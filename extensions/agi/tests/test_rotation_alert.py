@@ -35,16 +35,16 @@ spec.loader.exec_module(hook)
 
 @pytest.fixture(autouse=True)
 def _no_inherited_seat(monkeypatch):
-    """Tests never inherit the RUNNER's AGI_SEAT.
+    """Tests never inherit the RUNNER's AGI_POST.
 
-    A seat exports AGI_SEAT in its own pane, so a test run from inside a seat
+    A seat exports AGI_POST in its own pane, so a test run from inside a seat
     worktree measures WHATEVER seat the runner exports unless it is cleared. A
     seat identification exercised by any test would then silently depend on the
     pane it happens to run in. ONE autouse fixture clears it for every test in
     the module (the three former per-test `monkeypatch.delenv` lines fold in
-    here); a test that NEEDS a particular seat sets AGI_SEAT explicitly.
+    here); a test that NEEDS a particular seat sets AGI_POST explicitly.
     """
-    monkeypatch.delenv("AGI_SEAT", raising=False)
+    monkeypatch.delenv("AGI_POST", raising=False)
 
 
 #: EVERY test records (and does NOT really run) the hook's background rotate-
@@ -386,7 +386,7 @@ def test_a_registration_names_userpromptsubmit():
 
 # --- (b) the printed band pct is the band's OWN fraction of threshold -------
 def _fraction_test(graph, transcript, session, state_dir, run_hook, monkeypatch, capsys):
-    # AGI_SEAT is cleared by the module's autouse fixture (_no_inherited_seat).
+    # AGI_POST is cleared by the module's autouse fixture (_no_inherited_seat).
     state_dir.mkdir(exist_ok=True)
     return run_hook(_payload(graph, transcript, session), state_dir, monkeypatch, capsys)
 
@@ -486,7 +486,7 @@ def test_d_seat_measured_at_own_rotate_at(tmp_path, run_hook, monkeypatch, capsy
     _write_transcript(tp, 45_000)          # fraction 0.45: >= 0.4, < 0.47
     state_dir = tmp_path / "state-d"
     state_dir.mkdir(exist_ok=True)
-    # AGI_SEAT is cleared by the module's autouse fixture; the seat is
+    # AGI_POST is cleared by the module's autouse fixture; the seat is
     # identified from the cwd sitting under the `seat-<name>` worktree.
     code, out, err = run_hook(_payload(graph, tp, "sess-d", cwd=str(seat_cwd)),
                               state_dir, monkeypatch, capsys)
@@ -535,39 +535,6 @@ def test_posts_md_is_resolved_post_first(tmp_path, run_hook, monkeypatch, capsys
     # the message names the POSTS row that won — never {} / ladder
     assert "config:posts" in out and "sensei-director" in out, out
     assert "ladder.director_rotate_at" not in out, out
-
-
-def test_agi_post_wins_over_agi_seat_in_hook(tmp_path, run_hook, monkeypatch, capsys):
-    """Both AGI_POST and AGI_SEAT set: AGI_POST identifies the post, so the
-    threshold comes from the POST row (rotate_at 0.4) not the legacy row
-    (rotate_at 0.99). 0.45 fires ROTATION OWED only against the post row."""
-    outer = tmp_path / "outer"
-    graph = outer / "proj" / ".agi"
-    (graph / "nodes" / ".geometry").mkdir(parents=True)
-    (graph / "config.json").write_text("{}")
-    (graph / "nodes" / ".geometry" / "ladder.md").write_text(
-        "---\ndirector_context_tokens: 100000\ndirector_rotate_at: 0.47\n---\n")
-    (graph / "nodes" / ".geometry" / "posts.md").write_text(
-        "---\nposts:\n"
-        "  - {\"name\": \"new-post\", \"role\": \"director\", "
-        "\"worktree\": \".agi/worktrees/post-new-post\", "
-        "\"rotate_at\": 0.4}\n"
-        "  - {\"name\": \"legacy-seat\", \"role\": \"director\", "
-        "\"worktree\": \".agi/worktrees/seat-legacy-seat\", "
-        "\"rotate_at\": 0.99}\n---\n")
-    monkeypatch.setenv("AGI_POST", "new-post")
-    monkeypatch.setenv("AGI_SEAT", "legacy-seat")
-
-    tp = tmp_path / "env.jsonl"
-    _write_transcript(tp, 45_000)          # >= 0.4 (new-post), < 0.99 and 0.47
-    state_dir = tmp_path / "state-env"
-    state_dir.mkdir(exist_ok=True)
-    code, out, err = run_hook(_payload(graph, tp, "sess-env", cwd=str(graph)),
-                              state_dir, monkeypatch, capsys)
-    assert code == 0, err
-    assert "ROTATION OWED" in out, out
-    assert "new-post" in out, out
-    assert "legacy-seat" not in out, out
 
 
 # --- (e) a seat rotate_at of 0 is treated as MISSING, not as threshold 0 ----
@@ -620,7 +587,7 @@ def test_e_nonpositive_seat_rotate_at_falls_back_to_ladder(tmp_path, run_hook, m
 
 # --------------------------------------------------------------------------
 # Round SL3.04 — the seat's rotate_at is read MAIN-CHECKOUT-first and the
-# tests never inherit the runner's AGI_SEAT (hypothesis:l4-the-rotation-
+# tests never inherit the runner's AGI_POST (hypothesis:l4-the-rotation-
 # alert-reads-the-main-checkout-row-and-its-tests-do-not-inherit-the-runners-
 # seat). Build order, not measurement: the fixtures fail against the pre-fix
 # bytes and pass on the built ones. Each test also asserts on the emitted
@@ -680,7 +647,7 @@ def test_f_main_checkout_row_wins(tmp_path, run_hook, monkeypatch, capsys):
     _write_transcript(tp, 45_000)     # fraction 0.45: >= main 0.4, < worktree 0.47
     state_dir = tmp_path / "state-f"
     state_dir.mkdir(exist_ok=True)
-    monkeypatch.setenv("AGI_SEAT", "test-seat")   # explicit — may NOT rely on env
+    monkeypatch.setenv("AGI_POST", "test-seat")   # explicit — may NOT rely on env
     code, out, err = run_hook(_payload(wt_graph, tp, "sess-f",
                                        cwd=str(wt_graph.parent)),
                               state_dir, monkeypatch, capsys)
@@ -708,7 +675,7 @@ def test_g_seat_only_in_worktree_row(tmp_path, run_hook, monkeypatch, capsys):
     _write_transcript(tp, 45_000)     # 0.45 < 0.47 -> approaching, not over
     state_dir = tmp_path / "state-g"
     state_dir.mkdir(exist_ok=True)
-    monkeypatch.setenv("AGI_SEAT", "only-wt")
+    monkeypatch.setenv("AGI_POST", "only-wt")
     code, out, err = run_hook(_payload(wt_graph, tp, "sess-g",
                                        cwd=str(wt_graph.parent)),
                               state_dir, monkeypatch, capsys)
@@ -745,7 +712,7 @@ def test_h_dead_fallback_reached_by_nonconvention_worktree(tmp_path, run_hook, m
     _write_transcript(tp, 45_000)   # 0.45 < weird's 0.5 -> approaching, not over
     state_dir = tmp_path / "state-h"
     state_dir.mkdir(exist_ok=True)
-    # AGI_SEAT deliberately NOT set: the autouse fixture cleared any inherited
+    # AGI_POST deliberately NOT set: the autouse fixture cleared any inherited
     # value and the cwd fallback must identify the seat on its own.
     code, out, err = run_hook(_payload(graph, tp, "sess-h", cwd=str(cwd)),
                               state_dir, monkeypatch, capsys)
@@ -807,7 +774,7 @@ def test_j_main_unresolved_exception_labels_worktree(tmp_path, run_hook,
     _write_transcript(tp, 30_000)   # 0.30 < 0.4 -> approaching, not over
     state_dir = tmp_path / "state-j"
     state_dir.mkdir(exist_ok=True)
-    monkeypatch.setenv("AGI_SEAT", "booms")
+    monkeypatch.setenv("AGI_POST", "booms")
     code, out, err = run_hook(_payload(graph, tp, "sess-j",
                                        cwd=str(graph.parent)),
                               state_dir, monkeypatch, capsys)
@@ -835,7 +802,7 @@ def test_k_main_unresolved_no_graph_root_labels_worktree(tmp_path, run_hook,
     _write_transcript(tp, 45_000)   # 0.45 < 0.47 -> approaching, not over
     state_dir = tmp_path / "state-k"
     state_dir.mkdir(exist_ok=True)
-    monkeypatch.setenv("AGI_SEAT", "ngr")
+    monkeypatch.setenv("AGI_POST", "ngr")
     code, out, err = run_hook(_payload(graph, tp, "sess-k",
                                        cwd=str(graph.parent)),
                               state_dir, monkeypatch, capsys)
@@ -845,13 +812,13 @@ def test_k_main_unresolved_no_graph_root_labels_worktree(tmp_path, run_hook,
     assert "main checkout" not in out, out
 
 
-# --- (i) the autouse fixture clears an inherited AGI_SEAT -------------------
+# --- (i) the autouse fixture clears an inherited AGI_POST -------------------
 def test_module_agiseat_is_cleared_at_entry():
-    """The module's autouse fixture must clear the RUNNER's AGI_SEAT at every
-    test entry, even when a seat exports it (`env AGI_SEAT=x python3 -m pytest
+    """The module's autouse fixture must clear the RUNNER's AGI_POST at every
+    test entry, even when a seat exports it (`env AGI_POST=x python3 -m pytest
     ... -q` is green). This assertion is trivially true in a clean shell; its
-    PROOF is the whole module going green under `env AGI_SEAT=x`."""
-    assert "AGI_SEAT" not in os.environ
+    PROOF is the whole module going green under `env AGI_POST=x`."""
+    assert "AGI_POST" not in os.environ
 
 # --------------------------------------------------------------------------
 # Round SL7.23 — the meter hook ROTATES at threshold (goal:g15.25 line (4)),
@@ -866,7 +833,7 @@ def test_module_agiseat_is_cleared_at_entry():
 # --------------------------------------------------------------------------
 
 def _over_line_seat_fixture(tmp_path):
-    """A single-tree graph fixture whose seat `probe-director` (AGI_SEAT) has
+    """A single-tree graph fixture whose seat `probe-director` (AGI_POST) has
     rotate_at 0.4, with a worktree cwd. Transcript 45_000 / window 100_000 =
     0.45 >= 0.4 → over the line. Gitless: every gate's measurement degrades to
     clean, so gates (b)(c)(d) pass and gate (a) passes unless a card is made
@@ -930,7 +897,7 @@ def test_live_suite_lock_defers_rotation(tmp_path, run_hook, monkeypatch, capsys
     and does NOT rotate. A rotation landing mid-merge is worse than one extra
     tool call — this is the FALSIFIER that must hold."""
     graph, cwd = _over_line_seat_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     lock = graph / "sessions" / "verify-suite.lock"
     lock.parent.mkdir(parents=True, exist_ok=True)
     lock.write_text(str(os.getppid()))   # THIS test's LIVE FOREIGN pid (the parent)
@@ -954,7 +921,7 @@ def test_stale_card_delays_and_prints_card_line(tmp_path, run_hook, monkeypatch,
     the card line to write and does NOT rotate (the hook never rotates a seat
     whose card is stale)."""
     graph, cwd = _over_line_seat_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     # fake a WORK commit far in the FUTURE so the freshly-past card is stale.
     monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
     card = graph / "sessions" / "quorum" / "probe-director.md"
@@ -984,7 +951,7 @@ def test_over_line_clean_state_rotates_from_hook(tmp_path, run_hook, monkeypatch
     --stops` snapshot, the spawn + card printed, and the once-per-generation
     latch written so a slow spawn is never doubled."""
     graph, cwd = _over_line_seat_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     tp = tmp_path / "clean.jsonl"
     _write_transcript(tp, 45_000)
     state_dir = tmp_path / "state-clean"
@@ -1018,7 +985,7 @@ def test_latch_prevents_double_rotation(tmp_path, run_hook, monkeypatch, capsys)
     """Gate (d): once a spawn for seat + generation has happened (latch present),
     a next prompt does NOT re-spawn — a slow spawn is never doubled."""
     graph, cwd = _over_line_seat_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     latch = graph / "sessions" / "rotations" / "hook-probe-director-sess-onc.lock"
     latch.parent.mkdir(parents=True, exist_ok=True)
     latch.write_text("pid 1\n")          # as if a spawn had just started
@@ -1118,8 +1085,8 @@ def _real_repo_with_seat(tmp_path):
 
 
 def _over_line_run(graph, cwd, tp, state_dir, tmp_path, run_hook, monkeypatch, capsys):
-    """Write an over-line transcript and run the hook (seat from AGI_SEAT)."""
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    """Write an over-line transcript and run the hook (seat from AGI_POST)."""
+    monkeypatch.setenv("AGI_POST", "probe-director")
     _write_transcript(tp, 45_000)          # 0.45 >= 0.4 -> over the line
     state_dir.mkdir(exist_ok=True)
     return run_hook(_payload(graph, tp, "sess-gb", cwd=str(cwd)),
@@ -1224,7 +1191,7 @@ def test_dead_latch_is_released_and_rerotates(tmp_path, run_hook, monkeypatch, c
     is released as stale, and a clean-state seat re-rotates on the NEXT prompt
     instead of being latched out of auto-retry for the whole generation."""
     graph, cwd = _over_line_seat_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     tp = tmp_path / "dead.jsonl"
     _write_transcript(tp, 45_000)            # 0.45 >= 0.4 -> over the line
     # FIRST prompt: clean -> rotates, leaves a latch naming the rotate-self pid.
@@ -1320,7 +1287,7 @@ def test_dead_latch_released_before_gate_c_captive(tmp_path, run_hook, monkeypat
     returned, so a dead latch stranded behind a captive blocked every later
     rotation until a human removed it by hand."""
     repo, graph, cwd = _real_repo_with_seat(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     # a DIRTY tree makes gate (c) prepare's 'dirty' captive HOLD (listed,
     # never performed) while gate (b) stays clean.
     (repo / "dirty-marker").write_text("uncommitted\n")
@@ -1352,7 +1319,7 @@ def test_spawn_launch_goes_through_the_popen_seam_and_no_spawn_honoured(
     called subprocess.Popen directly (c1f01e920: a live rotate-self --stops
     for the sensei-director seat fired from a kid's pytest)."""
     graph, cwd = _over_line_seat_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     calls = []
 
     class _Fake:
@@ -1467,8 +1434,8 @@ def test_out_of_process_no_spawn_declines_and_writes_no_latch(tmp_path):
     env["AGI_HOOK_NO_SPAWN"] = "1"
     env["AGI_ROTATION_STATE_DIR"] = str(state_dir)
     env.pop("AGI_POST", None)   # the runner's own post must not leak in
-    env.pop("AGI_SEAT", None)
-    env["AGI_SEAT"] = "probe-director"
+    env.pop("AGI_POST", None)
+    env["AGI_POST"] = "probe-director"
     # The hook resolves seats rows through `graph_core.persistence.frontmatter`
     # (geometry_config.load_rows), which lives under src/ — on sys.path under
     # pytest (conftest), but a bare `python3` subprocess does NOT carry it, so
@@ -1506,10 +1473,10 @@ def test_meter_line_prints_below_first_band(agi_project, run_hook, tmp_path, mon
     """D1 — a prompt below the first band (currently silent in the body)
     prints the [meter] line as its WHOLE stdout. The meter is unconditional;
     the band escalation is what stays quiet below the line. The fixture seat
-    is resolved (AGI_SEAT + computable pin) because claim (2) of
+    is resolved (AGI_POST + computable pin) because claim (2) of
     experiment:a00-deae9b09-fb6c31 makes a seat-None prompt print `no-post`
     with NO fraction — the D1 fraction-line only belongs to a RESOLVED post."""
-    monkeypatch.setenv("AGI_SEAT", "meter-director")
+    monkeypatch.setenv("AGI_POST", "meter-director")
     transcript = tmp_path / "below.jsonl"
     _write_transcript(transcript, 5_000)          # 0.05 < band 0 (0.10)
     state_dir = tmp_path / "state-below"
@@ -1530,7 +1497,7 @@ def test_meter_line_last_stdout_line_after_band_crossing(agi_project, run_hook, 
     and the [meter] line is the LAST stdout line (asserted on the last
     non-empty line, not an `in`). Resolved seat: claim (2) makes a seat-None
     prompt print `no-post` with NO fraction."""
-    monkeypatch.setenv("AGI_SEAT", "meter-director")
+    monkeypatch.setenv("AGI_POST", "meter-director")
     transcript = tmp_path / "band.jsonl"
     _write_transcript(transcript, 20_000)         # 0.20 -> crosses band 0.70
     state_dir = tmp_path / "state-band"
@@ -1549,9 +1516,9 @@ def test_turn_one_estimates_and_labels_meter(agi_project, run_hook, tmp_path, mo
     """D3 — turn 1 (no assistant usage yet) prints a labelled `est.` fraction
     as the [meter] line, never a blank, never a bare unlabelled 0.0000. The
     estimate is informational: NO band block fires from an estimate. Resolved
-    seat (AGI_SEAT): claim (2) makes a seat-None prompt print `no-post` with
+    seat (AGI_POST): claim (2) makes a seat-None prompt print `no-post` with
     NO fraction, so the estimate-fraction belongs to a RESOLVED post."""
-    monkeypatch.setenv("AGI_SEAT", "meter-director")
+    monkeypatch.setenv("AGI_POST", "meter-director")
     transcript = tmp_path / "turn1.jsonl"
     transcript.parent.mkdir(parents=True, exist_ok=True)
     # a transcript with ONLY a user message — no assistant usage to measure.
@@ -1577,7 +1544,7 @@ def test_missing_pin_prints_refusal_reason_not_fraction(tmp_path, run_hook, monk
     fraction would go (P6 stays fail-closed). FALSIFIER: a missing pin that
     still prints a fraction."""
     graph, cwd = _over_line_seat_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     monkeypatch.setattr(hook, "_canonical_pin", lambda *a, **k: None)
     tp = tmp_path / "nopin.jsonl"
     _write_transcript(tp, 5_000)          # 0.05 < band0 (0.16) -> silent body
@@ -1753,7 +1720,7 @@ def test_c2_no_post_prints_unresolved_label_no_fraction(agi_project, run_hook,
     transcript = tmp_path / "nopost.jsonl"
     _write_transcript(transcript, 5_000)        # 0.05 -> below first band
     state_dir = tmp_path / "state-nopost"
-    # AGI_SEAT is cleared by the autouse fixture: the agi_project cwd is not
+    # AGI_POST is cleared by the autouse fixture: the agi_project cwd is not
     # a seat-/post-* worktree, so NO seat resolves.
     code, out, err = run_hook(_payload(agi_project, transcript, "sess-nopost"),
                               state_dir, monkeypatch, capsys)
@@ -1773,7 +1740,7 @@ def test_d2_est_counts_prompt_field_not_envelope(agi_project, tmp_path,
     exact `<est>/<window>` from a KNOWN prompt length and a KNOWN transcript
     size. Pre-fix est = int((len(raw) + bytes)/4) included the ~200-byte
     envelope, so a 10-char prompt overestimated by the envelope each turn."""
-    monkeypatch.setenv("AGI_SEAT", "meter-director")
+    monkeypatch.setenv("AGI_POST", "meter-director")
     tp = tmp_path / "turn1-est.jsonl"
     content = json.dumps({"message": {"role": "user", "content": "hi"}}) + "\n"
     tp.write_text(content, encoding="utf-8")
@@ -1804,7 +1771,7 @@ def test_e2_poisoned_rotate_import_still_prints_pin_only(agi_project, run_hook,
     post and a computable pin must STILL print the [meter] fraction. Pre-fix,
     `_canonical_pin` imported rotate on every prompt, so the poison broke it
     into a `no-pin` refusal."""
-    monkeypatch.setenv("AGI_SEAT", "meter-director")
+    monkeypatch.setenv("AGI_POST", "meter-director")
     monkeypatch.setitem(sys.modules, "rotate", None)   # any `import rotate` raises
     transcript = tmp_path / "pinonly.jsonl"
     _write_transcript(transcript, 5_000)               # 0.05 -> pin-only path

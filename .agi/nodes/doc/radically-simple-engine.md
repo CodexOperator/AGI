@@ -1921,7 +1921,7 @@ Falsifiers: **F50** the table above (PASS) · **F51** the land gate verifies the
 #!/usr/bin/env python3
 # agi-scope issue SUB ROOTS GROW NA PAR | verify CERT [ROOT TYPE] | revoke HASH | move POST NEWPARENT -- recursive scope certs (§Z2): attenuation-only links chained to the owner anchor; a revocation or a re-parent kills the whole subtree
 import sys,os,time,hashlib,subprocess as S
-A=sys.argv;D=os.environ.get('AGI_SCOPE','.agi/scope');ME=os.environ.get('AGI_SEAT','');K=os.environ.get('AGI_SIGN_KEY','')
+A=sys.argv;D=os.environ.get('AGI_SCOPE','.agi/scope');ME=os.environ.get('AGI_[retired]','');K=os.environ.get('AGI_SIGN_KEY','')
 def no(m):print('refused:',m);sys.exit(3)
 def rd(p):return dict(l.split(' ',1)for l in open(p).read().splitlines()[1:])
 def hx(p):return hashlib.sha256(open(p,'rb').read()).hexdigest()[:16]

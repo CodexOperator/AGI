@@ -419,9 +419,9 @@ def test_rotate_helper_gates_another_post_not_self(council_and_keep, geom,
     rot = _load_rotate()
     root = tmp_path / "graph"
     root.mkdir(parents=True, exist_ok=True)
-    # the caller's own post, as a v5 unit carries it: AGI_POST ONLY, no AGI_SEAT
+    # the caller's own post, as a v5 unit carries it: AGI_POST ONLY
     # (goal:g7.16.1.11.37, SM 03:24Z): the self carve-out must survive the retired name.
-    monkeypatch.delenv("AGI_SEAT", raising=False)
+    monkeypatch.delenv("AGI_POST", raising=False)
     monkeypatch.setenv("AGI_POST", "adv-alive")
 
     # frozen prime scope
@@ -456,7 +456,7 @@ def test_rotate_helper_self_carve_out_for_a_v4_row_with_only_the_retired_name(
     root = tmp_path / "graph"
     root.mkdir(parents=True, exist_ok=True)
     monkeypatch.delenv("AGI_POST", raising=False)
-    monkeypatch.setenv("AGI_SEAT", "adv-alive")
+    monkeypatch.setenv("AGI_POST", "adv-alive")
     _write_rot_vetoes(root, _frozen_geom())
     held, _freeze = rot._rotate_human_gate(root, "adv-alive")
     assert held is None
@@ -474,7 +474,7 @@ def test_rotate_holds_another_post_record_carries_freeze(tmp_path, monkeypatch,
     rot = _load_rotate()
     root = tmp_path / "graph"
     root.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setenv("AGI_SEAT", "belam")  # caller is the prime; target is not
+    monkeypatch.setenv("AGI_POST", "belam")  # caller is the prime; target is not
     _write_rot_vetoes(root, _frozen_geom())
 
     args = SimpleNamespace(name="other-post", prepare=False)

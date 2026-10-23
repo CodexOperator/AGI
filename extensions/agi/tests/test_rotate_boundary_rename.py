@@ -336,7 +336,7 @@ def test_rc_label_and_stored_row_cell_carry_the_new_name(tmp_path, monkeypatch):
 # ---- L5.16: the successor key is minted UNDER the NEW name ----------------
 # hypothesis:l5-spawn-mints-the-successor-key-under-the-row-name-not-the-
 # renamed-seat. Before the fix the successor key was written to the ROW's
-# pre-rename path while the successor process ran with AGI_SEAT=<new>, so
+# pre-rename path while the successor process ran with the identity variable =<new>, so
 # `send` resolved `<new>.key` and found the PREDECESSOR key (or nothing) and
 # could not sign as the renamed seat. The Prime patched it by hand at 22:43Z.
 
@@ -405,7 +405,7 @@ def test_rename_rotation_successor_signs_as_the_new_seat(
     """WIRE PROOF, the whole chain through `cmd_rotate_self`: a keyed seat
     with a staged rename mints its successor key at `<new>.key`, the row's
     `pubkey` cell names that successor, and a signing call as
-    `AGI_SEAT=<new>` (send._sign_line resolves `<new>.key`) VERIFIES under
+    `AGI_POST=<new>` (send._sign_line resolves `<new>.key`) VERIFIES under
     the row's pubkey. Fails on the unfixed code, where `<new>.key` holds the
     predecessor key moved there by the boundary."""
     from agi.bin import send
@@ -456,7 +456,7 @@ def test_rename_rotation_successor_signs_as_the_new_seat(
         "adv-new.key.gen*-pre-rename"))
     assert len(baks) == 1, baks
     assert json.loads(baks[0].read_text())["priv_hex"] == pred_priv
-    # a process running as AGI_SEAT=adv-new can sign as that seat.
+    # a process running as AGI_POST=adv-new can sign as that seat.
     ts, to, text = "2026-09-17T00:00:00Z", "belam", "hello"
     sig_line = send._sign_line(tmp_path, "adv-new", ts, to, text)
     assert sig_line and sig_line.startswith("sig: ed25519:"), sig_line

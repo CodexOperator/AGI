@@ -5,7 +5,7 @@
 T=$(mktemp -d);trap 'for p in $(cat $T/pids $T/boxpid 2>/dev/null);do kill -TERM -$p 2>/dev/null;kill -TERM $p 2>/dev/null;done;rm -rf $T' 0;f=0;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)}
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
-unset GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_SEAT AGI_POST
+unset GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_POST
 mkdir -p $T/bin $T/run $T/hm
 [ -n "$AGIRUN" ]||{ sect agi-run>$T/agi-run;AGIRUN=$T/agi-run;}
 [ -s $AGIRUN ]||{ echo "FAIL extract: agi-run $(wc -c<$AGIRUN)";exit 99;}
