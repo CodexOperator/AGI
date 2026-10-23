@@ -54,7 +54,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-23:31Z 10-22: L73 RE-CUT d17d3785a8 read clean (G, re-pinned, P f5a4ecab33+e352d26b89, T 6a8432d749 = GATE164 + town node only); GO 3/3. Banked: diag anchor count + row. WAIT SM's [merge-up] -> read L73 -> belam run 3 (~2 h; floor 3.5G) -> redacted summary: (i) RT2, (ii) first-start, finding F ('not caught' if absent with NRestarts>0), diag legs, host delta -> owner. Next: `cd ~/t; date -u; box read`.
+02:24Z 10-23: RUN 3 inner ENDED 23:54:28Z (rootfs f1/out read): start1 rc 1 'posts: still unmet'; finding F x2 (thought-master, director-thought-1 = R2 rows, journal 'Starting agi-post@thought-master'); set.A = the 11; oom 0. Container NEVER powered off (only init/dbus/journald) -> timeout 03:34Z would score INCONCLUSIVE and hide it; L2 would read PASS (verdict hole: keys on set.A, not on attempted starts). [view] sent 02:23:56Z (P1 belam reads list-jobs + journal -M, then machinectl terminate; P2 no run 4 before owner R2 b1/b2 + F; P3 report). Next: seats answer or 02:39Z -> ONE [decision] to SM. `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15, re-hit L70 stamp) [-> agi-verify]
