@@ -134,7 +134,7 @@ def test_send_verb_stamps_the_sending_seat(project: Path, monkeypatch, capsys):
     stamps the `--from` seat's last-act, so a rotation can see the seat worked
     after its card. The stamp is the ONE clock (bin/last_act.py)."""
     monkeypatch.chdir(project)
-    for key in ("AGI_SEAT", "AGI_ACTOR", "AGI_AGENT_ID"):
+    for key in ("AGI_POST", "AGI_ACTOR", "AGI_AGENT_ID"):
         monkeypatch.delenv(key, raising=False)
     rc = send_mod.main(["send", "peer", "hello", "--from", "seat-a"])
     capsys.readouterr()
@@ -2727,21 +2727,21 @@ def test_sender_env_beats_flag(monkeypatch):
 
 
 def test_sender_seat_used_when_no_agent_id(monkeypatch):
-    """Clause (c): with AGI_SEAT set and AGI_AGENT_ID unset, a spawned /
+    """Clause (c): with AGI_POST set and AGI_AGENT_ID unset, a spawned /
     seat-launched path dms under its SEAT name -- never "from: unknown"
-    (rotate-self / spawn / seats-launch / recovery all export AGI_SEAT)."""
+    (rotate-self / spawn / seats-launch / recovery all export AGI_POST)."""
     monkeypatch.delenv("AGI_AGENT_ID", raising=False)
-    monkeypatch.setenv("AGI_SEAT", "sanctuary-director")
+    monkeypatch.setenv("AGI_POST", "sanctuary-director")
     assert send_mod._detect_sender(None) == "sanctuary-director"
-    # AGI_SEAT beats an explicit --from too (env outranks the flag)
+    # AGI_POST beats an explicit --from too (env outranks the flag)
     assert send_mod._detect_sender("flag-loser") == "sanctuary-director"
 
 
 def test_sender_agent_id_beats_seat(monkeypatch):
-    """Clause (c): AGI_AGENT_ID still outranks AGI_SEAT when both are set
+    """Clause (c): AGI_AGENT_ID still outranks AGI_POST when both are set
     (the agent's own identity beats its seat name)."""
     monkeypatch.setenv("AGI_AGENT_ID", "env-agent-007")
-    monkeypatch.setenv("AGI_SEAT", "sanctuary-director")
+    monkeypatch.setenv("AGI_POST", "sanctuary-director")
     assert send_mod._detect_sender(None) == "env-agent-007"
     monkeypatch.delenv("AGI_AGENT_ID")
     assert send_mod._detect_sender(None) == "sanctuary-director"
@@ -6767,15 +6767,14 @@ def test_all_live_origin_sync_line_diverged_skipped_at_head_ok(tmp_path,
 @pytest.fixture
 def clear_identity(monkeypatch):
     """The positional read gate keys on the RESOLVED sender, which reads
-    AGI_AGENT_ID then AGI_SEAT (via `_detect_sender` -> geometry_config.
+    AGI_AGENT_ID then AGI_POST (via `_detect_sender` -> geometry_config.
     resolved_seat_env) before --from, and AGI_POST is the OLDER alias that
     resolved_seat_env checks FIRST. Strip all three env vars so a test can
     pin identity deterministically with --from — even on a host where the
     session-start hook already exported the seat transport (AGI_POST /
-    AGI_SEAT), which otherwise resolves a real seat name and breaks the
+    AGI_POST), which otherwise resolves a real seat name and breaks the
     'unknown' sender carve-out this fixture exists to pin."""
     monkeypatch.delenv("AGI_AGENT_ID", raising=False)
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     monkeypatch.delenv("AGI_POST", raising=False)
 
 
@@ -6875,7 +6874,7 @@ def test_read_dm_and_room_untouched(project: Path, capsys, clear_identity,
 def test_read_unknown_sender_refused_with_from_hint(project: Path, capsys,
                                                     clear_identity,
                                                     monkeypatch):
-    """Claim 3: a resolved sender of 'unknown' (no AGI_AGENT_ID, no AGI_SEAT,
+    """Claim 3: a resolved sender of 'unknown' (no AGI_AGENT_ID, no AGI_POST,
     no --from) refuses EVERY positional target, with the '--from' hint."""
     _in_project(monkeypatch, project)
     _send_to(project, "belam", "lonely")
@@ -7173,7 +7172,7 @@ def _prime_gate_root(tmp_path, monkeypatch):
     (root / ".agi" / "sessions" / "inbox").mkdir(parents=True)
     monkeypatch.setattr(send_mod, "_project_root", lambda: root)
     monkeypatch.delenv("AGI_AGENT_ID", raising=False)
-    monkeypatch.delenv("AGI_SEAT", raising=False)
+    monkeypatch.delenv("AGI_POST", raising=False)
     monkeypatch.delenv("AGI_TIER", raising=False)
     monkeypatch.delenv("AGI_ROLE", raising=False)
     return root
@@ -8201,7 +8200,7 @@ def test_g5_f1_f3_send_to_engine_row_is_delivered_by_mail_no_tmux(
 
 
 def _g5_post_worktree(tmp_path, monkeypatch):
-    """Post worktree (AGI_SEAT=seat-a, cwd in it), key only in MAIN."""
+    """Post worktree (AGI_POST=seat-a, cwd in it), key only in MAIN."""
     monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
     priv, pub = send_mod.seatsig.get("ed25519").keygen()
     main = _git_project(tmp_path, [{"name": "seat-a"}])
@@ -8211,7 +8210,7 @@ def _g5_post_worktree(tmp_path, monkeypatch):
                     str(wt)], check=True, capture_output=True)
     monkeypatch.delenv("AGI_AGENT_ID", raising=False)
     monkeypatch.delenv("AGI_POST", raising=False)
-    monkeypatch.setenv("AGI_SEAT", "seat-a")
+    monkeypatch.setenv("AGI_POST", "seat-a")
     monkeypatch.chdir(wt)
     return main, send_mod.comms_root(send_mod._project_root()), pub.hex()
 
@@ -8233,7 +8232,7 @@ def _g5_whois_verified(monkeypatch, main, pub_hex, path, to, text):
 
 def test_g5_f2_dm_from_a_post_worktree_is_signed_and_whois_verified(
         tmp_path: Path, monkeypatch):
-    """F2: AGI_SEAT set, cwd a linked worktree, the seat key only in MAIN: the
+    """F2: AGI_POST set, cwd a linked worktree, the seat key only in MAIN: the
     dm (and room) block carries `env: v1` + a sig and whois reads VERIFIED."""
     main, croot, pub = _g5_post_worktree(tmp_path, monkeypatch)
     path = send_mod.send_dm(croot, "seat-a", "recv", "from the worktree", None)
@@ -8625,7 +8624,7 @@ def test_read_peek_seam_through_a_real_send_py_subprocess(
     PROCESS (the shape rotation_alert fires) leaves the inbox bytes identical
     -- not merely a monkeypatched `read()` seam."""
     env = {**os.environ, "AGI_AGENT_ID": "seat-a"}
-    for k in ("AGI_SEAT", "AGI_ACTOR"):
+    for k in ("AGI_POST", "AGI_ACTOR"):
         env.pop(k, None)
     inbox = send_mod._inbox_path(project, "seat-a")
     inbox.parent.mkdir(parents=True, exist_ok=True)
