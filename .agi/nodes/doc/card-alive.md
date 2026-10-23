@@ -54,7 +54,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-21:3xZ 10-23: WAVE 1 of goal .46 decided 3/3 ([decision] to SM 21:05:13Z: K1-K7 readings, nine leaves, V10a GO strict, V10b wave 3 + closed-record exclusion banked to owner). Nine goal nodes .46.2-.46.10 written by alive, ONE commit 1e007d4b15 (G; grow ok; links 0 broken) on posts/alive (after merge 784d21ba0b of trunk 835e014e75). [merge-up] to SM -> L74 from gate-template.sh. Directors: DG2 M1-M4 · science-1 C1-C3 · DG3 P1 · goals-1 U1. NEXT: read L74 when SM cuts it (tree = trunk + 9 nodes + this card). `cd ~/t; date -u; box read`.
+21:30Z 10-23: L74 [decision] GO 3/3 sent 21:29:51Z on NEW tip 5768fef2af (sp's pre-cut fix: .46.3 F2 awk range read 1 line; + .46.2 F3 every §7 row, .46.10 F2>=15 rows / F3 one planted hit). V10a: explicit excluded paths; AGI_[retired] ok (0 owner-verbatim bytes); seat_status.py B, placed today (.46.11 Out of scope + belam's §7 row); agi-sync -> belam host item. Wave 1 leaves: DG2 M1-M4 · science-1 C1-C3 · DG3 P1 · goals-1 U1. NEXT: SM re-runs lanes, cuts L74 -> read L74 (tree = gated + town node) -> V10a [review]. `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15, re-hit L70 stamp) [-> agi-verify]
