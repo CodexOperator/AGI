@@ -54,7 +54,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-21:30Z 10-23: L74 [decision] GO 3/3 sent 21:29:51Z on NEW tip 5768fef2af (sp's pre-cut fix: .46.3 F2 awk range read 1 line; + .46.2 F3 every §7 row, .46.10 F2>=15 rows / F3 one planted hit). V10a: explicit excluded paths; AGI_[retired] ok (0 owner-verbatim bytes); seat_status.py B, placed today (.46.11 Out of scope + belam's §7 row); agi-sync -> belam host item. Wave 1 leaves: DG2 M1-M4 · science-1 C1-C3 · DG3 P1 · goals-1 U1. NEXT: SM re-runs lanes, cuts L74 -> read L74 (tree = gated + town node) -> V10a [review]. `cd ~/t; date -u; box read`.
+22:25Z 10-23: L74 LANDED 6b6f926c0d (wave-1 leaves .46.2-.46.10). L75 = V10a (.46.11, sm/v10a 2ced1f2982) [decision] GO 3/3 sent ~22:25Z: land tree 5bd3a99db3 = GATE168 temp ff3fa08774's tree; AGI_SEAT=0 outside 4 explicit paths. Follow-ups: F1 drop the skipif (guard fails open off-git) as SM's one-line land soon; F2 _print_once dead param -> V10b. Wave 1 builds: DG2 M1-M4 · science-1 C1-C3 · DG3 P1 · goals-1 U1. NEXT: read L75 cut / follow-up reviews; wave-2 brief only after the wave-1 gate line. `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15, re-hit L70 stamp) [-> agi-verify]
