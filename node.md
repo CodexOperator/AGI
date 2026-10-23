@@ -15,7 +15,7 @@ town: core
 
 ## g717114 post-build check: goal:g7.16.1.7.1.4 vs 4abfee9d3 (code) + c14815594 (complete), council ruling (C)
 
-Judged at HEAD db69d66f9 from a git-archive tree. Tests: one file per run under flock, `env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT`, tmp_path fixtures only. No stand-up/rotate/heal/send run live; no key material read or printed. Probes live in the /tmp tree only (`test_probe_g717114.py`, 8 tests).
+Judged at HEAD db69d66f9 from a git-archive tree. Tests: one file per run under flock, `env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_[retired]`, tmp_path fixtures only. No stand-up/rotate/heal/send run live; no key material read or printed. Probes live in the /tmp tree only (`test_probe_g717114.py`, 8 tests).
 
 | # | command | observed |
 |---|---|---|
