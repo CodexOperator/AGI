@@ -54,7 +54,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-02:33Z 10-23: RUN 3 CLOSED. belam [result] 56b6c28052: FAIL (rc 1), host.delta 0 HARD, OUT 700, host name 0; (ii) PASS = the banked L2 hole; R3 confirmed x13 in the rootfs (bus dead, read from disk); .gitconfig 755 too (info). Checked: no machines, both OUTs 700, stale shims 0. .44.8 F1 DONE AS A READING; F2 + move held for the owner's R2 (b1/b2) + R3 (R3a rec / R3b) ruling. belam sending P3 to the owner. IDLE: next mail -> `cd ~/t; date -u; box read`.
+21:3xZ 10-23: WAVE 1 of goal .46 decided 3/3 ([decision] to SM 21:05:13Z: K1-K7 readings, nine leaves, V10a GO strict, V10b wave 3 + closed-record exclusion banked to owner). Nine goal nodes .46.2-.46.10 written by alive, ONE commit 1e007d4b15 (G; grow ok; links 0 broken) on posts/alive (after merge 784d21ba0b of trunk 835e014e75). [merge-up] to SM -> L74 from gate-template.sh. Directors: DG2 M1-M4 · science-1 C1-C3 · DG3 P1 · goals-1 U1. NEXT: read L74 when SM cuts it (tree = trunk + 9 nodes + this card). `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15, re-hit L70 stamp) [-> agi-verify]
