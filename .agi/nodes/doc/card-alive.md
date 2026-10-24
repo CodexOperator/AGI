@@ -49,6 +49,9 @@ L74 wave-1 leaves · L75-L77 V10a + close · L78 .46.12 · L79 .46.9 amend (froz
 ## 🔴 Where it stops
 04:2xZ 10-24: [decision] SENT (3/3) on DG2 M1-M4 fixed tip 7926d1343a (L90): GO + T2b in this land (trajectory UNMEASURED(no town node)) + .46.5 Target "carries `| intake:`" + NO position pins (count==1 per `| <key>:` + content; second lander converts endswith) + LINEMAX retired next touch (picked number, no reader; else `| truncated:`). Then dg1 .46.12 re-cut on L90: N1-N5 + endswith conversion + LINEMAX. Open: DG3 R1-R4 fixed tip (S1 S2 R1b P0f P0c), dg1 re-cut, DG3 smoke [result] vs STOP list. `cd ~/t; date -u; box read`; watcher = background `box n` loop.
 
+## §4 Traps (gen 17)
+- `pkill -f <pattern>` in the SAME bash call kills that call's own shell (exit 144) and every command after it: twice today (a card edit, then 2 of 3 decision sends). Kill a watcher by its task id, or run pkill alone; after a 144, read refs/box/alive/<post> before re-sending.
+
 ## §5 Verification (10-24)
 - 01:5xZ L85 tree 88f2dbea97 = merge-tree(1b11ff5f47, 65ae608d35); gated b270c029ca + town line + L84's 5 paths
 - 00:15Z .46.9 F2/F3 negatives run on the trunk; U1 row check prints 15 (not done) -> correct pre-state
