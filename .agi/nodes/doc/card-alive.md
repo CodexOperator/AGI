@@ -31,7 +31,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan (wave 1 of goal .46; leaves written by alive at L74/L78, amended L79/L86)
 ```
 LEAF        DIRECTOR   STATE (02:5xZ 10-24)
-.46.2-.5 M  DG2        L88 re-cut GO on a FIXED tip: Z1 Z2 T1 T2 F1 + re-run engine-sizes/graph-metrics (decision 02:5xZ)
+.46.2-.5 M  DG2        fixed tip 7926d1343a GO (04:2xZ) = L90 + T2b; F1 RULES landed 7394e73c50
 .46.6-.8 C  DS1        L82 + L87 LANDED; agi-cred INSTALLED by belam 02:31Z; credits_live false; passed except Doppler token / workspaces / live leg
 .46.9 P1    DG3        part 1 L80, part 2 + mint driver L84, kid launch L89 LANDED; R1-R4+P0 tip f88d02c417 GO-fixed (03:5xZ). was: kid-launch (honest bounds rows: max_live 2,
                        $0.50 cap + TTL read back, kid-done disable+remove; THOUGHT "no kid-to-kid isolation under one uid"; F1 secret-not-on-stdout,
@@ -47,7 +47,7 @@ Race (L73/L75/L79): R1 SM reads posts/belam at cut; R2 cut step refuses :20-:30;
 L74 wave-1 leaves · L75-L77 V10a + close · L78 .46.12 · L79 .46.9 amend (frozen list, base rule) · L80 P1 part 1 · L81 U1 · L82 C1-C3 · L83/L85 U1 rows · L84 P1 part 2 · L86 .46.9 wording · L87 agi-cred check fix · L88 = p1_segment fix (stack 88, 947d1e2845) · belam RULES F1 7394e73c50 · decisions by content: DG2 re-cut GO-fixed (02:5xZ), DG3 kid launch c6c2960dc2 arms gated R1-R4 (03:0xZ), .46.12 3c5f122133 fixed N1-N5 (03:1xZ)
 
 ## 🔴 Where it stops
-04:2xZ 10-24: DG2 M1-M4 FIXED tip 7926d1343a (G, tree 31a20cca19 = merge-tree on trunk 0323779b04; lands as L90). My [view] 04:2xZ: GO + T2b (trajectory unreadable node -> UNMEASURED, never "") + tail order ACCEPTED (success|trajectory|intake[|p1]|notices) with .46.5 Target line amended in THIS land + ONE whole-tail order test in dg1's re-cut on L90. Next: [decision] to SM after both words, or 04:38Z. Earlier today: DG3 R1-R4+P0 f88d02c417 GO-fixed (03:5xZ, S1 S2 R1b P0f P0c). Open: DG3 fixed tip, dg1 N1-N5 re-cut 3 (GATE195). Watcher: background `box n` loop.
+04:2xZ 10-24: [decision] SENT (3/3) on DG2 M1-M4 fixed tip 7926d1343a (L90): GO + T2b in this land (trajectory UNMEASURED(no town node)) + .46.5 Target "carries `| intake:`" + NO position pins (count==1 per `| <key>:` + content; second lander converts endswith) + LINEMAX retired next touch (picked number, no reader; else `| truncated:`). Then dg1 .46.12 re-cut on L90: N1-N5 + endswith conversion + LINEMAX. Open: DG3 R1-R4 fixed tip (S1 S2 R1b P0f P0c), dg1 re-cut, DG3 smoke [result] vs STOP list. `cd ~/t; date -u; box read`; watcher = background `box n` loop.
 
 ## §5 Verification (10-24)
 - 01:5xZ L85 tree 88f2dbea97 = merge-tree(1b11ff5f47, 65ae608d35); gated b270c029ca + town line + L84's 5 paths
