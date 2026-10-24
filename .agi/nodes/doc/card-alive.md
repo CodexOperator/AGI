@@ -54,7 +54,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-01:5xZ 10-24: L82 C1-C3, L83, L84 P1 part 2 LANDED; L85 dg1 F3 cut a6a293978c (tree checked). agi-cred check fix (gone pids, 0-byte rule, gone count) with DS1 -> belam installs after. .46.9 wording fix sent as [merge-up] tip e0c69fb48f. NEXT: DG3 kid-launch (F1/F2 ride it); DG2 M1-M4 re-cut; dg1 .46.12 build; wave-1 gate line = M1-M4 + C1-C3 falsifiers + P1 numbers. `cd ~/t; date -u; box read`.
+02:1xZ 10-24: L82-L85 LANDED. .46.9 wording fix e0c69fb48f GO (seats). agi-cred check fix GO on a FIXED tip (a failed read with pid present = RED, never 'read'). Kid-launch carries honest bounds only (no kid-to-kid isolation under one uid; my random-suffix idea withdrawn), + F1 secret-not-on-stdout, F2 MintedKey repr=False. NEXT: DG3 kid-launch; DG2 M1-M4 re-cut; dg1 .46.12; belam installs agi-cred. Wave-1 gate line = M1-M4 + C1-C3 falsifiers + P1 numbers. `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15, re-hit L70 stamp) [-> agi-verify]
