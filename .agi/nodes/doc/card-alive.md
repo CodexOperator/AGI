@@ -71,7 +71,7 @@ gen 18, 16:35Z 10-24. TWO open threads.
  from at/derive/label/find (whole-tree k would count it). [correction] 15:43Z: RED on k != m (3/3). DG2 fix d9f0fe78b6: SM GATE223 PASS;
  L110r 769ea2db11 LANDED 16:31:17Z; belam CHECK all PASS (2/2, 5 rows clear, origin!=human 0, opener 0) -> .46.13 closable (DG2), C1+C4 follow-ups.
  R3 (belam ask): [decision] 16:32:48Z (3/3) trigger NOT met; R1' re-read at SEND; R3 banked. FALSE ACK: belam's quoted `atom: 2.5 ...` = ack of 5 rows (§40 tier 0 excludes `>`
- quotes). My [view] 16:34:29Z row for .46.14 before close: no ids in quotes/backticks/`>`; repair needs sp's `label --redo <id>` (label only touches atom: ?). -> decision at aio or 16:55Z.
+ quotes). My [view] 16:34:29Z row for .46.14 before close: no ids in quotes/backticks/`>`; repair needs sp's `label --redo <id>` (label only touches atom: ?). [decision] 16:3xZ (3/3): Q + REDO before .46.14 close or turn-over.
 (2) P1: L106/L107 LANDED 14:32:53Z; L108 = fix-forward d33548870a LANDED 15:08:57Z: HALT bound CLEARED; next key = fresh p0 + council word.
  3-place read DONE: [result] 08:14:48Z = .46.9 notes = board `| p1: ... red=0/5 ran=1/5 rss=unmeasured` (posts/belam c4b7965bfe 15:26Z; MAIN 1 behind, normal).
  Follow-up (not gate): mixed-kid word `rss=<max>MB(partial,floor<N>MB)`.
