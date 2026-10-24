@@ -63,6 +63,7 @@ L102 866d194ec5 07:42Z (dg1 O2: 61 goals -> horizon, 7 retired, 1 hypothesis ret
 L104 91a1aa512b 07:59Z (SM: director-general-6 + director-engine rows -> -retired, box off, keys kept): links 0 broken. L105 71ba22652f 08:04Z (DG3 by-hash read-back): test_p1_ab 134/2s; kid-done re-run rc 0, ledger done.
 10-24 pm: L106 7c915749de + L107 494ecad3cd 14:32Z (DG3 B2: by-hash mint read-back, VmHWM rss floor, ran=/rss= words; A2: p1-results.json): p1 tests 157/2s; board p1 = $/landed=0.0250 s/landed=77 red=0/5 ran=1/5 rss=unmeasured. Also mine: §40 into the plan (e9da897e58), brief 1b (ebc2942b74), leaves .46.13 M6 + .46.14 M7 for DG2 (c3cd3d0f71, council G1-G3 fixes f0c1110397).
 L108 d33548870a 15:08Z (DG3 fix-forward: rss floor read AFTER Popen; .46.9 true-state notes): p1 147/2s, notes greps 0/0/0 + 1/1/1; the mint HALT bound is cleared (next key = fresh p0 + council word). NEXT: L109 (M6) + L110 (M7) in one ff, then MY host act: reinstall the Stop hook + agi-mem on this box, report mem: tapped k/m.
+L109 f6adf7f7ed 15:34Z (DG2 M6 + M7) + host act (4 pieces + settings.json; gitconfig kept); live red: a peer cross-session message stored as owner -> council R4' -> L110r 769ea2db11 16:31Z (raced once: the :23 board commit after a 16:22 cut = card trap 126's R3 trigger, sent to SM); agi-mem reinstalled, scrub once, re-tap: mem: tapped 2/2, origin!=human 0, opener 0, rows 2.5 8.1 9.1 a1 a2 free of c:a7e759b63e49.
 L70 43086245a3 (director-review boot=true) · .45 close 73a32e5567 · L71 dfd3d65286 (F1 harness) · L72 4ca7c5d592 (image build) · L73 d17d3785a8 (run-3 fix, re-cut after the board-job race). F1 nspawn run 3 = FAIL, a reading: R2 rows() has no boot filter; R3 settings.json left 755 vs flags_ok 600; F strict isup. Evidence /data/f1-nspawn-*.out (700).
 10-23: W0 = doc:brainstorm-unify + goal:g7.16.1.11.46 + .46.1 V0 (agi-run 2260 B, lane session-pin.t.sh 9/9) + this card.
 
@@ -114,7 +115,7 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 | 1.1 | "button down the graph-interface design" | src:doc | target:§0–§2 | lap124501 |
 | 1.2 | "simplify / unify" | src:doc | target:§0 (every rule = a cell), §24 (one spawn path) | lap124501 |
 | 1.3 | "compare with matrix-skills" | src:doc | target:§1 (take O/check + api module; leave its engine) | lap124501 |
-| 1.4 | "MCP auto-start" | src:doc | target:§6 (wake abstraction; start = visitor) · decision:§21-Part I #2 | lap124501 |
+| 1.4 | "MCP auto-start" | src:doc | target:§6 (wake abstraction; start = visitor) · decision:§21-Part I #2 | lap124501 | chunks: c:0084e8b3eb63 |
 | 1.5 | "MCP push" | src:doc | target:§6/§26 (no push dependence; wake tool + fifo) | lap124501 |
 | 1.6 | "filesystem-like MCP by post identity" | src:doc | target:§6 (resources = scope closure; visitor default) — thin, one line | lap124501 |
 | 1.7 | "cross-compat CC / codex / grok / pi" | src:doc | target:§8, §26, §28 | lap124501 |
@@ -131,7 +132,7 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 | 2.2 | "credentials ride in a capsule / reuse the username slot" | src:doc | target:leaf:V1 (cred piece) · decision:§21 #2 | lap124501 |
 | 2.3 | "identity = composable key over signed pieces, re-hashed on swap, continuity = the history" | src:doc | target:§9 · decision:§21 #1 | lap124501 |
 | 2.4 | "optmem: Prime always; council/keep per season; directors per goal; parents/kids in optchat" | src:doc | target:§11 (`mem:` cell) · decision:§21 #5 · §37 (the ledger) | lap124501 |
-| 2.5 | "fully hash-based ids, minimize public/private keys" | src:doc | target:§10 (boundary set B) · decision:§21 #3 | lap124501 |
+| 2.5 | "fully hash-based ids, minimize public/private keys" | src:doc | target:§10 (boundary set B) · decision:§21 #3 | lap124501 | chunks: c:e16178146d52 c:0084e8b3eb63 |
 | 2.6 | "daisy-chained hashes as the post's sense of time" | src:doc | target:§10 (time = chain/block height) · decision:§21 #4 — covered under other words | lap124501 |
 | 2.7 | "each node a location in a matrix space; traversal = matrix op" | src:doc | target:§12 (words in, algebra in the engine) · §32 (graph distance is the coordinate) | lap124501 |
 | 2.8 | "actions as vectors; mail as a vector" | src:doc | target:§12 (alphabet Σ, M_a) | lap124501 |
@@ -189,19 +190,19 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 **added 10-23 (council V10a decision, alive 21:06Z)**
 | # | atom (owner ask, short) | source | state | lap |
 |---|---|---|---|---|
-| 8.1 | "seat_status.py retire" | src:af6b174d9c507c5f812992fdd993b12b62b45da6 | target:the §34.5 census-cell leaf (wave 2) | lap124501 |
-| 9.1 | "if a director has claimed a given goal leaf or hypothesis leaf or whatever or a bundle of them, let them get notice automatically via mail system that hey your bundle pre-req's have cleared and it's just a simple little unified system that is all wired into the data already available via the town board/trajectory and the post cards" | src:goal:g7.16.1.11.46.12#OWNER | leaf:goal:g7.16.1.11.46.12 (L78, director-goals-1) | lap124501 |
-| a1 | "Retire write py for sure we don’t need it at all and need to retire that whole build node as the capsule wrapper now tags everything for us using standard read routes" | src:goal:g7.16.1.11.46#OWNER | target:W2 brief (V8 python out; supersedes g4.18.7) | lap124501 |
-| a2 | "We need to redo the renderer if needed to be a git based graph system that uses the minimal shell code matrix integrated design" | src:goal:g7.16.1.11.46#OWNER | target:W2 brief (G1 compose/split = the git-based renderer) | lap124501 |
+| 8.1 | "seat_status.py retire" | src:af6b174d9c507c5f812992fdd993b12b62b45da6 | target:the §34.5 census-cell leaf (wave 2) | lap124501 | chunks: c:e16178146d52 c:0084e8b3eb63 |
+| 9.1 | "if a director has claimed a given goal leaf or hypothesis leaf or whatever or a bundle of them, let them get notice automatically via mail system that hey your bundle pre-req's have cleared and it's just a simple little unified system that is all wired into the data already available via the town board/trajectory and the post cards" | src:goal:g7.16.1.11.46.12#OWNER | leaf:goal:g7.16.1.11.46.12 (L78, director-goals-1) | lap124501 | chunks: c:e16178146d52 c:0084e8b3eb63 |
+| a1 | "Retire write py for sure we don’t need it at all and need to retire that whole build node as the capsule wrapper now tags everything for us using standard read routes" | src:goal:g7.16.1.11.46#OWNER | target:W2 brief (V8 python out; supersedes g4.18.7) | lap124501 | chunks: c:e16178146d52 c:0084e8b3eb63 |
+| a2 | "We need to redo the renderer if needed to be a git based graph system that uses the minimal shell code matrix integrated design" | src:goal:g7.16.1.11.46#OWNER | target:W2 brief (G1 compose/split = the git-based renderer) | lap124501 | chunks: c:e16178146d52 c:0084e8b3eb63 |
 
 **throw 10 (10-24) — §40 the owner-facing post: full memory beside the atoms (the fork's throw 8, renumbered on intake)**
 | # | atom (owner ask, short) | source | state | lap |
 |---|---|---|---|---|
-| 10.1 | "the owner-facing post gets a full optmem/chat memory beside the atoms (via pi-optchat or UniiChat if needed)" | src:doc | target:§40 V4 pulled forward, claude-code adapter (W2); no routing: the store is ours, harnesses are adapters | lap124503 |
-| 10.2 | "every chunk is marked to an atom; several chunks map to one atom (the owner asking, the agent acknowledging)" | src:doc | leaf:goal:g7.16.1.11.46.14 | lap124503 |
+| 10.1 | "the owner-facing post gets a full optmem/chat memory beside the atoms (via pi-optchat or UniiChat if needed)" | src:doc | target:§40 V4 pulled forward, claude-code adapter (W2); no routing: the store is ours, harnesses are adapters | lap124503 | chunks: c:0339f58806a6 c:c8ce1ac366a6 c:f8fcd33c8b6a |
+| 10.2 | "every chunk is marked to an atom; several chunks map to one atom (the owner asking, the agent acknowledging)" | src:doc | leaf:goal:g7.16.1.11.46.14 | lap124503 | chunks: c:f8fcd33c8b6a c:0084e8b3eb63 |
 | 10.3 | "the post relays any atoms missing vs its memories to the Prime, periodically" | src:doc | target:§40 M8 walk check 1 + one batched atoms: relay per lap (W3) | lap124503 |
-| 10.4 | "the post can say: you asked X at this day/time; recorded here, being worked on / not transferred yet, marked for the spiders" | src:doc | leaf:goal:g7.16.1.11.46.14 | lap124503 |
+| 10.4 | "the post can say: you asked X at this day/time; recorded here, being worked on / not transferred yet, marked for the spiders" | src:doc | leaf:goal:g7.16.1.11.46.14 | lap124503 | chunks: c:f8fcd33c8b6a |
 | 10.5 | "a spider carries out these routine cross-updates" | src:doc | target:§40 M8 unify-spider pass, four checks (W3) | lap124503 |
-| 10.6 | "classifiers via openrouter or our own; otherwise cheap haiku/sonnet" | src:doc | target:§40 tiers: tier 1 Haiku/Sonnet now (M7 atomizer cell), P1 = the openrouter arm; tiers 2-3 season 4 | lap124503 |
+| 10.6 | "classifiers via openrouter or our own; otherwise cheap haiku/sonnet" | src:doc | target:§40 tiers: tier 1 Haiku/Sonnet now (M7 atomizer cell), P1 = the openrouter arm; tiers 2-3 season 4 | lap124503 | chunks: c:f8fcd33c8b6a |
 | 10.7 | "UniiChat only if it lets me use my own keys" | src:doc | target:§40 import-only; any third-party harness gets a workspace-scoped key (C2/C3) | lap124503 |
-| 10.8 | "mark it full memory enabled so non-owner-facing posts can have it; the Prime always" | src:doc | leaf:goal:g7.16.1.11.46.13 | lap124503 |
+| 10.8 | "mark it full memory enabled so non-owner-facing posts can have it; the Prime always" | src:doc | leaf:goal:g7.16.1.11.46.13 | lap124503 | chunks: c:0339f58806a6 c:c8ce1ac366a6 c:f8fcd33c8b6a |
