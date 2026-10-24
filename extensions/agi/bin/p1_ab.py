@@ -215,6 +215,28 @@ def main_env_denied(path: str | Path) -> list[str]:
 
 # --- the mint ----------------------------------------------------------------
 
+def workspace_problems(workspace_id: str | None, root: str | Path | None = None) -> list[str]:
+    """P0 (g), no spend: the workspace the mint WILL send is absent, or one of the key's own account's workspaces;
+    and the key can manage keys (GET /keys 200). A stale town cell (an id from another account) is a 403 at the
+    mint; this catches it before any mint. Bodies are never echoed, only status codes and a short id prefix."""
+    prov = provisioning._read_provisioning_key(root)
+    if prov is None:
+        return ["no provisioning key readable by this uid: nothing to check against"]
+    out: list[str] = []
+    status, _ = provisioning._call("GET", provisioning.API_BASE, prov)
+    if status != 200:
+        out.append(f"GET /keys answered HTTP {status}: the key cannot manage keys")
+    if workspace_id:
+        status, body = provisioning._call("GET", provisioning.WORKSPACES_BASE, prov)
+        if status != 200:
+            out.append(f"GET /workspaces answered HTTP {status}: the configured workspace cannot be checked")
+        else:
+            owned = {w.get("id") for w in (body.get("data") or []) if isinstance(w, dict)}
+            if workspace_id not in owned:
+                out.append(f"workspace {workspace_id[:8]}... is not one of this key's account's workspaces")
+    return out
+
+
 def _ledger(path: Path) -> list[dict]:
     try:
         rows = json.loads(Path(path).read_text())
@@ -269,6 +291,9 @@ def mint_capped(*, arm: str, leaf: str, cfg: dict, ledger: str | Path,
         raise P1Refused(f"cash: committed ${exposure(rows):.2f} + ${limit:.2f} would pass the "
                         f"${float(p['cash_total_usd']):.2f} cash total")
 
+    bad_ws = workspace_problems(workspace_id, root)
+    if bad_ws:
+        raise P1Refused("workspace preflight RED before any mint: " + "; ".join(bad_ws))
     started = _now()
     minted = provisioning.mint(iter_n="p1", agent_id=f"{arm}-l{frozen.index(leaf) + 1}", tier="kid",
                                limit_usd=float(limit), ttl_minutes=ttl_minutes, workspace_id=workspace_id, root=root)
@@ -879,8 +904,9 @@ def live_prices(models: list[str], fetch=None) -> dict[str, dict[str, float]]:
 
 def p0_readings(*, cfg: dict, repo: str | Path, worktree: str | Path, main_env: str | Path | None = None,
                 fetch=None, slice_files: tuple = (SLICE_STAT, SLICE_PRESSURE, MEMINFO),
-                trunk: str = "origin/core/season3/main", module_file: str | Path | None = None) -> list[tuple[str, bool, str]]:
-    """(name, ok, reading) for P0 a-f; the caller prints them (they are the 'written down'). Nothing here mints."""
+                trunk: str = "origin/core/season3/main", module_file: str | Path | None = None,
+                root: str | Path | None = None) -> list[tuple[str, bool, str]]:
+    """(name, ok, reading) for P0 a-g; the caller prints them (they are the 'written down'). Nothing here mints."""
     import tempfile  # noqa: PLC0415
     out: list[tuple[str, bool, str]] = []
     # (a) the p1_segment fix: from the graph dir of a scratch project with no results file, NO p1 text
@@ -923,6 +949,15 @@ def p0_readings(*, cfg: dict, repo: str | Path, worktree: str | Path, main_env: 
     theirs = subprocess.run(["git", "-C", str(repo), "rev-parse", f"{trunk}:extensions/agi/bin/p1_ab.py"],
                             capture_output=True, text=True).stdout.strip()
     out.append(("f p1_ab blob", bool(mine) and mine == theirs, f"running {mine[:12] or '?'} vs {trunk} {theirs[:12] or '?'}"))
+    # (g) the workspace cell the mint will send is the key's own account's (or absent), and the key manages keys
+    ws = provisioning.workspace(cfg)
+    cell_word = "set" if ws else "absent (account default)"
+    if provisioning._read_provisioning_key(root) is None:
+        out.append(("g workspace", True, "NOT EVALUATED here: the provisioning key is unreadable from this uid; mint_capped "
+                                         f"runs this same check as the key's holder before any mint (cell {cell_word})"))
+    else:
+        probs = workspace_problems(ws, root)
+        out.append(("g workspace", not probs, "; ".join(probs) if probs else f"cell {cell_word}, owned by the key's account; GET /keys 200"))
     return out
 
 
@@ -1069,7 +1104,7 @@ def _mine(cmd: str, args: list[str], cfg: dict, root: Path) -> int:
     a = ap.parse_args(args)
     try:
         if cmd == "p0":
-            rows = p0_readings(cfg=cfg, repo=root, worktree=a.worktree, main_env=a.main_env)
+            rows = p0_readings(cfg=cfg, repo=root, worktree=a.worktree, main_env=a.main_env, root=root)
             for name, ok, detail in rows:
                 print(f"P0 {name} {'ok ' if ok else 'RED'} {detail}")
             return 0 if all(ok for _, ok, _ in rows) else 1
