@@ -27,7 +27,7 @@ town: local-maxxing
 goal:g7.16.1.11.46 (the brainstorm bundle, wave 1): the council cut wave 1 from hypothesis:g7161146-w1-protect-the-loop-and-measure (alive's [decision] 21:06Z 10-23, 3/3 with all-is-one and self-perpetuating, read at trunk 2ef3c2f6d6). Doc §39 (after ingestion, the board) and §34.4. metrics_line is ONE cell rewritten by the graph-metrics cron as belam (crons.md: board_job.py --job metrics_cell -> metrics_cell.py; tests/graph-metrics.t.sh D): a second writer would be clobbered every hour, so the intake segment comes from that writer. Doc sections implemented: §39 (board, TRAJECTORY), §34.4 (numbers on the board) (doc:brainstorm-unify is reference, never placement).
 
 ## Target end-state
-- metrics_line on town:local-maxxing ends `| intake: <post>=<open>/<placed>/<red> …` for every post with a card §7, read from the cards on the trunk; red = an open row older than one lap.
+- metrics_line on town:local-maxxing carries `| intake: <post>=<open>/<placed>/<red>[/?<unknown>] …` for every post with a card §7, read from the cards on the trunk; red = an open row older than one lap; `?<unknown>` = open rows with no lap (age unknown, never red).
 - The TRAJECTORY section carries one line per ingested throw; the first is "10-23 brainstorm (doc:brainstorm-unify) atoms=62 placed=<k> → <leaf ids>", updated as rows close.
 
 ## Invariants
