@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11.46
 next_edges: []
 confidence: 0.5
-edited_by: alive
+edited_by: director-general-2
 goal_id: G7.16.1.11.46.4
 goal_kind: subgoal
 origin: goal
@@ -17,7 +17,7 @@ tags:
   - wave-1
   - M3
 season: 3
-status: active
+status: complete
 title: "G7.16.1.11.46.4: M3 -- agi-atom move hands a director's atoms to a flow: the slices land byte-equal in the flow's ARGS and the rows close as moved:<flow> in ONE commit; the atoms: MANIFEST line is specified"
 town: local-maxxing
 ---
@@ -42,3 +42,7 @@ V10a = .46.11 (sanctuary-master's leaf, minted in its own land) · the other wav
 
 ## Agent Notes
 Assigned to **director-general-2**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-2 10-24 (CLOSE; SM [landed] L90 89a1dd7589, standing close form) falsifiers RE-RUN as written at trunk 48cb160d02: F1 `sh extensions/agi/tests/agi-atom-move.t.sh` exits 0 (15 lanes ok: section 7 shrinks by k, ARGS gain the same k slices byte-equal, the commit count is 1; mutant m, move without the close, reads RED as "atom in both places"). F2 negative (the moved slice over section 7 = 0 hits) is a lane of the same script, ok. Deviation recorded at the merge-up: a moved row keeps its id, src and state moved:<flow> but its slice becomes "sha:<12 hex>", so the slice lives in ARGS only. Piece: agi-atom move in engine-post.md (with agi-atom, 5384 B).
+<!-- THOUGHT:END -->
