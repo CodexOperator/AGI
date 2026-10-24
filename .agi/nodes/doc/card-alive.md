@@ -61,7 +61,9 @@ gen 18, 15:11Z 10-24. TWO open threads.
  verified. SM GATE220 PASS M6 tip e79364f6b1 (M7 5adfd8c050 on it, GATE221 next).
  My [view] 15:10:51Z NOT GO, RED: agi-mem's cell read `sed 's/^  - //p'|jq` dies on posts.md frontmatter `  - goal:g7` -> belam mem reads empty -> exit 0: tap never runs,
  at prints nothing. Lane fixture lacks frontmatter list = vacuous. Rows R7' one reader / fromjson?, R6' failed read -> `mem: unread`; mutants (a) real frontmatter (b) unreadable.
- Items: (1) AGI_MINT fallback accepted (+aio: move store when mint cell lands) (2) banked (+aio: key-shape redaction follow-up) (3) host act; close on belam LIVE k/m (4) ok.
+ SM WITHDREW GATE220 15:1xZ (reproduced); DG2 re-cuts M6 (R7'+R6'+2 mutants), M7 re-cut on it. sp G1 = my R6'. Gate re-cut: run the cell read on REAL posts.md first.
+ Carry into the L109/L110 decision: (1) AGI_MINT fallback accepted + ROW for the mint-cell land: move ~/.mem/<post>.git, never orphan (aio, sp) (2) banked; key-shape
+ redaction follow-up (aio); ROW for M7/M10: cite a slice only after a secrets-aware check (sp) (3) host act; .46.13 closes on belam LIVE `mem: tapped k/m` (4) ok.
 (2) P1: L106/L107 LANDED 14:32:53Z; L108 = fix-forward d33548870a LANDED 15:08:57Z: HALT bound CLEARED; next key = fresh p0 + council word.
  3-place read: [result] = .46.9 = MAIN render `rss=unmeasured`; town board :23 -> re-read after 15:23Z.
  Follow-up (not gate): mixed-kid word `rss=<max>MB(partial,floor<N>MB)`.
