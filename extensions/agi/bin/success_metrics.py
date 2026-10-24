@@ -414,7 +414,7 @@ def trajectory_segment(root: Path) -> str:
 
 
 def p1_segment(root: Path) -> str:
-    """goal:g7.16.1.11.46.9 Q3: the `| p1: <model> $/landed=.. s/landed=.. red=<r>/<n>` segments, one per arm in
+    """goal:g7.16.1.11.46.9 Q3: the `| p1: <model> $/landed=.. s/landed=.. red=<r>/<n> ran=<k>/<n> rss=<z>` segments, one per arm in
     the committed results file (p1_ab.py writes the file and never this line).
 
     `root` is the REPO root or the graph dir `<repo>/.agi` (the CLI's find_project_root returns the latter): the
