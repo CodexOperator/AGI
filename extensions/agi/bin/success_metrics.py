@@ -470,11 +470,11 @@ def make_line(root: Path) -> str:
     when = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
     g = " ".join(f"{k}={graph(k)}" for k in LINE_GRAPH_KEYS)
     line = f"{when} graph: {g} | success: {' '.join(parts)}"
-    seg = p1_segment(root)
-    line = f"{line} {seg}" if seg else line
     seg = trajectory_segment(root)
     line = f"{line} {seg}" if seg else line
-    return f"{line} | {intake_segment(root)}"   # intake stays LAST: goal:g7.16.1.11.46.5 "ends `| intake:`"
+    line = f"{line} | {intake_segment(root)}"   # goal:g7.16.1.11.46.5: `| intake:` follows the success block directly
+    seg = p1_segment(root)                      # p1 stays LAST: test_success_metrics pins `.endswith("| p1: ..")`
+    return f"{line} {seg}" if seg else line
 
 
 def main(argv: list[str] | None = None) -> int:

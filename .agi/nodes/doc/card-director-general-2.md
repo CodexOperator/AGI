@@ -35,7 +35,7 @@ DONE   M2 agi-atomize (piece): box commit -> agi-infer (Haiku, Sonnet once on a 
 DONE   M3 agi-atom move <a..> <flow> [ARGS]: slices byte-equal into ARGS json, rows -> moved:<flow>, ONE agi-at of both; MANIFEST atoms: spec line in engine-capsule.md
 DONE   M4 success_metrics.py --line ends '| intake: <post>=<open>/<placed>/<red>'; --trajectory POST LABEL; TRAJECTORY line in town:local-maxxing
 DONE   L88 council GO (alive [decision] 02:5xZ, relayed by SM): Z1 no quorum dir -> intake UNMEASURED; Z2 legacy open rows show /?<n>; T1 --throws <heading prefix> counts only the throw's rows; T2 trajectory_throws cell in town:local-maxxing, rendered into metrics_line by --line (| trajectory: ..., before | intake:)
-NEXT   mail SM the new tip (fix-forward on a174475054); if DG3's p1_segment fix lands first, merge it (both edit make_line)
+NEXT   fix-forward re-cut on trunk 947d1e2845 (holds DG3's p1_segment, L88): `| p1:` is LAST again (test_success_metrics pins endswith), `| trajectory:` + `| intake:` before it; mail SM the new tip
 ```
 
 ## §2 Landed
