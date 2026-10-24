@@ -905,10 +905,11 @@ def live_prices(models: list[str], fetch=None) -> dict[str, dict[str, float]]:
 def p0_readings(*, cfg: dict, repo: str | Path, worktree: str | Path, main_env: str | Path | None = None,
                 fetch=None, slice_files: tuple = (SLICE_STAT, SLICE_PRESSURE, MEMINFO),
                 trunk: str = "origin/core/season3/main", module_file: str | Path | None = None,
-                root: str | Path | None = None) -> list[tuple[str, bool, str]]:
-    """(name, ok, reading) for P0 a-g; the caller prints them (they are the 'written down'). Nothing here mints."""
+                root: str | Path | None = None) -> list[tuple[str, bool | None, str]]:
+    """(name, ok, reading) for P0 a-g; the caller prints them (they are the 'written down'). Nothing here mints.
+    ok is True (read and fine), False (read and RED) or None (n/a: the check did not run here -- never counted as ok)."""
     import tempfile  # noqa: PLC0415
-    out: list[tuple[str, bool, str]] = []
+    out: list[tuple[str, bool | None, str]] = []
     # (a) the p1_segment fix: from the graph dir of a scratch project with no results file, NO p1 text
     try:
         import success_metrics  # noqa: PLC0415
@@ -953,12 +954,23 @@ def p0_readings(*, cfg: dict, repo: str | Path, worktree: str | Path, main_env: 
     ws = provisioning.workspace(cfg)
     cell_word = "set" if ws else "absent (account default)"
     if provisioning._read_provisioning_key(root) is None:
-        out.append(("g workspace", True, "NOT EVALUATED here: the provisioning key is unreadable from this uid; mint_capped "
+        out.append(("g workspace", None, "not evaluated here: the provisioning key is unreadable from this uid; mint_capped "
                                          f"runs this same check as the key's holder before any mint (cell {cell_word})"))
     else:
         probs = workspace_problems(ws, root)
         out.append(("g workspace", not probs, "; ".join(probs) if probs else f"cell {cell_word}, owned by the key's account; GET /keys 200"))
     return out
+
+
+def p0_report(rows: list[tuple[str, bool | None, str]]) -> tuple[list[str], int]:
+    """The printed P0 lines, then a summary line, and the exit code: 0 only when EVERY row is ok; 1 when any row is RED;
+    2 when none is RED but some row is n/a (a check that did not run is unread, never ok)."""
+    mark = {True: "ok ", False: "RED", None: "n/a"}
+    lines = [f"P0 {name} {mark[ok]} {detail}" for name, ok, detail in rows]
+    n_ok, n_red = sum(1 for _, ok, _ in rows if ok is True), sum(1 for _, ok, _ in rows if ok is False)
+    na = [name.split()[0] for name, ok, _ in rows if ok is None]
+    lines.append(f"P0 summary: {n_ok} ok, {n_red} RED, {len(na)} n/a" + (f" ({', '.join(na)} unread)" if na else ""))
+    return lines, 1 if n_red else (2 if na else 0)
 
 
 def scratch_land_problems(paths: list[str], cfg: dict) -> list[str]:
@@ -1105,9 +1117,9 @@ def _mine(cmd: str, args: list[str], cfg: dict, root: Path) -> int:
     try:
         if cmd == "p0":
             rows = p0_readings(cfg=cfg, repo=root, worktree=a.worktree, main_env=a.main_env, root=root)
-            for name, ok, detail in rows:
-                print(f"P0 {name} {'ok ' if ok else 'RED'} {detail}")
-            return 0 if all(ok for _, ok, _ in rows) else 1
+            lines, rc = p0_report(rows)
+            print("\n".join(lines))
+            return rc
         if cmd == "run-kid":
             arm_preflight(arm=a.arm, leaf=a.leaf, prefix="~/pi1", cfg=cfg, kid_uid=os.geteuid(),
                           keydir=os.path.dirname(a.key_file), worktree=a.worktree, kid_home=a.kid_home)
