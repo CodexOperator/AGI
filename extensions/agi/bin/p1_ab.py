@@ -14,6 +14,10 @@ Pieces, each one a clause of the leaf's PART 2 RULES or falsifier, none of them 
 - `arm_preflight`  the arm's refusals: leaf off the frozen list, pin/tree mismatch, kid as the key holder,
                  kid worktree not on the frozen base.
 - `end_arm`      every key disabled and read back as disabled, its file removed.
+- `kid_key` / `kid_done`  belam's thin driver, one kid at a time: mint + write the kid's key file just before the kid
+                 starts (at most `max_live` files exist), and after the kid exits read its spend, disable the key,
+                 read it back as disabled and remove the file. The kid runs in the director's post uid (agi-kid's
+                 model), never belam or root; the secret is in that one file and nowhere else.
 - `may_start`    the spawn gate (at most `max_live`, none while agi.slice is above `slice_gb_max`).
 - `render_segment` / `merge_pick`  the committed results file -> the `| p1: ...` metrics_line segment text (the
                  ONE metrics writer calls it) and the one-run-per-leaf merge rule. This module never writes a
@@ -392,6 +396,49 @@ def end_arm(rows: list[dict], *, root: str | Path | None = None, workspace_id: s
     return out
 
 
+def kid_key(*, arm: str, leaf: str, cfg: dict, keydir: str | Path, ledger: str | Path, kid_uid: int,
+            root: str | Path | None = None, workspace_id: str | None = None, ttl_minutes: int = 90) -> dict:
+    """belam's step BEFORE a kid: mint the (arm, leaf) key, put it in its own ACL'd file for `kid_uid`.
+
+    Returns {"arm", "leaf", "hash", "file"} -- the secret is in the file only, never in the return value. At most
+    `max_live` key files exist at once; a failed write revokes the key (the ledger still counts it: a red, no retry)."""
+    keydir = Path(keydir)
+    frozen = leaves(cfg)
+    if leaf not in frozen:
+        raise P1Refused(f"leaf {leaf!r} is not in the frozen list {frozen}")
+    live = sorted(keydir.glob("*.key")) if keydir.is_dir() else []
+    if len(live) >= int(cell(cfg)["max_live"]):
+        raise P1Refused(f"{len(live)} key files already exist in {keydir.name}: at most {cell(cfg)['max_live']} at once")
+    minted = mint_capped(arm=arm, leaf=leaf, cfg=cfg, ledger=ledger, root=root, workspace_id=workspace_id,
+                         ttl_minutes=ttl_minutes)
+    try:
+        path = write_key_file(keydir, f"{arm}-l{frozen.index(leaf) + 1}.key", minted.secret, kid_uid)
+    except BaseException:
+        provisioning.revoke(minted.key_hash, root)
+        raise
+    return {"arm": arm, "leaf": leaf, "hash": minted.key_hash, "file": str(path)}
+
+
+def kid_done(*, key_hash: str, keyfile: str | Path, ledger: str | Path, root: str | Path | None = None,
+             workspace_id: str | None = None) -> dict:
+    """belam's step AFTER a kid exits: read the key's spend from the provisioning listing (the $/landed source),
+    disable it, read it back as disabled, remove its file, record the spend in the ledger row.
+
+    Returns {"arm", "leaf", "hash", "usd", "problems"}; `problems` empty = disabled + file gone."""
+    rows = _ledger(Path(ledger))
+    row = next((r for r in rows if r.get("hash") == key_hash), None)
+    if row is None:
+        raise P1Refused(f"key {key_hash!r} is not in the ledger: only a key this driver minted is disabled here")
+    listed = next((k for k in provisioning.list_keys(root, workspace_id) if k.get("hash") == key_hash), None)
+    usd = None if listed is None else float(listed.get("usage") or 0.0)
+    problems = end_arm([{"hash": key_hash, "file": str(keyfile)}], root=root, workspace_id=workspace_id)
+    if usd is None:
+        problems.append(f"key {key_hash}: absent from the listing, its spend is unknown")
+    row["usd"], row["done"] = usd, not problems
+    Path(ledger).write_text(json.dumps(rows, indent=1))
+    return {"arm": row["arm"], "leaf": row["leaf"], "hash": key_hash, "usd": usd, "problems": problems}
+
+
 def scratch_land_problems(paths: list[str], cfg: dict) -> list[str]:
     """RED when a kid's scratch land creates a path the engine forbids (the shadow bin files, CLAUDE.md)."""
     forbidden = set(cell(cfg).get("forbidden_paths") or [])
@@ -460,14 +507,47 @@ def read_results(root: str | Path, cfg: dict) -> dict | None:
         raise P1Refused(f"results file {path} unreadable ({type(exc).__name__})")
 
 
+def _driver(cmd: str, args: list[str], cfg: dict) -> int:
+    """`kid-key ARM LEAF --kid-uid N --keydir D --ledger L` and `kid-done --hash H --file F --ledger L`, run as the
+    provisioning key's holder. One JSON line on stdout, never the secret; rc 1 + a `p1 <cmd>: RED` line on refusal."""
+    import argparse  # noqa: PLC0415
+    ap = argparse.ArgumentParser(prog=f"p1_ab.py {cmd}")
+    if cmd == "kid-key":
+        ap.add_argument("arm")
+        ap.add_argument("leaf")
+        ap.add_argument("--kid-uid", type=int, required=True)
+    else:
+        ap.add_argument("--hash", required=True)
+        ap.add_argument("--file", required=True)
+    ap.add_argument("--keydir", required=cmd == "kid-key")
+    ap.add_argument("--ledger", required=True)
+    a = ap.parse_args(args)
+    root = Path(__file__).resolve().parents[3]
+    ws = provisioning.workspace(cfg)
+    try:
+        if cmd == "kid-key":
+            out = kid_key(arm=a.arm, leaf=a.leaf, cfg=cfg, keydir=a.keydir, ledger=a.ledger, kid_uid=a.kid_uid,
+                          root=root, workspace_id=ws)
+        else:
+            out = kid_done(key_hash=a.hash, keyfile=a.file, ledger=a.ledger, root=root, workspace_id=ws)
+    except (P1Refused, provisioning.ProvisioningError) as exc:
+        print(f"p1 {cmd}: {exc}")
+        print(f"p1 {cmd}: RED")
+        return 1
+    print(json.dumps(out))
+    return 1 if out.get("problems") else 0
+
+
 def main(argv: list[str]) -> int:
     root = Path(__file__).resolve().parents[3]
     cfg = json.loads((root / ".agi" / "config.json").read_text())
     cmd = argv[1] if len(argv) > 1 else ""
     if cmd in ("-h", "--help"):
         print(__doc__.strip().split("\n\n")[0])
-        print("usage: p1_ab.py install|seal|pin-check [prefix] | old-pi")
+        print("usage: p1_ab.py install|seal|pin-check [prefix] | old-pi | kid-key | kid-done")
         return 0
+    if cmd in ("kid-key", "kid-done"):
+        return _driver(cmd, argv[2:], cfg)
     prefix = argv[2] if len(argv) > 2 else "~/pi1"
     if cmd == "install":
         problems = install(prefix, cfg)
@@ -482,7 +562,7 @@ def main(argv: list[str]) -> int:
     elif cmd == "old-pi":
         problems = old_pi_untouched()
     else:
-        print("usage: p1_ab.py install|seal|pin-check [prefix] | old-pi", file=sys.stderr)
+        print("usage: p1_ab.py install|seal|pin-check [prefix] | old-pi | kid-key | kid-done", file=sys.stderr)
         return 2
     for pr in problems:
         print(f"p1 {cmd}: {pr}")

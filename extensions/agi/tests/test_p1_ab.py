@@ -587,3 +587,98 @@ def test_the_one_metrics_writer_renders_the_segment_and_names_a_bad_file(tmp_pat
     assert seg.count("| p1: ") == 2 and "red=2/5" in seg
     res.write_text("{broken")
     assert success_metrics.p1_segment(root).startswith("| p1: UNMEASURED(results unreadable")
+
+
+# --- belam's thin driver: kid-key before a kid, kid-done after ------------------------
+
+@needs_acl
+def test_kid_key_mints_and_writes_one_acld_file_and_returns_no_secret(monkeypatch, tmp_path):
+    api = Api(monkeypatch)
+    d = tmp_path / "keys"
+    out = p1_ab.kid_key(arm="deepseek", leaf=LEAVES[1], cfg=CFG, keydir=d, ledger=tmp_path / "l.json", kid_uid=KID)
+    assert out == {"arm": "deepseek", "leaf": LEAVES[1], "hash": "h1", "file": str(d / "deepseek-l2.key")}
+    assert "sk-h1" not in json.dumps(out) and (d / "deepseek-l2.key").read_text() == "sk-h1"
+    assert p1_ab.acl_problems(d / "deepseek-l2.key", d, KID) == []
+    assert api.sent[0]["limit"] == 0.5
+
+
+@needs_acl
+def test_at_most_max_live_key_files_exist_and_a_third_waits(monkeypatch, tmp_path):
+    api = Api(monkeypatch)
+    d = tmp_path / "keys"
+    led = tmp_path / "l.json"
+    p1_ab.kid_key(arm="deepseek", leaf=LEAVES[0], cfg=CFG, keydir=d, ledger=led, kid_uid=KID)
+    p1_ab.kid_key(arm="deepseek", leaf=LEAVES[1], cfg=CFG, keydir=d, ledger=led, kid_uid=KID)
+    with pytest.raises(p1_ab.P1Refused, match="at most 2 at once"):
+        p1_ab.kid_key(arm="deepseek", leaf=LEAVES[2], cfg=CFG, keydir=d, ledger=led, kid_uid=KID)
+    assert len(api.sent) == 2                       # the third never reached the API
+    p1_ab.kid_done(key_hash="h1", keyfile=d / "deepseek-l1.key", ledger=led)
+    p1_ab.kid_key(arm="deepseek", leaf=LEAVES[2], cfg=CFG, keydir=d, ledger=led, kid_uid=KID)   # a slot freed
+
+
+def test_kid_key_refuses_a_leaf_off_the_list_before_anything(monkeypatch, tmp_path):
+    api = Api(monkeypatch)
+    with pytest.raises(p1_ab.P1Refused, match="frozen list"):
+        p1_ab.kid_key(arm="glm", leaf="goal:g6.50", cfg=CFG, keydir=tmp_path / "k", ledger=tmp_path / "l.json", kid_uid=KID)
+    assert api.sent == [] and not (tmp_path / "k").exists()
+
+
+@needs_acl
+def test_a_key_file_that_cannot_be_written_revokes_the_key_and_the_leaf_stays_spent(monkeypatch, tmp_path):
+    api = Api(monkeypatch)
+    led = tmp_path / "l.json"
+    with pytest.raises(p1_ab.P1Refused, match="kid uid"):
+        p1_ab.kid_key(arm="glm", leaf=LEAVES[0], cfg=CFG, keydir=tmp_path / "k", ledger=led, kid_uid=os.geteuid())
+    assert api.revoked == ["h1"] and not list((tmp_path / "k").glob("*.key"))
+    with pytest.raises(p1_ab.P1Refused, match="never retried"):
+        p1_ab.kid_key(arm="glm", leaf=LEAVES[0], cfg=CFG, keydir=tmp_path / "k", ledger=led, kid_uid=KID)
+
+
+@needs_acl
+def test_kid_done_reads_spend_disables_reads_back_removes_the_file_and_records(monkeypatch, tmp_path):
+    api = Api(monkeypatch)
+    d = tmp_path / "keys"
+    led = tmp_path / "l.json"
+    k = p1_ab.kid_key(arm="glm", leaf=LEAVES[0], cfg=CFG, keydir=d, ledger=led, kid_uid=KID)
+    api.rows[0]["usage"] = 0.1234
+    out = p1_ab.kid_done(key_hash=k["hash"], keyfile=k["file"], ledger=led)
+    assert out == {"arm": "glm", "leaf": LEAVES[0], "hash": "h1", "usd": 0.1234, "problems": []}
+    assert api.rows[0]["disabled"] is True and not Path(k["file"]).exists()
+    row = json.loads(led.read_text())[0]
+    assert row["usd"] == 0.1234 and row["done"] is True
+
+
+@needs_acl
+def test_kid_done_with_a_key_that_stays_enabled_is_a_red_and_still_removes_the_file(monkeypatch, tmp_path):
+    api = Api(monkeypatch, stored_limit="ignore-disable")
+    d = tmp_path / "keys"
+    led = tmp_path / "l.json"
+    k = p1_ab.kid_key(arm="glm", leaf=LEAVES[0], cfg=CFG, keydir=d, ledger=led, kid_uid=KID)
+    out = p1_ab.kid_done(key_hash=k["hash"], keyfile=k["file"], ledger=led)
+    assert any("not disabled" in x for x in out["problems"]) and not Path(k["file"]).exists()
+    assert json.loads(led.read_text())[0]["done"] is False
+
+
+def test_kid_done_will_not_touch_a_key_the_ledger_never_minted(monkeypatch, tmp_path):
+    api = Api(monkeypatch)
+    api.rows.append({"hash": "owners-key", "limit": None, "usage": 1.0, "disabled": False})
+    led = tmp_path / "l.json"
+    led.write_text("[]")
+    with pytest.raises(p1_ab.P1Refused, match="not in the ledger"):
+        p1_ab.kid_done(key_hash="owners-key", keyfile=tmp_path / "x", ledger=led)
+    assert api.patched == []
+
+
+@needs_acl
+def test_the_cli_prints_json_without_the_secret_and_exits_nonzero_on_a_refusal(monkeypatch, tmp_path, capsys):
+    api = Api(monkeypatch)
+    d, led = tmp_path / "keys", tmp_path / "l.json"
+    rc = p1_ab.main(["p1_ab.py", "kid-key", "deepseek", LEAVES[0], "--kid-uid", str(KID), "--keydir", str(d), "--ledger", str(led)])
+    out = capsys.readouterr().out
+    assert rc == 0 and "sk-h1" not in out and json.loads(out)["hash"] == "h1"
+    rc = p1_ab.main(["p1_ab.py", "kid-key", "deepseek", LEAVES[0], "--kid-uid", str(KID), "--keydir", str(d), "--ledger", str(led)])
+    out = capsys.readouterr().out
+    assert rc == 1 and "never retried" in out and out.rstrip().endswith("RED") and "sk-" not in out
+    rc = p1_ab.main(["p1_ab.py", "kid-done", "--hash", "h1", "--file", str(d / "deepseek-l1.key"), "--ledger", str(led)])
+    done = json.loads(capsys.readouterr().out)
+    assert rc == 0 and done["problems"] == [] and "sk-" not in json.dumps(done)
