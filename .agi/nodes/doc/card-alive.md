@@ -51,17 +51,13 @@ backlog     dg1       five-dead tip (belam's lines 1-3 + LINE 4: 17 pre-10-21 di
 L87 agi-cred fix · L88 p1_segment root · L89 kid launch · L90 DG2 M1-M4 + T2b · L91 P1 R1-R4+P0 · L94 .46.12 · L95 caller (with belam) · L97 C-1 · L98 dg1 reader · L99 workspace cell
 
 ## 🔴 Where it stops
-gen 18 (f 0.15 at 07:26Z) sent [decision] 07:25:47Z, 3/3 each: D1 C-2/C-3 c9728e97aa GO; D2 ca454a4bd0 lands as is; D3 P1 by-hash read-back counts.
-D1: my M1-M3 mutants RED (C-2 branch / temp guard / rc 1). Pre-land: SM's crontab -l 0 prereq_notice + 0 agi-suite blocks. Post-land: belam's successor
- reads `unread` + sha256 of both foreign tables unchanged; C-1 removal = ONE `apply --sudo --dry-run` (then `--sudo` if `would install`). Note: remove/marked --user unguarded (latent).
-D2: owner ruled 07:2xZ (goal:g7.16.1.11.46 ## OWNER): write.py retires ENTIRELY with its build node; W2 carries it. Owner line DROPPED from digest; W2 rewrites g4.18.7's THOUGHT.
-D3: conditions (i) quote belam's by-hash line + name kid-done's false 'absent' (ii) other conjuncts stand (iii) NO mint until by-hash read-back on trunk;
- fix rows: disabled only on 200+true, non-200 = unread RED, 200+false = LIVE RED; mutants 404 / disabled-false / non-default workspace.
-STEP B (07:17:02Z + 07:17:49Z correction): dg1's tip ca454a4bd0 (57 lines) queued as GATE209 after GATE210 (DG3's 05378480ca).
-belam ROTATED ~07:2xZ (successor = fresh session; resumes box read). Messages to belam go only via SM.
-NEXT: SM's [landed] rows for c9728e97aa / ca454a4bd0 (check r1-r6 on MAIN after land: the r6 walk + 57 status lines); DG3's ONE [result] vs C2 + D3.
-07:42:22Z [decision] DG3 (b) 05378480ca GO (3/3; my M1-M3 RED). DG3 [result]: p0 rc 2 + belam's g = green; rc 0 keyless = RED.
- GATE212 (87f5a53b75 by-hash): mint_capped still reads the LISTING (:304) -> DG3 moves it to key_state or names a fix-forward.
+gen 18, 08:03Z 10-24. Waiting on sp's word on DG3's by-hash tip 87f5a53b75 (aio GO; my reading GO, sent 08:02:40Z): then ONE [decision] to SM (or at 08:17Z).
+LANDED/DECIDED today by gen 18 (all 3/3): STEP B 57 -> horizon (ca454a4bd0, ON trunk; r1/r2/r6 + r3 green, pairs 12 = 11 + .13.4); C-2/C-3 c9728e97aa GO;
+ DG3 (b) 05378480ca GO; SM row-retire 7c1ef3664f GO (dg6 + director-engine -retired); notices OFF fix-forward (08:02:40Z) -> dg1's claimer:count tip.
+P1: belam's by-hash read counts (D3). After 87f5a53b75 lands: belam's successor re-runs kid-done ONCE (no mint) -> DG3's ONE [result]
+ (p0 rc 2 + belam's g = green). HALT on mints until DG3's next tip moves mint_capped's read-back (:~304) onto key_state.
+Owner 07:2xZ: write.py retires ENTIRELY with its build node (W2); g4.18.7's owner line dropped. belam rotated ~07:2xZ (successor fresh).
+OPEN for dg1: claimer:count + --leaves + `renamed` + notices OFF (one tip); remove/marked --user temp guard (note).
 Next: `cd ~/t; date -u; AGI_POST=alive box read | fold -s -w 200`.
 
 ## §4 Traps (gen 17)
