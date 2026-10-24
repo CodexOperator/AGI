@@ -47,6 +47,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -300,8 +301,10 @@ def mint_capped(*, arm: str, leaf: str, cfg: dict, ledger: str | Path,
     if minted is None:
         raise P1Refused("no provisioning key readable by this uid: nothing minted (absence is not a fallback "
                         "to a shared key)")
-    # Read BACK: the response to a mint is the caller's own claim, the listing is the API's.
-    seen = next((r for r in provisioning.list_keys(root, workspace_id) if r.get("hash") == minted.key_hash), None)
+    # Read BACK: the response to a mint is the caller's own claim, the API's own state of the key (BY HASH) is not.
+    # Never the listing: it covers one workspace and omits disabled keys, and a listing that dropped a live key
+    # would have every mint revoke itself.
+    seen = key_state(minted.key_hash, root)[1]
     got = None if seen is None else seen.get("limit")
     if got is None or float(got) > key_cap:
         provisioning.revoke(minted.key_hash, root)
@@ -750,11 +753,37 @@ def proc_sweep(paths: list[str | Path], *, since: int | None = None,
     return sorted(hit), sorted(older)
 
 
+def own_hwm_kb() -> int | None:
+    """This process's own peak resident set (VmHWM, KB), or None when /proc does not say. Linux carries the forker's
+    pre-exec high-water mark into the kid's wait4 ru_maxrss, so this is the floor a kid reading has to clear."""
+    try:
+        for line in Path("/proc/self/status").read_text().splitlines():
+            if line.startswith("VmHWM:"):
+                return int(line.split()[1]) or None
+    except (OSError, ValueError, IndexError):
+        pass
+    return None
+
+
+def rss_reading(maxrss_kb: int | None, floor_kb: int | None) -> tuple[int | None, int | None]:
+    """(peak_rss_kb, rss_floor_kb) from wait4's ru_maxrss and the forker's VmHWM read just before the fork. ru_maxrss
+    is max(floor, the kid's own peak), so it is the kid's peak only when it is ABOVE the floor; at or below it the
+    kid's peak is at most the floor, which is all that is known: (None, floor). No floor read = no claim: (None, None)."""
+    if not maxrss_kb or maxrss_kb <= 0 or not floor_kb:
+        return None, None
+    if maxrss_kb > floor_kb:
+        return int(maxrss_kb), None
+    return None, int(floor_kb)
+
+
 def run_kid(plan: dict, cfg: dict, *, live: int, gb: float | None) -> dict:
     """Spawn gate, models.json, ONE bounded run in its own session, models.json removed. The kid's whole process
     group is SIGKILLed at the timeout AND at normal exit, then a /proc sweep kills anything of this uid still
     holding the kid's worktree or home that started after the kid did (an OLDER holder is named, never killed);
-    either one counts the run red. Returns {"rc", "secs", "timed_out", "sweep", "older"}: never the log's content and never the key. A kid at the timeout is a counted red, not retried."""
+    either one counts the run red. Returns {"rc", "secs", "timed_out", "sweep", "older", "peak_rss_kb", "rss_floor_kb"}: never the log's content and never the key.
+    peak_rss_kb is wait4's ru_maxrss (the largest resident set of the kid and the descendants it reaped) ONLY when it
+    clears this process's own VmHWM at the fork (see rss_reading); otherwise it is None and rss_floor_kb says the kid stayed at or under that floor.
+    A kid at the timeout is a counted red, not retried."""
     ok, why = may_start(live, gb, cfg)
     if not ok:
         raise P1Refused(f"kid not started: {why}")
@@ -772,23 +801,38 @@ def run_kid(plan: dict, cfg: dict, *, live: int, gb: float | None) -> dict:
         fd = os.open(plan["log"], os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
         with os.fdopen(fd, "w") as log:
             since = boot_ticks()                                 # nothing older than this moment is the kid's
+            floor_kb = own_hwm_kb()                              # the forker's high-water mark, which the kid's ru_maxrss inherits
             proc = subprocess.Popen(plan["argv"], cwd=plan["cwd"], env=plan["env"], stdin=subprocess.DEVNULL,
                                     stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+            deadline = time.monotonic() + plan["timeout"]
+            usage = None
             try:
-                rc = proc.wait(timeout=plan["timeout"])
-            except subprocess.TimeoutExpired:
-                rc, timed_out = None, True
+                while True:                                    # wait4 (not proc.wait) so the kid's rusage is kept
+                    got, status, usage = os.wait4(proc.pid, os.WNOHANG)
+                    if got:
+                        rc = os.waitstatus_to_exitcode(status)
+                        break
+                    if time.monotonic() >= deadline:
+                        rc, timed_out = None, True
+                        break
+                    time.sleep(0.05)
             finally:
                 try:
                     os.killpg(proc.pid, signal.SIGKILL)       # at the timeout AND at a normal exit
                 except ProcessLookupError:
                     pass
-                proc.wait()
+                if usage is None:                              # timed out: reap the killed kid, keep its rusage
+                    try:
+                        usage = os.wait4(proc.pid, 0)[2]
+                    except ChildProcessError:
+                        pass
+                proc.returncode = rc if rc is not None else -signal.SIGKILL
+            peak_rss_kb, rss_floor_kb = rss_reading(int(usage.ru_maxrss) if usage is not None else None, floor_kb)   # 0 = not read
         sweep, older = proc_sweep([plan["cwd"], plan["agent_dir"].rsplit("/", 1)[0]], since=since)
     finally:
         models.unlink(missing_ok=True)
     return {"rc": rc, "secs": round((_now() - start).total_seconds(), 1), "timed_out": timed_out, "sweep": sweep,
-            "older": older}
+            "older": older, "peak_rss_kb": peak_rss_kb, "rss_floor_kb": rss_floor_kb}
 
 
 # --- the run ledger (mine) and the record that reads both ledgers ------------------------
@@ -820,7 +864,9 @@ def run_logged(*, arm: str, leaf: str, cfg: dict, ledger: str | Path, runs: str 
         raise P1Refused(f"({arm}, {leaf}) already has a run row: a kid runs once, never again")
     res = run_kid(plan, cfg, live=live_kids(rows, arm, leaf), gb=gb)
     row = {"arm": arm, "leaf": leaf, "rc": res["rc"], "secs": res["secs"], "timed_out": res["timed_out"],
-           "sweep": res["sweep"], "older": res["older"], "brief_sha256": brief_digest(plan["prompt"])}
+           "sweep": res["sweep"], "older": res["older"], "peak_rss_kb": res["peak_rss_kb"],
+           "rss_floor_kb": res["rss_floor_kb"],
+           "brief_sha256": brief_digest(plan["prompt"])}
     _append_run(runs, row)
     return row
 
@@ -841,7 +887,7 @@ def _append_run(runs: str | Path, row: dict) -> None:
 
 
 def record_from_ledgers(results: str | Path, cfg: dict, *, arm: str, leaf: str, ledger: str | Path,
-                        runs: str | Path, landed: bool, red: bool) -> dict:
+                        runs: str | Path, landed: bool, red: bool, reviewed: str | None = None) -> dict:
     """R1: RECORD READS, NEVER TYPED. usd comes from the (arm, leaf) kid-done row of belam's ledger, secs and the brief
     sha from my run row; either absent = refused. A timed-out, non-zero or swept run is red and cannot be landed:
     a record that says otherwise is refused."""
@@ -856,11 +902,13 @@ def record_from_ledgers(results: str | Path, cfg: dict, *, arm: str, leaf: str, 
         raise P1Refused(f"({arm}, {leaf}) ran red (timed_out={run['timed_out']} rc={run['rc']} sweep={run['sweep']} older={run.get('older')}): "
                         f"it records as red and not landed, not as landed={landed} red={red}")
     return record_result(results, cfg, arm=arm, leaf=leaf, landed=landed, usd=float(mint["usd"]),
-                         secs=float(run["secs"]), red=red or forced, brief_sha256=run["brief_sha256"])
+                         secs=float(run["secs"]), red=red or forced, brief_sha256=run["brief_sha256"],
+                         peak_rss_kb=run.get("peak_rss_kb"), rss_floor_kb=run.get("rss_floor_kb"), reviewed=reviewed)
 
 
 def record_result(path: str | Path, cfg: dict, *, arm: str, leaf: str, landed: bool, usd: float, secs: float,
-                  red: bool, brief_sha256: str | None = None) -> dict:
+                  red: bool, brief_sha256: str | None = None, peak_rss_kb: int | None = None,
+                  rss_floor_kb: int | None = None, reviewed: str | None = None) -> dict:
     """Add the (arm, leaf) kid row to the committed results file (written atomically; one row per pair, ever).
     This is the file the one metrics writer renders; this function writes nothing else."""
     import adapters  # noqa: PLC0415
@@ -889,8 +937,13 @@ def record_result(path: str | Path, cfg: dict, *, arm: str, leaf: str, landed: b
     other = next((k.get("brief_sha256") for a in res["arms"] for k in a["kids"] if k["leaf"] == leaf and k.get("brief_sha256")), None)
     if brief_sha256 and other and other != brief_sha256:
         raise P1Refused(f"({arm}, {leaf}) brief sha {brief_sha256[:12]} != the other arm's {other[:12]}: one frozen brief per leaf")
+    def _kb(v):
+        return v if isinstance(v, int) and not isinstance(v, bool) and v > 0 else None
+    rss, floor = _kb(peak_rss_kb), _kb(rss_floor_kb)
+    floor = None if rss else floor                       # a reading above the floor needs no floor
     entry["kids"].append({"leaf": leaf, "landed": bool(landed), "usd": float(usd), "secs": float(secs), "red": bool(red),
-                          "brief_sha256": brief_sha256})
+                          "brief_sha256": brief_sha256, "peak_rss_kb": rss, "rss_floor_kb": floor,
+                          "reviewed": reviewed.strip() if isinstance(reviewed, str) and reviewed.strip() else None})
     order = cell(cfg)["arm_order"]
     res["arms"].sort(key=lambda a: order.index(a["arm"]) if a["arm"] in order else len(order))
     tmp = path.with_suffix(".tmp")
@@ -1033,23 +1086,42 @@ def may_start(live: int, reading, cfg: dict) -> tuple[bool, str]:
     return True, "ok"
 
 
+def rss_word(kids: list[dict]) -> str:
+    """The segment's peak-RSS word, never a bare green. A reading is a positive peak_rss_kb: wait4's ru_maxrss that
+    cleared the forker's own high-water mark. `rss=<max>MB` when every kid has one, `rss=<max>MB(partial)` when only some do.
+    With no reading but a floor, `rss=floor<N>MB`: the kids stayed at or under N MB (the forker's own peak at the fork),
+    which is a bound and not a measurement. `rss=unmeasured` when neither is there."""
+    def kb(k, key):
+        v = k.get(key)
+        return v if isinstance(v, int) and not isinstance(v, bool) and v > 0 else None
+    got = [kb(k, "peak_rss_kb") for k in kids if kb(k, "peak_rss_kb")]
+    if got:
+        return f"rss={max(got) / 1024:.0f}MB" + ("" if len(got) == len(kids) else "(partial)")
+    floors = [kb(k, "rss_floor_kb") for k in kids if kb(k, "rss_floor_kb")]
+    if floors:
+        return f"rss=floor{max(floors) / 1024:.0f}MB" + ("" if len(floors) == len(kids) else "(partial)")
+    return "rss=unmeasured"
+
+
 def render_segment(results: dict, cfg: dict) -> str:
-    """The `| p1: <model> $/landed=<x> s/landed=<y> red=<r>/<n>` segments for the arms in a results file, one per
+    """The `| p1: <model> $/landed=<x> s/landed=<y> red=<r>/<n> ran=<k>/<n> rss=<z>` segments for the arms in a results file, one per
     arm that ran, joined by spaces; '' when none ran. n = the frozen leaf count; 0 landed prints
-    `$/landed=n/a landed=0`. Every kid's spend counts, landed or not: the cost of an arm is what it burned.
+    `$/landed=n/a landed=0`. A kid counts landed only when `landed` AND `reviewed` (the gate id that read its scratch land); landed without it prints `unreviewed=<k>`. The last word is the peak RSS (`rss_word`): a segment never reads green without it. Every kid's spend counts, landed or not: the cost of an arm is what it burned.
 
     results: {"base": sha, "arms": [{"arm", "model", "kids": [{"leaf", "landed", "usd", "secs", "red"}]}]}."""
     n = len(leaves(cfg))
     segs = []
     for a in results.get("arms") or []:
         kids = a.get("kids") or []
-        landed = sum(1 for k in kids if k["landed"])
+        landed = sum(1 for k in kids if k["landed"] and k.get("reviewed"))        # the preregistered definition: falsifier AND gate review
+        unreviewed = sum(1 for k in kids if k["landed"] and not k.get("reviewed"))
         red = sum(1 for k in kids if k["red"])
+        note = f" unreviewed={unreviewed}" if unreviewed else ""
         if landed == 0:
-            body = f"$/landed=n/a landed=0 red={red}/{n}"
+            body = f"$/landed=n/a landed=0 red={red}/{n} ran={len(kids)}/{n}{note} {rss_word(kids)}"
         else:
             body = (f"$/landed={sum(k['usd'] for k in kids) / landed:.4f} "
-                    f"s/landed={sum(k['secs'] for k in kids) / landed:.0f} red={red}/{n}")
+                    f"s/landed={sum(k['secs'] for k in kids) / landed:.0f} red={red}/{n} ran={len(kids)}/{n}{note} {rss_word(kids)}")
         segs.append(f"| p1: {a['model']} {body}")
     return " ".join(segs)
 
@@ -1109,7 +1181,7 @@ def _mine(cmd: str, args: list[str], cfg: dict, root: Path) -> int:
     """My side, run as the director's post uid, one JSON line out, never a key.
     `run-kid ARM LEAF --key-file F --worktree W --kid-home H --ledger L --runs R`: preflight, the live count from
     belam's ledger L (there is no --live), ONE run, the run row into my run ledger R.
-    `record ARM LEAF --ledger L --runs R --landed 0|1 --red 0|1`: usd from L's kid-done row, secs from R's run row.
+    `record ARM LEAF --ledger L --runs R --landed 0|1 --red 0|1 [--reviewed GATE]`: usd from L's kid-done row, secs from R's run row.
     `p0 --worktree W --kid-home H [--main-env F]`: the readings that must be true before a first mint."""
     import argparse  # noqa: PLC0415
     ap = argparse.ArgumentParser(prog=f"p1_ab.py {cmd}")
@@ -1128,6 +1200,7 @@ def _mine(cmd: str, args: list[str], cfg: dict, root: Path) -> int:
     elif cmd == "record":
         ap.add_argument("--landed", type=int, choices=(0, 1), required=True)
         ap.add_argument("--red", type=int, choices=(0, 1), required=True)
+        ap.add_argument("--reviewed", default=None, help="the gate id that read this kid's scratch land (landed counts only with it)")
     a = ap.parse_args(args)
     try:
         if cmd == "p0":
@@ -1144,7 +1217,7 @@ def _mine(cmd: str, args: list[str], cfg: dict, root: Path) -> int:
                              gb=slice_reading())
         else:
             record_from_ledgers(root / cell(cfg)["results"], cfg, arm=a.arm, leaf=a.leaf, ledger=a.ledger,
-                                runs=a.runs, landed=bool(a.landed), red=bool(a.red))
+                                runs=a.runs, landed=bool(a.landed), red=bool(a.red), reviewed=a.reviewed)
             out = {"arm": a.arm, "leaf": a.leaf, "recorded": True}
     except P1Refused as exc:
         print(f"p1 {cmd}: {exc}")

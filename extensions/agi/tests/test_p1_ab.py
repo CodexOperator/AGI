@@ -326,12 +326,21 @@ def test_a_stub_that_answers_expires_at_null_at_creation_is_revoked_by_the_mint_
     assert api.revoked == ["h1"]
 
 
-def test_a_key_that_is_missing_from_the_listing_is_refused_too(monkeypatch, tmp_path):
+def test_a_key_the_api_cannot_read_by_hash_is_refused_and_revoked(monkeypatch, tmp_path):
     api = Api(monkeypatch)
-    monkeypatch.setattr(provisioning, "list_keys", lambda root=None, workspace_id=None: [])
+    monkeypatch.setattr(p1_ab, "key_state", lambda h, root=None: (404, None))
     with pytest.raises(p1_ab.P1Refused, match="cap read back"):
         p1_ab.mint_capped(arm="glm", leaf=LEAVES[0], cfg=CFG, ledger=tmp_path / "l.json")
     assert api.revoked == ["h1"]
+
+
+def test_a_listing_that_omits_a_live_key_does_not_make_the_mint_revoke_itself(monkeypatch, tmp_path):
+    """aio's NOTE on GATE212: the mint read-back is BY HASH like the disable read-back, never the workspace listing."""
+    api = Api(monkeypatch)
+    monkeypatch.setattr(provisioning, "list_keys", lambda root=None, workspace_id=None: [])      # blind to the live key
+    k = p1_ab.mint_capped(arm="glm", leaf=LEAVES[0], cfg=CFG, ledger=tmp_path / "l.json")
+    assert k.key_hash == "h1" and api.revoked == []
+    assert json.loads((tmp_path / "l.json").read_text())[0]["hash"] == "h1"
 
 
 def test_a_leaf_never_mints_twice_a_capped_kid_is_a_red_not_a_retry(monkeypatch, tmp_path):
@@ -648,7 +657,7 @@ def test_p0c_the_real_files_of_this_box_read_when_they_exist():
 # --- the results file -> the metrics_line segment -------------------------------------
 
 def _kids(spec):
-    return [{"leaf": LEAVES[i], "landed": l, "usd": u, "secs": s, "red": r} for i, (l, u, s, r) in enumerate(spec)]
+    return [{"leaf": LEAVES[i], "landed": l, "usd": u, "secs": s, "red": r, "reviewed": "gate-1"} for i, (l, u, s, r) in enumerate(spec)]
 
 
 RESULTS = {"base": CFG["p1"]["base"], "arms": [
@@ -660,8 +669,8 @@ RESULTS = {"base": CFG["p1"]["base"], "arms": [
 
 def test_the_segment_has_the_four_numbers_per_arm_and_n_is_the_leaf_count():
     seg = p1_ab.render_segment(RESULTS, CFG)
-    assert seg == ("| p1: deepseek/deepseek-v4.1-flash-1017 $/landed=0.1667 s/landed=113 red=2/5 "
-                   "| p1: z-ai/glm-5.3-flash $/landed=n/a landed=0 red=5/5")
+    assert seg == ("| p1: deepseek/deepseek-v4.1-flash-1017 $/landed=0.1667 s/landed=113 red=2/5 ran=5/5 rss=unmeasured "
+                   "| p1: z-ai/glm-5.3-flash $/landed=n/a landed=0 red=5/5 ran=5/5 rss=unmeasured")
     assert seg.count("| p1: ") == 2
     assert p1_ab.render_segment({"arms": []}, CFG) == ""
 
@@ -954,6 +963,132 @@ def test_run_kid_refuses_at_the_live_bound_an_unreadable_slice_and_a_foreign_env
     assert not (tmp_path / "kidhome" / ".p1-agent" / "models.json").exists()
 
 
+def _small_kid(tmp_path, name):
+    cfg, plan = _plan(tmp_path / name, _fake_node(tmp_path, body="exit 0")) if (tmp_path / name).mkdir() is None else None
+    (tmp_path / name / "kidhome").mkdir()
+    return p1_ab.run_kid(plan, cfg, live=0, gb=1.0)
+
+
+def _touch(mb):
+    b = bytearray(mb * 1024 * 1024)
+    b[::4096] = b"x" * len(b[::4096])
+    return b
+
+
+def test_run_kid_reports_the_peak_rss_of_a_kid_that_clears_the_forkers_own_peak(tmp_path):
+    big = "python3 -c \"b = bytearray(400 * 1024 * 1024); b[::4096] = b'x' * len(b[::4096])\""
+    cfg, plan = _plan(tmp_path, _fake_node(tmp_path, body=big))
+    (tmp_path / "kidhome").mkdir()
+    res = p1_ab.run_kid(plan, cfg, live=0, gb=1.0)
+    assert res["rc"] == 0 and res["peak_rss_kb"] >= 390_000 and res["rss_floor_kb"] is None, res     # ru_maxrss is KB on Linux
+
+
+def test_a_small_kid_under_a_fat_parent_never_reads_the_parents_rss_as_its_own(tmp_path):
+    """SM 13:5xZ + alive: exec carries the forker's pre-exec HIGH-WATER mark into the kid's ru_maxrss. A small kid forked
+    from a parent that HOLDS 150 MB, and from one that held 300 MB and FREED it (VmRSS checked as dropped), reads either < 60000 or the floor word
+    (peak None, floor >= the parent's peak): never the parent's number as the kid's. The freed case is the one a VmRSS floor fails."""
+    held = _touch(150)
+    res = _small_kid(tmp_path, "held")
+    assert res["rc"] == 0 and (res["peak_rss_kb"] is None and res["rss_floor_kb"] >= 140_000
+                               or 0 < res["peak_rss_kb"] < 60_000), res
+    del held
+    big = _touch(300)
+    del big
+    now = next(int(line.split()[1]) for line in Path("/proc/self/status").read_text().splitlines() if line.startswith("VmRSS:"))
+    assert now < p1_ab.own_hwm_kb() - 250_000                   # the 300 MB really went back: VmRSS dropped, VmHWM did not
+    freed = _small_kid(tmp_path, "freed")
+    assert freed["rc"] == 0 and (freed["peak_rss_kb"] is None and freed["rss_floor_kb"] >= 290_000
+                                 or 0 < freed["peak_rss_kb"] < 60_000), freed
+
+
+def test_the_floor_is_the_forkers_high_water_mark_not_its_current_rss(monkeypatch):
+    """The mutant 'floor = VmRSS' reads 12 MB after a 150 MB allocation was freed; the HWM stays at the peak."""
+    held = _touch(150)
+    del held
+    hwm = p1_ab.own_hwm_kb()
+    rss = next(int(line.split()[1]) for line in Path("/proc/self/status").read_text().splitlines() if line.startswith("VmRSS:"))
+    assert hwm >= 140_000 and hwm > rss
+
+
+def test_rss_reading_is_the_kids_peak_only_above_the_floor():
+    assert p1_ab.rss_reading(300_000, 200_000) == (300_000, None)
+    assert p1_ab.rss_reading(200_000, 200_000) == (None, 200_000)         # at the floor: the kid is at most the floor
+    assert p1_ab.rss_reading(150_000, 200_000) == (None, 200_000)
+    assert p1_ab.rss_reading(0, 200_000) == (None, None)                  # 0 = not read
+    assert p1_ab.rss_reading(None, 200_000) == (None, None)
+    assert p1_ab.rss_reading(300_000, None) == (None, None)               # no floor read, no claim
+
+
+def test_a_timed_out_kid_reports_no_peak_rss_rather_than_a_zero(tmp_path):
+    cfg, plan = _plan(tmp_path, _fake_node(tmp_path, body="sleep 30"), timeout=1)
+    (tmp_path / "kidhome").mkdir()
+    res = p1_ab.run_kid(plan, cfg, live=0, gb=1.0)
+    assert res["timed_out"] is True and (res["peak_rss_kb"] is None or res["peak_rss_kb"] > 0)     # 0 is never reported
+
+
+def test_the_segment_carries_the_rss_exception_word_never_a_bare_green():
+    """alive 08:07Z item 3: a row with no peak RSS prints `rss=unmeasured`; measured rows print the max in MB; a mix says partial."""
+    def kid(rss):
+        return {"leaf": LEAVES[0], "landed": True, "usd": 0.1, "secs": 50.0, "red": False, "peak_rss_kb": rss, "reviewed": "gate-1"}
+    seg = lambda *kids: p1_ab.render_segment({"arms": [{"arm": "deepseek", "model": "m", "kids": list(kids)}]}, CFG)
+    assert seg(kid(None)).endswith("red=0/5 ran=1/5 rss=unmeasured")
+    assert seg({k: v for k, v in kid(1).items() if k != "peak_rss_kb"}).endswith("rss=unmeasured")     # an old row without the key
+    assert seg(kid(0)).endswith("rss=unmeasured")                                                      # 0 is never a reading
+    assert seg(kid(204800)).endswith("red=0/5 ran=1/5 rss=200MB")
+    assert seg(kid(204800), kid(102400)).endswith("rss=200MB")
+    assert seg(kid(204800), kid(None)).endswith("rss=200MB(partial)")
+    floor = {**kid(None), "rss_floor_kb": 153600}
+    assert seg(floor).endswith("red=0/5 ran=1/5 rss=floor150MB")                                      # a bound, never a bare reading
+    assert seg(floor, floor).endswith("rss=floor150MB") and seg(floor, kid(None)).endswith("rss=floor150MB(partial)")
+    assert seg(floor, kid(204800)).endswith("rss=200MB(partial)")
+    dead = p1_ab.render_segment({"arms": [{"arm": "glm", "model": "m", "kids": [{**kid(None), "landed": False, "red": True}]}]}, CFG)
+    assert dead.endswith("landed=0 red=1/5 ran=1/5 rss=unmeasured")
+
+
+def test_the_segment_says_how_many_of_the_frozen_five_ran_and_keeps_red_over_n():
+    """sp/aio 08:36Z: red stays red=<r>/<n> (n = the frozen leaf count, preregistered); ran=<k>/<n> is ADDED beside it."""
+    kid = {"leaf": LEAVES[0], "landed": True, "usd": 0.1, "secs": 50.0, "red": False, "reviewed": "g1", "peak_rss_kb": None}
+    one = p1_ab.render_segment({"arms": [{"arm": "deepseek", "model": "m", "kids": [kid]}]}, CFG)
+    assert " red=0/5 ran=1/5 " in one and "red=0/1" not in one
+    three = p1_ab.render_segment({"arms": [{"arm": "deepseek", "model": "m", "kids": [kid, kid, {**kid, "landed": False, "red": True}]}]}, CFG)
+    assert " red=1/5 ran=3/5 " in three
+
+
+def test_a_kid_counts_landed_only_when_landed_and_reviewed(tmp_path):
+    """alive 08:23Z: the preregistered definition is the falsifier AND the gate review on a scratch land; a row with
+    landed true and no `reviewed` gate id is NOT counted landed, and the segment says so."""
+    base = {"leaf": LEAVES[0], "landed": True, "usd": 0.1, "secs": 50.0, "red": False, "peak_rss_kb": None}
+    seg = lambda kid: p1_ab.render_segment({"arms": [{"arm": "deepseek", "model": "m", "kids": [kid]}]}, CFG)
+    assert seg({**base, "reviewed": "gate-212"}).startswith("| p1: m $/landed=0.1000 s/landed=50 red=0/5 ran=1/5 rss=")
+    for no_review in ({**base, "reviewed": None}, {**base, "reviewed": ""}, dict(base)):
+        out = seg(no_review)
+        assert out.startswith("| p1: m $/landed=n/a landed=0 red=0/5 ran=1/5 unreviewed=1 "), out
+    f = tmp_path / "r.json"
+    p1_ab.record_result(f, CFG, arm="deepseek", leaf=LEAVES[0], landed=True, usd=0.1, secs=1.0, red=False, reviewed=" gate-9 ")
+    p1_ab.record_result(f, CFG, arm="deepseek", leaf=LEAVES[1], landed=True, usd=0.1, secs=1.0, red=False)
+    assert [k["reviewed"] for k in json.loads(f.read_text())["arms"][0]["kids"]] == ["gate-9", None]
+
+
+def test_record_stores_the_run_rows_peak_rss_and_a_missing_one_stays_null(tmp_path):
+    res = tmp_path / "r.json"
+    p1_ab.record_result(res, CFG, arm="deepseek", leaf=LEAVES[0], landed=True, usd=0.1, secs=5.0, red=False, peak_rss_kb=123456)
+    p1_ab.record_result(res, CFG, arm="deepseek", leaf=LEAVES[1], landed=True, usd=0.1, secs=5.0, red=False)
+    kids = json.loads(res.read_text())["arms"][0]["kids"]
+    assert [k["peak_rss_kb"] for k in kids] == [123456, None]
+
+
+def test_record_carries_a_floor_when_there_is_no_reading(tmp_path):
+    led, runs = _ledgers(tmp_path)
+    rows = json.loads(runs.read_text())
+    rows[0]["peak_rss_kb"], rows[0]["rss_floor_kb"] = None, 204800
+    runs.write_text(json.dumps(rows))
+    res = p1_ab.record_from_ledgers(tmp_path / "res.json", CFG, arm="deepseek", leaf=LEAF, ledger=led, runs=runs,
+                                    landed=True, red=False, reviewed="g")
+    k = res["arms"][0]["kids"][0]
+    assert (k["peak_rss_kb"], k["rss_floor_kb"]) == (None, 204800)
+    assert p1_ab.render_segment(res, CFG).endswith("rss=floor200MB")
+
+
 def test_a_kid_at_the_timeout_is_a_counted_red_not_a_retry(tmp_path):
     node = _fake_node(tmp_path, body="sleep 30")
     cfg, plan = _plan(tmp_path, node, timeout=1)
@@ -965,15 +1100,15 @@ def test_a_kid_at_the_timeout_is_a_counted_red_not_a_retry(tmp_path):
 
 def test_record_result_adds_one_row_per_pair_in_arm_order_and_renders(tmp_path):
     f = tmp_path / "res.json"
-    p1_ab.record_result(f, CFG, arm="glm", leaf=LEAVES[0], landed=True, usd=0.1, secs=100, red=False)
-    p1_ab.record_result(f, CFG, arm="deepseek", leaf=LEAVES[0], landed=False, usd=0.2, secs=50, red=True)
-    p1_ab.record_result(f, CFG, arm="deepseek", leaf=LEAVES[1], landed=True, usd=0.3, secs=70, red=False)
+    p1_ab.record_result(f, CFG, arm="glm", leaf=LEAVES[0], landed=True, usd=0.1, secs=100, red=False, reviewed="g1")
+    p1_ab.record_result(f, CFG, arm="deepseek", leaf=LEAVES[0], landed=False, usd=0.2, secs=50, red=True, reviewed="g1")
+    p1_ab.record_result(f, CFG, arm="deepseek", leaf=LEAVES[1], landed=True, usd=0.3, secs=70, red=False, reviewed="g1")
     res = json.loads(f.read_text())
     assert [a["arm"] for a in res["arms"]] == ["deepseek", "glm"] and res["base"] == CFG["p1"]["base"]
     assert res["arms"][0]["model"] == "deepseek/deepseek-v4.1-flash-1017" and len(res["arms"][0]["kids"]) == 2
     seg = p1_ab.render_segment(res, CFG)
-    assert "| p1: deepseek/deepseek-v4.1-flash-1017 $/landed=0.5000 s/landed=120 red=1/5" in seg
-    assert "| p1: z-ai/glm-5.3-flash $/landed=0.1000 s/landed=100 red=0/5" in seg
+    assert "| p1: deepseek/deepseek-v4.1-flash-1017 $/landed=0.5000 s/landed=120 red=1/5 ran=2/5 rss=unmeasured" in seg
+    assert "| p1: z-ai/glm-5.3-flash $/landed=0.1000 s/landed=100 red=0/5 ran=1/5 rss=unmeasured" in seg
     for kw, why in ((dict(arm="glm", leaf=LEAVES[0], usd=0.1), "already has"), (dict(arm="glm", leaf="goal:g6.50", usd=0.1), "frozen list"),
                     (dict(arm="glm", leaf=LEAVES[2], usd=-1), "finite"), (dict(arm="glm", leaf=LEAVES[2], usd=float("nan")), "finite"),
                     (dict(arm="nope", leaf=LEAVES[2], usd=0.1), "no harness row")):
@@ -1158,6 +1293,19 @@ def test_r1_record_reads_usd_from_the_kid_done_row_and_secs_from_the_run_row(tmp
     assert (k["usd"], k["secs"], k["landed"], k["red"], k["brief_sha256"]) == (0.1234, 41.5, True, False, "e" * 64)
 
 
+def test_record_carries_the_run_rows_peak_rss_and_the_review_gate_id_into_the_results_row(tmp_path):
+    led, runs = _ledgers(tmp_path)
+    rows = json.loads(runs.read_text())
+    rows[0]["peak_rss_kb"] = 262144
+    rows[0]["rss_floor_kb"] = 8192
+    runs.write_text(json.dumps(rows))
+    res = p1_ab.record_from_ledgers(tmp_path / "res.json", CFG, arm="deepseek", leaf=LEAF, ledger=led, runs=runs,
+                                    landed=True, red=False, reviewed="SMR-P1-1")
+    k = res["arms"][0]["kids"][0]
+    assert (k["peak_rss_kb"], k["rss_floor_kb"], k["reviewed"]) == (262144, None, "SMR-P1-1")    # a reading needs no floor
+    assert " rss=256MB" in p1_ab.render_segment(res, CFG) and "unreviewed" not in p1_ab.render_segment(res, CFG)
+
+
 @pytest.mark.parametrize("kw", [dict(done=None), dict(done=False), dict(usd=None), dict(with_run=False)],
                          ids=["no-done-key", "done-false", "usd-null", "no-run-row"])
 def test_r1_no_kid_done_row_or_no_run_row_is_refused(tmp_path, kw):
@@ -1223,7 +1371,7 @@ def test_r2_two_open_rows_refuse_the_run_and_one_open_row_allows_it(tmp_path):
         p1_ab.run_logged(ledger=_ledger_with(tmp_path, [mine, other(1), other(2)]), **kw)
     assert not runs.exists()
     row = p1_ab.run_logged(ledger=_ledger_with(tmp_path, [mine, other(1), {**other(2), "done": True}]), **kw)
-    assert row["rc"] == 0 and row["timed_out"] is False and row["sweep"] == [] and len(row["brief_sha256"]) == 64
+    assert row["rc"] == 0 and row["timed_out"] is False and row["sweep"] == [] and len(row["brief_sha256"]) == 64 and "peak_rss_kb" in row and "rss_floor_kb" in row
 
 
 def test_r2_a_pair_without_a_mint_row_or_already_run_is_refused_and_there_is_no_live_flag(tmp_path):

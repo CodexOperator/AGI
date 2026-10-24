@@ -75,7 +75,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 P1_CFG = json.loads((REPO_ROOT / ".agi" / "config.json").read_text())
 P1_RESULTS = {"base": P1_CFG["p1"]["base"], "arms": [
     {"arm": "glm", "model": "z-ai/glm-5.3-flash", "kids": [
-        {"leaf": P1_CFG["p1"]["leaves"][0], "landed": True, "usd": 0.1, "secs": 100.0, "red": False}]}]}
+        {"leaf": P1_CFG["p1"]["leaves"][0], "landed": True, "usd": 0.1, "secs": 100.0, "red": False, "reviewed": "gate-1"}]}]}
 
 
 def _p1_repo(tmp_path: Path, *, config=True, p1=True, results=False) -> Path:
@@ -109,7 +109,7 @@ def test_no_results_file_means_no_p1_segment_from_either_root(tmp_path, monkeypa
 def test_a_committed_results_file_renders_the_segment_from_either_root(tmp_path, monkeypatch):
     _stub_line(monkeypatch)
     repo = _p1_repo(tmp_path, results=P1_RESULTS)
-    want = "| p1: z-ai/glm-5.3-flash $/landed=0.1000 s/landed=100 red=0/5"
+    want = "| p1: z-ai/glm-5.3-flash $/landed=0.1000 s/landed=100 red=0/5 ran=1/5 rss=unmeasured"
     for root in (repo, repo / ".agi"):
         # a board line's segments are counted by their KEY and content, never by position (council 04:23Z)
         line = success_metrics.make_line(root)
@@ -209,4 +209,4 @@ def test_the_cli_as_a_subprocess_renders_the_segment_once_results_exist(tmp_path
     r = _cli_line(_scratch_project(tmp_path, P1_RESULTS))
     assert r.returncode == 0, r.stderr
     out = r.stdout.strip()
-    assert out.count("| p1:") == 1 and "| p1: z-ai/glm-5.3-flash $/landed=0.1000 s/landed=100 red=0/5" in out, out
+    assert out.count("| p1:") == 1 and "| p1: z-ai/glm-5.3-flash $/landed=0.1000 s/landed=100 red=0/5 ran=1/5 rss=unmeasured" in out, out
