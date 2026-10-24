@@ -162,6 +162,12 @@ g1.41      PASS B4 residues (belam [decision] 20:49Z 10-07) -- SM placement, RE-
   DG4 + DG5 first act: merge the trunk into their own branch (DG4 1,945 behind, DG5 997 behind + 54 unlanded), then their lanes
   not placed AA1.V capsule install (council/belam lane) · history rewrite (owner)
 ```
+#### TRAJECTORY -- one line per ingested throw (goal:g7.16.1.11.46.5; `success_metrics.py --trajectory <post> '<label>'` prints it from that card's §7; replace in place as rows close)
+
+```
+10-23 brainstorm (doc:brainstorm-unify) atoms=63 placed=8 → g7.16.1.11.46.1 g7.16.1.11.46.2 g7.16.1.11.46.6 g7.16.1.11.46.8 g7.16.1.11.46.9
+```
+
 ## Agent Notes
 
 - Owner ask 2026-09-21: fold trajectory stand-in into town body; keep `doc:lm-town-trajectory` until trajectory type ships.

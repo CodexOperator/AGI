@@ -219,5 +219,39 @@ ok "r3b-merge-with-an-edited_by-rewrite-is-clean a scratch merge of two branches
 # R4: --line makes NO authenticated OpenRouter call (credit_balance / key_usage replaced by recorders that raise)
 mkp p4;printf 'import os\ndef _rec(n):\n    open(os.environ["CALLS"], "a").write(n + "\\n")\n    raise RuntimeError("no network in the lane")\ndef credit_balance(*a, **k):\n    _rec("credit_balance")\ndef key_usage(*a, **k):\n    _rec("key_usage")\ndef list_all_keys(*a, **k):\n    _rec("list_all_keys")\n'>$P/extensions/agi/bin/provisioning.py;: >$T/calls;export CALLS=$T/calls;sm --line $G_ >$T/r4.out;r4rc=$?;r4n=$(wc -l <$T/calls|tr -d ' ')
 ok "r4-line-makes-no-openrouter-call success_metrics.py --line with credit_balance / key_usage / list_all_keys replaced by recorders: $r4n call(s) (want 0; the cron fires hourly and each call is a 30 s authenticated GET whose result the line discards), rc $r4rc (want 0), subscription_tokens_per_season '$(head -1 $T/r4.out|xv x subscription_tokens_per_season)' and openrouter_subscription_spend_ratio '$(head -1 $T/r4.out|xv x openrouter_subscription_spend_ratio)' both UNMEASURED(no source yet), as before" '[ "$r4n" = 0 ]&&[ $r4rc = 0 ]&&[ "$(head -1 $T/r4.out|xv x subscription_tokens_per_season)" = "UNMEASURED(no source yet)" ]&&[ "$(head -1 $T/r4.out|xv x openrouter_subscription_spend_ratio)" = "UNMEASURED(no source yet)" ]'
+# ---- M4 (goal:g7.16.1.11.46.5): the intake segment is read from the cards' §7 by the ONE writer (--line), and a §7 count change changes the next cell
+mkp pi;mkdir -p $G_/sessions/quorum
+card(){ { printf '# card\n\n## §0 x\nhi\n\n## §7 ATOMS\n\n| # | atom | source | state | lap |\n|---|---|---|---|---|\n'; cat; printf '\n## §8 after\n| a9 | "x" | src:doc | target:no | lap1 |\n'; } >$G_/sessions/quorum/$1.md;}
+card belam <<'EOC'
+| a1 | "one" | src:doc | target:x | lap10 |
+| a2 | "two" | src:doc | target:x | lap2 |
+| a3 | "three" | src:doc | leaf:g1 | lap3 |
+| a4 | "four" | src:doc | out:no | lap4 |
+| 1.1 | legacy open | target:§0 |
+| 1.2 | legacy placed | leaf:goal:g1 |
+EOC
+card dg2 <<'EOC'
+| a1 | "x" | src:doc | moved:fl | lap9 |
+EOC
+printf '# card with no atoms\n\n## §0 x\n' >$G_/sessions/quorum/alive.md
+AGI_LAP=11 sm --line $G_ >$T/m4.out;l=$(head -1 $T/m4.out);seg=$(echo "$l"|sed -n 's/.*| intake: //p')
+ok "m4a-intake-segment-equals-the-cards the line ends '| intake: <post>=<open>/<placed>/<red>' from each card's §7 only (belam open 3 = a1 a2 + legacy 1.1, placed 3, red 1 = a2 at lap 2 vs lap 11; the legacy row has no lap and is never red; dg2 0/1/0; a card with no §7 rows is absent; the row in §8 is not read): got '$seg'" '[ "$seg" = "belam=3/3/1 dg2=0/1/0" ]&&[ "$(wc -l <$T/m4.out|tr -d " ")" = 1 ]&&[ "$(wc -c <$T/m4.out|tr -d " ")" -le $LINEMAX ]'
+printf '| a5 | "five" | src:doc | target:y | lap11 |\n'>$T/add5;sed -i "/^| 1.2 | legacy placed/r $T/add5" $G_/sessions/quorum/belam.md;AGI_LAP=11 sm --line $G_ >$T/m4b.out;seg2=$(head -1 $T/m4b.out|sed -n 's/.*| intake: //p')
+ok "m4b-a-count-change-changes-the-next-cell one more open row in belam's §7 moves belam 3/3/1 -> 4/3/1: got '$seg2'" '[ "$seg2" = "belam=4/3/1 dg2=0/1/0" ]'
+rm -f $G_/sessions/quorum/*.md;AGI_LAP=11 sm --line $G_ >$T/m4c.out;ok "m4c-no-cards-says-none no card with a §7 reads 'intake: none' (got '$(head -1 $T/m4c.out|sed -n 's/.*| intake: //p')')" '[ "$(head -1 $T/m4c.out|sed -n "s/.*| intake: //p")" = none ]'
+mkp pj;mkdir -p $G_/sessions/quorum;card belam <<'EOC'
+| a1 | "one" | src:doc | leaf:goal:g7.1 | lap1 |
+| a2 | "two" | src:doc | leaf:g7.2 | lap1 |
+| a3 | "three" | src:doc | leaf:g7.1 | lap1 |
+| a4 | "four" | src:doc | target:z | lap1 |
+EOC
+tl=$(cd $P&&AGI_LAP=5 python3 extensions/agi/bin/success_metrics.py $G_ --trajectory belam '10-23 brainstorm (doc:brainstorm-unify)' 2>&1)
+ok "m4d-trajectory-line-one-per-throw the TRAJECTORY line counts the throw's rows and the leaf ids they closed to: got '$tl'" '[ "$tl" = "10-23 brainstorm (doc:brainstorm-unify) atoms=4 placed=3 → g7.1 g7.2" ]'
+# mutant: a cron that skips the cards (the intake segment fixed to none) reads RED on m4a
+mkp pk;mkdir -p $G_/sessions/quorum;card belam <<'EOC'
+| a1 | "one" | src:doc | target:x | lap10 |
+EOC
+sed -i 's/^def intake_segment(root: Path) -> str:/def intake_segment(root: Path) -> str:\n    return "intake: none"/' $P/extensions/agi/bin/success_metrics.py;AGI_LAP=11 sm --line $G_ >$T/m4m.out
+ok "m4m-skipping-the-cards-RED a --line that skips the cards prints 'intake: none' for a card with an open row (got '$(head -1 $T/m4m.out|sed -n 's/.*| intake: //p')', the m4a lane wants belam=1/0/0 there): the m4a lane catches it" '[ "$(head -1 $T/m4m.out|sed -n "s/.*| intake: //p")" = none ]'
 echo "graph-metrics: $f FAIL"
 exit $f

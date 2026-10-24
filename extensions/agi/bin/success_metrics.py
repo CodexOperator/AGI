@@ -28,9 +28,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -283,6 +285,91 @@ def _run_metrics_once(root: Path) -> tuple[dict, str | None]:
 LINE_NO_NETWORK = ("subscription_tokens_per_season", "openrouter_subscription_spend_ratio")
 
 
+# ---------------------------------------------------------------------------
+# goal:g7.16.1.11.46.5 (M4): the intake segment and the TRAJECTORY line, read from
+# the cards' §7 ATOMS rows -- the ONE writer of metrics_line stays this --line.
+# ---------------------------------------------------------------------------
+
+LAP_SECONDS = 14400   # one lap = 4 h, the cadence of the Prime's digest / CHECK (agi-atom stamps lap<n> with the same unit)
+_S7 = re.compile(r"^## (?:\S+ )?§7(?!\d)")
+_ATOM_ID = re.compile(r"^(a\d+|\d+\.\d+)$")
+
+
+def current_lap() -> int:
+    """The lap number now (AGI_LAP overrides, as it does for agi-atom)."""
+    env = os.environ.get("AGI_LAP", "")
+    return int(env) if env.isdigit() else int(time.time() // LAP_SECONDS)
+
+
+def card_atoms(card: Path) -> list[tuple[str, str, int | None]]:
+    """(id, state, lap) for every §7 row of a card: the agi-atom form
+    `| a<n> | "<slice>" | src:<..> | <state> | lap<n> |` and the legacy
+    `| 1.1 | <text> | <state> |` (no lap: its age is unknown, never red)."""
+    try:
+        text = card.read_text(encoding="utf-8")
+    except OSError:
+        return []
+    rows, in7 = [], False
+    for ln in text.splitlines():
+        if ln.startswith("## "):
+            in7 = bool(_S7.match(ln))
+            continue
+        if not in7 or not ln.startswith("|"):
+            continue
+        cells = [c.strip() for c in ln.strip().strip("|").split("|")]
+        if not cells or not _ATOM_ID.match(cells[0]):
+            continue
+        m = re.fullmatch(r"lap(\d+)", cells[-1]) if len(cells) == 5 else None
+        if len(cells) == 5 and m and cells[2].startswith("src:"):
+            rows.append((cells[0], cells[3], int(m.group(1))))
+        elif len(cells) >= 3:
+            rows.append((cells[0], cells[-1], None))
+    return rows
+
+
+def _cards(root: Path) -> list[tuple[str, Path]]:
+    """(post, card) for each quorum card with a §7, one per resolved file."""
+    q, seen, out = root / "sessions" / "quorum", set(), []
+    for f in sorted(q.glob("*.md")) if q.is_dir() else []:
+        real = f.resolve()
+        if real in seen or not real.is_file():
+            continue
+        seen.add(real)
+        out.append((f.stem, real))
+    return out
+
+
+def intake_counts(rows: list[tuple[str, str, int | None]], lap: int) -> tuple[int, int, int]:
+    """(open, placed, red): open = state target:..., placed = any other state,
+    red = open and older than one lap (stamped lap n with lap - n > 1)."""
+    op = sum(1 for _, st, _ in rows if st.startswith("target:"))
+    red = sum(1 for _, st, lp in rows if st.startswith("target:") and lp is not None and lap - lp > 1)
+    return op, len(rows) - op, red
+
+
+def intake_segment(root: Path) -> str:
+    """`intake: <post>=<open>/<placed>/<red> ...` for every post whose card has a §7."""
+    lap = current_lap()
+    parts = []
+    for post, card in _cards(root):
+        rows = card_atoms(card)
+        if rows:
+            parts.append(f"{post}=%d/%d/%d" % intake_counts(rows, lap))
+    return "intake: " + (" ".join(parts) if parts else "none")
+
+
+_LEAF_STATE = re.compile(r"^leaf:(?:goal:)?(g[0-9][0-9.]*)")
+
+
+def trajectory_line(root: Path, post: str, label: str) -> str:
+    """One TRAJECTORY line for a throw ingested into <post>'s card §7:
+    `<label> atoms=<n> placed=<k> -> <leaf ids>` (the ids the placed rows closed to)."""
+    rows = card_atoms(root / "sessions" / "quorum" / f"{post}.md")
+    _, placed, _ = intake_counts(rows, current_lap())
+    leaves = sorted({m.group(1) for _, st, _ in rows if (m := _LEAF_STATE.match(st))})
+    return f"{label} atoms={len(rows)} placed={placed} \u2192 {' '.join(leaves) if leaves else 'none'}"
+
+
 def make_line(root: Path) -> str:
     """goal:g3.8 -- ONE line: a UTC minute, the graph counters and the seven success
     metrics. A null is NAMED (UNMEASURED(reason)), never a number the engine does not
@@ -315,7 +402,7 @@ def make_line(root: Path) -> str:
                          f"{'no live counter' if rec.get('present') else 'no source yet'})")
     when = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
     g = " ".join(f"{k}={graph(k)}" for k in LINE_GRAPH_KEYS)
-    return f"{when} graph: {g} | success: {' '.join(parts)}"
+    return f"{when} graph: {g} | success: {' '.join(parts)} | {intake_segment(root)}"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -323,6 +410,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("root", nargs="?", default=None)
     ap.add_argument("--line", action="store_true",
                     help="print ONE line for the town node's graph_metrics cell, no write")
+    ap.add_argument("--trajectory", nargs=2, metavar=("POST", "LABEL"),
+                    help="print ONE TRAJECTORY line for the throw ingested into POST's card §7, no write")
     ap.add_argument("--json", action="store_true", help="print JSON, no write")
     ap.add_argument("--diff", action="store_true", help="include the season diff")
     args = ap.parse_args(argv)
@@ -332,6 +421,9 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     if args.line:
         print(make_line(root))
+        return 0
+    if args.trajectory:
+        print(trajectory_line(root, *args.trajectory))
         return 0
     payload = compute(root)
     if args.diff:

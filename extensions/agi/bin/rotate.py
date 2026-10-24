@@ -8401,6 +8401,25 @@ def _render_card(preamble: str,
     return "\n".join(lines) + "\n"
 
 
+_CARD_S7 = re.compile(r"^## (?:\S+ )?§7(?!\d)")
+
+
+def _card_guard_lines(full: str) -> int:
+    """Lines the HANDOFF_CARD_LIMIT_LINES guard counts: the card WITHOUT its
+    `## §7` ATOMS section (goal:g7.16.1.11.46.2 M1, owner 10-23: §7 is
+    bounded by age -- an open atom older than one lap is a red -- never by
+    length). The count is `full.count("\n")` minus the §7 span, header to
+    the next `## ` header or EOF."""
+    n = 0
+    skip = False
+    for ln in full.splitlines():
+        if ln.startswith("## "):
+            skip = bool(_CARD_S7.match(ln))
+        if not skip:
+            n += 1
+    return n
+
+
 def _section_tag(header: str) -> str | None:
     """Which of §0 / §3 / §6 a `## ...` header names, or None. Headers like
     `## 🔴 §6 BANKED` still resolve to §6 (the token is searched, not the
@@ -8855,9 +8874,11 @@ def cmd_handoff(args: argparse.Namespace, root: Path) -> int:
         ]
 
     full = _render_card(preamble, new_sections)
-    line_count = full.count("\n")
+    line_count = _card_guard_lines(full)
     if line_count > HANDOFF_CARD_LIMIT_LINES:
-        biggest = max(new_sections, key=lambda hs: len(hs[1].splitlines()))[0]
+        biggest = max((hs for hs in new_sections
+                       if not _CARD_S7.match(hs[0])),
+                      key=lambda hs: len(hs[1].splitlines()))[0]
         print(f"ERR: composed card is {line_count} lines, over the "
               f"{HANDOFF_CARD_LIMIT_LINES}-line guard; cut the biggest "
               f"section ({biggest}).", file=sys.stderr)
@@ -9084,9 +9105,11 @@ def _closeout_apply(root: Path, seat: str, role: str,
             new_sections[target] = (new_sections[target][0], v)
 
     full = _render_card(preamble, new_sections)
-    line_count = full.count("\n")
+    line_count = _card_guard_lines(full)
     if line_count > HANDOFF_CARD_LIMIT_LINES:
-        biggest = max(new_sections, key=lambda hs: len(hs[1].splitlines()))[0]
+        biggest = max((hs for hs in new_sections
+                       if not _CARD_S7.match(hs[0])),
+                      key=lambda hs: len(hs[1].splitlines()))[0]
         return None, None, (
             f"composed card is {line_count} lines, over the "
             f"{HANDOFF_CARD_LIMIT_LINES}-line guard; cut the biggest "

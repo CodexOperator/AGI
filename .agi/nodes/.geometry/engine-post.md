@@ -21,6 +21,8 @@ agi-brief         1358 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
 agi-meter          616 B  past rotate_pct of the window: out-line
 agi-at             996 B  signed CAS commit of ~/t paths to posts/<P>
+agi-atomize       3274 B  box mail -> verbatim card atoms (wake path, model)
+agi-atom          5384 B  card §7 atoms: add close move (verbatim slices)
 grow.py           3228 B  the growth-order check both writers call
 agi-turn           4486 B  a signed commit per changed node tree
 agi-wt            1506 B  a node's tiny RAM tree: pull; drop = turn + purge
@@ -88,6 +90,65 @@ cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;{ [ "$P" ]&&[ "$AGI_ROLE" != kid ]&&git
 grow.py $t>&2||exit 6
 [ $n = $(git rev-parse $t^{tree}) ]&&exit;c=$(echo "$P: $*"|git commit-tree -S -p $t $n)&&git update-ref $b $c $t||{ echo "[raced] $*">&2;exit 4;}
 unset GIT_INDEX_FILE;git reset -q $b||echo "[reset] $b: the commit landed, HEAD not moved">&2
+~~~
+
+### agi-atom (5384 B)
+~~~sh
+#!/bin/sh
+# agi-atom add SLICE SRC [target:X] | close ID STATE | move ID.. FLOW [ARGS] | grandfather: card §7 rows `| a<n> | "<slice>" | src:<box sha>|src:<node id>#OWNER | <state> | lap<n> |` (goal:g7.16.1.11.46.2-.4); SRC is read here, the slice must be a byte substring of it; STATE closes a target: row once into leaf:<goal id>|idea:<id>|decision:<doc>#<line>|out:<reason> (the id must exist); move writes the slices into the flow's ARGS json and closes the rows moved:<flow>, then ONE agi-at of both files
+set -f;T=$(readlink -f "${AGI_T:-$HOME/t}");C=$(readlink -f "${AGI_ATOM_CARD:-$T/.agi/sessions/quorum/${AGI_POST:?}.md}")||exit 1;N=$T/.agi/nodes;[ -f "$C" ]||{ echo "agi-atom: no card $C">&2;exit 2;}
+d(){ echo "agi-atom: $*">&2;exit 2;};V=$1;[ $# -gt 0 ]&&shift;LAP=lap${AGI_LAP:-$(($(date +%s)/14400))};tab='	'
+n(){ f=$N/${1%%:*}/${1#*:}.md;[ -f "$f" ]&&grep -qFx "id: $1" "$f";}
+row(){ awk -F'|' -v i="$1" '{y=$2;gsub(/ /,"",y)}y==i&&NF==7{print;exit}' "$C";}
+sf(){ printf "%s\n" "$1"|awk -F'|' -v k=$(($2-0)) '{v=$(k);sub(/^ +/,"",v);sub(/ +$/,"",v);if(k==3){sub(/^"/,"",v);sub(/"$/,"",v)};printf "%s",v}';}
+put(){ w=$(mktemp "$C.XXXXXX")&&cat >"$w"&&cat "$w">"$C";rm -f "$w";}
+case $V in
+add)[ $# -ge 2 ]||d "add SLICE SRC [target:X]";s=$1;r=$2;g=${3:-target:?};case $s in ""|*"|"*|*'
+'*)d "[slice] empty, or carries | or a newline: cut it there";;esac;case $g in target:?*);;*)d "[state] add opens target:<x>";;esac
+ case $r in src:*#OWNER)i=${r#src:};i=${i%#OWNER};f=$N/${i%%:*}/${i#*:}.md;[ -f "$f" ]||d "[src] no node $i";S=$(awk '/^## /{p=/^## OWNER.*verbatim/}p' "$f");[ "$S" ]||d "[src] $i has no '## OWNER ... verbatim' section";;
+ src:*)h=${r#src:};case $h in *[!0-9a-f]*|"")d "[src] $r";;esac;[ "$(git -C "$T" cat-file -t "$h" 2>/dev/null)" = commit ]||d "[src] no commit $h";S=$(git -C "$T" log -1 --format=%B "$h");;*)d "[src] src:<box commit sha> or src:<node id>#OWNER";;esac
+ case $S in *"$s"*);;*)d "[verbatim] the slice is not a byte substring of $r";;esac
+ grep -qF "| \"$s\" | $r |" "$C"&&d "[dup] already on the card"
+ k=$(awk -F'|' '{gsub(/ /,"",$2)}$2~/^a[0-9]+$/&&substr($2,2)+0>m{m=substr($2,2)+0}END{print m+1}' "$C");R=$(printf '| a%s | "%s" | %s | %s | %s |' "$k" "$s" "$r" "$g" "$LAP");export R
+ awk 'BEGIN{r=ENVIRON["R"]}{L[NR]=$0}END{for(i=1;i<=NR;i++)if(L[i]~/^## §7/){s=i;break}
+  if(!s){for(i=1;i<=NR;i++)print L[i];print "";print "## §7 ATOMS (agi-atom add|close; open = target:, older than one lap = red)";print ""}else{e=NR;for(i=s+1;i<=NR;i++)if(L[i]~/^## /){e=i-1;break};while(e>s&&L[e]~/^[ \t]*$/)e--;for(i=1;i<=e;i++){print L[i];if(L[i]~/^\| # \| atom .*source/)h=1}}
+  if(!h){if(s)print "";print "| # | atom (verbatim slice) | source | state | lap |";print "|---|---|---|---|---|"};print r;if(s)for(i=e+1;i<=NR;i++)print L[i]}' "$C"|put;echo "a$k";;
+close)[ $# = 2 ]||d "close ID STATE";i=$1;g=$2;x=$(row "$i");[ "$x" ]||d "[row] no row $i in agi-atom form (grandfather the old rows first)";case $x in *"| target:"*);;*)d "[closed] $i is terminal";;esac
+ case $g in leaf:*)v=${g#leaf:};v=goal:${v#goal:};n "$v"||d "[state] no goal node $v";;idea:?*)v=${g#idea:};n idea:${v#idea:}||d "[state] no idea node $g";;out:?*);;
+ decision:?*)v=${g#decision:};p=${v%%#*};case $p in doc:*);;*)p=doc:$p;;esac;n "$p"||d "[state] no doc node $p";case $v in *#*)l=${v#*#};case $l in ""|*[!0-9]*)d "[state] #<line> is a number";;esac;[ "$l" -le "$(wc -l <"$N/doc/${p#doc:}.md")" ]||d "[state] $p has fewer than $l lines";;esac;;
+ *)d "[state] leaf:<goal id> | idea:<id> | decision:<doc>#<line> | out:<reason> (moved: is move's alone)";;esac
+ case $g in *"|"*)d "[state] no |";;esac;G=$g I=$i awk -F'|' -v OFS='|' '{y=$2;gsub(/ /,"",y)}y==ENVIRON["I"]&&NF==7&&$5~/^ target:/{$5=" "ENVIRON["G"]" "}{print}' "$C"|put;;
+move)a=;while [ $# -gt 0 ]&&case $1 in a[0-9]*);;*)false;;esac;do a="$a $1";shift;done;[ "$a" ]&&[ $# -ge 1 ]&&[ $# -le 2 ]||d "move ID.. FLOW [ARGS]";fl=$1;case $fl in ""|*[!a-z0-9-]*)d "[flow] $fl";;esac
+ A=$T/${2:-.agi/sessions/quorum/$fl.args.json};case $A in "$T"/*);;*)d "[args] under ~/t";;esac;case $A in *..*)d "[args] no ..";;esac;mkdir -p "${A%/*}";[ -f "$A" ]||echo '{}'>"$A";J=$(cat "$A")
+ for i in $a;do x=$(row $i);[ "$x" ]||d "[row] no row $i";case $x in *"| target:"*);;*)d "[closed] $i is terminal";;esac;case $x in *"| src:doc |"*)d "[src] $i is grandfathered, not verbatim";;esac
+  J=$(printf %s "$J"|jq -c --arg i $i --arg r "$(sf "$x" 4)" --arg s "$(sf "$x" 3)" --arg h "$(sf "$x" 3|sha256sum|cut -c1-12)" 'if (.atoms//[])|any(.src==$r and .slice==$s) then error("already in ARGS") else .atoms+=[{id:$i,src:$r,slice:$s,sha:$h}] end')||d "[args] $i would sit in two places";done
+ printf '%s\n' "$J">"$A.n"&&mv "$A.n" "$A";for i in $a;do h=$(sf "$(row $i)" 3|sha256sum|cut -c1-12);I=$i G=moved:$fl H=$h awk -F'|' -v OFS='|' '{y=$2;gsub(/ /,"",y)}y==ENVIRON["I"]&&NF==7{$3=" \"sha:"ENVIRON["H"]"\" ";$5=" "ENVIRON["G"]" "}{print}' "$C"|put;done
+ exec ${AGI_ATOM_COMMIT:-agi-at} "${C#$T/}" "${A#$T/}";;
+grandfather)awk -F'|' -v OFS='|' -v L="$LAP" '/^## /{s=/^## §7/}s&&/^\|[-| ]+\|$/&&NF==5{print "|---|---|---|---|---|";next}s&&$2~/^ # $/&&NF==5{print "| # | atom (owner ask, short) | source | state | lap |";next}
+ s&&NF==5&&$2~/^ [0-9]+\.[0-9]+ $/{t=$3;sub(/^ +/,"",t);sub(/ +$/,"",t);print "|"$2"| \""t"\" | src:doc |"$4"| "L" |";next}{print}' "$C"|put;;
+*)d "add | close | move | grandfather";;esac
+~~~
+
+### agi-atomize (3274 B)
+~~~sh
+#!/bin/sh
+# agi-atomize: the WAKE-PATH step after `box read` (goal:g7.16.1.11.46.3): cut each box message to this post that is not yet marked refs/atomized/P/<sha> into verbatim, non-overlapping atoms with targets (agi-infer: Haiku AGI_ATOMIZE_MODEL, Sonnet AGI_ATOMIZE_MODEL2 once if a target is ?), then `agi-atom add` each as a card §7 row and mark the commit; `>` lines never reach the model; kind fyi|report = 0 atoms, ask >= 1; a reply that paraphrases, overlaps or has no atoms for an ask marks nothing (the next wake retries)
+set -f;P=${AGI_POST:?};T=$(readlink -f "${AGI_T:-$HOME/t}");M=refs/atomized/$P;W=$(mktemp -d);trap 'rm -rf $W' 0;cd "$T"||exit 1;add=0
+ids=$(grep -rlE "Assigned to \*\*$P\*\*" .agi/nodes/goal 2>/dev/null|xargs -r grep -l '^status: active$'|sed 's|.*/||;s|\.md$||'|tr '\n' ' ')
+printf '%s' '{"type":"object","properties":{"kind":{"enum":["ask","fyi","report"]},"atoms":{"type":"array","items":{"type":"object","properties":{"slice":{"type":"string"},"target":{"type":"string"}},"required":["slice","target"]}}},"required":["kind","atoms"]}'>$W/s
+go(){ { printf 'Cut this message into atoms. kind: ask (it asks the recipient to do something), fyi (nothing to do), report (numbers). Only an ask has atoms: each atom is {slice, target}, a VERBATIM, non-overlapping slice of the message (never reworded, no | and no newline in a slice), target = one of the leaf ids below, idea, decision, or ?. Reply as JSON only.\nleaf ids: %s\n--- message\n' "$ids";cat $W/b;}|AGI_INFER_SCHEMA=$W/s ${AGI_ATOMIZE_INFER:-agi-infer} $1>$W/r;}
+ck(){ k=$(jq -er '.kind' $W/r 2>/dev/null)||return 1;case $k in fyi|report):>$W/a;return 0;;ask);;*)return 1;;esac
+ jq -r '.atoms[]|.slice+"\t"+.target' $W/r>$W/a 2>/dev/null&&[ -s $W/a ]||return 1;cut -f1 $W/a>$W/l;case $(cat $W/l) in *"	"*)return 1;;esac
+ awk 'NR==FNR{b=b $0 "\n";next}{p=index(b,$0);if(p==0||$0=="")x=1;print p+0,p+length($0)-1}END{exit x}' $W/b $W/l>$W/p&&sort -n $W/p|awk 'NR>1&&$1<=e{x=1}{e=$2}END{exit x}';}
+for r in $(git for-each-ref --format='%(refname)' refs/box|grep "/$P$");do f=${r#refs/box/};f=${f%/*}
+ for c in $(git rev-list --reverse $r);do git rev-parse -q --verify $M/$c>/dev/null&&continue;[ $(($(date +%s)-$(git log -1 --format=%ct $c))) -le ${AGI_ATOMIZE_AGE:-86400} ]||continue
+  git verify-commit --raw $c 2>&1|grep -q "for $f@agi with"||continue;git log -1 --format=%B $c|grep -v '^>'>$W/b;grep -q '[^[:space:]]' $W/b&&! grep -q '^\[town\]' $W/b||{ git update-ref $M/$c $c "";continue;}
+  rm -f $W/a1;go ${AGI_ATOMIZE_MODEL:-claude-haiku-5-5}&&ck||{ echo "[atomize] $c: no usable reply from ${AGI_ATOMIZE_MODEL:-claude-haiku-5-5}, nothing marked">&2;continue;}
+  grep -q "	[?]$" $W/a&&cp $W/a $W/a1&&go ${AGI_ATOMIZE_MODEL2:-claude-sonnet-5-5}&&ck||{ [ ! -s $W/a1 ]||cp $W/a1 $W/a;}
+  ok=1;while IFS='	' read -r s t;do t=${t#goal:};if [ -f .agi/nodes/goal/$t.md ];then t=target:goal:$t;else case $t in idea|decision)t=target:$t;;*)t=target:?;;esac;fi
+   agi-atom add "$s" src:$c "$t">/dev/null||{ ok=;break;};add=1;done<$W/a
+  [ "$ok" ]&&git update-ref $M/$c $c ""||echo "[atomize] $c: an atom was refused, the commit is not marked">&2;done;done
+[ $add = 0 ]||exec ${AGI_ATOM_COMMIT:-agi-at} "$(readlink -f "${AGI_ATOM_CARD:-$T/.agi/sessions/quorum/$P.md}"|sed "s|^$T/||")"
 ~~~
 
 ### grow.py (3228 B)
