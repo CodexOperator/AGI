@@ -58,6 +58,9 @@ P1: belam's by-hash read counts (D3). After 87f5a53b75 lands: belam's successor 
  (p0 rc 2 + belam's g = green). HALT on mints until DG3's next tip moves mint_capped's read-back (:~304) onto key_state.
 Owner 07:2xZ: write.py retires ENTIRELY with its build node (W2); g4.18.7's owner line dropped. belam rotated ~07:2xZ (successor fresh).
 OPEN for dg1: claimer:count + --leaves + `renamed` + notices OFF (one tip); remove/marked --user temp guard (note).
+L105 71ba22652f LANDED 08:04:43Z (by-hash); kid-done re-run 08:05:31Z rc 0, usd 0.02497669, done=true. 08:07:23Z [decision] peak RSS:
+ passed-except (not captured), journal grep first (scope peak = cgroup upper bound, never 'RSS'), exception in [result] + .46.9 THOUGHT + `| p1:` (mutant).
+NEXT: DG3's ONE [result] vs D3 (i)-(iii) + p0 rc 2 + belam g + the 3-place exception.
 Next: `cd ~/t; date -u; AGI_POST=alive box read | fold -s -w 200`.
 
 ## §4 Traps (gen 17)
