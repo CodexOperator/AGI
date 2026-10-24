@@ -230,7 +230,8 @@ ok "v1-mutant-no-value-check-RED a derive that does not check the value reads 'c
 SEC 'credits_live: true'
 nh l3;UL o1 "please fix the widget now" $T0>>$X;UL o2 "and an owner line the stub never labelled" $T1>>$X;AL p1 "Opened atom a1 for it" $T2>>$X;TAP>/dev/null;PL "please fix the widget now" ask;SA "please fix the widget now" a1;LB>/dev/null;EV agi-atom derive>/dev/null 2>&1
 LST=$D/last_l3;rm -f $LST
-dc(){ o=$(EV env AGI_ATOMIZE_LAST=$LST $1 derive check 2>&1);rc=$?;}
+NOWT=2026-10-24T10:01:00Z
+dc(){ o=$(EV env AGI_ATOMIZE_LAST=$LST AGI_NOW=$NOWT $1 derive check 2>&1);rc=$?;}
 dc agi-atom;ok "s1-live-with-no-atomize-stamp-is-unread credits_live true and no ~/.atomize.last: '$(echo "$o"|tail -1)' rc $rc (want 'done-when(4): unread (no atomize stamp)', rc 1)" '[ "$(echo "$o"|tail -1)" = "done-when(4): unread (no atomize stamp)" ]&&[ $rc = 1 ]'
 MUT 's/if(live=="true"&&last==""){print "done-when(4): unread (no atomize stamp)";exit 1};//' agi-atom;dc "sh $D/mut_agi-atom"
 ok "s1-mutant-no-stamp-reads-open-RED a derive without the missing-stamp check prints '$(echo "$o"|tail -1)' rc $rc: the lane wants the unread line" '[ "$(echo "$o"|tail -1)" != "done-when(4): unread (no atomize stamp)" ]'
@@ -239,9 +240,13 @@ echo 2026-10-24T10:00:02Z>$LST;dc agi-atom;ok "l3-a-fresh-owner-chunk-in-the-sam
 echo 2026-10-24T11:00:00Z>$LST;dc agi-atom;ok "l3-a-chunk-still-open-after-an-atomize-pass-is-red the same chunk is OLDER than the last atomize pass: '$(echo "$o"|tail -1)' rc $rc (want RED naming the owner chunks, rc 1)" '[ $rc = 1 ]&&echo "$o"|tail -1|grep -q "RED: the atomizer is live and owner chunks are still ?"'
 echo 2026-10-24T10:00:02Z>$LST;MUT 's/if(last!=""&&f\[3\]<last)qo++/qo++/' agi-atom;dc "sh $D/mut_agi-atom"
 ok "l3-mutant-every-open-owner-chunk-counts-RED a derive that counts a fresh owner chunk reads '$(echo "$o"|tail -1)' rc $rc: the lane wants no RED" '[ $rc = 1 ]'
-echo 2026-10-24T09:00:00Z>$LST;dc agi-atom;ok "s1-a-silent-atomizer-is-red credits_live true, one ask+ack row, a stamp ONE HOUR before the open owner chunk (more than the 1800 s grace): '$(echo "$o"|tail -1)' rc $rc (want RED: the atomizer is live and silent since 2026-10-24T09:00:00Z, 1)" '[ $rc = 1 ]&&[ "$(echo "$o"|tail -1|sed "s/.*RED/RED/")" = "RED: the atomizer is live and silent since 2026-10-24T09:00:00Z" ]'
+echo 2026-10-24T09:00:00Z>$LST;NOWT=2026-10-24T10:31:05Z;dc agi-atom;ok "s1-a-chunk-that-waited-past-the-grace-is-red credits_live true, one ask+ack row, a stamp from 09:00, the open owner chunk 31 min old (grace 1800 s): '$(echo "$o"|tail -1)' rc $rc (want RED: the atomizer is live and not run since 2026-10-24T09:00:00Z; oldest ? waited 31 min, 1)" '[ $rc = 1 ]&&[ "$(echo "$o"|tail -1|sed "s/.*RED/RED/")" = "RED: the atomizer is live and not run since 2026-10-24T09:00:00Z; oldest ? waited 31 min" ]'
 MUT 's/||qs+0>0))/))/' agi-atom;dc "sh $D/mut_agi-atom"
-ok "s1-mutant-silence-never-red-RED a derive without the silence test prints '$(echo "$o"|tail -1)' rc $rc: the lane wants RED" '[ $rc = 0 ]'
+ok "s1-mutant-silence-never-red-RED a derive without the waited test prints '$(echo "$o"|tail -1)' rc $rc: the lane wants RED" '[ $rc = 0 ]'
+echo 2026-10-24T06:00:00Z>$LST;NOWT=2026-10-24T10:01:05Z;dc agi-atom;ok "s1-a-fresh-chunk-after-a-quiet-stretch-is-not-red a stamp 4 h old and an open owner chunk 1 min old (no wake has run yet): '$(echo "$o"|tail -1)' rc $rc (want no RED, rc 0)" '[ $rc = 0 ]&&! echo "$o"|tail -1|grep -q RED'
+MUT 's/ep(now)-ep(f\[3\])>gr/1/' agi-atom;dc "sh $D/mut_agi-atom"
+ok "s1-mutant-fresh-chunk-counts-RED a derive that counts every chunk newer than the stamp prints '$(echo "$o"|tail -1)' rc $rc for the 1-minute-old chunk: the lane wants no RED" '[ $rc = 1 ]'
+NOWT=2026-10-24T10:01:00Z
 SA "and an owner line" none;echo 2026-10-24T11:00:00Z>$LST;dc agi-atom
 ok "l3-all-owner-chunks-labelled-with-an-ask-ack-row-is-green credits_live true, the owner chunk labelled, one ask+ack row, an atomize pass after it: '$(echo "$o"|tail -1)' rc $rc (want no RED, rc 0)" '[ $rc = 0 ]&&! echo "$o"|tail -1|grep -q RED'
 SEC 'credits_live: false'
