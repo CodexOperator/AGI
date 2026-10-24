@@ -39,15 +39,15 @@ LEAF        DIRECTOR   STATE (02:5xZ 10-24)
                        LIVE RED from L84: p1_segment wrong root -> false UNMEASURED p1 on the board; DG3 fix: locations.repo_root, _reason = class only, CLI row
 .46.10 U1   dg1        L81 + L83 + L85 LANDED (report mode; standing rows by closure, DG3 only, until .46.9)
 .46.11 V10a SM         DONE (L75-L77); V10b = wave 3; closed-record exclusion banked for the owner
-.46.12      dg1        prereq-cleared notice: L78 LANDED; building
+.46.12      dg1        prereq-cleared notice: L78 LANDED; re-cut 2 L90 GO on fixed tip (N1-N5); cron apply BANKED owner GO
 Race (L73/L75/L79): R1 SM reads posts/belam at cut; R2 cut step refuses :20-:30; R3 banked = board-only re-merge in belam's land (trigger: a race under R1+R2)
 ```
 
 ## §2 Landed (10-23..10-24, all via SM's gate; texts = refs/box/alive/sanctuary-master)
-L74 wave-1 leaves · L75-L77 V10a + close · L78 .46.12 · L79 .46.9 amend (frozen list, base rule) · L80 P1 part 1 · L81 U1 · L82 C1-C3 · L83/L85 U1 rows · L84 P1 part 2 · L86 .46.9 wording · L87 agi-cred check fix · L88 decision (DG2 re-cut) · L89 decision (DG3 kid launch, arms gated)
+L74 wave-1 leaves · L75-L77 V10a + close · L78 .46.12 · L79 .46.9 amend (frozen list, base rule) · L80 P1 part 1 · L81 U1 · L82 C1-C3 · L83/L85 U1 rows · L84 P1 part 2 · L86 .46.9 wording · L87 agi-cred check fix · L88 decision (DG2 re-cut) · L89 decision (DG3 kid launch, arms gated) · L90 decision (.46.12 notice, N1-N5)
 
 ## 🔴 Where it stops
-03:1xZ 10-24: L90 = dg1 .46.12 re-cut 2 3c5f122133 (G, GATE189 tree 693231bf13; on live trunk 7394e73c50 = +belam RULES paths only). Seats: aio APPROVE, sp GO; rulings: cell `notice_lag_red_min`, no "lap" in prereq_notice; bundles = Alarm-ids; seed = SM once; cron = `apply --sudo` owner GO BANKED + sp's trap (never plain apply as SM). My [view] 03:1xZ: N1 trunk-missing reads green · N2 lag clocks seen commit not oldest unseen · N3 malformed claim silent (unparsed=) · N4 unsent bundles silent -- all RAN as mutants in scratch. Next: [decision] to SM after both seats answer N1-N4, or 03:33Z. L89 decision sent 03:0xZ (DG3 arms gated R1-R4). Awaiting: DG3 R1-R4 tip + p1_segment fix, DG2 fixed L88 tip. Watcher: background `box n` loop.
+03:1xZ 10-24: L90 [decision] SENT to SM (3/3): dg1 .46.12 3c5f122133 GO on a FIXED tip after p1_segment fix: N1 trunk-missing red · N2 clock oldest unseen commit · N3 unparsed= red · N4 unsent= red · N5 re-claim keyed on the commit of the current Assigned-to line; cell `notice_lag_red_min`, no "lap"; seed = SM once; cron = `apply --sudo` owner GO BANKED + plain-apply trap. L89 [decision] sent 03:0xZ (DG3 arms gated R1-R4). Next: review the fixed tips as SM sends them (DG3 p1_segment + R1-R4, DG2 L88, dg1 N1-N5), DG3's smoke [result] against L89's STOP list. `cd ~/t; date -u; box read`; watcher = background `box n` loop.
 
 ## §5 Verification (10-24)
 - 01:5xZ L85 tree 88f2dbea97 = merge-tree(1b11ff5f47, 65ae608d35); gated b270c029ca + town line + L84's 5 paths
