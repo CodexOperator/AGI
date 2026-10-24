@@ -504,7 +504,7 @@ def read_results(root: str | Path, cfg: dict) -> dict | None:
     except FileNotFoundError:
         return None
     except (OSError, ValueError) as exc:
-        raise P1Refused(f"results file {path} unreadable ({type(exc).__name__})")
+        raise P1Refused(f"results file {path.name} unreadable ({type(exc).__name__})")   # a name, never a box path: it can ride the board line
 
 
 def _driver(cmd: str, args: list[str], cfg: dict) -> int:

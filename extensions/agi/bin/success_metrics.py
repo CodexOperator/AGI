@@ -255,9 +255,15 @@ LINE_GRAPH_KEYS = (
     "broken_links", "thought_coverage", "longest_chain_length", "outcome_coverage")
 
 
-def _reason(text: str) -> str:
-    """A reason that can sit inside UNMEASURED(...) on one line: no parens, no `&`/`|`."""
-    return re.sub(r"[()&|\s]+", " ", str(text)).strip()[:48] or "unknown"
+def _reason(exc: BaseException | str) -> str:
+    """A FIXED code that can sit inside UNMEASURED(...) on one line, never exception text: an exception's text can
+    hold an absolute box path, and the line is pushed. The exception class, plus errno / exit code where there is
+    one; anything that is not an exception is never echoed."""
+    if not isinstance(exc, BaseException):
+        return "unknown"
+    name = type(exc).__name__
+    code = getattr(exc, "errno", None) if not isinstance(exc, SystemExit) else exc.code
+    return f"{name} {code}" if isinstance(code, int) and not isinstance(code, bool) else name
 
 
 def _run_metrics_once(root: Path) -> tuple[dict, str | None]:
@@ -409,13 +415,23 @@ def trajectory_segment(root: Path) -> str:
 
 def p1_segment(root: Path) -> str:
     """goal:g7.16.1.11.46.9 Q3: the `| p1: <model> $/landed=.. s/landed=.. red=<r>/<n>` segments, one per arm in
-    the committed results file (p1_ab.py writes the file and never this line). No file = no segment; a file that
-    cannot be read or rendered is NAMED, not dropped."""
+    the committed results file (p1_ab.py writes the file and never this line).
+
+    `root` is the REPO root or the graph dir `<repo>/.agi` (the CLI's find_project_root returns the latter): the
+    repo is resolved ONCE and used for the config AND the repo-relative results path. No `.agi/config.json`, no
+    `p1` cell (another project) or no results file yet = NO segment; a file that exists and cannot be read or
+    rendered is NAMED, not dropped."""
+    repo = locations.repo_root(Path(root))
+    cfg_path = repo / ".agi" / "config.json"
+    if not cfg_path.is_file():
+        return ""
     try:
         import json  # noqa: PLC0415
         import p1_ab  # noqa: PLC0415
-        cfg = json.loads((Path(root) / ".agi" / "config.json").read_text())
-        results = p1_ab.read_results(root, cfg)
+        cfg = json.loads(cfg_path.read_text())
+        if not isinstance(cfg.get("p1"), dict):
+            return ""
+        results = p1_ab.read_results(repo, cfg)
         return "" if results is None else p1_ab.render_segment(results, cfg)
     except Exception as exc:  # noqa: BLE001 -- a metrics line is never fatal
         return f"| p1: UNMEASURED(results unreadable: {_reason(exc)})"
