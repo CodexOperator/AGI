@@ -200,8 +200,9 @@ def test_main_env_denied_is_green_for_an_unreadable_file_and_red_for_a_readable_
 class Api:
     """A mocked provisioning API: records what was sent, lists what it 'stored'."""
 
-    def __init__(self, monkeypatch, *, stored_limit="echo", stored_expiry="echo", sent_expiry="echo"):
+    def __init__(self, monkeypatch, *, stored_limit="echo", stored_expiry="echo", sent_expiry="echo", secret=None):
         self.sent, self.revoked, self.rows, self.patched = [], [], [], []
+        self.secret = secret
         self.stored_limit, self.stored_expiry, self.sent_expiry = stored_limit, stored_expiry, sent_expiry
         monkeypatch.setattr(provisioning, "_read_provisioning_key", lambda root=None: "sk-prov")
         monkeypatch.setattr(provisioning, "_call", self.call)
@@ -225,7 +226,7 @@ class Api:
         exp = payload["expires_at"] if self.stored_expiry == "echo" else self.stored_expiry
         got = payload["expires_at"] if self.sent_expiry == "echo" else self.sent_expiry
         self.rows.append({"hash": h, "limit": lim, "usage": 0, "expires_at": exp, "disabled": False})
-        return 201, {"key": f"sk-{h}", "data": {"hash": h, "expires_at": got}}
+        return 201, {"key": self.secret or f"sk-{h}", "data": {"hash": h, "expires_at": got}}
 
 
 def test_a_mint_sends_the_cap_reads_it_back_and_writes_the_ledger(monkeypatch, tmp_path):
@@ -682,3 +683,243 @@ def test_the_cli_prints_json_without_the_secret_and_exits_nonzero_on_a_refusal(m
     rc = p1_ab.main(["p1_ab.py", "kid-done", "--hash", "h1", "--file", str(d / "deepseek-l1.key"), "--ledger", str(led)])
     done = json.loads(capsys.readouterr().out)
     assert rc == 0 and done["problems"] == [] and "sk-" not in json.dumps(done)
+
+
+# --- the kid launch (my side): F1, F2, the bounds that hold, node, models.json, env, results -------------
+
+MARK = "sk-or-MARKER-7f3a9c"
+
+
+def test_f2_a_minted_key_repr_never_carries_the_secret():
+    k = provisioning.MintedKey(secret=MARK, key_hash="h", name="n", limit_usd=0.5, expires_at="x")
+    assert MARK not in repr(k) and MARK not in str(k) and k.secret == MARK
+
+
+@needs_acl
+def test_f1_kid_key_stdout_and_its_red_path_hold_zero_bytes_of_the_secret(monkeypatch, tmp_path, capsys):
+    """A stub mint whose secret is a marker: the JSON line, the refusal text and the ledger never contain it; only
+    the key file does. (Mutant: a return dict carrying the secret reads RED in the D3 row above and here.)"""
+    api = Api(monkeypatch, secret=MARK)
+    d, led = tmp_path / "keys", tmp_path / "l.json"
+    argv = ["p1_ab.py", "kid-key", "glm", LEAVES[0], "--kid-uid", str(KID), "--keydir", str(d), "--ledger", str(led)]
+    assert p1_ab.main(argv) == 0
+    out = capsys.readouterr()
+    assert MARK not in out.out + out.err and (d / "glm-l1.key").read_text() == MARK
+    assert p1_ab.main(argv) == 1                                      # the RED path: already minted
+    out = capsys.readouterr()
+    assert "RED" in out.out and MARK not in out.out + out.err
+    assert MARK not in led.read_text()
+    bad = ["p1_ab.py", "kid-key", "deepseek", LEAVES[0], "--kid-uid", str(os.geteuid()), "--keydir", str(d), "--ledger", str(led)]
+    assert p1_ab.main(bad) == 1                                       # the RED path: the file write refused after the mint
+    out = capsys.readouterr()
+    assert "RED" in out.out and MARK not in out.out + out.err
+    assert not (d / "deepseek-l1.key").exists()
+
+
+def test_the_bounds_that_hold_are_named_by_rows():
+    """alive's [withdraw]: the record names the REAL protections, not an isolation the one-uid model cannot give.
+    max_live 2 key files (test_at_most_max_live_key_files...), the $0.50 cap with the expires_at window read back
+    (test_an_uncapped..., test_an_expiry...), kid-done disables + reads back + removes (test_kid_done_...). Here:
+    the cell values those rows run against."""
+    p = CFG["p1"]
+    assert p["max_live"] == 2 and p["key_cap_usd"] == 0.5
+    assert "isolation" not in json.dumps(p).lower()
+
+
+def _fake_node(tmp_path, version="v22.30.0", body=""):
+    f = tmp_path / f"node-{version}"
+    f.write_text(f'#!/bin/sh\nif [ "$1" = "--version" ]; then echo {version}; exit 0; fi\n{body}\n')
+    f.chmod(0o755)
+    return str(f)
+
+
+def _cfg_node(*nodes):
+    cfg = copy.deepcopy(CFG)
+    cfg["p1"]["node_candidates"] = list(nodes)
+    return cfg
+
+
+def test_node_for_pi_takes_the_first_candidate_at_or_above_node_min(tmp_path):
+    old, new = _fake_node(tmp_path, "v20.20.2"), _fake_node(tmp_path, "v22.19.0")
+    assert p1_ab.node_for_pi(_cfg_node(old, new)) == new
+    assert p1_ab.node_for_pi(_cfg_node(new, old)) == new
+
+
+def test_node_for_pi_refuses_when_no_node_is_new_enough(tmp_path, monkeypatch):
+    old = _fake_node(tmp_path, "v20.20.2")
+    monkeypatch.setattr(shutil, "which", lambda name: old)
+    with pytest.raises(p1_ab.P1Refused, match="no node >= 22.19.0"):
+        p1_ab.node_for_pi(_cfg_node(old, str(tmp_path / "missing"), _fake_node(tmp_path, "v22.18.9")))
+
+
+def test_pi_cli_must_sit_inside_the_pinned_package(tmp_path):
+    pre = _prefix(tmp_path)
+    assert p1_ab.pi_cli(pre, CFG).endswith("/cli.js")
+    link = pre / "node_modules" / ".bin" / "pi"
+    link.unlink()
+    outside = tmp_path / "evil.js"
+    outside.write_text("x")
+    os.symlink(outside, link)
+    with pytest.raises(p1_ab.P1Refused, match="outside the pinned package"):
+        p1_ab.pi_cli(pre, CFG)
+
+
+def test_models_json_holds_a_path_never_a_key_and_is_0600(tmp_path):
+    kf = tmp_path / "keys" / "glm-l1.key"
+    m = p1_ab.write_models_json(tmp_path / "agent", "openrouter", kf)
+    assert json.loads(m.read_text()) == {"providers": {"openrouter": {"apiKey": f"!cat {kf}"}}}
+    assert (m.stat().st_mode & 0o777) == 0o600
+    for bad in ("rel/key", "/a b/key", '/a"b', "/a;rm", "/a$(x)", "/a\nb", ""):
+        with pytest.raises(p1_ab.P1Refused, match="plain path"):
+            p1_ab.write_models_json(tmp_path / "agent2", "openrouter", bad)
+
+
+def test_leaf_brief_carries_the_falsifier_verbatim_and_the_standing_rule_only_where_the_cell_says():
+    b = p1_ab.leaf_brief("goal:g4.18.2.1", ROOT, CFG)
+    node = (ROOT / ".agi/nodes/goal/g4.18.2.1.md").read_text()
+    assert "goal:g4.18.2.1" in b and "## Falsifier" in b
+    fal = node.split("## Falsifier", 1)[1].split("\n## ", 1)[0].strip().splitlines()[0]
+    assert fal in b
+    assert "never create .agi/bin/render-context.py or .agi/bin/snapshot-build-site.py" in b
+    assert "Standing rule" not in p1_ab.leaf_brief("goal:g7.31.3.1", ROOT, CFG)
+    with pytest.raises(p1_ab.P1Refused, match="frozen list"):
+        p1_ab.leaf_brief("goal:g6.50", ROOT, CFG)
+
+
+def _plan(tmp_path, node, arm="deepseek", **kw):
+    pre = _prefix(tmp_path)
+    cfg = _cfg_node(node)
+    cfg["p1"]["kid_timeout_s"] = kw.pop("timeout", 30)
+    return cfg, p1_ab.kid_plan(arm=arm, leaf=LEAVES[0], cfg=cfg, keyfile=tmp_path / "keys" / "k.key",
+                               worktree=tmp_path, kid_home=tmp_path / "kidhome", prompt="do it", prefix=pre, **kw)
+
+
+def test_kid_plan_has_the_pinned_command_and_an_environment_with_no_key(tmp_path):
+    node = _fake_node(tmp_path)
+    cfg, plan = _plan(tmp_path, node)
+    assert plan["argv"][0] == node and plan["argv"][1].endswith("/cli.js")
+    i = plan["argv"].index("--model")
+    assert plan["argv"][i + 1] == "deepseek/deepseek-v4.1-flash-1017" and plan["argv"][plan["argv"].index("--provider") + 1] == "openrouter"
+    assert set(plan["env"]) == set(p1_ab.KID_ENV_KEYS) and plan["env"]["PATH"].startswith(os.path.dirname(node))
+    assert "OPENROUTER_API_KEY" not in plan["env"] and "sk-" not in json.dumps(plan)
+    assert plan["env"]["HOME"] == str(tmp_path / "kidhome")
+
+
+def test_kid_plan_refuses_the_credits_arm_an_unknown_arm_and_an_off_list_leaf(tmp_path):
+    node = _fake_node(tmp_path)
+    pre = _prefix(tmp_path)
+    cfg = _cfg_node(node)
+    for arm in ("credits", "mystery"):
+        with pytest.raises(p1_ab.P1Refused, match="cannot launch"):
+            p1_ab.kid_plan(arm=arm, leaf=LEAVES[0], cfg=cfg, keyfile="/k", worktree=tmp_path, kid_home=tmp_path, prompt="p", prefix=pre)
+    with pytest.raises(p1_ab.P1Refused, match="frozen list"):
+        p1_ab.kid_plan(arm="glm", leaf="goal:g6.50", cfg=cfg, keyfile="/k", worktree=tmp_path, kid_home=tmp_path, prompt="p", prefix=pre)
+
+
+def test_run_kid_runs_once_with_the_whitelisted_env_a_models_json_that_is_gone_afterwards(tmp_path):
+    out = tmp_path / "seen"
+    out.mkdir()
+    node = _fake_node(tmp_path, body=f'env > {out}/env\ncat "$PI_CODING_AGENT_DIR/models.json" > {out}/models\nexit 3')
+    cfg, plan = _plan(tmp_path, node)
+    (tmp_path / "kidhome").mkdir()
+    res = p1_ab.run_kid(plan, cfg, live=0, gb=1.0)
+    assert res["rc"] == 3 and res["timed_out"] is False and res["secs"] >= 0
+    env_keys = {ln.split("=", 1)[0] for ln in (out / "env").read_text().splitlines()}
+    assert env_keys <= set(p1_ab.KID_ENV_KEYS) | {"PWD", "SHLVL", "_", "OLDPWD"}
+    assert "!cat" in (out / "models").read_text()
+    assert not (tmp_path / "kidhome" / ".p1-agent" / "models.json").exists()
+    assert (tmp_path / "kidhome" / "p1-deepseek-1.log").exists()
+
+
+def test_run_kid_refuses_at_the_live_bound_an_unreadable_slice_and_a_foreign_env(tmp_path):
+    node = _fake_node(tmp_path, body="exit 0")
+    cfg, plan = _plan(tmp_path, node)
+    (tmp_path / "kidhome").mkdir()
+    for live, gb in ((2, 1.0), (0, None), (0, 5.5)):
+        with pytest.raises(p1_ab.P1Refused, match="not started"):
+            p1_ab.run_kid(plan, cfg, live=live, gb=gb)
+    plan["env"]["OPENROUTER_API_KEY"] = "x"
+    with pytest.raises(p1_ab.P1Refused, match="only"):
+        p1_ab.run_kid(plan, cfg, live=0, gb=1.0)
+    assert not (tmp_path / "kidhome" / ".p1-agent" / "models.json").exists()
+
+
+def test_a_kid_at_the_timeout_is_a_counted_red_not_a_retry(tmp_path):
+    node = _fake_node(tmp_path, body="sleep 30")
+    cfg, plan = _plan(tmp_path, node, timeout=1)
+    (tmp_path / "kidhome").mkdir()
+    res = p1_ab.run_kid(plan, cfg, live=0, gb=1.0)
+    assert res["timed_out"] is True and res["rc"] is None
+    assert not (tmp_path / "kidhome" / ".p1-agent" / "models.json").exists()
+
+
+def test_record_result_adds_one_row_per_pair_in_arm_order_and_renders(tmp_path):
+    f = tmp_path / "res.json"
+    p1_ab.record_result(f, CFG, arm="glm", leaf=LEAVES[0], landed=True, usd=0.1, secs=100, red=False)
+    p1_ab.record_result(f, CFG, arm="deepseek", leaf=LEAVES[0], landed=False, usd=0.2, secs=50, red=True)
+    p1_ab.record_result(f, CFG, arm="deepseek", leaf=LEAVES[1], landed=True, usd=0.3, secs=70, red=False)
+    res = json.loads(f.read_text())
+    assert [a["arm"] for a in res["arms"]] == ["deepseek", "glm"] and res["base"] == CFG["p1"]["base"]
+    assert res["arms"][0]["model"] == "deepseek/deepseek-v4.1-flash-1017" and len(res["arms"][0]["kids"]) == 2
+    seg = p1_ab.render_segment(res, CFG)
+    assert "| p1: deepseek/deepseek-v4.1-flash-1017 $/landed=0.5000 s/landed=120 red=1/5" in seg
+    assert "| p1: z-ai/glm-5.3-flash $/landed=0.1000 s/landed=100 red=0/5" in seg
+    for kw, why in ((dict(arm="glm", leaf=LEAVES[0], usd=0.1), "already has"), (dict(arm="glm", leaf="goal:g6.50", usd=0.1), "frozen list"),
+                    (dict(arm="glm", leaf=LEAVES[2], usd=-1), "finite"), (dict(arm="glm", leaf=LEAVES[2], usd=float("nan")), "finite"),
+                    (dict(arm="nope", leaf=LEAVES[2], usd=0.1), "no harness row")):
+        with pytest.raises(p1_ab.P1Refused, match=why):
+            p1_ab.record_result(f, CFG, landed=True, secs=1, red=False, **kw)
+    res["base"] = "0" * 40
+    f.write_text(json.dumps(res))
+    with pytest.raises(p1_ab.P1Refused, match="frozen base"):
+        p1_ab.record_result(f, CFG, arm="glm", leaf=LEAVES[2], landed=True, usd=0.1, secs=1, red=False)
+
+
+def _node22():
+    try:
+        return p1_ab.node_for_pi(CFG)
+    except p1_ab.P1Refused:
+        return None
+
+
+@pytest.mark.skipif(_node22() is None or not (Path.home() / "pi1" / p1_ab.TREE_FILE).exists(),
+                    reason="needs node >= 22.19 and this home's sealed pi1")
+def test_the_real_pi1_reads_its_key_from_the_file_through_models_json_offline(tmp_path):
+    """The smoke turn at $0: a local stub speaks the OpenAI streaming shape; pi1 sends the key it cats from the file."""
+    import http.server
+    import threading
+    seen = []
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def log_message(self, *a):
+            pass
+
+        def do_POST(self):
+            self.rfile.read(int(self.headers.get("content-length") or 0))
+            seen.append(self.headers.get("authorization"))
+            self.send_response(200)
+            self.send_header("content-type", "text/event-stream")
+            self.end_headers()
+            for d in ({"id": "c", "object": "chat.completion.chunk", "created": 1, "model": "s",
+                       "choices": [{"index": 0, "delta": {"role": "assistant", "content": "hi from stub"}, "finish_reason": None}]},
+                      {"id": "c", "object": "chat.completion.chunk", "created": 1, "model": "s",
+                       "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}],
+                       "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}}, "[DONE]"):
+                self.wfile.write(("data: " + (d if isinstance(d, str) else json.dumps(d)) + "\n\n").encode())
+
+    srv = http.server.HTTPServer(("127.0.0.1", 0), H)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    keyfile = tmp_path / "keys" / "k.key"
+    keyfile.parent.mkdir()
+    keyfile.write_text(MARK)
+    home = tmp_path / "kidhome"
+    home.mkdir()
+    plan = p1_ab.kid_plan(arm="glm", leaf=LEAVES[0], cfg=CFG, keyfile=keyfile, worktree=tmp_path, kid_home=home,
+                          prompt="say hi", prefix="~/pi1", base_url=f"http://127.0.0.1:{srv.server_port}/v1")
+    plan["argv"] += ["--no-tools", "--no-context-files"]
+    assert MARK not in json.dumps(plan)
+    res = p1_ab.run_kid(plan, CFG, live=0, gb=1.0)
+    srv.shutdown()
+    assert res["rc"] == 0 and seen and seen[0] == f"Bearer {MARK}"
+    assert "hi from stub" in (home / "p1-glm-1.log").read_text()
+    assert not (home / ".p1-agent" / "models.json").exists()
