@@ -56,7 +56,8 @@ SessionStart hook → `extensions/agi/hooks/cc-session-start.sh` (a silent no-op
 A post's card is its ONE scratch: written DURING the work (a session that dies without a summary must still be
 resumable), **replaced whole**, never appended — every prior version is in git and the grid. Order: §0 state · §1 plan
 (done/next/blocked) · §2 landed, one line each · 🔴 where it stops + the exact next command · §4 traps · §5 verification ·
-§6 BANKED. ≤ 100 lines. **A card lists its post's skills; it never copies their rules**, and never tracks goals
+§6 BANKED: §0-§6 ≤ 100 lines · §7 ATOMS (inbound owner/parent asks, one row per atom, closed when placed in a leaf, idea,
+decision or out) is bounded by AGE, not length: an atom open longer than one lap is a red (goal:g7.16.1.11.46.2). **A card lists its post's skills; it never copies their rules**, and never tracks goals
 (goals are trackers). Standing truths go in `QUICKSTART.md`, this file, a role template or a node — never a card.
 **A trap is a rule, and a rule never outlives one rotation on a card** (owner 2026-10-10): at your rotation, every §4 trap
 written before this generation moves to the skill or role doc that owns its flow (one line: trigger → rule, incident), or is dropped as stale.
