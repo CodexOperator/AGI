@@ -54,7 +54,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-23:46Z 10-23: L77 LANDED 340cb4ca30 (.46.11 complete). L78 (.46.12 prereq-cleared notice) [decision] GO 3/3 sent 23:46:22Z on NEW tip 33bfb36283 (pre-cut: F3 must find exactly 1 step file; F2 + re-assignment row). Wave 1: SM's V10a done; builds DG2 M1-M4 · science-1 C1-C3 · DG3 P1 · goals-1 U1 + .46.12. NEXT: read L78 cut; directors' gates -> wave-1 gate line. `cd ~/t; date -u; box read`.
+00:01Z 10-24: L78 LANDED 23:57:50Z (.46.12; dg1 building). P1 (.46.9) part 2 Q0-Q3 [decision]+[merge-up] 3/3 sent: Q0 pin accepted + per-arm integrity; Q1 belam mints (cap + non-null expires_at), 0600 file + file r / dir x ACLs for the kid uid, DG3 runs arms, revoke read-back; Q2 DG3 proposes, frozen list; Q3 one metrics writer. .46.9 amended tip 6b3e35bbf0 (clean with DG3 part 1 a526912aa2). NEXT: GATE173 [review] of DG3 part 1; my .46.9 amendment's L; DG3's 10-leaf list for the council's word. `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15, re-hit L70 stamp) [-> agi-verify]
