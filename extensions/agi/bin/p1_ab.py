@@ -35,6 +35,7 @@ rows; NO default row: a spawn naming pi1 without a row is refused at $0).
 from __future__ import annotations
 
 import datetime
+import fcntl
 import hashlib
 import json
 import math
@@ -45,6 +46,7 @@ import signal
 import stat
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -53,7 +55,9 @@ import provisioning  # noqa: E402
 
 #: The arm that is Messages on credits (Anthropic Console), not an OpenRouter key: it is not mintable here.
 CREDITS_ARM = "credits"
-SLICE_MEMORY = "/sys/fs/cgroup/agi.slice/memory.current"
+SLICE_STAT = "/sys/fs/cgroup/agi.slice/memory.stat"
+SLICE_PRESSURE = "/sys/fs/cgroup/agi.slice/memory.pressure"
+MEMINFO = "/proc/meminfo"
 TREE_FILE = ".p1-tree"
 #: Slack between the TTL asked for and the expires_at the API may answer with (clock skew, rounding).
 EXPIRY_SLACK = datetime.timedelta(minutes=5)
@@ -355,7 +359,7 @@ def write_key_file(keydir: str | Path, name: str, secret: str, kid_uid: int) -> 
 # --- the arm's refusals and end ------------------------------------------------
 
 def arm_preflight(*, arm: str, leaf: str, prefix: str | Path, cfg: dict, kid_uid: int,
-                  keydir: str | Path, worktree: str | Path) -> None:
+                  keydir: str | Path, worktree: str | Path, kid_home: str | Path) -> None:
     """Raise `P1Refused` unless this kid may start: a frozen leaf, the pin AND the sealed bytes of ~/pi1 intact,
     a kid uid that is not the key holder's, and a worktree sitting exactly on the frozen base."""
     if leaf not in leaves(cfg):
@@ -368,6 +372,11 @@ def arm_preflight(*, arm: str, leaf: str, prefix: str | Path, cfg: dict, kid_uid
     holder = os.stat(keydir).st_uid
     if kid_uid == holder or kid_uid == 0:
         raise P1Refused(f"kid uid {kid_uid} is the key holder's or root: the kid runs in the director's post uid, never belam or root")
+    check_kid_home(kid_home)
+    check_kill_paths([worktree, kid_home])
+    top = subprocess.run(["git", "-C", str(worktree), "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+    if top.returncode or os.path.realpath(top.stdout.strip()) != os.path.realpath(worktree):
+        raise P1Refused(f"{worktree} is not the top of a git worktree: a kid runs in a worktree of its own")
     base = cell(cfg).get("base")
     got = subprocess.run(["git", "-C", str(worktree), "rev-parse", "HEAD"], capture_output=True, text=True)
     if got.returncode or got.stdout.strip() != base:
@@ -575,6 +584,65 @@ def kid_plan(*, arm: str, leaf: str, cfg: dict, keyfile: str | Path, worktree: s
             "log": f"{kid_home}/p1-{arm}-{leaves(cfg).index(leaf) + 1}.log", "timeout": int(cell(cfg)["kid_timeout_s"])}
 
 
+def _within(inner: str, outer: str) -> bool:
+    """`inner` is `outer` or lies under it (both already realpath'd)."""
+    return inner == outer or inner.startswith(outer.rstrip(os.sep) + os.sep)
+
+
+def unsafe_kill_path(path: str | Path, *, home: str | Path | None = None, cwd: str | Path | None = None,
+                     repos: tuple = ()) -> str | None:
+    """Why the group kill and the /proc sweep must NEVER be pointed at `path` (None = safe). The sweep SIGKILLs every
+    process of this uid with a cwd or fd under the path, so it may not be the filesystem root, HOME or any ancestor
+    of it, the caller's cwd or any ancestor of it, or the repo the caller runs from (or an ancestor of it)."""
+    real = os.path.realpath(path)
+    home = os.path.realpath(home or os.path.expanduser("~"))
+    cwd = os.path.realpath(cwd or os.getcwd())
+    if real == os.sep:
+        return f"{path} is the filesystem root"
+    if _within(home, real):
+        return f"{real} is HOME or an ancestor of it: the sweep would kill this uid's other panes, git and crons"
+    if _within(cwd, real):
+        return f"{real} is the caller's cwd or an ancestor of it"
+    if _within(os.path.join(home, "k"), real):
+        return f"{real} is ~/k or contains it: the kids' homes live there"
+    for repo in repos:
+        if _within(os.path.realpath(repo), real):
+            return f"{real} is the repo the caller runs from or an ancestor of it"
+    return None
+
+
+def caller_repos() -> tuple[str, ...]:
+    """The repos this process runs from: the one this module lives in and the one its cwd is in."""
+    out = {str(Path(__file__).resolve().parents[3])}
+    r = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+    if r.returncode == 0 and r.stdout.strip():
+        out.add(r.stdout.strip())
+    return tuple(sorted(out))
+
+
+def check_kill_paths(paths: list[str | Path], *, home=None, cwd=None, repos=None) -> None:
+    """Raise P1Refused naming the first path the kill/sweep may not touch. Resolved with realpath first."""
+    repos = caller_repos() if repos is None else repos
+    for p in paths:
+        why = unsafe_kill_path(p, home=home, cwd=cwd, repos=repos)
+        if why:
+            raise P1Refused(f"kill path refused: {why}")
+
+
+def check_kid_home(kid_home: str | Path, *, home: str | Path | None = None) -> None:
+    """The kid's home is a FRESH directory under ~/k/ (the agi-kid model): not ~/k itself, not outside it, not a
+    symlink that escapes it, and absent or empty (a pair runs once, so its home is new)."""
+    home = os.path.realpath(home or os.path.expanduser("~"))
+    k = os.path.join(home, "k")
+    real = os.path.realpath(kid_home)
+    if os.path.abspath(str(kid_home)) != real:
+        raise P1Refused(f"kid home {kid_home} is not a plain path (it resolves to {real})")
+    if not real.startswith(k + os.sep):
+        raise P1Refused(f"kid home {real} is not under {k}/: a kid's home is a fresh directory under ~/k/")
+    if os.path.lexists(real) and (not os.path.isdir(real) or os.listdir(real)):
+        raise P1Refused(f"kid home {real} is not a fresh (absent or empty) directory")
+
+
 def _ancestors() -> set[int]:
     out, pid = {os.getpid()}, os.getppid()
     while pid > 1 and pid not in out:
@@ -586,13 +654,30 @@ def _ancestors() -> set[int]:
     return out
 
 
-def proc_sweep(paths: list[str | Path], *, spare: set[int] | None = None) -> list[int]:
-    """SIGKILL every process of THIS uid whose cwd or any open fd lies under one of `paths`; returns the pids.
-    This is the check behind the process-group kill: a kid that escaped its session (`setsid`) still has its
+def _starttime(pid: int) -> int | None:
+    """Field 22 of /proc/<pid>/stat: the process's start, in clock ticks since boot."""
+    try:
+        return int(Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()[19])
+    except (OSError, ValueError, IndexError):
+        return None
+
+
+def boot_ticks() -> int:
+    """Now, in the same clock-ticks-since-boot unit as _starttime (read just before a kid is spawned)."""
+    return int(float(Path("/proc/uptime").read_text().split()[0]) * os.sysconf("SC_CLK_TCK"))
+
+
+def proc_sweep(paths: list[str | Path], *, since: int | None = None,
+               spare: set[int] | None = None) -> tuple[list[int], list[int]]:
+    """SIGKILL every process of THIS uid whose cwd or any open fd lies under one of `paths` and that STARTED at or
+    after `since` (clock ticks since boot; None = no age limit); returns (killed, older). A process that is older
+    than the kid is not the kid's: it is never killed, it is returned in `older` so the run can name it and read
+    red. This is the check behind the process-group kill: a kid that escaped its session (`setsid`) still has its
     cwd or a fd in the kid's worktree or home. This process and its ancestors are never touched."""
+    check_kill_paths(list(paths))
     real = [os.path.realpath(p) for p in paths]
     spare = (spare or set()) | _ancestors()
-    me, hit = os.getuid(), []
+    me, hit, older = os.getuid(), [], []
     for ent in os.listdir("/proc"):
         if not ent.isdigit() or int(ent) in spare:
             continue
@@ -612,33 +697,41 @@ def proc_sweep(paths: list[str | Path], *, spare: set[int] | None = None) -> lis
         except OSError:
             pass
         if any(l == p or l.startswith(p + os.sep) for l in links for p in real):
-            hit.append(int(ent))
+            st = _starttime(int(ent))
+            if since is not None and (st is None or st < since):
+                older.append(int(ent))
+            else:
+                hit.append(int(ent))
     for pid in hit:
         try:
             os.kill(pid, signal.SIGKILL)
         except ProcessLookupError:
             pass
-    return sorted(hit)
+    return sorted(hit), sorted(older)
 
 
 def run_kid(plan: dict, cfg: dict, *, live: int, gb: float | None) -> dict:
     """Spawn gate, models.json, ONE bounded run in its own session, models.json removed. The kid's whole process
     group is SIGKILLed at the timeout AND at normal exit, then a /proc sweep kills anything of this uid still
-    holding the kid's worktree or home; a sweep hit counts the run red. Returns {"rc", "secs", "timed_out",
-    "sweep"}: never the log's content and never the key. A kid at the timeout is a counted red, not retried."""
+    holding the kid's worktree or home that started after the kid did (an OLDER holder is named, never killed);
+    either one counts the run red. Returns {"rc", "secs", "timed_out", "sweep", "older"}: never the log's content and never the key. A kid at the timeout is a counted red, not retried."""
     ok, why = may_start(live, gb, cfg)
     if not ok:
         raise P1Refused(f"kid not started: {why}")
+    check_kill_paths([plan["cwd"], plan["env"]["HOME"]])
     if set(plan["env"]) - set(KID_ENV_KEYS):
         raise P1Refused(f"kid env carries {sorted(set(plan['env']) - set(KID_ENV_KEYS))}: only {KID_ENV_KEYS} are allowed")
+    Path(plan["env"]["HOME"]).mkdir(parents=True, exist_ok=True)
     models = write_models_json(plan["agent_dir"], plan["provider"], plan["keyfile"], plan.get("base_url"))
     start = _now()
     timed_out = False
     rc: int | None
     sweep: list[int] = []
+    older: list[int] = []
     try:
         fd = os.open(plan["log"], os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
         with os.fdopen(fd, "w") as log:
+            since = boot_ticks()                                 # nothing older than this moment is the kid's
             proc = subprocess.Popen(plan["argv"], cwd=plan["cwd"], env=plan["env"], stdin=subprocess.DEVNULL,
                                     stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
             try:
@@ -651,10 +744,11 @@ def run_kid(plan: dict, cfg: dict, *, live: int, gb: float | None) -> dict:
                 except ProcessLookupError:
                     pass
                 proc.wait()
-        sweep = proc_sweep([plan["cwd"], plan["agent_dir"].rsplit("/", 1)[0]])
+        sweep, older = proc_sweep([plan["cwd"], plan["agent_dir"].rsplit("/", 1)[0]], since=since)
     finally:
         models.unlink(missing_ok=True)
-    return {"rc": rc, "secs": round((_now() - start).total_seconds(), 1), "timed_out": timed_out, "sweep": sweep}
+    return {"rc": rc, "secs": round((_now() - start).total_seconds(), 1), "timed_out": timed_out, "sweep": sweep,
+            "older": older}
 
 
 # --- the run ledger (mine) and the record that reads both ledgers ------------------------
@@ -686,11 +780,24 @@ def run_logged(*, arm: str, leaf: str, cfg: dict, ledger: str | Path, runs: str 
         raise P1Refused(f"({arm}, {leaf}) already has a run row: a kid runs once, never again")
     res = run_kid(plan, cfg, live=live_kids(rows, arm, leaf), gb=gb)
     row = {"arm": arm, "leaf": leaf, "rc": res["rc"], "secs": res["secs"], "timed_out": res["timed_out"],
-           "sweep": res["sweep"], "brief_sha256": brief_digest(plan["prompt"])}
-    tmp = Path(str(runs) + ".tmp")
-    tmp.write_text(json.dumps(runs_rows + [row], indent=1))
-    os.replace(tmp, runs)
+           "sweep": res["sweep"], "older": res["older"], "brief_sha256": brief_digest(plan["prompt"])}
+    _append_run(runs, row)
     return row
+
+
+def _append_run(runs: str | Path, row: dict) -> None:
+    """R1b: re-read the run ledger AT WRITE TIME and append, under an exclusive flock on a sibling lock file, so two
+    kids that overlap under max_live never erase each other's row (a read at start + a write at the end did)."""
+    runs = Path(runs)
+    with open(str(runs) + ".lock", "a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        current = _runs(runs)
+        if any(r["arm"] == row["arm"] and r["leaf"] == row["leaf"] for r in current):
+            raise P1Refused(f"({row['arm']}, {row['leaf']}) got a run row while it ran: a kid runs once")
+        fd, tmp = tempfile.mkstemp(dir=str(runs.parent), prefix=runs.name + ".")
+        with os.fdopen(fd, "w") as fh:
+            fh.write(json.dumps(current + [row], indent=1))
+        os.replace(tmp, runs)
 
 
 def record_from_ledgers(results: str | Path, cfg: dict, *, arm: str, leaf: str, ledger: str | Path,
@@ -704,9 +811,9 @@ def record_from_ledgers(results: str | Path, cfg: dict, *, arm: str, leaf: str, 
     run = next((r for r in _runs(runs) if r["arm"] == arm and r["leaf"] == leaf), None)
     if run is None:
         raise P1Refused(f"({arm}, {leaf}) has no run row: run-kid comes first")
-    forced = bool(run["timed_out"]) or run["rc"] != 0 or bool(run["sweep"])
+    forced = bool(run["timed_out"]) or run["rc"] != 0 or bool(run["sweep"]) or bool(run.get("older"))
     if forced and (landed or not red):
-        raise P1Refused(f"({arm}, {leaf}) ran red (timed_out={run['timed_out']} rc={run['rc']} sweep={run['sweep']}): "
+        raise P1Refused(f"({arm}, {leaf}) ran red (timed_out={run['timed_out']} rc={run['rc']} sweep={run['sweep']} older={run.get('older')}): "
                         f"it records as red and not landed, not as landed={landed} red={red}")
     return record_result(results, cfg, arm=arm, leaf=leaf, landed=landed, usd=float(mint["usd"]),
                          secs=float(run["secs"]), red=red or forced, brief_sha256=run["brief_sha256"])
@@ -771,7 +878,8 @@ def live_prices(models: list[str], fetch=None) -> dict[str, dict[str, float]]:
 
 
 def p0_readings(*, cfg: dict, repo: str | Path, worktree: str | Path, main_env: str | Path | None = None,
-                fetch=None, slice_path: str = SLICE_MEMORY) -> list[tuple[str, bool, str]]:
+                fetch=None, slice_files: tuple = (SLICE_STAT, SLICE_PRESSURE, MEMINFO),
+                trunk: str = "origin/core/season3/main", module_file: str | Path | None = None) -> list[tuple[str, bool, str]]:
     """(name, ok, reading) for P0 a-f; the caller prints them (they are the 'written down'). Nothing here mints."""
     import tempfile  # noqa: PLC0415
     out: list[tuple[str, bool, str]] = []
@@ -795,9 +903,11 @@ def p0_readings(*, cfg: dict, repo: str | Path, worktree: str | Path, main_env: 
     except Exception as exc:  # noqa: BLE001
         out.append(("b prices", False, f"live read failed: {type(exc).__name__}"))
     # (c) agi.slice under the bound
-    gb = slice_gb(slice_path)
-    mx = float(cell(cfg)["slice_gb_max"])
-    out.append(("c agi.slice", gb is not None and gb <= mx, f"{'unreadable' if gb is None else f'{gb:.2f} GB'} (max {mx})"))
+    reading = slice_reading(*slice_files)
+    ok_c, why_c = may_start(0, reading, cfg)
+    out.append(("c agi.slice", ok_c, (f"{reading['gb']:.2f} GB (max {cell(cfg)['slice_gb_max']}), PSI some avg10 {reading['psi']} "
+                                       f"(max {cell(cfg)['psi_max']}), MemAvailable {reading['avail_gb']:.2f} GB (min {cell(cfg)['mem_avail_min_gb']})"
+                                       if reading else "unreadable") + ("" if ok_c else f" -- {why_c}")))
     # (d) MAIN .env is EACCES from this uid
     if main_env is None:
         common = subprocess.run(["git", "-C", str(repo), "rev-parse", "--git-common-dir"], capture_output=True, text=True).stdout.strip()
@@ -807,9 +917,12 @@ def p0_readings(*, cfg: dict, repo: str | Path, worktree: str | Path, main_env: 
     # (e) the kid worktree is on the frozen base
     got_head = subprocess.run(["git", "-C", str(worktree), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
     out.append(("e base", got_head == cell(cfg).get("base"), f"worktree {got_head[:10] or '?'} vs base {str(cell(cfg).get('base'))[:10]}"))
-    # (f) R1-R4 are in this module
-    have = [n for n in ("record_from_ledgers", "run_logged", "live_kids", "leaf_brief", "brief_digest", "proc_sweep") if callable(globals().get(n))]
-    out.append(("f R1-R4", len(have) == 6, "present: " + ", ".join(have)))
+    # (f) the running p1_ab.py IS the trunk's: blob == `git rev-parse <trunk>:extensions/agi/bin/p1_ab.py`
+    mod = str(module_file or __file__)
+    mine = subprocess.run(["git", "-C", str(repo), "hash-object", mod], capture_output=True, text=True).stdout.strip()
+    theirs = subprocess.run(["git", "-C", str(repo), "rev-parse", f"{trunk}:extensions/agi/bin/p1_ab.py"],
+                            capture_output=True, text=True).stdout.strip()
+    out.append(("f p1_ab blob", bool(mine) and mine == theirs, f"running {mine[:12] or '?'} vs {trunk} {theirs[:12] or '?'}"))
     return out
 
 
@@ -821,22 +934,40 @@ def scratch_land_problems(paths: list[str], cfg: dict) -> list[str]:
 
 # --- the spawn gate and the results ---------------------------------------------
 
-def slice_gb(path: str = SLICE_MEMORY) -> float | None:
-    """agi.slice memory in GB; None when it cannot be read (the gate then refuses)."""
+def slice_reading(stat: str = SLICE_STAT, pressure: str = SLICE_PRESSURE, meminfo: str = MEMINFO) -> dict | None:
+    """The three memory readings a kid start is gated on, or None if ANY is unreadable (fail closed):
+    gb       agi.slice's real footprint from memory.stat: anon + shmem + file_dirty + file_writeback +
+             (kernel - slab_reclaimable). memory.current also counts clean page cache the kernel drops under
+             memory.high, which made the old gate report a false state; the 5.0 bound is unchanged.
+    psi      agi.slice memory.pressure `some avg10`.
+    avail_gb the box's MemAvailable."""
     try:
-        return int(Path(path).read_text().strip()) / 1e9
-    except (OSError, ValueError):
+        s = {k: int(v) for k, v in (ln.split() for ln in Path(stat).read_text().splitlines() if len(ln.split()) == 2)}
+        gb = (s["anon"] + s["shmem"] + s["file_dirty"] + s["file_writeback"] + max(s["kernel"] - s["slab_reclaimable"], 0)) / 1e9
+        some = next(ln for ln in Path(pressure).read_text().splitlines() if ln.startswith("some "))
+        psi = float(re.search(r"avg10=([0-9.]+)", some).group(1))
+        avail = next(int(ln.split()[1]) for ln in Path(meminfo).read_text().splitlines() if ln.startswith("MemAvailable:")) * 1024 / 1e9
+    except (OSError, ValueError, KeyError, StopIteration, AttributeError):
         return None
+    return {"gb": gb, "psi": psi, "avail_gb": avail}
 
 
-def may_start(live: int, gb: float | None, cfg: dict) -> tuple[bool, str]:
+def may_start(live: int, reading, cfg: dict) -> tuple[bool, str]:
+    """`reading` is slice_reading()'s dict (or None = unreadable = refuse). A bare number is a memory footprint
+    only: for a caller that measured nothing else."""
     p = cell(cfg)
     if live >= int(p["max_live"]):
         return False, f"{live} kids live, the bound is {p['max_live']}"
-    if gb is None:
+    if isinstance(reading, (int, float)) and not isinstance(reading, bool):
+        reading = {"gb": float(reading), "psi": 0.0, "avail_gb": float("inf")}
+    if not isinstance(reading, dict):
         return False, "agi.slice memory unreadable: the gate fails closed"
-    if gb > float(p["slice_gb_max"]):
-        return False, f"agi.slice {gb:.2f} GB is above {p['slice_gb_max']} GB"
+    if reading["gb"] > float(p["slice_gb_max"]):
+        return False, f"agi.slice {reading['gb']:.2f} GB is above {p['slice_gb_max']} GB"
+    if reading["psi"] > float(p["psi_max"]):
+        return False, f"agi.slice memory pressure some avg10 {reading['psi']} is above {p['psi_max']}"
+    if reading["avail_gb"] < float(p["mem_avail_min_gb"]):
+        return False, f"MemAvailable {reading['avail_gb']:.2f} GB is below {p['mem_avail_min_gb']} GB"
     return True, "ok"
 
 
@@ -944,11 +1075,11 @@ def _mine(cmd: str, args: list[str], cfg: dict, root: Path) -> int:
             return 0 if all(ok for _, ok, _ in rows) else 1
         if cmd == "run-kid":
             arm_preflight(arm=a.arm, leaf=a.leaf, prefix="~/pi1", cfg=cfg, kid_uid=os.geteuid(),
-                          keydir=os.path.dirname(a.key_file), worktree=a.worktree)
+                          keydir=os.path.dirname(a.key_file), worktree=a.worktree, kid_home=a.kid_home)
             plan = kid_plan(arm=a.arm, leaf=a.leaf, cfg=cfg, keyfile=a.key_file, worktree=a.worktree,
                             kid_home=a.kid_home, prompt=leaf_brief(a.leaf, root, cfg))
             out = run_logged(arm=a.arm, leaf=a.leaf, cfg=cfg, ledger=a.ledger, runs=a.runs, repo=root, plan=plan,
-                             gb=slice_gb())
+                             gb=slice_reading())
         else:
             record_from_ledgers(root / cell(cfg)["results"], cfg, arm=a.arm, leaf=a.leaf, ledger=a.ledger,
                                 runs=a.runs, landed=bool(a.landed), red=bool(a.red))

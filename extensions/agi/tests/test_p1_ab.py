@@ -423,7 +423,7 @@ def test_a_key_file_is_removed_when_its_acl_does_not_verify(tmp_path, monkeypatc
 # --- the arm's refusals -------------------------------------------------------------
 
 @pytest.fixture
-def arm(tmp_path):
+def arm(tmp_path, monkeypatch):
     """A sealed pi1 prefix, a key dir, and a kid worktree sitting exactly on the frozen base."""
     pre = _prefix(tmp_path)
     p1_ab.seal(pre, CFG)
@@ -438,12 +438,15 @@ def arm(tmp_path):
     base = subprocess.run(["git", "-C", str(wt), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
     cfg = copy.deepcopy(CFG)
     cfg["p1"]["base"] = base
-    return dict(prefix=pre, keydir=keydir, wt=wt, cfg=cfg, env=env)
+    home = tmp_path / "home"
+    (home / "k").mkdir(parents=True)
+    monkeypatch.setenv("HOME", str(home))
+    return dict(prefix=pre, keydir=keydir, wt=wt, cfg=cfg, env=env, home=home, kid_home=home / "k" / "kid1")
 
 
 def _pre(a, **over):
     kw = dict(arm="deepseek", leaf=LEAVES[0], prefix=a["prefix"], cfg=a["cfg"], kid_uid=KID,
-              keydir=a["keydir"], worktree=a["wt"])
+              keydir=a["keydir"], worktree=a["wt"], kid_home=a["kid_home"])
     kw.update(over)
     p1_ab.arm_preflight(**kw)
 
@@ -481,7 +484,7 @@ def test_a_worktree_not_on_the_frozen_base_refuses_the_arm(arm):
                    check=True, env=arm["env"], capture_output=True)
     with pytest.raises(p1_ab.P1Refused, match="frozen base"):
         _pre(arm)
-    with pytest.raises(p1_ab.P1Refused, match="frozen base"):
+    with pytest.raises(p1_ab.P1Refused, match="not the top of a git worktree"):
         _pre(arm, worktree=arm["wt"].parent / "not-a-repo")
 
 
@@ -534,13 +537,52 @@ def test_may_start(live, gb, ok):
     assert p1_ab.may_start(live, gb, CFG)[0] is ok
 
 
-def test_slice_gb_reads_bytes_and_fails_closed(tmp_path):
-    f = tmp_path / "m"
-    f.write_text("5340000000\n")
-    assert p1_ab.slice_gb(str(f)) == pytest.approx(5.34)
-    assert p1_ab.slice_gb(str(tmp_path / "gone")) is None
-    f.write_text("max\n")
-    assert p1_ab.slice_gb(str(f)) is None
+def _slice_files(tmp_path, *, anon=3.1, shmem=0.0, dirty=0.0, writeback=0.0, file=1.4, kernel=0.6, slab_reclaimable=0.5,
+                 psi=0.0, avail=3.6, stat=True, pressure=True, meminfo=True):
+    g = lambda x: int(x * 1e9)
+    (tmp_path / "stat").write_text("\n".join(f"{k} {g(v)}" for k, v in dict(
+        anon=anon, file=file, kernel=kernel, shmem=shmem, file_dirty=dirty, file_writeback=writeback,
+        slab_reclaimable=slab_reclaimable).items()) + "\npgscan 15034070\n")
+    (tmp_path / "pressure").write_text(f"some avg10={psi:.2f} avg60=0.00 avg300=0.04 total=1\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=1\n")
+    (tmp_path / "meminfo").write_text(f"MemTotal:        8042504 kB\nMemAvailable:    {int(avail * 1e9 / 1024)} kB\n")
+    files = [str(tmp_path / n) for n in ("stat", "pressure", "meminfo")]
+    for flag, i in ((stat, 0), (pressure, 1), (meminfo, 2)):
+        if not flag:
+            files[i] = str(tmp_path / "gone")
+    return tuple(files)
+
+
+def _may(tmp_path, **kw):
+    return p1_ab.may_start(0, p1_ab.slice_reading(*_slice_files(tmp_path, **kw)), CFG)[0]
+
+
+def test_p0c_the_measure_ignores_page_cache_counts_dirty_pages_and_keeps_the_5_0_bound(tmp_path):
+    """alive's rows: file 1.4 + anon 3.1 ~ 3.2 ok; file_dirty 1.0 + anon 3.1 ~ 4.1; anon 5.1 RED; PSI 35 RED; PSI 2 ok."""
+    r = p1_ab.slice_reading(*_slice_files(tmp_path, anon=3.1, file=1.4))
+    assert r["gb"] == pytest.approx(3.2) and r["psi"] == 0.0 and r["avail_gb"] == pytest.approx(3.6, abs=0.01)
+    assert p1_ab.slice_reading(*_slice_files(tmp_path, anon=3.1, dirty=1.0))["gb"] == pytest.approx(4.2)
+    assert p1_ab.slice_reading(*_slice_files(tmp_path, anon=3.1, writeback=0.5, shmem=0.2))["gb"] == pytest.approx(3.9)
+    assert _may(tmp_path) is True
+    assert _may(tmp_path, anon=5.1) is False
+    assert _may(tmp_path, anon=4.4, dirty=1.0) is False               # 4.4 + 1.0 + 0.1 > 5.0
+    assert _may(tmp_path, psi=35) is False and _may(tmp_path, psi=20) is True and _may(tmp_path, psi=2) is True
+    assert _may(tmp_path, avail=1.4) is False and _may(tmp_path, avail=1.51) is True
+    assert CFG["p1"]["slice_gb_max"] == 5.0 and CFG["p1"]["psi_max"] == 20 and CFG["p1"]["mem_avail_min_gb"] == 1.5
+
+
+def test_p0c_any_of_the_three_readings_unreadable_fails_closed(tmp_path):
+    for kw in (dict(stat=False), dict(pressure=False), dict(meminfo=False)):
+        assert p1_ab.slice_reading(*_slice_files(tmp_path, **kw)) is None
+        assert _may(tmp_path, **kw) is False
+    (tmp_path / "stat").write_text("anon 1\n")                       # a stat without the keys
+    assert p1_ab.slice_reading(str(tmp_path / "stat"), str(tmp_path / "pressure"), str(tmp_path / "meminfo")) is None
+
+
+def test_p0c_the_real_files_of_this_box_read_when_they_exist():
+    if not Path(p1_ab.SLICE_STAT).exists():
+        pytest.skip("no agi.slice here")
+    r = p1_ab.slice_reading()
+    assert r is not None and 0 < r["gb"] < 64 and r["psi"] >= 0 and r["avail_gb"] > 0
 
 
 # --- the results file -> the metrics_line segment -------------------------------------
@@ -1185,7 +1227,8 @@ def test_r4_the_sweep_matches_by_cwd_and_by_open_fd_and_leaves_everything_else_a
     c = subprocess.Popen(["sleep", "30"], cwd=outside)                                          # unrelated
     try:
         time.sleep(0.5)
-        hit = p1_ab.proc_sweep([inside])
+        hit, older = p1_ab.proc_sweep([inside])
+        assert older == []
         a.wait(timeout=5)
         b.wait(timeout=5)
         assert a.pid in hit and b.pid in hit and c.pid not in hit and c.poll() is None
@@ -1201,14 +1244,19 @@ def test_p0_reads_a_to_f_and_goes_red_on_each_failure(brief_repo, tmp_path, monk
     cfg["p1"]["prices"] = copy.deepcopy(CFG["p1"]["prices"])
     data = [{"id": m, "pricing": {"prompt": str(v["in_per_m"] / 1e6), "completion": str(v["out_per_m"] / 1e6)}}
             for m, v in cfg["p1"]["prices"]["models"].items()]
-    mem = tmp_path / "mem"
-    mem.write_text("4000000000\n")
+    mem = _slice_files(tmp_path / "ok") if (tmp_path / "ok").mkdir() is None else None
+    modfile = repo / "extensions/agi/bin/p1_ab.py"
+    modfile.parent.mkdir(parents=True)
+    modfile.write_text(Path(p1_ab.__file__).read_text())
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "trunk carries p1_ab")
+    cfg["p1"]["base"] = _git(repo, "rev-parse", "HEAD")           # the worktree under test sits on the frozen base
     env = tmp_path / ".env"
     env.write_text("x")
     wt = repo
     monkeypatch.setattr(success_metrics, "p1_segment", lambda root: "")
     run = lambda **kw: {n[0]: (ok, d) for n, ok, d in [(r[0].split()[0], r[1], r[2]) for r in p1_ab.p0_readings(
-        cfg=cfg, repo=repo, worktree=kw.get("wt", wt), main_env=kw.get("env", env), fetch=lambda: kw.get("data", data), slice_path=str(kw.get("mem", mem)))]}
+        cfg=cfg, repo=repo, worktree=kw.get("wt", wt), main_env=kw.get("env", env), fetch=lambda: kw.get("data", data), slice_files=kw.get("mem", mem), trunk="HEAD", module_file=kw.get("module", modfile))]}
     if os.geteuid() != 0:
         env.chmod(0o000)
     good = run()
@@ -1219,9 +1267,10 @@ def test_p0_reads_a_to_f_and_goes_red_on_each_failure(brief_repo, tmp_path, monk
     monkeypatch.setattr(success_metrics, "p1_segment", lambda root: "")
     moved = [{**d, "pricing": {"prompt": "0.00001", "completion": "0.00001"}} for d in data]
     assert run(data=moved)["b"][0] is False and run(data=[])["b"][0] is False
-    big = tmp_path / "big"
-    big.write_text("6000000000\n")
-    assert run(mem=big)["c"][0] is False and run(mem=tmp_path / "gone")["c"][0] is False
+    (tmp_path / "big").mkdir()
+    assert run(mem=_slice_files(tmp_path / "big", anon=5.5))["c"][0] is False
+    (tmp_path / "unr").mkdir()
+    assert run(mem=_slice_files(tmp_path / "unr", stat=False))["c"][0] is False
     if os.geteuid() != 0:
         env.chmod(0o600)
         assert run()["d"][0] is False
@@ -1230,3 +1279,191 @@ def test_p0_reads_a_to_f_and_goes_red_on_each_failure(brief_repo, tmp_path, monk
     _git(other, "init", "-q")
     _git(other, "commit", "-q", "--allow-empty", "-m", "x")
     assert run(wt=other)["e"][0] is False
+    off = tmp_path / "off.py"
+    off.write_text(modfile.read_text() + " ")                         # one byte off the trunk's blob
+    assert run(module=off)["f"][0] is False
+    assert run(module=tmp_path / "nofile.py")["f"][0] is False
+
+
+# --- the kill-path guard (SM's finding on GATE193): the sweep must never be pointed at HOME or the caller's own tree --
+
+def test_guard_a_kid_home_that_is_home_or_outside_k_is_refused_before_any_spawn(arm):
+    for bad in (arm["home"], arm["home"] / "k", arm["home"] / "elsewhere", Path("/tmp") / "kid", Path("/")):
+        with pytest.raises(p1_ab.P1Refused, match="kid home|kill path"):
+            _pre(arm, kid_home=bad)
+
+
+def test_guard_a_kid_home_under_k_that_is_fresh_runs_and_one_that_is_not_fresh_does_not(arm):
+    _pre(arm)                                                    # absent: fine
+    arm["kid_home"].mkdir()
+    _pre(arm)                                                    # present and empty: fine
+    (arm["kid_home"] / "leftover").write_text("x")
+    with pytest.raises(p1_ab.P1Refused, match="not a fresh"):
+        _pre(arm)
+
+
+def test_guard_a_symlinked_kid_home_that_escapes_k_is_refused(arm, tmp_path):
+    (tmp_path / "away").mkdir()
+    os.symlink(tmp_path / "away", arm["home"] / "k" / "ln")
+    with pytest.raises(p1_ab.P1Refused, match="not a plain path|not under"):
+        _pre(arm, kid_home=arm["home"] / "k" / "ln")
+
+
+def test_guard_a_worktree_that_is_home_root_the_callers_repo_or_an_ancestor_of_cwd_is_refused(arm, monkeypatch, tmp_path):
+    repo = Path(p1_ab.__file__).resolve().parents[3]
+    for bad in (arm["home"], Path("/"), repo, repo.parent, Path.cwd(), Path.cwd().parent):
+        with pytest.raises(p1_ab.P1Refused, match="kill path refused"):
+            _pre(arm, worktree=bad)
+    inner = tmp_path / "cwdhere" / "deep"
+    inner.mkdir(parents=True)
+    monkeypatch.chdir(inner)
+    with pytest.raises(p1_ab.P1Refused, match="kill path refused"):
+        _pre(arm, worktree=tmp_path / "cwdhere")
+
+
+def test_guard_a_worktree_must_be_the_top_of_a_git_worktree_not_a_subdirectory_of_one(arm):
+    sub = arm["wt"] / "sub"
+    sub.mkdir()
+    with pytest.raises(p1_ab.P1Refused, match="not the top of a git worktree"):
+        _pre(arm, worktree=sub)
+
+
+def test_guard_run_kid_and_proc_sweep_refuse_home_before_killing_anything(tmp_path, monkeypatch):
+    """The typo case: `--kid-home $HOME`. A process of this uid sitting in HOME must survive."""
+    import time
+    home = tmp_path / "home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    bystander = subprocess.Popen(["sleep", "30"], cwd=home)
+    try:
+        time.sleep(0.3)
+        for bad in ([home], [tmp_path], [Path("/")]):
+            with pytest.raises(p1_ab.P1Refused, match="kill path refused"):
+                p1_ab.proc_sweep(bad)
+        node = _fake_node(tmp_path, body="exit 0")
+        cfg = _cfg_node(node)
+        plan = p1_ab.kid_plan(arm="deepseek", leaf=LEAVES[0], cfg=cfg, keyfile=tmp_path / "k.key", worktree=tmp_path / "wt",
+                              kid_home=home, prompt="p", prefix=_prefix(tmp_path))
+        with pytest.raises(p1_ab.P1Refused, match="kill path refused"):
+            p1_ab.run_kid(plan, cfg, live=0, gb=1.0)
+        assert bystander.poll() is None, "the sweep killed a bystander in HOME"
+        assert not (home / ".p1-agent").exists() and not (home / "p1-deepseek-1.log").exists(), "it spawned before it refused"
+    finally:
+        bystander.kill()
+
+
+def test_guard_the_pure_rule():
+    u = p1_ab.unsafe_kill_path
+    kw = dict(home="/h/me", cwd="/h/me/repo/sub", repos=("/h/me/repo",))
+    for bad in ("/", "/h", "/h/me", "/h/me/repo", "/h/me/repo/sub"):
+        assert u(bad, **kw), bad
+    for ok in ("/h/me/k/kid1", "/h/me/wt", "/tmp/x"):
+        assert u(ok, **kw) is None, ok
+
+
+def test_guard_the_callers_repo_is_refused_even_when_the_cwd_is_elsewhere(arm, monkeypatch, tmp_path):
+    """The repos check on its own: cwd moved away, the repo the caller runs from is still never a kill target."""
+    monkeypatch.chdir(tmp_path)
+    repo = Path(p1_ab.__file__).resolve().parents[3]
+    with pytest.raises(p1_ab.P1Refused, match="repo the caller runs from"):
+        _pre(arm, worktree=repo)
+    with pytest.raises(p1_ab.P1Refused, match="kill path refused"):
+        _pre(arm, worktree=repo.parent)
+
+
+def test_guard_a_worktree_that_is_or_contains_k_is_refused(arm):
+    for bad in (arm["home"] / "k", arm["home"]):
+        with pytest.raises(p1_ab.P1Refused, match="kill path refused"):
+            _pre(arm, worktree=bad)
+
+
+# --- S2: the sweep only kills what started after the kid; R1b: the run ledger append is under flock ----------------
+
+def test_s2_an_older_process_under_the_kid_home_survives_is_named_and_the_run_reads_red(tmp_path):
+    import time
+    node = _fake_node(tmp_path, body="exit 0")
+    cfg, plan = _plan(tmp_path, node)
+    kid_home = Path(plan["env"]["HOME"])
+    kid_home.mkdir(exist_ok=True)
+    old = subprocess.Popen(["sleep", "30"], cwd=kid_home)             # exists BEFORE the kid starts
+    try:
+        time.sleep(0.3)
+        res = p1_ab.run_kid(plan, cfg, live=0, gb=1.0)
+        assert res["sweep"] == [] and res["older"] == [old.pid], res
+        assert old.poll() is None, "an older process was killed"
+        led, runs = tmp_path / "ledger.json", tmp_path / "runs.json"
+        led.write_text(json.dumps([{"arm": "deepseek", "leaf": LEAF, "hash": "h1", "cap": 0.5, "usd": 0.1, "done": True}]))
+        runs.write_text(json.dumps([{"arm": "deepseek", "leaf": LEAF, **{k: res[k] for k in ("rc", "secs", "timed_out", "sweep", "older")},
+                                     "brief_sha256": "e" * 64}]))
+        with pytest.raises(p1_ab.P1Refused, match=f"older=\\[{old.pid}\\]"):
+            p1_ab.record_from_ledgers(tmp_path / "r.json", CFG, arm="deepseek", leaf=LEAF, ledger=led, runs=runs, landed=True, red=False)
+    finally:
+        old.kill()
+
+
+def test_s2_a_process_started_after_the_kid_is_still_swept(tmp_path):
+    import time
+    inside = tmp_path / "kid"
+    inside.mkdir()
+    since = p1_ab.boot_ticks()
+    time.sleep(0.1)
+    late = subprocess.Popen(["sleep", "30"], cwd=inside)
+    try:
+        time.sleep(0.3)
+        hit, older = p1_ab.proc_sweep([inside], since=since)
+        assert hit == [late.pid] and older == []
+        late.wait(timeout=5)
+    finally:
+        late.kill()
+
+
+def test_r1b_two_overlapping_kids_each_keep_their_run_row(tmp_path):
+    """An overlap under max_live 2: with a read at start and a write at the end, B's row erased A's (or the reverse)."""
+    from concurrent.futures import ThreadPoolExecutor
+    runs, led = tmp_path / "runs.json", tmp_path / "ledger.json"
+    led.write_text(json.dumps([{"arm": "deepseek", "leaf": LEAVES[0], "hash": "h0", "cap": 0.5},
+                               {"arm": "deepseek", "leaf": LEAVES[1], "hash": "h1", "cap": 0.5}]))
+    jobs = []
+    for i in (0, 1):
+        d = tmp_path / f"kid{i}"
+        d.mkdir()
+        node = _fake_node(d, body="sleep 1")
+        cfg, plan = _plan(d, node)
+        (d / "kidhome").mkdir(exist_ok=True)
+        jobs.append((LEAVES[i], cfg, plan))
+    with ThreadPoolExecutor(2) as ex:
+        futs = [ex.submit(p1_ab.run_logged, arm="deepseek", leaf=leaf, cfg=cfg, ledger=led, runs=runs, repo=tmp_path, plan=plan, gb=1.0)
+                for leaf, cfg, plan in jobs]
+        rows = [f.result(timeout=60) for f in futs]
+    assert {r["leaf"] for r in rows} == {LEAVES[0], LEAVES[1]}
+    assert sorted(r["leaf"] for r in json.loads(runs.read_text())) == sorted([LEAVES[0], LEAVES[1]])
+
+
+def test_r1b_a_pair_that_got_a_run_row_while_it_ran_is_refused_not_overwritten(tmp_path):
+    runs = tmp_path / "runs.json"
+    row = {"arm": "deepseek", "leaf": LEAVES[0], "rc": 0, "secs": 1, "timed_out": False, "sweep": [], "older": [], "brief_sha256": "e" * 64}
+    p1_ab._append_run(runs, row)
+    with pytest.raises(p1_ab.P1Refused, match="got a run row while it ran"):
+        p1_ab._append_run(runs, {**row, "rc": 9})
+    assert json.loads(runs.read_text()) == [row]
+
+
+def test_r1b_eight_simultaneous_appends_all_land_even_with_the_read_to_write_window_widened(tmp_path, monkeypatch):
+    """Deterministic: each append sleeps between its read and its write. Without the flock the later writers
+    overwrite the earlier ones with a list that never saw them; with it they take turns and every row survives."""
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+    real_runs = p1_ab._runs
+
+    def slow_runs(path):
+        rows = real_runs(path)
+        time.sleep(0.05)
+        return rows
+
+    monkeypatch.setattr(p1_ab, "_runs", slow_runs)
+    runs = tmp_path / "runs.json"
+    rows = [{"arm": "deepseek", "leaf": f"goal:x{i}", "rc": 0, "secs": 1, "timed_out": False, "sweep": [], "older": [],
+             "brief_sha256": "e" * 64} for i in range(8)]
+    with ThreadPoolExecutor(8) as ex:
+        list(ex.map(lambda r: p1_ab._append_run(runs, r), rows))
+    assert sorted(r["leaf"] for r in real_runs(runs)) == sorted(r["leaf"] for r in rows)
