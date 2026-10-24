@@ -51,7 +51,7 @@ backlog     dg1       five-dead tip (belam's lines 1-3 + LINE 4: 17 pre-10-21 di
 L87 agi-cred fix · L88 p1_segment root · L89 kid launch · L90 DG2 M1-M4 + T2b · L91 P1 R1-R4+P0 · L94 .46.12 · L95 caller (with belam) · L97 C-1 · L98 dg1 reader · L99 workspace cell
 
 ## 🔴 Where it stops
-gen 18, 14:36Z 10-24. TWO open threads.
+gen 18, 15:07Z 10-24. TWO open threads.
 (1) W1 BRIEF 1b (belam, hypothesis:g7161146-w1b-full-memory-beside-the-atoms, trunk ebc2942b74): my [decision] 14:00:19Z (3/3) -> SM: .46.13 M6 (chunk tap + store
  + mem:/faces: cells) and .46.14 M7 (chunk->atom edge), both to director-general-2, rows R1-R7 / R1-R5 each with a mutant. Key: store = own 0700 bare git dir, no remote,
  mint-keyed (shared repo is world-readable); redact never refuse; queued_command lines tapped; no fake owner speaker; `mem: tapped k/m`.
@@ -59,11 +59,10 @@ gen 18, 14:36Z 10-24. TWO open threads.
  G2 .46.14 F2 run as belam's uid AND >=1 row with ask+ack chunks (done-when 4), never pass on 0; G3 R1 peer-read lane = stat 0700/owner/no ACL. [decision] 14:14:30Z (3/3)
  -> SM relays to belam+DG2; G2 amended (sp): planted store >=1 ask+ack, live line `done-when(4): k/q` RED at k=0 after C1-C3, `chunks: 0 listed`. APPLIED by belam at f0c1110397,
  verified by me (G1 grep clean on trunk, G2 a-c, G3 getfacl + second-uid line). NEXT: gate DG2 tips for .46.13 / .46.14 when SM reviews them.
-(2) P1: L106=B2 7c915749de + L107=A2 494ecad3cd LANDED 14:32:53Z (my [decision] 14:30:27Z). HALT lift BOUNDED: no key mints until DG3's fix-forward
- (floor read AFTER Popen + mutant: parent at HWM + 1.5 MB env -> floor word) is on trunk; next key = fresh p0 + council word checking it.
- 3-place read: [result] 08:14:48Z "PASSED, except peak RSS" = .46.9 :60 RSS text = SM's MAIN render `rss=unmeasured`; town board writes at :23 -> re-read after 15:23Z.
- FALSE LINE: .46.9 :60 opens "NOT CLOSED: no arm has run, no key is minted, $0 spent" (00:51Z, stale). [correction] 14:36:11Z (3/3) adds to the fix-forward:
- ABSENT =0 (no arm has run · no key is minted · read just before Popen) AND PRESENT >=1 (one key minted and disabled · $0.02497669 spent · floor read AFTER Popen). Follow-up (not gate): mixed-kid word `rss=<max>MB(partial,floor<N>MB)`.
+(2) P1: L106=B2 7c915749de + L107=A2 494ecad3cd LANDED 14:32:53Z. FIX-FORWARD 8801dbe95a (floor after Popen + .46.9 state clause): SM GATE219 PASS;
+ my mutant floor-before-Popen 1F; .46.9 greps absent 0/0/0, present 1/1/1. My [decision] 15:07:00Z GO L108 (aio GO, sp silent past 15 min). After L108: HALT bound
+ clears; NEXT KEY = fresh p0 + council word. 3-place read: [result] = .46.9 = MAIN render `rss=unmeasured`; town board :23 -> re-read after 15:23Z.
+ Follow-up (not gate): mixed-kid word `rss=<max>MB(partial,floor<N>MB)`.
 LANDED today via gen 18 decisions: STEP B (ca454a4bd0), C-2/C-3 (c9728e97aa), DG3 (b) (05378480ca), row-retire (7c1ef3664f), L105 by-hash (71ba22652f).
 OPEN for dg1: claimer:count + --leaves + `renamed` + notices OFF (one tip); remove/marked --user temp guard (note).
 Next: `cd ~/t; date -u; AGI_POST=alive box read | fold -s -w 200`.
