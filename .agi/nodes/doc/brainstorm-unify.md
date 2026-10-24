@@ -10,11 +10,11 @@ season: 3
 tags:
   - brainstorm
   - reference
-title: "doc:brainstorm-unify -- the owner's 10-22/23 Fable brainstorm: one matrix family for the graph interface (§0-§39; reference, never placement)"
+title: "doc:brainstorm-unify -- the owner's 10-22/23 Fable brainstorm: one matrix family for the graph interface (§0-§40; reference, never placement)"
 town: core
 ---
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v1 (belam 10-23, Wave 0 of the owner's hand-off): the Fable fork's brainstorm, committed whole as REFERENCE (§38 invariant 1: a doc node is never placement; an owner ask is placed only when its leaf, idea or decision line exists). The open asks are the 60 rows of doc:card-belam §7 ATOMS. Label note from the hand-off: §22 is the authoritative leaf table (V0-V9, U1-U8); "V3'" (§25 compose/split) reads as the new leaf G1 compose/split, and "V7 (python out)" in §34.7/§36.4 reads as §22's V8. One edit from the fork's file: the box's hostname is written <host> (anonymize guard). The waves (0-4) that run this doc are in the card's §1.
+v2 (belam 10-24 13:5xZ): §40 (the owner-facing post: full memory beside the atoms, chunks -> atoms, the reconcile walk; the owner's 10-24 ruling 'mem: full' is a cell value) and §8f (its sources) appended verbatim from the fork's file, handed back by the Fable fork on the owner's word ('hand off the updates to be incorporated into plan'); §0-§39 unchanged. Its eight asks are rows 10.1-10.8 of doc:card-belam §7 (the fork's throw 8, renumbered on intake); its leaves M6-M10 enter goal:g7.16.1.11.46's waves. v1 (10-23): the brainstorm committed whole as REFERENCE (§38 invariant 1: a doc node is never placement). Label note: §22 is the authoritative leaf table (V0-V9, U1-U8); "V3'" (§25 compose/split) reads as the new leaf G1, and "V7 (python out)" in §34.7/§36.4 reads as §22's V8. Edits from the fork's file: the box's hostname is written <host> (anonymize guard); V10a wrote AGI_[retired] for the old variable name. The waves (0-4) are in the card's §1.
 <!-- THOUGHT:END -->
 # Brainstorm (fork, Fable, 10-22 ~18:3xZ): one matrix family for the graph interface
 
@@ -1234,3 +1234,117 @@ flow ARGS carry the moved atoms, and the board's `intake=` for the director drop
 (Haiku; Sonnet on `?`) · M3 `atoms:` in the pack, moved not copied · M4 board: `intake/placed/red` per post per lap + one
 TRAJECTORY line per ingested throw · M5 the brainstorm: 60 rows into belam's card §7 (no new node), then the board line when
 placed=60. Order unchanged: right after V0.
+
+## §40 the owner-facing post: a full memory beside the atoms, chunks linked to atoms, a reconcile walk (owner 10-24)
+
+> "one post can say on you asked to get X done this day at this time and it is recorded here in the graph and is being
+> worked on or it didn't get transferred yet but I'll mark it for the spiders." · "every optmem/optchat little chunk is
+> marked to an atom as needed, with multiple chunks able to map to a single atom as one chunk would be user doing it the
+> other would be the agent acknowledging."
+
+**Two stores, one edge.** §39 put the asks (atoms) in the card; §11 put the chat (chunks) in `refs/mem/P/<horizon>`. They are
+not rivals: the chat is the RECORD (every word, both speakers, verbatim), the card is the POSITION (what is open, where it
+went). What was missing is the edge between them, and that edge is the owner's sentence: a chunk is "marked to an atom".
+```
+chunk  c:<sha12>   speaker: owner | post | box:<from>   h: <height>  s: <session>   kind: ask|ack|fyi|report|chatter
+                   atom: a<n> | none | ?                 body: the verbatim text (never edited; a chunk is content-addressed)
+atom   card §7 row a<n> "<slice>" → <target>   chunks: c:… c:… (DERIVED from the chunks' `atom:` fields; never hand-kept)
+```
+The many→one edge lives on the many side (the chunk points at the atom); the atom's list is rebuilt by the walk below, so
+the two can never disagree for longer than one pass. One atom typically owns three or four chunks: the owner's ask, the
+post's acknowledgement, a later "did X land?", the post's status answer. Only the first needs a model; the other three are
+grep: **the front post's reply to an ask must name the atom ids it opened or touched** (`a12 a13`, §12: the model writes
+symbols, the engine does the algebra), so `ack` = a post chunk that names an id, and a post reply to an `ask` chunk that
+names none is a red at the next turn. Box traffic is already typed by its MANIFEST (`report` → board, never an atom).
+
+**Full memory is a cell value, not a role (owner 10-24: "mark it as 'full memory enabled' so other posts that are not owner
+facing can still have it. I figured prime would always have it.").** §11's cell grows one value: `mem: full | season | goal |
+none`. `full` = full memory enabled: the chunk store, the summary tree, the bounded view and the chunk→atom edge of this
+section, horizon `always`. Any row may carry it; the Prime always does; `faces: owner` (who a post talks to: owner | posts |
+none) REQUIRES `mem: full`, a cell constraint the unify spider checks, never the other way round. Today belam is Prime AND
+the one human-facing post; when the two part, `faces:` moves and `mem: full` stays on both. A post with `faces: owner` is
+the only place a human's words enter the graph; everyone else sees atoms (slices) and chunk ids, never the chat. A full
+store follows the post's mint id (§27) and is readable by scope cert only (§32): atoms travel, chunks do not, except the
+cited slice. The cost of `full` on a non-facing post is its compactor kid on its own turns (cents a day, on credits), so
+council and Keep can default to `full` too; directors stay `goal` unless a measurement says otherwise.
+
+**Three ways to run the front post's chat memory, and which one now.**
+| | tap (chunk in) | view (memory out) | compactor | keys |
+|---|---|---|---|---|
+| **claude-code** (today, the Max plan) | UserPromptSubmit + Stop hooks read `transcript_path` (agi-meter already does exactly this for the meter): owner lines + the post's text blocks → chunks | SessionStart (agi-brief) prints the bounded view + the `at:` line | a `pull: none` Haiku kid after agi-turn, new chunks only, cached prefix | the subscription for the chat; credits lane for the kids |
+| **pi 1.x** (after P1) | pi-optchat / pi-endless (both implement the recipe; pi-optchat has profiles + imports) or a ~40-line extension on `turn_end` writing the SAME tree | `session_start` | pi-optchat's own (default Sonnet, set it to Haiku) or ours | `models.json` `!cat /run/credentials/…` + the `headers` cell for the workspace id (§36) |
+| **UniiChat** (Taelin, released 10-19) | import its `main/<date>.jsonl` into the store (the tap reads it like a transcript) | its own | its own, API-billed ("expensive" — his word) | self-host = own key (Apache 2.0 repo, verified); the hosted uniichat.com key model is NOT verified; a third-party harness will not add `anthropic-workspace-id`, so it gets a workspace-scoped key, never the service-account key |
+
+**No routing through anything.** The store is ours and harnesses are adapters (the §6/§11 shape): the owner's words are a
+graph asset and no harness owns them. Order: the claude-code adapter first (it is V4 as already ordered, and it runs on the
+subscription the owner already pays), the pi adapter with P1 (same tree, pi-optchat's import makes the switch lossless),
+UniiChat as import-only. Not the owner's chat through UniiChat yet: five days old, bugs by its author's own warning,
+API-billed per message. If the owner wants its phone/web front end later, self-host it on a workspace-scoped key with a
+spend limit and tap its log; the atoms and the walk below do not change.
+
+**The reconcile walk (the owner's "routine cross updates") = one unify-spider pass per lap, four checks, one relay.**
+```
+1 ask chunk, atom: none            → missing: cut the row (slice = the chunk), target by the atomizer; outside F's scope →
+                                     into THIS lap's relay                                     ("I'll mark it for the spiders")
+2 atom with no ack chunk           → the post never acknowledged: `at:` lists it first; the next reply must name it
+3 atom exit does not resolve       → goal retired/renumbered/moved: re-point (the renumber rule already says "re-point every
+                                     reference in the same commit"; chunk and atom refs ARE references, the walk catches misses)
+4 chunk `atom: ?` older than a lap → Sonnet re-cut once; still `?` → ONE question to the owner at the front post's next turn
+                                     (never a box message to a human)
+relay   ONE box message per lap to the Prime: `atoms:` rows, MOVED (§39), with chunk ids; never one mail per atom
+```
+The front post runs checks 1–2 on its own new chunks at every turn (cheap: a handful of lines); the spider runs all four
+over the whole store per lap (the differential: chunks since the last pass height). Smell = open atoms × age + `?` count.
+
+**The sentence the owner asked for is a chain lookup, not a model.** `agi-atom where <words>`: regex over chunks (OptMem's
+recall, no embeddings) → chunk → `atom:` → the card row → its exit → the leaf's status → the board's last Δ for that town:
+`asked 10-23 09:41Z (c:7f3a…) · a12 · goal:g7.31.2 placed h=4471 · active · board Δ last lap +2` or
+`asked 10-24 02:10Z (c:91c0…) · a19 open on my card · relayed to belam h=4480 · not yet placed → red next lap`. When the
+words do not grep, zoom the summary tree (the OptChat shape) before any embedding.
+
+**Classifiers: four tiers, and only the second runs now.**
+- **0 deterministic** (free): post chunks self-label by naming ids; box chunks are typed by MANIFEST; `>` quotes excluded;
+  adjacency (the post's next reply after an ask) is the ack candidate. Most chunks never reach a model.
+- **1 a cheap model on the credits lane** (§39's atomizer, unchanged): Haiku 5.5 cuts and labels the OWNER's chunks, closed-set
+  output, verbatim-slice test; Sonnet 5.5 on `?`. The P1 three-arm A/B (Haiku · glm-5.3-flash · deepseek-flash) is the
+  "or via openrouter" arm, measured, not assumed. `atomizer:` is a cell.
+- **2 embeddings on OpenRouter** (`/api/v1/embeddings` exists; qwen3-embedding-0.6b, pplx-embed-v1-0.6b): k-NN of a new chunk
+  against open-atom slices (a follow-up → its atom) and the `where` fallback. Not a classifier by itself. The free
+  `liquid/lfm-2.5-embedding-350m:free` RETAINS requests for training: never for owner words; paid ones only under the
+  account's no-training setting. Season 4 unless regex misses measurably.
+- **3 a local classifier on the box** (an encoder on CPU): only once the label log exists — every tier-1 verdict and every
+  owner correction is a labelled row in the store, free — then a tune-spider experiment with a differential test against
+  tier 1. It collides with §23's python rule (it is not a ≤ 1 KB kernel), so: season 4, and only if tier 1's cost or
+  error rate says so. The honest asset today is the label log, not the model.
+
+**Owner verbatim gets provenance.** CLAUDE.md: owner words go verbatim into a goal's `## OWNER <date>, verbatim` section;
+today that is a hand copy. With chunks, the section cites `c:<sha12>` + the slice, and the verbatim-slice test (§39) checks
+the slice against the chunk. A quote without a chunk id is a unify-spider finding once the store exists (M10). This closes a
+real crack: a paraphrase that drifted from what the owner said is detectable, by grep.
+
+**Cost.** Owner + post chunks ≈ 100–300 a day; tier 1 + the compactor on Haiku ≈ $0.001–0.003 a chunk → well under $1 a day,
+on credits (≈ 0 cash); embeddings, if ever, are cents a month. The store grows a few hundred KB a day; the tree keeps the
+view ≤ 128 KB regardless.
+
+**Leaves (M6–M10, extending §39's M1–M5; V4 is where M6/M9 land).**
+M6 chunk tap + store: the two claude-code hooks → `refs/mem/F/-` tree (`mem/<date>/c-<sha12>.md`, frontmatter above,
+body verbatim), landed by agi-turn like any node tree; `mem: full` + `faces:` cells · M7 the edge: `atom:` on chunks, `chunks:` derived,
+`agi-atom add|close|where`, the "reply names its ids" red · M8 the walk: checks 1–2 per turn in the front post, 1–4 per lap
+as a unify-spider flow, one batched relay · M9 the summary tree + bounded view (compactor kid; view in agi-brief; pi adapter
+with P1) · M10 OWNER-section provenance (chunk ids in quotes; finding for quotes without one).
+Waves: M6, M7 with Wave 1's M-leaves (same kid, same card); V4 pulled forward from Wave 4 to Wave 2 with M9, M10 (the
+claude-code adapter needs no pi; the pi adapter stays after P1); M8's spider form in Wave 3 with the families (its per-turn
+form ships in Wave 1 inside M7). Done-when: (1) "did X land?" is answered from the chain in one turn
+with chunk id, atom id, exit and board state; (2) a planted ask the front post ignored reaches the Prime's card by the next
+lap's walk with zero owner reminders; (3) a reply to an ask that names no atom id is flagged at the next turn; (4) one
+owner message produces N atoms whose `chunks:` lists each hold the ask AND the ack chunk after the post's reply.
+
+## §8f sources for §40
+VictorTaelin/uniichat on GitHub (Apache-2.0, self-host with your own API key; hosted at uniichat.com; released 2026-10-19;
+Taelin on X 10-19/10-23: "closest to infinite context", "expensive", "expect bugs, many of them") · jonaslsaa/pi-optchat
+(profiles, background agents, conversation imports; issue #202 compares UniiChat vs OptChat compaction/caching) ·
+catoncat/pi-endless (the same recipe for pi) · adunne09/opencode-uniichat · openrouter.ai/docs/api-reference/embeddings
+(qwen/qwen3-embedding-0.6b, perplexity/pplx-embed-v1-0.6b; liquid/lfm-2.5-embedding-350m:free retains requests for
+training) · this box: `~/.claude/settings.json` hooks = SessionStart agi-brief · UserPromptSubmit agi-meter (reads
+`transcript_path`) · Stop agi-turn · PreToolUse agi-captive; the transcript jsonl carries `type user|assistant`, `uuid`,
+`parentUuid`, `timestamp`, `message.content` (owner lines are strings, post lines are text blocks).
