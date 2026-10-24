@@ -22,7 +22,7 @@ brief.py           810 B  the complex walk over parents: edges
 agi-meter          704 B  past rotate_pct: out-line; box-read prompt: atomize
 agi-at            1129 B  signed CAS commit of ~/t paths to posts/<P>
 agi-atomize       3841 B  box mail -> verbatim card atoms (wake path, model)
-agi-atom          5384 B  card §7 atoms: add close move (verbatim slices)
+agi-atom          5677 B  card §7 atoms: add close move (verbatim slices)
 grow.py           5140 B  the growth-order check both writers call
 agi-turn           4615 B  a signed commit per changed node tree
 agi-wt            1506 B  a node's tiny RAM tree: pull; drop = turn + purge
@@ -93,10 +93,10 @@ GROW_TRAILERS=$x.s grow.py $t>&2||exit 6
 unset GIT_INDEX_FILE;git reset -q $b||echo "[reset] $b: the commit landed, HEAD not moved">&2
 ~~~
 
-### agi-atom (5384 B)
+### agi-atom (5677 B)
 ~~~sh
 #!/bin/sh
-# agi-atom add SLICE SRC [target:X] | close ID STATE | move ID.. FLOW [ARGS] | grandfather: card §7 rows `| a<n> | "<slice>" | src:<box sha>|src:<node id>#OWNER | <state> | lap<n> |` (goal:g7.16.1.11.46.2-.4); SRC is read here, the slice must be a byte substring of it; STATE closes a target: row once into leaf:<goal id>|idea:<id>|decision:<doc>#<line>|out:<reason> (the id must exist); move writes the slices into the flow's ARGS json and closes the rows moved:<flow>, then ONE agi-at of both files
+# agi-atom add SLICE SRC [target:X] | close ID STATE | move ID.. FLOW [ARGS] | grandfather (only rows under a `**throw ..**` heading; any other legacy row is refused by name): card §7 rows `| a<n> | "<slice>" | src:<box sha>|src:<node id>#OWNER | <state> | lap<n> |` (goal:g7.16.1.11.46.2-.4); SRC is read here, the slice must be a byte substring of it; STATE closes a target: row once into leaf:<goal id>|idea:<id>|decision:<doc>#<line>|out:<reason> (the id must exist); move writes the slices into the flow's ARGS json and closes the rows moved:<flow>, then ONE agi-at of both files
 set -f;T=$(readlink -f "${AGI_T:-$HOME/t}");C=$(readlink -f "${AGI_ATOM_CARD:-$T/.agi/sessions/quorum/${AGI_POST:?}.md}")||exit 1;N=$T/.agi/nodes;[ -f "$C" ]||{ echo "agi-atom: no card $C">&2;exit 2;}
 d(){ echo "agi-atom: $*">&2;exit 2;};V=$1;[ $# -gt 0 ]&&shift;LAP=lap${AGI_LAP:-$(($(date +%s)/14400))};tab='	'
 n(){ f=$N/${1%%:*}/${1#*:}.md;[ -f "$f" ]&&grep -qFx "id: $1" "$f";}
@@ -125,7 +125,8 @@ move)a=;while [ $# -gt 0 ]&&case $1 in a[0-9]*);;*)false;;esac;do a="$a $1";shif
   J=$(printf %s "$J"|jq -c --arg i $i --arg r "$(sf "$x" 4)" --arg s "$(sf "$x" 3)" --arg h "$(sf "$x" 3|sha256sum|cut -c1-12)" 'if (.atoms//[])|any(.src==$r and .slice==$s) then error("already in ARGS") else .atoms+=[{id:$i,src:$r,slice:$s,sha:$h}] end')||d "[args] $i would sit in two places";done
  printf '%s\n' "$J">"$A.n"&&mv "$A.n" "$A";for i in $a;do h=$(sf "$(row $i)" 3|sha256sum|cut -c1-12);I=$i G=moved:$fl H=$h awk -F'|' -v OFS='|' '{y=$2;gsub(/ /,"",y)}y==ENVIRON["I"]&&NF==7{$3=" \"sha:"ENVIRON["H"]"\" ";$5=" "ENVIRON["G"]" "}{print}' "$C"|put;done
  exec ${AGI_ATOM_COMMIT:-agi-at} "${C#$T/}" "${A#$T/}";;
-grandfather)awk -F'|' -v OFS='|' -v L="$LAP" '/^## /{s=/^## §7/}s&&/^\|[-| ]+\|$/&&NF==5{print "|---|---|---|---|---|";next}s&&$2~/^ # $/&&NF==5{print "| # | atom (owner ask, short) | source | state | lap |";next}
+grandfather)r=$(awk -F'|' '/^## /{s=/^## §7/;t=0}s&&/^\*\*/{t=/^\*\*throw/}s&&NF==5&&$2~/^ [0-9]+\.[0-9]+ $/&&!t{gsub(/ /,"",$2);print "[src] "$2" is not under a throw: give it its real src"}' "$C");[ -z "$r" ]||d "$r"
+ awk -F'|' -v OFS='|' -v L="$LAP" '/^## /{s=/^## §7/}s&&/^\|[-| ]+\|$/&&NF==5{print "|---|---|---|---|---|";next}s&&$2~/^ # $/&&NF==5{print "| # | atom (owner ask, short) | source | state | lap |";next}
  s&&NF==5&&$2~/^ [0-9]+\.[0-9]+ $/{t=$3;sub(/^ +/,"",t);sub(/ +$/,"",t);print "|"$2"| \""t"\" | src:doc |"$4"| "L" |";next}{print}' "$C"|put;;
 *)d "add | close | move | grandfather";;esac
 ~~~

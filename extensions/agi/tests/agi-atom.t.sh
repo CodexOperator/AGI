@@ -8,7 +8,7 @@ G="git -c user.name=t -c user.email=t@t -c commit.gpgsign=false"
 mk(){ T=$D/$1/t;rm -rf $D/$1;mkdir -p $T/.agi/nodes/goal $T/.agi/nodes/doc $T/.agi/nodes/idea $T/.agi/sessions/quorum;cd $T;git init -q .
  printf -- '---\nid: goal:g1.2\n---\n# g\n' >.agi/nodes/goal/g1.2.md;printf -- '---\nid: doc:dd\n---\nl1\nl2\nl3\n' >.agi/nodes/doc/dd.md;printf -- '---\nid: idea:ii\n---\n# i\n' >.agi/nodes/idea/ii.md
  printf -- '---\nid: goal:g9\n---\n## OWNER 2026-10-23, verbatim\n> "Trajectory holds the momentum data"\nplain line two\n\n## Other\nnot owner words\n' >.agi/nodes/goal/g9.md
- printf '# card\n\n## §0 x\nhi\n\n## §7 ATOMS old\n\n| # | atom (owner ask, short) | state |\n|---|---|---|\n| 1.1 | button down | target:§0 |\n| 1.2 | simplify | leaf:goal:g1.2 |\n' >.agi/sessions/quorum/p.md
+ printf '# card\n\n## §0 x\nhi\n\n## §7 ATOMS old\n\n**throw 1 (10-22) -- x**\n| # | atom (owner ask, short) | state |\n|---|---|---|\n| 1.1 | button down | target:§0 |\n| 1.2 | simplify | leaf:goal:g1.2 |\n' >.agi/sessions/quorum/p.md
  printf '# card2\n\n## §0 x\nhi\n' >.agi/sessions/quorum/q.md;$G add -A;$G commit -qm 'the owner said: build the thing now' ;H=$(git rev-parse HEAD);C=$T/.agi/sessions/quorum/p.md;}
 A(){ (cd $T;env AGI_T=$T AGI_POST=${AP:-p} AGI_LAP=5 HOME=$D sh ${PIECE_RUN:-$PC} "$@") 2>$D/err;}
 st(){ awk -F'|' -v i=$1 '{y=$2;gsub(/ /,"",y)}y==i&&NF==7{s=$5;gsub(/^ +| +$/,"",s);print s}' $C;}
@@ -45,6 +45,13 @@ A close 1.1 out:legacy;ok "close-grandfathered-row a src:doc row closes through 
 mk e;A grandfather;cp $C $D/g1;A grandfather;ok "grandfather-idempotent the second run changes nothing" 'cmp -s $C $D/g1'
 n=$(awk '/^## §7/,0' $C|grep -E '^\| (a[0-9]+|[0-9]+\.[0-9]+) \|'|grep -vc 'src:');ok "grandfather-every-row-has-a-source every §7 data row carries src: (rows without: $n)" '[ "$n" = 0 ]'
 # --- mutants (each must be caught: the lane it breaks reads RED)
+# FIX-FORWARD 2 (L93 council): grandfather stamps src:doc ONLY rows under a **throw ..** heading; a legacy N.N row elsewhere is refused by name and nothing is written
+mk h;printf '# card\n\n## §7 ATOMS\n\n**throw 1 (10-22) -- x**\n| # | atom (owner ask, short) | state |\n|---|---|---|\n| 1.1 | button down | target:§0 |\n\n**throws 4-7 (10-23)**\n| 4.1 | four | target:§1 |\n\n**added 10-23 (council V10a decision)**\n| 8.1 | seat_status.py retire | target:§9 |\n' >$C;cp $C $D/h0;A grandfather;rc=$?
+ok "grandfather-refuses-a-row-not-under-a-throw an N.N row under an 'added ...' heading is refused with the NAMED line, rc 2, the card unchanged (rc $rc, err: $(head -1 $D/err))" '[ "$rc" = 2 ]&&grep -qF "[src] 8.1 is not under a throw: give it its real src" $D/err&&cmp -s $C $D/h0'
+mk i;printf '# card\n\n## §7 ATOMS\n\n**throw 1 (10-22) -- x**\n| # | atom (owner ask, short) | state |\n|---|---|---|\n| 1.1 | button down | target:§0 |\n\n**throws 4-7 (10-23)**\n| 4.1 | four | target:§1 |\n' >$C;A grandfather;rc=$?
+ok "grandfather-stamps-throw-rows rows under **throw 1** and **throws 4-7** are stamped src:doc (rc $rc, rows $(grep -c '| src:doc |' $C))" '[ "$rc" = 0 ]&&[ "$(grep -c "| src:doc |" $C)" = 2 ]'
+M=$D/m4;sed 's/;\[ -z "\$r" \]||d "\$r"$//' $PC>$M;mk j;printf '# card\n\n## §7 ATOMS\n\n**added 10-23 (x)**\n| 8.1 | seat_status.py retire | target:§9 |\n' >$C;PIECE_RUN=$M A grandfather;rc=$?
+ok "m4-no-throw-scope-RED the mutant without the scope check STAMPS the 'added' row src:doc (rc $rc, stamped $(grep -c '| src:doc |' $C)): the refuse lane catches it" '[ "$rc" = 0 ]&&[ "$(grep -c "| src:doc |" $C)" = 1 ]&&! cmp -s $M $PC'
 M=$D/m1;sed '/\[verbatim\]/d' $PC>$M;mk f;A grandfather;PIECE_RUN=$M A add 'Trajectory holds the momentum date' src:goal:g9#OWNER>/dev/null;rc=$?
 ok "m1-no-substring-check-RED a piece without the substring check ACCEPTS the changed word (rc $rc): the add-one-word-changed lane catches it" '[ $rc = 0 ]'
 M=$D/m2;sed 's/n "\$v"||d "\[state\] no goal node \$v";//' $PC>$M;mk g;A grandfather;A add 'plain line two' src:goal:g9#OWNER>/dev/null;PIECE_RUN=$M A close a1 leaf:g777;rc=$?
