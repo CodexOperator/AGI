@@ -82,6 +82,7 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 | Console: lane workspaces agi-batch · agi-kids · agi-council with spend + TPM caps, prime-director added to each; their wrkspc_ ids (not secrets) | needed by C2/C3 (W1); or OPTION B: one workspace-scoped key per lane (no header anywhere) |
 | prime-director's org role | developer, unless the Admin cost reports (C4) need admin; then root only ever holds it |
 | OpenRouter credits for P1: the provisioning account holds $0.60; the mint guard (min_mint_remaining_usd $1.00) refused the first kid key 04:42Z 10-24, $0 spent | top up >= $11 (P1's council budget $10 + the $1 floor), or rule another source; P1's two openrouter arms wait for it |
+| the prereq_notice cron row (goal .46.12, L94, user agi-sanctuary-master) is DARK until a `crons.py apply --sudo` | the owner's GO; then the notices run each trunk move (SM seeded refs/notices/prereq/seen at L94) |
 | link the Console org that carries the $200/mo credits (§13, §36) | link now (the credits expire monthly); the credits arm of P1 needs it |
 | boot pin move to the current trunk (brings L70 director-review boot=true + V0 live) | `agi.sh host` + start agi-project.service; director-review may need a re-login (keepalive is off) |
 | R2: agi.sh rows() starts boot=false posts (TM, DT-1) on a first start | (b1) filter boot=false + recover=false in rows() — decide before F2 |
