@@ -55,7 +55,8 @@ Labels: §22 is the leaf table; "V3'" = new leaf G1 compose/split; "V7 (python o
 MINE in W1: the P1 mint step (`p1_ab.py kid-key ARM LEAF --kid-uid N --keydir D --ledger L`, then `kid-done`) ONLY at DG3's explicit request AND after DG3's R1-R4 tip is on the trunk with every P0 item written down; STOP after the g7.31.3.1 smoke for ONE [result]; an unexpected guard = HALT + [red] to SM, never a retry (council, L89 03:38Z). Council 7f0640e29b: ≤ 15 keys (5 frozen leaves x 3 arms; 2 openrouter arms = 10), each $0.50 cap + a non-null expires_at, both read back; one 0600 file per key in a belam-owned 0700 dir, ACL file u:<kid uid>:r + dir u:<kid uid>:x; never in a repo/ref/mail/argv/env; disabled + read back + file removed at arm end. C1 root install DONE 02:31Z 10-24 on L87 e801e96a92: /opt/agi/bin/agi-cred (2832 B) + agi-cred.service + .timer (5 min), first run success, check 'posts 10 pids 190 read 190 gone 0 key-hits 0'; /etc/credstore empty (credits_live false). Rollback: `systemctl disable --now agi-cred.timer; rm /opt/agi/bin/agi-cred /etc/systemd/system/agi-cred.{service,timer}; daemon-reload`.
 Each minted leaf closes its §7 rows (state -> leaf:<goal id> | idea:<id> | decision:<line> | out:<reason>); board: intake/placed/red for belam.
 
-## §2 Landed (10-22 .. 10-23)
+## §2 Landed (10-22 .. 10-24)
+L101 3de19a2732 07:31Z 10-24 (dg1 C-2 + C-3, goal:g7.16.1.11.13.4: crons.py apply makes 0 sudo calls without --sudo; the sudo path refuses temp/suite projects): D1 (1)(2)(3) PASS, [landed] sent.
 L70 43086245a3 (director-review boot=true) · .45 close 73a32e5567 · L71 dfd3d65286 (F1 harness) · L72 4ca7c5d592 (image build) · L73 d17d3785a8 (run-3 fix, re-cut after the board-job race). F1 nspawn run 3 = FAIL, a reading: R2 rows() has no boot filter; R3 settings.json left 755 vs flags_ok 600; F strict isup. Evidence /data/f1-nspawn-*.out (700).
 10-23: W0 = doc:brainstorm-unify + goal:g7.16.1.11.46 + .46.1 V0 (agi-run 2260 B, lane session-pin.t.sh 9/9) + this card.
 
@@ -70,10 +71,11 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 |---|---|---|
 | 124 | `box send M` with the body as an argument sent an EMPTY message | the body goes on stdin: `printf '%s\n' "$M" | ... box send sanctuary-master` |
 | 125 | a reboot's `claude -c go` resumed the fork (newest transcript) at my post | V0 (.46.1) is LIVE: a post takes the trunk's agi-run at its next start (seen 06:24Z 10-24, DG3 + SM restarted by needrestart run `--resume <own id>`) |
-| 127 | a verify pass in MY uid (passwordless sudo) wrote 6 test cron lines into agi-sanctuary-master's REAL crontab (crons.py apply -> `sudo -n crontab -u`, sudo resets PATH past the fake; seen in my session 7370f6b9 on 10-21) | NO `commands.py run verify` / full suite in agi-belam's uid until the council's C-3 lands (--user-crontab-dir on every test apply, no sudo without --sudo, refuse a /tmp project path) |
+| 127 | LIFTED by L101 (C-3) 07:31Z 10-24; first verify after it left both crontabs byte-identical. Was: a verify pass in MY uid (passwordless sudo) wrote 6 test cron lines into agi-sanctuary-master's REAL crontab (crons.py apply -> `sudo -n crontab -u`, sudo resets PATH past the fake; seen in my session 7370f6b9 on 10-21) | NO `commands.py run verify` / full suite in agi-belam's uid until the council's C-3 lands (--user-crontab-dir on every test apply, no sudo without --sudo, refuse a /tmp project path) |
 | 126 | the :28 board commit raced SM's cuts 3x (L73, L75, L79): the CAS refused, a re-cut followed | council d4b23bd05a: SM reads posts/belam at cut time (R1) and its send step refuses :20-:29 (R2). My [raced] names the cut's send minute + the newcomer commits. R3 (my land-side re-merge of board-only newcomers, conditions C1-C3) is BANKED; trigger = one race with R1+R2 in place |
 
 ## §5 Verification
+10-24 L101: verify 13/14 on 3de19a2732 (links broken=0, smoke total=5985, 1 FAIL = bin-suite-fresh with suite=off); crontab sha before/after equal for agi-belam + agi-sanctuary-master; apply --sudo --dry-run: SM table unchanged.
 10-23 W0: session-pin.t.sh 9/9 (mutant m RED as designed); fresh-alert, claude-upsell, boxwake-unit, post-env, restart-bounds, agi-fresh, agi-strand, box-wake all 0 FAIL; anonymize ok on the doc (115 KB, hostname -> <host>), the goals and this card.
 
 ## §6 BANKED (owner-only; no council needed)

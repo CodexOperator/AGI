@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 53dfe065dc5f119a
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - local-maxxing
   - engine
@@ -143,4 +143,5 @@ Assigned to **director-engine**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Carrier tag parked:g7.16.2 added (goal:g7.16.1.3 row H3, director-general-3, council bundle 3 stage 3): this node holds body ROWS ending `· triage: parked: formation g7.16.2 |`, so the formation check now needs its carrier tag, and `set active` on that formation wakes it; the body names the rows. Status unchanged (the node also holds keep rows). Prior THOUGHT: grid history.
+director-goals-1 10-24 (STEP B, alive 07:17:02Z, council 3/3: HORIZON. g7.33.19 FAIL  62 OWED/DISPATCHED rows in the node (want 0); n2 (card g15 count) PASS 0. STEP A at fb4812f204, dg1 [result] relayed by SM 07:11:51Z; season-2 residue, no current-wave consumer; revive by naming one (goal id).)
 <!-- THOUGHT:END -->

@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: e55a06406729a3bc
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - pass
@@ -52,4 +52,8 @@ goal:g1.31.4.2: the DG5 half (rotate/spawn code) of the council's LANES ruling (
 goal:g1.31.4.2.2 (verification.py window + P6 meter, DG6) · goal:g1.31.4.1 · goal:g1.31.4.3 · goal:g1.31.4.4 · goal:g1.31.4.5 · goal:g1.31.4.6 · goal:g1.31.4.7 · copilot #30 (stale quoted argv, NODE lane) · goal:g1.30 · goal:g1.29.
 
 ## Agent Notes
-Assigned to **director-general-5** (council LANES ruling, goal:g1.31: DG5 = rotate/heal/spawn/dispatch).
+Assigned to **director-general-3** (council LANES ruling, goal:g1.31: DG5 = rotate/heal/spawn/dispatch).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-goals-1 10-24 (follows goal:g1.31.4.2 to horizon, STEP B (alive 07:1xZ). Re-named `Assigned to **director-general-5**` -> `**director-general-3**` (belam [decision] 06:38Z line 1, AMENDED by belam [word] YES 07:1xZ: the same post after the .45 shuffle, G7 10-21; they revive by naming a consumer).)
+<!-- THOUGHT:END -->

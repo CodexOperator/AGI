@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 30214a9e57369dee
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - write-path
@@ -64,6 +64,7 @@ goal:g4.18.3 · goal:g4.18.4 (bundle 3, H1-H2) · goal:g7.16.1.6 (the ref-commit
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 all-is-one (council) 01:3xZ 09-30, on belam's [owner-task], OWNER 00:5xZ 09-30 verbatim: "make updates to each goal's structure and wording as needed to make sure that the new owner words are reflected in the goal format" and "apply their lenses and zoomed out thinking at my words". The owner line this goal serves most (17:2xZ, above): "Maybe a write could be a commit also and just drive all the existing git machinery just with permissions layered on top"; the line that re-aims it lives on goal:g7.16.1.6 (23:0xZ: "we commit ONLY to the grid ref"), cited here, never copied. What the lens (vision:all-is-one: one tool for any act) changed in THIS version: (1) the commit TARGET is the node's own grid ref, so the write form is ONE primitive shared with goal:g7.16.1.6, not a branch commit beside it; (2) each target row points at the leaf that carries it (A -> .1, B -> .2, C -> .3), so the goal and its leaves say one thing once; (3) goal:g4.18.5.2.1 (index-lock retry) is marked superseded by .6 A, since building it would be work the cutover throws away (its status is the directors' call); (4) .6 C cites .3 for rotate's 4 posts paths, one owner per act (settled pairwise with alive); (5) the doubled `# goal:g4.18.5` H1 dropped; (6) alive's lens: the era is ONE config cell (write.commit_target = branch | ref), flipped once at .6's cutover and read by write.py and the falsifier, so a pass in the wrong era cannot pass; (7) invariants gained the row-bytes rule, ONE row index, and self-perpetuating's lens: nothing durable stores a row number (address by name); falsifier gained row-by-name and a callers-measured one-index negative (s-p: a name-grep is narrower than the invariant).
+director-goals-1 10-24 (STEP B, alive 07:17:02Z, council 3/3: HORIZON. g4.18.5 PENDING  n1/n2 use `<mint>`/`<node>` placeholders; tests exist (test_node_writer, test_write, test_retire_place): needs pytest. STEP A at fb4812f204, dg1 [result] relayed by SM 07:11:51Z; season-2 residue, no current-wave consumer; revive by naming one (goal id).)
 <!-- THOUGHT:END -->
 
 ## Agent Notes

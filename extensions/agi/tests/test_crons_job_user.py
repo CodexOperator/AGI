@@ -89,7 +89,7 @@ def test_the_kill_switch_empties_the_foreign_block_and_keeps_their_other_lines(t
     assert off["foreign_users"][OTHER]["status"] == "installed"
 
 
-def test_without_privilege_a_foreign_user_is_pending_and_the_own_block_still_installs(tmp_path, monkeypatch):
+def test_a_plain_apply_leaves_a_foreign_user_unread_and_the_own_block_still_installs(tmp_path, monkeypatch):
     fake = tmp_path / "fakebin"
     fake.mkdir()
     sudo = fake / "sudo"
@@ -98,9 +98,9 @@ def test_without_privilege_a_foreign_user_is_pending_and_the_own_block_still_ins
     monkeypatch.setenv("PATH", f"{fake}:{os.environ['PATH']}")
     root = make_project(tmp_path, cadences={**CADENCES})
     own = tmp_path / "own.cron"
-    got = crons.cmd_apply(root, own)                                                 # no user_crontab_dir: the sudo path
+    got = crons.cmd_apply(root, own)                                                 # no user_crontab_dir, no --sudo: the foreign table is NOT read (C-2)
     st = got["foreign_users"][OTHER]
-    assert st["status"].startswith("pending") and "apply --sudo" in st["status"] and st["changed"] is None
+    assert st["status"].startswith("unread: run apply --sudo") and st["changed"] is None
     assert "echo plain" in own.read_text()                                          # the cron-run apply is never failed by it
 
 
@@ -140,7 +140,7 @@ def test_a_job_moved_to_another_box_empties_its_users_block(tmp_path):
     assert "echo board" not in (users / f"{OTHER}.crontab").read_text()
 
 
-def test_a_disabled_job_without_privilege_is_a_named_pending_not_a_silence(tmp_path, monkeypatch):
+def test_a_disabled_job_on_a_plain_apply_is_a_named_unread_not_a_silence(tmp_path, monkeypatch):
     fake = tmp_path / "fakebin"
     fake.mkdir()
     sudo = fake / "sudo"
@@ -150,7 +150,7 @@ def test_a_disabled_job_without_privilege_is_a_named_pending_not_a_silence(tmp_p
     root = make_project(tmp_path, cadences={**CADENCES, "board": {**CADENCES["board"], "enabled": False}})
     got = crons.cmd_apply(root, tmp_path / "own.cron")
     st = got["foreign_users"][OTHER]
-    assert st["status"].startswith("pending") and "apply --sudo" in st["status"] and st["managed_lines"] == []
+    assert st["status"].startswith("unread: run apply --sudo") and st["managed_lines"] == []
 
 
 def test_mutant_the_enabled_filter_back_leaves_the_users_line_live(tmp_path, monkeypatch):
@@ -317,13 +317,13 @@ def test_a_successful_sudo_apply_installs_and_never_says_pending(tmp_path, monke
     root = make_project(tmp_path, cadences={**CADENCES})
     own = tmp_path / "own.cron"
     own.write_text("")
-    first = crons.cmd_apply(root, own, sudo=True)["foreign_users"][OTHER]                  # no crontab yet
+    first = crons.cmd_apply(root, own, sudo=True, allow_temp=True)["foreign_users"][OTHER]                  # no crontab yet
     assert first["status"] == "installed" and "echo board" in (state / OTHER).read_text()
     (state / OTHER).write_text("5 5 * * * their-own-job\n" + (state / OTHER).read_text())
-    again = crons.cmd_apply(root, own, sudo=True)["foreign_users"][OTHER]                  # one WITH lines of its own
+    again = crons.cmd_apply(root, own, sudo=True, allow_temp=True)["foreign_users"][OTHER]                  # one WITH lines of its own
     assert again["status"] == "unchanged" and "their-own-job" in (state / OTHER).read_text()
     write_crons_node(root, False, {**CADENCES})                                              # the kill switch empties the block, keeps theirs
-    off = crons.cmd_apply(root, own, sudo=True)["foreign_users"][OTHER]
+    off = crons.cmd_apply(root, own, sudo=True, allow_temp=True)["foreign_users"][OTHER]
     assert off["status"] == "installed" and "echo board" not in (state / OTHER).read_text() and "their-own-job" in (state / OTHER).read_text()
     for st in (first, again, off):
         assert "pending" not in st["status"]
@@ -339,7 +339,7 @@ def test_a_real_refusal_under_sudo_is_still_pending(tmp_path, monkeypatch):
     root = make_project(tmp_path, cadences={**CADENCES})
     own = tmp_path / "own.cron"
     own.write_text("")
-    st = crons.cmd_apply(root, own, sudo=True)["foreign_users"][OTHER]
+    st = crons.cmd_apply(root, own, sudo=True, allow_temp=True)["foreign_users"][OTHER]
     assert st["status"].startswith("pending") and "a password is required" in st["status"] and st["changed"] is None
 
 

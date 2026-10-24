@@ -174,6 +174,8 @@ def fakes(tmp_path, monkeypatch):
         '  *) exit 2;;\n'
         'esac\n')
     (fb / "systemctl").write_text(f'#!/bin/sh\necho "$@" >> {calls}\nexit 0\n')
+    # C-3 (1): a FAKE `sudo` that logs and refuses. A leaked `sudo -n crontab -u U` once reached the REAL crontab (sudo resets PATH to secure_path).
+    (fb / "sudo").write_text(f'#!/bin/sh\necho "$@" >> {tmp_path / "sudo.calls"}\nexit 1\n')
     for p in fb.iterdir():
         p.chmod(0o755)
     (Path(os.environ["HOME"]) / "logs").mkdir(exist_ok=True)   # a box that was applied once: the line's `>> ~/logs/..` needs the dir
@@ -183,7 +185,8 @@ def fakes(tmp_path, monkeypatch):
     env = {"PATH": f"{fb}:/usr/bin:/bin", "HOME": os.environ["HOME"],
            "XDG_RUNTIME_DIR": str(rt),   # NO AGI_BOX: the boxless cell must work on a box that cannot name itself
            "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_SYSTEM": "/dev/null",
-           "PYTHONPATH": str(BIN)}   # a CRONS_PY copy outside bin/ still finds its sibling modules
+           "PYTHONPATH": str(BIN),   # a CRONS_PY copy outside bin/ still finds its sibling modules
+           "AGI_TEST_USERS": str(tmp_path / "users")}   # C-3 (1): the fixture dir every apply here passes as --user-crontab-dir
     assert shutil.which("systemctl", path=env["PATH"]) == str(fb / "systemctl"), "the FAKE systemctl must shadow the real one wherever --unit-dir is passed"
     return env, table, calls
 
@@ -191,7 +194,8 @@ def fakes(tmp_path, monkeypatch):
 def cron_run(line: str, env: dict) -> subprocess.CompletedProcess:
     """Run one rendered cron line the way cron does: sh -c <everything after the
     5 schedule fields>, a minimal environment, no tty."""
-    return subprocess.run(["sh", "-c", line.split(" ", 5)[5]], env=env,
+    cmd = line.split(" ", 5)[5].replace("crons.py apply", f"crons.py apply --user-crontab-dir {env['AGI_TEST_USERS']}")
+    return subprocess.run(["sh", "-c", cmd], env=env,
                           capture_output=True, text=True, timeout=120)
 
 
@@ -332,13 +336,14 @@ def test_l6_apply_twice_is_byte_identical(tmp_path, fakes):
     env, table, _ = fakes
     root = live_root(tmp_path, grid_sync=False)
     table.write_text("0 3 * * * /usr/bin/true\n")
-    crons_py = [sys.executable, str(CRONS_PY), "apply", "--unit-dir", str(tmp_path / "u")]
+    crons_py = [sys.executable, str(CRONS_PY), "apply", "--unit-dir", str(tmp_path / "u"), "--user-crontab-dir", env["AGI_TEST_USERS"]]
     subprocess.run(crons_py, cwd=root, env=env, check=True, capture_output=True)
     first = table.read_text()
     subprocess.run(crons_py, cwd=root, env=env, check=True, capture_output=True)
     assert table.read_text() == first
     assert first.splitlines()[0] == "0 3 * * * /usr/bin/true"
     assert len(standalone(managed_block(table))) == 1
+    assert not (tmp_path / "sudo.calls").exists(), "a cron-style apply must make ZERO sudo calls"   # C-2 + C-3 (1)
 
 
 def test_l7_the_cell_line_undoes_a_hand_edit_and_keeps_a_hand_added_line(tmp_path, fakes):

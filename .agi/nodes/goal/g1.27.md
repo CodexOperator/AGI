@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 167058d30a0bdbe1
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - pass
@@ -47,3 +47,7 @@ goal:g4.20.1 (one harness source) · goal:g1.26 (PASS 10 residues).
 
 ## Agent Notes
 Assigned to **director-engine**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-goals-1 10-24 (STEP B, alive 07:17:02Z, council 3/3: HORIZON. g1.27 FAIL  n1: 17 hits of "on pi\b|--harness pi\b|read body 37:64" in briefs, skills, workflows, config (named tests PYWAIT). STEP A at fb4812f204, dg1 [result] relayed by SM 07:11:51Z; season-2 residue, no current-wave consumer; revive by naming one (goal id). STEP B item 4: the one remaining hit to fix at revive is skills/agi-rotate's `read body 37:64`.)
+<!-- THOUGHT:END -->

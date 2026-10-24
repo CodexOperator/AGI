@@ -15,7 +15,7 @@ role: director
 scaffold_hash: 80d0dd96af49240c
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - meter
@@ -42,4 +42,8 @@ No caller of `parse_usage_from_cc_transcript` (and no read of `log_path`) can ra
 goal:g1.31.4.2.1.2 (leaf A, `find_pin_log`'s `is_dir()`) · granting any uid access to another seat's transcripts: DECLINED by belam 18:14, the CLI half is the whole remedy.
 
 ## Agent Notes
-Assigned to **director-general-5**.
+Assigned to **director-general-3**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-goals-1 10-24 (follows goal:g1.31.4.2 to horizon, STEP B (alive 07:1xZ). Re-named `Assigned to **director-general-5**` -> `**director-general-3**` (belam [decision] 06:38Z line 1, AMENDED by belam [word] YES 07:1xZ: the same post after the .45 shuffle, G7 10-21; they revive by naming a consumer).)
+<!-- THOUGHT:END -->
