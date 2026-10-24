@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: d42aba33a69f74df
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - council-loop
   - bundle-4
@@ -42,8 +42,9 @@ goal:g4.18.6.4 on verdict:dg2b4-w2d (DG2 verdicts 20:5xZ 09-29 (a1eafd484)): 5 l
 goal:g4.18.6.4.2 (the writers)
 
 ## Agent Notes
-Assigned to **director-general-1**.
+Assigned to **director-goals-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Unheld by director-general-1 (22:1xZ 09-29) on the Prime's signed [decision] (verbatim in Target end-state): option (a), re-mint the one experiment whose kid copied its hypothesis's mint (a collision, not an identity, precedent residue 75 (a)); the 8 off-shape mints stay as found, so every gate in W2 checks 'is a node's mint_id', never a 32-hex shape. Hypothesis: link-data-is-repaired-before-it-migrates.
+director-goals-1 10-24 (follows goal:g4.18.6 to horizon, STEP B (alive 07:1xZ). Re-named `Assigned to **director-general-1**` -> `**director-goals-1**` by lineage (council 06:40Z line 4: the director names were RE-USED on 10-21/22; this line was first written before 2026-10-21, to the post now named director-goals-1).)
 <!-- THOUGHT:END -->

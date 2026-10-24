@@ -9,6 +9,7 @@ import copy
 import datetime
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -202,6 +203,7 @@ class Api:
 
     def __init__(self, monkeypatch, *, stored_limit="echo", stored_expiry="echo", sent_expiry="echo", secret=None):
         self.sent, self.revoked, self.rows, self.patched = [], [], [], []
+        self.gets, self.keys_status, self.workspaces = [], 200, None      # workspaces: None = a 403 on the listing
         self.secret = secret
         self.stored_limit, self.stored_expiry, self.sent_expiry = stored_limit, stored_expiry, sent_expiry
         monkeypatch.setattr(provisioning, "_read_provisioning_key", lambda root=None: "sk-prov")
@@ -213,6 +215,15 @@ class Api:
         if method == "DELETE":
             self.revoked.append(url.rsplit("/", 1)[-1])
             return 200, {}
+        if method == "GET" and "/keys/" in url:                       # GET /keys/<hash>: the key by hash, any workspace
+            h = url.rsplit("/", 1)[-1]
+            row = next((r for r in self.rows if r["hash"] == h), None)
+            return (200, {"data": dict(row)}) if row is not None else (404, {"error": "no such key"})
+        if method == "GET":
+            self.gets.append(url)
+            if url.endswith("/workspaces"):
+                return (200, {"data": [{"id": w} for w in self.workspaces]}) if self.workspaces is not None else (403, {})
+            return self.keys_status, {}
         if method == "PATCH":
             h = url.rsplit("/", 1)[-1]
             self.patched.append(h)
@@ -235,6 +246,37 @@ def test_a_mint_sends_the_cap_reads_it_back_and_writes_the_ledger(monkeypatch, t
     k = p1_ab.mint_capped(arm="glm", leaf=LEAVES[0], cfg=CFG, ledger=led)
     assert api.sent[0]["limit"] == 0.5 and k.secret == "sk-h1"
     assert json.loads(led.read_text()) == [{"arm": "glm", "leaf": LEAVES[0], "hash": "h1", "cap": 0.5}]
+
+
+def test_p0g_a_workspace_of_another_account_is_red_and_nothing_is_minted(monkeypatch, tmp_path):
+    api = Api(monkeypatch)
+    api.workspaces = ["ws-mine"]                                   # the key's account owns ONLY ws-mine
+    with pytest.raises(p1_ab.P1Refused, match="workspace preflight RED.*not one of"):
+        p1_ab.mint_capped(arm="glm", leaf=LEAVES[0], cfg=CFG, ledger=tmp_path / "led.json", workspace_id="ws-other-account")
+    assert api.sent == [] and not (tmp_path / "led.json").exists()
+    assert "ws-other-account" not in " ".join(api.gets)             # the id is checked by listing, never echoed in a url
+    assert p1_ab.mint_capped(arm="glm", leaf=LEAVES[0], cfg=CFG, ledger=tmp_path / "led.json", workspace_id="ws-mine")
+    assert api.sent[0]["workspace_id"] == "ws-mine"
+
+
+def test_p0g_a_key_without_management_rights_is_red_and_nothing_is_minted(monkeypatch, tmp_path):
+    api = Api(monkeypatch)
+    api.keys_status = 403
+    for ws in (None, "ws-mine"):
+        api.workspaces = ["ws-mine"]
+        with pytest.raises(p1_ab.P1Refused, match="cannot manage keys"):
+            p1_ab.mint_capped(arm="glm", leaf=LEAVES[0], cfg=CFG, ledger=tmp_path / "led.json", workspace_id=ws)
+    assert api.sent == [] and not (tmp_path / "led.json").exists()
+
+
+def test_p0g_an_unlistable_workspace_set_is_red_and_an_absent_cell_needs_no_listing(monkeypatch, tmp_path):
+    api = Api(monkeypatch)
+    api.workspaces = None                                          # GET /workspaces -> 403
+    with pytest.raises(p1_ab.P1Refused, match="GET /workspaces answered HTTP 403"):
+        p1_ab.mint_capped(arm="glm", leaf=LEAVES[0], cfg=CFG, ledger=tmp_path / "led.json", workspace_id="ws-mine")
+    assert api.sent == []
+    assert p1_ab.mint_capped(arm="glm", leaf=LEAVES[0], cfg=CFG, ledger=tmp_path / "led.json", workspace_id=None)
+    assert api.sent and "workspace_id" not in api.sent[0]          # absent means absent: the field is omitted
 
 
 def test_a_leaf_id_off_the_frozen_list_is_refused_before_any_call(monkeypatch, tmp_path):
@@ -508,20 +550,38 @@ def test_end_arm_disables_reads_back_disabled_and_removes_the_files(monkeypatch,
     assert all(r["disabled"] for r in api.rows)
 
 
+def test_a_key_in_another_workspace_reads_disabled_by_hash_though_the_listing_is_blind(monkeypatch, tmp_path):
+    """The live red (10-24): GET /keys lists only the default workspace and omits disabled keys, so a key minted into
+    agi-local-town read back 'absent' after a correct disable. The read-back is GET /keys/<hash>, never the listing."""
+    api = Api(monkeypatch)
+    api.workspaces = ["ws-town"]
+    led = tmp_path / "l.json"
+    k = p1_ab.mint_capped(arm="glm", leaf=LEAVES[0], cfg=CFG, ledger=led, workspace_id="ws-town")
+    monkeypatch.setattr(provisioning, "list_keys", lambda root=None, workspace_id=None: [])     # blind, whatever is asked
+    f = tmp_path / "k"
+    f.write_text(k.secret)
+    assert p1_ab.end_arm([{"hash": k.key_hash, "file": str(f)}], workspace_id="ws-town") == [] and not f.exists()
+    api.rows[0]["usage"] = 0.0249
+    done = p1_ab.kid_done(key_hash=k.key_hash, keyfile=f, ledger=led, workspace_id="ws-town")     # second call: idempotent
+    assert done["problems"] == [] and done["usd"] == 0.0249
+    row = json.loads(led.read_text())[0]
+    assert row["done"] is True and row["usd"] == 0.0249                                              # so `record` can read it
+
+
 def test_a_missed_disable_is_a_red_and_the_file_is_still_removed(monkeypatch, tmp_path):
     api = Api(monkeypatch, stored_limit="ignore-disable")
     k = p1_ab.mint_capped(arm="glm", leaf=LEAVES[0], cfg=CFG, ledger=tmp_path / "l.json")
     f = tmp_path / "k"
     f.write_text(k.secret)
     problems = p1_ab.end_arm([{"hash": k.key_hash, "file": str(f)}])
-    assert any("not disabled" in x for x in problems) and not f.exists()
+    assert any("LIVE" in x for x in problems) and not f.exists()                              # a 200 with disabled false is LIVE
 
 
-def test_a_key_that_vanished_from_the_listing_is_a_red(monkeypatch, tmp_path):
+def test_a_key_the_api_does_not_know_by_hash_is_a_red(monkeypatch, tmp_path):
     api = Api(monkeypatch)
     monkeypatch.setattr(provisioning, "list_keys", lambda root=None, workspace_id=None: [])
     problems = p1_ab.end_arm([{"hash": "gone", "file": str(tmp_path / "none")}])
-    assert any("absent" in x for x in problems)
+    assert len(problems) == 1 and "unread: 404" in problems[0] and "disabled" not in problems[0].replace("unread", "")     # a 404 never reads disabled
 
 
 def test_a_scratch_land_that_creates_a_shadow_bin_file_reads_red():
@@ -698,7 +758,7 @@ def test_kid_done_with_a_key_that_stays_enabled_is_a_red_and_still_removes_the_f
     led = tmp_path / "l.json"
     k = p1_ab.kid_key(arm="glm", leaf=LEAVES[0], cfg=CFG, keydir=d, ledger=led, kid_uid=KID)
     out = p1_ab.kid_done(key_hash=k["hash"], keyfile=k["file"], ledger=led)
-    assert any("not disabled" in x for x in out["problems"]) and not Path(k["file"]).exists()
+    assert any("LIVE" in x for x in out["problems"]) and not Path(k["file"]).exists()
     assert json.loads(led.read_text())[0]["done"] is False
 
 
@@ -713,8 +773,15 @@ def test_kid_done_will_not_touch_a_key_the_ledger_never_minted(monkeypatch, tmp_
 
 
 @needs_acl
+def _town_workspaces(api):
+    """The CLI reads the repo's own config: the workspace it will send is owned, as the live key's account would own it."""
+    town = json.loads((Path(p1_ab.__file__).resolve().parents[3] / ".agi" / "config.json").read_text())
+    api.workspaces = [provisioning.workspace(town)]
+
+
 def test_the_cli_prints_json_without_the_secret_and_exits_nonzero_on_a_refusal(monkeypatch, tmp_path, capsys):
     api = Api(monkeypatch)
+    _town_workspaces(api)
     d, led = tmp_path / "keys", tmp_path / "l.json"
     rc = p1_ab.main(["p1_ab.py", "kid-key", "deepseek", LEAVES[0], "--kid-uid", str(KID), "--keydir", str(d), "--ledger", str(led)])
     out = capsys.readouterr().out
@@ -742,6 +809,7 @@ def test_f1_kid_key_stdout_and_its_red_path_hold_zero_bytes_of_the_secret(monkey
     """A stub mint whose secret is a marker: the JSON line, the refusal text and the ledger never contain it; only
     the key file does. (Mutant: a return dict carrying the secret reads RED in the D3 row above and here.)"""
     api = Api(monkeypatch, secret=MARK)
+    _town_workspaces(api)
     d, led = tmp_path / "keys", tmp_path / "l.json"
     argv = ["p1_ab.py", "kid-key", "glm", LEAVES[0], "--kid-uid", str(KID), "--keydir", str(d), "--ledger", str(led)]
     assert p1_ab.main(argv) == 0
@@ -1239,6 +1307,15 @@ def test_r4_the_sweep_matches_by_cwd_and_by_open_fd_and_leaves_everything_else_a
         b.kill()
 
 
+def test_p0_report_exit_code_zero_only_when_every_row_is_ok_one_for_red_two_for_n_a():
+    ok = [("a x", True, "fine"), ("b y", True, "fine")]
+    assert p1_ab.p0_report(ok) == (["P0 a x ok  fine", "P0 b y ok  fine", "P0 summary: 2 ok, 0 RED, 0 n/a"], 0)
+    lines, rc = p1_ab.p0_report(ok + [("g w", None, "not evaluated")])
+    assert rc == 2 and lines[2].startswith("P0 g w n/a") and lines[-1].endswith("1 n/a (g unread)")
+    lines, rc = p1_ab.p0_report(ok + [("g w", None, "x"), ("c z", False, "bad")])
+    assert rc == 1 and "1 RED" in lines[-1]                                           # a RED outranks n/a
+
+
 def test_p0_reads_a_to_f_and_goes_red_on_each_failure(brief_repo, tmp_path, monkeypatch):
     repo, cfg = brief_repo
     cfg["p1"]["prices"] = copy.deepcopy(CFG["p1"]["prices"])
@@ -1255,13 +1332,23 @@ def test_p0_reads_a_to_f_and_goes_red_on_each_failure(brief_repo, tmp_path, monk
     env.write_text("x")
     wt = repo
     monkeypatch.setattr(success_metrics, "p1_segment", lambda root: "")
+    http = []                                                        # the keyless branch is FORCED, whoever runs the test:
+    monkeypatch.setattr(provisioning, "_read_provisioning_key", lambda root=None: None)
+    monkeypatch.setattr(provisioning, "_call", lambda *a, **k: http.append(a) or (0, {}))
     run = lambda **kw: {n[0]: (ok, d) for n, ok, d in [(r[0].split()[0], r[1], r[2]) for r in p1_ab.p0_readings(
         cfg=cfg, repo=repo, worktree=kw.get("wt", wt), main_env=kw.get("env", env), fetch=lambda: kw.get("data", data), slice_files=kw.get("mem", mem), trunk="HEAD", module_file=kw.get("module", modfile))]}
     if os.geteuid() != 0:
         env.chmod(0o000)
     good = run()
-    assert all(ok for ok, _ in good.values()), good
+    assert good["g"][0] is None and "not evaluated" in good["g"][1]  # this uid cannot read the provisioning key: n/a
+    assert all(ok for k, (ok, _) in good.items() if k != "g")
     assert good["b"][1].count("per M") == 2
+    rows = [(n, ok, d) for n, (ok, d) in ((r[0], (r[1], r[2])) for r in p1_ab.p0_readings(
+        cfg=cfg, repo=repo, worktree=wt, main_env=env, fetch=lambda: data, slice_files=mem, trunk="HEAD", module_file=modfile))]
+    lines, rc = p1_ab.p0_report(rows)
+    g_line = next(ln for ln in lines if ln.startswith("P0 g "))
+    assert g_line.split()[3] == "n/a" and not re.search(r"\bok\b", g_line), g_line   # a keyless g is n/a, never ok
+    assert lines[-1] == "P0 summary: 6 ok, 0 RED, 1 n/a (g unread)" and rc == 2     # and the rc never reads it as ok
     monkeypatch.setattr(success_metrics, "p1_segment", lambda root: "| p1: UNMEASURED(x)")
     assert run()["a"][0] is False
     monkeypatch.setattr(success_metrics, "p1_segment", lambda root: "")
@@ -1283,6 +1370,16 @@ def test_p0_reads_a_to_f_and_goes_red_on_each_failure(brief_repo, tmp_path, monk
     off.write_text(modfile.read_text() + " ")                         # one byte off the trunk's blob
     assert run(module=off)["f"][0] is False
     assert run(module=tmp_path / "nofile.py")["f"][0] is False
+    assert http == []                                                # a keyless P0 makes ZERO HTTP calls, in any uid
+    api = Api(monkeypatch)                                           # the holder's side: g is evaluated, not deferred
+    api.workspaces = ["ws-mine"]
+    cfg.setdefault("spawn", {}).setdefault("credential", {})["workspace_id"] = "ws-mine"
+    assert run()["g"][0] is True and "not evaluated" not in run()["g"][1]
+    cfg["spawn"]["credential"]["workspace_id"] = "ws-stale-from-the-old-account"
+    assert run()["g"][0] is False
+    cfg["spawn"]["credential"]["workspace_id"] = "ws-mine"
+    api.keys_status = 403
+    assert run()["g"][0] is False
 
 
 # --- the kill-path guard (SM's finding on GATE193): the sweep must never be pointed at HOME or the caller's own tree --

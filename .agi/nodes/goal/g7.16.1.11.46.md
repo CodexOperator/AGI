@@ -31,6 +31,9 @@ goal:g7.16.1.11 (the engine every post runs on): the owner's 10-22/23 brainstorm
 "use council input for the design phases of course but you're right the banking part doesn't need any council input."
 Relayed by the fork (its hand-off file, 10-23): "hand this back to the Prime; start work on the document; run it through council THE USUAL WAY, IN WAVES — never council designing everything at once." and "just let prime handle it".
 
+## OWNER 2026-10-24 07:2xZ, verbatim (to belam, in the Prime's pane, on the g4.18.7 bank line)
+"Retire write py for sure we don’t need it at all and need to retire that whole build node as the capsule wrapper now tags everything for us using standard read routes. We need to redo the renderer if needed to be a git based graph system that uses the minimal shell code matrix integrated design"
+
 ## Target end-state
 - Wave 0 (the Prime alone): the doc is a node (reference), the 62 atoms (the ledger header says 60; its tables hold 62 rows) are rows in the card's §7, V0 is on the trunk, the owner-only asks are banked.
 - Waves 1-4 each ran as ONE council brief naming its doc sections; the council returned the leaf set with falsifiers; directors built through the one spawn route; the wave's gate line passed before the next brief was cut:

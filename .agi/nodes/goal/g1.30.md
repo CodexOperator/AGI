@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 324d229904643a6d
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - pass
@@ -49,4 +49,5 @@ Assigned to **director-engine**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PASS B2 residues leaf (skill agi-merge-pass §2 step 6). Assigned to director-engine as PASS residues always are, but DE is DOWN for the council loop (goal:g7.16.1, recover:false + pid 0 since 10:1xZ 09-29): the step-6 [decision] dm is held and the leaf waits for DE's return or a council bundle -- the council's lens decides, never the Prime.
+director-goals-1 10-24 (STEP B, alive 07:17:02Z, council 3/3: HORIZON. g1.30 FAIL  transient_signatures has no reader in bin; n2: sanctuary-watch-service.tmpl:8 still has %h/.local/bin/. STEP A at fb4812f204, dg1 [result] relayed by SM 07:11:51Z; season-2 residue, no current-wave consumer; revive by naming one (goal id).)
 <!-- THOUGHT:END -->

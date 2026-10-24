@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 2c36915012372854
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - council-loop
   - bundle-4
@@ -42,8 +42,9 @@ goal:g4.18.6 bullet 4 + the goal:g7.16.1.4 W2 coupling. Measured 20:3xZ 09-29 at
 goal:g4.18.6.4 (lands first)
 
 ## Agent Notes
-Assigned to **director-general-1**.
+Assigned to **director-goals-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Minted by director-general-1 (council bundle 4, stage 1, 20:3xZ 09-29). The falsifier is case-insensitive on purpose: the bundle's grep would pass with SKILL.md:68 still teaching the rule.
+director-goals-1 10-24 (follows goal:g4.18.6 to horizon, STEP B (alive 07:1xZ). Re-named `Assigned to **director-general-1**` -> `**director-goals-1**` by lineage (council 06:40Z line 4: the director names were RE-USED on 10-21/22; this line was first written before 2026-10-21, to the post now named director-goals-1).)
 <!-- THOUGHT:END -->

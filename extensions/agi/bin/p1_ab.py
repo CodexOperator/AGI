@@ -215,6 +215,28 @@ def main_env_denied(path: str | Path) -> list[str]:
 
 # --- the mint ----------------------------------------------------------------
 
+def workspace_problems(workspace_id: str | None, root: str | Path | None = None) -> list[str]:
+    """P0 (g), no spend: the workspace the mint WILL send is absent, or one of the key's own account's workspaces;
+    and the key can manage keys (GET /keys 200). A stale town cell (an id from another account) is a 403 at the
+    mint; this catches it before any mint. Bodies are never echoed, only status codes and a short id prefix."""
+    prov = provisioning._read_provisioning_key(root)
+    if prov is None:
+        return ["no provisioning key readable by this uid: nothing to check against"]
+    out: list[str] = []
+    status, _ = provisioning._call("GET", provisioning.API_BASE, prov)
+    if status != 200:
+        out.append(f"GET /keys answered HTTP {status}: the key cannot manage keys")
+    if workspace_id:
+        status, body = provisioning._call("GET", provisioning.WORKSPACES_BASE, prov)
+        if status != 200:
+            out.append(f"GET /workspaces answered HTTP {status}: the configured workspace cannot be checked")
+        else:
+            owned = {w.get("id") for w in (body.get("data") or []) if isinstance(w, dict)}
+            if workspace_id not in owned:
+                out.append(f"workspace {workspace_id[:8]}... is not one of this key's account's workspaces")
+    return out
+
+
 def _ledger(path: Path) -> list[dict]:
     try:
         rows = json.loads(Path(path).read_text())
@@ -269,6 +291,9 @@ def mint_capped(*, arm: str, leaf: str, cfg: dict, ledger: str | Path,
         raise P1Refused(f"cash: committed ${exposure(rows):.2f} + ${limit:.2f} would pass the "
                         f"${float(p['cash_total_usd']):.2f} cash total")
 
+    bad_ws = workspace_problems(workspace_id, root)
+    if bad_ws:
+        raise P1Refused("workspace preflight RED before any mint: " + "; ".join(bad_ws))
     started = _now()
     minted = provisioning.mint(iter_n="p1", agent_id=f"{arm}-l{frozen.index(leaf) + 1}", tier="kid",
                                limit_usd=float(limit), ttl_minutes=ttl_minutes, workspace_id=workspace_id, root=root)
@@ -392,6 +417,20 @@ def disable_key(key_hash: str, root: str | Path | None = None) -> bool:
     return status == 200
 
 
+def key_state(key_hash: str, root: str | Path | None = None) -> tuple[int, dict | None]:
+    """(HTTP status, the key) as the API reports it BY HASH (GET /keys/<hash>); the key is None unless that answered 200.
+    Never the listing: GET /keys lists one workspace and omits disabled keys, so a key minted into agi-local-town
+    read back 'absent' after a correct disable (the kid-done red on the first live key, 10-24)."""
+    prov = provisioning._read_provisioning_key(root)
+    if prov is None or not key_hash:
+        return 0, None
+    status, body = provisioning._call("GET", f"{provisioning.API_BASE}/{key_hash}", prov)
+    if status != 200 or not isinstance(body, dict):
+        return status, None
+    data = body.get("data", body)
+    return status, (data if isinstance(data, dict) else None)
+
+
 def end_arm(rows: list[dict], *, root: str | Path | None = None, workspace_id: str | None = None) -> list[str]:
     """Disable every key of the arm, read each back as disabled, remove its file. rows: {"hash", "file"}.
     Returns the problems; a key that cannot be shown disabled is a red, and its file is removed regardless."""
@@ -399,11 +438,12 @@ def end_arm(rows: list[dict], *, root: str | Path | None = None, workspace_id: s
     for r in rows:
         if not disable_key(r["hash"], root):
             out.append(f"key {r['hash']}: the disable call did not succeed")
-    listed = {k.get("hash"): k for k in provisioning.list_keys(root, workspace_id)}
     for r in rows:
-        k = listed.get(r["hash"])
-        if k is None or k.get("disabled") is not True:
-            out.append(f"key {r['hash']}: read back {'absent' if k is None else k.get('disabled')!r}, not disabled")
+        status, k = key_state(r["hash"], root)
+        if k is None:
+            out.append(f"key {r['hash']}: unread: {status}")                      # disabled is read ONLY on a 200
+        elif k.get("disabled") is not True:
+            out.append(f"key {r['hash']}: LIVE (200, disabled {k.get('disabled')!r})")
         try:
             Path(r["file"]).unlink()
         except FileNotFoundError:
@@ -446,11 +486,11 @@ def kid_done(*, key_hash: str, keyfile: str | Path, ledger: str | Path, root: st
     row = next((r for r in rows if r.get("hash") == key_hash), None)
     if row is None:
         raise P1Refused(f"key {key_hash!r} is not in the ledger: only a key this driver minted is disabled here")
-    listed = next((k for k in provisioning.list_keys(root, workspace_id) if k.get("hash") == key_hash), None)
+    listed = key_state(key_hash, root)[1]                    # by hash, before the disable: the listing is blind to a workspace
     usd = None if listed is None else float(listed.get("usage") or 0.0)
     problems = end_arm([{"hash": key_hash, "file": str(keyfile)}], root=root, workspace_id=workspace_id)
     if usd is None:
-        problems.append(f"key {key_hash}: absent from the listing, its spend is unknown")
+        problems.append(f"key {key_hash}: unreadable by hash, its spend is unknown")
     row["usd"], row["done"] = usd, not problems
     Path(ledger).write_text(json.dumps(rows, indent=1))
     return {"arm": row["arm"], "leaf": row["leaf"], "hash": key_hash, "usd": usd, "problems": problems}
@@ -879,10 +919,12 @@ def live_prices(models: list[str], fetch=None) -> dict[str, dict[str, float]]:
 
 def p0_readings(*, cfg: dict, repo: str | Path, worktree: str | Path, main_env: str | Path | None = None,
                 fetch=None, slice_files: tuple = (SLICE_STAT, SLICE_PRESSURE, MEMINFO),
-                trunk: str = "origin/core/season3/main", module_file: str | Path | None = None) -> list[tuple[str, bool, str]]:
-    """(name, ok, reading) for P0 a-f; the caller prints them (they are the 'written down'). Nothing here mints."""
+                trunk: str = "origin/core/season3/main", module_file: str | Path | None = None,
+                root: str | Path | None = None) -> list[tuple[str, bool | None, str]]:
+    """(name, ok, reading) for P0 a-g; the caller prints them (they are the 'written down'). Nothing here mints.
+    ok is True (read and fine), False (read and RED) or None (n/a: the check did not run here -- never counted as ok)."""
     import tempfile  # noqa: PLC0415
-    out: list[tuple[str, bool, str]] = []
+    out: list[tuple[str, bool | None, str]] = []
     # (a) the p1_segment fix: from the graph dir of a scratch project with no results file, NO p1 text
     try:
         import success_metrics  # noqa: PLC0415
@@ -923,7 +965,27 @@ def p0_readings(*, cfg: dict, repo: str | Path, worktree: str | Path, main_env: 
     theirs = subprocess.run(["git", "-C", str(repo), "rev-parse", f"{trunk}:extensions/agi/bin/p1_ab.py"],
                             capture_output=True, text=True).stdout.strip()
     out.append(("f p1_ab blob", bool(mine) and mine == theirs, f"running {mine[:12] or '?'} vs {trunk} {theirs[:12] or '?'}"))
+    # (g) the workspace cell the mint will send is the key's own account's (or absent), and the key manages keys
+    ws = provisioning.workspace(cfg)
+    cell_word = "set" if ws else "absent (account default)"
+    if provisioning._read_provisioning_key(root) is None:
+        out.append(("g workspace", None, "not evaluated here: the provisioning key is unreadable from this uid; mint_capped "
+                                         f"runs this same check as the key's holder before any mint (cell {cell_word})"))
+    else:
+        probs = workspace_problems(ws, root)
+        out.append(("g workspace", not probs, "; ".join(probs) if probs else f"cell {cell_word}, owned by the key's account; GET /keys 200"))
     return out
+
+
+def p0_report(rows: list[tuple[str, bool | None, str]]) -> tuple[list[str], int]:
+    """The printed P0 lines, then a summary line, and the exit code: 0 only when EVERY row is ok; 1 when any row is RED;
+    2 when none is RED but some row is n/a (a check that did not run is unread, never ok)."""
+    mark = {True: "ok ", False: "RED", None: "n/a"}
+    lines = [f"P0 {name} {mark[ok]} {detail}" for name, ok, detail in rows]
+    n_ok, n_red = sum(1 for _, ok, _ in rows if ok is True), sum(1 for _, ok, _ in rows if ok is False)
+    na = [name.split()[0] for name, ok, _ in rows if ok is None]
+    lines.append(f"P0 summary: {n_ok} ok, {n_red} RED, {len(na)} n/a" + (f" ({', '.join(na)} unread)" if na else ""))
+    return lines, 1 if n_red else (2 if na else 0)
 
 
 def scratch_land_problems(paths: list[str], cfg: dict) -> list[str]:
@@ -1069,10 +1131,10 @@ def _mine(cmd: str, args: list[str], cfg: dict, root: Path) -> int:
     a = ap.parse_args(args)
     try:
         if cmd == "p0":
-            rows = p0_readings(cfg=cfg, repo=root, worktree=a.worktree, main_env=a.main_env)
-            for name, ok, detail in rows:
-                print(f"P0 {name} {'ok ' if ok else 'RED'} {detail}")
-            return 0 if all(ok for _, ok, _ in rows) else 1
+            rows = p0_readings(cfg=cfg, repo=root, worktree=a.worktree, main_env=a.main_env, root=root)
+            lines, rc = p0_report(rows)
+            print("\n".join(lines))
+            return rc
         if cmd == "run-kid":
             arm_preflight(arm=a.arm, leaf=a.leaf, prefix="~/pi1", cfg=cfg, kid_uid=os.geteuid(),
                           keydir=os.path.dirname(a.key_file), worktree=a.worktree, kid_home=a.kid_home)
