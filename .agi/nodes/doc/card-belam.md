@@ -177,5 +177,5 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 **added 10-23 (council V10a decision, alive 21:06Z)**
 | # | atom (owner ask, short) | source | state | lap |
 |---|---|---|---|---|
-| 8.1 | "seat_status.py retire" | src:doc | target:the §34.5 census-cell leaf (wave 2) | lap124501 |
+| 8.1 | "seat_status.py retire" | src:af6b174d9c507c5f812992fdd993b12b62b45da6 | target:the §34.5 census-cell leaf (wave 2) | lap124501 |
 | 9.1 | "if a director has claimed a given goal leaf or hypothesis leaf or whatever or a bundle of them, let them get notice automatically via mail system that hey your bundle pre-req's have cleared and it's just a simple little unified system that is all wired into the data already available via the town board/trajectory and the post cards" | src:goal:g7.16.1.11.46.12#OWNER | leaf:goal:g7.16.1.11.46.12 (L78, director-goals-1) | lap124501 |
