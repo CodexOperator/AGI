@@ -19,10 +19,10 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 ~~~
 agi-brief         1358 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
-agi-meter          616 B  past rotate_pct of the window: out-line
+agi-meter          790 B  past rotate_pct: out-line; box-read prompt: atomize
 agi-at            1129 B  signed CAS commit of ~/t paths to posts/<P>
-agi-atomize       3274 B  box mail -> verbatim card atoms (wake path, model)
-agi-atom          5384 B  card §7 atoms: add close move (verbatim slices)
+agi-atomize       3971 B  box mail -> verbatim card atoms (wake path, model)
+agi-atom          5677 B  card §7 atoms: add close move (verbatim slices)
 grow.py           5140 B  the growth-order check both writers call
 agi-turn           4615 B  a signed commit per changed node tree
 agi-wt            1506 B  a node's tiny RAM tree: pull; drop = turn + purge
@@ -75,10 +75,11 @@ for _ in range(30):
 for i in sorted([i for i in x if i in P],key=lambda i:-abs(x[i]))[:int(k)]:print('%.3f %+.1f'%(abs(x[i]),cmath.phase(x[i])/.5),i,P[i])
 ~~~
 
-### agi-meter (616 B)
+### agi-meter (790 B)
 ~~~sh
 #!/bin/sh
 ls ~/.notice* >/dev/null 2>&1&&agi-notice;j=$(cat);t=$(echo "$j"|jq '.tokens//empty');[ "$t" ]||t=$(echo "$j"|jq -r .transcript_path|xargs tac 2>/dev/null|jq -nR 'first(inputs|fromjson?|select((.message.usage.input_tokens)?|type=="number")|.message.usage|.input_tokens+((.cache_read_input_tokens|numbers)//0)+((.cache_creation_input_tokens|numbers)//0))');w=$(echo "$j"|jq ".context_window//${AGI_WINDOW:-1000000}")
+case $(echo "$j"|jq -r '.prompt//empty') in "mail: box read"*)agi-atomize wake||echo "[atomize] wake rc=$?: no atoms this read (~/.atomize.log); the next read retries";;esac
 [ "${t:-0}" -gt $((w*${AGI_ROTATE_PCT:-47}/100)) ] 2>/dev/null&&echo "At the line ($t/$w): write your card in its node tree (agi-wt pull), run agi-flush, then: touch ~/.fresh;kill \$PPID";:
 ~~~
 
@@ -92,10 +93,10 @@ GROW_TRAILERS=$x.s grow.py $t>&2||exit 6
 unset GIT_INDEX_FILE;git reset -q $b||echo "[reset] $b: the commit landed, HEAD not moved">&2
 ~~~
 
-### agi-atom (5384 B)
+### agi-atom (5677 B)
 ~~~sh
 #!/bin/sh
-# agi-atom add SLICE SRC [target:X] | close ID STATE | move ID.. FLOW [ARGS] | grandfather: card §7 rows `| a<n> | "<slice>" | src:<box sha>|src:<node id>#OWNER | <state> | lap<n> |` (goal:g7.16.1.11.46.2-.4); SRC is read here, the slice must be a byte substring of it; STATE closes a target: row once into leaf:<goal id>|idea:<id>|decision:<doc>#<line>|out:<reason> (the id must exist); move writes the slices into the flow's ARGS json and closes the rows moved:<flow>, then ONE agi-at of both files
+# agi-atom add SLICE SRC [target:X] | close ID STATE | move ID.. FLOW [ARGS] | grandfather (only rows under a `**throw ..**` heading; any other legacy row is refused by name): card §7 rows `| a<n> | "<slice>" | src:<box sha>|src:<node id>#OWNER | <state> | lap<n> |` (goal:g7.16.1.11.46.2-.4); SRC is read here, the slice must be a byte substring of it; STATE closes a target: row once into leaf:<goal id>|idea:<id>|decision:<doc>#<line>|out:<reason> (the id must exist); move writes the slices into the flow's ARGS json and closes the rows moved:<flow>, then ONE agi-at of both files
 set -f;T=$(readlink -f "${AGI_T:-$HOME/t}");C=$(readlink -f "${AGI_ATOM_CARD:-$T/.agi/sessions/quorum/${AGI_POST:?}.md}")||exit 1;N=$T/.agi/nodes;[ -f "$C" ]||{ echo "agi-atom: no card $C">&2;exit 2;}
 d(){ echo "agi-atom: $*">&2;exit 2;};V=$1;[ $# -gt 0 ]&&shift;LAP=lap${AGI_LAP:-$(($(date +%s)/14400))};tab='	'
 n(){ f=$N/${1%%:*}/${1#*:}.md;[ -f "$f" ]&&grep -qFx "id: $1" "$f";}
@@ -124,16 +125,19 @@ move)a=;while [ $# -gt 0 ]&&case $1 in a[0-9]*);;*)false;;esac;do a="$a $1";shif
   J=$(printf %s "$J"|jq -c --arg i $i --arg r "$(sf "$x" 4)" --arg s "$(sf "$x" 3)" --arg h "$(sf "$x" 3|sha256sum|cut -c1-12)" 'if (.atoms//[])|any(.src==$r and .slice==$s) then error("already in ARGS") else .atoms+=[{id:$i,src:$r,slice:$s,sha:$h}] end')||d "[args] $i would sit in two places";done
  printf '%s\n' "$J">"$A.n"&&mv "$A.n" "$A";for i in $a;do h=$(sf "$(row $i)" 3|sha256sum|cut -c1-12);I=$i G=moved:$fl H=$h awk -F'|' -v OFS='|' '{y=$2;gsub(/ /,"",y)}y==ENVIRON["I"]&&NF==7{$3=" \"sha:"ENVIRON["H"]"\" ";$5=" "ENVIRON["G"]" "}{print}' "$C"|put;done
  exec ${AGI_ATOM_COMMIT:-agi-at} "${C#$T/}" "${A#$T/}";;
-grandfather)awk -F'|' -v OFS='|' -v L="$LAP" '/^## /{s=/^## §7/}s&&/^\|[-| ]+\|$/&&NF==5{print "|---|---|---|---|---|";next}s&&$2~/^ # $/&&NF==5{print "| # | atom (owner ask, short) | source | state | lap |";next}
+grandfather)r=$(awk -F'|' '/^## /{s=/^## §7/;t=0}s&&/^\*\*/{t=/^\*\*throw/}s&&NF==5&&$2~/^ [0-9]+\.[0-9]+ $/&&!t{gsub(/ /,"",$2);print "[src] "$2" is not under a throw: give it its real src"}' "$C");[ -z "$r" ]||d "$r"
+ awk -F'|' -v OFS='|' -v L="$LAP" '/^## /{s=/^## §7/}s&&/^\|[-| ]+\|$/&&NF==5{print "|---|---|---|---|---|";next}s&&$2~/^ # $/&&NF==5{print "| # | atom (owner ask, short) | source | state | lap |";next}
  s&&NF==5&&$2~/^ [0-9]+\.[0-9]+ $/{t=$3;sub(/^ +/,"",t);sub(/ +$/,"",t);print "|"$2"| \""t"\" | src:doc |"$4"| "L" |";next}{print}' "$C"|put;;
 *)d "add | close | move | grandfather";;esac
 ~~~
 
-### agi-atomize (3274 B)
+### agi-atomize (3971 B)
 ~~~sh
 #!/bin/sh
-# agi-atomize: the WAKE-PATH step after `box read` (goal:g7.16.1.11.46.3): cut each box message to this post that is not yet marked refs/atomized/P/<sha> into verbatim, non-overlapping atoms with targets (agi-infer: Haiku AGI_ATOMIZE_MODEL, Sonnet AGI_ATOMIZE_MODEL2 once if a target is ?), then `agi-atom add` each as a card §7 row and mark the commit; `>` lines never reach the model; kind fyi|report = 0 atoms, ask >= 1; a reply that paraphrases, overlaps or has no atoms for an ask marks nothing (the next wake retries)
-set -f;P=${AGI_POST:?};T=$(readlink -f "${AGI_T:-$HOME/t}");M=refs/atomized/$P;W=$(mktemp -d);trap 'rm -rf $W' 0;cd "$T"||exit 1;add=0
+# agi-atomize [wake]: `wake` = the call agi-meter (the UserPromptSubmit hook) makes on the prompt "mail: box read": credits_live not true on the trunk -> ONE named skip line appended to ~/.atomize.log and NOTHING on stdout (a hook'"'"'s stdout enters the post'"'"'s context), no model call, exit 0; true -> the run below under timeout 45, stderr to ~/.atomize.log. The WAKE-PATH step after `box read` (goal:g7.16.1.11.46.3): cut each box message to this post that is not yet marked refs/atomized/P/<sha> into verbatim, non-overlapping atoms with targets (agi-infer: Haiku AGI_ATOMIZE_MODEL, Sonnet AGI_ATOMIZE_MODEL2 once if a target is ?), then `agi-atom add` each as a card §7 row and mark the commit; `>` lines never reach the model; kind fyi|report = 0 atoms, ask >= 1; a reply that paraphrases, overlaps or has no atoms for an ask marks nothing (the next wake retries)
+set -f;P=${AGI_POST:?};T=$(readlink -f "${AGI_T:-$HOME/t}");M=refs/atomized/$P
+[ "$1" = wake ]&&{ c=$(git -C "$T" show ${AGI_TRUNK:-trunk}:.agi/nodes/.geometry/secrets.md 2>/dev/null|sed -n 's/^credits_live: *//p'|head -1);[ "$c" = true ]||{ echo "$(date -u +%FT%TZ) [atomize] skipped: credits_live is ${c:-unreadable}, no model call">>$HOME/.atomize.log;exit 0;};exec timeout 45 "$(readlink -f "$0")" 2>>$HOME/.atomize.log;}
+W=$(mktemp -d);trap 'rm -rf $W' 0;cd "$T"||exit 1;add=0
 ids=$(grep -rlE "Assigned to \*\*$P\*\*" .agi/nodes/goal 2>/dev/null|xargs -r grep -l '^status: active$'|sed 's|.*/||;s|\.md$||'|tr '\n' ' ')
 printf '%s' '{"type":"object","properties":{"kind":{"enum":["ask","fyi","report"]},"atoms":{"type":"array","items":{"type":"object","properties":{"slice":{"type":"string"},"target":{"type":"string"}},"required":["slice","target"]}}},"required":["kind","atoms"]}'>$W/s
 go(){ { printf 'Cut this message into atoms. kind: ask (it asks the recipient to do something), fyi (nothing to do), report (numbers). Only an ask has atoms: each atom is {slice, target}, a VERBATIM, non-overlapping slice of the message (never reworded, no | and no newline in a slice), target = one of the leaf ids below, idea, decision, or ?. Reply as JSON only.\nleaf ids: %s\n--- message\n' "$ids";cat $W/b;}|AGI_INFER_SCHEMA=$W/s ${AGI_ATOMIZE_INFER:-agi-infer} $1>$W/r;}

@@ -4,7 +4,7 @@
 R0=${ROOT:-${1:-$(cd "$(dirname "$0")/../../.." && pwd)}};D=$(mktemp -d);trap 'kill $SV 2>/dev/null;rm -rf "${D:?}"' 0;f=0;unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE AGI_ATOM_CARD AGI_ATOM_COMMIT AGI_INFER_SCHEMA AGI_INFER_KEY
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 sect(){ awk -v n="$1" '$0~"^### "n" "{h=1;next}h&&/^~~~/{if(z)exit;z=1;next}h&&z' $R0/.agi/nodes/.geometry/$2;}
-mkdir $D/bin;sect agi-atom engine-post.md>$D/bin/agi-atom;sect agi-infer engine-wrap.md>$D/bin/agi-infer;PC=${PIECE:-$D/bin/agi-atomize};[ -n "$PIECE" ]||sect agi-atomize engine-post.md>$PC;chmod +x $D/bin/*
+mkdir $D/bin;sect agi-atom engine-post.md>$D/bin/agi-atom;sect agi-meter engine-post.md>$D/bin/agi-meter;sect agi-infer engine-wrap.md>$D/bin/agi-infer;PC=${PIECE:-$D/bin/agi-atomize};[ -n "$PIECE" ]||sect agi-atomize engine-post.md>$PC;chmod +x $D/bin/*
 for x in agi-atom agi-infer;do [ -s $D/bin/$x ]||{ echo "FAIL inputs: no $x piece";exit 99;};done;[ -s "$PC" ]||{ echo "FAIL inputs: no agi-atomize piece";exit 99;}
 printf '#!/bin/sh\ncd "$AGI_T"&&git add -A -- "$@"&&git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm "stub agi-at: $*"\n' >$D/stub;chmod +x $D/stub
 # the stub endpoint: reply n of a run = file $D/q/r<n> (its text is the assistant message); every request is logged (model, prompt) to $D/q/log<n>
@@ -82,6 +82,30 @@ ok "town-line-skipped belam's [town] line is marked and never sent to a model (c
 M=$D/m;sed 's/\[ "\$ok" \]&&git update-ref \$M\/\$c \$c ""/[ "$ok" ]/' $PC>$M;mk l;msg sm 'Just so you know: all is well.';reply 1 '{"kind":"fyi","atoms":[]}';reply 2 '{"kind":"fyi","atoms":[]}';reply 3 '{"kind":"fyi","atoms":[]}'
 AT $M;AT $M
 ok "m-no-marker-RED the mutant without the marker ref read the same fyi twice (calls $(calls), want 2): the re-read lane catches it" '[ "$(calls)" = 2 ]&&! cmp -s $M $PC'
+# --- the WAKE-PATH CALLER (the remainder of .46.3): agi-meter, the UserPromptSubmit hook, runs `agi-atomize wake` on the prompt "mail: box read"
+[ -n "$PIECE" ]&&cp $PC $D/bin/agi-atomize;[ -s $D/bin/agi-meter ]||{ echo "FAIL inputs: no agi-meter piece";exit 99;};chmod +x $D/bin/*
+cred(){ mkdir -p .agi/nodes/.geometry;if [ -n "$1" ];then printf 'credits_live: %s\ndoppler: x\n' "$1">.agi/nodes/.geometry/secrets.md;else printf 'doppler: x\n'>.agi/nodes/.geometry/secrets.md;fi;git add -A;git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm cred;git update-ref refs/heads/trunk HEAD;}
+WK(){ printf '%s' "${1:-{\"prompt\":\"mail: box read\"\}}" | (cd $T;env AGI_T=$T AGI_POST=p AGI_LAP=5 HOME=$D PATH=$WKP$D/bin:$PATH AGI_ATOM_COMMIT=$D/stub AGI_ATOMIZE_AGE=99999999 AGI_TRUNK=trunk sh ${2:-$D/bin/agi-meter}) 2>$D/err;}
+WP='{"prompt":"mail: box read"}';WKP=;rm -f $D/.atomize.log
+mk m;cred false;msg sm "$M1";reply 1 '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"}]}';o=$(WK "$WP")
+ok "wake-credits-false-stdout-empty-skip-logged with credits_live false the hook's STDOUT is EMPTY (it enters the post's context), the named skip line goes to ~/.atomize.log, 0 calls, 0 rows, nothing marked (out: '$o', log: $(tail -1 $D/.atomize.log 2>/dev/null|cut -d' ' -f2-), calls $(calls))" '[ -z "$o" ]&&grep -qF "[atomize] skipped: credits_live is false, no model call" $D/.atomize.log&&[ "$(calls)" = 0 ]&&[ $(rows) = 0 ]&&! marked'
+mk n;cred "";msg sm "$M1";o=$(WK "$WP")
+ok "wake-credits-unreadable-logged a secrets cell with no credits_live is named in the log too, stdout empty (out: '$o')" '[ -z "$o" ]&&grep -qF "[atomize] skipped: credits_live is unreadable, no model call" $D/.atomize.log&&[ "$(calls)" = 0 ]'
+# mutant a: the skip line back on stdout -> the stdout-empty lane is RED
+sed 's|>>\$HOME/.atomize.log;exit 0|;exit 0|' $PC>$D/ma;chmod +x $D/ma;mkdir -p $D/bina;cp $D/ma $D/bina/agi-atomize;mk r;cred false;msg sm "$M1";WKP=$D/bina: o=$(WK "$WP");WKP=
+ok "m-skip-on-stdout-RED a wake that prints the skip line on stdout puts it in the hook's stdout (out: '$(echo "$o"|cut -c1-60)'): the stdout-empty lane catches it" '[ -n "$o" ]&&! cmp -s $D/ma $PC'
+mk o;cred true;msg sm "$M1";reply 1 '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"},{"slice":"fix the red test","target":"g1.2"}]}';o=$(WK "$WP");c1=$(calls);r1=$(rows);WK "$WP">/dev/null
+ok "wake-one-message-one-request after \`box read\` with ONE new message the stub gets exactly ONE request and the rows land (calls $c1, rows $r1); the second read gets 0 more (calls $(calls)); the hook prints nothing (out: '$o')" '[ "$c1" = 1 ]&&[ "$r1" = 2 ]&&[ "$(calls)" = 1 ]&&[ -z "$o" ]&&marked'
+mk p;cred true;msg sm "$M1";reply 1 '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"}]}';WK '{"prompt":"hello there"}'>/dev/null
+ok "wake-only-on-the-box-read-prompt any other prompt makes 0 requests (calls $(calls))" '[ "$(calls)" = 0 ]&&[ $(rows) = 0 ]'
+# the failure of a REAL run is named: a stub agi-atomize exiting 124 (the timeout) with credits on -> ONE named line on stdout
+mkdir -p $D/b124;printf '#!/bin/sh\nexit 124\n'>$D/b124/agi-atomize;chmod +x $D/b124/agi-atomize;mk s;cred true;msg sm "$M1";WKP=$D/b124: o=$(WK "$WP");WKP=
+ok "wake-failure-named a real run that exits 124 (credits on) prints ONE named line on stdout: '$o'" '[ "$o" = "[atomize] wake rc=124: no atoms this read (~/.atomize.log); the next read retries" ]'
+sed 's/||echo .*;;esac/||:;;esac/' $D/bin/agi-meter>$D/mf;mk t;cred true;msg sm "$M1";WKP=$D/b124: o=$(WK "$WP" $D/mf);WKP=
+ok "m-failure-swallowed-RED an agi-meter whose call ends in ||: swallows the 124 (stdout: '$o'): the wake-failure lane catches it" '[ -z "$o" ]&&! cmp -s $D/mf $D/bin/agi-meter'
+# mutant: agi-meter without the caller -> 0 requests -> the wake lane (wants 1) is RED
+sed '/agi-atomize wake/d' $D/bin/agi-meter>$D/mm;mk q;cred true;msg sm "$M1";reply 1 '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"}]}';WK "$WP" $D/mm>/dev/null
+ok "m-caller-removed-RED agi-meter without the agi-atomize call makes 0 requests (calls $(calls); the wake-one-message lane wants 1): that lane catches it" '[ "$(calls)" = 0 ]&&! cmp -s $D/mm $D/bin/agi-meter'
 # --- negative (falsifier 2): the box piece carries no model call
 n=$(awk '/^### box /{f=1;next} /^### /{f=0} f' $R0/.agi/nodes/.geometry/engine-post.md|grep -c atomiz)
 ok "box-body-names-no-atomiz the box piece's body names no atomiz* (got $n)" '[ "$n" = 0 ]'

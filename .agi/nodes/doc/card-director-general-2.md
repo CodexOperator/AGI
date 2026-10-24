@@ -37,7 +37,10 @@ DONE   M4 success_metrics.py --line ends '| intake: <post>=<open>/<placed>/<red>
 DONE   L88 council GO (alive [decision] 02:5xZ, relayed by SM): Z1 no quorum dir -> intake UNMEASURED; Z2 legacy open rows show /?<n>; T1 --throws <heading prefix> counts only the throw's rows; T2 trajectory_throws cell in town:local-maxxing, rendered into metrics_line by --line (| trajectory: ..., before | intake:)
 DONE   L90 council GO on tip 7926d1343a with T2b (unreadable town node -> `| trajectory: UNMEASURED(no town node)`, lanes m4t2b/m4t2c/m4t2bm) + .46.5 Target wording ('carries `| intake: ...`'); tail order ACCEPTED, no test pins position (dg1 converts the endswith pins + retires LINEMAX)
 DONE   L90 LANDED 89a1dd7589 (SM [landed] 04:38Z). .46.4 CLOSED 06a12c36db (close mail sent, trunk 48cb160d02)
-NEXT   re-run + CLOSE: .46.5 F2 after the cron's :23 cell (05:23Z; wants `| intake:` belam= and `atoms=62 placed=` on town:local-maxxing); .46.2 F3 after belam's `agi-atom grandfather` (63 of 64 rows lack src:); .46.3 F3 live leg = SM's call. Standing form: CLOSE <leaf> = <sha> + falsifiers RE-RUN at <trunk sha>: <counts>
+DONE   .46.2 CLOSED d25af275fb (F3 = 0 after belam's grandfather 08110dc30c). .46.3 wake-path caller built: agi-meter -> `agi-atomize wake` (named skip while credits_live is not true; 7 lanes + mutant in agi-atomize.t.sh); merge-up for it sent
+DONE   L93 FIX-FORWARD 2 (alive decision 04:59Z): agi-atom grandfather stamps only rows under a **throw ..** heading, refuses other legacy N.N rows with `[src] N.N is not under a throw: give it its real src` (mutant RED); rides the .46.3 caller tip
+DONE   L95 council GO on 89f39f0a28 with ONE change: hook stdout EMPTY on a credits-off skip (log), a failed real run named (`[atomize] wake rc=<n>`), both mutants; P-a..P-e written into .46.3's THOUGHT (the live leg waits for all five)
+NEXT   mail SM the fixed tip; .46.5 F2 after the 05:23Z cell (check town:local-maxxing), then close
 ```
 
 ## §2 Landed
