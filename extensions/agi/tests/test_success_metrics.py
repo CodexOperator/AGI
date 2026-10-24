@@ -68,3 +68,142 @@ def test_record_path_is_the_same_room_for_seat_and_main(tmp_path):
     # The unified path is the MAIN checkout's room, not the seat's fork.
     assert str(seat_path) == str(main_graph / "sessions" / f"success-metrics-{season}.json")
     assert seat_path != wt_graph / "sessions" / f"success-metrics-{season}.json"
+
+# --- goal:g7.16.1.11.46.9: the p1 segment reads the REPO whether it is given the repo or the `.agi` graph dir ------
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+P1_CFG = json.loads((REPO_ROOT / ".agi" / "config.json").read_text())
+P1_RESULTS = {"base": P1_CFG["p1"]["base"], "arms": [
+    {"arm": "glm", "model": "z-ai/glm-5.3-flash", "kids": [
+        {"leaf": P1_CFG["p1"]["leaves"][0], "landed": True, "usd": 0.1, "secs": 100.0, "red": False}]}]}
+
+
+def _p1_repo(tmp_path: Path, *, config=True, p1=True, results=False) -> Path:
+    repo = tmp_path / "repo"
+    (repo / ".agi").mkdir(parents=True)
+    if config:
+        cfg = dict(P1_CFG) if p1 else {k: v for k, v in P1_CFG.items() if k != "p1"}
+        (repo / ".agi" / "config.json").write_text(json.dumps(cfg))
+    if results is not False:
+        path = repo / P1_CFG["p1"]["results"]
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(results if isinstance(results, str) else json.dumps(results))
+    return repo
+
+
+def _stub_line(monkeypatch):
+    """make_line without the minute-long metrics.py run and without a real graph."""
+    monkeypatch.setattr(success_metrics, "_run_metrics_once", lambda root: ({}, "stub"))
+    monkeypatch.setattr(success_metrics, "SOURCE_FUNCS", [])
+
+
+def test_no_results_file_means_no_p1_segment_from_either_root(tmp_path, monkeypatch):
+    _stub_line(monkeypatch)
+    repo = _p1_repo(tmp_path)
+    for root in (repo, repo / ".agi"):
+        line = success_metrics.make_line(root)
+        assert "p1:" not in line and "No such file" not in line, root
+        assert success_metrics.p1_segment(root) == ""
+
+
+def test_a_committed_results_file_renders_the_segment_from_either_root(tmp_path, monkeypatch):
+    _stub_line(monkeypatch)
+    repo = _p1_repo(tmp_path, results=P1_RESULTS)
+    want = "| p1: z-ai/glm-5.3-flash $/landed=0.1000 s/landed=100 red=0/5"
+    for root in (repo, repo / ".agi"):
+        assert success_metrics.make_line(root).endswith(want), root
+
+
+def test_the_cli_root_is_the_graph_dir_and_the_line_has_no_false_red(tmp_path, monkeypatch, capsys):
+    """The live red: main() resolves the root with find_project_root(), which returns `<repo>/.agi`."""
+    _stub_line(monkeypatch)
+    repo = _p1_repo(tmp_path)
+    monkeypatch.chdir(repo)
+    assert success_metrics.main(["--line"]) == 0
+    out = capsys.readouterr().out
+    assert "UNMEASURED(results unreadable" not in out and "p1:" not in out
+    (repo / P1_CFG["p1"]["results"]).parent.mkdir(parents=True)
+    (repo / P1_CFG["p1"]["results"]).write_text(json.dumps(P1_RESULTS))
+    assert success_metrics.main(["--line"]) == 0
+    assert "| p1: z-ai/glm-5.3-flash" in capsys.readouterr().out
+
+
+def test_a_project_without_a_p1_cell_or_without_a_config_has_no_segment(tmp_path, monkeypatch):
+    _stub_line(monkeypatch)
+    for kw in (dict(p1=False), dict(config=False)):
+        repo = _p1_repo(tmp_path / ("a" if "p1" in kw else "b"), **kw)
+        for root in (repo, repo / ".agi"):
+            assert success_metrics.p1_segment(root) == "", (kw, root)
+
+
+def test_a_results_file_that_exists_but_is_broken_is_named_not_dropped(tmp_path, monkeypatch):
+    _stub_line(monkeypatch)
+    repo = _p1_repo(tmp_path, results="{broken")
+    for root in (repo, repo / ".agi"):
+        seg = success_metrics.p1_segment(root)
+        assert seg.startswith("| p1: UNMEASURED(results unreadable"), root
+        assert "/" not in seg.split("(", 1)[1], "no path may ride the board line"
+
+
+# --- the council's final form: _reason is a fixed code (A2), the CLI is a SUBPROCESS row (A3) ----------------------
+
+def test_reason_is_a_fixed_code_never_exception_text():
+    r = success_metrics._reason
+    assert r(OSError(2, "No such file or directory", "/data/work/secret/x.json")) == "FileNotFoundError 2"
+    assert r(PermissionError(13, "denied", "/data/work/y")) == "PermissionError 13"
+    assert r(ValueError("/abs/path/in/the/message")) == "ValueError"
+    assert r(SystemExit(3)) == "SystemExit 3" and r(SystemExit("/a/b")) == "SystemExit"
+    assert r("/a/b/c") == "unknown" and r(None) == "unknown"
+    for e in (OSError(2, "m", "/p/q"), KeyError("/k/l"), RuntimeError("see /var/lib/x")):
+        assert "/" not in r(e)
+
+
+def test_every_unmeasured_in_the_line_is_free_of_a_box_path(tmp_path, monkeypatch):
+    """Mutant: an exception whose message holds an absolute path must give a metrics_line with no '/'."""
+    monkeypatch.setattr(success_metrics, "_run_metrics_once", lambda root: ({}, None))
+    boom = lambda root: (_ for _ in ()).throw(OSError(2, "No such file or directory", "/data/work/secret/x.json"))
+    monkeypatch.setattr(success_metrics, "SOURCE_FUNCS", [("src_a", boom), ("src_b", lambda root: (_ for _ in ()).throw(SystemExit("/var/lib/agi/x")))])
+    repo = _p1_repo(tmp_path, results="{broken")
+    for root in (repo, repo / ".agi"):
+        line = success_metrics.make_line(root)
+        assert "src_a=UNMEASURED(source failed: FileNotFoundError 2)" in line, line
+        assert "src_b=UNMEASURED(source failed: SystemExit)" in line
+        assert "| p1: UNMEASURED(results unreadable: P1Refused)" in line
+        assert "/" not in line, line
+
+
+def test_a_metrics_py_that_cannot_run_names_the_class_not_the_path(monkeypatch, tmp_path):
+    def nope(*a, **k):
+        raise OSError(2, "No such file or directory", "/usr/bin/python3-not-here")
+    monkeypatch.setattr(success_metrics.subprocess, "run", nope)
+    found, dead = success_metrics._run_metrics_once(tmp_path)
+    assert dead == "metrics.py unrunnable FileNotFoundError 2" and "/" not in dead
+
+
+def _scratch_project(tmp_path: Path, results=None) -> Path:
+    repo = tmp_path / "scratch"
+    (repo / ".agi" / "nodes").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text(json.dumps(P1_CFG))
+    if results is not None:
+        path = repo / P1_CFG["p1"]["results"]
+        path.parent.mkdir(parents=True)
+        path.write_text(json.dumps(results))
+    return repo
+
+
+def _cli_line(repo: Path) -> subprocess.CompletedProcess:
+    return subprocess.run([sys.executable, str(BIN_DIR / "success_metrics.py"), "--line"], cwd=repo,
+                          capture_output=True, text=True, timeout=300)
+
+
+def test_the_cli_as_a_subprocess_has_no_p1_text_without_a_results_file(tmp_path):
+    """The live red, end to end: the real entry point, its own root resolution (find_project_root -> the .agi dir)."""
+    r = _cli_line(_scratch_project(tmp_path))
+    assert r.returncode == 0, r.stderr
+    assert "p1:" not in r.stdout and "No such file" not in r.stdout and len(r.stdout.strip().splitlines()) == 1
+
+
+def test_the_cli_as_a_subprocess_renders_the_segment_once_results_exist(tmp_path):
+    r = _cli_line(_scratch_project(tmp_path, P1_RESULTS))
+    assert r.returncode == 0, r.stderr
+    assert r.stdout.strip().endswith("| p1: z-ai/glm-5.3-flash $/landed=0.1000 s/landed=100 red=0/5"), r.stdout
