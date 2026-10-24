@@ -31,19 +31,19 @@ mkdir $D/tb;printf '#!/bin/sh\ncase $1 in label|walk) exit 0;; esac\nexec sh %s/
 T0=2026-10-24T10:00:00.000Z;T1=2026-10-24T10:00:05.000Z;T2=2026-10-24T10:00:09.000Z
 
 # ---- R1 each chunk carries atom: <id>|none|?; a<n> is bare-safe, a dotted <n>.<m> counts only MARKED (`atom 10.2`, `atoms: 10.2 5.5`, `[10.2]`) and never with a version tail (council 15:4xZ L-GRAMMAR)
-nh r1;AL p1 "On it: a1 and atom 10.2 are mine" $T0>>$X;AL p2 "Nothing to see, a99 is no row" $T1>>$X;AL p3 "f=0.47, model 5.5 on pi@1.4.0 and atom 10.2.1" $T2>>$X;AL p4 "Done [10.2] today" 2026-10-24T10:00:07.000Z>>$X;AL p5 "Both atoms: 10.2 5.5 shipped" 2026-10-24T10:00:08.000Z>>$X;UL o1 "what became of a2 please" 2026-10-24T10:00:09.000Z>>$X;UL o2 "build a brand new thing" 2026-10-24T10:00:10.000Z>>$X;UL o3 "use Haiku 5.5 for it" 2026-10-24T10:00:11.000Z>>$X;TAP>/dev/null;LB>/dev/null
-ok "r1-post-naming-ids-gets-them a post chunk naming a1 bare and 10.2 marked gets 'atom: 10.2 a1' (sorted) and kind: ack (got '$(field 'are mine' atom)' / '$(field 'are mine' kind)')" '[ "$(field "are mine" atom)" = "10.2 a1" ]&&[ "$(field "are mine" kind)" = ack ]'
+nh r1;AL p1 "On it: atoms: a1 10.2 are mine" $T0>>$X;AL p2 "Nothing to see, a99 is no row" $T1>>$X;AL p3 "f=0.47, model 5.5 on pi@1.4.0 and atom 10.2.1" $T2>>$X;AL p4 "Done [10.2] today" 2026-10-24T10:00:07.000Z>>$X;AL p5 "Both atoms: 10.2 5.5 shipped" 2026-10-24T10:00:08.000Z>>$X;UL o1 "what became of a2 please" 2026-10-24T10:00:09.000Z>>$X;UL o2 "build a brand new thing" 2026-10-24T10:00:10.000Z>>$X;UL o3 "use Haiku 5.5 for it" 2026-10-24T10:00:11.000Z>>$X;TAP>/dev/null;LB>/dev/null
+ok "r1-post-naming-ids-gets-them a post chunk naming a1 and 10.2 marked gets 'atom: 10.2 a1' (sorted) and kind: ack (got '$(field 'are mine' atom)' / '$(field 'are mine' kind)')" '[ "$(field "are mine" atom)" = "10.2 a1" ]&&[ "$(field "are mine" kind)" = ack ]'
 ok "r1-unresolved-id-is-not-an-atom a99 names no card row, so the post chunk reads atom: none (got '$(field 'a99 is no row' atom)')" '[ "$(field "a99 is no row" atom)" = none ]'
 ok "r1-bare-decimals-and-version-tails-link-nothing 'f=0.47, model 5.5 on pi@1.4.0 and atom 10.2.1' links no row (got '$(field 'model 5.5 on pi' atom)'): 5.5 is a row, but bare" '[ "$(field "model 5.5 on pi" atom)" = none ]'
 ok "r1-marked-forms-resolve '[10.2]' and 'atoms: 10.2 5.5' link their rows (got '$(field 'Done [10.2]' atom)' / '$(field 'atoms: 10.2 5.5' atom)')" '[ "$(field "Done [10.2]" atom)" = "10.2" ]&&[ "$(field "atoms: 10.2 5.5" atom)" = "10.2 5.5" ]'
 ok "r1-owner-chunks-stay-question-mark tier 0 labels POST chunks only: an owner chunk naming a2, one with no id and one with 'Haiku 5.5' (a real row id) all stay 'atom: ?' (got '$(field 'became of a2' atom)' '$(field 'brand new thing' atom)' '$(field 'Haiku 5.5' atom)')" '[ "$(field "became of a2" atom)" = "?" ]&&[ "$(field "brand new thing" atom)" = "?" ]&&[ "$(field "Haiku 5.5" atom)" = "?" ]'
 MUT 's/atoms?:?\[\[:space:\]\]/atomsZ?:?[[:space:]]/' agi-mem;nh r1m;AL p1 "Done atom 10.2 today" $T0>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null
 ok "r1-mutant-10.2-does-not-resolve-RED a grammar whose marker form is broken leaves 'atom 10.2' unresolved ($(field 'Done atom' atom)): the lane wants 10.2" '[ "$(field "Done atom" atom)" != "10.2" ]'
-MUT 's/\[ \$p = post \]||continue;//' agi-mem;nh r4m;UL o2 "build a brand new thing" $T0>>$X;UL o1 "what became of a2 please" $T1>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null
-ok "r4-mutant-stub-labels-an-owner-RED a labeler that also labels owner chunks writes 'atom: $(field 'brand new' atom)' for no id and '$(field 'became of a2' atom)' for a bare a2: the lanes want ? and ?" '[ "$(field "brand new" atom)" = none ]&&[ "$(field "became of a2" atom)" = a2 ]'
+MUT 's/\[ \$p = post \]||{ \[ "\$R" = redo \]&&{ y=\${x##\*c-};echo "label --redo: c:\${y%.md} is an owner chunk";miss=1;};continue;};//' agi-mem;nh r4m;UL o2 "build a brand new thing" $T0>>$X;UL o1 "what became of atom a2 please" $T1>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null
+ok "r4-mutant-stub-labels-an-owner-RED a labeler that also labels owner chunks writes 'atom: $(field 'brand new' atom)' for no id and '$(field 'became of atom a2' atom)' for a marked a2: the lanes want ? and ?" '[ "$(field "brand new" atom)" = none ]&&[ "$(field "became of atom a2" atom)" = a2 ]'
 
 # ---- R2 the card row's chunks: list is DERIVED from the chunks, never hand-kept
-nh r2;UL o1 "please fix the widget now" $T0>>$X;AL p1 "Opened a1 for it" $T1>>$X;TAP>/dev/null;LB>/dev/null;PL "please fix the widget now" ask
+nh r2;UL o1 "please fix the widget now" $T0>>$X;AL p1 "Opened atom a1 for it" $T1>>$X;TAP>/dev/null;LB>/dev/null;PL "please fix the widget now" ask
 sed -i 's/^| a1 | "fix the widget" | src:doc | leaf:goal:g1.2 | lap1 |$/| a1 | "fix the widget" | src:doc | leaf:goal:g1.2 | lap1 | chunks: c:zzzzzzzzzzzz |/' $CARD;cp $CARD $D/card0
 # the ask chunk names no id yet: label it a1 by hand (what tier 1 / M2's atomizer will do), the way a planted store would
 SA "please fix the widget now" a1
@@ -66,11 +66,11 @@ h=$(EV agi-mem map|awk -F'	' '$4=="ask"{print substr($1,3,8)}')
 ok "r5-unnamed-reply-is-red an ask + a reply naming no id adds ONE r<8hex> row 'red:unnamed-reply' to the card, ONE notice '[unnamed-reply] <8hex> ...', and the board's intake red count rises ($before -> $after)" 'grep -qE "^\| r$h \| \"refactor the router please\" \| src:chunk:c:[0-9a-f]{12} \| red:unnamed-reply \| lap5 \|$" $CARD&&[ "$(cat $H/.notice 2>/dev/null|grep -c "^\[unnamed-reply\] $h ")" = 1 ]&&echo "$before"|grep -q "p=3/1/0"&&echo "$after"|grep -q "p=4/1/1"'
 WK>/dev/null;WK>/dev/null;ok "r5-walk-is-idempotent running the walk again adds no second row and no second notice (rows $(grep -c '^| r' $CARD))" '[ "$(grep -c "^| r" $CARD)" = 1 ]'
 EV agi-atom close r$h out:named;ok "r5-a-red-row-closes-like-any-atom agi-atom close r<8hex> out:named closes the born-red row and the red count falls back ($(LAP=5 red))" 'grep -q "^| r$h .*| out:named |" $CARD&&LAP=5 red|grep -q "p=3/2/0"'
-nh r5g;UL o1 "refactor the router please" $T0>>$X;AL p1 "Opened a1 for the router." $T1>>$X;TAP>/dev/null;PL "refactor the router please" ask;WK>/dev/null
+nh r5g;UL o1 "refactor the router please" $T0>>$X;AL p1 "Opened atom a1 for the router." $T1>>$X;TAP>/dev/null;PL "refactor the router please" ask;WK>/dev/null
 ok "r5-named-reply-is-green the same ask answered with a reply that names a1 adds no row ($(grep -c '^| r' $CARD)) and the red count stays 0 ($(LAP=5 red))" '[ "$(grep -c "^| r" $CARD)" = 0 ]&&LAP=5 red|grep -q "p=3/1/0"'
 MUT 's/print (\$5=="none"||\$5=="?"?"RED":"OK"),q\[i\],\$1/print "OK",q[i],$1/' agi-mem;nh r5m;UL o1 "refactor the router please" $T0>>$X;AL p1 "Sure, on it." $T1>>$X;TAP>/dev/null;PL "refactor the router please" ask;WK $D/mut_agi-mem>/dev/null
 ok "r5-mutant-unnamed-reply-reads-green-RED a walk that never calls a reply red leaves no r-row ($(grep -c '^| r' $CARD)): the lane wants one" '[ "$(grep -c "^| r" $CARD)" = 0 ]'
-MUT 's/print (\$5=="none"||\$5=="?"?"RED":"OK"),q\[i\],\$1/print "RED",q[i],$1/' agi-mem;nh r5n;UL o1 "refactor the router please" $T0>>$X;AL p1 "Opened a1 for the router." $T1>>$X;TAP>/dev/null;PL "refactor the router please" ask;WK $D/mut_agi-mem>/dev/null
+MUT 's/print (\$5=="none"||\$5=="?"?"RED":"OK"),q\[i\],\$1/print "RED",q[i],$1/' agi-mem;nh r5n;UL o1 "refactor the router please" $T0>>$X;AL p1 "Opened atom a1 for the router." $T1>>$X;TAP>/dev/null;PL "refactor the router please" ask;WK $D/mut_agi-mem>/dev/null
 ok "r5-mutant-named-reply-reads-red-RED a walk that calls every reply red writes an r-row for a reply that DID name the id ($(grep -c '^| r' $CARD)): the lane wants none" '[ "$(grep -c "^| r" $CARD)" = 1 ]'
 # the M4 reader: a red: row is open AND red at once; the derived chunks: cell is not part of the row's shape
 mkdir -p $D/gm/sessions/quorum;printf '## §7 ATOMS\n\n| # | atom | source | state | lap |\n|---|---|---|---|---|\n| a1 | "x" | src:doc | target:t | lap5 | chunks: c:aaaaaaaaaaaa |\n| rdeadbeef | "y" | src:chunk:c:bbbbbbbbbbbb | red:unnamed-reply | lap5 |\n| a2 | "z" | src:doc | leaf:goal:g1.2 | lap4 | chunks: c:cccccccccccc c:dddddddddddd |\n'>$D/gm/sessions/quorum/q.md
@@ -155,10 +155,8 @@ nm 's/)f=0;else/)f=1;else/' "a block that never closes" D never-closes
 # S (council sp): the host sweep. nested [fix] lists the live POST chunks with a fence inside a fence; an unreadable store prints mem: unread, never 0
 nn r1s;LB>/dev/null;o=$(EV agi-mem nested 2>&1);rc=$?
 ok "r1s-nested-lists-the-post-chunks-with-a-fence-in-a-fence the sweep prints '$(echo "$o"|head -1)' and ids $(echo "$o"|sed 1d|wc -l|tr -d ' ') (want 5: A B C D E; not the plain fenced chunk, not the owner chunk), rc $rc" '[ $rc = 0 ]&&[ "$(echo "$o"|head -1)" = "nested-fence chunks: 5" ]&&[ "$(echo "$o"|sed 1d|grep -c "^c:[0-9a-f]\{12\}$")" = 5 ]'
-SA 'Block A:' 10.2;EV agi-mem nested fix>/dev/null 2>&1;k2=$(field 'Block A:' atom)
-ok "r1s-nested-fix-relabels-them a Block A chunk mislabelled 10.2 reads '$k2' after nested fix (want none)" '[ "$k2" = none ]'
-SA 'Block A:' 10.2;MUT 's/\[ "$2" = fix \]/[ "$2" = nofix ]/' agi-mem;EV sh $D/mut_agi-mem nested fix>/dev/null 2>&1;k3=$(field 'Block A:' atom)
-ok "r1s-mutant-fix-does-nothing-RED a nested that never relabels leaves Block A at '$k3': the lane wants none" '[ "$k3" = 10.2 ]'
+SA 'Block A:' 10.2;EV agi-mem nested fix>/dev/null 2>&1;rc=$?;k2=$(field 'Block A:' atom)
+ok "r1s-nested-is-a-report-only nested fix relabels nothing now (the recompute is label --all): Block A stays '$k2', rc $rc (want 10.2, 0)" '[ "$k2" = 10.2 ]&&[ $rc = 0 ]'
 nh r1u;o=$(EV agi-mem nested 2>&1);rc=$?
 ok "r1s-an-unreadable-store-is-never-zero a post with no store prints '$o' and rc $rc (want 'mem: unread', rc 1)" '[ "$o" = "mem: unread" ]&&[ $rc = 1 ]'
 MUT 's/echo "mem: unread";exit 1;};: >/echo "nested-fence chunks: 0";exit 0;};: >/' agi-mem;o=$(EV sh $D/mut_agi-mem nested 2>&1)
@@ -171,6 +169,27 @@ ok "f2-redo-with-no-id-is-loud label --redo with no id prints '$o' and rc $rc (w
 MUT 's/exit $miss;;/exit 0;;/' agi-mem;EV sh $D/mut_agi-mem label --redo c:000000000000 >/dev/null 2>&1;rc=$?
 ok "f2-mutant-redo-miss-exits-0-RED a label that always exits 0 returns rc $rc for a missing chunk: the lane wants 1" '[ $rc = 0 ]'
 
+# A (council 19:0xZ, belam's live a1/a2): an id counts only MARKED, a<n> as much as a dotted one; a bare a1 in prose is nothing
+nh r1b;AL b1 'Rows 10.2, 5.5, a1 and a2 are still open on the card' $T0>>$X;AL b2 'Closing a1 and a2 on the router' $T1>>$X;AL b3 'Shipped it, atom a1 done' $T2>>$X;AL b4 'Both [a1, a2] shipped' 2026-10-24T10:00:07.000Z>>$X;AL b5 'And atoms: a2 shipped' 2026-10-24T10:00:08.000Z>>$X;TAP>/dev/null;LB>/dev/null
+g="$(field 'Rows 10.2' atom)/$(field 'Closing a1' atom)/$(field 'atom a1 done' atom)/$(field 'Both [a1' atom)/$(field 'And atoms' atom)"
+ok "r1b-a-bare-a<n>-is-not-an-ack belam's sentence listing rows bare and a bare 'closing a1 and a2' link nothing; 'atom a1', '[a1, a2]' and 'atoms: a2' link their rows (got '$g', want none/none/a1/a1 a2/a2)" '[ "$g" = "none/none/a1/a1 a2/a2" ]'
+MUT 's/\\\\batoms?:?\[\[:space:\]\]+\\\\K/\\\\b(atoms?:?[[:space:]]+)?\\\\K/' agi-mem;nh r1bm;AL b1 'Rows 10.2, 5.5, a1 and a2 are still open on the card' $T0>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null
+ok "r1b-mutant-bare-ids-count-RED a label whose marker is optional reads belam's bare list as '$(field 'Rows 10.2' atom)': the lane wants none" '[ "$(field "Rows 10.2" atom)" != none ]'
+# R (council 19:0xZ): ONE recompute over EVERY live post chunk, then derive: k = m; an unreadable store is mem: unread, never 0
+nn r1a;AL n8 'closing a1 and a2 on the router' 2026-10-24T10:00:15.000Z>>$X;TAP>/dev/null;LB>/dev/null;SA 'Block A:' 10.2;SA 'closing a1' 'a1 a2';o=$(EV agi-mem label --all 2>&1);rc=$?
+ok "r1a-label-all-recomputes-every-live-post-chunk the recompute prints '$(echo "$o"|head -1)' rc $rc (want 'relabelled 7/7 post chunks', 0; 7 post chunks, the owner chunk is not one); a mislabelled Block A reads '$(field 'Block A:' atom)' and the old bare ack '$(field 'closing a1' atom)' (want none, none)" '[ "$(echo "$o"|head -1)" = "relabelled 7/7 post chunks" ]&&[ $rc = 0 ]&&[ "$(field "Block A:" atom)" = none ]&&[ "$(field "closing a1" atom)" = none ]'
+SA 'Block A:' 10.2;MUT 's/ls-tree -r --name-only $tip -- mem|grep -v retired>$D\/rl;elif/ls-tree -r --name-only $tip -- mem|grep -v retired|grep -v c->$D\/rl;elif/' agi-mem;o=$(EV sh $D/mut_agi-mem label --all 2>&1)
+ok "r1a-mutant-recompute-reads-no-chunk-RED a label --all whose list is empty prints '$(echo "$o"|head -1)' and leaves Block A at '$(field 'Block A:' atom)': the lane wants 7/7 and none" '[ "$(field "Block A:" atom)" = 10.2 ]'
+nh r1au;o=$(EV agi-mem label --all 2>&1);rc=$?
+ok "r1a-an-unreadable-store-is-never-zero label --all on a post with no store prints '$o' rc $rc (want 'mem: unread', 1)" '[ "$o" = "mem: unread" ]&&[ $rc = 1 ]'
+MUT 's/{ \[ "$1" = --all \]&&{ echo "mem: unread";exit 1;};exit 0;};/{ exit 0;};/' agi-mem;o=$(EV sh $D/mut_agi-mem label --all 2>&1);rc=$?
+ok "r1a-mutant-unreadable-exits-0-RED a label --all that says nothing and exits $rc for a store it could not read: the lane wants mem: unread, 1" '[ -z "$o" ]&&[ $rc = 0 ]'
+# alive's small row: --redo on an OWNER chunk prints one line, rc 1 (was a silent rc 0)
+nn r1o;oid=$(EV agi-mem map|awk -F'	' '$2=="owner"{print $1}'|head -1);o=$(EV agi-mem label --redo $oid 2>&1);rc=$?
+ok "r1o-redo-of-an-owner-chunk-is-loud label --redo $oid prints '$o' rc $rc (want 'label --redo: $oid is an owner chunk', 1)" '[ "$o" = "label --redo: $oid is an owner chunk" ]&&[ $rc = 1 ]'
+MUT 's/is an owner chunk";miss=1;}/is an owner chunk";}/' agi-mem;EV sh $D/mut_agi-mem label --redo $oid >/dev/null 2>&1;rc=$?
+ok "r1o-mutant-owner-redo-exits-0-RED a label that prints the line but exits $rc: the lane wants 1" '[ $rc = 0 ]'
+
 # REDO: the chunk the mutant mislabelled is recomputed by the real label, and derive drops it from the row; a chunk NOT named is left alone
 MUT "s/|sed ':a;\$!{N;ba};s\/\`\[^\`\]\*\`\/\/g;s\/\"\[^\"\]\*\"\/\/g'//" agi-mem;nh r1r;AL q1 'The bad label was `atom 10.2` in my report' $T0>>$X;AL q2 'atom a1 is mine' $T1>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null;cp $CARD $D/cardr;EV agi-atom derive>/dev/null 2>&1;l0=$(grep -c 'chunks: c:' $CARD);id1=$(EV agi-mem map|awk -F'	' '$3 ~ /10:00:00/{print $1}');LB>/dev/null;k1=$(field 'bad label was' atom);EV agi-mem label --redo $id1 >/dev/null 2>&1;k2=$(field 'bad label was' atom);EV agi-atom derive>/dev/null 2>&1
 ok "r1r-redo-recomputes-only-the-named-chunks the mislabelled chunk reads '$k1' (a plain label pass leaves it, it is no longer atom: ?), then '$k2' after label --redo; its link is gone from the card (rows with a chunks: cell $l0 -> $(grep -c 'chunks: c:' $CARD)), and the unnamed chunk keeps its atom ($(field 'is mine' atom))" '[ "$k1" = 10.2 ]&&[ "$k2" = none ]&&[ "$l0" = 2 ]&&[ "$(grep -c "chunks: c:" $CARD)" = 1 ]&&[ "$(field "is mine" atom)" = a1 ]'
@@ -182,11 +201,11 @@ ok "r6k-owner-chunks-link-nothing-and-scrub-clears-the-store a cross-session tex
 # retired chunks (REPAIR'): a chunk under mem/retired/ is never derived into a chunks: cell
 RT(){ x=$(git -C $S grep -l -F -- "$1" refs/heads/mem|sed 's/^[^:]*://'|head -1);rm -f $D/rti;b=$(git -C $S rev-parse refs/heads/mem:$x);printf '0 %040d\t%s\n100644 %s\tmem/retired/%s\n' 0 $x $b ${x#mem/}|GIT_INDEX_FILE=$D/rti git -C $S update-index --index-info;c=$(git -C $S -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit-tree $(GIT_INDEX_FILE=$D/rti git -C $S write-tree) -p refs/heads/mem -m ret);git -C $S update-ref refs/heads/mem $c;}
 MUT 's/ -- mem .:!mem\/retired. 2>\/dev\/null|awk/ 2>\/dev\/null|awk/' agi-mem;mkdir -p $D/mp;cp $D/mut_agi-mem $D/mp/agi-mem;chmod +x $D/mp/agi-mem
-nh r6x;cp $CARD $D/cardx;AL p1 "Done a1 and moving on" $T0>>$X;TAP>/dev/null;LB>/dev/null;EV agi-atom derive>/dev/null 2>&1;w1=$(grep -c 'chunks: c:' $CARD);cp $D/cardx $CARD;RT "Done a1 and moving on";EV agi-atom derive>/dev/null 2>&1;w2=$(grep -c 'chunks: c:' $CARD);env HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=HEAD AGI_ATOM_CARD=$CARD AGI_LAP=5 PATH=$D/mp:$D/bin:$PATH agi-atom derive>/dev/null 2>&1;w3=$(grep -c 'chunks: c:' $CARD);cp $D/cardx $CARD
+nh r6x;cp $CARD $D/cardx;AL p1 "Done atom a1 and moving on" $T0>>$X;TAP>/dev/null;LB>/dev/null;EV agi-atom derive>/dev/null 2>&1;w1=$(grep -c 'chunks: c:' $CARD);cp $D/cardx $CARD;RT "Done atom a1 and moving on";EV agi-atom derive>/dev/null 2>&1;w2=$(grep -c 'chunks: c:' $CARD);env HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=HEAD AGI_ATOM_CARD=$CARD AGI_LAP=5 PATH=$D/mp:$D/bin:$PATH agi-atom derive>/dev/null 2>&1;w3=$(grep -c 'chunks: c:' $CARD);cp $D/cardx $CARD
 ok "r6x-a-retired-chunk-is-never-derived the live post chunk naming a1 links $w1 row; once moved to mem/retired/ the derive links $w2 (want 1 then 0); a map that does not exclude mem/retired/ links $w3 (the mutant: RED if 1)" '[ "$w1" = 1 ]&&[ "$w2" = 0 ]&&[ "$w3" = 1 ]'
 
 # ---- falsifier 2 (G2): the derive lane on a planted store asserts >= 1 ask+ack row; the live line; the negative
-nh f2;UL o1 "please fix the widget now" $T0>>$X;AL p1 "Opened a1 for it" $T1>>$X;TAP>/dev/null;PL "please fix the widget now" ask;SA "please fix the widget now" a1;LB>/dev/null
+nh f2;UL o1 "please fix the widget now" $T0>>$X;AL p1 "Opened atom a1 for it" $T1>>$X;TAP>/dev/null;PL "please fix the widget now" ask;SA "please fix the widget now" a1;LB>/dev/null
 cp $CARD $D/cardp;EV agi-atom derive >/dev/null 2>&1;cp $CARD $D/cardf;o=$(EV agi-atom derive check 2>&1);rc=$?
 ok "f2a-derive-lane-holds-an-ask-and-ack-row on a planted store the derive makes >= 1 row hold an ask AND its ack chunk: '$(echo "$o"|tr '\n' '|')'" '[ $rc = 0 ]&&echo "$o"|grep -q "^chunks: 2 listed$"&&echo "$o"|grep -q "^done-when(4): 1 rows ask+ack, 0 owner chunks ? (open: the stub stands in until C1-C3)$"'
 cp $D/cardp $CARD;o2=$(EV agi-atom derive check 2>&1)
