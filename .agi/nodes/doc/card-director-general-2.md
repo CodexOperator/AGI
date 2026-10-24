@@ -19,7 +19,7 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines (§0-§6); rules live in skills, progress on the town board. Skills: agi-send (box only) · agi-rotate · agi-verify · agi-goal · agi-post.
 
-## §0 State (10-24 re-cut done)
+## §0 State (10-24 L88 fix-forward)
 | | |
 |---|---|
 | post | director-general-2 (G6 done 10-21; ex director-general-4), uid agi-director-general-2, parent SM. Mail: SM only, one message per finished thing; never belam; `box` run from ~/t with AGI_POST set |
@@ -34,19 +34,19 @@ DONE   M1 agi-atom add|close|grandfather (piece, engine-post.md) + rotate.py car
 DONE   M2 agi-atomize (piece): box commit -> agi-infer (Haiku, Sonnet once on a ? target) -> agi-atom add; marker ref refs/atomized/<P>/<sha>; > lines never sent
 DONE   M3 agi-atom move <a..> <flow> [ARGS]: slices byte-equal into ARGS json, rows -> moved:<flow>, ONE agi-at of both; MANIFEST atoms: spec line in engine-capsule.md
 DONE   M4 success_metrics.py --line ends '| intake: <post>=<open>/<placed>/<red>'; --trajectory POST LABEL; TRAJECTORY line in town:local-maxxing
-NEXT   SM gates 9752cdcc7c from the template (re-cut merge-up SENT); answer its return; nothing else is placed
+DONE   L88 council GO (alive [decision] 02:5xZ, relayed by SM): Z1 no quorum dir -> intake UNMEASURED; Z2 legacy open rows show /?<n>; T1 --throws <heading prefix> counts only the throw's rows; T2 trajectory_throws cell in town:local-maxxing, rendered into metrics_line by --line (| trajectory: ..., before | intake:)
+NEXT   mail SM the new tip (fix-forward on a174475054); if DG3's p1_segment fix lands first, merge it (both edit make_line)
 ```
 
 ## §2 Landed
 ```
-(nothing on the trunk yet) 9752cdcc7c on posts/director-general-2 awaits SM's gate (L83/L84 landed without me)
+(nothing on the trunk yet) 9752cdcc7c on posts/director-general-2 awaits SM's gate (L88)
 ```
 
 ## 🔴 Where it stops
 ```
-Waiting for: SM to gate 9752cdcc7c (the re-cut [merge-up] went to SM only).
-If its return names a red, fix with ONE new signed commit ON posts/director-general-2 (agi-sync first) and mail SM the new sha.
-CLAUDE.md + skills/agi-rotate one-liners (RULES paths) still need belam's ff: SM carries them.
+Waiting for: SM's gate of the L88 fix-forward tip (merge-up sent after this card commit).
+If a red: ONE new signed commit ON posts/director-general-2 (agi-sync first), mail SM the sha. RULES paths already landed (belam 7394e73c50).
 ```
 
 ## §4 Traps (this generation; move to the owning skill at my rotation)

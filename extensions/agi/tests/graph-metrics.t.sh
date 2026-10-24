@@ -235,9 +235,9 @@ card dg2 <<'EOC'
 EOC
 printf '# card with no atoms\n\n## §0 x\n' >$G_/sessions/quorum/alive.md
 AGI_LAP=11 sm --line $G_ >$T/m4.out;l=$(head -1 $T/m4.out);seg=$(echo "$l"|sed -n 's/.*| intake: //p')
-ok "m4a-intake-segment-equals-the-cards the line ends '| intake: <post>=<open>/<placed>/<red>' from each card's §7 only (belam open 3 = a1 a2 + legacy 1.1, placed 3, red 1 = a2 at lap 2 vs lap 11; the legacy row has no lap and is never red; dg2 0/1/0; a card with no §7 rows is absent; the row in §8 is not read): got '$seg'" '[ "$seg" = "belam=3/3/1 dg2=0/1/0" ]&&[ "$(wc -l <$T/m4.out|tr -d " ")" = 1 ]&&[ "$(wc -c <$T/m4.out|tr -d " ")" -le $LINEMAX ]'
+ok "m4a-intake-segment-equals-the-cards the line ends '| intake: <post>=<open>/<placed>/<red>' from each card's §7 only (belam open 3 = a1 a2 + legacy 1.1, placed 3, red 1 = a2 at lap 2 vs lap 11; the legacy row has no lap: never red, shown as the 4th field /?1 (open, age unknown); dg2 0/1/0; a card with no §7 rows is absent; the row in §8 is not read): got '$seg'" '[ "$seg" = "belam=3/3/1/?1 dg2=0/1/0" ]&&[ "$(wc -l <$T/m4.out|tr -d " ")" = 1 ]&&[ "$(wc -c <$T/m4.out|tr -d " ")" -le $LINEMAX ]'
 printf '| a5 | "five" | src:doc | target:y | lap11 |\n'>$T/add5;sed -i "/^| 1.2 | legacy placed/r $T/add5" $G_/sessions/quorum/belam.md;AGI_LAP=11 sm --line $G_ >$T/m4b.out;seg2=$(head -1 $T/m4b.out|sed -n 's/.*| intake: //p')
-ok "m4b-a-count-change-changes-the-next-cell one more open row in belam's §7 moves belam 3/3/1 -> 4/3/1: got '$seg2'" '[ "$seg2" = "belam=4/3/1 dg2=0/1/0" ]'
+ok "m4b-a-count-change-changes-the-next-cell one more open row in belam's §7 moves belam 3/3/1/?1 -> 4/3/1/?1: got '$seg2'" '[ "$seg2" = "belam=4/3/1/?1 dg2=0/1/0" ]'
 rm -f $G_/sessions/quorum/*.md;AGI_LAP=11 sm --line $G_ >$T/m4c.out;ok "m4c-no-cards-says-none no card with a §7 reads 'intake: none' (got '$(head -1 $T/m4c.out|sed -n 's/.*| intake: //p')')" '[ "$(head -1 $T/m4c.out|sed -n "s/.*| intake: //p")" = none ]'
 mkp pj;mkdir -p $G_/sessions/quorum;card belam <<'EOC'
 | a1 | "one" | src:doc | leaf:goal:g7.1 | lap1 |
@@ -247,6 +247,31 @@ mkp pj;mkdir -p $G_/sessions/quorum;card belam <<'EOC'
 EOC
 tl=$(cd $P&&AGI_LAP=5 python3 extensions/agi/bin/success_metrics.py $G_ --trajectory belam '10-23 brainstorm (doc:brainstorm-unify)' 2>&1)
 ok "m4d-trajectory-line-one-per-throw the TRAJECTORY line counts the throw's rows and the leaf ids they closed to: got '$tl'" '[ "$tl" = "10-23 brainstorm (doc:brainstorm-unify) atoms=4 placed=3 → g7.1 g7.2" ]'
+# Z1 (L88 council 3/3): no quorum dir is UNMEASURED, never "none"; Z2: a legacy open row has an unknown age, shown as a 4th field, never as 0 red
+mkp pz;l=$(AGI_LAP=11 sm --line $P 2>&1|head -1)
+ok "m4z1-no-quorum-dir-is-unmeasured make_line(<the repo root, not .agi>) ends '| intake: UNMEASURED(no quorum dir)', never 'none' (got '$(echo "$l"|sed -n 's/.*| intake: //p')')" 'echo "$l"|grep -q "| intake: UNMEASURED(no quorum dir)$"'
+mkp pz2;mkdir -p $G_/sessions/quorum;card belam <<'EOC'
+| 1.1 | legacy one | target:§0 |
+| 1.2 | legacy two | target:§1 |
+| 1.3 | legacy three | target:§2 |
+| 1.4 | legacy placed | leaf:goal:g1 |
+EOC
+seg=$(AGI_LAP=11 sm --line $G_|head -1|sed -n 's/.*| intake: //p')
+ok "m4z2-legacy-open-rows-show-unknown-age three legacy open rows (no lap) read belam=3/1/0/?3, not 0 red alone: got '$seg'" '[ "$seg" = "belam=3/1/0/?3" ]'
+# T1 + T2: the throw line counts ONLY the throw's rows; the registered-throws cell is re-rendered by the ONE writer on every cell write
+mkp pt;mkdir -p $G_/sessions/quorum
+printf '%s\n' '---' 'id: town:local-maxxing' 'type: town' 'trajectory_throws:' '  - {"post": "belam", "label": "10-23 brainstorm", "throws": "throw"}' 'visions:' '  - vision:x' '---' 'body' >$G_/nodes/town/local-maxxing.md
+{ printf '# card\n\n## §7 ATOMS\n\n**throw 1 (10-22) -- a**\n| # | atom | state |\n|---|---|---|\n| 1.1 | one | leaf:goal:g7.1 |\n| 1.2 | two | target:§0 |\n\n**throws 4-7 (10-23)**\n| 4.1 | four | target:§1 |\n\n**added 10-23 (council)**\n| 8.1 | later | target:§9 |\n'; } >$G_/sessions/quorum/belam.md
+t1=$(cd $P&&AGI_LAP=5 python3 extensions/agi/bin/success_metrics.py $G_ --trajectory belam 'B' --throws throw 2>&1);t0=$(cd $P&&AGI_LAP=5 python3 extensions/agi/bin/success_metrics.py $G_ --trajectory belam 'B' 2>&1)
+ok "m4t1-throw-line-counts-only-the-throws-rows --throws throw counts the 3 rows under the throw sections, not the row under 'added 10-23' (got '$t1'; without --throws all 4: '$t0')" '[ "$t1" = "B atoms=3 placed=1 → g7.1" ]&&[ "$t0" = "B atoms=4 placed=1 → g7.1" ]'
+AGI_LAP=5 sm --line $G_ >$T/t2a.out;sed -i 's/^| 8.1 | later | target:§9 |/| 8.1 | later | leaf:g7.9 |/' $G_/sessions/quorum/belam.md;AGI_LAP=5 sm --line $G_ >$T/t2b.out
+ok "m4t1b-a-row-under-added-does-not-move-the-brainstorm-line closing the 'added 10-23' row leaves '| trajectory: 10-23 brainstorm atoms=3 placed=1' as it was" 'grep -q "| trajectory: 10-23 brainstorm atoms=3 placed=1 → g7.1 | intake:" $T/t2a.out&&grep -q "| trajectory: 10-23 brainstorm atoms=3 placed=1 → g7.1 | intake:" $T/t2b.out'
+sed -i 's/^| 1.2 | two | target:§0 |/| 1.2 | two | leaf:g7.2 |/' $G_/sessions/quorum/belam.md;AGI_LAP=5 sm --line $G_ >$T/t2c.out
+ok "m4t2-the-registered-throw-is-rendered-by-the-line a throw registered in the town node's trajectory_throws cell is rendered into the --line, and closing a §7 row moves placed= in the NEXT write (placed=1 -> placed=2; the segment sits before '| intake:'): got '$(sed -n 's/.*\(| trajectory: [^|]*\)|.*/\1/p' $T/t2c.out)'" 'grep -q "| trajectory: 10-23 brainstorm atoms=3 placed=2 → g7.1 g7.2 | intake:" $T/t2c.out&&[ "$(wc -c <$T/t2c.out|tr -d " ")" -le $LINEMAX ]'
+# mutant: a writer that never renders the registered throws reads RED on m4t2
+mkp ptm;mkdir -p $G_/sessions/quorum;cp $T/pt/.agi/nodes/town/local-maxxing.md $G_/nodes/town/;cp $T/pt/.agi/sessions/quorum/belam.md $G_/sessions/quorum/
+sed -i 's/^def trajectory_segment(root: Path) -> str:/def trajectory_segment(root: Path) -> str:\n    return ""/' $P/extensions/agi/bin/success_metrics.py;AGI_LAP=5 sm --line $G_ >$T/t2m.out
+ok "m4t2m-never-rendering-the-registered-throws-RED a writer whose trajectory_segment returns nothing prints no '| trajectory:' (the m4t2 lane wants placed=2 there): the m4t2 lane catches it" '! grep -q "| trajectory: " $T/t2m.out'
 # mutant: a cron that skips the cards (the intake segment fixed to none) reads RED on m4a
 mkp pk;mkdir -p $G_/sessions/quorum;card belam <<'EOC'
 | a1 | "one" | src:doc | target:x | lap10 |
