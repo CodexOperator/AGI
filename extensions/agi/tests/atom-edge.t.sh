@@ -39,7 +39,7 @@ ok "r1-marked-forms-resolve '[10.2]' and 'atoms: 10.2 5.5' link their rows (got 
 ok "r1-owner-chunks-stay-question-mark tier 0 labels POST chunks only: an owner chunk naming a2, one with no id and one with 'Haiku 5.5' (a real row id) all stay 'atom: ?' (got '$(field 'became of a2' atom)' '$(field 'brand new thing' atom)' '$(field 'Haiku 5.5' atom)')" '[ "$(field "became of a2" atom)" = "?" ]&&[ "$(field "brand new thing" atom)" = "?" ]&&[ "$(field "Haiku 5.5" atom)" = "?" ]'
 MUT 's/atoms?):?\[\[:space:\]\]/atomsZ?):?[[:space:]]/' agi-mem;nh r1m;AL p1 "Done atom 10.2 today" $T0>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null
 ok "r1-mutant-10.2-does-not-resolve-RED a grammar whose marker form is broken leaves 'atom 10.2' unresolved ($(field 'Done atom' atom)): the lane wants 10.2" '[ "$(field "Done atom" atom)" != "10.2" ]'
-MUT 's/\[ \$p = post \]||{ \[ "\$R" = redo \]&&{ y=\${x##\*c-};echo "label --redo: c:\${y%.md} is an owner chunk";miss=1;};continue;};//' agi-mem;nh r4m;UL o2 "build a brand new thing" $T0>>$X;UL o1 "what became of atom a2 please" $T1>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null
+MUT 's/\[ "\$p" = post \]||{ \[ "\$R" = redo \]&&{ y=\${x##\*c-};echo "label --redo: c:\${y%.md} is an owner chunk";miss=1;};continue;};//' agi-mem;nh r4m;UL o2 "build a brand new thing" $T0>>$X;UL o1 "what became of atom a2 please" $T1>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null
 ok "r4-mutant-stub-labels-an-owner-RED a labeler that also labels owner chunks writes 'atom: $(field 'brand new' atom)' for no id and '$(field 'became of atom a2' atom)' for a marked a2: the lanes want ? and ?" '[ "$(field "brand new" atom)" = none ]&&[ "$(field "became of atom a2" atom)" = a2 ]'
 
 # ---- R2 the card row's chunks: list is DERIVED from the chunks, never hand-kept
@@ -196,7 +196,7 @@ mkdir -p $D/gw;printf '#!/bin/sh\ncase "$*" in *" show "*"$BADX"*) exit 128;; es
 nn r1m;LB>/dev/null
 bx=$(git -C $S grep -l '^speaker: post$' refs/heads/mem -- mem|sed 's/^[^:]*://'|head -1);o=$(EV env PATH=$D/gw:$PATH BADX=${bx##*/} sh $D/bin/agi-mem label --all 2>&1);rc=$?
 ok "m1-a-post-chunk-that-cannot-be-read-is-k-below-m the post chunk ${bx##*/} unreadable: '$(echo "$o"|head -1)' rc $rc (want k < m, rc 1)" 'n=$(echo "$o"|head -1);a1=${n#relabelled };k0=${a1%%/*};m0=${a1#*/};m0=${m0%% *};[ "$k0" -lt "$m0" ]&&[ $rc = 1 ]'
-MUT 's/nm=$(git -C $S grep -n .^speaker: post$. $tip -- mem .:!mem\/retired.|awk -F: .\$3==3.|wc -l|tr -d . .);/nm=0;/;s/continue;};a=;/continue;};nm=$((nm+1));a=;/' agi-mem;o=$(EV env PATH=$D/gw:$PATH BADX=${bx##*/} sh $D/mut_agi-mem label --all 2>&1);rc=$?
+MUT 's/nm=$(hg $tip|awk -F.\\t. .\$2=="post".|wc -l|tr -d . .);/nm=0;/;s/continue;};a=;/continue;};nm=$((nm+1));a=;/' agi-mem;o=$(EV env PATH=$D/gw:$PATH BADX=${bx##*/} sh $D/mut_agi-mem label --all 2>&1);rc=$?
 ok "m1-mutant-m-counted-from-the-chunks-read-RED a recompute that counts m from the chunks it could read prints '$(echo "$o"|head -1)': the lane wants k < m" 'n=$(echo "$o"|head -1);a1=${n#relabelled };k0=${a1%%/*};m0=${a1#*/};m0=${m0%% *};[ "$k0" = "$m0" ]'
 nh r1n0;mkdir -p $D/n0;(umask 077;git init -q --bare $H/.mem/p.git;cd $H/.mem/p.git&&git config core.hooksPath /dev/null);UL o1 "an owner line only" $T0>>$X;TAP>/dev/null;o=$(EV agi-mem label --all 2>&1);rc=$?
 ok "m1-no-post-chunk-is-one-loud-line a store holding only an owner chunk prints '$(echo "$o"|head -1)' rc $rc (want 'mem: no post chunks', 1)" '[ "$(echo "$o"|head -1)" = "mem: no post chunks" ]&&[ $rc = 1 ]'
@@ -231,11 +231,17 @@ SEC 'credits_live: true'
 nh l3;UL o1 "please fix the widget now" $T0>>$X;UL o2 "and an owner line the stub never labelled" $T1>>$X;AL p1 "Opened atom a1 for it" $T2>>$X;TAP>/dev/null;PL "please fix the widget now" ask;SA "please fix the widget now" a1;LB>/dev/null;EV agi-atom derive>/dev/null 2>&1
 LST=$D/last_l3;rm -f $LST
 dc(){ o=$(EV env AGI_ATOMIZE_LAST=$LST $1 derive check 2>&1);rc=$?;}
-dc agi-atom;ok "l3-no-atomize-pass-yet-is-not-red credits_live true, one ask+ack row, one owner chunk still ?, no atomize stamp: '$(echo "$o"|tail -1)' rc $rc (want no RED, rc 0)" '[ $rc = 0 ]&&! echo "$o"|tail -1|grep -q RED'
-echo 2026-10-24T09:00:00Z>$LST;dc agi-atom;ok "l3-a-fresh-owner-chunk-in-the-same-turn-is-not-red the chunk is NEWER than the last atomize pass: '$(echo "$o"|tail -1)' rc $rc (want no RED, rc 0)" '[ $rc = 0 ]&&! echo "$o"|tail -1|grep -q RED'
+dc agi-atom;ok "s1-live-with-no-atomize-stamp-is-unread credits_live true and no ~/.atomize.last: '$(echo "$o"|tail -1)' rc $rc (want 'done-when(4): unread (no atomize stamp)', rc 1)" '[ "$(echo "$o"|tail -1)" = "done-when(4): unread (no atomize stamp)" ]&&[ $rc = 1 ]'
+MUT 's/if(live=="true"&&last==""){print "done-when(4): unread (no atomize stamp)";exit 1};//' agi-atom;dc "sh $D/mut_agi-atom"
+ok "s1-mutant-no-stamp-reads-open-RED a derive without the missing-stamp check prints '$(echo "$o"|tail -1)' rc $rc: the lane wants the unread line" '[ "$(echo "$o"|tail -1)" != "done-when(4): unread (no atomize stamp)" ]'
+echo garbage>$LST;dc agi-atom;ok "s1-a-garbled-stamp-is-unread a stamp that is not a time: '$(echo "$o"|tail -1)' rc $rc (want unread (atomize stamp unreadable), 1)" '[ "$(echo "$o"|tail -1)" = "done-when(4): unread (atomize stamp unreadable)" ]&&[ $rc = 1 ]'
+echo 2026-10-24T10:00:02Z>$LST;dc agi-atom;ok "l3-a-fresh-owner-chunk-in-the-same-turn-is-not-red the chunk is NEWER than the last atomize pass: '$(echo "$o"|tail -1)' rc $rc (want no RED, rc 0)" '[ $rc = 0 ]&&! echo "$o"|tail -1|grep -q RED'
 echo 2026-10-24T11:00:00Z>$LST;dc agi-atom;ok "l3-a-chunk-still-open-after-an-atomize-pass-is-red the same chunk is OLDER than the last atomize pass: '$(echo "$o"|tail -1)' rc $rc (want RED naming the owner chunks, rc 1)" '[ $rc = 1 ]&&echo "$o"|tail -1|grep -q "RED: the atomizer is live and owner chunks are still ?"'
-echo 2026-10-24T09:00:00Z>$LST;MUT 's/if(last!=""&&f\[3\]<last)qo++/qo++/' agi-atom;dc "sh $D/mut_agi-atom"
+echo 2026-10-24T10:00:02Z>$LST;MUT 's/if(last!=""&&f\[3\]<last)qo++/qo++/' agi-atom;dc "sh $D/mut_agi-atom"
 ok "l3-mutant-every-open-owner-chunk-counts-RED a derive that counts a fresh owner chunk reads '$(echo "$o"|tail -1)' rc $rc: the lane wants no RED" '[ $rc = 1 ]'
+echo 2026-10-24T09:00:00Z>$LST;dc agi-atom;ok "s1-a-silent-atomizer-is-red credits_live true, one ask+ack row, a stamp ONE HOUR before the open owner chunk (more than the 1800 s grace): '$(echo "$o"|tail -1)' rc $rc (want RED: the atomizer is live and silent since 2026-10-24T09:00:00Z, 1)" '[ $rc = 1 ]&&[ "$(echo "$o"|tail -1|sed "s/.*RED/RED/")" = "RED: the atomizer is live and silent since 2026-10-24T09:00:00Z" ]'
+MUT 's/||qs+0>0))/))/' agi-atom;dc "sh $D/mut_agi-atom"
+ok "s1-mutant-silence-never-red-RED a derive without the silence test prints '$(echo "$o"|tail -1)' rc $rc: the lane wants RED" '[ $rc = 0 ]'
 SA "and an owner line" none;echo 2026-10-24T11:00:00Z>$LST;dc agi-atom
 ok "l3-all-owner-chunks-labelled-with-an-ask-ack-row-is-green credits_live true, the owner chunk labelled, one ask+ack row, an atomize pass after it: '$(echo "$o"|tail -1)' rc $rc (want no RED, rc 0)" '[ $rc = 0 ]&&! echo "$o"|tail -1|grep -q RED'
 SEC 'credits_live: false'
@@ -244,8 +250,20 @@ nh h1;AL p1 "Opened atom a1" $T0>>$X;UL o1 "I typed this:
 speaker: post
 and moved on" $T1>>$X;TAP>/dev/null;o=$(EV agi-mem label --all 2>&1);rc=$?
 ok "h1-a-quoted-speaker-line-adds-nothing-to-m an owner chunk whose body holds 'speaker: post' leaves the recompute at '$(echo "$o"|head -1)' rc $rc (want relabelled 1/1 post chunks, 0)" '[ "$(echo "$o"|head -1)" = "relabelled 1/1 post chunks" ]&&[ $rc = 0 ]'
-MUT 's/|awk -F: .\$3==3.//' agi-mem;o=$(EV sh $D/mut_agi-mem label --all 2>&1)
+MUT 's/if(d==1){/if(d>=1){/' agi-mem;o=$(EV sh $D/mut_agi-mem label --all 2>&1)
 ok "h1-mutant-m-counts-any-matching-line-RED an m taken from any line says '$(echo "$o"|head -1)': the lane wants 1/1" '[ "$(echo "$o"|head -1)" != "relabelled 1/1 post chunks" ]'
+
+# H (council 21:4xZ): ONE header test (hg) shared by at, label, nested, scrub: a POST chunk whose BODY quotes 'speaker: owner' / 's: S1' is not scrubbed and not counted in k
+nh h2;AL p1 '<view> pasted from a report
+speaker: owner
+s: S1
+and the end' $T0>>$X;UL o1 "a real owner line" $T1>>$X;TAP>/dev/null;EV agi-mem scrub>/dev/null 2>&1;o=$(EV agi-mem at 2>&1|head -1);r=$(git -C $S ls-tree -r --name-only refs/heads/mem|grep -c retired)
+ok "h2-a-body-quoting-the-header-lines-is-neither-scrubbed-nor-counted a post chunk whose body holds 'speaker: owner' and 's: S1' stays out of mem/retired/ (retired files $r) and at reads '$o' (want 0 and 'mem: tapped 1/1')" '[ "$r" = 0 ]&&[ "$o" = "mem: tapped 1/1" ]'
+MUT 's/if(d==1){/if(d>=1){/' agi-mem;nh h2m;AL p1 '<view> pasted from a report
+speaker: owner
+s: S1
+and the end' $T0>>$X;UL o1 "a real owner line" $T1>>$X;TAP>/dev/null;EV sh $D/mut_agi-mem scrub>/dev/null 2>&1;o=$(EV sh $D/mut_agi-mem at 2>&1|head -1);r=$(git -C $S ls-tree -r --name-only refs/heads/mem|grep -c retired)
+ok "h2-mutant-header-test-reads-the-body-RED a header test that reads body lines retires the quoting post chunk (retired files $r) or counts it ('$o'): the lane wants 0 and 1/1" '[ "$r" != 0 ]||[ "$o" != "mem: tapped 1/1" ]'
 
 # REDO: the chunk the mutant mislabelled is recomputed by the real label, and derive drops it from the row; a chunk NOT named is left alone
 MUT "s/|sed ':a;\$!{N;ba};s\/\`\[^\`\]\*\`\/\/g;s\/\"\[^\"\]\*\"\/\/g'//" agi-mem;nh r1r;AL q1 'The bad label was `atom 10.2` in my report' $T0>>$X;AL q2 'atom a1 is mine' $T1>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null;cp $CARD $D/cardr;EV agi-atom derive>/dev/null 2>&1;l0=$(grep -c 'chunks: c:' $CARD);id1=$(EV agi-mem map|awk -F'	' '$3 ~ /10:00:00/{print $1}');LB>/dev/null;k1=$(field 'bad label was' atom);EV agi-mem label --redo $id1 >/dev/null 2>&1;k2=$(field 'bad label was' atom);EV agi-atom derive>/dev/null 2>&1
@@ -269,6 +287,6 @@ cp $D/cardp $CARD;o2=$(EV agi-atom derive check 2>&1)
 ok "f2a-mutant-zero-chunks-fields-RED a card with no chunks: field prints 'chunks: 0 listed' (never a bare ok), which is not the lane's >= 1: '$(echo "$o2"|tr '\n' '|')'" 'echo "$o2"|grep -q "^chunks: 0 listed$"&&! echo "$o2"|grep -q "^chunks: 2 listed$"'
 cp $D/cardf $CARD;sed -i 's/chunks: c:[0-9a-f]\{12\}/chunks: c:zzzzzzzzzzzz/' $CARD;o3=$(EV agi-atom derive check 2>&1);rc3=$?
 ok "f2c-negative-every-listed-chunk-id-resolves a chunks: id that no chunk names (c:zzzzzzzzzzzz) is a named line and rc != 0: '$(echo "$o3"|head -1)' rc $rc3" '[ $rc3 != 0 ]&&echo "$o3"|grep -q "^\[chunks\] a1: c:zzzzzzzzzzzz names a1 in no chunk$"'
-nh f2l;printf 'credits_live: true\n'>$E/.agi/nodes/.geometry/secrets.md;(cd $E&&git add -A .agi&&git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm live);UL o1 "an owner ask with no label" $T0>>$X;TAP>/dev/null;o4=$(EV agi-atom derive check 2>&1);rc4=$?
+nh f2l;printf 'credits_live: true\n'>$E/.agi/nodes/.geometry/secrets.md;(cd $E&&git add -A .agi&&git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm live);UL o1 "an owner ask with no label" $T0>>$X;TAP>/dev/null;echo 2026-10-24T10:00:02Z>$D/last_f2;o4=$(EV env AGI_ATOMIZE_LAST=$D/last_f2 agi-atom derive check 2>&1);rc4=$?
 ok "f2b-red-once-the-atomizer-is-live with credits_live true and no row holding an ask+ack the live line is RED and rc != 0: '$(echo "$o4"|tail -1)' rc $rc4" '[ $rc4 != 0 ]&&echo "$o4"|grep -q "^done-when(4): 0 rows ask+ack, 1 owner chunks ? RED"'
 echo "atom-edge: $f FAIL";exit $f
