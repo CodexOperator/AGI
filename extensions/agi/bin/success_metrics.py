@@ -438,11 +438,15 @@ def p1_segment(root: Path) -> str:
 
 
 def _notices(root: Path) -> str:
-    """goal:g7.16.1.11.46.12 -- the prereq-cleared notice's board segment, read from refs only (prereq_notice.line)."""
+    """goal:g7.16.1.11.46.12 -- the prereq-cleared notice's board segment, read from refs only (prereq_notice.line).
+
+    `root` is the REPO root or the graph dir `<repo>/.agi` (the board CLI's find_project_root returns the latter): the repo is
+    resolved ONCE, as p1_segment does (F-a). The board cron passes `--line {root}` = MAIN, never `@WROOT@` (the clone): the
+    segment reads trunk, seen and the goal tree from MAIN (F-e); a clone has neither ref and reads a NAMED red."""
     try:
         import argparse as _ap  # noqa: PLC0415
         import prereq_notice  # noqa: PLC0415
-        return prereq_notice.line(_ap.Namespace(repo=str(root), trunk="refs/heads/core/season3/main", lag_red_min=None))
+        return prereq_notice.line(_ap.Namespace(repo=str(locations.repo_root(Path(root))), trunk="refs/heads/core/season3/main", lag_red_min=None))
     except (Exception, SystemExit) as exc:   # a source that cannot run is named, not fatal
         return f"notices: UNMEASURED(source failed: {_reason(exc)})"
 
