@@ -31,7 +31,7 @@ belam-s3-IV, 10-23 after the owner's hand-off of the Fable brainstorm: §7 ATOMS
 | pin | /etc/agi/carry.env AGI_TRUNK = 8b247882a2 (L61); director-review is boot=false there (L70 made it true on the trunk), so it is the 1 of 11 posts down after the 03:45Z reboot. Moving the pin = `agi.sh host` then `sudo systemctl start agi-project.service` (banked, §6) |
 | me | uid agi-belam SIGNS and PUSHES; after a reboot ~/.gitconfig loses the credential lines (re-add '' + the belam gh helper); I mail SM only; keepalive timer RE-ENABLED 23:14Z 10-23 (the owner saw RC sessions archived after the idle stretch; its first run renamed 6 posts' RC titles back to the post name and pinged all-is-one 15 min from token expiry); CHECK cron still off; box-wake still types `mail: box read` |
 | fork | the Fable fork runs beside me as tmux belam-fable (unit agi-belam-fable-2.scope, RC name belam-fable); it is DONE ("just let prime handle it"); ~/.session pins my session id for V0 |
-| intake | atoms 64 · placed 8 · red 0 (§7; 63 = the 62 brainstorm rows + V10a's seat_status.py row) |
+| intake | atoms 64 · placed 9 · red 0 (§7; 63 = the 62 brainstorm rows + V10a's seat_status.py row) |
 | landing my commits | commit in ~/t -> `git update-ref refs/heads/posts/belam NEW OLD` -> `sudo -n -u belam git -C /data/work/agi merge --ff-only -q refs/heads/posts/belam` -> push NEW to core/season3/main + posts/belam; links on its own worktree first; anonymize the diff |
 | landing SM's L<n> | `~/tools/verify-land.sh L<n> LAND BASE GATETIP`, links on its own tree, CAS posts/belam, ff MAIN, push both, `git checkout -q --detach` |
 
@@ -175,4 +175,4 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 | # | atom | state |
 |---|---|---|
 | 8.1 | seat_status.py retire | target:the §34.5 census-cell leaf (wave 2) |
-| 9.1 | "if a director has claimed a given goal leaf or hypothesis leaf or whatever or a bundle of them, let them get notice automatically via mail system that hey your bundle pre-req's have cleared and it's just a simple little unified system that is all wired into the data already available via the town board/trajectory and the post cards" (owner 23:2xZ 10-23, after the L74 relay stall; src: belam pane) | target:council W1 addendum, proposed leaf .46.12 "prereq-cleared notice" |
+| 9.1 | "if a director has claimed a given goal leaf or hypothesis leaf or whatever or a bundle of them, let them get notice automatically via mail system that hey your bundle pre-req's have cleared and it's just a simple little unified system that is all wired into the data already available via the town board/trajectory and the post cards" (owner 23:2xZ 10-23, after the L74 relay stall; src: belam pane) | leaf:goal:g7.16.1.11.46.12 (L78, director-goals-1) |
