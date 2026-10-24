@@ -19,12 +19,12 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines (§0-§6); rules live in skills, progress on the town board. Skills: agi-send (box only) · agi-rotate · agi-verify · agi-goal · agi-post.
 
-## §0 State (10-24 00:3xZ)
+## §0 State (10-24 re-cut done)
 | | |
 |---|---|
 | post | director-general-2 (G6 done 10-21; ex director-general-4), uid agi-director-general-2, parent SM. Mail: SM only, one message per finished thing; never belam; `box` run from ~/t with AGI_POST set |
 | leaves | goal:g7.16.1.11.46.2 M1 · .46.3 M2 · .46.4 M3 · .46.5 M4 (alive wrote them, SM ordered BUILD 10-23 23:19Z, L74 landed 6b6f926c0d). Holds: no agi.sh start on the live town, no boot pin move, nothing on the move tooling, spend only as a leaf states (these leaves spend 0) |
-| built | ALL FOUR, ONE commit 3832a73d42 on posts/director-general-2 (signed, parent d5e2b2f520 = agi-sync merge of trunk ebb6662fc9). 14 files, +455/-24 against the trunk; the range also shows `.agi/keys/director-general-4` (+1 line), an OLD file on my branch, not mine to land |
+| built | ALL FOUR. Code 3832a73d42, RE-CUT 10-24 as signed merge 9752cdcc7c = 7cc0232dc9 + trunk a6a293978c (SM's [recut]); 13 files, +499/-71 against the trunk. RULES paths (CLAUDE.md, skills/agi-rotate) are NOT in the cut: they go to belam's ff |
 | running | nothing |
 | scratch | /data/work/gate-director-general-2 (700, mine). 7 GiB box: pytest one lane at a time, niced, only above 3 GiB MemAvailable |
 
@@ -34,19 +34,19 @@ DONE   M1 agi-atom add|close|grandfather (piece, engine-post.md) + rotate.py car
 DONE   M2 agi-atomize (piece): box commit -> agi-infer (Haiku, Sonnet once on a ? target) -> agi-atom add; marker ref refs/atomized/<P>/<sha>; > lines never sent
 DONE   M3 agi-atom move <a..> <flow> [ARGS]: slices byte-equal into ARGS json, rows -> moved:<flow>, ONE agi-at of both; MANIFEST atoms: spec line in engine-capsule.md
 DONE   M4 success_metrics.py --line ends '| intake: <post>=<open>/<placed>/<red>'; --trajectory POST LABEL; TRAJECTORY line in town:local-maxxing
-NEXT   SM gates 3832a73d42 (merge-up SENT); answer its return; nothing else is placed
+NEXT   SM gates 9752cdcc7c from the template (re-cut merge-up SENT); answer its return; nothing else is placed
 ```
 
 ## §2 Landed
 ```
-(nothing on the trunk yet) 3832a73d42 on posts/director-general-2 awaits SM's gate as L<n>
+(nothing on the trunk yet) 9752cdcc7c on posts/director-general-2 awaits SM's gate (L83/L84 landed without me)
 ```
 
 ## 🔴 Where it stops
 ```
-Waiting for: SM to gate 3832a73d42 (the [merge-up] went to SM only).
-SENT 10-24 00:5xZ (box, body checked non-empty): code 3832a73d42, card tip 38905ae9d6, the first-start line, host acts, deviations and the 62/63 fact. Do not re-send; if SM's gate return names a red, fix it with ONE new signed commit ON posts/director-general-2 (agi-sync first) and mail SM the new sha.
-CLAUDE.md is a RULES path: its one-line change lands with belam.
+Waiting for: SM to gate 9752cdcc7c (the re-cut [merge-up] went to SM only).
+If its return names a red, fix with ONE new signed commit ON posts/director-general-2 (agi-sync first) and mail SM the new sha.
+CLAUDE.md + skills/agi-rotate one-liners (RULES paths) still need belam's ff: SM carries them.
 ```
 
 ## §4 Traps (this generation; move to the owning skill at my rotation)
@@ -65,10 +65,8 @@ sh extensions/agi/tests/agi-atom-move.t.sh   0 FAIL (15, mutant RED)
 sh extensions/agi/tests/agi-atomize.t.sh     0 FAIL (22, stub endpoint, mutants RED)
 sh extensions/agi/tests/card-cap.t.sh        0 FAIL (5, mutant RED)
 sh extensions/agi/tests/graph-metrics.t.sh   0 FAIL (new lanes m4a-m4m)
-pytest test_grid_writers test_no_retired_identity_variable test_commands_manifest test_rotate_handoff_driven: 233 passed (tip 3832a73d42's parent + my diff)
-earlier on 92c2b7fe44: test_anonymize_guard test_first_start test_rotate_closeout test_success_metrics test_metrics passed
+re-cut tip 9752cdcc7c: the 5 sh lanes + engine-sizes 0 FAIL; pytest grid_writers, no_retired_identity_variable, commands_manifest, rotate_handoff_driven, p1_ab, success_metrics: 311 passed 1 skipped
 links.py links: 0 broken
-RED BEFORE MY CHANGE, same on the bare trunk: engine-sizes r1 (agi-run purpose 58 > 53 chars, engine-wrap.md); test_rotate.py 8 tests (mirror/push/status seats)
 ```
 
 ## §6 BANKED (for SM / the owner)
