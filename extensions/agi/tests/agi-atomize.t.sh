@@ -49,6 +49,7 @@ ok "ask-one-call-first-model the first model is claude-haiku-5-5 and there was O
 ok "ask-prompt-carries-leaf-ids the model is handed the recipient's leaf ids (g1.2) and the message" 'jq -r .prompt $D/q/log1|grep -q "g1.2"&&jq -r .prompt $D/q/log1|grep -qF "$M1"'
 ok "ask-card-committed the card went through the commit step in ONE commit and the tree is clean" '[ "$(git rev-list --count HEAD)" = 2 ]&&[ -z "$(git status --porcelain)" ]'
 ok "ask-marker-ref the commit carries its marker refs/atomized/p/<sha>" 'marked'
+ok "ask-stamps-the-pass a run ends by stamping ~/.atomize.last (agi-atom derive check measures owner chunks still ? against it; got '$(cat $D/.atomize.last 2>/dev/null)')" 'grep -qE "^20[0-9]{2}-[0-9]{2}-[0-9]{2}T[0-9:]{8}Z$" $D/.atomize.last'
 c1=$(calls);AT;ok "re-read-plus-zero a second wake reads nothing again: calls $c1 -> $(calls), rows $(rows)" '[ "$(calls)" = "$c1" ]&&[ $(rows) = 2 ]'
 # --- fyi / report: 0 atoms, marked, never re-read
 mk b;msg sm 'Just so you know: the build is green.';reply 1 '{"kind":"fyi","atoms":[{"slice":"the build is green","target":"?"}]}';AT;c1=$(calls);AT
@@ -82,6 +83,8 @@ ok "town-line-skipped belam's [town] line is marked and never sent to a model (c
 M=$D/m;sed 's/\[ "\$ok" \]&&git update-ref \$M\/\$c \$c ""/[ "$ok" ]/' $PC>$M;mk l;msg sm 'Just so you know: all is well.';reply 1 '{"kind":"fyi","atoms":[]}';reply 2 '{"kind":"fyi","atoms":[]}';reply 3 '{"kind":"fyi","atoms":[]}'
 AT $M;AT $M
 ok "m-no-marker-RED the mutant without the marker ref read the same fyi twice (calls $(calls), want 2): the re-read lane catches it" '[ "$(calls)" = 2 ]&&! cmp -s $M $PC'
+rm -f $D/.atomize.last;M2=$D/ms;sed '/^date -u +%FT%TZ>/d' $PC>$M2;mk s;msg sm 'Numbers: 1 landed.';reply 1 '{"kind":"report","atoms":[]}';AT $M2
+ok "m-no-stamp-RED the mutant without the stamp line leaves no ~/.atomize.last: the stamp lane catches it" '[ ! -e $D/.atomize.last ]&&! cmp -s $M2 $PC'
 # --- the WAKE-PATH CALLER (the remainder of .46.3): agi-meter, the UserPromptSubmit hook, runs `agi-atomize wake` on the prompt "mail: box read"
 [ -n "$PIECE" ]&&cp $PC $D/bin/agi-atomize;[ -s $D/bin/agi-meter ]||{ echo "FAIL inputs: no agi-meter piece";exit 99;};chmod +x $D/bin/*
 cred(){ mkdir -p .agi/nodes/.geometry;if [ -n "$1" ];then printf 'credits_live: %s\ndoppler: x\n' "$1">.agi/nodes/.geometry/secrets.md;else printf 'doppler: x\n'>.agi/nodes/.geometry/secrets.md;fi;git add -A;git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm cred;git update-ref refs/heads/trunk HEAD;}
