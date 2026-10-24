@@ -62,7 +62,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -144,7 +144,7 @@ class ProvisioningError(RuntimeError):
 class MintedKey:
     """One issued credential. `secret` is returned exactly once, by the API."""
 
-    secret: str
+    secret: str = field(repr=False)     # P1 F2: a repr, a log line or a traceback never carries the key
     key_hash: str
     name: str
     limit_usd: float
