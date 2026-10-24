@@ -33,3 +33,20 @@ for u in $(systemctl list-units 'agi-post@*.service' --state=running --no-legend
  l=$(cat $S/$p 2>/dev/null||echo 0);[ $((now-l)) -ge $GAP ]||continue
  runuser -u agi-$p -- timeout 5 sh -c 'printf "%s" "$1" > "$2"' _ "$MSG" "$f"&&sleep 1&&runuser -u agi-$p -- timeout 5 sh -c 'printf "\r" > "$1"' _ "$f"&&echo $now>$S/$p&&logger -t agi-rc-keepalive "pinged $p (token $(( (e-now)/60 )) min from expiry)"
 done
+# RC SERVERS (owner 20:5xZ 10-24: "Let's extend the keep alive"): a login user's standalone `claude remote-control` server
+# (the box's environment: encryption-town, a user unit under belam) has no pane to type into. Its credentials file sat
+# untouched 10-16..10-23 while it ran, and the 10-23 reboot found it logged out (rc 1 every 10 s for 41 h). For each user
+# in RCUSERS with a claude.ai login whose token expires within ULEAD (300 s; the timer is 30 min, so a turn lands at most 30 min past expiry), run ONE cheap headless turn as that
+# user (at most one per GAP), so claude refreshes and rewrites the file. Logged with the expiry before and after; a turn
+# that fails, or a file with no login, is logged loud, never silent. Values are never read out: only expiresAt.
+for u in ${RCUSERS-belam};do
+ case $u in ""|*[!a-z0-9_-]*)continue;;esac
+ h=$(getent passwd "$u"|cut -d: -f6);b=$h/.local/bin/claude;c=$h/.claude/.credentials.json;[ -n "$h" ]&&[ -x "$b" ]||continue
+ e=$(jq -r '.claudeAiOauth.expiresAt // empty' "$c" 2>/dev/null)
+ [ -n "$e" ]||{ l=$(cat $S/u-$u 2>/dev/null||echo 0);[ $((now-l)) -ge $GAP ]&&echo $now>$S/u-$u&&logger -p user.warning -t agi-rc-keepalive "rc-user $u: NO claude.ai login in its credentials file: its Remote Control server cannot start (re-login: claude auth login as $u)";continue;}
+ e=$((e/1000));[ $((e-now)) -lt ${ULEAD:-300} ]||continue   # claude refreshes only a token near or past expiry, so an earlier turn is a no-op (tested 20:55Z: 473 min before = 473 after)
+ l=$(cat $S/u-$u 2>/dev/null||echo 0);[ $((now-l)) -ge $GAP ]||continue;echo $now>$S/u-$u
+ runuser -u "$u" -- env HOME="$h" sh -c 'cd "$HOME"&&timeout 180 "$1" -p --no-session-persistence --model claude-haiku-5-5 "reply with the one word ok" >/dev/null 2>&1' _ "$b";rc=$?
+ a=$(jq -r '.claudeAiOauth.expiresAt // 0' "$c" 2>/dev/null);a=$((a/1000))
+ if [ $rc = 0 ];then logger -t agi-rc-keepalive "rc-user $u: one turn (token $(( (e-now)/60 )) min from expiry before, $(( (a-now)/60 )) min after)";else logger -p user.warning -t agi-rc-keepalive "rc-user $u: the turn FAILED rc $rc (token $(( (e-now)/60 )) min from expiry): re-login may be needed";fi
+done
