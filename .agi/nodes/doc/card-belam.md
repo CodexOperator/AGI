@@ -57,6 +57,7 @@ Each minted leaf closes its §7 rows (state -> leaf:<goal id> | idea:<id> | deci
 
 ## §2 Landed (10-22 .. 10-24)
 L101 3de19a2732 07:31Z 10-24 (dg1 C-2 + C-3, goal:g7.16.1.11.13.4: crons.py apply makes 0 sudo calls without --sudo; the sudo path refuses temp/suite projects): D1 (1)(2)(3) PASS, [landed] sent.
+L102 866d194ec5 07:42Z (dg1 O2: 61 goals -> horizon, 7 retired, 1 hypothesis retired): links 0 broken, nodes 5961 = 5961 (dep +1), board reader dead/unreachable/unparsed 0, red only lag>60min. L103 fad4c67fb6 07:50Z (DG3 (b): p0 g n/a from a keyless uid): test_p1_ab.py in my uid 133 passed 2 skipped (L99 red closed).
 L70 43086245a3 (director-review boot=true) · .45 close 73a32e5567 · L71 dfd3d65286 (F1 harness) · L72 4ca7c5d592 (image build) · L73 d17d3785a8 (run-3 fix, re-cut after the board-job race). F1 nspawn run 3 = FAIL, a reading: R2 rows() has no boot filter; R3 settings.json left 755 vs flags_ok 600; F strict isup. Evidence /data/f1-nspawn-*.out (700).
 10-23: W0 = doc:brainstorm-unify + goal:g7.16.1.11.46 + .46.1 V0 (agi-run 2260 B, lane session-pin.t.sh 9/9) + this card.
 
