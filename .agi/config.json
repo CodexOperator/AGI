@@ -143,7 +143,7 @@
     "node_min": [22, 19, 0],
     "node_candidates": ["/usr/local/bin/node"],
     "kid_timeout_s": 1200,
-    "kid_rules": {"goal:g4.18.2.1": "never create .agi/bin/render-context.py or .agi/bin/snapshot-build-site.py"},
+    "prices": {"read": "2026-10-24 OpenRouter /api/v1/models", "models": {"deepseek/deepseek-v4.1-flash-1017": {"in_per_m": 0.15, "out_per_m": 0.6}, "z-ai/glm-5.3-flash": {"in_per_m": 0.15, "out_per_m": 0.5}}},
     "results": ".agi/context/local-maxxing/p1-results.json",
     "forbidden_paths": [".agi/bin/render-context.py", ".agi/bin/snapshot-build-site.py"],
     "key_cap_usd": 0.5,

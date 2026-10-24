@@ -923,3 +923,310 @@ def test_the_real_pi1_reads_its_key_from_the_file_through_models_json_offline(tm
     assert res["rc"] == 0 and seen and seen[0] == f"Bearer {MARK}"
     assert "hi from stub" in (home / "p1-glm-1.log").read_text()
     assert not (home / ".p1-agent" / "models.json").exists()
+
+
+# --- R1-R4 (council 3/3, 03:05Z 10-24) -------------------------------------------------------------------
+
+LEAF = LEAVES[3]          # goal:g4.21
+NODE_TEXT = """---
+id: goal:g4.21
+---
+# goal:g4.21
+
+## Why this exists
+because.
+
+## Target end-state
+- ONE project marker.
+
+## Invariants
+- no legacy marker.
+
+## Falsifier
+1. A test creates a scratch directory holding only a legacy marker.
+
+## Out of scope
+- the rest.
+
+<!-- THOUGHT:BEGIN -->
+secret thought
+<!-- THOUGHT:END -->
+"""
+RULES_TEXT = ("## Target end-state\n- (Q2) leaves. The kid brief for g4.21 carries the standing rule: leave the "
+              "marker list alone. (Q3) p1_ab.py writes numbers to a file.\n")
+
+
+def _git(repo, *argv):
+    env = {**os.environ, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t",
+           "GIT_COMMITTER_EMAIL": "t@t", "GIT_CONFIG_GLOBAL": "/dev/null"}
+    return subprocess.run(["git", "-C", str(repo), *argv], check=True, capture_output=True, text=True, env=env).stdout.strip()
+
+
+@pytest.fixture
+def brief_repo(tmp_path):
+    repo = tmp_path / "briefrepo"
+    (repo / ".agi" / "nodes" / "goal").mkdir(parents=True)
+    _git(repo, "init", "-q")
+    (repo / ".agi/nodes/goal/g4.21.md").write_text(NODE_TEXT)
+    (repo / ".agi/nodes/goal/g7.16.1.11.46.9.md").write_text(RULES_TEXT)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "base")
+    cfg = copy.deepcopy(CFG)
+    cfg["p1"]["base"] = _git(repo, "rev-parse", "HEAD")
+    return repo, cfg
+
+
+def test_r3_the_brief_is_the_leaf_node_at_the_base_with_four_sections_and_the_preregistered_rule(brief_repo):
+    repo, cfg = brief_repo
+    b = p1_ab.leaf_brief(LEAF, repo, cfg)
+    for head in ("Target end-state", "Invariants", "Falsifier", "Out of scope"):
+        assert f"## {head}" in b, head
+    assert "ONE project marker" in b and "no legacy marker" in b and "the rest" in b
+    assert "secret thought" not in b and "because" not in b
+    assert "Standing rule: leave the marker list alone" in b
+    (repo / ".agi/nodes/goal/g7.31.3.1.md").write_text(NODE_TEXT.replace("goal:g4.21", "goal:g7.31.3.1"))
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "a second leaf, no preregistered rule")
+    cfg2 = copy.deepcopy(cfg)
+    cfg2["p1"]["base"] = _git(repo, "rev-parse", "HEAD")
+    assert "Standing rule" not in p1_ab.leaf_brief("goal:g7.31.3.1", repo, cfg2)
+
+
+def test_r3_a_trunk_edit_to_the_falsifier_the_rule_text_or_a_cell_leaves_the_sha_unchanged(brief_repo):
+    repo, cfg = brief_repo
+    before = p1_ab.leaf_brief(LEAF, repo, cfg)
+    sha = p1_ab.brief_digest(before)
+    (repo / ".agi/nodes/goal/g4.21.md").write_text(NODE_TEXT.replace("legacy marker.", "a DIFFERENT falsifier."))
+    (repo / ".agi/nodes/goal/g7.16.1.11.46.9.md").write_text(RULES_TEXT.replace("leave the marker list alone", "do something else"))
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "trunk moves on")
+    cfg2 = copy.deepcopy(cfg)
+    cfg2["p1"]["kid_rules"] = {LEAF: "an injected cell rule"}
+    for c in (cfg, cfg2):
+        after = p1_ab.leaf_brief(LEAF, repo, c)
+        assert after == before and p1_ab.brief_digest(after) == sha
+    assert "DIFFERENT" not in before and "injected" not in before
+
+
+def test_r3_a_base_that_cannot_be_read_refuses_the_brief(brief_repo):
+    repo, cfg = brief_repo
+    cfg["p1"]["base"] = "0" * 40
+    with pytest.raises(p1_ab.P1Refused, match="frozen base cannot be read"):
+        p1_ab.leaf_brief(LEAF, repo, cfg)
+
+
+def test_r3_both_arms_rows_for_a_leaf_carry_the_same_sha_or_the_second_is_refused(tmp_path):
+    f = tmp_path / "res.json"
+    p1_ab.record_result(f, CFG, arm="deepseek", leaf=LEAF, landed=True, usd=0.1, secs=5, red=False, brief_sha256="a" * 64)
+    with pytest.raises(p1_ab.P1Refused, match="one frozen brief per leaf"):
+        p1_ab.record_result(f, CFG, arm="glm", leaf=LEAF, landed=True, usd=0.1, secs=5, red=False, brief_sha256="b" * 64)
+    p1_ab.record_result(f, CFG, arm="glm", leaf=LEAF, landed=True, usd=0.1, secs=5, red=False, brief_sha256="a" * 64)
+    rows = [k for arm in json.loads(f.read_text())["arms"] for k in arm["kids"]]
+    assert [k["brief_sha256"] for k in rows] == ["a" * 64, "a" * 64]
+
+
+def _ledgers(tmp_path, *, done=True, usd=0.12, rc=0, timed_out=False, sweep=(), secs=33.0, with_run=True, arm="deepseek"):
+    led, runs = tmp_path / "ledger.json", tmp_path / "runs.json"
+    mint = {"arm": arm, "leaf": LEAF, "hash": "h1", "cap": 0.5}
+    if done is not None:
+        mint.update(usd=usd, done=done)
+    led.write_text(json.dumps([mint]))
+    runs.write_text(json.dumps([{"arm": arm, "leaf": LEAF, "rc": rc, "secs": secs, "timed_out": timed_out,
+                                 "sweep": list(sweep), "brief_sha256": "e" * 64}] if with_run else []))
+    return led, runs
+
+
+def _rec(tmp_path, landed, red, **kw):
+    led, runs = _ledgers(tmp_path, **kw)
+    return p1_ab.record_from_ledgers(tmp_path / "res.json", CFG, arm="deepseek", leaf=LEAF, ledger=led, runs=runs,
+                                     landed=landed, red=red)
+
+
+def test_r1_record_reads_usd_from_the_kid_done_row_and_secs_from_the_run_row(tmp_path):
+    res = _rec(tmp_path, True, False, usd=0.1234, secs=41.5)
+    k = res["arms"][0]["kids"][0]
+    assert (k["usd"], k["secs"], k["landed"], k["red"], k["brief_sha256"]) == (0.1234, 41.5, True, False, "e" * 64)
+
+
+@pytest.mark.parametrize("kw", [dict(done=None), dict(done=False), dict(usd=None), dict(with_run=False)],
+                         ids=["no-done-key", "done-false", "usd-null", "no-run-row"])
+def test_r1_no_kid_done_row_or_no_run_row_is_refused(tmp_path, kw):
+    with pytest.raises(p1_ab.P1Refused, match="no kid-done row|no run row"):
+        _rec(tmp_path, True, False, **kw)
+    assert not (tmp_path / "res.json").exists()
+
+
+@pytest.mark.parametrize("kw", [dict(timed_out=True, rc=None), dict(rc=3), dict(sweep=[4242])])
+def test_r1_a_red_run_cannot_be_recorded_as_landed_or_not_red(tmp_path, kw):
+    for i, (landed, red) in enumerate(((False, False), (True, False), (True, True))):
+        d = tmp_path / f"c{i}"
+        d.mkdir()
+        with pytest.raises(p1_ab.P1Refused, match="ran red"):
+            _rec(d, landed, red, **kw)
+    d = tmp_path / "ok"
+    d.mkdir()
+    k = _rec(d, False, True, **kw)["arms"][0]["kids"][0]
+    assert (k["landed"], k["red"]) == (False, True)
+
+
+def test_r1_a_clean_run_can_still_be_judged_red_by_the_gate(tmp_path):
+    k = _rec(tmp_path, False, True)["arms"][0]["kids"][0]
+    assert (k["landed"], k["red"]) == (False, True)
+
+
+def test_r1_the_cli_has_no_typed_usd_or_secs(tmp_path, capsys):
+    led, runs = _ledgers(tmp_path)
+    for flag in ("--usd", "--secs"):
+        with pytest.raises(SystemExit):
+            p1_ab._mine("record", ["deepseek", LEAF, "--ledger", str(led), "--runs", str(runs), "--landed", "1", "--red", "0", flag, "9"],
+                        CFG, tmp_path)
+    capsys.readouterr()
+
+
+def test_r2_live_kids_counts_minted_without_a_kid_done_other_than_this_pair():
+    rows = [{"arm": "deepseek", "leaf": LEAVES[0], "done": True}, {"arm": "deepseek", "leaf": LEAVES[1]},
+            {"arm": "deepseek", "leaf": LEAVES[2], "done": False}, {"arm": "deepseek", "leaf": LEAF}]
+    assert p1_ab.live_kids(rows, "deepseek", LEAF) == 2
+    assert p1_ab.live_kids(rows, "glm", LEAF) == 3          # a different pair: this deepseek row counts too
+
+
+def _run_env(tmp_path, body="exit 0", **cfgkw):
+    node = _fake_node(tmp_path, body=body)
+    cfg, plan = _plan(tmp_path, node, **cfgkw)
+    (tmp_path / "kidhome").mkdir(exist_ok=True)
+    return cfg, plan
+
+
+def _ledger_with(tmp_path, rows):
+    led = tmp_path / "ledger.json"
+    led.write_text(json.dumps(rows))
+    return led
+
+
+def test_r2_two_open_rows_refuse_the_run_and_one_open_row_allows_it(tmp_path):
+    cfg, plan = _run_env(tmp_path)
+    mine = {"arm": "deepseek", "leaf": LEAVES[0], "hash": "h0", "cap": 0.5}
+    other = lambda n: {"arm": "deepseek", "leaf": LEAVES[n], "hash": f"h{n}", "cap": 0.5}
+    runs = tmp_path / "runs.json"
+    kw = dict(arm="deepseek", leaf=LEAVES[0], cfg=cfg, runs=runs, repo=tmp_path, plan=plan, gb=1.0)
+    with pytest.raises(p1_ab.P1Refused, match="not started: 2 kids live"):
+        p1_ab.run_logged(ledger=_ledger_with(tmp_path, [mine, other(1), other(2)]), **kw)
+    assert not runs.exists()
+    row = p1_ab.run_logged(ledger=_ledger_with(tmp_path, [mine, other(1), {**other(2), "done": True}]), **kw)
+    assert row["rc"] == 0 and row["timed_out"] is False and row["sweep"] == [] and len(row["brief_sha256"]) == 64
+
+
+def test_r2_a_pair_without_a_mint_row_or_already_run_is_refused_and_there_is_no_live_flag(tmp_path):
+    cfg, plan = _run_env(tmp_path)
+    runs = tmp_path / "runs.json"
+    kw = dict(arm="deepseek", leaf=LEAVES[0], cfg=cfg, runs=runs, repo=tmp_path, plan=plan, gb=1.0)
+    with pytest.raises(p1_ab.P1Refused, match="no mint row"):
+        p1_ab.run_logged(ledger=_ledger_with(tmp_path, []), **kw)
+    led = _ledger_with(tmp_path, [{"arm": "deepseek", "leaf": LEAVES[0], "hash": "h0", "cap": 0.5}])
+    p1_ab.run_logged(ledger=led, **kw)
+    with pytest.raises(p1_ab.P1Refused, match="a kid runs once"):
+        p1_ab.run_logged(ledger=led, **kw)
+    with pytest.raises(SystemExit):
+        p1_ab._mine("run-kid", ["deepseek", LEAVES[0], "--ledger", str(led), "--runs", str(runs), "--key-file", "/k", "--worktree", "/w",
+                                "--kid-home", "/h", "--live", "0"], CFG, tmp_path)
+
+
+def _wait_gone(path, secs):
+    import time
+    end = time.time() + secs
+    while time.time() < end:
+        if path.exists():
+            return False
+        time.sleep(0.2)
+    return True
+
+
+def test_r4_a_background_job_of_a_kid_that_exits_zero_is_killed_at_exit(tmp_path):
+    marker = tmp_path / "M"
+    cfg, plan = _run_env(tmp_path, body=f"(sleep 2; touch {marker}) &\nexit 0")
+    res = p1_ab.run_kid(plan, cfg, live=0, gb=1.0)
+    assert res["rc"] == 0 and res["timed_out"] is False
+    assert _wait_gone(marker, 3.5), "the background job outlived the kid"
+
+
+def test_r4_the_group_kill_alone_catches_a_job_that_left_the_worktree_and_holds_no_fd(tmp_path):
+    """The sweep matches by cwd and fd; a job that cd'd away and closed its fds is only reachable through the
+    process group, so the kill at a normal exit has its own row."""
+    marker = tmp_path / "M"
+    cfg, plan = _run_env(tmp_path, body=f"( cd /; sleep 2; touch {marker} ) >/dev/null 2>&1 </dev/null &\nexit 0")
+    res = p1_ab.run_kid(plan, cfg, live=0, gb=1.0)
+    assert res["rc"] == 0 and res["sweep"] == [], res
+    assert _wait_gone(marker, 3.5), "the job that left the worktree outlived the kid"
+
+
+@pytest.mark.skipif(shutil.which("setsid") is None, reason="no setsid")
+def test_r4_a_kid_that_escapes_its_session_and_hangs_is_swept_and_the_run_is_red(tmp_path):
+    marker = tmp_path / "M"
+    cfg, plan = _run_env(tmp_path, body=f"setsid sh -c 'sleep 2; touch {marker}' &\nsleep 30", timeout=1)
+    res = p1_ab.run_kid(plan, cfg, live=0, gb=1.0)
+    assert res["timed_out"] is True and res["sweep"], res
+    assert _wait_gone(marker, 3.5), "the escaped job was not killed"
+    led, runs = tmp_path / "ledger.json", tmp_path / "runs.json"
+    led.write_text(json.dumps([{"arm": "deepseek", "leaf": LEAF, "hash": "h1", "cap": 0.5, "usd": 0.1, "done": True}]))
+    runs.write_text(json.dumps([{"arm": "deepseek", "leaf": LEAF, **{k: res[k] for k in ("rc", "secs", "timed_out", "sweep")}, "brief_sha256": "e" * 64}]))
+    with pytest.raises(p1_ab.P1Refused, match="ran red"):
+        p1_ab.record_from_ledgers(tmp_path / "r.json", CFG, arm="deepseek", leaf=LEAF, ledger=led, runs=runs, landed=True, red=False)
+
+
+def test_r4_the_sweep_matches_by_cwd_and_by_open_fd_and_leaves_everything_else_alone(tmp_path):
+    import time
+    inside, outside = tmp_path / "kid", tmp_path / "elsewhere"
+    inside.mkdir()
+    outside.mkdir()
+    held = inside / "held.txt"
+    held.write_text("x")
+    a = subprocess.Popen(["sleep", "30"], cwd=inside)                                          # cwd under the path
+    b = subprocess.Popen(["sh", "-c", f"exec 3<{held}; sleep 30"], cwd=outside)                 # an open fd under it
+    c = subprocess.Popen(["sleep", "30"], cwd=outside)                                          # unrelated
+    try:
+        time.sleep(0.5)
+        hit = p1_ab.proc_sweep([inside])
+        a.wait(timeout=5)
+        b.wait(timeout=5)
+        assert a.pid in hit and b.pid in hit and c.pid not in hit and c.poll() is None
+        assert os.getpid() not in hit
+    finally:
+        c.kill()
+        a.kill()
+        b.kill()
+
+
+def test_p0_reads_a_to_f_and_goes_red_on_each_failure(brief_repo, tmp_path, monkeypatch):
+    repo, cfg = brief_repo
+    cfg["p1"]["prices"] = copy.deepcopy(CFG["p1"]["prices"])
+    data = [{"id": m, "pricing": {"prompt": str(v["in_per_m"] / 1e6), "completion": str(v["out_per_m"] / 1e6)}}
+            for m, v in cfg["p1"]["prices"]["models"].items()]
+    mem = tmp_path / "mem"
+    mem.write_text("4000000000\n")
+    env = tmp_path / ".env"
+    env.write_text("x")
+    wt = repo
+    monkeypatch.setattr(success_metrics, "p1_segment", lambda root: "")
+    run = lambda **kw: {n[0]: (ok, d) for n, ok, d in [(r[0].split()[0], r[1], r[2]) for r in p1_ab.p0_readings(
+        cfg=cfg, repo=repo, worktree=kw.get("wt", wt), main_env=kw.get("env", env), fetch=lambda: kw.get("data", data), slice_path=str(kw.get("mem", mem)))]}
+    if os.geteuid() != 0:
+        env.chmod(0o000)
+    good = run()
+    assert all(ok for ok, _ in good.values()), good
+    assert good["b"][1].count("per M") == 2
+    monkeypatch.setattr(success_metrics, "p1_segment", lambda root: "| p1: UNMEASURED(x)")
+    assert run()["a"][0] is False
+    monkeypatch.setattr(success_metrics, "p1_segment", lambda root: "")
+    moved = [{**d, "pricing": {"prompt": "0.00001", "completion": "0.00001"}} for d in data]
+    assert run(data=moved)["b"][0] is False and run(data=[])["b"][0] is False
+    big = tmp_path / "big"
+    big.write_text("6000000000\n")
+    assert run(mem=big)["c"][0] is False and run(mem=tmp_path / "gone")["c"][0] is False
+    if os.geteuid() != 0:
+        env.chmod(0o600)
+        assert run()["d"][0] is False
+    other = tmp_path / "other"
+    other.mkdir()
+    _git(other, "init", "-q")
+    _git(other, "commit", "-q", "--allow-empty", "-m", "x")
+    assert run(wt=other)["e"][0] is False
