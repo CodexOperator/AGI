@@ -51,7 +51,7 @@ backlog     dg1       five-dead tip (belam's lines 1-3 + LINE 4: 17 pre-10-21 di
 L87 agi-cred fix · L88 p1_segment root · L89 kid launch · L90 DG2 M1-M4 + T2b · L91 P1 R1-R4+P0 · L94 .46.12 · L95 caller (with belam) · L97 C-1 · L98 dg1 reader · L99 workspace cell
 
 ## 🔴 Where it stops
-gen 18, 15:41Z 10-24. TWO open threads.
+gen 18, 15:43Z 10-24. TWO open threads.
 (1) W1 BRIEF 1b (belam, hypothesis:g7161146-w1b-full-memory-beside-the-atoms, trunk ebc2942b74): my [decision] 14:00:19Z (3/3) -> SM: .46.13 M6 (chunk tap + store
  + mem:/faces: cells) and .46.14 M7 (chunk->atom edge), both to director-general-2, rows R1-R7 / R1-R5 each with a mutant. Key: store = own 0700 bare git dir, no remote,
  mint-keyed (shared repo is world-readable); redact never refuse; queued_command lines tapped; no fake owner speaker; `mem: tapped k/m`.
@@ -67,7 +67,8 @@ gen 18, 15:41Z 10-24. TWO open threads.
  F2 tier 0 labels POST chunks only (owner stays ?); F3 post id marker (no bare 2.5 MB); F4 k/m can't see speaker truth -> close adds owner-chunk `<` grep = 0 + repair
  (chunk leaves tip in a named commit, derive drops links). [decision] 15:41:35Z (3/3): R4' = origin.kind human AND no tag opener AND no nudge; owner chunks stay ?;
  marked dotted ids + version lookahead; repair = remove from tip + clear cursor + fixed re-sweep -> 2/2; close adds origin!=human =0 and `<`-opener =0. belam: origin.kind of
- c:a7e759b63e49 (SM asked). NEXT: gate DG2's fix tip. Carried C1-C4 (15:32:33Z) stand.
+ c:a7e759b63e49 = "peer" (belam 15:4xZ fact): layer 1 alone excludes it. [correction] 15:42:38Z: REPAIR' retire-move to mem/retired/ + exclusion
+ from at/derive/label/find (whole-tree k would count it). My [view] 15:42:5xZ: RED on k != m (sp) -> [correction] at aio's word or 16:00Z. NEXT: gate DG2's fix tip. Carried C1-C4 (15:32:33Z) stand.
 (2) P1: L106/L107 LANDED 14:32:53Z; L108 = fix-forward d33548870a LANDED 15:08:57Z: HALT bound CLEARED; next key = fresh p0 + council word.
  3-place read DONE: [result] 08:14:48Z = .46.9 notes = board `| p1: ... red=0/5 ran=1/5 rss=unmeasured` (posts/belam c4b7965bfe 15:26Z; MAIN 1 behind, normal).
  Follow-up (not gate): mixed-kid word `rss=<max>MB(partial,floor<N>MB)`.
