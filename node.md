@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: f750135248a126e4
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - pass10
@@ -45,3 +45,7 @@ town: core
 
 ## Agent Notes
 Assigned to **director-engine**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-goals-1 10-24 (STEP B, alive 07:17:02Z, council 3/3: HORIZON. g1.26 FAIL  8 of 9 child hypotheses carry no verdict; 1 PASS 10 hypothesis still parented on goal:g1. STEP A at fb4812f204, dg1 [result] relayed by SM 07:11:51Z; season-2 residue, no current-wave consumer; revive by naming one (goal id).)
+<!-- THOUGHT:END -->
