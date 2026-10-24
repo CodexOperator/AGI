@@ -9,6 +9,7 @@ import copy
 import datetime
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -1284,6 +1285,15 @@ def test_r4_the_sweep_matches_by_cwd_and_by_open_fd_and_leaves_everything_else_a
         b.kill()
 
 
+def test_p0_report_exit_code_zero_only_when_every_row_is_ok_one_for_red_two_for_n_a():
+    ok = [("a x", True, "fine"), ("b y", True, "fine")]
+    assert p1_ab.p0_report(ok) == (["P0 a x ok  fine", "P0 b y ok  fine", "P0 summary: 2 ok, 0 RED, 0 n/a"], 0)
+    lines, rc = p1_ab.p0_report(ok + [("g w", None, "not evaluated")])
+    assert rc == 2 and lines[2].startswith("P0 g w n/a") and lines[-1].endswith("1 n/a (g unread)")
+    lines, rc = p1_ab.p0_report(ok + [("g w", None, "x"), ("c z", False, "bad")])
+    assert rc == 1 and "1 RED" in lines[-1]                                           # a RED outranks n/a
+
+
 def test_p0_reads_a_to_f_and_goes_red_on_each_failure(brief_repo, tmp_path, monkeypatch):
     repo, cfg = brief_repo
     cfg["p1"]["prices"] = copy.deepcopy(CFG["p1"]["prices"])
@@ -1300,14 +1310,23 @@ def test_p0_reads_a_to_f_and_goes_red_on_each_failure(brief_repo, tmp_path, monk
     env.write_text("x")
     wt = repo
     monkeypatch.setattr(success_metrics, "p1_segment", lambda root: "")
+    http = []                                                        # the keyless branch is FORCED, whoever runs the test:
+    monkeypatch.setattr(provisioning, "_read_provisioning_key", lambda root=None: None)
+    monkeypatch.setattr(provisioning, "_call", lambda *a, **k: http.append(a) or (0, {}))
     run = lambda **kw: {n[0]: (ok, d) for n, ok, d in [(r[0].split()[0], r[1], r[2]) for r in p1_ab.p0_readings(
         cfg=cfg, repo=repo, worktree=kw.get("wt", wt), main_env=kw.get("env", env), fetch=lambda: kw.get("data", data), slice_files=kw.get("mem", mem), trunk="HEAD", module_file=kw.get("module", modfile))]}
     if os.geteuid() != 0:
         env.chmod(0o000)
     good = run()
-    assert all(ok for ok, _ in good.values()), good
-    assert good["g"][0] and "NOT EVALUATED" in good["g"][1]          # this uid cannot read the provisioning key
+    assert good["g"][0] is None and "not evaluated" in good["g"][1]  # this uid cannot read the provisioning key: n/a
+    assert all(ok for k, (ok, _) in good.items() if k != "g")
     assert good["b"][1].count("per M") == 2
+    rows = [(n, ok, d) for n, (ok, d) in ((r[0], (r[1], r[2])) for r in p1_ab.p0_readings(
+        cfg=cfg, repo=repo, worktree=wt, main_env=env, fetch=lambda: data, slice_files=mem, trunk="HEAD", module_file=modfile))]
+    lines, rc = p1_ab.p0_report(rows)
+    g_line = next(ln for ln in lines if ln.startswith("P0 g "))
+    assert g_line.split()[3] == "n/a" and not re.search(r"\bok\b", g_line), g_line   # a keyless g is n/a, never ok
+    assert lines[-1] == "P0 summary: 6 ok, 0 RED, 1 n/a (g unread)" and rc == 2     # and the rc never reads it as ok
     monkeypatch.setattr(success_metrics, "p1_segment", lambda root: "| p1: UNMEASURED(x)")
     assert run()["a"][0] is False
     monkeypatch.setattr(success_metrics, "p1_segment", lambda root: "")
@@ -1329,10 +1348,11 @@ def test_p0_reads_a_to_f_and_goes_red_on_each_failure(brief_repo, tmp_path, monk
     off.write_text(modfile.read_text() + " ")                         # one byte off the trunk's blob
     assert run(module=off)["f"][0] is False
     assert run(module=tmp_path / "nofile.py")["f"][0] is False
+    assert http == []                                                # a keyless P0 makes ZERO HTTP calls, in any uid
     api = Api(monkeypatch)                                           # the holder's side: g is evaluated, not deferred
     api.workspaces = ["ws-mine"]
     cfg.setdefault("spawn", {}).setdefault("credential", {})["workspace_id"] = "ws-mine"
-    assert run()["g"][0] is True and "NOT EVALUATED" not in run()["g"][1]
+    assert run()["g"][0] is True and "not evaluated" not in run()["g"][1]
     cfg["spawn"]["credential"]["workspace_id"] = "ws-stale-from-the-old-account"
     assert run()["g"][0] is False
     cfg["spawn"]["credential"]["workspace_id"] = "ws-mine"
