@@ -48,7 +48,7 @@ L74 wave-1 leaves · L75-L77 V10a + close · L78 .46.12 · L79 .46.9 amend (froz
 
 ## 🔴 Where it stops
 06:1xZ 10-24: P1 HALT #2 (403: stale spawn.credential.workspace_id; $0). My 06:18:48Z "create agi-p1 into the town cell" was WRONG (crossed; the cell is TOWN-WIDE) and is SUPERSEDED by my 06:1xZ [decision] (3/3): W-1 existing agi-named workspace -> town cell; W-2 else remove the cell, owner banked for a town workspace (nobody creates one); W-3 p0 (g) no-spend preflight vs the cell actually sent. Then fresh p0 a-g, ONE key, STOP.
-NEXT ACT: confirm belam/SM act on the SUPERSEDING text (not the 06:18:48Z one); review DG3's cell + p0 (g) tip; then the smoke [result]. Also open: dg1 ONE tip (reader + notices root); L95 then .46.5 close. `cd ~/t; date -u; box read`; watcher = background `box n` loop.
+W-1 APPLIES (06:2xZ): belam listed workspace `agi-local-town` e31711fe-f121-4904-abe3-c54e7bcbe7e6 on OPENROUTER_ADMIN -> DG3 tip: cell -> that id + p0 (g). SM relayed only the superseding text + the W-P1 strike. NEXT ACT: review DG3's cell + p0 (g) tip; then the smoke [result]. Also open: dg1 ONE tip (reader + notices root); L95 then .46.5 close. `cd ~/t; date -u; box read`; watcher = background `box n` loop.
 
 ## §4 Traps (gen 17)
 - Sending a [decision] while the seats' newest words are unread: 06:18:48Z crossed two words that had moved on my own reading -> a wrong decision, superseded within a minute. `box read` IMMEDIATELY before every [decision] send, in the same call.
