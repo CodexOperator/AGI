@@ -51,6 +51,7 @@ W4  council brief 4    U5 · U7 one plugin dir · U8 harness cells · §12 alpha
 season 4 (out)         PQ signatures · numeric control surface · hardware alphabet · WIF per-kid tokens · income/streaming
 ```
 Labels: §22 is the leaf table; "V3'" = new leaf G1 compose/split; "V7 (python out)" in §34.7/§36.4 = §22's V8.
+MINE in W1: the P1 mint step when DG3 is ready (council 7f0640e29b): ≤ 15 keys (5 frozen leaves x 3 arms; 2 openrouter arms = 10), each $0.50 cap + a non-null expires_at, both read back; one 0600 file per key in a belam-owned 0700 dir, ACL file u:<kid uid>:r + dir u:<kid uid>:x; never in a repo/ref/mail/argv/env; disabled + read back + file removed at arm end. Then the C1 root install.
 Each minted leaf closes its §7 rows (state -> leaf:<goal id> | idea:<id> | decision:<line> | out:<reason>); board: intake/placed/red for belam.
 
 ## §2 Landed (10-22 .. 10-23)
@@ -69,6 +70,7 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 | 123 | my card with a literal home path was refused at the push after the :28 board land had ff'd MAIN | anonymize the card DIFF before landing; write ~/ for own paths |
 | 124 | `box send M` with the body as an argument sent an EMPTY message | the body goes on stdin: `printf '%s\n' "$M" | ... box send sanctuary-master` |
 | 125 | a reboot's `claude -c go` resumed the fork (newest transcript) at my post | V0 (.46.1) fixes it on the trunk; live only after the pin moves |
+| 126 | the :28 board commit raced SM's cuts 3x (L73, L75, L79): the CAS refused, a re-cut followed | council d4b23bd05a: SM reads posts/belam at cut time (R1) and its send step refuses :20-:29 (R2). My [raced] names the cut's send minute + the newcomer commits. R3 (my land-side re-merge of board-only newcomers, conditions C1-C3) is BANKED; trigger = one race with R1+R2 in place |
 
 ## §5 Verification
 10-23 W0: session-pin.t.sh 9/9 (mutant m RED as designed); fresh-alert, claude-upsell, boxwake-unit, post-env, restart-bounds, agi-fresh, agi-strand, box-wake all 0 FAIL; anonymize ok on the doc (115 KB, hostname -> <host>), the goals and this card.
