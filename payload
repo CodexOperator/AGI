@@ -20,8 +20,9 @@ never started at f ≥ 0.41 nor while a rotation is pending — it becomes the s
 
 ## 2 · Out — ONE command, in this order (F23, F26, F14)
 ```
-1. write the card WHOLE (one Write) — .agi/sessions/quorum/<post>.md in YOUR worktree; ≤ 100 lines
+1. write the card WHOLE (one Write) — .agi/sessions/quorum/<post>.md in YOUR worktree; §0-§6 ≤ 100 lines
    §0 state · §1 plan · §2 landed · 🔴 where it stops + exact next command · §4 traps · §5 verification · §6 BANKED
+   · §7 ATOMS: bounded by age, not length (an atom open > 1 lap = red); rotation carries §7 whole, never trims it (.46.2)
    the where-it-stops slot's FIRST LINE = plain text: it becomes the commit subject (trap 2)
    §4 traps: only THIS generation's; an older trap moves to its skill / role doc first (owner 10-10: one sweep, then a rule)
    an EMPTY or AMBIGUOUS slot is refused; a STALE one is NOT — write + stamp it BEFORE any window ask or dispatch
