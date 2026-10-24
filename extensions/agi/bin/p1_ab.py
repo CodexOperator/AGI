@@ -417,6 +417,20 @@ def disable_key(key_hash: str, root: str | Path | None = None) -> bool:
     return status == 200
 
 
+def key_state(key_hash: str, root: str | Path | None = None) -> tuple[int, dict | None]:
+    """(HTTP status, the key) as the API reports it BY HASH (GET /keys/<hash>); the key is None unless that answered 200.
+    Never the listing: GET /keys lists one workspace and omits disabled keys, so a key minted into agi-local-town
+    read back 'absent' after a correct disable (the kid-done red on the first live key, 10-24)."""
+    prov = provisioning._read_provisioning_key(root)
+    if prov is None or not key_hash:
+        return 0, None
+    status, body = provisioning._call("GET", f"{provisioning.API_BASE}/{key_hash}", prov)
+    if status != 200 or not isinstance(body, dict):
+        return status, None
+    data = body.get("data", body)
+    return status, (data if isinstance(data, dict) else None)
+
+
 def end_arm(rows: list[dict], *, root: str | Path | None = None, workspace_id: str | None = None) -> list[str]:
     """Disable every key of the arm, read each back as disabled, remove its file. rows: {"hash", "file"}.
     Returns the problems; a key that cannot be shown disabled is a red, and its file is removed regardless."""
@@ -424,11 +438,12 @@ def end_arm(rows: list[dict], *, root: str | Path | None = None, workspace_id: s
     for r in rows:
         if not disable_key(r["hash"], root):
             out.append(f"key {r['hash']}: the disable call did not succeed")
-    listed = {k.get("hash"): k for k in provisioning.list_keys(root, workspace_id)}
     for r in rows:
-        k = listed.get(r["hash"])
-        if k is None or k.get("disabled") is not True:
-            out.append(f"key {r['hash']}: read back {'absent' if k is None else k.get('disabled')!r}, not disabled")
+        status, k = key_state(r["hash"], root)
+        if k is None:
+            out.append(f"key {r['hash']}: unread: {status}")                      # disabled is read ONLY on a 200
+        elif k.get("disabled") is not True:
+            out.append(f"key {r['hash']}: LIVE (200, disabled {k.get('disabled')!r})")
         try:
             Path(r["file"]).unlink()
         except FileNotFoundError:
@@ -471,11 +486,11 @@ def kid_done(*, key_hash: str, keyfile: str | Path, ledger: str | Path, root: st
     row = next((r for r in rows if r.get("hash") == key_hash), None)
     if row is None:
         raise P1Refused(f"key {key_hash!r} is not in the ledger: only a key this driver minted is disabled here")
-    listed = next((k for k in provisioning.list_keys(root, workspace_id) if k.get("hash") == key_hash), None)
+    listed = key_state(key_hash, root)[1]                    # by hash, before the disable: the listing is blind to a workspace
     usd = None if listed is None else float(listed.get("usage") or 0.0)
     problems = end_arm([{"hash": key_hash, "file": str(keyfile)}], root=root, workspace_id=workspace_id)
     if usd is None:
-        problems.append(f"key {key_hash}: absent from the listing, its spend is unknown")
+        problems.append(f"key {key_hash}: unreadable by hash, its spend is unknown")
     row["usd"], row["done"] = usd, not problems
     Path(ledger).write_text(json.dumps(rows, indent=1))
     return {"arm": row["arm"], "leaf": row["leaf"], "hash": key_hash, "usd": usd, "problems": problems}

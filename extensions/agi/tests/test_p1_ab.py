@@ -215,6 +215,10 @@ class Api:
         if method == "DELETE":
             self.revoked.append(url.rsplit("/", 1)[-1])
             return 200, {}
+        if method == "GET" and "/keys/" in url:                       # GET /keys/<hash>: the key by hash, any workspace
+            h = url.rsplit("/", 1)[-1]
+            row = next((r for r in self.rows if r["hash"] == h), None)
+            return (200, {"data": dict(row)}) if row is not None else (404, {"error": "no such key"})
         if method == "GET":
             self.gets.append(url)
             if url.endswith("/workspaces"):
@@ -546,20 +550,38 @@ def test_end_arm_disables_reads_back_disabled_and_removes_the_files(monkeypatch,
     assert all(r["disabled"] for r in api.rows)
 
 
+def test_a_key_in_another_workspace_reads_disabled_by_hash_though_the_listing_is_blind(monkeypatch, tmp_path):
+    """The live red (10-24): GET /keys lists only the default workspace and omits disabled keys, so a key minted into
+    agi-local-town read back 'absent' after a correct disable. The read-back is GET /keys/<hash>, never the listing."""
+    api = Api(monkeypatch)
+    api.workspaces = ["ws-town"]
+    led = tmp_path / "l.json"
+    k = p1_ab.mint_capped(arm="glm", leaf=LEAVES[0], cfg=CFG, ledger=led, workspace_id="ws-town")
+    monkeypatch.setattr(provisioning, "list_keys", lambda root=None, workspace_id=None: [])     # blind, whatever is asked
+    f = tmp_path / "k"
+    f.write_text(k.secret)
+    assert p1_ab.end_arm([{"hash": k.key_hash, "file": str(f)}], workspace_id="ws-town") == [] and not f.exists()
+    api.rows[0]["usage"] = 0.0249
+    done = p1_ab.kid_done(key_hash=k.key_hash, keyfile=f, ledger=led, workspace_id="ws-town")     # second call: idempotent
+    assert done["problems"] == [] and done["usd"] == 0.0249
+    row = json.loads(led.read_text())[0]
+    assert row["done"] is True and row["usd"] == 0.0249                                              # so `record` can read it
+
+
 def test_a_missed_disable_is_a_red_and_the_file_is_still_removed(monkeypatch, tmp_path):
     api = Api(monkeypatch, stored_limit="ignore-disable")
     k = p1_ab.mint_capped(arm="glm", leaf=LEAVES[0], cfg=CFG, ledger=tmp_path / "l.json")
     f = tmp_path / "k"
     f.write_text(k.secret)
     problems = p1_ab.end_arm([{"hash": k.key_hash, "file": str(f)}])
-    assert any("not disabled" in x for x in problems) and not f.exists()
+    assert any("LIVE" in x for x in problems) and not f.exists()                              # a 200 with disabled false is LIVE
 
 
-def test_a_key_that_vanished_from_the_listing_is_a_red(monkeypatch, tmp_path):
+def test_a_key_the_api_does_not_know_by_hash_is_a_red(monkeypatch, tmp_path):
     api = Api(monkeypatch)
     monkeypatch.setattr(provisioning, "list_keys", lambda root=None, workspace_id=None: [])
     problems = p1_ab.end_arm([{"hash": "gone", "file": str(tmp_path / "none")}])
-    assert any("absent" in x for x in problems)
+    assert len(problems) == 1 and "unread: 404" in problems[0] and "disabled" not in problems[0].replace("unread", "")     # a 404 never reads disabled
 
 
 def test_a_scratch_land_that_creates_a_shadow_bin_file_reads_red():
@@ -736,7 +758,7 @@ def test_kid_done_with_a_key_that_stays_enabled_is_a_red_and_still_removes_the_f
     led = tmp_path / "l.json"
     k = p1_ab.kid_key(arm="glm", leaf=LEAVES[0], cfg=CFG, keydir=d, ledger=led, kid_uid=KID)
     out = p1_ab.kid_done(key_hash=k["hash"], keyfile=k["file"], ledger=led)
-    assert any("not disabled" in x for x in out["problems"]) and not Path(k["file"]).exists()
+    assert any("LIVE" in x for x in out["problems"]) and not Path(k["file"]).exists()
     assert json.loads(led.read_text())[0]["done"] is False
 
 
