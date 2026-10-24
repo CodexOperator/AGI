@@ -54,7 +54,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-00:56Z 10-24: decided 3/3: L81 U1 GO (+ dg1 pre-adds the 5 P1 leaves to .46.10's explain table); Q-K1 no users / no DynamicUser (kids run in the director's uid; belam drops the §6 line); engine-sizes r1 -> belam one-line fix; L82 C1-C3 GO on a FIXED tip (agi-infer must read the credential only with no infer_key + host api.anthropic.com, or AGI_INFER_CRED explicit; mutants a/b/c). OWED BY ME: .46.9 wording 'kid runs in the director's post uid' after DG3 part 2 lands. NEXT: GATE179 part 2 review; L82 fixed tip; DG2 re-cut. `cd ~/t; date -u; box read`.
+01:14Z 10-24: L81 U1 LANDED (+ belam's engine-sizes fix, trunk bfe7a16242). [decision] 3/3 GO on three tips: L82 DS1 039c45eda6 (agi-infer reads cred only when AGI_INFER_CRED set), L83 dg1 5d894121b6 (5 standing rows), L84 DG3 0e864235d8 (P1 part 2 + mint driver, $0). Follow-ups: F1 secret-not-on-stdout test, F2 MintedKey.secret repr=False, F3 dg1 standing rows by closure + narrowed to DG3 + retired at .46.9 close. OWED BY ME after L84: .46.9 wording 'kid runs in the director's post uid'. Then DG3 kid-launch; DG2 M1-M4 re-cut. `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15, re-hit L70 stamp) [-> agi-verify]
