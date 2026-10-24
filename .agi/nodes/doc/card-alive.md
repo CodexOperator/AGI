@@ -54,7 +54,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-00:01Z 10-24: L78 LANDED 23:57:50Z (.46.12; dg1 building). P1 (.46.9) part 2 Q0-Q3 [decision]+[merge-up] 3/3 sent: Q0 pin accepted + per-arm integrity; Q1 belam mints (cap + non-null expires_at), 0600 file + file r / dir x ACLs for the kid uid, DG3 runs arms, revoke read-back; Q2 DG3 proposes, frozen list; Q3 one metrics writer. .46.9 amended tip 6b3e35bbf0 (clean with DG3 part 1 a526912aa2). NEXT: GATE173 [review] of DG3 part 1; my .46.9 amendment's L; DG3's 10-leaf list for the council's word. `cd ~/t; date -u; box read`.
+00:15Z 10-24: L79 (.46.9 amendment) [decision] GO 3/3 on NEW tip 67a0651309: P1 FROZEN 5 leaves (g4.18.2.1 · g7.31.3.1 · g7.32.3 · g4.21 · g7.32.1; out g7.32.2 grok spend, g6.50 cap, g7.32.4 needs .32.2, g7.31.1.1 season-2), ONE frozen base, no merge during P1, first green in order deepseek/glm/credits merges; heal.py EACCES = SM's [finding], normal route. L80 = DG3 part 1 after GATE173. NEXT: read L79 cut, L80 review, dg1 .46.12 build. `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15, re-hit L70 stamp) [-> agi-verify]
