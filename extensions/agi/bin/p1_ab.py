@@ -18,6 +18,12 @@ Pieces, each one a clause of the leaf's PART 2 RULES or falsifier, none of them 
                  starts (at most `max_live` files exist), and after the kid exits read its spend, disable the key,
                  read it back as disabled and remove the file. The kid runs in the director's post uid (agi-kid's
                  model), never belam or root; the secret is in that one file and nowhere else.
+- `kid_plan` / `run_kid` / `record_result`  MY side of a kid (the director's post uid): the node >= node_min check
+                 (the system node can be too old for pi 1.x), the models.json whose only secret is a PATH
+                 (apiKey "!cat <keyfile>"), a whitelisted env without any key, the pinned pi1 command, one
+                 bounded run, and one row per (arm, leaf) in the committed results file. NO kid-to-kid key
+                 isolation under one uid (council Q-K1): the real bounds are the $0.50 cap with the TTL read back,
+                 max_live = 2 key files, and disable + read back + remove at kid end.
 - `may_start`    the spawn gate (at most `max_live`, none while agi.slice is above `slice_gb_max`).
 - `render_segment` / `merge_pick`  the committed results file -> the `| p1: ...` metrics_line segment text (the
                  ONE metrics writer calls it) and the one-run-per-leaf merge rule. This module never writes a
@@ -34,6 +40,7 @@ import json
 import math
 import os
 import re
+import shutil
 import stat
 import subprocess
 import sys
@@ -439,6 +446,170 @@ def kid_done(*, key_hash: str, keyfile: str | Path, ledger: str | Path, root: st
     return {"arm": row["arm"], "leaf": row["leaf"], "hash": key_hash, "usd": usd, "problems": problems}
 
 
+# --- my side of a kid: the launch ---------------------------------------------------
+
+#: The only environment a kid gets. No key, no provisioning variable, nothing inherited.
+KID_ENV_KEYS = ("PATH", "HOME", "PI_CODING_AGENT_DIR", "PI_OFFLINE", "LANG")
+
+
+def _node_version(path: str) -> tuple[int, ...] | None:
+    try:
+        r = subprocess.run([path, "--version"], capture_output=True, text=True, timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    m = re.fullmatch(r"v(\d+)\.(\d+)\.(\d+)", r.stdout.strip())
+    return tuple(int(x) for x in m.groups()) if m else None
+
+
+def node_for_pi(cfg: dict) -> str:
+    """The first node (cell `node_candidates`, then PATH) at or above `node_min`: pi 1.x needs node >= 22.19 and
+    the system node of this box is older, so a bare `node` on PATH is NOT assumed. Raises naming each one tried."""
+    p = cell(cfg)
+    need = tuple(p["node_min"])
+    tried = []
+    for cand in list(p.get("node_candidates") or []) + [shutil.which("node") or ""]:
+        if not cand or cand in [t[0] for t in tried]:
+            continue
+        ver = _node_version(cand)
+        if ver is not None and ver >= need:
+            return cand
+        tried.append((cand, ver))
+    raise P1Refused(f"no node >= {'.'.join(map(str, need))} found; tried {tried}")
+
+
+def pi_cli(prefix: str | Path, cfg: dict) -> str:
+    """The real file behind `<prefix>/node_modules/.bin/pi`, which must sit inside the pinned package: a bin link
+    retargeted elsewhere is refused (the tree seal catches a changed link; this is the second lock)."""
+    pin = cell(cfg)["pin"]
+    prefix = Path(os.path.expanduser(str(prefix)))
+    real = os.path.realpath(prefix / "node_modules" / ".bin" / "pi")
+    pkg = os.path.realpath(prefix / "node_modules" / pin["package"])
+    if not real.startswith(pkg + os.sep):
+        raise P1Refused(f"pi bin resolves to {real}, outside the pinned package {pkg}")
+    return real
+
+
+def write_models_json(agent_dir: str | Path, provider: str, keyfile: str | Path,
+                      base_url: str | None = None) -> Path:
+    """<agent_dir>/models.json whose ONLY credential is the key file's path: apiKey "!cat <keyfile>" (pi runs it at
+    request time). `base_url` is for the offline smoke only; a P1 arm never sets it."""
+    key = str(keyfile)
+    if not os.path.isabs(key) or not re.fullmatch(r"[A-Za-z0-9_./-]+", key):
+        raise P1Refused(f"key file path {key!r} must be absolute and made of plain path characters")
+    entry: dict = {"apiKey": f"!cat {key}"}
+    if base_url:
+        entry["baseUrl"] = base_url
+    agent_dir = Path(agent_dir)
+    agent_dir.mkdir(parents=True, exist_ok=True)
+    path = agent_dir / "models.json"
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w") as fh:
+        json.dump({"providers": {provider: entry}}, fh)
+    return path
+
+
+def leaf_brief(leaf: str, root: str | Path, cfg: dict) -> str:
+    """The kid's brief: the leaf id, its Target end-state and Falsifier sections VERBATIM, then the cell's standing
+    rules for that leaf (g4.18.2.1: never create the shadow bin files)."""
+    if leaf not in leaves(cfg):
+        raise P1Refused(f"leaf {leaf!r} is not in the frozen list {leaves(cfg)}")
+    text = (Path(root) / ".agi" / "nodes" / "goal" / f"{leaf.split(':', 1)[1]}.md").read_text()
+    parts = []
+    for head in ("Target end-state", "Falsifier"):
+        m = re.search(rf"^## {head}\n(.*?)(?=^## |\Z|^<!--)", text, re.S | re.M)
+        if m:
+            parts.append(f"## {head}\n{m.group(1).strip()}")
+    rules = cell(cfg).get("kid_rules", {}).get(leaf)
+    return (f"You are a kid on leaf {leaf} in this repository (cwd). Make its falsifier pass with the smallest change; "
+            f"edit files only, do not commit, push or run the full test suite. Stop when the falsifier holds.\n\n"
+            + "\n\n".join(parts) + (f"\n\nStanding rule: {rules}" if rules else ""))
+
+
+def kid_plan(*, arm: str, leaf: str, cfg: dict, keyfile: str | Path, worktree: str | Path, kid_home: str | Path,
+             prompt: str, prefix: str | Path = "~/pi1", base_url: str | None = None) -> dict:
+    """The kid's command, cwd and environment, with no side effect. The environment is exactly KID_ENV_KEYS."""
+    import adapters  # noqa: PLC0415
+    if arm == CREDITS_ARM or arm not in cell(cfg)["arm_cap_usd"]:
+        raise P1Refused(f"arm {arm!r} cannot launch an OpenRouter kid")
+    if leaf not in leaves(cfg):
+        raise P1Refused(f"leaf {leaf!r} is not in the frozen list {leaves(cfg)}")
+    h = adapters.harness_block(cfg, f"pi1:{arm}")
+    if not h:
+        raise P1Refused(f"no harness row pi1:{arm}")
+    node = node_for_pi(cfg)
+    kid_home = str(kid_home)
+    agent_dir = f"{kid_home}/.p1-agent"
+    argv = [node, pi_cli(prefix, cfg), "--provider", h["provider"], "--model", h["models"]["kid"],
+            "--thinking", h.get("thinking", "medium"), "-p", prompt, "--no-session", "--no-extensions",
+            "--no-skills", "--no-prompt-templates", "--no-themes", "--no-mcp", "--offline"]
+    env = {"PATH": f"{os.path.dirname(node)}:/usr/bin:/bin", "HOME": kid_home, "PI_CODING_AGENT_DIR": agent_dir,
+           "PI_OFFLINE": "1", "LANG": "C.UTF-8"}
+    return {"argv": argv, "env": env, "cwd": str(worktree), "agent_dir": agent_dir, "provider": h["provider"],
+            "model": h["models"]["kid"], "keyfile": str(keyfile), "base_url": base_url,
+            "log": f"{kid_home}/p1-{arm}-{leaves(cfg).index(leaf) + 1}.log", "timeout": int(cell(cfg)["kid_timeout_s"])}
+
+
+def run_kid(plan: dict, cfg: dict, *, live: int, gb: float | None) -> dict:
+    """Spawn gate, models.json, ONE bounded run, models.json removed. Returns {"rc", "secs", "timed_out"}: never the
+    log's content and never the key. A kid at the timeout is a counted red, not retried."""
+    ok, why = may_start(live, gb, cfg)
+    if not ok:
+        raise P1Refused(f"kid not started: {why}")
+    if set(plan["env"]) - set(KID_ENV_KEYS):
+        raise P1Refused(f"kid env carries {sorted(set(plan['env']) - set(KID_ENV_KEYS))}: only {KID_ENV_KEYS} are allowed")
+    models = write_models_json(plan["agent_dir"], plan["provider"], plan["keyfile"], plan.get("base_url"))
+    start = _now()
+    timed_out = False
+    rc: int | None
+    try:
+        fd = os.open(plan["log"], os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "w") as log:
+            try:
+                rc = subprocess.run(plan["argv"], cwd=plan["cwd"], env=plan["env"], stdin=subprocess.DEVNULL,
+                                    stdout=log, stderr=subprocess.STDOUT, timeout=plan["timeout"]).returncode
+            except subprocess.TimeoutExpired:
+                rc, timed_out = None, True
+    finally:
+        models.unlink(missing_ok=True)
+    return {"rc": rc, "secs": round((_now() - start).total_seconds(), 1), "timed_out": timed_out}
+
+
+def record_result(path: str | Path, cfg: dict, *, arm: str, leaf: str, landed: bool, usd: float, secs: float,
+                  red: bool) -> dict:
+    """Add the (arm, leaf) kid row to the committed results file (written atomically; one row per pair, ever).
+    This is the file the one metrics writer renders; this function writes nothing else."""
+    import adapters  # noqa: PLC0415
+    if leaf not in leaves(cfg):
+        raise P1Refused(f"leaf {leaf!r} is not in the frozen list {leaves(cfg)}")
+    h = adapters.harness_block(cfg, f"pi1:{arm}")
+    if not h:
+        raise P1Refused(f"no harness row pi1:{arm}")
+    if not isinstance(usd, (int, float)) or isinstance(usd, bool) or not math.isfinite(usd) or usd < 0:
+        raise P1Refused(f"usd {usd!r} must be a finite number >= 0")
+    path = Path(path)
+    try:
+        res = json.loads(path.read_text())
+    except FileNotFoundError:
+        res = {"base": cell(cfg)["base"], "arms": []}
+    except (OSError, ValueError) as exc:
+        raise P1Refused(f"results file {path} unreadable ({type(exc).__name__})")
+    if res.get("base") != cell(cfg)["base"]:
+        raise P1Refused(f"results file base {res.get('base')!r} != the frozen base")
+    entry = next((a for a in res["arms"] if a["arm"] == arm), None)
+    if entry is None:
+        entry = {"arm": arm, "model": h["models"]["kid"], "kids": []}
+        res["arms"].append(entry)
+    if any(k["leaf"] == leaf for k in entry["kids"]):
+        raise P1Refused(f"({arm}, {leaf}) already has a result row: one run per pair, never re-recorded")
+    entry["kids"].append({"leaf": leaf, "landed": bool(landed), "usd": float(usd), "secs": float(secs), "red": bool(red)})
+    order = cell(cfg)["arm_order"]
+    res["arms"].sort(key=lambda a: order.index(a["arm"]) if a["arm"] in order else len(order))
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(res, indent=1) + "\n")
+    os.replace(tmp, path)
+    return res
+
+
 def scratch_land_problems(paths: list[str], cfg: dict) -> list[str]:
     """RED when a kid's scratch land creates a path the engine forbids (the shadow bin files, CLAUDE.md)."""
     forbidden = set(cell(cfg).get("forbidden_paths") or [])
@@ -538,16 +709,56 @@ def _driver(cmd: str, args: list[str], cfg: dict) -> int:
     return 1 if out.get("problems") else 0
 
 
+def _mine(cmd: str, args: list[str], cfg: dict, root: Path) -> int:
+    """My side, run as the director's post uid. `run-kid ARM LEAF --key-file F --worktree W --kid-home H [--live N]`
+    runs preflight + the kid; `record ARM LEAF --usd X --secs S --landed 0|1 --red 0|1` adds the result row.
+    One JSON line out, never a key."""
+    import argparse  # noqa: PLC0415
+    ap = argparse.ArgumentParser(prog=f"p1_ab.py {cmd}")
+    ap.add_argument("arm")
+    ap.add_argument("leaf")
+    if cmd == "run-kid":
+        ap.add_argument("--key-file", required=True)
+        ap.add_argument("--worktree", required=True)
+        ap.add_argument("--kid-home", required=True)
+        ap.add_argument("--live", type=int, default=0)
+    else:
+        ap.add_argument("--usd", type=float, required=True)
+        ap.add_argument("--secs", type=float, required=True)
+        ap.add_argument("--landed", type=int, choices=(0, 1), required=True)
+        ap.add_argument("--red", type=int, choices=(0, 1), required=True)
+    a = ap.parse_args(args)
+    try:
+        if cmd == "run-kid":
+            arm_preflight(arm=a.arm, leaf=a.leaf, prefix="~/pi1", cfg=cfg, kid_uid=os.geteuid(),
+                          keydir=os.path.dirname(a.key_file), worktree=a.worktree)
+            plan = kid_plan(arm=a.arm, leaf=a.leaf, cfg=cfg, keyfile=a.key_file, worktree=a.worktree,
+                            kid_home=a.kid_home, prompt=leaf_brief(a.leaf, root, cfg))
+            out = run_kid(plan, cfg, live=a.live, gb=slice_gb())
+        else:
+            record_result(root / cell(cfg)["results"], cfg, arm=a.arm, leaf=a.leaf, landed=bool(a.landed),
+                          usd=a.usd, secs=a.secs, red=bool(a.red))
+            out = {"arm": a.arm, "leaf": a.leaf, "recorded": True}
+    except P1Refused as exc:
+        print(f"p1 {cmd}: {exc}")
+        print(f"p1 {cmd}: RED")
+        return 1
+    print(json.dumps(out))
+    return 0
+
+
 def main(argv: list[str]) -> int:
     root = Path(__file__).resolve().parents[3]
     cfg = json.loads((root / ".agi" / "config.json").read_text())
     cmd = argv[1] if len(argv) > 1 else ""
     if cmd in ("-h", "--help"):
         print(__doc__.strip().split("\n\n")[0])
-        print("usage: p1_ab.py install|seal|pin-check [prefix] | old-pi | kid-key | kid-done")
+        print("usage: p1_ab.py install|seal|pin-check [prefix] | old-pi | kid-key | kid-done | run-kid | record")
         return 0
     if cmd in ("kid-key", "kid-done"):
         return _driver(cmd, argv[2:], cfg)
+    if cmd in ("run-kid", "record"):
+        return _mine(cmd, argv[2:], cfg, root)
     prefix = argv[2] if len(argv) > 2 else "~/pi1"
     if cmd == "install":
         problems = install(prefix, cfg)
@@ -562,7 +773,7 @@ def main(argv: list[str]) -> int:
     elif cmd == "old-pi":
         problems = old_pi_untouched()
     else:
-        print("usage: p1_ab.py install|seal|pin-check [prefix] | old-pi | kid-key | kid-done", file=sys.stderr)
+        print("usage: p1_ab.py install|seal|pin-check [prefix] | old-pi | kid-key | kid-done | run-kid | record", file=sys.stderr)
         return 2
     for pr in problems:
         print(f"p1 {cmd}: {pr}")
