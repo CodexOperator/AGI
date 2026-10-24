@@ -437,5 +437,6 @@
       "probe_cache_file": "probe"
     }
   },
+  "prereq_notice": {"notice_lag_red_min": 60},
   "merge_gate": {"review_paths": ["extensions/", "skills/", "src/", ".agi/config.json", ".agi/nodes/.geometry/", ".github/"]}
 }

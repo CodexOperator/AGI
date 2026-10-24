@@ -1328,6 +1328,27 @@ def check_spawn(
         _reject_message(res, shape, schema)
         return res
 
+    # goal:g7.16.1.11.46.12 -- a goal's OPTIONAL `needs:` list names the nodes whose terminal status clears it for
+    # its claimer (prereq_notice.py). An id that names no node is REFUSED at mint, so a typo cannot wait for ever.
+    if ntype == "goal" and fm is not None and fm.get("needs") is not None:
+        needs = fm.get("needs")
+        if not isinstance(needs, list) or not all(isinstance(n, str) and n.strip() for n in needs):
+            res.status = REJECTED
+            res.reason = f"rule 'needs' from {schema.source}: {shape} `needs:` must be a list of node ids, got {needs!r}"
+            res.fix = f"write `needs:` on {res.node_id} as a list of existing node ids, or drop it."
+            _reject_message(res, shape, schema)
+            return res
+        if type_index is not None:
+            unknown = [n.strip() for n in needs if n.strip() not in type_index]
+            if unknown or res.node_id in [n.strip() for n in needs]:
+                res.status = REJECTED
+                res.reason = (f"rule 'needs' from {schema.source}: {shape} `needs:` "
+                              + (f"id(s) {unknown} resolve to no node" if unknown else "names the node itself"))
+                res.fix = f"point `needs:` on {res.node_id} at existing nodes other than itself, or drop it."
+                _reject_message(res, shape, schema)
+                return res
+        res.applied.append(f"needs={len(needs)}")
+
     res.status = APPROVED
     res.messages.append(
         f"SPAWN-GATE APPROVED: {res.node_id} checked against "
