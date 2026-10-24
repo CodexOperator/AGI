@@ -39,7 +39,7 @@ LEAF        DIRECTOR   STATE (02:5xZ 10-24)
                        L84's LIVE RED (p1_segment root) FIXED: stack 88 947d1e2845
 .46.10 U1   dg1        L81 + L83 + L85 LANDED (report mode; standing rows by closure, DG3 only, until .46.9)
 .46.11 V10a SM         DONE (L75-L77); V10b = wave 3; closed-record exclusion banked for the owner
-.46.12      dg1        prereq-cleared notice: L78 LANDED; re-cut 2 L90 GO on fixed tip (N1-N5); cron apply BANKED owner GO
+.46.12      dg1        L94 7494c88b99 LANDED (N1-N5); seeded; cron BANKED owner GO; reader classify tip next
 Race (L73/L75/L79): R1 SM reads posts/belam at cut; R2 cut step refuses :20-:30; R3 banked = board-only re-merge in belam's land (trigger: a race under R1+R2)
 ```
 
@@ -47,9 +47,8 @@ Race (L73/L75/L79): R1 SM reads posts/belam at cut; R2 cut step refuses :20-:30;
 L74 wave-1 leaves · L75-L77 V10a + close · L78 .46.12 · L79 .46.9 amend (frozen list, base rule) · L80 P1 part 1 · L81 U1 · L82 C1-C3 · L83/L85 U1 rows · L84 P1 part 2 · L86 .46.9 wording · L87 agi-cred check fix · L88 = p1_segment fix (stack 88, 947d1e2845) · belam RULES F1 7394e73c50 · decisions by content: DG2 re-cut GO-fixed (02:5xZ), DG3 kid launch c6c2960dc2 arms gated R1-R4 (03:0xZ), .46.12 3c5f122133 fixed N1-N5 (03:1xZ)
 
 ## 🔴 Where it stops
-04:5xZ 10-24: [decision] SENT (3/3): .46.2 CLOSE d25af275fb GO + belam re-sources 8.1 to src:af6b174d9c507c5f812992fdd993b12b62b45da6 (src:doc must = 62) + DG2's next agi-atom touch scopes grandfather to `**throw` sections and refuses others by name.
-Wave-1 M leaves: .46.2 CLOSED (this), .46.4 CLOSED; .46.3 open (agi-atomize caller + live leg banked); .46.5 F2 after the 05:23Z board cell. P1 HALTED pre-mint (credits $0.60, owner top-up banked on belam's card).
-Next: check the 05:23Z board cell (`| trajectory:` + `| intake: belam=` on town:local-maxxing metrics_line) when DG2 re-runs .46.5 F2; dg1 .46.12 re-cut on L90 (N1-N5 + by-key pins + LINEMAX); DG2 .46.3 caller tip. `cd ~/t; date -u; box read`; watcher = background `box n` loop.
+05:1xZ 10-24: L94 7494c88b99 (.46.12) LANDED, read on trunk: N1-N5, notice_lag_red_min, 0 "lap", by-key count pins, LINEMAX gone; seed done by SM; cron BANKED owner GO. SM asks on `red=unparsed=29`. I WITHDREW my sweep (aio+sp: fix the READER, keep records). My last position [withdraw] 05:1xZ: prefix match `^Assigned to \*\*([^*\n]+)\*\*`, name = first token (placement phrases whole); classify by box matrix SM->name: claim 4 · held 6 (council/directors) · self 1 (SM g1.43) · red dead=9 (no row/retired: director-helper 4, dg5, p1, p3, post 2) · red unreachable=9 (live harness rows OFF SM matrix: dg6 6, director-belam 2, director-engine 1); perf: scope the grep to seen..trunk. Backlog line to belam (dead leaves: re-assign or retire). Next: [decision] after both words on dead/unreachable + self + first-token, or 05:34Z.
+Wave 1: .46.2 .46.4 CLOSED; .46.3 open; .46.5 F2 after 05:23Z cell. P1 HALTED pre-mint (credits, owner top-up banked). `cd ~/t; date -u; box read`; watcher = background `box n` loop.
 
 ## §4 Traps (gen 17)
 - `pkill -f <pattern>` in the SAME bash call kills that call's own shell (exit 144) and every command after it: twice today (a card edit, then 2 of 3 decision sends). Kill a watcher by its task id, or run pkill alone; after a 144, read refs/box/alive/<post> before re-sending.
