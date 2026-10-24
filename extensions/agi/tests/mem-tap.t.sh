@@ -83,7 +83,7 @@ ok "r4x-mutant-cross-session-reads-owner-RED a filter without the <cross-session
 # REPAIR' (council 15:4xZ): scrub RETIRES (moves, bytes unchanged) an owner chunk that carries a not-owner opener to mem/retired/ and clears that session's cursor; at / derive / label / find read mem/<date>/ only; at is RED on k != m
 XS='<cross-session-message from="x">hand-off</cross-session-message>'
 MUT 's/<\[a-z\]\[a-z-\]\*\[ >\]|//';cp $D/mut $D/mut_f
-MUT 's/ -- mem .:!mem\/retired. 2>\/dev\/null|wc -l/ 2>\/dev\/null|wc -l/';cp $D/mut $D/mut_at
+MUT 's/ -- mem .:!mem\/retired. 2>\/dev\/null|awk "\$HT"/ -- mem 2>\/dev\/null|awk "$HT"/';cp $D/mut $D/mut_at
 MUT 's/\[ \$new -gt 0 \]&&cm "speaker not human.*;exit 0;;/exit 0;;/';cp $D/mut $D/mut_scrub
 SCR(){ env HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_TRUNK=HEAD PATH=$D/bin:$PATH sh ${1:-$D/bin/agi-mem} scrub;}
 nh r4s;UL c1 "$XS">>$X;UL u9 "my real words">>$X;TAP $D/mut_f>/dev/null;n0=$(nchunks);a0=$(AT);px=$(git -C $S grep -l cross-session refs/heads/mem|sed 's/^[^:]*://');b0=$(git -C $S rev-parse refs/heads/mem:$px);SCR;n1=$(nchunks);b1=$(git -C $S rev-parse refs/heads/mem:mem/retired/${px#mem/});cur=$([ -f $S/cursor-S1 ]&&echo kept||echo cleared);a1=$(AT);TAP>/dev/null;a2=$(AT);msg=$(git -C $S log -1 --format=%s refs/heads/mem~1 2>/dev/null)
