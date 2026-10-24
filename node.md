@@ -13,7 +13,7 @@ origin: council-loop
 scaffold_hash: caf090ada9ca81b5
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - write
 title: "G1.31.5.1.3.1.1: the Prime closeout survives a suite lock held past the bound -- rc 3 from a held lock is never fatal"
@@ -39,3 +39,7 @@ the harness bars (met, goal:g1.31.5.1.3.1 F1) · DG4's ceiling overrun (+79/+152
 
 ## Agent Notes
 Assigned to **belam**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-goals-1 10-24 (follows goal:g1.31.5.1 to horizon, STEP B (alive 07:1xZ). Assigned to belam kept: belam [word] 07:1xZ YES, park it at horizon with the g1.31 subtree (season-2 Prime-closeout hardening, no current-wave consumer; it revives by naming one).)
+<!-- THOUGHT:END -->
