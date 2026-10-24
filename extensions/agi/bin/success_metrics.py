@@ -283,6 +283,20 @@ def _run_metrics_once(root: Path) -> tuple[dict, str | None]:
 LINE_NO_NETWORK = ("subscription_tokens_per_season", "openrouter_subscription_spend_ratio")
 
 
+def p1_segment(root: Path) -> str:
+    """goal:g7.16.1.11.46.9 Q3: the `| p1: <model> $/landed=.. s/landed=.. red=<r>/<n>` segments, one per arm in
+    the committed results file (p1_ab.py writes the file and never this line). No file = no segment; a file that
+    cannot be read or rendered is NAMED, not dropped."""
+    try:
+        import json  # noqa: PLC0415
+        import p1_ab  # noqa: PLC0415
+        cfg = json.loads((Path(root) / ".agi" / "config.json").read_text())
+        results = p1_ab.read_results(root, cfg)
+        return "" if results is None else p1_ab.render_segment(results, cfg)
+    except Exception as exc:  # noqa: BLE001 -- a metrics line is never fatal
+        return f"| p1: UNMEASURED(results unreadable: {_reason(exc)})"
+
+
 def make_line(root: Path) -> str:
     """goal:g3.8 -- ONE line: a UTC minute, the graph counters and the seven success
     metrics. A null is NAMED (UNMEASURED(reason)), never a number the engine does not
@@ -315,7 +329,9 @@ def make_line(root: Path) -> str:
                          f"{'no live counter' if rec.get('present') else 'no source yet'})")
     when = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
     g = " ".join(f"{k}={graph(k)}" for k in LINE_GRAPH_KEYS)
-    return f"{when} graph: {g} | success: {' '.join(parts)}"
+    line = f"{when} graph: {g} | success: {' '.join(parts)}"
+    seg = p1_segment(root)
+    return f"{line} {seg}" if seg else line
 
 
 def main(argv: list[str] | None = None) -> int:
