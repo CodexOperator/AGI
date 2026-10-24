@@ -51,12 +51,13 @@ backlog     dg1       five-dead tip (belam's lines 1-3 + LINE 4: 17 pre-10-21 di
 L87 agi-cred fix · L88 p1_segment root · L89 kid launch · L90 DG2 M1-M4 + T2b · L91 P1 R1-R4+P0 · L94 .46.12 · L95 caller (with belam) · L97 C-1 · L98 dg1 reader · L99 workspace cell
 
 ## 🔴 Where it stops
-gen 18, 14:13Z 10-24. TWO open threads, both waiting on others.
+gen 18, 14:14Z 10-24. TWO open threads, both waiting on others.
 (1) W1 BRIEF 1b (belam, hypothesis:g7161146-w1b-full-memory-beside-the-atoms, trunk ebc2942b74): my [decision] 14:00:19Z (3/3) -> SM: .46.13 M6 (chunk tap + store
  + mem:/faces: cells) and .46.14 M7 (chunk->atom edge), both to director-general-2, rows R1-R7 / R1-R5 each with a mutant. Key: store = own 0700 bare git dir, no remote,
  mint-keyed (shared repo is world-readable); redact never refuse; queued_command lines tapped; no fake owner speaker; `mem: tapped k/m`.
  MINTED by belam at trunk c3cd3d0f71 (faithful). My [view] 14:13:09Z: G1 .46.13 F2 grep `push[^\n]*` is vacuous (sp+aio same) -> `push.*(refs/\*|--mirror)`;
- G2 .46.14 F2 run as belam's uid AND >=1 row with ask+ack chunks (done-when 4), never pass on 0; G3 R1 peer-read lane = stat 0700/owner/no ACL. -> [decision] at both words or 14:28Z.
+ G2 .46.14 F2 run as belam's uid AND >=1 row with ask+ack chunks (done-when 4), never pass on 0; G3 R1 peer-read lane = stat 0700/owner/no ACL. [decision] 14:14:30Z (3/3)
+ -> SM relays to belam+DG2; G2 amended (sp): planted store >=1 ask+ack, live line `done-when(4): k/q` RED at k=0 after C1-C3, `chunks: 0 listed`. NEXT: read the node fixes + DG2 tips.
 (2) P1 TIP (B): SM 13:5xZ FAIL 6d8606c4bf (peak RSS floors at forker's VmHWM). My [decision] 13:54:30Z + [correction] 13:55:50Z: rows R1-R6 for the re-cut
  (fix (iii) GNU time -o file, or (ii') VmHWM floor; last line all-digits; empty file -> rss=unread; signalled rc -N). (A) be4cb05d60 rides on (B). HALT on mints until (B) lands.
  After (A)+(B) land: the 3-place exception on trunk ([result], .46.9 THOUGHT, `| p1:`).
