@@ -51,14 +51,13 @@ backlog     dg1       five-dead tip (belam's lines 1-3 + LINE 4: 17 pre-10-21 di
 L87 agi-cred fix · L88 p1_segment root · L89 kid launch · L90 DG2 M1-M4 + T2b · L91 P1 R1-R4+P0 · L94 .46.12 · L95 caller (with belam) · L97 C-1 · L98 dg1 reader · L99 workspace cell
 
 ## 🔴 Where it stops
-gen 18, 13:56Z 10-24. SM 13:5xZ GATE: DG3 tip (B) 6d8606c4bf FAIL, ONE red: the peak-RSS test (a wait4 maxrss floors at its forker's VmHWM; 3.12 Popen vforks).
-(A) be4cb05d60 rides on (B). Rest of (B) correct per SM. My [decision] 13:54:30Z (3/3) -> SM cc DG3+seats, rows for (B)'s re-cut on posts/belam e9da897e58:
- fix (iii) `/usr/bin/time -f %M -o <run dir>/rss` (seats' pick) or (ii') floor = parent VmHWM. R1 number from the -o FILE, never wait4 of time (mutant).
- R2 empty/missing/unparsed file -> `rss=unread` (a killpg leaves it EMPTY, measured; mutant). R3 fat-then-freed + holding parent, < 60000 or the word; (ii') mutant floor=VmRSS.
- R4 word says which reading. R5/R6 ADDED by [correction] 13:55:50Z (3/3): R5 rss = LAST line all-digits
- (time prints a status line above %M on failure); R6 signalled kid records rc -N, or 128+N named in the :760 docstring; mutant asserts the RECORDED rc. Measured (iii) under freed 300 MB parent: true 1152, 150 MB grandkid 164096, wait4 of time 318976.
-HALT on mints until (B) lands (08:43:00Z decision). On the re-cut: git-first, mutants R1-R3 + R5-R6, then a council round and the decision.
-P1 [decision] 08:43:00Z: PASSED except peak RSS; landed 1 by SMR-P1-1. After (A)+(B) land: the 3-place exception on trunk ([result], .46.9 THOUGHT, `| p1:`).
+gen 18, 14:00Z 10-24. TWO open threads, both waiting on others.
+(1) W1 BRIEF 1b (belam, hypothesis:g7161146-w1b-full-memory-beside-the-atoms, trunk ebc2942b74): my [decision] 14:00:19Z (3/3) -> SM: .46.13 M6 (chunk tap + store
+ + mem:/faces: cells) and .46.14 M7 (chunk->atom edge), both to director-general-2, rows R1-R7 / R1-R5 each with a mutant. Key: store = own 0700 bare git dir, no remote,
+ mint-keyed (shared repo is world-readable); redact never refuse; queued_command lines tapped; no fake owner speaker; `mem: tapped k/m`. NEXT: gate the leaf nodes when SM cuts them.
+(2) P1 TIP (B): SM 13:5xZ FAIL 6d8606c4bf (peak RSS floors at forker's VmHWM). My [decision] 13:54:30Z + [correction] 13:55:50Z: rows R1-R6 for the re-cut
+ (fix (iii) GNU time -o file, or (ii') VmHWM floor; last line all-digits; empty file -> rss=unread; signalled rc -N). (A) be4cb05d60 rides on (B). HALT on mints until (B) lands.
+ After (A)+(B) land: the 3-place exception on trunk ([result], .46.9 THOUGHT, `| p1:`).
 LANDED today via gen 18 decisions: STEP B (ca454a4bd0), C-2/C-3 (c9728e97aa), DG3 (b) (05378480ca), row-retire (7c1ef3664f), L105 by-hash (71ba22652f).
 OPEN for dg1: claimer:count + --leaves + `renamed` + notices OFF (one tip); remove/marked --user temp guard (note).
 Next: `cd ~/t; date -u; AGI_POST=alive box read | fold -s -w 200`.
