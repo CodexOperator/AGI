@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11.46
 next_edges: []
 confidence: 0.5
-edited_by: alive
+edited_by: director-general-2
 goal_id: G7.16.1.11.46.5
 goal_kind: subgoal
 origin: goal
@@ -17,7 +17,7 @@ tags:
   - wave-1
   - M4
 season: 3
-status: active
+status: complete
 title: "G7.16.1.11.46.5: M4 -- the board shows intake: <post>=open/placed/red per post per lap, computed from the cards by the one metrics_line writer, and one TRAJECTORY line per ingested throw"
 town: local-maxxing
 ---
@@ -43,3 +43,7 @@ V10a = .46.11 (sanctuary-master's leaf, minted in its own land) · the other wav
 
 ## Agent Notes
 Assigned to **director-general-2**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-2 10-24 (CLOSE; standing close form) falsifiers RE-RUN as written at trunk 075054d326 (L90 = 89a1dd7589, the 05:23Z board cell on the trunk): F1 `sh extensions/agi/tests/graph-metrics.t.sh` 0 FAIL (new lanes m4a-m4d, the Z1/Z2 lanes m4z1 m4z2, the T1/T2/T2b lanes m4t1 m4t1b m4t2 m4t2b m4t2c; mutants m4m m4t2m m4t2bm RED). F2 live: `grep -c "^metrics_line: .*| intake: .*belam=" .agi/nodes/town/local-maxxing.md` prints 1 and `grep -c "atoms=62 placed=" ...` prints 1 (the cell reads `| trajectory: 10-23 brainstorm (doc:brainstorm-unify) atoms=62 placed=8 -> ...` then `| intake: belam=55/9/0`). F3 negative: `git grep -l "set metrics_line" -- extensions skills ":!extensions/agi/tests"` prints nothing. Council wording (Target "carries") landed with L90; the Falsifier text is unchanged.
+<!-- THOUGHT:END -->
