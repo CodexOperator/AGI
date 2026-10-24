@@ -1048,3 +1048,35 @@ def test_rd3_a_bare_argparse_usage_error_is_a_fail(monkeypatch, tmp_path):
 def test_rd3_a_clean_scan_is_a_pass(monkeypatch, tmp_path):
     _cli_says(monkeypatch, 0, out="anonymize: ok\n")
     assert _v.check_anonymize(tmp_path).status == "PASS"
+
+
+# (M6, goal:g7.16.1.11.46.13 R2) REDACT, NEVER REFUSE: the same tokens `scan` judges are written as their class placeholder
+def test_m6_redact_writes_every_token_as_its_class_placeholder(tmp_path, fake_box):
+    text, n = anonymize.redact("ssh fixture-host-abc at 10.9.8.7 aa:bb:cc:dd:ee:ff sk-fake-secret-abc in /home/zed/p mail a@real.org", root=tmp_path)
+    assert text == "ssh <host> at <ip> <mac> <secret> in <home>/p mail <email>", text
+    assert n == 6
+    assert "fixture-host-abc" not in text and "zed" not in text
+
+
+def test_m6_redact_leaves_text_without_a_token_byte_for_byte_and_counts_zero(tmp_path, fake_box):
+    s = "  plain words, ~/x and <home>/y\n\n"
+    assert anonymize.redact(s, root=tmp_path) == (s, 0)
+
+
+def test_m6_the_redact_verb_maps_json_lines_and_never_needs_the_secrets_source(tmp_path, fake_box):
+    # no .agi project, no env file: box_tokens' secrets read would raise, the verb must still answer
+    import subprocess
+    lines = json.dumps({"b": "at fixture-host-abc", "u": "1"}) + "\n" + json.dumps({"b": "nothing", "u": "2"}) + "\n"
+    r = subprocess.run([sys.executable, str(BIN / "anonymize.py"), "redact", "--root", str(tmp_path)], input=lines,
+                       capture_output=True, text=True, env={**os.environ, "AGI_ANONYMIZE_FIXTURE": str(fake_box)})
+    assert r.returncode == 0, r.stderr
+    out = [json.loads(x) for x in r.stdout.splitlines()]
+    assert [(o["u"], o["b"], o["n"]) for o in out] == [("1", "at <host>", 1), ("2", "nothing", 0)]
+
+
+def test_m6_box_tokens_can_skip_the_secrets_source(tmp_path, monkeypatch):
+    monkeypatch.delenv("AGI_ANONYMIZE_FIXTURE", raising=False)
+    monkeypatch.setattr(anonymize, "_secret_tokens", lambda root: (_ for _ in ()).throw(OSError("not this uid's to read")))
+    with pytest.raises(OSError):
+        anonymize.box_tokens(tmp_path)
+    assert not [t for t in anonymize.box_tokens(tmp_path, secrets=False) if t[0] == "secret"]

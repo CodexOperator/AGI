@@ -18,7 +18,7 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
 agi-run           2260 B  pane cmd: fresh=new id, else --resume ~/.session
-settings.json      372 B  the ONE hook wiring: brief, meter, turn commit
+settings.json      415 B  the ONE hook wiring: brief, meter, turn commit
 cccc.ts           1913 B  pi events -> the CC hooks; mail -> a turn
 agi-kid           2037 B  a pi-free kid in this unit: own HOME and tree
 agi-infer          1332 B  ONE chat call, OpenAI-compatible: stdin -> stdout
@@ -40,9 +40,9 @@ case $H in claude*)d=~/.claude/projects/$(pwd -P|sed 's/[^A-Za-z0-9]/-/g');if [ 
 exec strace -qqf -b execve -e%file -o'|agi-track' $H $c go
 ~~~
 
-### settings.json (372 B)
+### settings.json (415 B)
 ~~~json
-{"skipDangerousModePermissionPrompt":true,"tui":"default","hooks":{"PreToolUse":[{"hooks":[{"type":"command","command":"agi-captive"}]}],"SessionStart":[{"hooks":[{"type":"command","command":"agi-brief","timeout":180}]}],"UserPromptSubmit":[{"hooks":[{"type":"command","command":"agi-meter"}]}],"Stop":[{"hooks":[{"type":"command","command":"agi-turn","timeout":180}]}]}}
+{"skipDangerousModePermissionPrompt":true,"tui":"default","hooks":{"PreToolUse":[{"hooks":[{"type":"command","command":"agi-captive"}]}],"SessionStart":[{"hooks":[{"type":"command","command":"agi-brief","timeout":180}]}],"UserPromptSubmit":[{"hooks":[{"type":"command","command":"agi-meter"}]}],"Stop":[{"hooks":[{"type":"command","command":"agi-turn","timeout":180},{"type":"command","command":"agi-mem tap"}]}]}}
 ~~~
 
 ### cccc.ts (1913 B)

@@ -298,7 +298,7 @@ LINE_NO_NETWORK = ("subscription_tokens_per_season", "openrouter_subscription_sp
 
 LAP_SECONDS = 14400   # one lap = 4 h, the cadence of the Prime's digest / CHECK (agi-atom stamps lap<n> with the same unit)
 _S7 = re.compile(r"^## (?:\S+ )?§7(?!\d)")
-_ATOM_ID = re.compile(r"^(a\d+|\d+\.\d+)$")
+_ATOM_ID = re.compile(r"^(a\d+|r[0-9a-f]{8}|\d+\.\d+)$")
 _BOLD = re.compile(r"^\*\*(.+?)\*\*\s*$")   # a card's `**throw 1 (10-22) -- ...**` line names the section the rows below it belong to
 
 
@@ -330,6 +330,8 @@ def card_atoms(card: Path) -> list[tuple[str, str, int | None, str]]:
         cells = [c.strip() for c in ln.strip().strip("|").split("|")]
         if not cells or not _ATOM_ID.match(cells[0]):
             continue
+        if len(cells) == 6 and cells[5].startswith("chunks:"):
+            cells = cells[:5]   # the DERIVED `chunks:` cell (goal:g7.16.1.11.46.14 R2) is not part of the row's shape
         m = re.fullmatch(r"lap(\d+)", cells[-1]) if len(cells) == 5 else None
         if len(cells) == 5 and m and cells[2].startswith("src:"):
             rows.append((cells[0], cells[3], int(m.group(1)), sect))
@@ -351,11 +353,12 @@ def _cards(root: Path) -> list[tuple[str, Path]]:
 
 
 def intake_counts(rows: list[tuple[str, str, int | None, str]], lap: int) -> tuple[int, int, int, int]:
-    """(open, placed, red, unknown): open = state target:..., placed = any other state,
-    red = open and older than one lap (stamped lap n with lap - n > 1), unknown = open with
+    """(open, placed, red, unknown): open = state target:... or red:..., placed = any other state,
+    red = open and older than one lap (stamped lap n with lap - n > 1) OR a `red:<why>` row (born red:
+    goal:g7.16.1.11.46.14 R5, a reply to an ask that names no atom id), unknown = open with
     NO lap (a legacy row: its age cannot be told, so it is never red and never hidden)."""
-    op = sum(1 for _, st, _, _ in rows if st.startswith("target:"))
-    red = sum(1 for _, st, lp, _ in rows if st.startswith("target:") and lp is not None and lap - lp > 1)
+    op = sum(1 for _, st, _, _ in rows if st.startswith(("target:", "red:")))
+    red = sum(1 for _, st, lp, _ in rows if st.startswith("red:") or (st.startswith("target:") and lp is not None and lap - lp > 1))
     unk = sum(1 for _, st, lp, _ in rows if st.startswith("target:") and lp is None)
     return op, len(rows) - op, red, unk
 
