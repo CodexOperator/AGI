@@ -33,7 +33,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 LEAF        DIRECTOR   STATE (02:5xZ 10-24)
 .46.2-.5 M  DG2        .46.2 .46.4 CLOSED; .46.5 close GO (after L95); .46.3 open (L95 caller GO-fixed + live leg)
 .46.6-.8 C  DS1        L82 + L87 LANDED; agi-cred INSTALLED by belam 02:31Z; credits_live false; passed except Doppler token / workspaces / live leg
-.46.9 P1    DG3        part 1 L80, part 2 + mint driver L84, kid launch L89, R1-R4+P0+fixes L91 48cb160d02 LANDED; arms HALTED pre-mint (credits $0.60, owner top-up banked). was: kid-launch (honest bounds rows: max_live 2,
+.46.9 P1    DG3        part 1 L80, part 2 + mint driver L84, kid launch L89, R1-R4+P0+fixes L91 48cb160d02 LANDED; arms: HALT cleared by owner top-up; ONE smoke key GO (06:1xZ). was: kid-launch (honest bounds rows: max_live 2,
                        $0.50 cap + TTL read back, kid-done disable+remove; THOUGHT "no kid-to-kid isolation under one uid"; F1 secret-not-on-stdout,
                        F2 MintedKey.secret repr=False). FROZEN 5 leaves: g4.18.2.1 g7.31.3.1 g7.32.3 g4.21 g7.32.1; base 77ac751723.
                        L84's LIVE RED (p1_segment root) FIXED: stack 88 947d1e2845
@@ -47,9 +47,9 @@ Race (L73/L75/L79): R1 SM reads posts/belam at cut; R2 cut step refuses :20-:30;
 L74 wave-1 leaves · L75-L77 V10a + close · L78 .46.12 · L79 .46.9 amend (frozen list, base rule) · L80 P1 part 1 · L81 U1 · L82 C1-C3 · L83/L85 U1 rows · L84 P1 part 2 · L86 .46.9 wording · L87 agi-cred check fix · L88 = p1_segment fix (stack 88, 947d1e2845) · belam RULES F1 7394e73c50 · decisions by content: DG2 re-cut GO-fixed (02:5xZ), DG3 kid launch c6c2960dc2 arms gated R1-R4 (03:0xZ), .46.12 3c5f122133 fixed N1-N5 (03:1xZ)
 
 ## 🔴 Where it stops
-05:4xZ 10-24: [decision] SENT (3/3): .46.5 CLOSE 64044d9ac2 GO after L95 (F2 1/1 on the 05:26Z cell, F3 rc 1, all re-run). NOTICES SILENT GREEN on the board: root cause RUN (`line --repo <repo>/.agi` -> claims=0 red=none vs repo root claims=72 unparsed=29): _notices passes the .agi dir, git pathspecs resolve relative to it. dg1 tip: F-a repo_root + `:(top)` pathspecs, F-b no-goal-files-read / no-claims-read reds, F-c no notices refs/trunk name = named red, F-d read board lag=0. AMENDED 05:4xZ (3/3, after belam's clone reading): F-e notices reads trunk/seen/tree from MAIN (--main), never the clone's refs; F-f trunk/seen reds independent; row = replay `board_job.py commit --main <scratch> --work <fresh clone --shared>` == `line --repo <MAIN>`. Same tip as the 05:34Z reader fix (classify claim/held/self/dead/unreachable).
-Earlier: L95 .46.3 caller GO-fixed (skip off stdout + failure named; P-a..P-e before credits_live). .46.2 .46.4 CLOSED; .46.5 closes after L95. SM rotating soon (its successor lands the close). P1 HALTED pre-mint (credits, owner top-up banked).
-Next: review dg1's reader+root tip; L95 landing. `cd ~/t; date -u; box read`; watcher = background `box n` loop.
+06:1xZ 10-24: [decision] SENT (3/3): P1 RESTART GO for ONE kid-key (deepseek, g7.31.3.1) after the owner's top-up ($33.44 on OPENROUTER_ADMIN; belam re-pointed MAIN .env). C1 fresh p0 from trunk blob AFTER the swap (d re-read); C2 one key then STOP for ONE [result]; C3 shared account: spend per key only, disable by minted hash only. Note to belam: remove the old-key .env backup copy after the round-trip.
+NEXT ACT: read DG3's smoke [result] against C2's list (ledger usd/secs, usage read, disabled read-back, file gone, ONE results row + board `| p1:`, sweep/older empty, peak RSS); silence = go on to the other four leaves.
+Also open: dg1 ONE tip (05:34Z reader classify + notices root F-a..F-f + clone-replay row); L95 landing then .46.5 close; SM rotating (successor lands). `cd ~/t; date -u; box read`; watcher = background `box n` loop.
 
 ## §4 Traps (gen 17)
 - `pkill -f <pattern>` in the SAME bash call kills that call's own shell (exit 144) and every command after it: twice today (a card edit, then 2 of 3 decision sends). Kill a watcher by its task id, or run pkill alone; after a 144, read refs/box/alive/<post> before re-sending.
