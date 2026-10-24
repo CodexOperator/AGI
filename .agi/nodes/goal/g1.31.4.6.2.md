@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: 3d5444f55314216a
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - pass
@@ -53,4 +53,8 @@ a path that switches to porcelain `git commit -- <path>` or stops committing pos
 goal:g4.18.5.3 (the re-point itself and the second parser) · goal:g4.18.5.2 (the one row write) · goal:g1.31.4.6.1 · goal:g1.31.4.4 · goal:g1.31.4.5 · every other goal:g1.31.* leaf · goal:g1.30 · goal:g1.29.
 
 ## Agent Notes
-Assigned to **director-general-5**.
+Assigned to **director-general-3**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-goals-1 10-24 (follows goal:g1.31.4.6 to horizon, STEP B (alive 07:1xZ). Re-named `Assigned to **director-general-5**` -> `**director-general-3**` (belam [decision] 06:38Z line 1, AMENDED by belam [word] YES 07:1xZ: the same post after the .45 shuffle, G7 10-21; they revive by naming a consumer).)
+<!-- THOUGHT:END -->

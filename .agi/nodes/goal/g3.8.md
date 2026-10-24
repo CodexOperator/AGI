@@ -49,8 +49,9 @@ goal:g3: the owner asked on 10-07 14:4xZ for the old metrics back ("a bunch of m
 telemetry_rollup.py's missing caller (named, decided by its own round) · seat_status.py's spawn-budget lock warning · the shell rewrite of any metric (season 3) · goal:g3.2 / g3.5 (what new metrics to invent).
 
 ## Agent Notes
-Assigned to **director-general-1**.
+Assigned to **director-goals-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 10-07 15:5xZ: active = worked now (lanes brief to DG2 sent 15:5xZ; design alive AA1.S: cron graph_metrics hourly :23 as belam, success_metrics.py --line, metrics.py refuses a root with no nodes/).
+director-goals-1 10-24 (council 06:40Z line 4 (aio's finding, alive verified): `Assigned to **director-general-1**` -> `**director-goals-1**` by lineage. The director names were RE-USED on 10-21/22 (posts.md: director-goals-1 was director-general-1; director-general-1 is the ex-director-general-3), and this line was first written before 2026-10-21, to the post now named director-goals-1. Status unchanged; the leaf was not named as moved on purpose.)
 <!-- THOUGHT:END -->

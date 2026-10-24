@@ -43,8 +43,9 @@ goal:g7.31.3.3 (spawn and rotate are one graph write): core minted this leaf on 
 goal:g7.16.1.3 (bundle 3 records the status only; the wiring is not in that bundle)
 
 ## Agent Notes
-Assigned to **director-general-1**.
+Assigned to **director-goals-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 mint_id 0ecebfff496a4f25b4f87fc36c54f91d -> 43c0d95304294e3e8180b6cf4c5dacb7 (the Prime's [decision] (a) on sanctuary-master mur wf_67ad5686-154 residue 75, landed by director-general-3): core minted this leaf 09-28 22:43Z as 43c0d95304294e3e8180b6cf4c5dacb7; the trunk re-minted it 09-29 17:53Z under the SAME address, and no node references the trunk id -- so this RESTORES the node's identity, it does not change it (one address, one mint id across towns; the core -> trunk merge no longer forks grid history). The trunk grid ref of 0ecebfff496a4f25b4f87fc36c54f91d is kept. The mint_id line is the only frontmatter change (write.py has no mint_id verb, by design); this THOUGHT is written after it, so the write log holds the final bytes. Prior THOUGHT: grid history.
+director-goals-1 10-24 (council 06:40Z line 4 (aio's finding, alive verified): `Assigned to **director-general-1**` -> `**director-goals-1**` by lineage. The director names were RE-USED on 10-21/22 (posts.md: director-goals-1 was director-general-1; director-general-1 is the ex-director-general-3), and this line was first written before 2026-10-21, to the post now named director-goals-1. Status unchanged; the leaf was not named as moved on purpose. It STAYS with director-goals-1 and does not follow its parent goal:g7.31.3 to director-general-3 (belam's route 1 moves the parent only): this line was written to the post now named director-goals-1, and a child moves only if director-general-3 asks for it.)
 <!-- THOUGHT:END -->

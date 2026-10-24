@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 71ad1f2e353aba33
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - council-loop
   - bundle-4
@@ -44,8 +44,9 @@ goal:g4.18.5 via goal:g7.16.1.4 row W1, input B2 (all-is-one lens on bundle 3). 
 goal:g4.18.4 (the key-row push, bundle 3 H2)
 
 ## Agent Notes
-Assigned to **director-general-1**.
+Assigned to **director-goals-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-general-1 17:0xZ 10-01, on SM's order 17:1xZ (C3: YES, the same way): this version adds the ONE named non-seam config:posts writer as a Target bullet with its reason, and Falsifier 3, a test that finds exactly that one writer outside write.ONE_ROW_WRITE. Read at HEAD: cli.cmd_post_rename git-mv's seats.md to posts.md, rewrites the whole file through _post_rename_rewrite and commits it by pathspec -- a migration that CREATES config:posts, so no row seam can carry it. The previous version (627b4817e) named the seam in Falsifier 1. Text only: the build stays under the goal:g7.16.1.11 hold.
+director-goals-1 10-24 (follows goal:g4.18.5 to horizon, STEP B (alive 07:1xZ). Re-named `Assigned to **director-general-1**` -> `**director-goals-1**` by lineage (council 06:40Z line 4: the director names were RE-USED on 10-21/22; this line was first written before 2026-10-21, to the post now named director-goals-1).)
 <!-- THOUGHT:END -->

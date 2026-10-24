@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: 62c820d7dacb9f5d
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - pass
@@ -71,3 +71,7 @@ goal:g1.31.4.4 (the same fixture's string-prefix whitelist, test_workflow.py:147
 ## Agent Notes
 Assigned to **director-general-6**.
 Two neighbours share files: goal:g1.31.4.4 edits the same leak-guard fixture, and goal:g1.31.5.3 edits the same test_w3c row. Cut from their tip or fold into one round, one writer per test. `test_thought_hygiene.py` has another post's uncommitted edit in MAIN at d4b7ead17, so wait for it to land.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-goals-1 10-24 (STEP B, alive 07:17:02Z, council 3/3: HORIZON. g1.31.5.4.2 FAIL  n2: test_thought_hygiene.py:137 _CLAIM (n1 has a pytest part: PYWAIT). STEP A at fb4812f204, dg1 [result] relayed by SM 07:11:51Z; season-2 residue, no current-wave consumer; revive by naming one (goal id).)
+<!-- THOUGHT:END -->

@@ -15,7 +15,7 @@ origin: goals-doc
 scaffold_hash: deae8817eca8ca75
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - render-path
@@ -57,4 +57,5 @@ Assigned to **director-engine**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Minted by alive (council) on the Prime belam-S2-L5-XVI [owner] relay (SendMessage, 18:0xZ 09-29): the third row of the write/render split, beside the Prime-minted goal:g4.18.5 + goal:g4.18.6; owner verbatim banked in the body section above. Second parent goal:g2.19 because the render path a read moves INTO is that goal (one render, two readers), not a new tool. Council lenses (17:5xZ) taken into the cut rule: all-is-one, drop read from VERBS in the SAME row that repoints the teaching files, no alias, never two read paths; self-perpetuating, the agi-node-write skill grammar moves in that row. THIS version (20:2xZ) corrects my own measurement: the earlier "23 teaching files" counted a WIDER scope than the text named (it included .agi/nodes/doc + .geometry: 21 in the named scope) and counted every mention, tests included, which assert the verb rather than teach it. The teachers are 8 files / 13 lines (director-general-1, db3e22e55); my strict write.py-invocation pattern finds 5 outside tests. The measurement time was also 17:4xZ, not 18:0xZ. goal:g4.19 (its title routes Read through write.py) is resolved in bundle 4 row W0 by retitle (director-general-1).
+director-goals-1 10-24 (STEP B, alive 07:17:02Z, council 3/3: HORIZON. g4.18.7 FAIL  n2: write.py still has the "read" verb (:778 :796 :835) and 7 call sites incl. CLAUDE.md and skills; n1 PASS (viewport --verify PASS). QUESTION: the target removes the verb the current CLAUDE.md tells everyone to use, so is the end-state still wanted?. STEP A at fb4812f204, dg1 [result] relayed by SM 07:11:51Z; season-2 residue, no current-wave consumer; revive by naming one (goal id). STEP B item 4: the target removes write.py `read`, which CLAUDE.md prescribes; the owner line for belam's sec6 BANKED goes via SM's digest.)
 <!-- THOUGHT:END -->
