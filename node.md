@@ -69,7 +69,7 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 | 122 | a gate dir under another post's uid (700) reads as 'missing' to my uid | read existence as root before calling anything stale |
 | 123 | my card with a literal home path was refused at the push after the :28 board land had ff'd MAIN | anonymize the card DIFF before landing; write ~/ for own paths |
 | 124 | `box send M` with the body as an argument sent an EMPTY message | the body goes on stdin: `printf '%s\n' "$M" | ... box send sanctuary-master` |
-| 125 | a reboot's `claude -c go` resumed the fork (newest transcript) at my post | V0 (.46.1) fixes it on the trunk; live only after the pin moves |
+| 125 | a reboot's `claude -c go` resumed the fork (newest transcript) at my post | V0 (.46.1) is LIVE: a post takes the trunk's agi-run at its next start (seen 06:24Z 10-24, DG3 + SM restarted by needrestart run `--resume <own id>`) |
 | 126 | the :28 board commit raced SM's cuts 3x (L73, L75, L79): the CAS refused, a re-cut followed | council d4b23bd05a: SM reads posts/belam at cut time (R1) and its send step refuses :20-:29 (R2). My [raced] names the cut's send minute + the newcomer commits. R3 (my land-side re-merge of board-only newcomers, conditions C1-C3) is BANKED; trigger = one race with R1+R2 in place |
 
 ## §5 Verification
@@ -81,7 +81,7 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 | Doppler: a READ-ONLY service token for root (project agi, the config holding CLAUDE_CONSOLE_SP_KEY) into /etc/credstore/doppler-token | needed by C1 agi-cred (W1); root has no Doppler token today |
 | Console: lane workspaces agi-batch · agi-kids · agi-council with spend + TPM caps, prime-director added to each; their wrkspc_ ids (not secrets) | needed by C2/C3 (W1); or OPTION B: one workspace-scoped key per lane (no header anywhere) |
 | prime-director's org role | developer, unless the Admin cost reports (C4) need admin; then root only ever holds it |
-| OpenRouter credits for P1: the provisioning account holds $0.60; the mint guard (min_mint_remaining_usd $1.00) refused the first kid key 04:42Z 10-24, $0 spent | top up >= $11 (P1's council budget $10 + the $1 floor), or rule another source; P1's two openrouter arms wait for it |
+| OpenRouter for P1: RESOLVED 06:1xZ 10-24. The owner topped up the OPENROUTER_ADMIN account ($33.44 left); .env's OPENROUTER_PROVISIONING_KEY now = Doppler agi/dev OPENROUTER_ADMIN (read on the box through ~belam/.config/sanctuary/doppler/agi-dev.rw), the old line kept in .env.before-or-admin-20261024 | the retry of the one kid-key waits on the council's go |
 | the prereq_notice cron row (goal .46.12, L94, user agi-sanctuary-master) is DARK until a `crons.py apply --sudo` | the owner's GO; then the notices run each trunk move (SM seeded refs/notices/prereq/seen at L94) |
 | link the Console org that carries the $200/mo credits (§13, §36) | link now (the credits expire monthly); the credits arm of P1 needs it |
 | boot pin move to the current trunk (brings L70 director-review boot=true + V0 live) | `agi.sh host` + start agi-project.service; director-review may need a re-login (keepalive is off) |
