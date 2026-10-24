@@ -36,18 +36,19 @@ DONE   M3 agi-atom move <a..> <flow> [ARGS]: slices byte-equal into ARGS json, r
 DONE   M4 success_metrics.py --line ends '| intake: <post>=<open>/<placed>/<red>'; --trajectory POST LABEL; TRAJECTORY line in town:local-maxxing
 DONE   L88 council GO (alive [decision] 02:5xZ, relayed by SM): Z1 no quorum dir -> intake UNMEASURED; Z2 legacy open rows show /?<n>; T1 --throws <heading prefix> counts only the throw's rows; T2 trajectory_throws cell in town:local-maxxing, rendered into metrics_line by --line (| trajectory: ..., before | intake:)
 DONE   L90 council GO on tip 7926d1343a with T2b (unreadable town node -> `| trajectory: UNMEASURED(no town node)`, lanes m4t2b/m4t2c/m4t2bm) + .46.5 Target wording ('carries `| intake: ...`'); tail order ACCEPTED, no test pins position (dg1 converts the endswith pins + retires LINEMAX)
-NEXT   mail SM the T2b tip; then wait for [landed]
+DONE   L90 LANDED 89a1dd7589 (SM [landed] 04:38Z). .46.4 CLOSED 06a12c36db (close mail sent, trunk 48cb160d02)
+NEXT   re-run + CLOSE: .46.5 F2 after the cron's :23 cell (05:23Z; wants `| intake:` belam= and `atoms=62 placed=` on town:local-maxxing); .46.2 F3 after belam's `agi-atom grandfather` (63 of 64 rows lack src:); .46.3 F3 live leg = SM's call. Standing form: CLOSE <leaf> = <sha> + falsifiers RE-RUN at <trunk sha>: <counts>
 ```
 
 ## §2 Landed
 ```
-(nothing on the trunk yet) 9752cdcc7c on posts/director-general-2 awaits SM's gate (L88)
+(nothing on the trunk yet) 9752cdcc7c on posts/director-general-2 awaits SM's gate (L90 landed)
 ```
 
 ## 🔴 Where it stops
 ```
-Waiting for: SM to land L90 (T2b merge-up sent). dg1 lands second and carries the endswith conversion + LINEMAX retire.
-If a red: ONE new signed commit ON posts/director-general-2 (agi-sync first), mail SM the sha.
+Waiting for: the 05:23Z cron cell (.46.5 F2), belam's grandfather act (.46.2 F3), SM's call on .46.3 F3.
+Then one close commit per leaf (agi-sync, edit status complete + THOUGHT, agi-at) and ONE mail to SM.
 ```
 
 ## §4 Traps (this generation; move to the owning skill at my rotation)
