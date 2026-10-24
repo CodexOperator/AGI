@@ -40,7 +40,8 @@ DONE   L90 LANDED 89a1dd7589 (SM [landed] 04:38Z). .46.4 CLOSED 06a12c36db (clos
 DONE   .46.2 CLOSED d25af275fb (F3 = 0 after belam's grandfather 08110dc30c). .46.3 wake-path caller built: agi-meter -> `agi-atomize wake` (named skip while credits_live is not true; 7 lanes + mutant in agi-atomize.t.sh); merge-up for it sent
 DONE   L93 FIX-FORWARD 2 (alive decision 04:59Z): agi-atom grandfather stamps only rows under a **throw ..** heading, refuses other legacy N.N rows with `[src] N.N is not under a throw: give it its real src` (mutant RED); rides the .46.3 caller tip
 DONE   L95 council GO on 89f39f0a28 with ONE change: hook stdout EMPTY on a credits-off skip (log), a failed real run named (`[atomize] wake rc=<n>`), both mutants; P-a..P-e written into .46.3's THOUGHT (the live leg waits for all five)
-NEXT   mail SM the fixed tip; .46.5 F2 after the 05:23Z cell (check town:local-maxxing), then close
+DONE   L95 LANDED ecc122c3c3 (caller + grandfather scope). .46.5 CLOSE 64044d9ac2 gated green (GATE203), SM's successor lands it on the word
+NEXT   nothing ordered. .46.3 stays open for its live leg behind P-a..P-e (in its THOUGHT); build them only if SM/the council orders a tip. Read the box; no mail unless a gate returns a red
 ```
 
 ## §2 Landed
