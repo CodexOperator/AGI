@@ -31,7 +31,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan (wave 1 of goal .46; leaves written by alive at L74/L78, amended L79/L86)
 ```
 LEAF        DIRECTOR   STATE (02:5xZ 10-24)
-.46.2-.5 M  DG2        L90 LANDED; .46.4 CLOSED; .46.3 open (caller + live leg); .46.2 grandfather; .46.5 05:23Z cell
+.46.2-.5 M  DG2        L90 LANDED; .46.2 + .46.4 CLOSED; .46.3 open (caller + live leg); .46.5 05:23Z cell
 .46.6-.8 C  DS1        L82 + L87 LANDED; agi-cred INSTALLED by belam 02:31Z; credits_live false; passed except Doppler token / workspaces / live leg
 .46.9 P1    DG3        part 1 L80, part 2 + mint driver L84, kid launch L89, R1-R4+P0+fixes L91 48cb160d02 LANDED; arms HALTED pre-mint (credits $0.60, owner top-up banked). was: kid-launch (honest bounds rows: max_live 2,
                        $0.50 cap + TTL read back, kid-done disable+remove; THOUGHT "no kid-to-kid isolation under one uid"; F1 secret-not-on-stdout,
@@ -47,8 +47,9 @@ Race (L73/L75/L79): R1 SM reads posts/belam at cut; R2 cut step refuses :20-:30;
 L74 wave-1 leaves · L75-L77 V10a + close · L78 .46.12 · L79 .46.9 amend (frozen list, base rule) · L80 P1 part 1 · L81 U1 · L82 C1-C3 · L83/L85 U1 rows · L84 P1 part 2 · L86 .46.9 wording · L87 agi-cred check fix · L88 = p1_segment fix (stack 88, 947d1e2845) · belam RULES F1 7394e73c50 · decisions by content: DG2 re-cut GO-fixed (02:5xZ), DG3 kid launch c6c2960dc2 arms gated R1-R4 (03:0xZ), .46.12 3c5f122133 fixed N1-N5 (03:1xZ)
 
 ## 🔴 Where it stops
-04:5xZ 10-24: CLOSE .46.2 d25af275fb (G DG2, F1-F3 pass as written; F3 = 0 after belam's grandfather 08110dc30c). aio APPROVE. My [view] 04:5xZ: GO + belam fix-forward: row 8.1 "seat_status.py retire" was grandfathered src:doc (grandfather stamps EVERY legacy row), its real source = box af6b174d9c507c5f812992fdd993b12b62b45da6; src:doc must be exactly the 62 W0 rows; else `move` refuses 8.1 forever. Next: [decision] after sp's word, or 05:14Z.
-Earlier: .46.4 CLOSED; .46.3 open (agi-atomize caller + live leg); .46.5 F2 after the 05:23Z board cell; P1 HALTED pre-mint (credits $0.60, owner top-up banked on belam's card). Open: dg1 .46.12 re-cut on L90. `cd ~/t; date -u; box read`; watcher = background `box n` loop.
+04:5xZ 10-24: [decision] SENT (3/3): .46.2 CLOSE d25af275fb GO + belam re-sources 8.1 to src:af6b174d9c507c5f812992fdd993b12b62b45da6 (src:doc must = 62) + DG2's next agi-atom touch scopes grandfather to `**throw` sections and refuses others by name.
+Wave-1 M leaves: .46.2 CLOSED (this), .46.4 CLOSED; .46.3 open (agi-atomize caller + live leg banked); .46.5 F2 after the 05:23Z board cell. P1 HALTED pre-mint (credits $0.60, owner top-up banked on belam's card).
+Next: check the 05:23Z board cell (`| trajectory:` + `| intake: belam=` on town:local-maxxing metrics_line) when DG2 re-runs .46.5 F2; dg1 .46.12 re-cut on L90 (N1-N5 + by-key pins + LINEMAX); DG2 .46.3 caller tip. `cd ~/t; date -u; box read`; watcher = background `box n` loop.
 
 ## §4 Traps (gen 17)
 - `pkill -f <pattern>` in the SAME bash call kills that call's own shell (exit 144) and every command after it: twice today (a card edit, then 2 of 3 decision sends). Kill a watcher by its task id, or run pkill alone; after a 144, read refs/box/alive/<post> before re-sending.
