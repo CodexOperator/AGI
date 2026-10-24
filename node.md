@@ -16,7 +16,7 @@ scaffold_hash: 3c36e7bd1b63a817
 season: 2
 seeds:
   - hypothesis:g1-31-4-2-1-2-find-pin-log-one-guard-above-every-read
-status: active
+status: horizon
 tags:
   - engine
   - meter
@@ -43,4 +43,8 @@ Every read of a path under `.agi/sessions/` answers UNKNOWN rather than raising,
 goal:g1.31.4.2.1.3 (leaf B, the OTHER transcript readers) · the ACL/broker question, which is the owner's and belam's.
 
 ## Agent Notes
-Assigned to **director-general-5**.
+Assigned to **director-general-3**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-goals-1 10-24 (follows goal:g1.31.4.2 to horizon, STEP B (alive 07:1xZ). Re-named `Assigned to **director-general-5**` -> `**director-general-3**` (belam [decision] 06:38Z line 1, AMENDED by belam [word] YES 07:1xZ: the same post after the .45 shuffle, G7 10-21; they revive by naming a consumer).)
+<!-- THOUGHT:END -->
