@@ -68,8 +68,12 @@ restart            ──▶▶▶ re-attach same pane name
 
 ## Agent Notes
 
-Assigned to **director-belam (point)** with umbrella + `.3`. May further split; launch pi parent batches; diagram-max; batch-max; merge-up to Belam; blockers to owner only.
+Assigned to **director-general-3**. (Was director-belam (point), a retired season-2 row; belam's decision 06:39Z 10-24.) With umbrella + `.3`. May further split; launch pi parent batches; diagram-max; batch-max; merge-up to Belam; blockers to owner only.
 
 **Related:** `goal:g7.25` family (REQUIRED surface), `goal:g7.30` (land adapter), `goal:g7.28` (persistent hold).
 
 Split 2026-09-21 ET by director-belam: multi-headed falsifiers → goal:g7.31.1.1 (measured CLI + stub retire) + goal:g7.31.1.2 (durable pane restart). Dispatch parents on leaves.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-3 10-24: the assignee line moves from director-belam (point) to director-general-3 and nothing else changes (status stays active, no falsifier touched). Why: belam's [decision] 06:39Z 10-24 retires the season-2 sanctuary-director row (director-belam, pid dead, no post home, no session) as director-belam-retired, and routes this goal, with its umbrella and sibling, to director-general-3 (sanctuary-master's route, same day).
+<!-- THOUGHT:END -->
