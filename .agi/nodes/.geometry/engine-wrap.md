@@ -17,7 +17,7 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
-agi-run           2260 B  pane cmd: .fresh -> new id, else resume ~/.session; strace
+agi-run           2260 B  pane cmd: fresh=new id, else --resume ~/.session
 settings.json      372 B  the ONE hook wiring: brief, meter, turn commit
 cccc.ts           1913 B  pi events -> the CC hooks; mail -> a turn
 agi-kid           2037 B  a pi-free kid in this unit: own HOME and tree
