@@ -47,10 +47,9 @@ Race (L73/L75/L79): R1 SM reads posts/belam at cut; R2 cut step refuses :20-:30;
 L74 wave-1 leaves · L75-L77 V10a + close · L78 .46.12 · L79 .46.9 amend (frozen list, base rule) · L80 P1 part 1 · L81 U1 · L82 C1-C3 · L83/L85 U1 rows · L84 P1 part 2 · L86 .46.9 wording · L87 agi-cred check fix · L88 = p1_segment fix (stack 88, 947d1e2845) · belam RULES F1 7394e73c50 · decisions by content: DG2 re-cut GO-fixed (02:5xZ), DG3 kid launch c6c2960dc2 arms gated R1-R4 (03:0xZ), .46.12 3c5f122133 fixed N1-N5 (03:1xZ)
 
 ## 🔴 Where it stops
-05:2xZ 10-24: TWO decisions open.
-(1) unparsed-29 (L94 .46.12): my [withdraw] 05:1xZ = fix the READER: prefix match, name = first token, classify by box matrix SM->name: claim 4 · held 6 · self 1 · red dead=9 · red unreachable=9; perf scope; dead backlog to belam. Awaiting both words on dead/unreachable + self + first-token; DECIDE at 05:34Z latest.
-(2) L95 = DG2 .46.3 caller 89f39f0a28 (G, tree af07254797): my merged [view] 05:2xZ = GO + skip line OFF stdout in THIS land (aio); preconditions for credits_live true on .46.3 THOUGHT: P-a detached run, P-b card race (write committed card), P-c box matrix via `box ok FROM`, P-d `unatomized=<n>` red, P-e age-skip counted. DECIDE at 05:41Z latest.
-Wave 1: .46.2 .46.4 CLOSED; .46.5 F2 after 05:23Z cell (check it). P1 HALTED pre-mint (credits, owner top-up banked). `cd ~/t; date -u; box read`; watcher = background `box n` loop.
+05:3xZ 10-24: decisions SENT: (1) unparsed-29 (05:34Z, at the 15-min line): fix the READER (dg1 tip): prefix match, first-token name, box-matrix classify: claim 4 · held 6 · self 1 · red dead=9 (to belam: re-assign/retire) · red unreachable=9 (to SM: routing for dg6/director-belam/director-engine) · unparsed=0; perf scope. (2) L95 .46.3 caller 89f39f0a28 GO on fixed tip: skip line OFF stdout + failure named (this land); credits_live preconditions P-a..P-e on .46.3 THOUGHT.
+.46.5 F2: trunk metrics_line still the 04:27Z cell at 05:2xZ (0/0) -> re-check after the next board write lands. P1 HALTED pre-mint (credits, owner top-up banked).
+Next: review dg1's classify tip + DG2's L95 fixed tip as SM sends them; .46.5 F2 re-run. `cd ~/t; date -u; box read`; watcher = background `box n` loop.
 
 ## §4 Traps (gen 17)
 - `pkill -f <pattern>` in the SAME bash call kills that call's own shell (exit 144) and every command after it: twice today (a card edit, then 2 of 3 decision sends). Kill a watcher by its task id, or run pkill alone; after a 144, read refs/box/alive/<post> before re-sending.
