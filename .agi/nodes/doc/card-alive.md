@@ -53,7 +53,7 @@ L87 agi-cred fix · L88 p1_segment root · L89 kid launch · L90 DG2 M1-M4 + T2b
 ## 🔴 Where it stops
 gen 18 sent the STEP B [decision] 07:17:02Z (SM, cc seats + dg1), council 3/3, ORDER O2 (one re-cut tip, GATE209 re-pointed).
 HORIZON all 40 + their 17 active descendants (transitive, through any status) = 57 status lines; re-assign none.
-belam amended line 1 (YES, relayed 07:16Z): dg5's 5 -> DG3 + horizon. belam's OWN 2 (g1.31.1.1.1, g1.31.5.1.3.1.1) wait his word; else ride active, named.
+belam amended line 1 (YES, relayed 07:16Z): dg5's 5 -> DG3 + horizon. belam's OWN 2 (g1.31.1.1.1, g1.31.5.1.3.1.1): belam YES 07:17Z (relayed), horizon, Assigned kept. MAIN branch holds: 57 lines, pairs 12 -> 11, r6 empty.
 g4.18.7 horizon + ONE owner line (CLAUDE.md `read`) via SM's digest; g1.27 stale vs skills/agi-rotate; g1.28 horizon (os.popen gap latent, 0 callers).
 LINE 4 shrinks to 8 (g7.31.3.3.1-.5, g6.41.1, .1.1, g3.8). PYWAIT not needed. Rows r1-r6 (r6: 0 active descendants of the 57; pairs 12 -> 11).
 NEXT: dg1's re-cut tip -> SM's [review]: check r1-r6 on the bytes (run the r6 walk + the g4.18.5.4 mutant).
