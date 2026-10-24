@@ -138,7 +138,7 @@ def _secret_tokens(root):
                 keys.update(str(k) for k in group)
     env = envfile.read_env(envfile.resolve(root).env_file)
     return [("secret", env[k]) for k in keys if env.get(k)]
-def box_tokens(root):
+def box_tokens(root, secrets=True):
     """[(class, value)] of physical identifiers; a fake box under a fixture.
 
     The box user's home path is ENVIRONMENT, not hardware, so it rides both
@@ -176,7 +176,7 @@ def box_tokens(root):
         if v:
             toks.append(("board", v))
     return toks + _hw_tokens(_hw_source_names(rule), rule) + \
-        _secret_tokens(root) + home
+        (_secret_tokens(root) if secrets else []) + home
 #: the raw-tool shims (SM.122): hardware facts come from `shims/<tool>`, never
 #: the raw tool off PATH; an absent shim is an absent source.
 SHIMS = Path(__file__).resolve().parents[1] / "shims"
@@ -333,13 +333,58 @@ def cmd_install_hook(root, hooks_dir):
     dest.chmod(0o755)
     print(f"installed anonymize pre-commit hook at {dest}")
     return 0
+#: the placeholder a token's CLASS is written as when text is REDACTED, not refused
+#: (goal:g7.16.1.11.46.13 R2: a refused chunk is a lost ask).
+PLACEHOLDER = {"hostname": "<host>", "ip": "<ip>", "mac": "<mac>", "board": "<board>",
+               "secret": "<secret>", "home": "<home>", "hardware": "<hardware>"}
+def redact(text, tokens=None, root=None):
+    """(text', n): every physical token written as its class placeholder, n =
+    how many were. Only the substitutions `scan` would have judged: box tokens
+    (longest first), the HOME literal and ANY box's home path (`<home>`), an
+    email address not in the allow cell (`<email>`), a hardware fragment."""
+    toks = list(box_tokens(root) if tokens is None else tokens)
+    n = 0
+    for c, v in sorted(toks, key=lambda t: -len(t[1])):
+        if c == "hardware" or len(v) < MIN_TOKEN and c != "home" or len(v) < 2:
+            continue
+        k = text.count(v)
+        if k:
+            text, n = text.replace(v, PLACEHOLDER.get(c, "<" + c + ">")), n + k
+    frags = [v for c, v in toks if c == "hardware" and len(v) >= MIN_TOKEN]
+    if frags:
+        text, k = _hw_frag_re(frags).subn(PLACEHOLDER["hardware"], text)
+        n += k
+    text, k = HOME_PATH_RE.subn(r"<home>\1", text)
+    n += k
+    allow = _email_allow(root)
+    def _mail(m):
+        nonlocal n
+        if any(a.fullmatch(m.group(0)) for a in allow):
+            return m.group(0)
+        n += 1
+        return "<email>"
+    return EMAIL_RE.sub(_mail, text), n
+def cmd_redact(root):
+    """stdin JSON lines {"b": text, ...} -> stdout the same lines with "b" redacted and
+    "n" = how many tokens it carried: ONE token read per sweep, not per line."""
+    try:
+        toks = box_tokens(root)
+    except Exception:   # no secrets source this uid can read (or no project): the rest still applies
+        toks = box_tokens(root, secrets=False)
+    for line in sys.stdin:
+        o = json.loads(line)
+        o["b"], o["n"] = redact(o.get("b") or "", tokens=toks, root=root)
+        print(json.dumps(o))
+    return 0
 def main(argv=None):
     ap = argparse.ArgumentParser(description="SM.122 physical-token guard")
-    ap.add_argument("verb", choices=["check", "install-hook"])
+    ap.add_argument("verb", choices=["check", "install-hook", "redact"])
     for k in ("--root", "--text", "--diff-file", "--hooks-dir"):
         ap.add_argument(k)
     a = ap.parse_args(argv)
     root = Path(a.root) if a.root else locations.find_project_root()
+    if a.verb == "redact":
+        return cmd_redact(root)
     if root is None:
         print("no agi project found", file=sys.stderr)
         return 2

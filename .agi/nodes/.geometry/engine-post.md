@@ -17,11 +17,12 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
-agi-brief         1358 B  walk card+seeds+claims; record; STARTUP
+agi-brief         1369 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
-agi-meter          790 B  past rotate_pct: out-line; box-read prompt: atomize
+agi-meter          829 B  past rotate_pct: out-line; tap chat; read: atomize
 agi-at            1129 B  signed CAS commit of ~/t paths to posts/<P>
 agi-atomize       3971 B  box mail -> verbatim card atoms (wake path, model)
+agi-mem           4024 B  chat tap -> own 0700 store; tap, at
 agi-atom          5677 B  card §7 atoms: add close move (verbatim slices)
 grow.py           5140 B  the growth-order check both writers call
 agi-turn           4615 B  a signed commit per changed node tree
@@ -46,12 +47,12 @@ box               2904 B  mail: signed ref per send; belam's town blast
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-brief (1358 B)
+### agi-brief (1369 B)
 ~~~sh
 #!/bin/sh
 ls ~/.notice* >/dev/null 2>&1&&agi-notice;p=$AGI_POST;cd ~/t;s=$(jq -r .source);case $AGI_HARNESS in pi*)B=${B:-40000};;esac
 sect brief.py|python3 - .agi/nodes doc:card-$p,$AGI_SEEDS$(find $(git rev-parse --git-common-dir)/refs/claims -user $USER -printf ,%f 2>/dev/null) ${K:-20}>~/.brief;cat ~/.brief;cut -d' ' -f4 ~/.brief|xargs tail -n+1|head -c ${B:-0}
-w=${AGI_WT:-$RUNTIME_DIRECTORY/wt};x=$(git rev-parse -q --verify refs/heads/posts/${AGI_POST:-$p});for r in $(git for-each-ref --format='%(refname)' refs/archive/${AGI_POST:-$p});do git log --format=%s $r ${x:+--not $x}|grep -q '^[^ ]*: kept '&&echo "[kept] $r: a stop left this tree whole; recover it, then git update-ref -d it";done;ls -d $w/*/ 2>/dev/null|sed 's/^/[tree] /'
+w=${AGI_WT:-$RUNTIME_DIRECTORY/wt};x=$(git rev-parse -q --verify refs/heads/posts/${AGI_POST:-$p});for r in $(git for-each-ref --format='%(refname)' refs/archive/${AGI_POST:-$p});do git log --format=%s $r ${x:+--not $x}|grep -q '^[^ ]*: kept '&&echo "[kept] $r: a stop left this tree whole; recover it, then git update-ref -d it";done;ls -d $w/*/ 2>/dev/null|sed 's/^/[tree] /';agi-mem at
 [ "$s" = compact ]&&exit;jq -n "{seat:\"$p\",rotation:\"engine-v4\",result:\"success\",source:\"$s\",pid:0,window:\"\",recorded_at:\"$(date -u +%FT%TZ)\"}">$O/.agi/sessions/rotations/$p.$(date -u +%Y%m%dT%H%M%SZ).json
 [ "$s" = resume ]||{ echo "## STARTUP OUTPUT";sed -n "/^  $AGI_ROLE:/,/^  [a-z_]*:\$/{/first_turn:/,/after_join:/s/^        - //p}" .agi/nodes/.geometry/rotations.md|jq -r '"\(.label)\t\(.byte_cap//3000)\t\(.cmd)"'|sed "s|{seat}|$p|g;s|{repo}|$O|g;s|{worktree}|$PWD|g;s|{prime_ref}|belam|g"|while IFS='	' read -r l b c;do echo "### $l";timeout 30 sh -c "$c" 2>&1|head -c $b;done|head -c 8000;}
 ~~~
@@ -75,11 +76,11 @@ for _ in range(30):
 for i in sorted([i for i in x if i in P],key=lambda i:-abs(x[i]))[:int(k)]:print('%.3f %+.1f'%(abs(x[i]),cmath.phase(x[i])/.5),i,P[i])
 ~~~
 
-### agi-meter (790 B)
+### agi-meter (829 B)
 ~~~sh
 #!/bin/sh
 ls ~/.notice* >/dev/null 2>&1&&agi-notice;j=$(cat);t=$(echo "$j"|jq '.tokens//empty');[ "$t" ]||t=$(echo "$j"|jq -r .transcript_path|xargs tac 2>/dev/null|jq -nR 'first(inputs|fromjson?|select((.message.usage.input_tokens)?|type=="number")|.message.usage|.input_tokens+((.cache_read_input_tokens|numbers)//0)+((.cache_creation_input_tokens|numbers)//0))');w=$(echo "$j"|jq ".context_window//${AGI_WINDOW:-1000000}")
-case $(echo "$j"|jq -r '.prompt//empty') in "mail: box read"*)agi-atomize wake||echo "[atomize] wake rc=$?: no atoms this read (~/.atomize.log); the next read retries";;esac
+printf %s "$j"|agi-mem tap 2>/dev/null;case $(echo "$j"|jq -r '.prompt//empty') in "mail: box read"*)agi-atomize wake||echo "[atomize] wake rc=$?: no atoms this read (~/.atomize.log); the next read retries";;esac
 [ "${t:-0}" -gt $((w*${AGI_ROTATE_PCT:-47}/100)) ] 2>/dev/null&&echo "At the line ($t/$w): write your card in its node tree (agi-wt pull), run agi-flush, then: touch ~/.fresh;kill \$PPID";:
 ~~~
 
@@ -153,6 +154,32 @@ for r in $(git for-each-ref --format='%(refname)' refs/box|grep "/$P$");do f=${r
    agi-atom add "$s" src:$c "$t">/dev/null||{ ok=;break;};add=1;done<$W/a
   [ "$ok" ]&&git update-ref $M/$c $c ""||echo "[atomize] $c: an atom was refused, the commit is not marked">&2;done;done
 [ $add = 0 ]||exec ${AGI_ATOM_COMMIT:-agi-at} "$(readlink -f "${AGI_ATOM_CARD:-$T/.agi/sessions/quorum/$P.md}"|sed "s|^$T/||")"
+~~~
+
+### agi-mem (4024 B)
+~~~sh
+#!/bin/sh
+# agi-mem tap|at (goal:g7.16.1.11.46.13): `mem: full` rows only. tap = the hook (agi-meter at UserPromptSubmit, the Stop hook): stdin = the hook JSON; sweep the session transcript from its cursor, owner lines (user strings AND queued_command, never a compact summary, meta, tool_result or a nudge) and the post's text blocks, REDACTED (anonymize.py redact), into ~/.mem/<mint>.git: its own bare dir, 0700, no ACL, no remote, a commit of mem/<date>/c-<sha12>.md per sweep; rc 0 always, a failure = ONE [mem] warn line. at = `mem: tapped <chunks>/<eligible>` (RED when fewer), `mem: unread`
+P=$AGI_POST;E=${AGI_ENGINE:-$HOME/t};S=${AGI_MEM_DIR:-$HOME/.mem}/${AGI_MINT:-$P}.git
+[ "$(git -C $E show ${AGI_TRUNK:-trunk}:.agi/nodes/.geometry/posts.md 2>/dev/null|sed -n 's/^  - //p'|jq -r "select(.name==\"$P\")|.mem//empty"|head -1)" = full ]||exit 0
+Q='def tx:if type=="string" then . else [.[]|select(.type=="text" and (.text|startswith("<system-reminder>")|not))|.text]|join("\n") end;select(.isSidechain!=true)|(if .type=="user" and .isMeta!=true and .isCompactSummary!=true and (.message.content|type=="string" or all(.[];.type!="tool_result")) then {sp:"owner",b:(.message.content|tx)} elif .type=="attachment" and .attachment.type=="queued_command" then {sp:"owner",b:(.attachment.prompt|strings)} elif .type=="assistant" then {sp:"post",b:(.message.content|tx)} else empty end)+{u:.uuid,t:.timestamp,l:input_line_number}|select((.b|length)>0 and (.sp=="post" or (.b|test("^(mail: box read|keepalive:|<task-notification|<system-reminder|<command-|<local-command|Caveat:|\\[Request interrupted|This session is being continued)")|not)))'
+w(){ echo "[mem] warn: $* (the turn goes on)";}
+case $1 in
+tap)j=$(cat);exec 2>/dev/null;f=$(printf %s "$j"|jq -r '.transcript_path//empty');s=$(printf %s "$j"|jq -r '.session_id//empty');[ "$f" ]||exit 0;D=$(mktemp -d);trap 'rm -rf "${D:?}"' 0
+ [ -r "$f" ]||{ w "no transcript $f";exit 0;}
+ [ -d $S ]||(umask 077;mkdir -p ${S%/*}&&chmod 700 ${S%/*}&&git init -q --bare $S&&chmod 700 $S&&setfacl -bk $S ${S%/*} 2>/dev/null;git -C $S config core.hooksPath /dev/null)||{ w "store $S not creatable";exit 0;}
+ n=$(cat $S/cursor-$s 2>/dev/null||echo 0);tot=$(wc -l <$f);tail -n +$((n+1)) $f|jq -c "$Q"|head -n ${AGI_MEM_BATCH:-60}|python3 $E/extensions/agi/bin/anonymize.py redact --root $E>$D/r||{ w "redact failed";exit 0;}
+ tip=$(git -C $S rev-parse -q --verify refs/heads/mem);have=$D/h;{ [ -z "$tip" ]||git -C $S ls-tree -r --name-only $tip;}>$have;[ -z "$tip" ]||GIT_INDEX_FILE=$D/i git -C $S read-tree $tip;export GIT_INDEX_FILE=$D/i;new=0;last=$n
+ while read -r r;do printf %s "$r">$D/o;jq -j .b $D/o>$D/b;u=$(jq -r .u $D/o);sp=$(jq -r .sp $D/o);t=$(jq -r .t $D/o);last=$(jq .l $D/o);last=$((n+last))
+  id=$({ printf '%s\0%s\0%s\0' $sp $s $u;cat $D/b;}|sha256sum|cut -c1-12);grep -q "c-$id.md" $have&&continue
+  { printf -- '---\nid: c:%s\nspeaker: %s\ns: %s\nu: %s\nt: %s\nkind: ?\natom: ?\nredacted: %s\n---\n' $id $sp $s $u $t $(jq .n $D/o);cat $D/b;}>$D/c
+  b=$(git -C $S hash-object -w $D/c)&&git -C $S update-index --add --cacheinfo 100644,$b,mem/${t%%T*}/c-$id.md||{ w "store $S not writable";exit 0;};new=$((new+1));done<$D/r
+ if [ $new -gt 0 ];then c=$(git -C $S -c user.name=mem -c user.email=mem@agi -c commit.gpgsign=false commit-tree $(git -C $S write-tree) ${tip:+-p $tip} -m "tap $s")&&git -C $S update-ref refs/heads/mem $c $tip||{ w "store $S not writable";exit 0;};fi
+ [ $(wc -l <$D/r) -lt ${AGI_MEM_BATCH:-60} ]&&last=$tot;echo $last>$S/cursor-$s||w "cursor not writable";exit 0;;
+at)s=$(cat ~/.session 2>/dev/null);f=$(ls ~/.claude/projects/*/$s.jsonl 2>/dev/null|head -1);m=$(jq -c "$Q" $f 2>/dev/null|jq -s '[.[]|select(.sp=="owner")]|length' 2>/dev/null)
+ [ "$m" ]&&git -C $S rev-parse -q --git-dir>/dev/null 2>&1&&{ [ -r $S/cursor-$s ]||[ "$m" = 0 ];}||{ echo "mem: unread";exit 0;}
+ k=$(git -C $S grep --all-match -l -e "^s: $s\$" -e '^speaker: owner$' refs/heads/mem 2>/dev/null|wc -l);echo "mem: tapped $k/$m$([ $k -lt $m ]&&echo ' RED')";;
+esac
 ~~~
 
 ### grow.py (5140 B)
