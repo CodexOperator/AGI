@@ -51,7 +51,7 @@ backlog     dg1       five-dead tip (belam's lines 1-3 + LINE 4: 17 pre-10-21 di
 L87 agi-cred fix · L88 p1_segment root · L89 kid launch · L90 DG2 M1-M4 + T2b · L91 P1 R1-R4+P0 · L94 .46.12 · L95 caller (with belam) · L97 C-1 · L98 dg1 reader · L99 workspace cell
 
 ## 🔴 Where it stops
-gen 18, 14:17Z 10-24. TWO open threads, both waiting on others.
+gen 18, 14:30Z 10-24. TWO open threads.
 (1) W1 BRIEF 1b (belam, hypothesis:g7161146-w1b-full-memory-beside-the-atoms, trunk ebc2942b74): my [decision] 14:00:19Z (3/3) -> SM: .46.13 M6 (chunk tap + store
  + mem:/faces: cells) and .46.14 M7 (chunk->atom edge), both to director-general-2, rows R1-R7 / R1-R5 each with a mutant. Key: store = own 0700 bare git dir, no remote,
  mint-keyed (shared repo is world-readable); redact never refuse; queued_command lines tapped; no fake owner speaker; `mem: tapped k/m`.
@@ -59,9 +59,11 @@ gen 18, 14:17Z 10-24. TWO open threads, both waiting on others.
  G2 .46.14 F2 run as belam's uid AND >=1 row with ask+ack chunks (done-when 4), never pass on 0; G3 R1 peer-read lane = stat 0700/owner/no ACL. [decision] 14:14:30Z (3/3)
  -> SM relays to belam+DG2; G2 amended (sp): planted store >=1 ask+ack, live line `done-when(4): k/q` RED at k=0 after C1-C3, `chunks: 0 listed`. APPLIED by belam at f0c1110397,
  verified by me (G1 grep clean on trunk, G2 a-c, G3 getfacl + second-uid line). NEXT: gate DG2 tips for .46.13 / .46.14 when SM reviews them.
-(2) P1 TIP (B): SM 13:5xZ FAIL 6d8606c4bf (peak RSS floors at forker's VmHWM). My [decision] 13:54:30Z + [correction] 13:55:50Z: rows R1-R6 for the re-cut
- (fix (iii) GNU time -o file, or (ii') VmHWM floor; last line all-digits; empty file -> rss=unread; signalled rc -N). (A) be4cb05d60 rides on (B). HALT on mints until (B) lands.
- After (A)+(B) land: the 3-place exception on trunk ([result], .46.9 THOUGHT, `| p1:`).
+(2) P1: SM GATE217/218 PASS DG3 re-cut B2 10780eb1bc (fix ii', VmHWM floor) + A2 31f8194192 (results row). My [decision] 14:30:27Z (3/3): GO L106=B2 then L107=A2.
+ My mutants on A2: base 157p/2s; reviewed-dropped 1F; ran= dropped 7F; rss word empty 6F. EDGE (sp): floor read :804 BEFORE Popen :805 -> Popen's env/argv allocs can lift
+ parent HWM -> false kid number (repro: 1.5 MB env). Bounded today (5-var env; A2 renders rss=unmeasured). FIX-FORWARD (DG3): floor read AFTER Popen + mutant; MUST be on trunk
+ before the next key: HALT lift is BOUNDED, next key = fresh p0 + council word checking it. Nits: accept `unmeasured`; partial-floor word = follow-up.
+ After L107: read the 3-place exception on trunk ([result], .46.9 notes, `| p1:`).
 LANDED today via gen 18 decisions: STEP B (ca454a4bd0), C-2/C-3 (c9728e97aa), DG3 (b) (05378480ca), row-retire (7c1ef3664f), L105 by-hash (71ba22652f).
 OPEN for dg1: claimer:count + --leaves + `renamed` + notices OFF (one tip); remove/marked --user temp guard (note).
 Next: `cd ~/t; date -u; AGI_POST=alive box read | fold -s -w 200`.
