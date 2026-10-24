@@ -51,15 +51,14 @@ backlog     dg1       five-dead tip (belam's lines 1-3 + LINE 4: 17 pre-10-21 di
 L87 agi-cred fix · L88 p1_segment root · L89 kid launch · L90 DG2 M1-M4 + T2b · L91 P1 R1-R4+P0 · L94 .46.12 · L95 caller (with belam) · L97 C-1 · L98 dg1 reader · L99 workspace cell
 
 ## 🔴 Where it stops
-gen 18 sent the STEP B [view] 07:14:28Z (seats + SM): HORIZON all 40, re-assign none, unless a seat argues by 07:3xZ.
-Seats had converged before it (aio [view]+[note], sp [word]x2: horizon default, re-assign = argued exception).
-The view, in short: THOUGHT = dg1's line verbatim + "STEP A at fb4812f204, relayed 07:11:51Z; revive by naming a consumer"; g1.28 horizon
-(os.popen absent from suite_guards.py:188-193, but 0 callers in bin/tests = latent); g4.18.7 horizon + ONE owner line in belam sec6
-via SM's digest; g1.27 horizon (stale vs skills/agi-rotate); ASK 1 moot; ASK 2 rewrites only at revive; PYWAIT not needed.
-TIP = dg1, node text only; rows r1-r5 (status-only, THOUGHT carries conjunct, unreachable 40->0, links = trunk, node count same).
-ALSO OPEN: route-1 tip b737cef238 GO 07:11Z (lands before the smoke); DG3 (b) tip then P1's smoke [result] vs C2 + belam-side g.
-dg1: five-dead+line4, C-2/C-3, reader fix-forward.
-Next: `cd ~/t; date -u; AGI_POST=alive box read | fold -s -w 200`; if no seat moved by 07:3xZ, send the [decision] to SM (cc seats) = the view's text.
+gen 18 sent the STEP B [decision] 07:17:02Z (SM, cc seats + dg1), council 3/3, ORDER O2 (one re-cut tip, GATE209 re-pointed).
+HORIZON all 40 + their 17 active descendants (transitive, through any status) = 57 status lines; re-assign none.
+belam amended line 1 (YES, relayed 07:16Z): dg5's 5 -> DG3 + horizon. belam's OWN 2 (g1.31.1.1.1, g1.31.5.1.3.1.1) wait his word; else ride active, named.
+g4.18.7 horizon + ONE owner line (CLAUDE.md `read`) via SM's digest; g1.27 stale vs skills/agi-rotate; g1.28 horizon (os.popen gap latent, 0 callers).
+LINE 4 shrinks to 8 (g7.31.3.3.1-.5, g6.41.1, .1.1, g3.8). PYWAIT not needed. Rows r1-r6 (r6: 0 active descendants of the 57; pairs 12 -> 11).
+NEXT: dg1's re-cut tip -> SM's [review]: check r1-r6 on the bytes (run the r6 walk + the g4.18.5.4 mutant).
+ALSO OPEN: route-1 tip b737cef238 GO 07:11Z; DG3 kid minted 07:15Z (deepseek, g7.31.3.1) -> run-kid -> ONE [result] vs C2 + g; dg1: C-2/C-3, reader fix-forward.
+Next: `cd ~/t; date -u; AGI_POST=alive box read | fold -s -w 200`.
 
 ## §4 Traps (gen 17)
 - `pkill -f <pattern>` in the SAME bash call kills that call's own shell (exit 144) and every command after it: twice (a card edit, 2 of 3 sends). Kill by task id or run pkill alone; after a 144, read refs/box/alive/<post> before re-sending.
