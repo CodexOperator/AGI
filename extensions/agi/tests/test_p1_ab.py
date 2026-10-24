@@ -423,7 +423,7 @@ def test_a_key_file_is_removed_when_its_acl_does_not_verify(tmp_path, monkeypatc
 # --- the arm's refusals -------------------------------------------------------------
 
 @pytest.fixture
-def arm(tmp_path):
+def arm(tmp_path, monkeypatch):
     """A sealed pi1 prefix, a key dir, and a kid worktree sitting exactly on the frozen base."""
     pre = _prefix(tmp_path)
     p1_ab.seal(pre, CFG)
@@ -438,12 +438,15 @@ def arm(tmp_path):
     base = subprocess.run(["git", "-C", str(wt), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
     cfg = copy.deepcopy(CFG)
     cfg["p1"]["base"] = base
-    return dict(prefix=pre, keydir=keydir, wt=wt, cfg=cfg, env=env)
+    home = tmp_path / "home"
+    (home / "k").mkdir(parents=True)
+    monkeypatch.setenv("HOME", str(home))
+    return dict(prefix=pre, keydir=keydir, wt=wt, cfg=cfg, env=env, home=home, kid_home=home / "k" / "kid1")
 
 
 def _pre(a, **over):
     kw = dict(arm="deepseek", leaf=LEAVES[0], prefix=a["prefix"], cfg=a["cfg"], kid_uid=KID,
-              keydir=a["keydir"], worktree=a["wt"])
+              keydir=a["keydir"], worktree=a["wt"], kid_home=a["kid_home"])
     kw.update(over)
     p1_ab.arm_preflight(**kw)
 
@@ -481,7 +484,7 @@ def test_a_worktree_not_on_the_frozen_base_refuses_the_arm(arm):
                    check=True, env=arm["env"], capture_output=True)
     with pytest.raises(p1_ab.P1Refused, match="frozen base"):
         _pre(arm)
-    with pytest.raises(p1_ab.P1Refused, match="frozen base"):
+    with pytest.raises(p1_ab.P1Refused, match="not the top of a git worktree"):
         _pre(arm, worktree=arm["wt"].parent / "not-a-repo")
 
 
@@ -534,13 +537,52 @@ def test_may_start(live, gb, ok):
     assert p1_ab.may_start(live, gb, CFG)[0] is ok
 
 
-def test_slice_gb_reads_bytes_and_fails_closed(tmp_path):
-    f = tmp_path / "m"
-    f.write_text("5340000000\n")
-    assert p1_ab.slice_gb(str(f)) == pytest.approx(5.34)
-    assert p1_ab.slice_gb(str(tmp_path / "gone")) is None
-    f.write_text("max\n")
-    assert p1_ab.slice_gb(str(f)) is None
+def _slice_files(tmp_path, *, anon=3.1, shmem=0.0, dirty=0.0, writeback=0.0, file=1.4, kernel=0.6, slab_reclaimable=0.5,
+                 psi=0.0, avail=3.6, stat=True, pressure=True, meminfo=True):
+    g = lambda x: int(x * 1e9)
+    (tmp_path / "stat").write_text("\n".join(f"{k} {g(v)}" for k, v in dict(
+        anon=anon, file=file, kernel=kernel, shmem=shmem, file_dirty=dirty, file_writeback=writeback,
+        slab_reclaimable=slab_reclaimable).items()) + "\npgscan 15034070\n")
+    (tmp_path / "pressure").write_text(f"some avg10={psi:.2f} avg60=0.00 avg300=0.04 total=1\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=1\n")
+    (tmp_path / "meminfo").write_text(f"MemTotal:        8042504 kB\nMemAvailable:    {int(avail * 1e9 / 1024)} kB\n")
+    files = [str(tmp_path / n) for n in ("stat", "pressure", "meminfo")]
+    for flag, i in ((stat, 0), (pressure, 1), (meminfo, 2)):
+        if not flag:
+            files[i] = str(tmp_path / "gone")
+    return tuple(files)
+
+
+def _may(tmp_path, **kw):
+    return p1_ab.may_start(0, p1_ab.slice_reading(*_slice_files(tmp_path, **kw)), CFG)[0]
+
+
+def test_p0c_the_measure_ignores_page_cache_counts_dirty_pages_and_keeps_the_5_0_bound(tmp_path):
+    """alive's rows: file 1.4 + anon 3.1 ~ 3.2 ok; file_dirty 1.0 + anon 3.1 ~ 4.1; anon 5.1 RED; PSI 35 RED; PSI 2 ok."""
+    r = p1_ab.slice_reading(*_slice_files(tmp_path, anon=3.1, file=1.4))
+    assert r["gb"] == pytest.approx(3.2) and r["psi"] == 0.0 and r["avail_gb"] == pytest.approx(3.6, abs=0.01)
+    assert p1_ab.slice_reading(*_slice_files(tmp_path, anon=3.1, dirty=1.0))["gb"] == pytest.approx(4.2)
+    assert p1_ab.slice_reading(*_slice_files(tmp_path, anon=3.1, writeback=0.5, shmem=0.2))["gb"] == pytest.approx(3.9)
+    assert _may(tmp_path) is True
+    assert _may(tmp_path, anon=5.1) is False
+    assert _may(tmp_path, anon=4.4, dirty=1.0) is False               # 4.4 + 1.0 + 0.1 > 5.0
+    assert _may(tmp_path, psi=35) is False and _may(tmp_path, psi=20) is True and _may(tmp_path, psi=2) is True
+    assert _may(tmp_path, avail=1.4) is False and _may(tmp_path, avail=1.51) is True
+    assert CFG["p1"]["slice_gb_max"] == 5.0 and CFG["p1"]["psi_max"] == 20 and CFG["p1"]["mem_avail_min_gb"] == 1.5
+
+
+def test_p0c_any_of_the_three_readings_unreadable_fails_closed(tmp_path):
+    for kw in (dict(stat=False), dict(pressure=False), dict(meminfo=False)):
+        assert p1_ab.slice_reading(*_slice_files(tmp_path, **kw)) is None
+        assert _may(tmp_path, **kw) is False
+    (tmp_path / "stat").write_text("anon 1\n")                       # a stat without the keys
+    assert p1_ab.slice_reading(str(tmp_path / "stat"), str(tmp_path / "pressure"), str(tmp_path / "meminfo")) is None
+
+
+def test_p0c_the_real_files_of_this_box_read_when_they_exist():
+    if not Path(p1_ab.SLICE_STAT).exists():
+        pytest.skip("no agi.slice here")
+    r = p1_ab.slice_reading()
+    assert r is not None and 0 < r["gb"] < 64 and r["psi"] >= 0 and r["avail_gb"] > 0
 
 
 # --- the results file -> the metrics_line segment -------------------------------------
@@ -923,3 +965,505 @@ def test_the_real_pi1_reads_its_key_from_the_file_through_models_json_offline(tm
     assert res["rc"] == 0 and seen and seen[0] == f"Bearer {MARK}"
     assert "hi from stub" in (home / "p1-glm-1.log").read_text()
     assert not (home / ".p1-agent" / "models.json").exists()
+
+
+# --- R1-R4 (council 3/3, 03:05Z 10-24) -------------------------------------------------------------------
+
+LEAF = LEAVES[3]          # goal:g4.21
+NODE_TEXT = """---
+id: goal:g4.21
+---
+# goal:g4.21
+
+## Why this exists
+because.
+
+## Target end-state
+- ONE project marker.
+
+## Invariants
+- no legacy marker.
+
+## Falsifier
+1. A test creates a scratch directory holding only a legacy marker.
+
+## Out of scope
+- the rest.
+
+<!-- THOUGHT:BEGIN -->
+secret thought
+<!-- THOUGHT:END -->
+"""
+RULES_TEXT = ("## Target end-state\n- (Q2) leaves. The kid brief for g4.21 carries the standing rule: leave the "
+              "marker list alone. (Q3) p1_ab.py writes numbers to a file.\n")
+
+
+def _git(repo, *argv):
+    env = {**os.environ, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t",
+           "GIT_COMMITTER_EMAIL": "t@t", "GIT_CONFIG_GLOBAL": "/dev/null"}
+    return subprocess.run(["git", "-C", str(repo), *argv], check=True, capture_output=True, text=True, env=env).stdout.strip()
+
+
+@pytest.fixture
+def brief_repo(tmp_path):
+    repo = tmp_path / "briefrepo"
+    (repo / ".agi" / "nodes" / "goal").mkdir(parents=True)
+    _git(repo, "init", "-q")
+    (repo / ".agi/nodes/goal/g4.21.md").write_text(NODE_TEXT)
+    (repo / ".agi/nodes/goal/g7.16.1.11.46.9.md").write_text(RULES_TEXT)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "base")
+    cfg = copy.deepcopy(CFG)
+    cfg["p1"]["base"] = _git(repo, "rev-parse", "HEAD")
+    return repo, cfg
+
+
+def test_r3_the_brief_is_the_leaf_node_at_the_base_with_four_sections_and_the_preregistered_rule(brief_repo):
+    repo, cfg = brief_repo
+    b = p1_ab.leaf_brief(LEAF, repo, cfg)
+    for head in ("Target end-state", "Invariants", "Falsifier", "Out of scope"):
+        assert f"## {head}" in b, head
+    assert "ONE project marker" in b and "no legacy marker" in b and "the rest" in b
+    assert "secret thought" not in b and "because" not in b
+    assert "Standing rule: leave the marker list alone" in b
+    (repo / ".agi/nodes/goal/g7.31.3.1.md").write_text(NODE_TEXT.replace("goal:g4.21", "goal:g7.31.3.1"))
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "a second leaf, no preregistered rule")
+    cfg2 = copy.deepcopy(cfg)
+    cfg2["p1"]["base"] = _git(repo, "rev-parse", "HEAD")
+    assert "Standing rule" not in p1_ab.leaf_brief("goal:g7.31.3.1", repo, cfg2)
+
+
+def test_r3_a_trunk_edit_to_the_falsifier_the_rule_text_or_a_cell_leaves_the_sha_unchanged(brief_repo):
+    repo, cfg = brief_repo
+    before = p1_ab.leaf_brief(LEAF, repo, cfg)
+    sha = p1_ab.brief_digest(before)
+    (repo / ".agi/nodes/goal/g4.21.md").write_text(NODE_TEXT.replace("legacy marker.", "a DIFFERENT falsifier."))
+    (repo / ".agi/nodes/goal/g7.16.1.11.46.9.md").write_text(RULES_TEXT.replace("leave the marker list alone", "do something else"))
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "trunk moves on")
+    cfg2 = copy.deepcopy(cfg)
+    cfg2["p1"]["kid_rules"] = {LEAF: "an injected cell rule"}
+    for c in (cfg, cfg2):
+        after = p1_ab.leaf_brief(LEAF, repo, c)
+        assert after == before and p1_ab.brief_digest(after) == sha
+    assert "DIFFERENT" not in before and "injected" not in before
+
+
+def test_r3_a_base_that_cannot_be_read_refuses_the_brief(brief_repo):
+    repo, cfg = brief_repo
+    cfg["p1"]["base"] = "0" * 40
+    with pytest.raises(p1_ab.P1Refused, match="frozen base cannot be read"):
+        p1_ab.leaf_brief(LEAF, repo, cfg)
+
+
+def test_r3_both_arms_rows_for_a_leaf_carry_the_same_sha_or_the_second_is_refused(tmp_path):
+    f = tmp_path / "res.json"
+    p1_ab.record_result(f, CFG, arm="deepseek", leaf=LEAF, landed=True, usd=0.1, secs=5, red=False, brief_sha256="a" * 64)
+    with pytest.raises(p1_ab.P1Refused, match="one frozen brief per leaf"):
+        p1_ab.record_result(f, CFG, arm="glm", leaf=LEAF, landed=True, usd=0.1, secs=5, red=False, brief_sha256="b" * 64)
+    p1_ab.record_result(f, CFG, arm="glm", leaf=LEAF, landed=True, usd=0.1, secs=5, red=False, brief_sha256="a" * 64)
+    rows = [k for arm in json.loads(f.read_text())["arms"] for k in arm["kids"]]
+    assert [k["brief_sha256"] for k in rows] == ["a" * 64, "a" * 64]
+
+
+def _ledgers(tmp_path, *, done=True, usd=0.12, rc=0, timed_out=False, sweep=(), secs=33.0, with_run=True, arm="deepseek"):
+    led, runs = tmp_path / "ledger.json", tmp_path / "runs.json"
+    mint = {"arm": arm, "leaf": LEAF, "hash": "h1", "cap": 0.5}
+    if done is not None:
+        mint.update(usd=usd, done=done)
+    led.write_text(json.dumps([mint]))
+    runs.write_text(json.dumps([{"arm": arm, "leaf": LEAF, "rc": rc, "secs": secs, "timed_out": timed_out,
+                                 "sweep": list(sweep), "brief_sha256": "e" * 64}] if with_run else []))
+    return led, runs
+
+
+def _rec(tmp_path, landed, red, **kw):
+    led, runs = _ledgers(tmp_path, **kw)
+    return p1_ab.record_from_ledgers(tmp_path / "res.json", CFG, arm="deepseek", leaf=LEAF, ledger=led, runs=runs,
+                                     landed=landed, red=red)
+
+
+def test_r1_record_reads_usd_from_the_kid_done_row_and_secs_from_the_run_row(tmp_path):
+    res = _rec(tmp_path, True, False, usd=0.1234, secs=41.5)
+    k = res["arms"][0]["kids"][0]
+    assert (k["usd"], k["secs"], k["landed"], k["red"], k["brief_sha256"]) == (0.1234, 41.5, True, False, "e" * 64)
+
+
+@pytest.mark.parametrize("kw", [dict(done=None), dict(done=False), dict(usd=None), dict(with_run=False)],
+                         ids=["no-done-key", "done-false", "usd-null", "no-run-row"])
+def test_r1_no_kid_done_row_or_no_run_row_is_refused(tmp_path, kw):
+    with pytest.raises(p1_ab.P1Refused, match="no kid-done row|no run row"):
+        _rec(tmp_path, True, False, **kw)
+    assert not (tmp_path / "res.json").exists()
+
+
+@pytest.mark.parametrize("kw", [dict(timed_out=True, rc=None), dict(rc=3), dict(sweep=[4242])])
+def test_r1_a_red_run_cannot_be_recorded_as_landed_or_not_red(tmp_path, kw):
+    for i, (landed, red) in enumerate(((False, False), (True, False), (True, True))):
+        d = tmp_path / f"c{i}"
+        d.mkdir()
+        with pytest.raises(p1_ab.P1Refused, match="ran red"):
+            _rec(d, landed, red, **kw)
+    d = tmp_path / "ok"
+    d.mkdir()
+    k = _rec(d, False, True, **kw)["arms"][0]["kids"][0]
+    assert (k["landed"], k["red"]) == (False, True)
+
+
+def test_r1_a_clean_run_can_still_be_judged_red_by_the_gate(tmp_path):
+    k = _rec(tmp_path, False, True)["arms"][0]["kids"][0]
+    assert (k["landed"], k["red"]) == (False, True)
+
+
+def test_r1_the_cli_has_no_typed_usd_or_secs(tmp_path, capsys):
+    led, runs = _ledgers(tmp_path)
+    for flag in ("--usd", "--secs"):
+        with pytest.raises(SystemExit):
+            p1_ab._mine("record", ["deepseek", LEAF, "--ledger", str(led), "--runs", str(runs), "--landed", "1", "--red", "0", flag, "9"],
+                        CFG, tmp_path)
+    capsys.readouterr()
+
+
+def test_r2_live_kids_counts_minted_without_a_kid_done_other_than_this_pair():
+    rows = [{"arm": "deepseek", "leaf": LEAVES[0], "done": True}, {"arm": "deepseek", "leaf": LEAVES[1]},
+            {"arm": "deepseek", "leaf": LEAVES[2], "done": False}, {"arm": "deepseek", "leaf": LEAF}]
+    assert p1_ab.live_kids(rows, "deepseek", LEAF) == 2
+    assert p1_ab.live_kids(rows, "glm", LEAF) == 3          # a different pair: this deepseek row counts too
+
+
+def _run_env(tmp_path, body="exit 0", **cfgkw):
+    node = _fake_node(tmp_path, body=body)
+    cfg, plan = _plan(tmp_path, node, **cfgkw)
+    (tmp_path / "kidhome").mkdir(exist_ok=True)
+    return cfg, plan
+
+
+def _ledger_with(tmp_path, rows):
+    led = tmp_path / "ledger.json"
+    led.write_text(json.dumps(rows))
+    return led
+
+
+def test_r2_two_open_rows_refuse_the_run_and_one_open_row_allows_it(tmp_path):
+    cfg, plan = _run_env(tmp_path)
+    mine = {"arm": "deepseek", "leaf": LEAVES[0], "hash": "h0", "cap": 0.5}
+    other = lambda n: {"arm": "deepseek", "leaf": LEAVES[n], "hash": f"h{n}", "cap": 0.5}
+    runs = tmp_path / "runs.json"
+    kw = dict(arm="deepseek", leaf=LEAVES[0], cfg=cfg, runs=runs, repo=tmp_path, plan=plan, gb=1.0)
+    with pytest.raises(p1_ab.P1Refused, match="not started: 2 kids live"):
+        p1_ab.run_logged(ledger=_ledger_with(tmp_path, [mine, other(1), other(2)]), **kw)
+    assert not runs.exists()
+    row = p1_ab.run_logged(ledger=_ledger_with(tmp_path, [mine, other(1), {**other(2), "done": True}]), **kw)
+    assert row["rc"] == 0 and row["timed_out"] is False and row["sweep"] == [] and len(row["brief_sha256"]) == 64
+
+
+def test_r2_a_pair_without_a_mint_row_or_already_run_is_refused_and_there_is_no_live_flag(tmp_path):
+    cfg, plan = _run_env(tmp_path)
+    runs = tmp_path / "runs.json"
+    kw = dict(arm="deepseek", leaf=LEAVES[0], cfg=cfg, runs=runs, repo=tmp_path, plan=plan, gb=1.0)
+    with pytest.raises(p1_ab.P1Refused, match="no mint row"):
+        p1_ab.run_logged(ledger=_ledger_with(tmp_path, []), **kw)
+    led = _ledger_with(tmp_path, [{"arm": "deepseek", "leaf": LEAVES[0], "hash": "h0", "cap": 0.5}])
+    p1_ab.run_logged(ledger=led, **kw)
+    with pytest.raises(p1_ab.P1Refused, match="a kid runs once"):
+        p1_ab.run_logged(ledger=led, **kw)
+    with pytest.raises(SystemExit):
+        p1_ab._mine("run-kid", ["deepseek", LEAVES[0], "--ledger", str(led), "--runs", str(runs), "--key-file", "/k", "--worktree", "/w",
+                                "--kid-home", "/h", "--live", "0"], CFG, tmp_path)
+
+
+def _wait_gone(path, secs):
+    import time
+    end = time.time() + secs
+    while time.time() < end:
+        if path.exists():
+            return False
+        time.sleep(0.2)
+    return True
+
+
+def test_r4_a_background_job_of_a_kid_that_exits_zero_is_killed_at_exit(tmp_path):
+    marker = tmp_path / "M"
+    cfg, plan = _run_env(tmp_path, body=f"(sleep 2; touch {marker}) &\nexit 0")
+    res = p1_ab.run_kid(plan, cfg, live=0, gb=1.0)
+    assert res["rc"] == 0 and res["timed_out"] is False
+    assert _wait_gone(marker, 3.5), "the background job outlived the kid"
+
+
+def test_r4_the_group_kill_alone_catches_a_job_that_left_the_worktree_and_holds_no_fd(tmp_path):
+    """The sweep matches by cwd and fd; a job that cd'd away and closed its fds is only reachable through the
+    process group, so the kill at a normal exit has its own row."""
+    marker = tmp_path / "M"
+    cfg, plan = _run_env(tmp_path, body=f"( cd /; sleep 2; touch {marker} ) >/dev/null 2>&1 </dev/null &\nexit 0")
+    res = p1_ab.run_kid(plan, cfg, live=0, gb=1.0)
+    assert res["rc"] == 0 and res["sweep"] == [], res
+    assert _wait_gone(marker, 3.5), "the job that left the worktree outlived the kid"
+
+
+@pytest.mark.skipif(shutil.which("setsid") is None, reason="no setsid")
+def test_r4_a_kid_that_escapes_its_session_and_hangs_is_swept_and_the_run_is_red(tmp_path):
+    marker = tmp_path / "M"
+    cfg, plan = _run_env(tmp_path, body=f"setsid sh -c 'sleep 2; touch {marker}' &\nsleep 30", timeout=1)
+    res = p1_ab.run_kid(plan, cfg, live=0, gb=1.0)
+    assert res["timed_out"] is True and res["sweep"], res
+    assert _wait_gone(marker, 3.5), "the escaped job was not killed"
+    led, runs = tmp_path / "ledger.json", tmp_path / "runs.json"
+    led.write_text(json.dumps([{"arm": "deepseek", "leaf": LEAF, "hash": "h1", "cap": 0.5, "usd": 0.1, "done": True}]))
+    runs.write_text(json.dumps([{"arm": "deepseek", "leaf": LEAF, **{k: res[k] for k in ("rc", "secs", "timed_out", "sweep")}, "brief_sha256": "e" * 64}]))
+    with pytest.raises(p1_ab.P1Refused, match="ran red"):
+        p1_ab.record_from_ledgers(tmp_path / "r.json", CFG, arm="deepseek", leaf=LEAF, ledger=led, runs=runs, landed=True, red=False)
+
+
+def test_r4_the_sweep_matches_by_cwd_and_by_open_fd_and_leaves_everything_else_alone(tmp_path):
+    import time
+    inside, outside = tmp_path / "kid", tmp_path / "elsewhere"
+    inside.mkdir()
+    outside.mkdir()
+    held = inside / "held.txt"
+    held.write_text("x")
+    a = subprocess.Popen(["sleep", "30"], cwd=inside)                                          # cwd under the path
+    b = subprocess.Popen(["sh", "-c", f"exec 3<{held}; sleep 30"], cwd=outside)                 # an open fd under it
+    c = subprocess.Popen(["sleep", "30"], cwd=outside)                                          # unrelated
+    try:
+        time.sleep(0.5)
+        hit, older = p1_ab.proc_sweep([inside])
+        assert older == []
+        a.wait(timeout=5)
+        b.wait(timeout=5)
+        assert a.pid in hit and b.pid in hit and c.pid not in hit and c.poll() is None
+        assert os.getpid() not in hit
+    finally:
+        c.kill()
+        a.kill()
+        b.kill()
+
+
+def test_p0_reads_a_to_f_and_goes_red_on_each_failure(brief_repo, tmp_path, monkeypatch):
+    repo, cfg = brief_repo
+    cfg["p1"]["prices"] = copy.deepcopy(CFG["p1"]["prices"])
+    data = [{"id": m, "pricing": {"prompt": str(v["in_per_m"] / 1e6), "completion": str(v["out_per_m"] / 1e6)}}
+            for m, v in cfg["p1"]["prices"]["models"].items()]
+    mem = _slice_files(tmp_path / "ok") if (tmp_path / "ok").mkdir() is None else None
+    modfile = repo / "extensions/agi/bin/p1_ab.py"
+    modfile.parent.mkdir(parents=True)
+    modfile.write_text(Path(p1_ab.__file__).read_text())
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "trunk carries p1_ab")
+    cfg["p1"]["base"] = _git(repo, "rev-parse", "HEAD")           # the worktree under test sits on the frozen base
+    env = tmp_path / ".env"
+    env.write_text("x")
+    wt = repo
+    monkeypatch.setattr(success_metrics, "p1_segment", lambda root: "")
+    run = lambda **kw: {n[0]: (ok, d) for n, ok, d in [(r[0].split()[0], r[1], r[2]) for r in p1_ab.p0_readings(
+        cfg=cfg, repo=repo, worktree=kw.get("wt", wt), main_env=kw.get("env", env), fetch=lambda: kw.get("data", data), slice_files=kw.get("mem", mem), trunk="HEAD", module_file=kw.get("module", modfile))]}
+    if os.geteuid() != 0:
+        env.chmod(0o000)
+    good = run()
+    assert all(ok for ok, _ in good.values()), good
+    assert good["b"][1].count("per M") == 2
+    monkeypatch.setattr(success_metrics, "p1_segment", lambda root: "| p1: UNMEASURED(x)")
+    assert run()["a"][0] is False
+    monkeypatch.setattr(success_metrics, "p1_segment", lambda root: "")
+    moved = [{**d, "pricing": {"prompt": "0.00001", "completion": "0.00001"}} for d in data]
+    assert run(data=moved)["b"][0] is False and run(data=[])["b"][0] is False
+    (tmp_path / "big").mkdir()
+    assert run(mem=_slice_files(tmp_path / "big", anon=5.5))["c"][0] is False
+    (tmp_path / "unr").mkdir()
+    assert run(mem=_slice_files(tmp_path / "unr", stat=False))["c"][0] is False
+    if os.geteuid() != 0:
+        env.chmod(0o600)
+        assert run()["d"][0] is False
+    other = tmp_path / "other"
+    other.mkdir()
+    _git(other, "init", "-q")
+    _git(other, "commit", "-q", "--allow-empty", "-m", "x")
+    assert run(wt=other)["e"][0] is False
+    off = tmp_path / "off.py"
+    off.write_text(modfile.read_text() + " ")                         # one byte off the trunk's blob
+    assert run(module=off)["f"][0] is False
+    assert run(module=tmp_path / "nofile.py")["f"][0] is False
+
+
+# --- the kill-path guard (SM's finding on GATE193): the sweep must never be pointed at HOME or the caller's own tree --
+
+def test_guard_a_kid_home_that_is_home_or_outside_k_is_refused_before_any_spawn(arm):
+    for bad in (arm["home"], arm["home"] / "k", arm["home"] / "elsewhere", Path("/tmp") / "kid", Path("/")):
+        with pytest.raises(p1_ab.P1Refused, match="kid home|kill path"):
+            _pre(arm, kid_home=bad)
+
+
+def test_guard_a_kid_home_under_k_that_is_fresh_runs_and_one_that_is_not_fresh_does_not(arm):
+    _pre(arm)                                                    # absent: fine
+    arm["kid_home"].mkdir()
+    _pre(arm)                                                    # present and empty: fine
+    (arm["kid_home"] / "leftover").write_text("x")
+    with pytest.raises(p1_ab.P1Refused, match="not a fresh"):
+        _pre(arm)
+
+
+def test_guard_a_symlinked_kid_home_that_escapes_k_is_refused(arm, tmp_path):
+    (tmp_path / "away").mkdir()
+    os.symlink(tmp_path / "away", arm["home"] / "k" / "ln")
+    with pytest.raises(p1_ab.P1Refused, match="not a plain path|not under"):
+        _pre(arm, kid_home=arm["home"] / "k" / "ln")
+
+
+def test_guard_a_worktree_that_is_home_root_the_callers_repo_or_an_ancestor_of_cwd_is_refused(arm, monkeypatch, tmp_path):
+    repo = Path(p1_ab.__file__).resolve().parents[3]
+    for bad in (arm["home"], Path("/"), repo, repo.parent, Path.cwd(), Path.cwd().parent):
+        with pytest.raises(p1_ab.P1Refused, match="kill path refused"):
+            _pre(arm, worktree=bad)
+    inner = tmp_path / "cwdhere" / "deep"
+    inner.mkdir(parents=True)
+    monkeypatch.chdir(inner)
+    with pytest.raises(p1_ab.P1Refused, match="kill path refused"):
+        _pre(arm, worktree=tmp_path / "cwdhere")
+
+
+def test_guard_a_worktree_must_be_the_top_of_a_git_worktree_not_a_subdirectory_of_one(arm):
+    sub = arm["wt"] / "sub"
+    sub.mkdir()
+    with pytest.raises(p1_ab.P1Refused, match="not the top of a git worktree"):
+        _pre(arm, worktree=sub)
+
+
+def test_guard_run_kid_and_proc_sweep_refuse_home_before_killing_anything(tmp_path, monkeypatch):
+    """The typo case: `--kid-home $HOME`. A process of this uid sitting in HOME must survive."""
+    import time
+    home = tmp_path / "home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    bystander = subprocess.Popen(["sleep", "30"], cwd=home)
+    try:
+        time.sleep(0.3)
+        for bad in ([home], [tmp_path], [Path("/")]):
+            with pytest.raises(p1_ab.P1Refused, match="kill path refused"):
+                p1_ab.proc_sweep(bad)
+        node = _fake_node(tmp_path, body="exit 0")
+        cfg = _cfg_node(node)
+        plan = p1_ab.kid_plan(arm="deepseek", leaf=LEAVES[0], cfg=cfg, keyfile=tmp_path / "k.key", worktree=tmp_path / "wt",
+                              kid_home=home, prompt="p", prefix=_prefix(tmp_path))
+        with pytest.raises(p1_ab.P1Refused, match="kill path refused"):
+            p1_ab.run_kid(plan, cfg, live=0, gb=1.0)
+        assert bystander.poll() is None, "the sweep killed a bystander in HOME"
+        assert not (home / ".p1-agent").exists() and not (home / "p1-deepseek-1.log").exists(), "it spawned before it refused"
+    finally:
+        bystander.kill()
+
+
+def test_guard_the_pure_rule():
+    u = p1_ab.unsafe_kill_path
+    kw = dict(home="/h/me", cwd="/h/me/repo/sub", repos=("/h/me/repo",))
+    for bad in ("/", "/h", "/h/me", "/h/me/repo", "/h/me/repo/sub"):
+        assert u(bad, **kw), bad
+    for ok in ("/h/me/k/kid1", "/h/me/wt", "/tmp/x"):
+        assert u(ok, **kw) is None, ok
+
+
+def test_guard_the_callers_repo_is_refused_even_when_the_cwd_is_elsewhere(arm, monkeypatch, tmp_path):
+    """The repos check on its own: cwd moved away, the repo the caller runs from is still never a kill target."""
+    monkeypatch.chdir(tmp_path)
+    repo = Path(p1_ab.__file__).resolve().parents[3]
+    with pytest.raises(p1_ab.P1Refused, match="repo the caller runs from"):
+        _pre(arm, worktree=repo)
+    with pytest.raises(p1_ab.P1Refused, match="kill path refused"):
+        _pre(arm, worktree=repo.parent)
+
+
+def test_guard_a_worktree_that_is_or_contains_k_is_refused(arm):
+    for bad in (arm["home"] / "k", arm["home"]):
+        with pytest.raises(p1_ab.P1Refused, match="kill path refused"):
+            _pre(arm, worktree=bad)
+
+
+# --- S2: the sweep only kills what started after the kid; R1b: the run ledger append is under flock ----------------
+
+def test_s2_an_older_process_under_the_kid_home_survives_is_named_and_the_run_reads_red(tmp_path):
+    import time
+    node = _fake_node(tmp_path, body="exit 0")
+    cfg, plan = _plan(tmp_path, node)
+    kid_home = Path(plan["env"]["HOME"])
+    kid_home.mkdir(exist_ok=True)
+    old = subprocess.Popen(["sleep", "30"], cwd=kid_home)             # exists BEFORE the kid starts
+    try:
+        time.sleep(0.3)
+        res = p1_ab.run_kid(plan, cfg, live=0, gb=1.0)
+        assert res["sweep"] == [] and res["older"] == [old.pid], res
+        assert old.poll() is None, "an older process was killed"
+        led, runs = tmp_path / "ledger.json", tmp_path / "runs.json"
+        led.write_text(json.dumps([{"arm": "deepseek", "leaf": LEAF, "hash": "h1", "cap": 0.5, "usd": 0.1, "done": True}]))
+        runs.write_text(json.dumps([{"arm": "deepseek", "leaf": LEAF, **{k: res[k] for k in ("rc", "secs", "timed_out", "sweep", "older")},
+                                     "brief_sha256": "e" * 64}]))
+        with pytest.raises(p1_ab.P1Refused, match=f"older=\\[{old.pid}\\]"):
+            p1_ab.record_from_ledgers(tmp_path / "r.json", CFG, arm="deepseek", leaf=LEAF, ledger=led, runs=runs, landed=True, red=False)
+    finally:
+        old.kill()
+
+
+def test_s2_a_process_started_after_the_kid_is_still_swept(tmp_path):
+    import time
+    inside = tmp_path / "kid"
+    inside.mkdir()
+    since = p1_ab.boot_ticks()
+    time.sleep(0.1)
+    late = subprocess.Popen(["sleep", "30"], cwd=inside)
+    try:
+        time.sleep(0.3)
+        hit, older = p1_ab.proc_sweep([inside], since=since)
+        assert hit == [late.pid] and older == []
+        late.wait(timeout=5)
+    finally:
+        late.kill()
+
+
+def test_r1b_two_overlapping_kids_each_keep_their_run_row(tmp_path):
+    """An overlap under max_live 2: with a read at start and a write at the end, B's row erased A's (or the reverse)."""
+    from concurrent.futures import ThreadPoolExecutor
+    runs, led = tmp_path / "runs.json", tmp_path / "ledger.json"
+    led.write_text(json.dumps([{"arm": "deepseek", "leaf": LEAVES[0], "hash": "h0", "cap": 0.5},
+                               {"arm": "deepseek", "leaf": LEAVES[1], "hash": "h1", "cap": 0.5}]))
+    jobs = []
+    for i in (0, 1):
+        d = tmp_path / f"kid{i}"
+        d.mkdir()
+        node = _fake_node(d, body="sleep 1")
+        cfg, plan = _plan(d, node)
+        (d / "kidhome").mkdir(exist_ok=True)
+        jobs.append((LEAVES[i], cfg, plan))
+    with ThreadPoolExecutor(2) as ex:
+        futs = [ex.submit(p1_ab.run_logged, arm="deepseek", leaf=leaf, cfg=cfg, ledger=led, runs=runs, repo=tmp_path, plan=plan, gb=1.0)
+                for leaf, cfg, plan in jobs]
+        rows = [f.result(timeout=60) for f in futs]
+    assert {r["leaf"] for r in rows} == {LEAVES[0], LEAVES[1]}
+    assert sorted(r["leaf"] for r in json.loads(runs.read_text())) == sorted([LEAVES[0], LEAVES[1]])
+
+
+def test_r1b_a_pair_that_got_a_run_row_while_it_ran_is_refused_not_overwritten(tmp_path):
+    runs = tmp_path / "runs.json"
+    row = {"arm": "deepseek", "leaf": LEAVES[0], "rc": 0, "secs": 1, "timed_out": False, "sweep": [], "older": [], "brief_sha256": "e" * 64}
+    p1_ab._append_run(runs, row)
+    with pytest.raises(p1_ab.P1Refused, match="got a run row while it ran"):
+        p1_ab._append_run(runs, {**row, "rc": 9})
+    assert json.loads(runs.read_text()) == [row]
+
+
+def test_r1b_eight_simultaneous_appends_all_land_even_with_the_read_to_write_window_widened(tmp_path, monkeypatch):
+    """Deterministic: each append sleeps between its read and its write. Without the flock the later writers
+    overwrite the earlier ones with a list that never saw them; with it they take turns and every row survives."""
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+    real_runs = p1_ab._runs
+
+    def slow_runs(path):
+        rows = real_runs(path)
+        time.sleep(0.05)
+        return rows
+
+    monkeypatch.setattr(p1_ab, "_runs", slow_runs)
+    runs = tmp_path / "runs.json"
+    rows = [{"arm": "deepseek", "leaf": f"goal:x{i}", "rc": 0, "secs": 1, "timed_out": False, "sweep": [], "older": [],
+             "brief_sha256": "e" * 64} for i in range(8)]
+    with ThreadPoolExecutor(8) as ex:
+        list(ex.map(lambda r: p1_ab._append_run(runs, r), rows))
+    assert sorted(r["leaf"] for r in real_runs(runs)) == sorted(r["leaf"] for r in rows)
