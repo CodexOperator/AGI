@@ -202,6 +202,7 @@ class Api:
 
     def __init__(self, monkeypatch, *, stored_limit="echo", stored_expiry="echo", sent_expiry="echo", secret=None):
         self.sent, self.revoked, self.rows, self.patched = [], [], [], []
+        self.gets, self.keys_status, self.workspaces = [], 200, None      # workspaces: None = a 403 on the listing
         self.secret = secret
         self.stored_limit, self.stored_expiry, self.sent_expiry = stored_limit, stored_expiry, sent_expiry
         monkeypatch.setattr(provisioning, "_read_provisioning_key", lambda root=None: "sk-prov")
@@ -213,6 +214,11 @@ class Api:
         if method == "DELETE":
             self.revoked.append(url.rsplit("/", 1)[-1])
             return 200, {}
+        if method == "GET":
+            self.gets.append(url)
+            if url.endswith("/workspaces"):
+                return (200, {"data": [{"id": w} for w in self.workspaces]}) if self.workspaces is not None else (403, {})
+            return self.keys_status, {}
         if method == "PATCH":
             h = url.rsplit("/", 1)[-1]
             self.patched.append(h)
@@ -235,6 +241,37 @@ def test_a_mint_sends_the_cap_reads_it_back_and_writes_the_ledger(monkeypatch, t
     k = p1_ab.mint_capped(arm="glm", leaf=LEAVES[0], cfg=CFG, ledger=led)
     assert api.sent[0]["limit"] == 0.5 and k.secret == "sk-h1"
     assert json.loads(led.read_text()) == [{"arm": "glm", "leaf": LEAVES[0], "hash": "h1", "cap": 0.5}]
+
+
+def test_p0g_a_workspace_of_another_account_is_red_and_nothing_is_minted(monkeypatch, tmp_path):
+    api = Api(monkeypatch)
+    api.workspaces = ["ws-mine"]                                   # the key's account owns ONLY ws-mine
+    with pytest.raises(p1_ab.P1Refused, match="workspace preflight RED.*not one of"):
+        p1_ab.mint_capped(arm="glm", leaf=LEAVES[0], cfg=CFG, ledger=tmp_path / "led.json", workspace_id="ws-other-account")
+    assert api.sent == [] and not (tmp_path / "led.json").exists()
+    assert "ws-other-account" not in " ".join(api.gets)             # the id is checked by listing, never echoed in a url
+    assert p1_ab.mint_capped(arm="glm", leaf=LEAVES[0], cfg=CFG, ledger=tmp_path / "led.json", workspace_id="ws-mine")
+    assert api.sent[0]["workspace_id"] == "ws-mine"
+
+
+def test_p0g_a_key_without_management_rights_is_red_and_nothing_is_minted(monkeypatch, tmp_path):
+    api = Api(monkeypatch)
+    api.keys_status = 403
+    for ws in (None, "ws-mine"):
+        api.workspaces = ["ws-mine"]
+        with pytest.raises(p1_ab.P1Refused, match="cannot manage keys"):
+            p1_ab.mint_capped(arm="glm", leaf=LEAVES[0], cfg=CFG, ledger=tmp_path / "led.json", workspace_id=ws)
+    assert api.sent == [] and not (tmp_path / "led.json").exists()
+
+
+def test_p0g_an_unlistable_workspace_set_is_red_and_an_absent_cell_needs_no_listing(monkeypatch, tmp_path):
+    api = Api(monkeypatch)
+    api.workspaces = None                                          # GET /workspaces -> 403
+    with pytest.raises(p1_ab.P1Refused, match="GET /workspaces answered HTTP 403"):
+        p1_ab.mint_capped(arm="glm", leaf=LEAVES[0], cfg=CFG, ledger=tmp_path / "led.json", workspace_id="ws-mine")
+    assert api.sent == []
+    assert p1_ab.mint_capped(arm="glm", leaf=LEAVES[0], cfg=CFG, ledger=tmp_path / "led.json", workspace_id=None)
+    assert api.sent and "workspace_id" not in api.sent[0]          # absent means absent: the field is omitted
 
 
 def test_a_leaf_id_off_the_frozen_list_is_refused_before_any_call(monkeypatch, tmp_path):
@@ -713,8 +750,15 @@ def test_kid_done_will_not_touch_a_key_the_ledger_never_minted(monkeypatch, tmp_
 
 
 @needs_acl
+def _town_workspaces(api):
+    """The CLI reads the repo's own config: the workspace it will send is owned, as the live key's account would own it."""
+    town = json.loads((Path(p1_ab.__file__).resolve().parents[3] / ".agi" / "config.json").read_text())
+    api.workspaces = [provisioning.workspace(town)]
+
+
 def test_the_cli_prints_json_without_the_secret_and_exits_nonzero_on_a_refusal(monkeypatch, tmp_path, capsys):
     api = Api(monkeypatch)
+    _town_workspaces(api)
     d, led = tmp_path / "keys", tmp_path / "l.json"
     rc = p1_ab.main(["p1_ab.py", "kid-key", "deepseek", LEAVES[0], "--kid-uid", str(KID), "--keydir", str(d), "--ledger", str(led)])
     out = capsys.readouterr().out
@@ -742,6 +786,7 @@ def test_f1_kid_key_stdout_and_its_red_path_hold_zero_bytes_of_the_secret(monkey
     """A stub mint whose secret is a marker: the JSON line, the refusal text and the ledger never contain it; only
     the key file does. (Mutant: a return dict carrying the secret reads RED in the D3 row above and here.)"""
     api = Api(monkeypatch, secret=MARK)
+    _town_workspaces(api)
     d, led = tmp_path / "keys", tmp_path / "l.json"
     argv = ["p1_ab.py", "kid-key", "glm", LEAVES[0], "--kid-uid", str(KID), "--keydir", str(d), "--ledger", str(led)]
     assert p1_ab.main(argv) == 0
@@ -1261,6 +1306,7 @@ def test_p0_reads_a_to_f_and_goes_red_on_each_failure(brief_repo, tmp_path, monk
         env.chmod(0o000)
     good = run()
     assert all(ok for ok, _ in good.values()), good
+    assert good["g"][0] and "NOT EVALUATED" in good["g"][1]          # this uid cannot read the provisioning key
     assert good["b"][1].count("per M") == 2
     monkeypatch.setattr(success_metrics, "p1_segment", lambda root: "| p1: UNMEASURED(x)")
     assert run()["a"][0] is False
@@ -1283,6 +1329,15 @@ def test_p0_reads_a_to_f_and_goes_red_on_each_failure(brief_repo, tmp_path, monk
     off.write_text(modfile.read_text() + " ")                         # one byte off the trunk's blob
     assert run(module=off)["f"][0] is False
     assert run(module=tmp_path / "nofile.py")["f"][0] is False
+    api = Api(monkeypatch)                                           # the holder's side: g is evaluated, not deferred
+    api.workspaces = ["ws-mine"]
+    cfg.setdefault("spawn", {}).setdefault("credential", {})["workspace_id"] = "ws-mine"
+    assert run()["g"][0] is True and "NOT EVALUATED" not in run()["g"][1]
+    cfg["spawn"]["credential"]["workspace_id"] = "ws-stale-from-the-old-account"
+    assert run()["g"][0] is False
+    cfg["spawn"]["credential"]["workspace_id"] = "ws-mine"
+    api.keys_status = 403
+    assert run()["g"][0] is False
 
 
 # --- the kill-path guard (SM's finding on GATE193): the sweep must never be pointed at HOME or the caller's own tree --
