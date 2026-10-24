@@ -24,9 +24,15 @@ cat >$SH/systemctl<<'EOF'
 #!/bin/sh
 case $1 in cat)cat $STUB_LOG/units/$2 2>/dev/null;;try-restart)echo "$2">>$STUB_LOG/sd.log;;list-units)cat $STUB_LOG/active 2>/dev/null;;show)echo /system.slice/$5;;esac
 EOF
+cat >$SH/tr<<'EOF'
+#!/bin/sh
+# the race, deterministically: when stdin is the environ of $STUB_TR_RM the pid exits DURING the read (its proc dir is removed, nothing comes out)
+[ -z "$STUB_TR_RM" ]||[ "$(readlink /proc/self/fd/0)" != "$STUB_TR_RM/environ" ]||{ rm -rf "$STUB_TR_RM";exec cat >/dev/null;}
+exec /usr/bin/tr "$@"
+EOF
 chmod +x $SH/*;printf '[Service]\nLoadCredential=claude-sp:/etc/credstore/claude-sp\n'>$T/units/agi-batch.service;cp $T/units/agi-batch.service $T/units/agi-kids.service;printf '[Service]\nExecStart=/bin/true\n'>$T/units/agi-council.service
-run(){ env -i PATH=$SH:/usr/bin:/bin AGI_REPO=$M AGI_TRUNK=${TRUNK:-$TR} AGI_CREDSTORE=$T/cs AGI_PROC=$T/proc AGI_CGROUP=$T/cg STUB_LOG=$T STUB_KEY="${KEY:-$K}" STUB_DOP_FAIL=$DFAIL GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0='*' sh ${PIECE} "$@" >$T/o 2>$T/e;rc=$?;}
-fresh(){ rm -rf $T/cs/* $T/cs/.[a-z]* $T/sd.log $T/dop.log $T/active $T/proc $T/cg;mkdir -p $T/proc $T/cg;: >$T/sd.log;printf 'TOKVALUE9' >$T/cs/doppler-token;TRUNK=;DFAIL=;KEY=;}
+run(){ env -i PATH=$SH:/usr/bin:/bin AGI_REPO=$M AGI_TRUNK=${TRUNK:-$TR} AGI_CREDSTORE=$T/cs AGI_PROC=$T/proc AGI_CGROUP=$T/cg STUB_LOG=$T STUB_KEY="${KEY:-$K}" STUB_DOP_FAIL=$DFAIL STUB_TR_RM=$TRRM GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0='*' sh ${PIECE} "$@" >$T/o 2>$T/e;rc=$?;}
+fresh(){ rm -rf $T/cs/* $T/cs/.[a-z]* $T/sd.log $T/dop.log $T/active $T/proc $T/cg;mkdir -p $T/proc $T/cg;: >$T/sd.log;printf 'TOKVALUE9' >$T/cs/doppler-token;TRUNK=;DFAIL=;KEY=;TRRM=;}
 nsd(){ grep -c "^$1.service\$" $T/sd.log;}
 # ================= TICK
 cells true prd;fresh;run tick
@@ -57,25 +63,52 @@ ok "t-j-no-doppler-token-writes-nothing rc $rc (want 4), file $([ -e $T/cs/claud
 mkpost(){ mkdir -p $T/cg/system.slice/agi-post@$1.service;: >$T/cg/system.slice/agi-post@$1.service/cgroup.procs;echo "agi-post@$1.service loaded active running x" >>$T/active;}
 addpid(){ echo $2 >>$T/cg/system.slice/agi-post@$1.service/cgroup.procs;mkdir -p $T/proc/$2;printf 'PATH=/bin\0AGI_POST=%s\0HOME=/x\0' $1 >$T/proc/$2/environ;}
 world(){ fresh;mkpost a;mkpost b;addpid a 101;addpid a 102;addpid b 201;}
+unread(){ rm -f $T/proc/$1/environ;ln -s /nonexistent/environ $T/proc/$1/environ;}   # the pid EXISTS (its proc dir is there) but its environ cannot be read
+notread(){ rm -f $T/proc/$1/environ;mkdir -p $T/proc/$1/environ;}   # -r PASSES (a directory) and the read FAILS (EISDIR), the pid is present: the kernel's ptrace-mode EACCES under a hardened unit looks the same to the check (reviewer finding 10-24)
+gone(){ rm -rf $T/proc/$1;}   # the pid was listed in cgroup.procs and exited before the read
 world;run check
-ok "k-a-clean-posts-pass rc $rc, $(cut -c1-70 $T/o)" '[ $rc = 0 ]&&grep -qx "\[cred\] check: posts 2 pids 3 read 3 key-hits 0" $T/o'
+ok "k-a-clean-posts-pass rc $rc, $(cut -c1-70 $T/o)" '[ $rc = 0 ]&&grep -qx "\[cred\] check: posts 2 pids 3 read 3 gone 0 key-hits 0" $T/o'
 world;printf 'PATH=/bin\0ANTHROPIC_API_KEY=%s\0' "$K">$T/proc/102/environ;run check
 ok "k-b-a-key-in-a-post-environ-fails rc $rc, $(cut -c1-70 $T/o), canary in output: $(cat $T/o $T/e|grep -c TESTCANARY)" '[ $rc = 1 ]&&grep -q "key-hits 1$" $T/o&&[ "$(cat $T/o $T/e|grep -c TESTCANARY)" = 0 ]'
 fresh;run check
 ok "k-c-an-empty-selector-fails-it-proves-nothing rc $rc, say: $(cut -c1-60 $T/e)" '[ $rc = 1 ]&&grep -q "nothing is proven" $T/e'
-world;rm -rf $T/proc/201;run check
-ok "k-d-a-pid-that-cannot-be-read-fails rc $rc, $(cut -c1-60 $T/o)" '[ $rc = 1 ]&&grep -q "pids 3 read 2 " $T/o'
+world;unread 201;run check
+ok "k-d-a-pid-that-exists-and-cannot-be-read-fails rc $rc, $(cut -c1-60 $T/o)" '[ $rc = 1 ]&&grep -q "pids 3 read 2 gone 0 " $T/o'
+world;gone 201;run check
+ok "k-d2-a-pid-gone-before-its-read-is-not-counted (belam red 10-24: short-lived git/sh of a busy post) rc $rc (want 0), $(cut -c1-70 $T/o)" '[ $rc = 0 ]&&grep -qx "\[cred\] check: posts 2 pids 3 read 2 gone 1 key-hits 0" $T/o'
+world;: >$T/proc/102/environ;run check
+ok "k-g-a-live-pid-with-an-empty-environ-is-READ-not-red (env -i children; council 01:2x) rc $rc, $(cut -c1-80 $T/o)" '[ $rc = 0 ]&&grep -qx "\[cred\] check: posts 2 pids 3 read 3 gone 0 key-hits 0" $T/o'
+world;TRRM=$T/proc/102;run check
+ok "k-h-readable-then-emptied-and-removed-during-the-read-is-GONE-not-read rc $rc, $(cut -c1-80 $T/o)" '[ $rc = 0 ]&&grep -qx "\[cred\] check: posts 2 pids 3 read 2 gone 1 key-hits 0" $T/o'
+world;gone 101;gone 102;gone 201;run check
+ok "k-i-a-cgroup-whose-pids-all-vanished-proves-nothing rc $rc, $(cut -c1-80 $T/o), say: $(cut -c1-50 $T/e)" '[ $rc = 1 ]&&grep -qx "\[cred\] check: posts 2 pids 3 read 0 gone 3 key-hits 0" $T/o&&grep -q "nothing is proven" $T/e'
+world;notread 201;run check
+ok "k-j-a-read-that-FAILS-on-a-present-pid-is-RED-not-a-silent-green rc $rc, $(cut -c1-80 $T/o)" '[ $rc = 1 ]&&grep -qx "\[cred\] check: posts 2 pids 3 read 2 gone 0 key-hits 0" $T/o'
+fresh;mkpost a;addpid a 101;notread 101;run check
+ok "k-j-a-check-that-can-open-NO-environ-proves-nothing rc $rc, $(cut -c1-80 $T/o)" '[ $rc = 1 ]&&grep -qx "\[cred\] check: posts 1 pids 1 read 0 gone 0 key-hits 0" $T/o&&grep -q "nothing is proven" $T/e'
+world;notread 201;TRRM=$T/proc/201;run check
+ok "k-j-a-failed-read-then-the-pid-leaves-is-gone-not-red (the shim removes the dir while the read fails: the unreadable-environ pid is not present any more) rc $rc, $(cut -c1-80 $T/o)" '[ $rc = 0 ]&&grep -qx "\[cred\] check: posts 2 pids 3 read 2 gone 1 key-hits 0" $T/o'
 world;cells true prd;printf 'ANTHROPIC_API_KEY=%s\0' "$K">$T/proc/101/environ;run
 ok "k-e-the-bare-run-ticks-then-checks-and-takes-the-worse-rc rc $rc (want 1: the tick wrote, the check found the key), file $([ -e $T/cs/claude-sp ]&&echo written||echo none)" '[ $rc = 1 ]&&[ -e $T/cs/claude-sp ]'
 ok "k-f-an-unknown-argument-is-refused rc $(PIECE=$P0 run bogus;echo $rc) (want 2)" '[ "$(PIECE=$P0 run bogus;echo $rc)" = 2 ]'
 # ================= MUTANTS (one edit each; the matching clean row above is RED on it)
 fresh;run;PIECE=$P0
-rep '[ $tot -gt 0 ]&&[ $rd' '[ $rd';fresh;run check
+rep '[ $rd -gt 0 ]&&[ $((tot' '[ $((tot';fresh;run check
 ok "m1-MUTANT-the-count-skipped-passes-an-empty-selector-RED rc $rc (clean: 1)" '[ $rc = 0 ]'
 rep '&&[ $hit = 0 ];}' ';}';world;printf 'KEY=%s\0' "$K">$T/proc/102/environ;run check
 ok "m2-MUTANT-the-hit-count-ignored-passes-a-key-RED rc $rc (clean: 1)" '[ $rc = 0 ]'
-rep '&&[ $rd = $tot ]' '';world;rm -rf $T/proc/201;run check
+rep '&&[ $((tot-gn)) = $rd ]' '';world;unread 201;run check
 ok "m3-MUTANT-an-unread-pid-ignored-passes-RED rc $rc (clean: 1)" '[ $rc = 0 ]'
+rep '{ [ -d "$R/$q" ]||gn=$((gn+1));continue;}' '{ continue;}';world;gone 201;run check
+ok "m8-MUTANT-a-vanished-pid-counted-as-unread-fails-a-working-town-RED rc $rc (clean: 0), $(cut -c1-70 $T/o)" '[ $rc = 1 ]&&grep -q "pids 3 read 2 gone 0 " $T/o'
+rep '{ [ -d "$R/$q" ]||gn=$((gn+1));continue;}' '{ gn=$((gn+1));continue;}';world;unread 201;run check
+ok "m9-MUTANT-every-unread-pid-called-gone-passes-an-existing-unreadable-one-RED rc $rc (clean: 1), $(cut -c1-70 $T/o)" '[ $rc = 0 ]'
+rep '[ -n "$d" ]||[ -d "$R/$q" ]||{ gn=$((gn+1));continue;}' '[ -n "$d" ]||{ gn=$((gn+1));continue;}';world;: >$T/proc/102/environ;run check
+ok "m10-MUTANT-an-empty-environ-treated-as-gone-RED $(cut -c1-70 $T/o) (clean: read 3 gone 0)" '! grep -q "read 3 gone 0 " $T/o'
+rep '[ -n "$d" ]||[ -d "$R/$q" ]||{ gn=$((gn+1));continue;}' ':';world;TRRM=$T/proc/102;run check
+ok "m11-MUTANT-no-gone-test-after-the-read-counts-a-pid-that-left-as-read-RED $(cut -c1-70 $T/o) (clean: read 2 gone 1)" '! grep -q "read 2 gone 1 " $T/o'
+rep '||{ [ -d "$R/$q" ]||gn=$((gn+1));continue;};[ -n "$d" ]' ';[ -n "$d" ]';world;notread 201;run check
+ok "m12-MUTANT-the-read-rc-ignored-counts-a-failed-read-as-read-RED rc $rc (clean: 1), $(cut -c1-70 $T/o)" '[ $rc = 0 ]'
 rep "grep -q '^LoadCredential=claude-sp:'&&" '';fresh;cells true prd;run tick
 ok "m4-MUTANT-no-LoadCredential-test-restarts-the-council-unit-RED council restarts $(nsd agi-council) (clean: 0)" '[ "$(nsd agi-council)" = 1 ]'
 rep 'cmp -s $n $F' 'false';fresh;cells true prd;run tick;: >$T/sd.log;run tick

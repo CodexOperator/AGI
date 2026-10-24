@@ -213,10 +213,10 @@ Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory PATH=/opt/agi/bin
 ExecStart=/opt/agi/bin/box-carry --fetch
 ~~~
 
-### agi-cred (2419 B)
+### agi-cred (2832 B)
 ~~~sh
 #!/bin/sh
-# agi-cred [tick|check]: root; bare = tick then check, the worse rc. TICK: credits_live true -> doppler's Console key -> $C/claude-sp (0600, atomic, only when it changed); anything else (false, an unreadable cell) -> the file goes; either way the lane units that carry LoadCredential=claude-sp restart. CHECK: every live agi-post@ process's environ, read as root, holds 0 key strings; COUNTS only, never a line
+# agi-cred [tick|check]: root; bare = tick then check, the worse rc. TICK: credits_live true -> doppler's Console key -> $C/claude-sp (0600, atomic, only when it changed); anything else (false, an unreadable cell) -> the file goes; either way the lane units that carry LoadCredential=claude-sp restart. CHECK: every live agi-post@ process's environ, read as root, holds 0 key strings; a pid GONE (at the -r test, after a failed read, or after a 0-byte read) is counted gone, not read; a read that FAILS on a pid still present is a red; a live pid with an empty environ is read; present but unreadable is a red; pass = T-G==R, R>0, H==0; COUNTS only, never a line
 set -f;C=${AGI_CREDSTORE:-/etc/credstore};F=$C/claude-sp;P=sk-an;P=${P}t
 s=$(git -C "$AGI_REPO" show "$AGI_TRUNK:.agi/nodes/.geometry/secrets.md" 2>/dev/null)
 cell(){ printf '%s\n' "$s"|sed -n "s/^$1: *//p"|head -1;}
@@ -226,12 +226,13 @@ tick(){ [ "$(cell credits_live)" = true ]||{ [ -e $F ]&&rm -f $F&&kick&&echo "[c
  [ "$p" ]&&[ "$g" ]&&[ -s $t ]||{ echo "[cred] no doppler project/config cell or no $t: nothing written" >&2;return 4;}
  k=$(DOPPLER_TOKEN=$(cat $t) doppler secrets get CLAUDE_CONSOLE_SP_KEY --plain --project "$p" --config "$g" 2>/dev/null)&&[ "$k" ]||{ echo "[cred] doppler gave no key: nothing written" >&2;return 5;}
  n=$(umask 077;mktemp $C/.claude-sp.XXXXXX)||return 6;printf %s "$k">$n;if cmp -s $n $F;then rm -f $n;else mv -f $n $F&&kick&&echo "[cred] $F written (0600): lane units restarted";fi;}
-check(){ R=${AGI_PROC:-/proc};G=${AGI_CGROUP:-/sys/fs/cgroup};np=0;tot=0;rd=0;hit=0
+check(){ R=${AGI_PROC:-/proc};G=${AGI_CGROUP:-/sys/fs/cgroup};np=0;tot=0;gn=0;rd=0;hit=0
  for u in $(systemctl list-units 'agi-post@*.service' --state=active --plain --no-legend|awk '{print $1}');do np=$((np+1));cg=$(systemctl show -p ControlGroup --value "$u")
-  for q in $(cat "$G$cg/cgroup.procs" 2>/dev/null);do tot=$((tot+1));[ -r "$R/$q/environ" ]||continue;rd=$((rd+1));hit=$((hit+$(tr '\0' '\n' 2>/dev/null <"$R/$q/environ"|grep -c "$P")));done;done
- echo "[cred] check: posts $np pids $tot read $rd key-hits $hit"
- [ $tot -gt 0 ]||echo "[cred] check: no live agi-post@ process, so nothing was read and nothing is proven" >&2
- [ $tot -gt 0 ]&&[ $rd = $tot ]&&[ $hit = 0 ];}
+  for q in $(cat "$G$cg/cgroup.procs" 2>/dev/null);do tot=$((tot+1));[ -r "$R/$q/environ" ]||{ [ -d "$R/$q" ]||gn=$((gn+1));continue;}
+   d=$(tr '\0' '\n' 2>/dev/null <"$R/$q/environ")||{ [ -d "$R/$q" ]||gn=$((gn+1));continue;};[ -n "$d" ]||[ -d "$R/$q" ]||{ gn=$((gn+1));continue;};rd=$((rd+1));hit=$((hit+$(printf %s "$d"|grep -c "$P")));done;done
+ echo "[cred] check: posts $np pids $tot read $rd gone $gn key-hits $hit"
+ [ $rd -gt 0 ]||echo "[cred] check: no live agi-post@ process was read, so nothing is proven" >&2
+ [ $rd -gt 0 ]&&[ $((tot-gn)) = $rd ]&&[ $hit = 0 ];}
 case $1 in check)check;;tick)tick;;"")tick;a=$?;check;b=$?;[ $a -ge $b ]&&exit $a;exit $b;;*)exit 2;;esac
 ~~~
 
