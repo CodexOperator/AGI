@@ -21,6 +21,7 @@ town: core
 Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.agi/sessions/quorum/belam.md` are symlinks to it. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; §0-§6 ≤ 100 lines; §7 ATOMS is bounded by time, not length (doc:brainstorm-unify §39). Skills: agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-post · agi-town · agi-memory-guard · agi-node-write · agi-goal · agi-master-gate.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+belam-s3-V 13:5xZ 10-24: the Fable fork handed back §40 (owner: "hand off the updates to be incorporated into plan"): doc:brainstorm-unify §40+§8f appended, goal .46 waves + count 74, §1 brief 1b / W2 / W3 / W4 lines, §7 throw 10 (the fork's throw 8 renumbered). L101-L105 landed this generation.
 belam-s3-IV rotation card, 07:3xZ 10-24 (meter at the line): W1 of the brainstorm ran end to end overnight (L74-L100, 27 lands); the owner topped up OpenRouter, the provisioning key moved to OPENROUTER_ADMIN, P1's first key is minted and waits for its kid-done; the owner ruled write.py retired. gen III traps 121-123 moved into skills.
 belam-s3-IV, 10-23 after the owner's hand-off of the Fable brainstorm: §7 ATOMS is new (§39: the owner's asks live in the card, not a second node), 62 rows from the fork's ledger (its header says 60; the tables hold 62). Wave 0 done by the Prime alone: doc:brainstorm-unify (reference), goal:g7.16.1.11.46 (the umbrella) + .46.1 V0 (complete), the owner-only asks banked in §6. Since the last card: L70-L73 landed, F1 nspawn ran (FAIL, 3 causes, R2/R3 banked), the box rebooted 03:45Z, keepalive + CHECK cron off by the owner's word.
 <!-- THOUGHT:END -->
@@ -32,7 +33,7 @@ belam-s3-IV, 10-23 after the owner's hand-off of the Fable brainstorm: §7 ATOMS
 | pin | /etc/agi/carry.env AGI_TRUNK = 8b247882a2 (L61); director-review is boot=false there (L70 made it true on the trunk), so it is the 1 of 11 posts down after the 03:45Z reboot. Moving the pin = `agi.sh host` then `sudo systemctl start agi-project.service` (banked, §6) |
 | me | uid agi-belam SIGNS and PUSHES; after a reboot ~/.gitconfig loses the credential lines (re-add '' + the belam gh helper); I mail SM only; keepalive timer RE-ENABLED 23:14Z 10-23 (the owner saw RC sessions archived after the idle stretch; its first run renamed 6 posts' RC titles back to the post name and pinged all-is-one 15 min from token expiry); CHECK cron still off; box-wake still types `mail: box read` |
 | fork | the Fable fork (tmux belam-fable, scope agi-belam-fable-2, RC belam-fable) is DONE; V0 is LIVE, so my restart resumes ~/.session's id, never the fork |
-| intake | §7: 66 rows (62 brainstorm src:doc + 8.1 + 9.1 + a1/a2 = the owner's 07:2xZ write.py/renderer ruling); placed 9 |
+| intake | §7: 74 rows (62 brainstorm src:doc + 8.1 + 9.1 + a1/a2 = the owner's 07:2xZ write.py/renderer ruling + 10.1-10.8 = §40, handed back by the fork 13:5xZ 10-24); placed 9 |
 | landing my commits | `AGI_POST=belam ~/bin/agi-at <paths>` (signs onto posts/belam) -> `sudo -n -u belam git -C /data/work/agi merge --ff-only -q refs/heads/posts/belam` -> push to core/season3/main + posts/belam; commit my card ONLY right after landing an SM cut, and mail SM the new tip |
 | landing SM's L<n> | `~/tools/verify-land.sh L<n> LAND BASE GATETIP`, links on its own tree, CAS posts/belam, ff MAIN, push both, `git checkout -q --detach` |
 
@@ -41,14 +42,15 @@ belam-s3-IV, 10-23 after the owner's hand-off of the Fable brainstorm: §7 ATOMS
 W0  me alone           doc node · §7 atoms · V0 · §6 banks                                               DONE 10-23
 W1  council brief 1    M1-M4 (§37-§39 atoms tooling) · C1-C3 (§36 agi-cred, workspace cells, the header) · P1 (§30/§34.3 pi 1.x A/B)
                        · U1 (§7 scope report mode) · V10 (§35 AGI_[retired] -> AGI_POST: SM's mechanical leaf, not a council design)
+    council brief 1b   §40 M6 chunk tap + store (mem: full / faces: cells) · M7 chunk->atom edge, agi-atom where, reply-names-its-ids red (W1's gate line unchanged)
     gate               M1-M4 + C1-C3 falsifiers pass; P1's four numbers on the board
 W2  council brief 2    V1 refs/id/P · V2 cred piece (ONE post) · U3 MANIFEST scope/reach/at/pull/atoms · G1 compose/split (§25, §34.5)
-                       · the age seal (§23, §34.6) · U6 move falls out
+                       · the age seal (§23, §34.6) · U6 move falls out · §40: V4 pulled forward (claude-code adapter only) · M9 summary tree · M10 owner quotes cite chunk ids
     gate               one rename end to end with 0 edits; one node's history only on its refs/grid/<mint>
 W3  council brief 3    V3 root verbs + held lines · U2 certs enforced · U4 routes · spider families red/unify/tune · walk = idle
-                       · two lanes (§34.4) · tests to region spiders (§31) · V8 grow-check + §G, python ports (§34.6)
+                       · two lanes (§34.4) · tests to region spiders (§31) · V8 grow-check + §G, python ports (§34.6) · §40 M8 reconcile walk as a unify-spider flow
     gate               a planted red found and fixed with no director turn; a held root action printed from the closed set
-W4  council brief 4    U5 · U7 one plugin dir · U8 harness cells · §12 alphabet + agi-walk · V6 IOMap rows · V4 mem: · V9 season-0 · C4 · C5
+W4  council brief 4    U5 · U7 one plugin dir · U8 harness cells · §12 alphabet + agi-walk · V6 IOMap rows · V4's pi adapter (after P1) · V9 season-0 · C4 · C5
 season 4 (out)         PQ signatures · numeric control surface · hardware alphabet · WIF per-kid tokens · income/streaming
 ```
 Labels: §22 is the leaf table; "V3'" = new leaf G1 compose/split; "V7 (python out)" in §34.7/§36.4 = §22's V8.
@@ -187,3 +189,15 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 | 9.1 | "if a director has claimed a given goal leaf or hypothesis leaf or whatever or a bundle of them, let them get notice automatically via mail system that hey your bundle pre-req's have cleared and it's just a simple little unified system that is all wired into the data already available via the town board/trajectory and the post cards" | src:goal:g7.16.1.11.46.12#OWNER | leaf:goal:g7.16.1.11.46.12 (L78, director-goals-1) | lap124501 |
 | a1 | "Retire write py for sure we don’t need it at all and need to retire that whole build node as the capsule wrapper now tags everything for us using standard read routes" | src:goal:g7.16.1.11.46#OWNER | target:W2 brief (V8 python out; supersedes g4.18.7) | lap124501 |
 | a2 | "We need to redo the renderer if needed to be a git based graph system that uses the minimal shell code matrix integrated design" | src:goal:g7.16.1.11.46#OWNER | target:W2 brief (G1 compose/split = the git-based renderer) | lap124501 |
+
+**throw 10 (10-24) — §40 the owner-facing post: full memory beside the atoms (the fork's throw 8, renumbered on intake)**
+| # | atom (owner ask, short) | source | state | lap |
+|---|---|---|---|---|
+| 10.1 | "the owner-facing post gets a full optmem/chat memory beside the atoms (via pi-optchat or UniiChat if needed)" | src:doc | target:§40 V4 pulled forward, claude-code adapter (W2); no routing: the store is ours, harnesses are adapters | lap124503 |
+| 10.2 | "every chunk is marked to an atom; several chunks map to one atom (the owner asking, the agent acknowledging)" | src:doc | target:§40 M7 chunk->atom edge (W1 brief 1b) | lap124503 |
+| 10.3 | "the post relays any atoms missing vs its memories to the Prime, periodically" | src:doc | target:§40 M8 walk check 1 + one batched atoms: relay per lap (W3) | lap124503 |
+| 10.4 | "the post can say: you asked X at this day/time; recorded here, being worked on / not transferred yet, marked for the spiders" | src:doc | target:§40 M7 agi-atom where (W1 brief 1b) | lap124503 |
+| 10.5 | "a spider carries out these routine cross-updates" | src:doc | target:§40 M8 unify-spider pass, four checks (W3) | lap124503 |
+| 10.6 | "classifiers via openrouter or our own; otherwise cheap haiku/sonnet" | src:doc | target:§40 tiers: tier 1 Haiku/Sonnet now (M7 atomizer cell), P1 = the openrouter arm; tiers 2-3 season 4 | lap124503 |
+| 10.7 | "UniiChat only if it lets me use my own keys" | src:doc | target:§40 import-only; any third-party harness gets a workspace-scoped key (C2/C3) | lap124503 |
+| 10.8 | "mark it full memory enabled so non-owner-facing posts can have it; the Prime always" | src:doc | target:§40 M6 mem: full + faces: cells (W1 brief 1b) | lap124503 |
