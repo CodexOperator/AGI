@@ -19,9 +19,9 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 ~~~
 agi-brief         1358 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
-agi-meter          704 B  past rotate_pct: out-line; box-read prompt: atomize
+agi-meter          790 B  past rotate_pct: out-line; box-read prompt: atomize
 agi-at            1129 B  signed CAS commit of ~/t paths to posts/<P>
-agi-atomize       3841 B  box mail -> verbatim card atoms (wake path, model)
+agi-atomize       3971 B  box mail -> verbatim card atoms (wake path, model)
 agi-atom          5677 B  card §7 atoms: add close move (verbatim slices)
 grow.py           5140 B  the growth-order check both writers call
 agi-turn           4615 B  a signed commit per changed node tree
@@ -75,11 +75,11 @@ for _ in range(30):
 for i in sorted([i for i in x if i in P],key=lambda i:-abs(x[i]))[:int(k)]:print('%.3f %+.1f'%(abs(x[i]),cmath.phase(x[i])/.5),i,P[i])
 ~~~
 
-### agi-meter (704 B)
+### agi-meter (790 B)
 ~~~sh
 #!/bin/sh
 ls ~/.notice* >/dev/null 2>&1&&agi-notice;j=$(cat);t=$(echo "$j"|jq '.tokens//empty');[ "$t" ]||t=$(echo "$j"|jq -r .transcript_path|xargs tac 2>/dev/null|jq -nR 'first(inputs|fromjson?|select((.message.usage.input_tokens)?|type=="number")|.message.usage|.input_tokens+((.cache_read_input_tokens|numbers)//0)+((.cache_creation_input_tokens|numbers)//0))');w=$(echo "$j"|jq ".context_window//${AGI_WINDOW:-1000000}")
-case $(echo "$j"|jq -r '.prompt//empty') in "mail: box read"*)agi-atomize wake||:;;esac
+case $(echo "$j"|jq -r '.prompt//empty') in "mail: box read"*)agi-atomize wake||echo "[atomize] wake rc=$?: no atoms this read (~/.atomize.log); the next read retries";;esac
 [ "${t:-0}" -gt $((w*${AGI_ROTATE_PCT:-47}/100)) ] 2>/dev/null&&echo "At the line ($t/$w): write your card in its node tree (agi-wt pull), run agi-flush, then: touch ~/.fresh;kill \$PPID";:
 ~~~
 
@@ -131,12 +131,12 @@ grandfather)r=$(awk -F'|' '/^## /{s=/^## §7/;t=0}s&&/^\*\*/{t=/^\*\*throw/}s&&N
 *)d "add | close | move | grandfather";;esac
 ~~~
 
-### agi-atomize (3841 B)
+### agi-atomize (3971 B)
 ~~~sh
 #!/bin/sh
-# agi-atomize [wake]: `wake` = the call agi-meter (the UserPromptSubmit hook) makes on the prompt "mail: box read": credits_live not true on the trunk -> ONE named skip line on stdout, no model call, exit 0; true -> the run below under timeout 45, stderr to ~/.atomize.log. The WAKE-PATH step after `box read` (goal:g7.16.1.11.46.3): cut each box message to this post that is not yet marked refs/atomized/P/<sha> into verbatim, non-overlapping atoms with targets (agi-infer: Haiku AGI_ATOMIZE_MODEL, Sonnet AGI_ATOMIZE_MODEL2 once if a target is ?), then `agi-atom add` each as a card §7 row and mark the commit; `>` lines never reach the model; kind fyi|report = 0 atoms, ask >= 1; a reply that paraphrases, overlaps or has no atoms for an ask marks nothing (the next wake retries)
+# agi-atomize [wake]: `wake` = the call agi-meter (the UserPromptSubmit hook) makes on the prompt "mail: box read": credits_live not true on the trunk -> ONE named skip line appended to ~/.atomize.log and NOTHING on stdout (a hook'"'"'s stdout enters the post'"'"'s context), no model call, exit 0; true -> the run below under timeout 45, stderr to ~/.atomize.log. The WAKE-PATH step after `box read` (goal:g7.16.1.11.46.3): cut each box message to this post that is not yet marked refs/atomized/P/<sha> into verbatim, non-overlapping atoms with targets (agi-infer: Haiku AGI_ATOMIZE_MODEL, Sonnet AGI_ATOMIZE_MODEL2 once if a target is ?), then `agi-atom add` each as a card §7 row and mark the commit; `>` lines never reach the model; kind fyi|report = 0 atoms, ask >= 1; a reply that paraphrases, overlaps or has no atoms for an ask marks nothing (the next wake retries)
 set -f;P=${AGI_POST:?};T=$(readlink -f "${AGI_T:-$HOME/t}");M=refs/atomized/$P
-[ "$1" = wake ]&&{ c=$(git -C "$T" show ${AGI_TRUNK:-trunk}:.agi/nodes/.geometry/secrets.md 2>/dev/null|sed -n 's/^credits_live: *//p'|head -1);[ "$c" = true ]||{ echo "[atomize] skipped: credits_live is ${c:-unreadable}, no model call";exit 0;};exec timeout 45 "$(readlink -f "$0")" 2>>$HOME/.atomize.log;}
+[ "$1" = wake ]&&{ c=$(git -C "$T" show ${AGI_TRUNK:-trunk}:.agi/nodes/.geometry/secrets.md 2>/dev/null|sed -n 's/^credits_live: *//p'|head -1);[ "$c" = true ]||{ echo "$(date -u +%FT%TZ) [atomize] skipped: credits_live is ${c:-unreadable}, no model call">>$HOME/.atomize.log;exit 0;};exec timeout 45 "$(readlink -f "$0")" 2>>$HOME/.atomize.log;}
 W=$(mktemp -d);trap 'rm -rf $W' 0;cd "$T"||exit 1;add=0
 ids=$(grep -rlE "Assigned to \*\*$P\*\*" .agi/nodes/goal 2>/dev/null|xargs -r grep -l '^status: active$'|sed 's|.*/||;s|\.md$||'|tr '\n' ' ')
 printf '%s' '{"type":"object","properties":{"kind":{"enum":["ask","fyi","report"]},"atoms":{"type":"array","items":{"type":"object","properties":{"slice":{"type":"string"},"target":{"type":"string"}},"required":["slice","target"]}}},"required":["kind","atoms"]}'>$W/s

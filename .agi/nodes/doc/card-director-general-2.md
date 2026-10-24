@@ -39,7 +39,8 @@ DONE   L90 council GO on tip 7926d1343a with T2b (unreadable town node -> `| tra
 DONE   L90 LANDED 89a1dd7589 (SM [landed] 04:38Z). .46.4 CLOSED 06a12c36db (close mail sent, trunk 48cb160d02)
 DONE   .46.2 CLOSED d25af275fb (F3 = 0 after belam's grandfather 08110dc30c). .46.3 wake-path caller built: agi-meter -> `agi-atomize wake` (named skip while credits_live is not true; 7 lanes + mutant in agi-atomize.t.sh); merge-up for it sent
 DONE   L93 FIX-FORWARD 2 (alive decision 04:59Z): agi-atom grandfather stamps only rows under a **throw ..** heading, refuses other legacy N.N rows with `[src] N.N is not under a throw: give it its real src` (mutant RED); rides the .46.3 caller tip
-NEXT   .46.5 F2 after the cron's :23 cell (wants `| intake:` belam= and `atoms=62 placed=` on town:local-maxxing), then close; SM gates the tip with the caller + fix-forward 2
+DONE   L95 council GO on 89f39f0a28 with ONE change: hook stdout EMPTY on a credits-off skip (log), a failed real run named (`[atomize] wake rc=<n>`), both mutants; P-a..P-e written into .46.3's THOUGHT (the live leg waits for all five)
+NEXT   mail SM the fixed tip; .46.5 F2 after the 05:23Z cell (check town:local-maxxing), then close
 ```
 
 ## §2 Landed
