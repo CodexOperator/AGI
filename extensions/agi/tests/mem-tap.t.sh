@@ -22,17 +22,18 @@ EOF
 (cd $E&&git init -q .&&git config core.hooksPath /dev/null&&git add -A .agi&&git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm x)
 HOST=$(hostname -s)
 # one transcript line per call: user / queued / assistant / tool_result / compact / meta
-UL(){ printf '{"type":"user","uuid":"%s","timestamp":"2026-10-24T10:00:00Z","message":{"content":%s}}\n' "$1" "$(printf '%s' "$2"|jq -Rs .)";}
-QL(){ printf '{"type":"attachment","uuid":"%s","timestamp":"2026-10-24T10:00:01Z","attachment":{"type":"queued_command","prompt":%s}}\n' "$1" "$(printf '%s' "$2"|jq -Rs .)";}
+UL(){ printf '{"type":"user","uuid":"%s","timestamp":"2026-10-24T10:00:00Z","origin":{"kind":"human"},"message":{"content":%s}}\n' "$1" "$(printf '%s' "$2"|jq -Rs .)";}
+UO(){ printf '{"type":"user","uuid":"%s","timestamp":"2026-10-24T10:00:00Z","origin":%s,"message":{"content":%s}}\n' "$1" "$3" "$(printf '%s' "$2"|jq -Rs .)";}
+QL(){ printf '{"type":"attachment","uuid":"%s","timestamp":"2026-10-24T10:00:01Z","attachment":{"type":"queued_command","origin":{"kind":"human"},"prompt":%s}}\n' "$1" "$(printf '%s' "$2"|jq -Rs .)";}
 AL(){ printf '{"type":"assistant","uuid":"%s","timestamp":"2026-10-24T10:00:02Z","message":{"content":[{"type":"text","text":%s},{"type":"tool_use","name":"x"}]}}\n' "$1" "$(printf '%s' "$2"|jq -Rs .)";}
 TR(){ printf '{"type":"user","uuid":"%s","timestamp":"2026-10-24T10:00:03Z","message":{"content":[{"type":"tool_result","content":"x"}]}}\n' "$1";}
-CS(){ printf '{"type":"user","uuid":"%s","isCompactSummary":true,"timestamp":"2026-10-24T10:00:04Z","message":{"content":"Earlier work, summarised for the new window"}}\n' "$1";}
+CS(){ printf '{"type":"user","uuid":"%s","isCompactSummary":true,"origin":{"kind":"human"},"timestamp":"2026-10-24T10:00:04Z","message":{"content":"Earlier work, summarised for the new window"}}\n' "$1";}
 ME(){ printf '{"type":"user","uuid":"%s","isMeta":true,"timestamp":"2026-10-24T10:00:05Z","message":{"content":"meta words"}}\n' "$1";}
 # fresh HOME h$1 with a transcript X (session S1) and a run helper: TAP <home> [piece]; the post is p unless P=q
 nh(){ H=$D/h$1;rm -rf "${H:?}";mkdir -p $H/.claude/projects/x;X=$H/.claude/projects/x/S1.jsonl;: >$X;echo S1>$H/.session;S=$H/.mem/p.git;}
 TAP(){ echo "{\"transcript_path\":\"$X\",\"session_id\":\"S1\",\"prompt\":\"hi\",\"tokens\":1}"|env HOME=$H AGI_POST=${P:-p} AGI_ENGINE=$E AGI_TRUNK=HEAD PATH=$D/bin:$PATH sh ${1:-$D/bin/agi-mem} tap 2>&1;}
 AT(){ env HOME=$H AGI_POST=${P:-p} AGI_ENGINE=$E AGI_TRUNK=HEAD PATH=$D/bin:$PATH sh ${1:-$D/bin/agi-mem} at 2>&1;}
-nchunks(){ git -C $S grep -c '^id: c:' refs/heads/mem 2>/dev/null|awk -F: '{n+=$NF}END{print n+0}';}
+nchunks(){ git -C $S grep -c '^id: c:' refs/heads/mem -- mem ':!mem/retired' 2>/dev/null|awk -F: '{n+=$NF}END{print n+0}';}
 nowner(){ git -C $S grep --all-match -l -e '^speaker: owner$' -e "$1" refs/heads/mem 2>/dev/null|wc -l|tr -d ' ';}
 # mutate: MUT <sed-expr> -> $D/mut (a copy of the piece with the one edit; the edit MUST change it)
 MUT(){ sed "$1" $D/bin/agi-mem>$D/mut;cmp -s $D/bin/agi-mem $D/mut&&{ echo "FAIL inputs: mutant edit '$1' changed nothing";exit 99;};}
@@ -73,6 +74,43 @@ nh r4;CS u1>>$X;ME u2>>$X;TR u3>>$X;UL u4 "mail: box read">>$X;UL u5 "keepalive:
 ok "r4-no-owner-chunk-for-injected-lines a compact summary, a meta line, a tool_result, 'mail: box read' (string and queued), a keepalive and a task-notification yield 0 chunks (got $(nchunks))" '[ "$(nchunks)" = 0 ]'
 MUT 's/ and .isCompactSummary!=true//';nh r4m;CS u1>>$X;TAP $D/mut>/dev/null;ok "r4-mutant-compact-summary-RED a tap that drops the isCompactSummary test writes an owner chunk ($(nowner 'speaker'))" '[ "$(nchunks)" -ge 1 ]'
 MUT 's/mail: box read|//';nh r4m2;UL u4 "mail: box read">>$X;TAP $D/mut>/dev/null;ok "r4-mutant-nudge-RED a tap that drops the nudge test writes an owner chunk for 'mail: box read' ($(nchunks))" '[ "$(nchunks)" -ge 1 ]'
+
+# R4 live red (belam 15:4xZ): a CROSS-SESSION message and the harness's own openers were stored as `speaker: owner`
+nh r4x;UL c1 '<cross-session-message from="x" from-name="t-e4">hand-off: rows 8.1-8.8 and 2.5</cross-session-message>'>>$X;UL c2 '[SYSTEM NOTIFICATION - NOT USER INPUT] a task ended'>>$X;UL c3 '<system-reminder>reminder text'>>$X;UL c4 '<task-notification>done</task-notification>'>>$X;UL u9 "my real words">>$X;TAP>/dev/null
+ok "r4x-cross-session-and-harness-openers-are-not-owner a <cross-session-message, a [SYSTEM NOTIFICATION, a <system-reminder and a <task-notification opener yield 0 chunks; the one real owner line yields 1 (chunks $(nchunks))" '[ "$(nchunks)" = 1 ]&&git -C $S grep -q "^my real words$" refs/heads/mem'
+MUT 's/<\[a-z\]\[a-z-\]\*\[ >\]|//';nh r4xm;UL c1 '<cross-session-message from="x">hand-off</cross-session-message>'>>$X;TAP $D/mut>/dev/null
+ok "r4x-mutant-cross-session-reads-owner-RED a filter without the <cross-session-message opener stores it as an owner chunk ($(nchunks)): the lane above wants 0" '[ "$(nchunks)" = 1 ]&&git -C $S grep -q "^speaker: owner$" refs/heads/mem'
+# REPAIR' (council 15:4xZ): scrub RETIRES (moves, bytes unchanged) an owner chunk that carries a not-owner opener to mem/retired/ and clears that session's cursor; at / derive / label / find read mem/<date>/ only; at is RED on k != m
+XS='<cross-session-message from="x">hand-off</cross-session-message>'
+MUT 's/<\[a-z\]\[a-z-\]\*\[ >\]|//';cp $D/mut $D/mut_f
+MUT 's/ -- mem .:!mem\/retired. 2>\/dev\/null|wc -l/ 2>\/dev\/null|wc -l/';cp $D/mut $D/mut_at
+MUT 's/\[ \$new -gt 0 \]&&cm "speaker not human.*;exit 0;;/exit 0;;/';cp $D/mut $D/mut_scrub
+SCR(){ env HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_TRUNK=HEAD PATH=$D/bin:$PATH sh ${1:-$D/bin/agi-mem} scrub;}
+nh r4s;UL c1 "$XS">>$X;UL u9 "my real words">>$X;TAP $D/mut_f>/dev/null;n0=$(nchunks);a0=$(AT);px=$(git -C $S grep -l cross-session refs/heads/mem|sed 's/^[^:]*://');b0=$(git -C $S rev-parse refs/heads/mem:$px);SCR;n1=$(nchunks);b1=$(git -C $S rev-parse refs/heads/mem:mem/retired/${px#mem/});cur=$([ -f $S/cursor-S1 ]&&echo kept||echo cleared);a1=$(AT);TAP>/dev/null;a2=$(AT);msg=$(git -C $S log -1 --format=%s refs/heads/mem~1 2>/dev/null)
+ok "r4s-k-not-m-is-red a misattribution left in the store reads RED on k > m: '$a0'" '[ "$a0" = "mem: tapped 2/1 RED (1 owner chunk not owner by the current filter)" ]'
+ok "r4s-scrub-retires-never-deletes the real scrub moves the chunk to mem/retired/ (live $n0 -> $n1), its blob is unchanged ($b0 = $b1), the session cursor is $cur, the commit names the rule; right after at is '$a1', after the re-sweep '$a2'" '[ "$n0" = 2 ]&&[ "$n1" = 1 ]&&[ "$b0" = "$b1" ]&&[ "$cur" = cleared ]&&git -C $S log --format=%s refs/heads/mem|grep -q "^speaker not human"&&[ "$a1" = "mem: unread" ]&&[ "$a2" = "mem: tapped 1/1" ]&&git -C $S grep -q "^my real words$" refs/heads/mem -- mem ":!mem/retired"&&! git -C $S grep -q cross-session refs/heads/mem -- mem ":!mem/retired"'
+nh r4sx;UL c1 "$XS">>$X;UL u9 "my real words">>$X;TAP $D/mut_f>/dev/null;SCR;TAP>/dev/null;ax=$(AT $D/mut_at);ac=$(AT)
+ok "r4s-mutant-retired-counts-in-k-RED an at that does not exclude mem/retired/ reads '$ax' where the real at reads '$ac'" '[ "$ax" = "mem: tapped 2/1 RED (1 owner chunk not owner by the current filter)" ]&&[ "$ac" = "mem: tapped 1/1" ]'
+nh r4sm;UL c1 "$XS">>$X;TAP $D/mut_f>/dev/null;SCR $D/mut_scrub
+ok "r4s-mutant-scrub-that-never-commits-RED a scrub that commits nothing leaves the chunk live ($(nchunks)); the lane above wants it retired" '[ "$(nchunks)" = 1 ]'
+
+# R4' (council 15:4xZ): owner = origin.kind human AND no tag opener (leading blanks allowed) AND no nudge prefix
+nh r4o;UO k1 "plain words from a task" '{"kind":"task-notification","producer":"session-task"}'>>$X;printf '{"type":"user","uuid":"k2","timestamp":"2026-10-24T10:00:00Z","message":{"content":"no origin at all"}}\n'>>$X;UL k3 '<new-envelope x="y">unknown wrapper'>>$X;UL k4 '
+<task-notification>after a newline'>>$X;UL k5 "a plain human line">>$X;TAP>/dev/null
+ok "r4o-owner-needs-human-origin-and-no-tag-opener origin.kind task-notification with plain text, a missing origin, an unknown <new-envelope x=\"y\"> with kind human and a leading newline before <task-notification all yield 0 chunks; the plain human line yields 1 (chunks $(nchunks))" '[ "$(nchunks)" = 1 ]&&git -C $S grep -q "^a plain human line$" refs/heads/mem'
+MUT 's/ and \.origin\.kind=="human" then {sp:"owner"/ then {sp:"owner"/';nh r4om;UO k1 "plain words from a task" '{"kind":"task-notification"}'>>$X;TAP $D/mut>/dev/null
+ok "r4o-mutant-no-origin-check-RED a tap that ignores origin.kind stores a task-notification's plain text as an owner chunk ($(nchunks)): the lane above wants 0" '[ "$(nchunks)" = 1 ]'
+MUT "s/^NU='\[\[:space:\]\]\*(/NU='(/";nh r4on;UL k4 '
+<task-notification>after a newline'>>$X;TAP $D/mut>/dev/null
+ok "r4o-mutant-no-leading-blank-allowance-RED an opener test anchored without the blank allowance stores a leading-newline <task-notification as an owner chunk ($(nchunks)): the lane above wants 0" '[ "$(nchunks)" = 1 ]'
+MUT 's/<\[a-z\]\[a-z-\]\*\[ >\]|//';nh r4ou;UL k3 '<new-envelope x="y">unknown wrapper'>>$X;TAP $D/mut>/dev/null
+ok "r4o-mutant-deny-list-only-RED a prefix deny-list without the generic tag-opener rule stores an unknown <new-envelope> as an owner chunk ($(nchunks)): the lane above wants 0" '[ "$(nchunks)" = 1 ]'
+
+# the real red's shape (belam 15:4xZ): a queued_command whose attachment.origin.kind is "peer"
+nh r4q;printf '{"type":"attachment","uuid":"q1","timestamp":"2026-10-24T10:00:01Z","attachment":{"type":"queued_command","origin":{"kind":"peer"},"prompt":"plain words from another session"}}\n'>>$X;QL q2 "a human queued line">>$X;TAP>/dev/null
+ok "r4q-queued-peer-origin-is-not-owner a queued_command with attachment.origin.kind peer and plain text yields 0 chunks; a human queued line yields 1 (chunks $(nchunks))" '[ "$(nchunks)" = 1 ]&&git -C $S grep -q "^a human queued line$" refs/heads/mem'
+MUT 's/ and \.attachment\.origin\.kind=="human" then/ then/';nh r4qm;printf '{"type":"attachment","uuid":"q1","timestamp":"2026-10-24T10:00:01Z","attachment":{"type":"queued_command","origin":{"kind":"peer"},"prompt":"plain words from another session"}}\n'>>$X;TAP $D/mut>/dev/null
+ok "r4q-mutant-queued-origin-unchecked-RED a tap that checks no queued_command origin stores the peer's plain text as an owner chunk ($(nchunks)): the lane above wants 0" '[ "$(nchunks)" = 1 ]'
 
 # ---- R5 ADDRESS: sha over (speaker, session, transcript uuid, body); the body stays verbatim
 nh r5;UL u1 "same words" >>$X;UL u2 "same words" >>$X;TAP>/dev/null
