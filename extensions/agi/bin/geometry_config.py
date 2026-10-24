@@ -118,6 +118,26 @@ def load_rows(root: Path | None) -> list:
     return []
 
 
+MEM_VALUES = ("full", "season", "goal", "none")
+FACES_VALUES = ("owner", "posts", "none")
+
+
+def cell_errors(root: Path | None) -> list:
+    """goal:g7.16.1.11.46.13 R7: the ONE check of a row's `mem:` and `faces:`
+    cells. An absent `mem:` reads `none`, an absent `faces:` reads `none`;
+    `faces: owner` without `mem: full` is refused, each by one named line."""
+    out = []
+    for row in load_rows(root):
+        who, mem, faces = row.get("name", "?"), row.get("mem") or "none", row.get("faces") or "none"
+        if mem not in MEM_VALUES:
+            out.append(f"[cells] {who}: mem: {mem} is not {'|'.join(MEM_VALUES)}")
+        elif faces not in FACES_VALUES:
+            out.append(f"[cells] {who}: faces: {faces} is not {'|'.join(FACES_VALUES)}")
+        elif faces == "owner" and mem != "full":
+            out.append(f"[cells] {who}: faces: owner requires mem: full (has mem: {mem})")
+    return out
+
+
 def resolved_seat_env() -> str | None:
     """AGI_POST, the one identity variable (goal:g7.16.1.11.46.11 V10a: the
     retired spelling's fallback is gone). None when unset — never a placeholder."""
@@ -154,6 +174,12 @@ def _main(argv=None) -> int:
         help="Project root to resolve the post config from (default: current "
              "working directory's nearest .agi project).",
     )
+    ap.add_argument(
+        "--cells",
+        action="store_true",
+        help="Check the mem:/faces: cells of every row (goal:g7.16.1.11.46.13 R7): "
+             "one named line per refusal, rc 1 if any.",
+    )
     args = ap.parse_args(argv)
 
     root = args.root
@@ -164,6 +190,15 @@ def _main(argv=None) -> int:
             root = find_root()
         except Exception:  # noqa: BLE001  (best effort for a print helper)
             root = None
+
+    path, key = resolve(root)
+    if args.cells:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+        errs, n = cell_errors(root), len(load_rows(root))
+        if not n:   # a check over no rows proves nothing: never a bare ok
+            errs = [f"[cells] no rows read from {path}"]
+        print("\n".join(errs) if errs else f"cells: ok ({n} rows)")
+        return 1 if errs else 0
 
     path, key = resolve(root)
     if path is not None:

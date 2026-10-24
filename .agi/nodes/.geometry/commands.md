@@ -2856,6 +2856,19 @@ manifest:
     purpose: check bytes for physical-token leaks
     side_effects: read
     proposable: true
+  anonymize.py:redact:
+    cli: anonymize.py
+    verb: redact
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/anonymize.py
+      - redact
+    args:
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+    purpose: stdin JSON lines, b redacted to placeholders
+    side_effects: read
+    proposable: false
+    reason: reads stdin lines for the chat tap (agi-mem); not a standalone command
   anonymize.py:install-hook:
     cli: anonymize.py
     verb: install-hook

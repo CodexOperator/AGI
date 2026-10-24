@@ -56,6 +56,6 @@ M=$D/m1;sed '/\[verbatim\]/d' $PC>$M;mk f;A grandfather;PIECE_RUN=$M A add 'Traj
 ok "m1-no-substring-check-RED a piece without the substring check ACCEPTS the changed word (rc $rc): the add-one-word-changed lane catches it" '[ $rc = 0 ]'
 M=$D/m2;sed 's/n "\$v"||d "\[state\] no goal node \$v";//' $PC>$M;mk g;A grandfather;A add 'plain line two' src:goal:g9#OWNER>/dev/null;PIECE_RUN=$M A close a1 leaf:g777;rc=$?
 ok "m2-no-id-check-RED a piece without the goal-id check closes a1 to an absent goal (rc $rc): the close-to-absent-leaf lane catches it" '[ $rc = 0 ]'
-M=$D/m3;awk '!z{k="*\"| target:\"*);;";i=index($0,k);if(i){$0=substr($0,1,i-1)"*);;"substr($0,i+length(k));z=1}}1' $PC>$M;mk h;A grandfather;A add 'plain line two' src:goal:g9#OWNER>/dev/null;A close a1 out:first;PIECE_RUN=$M A close a1 out:second;rc=$?
+M=$D/m3;awk '!z{k="*\"| target:\"*|*\"| red:\"*);;";i=index($0,k);if(i){$0=substr($0,1,i-1)"*);;"substr($0,i+length(k));z=1}}1' $PC>$M;mk h;A grandfather;A add 'plain line two' src:goal:g9#OWNER>/dev/null;A close a1 out:first;PIECE_RUN=$M A close a1 out:second;rc=$?
 ok "m3-terminal-reopens-RED a piece that lets a closed row move again (answers rc $rc, want 0): the close-terminal lane catches it" '[ $rc = 0 ]'
 echo "agi-atom.t.sh: $f FAIL";exit $f
