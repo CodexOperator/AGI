@@ -1370,6 +1370,7 @@ manifest:
       - {"name": "what", "type": "str", "required": false, "choices": ["env-file", "template", "node"]}
       - {"name": "check", "type": "bool", "required": false, "choices": []}
       - {"name": "json", "type": "bool", "required": false, "choices": []}
+      - {"name": "lanes", "type": "bool", "required": false, "choices": []}
       - {"name": "set", "type": "str", "required": false, "choices": []}
     purpose: envfile.py
     side_effects: graph-write
