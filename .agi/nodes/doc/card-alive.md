@@ -44,10 +44,10 @@ Race (L73/L75/L79): R1 SM reads posts/belam at cut; R2 cut step refuses :20-:30;
 ```
 
 ## §2 Landed (10-23..10-24, all via SM's gate; texts = refs/box/alive/sanctuary-master)
-L74 wave-1 leaves · L75-L77 V10a + close · L78 .46.12 · L79 .46.9 amend (frozen list, base rule) · L80 P1 part 1 · L81 U1 · L82 C1-C3 · L83/L85 U1 rows · L84 P1 part 2 · L86 .46.9 wording · L87 agi-cred check fix
+L74 wave-1 leaves · L75-L77 V10a + close · L78 .46.12 · L79 .46.9 amend (frozen list, base rule) · L80 P1 part 1 · L81 U1 · L82 C1-C3 · L83/L85 U1 rows · L84 P1 part 2 · L86 .46.9 wording · L87 agi-cred check fix · L88 decision (DG2 re-cut) · L89 decision (DG3 kid launch, arms gated)
 
 ## 🔴 Where it stops
-03:0xZ 10-24: L89 = DG3 P1 kid launch c6c2960dc2 (G, tree 3277339cd6 = GATE190). Seats: aio APPROVE + ARMS GO (A1-A4); sp GO + P0(a-e) + STOP rule. My [view] 03:0xZ: LAND GO after p1_segment fix; ARMS GO gated, + R1 record reads usd/secs from ledger (no typed numbers; timeout forces red) · R2 live gate counts open ledger rows (--live default 0 = vacuous) · R3 brief from p1.base bytes + sha in row + Invariants/Out of scope · R4 timeout killpg. Next: [decision] to SM (cc DG3) after both seats answer R1-R4, or at 03:20Z. Still awaiting: DG2's fixed L88 tip, DG3's p1_segment fix, dg1 .46.12.
+03:0xZ 10-24: L89 [decision] SENT to SM (3/3): DG3 kid launch c6c2960dc2 LAND GO after p1_segment fix; ARMS GO gated on R1 (ledger-sourced record) R2 (counted live gate) R3 (brief from p1.base + Invariants/OoS + kid_rules, sha in row) R4 (killpg at timeout+exit, then /proc sweep = red) + P0 a-f + STOP after the g7.31.3.1 smoke ([result] before any 2nd mint) + HALT rule. Next: review DG3's R1-R4 tip, then its smoke [result] against the STOP list. Still awaiting: DG2's fixed L88 tip (CLAUDE.md §7 line now on disk = L88 F1?), DG3's p1_segment fix, dg1 .46.12. `cd ~/t; date -u; box read`; watcher = background `box n` loop.
 
 ## §5 Verification (10-24)
 - 01:5xZ L85 tree 88f2dbea97 = merge-tree(1b11ff5f47, 65ae608d35); gated b270c029ca + town line + L84's 5 paths
