@@ -60,7 +60,7 @@
       "adapter": "pi",
       "bin": "~/pi1/node_modules/.bin/pi",
       "rows": [
-        {"name": "glm", "default": true, "provider": "openrouter", "thinking": "medium", "models": {"kid": "z-ai/glm-5.3-flash", "parent": "z-ai/glm-5.3-flash"}, "allowed_extra": ["z-ai/glm-5.3-flash"]},
+        {"name": "glm", "provider": "openrouter", "thinking": "medium", "models": {"kid": "z-ai/glm-5.3-flash", "parent": "z-ai/glm-5.3-flash"}, "allowed_extra": ["z-ai/glm-5.3-flash"]},
         {"name": "deepseek", "provider": "openrouter", "thinking": "medium", "models": {"kid": "deepseek/deepseek-v4.1-flash-1017", "parent": "deepseek/deepseek-v4.1-flash-1017"}, "allowed_extra": ["deepseek/deepseek-v4.1-flash-1017"]},
         {"name": "credits", "provider": "anthropic", "thinking": "medium", "models": {"kid": "claude-haiku-5-5", "parent": "claude-haiku-5-5"}, "allowed_extra": ["claude-haiku-5-5"]}
       ]
@@ -137,7 +137,11 @@
   },
   "p1": {
     "pin": {"package": "@earendil-works/pi-coding-agent", "version": "1.4.0", "integrity": "sha512-Z41LpZ3yYHSC/UUps6Mr39UMFPwH8elhJBG9DY1P7kuzsE5qSK/6eMj2EHzO5evJRQWLbKSqUMw+4nCNtIyiQg=="},
-    "leaves": 10,
+    "leaves": ["goal:g4.18.2.1", "goal:g7.31.3.1", "goal:g7.32.3", "goal:g4.21", "goal:g7.32.1"],
+    "base": "77ac7517237e9f384ca0d4f91fbb3eb0dd543137",
+    "arm_order": ["deepseek", "glm", "credits"],
+    "results": ".agi/context/local-maxxing/p1-results.json",
+    "forbidden_paths": [".agi/bin/render-context.py", ".agi/bin/snapshot-build-site.py"],
     "key_cap_usd": 0.5,
     "arm_cap_usd": {"glm": 5.0, "deepseek": 5.0, "credits": 5.0},
     "cash_total_usd": 10.0,
