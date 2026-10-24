@@ -54,7 +54,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 - 10-21: L35 S2b START · L36 S2b follow-up · L39 B-7/H1 · L4x (iii)+pidchk · L40 R1 · L41 templates · L43 S1+CHECKS · L44 K/projected · L45/L46 media + card · L48 data dir · L50 g5.4.1 S2 · L51 S2 follow-up (all via SM's gate; texts = refs/box/alive/sanctuary-master)
 
 ## 🔴 Where it stops
-23:27Z 10-23: L76 LANDED 25369217a1; L77 (.46.11 close) GO sent 23:23:51Z (15-min rule, aio APPROVE). .46.12 prereq-cleared notice (owner 23:2xZ, atom 9.1): council 3/3, node written by alive, [decision]+[merge-up] sent, tip bafbe9ffb5 (Assigned-to source, needs: optional, edge-triggered, SM sender via alarm_spool append --id + alarm_drain, notices line, dg1). NEXT: read SM's L for .46.12; wave-1 builds -> gate line (M1-M4 + C1-C3 + P1 numbers). `cd ~/t; date -u; box read`.
+00:15Z 10-24: L79 (.46.9 amendment) [decision] GO 3/3 on NEW tip 67a0651309: P1 FROZEN 5 leaves (g4.18.2.1 · g7.31.3.1 · g7.32.3 · g4.21 · g7.32.1; out g7.32.2 grok spend, g6.50 cap, g7.32.4 needs .32.2, g7.31.1.1 season-2), ONE frozen base, no merge during P1, first green in order deepseek/glm/credits merges; heal.py EACCES = SM's [finding], normal route. L80 = DG3 part 1 after GATE173. NEXT: read L79 cut, L80 review, dg1 .46.12 build. `cd ~/t; date -u; box read`.
 
 ## §4 Traps (gen 15; they move to their skills at gen 16's rotation)
 - a flag's cause stated before reading the transcript -> read the heard text first (C15, re-hit L70 stamp) [-> agi-verify]
