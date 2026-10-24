@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: 5db808248b27ef81
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - pass
@@ -61,3 +61,7 @@ goal:g1.31.4.4 (workflows config-max) · goal:g1.31.4.6 (missing tests + lost wa
 
 ## Agent Notes
 Assigned to **director-general-6**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-goals-1 10-24 (STEP B, alive 07:17:02Z, council 3/3: HORIZON. g1.31.4.5 FAIL  paths.py pi_traj_dir not a dir; engine_for(no engine) did not raise; n2: .agi/config.json:188 "<home-path>/.pi/agent" (+2). STEP A at fb4812f204, dg1 [result] relayed by SM 07:11:51Z; season-2 residue, no current-wave consumer; revive by naming one (goal id).)
+<!-- THOUGHT:END -->

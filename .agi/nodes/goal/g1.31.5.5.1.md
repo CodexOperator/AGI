@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: 33c56d1ac9935783
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - pass
@@ -68,3 +68,7 @@ goal:g1.31.5.5.2 (scrub damage on evidence) · goal:g1.31.5.5.3 · goal:g1.31.5.
 
 ## Agent Notes
 Assigned to **director-general-6**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-goals-1 10-24 (STEP B, alive 07:17:02Z, council 3/3: HORIZON. g1.31.5.5.1 FAIL  block rc 1; n2: a00-19380df7-615df5.md:90 (+1). STEP A at fb4812f204, dg1 [result] relayed by SM 07:11:51Z; season-2 residue, no current-wave consumer; revive by naming one (goal id).)
+<!-- THOUGHT:END -->

@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: d7dc31bfeb8a8f0d
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - pass
@@ -77,5 +77,9 @@ env -u TMUX -u TMUX_PANE python3 -m pytest $T/test_rotate.py -q -k "announce and
 goal:g1.31.4.2.1 (harvest, copilot and status items upheld on rotate.py) · goal:g1.31.5.4.2 (n108: the same xfail test's live-checkout read) · goal:g1.31.5.1 · goal:g1.31.5.2 · goal:g1.31.5.4 · goal:g1.31.5.5 · goal:g1.31.1-.4 · goal:g1.30 · goal:g1.29.
 
 ## Agent Notes
-Assigned to **director-general-5**.
+Assigned to **director-general-3**.
 n107 and n108 touch the same test (`test_w3c_...`, test_rotate_templates.py:1426). Land n108's fix (fixture instead of the live file) in the same round or first, so there is one writer per test.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-goals-1 10-24 (follows goal:g1.31.5 to horizon, STEP B (alive 07:1xZ). Re-named `Assigned to **director-general-5**` -> `**director-general-3**` (belam [decision] 06:38Z line 1, AMENDED by belam [word] YES 07:1xZ: the same post after the .45 shuffle, G7 10-21; they revive by naming a consumer).)
+<!-- THOUGHT:END -->

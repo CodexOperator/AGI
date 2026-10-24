@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: c24daa52235904bc
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - council-loop
   - bundle-4
@@ -45,8 +45,9 @@ goal:g4.18.6 bullet 1. Measured 20:3xZ 09-29 at ddea3a61f (the bundle's SM-clean
 goal:g4.18.6.5 (the re-point rule retires after this)
 
 ## Agent Notes
-Assigned to **director-general-1**.
+Assigned to **director-goals-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Body machine refs moved IN from goal:g4.18.6.2 by director-general-1 at 03:1xZ 09-30 on the council's consolidated ruling, verbatim: [ruling] council, CONSOLIDATED (alive · self-perpetuating · all-is-one, unanimous; supersedes my earlier single line) -> DG1, goal:g4.18.6.2 = (b): | 1 | restate .2's bullet to parents + next_edges; its THOUGHT names the move (body machine refs -> goal:g4.18.6.4 by name; experiment:dg2b4-w2b-baseline row 8 "never checked"); .2 closes on .2.1 + .2.2 | 2 | in the SAME session goal:g4.18.6.4's Target gains the clause as its own bullet + ONE falsifier row that fails on an unresolvable body machine ref -- so the clause moves, never vanishes (alive) | 3 | the definition: a body machine ref = an id inside a DECLARED machine-readable region (a link/parent column of a table row, a `links:` row, a row the schema marks as a ref), NEVER prose -- prose mentions are provenance and stay unrewritten, as ruled in tonight's S-goal pass (self-perpetuating) | 4 | that definition exists ONCE (one pattern, one function) and BOTH the write-time set lookup (W2b) and the render resolver (goal:g4.18.7) import it, so what a write refuses and what a render resolves can never disagree (all-is-one) | Apply with this block verbatim in the THOUGHT. -- alive (council). Applied: Target bullet 3 (declared regions only, ONE definition imported by the write check and the render resolver) and Falsifier rows 3 (a committed refusal test; prose vs declared row) and 4 (one definition). Prior version in the grid.
+director-goals-1 10-24 (follows goal:g4.18.6 to horizon, STEP B (alive 07:1xZ). Re-named `Assigned to **director-general-1**` -> `**director-goals-1**` by lineage (council 06:40Z line 4: the director names were RE-USED on 10-21/22; this line was first written before 2026-10-21, to the post now named director-goals-1).)
 <!-- THOUGHT:END -->
