@@ -35,7 +35,7 @@ seats.md fallback as firing `_FILE_DEP_MSG`, but grep confirmed zero
 definitions and zero uses of that symbol anywhere in `extensions/agi/bin/`.
 Rewrote that docstring block so it states what is now TRUE: the notice family
 is exactly the caller-chosen deprecated spellings (`--seat` flag ->
-`_FLAG_DEP_MSG`, `AGI_SEAT` env -> `_ENV_DEP_MSG`), and the seats.md/file
+`_FLAG_DEP_MSG`, `AGI_[retired]` env -> `_ENV_DEP_MSG`), and the seats.md/file
 fallback is SILENT by design — the file-level deprecation notice was DELETED
 and greps for it now return nothing. Named the deletion and the reason
 (posts.md absent by construction on a seats-only tree, so the old notice's

@@ -146,7 +146,7 @@ $ python3 -c "import pi_trajectory as m; [print(repr(m._RETRY.format(1,7,b))) fo
 ## Suite (the files the order named, + the smoke file)
 
 ```
-$ env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT python3 -m pytest \
+$ env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_[retired] python3 -m pytest \
     extensions/agi/tests/test_pi_trajectory.py \
     extensions/agi/tests/test_live_config_cells.py \
     extensions/agi/tests/test_pi_trajectory_retry.py \

@@ -83,7 +83,6 @@ def test_bare_rotate_resolves_and_delegates(tmp_path, monkeypatch):
     _write_geo(tmp_path, rows)
     _stops_card(tmp_path, "prime", "run the suite and report")
     monkeypatch.setenv("AGI_POST", "prime")
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     captured = {}
     monkeypatch.setattr(
         rotate, "cmd_rotate_self",
@@ -103,7 +102,6 @@ def test_no_identity_refuses_not_delegated(tmp_path, monkeypatch):
     rows = _keyed_posts(tmp_path, [("prime", "prime_director")])
     _write_geo(tmp_path, rows)
     monkeypatch.delenv("AGI_POST", raising=False)
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     monkeypatch.setattr(rotate, "_git_toplevel", lambda _c: None)
     called = []
     monkeypatch.setattr(rotate, "cmd_rotate_self",
@@ -120,7 +118,6 @@ def test_post_lower_rank_delegates_with_name_target(tmp_path, monkeypatch):
     _write_geo(tmp_path, rows)
     _stops_card(tmp_path, "director", "close out the round")
     monkeypatch.setenv("AGI_POST", "prime")
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     captured = {}
     monkeypatch.setattr(
         rotate, "cmd_rotate_self",
@@ -136,7 +133,6 @@ def test_post_equal_rank_refused_not_delegated(tmp_path, monkeypatch):
     rows = _keyed_posts(tmp_path, [("d1", "director"), ("d2", "director")])
     _write_geo(tmp_path, rows)
     monkeypatch.setenv("AGI_POST", "d1")
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     called = []
     monkeypatch.setattr(rotate, "cmd_rotate_self",
                         lambda ns, root: (called.append(ns), 0)[1])
@@ -150,7 +146,6 @@ def test_explicit_timeout_and_stops_win(tmp_path, monkeypatch):
     rows = _keyed_posts(tmp_path, [("prime", "prime_director")])
     _write_geo(tmp_path, rows)             # NO card: derivation would refuse
     monkeypatch.setenv("AGI_POST", "prime")
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     captured = {}
     monkeypatch.setattr(
         rotate, "cmd_rotate_self",
@@ -168,7 +163,6 @@ def test_empty_slot_refuses_exit2_not_delegated(tmp_path, monkeypatch):
     _write_geo(tmp_path, rows)
     _stops_card(tmp_path, "prime", "")     # slot present but EMPTY
     monkeypatch.setenv("AGI_POST", "prime")
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     called = []
     monkeypatch.setattr(rotate, "cmd_rotate_self",
                         lambda ns, root: (called.append(ns), 0)[1])
@@ -184,7 +178,6 @@ def test_dry_run_prints_resolved_line_and_delegates(tmp_path, monkeypatch,
     _write_geo(tmp_path, rows)
     _stops_card(tmp_path, "prime", "run the suite")
     monkeypatch.setenv("AGI_POST", "prime")
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     captured = {}
     monkeypatch.setattr(
         rotate, "cmd_rotate_self",
@@ -226,7 +219,6 @@ def test_closeout_default_from_rotate_defaults_map(tmp_path, monkeypatch):
     rows = _keyed_posts(tmp_path, [("prime", "prime_director")])
     _stops_card(tmp_path, "prime", "close out the round")
     monkeypatch.setenv("AGI_POST", "prime")
-    monkeypatch.delenv("AGI_SEAT", raising=False)
 
     def _run(rotations, want):
         _write_geo(tmp_path, rows, rotations=rotations)
@@ -252,7 +244,6 @@ def test_dry_run_stops_file_and_closeout_no_traceback(tmp_path, monkeypatch,
     rows = _keyed_posts(tmp_path, [("prime", "prime_director")])
     _write_geo(tmp_path, rows)             # no card: derivation would refuse,
     monkeypatch.setenv("AGI_POST", "prime")   # but --stops-file/--closeout
-    monkeypatch.delenv("AGI_SEAT", raising=False)  # skip the derivation
     for argv, tok, field, value in (
             (["--dry-run", "--stops-file", "F"], "--stops-file F",
              "stops_file", "F"),
@@ -305,7 +296,6 @@ def test_stale_stops_slot_refuses_by_name_not_delegated(tmp_path, monkeypatch,
     _commit_all(tmp_path, "prime rotate-out gen 4->5: run the suite")
     # the current card is UNCHANGED (same slot text): STALE, refuse by name.
     monkeypatch.setenv("AGI_POST", "prime")
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     called = []
     monkeypatch.setattr(rotate, "cmd_rotate_self",
                         lambda ns, root: (called.append(ns), 0)[1])
@@ -328,7 +318,6 @@ def test_rewritten_slot_delegates(tmp_path, monkeypatch):
     _commit_all(tmp_path, "prime rotate-out gen 4->5: run the suite")
     _stops_card(tmp_path, "prime", "hand off the round")         # REWRITTEN
     monkeypatch.setenv("AGI_POST", "prime")
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     captured = {}
     monkeypatch.setattr(rotate, "cmd_rotate_self",
                         lambda ns, root: (captured.update(ns=ns), 0)[1])
@@ -365,7 +354,6 @@ def test_retry_after_blocked_rotate_out_not_stale(tmp_path, monkeypatch,
         json.dumps({"rotation": "rotate-self", "seat": "prime",
                     "gen_after": 4}), encoding="utf-8")
     monkeypatch.setenv("AGI_POST", "prime")
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     captured = {}
     monkeypatch.setattr(rotate, "cmd_rotate_self",
                         lambda ns, root: (captured.update(ns=ns), 0)[1])
@@ -384,7 +372,6 @@ def test_no_rotate_out_commit_delegates(tmp_path, monkeypatch):
     _stops_card(tmp_path, "prime", "run the suite and report")
     _commit_all(tmp_path, "init")              # NOT a rotate-out message
     monkeypatch.setenv("AGI_POST", "prime")
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     captured = {}
     monkeypatch.setattr(rotate, "cmd_rotate_self",
                         lambda ns, root: (captured.update(ns=ns), 0)[1])
@@ -401,7 +388,6 @@ def test_explicit_stops_with_stale_slot_delegates(tmp_path, monkeypatch):
     _stops_card(tmp_path, "prime", "run the suite and report")  # stale slot
     _commit_all(tmp_path, "prime rotate-out gen 4->5: run the suite")
     monkeypatch.setenv("AGI_POST", "prime")
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     captured = {}
     monkeypatch.setattr(rotate, "cmd_rotate_self",
                         lambda ns, root: (captured.update(ns=ns), 0)[1])
@@ -456,7 +442,6 @@ def test_explicit_stops_rewrites_card_slot(tmp_path, monkeypatch):
     _stops_card(tmp_path, "prime", "run the suite and report")  # stale slot
     _commit_all(tmp_path, "prime rotate-out gen 4->5: run the suite")
     monkeypatch.setenv("AGI_POST", "prime")
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     captured = {}
     monkeypatch.setattr(rotate, "cmd_rotate_self",
                         lambda ns, root: (captured.update(ns=ns), 0)[1])
@@ -478,7 +463,6 @@ def test_stale_refusal_names_both_stamps_and_source(tmp_path, monkeypatch,
     _stops_card(tmp_path, "prime", "run the suite and report")
     _commit_all(tmp_path, "prime rotate-out gen 4->5: run the suite")
     monkeypatch.setenv("AGI_POST", "prime")
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     monkeypatch.setattr(rotate, "cmd_rotate_self",
                         lambda ns, root: 0)
     code = rotate.cmd_rotate(_parse([]), tmp_path)
@@ -534,7 +518,6 @@ def test_explicit_stops_on_card_with_no_slot_delegates(tmp_path, monkeypatch):
     card.parent.mkdir(parents=True, exist_ok=True)
     card.write_text("# card\n\nlead only, no stops slot\n", encoding="utf-8")
     monkeypatch.setenv("AGI_POST", "prime")
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     captured = {}
     monkeypatch.setattr(rotate, "cmd_rotate_self",
                         lambda ns, root: (captured.update(ns=ns), 0)[1])

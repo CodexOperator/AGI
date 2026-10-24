@@ -26,7 +26,7 @@ verdict: proved
 
 Acceptance criterion (Region C of `l4-the-dry-run-pathspec-and-the-alias-notice-...`):
 `cc-session-start.next.sh` emits the deprecated-alias notice only when a deprecated
-spelling (`--seat`, `AGI_SEAT`, `config:seats`) is actually in use for that session,
+spelling (`--seat`, `AGI_[retired]`, `config:seats`) is actually in use for that session,
 never unconditionally on every session start. Fix + a run-based test.
 
 ## MEASURED GROUND TRUTH — case (b), the claim is stale as literally stated
@@ -46,7 +46,7 @@ rc=1 err=""   (silent)
 ```
 
 ```
-$ bash hooks/cc-session-start.next.sh   (tmp project, AGI_SEAT set)
+$ bash hooks/cc-session-start.next.sh   (tmp project, AGI_[retired] set)
 rc=0  notice lines stdout=0 stderr=0      <- nothing visible, despite deprecated env+flag spelling present
 ```
 
@@ -64,9 +64,9 @@ deprecated `--seat` spelling** and no test pinned it. The literal-round claim
   --root "$PROJECT_ROOT" 2>/dev/null || true)"
 ```
 No literal `--seat` remains anywhere in either hook (`grep -- '--seat'` = empty).
-`BOOTSTRAP_SEAT="${AGI_POST:-${AGI_SEAT:-}}"` already prefers AGI_POST and only
-falls back to the deprecated AGI_SEAT. The stale comment ("named by AGI_SEAT")
-was corrected to name AGI_POST as primary, AGI_SEAT as deprecated fallback.
+`BOOTSTRAP_SEAT="${AGI_POST:-${AGI_[retired]:-}}"` already prefers AGI_POST and only
+falls back to the deprecated AGI_[retired]. The stale comment ("named by AGI_[retired]")
+was corrected to name AGI_POST as primary, AGI_[retired] as deprecated fallback.
 The two hooks still differ ONLY in their header (verified by `diff`), so they
 stay in step.
 
@@ -74,10 +74,10 @@ stay in step.
 NEW file (region B's `test_seat_alias_notice.py` is untouched). Parametrized over
 BOTH hooks; each is run as a real subprocess (`bash <hook>`, cwd = a tmp project
 with `.agi/config.json` + `.agi/context/INJECTION.md`, stdout and stderr captured
-SEPARATELY) twice: Run A with `AGI_SEAT` (deprecated env spelling, no AGI_POST),
-Run B with `AGI_POST` (current spelling, no AGI_SEAT).
+SEPARATELY) twice: Run A with `AGI_[retired]` (deprecated env spelling, no AGI_POST),
+Run B with `AGI_POST` (current spelling, no AGI_[retired]).
 Assertions (all observe real subprocess output): rc==0 both; the
-`--seat`/`AGI_SEAT`/`config:seats` `is deprecated` family appears **0 times on
+`--seat`/`AGI_[retired]`/`config:seats` `is deprecated` family appears **0 times on
 the current-spelling run** and at most once across both runs. A SECOND, cheaper
 source guard keys to the ONE bootstrap-call line (the two-line invocation) to
 pin `--post` present and `--seat` absent — never the only check, the run-based
@@ -107,9 +107,9 @@ $ python3 -m pytest extensions/agi/tests/test_seat_alias_notice.py extensions/ag
 Real hook output after the fix, both runs of `hooks/cc-session-start.next.sh`
 in a tmp project (cache reused; map + injection emitted, no notice):
 ```
-$ env -u AGI_POST AGI_SEAT=seatA bash hooks/cc-session-start.next.sh 1>out 2>err ; echo rc=$?
+$ env -u AGI_POST AGI_[retired]=seatA bash hooks/cc-session-start.next.sh 1>out 2>err ; echo rc=$?
 rc=0     notice lines stdout=0 stderr=0
-$ env -u AGI_SEAT AGI_POST=postB bash hooks/cc-session-start.next.sh 1>out 2>err ; echo rc=$?
+$ env -u AGI_[retired] AGI_POST=postB bash hooks/cc-session-start.next.sh 1>out 2>err ; echo rc=$?
 rc=0     notice lines stdout=0 stderr=0
 # stdout tail (identical shape both runs):
 # ## agi-tree map (auto-injected) ... Full injection at .../INJECTION.md. Skill: agi.
@@ -127,5 +127,5 @@ Fixed the helper to reuse the cache deterministically (3.69s vs slower).
 Region C: switched SessionStart bootstrap-block to --post in both hooks (no --seat left), added run-based test_hook_alias_notice.py (parametrized both hooks, subprocess cwd=tmp project, stdout/stderr separate). Measured ground truth was (b): notice swallowed by 2>/dev/null so the literal claim was stale; test passed pre-fix on run-based asserts, source guard caught the --seat. Post-fix 20 green (region C + geometry), 40 green (siblings).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Region C reviewed and accepted by parent a00-0d8af889, 2026-09-12. The kid did the honest thing I briefed it to do: it MEASURED rather than parroted the claim and found the literal claim ("emits the deprecated-alias notice on every session start") is stale, because the hook wraps the rotate.py call in `$( ... 2>/dev/null || true )` and the SeatAction notice goes to stderr, so nothing visible escapes. I had measured the same thing before spawning and the kid reached it independently. The real fixable defect was invoking the deprecated spelling, and both hooks (cc-session-start.next.sh and cc-session-start.sh) now call `rotate.py bootstrap-block --post ...`; `grep -- --seat` over both hooks is empty. I verified the mechanism myself: read the cached diff, confirmed the only two-line bootstrap invocation changed from --seat to --post in BOTH hooks and the stale "named by AGI_SEAT" comment now names AGI_POST primary with AGI_SEAT as deprecated fallback, and ran `pytest extensions/agi/tests/test_hook_alias_notice.py -q` -> 3 passed. The falsifier subtlety is the valuable part and it is recorded correctly: the kid reports that pre-fix the RUN-based assertion PASSED (the swallow makes the notice unobservable at the subprocess boundary) and only the source-level guard keyed to the bootstrap invocation caught the deprecated spelling -- i.e. the run-based criterion alone was vacuous for this defect, and the second guard is what bites. Non-blocking residue: the run-based test cannot distinguish a hook that re-adds `2>/dev/null` from one that never emitted, so the guarantee that a future notice would SURFACE is carried by the source guard, not by the subprocess observation; a future round could drop the swallow so a real notice is observable and the run-based assert becomes the load-bearing one.
+Region C reviewed and accepted by parent a00-0d8af889, 2026-09-12. The kid did the honest thing I briefed it to do: it MEASURED rather than parroted the claim and found the literal claim ("emits the deprecated-alias notice on every session start") is stale, because the hook wraps the rotate.py call in `$( ... 2>/dev/null || true )` and the SeatAction notice goes to stderr, so nothing visible escapes. I had measured the same thing before spawning and the kid reached it independently. The real fixable defect was invoking the deprecated spelling, and both hooks (cc-session-start.next.sh and cc-session-start.sh) now call `rotate.py bootstrap-block --post ...`; `grep -- --seat` over both hooks is empty. I verified the mechanism myself: read the cached diff, confirmed the only two-line bootstrap invocation changed from --seat to --post in BOTH hooks and the stale "named by AGI_[retired]" comment now names AGI_POST primary with AGI_[retired] as deprecated fallback, and ran `pytest extensions/agi/tests/test_hook_alias_notice.py -q` -> 3 passed. The falsifier subtlety is the valuable part and it is recorded correctly: the kid reports that pre-fix the RUN-based assertion PASSED (the swallow makes the notice unobservable at the subprocess boundary) and only the source-level guard keyed to the bootstrap invocation caught the deprecated spelling -- i.e. the run-based criterion alone was vacuous for this defect, and the second guard is what bites. Non-blocking residue: the run-based test cannot distinguish a hook that re-adds `2>/dev/null` from one that never emitted, so the guarantee that a future notice would SURFACE is carried by the source guard, not by the subprocess observation; a future round could drop the swallow so a real notice is observable and the run-based assert becomes the load-bearing one.
 <!-- THOUGHT:END -->

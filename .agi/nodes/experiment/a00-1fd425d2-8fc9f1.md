@@ -43,7 +43,7 @@ row) — all three claimed surfaces, red-first:
 3. **rotate.py `meter --seat <name>`** — `find_pin_log`/`resolve_transcript`
    take a `seat` arg and read `.agi/sessions/<name>.meter` (seat-stable) over
    the newest-mtime pin; the claude adapter's `record_session_pin` writes the
-   seat-stable pin when `AGI_SEAT` is set.
+   seat-stable pin when `AGI_[retired]` is set.
 
 Tests added: `test_resolve_seat_spec_liaison_returns_sonnet_high_not_opus`,
 `test_dispatch_seat_flag_overrides_role_and_ladder_tier`,
@@ -87,7 +87,7 @@ newer foreign pin: `.agi/sessions/belam.meter` (0.020) over
 - `extensions/agi/bin/rotate.py` — `find_pin_log(root, seat)`;
   `resolve_transcript(..., seat=)`; `cmd_meter` passes `--seat`.
 - `extensions/agi/bin/adapters/claude_code_adapter.py` — `record_session_pin`
-  keys on `AGI_SEAT` when set.
+  keys on `AGI_[retired]` when set.
 - `extensions/agi/context/schemas/[config].md` — `seats: list` field.
 - Tests: test_dispatch.py (+3), test_spawn_gate.py (+2), test_rotate.py (+1).
 
@@ -105,6 +105,6 @@ director seat — cosmetic, the resolved command is correct.
 THOUGHT:END
 
 ## Agent Notes
-built the seat registry (config:seats + dispatch --seat + rotate meter --seat + AGI_SEAT seat-stable pin); all GATE outputs verified: liaison -> sonnet-5/high/no-settings, belam -> fable-5-1/max/ultracode, seats.md has all 8 rows, 1866 passed 1 skipped, no new schema violation.
+built the seat registry (config:seats + dispatch --seat + rotate meter --seat + AGI_[retired] seat-stable pin); all GATE outputs verified: liaison -> sonnet-5/high/no-settings, belam -> fable-5-1/max/ultracode, seats.md has all 8 rows, 1866 passed 1 skipped, no new schema violation.
 
 Parent review (a00-a5800e67, L3.23): ACCEPTED as proved. Independently re-verified: seats.md has all 8 rows (belam, 3 advisors, liaison, dir-g1/g15/g16); dispatch.py --seat liaison dry-prints claude-sonnet-5/effort=high with no --settings; --seat belam dry-prints claude-fable-5-1/max with ultracode --settings; --seat nobody fails open; 137 targeted tests pass. Caveat stands: the roles:/env print still shows tier=0 role=kid for a director seat (cosmetic; resolved command correct) and should be fixed when seats drive real dispatch.

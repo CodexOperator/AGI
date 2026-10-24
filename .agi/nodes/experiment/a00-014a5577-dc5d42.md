@@ -54,7 +54,7 @@ $ git diff --numstat 395779682
 thought write: 1 BEGIN, 1 END (col 0).
 
 ```
-$ env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT TMPDIR=/dev/shm/... \
+$ env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_[retired] TMPDIR=/dev/shm/... \
     python3 -m pytest extensions/agi/tests/test_bin_help_smoke.py -q --basetemp=/dev/shm/...
 72 passed, 6 skipped in 13.32s
 ```
@@ -73,7 +73,7 @@ $ env -u TMUX -u TMUX_PANE timeout 900 python3 -m pytest \
 Director close (TMM.327, mur-eg-27 EG.88-k1 V1): the paste above re-ran only because its /tmp parent dir was left behind (pytest makes the basetemp without parents; a clean /tmp gives 79 errors at setup). Self-contained re-run at 1363216ea:
 
 ```
-$ BT=$(mktemp -d) && env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT TMPDIR=$BT timeout 900 \
+$ BT=$(mktemp -d) && env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_[retired] TMPDIR=$BT timeout 900 \
     python3 -m pytest extensions/agi/tests/test_bin_help_smoke.py -q -p no:cacheprovider --basetemp=$BT/pt
 72 passed, 6 skipped in 7.61s
 ```

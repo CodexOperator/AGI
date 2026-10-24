@@ -11,7 +11,7 @@ the bytes a real `--suite` uses:
       by a LIVE foreign pid, refuses the child rather than letting two run);
   (b) a context test that signals a real pid or opens the live
       `.agi/config.json` FAILS, the guard naming the resource;
-  (c) the child sees NO caller AGI_SEAT / AGI_TIER / AGI_AGENT.
+  (c) the child sees NO caller AGI_POST / AGI_TIER / AGI_AGENT.
 
 Every child is spawned under `timeout 300 prlimit --cpu=300:300
 --nofile=4096:4096` with a --basetemp under /tmp, and NEVER at a directory
@@ -141,9 +141,9 @@ def test_a_context_test_cannot_signal_a_real_pid_or_read_the_live_config(
 
 
 def test_the_child_sees_no_caller_agi_env(tmp_path, monkeypatch):
-    """(c) AGI_SEAT / AGI_TIER / AGI_AGENT are gone in the child, both at the
+    """(c) AGI_POST / AGI_TIER / AGI_AGENT are gone in the child, both at the
     spawn boundary and in the child's own os.environ."""
-    for key, value in (("AGI_SEAT", "a00-deadbeef"), ("AGI_TIER", "kid"),
+    for key, value in (("AGI_POST", "a00-deadbeef"), ("AGI_TIER", "kid"),
                        ("AGI_AGENT", "a00-deadbeef")):
         monkeypatch.setenv(key, value)
     groot = _make_project(tmp_path, "ctx", """
@@ -164,7 +164,7 @@ def test_the_child_sees_no_caller_agi_env(tmp_path, monkeypatch):
     assert env.get(verification.SUITE_LOCK_MARKER) == os.environ.get(
         verification.SUITE_LOCK_MARKER)
     # the parent's own environment is untouched by the strip helper
-    assert os.environ["AGI_SEAT"] == "a00-deadbeef"
+    assert os.environ["AGI_POST"] == "a00-deadbeef"
 
 
 def test_an_opted_in_context_module_that_spawns_at_import_is_refused(
@@ -273,7 +273,7 @@ def test_the_engine_strips_the_caller_env_for_the_declared_suite(
     pytest inside the caller's memory cap (this is how the previous kid on
     this node died -- `died-no-work` at 129 s), and the claim is only about
     the env dict, so nothing is spawned at all."""
-    monkeypatch.setenv("AGI_SEAT", "a00-deadbeef")
+    monkeypatch.setenv("AGI_POST", "a00-deadbeef")
     groot = _make_project(tmp_path, "ctx", """
         def test_ok():
             assert True
@@ -295,7 +295,7 @@ def test_the_engine_strips_the_caller_env_for_the_declared_suite(
         f"caller AGI_* leaked into the declared-suite child: "
         f"{[k for k in child if k.startswith('AGI_')]}")
     # the parent's own environment is untouched by the strip
-    assert os.environ["AGI_SEAT"] == "a00-deadbeef"
+    assert os.environ["AGI_POST"] == "a00-deadbeef"
 
 
 def test_the_shared_kill_leaf_allows_only_signal_zero_on_the_own_pid():
@@ -360,7 +360,7 @@ def test_two_env_strip_instances_keep_their_own_memo(monkeypatch):
     still holding down must still be down. Red-first: with the old shared
     module-global `_STRIPPED` both instances read the SAME dict, so exiting B
     put the AGI_* channel back while A was still entered."""
-    planted = "AGI_SEAT_TWO_INSTANCE_PROBE"
+    planted = "AGI_POST_TWO_INSTANCE_PROBE"
     monkeypatch.setenv(planted, "a00-deadbeef")
     assert planted in os.environ
 

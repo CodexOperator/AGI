@@ -1,0 +1,59 @@
+---
+id: goal:g7.16.1.11.46.12
+mint_id: eb129adee9cf4c48a9c21e3e5c8a3d00
+type: goal
+parents:
+  - goal:g7.16.1.11.46
+next_edges: []
+confidence: 0.5
+edited_by: alive
+goal_id: G7.16.1.11.46.12
+goal_kind: subgoal
+origin: goal
+seeds:
+  - doc:brainstorm-unify
+tags:
+  - brainstorm
+  - wave-1
+  - notice
+season: 3
+status: active
+title: "G7.16.1.11.46.12: prereq-cleared notice -- when a claimed leaf (Assigned to **<post>** on the trunk) first lands active, or every goal in its optional needs: list turns terminal, its claimer gets ONE signed box notice per trunk move naming all its newly cleared leaf ids, with no human relay"
+town: local-maxxing
+---
+# goal:g7.16.1.11.46.12
+
+## Why this exists
+goal:g7.16.1.11.46 (the brainstorm bundle, wave 1, added leaf): when L74 (the nine wave-1 leaves) landed at 21:5xZ 10-23, no notice reached the four claimers, so director-general-2, director-science-1, director-general-3 and director-goals-1 held for ~2 h until sanctuary-master's [order] BUILD at 23:2xZ. The owner asked for the automation at 23:2xZ (verbatim below). Council 3/3 (alive answerer, all-is-one, self-perpetuating), read at trunk 25369217a1-6d4efe9b3f. Box readings that shaped it: refs/claims holds 0 refs although agi-brief reads it; the [goal] schema has no prerequisite field (parents point UP, next_edges forward, "build after X" is prose); box's own matrix puts belam OFF-matrix to all four directors and sanctuary-master ON; alarm_spool.py already queues per-recipient lines in sanctuary-master's spool and the alarm_drain row (user agi-sanctuary-master, every minute) signs `box send <to>` exactly once (already_sent), with --max-tries and a dead letter. It does NOT change the wave-1 gate line.
+
+## OWNER 2026-10-23 23:2xZ, verbatim (relayed by belam's brief-addendum)
+"sounds like that should be an automation improvement. Like if a director has claimed a given goal leaf or hypothesis leaf or whatever or a bundle of them, let them get notice automatically via mail system that hey your bundle pre-req's have cleared and it's just a simple little unified system that is all wired into the data already available via the town board/trajectory and the post cards"
+
+## OWNER atom placed here (doc:card-belam §7 row, verbatim; it closes to leaf:goal:g7.16.1.11.46.12 when this node lands)
+| # | atom (owner ask, short) | state |
+|---|---|---|
+| 9.1 | "if a director has claimed a given goal leaf or hypothesis leaf or whatever or a bundle of them, let them get notice automatically via mail system that hey your bundle pre-req's have cleared and it's just a simple little unified system that is all wired into the data already available via the town board/trajectory and the post cards" (owner 23:2xZ 10-23, after the L74 relay stall; src: belam pane) | target:council W1 addendum, proposed leaf .46.12 "prereq-cleared notice" |
+
+## Target end-state
+- ONE claim source: a goal (or hypothesis) node's Agent Notes line "Assigned to **<post>**" on the trunk. Cards are scratch, never a claim source; refs/claims is left as it is (agi-brief's reader is out of scope).
+- Two events and nothing else: (a) a claimed leaf with status active is on the trunk for the first time; (b) every id in the leaf's OPTIONAL `needs:` frontmatter list has reached a terminal status (complete, supported, retired). `needs:` is added to [goal].md as optional; write.py validates it at mint and REFUSES an unknown id.
+- EDGE-triggered: a leaf is notified only on its false -> true transition between the last-seen tip and the trunk tip; one marker ref per (claimer, leaf mint, event[, needs id]) is the re-run guard; re-assigning a leaf to another post notifies the new claimer once.
+- A step `prereq_notice` (a crons.md row, user agi-sanctuary-master, under crons_live, a short cadence) diffs the last-seen tip ref against core/season3/main and only COMPUTES and APPENDS: `alarm_spool.py append --job prereq_notice --to <claimer> --text "[landed] … <leaf ids>"`, ONE line per claimer per move listing all its newly cleared leaf ids, with a DETERMINISTIC `--id` = a hash of (claimer, leaf mints, events[, needs ids]); alarm_spool.py append gains that optional --id (today new_id() at :68 is time + random, so its already_sent at :112 guards only a failed unlink, never a double append). The existing alarm_drain row signs and sends it as sanctuary-master; with the deterministic id, already_sent becomes the content-level guard. The step never calls box itself.
+- A goal-free move (the :28 board job) exits early AND still advances the last-seen ref. The ref is seeded ONCE at install (the tip recorded in this node's THOUGHT); afterwards a MISSING ref is a loud red (exit non-zero, nothing sent), never a silent re-seed.
+- The one metrics writer (metrics_cell.py via board_job.py, M4's single-writer rule) adds `notices: claims=<n> cleared=<k> sent=<j> lag=<trunk commits since last-seen>`, where sent counts the prereq_notice Alarm-ids on refs/box/sanctuary-master/<claimer> (never the appends or the markers); lag > 1 lap is a red; claims=0 while any active leaf carries Assigned-to is a red; a prereq_notice line in alarm.spool.dead (a renamed or off-matrix claimer after max-tries) is a red, so sent < cleared shows.
+
+## Invariants
+- No post relays a land by hand for a claimed leaf; a claimer is told once per event.
+- Every notice is signed by sanctuary-master@agi through the existing spool + drain; no new identity, no second sender.
+- One notice per (claimer, leaf, event) is SENT at most once: the marker guards the append, the deterministic id guards the send.
+
+## Falsifier
+1. `sh extensions/agi/tests/prereq-notice.t.sh` exits 0 on a scratch repo with box refs, replaying L74 (835e014e75 -> 6b6f926c0d) through the real append + drain: director-general-2, director-science-1, director-general-3 and director-goals-1 each get exactly ONE [landed] commit on refs/box/sanctuary-master/<post>, naming exactly their leaf ids (4 in total), each verifying as sanctuary-master@agi.
+2. Mutants in the same test, each RED where named: a second run APPENDS 0 to the spool (a mutant without the marker appends 4); the same notice appended twice is sent once (deterministic id); a dead-lettered notice gives sent < cleared and reads red; 3 board-only moves send 0 and leave lag=0; an unclaimed leaf sends 0; a leaf whose needs: goal is still active sends 0 and sends 1 when it completes; a needs: id that does not exist is refused at mint; the seen ref deleted -> the next run exits non-zero and sends 0; a stopped step makes lag grow and reads red; a mutant keyed per tip re-sends on the next move; Assigned-to changed from director-general-2 to director-goals-1 on a cleared leaf gives director-goals-1 exactly 1 and director-general-2 0 more.
+3. Negative: `git ls-files 'extensions/agi/bin/prereq_notice*'` prints exactly ONE path, and `git grep -n 'box send' -- 'extensions/agi/bin/prereq_notice*'` prints nothing (the step appends; only the drain sends). Mutant: the step renamed outside the glob makes the first half read RED, never a vacuous pass.
+
+## Out of scope
+goal:g7.16.1.11.46.3 (M2, the receiving-side atomizer) · goal:g7.16.1.11.46.5 (M4 owns the metrics writer; this leaf adds one segment through it) · refs/claims and agi-brief's reader (a later leaf) · waves 2-4 · season 4 (§15)
+
+## Agent Notes
+Assigned to **director-goals-1**.

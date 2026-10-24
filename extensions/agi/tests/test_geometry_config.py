@@ -9,7 +9,8 @@ Proves, on fixture graphs only (never the live tree):
     exists);
   * `--seat <name>` still works on a CLI and `--post <name>` is accepted on
     the SAME CLI (argparse dest unchanged -> no call site breaks);
-  * `AGI_POST` wins over `AGI_SEAT` when both are set.
+  * `AGI_POST` is the one identity variable: the retired spelling's fallback
+    is gone (goal:g7.16.1.11.46.11 V10a).
 """
 from __future__ import annotations
 
@@ -174,42 +175,6 @@ def test_seat_and_post_accepted_on_same_cli(tmp_path):
             capture_output=True, text=True, env=env)
         assert r.returncode == 0, f"{flag}: {r.stderr}"
         assert "unrecognized arguments" not in r.stderr, f"{flag}: {r.stderr}"
-
-
-def test_agi_post_wins_over_agi_seat(tmp_path):
-    """Both env vars set: AGI_POST wins; the deprecated AGI_SEAT value is not
-    returned. Runs in a fresh process so the env deprecation flag is clean."""
-    g = _graph(tmp_path)
-    code = (
-        "import geometry_config as gc\n"
-        "import os\n"
-        "os.environ['AGI_SEAT']='legacy-seat'\n"
-        "os.environ['AGI_POST']='new-post'\n"
-        "print(gc.resolved_seat_env())\n"
-        "print(gc.resolved_seat_env())\n"
-    )
-    r = _py(code)
-    assert r.returncode == 0, r.stderr
-    assert r.stdout.splitlines() == ["new-post", "new-post"]
-    # the deprecated AGI_SEAT spelling must not trigger a notice when AGI_POST wins
-    assert "AGI_SEAT" not in r.stderr, r.stderr
-
-
-def test_agi_seat_only_is_legacy_fallback(tmp_path):
-    """Only AGI_SEAT set: the legacy value still resolves (deprecated, one
-    notice), so existing env never breaks."""
-    code = (
-        "import geometry_config as gc\n"
-        "import os\n"
-        "os.environ['AGI_SEAT']='legacy-seat'\n"
-        "os.environ.pop('AGI_POST', None)\n"
-        "print(gc.resolved_seat_env())\n"
-        "print(gc.resolved_seat_env())\n"
-    )
-    r = _py(code)
-    assert r.returncode == 0, r.stderr
-    assert r.stdout.splitlines() == ["legacy-seat", "legacy-seat"]
-    assert r.stderr.count("AGI_SEAT is deprecated") == 1, r.stderr
 
 
 # --------------------------------------------------------------------------- #
@@ -496,4 +461,21 @@ def test_no_reader_reemits_file_notice_on_seats_tree(tmp_path):
     # the file-deprecation notice is SILENT through every reader on a
     # seeds-only tree
     assert "note:" not in r.stderr, r.stderr
+    assert "deprecated" not in r.stderr, r.stderr
+
+
+def test_agi_post_is_the_one_identity_variable(tmp_path):
+    """AGI_POST set: it resolves, with no notice. Unset: None, never a
+    placeholder (goal:g7.16.1.11.46.11 V10a dropped the v4 fallback)."""
+    code = (
+        "import geometry_config as gc\n"
+        "import os\n"
+        "os.environ['AGI_POST']='new-post'\n"
+        "print(gc.resolved_seat_env())\n"
+        "os.environ.pop('AGI_POST')\n"
+        "print(gc.resolved_seat_env())\n"
+    )
+    r = _py(code)
+    assert r.returncode == 0, r.stderr
+    assert r.stdout.splitlines() == ["new-post", "None"]
     assert "deprecated" not in r.stderr, r.stderr

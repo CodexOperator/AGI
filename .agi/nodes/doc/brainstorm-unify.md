@@ -968,12 +968,12 @@ V0 → P1 (pi 1.x) → U1 → V3 (capsule out, age seal) → V3' (namespace merg
 
 Two rules fall out, one lexical and one behavioural.
 
-**V10 — the rename.** On the trunk today (read 10-23): 2,906 files contain "seat"; `AGI_SEAT` has 830 references in ~190
+**V10 — the rename.** On the trunk today (read 10-23): 2,906 files contain "seat"; `AGI_[retired]` has 830 references in ~190
 files (engine-root, engine-wrap, posts.md, tests, nodes); `extensions/agi/bin/seat_status.py` exists; tests are named
 `test_rotate_main_seat_rows.py`, `test_session_start_seat_pre_spawn.py`; rotation records end in `.seating.json`. A hypothesis
 `l4-a-seat-is-a-post-everywhere` already made this ruling once, and the word came back — so the leaf is not a sweep, it is a
 sweep **plus a standing check**:
-- `AGI_SEAT` → `AGI_POST` everywhere it is set or read (engine-wrap R6 already records the two-variable mismatch: the unit
+- `AGI_[retired]` → `AGI_POST` everywhere it is set or read (engine-wrap R6 already records the two-variable mismatch: the unit
   sets one, the box piece needs the other; the rename removes the mismatch instead of bridging it); `seat_status.py` →
   retire (its job is the census cell, §34.5); test files renamed in the same commit; `.seating.json` and every node under
   `deprecated/` are history and are NOT rewritten (git history is the archive).

@@ -3,11 +3,12 @@
 # sh + git + jq on a SCRATCH home whose ~/t is a SYMLINK (the project dir is named from the physical path), stub strace/stty/box, no claude, no network, 0 USD. It runs the REAL agi-run piece (sect agi-run of ROOT's .geometry/engine*.md); AGIRUN=<file> tests another copy.
 # Cases: a fresh -> --session-id <uuid>, ~/.session = it, mode 600 · b own transcript + a NEWER foreign one -> --resume own (the done-when) · c no ~/.session -> the newest, pinned · d ~/.session names a missing transcript -> the newest ·
 #   e a non-hex ~/.session (../x) -> ignored · f no transcript, no ~/.session -> -c (as before) · g a non-claude H -> -c, no ~/.session · h fresh then a fork's newer transcript -> --resume the minted id · m mutant: the line removed -> b is RED.
+# Each run is its own session (setsid) and its group is killed after the run and at exit: agi-run backgrounds two endless loops.
 # One ok/FAIL line per case; exit = FAIL count.
-T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)}
+T=$(mktemp -d);trap 'for p in $(cat $T/pids 2>/dev/null);do kill -TERM -$p 2>/dev/null;done;rm -rf $T' 0;f=0;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)}
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
-unset GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_SEAT AGI_POST
+unset GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_POST
 [ -n "$AGIRUN" ]||{ sect agi-run>$T/agi-run;AGIRUN=$T/agi-run;}
 [ -s $AGIRUN ]||{ echo "FAIL extract: agi-run $(wc -c<$AGIRUN)";exit 99;}
 mkdir -p $T/bin $T/run $T/hm $T/r
@@ -21,8 +22,8 @@ A=11111111-1111-4111-8111-111111111111;B=22222222-2222-4222-8222-222222222222
 tx(){ echo '{}'>$D/$1.jsonl;touch -d "$2" $D/$1.jsonl;}
 # go FRESH(1|0) [H]: run agi-run as a post would; leaves $T/exec = "<H> <args> go"
 go(){ rm -f $T/exec $T/hm/.fresh;[ "$1" = 1 ]&&: >$T/hm/.fresh
- (cd $T/hm&&env -i PATH=$T/bin:/usr/bin:/bin HOME=$T/hm H=${2:-claude-x} RUNTIME_DIRECTORY=$T/run O=$T/r AGI_POST=p1 AGI_TRUNK=HEAD timeout 10 sh $A_RUN 2>$T/err) &
- i=0;while [ ! -e $T/exec ]&&[ $i -lt 60 ];do sleep 0.1;i=$((i+1));done;sleep 0.2;}
+ (cd $T/hm&&exec setsid env -i PATH=$T/bin:/usr/bin:/bin HOME=$T/hm H=${2:-claude-x} RUNTIME_DIRECTORY=$T/run O=$T/r AGI_POST=p1 AGI_TRUNK=HEAD sh $A_RUN </dev/null >/dev/null 2>$T/err) &
+ g=$!;echo $g>>$T/pids;i=0;while [ ! -e $T/exec ]&&[ $i -lt 60 ];do sleep 0.1;i=$((i+1));done;sleep 0.2;kill -TERM -$g 2>/dev/null;}   # agi-run leaves its trim + inbox loops behind: end the run's whole group
 A_RUN=$AGIRUN
 ex(){ cat $T/exec 2>/dev/null;}
 go 1;S=$(cat $T/hm/.session 2>/dev/null)

@@ -70,7 +70,7 @@ The same gap turned up live during the loop itself, twice, and both times it nea
 ```
 a commit on a detached ~/t   ── agi-flush checkout ──▶  reflog only, no line        (SM 02:48Z: ce62fd324d)  ─▶ .38 Door 1 + Door 2
 an edit left in ~/t          ── Stop hook stderr  ──▶  a channel the post never reads (sp, 2 turns)      ─▶ .38 t4: ~/.notice, on the model's channel
-a stale unit render          ── AGI_SEAT only     ──▶  [no-branch] in every pane    (83x SM, 55x DG3)     ─▶ .37, belam's 52-post-env
+a stale unit render          ── AGI_[retired] only     ──▶  [no-branch] in every pane    (83x SM, 55x DG3)     ─▶ .37, belam's 52-post-env
 ```
 A nervous system is two things: a sense, and a path from the sense to the mind that acts. This loop built both. The senses are [strand-refused], [wrong-box], [hooks-not-loaded], the unit == render check and the per-namespace ref count. The paths are ONE engine->post channel (~/.notice: what the POST must see) and a box to the master from outside the hooks (what the MASTER must see).
 
