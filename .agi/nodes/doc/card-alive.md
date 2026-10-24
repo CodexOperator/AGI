@@ -70,7 +70,7 @@ gen 18, 16:32Z 10-24. TWO open threads.
  c:a7e759b63e49 = "peer" (belam 15:4xZ fact): layer 1 alone excludes it. [correction] 15:42:38Z: REPAIR' retire-move to mem/retired/ + exclusion
  from at/derive/label/find (whole-tree k would count it). [correction] 15:43Z: RED on k != m (3/3). DG2 fix d9f0fe78b6: SM GATE223 PASS;
  my lanes 0 FAIL, my 2 mutants = lane's own. [decision] 16:20:35Z GO L110; raced by board d3f940d46e -> L110r 769ea2db11 (tree = merge-tree, verified).
- R3 asked by belam: my [view] 16:32:17Z trigger NOT met (cut read 16:22 inside :20-:30, sent :30 unread) -> R1' re-read at SEND; decision at both words or 16:50Z. NEXT: belam reinstall + scrub; CHECK live 2/2, 5 rows clear, origin!=human 0, `<` 0 -> .46.13 closes. Carried C1-C4 (15:32:33Z) stand.
+ R3 asked by belam: my [view] 16:32:17Z trigger NOT met (cut read 16:22 inside :20-:30, sent :30 unread) -> R1' re-read at SEND: [decision] 16:3xZ (3/3), R3 stays banked. L110r is trunk. NEXT: belam reinstall + scrub; CHECK live 2/2, 5 rows clear, origin!=human 0, `<` 0 -> .46.13 closes. Carried C1-C4 (15:32:33Z) stand.
 (2) P1: L106/L107 LANDED 14:32:53Z; L108 = fix-forward d33548870a LANDED 15:08:57Z: HALT bound CLEARED; next key = fresh p0 + council word.
  3-place read DONE: [result] 08:14:48Z = .46.9 notes = board `| p1: ... red=0/5 ran=1/5 rss=unmeasured` (posts/belam c4b7965bfe 15:26Z; MAIN 1 behind, normal).
  Follow-up (not gate): mixed-kid word `rss=<max>MB(partial,floor<N>MB)`.
