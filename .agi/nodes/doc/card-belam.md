@@ -81,6 +81,7 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 | Doppler: a READ-ONLY service token for root (project agi, the config holding CLAUDE_CONSOLE_SP_KEY) into /etc/credstore/doppler-token | needed by C1 agi-cred (W1); root has no Doppler token today |
 | Console: lane workspaces agi-batch · agi-kids · agi-council with spend + TPM caps, prime-director added to each; their wrkspc_ ids (not secrets) | needed by C2/C3 (W1); or OPTION B: one workspace-scoped key per lane (no header anywhere) |
 | prime-director's org role | developer, unless the Admin cost reports (C4) need admin; then root only ever holds it |
+| OpenRouter credits for P1: the provisioning account holds $0.60; the mint guard (min_mint_remaining_usd $1.00) refused the first kid key 04:42Z 10-24, $0 spent | top up >= $11 (P1's council budget $10 + the $1 floor), or rule another source; P1's two openrouter arms wait for it |
 | link the Console org that carries the $200/mo credits (§13, §36) | link now (the credits expire monthly); the credits arm of P1 needs it |
 | boot pin move to the current trunk (brings L70 director-review boot=true + V0 live) | `agi.sh host` + start agi-project.service; director-review may need a re-login (keepalive is off) |
 | R2: agi.sh rows() starts boot=false posts (TM, DT-1) on a first start | (b1) filter boot=false + recover=false in rows() — decide before F2 |
@@ -96,85 +97,85 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 ## §7 ATOMS — the owner's 10-22/23 brainstorm (doc:brainstorm-unify), 62 rows; state = target into the doc until placed
 
 **throw 1 (10-22) — graph-interface design**
-| # | atom (owner ask, short) | state |
-|---|---|---|
-| 1.1 | button down the graph-interface design | target:§0–§2 |
-| 1.2 | simplify / unify | target:§0 (every rule = a cell), §24 (one spawn path) |
-| 1.3 | compare with matrix-skills | target:§1 (take O/check + api module; leave its engine) |
-| 1.4 | MCP auto-start | target:§6 (wake abstraction; start = visitor) · decision:§21-Part I #2 |
-| 1.5 | MCP push | target:§6/§26 (no push dependence; wake tool + fifo) |
-| 1.6 | filesystem-like MCP by post identity | target:§6 (resources = scope closure; visitor default) — thin, one line |
-| 1.7 | cross-compat CC / codex / grok / pi | target:§8, §26, §28 |
-| 1.8 | engine updates reach seeds without re-project | target:§4 (root fixpoint on the trunk ref) |
-| 1.9 | mathematical guardrails: scope/graph packs, parent/kid inheritance | target:§2 (§Z1/§Z2), §24 (`scope ⊆ director's`) |
-| 1.10 | move tooling with fewer pieces | target:§5 (pack → row → tick → in) |
-| 1.11 | matrix math for a Go port | target:§7 "Go: not now" (one algebra module, port only on latency) |
-| 1.12 | compare openrig / herdr / t3 | target:§8 |
+| # | atom (owner ask, short) | source | state | lap |
+|---|---|---|---|---|
+| 1.1 | "button down the graph-interface design" | src:doc | target:§0–§2 | lap124501 |
+| 1.2 | "simplify / unify" | src:doc | target:§0 (every rule = a cell), §24 (one spawn path) | lap124501 |
+| 1.3 | "compare with matrix-skills" | src:doc | target:§1 (take O/check + api module; leave its engine) | lap124501 |
+| 1.4 | "MCP auto-start" | src:doc | target:§6 (wake abstraction; start = visitor) · decision:§21-Part I #2 | lap124501 |
+| 1.5 | "MCP push" | src:doc | target:§6/§26 (no push dependence; wake tool + fifo) | lap124501 |
+| 1.6 | "filesystem-like MCP by post identity" | src:doc | target:§6 (resources = scope closure; visitor default) — thin, one line | lap124501 |
+| 1.7 | "cross-compat CC / codex / grok / pi" | src:doc | target:§8, §26, §28 | lap124501 |
+| 1.8 | "engine updates reach seeds without re-project" | src:doc | target:§4 (root fixpoint on the trunk ref) | lap124501 |
+| 1.9 | "mathematical guardrails: scope/graph packs, parent/kid inheritance" | src:doc | target:§2 (§Z1/§Z2), §24 (`scope ⊆ director's`) | lap124501 |
+| 1.10 | "move tooling with fewer pieces" | src:doc | target:§5 (pack → row → tick → in) | lap124501 |
+| 1.11 | "matrix math for a Go port" | src:doc | target:§7 "Go: not now" (one algebra module, port only on latency) | lap124501 |
+| 1.12 | "compare openrig / herdr / t3" | src:doc | target:§8 | lap124501 |
 
 **throw 2 (10-23) — identity, memory, hashes, matrices, credits, root, season, income, projects, spiders, IOMap**
-| # | atom (owner ask, short) | state |
-|---|---|---|
-| 2.1 | restore the Prime's session | leaf:goal:g7.16.1.11.46.1 (V0) · was: done (restore.sh; V0 leaf) |
-| 2.2 | credentials ride in a capsule / reuse the username slot | target:leaf:V1 (cred piece) · decision:§21 #2 |
-| 2.3 | identity = composable key over signed pieces, re-hashed on swap, continuity = the history | target:§9 · decision:§21 #1 |
-| 2.4 | optmem: Prime always; council/keep per season; directors per goal; parents/kids in optchat | target:§11 (`mem:` cell) · decision:§21 #5 · §37 (the ledger) |
-| 2.5 | fully hash-based ids, minimize public/private keys | target:§10 (boundary set B) · decision:§21 #3 |
-| 2.6 | daisy-chained hashes as the post's sense of time | target:§10 (time = chain/block height) · decision:§21 #4 — covered under other words |
-| 2.7 | each node a location in a matrix space; traversal = matrix op | target:§12 (words in, algebra in the engine) · §32 (graph distance is the coordinate) |
-| 2.8 | actions as vectors; mail as a vector | target:§12 (alphabet Σ, M_a) |
-| 2.9 | workflows ARE spawns ARE subagents ARE posts | target:§24, §27, §29 (flow = chain = post node) |
-| 2.10 | soft constraints: no hard cornering / teleportation | target:§12 (word length k, transition matrix T, phase bound Θ) |
-| 2.11 | a jev experience for all models | target:§12 (one line) — thin; g1.25 jev grammar is the owner of it |
-| 2.12 | can LLMs tolerate matrix-encoded control | target:§12 (no: never numbers in a prompt) · decision:§21 #6 |
-| 2.13 | use the $200/mo Console credits; batching | leaf:goal:g7.16.1.11.46.8 (C3) (L74) · was: §13, §36 · decision:§21 #7 · leaves C1–C5 |
-| 2.14 | batch-spawn parents/kids | target:§13, §29 (only `pull: none` steps batch) |
-| 2.15 | headless pi, cheap on memory | leaf:goal:g7.16.1.11.46.9 (P1) (L74) · was: §30 (P1) |
-| 2.16 | Fable sparingly for council reviews | target:§13/§30 (a `plan`/review step model) — thin |
-| 2.17 | loan root to SM (graph moves) and council (unanimous) | target:§14 · decision:§21 #8 |
-| 2.18 | report why a root action was withheld | target:§14 (closed set of held lines) |
-| 2.19 | Belam to Fable permanently; bother the owner only at thirds/rollover | target:decision:§21 #11 (rows = thirds + rollover) — Fable-permanent is a posts.md row edit, owner's call |
-| 2.20 | let the season close independently, picking from this brainstorm + horizon goals | target:§15 · decision:§21 #11 |
-| 2.21 | self-improve | target:folded:§34.1 tune + §19 IOMap loop (was dropped; caught by §37's grep) |
-| 2.22 | live-stream its own progress; interactive games for income | target:deferred:season 4 (§20 dependencies) |
-| 2.23 | stream-master with optchat/optmem always on | target:§11 (`mem: always` row) + §20 |
-| 2.24 | animated avatars via mystudio.fun; grant; hold tokens for credits | target:§20 (mystudios.fun = reseller, no avatar product; treasury = owner) |
-| 2.25 | a second subscription for split logins | target:§27 (`cred: <capsule>` per row, own slot) |
-| 2.26 | import other projects; let others use the system; season 0→1 as init | target:§16 (season-0 capsule) — one section, thin on "others use it" |
-| 2.27 | replace grow.py / links.py with shell or chain checks; auto-written links | target:§17, §23, §34.6 |
-| 2.28 | self-summarizable graph via optmem/optchat per chain | target:§11 (store = node tree; brief = recall) |
-| 2.29 | spiders crawl / test / fix / launch ideas; no more gating or waiting | target:§18, §31, §32, §34 · decision:§21 #9 |
-| 2.30 | IOMap goal: shapes before build; primitive transport; lower-level / inverse abstractions later | target:§19 · decision:§21 #10 · deferred:season 4 (inverse/assembly) |
-| 2.31 | some parts can wait till season 4 (lower-level matrix) | target:§15 (season-4 list) |
+| # | atom (owner ask, short) | source | state | lap |
+|---|---|---|---|---|
+| 2.1 | "restore the Prime's session" | src:doc | leaf:goal:g7.16.1.11.46.1 (V0) · was: done (restore.sh; V0 leaf) | lap124501 |
+| 2.2 | "credentials ride in a capsule / reuse the username slot" | src:doc | target:leaf:V1 (cred piece) · decision:§21 #2 | lap124501 |
+| 2.3 | "identity = composable key over signed pieces, re-hashed on swap, continuity = the history" | src:doc | target:§9 · decision:§21 #1 | lap124501 |
+| 2.4 | "optmem: Prime always; council/keep per season; directors per goal; parents/kids in optchat" | src:doc | target:§11 (`mem:` cell) · decision:§21 #5 · §37 (the ledger) | lap124501 |
+| 2.5 | "fully hash-based ids, minimize public/private keys" | src:doc | target:§10 (boundary set B) · decision:§21 #3 | lap124501 |
+| 2.6 | "daisy-chained hashes as the post's sense of time" | src:doc | target:§10 (time = chain/block height) · decision:§21 #4 — covered under other words | lap124501 |
+| 2.7 | "each node a location in a matrix space; traversal = matrix op" | src:doc | target:§12 (words in, algebra in the engine) · §32 (graph distance is the coordinate) | lap124501 |
+| 2.8 | "actions as vectors; mail as a vector" | src:doc | target:§12 (alphabet Σ, M_a) | lap124501 |
+| 2.9 | "workflows ARE spawns ARE subagents ARE posts" | src:doc | target:§24, §27, §29 (flow = chain = post node) | lap124501 |
+| 2.10 | "soft constraints: no hard cornering / teleportation" | src:doc | target:§12 (word length k, transition matrix T, phase bound Θ) | lap124501 |
+| 2.11 | "a jev experience for all models" | src:doc | target:§12 (one line) — thin; g1.25 jev grammar is the owner of it | lap124501 |
+| 2.12 | "can LLMs tolerate matrix-encoded control" | src:doc | target:§12 (no: never numbers in a prompt) · decision:§21 #6 | lap124501 |
+| 2.13 | "use the $200/mo Console credits; batching" | src:doc | leaf:goal:g7.16.1.11.46.8 (C3) (L74) · was: §13, §36 · decision:§21 #7 · leaves C1–C5 | lap124501 |
+| 2.14 | "batch-spawn parents/kids" | src:doc | target:§13, §29 (only `pull: none` steps batch) | lap124501 |
+| 2.15 | "headless pi, cheap on memory" | src:doc | leaf:goal:g7.16.1.11.46.9 (P1) (L74) · was: §30 (P1) | lap124501 |
+| 2.16 | "Fable sparingly for council reviews" | src:doc | target:§13/§30 (a `plan`/review step model) — thin | lap124501 |
+| 2.17 | "loan root to SM (graph moves) and council (unanimous)" | src:doc | target:§14 · decision:§21 #8 | lap124501 |
+| 2.18 | "report why a root action was withheld" | src:doc | target:§14 (closed set of held lines) | lap124501 |
+| 2.19 | "Belam to Fable permanently; bother the owner only at thirds/rollover" | src:doc | target:decision:§21 #11 (rows = thirds + rollover) — Fable-permanent is a posts.md row edit, owner's call | lap124501 |
+| 2.20 | "let the season close independently, picking from this brainstorm + horizon goals" | src:doc | target:§15 · decision:§21 #11 | lap124501 |
+| 2.21 | "self-improve" | src:doc | target:folded:§34.1 tune + §19 IOMap loop (was dropped; caught by §37's grep) | lap124501 |
+| 2.22 | "live-stream its own progress; interactive games for income" | src:doc | target:deferred:season 4 (§20 dependencies) | lap124501 |
+| 2.23 | "stream-master with optchat/optmem always on" | src:doc | target:§11 (`mem: always` row) + §20 | lap124501 |
+| 2.24 | "animated avatars via mystudio.fun; grant; hold tokens for credits" | src:doc | target:§20 (mystudios.fun = reseller, no avatar product; treasury = owner) | lap124501 |
+| 2.25 | "a second subscription for split logins" | src:doc | target:§27 (`cred: <capsule>` per row, own slot) | lap124501 |
+| 2.26 | "import other projects; let others use the system; season 0→1 as init" | src:doc | target:§16 (season-0 capsule) — one section, thin on "others use it" | lap124501 |
+| 2.27 | "replace grow.py / links.py with shell or chain checks; auto-written links" | src:doc | target:§17, §23, §34.6 | lap124501 |
+| 2.28 | "self-summarizable graph via optmem/optchat per chain" | src:doc | target:§11 (store = node tree; brief = recall) | lap124501 |
+| 2.29 | "spiders crawl / test / fix / launch ideas; no more gating or waiting" | src:doc | target:§18, §31, §32, §34 · decision:§21 #9 | lap124501 |
+| 2.30 | "IOMap goal: shapes before build; primitive transport; lower-level / inverse abstractions later" | src:doc | target:§19 · decision:§21 #10 · deferred:season 4 (inverse/assembly) | lap124501 |
+| 2.31 | "some parts can wait till season 4 (lower-level matrix)" | src:doc | target:§15 (season-4 list) | lap124501 |
 
 **throw 3 (10-23) — the ten reading questions**
-| # | atom (owner ask, short) | state |
-|---|---|---|
-| 3.1 | retire the python; only keygen/hashing left? | target:§23 (keygen/hashing already shell; 4 pieces to port) |
-| 3.2 | one spawn/dispatch path; pull setting | target:§24 |
-| 3.3 | grid monolith, node = branch, post = slice; spiders under council; red-team | target:§25, §34.1 |
-| 3.4 | MCP single surface; pane; mixed harnesses; fifo fallback | target:§26 |
-| 3.5 | mint id per post and kid; inherit director's slot; different login | target:§27 |
-| 3.6 | full plugin | target:§28 |
-| 3.7 | directors vs parents vs kids; chain-launch; batch | target:§29, §34.2 |
-| 3.8 | pi 1.x now; deepseek flash; GLM; A/B with Claude keys | leaf:goal:g7.16.1.11.46.9 (P1) (L74) · was: §30, §34.3 |
-| 3.9 | tests: spiders in background; build vs repair loops | target:§31, §34.4 |
-| 3.10 | territories / smell walk / pre-determined choices | target:§32 |
-| 3.11 | run autonomously; provide keys | leaf:goal:g7.16.1.11.46.6 (C1) (L74) · was: §33, §36 |
+| # | atom (owner ask, short) | source | state | lap |
+|---|---|---|---|---|
+| 3.1 | "retire the python; only keygen/hashing left?" | src:doc | target:§23 (keygen/hashing already shell; 4 pieces to port) | lap124501 |
+| 3.2 | "one spawn/dispatch path; pull setting" | src:doc | target:§24 | lap124501 |
+| 3.3 | "grid monolith, node = branch, post = slice; spiders under council; red-team" | src:doc | target:§25, §34.1 | lap124501 |
+| 3.4 | "MCP single surface; pane; mixed harnesses; fifo fallback" | src:doc | target:§26 | lap124501 |
+| 3.5 | "mint id per post and kid; inherit director's slot; different login" | src:doc | target:§27 | lap124501 |
+| 3.6 | "full plugin" | src:doc | target:§28 | lap124501 |
+| 3.7 | "directors vs parents vs kids; chain-launch; batch" | src:doc | target:§29, §34.2 | lap124501 |
+| 3.8 | "pi 1.x now; deepseek flash; GLM; A/B with Claude keys" | src:doc | leaf:goal:g7.16.1.11.46.9 (P1) (L74) · was: §30, §34.3 | lap124501 |
+| 3.9 | "tests: spiders in background; build vs repair loops" | src:doc | target:§31, §34.4 | lap124501 |
+| 3.10 | "territories / smell walk / pre-determined choices" | src:doc | target:§32 | lap124501 |
+| 3.11 | "run autonomously; provide keys" | src:doc | leaf:goal:g7.16.1.11.46.6 (C1) (L74) · was: §33, §36 | lap124501 |
 
 **throws 4–7 (10-23)**
-| # | atom (owner ask, short) | state |
-|---|---|---|
-| 4.1 | red-team = anti-fragile's; unify = all-is-one's; tune = alive's | target:§34.1 (flag: no council post named anti-fragile) |
-| 4.2 | GLM = the flash one | leaf:goal:g7.16.1.11.46.9 (P1) (L74) · was: §34.3 |
-| 4.3 | census: count tips; old versions as deprecated? | target:§34.5 (tips yes; versions are commits, not deprecated nodes) |
-| 4.4 | port the rest of the python safely | target:§34.6 |
-| 5.1 | posts, never seats; stand guard, never idle | target:§35 (V10 + the walk as idle state) |
-| 6.1 | service-account key in Doppler; workload identity later?; needed for batching? | leaf:goal:g7.16.1.11.46.6 (C1) (L74) · was: §36 (cannot mint keys; WIF = season 4; not needed for batching) |
-| 6.2 | automatic vs manual prompt caching | target:§36.3 |
-| 7.1 | optmem for the Prime; trajectory = momentum, optmem = state | leaf:goal:g7.16.1.11.46.2 (M1) (L74) · was: §37 (this ledger is M5) |
+| # | atom (owner ask, short) | source | state | lap |
+|---|---|---|---|---|
+| 4.1 | "red-team = anti-fragile's; unify = all-is-one's; tune = alive's" | src:doc | target:§34.1 (flag: no council post named anti-fragile) | lap124501 |
+| 4.2 | "GLM = the flash one" | src:doc | leaf:goal:g7.16.1.11.46.9 (P1) (L74) · was: §34.3 | lap124501 |
+| 4.3 | "census: count tips; old versions as deprecated?" | src:doc | target:§34.5 (tips yes; versions are commits, not deprecated nodes) | lap124501 |
+| 4.4 | "port the rest of the python safely" | src:doc | target:§34.6 | lap124501 |
+| 5.1 | "posts, never seats; stand guard, never idle" | src:doc | target:§35 (V10 + the walk as idle state) | lap124501 |
+| 6.1 | "service-account key in Doppler; workload identity later?; needed for batching?" | src:doc | leaf:goal:g7.16.1.11.46.6 (C1) (L74) · was: §36 (cannot mint keys; WIF = season 4; not needed for batching) | lap124501 |
+| 6.2 | "automatic vs manual prompt caching" | src:doc | target:§36.3 | lap124501 |
+| 7.1 | "optmem for the Prime; trajectory = momentum, optmem = state" | src:doc | leaf:goal:g7.16.1.11.46.2 (M1) (L74) · was: §37 (this ledger is M5) | lap124501 |
 
 **added 10-23 (council V10a decision, alive 21:06Z)**
-| # | atom | state |
-|---|---|---|
-| 8.1 | seat_status.py retire | target:the §34.5 census-cell leaf (wave 2) |
-| 9.1 | "if a director has claimed a given goal leaf or hypothesis leaf or whatever or a bundle of them, let them get notice automatically via mail system that hey your bundle pre-req's have cleared and it's just a simple little unified system that is all wired into the data already available via the town board/trajectory and the post cards" (owner 23:2xZ 10-23, after the L74 relay stall; src: belam pane) | leaf:goal:g7.16.1.11.46.12 (L78, director-goals-1) |
+| # | atom (owner ask, short) | source | state | lap |
+|---|---|---|---|---|
+| 8.1 | "seat_status.py retire" | src:doc | target:the §34.5 census-cell leaf (wave 2) | lap124501 |
+| 9.1 | "if a director has claimed a given goal leaf or hypothesis leaf or whatever or a bundle of them, let them get notice automatically via mail system that hey your bundle pre-req's have cleared and it's just a simple little unified system that is all wired into the data already available via the town board/trajectory and the post cards" | src:goal:g7.16.1.11.46.12#OWNER | leaf:goal:g7.16.1.11.46.12 (L78, director-goals-1) | lap124501 |
