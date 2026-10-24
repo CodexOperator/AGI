@@ -28,9 +28,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -289,6 +291,128 @@ def _run_metrics_once(root: Path) -> tuple[dict, str | None]:
 LINE_NO_NETWORK = ("subscription_tokens_per_season", "openrouter_subscription_spend_ratio")
 
 
+# ---------------------------------------------------------------------------
+# goal:g7.16.1.11.46.5 (M4): the intake segment and the TRAJECTORY line, read from
+# the cards' §7 ATOMS rows -- the ONE writer of metrics_line stays this --line.
+# ---------------------------------------------------------------------------
+
+LAP_SECONDS = 14400   # one lap = 4 h, the cadence of the Prime's digest / CHECK (agi-atom stamps lap<n> with the same unit)
+_S7 = re.compile(r"^## (?:\S+ )?§7(?!\d)")
+_ATOM_ID = re.compile(r"^(a\d+|\d+\.\d+)$")
+_BOLD = re.compile(r"^\*\*(.+?)\*\*\s*$")   # a card's `**throw 1 (10-22) -- ...**` line names the section the rows below it belong to
+
+
+def current_lap() -> int:
+    """The lap number now (AGI_LAP overrides, as it does for agi-atom)."""
+    env = os.environ.get("AGI_LAP", "")
+    return int(env) if env.isdigit() else int(time.time() // LAP_SECONDS)
+
+
+def card_atoms(card: Path) -> list[tuple[str, str, int | None, str]]:
+    """(id, state, lap, section) for every §7 row of a card (section = the text of the last
+    standalone `**...**` line above the row, "" before any): the agi-atom form
+    `| a<n> | "<slice>" | src:<..> | <state> | lap<n> |` and the legacy
+    `| 1.1 | <text> | <state> |` (no lap: its age is unknown, never red, counted apart as `?`)."""
+    try:
+        text = card.read_text(encoding="utf-8")
+    except OSError:
+        return []
+    rows, in7, sect = [], False, ""
+    for ln in text.splitlines():
+        if ln.startswith("## "):
+            in7, sect = bool(_S7.match(ln)), ""
+            continue
+        if in7 and (b := _BOLD.match(ln)):
+            sect = b.group(1)
+            continue
+        if not in7 or not ln.startswith("|"):
+            continue
+        cells = [c.strip() for c in ln.strip().strip("|").split("|")]
+        if not cells or not _ATOM_ID.match(cells[0]):
+            continue
+        m = re.fullmatch(r"lap(\d+)", cells[-1]) if len(cells) == 5 else None
+        if len(cells) == 5 and m and cells[2].startswith("src:"):
+            rows.append((cells[0], cells[3], int(m.group(1)), sect))
+        elif len(cells) >= 3:
+            rows.append((cells[0], cells[-1], None, sect))
+    return rows
+
+
+def _cards(root: Path) -> list[tuple[str, Path]]:
+    """(post, card) for each quorum card with a §7, one per resolved file."""
+    q, seen, out = root / "sessions" / "quorum", set(), []
+    for f in sorted(q.glob("*.md")) if q.is_dir() else []:
+        real = f.resolve()
+        if real in seen or not real.is_file():
+            continue
+        seen.add(real)
+        out.append((f.stem, real))
+    return out
+
+
+def intake_counts(rows: list[tuple[str, str, int | None, str]], lap: int) -> tuple[int, int, int, int]:
+    """(open, placed, red, unknown): open = state target:..., placed = any other state,
+    red = open and older than one lap (stamped lap n with lap - n > 1), unknown = open with
+    NO lap (a legacy row: its age cannot be told, so it is never red and never hidden)."""
+    op = sum(1 for _, st, _, _ in rows if st.startswith("target:"))
+    red = sum(1 for _, st, lp, _ in rows if st.startswith("target:") and lp is not None and lap - lp > 1)
+    unk = sum(1 for _, st, lp, _ in rows if st.startswith("target:") and lp is None)
+    return op, len(rows) - op, red, unk
+
+
+def intake_segment(root: Path) -> str:
+    """`intake: <post>=<open>/<placed>/<red>[/?<unknown-age open>] ...` for every post whose card has a §7;
+    no quorum dir = UNMEASURED (a wrong root is named, never "none")."""
+    if not (root / "sessions" / "quorum").is_dir():
+        return "intake: UNMEASURED(no quorum dir)"
+    lap = current_lap()
+    parts = []
+    for post, card in _cards(root):
+        rows = card_atoms(card)
+        if rows:
+            op, placed, red, unk = intake_counts(rows, lap)
+            parts.append(f"{post}={op}/{placed}/{red}" + (f"/?{unk}" if unk else ""))
+    return "intake: " + (" ".join(parts) if parts else "none")
+
+
+_LEAF_STATE = re.compile(r"^leaf:(?:goal:)?(g[0-9][0-9.]*)")
+
+
+def trajectory_line(root: Path, post: str, label: str, throws: str = "") -> str:
+    """One TRAJECTORY line for a throw ingested into <post>'s card §7:
+    `<label> atoms=<n> placed=<k> -> <leaf ids>`. THROWS is a section-heading prefix: only the rows
+    under the card's `**<prefix>...**` lines are the throw's (a later ask has its own line); empty = every row."""
+    rows = [r for r in card_atoms(root / "sessions" / "quorum" / f"{post}.md") if r[3].startswith(throws)]
+    placed = intake_counts(rows, current_lap())[1]
+    leaves = sorted({m.group(1) for _, st, _, _ in rows if (m := _LEAF_STATE.match(st))})
+    return f"{label} atoms={len(rows)} placed={placed} \u2192 {' '.join(leaves) if leaves else 'none'}"
+
+
+def trajectory_segment(root: Path) -> str:
+    """goal:g7.16.1.11.46.5 T2: one `| trajectory: <line>` per throw REGISTERED in the town node's
+    `trajectory_throws` cell (`  - {"post": .., "label": .., "throws": <heading prefix>}`), re-rendered by this
+    ONE writer on every cell write, never pasted. No cell = no segment; an unreadable node or cell is NAMED."""
+    node = root / "nodes" / "town" / "local-maxxing.md"
+    try:
+        text = node.read_text(encoding="utf-8")
+    except OSError:
+        return "| trajectory: UNMEASURED(no town node)"   # named, never "" (Z1's twin: a wrong root must not read as 'nothing registered')
+    head = text.split("\n---", 1)[0] if text.startswith("---") else ""
+    lines, on, regs = head.splitlines(), False, []
+    try:
+        for ln in lines:
+            if ln.startswith("trajectory_throws:"):
+                on = True
+                continue
+            if on and ln.startswith("  - {"):
+                regs.append(json.loads(ln[4:]))
+            elif on:
+                break
+        return " ".join(f"| trajectory: {trajectory_line(root, r['post'], r['label'], r.get('throws', ''))}" for r in regs)
+    except Exception as exc:  # noqa: BLE001 -- a metrics line is never fatal
+        return f"| trajectory: UNMEASURED(registered throws unreadable: {_reason(exc)})"
+
+
 def p1_segment(root: Path) -> str:
     """goal:g7.16.1.11.46.9 Q3: the `| p1: <model> $/landed=.. s/landed=.. red=<r>/<n>` segments, one per arm in
     the committed results file (p1_ab.py writes the file and never this line).
@@ -346,7 +470,10 @@ def make_line(root: Path) -> str:
     when = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
     g = " ".join(f"{k}={graph(k)}" for k in LINE_GRAPH_KEYS)
     line = f"{when} graph: {g} | success: {' '.join(parts)}"
-    seg = p1_segment(root)
+    seg = trajectory_segment(root)
+    line = f"{line} {seg}" if seg else line
+    line = f"{line} | {intake_segment(root)}"   # goal:g7.16.1.11.46.5: `| intake:` follows the success block directly
+    seg = p1_segment(root)                      # p1 stays LAST: test_success_metrics pins `.endswith("| p1: ..")`
     return f"{line} {seg}" if seg else line
 
 
@@ -355,6 +482,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("root", nargs="?", default=None)
     ap.add_argument("--line", action="store_true",
                     help="print ONE line for the town node's graph_metrics cell, no write")
+    ap.add_argument("--trajectory", nargs=2, metavar=("POST", "LABEL"),
+                    help="print ONE TRAJECTORY line for the throw ingested into POST's card §7, no write")
+    ap.add_argument("--throws", default="", metavar="HEADING_PREFIX",
+                    help="with --trajectory: count only the rows under the card's **<prefix>...** sections")
     ap.add_argument("--json", action="store_true", help="print JSON, no write")
     ap.add_argument("--diff", action="store_true", help="include the season diff")
     args = ap.parse_args(argv)
@@ -364,6 +495,9 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     if args.line:
         print(make_line(root))
+        return 0
+    if args.trajectory:
+        print(trajectory_line(root, *args.trajectory, throws=args.throws))
         return 0
     payload = compute(root)
     if args.diff:
