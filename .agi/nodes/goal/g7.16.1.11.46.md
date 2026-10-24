@@ -23,7 +23,7 @@ town: local-maxxing
 # goal:g7.16.1.11.46
 
 ## Why this exists
-goal:g7.16.1.11 (the engine every post runs on): the owner's 10-22/23 brainstorm with a Fable fork of the Prime's session produced doc:brainstorm-unify (§0-§39) and 62 owner asks (doc:card-belam §7 ATOMS). On 10-23 the owner handed it to the Prime to run through council in waves, never all at once. This goal is the umbrella those waves nest under; each wave's leaves are cut by the council from one brief.
+goal:g7.16.1.11 (the engine every post runs on): the owner's 10-22/23 brainstorm with a Fable fork of the Prime's session produced doc:brainstorm-unify (§0-§39) and 62 owner asks (doc:card-belam §7 ATOMS); on 10-24 the fork handed back §40 (the owner-facing post's full memory beside the atoms) and its 8 asks (card §7 rows 10.1-10.8). On 10-23 the owner handed it to the Prime to run through council in waves, never all at once. This goal is the umbrella those waves nest under; each wave's leaves are cut by the council from one brief.
 
 ## OWNER 2026-10-23, verbatim (to belam, in the Prime's pane)
 "youre getting an internal claude message soon from the brainstorm"
@@ -34,14 +34,17 @@ Relayed by the fork (its hand-off file, 10-23): "hand this back to the Prime; st
 ## OWNER 2026-10-24 07:2xZ, verbatim (to belam, in the Prime's pane, on the g4.18.7 bank line)
 "Retire write py for sure we don’t need it at all and need to retire that whole build node as the capsule wrapper now tags everything for us using standard read routes. We need to redo the renderer if needed to be a git based graph system that uses the minimal shell code matrix integrated design"
 
+## OWNER 2026-10-24, relayed verbatim by the Fable fork (t-e4, 13:5xZ, its hand-off to belam)
+"hand off the updates to be incorporated into plan" (the §40 addendum); on §40, the owner's ruling as the fork carries it in doc:brainstorm-unify §40: full memory is a cell value, not a role ("full memory enabled": `mem: full` on any row, the Prime always; `faces: owner` requires it, never the reverse).
+
 ## Target end-state
-- Wave 0 (the Prime alone): the doc is a node (reference), the 62 atoms (the ledger header says 60; its tables hold 62 rows) are rows in the card's §7, V0 is on the trunk, the owner-only asks are banked.
+- Wave 0 (the Prime alone): the doc is a node (reference), the 62 atoms (the ledger header says 60; its tables hold 62 rows) are rows in the card's §7 (with the later intake rows 8.1, 9.1, a1, a2 and §40's 10.1-10.8: 74 rows), V0 is on the trunk, the owner-only asks are banked.
 - Waves 1-4 each ran as ONE council brief naming its doc sections; the council returned the leaf set with falsifiers; directors built through the one spawn route; the wave's gate line passed before the next brief was cut:
-  - wave 1 gate: M1-M4 and C1-C3 falsifiers pass; P1's board numbers exist;
-  - wave 2 gate: one rename end to end with 0 edits; one node's history visible only on its refs/grid/<mint>;
-  - wave 3 gate: a planted red found and fixed with no director turn; a held root action printed from the closed set;
-  - wave 4: its leaves complete.
-- Every atom in the card's §7 is placed (a leaf, an idea, a decision line, or out with a reason); the TRAJECTORY line "10-23 brainstorm (doc:brainstorm-unify) atoms=62 placed=62 → <leaf ids>" is on town:local-maxxing.
+  - wave 1 (brief 1, plus a brief 1b for §40's M6 chunk tap + store with the `mem:`/`faces:` cells and M7 the chunk->atom edge with `agi-atom where` and the reply-names-its-ids red) gate: M1-M4 and C1-C3 falsifiers pass; P1's board numbers exist;
+  - wave 2 (adds V4 pulled forward, claude-code adapter only, + M9 summary tree and bounded view + M10 owner quotes cite chunk ids) gate: one rename end to end with 0 edits; one node's history visible only on its refs/grid/<mint>;
+  - wave 3 (adds M8: the reconcile walk as a unify-spider flow, one batched `atoms:` relay per lap) gate: a planted red found and fixed with no director turn; a held root action printed from the closed set;
+  - wave 4 (V4's pi adapter, after P1): its leaves complete.
+- Every atom in the card's §7 is placed (a leaf, an idea, a decision line, or out with a reason); the TRAJECTORY line "10-23 brainstorm (doc:brainstorm-unify) atoms=74 placed=74 → <leaf ids>" is on town:local-maxxing.
 
 ## Invariants
 - The doc is reference, never placement: an ask is placed only when its leaf, idea or decision line exists.
@@ -51,7 +54,7 @@ Relayed by the fork (its hand-off file, 10-23): "hand this back to the Prime; st
 - Spend only on what the owner named; owner-only acts (Console org, Doppler token, workspaces, account roles) are banked in the card's §6.
 
 ## Falsifier
-1. `awk '/^## §7/,0' .agi/nodes/doc/card-belam.md | grep -c '| target:'` prints 0 (no unplaced atom), and `git grep -c 'atoms=62 placed=62' -- .agi/nodes/town/local-maxxing.md` is at least 1.
+1. `awk '/^## §7/,0' .agi/nodes/doc/card-belam.md | grep -c '| target:'` prints 0 (no unplaced atom), and `git grep -c 'atoms=74 placed=74' -- .agi/nodes/town/local-maxxing.md` is at least 1.
 2. Negative: `git grep -l '^status: active' -- '.agi/nodes/goal/g7.16.1.11.46.*.md'` prints nothing (every wave leaf is closed or retired).
 
 ## Out of scope
@@ -59,3 +62,7 @@ goal:g7.16.1.11.44 (the pack format; its move half is superseded by U6 here only
 
 ## Agent Notes
 Assigned to **belam**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+belam 10-24 13:5xZ: the Fable fork handed back §40 on the owner's word; folded into the waves as the fork's plan text places it (M6-M7 W1 as brief 1b, because brief 1 already ran and its leaves landed L74-L100; V4 claude-code adapter + M9-M10 W2; M8 W3; V4 pi adapter W4) with the gate lines UNCHANGED (the fork's plan keeps them; M6/M7 do not hold W2's brief). The TRAJECTORY count moves 62 -> 74 because the card's §7 now holds 74 rows (62 + 8.1 + 9.1 + a1 + a2 + 10.1-10.8); the falsifier counts every row the card holds, so it moves with it.
+<!-- THOUGHT:END -->
