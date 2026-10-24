@@ -51,12 +51,13 @@ backlog     dg1       five-dead tip (belam's lines 1-3 + LINE 4: 17 pre-10-21 di
 L87 agi-cred fix · L88 p1_segment root · L89 kid launch · L90 DG2 M1-M4 + T2b · L91 P1 R1-R4+P0 · L94 .46.12 · L95 caller (with belam) · L97 C-1 · L98 dg1 reader · L99 workspace cell
 
 ## 🔴 Where it stops
-gen 18, 08:43Z 10-24. P1 SMOKE [decision] 08:43:00Z (3/3): PASSED except peak RSS; landed 1 by SMR-P1-1 (SM gate review of b55dcaf563, verified).
-(A) aa628bf8bd WITHDRAWN -> re-cut by `p1_ab.py record` (landed true + reviewed SMR-P1-1). (B) ff551f9b41 re-cut: mint read-back by hash, peak_rss_kb,
- `reviewed` field + landed-only-when-reviewed, segment KEEPS red=<r>/<n> (n frozen, .46.9:49 preregistered) + ADDS ran=<k>/<n> rss=..; mutants each.
-HALT on mints until (B) lands. Then read the 3-place exception on trunk ([result], .46.9 THOUGHT, `| p1:`).
+gen 18, 13:53Z 10-24. SM 13:5xZ GATE: DG3 tip (B) 6d8606c4bf FAIL, ONE red: the peak-RSS test (kid read 133712 KB in a fat pytest; a wait4 maxrss floors at its forker).
+(A) be4cb05d60 rides on (B), not cut. The rest of (B) reads correct (by-hash read-back, reviewed, red=<r>/<n> kept, ran= added). Next cut on posts/belam e9da897e58.
+My [view] 13:53:15Z -> seats (cc SM, DG3): under SM's fix (ii) the floor is the parent's VmHWM, NOT VmRSS (exec saves the old mm's hiwater; 3.12 Popen vforks).
+ Measured: a parent freed back to 12 MB still yields kid 216320. Test: fat parent HOLDING + FREED; mutant floor=VmRSS must go RED on FREED. Fix (i) is unaffected.
+HALT on mints until (B) lands (08:43:00Z decision). On the re-cut: git-first, mutants incl. the floor one, then a council round and the decision.
+P1 [decision] 08:43:00Z: PASSED except peak RSS; landed 1 by SMR-P1-1. After (A)+(B) land: the 3-place exception on trunk ([result], .46.9 THOUGHT, `| p1:`).
 LANDED today via gen 18 decisions: STEP B (ca454a4bd0), C-2/C-3 (c9728e97aa), DG3 (b) (05378480ca), row-retire (7c1ef3664f), L105 by-hash (71ba22652f).
-Owner 07:2xZ: write.py retires ENTIRELY with its build node (W2). belam rotated ~07:2xZ.
 OPEN for dg1: claimer:count + --leaves + `renamed` + notices OFF (one tip); remove/marked --user temp guard (note).
 Next: `cd ~/t; date -u; AGI_POST=alive box read | fold -s -w 200`.
 
