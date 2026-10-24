@@ -766,7 +766,7 @@ def own_hwm_kb() -> int | None:
 
 
 def rss_reading(maxrss_kb: int | None, floor_kb: int | None) -> tuple[int | None, int | None]:
-    """(peak_rss_kb, rss_floor_kb) from wait4's ru_maxrss and the forker's VmHWM read just before the fork. ru_maxrss
+    """(peak_rss_kb, rss_floor_kb) from wait4's ru_maxrss and the forker's VmHWM read right after Popen returns (it never falls, so it bounds what the exec carried; the error is one-way, a floor too high, never a parent value as the kid's). ru_maxrss
     is max(floor, the kid's own peak), so it is the kid's peak only when it is ABOVE the floor; at or below it the
     kid's peak is at most the floor, which is all that is known: (None, floor). No floor read = no claim: (None, None)."""
     if not maxrss_kb or maxrss_kb <= 0 or not floor_kb:
@@ -782,7 +782,7 @@ def run_kid(plan: dict, cfg: dict, *, live: int, gb: float | None) -> dict:
     holding the kid's worktree or home that started after the kid did (an OLDER holder is named, never killed);
     either one counts the run red. Returns {"rc", "secs", "timed_out", "sweep", "older", "peak_rss_kb", "rss_floor_kb"}: never the log's content and never the key.
     peak_rss_kb is wait4's ru_maxrss (the largest resident set of the kid and the descendants it reaped) ONLY when it
-    clears this process's own VmHWM at the fork (see rss_reading); otherwise it is None and rss_floor_kb says the kid stayed at or under that floor.
+    clears this process's own VmHWM once Popen has returned (see rss_reading); otherwise it is None and rss_floor_kb says the kid stayed at or under that floor.
     A kid at the timeout is a counted red, not retried."""
     ok, why = may_start(live, gb, cfg)
     if not ok:
@@ -801,9 +801,9 @@ def run_kid(plan: dict, cfg: dict, *, live: int, gb: float | None) -> dict:
         fd = os.open(plan["log"], os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
         with os.fdopen(fd, "w") as log:
             since = boot_ticks()                                 # nothing older than this moment is the kid's
-            floor_kb = own_hwm_kb()                              # the forker's high-water mark, which the kid's ru_maxrss inherits
             proc = subprocess.Popen(plan["argv"], cwd=plan["cwd"], env=plan["env"], stdin=subprocess.DEVNULL,
                                     stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+            floor_kb = own_hwm_kb()      # AFTER Popen: its own allocations (argv, env) can raise the HWM the exec carries, and VmHWM never falls
             deadline = time.monotonic() + plan["timeout"]
             usage = None
             try:

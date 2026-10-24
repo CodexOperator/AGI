@@ -1001,6 +1001,25 @@ def test_a_small_kid_under_a_fat_parent_never_reads_the_parents_rss_as_its_own(t
                                  or 0 < freed["peak_rss_kb"] < 60_000), freed
 
 
+def test_the_floor_is_read_after_popen_because_popens_own_allocations_raise_the_peak_the_exec_carries(tmp_path, monkeypatch):
+    """alive 14:3xZ / sp: a parent AT its high-water mark whose Popen allocates (argv, env) hands the kid that higher
+    peak. Stand in for it: a Popen wrapper that touches 40 MB beyond the current HWM before the real fork. The small
+    kid must read the floor word (or < 60000), never the parent's raised peak as its own. The mutant (floor read BEFORE Popen) is red."""
+    real = subprocess.Popen
+
+    def fat_popen(*a, **kw):
+        hwm = p1_ab.own_hwm_kb()
+        cur = next(int(line.split()[1]) for line in Path("/proc/self/status").read_text().splitlines() if line.startswith("VmRSS:"))
+        pad = _touch((hwm - cur) // 1024 + 40)
+        try:
+            return real(*a, **kw)
+        finally:
+            del pad
+    monkeypatch.setattr(p1_ab.subprocess, "Popen", fat_popen)
+    res = _small_kid(tmp_path, "popen")
+    assert res["rc"] == 0 and (res["peak_rss_kb"] is None and res["rss_floor_kb"] > 0 or 0 < res["peak_rss_kb"] < 60_000), res
+
+
 def test_the_floor_is_the_forkers_high_water_mark_not_its_current_rss(monkeypatch):
     """The mutant 'floor = VmRSS' reads 12 MB after a 150 MB allocation was freed; the HWM stays at the peak."""
     held = _touch(150)
