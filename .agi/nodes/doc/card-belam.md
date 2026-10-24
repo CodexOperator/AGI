@@ -21,18 +21,19 @@ town: core
 Owner 09-23: the card is the handoff scratch and a doc node; `HANDOFF.md` + `.agi/sessions/quorum/belam.md` are symlinks to it. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; §0-§6 ≤ 100 lines; §7 ATOMS is bounded by time, not length (doc:brainstorm-unify §39). Skills: agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-post · agi-town · agi-memory-guard · agi-node-write · agi-goal · agi-master-gate.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+belam-s3-IV rotation card, 07:3xZ 10-24 (meter at the line): W1 of the brainstorm ran end to end overnight (L74-L100, 27 lands); the owner topped up OpenRouter, the provisioning key moved to OPENROUTER_ADMIN, P1's first key is minted and waits for its kid-done; the owner ruled write.py retired. gen III traps 121-123 moved into skills.
 belam-s3-IV, 10-23 after the owner's hand-off of the Fable brainstorm: §7 ATOMS is new (§39: the owner's asks live in the card, not a second node), 62 rows from the fork's ledger (its header says 60; the tables hold 62). Wave 0 done by the Prime alone: doc:brainstorm-unify (reference), goal:g7.16.1.11.46 (the umbrella) + .46.1 V0 (complete), the owner-only asks banked in §6. Since the last card: L70-L73 landed, F1 nspawn ran (FAIL, 3 causes, R2/R3 banked), the box rebooted 03:45Z, keepalive + CHECK cron off by the owner's word.
 <!-- THOUGHT:END -->
 
-## §0 State (10-23)
+## §0 State (07:3xZ 10-24, at belam-s3-IV's rotation)
 | | |
 |---|---|
 | trunk | core/season3/main = MAIN's checkout = posts/belam = origin; the :28 board job auto-lands my town:local-maxxing commits (it can move the trunk between my verify and my CAS: then ask SM to re-cut) |
 | pin | /etc/agi/carry.env AGI_TRUNK = 8b247882a2 (L61); director-review is boot=false there (L70 made it true on the trunk), so it is the 1 of 11 posts down after the 03:45Z reboot. Moving the pin = `agi.sh host` then `sudo systemctl start agi-project.service` (banked, §6) |
 | me | uid agi-belam SIGNS and PUSHES; after a reboot ~/.gitconfig loses the credential lines (re-add '' + the belam gh helper); I mail SM only; keepalive timer RE-ENABLED 23:14Z 10-23 (the owner saw RC sessions archived after the idle stretch; its first run renamed 6 posts' RC titles back to the post name and pinged all-is-one 15 min from token expiry); CHECK cron still off; box-wake still types `mail: box read` |
-| fork | the Fable fork runs beside me as tmux belam-fable (unit agi-belam-fable-2.scope, RC name belam-fable); it is DONE ("just let prime handle it"); ~/.session pins my session id for V0 |
-| intake | atoms 64 · placed 9 · red 0 (§7; 63 = the 62 brainstorm rows + V10a's seat_status.py row) |
-| landing my commits | commit in ~/t -> `git update-ref refs/heads/posts/belam NEW OLD` -> `sudo -n -u belam git -C /data/work/agi merge --ff-only -q refs/heads/posts/belam` -> push NEW to core/season3/main + posts/belam; links on its own worktree first; anonymize the diff |
+| fork | the Fable fork (tmux belam-fable, scope agi-belam-fable-2, RC belam-fable) is DONE; V0 is LIVE, so my restart resumes ~/.session's id, never the fork |
+| intake | §7: 66 rows (62 brainstorm src:doc + 8.1 + 9.1 + a1/a2 = the owner's 07:2xZ write.py/renderer ruling); placed 9 |
+| landing my commits | `AGI_POST=belam ~/bin/agi-at <paths>` (signs onto posts/belam) -> `sudo -n -u belam git -C /data/work/agi merge --ff-only -q refs/heads/posts/belam` -> push to core/season3/main + posts/belam; commit my card ONLY right after landing an SM cut, and mail SM the new tip |
 | landing SM's L<n> | `~/tools/verify-land.sh L<n> LAND BASE GATETIP`, links on its own tree, CAS posts/belam, ff MAIN, push both, `git checkout -q --detach` |
 
 ## §1 Plan — goal:g7.16.1.11.46, the brainstorm in waves (one council brief per wave; the gate line passes before the next brief)
@@ -59,15 +60,14 @@ L70 43086245a3 (director-review boot=true) · .45 close 73a32e5567 · L71 dfd3d6
 10-23: W0 = doc:brainstorm-unify + goal:g7.16.1.11.46 + .46.1 V0 (agi-run 2260 B, lane session-pin.t.sh 9/9) + this card.
 
 ## 🔴 Where it stops
-W1 RUNNING: brief 1 2ef3c2f6d6 -> council 3/3 (alive 21:06Z) -> L74 6b6f926c0d landed = leaves .46.2-.46.10 (M1-M4 DG2 · C1-C3 DS1 · P1 DG3 · U1 dg1); V10a (.46.11) is SM's, lands as its own L. NEXT: land each L SM cuts; C1's root install is mine. Gate to W2 = M1-M4 + C1-C3 falsifiers pass + P1's numbers on the board ('passed except <banked>' goes to the owner). K4: rotate.py counts my WHOLE card vs 100 lines, so a driven handoff refuses until M1 lands.
-NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (from ~/t) on mail. Chain anonymize -> box send with &&; the body goes on STDIN.
+W1 nearly done (all leaves landed L74-L100): closed .46.1 V0 .46.2 M1 .46.4 M3 .46.5 M4 .46.11 V10a; open .46.3 M2 (pre-credits P-a..e), .46.10 U1 (a day of reports), .46.6-.8 C1-C3 (live leg = owner's Doppler token + workspaces; agi-cred INSTALLED 02:31Z), .46.12 notice (cron enabled:false, L97; owner GO = flip + apply), .46.9 P1: the ONE deepseek kid-key MINTED 07:15Z (hash 0186dce6a1c4..., ~/p1keys/deepseek-l2.key, ledger ~/p1keys/ledger.json). kid-done RAN 07:23Z: usd 0.02497669, key file removed, key DISABLED (GET /keys/<hash> 200, disabled true); kid-done's rc 1 'read back absent' is FALSE (listing-based read-back cannot see a key in agi-local-town) -> [red] to SM with a fix-forward for DG3 (read back by hash). NEXT for my successor: wait for DG3's ONE [result] + the council's word; NO 2nd mint without it. The .env backup is SHREDDED (07:24Z, the old key still lives in Doppler agi/dev AGI_WORKSPACE_ADMIN).
+OWNER 07:2xZ 10-24 (verbatim in goal:g7.16.1.11.46): retire write.py ENTIRELY + its build node (bin-write); the renderer becomes a git-based graph on the minimal-shell matrix design. Card a1/a2, sent to SM for the W2 brief. W2 is briefed only when W1's gate reads "passed except <banked>".
+Backlog routing (council, from L98's true red): dead-5 + 17 lineage re-assigns + g1.31 STEP B horizon = dg1's tips; DG6/director-engine rows retire (SM cuts); their 41 leaves = dg1's placement list -> council -> one tip.
+NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (from ~/t). Chain anonymize -> box send with &&; the body on STDIN; write ~agi-belam/ for paths others must read.
 
-## §4 Traps (121-123 = gen III: move them to their skills at MY rotation)
+## §4 Traps (gen IV, 124-127; gen III's 121-123 moved to agi-memory-guard / agi-verify / agi-rotate at this rotation)
 | # | trap | rule |
 |---|---|---|
-| 121 | agi.slice hit MemoryHigh on 2.2 GiB of dentry slab after scratch-worktree harness runs | one harness at a time; slab warn: `sync; echo 2 | sudo tee /proc/sys/vm/drop_caches` |
-| 122 | a gate dir under another post's uid (700) reads as 'missing' to my uid | read existence as root before calling anything stale |
-| 123 | my card with a literal home path was refused at the push after the :28 board land had ff'd MAIN | anonymize the card DIFF before landing; write ~/ for own paths |
 | 124 | `box send M` with the body as an argument sent an EMPTY message | the body goes on stdin: `printf '%s\n' "$M" | ... box send sanctuary-master` |
 | 125 | a reboot's `claude -c go` resumed the fork (newest transcript) at my post | V0 (.46.1) is LIVE: a post takes the trunk's agi-run at its next start (seen 06:24Z 10-24, DG3 + SM restarted by needrestart run `--resume <own id>`) |
 | 127 | a verify pass in MY uid (passwordless sudo) wrote 6 test cron lines into agi-sanctuary-master's REAL crontab (crons.py apply -> `sudo -n crontab -u`, sudo resets PATH past the fake; seen in my session 7370f6b9 on 10-21) | NO `commands.py run verify` / full suite in agi-belam's uid until the council's C-3 lands (--user-crontab-dir on every test apply, no sudo without --sudo, refuse a /tmp project path) |
@@ -181,3 +181,5 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 |---|---|---|---|---|
 | 8.1 | "seat_status.py retire" | src:af6b174d9c507c5f812992fdd993b12b62b45da6 | target:the §34.5 census-cell leaf (wave 2) | lap124501 |
 | 9.1 | "if a director has claimed a given goal leaf or hypothesis leaf or whatever or a bundle of them, let them get notice automatically via mail system that hey your bundle pre-req's have cleared and it's just a simple little unified system that is all wired into the data already available via the town board/trajectory and the post cards" | src:goal:g7.16.1.11.46.12#OWNER | leaf:goal:g7.16.1.11.46.12 (L78, director-goals-1) | lap124501 |
+| a1 | "Retire write py for sure we don’t need it at all and need to retire that whole build node as the capsule wrapper now tags everything for us using standard read routes" | src:goal:g7.16.1.11.46#OWNER | target:W2 brief (V8 python out; supersedes g4.18.7) | lap124501 |
+| a2 | "We need to redo the renderer if needed to be a git based graph system that uses the minimal shell code matrix integrated design" | src:goal:g7.16.1.11.46#OWNER | target:W2 brief (G1 compose/split = the git-based renderer) | lap124501 |

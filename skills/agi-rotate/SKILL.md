@@ -58,3 +58,4 @@ NO STARTUP block (rotate.py spawn = recovery) ─▶ ListAgents ▸ run the ack 
 
 ## Traps moved from cards (owner 10-10: one sweep, then a rule)
 - belam (the pushing seat): the rotation / restart rewrites ~/.gitconfig WITHOUT the github credential lines: the push fails 'could not read Username' -> at wake `git config --global --get-all credential.https://github.com.helper` must print '' then `!sudo -n -u belam /usr/bin/gh auth git-credential` (the token lives in uid belam; a plain gh line fails); else `--add` both, then `git push --dry-run` (belam gen II, again at gen IV's wake)
+- a card carrying a literal home path was refused at the push AFTER the :28 board land had already ff'd posts/belam into MAIN (22:28Z 10-21, belam trap 123) -> anonymize the card DIFF before landing (`git diff HEAD -- <card> > f; anonymize.py check --diff-file f`; a whole-file check trips on the co-author test address) and write ~/ for every own path
