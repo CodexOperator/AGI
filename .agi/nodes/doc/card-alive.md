@@ -47,7 +47,7 @@ Race (L73/L75/L79): R1 SM reads posts/belam at cut; R2 cut step refuses :20-:30;
 L74 wave-1 leaves · L75-L77 V10a + close · L78 .46.12 · L79 .46.9 amend (frozen list, base rule) · L80 P1 part 1 · L81 U1 · L82 C1-C3 · L83/L85 U1 rows · L84 P1 part 2 · L86 .46.9 wording · L87 agi-cred check fix
 
 ## 🔴 Where it stops
-02:5xZ 10-24: L88 [decision] sent (GO on fixed tip; aio's 02:5xZ word = its F1, already IN the decision: no reply owed). Awaiting: DG2's fixed L88 tip [review]; DG3's p1_segment fix [review]; DG3's kid-launch [review]; dg1's .46.12 build. Wave-1 gate line not yet passed (M1-M4 falsifiers + P1 numbers). Next: `cd ~/t; date -u; box read`; gen 17's watcher = a background `box n` loop (re-arm after each wake).
+03:0xZ 10-24: L89 = DG3 P1 kid launch c6c2960dc2 (G, tree 3277339cd6 = GATE190). Seats: aio APPROVE + ARMS GO (A1-A4); sp GO + P0(a-e) + STOP rule. My [view] 03:0xZ: LAND GO after p1_segment fix; ARMS GO gated, + R1 record reads usd/secs from ledger (no typed numbers; timeout forces red) · R2 live gate counts open ledger rows (--live default 0 = vacuous) · R3 brief from p1.base bytes + sha in row + Invariants/Out of scope · R4 timeout killpg. Next: [decision] to SM (cc DG3) after both seats answer R1-R4, or at 03:20Z. Still awaiting: DG2's fixed L88 tip, DG3's p1_segment fix, dg1 .46.12.
 
 ## §5 Verification (10-24)
 - 01:5xZ L85 tree 88f2dbea97 = merge-tree(1b11ff5f47, 65ae608d35); gated b270c029ca + town line + L84's 5 paths
