@@ -8,10 +8,19 @@ R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)}
 if [ "${1:-}" = window ];then   # falsifier 3: run in the real repo, against the leaf node
  L=$R0/.agi/nodes/goal/g7.16.1.11.46.10.md;[ -f "$L" ]||{ echo "FAIL window: $L is missing";exit 99;}
  n=0;bad=
+ # F3 (council 01:1xZ 10-24): a STANDING row `| standing | <post|any> | any | <parent> | reason ... until:<goal id> |` explains a trailer when its post matches (or is `any`), the trailer's parent IS the row's parent or sits UNDER it (walked up the parents of the HEAD tree, like up() in grow.py), and the row is not retired (its `until:` goal is not complete / supported / retired)
+ kin(){ f=;for c in $($G -C "$R0" grep -l -F "id: $1" HEAD -- .agi/nodes 2>/dev/null);do $G -C "$R0" show "$c"|awk -v i="id: $1" '$0==i{f=1} END{exit !f}'&&{ f=${c#HEAD:};break;};done;[ -n "$f" ]||return 0
+  $G -C "$R0" show "HEAD:$f"|awk '/^---$/{c++;next} c==1&&/^parents:/{p=1;next} c==1&&p&&/^  - /{print $2;next} c==1&&p{p=0}';}
+ under(){ fr=$1;seen=" ";d=0;while [ -n "$fr" ]&&[ $d -lt 16 ];do nx=;for x in $fr;do [ "$x" = "$2" ]&&return 0;case "$seen" in *" $x "*)continue;; esac;seen="$seen$x ";nx="$nx $(kin $x)";done;fr=$nx;d=$((d+1));done;return 1;}
+ stand_ok(){ grep '^| standing |' "$L"|awk -F'|' '{for(i=3;i<=5;i++)gsub(/ /,"",$i);print $3,$5,$6}'|while read -r sp sparent reason;do
+   { [ "$sp" = any ]||[ "$sp" = "$1" ];}||continue
+   u=$(echo "$reason"|sed -n 's/.*until:\(goal:[^ ]*\).*/\1/p')
+   if [ -n "$u" ];then case "$($G -C "$R0" show "HEAD:.agi/nodes/goal/${u#goal:}.md" 2>/dev/null|sed -n 's/^status: *//p'|head -1)" in complete|supported|retired)continue;; esac;fi
+   under "$2" "$sparent"&&echo yes&&break;done|grep -q yes;}
  for h in $($G -C "$R0" log --since='24 hours ago' --grep='^Scope:' --format=%H);do n=$((n+1));k=${h%"${h#??????????}"};grep -q "^| $k " "$L"&&continue
   # no row for this commit: it is explained only if EVERY one of its trailers names a parent that has a STANDING row (`| standing | any | any | <parent> | reason |`), and it has at least one trailer
-  ps=$($G -C "$R0" log -1 --format=%B $h|sed -n 's/^Scope: [^ ]* [^ ]* //p');[ -n "$ps" ]||{ bad="$bad $k";continue;}
-  for p in $ps;do grep '^| standing |' "$L"|grep -qF "| $p |"||{ bad="$bad $k";break;};done;done
+  ts=$($G -C "$R0" log -1 --format=%B $h|sed -n 's/^Scope: \([^ ]*\) [^ ]* \(.*\)$/\1:\2/p');[ -n "$ts" ]||{ bad="$bad $k";continue;}
+  for t in $ts;do stand_ok "${t%%:*}" "${t#*:}"||{ bad="$bad $k";break;};done;done
  [ "$n" -ge 1 ]||{ echo "FAIL window: no commit with a Scope: trailer in the last 24 h (a gate that never writes the trailer cannot pass)";exit 1;}
  [ -z "$bad" ]||{ echo "FAIL window: $n hit(s), unexplained (no row in the leaf's explain table):$bad";exit 1;}
  echo "ok window $n hit(s), every one has an explain row (a commit row or standing parent rows)";exit 0;fi
@@ -130,4 +139,22 @@ mkw;$G -C $T/w commit -q --allow-empty -m "alive: y
 Scope: alive hypothesis goal:g2
 Scope: alive idea goal:g9";printf '| standing | any | any | goal:g2 | s |\n' >>$T/w/.agi/nodes/goal/g7.16.1.11.46.10.md;win;wr=$?;ok "w3c-a-commit-with-two-trailers-needs-BOTH-parents-explained [$(cat $T/wo)]" '[ $wr != 0 ]&&grep -q "unexplained" $T/wo'
 printf '| %s | alive | hypothesis | goal:g2 | planted |\n' "$($G -C $T/w rev-parse HEAD|cut -c1-10)" >>$T/w/.agi/nodes/goal/g7.16.1.11.46.10.md;win;wr=$?;ok "w3-a-hit-with-an-explain-row-is-GREEN [$(cat $T/wo)]" '[ $wr = 0 ]'
+
+# ---- w4*: F3 (council 01:1xZ 10-24): a standing row matches on the CLOSURE, narrowed to a post, retired when its `until:` goal closes
+LEAF=$T/w/.agi/nodes/goal/g7.16.1.11.46.10.md
+mknodes(){ mkw;mkdir -p $T/w/.agi/nodes/hypothesis $T/w/.agi/nodes/experiment $T/w/.agi/nodes/goal
+ printf -- '---\nid: goal:g2\ntype: goal\nstatus: active\nparents: []\n---\n' >$T/w/.agi/nodes/goal/g2.md
+ printf -- '---\nid: hypothesis:hx\ntype: hypothesis\nparents:\n  - goal:g2\n---\n' >$T/w/.agi/nodes/hypothesis/hx.md
+ printf -- '---\nid: experiment:xx\ntype: experiment\nparents:\n  - hypothesis:hx\n---\n' >$T/w/.agi/nodes/experiment/xx.md
+ printf -- '---\nid: goal:g7.16.1.11.46.9\ntype: goal\nstatus: active\nparents: []\n---\n' >$T/w/.agi/nodes/goal/g7.16.1.11.46.9.md
+ $G -C $T/w add -A;$G -C $T/w commit -qm nodes;}
+hit(){ $G -C $T/w commit -q --allow-empty -m "$1: z
+
+Scope: $1 verdict $2";}
+srow(){ printf '| standing | %s | any | %s | P1 preregistered leaves, council 00:2xZ 10-24; until:goal:g7.16.1.11.46.9 |\n' $1 $2 >>$LEAF;$G -C $T/w add -A;$G -C $T/w commit -qm row;}
+mknodes;hit director-general-3 experiment:xx;srow director-general-3 goal:g2;win;wr=$?;ok "w4-a-two-level-node-under-a-frozen-leaf-is-explained-by-the-closure [$(cat $T/wo)]" '[ $wr = 0 ]'
+mknodes;hit alive experiment:xx;srow director-general-3 goal:g2;win;wr=$?;ok "w4b-the-same-node-by-another-post-is-not-explained [$(cat $T/wo)]" '[ $wr != 0 ]&&grep -q unexplained $T/wo'
+mknodes;hit director-general-3 experiment:xx;srow director-general-3 goal:g2;sed -i 's/^status: active/status: complete/' $T/w/.agi/nodes/goal/g7.16.1.11.46.9.md;$G -C $T/w commit -qam "46.9 closes";win;wr=$?;ok "w4c-the-rows-retire-when-their-until-goal-closes [$(cat $T/wo)]" '[ $wr != 0 ]&&grep -q unexplained $T/wo'
+mknodes;hit director-general-3 experiment:nowhere;srow director-general-3 goal:g2;win;wr=$?;ok "w4d-a-parent-that-resolves-to-no-node-is-not-under-anything [$(cat $T/wo)]" '[ $wr != 0 ]&&grep -q unexplained $T/wo'
+mknodes;hit director-general-3 experiment:xx;srow director-general-3 goal:g2;sed -i 's/under "\$2" "\$sparent"&&echo yes/[ "$2" = "$sparent" ]\&\&echo yes/' $T/w/extensions/agi/tests/grow-scope-report.t.sh;win;wr=$?;red "w4m-mutant-a-literal-only-match-leaves-the-two-level-node-unexplained [$(cat $T/wo)]" '[ $wr = 0 ]'
 exit $f
