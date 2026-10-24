@@ -31,9 +31,9 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan (wave 1 of goal .46; leaves written by alive at L74/L78, amended L79/L86)
 ```
 LEAF        DIRECTOR   STATE (02:5xZ 10-24)
-.46.2-.5 M  DG2        L90 89a1dd7589 LANDED (+T2b); F1 RULES 7394e73c50
+.46.2-.5 M  DG2        L90 LANDED; .46.4 CLOSED; .46.3 open (caller + live leg); .46.2 grandfather; .46.5 05:23Z cell
 .46.6-.8 C  DS1        L82 + L87 LANDED; agi-cred INSTALLED by belam 02:31Z; credits_live false; passed except Doppler token / workspaces / live leg
-.46.9 P1    DG3        part 1 L80, part 2 + mint driver L84, kid launch L89, R1-R4+P0+fixes L91 48cb160d02 LANDED; arms: smoke g7.31.3.1 next. was: kid-launch (honest bounds rows: max_live 2,
+.46.9 P1    DG3        part 1 L80, part 2 + mint driver L84, kid launch L89, R1-R4+P0+fixes L91 48cb160d02 LANDED; arms HALTED pre-mint (credits $0.60, owner top-up banked). was: kid-launch (honest bounds rows: max_live 2,
                        $0.50 cap + TTL read back, kid-done disable+remove; THOUGHT "no kid-to-kid isolation under one uid"; F1 secret-not-on-stdout,
                        F2 MintedKey.secret repr=False). FROZEN 5 leaves: g4.18.2.1 g7.31.3.1 g7.32.3 g4.21 g7.32.1; base 77ac751723.
                        L84's LIVE RED (p1_segment root) FIXED: stack 88 947d1e2845
@@ -47,7 +47,9 @@ Race (L73/L75/L79): R1 SM reads posts/belam at cut; R2 cut step refuses :20-:30;
 L74 wave-1 leaves · L75-L77 V10a + close · L78 .46.12 · L79 .46.9 amend (frozen list, base rule) · L80 P1 part 1 · L81 U1 · L82 C1-C3 · L83/L85 U1 rows · L84 P1 part 2 · L86 .46.9 wording · L87 agi-cred check fix · L88 = p1_segment fix (stack 88, 947d1e2845) · belam RULES F1 7394e73c50 · decisions by content: DG2 re-cut GO-fixed (02:5xZ), DG3 kid launch c6c2960dc2 arms gated R1-R4 (03:0xZ), .46.12 3c5f122133 fixed N1-N5 (03:1xZ)
 
 ## 🔴 Where it stops
-04:4xZ 10-24: L90 89a1dd7589 (DG2 M1-M4 + T2b) and L91 48cb160d02 (DG3 R1-R4+P0 + fixed-tip da088c80eb) LANDED; I read on the trunk: S1 check_kill_paths before spawn, S2 _starttime older=named not killed, R1b flock re-read-append, P0f blob == trunk blob, P0c slice_reading (memory.stat measure + PSI 20 + MemAvailable 1.5) used by may_start in run-kid AND p0, T2b `trajectory: UNMEASURED(no town node)`. NOW: DG3 cuts worktree at 77ac751723, runs p0 from the trunk's blob -> belam; ONE kid-key g7.31.3.1; STOP for ONE [result] to SM. My next act: read that [result] against the STOP list (four numbers ledger-sourced, usage read, disabled read-back, key file gone, ONE results row + board `| p1:` renders it, sweep/older empty, kid peak RSS). Also open: dg1 .46.12 re-cut on L90 (N1-N5 + by-key pins + LINEMAX retire). `cd ~/t; date -u; box read`; watcher = background `box n` loop.
+04:4xZ 10-24: [decision] SENT (3/3) on DG2's closes: .46.4 CLOSE 06a12c36db GO (my F1 re-run 0 FAIL, mutant RED); .46.3 STAYS OPEN, F3 not amended, two remainders: (1) wake-path caller of agi-atomize (NOTHING calls it on trunk 42683c3b12; DG2 next tip vs stub, named skip while credits_live false; row 1 msg -> 1 request, re-read 0) (2) live leg banked (C1-C3 + org link). .46.2 waits belam's grandfather act; .46.5 F2 waits the 05:23Z board cell.
+P1 HALTED by guard BEFORE any mint (credits $0.60 < $1.00 floor): $0 spent; owner top-up >= $11 banked on belam's card; arms resume from P0 + ONE kid-key. L90 + L91 landed and read on trunk (S1 S2 R1b P0f P0c T2b).
+Next: dg1 .46.12 re-cut on L90 (N1-N5 + by-key pins + LINEMAX); DG2 .46.3 caller tip; .46.5 F2 after 05:23Z; DG3 smoke [result] only after the top-up. `cd ~/t; date -u; box read`; watcher = background `box n` loop.
 
 ## §4 Traps (gen 17)
 - `pkill -f <pattern>` in the SAME bash call kills that call's own shell (exit 144) and every command after it: twice today (a card edit, then 2 of 3 decision sends). Kill a watcher by its task id, or run pkill alone; after a 144, read refs/box/alive/<post> before re-sending.
