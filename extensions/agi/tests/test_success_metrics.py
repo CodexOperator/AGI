@@ -111,7 +111,9 @@ def test_a_committed_results_file_renders_the_segment_from_either_root(tmp_path,
     repo = _p1_repo(tmp_path, results=P1_RESULTS)
     want = "| p1: z-ai/glm-5.3-flash $/landed=0.1000 s/landed=100 red=0/5"
     for root in (repo, repo / ".agi"):
-        assert success_metrics.make_line(root).endswith(want), root
+        # a board line's segments are counted by their KEY and content, never by position (council 04:23Z)
+        line = success_metrics.make_line(root)
+        assert line.count("| p1:") == 1 and want in line, root
 
 
 def test_the_cli_root_is_the_graph_dir_and_the_line_has_no_false_red(tmp_path, monkeypatch, capsys):
@@ -206,4 +208,5 @@ def test_the_cli_as_a_subprocess_has_no_p1_text_without_a_results_file(tmp_path)
 def test_the_cli_as_a_subprocess_renders_the_segment_once_results_exist(tmp_path):
     r = _cli_line(_scratch_project(tmp_path, P1_RESULTS))
     assert r.returncode == 0, r.stderr
-    assert r.stdout.strip().endswith("| p1: z-ai/glm-5.3-flash $/landed=0.1000 s/landed=100 red=0/5"), r.stdout
+    out = r.stdout.strip()
+    assert out.count("| p1:") == 1 and "| p1: z-ai/glm-5.3-flash $/landed=0.1000 s/landed=100 red=0/5" in out, out

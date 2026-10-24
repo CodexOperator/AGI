@@ -437,6 +437,16 @@ def p1_segment(root: Path) -> str:
         return f"| p1: UNMEASURED(results unreadable: {_reason(exc)})"
 
 
+def _notices(root: Path) -> str:
+    """goal:g7.16.1.11.46.12 -- the prereq-cleared notice's board segment, read from refs only (prereq_notice.line)."""
+    try:
+        import argparse as _ap  # noqa: PLC0415
+        import prereq_notice  # noqa: PLC0415
+        return prereq_notice.line(_ap.Namespace(repo=str(root), trunk="refs/heads/core/season3/main", lag_red_min=None))
+    except (Exception, SystemExit) as exc:   # a source that cannot run is named, not fatal
+        return f"notices: UNMEASURED(source failed: {_reason(exc)})"
+
+
 def make_line(root: Path) -> str:
     """goal:g3.8 -- ONE line: a UTC minute, the graph counters and the seven success
     metrics. A null is NAMED (UNMEASURED(reason)), never a number the engine does not
@@ -473,8 +483,10 @@ def make_line(root: Path) -> str:
     seg = trajectory_segment(root)
     line = f"{line} {seg}" if seg else line
     line = f"{line} | {intake_segment(root)}"   # goal:g7.16.1.11.46.5: `| intake:` follows the success block directly
-    seg = p1_segment(root)                      # p1 stays LAST: test_success_metrics pins `.endswith("| p1: ..")`
-    return f"{line} {seg}" if seg else line
+    seg = p1_segment(root)
+    line = f"{line} {seg}" if seg else line
+    # ORDER (goal:g7.16.1.11.46.12): graph | success | trajectory | intake | [p1] | notices. NO test pins a position (council 04:23Z): each segment is counted by its key
+    return f"{line} | {_notices(root)}"
 
 
 def main(argv: list[str] | None = None) -> int:

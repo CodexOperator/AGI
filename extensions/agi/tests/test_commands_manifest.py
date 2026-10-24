@@ -1129,6 +1129,7 @@ _OUTSIDE_CLIS = {
     "board_job.py": "the board line's two cron steps (goal:g7.16.1.11.42 option E): `commit` in the seat's own uid, `land` the ff in the human uid's; run by crons.md only; not an operator verb",
     "nest.py": "read-only slice | log helper over a container's nest: cell (goal:g7.16.1.11.21 D1), raw argv with its own usage line; not a proposable choice-surface verb",
     "p1_ab.py": "the P1 A/B's guards (goal:g7.16.1.11.46.9): `install` | `pin-check` of the pi 1.x side prefix and `old-pi` (the 0.73.1 negative); the capped mint, spawn gate and board line are library calls of the A/B run; not a proposable choice-surface verb",
+    "prereq_notice.py": "the prereq-cleared notice step (goal:g7.16.1.11.46.12): `run` is a crons.md row in agi-sanctuary-master's uid that only APPENDS to the seat's own alarm spool (the alarm_drain row signs and sends), `seed` is the one install act, `line` the board segment; not an operator verb",
     "season_report.py": "the end-of-season report's FACTS reader and renderer (goal:g5.4.1): `facts` prints one sorted JSON and writes nothing; `refresh-facts` rewrites only a doc node's FACTS block; `render` writes the one report page (rc 2 and no file on any broken rule); run by the rollover's closing step after ROLLOVER COMPLETE; not a proposable choice-surface verb",
 }
 
