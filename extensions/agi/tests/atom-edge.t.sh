@@ -76,6 +76,42 @@ ok "r5-mutant-named-reply-reads-red-RED a walk that calls every reply red writes
 mkdir -p $D/gm/sessions/quorum;printf '## §7 ATOMS\n\n| # | atom | source | state | lap |\n|---|---|---|---|---|\n| a1 | "x" | src:doc | target:t | lap5 | chunks: c:aaaaaaaaaaaa |\n| rdeadbeef | "y" | src:chunk:c:bbbbbbbbbbbb | red:unnamed-reply | lap5 |\n| a2 | "z" | src:doc | leaf:goal:g1.2 | lap4 | chunks: c:cccccccccccc c:dddddddddddd |\n'>$D/gm/sessions/quorum/q.md
 ok "r5-the-board-reads-the-new-shapes the intake reader counts a row with a derived chunks: cell by its state/lap and a red: row as open + red: '$(AGI_LAP=5 python3 -c "import sys;sys.path.insert(0,'$R0/extensions/agi/bin');import success_metrics as m;from pathlib import Path;print(m.intake_segment(Path('$D/gm')))")' (want q=2/1/1)" '[ "$(AGI_LAP=5 python3 -c "import sys;sys.path.insert(0,\"$R0/extensions/agi/bin\");import success_metrics as m;from pathlib import Path;print(m.intake_segment(Path(\"$D/gm\")))")" = "intake: q=2/1/1" ]'
 
+# Q (council 16:3xZ): a quoted id is not an ack (> line, backtick span, double-quoted span); REDO recomputes named chunks (a report that QUOTED the bad label was read as an ack)
+nh r1q;AL q1 'The bad label was `atom 10.2` in my report' $T0>>$X;AL q2 'He wrote "atom 10.2" there' $T1>>$X;AL q3 '> atom 10.2
+and my reply under it' $T2>>$X;AL q4 'atom 10.2 is mine' 2026-10-24T10:00:07.000Z>>$X;TAP>/dev/null;LB>/dev/null
+ok "r1q-a-quoted-id-is-not-an-ack a backtick span, a double-quoted span and a > line naming atom 10.2 link nothing (got '$(field 'bad label was' atom)' '$(field 'He wrote' atom)' '$(field 'my reply under it' atom)'); the same words in prose link 10.2 (got '$(field 'is mine' atom)')" '[ "$(field "bad label was" atom)" = none ]&&[ "$(field "He wrote" atom)" = none ]&&[ "$(field "my reply under it" atom)" = none ]&&[ "$(field "is mine" atom)" = 10.2 ]'
+MUT "s/|sed ':a;\$!{N;ba};s\/\`\[^\`\]\*\`\/\/g;s\/\"\[^\"\]\*\"\/\/g'//" agi-mem;nh r1qm;AL q1 'The bad label was `atom 10.2` in my report' $T0>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null
+ok "r1q-mutant-quotes-count-RED a label that strips no quotes reads a backtick-quoted 'atom 10.2' as an ack ($(field 'bad label was' atom)): the lane wants none" '[ "$(field "bad label was" atom)" = 10.2 ]'
+# Q' (SM GATE224): a FENCED block (``` or ~~~) and a double-quoted span that runs across lines count no id either
+FQ='Pasted from the report:
+```
+atom: 10.2 5.5
+```
+and nothing else'
+TQ='Pasted from the report:
+~~~
+atoms: 10.2
+~~~
+done'
+UQ='Opened a block and never closed it:
+```
+atom: 10.2
+and the rest of the reply'
+MQ='She wrote "see
+atom 10.2 here" and left'
+nh r1f;AL f1 "$FQ" $T0>>$X;AL f2 "$TQ" $T1>>$X;AL f3 "$MQ" $T2>>$X;AL f4 'atom 10.2 is mine again' 2026-10-24T10:00:07.000Z>>$X;TAP>/dev/null;LB>/dev/null
+ok "r1f-fenced-and-multiline-quotes-are-not-acks a triple-backtick block, a ~~~ block and a double-quoted span across two lines naming marked ids link nothing (got '$(field 'Pasted from the report:' atom)' / '$(field 'She wrote' atom)'); the same id in prose links 10.2 (got '$(field 'is mine again' atom)')" '[ "$(git -C $S grep -h -A0 "^atom: none" refs/heads/mem|wc -l|tr -d " ")" -ge 3 ]&&[ "$(field "She wrote" atom)" = none ]&&[ "$(field "is mine again" atom)" = 10.2 ]'
+MUT "s/|awk '\/^\[\[:space:\]\]\*(\`\`\`|~~~)\/{f=!f;next}!f'//" agi-mem;nh r1fm;AL f2 "$TQ" $T0>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null
+ok "r1f-mutant-fence-not-stripped-RED a label with no fence stage reads the ~~~ fenced 'atoms: 10.2' as an ack ($(field 'Pasted from the report:' atom)): the lane wants none" '[ "$(field "Pasted from the report:" atom)" = "10.2" ]'
+nh r1fu;AL u1 "$UQ" $T0>>$X;TAP>/dev/null;LB>/dev/null;ua=$(field 'Opened a block' atom);MUT "s/|awk '\/^\[\[:space:\]\]\*(\`\`\`|~~~)\/{f=!f;next}!f'//" agi-mem;nh r1fv;AL u1 "$UQ" $T0>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null
+ok "r1f-an-unmatched-fence-fails-closed an opening triple-backtick with no close counts no id to the end of the chunk (got '$ua'); MUTANT: with no fence stage the same chunk reads '$(field 'Opened a block' atom)' (RED if 10.2)" '[ "$ua" = none ]&&[ "$(field "Opened a block" atom)" = 10.2 ]'
+MUT "s/sed ':a;\$!{N;ba};s\/\`/sed 's\/\`/" agi-mem;nh r1fn;AL f3 "$MQ" $T0>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null
+ok "r1f-mutant-quotes-line-by-line-RED a label that strips quotes one line at a time reads the two-line quoted span as an ack ($(field 'She wrote' atom)): the lane wants none" '[ "$(field "She wrote" atom)" = 10.2 ]'
+
+# REDO: the chunk the mutant mislabelled is recomputed by the real label, and derive drops it from the row; a chunk NOT named is left alone
+MUT "s/|sed ':a;\$!{N;ba};s\/\`\[^\`\]\*\`\/\/g;s\/\"\[^\"\]\*\"\/\/g'//" agi-mem;nh r1r;AL q1 'The bad label was `atom 10.2` in my report' $T0>>$X;AL q2 'atom a1 is mine' $T1>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null;cp $CARD $D/cardr;EV agi-atom derive>/dev/null 2>&1;l0=$(grep -c 'chunks: c:' $CARD);id1=$(EV agi-mem map|awk -F'	' '$3 ~ /10:00:00/{print $1}');LB>/dev/null;k1=$(field 'bad label was' atom);EV agi-mem label --redo $id1 >/dev/null 2>&1;k2=$(field 'bad label was' atom);EV agi-atom derive>/dev/null 2>&1
+ok "r1r-redo-recomputes-only-the-named-chunks the mislabelled chunk reads '$k1' (a plain label pass leaves it, it is no longer atom: ?), then '$k2' after label --redo; its link is gone from the card (rows with a chunks: cell $l0 -> $(grep -c 'chunks: c:' $CARD)), and the unnamed chunk keeps its atom ($(field 'is mine' atom))" '[ "$k1" = 10.2 ]&&[ "$k2" = none ]&&[ "$l0" = 2 ]&&[ "$(grep -c "chunks: c:" $CARD)" = 1 ]&&[ "$(field "is mine" atom)" = a1 ]'
+
 # the live knock-on (belam 15:4xZ): a misattributed owner chunk naming card ids was LABELLED and DERIVED onto rows. Owner chunks now link nothing, and scrub takes the chunk out
 MUT 's/<\[a-z\]\[a-z-\]\*\[ >\]|//' agi-mem;nh r6k;cp $CARD $D/cardk;UL c1 '<cross-session-message from="x">hand-off: see a1 and a2 and atom 10.2</cross-session-message>' $T0>>$X;TAP $D/mut_agi-mem>/dev/null;LB>/dev/null;EV agi-atom derive >/dev/null 2>&1;n0=$(grep -c 'chunks: c:' $CARD);s0=$(git -C $S grep -c '^id: c:' refs/heads/mem -- mem ':!mem/retired'|awk -F: '{n+=$NF}END{print n+0}');EV agi-mem scrub;EV agi-atom derive >/dev/null 2>&1;s1=$(git -C $S grep -c '^id: c:' refs/heads/mem -- mem ':!mem/retired' 2>/dev/null|awk -F: '{n+=$NF}END{print n+0}')
 ok "r6k-owner-chunks-link-nothing-and-scrub-clears-the-store a cross-session text stored as an owner chunk by an old tap links $n0 card rows (want 0, the card is byte-for-byte the pristine one: $(cmp -s $CARD $D/cardk&&echo yes||echo no)); scrub takes the chunk out of the store ($s0 -> $s1)" '[ "$n0" = 0 ]&&cmp -s $CARD $D/cardk&&[ "$s0" = 1 ]&&[ "$s1" = 0 ]'
