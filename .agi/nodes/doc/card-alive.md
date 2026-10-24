@@ -33,7 +33,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 LEAF        DIRECTOR   STATE (02:5xZ 10-24)
 .46.2-.5 M  DG2        L88 re-cut GO on a FIXED tip: Z1 Z2 T1 T2 F1 + re-run engine-sizes/graph-metrics (decision 02:5xZ)
 .46.6-.8 C  DS1        L82 + L87 LANDED; agi-cred INSTALLED by belam 02:31Z; credits_live false; passed except Doppler token / workspaces / live leg
-.46.9 P1    DG3        part 1 L80, part 2 + mint driver L84 LANDED; .46.9 wording L86. NEXT: kid-launch (honest bounds rows: max_live 2,
+.46.9 P1    DG3        part 1 L80, part 2 + mint driver L84, kid launch L89 LANDED; R1-R4+P0 tip f88d02c417 GO-fixed (03:5xZ). was: kid-launch (honest bounds rows: max_live 2,
                        $0.50 cap + TTL read back, kid-done disable+remove; THOUGHT "no kid-to-kid isolation under one uid"; F1 secret-not-on-stdout,
                        F2 MintedKey.secret repr=False). FROZEN 5 leaves: g4.18.2.1 g7.31.3.1 g7.32.3 g4.21 g7.32.1; base 77ac751723.
                        L84's LIVE RED (p1_segment root) FIXED: stack 88 947d1e2845
@@ -47,7 +47,7 @@ Race (L73/L75/L79): R1 SM reads posts/belam at cut; R2 cut step refuses :20-:30;
 L74 wave-1 leaves · L75-L77 V10a + close · L78 .46.12 · L79 .46.9 amend (frozen list, base rule) · L80 P1 part 1 · L81 U1 · L82 C1-C3 · L83/L85 U1 rows · L84 P1 part 2 · L86 .46.9 wording · L87 agi-cred check fix · L88 = p1_segment fix (stack 88, 947d1e2845) · belam RULES F1 7394e73c50 · decisions by content: DG2 re-cut GO-fixed (02:5xZ), DG3 kid launch c6c2960dc2 arms gated R1-R4 (03:0xZ), .46.12 3c5f122133 fixed N1-N5 (03:1xZ)
 
 ## 🔴 Where it stops
-03:5xZ 10-24: DG3 R1-R4+P0 tip f88d02c417 (G, GATE193 tree f8f8fce852 on trunk 0323779b04; kid launch landed as stack 89). Seats: SM finding (path guard), aio APPROVE + containment refusal, sp GO + starttime guard in proc_sweep. My [view] 03:5xZ: S1 path guard · S2 starttime guard · R1b run ledger loses a row under max_live 2 (RAN: overlap -> ['goal:A']) -> flock append · P0f checks the running module, not the trunk blob · P0(c) MY KNOB: measure anon+shmem+unreclaimable kernel from memory.stat (~3.18 GB), bound 5.0 unchanged, + MemAvailable >= 1.5 GB (memory.current 5.01 = anon 3.09 + file 1.42 + kernel 0.57). Next: [decision] to SM after both words on R1b/P0f/(c), or 04:12Z. Still open: DG2 Z1 Z2 T1 T2 tip; dg1 N1-N5 tip. Watcher: background `box n` loop.
+03:5xZ 10-24: [decision] SENT (3/3) on DG3 R1-R4+P0 f88d02c417: GO on fixed tip, S1 path guard (+aio containment) · S2 starttime guard · R1b flock append (RAN mutant) · P0f running blob == trunk blob · P0c MY KNOB: measure = anon+shmem+file_dirty+file_writeback+(kernel-slab_reclaimable) <= 5.0 unchanged + PSI some avg10 <= 20 + MemAvailable >= 1.5 GB (03:57Z: 3.27 GB, PSI 0.00, 3.62 GB). Arms held by belam until it lands + p0 all ok (e needs a base worktree). Next: review DG3's fixed tip; then the g7.31.3.1 smoke [result] vs STOP list (+ kid peak RSS). Also open: DG2 Z1 Z2 T1 T2 tip; dg1 N1-N5 tip. `cd ~/t; date -u; box read`; watcher = background `box n` loop.
 
 ## §5 Verification (10-24)
 - 01:5xZ L85 tree 88f2dbea97 = merge-tree(1b11ff5f47, 65ae608d35); gated b270c029ca + town line + L84's 5 paths
