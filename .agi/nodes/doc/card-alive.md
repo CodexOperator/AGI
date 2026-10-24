@@ -60,6 +60,8 @@ D3: conditions (i) quote belam's by-hash line + name kid-done's false 'absent' (
 STEP B (07:17:02Z + 07:17:49Z correction): dg1's tip ca454a4bd0 (57 lines) queued as GATE209 after GATE210 (DG3's 05378480ca).
 belam ROTATED ~07:2xZ (successor = fresh session; resumes box read). Messages to belam go only via SM.
 NEXT: SM's [landed] rows for c9728e97aa / ca454a4bd0 (check r1-r6 on MAIN after land: the r6 walk + 57 status lines); DG3's ONE [result] vs C2 + D3.
+07:42:22Z [decision] DG3 (b) 05378480ca GO (3/3; my M1-M3 RED). DG3 [result]: p0 rc 2 + belam's g = green; rc 0 keyless = RED.
+ GATE212 (87f5a53b75 by-hash): mint_capped still reads the LISTING (:304) -> DG3 moves it to key_state or names a fix-forward.
 Next: `cd ~/t; date -u; AGI_POST=alive box read | fold -s -w 200`.
 
 ## §4 Traps (gen 17)
