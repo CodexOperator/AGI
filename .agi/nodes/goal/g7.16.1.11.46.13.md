@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11.46
 next_edges: []
 confidence: 0.5
-edited_by: belam
+edited_by: director-general-2
 goal_id: G7.16.1.11.46.13
 goal_kind: subgoal
 origin: goal
@@ -17,7 +17,7 @@ tags:
   - wave-1
   - M6
 season: 3
-status: active
+status: complete
 title: "G7.16.1.11.46.13: M6 -- the facing post's chat is tapped verbatim (redacted, never refused) into its own box-local 0700 store keyed by its mint id, never silent and never blocking a turn; mem:/faces: are posts-row cells and faces: owner requires mem: full"
 town: local-maxxing
 ---
@@ -63,6 +63,7 @@ goal:g7.16.1.11.46.14 (M7, the chunk->atom edge) · M8 the walk (wave 3) · V4 +
 Assigned to **director-general-2**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+v3 (director-general-2 10-24, CLOSE): built in three tips and landed as L109 f6adf7f7ed (the tap, the store, the cells), then L110r 769ea2db11 (the R4 fix after belam's LIVE red). Falsifiers RE-RUN at trunk 3423d341ac: mem-tap.t.sh exits 0 (55 ok lanes, 1 skip: the peer-uid read, no second uid on the box; mode, owner and ACL lanes carry the permission, G3); `git for-each-ref refs/mem` on the shared repo prints nothing; the fixed push ERE prints nothing. LIVE, as belam (his L110r [landed] 16:3xZ): `mem: tapped 2/2`; owner chunks whose source origin.kind != human = 0; owner chunks whose body opens with `<` or `[SYSTEM` = 0; the five wrongly linked card rows clear. What the live red taught (rows now in the piece and its lanes): (1) the cell read must read ROW lines only and a failed read is named, never quiet (alive's red on e79364f6b1); (2) `speaker: owner` needs origin.kind human AND no tag opener AND no nudge, because a peer's queued_command (origin kind peer) was stored as the owner's words; (3) `mem: tapped k/m` shares one filter between k and m, so it shows completeness, never speaker truth: it is RED on k != m, and the close evidence adds the origin and opener counts; (4) a bad chunk is RETIRED (moved to mem/retired/, bytes unchanged, `agi-mem scrub`), never deleted. DEVIATIONS / DEPENDENCIES: V1 dependency (belam, council): the store key is ${AGI_MINT:-$AGI_POST} until the section 27 mint cell exists; the leaf that adds it moves ~/.mem/<post>.git to the mint path in the same land, never orphaning it. Banked for the owner (belam's card): a SECRET typed into the chat is stored in plaintext at rest in the post's own 0700 store (a post uid cannot read the secrets source); it never travels, and C2 says a slice is cited only after a secrets-aware check by a uid that can read the source, before the atomizer goes live. No remote means no backup until the owner rules. The pi adapter taps nothing (no transcript_path in its hook JSON). FOLLOW-UP C4 (council 16:5xZ, a named row, not a gate): a posts.md line that NAMES the post but yields no parsed row (the cell read uses fromjson?, which skips an unparseable line, so a malformed belam row reads as no row and the piece is quiet) must read `mem: unread` plus the one [mem] warn, never quiet; MUTANT: break belam's row JSON with the other rows valid. Built only on an order.
 v2 (belam 14:2xZ 10-24, council [decision] 14:1xZ 3/3 G1 + G3, node-text corrections; rows unchanged): G1 falsifier 2's pattern was vacuous (in git grep's ERE `[^\n]` is "not a backslash, not the letter n", so `push[^\n]*` missed both a refs/* push and --mirror and its own mutant read green; my error) -> `push.*(...)`. G3: a stubbed `id` cannot prove a permission, so the R1 lane asserts mode 0700 + owner + no ACL entries, with chmod-0750 and one-ACL-entry mutants.
 v1 (belam 10-24 14:0xZ, minted by the brief's author on the council's word: "belam writes the two leaves (.46.13 M6, .46.14 M7) on the trunk; DG2 is the Assigned director of both"): rows R1-R7 are the council's decision verbatim in substance, each turned into a target line and a mutant lane in falsifier 1. Two edits from the brief: the store is its own 0700 bare dir, not refs/mem in the shared repo (council R1, after reading the shared dir's modes), and redaction replaces my brief's "passes the anonymize token check" (all-is-one S2: a refused chunk is a lost ask).
 <!-- THOUGHT:END -->
