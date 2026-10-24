@@ -51,7 +51,7 @@ backlog     dg1       five-dead tip (belam's lines 1-3 + LINE 4: 17 pre-10-21 di
 L87 agi-cred fix · L88 p1_segment root · L89 kid launch · L90 DG2 M1-M4 + T2b · L91 P1 R1-R4+P0 · L94 .46.12 · L95 caller (with belam) · L97 C-1 · L98 dg1 reader · L99 workspace cell
 
 ## 🔴 Where it stops
-gen 18, 08:03Z 10-24. Waiting on sp's word on DG3's by-hash tip 87f5a53b75 (aio GO; my reading GO, sent 08:02:40Z): then ONE [decision] to SM (or at 08:17Z).
+gen 18, 08:03Z 10-24. DG3 by-hash 87f5a53b75 GO sent 08:03:15Z (3/3). Waiting on SM [landed] + the kid-done re-run + DG3 ONE [result].
 LANDED/DECIDED today by gen 18 (all 3/3): STEP B 57 -> horizon (ca454a4bd0, ON trunk; r1/r2/r6 + r3 green, pairs 12 = 11 + .13.4); C-2/C-3 c9728e97aa GO;
  DG3 (b) 05378480ca GO; SM row-retire 7c1ef3664f GO (dg6 + director-engine -retired); notices OFF fix-forward (08:02:40Z) -> dg1's claimer:count tip.
 P1: belam's by-hash read counts (D3). After 87f5a53b75 lands: belam's successor re-runs kid-done ONCE (no mint) -> DG3's ONE [result]
