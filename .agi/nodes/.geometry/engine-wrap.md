@@ -17,11 +17,12 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
-agi-run           2260 B  pane cmd: .fresh -> new id, else resume ~/.session; strace
+agi-run           2260 B  pane cmd: fresh=new id, else --resume ~/.session
 settings.json      372 B  the ONE hook wiring: brief, meter, turn commit
 cccc.ts           1913 B  pi events -> the CC hooks; mail -> a turn
 agi-kid           2037 B  a pi-free kid in this unit: own HOME and tree
-agi-infer          1077 B  ONE chat call, OpenAI-compatible: stdin -> stdout
+agi-infer          1332 B  ONE chat call, OpenAI-compatible: stdin -> stdout
+agi-lane           1403 B  a Console lane's pi / claude -p / header config
 agi-captive        1005 B  window open: only agi-fill; a dead window: released
 ~~~
 
@@ -80,15 +81,29 @@ for x in .gitconfig .ssh hooks .claude/settings.json;do ln -sfn ~/$x $h/$x;done
 cd $h/t;HOME=$h AGI_POST=$k AGI_ROLE=kid AGI_HARNESS=pi-free AGI_WT=$RUNTIME_DIRECTORY/k-$k exec pi $K --skill skills -e ~/bin/cccc.ts -p "$*"</dev/null
 ~~~
 
-### agi-infer (1077 B)
+### agi-infer (1332 B)
 ~~~sh
 #!/bin/sh
-# agi-infer [MODEL] <prompt: ONE streamed call to any OpenAI-compatible /v1/chat/completions; cells infer_url, infer_model, infer_key (the NAME of a var in the unit's EnvironmentFile), infer_schema (a JSON Schema FILE: the reply is fenced to it, closed)
+# agi-infer [MODEL] <prompt: ONE streamed call to any OpenAI-compatible /v1/chat/completions; cells infer_url, infer_model, infer_key (the NAME of a var in the unit's EnvironmentFile), infer_cred (a key FILE, read ONLY when set, no default: it replaces infer_key), infer_workspace (the anthropic-workspace-id header), infer_schema (a JSON Schema FILE: the reply is fenced to it, closed)
 k=;case $AGI_INFER_KEY in [0-9]*|*[!A-Za-z0-9_]*)exit 2;;?*)eval k=\$$AGI_INFER_KEY;;esac
+[ -r "$AGI_INFER_CRED" ]&&k=$(cat "$AGI_INFER_CRED")
 s=$([ "$AGI_INFER_SCHEMA" ]&&jq -c '.+{additionalProperties:false}' $AGI_INFER_SCHEMA)
 jq -Rsc --arg m "${1:-$AGI_INFER_MODEL}" --argjson s "${s:-null}" '{model:$m,stream:true,messages:[{role:"user",content:.}]}+if $s then {response_format:{type:"json_schema",json_schema:{name:"fill",schema:$s}}} else {} end'|curl -sfN -H @/dev/fd/3 -H 'Content-Type: application/json' -d @- ${AGI_INFER_URL:-http://127.0.0.1:8080/v1}/chat/completions 3<<X|sed -un 's/^data: //p'|jq -nRrj --unbuffered 'def g:(try input catch("cut"|halt_error(5)))|if .=="[DONE]" then empty else((fromjson|if .error or .choices[0].finish_reason=="error" then halt_error else .choices[0].delta.content//empty end),g)end;g'
 ${k:+Authorization: Bearer $k}
+${AGI_INFER_WORKSPACE:+anthropic-workspace-id: $AGI_INFER_WORKSPACE}
 X
+~~~
+
+### agi-lane (1403 B)
+~~~sh
+#!/bin/sh
+# agi-lane id|header|pi|claude LANE [MODEL]: one Console lane's front config, from the lane cell of config:secrets (ids and names, never a key). id = the workspace id; header = the `Name: value` line for ANTHROPIC_CUSTOM_HEADERS; pi = the models.json provider claude-lane (apiKey "!cat <credential>", run at request time); claude = the --settings JSON (apiKeyHelper cats the same file). Option B (scoped_key): no header, the file is the lane's own. rc 2 = no such lane, 3 = the id is not filled yet (owner act)
+v=$1;l=$2;c=$(git show "${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/secrets.md" 2>/dev/null|sed -n "s/^  $l: //p"|head -1);[ "$c" ]||{ echo "[lane] $l: no cell" >&2;exit 2;}
+w=$(echo "$c"|jq -r '.workspace//empty');n=$(echo "$c"|jq -r '.scoped_key//"claude-sp"');k=$(echo "$c"|jq -r 'has("scoped_key")')
+[ "$k" = true ]||[ "$w" ]||{ echo "[lane] $l: the workspace id is empty (the owner makes the workspace)" >&2;exit 3;}
+f="cat \$CREDENTIALS_DIRECTORY/$n"
+case $v in id)echo "$w";;header)[ "$w" ]&&echo "anthropic-workspace-id: $w";;claude)jq -nc --arg f "$f" '{apiKeyHelper:$f}';;
+pi)jq -nc --arg u "${AGI_LANE_URL:-https://api.anthropic.com}" --arg m "${3:-claude-haiku-5-5}" --arg f "!$f" --arg w "$w" '{providers:{"claude-lane":({baseUrl:$u,api:"anthropic-messages",apiKey:$f,models:[{id:$m}]}+if $w!="" then {headers:{"anthropic-workspace-id":$w}} else {} end)}}';;*)exit 2;;esac
 ~~~
 
 ### agi-captive (1005 B)

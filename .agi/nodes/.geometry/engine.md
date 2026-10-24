@@ -10,7 +10,7 @@ scaffold_hash: 1a5628596065214d
 season: 2
 town: core
 ---
-# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 54 pieces (every `###` block in engine*.md)
+# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 58 pieces (every `###` block in engine*.md)
 Depth 0 = diagram · 1 = pieces · 2 = one piece: `sect <name>` (any `.geometry/engine*.md`: this node, config:engine-post, config:engine-wrap, config:engine-grow, config:engine-capsule, config:engine-root) · 3 = this file. Pieces are small templates over raw commands; parameters are cells: a row's ONE `engine` object is projected as AGI_<KEY> env. Parity: doc:g716111-stage25-parity.
 
 ## diagram — depth 0
@@ -47,6 +47,9 @@ agi-carry@.path     149 B  PathChanged on refs/box/<P>; first send only
 agi-carry@.service  308 B  oneshot: box-carry %i
 agi-carry-fetch.timer   88 B  every 60 s: carry each local post, then hub
 agi-carry-fetch.service 229 B  oneshot: box-carry --fetch
+agi-cred        2419 B  root: Console key file + the leak check
+agi-cred.service 238 B  oneshot: agi-cred
+agi-cred.timer   89 B  every 5 min: agi-cred
 ~~~
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
