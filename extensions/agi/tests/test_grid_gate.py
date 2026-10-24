@@ -155,6 +155,7 @@ def fakes(tmp_path):
         '  -l) if [ -f "$T" ]; then cat "$T"; else echo "no crontab" >&2; exit 1; fi;;\n'
         '  -) cat > "$T";;\n  *) exit 2;;\nesac\n')
     (fb / "systemctl").write_text("#!/bin/sh\nexit 0\n")
+    (fb / "sudo").write_text(f'#!/bin/sh\necho "$@" >> {tmp_path / "sudo.calls"}\nexit 1\n')   # C-3 (1): logs and refuses; sudo's secure_path once reached the REAL crontab
     for p in fb.iterdir():
         p.chmod(0o755)
     (Path(os.environ["HOME"]) / "logs").mkdir(exist_ok=True)   # a box that was applied once
@@ -163,11 +164,12 @@ def fakes(tmp_path):
     (rt / "bus").write_text("")
     return {"PATH": f"{fb}:/usr/bin:/bin", "HOME": os.environ["HOME"], "AGI_BOX": BOX,
             "XDG_RUNTIME_DIR": str(rt), "GIT_CONFIG_GLOBAL": "/dev/null",
-            "GIT_CONFIG_SYSTEM": "/dev/null", "PYTHONPATH": str(BIN)}
+            "GIT_CONFIG_SYSTEM": "/dev/null", "PYTHONPATH": str(BIN), "AGI_TEST_USERS": str(tmp_path / "users")}
 
 
 def cron_run(line: str, env: dict) -> subprocess.CompletedProcess:
-    return subprocess.run(["sh", "-c", line.split(" ", 5)[5]], env=env,
+    cmd = line.split(" ", 5)[5].replace("crons.py apply", f"crons.py apply --user-crontab-dir {env['AGI_TEST_USERS']}")   # C-3 (1): every apply here is seamed
+    return subprocess.run(["sh", "-c", cmd], env=env,
                           capture_output=True, text=True, timeout=120)
 
 

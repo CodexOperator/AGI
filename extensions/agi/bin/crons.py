@@ -78,6 +78,7 @@ import re
 import shlex
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -1445,6 +1446,28 @@ def _user_io(user: str, user_crontab_dir: Path | str | None, prompt: bool = Fals
     return reader, writer
 
 
+UNREAD = ("unread: run apply --sudo (a plain apply makes no sudo call and reads no foreign table, so this user's "
+          "crontab was not looked at)")
+
+
+def _temp_project(repo_root: Path) -> str | None:
+    """goal:g7.16.1.11.13 C-3 (council 06:30Z 10-24): why `repo_root` is NOT a project whose block may be written into ANOTHER uid's crontab, or None.
+    A suite run (`commands.py run verify` makes /tmp/agi-suite-*; pytest makes a basetemp) once reached the real `sudo crontab -u` and left
+    managed blocks for a throwaway project in agi-sanctuary-master's table. Scoped to the sudo / foreign-user writer: the applying user's OWN
+    crontab goes through the PATH-fake `crontab` the fixtures use by design and is untouched."""
+    p = Path(repo_root).resolve()
+    for t in ("/tmp", "/var/tmp", "/dev/shm", tempfile.gettempdir()):
+        r = Path(t).resolve()
+        if p == r or r in p.parents:
+            return f"{p} is under the temp dir {r}"
+    for part in p.parts:
+        if part.startswith(("agi-suite-", "pytest-")):
+            return f"{p} is a suite/pytest scratch path ({part})"
+    if os.environ.get("PYTEST_CURRENT_TEST"):
+        return f"{p} is applied from inside a pytest run"
+    return None
+
+
 def reconcile_user_crontab(user: str, managed: list[str], begin: str, end: str, *,
                            dry_run: bool = False, user_crontab_dir: Path | str | None = None,
                            prompt: bool = False) -> dict:
@@ -1472,7 +1495,7 @@ def reconcile_user_crontab(user: str, managed: list[str], begin: str, end: str, 
 
 def cmd_apply(root: Path, crontab_file: Path | str | None = None, dry_run: bool = False,
               unit_dir: Path | str | None = None,
-              user_crontab_dir: Path | str | None = None, sudo: bool = False) -> dict:
+              user_crontab_dir: Path | str | None = None, sudo: bool = False, *, allow_temp: bool = False) -> dict:
     """Render the node and reconcile the crontab. Idempotent by construction:
     the managed block replaces itself in place (or is appended once, on first
     install), so a second `apply` with nothing changed produces byte-identical
@@ -1517,6 +1540,16 @@ def cmd_apply(root: Path, crontab_file: Path | str | None = None, dry_run: bool 
     for u in _foreign_users(node, root, _invoking_user()):
         u_lines = render_managed_lines(root, repo_root, engine_root, node,
                                        user=u, only_bound=True)
+        if user_crontab_dir is None and not sudo:
+            # C-2: only `--sudo` touches another uid's table. A plain apply (the cron-run one included) makes ZERO sudo calls and reads
+            # NOTHING of it, so it says `unread`, never `ok` / `in sync` / `pending` (each would claim a reading that never happened).
+            foreign[u] = {"user": u, "managed_lines": u_lines, "changed": None, "status": UNREAD}
+            continue
+        why = None if (user_crontab_dir is not None or allow_temp) else _temp_project(repo_root)
+        if why:   # C-3 (3): the real `sudo crontab -u` path never serves a throwaway project; `allow_temp` is a test seam, no CLI flag
+            foreign[u] = {"user": u, "managed_lines": u_lines, "changed": None,
+                          "status": f"refused: {why}; a foreign user's crontab is written only for the real project"}
+            continue
         foreign[u] = reconcile_user_crontab(u, u_lines, begin, end, dry_run=dry_run,
                                             user_crontab_dir=user_crontab_dir,
                                             prompt=sudo)
@@ -1708,8 +1741,8 @@ def main(argv: list[str] | None = None) -> int:
                           help="render and report; write nothing")
     ap_apply.add_argument("--sudo", action="store_true",
                           help="install a job's `user:` crontab through an interactive "
-                               "`sudo crontab -u USER` (the owner's GO); without it a "
-                               "foreign user is only reported as pending")
+                               "`sudo crontab -u USER` (the owner's GO); without it NO sudo call "
+                               "is made and a foreign user is reported `unread: run apply --sudo`")
     ap_apply.add_argument("--user-crontab-dir", default=None,
                           help="a dir of <user>.crontab fixtures instead of sudo "
                                "crontab -u (testing; production omits this)")
@@ -1766,8 +1799,10 @@ def main(argv: list[str] | None = None) -> int:
             if not result["changed"]:
                 print(f"crons: no-op — the crontab already matches the node "
                       f"({len(result['managed_lines'])} line(s))")
+            refused = False
             for u, fr in sorted((result.get("foreign_users") or {}).items()):
                 print(f"crons: user {u}: {fr['status']} ({len(fr['managed_lines'])} line(s))")
+                refused = refused or fr["status"].startswith("refused")
                 if fr["changed"]:
                     for line in fr["managed_lines"]:
                         print(f"  {line}")
@@ -1777,6 +1812,8 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"crons: units ({result['unit_dir']}):")
                 for a in result["unit_actions"]:
                     print(f"  {a}")
+            if refused:   # C-3 (3): a named refusal is a non-zero exit, never a silent skip
+                return 1
         elif args.cmd == "caps":
             for a in cmd_caps(root, args.dry_run, args.name):
                 print(f"crons: log {a}")
