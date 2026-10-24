@@ -391,12 +391,12 @@ def trajectory_line(root: Path, post: str, label: str, throws: str = "") -> str:
 def trajectory_segment(root: Path) -> str:
     """goal:g7.16.1.11.46.5 T2: one `| trajectory: <line>` per throw REGISTERED in the town node's
     `trajectory_throws` cell (`  - {"post": .., "label": .., "throws": <heading prefix>}`), re-rendered by this
-    ONE writer on every cell write, never pasted. No cell = no segment; an unreadable one is NAMED."""
+    ONE writer on every cell write, never pasted. No cell = no segment; an unreadable node or cell is NAMED."""
     node = root / "nodes" / "town" / "local-maxxing.md"
     try:
         text = node.read_text(encoding="utf-8")
     except OSError:
-        return ""
+        return "| trajectory: UNMEASURED(no town node)"   # named, never "" (Z1's twin: a wrong root must not read as 'nothing registered')
     head = text.split("\n---", 1)[0] if text.startswith("---") else ""
     lines, on, regs = head.splitlines(), False, []
     try:

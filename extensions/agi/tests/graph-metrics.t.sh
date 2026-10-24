@@ -272,6 +272,14 @@ ok "m4t2-the-registered-throw-is-rendered-by-the-line a throw registered in the 
 mkp ptm;mkdir -p $G_/sessions/quorum;cp $T/pt/.agi/nodes/town/local-maxxing.md $G_/nodes/town/;cp $T/pt/.agi/sessions/quorum/belam.md $G_/sessions/quorum/
 sed -i 's/^def trajectory_segment(root: Path) -> str:/def trajectory_segment(root: Path) -> str:\n    return ""/' $P/extensions/agi/bin/success_metrics.py;AGI_LAP=5 sm --line $G_ >$T/t2m.out
 ok "m4t2m-never-rendering-the-registered-throws-RED a writer whose trajectory_segment returns nothing prints no '| trajectory:' (the m4t2 lane wants placed=2 there): the m4t2 lane catches it" '! grep -q "| trajectory: " $T/t2m.out'
+# T2b (L90 council): an unreadable town node is NAMED next to the quorum-dir twin; no trajectory_throws cell stays silent
+mkp pr;l=$(AGI_LAP=11 sm --line $P 2>&1|head -1)
+ok "m4t2b-unreadable-town-node-is-named make_line(<the repo root, not .agi>) carries '| trajectory: UNMEASURED(no town node)' next to '| intake: UNMEASURED(no quorum dir)' (got '$(echo "$l"|sed -n 's/.*\(| trajectory: [^|]*\).*/\1/p')')" 'echo "$l"|grep -q "| trajectory: UNMEASURED(no town node)"&&echo "$l"|grep -q "| intake: UNMEASURED(no quorum dir)"&&[ "$(echo "$l"|grep -o "| trajectory:"|wc -l|tr -d " ")" = 1 ]'
+mkp pn;mkdir -p $G_/sessions/quorum;printf '%s\n' '---' 'id: town:local-maxxing' 'type: town' '---' 'body' >$G_/nodes/town/local-maxxing.md;l=$(AGI_LAP=11 sm --line $G_ 2>&1|head -1)
+ok "m4t2c-no-registered-cell-no-segment a town node without a trajectory_throws cell prints no '| trajectory:' segment at all (got '$(echo "$l"|grep -o "| trajectory:[^|]*")')" '! echo "$l"|grep -q "| trajectory:"'
+# mutant: the old silent "" for an unreadable town node reads RED on m4t2b
+mkp pq;mkdir -p $G_/sessions/quorum;sed -i 's/return "| trajectory: UNMEASURED(no town node)"/return ""/' $P/extensions/agi/bin/success_metrics.py;l=$(AGI_LAP=11 sm --line $P 2>&1|head -1)
+ok "m4t2bm-silent-unreadable-town-node-RED a writer that returns nothing for an unreadable town node prints no '| trajectory:' (the m4t2b lane wants the UNMEASURED name): the m4t2b lane catches it" '! echo "$l"|grep -q "| trajectory:"'
 # mutant: a cron that skips the cards (the intake segment fixed to none) reads RED on m4a
 mkp pk;mkdir -p $G_/sessions/quorum;card belam <<'EOC'
 | a1 | "one" | src:doc | target:x | lap10 |
