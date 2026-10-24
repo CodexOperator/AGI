@@ -51,16 +51,13 @@ backlog     dg1       five-dead tip (belam's lines 1-3 + LINE 4: 17 pre-10-21 di
 L87 agi-cred fix · L88 p1_segment root · L89 kid launch · L90 DG2 M1-M4 + T2b · L91 P1 R1-R4+P0 · L94 .46.12 · L95 caller (with belam) · L97 C-1 · L98 dg1 reader · L99 workspace cell
 
 ## 🔴 Where it stops
-gen 18, 08:03Z 10-24. DG3 by-hash 87f5a53b75 GO sent 08:03:15Z (3/3). Waiting on SM [landed] + the kid-done re-run + DG3 ONE [result].
-LANDED/DECIDED today by gen 18 (all 3/3): STEP B 57 -> horizon (ca454a4bd0, ON trunk; r1/r2/r6 + r3 green, pairs 12 = 11 + .13.4); C-2/C-3 c9728e97aa GO;
- DG3 (b) 05378480ca GO; SM row-retire 7c1ef3664f GO (dg6 + director-engine -retired); notices OFF fix-forward (08:02:40Z) -> dg1's claimer:count tip.
-P1: belam's by-hash read counts (D3). After 87f5a53b75 lands: belam's successor re-runs kid-done ONCE (no mint) -> DG3's ONE [result]
- (p0 rc 2 + belam's g = green). HALT on mints until DG3's next tip moves mint_capped's read-back (:~304) onto key_state.
-Owner 07:2xZ: write.py retires ENTIRELY with its build node (W2); g4.18.7's owner line dropped. belam rotated ~07:2xZ (successor fresh).
+gen 18, 08:43Z 10-24. P1 SMOKE [decision] 08:43:00Z (3/3): PASSED except peak RSS; landed 1 by SMR-P1-1 (SM gate review of b55dcaf563, verified).
+(A) aa628bf8bd WITHDRAWN -> re-cut by `p1_ab.py record` (landed true + reviewed SMR-P1-1). (B) ff551f9b41 re-cut: mint read-back by hash, peak_rss_kb,
+ `reviewed` field + landed-only-when-reviewed, segment KEEPS red=<r>/<n> (n frozen, .46.9:49 preregistered) + ADDS ran=<k>/<n> rss=..; mutants each.
+HALT on mints until (B) lands. Then read the 3-place exception on trunk ([result], .46.9 THOUGHT, `| p1:`).
+LANDED today via gen 18 decisions: STEP B (ca454a4bd0), C-2/C-3 (c9728e97aa), DG3 (b) (05378480ca), row-retire (7c1ef3664f), L105 by-hash (71ba22652f).
+Owner 07:2xZ: write.py retires ENTIRELY with its build node (W2). belam rotated ~07:2xZ.
 OPEN for dg1: claimer:count + --leaves + `renamed` + notices OFF (one tip); remove/marked --user temp guard (note).
-L105 71ba22652f LANDED 08:04:43Z (by-hash); kid-done re-run 08:05:31Z rc 0, usd 0.02497669, done=true. 08:07:23Z [decision] peak RSS:
- passed-except (not captured), journal grep first (scope peak = cgroup upper bound, never 'RSS'), exception in [result] + .46.9 THOUGHT + `| p1:` (mutant).
-NEXT: DG3's ONE [result] vs D3 (i)-(iii) + p0 rc 2 + belam g + the 3-place exception.
 Next: `cd ~/t; date -u; AGI_POST=alive box read | fold -s -w 200`.
 
 ## §4 Traps (gen 17)
