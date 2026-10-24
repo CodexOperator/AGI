@@ -12,6 +12,8 @@ E=$D/eng;mkdir -p $E/.agi/nodes/.geometry;ln -s $R0/extensions $E/extensions
 cat >$E/.agi/nodes/.geometry/posts.md<<'EOF'
 ---
 id: config:posts
+parents:
+  - goal:g7
 posts:
   - {"name": "p", "mem": "full", "faces": "owner"}
   - {"name": "q", "mem": "none"}
@@ -98,6 +100,15 @@ P=q;nh r6q;UL u1 hi>>$X;o=$(TAP;AT);P=;ok "r6-not-a-full-row-is-silent-and-write
 nh r6m;echo "{\"prompt\":\"mail: box read\",\"transcript_path\":\"$X\",\"session_id\":\"S1\",\"tokens\":1}">$D/pj;UL u1 "via the meter" >>$X;env HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_TRUNK=HEAD PATH=$D/bin:$PATH sh $D/bin/agi-meter <$D/pj>/dev/null 2>&1
 ok "r6-prompt-side-rides-agi-meter agi-meter, given the hook JSON, taps the owner line (chunks $(nchunks))" '[ "$(nchunks)" = 1 ]'
 ok "r6-stop-hook-is-new settings.json wires 'agi-mem tap' on Stop beside agi-turn, and agi-brief calls 'agi-mem at'" 'jq -e "[.hooks.Stop[].hooks[].command]|index(\"agi-mem tap\") and index(\"agi-turn\")" $D/settings.json>/dev/null&&grep -q "agi-mem at" $D/bin/agi-brief'
+
+# ---- R6' / R7' (alive 15:1xZ): the cell is read from ROW lines only (the real posts.md has a `  - goal:g7` frontmatter item before `posts:` that killed the first pipeline), and a read that FAILS is named, never silent
+nh r6r;UL u1 "words" >>$X;TAP>/dev/null
+ok "r7p-real-frontmatter-shape-still-taps the fixture carries the real frontmatter shape (parents: + '  - goal:g7' before posts:) and the full row still taps (chunks $(nchunks))" '[ "$(nchunks)" = 1 ]&&grep -q "^  - goal:g7$" $E/.agi/nodes/.geometry/posts.md'
+MUT 's/sed -n .s\/^  - {\/{\/p.|jq -rR "fromjson?|/sed -n "s\/^  - \/\/p"|jq -r "/' agi-mem;nh r6r2;UL u1 "words" >>$X;TAP $D/mut>/dev/null
+ok "r7p-mutant-the-old-hand-parser-RED the first pipeline (every '  - ' line piped to jq) taps NOTHING on the real shape (chunks $(nchunks)): the lane above wants 1" '[ "$(nchunks)" = 0 ]'
+nh r6r3;UL u1 "words" >>$X;o=$(echo "{\"transcript_path\":\"$X\",\"session_id\":\"S1\"}"|env HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_TRUNK=nosuchref PATH=$D/bin:$PATH sh $D/bin/agi-mem tap 2>&1;echo "rc=$?");a=$(env HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_TRUNK=nosuchref PATH=$D/bin:$PATH sh $D/bin/agi-mem at 2>&1)
+ok "r6p-unreadable-posts-md-is-named a trunk ref that cannot be read: tap = ONE [mem] warn and rc 0 ($(echo "$o"|tr '\n' '|')), at = 'mem: unread' (got '$a')" '[ "$(echo "$o"|grep -c "^\[mem\] warn")" = 1 ]&&echo "$o"|grep -q "^rc=0$"&&[ "$a" = "mem: unread" ]'
+P=nobody;nh r6r4;UL u1 "words" >>$X;o=$(TAP;AT);P=;ok "r6p-no-row-for-the-post-is-quiet a post with no row in posts.md taps nothing and prints nothing (out '$o')" '[ -z "$o" ]&&[ ! -d $H/.mem ]'
 
 # ---- R7 CELLS: mem: full|season|goal|none, faces: owner|posts|none; absent mem reads none; faces: owner needs mem: full
 GC=$R0/extensions/agi/bin/geometry_config.py;G7=$D/g7;mkdir -p $G7/nodes/.geometry

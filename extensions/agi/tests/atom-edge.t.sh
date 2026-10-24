@@ -8,7 +8,7 @@ sect(){ awk -v n="$1" '$0~"^### "n" "{h=1;next}h&&/^~~~/{if(z)exit;z=1;next}h&&z
 mkdir $D/bin;for x in agi-mem agi-atom agi-notice;do sect $x engine-post.md>$D/bin/$x;done;chmod +x $D/bin/*
 for x in agi-mem agi-atom agi-notice;do [ -s $D/bin/$x ]||{ echo "FAIL inputs: no $x piece";exit 99;};done
 E=$D/eng;mkdir -p $E/.agi/nodes/.geometry $E/.agi/nodes/goal;ln -s $R0/extensions $E/extensions
-printf -- '---\nid: config:posts\nposts:\n  - {"name": "p", "mem": "full", "faces": "owner"}\n---\n'>$E/.agi/nodes/.geometry/posts.md
+printf -- '---\nid: config:posts\nparents:\n  - goal:g7\nposts:\n  - {"name": "p", "mem": "full", "faces": "owner"}\n---\n'>$E/.agi/nodes/.geometry/posts.md
 printf -- '---\nid: goal:g1.2\nstatus: active\n---\n# g\n'>$E/.agi/nodes/goal/g1.2.md
 printf -- 'credits_live: false\n'>$E/.agi/nodes/.geometry/secrets.md
 (cd $E&&git init -q .&&git config core.hooksPath /dev/null&&git add -A .agi&&git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm x)

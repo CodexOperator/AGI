@@ -22,7 +22,7 @@ brief.py           810 B  the complex walk over parents: edges
 agi-meter          829 B  past rotate_pct: out-line; tap chat; read: atomize
 agi-at            1129 B  signed CAS commit of ~/t paths to posts/<P>
 agi-atomize       3971 B  box mail -> verbatim card atoms (wake path, model)
-agi-mem           7220 B  chat tap -> own 0700 store; tap, at
+agi-mem           7392 B  chat tap -> own 0700 store; tap, at
 agi-atom          8072 B  card §7 atoms: add close move (verbatim slices)
 grow.py           5140 B  the growth-order check both writers call
 agi-turn           4615 B  a signed commit per changed node tree
@@ -165,12 +165,13 @@ for r in $(git for-each-ref --format='%(refname)' refs/box|grep "/$P$");do f=${r
 [ $add = 0 ]||exec ${AGI_ATOM_COMMIT:-agi-at} "$(readlink -f "${AGI_ATOM_CARD:-$T/.agi/sessions/quorum/$P.md}"|sed "s|^$T/||")"
 ~~~
 
-### agi-mem (7220 B)
+### agi-mem (7392 B)
 ~~~sh
 #!/bin/sh
 # agi-mem tap|at (goal:g7.16.1.11.46.13): `mem: full` rows only. tap = the hook (agi-meter at UserPromptSubmit, the Stop hook): stdin = the hook JSON; sweep the session transcript from its cursor, owner lines (user strings AND queued_command, never a compact summary, meta, tool_result or a nudge) and the post's text blocks, REDACTED (anonymize.py redact), into ~/.mem/<mint>.git: its own bare dir, 0700, no ACL, no remote, a commit of mem/<date>/c-<sha12>.md per sweep; rc 0 always, a failure = ONE [mem] warn line. at = `mem: tapped <chunks>/<eligible>` (RED when fewer), `mem: unread`, then the walk's check-2 lines. goal:g7.16.1.11.46.14 (M7): label = tier 0 (a chunk naming a card row id gets `atom: <ids>`, a post chunk naming none `none`, an owner chunk none names stays `?`: never `none` until the atomizer is live); map / find RE / show c:ID read the store; walk = after label, a `kind: ask` chunk whose next post chunk names no atom id is a red row (agi-atom red) + a [unnamed-reply] notice, a reply naming one closes it; tap ends with label, agi-atom derive, walk
 P=$AGI_POST;E=${AGI_ENGINE:-$HOME/t};S=${AGI_MEM_DIR:-$HOME/.mem}/${AGI_MINT:-$P}.git
-[ "$(git -C $E show ${AGI_TRUNK:-trunk}:.agi/nodes/.geometry/posts.md 2>/dev/null|sed -n 's/^  - //p'|jq -r "select(.name==\"$P\")|.mem//empty"|head -1)" = full ]||exit 0
+px=$(git -C $E show ${AGI_TRUNK:-trunk}:.agi/nodes/.geometry/posts.md 2>/dev/null)||{ case $1 in at)echo "mem: unread";;tap)echo "[mem] warn: posts.md unreadable at ${AGI_TRUNK:-trunk} (the turn goes on)";;esac;exit 0;}
+[ "$(printf %s "$px"|sed -n 's/^  - {/{/p'|jq -rR "fromjson?|select(.name==\"$P\")|.mem//empty"|head -1)" = full ]||exit 0
 Q='def tx:if type=="string" then . else [.[]|select(.type=="text" and (.text|startswith("<system-reminder>")|not))|.text]|join("\n") end;select(.isSidechain!=true)|(if .type=="user" and .isMeta!=true and .isCompactSummary!=true and (.message.content|type=="string" or all(.[];.type!="tool_result")) then {sp:"owner",b:(.message.content|tx)} elif .type=="attachment" and .attachment.type=="queued_command" then {sp:"owner",b:(.attachment.prompt|strings)} elif .type=="assistant" then {sp:"post",b:(.message.content|tx)} else empty end)+{u:.uuid,t:.timestamp,l:input_line_number}|select((.b|length)>0 and (.sp=="post" or (.b|test("^(mail: box read|keepalive:|<task-notification|<system-reminder|<command-|<local-command|Caveat:|\\[Request interrupted|This session is being continued)")|not)))'
 w(){ echo "[mem] warn: $* (the turn goes on)";}
 cm(){ c=$(git -C $S -c user.name=mem -c user.email=mem@agi -c commit.gpgsign=false commit-tree $(git -C $S write-tree) ${tip:+-p $tip} -m "$1")&&git -C $S update-ref refs/heads/mem $c $tip;}
