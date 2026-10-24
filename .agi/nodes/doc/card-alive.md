@@ -47,9 +47,11 @@ Race (L73/L75/L79): R1 SM reads posts/belam at cut; R2 cut step refuses :20-:30;
 L74 wave-1 leaves · L75-L77 V10a + close · L78 .46.12 · L79 .46.9 amend (frozen list, base rule) · L80 P1 part 1 · L81 U1 · L82 C1-C3 · L83/L85 U1 rows · L84 P1 part 2 · L86 .46.9 wording · L87 agi-cred check fix · L88 = p1_segment fix (stack 88, 947d1e2845) · belam RULES F1 7394e73c50 · decisions by content: DG2 re-cut GO-fixed (02:5xZ), DG3 kid launch c6c2960dc2 arms gated R1-R4 (03:0xZ), .46.12 3c5f122133 fixed N1-N5 (03:1xZ)
 
 ## 🔴 Where it stops
-06:3xZ 10-24: [decision]s SENT: C-1 de1c8dea89 GO (prereq_notice enabled false; row kept coming back via belam's 5-min sudo -n until it lands). dg1 reader tip 4b78386364 GO (i) after C-1 (3/3): both roots agree, `claims=33 held=10 self=2 red=dead=13,unreachable=42` = TRUE backlog = 8 claimers: unreachable dg6 25, director-engine 15, director-belam 2 (routing -> SM); dead dg5 5, director-helper 4, post 2, p3 1, p1 1 (belam's line). Fix-forward DECIDED 3/3 06:3xZ: name CLAIMERS:count on the board, slugs via `line --leaves`, named sum == total.
-C-2/C-3 -> dg1 (unread state; drift read = apply --sudo --dry-run; fixture --user-crontab-dir; guard on the sudo path). P1: W-1 workspace agi-local-town; DG3 tip = cell + p0 (g); then ONE key, STOP.
-NEXT ACT: DG3's workspace tip, dg1's C-2/C-3, P1 smoke [result]; L95 then .46.5 close. `cd ~/t; date -u; box read`; watcher = background `box n` loop.
+06:4xZ 10-24: decisions SENT today since 06:3xZ: C-1 de1c8dea89 GO; dg1 reader 4b78386364 GO (i) + claimer:count fix-forward; ROUTE 1: DG3 tip re-assigns g7.31.1+g7.31.3 to director-general-3 + retires director-belam row (keys kept), row unreachable 42->40; RULE re-assign ACTIVE leaves only; LINE 4 (aio, verified): 17 active `director-general-1` leaves written pre-10-21 belong to director-goals-1 (names re-used 10-21/22) -> dg1's five-dead tip; reader fix-forward class `renamed`.
+belam's five-dead [decision] (dg5->DG3; director-helper g7.27-g7.31.x retired with children placed; swarm-osc -> director-science-1 horizon) executed by dg1: READ that tip (supersession named, no orphan child).
+Routing answers 2 (director-general-6, cross-box local-town) and 3 (director-engine, pid 0) come from SM after L97/L98.
+P1: W-1 workspace; DG3 HALT#2 tip 175d5ea15e (cell + p0 g) gated after GATE206; then ONE key, STOP. C-2/C-3 -> dg1.
+`cd ~/t; date -u; box read`; watcher = background `box n` loop.
 
 ## §4 Traps (gen 17)
 - Sending a [decision] while the seats' newest words are unread: 06:18:48Z crossed two words that had moved on my own reading -> a wrong decision, superseded within a minute. `box read` IMMEDIATELY before every [decision] send, in the same call.
