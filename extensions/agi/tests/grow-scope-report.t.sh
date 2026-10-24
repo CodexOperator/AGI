@@ -8,10 +8,13 @@ R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)}
 if [ "${1:-}" = window ];then   # falsifier 3: run in the real repo, against the leaf node
  L=$R0/.agi/nodes/goal/g7.16.1.11.46.10.md;[ -f "$L" ]||{ echo "FAIL window: $L is missing";exit 99;}
  n=0;bad=
- for h in $($G -C "$R0" log --since='24 hours ago' --grep='^Scope:' --format=%H);do n=$((n+1));grep -q "^| ${h%"${h#??????????}"} " "$L"||bad="$bad ${h%"${h#??????????}"}";done
+ for h in $($G -C "$R0" log --since='24 hours ago' --grep='^Scope:' --format=%H);do n=$((n+1));k=${h%"${h#??????????}"};grep -q "^| $k " "$L"&&continue
+  # no row for this commit: it is explained only if EVERY one of its trailers names a parent that has a STANDING row (`| standing | any | any | <parent> | reason |`), and it has at least one trailer
+  ps=$($G -C "$R0" log -1 --format=%B $h|sed -n 's/^Scope: [^ ]* [^ ]* //p');[ -n "$ps" ]||{ bad="$bad $k";continue;}
+  for p in $ps;do grep '^| standing |' "$L"|grep -qF "| $p |"||{ bad="$bad $k";break;};done;done
  [ "$n" -ge 1 ]||{ echo "FAIL window: no commit with a Scope: trailer in the last 24 h (a gate that never writes the trailer cannot pass)";exit 1;}
  [ -z "$bad" ]||{ echo "FAIL window: $n hit(s), unexplained (no row in the leaf's explain table):$bad";exit 1;}
- echo "ok window $n hit(s), every one has an explain row";exit 0;fi
+ echo "ok window $n hit(s), every one has an explain row (a commit row or standing parent rows)";exit 0;fi
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 # a row that must read RED: the SAME condition run against a mutated gate has to fail
@@ -120,5 +123,11 @@ mkw;win;wr=$?;ok "w1-an-empty-window-is-RED (no commit with a Scope: trailer)" '
 printf 'x\n' >$T/w/x;$G -C $T/w add -A;$G -C $T/w commit -qm "alive: x
 
 Scope: alive hypothesis goal:g2";h=$($G -C $T/w rev-parse HEAD);win;wr=$?;ok "w2-a-hit-with-no-explain-row-is-RED [$(cat $T/wo)]" '[ $wr != 0 ]&&grep -q "unexplained" $T/wo'
-printf '| %s | alive | hypothesis | goal:g2 | planted |\n' "$(echo $h|cut -c1-10)" >>$T/w/.agi/nodes/goal/g7.16.1.11.46.10.md;win;wr=$?;ok "w3-a-hit-with-an-explain-row-is-GREEN [$(cat $T/wo)]" '[ $wr = 0 ]'
+printf '| standing | any | any | goal:g2x | a different parent |\n' >>$T/w/.agi/nodes/goal/g7.16.1.11.46.10.md;win;wr=$?;ok "w2b-a-standing-row-for-ANOTHER-parent-does-not-explain-it [$(cat $T/wo)]" '[ $wr != 0 ]&&grep -q "unexplained" $T/wo'
+printf '| standing | any | any | goal:g2 | P1 preregistered leaves |\n' >>$T/w/.agi/nodes/goal/g7.16.1.11.46.10.md;win;wr=$?;ok "w3b-a-standing-row-for-the-parent-explains-it [$(cat $T/wo)]" '[ $wr = 0 ]'
+mkw;$G -C $T/w commit -q --allow-empty -m "alive: y
+
+Scope: alive hypothesis goal:g2
+Scope: alive idea goal:g9";printf '| standing | any | any | goal:g2 | s |\n' >>$T/w/.agi/nodes/goal/g7.16.1.11.46.10.md;win;wr=$?;ok "w3c-a-commit-with-two-trailers-needs-BOTH-parents-explained [$(cat $T/wo)]" '[ $wr != 0 ]&&grep -q "unexplained" $T/wo'
+printf '| %s | alive | hypothesis | goal:g2 | planted |\n' "$($G -C $T/w rev-parse HEAD|cut -c1-10)" >>$T/w/.agi/nodes/goal/g7.16.1.11.46.10.md;win;wr=$?;ok "w3-a-hit-with-an-explain-row-is-GREEN [$(cat $T/wo)]" '[ $wr = 0 ]'
 exit $f
