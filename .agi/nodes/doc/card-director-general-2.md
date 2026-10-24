@@ -34,7 +34,7 @@ DONE   M1 agi-atom add|close|grandfather (piece, engine-post.md) + rotate.py car
 DONE   M2 agi-atomize (piece): box commit -> agi-infer (Haiku, Sonnet once on a ? target) -> agi-atom add; marker ref refs/atomized/<P>/<sha>; > lines never sent
 DONE   M3 agi-atom move <a..> <flow> [ARGS]: slices byte-equal into ARGS json, rows -> moved:<flow>, ONE agi-at of both; MANIFEST atoms: spec line in engine-capsule.md
 DONE   M4 success_metrics.py --line ends '| intake: <post>=<open>/<placed>/<red>'; --trajectory POST LABEL; TRAJECTORY line in town:local-maxxing
-NEXT   send SM the [merge-up] (text in 🔴); answer SM's gate return; nothing else is placed
+NEXT   SM gates 3832a73d42 (merge-up SENT); answer its return; nothing else is placed
 ```
 
 ## §2 Landed
@@ -44,10 +44,8 @@ NEXT   send SM the [merge-up] (text in 🔴); answer SM's gate return; nothing e
 
 ## 🔴 Where it stops
 ```
-Waiting for: SM to gate 3832a73d42 (a [merge-up] goes to SM only, never belam).
-IF the [merge-up] is not yet sent: write the text to a FILE, then `box send sanctuary-master < FILE` from ~/t, and check `git log -1 --format=%B refs/box/director-general-2/sanctuary-master` is non-empty.
-It must carry: the sha (paste from `git rev-parse posts/director-general-2`), the 14 files, the tests below, the deviations in §6, and a `first-start:` line:
-  first-start: every post gains the pieces agi-atom and agi-atomize in ~/bin at its next start (engine-post.md, 54 pieces now); nothing is lost; agi-atomize is not wired to any wake path, so nothing runs until belam's host act
+Waiting for: SM to gate 3832a73d42 (the [merge-up] went to SM only).
+SENT 10-24 00:5xZ (box, body checked non-empty): code 3832a73d42, card tip 38905ae9d6, the first-start line, host acts, deviations and the 62/63 fact. Do not re-send; if SM's gate return names a red, fix it with ONE new signed commit ON posts/director-general-2 (agi-sync first) and mail SM the new sha.
 CLAUDE.md is a RULES path: its one-line change lands with belam.
 ```
 
