@@ -101,12 +101,75 @@ MQ='She wrote "see
 atom 10.2 here" and left'
 nh r1f;AL f1 "$FQ" $T0>>$X;AL f2 "$TQ" $T1>>$X;AL f3 "$MQ" $T2>>$X;AL f4 'atom 10.2 is mine again' 2026-10-24T10:00:07.000Z>>$X;TAP>/dev/null;LB>/dev/null
 ok "r1f-fenced-and-multiline-quotes-are-not-acks a triple-backtick block, a ~~~ block and a double-quoted span across two lines naming marked ids link nothing (got '$(field 'Pasted from the report:' atom)' / '$(field 'She wrote' atom)'); the same id in prose links 10.2 (got '$(field 'is mine again' atom)')" '[ "$(git -C $S grep -h -A0 "^atom: none" refs/heads/mem|wc -l|tr -d " ")" -ge 3 ]&&[ "$(field "She wrote" atom)" = none ]&&[ "$(field "is mine again" atom)" = 10.2 ]'
-MUT "s/|awk '\/^\[\[:space:\]\]\*(\`\`\`|~~~)\/{f=!f;next}!f'//" agi-mem;nh r1fm;AL f2 "$TQ" $T0>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null
+MUT "s/|awk -v m=s \"\$FZ\"//" agi-mem;nh r1fm;AL f2 "$TQ" $T0>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null
 ok "r1f-mutant-fence-not-stripped-RED a label with no fence stage reads the ~~~ fenced 'atoms: 10.2' as an ack ($(field 'Pasted from the report:' atom)): the lane wants none" '[ "$(field "Pasted from the report:" atom)" = "10.2" ]'
-nh r1fu;AL u1 "$UQ" $T0>>$X;TAP>/dev/null;LB>/dev/null;ua=$(field 'Opened a block' atom);MUT "s/|awk '\/^\[\[:space:\]\]\*(\`\`\`|~~~)\/{f=!f;next}!f'//" agi-mem;nh r1fv;AL u1 "$UQ" $T0>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null
+nh r1fu;AL u1 "$UQ" $T0>>$X;TAP>/dev/null;LB>/dev/null;ua=$(field 'Opened a block' atom);MUT "s/|awk -v m=s \"\$FZ\"//" agi-mem;nh r1fv;AL u1 "$UQ" $T0>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null
 ok "r1f-an-unmatched-fence-fails-closed an opening triple-backtick with no close counts no id to the end of the chunk (got '$ua'); MUTANT: with no fence stage the same chunk reads '$(field 'Opened a block' atom)' (RED if 10.2)" '[ "$ua" = none ]&&[ "$(field "Opened a block" atom)" = 10.2 ]'
 MUT "s/sed ':a;\$!{N;ba};s\/\`/sed 's\/\`/" agi-mem;nh r1fn;AL f3 "$MQ" $T0>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null
 ok "r1f-mutant-quotes-line-by-line-RED a label that strips quotes one line at a time reads the two-line quoted span as an ack ($(field 'She wrote' atom)): the lane wants none" '[ "$(field "She wrote" atom)" = 10.2 ]'
+
+# N (council 18:4xZ, aio's gap): a block closes only on a fence of the opener's character at >= its length; a ~~~ / shorter fence inside it is text
+N1='Block A:
+~~~
+```
+atom: 10.2
+~~~
+and nothing else'
+N2='Block B:
+````
+```
+atom: 10.2
+```
+````
+done'
+N3='Block C:
+```
+~~~
+atom: 10.2
+```
+done'
+N4='Block D:
+~~~
+```
+x
+~~~
+atom 5.5 is mine'
+N5='Block E:
+~~~
+```
+atom: 10.2
+and the rest'
+nn(){ nh $1;AL n1 "$N1" $T0>>$X;AL n2 "$N2" $T1>>$X;AL n3 "$N3" $T2>>$X;AL n4 "$N4" 2026-10-24T10:00:11.000Z>>$X;AL n5 "$N5" 2026-10-24T10:00:12.000Z>>$X;AL n6 "$FQ" 2026-10-24T10:00:13.000Z>>$X;UL n7 "Owner pasted:
+~~~
+\`\`\`
+atom: 10.2
+~~~" 2026-10-24T10:00:14.000Z>>$X;TAP>/dev/null;}
+nn r1n;LB>/dev/null;g="$(field 'Block A:' atom)/$(field 'Block B:' atom)/$(field 'Block C:' atom)/$(field 'Block E:' atom)"
+ok "r1n-a-nested-fence-is-text a tilde block holding a backtick pair (A), a 4-backtick block holding a 3-backtick pair (B) and a backtick block holding a tilde line (C), each naming 'atom: 10.2' inside, and an unmatched nested block (E) link nothing (got '$g'); prose after a closed outer fence still acks (D: '$(field 'Block D:' atom)')" '[ "$g" = none/none/none/none ]&&[ "$(field "Block D:" atom)" = 5.5 ]'
+nm(){ MUT "$1" agi-mem;nn r1nm;LB $D/mut_agi-mem>/dev/null;h=$(field "Block $3:" atom)
+ if [ $3 = D ];then ok "r1n-mutant-$4-RED $2 reads Block D's prose ack as '$h': the lane wants 5.5" '[ "$h" != 5.5 ]';else ok "r1n-mutant-$4-RED $2 reads Block $3 as '$h': the lane wants none" '[ "$h" = 10.2 ]';fi;}
+nm 's/c==ch&&n>=len/n>=len/' "a closer of any character" A closer-of-any-character
+nm 's/&&n>=len&&r~/\&\&r~/' "a closer of any length" B closer-of-any-length
+nm 's/if(o&&c==ch&&n>=len&&r~\/^\[\[:space:\]\]\*\$\/)f=0/if(o)f=0/' "a toggle (the old behaviour)" A toggle
+nm 's/)f=0;else/)f=1;else/' "a block that never closes" D never-closes
+# S (council sp): the host sweep. nested [fix] lists the live POST chunks with a fence inside a fence; an unreadable store prints mem: unread, never 0
+nn r1s;LB>/dev/null;o=$(EV agi-mem nested 2>&1);rc=$?
+ok "r1s-nested-lists-the-post-chunks-with-a-fence-in-a-fence the sweep prints '$(echo "$o"|head -1)' and ids $(echo "$o"|sed 1d|wc -l|tr -d ' ') (want 5: A B C D E; not the plain fenced chunk, not the owner chunk), rc $rc" '[ $rc = 0 ]&&[ "$(echo "$o"|head -1)" = "nested-fence chunks: 5" ]&&[ "$(echo "$o"|sed 1d|grep -c "^c:[0-9a-f]\{12\}$")" = 5 ]'
+SA 'Block A:' 10.2;EV agi-mem nested fix>/dev/null 2>&1;k2=$(field 'Block A:' atom)
+ok "r1s-nested-fix-relabels-them a Block A chunk mislabelled 10.2 reads '$k2' after nested fix (want none)" '[ "$k2" = none ]'
+SA 'Block A:' 10.2;MUT 's/\[ "$2" = fix \]/[ "$2" = nofix ]/' agi-mem;EV sh $D/mut_agi-mem nested fix>/dev/null 2>&1;k3=$(field 'Block A:' atom)
+ok "r1s-mutant-fix-does-nothing-RED a nested that never relabels leaves Block A at '$k3': the lane wants none" '[ "$k3" = 10.2 ]'
+nh r1u;o=$(EV agi-mem nested 2>&1);rc=$?
+ok "r1s-an-unreadable-store-is-never-zero a post with no store prints '$o' and rc $rc (want 'mem: unread', rc 1)" '[ "$o" = "mem: unread" ]&&[ $rc = 1 ]'
+MUT 's/echo "mem: unread";exit 1;};: >/echo "nested-fence chunks: 0";exit 0;};: >/' agi-mem;o=$(EV sh $D/mut_agi-mem nested 2>&1)
+ok "r1s-mutant-unreadable-reads-zero-RED a nested that prints 0 for a store it could not read says '$o': the lane wants mem: unread" '[ "$o" = "nested-fence chunks: 0" ]'
+# F2 (alive): label --redo c:X that matches no chunk prints one line and exits 1; the chunks it did match are still recomputed
+nn r1x;LB>/dev/null;SA 'Block A:' 10.2;ida=$(EV agi-mem find 'Block A:'|cut -f1);o=$(EV agi-mem label --redo c:000000000000 $ida 2>&1);rc=$?;k4=$(field 'Block A:' atom)
+ok "f2-redo-of-a-missing-chunk-is-loud label --redo c:000000000000 $ida prints '$o' and rc $rc (want 'label --redo: no chunk c:000000000000', rc 1) and still recomputes the real one ($k4 -> none)" '[ "$o" = "label --redo: no chunk c:000000000000" ]&&[ $rc = 1 ]&&[ "$k4" = none ]'
+o=$(EV agi-mem label --redo 2>&1);rc=$?
+ok "f2-redo-with-no-id-is-loud label --redo with no id prints '$o' and rc $rc (want 'label --redo: no chunk named', rc 1)" '[ "$o" = "label --redo: no chunk named" ]&&[ $rc = 1 ]'
+MUT 's/exit $miss;;/exit 0;;/' agi-mem;EV sh $D/mut_agi-mem label --redo c:000000000000 >/dev/null 2>&1;rc=$?
+ok "f2-mutant-redo-miss-exits-0-RED a label that always exits 0 returns rc $rc for a missing chunk: the lane wants 1" '[ $rc = 0 ]'
 
 # REDO: the chunk the mutant mislabelled is recomputed by the real label, and derive drops it from the row; a chunk NOT named is left alone
 MUT "s/|sed ':a;\$!{N;ba};s\/\`\[^\`\]\*\`\/\/g;s\/\"\[^\"\]\*\"\/\/g'//" agi-mem;nh r1r;AL q1 'The bad label was `atom 10.2` in my report' $T0>>$X;AL q2 'atom a1 is mine' $T1>>$X;TAP>/dev/null;LB $D/mut_agi-mem>/dev/null;cp $CARD $D/cardr;EV agi-atom derive>/dev/null 2>&1;l0=$(grep -c 'chunks: c:' $CARD);id1=$(EV agi-mem map|awk -F'	' '$3 ~ /10:00:00/{print $1}');LB>/dev/null;k1=$(field 'bad label was' atom);EV agi-mem label --redo $id1 >/dev/null 2>&1;k2=$(field 'bad label was' atom);EV agi-atom derive>/dev/null 2>&1
