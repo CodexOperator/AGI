@@ -47,7 +47,7 @@ agi-carry@.path     149 B  PathChanged on refs/box/<P>; first send only
 agi-carry@.service  308 B  oneshot: box-carry %i
 agi-carry-fetch.timer   88 B  every 60 s: carry each local post, then hub
 agi-carry-fetch.service 229 B  oneshot: box-carry --fetch
-agi-cred        2419 B  root: Console key file + the leak check
+agi-cred        2832 B  root: Console key file + the leak check
 agi-cred.service 238 B  oneshot: agi-cred
 agi-cred.timer   89 B  every 5 min: agi-cred
 ~~~
