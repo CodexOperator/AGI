@@ -13,6 +13,7 @@ town: core
 
 EXPANSION of config:engine: the capsule verbs (goal:g7.16.1.11.44, doc:g716111-44-capsule-pack): ONE signed ref refs/capsule/CID carries a graph slice or a post's refs; its bundle moves it; pack · out · verify · in · regrow · repoint (capsule move is not built)
 Read only through `sect capsule [REV] | sh -s -- VERB ARGS` (a post's extraction loop skips this node: its glob is engine.md engine-[pw]*.md, so no post gains or loses a piece when this file changes). Run it in the repo that holds the refs: AGI_POST packs as <post>@agi, AGI_ALLOWED is the ring, AGI_TRUNK the repo's trunk.
+MANIFEST `atoms:` section (SPEC only, goal:g7.16.1.11.46.4; U3 in wave 2 fills it from the pack route, the capsule piece does not read it yet): a line `atoms:` then one line per moved atom, `  <atom id> <src> <slice sha12>`: the id, src and sha that `agi-atom move` wrote into the flow's ARGS json (`.atoms[]`), so a receiver re-derives each slice's sha12 from the ARGS and an atom is in the pack OR on a card, never both.
 
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
