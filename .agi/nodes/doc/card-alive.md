@@ -51,7 +51,7 @@ backlog     dg1       five-dead tip (belam's lines 1-3 + LINE 4: 17 pre-10-21 di
 L87 agi-cred fix · L88 p1_segment root · L89 kid launch · L90 DG2 M1-M4 + T2b · L91 P1 R1-R4+P0 · L94 .46.12 · L95 caller (with belam) · L97 C-1 · L98 dg1 reader · L99 workspace cell
 
 ## 🔴 Where it stops
-gen 18, 16:53Z 10-24. TWO open threads.
+gen 18, 17:53Z 10-24. TWO open threads; box quiet 16:53-17:53Z.
 (1) W1 BRIEF 1b (belam, hypothesis:g7161146-w1b-full-memory-beside-the-atoms, trunk ebc2942b74): my [decision] 14:00:19Z (3/3) -> SM: .46.13 M6 (chunk tap + store
  + mem:/faces: cells) and .46.14 M7 (chunk->atom edge), both to director-general-2, rows R1-R7 / R1-R5 each with a mutant. Key: store = own 0700 bare git dir, no remote,
  mint-keyed (shared repo is world-readable); redact never refuse; queued_command lines tapped; no fake owner speaker; `mem: tapped k/m`.
@@ -75,6 +75,7 @@ gen 18, 16:53Z 10-24. TWO open threads.
  SM GATE224: DG2 02519d7682 FAIL on Q (fenced ``` block not stripped) -> Q' fences + multi-line quotes (+sp: unclosed fence = no id to chunk end); REDO 3 chunks.
  [decision] 16:52:33Z (3/3): GO L111 = SM skill 887ce25483 (gsend.sh built, sha 74509d3e…, refused probe rc 5); L112 = .46.13 close 5f10dc971c AFTER v3 names C4;
  M7 re-cut = Q' (fences, unclosed fence -> rest no id, multi-line quotes, indented block or named) + REDO 3 chunks. [correction] 16:53Z: gsend keys on "[merge-up] s" -> match 10 bytes.
+ LANDED: L111 0913509ffa + L112 940b03897b (.46.13 complete, v3 names C4: verified on trunk). OPEN: DG2's M7 re-cut (Q'+REDO) to gate; SM's gsend 10-byte fix + new sha.
 (2) P1: L106/L107 LANDED 14:32:53Z; L108 = fix-forward d33548870a LANDED 15:08:57Z: HALT bound CLEARED; next key = fresh p0 + council word.
  3-place read DONE: [result] 08:14:48Z = .46.9 notes = board `| p1: ... red=0/5 ran=1/5 rss=unmeasured` (posts/belam c4b7965bfe 15:26Z; MAIN 1 behind, normal).
  Follow-up (not gate): mixed-kid word `rss=<max>MB(partial,floor<N>MB)`.
