@@ -110,6 +110,9 @@ nh r6r3;UL u1 "words" >>$X;o=$(echo "{\"transcript_path\":\"$X\",\"session_id\":
 ok "r6p-unreadable-posts-md-is-named a trunk ref that cannot be read: tap = ONE [mem] warn and rc 0 ($(echo "$o"|tr '\n' '|')), at = 'mem: unread' (got '$a')" '[ "$(echo "$o"|grep -c "^\[mem\] warn")" = 1 ]&&echo "$o"|grep -q "^rc=0$"&&[ "$a" = "mem: unread" ]'
 P=nobody;nh r6r4;UL u1 "words" >>$X;o=$(TAP;AT);P=;ok "r6p-no-row-for-the-post-is-quiet a post with no row in posts.md taps nothing and prints nothing (out '$o')" '[ -z "$o" ]&&[ ! -d $H/.mem ]'
 
+nh r7r;UL u1 "words on the real file" >>$X;echo "{\"transcript_path\":\"$X\",\"session_id\":\"S1\"}"|env HOME=$H AGI_POST=belam AGI_ENGINE=$R0 AGI_TRUNK=HEAD PATH=$D/bin:$PATH sh $D/bin/agi-mem tap >/dev/null 2>&1;S=$H/.mem/belam.git
+ok "r7p-the-real-posts-md-reads-belam-full the cell read run ONCE on this tree's REAL posts.md (not the fixture): belam's row reads mem: full, so a tap writes its chunk (chunks $(nchunks)); a lane that only ever sees its own fixture proved nothing here once" '[ "$(nchunks)" = 1 ]'
+
 # ---- R7 CELLS: mem: full|season|goal|none, faces: owner|posts|none; absent mem reads none; faces: owner needs mem: full
 GC=$R0/extensions/agi/bin/geometry_config.py;G7=$D/g7;mkdir -p $G7/nodes/.geometry
 row(){ printf -- '---\nid: config:posts\nposts:\n  - {"name": "a", "mem": "full", "faces": "owner"}\n  - {"name": "b"}\n  - {"name": "c", "mem": "season"}\n%s---\n' "$1">$G7/nodes/.geometry/posts.md;}
