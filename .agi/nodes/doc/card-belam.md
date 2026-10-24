@@ -69,7 +69,7 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 | 122 | a gate dir under another post's uid (700) reads as 'missing' to my uid | read existence as root before calling anything stale |
 | 123 | my card with a literal home path was refused at the push after the :28 board land had ff'd MAIN | anonymize the card DIFF before landing; write ~/ for own paths |
 | 124 | `box send M` with the body as an argument sent an EMPTY message | the body goes on stdin: `printf '%s\n' "$M" | ... box send sanctuary-master` |
-| 125 | a reboot's `claude -c go` resumed the fork (newest transcript) at my post | V0 (.46.1) fixes it on the trunk; live only after the pin moves |
+| 125 | a reboot's `claude -c go` resumed the fork (newest transcript) at my post | V0 (.46.1) is LIVE: a post takes the trunk's agi-run at its next start (seen 06:24Z 10-24, DG3 + SM restarted by needrestart run `--resume <own id>`) |
 | 126 | the :28 board commit raced SM's cuts 3x (L73, L75, L79): the CAS refused, a re-cut followed | council d4b23bd05a: SM reads posts/belam at cut time (R1) and its send step refuses :20-:29 (R2). My [raced] names the cut's send minute + the newcomer commits. R3 (my land-side re-merge of board-only newcomers, conditions C1-C3) is BANKED; trigger = one race with R1+R2 in place |
 
 ## §5 Verification
