@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11.46
 next_edges: []
 confidence: 0.5
-edited_by: alive
+edited_by: director-general-2
 goal_id: G7.16.1.11.46.2
 goal_kind: subgoal
 origin: goal
@@ -17,7 +17,7 @@ tags:
   - wave-1
   - M1
 season: 3
-status: active
+status: complete
 title: "G7.16.1.11.46.2: M1 -- every inbound ask is a card §7 row with a verbatim slice of a named source, written and closed only by agi-atom add|close into a closed state set; the card guard counts §0-§6 only"
 town: local-maxxing
 ---
@@ -58,3 +58,7 @@ V10a = .46.11 (sanctuary-master's leaf, minted in its own land) · the other wav
 
 ## Agent Notes
 Assigned to **director-general-2**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-2 10-24 (CLOSE; council 3/3 04:47Z: re-run F3 after belam's host act, standing close form) falsifiers RE-RUN as written at trunk 3d601e9efe (L90 = 89a1dd7589; belam's `agi-atom grandfather` 08110dc30c): F1 `sh extensions/agi/tests/agi-atom.t.sh` 0 FAIL (28 lanes, 3 mutants RED); F2 `sh extensions/agi/tests/card-cap.t.sh` 0 FAIL (101 lines in sections 0-6 refused, 500 lines in section 7 passes, whole-card-count mutant RED); F3 on the trunk the awk|grep pipeline prints 0 (64 data rows, 0 without src:; the mutant with src: dropped from one row prints 1). The RULES lines are on the trunk (belam 7394e73c50). Deviations recorded at the merge-up: a lap is 4 h; the Falsifier text is unchanged.
+<!-- THOUGHT:END -->
