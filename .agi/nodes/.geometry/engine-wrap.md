@@ -21,7 +21,7 @@ agi-run           2260 B  pane cmd: .fresh -> new id, else resume ~/.session; st
 settings.json      372 B  the ONE hook wiring: brief, meter, turn commit
 cccc.ts           1913 B  pi events -> the CC hooks; mail -> a turn
 agi-kid           2037 B  a pi-free kid in this unit: own HOME and tree
-agi-infer          1347 B  ONE chat call, OpenAI-compatible: stdin -> stdout
+agi-infer          1332 B  ONE chat call, OpenAI-compatible: stdin -> stdout
 agi-lane           1403 B  a Console lane's pi / claude -p / header config
 agi-captive        1005 B  window open: only agi-fill; a dead window: released
 ~~~
@@ -81,12 +81,12 @@ for x in .gitconfig .ssh hooks .claude/settings.json;do ln -sfn ~/$x $h/$x;done
 cd $h/t;HOME=$h AGI_POST=$k AGI_ROLE=kid AGI_HARNESS=pi-free AGI_WT=$RUNTIME_DIRECTORY/k-$k exec pi $K --skill skills -e ~/bin/cccc.ts -p "$*"</dev/null
 ~~~
 
-### agi-infer (1347 B)
+### agi-infer (1332 B)
 ~~~sh
 #!/bin/sh
-# agi-infer [MODEL] <prompt: ONE streamed call to any OpenAI-compatible /v1/chat/completions; cells infer_url, infer_model, infer_key (the NAME of a var in the unit's EnvironmentFile), infer_cred (a key FILE, default $CREDENTIALS_DIRECTORY/claude-sp), infer_workspace (the anthropic-workspace-id header), infer_schema (a JSON Schema FILE: the reply is fenced to it, closed)
+# agi-infer [MODEL] <prompt: ONE streamed call to any OpenAI-compatible /v1/chat/completions; cells infer_url, infer_model, infer_key (the NAME of a var in the unit's EnvironmentFile), infer_cred (a key FILE, read ONLY when set, no default: it replaces infer_key), infer_workspace (the anthropic-workspace-id header), infer_schema (a JSON Schema FILE: the reply is fenced to it, closed)
 k=;case $AGI_INFER_KEY in [0-9]*|*[!A-Za-z0-9_]*)exit 2;;?*)eval k=\$$AGI_INFER_KEY;;esac
-c=${AGI_INFER_CRED:-$CREDENTIALS_DIRECTORY/claude-sp};[ -r "$c" ]&&k=$(cat "$c")
+[ -r "$AGI_INFER_CRED" ]&&k=$(cat "$AGI_INFER_CRED")
 s=$([ "$AGI_INFER_SCHEMA" ]&&jq -c '.+{additionalProperties:false}' $AGI_INFER_SCHEMA)
 jq -Rsc --arg m "${1:-$AGI_INFER_MODEL}" --argjson s "${s:-null}" '{model:$m,stream:true,messages:[{role:"user",content:.}]}+if $s then {response_format:{type:"json_schema",json_schema:{name:"fill",schema:$s}}} else {} end'|curl -sfN -H @/dev/fd/3 -H 'Content-Type: application/json' -d @- ${AGI_INFER_URL:-http://127.0.0.1:8080/v1}/chat/completions 3<<X|sed -un 's/^data: //p'|jq -nRrj --unbuffered 'def g:(try input catch("cut"|halt_error(5)))|if .=="[DONE]" then empty else((fromjson|if .error or .choices[0].finish_reason=="error" then halt_error else .choices[0].delta.content//empty end),g)end;g'
 ${k:+Authorization: Bearer $k}

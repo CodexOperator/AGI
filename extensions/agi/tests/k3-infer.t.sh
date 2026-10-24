@@ -113,7 +113,7 @@ done
 ok "fail-error-ok-still-clean a normal finish_reason stop + usage chunk + [DONE] still exits 0 (the error check is not a blanket)" 'run ok m>/dev/null 2>&1'
 # --- bounds
 sz=$(wc -c<$PIECE)
-ok "bytes the piece is <= $CEIL B ($sz B; 829 B at the start; measured steps +131 B the streaming parser (960), +34 B the key-name guard (994), +73 B the provider-error clause (1,067), +10 B the digit-leading + inherited-k guard (1,077); +270 B goal:g7.16.1.11.46.8 C3, the key from a file (infer_cred) and the anthropic-workspace-id header (infer_workspace), with the two cell names in the header comment (1,347); the ceiling is 1,350 B: raised from 1,100 B by this leaf, ONE new reader of two cells)" '[ $sz -le $CEIL ]'
+ok "bytes the piece is <= $CEIL B ($sz B; 829 B at the start; measured steps +131 B the streaming parser (960), +34 B the key-name guard (994), +73 B the provider-error clause (1,067), +10 B the digit-leading + inherited-k guard (1,077); +270 B goal:g7.16.1.11.46.8 C3, the key from a file (infer_cred) and the anthropic-workspace-id header (infer_workspace), with the two cell names in the header comment (1,347), then 1,332 once the credential file is read ONLY when infer_cred is set (council 4ac9112d8d + c9a1c2f38f); the ceiling is 1,350 B: raised from 1,100 B by this leaf, ONE new reader of two cells)" '[ $sz -le $CEIL ]'
 ok "bytes-sh the piece is POSIX sh (dash -n parses it; no bashism needed)" 'dash -n $PIECE 2>/dev/null||sh -n $PIECE'
 echo "k3-infer: $f FAIL"
 exit $f

@@ -40,9 +40,12 @@ got(){ jq -rs --arg t "/$1/" --arg k "$2" '[.[]|select(.p|startswith($t))]|(.[0]
 nreq(){ jq -rs --arg t "/$1/" '[.[]|select(.p|startswith($t))]|length' $T/req.log 2>/dev/null;}
 nolack(){ jq -rs --arg t "/$1/" --arg v "$2" '[.[]|select(.p|startswith($t))|select(.h["anthropic-workspace-id"]!=$v)]|length' $T/req.log 2>/dev/null;}
 # --- the three fronts: each under strace (execve, env expanded) so a key in any argv/environ of the front or its children is seen
-front_infer(){ TAG=$1;echo hi|strace -f -v -s 4096 -qq -e trace=execve -o $T/st.$1 env -i PATH=$PATH CREDENTIALS_DIRECTORY=$T/cred AGI_INFER_URL=$BASE/$1/v1 AGI_INFER_MODEL=m AGI_INFER_WORKSPACE="$(lane id agi-batch)" sh ${IP:-$INFER}>/dev/null 2>&1;}
+front_infer(){ TAG=$1;echo hi|strace -f -v -s 4096 -qq -e trace=execve -o $T/st.$1 env -i PATH=$PATH CREDENTIALS_DIRECTORY=$T/cred AGI_INFER_URL=$BASE/$1/v1 AGI_INFER_MODEL=m AGI_INFER_CRED=$T/cred/claude-sp AGI_INFER_WORKSPACE="$(lane id agi-batch)" sh ${IP:-$INFER}>/dev/null 2>&1;}
 front_pi(){ TAG=$1;rm -rf $T/pi.$1;mkdir -p $T/pi.$1/.pi/agent;lane pi agi-kids capmodel>$T/pi.$1/.pi/agent/models.json;strace -f -v -s 4096 -qq -e trace=execve -o $T/st.$1 env -i PATH=$PATH HOME=$T/pi.$1 CREDENTIALS_DIRECTORY=$T/cred timeout 90 pi --provider claude-lane --model capmodel -p hi </dev/null >/dev/null 2>&1;}
 front_claude(){ TAG=$1;rm -rf $T/cl.$1;mkdir -p $T/cl.$1;strace -f -v -s 4096 -qq -e trace=execve -o $T/st.$1 env -i PATH=$PATH HOME=$T/cl.$1 CREDENTIALS_DIRECTORY=$T/cred ANTHROPIC_BASE_URL=$BASE/$1 ANTHROPIC_CUSTOM_HEADERS="$(lane header agi-council)" DISABLE_AUTOUPDATER=1 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 timeout 90 claude -p hi --settings "$(lane claude agi-council)" </dev/null >/dev/null 2>&1;}
+# council 4ac9112d8d + amendment c9a1c2f38f (L82): agi-infer reads the credential file ONLY when AGI_INFER_CRED is set explicitly (no default, no host rule); the file is present in every scenario below
+inf_x(){ TAG=$1;shift;echo hi|env -i PATH=$PATH CREDENTIALS_DIRECTORY=$T/cred AGI_INFER_URL=$BASE/$TAG/v1 AGI_INFER_MODEL=m "$@" sh ${IP:-$INFER}>/dev/null 2>&1;}
+canary_in(){ grep "\"/$1/" $T/req.log|grep -c LANECANARY;}
 leak(){ echo "$(grep -c LANECANARY $T/st.$1) / $(grep -c execve $T/st.$1) execve";}
 # ================= the lane verbs themselves
 ok "v-a-id-prints-the-cell lane agi-batch: [$(TAG=x lane id agi-batch)] (want wrkspc_BATCH111)" '[ "$(TAG=x lane id agi-batch)" = wrkspc_BATCH111 ]'
@@ -63,6 +66,13 @@ ok "f-b-pi-sends-the-key-from-the-bang-cat x-api-key equals the canary: $([ "$(g
 ok "f-c-claude-p-sends-the-lane-header header [$(got c anthropic-workspace-id)] (cell wrkspc_COUNCIL333), requests $(nreq c), without it $(nolack c wrkspc_COUNCIL333)" '[ "$(got c anthropic-workspace-id)" = wrkspc_COUNCIL333 ]&&[ "$(nolack c wrkspc_COUNCIL333)" = 0 ]'
 ok "f-c-claude-p-sends-the-key-from-the-apiKeyHelper auth line equals the canary bearer: $([ "$(got c authorization)" = "Bearer $K" ]&&echo yes||echo NO)" '[ "$(got c authorization)" = "Bearer $K" ]'
 for x in a b c;do ok "f-$x-no-key-byte-in-any-argv-or-environ-of-the-front-or-its-children canary/execve: $(leak $x) (want 0 / >= 1: non-vacuous)" '[ "$(grep -c LANECANARY $T/st.'$x')" = 0 ]&&[ "$(grep -c execve $T/st.'$x')" -ge 1 ]';done
+# ================= (a)(b)(c): the file is never read unless asked for
+inf_x sa OTHERVAR=otherbearer AGI_INFER_KEY=OTHERVAR
+ok "x-a-file-present-cred-unset-key-set-sends-the-callers-key auth [$(got sa authorization)] (want Bearer otherbearer), requests $(nreq sa), credential bytes in the request: $(canary_in sa) (want 0)" '[ "$(nreq sa)" -ge 1 ]&&[ "$(got sa authorization)" = "Bearer otherbearer" ]&&[ "$(canary_in sa)" = 0 ]'
+inf_x sb
+ok "x-b-file-present-cred-unset-key-unset-sends-NO-authorization auth [$(got sb authorization)] (want empty), requests $(nreq sb), credential bytes: $(canary_in sb) (want 0)" '[ "$(nreq sb)" -ge 1 ]&&[ -z "$(got sb authorization)" ]&&[ "$(canary_in sb)" = 0 ]'
+inf_x sc OTHERVAR=otherbearer AGI_INFER_KEY=OTHERVAR AGI_INFER_CRED=$T/cred/claude-sp
+ok "x-c-cred-set-explicitly-the-credential-is-sent-even-over-a-named-key auth equals the canary bearer: $([ "$(got sc authorization)" = "Bearer $K" ]&&echo yes||echo NO)" '[ "$(got sc authorization)" = "Bearer $K" ]'
 # ================= MUTANTS: a front with the header dropped reads RED (the clean row above is what it breaks)
 rep '${AGI_INFER_WORKSPACE:+anthropic-workspace-id: $AGI_INFER_WORKSPACE}' '' $INFER inf;IP=$T/mut.inf front_infer ma;IP=
 ok "m1-MUTANT-agi-infer-without-the-header-line-RED header [$(got ma anthropic-workspace-id)] (clean: wrkspc_BATCH111), requests $(nreq ma)" '[ "$(nreq ma)" -ge 1 ]&&[ "$(got ma anthropic-workspace-id)" != wrkspc_BATCH111 ]'
@@ -70,6 +80,9 @@ rep 'if $w!="" then' 'if false then' $LANE lpi;LP=$T/mut.lpi front_pi mb;LP=
 ok "m2-MUTANT-the-pi-provider-without-headers-RED header [$(got mb anthropic-workspace-id)] (clean: wrkspc_KIDS2222), requests $(nreq mb)" '[ "$(nreq mb)" -ge 1 ]&&[ "$(got mb anthropic-workspace-id)" != wrkspc_KIDS2222 ]'
 rep 'header)[ "$w" ]&&echo "anthropic-workspace-id: $w"' 'header)true' $LANE lcl;LP=$T/mut.lcl front_claude mc;LP=
 ok "m3-MUTANT-claude-p-without-the-custom-header-RED header [$(got mc anthropic-workspace-id)] (clean: wrkspc_COUNCIL333), requests $(nreq mc)" '[ "$(nreq mc)" -ge 1 ]&&[ "$(got mc anthropic-workspace-id)" != wrkspc_COUNCIL333 ]'
+rep '[ -r "$AGI_INFER_CRED" ]&&k=$(cat "$AGI_INFER_CRED")' 'c=${AGI_INFER_CRED:-$CREDENTIALS_DIRECTORY/claude-sp};[ -r "$c" ]&&k=$(cat "$c")' $INFER dflt
+IP=$T/mut.dflt inf_x ma2 OTHERVAR=otherbearer AGI_INFER_KEY=OTHERVAR;IP=$T/mut.dflt inf_x mb2;IP=
+ok "m4-MUTANT-the-old-default-replaces-the-callers-key-RED (a) auth [$(got ma2 authorization)] (clean: Bearer otherbearer), (b) auth [$(got mb2 authorization)] (clean: empty)" '[ "$(nreq ma2)" -ge 1 ]&&[ "$(got ma2 authorization)" != "Bearer otherbearer" ]&&[ "$(nreq mb2)" -ge 1 ]&&[ -n "$(got mb2 authorization)" ]'
 # ================= NEGATIVE (leaf falsifier 3)
 n=$($G -C $R0 grep -c 'ANTHROPIC_API_KEY=' -- .agi/nodes/.geometry 2>/dev/null|awk -F: '{s+=$NF}END{print s+0}')
 ok "n-no-geometry-node-sets-ANTHROPIC_API_KEY hits $n (want 0)" '[ "$n" = 0 ]'
