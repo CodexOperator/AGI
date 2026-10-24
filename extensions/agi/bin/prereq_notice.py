@@ -32,8 +32,11 @@ SENT = "refs/notices/prereq/sent"
 BUNDLE = "refs/notices/prereq/bundle"
 STATUS = "refs/notices/prereq/status"
 TERMINAL = {"complete", "supported", "retired"}
-ASSIGNED = re.compile(r"^Assigned to \*\*([A-Za-z0-9._-]+)\*\*\.?\s*$", re.M)
+PREFIX = re.compile(r"^Assigned to \*\*([^*\n]+)\*\*", re.M)      # R-1: the prefix, anything after it allowed
+PLACEMENT = ("the council", "the directors")                        # placement phrases match WHOLE: held, never notified, never red
+CENSUS = "refs/notices/prereq/census"
 LEAF_DIRS = (".agi/nodes/goal", ".agi/nodes/hypothesis")
+GOAL_DIR = ".agi/nodes/goal"
 JOB = "prereq_notice"
 LAG_RED_MIN = 60       # the default of the config cell `prereq_notice.notice_lag_red_min` (minutes): the OLDEST unseen trunk commit older than this reads red
 
@@ -43,6 +46,11 @@ def git(repo, *a, check=True, inp=None):
     if check and r.returncode:
         raise RuntimeError(f"git {' '.join(a)[:80]}: {(r.stderr or r.stdout).strip()[:200]}")
     return r
+
+
+def top(*paths):
+    """F-a: a pathspec from the REPO TOP, whatever directory git runs in (the board CLI's root is the .agi dir: a bare `.agi/nodes/goal` resolved there reads `.agi/.agi/nodes/goal` = nothing)."""
+    return tuple(":(top)" + p for p in paths)
 
 
 def rev(repo, ref):
@@ -60,8 +68,8 @@ def parse(text):
 class Tree:
     """Read nodes at one revision: by path, and an id -> status index built lazily from `git grep`."""
 
-    def __init__(self, repo, rv):
-        self.repo, self.rv, self._st, self._fm = repo, rv, {}, {}
+    def __init__(self, repo, rv, mx=None):
+        self.repo, self.rv, self.mx, self._st, self._fm = repo, rv, mx, {}, {}
 
     def read(self, path):
         if path not in self._fm:
@@ -72,7 +80,7 @@ class Tree:
     def status(self, node_id):
         """status of the node with this id, or None when no node carries it (a deprecated copy counts: it is the node)."""
         if node_id not in self._st:
-            r = git(self.repo, "grep", "-l", "-E", f"^id: {re.escape(node_id)}$", self.rv, "--", ".agi/nodes", check=False)
+            r = git(self.repo, "grep", "--full-name", "-l", "-E", f"^id: {re.escape(node_id)}$", self.rv, "--", *top(".agi/nodes"), check=False)
             st = None
             for line in r.stdout.splitlines():
                 p = line.split(":", 1)[1] if ":" in line else line
@@ -91,11 +99,11 @@ class Tree:
         if not got:
             return None
         fm, body = got
-        m = ASSIGNED.search(body)
+        cl = classify(self.mx, body) if self.mx else None
         needs = fm.get("needs") or []
         if not isinstance(needs, list):
             needs = []
-        return (m.group(1) if m else None, str(fm.get("status") or ""), str(fm.get("mint_id") or ""),
+        return (cl[1] if cl and cl[0] == "claim" else None, str(fm.get("status") or ""), str(fm.get("mint_id") or ""),
                 str(fm.get("type") or ""), [str(n) for n in needs], str(fm.get("id") or path))
 
     def ready(self, path):
@@ -110,23 +118,142 @@ class Tree:
         return (not unmet, claimer, mint, nid, needs, bool(unmet))
 
 
+class Matrix:
+    """box's OWN matrix function `a` (the `box` piece of engine-post.md at this trunk), extracted from the landed bytes and CALLED, never copied:
+    `a sanctuary-master NAME` is true iff SM may mail NAME. The posts.md rows are read from the same trunk."""
+
+    def __init__(self, repo, rev_):
+        self.repo, self.rev, self.memo = repo, rev_, {}
+        txt = git(repo, "show", f"{rev_}:.agi/nodes/.geometry/engine-post.md").stdout
+        m = re.search(r"^### box \(.*?\n~~~sh\n(.*?)\n~~~\n", txt, re.S | re.M)
+        fns = [ln for ln in (m.group(1).split("\n") if m else []) if ln.startswith("a(){")]
+        if len(fns) != 1:
+            raise RuntimeError(f"box's matrix function `a` not found exactly once in engine-post.md at {rev_[:10]} ({len(fns)} hits)")
+        self.fn = fns[0]
+        self.rows = {}
+        for ln in git(repo, "show", f"{rev_}:.agi/nodes/.geometry/posts.md").stdout.split("\n"):
+            if ln.startswith("  - {"):
+                try:
+                    row = json.loads(ln[4:])
+                    self.rows[row.get("name")] = row
+                except ValueError:
+                    continue
+
+    def ok(self, name):
+        if name not in self.memo:
+            r = subprocess.run(["sh", "-c", self.fn + '\na "$1" "$2"', "x", "sanctuary-master", name], cwd=self.repo,
+                               env={**os.environ, "AGI_TRUNK": self.rev}, capture_output=True, text=True)
+            self.memo[name] = r.returncode == 0
+        return self.memo[name]
+
+    def kind(self, name):
+        """held = a posts.md row whose role is council (a placement group, no harness); dead = no posts.md row, a *-retired row or a row with no harness; claim = on SM's matrix; unreachable = a LIVE row that is OFF it."""
+        row = self.rows.get(name)
+        if row is not None and row.get("role") == "council" and not name.endswith("-retired"):
+            return "held"                               # a council row (council, keep) is a PLACEMENT group with no harness: held like `the council`, never dead
+        if name.endswith("-retired") or row is None or not row.get("harness"):
+            return "dead"
+        return "claim" if self.ok(name) else "unreachable"
+
+
+def classify(mx, body):
+    """(class, name) of a node's Assigned-to line, or None when it has none. claim | held | self | dead | unreachable | unparsed."""
+    m = PREFIX.search(body)
+    if not m:
+        return ("unparsed", "") if re.search(r"^Assigned to ", body, re.M) else None
+    raw = " ".join(m.group(1).split())
+    if raw.lower().startswith(PLACEMENT):
+        return ("held", raw)
+    name = re.split(r"[ (]", raw, maxsplit=1)[0]
+    if not re.fullmatch(r"[A-Za-z0-9._-]+", name):
+        return ("unparsed", raw)
+    if name == "sanctuary-master":
+        return ("self", name)
+    return (mx.kind(name), name)
+
+
+def classify_path(repo, rev_, path, mx):
+    if "/deprecated/" in path:
+        return None
+    got = Tree(repo, rev_, mx).read(path)
+    if not got or str(got[0].get("status") or "") != "active":
+        return None
+    return classify(mx, got[1])
+
+
+GEOMETRY = (".agi/nodes/.geometry/posts.md", ".agi/nodes/.geometry/engine-post.md")
+
+
+def census_full(repo, rev_, mx):
+    rows = {}
+    for ln in git(repo, "grep", "--full-name", "-l", "-E", "^Assigned to ", rev_, "--", *top(*LEAF_DIRS), check=False).stdout.splitlines():
+        p = ln.split(":", 1)[1]
+        c = classify_path(repo, rev_, p, mx)
+        if c:
+            rows[p] = list(c)
+    return {"commit": rev_, "rows": rows}
+
+
+def census_catchup(repo, cen, rev_, mx):
+    """R-3: reclassify only the goal files changed since the census commit (one full pass when posts.md or the box piece changed)."""
+    old = (cen or {}).get("commit")
+    if not old:
+        return census_full(repo, rev_, mx)
+    if old == rev_:
+        return cen
+    r = git(repo, "diff", "--name-only", "--no-renames", old, rev_, "--", *top(*LEAF_DIRS, *GEOMETRY), check=False)
+    if r.returncode:
+        return census_full(repo, rev_, mx)
+    names = r.stdout.split()
+    if any(n in GEOMETRY for n in names):
+        return census_full(repo, rev_, mx)
+    rows = dict(cen["rows"])
+    for p in names:
+        rows.pop(p, None)
+        c = classify_path(repo, rev_, p, mx) if p.endswith(".md") else None
+        if c:
+            rows[p] = list(c)
+    return {"commit": rev_, "rows": rows}
+
+
+def load_census(repo):
+    r = git(repo, "cat-file", "-p", CENSUS, check=False)
+    try:
+        c = json.loads(r.stdout) if r.returncode == 0 else None
+        return c if isinstance(c, dict) and "rows" in c and "commit" in c else None
+    except ValueError:
+        return None
+
+
+def save_census(repo, cen):
+    blob = git(repo, "hash-object", "-w", "--stdin", inp=json.dumps(cen, sort_keys=True)).stdout.strip()
+    git(repo, "update-ref", CENSUS, blob)
+
+
+def refresh_census(repo, rev_, mx):
+    cen = census_catchup(repo, load_census(repo), rev_, mx)
+    save_census(repo, cen)
+    return cen
+
+
 def key(claimer, mint, event, needs):
     return hashlib.sha1("|".join([claimer, mint, event, *sorted(needs)]).encode()).hexdigest()[:16]
 
 
 def compute(repo, old, new):
     """[(claimer, leaf id, key, event)] newly ready between old and new; and the number of candidates looked at."""
-    changed = [p for p in git(repo, "diff", "--name-only", "--no-renames", old, new, "--", *LEAF_DIRS).stdout.splitlines() if p.endswith(".md")]
-    to, tn = Tree(repo, old), Tree(repo, new)
+    changed = [p for p in git(repo, "diff", "--name-only", "--no-renames", old, new, "--", *top(*LEAF_DIRS)).stdout.splitlines() if p.endswith(".md")]
+    mx = Matrix(repo, new)
+    to, tn = Tree(repo, old, mx), Tree(repo, new, mx)
     cand = set(changed)
     # a leaf whose `needs:` names a node that changed (any type) may have cleared without being edited itself
     chg_ids = set()
-    for p in git(repo, "diff", "--name-only", "--no-renames", old, new, "--", ".agi/nodes").stdout.splitlines():
+    for p in git(repo, "diff", "--name-only", "--no-renames", old, new, "--", *top(".agi/nodes")).stdout.splitlines():
         if p.endswith(".md"):
             got = tn.read(p) or to.read(p)
             if got and got[0].get("id"):
                 chg_ids.add(str(got[0]["id"]))
-    for line in git(repo, "grep", "-l", "-E", "^needs:", new, "--", ".agi/nodes/goal", ".agi/nodes/hypothesis", check=False).stdout.splitlines():
+    for line in git(repo, "grep", "--full-name", "-l", "-E", "^needs:", new, "--", *top(*LEAF_DIRS), check=False).stdout.splitlines():
         p = line.split(":", 1)[1]
         lf = tn.leaf(p)
         if lf and set(lf[4]) & chg_ids:
@@ -148,7 +275,7 @@ def compute(repo, old, new):
 def intro(repo, new, path, claimer):
     """N5: the trunk commit where the leaf's CURRENT `Assigned to **<claimer>**` line was introduced, so a re-claim (X -> Y -> X) is a NEW key
     and a claim that merely survives later moves is not."""
-    r = git(repo, "log", "-1", "--format=%H", f"-SAssigned to **{claimer}**", new, "--", path, check=False)
+    r = git(repo, "log", "-1", "--format=%H", f"-SAssigned to **{claimer}", new, "--", *top(path), check=False)
     return r.stdout.strip() or new
 
 
@@ -195,6 +322,7 @@ def run(a):
     if old is None:
         print(f"prereq_notice: [red] {SEEN} is MISSING: nothing sent, nothing re-seeded (seed it once with `seed --at <sha>`)", file=sys.stderr)
         return 3
+    refresh_census(repo, new, Matrix(repo, new))        # R-3: one classified census of the active Assigned-to leaves, caught up per run
     if old == new:
         _status(repo, a)
         return 0
@@ -246,6 +374,10 @@ def seed(a):
         return 1
     git(repo, "update-ref", SEEN, sha, "")
     print(f"prereq_notice: seeded {SEEN} at {sha}")
+    try:
+        refresh_census(repo, sha, Matrix(repo, sha))
+    except RuntimeError as exc:
+        print(f"prereq_notice: census not built at seed ({exc}); the first run builds it", file=sys.stderr)
     return 0
 
 
@@ -255,19 +387,14 @@ def line(a):
     trunk, seen = rev(repo, a.trunk), rev(repo, SEEN)
     lim = a.lag_red_min or (cell(repo, trunk) if trunk else LAG_RED_MIN)
     red = []
-    tn = Tree(repo, trunk) if trunk else None
-    claims = loose = 0
-    if tn:
-        for ln in git(repo, "grep", "-l", "-E", "^Assigned to ", trunk, "--", ".agi/nodes/goal", ".agi/nodes/hypothesis", check=False).stdout.splitlines():
-            p = ln.split(":", 1)[1]
-            if "/deprecated/" in p:
-                continue
-            got = tn.read(p)
-            if not got or str(got[0].get("status") or "") != "active":
-                continue
-            loose += 1
-            if ASSIGNED.search(got[1]):
-                claims += 1
+    cnt, files = {}, {}
+    if trunk:
+        mx = Matrix(repo, trunk)
+        cen = census_catchup(repo, load_census(repo), trunk, mx)     # read-only here (another uid): the run persists it
+        for p, (cls, _) in cen["rows"].items():
+            cnt[cls] = cnt.get(cls, 0) + 1
+            files.setdefault(cls, []).append(p.rsplit("/", 1)[-1][:-3])
+    claims = cnt.get("claim", 0)
     cleared = len(git(repo, "for-each-ref", "--format=%(refname)", BUNDLE, check=False).stdout.split())
     ids = set()
     refs = git(repo, "for-each-ref", "--format=%(refname)", "refs/box/sanctuary-master/", check=False).stdout.split()
@@ -277,10 +404,10 @@ def line(a):
                 ids |= {m for m in re.findall(r"^Alarm-id: (\S+)$", msg, re.M)}
     sent = len(ids)
     if not seen:
-        red.append("seen-ref-missing")
-        lag = -1
-    elif not trunk:
-        red.append("trunk-missing")                      # N1: a trunk that does not resolve is never "fine"
+        red.append("seen-unresolved")                    # F-f: each ref is its own check, whatever the other says (a clone has neither refs/notices/* nor the trunk branch)
+    if not trunk:
+        red.append("trunk-unresolved")                   # N1: a trunk that does not resolve is never "fine"
+    if not seen or not trunk:
         lag = -1
     else:
         lag = int(git(repo, "rev-list", "--count", f"{seen}..{trunk}", check=False).stdout.strip() or 0)
@@ -289,8 +416,16 @@ def line(a):
             age = (time.time() - int(git(repo, "log", "-1", "--format=%ct", first[0], check=False).stdout.strip() or 0)) / 60 if first else 0
             if age > lim:
                 red.append(f"lag>{lim}min")
-    if loose > claims:
-        red.append(f"unparsed={loose - claims}")          # N3: an active leaf carries an `Assigned to` line the strict reader does not take
+    if trunk:
+        # F-b: a reader that read NOTHING is red. These probes run FROM the repo top on the goal tree as a tree-ish (`<trunk>:.agi/nodes/goal`): no cwd and no pathspec magic can shift them
+        tree, tl = f"{trunk}:{GOAL_DIR}", git(repo, "rev-parse", "--show-toplevel", check=False).stdout.strip() or repo
+        if not git(tl, "ls-tree", "-r", "--name-only", tree, check=False).stdout.split():
+            red.append("no-goal-files-read")
+        elif not sum(cnt.values()) and git(tl, "grep", "-l", "--all-match", "-e", "^Assigned to ", "-e", "^status: active$", tree, check=False).stdout.strip():
+            red.append("no-claims-read")                 # the census classified nothing while an ACTIVE goal file carries `Assigned to `
+    for kind in ("dead", "unreachable", "unparsed"):    # R-2: each red names its files (dead: re-assign or retire; unreachable: a ROUTING question; unparsed: no rule takes the line)
+        if cnt.get(kind):
+            red.append(f"{kind}={cnt[kind]}[{'+'.join(sorted(files[kind]))}]")
     unsent = 0
     for ref in git(repo, "for-each-ref", "--format=%(refname)", BUNDLE, check=False).stdout.split():
         ts = git(repo, "log", "-1", "--format=%ct", ref, check=False).stdout.strip()
@@ -302,7 +437,8 @@ def line(a):
     m = re.search(r"dead=(\d+)", st)
     if m and int(m.group(1)):
         red.append(f"dead-letter={m.group(1)}")
-    return f"notices: claims={claims} cleared={cleared} sent={sent} lag={lag} red={','.join(red) or 'none'}"
+    return (f"notices: claims={claims} held={cnt.get('held', 0)} self={cnt.get('self', 0)} cleared={cleared} sent={sent} lag={lag} "
+            f"red={','.join(red) or 'none'}")
 
 
 def main(argv=None):
@@ -319,7 +455,10 @@ def main(argv=None):
             sp.add_argument("--at", required=True)
     a = ap.parse_args(argv)
     if a.verb == "line":
-        print(line(a))
+        try:
+            print(line(a))
+        except (RuntimeError, OSError) as exc:
+            print(f"notices: UNMEASURED(source failed: {type(exc).__name__})")
         return 0
     try:
         return seed(a) if a.verb == "seed" else run(a)
