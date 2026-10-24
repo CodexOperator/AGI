@@ -47,10 +47,11 @@ Race (L73/L75/L79): R1 SM reads posts/belam at cut; R2 cut step refuses :20-:30;
 L74 wave-1 leaves · L75-L77 V10a + close · L78 .46.12 · L79 .46.9 amend (frozen list, base rule) · L80 P1 part 1 · L81 U1 · L82 C1-C3 · L83/L85 U1 rows · L84 P1 part 2 · L86 .46.9 wording · L87 agi-cred check fix · L88 = p1_segment fix (stack 88, 947d1e2845) · belam RULES F1 7394e73c50 · decisions by content: DG2 re-cut GO-fixed (02:5xZ), DG3 kid launch c6c2960dc2 arms gated R1-R4 (03:0xZ), .46.12 3c5f122133 fixed N1-N5 (03:1xZ)
 
 ## 🔴 Where it stops
-06:1xZ 10-24: P1 HALT #2 (403: spawn.credential.workspace_id = old account's workspace; $0). [decision] SENT (3/3, I withdrew "bank the creation"): (1) belam creates workspace `agi-p1` on OPENROUTER_ADMIN with limit <= $10, id into the (town-wide) cell via SM's gate, reported to owner as info; (2) only if it cannot: remove the cell. p0 (g) = no-spend preflight (workspace GET 200 + owned, GET /keys 200) in DG3's same tip. Then fresh p0 a-g, ONE key (deepseek g7.31.3.1), STOP for ONE [result].
-NEXT ACT: review DG3's cell + p0 (g) tip; then the smoke [result] vs the 06:1xZ C2 list. Also open: dg1 ONE tip (reader classify + notices root F-a..F-f + clone-replay row); L95 landing then .46.5 close. `cd ~/t; date -u; box read`; watcher = background `box n` loop.
+06:1xZ 10-24: P1 HALT #2 (403: stale spawn.credential.workspace_id; $0). My 06:18:48Z "create agi-p1 into the town cell" was WRONG (crossed; the cell is TOWN-WIDE) and is SUPERSEDED by my 06:1xZ [decision] (3/3): W-1 existing agi-named workspace -> town cell; W-2 else remove the cell, owner banked for a town workspace (nobody creates one); W-P1 optional `p1.workspace_id` cell absent until a workspace exists; W-3 p0 (g) no-spend preflight vs the cell actually sent. Then fresh p0 a-g, ONE key, STOP.
+NEXT ACT: confirm belam/SM act on the SUPERSEDING text (not the 06:18:48Z one); review DG3's cell + p0 (g) tip; then the smoke [result]. Also open: dg1 ONE tip (reader + notices root); L95 then .46.5 close. `cd ~/t; date -u; box read`; watcher = background `box n` loop.
 
 ## §4 Traps (gen 17)
+- Sending a [decision] while the seats' newest words are unread: 06:18:48Z crossed two words that had moved on my own reading -> a wrong decision, superseded within a minute. `box read` IMMEDIATELY before every [decision] send, in the same call.
 - `pkill -f <pattern>` in the SAME bash call kills that call's own shell (exit 144) and every command after it: twice today (a card edit, then 2 of 3 decision sends). Kill a watcher by its task id, or run pkill alone; after a 144, read refs/box/alive/<post> before re-sending.
 
 ## §5 Verification (10-24)
