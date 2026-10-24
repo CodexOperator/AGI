@@ -7,7 +7,7 @@ PC=${PIECE:-};[ -n "$PC" ]||{ awk '/^### agi-atom /{h=1;next}h&&/^~~~/{if(z)exit
 printf '#!/bin/sh\ncd "$AGI_T"&&git add -A -- "$@"&&git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm "stub agi-at: $*"\n' >$D/stub;chmod +x $D/stub
 mk(){ T=$D/$1/t;rm -rf $D/$1;mkdir -p $T/.agi/nodes/goal $T/.agi/sessions/quorum;cd $T;git init -q .
  printf -- '---\nid: goal:g9\n---\n## OWNER 2026-10-23, verbatim\n> "Trajectory holds the momentum data"\nplain line two\nthird "quoted" slice & more\n\n## Other\nx\n' >.agi/nodes/goal/g9.md
- printf '# card\n\n## §0 x\nhi\n\n## §7 ATOMS\n\n| # | atom (owner ask, short) | state |\n|---|---|---|\n| 1.1 | button down | target:§0 |\n' >.agi/sessions/quorum/p.md;C=$T/.agi/sessions/quorum/p.md;AR=$T/.agi/sessions/quorum/fl.args.json
+ printf '# card\n\n## §0 x\nhi\n\n## §7 ATOMS\n\n**throw 1 (10-22) -- x**\n| # | atom (owner ask, short) | state |\n|---|---|---|\n| 1.1 | button down | target:§0 |\n' >.agi/sessions/quorum/p.md;C=$T/.agi/sessions/quorum/p.md;AR=$T/.agi/sessions/quorum/fl.args.json
  A grandfather;for w in 'plain line two' 'Trajectory holds' 'third "quoted" slice & more' 'momentum data';do A add "$w" src:goal:g9#OWNER>/dev/null;done;git add -A;git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm base;}
 A(){ (cd $T;env AGI_T=$T AGI_POST=p AGI_LAP=5 HOME=$D AGI_ATOM_COMMIT=$D/stub sh ${PIECE_RUN:-$PC} "$@") 2>$D/err;}
 opens(){ grep -c '^| a[0-9]* | .* | target:' $C;}
