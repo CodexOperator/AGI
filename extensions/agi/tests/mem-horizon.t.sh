@@ -32,14 +32,14 @@ ok "h2c-the-new-horizon-starts-from-the-new-cursor the second tap did not re-swe
 ok "h2d-nest-of-an-unknown-horizon-is-named nest nope map: '$(AM nest nope map)'" '[ "$(AM nest nope map)" = "nest: no horizon nope" ]'
 
 # ---- h3 the mutant: a reset that drops the old store
-MUT 's/git -C \$S update-ref refs\/heads\/nest\/\$nn \$ot&&//'
+MUT 's/{ \[ "\$nt" = "\$ot" \]||git -C \$S update-ref refs\/heads\/nest\/\$nn \$ot "";}&&//'
 GO goal:g1.2;nh h3;UL u1 "first goal words">>$X;TAP $D/mut>/dev/null;GO goal:g1.3;UL u2 "second goal words">>$X;TAP $D/mut>/dev/null
 ok "h3-mutant-a-reset-that-drops-the-old-store-RED a tap that resets without keeping the old branch leaves nest refs: $(git -C $S for-each-ref refs/heads/nest|wc -l|tr -d ' ') (the lane wants 1), and the first words are in no ref: $(git -C $S grep -l 'first goal' refs/heads/mem 2>/dev/null|wc -l|tr -d ' ') files" '[ "$(git -C $S for-each-ref refs/heads/nest|wc -l|tr -d " ")" = 0 ]&&[ -z "$(git -C $S for-each-ref --format="%(refname)"|while read -r r;do git -C $S grep -l "first goal" $r;done)" ]'
 
 # ---- h4 a name taken gets .2: an old nest is never overwritten
 GO goal:g1.2;nh h4;UL u1 "words A1">>$X;TAP>/dev/null;GO goal:g1.3;UL u2 "words B1">>$X;TAP>/dev/null;TA=$(git -C $S rev-parse refs/heads/nest/m1111);TB=$(git -C $S rev-parse refs/heads/mem);GO goal:g1.2;UL u3 "words A2">>$X;TAP>/dev/null;GO goal:g1.3;UL u4 "words B2">>$X;TAP>/dev/null
 ok "h4-a-taken-name-gets-a-suffix going m1111 -> m2222 -> m1111 -> m2222 keeps nest/m1111 at its first tip, nests m2222's store, and puts the second m1111 store at nest/m1111.2 (refs: $(git -C $S for-each-ref --format='%(refname:short)' refs/heads/nest|tr '\n' ' '))" '[ "$(git -C $S rev-parse refs/heads/nest/m1111)" = "$TA" ]&&[ "$(git -C $S rev-parse refs/heads/nest/m2222)" = "$TB" ]&&git -C $S rev-parse -q --verify refs/heads/nest/m1111.2 >/dev/null&&[ "$(git -C $S grep -l "words A2" refs/heads/nest/m1111.2|wc -l|tr -d " ")" = 1 ]'
-MUT 's/while git -C \$S rev-parse -q --verify refs\/heads\/nest\/\$nn>\/dev\/null;do i=\$((i+1));nn=\$hz.\$i;done;//'
+MUT 's/while nt=\$(git -C \$S rev-parse -q --verify refs\/heads\/nest\/\$nn);do/while false;do/;s/update-ref refs\/heads\/nest\/\$nn \$ot "";/update-ref refs\/heads\/nest\/$nn $ot;/'
 GO goal:g1.2;nh h4m;UL u1 "words A1">>$X;TAP $D/mut>/dev/null;GO goal:g1.3;UL u2 "words B1">>$X;TAP $D/mut>/dev/null;TA=$(git -C $S rev-parse refs/heads/nest/m1111);GO goal:g1.2;UL u3 "words A2">>$X;TAP $D/mut>/dev/null;GO goal:g1.3;UL u4 "words B2">>$X;TAP $D/mut>/dev/null
 ok "h4m-mutant-a-taken-name-is-overwritten-RED a tap that reuses the name moves nest/m1111 off its first tip (now $(git -C $S rev-parse --short refs/heads/nest/m1111)): the lane wants it unchanged" '[ "$(git -C $S rev-parse refs/heads/nest/m1111)" != "$TA" ]'
 
@@ -57,12 +57,38 @@ ok "h7-a-pre-V4-store-is-adopted a store with chunks and no horizon file takes t
 # ---- h8 at counts the session over the live branch and every nest
 GO goal:g1.2;nh h8;UL u1 "words one">>$X;TAP>/dev/null;GO goal:g1.3;UL u2 "words two">>$X;TAP>/dev/null
 ok "h8-at-counts-the-nest the session has 2 owner lines, one in the nest and one live: '$(AM at|head -1)' (want mem: tapped 2/2)" '[ "$(AM at|head -1)" = "mem: tapped 2/2" ]'
-MUT 's/hg "refs\/heads\/mem [^"]*"|awk/hg refs\/heads\/mem|awk/'
+MUT 's/hg "\$(ar)"|awk/hg refs\/heads\/mem|awk/'
 ok "h8m-mutant-at-reads-the-live-branch-only-RED an at that ignores the nests reads '$(MB=$D/mut AM at|head -1)': the lane wants 2/2, so this must be 1/2 RED" '[ "$(MB=$D/mut AM at|head -1)" = "mem: tapped 1/2 RED" ]'
 
-# ---- h10 an owning goal with no node falls back to its id; a post with the cell none taps nothing
-GO goal:g9.9;nh h10;UL u1 "orphan goal words">>$X;TAP>/dev/null
-ok "h10-an-unresolved-owning-goal-falls-back-to-its-id the horizon is the goal id itself, sanitized ($(cat $S/horizon))" '[ "$(cat $S/horizon)" = goal_g9.9 ]&&[ "$(nlive)" = 1 ]'
+# ---- h10 (V-2) the horizon FAILS CLOSED: a goal that cannot be read is not a change
+mkdir -p $E/.agi/nodes/deprecated/goal
+GO goal:g9.9 >/dev/null 2>&1;nh h10;UL u1 "orphan goal words">>$X;o=$(TAP)
+ok "h10-a-fresh-store-with-an-unreadable-goal-taps-nothing no node for goal:g9.9 and no stored horizon: ONE warn line and no store content (got '$o'; chunks $(nlive); horizon file: $(cat $S/horizon 2>/dev/null))" '[ "$o" = "[mem] warn: horizon unread (goal goal:g9.9) (the turn goes on)" ]&&[ "$(nlive)" = 0 ]&&[ ! -s $S/horizon ]'
+GO goal:g1.2 >/dev/null 2>&1;nh h11;UL u1 "first goal words">>$X;TAP>/dev/null
+mv $E/.agi/nodes/goal/g1.2.md $E/.agi/nodes/deprecated/goal/g1.2.md;GO goal:g1.2 >/dev/null 2>&1;UL u2 "second words">>$X;o=$(TAP)
+ok "h11-a-retired-owning-goal-keeps-its-horizon the goal node moved to deprecated/goal/ (same mint id): read there, horizon still $(cat $S/horizon), no nest ($(git -C $S for-each-ref refs/heads/nest|wc -l|tr -d ' ')), no warn (got '$o'), both chunks live ($(nlive))" '[ "$(cat $S/horizon)" = m1111 ]&&[ -z "$(git -C $S for-each-ref refs/heads/nest)" ]&&[ -z "$o" ]&&[ "$(nlive)" = 2 ]'
+git -C $E rm -q -f .agi/nodes/deprecated/goal/g1.2.md;GO goal:g1.2 >/dev/null 2>&1;UL u3 "third words">>$X;o=$(TAP)
+ok "h12-a-goal-that-reads-nowhere-keeps-the-stored-horizon the node is gone from goal/ and deprecated/: ONE warn line, the stored horizon m1111 is kept ($(cat $S/horizon)), nothing nests ($(git -C $S for-each-ref refs/heads/nest|wc -l|tr -d ' ')) and the third chunk still taps under it ($(nlive)); got '$o'" '[ "$o" = "[mem] warn: horizon unread (goal goal:g1.2) (the turn goes on)" ]&&[ "$(cat $S/horizon)" = m1111 ]&&[ -z "$(git -C $S for-each-ref refs/heads/nest)" ]&&[ "$(nlive)" = 3 ]'
+MUT 's/\[ "$hu" \]&&H=$(cat $S\/horizon 2>\/dev\/null);//';UL u4 "fourth words">>$X;TAP $D/mut>/dev/null
+ok "h12m-mutant-a-missed-read-counts-as-a-change-RED the old fallback (the goal id as the horizon) reads the missed goal as a NEW horizon and nests the store (nests: $(git -C $S for-each-ref refs/heads/nest|wc -l|tr -d ' ')): the lane wants 0, so this must be 1" '[ "$(git -C $S for-each-ref refs/heads/nest|wc -l|tr -d " ")" = 1 ]'
+printf -- '---\nid: goal:g1.2\nmint_id: m1111\nstatus: active\n---\n# a\n'>$E/.agi/nodes/goal/g1.2.md;GO goal:g1.2 >/dev/null 2>&1
+
+# ---- h13 (V-1) the drop is a CAS: a sweep between the read and the drop loses nothing
+RGIT=$(command -v git);mkdir $D/gw;cat >$D/gw/git<<EOF
+#!/bin/sh
+$RGIT "\$@";rc=\$?
+case "\$*" in *"update-ref refs/heads/nest/"*)if [ -f $D/adv ];then rm -f $D/adv;t=\$($RGIT -C \$2 rev-parse refs/heads/mem);c=\$($RGIT -C \$2 -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit-tree \$($RGIT -C \$2 rev-parse \$t^{tree}) -p \$t -m adv);$RGIT -C \$2 update-ref refs/heads/mem \$c;fi;;esac
+exit \$rc
+EOF
+chmod +x $D/gw/git
+TAPG(){ echo "{\"transcript_path\":\"$X\",\"session_id\":\"S1\"}"|env HOME=$H AGI_POST=$P AGI_ENGINE=$E AGI_TRUNK=HEAD PATH=$D/gw:$D/bin:$PATH sh ${1:-$D/bin/agi-mem} tap 2>&1;}
+GO goal:g1.2 >/dev/null 2>&1;nh h13;UL u1 "first goal words">>$X;TAP>/dev/null;T1=$(git -C $S rev-parse refs/heads/mem);GO goal:g1.3 >/dev/null 2>&1;touch $D/adv;o=$(TAPG);T2=$(git -C $S rev-parse refs/heads/mem 2>/dev/null)
+ok "h13-a-sweep-between-the-read-and-the-drop-is-kept the other writer's commit advanced mem after the nest was cut: the drop is refused ('$o'), mem is KEPT at the advanced tip (${T2:-gone}, was ${T1}), nest/m1111 is the first tip, the horizon file still says $(cat $S/horizon)" 'echo "$o"|grep -q "^\[mem\] warn: store .* horizon m1111 not nested"&&[ -n "$T2" ]&&[ "$T2" != "$T1" ]&&[ "$(git -C $S rev-parse refs/heads/nest/m1111)" = "$T1" ]&&[ "$(cat $S/horizon)" = m1111 ]'
+UL u2 "second goal words">>$X;TAP>/dev/null
+ok "h13b-the-retry-advances-the-same-nest the next tap moves nest/m1111 to the advanced tip (a descendant of the first, no .2: nests $(git -C $S for-each-ref --format='%(refname:short)' refs/heads/nest|tr '\n' ' ')), nothing is lost, and the live branch starts from the second chunk ($(nlive))" '[ "$(git -C $S rev-parse refs/heads/nest/m1111)" = "$T2" ]&&[ "$(git -C $S for-each-ref refs/heads/nest|wc -l|tr -d " ")" = 1 ]&&[ "$(cat $S/horizon)" = m2222 ]&&[ "$(nlive)" = 1 ]'
+MUT 's/update-ref -d refs\/heads\/mem $ot/update-ref -d refs\/heads\/mem/'
+GO goal:g1.2 >/dev/null 2>&1;nh h13m;UL u1 "first goal words">>$X;TAP $D/mut>/dev/null;GO goal:g1.3 >/dev/null 2>&1;touch $D/adv;TAPG $D/mut>/dev/null;AV=$(git -C $S for-each-ref --format='%(refname)'|while read -r r;do git -C $S log --format=%s $r;done|grep -c '^adv$')
+ok "h13m-mutant-an-unconditional-drop-loses-the-sweep-RED a drop that is not a CAS deletes mem with the other writer's commit on it: that commit is in $AV refs (the lane wants it kept in 1, so this must be 0)" '[ "$AV" = 0 ]'
 
 # ---- n falsifier 2: no pi adapter file is ADDED by this leaf (V4_BASE=<rev> names the base; none = the merge-base with core/season3/main; an unreadable base is a FAIL, never a pass)
 pa(){ grep -iE '(^|/)(pi[-_.]|optchat|uniichat)' ;}

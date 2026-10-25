@@ -153,6 +153,21 @@ $OC
 ok "c11-a-retired-owner-chunk-is-absent the owner chunk moved to mem/retired/ (agi-mem scrub) is no live chunk: RED absent (got '$o')" '[ $rc = 1 ]&&echo "$o"|grep -q "cites $OC, absent from the store$"'
 git -C $S update-ref refs/heads/mem $T
 
+# ---- v3 (council V-3) cite reads the live branch AND every nest: a horizon change nests the store, and an OWNER block citing an older owner chunk is still read
+T=$(git -C $S rev-parse refs/heads/mem);rn;nn n-nest "## OWNER x, verbatim
+
+$OC
+"
+git -C $S update-ref refs/heads/nest/old $T;git -C $S update-ref -d refs/heads/mem;CT
+ok "v3-cite-reads-a-nest-in-the-window the horizon just changed: refs/heads/mem is gone and the owner chunk lives in nest/old: the cited block reads 0 violations (got '$o' rc $rc), not unread and not absent" '[ $rc = 0 ]&&echo "$o"|grep -q "0 violations$"'
+MUT 's/rs=\$(ar);\[ "\$rs" \]&&hg "\$rs"/rs=$(git -C $S rev-parse -q --verify refs\/heads\/mem);[ "$rs" ]\&\&hg "$rs"/' agi-mem;CT $D/mut_agi-mem
+ok "v3m-mutant-cite-reads-the-live-branch-only-RED a cite that reads only refs/heads/mem says unread in that window (got '$(echo "$o"|head -1)' rc $rc): the lane wants rc 0" '[ $rc = 1 ]&&echo "$o"|grep -q unread'
+export GIT_INDEX_FILE=$D/v3i;rm -f $D/v3i;printf -- '---\nid: c:aaaaaaaaaaaa\nspeaker: owner\ns: S9\nu: u\nt: 2026-10-26T10:00:00Z\nkind: ?\natom: ?\nredacted: 0\n---\nnew horizon words\n'>$D/v3c;b3=$(git -C $S hash-object -w $D/v3c);git -C $S update-index --add --cacheinfo 100644,$b3,mem/2026-10-26/c-aaaaaaaaaaaa.md;c3=$(git -C $S -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit-tree $(git -C $S write-tree) -m newh);unset GIT_INDEX_FILE;git -C $S update-ref refs/heads/mem $c3;CT
+ok "v3b-cite-reads-a-nest-beside-a-live-branch the new live branch holds another chunk and the cited one is in nest/old: still 0 violations (got '$o' rc $rc)" '[ $rc = 0 ]&&echo "$o"|grep -q "0 violations$"'
+MUT 's/rs=\$(ar);\[ "\$rs" \]&&hg "\$rs"/rs=refs\/heads\/mem;[ "$rs" ]\&\&hg "$rs"/' agi-mem;CT $D/mut_agi-mem
+ok "v3bm-mutant-cite-reads-the-live-branch-only-RED a cite that reads only refs/heads/mem calls the nested owner chunk absent (got '$(echo "$o"|head -1)'): the lane wants 0 violations" '[ $rc = 1 ]&&echo "$o"|grep -q "cites $OC, absent from the store"'
+git -C $S update-ref -d refs/heads/nest/old;git -C $S update-ref refs/heads/mem $T
+
 # ---- g2: the list is node ids, never a pattern (falsifier 2)
 rn;nn g1.2 "## OWNER x, verbatim
 
