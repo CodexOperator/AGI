@@ -30,7 +30,7 @@ agi-wt            1506 B  a node's tiny RAM tree: pull; drop = turn + purge
 agi-track           89 B  strace sink: each path once
 agi-flush           942 B  drop trees, turn (its agi-sync merges)
 agi-sync           2579 B  merge the trunk each turn; a conflict said by name
-agi-out           3357 B  the out-line: next keys, ring commit, re-wrap, swap
+agi-out           3285 B  the out-line: next keys, ring commit, re-wrap, swap
 gitconfig          196 B  signed commits against root's allowed_signers
 pre-commit          639 B  refuses a plain commit on a detached ~/t
 agi-notice          1141 B  engine->post notices: add / claim + print
@@ -392,27 +392,22 @@ case $r in 0)c=$(echo "$P: merge $R"|git commit-tree -S -p $t -p $T $n)&&git upd
 *)agi-notice add "[trunk-merge-failed] $P: git merge-tree rc $r against $R";;esac;exit 0
 ~~~
 
-### agi-out (3357 B)
+### agi-out (3285 B)
 ~~~sh
 #!/bin/sh
-# agi-out (ExecStartPre): the out-line g -> g+1 (AB; the full account is in the node). A ring in ~/t and .fresh newer than the key: new keys in ~/.ssh/n, the capsule share re-wrapped to the next seal FIRST, ONE ring commit signed by the CURRENT key (the self-revocation), then next moves over current. A refusal (any exit after the cd; an AGI_CAPSULE off [A-Za-z0-9._/-], absolute, with .., not resolving to ~/capsule or below) writes its reason to ~/.ssh/out-refused + stderr, exits 75; with that marker and no newer .fresh a start exits 75 silently and the unit's ExecCondition skips it; every other start clears it. Dir 0700, share 0600.
+# agi-out (ExecStartPre): the out-line g -> g+1 (AB; the full account is in the node). A ring in ~/t and .fresh newer than the key: new keys in ~/.ssh/n, the capsule share re-wrapped with age to the NEXT ssh key FIRST (a share still in the retired seal format is opened once by t/extensions/agi/bin/legacy/seal-open; the ring's x25519 line is carried as LEGACY, never regenerated), ONE ring commit signed by the CURRENT key (the self-revocation), then next moves over current. A refusal (any exit after the cd; an AGI_CAPSULE off [A-Za-z0-9._/-], absolute, with .., not resolving to ~/capsule or below) writes its reason to ~/.ssh/out-refused + stderr, exits 75; with that marker and no newer .fresh a start exits 75 silently and the unit's ExecCondition skips it; every other start clears it. Dir 0700, share 0600.
 cd||exit 1;m=.ssh/out-refused;[ -e $m ]&&{ [ .fresh -nt $m ]||exit 75;};rm -f $m;x(){ echo "agi-out: $*">&2;echo "$*">$m;exit 75;};P=$AGI_POST;R=.agi/nodes/.geometry/ring;N=.ssh/n;C=${AGI_CAPSULE:+$AGI_CAPSULE/$P}
 [ -f t/$R ]&&{ [ -d $N ]||[ .fresh -nt .ssh/id_ed25519 ];}||exit 0
 c=$AGI_CAPSULE;[ -z "$c" ]||{ case $c in -*|/*|*..*|*[!A-Za-z0-9._/-]*)x "AGI_CAPSULE off the safe set";;esac;h=$(pwd -P);case $(readlink -m -- "$c") in "$h"/capsule|"$h"/capsule/?*);;*)x "AGI_CAPSULE must resolve under ~/capsule";;esac;}
-y='import sys,base64 as B,hashlib as H
-from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey as K,X25519PublicKey as P
-from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305 as C
-a=sys.argv;h=lambda x:H.sha256(x).digest();d=lambda b:B.b64encode(b).decode()
-if a[1]=="gen":k=K.generate();open(a[2],"w").write(d(k.private_bytes_raw()));print(d(k.public_key().public_bytes_raw()))
-else:
- p,z=open(a[3]).read().split();z=B.b64decode(z);m=C(h(K.from_private_bytes(B.b64decode(open(a[2]).read())).exchange(P.from_public_bytes(z[:32])))).decrypt(bytes(12),z[32:],None);e=K.generate();print(p,d(e.public_key().public_bytes_raw()+C(h(e.exchange(P.from_public_bytes(B.b64decode(a[4]))))).encrypt(bytes(12),m,None)))'
 b=refs/heads/posts/$AGI_POST;a=$(git -C t rev-parse -q --verify $b);[ "$a" ]&&o=$(git -C t show $a:$R)||x "the ring is unreadable";umask 77
-[ -s $N/seal.pub -a "$(printf '%s\n' "$o"|awk -v p=$P '$1==p&&$2=="x25519"{print $3}')" = "$(cat $N/seal.pub 2>/dev/null)" ]||{
- { [ -f seal.key -a -z "$C" ]||[ -f "$C" -a ! -f seal.key ];}&&x "the capsule share cannot be re-wrapped (no capsule, or no seal key to open it with)"
+k=$(cut -d' ' -f2 $N/id_ed25519.pub 2>/dev/null);L=${AGI_SEAL_OPEN:-t/extensions/agi/bin/legacy/seal-open}
+w(){ if [ "$(head -c21 "$1")" = age-encryption.org/v1 ];then timeout 20 age -d -i .ssh/id_ed25519 "$1" </dev/null;else timeout 20 "$L" seal.key "$1";fi;}
+[ "$k" ]&&[ "$(printf '%s\n' "$o"|awk -v p=$P '$1==p&&$2=="ssh-ed25519"{print $3}')" = "$k" ]||{
+ [ -f seal.key -a -z "$C" ]&&x "a seal key and no AGI_CAPSULE: the capsule share cannot be re-wrapped"
+ [ -f "$C" ]&&{ command -v age >/dev/null||x "age is not installed: the capsule share cannot be re-wrapped";[ "$(head -c21 "$C")" = age-encryption.org/v1 ]||{ [ -f seal.key ]&&[ -x "$L" ];}||x "a legacy capsule share and no seal key or opener to open it with";}
  rm -rf $N ${C:+"$C.new"};mkdir -p $N ${C:+"$c"}&&ssh-keygen -qN "" -ted25519 -f$N/id_ed25519||{ rm -rf $N;x "keygen failed";}
- s=$(python3 -c "$y" gen $N/seal.key)||{ rm -rf $N;x "seal keygen failed";};echo $s>$N/seal.pub
- [ -f "$C" -a -f seal.key ]&&{ python3 -c "$y" wrap seal.key "$C" $s>"$C.new"||{ rm -rf $N "$C.new";x "the wrap failed";};}
- { printf '%s\n' "$o"|awk -v p=$P 'NF&&$1!=p';printf '%s ssh-ed25519 %s\n%s pq-sha256 %s\n%s x25519 %s\n' $P $(cut -d' ' -f2 $N/id_ed25519.pub) $P $(head -c32 /dev/urandom|base64) $P $s;}>t/$R
+ [ -f "$C" ]&&{ { w "$C"||:>$N/bad;}|timeout 20 age -R $N/id_ed25519.pub -o "$C.new"&&[ ! -e $N/bad ]||{ rm -rf $N "$C.new";x "the share could not be opened and re-wrapped (a passphrase-protected key never prompts; age timed out or failed)";};}
+ { printf '%s\n' "$o"|awk -v p=$P 'NF&&$1!=p';printf '%s ssh-ed25519 %s\n%s pq-sha256 %s\n' $P $(cut -d' ' -f2 $N/id_ed25519.pub) $P $(head -c32 /dev/urandom|base64);printf '%s\n' "$o"|awk -v p=$P '$1==p&&$2=="x25519"';}>t/$R
  agi-at $R||{ git -C t checkout -q -- $R;[ "$(git -C t show $b:$R|awk -v p=$P '$1==p&&$2=="ssh-ed25519"{print $3}')" = "$(cut -d' ' -f2 $N/id_ed25519.pub)" ]||{ rm -rf $N ${C:+"$C.new"};x "the ring commit failed";};echo "agi-out: the ring commit landed on $b: the new key is kept">&2;}
 }
 [ -f "$C.new" ]&&mv "$C.new" "$C"

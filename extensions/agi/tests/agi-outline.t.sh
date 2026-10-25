@@ -16,6 +16,7 @@ sed -n "/^ExecStartPre=sh -c /p" $STEPS|awk -v q="'" 'NR==1{sub("^ExecStartPre=s
 sect agi-signers>$T/signers.sh;for x in sect grow-check grow-gate agi-fill ckpt;do cat $GEO/engine*.md|sed -n "/^###* $x /,/^###* /{/^~~~/,/^~~~/{//!p}}">$T/gb/$x;done;[ "$GROW_GATE" ]&&cp $GROW_GATE $T/gb/grow-gate;chmod +x $T/gb/*
 [ -s $STEPS ]&&[ -s $ESCF ]&&[ -s $T/signers.sh ]||{ echo "FAIL extract: steps $(wc -c<$STEPS) B, esc $(wc -c<$ESCF) B, signers $(wc -c<$T/signers.sh) B";exit 99;}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
+SELF=$(cd "$(dirname "$0")" && pwd);. $SELF/age-lane.sh;age_lane $T/agelane||{ echo "FAIL age: the pinned age package could not be fetched and verified";exit 99;}   # goal:g7.16.1.11.46.15: the out-line seals with age
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM AGI_TRUNK
 export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null   # HERMETIC (SM return 05:12Z): no host gitconfig (gpg.format, allowedSignersFile, signingkey, hooks) reaches any case; the unit alone (up) reads the post's OWN ~/.gitconfig under HOME=$H
 P=post1;Q=other;SM=sm;S=$T/stores;H=$S/$P;RUN=$T/run;O=$T/main;K=$T/k;CAP=$H/capsule;mkdir -p $H/.ssh $RUN/agi-$P $CAP
@@ -40,11 +41,13 @@ for u in $SM $Q;do ssh-keygen -qN "" -ted25519 -f$K/$u>/dev/null;done;ssh-keygen
 $G init -q $O;mkdir -p $O/.agi/nodes/.geometry $O/.agi/context;for x in engine.md engine-post.md engine-wrap.md;do cp $GEO/$x $O/.agi/nodes/.geometry/;done;cp -r $R0/.agi/context/schemas $O/.agi/context/;cp $GEO/growth.tsv $O/.agi/nodes/.geometry/;cp $T/ring $O/$R
 printf -- '---\n---\n  - {"name": "belam", "parent": "owner"}\n  - {"name": "sm", "parent": "belam"}\n  - {"name": "post1", "parent": "sm"}\n  - {"name": "other", "parent": "sm"}\n'>$O/.agi/nodes/.geometry/posts.md
 # goal:g7.16.1.11.41 target 1: the unit reads the landed trunk BRANCH (lanetrunk) and the ONE named glob cell (PG), so the lane gives it both
+mkdir -p $O/extensions/agi/bin/legacy;cp -p $SELF/../bin/legacy/seal-open $O/extensions/agi/bin/legacy/seal-open   # the retired opener a share still in the old format needs (goal:g7.16.1.11.46.15)
 $G -C $O add -A;$G -C $O -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm fixture;TR=$($G -C $O rev-parse HEAD);PG=$(sed -n "/^### agi-post@.service/,/^~~~\$/p" $GEO/engine-root.md|sed -n 's/^Environment="AGI_PIECE_GLOB=\(.*\)"$/\1/p');$G -C $O branch lanetrunk $TR;$G -C $O branch posts/$P $TR;$G -C $O worktree add -fq $H/t posts/$P
 # --- the capsule: ONE secret split 2-of-2 by esc to post1's SEAL pub and other's; each holder's line in its own file
 head -c 24 /dev/urandom|base64>$T/secret;sealpub(){ python3 $T/seal.py pub $1;};sealpub $H/seal.key>$T/p1.pub;sealpub $K/$Q.seal>$T/p2.pub;python3 $ESCF split 2 $T/p1.pub $T/p2.pub <$T/secret>$T/escrow
 echo "$P $(sed -n 2p $T/escrow|cut -d' ' -f2)">$CAP/$P;echo "$Q $(sed -n 3p $T/escrow|cut -d' ' -f2)">$CAP/$Q;cp $CAP/$P $T/cap0;cp $CAP/$Q $T/capq0
-opn(){ python3 $ESCF open $1 <$2 2>/dev/null;}   # opn KEYFILE LINEFILE: prints 'i:y' or fails
+opn(){ if [ "$(head -c21 $2)" = age-encryption.org/v1 ];then age -d -i $H/.ssh/id_ed25519 $2 2>/dev/null;else python3 $ESCF open $1 <$2 2>/dev/null;fi;}   # opn KEYFILE SHAREFILE: prints 'i:y' or fails; an age share (goal:g7.16.1.11.46.15) opens with the post's LIVE ssh key, a retired-format line with KEYFILE (the seal key)
+opa(){ age -d -i $1 $2 2>/dev/null;}   # opa SSHKEY AGESHARE: the age open with a given ssh private key
 SH0=$(opn $H/seal.key $CAP/$P)
 # --- the shim: `git` that fails the land (commit, commit-tree, update-ref, push, merge) while $T/failland exists
 printf '#!/bin/sh\nskip=;sub=;for a in "$@";do [ -n "$skip" ]&&{ skip=;continue;};case $a in -C|-c)skip=1;continue;;-*)continue;;*)sub=$a;break;;esac;done\n[ -e %s/failland ]&&case $sub in commit|commit-tree|update-ref|push|merge)echo "shim: land refused" >&2;exit 1;;esac\nexec /usr/bin/git "$@"\n' $T>$T/shim/git;chmod +x $T/shim/git
@@ -61,6 +64,9 @@ allowed(){ rg $1|awk '$2=="ssh-ed25519"{printf "%s@agi namespaces=\"git\" %s %s\
 # vp COMMIT: verify-commit against the ring at the commit's PARENT (the receiving tip); the EXIT STATUS decides
 vp(){ allowed $1^;$G -C $H/t -c gpg.format=ssh -c gpg.ssh.allowedSignersFile=$T/al verify-commit $1>$T/vk.out 2>&1;}
 fp(){ ssh-keygen -lf $1|cut -d' ' -f2;}
+cols(){ own $1|awk '$2=="ssh-ed25519"||$2=="pq-sha256"{print $2,$3}'|sort;}   # the two columns the out-line renews; the legacy x25519 column is carried, never regenerated (goal:g7.16.1.11.46.15)
+xcol(){ own $1|awk '$2=="x25519"{print $3}';}
+cdis(){ cols $1|cut -d' ' -f2|sort>$T/c0;cols $2|cut -d' ' -f2|sort>$T/c1;[ -s $T/c0 ]&&[ -z "$(comm -12 $T/c0 $T/c1)" ];}   # the renewed columns of two revs share no value
 distinct(){ own $1|cut -d' ' -f3|sort>$T/o0;own $2|cut -d' ' -f3|sort>$T/o1;[ -z "$(comm -12 $T/o0 $T/o1)" ];}
 # --- a start whose key the ring does not know: the pre-existing generation 0 (fixture): a crash restart (no .fresh): the key is kept and the ring gets NO commit
 B=$($G -C $H/t rev-parse HEAD);K0=$(pub)
@@ -72,7 +78,7 @@ ok "a-outline-one-commit one .fresh writes exactly 1 ring commit (got $(rc $B))"
 ok "a-outline-ring-only that commit touches ONLY the ring file" '[ "$($G -C $H/t diff-tree --no-commit-id --name-only -r $C1)" = $R ]'
 ok "a-outline-three-lines it leaves the post exactly 3 lines of its own: ssh-ed25519, pq-sha256, x25519 (not 6: the old ones are replaced)" '[ "$C1" != "$B" ]&&[ "$(own $C1|wc -l|tr -d " ")" = 3 ]&&[ "$(own $C1|cut -d" " -f2|sort|tr "\n" " ")" = "pq-sha256 ssh-ed25519 x25519 " ]'
 ok "a-outline-others-untouched every other post keeps its lines byte for byte" '[ "$C1" != "$B" ]&&[ "$(rg $B|grep -v "^$P ")" = "$(rg $C1|grep -v "^$P ")" ]'
-ok "a-outline-all-three-new none of the three columns repeats generation 0 (a column left unchanged would keep a retired key in force)" '[ "$C1" != "$B" ]&&distinct $B $C1'
+ok "a-outline-new-keys-legacy-carried the ssh-ed25519 and pq-sha256 columns do not repeat generation 0 (a column left unchanged would keep a retired key in force); the legacy x25519 column is carried unchanged, no seal key is made" '[ "$C1" != "$B" ]&&cdis $B $C1&&[ -n "$(xcol $B)" ]&&[ "$(xcol $B)" = "$(xcol $C1)" ]'
 ok "a-outline-signed-by-current the commit is signed by the CURRENT (generation 0) sign key: its key fingerprint is key0's, and verify-commit against the ring at its parent exits 0" 'vp $C1&&[ "$($G -C $H/t -c gpg.format=ssh -c gpg.ssh.allowedSignersFile=$T/al log -1 --format=%GK $C1)" = "$(fp $K/key0.pub)" ]'
 ok "a-outline-key-installed after the restart the live sign key IS the ring's new ssh-ed25519 column and differs from generation 0" '[ "$(pub)" != "$K0" ]&&[ "$(own $C1|awk "\$2==\"ssh-ed25519\"{print \$2,\$3}")" = "$(pub)" ]'
 # D1 (mur on 00ffbe04c; DG1 05:47Z): the unit's steps in FILE ORDER (key step, root agi-signers, the rest, agi-out) must leave the file the BOX verifies against ($T/allowed, written by the unit's own agi-signers step) holding the NEW key after the ONE start that swapped it: nv KEYFILE = a commit by post1's identity signed with that key, verified against $T/allowed (hermetic)
@@ -83,7 +89,7 @@ ok "a-outline-pq-32 the pq-sha256 column is 32 raw bytes" '[ "$C1" != "$B" ]&&[ 
 ok "a-outline-seal-is-ring the x25519 column is 32 raw bytes and IS the public half of ~/seal.key" '[ "$C1" != "$B" ]&&x=$(own $C1|awk "\$2==\"x25519\"{print \$3}");[ "$(echo $x|base64 -d 2>/dev/null|wc -c|tr -d " ")" = 32 ]&&[ "$x" = "$(sealpub $H/seal.key)" ]'
 ok "a-outline-no-key-bytes-in-commit the commit holds no private key block (the trunk is public)" '[ "$C1" != "$B" ]&&! $G -C $H/t show $C1|grep -aq -e "-\{5\}BEGIN [A-Z0-9 ]*PRIVATE KEY-\{5\}"'
 ok "a-outline-no-ring-text-left (e) no uncommitted ring text beside the one commit" '[ -z "$($G -C $H/t status --porcelain -- $R)" ]'
-ok "a-outline-retired-seal-deleted the retired SEAL key survives nowhere under the post's home" '! grep -rqF "$(cat $K/seal0)" $H --exclude-dir=t'
+ok "a-outline-legacy-seal-kept the legacy seal key is NOT rotated or copied: ~/seal.key is byte-for-byte generation 0's (it stays, read-only in effect, until the census of old-format shares reads 0), and the ring's x25519 column still names it" 'cmp -s $H/seal.key $K/seal0&&[ "$(xcol $C1)" = "$(sealpub $H/seal.key)" ]&&[ "$(grep -rlF "$(cat $K/seal0)" $H --exclude-dir=t|wc -l|tr -d " ")" = 1 ]'
 agirun
 # --- the crash restarts AFTER the out-line, and a RETRY of the out-line before agi-run consumes .fresh
 up;agirun;up;agirun
@@ -94,8 +100,8 @@ sleep 1;touch $H/.fresh;up;K2=$(pub);up;up
 ok "a-retry-idempotent an out-line whose start is RETRIED twice before agi-run consumes .fresh adds exactly 1 commit in all and keeps the key its first attempt made (ring commits $(rc $B), want 2)" '[ "$K2" != "$K1" ]&&[ "$(pub)" = "$K2" ]&&[ "$(rc $B)" = 2 ]'
 C2=$($G -C $H/t rev-parse HEAD);agirun
 ok "a-chain the second out-line is signed by generation 1 (key1's fingerprint) and verifies against the ring its parent holds; the post still holds exactly 3 lines" 'vp $C2&&[ "$($G -C $H/t -c gpg.format=ssh -c gpg.ssh.allowedSignersFile=$T/al log -1 --format=%GK $C2)" = "$(fp $K/key1.pub)" ]&&[ "$(own $C2|wc -l|tr -d " ")" = 3 ]'
-ok "a-chain-all-three-new the second out-line repeats none of the first one's three columns" 'distinct $C1 $C2'
-cp $H/seal.key $K/seal2;cp $CAP/$P $T/cap2
+ok "a-chain-new-keys-legacy-carried the second out-line repeats neither the ssh-ed25519 nor the pq-sha256 column of the first, and carries the legacy x25519 column unchanged" 'cdis $C1 $C2&&[ "$(xcol $C1)" = "$(xcol $C2)" ]'
+cp $H/seal.key $K/seal2;cp $H/.ssh/id_ed25519 $K/key2;cp $CAP/$P $T/cap2
 # --- (b) a crash BEFORE the land leaves the old line in force; the retry then completes
 B3=$($G -C $H/t rev-parse HEAD);K3=$(pub);RG3=$(rg $B3|md5sum);sleep 1;touch $H/.fresh;: >$T/failland;up;rm -f $T/failland
 ok "b-crash-before-land the land refused: the ring is unchanged, the old key still the live key, no new commit, .fresh still pending" '[ "$(rg|md5sum)" = "$RG3" ]&&[ "$(pub)" = "$K3" ]&&[ "$($G -C $H/t rev-parse HEAD)" = "$B3" ]&&[ -e $H/.fresh ]'
@@ -112,8 +118,8 @@ sleep 1;touch $H/.fresh;up;agirun
 ok "b-retry-completes after the refused land, the next start completes the out-line with exactly 1 commit and a new key (ring commits $(rc $B3), want 1)" '[ "$(rc $B3)" = 1 ]&&[ "$(pub)" != "$K3" ]&&[ "$(own|awk "\$2==\"ssh-ed25519\"{print \$2,\$3}")" = "$(pub)" ]'
 ok "e5-retry-rewraps-from-scratch after the refused commit the retry re-wraps from scratch: the live ~/seal.key opens the post's share to the SAME secret and IS the key the ring's x25519 column names; no ~/.ssh/n is left" '[ "$(opn $H/seal.key $CAP/$P)" = "$SH0" ]&&[ "$(own|awk "\$2==\"x25519\"{print \$3}")" = "$(sealpub $H/seal.key)" ]&&[ ! -e $H/.ssh/n ]'
 # --- OUT.4 (DG1 09:09Z, belam's rule 08:43Z via SM 09:08Z): a REFUSED out-line stops LOUD and ONCE (one distinct exit code the unit does not restart on, one refusal line, a marker that is READ and not rewritten, cleared by a newer .fresh or a success)
-# shims on top of the git one: ssh-keygen / python3 fail when $T/fail.<name> holds a word that is one of the arguments (-qN for the key, gen / wrap for the seal)
-for x in python3 ssh-keygen;do rp=$(command -v $x);printf '#!/bin/sh\n[ -e %s/fail.%s ]&&case " $* " in *" $(cat %s/fail.%s) "*)exit 1;;esac\nexec %s "$@"\n' $T $x $T $x $rp>$T/shim/$x;chmod +x $T/shim/$x;done
+# shims on top of the git one: ssh-keygen / age fail when $T/fail.<name> holds a word that is one of the arguments (-qN for the key, -d / -R for the age open / wrap)
+for x in age ssh-keygen;do rp=$(command -v $x);printf '#!/bin/sh\n[ -e %s/fail.%s ]&&case " $* " in *" $(cat %s/fail.%s) "*)exit 1;;esac\nexec %s "$@"\n' $T $x $T $x $rp>$T/shim/$x;chmod +x $T/shim/$x;done
 snap(){ (cd $H&&find . -path ./t -prune -o -print|sort);}
 Bq=$($G -C $H/t rev-parse HEAD);sleep 1;touch $H/.fresh;snap>$T/l0
 ex 'unset AGI_CAPSULE;agi-out' 2>$T/r5a;XA=$?;snap>$T/l1;M=$(comm -13 $T/l0 $T/l1);ex 'unset AGI_CAPSULE;agi-out' 2>$T/r5b;XB=$?
@@ -126,11 +132,11 @@ ecr n;e0=$?;ecr m;e1=$?;ecr mf;e2=$?;ecr fm;e3=$?
 ok "o4c-unit-exec-condition the unit template (engine-root.md, agi-post@.service) carries ONE out-refused ExecCondition (goal:g1.41 A3 adds a second, the agi-run skip: restart-bounds.t.sh) BEFORE the first ExecStartPre (RestartPreventExitStatus has no effect on ExecStartPre, systemd.service(5)); its sh -c, run in a scratch dir against the refusal's marker ($mk): no marker -> 0 (got $e0); a marker and no .fresh -> 2 (got $e1); .fresh NEWER than the marker -> 0 (got $e2); a marker NEWER than .fresh -> 2 (got $e3)" '[ "$ecn" = 1 ]&&[ "$ecl" = ExecCondition ]&&[ -n "$mk" ]&&[ "$e0" = 0 ]&&[ "$e1" = 2 ]&&[ "$e2" = 0 ]&&[ "$e3" = 2 ]'
 # the other refusals exit with the SAME code (a keygen, gen, wrap or commit failure is a refused out-line too)
 lsx(){ ls -A $H/.ssh|grep -v '^out-refused$'|tr '\n' ' ';}
-fl(){ lb=$(lsx);sleep 1;touch $H/.fresh;ex agi-out>/dev/null 2>&1;xc=$?;nl=0;[ -e $H/.ssh/n ]&&nl=1;[ "$(lsx)" = "$lb" ]||nl=1;rm -f $T/fail.python3 $T/fail.ssh-keygen $T/failland;rm -rf $H/.ssh/n;$G -C $H/t checkout -q -- $R 2>/dev/null;$G -C $H/t update-ref refs/heads/posts/$P $Bq;$G -C $H/t reset -q --hard $Bq;cp $T/capx2 $CAP/$P;}
+fl(){ lb=$(lsx);sleep 1;touch $H/.fresh;ex agi-out>/dev/null 2>&1;xc=$?;nl=0;[ -e $H/.ssh/n ]&&nl=1;[ "$(lsx)" = "$lb" ]||nl=1;rm -f $T/fail.age $T/fail.ssh-keygen $T/failland;rm -rf $H/.ssh/n;$G -C $H/t checkout -q -- $R 2>/dev/null;$G -C $H/t update-ref refs/heads/posts/$P $Bq;$G -C $H/t reset -q --hard $Bq;cp $T/capx2 $CAP/$P;}
 cp $CAP/$P $T/capx2
-printf %s -qN>$T/fail.ssh-keygen;fl;XK=$xc;NK=$nl;printf %s gen>$T/fail.python3;fl;XG=$xc;NG=$nl;printf %s wrap>$T/fail.python3;fl;XW=$xc;NW=$nl;: >$T/failland;fl;XM=$xc;NM=$nl
-ok "o4f-failures-same-code a keygen failure ($XK), a seal gen failure ($XG), a wrap failure ($XW) and a commit failure ($XM) exit with the SAME code as the R5 refusal ($XA), which is not 1" '[ "$XA" != 1 ]&&[ "$XK" = "$XA" ]&&[ "$XG" = "$XA" ]&&[ "$XW" = "$XA" ]&&[ "$XM" = "$XA" ]'
-ok "o4g-failures-leave-no-new-key (mur sm20 D1) a keygen ($NK), a seal gen ($NG), a wrap ($NW) and a commit failure ($NM) each leave NO ~/.ssh/n and no other new file under ~/.ssh BEHIND (checked BEFORE the harness' own cleanup: the dir holds a NEW private sign key after a seal-gen failure; 1 = left)" '[ "$NK" = 0 ]&&[ "$NG" = 0 ]&&[ "$NW" = 0 ]&&[ "$NM" = 0 ]'
+printf %s -qN>$T/fail.ssh-keygen;fl;XK=$xc;NK=$nl;printf %s -d>$T/fail.age;fl;XG=$xc;NG=$nl;printf %s -R>$T/fail.age;fl;XW=$xc;NW=$nl;: >$T/failland;fl;XM=$xc;NM=$nl
+ok "o4f-failures-same-code a keygen failure ($XK), an age open failure ($XG), an age wrap failure ($XW) and a commit failure ($XM) exit with the SAME code as the R5 refusal ($XA), which is not 1" '[ "$XA" != 1 ]&&[ "$XK" = "$XA" ]&&[ "$XG" = "$XA" ]&&[ "$XW" = "$XA" ]&&[ "$XM" = "$XA" ]'
+ok "o4g-failures-leave-no-new-key (mur sm20 D1) a keygen ($NK), an age open ($NG), an age wrap ($NW) and a commit failure ($NM) each leave NO ~/.ssh/n and no other new file under ~/.ssh BEHIND (checked BEFORE the harness' own cleanup: the dir holds a NEW private sign key after a seal-gen failure; 1 = left)" '[ "$NK" = 0 ]&&[ "$NG" = 0 ]&&[ "$NW" = 0 ]&&[ "$NM" = 0 ]'
 sleep 1;touch $H/.fresh;ex 'unset AGI_CAPSULE;agi-out' 2>$T/r5c;XC=$?
 ok "o4d-newer-fresh-clears-the-marker a .fresh NEWER than the refusal: the next start tries again: still refused = ONE refusal line again (got $(grep -c 'agi-out:' $T/r5c)) with the same code ($XC)" '[ "$(grep -c "agi-out:" $T/r5c)" = 1 ]&&[ "$XC" = "$XA" ]'
 sleep 1;touch $H/.fresh;up;K4=$(pub)
@@ -142,7 +148,7 @@ ok "o4e-success-leaves-no-marker the refusal left a marker under the post's home
 ex agi-turn>/dev/null 2>&1
 ok "r2a-share-mode-600 the share file after a successful rotation is mode 600 (got $(stat -c %a $CAP/$P)): written through the capsule .new under umask 77, the fixture's own share was 644" '[ "$(stat -c %a $CAP/$P)" = 600 ]'
 ok "r3-nothing-of-the-capsule-under-t after the rotations and the agi-turn sweep \`git -C t status --porcelain\` is EMPTY and no capsule file or directory exists under ~/t" '[ -z "$($G -C $H/t status --porcelain)" ]&&[ -z "$(find $H/t -path $H/t/.git -prune -o \( -name capsule -o -name "$P.new" -o -name "$P" \) -print)" ]'
-SHL="$(cut -d' ' -f2 $CAP/$P) $(cut -d' ' -f2 $T/cap0) $(cut -d' ' -f2 $T/cap1) $(cut -d' ' -f2 $T/cap2)";sh0=0;for x in $SHL;do $G -C $H/t log -p --all|grep -qF "$x"&&sh0=1;done
+shb(){ if [ "$(head -c21 $1)" = age-encryption.org/v1 ];then base64 -w0 $1;else cut -d' ' -f2 $1;fi;};SHL="$(shb $CAP/$P) $(shb $T/cap0) $(shb $T/cap1) $(shb $T/cap2)";sh0=0;for x in $SHL;do $G -C $H/t log -p --all|grep -qF "$x"&&sh0=1;done
 ok "r4-no-share-bytes-in-any-version no version of ~/t ($($G -C $H/t rev-list --all|wc -l|tr -d ' ') commits, \`git log -p --all\`) carries a share: neither the exact base64 of the four shares the run made (the fixture's and three re-wraps) nor a share-SHAPED line ('<name> <base64 of 32+ bytes + tag>', two fields, >= 80 base64 characters; ring lines have a type word between)" '[ "$sh0" = 0 ]&&! $G -C $H/t log -p --all|grep -qE "^[-+][a-z0-9-]+ [A-Za-z0-9+/]{80,}=*\$"'
 # r1: a capsule value the rail refuses: the SAME distinct code as the R5 refusal ($XA), ONE line, 0 ring commit, no .ssh/n, nothing created at the value's path; state saved and restored around each case
 sv(){ rm -rf $T/sv;mkdir $T/sv;cp -a $H/.ssh $T/sv/ssh;cp -a $H/seal.key $T/sv/seal.key;cp -a $CAP/$P $T/sv/share;Bs=$($G -C $H/t rev-parse HEAD);}
@@ -185,9 +191,9 @@ for v in .ssh/n .ssh seal.key .fresh o bin hooks .claude t/x;do pp='';[ "$v" = o
 # RESUME control (D1, DG1 11:31Z): a run KILLED right after its ring commit landed (N holds the keys the ring names) followed by a start that REFUSES leaves ~/.ssh/n INTACT (agi-out removes N only on a keygen / seal-gen failure, never in x() itself), and the next good start RESUMES
 printf '#!/bin/sh\ncase "$1" in *.new)[ -e %s/killmv ]&&{ rm -f %s/killmv;kill -9 $PPID;};;esac\nexec /bin/mv "$@"\n' $T $T>$T/shim/mv;chmod +x $T/shim/mv
 sv;: >$T/killmv;sleep 1;touch $H/.fresh;ex 'export AGI_CAPSULE=capsule;agi-out' >/dev/null 2>&1;xk=$?;rm -f $T/killmv
-Lk=$($G -C $H/t rev-list --count $Bs..HEAD -- $R);nk=0;[ -s $H/.ssh/n/seal.pub -a -s $H/.ssh/n/id_ed25519 ]&&nk=1;n0=$(cat $H/.ssh/n/seal.pub 2>/dev/null);i0=$(cat $H/.ssh/n/id_ed25519 2>/dev/null|md5sum)
-sleep 1;touch $H/.fresh;ex "export AGI_CAPSULE='a b';agi-out" 2>$T/r1.err;xr=$?;nr=0;[ "$(cat $H/.ssh/n/seal.pub 2>/dev/null)" = "$n0" ]&&[ "$(cat $H/.ssh/n/id_ed25519 2>/dev/null|md5sum)" = "$i0" ]&&[ -n "$n0" ]&&nr=1
-ok "r1s-resume-n-survives-a-refusing-start a run killed (exit $xk) right after its ring commit landed ($Lk ring commit, ~/.ssh/n holds the new keys: $nk), then a start that REFUSES (AGI_CAPSULE='a b': code $xr = $XA): ~/.ssh/n is INTACT (same seal.pub, same private key: $nr)" '[ "$Lk" = 1 ]&&[ "$nk" = 1 ]&&[ "$xr" = "$XA" ]&&[ "$nr" = 1 ]'
+Lk=$($G -C $H/t rev-list --count $Bs..HEAD -- $R);nk=0;[ -s $H/.ssh/n/id_ed25519.pub -a -s $H/.ssh/n/id_ed25519 ]&&nk=1;n0=$(cat $H/.ssh/n/id_ed25519.pub 2>/dev/null);i0=$(cat $H/.ssh/n/id_ed25519 2>/dev/null|md5sum)
+sleep 1;touch $H/.fresh;ex "export AGI_CAPSULE='a b';agi-out" 2>$T/r1.err;xr=$?;nr=0;[ "$(cat $H/.ssh/n/id_ed25519.pub 2>/dev/null)" = "$n0" ]&&[ "$(cat $H/.ssh/n/id_ed25519 2>/dev/null|md5sum)" = "$i0" ]&&[ -n "$n0" ]&&nr=1
+ok "r1s-resume-n-survives-a-refusing-start a run killed (exit $xk) right after its ring commit landed ($Lk ring commit, ~/.ssh/n holds the new keys: $nk), then a start that REFUSES (AGI_CAPSULE='a b': code $xr = $XA): ~/.ssh/n is INTACT (same public key, same private key: $nr)" '[ "$Lk" = 1 ]&&[ "$nk" = 1 ]&&[ "$xr" = "$XA" ]&&[ "$nr" = 1 ]'
 sleep 1;touch $H/.fresh;up
 ok "r1t-resume-after-refusal the next good start RESUMES: no second ring commit (got $($G -C $H/t rev-list --count $Bs..HEAD -- $R), want 1), the live sign key IS the ring's new column, ~/.ssh/n is gone, the share opens with the live seal to the same secret" '[ "$($G -C $H/t rev-list --count $Bs..HEAD -- $R)" = 1 ]&&[ "$(own|awk "\$2==\"ssh-ed25519\"{print \$2,\$3}")" = "$(pub)" ]&&[ ! -e $H/.ssh/n ]&&[ "$(opn $H/seal.key $CAP/$P)" = "$SH0" ]'
 agirun
@@ -209,13 +215,13 @@ RV=$(revouch $SM);gate $B4 $RV;ok "b-revouch-by-parent sm (the post's parent) re
 RO=$(revouch $Q);gate $B4 $RO;ok "b-revouch-by-sibling other (not an ancestor of the post) writing the same commit is refused" '[ $r != 0 ]&&[ $r != 124 ]'
 # --- (c) the capsule shares (AA2.68): S1 gen0's SEAL opened its share; S4 the next generation's SEAL opens the re-wrap (same share); X3 the retired SEAL, X4 another post's key, S2 the PUBLISHED retired sign key do not
 ok "s1-seal-opens-its-share generation 0's SEAL key opened its capsule share (the fixture, before any out-line)" '[ -n "$SH0" ]&&[ "$(opn $K/seal0 $T/cap0)" = "$SH0" ]'
-ok "s4-next-seal-opens-the-rewrap the first out-line CHANGED the post's capsule line and generation 1's SEAL (the ~/seal.key the ring column names) opens it to the SAME share" '[ "$(cat $T/cap1)" != "$(cat $T/cap0)" ]&&[ "$(opn $K/seal1 $T/cap1)" = "$SH0" ]'
-ok "x3-retired-seal-cannot-open the retired generation 0 SEAL does NOT open the new wrap" '[ -z "$(opn $K/seal0 $T/cap1)" ]'
-ok "x4-another-post-cannot-open another post's SEAL key does NOT open it" '[ "$(cat $T/cap1)" != "$(cat $T/cap0)" ]&&[ -z "$(opn $K/$Q.seal $T/cap1)" ]'
-python3 $T/seal.py sshx $K/key0 $K/key0.x;echo "$SH0"|python3 $T/seal.py wrap $(sealpub $K/key0.x)>$T/ctl.b64;echo "ctl $(cat $T/ctl.b64)">$T/ctl
-ok "s2-published-sign-key-cannot-open the PUBLISHED retired sign key (generation 0, its X25519 form) does NOT open the new wrap (control: a share wrapped to that very X25519 form, the folded design, DOES open: $( [ "$(opn $K/key0.x $T/ctl)" = "$SH0" ]&&echo yes||echo NO))" '[ "$(cat $T/cap1)" != "$(cat $T/cap0)" ]&&[ -z "$(opn $K/key0.x $T/cap1)" ]&&[ "$(opn $K/key0.x $T/ctl)" = "$SH0" ]'
+ok "s4-next-key-opens-the-rewrap the first out-line CHANGED the post's capsule share (an age file now) and generation 1's ssh key (the ring's new ssh-ed25519 column) opens it to the SAME share" '[ "$(cat $T/cap1)" != "$(cat $T/cap0)" ]&&[ "$(head -c21 $T/cap1)" = age-encryption.org/v1 ]&&[ "$(opa $K/key1 $T/cap1)" = "$SH0" ]'
+ok "x3-retired-key-cannot-open the retired generation 0 ssh key does NOT open the new wrap, nor does the retired seal key" '[ -n "$(opa $K/key1 $T/cap1)" ]&&[ -z "$(opa $K/key0 $T/cap1)" ]&&! python3 $ESCF open $K/seal0 <$T/cap1 >/dev/null 2>&1'
+ok "x4-another-post-cannot-open another post's SEAL key does NOT open it" '[ "$(cat $T/cap1)" != "$(cat $T/cap0)" ]&&[ -z "$(opa $K/$Q $T/cap1)" ]'
+echo "$SH0"|age -R $K/key0.pub -o $T/ctl
+ok "s2-published-sign-key-cannot-open the PUBLISHED retired sign key (generation 0) does NOT open the new wrap (control: a share wrapped to that very key DOES open: $( [ "$(opa $K/key0 $T/ctl)" = "$SH0" ]&&echo yes||echo NO))" '[ "$(cat $T/cap1)" != "$(cat $T/cap0)" ]&&[ -z "$(opa $K/key0 $T/cap1)" ]&&[ "$(opa $K/key0 $T/ctl)" = "$SH0" ]'
 ok "x-other-share-untouched the other post's capsule line is byte-for-byte unchanged by $P's out-lines" 'cmp -s $CAP/$Q $T/capq0'
-ok "s4b-share-survives-two-generations after the second out-line generation 2's SEAL opens the line to the same share and generation 1's does not" '[ "$(opn $K/seal2 $T/cap2)" = "$SH0" ]&&[ -z "$(opn $K/seal1 $T/cap2)" ]'
+ok "s4b-share-survives-two-generations after the second out-line generation 2's ssh key opens the share to the same secret (age to age) and generation 1's does not" '[ "$(opa $K/key2 $T/cap2)" = "$SH0" ]&&[ -z "$(opa $K/key1 $T/cap2)" ]'
 # --- (c) bounds: the unit lines, and the agi-fresh one-box cases still pass
 ok "bytes the unit's sh -c ExecStartPre lines are <= $CEIL B ($(wc -c<$T/unit) B; 1180 -> 1500 at .41 cut 3 (fresh dir + swap + fail closed, +319 B); today 695 B + <= 95 B, DG1's ceiling, 790 -> 810 at OUT.7 (the stale-t skip step adds 69 B: this join 718 -> 787 B, agi-fresh's 740 -> 809 B; 810 serves both because the fresh-still-passes lane hands this CEIL to agi-fresh, so the pair agree; 810 -> 828 at OUT.8: the skip also looks on the unit PATH, +18 B, join 787 -> 805, agi-fresh 809 -> 827); the builder reports any helper's bytes beside it)" '[ $(wc -c<$T/unit) -le $CEIL ]'
 ok "fresh-still-passes agi-fresh.t.sh (crash keeps the key and appends 0, the retry cases) exits 0 on ROOT's unit (its own bytes lane at THIS ceiling: the two agree) ($(CEIL=$CEIL ROOT=$R0 sh $SELF/agi-fresh.t.sh 2>&1|tail -1))" 'CEIL=$CEIL ROOT=$R0 sh $SELF/agi-fresh.t.sh >$T/fresh.out 2>&1'
