@@ -117,15 +117,15 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 | # | atom (owner ask, short) | source | state | lap |
 |---|---|---|---|---|
 | 1.1 | "button down the graph-interface design" | src:doc | target:§0–§2 | lap124501 |
-| 1.2 | "simplify / unify" | src:doc | target:§0 (every rule = a cell), §24 (one spawn path) | lap124501 |
+| 1.2 | "simplify / unify" | src:doc | leaf:goal:g7.16.1.11.46.21 (W2 L122) | lap124501 |
 | 1.3 | "compare with matrix-skills" | src:doc | target:§1 (take O/check + api module; leave its engine) | lap124501 |
 | 1.4 | "MCP auto-start" | src:doc | target:§6 (wake abstraction; start = visitor) · decision:§21-Part I #2 | lap124501 |
 | 1.5 | "MCP push" | src:doc | target:§6/§26 (no push dependence; wake tool + fifo) | lap124501 |
 | 1.6 | "filesystem-like MCP by post identity" | src:doc | target:§6 (resources = scope closure; visitor default) — thin, one line | lap124501 |
 | 1.7 | "cross-compat CC / codex / grok / pi" | src:doc | target:§8, §26, §28 | lap124501 |
 | 1.8 | "engine updates reach seeds without re-project" | src:doc | target:§4 (root fixpoint on the trunk ref) | lap124501 |
-| 1.9 | "mathematical guardrails: scope/graph packs, parent/kid inheritance" | src:doc | target:§2 (§Z1/§Z2), §24 (`scope ⊆ director's`) | lap124501 |
-| 1.10 | "move tooling with fewer pieces" | src:doc | target:§5 (pack → row → tick → in) | lap124501 |
+| 1.9 | "mathematical guardrails: scope/graph packs, parent/kid inheritance" | src:doc | leaf:goal:g7.16.1.11.46.21 (W2 L122) | lap124501 |
+| 1.10 | "move tooling with fewer pieces" | src:doc | leaf:goal:g7.16.1.11.46.22 (W2 L122) | lap124501 |
 | 1.11 | "matrix math for a Go port" | src:doc | target:§7 "Go: not now" (one algebra module, port only on latency) | lap124501 |
 | 1.12 | "compare openrig / herdr / t3" | src:doc | target:§8 | lap124501 |
 
@@ -133,14 +133,14 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 | # | atom (owner ask, short) | source | state | lap |
 |---|---|---|---|---|
 | 2.1 | "restore the Prime's session" | src:doc | leaf:goal:g7.16.1.11.46.1 (V0) · was: done (restore.sh; V0 leaf) | lap124501 |
-| 2.2 | "credentials ride in a capsule / reuse the username slot" | src:doc | target:leaf:V1 (cred piece) · decision:§21 #2 | lap124501 |
-| 2.3 | "identity = composable key over signed pieces, re-hashed on swap, continuity = the history" | src:doc | target:§9 · decision:§21 #1 | lap124501 |
+| 2.2 | "credentials ride in a capsule / reuse the username slot" | src:doc | leaf:goal:g7.16.1.11.46.20 (W2 L122) | lap124501 |
+| 2.3 | "identity = composable key over signed pieces, re-hashed on swap, continuity = the history" | src:doc | leaf:goal:g7.16.1.11.46.19 (W2 L122) | lap124501 |
 | 2.4 | "optmem: Prime always; council/keep per season; directors per goal; parents/kids in optchat" | src:doc | target:§11 (`mem:` cell) · decision:§21 #5 · §37 (the ledger) | lap124501 |
 | 2.5 | "fully hash-based ids, minimize public/private keys" | src:doc | target:§10 (boundary set B) · decision:§21 #3 | lap124501 |
 | 2.6 | "daisy-chained hashes as the post's sense of time" | src:doc | target:§10 (time = chain/block height) · decision:§21 #4 — covered under other words | lap124501 |
 | 2.7 | "each node a location in a matrix space; traversal = matrix op" | src:doc | target:§12 (words in, algebra in the engine) · §32 (graph distance is the coordinate) | lap124501 |
 | 2.8 | "actions as vectors; mail as a vector" | src:doc | target:§12 (alphabet Σ, M_a) | lap124501 |
-| 2.9 | "workflows ARE spawns ARE subagents ARE posts" | src:doc | target:§24, §27, §29 (flow = chain = post node) | lap124501 |
+| 2.9 | "workflows ARE spawns ARE subagents ARE posts" | src:doc | leaf:goal:g7.16.1.11.46.21 (W2 L122) | lap124501 |
 | 2.10 | "soft constraints: no hard cornering / teleportation" | src:doc | target:§12 (word length k, transition matrix T, phase bound Θ) | lap124501 |
 | 2.11 | "a jev experience for all models" | src:doc | target:§12 (one line) — thin; g1.25 jev grammar is the owner of it | lap124501 |
 | 2.12 | "can LLMs tolerate matrix-encoded control" | src:doc | target:§12 (no: never numbers in a prompt) · decision:§21 #6 | lap124501 |
@@ -156,9 +156,9 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 | 2.22 | "live-stream its own progress; interactive games for income" | src:doc | target:deferred:season 4 (§20 dependencies) | lap124501 |
 | 2.23 | "stream-master with optchat/optmem always on" | src:doc | target:§11 (`mem: always` row) + §20 | lap124501 |
 | 2.24 | "animated avatars via mystudio.fun; grant; hold tokens for credits" | src:doc | target:§20 (mystudios.fun = reseller, no avatar product; treasury = owner) | lap124501 |
-| 2.25 | "a second subscription for split logins" | src:doc | target:§27 (`cred: <capsule>` per row, own slot) | lap124501 |
+| 2.25 | "a second subscription for split logins" | src:doc | leaf:goal:g7.16.1.11.46.20 (W2 L122) | lap124501 |
 | 2.26 | "import other projects; let others use the system; season 0→1 as init" | src:doc | target:§16 (season-0 capsule) — one section, thin on "others use it" | lap124501 |
-| 2.27 | "replace grow.py / links.py with shell or chain checks; auto-written links" | src:doc | target:§17, §23, §34.6 | lap124501 |
+| 2.27 | "replace grow.py / links.py with shell or chain checks; auto-written links" | src:doc | leaf:goal:g7.16.1.11.46.15 (W2 L122) | lap124501 |
 | 2.28 | "self-summarizable graph via optmem/optchat per chain" | src:doc | target:§11 (store = node tree; brief = recall) | lap124501 |
 | 2.29 | "spiders crawl / test / fix / launch ideas; no more gating or waiting" | src:doc | target:§18, §31, §32, §34 · decision:§21 #9 | lap124501 |
 | 2.30 | "IOMap goal: shapes before build; primitive transport; lower-level / inverse abstractions later" | src:doc | target:§19 · decision:§21 #10 · deferred:season 4 (inverse/assembly) | lap124501 |
@@ -167,11 +167,11 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 **throw 3 (10-23) — the ten reading questions**
 | # | atom (owner ask, short) | source | state | lap |
 |---|---|---|---|---|
-| 3.1 | "retire the python; only keygen/hashing left?" | src:doc | target:§23 (keygen/hashing already shell; 4 pieces to port) | lap124501 |
-| 3.2 | "one spawn/dispatch path; pull setting" | src:doc | target:§24 | lap124501 |
-| 3.3 | "grid monolith, node = branch, post = slice; spiders under council; red-team" | src:doc | target:§25, §34.1 | lap124501 |
+| 3.1 | "retire the python; only keygen/hashing left?" | src:doc | leaf:goal:g7.16.1.11.46.15 (W2 L122) | lap124501 |
+| 3.2 | "one spawn/dispatch path; pull setting" | src:doc | leaf:goal:g7.16.1.11.46.21 (W2 L122) | lap124501 |
+| 3.3 | "grid monolith, node = branch, post = slice; spiders under council; red-team" | src:doc | leaf:goal:g7.16.1.11.46.18 (W2 L122) | lap124501 |
 | 3.4 | "MCP single surface; pane; mixed harnesses; fifo fallback" | src:doc | target:§26 | lap124501 |
-| 3.5 | "mint id per post and kid; inherit director's slot; different login" | src:doc | target:§27 | lap124501 |
+| 3.5 | "mint id per post and kid; inherit director's slot; different login" | src:doc | leaf:goal:g7.16.1.11.46.19 (W2 L122) | lap124501 |
 | 3.6 | "full plugin" | src:doc | target:§28 | lap124501 |
 | 3.7 | "directors vs parents vs kids; chain-launch; batch" | src:doc | target:§29, §34.2 | lap124501 |
 | 3.8 | "pi 1.x now; deepseek flash; GLM; A/B with Claude keys" | src:doc | leaf:goal:g7.16.1.11.46.9 (P1) (L74) · was: §30, §34.3 | lap124501 |
@@ -184,8 +184,8 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 |---|---|---|---|---|
 | 4.1 | "red-team = anti-fragile's; unify = all-is-one's; tune = alive's" | src:doc | target:§34.1 (flag: no council post named anti-fragile) | lap124501 |
 | 4.2 | "GLM = the flash one" | src:doc | leaf:goal:g7.16.1.11.46.9 (P1) (L74) · was: §34.3 | lap124501 |
-| 4.3 | "census: count tips; old versions as deprecated?" | src:doc | target:§34.5 (tips yes; versions are commits, not deprecated nodes) | lap124501 |
-| 4.4 | "port the rest of the python safely" | src:doc | target:§34.6 | lap124501 |
+| 4.3 | "census: count tips; old versions as deprecated?" | src:doc | leaf:goal:g7.16.1.11.46.16 (W2 L122) | lap124501 |
+| 4.4 | "port the rest of the python safely" | src:doc | leaf:goal:g7.16.1.11.46.15 (W2 L122) | lap124501 |
 | 5.1 | "posts, never seats; stand guard, never idle" | src:doc | target:§35 (V10 + the walk as idle state) | lap124501 |
 | 6.1 | "service-account key in Doppler; workload identity later?; needed for batching?" | src:doc | leaf:goal:g7.16.1.11.46.6 (C1) (L74) · was: §36 (cannot mint keys; WIF = season 4; not needed for batching) | lap124501 |
 | 6.2 | "automatic vs manual prompt caching" | src:doc | target:§36.3 | lap124501 |
@@ -194,19 +194,24 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 **added 10-23 (council V10a decision, alive 21:06Z) — not a brainstorm throw: unregistered in the trajectory on purpose (council R4, 10-25)**
 | # | atom (owner ask, short) | source | state | lap |
 |---|---|---|---|---|
-| 8.1 | "seat_status.py retire" | src:af6b174d9c507c5f812992fdd993b12b62b45da6 | target:the §34.5 census-cell leaf (wave 2) | lap124501 |
+| 8.1 | "seat_status.py retire" | src:af6b174d9c507c5f812992fdd993b12b62b45da6 | leaf:goal:g7.16.1.11.46.16 (W2 L122) | lap124501 |
 | 9.1 | "if a director has claimed a given goal leaf or hypothesis leaf or whatever or a bundle of them, let them get notice automatically via mail system that hey your bundle pre-req's have cleared and it's just a simple little unified system that is all wired into the data already available via the town board/trajectory and the post cards" | src:goal:g7.16.1.11.46.12#OWNER | leaf:goal:g7.16.1.11.46.12 (L78, director-goals-1) | lap124501 |
 
 **added 10-24 (owner 07:2xZ) — not a brainstorm throw: unregistered in the trajectory on purpose (council R4, 10-25)**
 | # | atom (owner ask, short) | source | state | lap |
 |---|---|---|---|---|
-| a1 | "Retire write py for sure we don’t need it at all and need to retire that whole build node as the capsule wrapper now tags everything for us using standard read routes" | src:goal:g7.16.1.11.46#OWNER | target:W2 brief 2 leaf V8a (write.py out; supersedes g4.18.7) | lap124501 |
-| a2 | "We need to redo the renderer if needed to be a git based graph system that uses the minimal shell code matrix integrated design" | src:goal:g7.16.1.11.46#OWNER | target:W2 brief 2 leaf G1b (compose/split = the git-based renderer) | lap124501 |
+| a1 | "Retire write py for sure we don’t need it at all and need to retire that whole build node as the capsule wrapper now tags everything for us using standard read routes" | src:goal:g7.16.1.11.46#OWNER | leaf:goal:g7.16.1.11.46.23 (W2 L122) | lap124501 |
+| a2 | "We need to redo the renderer if needed to be a git based graph system that uses the minimal shell code matrix integrated design" | src:goal:g7.16.1.11.46#OWNER | leaf:goal:g7.16.1.11.46.18 (W2 L122) | lap124501 |
+
+**added 10-25 (owner 18:4xZ) — not a brainstorm throw: unregistered in the trajectory on purpose**
+| # | atom (owner ask, short) | source | state | lap |
+|---|---|---|---|---|
+| b1 | "we're trying to see how to best compose using the claude console with the openrouter models to create a system optimized for high-speed failure analysis and healing" | src:owner 18:4xZ 10-25 (chat) | target:W3 spider families red/unify/tune (§34.1, §18) on the Console lane (C1 live 10-25) + P1's OpenRouter arms; stall_watch is its first sensor; to council via SM | lap124510 |
 
 **throw 10 (10-24) — §40 the owner-facing post: full memory beside the atoms (the fork's throw 8, renumbered on intake)**
 | # | atom (owner ask, short) | source | state | lap |
 |---|---|---|---|---|
-| 10.1 | "the owner-facing post gets a full optmem/chat memory beside the atoms (via pi-optchat or UniiChat if needed)" | src:doc | target:§40 V4 pulled forward, claude-code adapter (W2); no routing: the store is ours, harnesses are adapters | lap124503 |
+| 10.1 | "the owner-facing post gets a full optmem/chat memory beside the atoms (via pi-optchat or UniiChat if needed)" | src:doc | leaf:goal:g7.16.1.11.46.24 (W2 L122) (the adapter half; the store half = .46.13) | lap124503 |
 | 10.2 | "every chunk is marked to an atom; several chunks map to one atom (the owner asking, the agent acknowledging)" | src:doc | leaf:goal:g7.16.1.11.46.14 | lap124503 |
 | 10.3 | "the post relays any atoms missing vs its memories to the Prime, periodically" | src:doc | target:§40 M8 walk check 1 + one batched atoms: relay per lap (W3) | lap124503 |
 | 10.4 | "the post can say: you asked X at this day/time; recorded here, being worked on / not transferred yet, marked for the spiders" | src:doc | leaf:goal:g7.16.1.11.46.14 | lap124503 |
