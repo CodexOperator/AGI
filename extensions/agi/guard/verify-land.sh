@@ -27,6 +27,12 @@ hits=[h for f in sys.argv[1:] for h in homes if h+'/' in open(f,errors='replace'
 print('home hits', hits);sys.exit(1 if hits else 0)
 P
 echo "gpu: $(grep -c -i -E 'nvidia|cuda|gpu' "$S/$N.diff")"   # a reading, not a hold (as before VL)
+# cite (council 3/3, alive 21:31:33Z 10-25, M10 row b): a land that changes a node file holding a `## OWNER` block (at BASE or LAND; broader than a changed
+# heading, so a body edit that drops a cited chunk id is caught) runs agi-mem cite on the LAND tree; rc != 0 (a violation or unread) holds the land
+o=$(for x in $(git diff --name-only $B $L -- .agi/nodes);do { git show $L:$x 2>/dev/null;git show $B:$x 2>/dev/null;}|grep -q '^## OWNER'&&echo $x;done)
+if [ -n "$o" ];then w=$(mktemp -d)/land;if git worktree add -q --detach $w $L 2>/dev/null;then r=$(AGI_ENGINE=$w AGI_POST=belam agi-mem cite 2>&1);a=$?;git worktree remove --force $w
+  printf '%s\n' "$r";echo "cite=$a ($(echo $o|wc -w) OWNER file(s))";[ $a = 0 ]||hold cite;else echo "cite: unread (no land worktree)";hold cite;fi
+else echo "cite: n/a (no OWNER file changed)";fi
 # self (council VL): this copy must be the pin's repo blob, and the one on PATH; the ~/tools copy is retired
 pin=$(sed -n 's/^AGI_TRUNK=//p' "${VL_CARRY:-/etc/agi/carry.env}" 2>/dev/null|tail -1);rb=$(git -C "$MAIN" show "$pin:extensions/agi/guard/verify-land.sh" 2>/dev/null|sha256sum|cut -c1-64);me=$(sha256sum <"$0"|cut -c1-64)
 if [ -n "$pin" ]&&[ "$rb" = "$me" ];then echo "self: = the pin's blob ($(echo $me|cut -c1-12))";else echo "verify-land: unread (installed != repo at pin ${pin:-<none>})";hold self;fi

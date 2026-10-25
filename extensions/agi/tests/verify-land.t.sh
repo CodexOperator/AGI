@@ -9,17 +9,20 @@ ssh-keygen -q -t ed25519 -N '' -C t@t -f $T/k||exit 99;printf 't@t namespaces="g
 R=$T/r;git init -q $R;g(){ git -C $R "$@";}
 g config user.name t;g config user.email t@t;g config gpg.format ssh;g config user.signingkey $T/k;g config gpg.ssh.allowedSignersFile $T/allowed;g config commit.gpgsign true
 mkdir -p $R/extensions/agi/guard $R/docs $R/.agi;echo '{}' >$R/.agi/config.json;cp "$VL" $R/extensions/agi/guard/verify-land.sh;echo a >$R/docs/a;echo keep >$R/docs/keep;g add -A;g commit -qm base;BASE=$(g rev-parse HEAD)
-mkdir -p $T/bin;cp "$VL" $T/bin/verify-land;chmod 755 $T/bin/verify-land;printf 'AGI_TRUNK=%s\n' $BASE >$T/carry.env
+mkdir -p $T/bin;cp "$VL" $T/bin/verify-land;chmod 755 $T/bin/verify-land
+# the stub agi-mem: logs its argv and the AGI_ENGINE tree's OWNER files, exits $STUB_CITE_RC (the lane tests the WIRING; agi-mem cite has its own lane, owner-cite.t.sh)
+printf '%s\n' '#!/bin/sh' 'echo "$* engine-owner-files=$(grep -rl "^## OWNER" "$AGI_ENGINE/.agi/nodes" 2>/dev/null|wc -l)" >>$STUB_LOG/cite.log' 'echo "owner-cite: stub rc ${STUB_CITE_RC:-0}"' 'exit ${STUB_CITE_RC:-0}' >$T/bin/agi-mem;chmod 755 $T/bin/agi-mem
+printf 'AGI_TRUNK=%s\n' $BASE >$T/carry.env
 # gate(NAME, edit...): a gate tip on BASE (signed unless UNSIGNED=1), then the land = merge(BASE, tip) signed, held as NAME
 gate(){ n=$1;shift;g checkout -q --detach $BASE;eval "$*";g add -A;if [ -n "$UNSIGNED" ];then g -c commit.gpgsign=false commit -qm "tip $n";else g commit -qm "tip $n";fi;GT=$(g rev-parse HEAD)
  tr=$(g merge-tree --write-tree $BASE $GT|head -1);[ -z "$XTRA" ]||{ g checkout -q --detach $GT;echo x >$R/docs/smuggled;g add -A;tr=$(g write-tree);g reset -q --hard $GT;}
  LD=$(g commit-tree -S -p $BASE -p $GT -m "land $n" $tr);g update-ref refs/heads/vl/$n $LD;g update-ref refs/held/sanctuary-master/$n $LD;}
-run(){ env -i PATH=$T/bin:/usr/bin:/bin HOME=$T VL_T=$R VL_MAIN=$R VL_OUT=$T/out VL_ANON=$R0/extensions/agi/bin/anonymize.py VL_CARRY=${CARRY:-$T/carry.env} VL_INSTALLED=$T/bin/verify-land VL_TOOLS=$T/tools/verify-land.sh ${XPATH:+PATH=$XPATH} sh ${SELF:-$T/bin/verify-land} "$@" >$T/o 2>&1;rc=$?;}
+run(){ env -i PATH=$T/bin:/usr/bin:/bin HOME=$T VL_T=$R VL_MAIN=$R VL_OUT=$T/out VL_ANON=$R0/extensions/agi/bin/anonymize.py VL_CARRY=${CARRY:-$T/carry.env} VL_INSTALLED=$T/bin/verify-land VL_TOOLS=$T/tools/verify-land.sh STUB_LOG=$T STUB_CITE_RC=${CRC:-0} ${XPATH:+PATH=$XPATH} sh ${SELF:-$T/bin/verify-land} "$@" >$T/o 2>&1;rc=$?;}
 v(){ tail -1 $T/o;}
 # --- clean
 gate c 'echo b >$R/docs/b';run c $LD $BASE $GT
 ok "c-a-clean-signed-land-reads-OK rc $rc, $(v)" '[ $rc = 0 ]&&[ "$(v)" = "verify-land: OK" ]'
-ok "c-b-the-readings-are-all-printed $(grep -c -E '^(held|parents|tree|sigs|D|anon-diff|anon-msg|home hits|gpu|self)' $T/o) of 10" '[ "$(grep -c -E "^(held|parents|tree|sigs|D|anon-diff|anon-msg|home hits|gpu|self)" $T/o)" = 10 ]'
+ok "c-b-the-readings-are-all-printed $(grep -c -E '^(held|parents|tree|sigs|D|anon-diff|anon-msg|home hits|gpu|cite|self)' $T/o) of 11, cite n/a: $(grep -c '^cite: n/a' $T/o)" '[ "$(grep -c -E "^(held|parents|tree|sigs|D|anon-diff|anon-msg|home hits|gpu|cite|self)" $T/o)" = 11 ]&&grep -q "^cite: n/a" $T/o&&[ ! -s $T/cite.log ]'
 # --- one hostile land per existing check
 XTRA=1 gate t 'echo b >$R/docs/b';run t $LD $BASE $GT
 ok "h1-tree-not-merge-tree-HOLDS rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*tree"'
@@ -43,4 +46,15 @@ cp "$VL" $T/tools/verify-land.sh;run c $LD $BASE $GT;rm -f $T/tools/verify-land.
 ok "s3-a-live-tools-copy-is-RED rc $rc, $(v)" '[ $rc = 1 ]&&grep -q "RED the box-local copy" $T/o&&v|grep -q "HOLD (.*tools-copy"'
 rm -rf $T/tools;run c $LD $BASE $GT
 ok "s4-and-clean-again rc $rc, $(v)" '[ $rc = 0 ]'
+# --- cite (M10 row b): an OWNER file in the land -> agi-mem cite on the LAND tree; its rc decides
+own='mkdir -p $R/.agi/nodes/idea;printf "## OWNER 2026-10-25\\nthe ask\\n\\n## Idea\\nx\\n" >$R/.agi/nodes/idea/zz.md'
+: >$T/cite.log;gate o "$own";CRC=1;run o $LD $BASE $GT;CRC=
+ok "b1-a-new-OWNER-file-runs-cite-on-the-land-tree-and-a-violation-HOLDS rc $rc, called: $(cat $T/cite.log), $(v)" '[ $rc = 1 ]&&grep -qx "cite engine-owner-files=1" $T/cite.log&&v|grep -q "HOLD (cite)"'
+: >$T/cite.log;gate o "$own";run o $LD $BASE $GT
+ok "b2-the-same-land-with-cite-rc0-is-OK rc $rc, $(grep '^cite=' $T/o), $(v)" '[ $rc = 0 ]&&grep -q "^cite=0 (1 OWNER file(s))" $T/o'
+g checkout -q --detach $BASE;eval "$own";g add -A;g commit -qm "base2 with an OWNER block";B2=$(g rev-parse HEAD);printf 'AGI_TRUNK=%s\n' $B2 >$T/carry2.env
+g checkout -q --detach $B2;printf "## OWNER 2026-10-25\nthe ask, edited (no id now)\n\n## Idea\nx\n" >$R/.agi/nodes/idea/zz.md;g add -A;g commit -qm "tip body";GT=$(g rev-parse HEAD)
+LD=$(g commit-tree -S -p $B2 -p $GT -m "land body" $(g merge-tree --write-tree $B2 $GT|head -1));g update-ref refs/held/sanctuary-master/bd $LD
+: >$T/cite.log;CRC=1;CARRY=$T/carry2.env;run bd $LD $B2 $GT;CRC=;CARRY=
+ok "b3-a-BODY-edit-in-an-OWNER-block-runs-cite-too (no heading changed) rc $rc, called: $(wc -l <$T/cite.log), $(v)" '[ $rc = 1 ]&&[ -s $T/cite.log ]&&v|grep -q "HOLD (cite)"'
 echo "verify-land: $f FAIL";exit $f
