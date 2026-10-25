@@ -488,8 +488,7 @@ def _row_write_submit(graph: Path, rows: list, actor: str, role: str) -> bool:
 def _seats_rows(graph: Path) -> list:
     """The current `config:seats` rows on disk, or [] when absent."""
     try:
-        import write as write_mod  # local
-        return list(write_mod._load_seats(graph))
+        return list(geometry_config.load_rows(graph))
     except Exception:                                          # noqa: BLE001
         return []
 
