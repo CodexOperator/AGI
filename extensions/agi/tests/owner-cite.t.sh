@@ -184,6 +184,6 @@ rn;nn n-p "## OWNER x, verbatim
 no id
 ";CTX
 ok "p1-runs-on-a-post-with-no-mem-row posts.md unreadable (AGI_TRUNK=nosuch) and the post q has no row: cite still runs and names the block (a silent exit 0 would pass it): rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "RED goal:n-p"'
-MUT 's/\[ "\$1" = cite \]||\[ "\$(printf/[ "$1" = nocite ]||[ "$(printf/' agi-mem;CTX $D/mut_agi-mem $E
+MUT 's/\[ "\$1" = cite \]||case/[ "$1" = nocite ]||case/' agi-mem;CTX $D/mut_agi-mem $E
 ok "p1m-mutant-gated-by-the-mem-row-RED a cite that sits behind the mem: full gate exits 0 and says nothing on a post without a row (rc $rc, output '$o'): the lane wants the block named" '[ $rc = 0 ]&&[ -z "$o" ]'
 echo "owner-cite: $f FAIL";exit $f

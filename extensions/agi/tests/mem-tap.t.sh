@@ -142,7 +142,7 @@ ok "r6-stop-hook-is-new settings.json wires 'agi-mem tap' on Stop beside agi-tur
 # ---- R6' / R7' (alive 15:1xZ): the cell is read from ROW lines only (the real posts.md has a `  - goal:g7` frontmatter item before `posts:` that killed the first pipeline), and a read that FAILS is named, never silent
 nh r6r;UL u1 "words" >>$X;TAP>/dev/null
 ok "r7p-real-frontmatter-shape-still-taps the fixture carries the real frontmatter shape (parents: + '  - goal:g7' before posts:) and the full row still taps (chunks $(nchunks))" '[ "$(nchunks)" = 1 ]&&grep -q "^  - goal:g7$" $E/.agi/nodes/.geometry/posts.md'
-MUT 's/sed -n .s\/^  - {\/{\/p.|jq -rR "fromjson?|/sed -n "s\/^  - \/\/p"|jq -r "/' agi-mem;nh r6r2;UL u1 "words" >>$X;TAP $D/mut>/dev/null
+MUT 's/sed -n .s\/^  - {\/{\/p.|jq -cR "fromjson?|/sed -n "s\/^  - \/\/p"|jq -c "/' agi-mem;nh r6r2;UL u1 "words" >>$X;TAP $D/mut>/dev/null
 ok "r7p-mutant-the-old-hand-parser-RED the first pipeline (every '  - ' line piped to jq) taps NOTHING on the real shape (chunks $(nchunks)): the lane above wants 1" '[ "$(nchunks)" = 0 ]'
 nh r6r3;UL u1 "words" >>$X;o=$(echo "{\"transcript_path\":\"$X\",\"session_id\":\"S1\"}"|env HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_TRUNK=nosuchref PATH=$D/bin:$PATH sh $D/bin/agi-mem tap 2>&1;echo "rc=$?");a=$(env HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_TRUNK=nosuchref PATH=$D/bin:$PATH sh $D/bin/agi-mem at 2>&1)
 ok "r6p-unreadable-posts-md-is-named a trunk ref that cannot be read: tap = ONE [mem] warn and rc 0 ($(echo "$o"|tr '\n' '|')), at = 'mem: unread' (got '$a')" '[ "$(echo "$o"|grep -c "^\[mem\] warn")" = 1 ]&&echo "$o"|grep -q "^rc=0$"&&[ "$a" = "mem: unread" ]'
