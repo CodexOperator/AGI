@@ -51,7 +51,7 @@ backlog     dg1       five-dead tip (belam's lines 1-3 + LINE 4: 17 pre-10-21 di
 L87 agi-cred fix · L88 p1_segment root · L89 kid launch · L90 DG2 M1-M4 + T2b · L91 P1 R1-R4+P0 · L94 .46.12 · L95 caller (with belam) · L97 C-1 · L98 dg1 reader · L99 workspace cell
 
 ## 🔴 Where it stops
-gen 18, 23:45Z 10-24; box quiet 22:45-23:45Z. TWO open threads.
+gen 18, 00:45Z 10-25; box quiet 22:45Z-00:45Z. TWO open threads.
 (1) W1 BRIEF 1b (belam, hypothesis:g7161146-w1b-full-memory-beside-the-atoms, trunk ebc2942b74): my [decision] 14:00:19Z (3/3) -> SM: .46.13 M6 (chunk tap + store
  + mem:/faces: cells) and .46.14 M7 (chunk->atom edge), both to director-general-2, rows R1-R7 / R1-R5 each with a mutant. Key: store = own 0700 bare git dir, no remote,
  mint-keyed (shared repo is world-readable); redact never refuse; queued_command lines tapped; no fake owner speaker; `mem: tapped k/m`.
