@@ -31,7 +31,8 @@ SP=$T/spool/alarm.spool
 fixgeo(){ { printf -- '---\nid: config:posts\nmint_id: 00000000000000000000000000000005\ntype: config\n---\nposts:\n'
  for r in 'belam|owner|1' 'sanctuary-master|belam|1' 'director-goals-1|sanctuary-master|1' 'director-general-2|sanctuary-master|1' 'deep-post|director-goals-1|1' 'inert|sanctuary-master|0' 'old-retired|sanctuary-master|1';do n=${r%%|*};q=${r#*|};pa=${q%|*};h=${q#*|};if [ $h = 1 ];then printf '  - {"name": "%s", "parent": "%s", "harness": "claude-code"}\n' $n $pa;else printf '  - {"name": "%s", "parent": "%s"}\n' $n $pa;fi;done
  printf '  - {"name": "council", "parent": "belam", "role": "council", "members": []}\n';} >$R/.agi/nodes/.geometry/posts.md
- sed -n '/^### box (/,/^### [^b]/p' $R0/.agi/nodes/.geometry/engine-post.md >$R/.agi/nodes/.geometry/engine-post.md;}
+ sed -n '/^### box (/,/^### [^b]/p' $R0/.agi/nodes/.geometry/engine-post.md >$R/.agi/nodes/.geometry/engine-post.md
+ printf -- '---\nid: cron:crons\ntype: cron\ncadences:\n  prereq_notice:\n    every_mins: 3\n    enabled: true\n---\n' >$R/.agi/nodes/.geometry/crons.md;}   # the cell the reader's ON/OFF state reads
 newrepo(){ R=${1:-$T/r};rm -rf $R $T/spool;$G init -q -b core/season3/main $R;$G -C $R config user.name t;$G -C $R config user.email t@agi;$G -C $R config commit.gpgsign false;mkdir -p $R/.agi/nodes/goal $R/.agi/nodes/town $R/.agi/nodes/.geometry;fixgeo;printf -- '---\nid: goal:g1\nmint_id: 00000000000000000000000000000001\ntype: goal\nstatus: active\nparents: []\n---\nroot\n' >$R/.agi/nodes/goal/g1.md;printf 'town 0\n' >$R/.agi/nodes/town/board.md;commit base;seq=1;}
 commit(){ $G -C $R add -A;$G -C $R commit -q --allow-empty -m "${1:-c}";}
 leaf(){ s=$1;c=$2;st=$3;shift 3;seq=$((${seq:-1}+1));m=$(printf '%032x' $(( $(echo $s|cksum|cut -d' ' -f1) )) );p=$R/.agi/nodes/goal/$s.md
@@ -104,7 +105,7 @@ cat_at(){ $G -C $R add -A;GIT_COMMITTER_DATE="$1" GIT_AUTHOR_DATE="$1" $G -C $R 
 OLD="2026-01-01T00:00:00Z"
 newrepo;leaf l1 director-goals-1 active;commit base;seed;for i in 1 2 3;do printf 'town %s\n' $i >$R/.agi/nodes/town/board.md;cat_at $OLD "board $i";done;o=$(lineo)
 ok "r10-a-stopped-step-makes-lag-grow-and-reads-red [$o]" 'echo "$o"|grep -q "lag=3 red=lag>60min"'
-if mut prereq_notice.py 's/            if age > lim:/            if False:/'; then B=$T/mbin;o=$(lineo);B=;red "r10m-mutant-no-lag-check-never-reads-red [$o]" 'echo "$o"|grep -q "red=lag>"';fi
+if mut prereq_notice.py 's/            if age > lim and state != "off":/            if False:/'; then B=$T/mbin;o=$(lineo);B=;red "r10m-mutant-no-lag-check-never-reads-red [$o]" 'echo "$o"|grep -q "red=lag>"';fi
 # N2: an OLD seen tip with only a FRESH unseen commit is not red (the seen commit's own age says nothing); the mutant clocks the seen commit and reads red
 newrepo;leaf l1 director-goals-1 active;cat_at $OLD base;seed;printf 'town 1\n' >$R/.agi/nodes/town/board.md;commit fresh;o=$(lineo)
 ok "fx2-an-old-seen-tip-with-only-a-fresh-unseen-commit-is-not-red [$o]" 'echo "$o"|grep -q "lag=1 red=none"'
@@ -115,7 +116,7 @@ if mut prereq_notice.py 's/        red.append("trunk-unresolved") .*$/        pa
 # ---- n3: a malformed claim is RED, never silently skipped (N3): one strict claim + one without the bold
 newrepo;leaf l1 director-goals-1 active;commit one;seed;leaf l2 - active;printf 'Assigned to director-goals-1 (no bold)\n' >>$R/.agi/nodes/goal/l2.md;commit two;o=$(lineo)
 ok "fx3-a-malformed-claim-reads-red-unparsed [$o]" 'echo "$o"|grep -q "claims=1 .*red=unparsed=1"'
-if mut prereq_notice.py 's/    for kind in ("dead", "unreachable", "unparsed"):/    for kind in ("dead", "unreachable"):/'; then B=$T/mbin;o=$(lineo);B=;red "fx3m-mutant-no-unparsed-red [$o]" 'echo "$o"|grep -q "unparsed=1"';fi
+if mut prereq_notice.py 's/    for kind in ("renamed", "dead", "unreachable", "unparsed"):/    for kind in ("renamed", "dead", "unreachable"):/'; then B=$T/mbin;o=$(lineo);B=;red "fx3m-mutant-no-unparsed-red [$o]" 'echo "$o"|grep -q "unparsed=1"';fi
 # ---- n4: an undelivered bundle (a bundle ref past the limit whose Alarm-id never reached the outbox) is RED (N4)
 newrepo;leaf l1 director-goals-1 active;cat_at $OLD base;seed;$G -C $R update-ref refs/notices/prereq/bundle/pn-lost HEAD "";o=$(lineo)
 ok "fx4-a-bundle-past-the-limit-with-no-outbox-commit-reads-red-unsent [$o]" 'echo "$o"|grep -q "red=.*unsent=1"'
@@ -151,21 +152,21 @@ k k3-the-council-placement-is-held-and-never-red 'Assigned to **the council** (p
 k k3b-the-directors-placement-is-held-whole 'Assigned to **the directors, by their own split (room `directors`)**' 'echo "$o"|grep -q "claims=0 held=1 self=0 .*red=none"'
 k k3c-a-council-role-row-is-held-not-dead 'Assigned to **council**.' 'echo "$o"|grep -q "claims=0 held=1 self=0 .*red=none"'
 k k4-sanctuary-masters-own-leaf-is-self 'Assigned to **sanctuary-master**' 'echo "$o"|grep -q "claims=0 held=0 self=1 .*red=none"'
-k k5-a-post-with-no-row-is-dead-naming-its-file 'Assigned to **ghost**.' 'echo "$o"|grep -q "red=dead=1\[kk\]"'
-k k5b-a-row-with-no-harness-is-dead 'Assigned to **inert**.' 'echo "$o"|grep -q "red=dead=1\[kk\]"'
-k k5c-a-retired-row-only-is-dead 'Assigned to **old**.' 'echo "$o"|grep -q "red=dead=1\[kk\]"'
-k k6-a-live-row-off-sms-matrix-is-unreachable-naming-its-file 'Assigned to **deep-post**.' 'echo "$o"|grep -q "claims=0 .*red=unreachable=1\[kk\]"'
-k k7-a-line-with-no-bold-is-unparsed 'Assigned to deep-post' 'echo "$o"|grep -q "red=unparsed=1\[kk\]"'
+k k5-a-post-with-no-row-is-dead-naming-its-file 'Assigned to **ghost**.' 'echo "$o"|grep -q "red=dead=1\[ghost:1\]"'
+k k5b-a-row-with-no-harness-is-dead 'Assigned to **inert**.' 'echo "$o"|grep -q "red=dead=1\[inert:1\]"'
+k k5c-a-retired-row-only-is-dead 'Assigned to **old**.' 'echo "$o"|grep -q "red=dead=1\[old:1\]"'
+k k6-a-live-row-off-sms-matrix-is-unreachable-naming-its-file 'Assigned to **deep-post**.' 'echo "$o"|grep -q "claims=0 .*red=unreachable=1\[deep-post:1\]"'
+k k7-a-line-with-no-bold-is-unparsed 'Assigned to deep-post' 'echo "$o"|grep -q "red=unparsed=1\[unparsed:1\]"'
 # mutants of the reader, each RED against its row
 for m in 'k3|s/    if raw.lower().startswith(PLACEMENT):/    if False:/|Assigned to **the council** (placement).|held=1' 'k2|s/    name = re.split(r"\[ (\]", raw, maxsplit=1)\[0\]/    name = raw/|Assigned to **director-goals-1 (point)**|claims=1' 'k6|s/    return "claim" if self.ok(name) else "unreachable"/    return "claim"/|Assigned to **deep-post**.|unreachable=1' 'k5|s/        if name.endswith("-retired") or row is None or not row.get("harness"):/        if False:/|Assigned to **ghost**.|dead=1';do id=${m%%|*};r=${m#*|};sedx=${r%%|*};r=${r#*|};rawl=${r%%|*};want=${r#*|}
  if mut prereq_notice.py "$sedx";then B=$T/mbin;o=$(cls1 "$rawl");B=;red "k${id}m-mutant-of-the-reader-reads-RED [$o]" 'echo "$o"|grep -q "$want"';fi;done
 # R-3: the census is built once, caught up per run on the CHANGED goal files only, and rebuilt when posts.md changes
 newrepo;seed;leaf c1 director-goals-1 active;commit c1;step;c0=$($G -C $R rev-parse -q --verify refs/notices/prereq/census);o=$(lineo)
 ok "k8-run-persists-the-census-and-line-reads-it [$o]" '[ -n "$c0" ]&&echo "$o"|grep -q "claims=1 "'
-leaf c2 deep-post active;commit c2;o=$(lineo);ok "k8b-line-catches-the-census-up-on-the-one-changed-file-without-a-run [$o]" 'echo "$o"|grep -q "claims=1 .*red=unreachable=1\[c2\]"'
+leaf c2 deep-post active;commit c2;o=$(lineo);ok "k8b-line-catches-the-census-up-on-the-one-changed-file-without-a-run [$o]" 'echo "$o"|grep -q "claims=1 .*red=unreachable=1\[deep-post:1\]"'
 if mut prereq_notice.py 's/    names = r.stdout.split()/    names = []/'; then B=$T/mbin;o=$(lineo);B=;red "k8bm-mutant-no-catch-up-misses-the-new-leaf [$o]" 'echo "$o"|grep -q "unreachable=1"';fi
 sed -i 's/{"name": "director-goals-1", "parent": "sanctuary-master", "harness": "claude-code"}/{"name": "director-goals-1", "parent": "sanctuary-master"}/' $R/.agi/nodes/.geometry/posts.md;commit "dg1 loses its harness";step;o=$(lineo)
-ok "k8c-a-posts-md-change-rebuilds-the-census [$o]" 'echo "$o"|grep -q "red=dead=1\[c1\]"'
+ok "k8c-a-posts-md-change-rebuilds-the-census [$o]" 'echo "$o"|grep -q "red=dead=1\[director-goals-1:1\]"'
 if mut prereq_notice.py 's/    if any(n in GEOMETRY for n in names):/    if False:/'; then B=$T/mbin;newrepo;seed;leaf c1 director-goals-1 active;commit c1;PNS=1;step;sed -i 's/{"name": "director-goals-1", "parent": "sanctuary-master", "harness": "claude-code"}/{"name": "director-goals-1", "parent": "sanctuary-master"}/' $R/.agi/nodes/.geometry/posts.md;commit "dg1 loses its harness";python3 $T/mbin/prereq_notice.py run --repo $R --spool $SP >/dev/null 2>&1;o=$(lineo);B=;red "k8cm-mutant-no-rebuild-keeps-a-stale-claim [$o]" 'echo "$o"|grep -q "dead=1"';fi
 # ---- fa*..ff*: the board's root is the .agi DIR (council 05:47-05:49Z 10-24, F-a..F-f): the reader reads the same tree from any cwd, and a reader that read NOTHING is a NAMED red
 fa(){ newrepo;leaf l1 director-goals-1 active;leaf l2 deep-post active;commit two;seed;$G -C $R update-ref -d refs/notices/prereq/census;}   # no persisted census: line builds the full one through its pathspecs
@@ -192,6 +193,37 @@ if mut prereq_notice.py 's/        red.append("trunk-unresolved") .*$/        pa
 newrepo;leaf l1 director-goals-1 active;commit one;seed;$G -C $R branch side;rm -rf $T/cl;$G clone -q --shared --no-checkout -b side $R $T/cl 2>/dev/null;o=$(python3 $BIN/prereq_notice.py line --repo $T/cl 2>/dev/null)
 ok "fc1-a-shared-clone-without-refs-notices-or-the-trunk-branch-reads-named-reds-never-none [$o]" 'echo "$o"|grep -q "red=seen-unresolved,trunk-unresolved"&&! echo "$o"|grep -q "red=none"'
 # F-e: the cron reads MAIN, never the clone (the writer's root is `{root}`; the settling row is test_board_notices.py)
+# ---- cb*: the board names CLAIMERS with counts, the slugs go to `line --leaves`; the per-claimer counts SUM to the class total (council 06:37Z 3/3)
+cbfx(){ newrepo;seed;leaf a1 ghost active;leaf a2 ghost active;leaf a3 spook active;leaf a4 deep-post active;leaf a5 deep-post active;printf 'Assigned to **deep-post (point)** with umbrella\n' >>$R/.agi/nodes/goal/a5.md;leaf a6 - active;printf 'Assigned to deep-post\n' >>$R/.agi/nodes/goal/a6.md;commit cb;}
+sumok(){ python3 - "$1" <<'XX'
+import re,sys
+seg=sys.argv[1];ok=True;seen=0
+for kind,n,body in re.findall(r"(renamed|dead|unreachable|unparsed)=(\d+)\[([^\]]*)\]",seg):
+    seen+=1;tot=sum(int(x.rsplit(":",1)[1]) for x in body.split(","))
+    ok&=(tot==int(n))
+sys.exit(0 if ok and seen else 1)
+XX
+}
+cbfx;o=$(lineo);lv=$(python3 ${B:-$BIN}/prereq_notice.py line --repo $R --leaves 2>/dev/null)
+ok "cb1-the-board-names-claimers-with-counts [$o]" 'echo "$o"|grep -q "dead=3\[ghost:2,spook:1\]"&&echo "$o"|grep -q "unreachable=2\[deep-post:2\]"&&echo "$o"|grep -q "unparsed=1\[unparsed:1\]"'
+ok "cb2-the-per-claimer-counts-sum-to-each-class-total [$o]" 'sumok "$o"'
+ok "cb3-leaves-lists-exactly-the-counted-slugs [$(echo "$lv"|tr "\n" "|")]" '[ "$(echo "$lv"|grep -c .)" = 6 ]&&echo "$lv"|grep -q "^dead ghost a1$"&&echo "$lv"|grep -q "^unreachable deep-post a5$"&&echo "$lv"|grep -q "^unparsed unparsed a6$"'
+if mut prereq_notice.py 's/    for who, _ in items:/    for who, _ in items[1:]:/'; then B=$T/mbin;cbfx;o=$(lineo);B=;red "cb2m-mutant-a-dropped-claimer-breaks-the-sum [$o]" 'sumok "$o"';fi
+# ---- rn*: LINEAGE (council 06:40Z): a claim written BEFORE its name's rename date, whose name has a `was:` successor, is `renamed` (red, names the successor), never a claim
+rnfx(){ # rnfx DATE: one leaf `Assigned to **dgx**` committed on DATE; dgx was re-used on 2026-10-21 (its old holder is now `dgy`)
+ newrepo;printf '  - {"name": "dgx", "parent": "sanctuary-master", "was": "dgz", "since": "2026-10-21", "harness": "claude-code"}\n  - {"name": "dgy", "parent": "sanctuary-master", "was": "dgx", "since": "2026-10-21", "harness": "claude-code"}\n' >>$R/.agi/nodes/.geometry/posts.md;commit rows;seed;leaf rr dgx active;GIT_AUTHOR_DATE="$1T10:00:00Z" GIT_COMMITTER_DATE="$1T10:00:00Z" commit leaf;}
+rnfx 2026-10-05;o=$(lineo);lv=$(python3 ${B:-$BIN}/prereq_notice.py line --repo $R --leaves 2>&1);ok "rn1-a-claim-written-before-the-rename-is-renamed-naming-the-successor [$o] [$lv]" 'echo "$o"|grep -q "claims=0 .*red=.*renamed=1\[dgx>dgy:1\]"&&[ "$lv" = "renamed dgx>dgy rr" ]&&sumok "$o"'
+rnfx 2026-10-22;o=$(lineo);ok "rn2-the-same-line-written-on-or-after-the-rename-is-a-claim [$o]" 'echo "$o"|grep -q "claims=1 "&&! echo "$o"|grep -q "renamed"'
+if mut prereq_notice.py 's/            if born and born < rt\[1\]:/            if False:/'; then B=$T/mbin;rnfx 2026-10-05;o=$(lineo);B=;red "rn1m-mutant-no-lineage-check-reads-the-old-claim-as-a-claim [$o]" 'echo "$o"|grep -q "renamed=1"';fi
+rnfx 2026-10-05;step;ok "rn3-a-renamed-leaf-is-never-notified (spool $(nsp), want 0)" '[ "$(nsp)" = 0 ]'
+# ---- of*: while the cron cell reads `enabled: false` the board says OFF and suppresses ONLY the lag red (council 08:02Z); an unreadable cell is `cell unread`, RED, never OFF
+ofx(){ # ofx ENABLED(true|false|-): a fixture with a STALE seen ref (a backdated unseen commit) and one leaf under a retired claimer; `-` removes the cell file
+ rnfx 2026-10-05;leaf dd ghost active;commit dead;case $1 in -) rm -f $R/.agi/nodes/.geometry/crons.md;commit nocell;; false) sed -i 's/    enabled: true/    enabled: false/' $R/.agi/nodes/.geometry/crons.md;commit off;; esac;}
+ofx true;o=$(lineo);ok "oa-enabled-true-and-a-stale-seen-reads-the-lag-red [$o]" 'echo "$o"|grep -q "^notices: claims="&&echo "$o"|grep -q "red=.*lag>60min"'
+ofx -;o=$(lineo);ok "ob-an-unreadable-cell-is-cell-unread-and-red-never-OFF [$o]" 'echo "$o"|grep -q "^notices: cell unread"&&echo "$o"|grep -q "red=.*cell-unread"&&! echo "$o"|grep -q "OFF"'
+ofx false;o=$(lineo);ok "oc-enabled-false-prints-OFF-keeps-lag-and-every-other-red [$o]" 'echo "$o"|grep -q "^notices: OFF (prereq_notice enabled: false; owner GO banked, card-belam sec6) claims="&&echo "$o"|grep -Eq " lag=[0-9]+ "&&! echo "$o"|grep -q "lag>"&&echo "$o"|grep -q "red=.*dead=1\[ghost:1\]"'
+if mut prereq_notice.py "s/f\"red={','.join(red) or 'none'}\")/f\"red={'none' if state == 'off' else ','.join(red) or 'none'}\")/"; then B=$T/mbin;ofx false;o=$(lineo);B=;red "ocm-mutant-an-OFF-branch-that-drops-the-red-tail [$o]" 'echo "$o"|grep -q "red=.*dead=1\[ghost:1\]"';fi
+if mut prereq_notice.py 's/ and state != "off":/:/'; then B=$T/mbin;ofx false;o=$(lineo);B=;red "odm-mutant-OFF-that-does-not-suppress-the-lag-red [$o]" '! echo "$o"|grep -q "lag>"';fi
 # ---- n*: the negative (F3): ONE path under the glob, no `box send` in it
 N=$T/n;rm -rf $N;$G init -q -b t $N;$G -C $N config user.email t@agi;$G -C $N config user.name t;mkdir -p $N/extensions/agi/bin;cp $BIN/prereq_notice.py $N/extensions/agi/bin/;$G -C $N add -A;$G -C $N commit -qm n
 cnt(){ $G -C $N ls-files 'extensions/agi/bin/prereq_notice*'|wc -l|tr -d ' ';}
