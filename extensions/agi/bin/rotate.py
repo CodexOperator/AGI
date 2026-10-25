@@ -7171,8 +7171,7 @@ def _first_seating_key(root: Path, seat: str,
     into the seating row (``{}`` when nothing was keyed) and ``note`` is the
     ONE line the caller prints, empty when silent. ``dry_run`` mints and
     writes NOTHING: it prints the ONE ``would key <seat>`` plan line."""
-    import write as _w  # local: same dir (send.py pattern, no cycle)
-    row = next((r for r in _w._load_seats(_shared_graph_root(root))
+    row = next((r for r in geometry_config.load_rows(_shared_graph_root(root))
                 if r.get("name") == seat), None)
     if not row:
         return {}, ""
@@ -10071,7 +10070,7 @@ def _write_identity_cells(root: Path, *, seat: str, actor: str, role: str,
     import write  # local: same dir (send.py pattern, no import cycle)
     main_root = _shared_graph_root(root)
     locations.refuse_live_resolution(root, main_root)
-    rows = write._load_seats(main_root)
+    rows = geometry_config.load_rows(main_root)
     new_rows: list[dict] = []
     found = False
     for r in rows:
@@ -10165,7 +10164,6 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     # throwaway row with no label) so the cell exists from the seat's own
     # first spawn write, beside session_name; the ack back-fill never passes
     # it, so it stays what the spawn row write set.
-    import write as _w  # local: same dir (send.py pattern, no import cycle)
     # L5.02 clause 2: after a boundary rename the seats ROW still carries the
     # OLD name (the round never writes config), so the successor's row lookup
     # keys on `row_seat` (the applied rename's old name) and resolves through
@@ -10174,7 +10172,7 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     # spawn passes as --remote-control), so the GUI label and the stored cell
     # AGREE. `_write_identity_cells` writes the RESOLVED row, never a phantom
     # new-named one; an unresolved row is the named skip below, never silent.
-    _rows = _w._load_seats(_shared_graph_root(root))
+    _rows = geometry_config.load_rows(_shared_graph_root(root))
     _want = row_seat or seat
     _row = next((r for r in _rows if r.get("name") == _want), None)
     if _row is None:
@@ -10194,7 +10192,6 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     # The current history is read from the row the ONE writer will write
     # (MAIN's), so the append is against the live list, not a worktree copy.
     if key_rotation:
-        import write  # local: same dir (send.py pattern, no import cycle)
         # goal:g15.25 line (2) + hypothesis:l5-key-rotation-at-a-rename-
         # boundary-clobbers-key-history-instead-of-carrying-it: the history
         # READ must resolve the SAME row the ONE writer below updates, i.e.
@@ -10203,7 +10200,7 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
         # NOT `seat`. Keying the read on `seat` (the post-rename name) found
         # no row at read time, so `_cur == {}` and `_hist == []` and the
         # cell-replace below destroyed every prior entry.
-        _cur = next((r for r in write._load_seats(_shared_graph_root(root))
+        _cur = next((r for r in geometry_config.load_rows(_shared_graph_root(root))
                      if r.get("name") == _row_name), {})
         _ret = key_rotation.get("retired")
         cells["pubkey"] = key_rotation.get("successor_pub")
@@ -18008,8 +18005,7 @@ def _key_finding(root: Path, seat: str, line: str) -> str:
         mark = locations.shared_sessions_dir(root) / "seats" / f"{seat}.key-finding"
         if mark.is_file() and mark.read_text(encoding="utf-8") == line:
             return line
-        import write as _w
-        prime = next((str(r.get("name")) for r in _w._load_seats(_shared_graph_root(root))
+        prime = next((str(r.get("name")) for r in geometry_config.load_rows(_shared_graph_root(root))
                       if r.get("role") == "prime_director" and r.get("name")), "")
         if prime:
             send.send(root, prime, line, "heal")
@@ -18031,9 +18027,8 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
     if tmpl.get("missing_key") != "remint_on_own_box":
         return ""
     import boxes
-    import write as _w  # local: same dir (send.py pattern, no cycle)
     # the row's box from MAIN's posts node, never the caller's row dict
-    node_row = next((r for r in _w._load_seats(_shared_graph_root(root))
+    node_row = next((r for r in geometry_config.load_rows(_shared_graph_root(root))
                      if r.get("name") == seat), {})
     own = str(node_row.get("box") or "").strip()
     try:
@@ -18220,8 +18215,7 @@ def ensure_post_key(root: Path, post: str, dry_run: bool = False) -> str:
     cells written and committed. No model runs keygen. Returns the one-line
     note ('' = nothing to do). Never raises: a key never blocks a stand-up."""
     try:
-        import write as _w  # local: same dir (send.py pattern, no cycle)
-        row = next((r for r in _w._load_seats(_shared_graph_root(root))
+        row = next((r for r in geometry_config.load_rows(_shared_graph_root(root))
                     if r.get("name") == post), None)
         return _rotate_first_key(root, None, post, row, dry_run=dry_run)
     except Exception as exc:  # noqa: BLE001 -- see docstring
@@ -18293,8 +18287,7 @@ def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
         # own-row clause (1), Prime XIII ask (a)). Best-effort, exactly as
         # before: a refused / unadmitted row write never fails the rotation
         # (the key file is still minted; the note says which half landed).
-        import write as _w  # local: same dir (send.py pattern, no cycle)
-        _cur = next((r for r in _w._load_seats(_shared_graph_root(root))
+        _cur = next((r for r in geometry_config.load_rows(_shared_graph_root(root))
                      if r.get("name") == seat), {})
         if _write_identity_cells(
                 root, seat=seat, actor=seat,
@@ -22419,9 +22412,8 @@ def _migrate_post_ref(root: Path, post: str) -> str:
 
 def _migrate_row(root: Path, post: str) -> dict:
     """The post's committed identity row (MAIN's graph), {} when absent."""
-    import write
     try:
-        rows = write._load_seats(_shared_graph_root(root))
+        rows = geometry_config.load_rows(_shared_graph_root(root))
     except Exception:  # noqa: BLE001 -- no readable graph = no known row
         return {}
     for r in rows:
