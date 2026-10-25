@@ -34,8 +34,10 @@ CTX(){ o=$(env HOME=$D/nohome AGI_POST=q AGI_ENGINE=${2:-$E} AGI_TRUNK=nosuch PA
 # ---- g: the grandfather list is a committed file of node ids; real-file-first: the REAL list covers the REAL tree
 RG=$R0/.agi/nodes/.geometry/owner-cite-grandfather.txt;nf=$(grep -rlE '^## OWNER' $R0/.agi/nodes|wc -l|tr -d ' ');ng=$(wc -l <$RG 2>/dev/null|tr -d ' ')
 CTX $D/bin/agi-mem $R0
-ok "g1-the-real-tree-is-clean the REAL graph ($nf nodes with an OWNER block, $ng ids in the REAL list), run with no store on a post with no mem row: '$o' rc $rc (want 0 new blocks, rc 0)" '[ $rc = 0 ]&&echo "$o"|grep -q "^owner-cite: 0 new OWNER blocks ($ng grandfathered nodes), 0 violations$"'
-ok "g1b-the-list-is-not-vacuous the real list names as many ids as there are nodes with an OWNER block ($ng / $nf) and every line is a node id" '[ "$ng" = "$nf" ]&&[ $ng -gt 50 ]&&! grep -vqE "^[a-z]+:[A-Za-z0-9._-]+$" $RG'
+nr=$(echo "$o"|grep -c '^owner-cite: RED')
+ok "g1-the-real-tree-names-no-uncited-block the REAL graph ($nf nodes with an OWNER block, $ng ids in the REAL list), run with no store on a post with no mem row: $nr RED line(s) (want 0: every OWNER block outside the list cites an id); rc $rc; last line '$(echo "$o"|tail -1)' (an id that cites reads unread here, the store being belam's: the host check is the existence read)" '[ $nr = 0 ]&&echo "$o"|grep -q "^owner-cite: [0-9]* new OWNER blocks ($ng grandfathered nodes), 0 violations"&&{ [ $rc = 0 ]||echo "$o"|grep -q "^owner-cite: unread (the store"; }'
+nbk=$(echo "$o"|sed -n 's/^owner-cite: \([0-9]*\) new OWNER blocks.*/\1/p')
+ok "g1b-the-list-covers-the-graph the real list ($ng ids, every line a node id) covers every node with an OWNER block but the ones the check calls new ($nf nodes, $nbk new blocks): the gap is at most the new blocks" '[ $ng -gt 50 ]&&! grep -vqE "^[a-z]+:[A-Za-z0-9._-]+$" $RG&&[ $((nf-ng)) -le "${nbk:-0}" ]&&[ $((nf-ng)) -ge 0 ]'
 MUT 's/grep -qxF -- "\$i" \$GF&&continue/false/' agi-mem;CTX $D/mut_agi-mem $R0
 ok "g1m-mutant-list-ignored-RED a check that never reads the list flags the REAL graph: '$(echo "$o"|tail -1)' rc $rc (the lane wants GREEN, so this must differ)" '[ $rc = 1 ]&&echo "$o"|tail -1|grep -q RED'
 
@@ -93,7 +95,7 @@ $OC
 his other words, no id
 ";CT
 ok "c6-ids-do-not-bleed-between-blocks the second block of one node has no id of its own: exactly 1 violation naming 'OWNER second, verbatim' (got '$o')" '[ $rc = 1 ]&&echo "$o"|grep -q "RED goal:n-two: .OWNER second, verbatim. cites no chunk id$"&&! echo "$o"|grep -q "OWNER first"&&echo "$o"|grep -q "2 new OWNER blocks"'
-MUT 's/h=\/^## OWNER\/?\$0:"";t="";next/h=\/^## OWNER\/?$0:"";next/' agi-mem;CT $D/mut_agi-mem
+MUT 's/h=\/^## OWNER\/?\$0:"";t=""}/h=\/^## OWNER\/?$0:""}/' agi-mem;CT $D/mut_agi-mem
 ok "c6m-mutant-ids-bleed-RED a check that never resets the ids per block gives the second block the first one's id (rc $rc): the lane wants 1 violation, so this must be 0" '[ $rc = 0 ]'
 rn;nn n-next "## OWNER x, verbatim
 
@@ -131,6 +133,13 @@ rn;nn n-two2 "## OWNER one, verbatim
 $OC and c:0123456789ab
 ";CT
 ok "c10-every-cited-id-must-hold one real id and one absent id in a block: RED naming the absent one only (got '$o')" '[ $rc = 1 ]&&echo "$o"|grep -q "cites c:0123456789ab, absent"&&! echo "$o"|grep -q "cites $OC"'
+rn;nn n-head "## OWNER 2026-10-25, verbatim ($OC)
+
+his words, no id below
+";CT
+ok "c12-an-id-in-the-heading-cites the id sits in the OWNER heading line itself (the b1 idea node's shape): the block passes (got '$o' rc $rc)" '[ $rc = 0 ]&&echo "$o"|grep -q "1 new OWNER blocks (1 grandfathered nodes), 0 violations$"'
+MUT 's/h=\/^## OWNER\/?\$0:"";t=""}h!=""{/h=\/^## OWNER\/?$0:"";t="";next}h!=""{/' agi-mem;CT $D/mut_agi-mem
+ok "c12m-mutant-the-heading-is-not-read-RED a check that skips the heading line reads the heading-cited block as 'cites no chunk id' (rc $rc): the lane wants rc 0, so this must be 1" '[ $rc = 1 ]&&echo "$o"|grep -q "cites no chunk id$"'
 # a chunk the scrub retired is no live chunk
 rn;nn n-ret "## OWNER x, verbatim
 

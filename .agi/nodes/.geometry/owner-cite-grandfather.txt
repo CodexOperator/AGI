@@ -104,5 +104,4 @@ hypothesis:a-parent-swarm-splits-its-goal-before-it-mints-a-hypothesis
 hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-refused
 hypothesis:g716111-z4-phase-w-workflow-py-retires-entirely-spawn-is-dispatch-is-workflow
 hypothesis:g75213-ram-main-binds-claude-worktrees-to-disk-and-sweeps-idle-agent-trees
-idea:g7161146-b1-console-openrouter-failure-healing
 idea:tree-context-forked-conversations-searched-by-a-swarm
