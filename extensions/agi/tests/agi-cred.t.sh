@@ -118,6 +118,14 @@ ok "m6-MUTANT-the-kill-without-the-rm-leaves-the-file-RED file $([ -e $T/cs/clau
 rep 'printf %s "$k">$n;' 'printf %s "$k">$n;chmod 644 $n;';fresh;cells true prd;run tick
 ok "m7-MUTANT-a-world-readable-file-RED mode $(stat -c %a $T/cs/claude-sp) (clean: 600)" '[ "$(stat -c %a $T/cs/claude-sp)" != 600 ]'
 PIECE=$P0
+# ================= UNREAD (belam 10-25): the live unit's git read was refused (dubious ownership: carry.env has GIT_CONFIG_VALUE_0 but the
+# unit had no COUNT/KEY_0), the cell read empty, and tick passed SILENTLY as "not live". Now an unreadable cell is a named unread, rc 3, fail closed.
+printf x >$T/cs/claude-sp;TRUNK=refs/heads/no-such-ref run tick
+ok "u1-an-unreadable-secrets-cell-is-unread-rc3-and-the-key-file-goes rc $rc (want 3), file $([ -e $T/cs/claude-sp ]&&echo present||echo gone)" '[ $rc = 3 ] && [ ! -e $T/cs/claude-sp ] && grep -q "\[cred\] unread" $T/e'
+ok "u2-the-service-sets-safe.directory-for-root-reads (carry.env holds VALUE_0) $(sect agi-cred.service|grep -c "^Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory$")" '[ "$(sect agi-cred.service|grep -c "^Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory$")" = 1 ]'
+rep '[ -n "$s" ]||{' 'true||{';printf x >$T/cs/claude-sp;TRUNK=refs/heads/no-such-ref run tick;PIECE=$P0
+ok "u1m-mutant-guard-dropped-reads-silent-rc0-RED rc $rc" '[ $rc = 0 ] && ! grep -q "\[cred\] unread" $T/e'
+rm -f $T/cs/claude-sp
 # ================= NEGATIVE (leaf falsifier 3): the pieces and units name no key and no ANTHROPIC_API_KEY environment
 n=$(for g in agi-cred agi-cred.service agi-cred.timer;do sect $g;done|grep -c -e "Environment=.*ANTHROPIC_API_KEY" -e "$KP-")
 ok "n-the-three-pieces-hold-no-key-prefix-and-no-ANTHROPIC_API_KEY-environment hits $n (want 0)" '[ "$n" = 0 ]'
