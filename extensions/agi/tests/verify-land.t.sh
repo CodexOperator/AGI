@@ -40,6 +40,8 @@ leak: someone@""example.org" $(g rev-parse $LD^{tree}));g update-ref refs/held/s
 ok "h5-a-stray-email-in-the-message-HOLDS rc $rc, $(grep -o 'emails: .*' $T/o), $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*msg-email"'
 MSG="ran on $(hostname) at $(hostname -I 2>/dev/null|awk '{print $1}')" gate i 'echo b3 >$R/docs/b3';run i $LD $BASE $GT
 ok "h7-a-hostname-and-ip-in-the-land-message-HOLDS rc $rc, $(grep -o '^anon-msg=[0-9]*' $T/o), $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (anon-msg)"'
+ip=$(hostname -I 2>/dev/null|awk '{print $1}');CA0=$CA;CA="Co-Authored-By: Claude Opus $ip <noreply@""anthropic.com>" gate j 'echo b4 >$R/docs/b4';CA=$CA0;run j $LD $BASE $GT
+ok "h8-an-ip-inside-the-co-author-trailer-is-NOT-stripped-and-HOLDS rc $rc, $(grep -o '^anon-msg=[0-9]*' $T/o), $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (anon-msg)"'
 gate c 'echo b >$R/docs/b';run WRONG $LD $BASE $GT
 ok "h6-a-held-ref-that-is-not-the-land-HOLDS rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (held"'
 # --- self: installed == the pin's blob, PATH, the retired ~/tools copy

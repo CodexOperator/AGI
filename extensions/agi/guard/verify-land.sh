@@ -18,8 +18,8 @@ echo "sigs: $(git log --format=%G? $B..$L | sort | uniq -c | tr '\n' ' ')";[ -z 
 nd=$(git diff --name-status $B $L | grep -c '^D');echo "D: $nd  files: $(git diff --name-status $B $L | tr '\t\n' ' ')";[ "$nd" = 0 ]||hold D
 git diff $B $L > "$S/$N.diff"; git log --format=%B $B..$L > "$S/$N.msg"
 python3 "$A" check --diff-file "$S/$N.diff"; a=$?;echo "anon-diff=$a";[ $a = 0 ]||hold anon-diff
-python3 "$A" check --text "$(grep -v -x -E 'Co-Authored-By: Claude [A-Za-z0-9. ]+ <noreply@anthropic\.com>' "$S/$N.msg")" >/dev/null; a=$?;em=$(grep -o -E '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' "$S/$N.msg" | sort -u | tr '\n' ' ')
-echo "anon-msg=$a emails: $em";[ $a = 0 ]||hold anon-msg   # C4 (council 22:05:25Z): the message minus EXACTLY the co-author trailer lines must anonymize clean
+python3 "$A" check --text "$(grep -v -x -E 'Co-Authored-By: Claude (Opus|Sonnet|Haiku|Fable) [0-9]+\.[0-9]+ <noreply@anthropic\.com>' "$S/$N.msg")" >/dev/null; a=$?;em=$(grep -o -E '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' "$S/$N.msg" | sort -u | tr '\n' ' ')
+echo "anon-msg=$a emails: $em";[ $a = 0 ]||hold anon-msg   # C4 (council 22:05:25Z) + C5 (22:16:14Z): the message minus EXACTLY the co-author trailer (model family + N.N only, so no ip hides in it) must anonymize clean
 [ -z "$(printf '%s\n' $em | grep -vx 'noreply@''anthropic.com')" ]||hold msg-email   # the co-author line is the one address a land message carries
 python3 -I - "$S/$N.diff" "$S/$N.msg" <<'P' || hold home
 import pwd,sys
