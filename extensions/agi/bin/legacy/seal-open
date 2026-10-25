@@ -1,0 +1,16 @@
+#!/usr/bin/env python3
+# seal-open KEYFILE SHAREFILE: the RETIRED opener of the old capsule share (goal:g7.16.1.11.46.15). Prints the share's plaintext to stdout, raw.
+# KEYFILE = base64 of the raw 32 B seal key; SHAREFILE = one line '<post> <b64(ephemeral pub || ciphertext)>'. It stays, read-only, until the census of
+# shares still in this format reads 0; it is never deleted. agi-out no longer wraps with it: new shares are age files.
+import sys, base64 as B, hashlib as H
+from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey as K, X25519PublicKey as P
+from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305 as C
+h = lambda x: H.sha256(x).digest()
+try:
+    key = K.from_private_bytes(B.b64decode(open(sys.argv[1]).read()))
+    _, z = open(sys.argv[2]).read().split()
+    z = B.b64decode(z)
+    sys.stdout.buffer.write(C(h(key.exchange(P.from_public_bytes(z[:32])))).decrypt(bytes(12), z[32:], None))
+except Exception as e:  # unreadable key, share or tag: fail loud, print nothing
+    sys.stderr.write("seal-open: %s\n" % type(e).__name__)
+    sys.exit(1)

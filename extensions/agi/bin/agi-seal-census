@@ -1,0 +1,23 @@
+#!/bin/sh
+# agi-seal-census: goal:g7.16.1.11.46.15 -- how many of the capsule shares in the BOOT SET's post homes still open. The boot set is the agi-post@<name>.service
+# links in WANTS (as stall_watch reads it; default /run/systemd/system/multi-user.target.wants), the home of <name> is STORES/<name> (default /var/lib/agi): no
+# argument names a home, so a home cannot be left out by omission. A share is the file HOME/capsule/<name>; an age share opens with age -d -i HOME/.ssh/id_ed25519,
+# one in the retired format with the retired opener (AGI_SEAL_OPEN) and HOME/seal.key. Every call runs under timeout; the plaintext is never printed.
+# A home that is not a readable, searchable directory, a capsule/ that is present but not listable, or a share this uid cannot read is `unread (<home>)`.
+# Only when EVERY home was read: `opened k/m (homes h/h read)`, `legacy l/m` (shares still in the retired format) and, when k < m, `unopened <names>`; k == m
+# exits 0, and m = 0 is the clean zero (homes h/h read), rc 0. Anything not read, an empty or missing boot set, or k < m exits 1.
+L=${AGI_SEAL_OPEN:-$(dirname "$0")/legacy/seal-open};W=${WANTS:-/run/systemd/system/multi-user.target.wants};S=${STORES:-/var/lib/agi};k=0;m=0;l=0;h=0;n=0;bad=;un=
+[ -d "$W" ]||{ echo "unread (boot set: no wants dir)";exit 1;}
+PS=$(ls "$W" 2>/dev/null|sed -n 's/^agi-post@\([a-z0-9-]*\)\.service$/\1/p');[ -n "$PS" ]||{ echo "unread (boot set: empty)";exit 1;}
+for p in $PS;do H=$S/$p;n=$((n+1))
+ [ -d "$H" -a -r "$H" -a -x "$H" ]||{ un="$un $p";continue;}
+ if [ -e "$H/capsule" ];then [ -d "$H/capsule" -a -r "$H/capsule" -a -x "$H/capsule" ]||{ un="$un $p";continue;};fi
+ ok=1;for F in "$H"/capsule/*;do [ -e "$F" ]||continue;[ -f "$F" ]||continue
+  [ -r "$F" ]||{ ok=;break;};m=$((m+1))
+  if [ "$(head -c21 "$F")" = age-encryption.org/v1 ];then timeout 20 age -d -i "$H/.ssh/id_ed25519" "$F" </dev/null >/dev/null 2>&1
+  else l=$((l+1));timeout 20 "$L" "$H/seal.key" "$F" >/dev/null 2>&1;fi&&k=$((k+1))||bad="$bad ${F##*/}"
+ done
+ [ "$ok" ]||{ un="$un $p";continue;};h=$((h+1))
+done
+[ -z "$un" ]||{ echo "unread (homes$un)";exit 1;}
+echo "opened $k/$m (homes $h/$n read)";echo "legacy $l/$m";[ $k = $m ]||{ echo "unopened$bad";exit 1;}
