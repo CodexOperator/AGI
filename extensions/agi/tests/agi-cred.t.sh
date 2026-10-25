@@ -6,6 +6,7 @@ T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;R0=${ROOT:-$(cd "$(dirname "$0")/../../.."
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 [ -n "$PIECE" ]||{ sect agi-cred>$T/piece;PIECE=$T/piece;}
 [ -s $PIECE ]||{ echo "FAIL extract: agi-cred $(wc -c<$PIECE) B";exit 99;}
+[ -n "$UNIT" ]||{ sect agi-cred.service>$T/unit;UNIT=$T/unit;}   # run() takes HOME from the unit's own Environment= line: the stub doppler refuses an empty HOME as the real one does
 P0=$PIECE;ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 KP=sk-an;KP=${KP}t;K="${KP}-api03-TESTCANARY0123";K2="${KP}-api03-OTHERCANARY456"
 rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' $P0>$T/mut;cmp -s $P0 $T/mut&&echo "# NO EDIT for [$1]";PIECE=$T/mut;}
@@ -17,6 +18,7 @@ SH=$T/sh;mkdir -p $SH $T/units $T/cs $T/proc $T/cg
 cat >$SH/doppler<<'EOF'
 #!/bin/sh
 echo "$*">>$STUB_LOG/dop.log;echo "token-len ${#DOPPLER_TOKEN}">>$STUB_LOG/dop.log
+[ -n "$HOME" ]||{ echo 'Doppler Error: $HOME is not defined' >&2;exit 1;}   # doppler v3.76.5 (belam 10-25: the live unit had no HOME, rc 5)
 [ -z "$STUB_DOP_FAIL" ]||exit 1
 echo "$STUB_KEY"
 EOF
@@ -31,7 +33,7 @@ cat >$SH/tr<<'EOF'
 exec /usr/bin/tr "$@"
 EOF
 chmod +x $SH/*;printf '[Service]\nLoadCredential=claude-sp:/etc/credstore/claude-sp\n'>$T/units/agi-batch.service;cp $T/units/agi-batch.service $T/units/agi-kids.service;printf '[Service]\nExecStart=/bin/true\n'>$T/units/agi-council.service
-run(){ env -i PATH=$SH:/usr/bin:/bin AGI_REPO=$M AGI_TRUNK=${TRUNK:-$TR} AGI_CREDSTORE=$T/cs AGI_PROC=$T/proc AGI_CGROUP=$T/cg STUB_LOG=$T STUB_KEY="${KEY:-$K}" STUB_DOP_FAIL=$DFAIL STUB_TR_RM=$TRRM GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0='*' sh ${PIECE} "$@" >$T/o 2>$T/e;rc=$?;}
+run(){ env -i PATH=$SH:/usr/bin:/bin HOME=$(sed -n 's/^Environment=HOME=//p' $UNIT|tail -1) AGI_REPO=$M AGI_TRUNK=${TRUNK:-$TR} AGI_CREDSTORE=$T/cs AGI_PROC=$T/proc AGI_CGROUP=$T/cg STUB_LOG=$T STUB_KEY="${KEY:-$K}" STUB_DOP_FAIL=$DFAIL STUB_TR_RM=$TRRM GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0='*' sh ${PIECE} "$@" >$T/o 2>$T/e;rc=$?;}
 fresh(){ rm -rf $T/cs/* $T/cs/.[a-z]* $T/sd.log $T/dop.log $T/active $T/proc $T/cg;mkdir -p $T/proc $T/cg;: >$T/sd.log;printf 'TOKVALUE9' >$T/cs/doppler-token;TRUNK=;DFAIL=;KEY=;TRRM=;}
 nsd(){ grep -c "^$1.service\$" $T/sd.log;}
 # ================= TICK
@@ -125,6 +127,11 @@ ok "u1-an-unreadable-secrets-cell-is-unread-rc3-and-the-key-file-goes rc $rc (wa
 ok "u2-the-service-sets-safe.directory-for-root-reads (carry.env holds VALUE_0) $(sect agi-cred.service|grep -c "^Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory$")" '[ "$(sect agi-cred.service|grep -c "^Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory$")" = 1 ]'
 rep '[ -n "$s" ]||{' 'true||{';printf x >$T/cs/claude-sp;TRUNK=refs/heads/no-such-ref run tick;PIECE=$P0
 ok "u1m-mutant-guard-dropped-reads-silent-rc0-RED rc $rc" '[ $rc = 0 ] && ! grep -q "\[cred\] unread" $T/e'
+rm -f $T/cs/claude-sp
+# ================= HOME (belam 10-25): the first live start after the pin move (L124) exited 5 "doppler gave no key": systemd gives the unit no HOME and doppler refuses without one
+ok "u3-the-service-sets-HOME-for-doppler $(sect agi-cred.service|grep -c "^Environment=HOME=/root$")" '[ "$(sect agi-cred.service|grep -c "^Environment=HOME=/root$")" = 1 ]'
+U0=$UNIT;grep -v '^Environment=HOME=' $U0>$T/unit.mut;UNIT=$T/unit.mut;fresh;cells true prd;run tick;UNIT=$U0
+ok "u3m-MUTANT-the-unit-without-HOME-writes-no-key-RED rc $rc (clean: 0), file $([ -e $T/cs/claude-sp ]&&echo THERE||echo none)" '[ $rc = 5 ]&&[ ! -e $T/cs/claude-sp ]&&grep -q "doppler gave no key" $T/e'
 rm -f $T/cs/claude-sp
 # ================= NEGATIVE (leaf falsifier 3): the pieces and units name no key and no ANTHROPIC_API_KEY environment
 n=$(for g in agi-cred agi-cred.service agi-cred.timer;do sect $g;done|grep -c -e "Environment=.*ANTHROPIC_API_KEY" -e "$KP-")
