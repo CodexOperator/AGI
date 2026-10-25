@@ -2,10 +2,12 @@
 # verify-land.t.sh: VL (council 3/3, alive 21:31:33Z 10-25): the land check on a scratch repo signed by a throwaway ssh key. A clean land reads `verify-land: OK` rc 0;
 # each hostile land HOLDS that check (tree != merge-tree, an unsigned commit, a D path, a home-path literal, a stray email), the installed copy != the pin's blob
 # is `unread`, and PATH not resolving to the installed copy or a live ~/tools copy is RED. No root, no network. One ok/FAIL line per case; exit = number of FAILs.
+export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1   # C4: hermetic (a uid's global ref-guard refuses the scratch refs/held/* writes)
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};VL=${VL:-$R0/extensions/agi/guard/verify-land.sh}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 [ -s "$VL" ]||{ echo "FAIL no verify-land at $VL";exit 99;}
 ssh-keygen -q -t ed25519 -N '' -C t@t -f $T/k||exit 99;printf 't@t namespaces="git" %s\n' "$(cut -d' ' -f1,2 $T/k.pub)" >$T/allowed
+CA="Co-Authored-By: Claude Opus 5.5 <noreply@""anthropic.com>"   # every land message carries the real co-author trailer (C4)
 R=$T/r;git init -q $R;g(){ git -C $R "$@";}
 g config user.name t;g config user.email t@t;g config gpg.format ssh;g config user.signingkey $T/k;g config gpg.ssh.allowedSignersFile $T/allowed;g config commit.gpgsign true
 mkdir -p $R/extensions/agi/guard $R/docs $R/.agi;echo '{}' >$R/.agi/config.json;cp "$VL" $R/extensions/agi/guard/verify-land.sh;echo a >$R/docs/a;echo keep >$R/docs/keep;g add -A;g commit -qm base;BASE=$(g rev-parse HEAD)
@@ -16,12 +18,13 @@ printf 'AGI_TRUNK=%s\n' $BASE >$T/carry.env
 # gate(NAME, edit...): a gate tip on BASE (signed unless UNSIGNED=1), then the land = merge(BASE, tip) signed, held as NAME
 gate(){ n=$1;shift;g checkout -q --detach $BASE;eval "$*";g add -A;if [ -n "$UNSIGNED" ];then g -c commit.gpgsign=false commit -qm "tip $n";else g commit -qm "tip $n";fi;GT=$(g rev-parse HEAD)
  tr=$(g merge-tree --write-tree $BASE $GT|head -1);[ -z "$XTRA" ]||{ g checkout -q --detach $GT;echo x >$R/docs/smuggled;g add -A;tr=$(g write-tree);g reset -q --hard $GT;}
- LD=$(g commit-tree -S -p $BASE -p $GT -m "land $n" $tr);g update-ref refs/heads/vl/$n $LD;g update-ref refs/held/sanctuary-master/$n $LD;}
+ LD=$(g commit-tree -S -p $BASE -p $GT -m "land $n${MSG:+
+$MSG}" -m "$CA" $tr);g update-ref refs/heads/vl/$n $LD;g update-ref refs/held/sanctuary-master/$n $LD;}
 run(){ env -i PATH=$T/bin:/usr/bin:/bin HOME=$T VL_T=$R VL_MAIN=$R VL_OUT=$T/out VL_ANON=$R0/extensions/agi/bin/anonymize.py VL_CARRY=${CARRY:-$T/carry.env} VL_INSTALLED=$T/bin/verify-land VL_TOOLS=$T/tools/verify-land.sh STUB_LOG=$T STUB_CITE_RC=${CRC:-0} ${XPATH:+PATH=$XPATH} sh ${SELF:-$T/bin/verify-land} "$@" >$T/o 2>&1;rc=$?;}
 v(){ tail -1 $T/o;}
 # --- clean
 gate c 'echo b >$R/docs/b';run c $LD $BASE $GT
-ok "c-a-clean-signed-land-reads-OK rc $rc, $(v)" '[ $rc = 0 ]&&[ "$(v)" = "verify-land: OK" ]'
+ok "c-a-clean-signed-land-with-a-real-co-author-trailer-reads-OK rc $rc, $(grep -o '^anon-msg=[0-9]*' $T/o), trailer lines $(git -C $R log -1 --format=%B $LD|grep -c '^Co-Authored-By: Claude'), $(v)" '[ $rc = 0 ]&&[ "$(v)" = "verify-land: OK" ]&&[ "$(git -C $R log -1 --format=%B $LD|grep -c "^Co-Authored-By: Claude")" = 1 ]'
 ok "c-b-the-readings-are-all-printed $(grep -c -E '^(held|parents|tree|sigs|D|anon-diff|anon-msg|home hits|gpu|cite|self)' $T/o) of 11, cite n/a: $(grep -c '^cite: n/a' $T/o)" '[ "$(grep -c -E "^(held|parents|tree|sigs|D|anon-diff|anon-msg|home hits|gpu|cite|self)" $T/o)" = 11 ]&&grep -q "^cite: n/a" $T/o&&[ ! -s $T/cite.log ]'
 # --- one hostile land per existing check
 XTRA=1 gate t 'echo b >$R/docs/b';run t $LD $BASE $GT
@@ -35,6 +38,8 @@ ok "h4-a-home-path-literal-HOLDS rc $rc, $(grep -c '^home hits \[.\+\]' $T/o) hi
 gate e 'echo b2 >$R/docs/b2';LE=$(g commit-tree -S -p $BASE -p $GT -m "land e
 leak: someone@""example.org" $(g rev-parse $LD^{tree}));g update-ref refs/held/sanctuary-master/e $LE;run e $LE $BASE $GT
 ok "h5-a-stray-email-in-the-message-HOLDS rc $rc, $(grep -o 'emails: .*' $T/o), $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*msg-email"'
+MSG="ran on $(hostname) at $(hostname -I 2>/dev/null|awk '{print $1}')" gate i 'echo b3 >$R/docs/b3';run i $LD $BASE $GT
+ok "h7-a-hostname-and-ip-in-the-land-message-HOLDS rc $rc, $(grep -o '^anon-msg=[0-9]*' $T/o), $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (anon-msg)"'
 gate c 'echo b >$R/docs/b';run WRONG $LD $BASE $GT
 ok "h6-a-held-ref-that-is-not-the-land-HOLDS rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (held"'
 # --- self: installed == the pin's blob, PATH, the retired ~/tools copy
