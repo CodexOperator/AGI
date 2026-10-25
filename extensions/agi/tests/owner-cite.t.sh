@@ -33,10 +33,17 @@ CTX(){ o=$(env HOME=$D/nohome AGI_POST=q AGI_ENGINE=${2:-$E} AGI_TRUNK=nosuch PA
 
 # ---- g: the grandfather list is a committed file of node ids; real-file-first: the REAL list covers the REAL tree
 RG=$R0/.agi/nodes/.geometry/owner-cite-grandfather.txt;nf=$(grep -rlE '^## OWNER' $R0/.agi/nodes|wc -l|tr -d ' ');ng=$(wc -l <$RG 2>/dev/null|tr -d ' ')
-CTX $D/bin/agi-mem $R0
-ok "g1-the-real-tree-is-clean the REAL graph ($nf nodes with an OWNER block, $ng ids in the REAL list), run with no store on a post with no mem row: '$o' rc $rc (want 0 new blocks, rc 0)" '[ $rc = 0 ]&&echo "$o"|grep -q "^owner-cite: 0 new OWNER blocks ($ng grandfathered nodes), 0 violations$"'
-ok "g1b-the-list-is-not-vacuous the real list names as many ids as there are nodes with an OWNER block ($ng / $nf) and every line is a node id" '[ "$ng" = "$nf" ]&&[ $ng -gt 50 ]&&! grep -vqE "^[a-z]+:[A-Za-z0-9._-]+$" $RG'
-MUT 's/grep -qxF -- "\$i" \$GF&&continue/false/' agi-mem;CTX $D/mut_agi-mem $R0
+# the REAL graph read with a store that holds the owner chunk ids the real non-grandfathered nodes cite (planted, owner speaker), since the live store is 0700 under belam: the existence read is the host check
+for x in $(grep -rlE '^## OWNER' $R0/.agi/nodes);do xi=$(awk '/^---$/{n++}n==1&&/^id: /{print substr($0,5);exit}' $x);grep -qxF -- "$xi" $RG||grep -ohE 'c:[0-9a-f]{12}' $x;done|sort -u>$D/realids
+RS=$D/hreal/.mem/q.git;mkdir -p $D/hreal;git init -q --bare $RS;for c in $(cat $D/realids);do printf -- '---\nid: %s\nspeaker: owner\ns: S9\nu: u\nt: 2026-10-25T10:00:00Z\nkind: ?\natom: ?\nredacted: 0\n---\nwords\n' $c>$D/pc;b=$(git -C $RS hash-object -w $D/pc);GIT_INDEX_FILE=$D/rix git -C $RS update-index --add --cacheinfo 100644,$b,mem/2026-10-25/c-${c#c:}.md;done
+GIT_INDEX_FILE=$D/rix git -C $RS update-index --add --cacheinfo 100644,$(printf x|git -C $RS hash-object -w --stdin),mem/2026-10-25/c-000000000000.md;cm=$(git -C $RS -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit-tree $(GIT_INDEX_FILE=$D/rix git -C $RS write-tree) -m p);git -C $RS update-ref refs/heads/mem $cm
+CTR(){ o=$(env HOME=$D/hreal AGI_POST=q AGI_ENGINE=$R0 AGI_TRUNK=nosuch PATH=$D/bin:$PATH sh ${1:-$D/bin/agi-mem} cite 2>&1);rc=$?;}
+CTR
+nr=$(echo "$o"|grep -c '^owner-cite: RED')
+ok "g1-the-real-tree-passes the REAL graph ($nf nodes with an OWNER block, $ng ids in the REAL list), the cited ids planted as owner chunks ($(wc -l <$D/realids|tr -d ' ') ids): '$(echo "$o"|tail -1)' rc $rc (want 0 violations, rc 0: every OWNER block outside the list cites a live owner chunk)" '[ $rc = 0 ]&&[ $nr = 0 ]&&echo "$o"|tail -1|grep -q "^owner-cite: [0-9]* new OWNER blocks ($ng grandfathered nodes), 0 violations$"'
+nbk=$(echo "$o"|sed -n 's/^owner-cite: \([0-9]*\) new OWNER blocks.*/\1/p')
+ok "g1b-the-list-covers-the-graph the real list ($ng ids, every line a node id) covers every node with an OWNER block but the ones the check calls new ($nf nodes, $nbk new blocks): the gap is at most the new blocks" '[ $ng -gt 50 ]&&! grep -vqE "^[a-z]+:[A-Za-z0-9._-]+$" $RG&&[ $((nf-ng)) -le "${nbk:-0}" ]&&[ $((nf-ng)) -ge 0 ]'
+MUT 's/grep -qxF -- "\$i" \$GF&&continue/false/' agi-mem;CTR $D/mut_agi-mem
 ok "g1m-mutant-list-ignored-RED a check that never reads the list flags the REAL graph: '$(echo "$o"|tail -1)' rc $rc (the lane wants GREEN, so this must differ)" '[ $rc = 1 ]&&echo "$o"|tail -1|grep -q RED'
 
 # ---- c: a new OWNER block cites a live owner chunk
@@ -93,7 +100,7 @@ $OC
 his other words, no id
 ";CT
 ok "c6-ids-do-not-bleed-between-blocks the second block of one node has no id of its own: exactly 1 violation naming 'OWNER second, verbatim' (got '$o')" '[ $rc = 1 ]&&echo "$o"|grep -q "RED goal:n-two: .OWNER second, verbatim. cites no chunk id$"&&! echo "$o"|grep -q "OWNER first"&&echo "$o"|grep -q "2 new OWNER blocks"'
-MUT 's/h=\/^## OWNER\/?\$0:"";t="";next/h=\/^## OWNER\/?$0:"";next/' agi-mem;CT $D/mut_agi-mem
+MUT 's/h=\/^## OWNER\/?\$0:"";t=""}/h=\/^## OWNER\/?$0:""}/' agi-mem;CT $D/mut_agi-mem
 ok "c6m-mutant-ids-bleed-RED a check that never resets the ids per block gives the second block the first one's id (rc $rc): the lane wants 1 violation, so this must be 0" '[ $rc = 0 ]'
 rn;nn n-next "## OWNER x, verbatim
 
@@ -131,6 +138,13 @@ rn;nn n-two2 "## OWNER one, verbatim
 $OC and c:0123456789ab
 ";CT
 ok "c10-every-cited-id-must-hold one real id and one absent id in a block: RED naming the absent one only (got '$o')" '[ $rc = 1 ]&&echo "$o"|grep -q "cites c:0123456789ab, absent"&&! echo "$o"|grep -q "cites $OC"'
+rn;nn n-head "## OWNER 2026-10-25, verbatim ($OC)
+
+his words, no id below
+";CT
+ok "c12-an-id-in-the-heading-cites the id sits in the OWNER heading line itself (the b1 idea node's shape): the block passes (got '$o' rc $rc)" '[ $rc = 0 ]&&echo "$o"|grep -q "1 new OWNER blocks (1 grandfathered nodes), 0 violations$"'
+MUT 's/h=\/^## OWNER\/?\$0:"";t=""}h!=""{/h=\/^## OWNER\/?$0:"";t="";next}h!=""{/' agi-mem;CT $D/mut_agi-mem
+ok "c12m-mutant-the-heading-is-not-read-RED a check that skips the heading line reads the heading-cited block as 'cites no chunk id' (rc $rc): the lane wants rc 0, so this must be 1" '[ $rc = 1 ]&&echo "$o"|grep -q "cites no chunk id$"'
 # a chunk the scrub retired is no live chunk
 rn;nn n-ret "## OWNER x, verbatim
 
@@ -170,6 +184,13 @@ rn;nn n-cites "## OWNER x, verbatim
 $OC
 ";CTX
 ok "u3-no-store-while-a-block-cites a post that cannot read the store (no ~/.mem) and a block that cites an id: 'unread', rc 1, never a pass (got '$o' rc $rc)" '[ $rc = 1 ]&&echo "$o"|grep -q "owner-cite: unread (the store .*cannot be read and a block cites a chunk id)"'
+rn;nn n-cites2 "## OWNER x, verbatim
+
+$OC
+";o=$(env HOME=$D/nohome AGI_POST=q AGI_ENGINE=$E AGI_TRUNK=nosuch PATH=$D/bin:$PATH sh $D/bin/agi-mem cite 2>/dev/null);rc=$?
+ok "u3b-unread-leaves-no-vacuous-pass-line (council ROW A) with the store unreadable and one citing block, STDOUT alone says unread and carries no 'violations' count (got '$o' rc $rc)" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread (the store"&&! echo "$o"|grep -q violations'
+MUT 's/echo "owner-cite: unread (the store \$S cannot be read and a block cites a chunk id)";exit 1;}/:;}/' agi-mem;o=$(env HOME=$D/nohome AGI_POST=q AGI_ENGINE=$E AGI_TRUNK=nosuch PATH=$D/bin:$PATH sh $D/mut_agi-mem cite 2>/dev/null)
+ok "u3bm-mutant-the-summary-after-unread-RED the old shape (unread on stderr, the summary on stdout) leaves a '0 violations' line on stdout for citations it never read (got '$o'): the lane wants none" 'echo "$o"|grep -q "0 violations"'
 MUT 's/||{ un=1;: >\$D\/hg;}/||{ : >$D\/hg;}/' agi-mem;CTX $D/mut_agi-mem $E
 ok "u3m-mutant-unread-store-reads-as-absent-RED a check that treats an unreadable store as an empty one says 'absent', not 'unread' (got '$(echo "$o"|head -1)'): the lane wants unread" '! echo "$o"|grep -q unread'
 rn;nn n-bare "## OWNER x, verbatim
@@ -184,6 +205,6 @@ rn;nn n-p "## OWNER x, verbatim
 no id
 ";CTX
 ok "p1-runs-on-a-post-with-no-mem-row posts.md unreadable (AGI_TRUNK=nosuch) and the post q has no row: cite still runs and names the block (a silent exit 0 would pass it): rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "RED goal:n-p"'
-MUT 's/\[ "\$1" = cite \]||\[ "\$(printf/[ "$1" = nocite ]||[ "$(printf/' agi-mem;CTX $D/mut_agi-mem $E
+MUT 's/\[ "\$1" = cite \]||case/[ "$1" = nocite ]||case/' agi-mem;CTX $D/mut_agi-mem $E
 ok "p1m-mutant-gated-by-the-mem-row-RED a cite that sits behind the mem: full gate exits 0 and says nothing on a post without a row (rc $rc, output '$o'): the lane wants the block named" '[ $rc = 0 ]&&[ -z "$o" ]'
 echo "owner-cite: $f FAIL";exit $f
