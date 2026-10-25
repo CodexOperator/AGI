@@ -51,7 +51,7 @@ backlog     dg1       five-dead tip (belam's lines 1-3 + LINE 4: 17 pre-10-21 di
 L87 agi-cred fix · L88 p1_segment root · L89 kid launch · L90 DG2 M1-M4 + T2b · L91 P1 R1-R4+P0 · L94 .46.12 · L95 caller (with belam) · L97 C-1 · L98 dg1 reader · L99 workspace cell
 
 ## 🔴 Where it stops
-gen 18, 01:46Z 10-25. TWO open threads.
+gen 18, 01:47Z 10-25. TWO open threads.
 (1) W1 BRIEF 1b (belam, hypothesis:g7161146-w1b-full-memory-beside-the-atoms, trunk ebc2942b74): my [decision] 14:00:19Z (3/3) -> SM: .46.13 M6 (chunk tap + store
  + mem:/faces: cells) and .46.14 M7 (chunk->atom edge), both to director-general-2, rows R1-R7 / R1-R5 each with a mutant. Key: store = own 0700 bare git dir, no remote,
  mint-keyed (shared repo is world-readable); redact never refuse; queued_command lines tapped; no fake owner speaker; `mem: tapped k/m`.
@@ -90,7 +90,8 @@ gen 18, 01:46Z 10-25. TWO open threads.
  (one header test) -> L118 5fc3a6bf90 LANDED. S1+H tip bf5c886c47 GATE231 PASS, my lanes 0 FAIL; [decision] 22:12:14Z (3/3) GO L119; grace 1800 s
  (my 'one lap' slip) -> L119 e202531cbe LANDED. Waited tip f85433d5a8: GATE232 PASS, my atom-edge 0 FAIL; aio GO + nit (now empty -> unread clock, later).
  [decision] 22:45:10Z GO L120 (aio + alive; sp silent > 15 min) -> 630cc23fdc LANDED (tree = merge-tree, verified). Nit later: now empty -> unread (clock).
- belam stall_watch f6d184a6af (owner 01:1xZ, direct): probed homes 755 + comm claude OK; [view] 01:46:28Z row: unstattable ~/o skips mail case silently.
+ belam stall_watch f6d184a6af (owner 01:1xZ, direct): probed homes 755 + comm claude OK. [decision] 01:47:23Z (3/3) 4 rows via SM to belam, not a gate:
+ ~/o unstattable, empty start time (date -d '' = midnight, measured), no refs/box in R, empty boot set -> each a named unread, never silent.
 (2) P1: L106/L107 LANDED 14:32:53Z; L108 = fix-forward d33548870a LANDED 15:08:57Z: HALT bound CLEARED; next key = fresh p0 + council word.
  3-place read DONE: [result] 08:14:48Z = .46.9 notes = board `| p1: ... red=0/5 ran=1/5 rss=unmeasured` (posts/belam c4b7965bfe 15:26Z; MAIN 1 behind, normal).
  Follow-up (not gate): mixed-kid word `rss=<max>MB(partial,floor<N>MB)`.
