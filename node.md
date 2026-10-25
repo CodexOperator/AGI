@@ -29,12 +29,12 @@ locations:
     gitignored: false
     declared_in:
       - {"extensions/agi/bin/envfile.py :": "resolve"}
-credits_live: false
-doppler: {"project": "agi", "config": ""}
+credits_live: true
+doppler: {"project": "agi", "config": "dev"}
 lanes:
-  agi-batch: {"workspace": "", "unit": "agi-batch.service"}
-  agi-kids: {"workspace": "", "unit": "agi-kids.service"}
-  agi-council: {"workspace": "", "unit": "agi-council.service"}
+  agi-batch: {"workspace": "wrkspc_01F6D36dQiczWRCAEvea8FHC", "unit": "agi-batch.service"}
+  agi-kids: {"workspace": "wrkspc_01F6D36dQiczWRCAEvea8FHC", "unit": "agi-kids.service"}
+  agi-council: {"workspace": "wrkspc_01F6D36dQiczWRCAEvea8FHC", "unit": "agi-council.service"}
 optional_keys:
   - MINIMAX_API_KEY
   - OPENAI_API_KEY
