@@ -222,4 +222,27 @@ no id
 ok "p1-runs-on-a-post-with-no-mem-row posts.md unreadable (AGI_TRUNK=nosuch) and the post q has no row: cite still runs and names the block (a silent exit 0 would pass it): rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "RED goal:n-p"'
 MUT 's/\[ "\$1" = cite \]||case/[ "$1" = nocite ]||case/' agi-mem;CTX $D/mut_agi-mem $E
 ok "p1m-mutant-gated-by-the-mem-row-RED a cite that sits behind the mem: full gate exits 0 and says nothing on a post without a row (rc $rc, output '$o'): the lane wants the block named" '[ $rc = 0 ]&&[ -z "$o" ]'
+# ---- a (council row a, 21:26:21Z): `agi-mem at` appends the cite line so a violation is SEEN the next turn
+AT(){ EV sh ${1:-$D/bin/agi-mem} at 2>&1;}
+rn;nn n-ok "## OWNER x, verbatim
+
+$OC
+";o=$(AT)
+ok "a1-at-shows-a-clean-cite-line one new cited OWNER block: the at output carries 'owner-cite: 1 new, 0 violations' with no RED on it (got '$(echo "$o"|grep owner-cite)')" 'echo "$o"|head -1|grep -q "^mem: tapped"&&echo "$o"|grep -qx "owner-cite: 1 new, 0 violations"'
+rn;nn n-bare "## OWNER x, verbatim
+
+no id
+";o=$(AT)
+ok "a2-at-shows-a-violation-RED a fixture node with a new UNCITED OWNER block: the at line reads 'owner-cite: 1 new, 1 violations RED' (got '$(echo "$o"|grep owner-cite)')" 'echo "$o"|grep -qx "owner-cite: 1 new, 1 violations RED"'
+MUT 's/l=\$(agi-mem cite 2>\/dev\/null|tail -1)/l=$(echo "owner-cite: 0 new OWNER blocks (0 grandfathered nodes), 0 violations")/' agi-mem;o=$(AT $D/mut_agi-mem)
+ok "a2m-mutant-at-that-never-asks-cite-RED an at that does not run cite reads the uncited block clean (got '$(echo "$o"|grep owner-cite)'): the lane wants '1 violations RED', so this must read 0 violations" 'echo "$o"|grep -qx "owner-cite: 0 new, 0 violations"'
+rn;nn n-0 "no owner block here";o=$(AT)
+ok "a3-no-new-block-reads-zero at says 'owner-cite: 0 new, 0 violations' when no node holds an unlisted OWNER block (got '$(echo "$o"|grep owner-cite)')" 'echo "$o"|grep -qx "owner-cite: 0 new, 0 violations"'
+rn;nn n-un "## OWNER x, verbatim
+
+$OC
+";o=$(env HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_TRUNK=HEAD AGI_MEM_DIR=$D/nostore PATH=$D/bin:$PATH sh $D/bin/agi-mem at 2>&1)
+ok "a4-at-says-unread-when-cite-cannot-read the store dir names a path with no store: the at line is 'mem: unread' and carries no cite verdict (got '$o')" 'echo "$o"|head -1|grep -qx "mem: unread"&&! echo "$o"|grep -q "violations"'
+rn;rm -f $GF;o=$(AT)
+ok "a5-at-says-unread-when-the-list-is-unreadable the store reads but the grandfather list does not: the at line is 'owner-cite: unread', never a count (got '$(echo "$o"|grep owner-cite)')" 'echo "$o"|grep -qx "owner-cite: unread"'
 echo "owner-cite: $f FAIL";exit $f

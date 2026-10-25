@@ -32,7 +32,7 @@ ME(){ printf '{"type":"user","uuid":"%s","isMeta":true,"timestamp":"2026-10-24T1
 # fresh HOME h$1 with a transcript X (session S1) and a run helper: TAP <home> [piece]; the post is p unless P=q
 nh(){ H=$D/h$1;rm -rf "${H:?}";mkdir -p $H/.claude/projects/x;X=$H/.claude/projects/x/S1.jsonl;: >$X;echo S1>$H/.session;S=$H/.mem/p.git;}
 TAP(){ echo "{\"transcript_path\":\"$X\",\"session_id\":\"S1\",\"prompt\":\"hi\",\"tokens\":1}"|env HOME=$H AGI_POST=${P:-p} AGI_ENGINE=$E AGI_TRUNK=HEAD PATH=$D/bin:$PATH sh ${1:-$D/bin/agi-mem} tap 2>&1;}
-AT(){ env HOME=$H AGI_POST=${P:-p} AGI_ENGINE=$E AGI_TRUNK=HEAD PATH=$D/bin:$PATH sh ${1:-$D/bin/agi-mem} at 2>&1;}
+AT(){ env HOME=$H AGI_POST=${P:-p} AGI_ENGINE=$E AGI_TRUNK=HEAD PATH=$D/bin:$PATH sh ${1:-$D/bin/agi-mem} at 2>&1|grep -v '^owner-cite: ';}   # the cite line at appends (goal:g7.16.1.11.46.26 row a) is read by owner-cite.t.sh a1-a4; these lanes read the tapped line and the walk
 nchunks(){ git -C $S grep -c '^id: c:' refs/heads/mem -- mem ':!mem/retired' 2>/dev/null|awk -F: '{n+=$NF}END{print n+0}';}
 nowner(){ git -C $S grep --all-match -l -e '^speaker: owner$' -e "$1" refs/heads/mem 2>/dev/null|wc -l|tr -d ' ';}
 # mutate: MUT <sed-expr> -> $D/mut (a copy of the piece with the one edit; the edit MUST change it)
