@@ -91,6 +91,13 @@ cadences:
     user: agi-belam
     why_box: the SENDING seat's drain for belam's spool (goal g7.16.1.11.20.2 council 3/3 21:3xZ, one spool per sending seat) runs in belam's own uid on the box where its post tree and key live; the root agi-quiet-watch unit only appends a plain line to belam's ~/alarm.spool and never signs, this row signs and box-sends it to sanctuary-master (belam to SM is inside the matrix) exactly once
     cmd: python3 {repo_root}/extensions/agi/bin/alarm_spool.py drain --seat belam --max-tries 60
+  stall_watch:
+    every_mins: 5
+    enabled: true
+    box: encryption-town
+    user: agi-belam
+    why_box: "owner 01:1xZ 10-25 (\"Are we also checking to see if anyone is stalled out\" · \"let's add it just make it graph native like the other scripts do it's easy to start and stop\"): names ONE post that is down, runs no claude, or has unread box mail >= 20 min old while its screen log has not changed for >= 10 min; reads only the agi-post@ wants links, systemctl, pgrep, the mail refs in MAIN and each ~/o's mtime (no root, no screen bytes), so it runs in belam's uid on the box where MAIN and the posts live; it only APPENDS one line to belam's ~/alarm.spool, which alarm_drain_belam signs and box-sends to sanctuary-master; it acts on nothing. Stop: enabled false + crons.py apply --sudo"
+    cmd: sh {repo_root}/extensions/agi/bin/stall_watch.sh --repo {repo_root}
   prereq_notice:
     every_mins: 3
     enabled: false

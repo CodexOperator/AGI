@@ -1,7 +1,7 @@
 [Unit]
-Description=agi: rc keepalive every 30 min
+Description=agi: rc keepalive every 5 min
 [Timer]
 OnBootSec=5min
-OnUnitActiveSec=30min
+OnUnitActiveSec=5min
 [Install]
 WantedBy=timers.target
