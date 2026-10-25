@@ -237,7 +237,7 @@ check(){ R=${AGI_PROC:-/proc};G=${AGI_CGROUP:-/sys/fs/cgroup};np=0;tot=0;gn=0;rd
 case $1 in check)check;;tick)tick;;"")tick;a=$?;check;b=$?;[ $a -ge $b ]&&exit $a;exit $b;;*)exit 2;;esac
 ~~~
 
-### agi-cred.service (301 B)
+### agi-cred.service (324 B)
 ~~~ini
 [Unit]
 Description=agi-cred: the Console key file for the lane units
@@ -247,6 +247,7 @@ TimeoutStartSec=120
 EnvironmentFile=/etc/agi/carry.env
 Environment=PATH=/opt/agi/bin:/usr/local/bin:/usr/bin:/bin
 Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory
+Environment=HOME=/root
 ExecStart=/opt/agi/bin/agi-cred
 ~~~
 

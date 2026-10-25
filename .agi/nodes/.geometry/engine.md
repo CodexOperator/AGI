@@ -48,7 +48,7 @@ agi-carry@.service  308 B  oneshot: box-carry %i
 agi-carry-fetch.timer   88 B  every 60 s: carry each local post, then hub
 agi-carry-fetch.service 229 B  oneshot: box-carry --fetch
 agi-cred        3081 B  root: Console key file + the leak check
-agi-cred.service 301 B  oneshot: agi-cred
+agi-cred.service 324 B  oneshot: agi-cred
 agi-cred.timer   89 B  every 5 min: agi-cred
 ~~~
 
