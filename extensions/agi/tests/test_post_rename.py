@@ -262,6 +262,7 @@ def test_pre_migration_write_path_still_resolves_seats(tmp_path):
     `--dry-run` leaves the seats.md line count unchanged."""
     import node_writer  # noqa: PLC0415
     import rotate  # noqa: PLC0415
+    import geometry_config  # noqa: PLC0415
     import write  # noqa: PLC0415
     r = _build_repo(tmp_path)
     _config_schema(r)
@@ -283,12 +284,12 @@ def test_pre_migration_write_path_still_resolves_seats(tmp_path):
         g, seat="a", actor="a", role="kid",
         cells={"session_ref": "ref-pre", "generation": 7})
     assert out == "wrote identity cells for seat 'a' into MAIN seats.md"
-    row = next(x for x in write._load_seats(g) if x.get("name") == "a")
+    row = next(x for x in geometry_config.load_rows(g) if x.get("name") == "a")
     assert row["session_ref"] == "ref-pre" and row["generation"] == 7
     assert "id: config:seats" in seats_md.read_text()
 
     # (c1) write's self_row guard still admits an OWN-row seats write.
-    old = write._load_seats(g)
+    old = geometry_config.load_rows(g)
     nr = []
     for x in old:
         nx = dict(x)
@@ -325,12 +326,13 @@ def test_post_migrated_ack_shaped_self_row_write_and_foreign_refused(tmp_path):
     import node_writer  # noqa: PLC0415
     import rotate  # noqa: PLC0415
     import send  # noqa: PLC0415
+    import geometry_config  # noqa: PLC0415
     import write  # noqa: PLC0415
     r, g = _migrate(tmp_path)
     posts_md = g / "nodes" / ".geometry" / "posts.md"
 
     # (c1) ACK-SHAPED own-row write SUCCEEDS through write.submit.
-    old = write._load_seats(g)
+    old = geometry_config.load_rows(g)
     nr = []
     for x in old:
         nx = dict(x)
@@ -364,7 +366,7 @@ def test_post_migrated_ack_shaped_self_row_write_and_foreign_refused(tmp_path):
         g, seat="a", actor="a", role="kid",
         cells={"session_ref": "ref-post", "generation": 9})
     assert out == "wrote identity cells for seat 'a' into MAIN posts.md"
-    row = next(x for x in write._load_seats(g) if x.get("name") == "a")
+    row = next(x for x in geometry_config.load_rows(g) if x.get("name") == "a")
     assert row["session_ref"] == "ref-post" and row["generation"] == 9
 
     # (b) send._pushed_seats resolves the pushed rows from posts.md.

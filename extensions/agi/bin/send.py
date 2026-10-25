@@ -463,20 +463,19 @@ def _place_seat_key(tmp: Path, path: Path) -> None:
         print(f"note: key placed, seats dir not fsynced ({exc})", file=sys.stderr)
 
 
-def _row_write_submit(graph: Path, rows: list, actor: str, role: str) -> bool:
-    """Write the ``config:posts`` rows through write.submit (the sanctioned
-    writer; ``config:seats``/``seats`` is the one-season alias). Returns True
-    on success, False when the write could not be admitted (no config node,
-    no admitted actor, no seating) -- a keygen never fails to mint a key
-    because the row could not be written, and it never prints the private
-    seed either way.
+def _row_write_submit(graph: Path, rows: list, actor: str, role: str, declare: dict) -> bool:
+    """Write the ``config:posts`` rows through config_rows.write_rows (``config:seats``/
+    ``seats`` is the one-season alias). ``declare`` = {row name: (op, cells)}: what this
+    caller means to write, checked against the real row diff (goal:g7.16.1.11.46.23 V8a).
+    ``role`` is accepted for the callers' signature and never read: the role is the
+    actor's own posts row's. Returns True on success, False when the write could not be
+    admitted (no config node, no admitted actor, a diff outside ``declare``) -- a keygen
+    never fails to mint a key because the row could not be written, and it never prints
+    the private seed either way.
     """
     try:
-        import write as write_mod  # local; write.py imports no send.py
-        _, list_key = geometry_config.resolve(graph)
-        e = write_mod.Edit(f"config:{list_key}")
-        write_mod.verb_set(e, list_key, json.dumps(rows))
-        write_mod.submit(graph, e, actor=actor, role=role)
+        import config_rows  # local; same dir
+        config_rows.write_rows(graph, rows, actor=actor, declare=declare)
         return True
     except Exception:                                          # noqa: BLE001
         # Reporting is the caller's job (clause (1)): `keygen` prints the ONE
@@ -591,9 +590,11 @@ def keygen(root: Path, seat: str = "", scheme_name: str = seatsig.DEFAULT_SCHEME
             keyed_names.append(name)
             wrote_any = True
         if wrote_any:
-            if not _row_write_submit(graph, new_rows, actor=actor, role=role):
+            import config_rows
+            if not _row_write_submit(graph, new_rows, actor=actor, role=role,
+                                     declare={n: ("set", config_rows.KEYGEN_KEYS) for n in keyed_names}):
                 # clause (1): every keyed row stayed UNKEYED; the CLI exits 2.
-                _keygen_row_refused("write.submit returned False for the keyed rows")
+                _keygen_row_refused("config_rows.write_rows returned False for the keyed rows")
             # clause (2)/(4b): ONE own-row commit whose message names EVERY
             # seat this --all-live pass keyed (`keygen --all-live: keyed<list>`),
             # staging seats.md ONLY, then the clause-(2) push leg. Best-effort;
@@ -631,9 +632,11 @@ def keygen(root: Path, seat: str = "", scheme_name: str = seatsig.DEFAULT_SCHEME
         own["sig_scheme"] = scheme_name
         own["enc_scheme"] = own.get("enc_scheme") or "none"
         own.setdefault("key_history", [])  # seed: every keyed row carries the cell
-        if not _row_write_submit(graph, new_rows, actor=actor, role=role):
+        import config_rows
+        if not _row_write_submit(graph, new_rows, actor=actor, role=role,
+                                 declare={seat: ("set", config_rows.KEYGEN_KEYS)}):
             # clause (1): minted but the row write was refused -> CLI exits 2.
-            _keygen_row_refused(f"write.submit returned False for seat row {seat!r}")
+            _keygen_row_refused(f"config_rows.write_rows returned False for seat row {seat!r}")
         # clause (2): keygen commits its own-row hunk and pushes, like every
         # key-cell writer, through SL6.01's `_commit_spawn_row` + the push
         # leg. Best-effort; a refused commit/push never fails the mint.
@@ -6473,7 +6476,8 @@ def onboard(root: Path, name: str, sponsor: str, sponsor_sig: str,
         "key_history": [],
     }
     new_rows.append(new_row)
-    if not _row_write_submit(graph, new_rows, actor=actor, role=role):
+    if not _row_write_submit(graph, new_rows, actor=actor, role=role,
+                             declare={new_row["name"]: ("create", None)}):
         if built["minted_here"]:
             built["kpath"].unlink(missing_ok=True)
         print(f"REFUSED {name}: tier untrusted -- config write was refused; "

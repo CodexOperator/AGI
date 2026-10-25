@@ -590,8 +590,8 @@ def test_rotate_self_completes_pending_swap_before_minting(
     # generation's retired key exactly ONCE -- the failed-push entry (pred,
     # gen N) and this rotation's (succ, gen N+1) -- NO duplicate generation
     # (this is the assertion kid 1's stubbed mint could never reach).
-    import write as _w
-    rows_after = _w._load_seats(tmp_path)
+    import geometry_config as _w
+    rows_after = _w.load_rows(tmp_path)
     own = next(r for r in rows_after if r.get("name") == "adv-alive")
     assert own["pubkey"] == minted["successor_pub"]
     hist = [h for h in own["key_history"] if isinstance(h, dict)]
@@ -689,8 +689,8 @@ def test_rotate_self_stops_push_completes_pending_swap_site(
     assert not pend.exists()
     # .key's private key derives the COMMITTED row's pubkey -- the swap
     # state, not the stale predecessor.
-    import write as _w
-    rows_after = _w._load_seats(tmp_path)
+    import geometry_config as _w
+    rows_after = _w.load_rows(tmp_path)
     own = next(r for r in rows_after if r.get("name") == "adv-alive")
     _sch = bin_send.seatsig.get("ed25519")
     kp = bin_send._seat_key_path(tmp_path, "adv-alive")
@@ -829,8 +829,8 @@ def test_rotate_self_merge_push_completes_pending_swap_site(
     assert calls[0][0] == "push: OK", calls
     assert calls[0][1] is True and calls[0][2] is False, calls
     assert not pend.exists()
-    import write as _w
-    rows_after = _w._load_seats(tmp_path)
+    import geometry_config as _w
+    rows_after = _w.load_rows(tmp_path)
     own = next(r for r in rows_after if r.get("name") == "adv-alive")
     _sch = bin_send.seatsig.get("ed25519")
     kp = bin_send._seat_key_path(tmp_path, "adv-alive")
@@ -2787,7 +2787,7 @@ def test_rotate_self_model_differs_from_row_refused_by_name(
     proceeds on the row model)."""
     import io as _io
     import contextlib as _c
-    from agi.bin import write as _w
+    from agi.bin import geometry_config as _w
     _write_seats_sheet(tmp_path,
                        [{"name": "adv-alive", "role": "parent",
                          "model": "sonnet"}])
@@ -2799,7 +2799,7 @@ def test_rotate_self_model_differs_from_row_refused_by_name(
     assert "--model opus differs from the row: model sonnet" in err.getvalue()
     assert "the row changes only through write.py" in err.getvalue()
     # the row was never rewritten
-    rows = _w._load_seats(tmp_path)
+    rows = _w.load_rows(tmp_path)
     assert rows and rows[0]["model"] == "sonnet"
 
 

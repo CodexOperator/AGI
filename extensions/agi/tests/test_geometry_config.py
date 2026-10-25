@@ -276,23 +276,26 @@ def test_send_shared_seats_path_falls_back_to_posts_md(tmp_path):
 # fixture by reading empty/absent.                                            #
 # --------------------------------------------------------------------------- #
 def test_send_row_write_submit_routes_posts_md_first(tmp_path):
-    """send._row_write_submit builds the node id and verb key from
+    """send._row_write_submit (config_rows.write_rows) builds the node id and list key from
     geometry_config.resolve: on a posts.md-only graph the write targets
     `config:posts` / `posts`, never a literal `config:seats`/`seats`."""
     g = _graph(tmp_path)
+    (g / "config.json").write_text("{}", encoding="utf-8")  # the project marker config_rows requires
     _write_posts(g)
     r = _py(
         "import send\n"
-        "import write as _w\n"
+        "import geometry_config\n"
+        "import node_writer as _nw\n"
         "from pathlib import Path as _P\n"
         f"ROOT=_P({str(g)!r})\n"
         "cap = {}\n"
-        "def fake_submit(graph, edit, actor='', role='', **kw):\n"
-        "    cap['node'] = edit.node_id\n"
-        "    cap['keys'] = list(edit.set_fm)\n"
-        "_w.submit = fake_submit\n"
-        "ok = send._row_write_submit(ROOT, [{'name':'a'},{'name':'b'}], "
-        "actor='x', role='kid')\n"
+        "def fake_update(root, node_id, **kw):\n"
+        "    cap['node'] = node_id\n"
+        "    cap['keys'] = [k for k in kw['set_fm'] if k != 'edited_by']\n"
+        "    return _nw.NodeWrite(status=_nw.UPDATED, node_id=node_id)\n"
+        "_nw.update_node = fake_update\n"
+        "ok = send._row_write_submit(ROOT, [dict(r) for r in geometry_config.load_rows(ROOT)], "
+        "actor='x', role='kid', declare={})\n"
         "print('ok', ok)\n"
         "print('node', cap.get('node'))\n"
         "print('keys', cap.get('keys'))\n"
@@ -308,18 +311,22 @@ def test_send_row_write_submit_falls_back_to_seats_md(tmp_path):
     """A seats.md-only graph: _row_write_submit still resolves via the alias to
     `config:seats` / `seats` (the one-season fallback must keep working)."""
     g = _graph(tmp_path)
+    (g / "config.json").write_text("{}", encoding="utf-8")  # the project marker config_rows requires
     _write_seats(g)
     r = _py(
         "import send\n"
-        "import write as _w\n"
+        "import geometry_config\n"
+        "import node_writer as _nw\n"
         "from pathlib import Path as _P\n"
         f"ROOT=_P({str(g)!r})\n"
         "cap = {}\n"
-        "def fake_submit(graph, edit, actor='', role='', **kw):\n"
-        "    cap['node'] = edit.node_id\n"
-        "    cap['keys'] = list(edit.set_fm)\n"
-        "_w.submit = fake_submit\n"
-        "ok = send._row_write_submit(ROOT, [{'name':'a'}], actor='x', role='kid')\n"
+        "def fake_update(root, node_id, **kw):\n"
+        "    cap['node'] = node_id\n"
+        "    cap['keys'] = [k for k in kw['set_fm'] if k != 'edited_by']\n"
+        "    return _nw.NodeWrite(status=_nw.UPDATED, node_id=node_id)\n"
+        "_nw.update_node = fake_update\n"
+        "ok = send._row_write_submit(ROOT, [dict(r) for r in geometry_config.load_rows(ROOT)], "
+        "actor='x', role='kid', declare={})\n"
         "print('ok', ok)\n"
         "print('node', cap.get('node'))\n"
         "print('keys', cap.get('keys'))\n"

@@ -429,7 +429,7 @@ def _seat_row(prep_root, gen, pid=None):
     if pid is not None:
         row["pid"] = pid
     (g / "seats.md").write_text(
-        "---\ntype: config\nseats:\n  - " + json.dumps(row) + "\n---\n",
+        "---\nid: config:seats\ntype: config\nseats:\n  - " + json.dumps(row) + "\n---\n",
         encoding="utf-8")
 
 
@@ -444,7 +444,7 @@ def _seat_row_wt(prep_root, gen):
     row = {"name": "adv-alive", "role": "parent",
            "generation": gen, "worktree": "/some/wt"}
     (g / "seats.md").write_text(
-        "---\ntype: config\nseats:\n  - " + json.dumps(row) + "\n---\n",
+        "---\nid: config:seats\ntype: config\nseats:\n  - " + json.dumps(row) + "\n---\n",
         encoding="utf-8")
 
 
@@ -515,7 +515,7 @@ def test_prepare_check5_clear_line_prefers_row_transcript_over_stale_pin(
            "worktree": "", "cwd": str(prep_root / "seat-hub"),
            "session_id": "row-sess-001"}
     (g / "seats.md").write_text(
-        "---\ntype: config\nseats:\n  - " + json.dumps(row) + "\n---\n",
+        "---\nid: config:seats\ntype: config\nseats:\n  - " + json.dumps(row) + "\n---\n",
         encoding="utf-8")
     # the pin is STALE: records generation 2, the row owns generation 3
     pin = prep_root / "sessions" / "adv-alive.meter"
@@ -1135,7 +1135,7 @@ def _own_identity_env():
             if k not in ("GIT_AUTHOR_NAME", "GIT_AUTHOR_EMAIL", "GIT_COMMITTER_NAME", "GIT_COMMITTER_EMAIL")}
 
 
-def _real_unpushed_rotate_repo(tmp_path):
+def _real_unpushed_rotate_repo(tmp_path, config_id=True, config_file=True):
     """A REAL git repo with a bare origin and an upstreamed branch whose
     checked-out HEAD is ONE commit AHEAD of origin (the classic `git push`
     beltam paid to type). NOTHING is dirty, behind, or stale — the single
@@ -1154,9 +1154,10 @@ def _real_unpushed_rotate_repo(tmp_path):
         "  parent:\n    brief_file: extensions/agi/briefs/parent-successor.md\n"
         "    steps: [handoff, rename, spawn]\n    telemetry: [seat]\n"
         "---\n\nbody\n", encoding="utf-8")
-    (g / "seats.md").write_text(
-        "---\ntype: config\nseats:\n  - {\"name\": \"adv-alive\", "
-        "\"role\": \"parent\", \"generation\": 1}\n---\n", encoding="utf-8")
+    if config_file:
+        (g / "seats.md").write_text(
+            "---\n" + ("id: config:seats\n" if config_id else "") + "type: config\nseats:\n  - {\"name\": \"adv-alive\", "
+            "\"role\": \"parent\", \"generation\": 1}\n---\n", encoding="utf-8")
     sess = root / "sessions"
     (sess / "seats").mkdir(parents=True)
     (sess / "quorum").mkdir(parents=True)
@@ -1249,6 +1250,38 @@ def test_rotate_self_pushes_only_unpushed_blocker_and_continues(
     # the refusal is gone: neither the blocked nor the refused line appears
     assert "rotate-self blocked:" not in err_text
     assert "rotate-self refused:" not in err_text
+    # the spawn row WROTE: read the committed row back, never rc alone (V8a: a REJECTED write is a refusal)
+    import geometry_config
+    row = next(r for r in geometry_config.load_rows(root) if r.get("name") == "adv-alive")
+    assert row.get("generation") == 2 and row.get("pubkey"), row   # generation 1 -> 2 and the first key landed
+
+
+def test_rotate_self_with_no_config_node_refuses_the_row_write_by_name(tmp_path, monkeypatch):
+    """goal:g7.16.1.11.46.23 V8a lane row (SM GATE250 RED 2): the spawn-row write used to report
+    success when node_writer REJECTED it (a seats.md with no `id: config:seats` is no config node).
+    config_rows turns the rejection into a refusal, so rotate-self prints the one REFUSED line and
+    returns non-zero instead of 'success' with no row written."""
+    root, win = _real_unpushed_rotate_repo(tmp_path, config_id=False)
+    monkeypatch.setattr(rotate, "_stops_push", lambda root, label="stops": None)
+    monkeypatch.setattr(rotate, "_finish_pending_swap_on_push", lambda r, s, pl: "")
+
+    def fake_spawn(**kw):
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_ack", lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    import io as _io
+    import contextlib as _c
+    err = _io.StringIO()
+    with _c.redirect_stderr(err):
+        rc = rotate.cmd_rotate_self(_rotate_self_args(window_path=str(win), session_ref="adv-alive-9"), root)
+    assert rc != 0
+    assert "spawn-row write REFUSED" in err.getvalue()
+    assert "carries id none, not config:posts|seats" in err.getvalue()
+    assert "wrote identity cells" not in err.getvalue()
 
 
 def test_rotate_self_unpushed_plus_dirty_refuses_no_push(
@@ -1475,7 +1508,7 @@ def test_prepare_check2_worktree_post_dirt_blocks_even_outside_touch(
     row = {"name": "adv-alive", "role": "parent", "generation": 3,
            "worktree": "/some/wt"}
     (g / "seats.md").write_text(
-        "---\ntype: config\nseats:\n  - " + json.dumps(row) + "\n---\n",
+        "---\nid: config:seats\ntype: config\nseats:\n  - " + json.dumps(row) + "\n---\n",
         encoding="utf-8")
     gm = {("status", "--porcelain"): [" M seats.md"],
           ("rev-list", "--count", "@{u}..HEAD"): ["0"],
