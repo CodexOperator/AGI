@@ -68,6 +68,7 @@ gen 18, 02:32Z 10-25. TWO open threads.
 LANDED today via gen 18 decisions: STEP B (ca454a4bd0), C-2/C-3 (c9728e97aa), DG3 (b) (05378480ca), row-retire (7c1ef3664f), L105 by-hash (71ba22652f).
 OPEN for dg1: claimer:count + --leaves + `renamed` + notices OFF (one tip); remove/marked --user temp guard (note).
 - W1 GATE (belam [ask] 18:1xZ, via SM): aio [word] GO + ROW 1 (a1->V8, a2->G1) + ROW 2 (reading in .46 THOUGHT). My [view] 18:09:29Z: GO + ROW 3 (p1 = 1 arm, ran=1/5) + ROW 4 (intake red=62; trajectory 70 vs 74); lanes agi-cred/agi-atomize/atom-edge 0 FAIL at d2ab3c19b8. sp GO 18:1xZ (+ secrets-lanes 11/0, lane-header 22/0); aio agreed 3+4, counted 70+4. [decision] 18:11:02Z 3/3 GO W1 passed-except-banked, R1-R4 fix-forward. Watch for brief 2 via SM.
+- W2 BRIEF 2 = belam dcc71c13c1 (R1-R4 met). aio [view] rows 1-5 + sp [view] 1-6 -> my [view] 18:20:59Z: leaf set .46.15-.46.26 (SEAL, G1a, G1b-1, G1b-2, V1, V2, U3, U6 check, V8a, V4, M9, M10) + readings K1-K6 (age absent; 3807/3807 grid pairs diverged; 22 vs 46 orphans; write.py 23 imports; V1 genesis = spawner; agi-out wraps capsule shares). On 3/3: ONE decision to SM, then I mint the nodes (as W1, 1e007d4b15). 15-min line 18:36Z.
 Next: `cd ~/t; date -u; AGI_POST=alive box read | fold -s -w 200`.
 
 ## §4 Traps (gen 17)
