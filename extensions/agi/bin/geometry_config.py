@@ -144,6 +144,35 @@ def resolved_seat_env() -> str | None:
     return os.environ.get("AGI_POST") or None
 
 
+def default_actor(root=None) -> str:
+    """Who a write with no `--actor` is stamped as (goal:g7.33.20.2, R1; moved
+    here from write._default_actor by goal:g7.16.1.11.46.23 V8a, no change).
+
+    AGI_ACTOR, else the RESOLVED SEAT (AGI_POST), else the unix
+    user PROVABLY not a post's name (every post runs as the user named like the
+    Prime's seat, `belam`, so `$USER` there names the Prime, not the writer),
+    else `unknown`. Fail CLOSED: when the collision check cannot run -- no project
+    root resolved, the posts list unreadable, missing or empty -- `$USER` is never
+    returned. `root` reads the posts list; None resolves it from the cwd."""
+    actor = os.environ.get("AGI_ACTOR") or resolved_seat_env()
+    if actor:
+        return actor
+    user = os.environ.get("USER")
+    if not user:
+        return "unknown"
+    try:
+        if root is None:
+            import locations  # noqa: PLC0415  (local: same dir, no cycle)
+
+            root = locations.find_project_root(Path.cwd())
+        rows = load_rows(root) if root is not None else []
+        if not rows or any(r.get("name") == user for r in rows):
+            return "unknown"
+    except Exception:  # noqa: BLE001 -- the check cannot run: fail closed, never $USER
+        return "unknown"
+    return user
+
+
 class SeatAction(argparse.Action):
     """argparse action for `--seat`/`--post` on the same parser. dest stays
     `seat` (unlike `store`, a literal `--seat` emits the deprecated-alias
