@@ -7,7 +7,8 @@
 # active = down · s7 no claude past G = no-claude, within G silent · s8 SELF is never listed · s9 the same condition inside
 # GAP is quiet, after GAP it repeats · s10 cleared then back = re-alert · s11 a missing wants dir = unread, rc 1 ·
 # s12 DRY prints and writes no spool · s13-s16 the four unread rows (council 01:4xZ 10-25). MUTANTS (MUT=1): the screen gate dropped (s3 must go RED), the GAP gate dropped,
-# (s9 must go RED) and each unread row dropped (m3-m6).
+# (s9 must go RED), each unread row dropped (m3-m6), N1 and N2 dropped (m7-m8). s17-s18 = N1/N2 (council 02:0xZ 10-25);
+# the scratch repo runs with core.hooksPath=/dev/null (L), so the lane reads the same under every seat's uid.
 T=$(mktemp -d);f=0;R0=$(cd "$(dirname "$0")/../../.." && pwd);SW=${SW:-$R0/extensions/agi/bin/stall_watch.sh}
 trap "[ -n \"$KEEP\" ] || rm -rf $T" 0
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
@@ -26,7 +27,7 @@ cat >$T/bin/pgrep <<EOF
 p=\${2#agi-};[ "\$(cat $T/sv/\$p.claude)" = 1 ]&&echo 4242
 EOF
 chmod +x $T/bin/*;PATH=$T/bin:$PATH;export PATH
-git init -q $T/r;G="git -C $T/r -c user.name=t -c user.email=t@t"
+git init -q $T/r;G="git -C $T/r -c core.hooksPath=/dev/null -c user.name=t -c user.email=t@t"   # (L) alive: the seats' global hooksPath ref-guard must not judge the scratch repo
 mail(){ c=$(GIT_COMMITTER_DATE="@$3 +0000" GIT_AUTHOR_DATE="@$3 +0000" $G commit-tree -m "m" $($G hash-object -w -t tree /dev/null) ${4:+-p $4});$G update-ref refs/box/$1/$2 $c;echo $c;}
 scr(){ touch -d @$2 $T/s/$1/o;}
 for p in alpha beta gamma belam;do scr $p $NOW;done
@@ -71,16 +72,22 @@ echo failed>$T/sv/beta;rm -rf $T/st/*;n0=$(wc -l <$T/spool)
 o=$(DRY=1 run);ok s12-dry-prints-no-spool 'echo "$o" | grep -q "beta: down" && [ "$(wc -l <$T/spool)" = "$n0" ]';echo active>$T/sv/beta
 # s13 (row 1): delta has old unread mail and NO ~/o -> named unread
 rm -rf $T/st/*;mail belam delta $((NOW-1800)) >/dev/null
-o=$(run);ok s13-unreadable-screen-log-named 'echo "$o" | grep -q "delta: unread: screen log not readable (mail 1 unread, oldest 30m)"'
+o=$(run);ok s13-unreadable-screen-log-named 'echo "$o" | grep -q "delta: unread-screen: screen log not readable (mail 1 unread, oldest 30m)"'
 # s14 (row 2): gamma no claude, EMPTY unit start time -> named unread (not midnight-based no-claude)
 echo 0 >$T/sv/gamma.claude;echo empty>$T/sv/gamma.since;rm -rf $T/st/*
-o=$(run);ok s14-unreadable-start-time-named 'echo "$o" | grep -q "gamma: unread: unit start time not readable (no claude process)"';echo 1 >$T/sv/gamma.claude
+o=$(run);ok s14-unreadable-start-time-named 'echo "$o" | grep -q "gamma: unread-start: unit start time not readable (no claude process)"';echo 1 >$T/sv/gamma.claude
 # s15 (row 3): a repo with no refs/box -> unread rc 1
 git init -q $T/r0;STORES=$T/s WANTS=$T/w STATE=$T/st sh $SW --repo $T/r0 >/dev/null 2>$T/err;rc=$?
 ok s15-no-box-refs-unread-rc1 '[ $rc = 1 ] && grep -q "unread: no refs/box" $T/err'
 # s16 (row 4): an empty wants dir -> unread rc 1
 mkdir -p $T/w0;STORES=$T/s WANTS=$T/w0 STATE=$T/st sh $SW --repo $T/r >/dev/null 2>$T/err;rc=$?
-ok s16-empty-boot-set-unread-rc1 '[ $rc = 1 ] && grep -q "unread: boot set empty" $T/err'
+ok s16-empty-boot-set-unread-rc1 '[ $rc = 1 ] && grep -q "unread: boot set empty besides belam" $T/err'
+# s17 (N1): a wants dir holding ONLY SELF -> unread rc 1
+mkdir -p $T/w1;touch $T/w1/agi-post@belam.service;STORES=$T/s WANTS=$T/w1 STATE=$T/st sh $SW --repo $T/r >/dev/null 2>$T/err;rc=$?
+ok s17-boot-set-only-self-unread-rc1 '[ $rc = 1 ] && grep -q "boot set empty besides belam" $T/err'
+# s18 (N2): delta flagged unread-screen, then inside GAP its ~/o reads again but its start time garbles -> named again
+rm -rf $T/st/*;run >/dev/null;scr delta $((NOW-900));echo 0 >$T/sv/delta.claude;echo empty>$T/sv/delta.since
+o=$(NOW=$((NOW+60)) run);ok s18-cause-change-inside-gap-realerts 'echo "$o" | grep -q "delta: unread-start"';echo 1 >$T/sv/delta.claude;rm -f $T/sv/delta.since $T/s/delta/o
 if [ -n "$MUT" ];then
  mk(){ python3 -c "import sys;s=open(sys.argv[1]).read();a=sys.argv[2];assert a in s;open(sys.argv[3],'w').write(s.replace(a,sys.argv[4],1))" $SW "$1" $T/$2 "$3";}
  mr(){ AS=$R0/extensions/agi/bin/alarm_spool.py STORES=$T/s WANTS=${MW:-$T/w} STATE=$T/st SPOOL=$T/spool SELF=belam U=1200 W=600 G=300 GAP=3600 sh $T/$1 --repo ${MR:-$T/r} 2>$T/err;}
@@ -98,5 +105,9 @@ if [ -n "$MUT" ];then
  ok m5-mutant-row3-dropped-rc0-RED '[ $rc = 0 ]'
  mk '[ -n "$PS" ]||' m6 'true||';MW=$T/w0 mr m6 >/dev/null;rc=$?
  ok m6-mutant-row4-dropped-rc0-RED '[ $rc = 0 ]'
+ mk '|grep -vx "$SELF")' m7 ')';MW=$T/w1 mr m7 >/dev/null;rc=$?
+ ok m7-mutant-N1-dropped-only-self-rc0-RED '[ $rc = 0 ]'
+ sed 's/c="unread-start:/c="unread-screen:/' $SW >$T/m8;rm -rf $T/st/*;mr m8 >/dev/null;scr delta $((NOW-900));echo 0 >$T/sv/delta.claude;echo empty>$T/sv/delta.since
+ o=$(NOW=$((NOW+60)) mr m8);ok m8-mutant-N2-one-kind-quiet-RED '! echo "$o" | grep -q "delta:"';echo 1 >$T/sv/delta.claude;rm -f $T/sv/delta.since $T/s/delta/o
 fi
 echo "stall-watch: FAIL=$f";[ $f = 0 ]
