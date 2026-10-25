@@ -71,6 +71,7 @@ L70 43086245a3 (director-review boot=true) · .45 close 73a32e5567 · L71 dfd3d6
 10-23: W0 = doc:brainstorm-unify + goal:g7.16.1.11.46 + .46.1 V0 (agi-run 2260 B, lane session-pin.t.sh 9/9) + this card.
 
 ## 🔴 Where it stops
+W1 = PASSED EXCEPT BANKED (council 3/3 18:11Z 10-25); BRIEF 2 CUT 18:2xZ = hypothesis:g7161146-w2-identity-and-the-grid (SEAL · G1a · G1b · V1 · V2 · U3 · U6 · V8a · V4+M9+M10), sent through SM: next = the council's leaf set (.46.15+), then directors build, SM cuts, I land. The town idled 15 h before this cut (owed by me; agi-quiet-watch blind to background shells: fix owed).
 W1 nearly done (all leaves landed L74-L100): closed .46.1 V0 .46.2 M1 .46.4 M3 .46.5 M4 .46.11 V10a; open .46.3 M2 (pre-credits P-a..e), .46.10 U1 (a day of reports), .46.6-.8 C1-C3 (live leg = owner's Doppler token + workspaces; agi-cred INSTALLED 02:31Z), .46.12 notice (cron enabled:false, L97; owner GO = flip + apply), .46.9 P1: the ONE deepseek kid-key MINTED 07:15Z (hash 0186dce6a1c4..., ~/p1keys/deepseek-l2.key, ledger ~/p1keys/ledger.json). kid-done RAN 07:23Z (usd 0.02497669, disabled, file removed; its rc 1 was the listing-blind read-back); L105 (DG3, by-hash read-back) landed 08:04Z and kid-done re-ran ONCE 08:05Z: rc 0, problems [], ledger done=true -> [result] to SM for DG3. L106/L107 landed 14:32Z (by-hash mint read-back + rss floor; the first results row on the board). NEXT for my successor: the HALT lift is BOUNDED: NO key until DG3's fix-forward (floor read after Popen + a fat-env mutant) is on the trunk, then a fresh p0 + the council's word. The .env backup is SHREDDED (07:24Z, the old key still lives in Doppler agi/dev AGI_WORKSPACE_ADMIN).
 OWNER 07:2xZ 10-24 (verbatim in goal:g7.16.1.11.46): retire write.py ENTIRELY + its build node (bin-write); the renderer becomes a git-based graph on the minimal-shell matrix design. Card a1/a2, sent to SM for the W2 brief. W2 is briefed only when W1's gate reads "passed except <banked>".
 Backlog routing (council, from L98's true red): dead-5 + 17 lineage re-assigns + g1.31 STEP B horizon = dg1's tips; DG6/director-engine rows retire (SM cuts); their 41 leaves = dg1's placement list -> council -> one tip.
@@ -190,13 +191,17 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 | 6.2 | "automatic vs manual prompt caching" | src:doc | target:§36.3 | lap124501 |
 | 7.1 | "optmem for the Prime; trajectory = momentum, optmem = state" | src:doc | leaf:goal:g7.16.1.11.46.2 (M1) (L74) · was: §37 (this ledger is M5) | lap124501 |
 
-**added 10-23 (council V10a decision, alive 21:06Z)**
+**added 10-23 (council V10a decision, alive 21:06Z) — not a brainstorm throw: unregistered in the trajectory on purpose (council R4, 10-25)**
 | # | atom (owner ask, short) | source | state | lap |
 |---|---|---|---|---|
 | 8.1 | "seat_status.py retire" | src:af6b174d9c507c5f812992fdd993b12b62b45da6 | target:the §34.5 census-cell leaf (wave 2) | lap124501 |
 | 9.1 | "if a director has claimed a given goal leaf or hypothesis leaf or whatever or a bundle of them, let them get notice automatically via mail system that hey your bundle pre-req's have cleared and it's just a simple little unified system that is all wired into the data already available via the town board/trajectory and the post cards" | src:goal:g7.16.1.11.46.12#OWNER | leaf:goal:g7.16.1.11.46.12 (L78, director-goals-1) | lap124501 |
-| a1 | "Retire write py for sure we don’t need it at all and need to retire that whole build node as the capsule wrapper now tags everything for us using standard read routes" | src:goal:g7.16.1.11.46#OWNER | target:W2 brief (V8 python out; supersedes g4.18.7) | lap124501 |
-| a2 | "We need to redo the renderer if needed to be a git based graph system that uses the minimal shell code matrix integrated design" | src:goal:g7.16.1.11.46#OWNER | target:W2 brief (G1 compose/split = the git-based renderer) | lap124501 |
+
+**added 10-24 (owner 07:2xZ) — not a brainstorm throw: unregistered in the trajectory on purpose (council R4, 10-25)**
+| # | atom (owner ask, short) | source | state | lap |
+|---|---|---|---|---|
+| a1 | "Retire write py for sure we don’t need it at all and need to retire that whole build node as the capsule wrapper now tags everything for us using standard read routes" | src:goal:g7.16.1.11.46#OWNER | target:W2 brief 2 leaf V8a (write.py out; supersedes g4.18.7) | lap124501 |
+| a2 | "We need to redo the renderer if needed to be a git based graph system that uses the minimal shell code matrix integrated design" | src:goal:g7.16.1.11.46#OWNER | target:W2 brief 2 leaf G1b (compose/split = the git-based renderer) | lap124501 |
 
 **throw 10 (10-24) — §40 the owner-facing post: full memory beside the atoms (the fork's throw 8, renumbered on intake)**
 | # | atom (owner ask, short) | source | state | lap |
