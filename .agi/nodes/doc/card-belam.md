@@ -93,8 +93,8 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 ## §6 BANKED (owner-only; no council needed)
 | item | recommendation |
 |---|---|
-| Doppler: a READ-ONLY service token for root (project agi, the config holding CLAUDE_CONSOLE_SP_KEY) into /etc/credstore/doppler-token | needed by C1 agi-cred (W1); root has no Doppler token today |
-| Console: lane workspaces agi-batch · agi-kids · agi-council with spend + TPM caps, prime-director added to each; their wrkspc_ ids (not secrets) | needed by C2/C3 (W1); or OPTION B: one workspace-scoped key per lane (no header anywhere) |
+| CLOSED 18:3xZ 10-25 (owner picks 18:25:37Z + chunk c:670f16229a2a): Doppler token for root = agi/dev rw service token in /etc/credstore/doppler-token (0600) | goal:g7.16.1.11.46.6 THOUGHT |
+| CLOSED 18:3xZ 10-25 to C2's true size: the three lanes share the owner's workspace "agi" wrkspc_01F6D36dQiczWRCAEvea8FHC; per-lane spend/TPM caps NOT set: C2 reads 'passed with ONE shared workspace' until the owner says that is the intent | goal:g7.16.1.11.46.7 THOUGHT |
 | prime-director's org role | developer, unless the Admin cost reports (C4) need admin; then root only ever holds it |
 | OpenRouter for P1: RESOLVED 06:1xZ 10-24. The owner topped up the OPENROUTER_ADMIN account ($33.44 left); .env's OPENROUTER_PROVISIONING_KEY now = Doppler agi/dev OPENROUTER_ADMIN (read on the box through ~belam/.config/sanctuary/doppler/agi-dev.rw), the old line kept in .env.before-or-admin-20261024 | the retry of the one kid-key waits on the council's go |
 | the prereq_notice cron row (goal .46.12, L94, user agi-sanctuary-master) is DARK until a `crons.py apply --sudo` | the owner's GO; then the notices run each trunk move (SM seeded refs/notices/prereq/seen at L94) |
@@ -206,7 +206,7 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read` (fro
 **added 10-25 (owner 18:4xZ) — not a brainstorm throw: unregistered in the trajectory on purpose**
 | # | atom (owner ask, short) | source | state | lap |
 |---|---|---|---|---|
-| b1 | "we're trying to see how to best compose using the claude console with the openrouter models to create a system optimized for high-speed failure analysis and healing" | src:owner 18:4xZ 10-25 (chat) | target:W3 spider families red/unify/tune (§34.1, §18) on the Console lane (C1 live 10-25) + P1's OpenRouter arms; stall_watch is its first sensor; to council via SM | lap124510 |
+| b1 | "we're trying to see how to best compose using the claude console with the openrouter models to create a system optimized for high-speed failure analysis and healing" | src:owner 18:4xZ 10-25 (chat) | idea:g7161146-b1-console-openrouter-failure-healing (council R1 18:45Z; the W3 brief cites it) | lap124510 |
 
 **throw 10 (10-24) — §40 the owner-facing post: full memory beside the atoms (the fork's throw 8, renumbered on intake)**
 | # | atom (owner ask, short) | source | state | lap |
