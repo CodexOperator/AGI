@@ -12,6 +12,8 @@
 # ACTS ON NOTHING: no keys typed, no restarts. A post's line repeats at most once per GAP s while the same condition
 # holds; a new condition, or the condition clearing and coming back, re-alerts. Stop/start: the `enabled:` cell of
 # cadences.stall_watch in .agi/nodes/.geometry/crons.md, then `crons.py apply --sudo` (the row names user agi-belam).
+# A check that cannot read its input says `unread`, never "nobody stalled" (council 3/3 01:4xZ 10-25, rows 1-4): no refs/box or an
+# empty boot set = rc 1; a post whose ~/o or unit start time cannot be read is NAMED `unread: ...`.
 # Cells (a test points them at fixtures): --repo (MAIN) STORES WANTS STATE SELF TO AS SPOOL U W G GAP NOW DRY=1 (print, no spool).
 R=;while [ $# -gt 0 ];do case $1 in --repo)R=$2;shift 2;;*)echo "stall_watch: unknown arg $1">&2;exit 2;;esac;done
 R=${R:-/data/work/agi};STORES=${STORES:-/var/lib/agi};WANTS=${WANTS:-/run/systemd/system/multi-user.target.wants}
@@ -21,15 +23,19 @@ U=${U:-1200};W=${W:-600};G=${G:-300};GAP=${GAP:-3600};now=${NOW:-$(date +%s)}
 mkdir -p "$STATE"||{ echo "stall_watch: STATE $STATE not writable">&2;exit 1;}
 [ -d "$WANTS" ]||{ echo "stall_watch: unread: no wants dir $WANTS (the boot set)">&2;exit 1;}
 git -C "$R" rev-parse -q --git-dir >/dev/null 2>&1||{ echo "stall_watch: unread: $R is not a git repo (mail refs)">&2;exit 1;}
+[ -n "$(git -C "$R" for-each-ref --count=1 refs/box)" ]||{ echo "stall_watch: unread: no refs/box in $R">&2;exit 1;}   # (3) sp: no mail refs would read every post k = 0
+PS=$(ls "$WANTS"|sed -n 's/^agi-post@\([a-z0-9-]*\)\.service$/\1/p');[ -n "$PS" ]||{ echo "stall_watch: unread: boot set empty ($WANTS)">&2;exit 1;}   # (4) sp
 m(){ echo $(($1/60))m;}
 out=;n=0
-for x in $(ls "$WANTS"|sed -n 's/^agi-post@\([a-z0-9-]*\)\.service$/\1/p');do
+for x in $PS;do
  p=$x;[ "$p" = "$SELF" ]&&continue;c=
  st=$(systemctl show "agi-post@$p.service" -p ActiveState --value 2>/dev/null)
  if [ "$st" != active ];then c="down: unit ${st:-unknown}"
  elif ! pgrep -u "agi-$p" -x claude >/dev/null 2>&1;then
-  t=$(date -d "$(systemctl show "agi-post@$p.service" -p ActiveEnterTimestamp --value 2>/dev/null)" +%s 2>/dev/null||echo "$now")
-  [ $((now-t)) -ge "$G" ]&&c="no-claude: unit active $(m $((now-t))), no claude process"
+  ts=$(systemctl show "agi-post@$p.service" -p ActiveEnterTimestamp --value 2>/dev/null);t=   # (2) aio: date -d "" is today's midnight, rc 0
+  [ -n "$ts" ]&&t=$(date -d "$ts" +%s 2>/dev/null)
+  if [ -z "$t" ];then c="unread: unit start time not readable (no claude process)"
+  elif [ $((now-t)) -ge "$G" ];then c="no-claude: unit active $(m $((now-t))), no claude process";fi
  else
   k=0;o=
   for r in $(git -C "$R" for-each-ref --format='%(refname)' refs/box|grep "/$p\$");do
@@ -37,7 +43,10 @@ for x in $(ls "$WANTS"|sed -n 's/^agi-post@\([a-z0-9-]*\)\.service$/\1/p');do
    for ct in $(git -C "$R" log --format=%ct "$r" ${h:+--not "$h"});do k=$((k+1));[ -z "$o" ]||[ "$ct" -lt "$o" ]&&o=$ct;done
   done
   s=$(stat -c %Y "$STORES/$p/o" 2>/dev/null)
-  [ "$k" -gt 0 ]&&[ -n "$s" ]&&[ $((now-o)) -ge "$U" ]&&[ $((now-s)) -ge "$W" ]&&c="mail: $k unread, oldest $(m $((now-o))), screen still $(m $((now-s)))"
+  if [ "$k" -gt 0 ]&&[ $((now-o)) -ge "$U" ];then
+   if [ -z "$s" ];then c="unread: screen log not readable (mail $k unread, oldest $(m $((now-o))))"   # (1) alive
+   elif [ $((now-s)) -ge "$W" ];then c="mail: $k unread, oldest $(m $((now-o))), screen still $(m $((now-s)))";fi
+  fi
  fi
  if [ -z "$c" ];then rm -f "$STATE/$p";continue;fi
  kind=${c%%:*};read -r lk lt 2>/dev/null <"$STATE/$p"||{ lk=;lt=0;}
