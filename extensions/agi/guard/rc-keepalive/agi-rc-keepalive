@@ -15,7 +15,7 @@
 # master's stale task, director-goals-1) read busy FOREVER and was never pinged; now busy = its screen log ~/o changed in
 # the last QUIET s (a turn or a foreground tool redraws its spinner; a background shell does not), as well as the
 # transcript age.
-LEAD=${LEAD:-300};GAP=${GAP:-600};IDLE=${IDLE:-600};QUIET=${QUIET:-60};S=/run/agi-rc-keepalive;mkdir -p $S
+LEAD=${LEAD:-300};GAP=${GAP:-600};IDLE=${IDLE:-600};QUIET=${QUIET:-60};RGAP=${RGAP:-3600};S=/run/agi-rc-keepalive;mkdir -p $S
 idle(){ cg=$(systemctl show "agi-post@$1.service" -p ControlGroup --value);[ -n "$cg" ]||return 1
  k=$(for x in $(cat /sys/fs/cgroup$cg/cgroup.procs 2>/dev/null);do [ "$(cat /proc/$x/comm 2>/dev/null)" = claude ]&&echo $x;done|head -1);[ -n "$k" ]||return 1
  ke=$(ps -o etimes= -p $k|tr -d ' ');[ -n "$ke" ]||return 1
@@ -27,13 +27,16 @@ now=$(date +%s)
 for u in $(systemctl list-units 'agi-post@*.service' --state=running --no-legend --plain | awk '{print $1}');do
  p=${u#agi-post@};p=${p%.service};case $p in ""|*[!a-z0-9-]*)continue;;esac
  c=/var/lib/agi/$p/.claude/.credentials.json;f=/run/agi-$p/i;[ -r "$c" ]&&[ -p "$f" ]||continue
- idle $p||continue
+ idle $p||continue;me=$k   # idle() leaves the post's own claude pid in k
  # title heal: a bare /remote-control titles the RC session after its first prompt ('go': sanctuary-master 14:38Z
  # 10-09) -- if the LIVE bridge's titleSha is not sha256(P) and the session is not already user-named P, /rename P once
- for q in $(jq -r '(.replBridgePlaceholders // {})[]|"\(.pid):\(.titleSha)"' /var/lib/agi/$p/.claude.json 2>/dev/null);do
-  k=${q%%:*};[ -d /proc/$k ]||continue;[ "${q#*:}" = "$(printf %s "$p"|sha256sum|cut -c1-12)" ]&&continue
+ # ONLY the post's own claude (belam 17:5xZ 10-25): a second session under the same login (belam's tmux belam-fable, named
+ # t-e4, outside agi-post@belam's cgroup) has its own bridge in the same .claude.json, never converges, and drew a /rename
+ # into the post's pane every GAP (14 in 3 h once GAP went to 600). Renames keep their own RGAP (3600).
+ for q in $(jq -r '(.replBridgePlaceholders // {})[]|"\(.pid):\(.titleSha // "")"' /var/lib/agi/$p/.claude.json 2>/dev/null);do
+  k=${q%%:*};[ "$k" = "$me" ]||continue;[ -d /proc/$k ]||continue;[ "${q#*:}" = "$(printf %s "$p"|sha256sum|cut -c1-12)" ]&&continue
   [ "$(jq -r .name /var/lib/agi/$p/.claude/sessions/$k.json 2>/dev/null)" = "$p" ]&&continue
-  r=$(cat $S/$p.rename 2>/dev/null||echo 0);[ $((now-r)) -ge $GAP ]||continue
+  r=$(cat $S/$p.rename 2>/dev/null||echo 0);[ $((now-r)) -ge $RGAP ]||continue
   runuser -u agi-$p -- timeout 5 sh -c 'printf "%s" "$1" > "$2"' _ "/rename $p" "$f"&&sleep 1&&runuser -u agi-$p -- timeout 5 sh -c 'printf "\r" > "$1"' _ "$f"&&echo $now>$S/$p.rename&&logger -t agi-rc-keepalive "renamed $p (RC title was not the post name)"
  done
  e=$(jq -r '.claudeAiOauth.expiresAt // empty' "$c" 2>/dev/null);[ -n "$e" ]||continue;e=$((e/1000))
