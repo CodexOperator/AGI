@@ -213,7 +213,7 @@ Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory PATH=/opt/agi/bin
 ExecStart=/opt/agi/bin/box-carry --fetch
 ~~~
 
-### agi-cred (2832 B)
+### agi-cred (3081 B)
 ~~~sh
 #!/bin/sh
 # agi-cred [tick|check]: root; bare = tick then check, the worse rc. TICK: credits_live true -> doppler's Console key -> $C/claude-sp (0600, atomic, only when it changed); anything else (false, an unreadable cell) -> the file goes; either way the lane units that carry LoadCredential=claude-sp restart. CHECK: every live agi-post@ process's environ, read as root, holds 0 key strings; a pid GONE (at the -r test, after a failed read, or after a 0-byte read) is counted gone, not read; a read that FAILS on a pid still present is a red; a live pid with an empty environ is read; present but unreadable is a red; pass = T-G==R, R>0, H==0; COUNTS only, never a line
@@ -221,7 +221,8 @@ set -f;C=${AGI_CREDSTORE:-/etc/credstore};F=$C/claude-sp;P=sk-an;P=${P}t
 s=$(git -C "$AGI_REPO" show "$AGI_TRUNK:.agi/nodes/.geometry/secrets.md" 2>/dev/null)
 cell(){ printf '%s\n' "$s"|sed -n "s/^$1: *//p"|head -1;}
 kick(){ for u in $(printf '%s\n' "$s"|sed -n 's/^  agi-[a-z]*: //p'|jq -r '.unit//empty' 2>/dev/null);do systemctl cat "$u" 2>/dev/null|grep -q '^LoadCredential=claude-sp:'&&systemctl try-restart "$u";done;:;}
-tick(){ [ "$(cell credits_live)" = true ]||{ [ -e $F ]&&rm -f $F&&kick&&echo "[cred] credits_live is not true: $F removed, lane units restarted";return 0;}
+tick(){ [ -n "$s" ]||{ [ -e $F ]&&rm -f $F;echo "[cred] unread: config:secrets at ${AGI_TRUNK:-<no AGI_TRUNK>} not readable from ${AGI_REPO:-<no AGI_REPO>}: nothing written (fail closed)" >&2;return 3;}   # belam 10-25: a refused git read was a silent off
+ [ "$(cell credits_live)" = true ]||{ [ -e $F ]&&rm -f $F&&kick&&echo "[cred] credits_live is not true: $F removed, lane units restarted";return 0;}
  p=$(cell doppler|jq -r '.project//empty' 2>/dev/null);g=$(cell doppler|jq -r '.config//empty' 2>/dev/null);t=$C/doppler-token
  [ "$p" ]&&[ "$g" ]&&[ -s $t ]||{ echo "[cred] no doppler project/config cell or no $t: nothing written" >&2;return 4;}
  k=$(DOPPLER_TOKEN=$(cat $t) doppler secrets get CLAUDE_CONSOLE_SP_KEY --plain --project "$p" --config "$g" 2>/dev/null)&&[ "$k" ]||{ echo "[cred] doppler gave no key: nothing written" >&2;return 5;}
@@ -236,7 +237,7 @@ check(){ R=${AGI_PROC:-/proc};G=${AGI_CGROUP:-/sys/fs/cgroup};np=0;tot=0;gn=0;rd
 case $1 in check)check;;tick)tick;;"")tick;a=$?;check;b=$?;[ $a -ge $b ]&&exit $a;exit $b;;*)exit 2;;esac
 ~~~
 
-### agi-cred.service (238 B)
+### agi-cred.service (301 B)
 ~~~ini
 [Unit]
 Description=agi-cred: the Console key file for the lane units
@@ -245,6 +246,7 @@ Type=oneshot
 TimeoutStartSec=120
 EnvironmentFile=/etc/agi/carry.env
 Environment=PATH=/opt/agi/bin:/usr/local/bin:/usr/bin:/bin
+Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory
 ExecStart=/opt/agi/bin/agi-cred
 ~~~
 
