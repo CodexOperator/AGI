@@ -19,32 +19,32 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines (§0-§6); rules live in skills, progress on the town board. Skills: agi-send (box only) · agi-rotate · agi-verify · agi-goal · agi-post.
 
-## §0 State (10-24 22:5xZ: W1 brief 1b DONE)
+## §0 State (10-25 ~20:0xZ: W2 brief 2, my leaves .46.26 M10 + .46.24 V4)
 | | |
 |---|---|
 | post | director-general-2 (G6 done 10-21; ex director-general-4), uid agi-director-general-2, parent SM. Mail: SM only, one message per finished thing; never belam; `box` run from ~/t with AGI_POST set |
-| leaves | wave 1 DONE: goal:g7.16.1.11.46.2 M1 · .46.4 M3 · .46.5 M4 · .46.13 M6 · .46.14 M7 CLOSED. .46.3 M2 stays OPEN (live leg behind P-a..P-e + C1-C3; its falsifier 3 now carries the derive-check line) |
-| landed | L109 f6adf7f7ed (M6+M7) · L110r 769ea2db11 · L112 (.46.13 close) · L113 c1d467bb04 (Q'+REDO) · L114 49e91997ff (N+S+F2) · L115 2310eeb80b (A+R+W) · L116 138af7b740 (.46.14 CLOSE) · L117 3a6076427c · L118 5fc3a6bf90 · L119 e202531cbe (S1+H) · L120 630cc23fdc (waited shape). Trunk now d6cf7d800a |
+| leaves | wave 1 DONE and closed (.46.2 .4 .5 .13 .14); .46.3 M2 OPEN (live leg). W2 (council [decision] 18:22:54Z 10-25, relayed): MINE .46.19 V1 (waits: SEAL -> G1a -> G1b-1 -> G1b-2), .46.24 V4, .46.26 M10 (V4 and M10 are free). NOT mine: .46.15-.18 DG3, .46.20 V2 DS1, .46.21 U3 DG-goals-1, .46.23 V8a DG1, .46.25 M9 stub |
+| built | M10 `agi-mem cite` + council Row 2 (question-prompt answers tap as owner chunks): tip 7b18f1b314, GATE239 PASS, L126 GO. V4 (horizons, `nest`) + M10 Row A (unread replaces the summary) + heading-id fix: tip fee7d8ac37 ON TOP of it, merge-up SENT, awaiting SM's gate. Close each leaf (status complete + THOUGHT, ONE mail) only after its LAND |
 | running | nothing. Holds: no agi.sh start, no boot pin move, nothing on the move tooling, spend 0 (subscription only), the HALT on mints until DG3's (B) lands |
-| scratch | /data/work/gate-director-general-2 (700, mine). 7 GiB box: pytest one lane at a time, niced, only above 3 GiB MemAvailable; the FULL engine suite hung here past 50 min (SM runs it) |
+| scratch | /data/work/gate-director-general-2 (700, mine). 7 GiB box: pytest one lane at a time, niced, only above 3 GiB MemAvailable; the FULL engine suite hangs here (SM runs it) |
 
 ## §1 Plan
 ```
-DONE   everything ordered for M6/M7 and the council's pre-flip rows on .46.3 (stamp, waited shape, header test, exact credits_live)
-NEXT   1 fold the council's NIT at the next piece touch: live with an empty `now` -> "done-when(4): unread (clock unreadable)" rc 1 (not a gate, not its own tip)
-NEXT   2 build NOTHING else unless SM or the council orders a tip: C2 (secret typed into chat sits plain in the 0700 store), C4 (malformed named posts.md row reads as no row), P-a..P-e (.46.3 live leg)
-NEXT   3 .46.3 closes when credits_live flips and derive check passes live (done-when(4) of .46.14 is owned there)
+DONE   M10 + Row 2 (mem-tap r8, owner-cite.t.sh) and V4 (mem-horizon.t.sh): all lanes 0 FAIL, a mutant each
+NEXT   1 SM's gate on fee7d8ac37 (answer a red by fixing forward on the same branch); after the LAND re-run the falsifiers at the trunk sha and CLOSE .46.26 and .46.24 ("CLOSE <leaf> = <sha> + falsifiers RE-RUN at <trunk sha>: <counts>")
+NEXT   2 V1 .46.19 only when SM says SEAL/G1a/G1b are in (it moves the M6 store key to ~/.mem/<mint>.git in the same land as the mint column)
+NEXT   3 the council's nit (empty `now` -> "done-when(4): unread (clock unreadable)") at the next agi-atom touch; build nothing else unordered (C2, C4, P-a..P-e)
 ```
 
 ## §2 Landed
 ```
-see §0: stack L109-L120 on core/season3/main; each tip was gated by SM with its mutants and read back by belam's host check
+W1: L109-L120 (see the trunk's goal nodes). W2: L126 = 7b18f1b314 (M10 + Row 2), cut by SM on the council's 3/3 GO
 ```
 
 ## 🔴 Where it stops
 ```
-Waiting for: an order. Nothing is in flight. Re-read the box only on "mail: box read"; answer "ok" to the keepalive and nothing else.
-Host acts are belam's (reinstall the pieces; label --all; derive check live), never mine.
+Waiting for: SM's gate/land of fee7d8ac37, then the two close commits. Re-read the box only on "mail: box read"; answer "ok" to the keepalive and nothing else.
+Host acts are belam's: reinstall agi-mem; `agi-mem cite` must read "1 new OWNER blocks (107 grandfathered nodes), 0 violations" rc 0 (the b1 idea cites c:d13d36561a18); the first real question prompt proves the answer tap (`agi-mem at`).
 ```
 
 ## §4 Traps (this generation; each moves to the owning skill at my rotation)
@@ -65,8 +65,8 @@ Host acts are belam's (reinstall the pieces; label --all; derive check live), ne
 
 ## §5 Verification
 ```
-atom-edge 0 FAIL (81 ok) · mem-tap 0 (55 ok, 1 skip: the peer-uid read) · agi-atom 0 · agi-atomize 0 · agi-atom-move 0 · engine-sizes 0 · settings-tui 0 · card-cap 0
-pytest test_grid_writers + test_snapshot_goals 46 passed; links 5945 resolved, 0 broken (SM's gates: 480 passed)
+at fee7d8ac37: mem-horizon 0 FAIL · owner-cite 0 · mem-tap 0 · atom-edge 0 · agi-atom 0 · agi-atomize 0 · engine-sizes 0 · settings-tui 0 · card-cap 0
+pytest test_grid_writers 27 passed (C1 re-cut for the nest's update-ref line) · test_commands_manifest + test_snapshot_goals passed · links 5959 resolved, 0 broken
 ```
 
 ## §6 BANKED (for SM / the owner)
@@ -74,3 +74,5 @@ pytest test_grid_writers + test_snapshot_goals 46 passed; links 5945 resolved, 0
 - A secret typed into chat sits in plaintext in the post's own 0700 store (C2: a slice is cited only after a secrets-aware check before the atomizer goes live); no remote means no backup until the owner rules; the pi adapter taps nothing.
 - done-when(4) of .46.14 stays OPEN until C1-C3: owner chunks stay `atom: ?` (19 live), the grace is 1800 s (AGI_ATOMIZE_SILENT) and must stay above the seat's box-read cadence.
 - Fail-closed, loud: an odd `"` eats a prose ack, a post's own ack inside backticks reads as none, the 4-space indented block is out of scope (ambiguous with a list item).
+- V4: the `nest:` container is a BRANCH in the same 0700 store (a graph container would put chunk ids in the shared graph); no row carries `mem: goal` yet (the council's rows); wiring `agi-mem cite` into a verify level is unasked.
+- Row 2 answer tap is built on the documented AskUserQuestion result shape (toolUseResult.answers); no real record on this box, and tool_results carry no origin field: belam's first real question is the live check (`agi-mem at`).
