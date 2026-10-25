@@ -18,23 +18,30 @@ SH=$T/sh;mkdir -p $SH $T/units $T/cs $T/proc $T/cg
 cat >$SH/doppler<<'EOF'
 #!/bin/sh
 echo "$*">>$STUB_LOG/dop.log;echo "token-len ${#DOPPLER_TOKEN}">>$STUB_LOG/dop.log
-[ -n "$HOME" ]||{ echo 'Doppler Error: $HOME is not defined' >&2;exit 1;}   # doppler v3.76.5 (belam 10-25: the live unit had no HOME, rc 5)
+[ -n "$HOME" ]||{ printf '%s\n' 'Unable to determine home directory' 'Doppler Error: $HOME is not defined' >&2;exit 1;}   # doppler v3.76.5, both lines (belam 10-25: the live unit had no HOME, rc 5)
+[ -z "$STUB_DOP_ERR" ]||{ echo "Doppler Error: token $DOPPLER_TOKEN rejected; last value $STUB_KEY" >&2;exit 1;}   # an error that echoes the token and a key (council L127 Row 1')
 [ -z "$STUB_DOP_FAIL" ]||exit 1
 echo "$STUB_KEY"
 EOF
 cat >$SH/systemctl<<'EOF'
 #!/bin/sh
-case $1 in cat)cat $STUB_LOG/units/$2 2>/dev/null;;try-restart)echo "$2">>$STUB_LOG/sd.log;;list-units)cat $STUB_LOG/active 2>/dev/null;;show)echo /system.slice/$5;;esac
+case $1 in cat)cat $STUB_LOG/units/$2 2>/dev/null;;try-restart)echo "$2">>$STUB_LOG/sd.log;[ "$2" != "$STUB_SD_FAIL" ];;list-units)cat $STUB_LOG/active 2>/dev/null;;show)echo /system.slice/$5;;esac
 EOF
+# the stub git: records the safe.directory set THIS call sees (its env + its -c pairs; run from / so no repo config is listed) and the GIT_* names in
+# its env, then runs the real git. The log path is BAKED IN: the piece's read runs under env -i (council L127 S1, 20:52Z), so no STUB_LOG reaches it
+printf '%s\n' '#!/bin/sh' 'a=;while [ "$1" = -c ];do a="$a -c $2";shift 2;done' "(cd / && /usr/bin/git \$a config --get-all safe.directory) >$T/sdcfg 2>/dev/null" "env|sed -n 's/^\\(GIT_[A-Z_]*\\)=.*/\\1/p'|sort|tr '\\n' ' ' >$T/gitenv" 'exec /usr/bin/git $a "$@"' >$SH/git
 cat >$SH/tr<<'EOF'
 #!/bin/sh
 # the race, deterministically: when stdin is the environ of $STUB_TR_RM the pid exits DURING the read (its proc dir is removed, nothing comes out)
 [ -z "$STUB_TR_RM" ]||[ "$(readlink /proc/self/fd/0)" != "$STUB_TR_RM/environ" ]||{ rm -rf "$STUB_TR_RM";exec cat >/dev/null;}
 exec /usr/bin/tr "$@"
 EOF
+printf '[safe]\n\tdirectory = *\n' >$T/hostile.gc   # a hostile system AND global value; run() also exports a hostile env pair (VALUE_0='*')
+DC=$T/decoy;mkdir -p $DC/.agi/nodes/.geometry;$G -C $DC init -q;sed 's/^credits_live: .*/credits_live: false/' $R0/.agi/nodes/.geometry/secrets.md>$DC/.agi/nodes/.geometry/secrets.md;$G -C $DC add -A;$G -C $DC -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm decoy
+# EVERY run() is hostile (council 20:52Z): GIT_CONFIG_PARAMETERS '*', the env pair '*', GIT_DIR + GIT_OBJECT_DIRECTORY at a decoy whose cell reads credits_live: false, GIT_NAMESPACE, hostile system + global files
 chmod +x $SH/*;printf '[Service]\nLoadCredential=claude-sp:/etc/credstore/claude-sp\n'>$T/units/agi-batch.service;cp $T/units/agi-batch.service $T/units/agi-kids.service;printf '[Service]\nExecStart=/bin/true\n'>$T/units/agi-council.service
-run(){ env -i PATH=$SH:/usr/bin:/bin HOME=$(sed -n 's/^Environment=HOME=//p' $UNIT|tail -1) AGI_REPO=$M AGI_TRUNK=${TRUNK:-$TR} AGI_CREDSTORE=$T/cs AGI_PROC=$T/proc AGI_CGROUP=$T/cg STUB_LOG=$T STUB_KEY="${KEY:-$K}" STUB_DOP_FAIL=$DFAIL STUB_TR_RM=$TRRM GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0='*' sh ${PIECE} "$@" >$T/o 2>$T/e;rc=$?;}
-fresh(){ rm -rf $T/cs/* $T/cs/.[a-z]* $T/sd.log $T/dop.log $T/active $T/proc $T/cg;mkdir -p $T/proc $T/cg;: >$T/sd.log;printf 'TOKVALUE9' >$T/cs/doppler-token;TRUNK=;DFAIL=;KEY=;TRRM=;}
+run(){ env -i PATH=$SH:/usr/bin:/bin HOME=$(sed -n 's/^Environment=HOME=//p' $UNIT|tail -1) AGI_REPO=$M AGI_TRUNK=${TRUNK:-$TR} AGI_CREDSTORE=$T/cs AGI_PROC=$T/proc AGI_CGROUP=$T/cg STUB_LOG=$T STUB_KEY="${KEY:-$K}" STUB_DOP_FAIL=$DFAIL STUB_DOP_ERR=$DERR STUB_SD_FAIL=$SDF STUB_TR_RM=$TRRM GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0='*' GIT_CONFIG_GLOBAL=$T/hostile.gc GIT_CONFIG_SYSTEM=$T/hostile.gc GIT_CONFIG_PARAMETERS="'safe.directory'='*'" GIT_DIR=$DC/.git GIT_OBJECT_DIRECTORY=$DC/.git/objects GIT_NAMESPACE=x sh ${PIECE} "$@" >$T/o 2>$T/e;rc=$?;}
+fresh(){ rm -rf $T/cs/* $T/cs/.[a-z]* $T/sd.log $T/dop.log $T/active $T/proc $T/cg;mkdir -p $T/proc $T/cg;: >$T/sd.log;printf 'TOKVALUE9' >$T/cs/doppler-token;TRUNK=;DFAIL=;DERR=;SDF=;KEY=;TRRM=;}
 nsd(){ grep -c "^$1.service\$" $T/sd.log;}
 # ================= TICK
 cells true prd;fresh;run tick
@@ -111,11 +118,11 @@ rep '[ -n "$d" ]||[ -d "$R/$q" ]||{ gn=$((gn+1));continue;}' ':';world;TRRM=$T/p
 ok "m11-MUTANT-no-gone-test-after-the-read-counts-a-pid-that-left-as-read-RED $(cut -c1-70 $T/o) (clean: read 2 gone 1)" '! grep -q "read 2 gone 1 " $T/o'
 rep '||{ [ -d "$R/$q" ]||gn=$((gn+1));continue;};[ -n "$d" ]' ';[ -n "$d" ]';world;notread 201;run check
 ok "m12-MUTANT-the-read-rc-ignored-counts-a-failed-read-as-read-RED rc $rc (clean: 1), $(cut -c1-70 $T/o)" '[ $rc = 0 ]'
-rep "grep -q '^LoadCredential=claude-sp:'&&" '';fresh;cells true prd;run tick
+rep "grep -q '^LoadCredential=claude-sp:'||continue;" ':;';fresh;cells true prd;run tick
 ok "m4-MUTANT-no-LoadCredential-test-restarts-the-council-unit-RED council restarts $(nsd agi-council) (clean: 0)" '[ "$(nsd agi-council)" = 1 ]'
 rep 'cmp -s $n $F' 'false';fresh;cells true prd;run tick;: >$T/sd.log;run tick
 ok "m5-MUTANT-no-change-test-restarts-on-the-same-key-RED restarts $(wc -l <$T/sd.log|tr -d ' ') (clean: 0)" '[ -s $T/sd.log ]'
-rep '[ -e $F ]&&rm -f $F&&kick' '[ -e $F ]&&kick';fresh;cells true prd;run tick;cells false prd;run tick
+rep '[ -e $F ]&&rm -f $F&&echo' '[ -e $F ]&&echo';fresh;cells true prd;run tick;cells false prd;run tick
 ok "m6-MUTANT-the-kill-without-the-rm-leaves-the-file-RED file $([ -e $T/cs/claude-sp ]&&echo THERE||echo gone) (clean: gone)" '[ -e $T/cs/claude-sp ]'
 rep 'printf %s "$k">$n;' 'printf %s "$k">$n;chmod 644 $n;';fresh;cells true prd;run tick
 ok "m7-MUTANT-a-world-readable-file-RED mode $(stat -c %a $T/cs/claude-sp) (clean: 600)" '[ "$(stat -c %a $T/cs/claude-sp)" != 600 ]'
@@ -124,7 +131,10 @@ PIECE=$P0
 # unit had no COUNT/KEY_0), the cell read empty, and tick passed SILENTLY as "not live". Now an unreadable cell is a named unread, rc 3, fail closed.
 printf x >$T/cs/claude-sp;TRUNK=refs/heads/no-such-ref run tick
 ok "u1-an-unreadable-secrets-cell-is-unread-rc3-and-the-key-file-goes rc $rc (want 3), file $([ -e $T/cs/claude-sp ]&&echo present||echo gone)" '[ $rc = 3 ] && [ ! -e $T/cs/claude-sp ] && grep -q "\[cred\] unread" $T/e'
-ok "u2-the-service-sets-safe.directory-for-root-reads (carry.env holds VALUE_0) $(sect agi-cred.service|grep -c "^Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory$")" '[ "$(sect agi-cred.service|grep -c "^Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory$")" = 1 ]'
+u2(){ grep -c '^Environment=.*GIT_CONFIG' $1;}
+ok "u2-the-service-carries-no-git-config-pair (the piece scopes its own read; carry.env VALUE_0 is inert without COUNT/KEY_0) $(u2 $UNIT)" '[ "$(u2 $UNIT)" = 0 ]'
+{ cat $UNIT;echo 'Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory';}>$T/unit.pair
+ok "u2m-MUTANT-the-pair-restored-in-the-unit-RED $(u2 $T/unit.pair) (clean: 0)" '[ "$(u2 $T/unit.pair)" != 0 ]'
 rep '[ -n "$s" ]||{' 'true||{';printf x >$T/cs/claude-sp;TRUNK=refs/heads/no-such-ref run tick;PIECE=$P0
 ok "u1m-mutant-guard-dropped-reads-silent-rc0-RED rc $rc" '[ $rc = 0 ] && ! grep -q "\[cred\] unread" $T/e'
 rm -f $T/cs/claude-sp
@@ -133,6 +143,54 @@ ok "u3-the-service-sets-HOME-for-doppler $(sect agi-cred.service|grep -c "^Envir
 U0=$UNIT;grep -v '^Environment=HOME=' $U0>$T/unit.mut;UNIT=$T/unit.mut;fresh;cells true prd;run tick;UNIT=$U0
 ok "u3m-MUTANT-the-unit-without-HOME-writes-no-key-RED rc $rc (clean: 0), file $([ -e $T/cs/claude-sp ]&&echo THERE||echo none)" '[ $rc = 5 ]&&[ ! -e $T/cs/claude-sp ]&&grep -q "doppler gave no key" $T/e'
 rm -f $T/cs/claude-sp
+# ================= ROW 1 + 1' (council L127): the rc-5 line names doppler's cause (its 'Doppler Error' line, else its first) and never a token or key
+U0=$UNIT;UNIT=$T/unit.mut;fresh;cells true prd;run tick;UNIT=$U0
+ok "r1-the-rc5-line-names-the-cause rc $rc, say: $(cut -c1-110 $T/e)" '[ $rc = 5 ]&&grep -qF "(doppler: Doppler Error: \$HOME is not defined)" $T/e'
+fresh;cells true prd;printf 'dp.st.TOKSECRET9abc' >$T/cs/doppler-token;DERR=1;run tick
+ok "r2-a-dp-token-and-a-key-in-the-error-are-redacted-the-cause-kept rc $rc, token bytes $(grep -c TOKSECRET9 $T/e), key bytes $(grep -c TESTCANARY $T/e), say: $(cut -c1-110 $T/e)" '[ $rc = 5 ]&&grep -qF "(doppler: Doppler Error: token [redacted] rejected; last value [redacted])" $T/e&&! grep -q -e TOKSECRET9 -e TESTCANARY $T/e'
+fresh;cells true prd;DERR=1;run tick
+ok "r3-a-token-of-no-known-shape-blanks-the-whole-line rc $rc, token bytes $(grep -c TOKVALUE9 $T/e), say: $(cut -c1-110 $T/e)" '[ $rc = 5 ]&&grep -qF "(doppler: [redacted])" $T/e&&! grep -q TOKVALUE9 $T/e'
+# OBSERVED copy, ONE line differs (checked): the read's env -i gets the stub dir on PATH (the real read finds git only on /usr/bin:/bin), plus GIT_CONFIG_SYSTEM=<hostile>
+# standing in for a hostile /etc/gitconfig (a plain user cannot write it) and HOME=<a dir whose .gitconfig is hostile> standing in for a kept HOME: NOSYSTEM and GLOBAL=/dev/null must hold against both
+mkdir -p $T/hh;cp $T/hostile.gc $T/hh/.gitconfig
+obs(){ sed "s|env -i PATH=/usr/bin:/bin |env -i PATH=$SH:/usr/bin:/bin GIT_CONFIG_SYSTEM=$T/hostile.gc HOME=$T/hh |" $1 >$T/obs;PIECE=$T/obs;}
+obs $P0;nd=$(diff $P0 $T/obs|grep -c '^>')
+fresh;cells true prd;rm -f $T/sdcfg $T/gitenv;run tick
+ok "s1-under-a-hostile-env-the-read-sees-ONLY-AGI_REPO-the-REAL-cell-and-3-GIT-names-plus-the-observed-SYSTEM rc $rc, observed lines changed $nd, effective: $(tr '\n' ' ' <$T/sdcfg 2>/dev/null), file $([ -e $T/cs/claude-sp ]&&echo written||echo NONE), GIT_* seen: $(cat $T/gitenv 2>/dev/null)" '[ $nd = 1 ]&&[ $rc = 0 ]&&[ "$(cat $T/sdcfg)" = "$M" ]&&[ -e $T/cs/claude-sp ]&&[ "$(cat $T/gitenv)" = "GIT_CONFIG_GLOBAL GIT_CONFIG_NOSYSTEM GIT_CONFIG_SYSTEM GIT_NO_REPLACE_OBJECTS " ]'
+ok "s1p-the-real-read-keeps-only-the-system-PATH $(grep -c 'env -i PATH=/usr/bin:/bin GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null GIT_NO_REPLACE_OBJECTS=1 git ' $P0)" '[ "$(grep -c "env -i PATH=/usr/bin:/bin GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null GIT_NO_REPLACE_OBJECTS=1 git " $P0)" = 1 ]'
+rep 'env -i PATH=/usr/bin:/bin ' '';fresh;cells true prd;rm -f $T/sdcfg;run tick
+ok "m23-MUTANT-no-env-i-the-hostile-env-reaches-the-read-RED rc $rc, effective: $(tr '\n' ' ' <$T/sdcfg 2>/dev/null), file $([ -e $T/cs/claude-sp ]&&echo written||echo none) (clean: only AGI_REPO, written)" 'grep -qx "\*" $T/sdcfg||[ ! -e $T/cs/claude-sp ]'
+for x in 'GIT_CONFIG_NOSYSTEM=1 :m20-system' 'GIT_CONFIG_GLOBAL=/dev/null :m21-global';do e=${x%%:*};rep "$e" '';obs $PIECE;fresh;cells true prd;rm -f $T/sdcfg;run tick
+ ok "${x#*:}-MUTANT-that-config-file-read-admits-*-RED effective: $(tr '\n' ' ' <$T/sdcfg 2>/dev/null)" 'grep -qx "\*" $T/sdcfg';done
+rep '-c safe.directory="$AGI_REPO" ' '';obs $PIECE;fresh;cells true prd;rm -f $T/sdcfg;run tick
+ok "m22-MUTANT-no-scoped-value-the-effective-set-is-not-AGI_REPO-RED effective: [$(tr '\n' ' ' <$T/sdcfg 2>/dev/null)]" '[ "$(cat $T/sdcfg 2>/dev/null)" != "$M" ]'
+PIECE=$P0
+rpl(){ b=$($G -C $M rev-parse $TR:.agi/nodes/.geometry/secrets.md);nb=$(sed 's/^credits_live: .*/credits_live: false/' $M/.agi/nodes/.geometry/secrets.md|$G -C $M hash-object -w --stdin);$G -C $M replace -f $b $nb;}
+fresh;cells true prd;rpl;run tick;$G -C $M replace -d $b >/dev/null
+ok "s2-a-replace-object-over-the-cell-is-ignored rc $rc, file $([ -e $T/cs/claude-sp ]&&echo written||echo NONE)" '[ $rc = 0 ]&&[ -e $T/cs/claude-sp ]'
+rep '2>$e)' '2>/dev/null)';fresh;cells true prd;UNIT=$T/unit.mut;run tick;UNIT=$U0
+ok "m13-MUTANT-doppler-stderr-dropped-names-no-cause-RED say: $(cut -c1-90 $T/e)" '! grep -qF "\$HOME is not defined" $T/e'
+rep 's/dp\.(st|sa|ct|pt|scim|audit)\.[A-Za-z0-9]+/[redacted]/g;' '';fresh;cells true prd;printf 'dp.st.TOKSECRET9abc' >$T/cs/doppler-token;DERR=1;run tick
+ok "m14-MUTANT-no-dp-redaction-loses-the-cause-to-the-blanket-RED say: $(cut -c1-90 $T/e)" '! grep -qF "token [redacted] rejected" $T/e'
+rep ';s/$P-[A-Za-z0-9_-]+/[redacted]/g' '';fresh;cells true prd;printf 'dp.st.TOKSECRET9abc' >$T/cs/doppler-token;DERR=1;run tick
+ok "m16-MUTANT-no-key-redaction-leaks-the-key-RED key bytes $(grep -c TESTCANARY $T/e) (clean: 0)" 'grep -q TESTCANARY $T/e'
+rep "case \$l in *\"\$tk\"*)l='[redacted]';;esac" ':';fresh;cells true prd;DERR=1;run tick
+ok "m15-MUTANT-no-token-guard-leaks-a-shapeless-token-RED token bytes $(grep -c TOKVALUE9 $T/e) (clean: 0)" 'grep -q TOKVALUE9 $T/e'
+rep 'GIT_NO_REPLACE_OBJECTS=1 ' '';fresh;cells true prd;rpl;run tick;$G -C $M replace -d $b >/dev/null
+ok "m17-MUTANT-replace-objects-honoured-reads-the-forged-cell-RED file $([ -e $T/cs/claude-sp ]&&echo written||echo none) (clean: written)" '[ ! -e $T/cs/claude-sp ]'
+PIECE=$P0;rm -f $T/cs/claude-sp
+# ================= K' (council 10-25): the live start said 'lane units restarted' with 0 lane units present; the line now carries k/m
+fresh;cells true prd;run tick
+ok "k1-the-write-line-counts-the-restarts $(cut -c1-90 $T/o)" 'grep -q "written (0600): lane units restarted 2/2$" $T/o'
+fresh;cells true prd;SDF=agi-kids.service;run tick
+ok "k2-a-failed-restart-is-counted-not-hidden $(cut -c1-90 $T/o)" 'grep -q "lane units restarted 1/2$" $T/o'
+nou(){ for x in batch kids;do printf '[Service]\nExecStart=/bin/true\n'>$T/units/agi-$x.service;done;}
+reu(){ for x in batch kids;do printf '[Service]\nLoadCredential=claude-sp:/etc/credstore/claude-sp\n'>$T/units/agi-$x.service;done;}
+nou;fresh;cells true prd;run tick;a=$(cat $T/o);cells false prd;run tick;b=$(cat $T/o)
+ok "k3-no-lane-unit-reads-0-hold-and-no-bare-restarted write: $(printf %s "$a"|cut -c30-90); kill: $(printf %s "$b"|cut -c30-110)" 'printf "%s\n%s\n" "$a" "$b"|grep -c "0 lane units hold the credential$"|grep -qx 2&&! printf "%s\n%s\n" "$a" "$b"|grep -q restarted'
+rep '[ $m = 0 ]&&echo "0 lane units hold the credential"||' '';fresh;cells true prd;run tick
+ok "m18-MUTANT-no-zero-branch-says-restarted-with-no-unit-RED $(cut -c30-90 $T/o)" 'grep -q restarted $T/o'
+reu;PIECE=$P0;rm -f $T/cs/claude-sp
 # ================= NEGATIVE (leaf falsifier 3): the pieces and units name no key and no ANTHROPIC_API_KEY environment
 n=$(for g in agi-cred agi-cred.service agi-cred.timer;do sect $g;done|grep -c -e "Environment=.*ANTHROPIC_API_KEY" -e "$KP-")
 ok "n-the-three-pieces-hold-no-key-prefix-and-no-ANTHROPIC_API_KEY-environment hits $n (want 0)" '[ "$n" = 0 ]'
