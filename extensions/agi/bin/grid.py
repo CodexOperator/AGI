@@ -333,17 +333,70 @@ def grid_retired(root: Path) -> bool:
         return False
 
 
-def cmd_push_changed(root: Path) -> None:
-    """Advance only changed local grid tips, stopping at the first bad batch."""
+PUSH_NON_FF = "[rejected] (non-fast-forward)"
+PUSH_GENERIC_ERROR = "error: failed to push some refs"
+
+
+def read_push_porcelain(res: "subprocess.CompletedProcess[str]") -> tuple[list[str], str | None]:
+    """Read one batch pushed with `--porcelain`: (the dst refs NAMED as non-fast-forward rejections, unread).
+
+    `unread` is None only when every failure is a `!<TAB><src>:<dst><TAB>[rejected] (non-fast-forward)`
+    line: that ref stays where the remote has it and the rest of the batch landed (a push is per ref
+    unless --atomic). Anything else is unread, with the first line that says why: a non-zero rc with no
+    `!` line (transport, auth, a missing remote), a `!` line with another summary (`[remote rejected]`,
+    `(fetch first)`: the remote holds a tip this repo never fetched), or an `error:`/`fatal:` on stderr
+    other than git's own `error: failed to push some refs` (goal:g7.16.1.11.46.16, alive 19:09:47Z)."""
+    named, other = [], []
+    for line in res.stdout.splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 3 and parts[0] == "!":
+            if parts[2].strip() == PUSH_NON_FF:
+                named.append(parts[1].rsplit(":", 1)[-1])
+            else:
+                other.append(" ".join(p.strip() for p in parts))
+    errors = [l.strip() for l in res.stderr.splitlines()
+              if l.startswith(("error:", "fatal:")) and not l.startswith(PUSH_GENERIC_ERROR)]
+    if errors:
+        return named, errors[0]
+    if other:
+        return named, other[0]
+    if res.returncode != 0 and not named:
+        first = next((l.strip() for l in res.stderr.splitlines() if l.strip()), "")
+        return named, first or f"the push exited {res.returncode} with no ref status line"
+    return named, None
+
+
+def push_ref_names(root: Path, refs: list[str]) -> str:
+    """The names rejections are reported by: the mint for `<ns>/node/<mint>`, else the whole ref."""
+    prefix = f"{ref_ns_for(root)}/node/"
+    return " ".join(r[len(prefix):] if r.startswith(prefix) else r for r in refs)
+
+
+def cmd_push_changed(root: Path) -> int:
+    """Advance only changed local grid tips, batch by batch: a NAMED non-fast-forward rejection is
+    counted and the next batch still runs; any other failure stops at that batch, unread. Never --force.
+    rc 0 only when every changed ref reached the remote; the last line is always a `grid push:` line."""
     if grid_retired(root):
         print(RETIRED_LINE)
-        return
+        return 0
     ensure_repo(root)
     batches = push_batches(root)
+    rejected: list[str] = []
     for number, batch in enumerate(batches, 1):
-        git(root, "push", "-q", "origin", *batch)
-        print(f"grid push batch {number}/{len(batches)}: {len(batch)} ref(s)")
+        named, unread = read_push_porcelain(git_try(root, "push", "--porcelain", "origin", *batch))
+        rejected.extend(named)    # counted by name; the remote keeps its tip and the next batch still runs
+        if unread is not None:
+            if rejected:
+                print(f"grid push: rejected {len(rejected)}: {push_ref_names(root, rejected)}")
+            print(f"grid push: unread at batch {number}/{len(batches)}: {unread}")
+            return 1
+        note = f", {len(named)} rejected" if named else ""
+        print(f"grid push batch {number}/{len(batches)}: {len(batch)} ref(s){note}")
     print(f"grid push: {sum(map(len, batches))} changed ref(s) in {len(batches)} batch(es)")
+    if rejected:
+        print(f"grid push: rejected {len(rejected)}: {push_ref_names(root, rejected)}")
+        return 1
+    return 0
 
 
 def fetch_specs_for(root: Path) -> list[str]:
@@ -3168,7 +3221,7 @@ def main() -> None:
     elif args.cmd == "sync":
         cmd_sync(root, args.remote)
     elif args.cmd == "push-changed":
-        cmd_push_changed(root)
+        sys.exit(cmd_push_changed(root))
     elif args.cmd == "cron":
         cmd_cron(root, args.action, args.snapshot_mins)
 

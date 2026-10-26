@@ -6,7 +6,7 @@
 # Rows: t* G1a-T (per mint: both old tips are ancestors, rev-list --count new >= max(old), tree(new) == tree(live tip), m/m, measured here by
 # shell and again by `grid.py unify --check`), w* G1a-W (the writer re-pointed: a probe edit is ONE commit on refs/grid/node/<m>, live refs changed
 # = 0; before the unify the writer HOLDS, never forks), d* delete 0 (legacy refs intact, a push dry-run lists no delete, push-changed never pushes a
-# legacy ref), c* the census cell (five numbers, unread never 0). Every mutant (m*) must read RED.
+# legacy ref, a named non-fast-forward rejection goes on and any other push failure stops unread), c* the census cell (five numbers, unread never 0). Every mutant (m*) must read RED.
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;nrows=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};BIN=${BIN:-$R0/extensions/agi/bin}
 ok(){ nrows=$((nrows+1));if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK
@@ -162,6 +162,27 @@ $G -C $P update-ref $LNS/$(mintn 7) $(echo stale-writer|$G -C $P commit-tree $(s
 ok "d3-a-legacy-ref-never-pushes-again a local change under refs/grid/local-maxxing stays local (remote still has $(sha $LNS/$(mintn 7)|cut -c1-8)? no)" '[ "$($G -C $T/remote.git rev-parse $LNS/$(mintn 7))" != "$(sha $LNS/$(mintn 7))" ]'
 rm -rf $T/pe;cp -a $T/pd $T/pe;P=$T/pe;mut $P/extensions/agi/bin/grid.py 'kinds = [f"{ns}/node", f"{ns}/session"]' 'kinds = [ns]';grid push-changed >/dev/null 2>&1
 ok "m-ns-wide-push-reads-RED with the bare namespace prefix the locally changed legacy ref IS pushed" '[ "$($G -C $T/remote.git rev-parse $LNS/$(mintn 7))" = "$(sha $LNS/$(mintn 7))" ]'
+# --- d4-d6: push-changed reads every batch (alive 19:09:47Z [decision]): a NAMED non-fast-forward rejection is counted and the run goes ON,
+# any other failure stops at that batch, unread; never --force. 31 changed refs at push_batch_limit 7 = 5 batches; mint 2 is in batch 1, mint 9 in batch 2.
+pcfix(){ rm -rf $T/$1 $T/$1.git $T/$1.gone;cp -a $T/base $T/$1;P=$T/$1;setcfg $P "$CFG_NEW";grid unify --write >/dev/null 2>&1;$G init -q --bare $T/$1.git;$G -C $P remote add origin $T/$1.git;}
+# a divergent tip of mint 2 and of mint 9 on the remote (objects this repo HAS, so non-fast-forward, never 'fetch first')
+pcdiv(){ for i in 2 9;do x=$(mk $P $i active "diverged-$i");$G -C $P push -q origin $x:$NS/$(mintn $i);echo $x >$T/div$i;done;}
+# how many of the 31 local tips the remote ($1 = its git dir) holds at the same commit
+pcsame(){ n=0;for r in $($G -C $P for-each-ref --format='%(refname)' $NS);do [ "$($G --git-dir=$1 rev-parse -q --verify $r)" = "$(sha $r)" ]&&n=$((n+1));done;echo $n;}
+# a git on PATH that moves the remote away at the 2nd porcelain push: the remote is unreadable mid-run (root-proof, unlike a chmod)
+pcgone(){ mkdir -p $T/wbin;printf '#!/bin/sh\ncase " $* " in *" push --porcelain "*) n=$(cat %s/npush 2>/dev/null||echo 0);n=$((n+1));echo $n >%s/npush;[ $n = 2 ]&&mv %s/%s.git %s/%s.gone;;esac\nexec %s "$@"\n' $T $T $T $1 $T $1 $G >$T/wbin/git;chmod +x $T/wbin/git;rm -f $T/npush;}
+pcfix pq;pcdiv;grid push-changed >$T/pq.out 2>&1;pq=$?
+ok "d4-a-named-rejection-goes-on 2 non-fast-forward refs in 2 different batches: every other ref pushed ($(pcsame $T/pq.git)/31 equal, want 29), both divergent tips kept (never forced), rc $pq: $(tail -1 $T/pq.out)" '[ $pq = 1 ]&&[ "$(tail -1 $T/pq.out)" = "grid push: rejected 2: $(mintn 2) $(mintn 9)" ]&&[ "$(pcsame $T/pq.git)" = 29 ]&&[ "$($G --git-dir=$T/pq.git rev-parse $NS/$(mintn 2))" = "$(cat $T/div2)" ]&&[ "$($G --git-dir=$T/pq.git rev-parse $NS/$(mintn 9))" = "$(cat $T/div9)" ]&&grep -q "^grid push: 31 changed ref(s) in 5 batch(es)$" $T/pq.out'
+pcfix pt;pcgone pt;(PATH=$T/wbin:$PATH;export PATH;grid push-changed) >$T/pt.out 2>&1;pt=$?
+ok "d5-a-mid-run-unreadable-remote-stops-loud the remote gone at batch 2: unread at batch 2/5, no 3rd push ($(cat $T/npush) push calls), batch 1 alone landed ($(pcsame $T/pt.gone)/31), rc $pt: $(tail -1 $T/pt.out)" '[ $pt = 1 ]&&tail -1 $T/pt.out|grep -q "^grid push: unread at batch 2/5: fatal: "&&[ "$(cat $T/npush)" = 2 ]&&[ "$(pcsame $T/pt.gone)" = 7 ]'
+pcfix pr;printf '#!/bin/sh\n[ "$1" = %s/%s ]&&exit 1\nexit 0\n' $NS $(mintn 9) >$T/pr.git/hooks/update;chmod +x $T/pr.git/hooks/update;grid push-changed >$T/pr.out 2>&1;pr=$?
+ok "d6-a-remote-rejected-ref-is-unread-not-named a ref the remote's hook declines in batch 2 is no non-fast-forward: unread at batch 2/5, batches 3-5 never pushed ($(pcsame $T/pr.git)/31, want 13), rc $pr: $(tail -1 $T/pr.out)" '[ $pr = 1 ]&&tail -1 $T/pr.out|grep -q "^grid push: unread at batch 2/5: ! .*\[remote rejected\]"&&[ "$(pcsame $T/pr.git)" = 13 ]'
+pcfix pqm;mut $P/extensions/agi/bin/grid.py '        rejected.extend(named)    # counted by name; the remote keeps its tip and the next batch still runs' '        rejected.extend(named)    # counted by name; the remote keeps its tip and the next batch still runs
+        if named:
+            return 1';pcdiv;grid push-changed >/dev/null 2>&1
+ok "m-stop-at-first-rejection-reads-RED stopping at the first named rejection leaves batches 2-5 unpushed: $(pcsame $T/pqm.git)/31 equal (6 = RED, 29 = the fix)" '[ "$(pcsame $T/pqm.git)" = 6 ]'
+pcfix ptm;mut $P/extensions/agi/bin/grid.py '        if unread is not None:' '        if False:';pcgone ptm;(PATH=$T/wbin:$PATH;export PATH;grid push-changed) >$T/ptm.out 2>&1;ptm=$?
+ok "m-every-failure-read-as-rejected-reads-RED reading every failure as 'rejected, continue' pushes on past the gone remote ($(cat $T/npush) push calls) and exits $ptm with no unread line: $(tail -1 $T/ptm.out)" '[ $ptm = 0 ]&&[ "$(cat $T/npush)" = 5 ]&&! grep -q unread $T/ptm.out'
 # mutant: a delete-bearing variant of the verb
 rm -rf $T/px;cp -a $T/base $T/px;P=$T/px;setcfg $P "$CFG_NEW";mut $P/extensions/agi/bin/grid.py '        classes.append(("tree-equal", mint, ltip, ""))
     return "merged"

@@ -183,18 +183,69 @@ def test_push_batches_exclude_pre_split_v1_roots(tmp_path, monkeypatch):
          "refs/grid/node/child:refs/grid/node/child"]]
 
 
-def test_push_changed_stops_after_failed_batch(tmp_path, monkeypatch):
+def _porcelain(rc, out="", err=""):
+    return subprocess.CompletedProcess(["git", "push"], rc, out, err)
+
+
+NON_FF = "!\trefs/grid/node/{m}:refs/grid/node/{m}\t[rejected] (non-fast-forward)\n"
+FAILED_SOME = "error: failed to push some refs to 'r.git'\nhint: Updates were rejected\n"
+
+
+def test_push_changed_stops_after_an_unread_batch(tmp_path, monkeypatch, capsys):
+    """A batch git cannot read (rc 128, no ref status line) stops the run there: the next batch is
+    never pushed, the last line names the batch and git's first stderr line, rc 1."""
     monkeypatch.setattr(grid, "ensure_repo", lambda root: None)
     monkeypatch.setattr(grid, "push_batches", lambda root: [["a"], ["b"], ["c"]])
     calls = []
     def push(root, *args):
         calls.append(args)
         if len(calls) == 2:
-            raise SystemExit("ERR: rejected")
-    monkeypatch.setattr(grid, "git", push)
-    with pytest.raises(SystemExit, match="rejected"):
-        grid.cmd_push_changed(tmp_path)
+            return _porcelain(128, err="fatal: 'r.git' does not appear to be a git repository\n")
+        return _porcelain(0, "To r.git\n*\ta:a\t[new reference]\nDone\n")
+    monkeypatch.setattr(grid, "git_try", push)
+    assert grid.cmd_push_changed(tmp_path) == 1
     assert len(calls) == 2
+    assert calls[0][:2] == ("push", "--porcelain") and "--force" not in calls[0] and "-f" not in calls[0]
+    assert capsys.readouterr().out.splitlines()[-1] == (
+        "grid push: unread at batch 2/3: fatal: 'r.git' does not appear to be a git repository")
+
+
+def test_push_changed_names_non_ff_rejections_and_goes_on(tmp_path, monkeypatch, capsys):
+    """A NAMED non-fast-forward rejection is counted by mint and the next batch still runs: every
+    batch is pushed, the old summary line stays, then `rejected N: <mints>`, rc 1."""
+    monkeypatch.setattr(grid, "ensure_repo", lambda root: None)
+    monkeypatch.setattr(grid, "ref_ns_for", lambda root: "refs/grid")
+    monkeypatch.setattr(grid, "push_batches", lambda root: [["a", "b"], ["c"], ["d"]])
+    calls = []
+    def push(root, *args):
+        calls.append(args)
+        if len(calls) in (1, 3):
+            m = "m1" if len(calls) == 1 else "m3"
+            return _porcelain(1, "To r.git\n" + NON_FF.format(m=m) + "Done\n", FAILED_SOME)
+        return _porcelain(0, "To r.git\nDone\n")
+    monkeypatch.setattr(grid, "git_try", push)
+    assert grid.cmd_push_changed(tmp_path) == 1
+    assert len(calls) == 3
+    lines = capsys.readouterr().out.splitlines()
+    assert lines[-2:] == ["grid push: 4 changed ref(s) in 3 batch(es)", "grid push: rejected 2: m1 m3"]
+    assert lines[0] == "grid push batch 1/3: 2 ref(s), 1 rejected"
+
+
+@pytest.mark.parametrize("res, why", [
+    (_porcelain(1, "!\tx:x\t[rejected] (fetch first)\nDone\n", FAILED_SOME), "! x:x [rejected] (fetch first)"),
+    (_porcelain(1, "!\tx:x\t[remote rejected] (hook declined)\nDone\n", FAILED_SOME), "! x:x [remote rejected] (hook declined)"),
+    (_porcelain(1, NON_FF.format(m="m"), "fatal: the remote end hung up unexpectedly\n" + FAILED_SOME),
+     "fatal: the remote end hung up unexpectedly"),
+    (_porcelain(1, "To r.git\nDone\n", ""), "the push exited 1 with no ref status line"),
+])
+def test_read_push_porcelain_anything_but_a_named_non_ff_is_unread(res, why):
+    assert grid.read_push_porcelain(res)[1] == why
+
+
+def test_read_push_porcelain_names_only_non_ff():
+    res = _porcelain(1, "To r.git\n \ta:a\t0d3dae5..e1e752e\n" + NON_FF.format(m="m1") + "Done\n", FAILED_SOME)
+    assert grid.read_push_porcelain(res) == (["refs/grid/node/m1"], None)
+    assert grid.read_push_porcelain(_porcelain(0, "To r.git\n=\ta:a\t[up to date]\nDone\n")) == ([], None)
 
 
 def test_push_batches_exclude_seed_epoch_roots_but_keep_descendants(tmp_path, monkeypatch):
@@ -289,21 +340,20 @@ def test_push_changed_retries_after_a_failed_batch_against_a_real_remote(
     subprocess.run(["git", "init", "--bare", "-q", str(remote)], check=True)
     grid.git(project, "remote", "add", "origin", str(remote))
 
-    real_git = grid.git
+    real_git_try = grid.git_try
     calls = {"n": 0}
 
-    def flaky_git(root, *args):
+    def flaky_git_try(root, *args):
         if args[:1] == ("push",):
             calls["n"] += 1
             if calls["n"] == 2:
-                raise SystemExit("ERR: simulated network failure")
-        return real_git(root, *args)
+                return _porcelain(128, err="fatal: simulated network failure\n")
+        return real_git_try(root, *args)
 
-    monkeypatch.setattr(grid, "git", flaky_git)
-    with pytest.raises(SystemExit, match="simulated network failure"):
-        grid.cmd_push_changed(project)
-    monkeypatch.setattr(grid, "git", real_git)
-    capsys.readouterr()
+    monkeypatch.setattr(grid, "git_try", flaky_git_try)
+    assert grid.cmd_push_changed(project) == 1
+    assert "unread at batch 2/2: fatal: simulated network failure" in capsys.readouterr().out
+    monkeypatch.setattr(grid, "git_try", real_git_try)
 
     ref_x = grid.mint_node_ref(MINT_X)
     ref_y = grid.mint_node_ref("b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2")
@@ -316,7 +366,7 @@ def test_push_changed_retries_after_a_failed_batch_against_a_real_remote(
     # exactly one batch landed before the simulated failure; the other did not.
     assert bool(landed[ref_x]) != bool(landed[ref_y])
 
-    grid.cmd_push_changed(project)  # the retry -- ordinary git, no flakiness
+    assert grid.cmd_push_changed(project) == 0  # the retry -- ordinary git, no flakiness
     for ref in (ref_x, ref_y):
         tip = grid.ref_tip(project, ref)
         advertised = subprocess.run(
