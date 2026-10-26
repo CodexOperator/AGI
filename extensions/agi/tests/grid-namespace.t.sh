@@ -171,7 +171,7 @@ ok "m-delete-variant-reads-RED a verb that deletes the legacy ref leaves $(refs 
 # --- c: the census cell
 rm -rf $T/pc;cp -a $T/pa $T/pc;P=$T/pc;grid census >$T/c.out 2>&1;crc=$?
 EXPECT_M=31;EXPECT_RET=$($G -C $P for-each-ref --format='%(objectname):node.md' $NS|$G -C $P cat-file --batch|grep -c '^status: deprecated')
-ok "c0-five-numbers the cell prints mints=31 live=$((31-EXPECT_RET)) retired=$EXPECT_RET versions orphans=11 (mints 21..30 and TBD have no node file): $(cat $T/c.out)" '[ $crc = 0 ]&&grep -q "^grid census: mints=31 live=30 retired=1 versions=[0-9]* orphans=11$" $T/c.out&&[ "$(sed "s/.*versions=\([0-9]*\).*/\1/" $T/c.out)" = "$($G -C $P rev-list --count $(refs $NS|cut -d" " -f2))" ]'
+ok "c0-five-numbers the cell prints mints=31 live=$((31-EXPECT_RET)) retired=$EXPECT_RET versions orphans=11 (mints 21..30 and TBD have no node file): $(cat $T/c.out)" '[ $crc = 0 ]&&grep -q "^grid census: mints=31 live=30 retired=1 versions=[0-9]* orphans=11 double_mints=0 never_landed=11 unclassified=0$" $T/c.out&&[ "$(sed "s/.*versions=\([0-9]*\).*/\1/" $T/c.out)" = "$($G -C $P rev-list --count $(refs $NS|cut -d" " -f2))" ]'
 refs $NS|sed "s|^$NS/||;s| .*||"|sort >$T/a.txt;$G -C $P grep -h '^mint_id:' HEAD -- .agi/nodes|sed 's/^mint_id: *//'|sort >$T/b.txt;orph=$(comm -23 $T/a.txt $T/b.txt|wc -l|tr -d ' ')
 ok "c1-orphans-are-one-pinned-command the orphan count is the set difference of 'git grep -h ^mint_id: HEAD' against the namespace listing: $orph" '[ "$orph" = 11 ]'
 grid census --rev no-such-rev >$T/c1.out 2>&1;c1=$?
@@ -182,4 +182,23 @@ rm -rf $T/pc1;cp -a $T/pa $T/pc1;P=$T/pc1;for r in $($G -C $P for-each-ref --for
 ok "c4-an-empty-new-namespace-is-unread the one namespace listing 0 refs prints unread, rc 1: $(cat $T/c3.out)" '[ $c3 = 1 ]&&grep -q "unread (refs/grid lists no node refs)" $T/c3.out'
 rm -rf $T/pc2;cp -a $T/pc0 $T/pc2;P=$T/pc2;mut $P/extensions/agi/bin/grid.py 'or not res.stdout.split():' 'or False:';grid census >$T/c4.out 2>&1;c4=$?
 ok "m-census-without-the-empty-check-reads-RED the check cut out: the empty legacy namespace prints numbers rc $c4 instead of unread" '[ $c4 = 0 ]&&grep -q "mints=" $T/c4.out'
+# --- c5: the orphan classes (the census-orphans decision, alive 07:40:32Z 10-26): double-mint | never-landed | unclassified, each its OWN number
+rm -rf $T/po;cp -a $T/pa $T/po;P=$T/po;grid census --orphans >$T/o0.out 2>&1;o0=$?
+ok "c5a-the-orphan-list-has-four-columns --orphans lists each of the 11 orphans as '<mint> <last id> <versions> <class>', here all never-landed (no file under any mint carries their id), rc $o0" '[ $o0 = 0 ]&&[ "$(grep -c " never-landed$" $T/o0.out)" = 11 ]&&grep -q "^$(mintn 21) idea:n21 [0-9]* never-landed$" $T/o0.out'
+# a SECOND mint carries mint 21's id on the trunk: mint 21 is a ghost (double-mint)
+printf -- '---\nid: idea:n21\nmint_id: %s\ntype: idea\nstatus: active\nparents:\n  - goal:g\n---\nthe real node\n' ffffffffffffffffffffffffffffffff >$P/.agi/nodes/idea/n21-real.md;$G -C $P add -A;$G -C $P commit -qm real21
+grid census --orphans >$T/o1.out 2>&1;o1=$?
+ok "c5b-a-double-mint-is-its-own-number another mint on the trunk carries idea:n21: double_mints=1 never_landed=10 (the total stays orphans=11), the list says double-mint for mint 21 only, rc $o1: $(tail -1 $T/o1.out)" '[ $o1 = 0 ]&&grep -q "^$(mintn 21) idea:n21 [0-9]* double-mint$" $T/o1.out&&[ "$(grep -c " double-mint$" $T/o1.out)" = 1 ]&&tail -1 $T/o1.out|grep -q "orphans=11 double_mints=1 never_landed=10 unclassified=0$"'
+rm -rf $T/po2;cp -a $T/po $T/po2;P=$T/po2;mut $P/extensions/agi/bin/grid.py 'return "double-mint" if id_mints.get(last_id, set()) - {mint} else "never-landed"' 'return "never-landed"'
+grid census --orphans >$T/o2.out 2>&1
+ok "m-classifier-never-landed-for-all-reads-RED a classifier that calls every orphan never-landed moves the ghost out of its class: double_mints=$(tail -1 $T/o2.out|sed 's/.*double_mints=\([0-9]*\).*/\1/') (want 1 = green)" 'tail -1 $T/o2.out|grep -q "double_mints=0"'
+# a third class cannot hide: a tip whose node.md names no id
+rm -rf $T/po3;cp -a $T/pa $T/po3;P=$T/po3;nid=$(printf -- '---\nmint_id: %s\ntype: idea\nstatus: active\n---\nno id line\n' eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee|$G -C $P hash-object -w --stdin);tr=$(printf '100644 blob %s\tnode.md\n' $nid|$G -C $P mktree);cm=$(echo noid|$G -C $P commit-tree $tr);$G -C $P update-ref $NS/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee $cm
+grid census >$T/o3.out 2>&1;o3=$?
+ok "c5c-an-unclassified-orphan-prints-its-mint-and-is-rc-1 a tip with no id line: UNCLASSIFIED names the mint, unclassified=1, rc $o3 (never folded into the total silently)" '[ $o3 = 1 ]&&grep -q "UNCLASSIFIED orphan eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" $T/o3.out&&tail -1 $T/o3.out|grep -q "orphans=12 double_mints=0 never_landed=11 unclassified=1$"'
+rm -rf $T/po4;cp -a $T/po3 $T/po4;P=$T/po4;mut $P/extensions/agi/bin/grid.py '    if not last_id:
+        return "unclassified"' '    if False:
+        return "unclassified"'
+grid census >$T/o4.out 2>&1;o4=$?
+ok "m-unclassified-folded-into-never-landed-reads-RED with the unclassified class cut, the id-less tip reads never-landed and the census exits $o4 instead of 1" '[ $o4 = 0 ]'
 echo "grid-namespace: $nrows rows";echo "grid-namespace: $f FAIL";[ $f = 0 ]

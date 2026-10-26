@@ -2446,7 +2446,17 @@ def cmd_origin_snap(root: Path, remote: str = "origin", lap_min: int = ORIGIN_LA
     return 0
 
 
-def cmd_census(root: Path, rev: str = "HEAD") -> int:
+def _classify_orphan(mint: str, last_id: str | None, id_mints: dict[str, set[str]]) -> str:
+    """goal:g7.16.1.11.46.16 (the census-orphans decision, alive 07:40:32Z 10-26): an orphan is a mint with no node file
+    in the view of `rev`. `double-mint`: ANOTHER mint carries the same `id:` on the trunk (a ghost, the trunk mint is
+    the node); `never-landed`: no file under any mint carries that id; `unclassified`: its tip names no id at all.
+    A third class can never hide inside the total: unclassified is its own number and makes the census rc 1."""
+    if not last_id:
+        return "unclassified"
+    return "double-mint" if id_mints.get(last_id, set()) - {mint} else "never-landed"
+
+
+def cmd_census(root: Path, rev: str = "HEAD", orphans: bool = False) -> int:
     """goal:g7.16.1.11.46.16 (doc §34.5): five numbers over the ONE namespace, mints counted by their tip.
 
         mints    git for-each-ref <ns>/node                       (tips, not versions)
@@ -2454,6 +2464,10 @@ def cmd_census(root: Path, rev: str = "HEAD") -> int:
         retired  }                                                 live + retired = mints
         versions git rev-list --count --stdin over the tips        distinct commits (a unify merge is one)
         orphans  git grep '^mint_id:' <rev> -- <nodes>             mints with no node file in the view of <rev>
+
+    `orphans` = double_mints + never_landed + unclassified, each its OWN printed number (`_classify_orphan`);
+    an unclassified orphan prints its mint and makes the cell rc 1. `--orphans` lists every orphan as
+    `<mint> <last id> <versions> <class>` before the numbers.
 
     The ONE pinned command behind the 22-vs-46 gap (K3): `git grep -h '^mint_id:' <rev> -- .agi/nodes`
     against `git for-each-ref <ns>/node` is a SET difference (22 at 695c008dfd); 46 was 5991 minus 5945,
@@ -2474,6 +2488,8 @@ def cmd_census(root: Path, rev: str = "HEAD") -> int:
     rows = [x.split() for x in res.stdout.splitlines()]
     tips = [r[0] for r in rows]
     mints = {r[1][len(ns) + 6:] for r in rows}
+    last_id: dict[str, str] = {}    # mint -> the `id:` its tip's node.md names
+    tip_of = {r[1][len(ns) + 6:]: r[0] for r in rows}
     res = subprocess.run(["git", "-C", str(repo_root(root)), "cat-file", "--batch"],
                          input="".join(f"{t}:{NODE_ENTRY}\n" for t in tips).encode(), capture_output=True)
     if res.returncode != 0:
@@ -2491,6 +2507,9 @@ def cmd_census(root: Path, rev: str = "HEAD") -> int:
         if lines[0].strip() != "---" or "---" not in [x.rstrip() for x in lines[1:]]:
             return unread(f"{t[:12]} has no frontmatter")
         front = "\n".join(lines[1:[x.rstrip() for x in lines[1:]].index("---") + 1])
+        mi = re.search(r"^id:\s*[\"']?(\S+?)[\"']?\s*$", front, re.M)
+        if mi is not None:
+            last_id[next(k for k, v in tip_of.items() if v == t)] = mi.group(1)
         m = re.search(r"^status:\s*[\"']?([A-Za-z_-]+)", front, re.M)    # no status line = live (status != deprecated)
         if m is not None and m.group(1) == "deprecated":
             retired += 1
@@ -2501,16 +2520,39 @@ def cmd_census(root: Path, rev: str = "HEAD") -> int:
         return unread("rev-list over the tips")
     versions = int(res.stdout)
     nodes = (Path(root) / "nodes").resolve().relative_to(repo_root(root).resolve()).as_posix()
-    res = git_try(root, "grep", "-h", "^mint_id:", rev, "--", nodes)
+    res = git_try(root, "grep", "-z", "-n", "-e", "^id:", "-e", "^mint_id:", rev, "--", nodes)
     if res.returncode not in (0, 1):
         return unread(f"git grep {rev}")
-    filed = {re.sub(r"[\"']", "", x.split(":", 1)[1]).split()[0] for x in res.stdout.splitlines()
-             if x.startswith("mint_id:") and x.split(":", 1)[1].strip().strip("\"'")}
+    per_file: dict[str, dict[str, str]] = {}    # path -> {"id": ..., "mint_id": ...}: the FIRST of each (the frontmatter)
+    for line in res.stdout.split("\n"):
+        parts = line.split("\0", 2)
+        if len(parts) != 3 or not parts[1].isdigit():
+            continue
+        key, _, val = parts[2].partition(":")
+        val = re.sub(r"[\"']", "", val).strip().split()
+        if val:
+            per_file.setdefault(parts[0].partition(":")[2], {}).setdefault(key, val[0])
+    filed = {v["mint_id"] for v in per_file.values() if "mint_id" in v}
+    id_mints: dict[str, set[str]] = {}
+    for v in per_file.values():
+        if "id" in v and "mint_id" in v:
+            id_mints.setdefault(v["id"], set()).add(v["mint_id"])
     if not filed:
         return unread(f"no node file under {nodes} at {rev}")
-    orphans = len(mints - filed)
-    print(f"grid census: mints={len(mints)} live={live} retired={retired} versions={versions} orphans={orphans}")
-    return 0
+    classes = {m: _classify_orphan(m, last_id.get(m), id_mints) for m in sorted(mints - filed)}
+    n_dm = sum(1 for c in classes.values() if c == "double-mint")
+    n_nl = sum(1 for c in classes.values() if c == "never-landed")
+    n_un = sum(1 for c in classes.values() if c == "unclassified")
+    if orphans:
+        for m in sorted(classes, key=lambda x: (classes[x], x)):
+            n = git_try(root, "rev-list", "--count", tip_of[m])
+            print(f"{m} {last_id.get(m, '-')} {n.stdout.strip() if n.returncode == 0 else '?'} {classes[m]}")
+    for m, c in classes.items():
+        if c == "unclassified":
+            print(f"grid census: UNCLASSIFIED orphan {m} (its tip names no id)")
+    print(f"grid census: mints={len(mints)} live={live} retired={retired} versions={versions} orphans={len(classes)} "
+          f"double_mints={n_dm} never_landed={n_nl} unclassified={n_un}")
+    return 1 if n_un else 0
 
 
 def cmd_sync(root: Path, remote: str | None) -> None:
@@ -2703,6 +2745,8 @@ def main() -> None:
     os_.add_argument("--lap", type=int, default=ORIGIN_LAP_MIN, help="minutes that make a lap (default 30, grid_sync's cadence)")
     ce = sub.add_parser("census", help="goal:g7.16.1.11.46.16 -- mints, live, retired, versions, orphans")
     ce.add_argument("--rev", default="HEAD")
+    ce.add_argument("--orphans", action="store_true",
+                    help="list every orphan as `<mint> <last id> <versions> <class>` (double-mint | never-landed | unclassified)")
     s = sub.add_parser("sync")
     s.add_argument("remote", nargs="?")
     sub.add_parser("push-changed", help="push only changed grid tips in bounded batches")
@@ -2754,7 +2798,7 @@ def main() -> None:
     elif args.cmd == "origin-snap":
         sys.exit(cmd_origin_snap(root, args.remote, args.lap))
     elif args.cmd == "census":
-        sys.exit(cmd_census(root, args.rev))
+        sys.exit(cmd_census(root, args.rev, args.orphans))
     elif args.cmd == "sync":
         cmd_sync(root, args.remote)
     elif args.cmd == "push-changed":
