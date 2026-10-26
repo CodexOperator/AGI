@@ -34,7 +34,7 @@ agi-out           3285 B  the out-line: next keys, ring commit, re-wrap, swap
 gitconfig          196 B  signed commits against root's allowed_signers
 pre-commit          639 B  refuses a plain commit on a detached ~/t
 agi-notice          1141 B  engine->post notices: add / claim + print
-reference-transaction 1338 B  refuses a post moving a peer's ref (a mistake guard)
+reference-transaction 2635 B  peer-ref mistake guard + R-land (mode cell)
 sysusers.conf       41 B  a post = one user in group agi
 agi.rules          242 B  a post starts only its OWN unit
 project.sh         161 B  what the body SHOULD be
@@ -334,18 +334,26 @@ case $1 in add)[ -e ~/.notice ]||: >~/.notice;awk -v l="$2" 'function K(x,n,a,i,
 mv ~/.notice ~/.notice.$$ 2>/dev/null;f=$(ls ~/.notice.* 2>/dev/null)||exit 0;cat $f|awk '!s[$0]++';rm -f $f
 ~~~
 
-### reference-transaction (1338 B)
+### reference-transaction (2635 B)
 ~~~sh
 #!/bin/sh
-# reference-transaction (git runs it from core.hooksPath=~/bin; goal:g7.16.1.11.38.1): a post's MISTAKE cannot move a peer's ref. Git calls it for prepared, committed and aborted and honours a non-zero exit ONLY in prepared, so it acts only there: an agi-<p> user may not update refs/heads/posts/<q>, refs/box/<q>/* or refs/held/<q>/* with q != p (rc 1, one named line). Root, belam, agi-belam (the Prime's post, whose unit runs as agi-belam since the .10 move: it may move any ref), every other ref and every other user pass. It FAILS OPEN on its own error (rc 0, a stderr line, and an agi-notice once per post per day). A guard against mistakes, NOT a wall: any ref write run with git -c core.hooksPath=/dev/null still moves a peer's ref, and this file is the post's own, editable until the next unit start
+# reference-transaction (git runs it from core.hooksPath=~/bin; goal:g7.16.1.11.38.1): a post's MISTAKE cannot move a peer's ref. Git calls it for prepared, committed and aborted and honours a non-zero exit ONLY in prepared, so it acts only there: an agi-<p> user may not update refs/heads/posts/<q>, refs/box/<q>/* or refs/held/<q>/* with q != p (rc 1, one named line). Root, belam, agi-belam (the Prime's post, whose unit runs as agi-belam since the .10 move: it may move any ref), every other ref and every other user pass. It FAILS OPEN on its own error (rc 0, a stderr line, and an agi-notice once per post per day). A guard against mistakes, NOT a wall: any ref write run with git -c core.hooksPath=/dev/null still moves a peer's ref, and this file is the post's own, editable until the next unit start R-LAND (goal:g7.16.1.11.46.23, R4): for ANY user, a prepared update of refs/heads/posts/belam or refs/heads/core/season3/main whose range changes a posts.md/seats.md row runs BASE's extensions/agi/guard/r-land on o..n and a refusal (rc 1, named lines) stops the move; no r-land at the old tip = fail open with a notice (the bootstrap gap). Enforced at every trunk move except a deliberate core.hooksPath bypass: a hook guards against MISTAKES, it is not a wall (R5).
 [ "$1" = prepared ]||exit 0
 f(){ echo "[ref-guard] fail open: $1">&2;agi-notice add "[ref-guard] fail open: $1 $(date +%Y%m%d)" 2>/dev/null;exit 0;}
+L=$(cat);z=0000000000000000000000000000000000000000
+echo "$L"|while read o n r;do case $r in refs/heads/posts/belam|refs/heads/core/season3/main);;*)continue;;esac
+ { [ "$o" = $z ]||[ "$n" = $z ];}&&continue
+ git diff --quiet $o $n -- .agi/nodes/.geometry/posts.md .agi/nodes/.geometry/seats.md 2>/dev/null&&continue
+ s=$(mktemp)||continue;git cat-file blob $o:extensions/agi/guard/r-land >$s 2>/dev/null&&[ -s $s ]||{ rm -f $s;echo "[r-land] no r-land at $o: fail open, $r moves unchecked">&2;agi-notice add "[r-land] no r-land at base $(date +%Y%m%d)" 2>/dev/null;continue;}
+ out=$(sh $s $o $n 2>&1);rc=$?;rm -f $s;[ $rc = 0 ]||{ echo "[r-land] $r refused, nothing changed:">&2;echo "$out">&2;exit 1;}
+ case $out in *"would refuse"*)echo "[r-land] $r moves (report mode):">&2;echo "$out">&2;;esac
+done||exit 1
 u=$(id -un)&&[ "$u" ]||f "no user"
 case $u in agi-belam)exit 0;;agi-?*);;*)exit 0;;esac
-while read o n r;do [ "$r" ]||f "unparsed input"
+echo "$L"|while read o n r;do [ "$r" ]||f "unparsed input"
  case $r in refs/heads/posts/*)q=${r#refs/heads/posts/};;refs/box/*|refs/held/*)q=${r#refs/*/};;*)continue;;esac
  [ "${q%%/*}" = "${u#agi-}" ]||{ echo "[ref-guard] $u may not move $r (a peer's ref), nothing changed">&2;exit 1;}
-done
+done||exit 1
 ~~~
 
 ### agi-wt (1506 B)
