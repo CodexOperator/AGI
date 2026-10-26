@@ -315,6 +315,21 @@ excluded:
     reason: "network: pushes refs to a remote"
     side_effects: network
     proposable: false
+  grid.py:unify:
+    cli: grid.py
+    verb: unify
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/grid.py
+      - unify
+    args:
+      - {"name": "write", "type": "bool", "required": false, "choices": []}
+      - {"name": "check", "type": "bool", "required": false, "choices": []}
+      - {"name": "into", "type": "str", "required": false, "choices": []}
+      - {"name": "legacy", "type": "str", "required": false, "choices": []}
+    reason: "graph-write: --write adds merge commits to the grid refs (additive only, compare-and-swap, no delete); a host act of the grid unify, run once by belam after the gate (goal:g7.16.1.11.46.16). The bare form is a dry run."
+    side_effects: graph-write
+    proposable: false
   provisioning.py:reap:
     cli: provisioning.py
     verb: reap
@@ -1374,6 +1389,18 @@ manifest:
       - {"name": "set", "type": "str", "required": false, "choices": []}
     purpose: envfile.py
     side_effects: graph-write
+    proposable: true
+  grid.py:census:
+    cli: grid.py
+    verb: census
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/grid.py
+      - census
+    args:
+      - {"name": "rev", "type": "str", "required": false, "choices": []}
+    purpose: grid.py census (goal:g7.16.1.11.46.16 -- mints / live / retired / versions / orphans, each from one git command; unread rc 1 on a failed read)
+    side_effects: read
     proposable: true
   grid.py:commit:
     cli: grid.py
