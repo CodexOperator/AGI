@@ -50,6 +50,12 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
                Each commit is judged BY ITS OWN SIGNER (`git verify-commit --raw`, never %an/%ae) against BASE's [config].md written_by /
                self_row / actor_rows, the veto freeze and the town vocabulary; unreadable = refused/would-refuse. A hook guards against
                MISTAKES, it is not a wall (a core.hooksPath bypass moves the ref: R5).
+               R-land's W section (goal:g7.16.1.11.46.23, council 02:53Z 10-26) also judges every node file in the range whose TYPE's schema declares
+               `written_by`: moral / vision / town by the PER-COMMIT signer (`(W1)` lines), [config] by its LANDER = the first-parent commit that
+               introduces the change (a direct config leaf by a seat outside written_by = `(W2)`; a land MERGE signed outside written_by, SM's
+               own, prints ONE line `config: lander not provable in history (RULES via unsigned ff): N change(s); leaf signers: ...`, which
+               your gate line quotes as `config: needs a prime_director lander (RULES ff)`, never a would-refuse; it never absorbs an R1 line,
+               an unread or a seatless leaf `(c)`, which print BESIDE it). A `R-land: ran as <post> (user <name>, uid <n>)` line names the PROCESS UID that ran it (never AGI_POST; at your gate that is YOU, not the mover): informational, never a verdict input. Owner question open: belam signs the RULES land, or the land role joins written_by.
              · TRAP, bracketed paths: read a node like [config].md with `git cat-file blob REV:path`, NEVER `git show REV:path` (git 2.43: rc 0 and
                EMPTY output when the file is absent, so an absent schema reads as present; reproduced by 3 seats, 0 other bracketed readers in
                extensions/skills/.geometry; test_r_land's cat-file case pins it)
