@@ -310,7 +310,7 @@ def _install_hook(repo, tmp_path, user="belam"):
     stub.mkdir()
     (stub / "id").write_text(f'#!/bin/sh\ncase "$*" in -un) echo {user};; *) exec /usr/bin/id "$@";; esac\n')
     (stub / "id").chmod(0o755)
-    (stub / "agi-notice").write_text("#!/bin/sh\nexit 0\n")        # the hook's fail-open path calls it: never write the tester's ~/.notice
+    (stub / "agi-notice").write_text(f'#!/bin/sh\necho "$*" >> {tmp_path}/notices.log\nexit 0\n')   # the hook's fail-open / HOLD path calls it: log it, never write the tester's ~/.notice
     (stub / "agi-notice").chmod(0o755)
     # AGI_RLAND_SINCE: the stand-in for L140 (the hook's "pre-L140 base fails open" cut): the fixture's first commit
     return {"PATH": f"{stub}:{os.environ['PATH']}", "AGI_RING": str(repo.signers), "AGI_RLAND_SINCE": repo.base}
@@ -1214,15 +1214,64 @@ def test_V2_f_soften_then_empty_on_a_side_branch_merged_the_judge_is_the_trunks_
     assert f"judge from {judge} (emptied at {m})" in r.stderr, r.stderr
 
 
-def test_V1_no_tmpfile_is_a_HOLD_not_a_silent_move(tmp_path):
+def _trunk_edit(tmp_path, mode="enforce"):
+    """A hooked repo at `mode`, posts/belam at b0, and a belam-signed config edit `new` on top: a node change the widened hook judges."""
     repo, env = _hook_repo(tmp_path)
+    if mode != "report":
+        repo.set_mode(mode)
     b0 = repo.git("rev-parse", "HEAD").stdout.strip()
     _branch_at(repo, "refs/heads/posts/belam", b0)
     repo.write(f"{G}/rotations.md", NODE.format(t="config", n="rotations", b="v1"))
-    new = repo.commit("belam", "edit config")
-    r = _land_ref(repo, env, new, b0) if False else _move(repo, "refs/heads/posts/belam", new, b0, {**env, "TMPDIR": "/nonexistent/tmp"})
-    assert r.returncode != 0 and "HOLD, nothing changed: no tmpfile" in r.stderr, r.stderr
+    return repo, env, repo.commit("belam", "edit config"), b0
+
+
+def _notices(tmp_path):
+    f = tmp_path / "notices.log"
+    return f.read_text() if f.exists() else ""
+
+
+def test_T1_an_unwritable_TMPDIR_with_a_writable_repo_the_move_PASSES_in_ENFORCE_and_prints_no_unread_tmpdir(tmp_path):
+    """Both temp writers live in the repo's objects/ dir (the hook's tmpfile + r-land's own mktemp -d via TMPDIR=$t), so the MOVER's TMPDIR is irrelevant."""
+    repo, env, new, b0 = _trunk_edit(tmp_path)
+    r = _move(repo, "refs/heads/posts/belam", new, b0, {**env, "TMPDIR": "/nonexistent/tmp"})
+    assert r.returncode == 0 and "unread tmpdir" not in r.stderr and "HOLD" not in r.stderr, r.stderr
+    assert repo.git("rev-parse", "refs/heads/posts/belam").stdout.strip() == new
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="root ignores the mode bits this row sets")
+def test_T2_the_git_ROOT_not_writable_while_objects_is_writable_the_move_PASSES(tmp_path):
+    """A non-owner group-agi mover: the .git ROOT is belam-only 775, objects/ is group-agi rwx. A temp file under the .git root would HOLD every such mover."""
+    repo, env, new, b0 = _trunk_edit(tmp_path)
+    g = repo.d / ".git"
+    g.chmod(0o555)
+    try:
+        r = _move(repo, "refs/heads/posts/belam", new, b0, env)
+    finally:
+        g.chmod(0o755)
+    assert r.returncode == 0 and "HOLD" not in r.stderr, r.stderr
+    assert repo.git("rev-parse", "refs/heads/posts/belam").stdout.strip() == new
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="root ignores the mode bits this row sets")
+def test_T3_no_tmpfile_is_a_HOLD_that_names_its_cause_and_runs_agi_notice(tmp_path):
+    repo, env, new, b0 = _trunk_edit(tmp_path)
+    o = repo.d / ".git" / "objects"
+    o.chmod(0o555)
+    try:
+        r = _move(repo, "refs/heads/posts/belam", new, b0, env)
+    finally:
+        o.chmod(0o755)
+    assert r.returncode != 0 and "HOLD, nothing changed: no tmpfile under" in r.stderr, r.stderr
+    assert str(o) in r.stderr and "Permission denied" in r.stderr and "a retry clears it once that clears" in r.stderr, r.stderr
+    assert "[r-land] HOLD refs/heads/posts/belam: no tmpfile under" in _notices(tmp_path), _notices(tmp_path)
     assert repo.git("rev-parse", "refs/heads/posts/belam").stdout.strip() == b0
+
+
+def test_T4_every_HOLD_runs_agi_notice(tmp_path):
+    repo, env, new, b0 = _trunk_edit(tmp_path, mode="report")
+    r = _move(repo, "refs/heads/posts/belam", new, b0, {**env, "AGI_RLAND_SINCE": "deadbeef" * 5})
+    assert r.returncode != 0 and "HOLD, nothing changed: BASE" in r.stderr, r.stderr
+    assert "[r-land] HOLD refs/heads/posts/belam: BASE" in _notices(tmp_path), _notices(tmp_path)
 
 
 def test_V3_an_unresolvable_BASE_ancestry_read_is_a_HOLD(tmp_path):
