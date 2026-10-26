@@ -10046,6 +10046,21 @@ def _shared_graph_root(root: Path) -> Path:
     return graph
 
 
+def _no_row_skip(root: Path, seat: str) -> str:
+    """The named skip when `_write_identity_cells` wrote nothing because the seat has no row
+    (goal:g7.16.1.11.46.23 V8a, council 22:32Z 10-25). TWO causes, two different lines: the
+    registry file is PRESENT and this seat has no row in it; or there is NO config:posts/seats
+    file at all. 'Throwaway' is inferred from absence alone: the bytes carry no positive
+    throwaway marker yet, so the line says so instead of asserting it."""
+    main = _shared_graph_root(root)
+    path, _ = geometry_config.resolve(main)
+    if path is None or not Path(path).exists():
+        return (f"skipped: no config:posts/seats file in {main} "
+                "(throwaway inferred from absence, not marked)")
+    return (f"skipped: no row for {seat!r} in {path} "
+            "(throwaway inferred from absence, not marked)")
+
+
 def _write_identity_cells(root: Path, *, seat: str, actor: str, role: str,
                           cells: dict) -> str:
     """The ONE writer of a seat's identity cells in config:posts.
@@ -10066,8 +10081,8 @@ def _write_identity_cells(root: Path, *, seat: str, actor: str, role: str,
     actor's own row). Returns a truthy one-line outcome when the write
     landed, or '' when the seat has no registry row (the caller prints its
     own skip message)."""
+    import config_rows  # noqa: PLC0415  (local: same dir, no cycle)
     import geometry_config  # noqa: PLC0415  (local: same dir, no cycle)
-    import write  # local: same dir (send.py pattern, no import cycle)
     main_root = _shared_graph_root(root)
     locations.refuse_live_resolution(root, main_root)
     rows = geometry_config.load_rows(main_root)
@@ -10086,10 +10101,9 @@ def _write_identity_cells(root: Path, *, seat: str, actor: str, role: str,
     if not found:
         return ""
     _, list_key = geometry_config.resolve(main_root)
-    node_id = f"config:{list_key}"
-    edit = write.Edit(node_id=node_id)
-    edit.set_fm[list_key] = new_rows
-    write.submit(main_root, edit, actor=actor, role=role)
+    config_rows.write_rows(
+        main_root, new_rows, actor=actor,
+        declare={seat: ("set", {c for c, v in cells.items() if v is not None})})
     return f"wrote identity cells for seat {seat!r} into MAIN {list_key}.md"
 
 
@@ -10221,8 +10235,7 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
         cells.update(first_key_cells)
     if not _write_identity_cells(root, seat=_row_name, actor=_row_name,
                                  role=role, cells=cells):
-        return (f"skipped: no seat-registry row with name {seat!r} "
-                "(a THROWAWAY seat never writes seats.md)")
+        return _no_row_skip(root, seat)
     box_line = _stamp_row_box(root, seat=_row_name, row=_row or {})
     _extra = (f" pubkey={key_rotation['successor_pub'][:16]}... "
               f"key_history={len(key_rotation['retired'])}"
@@ -10324,8 +10337,7 @@ def _backfill_session_ref(root: Path, *, seat: str, role: str,
         cells["pid"] = pid
     if not _write_identity_cells(root, seat=seat, actor=seat, role=role,
                                  cells=cells):
-        return (f"skipped: no seat-registry row with name {seat!r} "
-                "(a THROWAWAY seat has no row to back-fill)")
+        return _no_row_skip(root, seat)
     parts = [f"session_ref={ref}"]
     if session_name:
         parts.append(f"session_name={session_name}")
@@ -22535,8 +22547,8 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
     answers with ONE `stage: seated` line on the same channel. An unverified
     record or a row already live is REFUSED BY NAME and nothing is seated."""
     import migrate_channel
+    import config_rows
     import send
-    import write
     try:
         me = boxes.this_box(root)
     except Exception as exc:  # noqa: BLE001 -- an undeclared box cannot seat
@@ -22618,8 +22630,8 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
                          if cells.get(k) is not None}
         seat_cells = {k: cells[k] for k in ("box", "worktree")
                       if cells.get(k) is not None}
-        # FR-B2 conjunct B: an inadmissible grant raises write.EditError from
-        # the ONE writer; catch it BY NAME so a later good record still seats.
+        # FR-B2 conjunct B: an inadmissible grant raises config_rows.RowWriteRefused
+        # from the ONE writer; catch it BY NAME so a later good record still seats.
         try:
             line = ""
             if session_cells:
@@ -22631,7 +22643,7 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
                 seated_line = _write_identity_cells(
                     root, seat=post, actor=master, role="", cells=seat_cells)
                 line = f"{line}; {seated_line}" if line else seated_line
-        except write.EditError as exc:
+        except config_rows.RowWriteRefused as exc:
             print(f"SKIP: migrate record {path.name} for {post} identity write "
                   f"refused ({exc}); record skipped, tick lives")
             continue
