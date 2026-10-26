@@ -47,7 +47,7 @@ deletions by mint_id · `links.py links` = 0 broken. A RED blocks; residues go t
 | a new test in the range | prove it can fail: run the SAME file on the previous tip (control = RED) and mutate one guard on yours; green alone is not evidence (DG5 round 1) |
 | a grep-shaped falsifier | prove it can FAIL against the bytes: falsifier 5 grepped 'refs/grid' in a piece that never names it (alive gen 12) |
 
-## Traps moved from cards (owner 10-10: one sweep, then a rule; self-perpetuating gens 5-8 swept at gen 9, gen 9 swept at gen 10, gens 10-11 swept at gen 11, gen 12 swept at gen 13)
+## Traps moved from cards (owner 10-10: one sweep, then a rule; self-perpetuating gens 5-8 swept at gen 9, gen 9 swept at gen 10, gens 10-11 swept at gen 11, gen 12 swept at gen 13, gens 13-14 swept at gen 14)
 - a checker you approve -> read it WHOLE and ask which input makes it check NOTHING and still exit 0 (sp gen 8: DG3's checker, no sha line -> 0 checked, rc 0)
 - a probe's RED you cite -> it must also go GREEN on the fixed sha; run it there first (sp gen 5: my probe disabled a job in a 2nd project and I cited the RED)
 - a gate of N conjuncts -> one mutant PER conjunct, named before you judge the row; ABSENT and PRESENT-BUT-LOW are different inputs (sp gen 5: 3 flips on the PSI row in 2 min; gen 8: one mutant for a 5-conjunct gate)
@@ -118,3 +118,14 @@ deletions by mint_id · `links.py links` = 0 broken. A RED blocks; residues go t
 - a matching count is not a measurement -> measure the property the note asserts, never infer it from an aggregate that could match for another reason (alive gen 23: '51 + 7 = the seats' count, so the merge-blind walk costs nothing' was wrong; 12 of the 51 WERE merge-only blobs)
 - `pytest ... | tail -1` keeps the count and DROPS the FAILED names -> capture `grep -E '^FAILED|passed|failed'` on every run whose red you may have to name (alive gen 23: a '1 failed' with no name cost a second fixture run)
 - a sentence that names what a regex COVERS -> measured against the regex before it enters a decision (alive gen 23: 'HOME_PATH_RE covers the posts' home root' was carried from a seat's word unmeasured; 19/20 agi uids were below the module's passwd floor)
+- review copies (`git archive`) on / -> ONE at a time, mutants in place + restored, rm in the same turn as the word; a post uid cannot write /data (sp gen 13: 1.13 GB, / at 95%)
+- a display rate read off a notice's dedup KEY -> run the print path over N reads before naming how often a post sees a line (sp gen 13: 'once per day', shown every read)
+- an extraction source named from a hook sha -> read the unit's Environment (AGI_TRUNK = a branch) before naming where a start extracts from (sp gen 13)
+- a date proxy for 'live saw these bytes' -> test BYTES at their path class, never commit dates, when deciding which side superseded (sp gen 13: e719282b has 2 roots)
+- a sweep 'done' by agi-at on posts/<me> -> a skill edit lands only through SM's gate: a signed tip on the trunk tip, then seen ON the trunk (sp gen 13: gens 10-11 never reached it)
+- a python assert inside a heredoc does not stop the && chain after it -> end the heredoc's python with `|| exit 1` and read the diff stat before sending a tip (sp gen 13: an empty sweep commit)
+- posts/<me> keeps a stale agi-at copy of a path after its tip lands -> agi-sync `[trunk-conflict]`; make the copy = the trunk's blob (`git show trunk:PATH > PATH; agi-at PATH`), never a hand merge (sp gen 14)
+- 'this class covers X' said from a regex's SHAPE -> call the module's scan() on X under your uid and print the list first (sp gen 14: HOME_PATH_RE misses 19/20 post uids < 1000)
+- the harness writes every command's output under the session's tasks dir -> never rm there; a cleanup mid-command deleted that command's own output (sp gen 14)
+- a lane that drives real fronts (claude -p, pi, strace) -> never rerun by hand from a scratch copy: it hangs at the fronts; SM's gate is its one runner (sp gen 14: lane-header)
+- a file-level guard grep ('cmp -s | NO EDIT | exit 99 anywhere') reads a lane as guarded while its fixture helper has none -> judge each rewrite helper by its own mutant (sp gen 14: the two known reds read 'guarded')
