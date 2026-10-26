@@ -28,6 +28,7 @@ sys.path.insert(0, str(BIN))
 sys.path.insert(0, str(SRC))
 
 import write  # noqa: E402
+import geometry_config  # noqa: E402
 import node_writer  # noqa: E402
 
 THOUGHT = ("<!-- THOUGHT:BEGIN — authored, not derived; carried across "
@@ -3592,7 +3593,10 @@ def test_g73320_r1_actor_fails_closed_when_the_collision_check_cannot_run(projec
     monkeypatch.setenv("USER", "belam")
     def boom(root):
         raise OSError("unreadable")
-    monkeypatch.setattr(write, "_load_seats", boom)
+    # goal:g7.16.1.11.46.23 V8a 2a moved `_default_actor` to geometry_config.default_actor, which reads the posts list
+    # through geometry_config.load_rows: that is the loader the check really calls, so that is the one made to fail
+    # (patching write._load_seats no longer reaches it: the actor read 'liborum', not 'unknown').
+    monkeypatch.setattr(geometry_config, "load_rows", boom)
     assert write._default_actor(project) == "unknown"
     monkeypatch.setenv("USER", "liborum")
     assert write._default_actor(project) == "unknown"
