@@ -1125,6 +1125,7 @@ def test_drift_catches_a_declared_arity_the_cli_does_not_have(tmp_path):
 _OUTSIDE_CLIS = {
     "analyze-chat-structure.py": "one-off transcript analysis, not an engine verb",
     "snapshot-build-site.py": "retired build-site generator; its inputs are gone and must not return",
+    "node_commit.py": "the by-exact-path commit of a node a runtime job just wrote (goal:g7.16.1.11.46.23 V8a tip 3a): a LIBRARY whose `__main__` only prints --help (the bin/ smoke lane runs every script with it); its callers are metrics_cell, council_report, failures, sensei, season and the closeout note, which import land; not an operator verb, so OUTSIDE the survey",
     "metrics_cell.py": "the graph_metrics cron job's guarded cell write (goal:g3.8 R2), run by crons.md only; not an operator verb",
     "board_job.py": "the board line's two cron steps (goal:g7.16.1.11.42 option E): `commit` in the seat's own uid, `land` the ff in the human uid's; run by crons.md only; not an operator verb",
     "config_rows.py": "the narrow writer of config:posts / config:seats rows (goal:g7.16.1.11.46.23 V8a tip 2b): a LIBRARY whose `__main__` only prints --help (the bin/ smoke lane runs every script with it); the callers are send.py keygen and rotate.py seating, which import write_rows; not an operator verb, so OUTSIDE the survey",

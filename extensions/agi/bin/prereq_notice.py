@@ -10,7 +10,7 @@ DETERMINISTIC --id); the alarm_drain row signs and sends it. This file never cal
 (claimer, leaf mint, event[, needs ids]) guards the append; the deterministic id guards the send.
   run   [--repo R] [--trunk REF] [--spool S] [--max-lines N]   rc 0 ok / 1 an append failed (seen NOT advanced: retried) / 3 no seen ref (LOUD, nothing sent)
   seed  --at SHA                                               create the seen ref ONCE (refuses an existing one)
-  line  [--repo R]                                             the board segment `notices: claims= cleared= sent= lag= red=...`
+  line  [--repo R] [--leaves]                                  the board segment `notices: claims= held= self= cleared= sent= lag= red=...` (a red class names CLAIMERS with counts); --leaves lists the slugs
 """
 from __future__ import annotations
 
@@ -99,7 +99,7 @@ class Tree:
         if not got:
             return None
         fm, body = got
-        cl = classify(self.mx, body) if self.mx else None
+        cl = classify_at(self.mx, self.repo, self.rv, path, body) if self.mx else None
         needs = fm.get("needs") or []
         if not isinstance(needs, list):
             needs = []
@@ -138,6 +138,17 @@ class Matrix:
                     self.rows[row.get("name")] = row
                 except ValueError:
                     continue
+        self.succ = {}                                   # name -> the live row whose `was` is that name (a RE-USED name's old holder)
+        for n, row in self.rows.items():
+            if row.get("was") and not n.endswith("-retired"):
+                self.succ.setdefault(row["was"], n)
+
+    def renamed_to(self, name):
+        """(successor, since) when NAME is a RE-USED name: it has its own live row with a `since` date AND some other live row says `was: NAME`; else None."""
+        row, succ = self.rows.get(name), self.succ.get(name)
+        if row and row.get("since") and succ and succ != name:
+            return succ, str(row["since"])
+        return None
 
     def ok(self, name):
         if name not in self.memo:
@@ -154,6 +165,20 @@ class Matrix:
         if name.endswith("-retired") or row is None or not row.get("harness"):
             return "dead"
         return "claim" if self.ok(name) else "unreachable"
+
+
+def classify_at(mx, repo, rv, path, body):
+    """classify() plus the LINEAGE class (council 06:40Z): a claim whose `Assigned to **N**` line was written BEFORE N's rename date (N's row `since`) and whose name N has a
+    `was:` successor S was written to the post NOW named S: class `renamed`, name `N>S`, red, never a claim and never notified."""
+    c = classify(mx, body)
+    if c and c[0] == "claim":
+        rt = mx.renamed_to(c[1])
+        if rt:
+            r = git(repo, "log", "-1", "--format=%cs", f"-SAssigned to **{c[1]}", rv, "--", *top(path), check=False)
+            born = r.stdout.strip()
+            if born and born < rt[1]:
+                return ("renamed", f"{c[1]}>{rt[0]}")
+    return c
 
 
 def classify(mx, body):
@@ -178,10 +203,34 @@ def classify_path(repo, rev_, path, mx):
     got = Tree(repo, rev_, mx).read(path)
     if not got or str(got[0].get("status") or "") != "active":
         return None
-    return classify(mx, got[1])
+    return classify_at(mx, repo, rev_, path, got[1])
 
 
 GEOMETRY = (".agi/nodes/.geometry/posts.md", ".agi/nodes/.geometry/engine-post.md")
+
+
+def claimer_key(who):
+    """the bracket key of a red row: the claimer's name; a raw `Assigned to` text that names nobody (unparsed) is cut to the characters a bracket can carry."""
+    return re.sub(r"[^A-Za-z0-9._>-]+", "_", (who or "").strip()).strip("_")[:40] or "unparsed"
+
+
+def by_claimer(items):
+    """`claimer:count,claimer:count` for [(claimer, slug)]: the counts SUM to len(items) by construction (every row lands in exactly one key), largest first."""
+    c = {}
+    for who, _ in items:
+        c[who] = c.get(who, 0) + 1
+    return ",".join(f"{w}:{n}" for w, n in sorted(c.items(), key=lambda kv: (-kv[1], kv[0])))
+
+
+def leaves(a):
+    """`line --leaves`: one `<class> <claimer> <slug>` line per red leaf the board bracket counts (dead | unreachable | unparsed), so the board names claimers and the slugs are here."""
+    repo = Path(a.repo)
+    trunk = rev(repo, a.trunk)
+    if not trunk:
+        return [f"prereq_notice: [red] trunk {a.trunk} does not resolve"]
+    cen = census_catchup(repo, load_census(repo), trunk, Matrix(repo, trunk))
+    rows = sorted((cls, claimer_key(who), p.rsplit("/", 1)[-1][:-3]) for p, (cls, who) in cen["rows"].items() if cls in ("renamed", "dead", "unreachable", "unparsed"))
+    return [" ".join(r) for r in rows]
 
 
 def census_full(repo, rev_, mx):
@@ -277,6 +326,19 @@ def intro(repo, new, path, claimer):
     and a claim that merely survives later moves is not."""
     r = git(repo, "log", "-1", "--format=%H", f"-SAssigned to **{claimer}", new, "--", *top(path), check=False)
     return r.stdout.strip() or new
+
+
+def cron_state(repo, trunk):
+    """`on` | `off` | `unread`: the cron cell `cadences.prereq_notice.enabled` in the trunk's crons.md (council 08:02Z, notices OFF). Anything but a real YAML bool is `unread`, never `off`."""
+    r = git(repo, "show", f"{trunk}:.agi/nodes/.geometry/crons.md", check=False)
+    if r.returncode:
+        return "unread"
+    try:
+        import yaml  # noqa: PLC0415
+        v = yaml.safe_load(r.stdout.split("---")[1])["cadences"][JOB]["enabled"]
+    except Exception:  # noqa: BLE001 -- an unreadable cell is a state, not a crash
+        return "unread"
+    return "on" if v is True else "off" if v is False else "unread"
 
 
 def cell(repo, trunk):
@@ -387,13 +449,16 @@ def line(a):
     trunk, seen = rev(repo, a.trunk), rev(repo, SEEN)
     lim = a.lag_red_min or (cell(repo, trunk) if trunk else LAG_RED_MIN)
     red = []
+    state = cron_state(repo, trunk) if trunk else "on"     # no trunk: its own named red; the cell cannot be read
+    if state == "unread":
+        red.append("cell-unread")
     cnt, files = {}, {}
     if trunk:
         mx = Matrix(repo, trunk)
         cen = census_catchup(repo, load_census(repo), trunk, mx)     # read-only here (another uid): the run persists it
-        for p, (cls, _) in cen["rows"].items():
+        for p, (cls, who) in cen["rows"].items():
             cnt[cls] = cnt.get(cls, 0) + 1
-            files.setdefault(cls, []).append(p.rsplit("/", 1)[-1][:-3])
+            files.setdefault(cls, []).append((claimer_key(who), p.rsplit("/", 1)[-1][:-3]))
     claims = cnt.get("claim", 0)
     cleared = len(git(repo, "for-each-ref", "--format=%(refname)", BUNDLE, check=False).stdout.split())
     ids = set()
@@ -414,7 +479,7 @@ def line(a):
         if lag:
             first = git(repo, "rev-list", "--reverse", f"{seen}..{trunk}", check=False).stdout.split()[:1]   # N2: the age of the OLDEST UNSEEN commit, not of the seen one
             age = (time.time() - int(git(repo, "log", "-1", "--format=%ct", first[0], check=False).stdout.strip() or 0)) / 60 if first else 0
-            if age > lim:
+            if age > lim and state != "off":    # OFF suppresses ONLY the lag red: the owner alone can clear it (enabled: false); lag is still PRINTED
                 red.append(f"lag>{lim}min")
     if trunk:
         # F-b: a reader that read NOTHING is red. These probes run FROM the repo top on the goal tree as a tree-ish (`<trunk>:.agi/nodes/goal`): no cwd and no pathspec magic can shift them
@@ -423,9 +488,9 @@ def line(a):
             red.append("no-goal-files-read")
         elif not sum(cnt.values()) and git(tl, "grep", "-l", "--all-match", "-e", "^Assigned to ", "-e", "^status: active$", tree, check=False).stdout.strip():
             red.append("no-claims-read")                 # the census classified nothing while an ACTIVE goal file carries `Assigned to `
-    for kind in ("dead", "unreachable", "unparsed"):    # R-2: each red names its files (dead: re-assign or retire; unreachable: a ROUTING question; unparsed: no rule takes the line)
+    for kind in ("renamed", "dead", "unreachable", "unparsed"):    # R-2: each red names its files (dead: re-assign or retire; unreachable: a ROUTING question; unparsed: no rule takes the line)
         if cnt.get(kind):
-            red.append(f"{kind}={cnt[kind]}[{'+'.join(sorted(files[kind]))}]")
+            red.append(f"{kind}={cnt[kind]}[{by_claimer(files[kind])}]")
     unsent = 0
     for ref in git(repo, "for-each-ref", "--format=%(refname)", BUNDLE, check=False).stdout.split():
         ts = git(repo, "log", "-1", "--format=%ct", ref, check=False).stdout.strip()
@@ -437,7 +502,9 @@ def line(a):
     m = re.search(r"dead=(\d+)", st)
     if m and int(m.group(1)):
         red.append(f"dead-letter={m.group(1)}")
-    return (f"notices: claims={claims} held={cnt.get('held', 0)} self={cnt.get('self', 0)} cleared={cleared} sent={sent} lag={lag} "
+    head = {"off": "notices: OFF (prereq_notice enabled: false; owner GO banked, card-belam sec6) ",
+            "unread": "notices: cell unread (crons.md cadences.prereq_notice.enabled is not a readable bool) "}.get(state, "notices: ")
+    return (f"{head}claims={claims} held={cnt.get('held', 0)} self={cnt.get('self', 0)} cleared={cleared} sent={sent} lag={lag} "
             f"red={','.join(red) or 'none'}")
 
 
@@ -453,9 +520,14 @@ def main(argv=None):
         sp.add_argument("--lag-red-min", type=int, default=None, help="override the config cell prereq_notice.notice_lag_red_min")
         if name == "seed":
             sp.add_argument("--at", required=True)
+        if name == "line":
+            sp.add_argument("--leaves", action="store_true", help="list every renamed|dead|unreachable|unparsed leaf: <class> <claimer> <slug>")
     a = ap.parse_args(argv)
     if a.verb == "line":
         try:
+            if a.leaves:
+                print("\n".join(leaves(a)))
+                return 0
             print(line(a))
         except (RuntimeError, OSError) as exc:
             print(f"notices: UNMEASURED(source failed: {type(exc).__name__})")

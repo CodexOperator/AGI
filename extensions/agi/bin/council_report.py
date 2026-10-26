@@ -6,7 +6,7 @@ agi-merge-pass S4): missed[] are residues, refuted:true is not, review defects
 only when there is no verify file. Owner = the parent goal title's
 `(assigned: <post>)`, else the commit subject's post, else director-engine; the
 Prime never owns one. Leaf = the ONE cell `council.residue_leaves`, absent = rc 2
-naming it. Writes go through write.py. --args is the flat per-run dict OR the mur
+naming it. Writes go through node_commit.land (node_writer.update_node + a by-path commit). --args is the flat per-run dict OR the mur
 args file {rounds:[...]}, read PER ROUND (round_args).
 """
 from __future__ import annotations
@@ -23,6 +23,7 @@ sys.path.insert(0, str(_HERE))
 sys.path.insert(0, str(_HERE.parent / "src"))
 
 import frontmatter  # noqa: E402
+import node_commit  # noqa: E402
 import node_writer  # noqa: E402
 from graph_core.persistence import frontmatter as fm_reader  # noqa: E402
 
@@ -111,18 +112,17 @@ def title_of(root: Path, node_id: str) -> str:
                or (m.group(1) if m else ""))
 
 def write_body(root: Path, node_id: str, body: str) -> None:
-    """The ONE writer: write.py `replace body 1:<n>`, body on stdin."""
+    """The ONE writer: node_writer.update_node on the body, landed by node_commit.land (a hand edit in the
+    node refuses it before anything is written; a refusal is a named SystemExit, never a skipped row)."""
     old = node_body(root, node_id)
     if old == body:
         return
-    proc = subprocess.run(
-        [sys.executable, str(_HERE / "write.py"), node_id,
-         f"replace body 1:{max(1, len(old.splitlines()))} -"], input=body,
-        text=True, cwd=root if root.name != ".agi" else root.parent,
-        capture_output=True, check=False)
-    if proc.returncode != 0:
-        raise SystemExit(f"council_report: write.py refused the {node_id} row: "
-                         f"{(proc.stderr or proc.stdout).strip()}")
+    try:
+        node_commit.land(root, node_id, f"council_report: {node_id}",
+                         lambda: node_writer.update_node(
+                             root, node_id, body=body, set_fm=node_commit.provenance(root, "council_report")))
+    except node_commit.CommitRefused as exc:
+        raise SystemExit(f"council_report: refused the {node_id} row: {exc.line}") from exc
 
 def round_args(root: Path, label: str, args: dict, cell: dict) -> tuple[str, str]:
     """(old..new, leaf) for ONE label: the mur rounds[] entry whose key is the

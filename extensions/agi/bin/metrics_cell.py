@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
 """metrics_cell.py — the hourly metrics job's guarded write of ONE node cell.
 
-goal:g3.8 R2. The job writes one line into a cell of the town node. A write that
-cannot commit (write.py exit 3: MAIN's verify-suite.lock is held) leaves the node
-dirty, and a dirty node refuses EVERY later write to it, thought-master's too,
-until a human commits. So this wrapper never leaves the node dirty:
+goal:g3.8 R2, re-based on node_commit by goal:g7.16.1.11.46.23 V8a 3a (the old writer is retired; council decision
+alive 23:28:02Z 10-25). The job writes one line into a cell of the town node, as ONE commit of that node by exact
+path, subject `board: <node> (<actor>)`. Every refusal is LOUD (rc 3, ONE `ERR:` line naming it and the recover
+command): an hour is never skipped silently.
 
-  * the node is ALREADY dirty (a hand edit), or the graph's suite lock is held by a
-    live pid  -> ONE `skip:` line, exit 0, the node's bytes and HEAD untouched;
-  * otherwise it runs <command> (it prints the ONE line, about a minute), checks AGAIN
-    right before writing (a human may have edited the node meanwhile: ONE `skip:` line),
-    writes `write.py <node> "set <cell> <line>"`, and if the write still left the node
-    dirty (exit 3, the lock taken after the checks) it commits that node BY EXACT PATH
-    (git add/commit -- <node>), never checkout or reset, but ONLY when the dirt is the
-    cell write itself: the node's frontmatter and body equal HEAD's except for <cell> and
-    edited_by. Anything else (a hand edit riding along) is left untouched, with an `ERR:`
-    line carrying the recover command and rc != 0: a hand edit is never laundered.
+  * the node is ALREADY dirty (a hand edit), or a live pid holds the suite lock PAST hold_wait_s (it is waited for first): refused BEFORE the command
+    runs, nothing written, HEAD untouched, nothing left dirty (a dirty node would publish the hand edit under the
+    job's subject, and would refuse every later hour);
+  * otherwise it runs <command> (it prints the ONE line, about a minute) and node_commit.land checks AGAIN right
+    before writing (a human may have edited the node meanwhile), writes the cell + `edited_by` through
+    node_writer.update_node, waits out a held suite lock up to hold_wait_s, and commits the node BY EXACT PATH;
+  * a lock held past the bound, an exhausted index.lock retry, an unreadable lock state, or a hand edit that lands
+    during the wait leaves the written bytes uncommitted, names the cause and the recover command, rc 3, never
+    laundered.
 
 Usage:
     metrics_cell.py <graph-root> <node-id> <cell> [--actor A] -- <command ...>
@@ -29,8 +28,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-BIN = Path(__file__).resolve().parent
-
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True)
@@ -39,38 +36,6 @@ def _git(repo: Path, *args: str) -> subprocess.CompletedProcess:
 def _node_path(root: Path, node_id: str) -> Path:
     kind, _, slug = node_id.partition(":")
     return root / "nodes" / kind / f"{slug}.md"
-
-
-def _only_cell_changed(repo: Path, path: Path, cell: str) -> bool:
-    """True when the node's working bytes differ from HEAD's ONLY in `cell` and
-    `edited_by` (the keys write.py's set verb owns): same body, same other keys."""
-    import frontmatter  # noqa: PLC0415
-    old = _git(repo, "show", f"HEAD:{path.relative_to(repo).as_posix()}")
-    if old.returncode:
-        return False
-    try:
-        new_text = path.read_text(encoding="utf-8")
-    except OSError:
-        return False
-    fm_old, fm_new = frontmatter.read_frontmatter(old.stdout), frontmatter.read_frontmatter(new_text)
-    parts_old, parts_new = frontmatter.split_frontmatter(old.stdout), frontmatter.split_frontmatter(new_text)
-    if None in (fm_old, fm_new, parts_old, parts_new) or parts_old[1] != parts_new[1]:
-        return False
-    keys = (set(fm_old) | set(fm_new)) - {cell, "edited_by"}
-    return cell in fm_new and all(fm_old.get(k) == fm_new.get(k) for k in keys)
-
-
-def _guard(root: Path, repo: Path, path: Path, node: str, cell: str) -> str | None:
-    """Why NOT to write now (the node is dirty, git cannot say, or a live pid holds the
-    graph's suite lock), else None."""
-    if _dirty(repo, path) is not False:
-        return f"{node} is already dirty (or git cannot say); {cell} not written"
-    try:
-        import verification  # noqa: PLC0415 -- the ONE live-holder read write.py uses
-        holder = verification.suite_lock_holder(root)
-    except Exception:  # noqa: BLE001 -- no lock reading: write.py's own policy decides
-        holder = None
-    return f"the suite lock is held by live pid {holder}; {cell} not written" if holder else None
 
 
 def _dirty(repo: Path, path: Path) -> bool | None:
@@ -100,10 +65,23 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     repo = Path(top.stdout.strip()).resolve()
 
-    why = _guard(root, repo, path, args.node, args.cell)
-    if why:
-        print(f"skip: {why}")
-        return 0
+    if _dirty(repo, path) is not False:   # git cannot say = refused too: a state we cannot read is not clean
+        print(f"ERR: metrics_cell.py: {path} already dirty (or git cannot say): refused, nothing written; "
+              f"{args.cell} not written (a hand edit would ride under the board subject)", file=sys.stderr)
+        return 3
+
+    import node_commit  # noqa: PLC0415
+    import node_writer  # noqa: PLC0415
+    try:   # a lock held at the START waits the SAME bounded hold_wait_s node_commit uses (one loop, not two); only a lock
+        holder, waited = node_commit.wait_lock(root)   # STILL held past it is refused, BEFORE the command runs (nothing written)
+    except (Exception, SystemExit) as exc:  # noqa: BLE001 -- an unreadable lock state is a hold we cannot rule out
+        print(f"ERR: metrics_cell.py: the suite-lock state is unreadable ({type(exc).__name__}: {str(exc)[:100]}): "
+              f"refused, nothing written; {args.cell} not written", file=sys.stderr)
+        return 3
+    if holder:
+        print(f"ERR: metrics_cell.py: suite lock held past {waited:g}s (live pid {holder}): refused, "
+              f"nothing written; {args.cell} not written", file=sys.stderr)
+        return 3
 
     got = subprocess.run(cmd, capture_output=True, text=True)
     line = got.stdout.strip()
@@ -112,50 +90,15 @@ def main(argv: list[str] | None = None) -> int:
               f"{'no line' if not line else 'a line'}; {args.cell} not written", file=sys.stderr)
         return got.returncode or 1
 
-    why = _guard(root, repo, path, args.node, args.cell)   # the node may have changed during the run
-    if why:
-        print(f"skip: {why}")
-        return 0
-    wrote = subprocess.run([sys.executable, str(BIN / "write.py"), args.node,
-                            f"set {args.cell} {line}", "--actor", args.actor,
-                            "--root", str(root)], capture_output=True, text=True)
-    sys.stdout.write(wrote.stdout)
-    sys.stderr.write(wrote.stderr)
-    if not _dirty(repo, path):
-        return wrote.returncode
-    # The node was clean at the check above, so what is dirty now is this write's own landing
-    # (exit 3: committed nothing) -- unless a human edited it since. Commit by exact path only
-    # when nothing but the cell (and edited_by) differs from HEAD. The wording of write.py's
-    # refusal is NOT a signal: exit 3 is shared with the held-lock refusal.
-    rel = path.relative_to(repo).as_posix()
-    msg = f"write.py: {args.node} ({args.actor})"
-    recover = f"git -C {repo} add -- {rel} && git -C {repo} commit -q -m '{msg}' -- {rel}"
-    try:   # g1.41 E3: no by-path commit while the suite lock is held; wait <= hold_wait_s, BEFORE the only-cell re-check below
-        import time, verification  # noqa: PLC0415,E401
-        end = time.monotonic() + verification.suite_lock_policy(root)["hold_wait_s"]
-        while verification.suite_lock_holder(root) and time.monotonic() < end:
-            time.sleep(0.25)
-        held = verification.suite_lock_holder(root)
-    except (Exception, SystemExit) as exc:  # noqa: BLE001 -- goal:g1.42 row 2: an unreadable lock policy or holder FAILS CLOSED (a hold we cannot rule out is a hold)
-        print(f"ERR: metrics_cell.py: {args.node} left dirty: the suite-lock state is unreadable ({type(exc).__name__}: {str(exc)[:100]}); "
-              f"NOT committed; fix values.core.suite_lock or release the lock, then recover: {recover}", file=sys.stderr)
+    set_fm = {args.cell: line, **node_commit.provenance(root, args.actor)}
+    try:   # an unreadable lock policy or holder FAILS CLOSED inside node_commit (a hold we cannot rule out is a hold)
+        node_commit.land(root, args.node, f"board: {args.node} ({args.actor})",
+                         lambda: node_writer.update_node(root, args.node, set_fm=set_fm))
+    except (node_commit.CommitRefused, Exception, SystemExit) as exc:  # noqa: BLE001
+        line_ = getattr(exc, "line", None) or f"{type(exc).__name__}: {str(exc)[:200]}"
+        print(f"ERR: metrics_cell.py: {args.node}: {line_}", file=sys.stderr)
         return 3
-    if held:
-        print(f"ERR: metrics_cell.py: {args.node} left dirty: the suite lock (verify-suite) is held by live pid {held} past "
-              f"values.core.suite_lock.hold_wait_s; NOT committed; recover once released: {recover}", file=sys.stderr)
-        return 3
-    if not _only_cell_changed(repo, path, args.cell):
-        print(f"ERR: metrics_cell.py: {args.node} is dirty with more than {args.cell} (a hand "
-              f"edit?); NOT committed, left as it is; recover by hand: {recover}", file=sys.stderr)
-        return wrote.returncode or 1
-    _git(repo, "add", "--", rel)
-    done = _git(repo, "commit", "-q", "-m", msg, "--", rel)
-    if done.returncode or _dirty(repo, path):
-        print(f"ERR: metrics_cell.py: could not commit {args.node} by path: "
-              f"{(done.stderr or done.stdout).strip()[:200]}; recover by hand: {recover}",
-              file=sys.stderr)
-        return wrote.returncode or 1
-    return 0   # recovered: the cell is committed, the node is clean
+    return 0
 
 
 if __name__ == "__main__":

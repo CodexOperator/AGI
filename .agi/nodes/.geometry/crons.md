@@ -100,10 +100,10 @@ cadences:
     cmd: sh {repo_root}/extensions/agi/bin/stall_watch.sh --repo {repo_root}
   prereq_notice:
     every_mins: 3
-    enabled: false
+    enabled: true
     box: encryption-town
     user: agi-sanctuary-master
-    why_box: "goal:g7.16.1.11.46.12 (owner 23:2xZ 10-23, council 3/3): diffs the last-seen tip (refs/notices/prereq/seen) against core/season3/main in MAIN, which lives on encryption-town, and only APPENDS one line per claimer per move to sanctuary-master's own ~/alarm.spool (alarm_spool.py append, deterministic --id); the alarm_drain row above signs and sends it as sanctuary-master. The step never calls box and holds no key; a missing seen ref is a loud non-zero exit with nothing sent"
+    why_box: "ENABLED on the owner's GO 05:3xZ 10-26 (chat, to belam: \"Yes you can run crons py apply\"; banked on card-belam §6), applied by belam via crons.py apply --sudo as uid belam. goal:g7.16.1.11.46.12 (owner 23:2xZ 10-23, council 3/3): diffs the last-seen tip (refs/notices/prereq/seen) against core/season3/main in MAIN, which lives on encryption-town, and only APPENDS one line per claimer per move to sanctuary-master's own ~/alarm.spool (alarm_spool.py append, deterministic --id); the alarm_drain row above signs and sends it as sanctuary-master. The step never calls box and holds no key; a missing seen ref is a loud non-zero exit with nothing sent"
     cmd: python3 {repo_root}/extensions/agi/bin/prereq_notice.py run --repo {repo_root}
 crons_live: true
 edited_by: a00-b465ec27
