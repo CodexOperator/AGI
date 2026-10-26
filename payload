@@ -36,6 +36,23 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
                · the SAME first-start: line goes into the landing COMMIT message, word for word (goal:g7.16.1.11.41.1 checks the
                  commit, the council checks the mail: one line, or they drift; council remark, alive 11:17Z 10-11); a piece RUN only
                  by root (agi-project) is marked 'inert in a post (root-run)' in that line
+             · R-LAND (goal:g7.16.1.11.46.23, council 3/3 20:37Z 10-25; REPORT MODE 3/3 22:48Z 10-25): before a merge-up or a land whose
+               range changes a row of config:posts / config:seats, run `AGI_RING=/var/lib/agi/allowed_signers sh extensions/agi/guard/r-land BASE TIP`
+               (BASE = the live trunk, TIP = the tip being landed; the SAME call in belam's verify-land and in the reference-transaction
+               piece on posts/belam + core/season3/main). ONE mode cell decides what a refusal does: BASE's [config].md `r_land: {mode:
+               report|enforce}` (read from BASE, never TIP; absent = report; neither word = unread, enforce). enforce: rc 1 RED, `R-land:
+               refused <commit> (<signer>, <row>, <op> <cells>, <rule>)` or `R-land: unread (<what>)`, return the tip. report (the start): the SAME
+               lines read `R-land: would refuse <commit> (...)` and an unread reads `R-land: would refuse <tip> (unread <what>)` (a ringless uid too: the mode is read BEFORE the ring; the ONE report rc 1 is a BASE/TIP that does not rev-parse), rc 0, the ref
+               MOVES: read every such line and table it (signer, cell, op, one row each): (i) a legitimate flow lacking a grant -> a proposed
+               actor_rows grant, banked to the OWNER as ONE batch ([config].md is a RULES path); (ii) a real violation -> the flow moves to
+               belam. TIME-BOX: report mode past one lap without that table reads RED on this gate line. FLIP = ONE commit setting the cell to
+               enforce (all three sites read it), after the owner's batch lands and a lap of real lands reads 0 would-refuse outside the (ii) rows.
+               Each commit is judged BY ITS OWN SIGNER (`git verify-commit --raw`, never %an/%ae) against BASE's [config].md written_by /
+               self_row / actor_rows, the veto freeze and the town vocabulary; unreadable = refused/would-refuse. A hook guards against
+               MISTAKES, it is not a wall (a core.hooksPath bypass moves the ref: R5).
+             · TRAP, bracketed paths: read a node like [config].md with `git cat-file blob REV:path`, NEVER `git show REV:path` (git 2.43: rc 0 and
+               EMPTY output when the file is absent, so an absent schema reads as present; reproduced by 3 seats, 0 other bracketed readers in
+               extensions/skills/.geometry; test_r_land's cat-file case pins it)
              · a code path that turns on by itself after landing (a cron line crons.py
              apply rewrites) = gate what its FIRST live run does, measured on MAIN's real data -- then watch that first run and read the remote
              · locations.shared_project_root(<any worktree>) = MAIN's .agi: a gate-worktree run reads MAIN's config -> to measure a config
