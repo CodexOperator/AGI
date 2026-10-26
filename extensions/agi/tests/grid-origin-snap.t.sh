@@ -70,7 +70,7 @@ snap >/dev/null 2>&1;$G -C $P push -q origin $NS/$(mintn 3):$NS/$(mintn 3) 2>&1;
 ok "m-own-push-counted-as-foreign-reads-RED with every move foreign, our own push lands as a LIVE second writer (rc $wm): the lane's own-push row catches it" '[ $wm = 2 ]'
 cp_ pi;snap >/dev/null 2>&1;y=$(mk $P 5 active forced-rewind $(mk $P 5 active other-root));$G -C $P push -q -f $REM $y:refs/grid/node/$(mintn 5) 2>&1;snap >$T/f.out 2>&1;f2=$?
 ok "o1c-a-rewritten-origin-tip-still-fetches-and-reads-live the remote force-moved m5 (a non-fast-forward for the mirror): the forced fetch lands it, and it is a LIVE second writer rc $f2" '[ $f2 = 2 ]&&grep -q "MOVED $(mintn 5)" $T/f.out'
-cp_ pj;mut $P/extensions/agi/bin/grid.py '"fetch", "--no-tags", "--prune", "-q", remote, f"+{ns}/node/*:{ORIGIN_SNAP_NS}/node/*"' '"fetch", "--no-tags", "--prune", "-q", remote, f"{ns}/node/*:{ORIGIN_SNAP_NS}/node/*"'
+cp_ pj;mut $P/extensions/agi/bin/grid.py '"fetch", "--no-tags", "--prune", "-q", "--refmap=", remote, f"+{ns}/node/*:{ORIGIN_SNAP_NS}/node/*"' '"fetch", "--no-tags", "--prune", "-q", "--refmap=", remote, f"{ns}/node/*:{ORIGIN_SNAP_NS}/node/*"'
 snap >/dev/null 2>&1;y=$(mk $P 5 active forced-rewind $(mk $P 5 active other-root));$G -C $P push -q -f $REM $y:refs/grid/node/$(mintn 5) 2>&1;snap >$T/fm.out 2>&1;fm=$?
 ok "m-unforced-fetch-reads-RED without the + the mirror cannot follow a rewritten origin tip: rc $fm instead of 2" '[ $fm != 2 ]'
 # --- o3: the merge
@@ -121,10 +121,20 @@ ok "s1-sync-pushes-node-and-session-only grid.py sync <bare> (rc $sy): node/ $(l
 cp_ pt;mut $P/extensions/agi/bin/grid.py '    return [f"{ns}/{k}/*:{ns}/{k}/*" for k in PUSH_KINDS]' '    return [f"{ns}/*:{ns}/*"]'
 snap >/dev/null 2>&1;m1=$(sha $NS/$(mintn 1));$G -C $P update-ref refs/grid/local-maxxing/node/$(mintn 1) $m1;rm -rf $T/sync2.git;$G init -q --bare $T/sync2.git;grid sync $T/sync2.git >/dev/null 2>&1
 ok "m-wide-push-spec-reads-RED with the one wide <ns>/* spec the mirror and the legacy namespace land at the remote (origin-snap/ $($G -C $T/sync2.git for-each-ref refs/grid/origin-snap|wc -l|tr -d ' '), local-maxxing/ $($G -C $T/sync2.git for-each-ref refs/grid/local-maxxing|wc -l|tr -d ' '); want 6 and 1 = RED)" '[ "$($G -C $T/sync2.git for-each-ref refs/grid/origin-snap|wc -l|tr -d " ")" != 0 ]'
+# --- F1 (alive 12:15Z 10-26, reproduced on git 2.43.0): the snapshot fetch must not touch the LIVE namespace. `grid.py init` writes remote.origin.fetch =
+# FETCH_SPECS (no +), and a command-line refspec ALSO runs through it unless `--refmap=` empties the map: the O1 fetch then fast-forwarded a live name that was
+# behind origin (m2) and was rejected (rc 1) on a diverged one (m5). Two O1 runs (the QUIET path), the live listing byte-identical before and after both.
+cp_ pw;for sp in "$NS/*:$NS/*" "refs/grid/session/*:refs/grid/session/*";do $G -C $P config --add remote.origin.fetch "$sp";done;refs "refs/grid/node" >$T/w.live0
+snap >$T/fm1.out 2>&1;fm1=$?;snap >$T/fm2.out 2>&1;fm2=$?;refs "refs/grid/node" >$T/w.live1
+ok "f1-the-snapshot-fetch-leaves-the-live-namespace-alone origin carries FETCH_SPECS, m2 is behind origin and m5 diverged: two O1 runs rc $fm1/$fm2 (0 = no fetch error), the live refs/grid/node listing byte-identical before and after, the mirror holds 6" '[ $fm1 = 0 ]&&[ $fm2 = 0 ]&&[ -n "$(cat $T/w.live0)" ]&&cmp -s $T/w.live0 $T/w.live1&&[ "$(refs $SNAP/node|wc -l|tr -d " ")" = 6 ]'
+cp_ px;for sp in "$NS/*:$NS/*" "refs/grid/session/*:refs/grid/session/*";do $G -C $P config --add remote.origin.fetch "$sp";done;refs "refs/grid/node" >$T/x.live0
+mut $P/extensions/agi/bin/grid.py '"--prune", "-q", "--refmap=", remote, f"+{ns}/node/*' '"--prune", "-q", remote, f"+{ns}/node/*'
+snap >$T/fx1.out 2>&1;fx1=$?;snap >$T/fx2.out 2>&1;fx2=$?;refs "refs/grid/node" >$T/x.live1
+ok "m-refmap-dropped-reads-RED without --refmap= the same two runs rc $fx1/$fx2 and the live listing $(cmp -s $T/x.live0 $T/x.live1 && echo unchanged || echo CHANGED) (want a changed listing or a non-zero rc = RED)" '! { [ $fx1 = 0 ]&&[ $fx2 = 0 ]&&cmp -s $T/x.live0 $T/x.live1; }'
 # --- the snapshot is pruned: a name origin deleted leaves the mirror and reads as a write
 cp_ pu;snap >/dev/null 2>&1;$G -C $P push -q origin :refs/grid/node/$(mintn 6) 2>&1;snap >$T/pr.out 2>&1;pr=$?
 ok "pr1-a-name-origin-deleted-is-a-write origin dropped m6: the pruned mirror no longer lists it, 'name(s) origin no longer lists' counts it, rc $pr (LIVE second writer), and no QUIET verdict" '[ $pr = 2 ]&&[ -z "$(refs $SNAP/node/$(mintn 6))" ]&&grep -q "1 name(s) origin no longer lists" $T/pr.out&&[ ! -e $P/.agi/sessions/origin-snap/quiet ]'
-cp_ pv;mut $P/extensions/agi/bin/grid.py '"fetch", "--no-tags", "--prune", "-q", remote' '"fetch", "--no-tags", "-q", remote'
+cp_ pv;mut $P/extensions/agi/bin/grid.py '"fetch", "--no-tags", "--prune", "-q", "--refmap=", remote' '"fetch", "--no-tags", "-q", "--refmap=", remote'
 snap >/dev/null 2>&1;$G -C $P push -q origin :refs/grid/node/$(mintn 6) 2>&1;snap >$T/pm.out 2>&1;pm=$?
 ok "m-no-prune-reads-RED without --prune the deleted name stays in the mirror (the mirror still lists m6: $(refs $SNAP/node/$(mintn 6)|wc -l|tr -d ' ') ref) and unify could still adopt it" '[ -n "$(refs $SNAP/node/$(mintn 6))" ]'
 echo "grid-origin-snap: $nrows rows";echo "grid-origin-snap: $f FAIL";[ $f = 0 ]
