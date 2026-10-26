@@ -8,6 +8,8 @@
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};GEO=$R0/.agi/nodes/.geometry
 sect(){ cat $GEO/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
+# the unit's placeholders (%i, %t, /etc/agi/carry.env) must be gone after the seds that read the piece (goal:g7.16.1.11.13.5): a drifted literal leaves one behind; penv/wb run in $( ), so they leave a marker the closing row reads
+pchk(){ case "$1" in *%i*|*%t*|*/etc/agi/carry.env*) : >${PCM:-$T/pchk.bad};; esac;}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE AGI_POST AGI_BOX AGI_WT AGI_TRUNK AGI_ROLE AGI_FILL
 mkdir -p $T/bin $T/hm $T/wt $T/k $T/c
 [ -n "$UNITFILE" ]||UNITFILE=$GEO/engine-root.md
@@ -23,9 +25,9 @@ HERE=encryption-town;PIN=c70e3ef31338fff0f375b9bebae6091b12337b7b;[ -n "$CARRY" 
 # the post env as words: LIVE = the running post's real environ (AGI_* + two unit words); else = what systemd would hand the post: the unit's Environment= words (minus PATH) + the words of any EnvironmentFile naming carry.env (a mutant), then the REAL ExecStart body run under `env -i` of those words with a stub `script` that prints its environment (that is where AGI_BOX comes from)
 mkdir -p $T/bin2;printf '#!/bin/sh\nenv\n'>$T/bin2/script;chmod +x $T/bin2/script
 penv(){ if [ -n "$LIVE" ];then tr '\0' '\n' <$ENVFROM|grep -E '^(AGI_[A-Z_]+|SHELL|DISABLE_AUTOUPDATER)=';return;fi
-  n=$1;w=$(grep '^Environment=' $T/unit|sed 's/^Environment=//'|tr ' ' '\n'|grep -E '^(AGI_|SHELL=|DISABLE_)'|sed "s/%i/$n/g")
+  n=$1;w=$(grep '^Environment=' $T/unit|sed 's/^Environment=//'|tr ' ' '\n'|grep -E '^(AGI_|SHELL=|DISABLE_)'|sed "s/%i/$n/g");pchk "$w"
   ef=;grep -q '^EnvironmentFile=-/etc/agi/carry.env$' $T/unit&&ef=$(grep -E '^[A-Z_]+=' $CARRY)
-  body=$(grep '^ExecStart=sh -c ' $T/unit|sed "s/^ExecStart=sh -c '//;s/'\$//;s|/etc/agi/carry.env|$CARRY|g;s|%t/agi-%i/i|$T/fifo|g;s/%i/$n/g");: >$T/fifo
+  body=$(grep '^ExecStart=sh -c ' $T/unit|sed "s/^ExecStart=sh -c '//;s/'\$//;s|/etc/agi/carry.env|$CARRY|g;s|%t/agi-%i/i|$T/fifo|g;s/%i/$n/g");pchk "$body";: >$T/fifo
   env -i PATH=$T/bin2:/usr/bin:/bin HOME=$T/hm $w $ef sh -c "$body" 2>/dev/null|grep -E '^(AGI_[A-Z_]+|SHELL|DISABLE_AUTOUPDATER)=';}
 P=alive;[ -z "$LIVE" ]||P=$(penv|sed -n 's/^AGI_POST=//p')
 # keys + a signed refs/box/belam/alive (the setup sender, not the subject)
@@ -107,7 +109,7 @@ h1=$(helper AGI_POST=newpost);h3=$(helper)
 ok "p1-the-helper-reads-AGI_POST AGI_POST set -> [$h1] (want newpost); unset -> [$h3] (want None)" '[ "$h1" = newpost ]&&[ "$h3" = None ]'
 # ---- w: the [wrong-box] ExecCondition, the body exactly as systemd hands it to sh (the quoted word, %i substituted)
 body(){ grep '^ExecCondition=sh -c "set -f' $T/unit|sed 's/^ExecCondition=sh -c "//;s/"$//';}
-wb(){ if [ -n "$2" ];then printf 'AGI_HUB=\nAGI_BOX=%s\n' $2>$T/wcarry;else printf 'AGI_HUB=\n'>$T/wcarry;fi;b=$(body|sed "s/%i/$1/g;s|/etc/agi/carry.env|$T/wcarry|g");[ -n "$b" ]||return 99;(cd $T/r&&env -i PATH=/usr/bin:/bin O=$T/r AGI_TRUNK=${3:-$TR} GIT_CONFIG_GLOBAL=/dev/null sh -c "$b" 2>$T/err);}
+wb(){ if [ -n "$2" ];then printf 'AGI_HUB=\nAGI_BOX=%s\n' $2>$T/wcarry;else printf 'AGI_HUB=\n'>$T/wcarry;fi;b=$(body|sed "s/%i/$1/g;s|/etc/agi/carry.env|$T/wcarry|g");[ -n "$b" ]||return 99;pchk "$b";(cd $T/r&&env -i PATH=/usr/bin:/bin O=$T/r AGI_TRUNK=${3:-$TR} GIT_CONFIG_GLOBAL=/dev/null sh -c "$b" 2>$T/err);}
 wb alive $HERE;w1=$?;wb alive core-town;w2=$?;m2=$(cat $T/err);wb alive "";w3=$?;m3=$(cat $T/err);wb nobody $HERE;w4=$?
 wb alive $HERE no-such-ref;w5=$?;m5=$(cat $T/err)
 IDX=$T/idx6;BL=$(printf '  - {"name": "alive", "box"\n'|$G -C $T/r hash-object -w --stdin);GIT_INDEX_FILE=$IDX $G -C $T/r read-tree $TR;GIT_INDEX_FILE=$IDX $G -C $T/r update-index --cacheinfo 100644,$BL,.agi/nodes/.geometry/posts.md;BAD=$($G -C $T/r -c user.name=t -c user.email=t@t commit-tree -p $TR -m bad $(GIT_INDEX_FILE=$IDX $G -C $T/r write-tree))
@@ -146,4 +148,10 @@ mut m4 $T/bin/agi-turn 's/P=$AGI_POST;/P=$AGI_NOPOST;/'&&{ ast sh $T/m.m4 2>$T/e
 mkdir -p $T/m5;sed -e 's/os.environ.get("AGI_POST") or None/None/' $GC>$T/m5/geometry_config.py;cmp -s $GC $T/m5/geometry_config.py&&{ echo "FAIL mutant-m5-did-not-change-the-module";f=$((f+1)); }
 mh=$(HDIR=$T/m5 helper AGI_POST=newpost)
 ok "mutant-m5-the-helper-that-never-reads-AGI_POST-is-RED the mutated helper with AGI_POST set answers [$mh] (want None = the wrong answer, which p1 forbids)" '[ "$mh" = None ]'
+# r3 (the census): a placeholder the seds left behind is a RED row, not a host-dependent read
+ok pchk-no-placeholder-was-left-in-any-derived-env-or-body '[ ! -e $T/pchk.bad ]'
+PCM=$T/p.t;rm -f $T/p.t;pchk 'x %i y';a=$([ -e $T/p.t ]&&echo marked||echo clean);rm -f $T/p.t;pchk 'x /etc/agi/carry.env y';b=$([ -e $T/p.t ]&&echo marked||echo clean);rm -f $T/p.t;pchk 'x done y';c=$([ -e $T/p.t ]&&echo marked||echo clean);unset PCM
+ok pchk-marks-a-left-behind-placeholder-and-passes-a-clean-text '[ "$a" = marked ]&&[ "$b" = marked ]&&[ "$c" = clean ]'
+x=$(pchk(){ :;};PCM=$T/p.t;rm -f $T/p.t;pchk 'x %i y';[ -e $T/p.t ]&&echo marked||echo clean)
+ok pchk-mutant-the-unchecked-seds-are-RED '[ "$x" = clean ]'
 echo "post-env: $f FAIL";exit $f
