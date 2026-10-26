@@ -330,6 +330,19 @@ excluded:
     reason: "graph-write: --write adds merge commits to the grid refs (additive only, compare-and-swap, no delete); a host act of the grid unify, run once by belam after the gate (goal:g7.16.1.11.46.16). The bare form is a dry run."
     side_effects: graph-write
     proposable: false
+  grid.py:origin-snap:
+    cli: grid.py
+    verb: origin-snap
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/grid.py
+      - origin-snap
+    args:
+      - {"name": "remote", "type": "str", "required": false, "choices": []}
+      - {"name": "lap", "type": "int", "required": false, "choices": []}
+    reason: "network: fetches origin's refs/grid/node into the PRIVATE mirror refs/grid/origin-snap (forced, never pushed) and reads whether origin is still written (rc 2 = a LIVE second writer); a host act of the third-history route, run by belam twice one lap apart (goal:g7.16.1.11.46.16)"
+    side_effects: network
+    proposable: false
   provisioning.py:reap:
     cli: provisioning.py
     verb: reap
@@ -1399,7 +1412,8 @@ manifest:
       - census
     args:
       - {"name": "rev", "type": "str", "required": false, "choices": []}
-    purpose: grid.py census (goal:g7.16.1.11.46.16 -- mints / live / retired / versions / orphans, each from one git command; unread rc 1 on a failed read)
+      - {"name": "orphans", "type": "bool", "required": false, "choices": []}
+    purpose: grid.py census (goal:g7.16.1.11.46.16 -- mints / live / retired / versions / orphans split into double_mints + never_landed + unclassified, each from one git command; --orphans lists them; unread or an unclassified orphan rc 1)
     side_effects: read
     proposable: true
   grid.py:commit:
