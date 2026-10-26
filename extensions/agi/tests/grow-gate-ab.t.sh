@@ -9,6 +9,9 @@
 T=$1;[ -n "$T" ]||{ echo "[no-candidate] pass the sha under test" >&2;exit 2;};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};SELF=$(cd "$(dirname "$0")" && pwd);R0=${ROOT:-$(cd "$SELF/../../.." && pwd)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0;CEIL=${CEIL:-7100}
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE   # a lane that builds a scratch repo owns its git env (an inherited GIT_DIR wrote MAIN, 10-11 09:56Z)
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1 [rc=$r $(tail -1 $D/out 2>/dev/null|cut -c1-90)]";f=$((f+1));fi;}
+# a fixture edit of a copy of a trunk file must change it (goal:g7.16.1.11.13.5): a drifted literal is a counted FAIL, never a green row
+has(){ grep -qxF -- "$1" "$2"||{ echo "FAIL fixture-anchor-not-found $3 matched nothing";f=$((f+1));};:;}   # the load-bearing cell of a multi-expression sed (chg alone passes if only the id expression matched)
+chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture-anchor-not-found $3 matched nothing";f=$((f+1));};:;}
 r=0
 # --- the section's own verdicts, by self-perpetuating's landed fixture runner (86 PASS / 0 FAIL on the trunk): ONE line, RUNSH=<path> overrides, a missing runner is a FAIL
 RUNSH=${RUNSH:-$R0/.agi/context/local-maxxing/ab/run.sh}
@@ -25,8 +28,8 @@ git init -q $D/r;echo $G/objects>$D/r/.git/objects/info/alternates;cd $D/r;expor
 GEO=.agi/nodes/.geometry
 printf -- '---\n---\n  - {"name": "belam", "parent": "owner"}\n  - {"name": "council", "parent": "belam"}\n  - {"name": "keep", "parent": "belam"}\n  - {"name": "alive", "parent": "council"}\n  - {"name": "sm", "parent": "keep"}\n  - {"name": "dg1", "parent": "sm"}\n  - {"name": "dg2", "parent": "sm"}\n  - {"name": "dg9", "parent": "sm"}\n'>$D/posts.md
 printf 'belam %s\nalive %s\nsm %s\ndg1 %s\ndg2 %s\n' "$(pk belam1)" "$(pk alive1)" "$(pk sm1)" "$(pk dg1)" "$(pk dg2)">$D/ring
-git show $o:.agi/nodes/moral/antifragility.md|sed 's/^id: moral:antifragility/id: moral:zz-ab-sm/;s/^mint_id: .*/mint_id: 1123456789abcdef0123456789abcdef/;s/^type: moral/type: moral\nring: [sm]/'>$D/n-sm
-git show $o:.agi/nodes/moral/antifragility.md|sed 's/^id: moral:antifragility/id: moral:zz-ab-alive/;s/^mint_id: .*/mint_id: 2123456789abcdef0123456789abcdef/;s/^type: moral/type: moral\nring: [alive]/'>$D/n-alive
+git show $o:.agi/nodes/moral/antifragility.md >$D/mor.src;sed 's/^id: moral:antifragility/id: moral:zz-ab-sm/;s/^mint_id: .*/mint_id: 1123456789abcdef0123456789abcdef/;s/^type: moral/type: moral\nring: [sm]/' $D/mor.src>$D/n-sm;chg $D/mor.src $D/n-sm "the n-sm edit";has "ring: [sm]" $D/n-sm "the n-sm ring cell"
+sed 's/^id: moral:antifragility/id: moral:zz-ab-alive/;s/^mint_id: .*/mint_id: 2123456789abcdef0123456789abcdef/;s/^type: moral/type: moral\nring: [alive]/' $D/mor.src>$D/n-alive;chg $D/mor.src $D/n-alive "the n-alive edit";has "ring: [alive]" $D/n-alive "the n-alive ring cell"
 SCH=$(git ls-tree --name-only $o .agi/context/schemas/|head -1)
 # mkc BASE KEYNAME [path:file ...]: a signed commit on BASE whose tree is BASE + those files
 mkc(){ b=$1;k=$2;shift 2;x=$D/i;GIT_INDEX_FILE=$x git read-tree $b;for a in "$@";do GIT_INDEX_FILE=$x git update-index --add --cacheinfo 100644,$(git hash-object -w "${a#*:}"),"${a%%:*}";done;tr=$(GIT_INDEX_FILE=$x git write-tree);rm -f $x
@@ -38,7 +41,7 @@ sh_(){ git show $1:$2; }                    # sh_ BASE PATH
 # gate BASE TIP: BASE is the receiving trunk. refused = non-zero (124 = a hang)
 gate(){ git update-ref refs/heads/trunk $1;echo "$1 $2 refs/heads/x"|AGI_ALLOWED=$D/over AGI_TRUNK=refs/heads/trunk AGI_NOT=$1 timeout 60 grow-gate>$D/out 2>&1;r=$?;}
 refused(){ [ $r != 0 ]&&[ $r != 124 ];}
-edit(){ sh_ $1 $2|sed "$3">$D/e;}           # edit BASE PATH 'sed expr' -> $D/e
+edit(){ sh_ $1 $2 >$D/e.src;sed "$3" $D/e.src >$D/e;chg $D/e.src $D/e "edit $2: $3";}           # edit BASE PATH 'sed expr' -> $D/e
 NS=.agi/nodes/moral/zz-ab-sm.md;NA=.agi/nodes/moral/zz-ab-alive.md
 # C1 C4: a post's CURRENT key edits a node ringed to it: admitted (and a plain edit to a node ringed [sm] by sm)
 edit $R $NA '$a\
@@ -118,7 +121,7 @@ DEL=$(mkd $R belam1 $GEO/ring);gate $R $DEL;ok "bs-e-delete-by-top-admitted bela
 edit $R $NA '$a\
 after-del';gate $DEL $(mkc $DEL dg1 $NA:$D/e);ok "bs-e2-no-reopen-after-delete after the ring file was deleted, a following DG1 commit is still refused (the path existed in history: the bootstrap stays shut)" 'refused'
 gate $DEL $(mkc $DEL belam1 $NA:$D/e);ok "bs-e3-no-reopen-after-delete-belam and a following belam commit too" 'refused'
-sed 's/^id: moral:zz-ab-sm/id: moral:zz-ab-sp/;s/^mint_id: .*/mint_id: 3123456789abcdef0123456789abcdef/' $D/n-sm>$D/n-sp;R2=$(mkc $R belam1 ".agi/nodes/moral/zz ab sp.md:$D/n-sp");git show "$R2:.agi/nodes/moral/zz ab sp.md"|sed '$a\
+sed 's/^id: moral:zz-ab-sm/id: moral:zz-ab-sp/;s/^mint_id: .*/mint_id: 3123456789abcdef0123456789abcdef/' $D/n-sm>$D/n-sp;chg $D/n-sm $D/n-sp "the n-sp rename";R2=$(mkc $R belam1 ".agi/nodes/moral/zz ab sp.md:$D/n-sp");git show "$R2:.agi/nodes/moral/zz ab sp.md"|sed '$a\
 x'>$D/e;gate $R2 $(mkc $R2 dg1 ".agi/nodes/moral/zz ab sp.md:$D/e")
 ok "bs-d-path-with-space a node whose PATH HAS A SPACE, ringed [sm], edited by DG1 is refused (a path git quotes does not slip past the ruler lookup)" 'refused'
 # --- FAIL CLOSED (DG1 04:40Z): a git error in the commit walk refuses the land, naming the commit; RED on a gate that reads an error as 'no changes'
@@ -133,5 +136,18 @@ ok "fc-b-rev-list-fails a range whose parent commit is unreadable (git rev-list 
 sz=$(wc -c<$D/b/grow-gate);eng=$(git show $o:.agi/nodes/.geometry/engine.md|sed -n 's/^grow-gate *\([0-9]*\) B.*/\1/p;q')
 ok "bytes-ceiling grow-gate is $sz B <= $CEIL B (the key-gate build's 1,833 B + a ring-gate delta strictly under the prototype's 2,855 B = 4,705 B; the builder reports the number and the engine.md before/after wc -c and per-line delta)" '[ $sz -le $CEIL ]'
 ok "no-ssh-agent-no-python the integrated gate calls no python and no ssh-agent (the prototype's cert-date reader is python: a decision the build must name)" '! grep -qi "python\|ssh-agent" $D/b/grow-gate'
+# r3 (the census): the fixture edits fail closed; the old unmeasured shapes are the mutants
+printf a >$D/c1;printf a >$D/c2;x=$(f=0;chg $D/c1 $D/c2 "a drifted literal";echo "f=$f")
+ok chg-a-matchless-edit-fails-closed 'echo "$x"|grep -q "^FAIL fixture-anchor-not-found a drifted literal matched nothing"&&echo "$x"|grep -qx "f=1"'
+printf b >$D/c2;x=$(f=0;chg $D/c1 $D/c2 "a live literal";echo "f=$f")
+ok chg-an-edit-that-changed-bytes-is-silent '[ "$x" = "f=0" ]'
+printf 'a\n' >$D/c1;x=$(f=0;has "ring: [sm]" $D/c1 "a drifted ring cell";echo "f=$f")
+ok has-a-missing-ring-cell-fails-closed 'echo "$x"|grep -q "^FAIL fixture-anchor-not-found a drifted ring cell matched nothing"&&echo "$x"|grep -qx "f=1"'
+printf 'ring: [sm]\n' >$D/c1;x=$(f=0;has "ring: [sm]" $D/c1 "a live ring cell";echo "f=$f")
+ok has-a-present-ring-cell-is-silent '[ "$x" = "f=0" ]'
+x=$(f=0;sh_(){ printf 'q\n';};edit B P 's/^zzz/q/';echo "f=$f")
+ok edit-a-sed-that-matches-nothing-fails-closed 'echo "$x"|grep -q "^FAIL fixture-anchor-not-found edit P: s/^zzz/q/ matched nothing"&&echo "$x"|grep -qx "f=1"'
+x=$(f=0;sh_(){ printf 'q\n';};edit(){ sh_ $1 $2|sed "$3">$D/e;};edit B P 's/^zzz/q/';echo "f=$f")
+ok edit-mutant-the-unmeasured-edit-is-RED '[ "$x" = "f=0" ]'
 echo "grow-gate-ab: $f FAIL"
 exit $f
