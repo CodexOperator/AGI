@@ -2563,3 +2563,44 @@ def test_commit_of_an_unowned_path_is_refused_by_name_and_writes_nothing(project
     assert "no build node carries payload_ref" in str(exc.value)
     assert "run.sh" in str(exc.value)
     assert grid.git(project, "for-each-ref", "refs/grid") == refs
+
+
+# --- unify --check fails CLOSED (all-is-one 17:23:40Z, confirmed by self-perpetuating 17:25:10Z): an unreadable diff or tree is a RED, never the GREEN of an empty answer ---
+
+def _fake_check_git(monkeypatch, *, diff_rc=0, diff_out="", tree_of=None):
+    """Script `_check_unrelated`'s git: rev-list --parents -> 'M F L' (M = a merge taking F as first parent and L = origin's tip as second),
+    log -> the trailer, diff -> (diff_rc, diff_out), rev-parse <rev>^{tree} -> tree_of[rev] (missing = rc 1), merge-base etc. unused."""
+    import subprocess as sp
+    tree_of = {"M": "a" * 40, "F": "a" * 40} if tree_of is None else tree_of
+
+    def fake_try(root, *args, **kw):
+        if args[:2] == ("rev-list", "--parents"):
+            return sp.CompletedProcess(args, 0, "M F L\n", "")
+        if args[0] == "diff":
+            return sp.CompletedProcess(args, diff_rc, diff_out, "" if diff_rc == 0 else "fatal")
+        if args[0] == "rev-parse":
+            rev = args[-1][: -len("^{tree}")]
+            return sp.CompletedProcess(args, 0 if rev in tree_of else 1, tree_of.get(rev, ""), "")
+        return sp.CompletedProcess(args, 0, "", "")
+    monkeypatch.setattr(grid, "git_try", fake_try)
+    monkeypatch.setattr(grid, "git", lambda root, *a, **k: "Unify-Unrelated: L" if a[:1] == ("log",) else "")
+    monkeypatch.setattr(grid, "_unrelated_class", lambda *a, **k: ("live-seen", ""))
+
+
+def test_check_unrelated_a_failed_diff_is_red_never_green(monkeypatch, tmp_path):
+    _fake_check_git(monkeypatch, diff_rc=128)
+    assert grid._check_unrelated(tmp_path, "L", "N", None) == "home check unread (git diff failed)"
+
+
+def test_check_unrelated_two_unreadable_trees_are_red_never_equal(monkeypatch, tmp_path):
+    _fake_check_git(monkeypatch, tree_of={})                  # both rev-parse fail: "" == "" would have read GREEN
+    assert grid._check_unrelated(tmp_path, "L", "N", None) == "tree unread"
+    _fake_check_git(monkeypatch, tree_of={"M": "a" * 40})     # ONE unreadable is just as red
+    assert grid._check_unrelated(tmp_path, "L", "N", None) == "tree unread"
+
+
+def test_check_unrelated_all_readable_and_equal_is_green_and_an_added_literal_is_red(monkeypatch, tmp_path):
+    _fake_check_git(monkeypatch)
+    assert grid._check_unrelated(tmp_path, "L", "N", None) is None
+    _fake_check_git(monkeypatch, diff_out="+++ b/node.md\n+see /home/ubuntu/x\n")
+    assert "home-path literal" in grid._check_unrelated(tmp_path, "L", "N", None)
