@@ -13,6 +13,7 @@ red(){ if eval "$2";then echo "FAIL $1 (the mutant read GREEN)";f=$((f+1));else 
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL AGI_POST
 export HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
 mkdir -p $T/hm $T/k $T/mbin
+mkdir -p $T/.agi/nodes/.geometry;echo "{}" >$T/.agi/config.json;cp $R0/.agi/nodes/.geometry/ladder.md $T/.agi/nodes/.geometry/   # the mutant copies in $T/mbin find the engine ladder (default_trunk reads current_season from the file's own tree)
 [ -f $BIN/prereq_notice.py ]&&[ -f $BIN/alarm_spool.py ]||{ echo "FAIL fixture: $BIN/prereq_notice.py or alarm_spool.py is missing";exit 99;}
 ssh-keygen -q -t ed25519 -N '' -f $T/k/key -C sm >/dev/null||{ echo "FAIL fixture: ssh-keygen";exit 99;}
 echo "sanctuary-master@agi namespaces=\"git\" $(cut -d' ' -f1,2 $T/k/key.pub)" >$T/ring
@@ -46,7 +47,7 @@ a._uid_name=lambda:'agi-sanctuary-master'
 sys.exit(a.drain('sanctuary-master',max_tries=${1:-60},spool=Path('$SP'),box_bin=Path('$T/box'),notice_bin=Path('$T/notice'),tree=Path('$R')))" >$T/do 2>&1);}
 sentn(){ $G -C $R log refs/box/sanctuary-master/$1 --format=%B 2>/dev/null|grep -c '^Alarm-job: prereq_notice';}
 lineo(){ python3 ${B:-$BIN}/prereq_notice.py line --repo $R $@ 2>/dev/null;}
-mut(){ rm -rf $T/mbin;mkdir -p $T/mbin;cp $BIN/prereq_notice.py $BIN/alarm_spool.py $BIN/frontmatter.py $T/mbin/
+mut(){ rm -rf $T/mbin;mkdir -p $T/mbin;cp $BIN/*.py $T/mbin/
  # control: the UNMUTATED copy must run from here, or every mutant would "read RED" because it cannot start
  python3 -c "import sys;sys.path.insert(0,'$T/mbin');import prereq_notice,alarm_spool" 2>/dev/null||{ echo "FAIL mutant control: the unmutated copy in $T/mbin does not import";f=$((f+1));return 1;}
  sed "$2" $BIN/$1 >$T/mbin/$1;if cmp -s $BIN/$1 $T/mbin/$1;then echo "FAIL mutant: the edit did not change $1 (anchor drifted)";f=$((f+1));return 1;fi;chmod +x $T/mbin/$1;}
@@ -277,4 +278,10 @@ o=$(ml $T/mm3 both);red "m2n-mutant-a-segment-MISSING-reads-RED [notices x$(cn n
 # F-a on make_line: the board CLI's root is the .agi dir
 fa;R_=$R;R=$R/.agi;o=$(ml $T/mm0 both);R=$R_
 ok "fa3-make_line-of-the-agi-dir-carries-claims-in-the-notices-segment [$(echo "$o"|grep -o '| notices:.*'|cut -c1-60)]" 'echo "$o"|grep -q "[|] notices: claims=1 "'
+# GATE282 trunk red (test_branch_spelling_grep, 10-26): the --trunk default resolves through branches.py, not a hand-spelled season<n>/ literal
+SPELL='season[0-9][0-9]*/[A-Za-z_0-9]'
+ok "tr1-the-default-trunk-is-unchanged [$(cd $BIN&&python3 -c 'import prereq_notice as p;print(p.default_trunk())')]" '[ "$(cd $BIN&&python3 -c "import prereq_notice as p;print(p.default_trunk())")" = refs/heads/core/season3/main ]'
+ok "tr2-the-file-holds-no-hand-spelled-season-literal" '! grep -qE "$SPELL" $BIN/prereq_notice.py'
+sed 's#^    return "refs/heads/" + .*#    return "refs/heads/core/season3/main"#' $BIN/prereq_notice.py >$T/pn.mut.py
+red "tr2m-mutant-the-literal-put-back-reads-RED" '! grep -qE "$SPELL" $T/pn.mut.py'
 exit $f

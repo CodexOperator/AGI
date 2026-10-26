@@ -27,6 +27,30 @@ from pathlib import Path
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import branches  # noqa: E402  (the ONE branch grammar; test_branch_spelling_grep forbids a hand-spelled season<n>/ literal here)
+
+
+def _ladder(start: Path) -> dict:
+    """The ladder node's frontmatter, from the graph root enclosing `start` (the same node season._load_ladder reads, without season's heavy imports)."""
+    import frontmatter  # noqa: PLC0415
+    import locations  # noqa: PLC0415
+    root = locations.find_project_root(start)
+    path = Path(root) / "nodes" / ".geometry" / "ladder.md" if root else None
+    if path is None or not path.is_file():
+        sys.exit(f"prereq_notice: ladder node not found from {start}: pass --trunk")
+    return frontmatter.read_frontmatter(path.read_text()) or {}
+
+
+def default_trunk() -> str:
+    """The trunk's local ref, DERIVED through branches.py from the ladder's current_season (never hand-spelled, never a fixed season: at the
+    rollover the default moves with the ladder). The ladder is the ENGINE's own (this file's tree), not the caller's --repo: the board cron
+    reads MAIN's refs, and a MAIN checkout need not carry the graph. An unreadable ladder or a missing current_season is loud, never a guess."""
+    cur = _ladder(Path(__file__).resolve()).get("current_season")
+    if cur is None:
+        sys.exit("prereq_notice: the ladder node has no current_season: pass --trunk")
+    return "refs/heads/" + branches.derive_names("core", int(cur))["town_season_main"]
+
+
 SEEN = "refs/notices/prereq/seen"
 SENT = "refs/notices/prereq/sent"
 BUNDLE = "refs/notices/prereq/bundle"
@@ -514,7 +538,7 @@ def main(argv=None):
     for name in ("run", "seed", "line"):
         sp = sub.add_parser(name)
         sp.add_argument("--repo", default=".")
-        sp.add_argument("--trunk", default="refs/heads/core/season3/main")
+        sp.add_argument("--trunk", default=None, help="the trunk ref (default: the ladder's current_season, default_trunk())")
         sp.add_argument("--spool", default=None)
         sp.add_argument("--max-lines", type=int, default=500)
         sp.add_argument("--lag-red-min", type=int, default=None, help="override the config cell prereq_notice.notice_lag_red_min")
@@ -523,6 +547,8 @@ def main(argv=None):
         if name == "line":
             sp.add_argument("--leaves", action="store_true", help="list every renamed|dead|unreachable|unparsed leaf: <class> <claimer> <slug>")
     a = ap.parse_args(argv)
+    if a.trunk is None:
+        a.trunk = default_trunk()
     if a.verb == "line":
         try:
             if a.leaves:
