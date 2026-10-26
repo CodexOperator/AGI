@@ -2464,9 +2464,7 @@ def cmd_origin_snap(root: Path, remote: str = "origin", lap_min: int = ORIGIN_LA
     d = _origin_dir(root)
     d.mkdir(parents=True, exist_ok=True)
     (d / "quiet").unlink(missing_ok=True)    # every run re-earns the verdict
-    # `--refmap=` (empty): a refspec given on the command line is ALSO mapped through the remote's configured refspecs (the ones
-    # `grid.py init` wrote), so without it this "private mirror" read moves, or rejects (rc 1), the LIVE `<ns>/node/*` names (alive 12:15Z 10-26, F1).
-    res = git_try(root, "fetch", "--no-tags", "--prune", "-q", "--refmap=", remote, f"+{ns}/node/*:{ORIGIN_SNAP_NS}/node/*")
+    res = git_try(root, "fetch", "--no-tags", "--prune", "-q", remote, f"+{ns}/node/*:{ORIGIN_SNAP_NS}/node/*")
     if res.returncode != 0:
         print(f"grid origin-snap: unread (fetch from {remote} failed: {(res.stderr.strip().splitlines() or ['no reason'])[0][:160]})")
         return 1
