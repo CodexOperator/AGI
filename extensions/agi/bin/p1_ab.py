@@ -52,6 +52,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import branches  # noqa: E402
 import provisioning  # noqa: E402
 
 #: The arm that is Messages on credits (Anthropic Console), not an OpenRouter key: it is not mintable here.
@@ -970,13 +971,37 @@ def live_prices(models: list[str], fetch=None) -> dict[str, dict[str, float]]:
             for m in models if m in by and by[m].get("prompt") is not None and by[m].get("completion") is not None}
 
 
+#: the trunk's name is DERIVED through branches.py from (town, the ladder's current_season), never spelled (council 13:47Z 10-26, trunk red 2:
+#: test_branch_spelling_grep; SM 13:5xZ: a literal season NUMBER is the same debt respelled, so the season is READ at the rollover too).
+TRUNK_TOWN = "core"
+
+
+def trunk_season() -> int:
+    """The ladder's `current_season`, read from the ENGINE's own tree (this file's), not from a caller's root (success_metrics._trunk_ref's
+    shape). A missing ladder or key raises (SystemExit / KeyError): never a silent default season."""
+    import locations  # noqa: PLC0415
+    import season  # noqa: PLC0415
+    return int(season._load_ladder(locations.find_project_root(Path(__file__).resolve()))["current_season"])
+
+
+def default_trunk() -> str:
+    """`origin/<town>/season<k>/main`, the ref P0 f reads the committed p1_ab.py from, derived by branches.derive_names."""
+    return "origin/" + branches.derive_names(TRUNK_TOWN, trunk_season())["town_season_main"]
+
+
 def p0_readings(*, cfg: dict, repo: str | Path, worktree: str | Path, main_env: str | Path | None = None,
                 fetch=None, slice_files: tuple = (SLICE_STAT, SLICE_PRESSURE, MEMINFO),
-                trunk: str = "origin/core/season3/main", module_file: str | Path | None = None,
+                trunk: str | None = None, module_file: str | Path | None = None,
                 root: str | Path | None = None) -> list[tuple[str, bool | None, str]]:
     """(name, ok, reading) for P0 a-g; the caller prints them (they are the 'written down'). Nothing here mints.
     ok is True (read and fine), False (read and RED) or None (n/a: the check did not run here -- never counted as ok)."""
     import tempfile  # noqa: PLC0415
+    trunk_why = ""
+    if not trunk:
+        try:
+            trunk = default_trunk()
+        except (Exception, SystemExit) as exc:   # an unreadable ladder reds P0 f only; it never guesses a season
+            trunk, trunk_why = "", f"the trunk name is unread ({type(exc).__name__})"
     out: list[tuple[str, bool | None, str]] = []
     # (a) the p1_segment fix: from the graph dir of a scratch project with no results file, NO p1 text
     try:
@@ -1015,9 +1040,9 @@ def p0_readings(*, cfg: dict, repo: str | Path, worktree: str | Path, main_env: 
     # (f) the running p1_ab.py IS the trunk's: blob == `git rev-parse <trunk>:extensions/agi/bin/p1_ab.py`
     mod = str(module_file or __file__)
     mine = subprocess.run(["git", "-C", str(repo), "hash-object", mod], capture_output=True, text=True).stdout.strip()
-    theirs = subprocess.run(["git", "-C", str(repo), "rev-parse", f"{trunk}:extensions/agi/bin/p1_ab.py"],
-                            capture_output=True, text=True).stdout.strip()
-    out.append(("f p1_ab blob", bool(mine) and mine == theirs, f"running {mine[:12] or '?'} vs {trunk} {theirs[:12] or '?'}"))
+    theirs = "" if trunk_why else subprocess.run(["git", "-C", str(repo), "rev-parse", f"{trunk}:extensions/agi/bin/p1_ab.py"],
+                                                  capture_output=True, text=True).stdout.strip()
+    out.append(("f p1_ab blob", bool(mine) and mine == theirs, trunk_why or f"running {mine[:12] or '?'} vs {trunk} {theirs[:12] or '?'}"))
     # (g) the workspace cell the mint will send is the key's own account's (or absent), and the key manages keys
     ws = provisioning.workspace(cfg)
     cell_word = "set" if ws else "absent (account default)"
