@@ -55,7 +55,7 @@ RESOLUTION ORDER, testable (proofs e/f/g on a fixture root in
 There is no hardcoded brief path left in rotate.py — `brief_file` always comes
 from this node. If this node is absent (the live state until the prime lands
 it at merge-up), `rotate-self` refuses loudly naming this node, which is the
-correct behaviour until the prime creates it with `write.py create`.
+correct behaviour until the prime creates it.
 
 ## facts
 

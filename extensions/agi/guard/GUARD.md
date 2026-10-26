@@ -219,7 +219,7 @@ is its job.
 ## Tuning
 
 All in config:guard (`.agi/nodes/.geometry/guard.md`, its ```` ```sh guard.env ```` block;
-edit it through `write.py`), keyed by the BOX name with every non-alphanumeric
+edit it in place), keyed by the BOX name with every non-alphanumeric
 turned into `_` (`local-town` -> `_local_town`), then re-run the script. The box
 is `GUARD_BOX`, else `/etc/sanctuary-guard/box` (one line), else the hosts.json
 town whose `host` is this host, else `hostname -s`. `GUARD_ENV_NODE` points the

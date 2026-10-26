@@ -17,4 +17,4 @@ templates:
 # config:formations
 
 The run-mode switch (goal:g7.16). `active` = ONE formation template; `templates` = template -> the goal it serves.
-Switch: write.py config:formations 'set active doc:<id>'. Read-back: verification.py `formation` check (rotation, full).
+Switch: edit `active:` above to `doc:<id>` (ONE edit, Prime / owner). Read-back: verification.py `formation` check (rotation, full).

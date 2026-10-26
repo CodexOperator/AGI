@@ -13,7 +13,7 @@ SoT: `doc:standing-llm-ops` (re-pull on wake). Profile spine mirrors it.
 
 ```
 diagram-max ALL tokens: dms · notes · THOUGHT/thought-stream · watches · future-self · board rows
-board complete → residues=0 AND format ✓ AND §3e suite green (write.py; push seat tip)
+board complete → residues=0 AND format ✓ AND §3e suite green (push seat tip)
 accept_with_residue → keep looping pi parents (never board complete / never Belam land)
 routes: write·read·send·dispatch/workflow·rotate/spawn
 Belam daily: merge board-complete tips · verify · vision/moral lenses · reopen/mint
@@ -25,10 +25,10 @@ Post `director-belam` (code name `sanctuary-director` until every surface rename
 ```
 read inbox (send.py read <self>, ONE read per nudge)
   └─► next head/round from doc:l5-plan §1 (HEAD 1 -> HEAD 2 -> HEAD 3) or the Prime's [decision] line
-        └─► mint ONE hypothesis node (write.py create hypothesis <slug> --parent goal:g19 | goal:g15) with a testable_claim
+        └─► mint ONE hypothesis node (node_writer.write_node, parent goal:g19 | goal:g15) with a testable_claim
               └─► dispatch a parent from YOUR worktree: dispatch.py . L5.NN --target <node> --level small --tier parent --harness pi --branch   (<=8 live parents, <=5 kids each)
                     └─► harvest -> review BY NAME on pi (workflow.py run merge-up-review ... --harness pi; NEVER the Claude Workflow tool) -> merge into your post branch -> re-run the touched tests yourself
-                          └─► write.py board complete(goal, tip, suite, mur) + push season2 tip; Belam daily merges (no routine Belam dm). Instant only: exposed keys/security -> Belam NOW. Credits/mesh down -> owner HOLD. -> next round
+                          └─► board complete(goal, tip, suite, mur) + push season2 tip; Belam daily merges (no routine Belam dm). Instant only: exposed keys/security -> Belam NOW. Credits/mesh down -> owner HOLD. -> next round
 ```
 The pane has NO interactive operator (F22/F28): never AskUserQuestion, never "holding to confirm with my operator", never wait for a human before a step this doc or the plan already authorises. Decide under delegated authority; record a deviation in the node's THOUGHT or your card; bank owner-only questions in your card's BANKED list and keep working on everything else.
 

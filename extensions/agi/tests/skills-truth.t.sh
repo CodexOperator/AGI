@@ -1,5 +1,5 @@
 #!/bin/sh
-# skills-truth.t.sh: goal:g1.41 H (DG1 21:46Z; hypothesis:g141-h-five-skills-say-what-is-true-write-py-is-the-old-setups-writer-and-workflow-py-is-legacy): five skills stop teaching two things the owner overruled and invent no replacement: (H1) agi-goal, agi-dispatch and agi-corrective name write.py as the OLD setup's node writer (a post whose row has engine.v 4 edits node files with plain Write/Edit and agi-turn commits, owner 10-01 23:3xZ) and none says write.py is "the only writer"; (H2) agi, agi-workflow, agi-corrective and agi-dispatch mark the workflow.py route LEGACY with the owner order (retire it, 10-02 14:01Z) and goal:g5.33, and none calls it "the only sanctioned" route; the routing itself is unchanged: agi-master-gate and agi-merge-pass still run every mur through the live workflow.py.
+# skills-truth.t.sh: goal:g1.41 H (DG1 21:46Z; hypothesis:g141-h-five-skills-say-what-is-true-write-py-is-the-old-setups-writer-and-workflow-py-is-legacy): five skills stop teaching two things the owner overruled and invent no replacement: (H1, retired by goal:g7.16.1.11.46.23: now pins the ABSENCE of write.py) agi-goal, agi-dispatch and agi-corrective named write.py as the OLD setup's node writer (a post whose row has engine.v 4 edits node files with plain Write/Edit and agi-turn commits, owner 10-01 23:3xZ) and none says write.py is "the only writer"; (H2) agi, agi-workflow, agi-corrective and agi-dispatch mark the workflow.py route LEGACY with the owner order (retire it, 10-02 14:01Z) and goal:g5.33, and none calls it "the only sanctioned" route; the routing itself is unchanged: agi-master-gate and agi-merge-pass still run every mur through the live workflow.py.
 # sh + git + grep on a git tree, no network, no root, 0 USD. Usage: sh skills-truth.t.sh [ROOT [CUT [TIP]]] (or ROOT= CUT= TIP=): ROOT = a git tree whose skills/ is read AS CHECKED OUT (the tip); CUT..TIP = the range the NEGATIVE rows diff (default HEAD..HEAD: EMPTY, and a NEGATIVE row over no commits proves nothing, so on an empty range every n-* row prints `SKIP <name> ...` and counts as a SKIP, never as ok; STRICT=1 makes it a FAIL; goal:g1.42 row 6). The same file runs on the trunk (NEG) and on a reference commit.
 # Lanes: h1-* the old-writer wording (no "(the only writer)", engine.v 4 and "old setup" in agi-goal / agi-dispatch / agi-corrective); h2-* the LEGACY banner (no "only sanctioned" route; LEGACY, g5.33 and the owner order date 10-02 in agi, agi-workflow, agi-corrective, agi-dispatch); n-* the NEGATIVE: the diff adds no dispatched-round / dispatch.py run replacement, agi-master-gate and agi-merge-pass are not touched and keep their `workflow.py run` line, no routing line (workflow.py run / --harness pi-free) is removed from the four, nothing under skills/ or .claude changes but the five SKILL.md (the round's own experiment node elsewhere is fine).
 # Honest limits: greps over text, not a reading of whether a banner is true; the wording of the banner is free (the lane pins the tokens the hypothesis names); whether mur should move OFF workflow.py is goal:g5.33's schedule (DG1's banked note), so no row pins a replacement route either way except its ABSENCE from the added lines.
@@ -13,9 +13,8 @@ neg(){ if [ "$nr" -gt 0 ];then ok "$@";elif [ -n "$STRICT" ];then echo "FAIL $1 
 n=$(grep -rnE 'only sanctioned workflow dispatch route|\(the only writer\)' $S --include=SKILL.md|wc -l|tr -d ' ')
 ok "h-no-only-sanctioned-route-and-no-only-writer $n line(s) of 'only sanctioned workflow dispatch route' or '(the only writer)' in skills/ (want 0; the trunk has 2)" '[ $n = 0 ]'
 for k in agi agi-goal agi-dispatch agi-corrective;do F=$S/$k/SKILL.md
- e=$(grep -c 'engine\.v 4' $F);o=$(grep -ci 'old[ -]setup' $F);w=$(grep -ci 'only writer' $F)
- ok "h1-$k-names-the-engine-v-4-rule $k has $e line(s) with 'engine.v 4' (want >= 1)" '[ $e -ge 1 ]'
- ok "h1-$k-names-write-py-as-the-old-setups-writer $k has $o line(s) with 'old setup' (want >= 1), $w with 'only writer' (want 0)" '[ $o -ge 1 ]&&[ $w = 0 ]';done
+ w=$(grep -v '^| `python3 ' $F|grep -c 'write\.py');o=$(grep -ci 'old[ -]setup' $F)
+ ok "h1-$k-no-longer-teaches-the-retired-writer $k has $w line(s) naming write.py outside the COMMANDS table row (want 0: the node writer is retired, goal:g7.16.1.11.46.23), $o with 'old setup' (want 0)" '[ $w = 0 ]&&[ $o = 0 ]';done
 for k in agi agi-workflow agi-corrective agi-dispatch;do F=$S/$k/SKILL.md
  l=$(grep -c 'LEGACY' $F);g5=$(grep -c 'g5\.33' $F);d=$(grep -c '10-02' $F);one=$(grep -cE 'LEGACY.*g5\.33|g5\.33.*LEGACY' $F)
  ok "h2-$k-marks-workflow-py-LEGACY $k has $l line(s) with LEGACY (want >= 1)" '[ $l -ge 1 ]'
@@ -32,19 +31,11 @@ for kr in 'agi:workflow\.py run' 'agi-workflow:workflow\.py run' 'agi-corrective
  neg "n-$k-keeps-its-routing-line lines matching '$re' (the line that routes a run): $a0 at the cut, $a1 at the tip (want tip >= cut >= 1: a banner labels the route, it does not remove it)" '[ $a1 -ge $a0 ]&&[ $a0 -ge 1 ]';done
 odd=$($g diff --name-only $CUT..$TIP -- skills .claude|grep -vE '^skills/(agi|agi-workflow|agi-corrective|agi-dispatch|agi-goal)/SKILL\.md$'|tr '\n' ' ')
 neg "n-only-the-five-skills-change files changed under skills/ or .claude outside the five SKILL.md: [${odd% }] (want none)" '[ -z "$odd" ]'
-# RH1 (DG1 23:05Z/23:11Z): skills/agi/SKILL.md still teaches "write.py is the ONE writer" in four places without the old-setup label the owner order of 10-01 23:3xZ calls for. The heading text is a CONSUMER KEY (rolslice.py matches it verbatim to cut the role slices), so the rows keep it UNCHANGED and pin the label NEXT TO it: 'old setup' (case-insensitive) on the heading line or within the next 3 lines, and on (or within the 3 lines above) each of the three claim lines. A claim line that no longer exists passes: the rule is "labelled or gone".
-A=$S/agi/SKILL.md;H='Every node edit goes through `write.py`'
-RK=$($g show $TIP:extensions/agi/bin/rolslice.py 2>/dev/null|grep -o 'Every node edit goes through `write.py`'|head -1);[ -n "$RK" ]||RK=$H
-hn=$(grep -nF "## $RK" $A|head -1|cut -d: -f1)
-ok "rh1-the-section-heading-is-unchanged the heading line '## $RK' (the key rolslice.py cuts the role slices by): $(grep -cF "## $RK" $A) line(s) in skills/agi/SKILL.md (want 1)" '[ "$(grep -cF "## $RK" $A)" = 1 ]'
-lab=0;[ -n "$hn" ]&&lab=$(sed -n "${hn},$((hn+3))p" $A|grep -ci 'old[ -]setup')
-ok "rh1-the-heading-carries-the-old-setup-label 'old setup' on the heading line (at $hn) or the 3 lines after it: $lab line(s) (want >= 1)" '[ -n "$hn" ]&&[ $lab -ge 1 ]'
-claim(){ nm=$1;pat=$2;ln=$(grep -nF "$pat" $A|head -1|cut -d: -f1)
- if [ -z "$ln" ];then ok "rh1-$nm-is-labelled-or-gone the line holding [$pat] is gone" 'true';return;fi
- lo=$((ln-3));[ $lo -ge 1 ]||lo=1;c=$(sed -n "${lo},${ln}p" $A|grep -ci 'old[ -]setup')
- ok "rh1-$nm-is-labelled-or-gone the line holding [$pat] (line $ln): 'old setup' on it or the 3 lines above: $c line(s) (want >= 1)" '[ $c -ge 1 ]';}
-claim the-prime-row-line 'through the ONE writer (write.py'
-claim the-one-way-in-line 'One way in'
-claim the-anything-but-write-py-stop-line 'anything but `write.py`, stop'
+# RH1 (retired by goal:g7.16.1.11.46.23 3b): skills/agi/SKILL.md taught "write.py is the ONE writer" in four places, labelled 'old setup'. The writer is retired, so the rows now pin the new heading (a CONSUMER KEY: rolslice.py matches it verbatim to cut the role slices) and the ABSENCE of the three claim lines.
+A=$S/agi/SKILL.md;H='Every node edit is a plain file edit'
+RK=$($g show $TIP:extensions/agi/bin/rolslice.py 2>/dev/null|grep -o 'Every node edit is a plain file edit'|head -1);[ -n "$RK" ]||RK=$H
+ok "rh1-the-section-heading-is-the-key-rolslice-cuts-by the heading line '## $RK' (the key rolslice.py cuts the role slices by): $(grep -cF "## $RK" $A) line(s) in skills/agi/SKILL.md (want 1)" '[ "$(grep -cF "## $RK" $A)" = 1 ]'
+for pat in 'through the ONE writer (write.py' 'One way in' 'anything but `write.py`, stop';do n=$(grep -cF "$pat" $A)
+ ok "rh1-the-claim-line-[$pat]-is-gone $n line(s) hold it in skills/agi/SKILL.md (want 0: the writer is retired)" '[ $n = 0 ]';done
 echo "skills-truth: $f FAIL ($sk SKIP)"
 exit $f

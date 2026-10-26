@@ -2797,7 +2797,7 @@ def test_rotate_self_model_differs_from_row_refused_by_name(
             _rotate_self_args(tmp_path, model="opus"), tmp_path)
     assert rc == 3, err.getvalue()
     assert "--model opus differs from the row: model sonnet" in err.getvalue()
-    assert "the row changes only through write.py" in err.getvalue()
+    assert "the row changes only by an edit of its row" in err.getvalue()
     # the row was never rewritten
     rows = _w.load_rows(tmp_path)
     assert rows and rows[0]["model"] == "sonnet"

@@ -190,7 +190,7 @@ def test_spawn_model_differs_from_row_refused_by_name(
                                       model="opus")
     assert rc == 3, (out, err)
     assert "--model opus differs from the row: model sonnet" in err, err
-    assert "the row changes only through write.py" in err, err
+    assert "the row changes only by an edit of its row" in err, err
     assert "claude --remote-control" not in out      # nothing launched
     own = rotate._find_seat(tmp_path / "root", "director-post")
     assert own is not None and own["model"] == "sonnet"  # row untouched

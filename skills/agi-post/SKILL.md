@@ -16,7 +16,7 @@ Source of truth: `heal.py _watch_seats` (crash-respawn) · `rotate.py cmd_spawn`
 ```
 1. tell the post: finish the atomic step, write + commit its card, reply "[rotation] <post> down-ready"
 2. its row in MAIN posts.md: "recover": false (a JSON boolean: the STRING "false" reads true) AND "pid": 0
-   one write.py config:posts write (--actor belam --role prime_director, --dry-run first) -> commit by exact path
+   ONE edit of its row in MAIN posts.md (belam; R-land judges the signer) -> commit by exact path
 3. only then stop it: tmux kill-window -t agi-rc:<@window>        heal polls every 30 s: flags FIRST, kill second
 ```
 - heal relaunches a row when pid > 0 and box == AGI_BOX and its pid, window and pinned session are all gone and no newer or
@@ -31,7 +31,7 @@ Source of truth: `heal.py _watch_seats` (crash-respawn) · `rotate.py cmd_spawn`
 0. its row in MAIN posts.md, committed BEFORE spawn: name · role (director | parent | …) · model · effort · settings · box = this box ·
    town (a ladder town; `all` is refused) · template (masters: doc:unified-master-brief) · worktree ("" = MAIN) ·
    identity cells EMPTY (pid 0, window "", session_*) · pubkey "" unless its key file is on this box
-1. its card: write.py create doc card-<post> --parent goal:<g> --body-file <f>     the brief = HEAD + template + CARD (+ STARTUP)
+1. its card: a new doc node `.agi/nodes/doc/card-<post>.md`, parent goal:<g> (skill agi-node-write §2)     the brief = HEAD + template + CARD (+ STARTUP)
 2. python3 extensions/agi/bin/rotate.py spawn --seat <post> --dry-run   ->   the same without --dry-run     (from MAIN, never on master)
 ```
 - spawn reads name/role/model/effort/settings/worktree/pid/generation/pubkey/template; `--model`/`--effort` must match the row

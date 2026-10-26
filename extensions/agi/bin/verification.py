@@ -1001,7 +1001,7 @@ def check_retired_place(groot: Path, *, nodes_dir: Path | None = None) -> CheckR
         named += [f"inside deprecated/ without that status: {r}" for r in inside[:8]]
         return CheckResult(
             "retired-place", "FAIL", time.monotonic() - start, number,
-            note="; ".join(named) + ". Retire with `write.py <id> 'retire <note>'` (status + move); "
+            note="; ".join(named) + ". Retire with `node_writer.retire_node(root, '<id>', note='<note>')` (status + move); "
                  "read-only: nothing moved.",
             message=f"{len(outside)} deprecated outside deprecated/, {len(inside)} inside it without the status")
     return CheckResult("retired-place", "PASS", time.monotonic() - start, number,
@@ -1045,7 +1045,7 @@ def suite_lock_holder(groot: Path) -> int | None:
     return holder
 
 
-_INFLIGHT: list = []   # g1315131: this process's write.py in-flight markers, sessions/write-inflight/<sha1(path)[:16]>.<pid>.<rand>
+_INFLIGHT: list = []   # g1315131: this process's in-flight markers (the retired write.py's), sessions/write-inflight/<sha1(path)[:16]>.<pid>.<rand>
 
 
 def inflight_clear(only=None) -> None:

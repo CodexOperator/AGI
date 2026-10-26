@@ -52,8 +52,8 @@ def _fixture(bucket: str, renamed_id: str) -> str:
 
 
 @pytest.mark.parametrize("bucket,marker", [
-    ("kid", "Every node edit goes through `write.py`"),
-    ("parent", "Every node edit goes through `write.py`"),
+    ("kid", "Every node edit is a plain file edit"),
+    ("parent", "Every node edit is a plain file edit"),
     ("director", "`COMPLETE.md` — every finished loop writes one"),
 ])
 def test_goal_id_rename_keeps_section(tmp_path, bucket, marker):
@@ -66,7 +66,7 @@ def test_goal_id_rename_keeps_section(tmp_path, bucket, marker):
 def test_genuinely_missing_section_still_fails_loud(tmp_path):
     """The loud ValueError stays: a heading that is really gone must still fail."""
     text = _fixture("kid", "g4.19").replace(
-        "## Every node edit goes through `write.py` (`goal:g4.19`)", "## Gone")
+        "## Every node edit is a plain file edit (`goal:g4.19`)", "## Gone")
     skill = tmp_path / "SKILL.md"
     skill.write_text(text, encoding="utf-8")
     with pytest.raises(ValueError):

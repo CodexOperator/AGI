@@ -99,14 +99,14 @@ ROLE_SECTIONS = {
         #   that whole section. The charter the owner named a kid needs (its
         #   own end-of-job contract) lives inside it.
         "Iteration protocol (parent)",
-        "Every node edit goes through `write.py`",
+        "Every node edit is a plain file edit",
         "Metrics — score goal fulfillment, not chain length",
     },
     "parent": {
         "Iteration protocol (parent)",
         "Director economics — dispatch, don't do",
         "Metrics — score goal fulfillment, not chain length",
-        "Every node edit goes through `write.py`",
+        "Every node edit is a plain file edit",
     },
     "director": {
         "Director economics — dispatch, don't do",
@@ -114,7 +114,7 @@ ROLE_SECTIONS = {
         "`HANDOFF.md` — the director's scratchpad, replaced each session",
         "`COMPLETE.md` — every finished loop writes one",
         "Metrics — score goal fulfillment, not chain length",
-        "Every node edit goes through `write.py`",
+        "Every node edit is a plain file edit",
         "The git grid",
     },
 }

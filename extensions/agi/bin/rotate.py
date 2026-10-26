@@ -2341,7 +2341,7 @@ def _row_launch_refusal(args, row):
         if flag is None or flag == (cell or ""):
             return None
         return (f"--{name} {flag} differs from the row: {name} {(cell or '')}; "
-                f"the row changes only through write.py by the Prime/owner "
+                f"the row changes only by an edit of its row by the Prime/owner "
                 f"ahead of the rotation")
     for name, flag, cell in (
             ("model", args.model, row.get("model")),
@@ -2357,7 +2357,7 @@ def _row_launch_refusal(args, row):
         if flag_s != _normalize_settings(row.get("settings")):
             return (f"--settings {args.settings} differs from the row: "
                     f"settings {row.get('settings') or ''}; row changes only "
-                    f"via write.py by the Prime/owner ahead of the rotation")
+                    f"by an edit of its row by the Prime/owner ahead of the rotation")
     return None
 
 
@@ -4243,7 +4243,7 @@ def _rename_surfaces(root: Path, old: str, new: str,
       rename-file  -- pure filesystem move (performed for real, idempotent)
       rename-key   -- sidecar JSON key rewrite (performed for real)
       seam-git     -- git ref/worktree/tmux surface, routed through a seam
-      ship         -- a write.py line is PRINTED (the round never writes
+      ship         -- an edit instruction is PRINTED (the round never writes
                       config: seats rows, rotations.md, belam.md)
     Never writes config; never touches git/tmux/live tree. Dedupes by src."""
     seen: dict[str, dict] = {}
@@ -4291,18 +4291,18 @@ def _rename_surfaces(root: Path, old: str, new: str,
         nm = row.get("name")
         if nm == old:
             add("row name", f"row {old} name", f"row {new} name", "ship",
-                print_line=f"write.py {nm} 'set name {new}'")
+                print_line=f"edit the {nm} row: name: {new}")
             for k, v in row.items():
                 if k != "name" and str(v) == old and k in cols:
                     add(f"row cell {k}", f"row {old}.{k}", f"row {new}.{k}",
                         "ship",
-                        print_line=f"write.py {nm} 'replace {k} -- {new}'")
+                        print_line=f"edit the {nm} row: {k}: {new}")
         elif nm == new:
             for k, v in row.items():
                 if str(v) == old and k in cols and k != "name":
                     add(f"row cell {k}", f"row {new}.{k}",
                         f"row {new}.{k}->{new}", "ship",
-                        print_line=f"write.py {nm} 'replace {k} -- {new}'")
+                        print_line=f"edit the {nm} row: {k}: {new}")
 
     old_town = _row_town_or_refuse(root, old)
     new_row = _find_seat(root, new)
@@ -4336,7 +4336,7 @@ def _rename_surfaces(root: Path, old: str, new: str,
                 add(f"{path.name} mention",
                     f"{path.name}:{n}", f"{path.name}:{n}(edited)", "ship",
                     print_line=(
-                        f"write.py {path.stem} 'patch'  # line {n}: {old} -> {new}"))
+                        f"edit {path.name} line {n}: {old} -> {new}"))
 
     # alerts.edges keys AND values (read-time rewrite in _load_alerts, not a
     # config write here). audit/silent are name lists too.
@@ -4407,7 +4407,7 @@ def _apply_surfaces(root: Path, surfaces: list[dict], delete_old: bool = False,
     nothing -- the round never touches the live git ref or tmux server; a
     fixture injects a recorder). The old branch is deleted ONLY under
     `delete_old` (a seam push `:old`). "ship" surfaces (row cells,
-    rotations.md, belam.md) are never written: the exact write.py line is
+    rotations.md, belam.md) are never written: the exact edit line is
     PRINTED. Returns (applied, skipped). Never writes config."""
     run_git = run_git or _seam_git
     run_tmux = run_tmux or _seam_tmux
@@ -4681,7 +4681,7 @@ def cmd_rename_post(args: argparse.Namespace, root: Path) -> int:
     live pid; with --live those also run the git/tmux renames for REAL, while
     the default (no --live) keeps git/tmux on a print-only seam and runs no
     subprocess. Git/tmux surfaces ride a seam; row/prose surfaces PRINT their
-    write.py line -- the round never writes config."""
+    edit line -- the round never writes config."""
     old, new = args.old_name, args.new_name
     if getattr(args, "root", None):
         root = Path(args.root)
@@ -4735,7 +4735,7 @@ def cmd_rename_post(args: argparse.Namespace, root: Path) -> int:
         nship = sum(1 for s in surfaces if s["action"] == "ship")
         ngit = sum(1 for s in surfaces if s["action"] == "seam-git")
         print(f"rename-post: {old} -> {new}: {applied} surface(s) applied, "
-              f"{skipped} skipped/idempotent, {nship} shipped (write.py "
+              f"{skipped} skipped/idempotent, {nship} shipped (edit "
               f"line printed, config untouched), {ngit} git-seam surface(s)"
               + (" [LIVE]", "")[not live])
         return 0
@@ -6417,9 +6417,9 @@ def _compose_announcement(*, seat, successor, gen_before, gen_after,
 
 def _load_alerts_raw(root: Path) -> dict:
     """config:rotations frontmatter top-level `alerts:` -- the ONE routing
-    matrix the Prime writes once at merge-up as a single write.py `set alerts
-    {\u2026}` line (the round never writes it); {} when absent or not a map. A
-    quoted-JSON cell (the shape write.py produces for a nested map, exactly
+    matrix the Prime writes once at merge-up as a single edit of the `alerts:`
+    cell (the round never writes it); {} when absent or not a map. A
+    quoted-JSON cell (the shape the retired writer produced for a nested map, exactly
     like `rotate_defaults:`) yields a str, parsed here so the shape survives
     either spelling. Shape:
         {"audit": [<names>], "edges": {<seat>: [<names>]},
@@ -10082,7 +10082,7 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
                          first_key_cells: dict | None = None,
                          row_seat: str | None = None,
                          session_label: str | None = None) -> str:
-    """Write the successor's config:seats ROW via `write.py submit` (s6).
+    """Write the successor's config:seats ROW via `config_rows.write_rows` (s6).
 
     Sets the seat's own row's `session_ref`/`session_id`/`window`/`pid` and —
     for a PRIME role only — `generation` (goal:g15.25 claim (6-rows): a
@@ -13220,7 +13220,7 @@ def _repoint_livestream_views(*, tmux_session: str, seat: str,
 # A rotation template's `startup` block can carry a `first_turn` list —
 # commands rotate-self runs BEFORE spawn so a new rotation lands already
 # holding its telemetry (rotation record, seat row, authority, git state,
-# inbox, live spawns, write.py verbs — the measured gen-X first calls the
+# inbox, live spawns, node-writer verbs — the measured gen-X first calls the
 # owner wants folded into the rotation, see .geometry/rotations.md). Each
 # command is allowlisted (refused by executable/verb, its LABEL named, never
 # run), placeholder-resolved (an unknown placeholder is refused, never
@@ -14117,23 +14117,31 @@ def _strip_harness(text: str) -> str:
 
 
 class FactsBodyRangeError(ValueError):
-    """A `facts*` first_turn entry that names no `read body N:M`, or two
-    templates whose same label disagrees -- refused BY NAME (template +
-    label), never as a bare `no facts entry`."""
+    """A `facts*` first_turn entry that names no `node_read.py config:rotations
+    section <heading>`, or two templates whose same label disagrees -- refused
+    BY NAME (template + label), never as a bare `no facts entry`."""
 
 
-def facts_body_ranges(templates: dict) -> list:
-    """EVERY wake-read facts body region `(label, N, M)`, 1-based inclusive,
-    resolved from the templates' OWN `facts*` first_turn cmd(s) -- `write.py
-    config:rotations 'read body N:M'` (SM.55 residue, item 11).
+_FACTS_SECTION_RE = re.compile(r"node_read\.py\s+config:rotations\s+section\s+(\S+)")
+
+
+def facts_body_ranges(templates: dict, body_lines: list) -> list:
+    """EVERY wake-read facts body region `(label, N, M)`, 1-based inclusive in
+    BODY coordinates (`<!-- BODY:BEGIN -->` is line 1), resolved from the
+    templates' OWN `facts*` first_turn cmd(s) -- `node_read.py config:rotations
+    section <heading>` -- against `body_lines`, the node's body split on "\n"
+    (goal:g7.16.1.11.46.23 3b: the retired `write.py ... 'read body N:M'`
+    named line numbers, which drift; the section is found by CONTENT with
+    node_read's own `section_span`, the rule the wake prints by).
 
     A template may carry several entries (`facts`, `facts-2`, `facts-N`) and
     each is returned; every template carrying the SAME label must agree; a
-    `facts*` cmd that names no body range raises `FactsBodyRangeError` naming
-    both the template and the label. Ordered `facts` first, then `facts-2`,
-    `facts-3` … This is the PRODUCTION half of the guard's rule: the guard in
-    `test_rotate_templates.py` imports it, so the rule and production are the
-    same rule."""
+    `facts*` cmd that names no section, or a heading that is absent or
+    duplicated, raises `FactsBodyRangeError` naming both the template and the
+    label. Ordered `facts` first, then `facts-2`, `facts-3` ... This is the
+    PRODUCTION half of the guard's rule: the guard in `test_rotate_templates.py`
+    imports it, so the rule and production are the same rule."""
+    import node_read as _node_read  # local: same dir (send.py pattern)
     by_label: dict = {}
     for name, ent in templates.items():
         if not isinstance(ent, dict):
@@ -14146,16 +14154,20 @@ def facts_body_ranges(templates: dict) -> list:
             if not isinstance(label, str) or not re.fullmatch(r"facts(-\d+)?",
                                                               label):
                 continue
-            m = re.search(r"read body (\d+):(\d+)", e.get("cmd", ""))
+            m = _FACTS_SECTION_RE.search(e.get("cmd", ""))
             if not m:
                 raise FactsBodyRangeError(
-                    f"template {name!r} {label!r} cmd does not name a body "
-                    f"range: {e!r}")
-            by_label.setdefault(label, set()).add(
-                (int(m.group(1)), int(m.group(2))))
+                    f"template {name!r} {label!r} cmd does not name a "
+                    f"`node_read.py config:rotations section <heading>`: {e!r}")
+            try:
+                s, end = _node_read.section_span(body_lines, m.group(1))
+            except _node_read.Refused as exc:
+                raise FactsBodyRangeError(
+                    f"template {name!r} {label!r}: {exc} config:rotations")
+            by_label.setdefault(label, set()).add((s + 1, end))
     if not by_label:
         raise FactsBodyRangeError(
-            "no template declares a `facts` read body N:M first_turn")
+            "no template declares a `facts` node_read section first_turn")
     out = []
     for label in sorted(by_label, key=lambda l: (l != "facts",
                                                  0 if l == "facts"
@@ -19456,7 +19468,7 @@ def _load_rotate_defaults(root: Path) -> dict:
     map the Prime writes as a single JSON value on config:rotations (shape
     {"timeout_s": {<role>: int}, "closeout": {<role>: bool}}) -- {} when
     absent or not a map. A quoted-JSON cell yields a str, parsed here so the
-    shape survives either spelling (write.py nests nothing -- the SL7.114/115
+    shape survives either spelling (the retired writer nested nothing -- the SL7.114/115
     per-template reads named keys the Prime can never write, so both reads go
     through THIS top-level map only)."""
     path = _rotations_node_path(root)
@@ -19481,7 +19493,7 @@ def _role_timeout(root: Path, role: str) -> int:
     int -- or a digit-only string, the shape a QUOTED yaml cell yields (seat
     re-cut at the SL7.114 harvest: accepted by design, not by accident) --
     else 600 (the CLI default). The ONE reader on the Prime-writable map; the
-    old templates.<role>.timeout_s cell is DEAD (write.py cannot nest it)."""
+    old templates.<role>.timeout_s cell is DEAD (the retired writer could not nest it)."""
     tmap = _load_rotate_defaults(root).get("timeout_s")
     if not isinstance(tmap, dict):
         return 600
@@ -21040,7 +21052,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                                 "note": "identity supplied by internal seam"}
         else:
             handover["join"] = joined
-        # (s6.1) write the successor's config:seats ROW via `write.py submit`.
+        # (s6.1) write the successor's config:seats ROW via `config_rows.write_rows`.
         #     Admitted by the self_row DATA declaration (L4.110/r3); a
         #     THROWAWAY seat has no registry row, so this records 'skipped',
         #     never writes seats.md.
@@ -22674,7 +22686,7 @@ def cmd_rotate(args: argparse.Namespace, root: Path) -> int:
     # Prime writes as roadtrip JSON value) when present, else False; the verb
     # passes closeout=True ONLY when the map says so or --closeout was given --
     # and it NEVER writes config:rotations (read-only, like _ranks). The old
-    # templates.<role>.rotate_defaults cell is DEAD (write.py cannot nest it).
+    # templates.<role>.rotate_defaults cell is DEAD (the retired writer could not nest it).
     _closeout = bool(args.closeout)
     _rotate_defaults = _load_rotate_defaults(root)
     _closeout_map = _rotate_defaults.get("closeout")
