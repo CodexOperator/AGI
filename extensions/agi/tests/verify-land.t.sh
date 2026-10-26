@@ -10,7 +10,8 @@ ssh-keygen -q -t ed25519 -N '' -C t@t -f $T/k||exit 99;printf 't@t namespaces="g
 CA="Co-Authored-By: Claude Opus 5.5 <noreply@""anthropic.com>"   # every land message carries the real co-author trailer (C4)
 R=$T/r;git init -q $R;g(){ git -C $R "$@";}
 g config user.name t;g config user.email t@t;g config gpg.format ssh;g config user.signingkey $T/k;g config gpg.ssh.allowedSignersFile $T/allowed;g config commit.gpgsign true
-mkdir -p $R/extensions/agi/guard $R/docs $R/.agi;echo '{}' >$R/.agi/config.json;cp "$VL" $R/extensions/agi/guard/verify-land.sh;echo a >$R/docs/a;echo keep >$R/docs/keep;g add -A;g commit -qm base;BASE=$(g rev-parse HEAD)
+mkdir -p $R/extensions/agi/guard $R/docs $R/.agi;echo '{"land": {"rules_paths": [".agi/context/schemas/", ".agi/nodes/.geometry/", ".github/", ":(glob).gitattributes", ":(glob)**/.gitattributes", "skills/agi-master-gate/", ".agi/config.json", "extensions/agi/guard/", "CLAUDE.md", "AGENTS.md", "QUICKSTART.md"]}}' >$R/.agi/config.json;   # the live seed (council 06:06:56Z L2)
+cp "$VL" $R/extensions/agi/guard/verify-land.sh;echo a >$R/docs/a;echo keep >$R/docs/keep;g add -A;g commit -qm base;BASE=$(g rev-parse HEAD)
 # SINCE = the lane's L140: BASE + a judge stub; every pre-existing fixture base is a SIBLING (does not descend it: the fail-open reading)
 g checkout -q --detach $BASE;printf '%s\n' '#!/bin/sh' 'echo "R-land: judged by SINCE $1..$2";exit 0' >$R/extensions/agi/guard/r-land;g add -A;g commit -qm since;SINCE=$(g rev-parse HEAD);g checkout -q --detach $BASE
 mkdir -p $T/bin;cp "$VL" $T/bin/verify-land;chmod 755 $T/bin/verify-land
@@ -22,8 +23,10 @@ gate(){ n=$1;shift;g checkout -q --detach $BASE;eval "$*";g add -A;if [ -n "$UNS
  tr=$(g merge-tree --write-tree $BASE $GT|head -1);[ -z "$XTRA" ]||{ g checkout -q --detach $GT;echo x >$R/docs/smuggled;g add -A;tr=$(g write-tree);g reset -q --hard $GT;}
  LD=$(g commit-tree -S -p $BASE -p $GT -m "land $n${MSG:+
 $MSG}" -m "$CA" $tr);g update-ref refs/heads/vl/$n $LD;g update-ref refs/held/sanctuary-master/$n $LD;}
-run(){ env -i PATH=$T/bin:/usr/bin:/bin HOME=$T VL_T=$R VL_MAIN=$R VL_OUT=$T/out VL_ANON=$R0/extensions/agi/bin/anonymize.py VL_CARRY=${CARRY:-$T/carry.env} VL_INSTALLED=$T/bin/verify-land VL_TOOLS=$T/tools/verify-land.sh VL_RING=$T/allowed VL_RLAND_SINCE=${RSX:-$SINCE} ${XTMP:+TMPDIR=$XTMP} STUB_LOG=$T STUB_CITE_RC=${CRC:-0} ${XPATH:+PATH=$XPATH} sh ${SELF:-$T/bin/verify-land} "$@" >$T/o 2>&1;rc=$?;}
+run(){ env -i PATH=$T/bin:/usr/bin:/bin HOME=$T VL_T=$R VL_MAIN=$R VL_OUT=$T/out VL_ANON=$R0/extensions/agi/bin/anonymize.py VL_CARRY=${CARRY:-$T/carry.env} VL_INSTALLED=$T/bin/verify-land VL_TOOLS=$T/tools/verify-land.sh VL_RING=$T/allowed VL_RLAND_SINCE=${RSX:-$SINCE} VL_WRAP_SIGNER=${WSIG:-t@t} VL_LAND_SIGNER=t@t ${AGI_FIX:+AGI_ANONYMIZE_FIXTURE=$AGI_FIX} ${XLIT:+GIT_LITERAL_PATHSPECS=1} ${XTMP:+TMPDIR=$XTMP} STUB_LOG=$T STUB_CITE_RC=${CRC:-0} ${XPATH:+PATH=$XPATH} sh ${SELF:-$T/bin/verify-land} "$@" >$T/o 2>&1;rc=$?;}
 v(){ tail -1 $T/o;}
+# wrun(NAME, LAND, BASE, GT): the WRAP step (`verify-land wrap`) then verify-land on what it printed: WS = the wrap sha (empty = plain)
+wrun(){ run wrap "$@";cp $T/o $T/w;WS=$(sed -n 's/^land: wrap \([0-9a-f]*\) over .*/\1/p' $T/w);n=$1;shift;run $n ${WS:-$1} "$2" "$3";}
 # --- clean
 gate c 'echo b >$R/docs/b';run c $LD $BASE $GT
 ok "c-a-clean-signed-land-with-a-real-co-author-trailer-reads-OK rc $rc, $(grep -o '^anon-msg=[0-9]*' $T/o), trailer lines $(git -C $R log -1 --format=%B $LD|grep -c '^Co-Authored-By: Claude'), $(v)" '[ $rc = 0 ]&&[ "$(v)" = "verify-land: OK" ]&&[ "$(git -C $R log -1 --format=%B $LD|grep -c "^Co-Authored-By: Claude")" = 1 ]'
@@ -75,8 +78,8 @@ ok "r1-a-refusing-r-land-at-BASE-HOLDS rc $rc, $(grep -c '^R-land: refused' $T/o
 rlb rp 'echo "R-land: would refuse $2 (stub, report)";echo "ring=$AGI_RING args=$1 $2";exit 0';BASE=$RB;gate rp 'echo r >$R/docs/r';BASE=$B0;CARRY=$T/carry-rp.env;run rp $LD $RB $GT;CARRY=
 ok "r2-a-report-line-at-rc-0-is-a-reading-and-the-land-is-OK rc $rc, $(grep -c '^R-land: would refuse' $T/o) would-refuse line, $(v)" '[ $rc = 0 ]&&grep -q "^R-land: would refuse $LD (stub, report)" $T/o&&grep -qx "r-land=0" $T/o&&[ "$(v)" = "verify-land: OK" ]'
 ok "r3-the-call-is-BASE-dot-dot-LAND-with-the-VL_RING-ring $(grep '^ring=' $T/o|sed "s#$T#T#")" 'grep -qx "ring=$T/allowed args=$RB $LD" $T/o'
-rlb rs 'echo "R-land: refused $2 (stub, base)";exit 1';BASE=$RB;gate rs 'printf "%s\n" "#!/bin/sh" "echo R-land: ok softened;exit 0" >$R/extensions/agi/guard/r-land';BASE=$B0;CARRY=$T/carry-rs.env;run rs $LD $RB $GT;CARRY=
-ok "r4-a-tip-that-rewrites-r-land-never-softens-its-own-judge (BASE's blob runs) rc $rc, $(grep -c 'softened' $T/o) softened line, $(v)" '[ $rc = 1 ]&&! grep -q softened $T/o&&v|grep -q "HOLD (r-land)"'
+rlb rs 'echo "R-land: refused $2 (stub, base)";exit 1';BASE=$RB;gate rs 'printf "%s\n" "#!/bin/sh" "echo R-land: ok softened;exit 0" >$R/extensions/agi/guard/r-land';BASE=$B0;CARRY=$T/carry-rs.env;wrun rs $LD $RB $GT;CARRY=
+ok "r4-a-tip-that-rewrites-r-land-never-softens-its-own-judge (BASE's blob runs) rc $rc, $(grep -c 'softened' $T/o) softened line, $(v)" '[ -n "$WS" ]&&[ $rc = 1 ]&&! grep -q softened $T/o&&v|grep -q "HOLD (r-land)"'
 # --- GATE272 (council 03:49-03:5xZ 10-26): V1 tmpfile, V3 an unresolvable BASE, V2' a deleted / emptied judge -> the LAST non-empty one, never none
 gate c 'echo b >$R/docs/b';XTMP=$T/no-such-dir;run c $LD $BASE $GT;XTMP=
 ok "v1-an-unwritable-TMPDIR-HOLDS-never-the-fail-open-line rc $rc, $(grep '^r-land' $T/o), $(v)" '[ $rc = 1 ]&&grep -qx "r-land: unread (tmpfile)" $T/o&&! grep -q "fail open" $T/o&&v|grep -q "HOLD (.*r-land"'
@@ -84,17 +87,17 @@ run c $LD deadbeef00deadbeef00deadbeef00deadbeef00 $GT
 ok "v3-an-unresolvable-BASE-HOLDS rc $rc, $(grep '^r-land' $T/o), $(v)" '[ $rc = 1 ]&&grep -q "^r-land: unread (BASE deadbeef00)" $T/o&&! grep -q "fail open" $T/o&&v|grep -q "HOLD (.*r-land"'
 # a deleting land on SINCE (judged by SINCE's own blob), then the restoring land on the deletion (judged by SINCE's blob, NOT held, never its own)
 g checkout -q --detach $SINCE;g rm -q extensions/agi/guard/r-land;g commit -qm "del judge";DEL=$(g rev-parse HEAD);printf 'AGI_TRUNK=%s\n' $DEL >$T/carry-del.env
-B0=$BASE;BASE=$SINCE;gate dl 'git -C $R rm -q extensions/agi/guard/r-land';BASE=$B0;printf 'AGI_TRUNK=%s\n' $SINCE >$T/carry-since.env;CARRY=$T/carry-since.env;run dl $LD $SINCE $GT;CARRY=
-ok "v2-a-the-deleting-land-is-judged-by-the-pre-deletion-blob (its own HOLD is D, not r-land) $(grep -c 'judged by SINCE' $T/o) SINCE line, $(grep '^r-land=' $T/o), $(v)" 'grep -q "^R-land: judged by SINCE $SINCE..$LD" $T/o&&grep -qx "r-land=0" $T/o&&v|grep -q "HOLD (D)"'
-BASE=$DEL;gate rr 'printf "%s\n" "#!/bin/sh" "echo R-land: own judge;exit 0" >$R/extensions/agi/guard/r-land';BASE=$B0;CARRY=$T/carry-del.env;run rr $LD $DEL $GT;CARRY=
-ok "v2-b-the-restoring-land-runs-the-LAST-judge-and-is-NOT-held rc $rc, $(grep '^r-land: judge from' $T/o), $(v)" '[ $rc = 0 ]&&grep -qx "r-land: judge from $(echo $SINCE|cut -c1-10) (deleted at $(echo $DEL|cut -c1-10))" $T/o&&grep -q "^R-land: judged by SINCE $DEL..$LD" $T/o&&! grep -q "own judge" $T/o&&[ "$(v)" = "verify-land: OK" ]'
+B0=$BASE;BASE=$SINCE;gate dl 'git -C $R rm -q extensions/agi/guard/r-land';BASE=$B0;printf 'AGI_TRUNK=%s\n' $SINCE >$T/carry-since.env;CARRY=$T/carry-since.env;wrun dl $LD $SINCE $GT;CARRY=
+ok "v2-a-the-deleting-land-is-judged-by-the-pre-deletion-blob (its own HOLD is D, not r-land) $(grep -c 'judged by SINCE' $T/o) SINCE line, $(grep '^r-land=' $T/o), $(v)" '[ -n "$WS" ]&&grep -q "^R-land: judged by SINCE $SINCE..$WS" $T/o&&grep -qx "r-land=0" $T/o&&v|grep -q "HOLD (D)"'
+BASE=$DEL;gate rr 'printf "%s\n" "#!/bin/sh" "echo R-land: own judge;exit 0" >$R/extensions/agi/guard/r-land';BASE=$B0;CARRY=$T/carry-del.env;wrun rr $LD $DEL $GT;CARRY=
+ok "v2-b-the-restoring-land-runs-the-LAST-judge-and-is-NOT-held rc $rc, $(grep '^r-land: judge from' $T/o), $(v)" '[ $rc = 0 ]&&grep -qx "r-land: judge from $(echo $SINCE|cut -c1-10) (deleted at $(echo $DEL|cut -c1-10))" $T/o&&grep -q "^R-land: judged by SINCE $DEL..$WS" $T/o&&! grep -q "own judge" $T/o&&[ "$(v)" = "verify-land: OK" ]'
 g checkout -q --detach $SINCE;: >$R/extensions/agi/guard/r-land;g add -A;g commit -qm "empty judge";EMP=$(g rev-parse HEAD);printf 'AGI_TRUNK=%s\n' $EMP >$T/carry-emp.env
 BASE=$EMP;gate re 'echo r >$R/docs/r';BASE=$B0;CARRY=$T/carry-emp.env;run re $LD $EMP $GT;CARRY=
 ok "v2-c-an-EMPTIED-judge-runs-the-last-non-empty-one-and-is-NOT-held rc $rc, $(grep '^r-land: judge from' $T/o), $(v)" '[ $rc = 0 ]&&grep -qx "r-land: judge from $(echo $SINCE|cut -c1-10) (emptied at $(echo $EMP|cut -c1-10))" $T/o&&[ "$(v)" = "verify-land: OK" ]'
 gate c 'echo b >$R/docs/b';RSX=$BASE;run c $LD $BASE $GT;RSX=
 ok "v2-d-a-post-L140-BASE-with-no-prior-judge-HOLDS rc $rc, $(grep '^r-land' $T/o), $(v)" '[ $rc = 1 ]&&grep -q "^r-land: unread (no prior judge at BASE" $T/o&&v|grep -q "HOLD (.*r-land"'
 g checkout -q --detach $EMP;g rm -q extensions/agi/guard/r-land;g commit -qm "del after empty";DE=$(g rev-parse HEAD);printf 'AGI_TRUNK=%s\n' $DE >$T/carry-de.env
-BASE=$DE;gate rd 'printf "%s\n" "#!/bin/sh" "echo R-land: own judge;exit 0" >$R/extensions/agi/guard/r-land';BASE=$B0;CARRY=$T/carry-de.env;run rd $LD $DE $GT;CARRY=
+BASE=$DE;gate rd 'printf "%s\n" "#!/bin/sh" "echo R-land: own judge;exit 0" >$R/extensions/agi/guard/r-land';BASE=$B0;CARRY=$T/carry-de.env;wrun rd $LD $DE $GT;CARRY=
 ok "v2-f-truncate-then-delete-then-restore-runs-the-pre-truncation-judge-NOT-held rc $rc, $(grep '^r-land: judge from' $T/o), $(v)" '[ $rc = 0 ]&&grep -qx "r-land: judge from $(echo $SINCE|cut -c1-10) (deleted at $(echo $DE|cut -c1-10))" $T/o&&! grep -q "own judge" $T/o&&[ "$(v)" = "verify-land: OK" ]'
 # a LAND MERGE that deletes r-land: its side branch first REWRITES the judge (SIDE), then deletes it; the merge is TREESAME to its 2nd parent, so a walk
 # without --first-parent leaves the trunk and runs SIDE (the range's own judge); --first-parent stays on the trunk and finds SINCE's
@@ -117,4 +120,59 @@ ok "v2-i-(f)-soften-then-empty-merged-runs-the-trunk-pre-merge-judge-never-the-s
 mkdir -p $T/wg;printf '%s\n' '#!/bin/sh' '[ "$1" = cat-file ]&&[ "$2" = blob ]&&case $3 in *:extensions/agi/guard/r-land)exit 1;;esac' 'exec /usr/bin/git "$@"' >$T/wg/git;chmod 755 $T/wg/git
 BASE=$SINCE;gate ru 'echo r >$R/docs/r';BASE=$B0;CARRY=$T/carry-since.env;XPATH=$T/wg:$T/bin:/usr/bin:/bin;run ru $LD $SINCE $GT;XPATH=;CARRY=
 ok "v2-e-a-present-blob-whose-read-fails-HOLDS (a retry clears it) rc $rc, $(grep '^r-land' $T/o), $(v)" '[ $rc = 1 ]&&grep -q "^r-land: unread (unreadable at BASE" $T/o&&v|grep -q "HOLD (.*r-land"'
+# --- the WRAP (owner ruling (1); council 05:18:24Z + 05:19:08Z, THE list 06:06:56Z): RULES = BASE's land.rules_paths; a RULES land lands as W, never plain
+gate wg 'mkdir -p $R/.agi/nodes/.geometry;echo x >$R/.agi/nodes/.geometry/x.md';run wrap wg $LD $BASE $GT;cp $T/o $T/w;WS=$(sed -n 's/^land: wrap \([0-9a-f]*\) over .*/\1/p' $T/w)
+ok "w1-a-RULES-range-wraps: W = L's tree, parents [BASE, L] in order, signed $(git -C $R log -1 --format='%G? %GS' ${WS:-HEAD} 2>/dev/null), $(cut -c1-90 $T/w)" '[ -n "$WS" ]&&[ "$(g rev-parse $WS^{tree})" = "$(g rev-parse $LD^{tree})" ]&&[ "$(g log -1 --format=%P $WS)" = "$BASE $LD" ]&&[ "$(g log -1 --format="%G? %GS" $WS)" = "G t@t" ]&&grep -q "(rules: .agi/nodes/.geometry/x.md)" $T/w'
+run wg $WS $BASE $GT
+ok "w2-verify-land-on-W-is-OK-and-prints-R3 rc $rc, $(grep -c '^R3' $T/o) R3 lines, $(grep '^wrap:' $T/o|cut -c1-60), $(v)" '[ $rc = 0 ]&&grep -q "^held=.* WRAP over held" $T/o&&grep -q "^R3 wrap tree = land tree" $T/o&&grep -q "^wrap: " $T/o&&[ "$(v)" = "verify-land: OK" ]'
+run wg $LD $BASE $GT
+ok "w3-the-same-RULES-range-landed-PLAIN-HOLDS-wrap-missing rc $rc, $(grep '^wrap:' $T/o|cut -c1-70), $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*wrap-missing"'
+gate ws "python3 -c 'import json;p=\"$R/.agi/config.json\";d=json.load(open(p));d[\"land\"][\"rules_paths\"].remove(\"CLAUDE.md\");json.dump(d,open(p,\"w\"))'";run ws $LD $BASE $GT
+ok "w4-a-range-that-SHRINKS-rules_paths-landed-plain-HOLDS rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*wrap-missing"'
+wrun ws $LD $BASE $GT
+ok "w5-the-same-shrink-under-W-is-OK rc $rc, $(v)" '[ -n "$WS" ]&&[ $rc = 0 ]'
+gate wr 'echo "# x" >>$R/extensions/agi/guard/verify-land.sh';run wr $LD $BASE $GT
+ok "w6-a-guard-edit-landed-plain-HOLDS rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*wrap-missing"'
+gate wa 'echo "* text=auto" >$R/.gitattributes';run wa $LD $BASE $GT
+ok "w7-a-gitattributes-only-range-landed-plain-HOLDS rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*wrap-missing"'
+gate wb 'mkdir -p $R/extensions/agi/bin;echo "x=1" >$R/extensions/agi/bin/x.py';wrun wb $LD $BASE $GT
+ok "w8-an-extensions-bin-py-only-range-is-PLAIN-and-OK rc $rc, wrap made: ${WS:-none}, $(v)" '[ -z "$WS" ]&&grep -q "^land: plain " $T/w&&[ $rc = 0 ]&&[ "$(v)" = "verify-land: OK" ]'
+g checkout -q --detach $BASE;echo '{}' >$R/.agi/config.json;g add -A;g commit -qm "cell deleted";NC=$(g rev-parse HEAD);printf 'AGI_TRUNK=%s\n' $NC >$T/carry-nc.env
+B0=$BASE;BASE=$NC;gate wn 'echo n >$R/docs/n';BASE=$B0;CARRY=$T/carry-nc.env;run wrap wn $LD $NC $GT;cp $T/o $T/w;run wn $LD $NC $GT;CARRY=
+ok "w9-the-cell-DELETED-at-BASE-wraps-every-land-with-the-unread-line rc $rc, $(cut -c1-100 $T/w), $(v)" 'grep -q "^land: wrap .*(rules_paths unread at BASE $(echo $NC|cut -c1-10): wrapped)" $T/w&&[ $rc = 1 ]&&v|grep -q "HOLD (.*wrap-missing"'
+# R3: a wrap whose tree differs, swapped parents, unsigned, signed by another principal
+gate wg 'mkdir -p $R/.agi/nodes/.geometry;echo x >$R/.agi/nodes/.geometry/x.md';W1=$(g commit-tree -S -p $BASE -p $LD $(g rev-parse $BASE^{tree}) -m bad-tree);run wg $W1 $BASE $GT
+ok "w10-R3-a-wrap-whose-tree-is-not-the-land-tree-HOLDS rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*r3-tree"'
+W2=$(g commit-tree -S -p $LD -p $BASE $(g rev-parse $LD^{tree}) -m swapped);run wg $W2 $BASE $GT
+ok "w11-R3-swapped-parents-HOLD rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (held"'
+W3=$(g -c commit.gpgsign=false commit-tree -p $BASE -p $LD $(g rev-parse $LD^{tree}) -m unsigned);run wg $W3 $BASE $GT
+ok "w12-R3-an-UNSIGNED-wrap-HOLDS rc $rc, $(grep '^R3 signers' $T/o), $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*r3-signer"&&v|grep -q "HOLD (.*sigs"'
+ssh-keygen -q -t ed25519 -N '' -C x@x -f $T/k2;printf 'x@x namespaces="git" %s\n' "$(cut -d' ' -f1,2 $T/k2.pub)" >>$T/allowed
+W4=$(g -c user.signingkey=$T/k2 commit-tree -S -p $BASE -p $LD $(g rev-parse $LD^{tree}) -m other-signer);run wg $W4 $BASE $GT
+ok "w13-R3-a-wrap-signed-by-a-non-written_by-principal-HOLDS rc $rc, $(grep '^R3 signers' $T/o), $(v)" '[ $rc = 1 ]&&grep -q "^R3 signers: wrap \[G x@x\]" $T/o&&v|grep -q "HOLD (.*r3-signer"'
+gate wt "python3 -c 'import json;p=\"$R/.agi/config.json\";d=json.load(open(p));d[\"land\"][\"rules_paths\"]=[\"nothing/\"];json.dump(d,open(p,\"w\"))';echo '# y' >>$R/extensions/agi/guard/verify-land.sh";run wt $LD $BASE $GT
+ok "w17-the-list-is-read-from-BASE-never-TIP: a tip swapping rules_paths for an unrelated list + a guard edit, plain, HOLDS rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*wrap-missing"'
+gate wg 'mkdir -p $R/.agi/nodes/.geometry;echo x >$R/.agi/nodes/.geometry/x.md';W5=$(g commit-tree -S -p $GT -p $LD $(g rev-parse $LD^{tree}) -m wrong-first-parent);run wg $W5 $BASE $GT
+ok "w18-R3-a-wrap-whose-FIRST-parent-is-not-BASE-HOLDS rc $rc, $(grep '^R3 wrap parents' $T/o), $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*r3-parents"'
+# R2 + R1's guard route, from BASE's r-land
+rlb r2 'echo "config: lander not provable in history (RULES via unsigned ff): 1 change(s); leaf signers: t x1";exit 0';BASE=$RB;gate w2 'echo r >$R/docs/r';BASE=$B0;CARRY=$T/carry-r2.env;run w2 $LD $RB $GT;CARRY=
+ok "w14-R2-config-lander-not-provable-HOLDS rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*lander-unprovable"'
+rlb rc 'echo "config: changed (stub)";exit 0';BASE=$RB;gate w3 'echo r >$R/docs/r';BASE=$B0;CARRY=$T/carry-rc.env;run wrap w3 $LD $RB $GT;cp $T/o $T/w;run w3 $LD $RB $GT;CARRY=
+ok "w15-R1-guard-route-r-land-judged-a-config-change: wrap mode wraps, plain HOLDS rc $rc, $(cut -c1-90 $T/w), $(v)" 'grep -q "^land: wrap .*(r-land judged a config change)" $T/w&&[ $rc = 1 ]&&v|grep -q "HOLD (wrap-missing)"'
+gate wc 'echo w >$R/docs/w';WS=$(g commit-tree -S -p $BASE -p $LD $(g rev-parse $LD^{tree}) -m needless);run wc $WS $BASE $GT
+ok "w16-a-NEEDLESS-wrap-is-OK-and-says-so rc $rc, $(grep '^wrap:' $T/o|cut -c1-80), $(v)" '[ $rc = 0 ]&&grep -q "^wrap: .*(needless: the range is not RULES)" $T/o'
+# P1 + P2 (council 07:01:14Z + 07:01:25Z + 07:01:37Z): the pathspec env is CLEARED for every spec read; `rules: N of M specs match nothing at BASE (...)` is printed
+gate pa 'echo "* text=auto" >$R/.gitattributes';XLIT=1;run wrap pa $LD $BASE $GT;cp $T/o $T/w;run pa $LD $BASE $GT;XLIT=
+ok "p1-GIT_LITERAL_PATHSPECS=1-inherited: a gitattributes-only range still WRAPS and plain still HOLDS rc $rc, $(grep '^land:' $T/w|cut -c1-60), $(v)" 'grep -q "^land: wrap " $T/w&&[ $rc = 1 ]&&v|grep -q "HOLD (.*wrap-missing"'
+gate c 'echo b >$R/docs/b';run c $LD $BASE $GT
+ok "p2-a-the-match-nothing-reading-is-on-every-run: $(grep '^rules: [0-9]' $T/o|cut -c1-60)" 'grep -q "^rules: 9 of 11 specs match nothing at BASE (" $T/o'
+g checkout -q --detach $BASE;mkdir -p $R/sub;echo "* text=auto" >$R/sub/.gitattributes;g add -A;g commit -qm "base with sub/.gitattributes";SG=$(g rev-parse HEAD);printf 'AGI_TRUNK=%s\n' $SG >$T/carry-sg.env
+B0=$BASE;BASE=$SG;gate sg 'echo s >$R/docs/s';BASE=$B0;CARRY=$T/carry-sg.env;XLIT=1;run sg $LD $SG $GT;XLIT=;CARRY=
+ok "p2-b-a-BASE-holding-sub/.gitattributes-under-GIT_LITERAL_PATHSPECS=1: the glob spec is NOT in the match-nothing list $(grep '^rules: [0-9]' $T/o|cut -c1-40)" 'grep -q "^rules: 8 of 11 specs match nothing at BASE (" $T/o&&! grep "^rules: [0-9]" $T/o|grep -qF "(glob)**/.gitattributes"'
+# gpu = lines naming a box DEVICE (anonymize's hardware list), never the bare word
+printf '{"hardware": ["Zeta Card 9990"]}\n' >$T/fix.json
+gate gd 'echo "runs on a Zeta Card 9990 here" >$R/docs/gd';AGI_FIX=$T/fix.json;run gd $LD $BASE $GT;AGI_FIX=
+ok "g1-a-real-device-name-in-any-file-reads-nonzero $(grep '^gpu:' $T/o|cut -c1-12)" 'grep -q "^gpu: [1-9]" $T/o'
+gate gw 'echo "gpu cuda nvidia words only" >$R/docs/gw';AGI_FIX=$T/fix.json;run gw $LD $BASE $GT;AGI_FIX=
+ok "g2-the-bare-word-gpu-reads-0 $(grep '^gpu:' $T/o|cut -c1-12)" 'grep -q "^gpu: 0 " $T/o'
 echo "verify-land: $f FAIL";exit $f
