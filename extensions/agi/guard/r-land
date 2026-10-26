@@ -22,9 +22,12 @@
 #      unread) is PRINTED as `R-land: would refuse <commit> (<signer>, <row>, <op> <cells>, <rule>)`, rc 0, the ref moves.
 #      The mode is read from BASE, never TIP (a range cannot soften its own judge). ABSENT at BASE = report (the
 #      bootstrap state; a line says so). A mode that cannot be read, or is neither word, = enforce (fail closed).
-#      The mode is read BEFORE the ring: in report an unread ring prints `would refuse <tip> (unread allowed_signers ring)`
-#      rc 0 and only when a row change must be verified (a 0-change range needs no ring); the ONE report-mode rc 1 is a
-#      BASE or TIP that does not rev-parse (it runs before the mode is known, the mode lives at BASE: fail closed).
+#      The mode is read BEFORE anything else but the schema it lives in, and before the ring: the report-mode rc 1 set is
+#      EXACTLY (a) a BASE or TIP that does not rev-parse, (b) a tmpdir that cannot be made, (c) the schema unreadable at BASE,
+#      not a frontmatter mapping, or its r_land.mode neither word: the mode's own home, fail closed (they run before the
+#      mode is known). Every later unread (vetoes, ladder, their yaml, the joined data, a cell's rows, the range, the ring)
+#      prints `R-land: would refuse <tip> (unread <what>)` rc 0 in report and `R-land: unread (<what>)` rc 1 in enforce. The
+#      ring is read only when a row change must be verified in report (a 0-change range needs none and says ok).
 #      Flipping it is ONE commit on a RULES path, at all three call sites together (they all read this one cell).
 #  R5  what this is: enforced at every trunk move except a deliberate core.hooksPath bypass. A hook guards against
 #      MISTAKES; it is not a wall.
@@ -41,27 +44,35 @@ A=${AGI_RING:-$(git config --get gpg.ssh.allowedSignersFile 2>/dev/null)}
 RING(){ [ -n "$A" ]&&[ -r "$A" ]||U "allowed_signers ring"; }   # called AFTER the mode is known (U reads MODE)
 d=$(mktemp -d)||U "tmpdir"; trap 'rm -rf "$d"' EXIT
 G=.agi/nodes/.geometry
+# the mode lives in the SCHEMA, so the schema is read and parsed ALONE first, and MODE is set from it BEFORE any other cell is read:
+# every later unread (vetoes, ladder, their yaml, a cell's rows, the range, the ring) is judged under the mode (U above).
 git cat-file blob "$B:.agi/context/schemas/[config].md" >"$d/schema" 2>/dev/null||U "config schema at ${B%${B#????????}}"
-git cat-file blob "$B:$G/vetoes.md" >"$d/vetoes" 2>/dev/null||U "vetoes at ${B%${B#????????}}"
-git cat-file blob "$B:$G/ladder.md" >"$d/ladder" 2>/dev/null||U "ladder at ${B%${B#????????}}"
-python3 -I - "$d" >"$d/data.json" <<'PY' 2>/dev/null||U "yaml frontmatter of schema/vetoes/ladder at BASE"
+yamlpass(){ # name... -> one JSON object {name: mapping}; rc 1 unless every named cell is a frontmatter mapping
+python3 -I - "$d" "$@" <<'PY'
 import sys, json, re, yaml
-def fm(n):
-    t = open(sys.argv[1] + "/" + n, encoding="utf-8").read()
+d, out = sys.argv[1], {}
+for n in sys.argv[2:]:
+    t = open(d + "/" + n, encoding="utf-8").read()
     m = re.match(r"---\n(.*?)\n---", t, re.S)
-    return yaml.safe_load(m[1]) if m else None
-s, v, l = (fm(n) for n in ("schema", "vetoes", "ladder"))
-if not all(isinstance(x, dict) for x in (s, v, l)):
-    sys.exit(1)
-print(json.dumps({"schema": s, "vetoes": v, "ladder": l}, default=str))
+    v = yaml.safe_load(m[1]) if m else None
+    if not isinstance(v, dict):
+        sys.exit(1)
+    out[n] = v
+print(json.dumps(out, default=str))
 PY
-jq -e . "$d/data.json" >/dev/null 2>&1||U "data at BASE"
-case $(jq -r 'if (.schema.r_land|type)=="object" then (.schema.r_land.mode // "absent"|tostring) else "absent" end' "$d/data.json" 2>/dev/null) in
+}
+yamlpass schema >"$d/schema.json" 2>/dev/null||U "yaml frontmatter of the schema at ${B%${B#????????}}"
+jq -e . "$d/schema.json" >/dev/null 2>&1||U "schema data at ${B%${B#????????}}"
+case $(jq -r 'if (.schema.r_land|type)=="object" then (.schema.r_land.mode // "absent"|tostring) else "absent" end' "$d/schema.json" 2>/dev/null) in
   report) MODE=report;;
   enforce) MODE=enforce;;
   absent) MODE=report; echo "R-land: mode report (r_land.mode absent at ${B%${B#????????}})";;
   *) U "r_land.mode at ${B%${B#????????}}: neither report nor enforce";;
 esac
+git cat-file blob "$B:$G/vetoes.md" >"$d/vetoes" 2>/dev/null||U "vetoes at ${B%${B#????????}}"
+git cat-file blob "$B:$G/ladder.md" >"$d/ladder" 2>/dev/null||U "ladder at ${B%${B#????????}}"
+yamlpass vetoes ladder >"$d/vl.json" 2>/dev/null||U "yaml frontmatter of vetoes/ladder at ${B%${B#????????}}"
+jq -s '.[0] + .[1] | {schema, vetoes, ladder}' "$d/schema.json" "$d/vl.json" >"$d/data.json" 2>/dev/null||U "data at ${B%${B#????????}}"
 V=refused; [ $MODE = report ]&&V="would refuse"
 [ $MODE = enforce ]&&RING   # enforce reads the ring up front (fail closed); report reads it only when a row change is judged
 

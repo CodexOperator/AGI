@@ -42,7 +42,7 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
                piece on posts/belam + core/season3/main). ONE mode cell decides what a refusal does: BASE's [config].md `r_land: {mode:
                report|enforce}` (read from BASE, never TIP; absent = report; neither word = unread, enforce). enforce: rc 1 RED, `R-land:
                refused <commit> (<signer>, <row>, <op> <cells>, <rule>)` or `R-land: unread (<what>)`, return the tip. report (the start): the SAME
-               lines read `R-land: would refuse <commit> (...)` and an unread reads `R-land: would refuse <tip> (unread <what>)` (a ringless uid too: the mode is read BEFORE the ring; the ONE report rc 1 is a BASE/TIP that does not rev-parse), rc 0, the ref
+               lines read `R-land: would refuse <commit> (...)` and an unread reads `R-land: would refuse <tip> (unread <what>)` (a ringless uid too, and a broken vetoes/ladder: the mode is read FIRST, from the schema alone; the report rc 1 set is a BASE/TIP that does not rev-parse, no tmpdir, or the schema unreadable / not a mapping / its mode neither word), rc 0, the ref
                MOVES: read every such line and table it (signer, cell, op, one row each): (i) a legitimate flow lacking a grant -> a proposed
                actor_rows grant, banked to the OWNER as ONE batch ([config].md is a RULES path); (ii) a real violation -> the flow moves to
                belam. TIME-BOX: report mode past one lap without that table reads RED on this gate line. FLIP = ONE commit setting the cell to
