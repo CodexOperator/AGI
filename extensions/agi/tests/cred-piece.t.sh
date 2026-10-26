@@ -91,4 +91,15 @@ ok "cred-i-MUTANT-R2-ok-line-without-the-format-only-wording-reads-RED" '! grep 
 mscript '.resolve()' ''||{ echo "FAIL mutant R3: target absent";f=$((f+1));}
 r3 $T/mut.py
 ok "cred-i-MUTANT-R3-a-relative-path-line-reads-RED (line: $(cut -c1-80 $T/o))" '! grep -q " rows in $T/stale/.agi/nodes/.geometry/posts.md (" $T/o'
+# r3 (the census, sp's condition): the two helpers' guards are RUN rows -- a target that is absent fails closed with its name; with the guard dropped the mutant is an unmutated copy and its own row reads RED
+x=$(f=0;mutant selftest 'NO-SUCH-LITERAL-XYZ' q "$BAD" 'names another login' 2>/dev/null;echo "f=$f")
+ok "cred-r3-mutant-an-absent-target-fails-closed-and-names-itself: $(echo "$x"|tr '\n' '|'|cut -c1-110)" 'echo "$x"|grep -q "^FAIL mutant selftest: target absent"&&echo "$x"|grep -qx "f=1"&&! echo "$x"|grep -q "^ok \|^FAIL cred-e-MUTANT"'
+mscript 'NO-SUCH-LITERAL-XYZ' q >/dev/null 2>&1;m3rc=$?
+ok "cred-r3-mscript-an-absent-target-exits-non-zero (rc $m3rc)" '[ $m3rc != 0 ]'
+python3 - "$CP" "$T/mut.py" 'NO-SUCH-LITERAL-XYZ' q <<'P'
+import sys
+s=open(sys.argv[1]).read();open(sys.argv[2],'w').write(s.replace(sys.argv[3],sys.argv[4],1))
+P
+row "$BAD"|posts;python3 $T/mut.py $T/p.md >$T/o 2>$T/e;m3=$?
+ok "cred-r3-mutant-the-assert-dropped-leaves-an-unmutated-copy-whose-own-row-reads-RED (rc $m3, the refusal is still there: $(grep -c 'names another login' $T/e))" '[ $m3 = 1 ]&&grep -q "names another login" $T/e'
 echo "cred-piece: $f FAIL";exit $f
