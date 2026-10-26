@@ -17,7 +17,7 @@ frontmatter:
 nothing else. `hierarchy.py --check` is the drift checker: it exits zero on
 the tree as it stands and nonzero, one line per violation, on every drift
 class measured live on 2026-09-08. THIS FILE is the single reader; anything
-that draws the seat/ladder structure (viewport's hierarchy layer, seat_status)
+that draws the seat/ladder structure (viewport's hierarchy layer; the seat view lives here)
 should read through it, so the graph and the human/llm renderings cannot
 disagree the way the prose sources used to.
 
@@ -35,6 +35,7 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+from dataclasses import dataclass, field
 from pathlib import Path
 
 _HERE = Path(__file__).resolve().parent
@@ -130,6 +131,152 @@ def _pin_target(root: Path, name: str):
 
 def _has_pin(root: Path, name: str) -> bool:
     return (seat_sessions_dir(root) / f"{name}.meter").is_file()
+
+
+# --------------------------------------------------------------------------- #
+# The seat view: the live board's two answers, [R] registry rows + [M] meter
+# fraction (owner atom 8.1, goal:g7.16.1.11.46.16: seat_status.py is retired).
+# Its other two answers -- the ephemeral lease count [L] and the cost roll-up
+# [C] -- are gone from both viewport heads on purpose, not moved.
+# --------------------------------------------------------------------------- #
+#: Default ladder field the meter's fractions are measured against, when the
+#: ladder node or its field is absent. Mirrors rotate's own default.
+DEFAULT_DIRECTOR_CONTEXT_TOKENS = 1_000_000
+
+
+@dataclass
+class SeatsView:
+    """Every fact the live seat section states, computed once."""
+
+    registry_present: bool = False
+    seats: list = field(default_factory=list)
+    #: Each seat: {name, role, town, session_kind, rotated_by, worktree,
+    #:            session_ref, fraction: float|None, fraction_source: str}
+
+
+def _rows_via_zoom(root: Path) -> list:
+    """Last-resort row read, posts-first with the seats fallback. zoom's
+    frontmatter view is keyed by file-id+list-key, so the renamed layout
+    (`config:posts`.`posts`) must be tried before the deprecated
+    `config:seats`.`seats` -- a hardcoded seats-only lookup returns [] the
+    moment the file is posts.md."""
+    try:
+        import zoom as _zoom
+        gf = _zoom._frontmatter_for(root, ".geometry")
+        rows = (gf.get("config:posts") or {}).get("posts")
+        if not rows:
+            rows = (gf.get("config:seats") or {}).get("seats")
+        return rows or []
+    except Exception:                                                # noqa: BLE001
+        return []
+
+
+def _load_registry_rows(root: Path) -> tuple[list, bool]:
+    """`(rows, present)`: the rows through `load_seats` (the one reader), and
+    whether the geometry config file exists (posts-first, else the deprecated
+    seats.md, via geometry_config -- never a literal seats.md). Absent file ->
+    `([], False)`, the fail-open contract everything else degrades to."""
+    cfg = _gc.geometry_config_path(root)
+    present = cfg is not None and cfg.is_file()
+    try:
+        rows = load_seats(root)
+    except Exception as exc:                                        # noqa: BLE001
+        print(f"warn: hierarchy could not read seats: "
+              f"{type(exc).__name__}: {exc}", file=sys.stderr)
+        return list(_rows_via_zoom(root)), True
+    return list(rows), True if rows or present else False
+
+
+def seat_fraction(root: Path, name: str):
+    """`(fraction, source)` for one seat's meter pin, best-effort.
+
+    Resolves the seat-stable pin `<root>/sessions/<name>.meter`, reads the
+    transcript it names, parses usage and divides by the ladder's
+    `director_context_tokens`. Any of the steps being absent or malformed
+    returns `(None, reason)` rather than raising -- the seat still renders,
+    flagged as unmeasured.
+    """
+    try:
+        import rotate as _rotate
+        pin = _rotate.find_pin_log(root, seat=name)
+        if pin is None:
+            return None, "no_pin"
+        target = _rotate._read_pin_target(pin)
+        if target is None:
+            return None, "pin_empty"
+        usage = _rotate.parse_usage_from_cc_transcript(target)
+        if usage is None:
+            usage = _rotate.parse_usage_from_rc_log(target)
+        if usage is None:
+            return None, "no_usage"
+        context = _rotate.load_ladder_field(
+            root, "director_context_tokens", DEFAULT_DIRECTOR_CONTEXT_TOKENS)
+        try:
+            context = int(context)
+        except (TypeError, ValueError):
+            context = DEFAULT_DIRECTOR_CONTEXT_TOKENS
+        return _rotate.calculate_fraction(usage, context), "meter"
+    except Exception as exc:                                         # noqa: BLE001
+        print(f"warn: hierarchy could not read meter for {name}: "
+              f"{type(exc).__name__}: {exc}", file=sys.stderr)
+        return None, "error"
+
+
+def collect_seats(root: Path) -> SeatsView:
+    """Compute the one `SeatsView` both viewport readers state. It computes, it
+    never writes; absent anything it fails open to an absent registry or a
+    `fraction=None`, never a traceback."""
+    try:
+        rows, present = _load_registry_rows(root)
+    except Exception:                                                  # noqa: BLE001
+        rows = _rows_via_zoom(root)
+        present = bool(rows)
+    import towns as _towns
+    seats: list = []
+    for r in rows or []:
+        name = str(r.get("name") or "")
+        if not name:
+            continue
+        fraction, fsrc = seat_fraction(root, name)
+        seats.append({
+            "name": name,
+            "role": str(r.get("role") or ""),
+            "town": _towns.row_town(root, r),
+            "session_kind": str(r.get("session_kind") or ""),
+            "rotated_by": str(r.get("rotated_by") or ""),
+            "worktree": str(r.get("worktree") or ""),
+            "session_ref": str(r.get("session_ref") or ""),
+            "fraction": fraction,
+            "fraction_source": fsrc,
+        })
+    return SeatsView(registry_present=present, seats=seats)
+
+
+def seats_to_markdown(v: SeatsView) -> list[str]:
+    """The seat section for `render_llm`."""
+    out = ["## seat status"]
+    if not v.registry_present:
+        out.append("no seat registry yet")
+        return out
+    for s in v.seats:
+        frac = f" {s['fraction']:.0%}" if s["fraction"] is not None else ""
+        wt = f" worktree={s['worktree']}" if s.get("worktree") else ""
+        addr = f" [{s['session_ref']}]" if s.get("session_ref") else ""
+        out.append(f"- seat {s['name']}{addr} ({s['role']}/{s['session_kind']})"
+                   f" town={s.get('town') or 'core'}"
+                   f" rotated_by={s['rotated_by'] or '-'}{frac}{wt}")
+    return out
+
+
+def seats_to_compact(v: SeatsView) -> list[str]:
+    """One line per seat -- the human viewport's slice."""
+    if not v.registry_present:
+        return ["no seat registry yet"]
+    out = []
+    for s in v.seats:
+        frac = f" {s['fraction']:.0%}" if s["fraction"] is not None else ""
+        out.append(f"{s['name']} ({s['role']}) [{s.get('town') or 'core'}]{frac}")
+    return out
 
 
 # --------------------------------------------------------------------------- #
@@ -360,7 +507,6 @@ def check_body_tables(root: Path) -> list:
 # shared links.parse_written_by parser, never a second one (goal:s17); .where
 # resolves through links.link_path, never a second resolver.
 # --------------------------------------------------------------------------- #
-from dataclasses import dataclass, field
 
 # `wake` IS DELIBERATELY ABSENT from .cost: a track that needs another session
 # to answer is polling, and polling rebuilds the chatter the owner removed.

@@ -388,13 +388,16 @@ def test_an_unreadable_session_dir_is_not_home_and_an_unreadable_link_is_not_cre
 
 
 @NOT_ROOT
-def test_the_window_seams_answer_unknown_not_a_raise_on_an_unreadable_file(tmp_path):
+def test_the_window_seams_on_an_unreadable_file(tmp_path):
+    """goal:g7.16.1.11.45.6 R5: the window LIST raises (an unread list is never "no windows"); the two
+    pane-pid seams answer the UNKNOWN values their docstrings define (0 / {}), never "dead"."""
     closed = tmp_path / "closed"
     closed.mkdir()
     w = closed / "windows"
     w.write_text("@1 main\n")
     with closed_dir(closed):
-        assert heal._all_windows(str(w)) == []
+        with pytest.raises(PermissionError):
+            heal._all_windows(str(w))
         assert heal._pane_pid_of("@1", str(w)) == 0
         assert heal._pane_pid_map(str(w)) == {}
 
@@ -411,6 +414,9 @@ ALLOW = {
     ("_main_heal", "if not ap_file.exists():"):
         "the same CLI loop over the manifest's own agent dirs (same uid, written by the driver this iteration); "
         "a raise surfaces a broken session dir loudly, and skipping would let the loop declare the round finished",
+    ("_all_windows", "if not p.exists():  # goal:g7.16.1.11.45.6: an UNREAD seam file RAISES (loud); [] means \"no windows\""):
+        "goal:g7.16.1.11.45.6 R5 (GATE275 fix-forward): the window-list seam must RAISE on an unreadable file, as "
+        "before .45.5 -- `[]` is the value for \"no windows\" and an unread list must never read as that",
     ("_read_seat_log_tail", "if p.exists():"):
         "inside `try: ... except Exception: continue` -- a raise is swallowed to the next candidate and never "
         "read as 'absent'",

@@ -9765,15 +9765,15 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
                 if p1 is not None else "push could not run"
             return (False, "refused",
                     f"push: push origin {_CLOSEOUT_MERGE_TARGET} refused: {_e}")
-        p2 = _git_proc(main, "push", "origin", grid_spec)
+        p2 = _git_proc(main, "push", "origin", *grid_spec)
         if p2 is None or p2.returncode != 0:
             _e = (p2.stderr or p2.stdout or "nonzero exit").strip() \
                 if p2 is not None else "push could not run"
             return (False, "refused",
-                    f"push: push origin {grid_spec} refused: "
+                    f"push: push origin {' '.join(grid_spec)} refused: "
                     f"{_e}")
         return (True, "ok",
-                f"push origin {_CLOSEOUT_MERGE_TARGET} + {grid_spec} from MAIN")
+                f"push origin {_CLOSEOUT_MERGE_TARGET} + {' '.join(grid_spec)} from MAIN")
 
     def _verify_stamp():
         # verification --level rotation --stamp in MAIN (cwd).

@@ -67,8 +67,9 @@ cadences:
     every_mins: 30
     enabled: true
     box: encryption-town
-    why_box: "goal:g7.16.1.11.46.16 G1a host act step (f), the stranded-writer lap (council 3/3 alive 01:53:32Z R5 + 07:14:42Z GO on L147 d94316fced): MAIN's refs/grid is uid belam's, so this runs in belam's own crontab beside grid_sync, same cadence; `grid.py unify --write` is idempotent (a second run moved 0 of 6026 at 07:2xZ 10-26) and merges any version a PRE-land writer strands in refs/grid/local-maxxing. (e) stamp 2026-10-26T07:31:20Z (unix 1792999880). The lap CLOSES when `git for-each-ref --sort=-committerdate --count=1 --format='%(committerdate:unix)' refs/grid/local-maxxing/node` shows no tip newer than that stamp for a full lap; then this row is set enabled: false (belam)."
+    why_box: "goal:g7.16.1.11.46.16 G1a host act step (f), the stranded-writer lap (council 3/3 alive 01:53:32Z R5 + 07:14:42Z GO on L147 d94316fced): MAIN's refs/grid is uid belam's, so this runs in belam's own crontab beside grid_sync, same cadence; `grid.py unify --write` is idempotent (a second run moved 0 of 6026 at 07:2xZ 10-26) and merges any version a PRE-land writer strands in refs/grid/local-maxxing. (e) stamp 2026-10-26T07:31:20Z (unix 1792999880). The lap CLOSES when `git for-each-ref --sort=-committerdate --count=1 --format='%(committerdate:unix)' refs/grid/local-maxxing/node` shows no tip newer than that stamp for a full lap; then this row is set enabled: false (belam). `needs: grid_sync` (SM [red] 08:2xZ 10-26): rendered only while grid_sync is enabled, so retiring the grid stops this writer with every other one."
     cmd: python3 {repo_root}/extensions/agi/bin/grid.py unify --write
+    needs: grid_sync
   memory_alarm:
     every_mins: 1
     enabled: true

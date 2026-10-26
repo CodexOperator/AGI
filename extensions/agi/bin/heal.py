@@ -465,7 +465,10 @@ def _discover_rounds(root: Path) -> list[tuple[Path, Path]]:
     except OSError:
         pass
     wt_base = root / "worktrees"
-    if wt_base.is_dir():
+    wt_state = _sweep_is_dir(wt_base)
+    if wt_state is None:
+        _watch_log(f"watch: worktrees dir unread ({_errno_name(wt_base)}): the rounds under it are not discovered")
+    if wt_state is True:  # goal:g7.16.1.11.45.6: unreadable = no rounds read here, and NAMED
         try:
             for mp in sorted(wt_base.glob(
                     f"*/.agi/sessions/{locations.ITER_DIR_PREFIX}*/manifest.json")):
@@ -755,7 +758,10 @@ def _run_pending_after_joins(root: Path) -> None:
 def _registry_now_has(rot, succ_id, registry_dir):
     """First registry file whose content matches succ_id by @id, else None."""
     reg = Path(registry_dir or rot.REGISTRY_DEFAULT_DIR).expanduser()
-    if not reg.is_dir():
+    reg_state = _sweep_is_dir(reg)
+    if reg_state is None:
+        _watch_log(f"watch: registry unread ({_errno_name(reg)}): no successor matched")
+    if reg_state is not True:  # goal:g7.16.1.11.45.6: unreadable = nothing matched, and NAMED
         return None
     try:
         for fp in sorted(reg.glob("*.json")):
@@ -1100,7 +1106,10 @@ def _late_reap_skipped_pass(root, *, window_path=None,
         rot_dir = rot._rotations_dir(root)
     except Exception:
         return
-    if not rot_dir.is_dir():
+    rot_state = _sweep_is_dir(rot_dir)
+    if rot_state is None:
+        _watch_log(f"watch: rotations dir unread ({_errno_name(rot_dir)}): late reap skipped")
+    if rot_state is not True:  # goal:g7.16.1.11.45.6
         return
     for p in sorted(rot_dir.glob("*.json")):
         try:
@@ -1205,7 +1214,7 @@ def _sweep_worktree_base(root: Path, wt: Path, season: int | None) -> str | None
     cannot be resolved, so its worktree is NOT removed (a round whose landing
     cannot be proven must not be reaped)."""
     sess = wt / ".agi" / "sessions"
-    if sess.is_dir():
+    if _sweep_is_dir(sess) is True:  # goal:g7.16.1.11.45.6: unreadable -> base None -> the tree is NOT removed
         for it in sorted(sess.glob("iter-*")):
             ap = it / "agent.json"
             if _exists3(ap) is True:
@@ -1376,8 +1385,8 @@ def _sweep_iter_home(wt_iter: Path, target: Path) -> bool:
         return False  # goal:g7.16.1.11.45.5: unreadable is NOT gone -- fail CLOSED, the bring-home runs
     if not gone:
         return True  # session-complete removed it only after verification
-    if not target.is_dir():
-        return False
+    if _sweep_is_dir(target) is not True:
+        return False  # goal:g7.16.1.11.45.6: an unreadable home is NOT home -- fail CLOSED
     try:
         import cli as _cli  # noqa: E402 — never at module import (see below)
         slug = _cli._src_slug(wt_iter)
@@ -1412,10 +1421,10 @@ def _sweep_cold_link(root: Path, main_sessions: Path, iter_name: str):
     None (no cell, an entry already there, or the link failed)."""
     cold = locations.guard_cell(root, "AGI_SESSIONS_ARCHIVE")
     link = main_sessions / iter_name
-    if not cold or _exists3(link) is not False or link.is_symlink():
+    if not cold or _exists3(link) is not False or _is_symlink3(link) is not False:
         return None
     dest = Path(cold) / iter_name
-    if _exists3(dest) is not False or dest.is_symlink():  # never write into a foreign dir (nor one we cannot see)
+    if _exists3(dest) is not False or _is_symlink3(dest) is not False:  # never write into a foreign dir (nor one we cannot see)
         dest = Path(cold) / f"{iter_name}.{int(time.time())}"
     try:
         dest.mkdir(parents=True)
@@ -1790,6 +1799,38 @@ def _exists3(p: Path) -> bool | None:
         return None
 
 
+def _is_file3(p: Path) -> bool | None:
+    """goal:g7.16.1.11.45.6: `_sweep_is_dir`'s shape for `Path.is_file()`, which
+    RAISES PermissionError behind an unreadable parent exactly as `exists()` does.
+    True / False when the filesystem answers, None when it cannot (never a raise,
+    never "not a file")."""
+    try:
+        return p.is_file()
+    except OSError:
+        return None
+
+
+def _is_symlink3(p: Path) -> bool | None:
+    """goal:g7.16.1.11.45.6: `_sweep_is_dir`'s shape for `Path.is_symlink()` (an
+    lstat: it raises PermissionError when the PARENT cannot be searched). True /
+    False when the filesystem answers, None when it cannot."""
+    try:
+        return p.is_symlink()
+    except OSError:
+        return None
+
+
+def _proven_file(p: Path, seat: str, what: str, consequence: str) -> bool:
+    """goal:g7.16.1.11.45.6: True ONLY for a file the filesystem proves is there. An
+    unreadable parent is NOT "no file": it is NAMED in the watch log (`<what> unread
+    (<errno>): <consequence>`) and answers False -- the three recovery-path sites
+    (stale suite lock, resume transcript, seat card) all fail toward "do not act on it"."""
+    there = _is_file3(p)
+    if there is None:
+        _watch_log(f"watch: seat {seat} {what} unread ({_errno_name(p)}): {consequence}")
+    return there is True
+
+
 def _errno_name(p: Path) -> str:
     """The errno NAME the probe could not get past (EACCES, ...), for the line that
     reports an unread answer. Only called after `_exists3` returned None."""
@@ -1830,7 +1871,10 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
     into the watch loop. Returns `(removed, refused, kept)`."""
     removed = refused = kept = 0
     wt_base = root / "worktrees"
-    if not wt_base.is_dir():
+    base_state = _sweep_is_dir(wt_base)
+    if base_state is None:
+        _watch_log(f"[sweep] worktrees dir unread ({_errno_name(wt_base)}): nothing swept")
+    if base_state is not True:  # goal:g7.16.1.11.45.6: unreadable = nothing swept, and NAMED
         return (0, 0, 0)
     main_checkout = locations.git_common_root(root)
     if grace_min is None:
@@ -1908,8 +1952,14 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
             root, wt_p, _sweep_season(b0))
     for wt in sorted(wt_base.glob("a00-*")):
         _walked()
-        gone = locations.path_gone(wt) if wt.is_symlink() else False
-        if wt.is_symlink() and gone is None and not dry_run \
+        is_link = _is_symlink3(wt)
+        if is_link is None:
+            # goal:g7.16.1.11.45.6: the entry cannot be lstat'ed (EACCES on worktrees/):
+            # NOT a link and NOT a dir -- nothing is judged, dropped or unlinked
+            _watch_log(f"[sweep] left {wt.name}: link state unread ({_errno_name(wt)})")
+            continue
+        gone = locations.path_gone(wt) if is_link else False
+        if is_link and gone is None and not dry_run \
                 and wt.name not in live_ids:
             # goal:g7.16.1.11.45.4: the link's target cannot be looked at
             # (EACCES behind a closed parent): NOT gone, nothing is dropped or
@@ -1917,7 +1967,7 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
             _watch_log(f"[sweep] left {wt.name}: RAM target not provably gone; "
                        "left (not provably gone, or drop failed)")
             continue
-        if wt.is_symlink() and gone is True and not dry_run \
+        if is_link and gone is True and not dry_run \
                 and wt.name not in live_ids:
             # goal:g7.16.1.5.4 layout: a RAM worktree behind a symlink whose
             # target is gone (the tmpfs emptied at a reboot) -- the branch
@@ -2110,7 +2160,7 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         _, rm_rc = _git(["worktree", "remove", *(["--force"] if needs_archive
                                                  else []), str(wt.resolve())],
                         main_checkout, rm_err)
-        if rm_rc == 0 and wt.is_symlink():
+        if rm_rc == 0 and _is_symlink3(wt) is True:
             wt.unlink()
         if rm_rc != 0:
             refused += 1
@@ -2513,7 +2563,7 @@ def _all_windows(window_path: str | None = None) -> list[tuple[str, str]]:
         window_path = os.environ.get(WINDOW_PATH_ENV)
     if window_path:
         p = Path(window_path)
-        if _exists3(p) is not True:
+        if not p.exists():  # goal:g7.16.1.11.45.6: an UNREAD seam file RAISES (loud); [] means "no windows"
             return []
         out: list[tuple[str, str]] = []
         for ln in p.read_text(encoding="utf-8").splitlines():
@@ -2756,7 +2806,7 @@ def _seat_geometry_dir(root: Path, row: dict) -> Path | None:
     gdir = _seat_worktree_gdir(root, row)
     if gdir is None:
         return Path(root)
-    return gdir if gdir.is_dir() else None
+    return gdir if _sweep_is_dir(gdir) is True else None  # goal:g7.16.1.11.45.6: unreadable = a REFUSAL
 
 
 CRASH_LOOP_MAX_PER_HOUR = 3
@@ -2781,7 +2831,13 @@ def _crash_recovery_recorded(root: Path, seat: str, _rotate,
     that dies every few minutes is a finding for a human, not a spawn budget
     (the Belam cap of FIVE bounds the numeral chain the same way)."""
     rot = _rotate._rotations_dir(root)
-    if not rot.is_dir():
+    rot_state = _sweep_is_dir(rot)
+    if rot_state is None:
+        # goal:g7.16.1.11.45.6: an unread record dir cannot prove "no earlier respawn":
+        # HOLD the respawn (True) and say so, never a raise and never "no record"
+        _watch_log(f"watch: seat {seat} rotations dir unreadable ({_errno_name(rot)}): respawn held")
+        return True
+    if not rot_state:
         return False
     now = now if now is not None else time.time()
     recent: list[float] = []
@@ -2958,7 +3014,13 @@ def _rotation_in_flight(root: Path, seat: str, _rotate,
     rot = _rotate._rotations_dir(root)
     if _success_record_rotated(root, seat, row, _rotate, now)[0] is not None:
         return True
-    if not rot.is_dir():
+    rot_state = _sweep_is_dir(rot)
+    if rot_state is None:
+        # goal:g7.16.1.11.45.6: an unread record dir cannot prove "no rotation in flight":
+        # in flight (fail CLOSED: nothing is reaped or respawned over it)
+        _watch_log(f"watch: seat {seat} rotations dir unreadable ({_errno_name(rot)}): treated as in flight")
+        return True
+    if not rot_state:
         return False
     for path in sorted(rot.glob(f"{seat}.*.json")):
         try:
@@ -3000,7 +3062,7 @@ def _abort_crashed_rotations(root: Path, seat: str, row: dict,
     if pid <= 0 or pid_alive(pid):
         return []
     rot = _rotate._rotations_dir(root)
-    if not rot.is_dir():
+    if _sweep_is_dir(rot) is not True:  # goal:g7.16.1.11.45.6: unread = nothing aborted (nothing is rewritten blind)
         return []
     aborted: list[Path] = []
     for path in sorted(rot.glob(f"{seat}.*.json")):
@@ -3068,7 +3130,13 @@ def _pin_table(root: Path, rows: list) -> tuple[dict, list]:
                      for i in range(1, pred_n + 1)]
         for pin_name in [own_pin] + pred_pins:
             pf = sdir / pin_name
-            if not pf.is_file():
+            pf_there = _is_file3(pf)
+            if pf_there is None:
+                # goal:g7.16.1.11.45.6: an unread pin file is NAMED, never "absent"
+                skipped.append({"seat": seat, "pin_path": str(pf),
+                                "reason": f"pin unread ({_errno_name(pf)})"})
+                continue
+            if not pf_there:
                 if pin_name != own_pin:
                     skipped.append({"seat": seat, "pin_path": str(pf),
                                     "reason": "predecessor pin file absent"})
@@ -3094,12 +3162,26 @@ def _pin_table(root: Path, rows: list) -> tuple[dict, list]:
     return pins, skipped
 
 
+class _Unread:
+    """goal:g7.16.1.11.45.6 F1: the ONE distinct "could not read" value for a table whose consumers decide LIVENESS.
+    It is NOT None: `_watch_one_seat`'s `seat_sessions=None` means "not passed, read it yourself", so an unread None
+    would be re-fetched and then handed to `_alive_via_pin` as a value; and it is NOT `[]`, which means "no sessions"
+    and licenses a recovery launch over a session that may be alive. Tested with `is UNREAD`, never `==`."""
+    def __repr__(self) -> str:
+        return "UNREAD"
+
+
+UNREAD = _Unread()
+
+
 def _seat_sessions(registry_dir: str | None = None,
-                   windows: list[tuple[str, str]] | None = None) -> list[dict]:
+                   windows: list[tuple[str, str]] | None = None) -> "list[dict] | _Unread":
     """(1b) THE SEAT SESSION TABLE — one entry per Claude Code session on the
     box whose registry file's `tmux` cell carries an `@id` that resolves,
     through the SAME window list `_all_windows` already builds, to a live
-    window. Returns `[{pid, session_id, window_id, window_name}]`.
+    window. Returns `[{pid, session_id, window_id, window_name}]`, or `UNREAD`
+    when the registry (or one of its files) cannot be read: "cannot see" is NOT
+    "no sessions" (goal:g7.16.1.11.45.6 F1; a MISSING dir stays `[]`).
 
     (clause 4) every OTHER registry file — the owner's remote-control sessions
     (`tmux: None`), the streamer stub, anything unnamed — is NOT a seat
@@ -3110,15 +3192,24 @@ def _seat_sessions(registry_dir: str | None = None,
     real process; reads only `<registry_dir>/<pid>.json`."""
     import rotate as _rotate  # noqa: PLC0415
     reg = Path(registry_dir or _rotate.REGISTRY_DEFAULT_DIR).expanduser()
-    if not reg.is_dir():
-        return []
+    reg_state = _sweep_is_dir(reg)
+    if reg_state is None:
+        _watch_log(f"watch: registry unreadable ({_errno_name(reg)}): liveness unknown")
+        return UNREAD
+    if not reg_state:
+        return []    # a MISSING registry dir is a legal "no sessions"
     win_by_id = {wid: name for (wid, name) in (windows or [])}
     _RE_ID = re.compile(r"@(\d+)")
     out: list[dict] = []
     for fp in sorted(reg.glob("*.json")):
         try:
             data = json.loads(fp.read_text(encoding="utf-8", errors="replace"))
-        except (OSError, json.JSONDecodeError):
+        except FileNotFoundError:
+            continue    # the session ended between the listing and the read
+        except OSError:
+            _watch_log(f"watch: registry file {fp.name} unreadable ({_errno_name(fp)}): liveness unknown")
+            return UNREAD
+        except json.JSONDecodeError:
             continue
         if not isinstance(data, dict):
             continue
@@ -3218,8 +3309,8 @@ def _judge_leases(pins: dict, sessions: list, rows: list, root: Path,
     if belam_row and pred_n > 0:
         sdir = _rotate._sessions_dir(root)
         pred_complete = all(
-            (sdir / f"{belam_name}.pred-{i}{_rotate.METER_PIN_EXT}").is_file()
-            for i in range(1, pred_n + 1))
+            _is_file3(sdir / f"{belam_name}.pred-{i}{_rotate.METER_PIN_EXT}") is True
+            for i in range(1, pred_n + 1))  # goal:g7.16.1.11.45.6: unread = not complete (BELAM-UNPINNED, nothing reaped)
     res: list[dict] = []
     for s in sessions or []:
         wname = (s.get("window_name") or "").strip()
@@ -3330,6 +3421,9 @@ def _pin_reap_pass(root: Path, *, registry_dir: str | None = None,
     windows = _all_windows(window_path)
     pins, _skipped = _pin_table(root, rows)
     sessions = _seat_sessions(registry_dir, windows)
+    if sessions is UNREAD:
+        _watch_log("watch: pin-reap pass skipped: registry unreadable, nothing judged and nothing reaped")
+        return []
     judged = _judge_leases(pins, sessions, rows, root,
                            now=now if now is not None else time.time(),
                            pid_alive=pid_alive)
@@ -3576,7 +3670,7 @@ def _clean_stale_layout_locks(root: Path, row: dict) -> None:
                    f"{(row.get('name') or '')!r}; stale-lock clean skipped")
         return
     lock = gdir / "sessions" / verification.suite_lock_name(gdir)
-    if lock.is_file():
+    if _proven_file(lock, str(row.get("name") or ""), lock.name, "stale-lock clean skipped"):
         try:
             lock.unlink()
             _watch_log(f"watch: removed stale {lock.name} under "
@@ -3711,7 +3805,8 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
     if sid:
         tp = _rotate.transcript_from_registry_dict(
             {"cwd": str(_seat_tree_dir(root, row)), "session_id": sid})
-        if tp and Path(tp).is_file():
+        # goal:g7.16.1.11.45.6: resume only a transcript PROVEN there; an unread one is a fresh spawn
+        if tp and _proven_file(Path(tp), seat, "transcript", "fresh spawn, no resume"):
             resume = sid
             gen = int(row.get("generation", 0) or 0) or gen
             _nm = str(row.get("session_name") or "").strip()
@@ -3757,7 +3852,7 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
         from node_writer import find_node_file  # noqa: PLC0415
         card = (find_node_file(gdir, f"doc:card-{seat}")
                 or gdir / "sessions" / "quorum" / f"{seat}.md")
-        if Path(card).is_file():
+        if _proven_file(Path(card), seat, "card", "recovery prompt carries no card"):
             card_file = str(card)
     # hypothesis:heal-ack-line-comes-from-config-rotations-by-role: the wording
     # is config:rotations `recovery_ack[role|default][recovered|resumed]`.
@@ -3855,7 +3950,7 @@ def _latest_detected_path(root: Path, seat: str, _rotate, now: float) \
     nine-detected-records-per-seating defect. Reusing the existing detected
     record's path keeps ONE record per death, updated in place."""
     rot = _rotate._rotations_dir(root)
-    if not rot.is_dir():
+    if _sweep_is_dir(rot) is not True:  # goal:g7.16.1.11.45.6: unread = no existing record to update
         return None
     for path in sorted(rot.glob(f"{seat}.*.json"), reverse=True):
         try:
@@ -4022,6 +4117,11 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
             pin_table = _pt
         if seat_sessions is None:
             seat_sessions = _seat_sessions(registry_dir, windows)
+    if seat_sessions is UNREAD:
+        # goal:g7.16.1.11.45.6 F2: liveness is UNKNOWN, so the dead-looking row may be a stale row over a LIVE session:
+        # HOLD the recovery (as `_crash_recovery_recorded` does for an unread rotations dir), named, never a launch
+        _watch_log(f"watch: seat {seat} respawn held: registry unreadable, liveness unknown")
+        return {}
     live = _alive_via_pin(pin_table, seat_sessions, seat, pid_alive)
     if live is None:
         # goal:g7.16.1.7.1.1.2.1: the row's OWN session_id open in a live

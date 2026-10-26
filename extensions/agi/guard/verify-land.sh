@@ -75,7 +75,25 @@ if [ -n "$X" ];then P2=$(git log -1 --format=%P $L);echo "R3 wrap parents: $(ech
 t1=$(git rev-parse $L^{tree});t2=$(git merge-tree --write-tree $B $G 2>/dev/null | head -1)
 echo "tree $(echo $t1|cut -c1-10) merge-tree $(echo $t2|cut -c1-10)";[ -n "$t2" ]&&[ "$t1" = "$t2" ]||hold tree
 echo "sigs: $(git log --format=%G? $B..$L | sort | uniq -c | tr '\n' ' ')";[ -z "$(git log --format=%G? $B..$L | grep -vx G)" ]||hold sigs
-nd=$(git diff --name-status $B $L | grep -c '^D');echo "D: $nd  files: $(git diff --name-status $B $L | tr '\t\n' ' ')";[ "$nd" = 0 ]||hold D
+# D (goal:g7.16.1.11.46.23.1, council 3/3 alive 09:55:09Z 10-26 (c)): renames PINNED (`-M`: the D set never depends on diff.renames, L154 read D 1 by default and
+# D 4 with diff.renames=false); a D is admitted ONLY by its exact path from BASE's .agi/config.json land.deletes_admitted [{path, ruling}] (never TIP's: a range
+# cannot admit its own delete), sets not counts (a listed dir/ covers nothing below it), a D under .agi/nodes/ never (a retire is an R into deprecated/).
+# The cell absent = [] (nothing admitted); unreadable or malformed = `deletes_admitted unread ...` and nothing admitted. Each entry is removed after its land.
+da(){ git cat-file blob $1:.agi/config.json 2>/dev/null|python3 -I -c 'import json,sys
+try: v=json.load(sys.stdin).get("land",{}).get("deletes_admitted",[])
+except Exception: sys.exit(1)
+ok=isinstance(v,list) and all(isinstance(e,dict) and isinstance(e.get(k),str) and e[k] and "\t" not in e[k] and "\n" not in e[k] for e in v for k in ("path","ruling"))
+print("".join(e["path"]+"\t"+e["ruling"]+"\n" for e in v),end="") if ok else sys.exit(1)';}
+ns=$(git diff -M --name-status $B $L);nd=$(printf '%s\n' "$ns"|grep -c '^D');echo "D: $nd  files: $(printf '%s\n' "$ns"|tr '\t\n' ' ')"
+ad=$(da $B)||{ echo "deletes_admitted unread at BASE $(echo $B|cut -c1-10): nothing admitted";ad=;}
+dl=$(printf '%s\n' "$ns"|sed -n 's/^D\t//p');du=0
+while IFS= read -r p;do [ -n "$p" ]||continue;r=$(printf '%s\n' "$ad"|awk -F'\t' -v p="$p" '$1==p{print $2;exit}')
+  case $p in .agi/nodes/*) echo "D not admitted: $p (a node: retire, never delete)";du=1;continue;;esac
+  [ -n "$r" ]&&echo "D admitted: $p ($r)"||{ echo "D not admitted: $p";du=1;};done <<EOD
+$dl
+EOD
+printf '%s\n' "$ad"|cut -f1|while IFS= read -r p;do [ -z "$p" ]||printf '%s\n' "$dl"|grep -qxF -- "$p"||echo "admitted but not deleted: $p";done
+[ "$du" = 0 ]||hold D
 git diff $B $L > "$S/$N.diff"; git log --format=%B $B..$L > "$S/$N.msg"
 python3 "$A" check --diff-file "$S/$N.diff"; a=$?;echo "anon-diff=$a";[ $a = 0 ]||hold anon-diff
 python3 "$A" check --text "$(grep -v -x -E 'Co-Authored-By: Claude (Opus|Sonnet|Haiku|Fable) [0-9]+\.[0-9]+ <noreply@anthropic\.com>' "$S/$N.msg")" >/dev/null; a=$?;em=$(grep -o -E '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' "$S/$N.msg" | sort -u | tr '\n' ' ')
