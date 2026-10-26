@@ -3,8 +3,12 @@
 # sh + git + python3 on a SCRATCH project (the engine's bin dir is COPIED under it, so crons.py's repo_root, success_metrics.py's root and write.py's graph are all the scratch); a v5 uid cannot read every uid's files, so nothing here touches the live box. No network (no OpenRouter key in the env or the scratch), 0 USD, a scratch crontab FILE (never the user's crontab). BIN = the extensions/agi/bin dir under test (default: ROOT's); a reference / mutant = BIN=<an edited copy of that dir>. The crons lanes read ROOT's own `.agi/nodes/.geometry/crons.md` (the node the builder edits). One ok/FAIL line per case; exit = FAIL count.
 # Lanes: A crons (a1 the shipped node declares the job ONCE with the AA1.S fields; a2 `crons.py apply` makes a scratch crontab agree, idempotently; a3 (dropped: DG1 15:59Z, a duplicate-key loader in crons.py is out of this round); a4 the rendered cron line, run by sh in the scratch, writes the cell) · B success_metrics.py --line (b1 ONE line in the AA1.S shape, rc 0, bounded, no && ; b2 exact counts on a known graph; b3 the 7 success metrics each a number or UNMEASURED(reason), none a number it does not have; b4 the reason names the real cause; b5 an ABSENT graph counter is named, not dropped, not 0; b6 a dead metrics.py gives no invented number; b7 a missing ladder node still gives a line) · C metrics.py (c1 a root with no nodes/ is REFUSED: rc != 0, ONE reason line, 0 METRIC lines; c2 control: a normal root prints the SAME 41 METRIC lines as before; c2-help `--help` / `-h` are usage requests, not roots (rc 0, usage, 0 METRIC lines); c3 control: an EMPTY nodes/ is not refused; c4 control: the functions the SessionStart hook imports still work on a root with no nodes/) · D the write (d1 dry-run admitted, writes nothing; d2 one cell replaced whole, value round-trips through YAML; d3 trajectory_standin untouched; d4 a second set by the same actor is last-wins, ONE key).
 # Honest limits: AA1.S names no byte bound beyond today's 634 B (the 1,024 B was picked, not named); NO reader of metrics_line cuts it, so no byte bound is pinned (council 04:23Z, goal:g7.16.1.11.46.12; if a reader that cuts is ever named, --line enforces the bound with a `| truncated:` marker and a full-fixture row). Segments are counted by key, never by position. b5 pins that an absent graph counter is NAMED (the AA1.S prototype formatter skips absent keys, which this lane calls a defect). d-lanes are green today (write.py set already works): they guard the builder, they are not the RED set.
-T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};BIN=${BIN:-$R0/extensions/agi/bin};SRC=$R0/extensions/agi/src
+T=$(mktemp -d -t agi-suite-XXXXXX);trap 'rm -rf $T' 0;   # the scratch project carries the throwaway part crons.py's seam (S1) honours under ANY TMPDIR (the gate's is /data/work/gate-sm/tmp)
+f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};BIN=${BIN:-$R0/extensions/agi/bin};SRC=$R0/extensions/agi/src
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
+# a fixture/mutant edit of a COPY of a trunk file must change it (goal:g7.16.1.11.13.5): a drifted literal is a counted FAIL, never a green row
+chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture-anchor-not-found $3 matched nothing";f=$((f+1));};:;}
+sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";chg $T/sedc.pre "$2" "$3";}   # sed -i on a copy, measured
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_POST OPENROUTER_API_KEY OPENROUTER_PROVISIONING_KEY
 export PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=$SRC AGI_BOX=encryption-town HOME=$T/home;mkdir -p $T/home
 printf '[user]\n\tname=t\n\temail=t@t\n[commit]\n\tgpgsign=false\n[safe]\n\tdirectory=*\n' >$T/gitconfig;export GIT_CONFIG_GLOBAL=$T/gitconfig GIT_CONFIG_SYSTEM=/dev/null
@@ -18,16 +22,17 @@ mkp(){ P=$T/$1;G_=$P/.agi;rm -rf $P;mkdir -p $G_/nodes/goal $G_/nodes/idea $G_/n
 evidence_runs: 2
 ';nd deprecated/idea idea:i3 goal:g1 'status: deprecated
 '
- if [ "$2" = full ];then cp $R0/.agi/nodes/town/local-maxxing.md $G_/nodes/town/;sed -i "/^metrics_line:/d" $G_/nodes/town/local-maxxing.md;cp $R0/.agi/nodes/.geometry/ladder.md $R0/.agi/nodes/.geometry/crons.md $G_/nodes/.geometry/;cp "$R0/.agi/context/schemas/[box].md" $G_/context/schemas/
+ if [ "$2" = full ];then cp $R0/.agi/nodes/town/local-maxxing.md $G_/nodes/town/;sedc "/^metrics_line:/d" $G_/nodes/town/local-maxxing.md "the metrics_line cell delete";cp $R0/.agi/nodes/.geometry/ladder.md $R0/.agi/nodes/.geometry/crons.md $G_/nodes/.geometry/;cp "$R0/.agi/context/schemas/[box].md" $G_/context/schemas/
  else printf -- '---\nid: ladder:ladder\nmint_id: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb2\ntype: ladder\nparents:\n  - goal:g1\ncurrent_season: 2\n---\nbody\n' >$G_/nodes/.geometry/ladder.md;fi
  $G -C $P add -A >/dev/null 2>&1;$G -C $P commit -qm fixture;}
 sm(){ (cd $P&&python3 extensions/agi/bin/success_metrics.py "$@" 2>$T/sm.err);}   # stdout only: the cron line is `L=$(...)`, stderr never reaches the cell
 xv(){ grep -oE "(^| )$2=(UNMEASURED\([^)]*\)|[^ ]+)"|head -1|sed "s/^ //;s/^[^=]*=//";}   # value of key $2 on the line on stdin (a reason may hold spaces)
 mt(){ (cd $P&&python3 extensions/agi/bin/metrics.py "$@" 2>&1);}
-cr(){ (cd $P&&python3 extensions/agi/bin/crons.py "$1" --root $G_ --crontab-file $T/ct $( [ "$1" = apply ]&&echo --user-crontab-dir $T/uct ) 2>&1);}
+cr(){ mkdir -p $T/uct;(cd $P&&python3 extensions/agi/bin/crons.py "$1" --root $G_ --crontab-file $T/ct $( [ "$1" = apply ]&&echo --user-crontab-dir $T/uct ) 2>&1);}
 # goal:g7.16.1.11.42 C1: the job is bound to agi-belam (option E), so `apply` puts it in THAT user's crontab (a fixture dir here). bl = every crontab the apply wrote; mcl = the cron line with board_job.py's wrapper taken off, i.e. what the writer step runs (metrics_cell.py on the scratch root)
 bl(){ cat $T/ct $T/uct/*.crontab 2>/dev/null;}
-mcl(){ bl|grep 'success_metrics.py --line'|head -1|cut -d' ' -f6-|sed -e 's#mkdir -p [^ ]* && python3 [^ ]*board_job.py commit --main [^ ]* --post belam --job metrics_cell --work [^ ]* -- python3 #python3 #' -e "s#@WROOT@#$G_#" -e "s#>> [^ ]* #>> $T/board.log #";}
+mclchk(){ l=$(cat);case "$l" in ""|*board_job.py*|*@WROOT@*) : >${MCLM:-$T/mcl.bad};; esac;printf '%s\n' "$l";}   # the rendered job line must have lost its board wrapper and @WROOT@ (a subshell cannot count: the closing row reads the marker)
+mcl(){ bl|grep 'success_metrics.py --line'|head -1|cut -d' ' -f6-|sed -e 's#mkdir -p [^ ]* && python3 [^ ]*board_job.py commit --main [^ ]* --post belam --job metrics_cell --work [^ ]* -- python3 #python3 #' -e "s#@WROOT@#$G_#" -e "s#>> [^ ]* #>> $T/board.log #"|mclchk;}
 mkp pm
 # ---- B: success_metrics.py --line
 sm --line $G_ >$T/b1.out;brc=$?;line=$(head -1 $T/b1.out);bn=$(wc -l <$T/b1.out|tr -d ' ');bb=$(wc -c <$T/b1.out|tr -d ' ')
@@ -135,7 +140,7 @@ ok "a1-shipped-node-declares-the-job-once crons.py show over ROOT's crons.md lis
 ng=$(grep -c '^  graph_metrics:' $G_/nodes/.geometry/crons.md);nm=$(grep -c 'metrics.py' $G_/nodes/.geometry/crons.md)
 ok "a1b-exactly-once-in-the-node the node has ONE graph_metrics cadence key ($ng, want 1) and 'metrics.py' appears on exactly ONE line of it ($nm, want 1: the cmd; the prose says nothing that would match twice)" '[ "$ng" = 1 ]&&[ "$nm" = 1 ]'
 cr apply >$T/a2.out;a2n=$(bl|grep -c 'success_metrics.py --line');bl >$T/ct.1;cr apply >/dev/null;cr show >$T/a2s.out
-ok "a2-apply-makes-the-crontab-agree after crons.py apply on a scratch crontab file the job is installed ONCE ($a2n line(s), want 1) at minute 23 hourly ($(bl|grep 'success_metrics.py --line'|head -1|cut -c1-14)), a second apply leaves the crontabs byte-identical ($(bl|cmp -s - $T/ct.1&&echo same||echo CHANGED)) and show reports no drift ($(grep -c DRIFT $T/a2s.out) DRIFT)" '[ "$a2n" = 1 ]&&bl|grep "success_metrics.py --line"|head -1|grep -q "^23 \* \* \* \* "&&bl|cmp -s - $T/ct.1&&! grep -q DRIFT $T/a2s.out'
+ok "a2-apply-makes-the-crontab-agree after crons.py apply on a scratch crontab file the job is installed ONCE ($a2n line(s), want 1$( [ "$a2n" = 1 ]||echo "; apply said: $(grep -m1 -i 'honoured\|seam\|refused' $T/a2.out|cut -c1-160)")) at minute 23 hourly ($(bl|grep 'success_metrics.py --line'|head -1|cut -c1-14)), a second apply leaves the crontabs byte-identical ($(bl|cmp -s - $T/ct.1&&echo same||echo CHANGED)) and show reports no drift ($(grep -c DRIFT $T/a2s.out) DRIFT)" '[ "$a2n" = 1 ]&&bl|grep "success_metrics.py --line"|head -1|grep -q "^23 \* \* \* \* "&&bl|cmp -s - $T/ct.1&&! grep -q DRIFT $T/a2s.out'
 # a4: the rendered cron line itself, run by sh in the scratch (belam's job end to end): the town node gets the cell
 mkp pc full;: >$T/ct;rm -rf $T/uct;cr apply >/dev/null;cl=$(mcl);mkdir -p $HOME/logs
 (cd $P&&sh -c "$cl") >$T/a4.out 2>&1;a4rc=$?;cell=$(sed -n 's/^metrics_line: //p' $G_/nodes/town/local-maxxing.md|head -1);NC=$(mt $G_|sed -n 's/^METRIC node_count=//p')
@@ -185,7 +190,7 @@ dirtyp(){ $G -C $P status --porcelain -- "$TN"|wc -l|tr -d ' ';}
 jb;r2a=$(grep -c "^metrics_line:" $TN)
 ok "r2a-clean-node-writes-one-cell (control) on a clean node with no lock the job exits $jrc (want 0), the town node carries ONE metrics_line cell ($r2a) and the scratch repo is clean after ($jdirty dirty path(s), want 0)" '[ $jrc = 0 ]&&[ "$r2a" = 1 ]&&[ "$jdirty" = 0 ]'
 # r2g (DG3, SM 04:33Z): the LIVE town node always carries a metrics_line cell (the hourly job commits it since 10-07), so a fixture copied from it starts with ONE cell. The job must REPLACE it: still ONE cell, and not the old value. (r2d / r2e want 1 / 0 cells and were RED for days because the seed carried one: mkp full now strips it, this row is the control that the seeded-cell case works.)
-mkp pj full;TN=$G_/nodes/town/local-maxxing.md;echo '{"values":{"core":{"suite_lock":{"hold_wait_s":1}}}}'>$G_/config.json;sed -i 's/^scaffold_hash:/metrics_line: OLDCELL\nscaffold_hash:/' $TN;$G -C $P commit -qam cfg;jb;r2g=$(grep -c "^metrics_line:" $TN);r2go=$(grep -c "OLDCELL" $TN)
+mkp pj full;TN=$G_/nodes/town/local-maxxing.md;echo '{"values":{"core":{"suite_lock":{"hold_wait_s":1}}}}'>$G_/config.json;sedc 's/^scaffold_hash:/metrics_line: OLDCELL\nscaffold_hash:/' $TN "the OLDCELL seed";$G -C $P commit -qam cfg;jb;r2g=$(grep -c "^metrics_line:" $TN);r2go=$(grep -c "OLDCELL" $TN)
 ok "r2g-a-node-that-already-carries-the-cell-keeps-ONE ($r2g cell(s), want 1; the old value survives in $r2go place(s), want 0; job rc $jrc, want 0; scratch repo $jdirty dirty, want 0)" '[ $jrc = 0 ]&&[ "$r2g" = 1 ]&&[ "$r2go" = 0 ]&&[ "$jdirty" = 0 ]'
 mkp pj full;TN=$G_/nodes/town/local-maxxing.md;echo '{"values":{"core":{"suite_lock":{"hold_wait_s":1}}}}'>$G_/config.json;$G -C $P commit -qam cfg;printf 'a hand edit\n'>>$TN;s0=$(sha256sum <$TN|cut -d' ' -f1);h0=$($G -C $P rev-parse HEAD)
 jb;s1=$(sha256sum <$TN|cut -d' ' -f1);h1=$($G -C $P rev-parse HEAD)
@@ -208,7 +213,7 @@ jb;h1=$($G -C $P rev-parse HEAD);hl=$($G -C $P log --all -S'HAND EDIT' --oneline
 ok "r2f-an-unrelated-dirty-file-is-never-swept-in a hand edit lands in goal:g1 while the producer runs: the job commits ONE path ($r2fp, want 1: the town node), HEAD moved ($([ $h0 != $h1 ]&&echo yes||echo NO)), the hand edit is in $hl commit(s) (want 0), still in the working file ($he, want 1), job rc $jrc (want 0)" '[ $h0 != $h1 ]&&[ "$hl" = 0 ]&&[ "$he" = 1 ]&&[ "$r2fp" = 1 ]&&[ $jrc = 0 ]'
 # R3: the cell is metrics_line (sorts between master and scaffold_hash), so a town -> s2 merge-up where another writer rewrote edited_by is CLEAN
 # The base's writer is PINNED to the job's actor and the other writer is a name that is not the actor (never ROOT's edited_by, which moves: goal:g3.8, TM's c74340057f set it to thought-master and the hard-coded rewrite became a no-op). Pinned, the job's own edited_by stamp is a no-op against the base, so only the OTHER writer's line differs and the merge is clean; unpinned, a base that is neither the actor nor the other writer is a true 3-way conflict on that one line, which says nothing about the cell
-mkp pj full;TN=$G_/nodes/town/local-maxxing.md;JW=belam;ow=thought-master;[ "$ow" != "$JW" ]||ow=sanctuary-master;sed -i "s/^edited_by: .*/edited_by: $JW/" $TN;$G -C $P commit -qam pin-job-writer 2>/dev/null;base=$($G -C $P rev-parse --abbrev-ref HEAD);$G -C $P checkout -q -b other;sed -i "s/^edited_by: .*/edited_by: $ow/" $TN;$G -C $P commit -qam other-writer;$G -C $P checkout -q $base;jb
+mkp pj full;TN=$G_/nodes/town/local-maxxing.md;JW=belam;ow=thought-master;[ "$ow" != "$JW" ]||ow=sanctuary-master;sed -i "s/^edited_by: .*/edited_by: $JW/" $TN;grep -qx "edited_by: $JW" $TN||{ echo "FAIL fixture-anchor-not-found the edited_by pin matched nothing";f=$((f+1));};$G -C $P commit -qam pin-job-writer 2>/dev/null;base=$($G -C $P rev-parse --abbrev-ref HEAD);$G -C $P checkout -q -b other;sedc "s/^edited_by: .*/edited_by: $ow/" $TN "the other-writer edited_by";$G -C $P commit -qam other-writer;$G -C $P checkout -q $base;jb
 nb=$(cd $P&&python3 -c "
 import yaml
 fm=yaml.safe_load(open('$TN').read().split('---')[1]);k=list(fm)
@@ -271,7 +276,7 @@ sed -i 's/^| 1.2 | two | target:§0 |/| 1.2 | two | leaf:g7.2 |/' $G_/sessions/q
 ok "m4t2-the-registered-throw-is-rendered-by-the-line a throw registered in the town node's trajectory_throws cell is rendered into the --line, and closing a §7 row moves placed= in the NEXT write (placed=1 -> placed=2; each segment is counted by its key: '| trajectory:' once, '| intake:' once, never by position): got '$(sed -n 's/.*\(| trajectory: [^|]*\)|.*/\1/p' $T/t2c.out)'" 'grep -q "| trajectory: 10-23 brainstorm atoms=3 placed=2 → g7.1 g7.2" $T/t2c.out&&[ "$(grep -o "[|] trajectory:" $T/t2c.out|wc -l|tr -d " ")" = 1 ]&&[ "$(grep -o "[|] intake:" $T/t2c.out|wc -l|tr -d " ")" = 1 ]'
 # mutant: a writer that never renders the registered throws reads RED on m4t2
 mkp ptm;mkdir -p $G_/sessions/quorum;cp $T/pt/.agi/nodes/town/local-maxxing.md $G_/nodes/town/;cp $T/pt/.agi/sessions/quorum/belam.md $G_/sessions/quorum/
-sed -i 's/^def trajectory_segment(root: Path) -> str:/def trajectory_segment(root: Path) -> str:\n    return ""/' $P/extensions/agi/bin/success_metrics.py;AGI_LAP=5 sm --line $G_ >$T/t2m.out
+sedc 's/^def trajectory_segment(root: Path) -> str:/def trajectory_segment(root: Path) -> str:\n    return ""/' $P/extensions/agi/bin/success_metrics.py "the trajectory_segment stub";AGI_LAP=5 sm --line $G_ >$T/t2m.out
 ok "m4t2m-never-rendering-the-registered-throws-RED a writer whose trajectory_segment returns nothing prints no '| trajectory:' (the m4t2 lane wants placed=2 there): the m4t2 lane catches it" '! grep -q "| trajectory: " $T/t2m.out'
 # T2b (L90 council): an unreadable town node is NAMED next to the quorum-dir twin; no trajectory_throws cell stays silent
 mkp pr;l=$(AGI_LAP=11 sm --line $P 2>&1|head -1)
@@ -279,13 +284,25 @@ ok "m4t2b-unreadable-town-node-is-named make_line(<the repo root, not .agi>) car
 mkp pn;mkdir -p $G_/sessions/quorum;printf '%s\n' '---' 'id: town:local-maxxing' 'type: town' '---' 'body' >$G_/nodes/town/local-maxxing.md;l=$(AGI_LAP=11 sm --line $G_ 2>&1|head -1)
 ok "m4t2c-no-registered-cell-no-segment a town node without a trajectory_throws cell prints no '| trajectory:' segment at all (got '$(echo "$l"|grep -o "| trajectory:[^|]*")')" '! echo "$l"|grep -q "| trajectory:"'
 # mutant: the old silent "" for an unreadable town node reads RED on m4t2b
-mkp pq;mkdir -p $G_/sessions/quorum;sed -i 's/return "| trajectory: UNMEASURED(no town node)"/return ""/' $P/extensions/agi/bin/success_metrics.py;l=$(AGI_LAP=11 sm --line $P 2>&1|head -1)
+mkp pq;mkdir -p $G_/sessions/quorum;sedc 's/return "| trajectory: UNMEASURED(no town node)"/return ""/' $P/extensions/agi/bin/success_metrics.py "the trajectory UNMEASURED literal";l=$(AGI_LAP=11 sm --line $P 2>&1|head -1)
 ok "m4t2bm-silent-unreadable-town-node-RED a writer that returns nothing for an unreadable town node prints no '| trajectory:' (the m4t2b lane wants the UNMEASURED name): the m4t2b lane catches it" '! echo "$l"|grep -q "| trajectory:"'
 # mutant: a cron that skips the cards (the intake segment fixed to none) reads RED on m4a
 mkp pk;mkdir -p $G_/sessions/quorum;card belam <<'EOC'
 | a1 | "one" | src:doc | target:x | lap10 |
 EOC
-sed -i 's/^def intake_segment(root: Path) -> str:/def intake_segment(root: Path) -> str:\n    return "intake: none"/' $P/extensions/agi/bin/success_metrics.py;AGI_LAP=11 sm --line $G_ >$T/m4m.out
+sedc 's/^def intake_segment(root: Path) -> str:/def intake_segment(root: Path) -> str:\n    return "intake: none"/' $P/extensions/agi/bin/success_metrics.py "the intake_segment stub";AGI_LAP=11 sm --line $G_ >$T/m4m.out
 ok "m4m-skipping-the-cards-RED a --line that skips the cards prints 'intake: none' for a card with an open row (got '$(head -1 $T/m4m.out|sed -n 's/.*| intake: //;s/ *|.*//;p')', the m4a lane wants belam=1/0/0 there): the m4a lane catches it" '[ "$(head -1 $T/m4m.out|sed -n "s/.*| intake: //;s/ *|.*//;p")" = none ]'
+# r3 (the census): the measured edits fail closed; the old unmeasured shapes are the mutants (this lane's ok takes a name and a condition)
+ok mcl-the-rendered-cron-line-lost-its-wrapper-and-its-placeholder '[ ! -e $T/mcl.bad ]'
+printf a >$T/c1;printf a >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a drifted literal";echo "f=$f")
+ok chg-a-matchless-edit-fails-closed 'echo "$x"|grep -q "^FAIL fixture-anchor-not-found a drifted literal matched nothing"&&echo "$x"|grep -qx "f=1"'
+printf b >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a live literal";echo "f=$f")
+ok chg-an-edit-that-changed-bytes-is-silent '[ "$x" = "f=0" ]'
+printf 'a\nb\n' >$T/c1;x=$(f=0;sedc 's/^zzz/q/' $T/c1 "a drifted sed -i";echo "f=$f")
+ok sedc-a-sed-i-that-matches-nothing-fails-closed 'echo "$x"|grep -q "^FAIL fixture-anchor-not-found a drifted sed -i matched nothing"&&echo "$x"|grep -qx "f=1"'
+x=$(sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";};f=0;sedc 's/^zzz/q/' $T/c1 "the old bare sed -i";echo "f=$f")
+ok sedc-mutant-the-bare-sed-i-is-RED '[ "$x" = "f=0" ]'
+MCLM=$T/m.t;rm -f $T/m.t;echo 'x && python3 /a/board_job.py commit' >$T/w;mclchk <$T/w >/dev/null;a=$([ -e $T/m.t ]&&echo marked||echo clean);rm -f $T/m.t;echo 'python3 /a/success_metrics.py --line' >$T/w;mclchk <$T/w >/dev/null;b=$([ -e $T/m.t ]&&echo marked||echo clean);unset MCLM
+ok mclchk-marks-a-line-that-kept-its-wrapper-and-passes-a-stripped-one '[ "$a" = marked ]&&[ "$b" = clean ]'
 echo "graph-metrics: $f FAIL"
 exit $f
