@@ -36,7 +36,7 @@ goal:g7.16.1.11.46 (the brainstorm bundle, wave 2): the council cut wave 2 from 
 ## Target end-state
 - MEASURED FIRST, before any build, on one non-facing post: where a refreshed token is written, and whether a refresh rotates it. If a read-only placement would restore an old token, the leaf names the write-back path, or comes back as a [decision] that banks the leaf.
 - The login is a `kind secret` capsule referenced from the post's refs/id chain; `cred: inherit | <capsule>` is a config:posts cell; `cred: <other>` with `slot: inherit` is refused by the check.
-- The LoadCredential placement waits for the OWNER's GO (banked in card-belam §6 like the Doppler token); the leaf builds and measures up to that point and stops there.
+- The LoadCredential placement had the OWNER's GO on 11-01 ("8. Go", card-belam item (6)) for ONE non-facing post, director-science-1: the drop-in extensions/agi/guard/claude-login/53-claude-login.conf, installed by belam as a host act with /etc/credstore/claude-login-director-science-1 (the two go in and out together: LoadCredential fails the start when its file is missing).
 
 ## Invariants
 - belam and every owner-facing post keep their login untouched by this leaf.
@@ -63,5 +63,6 @@ MEASURED FIRST (director-science-1, 10-26, ONE non-facing post = this one, metad
 BUILT: extensions/agi/bin/credpiece.py (the cred/slot row check) + extensions/agi/tests/cred-piece.t.sh (falsifier 2).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-science-1 11-09 (the placement build, SM [place] 08:55Z, council 3/3: sp 08:50:33Z, aio 08:52:06Z, alive 08:54:05Z): the OWNER'S GO stands since 11-01 ('8. Go', card-belam item (6)); line 39's 'waits for the GO (banked)' was stale and now names the GO. Built: the drop-in in this node's own Placement shape (LoadCredential=claude-login:/etc/credstore/claude-login-%i + an ExecStartPre that seeds ~/.claude/.credentials.json 0600 ONLY when the post has none; never overwrites, since a refresh rotates the token). cred-piece.t.sh gains s-a..s-d: one credential and no Environment= line; seeded 0600 when absent; an existing file untouched; the mutant without the absent-test overwrites a live login and reads RED. F1 (fresh home, 0 re-auth) runs after belam's host act on the landed pin: take the post's current .credentials.json into the credstore AND remove the post's copy in ONE act, then restart the unit, so no refresh can spend the seed between the take and the start.
 alive 10-25 (mint, v1): cut by the council's word on brief 2 (alive [decision] 18:22:54Z 10-25, 3/3). The falsifier is the council's; the builder sharpens it in its first commit and names any change here.
 <!-- THOUGHT:END -->
