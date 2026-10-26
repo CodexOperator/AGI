@@ -289,8 +289,8 @@ def test_no_launch_or_lock_outside_the_verbs_core():
 # ---------- goal:g7.16.1.7.1.4: a stand-up keys its post from the template ----
 
 def _row(graph: Path, name: str) -> dict:
-    import write
-    return next(r for r in write._load_seats(graph) if r.get("name") == name)
+    import geometry_config
+    return next(r for r in geometry_config.load_rows(graph) if r.get("name") == name)
 
 
 def _verifies(graph: Path, seat: str) -> str:
@@ -299,8 +299,8 @@ def _verifies(graph: Path, seat: str) -> str:
     ts, to, text = "2026-09-30T00:00:00Z", "belam", "hello"
     sig = send._sign_line(graph, seat, ts, to, text)
     meta = {"sig": sig.split("sig: ", 1)[1], "from": seat, "ts": ts, "to": to}
-    import write
-    return send._verify_block(graph, list(write._load_seats(graph)), meta, text)
+    import geometry_config
+    return send._verify_block(graph, list(geometry_config.load_rows(graph)), meta, text)
 
 
 def test_a_stand_up_mints_an_unkeyed_posts_key(graph, capsys):

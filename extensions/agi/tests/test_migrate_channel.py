@@ -610,7 +610,7 @@ def test_receive_writes_seating_cells_under_the_master_and_refuses_the_post(
     """SM.123 slice 5 BINDING: the REAL writer lands box/worktree on the
     moved post's row through the schema-declared actor_rows grant, while the
     SAME seating write as the post itself is REFUSED by name."""
-    import write as write_mod  # noqa: PLC0415
+    import config_rows  # noqa: PLC0415
     agi = _config_root(tmp_path)
     monkeypatch.setenv("AGI_BOX", "boxB")
     live, fake = _fake_comms(tmp_path, monkeypatch)
@@ -630,11 +630,11 @@ def test_receive_writes_seating_cells_under_the_master_and_refuses_the_post(
         encoding="utf-8")
     assert '"box": "boxB"' in text and "worktrees/post-p" in text
     assert "seated p on boxB" in out
-    with pytest.raises(write_mod.EditError) as ei:
+    with pytest.raises(config_rows.RowWriteRefused) as ei:
         rotate._write_identity_cells(
             agi, seat="p", actor="p", role="director",
             cells={"box": "boxC", "worktree": ".agi/worktrees/post-p"})
-    assert "may update only its OWN row" in str(ei.value)
+    assert "admitted by no written_by, self_row or actor_rows" in str(ei.value)
 
 
 def test_a_blank_stage_record_reads_as_request_and_verifies(tmp_path):
@@ -763,10 +763,10 @@ def test_receive_without_a_grant_never_seats_and_a_later_record_still_seats(
 
 def test_receive_identity_write_edit_error_skips_the_record_and_tick_lives(
         tmp_path, monkeypatch, capsys):
-    """Conjunct B: a write.EditError from the ONE identity writer is caught
+    """Conjunct B: a config_rows.RowWriteRefused from the ONE identity writer is caught
     explicitly (never a bare except); the record is skipped BY NAME and a
     later good record still seats."""
-    import write as write_mod
+    import config_rows
     monkeypatch.setenv("AGI_BOX", "boxB")
     live, fake = _fake_comms(tmp_path, monkeypatch)
     _p, pub = live._mint_seat_key(tmp_path, "p", "ed25519")
@@ -790,7 +790,7 @@ def test_receive_identity_write_edit_error_skips_the_record_and_tick_lives(
 
     def fake_write(root, *, seat, actor, role, cells):
         if seat == "p":
-            raise write_mod.EditError(
+            raise config_rows.RowWriteRefused(
                 "refused by name: seat 'p' may update only its OWN row")
         return "ok"
 

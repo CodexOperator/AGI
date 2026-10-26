@@ -32,7 +32,7 @@ untrusted, or when no threshold cell is declared on the ladder node.
 
 The threshold cell lives on the ladder geometry node (``ladder:ladder``)under
 ``untrusted_promotion_threshold`` -- read through the engine's node reader,
-NEVER a literal in this module. The promoted row lands through ``write.submit``
+NEVER a literal in this module. The promoted row lands through ``config_rows.write_rows``
 (the sanctioned row writer every other config edit uses).
 """
 
@@ -246,13 +246,10 @@ def promote(root: Path, post: str, verdict_cells: list,
             break
     graph = graph_root(root)
     try:
-        import write as write_mod
-        import geometry_config
+        import config_rows
 
-        _, list_key = geometry_config.resolve(graph)
-        e = write_mod.Edit(f"config:{list_key}")
-        write_mod.verb_set(e, list_key, json.dumps(new_rows))
-        write_mod.submit(graph, e, actor=actor, role=role)
+        config_rows.write_rows(graph, new_rows, actor=actor,
+                               declare={post: ("set", {"tier", "promoted_by"})})
     except Exception:  # noqa: BLE001  (report is the caller's job)
         print(f"REFUSED {post}: config write was refused; tier not promoted",
               file=sys.stderr)

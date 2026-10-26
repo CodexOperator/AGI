@@ -92,6 +92,11 @@ if [ -f $CENSUS ];then
  mkcs a:age b:age;rm -rf $D/cs/b;r=$(census);rc=$?;ok cs5-an-absent-home-is-unread-not-skipped "[ \"\$r\" = 'unread (homes b)' ]&&[ $rc = 1 ]"
  mkcs a:age b:age;chmod 000 $D/cs/b/capsule;r=$(census);rc=$?;rest;ok cs6-a-capsule-dir-mode-000-next-to-a-good-home-is-unread "[ \"\$r\" = 'unread (homes b)' ]&&[ $rc = 1 ]"
  mkcs a:age b:age;chmod 000 $D/cs/b/capsule/b;r=$(census);rc=$?;rest;ok cs7-an-unreadable-share-is-unread "[ \"\$r\" = 'unread (homes b)' ]&&[ $rc = 1 ]"
+ mkcs a:none b:none;ln -s /nonexistent-share $D/cs/a/capsule/a;r=$(census);rc=$?;ok cs14-a-dangling-share-link-is-unread-not-the-clean-zero "[ \"\$r\" = 'unread (homes a)' ]&&[ $rc = 1 ]"
+ mkcs a:none b:none;mkdir $D/cs/a/capsule/sub;r=$(census);rc=$?;ok cs15-a-directory-in-capsule-is-unread "[ \"\$r\" = 'unread (homes a)' ]&&[ $rc = 1 ]"
+ mkcs a:none b:none;rm -rf $D/cs/b/capsule;ln -s /nonexistent-capsule $D/cs/b/capsule;r=$(census);rc=$?;ok cs18-a-dangling-capsule-link-is-unread-not-the-clean-zero "[ \"\$r\" = 'unread (homes b)' ]&&[ \$rc = 1 ]"
+ mkcs a:none b:none;: >$D/cs/b/capsule/.hidden;r=$(census);rc=$?;ok cs16-a-dot-named-entry-is-not-dropped "[ \"\$(echo \"$r\"|head -1)\" != 'opened 0/0 (homes 2/2 read)' ]&&[ $rc = 1 ]"
+ mkcs a:age b:none;cp $D/cs/a/capsule/a $D/cs/b/capsule/.b;cp -r $D/cs/a/.ssh $D/cs/b/.ssh;r=$(census);rc=$?;ok cs16b-a-dot-named-share-is-counted-and-opened "[ \"\$(echo \"$r\"|head -1)\" = 'opened 2/2 (homes 2/2 read)' ]&&[ $rc = 0 ]"
  mkcs a:age b:age;chmod 000 $D/cs/b;r=$(census);rc=$?;rest;ok cs8-a-home-mode-000-is-unread "[ \"\$r\" = 'unread (homes b)' ]&&[ $rc = 1 ]"
  mkcs a:none;rm -rf $D/cw;r=$(census);rc=$?;ok cs9-no-boot-set-is-unread "[ \"\$r\" = 'unread (boot set: no wants dir)' ]&&[ $rc = 1 ]"
  mkcs a:none;rm -f $D/cw/*;r=$(census);rc=$?;ok cs10-an-empty-boot-set-is-unread "[ \"\$r\" = 'unread (boot set: empty)' ]&&[ $rc = 1 ]"
@@ -99,5 +104,7 @@ if [ -f $CENSUS ];then
  sed 's/||{ k=\$((k+1));//;s/||bad="\$bad \${F##\*\/}"/||{ k=$((k+1));bad="$bad ${F##*\/}";}/' $CENSUS >$D/mut-cs1;mkcs a:age b:age;printf 'AAAA' >$D/cs/b/capsule/b;CS=$D/mut-cs1;r=$(census);ok cs11-mutant-counting-a-failed-open-reads-red "[ \"\$(echo \"$r\"|head -1)\" != 'opened 1/2 (homes 2/2 read)' ]";CS=
  sed 's/^ \[ -d "\$H" -a -r "\$H" -a -x "\$H" \].*$/ :/' $CENSUS >$D/mut-cs2;cmp -s $CENSUS $D/mut-cs2&&echo "FAIL cs12-mutant-has-no-effect";mkcs a:age b:age;rm -rf $D/cs/b;CS=$D/mut-cs2;r=$(census);ok cs12-mutant-skipping-an-absent-home-reads-red "[ \"\$(echo \"$r\"|head -1)\" = 'opened 1/1 (homes 2/2 read)' ]&&[ \"\$r\" != 'unread (homes b)' ]";CS=
  sed 's/^ if \[ -e "\$H\/capsule" \].*$/ :/' $CENSUS >$D/mut-cs3;cmp -s $CENSUS $D/mut-cs3&&echo "FAIL cs13-mutant-has-no-effect";mkcs a:age b:age;chmod 000 $D/cs/b/capsule;CS=$D/mut-cs3;r=$(census);rest;ok cs13-mutant-skipping-an-unlistable-capsule-dir-reads-red "[ \"\$(echo \"$r\"|head -1)\" = 'opened 1/1 (homes 2/2 read)' ]";CS=
+ sed 's/^  \[ -f "\$F" -a -r "\$F" \].*$/  [ -f "$F" ]||continue;m=$((m+1))/;s/ || \[ -L "\$F" \]//' $CENSUS >$D/mut-cs4;cmp -s $CENSUS $D/mut-cs4&&echo "FAIL cs17-mutant-has-no-effect";mkcs a:none b:none;ln -s /nonexistent-share $D/cs/a/capsule/a;CS=$D/mut-cs4;r=$(census);ok cs17-mutant-dropping-a-dangling-link-reads-the-clean-zero-RED "[ \"\$(echo \"$r\"|head -1)\" = 'opened 0/0 (homes 2/2 read)' ]";CS=
+ sed 's/ if \[ -e "\$H\/capsule" \]||\[ -L "\$H\/capsule" \];then/ if [ -e "$H\/capsule" ];then/' $CENSUS >$D/mut-cs5;cmp -s $CENSUS $D/mut-cs5&&echo "FAIL cs18b-mutant-has-no-effect";mkcs a:none b:none;rm -rf $D/cs/b/capsule;ln -s /nonexistent-capsule $D/cs/b/capsule;CS=$D/mut-cs5;r=$(census);ok cs18b-mutant-taking-a-dangling-capsule-as-absent-reads-the-clean-zero-RED "[ \"\$(echo \"\$r\"|head -1)\" = 'opened 0/0 (homes 2/2 read)' ]";CS=
 else ok cs0-the-census-command-exists false;fi
 echo "agi-seal: $f FAIL";exit $f
