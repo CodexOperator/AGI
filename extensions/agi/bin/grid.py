@@ -975,6 +975,11 @@ UPDATE_REF_FAILURES: list[str] = []
 
 
 LEGACY_HELD: list[str] = []
+#: refs whose NEW mint was refused because another mint already carries the same `id:` (the double mint).
+DOUBLE_MINT_REFUSED: list[str] = []
+#: mints whose ref this run created (they carry their id from then on); the per-run view cache; reset per run.
+MINTED_THIS_RUN: dict[str, str] = {}
+_DM_CACHE: dict | None = None
 #: {legacy ref: tip}, read ONCE per run by one `for-each-ref` whose rc is checked (R4): an absent ref
 #: and a failed rev-parse can no longer look alike. None = not loaded yet.
 LEGACY_TIPS: dict[str, str] | None = None
@@ -1015,6 +1020,70 @@ def legacy_unmerged(root: Path, ref: str, tip: str | None) -> str | None:
     return None
 
 
+def _dm_view(root: Path) -> dict:
+    """The per-run read the double-mint refusal needs, built ONCE and only when a new mint is about to be created:
+    `files` {mint: {ids its FILE names}} over the commit's own view (every node file under nodes/, deprecated/ too),
+    `refs` {mint: tip} for every mint with a ref in the one namespace, and `tip_ids` {mint: the id its ref TIP names}
+    for the refs whose mint has NO file in the view (ghosts, never-landed): the only mints read from a tip."""
+    global _DM_CACHE
+    if _DM_CACHE is not None:
+        return _DM_CACHE
+    files: dict[str, set[str]] = {}
+    for p in iter_node_files(root):
+        try:
+            text = p.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        mi, ii = MINT_ID_RE.search(text), ID_RE.search(text)
+        if mi and ii:
+            files.setdefault(mi.group(1), set()).add(ii.group(1))
+    res = git_try(root, "for-each-ref", f"{REF_NS}/node", "--format=%(objectname) %(refname)")
+    if res.returncode != 0:
+        sys.exit(f"grid: unread (for-each-ref {REF_NS}/node failed: {res.stderr.strip()[:120]}); nothing written")
+    refs = {x.split()[1][len(REF_NS) + 6:]: x.split()[0] for x in res.stdout.splitlines() if len(x.split()) == 2}
+    loose = {m: t for m, t in refs.items() if m not in files}
+    tip_ids: dict[str, str] = {}
+    if loose:
+        out = subprocess.run(["git", "-C", str(repo_root(root)), "cat-file", "--batch"],
+                             input="".join(f"{t}:{NODE_ENTRY}\n" for t in loose.values()).encode(), capture_output=True)
+        if out.returncode != 0:
+            sys.exit("grid: unread (cat-file over the tips of the mints with no file); nothing written")
+        pos = 0
+        for m in loose:
+            nl = out.stdout.find(b"\n", pos)
+            head = out.stdout[pos:nl].split() if nl >= 0 else []
+            if len(head) != 3 or head[1] != b"blob":
+                pos = nl + 1 if nl >= 0 else len(out.stdout)
+                continue
+            size = int(head[2])
+            body = out.stdout[nl + 1:nl + 1 + size].decode("utf-8", "replace")
+            pos = nl + 1 + size + 1
+            ii = ID_RE.search(body)
+            if ii:
+                tip_ids[m] = ii.group(1)
+    _DM_CACHE = {"files": files, "refs": refs, "tip_ids": tip_ids}
+    return _DM_CACHE
+
+
+def double_mint_holder(root: Path, mint: str, node_id: str) -> tuple[str, str] | None:
+    """goal:g7.16.1.11.46.16 (the leaf of the census-orphans decision, alive 07:42:38Z 10-26): when a NEW `<ns>/node/<mint>`
+    ref is about to be created, the OTHER mint that already carries `node_id`, as `(mint, where)`, else None.
+    Where another mint's id is READ: from its FILE in the commit's own view (so a renumber that lands `g7.1 (M1) -> g7.2`
+    and `a NEW g7.1 (M2)` in one commit never refuses M2, whatever order the files are processed in); from its ref TIP
+    only for a mint with no file in that view. A mint carries its id only once it HAS a ref (or this run created it), so of
+    two new files with one id the first processed is minted and the second is refused."""
+    v = _dm_view(root)
+    for m in sorted(v["refs"].keys() | MINTED_THIS_RUN.keys()):
+        if m == mint:
+            continue
+        if m in v["files"]:
+            if node_id in v["files"][m]:
+                return m, "its node file"
+        elif v["tip_ids"].get(m, MINTED_THIS_RUN.get(m)) == node_id:
+            return m, "its ref tip (no node file)"
+    return None
+
+
 def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
                 *, trailer: str | None = None,
                 payload: Path | None = None) -> str | None:
@@ -1048,6 +1117,14 @@ def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
               f"`grid.py unify --write` first): {ref}", file=sys.stderr)
         LEGACY_HELD.append(ref)
         return None
+    mint = parse_mint_id(path)
+    if tip is None and mint and ref == mint_node_ref(mint):    # a MINT ref only: the legacy node-id-keyed refs are not mints
+        other = double_mint_holder(root, mint, node_id)
+        if other:    # a second mint for an id that is taken: the file is left for review, nothing is written
+            print(f"refuse (double mint: {node_id} is already carried by mint {other[0]} ({other[1]}); "
+                  f"this file's mint is {mint}; the file is left for review): {path}", file=sys.stderr)
+            DOUBLE_MINT_REFUSED.append(ref)
+            return None
     if tip:
         # goal:g4.13.1: carry a collapse's nest/ forward (unedited = unchanged), but only
         # a non-empty tree of trees; anything else skips THIS node and the run goes on
@@ -1078,6 +1155,8 @@ def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
     commit = git(root, "commit-tree", tree, *parent, "-m", message)
     # CAS (goal:g4.13.1): "" = the ref must not exist; a refusal skips this node only
     res = git_try(root, "update-ref", ref, commit, tip or "")
+    if res.returncode == 0 and tip is None and (parse_mint_id(path) or "") and ref == mint_node_ref(parse_mint_id(path)):
+        MINTED_THIS_RUN[parse_mint_id(path)] = node_id
     if res.returncode != 0:
         # ONE line whatever git said: a held ref lock is 7 lines (the lock path, a blank,
         # a 5-line "Another git process" hint); the join keeps the hint, drops the blanks
@@ -1404,6 +1483,10 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
         errors = 0
         UPDATE_REF_FAILURES.clear()
         LEGACY_HELD.clear()
+        DOUBLE_MINT_REFUSED.clear()
+        MINTED_THIS_RUN.clear()
+        global _DM_CACHE
+        _DM_CACHE = None
         payloads = 0
         payload_missing = 0
         payload_retired = 0
@@ -1458,7 +1541,9 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
         if LEGACY_HELD:    # goal:g7.16.1.11.46.16: held, not forked; not clean
             print(f"grid: {len(LEGACY_HELD)} held (a read-only legacy tip is not yet in the ref's "
                   f"history): run `grid.py unify --write`", file=sys.stderr)
-        if UPDATE_REF_FAILURES or LEGACY_HELD:   # goal:g4.13.1 N1: the run went on; it is not clean
+        if DOUBLE_MINT_REFUSED:    # goal:g7.16.1.11.46.16: refused by name above; the run went on, not clean
+            print(f"grid: {len(DOUBLE_MINT_REFUSED)} new mint(s) refused (the id is already carried by another mint)", file=sys.stderr)
+        if UPDATE_REF_FAILURES or LEGACY_HELD or DOUBLE_MINT_REFUSED:   # goal:g4.13.1 N1: the run went on; it is not clean
             sys.exit(1)
     finally:
         if lock is not None:
