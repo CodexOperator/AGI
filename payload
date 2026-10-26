@@ -458,7 +458,7 @@ def test_dry_run_exports_identity_and_readers_agree(project, monkeypatch):
 
     monkeypatch.syspath_prepend(str(BIN))
     loaded = {}
-    for name in ("send", "write"):
+    for name in ("send", "geometry_config"):
         spec = importlib.util.spec_from_file_location(name, BIN / f"{name}.py")
         mod = importlib.util.module_from_spec(spec)
         # dataclasses needs the module registered; through monkeypatch so the
@@ -470,7 +470,7 @@ def test_dry_run_exports_identity_and_readers_agree(project, monkeypatch):
         spec.loader.exec_module(mod)
         loaded[name] = mod
     assert loaded["send"]._detect_sender(None) == aid
-    assert loaded["write"]._default_actor() == aid
+    assert loaded["geometry_config"].default_actor() == aid
 
 
 def test_dry_run_exports_reaper_knob_for_kid_and_parent(project):
