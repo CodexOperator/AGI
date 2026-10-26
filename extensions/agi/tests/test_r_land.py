@@ -41,6 +41,7 @@ ROWS = [
     {"name": "dg1", "role": "director", "tier": 1, "model": "m", "pid": 1, "town": "core"},
     {"name": "dg2", "role": "director", "tier": 1, "model": "m", "pid": 2, "town": "core"},
     {"name": "kid", "role": "kid", "tier": "untrusted", "model": "m", "town": "core"},
+    {"name": "newname", "role": "director", "tier": 1, "model": "m", "town": "core", "was": "old"},   # a renamed seat: the key is still `old`
 ]
 
 
@@ -57,7 +58,7 @@ class Repo:
         self.d.mkdir()
         self.signers = tmp / "allowed_signers"
         lines = []
-        for p in ("belam", "master", "dg1", "dg2", "kid", "intruder"):
+        for p in ("belam", "master", "dg1", "dg2", "kid", "ghost", "old", "intruder"):
             kp = self.k / p
             subprocess.run(["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", str(kp), "-C", p], check=True)
             if p != "intruder":  # the intruder's key is deliberately NOT in the ring
@@ -66,7 +67,7 @@ class Repo:
         self.signers.write_text("\n".join(lines) + "\n")
         self.git("init", "-q", "-b", "main")
         for k, v in (("gpg.format", "ssh"), ("commit.gpgsign", "true"),
-                     ("gpg.ssh.allowedSignersFile", str(self.signers)), ("user.name", "x")):
+                     ("gpg.ssh.allowedSignersFile", str(self.signers)), ("user.name", "x"), ("user.email", "x@agi")):   # a fixture never leans on the runner's identity (a post uid's env carries GIT_AUTHOR_*; env -i has none)
             self.git("config", k, v)
         (self.d / ".agi/context/schemas").mkdir(parents=True)
         (self.d / G).mkdir(parents=True)
@@ -309,9 +310,10 @@ def _install_hook(repo, tmp_path, user="belam"):
     stub.mkdir()
     (stub / "id").write_text(f'#!/bin/sh\ncase "$*" in -un) echo {user};; *) exec /usr/bin/id "$@";; esac\n')
     (stub / "id").chmod(0o755)
-    (stub / "agi-notice").write_text("#!/bin/sh\nexit 0\n")        # the hook's fail-open path calls it: never write the tester's ~/.notice
+    (stub / "agi-notice").write_text(f'#!/bin/sh\necho "$*" >> {tmp_path}/notices.log\nexit 0\n')   # the hook's fail-open / HOLD path calls it: log it, never write the tester's ~/.notice
     (stub / "agi-notice").chmod(0o755)
-    return {"PATH": f"{stub}:{os.environ['PATH']}", "AGI_RING": str(repo.signers)}
+    # AGI_RLAND_SINCE: the stand-in for L140 (the hook's "pre-L140 base fails open" cut): the fixture's first commit
+    return {"PATH": f"{stub}:{os.environ['PATH']}", "AGI_RING": str(repo.signers), "AGI_RLAND_SINCE": repo.base}
 
 
 def _move(repo, ref, new, old, env):
@@ -366,12 +368,13 @@ def test_R4_other_refs_and_unchanged_cells_are_not_touched_by_r_land(hooked):
     assert _move(repo, "refs/heads/posts/belam", plain, bad, env).returncode == 0            # cells equal o..n: nothing to judge
 
 
-def test_R4_no_r_land_at_the_old_tip_fails_open_with_a_notice(hooked):
+def test_V2_5_a_pre_L140_base_with_no_r_land_fails_open_with_a_notice(hooked):
     repo, env = hooked
     repo.git("rm", "-q", "extensions/agi/guard/r-land")
     old = repo.commit("belam", "drop r-land")
     _branch_at(repo, "refs/heads/posts/belam", old)
     bad = repo.edit_rows(lambda r: row(r, "dg2").update(pubkey="zz"), "dg1")
+    env = {**env, "AGI_RLAND_SINCE": bad}          # a BASE that does not descend the cut = a pre-L140 base: the one fail-open
     r = _move(repo, "refs/heads/posts/belam", bad, old, env)
     assert r.returncode == 0 and "no r-land at" in r.stderr and "fail open" in r.stderr, r.stderr
 
@@ -397,7 +400,7 @@ def test_MODE_report_prints_would_refuse_with_signer_row_op_cells_and_rule_rc_0(
 def test_MODE_report_mutant_a_non_prime_direct_commit_prints_the_line_and_a_clean_range_still_says_ok(repo):
     base = repo.set_mode("report")
     rc, out = repo.run(base=base)
-    assert rc == 0 and out.startswith("R-land: ok (0 cell change(s)") and out.endswith("mode report)"), out
+    assert rc == 0 and out.startswith("R-land: ok (0 cell change(s)") and out.endswith("mode report; 0 row op(s))"), out
     repo.edit_rows(lambda r: row(r, "belam").update(model="evil"), "dg1", author="belam")
     rc, out = repo.run(base=base)
     assert rc == 0 and "R-land: would refuse" in out and "(dg1, belam, set model," in out, out
@@ -626,7 +629,28 @@ def test_MOVE_master_moves_a_row_to_its_retired_copy_admitted(repo):
     with_move_grant(repo)
     repo.edit_rows(lambda r: move(r), "master")
     rc, out = repo.run()
-    assert rc == 0 and "ok (1 cell change(s)" in out, out
+    assert rc == 0 and "ok (1 cell change(s)" in out and "2 row op(s): 1 retire, 1 create" in out, out
+
+
+def test_ROWOPS_two_moves_in_one_cell_file_read_as_4_row_ops_not_1_change(repo):
+    """7c1ef3664f shape: two `<x>` -> `<x>-retired` moves in ONE posts.md change = 1 cell change, 4 row ops (council 09:23Z 10-26)."""
+    with_move_grant(repo)
+    repo.edit_rows(lambda r: (move(r, "dg1"), move(r, "dg2")), "master")
+    rc, out = repo.run()
+    assert rc == 0 and "ok (1 cell change(s)" in out and "4 row op(s): 2 retire, 2 create" in out, out
+
+
+def test_ROWOPS_a_set_only_change_counts_one_set_op(repo):
+    repo.edit_rows(lambda r: row(r, "dg2").update(pubkey="zz"), "belam")
+    rc, out = repo.run()
+    assert rc == 0 and "1 row op(s): 1 set" in out, out
+
+
+def test_ROWOPS_the_report_line_names_the_row_ops_too(repo):
+    with_move_grant(repo, mode="report")
+    repo.edit_rows(lambda r: (move(r), row(r, "dg2").update(pubkey="zz")), "dg2")      # dg2 holds no grant: the move (retire + create) would refuse, its own pubkey set is a self_row write
+    rc, out = repo.run()
+    assert rc == 0 and "2 would refuse; 3 row op(s): 1 retire, 1 create, 1 set; rc 0" in out, out
 
 
 def test_MOVE_the_same_commit_without_the_grant_at_BASE_is_refused(repo):
@@ -770,3 +794,492 @@ def test_MOVE_iii_mutant_a_process_cell_kept_at_BASE_s_live_value_is_REFUSED(rep
     edit_from(repo, rows, keep, "master")
     rc, out = repo.run()
     assert rc == 1 and "process cells" in out, out
+
+
+# ---- W: written_by (council 3/3 alive 02:53:20Z + 02:54:27Z 10-26): moral/vision/town per-commit signer, config by its LANDER ----
+SCH = "---\nname: {n}\nwritten_by: {w}\n---\n# {n}\n"
+NODE = "---\nid: {t}:{n}\ntype: {t}\n---\n# {t}:{n}\n{b}\n"
+WB_FILES = {
+    "moral": (".agi/nodes/moral/m1.md", "owner"),
+    "vision": (".agi/nodes/vision/v1.md", "[owner, prime_director]"),
+    "town": (".agi/nodes/town/t1.md", "[prime_director, owner, director]"),
+    "config": (f"{G}/rotations.md", None),                       # the config schema is the fixture's [config].md
+    "doc": (".agi/nodes/doc/d1.md", None),                       # a type with NO written_by: never judged
+}
+
+
+@pytest.fixture()
+def wb(tmp_path):
+    repo = Repo(tmp_path)
+    repo.write(".agi/context/schemas/[moral].md", SCH.format(n="moral", w="owner"))
+    repo.write(".agi/context/schemas/[vision].md", SCH.format(n="vision", w="[owner, prime_director]"))
+    repo.write(".agi/context/schemas/[town].md", SCH.format(n="town", w="[prime_director, owner, director]"))
+    for typ, (rel, _w) in WB_FILES.items():
+        repo.write(rel, NODE.format(t=typ, n=rel.rsplit("/", 1)[-1][:-3], b="v0"))
+    repo.set_mode("report")
+    repo.base = repo.git("rev-parse", "HEAD").stdout.strip()
+    return repo
+
+
+def _edit(repo, typ, signer, body="v1"):
+    rel = WB_FILES[typ][0]
+    repo.write(rel, NODE.format(t=typ, n=rel.rsplit("/", 1)[-1][:-3], b=body))
+    return repo.commit(signer, f"edit {typ} {body}")
+
+
+def _leaf(repo, name, typ, signer, body="leaf"):
+    """A leaf commit on branch `name` cut from main's tip; back on main afterwards."""
+    repo.git("checkout", "-q", "-b", name)
+    c = _edit(repo, typ, signer, body)
+    repo.git("checkout", "-q", "main")
+    return c
+
+
+def _land(repo, branch, signer, msg="LAND stack"):
+    env = {"GIT_COMMITTER_EMAIL": f"{signer}@agi", "GIT_COMMITTER_NAME": signer,
+           "GIT_AUTHOR_EMAIL": f"{signer}@agi", "GIT_AUTHOR_NAME": signer}
+    repo.git("-c", f"user.signingkey={repo.k / signer}", "merge", "--no-ff", "-q", "-m", msg, branch, env=env)
+    return repo.git("rev-parse", "HEAD").stdout.strip()
+
+
+def test_W1_mutant_a_director_signed_moral_edit_would_refuse_written_by_owner(wb):
+    _edit(wb, "moral", "dg1")
+    rc, out = wb.run(base=wb.base)
+    assert rc == 0 and "(dg1, " in out and "m1.md, set moral, written_by: owner; signer role director (W1))" in out, out
+    assert "R-land: would refuse" in out and out.splitlines()[-1].startswith("R-land: report (0 cell change(s)")
+
+
+def test_W1_mutant_a_director_signed_vision_edit_would_refuse_and_the_prime_s_edit_passes(wb):
+    _edit(wb, "vision", "dg1")
+    rc, out = wb.run(base=wb.base)
+    assert rc == 0 and "v1.md, set vision, written_by: owner, prime_director; signer role director (W1))" in out, out
+    wb2 = wb.git("rev-parse", "HEAD").stdout.strip()
+    _edit(wb, "vision", "belam", body="v2")
+    rc, out = wb.run(base=wb2)
+    assert rc == 0 and "(W1)" not in out and out.startswith("R-land: ok (0 cell change(s)"), out
+
+
+def test_W1_town_per_commit_signer_a_director_is_admitted_a_kid_is_not(wb):
+    _edit(wb, "town", "dg1")
+    rc, out = wb.run(base=wb.base)
+    assert rc == 0 and "(W1)" not in out, out
+    mid = wb.git("rev-parse", "HEAD").stdout.strip()
+    _edit(wb, "town", "kid", body="v2")
+    rc, out = wb.run(base=mid)
+    assert rc == 0 and "(kid, " in out and "written_by: prime_director, owner, director; signer role kid (W1))" in out, out
+
+
+def test_W1_a_type_with_no_written_by_is_never_judged_and_enforce_makes_a_refusal_rc_1(wb):
+    _edit(wb, "doc", "kid")
+    rc, out = wb.run(base=wb.base)
+    assert rc == 0 and out.startswith("R-land: ok (0 cell change(s)"), out
+    wb.set_mode("enforce")
+    base2 = wb.git("rev-parse", "HEAD").stdout.strip()
+    _edit(wb, "moral", "dg1")
+    rc, out = wb.run(base=base2)
+    assert rc == 1 and "R-land: refused " in out and "(W1)" in out, out
+
+
+def test_W2_mutant_a_director_signed_config_leaf_ffd_directly_would_refuse_and_the_prime_s_passes(wb):
+    _edit(wb, "config", "dg1")
+    rc, out = wb.run(base=wb.base)
+    assert rc == 0 and "rotations.md, set config, written_by: owner, prime_director; direct lander role director (W2))" in out, out
+    assert "lander not provable" not in out
+    mid = wb.git("rev-parse", "HEAD").stdout.strip()
+    _edit(wb, "config", "belam", body="v2")
+    rc, out = wb.run(base=mid)
+    assert rc == 0 and "(W2)" not in out, out
+
+
+def test_W3_the_same_leaf_under_a_land_merge_signed_by_a_written_by_role_is_ok_with_no_line(wb):
+    _leaf(wb, "leaf1", "config", "dg1")
+    _land(wb, "leaf1", "belam")
+    rc, out = wb.run(base=wb.base)
+    assert rc == 0 and "(W2)" not in out and "lander not provable" not in out and "R1" not in out, out
+
+
+def test_W3b_a_RULES_land_by_SM_under_belams_WRAP_is_ok_no_lander_not_provable_line_and_the_same_L_plain_ffd_is_not(wb):
+    """The council WRAP (verify-land wrap): W = commit-tree(L^{tree}, parents [trunk, L]) signed belam over L signed by SM.
+    belam holds a written_by role, so the config change is provable (positive row); L ff'd plain is the W2 line (negative row)."""
+    base = wb.base
+    L = _leaf(wb, "L", "config", "master")
+    rc, out = wb.run(base=base, tip=L)
+    assert rc == 0 and "direct lander role director (W2))" in out, out                      # plain ff of SM's L: not provable
+    env = {"GIT_COMMITTER_EMAIL": "belam@agi", "GIT_COMMITTER_NAME": "belam", "GIT_AUTHOR_EMAIL": "belam@agi", "GIT_AUTHOR_NAME": "belam"}
+    W = wb.git("-c", f"user.signingkey={wb.k / 'belam'}", "commit-tree", "-S", f"{L}^{{tree}}", "-p", base, "-p", L,
+               "-m", "LAND wrap", env=env).stdout.strip()
+    assert wb.git("rev-parse", f"{W}^{{tree}}").stdout.strip() == wb.git("rev-parse", f"{L}^{{tree}}").stdout.strip()
+    assert wb.git("rev-list", "--parents", "-n1", W).stdout.split()[1:] == [base, L]
+    rc, out = wb.run(base=base, tip=W)
+    assert rc == 0 and "R-land: ok (" in out, out
+    assert "(W2)" not in out and "lander not provable" not in out and "R1" not in out and "would refuse" not in out, out
+
+
+def test_W4_a_land_merge_signed_by_a_director_prints_ONE_collapsed_line_with_count_and_leaf_signers_never_a_would_refuse(wb):
+    _leaf(wb, "leaf1", "config", "dg1")
+    _land(wb, "leaf1", "master")
+    rc, out = wb.run(base=wb.base)
+    assert rc == 0, out
+    line = next(x for x in out.splitlines() if "lander not provable" in x)
+    assert line == ("R-land: config: lander not provable in history (RULES via unsigned ff): 1 change(s); "
+                    "leaf signers: dg1 x1"), line
+    assert not any(x.startswith("R-land: would refuse") for x in out.splitlines()), out
+
+
+def test_W5_mutant_an_unringed_config_leaf_inside_a_director_land_prints_R1_BESIDE_the_collapsed_line(wb):
+    _leaf(wb, "leaf1", "config", "intruder")
+    _land(wb, "leaf1", "master")
+    rc, out = wb.run(base=wb.base)
+    assert rc == 0, out
+    assert any("(nobody, " in x and "(R1))" in x and x.startswith("R-land: would refuse") for x in out.splitlines()), out
+    assert any("lander not provable" in x for x in out.splitlines()), out
+
+
+def test_W6_a_leaf_signed_by_a_renamed_seat_is_counted_in_the_collapsed_line_no_c_line(wb):
+    _leaf(wb, "leaf1", "config", "old")                       # the row is 'newname', was: old
+    _land(wb, "leaf1", "master")
+    rc, out = wb.run(base=wb.base)
+    assert rc == 0 and "(c))" not in out and "leaf signers: old x1" in out, out
+
+
+def test_W7_mutant_a_leaf_signed_by_a_key_in_no_row_and_no_was_prints_the_c_line(wb):
+    _leaf(wb, "leaf1", "config", "ghost")
+    _land(wb, "leaf1", "master")
+    rc, out = wb.run(base=wb.base)
+    assert rc == 0, out
+    assert any(x.startswith("R-land: would refuse") and "(ghost, " in x and "(c))" in x for x in out.splitlines()), out
+    assert any("lander not provable" in x for x in out.splitlines()), out
+
+
+def test_W8_mutant_an_unringed_lander_is_the_R1_line_never_lander_ok(wb):
+    _leaf(wb, "leaf1", "config", "belam")
+    _land(wb, "leaf1", "intruder")
+    rc, out = wb.run(base=wb.base)
+    assert rc == 0 and any("(nobody, " in x and "(R1))" in x for x in out.splitlines()), out
+    assert "lander not provable" not in out
+
+
+def test_W9_enforce_keeps_the_collapsed_line_informational_rc_0_while_a_W2_line_is_rc_1(wb):
+    wb.set_mode("enforce")
+    base2 = wb.git("rev-parse", "HEAD").stdout.strip()
+    _leaf(wb, "leaf1", "config", "dg1")
+    _land(wb, "leaf1", "master")
+    rc, out = wb.run(base=base2)
+    assert rc == 0 and "lander not provable" in out, out
+    mid = wb.git("rev-parse", "HEAD").stdout.strip()
+    _edit(wb, "config", "dg1", body="v9")
+    rc, out = wb.run(base=mid)
+    assert rc == 1 and "R-land: refused " in out and "(W2)" in out, out
+
+
+def test_W10_a_node_change_with_the_ring_unread_is_the_mode_aware_unread(wb):
+    _edit(wb, "moral", "dg1")
+    rc, out = wb.run(base=wb.base, ring="/nonexistent/allowed_signers")
+    first = out.splitlines()[0]
+    assert rc == 0 and first.startswith("R-land: would refuse ") and first.endswith("(unread allowed_signers ring)"), out
+    assert out.splitlines()[-1].startswith("R-land: report (0 cell change(s)") and "1 would refuse" in out, out
+
+
+def test_W11_mutant_an_unparseable_moral_schema_at_BASE_is_the_mode_aware_unread(wb):
+    wb.write(".agi/context/schemas/[moral].md", "---\n- a list\n---\n")
+    base2 = wb.commit("belam", "break moral schema")
+    _edit(wb, "moral", "belam")
+    rc, out = wb.run(base=base2)
+    assert rc == 0 and "R-land: would refuse " in out and "(unread schema .agi/context/schemas/[moral].md at " in out, out
+    wb.set_mode("enforce")
+    base3 = wb.git("rev-parse", "HEAD").stdout.strip()
+    _edit(wb, "moral", "belam", body="v3")
+    rc, out = wb.run(base=base3)
+    assert rc == 1 and "R-land: unread (schema .agi/context/schemas/[moral].md at " in out, out
+
+
+def _stub_id(tmp_path, body):
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    stub = tmp_path / "idstub"
+    stub.mkdir(parents=True, exist_ok=True)
+    (stub / "id").write_text(f"#!/bin/sh\n{body}\n")
+    (stub / "id").chmod(0o755)
+    return str(stub)
+
+
+def _run_as(wb, tmp_path, name, id_body, env_extra=None, base=None):
+    stub = _stub_id(tmp_path / name, id_body)
+    r = subprocess.run(["sh", str(SCRIPT), base or wb.base, "HEAD"], cwd=wb.d, capture_output=True, text=True,
+                       env={**os.environ, "AGI_RING": str(wb.signers), "PATH": f"{stub}:{os.environ['PATH']}", **(env_extra or {})})
+    return r.returncode, r.stdout
+
+
+ID_SM = 'case "$*" in -un) echo agi-master;; -u) echo 982;; *) exec /usr/bin/id "$@";; esac'
+ID_BELAM = 'case "$*" in -un) echo agi-belam;; -u) echo 981;; *) exec /usr/bin/id "$@";; esac'
+
+
+def test_RANAS_M1_is_the_process_uid_never_AGI_POST_and_prints_only_beside_a_config_judgement(wb, tmp_path):
+    _edit(wb, "config", "dg1")
+    rc, out = _run_as(wb, tmp_path, "a", ID_SM, {"AGI_POST": "belam"})
+    assert "R-land: ran as master (user agi-master, uid 982)" in out and "ran as belam" not in out, out
+
+
+def test_RANAS_M2_informational_only_two_uids_the_same_verdict_lines_and_rc(wb, tmp_path):
+    _edit(wb, "config", "dg1")
+    rc1, o1 = _run_as(wb, tmp_path, "a", ID_SM)
+    rc2, o2 = _run_as(wb, tmp_path, "b", ID_BELAM)
+    strip = lambda o: [x for x in o.splitlines() if not x.startswith("R-land: ran as")]
+    assert rc1 == rc2 == 0 and strip(o1) == strip(o2) and "ran as master" in o1 and "ran as belam" in o2
+
+
+def test_RANAS_M3_an_id_failure_prints_unread_and_never_changes_the_rc(wb, tmp_path):
+    _edit(wb, "config", "dg1")
+    rc, out = _run_as(wb, tmp_path, "a", "exit 1")
+    assert rc == 0 and "R-land: ran as: unread (uid ?; no name)" in out, out
+    rc, out = _run_as(wb, tmp_path, "b", 'case "$*" in -un) exit 1;; -u) echo 4242;; *) exec /usr/bin/id "$@";; esac')
+    assert rc == 0 and "R-land: ran as: unread (uid 4242; no name)" in out, out
+    rc, out = _run_as(wb, tmp_path, "c", 'case "$*" in -un) echo agi-nobody-here;; -u) echo 7;; *) exec /usr/bin/id "$@";; esac')
+    assert rc == 0 and "R-land: ran as: unread (user agi-nobody-here, uid 7; no seat row of that name)" in out, out
+
+
+def test_RANAS_is_not_printed_when_no_config_node_changed(wb, tmp_path):
+    _edit(wb, "town", "dg1")
+    rc, out = _run_as(wb, tmp_path, "a", ID_SM)
+    assert "ran as" not in out, out
+
+
+def test_W_R4_a_director_signed_config_leaf_ffd_onto_posts_belam_in_report_the_ref_MOVES_with_the_line_enforce_UNCHANGED(tmp_path):
+    repo = Repo(tmp_path)
+    repo.write(f"{G}/rotations.md", NODE.format(t="config", n="rotations", b="v0"))
+    repo.write(".agi/context/schemas/[moral].md", SCH.format(n="moral", w="owner"))
+    repo.set_mode("report")
+    env = _install_hook(repo, tmp_path)
+    base = repo.git("rev-parse", "HEAD").stdout.strip()
+    _branch_at(repo, "refs/heads/posts/belam", base)
+    repo.write(f"{G}/rotations.md", NODE.format(t="config", n="rotations", b="v1"))
+    bad = repo.commit("dg1", "director edits config directly")
+    r = _move(repo, "refs/heads/posts/belam", bad, base, env)
+    assert r.returncode == 0 and "(W2)" in r.stderr and "R-land: ran as " in r.stderr, r.stderr
+    assert repo.git("rev-parse", "refs/heads/posts/belam").stdout.strip() == bad
+    repo.set_mode("enforce")
+    base2 = repo.git("rev-parse", "HEAD").stdout.strip()
+    _branch_at(repo, "refs/heads/posts/belam", base2)
+    repo.write(f"{G}/rotations.md", NODE.format(t="config", n="rotations", b="v2"))
+    bad2 = repo.commit("dg1", "director edits config directly again")
+    r = _move(repo, "refs/heads/posts/belam", bad2, base2, env)
+    assert r.returncode != 0 and "refused, nothing changed" in r.stderr, r.stderr
+    assert repo.git("rev-parse", "refs/heads/posts/belam").stdout.strip() == base2
+
+
+def test_W12_a_node_change_of_a_type_without_written_by_needs_no_ring_in_either_mode(wb):
+    _edit(wb, "doc", "kid")
+    rc, out = wb.run(base=wb.base, ring="/nonexistent/allowed_signers")
+    assert rc == 0 and out.startswith("R-land: ok (0 cell change(s)"), out
+    wb.set_mode("enforce")
+    base2 = wb.git("rev-parse", "HEAD").stdout.strip()
+    _edit(wb, "doc", "kid", body="v2")
+    rc, out = wb.run(base=base2, ring="/nonexistent/allowed_signers")
+    assert rc == 1 and out == "R-land: unread (allowed_signers ring)", out        # enforce reads the ring up front (unchanged)
+
+
+def test_P1_a_prefilter_git_error_is_a_change_r_land_still_runs_never_a_silent_move(tmp_path):
+    """council 03:41Z: the hook's `git diff --quiet $o $n -- .agi/nodes` exits 128 on an error and only rc 0 continues, so an
+    error means r-land RUNS; r-land's own `git diff --name-only` pre-check treats an error as a change too. A bad boolean
+    `diff.renames` (via GIT_CONFIG_COUNT) fails ONLY the porcelain `git diff` (rc 128; diff-tree, rev-list, cat-file are fine)
+    and must not hide the move: r-land runs and says so (here the signature `git log` fails too -> `unread git ... failed`,
+    loud). MUTANT (RED when run by hand): the hook's prefilter as `;[ $? != 1 ]&&continue` (rc 128 skips r-land, a silent move)."""
+    repo = Repo(tmp_path)
+    repo.write(f"{G}/rotations.md", NODE.format(t="config", n="rotations", b="v0"))
+    repo.set_mode("report")
+    env = _install_hook(repo, tmp_path)
+    base = repo.git("rev-parse", "HEAD").stdout.strip()
+    _branch_at(repo, "refs/heads/posts/belam", base)
+    repo.write(f"{G}/rotations.md", NODE.format(t="config", n="rotations", b="v1"))
+    bad = repo.commit("dg1", "director edits config directly")
+    env = {**env, "GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "diff.renames", "GIT_CONFIG_VALUE_0": "bogus"}
+    r = _move(repo, "refs/heads/posts/belam", bad, base, env)
+    assert r.returncode == 0 and "R-land: would refuse" in r.stderr, r.stderr     # r-land RAN (report mode: loud, the ref moves)
+    assert repo.git("rev-parse", "refs/heads/posts/belam").stdout.strip() == bad
+
+
+# ---- V2 / V3 / V1 (council GATE272, alive 03:51:46Z + 04:05:37Z): the hook twin of verify-land's judge selection ------------
+R_LAND = "extensions/agi/guard/r-land"
+
+
+def _hook_repo(tmp_path):
+    repo = Repo(tmp_path)
+    repo.write(f"{G}/rotations.md", NODE.format(t="config", n="rotations", b="v0"))
+    repo.set_mode("report")
+    env = _install_hook(repo, tmp_path)
+    env["AGI_RLAND_SINCE"] = repo.git("rev-list", "--max-parents=0", "HEAD").stdout.strip()
+    return repo, env
+
+
+def _judge_blob_commit(repo):
+    """The commit that last changed r-land: the judge a later empty/deleted BASE must fall back to."""
+    return repo.git("log", "-1", "--format=%H", "--", R_LAND).stdout.strip()
+
+
+def _land_ref(repo, env, new, old):
+    return _move(repo, "refs/heads/posts/belam", new, old, env)
+
+
+def _drop_r_land(repo, how, signer="belam"):
+    if how == "delete":
+        repo.git("rm", "-q", R_LAND)
+    elif how == "empty":
+        repo.write(R_LAND, "")
+    return repo.commit(signer, f"{how} r-land")
+
+
+def _restore_with_violation(repo, original):
+    repo.write(R_LAND, original)
+    repo.write(f"{G}/rotations.md", NODE.format(t="config", n="rotations", b="violation"))
+    return repo.commit("dg1", "restore r-land + a director edits config directly")
+
+
+@pytest.mark.parametrize("how", ["delete", "empty"])
+def test_V2_1_2_a_deleting_or_emptying_land_then_the_restoring_land_both_judged_by_the_pre_deletion_blob(tmp_path, how):
+    repo, env = _hook_repo(tmp_path)
+    original = (repo.d / R_LAND).read_text()
+    b0 = repo.git("rev-parse", "HEAD").stdout.strip()
+    judge = _judge_blob_commit(repo)
+    _branch_at(repo, "refs/heads/posts/belam", b0)
+    l1 = _drop_r_land(repo, how)
+    r = _land_ref(repo, env, l1, b0)
+    assert r.returncode == 0, r.stderr                                          # judged by b0's blob: nothing to refuse
+    l2 = _restore_with_violation(repo, original)
+    r = _land_ref(repo, env, l2, l1)
+    k = "deleted" if how == "delete" else "emptied"
+    assert r.returncode == 0 and f"r-land: judge from {judge} ({k} at {l1})" in r.stderr, r.stderr      # the restore is NOT held
+    assert "(W2)" in r.stderr, r.stderr                                          # and the prior judge really ran on it
+    assert repo.git("rev-parse", "refs/heads/posts/belam").stdout.strip() == l2
+
+
+def test_V2_3_truncate_then_delete_then_restore_is_judged_by_the_pre_truncation_blob(tmp_path):
+    repo, env = _hook_repo(tmp_path)
+    original = (repo.d / R_LAND).read_text()
+    b0 = repo.git("rev-parse", "HEAD").stdout.strip()
+    judge = _judge_blob_commit(repo)
+    _branch_at(repo, "refs/heads/posts/belam", b0)
+    l1 = _drop_r_land(repo, "empty")
+    assert _land_ref(repo, env, l1, b0).returncode == 0
+    l2 = _drop_r_land(repo, "delete")
+    r = _land_ref(repo, env, l2, l1)
+    assert r.returncode == 0, r.stderr        # the range touches no node: the prefilter skips r-land (nothing to judge, nothing held)
+    l3 = _restore_with_violation(repo, original)
+    r = _land_ref(repo, env, l3, l2)
+    assert r.returncode == 0 and f"judge from {judge} (deleted at {l2})" in r.stderr and "(W2)" in r.stderr, r.stderr
+
+
+def test_V2_e_a_tip_cut_before_a_trunk_r_land_update_deletes_it_and_lands_by_merge_the_judge_is_the_trunks_newest(tmp_path):
+    repo, env = _hook_repo(tmp_path)
+    b0 = repo.git("rev-parse", "HEAD").stdout.strip()
+    repo.git("checkout", "-q", "-b", "tip")
+    repo.git("rm", "-q", R_LAND)
+    repo.commit("dg1", "tip deletes r-land")
+    repo.git("checkout", "-q", "main")
+    repo.write(R_LAND, (repo.d / R_LAND).read_text() + "# trunk update v2\n")
+    v2 = repo.commit("belam", "trunk updates r-land")
+    env2 = {**os.environ, "GIT_COMMITTER_EMAIL": "belam@agi", "GIT_COMMITTER_NAME": "belam"}
+    repo.git("-c", f"user.signingkey={repo.k / 'belam'}", "merge", "--no-ff", "-q", "-m", "land the tip", "tip", env=env2, check=False)
+    assert repo.git("rev-parse", "-q", "--verify", "MERGE_HEAD", check=False).returncode == 0, "the merge must stop on the modify/delete conflict, not fail for another reason"
+    repo.git("rm", "-q", "-f", R_LAND)
+    m = repo.commit("belam", "land the tip (r-land deleted)")
+    _branch_at(repo, "refs/heads/posts/belam", m)
+    repo.write(f"{G}/rotations.md", NODE.format(t="config", n="rotations", b="violation"))
+    bad = repo.commit("dg1", "director edits config directly")
+    r = _land_ref(repo, env, bad, m)
+    assert r.returncode == 0 and f"judge from {v2} (deleted at {m})" in r.stderr and "(W2)" in r.stderr, r.stderr
+    assert b0 != v2
+
+
+def test_V2_f_soften_then_empty_on_a_side_branch_merged_the_judge_is_the_trunks_pre_merge_blob_never_the_softened(tmp_path):
+    repo, env = _hook_repo(tmp_path)
+    b0 = repo.git("rev-parse", "HEAD").stdout.strip()
+    repo.git("checkout", "-q", "-b", "side")
+    repo.write(R_LAND, "#!/bin/sh\necho 'R-land: ok SOFTENED'; exit 0\n")
+    soft = repo.commit("dg1", "soften r-land")
+    repo.write(R_LAND, "")
+    repo.commit("dg1", "empty r-land")
+    repo.git("checkout", "-q", "main")
+    repo.write("trunk-note.txt", "x")
+    repo.commit("belam", "trunk moves on")
+    env2 = {**os.environ, "GIT_COMMITTER_EMAIL": "belam@agi", "GIT_COMMITTER_NAME": "belam"}
+    judge = _judge_blob_commit(repo)
+    repo.git("-c", f"user.signingkey={repo.k / 'belam'}", "merge", "--no-ff", "-q", "-m", "land side", "side", env=env2)
+    m = repo.git("rev-parse", "HEAD").stdout.strip()
+    assert len(repo.git("rev-list", "--parents", "-n1", m).stdout.split()) == 3, "land side must be a 2-parent merge"
+    assert (repo.d / R_LAND).read_text() == "", "the merge carries the side branch's emptied r-land"
+    _branch_at(repo, "refs/heads/posts/belam", m)
+    repo.write(f"{G}/rotations.md", NODE.format(t="config", n="rotations", b="violation"))
+    bad = repo.commit("dg1", "director edits config directly")
+    r = _land_ref(repo, env, bad, m)
+    assert r.returncode == 0 and "(W2)" in r.stderr and "SOFTENED" not in r.stderr and soft not in r.stderr, r.stderr
+    assert f"judge from {judge} (emptied at {m})" in r.stderr, r.stderr
+
+
+def _trunk_edit(tmp_path, mode="enforce"):
+    """A hooked repo at `mode`, posts/belam at b0, and a belam-signed config edit `new` on top: a node change the widened hook judges."""
+    repo, env = _hook_repo(tmp_path)
+    if mode != "report":
+        repo.set_mode(mode)
+    b0 = repo.git("rev-parse", "HEAD").stdout.strip()
+    _branch_at(repo, "refs/heads/posts/belam", b0)
+    repo.write(f"{G}/rotations.md", NODE.format(t="config", n="rotations", b="v1"))
+    return repo, env, repo.commit("belam", "edit config"), b0
+
+
+def _notices(tmp_path):
+    f = tmp_path / "notices.log"
+    return f.read_text() if f.exists() else ""
+
+
+def test_T1_an_unwritable_TMPDIR_with_a_writable_repo_the_move_PASSES_in_ENFORCE_and_prints_no_unread_tmpdir(tmp_path):
+    """Both temp writers live in the repo's objects/ dir (the hook's tmpfile + r-land's own mktemp -d via TMPDIR=$t), so the MOVER's TMPDIR is irrelevant."""
+    repo, env, new, b0 = _trunk_edit(tmp_path)
+    r = _move(repo, "refs/heads/posts/belam", new, b0, {**env, "TMPDIR": "/nonexistent/tmp"})
+    assert r.returncode == 0 and "unread tmpdir" not in r.stderr and "HOLD" not in r.stderr, r.stderr
+    assert repo.git("rev-parse", "refs/heads/posts/belam").stdout.strip() == new
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="root ignores the mode bits this row sets")
+def test_T2_the_git_ROOT_not_writable_while_objects_is_writable_the_move_PASSES(tmp_path):
+    """A non-owner group-agi mover: the .git ROOT is belam-only 775, objects/ is group-agi rwx. A temp file under the .git root would HOLD every such mover."""
+    repo, env, new, b0 = _trunk_edit(tmp_path)
+    g = repo.d / ".git"
+    g.chmod(0o555)
+    try:
+        r = _move(repo, "refs/heads/posts/belam", new, b0, env)
+    finally:
+        g.chmod(0o755)
+    assert r.returncode == 0 and "HOLD" not in r.stderr, r.stderr
+    assert repo.git("rev-parse", "refs/heads/posts/belam").stdout.strip() == new
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="root ignores the mode bits this row sets")
+def test_T3_no_tmpfile_is_a_HOLD_that_names_its_cause_and_runs_agi_notice(tmp_path):
+    repo, env, new, b0 = _trunk_edit(tmp_path)
+    o = repo.d / ".git" / "objects"
+    o.chmod(0o555)
+    try:
+        r = _move(repo, "refs/heads/posts/belam", new, b0, env)
+    finally:
+        o.chmod(0o755)
+    assert r.returncode != 0 and "HOLD, nothing changed: no tmpfile under" in r.stderr, r.stderr
+    assert str(o) in r.stderr and "Permission denied" in r.stderr and "a retry clears it once that clears" in r.stderr, r.stderr
+    assert "[r-land] HOLD refs/heads/posts/belam: no tmpfile under" in _notices(tmp_path), _notices(tmp_path)
+    assert repo.git("rev-parse", "refs/heads/posts/belam").stdout.strip() == b0
+
+
+def test_T4_every_HOLD_runs_agi_notice(tmp_path):
+    repo, env, new, b0 = _trunk_edit(tmp_path, mode="report")
+    r = _move(repo, "refs/heads/posts/belam", new, b0, {**env, "AGI_RLAND_SINCE": "deadbeef" * 5})
+    assert r.returncode != 0 and "HOLD, nothing changed: BASE" in r.stderr, r.stderr
+    assert "[r-land] HOLD refs/heads/posts/belam: BASE" in _notices(tmp_path), _notices(tmp_path)
+
+
+def test_V3_an_unresolvable_BASE_ancestry_read_is_a_HOLD(tmp_path):
+    repo, env = _hook_repo(tmp_path)
+    b0 = repo.git("rev-parse", "HEAD").stdout.strip()
+    _branch_at(repo, "refs/heads/posts/belam", b0)
+    repo.write(f"{G}/rotations.md", NODE.format(t="config", n="rotations", b="v1"))
+    new = repo.commit("belam", "edit config")
+    r = _move(repo, "refs/heads/posts/belam", new, b0, {**env, "AGI_RLAND_SINCE": "deadbeef" * 5})
+    assert r.returncode != 0 and "HOLD, nothing changed: BASE" in r.stderr and "unresolvable" in r.stderr, r.stderr
+    assert repo.git("rev-parse", "refs/heads/posts/belam").stdout.strip() == b0
