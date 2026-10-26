@@ -8,11 +8,14 @@ sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~
 [ -s $PIECE ]||{ echo "FAIL extract: agi-cred $(wc -c<$PIECE) B";exit 99;}
 [ -n "$UNIT" ]||{ sect agi-cred.service>$T/unit;UNIT=$T/unit;}   # run() takes HOME from the unit's own Environment= line: the stub doppler refuses an empty HOME as the real one does
 P0=$PIECE;ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
+# a fixture/mutant edit of a COPY of a trunk file must change it (goal:g7.16.1.11.13.5): a drifted literal is a counted FAIL, never a green row
+chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture: $3 matched nothing: $4";exit 99;};:;}   # the council's shape (alive/sp/aio 22:00Z): EXIT 99 at a fixture helper that rewrites a copy later rows run on
+has(){ grep -qxF -- "$1" "$2"||{ echo "FAIL fixture: $3 matched nothing: $1";exit 99;};:;}   # the load-bearing line of a multi-expression sed (a whole-file cmp passes when only one half matched)
 KP=sk-an;KP=${KP}t;K="${KP}-api03-TESTCANARY0123";K2="${KP}-api03-OTHERCANARY456"
-rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' $P0>$T/mut;cmp -s $P0 $T/mut&&echo "# NO EDIT for [$1]";PIECE=$T/mut;}
+rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' $P0>$T/mut;cmp -s $P0 $T/mut&&{ echo "FAIL fixture: rep matched nothing: $1";exit 99;};PIECE=$T/mut;}
 # --- the scratch main repo with the cells
 M=$T/main;mkdir -p $M/.agi/nodes/.geometry;$G -C $M init -q;cp $R0/.agi/nodes/.geometry/secrets.md $M/.agi/nodes/.geometry/secrets.md
-cells(){ sed -e "s/^credits_live: .*/credits_live: $1/" -e "s/^doppler: .*/doppler: {\"project\": \"agi\", \"config\": \"$2\"}/" $R0/.agi/nodes/.geometry/secrets.md>$M/.agi/nodes/.geometry/secrets.md;$G -C $M add -A;$G -C $M -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm c$$ >/dev/null 2>&1;TR=$($G -C $M rev-parse HEAD);}
+cells(){ sed -e "s/^credits_live: .*/credits_live: $1/" -e "s/^doppler: .*/doppler: {\"project\": \"agi\", \"config\": \"$2\"}/" $R0/.agi/nodes/.geometry/secrets.md>$M/.agi/nodes/.geometry/secrets.md;has "credits_live: $1" $M/.agi/nodes/.geometry/secrets.md "the credits_live cell sed";has "doppler: {\"project\": \"agi\", \"config\": \"$2\"}" $M/.agi/nodes/.geometry/secrets.md "the doppler cell sed";$G -C $M add -A;$G -C $M -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm c$$ >/dev/null 2>&1;TR=$($G -C $M rev-parse HEAD);}
 # --- stubs
 SH=$T/sh;mkdir -p $SH $T/units $T/cs $T/proc $T/cg
 cat >$SH/doppler<<'EOF'
@@ -37,7 +40,7 @@ cat >$SH/tr<<'EOF'
 exec /usr/bin/tr "$@"
 EOF
 printf '[safe]\n\tdirectory = *\n' >$T/hostile.gc   # a hostile system AND global value; run() also exports a hostile env pair (VALUE_0='*')
-DC=$T/decoy;mkdir -p $DC/.agi/nodes/.geometry;$G -C $DC init -q;sed 's/^credits_live: .*/credits_live: false/' $R0/.agi/nodes/.geometry/secrets.md>$DC/.agi/nodes/.geometry/secrets.md;$G -C $DC add -A;$G -C $DC -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm decoy
+DC=$T/decoy;mkdir -p $DC/.agi/nodes/.geometry;$G -C $DC init -q;sed 's/^credits_live: .*/credits_live: false/' $R0/.agi/nodes/.geometry/secrets.md>$DC/.agi/nodes/.geometry/secrets.md;has "credits_live: false" $DC/.agi/nodes/.geometry/secrets.md "the decoy credits_live sed";$G -C $DC add -A;$G -C $DC -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm decoy
 # EVERY run() is hostile (council 20:52Z): GIT_CONFIG_PARAMETERS '*', the env pair '*', GIT_DIR + GIT_OBJECT_DIRECTORY at a decoy whose cell reads credits_live: false, GIT_NAMESPACE, hostile system + global files
 chmod +x $SH/*;printf '[Service]\nLoadCredential=claude-sp:/etc/credstore/claude-sp\n'>$T/units/agi-batch.service;cp $T/units/agi-batch.service $T/units/agi-kids.service;printf '[Service]\nExecStart=/bin/true\n'>$T/units/agi-council.service
 run(){ env -i PATH=$SH:/usr/bin:/bin HOME=$(sed -n 's/^Environment=HOME=//p' $UNIT|tail -1) AGI_REPO=$M AGI_TRUNK=${TRUNK:-$TR} AGI_CREDSTORE=$T/cs AGI_PROC=$T/proc AGI_CGROUP=$T/cg STUB_LOG=$T STUB_KEY="${KEY:-$K}" STUB_DOP_FAIL=$DFAIL STUB_DOP_ERR=$DERR STUB_SD_FAIL=$SDF STUB_TR_RM=$TRRM GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0='*' GIT_CONFIG_GLOBAL=$T/hostile.gc GIT_CONFIG_SYSTEM=$T/hostile.gc GIT_CONFIG_PARAMETERS="'safe.directory'='*'" GIT_DIR=$DC/.git GIT_OBJECT_DIRECTORY=$DC/.git/objects GIT_NAMESPACE=x sh ${PIECE} "$@" >$T/o 2>$T/e;rc=$?;}
@@ -140,7 +143,7 @@ ok "u1m-mutant-guard-dropped-reads-silent-rc0-RED rc $rc" '[ $rc = 0 ] && ! grep
 rm -f $T/cs/claude-sp
 # ================= HOME (belam 10-25): the first live start after the pin move (L124) exited 5 "doppler gave no key": systemd gives the unit no HOME and doppler refuses without one
 ok "u3-the-service-sets-HOME-for-doppler $(sect agi-cred.service|grep -c "^Environment=HOME=/root$")" '[ "$(sect agi-cred.service|grep -c "^Environment=HOME=/root$")" = 1 ]'
-U0=$UNIT;grep -v '^Environment=HOME=' $U0>$T/unit.mut;UNIT=$T/unit.mut;fresh;cells true prd;run tick;UNIT=$U0
+U0=$UNIT;grep -v '^Environment=HOME=' $U0>$T/unit.mut;chg $U0 $T/unit.mut "the HOME-line drop" '^Environment=HOME=';UNIT=$T/unit.mut;fresh;cells true prd;run tick;UNIT=$U0
 ok "u3m-MUTANT-the-unit-without-HOME-writes-no-key-RED rc $rc (clean: 0), file $([ -e $T/cs/claude-sp ]&&echo THERE||echo none)" '[ $rc = 5 ]&&[ ! -e $T/cs/claude-sp ]&&grep -q "doppler gave no key" $T/e'
 rm -f $T/cs/claude-sp
 # ================= ROW 1 + 1' (council L127): the rc-5 line names doppler's cause (its 'Doppler Error' line, else its first) and never a token or key
@@ -153,7 +156,7 @@ ok "r3-a-token-of-no-known-shape-blanks-the-whole-line rc $rc, token bytes $(gre
 # OBSERVED copy, ONE line differs (checked): the read's env -i gets the stub dir on PATH (the real read finds git only on /usr/bin:/bin), plus GIT_CONFIG_SYSTEM=<hostile>
 # standing in for a hostile /etc/gitconfig (a plain user cannot write it) and HOME=<a dir whose .gitconfig is hostile> standing in for a kept HOME: NOSYSTEM and GLOBAL=/dev/null must hold against both
 mkdir -p $T/hh;cp $T/hostile.gc $T/hh/.gitconfig
-obs(){ sed "s|env -i PATH=/usr/bin:/bin |env -i PATH=$SH:/usr/bin:/bin GIT_CONFIG_SYSTEM=$T/hostile.gc HOME=$T/hh |" $1 >$T/obs;PIECE=$T/obs;}
+obs(){ sed "s|env -i PATH=/usr/bin:/bin |env -i PATH=$SH:/usr/bin:/bin GIT_CONFIG_SYSTEM=$T/hostile.gc HOME=$T/hh |" $1 >$T/obs;chg $1 $T/obs "obs" 'env -i PATH=/usr/bin:/bin ';PIECE=$T/obs;}
 obs $P0;nd=$(diff $P0 $T/obs|grep -c '^>')
 fresh;cells true prd;rm -f $T/sdcfg $T/gitenv;run tick
 ok "s1-under-a-hostile-env-the-read-sees-ONLY-AGI_REPO-the-REAL-cell-and-3-GIT-names-plus-the-observed-SYSTEM rc $rc, observed lines changed $nd, effective: $(tr '\n' ' ' <$T/sdcfg 2>/dev/null), file $([ -e $T/cs/claude-sp ]&&echo written||echo NONE), GIT_* seen: $(cat $T/gitenv 2>/dev/null)" '[ $nd = 1 ]&&[ $rc = 0 ]&&[ "$(cat $T/sdcfg)" = "$M" ]&&[ -e $T/cs/claude-sp ]&&[ "$(cat $T/gitenv)" = "GIT_CONFIG_GLOBAL GIT_CONFIG_NOSYSTEM GIT_CONFIG_SYSTEM GIT_NO_REPLACE_OBJECTS " ]'
@@ -165,7 +168,7 @@ for x in 'GIT_CONFIG_NOSYSTEM=1 :m20-system' 'GIT_CONFIG_GLOBAL=/dev/null :m21-g
 rep '-c safe.directory="$AGI_REPO" ' '';obs $PIECE;fresh;cells true prd;rm -f $T/sdcfg;run tick
 ok "m22-MUTANT-no-scoped-value-the-effective-set-is-not-AGI_REPO-RED effective: [$(tr '\n' ' ' <$T/sdcfg 2>/dev/null)]" '[ "$(cat $T/sdcfg 2>/dev/null)" != "$M" ]'
 PIECE=$P0
-rpl(){ b=$($G -C $M rev-parse $TR:.agi/nodes/.geometry/secrets.md);nb=$(sed 's/^credits_live: .*/credits_live: false/' $M/.agi/nodes/.geometry/secrets.md|$G -C $M hash-object -w --stdin);$G -C $M replace -f $b $nb;}
+rpl(){ b=$($G -C $M rev-parse $TR:.agi/nodes/.geometry/secrets.md);nb=$(sed 's/^credits_live: .*/credits_live: false/' $M/.agi/nodes/.geometry/secrets.md|$G -C $M hash-object -w --stdin);[ "$b" != "$nb" ]||{ echo "FAIL fixture: rpl matched nothing: ^credits_live: ";exit 99;};$G -C $M replace -f $b $nb;}
 fresh;cells true prd;rpl;run tick;$G -C $M replace -d $b >/dev/null
 ok "s2-a-replace-object-over-the-cell-is-ignored rc $rc, file $([ -e $T/cs/claude-sp ]&&echo written||echo NONE)" '[ $rc = 0 ]&&[ -e $T/cs/claude-sp ]'
 rep '2>$e)' '2>/dev/null)';fresh;cells true prd;UNIT=$T/unit.mut;run tick;UNIT=$U0
@@ -195,4 +198,17 @@ reu;PIECE=$P0;rm -f $T/cs/claude-sp
 n=$(for g in agi-cred agi-cred.service agi-cred.timer;do sect $g;done|grep -c -e "Environment=.*ANTHROPIC_API_KEY" -e "$KP-")
 ok "n-the-three-pieces-hold-no-key-prefix-and-no-ANTHROPIC_API_KEY-environment hits $n (want 0)" '[ "$n" = 0 ]'
 ok "n-the-service-carries-no-LoadCredential-or-key-env (it is root's own) $(sect agi-cred.service|grep -c -e LoadCredential -e ANTHROPIC)" '[ "$(sect agi-cred.service|grep -c -e LoadCredential -e ANTHROPIC)" = 0 ]'
+# r3 (the census; the council's shape, alive/sp/aio 22:00Z): every helper here rewrites a copy LATER ROWS RUN ON (rep -> PIECE, cells -> the secrets cell, obs -> PIECE, rpl -> the replace object), so each EXITS 99 with ONE named line `FAIL fixture: <helper> matched nothing: <literal>`; the old comment-only / unmeasured shapes are the mutants
+x=$(rep 'NO-SUCH-ANCHOR-XYZ' q);rc=$?
+ok "r3-rep-a-matchless-anchor-exits-99-with-one-named-line: rc $rc, $(echo "$x"|tr '\n' '|'|cut -c1-100)" '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: rep matched nothing: NO-SUCH-ANCHOR-XYZ" ]'
+x=$(rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' $P0>$T/mut;cmp -s $P0 $T/mut&&echo "# NO EDIT for [$1]";PIECE=$T/mut;};rep 'NO-SUCH-ANCHOR-XYZ' q;echo "reached-the-rows")
+ok "r3-rep-mutant-the-comment-only-branch-runs-the-rows-on-an-unmutated-piece-RED: $(echo "$x"|tr '\n' '|'|cut -c1-110)" 'echo "$x"|grep -qx reached-the-rows&&! echo "$x"|grep -q "^FAIL fixture"'
+printf a >$T/c1;printf a >$T/c2;x=$(chg $T/c1 $T/c2 "a drifted sed" 'LITERAL');rc=$?
+ok "r3-chg-a-matchless-edit-exits-99-with-one-named-line: rc $rc, $x" '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: a drifted sed matched nothing: LITERAL" ]'
+printf b >$T/c2;x=$(chg $T/c1 $T/c2 "a live sed" 'LITERAL');rc=$?
+ok "r3-chg-an-edit-that-changed-bytes-is-silent: rc $rc" '[ $rc = 0 ]&&[ -z "$x" ]'
+printf 'credits_live: true\n' >$T/c1;x=$(has "credits_live: false" $T/c1 "the credits_live cell");rc=$?
+ok "r3-has-a-missing-cell-exits-99-with-one-named-line: rc $rc, $x" '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: the credits_live cell matched nothing: credits_live: false" ]'
+x=$(has(){ :;};has "credits_live: false" $T/c1 "the old unmeasured cells sed";echo reached-the-rows)
+ok "r3-has-mutant-the-unmeasured-cells-sed-runs-the-rows-on-the-wrong-cell-RED: $x" '[ "$x" = reached-the-rows ]'
 echo "agi-cred: $f FAIL";exit $f
