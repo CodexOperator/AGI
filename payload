@@ -1208,7 +1208,7 @@ def _sweep_worktree_base(root: Path, wt: Path, season: int | None) -> str | None
     if sess.is_dir():
         for it in sorted(sess.glob("iter-*")):
             ap = it / "agent.json"
-            if ap.exists():
+            if _exists3(ap) is True:
                 try:
                     bb = json.loads(ap.read_text()).get("base_branch")
                 except (json.JSONDecodeError, OSError):
@@ -1216,7 +1216,7 @@ def _sweep_worktree_base(root: Path, wt: Path, season: int | None) -> str | None
                 if bb:
                     return bb
             mp = it / "manifest.json"
-            if mp.exists():
+            if _exists3(mp) is True:
                 try:
                     man = json.loads(mp.read_text())
                 except (json.JSONDecodeError, OSError):
@@ -1371,7 +1371,10 @@ def _sweep_iter_home(wt_iter: Path, target: Path) -> bool:
     session-complete's own contract — it removes a source only after its own
     contribution byte-verifies.
     """
-    if not wt_iter.exists():
+    gone = _exists3(wt_iter)
+    if gone is None:
+        return False  # goal:g7.16.1.11.45.5: unreadable is NOT gone -- fail CLOSED, the bring-home runs
+    if not gone:
         return True  # session-complete removed it only after verification
     if not target.is_dir():
         return False
@@ -1409,10 +1412,10 @@ def _sweep_cold_link(root: Path, main_sessions: Path, iter_name: str):
     None (no cell, an entry already there, or the link failed)."""
     cold = locations.guard_cell(root, "AGI_SESSIONS_ARCHIVE")
     link = main_sessions / iter_name
-    if not cold or link.exists() or link.is_symlink():
+    if not cold or _exists3(link) is not False or link.is_symlink():
         return None
     dest = Path(cold) / iter_name
-    if dest.exists() or dest.is_symlink():  # never write into a foreign dir
+    if _exists3(dest) is not False or dest.is_symlink():  # never write into a foreign dir (nor one we cannot see)
         dest = Path(cold) / f"{iter_name}.{int(time.time())}"
     try:
         dest.mkdir(parents=True)
@@ -1505,7 +1508,7 @@ sweep-judges-it.
     # per-source and byte-exact (_sweep_iter_home), never a bare is_dir -- an
     # EMPTY placeholder or a foreign dir must still drive a home attempt
     # instead of reaping the tree with its own unmigrated records (L4.257).
-    if not wt_iter.exists() or _sweep_iter_home(
+    if _exists3(wt_iter) is False or _sweep_iter_home(
             wt_iter, main_sessions / iter_name):
         homed[iter_name] = ""
         return None
@@ -1751,7 +1754,15 @@ def _sweep_orphan(wt: Path) -> bool:
         line = (wt / ".git").read_text().strip()
     except OSError:
         return False
-    return line.startswith("gitdir:") and not Path(line[7:].strip()).exists()
+    if not line.startswith("gitdir:"):
+        return False
+    target = Path(line[7:].strip())
+    state = _exists3(target)
+    if state is None:
+        # goal:g7.16.1.11.45.5: an orphan probe that cannot answer is NOT an orphan
+        _watch_log(f"[sweep] {wt.name} gitdir unreadable ({_errno_name(target)}): kept")
+        return False
+    return not state
 
 
 def _sweep_is_dir(p: Path) -> bool | None:
@@ -1764,6 +1775,29 @@ def _sweep_is_dir(p: Path) -> bool | None:
         return p.is_dir()
     except OSError:
         return None
+
+
+def _exists3(p: Path) -> bool | None:
+    """goal:g7.16.1.11.45.5 R1: the ONE never-raise tri-state existence probe, in
+    `_sweep_is_dir`'s shape. `Path.exists()` RAISES PermissionError behind an
+    unreadable parent (Python 3.12 swallows only ENOENT-like errors). True / False
+    when the filesystem answers; None when it cannot (never a raise, never "gone").
+    NEVER `os.path.exists` and never `except OSError: return False` (R2): either
+    one reads "cannot see" as "gone"."""
+    try:
+        return p.exists()
+    except OSError:
+        return None
+
+
+def _errno_name(p: Path) -> str:
+    """The errno NAME the probe could not get past (EACCES, ...), for the line that
+    reports an unread answer. Only called after `_exists3` returned None."""
+    try:
+        os.stat(p)
+    except OSError as exc:
+        return errno.errorcode.get(exc.errno or 0, "OSError")
+    return "OSError"
 
 
 def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
@@ -1895,7 +1929,9 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
                 outcome = "registration dropped"
             elif ent is None:
                 outcome = "NO MATCH, kept"
-            elif (ent / "locked").exists():
+            elif (locked := _exists3(ent / "locked")) is None:
+                outcome = "left (lock state unread)"
+            elif locked:
                 outcome = "left (locked)"
             else:
                 outcome = "left (not provably gone, or drop failed)"
@@ -2477,7 +2513,7 @@ def _all_windows(window_path: str | None = None) -> list[tuple[str, str]]:
         window_path = os.environ.get(WINDOW_PATH_ENV)
     if window_path:
         p = Path(window_path)
-        if not p.exists():
+        if _exists3(p) is not True:
             return []
         out: list[tuple[str, str]] = []
         for ln in p.read_text(encoding="utf-8").splitlines():
@@ -2517,7 +2553,7 @@ def _pane_pid_of(win_id: str, window_path: str | None = None) -> int:
         window_path = os.environ.get(WINDOW_PATH_ENV)
     if window_path:
         p = Path(window_path)
-        if not p.exists():
+        if _exists3(p) is not True:
             return 0
         for ln in p.read_text(encoding="utf-8").splitlines():
             parts = ln.strip().partition(" ")[2].split()
@@ -2550,7 +2586,7 @@ def _pane_pid_map(window_path: str | None = None) -> dict[str, int]:
         window_path = os.environ.get(WINDOW_PATH_ENV)
     if window_path:
         p = Path(window_path)
-        if not p.exists():
+        if _exists3(p) is not True:
             return {}
         out: dict[str, int] = {}
         for ln in p.read_text(encoding="utf-8").splitlines():
@@ -3043,7 +3079,12 @@ def _pin_table(root: Path, rows: list) -> tuple[dict, list]:
                                 "reason": "pin empty/unparsable"})
                 continue
             tp = Path(target).expanduser()
-            if not tp.exists():
+            tp_there = _exists3(tp)
+            if tp_there is None:
+                skipped.append({"seat": seat, "pin_path": str(pf),
+                                "reason": f"transcript unread ({_errno_name(tp)}): {tp}"})
+                continue
+            if not tp_there:
                 skipped.append({"seat": seat, "pin_path": str(pf),
                                 "reason": f"transcript missing: {tp}"})
                 continue
@@ -4290,7 +4331,11 @@ def _heal(root: Path, iter_n: int | str, agent_id: str, rec: dict) -> None:
         return
     log_path = Path(rec.get("log_file", ""))
     log_tail = ""
-    if log_path.exists():
+    log_there = _exists3(log_path)
+    if log_there is None:
+        # goal:g7.16.1.11.45.5: an unreadable log parent is UNREAD, never an empty tail
+        log_tail = f"(log unread ({_errno_name(log_path)}))"
+    elif log_there:
         try:
             data = log_path.read_bytes()
             log_tail = data[-4096:].decode("utf-8", errors="replace")
