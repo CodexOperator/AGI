@@ -115,7 +115,7 @@ def test_cron_lines_are_cwd_proof(tmp_path):
     # Regression: cron runs from $HOME; a line without cd/-C fails silently.
     lines = grid.cron_lines(tmp_path, "main", 5, tmp_path / "g.log")
     assert lines[0].startswith(f"*/5 * * * * cd {tmp_path} && ")
-    assert f"'{grid.PUSH_SPEC}'" in lines[0]
+    assert all(f"'{spec}'" in lines[0] for spec in grid.PUSH_SPECS) and len(grid.PUSH_SPECS) == 2     # node/ and session/, never the wide <ns>/*
     assert "--prefix 'cron: '" in lines[0]
     assert lines[1].startswith(f"7 * * * * git -C {tmp_path} push -q origin main")
     for line in lines:
@@ -2147,9 +2147,9 @@ def _hold_grid_lock_at(lock, seconds):
 @pytest.fixture()
 def restore_ref_ns():
     """`apply_storage_trunk` mutates module globals; no test may leak them."""
-    saved = (grid.REF_NS, grid.FETCH_SPEC, grid.PUSH_SPEC)
+    saved = (grid.REF_NS, grid.FETCH_SPEC, grid.PUSH_SPECS)
     yield
-    grid.REF_NS, grid.FETCH_SPEC, grid.PUSH_SPEC = saved
+    grid.REF_NS, grid.FETCH_SPEC, grid.PUSH_SPECS = saved
 
 
 def _configure(agi, config):
@@ -2165,7 +2165,7 @@ def test_default_tree_resolves_refs_grid(tmp_path, restore_ref_ns):
     assert grid.ref_ns_for(agi) == "refs/grid"
     assert grid.apply_storage_trunk(agi) == "refs/grid"
     assert grid.REF_NS == "refs/grid"
-    assert grid.PUSH_SPEC == "refs/grid/*:refs/grid/*"
+    assert grid.PUSH_SPECS == ["refs/grid/node/*:refs/grid/node/*", "refs/grid/session/*:refs/grid/session/*"]     # goal:g7.16.1.11.46.16 R2: never the wide refs/grid/*
     assert grid.FETCH_SPEC == "refs/grid/node/*:refs/grid/node/*"          # goal:g7.16.1.11.46.16 R3: narrowed, never forced
     assert grid.FETCH_SPECS == ["refs/grid/node/*:refs/grid/node/*", "refs/grid/session/*:refs/grid/session/*"]
     grid.cmd_commit(agi, [], do_all=True, session=None)
