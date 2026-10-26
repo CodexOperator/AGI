@@ -1,13 +1,15 @@
-"""Tests for `bin/seat_status.py` — hypothesis:l3w4-telemetry-seat-status.
+"""Tests for the seat view in `bin/hierarchy.py` -- hypothesis:l3w4-telemetry-seat-status, moved when
+seat_status.py was retired (owner atom 8.1, goal:g7.16.1.11.46.16).
 
 The load-bearing assertion is that **both** viewport readers state the same
-`SeatsView`: one `collect()` computes it, `render_human` and `render_llm` each
-render it, and both must carry the same seat names and the same summaries —
-the one-render-two-readers invariant `goal:g9.7` demands one layer down.
+`SeatsView`: one `collect_seats()` computes it, `render_human` and `render_llm` each
+render it, and both must carry the same seat names and fractions -- the
+one-render-two-readers invariant `goal:g9.7` demands one layer down. The view
+states the [R] registry rows and the [M] meter fraction; the ephemeral lease line
+and the cost roll-up line are gone from both heads on purpose.
 """
 from __future__ import annotations
 
-import importlib.util
 import json
 import sys
 from pathlib import Path
@@ -18,18 +20,7 @@ BIN = Path(__file__).resolve().parent.parent / "bin"
 sys.path.insert(0, str(BIN))
 
 import viewport as V  # noqa: E402  (bin is on sys.path above)
-import seat_status as SS  # noqa: E402
-
-
-def _load_seat_status():
-    spec = importlib.util.spec_from_file_location("seat_status", BIN / "seat_status.py")
-    m = importlib.util.module_from_spec(spec)
-    sys.modules["seat_status"] = m
-    spec.loader.exec_module(m)
-    return m
-
-
-S = _load_seat_status()
+import hierarchy as H  # noqa: E402
 
 
 def _make_fixture(tmp_path):
@@ -67,16 +58,10 @@ def _make_fixture(tmp_path):
     return tmp_path
 
 
-def test_seat_status_reaches_both_readers(tmp_path):
-    """One `collect()` output appears in both `render_human` and `render_llm`."""
+def test_the_seat_view_reaches_both_readers(tmp_path):
+    """One `collect_seats()` output appears in both `render_human` and `render_llm`."""
     root = _make_fixture(tmp_path)
-    fm_by_id = {
-        "outcome:s2": {"id": "outcome:s2", "type": "outcome", "season": "2",
-                       "cost_usd_total": 12.5},
-        "outcome:other-s": {"id": "outcome:other-s", "type": "outcome",
-                            "season": "1", "cost_usd_total": 999.0},
-    }
-    view = SS.collect(root, fm_by_id)
+    view = H.collect_seats(root)
 
     assert view.registry_present is True
     names = {s["name"] for s in view.seats}
@@ -85,9 +70,6 @@ def test_seat_status_reaches_both_readers(tmp_path):
     # fraction math: 150000 / 1000000)
     for s in view.seats:
         assert s["fraction"] == pytest.approx(0.15)
-    # only the season-2 report counts for the roll-up
-    assert view.rollup_reports_measured == 1
-    assert view.rollup_cost_usd_total == pytest.approx(12.5)
 
     human = "\n".join(V.render_human([], 0, 0, 40, 10_000, "", None, view))
     llm = V.render_llm([], 0, 0, 40, 10_000, "", None, view)
@@ -95,8 +77,9 @@ def test_seat_status_reaches_both_readers(tmp_path):
     for seat in ("belam", "dir-g16"):
         assert seat in human, "seat name missing from the human view"
         assert seat in llm, "seat name missing from the llm view"
-    assert "cost_usd_total=12.50" in llm
-    assert "rollup" in human
+    # the retired answers [L] and [C] are NOT in either head
+    for gone in ("ephemeral", "rollup", "cost_usd_total"):
+        assert gone not in human and gone not in llm, gone
     assert "15%" in human
     # worktree (hypothesis:l3w4-hierarchy-one-source): a row that declares
     # one surfaces it; a row that doesn't (belam here) renders fine empty.
@@ -113,7 +96,7 @@ def test_seat_status_reaches_both_readers(tmp_path):
 def test_no_seats_md_fails_open(tmp_path):
     """Absent registry: both views say so, and neither tracebacks."""
     root = tmp_path  # no seats.md anywhere
-    view = SS.collect(root, {})
+    view = H.collect_seats(root)
     assert view.registry_present is False
     assert view.seats == []
     human = str("\n".join(V.render_human([], 0, 0, 40, 120, "", seats=view)))
@@ -123,7 +106,7 @@ def test_no_seats_md_fails_open(tmp_path):
 
 
 def test_registry_rows_read_through_hierarchy_single_reader(tmp_path, monkeypatch):
-    """The seat reader delegates to hierarchy.load_seats — ONE reader (L3w4).
+    """The seat view reads THROUGH hierarchy.load_seats — ONE reader (L3w4).
 
     hypothesis:l3w4-hierarchy-one-source's "make the view derive" leg: the
     view must read the seat/ladder declarations through hierarchy.py — the
@@ -131,21 +114,30 @@ def test_registry_rows_read_through_hierarchy_single_reader(tmp_path, monkeypatc
     the seats.md read, or the renderings can diverge from the chart the way
     the prose sources used to. Proved by patching hierarchy.load_seats to a
     sentinel and asserting seat_status returns exactly what the one reader
-    returned: if seat_status ever reads seats.md itself instead, the sentinel
+    returned: if the view ever reads seats.md itself instead, the sentinel
     cannot come back and the assertion fails.
     """
     import hierarchy as H
     root = _make_fixture(tmp_path)  # real seats.md, so present=True
     sentinel = [{"name": "single-reader-marker", "role": "director"}]
     monkeypatch.setattr(H, "load_seats", lambda _r: sentinel)
-    rows, present = S._load_registry_rows(root)
+    rows, present = H._load_registry_rows(root)
     assert present is True
     assert rows == sentinel, (
-        "seat_status must read through hierarchy.load_seats, not seats.md")
+        "the seat view must read through hierarchy.load_seats, not seats.md")
 
 
 def test_no_engine_write_imports():
     """The status reader must import neither write.py nor node_writer (gate)."""
-    src = (Path(__file__).resolve().parent.parent / "bin" / "seat_status.py").read_text()
+    src = (Path(__file__).resolve().parent.parent / "bin" / "hierarchy.py").read_text()
     assert "import write" not in src
     assert "import node_writer" not in src
+
+def test_seat_status_py_is_retired():
+    """Owner atom 8.1: the module, its test and its CLI row are gone, and no code imports it."""
+    bin_ = Path(__file__).resolve().parent.parent / "bin"
+    assert not (bin_ / "seat_status.py").exists()
+    assert not (Path(__file__).resolve().parent / "test_seat_status.py").exists()
+    live = [p.name for p in list(bin_.glob("*.py")) + list(Path(__file__).resolve().parent.glob("*.py"))
+            if p.name != Path(__file__).name and "import seat_status" in p.read_text()]
+    assert live == [], live

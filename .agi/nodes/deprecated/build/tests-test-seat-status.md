@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-test-seat-status"
+id: build:tests-test-seat-status
 mint_id: 0cb2b141dc2f49b980d84d856313a933
-origin: build-scan
+type: build
 parents:
   - mvp:tests
+build_kind: code
+confidence: 1.0
+deprecated_note: "seat_status.py retired (owner atom 8.1 via belam 05:1xZ 10-26, goal:g7.16.1.11.46.16): the registry rows and the meter fraction live in hierarchy.collect_seats; the ephemeral and roll-up lines are dropped"
+edited_by: director-general-3
+origin: build-scan
 payload_ref: extensions/agi/tests/test_seat_status.py
+status: deprecated
 tags:
   - build
   - code
   - g2.1
 title: "Build: extensions/agi/tests/test_seat_status.py"
-type: build
 ---
-
 `extensions/agi/tests/test_seat_status.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `mvp:tests`.
