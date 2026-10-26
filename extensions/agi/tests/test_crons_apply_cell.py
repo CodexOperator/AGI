@@ -34,6 +34,8 @@ HERE = Path(__file__).resolve()
 BIN = HERE.parents[1] / "bin"
 REPO = HERE.parents[3]
 sys.path.insert(0, str(BIN))
+sys.path.insert(0, str(HERE.parent))
+from test_crons import assert_own_seam_part  # noqa: E402
 
 CRONS_PY = Path(os.environ.get("CRONS_PY") or BIN / "crons.py")
 LIVE_NODE = Path(os.environ.get("CRONS_NODE")
@@ -80,7 +82,8 @@ def make_project(tmp_path: Path, fm: dict, name: str = "repo") -> Path:
     """The G11 layout the live checkout has: root = repo/.agi, repo_root =
     engine_root = repo, crons.py reachable at repo/extensions/agi/bin (a dir of
     symlinks to the real modules, crons.py being the unit under test)."""
-    repo = tmp_path / name
+    repo = tmp_path / "agi-suite-fixture" / name      # S1: the fixture project carries its own seam part, so any --basetemp is legal
+    assert_own_seam_part(repo, tmp_path)
     repo.mkdir(parents=True)
     _git(repo, "init", "-q", "-b", "master")
     _git(repo, "config", "user.email", "t@t")
@@ -187,6 +190,7 @@ def fakes(tmp_path, monkeypatch):
            "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_SYSTEM": "/dev/null",
            "PYTHONPATH": str(BIN),   # a CRONS_PY copy outside bin/ still finds its sibling modules
            "AGI_TEST_USERS": str(tmp_path / "users")}   # C-3 (1): the fixture dir every apply here passes as --user-crontab-dir
+    (tmp_path / "users").mkdir(exist_ok=True)   # S3: the seam dir must exist
     assert shutil.which("systemctl", path=env["PATH"]) == str(fb / "systemctl"), "the FAKE systemctl must shadow the real one wherever --unit-dir is passed"
     return env, table, calls
 
@@ -311,7 +315,7 @@ def test_l3_the_cell_changes_no_other_managed_line(tmp_path):
     mine = standalone(with_cell)
     assert len(mine) == 1
     rest = [l for l in with_cell if l != mine[0]]
-    assert norm(rest, tmp_path / "repo") == norm(without, tmp_path / "base")
+    assert norm(rest, tmp_path / "agi-suite-fixture" / "repo") == norm(without, tmp_path / "agi-suite-fixture" / "base")
 
 
 def test_l4_the_cell_is_one_command_not_a_chain(tmp_path):

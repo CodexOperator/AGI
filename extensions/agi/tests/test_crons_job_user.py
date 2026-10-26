@@ -32,6 +32,7 @@ CADENCES = {
 def _apply(root, tmp_path, **kw):
     own, users = tmp_path / "own.cron", tmp_path / "users"
     own.write_text("MAILTO=x\n0 1 * * * unrelated\n")
+    users.mkdir(exist_ok=True)                                                       # S3: a fixture dir that does not exist is refused
     got = crons.cmd_apply(root, own, user_crontab_dir=users, **kw)
     return got, own, users
 

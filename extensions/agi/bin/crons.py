@@ -1545,7 +1545,10 @@ def cmd_apply(root: Path, crontab_file: Path | str | None = None, dry_run: bool 
             # NOTHING of it, so it says `unread`, never `ok` / `in sync` / `pending` (each would claim a reading that never happened).
             foreign[u] = {"user": u, "managed_lines": u_lines, "changed": None, "status": UNREAD}
             continue
-        why = None if (user_crontab_dir is not None or allow_temp) else _temp_project(repo_root)
+        if user_crontab_dir is not None:
+            why = _seam_refused(repo_root, user_crontab_dir)   # S1/S3: ONE predicate for every --user-crontab-dir caller
+        else:
+            why = None if allow_temp else _temp_project(repo_root)
         if why:   # C-3 (3): the real `sudo crontab -u` path never serves a throwaway project; `allow_temp` is a test seam, no CLI flag
             foreign[u] = {"user": u, "managed_lines": u_lines, "changed": None,
                           "status": f"refused: {why}; a foreign user's crontab is written only for the real project"}
@@ -1604,8 +1607,50 @@ def cmd_show(root: Path, crontab_file: Path | str | None = None) -> str:
     return "\n".join(out)
 
 
+_SEAM_ROOTS = ("/tmp", "/var/tmp", "/dev/shm")
+
+
+def _seam_path_ok(repo_root: Path) -> bool:
+    """goal:g7.16.1.11.13.4 S1 (council 3/3 03:10Z 10-26): a throwaway project by PATH FACTS ONLY, on the REAL path (a /tmp symlink to a real
+    project is not one): under /tmp, /var/tmp or /dev/shm, or a path part agi-suite-* / pytest-*. Never TMPDIR and never PYTEST_CURRENT_TEST:
+    in the HONOURING direction an inherited value would fail OPEN (a real project served from fixtures). `_temp_project` keeps its env clauses, which
+    only make the REFUSING direction refuse more."""
+    p = Path(os.path.realpath(repo_root))
+    for t in _SEAM_ROOTS:
+        r = Path(os.path.realpath(t))
+        if p == r or r in p.parents:
+            return True
+    return any(part.startswith(("agi-suite-", "pytest-")) for part in p.parts)
+
+
+def _seam_refused(repo_root: Path, user_crontab_dir) -> str | None:
+    """Why `--user-crontab-dir` is NOT honoured for this project, or None (and then it says so on stderr, S2). Every caller that takes the dir
+    (apply, remove, marked) asks this ONE predicate before any read or write. S3: a dir that does not exist is refused, never read as empty tables
+    (a missing `<user>.crontab` inside an existing dir stays an empty table)."""
+    d = Path(user_crontab_dir)
+    if not _seam_path_ok(repo_root):
+        return (f"a fixture crontab dir ({d}) is honoured only for a throwaway project (a real path under /tmp, /var/tmp, /dev/shm or an "
+                f"agi-suite-*/pytest-* part), not {os.path.realpath(repo_root)}")
+    if not d.is_dir():
+        return f"the fixture crontab dir {d} does not exist (it would read as empty tables)"
+    print(f"[crons] fixture crontab dir {d} (test seam)", file=sys.stderr)
+    return None
+
+
+def _refuse_user_door(repo_root: Path, user: str, user_crontab_dir, allow_temp: bool, what: str) -> None:
+    """C-3 (3) + S1 on the other two `--user` doors (`remove`, `marked`; council all-is-one 01:34Z 10-26: the guard is in the goal's own title): a
+    throwaway project never reaches `sudo crontab -u USER` (the `allow_temp` keyword is a test seam, no CLI flag), and a fixture dir is honoured only
+    for a throwaway project (`_seam_refused`)."""
+    if user_crontab_dir is not None:
+        why = _seam_refused(repo_root, user_crontab_dir)
+    else:
+        why = None if allow_temp else _temp_project(repo_root)
+    if why:
+        raise CronsError(f"refused: {why}; {user}'s crontab is {what} only for the real project")
+
+
 def cmd_remove(root: Path, crontab_file: Path | str | None = None, user: str | None = None,
-               user_crontab_dir: Path | str | None = None) -> dict:
+               user_crontab_dir: Path | str | None = None, *, allow_temp: bool = False) -> dict:
     """Drop this project's managed block only. Does not read or validate the
     node — removal must work even when the node is missing or malformed,
     which is exactly the state a broken edit can leave the graph in.
@@ -1615,6 +1660,7 @@ def cmd_remove(root: Path, crontab_file: Path | str | None = None, user: str | N
     repo_root = locations.repo_root(root)
     begin, end = block_markers(repo_root)
     if user:
+        _refuse_user_door(repo_root, user, user_crontab_dir, allow_temp, "changed")
         reader, writer = _user_io(user, user_crontab_dir)
         current, why = reader()
         if current is None:
@@ -1650,7 +1696,7 @@ def _managed_blocks(lines: list[str]) -> list[tuple[str, str, int]]:
 
 
 def cmd_marked(root: Path, crontab_file: Path | str | None = None, user: str | None = None,
-               user_crontab_dir: Path | str | None = None, foreign: bool = False):
+               user_crontab_dir: Path | str | None = None, foreign: bool = False, *, allow_temp: bool = False):
     """How many lines the managed blocks of a crontab hold, the marker lines included, over EVERY block whatever
     root installed it (a block installed from a worktree is still an agi cron job: goal:g7.16.1.11.44.8 R3). A block with no
     job lines still counts 2: it is still installed. `foreign=True` returns instead `[(project, line_count)]` of the blocks
@@ -1658,6 +1704,7 @@ def cmd_marked(root: Path, crontab_file: Path | str | None = None, user: str | N
     repo_root = locations.repo_root(Path(root))
     begin, _end = block_markers(repo_root)
     if user:
+        _refuse_user_door(repo_root, user, user_crontab_dir, allow_temp, "read")
         current, why = _user_io(user, user_crontab_dir)[0]()
         if current is None:
             raise CronsError(f"cannot read {user}'s crontab ({why})")

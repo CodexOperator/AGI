@@ -28,7 +28,9 @@ posts_up(){ act_units|grep -E '^agi-(post|boxwake)@';}
 links(){ ls "$WANTS" 2>/dev/null|grep '^agi-post@.*\.service$';}
 uids(){ getent passwd|cut -d: -f1|grep '^agi-';}
 CR="python3 $D/crons.py"
-marked(){ n=0;for u in $(uids);do c=$($CR marked --root "$MAIN" --user $u 2>/dev/null)||{ echo "[crons] cannot read the crontab of $u" >&2;c=1;};n=$((n+c));done;echo $n;}
+# the three --user doors (marked, marked --foreign, remove) refuse a throwaway project and a fixture dir on a real one (goal:g7.16.1.11.13.4 C-3/S1: crons.py holds the ONE predicate and prints '[crons] fixture crontab dir <dir> (test seam)' on every honoured use). A lane whose MAIN is throwaway sets AGI_USER_CRONTAB_DIR to its fixture crontabs; unset on a real box = the plain sudo path.
+CRU(){ python3 "$D/crons.py" "$@" ${AGI_USER_CRONTAB_DIR:+--user-crontab-dir "$AGI_USER_CRONTAB_DIR"};}
+marked(){ n=0;for u in $(uids);do c=$(CRU marked --root "$MAIN" --user $u 2>/dev/null)||{ echo "[crons] cannot read the crontab of $u" >&2;c=1;};n=$((n+c));done;echo $n;}
 need(){ for t in git jq systemctl getent;do command -v $t >/dev/null||owner_do "sudo apt-get install -y $([ $t = systemctl ]&&echo systemd||([ $t = getent ]&&echo libc-bin||echo $t))";done;}
 # prep: the pin, MAIN readable (git's own refusal is shown, e.g. "dubious ownership" as root on belam's repo), the cells: read before anything is touched. status stops here;
 # pstop adds what only a STOP needs and refuses on (the box, the matrix row, a leftover /etc wants link, a stale town.state, a foreign cron block).
@@ -44,7 +46,7 @@ pstop(){ BOX=${AGI_BOX:-$(getv AGI_BOX)};[ -n "$BOX" ]||ask AGI_BOX "the town's 
  [ -z "$(links)" ]||die "[links] $(links|wc -l|tr -d ' ') agi-post@ wants link(s) under $WANTS: the boot set is the rows (agi-boot projects /run links); belam's host act removes these first: nothing stopped"
  [ ! -e "$STARTING" ]||die "[start-in-progress] a start is in progress since $(cat "$STARTING" 2>/dev/null): finish it with agi.sh start (town.state is the record it resumes from); nothing stopped"
  if grep -q '^stopped ' "$STATE" 2>/dev/null&&[ -n "$(posts_up)$(others)" ];then die "[stale-state] $STATE says stopped but $(posts_up|wc -l|tr -d ' ') post unit(s) and $(others|wc -l|tr -d ' ') other unit(s) are up (the town was brought back without start): move the file aside; nothing stopped";fi
- for u in $(uids);do f=$($CR marked --root "$MAIN" --user $u --foreign 2>/dev/null)||die "[crons] cannot read the crontab of $u: nothing stopped";[ -z "$f" ]||die "[crons] $u holds a managed block installed from ANOTHER root ($(echo "$f"|cut -f1|head -1)): stop removes MAIN's only; remove that block by hand first: nothing stopped";done;}
+ for u in $(uids);do f=$(CRU marked --root "$MAIN" --user $u --foreign)||die "[crons] cannot read the crontab of $u: nothing stopped";[ -z "$f" ]||die "[crons] $u holds a managed block installed from ANOTHER root ($(echo "$f"|cut -f1|head -1)): stop removes MAIN's only; remove that block by hand first: nothing stopped";done;}
 # council 10-21 (sp): heal.py _watch_seats takes the local rows with pid > 0 and relaunches a dead one by tmux; no engine.v 4 row of this box may carry one, or a stopped post would be relaunched behind the stop / start
 pidchk(){ r=$(g show "$PIN:.agi/nodes/.geometry/posts.md" 2>/dev/null)||die "[pid] cannot read posts.md at $PIN: $1";pn=$(printf '%s\n' "$r"|sed -n 's/^  - {/{/p'|jq -r --arg x "$BOX" 'select(.engine.v==4 and .box==$x and ((.pid//0)!=0))|.name')||die "[pid] cannot parse a posts.md row at $PIN: $1";[ -z "$pn" ]||die "[pid] engine.v 4 row(s) of box $BOX with pid != 0 at $PIN: $(printf '%s\n' "$pn"|tr '\n' ' '): heal would see it (heal.py _watch_seats takes local rows with pid > 0 and relaunches a dead one): $1";}
 ids(){ g show "$TRK:.agi/nodes/.geometry/posts.md"|sed -n 's/^  - {/{/p'|jq -r --arg x "$BOX" 'select(has("harness") and .box==$x and .name!="belam")|.name';}
@@ -72,7 +74,7 @@ dn_units(){ wstate
  for u in $(en_left);do systemctl disable $u||die "[units] cannot disable $u";done;}
 # --- crons: crons.py remove for every uid holding the marked block (crons_live and the graph are untouched)
 ck_crons(){ [ "$(marked)" = 0 ];}
-dn_crons(){ for u in $(uids);do c=$($CR marked --root "$MAIN" --user $u)||die "[crons] cannot read the crontab of $u";[ "$c" = 0 ]||$CR remove --root "$MAIN" --user $u||die "[crons] remove failed for $u";done;}
+dn_crons(){ for u in $(uids);do c=$(CRU marked --root "$MAIN" --user $u)||die "[crons] cannot read the crontab of $u";[ "$c" = 0 ]||CRU remove --root "$MAIN" --user $u||die "[crons] remove failed for $u";done;}
 # --- posts: the posts' own units and agi-boot (disabled; start re-enables it). The /etc agi-post@ wants links are belam's host act (prep refuses while any is left). `stopped <box> <UTC>` LAST. (No heal guard: council 10-21 read heal.py from the bytes: it never starts or restarts an agi-post@ unit, and `_watch_seats` takes only rows with pid > 0, which no engine.v 4 row has.)
 ck_posts(){ [ -z "$(posts_up)" ]&&[ -z "$(links)" ]&&! systemctl is-enabled agi-boot.service >/dev/null 2>&1&&grep -q '^stopped ' "$STATE" 2>/dev/null;}
 dn_posts(){ systemctl disable agi-boot.service||die "[posts] cannot disable agi-boot.service"
