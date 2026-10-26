@@ -673,7 +673,7 @@ class TestRolloverGenesis:
         assert '\"the graph invites completion.\"' in vision.body
         assert "## Owner's gloss" in vision.body
 
-        # Ladder renamed and bumped, through write.py (provenance present).
+        # Ladder renamed and bumped, through node_commit.land (provenance present).
         ladder = frontmatter.load_node_file(root / "nodes" / ".geometry" / "ladder.md")
         assert ladder.frontmatter.get("current_season") == 2
         assert ladder.frontmatter.get("season_names", {}).get(1) == "genesis"

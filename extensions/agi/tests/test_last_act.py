@@ -116,15 +116,13 @@ def test_touch_never_raises_on_an_unwritable_root():
 
 def _closeout_fixture(tmp_path):
     """A real git repo whose graph root holds a COMMITTED card (so its own
-    commit time is measurable) plus the g17.1 node the closeout note writes."""
+    commit time is measurable)."""
     r = tmp_path / "repo"
     graph = r / ".agi"
     (graph / "nodes" / "goal").mkdir(parents=True)
     (graph / "nodes" / ".geometry").mkdir(parents=True)
     (graph / "sessions" / "quorum").mkdir(parents=True)
     (graph / "config.json").write_text("{}")
-    (graph / "nodes" / "goal" / "g17.1.md").write_text(
-        "---\nid: goal:g17.1\ntype: goal\ntitle: g17.1\n---\n\nbody\n")
     card = graph / "sessions" / "quorum" / "seat-a.md"
     card.write_text("# seat A card\n")
     _git(r, "init", "-q", "-b", "master")
@@ -135,15 +133,12 @@ def _closeout_fixture(tmp_path):
     return r, graph, card
 
 
-def test_rotate_closeout_note_never_restales_the_card_it_just_wrote(
+def test_the_seat_resolver_the_internal_marker_and_a_fresh_stamp_that_stales_the_card(
         tmp_path, monkeypatch):
-    """THE HAZARD (conjunct 1, measured): the closeout's OWN `write.py
-    goal:g17.1 note ...` runs AFTER the rotation wrote the card. Without an
-    engine-internal marker its stamp is a FRESH act, so the card the rotation
-    just produced reads STALE on the next check -- the loop this node removes.
-
-    Both halves on ONE fixture: the same write.py call WITHOUT the marker
-    stales the card; the REAL `_g17_1_note` closeout seam leaves it FRESH."""
+    """THE HAZARD (conjunct 1, measured), after V8a 3a retired the closeout's g17.1 note: a write that runs AFTER
+    the rotation wrote the card and STAMPS the seat is a FRESH act, so the card reads STALE on the next check.
+    This pins the pieces: the seat resolver (explicit flag first, then AGI_POST), the engine-internal marker
+    that skips the stamp, and the stamp that stales a card."""
     from agi.bin import rotate as _rotate  # noqa: PLC0415
     r, graph, card = _closeout_fixture(tmp_path)
     # HERMETIC: this agent's own env carries AGI_AGENT_ID/AGI_ACTOR (a spawned
@@ -169,24 +164,13 @@ def test_rotate_closeout_note_never_restales_the_card_it_just_wrote(
     # makes `act > own` true and the hazard real.
     time.sleep(max(0.0, own + 2 - time.time()))
 
-    # (b) FALSIFIER, same fixture: an ordinary write.py call stamps the seat.
-    plain = subprocess.run(
-        [sys.executable, str(BIN / "write.py"), "goal:g17.1", "note plain",
-         "--root", str(graph), "--actor", "seat-a"],
-        capture_output=True, text=True, cwd=str(r))
-    assert plain.returncode == 0, plain.stderr
-    assert last_act.stamp_path(graph, "seat-a").exists()
+    # (b) the card the rotation wrote is FRESH until something stamps the seat: nothing has.
+    assert last_act.card_stale(graph, "seat-a", card)[0] is False
+    # a FRESH act (the stamp an ordinary verb writes, here made directly) is what would re-stale it -- the hazard
+    # the closeout note must never create.
+    last_act.touch(graph, "seat-a")
     assert last_act.card_stale(graph, "seat-a", card)[0] is True
     last_act.stamp_path(graph, "seat-a").unlink()
-
-    # the REAL closeout runner: writes the note, never stamps.
-    seams = _rotate._make_closeout_seams(
-        graph, {"commit": "abc1234", "facts": ["42"]}, seat="seat-a")
-    ok, result, detail = seams["g17_1_note"]()
-    assert ok is True, detail
-    assert "42 | abc1234" in (graph / "nodes" / "goal" / "g17.1.md").read_text()
-    assert not last_act.stamp_path(graph, "seat-a").exists()
-    assert last_act.card_stale(graph, "seat-a", card)[0] is False
 
 
 # ── the SPAWNED AGENT'S OWN ID, never the inherited seat (SM.48b) ─────────
