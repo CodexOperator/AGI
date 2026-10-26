@@ -443,9 +443,10 @@ def p1_segment(root: Path) -> str:
 def _trunk_ref() -> str:
     """The trunk's local ref, DERIVED through branches.py from the ladder's current_season (never hand-spelled; the
     branch-spelling grep test's ask). The ladder is the ENGINE's own (this file's tree), not the segment's `root`: the board
-    cron reads MAIN's refs, and a MAIN checkout need not carry the graph."""
+    cron reads MAIN's refs, and a MAIN checkout need not carry the graph. No default season: a ladder without `current_season`
+    raises, and `_notices` names it UNMEASURED rather than reading the trunk of a guessed season."""
     import branches  # noqa: PLC0415
-    cur = int(season._load_ladder(locations.find_project_root(Path(__file__).resolve())).get("current_season", 1))
+    cur = int(season._load_ladder(locations.find_project_root(Path(__file__).resolve()))["current_season"])
     return "refs/heads/" + branches.derive_names("core", cur)["town_season_main"]
 
 

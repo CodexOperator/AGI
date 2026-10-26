@@ -222,3 +222,15 @@ def test_the_notices_trunk_is_derived_through_branches_from_the_ladder_never_spe
     assert success_metrics._trunk_ref() == f"refs/heads/core/season{live + 1}/main"
     src = Path(success_metrics.__file__).read_text(encoding="utf-8")
     assert "core/season3/main" not in src and "trunk=_trunk_ref()" in src
+
+
+def test_a_ladder_without_current_season_leaves_the_notices_unmeasured_never_a_guessed_trunk(monkeypatch, tmp_path):
+    """Council 14:49:35Z later row: no `.get("current_season", 1)`. A ladder that lacks the key is a named UNMEASURED notice.
+    MUTANT: the `, 1` default back -> `_trunk_ref()` answers core/season1/main and this test reads RED."""
+    monkeypatch.setattr(success_metrics.season, "_load_ladder", lambda root: {})
+    try:
+        got = success_metrics._trunk_ref()
+    except KeyError:
+        got = None
+    assert got is None, got
+    assert success_metrics._notices(tmp_path).startswith("notices: UNMEASURED(source failed:")
