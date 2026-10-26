@@ -35,7 +35,7 @@ stop|disable)echo "$1 $2 state=$([ -s "$STUB_STATE" ]&&echo yes||echo no)">>$STU
 EOF
 cat >$SH/crontab <<'EOF'
 #!/bin/sh
-u=$2;f=$STUB_SD/cron/$u
+u=$2;f=$STUB_SD/cron/$u.crontab;echo "$*" >>$STUB_SD/crontab.calls
 case $3 in -l)[ -f $f ]||{ echo "no crontab for $u">&2;exit 1;};cat $f;;-)cat >$f;;esac
 EOF
 cat >$SH/sudo <<'EOF'
@@ -73,18 +73,18 @@ town(){ [ -z "$STPID" ]||kill $STPID 2>/dev/null;rm -f $SD/calls $SD/state $T/st
  for p in belam alive sm dg1 dg2 dg3;do echo agi-post@$p.service>>$SD/active;echo agi-boxwake@$p.service>>$SD/active;done
  printf '%s\n' agi-quiet-watch.timer agi-quiet-watch.service agi-rc-keepalive.timer agi-dbus-reap.timer agi-reaper.service agi-alarms-x.service agi-boot.service agi-carry@a.path agi-memguard.service agi-ram-main.service>>$SD/active
  printf '%s\n' agi-boot.service agi-quiet-watch.timer>$SD/enabled
- for u in agi-belam agi-director-general-2;do printf '# mine\n%s\n* * * * * cd %s && echo job\n%s\n' "$CB" "$M" "$CE">$SD/cron/$u;done;rm -f $SD/cron/agi-alive
+ for u in agi-belam agi-director-general-2;do printf '# mine\n%s\n* * * * * cd %s && echo job\n%s\n' "$CB" "$M" "$CE">$SD/cron/$u.crontab;done;rm -f $SD/cron/agi-alive.crontab
  for r in $($G -C $M for-each-ref --format='%(refname)' refs/box refs/held refs/heads/posts);do $G -C $M update-ref -d $r;done;}
 # ag [VAR=val ...] ARGS: run agi.sh (or $AGSH) on the stubs
-ag(){ env -i PATH=$SH:/usr/bin:/bin HOME=$T/home TMPDIR=$T STUB_SD=$SD STUB_STATE=$T/state STUB_BELAMCFG=$T/c/belam AGI_MAIN=$M AGI_TOWN_ENV=$T/env AGI_TOWN_STATE=$T/state AGI_CARRY_ENV=${CARRYF:-$T/carry.env} AGI_WANTS_DIR=$T/wants AGI_TOWN_BOXBIN=$T/box "$@" sh ${AGSH:-$AG} ${ARGS};}
+ag(){ env -i PATH=$SH:/usr/bin:/bin HOME=$T/home TMPDIR=$T STUB_SD=$SD AGI_USER_CRONTAB_DIR=$SD/cron STUB_STATE=$T/state STUB_BELAMCFG=$T/c/belam AGI_MAIN=$M AGI_TOWN_ENV=$T/env AGI_TOWN_STATE=$T/state AGI_CARRY_ENV=${CARRYF:-$T/carry.env} AGI_WANTS_DIR=$T/wants AGI_TOWN_BOXBIN=$T/box "$@" sh ${AGSH:-$AG} ${ARGS};}
 run(){ ARGS="$*";ag ${XENV};}
-mark(){ n=0;for u in agi-belam agi-director-general-2 agi-alive;do [ -f $SD/cron/$u ]&&n=$((n+$(grep -c -F -e "$CB" -e "$CE" -e '&& echo job' $SD/cron/$u)));done;echo $n;}
+mark(){ n=0;for u in agi-belam agi-director-general-2 agi-alive;do [ -f $SD/cron/$u.crontab ]&&n=$((n+$(grep -c -F -e "$CB" -e "$CE" -e '&& echo job' $SD/cron/$u.crontab)));done;echo $n;}
 posts_up(){ grep -cE '^agi-(post|boxwake)@' $SD/active;}
 outside(){ grep -vE '^agi-(post|boxwake)@|^agi-boot.service$|^agi-carry@.*\.path$|^agi-memguard|^agi-ram-main' $SD/active|wc -l|tr -d ' ';}
 reboot(){ keep=$(grep -E '^agi-(carry@.*\.path|memguard|ram-main)' $SD/active);: >$SD/active;for u in $(cat $SD/enabled);do echo $u>>$SD/active;done;printf '%s\n' $keep>>$SD/active
  grep -qx agi-boot.service $SD/enabled&&$G -C $M show $PIN:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r 'select(.boot==true and .box=="tw")|"agi-post@"+.name+".service"'>>$SD/active;}
 snap(){ { cat $SD/active|sort|md5sum;cat $SD/enabled|sort|md5sum;cat $SD/cron/*|md5sum;[ -e $T/state ]&&echo state||echo nostate;} 2>/dev/null|tr '\n' ' ';}
-rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' ${3:-$AG}>$T/mut.sh;cmp -s ${3:-$AG} $T/mut.sh&&echo "# NO EDIT for [$1]";AGSH=$T/mut.sh;}
+rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' ${3:-$AG}>$T/mut.sh;cmp -s ${3:-$AG} $T/mut.sh&&{ echo "FAIL rep-anchor-not-found rep anchor not found: [$1]";f=$((f+1));};AGSH=$T/mut.sh;}
 rd(){ ( cd $M&&AGI_POST=$1 AGI_TRUNK=fx/trunk GIT_CONFIG_GLOBAL=$T/c/$1 GIT_CONFIG_SYSTEM=/dev/null sh $T/box read );}
 # the acks the stop reads: dg2 and dg3 read the blast while the stop waits (held); dg1 writes its card after t0 (card); sm and alive never answer (noack)
 card(){ mkdir -p $M/.agi/nodes/doc;: ;}
@@ -129,7 +129,7 @@ ok st-town-state-lines "town.state: [$(tr '\n' '|' <$T/state)] mode $(stat -c %a
 ok st-acks-by-the-down-sha "ack lines: [$(grep -E '^(ack|noack)' $T/state|sort|tr '\n' '|')] (want ack dg1 card, ack dg2 held, ack dg3 held, noack alive, noack sm); stderr names the noacks: $(grep -c noack $T/e)" '[ "$(grep -E "^(ack|noack)" $T/state|sort|tr "\n" "|")" = "ack dg1 card|ack dg2 held|ack dg3 held|noack alive|noack sm|" ]&&[ "$(grep -c "^\[blast\] noack" $T/e)" = 2 ]'
 ok st-ONE-down-commit-per-post "refs/box/belam/*: $($G -C $M for-each-ref refs/box/belam|wc -l|tr -d ' ') (want 5: not belam, not the other box); commits on dg2: $($G -C $M rev-list --count refs/box/belam/dg2)" '[ "$($G -C $M for-each-ref refs/box/belam|wc -l|tr -d " ")" = 5 ]&&[ "$($G -C $M rev-list --count refs/box/belam/dg2)" = 1 ]'
 ok st-the-town-is-down "running posts $(posts_up) (want 0), units outside the keep-list $(outside) (want 0), marked cron lines $(mark) (want 0), agi-boot enabled: $(grep -c agi-boot $SD/enabled) (want 0); the keep-list still active: $(grep -cE '^agi-(carry@a.path|memguard|ram-main)' $SD/active) (want 3)" '[ "$(posts_up)" = 0 ]&&[ "$(outside)" = 0 ]&&[ "$(mark)" = 0 ]&&! grep -q agi-boot $SD/enabled&&[ "$(grep -cE "^agi-(carry@a.path|memguard|ram-main)" $SD/active)" = 3 ]'
-ok st-crons-only-the-block-goes "the foreign lines of each crontab stay: $(grep -c '^# mine' $SD/cron/agi-belam) '# mine' line in agi-belam's (want 1); crons_live and the graph untouched: $($G -C $M status --porcelain|wc -l|tr -d ' ') dirty path(s) in MAIN (want 0)" '[ "$(grep -c "^# mine" $SD/cron/agi-belam)" = 1 ]&&[ "$(grep -c "^# mine" $SD/cron/agi-director-general-2)" = 1 ]&&[ -z "$($G -C $M status --porcelain)" ]'
+ok st-crons-only-the-block-goes "the foreign lines of each crontab stay: $(grep -c '^# mine' $SD/cron/agi-belam.crontab) '# mine' line in agi-belam's (want 1); crons_live and the graph untouched: $($G -C $M status --porcelain|wc -l|tr -d ' ') dirty path(s) in MAIN (want 0)" '[ "$(grep -c "^# mine" $SD/cron/agi-belam.crontab)" = 1 ]&&[ "$(grep -c "^# mine" $SD/cron/agi-director-general-2.crontab)" = 1 ]&&[ -z "$($G -C $M status --porcelain)" ]'
 ok st-state-before-the-first-stop "the first stop/disable call saw town.state: $(head -1 $SD/calls) (want state=yes); every call did: $(grep -c 'state=yes' $SD/calls)/$(wc -l <$SD/calls|tr -d ' ')" 'head -1 $SD/calls|grep -q "state=yes"&&! grep -q "state=no" $SD/calls'
 reboot
 ok st-F2-after-a-stub-reboot-no-post-starts "after the stub reboot: running agi-post@ = $(grep -c '^agi-post@' $SD/active) (want 0), agi-* units outside the keep-list = $(outside) (want 0)" '[ "$(grep -c "^agi-post@" $SD/active)" = 0 ]&&[ "$(outside)" = 0 ]'
@@ -237,12 +237,12 @@ ok st-R2-mutant-wrong-body-skipped-is-RED "the old skip: town.state has $(grep -
 AGSH=
 # R3: a managed block installed from ANOTHER root is still an agi cron job: counted, and stop refuses loud before it touches anything
 OB=$(python3 -c "import sys;sys.path.insert(0,'$CRONS');import crons;from pathlib import Path;print(*crons.block_markers(Path('$T/otherroot')),sep='\n')");OB1=$(echo "$OB"|sed -n 1p);OB2=$(echo "$OB"|sed -n 2p)
-town;printf '%s\n* * * * * cd %s && echo foreign\n%s\n' "$OB1" "$T/otherroot" "$OB2" >$SD/cron/agi-alive;s0=$(snap);XENV= run stop >$T/o 2>$T/e;rc=$?
+town;printf '%s\n* * * * * cd %s && echo foreign\n%s\n' "$OB1" "$T/otherroot" "$OB2" >$SD/cron/agi-alive.crontab;s0=$(snap);XENV= run stop >$T/o 2>$T/e;rc=$?
 ok st-R3-a-foreign-block-refuses-the-stop-before-anything "agi-alive holds a block from another root: rc $rc (want 1), [crons] ... ANOTHER root named: $(grep -c 'ANOTHER root' $T/e), the town unchanged: $([ "$(snap)" = "$s0" ]&&echo yes||echo NO)" '[ $rc = 1 ]&&grep -q "^\[crons\].*ANOTHER root" $T/e&&[ "$(snap)" = "$s0" ]'
 XENV= run status >$T/o 2>&1;rc=$?
 ok st-R3-status-counts-the-foreign-block "status with the foreign block: cron-lines $(sed -n 's/^cron-lines //p' $T/o) (want 9: MAIN's two blocks of 3 lines + the foreign 3), rc $rc (want 1)" '[ $rc = 1 ]&&grep -qx "cron-lines 9" $T/o'
-rep '--foreign 2>/dev/null)' '--foreign 2>/dev/null|:)';town;printf '%s\n* * * * * cd %s && echo foreign\n%s\n' "$OB1" "$T/otherroot" "$OB2" >$SD/cron/agi-alive;s0=$(snap);ST;XENV= run stop >$T/o 2>$T/e;rc=$?
-ok st-R3-mutant-no-foreign-check-is-RED "without the foreign check the stop starts: rc $rc (want 1: it dies late, at crons, 'still unmet'), the town changed: $([ "$(snap)" != "$s0" ]&&echo yes||echo NO) (want yes; the clean row leaves it unchanged)" '[ "$(snap)" != "$s0" ]'
+rep '[ -z "$f" ]||die' '[ -z "$f" ]||:;: die';town;printf '%s\n* * * * * cd %s && echo foreign\n%s\n' "$OB1" "$T/otherroot" "$OB2" >$SD/cron/agi-alive.crontab;s0=$(snap);ST;XENV= run stop >$T/o 2>$T/e;rc=$?
+ok st-R3-mutant-no-foreign-check-is-RED "without the foreign check the stop starts: rc $rc (want 1: it dies late, at crons, 'still unmet'), the town changed: $([ "$(snap)" != "$s0" ]&&echo yes||echo NO) (want yes; the clean row leaves it unchanged)" '! cmp -s $AG $T/mut.sh&&[ "$(snap)" != "$s0" ]'
 AGSH=
 # R4: status READS: a leftover wants link is reported as a count, not refused
 town;touch $T/wants/agi-post@dg2.service;XENV= run status >$T/o 2>&1;rc=$?
@@ -301,4 +301,28 @@ a=$(WP=2 TSG=$T/wstart sw $T/ws.stop $T/watch.mut3);ok st-S2b-cond7-mutant-the-w
 a=$(WSF=1 sw $T/ws.stop $W);ok st-S2b-S2-b-a-failing-systemctl-keeps-the-peer-checks-going "stopped line + systemctl rc 1: recovery launches = $a (want 1), noted: $(grep -c '\[systemctl\]' $T/wh/logs/sanctuary-guard/watch.log 2>/dev/null)" '[ "$a" = 1 ]&&grep -q "\[systemctl\]" $T/wh/logs/sanctuary-guard/watch.log'
 rep "if LU=\$(systemctl list-units 'agi-post@*' --state=active,activating,reloading --plain --no-legend 2>/dev/null); then" "LU=\$(systemctl list-units 'agi-post@*' --state=active,activating,reloading --plain --no-legend 2>/dev/null); if true; then" $W 2>/dev/null
 a=$(WSF=1 sw $T/ws.stop $T/mut.sh);ok st-S2b-S2-b-mutant-a-failing-list-read-as-zero-posts-is-RED "the old stand-down on a failing systemctl: recovery launches = $a (want 0; the clean row wants 1)" '[ "$a" = 0 ]'
+# ===== the AGI_USER_CRONTAB_DIR seam is BOUND (goal:g7.16.1.11.13.4, council 3/3 03:10Z 10-26): crons.py holds the ONE predicate (path facts only); a REAL MAIN refuses the seam with crons.py's text on the operator's stderr before any stop step; every honoured use says so; no seam = the plain sudo path
+AGSH=;RM=$R0/.lane-real-main.$$;tq=$(python3 -c "import sys;sys.path.insert(0,'$CRONS');import crons;from pathlib import Path;print('' if crons._seam_path_ok(Path('$RM')) else 'real')")
+if [ "$tq" != real ];then echo "ok st-seam-rows-skipped no non-temp dir for a real-shaped MAIN under $R0: the seam rows and their mutants need one"
+else
+$G clone -q $M $RM;trap 'rm -rf $T $RM' 0
+town;rm -f $SD/crontab.calls;s0=$(snap);XENV=AGI_MAIN=$RM run stop >$T/o 2>$T/e;rc=$?
+ok st-seam-S1b-set-on-a-real-main-is-refused-with-crons-text-before-any-stop-step "the seam set + MAIN=$RM (not temp): rc $rc (want non-zero), crons.py's refusal on stderr: $(grep -c 'honoured only for a throwaway project' $T/e) (want >= 1), crontab calls $(cat $SD/crontab.calls 2>/dev/null|wc -l|tr -d ' ') (want 0), the town unchanged: $([ "$(snap)" = "$s0" ]&&echo yes||echo NO)" '[ $rc != 0 ]&&grep -q "honoured only for a throwaway project" $T/e&&[ ! -s $SD/crontab.calls ]&&[ "$(snap)" = "$s0" ]'
+rep '--foreign)||die' '--foreign 2>/dev/null)||die';town;XENV=AGI_MAIN=$RM run stop >$T/o 2>$T/e
+ok st-seam-S1b-mutant-crons-stderr-dropped-is-RED "pstop's --foreign read with 2>/dev/null: refusal text lines $(grep -c 'honoured only for a throwaway project' $T/e) (want 0; the clean row has >= 1)" '! grep -q "honoured only for a throwaway project" $T/e'
+AGSH=
+town;ST;XENV= run stop >$T/o 2>$T/e;rc=$?
+ok st-seam-S2-m5-the-lane-on-a-temp-main-is-green-and-says-so "the seam on a temp MAIN: '[crons] fixture crontab dir $SD/cron (test seam)' lines: $(grep -cF "[crons] fixture crontab dir $SD/cron (test seam)" $T/e) (want >= 1), no refusal: $(grep -c 'refused' $T/e) (want 0)" 'grep -qF "[crons] fixture crontab dir $SD/cron (test seam)" $T/e&&! grep -q "refused" $T/e'
+town;rm -f $SD/crontab.calls;XENV="AGI_MAIN=$RM AGI_USER_CRONTAB_DIR=" run status >$T/o 2>$T/e
+ok st-seam-unset-on-a-real-main-is-the-plain-sudo-path "no seam + a real MAIN: PATH-fake crontab calls $(cat $SD/crontab.calls 2>/dev/null|wc -l|tr -d ' ') (want >= 1), no seam line: $(grep -cF '(test seam)' $T/e) (want 0)" '[ -s $SD/crontab.calls ]&&! grep -qF "(test seam)" $T/e'
+rep '${AGI_USER_CRONTAB_DIR:+--user-crontab-dir "$AGI_USER_CRONTAB_DIR"}' '--user-crontab-dir "${AGI_USER_CRONTAB_DIR:-$T/nofixtures}"';town;rm -f $SD/crontab.calls;XENV="AGI_MAIN=$RM AGI_USER_CRONTAB_DIR=" run status >$T/o 2>$T/e
+ok st-seam-unset-mutant-a-fixture-dir-always-is-RED "the plain path always handed a fixture dir: crontab calls $(cat $SD/crontab.calls 2>/dev/null|wc -l|tr -d ' ') (want 0; the clean row has >= 1)" '[ ! -s $SD/crontab.calls ]'
+AGSH=
+# r2 (GATE274 council): rep() FAILS CLOSED -- a matchless anchor is a FAIL, never a comment (R3's inert mutant read green-by-accident once)
+x=$(f=0;rep 'NO-SUCH-ANCHOR-XYZ' q;echo "f=$f")
+ok st-rep-a-matchless-anchor-fails-closed "a drifted anchor: $(echo "$x"|tr '\n' '|'|cut -c1-120)" 'echo "$x"|grep -q "^FAIL rep-anchor-not-found"&&echo "$x"|grep -qx "f=1"'
+x=$(rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' ${3:-$AG}>$T/mut.sh;cmp -s ${3:-$AG} $T/mut.sh&&echo "# NO EDIT for [$1]";AGSH=$T/mut.sh;}
+f=0;rep 'NO-SUCH-ANCHOR-XYZ' q;echo "f=$f")
+ok st-rep-mutant-the-comment-only-branch-is-RED "the old rep (a '# NO EDIT' comment): $(echo "$x"|tr '\n' '|'|cut -c1-120) (want f=0 and no FAIL line: the clean row has f=1)" '! echo "$x"|grep -q "^FAIL rep-anchor-not-found"&&echo "$x"|grep -qx "f=0"'
+fi
 exit $f

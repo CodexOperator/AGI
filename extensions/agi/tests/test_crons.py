@@ -174,12 +174,20 @@ def make_worktree_project(tmp_path, wt_name="wt"):
     return main, wt
 
 
+def assert_own_seam_part(root, base):
+    """S1 (GATE274 council): a fixture project that passes --user-crontab-dir sits under an `agi-suite-*` part of ITS OWN inside the pytest
+    tmp_path, so the suite is green under ANY --basetemp (the gate's /data/work/gate-sm/tmp/btNNN has no pytest-* part)."""
+    rel = Path(root).relative_to(base).parts
+    assert any(p.startswith("agi-suite-") for p in rel), f"fixture project {root} has no agi-suite-* part below {base}"
+
+
 def make_project(tmp_path, name="proj", crons_live=True, cadences=None,
                  repo_branch="master", engine_branch="master",
                  detach_repo=False, detach_engine=False, engine=True) -> Path:
     """A legacy-layout project: root IS the graph repo, `root/agi` is the
     engine clone beside it — today's real agi-tree/fantasia shape."""
-    root = tmp_path / name
+    root = tmp_path / "agi-suite-fixture" / name      # S1: the fixture project carries its own seam part, so any --basetemp is legal
+    assert_own_seam_part(root, tmp_path)
     root.mkdir(parents=True)
     (root / "agi-tree.config.json").write_text("{}")
     write_crons_node(root, crons_live, cadences)

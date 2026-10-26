@@ -162,6 +162,7 @@ def fakes(tmp_path):
     rt = tmp_path / "runtime"
     rt.mkdir()
     (rt / "bus").write_text("")
+    (tmp_path / "users").mkdir(exist_ok=True)   # S3: the seam dir must exist
     return {"PATH": f"{fb}:/usr/bin:/bin", "HOME": os.environ["HOME"], "AGI_BOX": BOX,
             "XDG_RUNTIME_DIR": str(rt), "GIT_CONFIG_GLOBAL": "/dev/null",
             "GIT_CONFIG_SYSTEM": "/dev/null", "PYTHONPATH": str(BIN), "AGI_TEST_USERS": str(tmp_path / "users")}
