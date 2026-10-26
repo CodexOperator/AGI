@@ -11,7 +11,7 @@ def piece(name):
     return re.search(rf"^### {name} .*?\n~~~\w*\n(.*?)^~~~", (GEO / "engine-post.md").read_text(), re.S | re.M)[1]
 
 
-def run(tmp_path, lines, hook=None, window=1000, trunk="HEAD", atomize=None, notice=None, sh_text=None, timeout=None):
+def run(tmp_path, lines, hook=None, window=1000, trunk="HEAD", atomize=None, notice=None, sh_text=None, timeout=None, mem=None):
     sh = tmp_path / "m.sh"
     sh.write_text(piece("agi-meter") if sh_text is None else sh_text)
     tr = tmp_path / "t.jsonl"
@@ -23,7 +23,7 @@ def run(tmp_path, lines, hook=None, window=1000, trunk="HEAD", atomize=None, not
     # that repo has; atomize / notice are stubs (they are not under test here).
     stubs = tmp_path / "stubs"
     stubs.mkdir(exist_ok=True)
-    (stubs / "agi-mem").write_text(piece("agi-mem"))
+    (stubs / "agi-mem").write_text(piece("agi-mem") if mem is None else "#!/bin/sh\n" + mem)
     for name, body in (("agi-atomize", atomize), ("agi-notice", notice)):
         (stubs / name).write_text("#!/bin/sh\ncat >/dev/null 2>&1\nexit 0\n" if body is None else "#!/bin/sh\n" + body)
     for f in stubs.iterdir():
@@ -177,3 +177,62 @@ def test_m_the_line_after_the_wake_is_RED(tmp_path):
     moved = "\n".join(moved).replace(")>>~/.atomize.log 2>&1 </dev/null &", ");") + "\n"
     with pytest.raises(subprocess.TimeoutExpired):
         run(tmp_path, [U(900), SYS], {"prompt": "mail: box read"}, sh_text=moved, atomize="sleep 8\n", timeout=4)
+
+
+# ---- alive 14:31:50Z 10-26 (3)(4): the tap is bounded too, so the hook's TOTAL wall time is bounded by construction; a killed tap is NAMED ----
+SLOW_TAP = "cat >/dev/null 2>&1\nexec sleep 40\n"
+START_3S = "echo start >>$HOME/starts\nexec sleep 3\n"
+
+
+def test_k_r3_a_40s_tap_and_a_40s_wake_still_print_the_line_and_name_the_unread_tap_within_20s(tmp_path):
+    t0 = time.time()
+    try:
+        r = run(tmp_path, [U(900), SYS], {"prompt": "mail: box read"}, atomize=SLOW, mem=SLOW_TAP, timeout=25)
+    finally:
+        _reap(tmp_path)
+    assert r.returncode == 0 and "At the line (900/1000)" in r.stdout and "[mem] tap unread (killed at 15 s)" in r.stdout, r.stdout
+    assert time.time() - t0 < 20, "EOF on the hook's stdout must come within 20 s: the tap is bounded at 15 s"
+
+
+def test_l_r2_two_box_read_prompts_one_second_apart_make_ONE_wake_process(tmp_path):
+    for _ in range(2):
+        run(tmp_path, [U(100), SYS], {"prompt": "mail: box read"}, atomize=START_3S, timeout=15)
+        time.sleep(1)
+    subprocess.run(["flock", "-w", "10", str(tmp_path / ".atomize.lock"), "true"], check=True)
+    assert (tmp_path / "starts").read_text().split() == ["start"], (tmp_path / "starts").read_text()
+
+
+def test_m_a_tap_that_ends_on_its_own_prints_no_unread_line(tmp_path):
+    r = run(tmp_path, [U(900), SYS], {"prompt": "hello"}, mem="cat >/dev/null\nexit 0\n")
+    assert "[mem] tap unread" not in r.stdout
+
+
+def test_n_mutant_the_log_redirect_dropped_the_child_holds_the_hooks_stdout_RED(tmp_path):
+    with pytest.raises(subprocess.TimeoutExpired):                       # EOF only after the 40 s sleep
+        try:
+            _mutant(tmp_path, ")>>~/.atomize.log 2>&1 </dev/null &", ") &", atomize=SLOW, timeout=12)
+        finally:
+            _reap(tmp_path)
+
+
+def test_o_mutant_no_flock_two_wakes_RED(tmp_path):
+    text = piece("agi-meter").replace("||flock -n 9", "||true")
+    assert text != piece("agi-meter")
+    for _ in range(2):
+        run(tmp_path, [U(100), SYS], {"prompt": "mail: box read"}, sh_text=text, atomize=START_3S, timeout=15)
+        time.sleep(1)
+    time.sleep(4)
+    assert (tmp_path / "starts").read_text().split() == ["start", "start"], "the mutant must start TWO wakes (the single-flight row catches it)"
+
+
+def test_p_mutant_the_tap_timeout_dropped_the_hook_runs_past_20s_RED(tmp_path):
+    with pytest.raises(subprocess.TimeoutExpired):
+        _mutant(tmp_path, "timeout -k 2 15 ", "", mem=SLOW_TAP, atomize="exit 0\n", timeout=22)
+
+
+def test_q_mutant_the_unread_line_dropped_RED(tmp_path):
+    try:
+        r = _mutant(tmp_path, 'echo "[mem] tap unread (killed at 15 s)"', ":", mem=SLOW_TAP, atomize="exit 0\n", timeout=25)
+    finally:
+        _reap(tmp_path)
+    assert "At the line" in r.stdout and "[mem] tap unread" not in r.stdout, "the mutant is silent about the killed tap (row k catches it)"
