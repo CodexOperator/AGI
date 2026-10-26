@@ -2517,10 +2517,20 @@ def _write_class_record(root: Path, ns: str, classes: list[tuple[str, str, str, 
     return path.name + (f" + {path.with_suffix('.batch').name}" if banked else "")
 
 
-def _home_added(root: Path, first: str, merge: str) -> bool:
-    """Did `merge` ADD a home-path literal (anonymize.HOME_PATH_RE) against its first parent? `git diff first merge` is empty when the trees are equal."""
+def _home_added(root: Path, first: str, merge: str) -> bool | None:
+    """Did `merge` ADD a home-path literal (anonymize.HOME_PATH_RE) against its first parent? `git diff first merge` is empty when the trees are equal.
+    None = git could not say (a failed diff is NOT an empty one: it must never read as 'no literal')."""
     res = git_try(root, "diff", "--no-color", "-U0", first, merge)
+    if res.returncode != 0:
+        return None
     return any(x.startswith("+") and not x.startswith("+++") and anonymize.HOME_PATH_RE.search(x) for x in res.stdout.splitlines())
+
+
+def _tree_sha(root: Path, rev: str) -> str | None:
+    """`<rev>^{tree}` as a 40-hex sha, or None when git could not say (`git(..., check=False)` would return "" and two unreadable trees would compare equal)."""
+    res = git_try(root, "rev-parse", "--verify", "-q", f"{rev}^{{tree}}")
+    sha = res.stdout.strip()
+    return sha if res.returncode == 0 and re.fullmatch(r"[0-9a-f]{40}", sha) else None
 
 
 def _check_unrelated(root: Path, ltip: str, ntip: str, seen: "_TrunkSeen | None") -> str | None:
@@ -2539,7 +2549,12 @@ def _check_unrelated(root: Path, ltip: str, ntip: str, seen: "_TrunkSeen | None"
         # the home-path count is over what the merge ADDED against its first parent (empty when the trees are equal): a live tip that already carries a
         # literal merges as tree = LIVE and must read GREEN; the count is computed even when the tree check is RED (the tree = ORIGIN mutant reads RED twice)
         added = _home_added(root, first, merge)
-        if git(root, "rev-parse", f"{merge}^{{tree}}", check=False) != git(root, "rev-parse", f"{first}^{{tree}}", check=False):
+        mtree, ftree = _tree_sha(root, merge), _tree_sha(root, first)
+        if added is None:    # FAIL CLOSED: an unreadable diff / tree is a RED of its own, never the GREEN of an empty answer
+            return "home check unread (git diff failed)"
+        if mtree is None or ftree is None:
+            return "tree unread"
+        if mtree != ftree:
             return "the unrelated-root merge does not carry the live tree" + ("; a written tip carries a home-path literal" if added else "")
         if added:
             return "a written tip carries a home-path literal"
