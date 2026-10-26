@@ -3,7 +3,9 @@
 # scratch dir; MAIN is a scratch git repo; the box under test is the PIECE (`sect box`) of the tree this file sits in, so the blast is the real one. NEVER the live town, never a real stop: no root, no systemd, no network, 0 USD.
 # ROOT=<tree> (default: the tree this file sits in) is read for agi.sh, crons.py, engine.md (the real matrix row), .agi/config.json (the real agi_town cell) and the guard script sanctuary-watch.
 # One ok/FAIL line per case; exit = number of FAILs. Every MUTANT is one edit on the code under test (rep) or on the fixture, and its row passes only when the clean property BREAKS.
-T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};G=/usr/bin/git
+T0=$(mktemp -d);T=$T0/agi-suite-lane;mkdir $T;trap 'rm -rf $T0' 0;f=0;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};G=/usr/bin/git
+# $T carries its OWN agi-suite-* part (crons.py's seam predicate, path facts only): a runner's TMPDIR choice cannot move the fixtures out of every seam; no hook of a runner's git config reaches a scratch repo
+export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.hooksPath GIT_CONFIG_VALUE_0=/dev/null
 ok(){ if eval "$3";then echo "ok $1 $2";else echo "FAIL $1 $2";f=$((f+1));for x in $T/o $T/e;do [ -s $x ]&&head -4 $x|cut -c1-220|sed "s/^/#   ${x##*/}: /";done;fi;}
 AG=$R0/extensions/agi/bin/agi.sh;CRONS=$R0/extensions/agi/bin;[ -f $AG ]||{ echo "FAIL inputs: $AG";exit 99;}
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
@@ -303,9 +305,10 @@ rep "if LU=\$(systemctl list-units 'agi-post@*' --state=active,activating,reload
 a=$(WSF=1 sw $T/ws.stop $T/mut.sh);ok st-S2b-S2-b-mutant-a-failing-list-read-as-zero-posts-is-RED "the old stand-down on a failing systemctl: recovery launches = $a (want 0; the clean row wants 1)" '[ "$a" = 0 ]'
 # ===== the AGI_USER_CRONTAB_DIR seam is BOUND (goal:g7.16.1.11.13.4, council 3/3 03:10Z 10-26): crons.py holds the ONE predicate (path facts only); a REAL MAIN refuses the seam with crons.py's text on the operator's stderr before any stop step; every honoured use says so; no seam = the plain sudo path
 AGSH=;RM=$R0/.lane-real-main.$$;tq=$(python3 -c "import sys;sys.path.insert(0,'$CRONS');import crons;from pathlib import Path;print('' if crons._seam_path_ok(Path('$RM')) else 'real')")
-if [ "$tq" != real ];then echo "ok st-seam-rows-skipped no non-temp dir for a real-shaped MAIN under $R0: the seam rows and their mutants need one"
+seamgate(){ [ "$1" = real ]&&return 0;echo "SKIP st-seam-rows no non-temp dir for a real-shaped MAIN under $R0: the seam rows and their mutants did NOT run (run the lane from a tree outside /tmp, /var/tmp, /dev/shm)";f=$((f+1));return 1;}
+if ! seamgate "$tq";then :
 else
-$G clone -q $M $RM;trap 'rm -rf $T $RM' 0
+$G clone -q $M $RM;trap 'rm -rf $T0 $RM' 0
 town;rm -f $SD/crontab.calls;s0=$(snap);XENV=AGI_MAIN=$RM run stop >$T/o 2>$T/e;rc=$?
 ok st-seam-S1b-set-on-a-real-main-is-refused-with-crons-text-before-any-stop-step "the seam set + MAIN=$RM (not temp): rc $rc (want non-zero), crons.py's refusal on stderr: $(grep -c 'honoured only for a throwaway project' $T/e) (want >= 1), crontab calls $(cat $SD/crontab.calls 2>/dev/null|wc -l|tr -d ' ') (want 0), the town unchanged: $([ "$(snap)" = "$s0" ]&&echo yes||echo NO)" '[ $rc != 0 ]&&grep -q "honoured only for a throwaway project" $T/e&&[ ! -s $SD/crontab.calls ]&&[ "$(snap)" = "$s0" ]'
 rep '--foreign)||die' '--foreign 2>/dev/null)||die';town;XENV=AGI_MAIN=$RM run stop >$T/o 2>$T/e
@@ -318,11 +321,30 @@ ok st-seam-unset-on-a-real-main-is-the-plain-sudo-path "no seam + a real MAIN: P
 rep '${AGI_USER_CRONTAB_DIR:+--user-crontab-dir "$AGI_USER_CRONTAB_DIR"}' '--user-crontab-dir "${AGI_USER_CRONTAB_DIR:-$T/nofixtures}"';town;rm -f $SD/crontab.calls;XENV="AGI_MAIN=$RM AGI_USER_CRONTAB_DIR=" run status >$T/o 2>$T/e
 ok st-seam-unset-mutant-a-fixture-dir-always-is-RED "the plain path always handed a fixture dir: crontab calls $(cat $SD/crontab.calls 2>/dev/null|wc -l|tr -d ' ') (want 0; the clean row has >= 1)" '[ ! -s $SD/crontab.calls ]'
 AGSH=
+fi
 # r2 (GATE274 council): rep() FAILS CLOSED -- a matchless anchor is a FAIL, never a comment (R3's inert mutant read green-by-accident once)
 x=$(f=0;rep 'NO-SUCH-ANCHOR-XYZ' q;echo "f=$f")
 ok st-rep-a-matchless-anchor-fails-closed "a drifted anchor: $(echo "$x"|tr '\n' '|'|cut -c1-120)" 'echo "$x"|grep -q "^FAIL rep-anchor-not-found"&&echo "$x"|grep -qx "f=1"'
 x=$(rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' ${3:-$AG}>$T/mut.sh;cmp -s ${3:-$AG} $T/mut.sh&&echo "# NO EDIT for [$1]";AGSH=$T/mut.sh;}
 f=0;rep 'NO-SUCH-ANCHOR-XYZ' q;echo "f=$f")
 ok st-rep-mutant-the-comment-only-branch-is-RED "the old rep (a '# NO EDIT' comment): $(echo "$x"|tr '\n' '|'|cut -c1-120) (want f=0 and no FAIL line: the clean row has f=1)" '! echo "$x"|grep -q "^FAIL rep-anchor-not-found"&&echo "$x"|grep -qx "f=0"'
-fi
+# (b) a lane that cannot run the seam rows SKIPS loudly and COUNTS: never an ok line
+x=$(f=0;seamgate '' ;echo "rc=$? f=$f")
+ok st-seamgate-a-skip-is-loud-and-counts "a lane with no real-shaped MAIN: $(echo "$x"|tr '\n' '|'|cut -c1-110)" 'echo "$x"|grep -q "^SKIP st-seam-rows"&&echo "$x"|grep -qx "rc=1 f=1"&&! echo "$x"|grep -q "^ok "'
+x=$(seamgate(){ [ "$1" = real ]&&return 0;echo "ok st-seam-rows-skipped no non-temp dir";return 1;}
+f=0;seamgate '' ;echo "rc=$? f=$f")
+ok st-seamgate-mutant-the-quiet-ok-skip-is-RED "the old skip (an ok line, not counted): $(echo "$x"|tr '\n' '|'|cut -c1-110) (want f=0 and no SKIP line: the clean row has f=1)" '! echo "$x"|grep -q "^SKIP st-seam-rows"&&echo "$x"|grep -qx "rc=1 f=0"'
+y=$(python3 -c "import sys;sys.path.insert(0,'$CRONS');import crons;from pathlib import Path;print('' if crons._seam_path_ok(Path('/tmp/x/.lane-real-main')) else 'real')")
+ok st-seamgate-a-tree-under-tmp-reads-as-no-real-main "a /tmp-shaped real-main candidate: '$y' (want '': the seam block would SKIP and count)" '[ -z "$y" ]'
+# (c) $T carries its own agi-suite-* part, so a runner's TMPDIR cannot flip the fixtures out of every seam
+hasp(){ case "$1" in */agi-suite-*) return 0;; esac;return 1;}
+ok st-lane-T-carries-its-own-agi-suite-part "T=$T" 'hasp "$T"'
+ok st-lane-T-mutant-the-bare-mktemp-dir-is-RED "T0=$T0 (the old bare mktemp -d: no agi-suite-* part below the system temp dir)" '! hasp "$(basename $T0)"'
+# (d) no hook of a runner's git config reaches a scratch repo (core.hooksPath=/dev/null via GIT_CONFIG_COUNT)
+mkdir -p $T/hk;printf '#!/bin/sh\nexit 1\n' >$T/hk/pre-commit;chmod +x $T/hk/pre-commit;printf '[core]\n\thooksPath = %s\n' $T/hk >$T/hk.cfg
+hkc(){ GIT_CONFIG_GLOBAL=$T/hk.cfg;export GIT_CONFIG_GLOBAL;rm -rf $T/hkr;$G init -q $T/hkr;cd $T/hkr;echo a>a;$G add a;$G -c user.name=x -c user.email=x@x commit -q -m a >/dev/null 2>&1;echo $?;}
+x=$(hkc)
+ok st-hooks-a-runner-hooksPath-does-not-reach-a-scratch-repo "a commit under a global hooksPath whose pre-commit exits 1: rc $x (want 0)" '[ "$x" = 0 ]'
+x=$(unset GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0;hkc)
+ok st-hooks-mutant-without-the-override-the-hook-blocks-the-commit "the same commit without GIT_CONFIG_COUNT: rc $x (want 1: the clean row is 0)" '[ "$x" = 1 ]'
 exit $f
