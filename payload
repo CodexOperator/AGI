@@ -331,6 +331,15 @@ def load_crons_node(root: Path) -> dict:
             raise CronsError(
                 f"{path}: cadences.{name}.log must be a non-empty string path")
         entry["log"] = log
+        # Optional `needs` (goal:g7.16.1.11.46.16 G1a lap, SM [red] 08:2xZ 10-26): the name of a KNOWN job; the row renders only while that
+        # job is declared and enabled. A scheduled grid writer (the grid_unify_lap row) names grid_sync, so retiring the grid stops it with
+        # every other grid writer (test_b5). Refused BY NAME when it names no known job.
+        needs = cadences[name].get("needs")
+        if needs is not None:
+            if needs not in known:
+                raise CronsError(
+                    f"{path}: cadences.{name}.needs must name a known job {list(KNOWN_JOBS)}, got {needs!r}")
+            entry["needs"] = needs
         jobs[name] = entry
 
     # Optional `services:` table — systemd unit files rendered from the graph
@@ -1034,6 +1043,8 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
             continue
         job = jobs[name]
         if not (job["enabled"] and _on_this_box(job, own)):
+            continue
+        if job.get("needs") and not node["jobs"].get(job["needs"], {}).get("enabled"):
             continue
         sched = _schedule_expr(job)
         cmd = _substitute(job["cmd"], root, repo_root, own, **({"logs_dir": tilde_logs} if foreign else {}))
