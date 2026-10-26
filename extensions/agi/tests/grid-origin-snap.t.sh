@@ -83,7 +83,7 @@ grid unify --into refs/grid --legacy $SNAP --write >$T/kw2.out 2>&1;refs $NS >$T
 ok "o3d-idempotent a second write merges nothing more: $(grep 'write' $T/kw2.out|cut -c1-140)" 'grep -q "0 merged, 0 adopted, 5 unchanged, 1 conflict" $T/kw2.out'
 cp_ pl;mut $P/extensions/agi/bin/grid.py '    if lns == ORIGIN_SNAP_NS and git(root, "rev-parse", f"{ltip}^{{tree}}", check=False) != git(' '    if False and git(root, "rev-parse", f"{ltip}^{{tree}}", check=False) != git('
 snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >$T/ml.out 2>&1
-ok "m-tree-pick-reads-RED with the equal-tree rule cut, m5 (unequal trees) is merged automatically: the ORIGIN tree wins silently ($(grep -c CONFLICT $T/ml.out) conflicts listed, want 0 = RED)" '! grep -q CONFLICT $T/ml.out'
+ok "m-tree-pick-reads-RED with the equal-tree rule cut, m5 (unequal trees) is merged automatically: the ORIGIN tree wins silently ($(grep -c "^  CONFLICT" $T/ml.out) conflicts listed, want 0 = RED)" '! grep -q "^  CONFLICT" $T/ml.out'
 cp_ pm;mut $P/extensions/agi/bin/grid.py '    if write and ORIGIN_SNAP_NS in listing:' '    if False and ORIGIN_SNAP_NS in listing:'
 snap >/dev/null 2>&1;x=$(mk $P 1 active foreign-edit $(sha $NS/$(mintn 1)));push $x $(mintn 1) >/dev/null;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >$T/mg.out 2>&1
 ok "m-gate-cut-reads-RED with the QUIET gate cut, a LIVE mirror is merged anyway ($(grep -c 'not QUIET' $T/mg.out) refusals, want 0 = RED)" '! grep -q "not QUIET" $T/mg.out'
@@ -137,4 +137,126 @@ ok "pr1-a-name-origin-deleted-is-a-write origin dropped m6: the pruned mirror no
 cp_ pv;mut $P/extensions/agi/bin/grid.py '"fetch", "--no-tags", "--prune", "-q", "--refmap=", remote' '"fetch", "--no-tags", "-q", "--refmap=", remote'
 snap >/dev/null 2>&1;$G -C $P push -q origin :refs/grid/node/$(mintn 6) 2>&1;snap >$T/pm.out 2>&1;pm=$?
 ok "m-no-prune-reads-RED without --prune the deleted name stays in the mirror (the mirror still lists m6: $(refs $SNAP/node/$(mintn 6)|wc -l|tr -d ' ') ref) and unify could still adopt it" '[ -n "$(refs $SNAP/node/$(mintn 6))" ]'
+# --- U (goal:g7.16.1.11.46.16, council 14:21:47Z; condition (2) REPLACED by a BYTE TEST in alive's [correction] 14:53:03Z 10-26): a diverged origin pair with NO merge-base is a 2-parent commit,
+# tree = LIVE, ONLY when EVERY blob of origin's tip tree was SEEN at its own path class: node.md in live's own history or at a .agi/nodes path of the trunk (HEAD here); payload in live's own history
+# or at the node's payload_ref path of the trunk. Anything else is a CONFLICT (BANKED when it failed on unseen bytes). No date compare survives. Dates are set per mint (GIT_COMMITTER_DATE).
+#  m21 trunk-seen | m22 live-seen | m23 absent, origin NEWER than live's root (sp) | m24 absent, origin OLDER than live's root (all-is-one) | m25 trunk-seen whose ORIGIN tree carries a /home literal
+#  m31 trunk-seen ONLY through a merge resolution (alive 16:50Z C2: the walks take -m) | m30 trunk-seen whose LIVE tip already carries a /home literal (tree = LIVE, so --check must read GREEN) | m26 has a merge-base, blob in live | m27 blob on the trunk only OUTSIDE .agi/nodes (alive) | m28 payload on the trunk only at ANOTHER path (sp) | m29 payload at its payload_ref path -> trunk-seen
+mkd(){ dt=$1;shift;GIT_COMMITTER_DATE="$dt" GIT_AUTHOR_DATE="$dt" mk "$@";}
+nodemdb(){ printf -- '---\nid: build:n%s\nmint_id: %s\ntype: build\nstatus: %s\nparents:\n  - mvp:m\npayload_ref: %s\n---\nbody %s\n' $1 $(mintn $1) $2 "$4" "$3";}
+mkp(){ dt=$1;d=$2;n=$3;st=$4;tx=$5;ref=$6;pay=$7;shift 7;b=$(nodemdb $n $st "$tx" $ref|$G -C $d hash-object -w --stdin);pb=$(printf '%s' "$pay"|$G -C $d hash-object -w --stdin);t=$(printf '100644 blob %s\tnode.md\n100644 blob %s\tpayload\n' $b $pb|$G -C $d mktree);pa=;for x;do pa="$pa -p $x";done;echo "$tx"|GIT_COMMITTER_DATE="$dt" GIT_AUTHOR_DATE="$dt" $G -C $d commit-tree $t $pa;}
+trk(){ mkdir -p $P/$(dirname $1);cat >$P/$1;}      # a file on the TRUNK (HEAD): `trk <path> < bytes`
+mkun(){ cp_ $1 base
+ r=$(mkd 2026-10-20T00:00:00Z $P 21 active liveroot21);t=$(mkd 2026-10-21T00:00:00Z $P 21 active livetip21 $r);$G -C $P update-ref $NS/$(mintn 21) $t;push $(mkd 2020-01-01T00:00:00Z $P 21 active origin21) $(mintn 21) >/dev/null;nodemd 21 active origin21|trk .agi/nodes/idea/t21.md
+ r=$(mkd 2020-01-01T00:00:00Z $P 22 active same22);t=$(mkd 2021-01-01T00:00:00Z $P 22 active livetip22 $r);$G -C $P update-ref $NS/$(mintn 22) $t;push $(mkd 2026-10-22T00:00:00Z $P 22 active same22) $(mintn 22) >/dev/null
+ r=$(mkd 2020-01-01T00:00:00Z $P 23 active liveroot23);t=$(mkd 2026-10-21T00:00:00Z $P 23 active livetip23 $r);$G -C $P update-ref $NS/$(mintn 23) $t;push $(mkd 2023-01-01T00:00:00Z $P 23 active origin23) $(mintn 23) >/dev/null
+ r=$(mkd 2026-10-20T00:00:00Z $P 24 active liveroot24);t=$(mkd 2026-10-21T00:00:00Z $P 24 active livetip24 $r);$G -C $P update-ref $NS/$(mintn 24) $t;push $(mkd 2020-01-01T00:00:00Z $P 24 active origin24) $(mintn 24) >/dev/null
+ r=$(mkd 2026-10-20T00:00:00Z $P 25 active liveroot25);t=$(mkd 2026-10-21T00:00:00Z $P 25 active livetip25 $r);$G -C $P update-ref $NS/$(mintn 25) $t;push $(mkd 2020-01-01T00:00:00Z $P 25 active /home/ubuntu/secret25) $(mintn 25) >/dev/null;nodemd 25 active /home/ubuntu/secret25|trk .agi/nodes/idea/t25.md
+ r=$(mkd 2026-10-20T00:00:00Z $P 26 active root26);x=$(mkd 2026-10-21T00:00:00Z $P 26 active same26 $r);t=$(mkd 2026-10-22T00:00:00Z $P 26 active livetip26 $x);$G -C $P update-ref $NS/$(mintn 26) $t;push $(mkd 2026-10-21T00:00:01Z $P 26 active same26 $r) $(mintn 26) >/dev/null
+ r=$(mkd 2026-10-20T00:00:00Z $P 27 active liveroot27);t=$(mkd 2026-10-21T00:00:00Z $P 27 active livetip27 $r);$G -C $P update-ref $NS/$(mintn 27) $t;push $(mkd 2020-01-01T00:00:00Z $P 27 active origin27) $(mintn 27) >/dev/null;nodemd 27 active origin27|trk other/y27.md
+ r=$(mkp 2026-10-20T00:00:00Z $P 28 active livetext28 src/p28.txt LIVEPAY28);push $(mkp 2020-01-01T00:00:00Z $P 28 active origin28 src/p28.txt PAY28) $(mintn 28) >/dev/null;$G -C $P update-ref $NS/$(mintn 28) $r;nodemdb 28 active origin28 src/p28.txt|trk .agi/nodes/idea/t28.md;printf PAY28|trk src/other28.txt
+ r=$(mkp 2026-10-20T00:00:00Z $P 29 active livetext29 .cfg/p29.txt LIVEPAY29);push $(mkp 2020-01-01T00:00:00Z $P 29 active origin29 .cfg/p29.txt PAY29) $(mintn 29) >/dev/null;$G -C $P update-ref $NS/$(mintn 29) $r;nodemdb 29 active origin29 .cfg/p29.txt|trk .agi/nodes/idea/t29.md;printf PAY29|trk .cfg/p29.txt
+ r=$(mkd 2026-10-20T00:00:00Z $P 30 active "liveroot30 /home/ubuntu/live30");t=$(mkd 2026-10-21T00:00:00Z $P 30 active "livetip30 /home/ubuntu/live30" $r);$G -C $P update-ref $NS/$(mintn 30) $t;push $(mkd 2020-01-01T00:00:00Z $P 30 active origin30) $(mintn 30) >/dev/null;nodemd 30 active origin30|trk .agi/nodes/idea/t30.md
+ r=$(mkd 2026-10-20T00:00:00Z $P 31 active liveroot31);t=$(mkd 2026-10-21T00:00:00Z $P 31 active livetip31 $r);$G -C $P update-ref $NS/$(mintn 31) $t;push $(mkd 2020-01-01T00:00:00Z $P 31 active origin31) $(mintn 31) >/dev/null
+ $G -C $P add -A >/dev/null 2>&1;$G -C $P commit -qm "trunk evidence"
+ # m31's bytes enter the trunk ONLY in a merge's RESOLUTION (neither parent has the file): S = a side commit, M = merge(HEAD, S) whose tree adds .agi/nodes/idea/t31.md
+ h=$($G -C $P rev-parse HEAD);ix=$T/idx.$$;rm -f $ix;GIT_INDEX_FILE=$ix $G -C $P read-tree $h;sd=$(printf 'side\n'|$G -C $P hash-object -w --stdin);GIT_INDEX_FILE=$ix $G -C $P update-index --add --cacheinfo 100644,$sd,side.txt
+ st=$(GIT_INDEX_FILE=$ix $G -C $P write-tree);sc=$(echo side|$G -C $P commit-tree $st -p $h);nb=$(nodemd 31 active origin31|$G -C $P hash-object -w --stdin);GIT_INDEX_FILE=$ix $G -C $P update-index --add --cacheinfo 100644,$nb,.agi/nodes/idea/t31.md
+ mt=$(GIT_INDEX_FILE=$ix $G -C $P write-tree);mc=$(echo merge|$G -C $P commit-tree $mt -p $h -p $sc);$G -C $P update-ref HEAD $mc;rm -f $ix;}
+mkun uA;snap >/dev/null 2>&1;snap >$T/u0.out 2>&1
+for i in 21 22 23 24 25 26 27 28 29 30 31 5;do eval "uo_$i=$(sha $SNAP/node/$(mintn $i))";eval "ul_$i=$(sha $NS/$(mintn $i))";done
+grid unify --into refs/grid --legacy $SNAP >$T/ud.out 2>&1;ud=$?
+ok "u0-the-dry-run-names-the-classes dry run: m4 tree-equal + m21 m22 m25 m29 m30 m31 merge, m5 m23 m24 m26 m27 m28 CONFLICT (rc $ud), nothing written: $(grep 'classes\|trunk blob set:' $T/ud.out|cut -c1-190|tr '\n' '|')" '[ $ud = 1 ]&&grep -q "7 merged, 2 adopted, 2 unchanged, 6 conflict, 0 unread of 17" $T/ud.out&&grep -q "classes: tree-equal 1, unrelated-root tree=live 6 (origin bytes in live.s history 1, in the trunk.s 5), banked 4" $T/ud.out&&grep -q "trunk blob set: [0-9]* blobs at .agi/nodes paths of HEAD, one walk" $T/ud.out&&[ "$(sha $NS/$(mintn 21))" = "$ul_21" ]'
+grid unify --into refs/grid --legacy $SNAP --write >$T/uw.out 2>&1;uw=$?
+um(){ $G -C $P log -1 --format="$2" $(sha $NS/$(mintn $1));}
+tl(){ [ "$($G -C $P rev-parse $(sha $NS/$(mintn $1))^{tree})" = "$($G -C $P rev-parse $2^{tree})" ];}
+ok "u1-trunk-seen-bytes-merge-as-a-two-parent-commit-with-the-live-tree m21 (origin node.md only at a trunk .agi/nodes path): rc $uw, parents = live tip then origin tip, tree = LIVE's, trailers name the class" '[ "$(um 21 %P)" = "$ul_21 $uo_21" ]&&tl 21 $ul_21&&$G -C $P log -1 --format=%B $(sha $NS/$(mintn 21))|grep -q "Unify-Class: unrelated-root/trunk-seen"&&$G -C $P log -1 --format=%B $(sha $NS/$(mintn 21))|grep -q "Unify-Unrelated: $uo_21"'
+ok "u2-live-seen-bytes-merge-the-same-way m22 (origin node.md = live's own root blob): tree = LIVE's, class live-seen" '[ "$(um 22 %P)" = "$ul_22 $uo_22" ]&&tl 22 $ul_22&&$G -C $P log -1 --format=%B $(sha $NS/$(mintn 22))|grep -q "unrelated-root/live-seen"'
+ok "u3-unseen-bytes-stay-CONFLICT-whatever-the-date m23 (origin NEWER than live's root) and m24 (origin OLDER than live's root, the root-date test would admit it): untouched, listed by mint" '[ "$(sha $NS/$(mintn 23))" = "$ul_23" ]&&[ "$(sha $NS/$(mintn 24))" = "$ul_24" ]&&grep -q "CONFLICT $(mintn 23)" $T/uw.out&&grep -q "CONFLICT $(mintn 24)" $T/uw.out'
+ok "u4-a-pair-WITH-a-merge-base-stays-CONFLICT m5 (unequal trees, a common root) and m26 (the same, and its origin blob IS in live): untouched" '[ "$(sha $NS/$(mintn 5))" = "$ul_5" ]&&[ "$(sha $NS/$(mintn 26))" = "$ul_26" ]&&grep -q "CONFLICT $(mintn 26)" $T/uw.out'
+ok "u5-no-written-tip-carries-the-origin-home-path m25 (trunk-seen, origin tree has /home/ubuntu/...): the merge holds LIVE bytes, 0 home-path literals in the written tip" '[ "$(um 25 %P)" = "$ul_25 $uo_25" ]&&! $G -C $P grep -q -E "/home/[A-Za-z0-9._-]+" $(sha $NS/$(mintn 25))'
+ok "u6-a-blob-on-the-trunk-only-outside-nodes-stays-CONFLICT m27 (origin node.md bytes exist on the trunk only at other/y27.md): untouched (alive's row)" '[ "$(sha $NS/$(mintn 27))" = "$ul_27" ]&&grep -q "CONFLICT $(mintn 27)" $T/uw.out'
+ok "u7-a-payload-is-judged-at-its-payload_ref-path m28 (payload on the trunk only at src/other28.txt, not its payload_ref src/p28.txt) stays CONFLICT; m29 (payload at .cfg/p29.txt) merges as trunk-seen" '[ "$(sha $NS/$(mintn 28))" = "$ul_28" ]&&[ "$(um 29 %P)" = "$ul_29 $uo_29" ]&&tl 29 $ul_29&&grep -q "CONFLICT $(mintn 28)" $T/uw.out'
+ok "u7b-a-blob-that-entered-the-trunk-only-in-a-merge-resolution-is-trunk-seen m31 (its node.md exists on the trunk ONLY in M, the merge's resolution; no parent has it): written as trunk-seen, tree = LIVE's (alive 16:50Z C2)" '[ "$(um 31 %P)" = "$ul_31 $uo_31" ]&&tl 31 $ul_31&&$G -C $P log -1 --format=%B $(sha $NS/$(mintn 31))|grep -q "unrelated-root/trunk-seen"'
+R=$(ls $P/.agi/sessions/unify/*.classes);B=$(ls $P/.agi/sessions/unify/*.batch)
+ok "u8-the-record-lists-every-mint-by-class-and-the-batch-carries-the-diffs $(cut -d" " -f1 $R|sort|uniq -c|tr -s " \n" " "|cut -c1-140)" '[ "$(wc -l <$R|tr -d " ")" = 11 ]&&grep -q "^unrelated-root/trunk-seen $(mintn 21) $uo_21 " $R&&grep -q "^banked $(mintn 23) $uo_23 bytes unseen: node.md" $R&&grep -q "^banked $(mintn 28) $uo_28 bytes unseen: payload@src/p28.txt" $R&&[ "$(grep -c "^== " $B)" = 4 ]&&grep -q "^   +body origin23" $B&&grep -q "record " $T/uw.out'
+grid unify --check --into refs/grid --legacy $SNAP >$T/uc.out 2>&1;uc=$?
+ok "u9-check-prints-the-same-class-line-and-an-anonymize-count --check: $(grep -E 'classes|anonymize' $T/uc.out|cut -c1-190|tr '\n' '|'); the six CONFLICT mints are its only REDs (m30, whose LIVE tip already carries a home literal, is GREEN), rc $uc" '[ $uc = 1 ]&&grep -q "classes: tree-equal 1, unrelated-root tree=live 6 (origin bytes in live.s history 1, in the trunk.s 5), banked 4" $T/uc.out&&grep -q "anonymize over the written tips: 0 carry" $T/uc.out&&[ "$(grep -c "^  RED" $T/uc.out)" = 6 ]&&! grep -q "RED $(mintn 30)" $T/uc.out&&[ "$(um 30 %P|wc -w|tr -d " ")" = 2 ]'
+# the walk fails -> every pair CONFLICT, ONE named line, nothing written
+mkun uF;snap >/dev/null 2>&1;snap >/dev/null 2>&1;ulf=$(sha $NS/$(mintn 22));grid unify --into refs/grid --legacy $SNAP --write --trunk refs/heads/no-such-trunk >$T/uf.out 2>&1;uf=$?
+ok "u10-an-unread-trunk-set-fails-closed with the trunk ref unreadable m22 (whose bytes ARE live's own) is NOT merged: rc $uf, the line 'trunk blob set unread' printed $(grep -c 'trunk blob set unread' $T/uf.out) time(s)" '[ $uf = 1 ]&&[ "$(sha $NS/$(mintn 22))" = "$ulf" ]&&[ "$(grep -c "trunk blob set unread" $T/uf.out)" = 1 ]&&[ "$(um 21 %P|wc -w|tr -d " ")" = 1 ]'
+# mutants: each must read RED on the fixture above
+mkun uB;mut $P/extensions/agi/bin/grid.py '    if absent:
+        return None, "bytes unseen: "' '    if absent and not (git_try(root, "log", "-1", "--format=%ct", otip).stdout.strip() < min(git_try(root, "log", "--format=%ct", "--max-parents=0", live).stdout.split())):
+        return None, "bytes unseen: "'
+snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >/dev/null 2>&1
+ok "m-root-date-reads-RED the root-date test in place of the byte test writes m24 (origin 2020 < live root 2026, its bytes seen nowhere): $(um 24 %P|wc -w|tr -d ' ') parents on m24, want 1 = CONFLICT, so 2 = RED" '[ "$(um 24 %P|wc -w|tr -d " ")" = 2 ]'
+mkun uC;mut $P/extensions/agi/bin/grid.py '    if absent:
+        return None, "bytes unseen: "' '    if absent and not (git_try(root, "log", "-1", "--format=%ct", otip).stdout.strip() < git_try(root, "log", "-1", "--format=%ct", live).stdout.strip()):
+        return None, "bytes unseen: "'
+snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >/dev/null 2>&1
+ok "m-tip-vs-tip-reads-RED comparing origin's tip with live's TIP writes m23 (origin 2023 < live tip 2026, bytes seen nowhere): $(um 23 %P|wc -w|tr -d ' ') parents on m23, so 2 = RED" '[ "$(um 23 %P|wc -w|tr -d " ")" = 2 ]'
+mkun uD;mut $P/extensions/agi/bin/grid.py '"--format=", trunk, "--", ".agi/nodes")' '"--format=", trunk)'
+snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >/dev/null 2>&1
+ok "m-unlimited-set-reads-RED the trunk set taken from EVERY path (not .agi/nodes) writes m27, whose bytes sit only at other/y27.md: $(um 27 %P|wc -w|tr -d ' ') parents on m27, so 2 = RED" '[ "$(um 27 %P|wc -w|tr -d " ")" = 2 ]'
+mkun uE;mut $P/extensions/agi/bin/grid.py '"--format=", self.trunk, "--", path)' '"--format=", self.trunk)'
+snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >/dev/null 2>&1
+ok "m-payload-path-filter-dropped-reads-RED the payload set taken from EVERY path writes m28, whose payload sits only at src/other28.txt: $(um 28 %P|wc -w|tr -d ' ') parents on m28, so 2 = RED" '[ "$(um 28 %P|wc -w|tr -d " ")" = 2 ]'
+mkun uM;mut $P/extensions/agi/bin/grid.py '"--no-renames", "-m", "--format=", trunk, "--", ".agi/nodes")' '"--no-renames", "--format=", trunk, "--", ".agi/nodes")'
+snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >/dev/null 2>&1
+ok "m-merge-resolutions-invisible-reads-RED the trunk walk WITHOUT -m cannot see m31's bytes (only in a merge resolution): $(um 31 %P|wc -w|tr -d ' ') parents on m31, want 2 = trunk-seen, so 1 = CONFLICT = RED" '[ "$(um 31 %P|wc -w|tr -d " ")" = 1 ]'
+mkun uG;mut $P/extensions/agi/bin/grid.py '    if mb.returncode == 0 and mb.stdout.strip():
+        return None, "has a merge-base"' '    if False:
+        return None, "has a merge-base"'
+snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >/dev/null 2>&1
+ok "m-merge-base-ignored-reads-RED without the no-merge-base condition m26 (a common root, its origin blob in live) is merged: $(um 26 %P|wc -w|tr -d ' ') parents on m26, so 2 = RED" '[ "$(um 26 %P|wc -w|tr -d " ")" = 2 ]'
+mkun uH;mut $P/extensions/agi/bin/grid.py '"commit-tree", f"{ntip}^{{tree}}", "-p", ntip, "-p", ltip, "-m", msg)
+            if res.returncode != 0 or not _cas(root, nref, res.stdout.strip(), ntip):
+                return "conflict"
+            if classes is not None:
+                classes.append((f"unrelated-root' '"commit-tree", f"{ltip}^{{tree}}", "-p", ntip, "-p", ltip, "-m", msg)
+            if res.returncode != 0 or not _cas(root, nref, res.stdout.strip(), ntip):
+                return "conflict"
+            if classes is not None:
+                classes.append((f"unrelated-root'
+snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >/dev/null 2>&1;grid unify --check --into refs/grid --legacy $SNAP >$T/uh.out 2>&1
+ok "m-origin-tree-picked-reads-RED with tree = ORIGIN's the written m25 tip carries the home-path literal and --check says so: $(grep 'anonymize' $T/uh.out|cut -c1-90)" '! grep -q "anonymize over the written tips: 0 carry" $T/uh.out'
+mkun uI;mut $P/extensions/agi/bin/grid.py '        if res.returncode != 0:
+            self.problem = f"git log {trunk} -- .agi/nodes failed' '        if False:
+            self.problem = f"git log {trunk} -- .agi/nodes failed'
+mut $P/extensions/agi/bin/grid.py '        if not self.nodes:
+            self.problem = f"git log {trunk} -- .agi/nodes yielded 0 blobs"' '        if False:
+            self.problem = f"git log {trunk} -- .agi/nodes yielded 0 blobs"'
+snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write --trunk refs/heads/no-such-trunk >$T/ui.out 2>&1
+ok "m-error-swallowed-reads-RED with the failed walk read as an empty set m22 (live's own bytes) is written anyway: $(um 22 %P|wc -w|tr -d ' ') parents on m22, so 2 = RED" '[ "$(um 22 %P|wc -w|tr -d " ")" = 2 ]'
+# A: the whole-verdict cadence has a falsifier. The stub turns _origin_quiet non-None from its 3rd call: call 1 = the pre-run gate, call 2 = just before the FIRST unrelated write (m21), call 3 = before
+# the second (EVERY=1 here) -> that pair reads `unread`, nothing written, and the tree-equal m4 (not counted by the cadence) is still merged.
+mkun uQ;mut $P/extensions/agi/bin/grid.py 'UNRELATED_QUIET_EVERY = 50' 'UNRELATED_QUIET_EVERY = 1'
+mut $P/extensions/agi/bin/grid.py 'def _origin_quiet(root: Path) -> str | None:' '_STUB = [0]
+
+
+def _origin_quiet(root: Path) -> str | None:
+    _STUB[0] += 1
+    if _STUB[0] > 2:
+        return "stub: the mirror moved"'
+snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >$T/uq.out 2>&1;uq=$?
+ok "u12-a-mirror-that-moves-mid-run-stops-the-next-unrelated-write the whole verdict turns non-QUIET after the first unrelated write: m21 written, m22 NOT (unread), tree-equal m4 still merged, rc $uq" '[ $uq = 1 ]&&[ "$(um 21 %P|wc -w|tr -d " ")" = 2 ]&&[ "$(um 22 %P|wc -w|tr -d " ")" = 1 ]&&[ "$(um 4 %P|wc -w|tr -d " ")" = 2 ]&&grep -q "unread" $T/uq.out'
+mkun uR;mut $P/extensions/agi/bin/grid.py 'UNRELATED_QUIET_EVERY = 50' 'UNRELATED_QUIET_EVERY = 1'
+mut $P/extensions/agi/bin/grid.py 'def _origin_quiet(root: Path) -> str | None:' '_STUB = [0]
+
+
+def _origin_quiet(root: Path) -> str | None:
+    _STUB[0] += 1
+    if _STUB[0] > 2:
+        return "stub: the mirror moved"'
+mut $P/extensions/agi/bin/grid.py 'if (classes is None or sum(1 for c in classes if c[0].startswith("unrelated-root/")) % UNRELATED_QUIET_EVERY == 0) and _origin_quiet(root):' 'if False:'
+snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >/dev/null 2>&1
+ok "m-cadence-dropped-reads-RED without the mid-run whole-verdict check the second unrelated pair m22 is written against a mirror that moved: $(um 22 %P|wc -w|tr -d ' ') parents on m22, want 1 = unread, so 2 = RED" '[ "$(um 22 %P|wc -w|tr -d " ")" = 2 ]'
+# C1 mutant: the whole-tree grep back (a live tip that already carries a literal reads RED for a reason the write did not cause)
+mkun uS;mut $P/extensions/agi/bin/grid.py '        added = _home_added(root, first, merge)' '        added = git_try(root, "grep", "-I", "-q", "-E", "/home/[A-Za-z0-9._-]+", merge).returncode == 0'
+snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >/dev/null 2>&1;grid unify --check --into refs/grid --legacy $SNAP >$T/us.out 2>&1
+ok "m-whole-tree-grep-reads-RED with the whole-tree home grep back m30 (LIVE's own tip carries /home/ubuntu/live30) reads RED at --check: $(grep -c "RED $(mintn 30)" $T/us.out) RED line(s) on m30, want 0 = GREEN, so 1 = RED" 'grep -q "RED $(mintn 30)" $T/us.out'
+mkun uE2;snap >/dev/null 2>&1;snap >/dev/null 2>&1;y=$(mkd 2020-02-02T00:00:00Z $P 21 active moved21);$G -C $P push -q -f $REM $y:refs/grid/node/$(mintn 21) >/dev/null 2>&1;snap >/dev/null 2>&1
+grid unify --into refs/grid --legacy $SNAP --write >$T/ue.out 2>&1;ue=$?
+ok "u11-a-mirror-that-moved-after-the-verdict-writes-nothing origin moved m21 after the QUIET verdict and the mirror was re-read: unify --write is refused (rc $ue), no unrelated-root merge written" '[ $ue = 1 ]&&grep -q "not QUIET" $T/ue.out&&[ "$(um 21 %P|wc -w|tr -d " ")" = 1 ]'
 echo "grid-origin-snap: $nrows rows";echo "grid-origin-snap: $f FAIL";[ $f = 0 ]

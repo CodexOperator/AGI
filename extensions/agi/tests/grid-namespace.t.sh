@@ -163,8 +163,10 @@ ok "d3-a-legacy-ref-never-pushes-again a local change under refs/grid/local-maxx
 rm -rf $T/pe;cp -a $T/pd $T/pe;P=$T/pe;mut $P/extensions/agi/bin/grid.py 'kinds = [f"{ns}/node", f"{ns}/session"]' 'kinds = [ns]';grid push-changed >/dev/null 2>&1
 ok "m-ns-wide-push-reads-RED with the bare namespace prefix the locally changed legacy ref IS pushed" '[ "$($G -C $T/remote.git rev-parse $LNS/$(mintn 7))" = "$(sha $LNS/$(mintn 7))" ]'
 # mutant: a delete-bearing variant of the verb
-rm -rf $T/px;cp -a $T/base $T/px;P=$T/px;setcfg $P "$CFG_NEW";mut $P/extensions/agi/bin/grid.py '    return "merged"
-' '    git(root, "update-ref", "-d", lref, ltip)
+rm -rf $T/px;cp -a $T/base $T/px;P=$T/px;setcfg $P "$CFG_NEW";mut $P/extensions/agi/bin/grid.py '        classes.append(("tree-equal", mint, ltip, ""))
+    return "merged"
+' '        classes.append(("tree-equal", mint, ltip, ""))
+    git(root, "update-ref", "-d", lref, ltip)
     return "merged"
 ';grid unify --write >/dev/null 2>&1
 ok "m-delete-variant-reads-RED a verb that deletes the legacy ref leaves $(refs $LNS|wc -l|tr -d " ") of 31 live refs" '! refs refs/grid/local-maxxing|grep "local-maxxing/node"|cmp -s - $T/lm0.txt'
