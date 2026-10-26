@@ -64,6 +64,24 @@ mk;run agi-flush >$T/o1 2>$T/e1;r=$?
 ok s5-a-clean-t-passes-silently "[ $r = 0 ]&&[ ! -s $T/e1 ]&&[ ! -e $H/.notice ]"
 mk;$G -C $V switch -q posts/alive;gc --allow-empty -m attached;run agi-flush >$T/o1 2>$T/e1;r=$?
 ok s6-an-attached-t-is-ignored "[ $r = 0 ]&&! grep -q 'strand-refused' $T/e1"
+# ---- u: an UNREADABLE strand count is never a strand (goal:g7.16.1.11.38.2): a failing git for-each-ref / rev-list reads '[strand] <post>: strand unread: <git error>', rc 2, HEAD and posts/<post> unmoved; never '[strand-refused] ... carries  commit(s)'
+mkdir -p $T/gs;printf '#!/bin/sh\nfor a;do [ "$a" = "$FAILGIT" ]&&{ echo "fatal: $a broken here (shim)" >&2;exit 128;};done\nexec /usr/bin/git "$@"\n' >$T/gs/git;chmod +x $T/gs/git
+for w in for-each-ref rev-list;do
+ mk;gc --no-verify --allow-empty -m stranded;h=$(head1);(cd $V&&env -i PATH=$T/gs:$T/bin:/usr/bin:/bin FAILGIT=$w HOME=$H GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null AGI_POST=alive agi-turn strand) >$T/o1 2>$T/e1;r=$?
+ ok "u-$w-fails-the-check-reads-unread-never-a-strand rc $r: $(head -1 $T/e1|cut -c1-90)" "[ $r = 2 ]&&grep -qx '\[strand\] alive: strand unread: fatal: $w broken here (shim)' $T/e1&&! grep -q 'strand-refused' $T/e1 $H/.notice&&grep -q '^\[strand\] alive: strand unread' $H/.notice&&[ \"\$(head1)\" = $h ]&&[ \"\$(tipb)\" = $B0 ]"
+done
+mk;gc --no-verify --allow-empty -m stranded;run agi-turn strand >$T/o1 2>$T/e1;r=$?
+ok "u-a-readable-count-is-still-a-number-in-the-line rc $r" "[ $r = 1 ]&&grep -q '^\[strand-refused\] alive: HEAD [0-9a-f]* carries 1 commit(s)' $T/e1&&! grep -q 'carries  commit' $T/e1"
+# u MUTANT: the trunk's strand check (no rc reading) -> a failing rev-list prints the blank-count strand line: the u rows above read RED on it
+mkdir -p $T/bm;cp $T/bin/* $T/bm/;python3 - $T/bm/agi-turn <<'P'
+import sys
+p=sys.argv[1];s=open(p).read()
+new=s[s.index('h=$(git rev-parse -q --verify HEAD)||exit 0;u(){'):s.index(';[ $n = 0 ]&&exit')]
+old="h=$(git rev-parse -q --verify HEAD)||exit 0;n=$({ echo $h;git for-each-ref --format='^%(objectname)' refs/heads refs/remotes refs/archive refs/tags;}|git rev-list --count --stdin)"
+assert s.count(new)==1;open(p,'w').write(s.replace(new,old))
+P
+mk;gc --no-verify --allow-empty -m stranded;(cd $V&&env -i PATH=$T/gs:$T/bm:/usr/bin:/bin FAILGIT=rev-list HOME=$H GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null AGI_POST=alive agi-turn strand) >$T/o1 2>$T/e1;r=$?
+ok "u-MUTANT-the-trunk-check-prints-a-blank-count-strand-RED rc $r: $(grep -m1 strand $T/e1|cut -c1-90)" "grep -q 'carries  commit(s)' $T/e1&&! grep -q 'strand unread' $T/e1"
 # ---- the other direction
 mk;echo draft >$V/note.txt;run agi-turn >$T/o1 2>$T/e1;r=$?
 ok o1-an-unversioned-edit-reaches-stderr-and-the-notice "grep -q '^\[out-of-tree\] ~/t has 1 unversioned' $T/e1&&grep -q '^\[out-of-tree\] ~/t has 1 unversioned' $H/.notice"
