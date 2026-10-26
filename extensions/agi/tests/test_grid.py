@@ -2166,7 +2166,8 @@ def test_default_tree_resolves_refs_grid(tmp_path, restore_ref_ns):
     assert grid.apply_storage_trunk(agi) == "refs/grid"
     assert grid.REF_NS == "refs/grid"
     assert grid.PUSH_SPEC == "refs/grid/*:refs/grid/*"
-    assert grid.FETCH_SPEC == "+refs/grid/*:refs/grid/*"
+    assert grid.FETCH_SPEC == "refs/grid/node/*:refs/grid/node/*"          # goal:g7.16.1.11.46.16 R3: narrowed, never forced
+    assert grid.FETCH_SPECS == ["refs/grid/node/*:refs/grid/node/*", "refs/grid/session/*:refs/grid/session/*"]
     grid.cmd_commit(agi, [], do_all=True, session=None)
     refs = grid.git(agi, "for-each-ref", "refs/grid", "--format=%(refname)")
     assert f"refs/grid/node/{MINT_X}" in refs
