@@ -431,7 +431,9 @@ def _keyed_repo(graph: Path, box: str, monkeypatch) -> tuple[list, str]:
         "---\nid: config:seats\nseats:\n" + "".join(
             f"  - {json.dumps(r)}\n" for r in rows) + "---\n", encoding="utf-8")
     top = graph.parent
-    for cmd in (["init", "-q"], ["add", "-A"],
+    # a repo-LOCAL identity: the adopt / remint paths commit the row and sign nothing, so they run with whatever identity the repo has;
+    # a fixture must never lean on the runner's (a post uid's unit env carries GIT_AUTHOR_*; env -i has none: alive 14:58:31Z 10-26)
+    for cmd in (["init", "-q"], ["config", "user.name", "t"], ["config", "user.email", "t@t"], ["add", "-A"],
                 ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q",
                  "-m", "seat seat-a on its box"]):
         subprocess.run(["git", "-C", str(top)] + cmd, check=True, capture_output=True)
@@ -659,6 +661,29 @@ def test_the_remint_adopts_its_own_orphan_staged_key(graph, monkeypatch):
     # finding names the box and the witness, like the twin's.
     assert _seats_dirty(graph) == "", "the adopt left the adopted row uncommitted"
     assert "town-x" in note and "witness" in note and _sha in note, note
+
+
+def test_the_adopt_with_NO_git_identity_is_loud_never_a_clean_note(graph, monkeypatch):
+    """alive 14:58:31Z 10-26 r2: with no identity the adopt still adopts, but its row commit FAILS and the note SAYS so
+    (`spawn_row_commit: FAILED`): the production path is loud, nothing is hidden. The fixture's identity is removed here on purpose."""
+    import send
+    _sent, _sha = _keyed_repo(graph, "town-x", monkeypatch)
+    top = graph.parent
+    for k in ("user.name", "user.email"):
+        subprocess.run(["git", "-C", str(top), "config", "--unset", k], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(top), "config", "user.useConfigOnly", "true"], check=True, capture_output=True)   # no host-derived guess
+    for k in ("GIT_AUTHOR_NAME", "GIT_AUTHOR_EMAIL", "GIT_COMMITTER_NAME", "GIT_COMMITTER_EMAIL", "EMAIL"):
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", "/dev/null")
+    monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    priv, pub = _a_new_key()
+    seats = graph / "nodes" / ".geometry" / "seats.md"
+    seats.write_text(seats.read_text().replace(_row(graph, "seat-a")["pubkey"], pub), encoding="utf-8")
+    _age_orphan(_stage_orphan(graph, "seat-a", priv))
+    note = rotate.ensure_post_key(graph, "seat-a")
+    assert "ADOPTED" in note and "spawn_row_commit: FAILED" in note, note
+    assert _seats_dirty(graph) != "", "no identity: the row stays uncommitted, and the note said so"
 
 
 def test_a_stale_orphan_temp_is_swept_and_the_remint_still_runs(graph, monkeypatch):
