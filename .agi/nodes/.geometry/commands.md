@@ -1412,7 +1412,8 @@ manifest:
       - census
     args:
       - {"name": "rev", "type": "str", "required": false, "choices": []}
-    purpose: grid.py census (goal:g7.16.1.11.46.16 -- mints / live / retired / versions / orphans, each from one git command; unread rc 1 on a failed read)
+      - {"name": "orphans", "type": "bool", "required": false, "choices": []}
+    purpose: grid.py census (goal:g7.16.1.11.46.16 -- mints / live / retired / versions / orphans split into double_mints + never_landed + unclassified, each from one git command; --orphans lists them; unread or an unclassified orphan rc 1)
     side_effects: read
     proposable: true
   grid.py:commit:
