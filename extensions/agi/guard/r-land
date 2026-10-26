@@ -1,0 +1,130 @@
+#!/bin/sh
+# r-land BASE TIP: the land rule for config:posts / config:seats rows (goal:g7.16.1.11.46.23, V8a tip 2c; the
+# council's rows R1-R5, alive [decision] 20:37:08Z 10-25). Read by SM's gate, belam's verify-land and the
+# reference-transaction prepared phase: the SAME script, the SAME BASE TIP. Exit 0 = ok, 1 = refused or unread.
+#
+# Every commit in BASE..TIP that changes the row list of posts.md / seats.md is judged BY ITS OWN SIGNER:
+#  R1  the author is the SIGNER, `git verify-commit --raw` against the allowed_signers ring (AGI_RING, else
+#      gpg.ssh.allowedSignersFile), never %an/%ae. An unsigned or unringed commit that changes a row is refused.
+#  R2  per changed row, with every rule read from BASE's [config].md DATA (never a literal here): the signer holds
+#      a role in `written_by`, OR changes only its OWN row's `self_row.fields` (and no protected cell), OR an
+#      `actor_rows` grant covers actor + op + keys (deny list honoured). ADDED and DELETED rows need written_by or
+#      an actor_rows `create`/`retire` grant; a rename is a delete plus an add; a post never mints its own row.
+#  R3  anything unreadable (BASE/TIP, the schema, vetoes, ladder, a cell or its rows at a rev, a jq/yaml failure)
+#      -> `R-land: unread (<what> at <rev>)`, refused. Never a pass on an empty diff.
+#  veto  while BASE's config:vetoes holds an unanswered active_gate for scope `prime`, a row change that is not
+#      the signer's own self_row write is refused.  town  a changed row's `town` must be in the ladder's
+#      `towns:` plus the schema's `town_cell.also_accepted`.
+#  A merge commit that takes one parent's cell wholesale adds nothing (the commits it brought are judged on their
+#  own); a merge that writes a NEW cell is judged against its first parent by the merge's signer.
+#  MODE  ONE cell, BASE's [config].md `r_land: {mode: report|enforce}` (council 3/3 22:48Z 10-25, V8a re-cut to REPORT
+#      MODE). enforce = rc 1 on a refusal, the caller keeps the ref. report = every would-be refusal (and every
+#      unread) is PRINTED as `R-land: would refuse <commit> (<signer>, <row>, <op> <cells>, <rule>)`, rc 0, the ref moves.
+#      The mode is read from BASE, never TIP (a range cannot soften its own judge). ABSENT at BASE = report (the
+#      bootstrap state; a line says so). A mode that cannot be read, or is neither word, = enforce (fail closed).
+#      The mode is read BEFORE the ring: in report an unread ring prints `would refuse <tip> (unread allowed_signers ring)`
+#      rc 0 and only when a row change must be verified (a 0-change range needs no ring); the ONE report-mode rc 1 is a
+#      BASE or TIP that does not rev-parse (it runs before the mode is known, the mode lives at BASE: fail closed).
+#      Flipping it is ONE commit on a RULES path, at all three call sites together (they all read this one cell).
+#  R5  what this is: enforced at every trunk move except a deliberate core.hooksPath bypass. A hook guards against
+#      MISTAKES; it is not a wall.
+# Reads ONLY git objects of BASE/TIP plus the ring file; writes nothing. sh + jq + one python3 yaml read.
+# (Objects are read with `git cat-file blob REV:path`, never `git show`: for a path with brackets, like [config].md,
+#  `git show REV:path` exits 0 with EMPTY output when the file is absent, and an absent schema would read as present.)
+set -u
+TA=${2:-?}; MODE=enforce   # until BASE's schema is read: an unreadable judge fails closed
+U(){ if [ "$MODE" = report ]; then echo "R-land: would refuse ${T:-$TA} (unread $1)"; exit 0; fi; echo "R-land: unread ($1)"; exit 1; }
+[ $# = 2 ]||{ echo "usage: r-land BASE TIP" >&2; exit 2; }
+B=$(git rev-parse -q --verify "$1^{commit}" 2>/dev/null)||U "BASE $1"
+T=$(git rev-parse -q --verify "$2^{commit}" 2>/dev/null)||U "TIP $2"
+A=${AGI_RING:-$(git config --get gpg.ssh.allowedSignersFile 2>/dev/null)}
+RING(){ [ -n "$A" ]&&[ -r "$A" ]||U "allowed_signers ring"; }   # called AFTER the mode is known (U reads MODE)
+d=$(mktemp -d)||U "tmpdir"; trap 'rm -rf "$d"' EXIT
+G=.agi/nodes/.geometry
+git cat-file blob "$B:.agi/context/schemas/[config].md" >"$d/schema" 2>/dev/null||U "config schema at ${B%${B#????????}}"
+git cat-file blob "$B:$G/vetoes.md" >"$d/vetoes" 2>/dev/null||U "vetoes at ${B%${B#????????}}"
+git cat-file blob "$B:$G/ladder.md" >"$d/ladder" 2>/dev/null||U "ladder at ${B%${B#????????}}"
+python3 -I - "$d" >"$d/data.json" <<'PY' 2>/dev/null||U "yaml frontmatter of schema/vetoes/ladder at BASE"
+import sys, json, re, yaml
+def fm(n):
+    t = open(sys.argv[1] + "/" + n, encoding="utf-8").read()
+    m = re.match(r"---\n(.*?)\n---", t, re.S)
+    return yaml.safe_load(m[1]) if m else None
+s, v, l = (fm(n) for n in ("schema", "vetoes", "ladder"))
+if not all(isinstance(x, dict) for x in (s, v, l)):
+    sys.exit(1)
+print(json.dumps({"schema": s, "vetoes": v, "ladder": l}, default=str))
+PY
+jq -e . "$d/data.json" >/dev/null 2>&1||U "data at BASE"
+case $(jq -r 'if (.schema.r_land|type)=="object" then (.schema.r_land.mode // "absent"|tostring) else "absent" end' "$d/data.json" 2>/dev/null) in
+  report) MODE=report;;
+  enforce) MODE=enforce;;
+  absent) MODE=report; echo "R-land: mode report (r_land.mode absent at ${B%${B#????????}})";;
+  *) U "r_land.mode at ${B%${B#????????}}: neither report nor enforce";;
+esac
+V=refused; [ $MODE = report ]&&V="would refuse"
+[ $MODE = enforce ]&&RING   # enforce reads the ring up front (fail closed); report reads it only when a row change is judged
+
+# rows of a cell at a rev: [] when the cell is absent there, unread when it exists but does not parse
+rows(){ # rev cell -> file
+  if git cat-file -e "$1:$G/$2" 2>/dev/null; then
+    git cat-file blob "$1:$G/$2" 2>/dev/null|sed -n 's/^  - {/{/p'|jq -s . >"$3" 2>/dev/null||U "$2 rows at ${1%${1#????????}}"
+  else echo '[]' >"$3"; fi
+}
+rows "$B" posts.md "$d/b.posts"; rows "$B" seats.md "$d/b.seats"
+jq -s 'add' "$d/b.posts" "$d/b.seats" >"$d/brows" 2>/dev/null||U "BASE rows"
+
+nchg=0; bad=0
+git rev-list --reverse "$B..$T" >"$d/revs" 2>/dev/null||U "range ${B%${B#????????}}..${T%${T#????????}}"
+while read -r c; do
+  par=$(git rev-list --parents -n1 "$c"|sed 's/^[^ ]* *//')
+  [ -n "$par" ]||continue                       # a root commit in the range: nothing to diff against
+  p1=${par%% *}; merge=0; [ "$par" != "$p1" ]&&merge=1
+  for cell in posts.md seats.md; do
+    bc=$(git rev-parse -q --verify "$c:$G/$cell" 2>/dev/null||true); b1=$(git rev-parse -q --verify "$p1:$G/$cell" 2>/dev/null||true)
+    [ "$bc" = "$b1" ]&&continue
+    if [ $merge = 1 ]; then               # a merge that takes ANY parent's cell wholesale adds nothing new
+      same=0; for q in $par; do [ "$(git rev-parse -q --verify "$q:$G/$cell" 2>/dev/null||true)" = "$bc" ]&&same=1; done
+      [ $same = 1 ]&&continue
+    fi
+    nchg=$((nchg+1)); RING
+    s=$(git -c gpg.format=ssh -c gpg.ssh.allowedSignersFile="$A" verify-commit --raw "$c" 2>&1|sed -n 's/.*signature for \([^@]*\)@agi with.*/\1/p'|head -1)
+    if [ -z "$s" ]; then echo "R-land: $V ${c%${c#????????}} (nobody, $cell, -, changes $cell but is signed by nobody the ring knows (R1))"; bad=$((bad+1)); continue; fi
+    rows "$p1" "$cell" "$d/before"; rows "$c" "$cell" "$d/after"
+    jq -r -n --arg v "$V" --arg s "$s" --arg c "${c%${c#????????}}" --slurpfile D "$d/data.json" --slurpfile Bf "$d/before" \
+      --slurpfile Af "$d/after" --slurpfile Br "$d/brows" '
+      ($D[0].schema) as $sc | ($D[0].vetoes) as $vt | ($D[0].ladder) as $ld
+      | ($sc.written_by // []) as $wb0
+      | (if ($wb0|type)=="string" then ($wb0|gsub(","; " ")|split(" ")|map(select(length>0))) else $wb0 end) as $wb
+      | ($sc.self_row // {}) as $sr | ($sr.fields // []) as $srf
+      | ($sc.actor_rows // []) as $ar
+      | (["role","model","tier","harness","effort","owning_goal","worktree","rotated_by"]) as $prot
+      | (($sc.town_cell.also_accepted // []) + (if (($sc.town_cell.accepted_from // "")|startswith("ladder")) then ($ld.towns // []) else [] end)) as $towns
+      | (($vt.active_gates // []) | any(.scope=="prime" and ((.answered // "")==""))) as $frozen
+      | ($Br[0] | map(select(.name==$s)) | .[0].role // "") as $role
+      | ($Bf[0] | map({(.name|tostring): .}) | add // {}) as $o
+      | ($Af[0] | map({(.name|tostring): .}) | add // {}) as $n
+      | (($o|keys) + ($n|keys) | unique)[] as $name
+      | select($o[$name] != $n[$name])
+      | (if $o[$name]==null then "create" elif $n[$name]==null then "retire" else "set" end) as $op
+      | (($o[$name] // {}) as $a | ($n[$name] // {}) as $b | [($a|keys[]),($b|keys[])] | unique | map(select($a[.] != $b[.])) | map(select(. != "name"))) as $ks
+      | (($wb|index($role)) != null) as $w
+      | ($op=="set" and $name==$s and ($ks|all(. as $k | ($srf|index($k)) != null)) and ($ks|all(. as $k | ($prot|index($k))==null))) as $self
+      | ([$ar[] | . as $g | select($g.actor==$s and (($g.list_key // "")=="posts" or ($g.list_key // "")=="seats") and ($g.match_key != null)
+            and (($g.ops // ["set"])|index($op)) != null and (($g.deny_roles // [])|index($name)) == null
+            and ($op=="retire" or ($ks|all(. as $k | ((($g.fields // [])|index($k)) != null) or ($name==$s and (($srf|index($k)) != null))))))] | length > 0) as $grant
+      | (if $op=="create" and $name==$s then "a post never mints its own row (R2)"
+         elif ($op=="create" or $op=="retire") and ($w|not) and ($grant|not) then "\($op) of a row needs a written_by role or an actor_rows grant; \($s) (role \($role // "none")) has neither (R2)"
+         elif $op=="set" and ($w|not) and ($self|not) and ($grant|not) then "cells \($ks|join(",")) of another post'"'"'s row (or outside self_row.fields) are admitted by no written_by role, self_row or actor_rows grant for \($s) (role \($role // "none")) (R2)"
+         elif $frozen and ($self|not) then "scope prime is FROZEN by an unanswered human gate; only the signer'"'"'s own self_row write passes (veto)"
+         elif ($op!="retire") and ($n[$name].town != null) and ($n[$name].town != ($o[$name].town // null)) and (($towns|index($n[$name].town)) == null) then "town \($n[$name].town|tojson) is outside the accepted vocabulary (town)"
+         else empty end) as $why
+      | "R-land: \($v) \($c) (\($s), \($name), \($op) \($ks|join(",")), \($why))"' >"$d/out" 2>"$d/err"||U "jq on $cell at ${c%${c#????????}}"
+    if [ -s "$d/out" ]; then cat "$d/out"; bad=$((bad+$(wc -l <"$d/out"))); fi
+  done
+done <"$d/revs"
+if [ $bad != 0 ]; then
+  [ $MODE = report ]&&{ echo "R-land: report ($nchg cell change(s) in ${B%${B#????????}}..${T%${T#????????}} judged, $bad would refuse; rc 0, the ref moves)"; exit 0; }
+  exit 1
+fi
+echo "R-land: ok ($nchg cell change(s) in $B..$T judged, mode $MODE)"
