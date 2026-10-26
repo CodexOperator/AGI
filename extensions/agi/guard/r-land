@@ -10,6 +10,15 @@
 #      a role in `written_by`, OR changes only its OWN row's `self_row.fields` (and no protected cell), OR an
 #      `actor_rows` grant covers actor + op + keys (deny list honoured). ADDED and DELETED rows need written_by or
 #      an actor_rows `create`/`retire` grant; a rename is a delete plus an add; a post never mints its own row.
+#      MOVE GRANT (owner "Accept both" 05:0xZ 10-26, council 3/3 alive 05:20:59Z; the same rule as card-belam 5f06bcb225 /
+#      alive 23:12:35Z + 23:14:35Z 10-25 `retire_copy`, re-expressed): an actor_rows entry
+#      `{actor, list_key, match_key, ops: [create], name_suffix: "-retired", move_of: "<x>"}` admits ONE create of a row named
+#      `<x><suffix>` and nothing else (it is never a field grant: a set, or a create without it, is judged as before). The row is
+#      admitted only if (1) `<x>` exists at the commit's PARENT (else `unread (<x> at <parent>)`), (2) `<x>` is gone from the commit
+#      (retired in the SAME commit; the retire itself is the actor's own `retire` grant), (3) every cell but the 9 process cells
+#      {name, session_label, boot, box, worktree, session_name, window, pid, recover} equals <x>'s (a changed pubkey / key_history /
+#      role is refused), (4) the process cells read their retired values: name = session_label = `<x><suffix>`, boot null, box
+#      "off", worktree / session_name / window "", pid 0, recover false (an absent cell reads as its empty value).
 #  R3  anything unreadable (BASE/TIP, the schema, vetoes, ladder, a cell or its rows at a rev, a jq/yaml failure)
 #      -> `R-land: unread (<what> at <rev>)`, refused. Never a pass on an empty diff.
 #  veto  while BASE's config:vetoes holds an unanswered active_gate for scope `prime`, a row change that is not
@@ -102,7 +111,7 @@ while read -r c; do
     s=$(git -c gpg.format=ssh -c gpg.ssh.allowedSignersFile="$A" verify-commit --raw "$c" 2>&1|sed -n 's/.*signature for \([^@]*\)@agi with.*/\1/p'|head -1)
     if [ -z "$s" ]; then echo "R-land: $V ${c%${c#????????}} (nobody, $cell, -, changes $cell but is signed by nobody the ring knows (R1))"; bad=$((bad+1)); continue; fi
     rows "$p1" "$cell" "$d/before"; rows "$c" "$cell" "$d/after"
-    jq -r -n --arg v "$V" --arg s "$s" --arg c "${c%${c#????????}}" --slurpfile D "$d/data.json" --slurpfile Bf "$d/before" \
+    jq -r -n --arg v "$V" --arg s "$s" --arg c "${c%${c#????????}}" --arg pp "${p1%${p1#????????}}" --slurpfile D "$d/data.json" --slurpfile Bf "$d/before" \
       --slurpfile Af "$d/after" --slurpfile Br "$d/brows" '
       ($D[0].schema) as $sc | ($D[0].vetoes) as $vt | ($D[0].ladder) as $ld
       | ($sc.written_by // []) as $wb0
@@ -123,8 +132,29 @@ while read -r c; do
       | ($op=="set" and $name==$s and ($ks|all(. as $k | ($srf|index($k)) != null)) and ($ks|all(. as $k | ($prot|index($k))==null))) as $self
       | ([$ar[] | . as $g | select($g.actor==$s and (($g.list_key // "")=="posts" or ($g.list_key // "")=="seats") and ($g.match_key != null)
             and (($g.ops // ["set"])|index($op)) != null and (($g.deny_roles // [])|index($name)) == null
-            and ($op=="retire" or ($ks|all(. as $k | ((($g.fields // [])|index($k)) != null) or ($name==$s and (($srf|index($k)) != null))))))] | length > 0) as $grant
+            and ($g.name_suffix == null) and ($g.move_of == null)
+            and ($op=="retire" or ($ks|all(. as $k | ((($g.fields // [])|index($k)) != null) or ($name==$s and (($srf|index($k)) != null))))))] | length > 0) as $gplain
+      | (["name","session_label","boot","box","worktree","session_name","window","pid","recover"]) as $pc
+      | ([$ar[] | . as $g | select($g.actor==$s and (($g.list_key // "")=="posts" or ($g.list_key // "")=="seats") and ($g.match_key != null)
+            and (($g.ops // [])|index("create")) != null and (($g.name_suffix|type)=="string") and (($g.name_suffix|length) > 0)
+            and $g.move_of == "<x>" and ($name|endswith($g.name_suffix)) and (($name|length) > ($g.name_suffix|length)))] | .[0]) as $mg
+      | (if $mg == null then "" else $name[0:(($name|length) - ($mg.name_suffix|length))] end) as $x
+      | (if $mg == null or $op != "create" then ""
+         elif $o[$x] == null then "unread (\($x) at \($pp)): a \($mg.name_suffix) create moves a row that exists at its parent (move_of)"
+         elif $n[$x] != null then "\($x) is still live: a \($mg.name_suffix) create must retire \($x) in the same commit (move_of)"
+         else
+           ($o[$x] | with_entries(select(.key as $k | ($pc|index($k)) == null))) as $xa
+           | ($n[$name] | with_entries(select(.key as $k | ($pc|index($k)) == null))) as $xb
+           | ([($xa|keys[]),($xb|keys[])] | unique | map(select($xa[.] != $xb[.]))) as $diff
+           | $n[$name] as $r
+           | if ($diff|length) > 0 then "cells \($diff|join(",")) differ from \($x): a move copies every cell but the process cells (move_of)"
+             elif $r.session_label != $name then "session_label must equal the name \($name) (move_of)"
+             elif ($r.boot != null) or (($r.box // "") != "off") or (($r.worktree // "") != "") or (($r.session_name // "") != "") or (($r.window // "") != "") or (($r.pid // 0) != 0) or (($r.recover // false) != false) then "process cells of \($name) must read boot null, box off, worktree/session_name/window empty, pid 0, recover false (move_of)"
+             else "" end
+         end) as $mvwhy
+      | ($gplain or ($mg != null and $op == "create" and $mvwhy == "")) as $grant
       | (if $op=="create" and $name==$s then "a post never mints its own row (R2)"
+         elif $op=="create" and ($w|not) and ($gplain|not) and $mg != null and $mvwhy != "" then $mvwhy
          elif ($op=="create" or $op=="retire") and ($w|not) and ($grant|not) then "\($op) of a row needs a written_by role or an actor_rows grant; \($s) (role \($role // "none")) has neither (R2)"
          elif $op=="set" and ($w|not) and ($self|not) and ($grant|not) then "cells \($ks|join(",")) of another post'"'"'s row (or outside self_row.fields) are admitted by no written_by role, self_row or actor_rows grant for \($s) (role \($role // "none")) (R2)"
          elif $frozen and ($self|not) then "scope prime is FROZEN by an unanswered human gate; only the signer'"'"'s own self_row write passes (veto)"
