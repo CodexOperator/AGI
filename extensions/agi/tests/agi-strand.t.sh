@@ -23,6 +23,7 @@ sect(){ if [ -n "$PIECES" ];then cat "$PIECES";else cat $R0/.agi/nodes/.geometry
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE AGI_POST AGI_WT RUNTIME_DIRECTORY AGI_TRUNK
 mkdir -p $T/hm $T/bin $T/run $T/wt
 for n in agi-turn agi-flush agi-meter agi-brief agi-notice agi-sync pre-commit;do sect $n >$T/bin/$n;if [ -s $T/bin/$n ];then chmod +x $T/bin/$n;else rm -f $T/bin/$n;fi;done
+printf '#!/bin/sh\ncat >/dev/null\n'>$T/bin/agi-mem;chmod +x $T/bin/agi-mem   # a tap that runs and prints nothing: the meter's once-and-clears lines are asserted WITH a tap present (without one it names `[mem] tap not run (rc 127)`)
 ok x0-pieces-extracted '[ -x $T/bin/agi-turn ]&&[ -x $T/bin/agi-flush ]&&[ -x $T/bin/agi-meter ]&&[ -s $T/bin/agi-brief ]&&[ -x $T/bin/agi-notice ]&&[ -x $T/bin/pre-commit ]'
 [ -x $T/bin/agi-turn ]&&[ -x $T/bin/agi-flush ]||{ echo "FAIL extract: agi-turn / agi-flush";exit 99;}
 H=$T/hm;V=$H/t
@@ -67,6 +68,8 @@ ok o1-an-unversioned-edit-reaches-stderr-and-the-notice "grep -q '^\[out-of-tree
 mk;gc --no-verify --allow-empty -m stranded;h=$(head1);run agi-flush >/dev/null 2>&1;echo draft >$V/note.txt;run agi-turn >/dev/null 2>&1
 echo '{}' >$T/pj;run sh -c "agi-meter <$T/pj" >$T/m1 2>/dev/null;run sh -c "agi-meter <$T/pj" >$T/m2 2>/dev/null
 ok n1-agi-meter-prints-each-line-once-and-clears "[ \$(grep -c '^\[strand-refused\]' $T/m1) = 1 ]&&[ \$(grep -c '^\[out-of-tree\]' $T/m1) = 1 ]&&[ ! -e $H/.notice ]&&[ ! -s $T/m2 ]"
+rm -f $T/bin/agi-mem;run sh -c "agi-meter <$T/pj" >$T/m3 2>/dev/null
+ok n1b-a-tap-that-cannot-run-is-named-not-silent "[ \"\$(grep -c '^\[mem\] tap not run (rc 127)' $T/m3)\" = 1 ]"
 ok n2-agi-brief-prints-the-notice-first "[ \$(grep -c '^ls ~/.notice\* >/dev/null 2>&1&&agi-notice;p=' $T/bin/agi-brief) = 1 ]"
 # n3: append-only until printed: a line appended WHILE the print runs (an awk shim that appends first) survives; only the lines printed are dropped
 mk;mkdir -p $T/shimawk;printf '#!/bin/sh\necho "[late] kept" >>%s/.notice\nexec /usr/bin/awk "$@"\n' $H >$T/shimawk/awk;chmod +x $T/shimawk/awk;printf '[a] one\n[b] two\n' >$H/.notice

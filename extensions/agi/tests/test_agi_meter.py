@@ -252,7 +252,7 @@ def test_r_an_unopenable_lock_is_named_truly_not_as_a_running_wake(tmp_path):
     assert "[atomize] wake not run: ~/.atomize.lock unopenable" in log and "still runs" not in log, log
     assert not (tmp_path / "starts").exists()
     n = (tmp_path / "notices.log").read_text()
-    assert "[atomize] wake not run: ~/.atomize.lock unopenable" in n, n      # the post SEES it (agi-notice dedups per day)
+    assert "[atomize] wake not run: ~/.atomize.lock unopenable" in n, n      # the post SEES it (agi-notice dedups by key; the print consumes the file, so it shows on each read while it lasts)
 
 
 def test_s_mutant_the_open_check_dropped_says_still_runs_which_is_FALSE_RED(tmp_path):
@@ -275,3 +275,22 @@ def test_u_no_flock_binary_is_named_in_the_log_and_the_wake_still_runs(tmp_path)
 def test_v_the_two_doc_lines_no_longer_say_agi_meter_calls_the_notice_first():
     t = (GEO / "engine-post.md").read_text()
     assert "called first by agi-brief and agi-meter" not in t and "agi-meter's prompt hook call it first" not in t
+
+
+# ---- self-perpetuating's later row (alive 14:49:35Z C, FOLDABLE): a tap that cannot run (timeout rc 125/126/127) is NAMED with its rc ----
+def test_w_a_tap_that_cannot_run_is_named_with_its_rc(tmp_path):
+    r = run(tmp_path, [U(100), SYS], {"prompt": "hello"}, sh_text=piece("agi-meter").replace("agi-mem tap", "agi-mem-none tap"))
+    assert "[mem] tap not run (rc 127)" in r.stdout, r.stdout
+
+
+def test_x_a_tap_that_runs_clean_prints_neither_tap_line(tmp_path):
+    r = run(tmp_path, [U(100), SYS], {"prompt": "hello"}, mem="cat >/dev/null\nexit 0\n")
+    assert "[mem] tap" not in r.stdout, r.stdout
+
+
+def test_y_mutant_the_125_126_127_branch_dropped_is_silent_RED(tmp_path):
+    text = piece("agi-meter")
+    old = '125|126|127)echo "[mem] tap not run (rc $r)";;'
+    assert old in text
+    r = run(tmp_path, [U(100), SYS], {"prompt": "hello"}, sh_text=text.replace(old, "").replace("agi-mem tap", "agi-mem-none tap"))
+    assert "[mem] tap not run" not in r.stdout, "the mutant is silent about a tap that cannot run (row w catches it)"
