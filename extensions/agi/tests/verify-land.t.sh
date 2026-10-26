@@ -39,6 +39,26 @@ UNSIGNED=1 gate u 'echo b >$R/docs/b';run u $LD $BASE $GT
 ok "h2-an-unsigned-commit-HOLDS rc $rc, $(grep ^sigs $T/o), $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*sigs"'
 gate d 'git -C $R rm -q docs/keep';run d $LD $BASE $GT
 ok "h3-a-D-path-HOLDS rc $rc, $(grep -o '^D: [0-9]*' $T/o), $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*D"'
+# --- goal:g7.16.1.11.46.23.1 (council (c) 09:55:09Z 10-26): a D is admitted ONLY by exact path from BASE's land.deletes_admitted; -M pinned; a node D never
+# dab(NAME, JSON-cell): a base = BASE + .agi/nodes/doc/n.md + docs/x/y + the cell in .agi/config.json (rules_paths kept); DA = its sha, its own carry file
+dab(){ g checkout -q --detach $BASE;mkdir -p $R/.agi/nodes/doc $R/docs/x;echo n >$R/.agi/nodes/doc/n.md;echo y >$R/docs/x/y
+ python3 -I -c 'import json,sys;p=sys.argv[1];c=json.load(open(p));c["land"]["deletes_admitted"]=json.loads(sys.argv[2]);open(p,"w").write(json.dumps(c))' $R/.agi/config.json "$2"
+ g add -A;g commit -qm "base $1";DA=$(g rev-parse HEAD);printf 'AGI_TRUNK=%s\n' $DA >$T/carry-$1.env;}
+B0=$BASE;dab k '[{"path":"docs/keep","ruling":"owner r1"}]';BASE=$DA;gate dk 'git -C $R rm -q docs/keep';BASE=$B0;CARRY=$T/carry-k.env;run dk $LD $DA $GT;CARRY=
+ok "da1-a-listed-code-D-at-BASE-reads-OK rc $rc, $(grep '^D admitted' $T/o), $(v)" '[ $rc = 0 ]&&grep -qx "D admitted: docs/keep (owner r1)" $T/o&&[ "$(v)" = "verify-land: OK" ]'
+gate dt 'git -C $R rm -q docs/keep;python3 -I -c "import json;p=\"$R/.agi/config.json\";c=json.load(open(p));c[\"land\"][\"deletes_admitted\"]=[{\"path\":\"docs/keep\",\"ruling\":\"self\"}];open(p,\"w\").write(json.dumps(c))"';wrun dt $LD $BASE $GT
+ok "da2-a-TIP-listing-its-own-delete-HOLDS (the cell is read from BASE) rc $rc, $(grep '^D not admitted' $T/o), $(v)" '[ $rc = 1 ]&&grep -qx "D not admitted: docs/keep" $T/o&&v|grep -q "HOLD (.*D"'
+BASE=$DA;gate du 'git -C $R rm -q docs/a';BASE=$B0;CARRY=$T/carry-k.env;run du $LD $DA $GT;CARRY=
+ok "da3-an-unlisted-D-HOLDS-and-the-stale-entry-is-read rc $rc, $(grep -c -E '^(D not admitted: docs/a|admitted but not deleted: docs/keep)$' $T/o) of 2, $(v)" '[ $rc = 1 ]&&grep -qx "D not admitted: docs/a" $T/o&&grep -qx "admitted but not deleted: docs/keep" $T/o&&v|grep -q "HOLD (.*D"'
+dab dir '[{"path":"docs/x/","ruling":"r2"},{"path":"docs/x","ruling":"r3"}]';BASE=$DA;gate dd 'git -C $R rm -q docs/x/y';BASE=$B0;CARRY=$T/carry-dir.env;run dd $LD $DA $GT;CARRY=
+ok "da4-a-listed-path-never-covers-another-deleted-path (docs/x/ and docs/x listed, docs/x/y deleted) rc $rc, $(grep '^D not admitted' $T/o), $(v)" '[ $rc = 1 ]&&grep -qx "D not admitted: docs/x/y" $T/o&&v|grep -q "HOLD (.*D"'
+gate dr 'git -C $R mv docs/keep docs/kept';g config diff.renames false;run dr $LD $BASE $GT;g config --unset diff.renames
+ok "da5-renames-pinned: diff.renames=false reads the SAME D set as the default (a pure rename = D 0) rc $rc, $(grep -o '^D: [0-9]*' $T/o), $(v)" '[ $rc = 0 ]&&grep -q "^D: 0 " $T/o&&[ "$(v)" = "verify-land: OK" ]'
+dab node '[{"path":".agi/nodes/doc/n.md","ruling":"r4"}]';BASE=$DA;gate dn 'git -C $R rm -q .agi/nodes/doc/n.md';BASE=$B0;CARRY=$T/carry-node.env;run dn $LD $DA $GT;CARRY=
+ok "da6-a-listed-node-D-HOLDS rc $rc, $(grep '^D not admitted' $T/o), $(v)" '[ $rc = 1 ]&&grep -qx "D not admitted: .agi/nodes/doc/n.md (a node: retire, never delete)" $T/o&&v|grep -q "HOLD (.*D"'
+dab bad '"docs/keep"';BASE=$DA;gate db 'git -C $R rm -q docs/keep';BASE=$B0;CARRY=$T/carry-bad.env;run db $LD $DA $GT;CARRY=
+ok "da7-a-malformed-cell-admits-nothing-and-says-so rc $rc, $(grep '^deletes_admitted unread' $T/o|cut -c1-40), $(v)" '[ $rc = 1 ]&&grep -q "^deletes_admitted unread at BASE" $T/o&&grep -qx "D not admitted: docs/keep" $T/o&&v|grep -q "HOLD (.*D"'
+ok "da8-no-D-reading-diff-without--M (falsifier 2) $(grep -c 'name-status' $VL) name-status line(s), $(grep 'name-status' $VL|grep -vc -- '-M --name-status') without -M" '[ "$(grep "name-status" $VL|grep -vc -- "-M --name-status")" = 0 ]&&grep -q -- "-M --name-status" $VL'
 hm=$(getent passwd "$(id -un)"|cut -d: -f6);gate m 'echo "see $hm/notes" >$R/docs/m';run m $LD $BASE $GT
 ok "h4-a-home-path-literal-HOLDS rc $rc, $(grep -c '^home hits \[.\+\]' $T/o) hit line, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*home"'
 gate e 'echo b2 >$R/docs/b2';LE=$(g commit-tree -S -p $BASE -p $GT -m "land e
