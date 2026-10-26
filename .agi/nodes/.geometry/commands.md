@@ -3150,18 +3150,6 @@ manifest:
     purpose: slice SKILL.md for one role from the machine-readable hierarchy
     side_effects: read
     proposable: true
-  seat_status.py::
-    cli: seat_status.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/seat_status.py
-    args:
-      - {"name": "root", "type": "str", "required": false, "choices": []}
-      - {"name": "list", "type": "bool", "required": false, "choices": []}
-    purpose: one live read of every seat, the spawn budget and the telemetry roll-up
-    side_effects: read
-    proposable: true
   write_guard.py:check:
     cli: write_guard.py
     verb: check
@@ -3343,8 +3331,6 @@ placement:
   inject.py:.nodes_dir:
     kind: positional
   payload_boundary.py:.repo:
-    kind: positional
-  seat_status.py:.root:
     kind: positional
 season: 1
 status: active

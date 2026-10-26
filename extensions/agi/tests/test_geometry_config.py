@@ -184,21 +184,21 @@ def test_seat_and_post_accepted_on_same_cli(tmp_path):
 # posts rows — a reader that stat/reads a literal seats.md would report       #
 # absent/empty and FAIL.                                                      #
 # --------------------------------------------------------------------------- #
-def test_seat_status_presence_and_zoom_read_posts_md(tmp_path):
-    """seat_status._load_registry_rows' PRESENCE flag and its zoom fallback
+def test_seat_view_presence_and_zoom_read_posts_md(tmp_path):
+    """hierarchy._load_registry_rows' PRESENCE flag and its zoom fallback
     both resolve posts.md when it is the only geometry config file (no
     seats.md on disk). A residual seats.md literal would report present=False
     and zero rows."""
     g = _graph(tmp_path)
     _write_posts(g)
     r = _py(
-        "import seat_status\n"
+        "import hierarchy\n"
         "from pathlib import Path as _P\n"
         f"ROOT=_P({str(g)!r})\n"
-        "rows, present = seat_status._load_registry_rows(ROOT)\n"
+        "rows, present = hierarchy._load_registry_rows(ROOT)\n"
         "print('present', present)\n"
         "print('rows', len(rows))\n"
-        "print('zoom', len(seat_status._rows_via_zoom(ROOT)))\n"
+        "print('zoom', len(hierarchy._rows_via_zoom(ROOT)))\n"
     )
     assert r.returncode == 0, r.stderr
     lines = r.stdout.splitlines()
@@ -210,7 +210,7 @@ def test_seat_status_presence_and_zoom_read_posts_md(tmp_path):
 
 def test_viewport_load_seat_rows_reads_posts_md(tmp_path):
     """viewport.load_seat_rows reports registry_present=True and two rows from
-    posts.md when no seats.md exists. (telemetry first via seat_status.collect
+    posts.md when no seats.md exists. (the metered view first via hierarchy.collect_seats
     for this module is allowed to fail open; the posts.md lane is the one under
     test.)"""
     g = _graph(tmp_path)
@@ -436,7 +436,7 @@ def test_no_reader_reemits_file_notice_on_seats_tree(tmp_path):
     g = _graph(tmp_path)
     _write_seats(g)
     r = _py(
-        "import hierarchy, sensei, seat_status, viewport\n"
+        "import hierarchy, sensei, viewport\n"
         "from pathlib import Path as _P\n"
         f"ROOT=_P({str(g)!r})\n"
         # every reader that opens the geometry config, run TWICE on a
@@ -446,8 +446,8 @@ def test_no_reader_reemits_file_notice_on_seats_tree(tmp_path):
         "print('h2', len(hierarchy.load_seats(ROOT)))\n"
         "print('se1', [x.get('name') for x in sensei.load_seats(ROOT)])\n"
         "print('se2', len(sensei.load_seats(ROOT)))\n"
-        "_, p = seat_status._load_registry_rows(ROOT); print('ss1', p)\n"
-        "_, p2 = seat_status._load_registry_rows(ROOT); print('ss2', p2)\n"
+        "_, p = hierarchy._load_registry_rows(ROOT); print('ss1', p)\n"
+        "_, p2 = hierarchy._load_registry_rows(ROOT); print('ss2', p2)\n"
         "v1, pv = viewport.load_seat_rows(ROOT, {}); print('vp', pv, len(v1))\n"
         "v2, pv2 = viewport.load_seat_rows(ROOT, {}); print('vp2', pv2, len(v2))\n"
         "a1 = viewport._anchor_index(ROOT, {})\n"

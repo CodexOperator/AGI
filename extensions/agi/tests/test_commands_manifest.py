@@ -316,7 +316,7 @@ _LISTED_CLIS += [
 # verb is declared or excluded BY NAME in `command:commands`.
 _LISTED_CLIS += [
     "lm_bench.py", "payload_boundary.py", "plan_master.py",
-    "reconciler.py", "rolslice.py", "seat_status.py", "stall_detect.py",
+    "reconciler.py", "rolslice.py", "stall_detect.py",
     "success_metrics.py", "telemetry_rollup.py",
     "ws_raw_client.py",
 ]

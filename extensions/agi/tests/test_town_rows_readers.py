@@ -93,10 +93,10 @@ def test_declared_cell_wins_over_the_transitional_map(project):
         project, {"name": "council-core", "town": "core"}) == "core"
 
 
-def test_seat_status_carries_the_row_town(project):
-    """`seat_status.collect` reports each row's REAL town."""
-    import seat_status
-    view = seat_status.collect(project, {})
+def test_the_seat_view_carries_the_row_town(project):
+    """`hierarchy.collect_seats` reports each row's REAL town."""
+    import hierarchy
+    view = hierarchy.collect_seats(project)
     by_name = {s["name"]: s for s in view.seats}
     for name, town in EXPECTED.items():
         assert by_name[name]["town"] == town, name
@@ -105,8 +105,8 @@ def test_seat_status_carries_the_row_town(project):
 def test_keep_view_frame_carries_the_row_town(project):
     """`viewport.sanctuary_frame` groups the rows by that same town."""
     import viewport
-    import seat_status
-    rows = seat_status.collect(project, {}).seats
+    import hierarchy
+    rows = hierarchy.collect_seats(project).seats
     scene = viewport.sanctuary_frame(rows, [], None)
     got = {r["name"]: r["town"] for r in list(scene.spirits) + list(scene.probes)}
     for name, town in EXPECTED.items():
