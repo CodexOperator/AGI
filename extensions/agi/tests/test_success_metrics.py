@@ -210,3 +210,15 @@ def test_the_cli_as_a_subprocess_renders_the_segment_once_results_exist(tmp_path
     assert r.returncode == 0, r.stderr
     out = r.stdout.strip()
     assert out.count("| p1:") == 1 and "| p1: z-ai/glm-5.3-flash $/landed=0.1000 s/landed=100 red=0/5 ran=1/5 rss=unmeasured" in out, out
+
+
+def test_the_notices_trunk_is_derived_through_branches_from_the_ladder_never_spelled(monkeypatch):
+    """The branch-spelling grep's ask for success_metrics.py:452 (trunk red 2): the trunk the prereq notice reads is
+    `branches.derive_names("core", current_season)`, so a new season moves it and no literal names it.
+    MUTANT: the old literal back in `_notices` -> the source assert reads RED."""
+    live = int(success_metrics.season._load_ladder(success_metrics.locations.find_project_root(Path(success_metrics.__file__).resolve()))["current_season"])
+    assert success_metrics._trunk_ref() == f"refs/heads/core/season{live}/main"
+    monkeypatch.setattr(success_metrics.season, "_load_ladder", lambda root: {"current_season": live + 1})
+    assert success_metrics._trunk_ref() == f"refs/heads/core/season{live + 1}/main"
+    src = Path(success_metrics.__file__).read_text(encoding="utf-8")
+    assert "core/season3/main" not in src and "trunk=_trunk_ref()" in src
