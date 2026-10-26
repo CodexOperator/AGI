@@ -12,6 +12,8 @@ $G -C $T/r show \${2:-HEAD}:.agi/nodes/.geometry/engine-post.md|sed -n "/^###* \
 XX
 chmod +x $T/bin/sect
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
+# a fixture edit of a COPY of a trunk file must change it (goal:g7.16.1.11.13.5): a drifted literal is a counted FAIL, never a green row
+chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture-anchor-not-found $3 matched nothing";f=$((f+1));};:;}
 # --- fixture: keys, signers, per-post gitconfig, a repo holding the matrix (rows carry their box cell), per-post bare stores on two boxes, one hub
 mkdir $T/k $T/c;: >$T/allowed
 for u in belam sm alive dg5;do ssh-keygen -q -t ed25519 -N '' -f $T/k/$u -C $u>/dev/null
@@ -31,8 +33,8 @@ cp $R0/.agi/nodes/.geometry/engine-post.md $T/r/.agi/nodes/.geometry/engine-post
 $G -C $T/r add -A;$G -C $T/r -c user.name=x -c user.email=x@x commit -qm fixture;TR=$($G -C $T/r rev-parse HEAD)
 # HEAD moves PAST the pin (read-at-pin): dg5 and dg1 flip to box A, and a() denies everything. Every case below must route by TR, never by HEAD.
 sed -i 's/"name":"dg5","parent":"council","harness":"claude","box":"B"/"name":"dg5","parent":"council","harness":"claude","box":"A"/;s/"name":"dg1","parent":"sm","harness":"claude","box":"B"/"name":"dg1","parent":"sm","harness":"claude","box":"A"/' $T/r/.agi/nodes/.geometry/posts.md
-sed -i 's/^a(){ .*$/a(){ return 1;}/' $T/r/.agi/nodes/.geometry/engine-post.md
-$G -C $T/r add -A;$G -C $T/r -c user.name=x -c user.email=x@x commit -qm 'head past the pin';[ "$($G -C $T/r rev-parse HEAD)" != "$TR" ]||echo "FAIL fixture: HEAD == the pin" 
+cp $T/r/.agi/nodes/.geometry/engine-post.md $T/ep.pre;sed -i 's/^a(){ .*$/a(){ return 1;}/' $T/r/.agi/nodes/.geometry/engine-post.md;chg $T/ep.pre $T/r/.agi/nodes/.geometry/engine-post.md "the a() deny-all sed (HEAD past the pin)"
+$G -C $T/r add -A;$G -C $T/r -c user.name=x -c user.email=x@x commit -qm 'head past the pin';[ "$($G -C $T/r rev-parse HEAD)" != "$TR" ]||{ echo "FAIL fixture: HEAD == the pin";f=$((f+1));}
 $G init -q --bare $T/hub.git
 for b in A B;do mkdir -p $T/$b;done
 for pb in belam:A hang:A alive:A sm:A dg5:B dg1:B;do u=${pb%:*};b=${pb#*:};$G init -q --bare $T/$b/$u/g.git;echo $T/r/.git/objects>$T/$b/$u/g.git/objects/info/alternates;done
@@ -200,6 +202,14 @@ ok u1b-last-signers-line-after-agi-out 'RT=$R0/.agi/nodes/.geometry/engine-root.
 ok n1-no-python '! grep -qi python $CARRY $SIGNERS'
 ok n2-no-cron-no-inbox '! grep -q -E "cron|sessions/inbox" $CARRY $SIGNERS'
 ok n3-no-polling-loop '! grep -q -E "sleep|while :|while true|until " $CARRY'
+# r3 (the census): chg fails closed, and the old print-only test is the mutant
+printf a >$T/c1;printf a >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a drifted literal";echo "f=$f")
+ok "chg-a-matchless-edit-fails-closed: $(echo "$x"|tr '\n' '|'|cut -c1-110)" 'echo "$x"|grep -q "^FAIL fixture-anchor-not-found a drifted literal matched nothing"&&echo "$x"|grep -qx "f=1"'
+printf b >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a live literal";echo "f=$f")
+ok "chg-an-edit-that-changed-bytes-is-silent: $(echo "$x"|tr '\n' '|')" '[ "$x" = "f=0" ]'
+printf a >$T/c2;x=$(chg(){ cmp -s "$1" "$2"&&echo "# NO EDIT in $3";};f=0;chg $T/c1 $T/c2 "the old test";echo "f=$f")
+ok "chg-mutant-the-print-only-test-is-RED: $(echo "$x"|tr '\n' '|'|cut -c1-110) (want f=0 and no FAIL line: the clean row has f=1)" '! echo "$x"|grep -q "^FAIL fixture-anchor-not-found"&&echo "$x"|grep -qx "f=0"'
+ok "chg-the-a()-deny-all-sed-is-measured: chg calls on it $(grep -c 'ch''g [$]T/ep.pre' $0) (want 1)" '[ "$(grep -c "ch""g [$]T/ep.pre" $0)" = 1 ]'
 ok "k8-bytes the carrier piece is <= 3255 B ($(wc -c<$CARRY) B now)" '[ $(wc -c<$CARRY) -le 3255 ]'
 echo "# box-carry $(wc -c<$CARRY) B · agi-signers $(wc -c<$SIGNERS) B"
 exit $f
