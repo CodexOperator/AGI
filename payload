@@ -9241,11 +9241,11 @@ MAIN_POST_CLOSEOUT_STEPS = [
     "push",             # push origin the seat branch (the ONE _stops_push)
 ]
 
-#: PRIME closeout list: the Prime does not merge up / ask itself for a grant;
-#: it lands its g17.1 note and pushes (GOALS.md and its render retired,
-#: goal:g7.16.1.4.1 W-G).
+#: PRIME closeout list: the Prime does not merge up / ask itself for a grant; it pushes. (The `g17_1_note` step
+#: that landed a numbers note on goal:g17.1 RETIRED with goal:g7.16.1.11.46.23 V8a 3a, belam's decision 10-26:
+#: goal:g17.1 was renumbered to goal:g7.16 by da2edb3f9e (09-20, same mint), the step was never re-pointed and
+#: refused at every Prime closeout for 5 weeks; the closeout numbers live in COMPLETE.md, the card and git.)
 PRIME_CLOSEOUT_STEPS = [
-    "g17_1_note",  # write.py goal:g17.1 note <the closeout numbers line>
     "push",        # push origin the checked-out branch
 ]
 
@@ -9819,39 +9819,6 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
         # (True, 'committed')).
         return (False, "refused", out)
 
-    def _g17_1_note():
-        # The Prime's g17.1 note: write.py goal:g17.1 note <the closeout
-        # numbers line / the where-it-stops>, via subprocess (REUSE: the
-        # existing write.py executable, no second note writer). write.py's
-        # grammar is ONE script argument ('note <text>') -- never `note` and
-        # the text as two positionals (which parses 'note' with no arg and
-        # lets the text ride the unused slug slot, exiting rc 2). Resolves
-        # the project from root explicitly (--root + cwd), never the
-        # subprocess cwd. Refuses by name on a non-zero exit.
-        binp = Path(__file__).with_name("write.py")
-        text = _numbers_line(record)
-        argv = [sys.executable, str(binp), "goal:g17.1",
-                f"note {text}", "--root", str(root)]
-        if seat:
-            argv += ["--actor", seat]
-        if role:
-            argv += ["--role", role]
-        # THE CLOSEOUT HAZARD (conjunct 1, measured): this note runs AFTER the
-        # rotation wrote the seat's card, so a stamp on write.py would read as a
-        # FRESH act and re-stale the card the rotation just produced. The marker
-        # makes the subprocess WRITE, never stamp.
-        env = {**os.environ, last_act.INTERNAL_ENV: "1"}
-        try:
-            out = subprocess.run(argv, capture_output=True, text=True,
-                                 timeout=120, cwd=str(root), env=env)
-        except Exception as exc:  # noqa: BLE001
-            return (False, "refused", f"g17_1_note could not run: {exc}")
-        if out.returncode == 0:
-            return (True, "ok", "g17.1 note written (closeout numbers)")
-        return (False, "refused",
-                f"g17_1_note refused: "
-                f"{(out.stderr or out.stdout).strip() or 'nonzero exit'}")
-
     return {
         "post_verify": _verify,
         "merge_up_ask": _ask,
@@ -9863,7 +9830,6 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
         "verify_stamp": _verify_stamp,
         "numbers": _numbers,
         "pathspec_commit": _pathspec_commit,
-        "g17_1_note": _g17_1_note,
     }
 
 
